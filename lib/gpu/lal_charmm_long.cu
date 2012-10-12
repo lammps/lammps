@@ -29,16 +29,21 @@ texture<int2> q_tex;
 #define q_tex q_
 #endif
 
-__kernel void k_charmm_long(__global numtyp4 *x_, __global numtyp4 *lj1,
-                          const int lj_types, __global numtyp *sp_lj_in,
-                          __global int *dev_nbor, __global int *dev_packed,
-                          __global acctyp4 *ans, __global acctyp *engv, 
-                          const int eflag, const int vflag, const int inum, 
-                          const int nbor_pitch, __global numtyp *q_,
-                          const numtyp cut_coulsq, const numtyp qqrd2e,
-                          const numtyp g_ewald, const numtyp denom_lj,
-                          const numtyp cut_bothsq, const numtyp cut_ljsq,
-                          const numtyp cut_lj_innersq, const int t_per_atom) {
+__kernel void k_charmm_long(const __global numtyp4 *restrict x_,
+                            const __global numtyp4 *restrict lj1,
+                            const int lj_types, 
+                            const __global numtyp *restrict sp_lj_in,
+                            const __global int *dev_nbor,
+                            const __global int *dev_packed,
+                            __global acctyp4 *restrict ans,
+                            __global acctyp *restrict engv, 
+                            const int eflag, const int vflag, const int inum, 
+                            const int nbor_pitch, 
+                            const __global numtyp *restrict q_,
+                            const numtyp cut_coulsq, const numtyp qqrd2e,
+                            const numtyp g_ewald, const numtyp denom_lj,
+                            const numtyp cut_bothsq, const numtyp cut_ljsq,
+                            const numtyp cut_lj_innersq, const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
 
@@ -61,7 +66,7 @@ __kernel void k_charmm_long(__global numtyp4 *x_, __global numtyp4 *lj1,
     virial[i]=(acctyp)0;
 
   if (ii<inum) {
-    __global int *nbor, *list_end;
+    const __global int *nbor, *list_end;
     int i, numj, n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,list_end,nbor);
@@ -152,17 +157,21 @@ __kernel void k_charmm_long(__global numtyp4 *x_, __global numtyp4 *lj1,
   } // if ii
 }
 
-__kernel void k_charmm_long_fast(__global numtyp4 *x_, __global numtyp2 *ljd_in,
-                               __global numtyp* sp_lj_in, __global int *dev_nbor, 
-                               __global int *dev_packed, __global acctyp4 *ans,
-                               __global acctyp *engv, const int eflag,
-                               const int vflag, const int inum,
-                               const int nbor_pitch, __global numtyp *q_,
-                               const numtyp cut_coulsq, const numtyp qqrd2e,
-                               const numtyp g_ewald, const numtyp denom_lj,
-                               const numtyp cut_bothsq, const numtyp cut_ljsq, 
-                               const numtyp cut_lj_innersq,
-                               const int t_per_atom) {
+__kernel void k_charmm_long_fast(const __global numtyp4 *restrict x_, 
+                                 const __global numtyp2 *restrict ljd_in,
+                                 const __global numtyp *restrict sp_lj_in, 
+                                 const __global int *dev_nbor, 
+                                 const __global int *dev_packed, 
+                                 __global acctyp4 *restrict ans,
+                                 __global acctyp *restrict engv, 
+                                 const int eflag, const int vflag, 
+                                 const int inum, const int nbor_pitch, 
+                                 const __global numtyp *restrict q_,
+                                 const numtyp cut_coulsq, const numtyp qqrd2e,
+                                 const numtyp g_ewald, const numtyp denom_lj,
+                                 const numtyp cut_bothsq, const numtyp cut_ljsq, 
+                                 const numtyp cut_lj_innersq,
+                                 const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
 
@@ -170,7 +179,8 @@ __kernel void k_charmm_long_fast(__global numtyp4 *x_, __global numtyp2 *ljd_in,
   __local numtyp sp_lj[8];
   if (tid<8)
     sp_lj[tid]=sp_lj_in[tid];
-  ljd[tid]=ljd_in[tid];
+  if (tid<MAX_BIO_SHARED_TYPES)
+    ljd[tid]=ljd_in[tid];
   if (tid+BLOCK_BIO_PAIR<MAX_BIO_SHARED_TYPES)
     ljd[tid+BLOCK_BIO_PAIR]=ljd_in[tid+BLOCK_BIO_PAIR];
   
@@ -185,7 +195,7 @@ __kernel void k_charmm_long_fast(__global numtyp4 *x_, __global numtyp2 *ljd_in,
   __syncthreads();
   
   if (ii<inum) {
-    __global int *nbor, *list_end;
+    const __global int *nbor, *list_end;
     int i, numj, n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,list_end,nbor);

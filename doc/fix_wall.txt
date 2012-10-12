@@ -34,7 +34,10 @@ keyword = {units} or {fld} :l
     {box} = the wall position is defined in simulation box units
   {fld} value = {yes} or {no}
     {yes} = invoke the wall constraint to be compatible with implicit FLD
-    {yes} = invoke the wall constraint in the normal way :pre
+    {no} = invoke the wall constraint in the normal way :pre
+  {pbc} value = {yes} or {no}
+    {yes} = allow periodic boundary in a wall dimension
+    {no} = require non-perioidic boundaries in any wall dimension :pre
 :ule
 
 [Examples:]
@@ -159,6 +162,19 @@ to include the wall force in its calculations.  If the setting is
 {no}, wall forces are imposed after pairwise interactions, in the
 usual manner.
 
+The {pbc} keyword can be used with a {yes} setting to allow walls to
+be specified in a periodic dimension.  See the
+"boundary"_boundary.html command for options on simulation box
+boundaries.  The default for {pbc} is {no}, which means the system
+must be non-periodic when using a wall.  But you may wish to use a
+periodic box.  E.g. to allow some particles to interact with the wall
+via the fix group-ID, and others to pass through it and wrap around a
+periodic box.  In this case you should insure that the wall if
+sufficiently far enough away from the box boundary.  If you do not,
+then particles may interact with both the wall and with periodic
+images on the other side of the box, which is probably not what you
+want.
+
 :line
 
 Here are examples of variable definitions that move the wall position
@@ -229,9 +245,7 @@ included in the total potential energy of the system (the quantity
 being minimized), you MUST enable the "fix_modify"_fix_modify.html
 {energy} option for this fix.
 
-[Restrictions:]
-
-Any dimension (xyz) that has a wall must be non-periodic.
+[Restrictions:] none
 
 [Related commands:]
 
@@ -241,4 +255,4 @@ Any dimension (xyz) that has a wall must be non-periodic.
 
 [Default:]
 
-The option defaults are no velocity, no wiggle, and units = lattice.
+The option defaults units = lattice, fld = no, and pbc = no.

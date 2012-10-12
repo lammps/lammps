@@ -37,12 +37,15 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCharmmCoulMSM::PairLJCharmmCoulMSM(LAMMPS *lmp) : PairLJCharmmCoulLong(lmp)
+PairLJCharmmCoulMSM::PairLJCharmmCoulMSM(LAMMPS *lmp) : 
+  PairLJCharmmCoulLong(lmp)
 {
-
+  ewaldflag = pppmflag = 0;
+  msmflag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
+
 void PairLJCharmmCoulMSM::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype,itable;

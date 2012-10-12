@@ -41,15 +41,18 @@ texture<int2> q_tex;
 // Number of pencils per block for charge spread
 #define BLOCK_PENCILS (PPPM_BLOCK_1D/PENCIL_SIZE)
 
-__kernel void particle_map(__global numtyp4 *x_,  __global numtyp *q_,
+__kernel void particle_map(const __global numtyp4 *restrict x_,  
+                           const __global numtyp *restrict q_,
                            const grdtyp delvolinv, const int nlocal, 
-                           __global int *counts, __global grdtyp4 *ans, 
+                           __global int *restrict counts, 
+                           __global grdtyp4 *restrict ans, 
                            const grdtyp b_lo_x, const grdtyp b_lo_y,
                            const grdtyp b_lo_z, const grdtyp delxinv,
                            const grdtyp delyinv, const grdtyp delzinv,
                            const int nlocal_x, const int nlocal_y,
                            const int nlocal_z, const int atom_stride,
-                           const int max_atoms, __global int *error) {
+                           const int max_atoms, 
+                           __global int *restrict error) {
   // ii indexes the two interacting particles in gi
   int ii=GLOBAL_ID_X;
 
@@ -97,8 +100,10 @@ __kernel void particle_map(__global numtyp4 *x_,  __global numtyp *q_,
 
 /* --------------------------- */
 
-__kernel void make_rho(__global int *counts, __global grdtyp4 *atoms,
-                       __global grdtyp *brick, __global grdtyp *_rho_coeff,
+__kernel void make_rho(const __global int *restrict counts, 
+                       const __global grdtyp4 *restrict atoms,
+                       __global grdtyp *restrict brick, 
+                       const __global grdtyp *restrict _rho_coeff,
                        const int atom_stride, const int npts_x,
                        const int npts_y, const int npts_z, const int nlocal_x,
                        const int nlocal_y, const int nlocal_z,
@@ -192,15 +197,17 @@ __kernel void make_rho(__global int *counts, __global grdtyp4 *atoms,
   }
 }
 
-__kernel void interp(__global numtyp4 *x_, __global numtyp *q_,
-                     const int nlocal, __global grdtyp4 *brick,
-                     __global grdtyp *_rho_coeff, const int npts_x,
-                     const int npts_yx, const grdtyp b_lo_x,
+__kernel void interp(const __global numtyp4 *restrict x_, 
+                     const __global numtyp *restrict q_,
+                     const int nlocal, 
+                     const __global grdtyp4 *restrict brick,
+                     const __global grdtyp *restrict _rho_coeff, 
+                     const int npts_x, const int npts_yx, const grdtyp b_lo_x,
                      const grdtyp b_lo_y, const grdtyp b_lo_z,
                      const grdtyp delxinv,  const grdtyp delyinv,
                      const grdtyp delzinv, const int order,
                      const int order2, const grdtyp qqrd2e_scale, 
-                     __global acctyp4 *ans) {
+                     __global acctyp4 *restrict ans) {
   __local grdtyp rho_coeff[PPPM_MAX_SPLINE*PPPM_MAX_SPLINE];
   __local grdtyp rho1d_0[PPPM_MAX_SPLINE][PPPM_BLOCK_1D];
   __local grdtyp rho1d_1[PPPM_MAX_SPLINE][PPPM_BLOCK_1D];

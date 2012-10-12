@@ -80,7 +80,7 @@ int BaseEllipsoidT::init_base(const int nlocal, const int nall,
   ucl_device=device->gpu;
   atom=&device->atom;
 
-  _block_size=device->pair_block_size();
+  _block_size=device->block_ellipse();
   compile_kernels(*ucl_device,ellipsoid_program,lj_program,k_name,ellip_sphere);
 
   // Initialize host-device load balancer
@@ -118,9 +118,8 @@ int BaseEllipsoidT::init_base(const int nlocal, const int nall,
     ans->force.zero();
 
   // Memory for ilist ordered by particle type
-  if (host_olist.alloc(nbor->max_atoms(),*ucl_device)==UCL_SUCCESS)
-    return 0;
-  else return -3;
+  if (host_olist.alloc(nbor->max_atoms(),*ucl_device)!=UCL_SUCCESS)
+    return -3;
 
   _max_an_bytes=ans->gpu_bytes()+nbor->gpu_bytes();
 

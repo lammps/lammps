@@ -17,7 +17,8 @@
 #include "lal_preprocessor.h"
 #endif
 
-__kernel void kernel_unpack(__global int *dev_nbor, __global int *dev_ij,
+__kernel void kernel_unpack(__global int *dev_nbor, 
+                            const __global int *dev_ij,
                             const int inum, const int t_per_atom) {
   int tid=THREAD_ID_X;
   int offset=tid & (t_per_atom-1);
@@ -27,8 +28,8 @@ __kernel void kernel_unpack(__global int *dev_nbor, __global int *dev_ij,
     __global int *nbor=dev_nbor+ii+inum;
     int numj=*nbor;
     nbor+=inum;
-    __global int *list=dev_ij+*nbor;
-    __global int *list_end=list+numj;
+    const __global int *list=dev_ij+*nbor;
+    const __global int *list_end=list+numj;
     list+=offset;
     nbor+=fast_mul(ii,t_per_atom-1)+offset;
     int stride=fast_mul(t_per_atom,inum);

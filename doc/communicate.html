@@ -63,8 +63,8 @@ skin distance.  If the specified Rcut is greater than the neighbor
 cutoff, then extra ghost atoms will be acquired.  If it is smaller,
 the ghost cutoff is set to the neighbor cutoff.
 </P>
-<P>These are simulation scenarios in which it may be useful to set a
-ghost cutoff > neighbor cutoff:
+<P>These are simulation scenarios in which it may be useful or even
+necessary to set a ghost cutoff > neighbor cutoff:
 </P>
 <UL><LI>a single polymer chain with bond interactions, but no pairwise interactions
 <LI>bonded interactions (e.g. dihedrals) extend further than the pairwise cutoff
@@ -73,13 +73,22 @@ ghost cutoff > neighbor cutoff:
 <P>In the first scenario, a pairwise potential may not be defined.  Thus
 the pairwise neighbor cutoff will be 0.0.  But ghost atoms are still
 needed for computing bond, angle, etc interactions between atoms on
-different processors.  The appropriate ghost cutoff depends on the
-<A HREF = "newton.html">newton bond</A> setting.  For newton bond <I>off</I>, the
-distance needs to be the furthest distance between any two atoms in
-the bond, angle, etc.  E.g. the distance between 1-4 atoms in a
-dihedral.  For newton bond <I>on</I>, the distance between the central atom
-in the bond, angle, etc and any other atom is sufficient.  E.g. the
-distance between 2-4 atoms in a dihedral.
+different processors or when the interaction straddles a periodic
+boundary.
+</P>
+<P>IMPORTANT NOTE: This means that if you are running on a single
+processor without a pair style, and a bonded interaction straddles a
+periodic boundary, and you do not specify a ghost cutoff, then LAMMPS
+will "find" the atoms in the bonded interaction that are across the
+simulation box from each other, which will lead to bad dynamics.
+</P>
+<P>The appropriate ghost cutoff depends on the <A HREF = "newton.html">newton bond</A>
+setting.  For newton bond <I>off</I>, the distance needs to be the furthest
+distance between any two atoms in the bond, angle, etc.  E.g. the
+distance between 1-4 atoms in a dihedral.  For newton bond <I>on</I>, the
+distance between the central atom in the bond, angle, etc and any
+other atom is sufficient.  E.g. the distance between 2-4 atoms in a
+dihedral.
 </P>
 <P>In the second scenario, a pairwise potential is defined, but its
 neighbor cutoff is not sufficiently long enough to enable bond, angle,

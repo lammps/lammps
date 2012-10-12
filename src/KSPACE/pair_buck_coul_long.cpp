@@ -39,7 +39,10 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairBuckCoulLong::PairBuckCoulLong(LAMMPS *lmp) : Pair(lmp) {}
+PairBuckCoulLong::PairBuckCoulLong(LAMMPS *lmp) : Pair(lmp)
+{
+  ewaldflag = pppmflag = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -222,7 +225,8 @@ void PairBuckCoulLong::settings(int narg, char **arg)
 
 void PairBuckCoulLong::coeff(int narg, char **arg)
 {
-  if (narg < 5 || narg > 6) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg < 5 || narg > 6) 
+    error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -326,7 +330,7 @@ void PairBuckCoulLong::init_style()
   // insure use of KSpace long-range solver, set g_ewald
 
   if (force->kspace == NULL)
-    error->all(FLERR,"Pair style is incompatible with KSpace style");
+    error->all(FLERR,"Pair style requres a KSpace style");
   g_ewald = force->kspace->g_ewald;
 
   neighbor->request(this);
@@ -394,6 +398,7 @@ void PairBuckCoulLong::write_restart_settings(FILE *fp)
   fwrite(&cut_coul,sizeof(double),1,fp);
   fwrite(&offset_flag,sizeof(int),1,fp);
   fwrite(&mix_flag,sizeof(int),1,fp);
+  fwrite(&tail_flag,sizeof(int),1,fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -407,11 +412,13 @@ void PairBuckCoulLong::read_restart_settings(FILE *fp)
     fread(&cut_coul,sizeof(double),1,fp);
     fread(&offset_flag,sizeof(int),1,fp);
     fread(&mix_flag,sizeof(int),1,fp);
+    fread(&tail_flag,sizeof(int),1,fp);
   }
   MPI_Bcast(&cut_lj_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&cut_coul,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
+  MPI_Bcast(&tail_flag,1,MPI_INT,0,world);
 }
 
 /* ---------------------------------------------------------------------- */

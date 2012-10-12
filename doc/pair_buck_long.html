@@ -1,0 +1,179 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>pair_style buck/long/coul/long command 
+</H3>
+<H3>pair_style buck/long/coul/long/omp command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>pair_style buck/long/coul/long flag_buck flag_coul cutoff (cutoff2) 
+</PRE>
+<UL><LI>flag_buck = <I>long</I> or <I>cut</I> 
+
+<PRE>  <I>long</I> = use Kspace long-range summation for the dispersion term 1/r^6
+  <I>cut</I> = use a cutoff 
+</PRE>
+<LI>flag_coul = <I>long</I> or <I>off</I> 
+
+<PRE>  <I>long</I> = use Kspace long-range summation for the Coulombic term 1/r
+  <I>off</I> = omit the Coulombic term 
+</PRE>
+<LI>cutoff = global cutoff for Buckingham (and Coulombic if only 1 cutoff) (distance units) 
+
+<LI>cutoff2 = global cutoff for Coulombic (optional) (distance units) 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>pair_style buck/long/coul/long cut off 2.5
+pair_style buck/long/coul/long cut long 2.5 4.0
+pair_style buck/long/coul/long long long 2.5 4.0
+pair_coeff * * 1 1
+pair_coeff 1 1 1 3 4 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>The <I>buck/long/coul/long</I> style computes a Buckingham potential (exp/6
+instead of Lennard-Jones 12/6) and Coulombic potential, given by
+</P>
+<CENTER><IMG SRC = "Eqs/pair_buck.jpg">
+</CENTER>
+<CENTER><IMG SRC = "Eqs/pair_coulomb.jpg">
+</CENTER>
+<P>Rc is the cutoff.  If one cutoff is specified in the pair_style
+command, it is used for both the Buckingham and Coulombic terms.  If
+two cutoffs are specified, they are used as cutoffs for the Buckingham
+and Coulombic terms respectively.
+</P>
+<P>The purpose of this pair style is to capture long-range interactions
+resulting from both attractive 1/r^6 Buckingham and Coulombic 1/r
+interactions.  This is done by use of the <I>flag_buck</I> and <I>flag_coul</I>
+settings.  The "<A HREF = "#Ismail">Ismail</A> paper has more details on when it is
+appropriate to include long-range 1/r^6 interactions, using this
+potential.
+</P>
+<P>If <I>flag_buck</I> is set to <I>long</I>, no cutoff is used on the Buckingham
+1/r^6 dispersion term.  The long-range portion is calculated by using
+the <A HREF = "kspace_style.html">kspace_style ewald/n</A> command.  The specified
+Buckingham cutoff then determines which portion of the Buckingham
+interactions are computed directly by the pair potential versus which
+part is computed in reciprocal space via the Kspace style.  If
+<I>flag_buck</I> is set to <I>cut</I>, the Buckingham interactions are simply
+cutoff, as with <A HREF = "pair_buck.html">pair_style buck</A>.
+</P>
+<P>If <I>flag_coul</I> is set to <I>long</I>, no cutoff is used on the Coulombic
+interactions.  The long-range portion is calculated by using any
+style, including <I>ewald/n</I> of the <A HREF = "kspace_style.html">kspace_style</A>
+command.  Note that if <I>flag_buck</I> is also set to long, then only the
+<I>ewald/n</I> Kspace style can perform the long-range calculations for
+both the Buckingham and Coulombic interactions.  If <I>flag_coul</I> is set
+to <I>off</I>, Coulombic interactions are not computed.
+</P>
+<P>The following coefficients must be defined for each pair of atoms
+types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
+above, or in the data file or restart files read by the
+<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
+commands:
+</P>
+<UL><LI>A (energy units)
+<LI>rho (distance units)
+<LI>C (energy-distance^6 units)
+<LI>cutoff (distance units)
+<LI>cutoff2 (distance units) 
+</UL>
+<P>The second coefficient, rho, must be greater than zero.
+</P>
+<P>The latter 2 coefficients are optional.  If not specified, the global
+Buckingham and Coulombic cutoffs specified in the pair_style command
+are used.  If only one cutoff is specified, it is used as the cutoff
+for both Buckingham and Coulombic interactions for this type pair.  If
+both coefficients are specified, they are used as the Buckingham and
+Coulombic cutoffs for this type pair.  Note that if you are using
+<I>flag_buck</I> set to <I>long</I>, you cannot specify a Buckingham cutoff for
+an atom type pair, since only one global Buckingham cutoff is allowed.
+Similarly, if you are using <I>flag_coul</I> set to <I>long</I>, you cannot
+specify a Coulombic cutoff for an atom type pair, since only one
+global Coulombic cutoff is allowed.
+</P>
+<HR>
+
+<P>Styles with a <I>cuda</I>, <I>gpu</I>, <I>omp</I>, or <I>opt</I> suffix are functionally
+the same as the corresponding style without the suffix.  They have
+been optimized to run faster, depending on your available hardware, as
+discussed in <A HREF = "Section_accelerate.html">Section_accelerate</A> of the
+manual.  The accelerated styles take the same arguments and should
+produce the same results, except for round-off and precision issues.
+</P>
+<P>These accelerated styles are part of the USER-CUDA, GPU, USER-OMP and OPT
+packages, respectively.  They are only enabled if LAMMPS was built with
+those packages.  See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A>
+section for more info.
+</P>
+<P>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <A HREF = "Section_start.html#start_7">-suffix command-line
+switch</A> when you invoke LAMMPS, or you can
+use the <A HREF = "suffix.html">suffix</A> command in your input script.
+</P>
+<P>See <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual for
+more instructions on how to use the accelerated styles effectively.
+</P>
+<HR>
+
+<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
+</P>
+<P>This pair styles does not support mixing.  Thus, coefficients for all
+I,J pairs must be specified explicitly.
+</P>
+<P>This pair style supports the <A HREF = "pair_modify.html">pair_modify</A> shift
+option for the energy of the exp() and 1/r^6 portion of the pair
+interaction, assuming <I>flag_buck</I> is <I>cut</I>.
+</P>
+<P>This pair style does not support the <A HREF = "pair_modify.html">pair_modify</A>
+shift option for the energy of the Buckingham portion of the pair
+interaction.
+</P>
+<P>This pair style does not support the <A HREF = "pair_modify.html">pair_modify</A>
+table option since a tabulation capability has not yet been added to
+this potential.
+</P>
+<P>This pair style write its information to <A HREF = "restart.html">binary restart
+files</A>, so pair_style and pair_coeff commands do not need
+to be specified in an input script that reads a restart file.
+</P>
+<P>This pair style supports the use of the <I>inner</I>, <I>middle</I>, and <I>outer</I>
+keywords of the <A HREF = "run_style.html">run_style respa</A> command, meaning the
+pairwise forces can be partitioned by distance at different levels of
+the rRESPA hierarchy.  See the <A HREF = "run_style.html">run_style</A> command for
+details.
+</P>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>This style is part of the KSPACE package.  It is only enabled if
+LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.  Note that
+the KSPACE package is installed by default.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_coeff.html">pair_coeff</A>
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "Ismail"></A>
+
+<P><B>(Ismail)</B> Ismail, Tsige, In 't Veld, Grest, Molecular Physics
+(accepted) (2007).
+</P>
+</HTML>

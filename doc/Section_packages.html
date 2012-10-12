@@ -109,7 +109,6 @@ E.g. "peptide" refers to the examples/peptide directory.
 <TR ALIGN="center"><TD >USER-COLVARS</TD><TD > collective variables</TD><TD > Fiorin & Henin & Kohlmeyer (3)</TD><TD > <A HREF = "fix_colvars.html">fix colvars</A></TD><TD > USER/colvars</TD><TD > <A HREF = "colvars">colvars</A></TD><TD > lib/colvars</TD></TR>
 <TR ALIGN="center"><TD >USER-CUDA</TD><TD > NVIDIA GPU styles</TD><TD > Christian Trott (U Tech Ilmenau)</TD><TD > <A HREF = "Section_accelerate.html#acc_7">Section accelerate</A></TD><TD > USER/cuda</TD><TD > -</TD><TD > lib/cuda</TD></TR>
 <TR ALIGN="center"><TD >USER-EFF</TD><TD > electron force field</TD><TD > Andres Jaramillo-Botero (Caltech)</TD><TD > <A HREF = "pair_eff.html">pair_style eff/cut</A></TD><TD > USER/eff</TD><TD > <A HREF = "http://lammps.sandia.gov/movies.html#eff">eff</A></TD><TD > -</TD></TR>
-<TR ALIGN="center"><TD >USER-EWALDN</TD><TD > Ewald for 1/R^n</TD><TD > Pieter in' t Veld (BASF)</TD><TD > <A HREF = "kspace_style.html">kspace_style</A></TD><TD > -</TD><TD > -</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >USER-MOLFILE</TD><TD > <A HREF = "http://www.ks.uiuc.edu/Research/vmd">VMD</A> molfile plug-ins</TD><TD > Axel Kohlmeyer (Temple U)</TD><TD > <A HREF = "dump_molfile.html">dump molfile</A></TD><TD > -</TD><TD > -</TD><TD > lib/molfile</TD></TR>
 <TR ALIGN="center"><TD >USER-OMP</TD><TD > OpenMP threaded styles</TD><TD > Axel Kohlmeyer (Temple U)</TD><TD > <A HREF = "Section_accelerate.html#acc_5">Section accelerate</A></TD><TD > -</TD><TD > -</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >USER-REAXC</TD><TD > C version of ReaxFF</TD><TD > Metin Aktulga (LBNL)</TD><TD > <A HREF = "pair_reax_c.html">pair_style reaxc</A></TD><TD > reax</TD><TD > -</TD><TD > -</TD></TR>
@@ -359,40 +358,6 @@ examples/USER/eff.
 <P>The person who created this package is Andres Jaramillo-Botero at
 CalTech (ajaramil at wag.caltech.edu).  Contact him directly if you
 have questions.
-</P>
-<HR>
-
-<H4>USER-EWALDN package 
-</H4>
-<P>This package implements 3 commands which can be used in a LAMMPS input
-script: pair_style lj/coul, pair_style buck/coul, and kspace_style
-ewald/n.
-</P>
-<P>The "kspace_style ewald/n" command is similar to standard Ewald for
-charges, but also enables the Lennard-Jones interaction, or any 1/r^N
-interaction to be of infinite extent, instead of being cutoff.  LAMMPS
-pair potentials for long-range Coulombic interactions, such as
-lj/cut/coul/long can be used with ewald/n.  The two new pair_style
-commands provide the modifications for the short-range LJ and
-Buckingham interactions that can also be used with ewald/n.
-</P>
-<P>Two other advantages of kspace_style ewald/n are that 
-</P>
-<P>a) it can be used with non-orthogonal (triclinic symmetry) simulation
-boxes
-</P>
-<P>b) it can include long-range summations not just for Coulombic
-interactions (1/r), but also for dispersion interactions (1/r^6) and
-dipole interactions (1/r^3).
-</P>
-<P>Neither of these options is currently possible for other kspace styles
-such as PPPM and ewald.
-</P>
-<P>See the doc pages for these commands for details.
-</P>
-<P>The person who created these files is Pieter in' t Veld while at
-Sandia.  He is now at BASF (pieter.intveld at basf.com).  Contact him
-directly if you have questions.
 </P>
 <HR>
 

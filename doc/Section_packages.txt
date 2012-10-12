@@ -101,7 +101,6 @@ USER-CG-CMM, coarse-graining model, Axel Kohlmeyer (Temple U), "pair_style lj/sd
 USER-COLVARS, collective variables, Fiorin & Henin & Kohlmeyer (3), "fix colvars"_fix_colvars.html, USER/colvars, "colvars"_colvars, lib/colvars
 USER-CUDA, NVIDIA GPU styles, Christian Trott (U Tech Ilmenau), "Section accelerate"_Section_accelerate.html#acc_7, USER/cuda, -, lib/cuda
 USER-EFF, electron force field, Andres Jaramillo-Botero (Caltech), "pair_style eff/cut"_pair_eff.html, USER/eff, "eff"_eff, -
-USER-EWALDN, Ewald for 1/R^n, Pieter in' t Veld (BASF), "kspace_style"_kspace_style.html, -, -, -
 USER-MOLFILE, "VMD"_VMD molfile plug-ins, Axel Kohlmeyer (Temple U), "dump molfile"_dump_molfile.html, -, -, lib/molfile
 USER-OMP, OpenMP threaded styles, Axel Kohlmeyer (Temple U), "Section accelerate"_Section_accelerate.html#acc_5, -, -, -
 USER-REAXC, C version of ReaxFF, Metin Aktulga (LBNL), "pair_style reaxc"_pair_reax_c.html, reax, -, -
@@ -346,40 +345,6 @@ There are auxiliary tools for using this package in tools/eff.
 The person who created this package is Andres Jaramillo-Botero at
 CalTech (ajaramil at wag.caltech.edu).  Contact him directly if you
 have questions.
-
-:line
-
-USER-EWALDN package :h4
-
-This package implements 3 commands which can be used in a LAMMPS input
-script: pair_style lj/coul, pair_style buck/coul, and kspace_style
-ewald/n.
-
-The "kspace_style ewald/n" command is similar to standard Ewald for
-charges, but also enables the Lennard-Jones interaction, or any 1/r^N
-interaction to be of infinite extent, instead of being cutoff.  LAMMPS
-pair potentials for long-range Coulombic interactions, such as
-lj/cut/coul/long can be used with ewald/n.  The two new pair_style
-commands provide the modifications for the short-range LJ and
-Buckingham interactions that can also be used with ewald/n.
-
-Two other advantages of kspace_style ewald/n are that 
-
-a) it can be used with non-orthogonal (triclinic symmetry) simulation
-boxes
-
-b) it can include long-range summations not just for Coulombic
-interactions (1/r), but also for dispersion interactions (1/r^6) and
-dipole interactions (1/r^3).
-
-Neither of these options is currently possible for other kspace styles
-such as PPPM and ewald.
-
-See the doc pages for these commands for details.
-
-The person who created these files is Pieter in' t Veld while at
-Sandia.  He is now at BASF (pieter.intveld at basf.com).  Contact him
-directly if you have questions.
 
 :line
 

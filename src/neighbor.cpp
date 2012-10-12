@@ -362,6 +362,7 @@ void Neighbor::init()
   }
 
   // exclusion lists for type, group, molecule settings from neigh_modify
+  // warn if exclusions used with KSpace solver
 
   n = atom->ntypes;
 
@@ -404,6 +405,10 @@ void Neighbor::init()
     for (i = 0; i < nex_mol; i++)
       ex_mol_bit[i] = group->bitmask[ex_mol_group[i]];
   }
+
+  if (exclude && force->kspace && me == 0)
+    error->warning(FLERR,"Neighbor exclusions used with KSpace solver "
+                   "may give inconsistent Coulombic energies");
 
   // ------------------------------------------------------------------
   // pairwise lists

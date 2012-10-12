@@ -18,7 +18,6 @@ CUDA_INSTALL_PATH = $(HOME)/cuda
 # e.g. in Gentoo
 # CUDA_INSTALL_PATH = /opt/cuda
 
-
 #//////////////////////////////////////////////////////////////////////////////////////////////
 # no need to change anything below this line
 #//////////////////////////////////////////////////////////////////////////////////////////////
@@ -43,7 +42,7 @@ ifeq ($(strip $(dbg)), 1)
 	CUDA_FLAGS += -D_DEBUG -g
 	NVCC_FLAGS += -g -G 
 else
-	NVCC_FLAGS += --compiler-options -fno-strict-aliasing -O2
+	NVCC_FLAGS += --compiler-options -fno-strict-aliasing -O3
 endif
 
 # skip timing on Mac and Windows manually
@@ -97,8 +96,22 @@ else
 	   NVCC_FLAGS += -ftz=true -prec-div=false -prec-sqrt=false
 	   SMVERSIONFLAGS	:= -arch sm_21
      else
-       CUDA_FLAGS += -DCUDA_ARCH=99  
-       SMVERSIONFLAGS	:= -arch sm_13
+       ifeq ($(strip $(arch)), 30)
+           CUDA_FLAGS += -DCUDA_ARCH=20
+           #NVCC_FLAGS += -ftz=false -prec-div=true -prec-sqrt=true
+           NVCC_FLAGS += -ftz=true -prec-div=false -prec-sqrt=false
+           SMVERSIONFLAGS       := -arch sm_30
+       else
+         ifeq ($(strip $(arch)), 35)
+           CUDA_FLAGS += -DCUDA_ARCH=20
+           #NVCC_FLAGS += -ftz=false -prec-div=true -prec-sqrt=true
+           NVCC_FLAGS += -ftz=true -prec-div=false -prec-sqrt=false
+           SMVERSIONFLAGS       := -arch sm_35
+         else         
+           CUDA_FLAGS += -DCUDA_ARCH=99  
+           SMVERSIONFLAGS	:= -arch sm_13
+         endif
+       endif
      endif
   endif
 endif

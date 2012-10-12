@@ -94,7 +94,8 @@ verlet/split
 processor mapping via processors numa command
 load-balancing: balance and fix balance
 processor command for layout
-OMP when lots of cores :ul
+OMP when lots of cores
+proxy/OMP for PPPM :ul
 
 :line
 
@@ -347,7 +348,12 @@ NOTE:
   give command line switches in examples
 
 
+I am not very clear to the meaning of  "Max Mem / Proc"
+in the "GPU Time Info (average)".
+Is it the maximal of GPU memory used by one CPU core?
 
+It is the maximum memory used at one time on the GPU for data storage by
+a single MPI process. - Mike
 
 
 [Hardware and software requirements:]

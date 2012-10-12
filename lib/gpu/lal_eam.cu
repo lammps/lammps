@@ -52,8 +52,10 @@ texture<int4> z2r_sp2_tex;
 #define MIN(A,B) ((A) < (B) ? (A) : (B))
 #define MAX(A,B) ((A) > (B) ? (A) : (B))
 
+#if (ARCH < 300)
+
 #define store_energy_fp(rho,energy,ii,inum,tid,t_per_atom,offset,           \
-                        eflag,vflag,engv,rdrho,nrho,i)                      \
+                        eflag,vflag,engv,rdrho,nrho,i,rhomax)               \
   if (t_per_atom>1) {                                                       \
     __local acctyp red_acc[BLOCK_PAIR];                                     \
     red_acc[tid]=rho;                                                       \
@@ -76,10 +78,11 @@ texture<int4> z2r_sp2_tex;
     if (eflag>0) {                                                          \
       fetch4(coeff,index,frho_sp2_tex);                                     \
       energy = ((coeff.x*p + coeff.y)*p + coeff.z)*p + coeff.w;             \
+      if (rho > rhomax) energy += fp*(rho-rhomax);                          \
       engv[ii]=(acctyp)2.0*energy;                                          \
     }                                                                       \
   }
-
+  
 #define store_answers_eam(f, energy, virial, ii, inum, tid, t_per_atom,     \
                       offset, elag, vflag, ans, engv)                       \
   if (t_per_atom>1) {                                                       \
@@ -125,18 +128,80 @@ texture<int4> z2r_sp2_tex;
     ans[ii]=f;                                                              \
   }
 
-__kernel void k_energy(__global numtyp4 *x_, __global int2 *type2rhor_z2r,
-                            __global int *type2frho, 
-                            __global numtyp4 *rhor_spline2, 
-                            __global numtyp4 *frho_spline1,
-                            __global numtyp4 *frho_spline2,
-                            __global int *dev_nbor, __global int *dev_packed,
-                            __global numtyp *fp_, __global acctyp *engv, 
-                            const int eflag, const int inum, 
-                            const int nbor_pitch, const int ntypes, 
-                            const numtyp cutforcesq, const numtyp rdr, 
-                            const numtyp rdrho, const int nrho, const int nr,
-                            const int t_per_atom) {
+#else
+
+#define store_energy_fp(rho,energy,ii,inum,tid,t_per_atom,offset,           \
+                        eflag,vflag,engv,rdrho,nrho,i,rhomax)               \
+  if (t_per_atom>1) {                                                       \
+    for (unsigned int s=t_per_atom/2; s>0; s>>=1)                           \
+        rho += shfl_xor(rho, s, t_per_atom);                                \
+  }                                                                         \
+  if (offset==0) {                                                          \
+    numtyp p = rho*rdrho + (numtyp)1.0;                                     \
+    int m=p;                                                                \
+    m = MAX(1,MIN(m,nrho-1));                                               \
+    p -= m;                                                                 \
+    p = MIN(p,(numtyp)1.0);                                                 \
+    int index = type2frho[itype]*(nrho+1)+m;                                \
+    numtyp4 coeff; fetch4(coeff,index,frho_sp1_tex);                        \
+    numtyp fp = (coeff.x*p + coeff.y)*p + coeff.z;                          \
+    fp_[i]=fp;                                                              \
+    if (eflag>0) {                                                          \
+      fetch4(coeff,index,frho_sp2_tex);                                     \
+      energy = ((coeff.x*p + coeff.y)*p + coeff.z)*p + coeff.w;             \
+      if (rho > rhomax) energy += fp*(rho-rhomax);                          \
+      engv[ii]=(acctyp)2.0*energy;                                          \
+    }                                                                       \
+  }
+
+#define store_answers_eam(f, energy, virial, ii, inum, tid, t_per_atom,     \
+                          offset, eflag, vflag, ans, engv)                  \
+  if (t_per_atom>1) {                                                       \
+    for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                         \
+        f.x += shfl_xor(f.x, s, t_per_atom);                                \
+        f.y += shfl_xor(f.y, s, t_per_atom);                                \
+        f.z += shfl_xor(f.z, s, t_per_atom);                                \
+        energy += shfl_xor(energy, s, t_per_atom);                          \
+    }                                                                       \
+    if (vflag>0) {                                                          \
+      for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                       \
+          for (int r=0; r<6; r++)                                           \
+            virial[r] += shfl_xor(virial[r], s, t_per_atom);                \
+      }                                                                     \
+    }                                                                       \
+  }                                                                         \
+  if (offset==0) {                                                          \
+    engv+=ii;                                                               \
+    if (eflag>0) {                                                          \
+      *engv+=energy;                                                        \
+      engv+=inum;                                                           \
+    }                                                                       \
+    if (vflag>0) {                                                          \
+      for (int i=0; i<6; i++) {                                             \
+        *engv=virial[i];                                                    \
+        engv+=inum;                                                         \
+      }                                                                     \
+    }                                                                       \
+    ans[ii]=f;                                                              \
+  }
+
+#endif
+
+__kernel void k_energy(const __global numtyp4 *restrict x_, 
+                       const __global int2 *restrict type2rhor_z2r,
+                       const __global int *restrict type2frho, 
+                       const __global numtyp4 *restrict rhor_spline2, 
+                       const __global numtyp4 *restrict frho_spline1,
+                       const __global numtyp4 *restrict frho_spline2,
+                       const __global int *dev_nbor, 
+                       const __global int *dev_packed,
+                       __global numtyp *restrict fp_, 
+                       __global acctyp *restrict engv, 
+                       const int eflag, const int inum, const int nbor_pitch,
+                       const int ntypes,  const numtyp cutforcesq, 
+                       const numtyp rdr, const numtyp rdrho, 
+                       const numtyp rhomax, const int nrho,
+                       const int nr, const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
   
@@ -144,7 +209,7 @@ __kernel void k_energy(__global numtyp4 *x_, __global int2 *type2rhor_z2r,
   acctyp energy = (acctyp)0;
    
   if (ii<inum) {
-    __global int *nbor, *list_end;
+    const __global int *nbor, *list_end;
     int i, numj, n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,list_end,nbor);
@@ -180,24 +245,26 @@ __kernel void k_energy(__global numtyp4 *x_, __global int2 *type2rhor_z2r,
     } // for nbor
     
     store_energy_fp(rho,energy,ii,inum,tid,t_per_atom,offset,
-        eflag,vflag,engv,rdrho,nrho,i);
+        eflag,vflag,engv,rdrho,nrho,i,rhomax);
   } // if ii
 }
 
-__kernel void k_energy_fast(__global numtyp4 *x_, 
-                                 __global int2 *type2rhor_z2r_in,
-                                 __global int *type2frho_in, 
-                                 __global numtyp4 *rhor_spline2, 
-                                 __global numtyp4 *frho_spline1,
-                                 __global numtyp4 *frho_spline2,
-                                 __global int *dev_nbor, 
-                                 __global int *dev_packed, __global numtyp *fp_, 
-                                 __global acctyp *engv, const int eflag, 
-                                 const int inum, const int nbor_pitch,
-                                 const int ntypes, const numtyp cutforcesq, 
-                                 const numtyp rdr, const numtyp rdrho,
-                                 const int nrho, const int nr, 
-                                 const int t_per_atom) {
+__kernel void k_energy_fast(const __global numtyp4 *restrict x_, 
+                            const __global int2 *restrict type2rhor_z2r_in,
+                            const __global int *restrict type2frho_in, 
+                            const __global numtyp4 *restrict rhor_spline2, 
+                            const __global numtyp4 *restrict frho_spline1,
+                            const __global numtyp4 *restrict frho_spline2,
+                            const __global int *dev_nbor, 
+                            const __global int *dev_packed, 
+                            __global numtyp *restrict fp_, 
+                            __global acctyp *restrict engv, 
+                            const int eflag,  const int inum, 
+                            const int nbor_pitch, const int ntypes, 
+                            const numtyp cutforcesq,  const numtyp rdr,
+                            const numtyp rdrho, const numtyp rhomax, 
+                            const int nrho, const int nr, 
+                            const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
   
@@ -218,7 +285,7 @@ __kernel void k_energy_fast(__global numtyp4 *x_,
   __syncthreads(); 
 
   if (ii<inum) {
-    __global int *nbor, *list_end;
+    const __global int *nbor, *list_end;
     int i, numj, n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,list_end,nbor);
@@ -254,22 +321,24 @@ __kernel void k_energy_fast(__global numtyp4 *x_,
     } // for nbor
     
     store_energy_fp(rho,energy,ii,inum,tid,t_per_atom,offset,
-                    eflag,vflag,engv,rdrho,nrho,i);
+                    eflag,vflag,engv,rdrho,nrho,i,rhomax);
   } // if ii
 }
 
-__kernel void k_eam(__global numtyp4 *x_, __global numtyp *fp_,
-                          __global int2 *type2rhor_z2r,
-                          __global numtyp4 *rhor_spline1, 
-                          __global numtyp4 *z2r_spline1,
-                          __global numtyp4 *z2r_spline2,
-                          __global int *dev_nbor, __global int *dev_packed, 
-                          __global acctyp4 *ans, __global acctyp *engv, 
-                          const int eflag, const int vflag, 
-                          const int inum, const int nbor_pitch,
-                          const int ntypes, const numtyp cutforcesq, 
-                          const numtyp rdr, const int nr,
-                          const int t_per_atom) {
+__kernel void k_eam(const __global numtyp4 *restrict x_, 
+                    const __global numtyp *fp_,
+                    const __global int2 *type2rhor_z2r,
+                    const __global numtyp4 *rhor_spline1, 
+                    const __global numtyp4 *z2r_spline1,
+                    const __global numtyp4 *z2r_spline2,
+                    const __global int *dev_nbor,
+                    const __global int *dev_packed, 
+                    __global acctyp4 *ans,
+                    __global acctyp *engv, 
+                    const int eflag, const int vflag,  const int inum,
+                    const int nbor_pitch, const int ntypes, 
+                    const numtyp cutforcesq,  const numtyp rdr, const int nr,
+                    const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
 
@@ -283,7 +352,7 @@ __kernel void k_eam(__global numtyp4 *x_, __global numtyp *fp_,
     virial[i]=(acctyp)0;
   
   if (ii<inum) {
-    __global int *nbor, *list_end;
+    const __global int *nbor, *list_end;
     int i, numj, n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,list_end,nbor);
@@ -364,18 +433,19 @@ __kernel void k_eam(__global numtyp4 *x_, __global numtyp *fp_,
 
 }
 
-__kernel void k_eam_fast(__global numtyp4 *x_, __global numtyp *fp_,
-                          __global int2 *type2rhor_z2r_in,
-                          __global numtyp4 *rhor_spline1, 
-                          __global numtyp4 *z2r_spline1,
-                          __global numtyp4 *z2r_spline2,
-                          __global int *dev_nbor, __global int *dev_packed, 
-                          __global acctyp4 *ans, __global acctyp *engv, 
-                          const int eflag, const int vflag, const int inum, 
-                          const int nbor_pitch,
-                          const numtyp cutforcesq, 
-                          const numtyp rdr, const int nr,
-                          const int t_per_atom) {
+__kernel void k_eam_fast(const __global numtyp4 *x_, 
+                         const __global numtyp *fp_,
+                         const __global int2 *type2rhor_z2r_in,
+                         const __global numtyp4 *rhor_spline1, 
+                         const __global numtyp4 *z2r_spline1,
+                         const __global numtyp4 *z2r_spline2,
+                         const __global int *dev_nbor, 
+                         const __global int *dev_packed, 
+                         __global acctyp4 *ans, 
+                         __global acctyp *engv, 
+                         const int eflag, const int vflag, const int inum, 
+                         const int nbor_pitch, const numtyp cutforcesq, 
+                         const numtyp rdr, const int nr, const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
   
@@ -395,7 +465,7 @@ __kernel void k_eam_fast(__global numtyp4 *x_, __global numtyp *fp_,
   __syncthreads();
 
   if (ii<inum) {
-    __global int *nbor, *list_end;
+    const __global int *nbor, *list_end;
     int i, numj, n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,list_end,nbor);

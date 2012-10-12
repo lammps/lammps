@@ -1,0 +1,18 @@
+##################################################
+# Box of water
+##################################################
+#
+# define the system being simulated:
+
+include "system.in"
+
+dump           1 all custom 100 traj_min.lammpstrj id mol type x y z ix iy iz
+
+# fSHAKE was defined in system.in.settings. It is incompatible with "minimize".
+unfix          fSHAKE   
+minimize 1.0e-4 1.0e-6 500 2000
+
+# (For a system with ~6000 atoms, this takes 1-4 minutes on a i7 720 processor.)
+# Alternate (faster) minimizer settings (about 10 sec):
+
+write_restart  system_after_min.rst

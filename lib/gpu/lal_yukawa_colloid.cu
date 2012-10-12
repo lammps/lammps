@@ -29,12 +29,16 @@ texture<int2> rad_tex;
 #define rad_tex rad_
 #endif
 
-__kernel void k_yukawa_colloid(__global numtyp4 *x_, __global numtyp *rad_,
-                               __global numtyp4 *coeff, const int lj_types, 
-                               __global numtyp *sp_lj_in, __global int *dev_nbor, 
-                               __global int *dev_packed, __global acctyp4 *ans,
-                               __global acctyp *engv, const int eflag, 
-                               const int vflag, const int inum,
+__kernel void k_yukawa_colloid(const __global numtyp4 *restrict x_, 
+                               const __global numtyp *restrict rad_,
+                               const __global numtyp4 *restrict coeff, 
+                               const int lj_types, 
+                               const __global numtyp *restrict sp_lj_in, 
+                               const __global int *dev_nbor, 
+                               const __global int *dev_packed, 
+                               __global acctyp4 *restrict ans,
+                               __global acctyp *restrict engv, 
+                               const int eflag, const int vflag, const int inum,
                                const int nbor_pitch, const int t_per_atom,
                                const numtyp kappa) {
   int tid, ii, offset;
@@ -54,7 +58,7 @@ __kernel void k_yukawa_colloid(__global numtyp4 *x_, __global numtyp *rad_,
     virial[i]=(acctyp)0;
   
   if (ii<inum) {
-    __global int *nbor, *list_end;
+    const __global int *nbor, *list_end;
     int i, numj, n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,list_end,nbor);
@@ -113,13 +117,17 @@ __kernel void k_yukawa_colloid(__global numtyp4 *x_, __global numtyp *rad_,
   } // if ii
 }
 
-__kernel void k_yukawa_colloid_fast(__global numtyp4 *x_, __global numtyp *rad_,
-                                    __global numtyp4 *coeff_in, __global numtyp *sp_lj_in,
-                                    __global int *dev_nbor, __global int *dev_packed, 
-                                    __global acctyp4 *ans, __global acctyp *engv, 
-                                    const int eflag, const int vflag, const int inum, 
-                                    const int nbor_pitch, const int t_per_atom,
-                                    const numtyp kappa) {
+__kernel void k_yukawa_colloid_fast(const __global numtyp4 *restrict x_, 
+                                    const __global numtyp *restrict rad_,
+                                    const __global numtyp4 *restrict coeff_in, 
+                                    const __global numtyp *restrict sp_lj_in,
+                                    const __global int *dev_nbor, 
+                                    const __global int *dev_packed, 
+                                    __global acctyp4 *restrict ans, 
+                                    __global acctyp *restrict engv, 
+                                    const int eflag, const int vflag, 
+                                    const int inum, const int nbor_pitch, 
+                                    const int t_per_atom, const numtyp kappa) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
   
@@ -141,7 +149,7 @@ __kernel void k_yukawa_colloid_fast(__global numtyp4 *x_, __global numtyp *rad_,
   __syncthreads();
   
   if (ii<inum) {
-    __global int *nbor, *list_end;
+    const __global int *nbor, *list_end;
     int i, numj, n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,list_end,nbor);

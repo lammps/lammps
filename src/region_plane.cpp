@@ -101,9 +101,9 @@ int RegPlane::surface_exterior(double *x, double cutoff)
   dot = -dot;
   if (dot < cutoff && dot >= 0.0) {
     contact[0].r = dot;
-    contact[0].delx = dot*normal[0];
-    contact[0].dely = dot*normal[1];
-    contact[0].delz = dot*normal[2];
+    contact[0].delx = -dot*normal[0];
+    contact[0].dely = -dot*normal[1];
+    contact[0].delz = -dot*normal[2];
     return 1;
   }
   return 0;

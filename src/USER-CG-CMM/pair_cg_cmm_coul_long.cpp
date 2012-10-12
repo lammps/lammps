@@ -33,6 +33,7 @@ PairCGCMMCoulLong::PairCGCMMCoulLong(LAMMPS *lmp) : PairCMMCommon(lmp)
 {
   respa_enable = 0;
   single_enable = 0;
+  ewaldflag = pppmflag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -408,6 +409,9 @@ void PairCGCMMCoulLong::compute_outer(int eflag, int vflag)
 void PairCGCMMCoulLong::write_restart(FILE *fp)
 {
   write_restart_settings(fp);
+  fwrite(&ncoultablebits,sizeof(int),1,fp);
+  fwrite(&tabinner,sizeof(double),1,fp);
+
   PairCMMCommon::write_restart(fp);
 }
 
@@ -416,6 +420,14 @@ void PairCGCMMCoulLong::write_restart(FILE *fp)
 void PairCGCMMCoulLong::read_restart(FILE *fp)
 {
   read_restart_settings(fp);
+
+  if (comm->me == 0) {
+    fread(&ncoultablebits,sizeof(int),1,fp);
+    fread(&tabinner,sizeof(double),1,fp);
+  }
+  MPI_Bcast(&ncoultablebits,1,MPI_INT,0,world);
+  MPI_Bcast(&tabinner,1,MPI_DOUBLE,0,world);
+
   allocate();
   PairCMMCommon::read_restart(fp);
 }

@@ -1,0 +1,26 @@
+# ------------------------------- Initialization Section --------------------
+
+include       system.in.init
+
+# ------------------------------- Atom Definition Section -------------------
+
+read_data     system.data
+
+# ------------------------------- Settings Section --------------------------
+
+include       system.in.settings
+
+# ------------------------------- Run Section -------------------------------
+
+dump            1 all custom 20 traj_min.lammpstrj id mol type x y z ix iy iz
+
+# fSHAKE was defined in system.in.settings. It is incompatible with "minimize".
+unfix         fSHAKE
+minimize 1.0e-5 1.0e-7 100000 400000
+
+# (For a system with ~6000 atoms, this takes 1-4 minutes on a i7 720 processor.)
+# Alternate (faster) minimizer settings (about 10 sec):
+# minimize 1.0e-4 1.0e-6 500 2000
+
+
+write_restart  system_after_min.rst

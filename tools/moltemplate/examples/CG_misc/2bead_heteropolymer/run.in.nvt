@@ -1,0 +1,38 @@
+# -- Init Section --
+
+include system.in.init
+
+# -- Atom Definition Section --
+
+# I you want to be careful, you can minimize the system first.  (Try using 
+# "run.in.min" and uncomment the read_restart command in this file below.)
+# read_restart system_after_min.rst
+
+read_data system.data
+
+# -- Settings Section --
+
+include system.in.settings
+
+# -- Run Section --
+
+
+timestep        2.0
+dump            1 all custom 2500 traj_nvt.lammpstrj id mol type x y z ix iy iz
+
+# To use Langevin dynamics in LAMMPS you need both "fix langevin" and "fix nve".
+# (See http://lammps.sandia.gov/doc/fix_langevin.html for details.)
+
+fix fxlan all langevin 300.0 300.0 5000.0 48279
+fix fxnve all nve
+
+
+thermo_style    custom step temp pe etotal press vol epair ebond eangle edihed
+thermo          2500  # time interval for printing out "thermo" data
+
+restart         1000000  restart_nvt
+
+run		1000000
+
+write_restart  system_after_nvt.rst
+

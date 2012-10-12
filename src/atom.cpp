@@ -603,13 +603,12 @@ void Atom::data_atoms(int n, char *buf)
     }
 
     if (imageflag)
-      imagedata =
-        (((tagint) atoi(values[iptr+2]) + IMGMAX & IMGMASK) << IMG2BITS) |
-        (((tagint) atoi(values[iptr+1]) + IMGMAX & IMGMASK) << IMGBITS) |
-        (atoi(values[iptr]) + IMGMAX & IMGMASK);
+      imagedata = ((tagint) (atoi(values[iptr]) + IMGMAX) & IMGMASK) |
+        (((tagint) (atoi(values[iptr+1]) + IMGMAX) & IMGMASK) << IMGBITS) |
+        (((tagint) (atoi(values[iptr+2]) + IMGMAX) & IMGMASK) << IMG2BITS);
     else imagedata = ((tagint) IMGMAX << IMG2BITS) |
            ((tagint) IMGMAX << IMGBITS) | IMGMAX;
-
+    
     xdata[0] = atof(values[xptr]);
     xdata[1] = atof(values[xptr+1]);
     xdata[2] = atof(values[xptr+2]);

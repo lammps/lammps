@@ -200,7 +200,8 @@ void FixAdapt::init()
       Pair *pair = force->pair_match(ad->pstyle,1);
       if (pair == NULL) error->all(FLERR,"Fix adapt pair style does not exist");
       void *ptr = pair->extract(ad->pparam,ad->pdim);
-      if (ptr == NULL) error->all(FLERR,"Fix adapt pair style param not supported");
+      if (ptr == NULL) 
+        error->all(FLERR,"Fix adapt pair style param not supported");
 
       ad->pdim = 2;
       if (ad->pdim == 0) ad->scalar = (double *) ptr;

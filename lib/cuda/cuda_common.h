@@ -1,22 +1,22 @@
 /* ----------------------------------------------------------------------
-   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator 
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
 
    Original Version:
    http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov 
+   Steve Plimpton, sjplimp@sandia.gov
 
-   See the README file in the top-level LAMMPS directory. 
+   See the README file in the top-level LAMMPS directory.
 
-   ----------------------------------------------------------------------- 
+   -----------------------------------------------------------------------
 
    USER-CUDA Package and associated modifications:
-   https://sourceforge.net/projects/lammpscuda/ 
+   https://sourceforge.net/projects/lammpscuda/
 
    Christian Trott, christian.trott@tu-ilmenau.de
    Lars Winterfeld, lars.winterfeld@tu-ilmenau.de
-   Theoretical Physics II, University of Technology Ilmenau, Germany 
+   Theoretical Physics II, University of Technology Ilmenau, Germany
 
-   See the README file in the USER-CUDA directory. 
+   See the README file in the USER-CUDA directory.
 
    This software is distributed under the GNU General Public License.
 ------------------------------------------------------------------------- */
@@ -29,9 +29,9 @@
 #include "cuda_wrapper_cu.h"
 
 #define CUDA_MAX_TYPES_PLUS_ONE 12 //for pair styles which use constant space for parameters, this needs to be one larger than the number of atom types
-//this can not be arbitrarly large, since constant space is limited. 
+//this can not be arbitrarly large, since constant space is limited.
 //in principle one could alter potentials to use global memory for parameters, some du that already since the first examples I encountered had a high number (20+) of atom types
-//Christian   
+//Christian
 #define CUDA_MAX_TYPES2 (CUDA_MAX_TYPES_PLUS_ONE * CUDA_MAX_TYPES_PLUS_ONE)
 #define CUDA_MAX_NSPECIAL 25
 
@@ -39,13 +39,13 @@
 #ifdef _DEBUG
 #define MYDBG(a) a
 #else
-#define MYDBG(a) 
+#define MYDBG(a)
 #endif
 
 #if __DEVICE_EMULATION__
 #define MYEMU(a) a
 #else
-#define MYEMU(a) 
+#define MYEMU(a)
 #endif
 
 #define MYEMUDBG(a) MYEMU(MYDBG(a))
@@ -57,8 +57,8 @@
 
 #define MY_VAR_TO_STR(var) #var
 #define MY_VAR_TO_STR2(var) MY_VAR_TO_STR(var)
-#define MY_CONST(var) (MY_VAR_TO_STR2(MY_PREFIX) "_" MY_VAR_TO_STR2(var))
-
+//#define &MY_AP(var) (MY_VAR_TO_STR2(MY_PREFIX) "_" MY_VAR_TO_STR2(var))
+//#define &MY_AP(var) &(MY_AP(var))
 #define CUDA_USE_TEXTURE
 #define CUDA_USE_FLOAT4
 
@@ -137,10 +137,10 @@ __device__ __constant__ int _rmass_flag;
 __device__ __constant__ ENERGY_FLOAT* _eatom;
 __device__ __constant__ ENERGY_FLOAT* _vatom;
 __device__ __constant__ X_FLOAT4* _x_type;  //holds pointer to positions
-__device__ __constant__ X_FLOAT* _radius;  
-__device__ __constant__ F_FLOAT* _density;  
-__device__ __constant__ V_FLOAT* _omega;  
-__device__ __constant__ F_FLOAT* _torque;  
+__device__ __constant__ X_FLOAT* _radius;
+__device__ __constant__ F_FLOAT* _density;
+__device__ __constant__ V_FLOAT* _omega;
+__device__ __constant__ F_FLOAT* _torque;
 __device__ __constant__ int* _special;
 __device__ __constant__ int _maxspecial;
 __device__ __constant__ int* _nspecial;
@@ -152,44 +152,44 @@ __device__ __constant__ int _freeze_group_bit;
 __device__ __constant__ int* _map_array;
 
 #ifdef CUDA_USE_TEXTURE
-	
-	#define _x_tex         MY_AP(x_tex)
-	#if X_PRECISION == 1
-	texture<float> _x_tex;
-	#else
-	texture<int2,1> _x_tex;
-	#endif
-	
-	#define _type_tex         MY_AP(type_tex)
-	texture<int> _type_tex;
-	
-	#define _x_type_tex         MY_AP(x_type_tex)
-	#if X_PRECISION == 1
-	texture<float4,1> _x_type_tex;
-	#else
-	texture<int4,1> _x_type_tex;
-	#endif
-	
-	#define _v_radius_tex         MY_AP(v_radius_tex)
-	#if V_PRECISION == 1
-	texture<float4,1> _v_radius_tex;
-	#else
-	texture<int4,1> _v_radius_tex;
-	#endif
-	
-	#define _omega_rmass_tex         MY_AP(omega_rmass_tex)
-	#if V_PRECISION == 1
-	texture<float4,1> _omega_rmass_tex;
-	#else
-	texture<int4,1> _omega_rmass_tex;
-	#endif
 
-	#define _q_tex         MY_AP(q_tex)
-	#if F_PRECISION == 1
-	texture<float> _q_tex;
-	#else
-	texture<int2,1> _q_tex;
-	#endif
+#define _x_tex         MY_AP(x_tex)
+#if X_PRECISION == 1
+texture<float> _x_tex;
+#else
+texture<int2, 1> _x_tex;
+#endif
+
+#define _type_tex         MY_AP(type_tex)
+texture<int> _type_tex;
+
+#define _x_type_tex         MY_AP(x_type_tex)
+#if X_PRECISION == 1
+texture<float4, 1> _x_type_tex;
+#else
+texture<int4, 1> _x_type_tex;
+#endif
+
+#define _v_radius_tex         MY_AP(v_radius_tex)
+#if V_PRECISION == 1
+texture<float4, 1> _v_radius_tex;
+#else
+texture<int4, 1> _v_radius_tex;
+#endif
+
+#define _omega_rmass_tex         MY_AP(omega_rmass_tex)
+#if V_PRECISION == 1
+texture<float4, 1> _omega_rmass_tex;
+#else
+texture<int4, 1> _omega_rmass_tex;
+#endif
+
+#define _q_tex         MY_AP(q_tex)
+#if F_PRECISION == 1
+texture<float> _q_tex;
+#else
+texture<int2, 1> _q_tex;
+#endif
 
 #endif
 
@@ -269,8 +269,8 @@ __device__ __constant__ void* _buffer;
 __device__ __constant__ int* _flag;
 __device__ __constant__ int* _debugdata;
 
-// pointers to data fields on GPU are hold in constant space 
-// -> reduces register usage and number of parameters for kernelcalls 
+// pointers to data fields on GPU are hold in constant space
+// -> reduces register usage and number of parameters for kernelcalls
 // will be variables of file scope in cuda files
 
 
@@ -278,48 +278,48 @@ __device__ __constant__ int* _debugdata;
 
 // maybe used to output cudaError_t
 #define MY_OUTPUT_RESULT(result) \
-	switch(result) \
-	{ \
-		case cudaSuccess: printf(" => cudaSuccess\n"); break; \
-		case cudaErrorInvalidValue: printf(" => cudaErrorInvalidValue\n"); break; \
-		case cudaErrorInvalidSymbol: printf(" => cudaErrorInvalidSymbol\n"); break; \
-		case cudaErrorInvalidDevicePointer: printf(" => cudaErrorInvalidDevicePointer\n"); break; \
-		case cudaErrorInvalidMemcpyDirection: printf(" => cudaErrorInvalidMemcpyDirection\n"); break; \
-		default: printf(" => unknown\n"); break; \
-	}
+  switch(result) \
+  { \
+  case cudaSuccess: printf(" => cudaSuccess\n"); break; \
+  case cudaErrorInvalidValue: printf(" => cudaErrorInvalidValue\n"); break; \
+  case cudaErrorInvalidSymbol: printf(" => cudaErrorInvalidSymbol\n"); break; \
+  case cudaErrorInvalidDevicePointer: printf(" => cudaErrorInvalidDevicePointer\n"); break; \
+  case cudaErrorInvalidMemcpyDirection: printf(" => cudaErrorInvalidMemcpyDirection\n"); break; \
+  default: printf(" => unknown\n"); break; \
+  }
 
 #ifdef _DEBUG
 #  define CUT_CHECK_ERROR(errorMessage) {                                    \
     cudaError_t err = cudaGetLastError();                                    \
     if( cudaSuccess != err) {                                                \
-        fprintf(stderr, "Cuda error: %s in file '%s' in line %i : %s.\n",    \
-                errorMessage, __FILE__, __LINE__, cudaGetErrorString( err) );\
-        exit(EXIT_FAILURE);                                                  \
+      fprintf(stderr, "Cuda error: %s in file '%s' in line %i : %s.\n",    \
+              errorMessage, __FILE__, __LINE__, cudaGetErrorString( err) );\
+      exit(EXIT_FAILURE);                                                  \
     }                                                                        \
     err = cudaThreadSynchronize();                                           \
     if( cudaSuccess != err) {                                                \
-        fprintf(stderr, "Cuda error: %s in file '%s' in line %i : %s.\n",    \
-                errorMessage, __FILE__, __LINE__, cudaGetErrorString( err) );\
-        exit(EXIT_FAILURE);                                                  \
+      fprintf(stderr, "Cuda error: %s in file '%s' in line %i : %s.\n",    \
+              errorMessage, __FILE__, __LINE__, cudaGetErrorString( err) );\
+      exit(EXIT_FAILURE);                                                  \
     }                                                                        \
-    }
+  }
 #else
 #  define CUT_CHECK_ERROR(errorMessage) {                                    \
     cudaError_t err = cudaGetLastError();                                    \
     if( cudaSuccess != err) {                                                \
-        fprintf(stderr, "Cuda error: %s in file '%s' in line %i : %s.\n",    \
-                errorMessage, __FILE__, __LINE__, cudaGetErrorString( err) );\
-        exit(EXIT_FAILURE);                                                  \
+      fprintf(stderr, "Cuda error: %s in file '%s' in line %i : %s.\n",    \
+              errorMessage, __FILE__, __LINE__, cudaGetErrorString( err) );\
+      exit(EXIT_FAILURE);                                                  \
     }                                                                        \
-    }
+  }
 #endif
 
 #  define CUDA_SAFE_CALL_NO_SYNC( call) {                                    \
     cudaError err = call;                                                    \
     if( cudaSuccess != err) {                                                \
-        fprintf(stderr, "Cuda error in file '%s' in line %i : %s.\n",        \
-                __FILE__, __LINE__, cudaGetErrorString( err) );              \
-        exit(EXIT_FAILURE);                                                  \
+      fprintf(stderr, "Cuda error in file '%s' in line %i : %s.\n",        \
+              __FILE__, __LINE__, cudaGetErrorString( err) );              \
+      exit(EXIT_FAILURE);                                                  \
     } }
 
 #  define CUDA_SAFE_CALL( call)     CUDA_SAFE_CALL_NO_SYNC(call);

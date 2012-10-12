@@ -108,12 +108,6 @@ for file in *.cpp *.h; do
   if (test $file = pair_lj_charmm_coul_long_gpu.h -a ! -e ../pair_lj_charmm_coul_long.cpp) then
     continue
   fi
-  if (test $file = pair_lj_cut_coul_dsf_gpu.cpp -a ! -e ../pair_lj_cut_coul_dsf.cpp) then
-    continue
-  fi
-  if (test $file = pair_lj_cut_coul_dsf_gpu.h -a ! -e ../pair_lj_cut_coul_dsf.cpp) then
-    continue
-  fi
   if (test $file = pppm_gpu.cpp -a ! -e ../pppm.cpp) then
     continue
   fi

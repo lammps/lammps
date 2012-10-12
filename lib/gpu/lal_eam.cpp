@@ -46,10 +46,11 @@ template <class numtyp, class acctyp>
 int EAMT::init(const int ntypes, double host_cutforcesq, int **host_type2rhor,
                int **host_type2z2r, int *host_type2frho,
                double ***host_rhor_spline, double ***host_z2r_spline,
-               double ***host_frho_spline, double rdr, double rdrho, int nrhor,
-               int nrho, int nz2r, int nfrho, int nr, const int nlocal,
-               const int nall, const int max_nbors, const int maxspecial,
-               const double cell_size, const double gpu_split, FILE *_screen) 
+               double ***host_frho_spline, double rdr, double rdrho, 
+               double rhomax, int nrhor, int nrho, int nz2r, int nfrho, int nr,
+               const int nlocal, const int nall, const int max_nbors,
+               const int maxspecial, const double cell_size, 
+               const double gpu_split, FILE *_screen) 
 {
   int success;
   success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,
@@ -97,6 +98,7 @@ int EAMT::init(const int ntypes, double host_cutforcesq, int **host_type2rhor,
   _cutforcesq=host_cutforcesq;
   _rdr=rdr;
   _rdrho = rdrho;
+  _rhomax=rhomax;
   _nrhor=nrhor;
   _nrho=nrho;
   _nz2r=nz2r;
@@ -468,15 +470,15 @@ void EAMT::loop(const bool _eflag, const bool _vflag) {
                             &this->nbor->dev_nbor,  &this->_nbor_data->begin(), 
                             &_fp, &this->ans->engv, &eflag, &ainum,
                             &nbor_pitch, &_ntypes, &_cutforcesq, &_rdr, &_rdrho,
-                            &_nrho, &_nr, &this->_threads_per_atom);
+                            &_rhomax, &_nrho, &_nr, &this->_threads_per_atom);
   } else {
     this->k_energy.set_size(GX,BX);
     this->k_energy.run(&this->atom->x, &type2rhor_z2r, &type2frho,
                        &rhor_spline2, &frho_spline1, &frho_spline2, 
                        &this->nbor->dev_nbor, &this->_nbor_data->begin(), &_fp, 
                        &this->ans->engv,&eflag, &ainum, &nbor_pitch,
-                       &_ntypes, &_cutforcesq, &_rdr, &_rdrho, &_nrho, &_nr,
-                       &this->_threads_per_atom);
+                       &_ntypes, &_cutforcesq, &_rdr, &_rdrho, &_rhomax, &_nrho,
+                       &_nr, &this->_threads_per_atom);
   }
 
   this->time_pair.stop();

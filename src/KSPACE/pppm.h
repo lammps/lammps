@@ -81,7 +81,8 @@ class PPPM : public KSpace {
 
   double *gf_b;
   FFT_SCALAR **rho1d,**rho_coeff,**drho1d,**drho_coeff;
-  double *sf_precoeff1, *sf_precoeff2, *sf_precoeff3, *sf_precoeff4, *sf_precoeff5, *sf_precoeff6;
+  double *sf_precoeff1, *sf_precoeff2, *sf_precoeff3;
+  double *sf_precoeff4, *sf_precoeff5, *sf_precoeff6;
   double sf_coeff[6];          // coefficients for calculating ad self-forces
   double **acons;
 

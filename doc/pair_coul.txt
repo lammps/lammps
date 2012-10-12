@@ -10,6 +10,8 @@ pair_style coul/cut command :h3
 pair_style coul/cut/omp command :h3
 pair_style coul/debye command :h3
 pair_style coul/debye/omp command :h3
+pair_style coul/dsf command :h3
+pair_style coul/dsf/gpu command :h3
 pair_style coul/long command :h3
 pair_style coul/long/omp command :h3
 pair_style coul/long/gpu command :h3
@@ -20,6 +22,7 @@ pair_style coul/wolf/omp command :h3
 
 pair_style coul/cut cutoff
 pair_style coul/debye kappa cutoff
+pair_style coul/dsf alpha cutoff
 pair_style coul/long cutoff
 pair_style coul/long/gpu cutoff 
 pair_style coul/wolf alpha cutoff :pre
@@ -37,6 +40,9 @@ pair_coeff 2 2 3.5 :pre
 pair_style coul/debye 1.4 3.0
 pair_coeff * *
 pair_coeff 2 2 3.5 :pre
+
+pair_style coul/dsf 0.05 10.0
+pair_coeff * * :pre
 
 pair_style coul/long 10.0
 pair_coeff * * :pre
@@ -63,6 +69,17 @@ Coulombic term, given by
 
 where kappa is the Debye length.  This potential is another way to
 mimic the screening effect of a polar solvent.
+
+Style {coul/dsf} computes Coulombic interactions via the damped 
+shifted force model described in "Fennell"_#Fennell, given by:
+
+:c,image(Eqs/pair_coul_dsf.jpg)
+
+where {alpha} is the damping parameter and erfc() is the
+complementary error-function. The potential corrects issues in the
+Wolf model (described below) to provide consistent forces and energies
+(the Wolf potential is not differentiable at the cutoff) and smooth
+decay to zero.
 
 Style {coul/wolf} computes Coulombic interactions via the Wolf
 summation method, described in "Wolf"_#Wolf, given by:
@@ -182,3 +199,7 @@ hybrid/overlay"_pair_hybrid.html
 :link(Wolf)
 [(Wolf)] D. Wolf, P. Keblinski, S. R. Phillpot, J. Eggebrecht, J Chem
 Phys, 110, 8254 (1999).
+
+:link(Fennell)
+[(Fennell)] C. J. Fennell, J. D. Gezelter, J Chem Phys, 124, 
+234104 (2006).

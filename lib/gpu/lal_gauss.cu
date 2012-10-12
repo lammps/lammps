@@ -24,12 +24,15 @@ texture<int4,1> pos_tex;
 #define pos_tex x_
 #endif
 
-__kernel void k_gauss(__global numtyp4 *x_, __global numtyp4 *gauss1,
+__kernel void k_gauss(const __global numtyp4 *restrict x_, 
+                      const __global numtyp4 *restrict gauss1,
                       const int lj_types, 
-                      __global numtyp *sp_lj_in, __global int *dev_nbor, 
-                      __global int *dev_packed, __global acctyp4 *ans,
-                      __global acctyp *engv, const int eflag, 
-                      const int vflag, const int inum,
+                      const __global numtyp *restrict sp_lj_in, 
+                      const __global int *dev_nbor, 
+                      const __global int *dev_packed, 
+                      __global acctyp4 *restrict ans,
+                      __global acctyp *restrict engv, 
+                      const int eflag, const int vflag, const int inum,
                       const int nbor_pitch, const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
@@ -48,7 +51,7 @@ __kernel void k_gauss(__global numtyp4 *x_, __global numtyp4 *gauss1,
     virial[i]=(acctyp)0;
   
   if (ii<inum) {
-    __global int *nbor, *list_end;
+    const __global int *nbor, *list_end;
     int i, numj, n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,list_end,nbor);
@@ -104,10 +107,13 @@ __kernel void k_gauss(__global numtyp4 *x_, __global numtyp4 *gauss1,
   } // if ii
 }
 
-__kernel void k_gauss_fast(__global numtyp4 *x_, __global numtyp4 *gauss1_in,
-                           __global numtyp* sp_lj_in, 
-                           __global int *dev_nbor, __global int *dev_packed, 
-                           __global acctyp4 *ans, __global acctyp *engv, 
+__kernel void k_gauss_fast(const __global numtyp4 *restrict x_, 
+                           const __global numtyp4 *restrict gauss1_in,
+                           const __global numtyp *restrict sp_lj_in, 
+                           const __global int *dev_nbor,
+                           const __global int *dev_packed, 
+                           __global acctyp4 *restrict ans,
+                           __global acctyp *restrict engv, 
                            const int eflag, const int vflag, const int inum, 
                            const int nbor_pitch, const int t_per_atom) {
   int tid, ii, offset;
@@ -131,7 +137,7 @@ __kernel void k_gauss_fast(__global numtyp4 *x_, __global numtyp4 *gauss1_in,
   __syncthreads();
   
   if (ii<inum) {
-    __global int *nbor, *list_end;
+    const __global int *nbor, *list_end;
     int i, numj, n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,list_end,nbor);

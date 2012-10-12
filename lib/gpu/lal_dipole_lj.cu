@@ -15,6 +15,23 @@
 
 #ifdef NV_KERNEL
 #include "lal_aux_fun1.h"
+#ifndef _DOUBLE_DOUBLE
+texture<float4> pos_tex;
+texture<float> q_tex;
+texture<float4> mu_tex;
+#else
+texture<int4,1> pos_tex;
+texture<int2> q_tex;
+texture<int4,1> mu_tex;
+#endif
+
+#else
+#define pos_tex x_
+#define q_tex q_
+#define mu_tex mu_
+#endif
+
+#if (ARCH < 300)
 
 #define store_answers_tq(f, tor, energy, ecoul, virial, ii, inum, tid,      \
                         t_per_atom, offset, eflag, vflag, ans, engv)        \
@@ -73,32 +90,63 @@
     ans[ii+inum]=tor;                                                       \
   }
 
-#ifndef _DOUBLE_DOUBLE
-texture<float4> pos_tex;
-texture<float> q_tex;
-texture<float4> mu_tex;
 #else
-texture<int4,1> pos_tex;
-texture<int2> q_tex;
-texture<int4,1> mu_tex;
+
+#define store_answers_tq(f, tor, energy, e_coul, virial, ii, inum, tid,     \
+                        t_per_atom, offset, eflag, vflag, ans, engv)        \
+  if (t_per_atom>1) {                                                       \
+    for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                         \
+        f.x += shfl_xor(f.x, s, t_per_atom);                                \
+        f.y += shfl_xor(f.y, s, t_per_atom);                                \
+        f.z += shfl_xor(f.z, s, t_per_atom);                                \
+        tor.x += shfl_xor(tor.x, s, t_per_atom);                            \
+        tor.y += shfl_xor(tor.y, s, t_per_atom);                            \
+        tor.z += shfl_xor(tor.z, s, t_per_atom);                            \
+        energy += shfl_xor(energy, s, t_per_atom);                          \
+        e_coul += shfl_xor(e_coul, s, t_per_atom);                          \
+    }                                                                       \
+    if (vflag>0) {                                                          \
+      for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                       \
+          for (int r=0; r<6; r++)                                           \
+            virial[r] += shfl_xor(virial[r], s, t_per_atom);                \
+      }                                                                     \
+    }                                                                       \
+  }                                                                         \
+  if (offset==0) {                                                          \
+    engv+=ii;                                                               \
+    if (eflag>0) {                                                          \
+      *engv=energy;                                                         \
+      engv+=inum;                                                           \
+      *engv=e_coul;                                                         \
+      engv+=inum;                                                           \
+    }                                                                       \
+    if (vflag>0) {                                                          \
+      for (int i=0; i<6; i++) {                                             \
+        *engv=virial[i];                                                    \
+        engv+=inum;                                                         \
+      }                                                                     \
+    }                                                                       \
+    ans[ii]=f;                                                              \
+    ans[ii+inum]=tor;                                                       \
+  }
+
 #endif
 
-#else
-#define pos_tex x_
-#define q_tex q_
-#define mu_tex mu_
-#endif
-
-__kernel void k_dipole_lj(__global numtyp4 *x_, __global numtyp4 *lj1,
-                          __global numtyp4* lj3, const int lj_types, 
-                          __global numtyp *sp_lj_in, __global int *dev_nbor, 
-                          __global int *dev_packed, __global acctyp4 *ans,
-                          __global acctyp *engv, const int eflag,
-                          const int vflag, const int inum,
-                          const int nbor_pitch, __global numtyp *q_ ,
-                           __global numtyp4 *mu_,
-                          __global numtyp *cutsq, const numtyp qqrd2e,
-                          const int t_per_atom) {
+__kernel void k_dipole_lj(const __global numtyp4 *restrict x_, 
+                          const __global numtyp4 *restrict lj1,
+                          const __global numtyp4 *restrict lj3, 
+                          const int lj_types, 
+                          const __global numtyp *restrict sp_lj_in, 
+                          const __global int *dev_nbor, 
+                          const __global int *dev_packed, 
+                          __global acctyp4 *restrict ans,
+                          __global acctyp *restrict engv, 
+                          const int eflag, const int vflag, const int inum,
+                          const int nbor_pitch, 
+                          const __global numtyp *restrict q_,
+                          const __global numtyp4 *restrict mu_,
+                          const __global numtyp *restrict cutsq,
+                          const numtyp qqrd2e, const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
 
@@ -125,7 +173,7 @@ __kernel void k_dipole_lj(__global numtyp4 *x_, __global numtyp4 *lj1,
     virial[i]=(acctyp)0;
   
   if (ii<inum) {
-    __global int *nbor, *list_end;
+    const __global int *nbor, *list_end;
     int i, numj, n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,list_end,nbor);
@@ -291,16 +339,20 @@ __kernel void k_dipole_lj(__global numtyp4 *x_, __global numtyp4 *lj1,
   } // if ii
 }
 
-__kernel void k_dipole_lj_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
-                               __global numtyp4* lj3_in, 
-                               __global numtyp* sp_lj_in,
-                               __global int *dev_nbor, __global int *dev_packed,
-                               __global acctyp4 *ans, __global acctyp *engv, 
+__kernel void k_dipole_lj_fast(const __global numtyp4 *restrict x_, 
+                               const __global numtyp4 *restrict lj1_in,
+                               const __global numtyp4 *restrict lj3_in, 
+                               const __global numtyp *restrict sp_lj_in,
+                               const __global int *dev_nbor, 
+                               const __global int *dev_packed,
+                               __global acctyp4 *restrict ans, 
+                               __global acctyp *restrict engv, 
                                const int eflag, const int vflag, const int inum, 
-                               const int nbor_pitch, __global numtyp *q_,
-                               __global numtyp4 *mu_,
-                               __global numtyp *_cutsq, const numtyp qqrd2e,
-                               const int t_per_atom) {
+                               const int nbor_pitch, 
+                               const __global numtyp *restrict q_,
+                               const __global numtyp4 *restrict mu_,
+                               const __global numtyp *restrict _cutsq, 
+                               const numtyp qqrd2e, const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
 
@@ -332,7 +384,7 @@ __kernel void k_dipole_lj_fast(__global numtyp4 *x_, __global numtyp4 *lj1_in,
   __syncthreads();
   
   if (ii<inum) {
-    __global int *nbor, *list_end;
+    const __global int *nbor, *list_end;
     int i, numj, n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,list_end,nbor);

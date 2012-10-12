@@ -32,7 +32,11 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairBuckCoulMSM::PairBuckCoulMSM(LAMMPS *lmp) : PairBuckCoulLong(lmp) {}
+PairBuckCoulMSM::PairBuckCoulMSM(LAMMPS *lmp) : PairBuckCoulLong(lmp)
+{
+  ewaldflag = pppmflag = 0;
+  msmflag = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 

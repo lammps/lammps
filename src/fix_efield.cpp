@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under
+   certain rights in this software.  This software is distributed under 
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -41,6 +41,13 @@ FixEfield::FixEfield(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg != 6) error->all(FLERR,"Illegal fix efield command");
 
+  vector_flag = 1;
+  scalar_flag = 1;
+  size_vector = 3;
+  global_freq = 1;
+  extvector = 1;
+  extscalar = 1;
+
   qe2f = force->qe2f;
   xstr = ystr = zstr = NULL;
 
@@ -71,6 +78,9 @@ FixEfield::FixEfield(LAMMPS *lmp, int narg, char **arg) :
     zstyle = CONSTANT;
   }
 
+  force_flag = 0;
+  fsum[0] = fsum[1] = fsum[2] = fsum[3] = 0.0;
+
   maxatom = 0;
   efield = NULL;
 }
@@ -90,8 +100,10 @@ FixEfield::~FixEfield()
 int FixEfield::setmask()
 {
   int mask = 0;
+  mask |= THERMO_ENERGY;
   mask |= POST_FORCE;
   mask |= POST_FORCE_RESPA;
+  mask |= MIN_POST_FORCE;
   return mask;
 }
 
@@ -105,24 +117,24 @@ void FixEfield::init()
 
   if (xstr) {
     xvar = input->variable->find(xstr);
-    if (xvar < 0) error->all(FLERR,
-                             "Variable name for fix efield does not exist");
+    if (xvar < 0) 
+      error->all(FLERR,"Variable name for fix efield does not exist");
     if (input->variable->equalstyle(xvar)) xstyle = EQUAL;
     else if (input->variable->atomstyle(xvar)) xstyle = ATOM;
     else error->all(FLERR,"Variable for fix efield is invalid style");
   }
   if (ystr) {
     yvar = input->variable->find(ystr);
-    if (yvar < 0) error->all(FLERR,
-                             "Variable name for fix efield does not exist");
+    if (yvar < 0) 
+      error->all(FLERR,"Variable name for fix efield does not exist");
     if (input->variable->equalstyle(yvar)) ystyle = EQUAL;
     else if (input->variable->atomstyle(yvar)) ystyle = ATOM;
     else error->all(FLERR,"Variable for fix efield is invalid style");
   }
   if (zstr) {
     zvar = input->variable->find(zstr);
-    if (zvar < 0) error->all(FLERR,
-                             "Variable name for fix efield does not exist");
+    if (zvar < 0) 
+      error->all(FLERR,"Variable name for fix efield does not exist");
     if (input->variable->equalstyle(zvar)) zstyle = EQUAL;
     else if (input->variable->atomstyle(zvar)) zstyle = ATOM;
     else error->all(FLERR,"Variable for fix efield is invalid style");
@@ -151,6 +163,13 @@ void FixEfield::setup(int vflag)
   }
 }
 
+/* ---------------------------------------------------------------------- */
+
+void FixEfield::min_setup(int vflag)
+{
+  post_force(vflag);
+}
+
 /* ----------------------------------------------------------------------
    apply F = qE
 ------------------------------------------------------------------------- */
@@ -170,12 +189,29 @@ void FixEfield::post_force(int vflag)
     memory->create(efield,maxatom,3,"efield:efield");
   }
 
+  // fsum[0] = "potential energy" for added force
+  // fsum[123] = extra force added to atoms
+
+  fsum[0] = fsum[1] = fsum[2] = fsum[3] = 0.0;
+  force_flag = 0;
+
+  double **x = atom->x;
+  double fx,fy,fz;
+
   if (varflag == CONSTANT) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-        f[i][0] += q[i]*ex;
-        f[i][1] += q[i]*ey;
-        f[i][2] += q[i]*ez;
+        fx = q[i]*ex;
+        fy = q[i]*ey;
+        fz = q[i]*ez;
+        f[i][0] += fx;
+        f[i][1] += fy;
+        f[i][2] += fz;
+
+        fsum[0] -= fx*x[i][0]+fy*x[i][1]+fz*x[i][2];
+        fsum[1] += fx;
+        fsum[2] += fy;
+        fsum[3] += fz;
       }
 
   // variable efield, wrap with clear/add
@@ -198,12 +234,19 @@ void FixEfield::post_force(int vflag)
 
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-        if (xstyle == ATOM) f[i][0] += qe2f * q[i]*efield[i][0];
-        else f[i][0] += q[i]*ex;
-        if (ystyle == ATOM) f[i][1] += qe2f * q[i]*efield[i][1];
-        else f[i][1] += q[i]*ey;
-        if (zstyle == ATOM) f[i][2] += qe2f * q[i]*efield[i][2];
-        else f[i][2] += q[i]*ez;
+        if (xstyle == ATOM) fx = qe2f * q[i]*efield[i][0];
+        else fx = q[i]*ex;
+        f[i][0] += fx;
+        fsum[1] += fx;
+        if (ystyle == ATOM) fy = qe2f * q[i]*efield[i][1];
+        else fy = q[i]*ey;
+        f[i][1] += fy;
+        fsum[2] += fy;
+        if (zstyle == ATOM) fz = qe2f * q[i]*efield[i][2];
+        else fz = q[i]*ez;
+        f[i][2] += fz;
+        fsum[3] += fz;
+        fsum[0] -= fx*x[i][0]+fy*x[i][1]+fz*x[i][2];
       }
   }
 }
@@ -215,6 +258,13 @@ void FixEfield::post_force_respa(int vflag, int ilevel, int iloop)
   if (ilevel == nlevels_respa-1) post_force(vflag);
 }
 
+/* ---------------------------------------------------------------------- */
+
+void FixEfield::min_post_force(int vflag)
+{
+  post_force(vflag);
+}
+
 /* ----------------------------------------------------------------------
    memory usage of local atom-based array
 ------------------------------------------------------------------------- */
@@ -224,4 +274,31 @@ double FixEfield::memory_usage()
   double bytes = 0.0;
   if (varflag == ATOM) bytes = atom->nmax*3 * sizeof(double);
   return bytes;
+} 
+
+/* ----------------------------------------------------------------------
+   return energy added by fix
+------------------------------------------------------------------------- */
+
+double FixEfield::compute_scalar(void)
+{
+  if (force_flag == 0) {
+    MPI_Allreduce(fsum,fsum_all,4,MPI_DOUBLE,MPI_SUM,world);
+    force_flag = 1;
+  }
+  return fsum_all[0];
 }
+
+/* ----------------------------------------------------------------------
+   return total extra force due to fix
+------------------------------------------------------------------------- */
+
+double FixEfield::compute_vector(int n)
+{
+  if (force_flag == 0) {
+    MPI_Allreduce(fsum,fsum_all,4,MPI_DOUBLE,MPI_SUM,world);
+    force_flag = 1;
+  }
+  return fsum_all[n+1];
+}
+

@@ -1,0 +1,230 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>pair_style lj/long/coul/long command 
+</H3>
+<H3>pair_style lj/long/coul/long/omp command 
+</H3>
+<H3>pair_style lj/long/tip4p/long command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>pair_style style args 
+</PRE>
+<UL><LI>style = <I>lj/long/coul/long</I> or <I>lj/long/tip4p/long</I>
+<LI>args = list of arguments for a particular style 
+</UL>
+<PRE>  <I>lj/long/coul/long</I> args = flag_lj flag_coul cutoff (cutoff2)
+    flag_lj = <I>long</I> or <I>cut</I>
+      <I>long</I> = use Kspace long-range summation for dispersion 1/r^6 term
+      <I>cut</I> = use a cutoff
+    flag_coul = <I>long</I> or <I>off</I>
+      <I>long</I> = use Kspace long-range summation for Coulombic 1/r term
+      <I>off</I> = omit Coulombic term
+    cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
+    cutoff2 = global cutoff for Coulombic (optional) (distance units)
+  <I>lj/cut/tip4p/long</I> args = flag_lj flag_coul otype htype btype atype qdist cutoff (cutoff2)
+    flag_lj = <I>long</I> or <I>cut</I>
+      <I>long</I> = use Kspace long-range summation for dispersion 1/r^6 term
+      <I>cut</I> = use a cutoff
+    flag_coul = <I>long</I> or <I>off</I>
+      <I>long</I> = use Kspace long-range summation for Coulombic 1/r term
+      <I>off</I> = omit Coulombic term
+    otype,htype = atom types for TIP4P O and H
+    btype,atype = bond and angle types for TIP4P waters
+    qdist = distance from O atom to massless charge (distance units)
+    cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
+    cutoff2 = global cutoff for Coulombic (optional) (distance units) 
+</PRE>
+<P><B>Examples:</B>
+</P>
+<PRE>pair_style lj/long/coul/long cut off 2.5
+pair_style lj/long/coul/long cut long 2.5 4.0
+pair_style lj/long/coul/long long long 2.5 4.0
+pair_coeff * * 1 1
+pair_coeff 1 1 1 3 4 
+</PRE>
+<PRE>pair_style lj/long/tip4p/long long long 1 2 7 8 0.15 12.0
+pair_style lj/long/tip4p/long long long 1 2 7 8 0.15 12.0 10.0
+pair_coeff * * 100.0 3.0
+pair_coeff 1 1 100.0 3.5 9.0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Style <I>lj/long/coul/long</I> computes the standard 12/6 Lennard-Jones and
+Coulombic potentials, given by
+</P>
+<CENTER><IMG SRC = "Eqs/pair_lj.jpg">
+</CENTER>
+<CENTER><IMG SRC = "Eqs/pair_coulomb.jpg">
+</CENTER>
+<P>where C is an energy-conversion constant, Qi and Qj are the charges on
+the 2 atoms, epsilon is the dielectric constant which can be set by
+the <A HREF = "dielectric.html">dielectric</A> command, and Rc is the cutoff.  If
+one cutoff is specified in the pair_style command, it is used for both
+the LJ and Coulombic terms.  If two cutoffs are specified, they are
+used as cutoffs for the LJ and Coulombic terms respectively.
+</P>
+<P>The purpose of this pair style is to capture long-range interactions
+resulting from both attractive 1/r^6 Lennard-Jones and Coulombic 1/r
+interactions.  This is done by use of the <I>flag_lj</I> and <I>flag_coul</I>
+settings.  The <A HREF = "#Veld">In 't Veld</A> paper has more details on when it is
+appropriate to include long-range 1/r^6 interactions, using this
+potential.
+</P>
+<P>Style <I>lj/cut/tip4p/long</I> implements the TIP4P water model of
+<A HREF = "#Jorgensen">(Jorgensen)</A>, which introduces a massless site located a
+short distance away from the oxygen atom along the bisector of the HOH
+angle.  The atomic types of the oxygen and hydrogen atoms, the bond
+and angle types for OH and HOH interactions, and the distance to the
+massless charge site are specified as pair_style arguments.
+</P>
+<P>IMPORTANT NOTE: For each TIP4P water molecule in your system, the atom
+IDs for the O and 2 H atoms must be consecutive, with the O atom
+first.  This is to enable LAMMPS to "find" the 2 H atoms associated
+with each O atom.  For example, if the atom ID of an O atom in a TIP4P
+water molecule is 500, then its 2 H atoms must have IDs 501 and 502.
+</P>
+<P>See the <A HREF = "Section_howto.html#howto_8">howto section</A> for more
+information on how to use the TIP4P pair style.  Note that the
+neighobr list cutoff for Coulomb interactions is effectively extended
+by a distance 2*qdist when using the TIP4P pair style, to account for
+the offset distance of the fictitious charges on O atoms in water
+molecules.  Thus it is typically best in an efficiency sense to use a
+LJ cutoff >= Coulomb cutoff + 2*qdist, to shrink the size of the
+neighbor list.  This leads to slightly larger cost for the long-range
+calculation, so you can test the trade-off for your model.
+</P>
+<P>If <I>flag_lj</I> is set to <I>long</I>, no cutoff is used on the LJ 1/r^6
+dispersion term.  The long-range portion is calculated by using the
+<A HREF = "kspace_style.html">kspace_style ewald/n</A> command.  The specified LJ
+cutoff then determines which portion of the LJ interactions are
+computed directly by the pair potential versus which part is computed
+in reciprocal space via the Kspace style.  If <I>flag_lj</I> is set to
+<I>cut</I>, the LJ interactions are simply cutoff, as with <A HREF = "pair_lj.html">pair_style
+lj/cut</A>.
+</P>
+<P>If <I>flag_coul</I> is set to <I>long</I>, no cutoff is used on the Coulombic
+interactions.  The long-range portion is calculated by using any
+style, including <I>ewald/n</I> of the <A HREF = "kspace_style.html">kspace_style</A>
+command.  Note that if <I>flag_lj</I> is also set to long, then only the
+<I>ewald/n</I> Kspace style can perform the long-range calculations for
+both the LJ and Coulombic interactions.  If <I>flag_coul</I> is set to
+<I>off</I>, Coulombic interactions are not computed.
+</P>
+<P>The following coefficients must be defined for each pair of atoms
+types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
+above, or in the data file or restart files read by the
+<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
+commands, or by mixing as described below:
+</P>
+<UL><LI>epsilon (energy units)
+<LI>sigma (distance units)
+<LI>cutoff1 (distance units)
+<LI>cutoff2 (distance units) 
+</UL>
+<P>Note that sigma is defined in the LJ formula as the zero-crossing
+distance for the potential, not as the energy minimum at 2^(1/6)
+sigma.
+</P>
+<P>The latter 2 coefficients are optional.  If not specified, the global
+LJ and Coulombic cutoffs specified in the pair_style command are used.
+If only one cutoff is specified, it is used as the cutoff for both LJ
+and Coulombic interactions for this type pair.  If both coefficients
+are specified, they are used as the LJ and Coulombic cutoffs for this
+type pair.
+</P>
+<P>Note that if you are using <I>flag_lj</I> set to <I>long</I>, you
+cannot specify a LJ cutoff for an atom type pair, since only one
+global LJ cutoff is allowed.  Similarly, if you are using <I>flag_coul</I>
+set to <I>long</I>, you cannot specify a Coulombic cutoff for an atom type
+pair, since only one global Coulombic cutoff is allowed.
+</P>
+<P>For <I>lj/long/tip4p/long</I> only the LJ cutoff can be specified
+since a Coulombic cutoff cannot be specified for an individual I,J
+type pair.  All type pairs use the same global Coulombic cutoff
+specified in the pair_style command.
+</P>
+<HR>
+
+<P>Styles with a <I>cuda</I>, <I>gpu</I>, <I>omp</I>, or <I>opt</I> suffix are functionally
+the same as the corresponding style without the suffix.  They have
+been optimized to run faster, depending on your available hardware, as
+discussed in <A HREF = "Section_accelerate.html">Section_accelerate</A> of the
+manual.  The accelerated styles take the same arguments and should
+produce the same results, except for round-off and precision issues.
+</P>
+<P>These accelerated styles are part of the USER-CUDA, GPU, USER-OMP and OPT
+packages, respectively.  They are only enabled if LAMMPS was built with
+those packages.  See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A>
+section for more info.
+</P>
+<P>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <A HREF = "Section_start.html#start_7">-suffix command-line
+switch</A> when you invoke LAMMPS, or you can
+use the <A HREF = "suffix.html">suffix</A> command in your input script.
+</P>
+<P>See <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual for
+more instructions on how to use the accelerated styles effectively.
+</P>
+<HR>
+
+<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
+</P>
+<P>For atom type pairs I,J and I != J, the epsilon and sigma coefficients
+and cutoff distance for all of the lj/cut pair styles can be mixed.
+The default mix value is <I>geometric</I>.  See the "pair_modify" command
+for details.
+</P>
+<P>This pair style supports the <A HREF = "pair_modify.html">pair_modify</A> shift
+option for the energy of the Lennard-Jones portion of the pair
+interaction, assuming <I>flag_lj</I> is <I>cut</I>.
+</P>
+<P>This pair style supports the <A HREF = "pair_modify.html">pair_modify</A> table
+option since it can tabulate the short-range portion of the long-range
+Coulombic interaction.
+</P>
+<P>This pair style does not support the <A HREF = "pair_modify.html">pair_modify</A>
+tail option for adding a long-range tail correction to the
+Lennard-Jones portion of the energy and pressure.
+</P>
+<P>This pair style writes its information to <A HREF = "restart.html">binary restart
+files</A>, so pair_style and pair_coeff commands do not need
+to be specified in an input script that reads a restart file.
+</P>
+<P>This pair style supports the use of the <I>inner</I>, <I>middle</I>, and <I>outer</I>
+keywords of the <A HREF = "run_style.html">run_style respa</A> command, meaning the
+pairwise forces can be partitioned by distance at different levels of
+the rRESPA hierarchy.  See the <A HREF = "run_style.html">run_style</A> command for
+details.
+</P>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>These styles are part of the KSPACE package.  They are only enabled if
+LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.  Note that
+the KSPACE package is installed by default.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_coeff.html">pair_coeff</A>
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "Veld"></A>
+
+<P><B>(In 't Veld)</B> In 't Veld, Ismail, Grest, J Chem Phys (accepted) (2007).
+</P>
+</HTML>

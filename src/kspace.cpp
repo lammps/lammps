@@ -32,12 +32,18 @@ KSpace::KSpace(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   energy = 0.0;
   virial[0] = virial[1] = virial[2] = virial[3] = virial[4] = virial[5] = 0.0;
 
+  ewaldflag = pppmflag = msmflag = dispersionflag = tip4pflag = proxyflag = 0;
   compute_flag = 1;
   group_group_enable = 0;
 
   order = 5;
   gridflag = 0;
   gewaldflag = 0;
+
+  order_6 = 5;
+  gridflag_6 = 0;
+  gewaldflag_6 = 0;
+    
   slabflag = 0;
   differentiation_flag = 0;
   slab_volfactor = 1;
@@ -54,6 +60,55 @@ KSpace::KSpace(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   datamask = ALL_MASK;
   datamask_ext = ALL_MASK;
+
+  memory->create(gcons,7,7,"kspace:gcons");
+  gcons[2][0] = 15.0 / 8.0;
+  gcons[2][1] = -5.0 / 4.0;
+  gcons[2][2] = 3.0 / 8.0;
+  gcons[3][0] = 35.0 / 16.0;
+  gcons[3][1] = -35.0 / 16.0;
+  gcons[3][2] = 21.0 / 16.0;
+  gcons[3][3] = -5.0 / 16.0;
+  gcons[4][0] = 315.0 / 128.0;
+  gcons[4][1] = -105.0 / 32.0;
+  gcons[4][2] = 189.0 / 64.0;
+  gcons[4][3] = -45.0 / 32.0;
+  gcons[4][4] = 35.0 / 128.0;
+  gcons[5][0] = 693.0 / 256.0;
+  gcons[5][1] = -1155.0 / 256.0;
+  gcons[5][2] = 693.0 / 128.0;
+  gcons[5][3] = -495.0 / 128.0;
+  gcons[5][4] = 385.0 / 256.0;
+  gcons[5][5] = -63.0 / 256.0;
+  gcons[6][0] = 3003.0 / 1024.0;
+  gcons[6][1] = -3003.0 / 512.0;
+  gcons[6][2] = 9009.0 / 1024.0;
+  gcons[6][3] = -2145.0 / 256.0;
+  gcons[6][4] = 5005.0 / 1024.0;
+  gcons[6][5] = -819.0 / 512.0;
+  gcons[6][6] = 231.0 / 1024.0;
+
+  memory->create(dgcons,7,6,"kspace:dgcons");
+  dgcons[2][0] = -5.0 / 2.0;
+  dgcons[2][1] = 3.0 / 2.0;
+  dgcons[3][0] = -35.0 / 8.0;
+  dgcons[3][1] = 21.0 / 4.0;
+  dgcons[3][2] = -15.0 / 8.0;
+  dgcons[4][0] = -105.0 / 16.0;
+  dgcons[4][1] = 189.0 / 16.0;
+  dgcons[4][2] = -135.0 / 16.0;
+  dgcons[4][3] = 35.0 / 16.0;
+  dgcons[5][0] = -1155.0 / 128.0;
+  dgcons[5][1] = 693.0 / 32.0;
+  dgcons[5][2] = -1485.0 / 64.0;
+  dgcons[5][3] = 385.0 / 32.0;
+  dgcons[5][4] = -315.0 / 128.0;
+  dgcons[6][0] = -3003.0 / 256.0;
+  dgcons[6][1] = 9009.0 / 256.0;
+  dgcons[6][2] = -6435.0 / 128.0;
+  dgcons[6][3] = 5005.0 / 128.0;
+  dgcons[6][4] = -4095.0 / 256.0;
+  dgcons[6][5] = 693.0 / 256.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -62,6 +117,8 @@ KSpace::~KSpace()
 {
   memory->destroy(eatom);
   memory->destroy(vatom);
+  memory->destroy(gcons);
+  memory->destroy(dgcons);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -71,6 +128,28 @@ void KSpace::compute_dummy(int eflag, int vflag)
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = evflag_atom = eflag_global = vflag_global =
          eflag_atom = vflag_atom = 0;
+}
+
+/* ----------------------------------------------------------------------
+   check that pair style is compatible with long-range solver
+------------------------------------------------------------------------- */
+
+void KSpace::pair_check()
+{
+  if (force->pair == NULL)
+    error->all(FLERR,"KSpace solver requires a pair style");
+  if (ewaldflag && force->pair->ewaldflag == 0)
+    error->all(FLERR,"KSpace style is incompatible with Pair style");
+  if (pppmflag && force->pair->pppmflag == 0)
+    error->all(FLERR,"KSpace style is incompatible with Pair style");
+  if (msmflag && force->pair->msmflag == 0)
+    error->all(FLERR,"KSpace style is incompatible with Pair style");
+  if (dispersionflag && force->pair->dispersionflag == 0)
+    error->all(FLERR,"KSpace style is incompatible with Pair style");
+  if (tip4pflag && force->pair->tip4pflag == 0)
+    error->all(FLERR,"KSpace style is incompatible with Pair style");
+  if (proxyflag && force->pair->proxyflag == 0)
+    error->all(FLERR,"KSpace style is incompatible with Pair style");
 }
 
 /* ----------------------------------------------------------------------
@@ -154,7 +233,7 @@ double KSpace::estimate_table_accuracy(double q2_over_sqrt, double spr)
     else if (nctb <= 16) table_accuracy = empirical_precision[nctb];
     else table_accuracy = empirical_precision[16];
     table_accuracy *= q2_over_sqrt;
-    if (table_accuracy > spr)
+    if ((table_accuracy > spr) && (comm->me == 0))
       error->warning(FLERR,"For better accuracy use 'pair_modify table 0'");
   }
 
@@ -166,27 +245,43 @@ double KSpace::estimate_table_accuracy(double q2_over_sqrt, double spr)
    see Eq 4 from Parallel Computing 35 (2009) 164–177
 ------------------------------------------------------------------------- */
 
-double KSpace::gamma(const double &rho) 
+double KSpace::gamma(const double &rho)
 {
-  if (rho <= 1){
+  if (rho <= 1) {
+    int split_order = order/2;
+    double g = gcons[split_order][0];
     double rho2 = rho*rho;
-    return (15.0/8.0 - 5.0*rho2/4.0 + 3.0*rho2*rho2/8.0);
+    double rho_n = rho2;
+    for (int n=1; n<=split_order; n++) {
+      g += gcons[split_order][n]*rho_n;
+      rho_n *= rho2;
+    }
+    return g;
   }
   else
     return (1.0/rho);
 }
 
-/* ---------------------------------------------------------------------- 
+/* ----------------------------------------------------------------------
    compute the derivative of gamma for MSM and pair styles
-   see Eq 4 from Parallel Computing 35 (2009) 164-177 
-------------------------------------------------------------------------- */ 
- 
-double KSpace::dgamma(const double &rho) 
-{ 
-  if (rho <= 1) 
-    return (-5.0*rho/2.0 + 3.0*rho*rho*rho/2.0); 
-  else 
-    return (-1.0/rho/rho); 
+   see Eq 4 from Parallel Computing 35 (2009) 164-177
+------------------------------------------------------------------------- */
+
+double KSpace::dgamma(const double &rho)
+{
+  if (rho <= 1) {
+    int split_order = order/2;
+    double dg = dgcons[split_order][0]*rho;
+    double rho2 = rho*rho;
+    double rho_n = rho*rho2;
+    for (int n=1; n<split_order; n++) {
+      dg += dgcons[split_order][n]*rho_n;
+      rho_n *= rho2;
+    }
+    return dg;
+  }
+  else
+    return (-1.0/rho/rho);
 }
 
 /* ----------------------------------------------------------------------
@@ -205,10 +300,21 @@ void KSpace::modify_params(int narg, char **arg)
       if (nx_pppm == 0 && ny_pppm == 0 && nz_pppm == 0) gridflag = 0;
       else gridflag = 1;
       iarg += 4;
+    } else if (strcmp(arg[iarg],"mesh/disp") == 0) {
+      if (iarg+4 > narg) error->all(FLERR,"Illegal kspace_modify command");
+      nx_pppm_6 = atoi(arg[iarg+1]);
+      ny_pppm_6 = atoi(arg[iarg+2]);
+      nz_pppm_6 = atoi(arg[iarg+3]);
+      if (nx_pppm_6 == 0 || ny_pppm_6 == 0 || nz_pppm_6 == 0) gridflag_6 = 0;
+      else gridflag_6 = 1;
+      iarg += 4;
     } else if (strcmp(arg[iarg],"order") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
       order = atoi(arg[iarg+1]);
       iarg += 2;
+    } else if (strcmp(arg[iarg],"order/disp") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
+      order_6 = atoi(arg[iarg+1]);
     } else if (strcmp(arg[iarg],"force") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
       accuracy_absolute = atof(arg[iarg+1]);
@@ -218,6 +324,12 @@ void KSpace::modify_params(int narg, char **arg)
       g_ewald = atof(arg[iarg+1]);
       if (g_ewald == 0.0) gewaldflag = 0;
       else gewaldflag = 1;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"gewald/disp") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
+      g_ewald_6 = atof(arg[iarg+1]);
+      if (g_ewald_6 == 0.0) gewaldflag_6 = 0;
+      else gewaldflag_6 = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"slab") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");

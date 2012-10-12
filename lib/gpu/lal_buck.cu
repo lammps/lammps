@@ -24,13 +24,17 @@ texture<int4,1> pos_tex;
 #define pos_tex x_
 #endif
 
-__kernel void k_buck(__global numtyp4 *x_, __global numtyp4 *coeff1,
-                          __global numtyp4* coeff2, const int lj_types, 
-                          __global numtyp *sp_lj_in, __global int *dev_nbor, 
-                          __global int *dev_packed, __global acctyp4 *ans,
-                          __global acctyp *engv, const int eflag, 
-                          const int vflag, const int inum,
-                          const int nbor_pitch, const int t_per_atom) {
+__kernel void k_buck(const __global numtyp4 *restrict x_, 
+                     const __global numtyp4 *restrict coeff1,
+                     const __global numtyp4 *restrict coeff2, 
+                     const int lj_types, 
+                     const __global numtyp *restrict sp_lj_in,
+                     const __global int *dev_nbor, 
+                     const __global int *dev_packed,
+                     __global acctyp4 *restrict ans,
+                     __global acctyp *restrict engv, 
+                     const int eflag,  const int vflag, const int inum,
+                     const int nbor_pitch, const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
 
@@ -48,7 +52,7 @@ __kernel void k_buck(__global numtyp4 *x_, __global numtyp4 *coeff1,
     virial[i]=(acctyp)0;
   
   if (ii<inum) {
-    __global int *nbor, *list_end;
+    const __global int *nbor, *list_end;
     int i, numj, n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,list_end,nbor);
@@ -106,13 +110,16 @@ __kernel void k_buck(__global numtyp4 *x_, __global numtyp4 *coeff1,
   } // if ii
 }
 
-__kernel void k_buck_fast(__global numtyp4 *x_, __global numtyp4 *coeff1_in,
-                               __global numtyp4* coeff2_in, 
-                               __global numtyp* sp_lj_in, 
-                               __global int *dev_nbor, __global int *dev_packed, 
-                               __global acctyp4 *ans, __global acctyp *engv, 
-                               const int eflag, const int vflag, const int inum, 
-                               const int nbor_pitch, const int t_per_atom) {
+__kernel void k_buck_fast(const __global numtyp4 *restrict x_, 
+                          const __global numtyp4 *restrict coeff1_in,
+                          const __global numtyp4 *restrict coeff2_in, 
+                          const __global numtyp *restrict sp_lj_in, 
+                          const __global int *dev_nbor, 
+                          const __global int *dev_packed, 
+                          __global acctyp4 *restrict ans,
+                          __global acctyp *restrict engv, 
+                          const int eflag, const int vflag, const int inum, 
+                          const int nbor_pitch, const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
   
@@ -137,7 +144,7 @@ __kernel void k_buck_fast(__global numtyp4 *x_, __global numtyp4 *coeff1_in,
   __syncthreads();
   
   if (ii<inum) {
-    __global int *nbor, *list_end;
+    const __global int *nbor, *list_end;
     int i, numj, n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,list_end,nbor);

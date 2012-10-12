@@ -1,0 +1,62 @@
+# This file contains the defintion of the "WatMW" water 
+# molecule model, as defined in this paper:
+# Molinero, V. and Moore, E.B., J. Phys. Chem. B 2009, 113, 4008-4016
+# (In that paper, they call it the "mW" water model.)
+#
+# Each "WatMW" molecule below contains only a single particle (type "@atom:mW").
+# These particles interact via 3-body Stillinger-Weber potentials.
+
+WatMW {
+  # atom-id mol-id atom-type charge x y z
+  write("Data Atoms") {
+    $atom:mW $mol:. @atom:mW 0.0  0.0 0.0 0.0
+  }
+
+  write_once("Data Masses") {
+    @atom:mW 18.02
+  }
+
+  # Stillinger-Weber parameters for the "mW" model 
+  write_once("system.in.sw") {
+  mW mW mW 6.189 2.3925 1.8 23.15 1.2 -0.333333333 7.049556277 0.602224558 4 0 0
+  }
+}
+
+
+
+
+
+
+
+
+
+# ----------  OPTIONAL DEFAULT SETTINGS  -------------
+
+  #  -------------------------------------------------------------------------
+  #  ---- All settings below are optional and can be overridden later.    ----
+  #  ---- They are only suggestions how to run LAMMPS with this model.    ----
+  #  -------------------------------------------------------------------------
+
+WatMW { # <-- Append additional content to the "WatMW" class defined above
+
+  write_once("In Init") {
+    # -- Default styles for "WatMW" --
+    units           real
+    pair_style      sw
+  }
+
+  write_once("In Settings") {
+    # -- Optional: Define the group of "mW" water molecules --
+    group WatMW type @atom:mW  #(Atoms of this type belong to the "WatMW" group)
+  }
+
+  write_once("In Settings") {
+    # -- Default WatMW pair_coeffs were not supplied here  because many-body --
+    # -- pair-styles like "sw" have pair_coeffs which can not be over-ridden --
+    # -- later. You must figure out the number of atom types beforehand.     --
+    # -- Here is what you would use if only mW water is present:             --
+    # --    pair_coeff * * system.in.sw mW                                   --
+  }
+
+} # suggested WatMW style settings
+

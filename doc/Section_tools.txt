@@ -55,6 +55,7 @@ own sub-directories with their own Makefiles.
 "lmp2vmd"_#vmd
 "matlab"_#matlab
 "micelle2d"_#micelle
+"moltemplate"_#moltemplate
 "msi2lmp"_#msi
 "pymol_asphere"_#pymol
 "python"_#pythontools
@@ -290,6 +291,20 @@ micelle2d < def.micelle2d > data.file :pre
 See the def.micelle2d file in the tools directory for an example of a
 definition file.  This tool was used to create the system for the
 "micelle example"_Section_example.html.
+
+:line
+
+moltemplate tool :h4,link(moltemplate)
+
+The moltemplate sub-directory contains a Python-based tool for
+building molecular systems based on a text-file description, and
+creating LAMMPS data files that encode their molecular topology as
+lists of bonds, angles, dihedrals, etc.  See the README.TXT file for
+more information.
+
+This tool was written by Andrew Jewett (jewett.aij at gmail.com), who
+supports it.  It has its own WWW page at
+"http://moltemplate.org"_http://moltemplate.org.
 
 :line
 

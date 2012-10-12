@@ -25,22 +25,24 @@
     last = ID of last GPU to be used on each node
     split = fraction of particles assigned to the GPU
     zero or more keyword/value pairs may be appended
-    keywords = <I>threads_per_atom</I>
-    <I>threads_per_atom</I> value = Nthreads
-      Nthreads = # of GPU threads used per atom
+    keywords = <I>threads_per_atom</I> or <I>cellsize</I>
+      <I>threads_per_atom</I> value = Nthreads
+        Nthreads = # of GPU threads used per atom
+      <I>cellsize</I> value = dist
+        dist = length (distance units) in each dimension for neighbor bins
   <I>cuda</I> args = keyword value ...
     one or more keyword/value pairs may be appended
     keywords = <I>gpu/node</I> or <I>gpu/node/special</I> or <I>timing</I> or <I>test</I> or <I>override/bpa</I>
-    <I>gpu/node</I> value = N
-      N = number of GPUs to be used per node
-    <I>gpu/node/special</I> values = N gpu1 .. gpuN
-      N = number of GPUs to be used per node
-      gpu1 .. gpuN = N IDs of the GPUs to use
-    <I>timing</I> values = none
-    <I>test</I> values = id
-      id = atom-ID of a test particle
-    <I>override/bpa</I> values = flag
-      flag = 0 for TpA algorithm, 1 for BpA algorithm 
+      <I>gpu/node</I> value = N
+        N = number of GPUs to be used per node
+      <I>gpu/node/special</I> values = N gpu1 .. gpuN
+        N = number of GPUs to be used per node
+        gpu1 .. gpuN = N IDs of the GPUs to use
+      <I>timing</I> values = none
+      <I>test</I> values = id
+        id = atom-ID of a test particle
+      <I>override/bpa</I> values = flag
+        flag = 0 for TpA algorithm, 1 for BpA algorithm 
   <I>omp</I> args = Nthreads mode
     Nthreads = # of OpenMP threads to associate with each MPI process
     mode = force or force/neigh (optional) 
@@ -132,6 +134,18 @@ the value can be set with this keyword to fine-tune performance.  For
 large cutoffs or with a small number of particles per GPU, increasing
 the value can improve performance. The number of threads per atom must
 be a power of 2 and currently cannot be greater than 32.
+</P>
+<P>The <I>cellsize</I> keyword can be used to control the size of the cells used
+for binning atoms in neighbor list calculations. Setting this value is 
+normally not needed; the optimal value is close to the default 
+(equal to the cutoff distance for the short range interactions 
+plus the neighbor skin). GPUs can perform efficiently with much larger cutoffs 
+than CPUs and this can be used to reduce the time required for long-range 
+calculations or in some cases to eliminate them with models such as 
+<A HREF = "pair_coul.html">coul/wolf</A> or <A HREF = "pair_coul.html">coul/dsf</A>. For very large cutoffs,
+it can be more efficient to use smaller values for cellsize in parallel
+simulations. For example, with a cutoff of 20*sigma and a neighbor skin of
+sigma, a cellsize of 5.25*sigma can be efficient for parallel simulations.
 </P>
 <HR>
 

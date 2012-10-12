@@ -46,6 +46,7 @@ using namespace LAMMPS_NS;
 
 PairCoulLong::PairCoulLong(LAMMPS *lmp) : Pair(lmp)
 {
+  ewaldflag = pppmflag = 1;
   ftable = NULL;
 }
 
@@ -251,7 +252,7 @@ void PairCoulLong::init_style()
   // insure use of KSpace long-range solver, set g_ewald
 
  if (force->kspace == NULL)
-    error->all(FLERR,"Pair style is incompatible with KSpace style");
+    error->all(FLERR,"Pair style requires a KSpace style");
   g_ewald = force->kspace->g_ewald;
 
   // setup force tables
@@ -468,6 +469,8 @@ void PairCoulLong::write_restart_settings(FILE *fp)
   fwrite(&cut_coul,sizeof(double),1,fp);
   fwrite(&offset_flag,sizeof(int),1,fp);
   fwrite(&mix_flag,sizeof(int),1,fp);
+  fwrite(&ncoultablebits,sizeof(int),1,fp);
+  fwrite(&tabinner,sizeof(double),1,fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -480,10 +483,14 @@ void PairCoulLong::read_restart_settings(FILE *fp)
     fread(&cut_coul,sizeof(double),1,fp);
     fread(&offset_flag,sizeof(int),1,fp);
     fread(&mix_flag,sizeof(int),1,fp);
+    fread(&ncoultablebits,sizeof(int),1,fp);
+    fread(&tabinner,sizeof(double),1,fp);
   }
   MPI_Bcast(&cut_coul,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
+  MPI_Bcast(&ncoultablebits,1,MPI_INT,0,world);
+  MPI_Bcast(&tabinner,1,MPI_DOUBLE,0,world);
 }
 
 /* ----------------------------------------------------------------------

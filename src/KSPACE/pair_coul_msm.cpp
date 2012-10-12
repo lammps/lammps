@@ -38,7 +38,8 @@ using namespace LAMMPS_NS;
 
 PairCoulMSM::PairCoulMSM(LAMMPS *lmp) : PairCoulLong(lmp)
 {
-
+  ewaldflag = pppmflag = 0;
+  msmflag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -149,7 +150,6 @@ void PairCoulMSM::compute(int eflag, int vflag)
 }
 
 /* ----------------------------------------------------------------------
-
    setup force tables used in compute routines
 ------------------------------------------------------------------------- */
 

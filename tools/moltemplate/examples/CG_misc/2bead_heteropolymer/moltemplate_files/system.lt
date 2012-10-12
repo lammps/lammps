@@ -1,0 +1,25 @@
+import "peptide.lt"
+
+
+# Specify the periodic boundary conditions:
+write_once("Data Boundary") {
+  0 180.0 xlo xhi
+  0 180.0 ylo yhi
+  0 180.0 zlo zhi
+}
+
+# Create 27 peptides in a rectangular grid
+peptides = new Peptide [3].move(0, 0, 60.0)
+                       [3].move(0, 60.0, 0)
+                       [3].move(60.0, 0, 0)
+
+# Now (for fun) shift some of the peptides 
+# in the x direction by a distance of 25.0
+# Suppose we want to move the middle slice
+# (which has constant Z).  We do that this way:
+peptides[1][*][*].move(25,0,0)
+# more examples:
+peptides[*][1][*].move(0,0,25)
+peptides[*][*][1].move(0,25,0)
+
+

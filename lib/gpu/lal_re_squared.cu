@@ -32,14 +32,20 @@ ucl_inline numtyp det_prime(const numtyp m[9], const numtyp m2[9])
   return ans;
 }
 
-__kernel void k_resquared(__global numtyp4* x_,__global numtyp4 *q,
-                          __global numtyp4* shape, __global numtyp4* well, 
-                          __global numtyp *splj, __global numtyp2* sig_eps, 
-                          const int ntypes, __global int *dev_nbor,
-                          const int stride,  __global acctyp4 *ans,
-                          const int astride, __global acctyp *engv,
-                          __global int *err_flag, const int eflag,
-                          const int vflag, const int inum,
+__kernel void k_resquared(const __global numtyp4 *restrict x_,
+                          const __global numtyp4 *restrict q,
+                          const __global numtyp4 *restrict shape, 
+                          const __global numtyp4 *restrict well, 
+                          const __global numtyp *restrict splj, 
+                          const __global numtyp2 *restrict sig_eps, 
+                          const int ntypes, 
+                          const __global int *dev_nbor,
+                          const int stride,  
+                          __global acctyp4 *restrict ans,
+                          const int astride, 
+                          __global acctyp *restrict engv,
+                          __global int *restrict err_flag, 
+                          const int eflag, const int vflag, const int inum,
                           const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
@@ -68,7 +74,7 @@ __kernel void k_resquared(__global numtyp4* x_,__global numtyp4 *q,
     virial[i]=(acctyp)0;
 
   if (ii<inum) {
-    __global int *nbor, *nbor_end;
+    const __global int *nbor, *nbor_end;
     int i, numj, n_stride;
     nbor_info_e(dev_nbor,stride,t_per_atom,ii,offset,i,numj,
                 n_stride,nbor_end,nbor);

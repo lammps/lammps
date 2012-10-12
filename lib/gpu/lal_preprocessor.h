@@ -56,8 +56,7 @@
 //     Definition:   Default thread block size for "bio" pair styles
 //  MAX_BIO_SHARED_TYPES
 //     Definition:   Max # of atom type params can be stored in shared memory
-//     Restrictions:  MAX_BIO_SHARED_TYPES<=BLOCK_BIO_PAIR*2 &&
-//                    MAX_BIO_SHARED_TYPES>=BLOCK_BIO_PAIR
+//     Restrictions:  MAX_BIO_SHARED_TYPES<=BLOCK_BIO_PAIR*2
 //
 //*************************************************************************/
 
@@ -80,6 +79,7 @@
 #define __kernel extern "C" __global__
 #define __local __shared__
 #define __global  
+#define restrict __restrict__
 #define atom_add atomicAdd
 #define ucl_inline static __inline__ __device__ 
 
@@ -116,7 +116,21 @@
 #define BLOCK_NBOR_BUILD 128
 #define BLOCK_PAIR 512
 #define BLOCK_BIO_PAIR 512
+#define BLOCK_ELLIPSE 256
 #define MAX_SHARED_TYPES 11
+
+#ifdef _SINGLE_SINGLE
+#define shfl_xor __shfl_xor
+#else
+ucl_inline double shfl_xor(double var, int laneMask, int width) {
+  int2 tmp;
+  tmp.x = __double2hiint(var);
+  tmp.y = __double2loint(var);
+  tmp.x = __shfl_xor(tmp.x,laneMask,width);
+  tmp.y = __shfl_xor(tmp.y,laneMask,width);
+  return __hiloint2double(tmp.x,tmp.y);
+}
+#endif
 
 #endif
 
@@ -379,4 +393,8 @@ typedef struct _double4 double4;
 #define SBBITS 30
 #define NEIGHMASK 0x3FFFFFFF
 ucl_inline int sbmask(int j) { return j >> SBBITS & 3; };
+
+#ifndef BLOCK_ELLIPSE
+#define BLOCK_ELLIPSE BLOCK_PAIR
+#endif
 

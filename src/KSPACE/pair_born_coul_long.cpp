@@ -43,7 +43,10 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairBornCoulLong::PairBornCoulLong(LAMMPS *lmp) : Pair(lmp) {}
+PairBornCoulLong::PairBornCoulLong(LAMMPS *lmp) : Pair(lmp)
+{
+  ewaldflag = pppmflag = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -349,7 +352,7 @@ void PairBornCoulLong::init_style()
   // insure use of KSpace long-range solver, set g_ewald
 
   if (force->kspace == NULL)
-    error->all(FLERR,"Pair style is incompatible with KSpace style");
+    error->all(FLERR,"Pair style requires a KSpace style");
   g_ewald = force->kspace->g_ewald;
 
   neighbor->request(this);
@@ -423,6 +426,7 @@ void PairBornCoulLong::write_restart_settings(FILE *fp)
   fwrite(&cut_coul,sizeof(double),1,fp);
   fwrite(&offset_flag,sizeof(int),1,fp);
   fwrite(&mix_flag,sizeof(int),1,fp);
+  fwrite(&tail_flag,sizeof(int),1,fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -436,11 +440,13 @@ void PairBornCoulLong::read_restart_settings(FILE *fp)
     fread(&cut_coul,sizeof(double),1,fp);
     fread(&offset_flag,sizeof(int),1,fp);
     fread(&mix_flag,sizeof(int),1,fp);
+    fread(&tail_flag,sizeof(int),1,fp);
   }
   MPI_Bcast(&cut_lj_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&cut_coul,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
+  MPI_Bcast(&tail_flag,1,MPI_INT,0,world);
 }
 
 /* ---------------------------------------------------------------------- */

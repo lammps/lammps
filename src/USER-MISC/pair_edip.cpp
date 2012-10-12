@@ -340,13 +340,13 @@ void PairEDIP::compute(int eflag, int vflag)
       f_ij[1] = forceMod2B * directorCos_ij_y;
       f_ij[2] = forceMod2B * directorCos_ij_z;
 
-      f[j][0] += f_ij[0];
-      f[j][1] += f_ij[1];
-      f[j][2] += f_ij[2];
+      f[i][0] += f_ij[0];
+      f[i][1] += f_ij[1];
+      f[i][2] += f_ij[2];
 
-      f[i][0] -= f_ij[0];
-      f[i][1] -= f_ij[1];
-      f[i][2] -= f_ij[2];
+      f[j][0] -= f_ij[0];
+      f[j][1] -= f_ij[1];
+      f[j][2] -= f_ij[2];
 
       // potential energy
 
@@ -455,7 +455,7 @@ void PairEDIP::compute(int eflag, int vflag)
     // forces due to environment coordination f(Z)
 
     for (int idx = 0; idx < numForceCoordPairs; idx++) {
-        double dr_ij[3], f_ij[3];
+        double dr_ij[3],f_ij[3];
 
         preForceCoord_counter = idx * 5;
         zeta_iDerivedInvR_ij=preForceCoord[preForceCoord_counter+0];
@@ -470,13 +470,13 @@ void PairEDIP::compute(int eflag, int vflag)
         f_ij[1] = forceModCoord_ij * dr_ij[1];
         f_ij[2] = forceModCoord_ij * dr_ij[2];
 
-        f[j][0] -= f_ij[0];
-        f[j][1] -= f_ij[1];
-        f[j][2] -= f_ij[2];
+        f[i][0] -= f_ij[0];
+        f[i][1] -= f_ij[1];
+        f[i][2] -= f_ij[2];
 
-        f[i][0] += f_ij[0];
-        f[i][1] += f_ij[1];
-        f[i][2] += f_ij[2];
+        f[j][0] += f_ij[0];
+        f[j][1] += f_ij[1];
+        f[j][2] += f_ij[2];
 
         // potential energy
 

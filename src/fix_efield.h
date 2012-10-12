@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under
+   certain rights in this software.  This software is distributed under 
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -31,9 +31,13 @@ class FixEfield : public Fix {
   int setmask();
   void init();
   void setup(int);
+  void min_setup(int);
   void post_force(int);
   void post_force_respa(int, int, int);
+  void min_post_force(int);
   double memory_usage();
+  double compute_scalar();
+  double compute_vector(int);
 
  private:
   double ex,ey,ez;
@@ -42,9 +46,13 @@ class FixEfield : public Fix {
   int xvar,yvar,zvar,xstyle,ystyle,zstyle;
   int nlevels_respa;
   double qe2f;
+  double fdotx;
 
   int maxatom;
   double **efield;
+
+  int force_flag;
+  double fsum[4],fsum_all[4];
 };
 
 }

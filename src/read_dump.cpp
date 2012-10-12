@@ -729,8 +729,9 @@ void ReadDump::process_atoms(int n)
 
       // replace image flag in case changed by ix,iy,iz fields
 
-      image[m] = ((tagint) xbox << IMG2BITS) |
-        ((tagint) ybox << IMGBITS) | zbox;
+      image[m] = ((tagint) (xbox + IMGMAX) & IMGMASK) | 
+        (((tagint) (ybox + IMGMAX) & IMGMASK) << IMGBITS) | 
+        (((tagint) (zbox + IMGMAX) & IMGMASK) << IMG2BITS);
     }
   }
 
@@ -786,9 +787,8 @@ void ReadDump::process_atoms(int n)
     m = atom->nlocal;
 
     // set atom attributes from other dump file fields
-    // xyzbox = IMGMAX is default value set by create_atom()
 
-    xbox = ybox = zbox = IMGMAX;
+    xbox = ybox = zbox = 0;
 
     for (ifield = 1; ifield < nfield; ifield++) {
       switch (fieldtype[ifield]) {
@@ -814,8 +814,9 @@ void ReadDump::process_atoms(int n)
 
       // replace image flag in case changed by ix,iy,iz fields
 
-      image[m] = ((tagint) xbox << IMG2BITS) |
-        ((tagint) ybox << IMGBITS) | zbox;
+      image[m] = ((tagint) (xbox + IMGMAX) & IMGMASK) | 
+        (((tagint) (ybox + IMGMAX) & IMGMASK) << IMGBITS) | 
+        (((tagint) (zbox + IMGMAX) & IMGMASK) << IMG2BITS);
     }
   }
 

@@ -197,10 +197,10 @@ void PairBornCoulWolfGPU::cpu_compute(int start, int inum, int eflag, int vflag,
   int i,j,ii,jj,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,qtmp,delx,dely,delz,evdwl,ecoul,fpair;
   double rsq,r2inv,r6inv,forcecoul,forceborn,factor_coul,factor_lj;
+  double erfcc,erfcd,v_sh,dvdrr,e_self,qisq;
   double prefactor;
   double r,rexp;
   int *jlist;
-  double erfcc,erfcd,v_sh,dvdrr,e_self,e_shift,f_shift,qisq;
 
   evdwl = ecoul = 0.0;
   
@@ -213,9 +213,9 @@ void PairBornCoulWolfGPU::cpu_compute(int start, int inum, int eflag, int vflag,
   double *special_lj = force->special_lj;
   double qqrd2e = force->qqrd2e;
   
-  qisq = qtmp*qtmp;
-  e_self = -(e_shift/2.0 + alf/MY_PIS) * qisq*qqrd2e;
-  if (evflag) ev_tally(i,i,nlocal,0,0.0,e_self,0.0,0.0,0.0,0.0);
+  double e_shift = erfc(alf*cut_coul)/cut_coul;
+  double f_shift = -(e_shift+ 2.0*alf/MY_PIS * exp(-alf*alf*cut_coul*cut_coul)) / 
+    cut_coul; 
 
   // loop over neighbors of my atoms
 
@@ -228,6 +228,10 @@ void PairBornCoulWolfGPU::cpu_compute(int start, int inum, int eflag, int vflag,
     itype = type[i];
     jlist = firstneigh[i];
     jnum = numneigh[i];
+
+    qisq = qtmp*qtmp;
+    e_self = -(e_shift/2.0 + alf/MY_PIS) * qisq*qqrd2e;
+    if (evflag) ev_tally(i,i,nlocal,0,0.0,e_self,0.0,0.0,0.0,0.0);
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
@@ -270,9 +274,10 @@ void PairBornCoulWolfGPU::cpu_compute(int start, int inum, int eflag, int vflag,
         f[i][2] += delz*fpair;
 
         if (eflag) {
-          if (rsq < cut_coulsq)
+          if (rsq < cut_coulsq) {
             ecoul = v_sh;
-          else ecoul = 0.0;
+            if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
+          } else ecoul = 0.0;
           if (rsq < cut_ljsq[itype][jtype]) {
             evdwl = a[itype][jtype]*rexp - c[itype][jtype]*r6inv +
               d[itype][jtype]*r6inv*r2inv - offset[itype][jtype];

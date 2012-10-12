@@ -22,8 +22,6 @@ write_restart poly.%.* :pre
 [Description:]
 
 Write a binary restart file of the current state of the simulation.
-See the "read_restart"_read_restart.html command for information about
-what is stored in a restart file.
 
 During a long simulation, the "restart"_restart.html command is
 typically used to dump restart files periodically.  The write_restart
@@ -50,6 +48,17 @@ directory can be used to convert a restart file to an ASCII data file.
 Both the read_restart command and restart2data tool can read in a
 restart file that was written with the "%" character so that multiple
 files were created.
+
+IMPORTANT NOTE: Although the purpose of restart files is to enable
+restarting a simulation from where it left off, not all information
+about a simulation is stored in the file.  For example, the list of
+fixes that were specified during the initial run is not stored, which
+means the new input script must specify any fixes you want to use.
+Even when restart information is stored in the file, as it is for some
+fixes, commands may need to be re-specified in the new input script,
+in order to re-use that information.  See the
+"read_restart"_read_restart.html command for information about what is
+stored in a restart file.
 
 [Restrictions:]
 

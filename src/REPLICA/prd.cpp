@@ -641,7 +641,7 @@ void PRD::share_event(int ireplica, int flag)
   // since replica 0 possibly has new state from another replica
   // addstep_compute_all insures eng/virial are calculated if needed
 
-  if (output->ndump && universe->iworld) {
+  if (output->ndump && universe->iworld == 0) {
     timer->barrier_start(TIME_LOOP);
     modify->addstep_compute_all(update->ntimestep);
     update->integrate->setup_minimal(1);

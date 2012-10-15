@@ -118,12 +118,6 @@ adds a charge at the massless 4th site in each TIP4P water molecule.
 It should be used with "pair styles"_pair_style.html with a
 {long/tip4p} in their style name.
 
-The {pppm/disp} and {pppm/disp/tip4p} styles add a long-range
-dispersion sum option for 1/r^6 potentials, similar to the
-{ewald/disp} style.  The 1/r^6 capability means that Lennard-Jones or
-Buckingham potentials can be used without a cutoff, i.e. they become
-full long-range potentials.
-
 The {pppm/proxy} and {pppm/tip4p/proxy} styles are special variants
 for calculations in hybrid OpenMP/MPI parallel mode.  They are
 functionally equivalent to {pppm} and {pppm/tip4p}, but the force
@@ -133,6 +127,26 @@ suffix.  For calcuations across many multi-core nodes, this can have a
 performance benefit over performing the real and reciprocal space part
 separately, specifically when otherwise the time spent on the pair
 style would slightly less than in {pppm} without threading.
+
+:line
+
+The {pppm/disp} and {pppm/disp/tip4p} styles add a long-range
+dispersion sum option for 1/r^6 potentials, similar to the
+{ewald/disp} style.  The 1/r^6 capability means that Lennard-Jones or
+Buckingham potentials can be used without a cutoff, i.e. they become
+full long-range potentials.
+
+For these styles, it is currently recommended that you set the
+dispersion mesh size and other parameters explicitly via the
+"kspace_modify"_kspace_modify.html command, rather than let LAMMPS set
+them automatically.  For example, a set of parameters that works well
+for TIP4P water models is a LJ cutoff of 10 Angstrom, interpolation
+order = 5 (the default), grid spacing = 4.17 Angstroms, and Ewald
+parameter = 0.28.  These parameters work well for the {ik}
+differentiation.  For the {ad} setting, a smaller grid is needed,
+e.g. 3 Angstroms.
+
+:line
 
 IMPORTANT NOTE: All of the PPPM styles can be used with
 single-precision FFTs by using the compiler switch -DFFT_SINGLE for

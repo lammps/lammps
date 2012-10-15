@@ -45,6 +45,7 @@ class PPPMDisp : public KSpace {
   virtual ~PPPMDisp();
   virtual void init();
   virtual void setup();
+  void setup_grid();
   virtual void compute(int, int);
   virtual int timing_1d(int, double &);
   virtual int timing_3d(int, double &);
@@ -81,18 +82,16 @@ Variables needed for calculating the 1/r and 1/r^6 potential
   double shift,shiftone;
   int nxlo_in,nylo_in,nzlo_in,nxhi_in,nyhi_in,nzhi_in;
   int nxlo_out,nylo_out,nzlo_out,nxhi_out,nyhi_out,nzhi_out;
-  int nxlo_ghost,nxhi_ghost,nylo_ghost,nyhi_ghost,nzlo_ghost,nzhi_ghost;
   int nxlo_fft,nylo_fft,nzlo_fft,nxhi_fft,nyhi_fft,nzhi_fft;
   int nlower,nupper;
-  int ngrid,nfft,nbuf,nfft_both,nbuf_pa;
+  int ngrid,nfft,nfft_both;
 
   double shift_6,shiftone_6;
   int nxlo_in_6,nylo_in_6,nzlo_in_6,nxhi_in_6,nyhi_in_6,nzhi_in_6;
   int nxlo_out_6,nylo_out_6,nzlo_out_6,nxhi_out_6,nyhi_out_6,nzhi_out_6;
-  int nxlo_ghost_6,nxhi_ghost_6,nylo_ghost_6,nyhi_ghost_6,nzlo_ghost_6,nzhi_ghost_6;
   int nxlo_fft_6,nylo_fft_6,nzlo_fft_6,nxhi_fft_6,nyhi_fft_6,nzhi_fft_6;
   int nlower_6,nupper_6;
-  int ngrid_6,nfft_6,nbuf_6,nfft_both_6,nbuf_pa_6;
+  int ngrid_6,nfft_6,nfft_both_6;
 
   //// variables needed for splitting the fourier transformed
   int com_max, com_procs;
@@ -170,8 +169,6 @@ Variables needed for calculating the 1/r and 1/r^6 potential
   double *fkx2, *fky2, *fkz2;
   double *fkx_6, *fky_6, *fkz_6;
   double *fkx2_6, *fky2_6, *fkz2_6;
-  FFT_SCALAR *buf1,*buf2,*buf3,*buf4;
-  FFT_SCALAR *buf1_6, *buf2_6,*buf3_6,*buf4_6;
   double *gf_b;
   double *gf_b_6;
 
@@ -191,6 +188,10 @@ Variables needed for calculating the 1/r and 1/r^6 potential
   class FFT3d *fft1_6, *fft2_6;
   class Remap *remap;
   class Remap *remap_6;
+  class CommGrid *cg;
+  class CommGrid *cg_peratom;
+  class CommGrid *cg_6;
+  class CommGrid *cg_peratom_6;
 
   int **part2grid;             // storage for particle -> grid mapping
   int **part2grid_6;
@@ -211,9 +212,8 @@ Variables needed for calculating the 1/r and 1/r^6 potential
   void set_fft_parameters(int&, int&, int&, int&, int&,int&,
                           int&, int&,int&, int&, int&,int&,
                           int&, int&,int&, int&, int&,int&,
-                          int&, int&,int&, int&, int&,int&,
                           int&, int&,int&, int&, int&,
-			  int&, int&, int&, int&, int&,
+			  int&, int&, int&,
 		          double&, double&, int&);
   void set_n_pppm_6();
   void adjust_gewald();
@@ -270,42 +270,9 @@ Variables needed for calculating the 1/r and 1/r^6 potential
   virtual void make_rho_a();
 
   virtual void brick2fft(int, int, int, int, int, int,
-                         int, int, int, int, int, int,
-                         int, int, int, int, int, int,
 			 FFT_SCALAR ***, FFT_SCALAR *, FFT_SCALAR *,
-                         FFT_SCALAR *, FFT_SCALAR *, int, LAMMPS_NS::Remap *);
+                         LAMMPS_NS::Remap *);
   virtual void brick2fft_a();
-
-  virtual void fillbrick_ik(int, int, int, int, int, int,
-                            int, int, int, int, int, int,
-                            int, int, int, int, int, int,
-                            FFT_SCALAR *, FFT_SCALAR *, int,
-                            FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***);
-
-  virtual void fillbrick_ad(int, int, int, int, int, int,
-                            int, int, int, int, int, int,
-                            int, int, int, int, int, int,
-                            FFT_SCALAR *, FFT_SCALAR *, int,
-                            FFT_SCALAR ***);
-
-  virtual void fillbrick_peratom_ik(int, int, int, int, int, int,
-                                    int, int, int, int, int, int,
-                                    int, int, int, int, int, int,
-                                    FFT_SCALAR *, FFT_SCALAR *, int,
-                                    FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***,
-                                    FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***);
-
-  virtual void fillbrick_peratom_ad(int, int, int, int, int, int,
-                                    int, int, int, int, int, int,
-                                    int, int, int, int, int, int,
-                                    FFT_SCALAR *, FFT_SCALAR *, int,
-                                    FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***,
-                                    FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***);
-
-  virtual void fillbrick_a_ik();
-  virtual void fillbrick_a_ad();
-  virtual void fillbrick_a_peratom_ik();
-  virtual void fillbrick_a_peratom_ad();
 
   virtual void poisson_ik(FFT_SCALAR *, FFT_SCALAR *,
 		          FFT_SCALAR *, LAMMPS_NS::FFT3d *,LAMMPS_NS::FFT3d *, 
@@ -370,6 +337,13 @@ Variables needed for calculating the 1/r and 1/r^6 potential
   void slabcorr(int);
   void split_fourier();
   void split_order(int **);
+
+  // grid communication
+
+  void pack_forward(int, FFT_SCALAR *, int, int *);
+  void unpack_forward(int, FFT_SCALAR *, int, int *);
+  void pack_reverse(int, FFT_SCALAR *, int, int *);
+  void unpack_reverse(int, FFT_SCALAR *, int, int *);
 };
 
 }

@@ -26,6 +26,7 @@
 #include "math_const.h"
 #include "atom.h"
 #include "comm.h"
+#include "commgrid.h"
 #include "neighbor.h"
 #include "force.h"
 #include "pair.h"
@@ -45,7 +46,13 @@ using namespace MathConst;
 #define SMALL 0.00001
 #define LARGE 10000.0
 #define EPS_HOC 1.0e-7
+
 enum{GEOMETRIC,ARITHMETIC,SIXTHPOWER};
+enum{REVERSE_RHO, REVERSE_RHO_G, REVERSE_RHO_A};
+enum{FORWARD_IK, FORWARD_AD, FORWARD_IK_PERATOM, FORWARD_AD_PERATOM,
+     FORWARD_IK_G, FORWARD_AD_G, FORWARD_IK_PERATOM_G, FORWARD_AD_PERATOM_G,
+     FORWARD_IK_A, FORWARD_AD_A, FORWARD_IK_PERATOM_A, FORWARD_AD_PERATOM_A};
+
 
 #ifdef FFT_SINGLE
 #define ZEROF 0.0f
@@ -136,8 +143,6 @@ PPPMDisp::PPPMDisp(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
   fkx2 = fky2 = fkz2 = NULL;
   fkx_6 = fky_6 = fkz_6 = NULL;
   fkx2_6 = fky2_6 = fkz2_6 = NULL;
-  buf1 = buf2 = buf3 = buf4 = NULL;
-  buf1_6 = buf2_6 = buf3_6 = buf4_6= NULL;
 
   sf_precoeff1 = sf_precoeff2 = sf_precoeff3 = sf_precoeff4 = 
     sf_precoeff5 = sf_precoeff6 = NULL;
@@ -167,6 +172,11 @@ PPPMDisp::PPPMDisp(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
   com_order = NULL;
   split_1 = NULL;
   split_2 = NULL;
+
+  cg = NULL;
+  cg_peratom = NULL;
+  cg_6 = NULL;
+  cg_peratom_6 = NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -225,6 +235,8 @@ void PPPMDisp::init()
 
   deallocate();
   deallocate_peratom(); 
+  peratom_allocate_flag = 0;
+
 
   // set scale
 
@@ -277,7 +289,7 @@ void PPPMDisp::init()
   // warn, if function[0] is not set but charge attribute is set!
   if (!function[0] && atom->q_flag && me == 0) {
     char str[128];
-    sprintf(str, "Charges are set, but coulombic long-range solver is not used");
+    sprintf(str, "Charges are set, but coulombic solver is not used");
     error->warning(FLERR, str);
   }
 
@@ -358,9 +370,12 @@ void PPPMDisp::init()
   if (accuracy_absolute >= 0.0) accuracy = accuracy_absolute;
   else accuracy = accuracy_relative * two_charge_force;
 
+  int (*procneigh)[2] = comm->procneigh;
+
   int iteration = 0;
   if (function[0]) {
-    while (order > 0) {
+    CommGrid *cgtmp = NULL;
+    while (order >= minorder) {
 
       if (iteration && me == 0)
           error->warning(FLERR,"Reducing PPPMDisp Coulomb order b/c stencil extends "
@@ -381,29 +396,27 @@ void PPPMDisp::init()
                          nxhi_in, nyhi_in, nzhi_in,
                          nxlo_out, nylo_out, nzlo_out,
                          nxhi_out, nyhi_out, nzhi_out,
-                         nxlo_ghost, nylo_ghost, nzlo_ghost,
-                         nxhi_ghost, nyhi_ghost, nzhi_ghost,
                          nlower, nupper,
-                         ngrid, nfft, nfft_both, nbuf, nbuf_pa,
+                         ngrid, nfft, nfft_both,
                          shift, shiftone, order);
 
-      int flag = 0;
-      if (nxlo_ghost > nxhi_in-nxlo_in+1) flag = 1;
-      if (nxhi_ghost > nxhi_in-nxlo_in+1) flag = 1;
-      if (nylo_ghost > nyhi_in-nylo_in+1) flag = 1;
-      if (nyhi_ghost > nyhi_in-nylo_in+1) flag = 1;
-      if (nzlo_ghost > nzhi_in-nzlo_in+1) flag = 1;
-      if (nzhi_ghost > nzhi_in-nzlo_in+1) flag = 1;
+      if (overlap_allowed) break;
 
-      int flag_all;
-      MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
+      cgtmp = new CommGrid(lmp, world,1,1,
+                           nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
+                           nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out,
+                           procneigh[0][0],procneigh[0][1],procneigh[1][0],
+                           procneigh[1][1],procneigh[2][0],procneigh[2][1]);
+      cgtmp->ghost_notify();
+      if (!cgtmp->ghost_overlap()) break;
+      delete cgtmp;
 
-      if (flag_all == 0) break;
       order--;
     }
 
-    if (order == 1)
-      error->all(FLERR,"Coulomb PPPMDisp order has been reduced to 1");
+    if (order < minorder)
+      error->all(FLERR,"Coulomb PPPMDisp order has been reduced below minorder");
+    if (cgtmp) delete cgtmp;
 
     // adjust g_ewald
   
@@ -418,7 +431,6 @@ void PPPMDisp::init()
     int ngrid_max,nfft_both_max,nbuf_max;
     MPI_Allreduce(&ngrid,&ngrid_max,1,MPI_INT,MPI_MAX,world);
     MPI_Allreduce(&nfft_both,&nfft_both_max,1,MPI_INT,MPI_MAX,world);
-    MPI_Allreduce(&nbuf,&nbuf_max,1,MPI_INT,MPI_MAX,world);
 
     if (me == 0) {
     #ifdef FFT_SINGLE
@@ -436,8 +448,8 @@ void PPPMDisp::init()
         fprintf(screen,"  Coulomb estimated relative force accuracy = %g\n",
                 acc/two_charge_force);
         fprintf(screen,"  using %s precision FFTs\n",fft_prec);
-        fprintf(screen,"  Coulomb brick FFT buffer size/proc = %d %d %d\n",
-                          ngrid_max,nfft_both_max,nbuf_max);
+        fprintf(screen,"  3d grid anf FFT values/proc = %d %d\n",
+		ngrid_max, nfft_both_max);
       }
       if (logfile) {
         fprintf(logfile,"  Coulomb G vector (1/distance) = %g\n",g_ewald);
@@ -448,15 +460,16 @@ void PPPMDisp::init()
         fprintf(logfile,"  Coulomb estimated relative force accuracy = %g\n",
                 acc/two_charge_force);
         fprintf(logfile,"  using %s precision FFTs\n",fft_prec);
-        fprintf(logfile,"  Coulomb brick FFT buffer size/proc = %d %d %d\n",
-                           ngrid_max,nfft_both_max,nbuf_max);
+        fprintf(logfile,"  3d grid anf FFT values/proc = %d %d\n",
+		ngrid_max, nfft_both_max);
       }
     }
   }
 
   iteration = 0;
   if (function[1] + function[2]) {
-   while (order_6 > 0) {
+    CommGrid *cgtmp = NULL;
+    while (order_6 >= minorder) {
 
       if (iteration && me == 0)
           error->warning(FLERR,"Reducing PPPMDisp Dispersion order b/c stencil extends "
@@ -475,28 +488,25 @@ void PPPMDisp::init()
                          nxhi_in_6, nyhi_in_6, nzhi_in_6,
                          nxlo_out_6, nylo_out_6, nzlo_out_6,
                          nxhi_out_6, nyhi_out_6, nzhi_out_6,
-                         nxlo_ghost_6, nylo_ghost_6, nzlo_ghost_6,
-                         nxhi_ghost_6, nyhi_ghost_6, nzhi_ghost_6,
                          nlower_6, nupper_6,
-                         ngrid_6, nfft_6, nfft_both_6, nbuf_6, nbuf_pa_6,
+                         ngrid_6, nfft_6, nfft_both_6,
                          shift_6, shiftone_6, order_6);
 
-      int flag = 0;
-      if (nxlo_ghost_6 > nxhi_in_6-nxlo_in_6+1) flag = 1;
-      if (nxhi_ghost_6 > nxhi_in_6-nxlo_in_6+1) flag = 1;
-      if (nylo_ghost_6 > nyhi_in_6-nylo_in_6+1) flag = 1;
-      if (nyhi_ghost_6 > nyhi_in_6-nylo_in_6+1) flag = 1;
-      if (nzlo_ghost_6 > nzhi_in_6-nzlo_in_6+1) flag = 1;
-      if (nzhi_ghost_6 > nzhi_in_6-nzlo_in_6+1) flag = 1;
+      if (overlap_allowed) break;
 
-      int flag_all;
-      MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
-
-      if (flag_all == 0) break;
+      cgtmp = new CommGrid(lmp,world,1,1,
+                            nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
+                            nxlo_out_6,nxhi_out_6,nylo_out_6,nyhi_out_6,nzlo_out_6,nzhi_out_6,
+                            procneigh[0][0],procneigh[0][1],procneigh[1][0],
+                            procneigh[1][1],procneigh[2][0],procneigh[2][1]);
+      cgtmp->ghost_notify();
+      if (!cgtmp->ghost_overlap()) break;
+      delete cgtmp;
       order_6--;
     }
 
-    if (order_6 == 0) error->all(FLERR,"Dispersion PPPMDisp order has been reduced to 0");
+    if (order_6 < minorder) error->all(FLERR,"Dispersion PPPMDisp order has been reduced below minorder");
+    if (cgtmp) delete cgtmp;
 
     // adjust g_ewald_6
 
@@ -512,7 +522,6 @@ void PPPMDisp::init()
     int ngrid_max,nfft_both_max,nbuf_max;
     MPI_Allreduce(&ngrid_6,&ngrid_max,1,MPI_INT,MPI_MAX,world);
     MPI_Allreduce(&nfft_both_6,&nfft_both_max,1,MPI_INT,MPI_MAX,world);
-    MPI_Allreduce(&nbuf_6,&nbuf_max,1,MPI_INT,MPI_MAX,world);
 
     if (me == 0) {
     #ifdef FFT_SINGLE
@@ -530,8 +539,8 @@ void PPPMDisp::init()
         fprintf(screen,"  Dispersion estimated relative force accuracy = %g\n",
                 acc/two_charge_force);
         fprintf(screen,"  using %s precision FFTs\n",fft_prec);
-        fprintf(screen,"  Dispersion brick FFT buffer size/proc = %d %d %d\n",
-                          ngrid_max,nfft_both_max,nbuf_max);
+        fprintf(screen,"  3d grid and FFT values/proc dispersion = %d %d\n",
+                          ngrid_max,nfft_both_max);
       }
       if (logfile) {
         fprintf(logfile,"  Dispersion G vector (1/distance) = %g\n",g_ewald_6);
@@ -542,17 +551,17 @@ void PPPMDisp::init()
         fprintf(logfile,"  Disperion estimated relative force accuracy = %g\n",
                 acc/two_charge_force);
         fprintf(logfile,"  using %s precision FFTs\n",fft_prec);
-        fprintf(logfile,"  Dispersion brick FFT buffer size/proc = %d %d %d\n",
-                           ngrid_max,nfft_both_max,nbuf_max);
+        fprintf(logfile,"  3d grid and FFT values/proc dispersion = %d %d\n",
+                           ngrid_max,nfft_both_max);
       }
     }
   }
  
   // prepare the splitting of the Fourier Transformed vectors
+
   if (function[2]) prepare_splitting();
 
   // allocate K-space dependent memory
-
   allocate();
 
   // pre-compute Green's function denomiator expansion
@@ -560,6 +569,8 @@ void PPPMDisp::init()
   if (function[0]) {
     compute_gf_denom(gf_b, order);
     compute_rho_coeff(rho_coeff, drho_coeff, order);
+    cg->ghost_notify();
+    cg->setup();
     if (differentiation_flag == 1)
       compute_sf_precoeff(nx_pppm, ny_pppm, nz_pppm, order,
                           nxlo_fft, nylo_fft, nzlo_fft, 
@@ -570,6 +581,8 @@ void PPPMDisp::init()
   if (function[1] + function[2]) {
     compute_gf_denom(gf_b_6, order_6);
     compute_rho_coeff(rho_coeff_6, drho_coeff_6, order_6);
+    cg_6->ghost_notify();
+    cg_6->setup();
     if (differentiation_flag == 1)
       compute_sf_precoeff(nx_pppm_6, ny_pppm_6, nz_pppm_6, order_6,
                           nxlo_fft_6, nylo_fft_6, nzlo_fft_6, 
@@ -677,7 +690,7 @@ void PPPMDisp::setup()
     if (differentiation_flag == 1) compute_sf_coeff();
   }
 
- if (function[1] + function[2]) {
+  if (function[1] + function[2]) {
     delxinv_6 = nx_pppm_6/xprd;
     delyinv_6 = ny_pppm_6/yprd;
     delzinv_6 = nz_pppm_6/zprd_slab;
@@ -753,6 +766,94 @@ void PPPMDisp::setup()
 }
 
 /* ----------------------------------------------------------------------
+   reset local grid arrays and communication stencils
+   called by fix balance b/c it changed sizes of processor sub-domains
+------------------------------------------------------------------------- */
+
+void PPPMDisp::setup_grid()
+{
+  // free all arrays previously allocated
+
+  deallocate();
+  deallocate_peratom();
+  peratom_allocate_flag = 0;
+
+  // reset portion of global grid that each proc owns
+  if (function[0])
+    set_fft_parameters(nx_pppm, ny_pppm, nz_pppm,
+                       nxlo_fft, nylo_fft, nzlo_fft,
+                       nxhi_fft, nyhi_fft, nzhi_fft,
+                       nxlo_in, nylo_in, nzlo_in,
+                       nxhi_in, nyhi_in, nzhi_in,
+                       nxlo_out, nylo_out, nzlo_out,
+                       nxhi_out, nyhi_out, nzhi_out,
+                       nlower, nupper,
+                       ngrid, nfft, nfft_both,
+                       shift, shiftone, order);
+
+  if (function[1] + function[2])
+    set_fft_parameters(nx_pppm_6, ny_pppm_6, nz_pppm_6,
+                       nxlo_fft_6, nylo_fft_6, nzlo_fft_6,
+                       nxhi_fft_6, nyhi_fft_6, nzhi_fft_6,
+                       nxlo_in_6, nylo_in_6, nzlo_in_6,
+                       nxhi_in_6, nyhi_in_6, nzhi_in_6,
+                       nxlo_out_6, nylo_out_6, nzlo_out_6,
+                       nxhi_out_6, nyhi_out_6, nzhi_out_6,
+                       nlower_6, nupper_6,
+                       ngrid_6, nfft_6, nfft_both_6,
+                       shift_6, shiftone_6, order_6);
+
+  // reallocate K-space dependent memory
+  // check if grid communication is now overlapping if not allowed
+  // don't invoke allocate_peratom(), compute() will allocate when needed
+
+  allocate();
+
+  if (function[0]) {
+    cg->ghost_notify();
+    if (overlap_allowed == 0 && cg->ghost_overlap())
+      error->all(FLERR,"PPPM grid stencil extends "
+                 "beyond nearest neighbor processor");
+    cg->setup();
+  }
+  if (function[1] + function[2]) {
+    cg_6->ghost_notify();
+    if (overlap_allowed == 0 && cg_6->ghost_overlap())
+      error->all(FLERR,"PPPM grid stencil extends "
+                 "beyond nearest neighbor processor");
+    cg_6->setup();
+  }
+
+  // pre-compute Green's function denomiator expansion
+  // pre-compute 1d charge distribution coefficients
+
+  if (function[0]) {
+    compute_gf_denom(gf_b, order);
+    compute_rho_coeff(rho_coeff, drho_coeff, order);
+    if (differentiation_flag == 1) 
+      compute_sf_precoeff(nx_pppm, ny_pppm, nz_pppm, order,
+                          nxlo_fft, nylo_fft, nzlo_fft, 
+                          nxhi_fft, nyhi_fft, nzhi_fft,
+                          sf_precoeff1, sf_precoeff2, sf_precoeff3,
+                          sf_precoeff4, sf_precoeff5, sf_precoeff6);
+  }
+  if (function[1] + function[2]) {
+    compute_gf_denom(gf_b_6, order_6);
+    compute_rho_coeff(rho_coeff_6, drho_coeff_6, order_6);
+    if (differentiation_flag == 1)
+      compute_sf_precoeff(nx_pppm_6, ny_pppm_6, nz_pppm_6, order_6,
+                          nxlo_fft_6, nylo_fft_6, nzlo_fft_6, 
+                          nxhi_fft_6, nyhi_fft_6, nzhi_fft_6,
+                          sf_precoeff1_6, sf_precoeff2_6, sf_precoeff3_6,
+                          sf_precoeff4_6, sf_precoeff5_6, sf_precoeff6_6);
+  }
+
+  // pre-compute volume-dependent coeffs
+
+  setup();
+}
+
+/* ----------------------------------------------------------------------
    compute the PPPM long-range force, energy, virial 
 ------------------------------------------------------------------------- */
 
@@ -768,6 +869,14 @@ void PPPMDisp::compute(int eflag, int vflag)
   
   if (evflag_atom && !peratom_allocate_flag) {
     allocate_peratom();
+    if (function[0]) {
+      cg_peratom->ghost_notify();
+      cg_peratom->setup();
+    }
+    if (function[1] + function[2]) {
+      cg_peratom_6->ghost_notify();
+      cg_peratom_6->setup();
+    }
     peratom_allocate_flag = 1;
   }
   
@@ -803,10 +912,9 @@ void PPPMDisp::compute(int eflag, int vflag)
     particle_map_c(delxinv, delyinv, delzinv, shift, part2grid, nupper, nlower,
                  nxlo_out, nylo_out, nzlo_out, nxhi_out, nyhi_out, nzhi_out);
     make_rho_c();
-    brick2fft(nxlo_out, nylo_out, nzlo_out, nxhi_out, nyhi_out, nzhi_out,
-              nxlo_in, nylo_in, nzlo_in, nxhi_in, nyhi_in, nzhi_in,
-              nxlo_ghost, nylo_ghost, nzlo_ghost, nxhi_ghost, nyhi_ghost, nzhi_ghost,
-	      density_brick, density_fft, work1, buf1, buf2, nbuf, remap); 
+    cg->reverse_comm(this,REVERSE_RHO);
+    brick2fft(nxlo_in, nylo_in, nzlo_in, nxhi_in, nyhi_in, nzhi_in,
+	      density_brick, density_fft, work1,remap); 
     if (differentiation_flag == 1) {
       poisson_ad(work1, work2, density_fft, fft1, fft2,
                  nx_pppm, ny_pppm, nz_pppm, nfft,
@@ -816,18 +924,11 @@ void PPPMDisp::compute(int eflag, int vflag)
                  virial_1, vg,vg2,
                  u_brick, v0_brick, v1_brick, v2_brick, v3_brick, v4_brick, v5_brick);
 
-      fillbrick_ad(nxlo_out, nylo_out, nzlo_out, nxhi_out, nyhi_out, nzhi_out,
-                   nxlo_in, nylo_in, nzlo_in, nxhi_in, nyhi_in, nzhi_in,
-                   nxlo_ghost, nylo_ghost, nzlo_ghost, nxhi_ghost, nyhi_ghost, nzhi_ghost,
-                   buf1, buf2, nbuf, u_brick);
+      cg->forward_comm(this,FORWARD_AD);
  
       fieldforce_c_ad(); 
 
-      if (vflag_atom) fillbrick_peratom_ad(nxlo_out, nylo_out, nzlo_out, nxhi_out, nyhi_out, nzhi_out,
-              nxlo_in, nylo_in, nzlo_in, nxhi_in, nyhi_in, nzhi_in,
-              nxlo_ghost, nylo_ghost, nzlo_ghost, nxhi_ghost, nyhi_ghost, nzhi_ghost,
-	      buf3, buf4, nbuf_pa, v0_brick, v1_brick, v2_brick,
-	      v3_brick, v4_brick, v5_brick);
+      if (vflag_atom) cg_peratom->forward_comm(this, FORWARD_AD_PERATOM);
 
     } else {
       poisson_ik(work1, work2, density_fft, fft1, fft2,
@@ -839,18 +940,11 @@ void PPPMDisp::compute(int eflag, int vflag)
                  vdx_brick, vdy_brick, vdz_brick, virial_1, vg,vg2,
                  u_brick, v0_brick, v1_brick, v2_brick, v3_brick, v4_brick, v5_brick);
 
-      fillbrick_ik(nxlo_out, nylo_out, nzlo_out, nxhi_out, nyhi_out, nzhi_out,
-                    nxlo_in, nylo_in, nzlo_in, nxhi_in, nyhi_in, nzhi_in,
-                    nxlo_ghost, nylo_ghost, nzlo_ghost, nxhi_ghost, nyhi_ghost, nzhi_ghost,
-                    buf1, buf2, nbuf, vdx_brick, vdy_brick, vdz_brick);
+      cg->forward_comm(this, FORWARD_IK);
 
       fieldforce_c_ik(); 
 
-      if (evflag_atom) fillbrick_peratom_ik(nxlo_out, nylo_out, nzlo_out, nxhi_out, nyhi_out, nzhi_out,
-              nxlo_in, nylo_in, nzlo_in, nxhi_in, nyhi_in, nzhi_in,
-              nxlo_ghost, nylo_ghost, nzlo_ghost, nxhi_ghost, nyhi_ghost, nzhi_ghost,
-	      buf3, buf4, nbuf_pa, u_brick, v0_brick, v1_brick, v2_brick,
-	      v3_brick, v4_brick, v5_brick);
+      if (evflag_atom) cg_peratom->forward_comm(this, FORWARD_IK_PERATOM);
     }
     if (evflag_atom) fieldforce_c_peratom();
   }
@@ -860,11 +954,13 @@ void PPPMDisp::compute(int eflag, int vflag)
     particle_map(delxinv_6, delyinv_6, delzinv_6, shift_6, part2grid_6, nupper_6, nlower_6,
                  nxlo_out_6, nylo_out_6, nzlo_out_6, nxhi_out_6, nyhi_out_6, nzhi_out_6);
     make_rho_g();
-    brick2fft(nxlo_out_6, nylo_out_6, nzlo_out_6, nxhi_out_6, nyhi_out_6, nzhi_out_6,
-              nxlo_in_6, nylo_in_6, nzlo_in_6, nxhi_in_6, nyhi_in_6, nzhi_in_6,
-              nxlo_ghost_6, nylo_ghost_6, nzlo_ghost_6, nxhi_ghost_6, nyhi_ghost_6, nzhi_ghost_6,
-	      density_brick_g, density_fft_g, work1_6, buf1_6, buf2_6, nbuf_6, remap_6);
 
+
+    cg_6->reverse_comm(this, REVERSE_RHO_G);
+
+    brick2fft(nxlo_in_6, nylo_in_6, nzlo_in_6, nxhi_in_6, nyhi_in_6, nzhi_in_6,
+	      density_brick_g, density_fft_g, work1_6,remap_6);
+ 
     if (differentiation_flag == 1) {
 
       poisson_ad(work1_6, work2_6, density_fft_g, fft1_6, fft2_6,
@@ -875,18 +971,12 @@ void PPPMDisp::compute(int eflag, int vflag)
                  virial_6, vg_6, vg2_6,
                  u_brick_g, v0_brick_g, v1_brick_g, v2_brick_g, v3_brick_g, v4_brick_g, v5_brick_g);
 
-      fillbrick_ad(nxlo_out_6, nylo_out_6, nzlo_out_6, nxhi_out_6, nyhi_out_6, nzhi_out_6,
-                   nxlo_in_6, nylo_in_6, nzlo_in_6, nxhi_in_6, nyhi_in_6, nzhi_in_6,
-                   nxlo_ghost_6, nylo_ghost_6, nzlo_ghost_6, nxhi_ghost_6, nyhi_ghost_6, nzhi_ghost_6,
-                   buf1_6, buf2_6, nbuf_6, u_brick_g);
+      cg_6->forward_comm(this,FORWARD_AD_G);
 
       fieldforce_g_ad();
 
-      if (vflag_atom) fillbrick_peratom_ad(nxlo_out_6, nylo_out_6, nzlo_out_6, nxhi_out_6, nyhi_out_6, nzhi_out_6,
-              nxlo_in_6, nylo_in_6, nzlo_in_6, nxhi_in_6, nyhi_in_6, nzhi_in_6,
-              nxlo_ghost_6, nylo_ghost_6, nzlo_ghost_6, nxhi_ghost_6, nyhi_ghost_6, nzhi_ghost_6,
-	      buf3_6, buf4_6, nbuf_pa_6, v0_brick_g, v1_brick_g, v2_brick_g,
-	      v3_brick_g, v4_brick_g, v5_brick_g);
+      if (vflag_atom) cg_peratom_6->forward_comm(this,FORWARD_AD_PERATOM_G);
+
     } else {
       poisson_ik(work1_6, work2_6, density_fft_g, fft1_6, fft2_6,
                  nx_pppm_6, ny_pppm_6, nz_pppm_6, nfft_6,
@@ -896,19 +986,13 @@ void PPPMDisp::compute(int eflag, int vflag)
 	         fkx_6, fky_6, fkz_6,fkx2_6, fky2_6, fkz2_6,
                  vdx_brick_g, vdy_brick_g, vdz_brick_g, virial_6, vg_6, vg2_6,
                  u_brick_g, v0_brick_g, v1_brick_g, v2_brick_g, v3_brick_g, v4_brick_g, v5_brick_g);
-
-      fillbrick_ik(nxlo_out_6, nylo_out_6, nzlo_out_6, nxhi_out_6, nyhi_out_6, nzhi_out_6,
-                   nxlo_in_6, nylo_in_6, nzlo_in_6, nxhi_in_6, nyhi_in_6, nzhi_in_6,
-                   nxlo_ghost_6, nylo_ghost_6, nzlo_ghost_6, nxhi_ghost_6, nyhi_ghost_6, nzhi_ghost_6,
-                   buf1_6, buf2_6, nbuf_6, vdx_brick_g, vdy_brick_g, vdz_brick_g);
-
+ 
+      cg_6->forward_comm(this,FORWARD_IK_G);
+ 
       fieldforce_g_ik();
 
-      if (evflag_atom) fillbrick_peratom_ik(nxlo_out_6, nylo_out_6, nzlo_out_6, nxhi_out_6, nyhi_out_6, nzhi_out_6,
-              nxlo_in_6, nylo_in_6, nzlo_in_6, nxhi_in_6, nyhi_in_6, nzhi_in_6,
-              nxlo_ghost_6, nylo_ghost_6, nzlo_ghost_6, nxhi_ghost_6, nyhi_ghost_6, nzhi_ghost_6,
-	      buf3_6, buf4_6, nbuf_pa_6, u_brick_g, v0_brick_g, v1_brick_g, v2_brick_g,
-	      v3_brick_g, v4_brick_g, v5_brick_g);
+
+      if (evflag_atom) cg_peratom_6->forward_comm(this, FORWARD_IK_PERATOM_G);
     }
     if (evflag_atom) fieldforce_g_peratom();
   }
@@ -918,6 +1002,9 @@ void PPPMDisp::compute(int eflag, int vflag)
     particle_map(delxinv_6, delyinv_6, delzinv_6, shift_6, part2grid_6, nupper_6, nlower_6,
                  nxlo_out_6, nylo_out_6, nzlo_out_6, nxhi_out_6, nyhi_out_6, nzhi_out_6);
     make_rho_a();
+
+    cg_6->reverse_comm(this, REVERSE_RHO_A);
+
     brick2fft_a();
 
     if ( differentiation_flag == 1) {
@@ -939,11 +1026,11 @@ void PPPMDisp::compute(int eflag, int vflag)
                     u_brick_a2, v0_brick_a2, v1_brick_a2, v2_brick_a2, v3_brick_a2, v4_brick_a2, v5_brick_a2,
                     u_brick_a4, v0_brick_a4, v1_brick_a4, v2_brick_a4, v3_brick_a4, v4_brick_a4, v5_brick_a4);
 
-      fillbrick_a_ad();
+      cg_6->forward_comm(this, FORWARD_AD_A);
 
       fieldforce_a_ad();
 
-      if (evflag_atom) fillbrick_a_peratom_ad();
+      if (evflag_atom) cg_peratom_6->forward_comm(this, FORWARD_AD_PERATOM_A);
 
     }  else {
     
@@ -971,11 +1058,11 @@ void PPPMDisp::compute(int eflag, int vflag)
                     u_brick_a2, v0_brick_a2, v1_brick_a2, v2_brick_a2, v3_brick_a2, v4_brick_a2, v5_brick_a2,
                     u_brick_a4, v0_brick_a4, v1_brick_a4, v2_brick_a4, v3_brick_a4, v4_brick_a4, v5_brick_a4);
 
-      fillbrick_a_ik();
+      cg_6->forward_comm(this, FORWARD_IK_A);
 
       fieldforce_a_ik();
 
-      if (evflag_atom) fillbrick_a_peratom_ik();
+      if (evflag_atom) cg_peratom_6->forward_comm(this, FORWARD_IK_PERATOM_A);
     }
     if (evflag_atom) fieldforce_a_peratom();
   }
@@ -1096,6 +1183,9 @@ void PPPMDisp::init_coeffs()				// local pair coeffs
 
 void PPPMDisp::allocate()
 {
+
+  int (*procneigh)[2] = comm->procneigh;
+
   if (function[0]) {
     memory->create(work1,2*nfft_both,"pppm/disp:work1");
     memory->create(work2,2*nfft_both,"pppm/disp:work2");
@@ -1114,9 +1204,6 @@ void PPPMDisp::allocate()
     memory->create2d_offset(rho_coeff,order,(1-order)/2,order/2,"pppm/disp:rho_coeff");
     memory->create2d_offset(drho1d,3,-order/2,order/2,"pppm/disp:rho1d");
     memory->create2d_offset(drho_coeff,order,(1-order)/2,order/2,"pppm/disp:drho_coeff");
-
-    memory->create(buf1,nbuf,"pppm/disp:buf1");
-    memory->create(buf2,nbuf,"pppm/disp:buf2");
 
     memory->create(greensfn,nfft_both,"pppm/disp:greensfn");
     memory->create(vg,nfft_both,6,"pppm/disp:vg");
@@ -1160,6 +1247,21 @@ void PPPMDisp::allocate()
 		      nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
 		      nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
 		      1,0,0,FFT_PRECISION);
+
+  // create ghost grid object for rho and electric field communication
+
+  if (differentiation_flag == 1)
+    cg = new CommGrid(lmp,world,1,1,
+                      nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
+                      nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out,
+                      procneigh[0][0],procneigh[0][1],procneigh[1][0],
+                      procneigh[1][1],procneigh[2][0],procneigh[2][1]);
+  else
+    cg = new CommGrid(lmp,world,3,1,
+                      nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
+                      nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out,
+                      procneigh[0][0],procneigh[0][1],procneigh[1][0],
+                      procneigh[1][1],procneigh[2][0],procneigh[2][1]);
   }
 
   if (function[1]) {
@@ -1179,9 +1281,6 @@ void PPPMDisp::allocate()
     memory->create2d_offset(rho_coeff_6,order_6,(1-order_6)/2,order_6/2,"pppm/disp:rho_coeff_6");
     memory->create2d_offset(drho1d_6,3,-order_6/2,order_6/2,"pppm/disp:drho1d_6");
     memory->create2d_offset(drho_coeff_6,order_6,(1-order_6)/2,order_6/2,"pppm/disp:drho_coeff_6");
-
-    memory->create(buf1_6,nbuf_6,"pppm/disp:buf1_6");
-    memory->create(buf2_6,nbuf_6,"pppm/disp:buf2_6");
 
     memory->create(greensfn_6,nfft_both_6,"pppm/disp:greensfn_6");
     memory->create(vg_6,nfft_both_6,6,"pppm/disp:vg_6");
@@ -1227,6 +1326,21 @@ void PPPMDisp::allocate()
 		      nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
 		      nxlo_fft_6,nxhi_fft_6,nylo_fft_6,nyhi_fft_6,nzlo_fft_6,nzhi_fft_6,
 		      1,0,0,FFT_PRECISION);
+
+    // create ghost grid object for rho and electric field communication
+
+    if (differentiation_flag == 1)
+      cg_6 = new CommGrid(lmp,world,1,1,
+                        nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
+                        nxlo_out_6,nxhi_out_6,nylo_out_6,nyhi_out_6,nzlo_out_6,nzhi_out_6,
+                        procneigh[0][0],procneigh[0][1],procneigh[1][0],
+                        procneigh[1][1],procneigh[2][0],procneigh[2][1]);
+    else
+      cg_6 = new CommGrid(lmp,world,3,1,
+                        nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
+                        nxlo_out_6,nxhi_out_6,nylo_out_6,nyhi_out_6,nzlo_out_6,nzhi_out_6,
+                        procneigh[0][0],procneigh[0][1],procneigh[1][0],
+                        procneigh[1][1],procneigh[2][0],procneigh[2][1]);
   }
 
   if (function[2]) {
@@ -1247,8 +1361,6 @@ void PPPMDisp::allocate()
     memory->create2d_offset(drho1d_6,3,-order_6/2,order_6/2,"pppm/disp:drho1d_6");
     memory->create2d_offset(drho_coeff_6,order_6,(1-order_6)/2,order_6/2,"pppm/disp:drho_coeff_6");
 
-    memory->create(buf1_6,7*nbuf_6,"pppm/disp:buf1_6");
-    memory->create(buf2_6,7*nbuf_6,"pppm/disp:buf2_6");
     memory->create(split_1,2*nfft_both_6 , "pppm/disp:split_1");
     memory->create(split_2,2*nfft_both_6 , "pppm/disp:split_2");
     memory->create(greensfn_6,nfft_both_6,"pppm/disp:greensfn_6");
@@ -1372,6 +1484,22 @@ void PPPMDisp::allocate()
 		      nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
 		      nxlo_fft_6,nxhi_fft_6,nylo_fft_6,nyhi_fft_6,nzlo_fft_6,nzhi_fft_6,
 		      1,0,0,FFT_PRECISION);
+
+    // create ghost grid object for rho and electric field communication
+
+
+    if (differentiation_flag == 1)
+      cg_6 = new CommGrid(lmp,world,7,7,
+                        nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
+                        nxlo_out_6,nxhi_out_6,nylo_out_6,nyhi_out_6,nzlo_out_6,nzhi_out_6,
+                        procneigh[0][0],procneigh[0][1],procneigh[1][0],
+                        procneigh[1][1],procneigh[2][0],procneigh[2][1]);
+    else
+      cg_6 = new CommGrid(lmp,world,21,7,
+                        nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
+                        nxlo_out_6,nxhi_out_6,nylo_out_6,nyhi_out_6,nzlo_out_6,nzhi_out_6,
+                        procneigh[0][0],procneigh[0][1],procneigh[1][0],
+                        procneigh[1][1],procneigh[2][0],procneigh[2][1]);
   }  
 }
 
@@ -1382,9 +1510,11 @@ void PPPMDisp::allocate()
 
 void PPPMDisp::allocate_peratom()
 {
+
+  int (*procneigh)[2] = comm->procneigh;
+
   if (function[0]) {
-    memory->create(buf3,nbuf_pa,"pppm/disp:buf3");
-    memory->create(buf4,nbuf_pa,"pppm/disp:buf4");
+
     if (differentiation_flag != 1)
       memory->create3d_offset(u_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
     	                      nxlo_out,nxhi_out,"pppm/disp:u_brick");
@@ -1401,12 +1531,28 @@ void PPPMDisp::allocate_peratom()
   			    nxlo_out,nxhi_out,"pppm/disp:v4_brick");
     memory->create3d_offset(v5_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
   			    nxlo_out,nxhi_out,"pppm/disp:v5_brick");
+
+    // create ghost grid object for rho and electric field communication
+
+    if (differentiation_flag == 1)
+      cg_peratom =
+        new CommGrid(lmp,world,6,1,
+                     nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
+                     nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out,
+                     procneigh[0][0],procneigh[0][1],procneigh[1][0],
+                     procneigh[1][1],procneigh[2][0],procneigh[2][1]);
+    else
+      cg_peratom =
+        new CommGrid(lmp,world,7,1,
+                     nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
+                     nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out,
+                     procneigh[0][0],procneigh[0][1],procneigh[1][0],
+                     procneigh[1][1],procneigh[2][0],procneigh[2][1]);
+
   }
 
 
   if (function[1]) {
-    memory->create(buf3_6,nbuf_pa_6,"pppm/disp:buf3_6");
-    memory->create(buf4_6,nbuf_pa_6,"pppm/disp:buf4_6");
 
     if ( differentiation_flag != 1 )
       memory->create3d_offset(u_brick_g,nzlo_out_6,nzhi_out_6,nylo_out_6,nyhi_out_6,
@@ -1424,11 +1570,27 @@ void PPPMDisp::allocate_peratom()
   		  	    nxlo_out_6,nxhi_out_6,"pppm/disp:v4_brick_g");
     memory->create3d_offset(v5_brick_g,nzlo_out_6,nzhi_out_6,nylo_out_6,nyhi_out_6,
   		  	    nxlo_out_6,nxhi_out_6,"pppm/disp:v5_brick_g");
+
+    // create ghost grid object for rho and electric field communication
+
+    if (differentiation_flag == 1)
+      cg_peratom_6 =
+        new CommGrid(lmp,world,6,1,
+                     nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
+                     nxlo_out_6,nxhi_out_6,nylo_out_6,nyhi_out_6,nzlo_out_6,nzhi_out_6,
+                     procneigh[0][0],procneigh[0][1],procneigh[1][0],
+                     procneigh[1][1],procneigh[2][0],procneigh[2][1]);
+    else
+      cg_peratom_6 =
+        new CommGrid(lmp,world,7,1,
+                     nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
+                     nxlo_out_6,nxhi_out_6,nylo_out_6,nyhi_out_6,nzlo_out_6,nzhi_out_6,
+                     procneigh[0][0],procneigh[0][1],procneigh[1][0],
+                     procneigh[1][1],procneigh[2][0],procneigh[2][1]);
+
   }
 
   if (function[2]) {
-    memory->create(buf3_6,7*nbuf_pa_6,"pppm/disp:buf3");
-    memory->create(buf4_6,7*nbuf_pa_6,"pppm/disp:buf4");
    
     if ( differentiation_flag != 1 ) {
       memory->create3d_offset(u_brick_a0,nzlo_out_6,nzhi_out_6,nylo_out_6,nyhi_out_6,
@@ -1538,6 +1700,23 @@ void PPPMDisp::allocate_peratom()
     memory->create3d_offset(v5_brick_a6,nzlo_out_6,nzhi_out_6,nylo_out_6,nyhi_out_6,
   		  	        nxlo_out_6,nxhi_out_6,"pppm/disp:v5_brick_a6");
 
+    // create ghost grid object for rho and electric field communication
+
+    if (differentiation_flag == 1)
+      cg_peratom_6 =
+        new CommGrid(lmp,world,42,1,
+                     nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
+                     nxlo_out_6,nxhi_out_6,nylo_out_6,nyhi_out_6,nzlo_out_6,nzhi_out_6,
+                     procneigh[0][0],procneigh[0][1],procneigh[1][0],
+                     procneigh[1][1],procneigh[2][0],procneigh[2][1]);
+    else
+      cg_peratom_6 =
+        new CommGrid(lmp,world,49,1,
+                     nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
+                     nxlo_out_6,nxhi_out_6,nylo_out_6,nyhi_out_6,nzlo_out_6,nzhi_out_6,
+                     procneigh[0][0],procneigh[0][1],procneigh[1][0],
+                     procneigh[1][1],procneigh[2][0],procneigh[2][1]);
+
   }  
 }
 
@@ -1642,12 +1821,6 @@ void PPPMDisp::deallocate()
   memory->destroy1d_offset(fkx2_6,nxlo_fft_6);
   memory->destroy1d_offset(fky2_6,nylo_fft_6);
   memory->destroy1d_offset(fkz2_6,nzlo_fft_6);
- 
-  memory->destroy(buf1);
-  memory->destroy(buf2);
-
-  memory->destroy(buf1_6);
-  memory->destroy(buf2_6);
 
   memory->destroy(split_1);
   memory->destroy(split_2);
@@ -1668,10 +1841,12 @@ void PPPMDisp::deallocate()
   delete fft1;
   delete fft2;
   delete remap;
+  delete cg;
 
   delete fft1_6;
   delete fft2_6;
   delete remap_6;
+  delete cg_6;
 }
 
 
@@ -1754,11 +1929,8 @@ void PPPMDisp::deallocate_peratom()
   memory->destroy3d_offset(v4_brick_a6, nzlo_out_6, nylo_out_6, nxlo_out_6);
   memory->destroy3d_offset(v5_brick_a6, nzlo_out_6, nylo_out_6, nxlo_out_6);
 
-  memory->destroy(buf3);
-  memory->destroy(buf4);
-
-  memory->destroy(buf3_6);
-  memory->destroy(buf4_6);
+  delete cg_peratom;
+  delete cg_peratom_6;
 }
 
 /* ----------------------------------------------------------------------
@@ -1861,10 +2033,8 @@ void PPPMDisp::set_fft_parameters(int& nx_p,int& ny_p,int& nz_p,
                                    int& nxhi_i,int& nyhi_i,int& nzhi_i,
                                    int& nxlo_o,int& nylo_o,int& nzlo_o,
                                    int& nxhi_o,int& nyhi_o,int& nzhi_o,
-                                   int& nxlo_g,int& nylo_g,int& nzlo_g,
-                                   int& nxhi_g,int& nyhi_g,int& nzhi_g,
 		                   int& nlow, int& nupp,
-                                   int& ng, int& nf, int& nfb, int& nb, int& nb_p,
+                                   int& ng, int& nf, int& nfb,
 		                   double& sft,double& sftone, int& ord)
 {
   // global indices of PPPM grid range from 0 to N-1
@@ -1971,56 +2141,6 @@ void PPPMDisp::set_fft_parameters(int& nx_p,int& ny_p,int& nz_p,
     nzhi_o = nz_p - 1;
   }
   
-  // nlo_ghost,nhi_ghost = # of planes I will recv from 6 directions
-  //   that overlay domain I own
-  // proc in that direction tells me via sendrecv()
-  // if no neighbor proc, value is from self since I have ghosts regardless
-
-  int nplanes;
-  MPI_Status status;
-
-  nplanes = nxlo_i - nxlo_o;
-  if (comm->procneigh[0][0] != me)
-      MPI_Sendrecv(&nplanes,1,MPI_INT,comm->procneigh[0][0],0,
-                   &nxhi_g,1,MPI_INT,comm->procneigh[0][1],0,
-                   world,&status);
-  else nxhi_g = nplanes;
-
-  nplanes = nxhi_o - nxhi_i;
-  if (comm->procneigh[0][1] != me)
-      MPI_Sendrecv(&nplanes,1,MPI_INT,comm->procneigh[0][1],0,
-                   &nxlo_g,1,MPI_INT,comm->procneigh[0][0],
-                   0,world,&status);
-  else nxlo_g = nplanes;
-
-  nplanes = nylo_i - nylo_o;
-  if (comm->procneigh[1][0] != me)
-    MPI_Sendrecv(&nplanes,1,MPI_INT,comm->procneigh[1][0],0,
-                 &nyhi_g,1,MPI_INT,comm->procneigh[1][1],0,
-                 world,&status);
-  else nyhi_g = nplanes;
-
-  nplanes = nyhi_o - nyhi_i;
-  if (comm->procneigh[1][1] != me)
-    MPI_Sendrecv(&nplanes,1,MPI_INT,comm->procneigh[1][1],0,
-                 &nylo_g,1,MPI_INT,comm->procneigh[1][0],0,
-                 world,&status);
-  else nylo_g = nplanes;
-
-  nplanes = nzlo_i - nzlo_o;
-  if (comm->procneigh[2][0] != me)
-    MPI_Sendrecv(&nplanes,1,MPI_INT,comm->procneigh[2][0],0,
-                 &nzhi_g,1,MPI_INT,comm->procneigh[2][1],0,
-                 world,&status);
-  else nzhi_g = nplanes;
-
-  nplanes = nzhi_o - nzhi_i;
-  if (comm->procneigh[2][1] != me)
-    MPI_Sendrecv(&nplanes,1,MPI_INT,comm->procneigh[2][1],0,
-                 &nzlo_g,1,MPI_INT,comm->procneigh[2][0],0,
-                 world,&status);
-  else nzlo_g = nplanes;
-
   // decomposition of FFT mesh
   // global indices range from 0 to N-1
   // proc owns entire x-dimension, clump of columns in y,z dimensions
@@ -2063,42 +2183,6 @@ void PPPMDisp::set_fft_parameters(int& nx_p,int& ny_p,int& nz_p,
     (nzhi_i-nzlo_i+1);
   nfb = MAX(nf,nfft_brick);
 
-  // buffer space for use in brick2fft and fillbrick
-  // idel = max # of ghost planes to send or recv in +/- dir of each dim
-  // nx,ny,nz = owned planes (including ghosts) in each dim
-  // nxx,nyy,nzz = max # of grid cells to send in each dim
-  // nbuf = max in any dim
-
-  int idelx,idely,idelz,nx,ny,nz,nxx,nyy,nzz;
-
-  idelx = MAX(nxlo_g,nxhi_g);
-  idelx = MAX(idelx,nxhi_o-nxhi_i);
-  idelx = MAX(idelx,nxlo_i-nxlo_o);
-
-  idely = MAX(nylo_g,nyhi_g);
-  idely = MAX(idely,nyhi_o-nyhi_i);
-  idely = MAX(idely,nylo_i-nylo_o);
-
-  idelz = MAX(nzlo_g,nzhi_g);
-  idelz = MAX(idelz,nzhi_o-nzhi_i);
-  idelz = MAX(idelz,nzlo_i-nzlo_o);
-
-  nx = nxhi_o - nxlo_o + 1;
-  ny = nyhi_o - nylo_o + 1;
-  nz = nzhi_o - nzlo_o + 1;
-
-  nxx = idelx * ny * nz;
-  nyy = idely * nx * nz;
-  nzz = idelz * nx * ny;
-
-  nb = MAX(nxx,nyy);
-  nb = MAX(nb,nzz);
-
-  nb_p = 6*nb;
-  if (differentiation_flag != 1) {
-    nb *=3;
-    nb_p++;
-  }
 }
 
 /* ----------------------------------------------------------------------
@@ -3575,164 +3659,13 @@ void PPPMDisp::compute_gf_denom(double* gf, int ord)
    mixing
 ------------------------------------------------------------------------- */
 
-void PPPMDisp::brick2fft(int nxlo_o, int nylo_o, int nzlo_o,
-                          int nxhi_o, int nyhi_o, int nzhi_o,
-                          int nxlo_i, int nylo_i, int nzlo_i,
-                          int nxhi_i, int nyhi_i, int nzhi_i,
-                          int nxlo_g, int nylo_g, int nzlo_g,
-                          int nxhi_g, int nyhi_g, int nzhi_g,
-                          FFT_SCALAR*** dbrick, FFT_SCALAR* dfft, FFT_SCALAR* work,
-                          FFT_SCALAR* bf1, FFT_SCALAR* bf2, int nbf, LAMMPS_NS::Remap* rmp)
+void PPPMDisp::brick2fft(int nxlo_i, int nylo_i, int nzlo_i,
+                         int nxhi_i, int nyhi_i, int nzhi_i,
+                         FFT_SCALAR*** dbrick, FFT_SCALAR* dfft, FFT_SCALAR* work,
+                         LAMMPS_NS::Remap* rmp)
 {
-  int i,n,ix,iy,iz;
-  MPI_Request request;
-  MPI_Status status;
+  int n,ix,iy,iz;
 
-  // pack my ghosts for +x processor
-  // pass data to self or +x processor
-  // unpack and sum recv data into my real cells
-
-  n = 0;
-  for (iz = nzlo_o; iz <= nzhi_o; iz++)
-    for (iy = nylo_o; iy <= nyhi_o; iy++)
-      for (ix = nxhi_i+1; ix <= nxhi_o; ix++)
-	bf1[n++] = dbrick[iz][iy][ix];
-
-  if (comm->procneigh[0][1] == me)
-    for (i = 0; i < n; i++) bf2[i] = bf1[i];
-  else {
-    MPI_Irecv(bf2,nbf,MPI_FFT_SCALAR,comm->procneigh[0][0],0,world,&request);
-    MPI_Send(bf1,n,MPI_FFT_SCALAR,comm->procneigh[0][1],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzlo_o; iz <= nzhi_o; iz++)
-    for (iy = nylo_o; iy <= nyhi_o; iy++)
-      for (ix = nxlo_i; ix < nxlo_i+nxlo_g; ix++)
-	dbrick[iz][iy][ix] += bf2[n++];
-
-  // pack my ghosts for -x processor
-  // pass data to self or -x processor
-  // unpack and sum recv data into my real cells
-
-  n = 0;
-  for (iz = nzlo_o; iz <= nzhi_o; iz++)
-    for (iy = nylo_o; iy <= nyhi_o; iy++)
-      for (ix = nxlo_o; ix < nxlo_i; ix++)
-	bf1[n++] = dbrick[iz][iy][ix];
-
-  if (comm->procneigh[0][0] == me)
-    for (i = 0; i < n; i++) bf2[i] = bf1[i];
-  else {
-    MPI_Irecv(bf2,nbf,MPI_FFT_SCALAR,comm->procneigh[0][1],0,world,&request);
-    MPI_Send(bf1,n,MPI_FFT_SCALAR,comm->procneigh[0][0],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzlo_o; iz <= nzhi_o; iz++)
-    for (iy = nylo_o; iy <= nyhi_o; iy++)
-      for (ix = nxhi_i-nxhi_g+1; ix <= nxhi_i; ix++)
-	dbrick[iz][iy][ix] += bf2[n++];
-
-  // pack my ghosts for +y processor
-  // pass data to self or +y processor
-  // unpack and sum recv data into my real cells
-
-  n = 0;
-  for (iz = nzlo_o; iz <= nzhi_o; iz++)
-    for (iy = nyhi_i+1; iy <= nyhi_o; iy++)
-      for (ix = nxlo_i; ix <= nxhi_i; ix++)
-	bf1[n++] = dbrick[iz][iy][ix];
-
-  if (comm->procneigh[1][1] == me)
-    for (i = 0; i < n; i++) bf2[i] = bf1[i];
-  else {
-    MPI_Irecv(bf2,nbf,MPI_FFT_SCALAR,comm->procneigh[1][0],0,world,&request);
-    MPI_Send(bf1,n,MPI_FFT_SCALAR,comm->procneigh[1][1],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzlo_o; iz <= nzhi_o; iz++)
-    for (iy = nylo_i; iy < nylo_i+nylo_g; iy++)
-      for (ix = nxlo_i; ix <= nxhi_i; ix++)
-	dbrick[iz][iy][ix] += bf2[n++];
-
-  // pack my ghosts for -y processor
-  // pass data to self or -y processor
-  // unpack and sum recv data into my real cells
-
-  n = 0;
-  for (iz = nzlo_o; iz <= nzhi_o; iz++)
-    for (iy = nylo_o; iy < nylo_i; iy++)
-      for (ix = nxlo_i; ix <= nxhi_i; ix++)
-	bf1[n++] = dbrick[iz][iy][ix];
-
-  if (comm->procneigh[1][0] == me)
-    for (i = 0; i < n; i++) bf2[i] = bf1[i];
-  else {
-    MPI_Irecv(bf2,nbf,MPI_FFT_SCALAR,comm->procneigh[1][1],0,world,&request);
-    MPI_Send(bf1,n,MPI_FFT_SCALAR,comm->procneigh[1][0],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzlo_o; iz <= nzhi_o; iz++)
-    for (iy = nyhi_i-nyhi_g+1; iy <= nyhi_i; iy++)
-      for (ix = nxlo_i; ix <= nxhi_i; ix++)
-	dbrick[iz][iy][ix] += bf2[n++];
-
-  // pack my ghosts for +z processor
-  // pass data to self or +z processor
-  // unpack and sum recv data into my real cells
-
-  n = 0;
-  for (iz = nzhi_i+1; iz <= nzhi_o; iz++)
-    for (iy = nylo_i; iy <= nyhi_i; iy++)
-      for (ix = nxlo_i; ix <= nxhi_i; ix++)
-	bf1[n++] = dbrick[iz][iy][ix];
-
-  if (comm->procneigh[2][1] == me)
-    for (i = 0; i < n; i++) bf2[i] = bf1[i];
-  else {
-    MPI_Irecv(bf2,nbf,MPI_FFT_SCALAR,comm->procneigh[2][0],0,world,&request);
-    MPI_Send(bf1,n,MPI_FFT_SCALAR,comm->procneigh[2][1],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzlo_i; iz < nzlo_i+nzlo_g; iz++)
-    for (iy = nylo_i; iy <= nyhi_i; iy++)
-      for (ix = nxlo_i; ix <= nxhi_i; ix++)
-	dbrick[iz][iy][ix] += bf2[n++];
-
-  // pack my ghosts for -z processor
-  // pass data to self or -z processor
-  // unpack and sum recv data into my real cells
-
-  n = 0;
-  for (iz = nzlo_o; iz < nzlo_i; iz++)
-    for (iy = nylo_i; iy <= nyhi_i; iy++)
-      for (ix = nxlo_i; ix <= nxhi_i; ix++)
-	bf1[n++] = dbrick[iz][iy][ix];
-
-  if (comm->procneigh[2][0] == me)
-    for (i = 0; i < n; i++) bf2[i] = bf1[i];
-  else {
-    MPI_Irecv(bf2,nbf,MPI_FFT_SCALAR,comm->procneigh[2][1],0,world,&request);
-    MPI_Send(bf1,n,MPI_FFT_SCALAR,comm->procneigh[2][0],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzhi_i-nzhi_g+1; iz <= nzhi_i; iz++)
-    for (iy = nylo_i; iy <= nyhi_i; iy++)
-      for (ix = nxlo_i; ix <= nxhi_i; ix++)
-	dbrick[iz][iy][ix] += bf2[n++];
-
-  // remap from 3d brick decomposition to FFT decomposition
   // copy grabs inner portion of density from 3d brick
   // remap could be done as pre-stage of FFT,
   //   but this works optimally on only double values, not complex values
@@ -3755,239 +3688,8 @@ void PPPMDisp::brick2fft(int nxlo_o, int nylo_o, int nzlo_o,
 
 void PPPMDisp::brick2fft_a()
 {
-  int i,n,ix,iy,iz;
-  MPI_Request request;
-  MPI_Status status;
+  int n,ix,iy,iz;
 
-  // pack my ghosts for +x processor
-  // pass data to self or +x processor
-  // unpack and sum recv data into my real cells
-
-  n = 0;
-  for (iz = nzlo_out_6; iz <= nzhi_out_6; iz++)
-    for (iy = nylo_out_6; iy <= nyhi_out_6; iy++)
-      for (ix = nxhi_in_6+1; ix <= nxhi_out_6; ix++) {
-        buf1_6[n++] = density_brick_a0[iz][iy][ix];
-        buf1_6[n++] = density_brick_a1[iz][iy][ix];
-        buf1_6[n++] = density_brick_a2[iz][iy][ix];
-        buf1_6[n++] = density_brick_a3[iz][iy][ix];
-        buf1_6[n++] = density_brick_a4[iz][iy][ix];
-        buf1_6[n++] = density_brick_a5[iz][iy][ix];
-        buf1_6[n++] = density_brick_a6[iz][iy][ix];
-      }
-
-
-  if (comm->procneigh[0][1] == me)
-    for (i = 0; i < n; i++) buf2_6[i] = buf1_6[i];
-  else {
-    MPI_Irecv(buf2_6,7*nbuf_6,MPI_FFT_SCALAR,comm->procneigh[0][0],0,world,&request);
-    MPI_Send(buf1_6,n,MPI_FFT_SCALAR,comm->procneigh[0][1],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzlo_out_6; iz <= nzhi_out_6; iz++)
-    for (iy = nylo_out_6; iy <= nyhi_out_6; iy++)
-      for (ix = nxlo_in_6; ix < nxlo_in_6+nxlo_ghost_6; ix++) {
-        density_brick_a0[iz][iy][ix] += buf2_6[n++];
-        density_brick_a1[iz][iy][ix] += buf2_6[n++];
-        density_brick_a2[iz][iy][ix] += buf2_6[n++];
-        density_brick_a3[iz][iy][ix] += buf2_6[n++];
-        density_brick_a4[iz][iy][ix] += buf2_6[n++];
-        density_brick_a5[iz][iy][ix] += buf2_6[n++];
-        density_brick_a6[iz][iy][ix] += buf2_6[n++];
-      }
-
-  // pack my ghosts for -x processor
-  // pass data to self or -x processor
-  // unpack and sum recv data into my real cells
-
-  n = 0;
-  for (iz = nzlo_out_6; iz <= nzhi_out_6; iz++)
-    for (iy = nylo_out_6; iy <= nyhi_out_6; iy++)
-      for (ix = nxlo_out_6; ix < nxlo_in_6; ix++) {
-        buf1_6[n++] = density_brick_a0[iz][iy][ix];
-        buf1_6[n++] = density_brick_a1[iz][iy][ix];
-        buf1_6[n++] = density_brick_a2[iz][iy][ix];
-        buf1_6[n++] = density_brick_a3[iz][iy][ix];
-        buf1_6[n++] = density_brick_a4[iz][iy][ix];
-        buf1_6[n++] = density_brick_a5[iz][iy][ix];
-        buf1_6[n++] = density_brick_a6[iz][iy][ix];
-      }
-
-  if (comm->procneigh[0][0] == me)
-    for (i = 0; i < n; i++) buf2_6[i] = buf1_6[i];
-  else {
-    MPI_Irecv(buf2_6,7*nbuf_6,MPI_FFT_SCALAR,comm->procneigh[0][1],0,world,&request);
-    MPI_Send(buf1_6,n,MPI_FFT_SCALAR,comm->procneigh[0][0],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzlo_out_6; iz <= nzhi_out_6; iz++)
-    for (iy = nylo_out_6; iy <= nyhi_out_6; iy++)
-      for (ix = nxhi_in_6-nxhi_ghost_6+1; ix <= nxhi_in_6; ix++) {
-        density_brick_a0[iz][iy][ix] += buf2_6[n++];
-        density_brick_a1[iz][iy][ix] += buf2_6[n++];
-        density_brick_a2[iz][iy][ix] += buf2_6[n++];
-        density_brick_a3[iz][iy][ix] += buf2_6[n++];
-        density_brick_a4[iz][iy][ix] += buf2_6[n++];
-        density_brick_a5[iz][iy][ix] += buf2_6[n++];
-        density_brick_a6[iz][iy][ix] += buf2_6[n++];
-      }
-
-  // pack my ghosts for +y processor
-  // pass data to self or +y processor
-  // unpack and sum recv data into my real cells
-
-  n = 0;
-  for (iz = nzlo_out_6; iz <= nzhi_out_6; iz++)
-    for (iy = nyhi_in_6+1; iy <= nyhi_out_6; iy++)
-      for (ix = nxlo_in_6; ix <= nxhi_in_6; ix++) {
-        buf1_6[n++] = density_brick_a0[iz][iy][ix];
-        buf1_6[n++] = density_brick_a1[iz][iy][ix];
-        buf1_6[n++] = density_brick_a2[iz][iy][ix];
-        buf1_6[n++] = density_brick_a3[iz][iy][ix];
-        buf1_6[n++] = density_brick_a4[iz][iy][ix];
-        buf1_6[n++] = density_brick_a5[iz][iy][ix];
-        buf1_6[n++] = density_brick_a6[iz][iy][ix];
-      }
-
-  if (comm->procneigh[1][1] == me)
-    for (i = 0; i < n; i++) buf2_6[i] = buf1_6[i];
-  else {
-    MPI_Irecv(buf2_6,7*nbuf_6,MPI_FFT_SCALAR,comm->procneigh[1][0],0,world,&request);
-    MPI_Send(buf1_6,n,MPI_FFT_SCALAR,comm->procneigh[1][1],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzlo_out_6; iz <= nzhi_out_6; iz++)
-    for (iy = nylo_in_6; iy < nylo_in_6+nylo_ghost_6; iy++)
-      for (ix = nxlo_in_6; ix <= nxhi_in_6; ix++) {
-        density_brick_a0[iz][iy][ix] += buf2_6[n++];
-        density_brick_a1[iz][iy][ix] += buf2_6[n++];
-        density_brick_a2[iz][iy][ix] += buf2_6[n++];
-        density_brick_a3[iz][iy][ix] += buf2_6[n++];
-        density_brick_a4[iz][iy][ix] += buf2_6[n++];
-        density_brick_a5[iz][iy][ix] += buf2_6[n++];
-        density_brick_a6[iz][iy][ix] += buf2_6[n++];
-      }
-
-  // pack my ghosts for -y processor
-  // pass data to self or -y processor
-  // unpack and sum recv data into my real cells
-
-  n = 0;
-  for (iz = nzlo_out_6; iz <= nzhi_out_6; iz++)
-    for (iy = nylo_out_6; iy < nylo_in_6; iy++)
-      for (ix = nxlo_in_6; ix <= nxhi_in_6; ix++) {
-        buf1_6[n++] = density_brick_a0[iz][iy][ix];
-        buf1_6[n++] = density_brick_a1[iz][iy][ix];
-        buf1_6[n++] = density_brick_a2[iz][iy][ix];
-        buf1_6[n++] = density_brick_a3[iz][iy][ix];
-        buf1_6[n++] = density_brick_a4[iz][iy][ix];
-        buf1_6[n++] = density_brick_a5[iz][iy][ix];
-        buf1_6[n++] = density_brick_a6[iz][iy][ix];
-      }
-
-  if (comm->procneigh[1][0] == me)
-    for (i = 0; i < n; i++) buf2_6[i] = buf1_6[i];
-  else {
-    MPI_Irecv(buf2_6,7*nbuf_6,MPI_FFT_SCALAR,comm->procneigh[1][1],0,world,&request);
-    MPI_Send(buf1_6,n,MPI_FFT_SCALAR,comm->procneigh[1][0],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzlo_out_6; iz <= nzhi_out_6; iz++)
-    for (iy = nyhi_in_6-nyhi_ghost_6+1; iy <= nyhi_in_6; iy++)
-      for (ix = nxlo_in_6; ix <= nxhi_in_6; ix++)  {
-        density_brick_a0[iz][iy][ix] += buf2_6[n++];
-        density_brick_a1[iz][iy][ix] += buf2_6[n++];
-        density_brick_a2[iz][iy][ix] += buf2_6[n++];
-        density_brick_a3[iz][iy][ix] += buf2_6[n++];
-        density_brick_a4[iz][iy][ix] += buf2_6[n++];
-        density_brick_a5[iz][iy][ix] += buf2_6[n++];
-        density_brick_a6[iz][iy][ix] += buf2_6[n++];
-      }
-
-  // pack my ghosts for +z processor
-  // pass data to self or +z processor
-  // unpack and sum recv data into my real cells
-
-  n = 0;
-  for (iz = nzhi_in_6+1; iz <= nzhi_out_6; iz++)
-    for (iy = nylo_in_6; iy <= nyhi_in_6; iy++)
-      for (ix = nxlo_in_6; ix <= nxhi_in_6; ix++) {
-        buf1_6[n++] = density_brick_a0[iz][iy][ix];
-        buf1_6[n++] = density_brick_a1[iz][iy][ix];
-        buf1_6[n++] = density_brick_a2[iz][iy][ix];
-        buf1_6[n++] = density_brick_a3[iz][iy][ix];
-        buf1_6[n++] = density_brick_a4[iz][iy][ix];
-        buf1_6[n++] = density_brick_a5[iz][iy][ix];
-        buf1_6[n++] = density_brick_a6[iz][iy][ix];
-      }
-
-  if (comm->procneigh[2][1] == me)
-    for (i = 0; i < n; i++) buf2_6[i] = buf1_6[i];
-  else {
-    MPI_Irecv(buf2_6,7*nbuf_6,MPI_FFT_SCALAR,comm->procneigh[2][0],0,world,&request);
-    MPI_Send(buf1_6,n,MPI_FFT_SCALAR,comm->procneigh[2][1],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzlo_in_6; iz < nzlo_in_6+nzlo_ghost_6; iz++)
-    for (iy = nylo_in_6; iy <= nyhi_in_6; iy++)
-      for (ix = nxlo_in_6; ix <= nxhi_in_6; ix++) {
-        density_brick_a0[iz][iy][ix] += buf2_6[n++];
-        density_brick_a1[iz][iy][ix] += buf2_6[n++];
-        density_brick_a2[iz][iy][ix] += buf2_6[n++];
-        density_brick_a3[iz][iy][ix] += buf2_6[n++];
-        density_brick_a4[iz][iy][ix] += buf2_6[n++];
-        density_brick_a5[iz][iy][ix] += buf2_6[n++];
-        density_brick_a6[iz][iy][ix] += buf2_6[n++];
-      }
-  // pack my ghosts for -z processor
-  // pass data to self or -z processor
-  // unpack and sum recv data into my real cells
-
-  n = 0;
-  for (iz = nzlo_out_6; iz < nzlo_in_6; iz++)
-    for (iy = nylo_in_6; iy <= nyhi_in_6; iy++)
-      for (ix = nxlo_in_6; ix <= nxhi_in_6; ix++) {
-        buf1_6[n++] = density_brick_a0[iz][iy][ix];
-        buf1_6[n++] = density_brick_a1[iz][iy][ix];
-        buf1_6[n++] = density_brick_a2[iz][iy][ix];
-        buf1_6[n++] = density_brick_a3[iz][iy][ix];
-        buf1_6[n++] = density_brick_a4[iz][iy][ix];
-        buf1_6[n++] = density_brick_a5[iz][iy][ix];
-        buf1_6[n++] = density_brick_a6[iz][iy][ix];
-      }
-
-  if (comm->procneigh[2][0] == me)
-    for (i = 0; i < n; i++) buf2_6[i] = buf1_6[i];
-  else {
-    MPI_Irecv(buf2_6,7*nbuf_6,MPI_FFT_SCALAR,comm->procneigh[2][1],0,world,&request);
-    MPI_Send(buf1_6,n,MPI_FFT_SCALAR,comm->procneigh[2][0],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzhi_in_6-nzhi_ghost_6+1; iz <= nzhi_in_6; iz++)
-    for (iy = nylo_in_6; iy <= nyhi_in_6; iy++)
-      for (ix = nxlo_in_6; ix <= nxhi_in_6; ix++) {
-        density_brick_a0[iz][iy][ix] += buf2_6[n++];
-        density_brick_a1[iz][iy][ix] += buf2_6[n++];
-        density_brick_a2[iz][iy][ix] += buf2_6[n++];
-        density_brick_a3[iz][iy][ix] += buf2_6[n++];
-        density_brick_a4[iz][iy][ix] += buf2_6[n++];
-        density_brick_a5[iz][iy][ix] += buf2_6[n++];
-        density_brick_a6[iz][iy][ix] += buf2_6[n++];
-      }
-
-  // remap from 3d brick decomposition to FFT decomposition
   // copy grabs inner portion of density from 3d brick
   // remap could be done as pre-stage of FFT,
   //   but this works optimally on only double values, not complex values
@@ -4013,2995 +3715,6 @@ void PPPMDisp::brick2fft_a()
   remap_6->perform(density_fft_a5,density_fft_a5,work1_6);
   remap_6->perform(density_fft_a6,density_fft_a6,work1_6);
 
-}
-
-
-/* ----------------------------------------------------------------------
-   ghost-swap to fill ghost cells of my brick with field values
-   when using coulomb interactions or dispersion with geometric
-   mixing only for ik differentiation
-------------------------------------------------------------------------- */
-
-void PPPMDisp::fillbrick_ik(int nxlo_o, int nylo_o, int nzlo_o,
-                             int nxhi_o, int nyhi_o, int nzhi_o,
-                             int nxlo_i, int nylo_i, int nzlo_i,
-                             int nxhi_i, int nyhi_i, int nzhi_i,
-                             int nxlo_g, int nylo_g, int nzlo_g,
-                             int nxhi_g, int nyhi_g, int nzhi_g,
-                             FFT_SCALAR* bf1, FFT_SCALAR* bf2, int nbf,
-                             FFT_SCALAR*** vx_brick, FFT_SCALAR*** vy_brick, FFT_SCALAR*** vz_brick)
-{
-  int i,n,ix,iy,iz;
-  MPI_Request request;
-  MPI_Status status;
-
-  // pack my real cells for +z processor
-  // pass data to self or +z processor
-  // unpack and sum recv data into my ghost cells
-
-  n = 0;
-  for (iz = nzhi_i-nzhi_g+1; iz <= nzhi_i; iz++)
-    for (iy = nylo_i; iy <= nyhi_i; iy++)
-      for (ix = nxlo_i; ix <= nxhi_i; ix++) {
-	bf1[n++] = vx_brick[iz][iy][ix];
-	bf1[n++] = vy_brick[iz][iy][ix];
-	bf1[n++] = vz_brick[iz][iy][ix];
-      }
-
-  if (comm->procneigh[2][1] == me)
-    for (i = 0; i < n; i++) bf2[i] = bf1[i];
-  else {
-    MPI_Irecv(bf2,nbf,MPI_FFT_SCALAR,comm->procneigh[2][0],0,world,&request);
-    MPI_Send(bf1,n,MPI_FFT_SCALAR,comm->procneigh[2][1],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzlo_o; iz < nzlo_i; iz++)
-    for (iy = nylo_i; iy <= nyhi_i; iy++)
-      for (ix = nxlo_i; ix <= nxhi_i; ix++) {
-	vx_brick[iz][iy][ix] = bf2[n++];
-	vy_brick[iz][iy][ix] = bf2[n++];
-	vz_brick[iz][iy][ix] = bf2[n++];
-      }
-
-  // pack my real cells for -z processor
-  // pass data to self or -z processor
-  // unpack and sum recv data into my ghost cells
-
-  n = 0;
-  for (iz = nzlo_i; iz < nzlo_i+nzlo_g; iz++)
-    for (iy = nylo_i; iy <= nyhi_i; iy++)
-      for (ix = nxlo_i; ix <= nxhi_i; ix++) {
-	bf1[n++] = vx_brick[iz][iy][ix];
-	bf1[n++] = vy_brick[iz][iy][ix];
-	bf1[n++] = vz_brick[iz][iy][ix];
-      }
-
-  if (comm->procneigh[2][0] == me)
-    for (i = 0; i < n; i++) bf2[i] = bf1[i];
-  else {
-    MPI_Irecv(bf2,nbf,MPI_FFT_SCALAR,comm->procneigh[2][1],0,world,&request);
-    MPI_Send(bf1,n,MPI_FFT_SCALAR,comm->procneigh[2][0],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzhi_i+1; iz <= nzhi_o; iz++)
-    for (iy = nylo_i; iy <= nyhi_i; iy++)
-      for (ix = nxlo_i; ix <= nxhi_i; ix++) {
-	vx_brick[iz][iy][ix] = bf2[n++];
-	vy_brick[iz][iy][ix] = bf2[n++];
-	vz_brick[iz][iy][ix] = bf2[n++];
-      }
-
-  // pack my real cells for +y processor
-  // pass data to self or +y processor
-  // unpack and sum recv data into my ghost cells
-
-  n = 0;
-  for (iz = nzlo_o; iz <= nzhi_o; iz++)
-    for (iy = nyhi_i-nyhi_g+1; iy <= nyhi_i; iy++)
-      for (ix = nxlo_i; ix <= nxhi_i; ix++) {
-	bf1[n++] = vx_brick[iz][iy][ix];
-	bf1[n++] = vy_brick[iz][iy][ix];
-	bf1[n++] = vz_brick[iz][iy][ix];
-      }
-
-  if (comm->procneigh[1][1] == me)
-    for (i = 0; i < n; i++) bf2[i] = bf1[i];
-  else {
-    MPI_Irecv(bf2,nbf,MPI_FFT_SCALAR,comm->procneigh[1][0],0,world,&request);
-    MPI_Send(bf1,n,MPI_FFT_SCALAR,comm->procneigh[1][1],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzlo_o; iz <= nzhi_o; iz++)
-    for (iy = nylo_o; iy < nylo_i; iy++)
-      for (ix = nxlo_i; ix <= nxhi_i; ix++) {
-	vx_brick[iz][iy][ix] = bf2[n++];
-	vy_brick[iz][iy][ix] = bf2[n++];
-	vz_brick[iz][iy][ix] = bf2[n++];
-      }
-
-  // pack my real cells for -y processor
-  // pass data to self or -y processor
-  // unpack and sum recv data into my ghost cells
-
-  n = 0;
-  for (iz = nzlo_o; iz <= nzhi_o; iz++)
-    for (iy = nylo_i; iy < nylo_i+nylo_g; iy++)
-      for (ix = nxlo_i; ix <= nxhi_i; ix++) {
-	bf1[n++] = vx_brick[iz][iy][ix];
-	bf1[n++] = vy_brick[iz][iy][ix];
-	bf1[n++] = vz_brick[iz][iy][ix];
-      }
-
-  if (comm->procneigh[1][0] == me)
-    for (i = 0; i < n; i++) bf2[i] = bf1[i];
-  else {
-    MPI_Irecv(bf2,nbf,MPI_FFT_SCALAR,comm->procneigh[1][1],0,world,&request);
-    MPI_Send(bf1,n,MPI_FFT_SCALAR,comm->procneigh[1][0],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzlo_o; iz <= nzhi_o; iz++)
-    for (iy = nyhi_i+1; iy <= nyhi_o; iy++)
-      for (ix = nxlo_i; ix <= nxhi_i; ix++) {
-	vx_brick[iz][iy][ix] = bf2[n++];
-	vy_brick[iz][iy][ix] = bf2[n++];
-	vz_brick[iz][iy][ix] = bf2[n++];
-      }
-
-  // pack my real cells for +x processor
-  // pass data to self or +x processor
-  // unpack and sum recv data into my ghost cells
-
-  n = 0;
-  for (iz = nzlo_o; iz <= nzhi_o; iz++)
-    for (iy = nylo_o; iy <= nyhi_o; iy++)
-      for (ix = nxhi_i-nxhi_g+1; ix <= nxhi_i; ix++) {
-	bf1[n++] = vx_brick[iz][iy][ix];
-	bf1[n++] = vy_brick[iz][iy][ix];
-	bf1[n++] = vz_brick[iz][iy][ix];
-      }
-
-  if (comm->procneigh[0][1] == me)
-    for (i = 0; i < n; i++) bf2[i] = bf1[i];
-  else {
-    MPI_Irecv(bf2,nbf,MPI_FFT_SCALAR,comm->procneigh[0][0],0,world,&request);
-    MPI_Send(bf1,n,MPI_FFT_SCALAR,comm->procneigh[0][1],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzlo_o; iz <= nzhi_o; iz++)
-    for (iy = nylo_o; iy <= nyhi_o; iy++)
-      for (ix = nxlo_o; ix < nxlo_i; ix++) {
-	vx_brick[iz][iy][ix] = bf2[n++];
-	vy_brick[iz][iy][ix] = bf2[n++];
-	vz_brick[iz][iy][ix] = bf2[n++];
-      }
-
-  // pack my real cells for -x processor
-  // pass data to self or -x processor
-  // unpack and sum recv data into my ghost cells
-
-  n = 0;
-  for (iz = nzlo_o; iz <= nzhi_o; iz++)
-    for (iy = nylo_o; iy <= nyhi_o; iy++)
-      for (ix = nxlo_i; ix < nxlo_i+nxlo_g; ix++) {
-	bf1[n++] = vx_brick[iz][iy][ix];
-	bf1[n++] = vy_brick[iz][iy][ix];
-	bf1[n++] = vz_brick[iz][iy][ix];
-      }
-
-  if (comm->procneigh[0][0] == me)
-    for (i = 0; i < n; i++) bf2[i] = bf1[i];
-  else {
-    MPI_Irecv(bf2,nbf,MPI_FFT_SCALAR,comm->procneigh[0][1],0,world,&request);
-    MPI_Send(bf1,n,MPI_FFT_SCALAR,comm->procneigh[0][0],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzlo_o; iz <= nzhi_o; iz++)
-    for (iy = nylo_o; iy <= nyhi_o; iy++)
-      for (ix = nxhi_i+1; ix <= nxhi_o; ix++) {
-	vx_brick[iz][iy][ix] = bf2[n++];
-	vy_brick[iz][iy][ix] = bf2[n++];
-	vz_brick[iz][iy][ix] = bf2[n++];
-      }
-}
-
-
-/* ----------------------------------------------------------------------
-   ghost-swap to fill ghost cells of my brick with field values
-   when using coulomb interactions or dispersion with geometric
-   mixing only for ad differentitaion
-------------------------------------------------------------------------- */
-
-void PPPMDisp::fillbrick_ad(int nxlo_o, int nylo_o, int nzlo_o,
-                             int nxhi_o, int nyhi_o, int nzhi_o,
-                             int nxlo_i, int nylo_i, int nzlo_i,
-                             int nxhi_i, int nyhi_i, int nzhi_i,
-                             int nxlo_g, int nylo_g, int nzlo_g,
-                             int nxhi_g, int nyhi_g, int nzhi_g,
-                             FFT_SCALAR* bf1, FFT_SCALAR* bf2, int nbf,
-                             FFT_SCALAR*** u_brck)
-{
-  int i,n,ix,iy,iz;
-  MPI_Request request;
-  MPI_Status status;
-
-  // pack my real cells for +z processor
-  // pass data to self or +z processor
-  // unpack and sum recv data into my ghost cells
-
-  n = 0;
-  for (iz = nzhi_i-nzhi_g+1; iz <= nzhi_i; iz++)
-    for (iy = nylo_i; iy <= nyhi_i; iy++)
-      for (ix = nxlo_i; ix <= nxhi_i; ix++) {
-	bf1[n++] = u_brck[iz][iy][ix];
-      }
-
-  if (comm->procneigh[2][1] == me)
-    for (i = 0; i < n; i++) bf2[i] = bf1[i];
-  else {
-    MPI_Irecv(bf2,nbf,MPI_FFT_SCALAR,comm->procneigh[2][0],0,world,&request);
-    MPI_Send(bf1,n,MPI_FFT_SCALAR,comm->procneigh[2][1],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzlo_o; iz < nzlo_i; iz++)
-    for (iy = nylo_i; iy <= nyhi_i; iy++)
-      for (ix = nxlo_i; ix <= nxhi_i; ix++) {
-	u_brck[iz][iy][ix] = bf2[n++];
-      }
-
-  // pack my real cells for -z processor
-  // pass data to self or -z processor
-  // unpack and sum recv data into my ghost cells
-
-  n = 0;
-  for (iz = nzlo_i; iz < nzlo_i+nzlo_g; iz++)
-    for (iy = nylo_i; iy <= nyhi_i; iy++)
-      for (ix = nxlo_i; ix <= nxhi_i; ix++) {
-	bf1[n++] = u_brck[iz][iy][ix];
-      }
-
-  if (comm->procneigh[2][0] == me)
-    for (i = 0; i < n; i++) bf2[i] = bf1[i];
-  else {
-    MPI_Irecv(bf2,nbf,MPI_FFT_SCALAR,comm->procneigh[2][1],0,world,&request);
-    MPI_Send(bf1,n,MPI_FFT_SCALAR,comm->procneigh[2][0],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzhi_i+1; iz <= nzhi_o; iz++)
-    for (iy = nylo_i; iy <= nyhi_i; iy++)
-      for (ix = nxlo_i; ix <= nxhi_i; ix++) {
-	u_brck[iz][iy][ix] = bf2[n++];
-      }
-
-  // pack my real cells for +y processor
-  // pass data to self or +y processor
-  // unpack and sum recv data into my ghost cells
-
-  n = 0;
-  for (iz = nzlo_o; iz <= nzhi_o; iz++)
-    for (iy = nyhi_i-nyhi_g+1; iy <= nyhi_i; iy++)
-      for (ix = nxlo_i; ix <= nxhi_i; ix++) {
-	bf1[n++] = u_brck[iz][iy][ix];
-      }
-
-  if (comm->procneigh[1][1] == me)
-    for (i = 0; i < n; i++) bf2[i] = bf1[i];
-  else {
-    MPI_Irecv(bf2,nbf,MPI_FFT_SCALAR,comm->procneigh[1][0],0,world,&request);
-    MPI_Send(bf1,n,MPI_FFT_SCALAR,comm->procneigh[1][1],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzlo_o; iz <= nzhi_o; iz++)
-    for (iy = nylo_o; iy < nylo_i; iy++)
-      for (ix = nxlo_i; ix <= nxhi_i; ix++) {
-	u_brck[iz][iy][ix] = bf2[n++];
-      }
-
-  // pack my real cells for -y processor
-  // pass data to self or -y processor
-  // unpack and sum recv data into my ghost cells
-
-  n = 0;
-  for (iz = nzlo_o; iz <= nzhi_o; iz++)
-    for (iy = nylo_i; iy < nylo_i+nylo_g; iy++)
-      for (ix = nxlo_i; ix <= nxhi_i; ix++) {
-	bf1[n++] = u_brck[iz][iy][ix];
-      }
-
-  if (comm->procneigh[1][0] == me)
-    for (i = 0; i < n; i++) bf2[i] = bf1[i];
-  else {
-    MPI_Irecv(bf2,nbf,MPI_FFT_SCALAR,comm->procneigh[1][1],0,world,&request);
-    MPI_Send(bf1,n,MPI_FFT_SCALAR,comm->procneigh[1][0],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzlo_o; iz <= nzhi_o; iz++)
-    for (iy = nyhi_i+1; iy <= nyhi_o; iy++)
-      for (ix = nxlo_i; ix <= nxhi_i; ix++) {
-	u_brck[iz][iy][ix] = bf2[n++];
-      }
-
-  // pack my real cells for +x processor
-  // pass data to self or +x processor
-  // unpack and sum recv data into my ghost cells
-
-  n = 0;
-  for (iz = nzlo_o; iz <= nzhi_o; iz++)
-    for (iy = nylo_o; iy <= nyhi_o; iy++)
-      for (ix = nxhi_i-nxhi_g+1; ix <= nxhi_i; ix++) {
-	bf1[n++] = u_brck[iz][iy][ix];
-      }
-
-  if (comm->procneigh[0][1] == me)
-    for (i = 0; i < n; i++) bf2[i] = bf1[i];
-  else {
-    MPI_Irecv(bf2,nbf,MPI_FFT_SCALAR,comm->procneigh[0][0],0,world,&request);
-    MPI_Send(bf1,n,MPI_FFT_SCALAR,comm->procneigh[0][1],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzlo_o; iz <= nzhi_o; iz++)
-    for (iy = nylo_o; iy <= nyhi_o; iy++)
-      for (ix = nxlo_o; ix < nxlo_i; ix++) {
-	u_brck[iz][iy][ix] = bf2[n++];
-      }
-
-  // pack my real cells for -x processor
-  // pass data to self or -x processor
-  // unpack and sum recv data into my ghost cells
-
-  n = 0;
-  for (iz = nzlo_o; iz <= nzhi_o; iz++)
-    for (iy = nylo_o; iy <= nyhi_o; iy++)
-      for (ix = nxlo_i; ix < nxlo_i+nxlo_g; ix++) {
-	bf1[n++] = u_brck[iz][iy][ix];
-      }
-
-  if (comm->procneigh[0][0] == me)
-    for (i = 0; i < n; i++) bf2[i] = bf1[i];
-  else {
-    MPI_Irecv(bf2,nbf,MPI_FFT_SCALAR,comm->procneigh[0][1],0,world,&request);
-    MPI_Send(bf1,n,MPI_FFT_SCALAR,comm->procneigh[0][0],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzlo_o; iz <= nzhi_o; iz++)
-    for (iy = nylo_o; iy <= nyhi_o; iy++)
-      for (ix = nxhi_i+1; ix <= nxhi_o; ix++) {
-	u_brck[iz][iy][ix] = bf2[n++];
-      }
-}
-
-/* ----------------------------------------------------------------------
-   communication between procs required for per atom calculations
-   for ik scheme
-------------------------------------------------------------------------- */
-
-void PPPMDisp::fillbrick_peratom_ik(int nxlo_o, int nylo_o, int nzlo_o,
-                                     int nxhi_o, int nyhi_o, int nzhi_o,
-                                     int nxlo_i, int nylo_i, int nzlo_i,
-                                     int nxhi_i, int nyhi_i, int nzhi_i,
-                                     int nxlo_g, int nylo_g, int nzlo_g,
-                                     int nxhi_g, int nyhi_g, int nzhi_g,
-                                     FFT_SCALAR* bf1, FFT_SCALAR* bf2, int nbf,
-			             FFT_SCALAR*** u_pa, FFT_SCALAR*** v0_pa, FFT_SCALAR*** v1_pa, FFT_SCALAR*** v2_pa,
-                                     FFT_SCALAR*** v3_pa, FFT_SCALAR*** v4_pa, FFT_SCALAR*** v5_pa)
-{
-  int i,n,ix,iy,iz;
-  MPI_Request request;
-  MPI_Status status;
-
-  // pack my real cells for +z processor
-  // pass data to self or +z processor
-  // unpack and sum recv data into my ghost cells
-
-  n = 0;
-  for (iz = nzhi_i-nzhi_g+1; iz <= nzhi_i; iz++)
-    for (iy = nylo_i; iy <= nyhi_i; iy++)
-      for (ix = nxlo_i; ix <= nxhi_i; ix++) {
-        if (eflag_atom) bf1[n++] = u_pa[iz][iy][ix];
-        if (vflag_atom) {
-	  bf1[n++] = v0_pa[iz][iy][ix];
-	  bf1[n++] = v1_pa[iz][iy][ix];
-	  bf1[n++] = v2_pa[iz][iy][ix];
-	  bf1[n++] = v3_pa[iz][iy][ix];
-	  bf1[n++] = v4_pa[iz][iy][ix];
-	  bf1[n++] = v5_pa[iz][iy][ix];
-	}
-      }
-
-  if (comm->procneigh[2][1] == me)
-    for (i = 0; i < n; i++) bf2[i] = bf1[i];
-  else {
-    MPI_Irecv(bf2,nbf,MPI_FFT_SCALAR,comm->procneigh[2][0],0,world,&request);
-    MPI_Send(bf1,n,MPI_FFT_SCALAR,comm->procneigh[2][1],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzlo_o; iz < nzlo_i; iz++)
-    for (iy = nylo_i; iy <= nyhi_i; iy++)
-      for (ix = nxlo_i; ix <= nxhi_i; ix++) {
-        if (eflag_atom) u_pa[iz][iy][ix] = bf2[n++];
-        if (vflag_atom) {
-	  v0_pa[iz][iy][ix] = bf2[n++];
-	  v1_pa[iz][iy][ix] = bf2[n++];
-	  v2_pa[iz][iy][ix] = bf2[n++];
-	  v3_pa[iz][iy][ix] = bf2[n++];
-	  v4_pa[iz][iy][ix] = bf2[n++];
-	  v5_pa[iz][iy][ix] = bf2[n++];
-	}
-      }
-
-  // pack my real cells for -z processor
-  // pass data to self or -z processor
-  // unpack and sum recv data into my ghost cells
-
-  n = 0;
-  for (iz = nzlo_i; iz < nzlo_i+nzlo_g; iz++)
-    for (iy = nylo_i; iy <= nyhi_i; iy++)
-      for (ix = nxlo_i; ix <= nxhi_i; ix++) {
-        if (eflag_atom) bf1[n++] = u_pa[iz][iy][ix];
-        if (vflag_atom) {
-	  bf1[n++] = v0_pa[iz][iy][ix];
-	  bf1[n++] = v1_pa[iz][iy][ix];
-	  bf1[n++] = v2_pa[iz][iy][ix];
-	  bf1[n++] = v3_pa[iz][iy][ix];
-	  bf1[n++] = v4_pa[iz][iy][ix];
-	  bf1[n++] = v5_pa[iz][iy][ix];
-	}
-      }
-
-  if (comm->procneigh[2][0] == me)
-    for (i = 0; i < n; i++) bf2[i] = bf1[i];
-  else {
-    MPI_Irecv(bf2,nbf,MPI_FFT_SCALAR,comm->procneigh[2][1],0,world,&request);
-    MPI_Send(bf1,n,MPI_FFT_SCALAR,comm->procneigh[2][0],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzhi_i+1; iz <= nzhi_o; iz++)
-    for (iy = nylo_i; iy <= nyhi_i; iy++)
-      for (ix = nxlo_i; ix <= nxhi_i; ix++) {
-        if (eflag_atom) u_pa[iz][iy][ix] = bf2[n++];
-        if (vflag_atom) {
-	  v0_pa[iz][iy][ix] = bf2[n++];
-	  v1_pa[iz][iy][ix] = bf2[n++];
-	  v2_pa[iz][iy][ix] = bf2[n++];
-	  v3_pa[iz][iy][ix] = bf2[n++];
-	  v4_pa[iz][iy][ix] = bf2[n++];
-	  v5_pa[iz][iy][ix] = bf2[n++];
-	}
-      }
-
-  // pack my real cells for +y processor
-  // pass data to self or +y processor
-  // unpack and sum recv data into my ghost cells
-
-  n = 0;
-  for (iz = nzlo_o; iz <= nzhi_o; iz++)
-    for (iy = nyhi_i-nyhi_g+1; iy <= nyhi_i; iy++)
-      for (ix = nxlo_i; ix <= nxhi_i; ix++) {
-        if (eflag_atom) bf1[n++] = u_pa[iz][iy][ix];
-        if (vflag_atom) {
-	  bf1[n++] = v0_pa[iz][iy][ix];
-	  bf1[n++] = v1_pa[iz][iy][ix];
-	  bf1[n++] = v2_pa[iz][iy][ix];
-	  bf1[n++] = v3_pa[iz][iy][ix];
-	  bf1[n++] = v4_pa[iz][iy][ix];
-	  bf1[n++] = v5_pa[iz][iy][ix];
-	}
-      }
-
-  if (comm->procneigh[1][1] == me)
-    for (i = 0; i < n; i++) bf2[i] = bf1[i];
-  else {
-    MPI_Irecv(bf2,nbf,MPI_FFT_SCALAR,comm->procneigh[1][0],0,world,&request);
-    MPI_Send(bf1,n,MPI_FFT_SCALAR,comm->procneigh[1][1],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzlo_o; iz <= nzhi_o; iz++)
-    for (iy = nylo_o; iy < nylo_i; iy++)
-      for (ix = nxlo_i; ix <= nxhi_i; ix++) {
-        if (eflag_atom) u_pa[iz][iy][ix] = bf2[n++];
-        if (vflag_atom) {
-	  v0_pa[iz][iy][ix] = bf2[n++];
-	  v1_pa[iz][iy][ix] = bf2[n++];
-	  v2_pa[iz][iy][ix] = bf2[n++];
-	  v3_pa[iz][iy][ix] = bf2[n++];
-	  v4_pa[iz][iy][ix] = bf2[n++];
-	  v5_pa[iz][iy][ix] = bf2[n++];
-	}
-      }
-
-  // pack my real cells for -y processor
-  // pass data to self or -y processor
-  // unpack and sum recv data into my ghost cells
-
-  n = 0;
-  for (iz = nzlo_o; iz <= nzhi_o; iz++)
-    for (iy = nylo_i; iy < nylo_i+nylo_g; iy++)
-      for (ix = nxlo_i; ix <= nxhi_i; ix++) {
-        if (eflag_atom) bf1[n++] = u_pa[iz][iy][ix];
-        if (vflag_atom) {
-	  bf1[n++] = v0_pa[iz][iy][ix];
-	  bf1[n++] = v1_pa[iz][iy][ix];
-	  bf1[n++] = v2_pa[iz][iy][ix];
-	  bf1[n++] = v3_pa[iz][iy][ix];
-	  bf1[n++] = v4_pa[iz][iy][ix];
-	  bf1[n++] = v5_pa[iz][iy][ix];
-	}
-      }
-
-  if (comm->procneigh[1][0] == me)
-    for (i = 0; i < n; i++) bf2[i] = bf1[i];
-  else {
-    MPI_Irecv(bf2,nbf,MPI_FFT_SCALAR,comm->procneigh[1][1],0,world,&request);
-    MPI_Send(bf1,n,MPI_FFT_SCALAR,comm->procneigh[1][0],0,world);
-    MPI_Wait(&request,&status);
-  }
- 
-  n = 0;
-  for (iz = nzlo_o; iz <= nzhi_o; iz++)
-    for (iy = nyhi_i+1; iy <= nyhi_o; iy++)
-      for (ix = nxlo_i; ix <= nxhi_i; ix++) {
-        if (eflag_atom) u_pa[iz][iy][ix] = bf2[n++];
-        if (vflag_atom) {
-	  v0_pa[iz][iy][ix] = bf2[n++];
-	  v1_pa[iz][iy][ix] = bf2[n++];
-	  v2_pa[iz][iy][ix] = bf2[n++];
-	  v3_pa[iz][iy][ix] = bf2[n++];
-	  v4_pa[iz][iy][ix] = bf2[n++];
-	  v5_pa[iz][iy][ix] = bf2[n++];
-	}
-      }
- 
-  // pack my real cells for +x processor
-  // pass data to self or +x processor
-  // unpack and sum recv data into my ghost cells
-
-  n = 0;
-  for (iz = nzlo_o; iz <= nzhi_o; iz++)
-    for (iy = nylo_o; iy <= nyhi_o; iy++)
-      for (ix = nxhi_i-nxhi_g+1; ix <= nxhi_i; ix++) {
-        if (eflag_atom) bf1[n++] = u_pa[iz][iy][ix];
-        if (vflag_atom) {
-	  bf1[n++] = v0_pa[iz][iy][ix];
-	  bf1[n++] = v1_pa[iz][iy][ix];
-	  bf1[n++] = v2_pa[iz][iy][ix];
-	  bf1[n++] = v3_pa[iz][iy][ix];
-	  bf1[n++] = v4_pa[iz][iy][ix];
-	  bf1[n++] = v5_pa[iz][iy][ix];
-	}
-      }
- 
-  if (comm->procneigh[0][1] == me)
-    for (i = 0; i < n; i++) bf2[i] = bf1[i];
-  else {
-    MPI_Irecv(bf2,nbf,MPI_FFT_SCALAR,comm->procneigh[0][0],0,world,&request);
-    MPI_Send(bf1,n,MPI_FFT_SCALAR,comm->procneigh[0][1],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzlo_o; iz <= nzhi_o; iz++)
-    for (iy = nylo_o; iy <= nyhi_o; iy++)
-      for (ix = nxlo_o; ix < nxlo_i; ix++) {
-        if (eflag_atom) u_pa[iz][iy][ix] = bf2[n++];
-        if (vflag_atom) {
-	  v0_pa[iz][iy][ix] = bf2[n++];
-	  v1_pa[iz][iy][ix] = bf2[n++];
-	  v2_pa[iz][iy][ix] = bf2[n++];
-	  v3_pa[iz][iy][ix] = bf2[n++];
-	  v4_pa[iz][iy][ix] = bf2[n++];
-	  v5_pa[iz][iy][ix] = bf2[n++];
-	}
-      }
- 
-  // pack my real cells for -x processor
-  // pass data to self or -x processor
-  // unpack and sum recv data into my ghost cells
-
-  n = 0;
-  for (iz = nzlo_o; iz <= nzhi_o; iz++)
-    for (iy = nylo_o; iy <= nyhi_o; iy++)
-      for (ix = nxlo_i; ix < nxlo_i+nxlo_g; ix++) {
-        if (eflag_atom) bf1[n++] = u_pa[iz][iy][ix];
-        if (vflag_atom) {
-	  bf1[n++] = v0_pa[iz][iy][ix];
-	  bf1[n++] = v1_pa[iz][iy][ix];
-	  bf1[n++] = v2_pa[iz][iy][ix];
-	  bf1[n++] = v3_pa[iz][iy][ix];
-	  bf1[n++] = v4_pa[iz][iy][ix];
-	  bf1[n++] = v5_pa[iz][iy][ix];
-	}
-      }
-
-  if (comm->procneigh[0][0] == me)
-    for (i = 0; i < n; i++) bf2[i] = bf1[i];
-  else {
-    MPI_Irecv(bf2,nbf,MPI_FFT_SCALAR,comm->procneigh[0][1],0,world,&request);
-    MPI_Send(bf1,n,MPI_FFT_SCALAR,comm->procneigh[0][0],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzlo_o; iz <= nzhi_o; iz++)
-    for (iy = nylo_o; iy <= nyhi_o; iy++)
-      for (ix = nxhi_i+1; ix <= nxhi_o; ix++) {
-        if (eflag_atom) u_pa[iz][iy][ix] = bf2[n++];
-        if (vflag_atom) {
-	  v0_pa[iz][iy][ix] = bf2[n++];
-	  v1_pa[iz][iy][ix] = bf2[n++];
-	  v2_pa[iz][iy][ix] = bf2[n++];
-	  v3_pa[iz][iy][ix] = bf2[n++];
-	  v4_pa[iz][iy][ix] = bf2[n++];
-	  v5_pa[iz][iy][ix] = bf2[n++];
-	}
-      }
-}
-
-/* ----------------------------------------------------------------------
-   communication between procs required for per atom calculations
-   for ik scheme
-------------------------------------------------------------------------- */
-
-void PPPMDisp::fillbrick_peratom_ad(int nxlo_o, int nylo_o, int nzlo_o,
-                                     int nxhi_o, int nyhi_o, int nzhi_o,
-                                     int nxlo_i, int nylo_i, int nzlo_i,
-                                     int nxhi_i, int nyhi_i, int nzhi_i,
-                                     int nxlo_g, int nylo_g, int nzlo_g,
-                                     int nxhi_g, int nyhi_g, int nzhi_g,
-                                     FFT_SCALAR* bf1, FFT_SCALAR* bf2, int nbf,
-			             FFT_SCALAR*** v0_pa, FFT_SCALAR*** v1_pa, FFT_SCALAR*** v2_pa,
-                                     FFT_SCALAR*** v3_pa, FFT_SCALAR*** v4_pa, FFT_SCALAR*** v5_pa)
-{
-  int i,n,ix,iy,iz;
-  MPI_Request request;
-  MPI_Status status;
-
-  // pack my real cells for +z processor
-  // pass data to self or +z processor
-  // unpack and sum recv data into my ghost cells
-
-  n = 0;
-  for (iz = nzhi_i-nzhi_g+1; iz <= nzhi_i; iz++)
-    for (iy = nylo_i; iy <= nyhi_i; iy++)
-      for (ix = nxlo_i; ix <= nxhi_i; ix++) {
-	bf1[n++] = v0_pa[iz][iy][ix];
-	bf1[n++] = v1_pa[iz][iy][ix];
-	bf1[n++] = v2_pa[iz][iy][ix];
-	bf1[n++] = v3_pa[iz][iy][ix];
-	bf1[n++] = v4_pa[iz][iy][ix];
-	bf1[n++] = v5_pa[iz][iy][ix];
-      }
-
-  if (comm->procneigh[2][1] == me)
-    for (i = 0; i < n; i++) bf2[i] = bf1[i];
-  else {
-    MPI_Irecv(bf2,nbf,MPI_FFT_SCALAR,comm->procneigh[2][0],0,world,&request);
-    MPI_Send(bf1,n,MPI_FFT_SCALAR,comm->procneigh[2][1],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzlo_o; iz < nzlo_i; iz++)
-    for (iy = nylo_i; iy <= nyhi_i; iy++)
-      for (ix = nxlo_i; ix <= nxhi_i; ix++) {
-	v0_pa[iz][iy][ix] = bf2[n++];
-        v1_pa[iz][iy][ix] = bf2[n++];
-        v2_pa[iz][iy][ix] = bf2[n++];
-        v3_pa[iz][iy][ix] = bf2[n++];
-        v4_pa[iz][iy][ix] = bf2[n++];
-	v5_pa[iz][iy][ix] = bf2[n++];
-      }
-
-
-  // pack my real cells for -z processor
-  // pass data to self or -z processor
-  // unpack and sum recv data into my ghost cells
-
-  n = 0;
-  for (iz = nzlo_i; iz < nzlo_i+nzlo_g; iz++)
-    for (iy = nylo_i; iy <= nyhi_i; iy++)
-      for (ix = nxlo_i; ix <= nxhi_i; ix++) {
-	bf1[n++] = v0_pa[iz][iy][ix];
-	bf1[n++] = v1_pa[iz][iy][ix];
-	bf1[n++] = v2_pa[iz][iy][ix];
-	bf1[n++] = v3_pa[iz][iy][ix];
-	bf1[n++] = v4_pa[iz][iy][ix];
-	bf1[n++] = v5_pa[iz][iy][ix];
-      }
-      
-  if (comm->procneigh[2][0] == me)
-    for (i = 0; i < n; i++) bf2[i] = bf1[i];
-  else {
-    MPI_Irecv(bf2,nbf,MPI_FFT_SCALAR,comm->procneigh[2][1],0,world,&request);
-    MPI_Send(bf1,n,MPI_FFT_SCALAR,comm->procneigh[2][0],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzhi_i+1; iz <= nzhi_o; iz++)
-    for (iy = nylo_i; iy <= nyhi_i; iy++)
-      for (ix = nxlo_i; ix <= nxhi_i; ix++) {
-	v0_pa[iz][iy][ix] = bf2[n++];
-	v1_pa[iz][iy][ix] = bf2[n++];
-	v2_pa[iz][iy][ix] = bf2[n++];
-	v3_pa[iz][iy][ix] = bf2[n++];
-	v4_pa[iz][iy][ix] = bf2[n++];
-	v5_pa[iz][iy][ix] = bf2[n++];
-      }
-      
-  // pack my real cells for +y processor
-  // pass data to self or +y processor
-  // unpack and sum recv data into my ghost cells
-
-  n = 0;
-  for (iz = nzlo_o; iz <= nzhi_o; iz++)
-    for (iy = nyhi_i-nyhi_g+1; iy <= nyhi_i; iy++)
-      for (ix = nxlo_i; ix <= nxhi_i; ix++) {
-	bf1[n++] = v0_pa[iz][iy][ix];
-	bf1[n++] = v1_pa[iz][iy][ix];
-	bf1[n++] = v2_pa[iz][iy][ix];
-	bf1[n++] = v3_pa[iz][iy][ix];
-	bf1[n++] = v4_pa[iz][iy][ix];
-	bf1[n++] = v5_pa[iz][iy][ix];
-      }
-      
-  if (comm->procneigh[1][1] == me)
-    for (i = 0; i < n; i++) bf2[i] = bf1[i];
-  else {
-    MPI_Irecv(bf2,nbf,MPI_FFT_SCALAR,comm->procneigh[1][0],0,world,&request);
-    MPI_Send(bf1,n,MPI_FFT_SCALAR,comm->procneigh[1][1],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzlo_o; iz <= nzhi_o; iz++)
-    for (iy = nylo_o; iy < nylo_i; iy++)
-      for (ix = nxlo_i; ix <= nxhi_i; ix++) {
-	v0_pa[iz][iy][ix] = bf2[n++];
-	v1_pa[iz][iy][ix] = bf2[n++];
-	v2_pa[iz][iy][ix] = bf2[n++];
-	v3_pa[iz][iy][ix] = bf2[n++];
-	v4_pa[iz][iy][ix] = bf2[n++];
-	v5_pa[iz][iy][ix] = bf2[n++];
-      }
-
-  // pack my real cells for -y processor
-  // pass data to self or -y processor
-  // unpack and sum recv data into my ghost cells
-
-  n = 0;
-  for (iz = nzlo_o; iz <= nzhi_o; iz++)
-    for (iy = nylo_i; iy < nylo_i+nylo_g; iy++)
-      for (ix = nxlo_i; ix <= nxhi_i; ix++) {
-	bf1[n++] = v0_pa[iz][iy][ix];
-	bf1[n++] = v1_pa[iz][iy][ix];
-	bf1[n++] = v2_pa[iz][iy][ix];
-	bf1[n++] = v3_pa[iz][iy][ix];
-	bf1[n++] = v4_pa[iz][iy][ix];
-	bf1[n++] = v5_pa[iz][iy][ix];
-      }
-      
-  if (comm->procneigh[1][0] == me)
-    for (i = 0; i < n; i++) bf2[i] = bf1[i];
-  else {
-    MPI_Irecv(bf2,nbf,MPI_FFT_SCALAR,comm->procneigh[1][1],0,world,&request);
-    MPI_Send(bf1,n,MPI_FFT_SCALAR,comm->procneigh[1][0],0,world);
-    MPI_Wait(&request,&status);
-  }
- 
-  n = 0;
-  for (iz = nzlo_o; iz <= nzhi_o; iz++)
-    for (iy = nyhi_i+1; iy <= nyhi_o; iy++)
-      for (ix = nxlo_i; ix <= nxhi_i; ix++) {
-	v0_pa[iz][iy][ix] = bf2[n++];
-	v1_pa[iz][iy][ix] = bf2[n++];
-	v2_pa[iz][iy][ix] = bf2[n++];
-	v3_pa[iz][iy][ix] = bf2[n++];
-	v4_pa[iz][iy][ix] = bf2[n++];
-	v5_pa[iz][iy][ix] = bf2[n++];
-      }
-       
-  // pack my real cells for +x processor
-  // pass data to self or +x processor
-  // unpack and sum recv data into my ghost cells
-
-  n = 0;
-  for (iz = nzlo_o; iz <= nzhi_o; iz++)
-    for (iy = nylo_o; iy <= nyhi_o; iy++)
-      for (ix = nxhi_i-nxhi_g+1; ix <= nxhi_i; ix++) {
-	bf1[n++] = v0_pa[iz][iy][ix];
-	bf1[n++] = v1_pa[iz][iy][ix];
-	bf1[n++] = v2_pa[iz][iy][ix];
-	bf1[n++] = v3_pa[iz][iy][ix];
-	bf1[n++] = v4_pa[iz][iy][ix];
-	bf1[n++] = v5_pa[iz][iy][ix];
-      }
- 
-  if (comm->procneigh[0][1] == me)
-    for (i = 0; i < n; i++) bf2[i] = bf1[i];
-  else {
-    MPI_Irecv(bf2,nbf,MPI_FFT_SCALAR,comm->procneigh[0][0],0,world,&request);
-    MPI_Send(bf1,n,MPI_FFT_SCALAR,comm->procneigh[0][1],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzlo_o; iz <= nzhi_o; iz++)
-    for (iy = nylo_o; iy <= nyhi_o; iy++)
-      for (ix = nxlo_o; ix < nxlo_i; ix++) {
-	v0_pa[iz][iy][ix] = bf2[n++];
-	v1_pa[iz][iy][ix] = bf2[n++];
-	v2_pa[iz][iy][ix] = bf2[n++];
-	v3_pa[iz][iy][ix] = bf2[n++];
-	v4_pa[iz][iy][ix] = bf2[n++];
-	v5_pa[iz][iy][ix] = bf2[n++];
-      }
-       
-  // pack my real cells for -x processor
-  // pass data to self or -x processor
-  // unpack and sum recv data into my ghost cells
-
-  n = 0;
-  for (iz = nzlo_o; iz <= nzhi_o; iz++)
-    for (iy = nylo_o; iy <= nyhi_o; iy++)
-      for (ix = nxlo_i; ix < nxlo_i+nxlo_g; ix++) {
-	bf1[n++] = v0_pa[iz][iy][ix];
-	bf1[n++] = v1_pa[iz][iy][ix];
-	bf1[n++] = v2_pa[iz][iy][ix];
-	bf1[n++] = v3_pa[iz][iy][ix];
-	bf1[n++] = v4_pa[iz][iy][ix];
-	bf1[n++] = v5_pa[iz][iy][ix];
-      }
-      
-  if (comm->procneigh[0][0] == me)
-    for (i = 0; i < n; i++) bf2[i] = bf1[i];
-  else {
-    MPI_Irecv(bf2,nbf,MPI_FFT_SCALAR,comm->procneigh[0][1],0,world,&request);
-    MPI_Send(bf1,n,MPI_FFT_SCALAR,comm->procneigh[0][0],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzlo_o; iz <= nzhi_o; iz++)
-    for (iy = nylo_o; iy <= nyhi_o; iy++)
-      for (ix = nxhi_i+1; ix <= nxhi_o; ix++) {
-	v0_pa[iz][iy][ix] = bf2[n++];
-	v1_pa[iz][iy][ix] = bf2[n++];
-	v2_pa[iz][iy][ix] = bf2[n++];
-	v3_pa[iz][iy][ix] = bf2[n++];
-	v4_pa[iz][iy][ix] = bf2[n++];
-	v5_pa[iz][iy][ix] = bf2[n++];
-      }
-      
-}
-
-/* ----------------------------------------------------------------------
-   ghost-swap to fill ghost cells of my brick with field values
-   when using dispersion with arithmetic mixing only for ik scheme
-------------------------------------------------------------------------- */
-
-void PPPMDisp::fillbrick_a_ik()
-{
-  int i,n,ix,iy,iz;
-  MPI_Request request;
-  MPI_Status status;
-
-  // pack my real cells for +z processor
-  // pass data to self or +z processor
-  // unpack and sum recv data into my ghost cells
-
-  n = 0;
-  for (iz = nzhi_in_6-nzhi_ghost_6+1; iz <= nzhi_in_6; iz++)
-    for (iy = nylo_in_6; iy <= nyhi_in_6; iy++)
-      for (ix = nxlo_in_6; ix <= nxhi_in_6; ix++) {
-	buf1_6[n++] = vdx_brick_a0[iz][iy][ix];
-	buf1_6[n++] = vdx_brick_a1[iz][iy][ix];
-	buf1_6[n++] = vdx_brick_a2[iz][iy][ix];
-	buf1_6[n++] = vdx_brick_a3[iz][iy][ix];
-	buf1_6[n++] = vdx_brick_a4[iz][iy][ix];
-	buf1_6[n++] = vdx_brick_a5[iz][iy][ix];
-	buf1_6[n++] = vdx_brick_a6[iz][iy][ix];
-	buf1_6[n++] = vdy_brick_a0[iz][iy][ix];
-	buf1_6[n++] = vdy_brick_a1[iz][iy][ix];
-	buf1_6[n++] = vdy_brick_a2[iz][iy][ix];
-	buf1_6[n++] = vdy_brick_a3[iz][iy][ix];
-	buf1_6[n++] = vdy_brick_a4[iz][iy][ix];
-	buf1_6[n++] = vdy_brick_a5[iz][iy][ix];
-	buf1_6[n++] = vdy_brick_a6[iz][iy][ix];
-	buf1_6[n++] = vdz_brick_a0[iz][iy][ix];
-	buf1_6[n++] = vdz_brick_a1[iz][iy][ix];
-	buf1_6[n++] = vdz_brick_a2[iz][iy][ix];
-	buf1_6[n++] = vdz_brick_a3[iz][iy][ix];
-	buf1_6[n++] = vdz_brick_a4[iz][iy][ix];
-	buf1_6[n++] = vdz_brick_a5[iz][iy][ix];
-	buf1_6[n++] = vdz_brick_a6[iz][iy][ix];
-      }
-
-  if (comm->procneigh[2][1] == me)
-    for (i = 0; i < n; i++) buf2_6[i] = buf1_6[i];
-  else {
-    MPI_Irecv(buf2_6,7*nbuf_6,MPI_FFT_SCALAR,comm->procneigh[2][0],0,world,&request);
-    MPI_Send(buf1_6,n,MPI_FFT_SCALAR,comm->procneigh[2][1],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzlo_out_6; iz < nzlo_in_6; iz++)
-    for (iy = nylo_in_6; iy <= nyhi_in_6; iy++)
-      for (ix = nxlo_in_6; ix <= nxhi_in_6; ix++) {
-	vdx_brick_a0[iz][iy][ix] = buf2_6[n++];
-        vdx_brick_a1[iz][iy][ix] = buf2_6[n++];
-        vdx_brick_a2[iz][iy][ix] = buf2_6[n++];
-        vdx_brick_a3[iz][iy][ix] = buf2_6[n++];
-        vdx_brick_a4[iz][iy][ix] = buf2_6[n++];
-        vdx_brick_a5[iz][iy][ix] = buf2_6[n++];
-        vdx_brick_a6[iz][iy][ix] = buf2_6[n++];
-	vdy_brick_a0[iz][iy][ix] = buf2_6[n++];
-        vdy_brick_a1[iz][iy][ix] = buf2_6[n++];
-        vdy_brick_a2[iz][iy][ix] = buf2_6[n++];
-        vdy_brick_a3[iz][iy][ix] = buf2_6[n++];
-        vdy_brick_a4[iz][iy][ix] = buf2_6[n++];
-        vdy_brick_a5[iz][iy][ix] = buf2_6[n++];
-        vdy_brick_a6[iz][iy][ix] = buf2_6[n++];
-	vdz_brick_a0[iz][iy][ix] = buf2_6[n++];
-        vdz_brick_a1[iz][iy][ix] = buf2_6[n++];
-        vdz_brick_a2[iz][iy][ix] = buf2_6[n++];
-        vdz_brick_a3[iz][iy][ix] = buf2_6[n++];
-        vdz_brick_a4[iz][iy][ix] = buf2_6[n++];
-        vdz_brick_a5[iz][iy][ix] = buf2_6[n++];
-        vdz_brick_a6[iz][iy][ix] = buf2_6[n++];
-      }
-
-  // pack my real cells for -z processor
-  // pass data to self or -z processor
-  // unpack and sum recv data into my ghost cells
-
-  n = 0;
-  for (iz = nzlo_in_6; iz < nzlo_in_6+nzlo_ghost_6; iz++)
-    for (iy = nylo_in_6; iy <= nyhi_in_6; iy++)
-      for (ix = nxlo_in_6; ix <= nxhi_in_6; ix++) {
-	buf1_6[n++] = vdx_brick_a0[iz][iy][ix];
-	buf1_6[n++] = vdx_brick_a1[iz][iy][ix];
-	buf1_6[n++] = vdx_brick_a2[iz][iy][ix];
-	buf1_6[n++] = vdx_brick_a3[iz][iy][ix];
-	buf1_6[n++] = vdx_brick_a4[iz][iy][ix];
-	buf1_6[n++] = vdx_brick_a5[iz][iy][ix];
-	buf1_6[n++] = vdx_brick_a6[iz][iy][ix];
-	buf1_6[n++] = vdy_brick_a0[iz][iy][ix];
-	buf1_6[n++] = vdy_brick_a1[iz][iy][ix];
-	buf1_6[n++] = vdy_brick_a2[iz][iy][ix];
-	buf1_6[n++] = vdy_brick_a3[iz][iy][ix];
-	buf1_6[n++] = vdy_brick_a4[iz][iy][ix];
-	buf1_6[n++] = vdy_brick_a5[iz][iy][ix];
-	buf1_6[n++] = vdy_brick_a6[iz][iy][ix];
-	buf1_6[n++] = vdz_brick_a0[iz][iy][ix];
-	buf1_6[n++] = vdz_brick_a1[iz][iy][ix];
-	buf1_6[n++] = vdz_brick_a2[iz][iy][ix];
-	buf1_6[n++] = vdz_brick_a3[iz][iy][ix];
-	buf1_6[n++] = vdz_brick_a4[iz][iy][ix];
-	buf1_6[n++] = vdz_brick_a5[iz][iy][ix];
-	buf1_6[n++] = vdz_brick_a6[iz][iy][ix];
-      }
-
-  if (comm->procneigh[2][0] == me)
-    for (i = 0; i < n; i++) buf2_6[i] = buf1_6[i];
-  else {
-    MPI_Irecv(buf2_6,7*nbuf_6,MPI_FFT_SCALAR,comm->procneigh[2][1],0,world,&request);
-    MPI_Send(buf1_6,n,MPI_FFT_SCALAR,comm->procneigh[2][0],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzhi_in_6+1; iz <= nzhi_out_6; iz++)
-    for (iy = nylo_in_6; iy <= nyhi_in_6; iy++)
-      for (ix = nxlo_in_6; ix <= nxhi_in_6; ix++) {
-	vdx_brick_a0[iz][iy][ix] = buf2_6[n++];
-        vdx_brick_a1[iz][iy][ix] = buf2_6[n++];
-        vdx_brick_a2[iz][iy][ix] = buf2_6[n++];
-        vdx_brick_a3[iz][iy][ix] = buf2_6[n++];
-        vdx_brick_a4[iz][iy][ix] = buf2_6[n++];
-        vdx_brick_a5[iz][iy][ix] = buf2_6[n++];
-        vdx_brick_a6[iz][iy][ix] = buf2_6[n++];
-	vdy_brick_a0[iz][iy][ix] = buf2_6[n++];
-        vdy_brick_a1[iz][iy][ix] = buf2_6[n++];
-        vdy_brick_a2[iz][iy][ix] = buf2_6[n++];
-        vdy_brick_a3[iz][iy][ix] = buf2_6[n++];
-        vdy_brick_a4[iz][iy][ix] = buf2_6[n++];
-        vdy_brick_a5[iz][iy][ix] = buf2_6[n++];
-        vdy_brick_a6[iz][iy][ix] = buf2_6[n++];
-	vdz_brick_a0[iz][iy][ix] = buf2_6[n++];
-        vdz_brick_a1[iz][iy][ix] = buf2_6[n++];
-        vdz_brick_a2[iz][iy][ix] = buf2_6[n++];
-        vdz_brick_a3[iz][iy][ix] = buf2_6[n++];
-        vdz_brick_a4[iz][iy][ix] = buf2_6[n++];
-        vdz_brick_a5[iz][iy][ix] = buf2_6[n++];
-        vdz_brick_a6[iz][iy][ix] = buf2_6[n++];
-      }
-
-  // pack my real cells for +y processor
-  // pass data to self or +y processor
-  // unpack and sum recv data into my ghost cells
-
-  n = 0;
-  for (iz = nzlo_out_6; iz <= nzhi_out_6; iz++)
-    for (iy = nyhi_in_6-nyhi_ghost_6+1; iy <= nyhi_in_6; iy++)
-      for (ix = nxlo_in_6; ix <= nxhi_in_6; ix++) {
-	buf1_6[n++] = vdx_brick_a0[iz][iy][ix];
-	buf1_6[n++] = vdx_brick_a1[iz][iy][ix];
-	buf1_6[n++] = vdx_brick_a2[iz][iy][ix];
-	buf1_6[n++] = vdx_brick_a3[iz][iy][ix];
-	buf1_6[n++] = vdx_brick_a4[iz][iy][ix];
-	buf1_6[n++] = vdx_brick_a5[iz][iy][ix];
-	buf1_6[n++] = vdx_brick_a6[iz][iy][ix];
-	buf1_6[n++] = vdy_brick_a0[iz][iy][ix];
-	buf1_6[n++] = vdy_brick_a1[iz][iy][ix];
-	buf1_6[n++] = vdy_brick_a2[iz][iy][ix];
-	buf1_6[n++] = vdy_brick_a3[iz][iy][ix];
-	buf1_6[n++] = vdy_brick_a4[iz][iy][ix];
-	buf1_6[n++] = vdy_brick_a5[iz][iy][ix];
-	buf1_6[n++] = vdy_brick_a6[iz][iy][ix];
-	buf1_6[n++] = vdz_brick_a0[iz][iy][ix];
-	buf1_6[n++] = vdz_brick_a1[iz][iy][ix];
-	buf1_6[n++] = vdz_brick_a2[iz][iy][ix];
-	buf1_6[n++] = vdz_brick_a3[iz][iy][ix];
-	buf1_6[n++] = vdz_brick_a4[iz][iy][ix];
-	buf1_6[n++] = vdz_brick_a5[iz][iy][ix];
-	buf1_6[n++] = vdz_brick_a6[iz][iy][ix];
-      }
-
-  if (comm->procneigh[1][1] == me)
-    for (i = 0; i < n; i++) buf2_6[i] = buf1_6[i];
-  else {
-    MPI_Irecv(buf2_6,7*nbuf_6,MPI_FFT_SCALAR,comm->procneigh[1][0],0,world,&request);
-    MPI_Send(buf1_6,n,MPI_FFT_SCALAR,comm->procneigh[1][1],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzlo_out_6; iz <= nzhi_out_6; iz++)
-    for (iy = nylo_out_6; iy < nylo_in_6; iy++)
-      for (ix = nxlo_in_6; ix <= nxhi_in_6; ix++) {
-	vdx_brick_a0[iz][iy][ix] = buf2_6[n++];
-        vdx_brick_a1[iz][iy][ix] = buf2_6[n++];
-        vdx_brick_a2[iz][iy][ix] = buf2_6[n++];
-        vdx_brick_a3[iz][iy][ix] = buf2_6[n++];
-        vdx_brick_a4[iz][iy][ix] = buf2_6[n++];
-        vdx_brick_a5[iz][iy][ix] = buf2_6[n++];
-        vdx_brick_a6[iz][iy][ix] = buf2_6[n++];
-	vdy_brick_a0[iz][iy][ix] = buf2_6[n++];
-        vdy_brick_a1[iz][iy][ix] = buf2_6[n++];
-        vdy_brick_a2[iz][iy][ix] = buf2_6[n++];
-        vdy_brick_a3[iz][iy][ix] = buf2_6[n++];
-        vdy_brick_a4[iz][iy][ix] = buf2_6[n++];
-        vdy_brick_a5[iz][iy][ix] = buf2_6[n++];
-        vdy_brick_a6[iz][iy][ix] = buf2_6[n++];
-	vdz_brick_a0[iz][iy][ix] = buf2_6[n++];
-        vdz_brick_a1[iz][iy][ix] = buf2_6[n++];
-        vdz_brick_a2[iz][iy][ix] = buf2_6[n++];
-        vdz_brick_a3[iz][iy][ix] = buf2_6[n++];
-        vdz_brick_a4[iz][iy][ix] = buf2_6[n++];
-        vdz_brick_a5[iz][iy][ix] = buf2_6[n++];
-        vdz_brick_a6[iz][iy][ix] = buf2_6[n++];
-      }
-
-  // pack my real cells for -y processor
-  // pass data to self or -y processor
-  // unpack and sum recv data into my ghost cells
-
-  n = 0;
-  for (iz = nzlo_out_6; iz <= nzhi_out_6; iz++)
-    for (iy = nylo_in_6; iy < nylo_in_6+nylo_ghost_6; iy++)
-      for (ix = nxlo_in_6; ix <= nxhi_in_6; ix++) {
-	buf1_6[n++] = vdx_brick_a0[iz][iy][ix];
-	buf1_6[n++] = vdx_brick_a1[iz][iy][ix];
-	buf1_6[n++] = vdx_brick_a2[iz][iy][ix];
-	buf1_6[n++] = vdx_brick_a3[iz][iy][ix];
-	buf1_6[n++] = vdx_brick_a4[iz][iy][ix];
-	buf1_6[n++] = vdx_brick_a5[iz][iy][ix];
-	buf1_6[n++] = vdx_brick_a6[iz][iy][ix];
-	buf1_6[n++] = vdy_brick_a0[iz][iy][ix];
-	buf1_6[n++] = vdy_brick_a1[iz][iy][ix];
-	buf1_6[n++] = vdy_brick_a2[iz][iy][ix];
-	buf1_6[n++] = vdy_brick_a3[iz][iy][ix];
-	buf1_6[n++] = vdy_brick_a4[iz][iy][ix];
-	buf1_6[n++] = vdy_brick_a5[iz][iy][ix];
-	buf1_6[n++] = vdy_brick_a6[iz][iy][ix];
-	buf1_6[n++] = vdz_brick_a0[iz][iy][ix];
-	buf1_6[n++] = vdz_brick_a1[iz][iy][ix];
-	buf1_6[n++] = vdz_brick_a2[iz][iy][ix];
-	buf1_6[n++] = vdz_brick_a3[iz][iy][ix];
-	buf1_6[n++] = vdz_brick_a4[iz][iy][ix];
-	buf1_6[n++] = vdz_brick_a5[iz][iy][ix];
-	buf1_6[n++] = vdz_brick_a6[iz][iy][ix];
-      }
-
-  if (comm->procneigh[1][0] == me)
-    for (i = 0; i < n; i++) buf2_6[i] = buf1_6[i];
-  else {
-    MPI_Irecv(buf2_6,7*nbuf_6,MPI_FFT_SCALAR,comm->procneigh[1][1],0,world,&request);
-    MPI_Send(buf1_6,n,MPI_FFT_SCALAR,comm->procneigh[1][0],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzlo_out_6; iz <= nzhi_out_6; iz++)
-    for (iy = nyhi_in_6+1; iy <= nyhi_out_6; iy++)
-      for (ix = nxlo_in_6; ix <= nxhi_in_6; ix++) {
-	vdx_brick_a0[iz][iy][ix] = buf2_6[n++];
-        vdx_brick_a1[iz][iy][ix] = buf2_6[n++];
-        vdx_brick_a2[iz][iy][ix] = buf2_6[n++];
-        vdx_brick_a3[iz][iy][ix] = buf2_6[n++];
-        vdx_brick_a4[iz][iy][ix] = buf2_6[n++];
-        vdx_brick_a5[iz][iy][ix] = buf2_6[n++];
-        vdx_brick_a6[iz][iy][ix] = buf2_6[n++];
-	vdy_brick_a0[iz][iy][ix] = buf2_6[n++];
-        vdy_brick_a1[iz][iy][ix] = buf2_6[n++];
-        vdy_brick_a2[iz][iy][ix] = buf2_6[n++];
-        vdy_brick_a3[iz][iy][ix] = buf2_6[n++];
-        vdy_brick_a4[iz][iy][ix] = buf2_6[n++];
-        vdy_brick_a5[iz][iy][ix] = buf2_6[n++];
-        vdy_brick_a6[iz][iy][ix] = buf2_6[n++];
-	vdz_brick_a0[iz][iy][ix] = buf2_6[n++];
-        vdz_brick_a1[iz][iy][ix] = buf2_6[n++];
-        vdz_brick_a2[iz][iy][ix] = buf2_6[n++];
-        vdz_brick_a3[iz][iy][ix] = buf2_6[n++];
-        vdz_brick_a4[iz][iy][ix] = buf2_6[n++];
-        vdz_brick_a5[iz][iy][ix] = buf2_6[n++];
-        vdz_brick_a6[iz][iy][ix] = buf2_6[n++];
-      }
-
-  // pack my real cells for +x processor
-  // pass data to self or +x processor
-  // unpack and sum recv data into my ghost cells
-
-  n = 0;
-  for (iz = nzlo_out_6; iz <= nzhi_out_6; iz++)
-    for (iy = nylo_out_6; iy <= nyhi_out_6; iy++)
-      for (ix = nxhi_in_6-nxhi_ghost_6+1; ix <= nxhi_in_6; ix++) {
-	buf1_6[n++] = vdx_brick_a0[iz][iy][ix];
-	buf1_6[n++] = vdx_brick_a1[iz][iy][ix];
-	buf1_6[n++] = vdx_brick_a2[iz][iy][ix];
-	buf1_6[n++] = vdx_brick_a3[iz][iy][ix];
-	buf1_6[n++] = vdx_brick_a4[iz][iy][ix];
-	buf1_6[n++] = vdx_brick_a5[iz][iy][ix];
-	buf1_6[n++] = vdx_brick_a6[iz][iy][ix];
-	buf1_6[n++] = vdy_brick_a0[iz][iy][ix];
-	buf1_6[n++] = vdy_brick_a1[iz][iy][ix];
-	buf1_6[n++] = vdy_brick_a2[iz][iy][ix];
-	buf1_6[n++] = vdy_brick_a3[iz][iy][ix];
-	buf1_6[n++] = vdy_brick_a4[iz][iy][ix];
-	buf1_6[n++] = vdy_brick_a5[iz][iy][ix];
-	buf1_6[n++] = vdy_brick_a6[iz][iy][ix];
-	buf1_6[n++] = vdz_brick_a0[iz][iy][ix];
-	buf1_6[n++] = vdz_brick_a1[iz][iy][ix];
-	buf1_6[n++] = vdz_brick_a2[iz][iy][ix];
-	buf1_6[n++] = vdz_brick_a3[iz][iy][ix];
-	buf1_6[n++] = vdz_brick_a4[iz][iy][ix];
-	buf1_6[n++] = vdz_brick_a5[iz][iy][ix];
-	buf1_6[n++] = vdz_brick_a6[iz][iy][ix];
-      }
-
-  if (comm->procneigh[0][1] == me)
-    for (i = 0; i < n; i++) buf2_6[i] = buf1_6[i];
-  else {
-    MPI_Irecv(buf2_6,7*nbuf_6,MPI_FFT_SCALAR,comm->procneigh[0][0],0,world,&request);
-    MPI_Send(buf1_6,n,MPI_FFT_SCALAR,comm->procneigh[0][1],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzlo_out_6; iz <= nzhi_out_6; iz++)
-    for (iy = nylo_out_6; iy <= nyhi_out_6; iy++)
-      for (ix = nxlo_out_6; ix < nxlo_in_6; ix++) {
-	vdx_brick_a0[iz][iy][ix] = buf2_6[n++];
-        vdx_brick_a1[iz][iy][ix] = buf2_6[n++];
-        vdx_brick_a2[iz][iy][ix] = buf2_6[n++];
-        vdx_brick_a3[iz][iy][ix] = buf2_6[n++];
-        vdx_brick_a4[iz][iy][ix] = buf2_6[n++];
-        vdx_brick_a5[iz][iy][ix] = buf2_6[n++];
-        vdx_brick_a6[iz][iy][ix] = buf2_6[n++];
-	vdy_brick_a0[iz][iy][ix] = buf2_6[n++];
-        vdy_brick_a1[iz][iy][ix] = buf2_6[n++];
-        vdy_brick_a2[iz][iy][ix] = buf2_6[n++];
-        vdy_brick_a3[iz][iy][ix] = buf2_6[n++];
-        vdy_brick_a4[iz][iy][ix] = buf2_6[n++];
-        vdy_brick_a5[iz][iy][ix] = buf2_6[n++];
-        vdy_brick_a6[iz][iy][ix] = buf2_6[n++];
-	vdz_brick_a0[iz][iy][ix] = buf2_6[n++];
-        vdz_brick_a1[iz][iy][ix] = buf2_6[n++];
-        vdz_brick_a2[iz][iy][ix] = buf2_6[n++];
-        vdz_brick_a3[iz][iy][ix] = buf2_6[n++];
-        vdz_brick_a4[iz][iy][ix] = buf2_6[n++];
-        vdz_brick_a5[iz][iy][ix] = buf2_6[n++];
-        vdz_brick_a6[iz][iy][ix] = buf2_6[n++];
-      }
-
-  // pack my real cells for -x processor
-  // pass data to self or -x processor
-  // unpack and sum recv data into my ghost cells
-
-  n = 0;
-  for (iz = nzlo_out_6; iz <= nzhi_out_6; iz++)
-    for (iy = nylo_out_6; iy <= nyhi_out_6; iy++)
-      for (ix = nxlo_in_6; ix < nxlo_in_6+nxlo_ghost_6; ix++) {
-	buf1_6[n++] = vdx_brick_a0[iz][iy][ix];
-	buf1_6[n++] = vdx_brick_a1[iz][iy][ix];
-	buf1_6[n++] = vdx_brick_a2[iz][iy][ix];
-	buf1_6[n++] = vdx_brick_a3[iz][iy][ix];
-	buf1_6[n++] = vdx_brick_a4[iz][iy][ix];
-	buf1_6[n++] = vdx_brick_a5[iz][iy][ix];
-	buf1_6[n++] = vdx_brick_a6[iz][iy][ix];
-	buf1_6[n++] = vdy_brick_a0[iz][iy][ix];
-	buf1_6[n++] = vdy_brick_a1[iz][iy][ix];
-	buf1_6[n++] = vdy_brick_a2[iz][iy][ix];
-	buf1_6[n++] = vdy_brick_a3[iz][iy][ix];
-	buf1_6[n++] = vdy_brick_a4[iz][iy][ix];
-	buf1_6[n++] = vdy_brick_a5[iz][iy][ix];
-	buf1_6[n++] = vdy_brick_a6[iz][iy][ix];
-	buf1_6[n++] = vdz_brick_a0[iz][iy][ix];
-	buf1_6[n++] = vdz_brick_a1[iz][iy][ix];
-	buf1_6[n++] = vdz_brick_a2[iz][iy][ix];
-	buf1_6[n++] = vdz_brick_a3[iz][iy][ix];
-	buf1_6[n++] = vdz_brick_a4[iz][iy][ix];
-	buf1_6[n++] = vdz_brick_a5[iz][iy][ix];
-	buf1_6[n++] = vdz_brick_a6[iz][iy][ix];
-      }
-
-  if (comm->procneigh[0][0] == me)
-    for (i = 0; i < n; i++) buf2_6[i] = buf1_6[i];
-  else {
-    MPI_Irecv(buf2_6,7*nbuf_6,MPI_FFT_SCALAR,comm->procneigh[0][1],0,world,&request);
-    MPI_Send(buf1_6,n,MPI_FFT_SCALAR,comm->procneigh[0][0],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzlo_out_6; iz <= nzhi_out_6; iz++)
-    for (iy = nylo_out_6; iy <= nyhi_out_6; iy++)
-      for (ix = nxhi_in_6+1; ix <= nxhi_out_6; ix++) {
-	vdx_brick_a0[iz][iy][ix] = buf2_6[n++];
-        vdx_brick_a1[iz][iy][ix] = buf2_6[n++];
-        vdx_brick_a2[iz][iy][ix] = buf2_6[n++];
-        vdx_brick_a3[iz][iy][ix] = buf2_6[n++];
-        vdx_brick_a4[iz][iy][ix] = buf2_6[n++];
-        vdx_brick_a5[iz][iy][ix] = buf2_6[n++];
-        vdx_brick_a6[iz][iy][ix] = buf2_6[n++];
-	vdy_brick_a0[iz][iy][ix] = buf2_6[n++];
-        vdy_brick_a1[iz][iy][ix] = buf2_6[n++];
-        vdy_brick_a2[iz][iy][ix] = buf2_6[n++];
-        vdy_brick_a3[iz][iy][ix] = buf2_6[n++];
-        vdy_brick_a4[iz][iy][ix] = buf2_6[n++];
-        vdy_brick_a5[iz][iy][ix] = buf2_6[n++];
-        vdy_brick_a6[iz][iy][ix] = buf2_6[n++];
-	vdz_brick_a0[iz][iy][ix] = buf2_6[n++];
-        vdz_brick_a1[iz][iy][ix] = buf2_6[n++];
-        vdz_brick_a2[iz][iy][ix] = buf2_6[n++];
-        vdz_brick_a3[iz][iy][ix] = buf2_6[n++];
-        vdz_brick_a4[iz][iy][ix] = buf2_6[n++];
-        vdz_brick_a5[iz][iy][ix] = buf2_6[n++];
-        vdz_brick_a6[iz][iy][ix] = buf2_6[n++];
-      }
-}
-
-/* ----------------------------------------------------------------------
-   ghost-swap to fill ghost cells of my brick with field values
-   when using dispersion with arithmetic mixing only for ad scheme
-------------------------------------------------------------------------- */
-
-void PPPMDisp::fillbrick_a_ad()
-{
-  int i,n,ix,iy,iz;
-  MPI_Request request;
-  MPI_Status status;
-
-  // pack my real cells for +z processor
-  // pass data to self or +z processor
-  // unpack and sum recv data into my ghost cells
-
-  n = 0;
-  for (iz = nzhi_in_6-nzhi_ghost_6+1; iz <= nzhi_in_6; iz++)
-    for (iy = nylo_in_6; iy <= nyhi_in_6; iy++)
-      for (ix = nxlo_in_6; ix <= nxhi_in_6; ix++) {
-	buf1_6[n++] = u_brick_a0[iz][iy][ix];
-	buf1_6[n++] = u_brick_a1[iz][iy][ix];
-	buf1_6[n++] = u_brick_a2[iz][iy][ix];
-	buf1_6[n++] = u_brick_a3[iz][iy][ix];
-	buf1_6[n++] = u_brick_a4[iz][iy][ix];
-	buf1_6[n++] = u_brick_a5[iz][iy][ix];
-	buf1_6[n++] = u_brick_a6[iz][iy][ix];
-      }
-
-  if (comm->procneigh[2][1] == me)
-    for (i = 0; i < n; i++) buf2_6[i] = buf1_6[i];
-  else {
-    MPI_Irecv(buf2_6,7*nbuf_6,MPI_FFT_SCALAR,comm->procneigh[2][0],0,world,&request);
-    MPI_Send(buf1_6,n,MPI_FFT_SCALAR,comm->procneigh[2][1],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzlo_out_6; iz < nzlo_in_6; iz++)
-    for (iy = nylo_in_6; iy <= nyhi_in_6; iy++)
-      for (ix = nxlo_in_6; ix <= nxhi_in_6; ix++) {
-	u_brick_a0[iz][iy][ix] = buf2_6[n++];
-        u_brick_a1[iz][iy][ix] = buf2_6[n++];
-        u_brick_a2[iz][iy][ix] = buf2_6[n++];
-        u_brick_a3[iz][iy][ix] = buf2_6[n++];
-        u_brick_a4[iz][iy][ix] = buf2_6[n++];
-        u_brick_a5[iz][iy][ix] = buf2_6[n++];
-        u_brick_a6[iz][iy][ix] = buf2_6[n++];
-      }
-
-  // pack my real cells for -z processor
-  // pass data to self or -z processor
-  // unpack and sum recv data into my ghost cells
-
-  n = 0;
-  for (iz = nzlo_in_6; iz < nzlo_in_6+nzlo_ghost_6; iz++)
-    for (iy = nylo_in_6; iy <= nyhi_in_6; iy++)
-      for (ix = nxlo_in_6; ix <= nxhi_in_6; ix++) {
-	buf1_6[n++] = u_brick_a0[iz][iy][ix];
-	buf1_6[n++] = u_brick_a1[iz][iy][ix];
-	buf1_6[n++] = u_brick_a2[iz][iy][ix];
-	buf1_6[n++] = u_brick_a3[iz][iy][ix];
-	buf1_6[n++] = u_brick_a4[iz][iy][ix];
-	buf1_6[n++] = u_brick_a5[iz][iy][ix];
-	buf1_6[n++] = u_brick_a6[iz][iy][ix];
-      }
-
-  if (comm->procneigh[2][0] == me)
-    for (i = 0; i < n; i++) buf2_6[i] = buf1_6[i];
-  else {
-    MPI_Irecv(buf2_6,7*nbuf_6,MPI_FFT_SCALAR,comm->procneigh[2][1],0,world,&request);
-    MPI_Send(buf1_6,n,MPI_FFT_SCALAR,comm->procneigh[2][0],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzhi_in_6+1; iz <= nzhi_out_6; iz++)
-    for (iy = nylo_in_6; iy <= nyhi_in_6; iy++)
-      for (ix = nxlo_in_6; ix <= nxhi_in_6; ix++) {
-	u_brick_a0[iz][iy][ix] = buf2_6[n++];
-        u_brick_a1[iz][iy][ix] = buf2_6[n++];
-        u_brick_a2[iz][iy][ix] = buf2_6[n++];
-        u_brick_a3[iz][iy][ix] = buf2_6[n++];
-        u_brick_a4[iz][iy][ix] = buf2_6[n++];
-        u_brick_a5[iz][iy][ix] = buf2_6[n++];
-        u_brick_a6[iz][iy][ix] = buf2_6[n++];
-      }
-
-  // pack my real cells for +y processor
-  // pass data to self or +y processor
-  // unpack and sum recv data into my ghost cells
-
-  n = 0;
-  for (iz = nzlo_out_6; iz <= nzhi_out_6; iz++)
-    for (iy = nyhi_in_6-nyhi_ghost_6+1; iy <= nyhi_in_6; iy++)
-      for (ix = nxlo_in_6; ix <= nxhi_in_6; ix++) {
-	buf1_6[n++] = u_brick_a0[iz][iy][ix];
-	buf1_6[n++] = u_brick_a1[iz][iy][ix];
-	buf1_6[n++] = u_brick_a2[iz][iy][ix];
-	buf1_6[n++] = u_brick_a3[iz][iy][ix];
-	buf1_6[n++] = u_brick_a4[iz][iy][ix];
-	buf1_6[n++] = u_brick_a5[iz][iy][ix];
-	buf1_6[n++] = u_brick_a6[iz][iy][ix];
-      }
-
-  if (comm->procneigh[1][1] == me)
-    for (i = 0; i < n; i++) buf2_6[i] = buf1_6[i];
-  else {
-    MPI_Irecv(buf2_6,7*nbuf_6,MPI_FFT_SCALAR,comm->procneigh[1][0],0,world,&request);
-    MPI_Send(buf1_6,n,MPI_FFT_SCALAR,comm->procneigh[1][1],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzlo_out_6; iz <= nzhi_out_6; iz++)
-    for (iy = nylo_out_6; iy < nylo_in_6; iy++)
-      for (ix = nxlo_in_6; ix <= nxhi_in_6; ix++) {
-	u_brick_a0[iz][iy][ix] = buf2_6[n++];
-        u_brick_a1[iz][iy][ix] = buf2_6[n++];
-        u_brick_a2[iz][iy][ix] = buf2_6[n++];
-        u_brick_a3[iz][iy][ix] = buf2_6[n++];
-        u_brick_a4[iz][iy][ix] = buf2_6[n++];
-        u_brick_a5[iz][iy][ix] = buf2_6[n++];
-        u_brick_a6[iz][iy][ix] = buf2_6[n++];
-      }
-
-  // pack my real cells for -y processor
-  // pass data to self or -y processor
-  // unpack and sum recv data into my ghost cells
-
-  n = 0;
-  for (iz = nzlo_out_6; iz <= nzhi_out_6; iz++)
-    for (iy = nylo_in_6; iy < nylo_in_6+nylo_ghost_6; iy++)
-      for (ix = nxlo_in_6; ix <= nxhi_in_6; ix++) {
-	buf1_6[n++] = u_brick_a0[iz][iy][ix];
-	buf1_6[n++] = u_brick_a1[iz][iy][ix];
-	buf1_6[n++] = u_brick_a2[iz][iy][ix];
-	buf1_6[n++] = u_brick_a3[iz][iy][ix];
-	buf1_6[n++] = u_brick_a4[iz][iy][ix];
-	buf1_6[n++] = u_brick_a5[iz][iy][ix];
-	buf1_6[n++] = u_brick_a6[iz][iy][ix];
-      }
-
-  if (comm->procneigh[1][0] == me)
-    for (i = 0; i < n; i++) buf2_6[i] = buf1_6[i];
-  else {
-    MPI_Irecv(buf2_6,7*nbuf_6,MPI_FFT_SCALAR,comm->procneigh[1][1],0,world,&request);
-    MPI_Send(buf1_6,n,MPI_FFT_SCALAR,comm->procneigh[1][0],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzlo_out_6; iz <= nzhi_out_6; iz++)
-    for (iy = nyhi_in_6+1; iy <= nyhi_out_6; iy++)
-      for (ix = nxlo_in_6; ix <= nxhi_in_6; ix++) {
-	u_brick_a0[iz][iy][ix] = buf2_6[n++];
-        u_brick_a1[iz][iy][ix] = buf2_6[n++];
-        u_brick_a2[iz][iy][ix] = buf2_6[n++];
-        u_brick_a3[iz][iy][ix] = buf2_6[n++];
-        u_brick_a4[iz][iy][ix] = buf2_6[n++];
-        u_brick_a5[iz][iy][ix] = buf2_6[n++];
-        u_brick_a6[iz][iy][ix] = buf2_6[n++];
-      }
-
-  // pack my real cells for +x processor
-  // pass data to self or +x processor
-  // unpack and sum recv data into my ghost cells
-
-  n = 0;
-  for (iz = nzlo_out_6; iz <= nzhi_out_6; iz++)
-    for (iy = nylo_out_6; iy <= nyhi_out_6; iy++)
-      for (ix = nxhi_in_6-nxhi_ghost_6+1; ix <= nxhi_in_6; ix++) {
-	buf1_6[n++] = u_brick_a0[iz][iy][ix];
-	buf1_6[n++] = u_brick_a1[iz][iy][ix];
-	buf1_6[n++] = u_brick_a2[iz][iy][ix];
-	buf1_6[n++] = u_brick_a3[iz][iy][ix];
-	buf1_6[n++] = u_brick_a4[iz][iy][ix];
-	buf1_6[n++] = u_brick_a5[iz][iy][ix];
-	buf1_6[n++] = u_brick_a6[iz][iy][ix];
-      }
-
-  if (comm->procneigh[0][1] == me)
-    for (i = 0; i < n; i++) buf2_6[i] = buf1_6[i];
-  else {
-    MPI_Irecv(buf2_6,7*nbuf_6,MPI_FFT_SCALAR,comm->procneigh[0][0],0,world,&request);
-    MPI_Send(buf1_6,n,MPI_FFT_SCALAR,comm->procneigh[0][1],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzlo_out_6; iz <= nzhi_out_6; iz++)
-    for (iy = nylo_out_6; iy <= nyhi_out_6; iy++)
-      for (ix = nxlo_out_6; ix < nxlo_in_6; ix++) {
-	u_brick_a0[iz][iy][ix] = buf2_6[n++];
-        u_brick_a1[iz][iy][ix] = buf2_6[n++];
-        u_brick_a2[iz][iy][ix] = buf2_6[n++];
-        u_brick_a3[iz][iy][ix] = buf2_6[n++];
-        u_brick_a4[iz][iy][ix] = buf2_6[n++];
-        u_brick_a5[iz][iy][ix] = buf2_6[n++];
-        u_brick_a6[iz][iy][ix] = buf2_6[n++];
-      }
-
-  // pack my real cells for -x processor
-  // pass data to self or -x processor
-  // unpack and sum recv data into my ghost cells
-
-  n = 0;
-  for (iz = nzlo_out_6; iz <= nzhi_out_6; iz++)
-    for (iy = nylo_out_6; iy <= nyhi_out_6; iy++)
-      for (ix = nxlo_in_6; ix < nxlo_in_6+nxlo_ghost_6; ix++) {
-	buf1_6[n++] = u_brick_a0[iz][iy][ix];
-	buf1_6[n++] = u_brick_a1[iz][iy][ix];
-	buf1_6[n++] = u_brick_a2[iz][iy][ix];
-	buf1_6[n++] = u_brick_a3[iz][iy][ix];
-	buf1_6[n++] = u_brick_a4[iz][iy][ix];
-	buf1_6[n++] = u_brick_a5[iz][iy][ix];
-	buf1_6[n++] = u_brick_a6[iz][iy][ix];
-      }
-
-  if (comm->procneigh[0][0] == me)
-    for (i = 0; i < n; i++) buf2_6[i] = buf1_6[i];
-  else {
-    MPI_Irecv(buf2_6,7*nbuf_6,MPI_FFT_SCALAR,comm->procneigh[0][1],0,world,&request);
-    MPI_Send(buf1_6,n,MPI_FFT_SCALAR,comm->procneigh[0][0],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzlo_out_6; iz <= nzhi_out_6; iz++)
-    for (iy = nylo_out_6; iy <= nyhi_out_6; iy++)
-      for (ix = nxhi_in_6+1; ix <= nxhi_out_6; ix++) {
-	u_brick_a0[iz][iy][ix] = buf2_6[n++];
-        u_brick_a1[iz][iy][ix] = buf2_6[n++];
-        u_brick_a2[iz][iy][ix] = buf2_6[n++];
-        u_brick_a3[iz][iy][ix] = buf2_6[n++];
-        u_brick_a4[iz][iy][ix] = buf2_6[n++];
-        u_brick_a5[iz][iy][ix] = buf2_6[n++];
-        u_brick_a6[iz][iy][ix] = buf2_6[n++];
-      }
-}
-
-/* ----------------------------------------------------------------------
-   communication between procs for per atom calculations
-   for ik scheme
-------------------------------------------------------------------------- */
-
-void PPPMDisp::fillbrick_a_peratom_ik()
-{
-  int i,n,ix,iy,iz;
-  MPI_Request request;
-  MPI_Status status;
-
-  // pack my real cells for +z processor
-  // pass data to self or +z processor
-  // unpack and sum recv data into my ghost cells
-
-  n = 0;
-  for (iz = nzhi_in_6-nzhi_ghost_6+1; iz <= nzhi_in_6; iz++)
-    for (iy = nylo_in_6; iy <= nyhi_in_6; iy++)
-      for (ix = nxlo_in_6; ix <= nxhi_in_6; ix++) {
-        if (eflag_atom) {
-          buf3_6[n++] = u_brick_a0[iz][iy][ix];
-          buf3_6[n++] = u_brick_a1[iz][iy][ix];
-          buf3_6[n++] = u_brick_a2[iz][iy][ix];
-          buf3_6[n++] = u_brick_a3[iz][iy][ix];
-          buf3_6[n++] = u_brick_a4[iz][iy][ix];
-          buf3_6[n++] = u_brick_a5[iz][iy][ix];
-          buf3_6[n++] = u_brick_a6[iz][iy][ix];
-        }
-        if (vflag_atom) {
-          buf3_6[n++] = v0_brick_a0[iz][iy][ix];
-          buf3_6[n++] = v0_brick_a1[iz][iy][ix];
-          buf3_6[n++] = v0_brick_a2[iz][iy][ix];
-          buf3_6[n++] = v0_brick_a3[iz][iy][ix];
-          buf3_6[n++] = v0_brick_a4[iz][iy][ix];
-          buf3_6[n++] = v0_brick_a5[iz][iy][ix];
-          buf3_6[n++] = v0_brick_a6[iz][iy][ix];
-          buf3_6[n++] = v1_brick_a0[iz][iy][ix];
-          buf3_6[n++] = v1_brick_a1[iz][iy][ix];
-          buf3_6[n++] = v1_brick_a2[iz][iy][ix];
-          buf3_6[n++] = v1_brick_a3[iz][iy][ix];
-          buf3_6[n++] = v1_brick_a4[iz][iy][ix];
-          buf3_6[n++] = v1_brick_a5[iz][iy][ix];
-          buf3_6[n++] = v1_brick_a6[iz][iy][ix];
-          buf3_6[n++] = v2_brick_a0[iz][iy][ix];
-          buf3_6[n++] = v2_brick_a1[iz][iy][ix];
-          buf3_6[n++] = v2_brick_a2[iz][iy][ix];
-          buf3_6[n++] = v2_brick_a3[iz][iy][ix];
-          buf3_6[n++] = v2_brick_a4[iz][iy][ix];
-          buf3_6[n++] = v2_brick_a5[iz][iy][ix];
-          buf3_6[n++] = v2_brick_a6[iz][iy][ix];
-          buf3_6[n++] = v3_brick_a0[iz][iy][ix];
-          buf3_6[n++] = v3_brick_a1[iz][iy][ix];
-          buf3_6[n++] = v3_brick_a2[iz][iy][ix];
-          buf3_6[n++] = v3_brick_a3[iz][iy][ix];
-          buf3_6[n++] = v3_brick_a4[iz][iy][ix];
-          buf3_6[n++] = v3_brick_a5[iz][iy][ix];
-          buf3_6[n++] = v3_brick_a6[iz][iy][ix];
-          buf3_6[n++] = v4_brick_a0[iz][iy][ix];
-          buf3_6[n++] = v4_brick_a1[iz][iy][ix];
-          buf3_6[n++] = v4_brick_a2[iz][iy][ix];
-          buf3_6[n++] = v4_brick_a3[iz][iy][ix];
-          buf3_6[n++] = v4_brick_a4[iz][iy][ix];
-          buf3_6[n++] = v4_brick_a5[iz][iy][ix];
-          buf3_6[n++] = v4_brick_a6[iz][iy][ix];
-          buf3_6[n++] = v5_brick_a0[iz][iy][ix];
-          buf3_6[n++] = v5_brick_a1[iz][iy][ix];
-          buf3_6[n++] = v5_brick_a2[iz][iy][ix];
-          buf3_6[n++] = v5_brick_a3[iz][iy][ix];
-          buf3_6[n++] = v5_brick_a4[iz][iy][ix];
-          buf3_6[n++] = v5_brick_a5[iz][iy][ix];
-          buf3_6[n++] = v5_brick_a6[iz][iy][ix];
-        }
-      }
-
-
-  if (comm->procneigh[2][1] == me)
-    for (i = 0; i < n; i++) buf4_6[i] = buf3_6[i];
-  else {
-    MPI_Irecv(buf4_6,7*nbuf_pa_6,MPI_FFT_SCALAR,comm->procneigh[2][0],0,world,&request);
-    MPI_Send(buf3_6,n,MPI_FFT_SCALAR,comm->procneigh[2][1],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzlo_out_6; iz < nzlo_in_6; iz++)
-    for (iy = nylo_in_6; iy <= nyhi_in_6; iy++)
-      for (ix = nxlo_in_6; ix <= nxhi_in_6; ix++) {
-        if (eflag_atom) {
-          u_brick_a0[iz][iy][ix] = buf4_6[n++];
-          u_brick_a1[iz][iy][ix] = buf4_6[n++];
-          u_brick_a2[iz][iy][ix] = buf4_6[n++];
-          u_brick_a3[iz][iy][ix] = buf4_6[n++];
-          u_brick_a4[iz][iy][ix] = buf4_6[n++];
-          u_brick_a5[iz][iy][ix] = buf4_6[n++];
-          u_brick_a6[iz][iy][ix] = buf4_6[n++];
-        }
-        if (vflag_atom) {
-          v0_brick_a0[iz][iy][ix] = buf4_6[n++];
-          v0_brick_a1[iz][iy][ix] = buf4_6[n++];
-          v0_brick_a2[iz][iy][ix] = buf4_6[n++];
-          v0_brick_a3[iz][iy][ix] = buf4_6[n++];
-          v0_brick_a4[iz][iy][ix] = buf4_6[n++];
-          v0_brick_a5[iz][iy][ix] = buf4_6[n++];
-          v0_brick_a6[iz][iy][ix] = buf4_6[n++];
-          v1_brick_a0[iz][iy][ix] = buf4_6[n++];
-          v1_brick_a1[iz][iy][ix] = buf4_6[n++];
-          v1_brick_a2[iz][iy][ix] = buf4_6[n++];
-          v1_brick_a3[iz][iy][ix] = buf4_6[n++];
-          v1_brick_a4[iz][iy][ix] = buf4_6[n++];
-          v1_brick_a5[iz][iy][ix] = buf4_6[n++];
-          v1_brick_a6[iz][iy][ix] = buf4_6[n++];
-          v2_brick_a0[iz][iy][ix] = buf4_6[n++];
-          v2_brick_a1[iz][iy][ix] = buf4_6[n++];
-          v2_brick_a2[iz][iy][ix] = buf4_6[n++];
-          v2_brick_a3[iz][iy][ix] = buf4_6[n++];
-          v2_brick_a4[iz][iy][ix] = buf4_6[n++];
-          v2_brick_a5[iz][iy][ix] = buf4_6[n++];
-          v2_brick_a6[iz][iy][ix] = buf4_6[n++];
-          v3_brick_a0[iz][iy][ix] = buf4_6[n++];
-          v3_brick_a1[iz][iy][ix] = buf4_6[n++];
-          v3_brick_a2[iz][iy][ix] = buf4_6[n++];
-          v3_brick_a3[iz][iy][ix] = buf4_6[n++];
-          v3_brick_a4[iz][iy][ix] = buf4_6[n++];
-          v3_brick_a5[iz][iy][ix] = buf4_6[n++];
-          v3_brick_a6[iz][iy][ix] = buf4_6[n++];
-          v4_brick_a0[iz][iy][ix] = buf4_6[n++];
-          v4_brick_a1[iz][iy][ix] = buf4_6[n++];
-          v4_brick_a2[iz][iy][ix] = buf4_6[n++];
-          v4_brick_a3[iz][iy][ix] = buf4_6[n++];
-          v4_brick_a4[iz][iy][ix] = buf4_6[n++];
-          v4_brick_a5[iz][iy][ix] = buf4_6[n++];
-          v4_brick_a6[iz][iy][ix] = buf4_6[n++];
-          v5_brick_a0[iz][iy][ix] = buf4_6[n++];
-          v5_brick_a1[iz][iy][ix] = buf4_6[n++];
-          v5_brick_a2[iz][iy][ix] = buf4_6[n++];
-          v5_brick_a3[iz][iy][ix] = buf4_6[n++];
-          v5_brick_a4[iz][iy][ix] = buf4_6[n++];
-          v5_brick_a5[iz][iy][ix] = buf4_6[n++];
-          v5_brick_a6[iz][iy][ix] = buf4_6[n++];
-        }
-      }
-
-  // pack my real cells for -z processor
-  // pass data to self or -z processor
-  // unpack and sum recv data into my ghost cells
-
-  n = 0;
-  for (iz = nzlo_in_6; iz < nzlo_in_6+nzlo_ghost_6; iz++)
-    for (iy = nylo_in_6; iy <= nyhi_in_6; iy++)
-      for (ix = nxlo_in_6; ix <= nxhi_in_6; ix++) {
-        if (eflag_atom) {
-          buf3_6[n++] = u_brick_a0[iz][iy][ix];
-          buf3_6[n++] = u_brick_a1[iz][iy][ix];
-          buf3_6[n++] = u_brick_a2[iz][iy][ix];
-          buf3_6[n++] = u_brick_a3[iz][iy][ix];
-          buf3_6[n++] = u_brick_a4[iz][iy][ix];
-          buf3_6[n++] = u_brick_a5[iz][iy][ix];
-          buf3_6[n++] = u_brick_a6[iz][iy][ix];
-        }
-        if (vflag_atom) {
-          buf3_6[n++] = v0_brick_a0[iz][iy][ix];
-          buf3_6[n++] = v0_brick_a1[iz][iy][ix];
-          buf3_6[n++] = v0_brick_a2[iz][iy][ix];
-          buf3_6[n++] = v0_brick_a3[iz][iy][ix];
-          buf3_6[n++] = v0_brick_a4[iz][iy][ix];
-          buf3_6[n++] = v0_brick_a5[iz][iy][ix];
-          buf3_6[n++] = v0_brick_a6[iz][iy][ix];
-          buf3_6[n++] = v1_brick_a0[iz][iy][ix];
-          buf3_6[n++] = v1_brick_a1[iz][iy][ix];
-          buf3_6[n++] = v1_brick_a2[iz][iy][ix];
-          buf3_6[n++] = v1_brick_a3[iz][iy][ix];
-          buf3_6[n++] = v1_brick_a4[iz][iy][ix];
-          buf3_6[n++] = v1_brick_a5[iz][iy][ix];
-          buf3_6[n++] = v1_brick_a6[iz][iy][ix];
-          buf3_6[n++] = v2_brick_a0[iz][iy][ix];
-          buf3_6[n++] = v2_brick_a1[iz][iy][ix];
-          buf3_6[n++] = v2_brick_a2[iz][iy][ix];
-          buf3_6[n++] = v2_brick_a3[iz][iy][ix];
-          buf3_6[n++] = v2_brick_a4[iz][iy][ix];
-          buf3_6[n++] = v2_brick_a5[iz][iy][ix];
-          buf3_6[n++] = v2_brick_a6[iz][iy][ix];
-          buf3_6[n++] = v3_brick_a0[iz][iy][ix];
-          buf3_6[n++] = v3_brick_a1[iz][iy][ix];
-          buf3_6[n++] = v3_brick_a2[iz][iy][ix];
-          buf3_6[n++] = v3_brick_a3[iz][iy][ix];
-          buf3_6[n++] = v3_brick_a4[iz][iy][ix];
-          buf3_6[n++] = v3_brick_a5[iz][iy][ix];
-          buf3_6[n++] = v3_brick_a6[iz][iy][ix];
-          buf3_6[n++] = v4_brick_a0[iz][iy][ix];
-          buf3_6[n++] = v4_brick_a1[iz][iy][ix];
-          buf3_6[n++] = v4_brick_a2[iz][iy][ix];
-          buf3_6[n++] = v4_brick_a3[iz][iy][ix];
-          buf3_6[n++] = v4_brick_a4[iz][iy][ix];
-          buf3_6[n++] = v4_brick_a5[iz][iy][ix];
-          buf3_6[n++] = v4_brick_a6[iz][iy][ix];
-          buf3_6[n++] = v5_brick_a0[iz][iy][ix];
-          buf3_6[n++] = v5_brick_a1[iz][iy][ix];
-          buf3_6[n++] = v5_brick_a2[iz][iy][ix];
-          buf3_6[n++] = v5_brick_a3[iz][iy][ix];
-          buf3_6[n++] = v5_brick_a4[iz][iy][ix];
-          buf3_6[n++] = v5_brick_a5[iz][iy][ix];
-          buf3_6[n++] = v5_brick_a6[iz][iy][ix];
-        }
-      }
-
-  if (comm->procneigh[2][0] == me)
-    for (i = 0; i < n; i++) buf4_6[i] = buf3_6[i];
-  else {
-    MPI_Irecv(buf4_6,7*nbuf_pa_6,MPI_FFT_SCALAR,comm->procneigh[2][1],0,world,&request);
-    MPI_Send(buf3_6,n,MPI_FFT_SCALAR,comm->procneigh[2][0],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzhi_in_6+1; iz <= nzhi_out_6; iz++)
-    for (iy = nylo_in_6; iy <= nyhi_in_6; iy++)
-      for (ix = nxlo_in_6; ix <= nxhi_in_6; ix++) {
-        if (eflag_atom) {
-          u_brick_a0[iz][iy][ix] = buf4_6[n++];
-          u_brick_a1[iz][iy][ix] = buf4_6[n++];
-          u_brick_a2[iz][iy][ix] = buf4_6[n++];
-          u_brick_a3[iz][iy][ix] = buf4_6[n++];
-          u_brick_a4[iz][iy][ix] = buf4_6[n++];
-          u_brick_a5[iz][iy][ix] = buf4_6[n++];
-          u_brick_a6[iz][iy][ix] = buf4_6[n++];
-        }
-        if (vflag_atom) {
-          v0_brick_a0[iz][iy][ix] = buf4_6[n++];
-          v0_brick_a1[iz][iy][ix] = buf4_6[n++];
-          v0_brick_a2[iz][iy][ix] = buf4_6[n++];
-          v0_brick_a3[iz][iy][ix] = buf4_6[n++];
-          v0_brick_a4[iz][iy][ix] = buf4_6[n++];
-          v0_brick_a5[iz][iy][ix] = buf4_6[n++];
-          v0_brick_a6[iz][iy][ix] = buf4_6[n++];
-          v1_brick_a0[iz][iy][ix] = buf4_6[n++];
-          v1_brick_a1[iz][iy][ix] = buf4_6[n++];
-          v1_brick_a2[iz][iy][ix] = buf4_6[n++];
-          v1_brick_a3[iz][iy][ix] = buf4_6[n++];
-          v1_brick_a4[iz][iy][ix] = buf4_6[n++];
-          v1_brick_a5[iz][iy][ix] = buf4_6[n++];
-          v1_brick_a6[iz][iy][ix] = buf4_6[n++];
-          v2_brick_a0[iz][iy][ix] = buf4_6[n++];
-          v2_brick_a1[iz][iy][ix] = buf4_6[n++];
-          v2_brick_a2[iz][iy][ix] = buf4_6[n++];
-          v2_brick_a3[iz][iy][ix] = buf4_6[n++];
-          v2_brick_a4[iz][iy][ix] = buf4_6[n++];
-          v2_brick_a5[iz][iy][ix] = buf4_6[n++];
-          v2_brick_a6[iz][iy][ix] = buf4_6[n++];
-          v3_brick_a0[iz][iy][ix] = buf4_6[n++];
-          v3_brick_a1[iz][iy][ix] = buf4_6[n++];
-          v3_brick_a2[iz][iy][ix] = buf4_6[n++];
-          v3_brick_a3[iz][iy][ix] = buf4_6[n++];
-          v3_brick_a4[iz][iy][ix] = buf4_6[n++];
-          v3_brick_a5[iz][iy][ix] = buf4_6[n++];
-          v3_brick_a6[iz][iy][ix] = buf4_6[n++];
-          v4_brick_a0[iz][iy][ix] = buf4_6[n++];
-          v4_brick_a1[iz][iy][ix] = buf4_6[n++];
-          v4_brick_a2[iz][iy][ix] = buf4_6[n++];
-          v4_brick_a3[iz][iy][ix] = buf4_6[n++];
-          v4_brick_a4[iz][iy][ix] = buf4_6[n++];
-          v4_brick_a5[iz][iy][ix] = buf4_6[n++];
-          v4_brick_a6[iz][iy][ix] = buf4_6[n++];
-          v5_brick_a0[iz][iy][ix] = buf4_6[n++];
-          v5_brick_a1[iz][iy][ix] = buf4_6[n++];
-          v5_brick_a2[iz][iy][ix] = buf4_6[n++];
-          v5_brick_a3[iz][iy][ix] = buf4_6[n++];
-          v5_brick_a4[iz][iy][ix] = buf4_6[n++];
-          v5_brick_a5[iz][iy][ix] = buf4_6[n++];
-          v5_brick_a6[iz][iy][ix] = buf4_6[n++];
-        }
-      }
-
-  // pack my real cells for +y processor
-  // pass data to self or +y processor
-  // unpack and sum recv data into my ghost cells
-
-  n = 0;
-  for (iz = nzlo_out_6; iz <= nzhi_out_6; iz++)
-    for (iy = nyhi_in_6-nyhi_ghost_6+1; iy <= nyhi_in_6; iy++)
-      for (ix = nxlo_in_6; ix <= nxhi_in_6; ix++) {
-        if (eflag_atom) {
-          buf3_6[n++] = u_brick_a0[iz][iy][ix];
-          buf3_6[n++] = u_brick_a1[iz][iy][ix];
-          buf3_6[n++] = u_brick_a2[iz][iy][ix];
-          buf3_6[n++] = u_brick_a3[iz][iy][ix];
-          buf3_6[n++] = u_brick_a4[iz][iy][ix];
-          buf3_6[n++] = u_brick_a5[iz][iy][ix];
-          buf3_6[n++] = u_brick_a6[iz][iy][ix];
-        }
-        if (vflag_atom) {
-          buf3_6[n++] = v0_brick_a0[iz][iy][ix];
-          buf3_6[n++] = v0_brick_a1[iz][iy][ix];
-          buf3_6[n++] = v0_brick_a2[iz][iy][ix];
-          buf3_6[n++] = v0_brick_a3[iz][iy][ix];
-          buf3_6[n++] = v0_brick_a4[iz][iy][ix];
-          buf3_6[n++] = v0_brick_a5[iz][iy][ix];
-          buf3_6[n++] = v0_brick_a6[iz][iy][ix];
-          buf3_6[n++] = v1_brick_a0[iz][iy][ix];
-          buf3_6[n++] = v1_brick_a1[iz][iy][ix];
-          buf3_6[n++] = v1_brick_a2[iz][iy][ix];
-          buf3_6[n++] = v1_brick_a3[iz][iy][ix];
-          buf3_6[n++] = v1_brick_a4[iz][iy][ix];
-          buf3_6[n++] = v1_brick_a5[iz][iy][ix];
-          buf3_6[n++] = v1_brick_a6[iz][iy][ix];
-          buf3_6[n++] = v2_brick_a0[iz][iy][ix];
-          buf3_6[n++] = v2_brick_a1[iz][iy][ix];
-          buf3_6[n++] = v2_brick_a2[iz][iy][ix];
-          buf3_6[n++] = v2_brick_a3[iz][iy][ix];
-          buf3_6[n++] = v2_brick_a4[iz][iy][ix];
-          buf3_6[n++] = v2_brick_a5[iz][iy][ix];
-          buf3_6[n++] = v2_brick_a6[iz][iy][ix];
-          buf3_6[n++] = v3_brick_a0[iz][iy][ix];
-          buf3_6[n++] = v3_brick_a1[iz][iy][ix];
-          buf3_6[n++] = v3_brick_a2[iz][iy][ix];
-          buf3_6[n++] = v3_brick_a3[iz][iy][ix];
-          buf3_6[n++] = v3_brick_a4[iz][iy][ix];
-          buf3_6[n++] = v3_brick_a5[iz][iy][ix];
-          buf3_6[n++] = v3_brick_a6[iz][iy][ix];
-          buf3_6[n++] = v4_brick_a0[iz][iy][ix];
-          buf3_6[n++] = v4_brick_a1[iz][iy][ix];
-          buf3_6[n++] = v4_brick_a2[iz][iy][ix];
-          buf3_6[n++] = v4_brick_a3[iz][iy][ix];
-          buf3_6[n++] = v4_brick_a4[iz][iy][ix];
-          buf3_6[n++] = v4_brick_a5[iz][iy][ix];
-          buf3_6[n++] = v4_brick_a6[iz][iy][ix];
-          buf3_6[n++] = v5_brick_a0[iz][iy][ix];
-          buf3_6[n++] = v5_brick_a1[iz][iy][ix];
-          buf3_6[n++] = v5_brick_a2[iz][iy][ix];
-          buf3_6[n++] = v5_brick_a3[iz][iy][ix];
-          buf3_6[n++] = v5_brick_a4[iz][iy][ix];
-          buf3_6[n++] = v5_brick_a5[iz][iy][ix];
-          buf3_6[n++] = v5_brick_a6[iz][iy][ix];
-        }
-      }
-
-  if (comm->procneigh[1][1] == me)
-    for (i = 0; i < n; i++) buf4_6[i] = buf3_6[i];
-  else {
-    MPI_Irecv(buf4_6,7*nbuf_pa_6,MPI_FFT_SCALAR,comm->procneigh[1][0],0,world,&request);
-    MPI_Send(buf3_6,n,MPI_FFT_SCALAR,comm->procneigh[1][1],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzlo_out_6; iz <= nzhi_out_6; iz++)
-    for (iy = nylo_out_6; iy < nylo_in_6; iy++)
-      for (ix = nxlo_in_6; ix <= nxhi_in_6; ix++) {
-        if (eflag_atom) {
-          u_brick_a0[iz][iy][ix] = buf4_6[n++];
-          u_brick_a1[iz][iy][ix] = buf4_6[n++];
-          u_brick_a2[iz][iy][ix] = buf4_6[n++];
-          u_brick_a3[iz][iy][ix] = buf4_6[n++];
-          u_brick_a4[iz][iy][ix] = buf4_6[n++];
-          u_brick_a5[iz][iy][ix] = buf4_6[n++];
-          u_brick_a6[iz][iy][ix] = buf4_6[n++];
-        }
-        if (vflag_atom) {
-          v0_brick_a0[iz][iy][ix] = buf4_6[n++];
-          v0_brick_a1[iz][iy][ix] = buf4_6[n++];
-          v0_brick_a2[iz][iy][ix] = buf4_6[n++];
-          v0_brick_a3[iz][iy][ix] = buf4_6[n++];
-          v0_brick_a4[iz][iy][ix] = buf4_6[n++];
-          v0_brick_a5[iz][iy][ix] = buf4_6[n++];
-          v0_brick_a6[iz][iy][ix] = buf4_6[n++];
-          v1_brick_a0[iz][iy][ix] = buf4_6[n++];
-          v1_brick_a1[iz][iy][ix] = buf4_6[n++];
-          v1_brick_a2[iz][iy][ix] = buf4_6[n++];
-          v1_brick_a3[iz][iy][ix] = buf4_6[n++];
-          v1_brick_a4[iz][iy][ix] = buf4_6[n++];
-          v1_brick_a5[iz][iy][ix] = buf4_6[n++];
-          v1_brick_a6[iz][iy][ix] = buf4_6[n++];
-          v2_brick_a0[iz][iy][ix] = buf4_6[n++];
-          v2_brick_a1[iz][iy][ix] = buf4_6[n++];
-          v2_brick_a2[iz][iy][ix] = buf4_6[n++];
-          v2_brick_a3[iz][iy][ix] = buf4_6[n++];
-          v2_brick_a4[iz][iy][ix] = buf4_6[n++];
-          v2_brick_a5[iz][iy][ix] = buf4_6[n++];
-          v2_brick_a6[iz][iy][ix] = buf4_6[n++];
-          v3_brick_a0[iz][iy][ix] = buf4_6[n++];
-          v3_brick_a1[iz][iy][ix] = buf4_6[n++];
-          v3_brick_a2[iz][iy][ix] = buf4_6[n++];
-          v3_brick_a3[iz][iy][ix] = buf4_6[n++];
-          v3_brick_a4[iz][iy][ix] = buf4_6[n++];
-          v3_brick_a5[iz][iy][ix] = buf4_6[n++];
-          v3_brick_a6[iz][iy][ix] = buf4_6[n++];
-          v4_brick_a0[iz][iy][ix] = buf4_6[n++];
-          v4_brick_a1[iz][iy][ix] = buf4_6[n++];
-          v4_brick_a2[iz][iy][ix] = buf4_6[n++];
-          v4_brick_a3[iz][iy][ix] = buf4_6[n++];
-          v4_brick_a4[iz][iy][ix] = buf4_6[n++];
-          v4_brick_a5[iz][iy][ix] = buf4_6[n++];
-          v4_brick_a6[iz][iy][ix] = buf4_6[n++];
-          v5_brick_a0[iz][iy][ix] = buf4_6[n++];
-          v5_brick_a1[iz][iy][ix] = buf4_6[n++];
-          v5_brick_a2[iz][iy][ix] = buf4_6[n++];
-          v5_brick_a3[iz][iy][ix] = buf4_6[n++];
-          v5_brick_a4[iz][iy][ix] = buf4_6[n++];
-          v5_brick_a5[iz][iy][ix] = buf4_6[n++];
-          v5_brick_a6[iz][iy][ix] = buf4_6[n++];
-        }
-      }
-
-  // pack my real cells for -y processor
-  // pass data to self or -y processor
-  // unpack and sum recv data into my ghost cells
-
-  n = 0;
-  for (iz = nzlo_out_6; iz <= nzhi_out_6; iz++)
-    for (iy = nylo_in_6; iy < nylo_in_6+nylo_ghost_6; iy++)
-      for (ix = nxlo_in_6; ix <= nxhi_in_6; ix++) {
-        if (eflag_atom) {
-          buf3_6[n++] = u_brick_a0[iz][iy][ix];
-          buf3_6[n++] = u_brick_a1[iz][iy][ix];
-          buf3_6[n++] = u_brick_a2[iz][iy][ix];
-          buf3_6[n++] = u_brick_a3[iz][iy][ix];
-          buf3_6[n++] = u_brick_a4[iz][iy][ix];
-          buf3_6[n++] = u_brick_a5[iz][iy][ix];
-          buf3_6[n++] = u_brick_a6[iz][iy][ix];
-        }
-        if (vflag_atom) {
-          buf3_6[n++] = v0_brick_a0[iz][iy][ix];
-          buf3_6[n++] = v0_brick_a1[iz][iy][ix];
-          buf3_6[n++] = v0_brick_a2[iz][iy][ix];
-          buf3_6[n++] = v0_brick_a3[iz][iy][ix];
-          buf3_6[n++] = v0_brick_a4[iz][iy][ix];
-          buf3_6[n++] = v0_brick_a5[iz][iy][ix];
-          buf3_6[n++] = v0_brick_a6[iz][iy][ix];
-          buf3_6[n++] = v1_brick_a0[iz][iy][ix];
-          buf3_6[n++] = v1_brick_a1[iz][iy][ix];
-          buf3_6[n++] = v1_brick_a2[iz][iy][ix];
-          buf3_6[n++] = v1_brick_a3[iz][iy][ix];
-          buf3_6[n++] = v1_brick_a4[iz][iy][ix];
-          buf3_6[n++] = v1_brick_a5[iz][iy][ix];
-          buf3_6[n++] = v1_brick_a6[iz][iy][ix];
-          buf3_6[n++] = v2_brick_a0[iz][iy][ix];
-          buf3_6[n++] = v2_brick_a1[iz][iy][ix];
-          buf3_6[n++] = v2_brick_a2[iz][iy][ix];
-          buf3_6[n++] = v2_brick_a3[iz][iy][ix];
-          buf3_6[n++] = v2_brick_a4[iz][iy][ix];
-          buf3_6[n++] = v2_brick_a5[iz][iy][ix];
-          buf3_6[n++] = v2_brick_a6[iz][iy][ix];
-          buf3_6[n++] = v3_brick_a0[iz][iy][ix];
-          buf3_6[n++] = v3_brick_a1[iz][iy][ix];
-          buf3_6[n++] = v3_brick_a2[iz][iy][ix];
-          buf3_6[n++] = v3_brick_a3[iz][iy][ix];
-          buf3_6[n++] = v3_brick_a4[iz][iy][ix];
-          buf3_6[n++] = v3_brick_a5[iz][iy][ix];
-          buf3_6[n++] = v3_brick_a6[iz][iy][ix];
-          buf3_6[n++] = v4_brick_a0[iz][iy][ix];
-          buf3_6[n++] = v4_brick_a1[iz][iy][ix];
-          buf3_6[n++] = v4_brick_a2[iz][iy][ix];
-          buf3_6[n++] = v4_brick_a3[iz][iy][ix];
-          buf3_6[n++] = v4_brick_a4[iz][iy][ix];
-          buf3_6[n++] = v4_brick_a5[iz][iy][ix];
-          buf3_6[n++] = v4_brick_a6[iz][iy][ix];
-          buf3_6[n++] = v5_brick_a0[iz][iy][ix];
-          buf3_6[n++] = v5_brick_a1[iz][iy][ix];
-          buf3_6[n++] = v5_brick_a2[iz][iy][ix];
-          buf3_6[n++] = v5_brick_a3[iz][iy][ix];
-          buf3_6[n++] = v5_brick_a4[iz][iy][ix];
-          buf3_6[n++] = v5_brick_a5[iz][iy][ix];
-          buf3_6[n++] = v5_brick_a6[iz][iy][ix];
-        }
-      }
-
-  if (comm->procneigh[1][0] == me)
-    for (i = 0; i < n; i++) buf4_6[i] = buf3_6[i];
-  else {
-    MPI_Irecv(buf4_6,7*nbuf_pa_6,MPI_FFT_SCALAR,comm->procneigh[1][1],0,world,&request);
-    MPI_Send(buf3_6,n,MPI_FFT_SCALAR,comm->procneigh[1][0],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzlo_out_6; iz <= nzhi_out_6; iz++)
-    for (iy = nyhi_in_6+1; iy <= nyhi_out_6; iy++)
-      for (ix = nxlo_in_6; ix <= nxhi_in_6; ix++) {
-        if (eflag_atom) {
-          u_brick_a0[iz][iy][ix] = buf4_6[n++];
-          u_brick_a1[iz][iy][ix] = buf4_6[n++];
-          u_brick_a2[iz][iy][ix] = buf4_6[n++];
-          u_brick_a3[iz][iy][ix] = buf4_6[n++];
-          u_brick_a4[iz][iy][ix] = buf4_6[n++];
-          u_brick_a5[iz][iy][ix] = buf4_6[n++];
-          u_brick_a6[iz][iy][ix] = buf4_6[n++];
-        }
-        if (vflag_atom) {
-          v0_brick_a0[iz][iy][ix] = buf4_6[n++];
-          v0_brick_a1[iz][iy][ix] = buf4_6[n++];
-          v0_brick_a2[iz][iy][ix] = buf4_6[n++];
-          v0_brick_a3[iz][iy][ix] = buf4_6[n++];
-          v0_brick_a4[iz][iy][ix] = buf4_6[n++];
-          v0_brick_a5[iz][iy][ix] = buf4_6[n++];
-          v0_brick_a6[iz][iy][ix] = buf4_6[n++];
-          v1_brick_a0[iz][iy][ix] = buf4_6[n++];
-          v1_brick_a1[iz][iy][ix] = buf4_6[n++];
-          v1_brick_a2[iz][iy][ix] = buf4_6[n++];
-          v1_brick_a3[iz][iy][ix] = buf4_6[n++];
-          v1_brick_a4[iz][iy][ix] = buf4_6[n++];
-          v1_brick_a5[iz][iy][ix] = buf4_6[n++];
-          v1_brick_a6[iz][iy][ix] = buf4_6[n++];
-          v2_brick_a0[iz][iy][ix] = buf4_6[n++];
-          v2_brick_a1[iz][iy][ix] = buf4_6[n++];
-          v2_brick_a2[iz][iy][ix] = buf4_6[n++];
-          v2_brick_a3[iz][iy][ix] = buf4_6[n++];
-          v2_brick_a4[iz][iy][ix] = buf4_6[n++];
-          v2_brick_a5[iz][iy][ix] = buf4_6[n++];
-          v2_brick_a6[iz][iy][ix] = buf4_6[n++];
-          v3_brick_a0[iz][iy][ix] = buf4_6[n++];
-          v3_brick_a1[iz][iy][ix] = buf4_6[n++];
-          v3_brick_a2[iz][iy][ix] = buf4_6[n++];
-          v3_brick_a3[iz][iy][ix] = buf4_6[n++];
-          v3_brick_a4[iz][iy][ix] = buf4_6[n++];
-          v3_brick_a5[iz][iy][ix] = buf4_6[n++];
-          v3_brick_a6[iz][iy][ix] = buf4_6[n++];
-          v4_brick_a0[iz][iy][ix] = buf4_6[n++];
-          v4_brick_a1[iz][iy][ix] = buf4_6[n++];
-          v4_brick_a2[iz][iy][ix] = buf4_6[n++];
-          v4_brick_a3[iz][iy][ix] = buf4_6[n++];
-          v4_brick_a4[iz][iy][ix] = buf4_6[n++];
-          v4_brick_a5[iz][iy][ix] = buf4_6[n++];
-          v4_brick_a6[iz][iy][ix] = buf4_6[n++];
-          v5_brick_a0[iz][iy][ix] = buf4_6[n++];
-          v5_brick_a1[iz][iy][ix] = buf4_6[n++];
-          v5_brick_a2[iz][iy][ix] = buf4_6[n++];
-          v5_brick_a3[iz][iy][ix] = buf4_6[n++];
-          v5_brick_a4[iz][iy][ix] = buf4_6[n++];
-          v5_brick_a5[iz][iy][ix] = buf4_6[n++];
-          v5_brick_a6[iz][iy][ix] = buf4_6[n++];
-        }
-      }
-
-  // pack my real cells for +x processor
-  // pass data to self or +x processor
-  // unpack and sum recv data into my ghost cells
-
-  n = 0;
-  for (iz = nzlo_out_6; iz <= nzhi_out_6; iz++)
-    for (iy = nylo_out_6; iy <= nyhi_out_6; iy++)
-      for (ix = nxhi_in_6-nxhi_ghost_6+1; ix <= nxhi_in_6; ix++) {
-        if (eflag_atom) {
-          buf3_6[n++] = u_brick_a0[iz][iy][ix];
-          buf3_6[n++] = u_brick_a1[iz][iy][ix];
-          buf3_6[n++] = u_brick_a2[iz][iy][ix];
-          buf3_6[n++] = u_brick_a3[iz][iy][ix];
-          buf3_6[n++] = u_brick_a4[iz][iy][ix];
-          buf3_6[n++] = u_brick_a5[iz][iy][ix];
-          buf3_6[n++] = u_brick_a6[iz][iy][ix];
-        }
-        if (vflag_atom) {
-          buf3_6[n++] = v0_brick_a0[iz][iy][ix];
-          buf3_6[n++] = v0_brick_a1[iz][iy][ix];
-          buf3_6[n++] = v0_brick_a2[iz][iy][ix];
-          buf3_6[n++] = v0_brick_a3[iz][iy][ix];
-          buf3_6[n++] = v0_brick_a4[iz][iy][ix];
-          buf3_6[n++] = v0_brick_a5[iz][iy][ix];
-          buf3_6[n++] = v0_brick_a6[iz][iy][ix];
-          buf3_6[n++] = v1_brick_a0[iz][iy][ix];
-          buf3_6[n++] = v1_brick_a1[iz][iy][ix];
-          buf3_6[n++] = v1_brick_a2[iz][iy][ix];
-          buf3_6[n++] = v1_brick_a3[iz][iy][ix];
-          buf3_6[n++] = v1_brick_a4[iz][iy][ix];
-          buf3_6[n++] = v1_brick_a5[iz][iy][ix];
-          buf3_6[n++] = v1_brick_a6[iz][iy][ix];
-          buf3_6[n++] = v2_brick_a0[iz][iy][ix];
-          buf3_6[n++] = v2_brick_a1[iz][iy][ix];
-          buf3_6[n++] = v2_brick_a2[iz][iy][ix];
-          buf3_6[n++] = v2_brick_a3[iz][iy][ix];
-          buf3_6[n++] = v2_brick_a4[iz][iy][ix];
-          buf3_6[n++] = v2_brick_a5[iz][iy][ix];
-          buf3_6[n++] = v2_brick_a6[iz][iy][ix];
-          buf3_6[n++] = v3_brick_a0[iz][iy][ix];
-          buf3_6[n++] = v3_brick_a1[iz][iy][ix];
-          buf3_6[n++] = v3_brick_a2[iz][iy][ix];
-          buf3_6[n++] = v3_brick_a3[iz][iy][ix];
-          buf3_6[n++] = v3_brick_a4[iz][iy][ix];
-          buf3_6[n++] = v3_brick_a5[iz][iy][ix];
-          buf3_6[n++] = v3_brick_a6[iz][iy][ix];
-          buf3_6[n++] = v4_brick_a0[iz][iy][ix];
-          buf3_6[n++] = v4_brick_a1[iz][iy][ix];
-          buf3_6[n++] = v4_brick_a2[iz][iy][ix];
-          buf3_6[n++] = v4_brick_a3[iz][iy][ix];
-          buf3_6[n++] = v4_brick_a4[iz][iy][ix];
-          buf3_6[n++] = v4_brick_a5[iz][iy][ix];
-          buf3_6[n++] = v4_brick_a6[iz][iy][ix];
-          buf3_6[n++] = v5_brick_a0[iz][iy][ix];
-          buf3_6[n++] = v5_brick_a1[iz][iy][ix];
-          buf3_6[n++] = v5_brick_a2[iz][iy][ix];
-          buf3_6[n++] = v5_brick_a3[iz][iy][ix];
-          buf3_6[n++] = v5_brick_a4[iz][iy][ix];
-          buf3_6[n++] = v5_brick_a5[iz][iy][ix];
-          buf3_6[n++] = v5_brick_a6[iz][iy][ix];
-        }
-      }
-
-  if (comm->procneigh[0][1] == me)
-    for (i = 0; i < n; i++) buf4_6[i] = buf3_6[i];
-  else {
-    MPI_Irecv(buf4_6,7*nbuf_pa_6,MPI_FFT_SCALAR,comm->procneigh[0][0],0,world,&request);
-    MPI_Send(buf3_6,n,MPI_FFT_SCALAR,comm->procneigh[0][1],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzlo_out_6; iz <= nzhi_out_6; iz++)
-    for (iy = nylo_out_6; iy <= nyhi_out_6; iy++)
-      for (ix = nxlo_out_6; ix < nxlo_in_6; ix++) {
-        if (eflag_atom) {
-          u_brick_a0[iz][iy][ix] = buf4_6[n++];
-          u_brick_a1[iz][iy][ix] = buf4_6[n++];
-          u_brick_a2[iz][iy][ix] = buf4_6[n++];
-          u_brick_a3[iz][iy][ix] = buf4_6[n++];
-          u_brick_a4[iz][iy][ix] = buf4_6[n++];
-          u_brick_a5[iz][iy][ix] = buf4_6[n++];
-          u_brick_a6[iz][iy][ix] = buf4_6[n++];
-        }
-        if (vflag_atom) {
-          v0_brick_a0[iz][iy][ix] = buf4_6[n++];
-          v0_brick_a1[iz][iy][ix] = buf4_6[n++];
-          v0_brick_a2[iz][iy][ix] = buf4_6[n++];
-          v0_brick_a3[iz][iy][ix] = buf4_6[n++];
-          v0_brick_a4[iz][iy][ix] = buf4_6[n++];
-          v0_brick_a5[iz][iy][ix] = buf4_6[n++];
-          v0_brick_a6[iz][iy][ix] = buf4_6[n++];
-          v1_brick_a0[iz][iy][ix] = buf4_6[n++];
-          v1_brick_a1[iz][iy][ix] = buf4_6[n++];
-          v1_brick_a2[iz][iy][ix] = buf4_6[n++];
-          v1_brick_a3[iz][iy][ix] = buf4_6[n++];
-          v1_brick_a4[iz][iy][ix] = buf4_6[n++];
-          v1_brick_a5[iz][iy][ix] = buf4_6[n++];
-          v1_brick_a6[iz][iy][ix] = buf4_6[n++];
-          v2_brick_a0[iz][iy][ix] = buf4_6[n++];
-          v2_brick_a1[iz][iy][ix] = buf4_6[n++];
-          v2_brick_a2[iz][iy][ix] = buf4_6[n++];
-          v2_brick_a3[iz][iy][ix] = buf4_6[n++];
-          v2_brick_a4[iz][iy][ix] = buf4_6[n++];
-          v2_brick_a5[iz][iy][ix] = buf4_6[n++];
-          v2_brick_a6[iz][iy][ix] = buf4_6[n++];
-          v3_brick_a0[iz][iy][ix] = buf4_6[n++];
-          v3_brick_a1[iz][iy][ix] = buf4_6[n++];
-          v3_brick_a2[iz][iy][ix] = buf4_6[n++];
-          v3_brick_a3[iz][iy][ix] = buf4_6[n++];
-          v3_brick_a4[iz][iy][ix] = buf4_6[n++];
-          v3_brick_a5[iz][iy][ix] = buf4_6[n++];
-          v3_brick_a6[iz][iy][ix] = buf4_6[n++];
-          v4_brick_a0[iz][iy][ix] = buf4_6[n++];
-          v4_brick_a1[iz][iy][ix] = buf4_6[n++];
-          v4_brick_a2[iz][iy][ix] = buf4_6[n++];
-          v4_brick_a3[iz][iy][ix] = buf4_6[n++];
-          v4_brick_a4[iz][iy][ix] = buf4_6[n++];
-          v4_brick_a5[iz][iy][ix] = buf4_6[n++];
-          v4_brick_a6[iz][iy][ix] = buf4_6[n++];
-          v5_brick_a0[iz][iy][ix] = buf4_6[n++];
-          v5_brick_a1[iz][iy][ix] = buf4_6[n++];
-          v5_brick_a2[iz][iy][ix] = buf4_6[n++];
-          v5_brick_a3[iz][iy][ix] = buf4_6[n++];
-          v5_brick_a4[iz][iy][ix] = buf4_6[n++];
-          v5_brick_a5[iz][iy][ix] = buf4_6[n++];
-          v5_brick_a6[iz][iy][ix] = buf4_6[n++];
-        }
-      }
-
-  // pack my real cells for -x processor
-  // pass data to self or -x processor
-  // unpack and sum recv data into my ghost cells
-
-  n = 0;
-  for (iz = nzlo_out_6; iz <= nzhi_out_6; iz++)
-    for (iy = nylo_out_6; iy <= nyhi_out_6; iy++)
-      for (ix = nxlo_in_6; ix < nxlo_in_6+nxlo_ghost_6; ix++) {
-        if (eflag_atom) {
-          buf3_6[n++] = u_brick_a0[iz][iy][ix];
-          buf3_6[n++] = u_brick_a1[iz][iy][ix];
-          buf3_6[n++] = u_brick_a2[iz][iy][ix];
-          buf3_6[n++] = u_brick_a3[iz][iy][ix];
-          buf3_6[n++] = u_brick_a4[iz][iy][ix];
-          buf3_6[n++] = u_brick_a5[iz][iy][ix];
-          buf3_6[n++] = u_brick_a6[iz][iy][ix];
-        }
-        if (vflag_atom) {
-          buf3_6[n++] = v0_brick_a0[iz][iy][ix];
-          buf3_6[n++] = v0_brick_a1[iz][iy][ix];
-          buf3_6[n++] = v0_brick_a2[iz][iy][ix];
-          buf3_6[n++] = v0_brick_a3[iz][iy][ix];
-          buf3_6[n++] = v0_brick_a4[iz][iy][ix];
-          buf3_6[n++] = v0_brick_a5[iz][iy][ix];
-          buf3_6[n++] = v0_brick_a6[iz][iy][ix];
-          buf3_6[n++] = v1_brick_a0[iz][iy][ix];
-          buf3_6[n++] = v1_brick_a1[iz][iy][ix];
-          buf3_6[n++] = v1_brick_a2[iz][iy][ix];
-          buf3_6[n++] = v1_brick_a3[iz][iy][ix];
-          buf3_6[n++] = v1_brick_a4[iz][iy][ix];
-          buf3_6[n++] = v1_brick_a5[iz][iy][ix];
-          buf3_6[n++] = v1_brick_a6[iz][iy][ix];
-          buf3_6[n++] = v2_brick_a0[iz][iy][ix];
-          buf3_6[n++] = v2_brick_a1[iz][iy][ix];
-          buf3_6[n++] = v2_brick_a2[iz][iy][ix];
-          buf3_6[n++] = v2_brick_a3[iz][iy][ix];
-          buf3_6[n++] = v2_brick_a4[iz][iy][ix];
-          buf3_6[n++] = v2_brick_a5[iz][iy][ix];
-          buf3_6[n++] = v2_brick_a6[iz][iy][ix];
-          buf3_6[n++] = v3_brick_a0[iz][iy][ix];
-          buf3_6[n++] = v3_brick_a1[iz][iy][ix];
-          buf3_6[n++] = v3_brick_a2[iz][iy][ix];
-          buf3_6[n++] = v3_brick_a3[iz][iy][ix];
-          buf3_6[n++] = v3_brick_a4[iz][iy][ix];
-          buf3_6[n++] = v3_brick_a5[iz][iy][ix];
-          buf3_6[n++] = v3_brick_a6[iz][iy][ix];
-          buf3_6[n++] = v4_brick_a0[iz][iy][ix];
-          buf3_6[n++] = v4_brick_a1[iz][iy][ix];
-          buf3_6[n++] = v4_brick_a2[iz][iy][ix];
-          buf3_6[n++] = v4_brick_a3[iz][iy][ix];
-          buf3_6[n++] = v4_brick_a4[iz][iy][ix];
-          buf3_6[n++] = v4_brick_a5[iz][iy][ix];
-          buf3_6[n++] = v4_brick_a6[iz][iy][ix];
-          buf3_6[n++] = v5_brick_a0[iz][iy][ix];
-          buf3_6[n++] = v5_brick_a1[iz][iy][ix];
-          buf3_6[n++] = v5_brick_a2[iz][iy][ix];
-          buf3_6[n++] = v5_brick_a3[iz][iy][ix];
-          buf3_6[n++] = v5_brick_a4[iz][iy][ix];
-          buf3_6[n++] = v5_brick_a5[iz][iy][ix];
-          buf3_6[n++] = v5_brick_a6[iz][iy][ix];
-        }
-      }
-
-  if (comm->procneigh[0][0] == me)
-    for (i = 0; i < n; i++) buf4_6[i] = buf3_6[i];
-  else {
-    MPI_Irecv(buf4_6,7*nbuf_pa_6,MPI_FFT_SCALAR,comm->procneigh[0][1],0,world,&request);
-    MPI_Send(buf3_6,n,MPI_FFT_SCALAR,comm->procneigh[0][0],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzlo_out_6; iz <= nzhi_out_6; iz++)
-    for (iy = nylo_out_6; iy <= nyhi_out_6; iy++)
-      for (ix = nxhi_in_6+1; ix <= nxhi_out_6; ix++) {
-        if (eflag_atom) {
-          u_brick_a0[iz][iy][ix] = buf4_6[n++];
-          u_brick_a1[iz][iy][ix] = buf4_6[n++];
-          u_brick_a2[iz][iy][ix] = buf4_6[n++];
-          u_brick_a3[iz][iy][ix] = buf4_6[n++];
-          u_brick_a4[iz][iy][ix] = buf4_6[n++];
-          u_brick_a5[iz][iy][ix] = buf4_6[n++];
-          u_brick_a6[iz][iy][ix] = buf4_6[n++];
-        }
-        if (vflag_atom) {
-          v0_brick_a0[iz][iy][ix] = buf4_6[n++];
-          v0_brick_a1[iz][iy][ix] = buf4_6[n++];
-          v0_brick_a2[iz][iy][ix] = buf4_6[n++];
-          v0_brick_a3[iz][iy][ix] = buf4_6[n++];
-          v0_brick_a4[iz][iy][ix] = buf4_6[n++];
-          v0_brick_a5[iz][iy][ix] = buf4_6[n++];
-          v0_brick_a6[iz][iy][ix] = buf4_6[n++];
-          v1_brick_a0[iz][iy][ix] = buf4_6[n++];
-          v1_brick_a1[iz][iy][ix] = buf4_6[n++];
-          v1_brick_a2[iz][iy][ix] = buf4_6[n++];
-          v1_brick_a3[iz][iy][ix] = buf4_6[n++];
-          v1_brick_a4[iz][iy][ix] = buf4_6[n++];
-          v1_brick_a5[iz][iy][ix] = buf4_6[n++];
-          v1_brick_a6[iz][iy][ix] = buf4_6[n++];
-          v2_brick_a0[iz][iy][ix] = buf4_6[n++];
-          v2_brick_a1[iz][iy][ix] = buf4_6[n++];
-          v2_brick_a2[iz][iy][ix] = buf4_6[n++];
-          v2_brick_a3[iz][iy][ix] = buf4_6[n++];
-          v2_brick_a4[iz][iy][ix] = buf4_6[n++];
-          v2_brick_a5[iz][iy][ix] = buf4_6[n++];
-          v2_brick_a6[iz][iy][ix] = buf4_6[n++];
-          v3_brick_a0[iz][iy][ix] = buf4_6[n++];
-          v3_brick_a1[iz][iy][ix] = buf4_6[n++];
-          v3_brick_a2[iz][iy][ix] = buf4_6[n++];
-          v3_brick_a3[iz][iy][ix] = buf4_6[n++];
-          v3_brick_a4[iz][iy][ix] = buf4_6[n++];
-          v3_brick_a5[iz][iy][ix] = buf4_6[n++];
-          v3_brick_a6[iz][iy][ix] = buf4_6[n++];
-          v4_brick_a0[iz][iy][ix] = buf4_6[n++];
-          v4_brick_a1[iz][iy][ix] = buf4_6[n++];
-          v4_brick_a2[iz][iy][ix] = buf4_6[n++];
-          v4_brick_a3[iz][iy][ix] = buf4_6[n++];
-          v4_brick_a4[iz][iy][ix] = buf4_6[n++];
-          v4_brick_a5[iz][iy][ix] = buf4_6[n++];
-          v4_brick_a6[iz][iy][ix] = buf4_6[n++];
-          v5_brick_a0[iz][iy][ix] = buf4_6[n++];
-          v5_brick_a1[iz][iy][ix] = buf4_6[n++];
-          v5_brick_a2[iz][iy][ix] = buf4_6[n++];
-          v5_brick_a3[iz][iy][ix] = buf4_6[n++];
-          v5_brick_a4[iz][iy][ix] = buf4_6[n++];
-          v5_brick_a5[iz][iy][ix] = buf4_6[n++];
-          v5_brick_a6[iz][iy][ix] = buf4_6[n++];
-        }
-      }
-}
-
-/* ----------------------------------------------------------------------
-   communication between procs for per atom calculations
-   for ik scheme
-------------------------------------------------------------------------- */
-
-void PPPMDisp::fillbrick_a_peratom_ad()
-{
-  int i,n,ix,iy,iz;
-  MPI_Request request;
-  MPI_Status status;
-
-  // pack my real cells for +z processor
-  // pass data to self or +z processor
-  // unpack and sum recv data into my ghost cells
-
-  n = 0;
-  for (iz = nzhi_in_6-nzhi_ghost_6+1; iz <= nzhi_in_6; iz++)
-    for (iy = nylo_in_6; iy <= nyhi_in_6; iy++)
-      for (ix = nxlo_in_6; ix <= nxhi_in_6; ix++) {
-        buf3_6[n++] = v0_brick_a0[iz][iy][ix];
-        buf3_6[n++] = v0_brick_a1[iz][iy][ix];
-        buf3_6[n++] = v0_brick_a2[iz][iy][ix];
-        buf3_6[n++] = v0_brick_a3[iz][iy][ix];
-        buf3_6[n++] = v0_brick_a4[iz][iy][ix];
-        buf3_6[n++] = v0_brick_a5[iz][iy][ix];
-        buf3_6[n++] = v0_brick_a6[iz][iy][ix];
-        buf3_6[n++] = v1_brick_a0[iz][iy][ix];
-        buf3_6[n++] = v1_brick_a1[iz][iy][ix];
-        buf3_6[n++] = v1_brick_a2[iz][iy][ix];
-        buf3_6[n++] = v1_brick_a3[iz][iy][ix];
-        buf3_6[n++] = v1_brick_a4[iz][iy][ix];
-        buf3_6[n++] = v1_brick_a5[iz][iy][ix];
-        buf3_6[n++] = v1_brick_a6[iz][iy][ix];
-        buf3_6[n++] = v2_brick_a0[iz][iy][ix];
-        buf3_6[n++] = v2_brick_a1[iz][iy][ix];
-        buf3_6[n++] = v2_brick_a2[iz][iy][ix];
-        buf3_6[n++] = v2_brick_a3[iz][iy][ix];
-        buf3_6[n++] = v2_brick_a4[iz][iy][ix];
-        buf3_6[n++] = v2_brick_a5[iz][iy][ix];
-        buf3_6[n++] = v2_brick_a6[iz][iy][ix];
-        buf3_6[n++] = v3_brick_a0[iz][iy][ix];
-        buf3_6[n++] = v3_brick_a1[iz][iy][ix];
-        buf3_6[n++] = v3_brick_a2[iz][iy][ix];
-        buf3_6[n++] = v3_brick_a3[iz][iy][ix];
-        buf3_6[n++] = v3_brick_a4[iz][iy][ix];
-        buf3_6[n++] = v3_brick_a5[iz][iy][ix];
-        buf3_6[n++] = v3_brick_a6[iz][iy][ix];
-        buf3_6[n++] = v4_brick_a0[iz][iy][ix];
-        buf3_6[n++] = v4_brick_a1[iz][iy][ix];
-        buf3_6[n++] = v4_brick_a2[iz][iy][ix];
-        buf3_6[n++] = v4_brick_a3[iz][iy][ix];
-        buf3_6[n++] = v4_brick_a4[iz][iy][ix];
-        buf3_6[n++] = v4_brick_a5[iz][iy][ix];
-        buf3_6[n++] = v4_brick_a6[iz][iy][ix];
-        buf3_6[n++] = v5_brick_a0[iz][iy][ix];
-        buf3_6[n++] = v5_brick_a1[iz][iy][ix];
-        buf3_6[n++] = v5_brick_a2[iz][iy][ix];
-        buf3_6[n++] = v5_brick_a3[iz][iy][ix];
-        buf3_6[n++] = v5_brick_a4[iz][iy][ix];
-        buf3_6[n++] = v5_brick_a5[iz][iy][ix];
-        buf3_6[n++] = v5_brick_a6[iz][iy][ix];
-      }
-      
-  if (comm->procneigh[2][1] == me)
-    for (i = 0; i < n; i++) buf4_6[i] = buf3_6[i];
-  else {
-    MPI_Irecv(buf4_6,7*nbuf_pa_6,MPI_FFT_SCALAR,comm->procneigh[2][0],0,world,&request);
-    MPI_Send(buf3_6,n,MPI_FFT_SCALAR,comm->procneigh[2][1],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzlo_out_6; iz < nzlo_in_6; iz++)
-    for (iy = nylo_in_6; iy <= nyhi_in_6; iy++)
-      for (ix = nxlo_in_6; ix <= nxhi_in_6; ix++) {
-        v0_brick_a0[iz][iy][ix] = buf4_6[n++];
-        v0_brick_a1[iz][iy][ix] = buf4_6[n++];
-        v0_brick_a2[iz][iy][ix] = buf4_6[n++];
-        v0_brick_a3[iz][iy][ix] = buf4_6[n++];
-        v0_brick_a4[iz][iy][ix] = buf4_6[n++];
-        v0_brick_a5[iz][iy][ix] = buf4_6[n++];
-        v0_brick_a6[iz][iy][ix] = buf4_6[n++];
-        v1_brick_a0[iz][iy][ix] = buf4_6[n++];
-        v1_brick_a1[iz][iy][ix] = buf4_6[n++];
-        v1_brick_a2[iz][iy][ix] = buf4_6[n++];
-        v1_brick_a3[iz][iy][ix] = buf4_6[n++];
-        v1_brick_a4[iz][iy][ix] = buf4_6[n++];
-        v1_brick_a5[iz][iy][ix] = buf4_6[n++];
-        v1_brick_a6[iz][iy][ix] = buf4_6[n++];
-        v2_brick_a0[iz][iy][ix] = buf4_6[n++];
-        v2_brick_a1[iz][iy][ix] = buf4_6[n++];
-        v2_brick_a2[iz][iy][ix] = buf4_6[n++];
-        v2_brick_a3[iz][iy][ix] = buf4_6[n++];
-        v2_brick_a4[iz][iy][ix] = buf4_6[n++];
-        v2_brick_a5[iz][iy][ix] = buf4_6[n++];
-        v2_brick_a6[iz][iy][ix] = buf4_6[n++];
-        v3_brick_a0[iz][iy][ix] = buf4_6[n++];
-        v3_brick_a1[iz][iy][ix] = buf4_6[n++];
-        v3_brick_a2[iz][iy][ix] = buf4_6[n++];
-        v3_brick_a3[iz][iy][ix] = buf4_6[n++];
-        v3_brick_a4[iz][iy][ix] = buf4_6[n++];
-        v3_brick_a5[iz][iy][ix] = buf4_6[n++];
-        v3_brick_a6[iz][iy][ix] = buf4_6[n++];
-        v4_brick_a0[iz][iy][ix] = buf4_6[n++];
-        v4_brick_a1[iz][iy][ix] = buf4_6[n++];
-        v4_brick_a2[iz][iy][ix] = buf4_6[n++];
-        v4_brick_a3[iz][iy][ix] = buf4_6[n++];
-        v4_brick_a4[iz][iy][ix] = buf4_6[n++];
-        v4_brick_a5[iz][iy][ix] = buf4_6[n++];
-        v4_brick_a6[iz][iy][ix] = buf4_6[n++];
-        v5_brick_a0[iz][iy][ix] = buf4_6[n++];
-        v5_brick_a1[iz][iy][ix] = buf4_6[n++];
-        v5_brick_a2[iz][iy][ix] = buf4_6[n++];
-        v5_brick_a3[iz][iy][ix] = buf4_6[n++];
-        v5_brick_a4[iz][iy][ix] = buf4_6[n++];
-        v5_brick_a5[iz][iy][ix] = buf4_6[n++];
-        v5_brick_a6[iz][iy][ix] = buf4_6[n++];
-      }
-      
-  // pack my real cells for -z processor
-  // pass data to self or -z processor
-  // unpack and sum recv data into my ghost cells
-
-  n = 0;
-  for (iz = nzlo_in_6; iz < nzlo_in_6+nzlo_ghost_6; iz++)
-    for (iy = nylo_in_6; iy <= nyhi_in_6; iy++)
-      for (ix = nxlo_in_6; ix <= nxhi_in_6; ix++) {
-        buf3_6[n++] = v0_brick_a0[iz][iy][ix];
-        buf3_6[n++] = v0_brick_a1[iz][iy][ix];
-        buf3_6[n++] = v0_brick_a2[iz][iy][ix];
-        buf3_6[n++] = v0_brick_a3[iz][iy][ix];
-        buf3_6[n++] = v0_brick_a4[iz][iy][ix];
-        buf3_6[n++] = v0_brick_a5[iz][iy][ix];
-        buf3_6[n++] = v0_brick_a6[iz][iy][ix];
-        buf3_6[n++] = v1_brick_a0[iz][iy][ix];
-        buf3_6[n++] = v1_brick_a1[iz][iy][ix];
-        buf3_6[n++] = v1_brick_a2[iz][iy][ix];
-        buf3_6[n++] = v1_brick_a3[iz][iy][ix];
-        buf3_6[n++] = v1_brick_a4[iz][iy][ix];
-        buf3_6[n++] = v1_brick_a5[iz][iy][ix];
-        buf3_6[n++] = v1_brick_a6[iz][iy][ix];
-        buf3_6[n++] = v2_brick_a0[iz][iy][ix];
-        buf3_6[n++] = v2_brick_a1[iz][iy][ix];
-        buf3_6[n++] = v2_brick_a2[iz][iy][ix];
-        buf3_6[n++] = v2_brick_a3[iz][iy][ix];
-        buf3_6[n++] = v2_brick_a4[iz][iy][ix];
-        buf3_6[n++] = v2_brick_a5[iz][iy][ix];
-        buf3_6[n++] = v2_brick_a6[iz][iy][ix];
-        buf3_6[n++] = v3_brick_a0[iz][iy][ix];
-        buf3_6[n++] = v3_brick_a1[iz][iy][ix];
-        buf3_6[n++] = v3_brick_a2[iz][iy][ix];
-        buf3_6[n++] = v3_brick_a3[iz][iy][ix];
-        buf3_6[n++] = v3_brick_a4[iz][iy][ix];
-        buf3_6[n++] = v3_brick_a5[iz][iy][ix];
-        buf3_6[n++] = v3_brick_a6[iz][iy][ix];
-        buf3_6[n++] = v4_brick_a0[iz][iy][ix];
-        buf3_6[n++] = v4_brick_a1[iz][iy][ix];
-        buf3_6[n++] = v4_brick_a2[iz][iy][ix];
-        buf3_6[n++] = v4_brick_a3[iz][iy][ix];
-        buf3_6[n++] = v4_brick_a4[iz][iy][ix];
-        buf3_6[n++] = v4_brick_a5[iz][iy][ix];
-        buf3_6[n++] = v4_brick_a6[iz][iy][ix];
-        buf3_6[n++] = v5_brick_a0[iz][iy][ix];
-        buf3_6[n++] = v5_brick_a1[iz][iy][ix];
-        buf3_6[n++] = v5_brick_a2[iz][iy][ix];
-        buf3_6[n++] = v5_brick_a3[iz][iy][ix];
-        buf3_6[n++] = v5_brick_a4[iz][iy][ix];
-        buf3_6[n++] = v5_brick_a5[iz][iy][ix];
-        buf3_6[n++] = v5_brick_a6[iz][iy][ix];
-      }
-      
-  if (comm->procneigh[2][0] == me)
-    for (i = 0; i < n; i++) buf4_6[i] = buf3_6[i];
-  else {
-    MPI_Irecv(buf4_6,7*nbuf_pa_6,MPI_FFT_SCALAR,comm->procneigh[2][1],0,world,&request);
-    MPI_Send(buf3_6,n,MPI_FFT_SCALAR,comm->procneigh[2][0],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzhi_in_6+1; iz <= nzhi_out_6; iz++)
-    for (iy = nylo_in_6; iy <= nyhi_in_6; iy++)
-      for (ix = nxlo_in_6; ix <= nxhi_in_6; ix++) {
-        v0_brick_a0[iz][iy][ix] = buf4_6[n++];
-        v0_brick_a1[iz][iy][ix] = buf4_6[n++];
-        v0_brick_a2[iz][iy][ix] = buf4_6[n++];
-        v0_brick_a3[iz][iy][ix] = buf4_6[n++];
-        v0_brick_a4[iz][iy][ix] = buf4_6[n++];
-        v0_brick_a5[iz][iy][ix] = buf4_6[n++];
-        v0_brick_a6[iz][iy][ix] = buf4_6[n++];
-        v1_brick_a0[iz][iy][ix] = buf4_6[n++];
-        v1_brick_a1[iz][iy][ix] = buf4_6[n++];
-        v1_brick_a2[iz][iy][ix] = buf4_6[n++];
-        v1_brick_a3[iz][iy][ix] = buf4_6[n++];
-        v1_brick_a4[iz][iy][ix] = buf4_6[n++];
-        v1_brick_a5[iz][iy][ix] = buf4_6[n++];
-        v1_brick_a6[iz][iy][ix] = buf4_6[n++];
-        v2_brick_a0[iz][iy][ix] = buf4_6[n++];
-        v2_brick_a1[iz][iy][ix] = buf4_6[n++];
-        v2_brick_a2[iz][iy][ix] = buf4_6[n++];
-        v2_brick_a3[iz][iy][ix] = buf4_6[n++];
-        v2_brick_a4[iz][iy][ix] = buf4_6[n++];
-        v2_brick_a5[iz][iy][ix] = buf4_6[n++];
-        v2_brick_a6[iz][iy][ix] = buf4_6[n++];
-        v3_brick_a0[iz][iy][ix] = buf4_6[n++];
-        v3_brick_a1[iz][iy][ix] = buf4_6[n++];
-        v3_brick_a2[iz][iy][ix] = buf4_6[n++];
-        v3_brick_a3[iz][iy][ix] = buf4_6[n++];
-        v3_brick_a4[iz][iy][ix] = buf4_6[n++];
-        v3_brick_a5[iz][iy][ix] = buf4_6[n++];
-        v3_brick_a6[iz][iy][ix] = buf4_6[n++];
-        v4_brick_a0[iz][iy][ix] = buf4_6[n++];
-        v4_brick_a1[iz][iy][ix] = buf4_6[n++];
-        v4_brick_a2[iz][iy][ix] = buf4_6[n++];
-        v4_brick_a3[iz][iy][ix] = buf4_6[n++];
-        v4_brick_a4[iz][iy][ix] = buf4_6[n++];
-        v4_brick_a5[iz][iy][ix] = buf4_6[n++];
-        v4_brick_a6[iz][iy][ix] = buf4_6[n++];
-        v5_brick_a0[iz][iy][ix] = buf4_6[n++];
-        v5_brick_a1[iz][iy][ix] = buf4_6[n++];
-        v5_brick_a2[iz][iy][ix] = buf4_6[n++];
-        v5_brick_a3[iz][iy][ix] = buf4_6[n++];
-        v5_brick_a4[iz][iy][ix] = buf4_6[n++];
-        v5_brick_a5[iz][iy][ix] = buf4_6[n++];
-        v5_brick_a6[iz][iy][ix] = buf4_6[n++];
-      }
-      
-  // pack my real cells for +y processor
-  // pass data to self or +y processor
-  // unpack and sum recv data into my ghost cells
-
-  n = 0;
-  for (iz = nzlo_out_6; iz <= nzhi_out_6; iz++)
-    for (iy = nyhi_in_6-nyhi_ghost_6+1; iy <= nyhi_in_6; iy++)
-      for (ix = nxlo_in_6; ix <= nxhi_in_6; ix++) {
-        buf3_6[n++] = v0_brick_a0[iz][iy][ix];
-        buf3_6[n++] = v0_brick_a1[iz][iy][ix];
-        buf3_6[n++] = v0_brick_a2[iz][iy][ix];
-        buf3_6[n++] = v0_brick_a3[iz][iy][ix];
-        buf3_6[n++] = v0_brick_a4[iz][iy][ix];
-        buf3_6[n++] = v0_brick_a5[iz][iy][ix];
-        buf3_6[n++] = v0_brick_a6[iz][iy][ix];
-        buf3_6[n++] = v1_brick_a0[iz][iy][ix];
-        buf3_6[n++] = v1_brick_a1[iz][iy][ix];
-        buf3_6[n++] = v1_brick_a2[iz][iy][ix];
-        buf3_6[n++] = v1_brick_a3[iz][iy][ix];
-        buf3_6[n++] = v1_brick_a4[iz][iy][ix];
-        buf3_6[n++] = v1_brick_a5[iz][iy][ix];
-        buf3_6[n++] = v1_brick_a6[iz][iy][ix];
-        buf3_6[n++] = v2_brick_a0[iz][iy][ix];
-        buf3_6[n++] = v2_brick_a1[iz][iy][ix];
-        buf3_6[n++] = v2_brick_a2[iz][iy][ix];
-        buf3_6[n++] = v2_brick_a3[iz][iy][ix];
-        buf3_6[n++] = v2_brick_a4[iz][iy][ix];
-        buf3_6[n++] = v2_brick_a5[iz][iy][ix];
-        buf3_6[n++] = v2_brick_a6[iz][iy][ix];
-        buf3_6[n++] = v3_brick_a0[iz][iy][ix];
-        buf3_6[n++] = v3_brick_a1[iz][iy][ix];
-        buf3_6[n++] = v3_brick_a2[iz][iy][ix];
-        buf3_6[n++] = v3_brick_a3[iz][iy][ix];
-        buf3_6[n++] = v3_brick_a4[iz][iy][ix];
-        buf3_6[n++] = v3_brick_a5[iz][iy][ix];
-        buf3_6[n++] = v3_brick_a6[iz][iy][ix];
-        buf3_6[n++] = v4_brick_a0[iz][iy][ix];
-        buf3_6[n++] = v4_brick_a1[iz][iy][ix];
-        buf3_6[n++] = v4_brick_a2[iz][iy][ix];
-        buf3_6[n++] = v4_brick_a3[iz][iy][ix];
-        buf3_6[n++] = v4_brick_a4[iz][iy][ix];
-        buf3_6[n++] = v4_brick_a5[iz][iy][ix];
-        buf3_6[n++] = v4_brick_a6[iz][iy][ix];
-        buf3_6[n++] = v5_brick_a0[iz][iy][ix];
-        buf3_6[n++] = v5_brick_a1[iz][iy][ix];
-        buf3_6[n++] = v5_brick_a2[iz][iy][ix];
-        buf3_6[n++] = v5_brick_a3[iz][iy][ix];
-        buf3_6[n++] = v5_brick_a4[iz][iy][ix];
-        buf3_6[n++] = v5_brick_a5[iz][iy][ix];
-        buf3_6[n++] = v5_brick_a6[iz][iy][ix];
-      }
-
-  if (comm->procneigh[1][1] == me)
-    for (i = 0; i < n; i++) buf4_6[i] = buf3_6[i];
-  else {
-    MPI_Irecv(buf4_6,7*nbuf_pa_6,MPI_FFT_SCALAR,comm->procneigh[1][0],0,world,&request);
-    MPI_Send(buf3_6,n,MPI_FFT_SCALAR,comm->procneigh[1][1],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzlo_out_6; iz <= nzhi_out_6; iz++)
-    for (iy = nylo_out_6; iy < nylo_in_6; iy++)
-      for (ix = nxlo_in_6; ix <= nxhi_in_6; ix++) {
-        v0_brick_a0[iz][iy][ix] = buf4_6[n++];
-        v0_brick_a1[iz][iy][ix] = buf4_6[n++];
-        v0_brick_a2[iz][iy][ix] = buf4_6[n++];
-        v0_brick_a3[iz][iy][ix] = buf4_6[n++];
-        v0_brick_a4[iz][iy][ix] = buf4_6[n++];
-        v0_brick_a5[iz][iy][ix] = buf4_6[n++];
-        v0_brick_a6[iz][iy][ix] = buf4_6[n++];
-        v1_brick_a0[iz][iy][ix] = buf4_6[n++];
-        v1_brick_a1[iz][iy][ix] = buf4_6[n++];
-        v1_brick_a2[iz][iy][ix] = buf4_6[n++];
-        v1_brick_a3[iz][iy][ix] = buf4_6[n++];
-        v1_brick_a4[iz][iy][ix] = buf4_6[n++];
-        v1_brick_a5[iz][iy][ix] = buf4_6[n++];
-        v1_brick_a6[iz][iy][ix] = buf4_6[n++];
-        v2_brick_a0[iz][iy][ix] = buf4_6[n++];
-        v2_brick_a1[iz][iy][ix] = buf4_6[n++];
-        v2_brick_a2[iz][iy][ix] = buf4_6[n++];
-        v2_brick_a3[iz][iy][ix] = buf4_6[n++];
-        v2_brick_a4[iz][iy][ix] = buf4_6[n++];
-        v2_brick_a5[iz][iy][ix] = buf4_6[n++];
-        v2_brick_a6[iz][iy][ix] = buf4_6[n++];
-        v3_brick_a0[iz][iy][ix] = buf4_6[n++];
-        v3_brick_a1[iz][iy][ix] = buf4_6[n++];
-        v3_brick_a2[iz][iy][ix] = buf4_6[n++];
-        v3_brick_a3[iz][iy][ix] = buf4_6[n++];
-        v3_brick_a4[iz][iy][ix] = buf4_6[n++];
-        v3_brick_a5[iz][iy][ix] = buf4_6[n++];
-        v3_brick_a6[iz][iy][ix] = buf4_6[n++];
-        v4_brick_a0[iz][iy][ix] = buf4_6[n++];
-        v4_brick_a1[iz][iy][ix] = buf4_6[n++];
-        v4_brick_a2[iz][iy][ix] = buf4_6[n++];
-        v4_brick_a3[iz][iy][ix] = buf4_6[n++];
-        v4_brick_a4[iz][iy][ix] = buf4_6[n++];
-        v4_brick_a5[iz][iy][ix] = buf4_6[n++];
-        v4_brick_a6[iz][iy][ix] = buf4_6[n++];
-        v5_brick_a0[iz][iy][ix] = buf4_6[n++];
-        v5_brick_a1[iz][iy][ix] = buf4_6[n++];
-        v5_brick_a2[iz][iy][ix] = buf4_6[n++];
-        v5_brick_a3[iz][iy][ix] = buf4_6[n++];
-        v5_brick_a4[iz][iy][ix] = buf4_6[n++];
-        v5_brick_a5[iz][iy][ix] = buf4_6[n++];
-        v5_brick_a6[iz][iy][ix] = buf4_6[n++];
-      }
-      
-  // pack my real cells for -y processor
-  // pass data to self or -y processor
-  // unpack and sum recv data into my ghost cells
-
-  n = 0;
-  for (iz = nzlo_out_6; iz <= nzhi_out_6; iz++)
-    for (iy = nylo_in_6; iy < nylo_in_6+nylo_ghost_6; iy++)
-      for (ix = nxlo_in_6; ix <= nxhi_in_6; ix++) {
-        buf3_6[n++] = v0_brick_a0[iz][iy][ix];
-        buf3_6[n++] = v0_brick_a1[iz][iy][ix];
-        buf3_6[n++] = v0_brick_a2[iz][iy][ix];
-        buf3_6[n++] = v0_brick_a3[iz][iy][ix];
-        buf3_6[n++] = v0_brick_a4[iz][iy][ix];
-        buf3_6[n++] = v0_brick_a5[iz][iy][ix];
-        buf3_6[n++] = v0_brick_a6[iz][iy][ix];
-        buf3_6[n++] = v1_brick_a0[iz][iy][ix];
-        buf3_6[n++] = v1_brick_a1[iz][iy][ix];
-        buf3_6[n++] = v1_brick_a2[iz][iy][ix];
-        buf3_6[n++] = v1_brick_a3[iz][iy][ix];
-        buf3_6[n++] = v1_brick_a4[iz][iy][ix];
-        buf3_6[n++] = v1_brick_a5[iz][iy][ix];
-        buf3_6[n++] = v1_brick_a6[iz][iy][ix];
-        buf3_6[n++] = v2_brick_a0[iz][iy][ix];
-        buf3_6[n++] = v2_brick_a1[iz][iy][ix];
-        buf3_6[n++] = v2_brick_a2[iz][iy][ix];
-        buf3_6[n++] = v2_brick_a3[iz][iy][ix];
-        buf3_6[n++] = v2_brick_a4[iz][iy][ix];
-        buf3_6[n++] = v2_brick_a5[iz][iy][ix];
-        buf3_6[n++] = v2_brick_a6[iz][iy][ix];
-        buf3_6[n++] = v3_brick_a0[iz][iy][ix];
-        buf3_6[n++] = v3_brick_a1[iz][iy][ix];
-        buf3_6[n++] = v3_brick_a2[iz][iy][ix];
-        buf3_6[n++] = v3_brick_a3[iz][iy][ix];
-        buf3_6[n++] = v3_brick_a4[iz][iy][ix];
-        buf3_6[n++] = v3_brick_a5[iz][iy][ix];
-        buf3_6[n++] = v3_brick_a6[iz][iy][ix];
-        buf3_6[n++] = v4_brick_a0[iz][iy][ix];
-        buf3_6[n++] = v4_brick_a1[iz][iy][ix];
-        buf3_6[n++] = v4_brick_a2[iz][iy][ix];
-        buf3_6[n++] = v4_brick_a3[iz][iy][ix];
-        buf3_6[n++] = v4_brick_a4[iz][iy][ix];
-        buf3_6[n++] = v4_brick_a5[iz][iy][ix];
-        buf3_6[n++] = v4_brick_a6[iz][iy][ix];
-        buf3_6[n++] = v5_brick_a0[iz][iy][ix];
-        buf3_6[n++] = v5_brick_a1[iz][iy][ix];
-        buf3_6[n++] = v5_brick_a2[iz][iy][ix];
-        buf3_6[n++] = v5_brick_a3[iz][iy][ix];
-        buf3_6[n++] = v5_brick_a4[iz][iy][ix];
-        buf3_6[n++] = v5_brick_a5[iz][iy][ix];
-        buf3_6[n++] = v5_brick_a6[iz][iy][ix];
-      }
-      
-  if (comm->procneigh[1][0] == me)
-    for (i = 0; i < n; i++) buf4_6[i] = buf3_6[i];
-  else {
-    MPI_Irecv(buf4_6,7*nbuf_pa_6,MPI_FFT_SCALAR,comm->procneigh[1][1],0,world,&request);
-    MPI_Send(buf3_6,n,MPI_FFT_SCALAR,comm->procneigh[1][0],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzlo_out_6; iz <= nzhi_out_6; iz++)
-    for (iy = nyhi_in_6+1; iy <= nyhi_out_6; iy++)
-      for (ix = nxlo_in_6; ix <= nxhi_in_6; ix++) {
-        v0_brick_a0[iz][iy][ix] = buf4_6[n++];
-        v0_brick_a1[iz][iy][ix] = buf4_6[n++];
-        v0_brick_a2[iz][iy][ix] = buf4_6[n++];
-        v0_brick_a3[iz][iy][ix] = buf4_6[n++];
-        v0_brick_a4[iz][iy][ix] = buf4_6[n++];
-        v0_brick_a5[iz][iy][ix] = buf4_6[n++];
-        v0_brick_a6[iz][iy][ix] = buf4_6[n++];
-        v1_brick_a0[iz][iy][ix] = buf4_6[n++];
-        v1_brick_a1[iz][iy][ix] = buf4_6[n++];
-        v1_brick_a2[iz][iy][ix] = buf4_6[n++];
-        v1_brick_a3[iz][iy][ix] = buf4_6[n++];
-        v1_brick_a4[iz][iy][ix] = buf4_6[n++];
-        v1_brick_a5[iz][iy][ix] = buf4_6[n++];
-        v1_brick_a6[iz][iy][ix] = buf4_6[n++];
-        v2_brick_a0[iz][iy][ix] = buf4_6[n++];
-        v2_brick_a1[iz][iy][ix] = buf4_6[n++];
-        v2_brick_a2[iz][iy][ix] = buf4_6[n++];
-        v2_brick_a3[iz][iy][ix] = buf4_6[n++];
-        v2_brick_a4[iz][iy][ix] = buf4_6[n++];
-        v2_brick_a5[iz][iy][ix] = buf4_6[n++];
-        v2_brick_a6[iz][iy][ix] = buf4_6[n++];
-        v3_brick_a0[iz][iy][ix] = buf4_6[n++];
-        v3_brick_a1[iz][iy][ix] = buf4_6[n++];
-        v3_brick_a2[iz][iy][ix] = buf4_6[n++];
-        v3_brick_a3[iz][iy][ix] = buf4_6[n++];
-        v3_brick_a4[iz][iy][ix] = buf4_6[n++];
-        v3_brick_a5[iz][iy][ix] = buf4_6[n++];
-        v3_brick_a6[iz][iy][ix] = buf4_6[n++];
-        v4_brick_a0[iz][iy][ix] = buf4_6[n++];
-        v4_brick_a1[iz][iy][ix] = buf4_6[n++];
-        v4_brick_a2[iz][iy][ix] = buf4_6[n++];
-        v4_brick_a3[iz][iy][ix] = buf4_6[n++];
-        v4_brick_a4[iz][iy][ix] = buf4_6[n++];
-        v4_brick_a5[iz][iy][ix] = buf4_6[n++];
-        v4_brick_a6[iz][iy][ix] = buf4_6[n++];
-        v5_brick_a0[iz][iy][ix] = buf4_6[n++];
-        v5_brick_a1[iz][iy][ix] = buf4_6[n++];
-        v5_brick_a2[iz][iy][ix] = buf4_6[n++];
-        v5_brick_a3[iz][iy][ix] = buf4_6[n++];
-        v5_brick_a4[iz][iy][ix] = buf4_6[n++];
-        v5_brick_a5[iz][iy][ix] = buf4_6[n++];
-        v5_brick_a6[iz][iy][ix] = buf4_6[n++];
-      }
-      
-  // pack my real cells for +x processor
-  // pass data to self or +x processor
-  // unpack and sum recv data into my ghost cells
-
-  n = 0;
-  for (iz = nzlo_out_6; iz <= nzhi_out_6; iz++)
-    for (iy = nylo_out_6; iy <= nyhi_out_6; iy++)
-      for (ix = nxhi_in_6-nxhi_ghost_6+1; ix <= nxhi_in_6; ix++) {
-        buf3_6[n++] = v0_brick_a0[iz][iy][ix];
-        buf3_6[n++] = v0_brick_a1[iz][iy][ix];
-        buf3_6[n++] = v0_brick_a2[iz][iy][ix];
-        buf3_6[n++] = v0_brick_a3[iz][iy][ix];
-        buf3_6[n++] = v0_brick_a4[iz][iy][ix];
-        buf3_6[n++] = v0_brick_a5[iz][iy][ix];
-        buf3_6[n++] = v0_brick_a6[iz][iy][ix];
-        buf3_6[n++] = v1_brick_a0[iz][iy][ix];
-        buf3_6[n++] = v1_brick_a1[iz][iy][ix];
-        buf3_6[n++] = v1_brick_a2[iz][iy][ix];
-        buf3_6[n++] = v1_brick_a3[iz][iy][ix];
-        buf3_6[n++] = v1_brick_a4[iz][iy][ix];
-        buf3_6[n++] = v1_brick_a5[iz][iy][ix];
-        buf3_6[n++] = v1_brick_a6[iz][iy][ix];
-        buf3_6[n++] = v2_brick_a0[iz][iy][ix];
-        buf3_6[n++] = v2_brick_a1[iz][iy][ix];
-        buf3_6[n++] = v2_brick_a2[iz][iy][ix];
-        buf3_6[n++] = v2_brick_a3[iz][iy][ix];
-        buf3_6[n++] = v2_brick_a4[iz][iy][ix];
-        buf3_6[n++] = v2_brick_a5[iz][iy][ix];
-        buf3_6[n++] = v2_brick_a6[iz][iy][ix];
-        buf3_6[n++] = v3_brick_a0[iz][iy][ix];
-        buf3_6[n++] = v3_brick_a1[iz][iy][ix];
-        buf3_6[n++] = v3_brick_a2[iz][iy][ix];
-        buf3_6[n++] = v3_brick_a3[iz][iy][ix];
-        buf3_6[n++] = v3_brick_a4[iz][iy][ix];
-        buf3_6[n++] = v3_brick_a5[iz][iy][ix];
-        buf3_6[n++] = v3_brick_a6[iz][iy][ix];
-        buf3_6[n++] = v4_brick_a0[iz][iy][ix];
-        buf3_6[n++] = v4_brick_a1[iz][iy][ix];
-        buf3_6[n++] = v4_brick_a2[iz][iy][ix];
-        buf3_6[n++] = v4_brick_a3[iz][iy][ix];
-        buf3_6[n++] = v4_brick_a4[iz][iy][ix];
-        buf3_6[n++] = v4_brick_a5[iz][iy][ix];
-        buf3_6[n++] = v4_brick_a6[iz][iy][ix];
-        buf3_6[n++] = v5_brick_a0[iz][iy][ix];
-        buf3_6[n++] = v5_brick_a1[iz][iy][ix];
-        buf3_6[n++] = v5_brick_a2[iz][iy][ix];
-        buf3_6[n++] = v5_brick_a3[iz][iy][ix];
-        buf3_6[n++] = v5_brick_a4[iz][iy][ix];
-        buf3_6[n++] = v5_brick_a5[iz][iy][ix];
-        buf3_6[n++] = v5_brick_a6[iz][iy][ix];
-      }
-      
-  if (comm->procneigh[0][1] == me)
-    for (i = 0; i < n; i++) buf4_6[i] = buf3_6[i];
-  else {
-    MPI_Irecv(buf4_6,7*nbuf_pa_6,MPI_FFT_SCALAR,comm->procneigh[0][0],0,world,&request);
-    MPI_Send(buf3_6,n,MPI_FFT_SCALAR,comm->procneigh[0][1],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzlo_out_6; iz <= nzhi_out_6; iz++)
-    for (iy = nylo_out_6; iy <= nyhi_out_6; iy++)
-      for (ix = nxlo_out_6; ix < nxlo_in_6; ix++) {
-        v0_brick_a0[iz][iy][ix] = buf4_6[n++];
-        v0_brick_a1[iz][iy][ix] = buf4_6[n++];
-        v0_brick_a2[iz][iy][ix] = buf4_6[n++];
-        v0_brick_a3[iz][iy][ix] = buf4_6[n++];
-        v0_brick_a4[iz][iy][ix] = buf4_6[n++];
-        v0_brick_a5[iz][iy][ix] = buf4_6[n++];
-        v0_brick_a6[iz][iy][ix] = buf4_6[n++];
-        v1_brick_a0[iz][iy][ix] = buf4_6[n++];
-        v1_brick_a1[iz][iy][ix] = buf4_6[n++];
-        v1_brick_a2[iz][iy][ix] = buf4_6[n++];
-        v1_brick_a3[iz][iy][ix] = buf4_6[n++];
-        v1_brick_a4[iz][iy][ix] = buf4_6[n++];
-        v1_brick_a5[iz][iy][ix] = buf4_6[n++];
-        v1_brick_a6[iz][iy][ix] = buf4_6[n++];
-        v2_brick_a0[iz][iy][ix] = buf4_6[n++];
-        v2_brick_a1[iz][iy][ix] = buf4_6[n++];
-        v2_brick_a2[iz][iy][ix] = buf4_6[n++];
-        v2_brick_a3[iz][iy][ix] = buf4_6[n++];
-        v2_brick_a4[iz][iy][ix] = buf4_6[n++];
-        v2_brick_a5[iz][iy][ix] = buf4_6[n++];
-        v2_brick_a6[iz][iy][ix] = buf4_6[n++];
-        v3_brick_a0[iz][iy][ix] = buf4_6[n++];
-        v3_brick_a1[iz][iy][ix] = buf4_6[n++];
-        v3_brick_a2[iz][iy][ix] = buf4_6[n++];
-        v3_brick_a3[iz][iy][ix] = buf4_6[n++];
-        v3_brick_a4[iz][iy][ix] = buf4_6[n++];
-        v3_brick_a5[iz][iy][ix] = buf4_6[n++];
-        v3_brick_a6[iz][iy][ix] = buf4_6[n++];
-        v4_brick_a0[iz][iy][ix] = buf4_6[n++];
-        v4_brick_a1[iz][iy][ix] = buf4_6[n++];
-        v4_brick_a2[iz][iy][ix] = buf4_6[n++];
-        v4_brick_a3[iz][iy][ix] = buf4_6[n++];
-        v4_brick_a4[iz][iy][ix] = buf4_6[n++];
-        v4_brick_a5[iz][iy][ix] = buf4_6[n++];
-        v4_brick_a6[iz][iy][ix] = buf4_6[n++];
-        v5_brick_a0[iz][iy][ix] = buf4_6[n++];
-        v5_brick_a1[iz][iy][ix] = buf4_6[n++];
-        v5_brick_a2[iz][iy][ix] = buf4_6[n++];
-        v5_brick_a3[iz][iy][ix] = buf4_6[n++];
-        v5_brick_a4[iz][iy][ix] = buf4_6[n++];
-        v5_brick_a5[iz][iy][ix] = buf4_6[n++];
-        v5_brick_a6[iz][iy][ix] = buf4_6[n++];
-      }
-      
-  // pack my real cells for -x processor
-  // pass data to self or -x processor
-  // unpack and sum recv data into my ghost cells
-
-  n = 0;
-  for (iz = nzlo_out_6; iz <= nzhi_out_6; iz++)
-    for (iy = nylo_out_6; iy <= nyhi_out_6; iy++)
-      for (ix = nxlo_in_6; ix < nxlo_in_6+nxlo_ghost_6; ix++) {
-        buf3_6[n++] = v0_brick_a0[iz][iy][ix];
-        buf3_6[n++] = v0_brick_a1[iz][iy][ix];
-        buf3_6[n++] = v0_brick_a2[iz][iy][ix];
-        buf3_6[n++] = v0_brick_a3[iz][iy][ix];
-        buf3_6[n++] = v0_brick_a4[iz][iy][ix];
-        buf3_6[n++] = v0_brick_a5[iz][iy][ix];
-        buf3_6[n++] = v0_brick_a6[iz][iy][ix];
-        buf3_6[n++] = v1_brick_a0[iz][iy][ix];
-        buf3_6[n++] = v1_brick_a1[iz][iy][ix];
-        buf3_6[n++] = v1_brick_a2[iz][iy][ix];
-        buf3_6[n++] = v1_brick_a3[iz][iy][ix];
-        buf3_6[n++] = v1_brick_a4[iz][iy][ix];
-        buf3_6[n++] = v1_brick_a5[iz][iy][ix];
-        buf3_6[n++] = v1_brick_a6[iz][iy][ix];
-        buf3_6[n++] = v2_brick_a0[iz][iy][ix];
-        buf3_6[n++] = v2_brick_a1[iz][iy][ix];
-        buf3_6[n++] = v2_brick_a2[iz][iy][ix];
-        buf3_6[n++] = v2_brick_a3[iz][iy][ix];
-        buf3_6[n++] = v2_brick_a4[iz][iy][ix];
-        buf3_6[n++] = v2_brick_a5[iz][iy][ix];
-        buf3_6[n++] = v2_brick_a6[iz][iy][ix];
-        buf3_6[n++] = v3_brick_a0[iz][iy][ix];
-        buf3_6[n++] = v3_brick_a1[iz][iy][ix];
-        buf3_6[n++] = v3_brick_a2[iz][iy][ix];
-        buf3_6[n++] = v3_brick_a3[iz][iy][ix];
-        buf3_6[n++] = v3_brick_a4[iz][iy][ix];
-        buf3_6[n++] = v3_brick_a5[iz][iy][ix];
-        buf3_6[n++] = v3_brick_a6[iz][iy][ix];
-        buf3_6[n++] = v4_brick_a0[iz][iy][ix];
-        buf3_6[n++] = v4_brick_a1[iz][iy][ix];
-        buf3_6[n++] = v4_brick_a2[iz][iy][ix];
-        buf3_6[n++] = v4_brick_a3[iz][iy][ix];
-        buf3_6[n++] = v4_brick_a4[iz][iy][ix];
-        buf3_6[n++] = v4_brick_a5[iz][iy][ix];
-        buf3_6[n++] = v4_brick_a6[iz][iy][ix];
-        buf3_6[n++] = v5_brick_a0[iz][iy][ix];
-        buf3_6[n++] = v5_brick_a1[iz][iy][ix];
-        buf3_6[n++] = v5_brick_a2[iz][iy][ix];
-        buf3_6[n++] = v5_brick_a3[iz][iy][ix];
-        buf3_6[n++] = v5_brick_a4[iz][iy][ix];
-        buf3_6[n++] = v5_brick_a5[iz][iy][ix];
-        buf3_6[n++] = v5_brick_a6[iz][iy][ix];
-      }
-
-  if (comm->procneigh[0][0] == me)
-    for (i = 0; i < n; i++) buf4_6[i] = buf3_6[i];
-  else {
-    MPI_Irecv(buf4_6,7*nbuf_pa_6,MPI_FFT_SCALAR,comm->procneigh[0][1],0,world,&request);
-    MPI_Send(buf3_6,n,MPI_FFT_SCALAR,comm->procneigh[0][0],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  n = 0;
-  for (iz = nzlo_out_6; iz <= nzhi_out_6; iz++)
-    for (iy = nylo_out_6; iy <= nyhi_out_6; iy++)
-      for (ix = nxhi_in_6+1; ix <= nxhi_out_6; ix++) {
-        v0_brick_a0[iz][iy][ix] = buf4_6[n++];
-        v0_brick_a1[iz][iy][ix] = buf4_6[n++];
-        v0_brick_a2[iz][iy][ix] = buf4_6[n++];
-        v0_brick_a3[iz][iy][ix] = buf4_6[n++];
-        v0_brick_a4[iz][iy][ix] = buf4_6[n++];
-        v0_brick_a5[iz][iy][ix] = buf4_6[n++];
-        v0_brick_a6[iz][iy][ix] = buf4_6[n++];
-        v1_brick_a0[iz][iy][ix] = buf4_6[n++];
-        v1_brick_a1[iz][iy][ix] = buf4_6[n++];
-        v1_brick_a2[iz][iy][ix] = buf4_6[n++];
-        v1_brick_a3[iz][iy][ix] = buf4_6[n++];
-        v1_brick_a4[iz][iy][ix] = buf4_6[n++];
-        v1_brick_a5[iz][iy][ix] = buf4_6[n++];
-        v1_brick_a6[iz][iy][ix] = buf4_6[n++];
-        v2_brick_a0[iz][iy][ix] = buf4_6[n++];
-        v2_brick_a1[iz][iy][ix] = buf4_6[n++];
-        v2_brick_a2[iz][iy][ix] = buf4_6[n++];
-        v2_brick_a3[iz][iy][ix] = buf4_6[n++];
-        v2_brick_a4[iz][iy][ix] = buf4_6[n++];
-        v2_brick_a5[iz][iy][ix] = buf4_6[n++];
-        v2_brick_a6[iz][iy][ix] = buf4_6[n++];
-        v3_brick_a0[iz][iy][ix] = buf4_6[n++];
-        v3_brick_a1[iz][iy][ix] = buf4_6[n++];
-        v3_brick_a2[iz][iy][ix] = buf4_6[n++];
-        v3_brick_a3[iz][iy][ix] = buf4_6[n++];
-        v3_brick_a4[iz][iy][ix] = buf4_6[n++];
-        v3_brick_a5[iz][iy][ix] = buf4_6[n++];
-        v3_brick_a6[iz][iy][ix] = buf4_6[n++];
-        v4_brick_a0[iz][iy][ix] = buf4_6[n++];
-        v4_brick_a1[iz][iy][ix] = buf4_6[n++];
-        v4_brick_a2[iz][iy][ix] = buf4_6[n++];
-        v4_brick_a3[iz][iy][ix] = buf4_6[n++];
-        v4_brick_a4[iz][iy][ix] = buf4_6[n++];
-        v4_brick_a5[iz][iy][ix] = buf4_6[n++];
-        v4_brick_a6[iz][iy][ix] = buf4_6[n++];
-        v5_brick_a0[iz][iy][ix] = buf4_6[n++];
-        v5_brick_a1[iz][iy][ix] = buf4_6[n++];
-        v5_brick_a2[iz][iy][ix] = buf4_6[n++];
-        v5_brick_a3[iz][iy][ix] = buf4_6[n++];
-        v5_brick_a4[iz][iy][ix] = buf4_6[n++];
-        v5_brick_a5[iz][iy][ix] = buf4_6[n++];
-        v5_brick_a6[iz][iy][ix] = buf4_6[n++];
-      }
 }
 
 /* ----------------------------------------------------------------------
@@ -8804,18 +5517,999 @@ void PPPMDisp::fieldforce_a_peratom()
     lj6 = B[7*type]*0.5;
 
  
-    if (eflag_atom) eatom[i] += u_pa0*lj0 + u_pa1*lj1 + u_pa2*lj2 + u_pa3*lj3 + u_pa4*lj4 + u_pa5*lj5 + u_pa6*lj6;
+    if (eflag_atom) 
+      eatom[i] += u_pa0*lj0 + u_pa1*lj1 + u_pa2*lj2 + 
+        u_pa3*lj3 + u_pa4*lj4 + u_pa5*lj5 + u_pa6*lj6;
     if (vflag_atom) {
-      vatom[i][0] += v00*lj0 + v01*lj1 + v02*lj2 + v03*lj3 + v04*lj4 + v05*lj5 + v06*lj6;
-      vatom[i][1] += v10*lj0 + v11*lj1 + v12*lj2 + v13*lj3 + v14*lj4 + v15*lj5 + v16*lj6;
-      vatom[i][2] += v20*lj0 + v21*lj1 + v22*lj2 + v23*lj3 + v24*lj4 + v25*lj5 + v26*lj6;
-      vatom[i][3] += v30*lj0 + v31*lj1 + v32*lj2 + v33*lj3 + v34*lj4 + v35*lj5 + v36*lj6;
-      vatom[i][4] += v40*lj0 + v41*lj1 + v42*lj2 + v43*lj3 + v44*lj4 + v45*lj5 + v46*lj6;
-      vatom[i][5] += v50*lj0 + v51*lj1 + v52*lj2 + v53*lj3 + v54*lj4 + v55*lj5 + v56*lj6;
+      vatom[i][0] += v00*lj0 + v01*lj1 + v02*lj2 + v03*lj3 + 
+        v04*lj4 + v05*lj5 + v06*lj6;
+      vatom[i][1] += v10*lj0 + v11*lj1 + v12*lj2 + v13*lj3 + 
+        v14*lj4 + v15*lj5 + v16*lj6;
+      vatom[i][2] += v20*lj0 + v21*lj1 + v22*lj2 + v23*lj3 + 
+        v24*lj4 + v25*lj5 + v26*lj6;
+      vatom[i][3] += v30*lj0 + v31*lj1 + v32*lj2 + v33*lj3 + 
+        v34*lj4 + v35*lj5 + v36*lj6;
+      vatom[i][4] += v40*lj0 + v41*lj1 + v42*lj2 + v43*lj3 + 
+        v44*lj4 + v45*lj5 + v46*lj6;
+      vatom[i][5] += v50*lj0 + v51*lj1 + v52*lj2 + v53*lj3 + 
+        v54*lj4 + v55*lj5 + v56*lj6;
     }
   }
 }
 
+/* ----------------------------------------------------------------------
+   pack values to buf to send to another proc
+------------------------------------------------------------------------- */
+
+void PPPMDisp::pack_forward(int flag, FFT_SCALAR *buf, int nlist, int *list)
+{
+  int n = 0;
+
+  switch (flag) {
+
+  // Coulomb interactions
+
+  case FORWARD_IK: {
+    FFT_SCALAR *xsrc = &vdx_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *ysrc = &vdy_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *zsrc = &vdz_brick[nzlo_out][nylo_out][nxlo_out];
+    for (int i = 0; i < nlist; i++) {
+      buf[n++] = xsrc[list[i]];
+      buf[n++] = ysrc[list[i]];
+      buf[n++] = zsrc[list[i]];
+    }
+    break;
+  }
+
+  case FORWARD_AD: {
+    FFT_SCALAR *src = &u_brick[nzlo_out][nylo_out][nxlo_out];
+    for (int i = 0; i < nlist; i++)
+      buf[i] = src[list[i]];
+    break;
+  }
+
+  case FORWARD_IK_PERATOM: {
+    FFT_SCALAR *esrc = &u_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *v0src = &v0_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *v1src = &v1_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *v2src = &v2_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *v3src = &v3_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *v4src = &v4_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *v5src = &v5_brick[nzlo_out][nylo_out][nxlo_out];
+    for (int i = 0; i < nlist; i++) {
+      if (eflag_atom) buf[n++] = esrc[list[i]];
+      if (vflag_atom) {
+        buf[n++] = v0src[list[i]];
+        buf[n++] = v1src[list[i]];
+        buf[n++] = v2src[list[i]];
+        buf[n++] = v3src[list[i]];
+        buf[n++] = v4src[list[i]];
+        buf[n++] = v5src[list[i]];
+      }
+    }
+    break;
+  }
+
+  case FORWARD_AD_PERATOM: {
+    FFT_SCALAR *v0src = &v0_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *v1src = &v1_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *v2src = &v2_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *v3src = &v3_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *v4src = &v4_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *v5src = &v5_brick[nzlo_out][nylo_out][nxlo_out];
+    for (int i = 0; i < nlist; i++) {
+      buf[n++] = v0src[list[i]];
+      buf[n++] = v1src[list[i]];
+      buf[n++] = v2src[list[i]];
+      buf[n++] = v3src[list[i]];
+      buf[n++] = v4src[list[i]];
+      buf[n++] = v5src[list[i]];
+    }
+    break;
+  }
+
+  // Dispersion interactions, geometric mixing
+
+  case FORWARD_IK_G: {
+    FFT_SCALAR *xsrc = &vdx_brick_g[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *ysrc = &vdy_brick_g[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *zsrc = &vdz_brick_g[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    for (int i = 0; i < nlist; i++) {
+      buf[n++] = xsrc[list[i]];
+      buf[n++] = ysrc[list[i]];
+      buf[n++] = zsrc[list[i]];
+    }
+    break;
+  }
+
+  case FORWARD_AD_G: {
+    FFT_SCALAR *src = &u_brick_g[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    for (int i = 0; i < nlist; i++)
+      buf[i] = src[list[i]];
+    break;
+  }
+
+  case FORWARD_IK_PERATOM_G: {
+    FFT_SCALAR *esrc = &u_brick_g[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v0src = &v0_brick_g[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v1src = &v1_brick_g[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v2src = &v2_brick_g[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v3src = &v3_brick_g[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v4src = &v4_brick_g[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v5src = &v5_brick_g[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    for (int i = 0; i < nlist; i++) {
+      if (eflag_atom) buf[n++] = esrc[list[i]];
+      if (vflag_atom) {
+        buf[n++] = v0src[list[i]];
+        buf[n++] = v1src[list[i]];
+        buf[n++] = v2src[list[i]];
+        buf[n++] = v3src[list[i]];
+        buf[n++] = v4src[list[i]];
+        buf[n++] = v5src[list[i]];
+      }
+    }
+    break;
+  }
+
+  case FORWARD_AD_PERATOM_G: {
+    FFT_SCALAR *v0src = &v0_brick_g[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v1src = &v1_brick_g[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v2src = &v2_brick_g[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v3src = &v3_brick_g[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v4src = &v4_brick_g[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v5src = &v5_brick_g[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    for (int i = 0; i < nlist; i++) {
+      buf[n++] = v0src[list[i]];
+      buf[n++] = v1src[list[i]];
+      buf[n++] = v2src[list[i]];
+      buf[n++] = v3src[list[i]];
+      buf[n++] = v4src[list[i]];
+      buf[n++] = v5src[list[i]];
+    }
+    break;
+  }
+
+  // Dispersion interactions, arithmetic mixing
+
+  case FORWARD_IK_A: {
+    FFT_SCALAR *xsrc0 = &vdx_brick_a0[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *ysrc0 = &vdy_brick_a0[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *zsrc0 = &vdz_brick_a0[nzlo_out_6][nylo_out_6][nxlo_out_6];
+
+    FFT_SCALAR *xsrc1 = &vdx_brick_a1[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *ysrc1 = &vdy_brick_a1[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *zsrc1 = &vdz_brick_a1[nzlo_out_6][nylo_out_6][nxlo_out_6];
+
+    FFT_SCALAR *xsrc2 = &vdx_brick_a2[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *ysrc2 = &vdy_brick_a2[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *zsrc2 = &vdz_brick_a2[nzlo_out_6][nylo_out_6][nxlo_out_6];
+
+    FFT_SCALAR *xsrc3 = &vdx_brick_a3[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *ysrc3 = &vdy_brick_a3[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *zsrc3 = &vdz_brick_a3[nzlo_out_6][nylo_out_6][nxlo_out_6];
+
+    FFT_SCALAR *xsrc4 = &vdx_brick_a4[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *ysrc4 = &vdy_brick_a4[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *zsrc4 = &vdz_brick_a4[nzlo_out_6][nylo_out_6][nxlo_out_6];
+
+    FFT_SCALAR *xsrc5 = &vdx_brick_a5[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *ysrc5 = &vdy_brick_a5[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *zsrc5 = &vdz_brick_a5[nzlo_out_6][nylo_out_6][nxlo_out_6];
+
+    FFT_SCALAR *xsrc6 = &vdx_brick_a6[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *ysrc6 = &vdy_brick_a6[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *zsrc6 = &vdz_brick_a6[nzlo_out_6][nylo_out_6][nxlo_out_6];
+
+    for (int i = 0; i < nlist; i++) {
+      buf[n++] = xsrc0[list[i]];
+      buf[n++] = ysrc0[list[i]];
+      buf[n++] = zsrc0[list[i]];
+
+      buf[n++] = xsrc1[list[i]];
+      buf[n++] = ysrc1[list[i]];
+      buf[n++] = zsrc1[list[i]];
+
+      buf[n++] = xsrc2[list[i]];
+      buf[n++] = ysrc2[list[i]];
+      buf[n++] = zsrc2[list[i]];
+
+      buf[n++] = xsrc3[list[i]];
+      buf[n++] = ysrc3[list[i]];
+      buf[n++] = zsrc3[list[i]];
+
+      buf[n++] = xsrc4[list[i]];
+      buf[n++] = ysrc4[list[i]];
+      buf[n++] = zsrc4[list[i]];
+
+      buf[n++] = xsrc5[list[i]];
+      buf[n++] = ysrc5[list[i]];
+      buf[n++] = zsrc5[list[i]];
+
+      buf[n++] = xsrc6[list[i]];
+      buf[n++] = ysrc6[list[i]];
+      buf[n++] = zsrc6[list[i]];
+    }
+    break;
+  }
+
+  case FORWARD_AD_A: {
+    FFT_SCALAR *src0 = &u_brick_a0[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *src1 = &u_brick_a1[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *src2 = &u_brick_a2[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *src3 = &u_brick_a3[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *src4 = &u_brick_a4[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *src5 = &u_brick_a5[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *src6 = &u_brick_a6[nzlo_out_6][nylo_out_6][nxlo_out_6];
+
+    for (int i = 0; i < nlist; i++) {
+      buf[n++] = src0[list[i]];
+      buf[n++] = src1[list[i]];
+      buf[n++] = src2[list[i]];
+      buf[n++] = src3[list[i]];
+      buf[n++] = src4[list[i]];
+      buf[n++] = src5[list[i]];
+      buf[n++] = src6[list[i]];
+    }
+    break;
+  }
+
+  case FORWARD_IK_PERATOM_A: {
+    FFT_SCALAR *esrc0 = &u_brick_a0[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v0src0 = &v0_brick_a0[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v1src0 = &v1_brick_a0[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v2src0 = &v2_brick_a0[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v3src0 = &v3_brick_a0[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v4src0 = &v4_brick_a0[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v5src0 = &v5_brick_a0[nzlo_out_6][nylo_out_6][nxlo_out_6];
+
+    FFT_SCALAR *esrc1 = &u_brick_a1[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v0src1 = &v0_brick_a1[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v1src1 = &v1_brick_a1[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v2src1 = &v2_brick_a1[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v3src1 = &v3_brick_a1[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v4src1 = &v4_brick_a1[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v5src1 = &v5_brick_a1[nzlo_out_6][nylo_out_6][nxlo_out_6];
+
+    FFT_SCALAR *esrc2 = &u_brick_a2[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v0src2 = &v0_brick_a2[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v1src2 = &v1_brick_a2[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v2src2 = &v2_brick_a2[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v3src2 = &v3_brick_a2[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v4src2 = &v4_brick_a2[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v5src2 = &v5_brick_a2[nzlo_out_6][nylo_out_6][nxlo_out_6];
+
+    FFT_SCALAR *esrc3 = &u_brick_a3[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v0src3 = &v0_brick_a3[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v1src3 = &v1_brick_a3[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v2src3 = &v2_brick_a3[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v3src3 = &v3_brick_a3[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v4src3 = &v4_brick_a3[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v5src3 = &v5_brick_a3[nzlo_out_6][nylo_out_6][nxlo_out_6];
+
+    FFT_SCALAR *esrc4 = &u_brick_a4[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v0src4 = &v0_brick_a4[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v1src4 = &v1_brick_a4[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v2src4 = &v2_brick_a4[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v3src4 = &v3_brick_a4[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v4src4 = &v4_brick_a4[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v5src4 = &v5_brick_a4[nzlo_out_6][nylo_out_6][nxlo_out_6];
+
+    FFT_SCALAR *esrc5 = &u_brick_a5[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v0src5 = &v0_brick_a5[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v1src5 = &v1_brick_a5[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v2src5 = &v2_brick_a5[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v3src5 = &v3_brick_a5[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v4src5 = &v4_brick_a5[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v5src5 = &v5_brick_a5[nzlo_out_6][nylo_out_6][nxlo_out_6];
+
+    FFT_SCALAR *esrc6 = &u_brick_a6[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v0src6 = &v0_brick_a6[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v1src6 = &v1_brick_a6[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v2src6 = &v2_brick_a6[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v3src6 = &v3_brick_a6[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v4src6 = &v4_brick_a6[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v5src6 = &v5_brick_a6[nzlo_out_6][nylo_out_6][nxlo_out_6];
+
+    for (int i = 0; i < nlist; i++) {
+      if (eflag_atom) {
+        buf[n++] = esrc0[list[i]];
+        buf[n++] = esrc1[list[i]];
+        buf[n++] = esrc2[list[i]];
+        buf[n++] = esrc3[list[i]];
+        buf[n++] = esrc4[list[i]];
+        buf[n++] = esrc5[list[i]];
+        buf[n++] = esrc6[list[i]];
+      }
+      if (vflag_atom) {
+        buf[n++] = v0src0[list[i]];
+        buf[n++] = v1src0[list[i]];
+        buf[n++] = v2src0[list[i]];
+        buf[n++] = v3src0[list[i]];
+        buf[n++] = v4src0[list[i]];
+        buf[n++] = v5src0[list[i]];
+
+        buf[n++] = v0src1[list[i]];
+        buf[n++] = v1src1[list[i]];
+        buf[n++] = v2src1[list[i]];
+        buf[n++] = v3src1[list[i]];
+        buf[n++] = v4src1[list[i]];
+        buf[n++] = v5src1[list[i]];
+
+        buf[n++] = v0src2[list[i]];
+        buf[n++] = v1src2[list[i]];
+        buf[n++] = v2src2[list[i]];
+        buf[n++] = v3src2[list[i]];
+        buf[n++] = v4src2[list[i]];
+        buf[n++] = v5src2[list[i]];
+
+        buf[n++] = v0src3[list[i]];
+        buf[n++] = v1src3[list[i]];
+        buf[n++] = v2src3[list[i]];
+        buf[n++] = v3src3[list[i]];
+        buf[n++] = v4src3[list[i]];
+        buf[n++] = v5src3[list[i]];
+
+        buf[n++] = v0src4[list[i]];
+        buf[n++] = v1src4[list[i]];
+        buf[n++] = v2src4[list[i]];
+        buf[n++] = v3src4[list[i]];
+        buf[n++] = v4src4[list[i]];
+        buf[n++] = v5src4[list[i]];
+
+        buf[n++] = v0src5[list[i]];
+        buf[n++] = v1src5[list[i]];
+        buf[n++] = v2src5[list[i]];
+        buf[n++] = v3src5[list[i]];
+        buf[n++] = v4src5[list[i]];
+        buf[n++] = v5src5[list[i]];
+
+        buf[n++] = v0src6[list[i]];
+        buf[n++] = v1src6[list[i]];
+        buf[n++] = v2src6[list[i]];
+        buf[n++] = v3src6[list[i]];
+        buf[n++] = v4src6[list[i]];
+        buf[n++] = v5src6[list[i]];
+      }
+    }
+    break;
+  }
+
+  case FORWARD_AD_PERATOM_A: {
+    FFT_SCALAR *v0src0 = &v0_brick_a0[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v1src0 = &v1_brick_a0[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v2src0 = &v2_brick_a0[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v3src0 = &v3_brick_a0[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v4src0 = &v4_brick_a0[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v5src0 = &v5_brick_a0[nzlo_out_6][nylo_out_6][nxlo_out_6];
+
+    FFT_SCALAR *v0src1 = &v0_brick_a1[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v1src1 = &v1_brick_a1[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v2src1 = &v2_brick_a1[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v3src1 = &v3_brick_a1[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v4src1 = &v4_brick_a1[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v5src1 = &v5_brick_a1[nzlo_out_6][nylo_out_6][nxlo_out_6];
+
+    FFT_SCALAR *v0src2 = &v0_brick_a2[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v1src2 = &v1_brick_a2[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v2src2 = &v2_brick_a2[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v3src2 = &v3_brick_a2[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v4src2 = &v4_brick_a2[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v5src2 = &v5_brick_a2[nzlo_out_6][nylo_out_6][nxlo_out_6];
+
+    FFT_SCALAR *v0src3 = &v0_brick_a3[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v1src3 = &v1_brick_a3[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v2src3 = &v2_brick_a3[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v3src3 = &v3_brick_a3[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v4src3 = &v4_brick_a3[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v5src3 = &v5_brick_a3[nzlo_out_6][nylo_out_6][nxlo_out_6];
+
+    FFT_SCALAR *v0src4 = &v0_brick_a4[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v1src4 = &v1_brick_a4[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v2src4 = &v2_brick_a4[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v3src4 = &v3_brick_a4[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v4src4 = &v4_brick_a4[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v5src4 = &v5_brick_a4[nzlo_out_6][nylo_out_6][nxlo_out_6];
+
+    FFT_SCALAR *v0src5 = &v0_brick_a5[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v1src5 = &v1_brick_a5[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v2src5 = &v2_brick_a5[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v3src5 = &v3_brick_a5[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v4src5 = &v4_brick_a5[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v5src5 = &v5_brick_a5[nzlo_out_6][nylo_out_6][nxlo_out_6];
+
+    FFT_SCALAR *v0src6 = &v0_brick_a6[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v1src6 = &v1_brick_a6[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v2src6 = &v2_brick_a6[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v3src6 = &v3_brick_a6[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v4src6 = &v4_brick_a6[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v5src6 = &v5_brick_a6[nzlo_out_6][nylo_out_6][nxlo_out_6];
+
+    for (int i = 0; i < nlist; i++) {
+      buf[n++] = v0src0[list[i]];
+      buf[n++] = v1src0[list[i]];
+      buf[n++] = v2src0[list[i]];
+      buf[n++] = v3src0[list[i]];
+      buf[n++] = v4src0[list[i]];
+      buf[n++] = v5src0[list[i]];
+
+      buf[n++] = v0src1[list[i]];
+      buf[n++] = v1src1[list[i]];
+      buf[n++] = v2src1[list[i]];
+      buf[n++] = v3src1[list[i]];
+      buf[n++] = v4src1[list[i]];
+      buf[n++] = v5src1[list[i]];
+
+      buf[n++] = v0src2[list[i]];
+      buf[n++] = v1src2[list[i]];
+      buf[n++] = v2src2[list[i]];
+      buf[n++] = v3src2[list[i]];
+      buf[n++] = v4src2[list[i]];
+      buf[n++] = v5src2[list[i]];
+
+      buf[n++] = v0src3[list[i]];
+      buf[n++] = v1src3[list[i]];
+      buf[n++] = v2src3[list[i]];
+      buf[n++] = v3src3[list[i]];
+      buf[n++] = v4src3[list[i]];
+      buf[n++] = v5src3[list[i]];
+
+      buf[n++] = v0src4[list[i]];
+      buf[n++] = v1src4[list[i]];
+      buf[n++] = v2src4[list[i]];
+      buf[n++] = v3src4[list[i]];
+      buf[n++] = v4src4[list[i]];
+      buf[n++] = v5src4[list[i]];
+
+      buf[n++] = v0src5[list[i]];
+      buf[n++] = v1src5[list[i]];
+      buf[n++] = v2src5[list[i]];
+      buf[n++] = v3src5[list[i]];
+      buf[n++] = v4src5[list[i]];
+      buf[n++] = v5src5[list[i]];
+
+      buf[n++] = v0src6[list[i]];
+      buf[n++] = v1src6[list[i]];
+      buf[n++] = v2src6[list[i]];
+      buf[n++] = v3src6[list[i]];
+      buf[n++] = v4src6[list[i]];
+      buf[n++] = v5src6[list[i]];
+    }
+    break;
+  }
+
+  }
+}
+
+/* ----------------------------------------------------------------------
+   unpack another proc's own values from buf and set own ghost values
+------------------------------------------------------------------------- */
+
+void PPPMDisp::unpack_forward(int flag, FFT_SCALAR *buf, int nlist, int *list)
+{
+  int n = 0;
+
+  switch (flag) {
+
+  // Coulomb interactions
+
+  case FORWARD_IK: {
+    FFT_SCALAR *xdest = &vdx_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *ydest = &vdy_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *zdest = &vdz_brick[nzlo_out][nylo_out][nxlo_out];
+    for (int i = 0; i < nlist; i++) {
+      xdest[list[i]] = buf[n++];
+      ydest[list[i]] = buf[n++];
+      zdest[list[i]] = buf[n++];
+    }
+    break;
+  }
+
+  case FORWARD_AD: {
+    FFT_SCALAR *dest = &u_brick[nzlo_out][nylo_out][nxlo_out];
+    for (int i = 0; i < nlist; i++)
+      dest[list[i]] = buf[n++];
+    break;
+  }
+
+  case FORWARD_IK_PERATOM: {
+    FFT_SCALAR *esrc = &u_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *v0src = &v0_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *v1src = &v1_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *v2src = &v2_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *v3src = &v3_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *v4src = &v4_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *v5src = &v5_brick[nzlo_out][nylo_out][nxlo_out];
+    for (int i = 0; i < nlist; i++) {
+      if (eflag_atom) esrc[list[i]] = buf[n++];
+      if (vflag_atom) {
+        v0src[list[i]] = buf[n++];
+        v1src[list[i]] = buf[n++];
+        v2src[list[i]] = buf[n++];
+        v3src[list[i]] = buf[n++];
+        v4src[list[i]] = buf[n++];
+        v5src[list[i]] = buf[n++];
+      }
+    }
+    break;
+  }
+
+  case FORWARD_AD_PERATOM: {
+    FFT_SCALAR *v0src = &v0_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *v1src = &v1_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *v2src = &v2_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *v3src = &v3_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *v4src = &v4_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *v5src = &v5_brick[nzlo_out][nylo_out][nxlo_out];
+    for (int i = 0; i < nlist; i++) {
+      v0src[list[i]] = buf[n++];
+      v1src[list[i]] = buf[n++];
+      v2src[list[i]] = buf[n++];
+      v3src[list[i]] = buf[n++];
+      v4src[list[i]] = buf[n++];
+      v5src[list[i]] = buf[n++];
+    }
+    break;
+  }
+
+  // Disperion interactions, geometric mixing
+
+  case FORWARD_IK_G: {
+    FFT_SCALAR *xdest = &vdx_brick_g[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *ydest = &vdy_brick_g[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *zdest = &vdz_brick_g[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    for (int i = 0; i < nlist; i++) {
+      xdest[list[i]] = buf[n++];
+      ydest[list[i]] = buf[n++];
+      zdest[list[i]] = buf[n++];
+    }
+    break;
+  }
+
+  case FORWARD_AD_G: {
+    FFT_SCALAR *dest = &u_brick_g[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    for (int i = 0; i < nlist; i++)
+      dest[list[i]] = buf[n++];
+    break;
+  }
+
+  case FORWARD_IK_PERATOM_G: {
+    FFT_SCALAR *esrc = &u_brick_g[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v0src = &v0_brick_g[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v1src = &v1_brick_g[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v2src = &v2_brick_g[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v3src = &v3_brick_g[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v4src = &v4_brick_g[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v5src = &v5_brick_g[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    for (int i = 0; i < nlist; i++) {
+      if (eflag_atom) esrc[list[i]] = buf[n++];
+      if (vflag_atom) {
+        v0src[list[i]] = buf[n++];
+        v1src[list[i]] = buf[n++];
+        v2src[list[i]] = buf[n++];
+        v3src[list[i]] = buf[n++];
+        v4src[list[i]] = buf[n++];
+        v5src[list[i]] = buf[n++];
+      }
+    }
+    break;
+  }
+
+  case FORWARD_AD_PERATOM_G: {
+    FFT_SCALAR *v0src = &v0_brick_g[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v1src = &v1_brick_g[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v2src = &v2_brick_g[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v3src = &v3_brick_g[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v4src = &v4_brick_g[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v5src = &v5_brick_g[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    for (int i = 0; i < nlist; i++) {
+      v0src[list[i]] = buf[n++];
+      v1src[list[i]] = buf[n++];
+      v2src[list[i]] = buf[n++];
+      v3src[list[i]] = buf[n++];
+      v4src[list[i]] = buf[n++];
+      v5src[list[i]] = buf[n++];
+    }
+    break;
+  }
+
+  // Disperion interactions, arithmetic mixing
+
+  case FORWARD_IK_A: {
+    FFT_SCALAR *xdest0 = &vdx_brick_a0[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *ydest0 = &vdy_brick_a0[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *zdest0 = &vdz_brick_a0[nzlo_out_6][nylo_out_6][nxlo_out_6];
+
+    FFT_SCALAR *xdest1 = &vdx_brick_a1[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *ydest1 = &vdy_brick_a1[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *zdest1 = &vdz_brick_a1[nzlo_out_6][nylo_out_6][nxlo_out_6];
+
+    FFT_SCALAR *xdest2 = &vdx_brick_a2[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *ydest2 = &vdy_brick_a2[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *zdest2 = &vdz_brick_a2[nzlo_out_6][nylo_out_6][nxlo_out_6];
+
+    FFT_SCALAR *xdest3 = &vdx_brick_a3[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *ydest3 = &vdy_brick_a3[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *zdest3 = &vdz_brick_a3[nzlo_out_6][nylo_out_6][nxlo_out_6];
+
+    FFT_SCALAR *xdest4 = &vdx_brick_a4[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *ydest4 = &vdy_brick_a4[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *zdest4 = &vdz_brick_a4[nzlo_out_6][nylo_out_6][nxlo_out_6];
+
+    FFT_SCALAR *xdest5 = &vdx_brick_a5[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *ydest5 = &vdy_brick_a5[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *zdest5 = &vdz_brick_a5[nzlo_out_6][nylo_out_6][nxlo_out_6];
+
+    FFT_SCALAR *xdest6 = &vdx_brick_a6[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *ydest6 = &vdy_brick_a6[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *zdest6 = &vdz_brick_a6[nzlo_out_6][nylo_out_6][nxlo_out_6];
+
+    for (int i = 0; i < nlist; i++) {
+      xdest0[list[i]] = buf[n++];
+      ydest0[list[i]] = buf[n++];
+      zdest0[list[i]] = buf[n++];
+
+      xdest1[list[i]] = buf[n++];
+      ydest1[list[i]] = buf[n++];
+      zdest1[list[i]] = buf[n++];
+
+      xdest2[list[i]] = buf[n++];
+      ydest2[list[i]] = buf[n++];
+      zdest2[list[i]] = buf[n++];
+
+      xdest3[list[i]] = buf[n++];
+      ydest3[list[i]] = buf[n++];
+      zdest3[list[i]] = buf[n++];
+
+      xdest4[list[i]] = buf[n++];
+      ydest4[list[i]] = buf[n++];
+      zdest4[list[i]] = buf[n++];
+
+      xdest5[list[i]] = buf[n++];
+      ydest5[list[i]] = buf[n++];
+      zdest5[list[i]] = buf[n++];
+
+      xdest6[list[i]] = buf[n++];
+      ydest6[list[i]] = buf[n++];
+      zdest6[list[i]] = buf[n++];
+    }
+    break;
+  }
+
+  case FORWARD_AD_A: {
+    FFT_SCALAR *dest0 = &u_brick_a0[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *dest1 = &u_brick_a1[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *dest2 = &u_brick_a2[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *dest3 = &u_brick_a3[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *dest4 = &u_brick_a4[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *dest5 = &u_brick_a5[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *dest6 = &u_brick_a6[nzlo_out_6][nylo_out_6][nxlo_out_6];
+
+    for (int i = 0; i < nlist; i++) {
+      dest0[list[i]] = buf[n++];
+      dest1[list[i]] = buf[n++];
+      dest2[list[i]] = buf[n++];
+      dest3[list[i]] = buf[n++];
+      dest4[list[i]] = buf[n++];
+      dest5[list[i]] = buf[n++];
+      dest6[list[i]] = buf[n++];
+    }
+    break;
+  }
+
+  case FORWARD_IK_PERATOM_A: {
+    FFT_SCALAR *esrc0 = &u_brick_a0[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v0src0 = &v0_brick_a0[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v1src0 = &v1_brick_a0[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v2src0 = &v2_brick_a0[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v3src0 = &v3_brick_a0[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v4src0 = &v4_brick_a0[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v5src0 = &v5_brick_a0[nzlo_out_6][nylo_out_6][nxlo_out_6];
+
+    FFT_SCALAR *esrc1 = &u_brick_a1[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v0src1 = &v0_brick_a1[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v1src1 = &v1_brick_a1[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v2src1 = &v2_brick_a1[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v3src1 = &v3_brick_a1[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v4src1 = &v4_brick_a1[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v5src1 = &v5_brick_a1[nzlo_out_6][nylo_out_6][nxlo_out_6];
+
+    FFT_SCALAR *esrc2 = &u_brick_a2[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v0src2 = &v0_brick_a2[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v1src2 = &v1_brick_a2[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v2src2 = &v2_brick_a2[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v3src2 = &v3_brick_a2[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v4src2 = &v4_brick_a2[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v5src2 = &v5_brick_a2[nzlo_out_6][nylo_out_6][nxlo_out_6];
+
+    FFT_SCALAR *esrc3 = &u_brick_a3[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v0src3 = &v0_brick_a3[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v1src3 = &v1_brick_a3[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v2src3 = &v2_brick_a3[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v3src3 = &v3_brick_a3[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v4src3 = &v4_brick_a3[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v5src3 = &v5_brick_a3[nzlo_out_6][nylo_out_6][nxlo_out_6];
+
+    FFT_SCALAR *esrc4 = &u_brick_a4[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v0src4 = &v0_brick_a4[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v1src4 = &v1_brick_a4[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v2src4 = &v2_brick_a4[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v3src4 = &v3_brick_a4[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v4src4 = &v4_brick_a4[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v5src4 = &v5_brick_a4[nzlo_out_6][nylo_out_6][nxlo_out_6];
+
+    FFT_SCALAR *esrc5 = &u_brick_a5[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v0src5 = &v0_brick_a5[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v1src5 = &v1_brick_a5[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v2src5 = &v2_brick_a5[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v3src5 = &v3_brick_a5[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v4src5 = &v4_brick_a5[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v5src5 = &v5_brick_a5[nzlo_out_6][nylo_out_6][nxlo_out_6];
+
+    FFT_SCALAR *esrc6 = &u_brick_a6[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v0src6 = &v0_brick_a6[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v1src6 = &v1_brick_a6[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v2src6 = &v2_brick_a6[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v3src6 = &v3_brick_a6[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v4src6 = &v4_brick_a6[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v5src6 = &v5_brick_a6[nzlo_out_6][nylo_out_6][nxlo_out_6];
+
+    for (int i = 0; i < nlist; i++) {
+      if (eflag_atom) {
+        esrc0[list[i]] = buf[n++];
+        esrc1[list[i]] = buf[n++];
+        esrc2[list[i]] = buf[n++];
+        esrc3[list[i]] = buf[n++];
+        esrc4[list[i]] = buf[n++];
+        esrc5[list[i]] = buf[n++];
+        esrc6[list[i]] = buf[n++];
+      }
+      if (vflag_atom) {
+        v0src0[list[i]] = buf[n++];
+        v1src0[list[i]] = buf[n++];
+        v2src0[list[i]] = buf[n++];
+        v3src0[list[i]] = buf[n++];
+        v4src0[list[i]] = buf[n++];
+        v5src0[list[i]] = buf[n++];
+
+        v0src1[list[i]] = buf[n++];
+        v1src1[list[i]] = buf[n++];
+        v2src1[list[i]] = buf[n++];
+        v3src1[list[i]] = buf[n++];
+        v4src1[list[i]] = buf[n++];
+        v5src1[list[i]] = buf[n++];
+
+        v0src2[list[i]] = buf[n++];
+        v1src2[list[i]] = buf[n++];
+        v2src2[list[i]] = buf[n++];
+        v3src2[list[i]] = buf[n++];
+        v4src2[list[i]] = buf[n++];
+        v5src2[list[i]] = buf[n++];
+
+        v0src3[list[i]] = buf[n++];
+        v1src3[list[i]] = buf[n++];
+        v2src3[list[i]] = buf[n++];
+        v3src3[list[i]] = buf[n++];
+        v4src3[list[i]] = buf[n++];
+        v5src3[list[i]] = buf[n++];
+
+        v0src4[list[i]] = buf[n++];
+        v1src4[list[i]] = buf[n++];
+        v2src4[list[i]] = buf[n++];
+        v3src4[list[i]] = buf[n++];
+        v4src4[list[i]] = buf[n++];
+        v5src4[list[i]] = buf[n++];
+
+        v0src5[list[i]] = buf[n++];
+        v1src5[list[i]] = buf[n++];
+        v2src5[list[i]] = buf[n++];
+        v3src5[list[i]] = buf[n++];
+        v4src5[list[i]] = buf[n++];
+        v5src5[list[i]] = buf[n++];
+
+        v0src6[list[i]] = buf[n++];
+        v1src6[list[i]] = buf[n++];
+        v2src6[list[i]] = buf[n++];
+        v3src6[list[i]] = buf[n++];
+        v4src6[list[i]] = buf[n++];
+        v5src6[list[i]] = buf[n++];
+      }
+    }
+    break;
+  }
+
+  case FORWARD_AD_PERATOM_A: {
+    FFT_SCALAR *v0src0 = &v0_brick_a0[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v1src0 = &v1_brick_a0[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v2src0 = &v2_brick_a0[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v3src0 = &v3_brick_a0[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v4src0 = &v4_brick_a0[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v5src0 = &v5_brick_a0[nzlo_out_6][nylo_out_6][nxlo_out_6];
+
+    FFT_SCALAR *v0src1 = &v0_brick_a1[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v1src1 = &v1_brick_a1[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v2src1 = &v2_brick_a1[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v3src1 = &v3_brick_a1[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v4src1 = &v4_brick_a1[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v5src1 = &v5_brick_a1[nzlo_out_6][nylo_out_6][nxlo_out_6];
+
+    FFT_SCALAR *v0src2 = &v0_brick_a2[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v1src2 = &v1_brick_a2[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v2src2 = &v2_brick_a2[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v3src2 = &v3_brick_a2[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v4src2 = &v4_brick_a2[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v5src2 = &v5_brick_a2[nzlo_out_6][nylo_out_6][nxlo_out_6];
+
+    FFT_SCALAR *v0src3 = &v0_brick_a3[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v1src3 = &v1_brick_a3[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v2src3 = &v2_brick_a3[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v3src3 = &v3_brick_a3[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v4src3 = &v4_brick_a3[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v5src3 = &v5_brick_a3[nzlo_out_6][nylo_out_6][nxlo_out_6];
+
+    FFT_SCALAR *v0src4 = &v0_brick_a4[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v1src4 = &v1_brick_a4[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v2src4 = &v2_brick_a4[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v3src4 = &v3_brick_a4[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v4src4 = &v4_brick_a4[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v5src4 = &v5_brick_a4[nzlo_out_6][nylo_out_6][nxlo_out_6];
+
+    FFT_SCALAR *v0src5 = &v0_brick_a5[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v1src5 = &v1_brick_a5[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v2src5 = &v2_brick_a5[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v3src5 = &v3_brick_a5[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v4src5 = &v4_brick_a5[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v5src5 = &v5_brick_a5[nzlo_out_6][nylo_out_6][nxlo_out_6];
+
+    FFT_SCALAR *v0src6 = &v0_brick_a6[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v1src6 = &v1_brick_a6[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v2src6 = &v2_brick_a6[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v3src6 = &v3_brick_a6[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v4src6 = &v4_brick_a6[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *v5src6 = &v5_brick_a6[nzlo_out_6][nylo_out_6][nxlo_out_6];
+
+    for (int i = 0; i < nlist; i++) {
+      v0src0[list[i]] = buf[n++];
+      v1src0[list[i]] = buf[n++];
+      v2src0[list[i]] = buf[n++];
+      v3src0[list[i]] = buf[n++];
+      v4src0[list[i]] = buf[n++];
+      v5src0[list[i]] = buf[n++];
+
+      v0src1[list[i]] = buf[n++];
+      v1src1[list[i]] = buf[n++];
+      v2src1[list[i]] = buf[n++];
+      v3src1[list[i]] = buf[n++];
+      v4src1[list[i]] = buf[n++];
+      v5src1[list[i]] = buf[n++];
+
+      v0src2[list[i]] = buf[n++];
+      v1src2[list[i]] = buf[n++];
+      v2src2[list[i]] = buf[n++];
+      v3src2[list[i]] = buf[n++];
+      v4src2[list[i]] = buf[n++];
+      v5src2[list[i]] = buf[n++];
+
+      v0src3[list[i]] = buf[n++];
+      v1src3[list[i]] = buf[n++];
+      v2src3[list[i]] = buf[n++];
+      v3src3[list[i]] = buf[n++];
+      v4src3[list[i]] = buf[n++];
+      v5src3[list[i]] = buf[n++];
+
+      v0src4[list[i]] = buf[n++];
+      v1src4[list[i]] = buf[n++];
+      v2src4[list[i]] = buf[n++];
+      v3src4[list[i]] = buf[n++];
+      v4src4[list[i]] = buf[n++];
+      v5src4[list[i]] = buf[n++];
+
+      v0src5[list[i]] = buf[n++];
+      v1src5[list[i]] = buf[n++];
+      v2src5[list[i]] = buf[n++];
+      v3src5[list[i]] = buf[n++];
+      v4src5[list[i]] = buf[n++];
+      v5src5[list[i]] = buf[n++];
+
+      v0src6[list[i]] = buf[n++];
+      v1src6[list[i]] = buf[n++];
+      v2src6[list[i]] = buf[n++];
+      v3src6[list[i]] = buf[n++];
+      v4src6[list[i]] = buf[n++];
+      v5src6[list[i]] = buf[n++];
+    }
+    break;
+  }
+
+  }
+}
+
+/* ----------------------------------------------------------------------
+   pack ghost values into buf to send to another proc
+------------------------------------------------------------------------- */
+
+void PPPMDisp::pack_reverse(int flag, FFT_SCALAR *buf, int nlist, int *list)
+{
+  int n = 0;
+
+  //Coulomb interactions
+
+  if (flag == REVERSE_RHO) {
+    FFT_SCALAR *src = &density_brick[nzlo_out][nylo_out][nxlo_out];
+    for (int i = 0; i < nlist; i++)
+      buf[i] = src[list[i]];
+
+  //Dispersion interactions, geometric mixing
+
+  } else if (flag == REVERSE_RHO_G) {
+    FFT_SCALAR *src = &density_brick_g[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    for (int i = 0; i < nlist; i++)
+      buf[i] = src[list[i]];
+
+  //Dispersion interactions, arithmetic mixing
+
+  } else if (flag == REVERSE_RHO_A) {
+    FFT_SCALAR *src0 = &density_brick_a0[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *src1 = &density_brick_a1[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *src2 = &density_brick_a2[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *src3 = &density_brick_a3[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *src4 = &density_brick_a4[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *src5 = &density_brick_a5[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *src6 = &density_brick_a6[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    for (int i = 0; i < nlist; i++) {
+      buf[n++] = src0[list[i]];
+      buf[n++] = src1[list[i]];
+      buf[n++] = src2[list[i]];
+      buf[n++] = src3[list[i]];
+      buf[n++] = src4[list[i]];
+      buf[n++] = src5[list[i]];
+      buf[n++] = src6[list[i]];
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   unpack another proc's ghost values from buf and add to own values
+------------------------------------------------------------------------- */
+
+void PPPMDisp::unpack_reverse(int flag, FFT_SCALAR *buf, int nlist, int *list)
+{
+  int n = 0;
+
+  //Coulomb interactions
+
+  if (flag == REVERSE_RHO) {
+    FFT_SCALAR *dest = &density_brick[nzlo_out][nylo_out][nxlo_out];
+    for (int i = 0; i < nlist; i++)
+      dest[list[i]] += buf[i];
+
+  //Dispersion interactions, geometric mixing
+
+  } else if (flag == REVERSE_RHO_G) {
+    FFT_SCALAR *dest = &density_brick_g[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    for (int i = 0; i < nlist; i++)
+      dest[list[i]] += buf[i];
+
+  //Dispersion interactions, arithmetic mixing
+
+  } else if (flag == REVERSE_RHO_A) {
+    FFT_SCALAR *dest0 = &density_brick_a0[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *dest1 = &density_brick_a1[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *dest2 = &density_brick_a2[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *dest3 = &density_brick_a3[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *dest4 = &density_brick_a4[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *dest5 = &density_brick_a5[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    FFT_SCALAR *dest6 = &density_brick_a6[nzlo_out_6][nylo_out_6][nxlo_out_6];
+    for (int i = 0; i < nlist; i++) {
+      dest0[list[i]] += buf[n++];
+      dest1[list[i]] += buf[n++];
+      dest2[list[i]] += buf[n++];
+      dest3[list[i]] += buf[n++];
+      dest4[list[i]] += buf[n++];
+      dest5[list[i]] += buf[n++];
+      dest6[list[i]] += buf[n++];
+    }
+  } 
+}
 
 /* ----------------------------------------------------------------------
    map nprocs to NX by NY grid as PX by PY procs - return optimal px,py 
@@ -9132,26 +6826,33 @@ double PPPMDisp::memory_usage()
 {
   double bytes = nmax*3 * sizeof(double);
   int mixing = 1;
+  int diff = 3;     //depends on differentiation
+  int per = 7;      //depends on per atom calculations
+  if (differentiation_flag) {
+    diff = 1;
+    per = 6;
+  }
+  if (!evflag_atom) per = 0;
   if (function[2]) mixing = 7;
 
   if (function[0]) {
     int nbrick = (nxhi_out-nxlo_out+1) * (nyhi_out-nylo_out+1) * 
       (nzhi_out-nzlo_out+1);
-    bytes += (4 ) * nbrick * sizeof(FFT_SCALAR);     // density_brick + vd_brick + per atom bricks
+    bytes += (1 + diff +  per) * nbrick * sizeof(FFT_SCALAR);     //brick memory
     bytes += 6 * nfft_both * sizeof(double);      // vg
     bytes += nfft_both * sizeof(double);          // greensfn
     bytes += nfft_both * 3 * sizeof(FFT_SCALAR);    // density_FFT, work1, work2 
-    bytes += (2 * nbuf ) * sizeof(FFT_SCALAR);       // buf1, buf2, buf3, buf4
+    bytes += cg->memory_usage();
   }
 
   if (function[1] + function[2]) {
     int nbrick = (nxhi_out_6-nxlo_out_6+1) * (nyhi_out_6-nylo_out_6+1) * 
       (nzhi_out_6-nzlo_out_6+1);
-    bytes += (4 ) * nbrick * sizeof(FFT_SCALAR) * mixing;     // density_brick + vd_brick + per atom bricks
+    bytes += (1 + diff + per ) * nbrick * sizeof(FFT_SCALAR) * mixing;     // density_brick + vd_brick + per atom bricks
     bytes += 6 * nfft_both_6 * sizeof(double);      // vg
     bytes += nfft_both_6 * sizeof(double);          // greensfn
-    bytes += nfft_both_6 * (mixing +2) * sizeof(FFT_SCALAR);    // density_FFT, work1, work2 
-    bytes += (2 * nbuf_6 ) * sizeof(FFT_SCALAR) * mixing;       // buf1, buf2, buf3, buf4
+    bytes += nfft_both_6 * (mixing + 2) * sizeof(FFT_SCALAR);    // density_FFT, work1, work2 
+    bytes += cg_6->memory_usage();
   }
   return bytes;
 }

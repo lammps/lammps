@@ -50,6 +50,7 @@ KSpace::KSpace(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   differentiation_flag = 0;
   slab_volfactor = 1;
   suffix_flag = Suffix::NONE;
+  adjust_cutoff_flag = 1;
 
   accuracy_absolute = -1.0;
   two_charge_force = force->qqr2e *
@@ -369,6 +370,12 @@ void KSpace::modify_params(int narg, char **arg)
       if (strcmp(arg[iarg+1],"ad") == 0) differentiation_flag = 1;
       else if (strcmp(arg[iarg+1],"ik") == 0) differentiation_flag = 0;
       else error->all(FLERR, "Illegal kspace_modify command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"adjust/cutoff") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
+      if (strcmp(arg[iarg+1],"yes") == 0) adjust_cutoff_flag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) adjust_cutoff_flag = 0;
+      else error->all(FLERR,"Illegal kspace_modify command");
       iarg += 2;
     } else error->all(FLERR,"Illegal kspace_modify command");
   }

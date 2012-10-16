@@ -90,6 +90,7 @@ class KSpace : protected Pointers {
   int minorder,overlap_allowed;
   int differentiation_flag;
   int slabflag;
+  int adjust_cutoff_flag;
   int suffix_flag;                  // suffix compatibility flag
   double scale;
   double slab_volfactor;

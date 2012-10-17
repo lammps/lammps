@@ -42,6 +42,7 @@ using namespace MathConst;
 PairBuckCoulLong::PairBuckCoulLong(LAMMPS *lmp) : Pair(lmp)
 {
   ewaldflag = pppmflag = 1;
+  ftable = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -62,14 +63,16 @@ PairBuckCoulLong::~PairBuckCoulLong()
     memory->destroy(buck2);
     memory->destroy(offset);
   }
+  if (ftable) free_tables();
 }
 
 /* ---------------------------------------------------------------------- */
 
 void PairBuckCoulLong::compute(int eflag, int vflag)
 {
-  int i,j,ii,jj,inum,jnum,itype,jtype;
+  int i,j,ii,jj,inum,jnum,itable,itype,jtype;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
+  double fraction,table;
   double rsq,r2inv,r6inv,forcecoul,forcebuck,factor_coul,factor_lj;
   double grij,expm2,prefactor,t,erfc;
   double r,rexp;
@@ -119,17 +122,31 @@ void PairBuckCoulLong::compute(int eflag, int vflag)
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-        r2inv = 1.0/rsq;
-        r = sqrt(rsq);
-
+        r2inv = 1.0/rsq;          
         if (rsq < cut_coulsq) {
-          grij = g_ewald * r;
-          expm2 = exp(-grij*grij);
-          t = 1.0 / (1.0 + EWALD_P*grij);
-          erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
-          prefactor = qqrd2e * qtmp*q[j]/r;
-          forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
-          if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
+          if (!ncoultablebits || rsq <= tabinnersq) {
+            r = sqrt(rsq);
+            grij = g_ewald * r;
+            expm2 = exp(-grij*grij);
+            t = 1.0 / (1.0 + EWALD_P*grij);
+            erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+            prefactor = qqrd2e * qtmp*q[j]/r;
+            forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
+            if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
+          } else {
+            union_int_float_t rsq_lookup;
+            rsq_lookup.f = rsq;
+            itable = rsq_lookup.i & ncoulmask;
+            itable >>= ncoulshiftbits;
+            fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
+            table = ftable[itable] + fraction*dftable[itable];
+            forcecoul = qtmp*q[j] * table;
+            if (factor_coul < 1.0) {
+              table = ctable[itable] + fraction*dctable[itable];
+              prefactor = qtmp*q[j] * table;
+              forcecoul -= (1.0-factor_coul)*prefactor;
+            }
+          }
         } else forcecoul = 0.0;
 
         if (rsq < cut_ljsq[itype][jtype]) {
@@ -151,7 +168,12 @@ void PairBuckCoulLong::compute(int eflag, int vflag)
 
         if (eflag) {
           if (rsq < cut_coulsq) {
-            ecoul = prefactor*erfc;
+            if (!ncoultablebits || rsq <= tabinnersq)
+              ecoul = prefactor*erfc;
+            else {
+              table = etable[itable] + fraction*detable[itable];
+              ecoul = qtmp*q[j] * table;
+            }
             if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
           } else ecoul = 0.0;
           if (rsq < cut_ljsq[itype][jtype]) {
@@ -334,6 +356,9 @@ void PairBuckCoulLong::init_style()
   g_ewald = force->kspace->g_ewald;
 
   neighbor->request(this);
+  
+  // setup force tables
+  if (ncoultablebits) init_tables(cut_coul,cut_respa);
 }
 
 /* ----------------------------------------------------------------------
@@ -399,6 +424,8 @@ void PairBuckCoulLong::write_restart_settings(FILE *fp)
   fwrite(&offset_flag,sizeof(int),1,fp);
   fwrite(&mix_flag,sizeof(int),1,fp);
   fwrite(&tail_flag,sizeof(int),1,fp);
+  fwrite(&ncoultablebits,sizeof(int),1,fp);
+  fwrite(&tabinner,sizeof(double),1,fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -413,12 +440,16 @@ void PairBuckCoulLong::read_restart_settings(FILE *fp)
     fread(&offset_flag,sizeof(int),1,fp);
     fread(&mix_flag,sizeof(int),1,fp);
     fread(&tail_flag,sizeof(int),1,fp);
+    fread(&ncoultablebits,sizeof(int),1,fp);
+    fread(&tabinner,sizeof(double),1,fp);
   }
   MPI_Bcast(&cut_lj_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&cut_coul,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
   MPI_Bcast(&tail_flag,1,MPI_INT,0,world);
+  MPI_Bcast(&ncoultablebits,1,MPI_INT,0,world);
+  MPI_Bcast(&tabinner,1,MPI_DOUBLE,0,world);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -429,18 +460,34 @@ double PairBuckCoulLong::single(int i, int j, int itype, int jtype,
                                 double &fforce)
 {
   double r2inv,r6inv,r,rexp,grij,expm2,t,erfc,prefactor;
-  double forcecoul,forcebuck,phicoul,phibuck;
+  double fraction,table,forcecoul,forcebuck,phicoul,phibuck;
+  int itable;
 
   r2inv = 1.0/rsq;
   if (rsq < cut_coulsq) {
-    r = sqrt(rsq);
-    grij = g_ewald * r;
-    expm2 = exp(-grij*grij);
-    t = 1.0 / (1.0 + EWALD_P*grij);
-    erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
-    prefactor = force->qqrd2e * atom->q[i]*atom->q[j]/r;
-    forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
-    if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
+    if (!ncoultablebits || rsq <= tabinnersq) {
+      r = sqrt(rsq);
+      grij = g_ewald * r;
+      expm2 = exp(-grij*grij);
+      t = 1.0 / (1.0 + EWALD_P*grij);
+      erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+      prefactor = force->qqrd2e * atom->q[i]*atom->q[j]/r;
+      forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
+      if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
+    } else {
+      union_int_float_t rsq_lookup;
+      rsq_lookup.f = rsq;
+      itable = rsq_lookup.i & ncoulmask;
+      itable >>= ncoulshiftbits;
+      fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
+      table = ftable[itable] + fraction*dftable[itable];
+      forcecoul = atom->q[i]*atom->q[j] * table;
+      if (factor_coul < 1.0) {
+        table = ctable[itable] + fraction*dctable[itable];
+        prefactor = atom->q[i]*atom->q[j] * table;
+        forcecoul -= (1.0-factor_coul)*prefactor;
+      }
+    }
   } else forcecoul = 0.0;
   if (rsq < cut_ljsq[itype][jtype]) {
     r6inv = r2inv*r2inv*r2inv;
@@ -452,7 +499,12 @@ double PairBuckCoulLong::single(int i, int j, int itype, int jtype,
 
   double eng = 0.0;
   if (rsq < cut_coulsq) {
-    phicoul = prefactor*erfc;
+    if (!ncoultablebits || rsq <= tabinnersq)
+      phicoul = prefactor*erfc;
+    else {
+      table = etable[itable] + fraction*detable[itable];
+      phicoul = atom->q[i]*atom->q[j] * table;
+    }
     if (factor_coul < 1.0) phicoul -= (1.0-factor_coul)*prefactor;
     eng += phicoul;
   }

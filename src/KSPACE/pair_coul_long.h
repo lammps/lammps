@@ -46,14 +46,7 @@ class PairCoulLong : public Pair {
   double g_ewald;
   double **scale;
 
-  double tabinnersq;
-  double *rtable,*drtable,*ftable,*dftable,*ctable,*dctable;
-  double *etable,*detable,*ptable,*dptable,*vtable,*dvtable;
-  int ncoulshiftbits,ncoulmask;
-
   void allocate();
-  virtual void init_tables();
-  void free_tables();
 };
 
 }

@@ -56,14 +56,7 @@ class PairLJCutCoulLong : public Pair {
   double qdist;             // TIP4P distance from O site to negative charge
   double g_ewald;
 
-  double tabinnersq;
-  double *rtable,*drtable,*ftable,*dftable,*ctable,*dctable;
-  double *etable,*detable,*ptable,*dptable,*vtable,*dvtable;
-  int ncoulshiftbits,ncoulmask;
-
   void allocate();
-  virtual void init_tables();
-  void free_tables();
 };
 
 }

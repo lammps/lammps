@@ -46,6 +46,8 @@ class PairBuckCoulLong : public Pair {
   double cut_coul,cut_coulsq;
   double **a,**rho,**c;
   double **rhoinv,**buck1,**buck2,**offset;
+
+  double *cut_respa;
   double g_ewald;
 
   void allocate();

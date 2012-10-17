@@ -31,9 +31,6 @@ class PairCoulMSM : public PairCoulLong {
   virtual void compute(int, int);
   virtual double single(int, int, int, int, double, double, double, double &);
   virtual void *extract(const char *, int &);
-
- protected:
-  virtual void init_tables();
 };
 
 }

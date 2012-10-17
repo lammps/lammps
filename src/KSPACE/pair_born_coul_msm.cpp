@@ -99,7 +99,7 @@ void PairBornCoulMSM::compute(int eflag, int vflag)
         r2inv = 1.0/rsq;
 
         if (rsq < cut_coulsq) {
-		  r = sqrt(rsq);
+          r = sqrt(rsq);
           prefactor = qqrd2e * qtmp*q[j]/r;
           egamma = 1.0 - (r/cut_coul)*force->kspace->gamma(r/cut_coul);
           fgamma = 1.0 + (rsq/cut_coulsq)*force->kspace->dgamma(r/cut_coul);

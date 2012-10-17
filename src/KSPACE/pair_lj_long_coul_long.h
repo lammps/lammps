@@ -60,15 +60,8 @@ class PairLJLongCoulLong : public Pair {
   double g_ewald_6;
   int ewald_order, ewald_off;
 
-  double tabinnersq;
-  double *rtable, *drtable, *ftable, *dftable, *ctable, *dctable;
-  double *etable, *detable, *ptable, *dptable, *vtable, *dvtable;
-  int ncoulshiftbits, ncoulmask;
-
   void options(char **arg, int order);
   void allocate();
-  void init_tables();
-  void free_tables();
 };
 
 }

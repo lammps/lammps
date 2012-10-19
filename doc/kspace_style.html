@@ -15,7 +15,7 @@
 </P>
 <PRE>kspace_style style value 
 </PRE>
-<UL><LI>style = <I>none</I> or <I>ewald</I> or <I>ewald/disp</I> or <I>ewald/omp</I> or <I>pppm</I> or <I>pppm/cg</I> or <I>pppm/disp</I> or <I>pppm/tip4p</I> or <I>pppm/disp/tip4p</I> or <I>pppm/gpu</I> or <I>pppm/omp</I> or <I>pppm/cg/omp</I> or <I>pppm/tip4p/omp</I> or <I>pppm/proxy</I> or <I>pppm/tip4p/proxy</I> or <I>msm</I> 
+<UL><LI>style = <I>none</I> or <I>ewald</I> or <I>ewald/disp</I> or <I>ewald/omp</I> or <I>pppm</I> or <I>pppm/cg</I> or <I>pppm/disp</I> or <I>pppm/tip4p</I> or <I>pppm/disp/tip4p</I> or <I>pppm/gpu</I> or <I>pppm/omp</I> or <I>pppm/cg/omp</I> or <I>pppm/tip4p/omp</I> or <I>msm</I> 
 
 <PRE>  <I>none</I> value = none
   <I>ewald</I> value = accuracy
@@ -42,10 +42,6 @@
   <I>pppm/cg/omp</I> value = accuracy
     accuracy = desired relative error in forces
   <I>pppm/tip4p/omp</I> value = accuracy
-    accuracy = desired relative error in forces
-  <I>pppm/proxy</I> value = accuracy
-    accuracy = desired relative error in forces
-  <I>pppm/tip4p/proxy</I> value = accuracy
     accuracy = desired relative error in forces
   <I>msm</I> value = accuracy
     accuracy = desired relative error in forces 
@@ -82,8 +78,7 @@ matching keyword to the name of the KSpace style, as in this table:
 <TR ALIGN="center"><TD >coul/long </TD><TD > ewald or pppm</TD></TR>
 <TR ALIGN="center"><TD >coul/msm </TD><TD > msm</TD></TR>
 <TR ALIGN="center"><TD >lj/long or buck/long </TD><TD > disp (for dispersion)</TD></TR>
-<TR ALIGN="center"><TD >tip4p/long </TD><TD > tip4p</TD></TR>
-<TR ALIGN="center"><TD >proxy </TD><TD > proxy 
+<TR ALIGN="center"><TD >tip4p/long </TD><TD > tip4p 
 </TD></TR></TABLE></DIV>
 
 <HR>
@@ -124,16 +119,6 @@ or not.  Its default value is 1.0e-5.
 adds a charge at the massless 4th site in each TIP4P water molecule.
 It should be used with <A HREF = "pair_style.html">pair styles</A> with a
 <I>long/tip4p</I> in their style name.
-</P>
-<P>The <I>pppm/proxy</I> and <I>pppm/tip4p/proxy</I> styles are special variants
-for calculations in hybrid OpenMP/MPI parallel mode.  They are
-functionally equivalent to <I>pppm</I> and <I>pppm/tip4p</I>, but the force
-computation is executed as a single thread concurrently with a
-multi-threaded non-bonded calculation for a pair style with <I>pppm/omp</I>
-suffix.  For calcuations across many multi-core nodes, this can have a
-performance benefit over performing the real and reciprocal space part
-separately, specifically when otherwise the time spent on the pair
-style would slightly less than in <I>pppm</I> without threading.
 </P>
 <HR>
 

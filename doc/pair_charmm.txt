@@ -17,7 +17,6 @@ pair_style lj/charmm/coul/long/cuda command :h3
 pair_style lj/charmm/coul/long/gpu command :h3
 pair_style lj/charmm/coul/long/opt command :h3
 pair_style lj/charmm/coul/long/omp command :h3
-pair_style lj/charmm/coul/long/proxy/omp command :h3
 
 [Syntax:]
 
@@ -78,19 +77,13 @@ which is a simple model for an implicit solvent with additional
 screening.  It is designed for use in a simulation of an unsolvated
 biomolecule (no explicit water molecules).
 
-Styles {lj/charmm/coul/long} and {lj/charmm/coul/long/proxy/omp}
-compute the same formulas as style {lj/charmm/coul/charmm} except that
-an additional damping factor is applied to the Coulombic term, as in
-the discussion for pair style {lj/cut/coul/long}.  Only one Coulombic
-cutoff is specified for {lj/charmm/coul/long}; if only 2 arguments are
-used in the pair_style command, then the outer LJ cutoff is used as
-the single Coulombic cutoff.  Style {lj/charmm/coul/long/proxy/omp} is
-a variant for use with K-space style "{pppm/proxy}"_kspace_style.html
-and OpenMP multi-threading and will perform the corresponding
-reciprocal space calculation concurrently with the pair calculation in
-a separate thread. For certain parallel setups, this may have a
-performance benefit over performing k-space style and pair style
-separately and one after the other.
+Styles {lj/charmm/coul/long} computes the same formulas as style
+{lj/charmm/coul/charmm} except that an additional damping factor is
+applied to the Coulombic term, as in the discussion for pair style
+{lj/cut/coul/long}.  Only one Coulombic cutoff is specified for
+{lj/charmm/coul/long}; if only 2 arguments are used in the pair_style
+command, then the outer LJ cutoff is used as the single Coulombic
+cutoff.
 
 The following coefficients must be defined for each pair of atoms
 types via the "pair_coeff"_pair_coeff.html command as in the examples

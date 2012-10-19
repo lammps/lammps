@@ -12,7 +12,7 @@ kspace_style command :h3
 
 kspace_style style value :pre
 
-style = {none} or {ewald} or {ewald/disp} or {ewald/omp} or {pppm} or {pppm/cg} or {pppm/disp} or {pppm/tip4p} or {pppm/disp/tip4p} or {pppm/gpu} or {pppm/omp} or {pppm/cg/omp} or {pppm/tip4p/omp} or {pppm/proxy} or {pppm/tip4p/proxy} or {msm} :ulb,l
+style = {none} or {ewald} or {ewald/disp} or {ewald/omp} or {pppm} or {pppm/cg} or {pppm/disp} or {pppm/tip4p} or {pppm/disp/tip4p} or {pppm/gpu} or {pppm/omp} or {pppm/cg/omp} or {pppm/tip4p/omp} or {msm} :ulb,l
   {none} value = none
   {ewald} value = accuracy
     accuracy = desired relative error in forces
@@ -38,10 +38,6 @@ style = {none} or {ewald} or {ewald/disp} or {ewald/omp} or {pppm} or {pppm/cg} 
   {pppm/cg/omp} value = accuracy
     accuracy = desired relative error in forces
   {pppm/tip4p/omp} value = accuracy
-    accuracy = desired relative error in forces
-  {pppm/proxy} value = accuracy
-    accuracy = desired relative error in forces
-  {pppm/tip4p/proxy} value = accuracy
     accuracy = desired relative error in forces
   {msm} value = accuracy
     accuracy = desired relative error in forces :pre
@@ -76,8 +72,7 @@ Pair style : KSpace style
 coul/long : ewald or pppm
 coul/msm : msm
 lj/long or buck/long : disp (for dispersion)
-tip4p/long : tip4p
-proxy : proxy :tb(s=:,ea=c)
+tip4p/long : tip4p :tb(s=:,ea=c)
 
 :line
 
@@ -117,16 +112,6 @@ The {pppm/tip4p} style is identical to the {pppm} style except that it
 adds a charge at the massless 4th site in each TIP4P water molecule.
 It should be used with "pair styles"_pair_style.html with a
 {long/tip4p} in their style name.
-
-The {pppm/proxy} and {pppm/tip4p/proxy} styles are special variants
-for calculations in hybrid OpenMP/MPI parallel mode.  They are
-functionally equivalent to {pppm} and {pppm/tip4p}, but the force
-computation is executed as a single thread concurrently with a
-multi-threaded non-bonded calculation for a pair style with {pppm/omp}
-suffix.  For calcuations across many multi-core nodes, this can have a
-performance benefit over performing the real and reciprocal space part
-separately, specifically when otherwise the time spent on the pair
-style would slightly less than in {pppm} without threading.
 
 :line
 

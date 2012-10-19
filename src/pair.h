@@ -66,6 +66,10 @@ class Pair : protected Pointers {
   int vflag_either,vflag_global,vflag_atom;
 
   int ncoultablebits;            // size of Coulomb table, accessed by KSpace
+  double tabinnersq;
+  double *rtable,*drtable,*ftable,*dftable,*ctable,*dctable;
+  double *etable,*detable,*ptable,*dptable,*vtable,*dvtable;
+  int ncoulshiftbits,ncoulmask;
 
   int nextra;                    // # of extra quantities pair style calculates
   double *pvector;               // vector of extra pair quantities
@@ -130,6 +134,9 @@ class Pair : protected Pointers {
   virtual void init_list(int, class NeighList *);
   virtual double init_one(int, int) {return 0.0;}
 
+  virtual void init_tables(double, double *);
+  virtual void free_tables();
+
   virtual void write_restart(FILE *) {}
   virtual void read_restart(FILE *) {}
   virtual void write_restart_settings(FILE *) {}
@@ -179,7 +186,6 @@ class Pair : protected Pointers {
                          double, double, double, double, double, double);
   void ev_tally4(int, int, int, int, double,
                  double *, double *, double *, double *, double *, double *);
-  void ev_tally_list(int, int *, double, double *);
   void ev_tally_tip4p(int, int *, double *, double, double);
   void v_tally2(int, int, double, double *);
   void v_tally_tensor(int, int, int, int,

@@ -29,6 +29,7 @@
 #include "domain.h"
 #include "comm.h"
 #include "force.h"
+#include "kspace.h"
 #include "update.h"
 #include "accelerator_cuda.h"
 #include "suffix.h"
@@ -37,6 +38,8 @@
 #include "error.h"
 
 using namespace LAMMPS_NS;
+
+#define EWALD_F   1.12837917
 
 enum{RLINEAR,RSQ,BMP};
 
@@ -239,6 +242,236 @@ void Pair::init_style()
 void Pair::init_list(int which, NeighList *ptr)
 {
   list = ptr;
+}
+
+/* ----------------------------------------------------------------------
+   setup force tables used in compute routines
+------------------------------------------------------------------------- */
+
+void Pair::init_tables(double cut_coul, double *cut_respa)
+{
+  int masklo,maskhi;
+  double r,grij,expm2,derfc,egamma,fgamma,rsw;
+  double qqrd2e = force->qqrd2e;
+
+  if (force->kspace == NULL)
+    error->all(FLERR,"Pair style requres a KSpace style");
+  double g_ewald = force->kspace->g_ewald;
+  
+  double cut_coulsq = cut_coul * cut_coul;
+  
+  tabinnersq = tabinner*tabinner;
+  init_bitmap(tabinner,cut_coul,ncoultablebits,
+              masklo,maskhi,ncoulmask,ncoulshiftbits);
+
+  int ntable = 1;
+  for (int i = 0; i < ncoultablebits; i++) ntable *= 2;
+
+  // linear lookup tables of length N = 2^ncoultablebits
+  // stored value = value at lower edge of bin
+  // d values = delta from lower edge to upper edge of bin
+
+  if (ftable) free_tables();
+
+  memory->create(rtable,ntable,"pair:rtable");
+  memory->create(ftable,ntable,"pair:ftable");
+  memory->create(ctable,ntable,"pair:ctable");
+  memory->create(etable,ntable,"pair:etable");
+  memory->create(drtable,ntable,"pair:drtable");
+  memory->create(dftable,ntable,"pair:dftable");
+  memory->create(dctable,ntable,"pair:dctable");
+  memory->create(detable,ntable,"pair:detable");
+
+  if (cut_respa == NULL) {
+    vtable = ptable = dvtable = dptable = NULL;
+  } else {
+    memory->create(vtable,ntable,"pair:vtable");
+    memory->create(ptable,ntable,"pair:ptable");
+    memory->create(dvtable,ntable,"pair:dvtable");
+    memory->create(dptable,ntable,"pair:dptable");
+  }
+
+  union_int_float_t rsq_lookup;
+  union_int_float_t minrsq_lookup;
+  int itablemin;
+  minrsq_lookup.i = 0 << ncoulshiftbits;
+  minrsq_lookup.i |= maskhi;
+
+  for (int i = 0; i < ntable; i++) {
+    rsq_lookup.i = i << ncoulshiftbits;
+    rsq_lookup.i |= masklo;
+    if (rsq_lookup.f < tabinnersq) {
+      rsq_lookup.i = i << ncoulshiftbits;
+      rsq_lookup.i |= maskhi;
+    }
+    r = sqrtf(rsq_lookup.f);
+    if (msmflag) {
+      egamma = 1.0 - (r/cut_coul)*force->kspace->gamma(r/cut_coul);
+      fgamma = 1.0 + (rsq_lookup.f/cut_coulsq)*force->kspace->dgamma(r/cut_coul);
+    } else {
+      grij = g_ewald * r;
+      expm2 = exp(-grij*grij);
+      derfc = erfc(grij);
+    }
+    if (cut_respa == NULL) {
+      rtable[i] = rsq_lookup.f;
+      ctable[i] = qqrd2e/r;
+      if (msmflag) {
+        ftable[i] = qqrd2e/r * fgamma;
+        etable[i] = qqrd2e/r * egamma;
+      } else {
+        ftable[i] = qqrd2e/r * (derfc + EWALD_F*grij*expm2);
+        etable[i] = qqrd2e/r * derfc;
+      }
+    } else {
+      rtable[i] = rsq_lookup.f;
+      ctable[i] = 0.0;
+      ptable[i] = qqrd2e/r;
+      if (msmflag) {
+        ftable[i] = qqrd2e/r * (fgamma - 1.0);
+        etable[i] = qqrd2e/r * egamma;
+        vtable[i] = qqrd2e/r * fgamma;
+      } else {
+        ftable[i] = qqrd2e/r * (derfc + EWALD_F*grij*expm2 - 1.0);
+        etable[i] = qqrd2e/r * derfc;
+        vtable[i] = qqrd2e/r * (derfc + EWALD_F*grij*expm2);
+      }
+      if (rsq_lookup.f > cut_respa[2]*cut_respa[2]) {
+        if (rsq_lookup.f < cut_respa[3]*cut_respa[3]) {
+          rsw = (r - cut_respa[2])/(cut_respa[3] - cut_respa[2]);
+          ftable[i] += qqrd2e/r * rsw*rsw*(3.0 - 2.0*rsw);
+          ctable[i] = qqrd2e/r * rsw*rsw*(3.0 - 2.0*rsw);
+        } else {
+          if (msmflag) ftable[i] = qqrd2e/r * fgamma;
+          else ftable[i] = qqrd2e/r * (derfc + EWALD_F*grij*expm2);
+          ctable[i] = qqrd2e/r;
+        }
+      }
+    }
+    minrsq_lookup.f = MIN(minrsq_lookup.f,rsq_lookup.f);
+  }
+
+  tabinnersq = minrsq_lookup.f;
+
+  int ntablem1 = ntable - 1;
+
+  for (int i = 0; i < ntablem1; i++) {
+    drtable[i] = 1.0/(rtable[i+1] - rtable[i]);
+    dftable[i] = ftable[i+1] - ftable[i];
+    dctable[i] = ctable[i+1] - ctable[i];
+    detable[i] = etable[i+1] - etable[i];
+  }
+
+  if (cut_respa) {
+    for (int i = 0; i < ntablem1; i++) {
+      dvtable[i] = vtable[i+1] - vtable[i];
+      dptable[i] = ptable[i+1] - ptable[i];
+    }
+  }
+
+  // get the delta values for the last table entries
+  // tables are connected periodically between 0 and ntablem1
+
+  drtable[ntablem1] = 1.0/(rtable[0] - rtable[ntablem1]);
+  dftable[ntablem1] = ftable[0] - ftable[ntablem1];
+  dctable[ntablem1] = ctable[0] - ctable[ntablem1];
+  detable[ntablem1] = etable[0] - etable[ntablem1];
+  if (cut_respa) {
+    dvtable[ntablem1] = vtable[0] - vtable[ntablem1];
+    dptable[ntablem1] = ptable[0] - ptable[ntablem1];
+  }
+
+  // get the correct delta values at itablemax
+  // smallest r is in bin itablemin
+  // largest r is in bin itablemax, which is itablemin-1,
+  //   or ntablem1 if itablemin=0
+  // deltas at itablemax only needed if corresponding rsq < cut*cut
+  // if so, compute deltas between rsq and cut*cut
+
+  double f_tmp,c_tmp,e_tmp,p_tmp,v_tmp;
+  p_tmp = 0.0;
+  v_tmp = 0.0;
+  itablemin = minrsq_lookup.i & ncoulmask;
+  itablemin >>= ncoulshiftbits;
+  int itablemax = itablemin - 1;
+  if (itablemin == 0) itablemax = ntablem1;
+  rsq_lookup.i = itablemax << ncoulshiftbits;
+  rsq_lookup.i |= maskhi;
+
+  if (rsq_lookup.f < cut_coulsq) {
+    rsq_lookup.f = cut_coulsq;
+    r = sqrtf(rsq_lookup.f);
+    if (msmflag) {
+      egamma = 1.0 - (r/cut_coul)*force->kspace->gamma(r/cut_coul);
+      fgamma = 1.0 + (rsq_lookup.f/cut_coulsq)*force->kspace->dgamma(r/cut_coul);
+    } else {
+      grij = g_ewald * r;
+      expm2 = exp(-grij*grij);
+      derfc = erfc(grij);
+    }
+    if (cut_respa == NULL) {
+      c_tmp = qqrd2e/r;
+      if (msmflag) {
+        f_tmp = qqrd2e/r * fgamma;
+        e_tmp = qqrd2e/r * egamma;
+      } else {
+        f_tmp = qqrd2e/r * (derfc + EWALD_F*grij*expm2);
+        e_tmp = qqrd2e/r * derfc;
+      }
+    } else {
+      c_tmp = 0.0;
+      p_tmp = qqrd2e/r;
+      if (msmflag) {
+        f_tmp = qqrd2e/r * (fgamma - 1.0);
+        e_tmp = qqrd2e/r * egamma;
+        v_tmp = qqrd2e/r * fgamma;
+      } else {
+        f_tmp = qqrd2e/r * (derfc + EWALD_F*grij*expm2 - 1.0);
+        e_tmp = qqrd2e/r * derfc;
+        v_tmp = qqrd2e/r * (derfc + EWALD_F*grij*expm2);
+      }
+      if (rsq_lookup.f > cut_respa[2]*cut_respa[2]) {
+        if (rsq_lookup.f < cut_respa[3]*cut_respa[3]) {
+          rsw = (r - cut_respa[2])/(cut_respa[3] - cut_respa[2]);
+          f_tmp += qqrd2e/r * rsw*rsw*(3.0 - 2.0*rsw);
+          c_tmp = qqrd2e/r * rsw*rsw*(3.0 - 2.0*rsw);
+        } else {
+          if (msmflag) f_tmp = qqrd2e/r * fgamma;
+          else f_tmp = qqrd2e/r * (derfc + EWALD_F*grij*expm2);
+          c_tmp = qqrd2e/r;
+        }
+      }
+    }
+
+    drtable[itablemax] = 1.0/(rsq_lookup.f - rtable[itablemax]);
+    dftable[itablemax] = f_tmp - ftable[itablemax];
+    dctable[itablemax] = c_tmp - ctable[itablemax];
+    detable[itablemax] = e_tmp - etable[itablemax];
+    if (cut_respa) {
+      dvtable[itablemax] = v_tmp - vtable[itablemax];
+      dptable[itablemax] = p_tmp - ptable[itablemax];
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   free memory for tables used in pair computations
+------------------------------------------------------------------------- */
+
+void Pair::free_tables()
+{
+  memory->destroy(rtable);
+  memory->destroy(drtable);
+  memory->destroy(ftable);
+  memory->destroy(dftable);
+  memory->destroy(ctable);
+  memory->destroy(dctable);
+  memory->destroy(etable);
+  memory->destroy(detable);
+  memory->destroy(vtable);
+  memory->destroy(dvtable);
+  memory->destroy(ptable);
+  memory->destroy(dptable);
 }
 
 /* ----------------------------------------------------------------------
@@ -753,54 +986,6 @@ void Pair::ev_tally4(int i, int j, int k, int m, double evdwl,
     vatom[k][3] += v[3]; vatom[k][4] += v[4]; vatom[k][5] += v[5];
     vatom[m][0] += v[0]; vatom[m][1] += v[1]; vatom[m][2] += v[2];
     vatom[m][3] += v[3]; vatom[m][4] += v[4]; vatom[m][5] += v[5];
-  }
-}
-
-/* ----------------------------------------------------------------------
-   tally ecoul and virial into each of n atoms in list
-   used to be called by TIP4P potential, newton_pair is always on
-   per-atom case changes v values by dividing them by n
- ------------------------------------------------------------------------- */
-
-void Pair::ev_tally_list(int n, int *list, double ecoul, double *v)
-{
-  int i,j;
-
-  if (eflag_either) {
-    if (eflag_global) eng_coul += ecoul;
-    if (eflag_atom) {
-      double epairatom = ecoul/n;
-      for (i = 0; i < n; i++) eatom[list[i]] += epairatom;
-    }
-  }
-
-  if (vflag_either) {
-    if (vflag_global) {
-      virial[0] += v[0];
-      virial[1] += v[1];
-      virial[2] += v[2];
-      virial[3] += v[3];
-      virial[4] += v[4];
-      virial[5] += v[5];
-    }
-
-    if (vflag_atom) {
-      v[0] /= n;
-      v[1] /= n;
-      v[2] /= n;
-      v[3] /= n;
-      v[4] /= n;
-      v[5] /= n;
-      for (i = 0; i < n; i++) {
-        j = list[i];
-        vatom[j][0] += v[0];
-        vatom[j][1] += v[1];
-        vatom[j][2] += v[2];
-        vatom[j][3] += v[3];
-        vatom[j][4] += v[4];
-        vatom[j][5] += v[5];
-      }
-    }
   }
 }
 

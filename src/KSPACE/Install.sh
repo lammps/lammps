@@ -2,6 +2,7 @@
 
 if (test $1 = 1) then
 
+  cp commgrid.cpp ..
   cp ewald.cpp ..
   cp ewald_disp.cpp ..
   cp msm.cpp ..
@@ -30,6 +31,7 @@ if (test $1 = 1) then
   cp remap.cpp ..
   cp remap_wrap.cpp ..
 
+  cp commgrid.h ..
   cp ewald.h ..
   cp ewald_disp.h ..
   cp msm.h ..
@@ -63,6 +65,7 @@ if (test $1 = 1) then
 
 elif (test $1 = 0) then
 
+  rm -f ../commgrid.cpp
   rm -f ../ewald.cpp
   rm -f ../ewald_disp.cpp
   rm -f ../msm.cpp
@@ -91,6 +94,7 @@ elif (test $1 = 0) then
   rm -f ../remap.cpp
   rm -f ../remap_wrap.cpp
 
+  rm -f ../commgrid.h
   rm -f ../ewald.h
   rm -f ../ewald_disp.h
   rm -f ../msm.h

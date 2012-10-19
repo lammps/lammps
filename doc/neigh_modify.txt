@@ -13,7 +13,7 @@ neigh_modify command :h3
 neigh_modify keyword values ... :pre
 
 one or more keyword/value pairs may be listed :ulb,l
-keyword = {delay} or {every} or {check} or {once} or {include} or {exclude} or {page} or {one} or {binsize}
+keyword = {delay} or {every} or {check} or {once} or {cluster} or {include} or {exclude} or {page} or {one} or {binsize}
   {delay} value = N
     N = delay building until this many steps since last build
   {every} value = M
@@ -24,6 +24,9 @@ keyword = {delay} or {every} or {check} or {once} or {include} or {exclude} or {
   {once}
     {yes} = only build neighbor list once at start of run and never rebuild
     {no} = rebuild neighbor list according to other settings
+  {cluster}
+    {yes} = check bond,angle,etc neighbor list for nearby clusters
+    {no} = do not check bond,angle,etc neighbor list for nearby clusters
   {include} value = group-ID
     group-ID = only build pair neighbor lists for atoms in this group
   {exclude} values:
@@ -75,6 +78,21 @@ lists should be rebuilt.
 When the rRESPA integrator is used (see the "run_style"_run_style.html
 command), the {every} and {delay} parameters refer to the longest
 (outermost) timestep.
+
+The {cluster} option does a sanity test every time neighbor lists are
+built for bond, angle, dihedral, and improper interactions, to check
+that each set of 2, 3, or 4 atoms is a cluster of nearby atoms.  It
+does this by computing the distance between pairs of atoms in the
+interaction and insuring they are not further apart than half the
+periodic box length.  If they are, an error is generated, since the
+interaction would be computed between far-away atoms instead of their
+nearby periodic images.  The only way this should happen is if the
+pairwise cutoff is so short that atoms that are part of the same
+interaction are not communicated as ghost atoms.  This is an unusual
+model (e.g. no pair interactions at all) and the problem can be fixed
+by use of the "communicate cutoff"_communicate.html command.  Note
+that to save time, the default {cluster} setting is {no}, so that this
+check is not performed.
 
 The {include} option limits the building of pairwise neighbor lists to
 atoms in the specified group.  This can be useful for models where a
@@ -182,4 +200,5 @@ space.
 [Default:]
 
 The option defaults are delay = 10, every = 1, check = yes, once = no,
-include = all, exclude = none, page = 100000, one = 2000, and binsize = 0.0.
+cluster = no, include = all, exclude = none, page = 100000, one =
+2000, and binsize = 0.0.

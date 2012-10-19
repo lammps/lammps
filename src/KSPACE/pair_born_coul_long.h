@@ -46,6 +46,7 @@ class PairBornCoulLong : public Pair {
   double cut_coul,cut_coulsq;
   double **a,**rho,**sigma,**c,**d;
   double **rhoinv,**born1,**born2,**born3,**offset;
+  double *cut_respa;
   double g_ewald;
 
   void allocate();

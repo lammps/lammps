@@ -24,6 +24,7 @@
 #include "msm.h"
 #include "atom.h"
 #include "comm.h"
+#include "commgrid.h"
 #include "neighbor.h"
 #include "force.h"
 #include "pair.h"
@@ -45,6 +46,8 @@ using namespace MathConst;
 #define SMALL 0.00001
 #define LARGE 10000.0
 
+enum{REVERSE_RHO};
+enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM};
 /* ---------------------------------------------------------------------- */
 
 MSM::MSM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
@@ -62,8 +65,6 @@ MSM::MSM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 
-  buf1 = buf2 = buf3 = buf4 = NULL;
-
   phi1d = dphi1d = NULL;
 
   nmax = 0;
@@ -77,10 +78,14 @@ MSM::MSM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
 
   v0_direct = v1_direct = v2_direct = NULL;
   v3_direct = v4_direct = v5_direct = NULL;
+  
+  cg = NULL;
+  cg_peratom = NULL;
 
   levels = 0;
   
   order = 4;
+  minorder = 4;
 
   differentiation_flag = 1;
 }
@@ -142,12 +147,8 @@ void MSM::init()
   }
 
   if (order%2 != 0) error->all(FLERR,"MSM order must be 4, 6, 8, or 10");
-
-  // free all arrays previously allocated
-
-  deallocate();
-  deallocate_peratom();
-  peratom_allocate_flag = 0;
+  
+  if (minorder < 4) error->all(FLERR,"MSM minorder can't be < 4");
 
   // extract short-range Coulombic cutoff from pair style
 
@@ -192,259 +193,75 @@ void MSM::init()
 
   if (accuracy_absolute >= 0.0) accuracy = accuracy_absolute;
   else accuracy = accuracy_relative * two_charge_force;
+  
+  // free all arrays previously allocated
 
-  // setup grid resolution
+  deallocate();
+  deallocate_peratom();
+  peratom_allocate_flag = 0;
 
-  set_grid();
+  // setup MSM grid resolution
+  // normally one iteration thru while loop is all that is required
+  // if grid stencil does not extend beyond neighbor proc
+  //   or overlap is allowed, then done
+  // else reduce order and try again
 
-  int flag_global = 0;
+  int (*procneigh)[2] = comm->procneigh;
 
-  if (nx_msm[0] >= OFFSET || ny_msm[0] >= OFFSET || nz_msm[0] >= OFFSET)
-    error->all(FLERR,"MSM grid is too large");
+  CommGrid *cgtmp = NULL;
+  int iteration = 0;
 
-  // loop over grid levels
+  while (order >= minorder) {
+    if (iteration && me == 0)
+      error->warning(FLERR,"Reducing MSM order b/c stencil extends "
+                     "beyond nearest neighbor processor");
 
-  for (int n=0; n<levels; n++) {
+    set_grid_global();
+    set_grid_local();
+    if (overlap_allowed) break;
 
-    // global indices of MSM grid range from 0 to N-1
-    // nlo_in,nhi_in = lower/upper limits of the 3d sub-brick of
-    //   global MSM grid that I own without ghost cells
+    cgtmp = new CommGrid(lmp,world,1,1,
+                         nxlo_in[0],nxhi_in[0],nylo_in[0],nyhi_in[0],nzlo_in[0],nzhi_in[0],
+                         nxlo_out[0],nxhi_out[0],nylo_out[0],nyhi_out[0],nzlo_out[0],nzhi_out[0],
+                         procneigh[0][0],procneigh[0][1],procneigh[1][0],
+                         procneigh[1][1],procneigh[2][0],procneigh[2][1]);
+    cgtmp->ghost_notify();
+    if (!cgtmp->ghost_overlap()) break;
+    delete cgtmp;
 
-    if (n == 0) {
-
-      nxlo_in_d[n] = static_cast<int> (comm->xsplit[comm->myloc[0]] * nx_msm[n]);
-      nxhi_in_d[n] = static_cast<int> (comm->xsplit[comm->myloc[0]+1] * nx_msm[n]) - 1;
-
-      nylo_in_d[n] = static_cast<int> (comm->ysplit[comm->myloc[1]] * ny_msm[n]);
-      nyhi_in_d[n] = static_cast<int> (comm->ysplit[comm->myloc[1]+1] * ny_msm[n]) - 1;
-
-      nzlo_in_d[n] = static_cast<int> (comm->zsplit[comm->myloc[2]] * nz_msm[n]);
-      nzhi_in_d[n] = static_cast<int> (comm->zsplit[comm->myloc[2]+1] * nz_msm[n]) - 1;
-
-    } else {
-
-      nxlo_in_d[n] = 0;
-      nxhi_in_d[n] = nx_msm[n] - 1;
-
-      nylo_in_d[n] = 0;
-      nyhi_in_d[n] = ny_msm[n] - 1;
-
-      nzlo_in_d[n] = 0;
-      nzhi_in_d[n] = nz_msm[n] - 1;
-    }
-
-    // Use simple method of parallel communication for now
-
-    nxlo_in[n] = 0;
-    nxhi_in[n] = nx_msm[n] - 1;
-
-    nylo_in[n] = 0;
-    nyhi_in[n] = ny_msm[n] - 1;
-
-    nzlo_in[n] = 0;
-    nzhi_in[n] = nz_msm[n] - 1;
-
-    // nlower,nupper = stencil size for mapping particles to MSM grid
-
-    nlower = -(order-1)/2;
-    nupper = order/2;
-
-    // shift values for particle <-> grid mapping
-    // add/subtract OFFSET to avoid int(-0.75) = 0 when want it to be -1
-
-    // nlo_out,nhi_out = lower/upper limits of the 3d sub-brick of
-    //   global MSM grid that my particles can contribute charge to
-    // effectively nlo_in,nhi_in + ghost cells
-    // nlo,nhi = global coords of grid pt to "lower left" of smallest/largest
-    //           position a particle in my box can be at
-    // dist[3] = particle position bound = subbox + skin/2.0
-    // nlo_out,nhi_out = nlo,nhi + stencil size for particle mapping
-
-    double *prd,*sublo,*subhi;
-
-    //prd = domain->prd;
-    //boxlo = domain->boxlo;
-    //sublo = domain->sublo;
-    //subhi = domain->subhi;
-
-    // Use only one partition for now
-
-    prd = domain->prd;
-    boxlo = domain->boxlo;
-    sublo = boxlo;
-    subhi = domain->boxhi;
-
-    double xprd = prd[0];
-    double yprd = prd[1];
-    double zprd = prd[2];
-
-    double dist[3];
-    double cuthalf = 0.0;
-    if (n == 0) cuthalf = 0.5*neighbor->skin; // Only applies to finest grid
-    dist[0] = dist[1] = dist[2] = cuthalf;
-
-    int nlo,nhi;
-
-    nlo = static_cast<int> ((sublo[0]-dist[0]-boxlo[0]) *
-                            nx_msm[n]/xprd + OFFSET) - OFFSET;
-    nhi = static_cast<int> ((subhi[0]+dist[0]-boxlo[0]) *
-                            nx_msm[n]/xprd + OFFSET) - OFFSET;
-    nxlo_out[n] = nlo + nlower;
-    nxhi_out[n] = nhi + nupper;
-
-    nlo = static_cast<int> ((sublo[1]-dist[1]-boxlo[1]) *
-                            ny_msm[n]/yprd + OFFSET) - OFFSET;
-    nhi = static_cast<int> ((subhi[1]+dist[1]-boxlo[1]) *
-                            ny_msm[n]/yprd + OFFSET) - OFFSET;
-    nylo_out[n] = nlo + nlower;
-    nyhi_out[n] = nhi + nupper;
-
-    nlo = static_cast<int> ((sublo[2]-dist[2]-boxlo[2]) *
-                            nz_msm[n]/zprd + OFFSET) - OFFSET;
-    nhi = static_cast<int> ((subhi[2]+dist[2]-boxlo[2]) *
-                            nz_msm[n]/zprd + OFFSET) - OFFSET;
-    nzlo_out[n] = nlo + nlower;
-    nzhi_out[n] = nhi + nupper;
-
-    // nlo_ghost,nhi_ghost = # of planes I will recv from 6 directions
-    //   that overlay domain I own
-    // proc in that direction tells me via sendrecv()
-    // if no neighbor proc, value is from self since I have ghosts regardless
-
-    int nplanes;
-    MPI_Status status;
-
-    nplanes = nxlo_in[n] - nxlo_out[n];
-    if (comm->procneigh[0][0] != me)
-      MPI_Sendrecv(&nplanes,1,MPI_INT,comm->procneigh[0][0],0,
-                   &nxhi_ghost[n],1,MPI_INT,comm->procneigh[0][1],0,
-                   world,&status);
-    else nxhi_ghost[n] = nplanes;
-
-    nplanes = nxhi_out[n] - nxhi_in[n];
-    if (comm->procneigh[0][1] != me)
-      MPI_Sendrecv(&nplanes,1,MPI_INT,comm->procneigh[0][1],0,
-                   &nxlo_ghost[n],1,MPI_INT,comm->procneigh[0][0],
-                   0,world,&status);
-    else nxlo_ghost[n] = nplanes;
-
-    nplanes = nylo_in[n] - nylo_out[n];
-    if (comm->procneigh[1][0] != me)
-      MPI_Sendrecv(&nplanes,1,MPI_INT,comm->procneigh[1][0],0,
-                   &nyhi_ghost[n],1,MPI_INT,comm->procneigh[1][1],0,
-                   world,&status);
-    else nyhi_ghost[n] = nplanes;
-
-    nplanes = nyhi_out[n] - nyhi_in[n];
-    if (comm->procneigh[1][1] != me)
-      MPI_Sendrecv(&nplanes,1,MPI_INT,comm->procneigh[1][1],0,
-                   &nylo_ghost[n],1,MPI_INT,comm->procneigh[1][0],0,
-                   world,&status);
-    else nylo_ghost[n] = nplanes;
-
-    nplanes = nzlo_in[n] - nzlo_out[n];
-    if (comm->procneigh[2][0] != me)
-      MPI_Sendrecv(&nplanes,1,MPI_INT,comm->procneigh[2][0],0,
-                   &nzhi_ghost[n],1,MPI_INT,comm->procneigh[2][1],0,
-                   world,&status);
-    else nzhi_ghost[n] = nplanes;
-
-    nplanes = nzhi_out[n] - nzhi_in[n];
-    if (comm->procneigh[2][1] != me)
-      MPI_Sendrecv(&nplanes,1,MPI_INT,comm->procneigh[2][1],0,
-                   &nzlo_ghost[n],1,MPI_INT,comm->procneigh[2][0],0,
-                   world,&status);
-    else nzlo_ghost[n] = nplanes;
-
-    int flag = 0;
-
-    if (n == 0) {
-
-      // test that ghost overlap is not bigger than my sub-domain
-
-      if (nxlo_ghost[n] > nxhi_in[n]-nxlo_in[n]+1) flag = 1;
-      if (nxhi_ghost[n] > nxhi_in[n]-nxlo_in[n]+1) flag = 1;
-      if (nylo_ghost[n] > nyhi_in[n]-nylo_in[n]+1) flag = 1;
-      if (nyhi_ghost[n] > nyhi_in[n]-nylo_in[n]+1) flag = 1;
-      if (nzlo_ghost[n] > nzhi_in[n]-nzlo_in[n]+1) flag = 1;
-      if (nzhi_ghost[n] > nzhi_in[n]-nzlo_in[n]+1) flag = 1;
-    }
-
-    int flag_all;
-    MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
-
-    if (flag_all != 0) {
-      char str[128];
-      sprintf(str,"MSM parallel communication error, try reducing number of procs");
-      error->all(FLERR,str);
-    }
-
-  // MSM grids for this proc, including ghosts
-
-  ngrid[n] = (nxhi_out[n]-nxlo_out[n]+1) * (nyhi_out[n]-nylo_out[n]+1) *
-    (nzhi_out[n]-nzlo_out[n]+1);
+    order-=2;
+    iteration++;
   }
-
-
-  // buffer space for use in ghost_swap and fillbrick
-  // idel = max # of ghost planes to send or recv in +/- dir of each dim
-  // nx,ny,nz = owned planes (including ghosts) in each dim
-  // nxx,nyy,nzz = max # of grid cells to send in each dim
-  // nbuf = max in any dim, augment by 3x for components of vd_xyz in fillbrick
-
-  int idelx,idely,idelz,nx,ny,nz,nxx,nyy,nzz;
-
-  idelx = MAX(nxlo_ghost[0],nxhi_ghost[0]);
-  idelx = MAX(idelx,nxhi_out[0]-nxhi_in[0]);
-  idelx = MAX(idelx,nxlo_in[0]-nxlo_out[0]);
-
-  idely = MAX(nylo_ghost[0],nyhi_ghost[0]);
-  idely = MAX(idely,nyhi_out[0]-nyhi_in[0]);
-  idely = MAX(idely,nylo_in[0]-nylo_out[0]);
-
-  idelz = MAX(nzlo_ghost[0],nzhi_ghost[0]);
-  idelz = MAX(idelz,nzhi_out[0]-nzhi_in[0]);
-  idelz = MAX(idelz,nzlo_in[0]-nzlo_out[0]);
-
-  nx = nxhi_out[0] - nxlo_out[0] + 1;
-  ny = nyhi_out[0] - nylo_out[0] + 1;
-  nz = nzhi_out[0] - nzlo_out[0] + 1;
-
-  nxx = idelx * ny * nz;
-  nyy = idely * nx * nz;
-  nzz = idelz * nx * ny;
-
-  nbuf = MAX(nxx,nyy);
-  nbuf = MAX(nbuf,nzz);
-
-  nbuf_peratom = 7*nbuf;
-  if (!differentiation_flag) {
-    nbuf *= 3;
-  }
-
+  
+  if (order < minorder) error->all(FLERR,"MSM order < minimum allowed order");  
+  
+  if (!overlap_allowed && cgtmp->ghost_overlap())
+    error->all(FLERR,"MSM grid stencil extends "
+               "beyond nearest neighbor processor");
+  if (cgtmp) delete cgtmp;
+  
   double estimated_error = estimate_total_error();
 
   // print stats
 
-  int ngrid_max,nbuf_max;
+  int ngrid_max;
 
   // All processors have a copy of the complete grid at each level
 
-  nbuf_max = nbuf;
   ngrid_max = ngrid[0];
 
   if (me == 0) {
     if (screen) {
-      fprintf(screen,"  brick buffer size/proc = %d %d\n",
-                        ngrid_max,nbuf_max);
+      fprintf(screen,"  3d grid size/proc = %d\n",
+                        ngrid_max);
       fprintf(screen,"  estimated absolute RMS force accuracy = %g\n",
               estimated_error);
       fprintf(screen,"  estimated relative force accuracy = %g\n",
               estimated_error/two_charge_force);
     }
     if (logfile) {
-      fprintf(logfile,"  brick buffer size/proc = %d %d\n",
-                         ngrid_max,nbuf_max);
+      fprintf(logfile,"  3d grid size/proc = %d\n",
+                         ngrid_max);
       fprintf(logfile,"  estimated absolute RMS force accuracy = %g\n",
               estimated_error);
       fprintf(logfile,"  estimated relative force accuracy = %g\n",
@@ -453,8 +270,80 @@ void MSM::init()
   }
 
   // allocate K-space dependent memory
+  // don't invoke allocate_peratom(), compute() will allocate when needed
 
   allocate();
+  cg->ghost_notify();
+  cg->setup();
+  
+  // Output grid stats
+
+  if (me == 0) {
+    if (screen) {
+      fprintf(screen,"  grid = %d %d %d\n",nx_msm[0],ny_msm[0],nz_msm[0]);
+      fprintf(screen,"  stencil order = %d\n",order);
+    }
+    if (logfile) {
+      fprintf(logfile,"  grid = %d %d %d\n",nx_msm[0],ny_msm[0],nz_msm[0]);
+      fprintf(logfile,"  stencil order = %d\n",order);
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   estimate cutoff for a given grid spacing and error 
+------------------------------------------------------------------------- */
+
+double MSM::estimate_a(double h, double prd)
+{
+  double a;
+  int p = order - 1;
+  
+  double Mp,cprime,error_scaling; 
+  Mp = cprime = error_scaling = 1;
+  // Mp values from Table 5.1 of Hardy's thesis
+  // cprime values from equation 4.17 of Hardy's thesis
+  // error scaling from empirical fitting to convert to rms force errors
+  if (p == 3) {
+    Mp = 9;
+    cprime = 1.0/6.0;
+    if (differentiation_flag) error_scaling = 0.39189561;
+    else error_scaling = 0.215328372;
+  } else if (p == 5) {
+    Mp = 825;
+    cprime = 1.0/30.0;
+    if (differentiation_flag) error_scaling = 0.150829428;
+    else error_scaling = 0.10751471;
+  } else if (p == 7) {
+    Mp = 130095;
+    cprime = 1.0/140.0;
+    if (differentiation_flag) error_scaling = 0.049632967;
+    else error_scaling = 0.047579461;
+  } else if (p == 9) {
+    Mp = 34096545;
+    cprime = 1.0/630.0;
+    if (differentiation_flag) error_scaling = 0.013520855;
+    else error_scaling = 0.010403771;
+  } else {
+    error->all(FLERR,"MSM order must be 4, 6, 8, or 10");
+  }
+  
+  // equation 4.1 from Hardy's thesis
+  double C_p = 4.0*cprime*Mp/3.0;
+  
+  // use empirical parameters to convert to rms force errors
+  C_p *= error_scaling;
+  
+  // equation 3.200 from Hardy's thesis
+
+  a = C_p*pow(h,(p-1))/accuracy;
+  
+  // include dependency of error on other terms
+  a *= q2/(prd*sqrt(atom->natoms));
+  
+  a = pow(a,1.0/double(p));
+  
+  return a;  
 }
 
 /* ----------------------------------------------------------------------
@@ -621,6 +510,8 @@ void MSM::compute(int eflag, int vflag)
 
   if (evflag_atom && !peratom_allocate_flag) {
     allocate_peratom();
+    cg_peratom->ghost_notify();
+    cg_peratom->setup();
     peratom_allocate_flag = 1;
   }
 
@@ -642,7 +533,7 @@ void MSM::compute(int eflag, int vflag)
   // all procs communicate density values from their ghost cells
   //   to fully sum contribution in their 3d bricks
 
-  ghost_swap(0);
+  cg->reverse_comm(this,REVERSE_RHO);
 
   grid_swap(0,qgrid[0]);
 
@@ -704,10 +595,18 @@ void MSM::compute(int eflag, int vflag)
   // all procs communicate E-field values
   // to fill ghost cells surrounding their 3d bricks
 
-  if (differentiation_flag || evflag_atom) fillbrick_ad_peratom(0);
-
-  if (!differentiation_flag) fillbrick(0);
-
+  if (differentiation_flag) cg->forward_comm(this,FORWARD_AD);
+  else cg->forward_comm(this,FORWARD_IK);
+  
+  // extra per-atom energy/virial communication
+  
+  if (evflag_atom) {
+    if (differentiation_flag && vflag_atom) 
+      cg_peratom->forward_comm(this,FORWARD_AD_PERATOM);
+    else if (!differentiation_flag)
+      cg_peratom->forward_comm(this,FORWARD_IK_PERATOM);
+  }
+  
   // calculate the force on my particles (interpolation)
 
   if (differentiation_flag) fieldforce_ad();
@@ -761,14 +660,6 @@ void MSM::compute(int eflag, int vflag)
 
 void MSM::allocate()
 {
-  memory->create(buf1,nbuf,"msm:buf1");
-  memory->create(buf2,nbuf,"msm:buf2");
-
-  if (differentiation_flag) {
-    memory->create(buf3,nbuf_peratom,"msm:buf3");
-    memory->create(buf4,nbuf_peratom,"msm:buf4");
-  }
-
   // summation coeffs
 
   memory->create2d_offset(phi1d,3,-order+1,order-1,"msm:phi1d");
@@ -792,6 +683,23 @@ void MSM::allocate()
               nylo_out[n],nyhi_out[n],nxlo_out[n],nxhi_out[n],"msm:fzgrid");
     }
   }
+  
+  // create ghost grid object for rho and electric field communication
+
+  int (*procneigh)[2] = comm->procneigh;
+
+  if (differentiation_flag)
+    cg = new CommGrid(lmp,world,1,1,
+                      nxlo_in[0],nxhi_in[0],nylo_in[0],nyhi_in[0],nzlo_in[0],nzhi_in[0],
+                      nxlo_out[0],nxhi_out[0],nylo_out[0],nyhi_out[0],nzlo_out[0],nzhi_out[0],
+                      procneigh[0][0],procneigh[0][1],procneigh[1][0],
+                      procneigh[1][1],procneigh[2][0],procneigh[2][1]);
+  else
+    cg = new CommGrid(lmp,world,3,1,
+                      nxlo_in[0],nxhi_in[0],nylo_in[0],nyhi_in[0],nzlo_in[0],nzhi_in[0],
+                      nxlo_out[0],nxhi_out[0],nylo_out[0],nyhi_out[0],nzlo_out[0],nzhi_out[0],
+                      procneigh[0][0],procneigh[0][1],procneigh[1][0],
+                      procneigh[1][1],procneigh[2][0],procneigh[2][1]);
 }
 
 /* ----------------------------------------------------------------------
@@ -820,11 +728,25 @@ void MSM::allocate_peratom()
     memory->create3d_offset(v5grid[n],nzlo_out[n],nzhi_out[n],
             nylo_out[n],nyhi_out[n],nxlo_out[n],nxhi_out[n],"msm:v5grid");
   }
+  
+  // create ghost grid object for per-atom energy/virial
 
-  if (!differentiation_flag) {
-    memory->create(buf3,nbuf_peratom,"msm:buf3");
-    memory->create(buf4,nbuf_peratom,"msm:buf4");
-  }
+  int (*procneigh)[2] = comm->procneigh;
+
+  if (differentiation_flag)
+    cg_peratom =
+      new CommGrid(lmp,world,6,1,
+                   nxlo_in[0],nxhi_in[0],nylo_in[0],nyhi_in[0],nzlo_in[0],nzhi_in[0],
+                   nxlo_out[0],nxhi_out[0],nylo_out[0],nyhi_out[0],nzlo_out[0],nzhi_out[0],
+                   procneigh[0][0],procneigh[0][1],procneigh[1][0],
+                   procneigh[1][1],procneigh[2][0],procneigh[2][1]);
+  else
+    cg_peratom =
+      new CommGrid(lmp,world,7,1,
+                   nxlo_in[0],nxhi_in[0],nylo_in[0],nyhi_in[0],nzlo_in[0],nzhi_in[0],
+                   nxlo_out[0],nxhi_out[0],nylo_out[0],nyhi_out[0],nzlo_out[0],nzhi_out[0],
+                   procneigh[0][0],procneigh[0][1],procneigh[1][0],
+                   procneigh[1][1],procneigh[2][0],procneigh[2][1]);
 }
 
 /* ----------------------------------------------------------------------
@@ -833,14 +755,6 @@ void MSM::allocate_peratom()
 
 void MSM::deallocate()
 {
-  memory->destroy(buf1);
-  memory->destroy(buf2);
-
-  if (differentiation_flag) {
-    memory->destroy(buf3);
-    memory->destroy(buf4);
-  }
-
   memory->destroy2d_offset(phi1d,-order+1);
   memory->destroy2d_offset(dphi1d,-order+1);
 
@@ -862,6 +776,7 @@ void MSM::deallocate()
         memory->destroy3d_offset(fzgrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
     }
   }
+  delete cg;
 }
 
 /* ----------------------------------------------------------------------
@@ -870,13 +785,6 @@ void MSM::deallocate()
 
 void MSM::deallocate_peratom()
 {
-  if (!differentiation_flag) {
-    memory->destroy(buf3);
-    memory->destroy(buf4);
-  }
-
-  // deallocate grid levels
-
   for (int n=0; n<levels; n++) {
     if (!differentiation_flag)
       if (egrid[n])
@@ -895,6 +803,7 @@ void MSM::deallocate_peratom()
     if (v5grid[n])
       memory->destroy3d_offset(v5grid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
   }
+  delete cg_peratom;
 }
 
 /* ----------------------------------------------------------------------
@@ -1046,7 +955,7 @@ void MSM::deallocate_levels()
    set size of MSM grids
 ------------------------------------------------------------------------- */
 
-void MSM::set_grid()
+void MSM::set_grid_global()
 {
   if (accuracy_relative <= 0.0)
     error->all(FLERR,"KSpace accuracy must be > 0");
@@ -1056,12 +965,25 @@ void MSM::set_grid()
   double zprd = domain->zprd;
 
   int nx_max,ny_max,nz_max;
+  double hx,hy,hz;
 
-  if (!gridflag) {
+  if (adjust_cutoff_flag && !gridflag) {
+    int p = order - 1;
+    double hmin = 3072.0*(p+1)/(p-1)/
+      (448.0*MY_PI + 56.0*MY_PI*order/2 + 1701.0);
+    hmin = pow(hmin,1.0/6.0)/pow(atom->natoms,1.0/3.0);
+    hx = hmin*xprd;
+    hy = hmin*yprd;
+    hz = hmin*zprd;
+    
+    nx_max = static_cast<int>(xprd/hx);
+    ny_max = static_cast<int>(yprd/hy);
+    nz_max = static_cast<int>(zprd/hz);
+  } else if (!gridflag) {
     nx_max = ny_max = nz_max = 2;
-    double hx = xprd/nx_max;
-    double hy = yprd/ny_max;
-    double hz = zprd/nz_max;
+    hx = xprd/nx_max;
+    hy = yprd/ny_max;
+    hz = zprd/nz_max;
 
     double x_error = 2.0*accuracy;
     double y_error = 2.0*accuracy;
@@ -1099,9 +1021,29 @@ void MSM::set_grid()
   while (!factorable(ny_max,flag,ylevels)) ny_max++;
   while (!factorable(nz_max,flag,zlevels)) nz_max++;
 
-  if (flag)
+  if (flag && gridflag && me == 0)
     error->warning(FLERR,"Number of MSM mesh points increased to be a multiple of 2");
 
+  if (adjust_cutoff_flag) {
+    hx = xprd/nx_max;
+    hy = yprd/ny_max;
+    hz = zprd/nz_max;
+    
+    double ax,ay,az;
+    ax = estimate_a(hx,xprd);
+    ay = estimate_a(hy,yprd);
+    az = estimate_a(hz,zprd);
+    
+    cutoff = sqrt(ax*ax + ay*ay + az*az)/sqrt(3.0);
+    int itmp;
+    double *p_cutoff = (double *) force->pair->extract("cut_msm",itmp);
+    *p_cutoff = cutoff;
+  
+    char str[128];
+    sprintf(str,"Adjusting Coulombic cutoff for MSM, new cutoff = %g",cutoff);
+    if (me == 0) error->warning(FLERR,str);   
+  }
+    
   // Find maximum number of levels
 
   levels = MAX(xlevels,ylevels);
@@ -1129,20 +1071,167 @@ void MSM::set_grid()
     else
       nz_msm[n] = 1;
   }
+  
+  if (nx_msm[0] >= OFFSET || ny_msm[0] >= OFFSET || nz_msm[0] >= OFFSET)
+    error->all(FLERR,"MSM grid is too large");
+}
 
-  // Output grid stats
+/* ----------------------------------------------------------------------
+   set local subset of MSM grid that I own
+   n xyz lo/hi in = 3d brick that I own (inclusive)
+   n xyz lo/hi out = 3d brick + ghost cells in 6 directions (inclusive)
+------------------------------------------------------------------------- */
 
-  if (me == 0) {
-    if (screen) {
-      fprintf(screen,"  grid = %d %d %d\n",nx_msm[0],ny_msm[0],nz_msm[0]);
-      fprintf(screen,"  stencil order = %d\n",order);
+void MSM::set_grid_local()
+{
+  // global indices of MSM grid range from 0 to N-1
+  // nlo_in,nhi_in = lower/upper limits of the 3d sub-brick of
+  //   global MSM grid that I own without ghost cells
+
+  // loop over grid levels
+
+  for (int n=0; n<levels; n++) {
+
+    // global indices of MSM grid range from 0 to N-1
+    // nlo_in,nhi_in = lower/upper limits of the 3d sub-brick of
+    //   global MSM grid that I own without ghost cells
+
+    if (n == 0) {
+
+      nxlo_in_d[n] = static_cast<int> (comm->xsplit[comm->myloc[0]] * nx_msm[n]);
+      nxhi_in_d[n] = static_cast<int> (comm->xsplit[comm->myloc[0]+1] * nx_msm[n]) - 1;
+
+      nylo_in_d[n] = static_cast<int> (comm->ysplit[comm->myloc[1]] * ny_msm[n]);
+      nyhi_in_d[n] = static_cast<int> (comm->ysplit[comm->myloc[1]+1] * ny_msm[n]) - 1;
+
+      nzlo_in_d[n] = static_cast<int> (comm->zsplit[comm->myloc[2]] * nz_msm[n]);
+      nzhi_in_d[n] = static_cast<int> (comm->zsplit[comm->myloc[2]+1] * nz_msm[n]) - 1;
+
+    } else {
+
+      nxlo_in_d[n] = 0;
+      nxhi_in_d[n] = nx_msm[n] - 1;
+
+      nylo_in_d[n] = 0;
+      nyhi_in_d[n] = ny_msm[n] - 1;
+
+      nzlo_in_d[n] = 0;
+      nzhi_in_d[n] = nz_msm[n] - 1;
     }
-    if (logfile) {
-      fprintf(logfile,"  grid = %d %d %d\n",nx_msm[0],ny_msm[0],nz_msm[0]);
-      fprintf(logfile,"  stencil order = %d\n",order);
-    }
+
+    // Use simple method of parallel communication for now
+
+    nxlo_in[n] = 0;
+    nxhi_in[n] = nx_msm[n] - 1;
+
+    nylo_in[n] = 0;
+    nyhi_in[n] = ny_msm[n] - 1;
+
+    nzlo_in[n] = 0;
+    nzhi_in[n] = nz_msm[n] - 1;
+
+    // nlower,nupper = stencil size for mapping particles to MSM grid
+
+    nlower = -(order-1)/2;
+    nupper = order/2;
+
+
+    // shift values for particle <-> grid mapping
+    // add/subtract OFFSET to avoid int(-0.75) = 0 when want it to be -1
+
+    // nlo_out,nhi_out = lower/upper limits of the 3d sub-brick of
+    //   global MSM grid that my particles can contribute charge to
+    // effectively nlo_in,nhi_in + ghost cells
+    // nlo,nhi = global coords of grid pt to "lower left" of smallest/largest
+    //           position a particle in my box can be at
+    // dist[3] = particle position bound = subbox + skin/2.0
+    // nlo_out,nhi_out = nlo,nhi + stencil size for particle mapping
+
+    double *prd,*sublo,*subhi;
+
+    //prd = domain->prd;
+    //boxlo = domain->boxlo;
+    //sublo = domain->sublo;
+    //subhi = domain->subhi;
+
+    // Use only one partition for now
+
+    prd = domain->prd;
+    boxlo = domain->boxlo;
+    sublo = boxlo;
+    subhi = domain->boxhi;
+
+    double xprd = prd[0];
+    double yprd = prd[1];
+    double zprd = prd[2];
+
+    double dist[3];
+    double cuthalf = 0.0;
+    if (n == 0) cuthalf = 0.5*neighbor->skin; // Only applies to finest grid
+    dist[0] = dist[1] = dist[2] = cuthalf;
+
+    int nlo,nhi;
+
+    nlo = static_cast<int> ((sublo[0]-dist[0]-boxlo[0]) *
+                            nx_msm[n]/xprd + OFFSET) - OFFSET;
+    nhi = static_cast<int> ((subhi[0]+dist[0]-boxlo[0]) *
+                            nx_msm[n]/xprd + OFFSET) - OFFSET;
+    nxlo_out[n] = nlo + nlower;
+    nxhi_out[n] = nhi + nupper;
+
+    nlo = static_cast<int> ((sublo[1]-dist[1]-boxlo[1]) *
+                            ny_msm[n]/yprd + OFFSET) - OFFSET;
+    nhi = static_cast<int> ((subhi[1]+dist[1]-boxlo[1]) *
+                            ny_msm[n]/yprd + OFFSET) - OFFSET;
+    nylo_out[n] = nlo + nlower;
+    nyhi_out[n] = nhi + nupper;
+
+    nlo = static_cast<int> ((sublo[2]-dist[2]-boxlo[2]) *
+                            nz_msm[n]/zprd + OFFSET) - OFFSET;
+    nhi = static_cast<int> ((subhi[2]+dist[2]-boxlo[2]) *
+                            nz_msm[n]/zprd + OFFSET) - OFFSET;
+    nzlo_out[n] = nlo + nlower;
+    nzhi_out[n] = nhi + nupper;
+
+  // MSM grids for this proc, including ghosts
+
+  ngrid[n] = (nxhi_out[n]-nxlo_out[n]+1) * (nyhi_out[n]-nylo_out[n]+1) *
+    (nzhi_out[n]-nzlo_out[n]+1);
   }
+}
 
+/* ----------------------------------------------------------------------
+   reset local grid arrays and communication stencils
+   called by fix balance b/c it changed sizes of processor sub-domains
+------------------------------------------------------------------------- */
+
+void MSM::setup_grid()
+{
+  // free all arrays previously allocated
+
+  deallocate();
+  deallocate_peratom();
+  peratom_allocate_flag = 0;
+
+  // reset portion of global grid that each proc owns
+
+  set_grid_local();
+
+  // reallocate MSM long-range dependent memory
+  // check if grid communication is now overlapping if not allowed
+  // don't invoke allocate_peratom(), compute() will allocate when needed
+
+  allocate();
+
+  cg->ghost_notify();
+  if (overlap_allowed == 0 && cg->ghost_overlap())
+    error->all(FLERR,"MSM grid stencil extends "
+               "beyond nearest neighbor processor");
+  cg->setup();
+
+  // pre-compute volume-dependent coeffs
+
+  setup();
 }
 
 /* ----------------------------------------------------------------------
@@ -1196,164 +1285,6 @@ void MSM::grid_swap(int n, double*** &gridn)
   gridn_all = tmp;
 
   memory->destroy3d_offset(gridn_all,nzlo_out[n],nylo_out[n],nxlo_out[n]);
-}
-
-/* ----------------------------------------------------------------------
-   ghost-swap to accumulate full density in brick decomposition
-------------------------------------------------------------------------- */
-
-void MSM::ghost_swap(int n)
-{
-  double ***qgridn = qgrid[n];
-
-  int i,k,ix,iy,iz;
-  MPI_Request request;
-  MPI_Status status;
-
-  // pack my ghosts for +x processor
-  // pass data to self or +x processor
-  // unpack and sum recv data into my real cells
-
-  k = 0;
-  for (iz = nzlo_out[n]; iz <= nzhi_out[n]; iz++)
-    for (iy = nylo_out[n]; iy <= nyhi_out[n]; iy++)
-      for (ix = nxhi_in[n]+1; ix <= nxhi_out[n]; ix++)
-        buf1[k++] = qgridn[iz][iy][ix];
-
-  if (comm->procneigh[0][1] == me)
-    for (i = 0; i < k; i++) buf2[i] = buf1[i];
-  else {
-    MPI_Irecv(buf2,nbuf,MPI_DOUBLE,comm->procneigh[0][0],0,world,&request);
-    MPI_Send(buf1,k,MPI_DOUBLE,comm->procneigh[0][1],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  k = 0;
-  for (iz = nzlo_out[n]; iz <= nzhi_out[n]; iz++)
-    for (iy = nylo_out[n]; iy <= nyhi_out[n]; iy++)
-      for (ix = nxlo_in[n]; ix < nxlo_in[n]+nxlo_ghost[n]; ix++)
-        qgridn[iz][iy][ix] += buf2[k++];
-
-  // pack my ghosts for -x processor
-  // pass data to self or -x processor
-  // unpack and sum recv data into my real cells
-
-  k = 0;
-  for (iz = nzlo_out[n]; iz <= nzhi_out[n]; iz++)
-    for (iy = nylo_out[n]; iy <= nyhi_out[n]; iy++)
-      for (ix = nxlo_out[n]; ix < nxlo_in[n]; ix++)
-        buf1[k++] = qgridn[iz][iy][ix];
-
-  if (comm->procneigh[0][0] == me)
-    for (i = 0; i < k; i++) buf2[i] = buf1[i];
-  else {
-    MPI_Irecv(buf2,nbuf,MPI_DOUBLE,comm->procneigh[0][1],0,world,&request);
-    MPI_Send(buf1,k,MPI_DOUBLE,comm->procneigh[0][0],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  k = 0;
-  for (iz = nzlo_out[n]; iz <= nzhi_out[n]; iz++)
-    for (iy = nylo_out[n]; iy <= nyhi_out[n]; iy++)
-      for (ix = nxhi_in[n]-nxhi_ghost[n]+1; ix <= nxhi_in[n]; ix++)
-        qgridn[iz][iy][ix] += buf2[k++];
-
-  // pack my ghosts for +y processor
-  // pass data to self or +y processor
-  // unpack and sum recv data into my real cells
-
-  k = 0;
-  for (iz = nzlo_out[n]; iz <= nzhi_out[n]; iz++)
-    for (iy = nyhi_in[n]+1; iy <= nyhi_out[n]; iy++)
-      for (ix = nxlo_in[n]; ix <= nxhi_in[n]; ix++)
-        buf1[k++] = qgridn[iz][iy][ix];
-
-  if (comm->procneigh[1][1] == me)
-    for (i = 0; i < k; i++) buf2[i] = buf1[i];
-  else {
-    MPI_Irecv(buf2,nbuf,MPI_DOUBLE,comm->procneigh[1][0],0,world,&request);
-    MPI_Send(buf1,k,MPI_DOUBLE,comm->procneigh[1][1],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  k = 0;
-  for (iz = nzlo_out[n]; iz <= nzhi_out[n]; iz++)
-    for (iy = nylo_in[n]; iy < nylo_in[n]+nylo_ghost[n]; iy++)
-      for (ix = nxlo_in[n]; ix <= nxhi_in[n]; ix++)
-        qgridn[iz][iy][ix] += buf2[k++];
-
-  // pack my ghosts for -y processor
-  // pass data to self or -y processor
-  // unpack and sum recv data into my real cells
-
-  k = 0;
-  for (iz = nzlo_out[n]; iz <= nzhi_out[n]; iz++)
-    for (iy = nylo_out[n]; iy < nylo_in[n]; iy++)
-      for (ix = nxlo_in[n]; ix <= nxhi_in[n]; ix++)
-        buf1[k++] = qgridn[iz][iy][ix];
-
-  if (comm->procneigh[1][0] == me)
-    for (i = 0; i < k; i++) buf2[i] = buf1[i];
-  else {
-    MPI_Irecv(buf2,nbuf,MPI_DOUBLE,comm->procneigh[1][1],0,world,&request);
-    MPI_Send(buf1,k,MPI_DOUBLE,comm->procneigh[1][0],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  k = 0;
-  for (iz = nzlo_out[n]; iz <= nzhi_out[n]; iz++)
-    for (iy = nyhi_in[n]-nyhi_ghost[n]+1; iy <= nyhi_in[n]; iy++)
-      for (ix = nxlo_in[n]; ix <= nxhi_in[n]; ix++)
-        qgridn[iz][iy][ix] += buf2[k++];
-
-  // pack my ghosts for +z processor
-  // pass data to self or +z processor
-  // unpack and sum recv data into my real cells
-
-  k = 0;
-  for (iz = nzhi_in[n]+1; iz <= nzhi_out[n]; iz++)
-    for (iy = nylo_in[n]; iy <= nyhi_in[n]; iy++)
-      for (ix = nxlo_in[n]; ix <= nxhi_in[n]; ix++)
-        buf1[k++] = qgridn[iz][iy][ix];
-
-  if (comm->procneigh[2][1] == me)
-    for (i = 0; i < k; i++) buf2[i] = buf1[i];
-  else {
-    MPI_Irecv(buf2,nbuf,MPI_DOUBLE,comm->procneigh[2][0],0,world,&request);
-    MPI_Send(buf1,k,MPI_DOUBLE,comm->procneigh[2][1],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  k = 0;
-  for (iz = nzlo_in[n]; iz < nzlo_in[n]+nzlo_ghost[n]; iz++)
-    for (iy = nylo_in[n]; iy <= nyhi_in[n]; iy++)
-      for (ix = nxlo_in[n]; ix <= nxhi_in[n]; ix++)
-        qgridn[iz][iy][ix] += buf2[k++];
-
-  // pack my ghosts for -z processor
-  // pass data to self or -z processor
-  // unpack and sum recv data into my real cells
-
-  k = 0;
-  for (iz = nzlo_out[n]; iz < nzlo_in[n]; iz++)
-    for (iy = nylo_in[n]; iy <= nyhi_in[n]; iy++)
-      for (ix = nxlo_in[n]; ix <= nxhi_in[n]; ix++)
-        buf1[k++] = qgridn[iz][iy][ix];
-
-  if (comm->procneigh[2][0] == me)
-    for (i = 0; i < k; i++) buf2[i] = buf1[i];
-  else {
-    MPI_Irecv(buf2,nbuf,MPI_DOUBLE,comm->procneigh[2][1],0,world,&request);
-    MPI_Send(buf1,k,MPI_DOUBLE,comm->procneigh[2][0],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  k = 0;
-  for (iz = nzhi_in[n]-nzhi_ghost[n]+1; iz <= nzhi_in[n]; iz++)
-    for (iy = nylo_in[n]; iy <= nyhi_in[n]; iy++)
-      for (ix = nxlo_in[n]; ix <= nxhi_in[n]; ix++)
-        qgridn[iz][iy][ix] += buf2[k++];
-
 }
 
 /* ----------------------------------------------------------------------
@@ -1872,13 +1803,18 @@ void MSM::prolongation(int n)
 }
 
 /* ----------------------------------------------------------------------
-   ghost-swap to fill ghost cells of my brick with field values
+   pack own values to buf to send to another proc
 ------------------------------------------------------------------------- */
 
-void MSM::fillbrick_ad_peratom(int n)
+void MSM::pack_forward(int flag, double *buf, int nlist, int *list)
 {
+  int n = 0;
   double ***egridn = egrid[n];
-
+  
+  double ***fxgridn = fxgrid[n];
+  double ***fygridn = fygrid[n];
+  double ***fzgridn = fzgrid[n];
+  
   double ***v0gridn = v0grid[n];
   double ***v1gridn = v1grid[n];
   double ***v2gridn = v2grid[n];
@@ -1886,468 +1822,160 @@ void MSM::fillbrick_ad_peratom(int n)
   double ***v4gridn = v4grid[n];
   double ***v5gridn = v5grid[n];
 
-  int i,k,ix,iy,iz;
-  MPI_Request request;
-  MPI_Status status;
+  int k = 0;
 
-  // pack my real cells for +z processor
-  // pass data to self or +z processor
-  // unpack and sum recv data into my ghost cells
-
-  k = 0;
-  for (iz = nzhi_in[n]-nzhi_ghost[n]+1; iz <= nzhi_in[n]; iz++)
-    for (iy = nylo_in[n]; iy <= nyhi_in[n]; iy++)
-      for (ix = nxlo_in[n]; ix <= nxhi_in[n]; ix++) {
-        if (differentiation_flag || eflag_atom)
-          buf3[k++] = egridn[iz][iy][ix];
-        if (vflag_atom) {
-          buf3[k++] = v0gridn[iz][iy][ix];
-          buf3[k++] = v1gridn[iz][iy][ix];
-          buf3[k++] = v2gridn[iz][iy][ix];
-          buf3[k++] = v3gridn[iz][iy][ix];
-          buf3[k++] = v4gridn[iz][iy][ix];
-          buf3[k++] = v5gridn[iz][iy][ix];
-        }
+  if (flag == FORWARD_IK) {
+    double *xsrc = &fxgridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
+    double *ysrc = &fygridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
+    double *zsrc = &fzgridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
+    for (int i = 0; i < nlist; i++) {
+      buf[k++] = xsrc[list[i]];
+      buf[k++] = ysrc[list[i]];
+      buf[k++] = zsrc[list[i]];
+    }
+  } else if (flag == FORWARD_AD) {
+    double *src = &egridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
+    for (int i = 0; i < nlist; i++)
+      buf[i] = src[list[i]];
+  } else if (flag == FORWARD_IK_PERATOM) {
+    double *esrc = &egridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
+    double *v0src = &v0gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
+    double *v1src = &v1gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
+    double *v2src = &v2gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
+    double *v3src = &v3gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
+    double *v4src = &v4gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
+    double *v5src = &v5gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
+    for (int i = 0; i < nlist; i++) {
+      if (eflag_atom) buf[k++] = esrc[list[i]];
+      if (vflag_atom) {
+        buf[k++] = v0src[list[i]];
+        buf[k++] = v1src[list[i]];
+        buf[k++] = v2src[list[i]];
+        buf[k++] = v3src[list[i]];
+        buf[k++] = v4src[list[i]];
+        buf[k++] = v5src[list[i]];
       }
-
-  if (comm->procneigh[2][1] == me)
-    for (i = 0; i < k; i++) buf4[i] = buf3[i];
-  else {
-    MPI_Irecv(buf4,nbuf_peratom,MPI_DOUBLE,comm->procneigh[2][0],0,world,&request);
-    MPI_Send(buf3,k,MPI_DOUBLE,comm->procneigh[2][1],0,world);
-    MPI_Wait(&request,&status);
+    }
+  } else if (flag == FORWARD_AD_PERATOM) {
+    double *v0src = &v0gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
+    double *v1src = &v1gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
+    double *v2src = &v2gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
+    double *v3src = &v3gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
+    double *v4src = &v4gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
+    double *v5src = &v5gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
+    for (int i = 0; i < nlist; i++) {
+      buf[k++] = v0src[list[i]];
+      buf[k++] = v1src[list[i]];
+      buf[k++] = v2src[list[i]];
+      buf[k++] = v3src[list[i]];
+      buf[k++] = v4src[list[i]];
+      buf[k++] = v5src[list[i]];
+    }
   }
-
-  k = 0;
-  for (iz = nzlo_out[n]; iz < nzlo_in[n]; iz++)
-    for (iy = nylo_in[n]; iy <= nyhi_in[n]; iy++)
-      for (ix = nxlo_in[n]; ix <= nxhi_in[n]; ix++) {
-        if (differentiation_flag || eflag_atom)
-          egridn[iz][iy][ix] = buf4[k++];
-        if (vflag_atom) {
-          v0gridn[iz][iy][ix] = buf4[k++];
-          v1gridn[iz][iy][ix] = buf4[k++];
-          v2gridn[iz][iy][ix] = buf4[k++];
-          v3gridn[iz][iy][ix] = buf4[k++];
-          v4gridn[iz][iy][ix] = buf4[k++];
-          v5gridn[iz][iy][ix] = buf4[k++];
-        }
-      }
-
-  // pack my real cells for -z processor
-  // pass data to self or -z processor
-  // unpack and sum recv data into my ghost cells
-
-  k = 0;
-  for (iz = nzlo_in[n]; iz < nzlo_in[n]+nzlo_ghost[n]; iz++)
-    for (iy = nylo_in[n]; iy <= nyhi_in[n]; iy++)
-      for (ix = nxlo_in[n]; ix <= nxhi_in[n]; ix++) {
-        if (differentiation_flag || eflag_atom)
-          buf3[k++] = egridn[iz][iy][ix];
-        if (vflag_atom) {
-          buf3[k++] = v0gridn[iz][iy][ix];
-          buf3[k++] = v1gridn[iz][iy][ix];
-          buf3[k++] = v2gridn[iz][iy][ix];
-          buf3[k++] = v3gridn[iz][iy][ix];
-          buf3[k++] = v4gridn[iz][iy][ix];
-          buf3[k++] = v5gridn[iz][iy][ix];
-        }
-      }
-
-  if (comm->procneigh[2][0] == me)
-    for (i = 0; i < k; i++) buf4[i] = buf3[i];
-  else {
-    MPI_Irecv(buf4,nbuf_peratom,MPI_DOUBLE,comm->procneigh[2][1],0,world,&request);
-    MPI_Send(buf3,k,MPI_DOUBLE,comm->procneigh[2][0],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  k = 0;
-  for (iz = nzhi_in[n]+1; iz <= nzhi_out[n]; iz++)
-    for (iy = nylo_in[n]; iy <= nyhi_in[n]; iy++)
-      for (ix = nxlo_in[n]; ix <= nxhi_in[n]; ix++) {
-        if (differentiation_flag || eflag_atom)
-          egridn[iz][iy][ix] = buf4[k++];
-        if (vflag_atom) {
-          v0gridn[iz][iy][ix] = buf4[k++];
-          v1gridn[iz][iy][ix] = buf4[k++];
-          v2gridn[iz][iy][ix] = buf4[k++];
-          v3gridn[iz][iy][ix] = buf4[k++];
-          v4gridn[iz][iy][ix] = buf4[k++];
-          v5gridn[iz][iy][ix] = buf4[k++];
-        }
-      }
-
-  // pack my real cells for +y processor
-  // pass data to self or +y processor
-  // unpack and sum recv data into my ghost cells
-
-  k = 0;
-  for (iz = nzlo_out[n]; iz <= nzhi_out[n]; iz++)
-    for (iy = nyhi_in[n]-nyhi_ghost[n]+1; iy <= nyhi_in[n]; iy++)
-      for (ix = nxlo_in[n]; ix <= nxhi_in[n]; ix++) {
-        if (differentiation_flag || eflag_atom)
-          buf3[k++] = egridn[iz][iy][ix];
-        if (vflag_atom) {
-          buf3[k++] = v0gridn[iz][iy][ix];
-          buf3[k++] = v1gridn[iz][iy][ix];
-          buf3[k++] = v2gridn[iz][iy][ix];
-          buf3[k++] = v3gridn[iz][iy][ix];
-          buf3[k++] = v4gridn[iz][iy][ix];
-          buf3[k++] = v5gridn[iz][iy][ix];
-        }
-      }
-
-  if (comm->procneigh[1][1] == me)
-    for (i = 0; i < k; i++) buf4[i] = buf3[i];
-  else {
-    MPI_Irecv(buf4,nbuf_peratom,MPI_DOUBLE,comm->procneigh[1][0],0,world,&request);
-    MPI_Send(buf3,k,MPI_DOUBLE,comm->procneigh[1][1],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  k = 0;
-  for (iz = nzlo_out[n]; iz <= nzhi_out[n]; iz++)
-    for (iy = nylo_out[n]; iy < nylo_in[n]; iy++)
-      for (ix = nxlo_in[n]; ix <= nxhi_in[n]; ix++) {
-        if (differentiation_flag || eflag_atom)
-          egridn[iz][iy][ix] = buf4[k++];
-        if (vflag_atom) {
-          v0gridn[iz][iy][ix] = buf4[k++];
-          v1gridn[iz][iy][ix] = buf4[k++];
-          v2gridn[iz][iy][ix] = buf4[k++];
-          v3gridn[iz][iy][ix] = buf4[k++];
-          v4gridn[iz][iy][ix] = buf4[k++];
-          v5gridn[iz][iy][ix] = buf4[k++];
-        }
-      }
-
-  // pack my real cells for -y processor
-  // pass data to self or -y processor
-  // unpack and sum recv data into my ghost cells
-
-  k = 0;
-  for (iz = nzlo_out[n]; iz <= nzhi_out[n]; iz++)
-    for (iy = nylo_in[n]; iy < nylo_in[n]+nylo_ghost[n]; iy++)
-      for (ix = nxlo_in[n]; ix <= nxhi_in[n]; ix++) {
-        if (differentiation_flag || eflag_atom)
-          buf3[k++] = egridn[iz][iy][ix];
-        if (vflag_atom) {
-          buf3[k++] = v0gridn[iz][iy][ix];
-          buf3[k++] = v1gridn[iz][iy][ix];
-          buf3[k++] = v2gridn[iz][iy][ix];
-          buf3[k++] = v3gridn[iz][iy][ix];
-          buf3[k++] = v4gridn[iz][iy][ix];
-          buf3[k++] = v5gridn[iz][iy][ix];
-        }
-      }
-
-  if (comm->procneigh[1][0] == me)
-    for (i = 0; i < k; i++) buf4[i] = buf3[i];
-  else {
-    MPI_Irecv(buf4,nbuf_peratom,MPI_DOUBLE,comm->procneigh[1][1],0,world,&request);
-    MPI_Send(buf3,k,MPI_DOUBLE,comm->procneigh[1][0],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  k = 0;
-  for (iz = nzlo_out[n]; iz <= nzhi_out[n]; iz++)
-    for (iy = nyhi_in[n]+1; iy <= nyhi_out[n]; iy++)
-      for (ix = nxlo_in[n]; ix <= nxhi_in[n]; ix++) {
-        if (differentiation_flag || eflag_atom)
-          egridn[iz][iy][ix] = buf4[k++];
-        if (vflag_atom) {
-          v0gridn[iz][iy][ix] = buf4[k++];
-          v1gridn[iz][iy][ix] = buf4[k++];
-          v2gridn[iz][iy][ix] = buf4[k++];
-          v3gridn[iz][iy][ix] = buf4[k++];
-          v4gridn[iz][iy][ix] = buf4[k++];
-          v5gridn[iz][iy][ix] = buf4[k++];
-        }
-      }
-
-  // pack my real cells for +x processor
-  // pass data to self or +x processor
-  // unpack and sum recv data into my ghost cells
-
-  k = 0;
-  for (iz = nzlo_out[n]; iz <= nzhi_out[n]; iz++)
-    for (iy = nylo_out[n]; iy <= nyhi_out[n]; iy++)
-      for (ix = nxhi_in[n]-nxhi_ghost[n]+1; ix <= nxhi_in[n]; ix++) {
-        if (differentiation_flag || eflag_atom)
-          buf3[k++] = egridn[iz][iy][ix];
-        if (vflag_atom) {
-          buf3[k++] = v0gridn[iz][iy][ix];
-          buf3[k++] = v1gridn[iz][iy][ix];
-          buf3[k++] = v2gridn[iz][iy][ix];
-          buf3[k++] = v3gridn[iz][iy][ix];
-          buf3[k++] = v4gridn[iz][iy][ix];
-          buf3[k++] = v5gridn[iz][iy][ix];
-        }
-      }
-
-  if (comm->procneigh[0][1] == me)
-    for (i = 0; i < k; i++) buf4[i] = buf3[i];
-  else {
-    MPI_Irecv(buf4,nbuf_peratom,MPI_DOUBLE,comm->procneigh[0][0],0,world,&request);
-    MPI_Send(buf3,k,MPI_DOUBLE,comm->procneigh[0][1],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  k = 0;
-  for (iz = nzlo_out[n]; iz <= nzhi_out[n]; iz++)
-    for (iy = nylo_out[n]; iy <= nyhi_out[n]; iy++)
-      for (ix = nxlo_out[n]; ix < nxlo_in[n]; ix++) {
-        if (differentiation_flag || eflag_atom)
-          egridn[iz][iy][ix] = buf4[k++];
-        if (vflag_atom) {
-          v0gridn[iz][iy][ix] = buf4[k++];
-          v1gridn[iz][iy][ix] = buf4[k++];
-          v2gridn[iz][iy][ix] = buf4[k++];
-          v3gridn[iz][iy][ix] = buf4[k++];
-          v4gridn[iz][iy][ix] = buf4[k++];
-          v5gridn[iz][iy][ix] = buf4[k++];
-        }
-      }
-
-  // pack my real cells for -x processor
-  // pass data to self or -x processor
-  // unpack and sum recv data into my ghost cells
-
-  k = 0;
-  for (iz = nzlo_out[n]; iz <= nzhi_out[n]; iz++)
-    for (iy = nylo_out[n]; iy <= nyhi_out[n]; iy++)
-      for (ix = nxlo_in[n]; ix < nxlo_in[n]+nxlo_ghost[n]; ix++) {
-        if (differentiation_flag || eflag_atom)
-          buf3[k++] = egridn[iz][iy][ix];
-        if (vflag_atom) {
-          buf3[k++] = v0gridn[iz][iy][ix];
-          buf3[k++] = v1gridn[iz][iy][ix];
-          buf3[k++] = v2gridn[iz][iy][ix];
-          buf3[k++] = v3gridn[iz][iy][ix];
-          buf3[k++] = v4gridn[iz][iy][ix];
-          buf3[k++] = v5gridn[iz][iy][ix];
-        }
-      }
-
-  if (comm->procneigh[0][0] == me)
-    for (i = 0; i < k; i++) buf4[i] = buf3[i];
-  else {
-    MPI_Irecv(buf4,nbuf_peratom,MPI_DOUBLE,comm->procneigh[0][1],0,world,&request);
-    MPI_Send(buf3,k,MPI_DOUBLE,comm->procneigh[0][0],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  k = 0;
-  for (iz = nzlo_out[n]; iz <= nzhi_out[n]; iz++)
-    for (iy = nylo_out[n]; iy <= nyhi_out[n]; iy++)
-      for (ix = nxhi_in[n]+1; ix <= nxhi_out[n]; ix++) {
-        if (differentiation_flag || eflag_atom)
-          egridn[iz][iy][ix] = buf4[k++];
-        if (vflag_atom) {
-          v0gridn[iz][iy][ix] = buf4[k++];
-          v1gridn[iz][iy][ix] = buf4[k++];
-          v2gridn[iz][iy][ix] = buf4[k++];
-          v3gridn[iz][iy][ix] = buf4[k++];
-          v4gridn[iz][iy][ix] = buf4[k++];
-          v5gridn[iz][iy][ix] = buf4[k++];
-        }
-      }
 }
 
 /* ----------------------------------------------------------------------
-   ghost-swap to fill ghost cells of my brick with field values
+   unpack another proc's own values from buf and set own ghost values
 ------------------------------------------------------------------------- */
 
-void MSM::fillbrick(int n)
+void MSM::unpack_forward(int flag, double *buf, int nlist, int *list)
 {
+  int n = 0;
+  double ***egridn = egrid[n];
+  
   double ***fxgridn = fxgrid[n];
   double ***fygridn = fygrid[n];
   double ***fzgridn = fzgrid[n];
+  
+  double ***v0gridn = v0grid[n];
+  double ***v1gridn = v1grid[n];
+  double ***v2gridn = v2grid[n];
+  double ***v3gridn = v3grid[n];
+  double ***v4gridn = v4grid[n];
+  double ***v5gridn = v5grid[n];
 
-  int i,k,ix,iy,iz;
-  MPI_Request request;
-  MPI_Status status;
+  int k = 0;
 
-  // pack my real cells for +z processor
-  // pass data to self or +z processor
-  // unpack and sum recv data into my ghost cells
-
-  k = 0;
-  for (iz = nzhi_in[n]-nzhi_ghost[n]+1; iz <= nzhi_in[n]; iz++)
-    for (iy = nylo_in[n]; iy <= nyhi_in[n]; iy++)
-      for (ix = nxlo_in[n]; ix <= nxhi_in[n]; ix++) {
-        buf1[k++] = fxgridn[iz][iy][ix];
-        buf1[k++] = fygridn[iz][iy][ix];
-        buf1[k++] = fzgridn[iz][iy][ix];
+  if (flag == FORWARD_IK) {
+    double *xdest = &fxgridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
+    double *ydest = &fygridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
+    double *zdest = &fzgridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
+    for (int i = 0; i < nlist; i++) {
+      xdest[list[i]] = buf[k++];
+      ydest[list[i]] = buf[k++];
+      zdest[list[i]] = buf[k++];
+    }
+  } else if (flag == FORWARD_AD) {
+    double *dest = &egridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
+    for (int i = 0; i < nlist; i++)
+      dest[list[i]] = buf[k++];
+  } else if (flag == FORWARD_IK_PERATOM) {
+    double *esrc = &egridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
+    double *v0src = &v0gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
+    double *v1src = &v1gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
+    double *v2src = &v2gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
+    double *v3src = &v3gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
+    double *v4src = &v4gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
+    double *v5src = &v5gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
+    for (int i = 0; i < nlist; i++) {
+      if (eflag_atom) esrc[list[i]] = buf[k++];
+      if (vflag_atom) {
+        v0src[list[i]] = buf[k++];
+        v1src[list[i]] = buf[k++];
+        v2src[list[i]] = buf[k++];
+        v3src[list[i]] = buf[k++];
+        v4src[list[i]] = buf[k++];
+        v5src[list[i]] = buf[k++];
       }
-
-  if (comm->procneigh[2][1] == me)
-    for (i = 0; i < k; i++) buf2[i] = buf1[i];
-  else {
-    MPI_Irecv(buf2,nbuf,MPI_DOUBLE,comm->procneigh[2][0],0,world,&request);
-    MPI_Send(buf1,k,MPI_DOUBLE,comm->procneigh[2][1],0,world);
-    MPI_Wait(&request,&status);
+    }
+  } else if (flag == FORWARD_AD_PERATOM) {
+    double *v0src = &v0gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
+    double *v1src = &v1gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
+    double *v2src = &v2gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
+    double *v3src = &v3gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
+    double *v4src = &v4gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
+    double *v5src = &v5gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
+    for (int i = 0; i < nlist; i++) {
+      v0src[list[i]] = buf[k++];
+      v1src[list[i]] = buf[k++];
+      v2src[list[i]] = buf[k++];
+      v3src[list[i]] = buf[k++];
+      v4src[list[i]] = buf[k++];
+      v5src[list[i]] = buf[k++];
+    }
   }
+}
 
-  k = 0;
-  for (iz = nzlo_out[n]; iz < nzlo_in[n]; iz++)
-    for (iy = nylo_in[n]; iy <= nyhi_in[n]; iy++)
-      for (ix = nxlo_in[n]; ix <= nxhi_in[n]; ix++) {
-        fxgridn[iz][iy][ix] = buf2[k++];
-        fygridn[iz][iy][ix] = buf2[k++];
-        fzgridn[iz][iy][ix] = buf2[k++];
-      }
+/* ----------------------------------------------------------------------
+   pack ghost values into buf to send to another proc
+------------------------------------------------------------------------- */
 
-  // pack my real cells for -z processor
-  // pass data to self or -z processor
-  // unpack and sum recv data into my ghost cells
-
-  k = 0;
-  for (iz = nzlo_in[n]; iz < nzlo_in[n]+nzlo_ghost[n]; iz++)
-    for (iy = nylo_in[n]; iy <= nyhi_in[n]; iy++)
-      for (ix = nxlo_in[n]; ix <= nxhi_in[n]; ix++) {
-        buf1[k++] = fxgridn[iz][iy][ix];
-        buf1[k++] = fygridn[iz][iy][ix];
-        buf1[k++] = fzgridn[iz][iy][ix];
-      }
-
-  if (comm->procneigh[2][0] == me)
-    for (i = 0; i < k; i++) buf2[i] = buf1[i];
-  else {
-    MPI_Irecv(buf2,nbuf,MPI_DOUBLE,comm->procneigh[2][1],0,world,&request);
-    MPI_Send(buf1,k,MPI_DOUBLE,comm->procneigh[2][0],0,world);
-    MPI_Wait(&request,&status);
+void MSM::pack_reverse(int flag, double *buf, int nlist, int *list)
+{
+  int n = 0;
+  double ***qgridn = qgrid[n];
+  
+  if (flag == REVERSE_RHO) {
+    double *src = &qgridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
+    for (int i = 0; i < nlist; i++)
+      buf[i] = src[list[i]];
   }
+}
 
-  k = 0;
-  for (iz = nzhi_in[n]+1; iz <= nzhi_out[n]; iz++)
-    for (iy = nylo_in[n]; iy <= nyhi_in[n]; iy++)
-      for (ix = nxlo_in[n]; ix <= nxhi_in[n]; ix++) {
-        fxgridn[iz][iy][ix] = buf2[k++];
-        fygridn[iz][iy][ix] = buf2[k++];
-        fzgridn[iz][iy][ix] = buf2[k++];
-      }
+/* ----------------------------------------------------------------------
+   unpack another proc's ghost values from buf and add to own values
+------------------------------------------------------------------------- */
 
-  // pack my real cells for +y processor
-  // pass data to self or +y processor
-  // unpack and sum recv data into my ghost cells
+void MSM::unpack_reverse(int flag, double *buf, int nlist, int *list)
+{
+  int n = 0;
+  double ***qgridn = qgrid[n];
 
-  k = 0;
-  for (iz = nzlo_out[n]; iz <= nzhi_out[n]; iz++)
-    for (iy = nyhi_in[n]-nyhi_ghost[n]+1; iy <= nyhi_in[n]; iy++)
-      for (ix = nxlo_in[n]; ix <= nxhi_in[n]; ix++) {
-        buf1[k++] = fxgridn[iz][iy][ix];
-        buf1[k++] = fygridn[iz][iy][ix];
-        buf1[k++] = fzgridn[iz][iy][ix];
-      }
-
-  if (comm->procneigh[1][1] == me)
-    for (i = 0; i < k; i++) buf2[i] = buf1[i];
-  else {
-    MPI_Irecv(buf2,nbuf,MPI_DOUBLE,comm->procneigh[1][0],0,world,&request);
-    MPI_Send(buf1,k,MPI_DOUBLE,comm->procneigh[1][1],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  k = 0;
-  for (iz = nzlo_out[n]; iz <= nzhi_out[n]; iz++)
-    for (iy = nylo_out[n]; iy < nylo_in[n]; iy++)
-      for (ix = nxlo_in[n]; ix <= nxhi_in[n]; ix++) {
-        fxgridn[iz][iy][ix] = buf2[k++];
-        fygridn[iz][iy][ix] = buf2[k++];
-        fzgridn[iz][iy][ix] = buf2[k++];
-      }
-
-  // pack my real cells for -y processor
-  // pass data to self or -y processor
-  // unpack and sum recv data into my ghost cells
-
-  k = 0;
-  for (iz = nzlo_out[n]; iz <= nzhi_out[n]; iz++)
-    for (iy = nylo_in[n]; iy < nylo_in[n]+nylo_ghost[n]; iy++)
-      for (ix = nxlo_in[n]; ix <= nxhi_in[n]; ix++) {
-        buf1[k++] = fxgridn[iz][iy][ix];
-        buf1[k++] = fygridn[iz][iy][ix];
-        buf1[k++] = fzgridn[iz][iy][ix];
-      }
-
-  if (comm->procneigh[1][0] == me)
-    for (i = 0; i < k; i++) buf2[i] = buf1[i];
-  else {
-    MPI_Irecv(buf2,nbuf,MPI_DOUBLE,comm->procneigh[1][1],0,world,&request);
-    MPI_Send(buf1,k,MPI_DOUBLE,comm->procneigh[1][0],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  k = 0;
-  for (iz = nzlo_out[n]; iz <= nzhi_out[n]; iz++)
-    for (iy = nyhi_in[n]+1; iy <= nyhi_out[n]; iy++)
-      for (ix = nxlo_in[n]; ix <= nxhi_in[n]; ix++) {
-        fxgridn[iz][iy][ix] = buf2[k++];
-        fygridn[iz][iy][ix] = buf2[k++];
-        fzgridn[iz][iy][ix] = buf2[k++];
-      }
-
-  // pack my real cells for +x processor
-  // pass data to self or +x processor
-  // unpack and sum recv data into my ghost cells
-
-  k = 0;
-  for (iz = nzlo_out[n]; iz <= nzhi_out[n]; iz++)
-    for (iy = nylo_out[n]; iy <= nyhi_out[n]; iy++)
-      for (ix = nxhi_in[n]-nxhi_ghost[n]+1; ix <= nxhi_in[n]; ix++) {
-        buf1[k++] = fxgridn[iz][iy][ix];
-        buf1[k++] = fygridn[iz][iy][ix];
-        buf1[k++] = fzgridn[iz][iy][ix];
-      }
-
-  if (comm->procneigh[0][1] == me)
-    for (i = 0; i < k; i++) buf2[i] = buf1[i];
-  else {
-    MPI_Irecv(buf2,nbuf,MPI_DOUBLE,comm->procneigh[0][0],0,world,&request);
-    MPI_Send(buf1,k,MPI_DOUBLE,comm->procneigh[0][1],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  k = 0;
-  for (iz = nzlo_out[n]; iz <= nzhi_out[n]; iz++)
-    for (iy = nylo_out[n]; iy <= nyhi_out[n]; iy++)
-      for (ix = nxlo_out[n]; ix < nxlo_in[n]; ix++) {
-        fxgridn[iz][iy][ix] = buf2[k++];
-        fygridn[iz][iy][ix] = buf2[k++];
-        fzgridn[iz][iy][ix] = buf2[k++];
-      }
-
-  // pack my real cells for -x processor
-  // pass data to self or -x processor
-  // unpack and sum recv data into my ghost cells
-
-  k = 0;
-  for (iz = nzlo_out[n]; iz <= nzhi_out[n]; iz++)
-    for (iy = nylo_out[n]; iy <= nyhi_out[n]; iy++)
-      for (ix = nxlo_in[n]; ix < nxlo_in[n]+nxlo_ghost[n]; ix++) {
-        buf1[k++] = fxgridn[iz][iy][ix];
-        buf1[k++] = fygridn[iz][iy][ix];
-        buf1[k++] = fzgridn[iz][iy][ix];
-      }
-
-  if (comm->procneigh[0][0] == me)
-    for (i = 0; i < k; i++) buf2[i] = buf1[i];
-  else {
-    MPI_Irecv(buf2,nbuf,MPI_DOUBLE,comm->procneigh[0][1],0,world,&request);
-    MPI_Send(buf1,k,MPI_DOUBLE,comm->procneigh[0][0],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  k = 0;
-  for (iz = nzlo_out[n]; iz <= nzhi_out[n]; iz++)
-    for (iy = nylo_out[n]; iy <= nyhi_out[n]; iy++)
-      for (ix = nxhi_in[n]+1; ix <= nxhi_out[n]; ix++) {
-        fxgridn[iz][iy][ix] = buf2[k++];
-        fygridn[iz][iy][ix] = buf2[k++];
-        fzgridn[iz][iy][ix] = buf2[k++];
-      }
+  if (flag == REVERSE_RHO) {
+    double *dest = &qgridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
+    for (int i = 0; i < nlist; i++)
+      dest[list[i]] += buf[i];
+  } 
 }
 
 /* ----------------------------------------------------------------------

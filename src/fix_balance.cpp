@@ -127,10 +127,8 @@ int FixBalance::setmask()
 
 void FixBalance::init()
 {
-  // don't allow PPPM for now
-
-  if (force->kspace && strstr(force->kspace_style,"pppm"))
-    error->all(FLERR,"Cannot yet use fix balance with PPPM");
+  if (force->kspace) kspace_flag = 1;
+  else kspace_flag = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -241,9 +239,9 @@ void FixBalance::rebalance()
   if (irregular->migrate_check()) irregular->migrate_atoms();
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
 
-  // NOTE: still to be implemented
-  // check that new sub-domains are valid with KSpace constraints
-  // if (kspace_flag) force->kspace->check();
+  // invoke KSpace setup_grid() to adjust to new proc sub-domains
+
+  if (kspace_flag) force->kspace->setup_grid();
 
   // pending triggers pre_neighbor() to compute final imbalance factor
   // can only be done after atoms migrate in caller's comm->exchange()

@@ -70,17 +70,11 @@ necessary to set a ghost cutoff > neighbor cutoff:
 <LI>bonded interactions (e.g. dihedrals) extend further than the pairwise cutoff
 <LI>ghost atoms beyond the pairwise cutoff are needed for some computation 
 </UL>
-<P>In the first scenario, a pairwise potential may not be defined.  Thus
-the pairwise neighbor cutoff will be 0.0.  But ghost atoms are still
+<P>In the first scenario, a pairwise potential is not defined.  Thus the
+pairwise neighbor cutoff will be 0.0.  But ghost atoms are still
 needed for computing bond, angle, etc interactions between atoms on
-different processors or when the interaction straddles a periodic
+different processors, or when the interaction straddles a periodic
 boundary.
-</P>
-<P>IMPORTANT NOTE: This means that if you are running on a single
-processor without a pair style, and a bonded interaction straddles a
-periodic boundary, and you do not specify a ghost cutoff, then LAMMPS
-will "find" the atoms in the bonded interaction that are across the
-simulation box from each other, which will lead to bad dynamics.
 </P>
 <P>The appropriate ghost cutoff depends on the <A HREF = "newton.html">newton bond</A>
 setting.  For newton bond <I>off</I>, the distance needs to be the furthest
@@ -101,6 +95,15 @@ atoms beyond the normal pairwise cutoff for some computation it
 performs (e.g. locate neighbors of ghost atoms in a multibody pair
 potential).  Setting the ghost cutoff appropriately can insure it will
 find the needed atoms.
+</P>
+<P>IMPORTANT NOTE: In these scenarios, if you do not set the ghost cutoff
+long enough, and if there is only one processor in a periodic
+dimension (e.g. you are running in serial), then LAMMPS may "find" the
+atom it is looking for (e.g. the partner atom in a bond), that is on
+the far side of the simulation box, across a periodic boundary.  This
+will typically lead to bad dynamics (i.e. the bond length is now the
+simulation box length).  To detect if this is happening, see the
+<A HREF = "neigh_modify.html">neigh_modify cluster</A> command.
 </P>
 <P>The <I>group</I> option will limit communication to atoms in the specified
 group.  This can be useful for models where no ghost atoms are needed

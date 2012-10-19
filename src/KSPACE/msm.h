@@ -60,7 +60,6 @@ class MSM : public KSpace {
   int nyhi_direct,nzlo_direct,nzhi_direct;
   int nmax_direct;
   int nlower,nupper;
-  int nbuf,nbuf_peratom;
   int peratom_allocate_flag;
   int levels;
 
@@ -75,9 +74,10 @@ class MSM : public KSpace {
   double **v0_direct,**v1_direct,**v2_direct;
   double **v3_direct,**v4_direct,**v5_direct;
 
-  double *buf1,*buf2,*buf3,*buf4;
-
   double **phi1d,**dphi1d;
+  
+  class CommGrid *cg;
+  class CommGrid *cg_peratom;
 
   int **part2grid;             // storage for particle -> grid mapping
   int nmax;
@@ -85,7 +85,10 @@ class MSM : public KSpace {
   int triclinic;               // domain settings, orthog or triclinic
   double *boxlo;
 
-  void set_grid();
+  void set_grid_global();
+  void set_grid_local();
+  void setup_grid();
+  double estimate_a(double,double);
   double estimate_1d_error(double,double);
   double estimate_3d_error();
   double estimate_total_error();
@@ -119,6 +122,13 @@ class MSM : public KSpace {
   void get_g_direct();
   void get_dg_direct();
   void get_virial_direct();
+  
+  // grid communication
+
+  void pack_forward(int, double *, int, int *);
+  void unpack_forward(int, double *, int, int *);
+  void pack_reverse(int, double *, int, int *);
+  void unpack_reverse(int, double *, int, int *);
 };
 
 }

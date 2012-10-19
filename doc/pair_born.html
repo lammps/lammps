@@ -114,7 +114,7 @@ commands, or by mixing as described below:
 <P>The last coefficient is optional.  If not specified, the global A,C,D
 cutoff specified in the pair_style command is used.
 </P>
-<P>For <I>buck/coul/long</I> and <I>born/coul/wolf</I> no Coulombic cutoff can be
+<P>For <I>born/coul/long</I> and <I>born/coul/wolf</I> no Coulombic cutoff can be
 specified for an individual I,J type pair.  All type pairs use the
 same global Coulombic cutoff specified in the pair_style command.
 </P>
@@ -151,9 +151,9 @@ I,J pairs must be specified explicitly.
 for the energy of the exp(), 1/r^6, and 1/r^8 portion of the pair
 interaction.
 </P>
-<P>The <I>born/coul/long</I> pair style does not support the
-<A HREF = "pair_modify.html">pair_modify</A> table option since a tabulation
-capability has not yet been added to this potential.
+<P>The <I>born/coul/long</I> pair style supports the
+<A HREF = "pair_modify.html">pair_modify</A> table option ti tabulate the
+short-range portion of the long-range Coulombic interaction.
 </P>
 <P>These styles support the pair_modify tail option for adding long-range
 tail corrections to energy and pressure.

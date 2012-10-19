@@ -385,12 +385,13 @@ contains !! Wrapper functions local to this module {{{1
       type (C_ptr), intent(in) :: ptr
       character (len=*), intent(in) :: name
       type (C_ptr) :: Cptr
-      integer (C_int), pointer :: Fptr
-      integer :: natoms
-      natoms = lammps_get_natoms (ptr)
-      allocate (atom(natoms))
+      integer (C_int), dimension(:), pointer :: Fptr
+      integer :: nelements
+      call lammps_extract_global_i (nelements, ptr, 'nlocal')
       Cptr = lammps_extract_atom_Cptr (ptr, name)
-      call C_F_pointer (Cptr, Fptr, (/natoms/))
+      call C_F_pointer (Cptr, Fptr, (/nelements/))
+      if ( .not. associated (Fptr) ) return
+      allocate (atom(nelements))
       atom = Fptr
       nullify (Fptr)
    end subroutine lammps_extract_atom_ia
@@ -412,13 +413,16 @@ contains !! Wrapper functions local to this module {{{1
          ! Everything else we can get is probably nlocal units long
          call lammps_extract_global_i (nelements, ptr, 'nlocal')
       end if
-      allocate (atom(nelements))
       Cptr = lammps_extract_atom_Cptr (ptr, name)
       if ( name == 'mass' ) then
          call C_F_pointer (Cptr, Fptr, (/nelements + 1/))
+         if ( .not. associated (Fptr) ) return
+         allocate (atom(nelements))
          atom = Fptr(2:) ! LAMMPS starts numbering at 1 (C does not)
       else
          call C_F_pointer (Cptr, Fptr, (/nelements/))
+         if ( .not. associated (Fptr) ) return
+         allocate (atom(nelements))
          atom = Fptr
       end if
       nullify (Fptr)
@@ -445,7 +449,7 @@ contains !! Wrapper functions local to this module {{{1
          return
       end if
       Cptr = lammps_extract_atom_Cptr (ptr, name)
-      nelements = lammps_get_natoms (ptr)
+      call lammps_extract_global_i (nelements, ptr, 'nlocal')
       allocate (atom(nelements,3))
       atom = Cdoublestar_to_2darray (Cptr, nelements, 3)
    end subroutine lammps_extract_atom_dp2a
@@ -1168,4 +1172,4 @@ contains !! Wrapper functions local to this module {{{1
 
 end module LAMMPS
 
-! vim: foldmethod=marker ts=3 sts=3 expandtab
+! vim: foldmethod=marker tabstop=3 softtabstop=3 shiftwidth=3 expandtab

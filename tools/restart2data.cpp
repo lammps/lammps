@@ -417,6 +417,7 @@ int main (int narg, char **arg)
   // if restart file contains '%', file = filename with % replaced by "base"
   // else file = single file
   // open single restart file or base file for multiproc case
+  // auto-detect whether byte swapping needs to be done as file is read
 
   printf("Reading restart file ...\n");
 
@@ -434,17 +435,15 @@ int main (int narg, char **arg)
       printf("ERROR: Cannot open restart file %s\n",basefile);
       return 1;
     }
+    swapflag = autodetect(&fp,basefile);
   } else {
     fp = fopen(restartfile,"rb");
     if (fp == NULL) {
       printf("ERROR: Cannot open restart file %s\n",restartfile);
       return 1;
     }
+    swapflag = autodetect(&fp,restartfile);
   }
-
-  // auto-detect whether byte swapping needs to be done as file is read
-
-  swapflag = autodetect(&fp,restartfile);
 
   // read beginning of restart file
 

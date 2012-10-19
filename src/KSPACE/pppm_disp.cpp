@@ -448,7 +448,7 @@ void PPPMDisp::init()
         fprintf(screen,"  Coulomb estimated relative force accuracy = %g\n",
                 acc/two_charge_force);
         fprintf(screen,"  using %s precision FFTs\n",fft_prec);
-        fprintf(screen,"  3d grid anf FFT values/proc = %d %d\n",
+        fprintf(screen,"  3d grid and FFT values/proc = %d %d\n",
 		ngrid_max, nfft_both_max);
       }
       if (logfile) {
@@ -460,7 +460,7 @@ void PPPMDisp::init()
         fprintf(logfile,"  Coulomb estimated relative force accuracy = %g\n",
                 acc/two_charge_force);
         fprintf(logfile,"  using %s precision FFTs\n",fft_prec);
-        fprintf(logfile,"  3d grid anf FFT values/proc = %d %d\n",
+        fprintf(logfile,"  3d grid and FFT values/proc = %d %d\n",
 		ngrid_max, nfft_both_max);
       }
     }

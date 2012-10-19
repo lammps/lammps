@@ -65,7 +65,7 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   single_extra = 0;
   svector = NULL;
 
-  ewaldflag = pppmflag = msmflag = dispersionflag = tip4pflag = proxyflag = 0;
+  ewaldflag = pppmflag = msmflag = dispersionflag = tip4pflag = 0;
 
   // pair_modify settings
 

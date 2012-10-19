@@ -303,7 +303,6 @@ void PPPM::init()
   }
   
   if (order < minorder) error->all(FLERR,"PPPM order < minimum allowed order");
-
   if (!overlap_allowed && cgtmp->ghost_overlap())
     error->all(FLERR,"PPPM grid stencil extends "
                "beyond nearest neighbor processor");

@@ -301,11 +301,12 @@ void PPPM::init()
     order--;
     iteration++;
   }
+  
+  if (order < minorder) error->all(FLERR,"PPPM order < minimum allowed order");
 
   if (!overlap_allowed && cgtmp->ghost_overlap())
     error->all(FLERR,"PPPM grid stencil extends "
                "beyond nearest neighbor processor");
-  if (order < minorder) error->all(FLERR,"PPPM order < minimum allowed order");
   if (cgtmp) delete cgtmp;
 
   // adjust g_ewald
@@ -566,9 +567,9 @@ void PPPM::compute(int eflag, int vflag)
   // extra per-atom energy/virial communication
 
   if (evflag_atom) {
-    if (differentiation_flag == 1) 
+    if (differentiation_flag == 1 && vflag_atom) 
       cg_peratom->forward_comm(this,FORWARD_AD_PERATOM);
-    else 
+    else if (differentiation_flag == 0)
       cg_peratom->forward_comm(this,FORWARD_IK_PERATOM);
   }
 

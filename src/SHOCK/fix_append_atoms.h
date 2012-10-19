@@ -13,7 +13,7 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(append_atoms,FixAppendAtoms)
+FixStyle(append/atoms,FixAppendAtoms)
 
 #else
 

@@ -1,10 +1,9 @@
 # Install/unInstall package files in LAMMPS
 # do not install child files if parent does not exist
 
-for file in *_omp.cpp *_omp.h  pppm*proxy.h pppm*proxy.cpp; do
+for file in *_omp.cpp *_omp.h ; do
     # let us see if the "rain man" can count the toothpicks...
-   ofile=`echo $file | sed  -e s,_pppm_tip4p_omp,_long_tip4p_omp, \
-   -e s,pppm.\\*_proxy,pppm_omp, -e s,_pppm_omp,_long_omp, \
+   ofile=`echo $file | sed  \
    -e s,\\\\\\(.\\*\\\\\\)_omp\\\\.h,\\\\1.h, \
    -e s,\\\\\\(.\\*\\\\\\)_omp\\\\.cpp,\\\\1.cpp,`
   if (test $1 = 1) then

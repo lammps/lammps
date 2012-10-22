@@ -102,7 +102,7 @@ The second coefficient, rho, must be greater than zero.
 The last coefficient is optional.  If not specified, the global A,C,D
 cutoff specified in the pair_style command is used.
 
-For {buck/coul/long} and {born/coul/wolf} no Coulombic cutoff can be
+For {born/coul/long} and {born/coul/wolf} no Coulombic cutoff can be
 specified for an individual I,J type pair.  All type pairs use the
 same global Coulombic cutoff specified in the pair_style command.
 
@@ -139,9 +139,9 @@ These styles support the "pair_modify"_pair_modify.html shift option
 for the energy of the exp(), 1/r^6, and 1/r^8 portion of the pair
 interaction.
 
-The {born/coul/long} pair style does not support the
-"pair_modify"_pair_modify.html table option since a tabulation
-capability has not yet been added to this potential.
+The {born/coul/long} pair style supports the
+"pair_modify"_pair_modify.html table option ti tabulate the
+short-range portion of the long-range Coulombic interaction.
 
 These styles support the pair_modify tail option for adding long-range
 tail corrections to energy and pressure.

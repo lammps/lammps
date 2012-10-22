@@ -265,8 +265,8 @@ void PairHybrid::settings(int narg, char **arg)
   // respa_enable = 1 if any sub-style is set
   // no_virial_fdotr_compute = 1 if any sub-style is set
   // ghostneigh = 1 if any sub-style is set
-  // ewaldflag, pppmflag, msmflag,
-  // dispersionflag, tip4pflag, proxyflag = 1 if any sub-style is set
+  // ewaldflag, pppmflag, msmflag, dispersionflag, tip4pflag = 1
+  //   if any sub-style is set
 
   single_enable = 0;
   for (m = 0; m < nstyles; m++) {
@@ -279,7 +279,6 @@ void PairHybrid::settings(int narg, char **arg)
     if (styles[m]->msmflag) msmflag = 1;
     if (styles[m]->dispersionflag) dispersionflag = 1;
     if (styles[m]->tip4pflag) tip4pflag = 1;
-    if (styles[m]->proxyflag) proxyflag = 1;
   }
 
   // single_extra = min of all sub-style single_extra

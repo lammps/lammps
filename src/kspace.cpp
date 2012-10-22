@@ -32,7 +32,7 @@ KSpace::KSpace(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   energy = 0.0;
   virial[0] = virial[1] = virial[2] = virial[3] = virial[4] = virial[5] = 0.0;
 
-  ewaldflag = pppmflag = msmflag = dispersionflag = tip4pflag = proxyflag = 0;
+  ewaldflag = pppmflag = msmflag = dispersionflag = tip4pflag = 0;
   compute_flag = 1;
   group_group_enable = 0;
 
@@ -150,8 +150,6 @@ void KSpace::pair_check()
   if (dispersionflag && force->pair->dispersionflag == 0)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
   if (tip4pflag && force->pair->tip4pflag == 0)
-    error->all(FLERR,"KSpace style is incompatible with Pair style");
-  if (proxyflag && force->pair->proxyflag == 0)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
 }
 
@@ -371,7 +369,7 @@ void KSpace::modify_params(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"ik") == 0) differentiation_flag = 0;
       else error->all(FLERR, "Illegal kspace_modify command");
       iarg += 2;
-    } else if (strcmp(arg[iarg],"adjust/cutoff") == 0) {
+    } else if (strcmp(arg[iarg],"cutoff/adjust") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
       if (strcmp(arg[iarg+1],"yes") == 0) adjust_cutoff_flag = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) adjust_cutoff_flag = 0;

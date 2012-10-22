@@ -42,7 +42,6 @@ class KSpace : protected Pointers {
   int msmflag;                   // 1 if a MSM solver
   int dispersionflag;            // 1 if a LJ/dispersion solver
   int tip4pflag;                 // 1 if a TIP4P solver
-  int proxyflag;                 // 1 if a proxy solver
 
   double g_ewald,g_ewald_6;
   int nx_pppm,ny_pppm,nz_pppm;           // global FFT grid for Coulombics

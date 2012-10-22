@@ -17,7 +17,7 @@
 </PRE>
 <UL><LI>one or more keyword/value pairs may be listed 
 
-<LI>keyword = <I>mesh</I> or <I>order</I> or <I>order/disp</I> or <I>overlap</I> or <I>minorder</I> or <I>force</I> or <I>gewald</I> or <I>gewald/disp</I> or <I>slab</I> or (nozforce</I> or <I>compute</I> or <I>diff</I> 
+<LI>keyword = <I>mesh</I> or <I>order</I> or <I>order/disp</I> or <I>overlap</I> or <I>minorder</I> or <I>force</I> or <I>gewald</I> or <I>gewald/disp</I> or <I>slab</I> or (nozforce</I> or <I>compute</I> or <I>cutoff/adjust</I> or <I>diff</I> 
 
 <PRE>  <I>mesh</I> value = x y z
     x,y,z = grid size in each dimension for long-range Coulombics
@@ -40,7 +40,7 @@
       2d approximation compared with the volume of the simulation domain
   <I>nozforce</I> turns off kspace forces in the z direction
   <I>compute</I> value = <I>yes</I> or <I>no</I> 
-  <I>adjust/cutoff</I> value = <I>yes</I> or <I>no</I> 
+  <I>cutoff/adjust</I> value = <I>yes</I> or <I>no</I> 
   <I>diff</I> value = <I>ad</I> or <I>ik</I> = 2 or 4 FFTs for PPPM in smoothed or non-smoothed mode 
 </PRE>
 
@@ -177,14 +177,14 @@ defining a <A HREF = "kspace_style.html">kspace_style</A>, but a Kspace-compatib
 <A HREF = "pair_style.html">pair_style</A> requires a kspace style to be defined.
 This keyword gives you that option.
 </P>
-<P>The <I>adjust/cutoff</I> keyword applies only to MSM. If this option is 
+<P>The <I>cutoff/adjust</I> keyword applies only to MSM. If this option is
 turned on, the Coulombic cutoff will be automatically adjusted at the
-beginning of the run to give the desired estimated error. Other cutoffs 
-such as LJ will not be affected. If the grid is not set using the <I>mesh</I> 
-command, this command will also attempt to use the optimal grid that 
-minimizes cost using an estimate given by <A HREF = "#Hardy">(Hardy)</A>. Note that 
-this cost estimate is not exact, somewhat experimental, and still may
-not yield the optimal parameters. 
+beginning of the run to give the desired estimated error. Other
+cutoffs such as LJ will not be affected. If the grid is not set using
+the <I>mesh</I> command, this command will also attempt to use the optimal
+grid that minimizes cost using an estimate given by
+<A HREF = "#Hardy">(Hardy)</A>. Note that this cost estimate is not exact, somewhat
+experimental, and still may not yield the optimal parameters.
 </P>
 <P>The <I>diff</I> keyword specifies the differentiation scheme used by the
 PPPM method to compute forces on particles given electrostatic
@@ -217,7 +217,7 @@ option.  Support for those PPPM variants will be added later.
 </P>
 <P>The option defaults are mesh = mesh/disp = 0 0 0, order = order/disp =
 5 (PPPM), order = 4 (MSM), minorder = 2, overlap = yes, force = -1.0,
-gewald = gewald/disp = 0.0, slab = 1.0, compute = yes, adjust/cutoff = 
+gewald = gewald/disp = 0.0, slab = 1.0, compute = yes, cutoff/adjust =
 yes, and diff = ik (PPPM), diff = ad (MSM).
 </P>
 <HR>

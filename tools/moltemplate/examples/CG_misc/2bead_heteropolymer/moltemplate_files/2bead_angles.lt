@@ -1,0 +1,61 @@
+# Although there's no need to define angular interactions (because the "H" 
+# and "P" molecules only contains two atoms), we define the settings for angles
+# or dihedrals which might be present later when we connect multiple "H" and "P"
+# molecules together to build a polymer.
+
+2bead {
+
+  # OPTIONAL: Enclose these angle settings within the 2bead {...} environment.
+  #           We do this for the same reason we enclosed "H" and "P" in "2bead".
+  #           This does not overwrite the definition of 2bead.  Here we are only
+  #           augmenting "2bead" to include definitions of the following angles
+
+  #  Rules for determining 3 and 4-body bonded interactions by type
+
+  # angle-type      atomType1 atomType2 atomType3  bondType1 bondType2
+
+  write_once("Data Angles By Type") {
+    @angle:backbone  @atom:CA @atom:CA  @atom:CA   @bond:*   @bond:*
+    @angle:sidechain @atom:CA @atom:CA  @atom:*/R  @bond:*   @bond:*
+  }
+
+  # dihedral-type AtomType1 AtomType2 AtomType3 AtomType4 bondType1 btyp2 btyp3
+
+  write_once("Data Dihedrals By Type") {
+    @dihedral:CCCC @atom:CA  @atom:CA @atom:CA @atom:CA  @bond:* @bond:* @bond:*
+    @dihedral:RCCR @atom:*/R @atom:CA @atom:CA @atom:*/R @bond:* @bond:* @bond:*
+  }
+
+  # 3-body interactions in this example are listed by atomType and bondType
+  # The atomIDs involved are determined automatically.  The forumula used is:
+  #
+  # Uangle(theta) = (k/2)*(theta-theta0)^2   
+  #     (k in kcal/mol/rad^2, theta0 in degrees)
+  #
+  # The corresponding command is:
+  #
+  #   angle_coeff  angleType  anglestylename   k   theta0
+
+  write_once("In Settings") {
+    angle_coeff @angle:backbone   harmonic   30.00  114
+    angle_coeff @angle:sidechain  harmonic   30.00  123
+  }
+
+
+  # 4-body interactions in this example are listed by atomType and bondType
+  # The atomIDs involved are determined automatically.  The forumula used is:
+  #
+  # Udihedral(phi) = K * (1 + cos(n*phi - d))
+  #
+  #     The d parameter is in degrees, K is in kcal/mol/rad^2.
+  #
+  # The corresponding command is 
+  # dihedral_coeff dihedralType dihedralstylename  K  n   d  w
+  #     "w" is the weight for 1-4 pair interactions, which we set to 0.0
+
+  write_once("In Settings") {
+    dihedral_coeff @dihedral:CCCC    charmm      -0.5 1 -180 0.0
+    dihedral_coeff @dihedral:RCCR    charmm      -1.5 1 -180 0.0
+  } # write_once("In Settings") 
+
+}

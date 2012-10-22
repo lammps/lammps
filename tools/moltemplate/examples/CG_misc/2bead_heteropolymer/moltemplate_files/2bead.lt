@@ -1,0 +1,173 @@
+#   In this example, we define two types of molecules: "H" and "P",
+#   both containing two atoms, named "CA" and "R".
+#
+#                @R 
+#                 | 
+#                @CA
+#
+#   Eventually, we will connect multiple "H" and "P" molecules
+#   together to form a polymer, as shown below:
+#
+#                @R           @R       
+#                 |           |        
+#               _@CA_       _@CA_      
+#   ...  -.@CA-'     `-@CA-'     `  ... 
+#           |          |               
+#          @R          @R              
+#
+#   Suppose that the "H" and "P" molecules both use the same 
+#   type of backbone atom ("CA"), but have their own custom "R" 
+#   sidechain atoms with different properties:
+#   The "R" atoms belonging to "H" molecules are attracted to each other.
+#   The "R" atoms in "P" molecules are not.
+#
+# (Note: There is no reason the "H" and "P" molecules in this example need 
+#        to contain the same number of atoms, or the same atom names.
+#        The point of this example is to illustrate how to share atom types
+#        and also the difference between local and global atom types.)
+# 
+# By default, all counter variables are local.  This means that whenever
+# an atom type (or other counter variable) appears inside a molecule 
+# definition using the normal syntax "@atom:R", that atom type is a local 
+# property of the the "H" or "P" molecule in which it appears.
+# Any properties assigned to the "R" atoms in either molecule are unique
+# to that molecule.
+#
+# However in order to share "CA" atom types, we will override this behavior
+# using the "@atom:../CA" syntax instead of "@atom:CA".  This will define 
+# the "CA" atom in the outer (global) environment, and any properties 
+# (mass, radius, etc...) assigned to the "@atom:../CA" atom apply to 
+# "CA" atoms in both the the "H" and "P" molecules (and everywhere else).
+#
+#    This might not be a desirable.  "CA" is a popular name for carbon 
+# atoms in different types of molecules.  We don't want to prevent other 
+# molecules from using this atom name.  So we enclose the "CA" atom,
+# (along with the definitions of the "H" and "P" molecules) within a 
+# namespace/environment object ("2bead").  This makes the definition 
+# of "H" and "P" more portable.  Later on we can combine "H" and "P" 
+# molecules with other molecules without worrying whether they contain 
+# "CA" atoms with different properties.
+#
+# Note: In this example "2bead" is NOT a molecule.  (Because it contains no
+#       "write("Data Atoms")" section of its own.)  "2bead" is simply the 
+#       name of an environment in which other molecules (H,P) are defined.
+
+
+
+
+2bead {
+
+  # LAMMPS supports a large number of force-field styles.  We must select
+  # which ones we need.  This information belongs in the "In Init" section.
+  # (Hybrid styles used for portability. These choices can be overridden later.)
+
+  write_once("In Init") {
+    # -- Default styles for "2bead" --
+    units           real
+    atom_style      full
+    # (Hybrid force fields were not necessary but are used for portability.)
+    bond_style      hybrid harmonic
+    angle_style     hybrid harmonic
+    dihedral_style  hybrid charmm
+    pair_style      hybrid lj/cut 11.0
+
+    # If charges are needed, (assuming biopolymers), try one of:
+    #dielectric      80.0
+    #pair_style      hybrid lj/cut/coul/debye 0.1 11.0
+    # or (for short distances, below a couple nm)
+    #pair_style      hybrid lj/charmm/coul/charmm/implicit 9.0 11.0
+
+    pair_modify     mix arithmetic
+    special_bonds   lj 0.0 0.0 0.0
+  }
+
+
+  # Define H (the "hydrophobic" residue)
+  H {
+    # atom-id  mol-id   atom-type  charge  x     y        z
+    write("Data Atoms") {
+      $atom:CA $mol:... @atom:../CA 0.0  0.000  1.0000   0.0000000
+      $atom:R  $mol:... @atom:R     0.0  0.000  4.4000   0.0000000
+    }
+    write("Data Bonds") {
+      $bond:CR  @bond:../sidechain  $atom:CA $atom:R
+    }
+  }
+
+
+  # Define P (the "polar" residue)
+  P {
+    # atom-id  mol-id   atom-type  charge  x     y        z
+    write("Data Atoms") {
+      $atom:CA $mol:... @atom:../CA 0.0  0.000  1.0000   0.0000000
+      $atom:R  $mol:... @atom:R     0.0  0.000  4.4000   0.0000000
+    }
+    write("Data Bonds") {
+      $bond:CR  @bond:../sidechain  $atom:CA $atom:R
+    }
+  }
+
+  # (Note: Again, atom types, bond-types, (dihedral-types, any variable, etc) 
+  #        can be shared.  The ".." in "@atom:../CA" tells moltemplate that 
+  #        atom type CA is defined in the parent's environment. (We are 
+  #        sharing the CA atom type between both the H and P residues.
+  #        The same is true of the ".." in "@bond:../sidechain".
+  #        
+  #
+  #  Note: The "..." in "$mol:..." tells moltemplate that this molecule may
+  #        be a part of a larger molecule, and (if so) to use the larger
+  #        molecule's id number as it's own.
+
+
+
+  # There are 3 atom types: the R sidechain (belonging to the H and P residues)
+  #                         and the CA sidechain atom (shared by both residues)
+
+  write_once("Data Masses") {
+    @atom:CA   13.0
+    @atom:H/R  50.0
+    @atom:P/R  50.0
+  }
+
+
+  # --------------------------------------------------------------------
+  # -- In this example, all force field parameters are stored in the  --
+  # -- file named "In Settings".  They can also go in sections like   --
+  # -- "Data Pair Coeffs", "Data Bond Coeffs", "Data Angle Coeffs"... --
+  # --------------------------------------------------------------------
+
+
+  # 2-body (non-bonded) interactions:
+  #
+  #   Uij(r) = 4*eps_ij * ( (sig_ij/r)^12 - (sig_ij/r)^6 )
+  #
+  # Hydrophobic side-chains are attractive (large epsilon parameter).
+  # Polar side-chains and backbone atoms are not attractive (small epsilon).
+  #
+  #              i       j           pairstylename   eps sig
+  #
+  write_once("In Settings") {
+    pair_coeff @atom:CA  @atom:CA    lj/cut         0.10 2.0
+    pair_coeff @atom:H/R @atom:H/R   lj/cut         2.50 3.6
+    pair_coeff @atom:P/R @atom:P/R   lj/cut         0.10 3.6
+  }
+  #
+  # (Interactions between different atom types use "arithmetic" mixing rules.)
+
+
+  # 2-body (bonded) interactions:
+  #
+  #   Ubond(r) = (k/2)*(r-0)^2
+  #
+  #   The corresponding command is:
+  #
+  #   bond_coeff     bondType    bondstylename   k     r0
+  #
+
+  write_once("In Settings") {
+    bond_coeff     @bond:sidechain  harmonic    30.0   3.4
+    bond_coeff     @bond:backbone   harmonic    30.0   3.7
+  }
+
+} # 2bead
+

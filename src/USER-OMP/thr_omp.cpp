@@ -147,7 +147,7 @@ void ThrOMP::ev_setup_thr(int eflag, int vflag, int nall, double *eatom,
    ---------------------------------------------------------------------- */
 
 void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
-                        ThrData *const thr, const int nproxy)
+                        ThrData *const thr)
 {
   const int nlocal = lmp->atom->nlocal;
   const int nghost = lmp->atom->nghost;
@@ -172,12 +172,7 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
 
     if (pair->vflag_fdotr) {
 
-      if (style == fix->last_pair_hybrid) {
-        // pair_style hybrid will compute fdotr for us
-        // but we first need to reduce the forces
-        data_reduce_thr(&(f[0][0]), nall, nthreads, 3, tid);
-        need_force_reduce = 0;
-      }
+      if (fix->last_pair_hybrid) return;
 
       // this is a non-hybrid pair style. compute per thread fdotr
       if (fix->last_pair_hybrid == NULL) {
@@ -205,67 +200,7 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
             thr->virial_pair[i] = 0.0;
           }
       }
-      if (eflag & 2) {
-        data_reduce_thr(&(pair->eatom[0]), nall, nthreads, 1, tid);
-      }
-      if (vflag & 4) {
-        data_reduce_thr(&(pair->vatom[0][0]), nall, nthreads, 6, tid);
-      }
-    }
-  }
-    break;
 
-  case THR_PAIR|THR_PROXY: {
-    Pair * const pair = lmp->force->pair;
-
-    if (tid >= nproxy && pair->vflag_fdotr) {
-
-      if (fix->last_pair_hybrid) {
-        if (tid == nproxy)
-          lmp->error->all(FLERR,
-                          "Cannot use hybrid pair style with kspace proxy");
-        else return;
-      }
-
-      // this is a non-hybrid pair style. compute per thread fdotr
-      if (fix->last_pair_hybrid == NULL) {
-        if (lmp->neighbor->includegroup == 0)
-          thr->virial_fdotr_compute(x, nlocal, nghost, -1);
-        else
-          thr->virial_fdotr_compute(x, nlocal, nghost, nfirst);
-      }
-    }
-
-    if (evflag) {
-#if defined(_OPENMP)
-#pragma omp critical
-#endif
-      {
-        if (tid < nproxy) {
-          // nothing to collect for kspace proxy threads
-          // just reset pair accumulators to 0.0.
-          if (eflag & 1) {
-            thr->eng_vdwl = 0.0;
-            thr->eng_coul = 0.0;
-          }
-          if (vflag & 3)
-            for (int i=0; i < 6; ++i) {
-              thr->virial_pair[i] = 0.0;
-            }
-        } else {
-          if (eflag & 1) {
-            pair->eng_vdwl += thr->eng_vdwl;
-            pair->eng_coul += thr->eng_coul;
-            thr->eng_vdwl = 0.0;
-            thr->eng_coul = 0.0;
-          }
-          if (vflag & 3)
-            for (int i=0; i < 6; ++i) {
-              pair->virial[i] += thr->virial_pair[i];
-              thr->virial_pair[i] = 0.0;
-            }
-        }
-      }
       if (eflag & 2) {
         data_reduce_thr(&(pair->eatom[0]), nall, nthreads, 1, tid);
       }
@@ -439,9 +374,8 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
     }
     break;
 
-  case THR_KSPACE|THR_PROXY: // fallthrough
   case THR_KSPACE:
-    // nothing to do
+    // nothing to do. XXX need to add support for per-atom info
     break;
 
   default:

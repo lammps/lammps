@@ -96,8 +96,8 @@ g_file_name    = __file__.split('/')[-1]
 g_module_name  = g_file_name
 if g_file_name.rfind('.py') != -1:
     g_module_name = g_file_name[:g_file_name.rfind('.py')]
-g_date_str     = '2012-9-25'
-g_version_str  = '0.464'
+g_date_str     = '2012-10-19'
+g_version_str  = '0.47'
 
 
 
@@ -2153,7 +2153,7 @@ class StaticObj(object):
                 else:
                     raise InputError('Error('+g_module_name+'.StaticObj.Parse()):\n'
                                      '       Error near '+lex.error_leader()+'\n'
-                                     '       category name = \"'+category_name+'\" lacks a \'$\' or \'&\' prefix.\n'
+                                     '       category name = \"'+cat_name+'\" lacks a \'$\' or \'&\' prefix.\n'
                                      '       This one-character prefix indicates whether the variables in this\n'
                                      '       new category will be static or dynamics variables\n')
 
@@ -3358,18 +3358,18 @@ class InstanceObj(InstanceObjBasic):
 
 
 
-    def Deallocate(self):
+    def Dealloc(self):
         InstanceObjBasic.Dealloc(self)
         # Trying to remove pointers and variables.
         # Hope I'm doing it correctly
-        #sys.stderr.write(self.name+'.Deallocate() invoked.\n')
+        #sys.stderr.write(self.name+'.Dealloc() invoked.\n')
         N = len(self.commands)-1
         for i in range(0, len(self.commands)):
             del self.commands[N-i]
         N = len(self.children)-1
         for i in range(0, len(self.children)):
             child = self.children[N-i]
-            child.Deallocate()
+            child.Dealloc()
             del self.children[N-i]
 
 
@@ -3390,7 +3390,7 @@ class InstanceObj(InstanceObjBasic):
         #        del parent.children[i]
         #    else:
         #        i += 1
-        self.Deallocate()
+        self.Dealloc()
         InstanceObjBasic.DeleteSelf(self)
 
 
@@ -3812,7 +3812,6 @@ def AssignVarOrderByCommand(command_list, prefix_filter):
             for var_ref in tmpl_list:
                 if isinstance(var_ref, VarRef):
                     if var_ref.prefix in prefix_filter:
-                        count += 1
                         if ((var_ref.binding.order == None) or 
                             (var_ref.binding.order > count)):
                             var_ref.binding.order = count
@@ -3875,7 +3874,7 @@ def AutoAssignVals(cat_node,
 
         for leaf_node,var_binding in var_bind_iter:
 
-            if (var_binding.value == None) or ignore_prior_values:
+            if ((var_binding.value == None) or ignore_prior_values):
 
                 if var_binding.nptr.leaf_node.name[:9] == '__query__':
                     #   -- THE "COUNT" HACK --
@@ -3894,18 +3893,20 @@ def AutoAssignVals(cat_node,
 
                 else:
 
-                    # For each (regular) variable, query this category's counter
-                    # (convert it to a string), and see if it is already in use
-                    # (in this category). If not, then set this variable's value
-                    # to the counter's value. Either way, increment the counter.
-                    while True:
-                        cat.counter.incr()
-                        value = str(cat.counter.query())
-                        if ((reserved_values == None) or 
-                            ((cat, value) not in reserved_values)):
-                            break
+                    if (not var_binding.nptr.leaf_node.IsDeleted()):
 
-                    var_binding.value = value
+                        # For each (regular) variable, query this category's counter
+                        # (convert it to a string), and see if it is already in use
+                        # (in this category). If not, then set this variable's value
+                        # to the counter's value. Either way, increment the counter.
+                        while True:
+                            cat.counter.incr()
+                            value = str(cat.counter.query())
+                            if ((reserved_values == None) or 
+                                ((cat, value) not in reserved_values)):
+                                break
+
+                        var_binding.value = value
 
     # Recursively invoke AssignVarValues() on all child nodes
     for child in cat_node.children:
@@ -3996,7 +3997,9 @@ def Render(tmpl_list, substitute_vars=True):
         if isinstance(entry, VarRef):
             var_ref = entry
             var_bindings = var_ref.nptr.cat_node.categories[var_ref.nptr.cat_name].bindings
-            if var_ref.nptr.leaf_node not in var_bindings:
+            #if var_ref.nptr.leaf_node not in var_bindings:
+            #assert(var_ref.nptr.leaf_node in var_bindings)
+            if var_ref.nptr.leaf_node.IsDeleted():
                 raise InputError('Error near '+
                                  ErrorLeader(var_ref.srcloc.infile,
                                              var_ref.srcloc.lineno)+'\n'
@@ -4140,9 +4143,10 @@ def WriteVarBindingsFile(node):
     for cat_name in node.categories:
         var_bindings = node.categories[cat_name].bindings
         for nd, var_binding in var_bindings.items():
+            if nd.IsDeleted():
+                continue   # In that case, skip this variable
 
             #if type(node) is type(nd):
-
             if ((isinstance(node, InstanceObjBasic) and isinstance(nd, InstanceObjBasic))
                 or
                 (isinstance(node, StaticObj) and isinstance(nd, StaticObj))):

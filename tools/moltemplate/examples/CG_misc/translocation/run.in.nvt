@@ -27,7 +27,16 @@ neigh_modify exclude group groupB groupB
 # Only the groupB atoms are immobile.
 group mobile subtract all groupB
 
-fix 1 mobile nvt temp 300.0 300.0 100.0
+# The next two lines recalculate the temperature 
+# using only the mobile degrees of freedom:
+
+compute tempMobile mobile temp
+compute pressMobile all pressure tempMobile
+
+# Integrate the equations of motion:
+fix fMoveStuff mobile nvt temp 300.0 300.0 100.0
+fix_modify fMoveStuff temp tempMobile
+
 
 run		200000
 

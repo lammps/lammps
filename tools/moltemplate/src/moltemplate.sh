@@ -234,12 +234,12 @@ Optional arguments:
                 -atomstyle "molid x y z atomid atomtype mux muy muz"
 
 -xyz xyz_file   An optional xyz_file argument can be supplied as an argument
-                following "-xyz". (This must come before all other arguments.)
+                following "-xyz".
                 This file should contain the atomic coordinates in xyz format.
                 (The atoms must appear in the same order in the data file.)
 
 -pdb pdb_file   An optional pdb_file argument can be supplied as an argument
-                following "-pdb". (This must come before all other arguments.)
+                following "-pdb".
 
                 This should be a PDB file (with ATOM or HETATM records) with
                 the coordinates you wish to appear in the LAMMPS data file. 
@@ -272,8 +272,6 @@ Optional arguments:
                and categories as well as write(file) and write_once(file) 
                commands to obey standard naming conventions.  The "-nocheck"
                argument bypasses these checks and eliminates these restrictions.
-               Note: this argument must appear first in the list, for example:
-               moltemplate -nocheck -pdb f.pdb -a "$atom:res1/CA 1" system.lt
 EOF
 )
 
@@ -473,7 +471,6 @@ done
 # If checking is not disabled, then first check for common spelling errors.
 
 if [ -n "$LTTREE_CHECK_COMMAND" ]; then
-    #if ! "$LTTREE_CHECK_COMMAND" "$LTTREE_FILE"; then
     if ! eval $LTTREE_CHECK_COMMAND $TTREE_ARGS; then
         exit 1
     fi
@@ -529,8 +526,7 @@ fi
 
 
 # ---------------- Interactions By Type -----------------
-#             (new feature added 2012-3-07)
-# At the time of writing, bonded-interactions-by-atom-type were not 
+# At the time of writing, bonded-interactions-by-atom-type were not
 # understood by LAMMPS.  These features require auxilliary python scripts.
 # These data sections must be processed before everything else (because
 # they effect the other data sections, and the ttree_assignments.txt file.)
@@ -559,7 +555,7 @@ if [ -s "$data_angles_by_type" ]; then
     fi
     mv -f new_Angles.template.tmp "${data_angles}.template"
 
-    echo "(Repairing ttree_assignments.txt file after angles added.)"
+    echo "(Repairing ttree_assignments.txt file after angles added.)" >&2
 
     # ---- Repair the ttree_assignments.txt file ----
     # The next 2 lines extract the variable names from data_new.template.tmp
@@ -571,7 +567,7 @@ if [ -s "$data_angles_by_type" ]; then
         exit 1
     fi
 
-    echo "(Rendering ttree_assignments.tmp file after angles added.)"
+    echo "(Rendering ttree_assignments.tmp file after angles added.)" >&2
 
     # ---- Re-build (render) the "$data_angles" file ----
     # Now substitute these variable values (assignments) into the variable 
@@ -612,7 +608,7 @@ if [ -s "$data_dihedrals_by_type" ]; then
     fi
     mv -f new_Dihedrals.template.tmp "${data_dihedrals}.template"
 
-    echo "(Repairing ttree_assignments.txt file after dihedrals added.)"
+    echo "(Repairing ttree_assignments.txt file after dihedrals added.)" >&2
 
     # ---- Repair the ttree_assignments.txt file ----
     # The next 2 lines extract the variable names from data_new.template.tmp
@@ -624,7 +620,7 @@ if [ -s "$data_dihedrals_by_type" ]; then
 	exit 1
     fi
 
-    echo "(Rendering ttree_assignments.tmp file after dihedral added.)"
+    echo "(Rendering ttree_assignments.tmp file after dihedral added.)" >&2
 
     # ---- Re-build (render) the "$data_dihedrals" file ----
     # Now substitute these variable values (assignments) into the variable 
@@ -665,7 +661,7 @@ if [ -s "$data_impropers_by_type" ]; then
     fi
     mv -f new_Impropers.template.tmp "${data_impropers}.template"
 
-    echo "(Repairing ttree_assignments.txt file after impropers added.)"
+    echo "(Repairing ttree_assignments.txt file after impropers added.)" >&2
 
     # ---- Repair the ttree_assignments.txt file ----
     # The next 2 lines extract the variable names from data_new.template.tmp
@@ -677,7 +673,7 @@ if [ -s "$data_impropers_by_type" ]; then
 	exit 1
     fi
 
-    echo "(Rendering ttree_assignments.tmp file after impropers added.)"
+    echo "(Rendering ttree_assignments.tmp file after impropers added.)" >&2
 
     # ---- Re-build (render) the "$data_impropers" file ----
     # Now substitute these variable values (assignments) into the variable 
@@ -763,11 +759,11 @@ NANGLETYPES=`awk '/^@\/angle:/{n++}END{print n}' < ttree_assignments.txt`
 NDIHEDRALTYPES=`awk '/^@\/dihedral:/{n++}END{print n}' < ttree_assignments.txt`
 NIMPROPERTYPES=`awk '/^@\/improper:/{n++}END{print n}' < ttree_assignments.txt`
 
-#NATOMS=`awk '/^\\\$\/atom:/{n++}END{print n}' < ttree_assignments.txt`
-#NBONDS=`awk '/^\\\$\/bond:/{n++}END{print n}' < ttree_assignments.txt`
-#NANGLES=`awk '/^\\\$\/angle:/{n++}END{print n}' < ttree_assignments.txt`
-#NDIHEDRALS=`awk '/^\\\$\/dihedral:/{n++}END{print n}' < ttree_assignments.txt`
-#NIMPROPERS=`awk '/^\\\$\/improper:/{n++}END{print n}' < ttree_assignments.txt`
+#NATOMS=`awk '/^\$\/atom:/{n++}END{print n}' < ttree_assignments.txt`
+#NBONDS=`awk '/^\$\/bond:/{n++}END{print n}' < ttree_assignments.txt`
+#NANGLES=`awk '/^\$\/angle:/{n++}END{print n}' < ttree_assignments.txt`
+#NDIHEDRALS=`awk '/^\$\/dihedral:/{n++}END{print n}' < ttree_assignments.txt`
+#NIMPROPERS=`awk '/^\$\/improper:/{n++}END{print n}' < ttree_assignments.txt`
 
 NATOMS="0"
 NBONDS="0"
@@ -1184,10 +1180,10 @@ fi
 rm -f $OUT_FILE_INPUT_SCRIPT
 
 if [ -s "$in_init" ]; then
-echo "" >> $OUT_FILE_INPUT_SCRIPT
+    echo "" >> $OUT_FILE_INPUT_SCRIPT
     cp -f "$in_init" $OUT_FILE_INIT
     echo "" >> $OUT_FILE_INPUT_SCRIPT
-echo "# ----------------- Init Section -----------------" >> $OUT_FILE_INPUT_SCRIPT
+    echo "# ----------------- Init Section -----------------" >> $OUT_FILE_INPUT_SCRIPT
     echo "" >> $OUT_FILE_INPUT_SCRIPT
     echo "include \"$OUT_FILE_INIT\"" >> $OUT_FILE_INPUT_SCRIPT
     #echo "# \"$in_init\" typically contains various styles, dimensions, and units:" >> $OUT_FILE_INPUT_SCRIPT
@@ -1224,7 +1220,7 @@ if [ -s "$tmp_atom_coords" ]; then
     echo "include \"$OUT_FILE_COORDS\"" >> $OUT_FILE_INPUT_SCRIPT
     echo "" >> $OUT_FILE_INPUT_SCRIPT
     NATOMS=`awk '/^\\\$\/atom:/{n++}END{print n}' < ttree_assignments.txt`
-    NATOMCRDS=`awk 'END{print(NR)}' < "$tmp_atom_coords"`
+    NATOMCRDS=`awk '{if (NF>=3) natom+=1} END{print(natom)}' < "$tmp_atom_coords"`
     if [ $NATOMS -ne $NATOMCRDS ]; then 
         echo "Error: Number of atoms in coordinate file provided by user ($NATOMCRDS)" >&2
 	echo "does not match the number of atoms generated in ttree file ($NATOMS)" >&2

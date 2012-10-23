@@ -1,9 +1,0 @@
-    # -- Default styles (for solo "SPCE" water) --
-    units        real
-    atom_style   full
-    # (Hybrid force fields were not necessary but are used for portability.)
-    pair_style   hybrid lj/charmm/coul/long 9.0 10.0 10.0
-    bond_style   hybrid harmonic
-    angle_style  hybrid harmonic
-    kspace_style pppm 0.0001
-    pair_modify  mix arithmetic

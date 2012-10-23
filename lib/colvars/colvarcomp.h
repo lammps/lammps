@@ -1107,11 +1107,15 @@ public:
 /// colvar::orientation \endlink to calculate the rotation matrix
 /// (colvarvalue::type_scalar type, range [0:*))
 class colvar::rmsd
-  : public colvar::orientation
+  : public colvar::cvc
 {
 protected:
-  /// Sum of the squares of ref_coords
-  cvm::real ref_pos_sum2;
+
+  /// Atom group
+  cvm::atom_group             atoms;
+
+  /// Reference coordinates (for RMSD calculation only)
+  std::vector<cvm::atom_pos>  ref_pos;
 
 public:
 
@@ -1133,39 +1137,6 @@ public:
                              colvarvalue const &x2) const;
 };
 
-
-/// \brief Colvar component:  mean square deviation (RMSD) of a
-/// group with respect to a set of reference coordinates; uses \link
-/// colvar::orientation \endlink to calculate the rotation matrix
-/// (colvarvalue::type_scalar type, range [0:*))
-class colvar::logmsd
-  : public colvar::orientation
-{
-protected:
-
-  /// Sum of the squares of ref_coords
-  cvm::real                 ref_pos_sum2;
-  cvm::real                 MSD;
-
-public:
-
-  /// Constructor
-  logmsd (std::string const &conf);
-  virtual inline ~logmsd() {}
-  virtual void calc_value();
-  virtual void calc_gradients();
-  virtual void calc_force_invgrads();
-  virtual void calc_Jacobian_derivative();
-  virtual void apply_force (colvarvalue const &force);
-  virtual cvm::real dist2 (colvarvalue const &x1,
-                           colvarvalue const &x2) const;
-  virtual colvarvalue dist2_lgrad (colvarvalue const &x1,
-                                   colvarvalue const &x2) const;
-  virtual colvarvalue dist2_rgrad (colvarvalue const &x1,
-                                   colvarvalue const &x2) const;
-  virtual cvm::real compare (colvarvalue const &x1,
-                             colvarvalue const &x2) const;
-};
 
 
 // metrics functions for cvc implementations with a periodicity
@@ -1305,7 +1276,6 @@ inline void colvar::spin_angle::wrap (colvarvalue &x) const
   simple_scalar_dist_functions (inertia)
   simple_scalar_dist_functions (inertia_z)
   simple_scalar_dist_functions (rmsd)
-  simple_scalar_dist_functions (logmsd)
   simple_scalar_dist_functions (orientation_angle)
   simple_scalar_dist_functions (tilt)
   simple_scalar_dist_functions (eigenvector)

@@ -661,23 +661,6 @@ void colvar::disable (colvar::task const &t)
 
 colvar::~colvar()
 {
-  if (cvm::b_analysis) {
-
-    if (acf.size()) {
-      cvm::log ("Writing acf to file \""+acf_outfile+"\".\n");
-
-      std::ofstream acf_os (acf_outfile.c_str());
-      if (! acf_os.good())
-        cvm::fatal_error ("Cannot open file \""+acf_outfile+"\".\n");
-      write_acf (acf_os);
-      acf_os.close();
-    }
-
-    if (runave_os.good()) {
-      runave_os.close();
-    }
-  }
-
   for (size_t i = 0; i < cvcs.size(); i++) {
     delete cvcs[i];
   }
@@ -1328,6 +1311,26 @@ std::ostream & colvar::write_traj (std::ostream &os)
   }
 
   return os;
+}
+
+void colvar::write_output_files()
+{
+  if (cvm::b_analysis) {
+
+    if (acf.size()) {
+      cvm::log ("Writing acf to file \""+acf_outfile+"\".\n");
+
+      std::ofstream acf_os (acf_outfile.c_str());
+      if (! acf_os.good())
+        cvm::fatal_error ("Cannot open file \""+acf_outfile+"\".\n");
+      write_acf (acf_os);
+      acf_os.close();
+    }
+
+    if (runave_os.good()) {
+      runave_os.close();
+    }
+  }
 }
 
 

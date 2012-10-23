@@ -370,6 +370,9 @@ public:
   /// Write the collective variable to a restart file
   std::ostream & write_restart (std::ostream &os);
 
+  /// Write output files (if defined, e.g. in analysis mode)
+  void write_output_files();
+
 
 protected:
 
@@ -478,7 +481,6 @@ public:
   class selfcoordnum;
   class h_bond;
   class rmsd;
-  class logmsd;
   class orientation_angle;
   class tilt;
   class spin_angle;

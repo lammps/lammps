@@ -156,8 +156,13 @@ public:
   /// Rotation between the group and its reference coordinates
   cvm::rotation rot;
 
-  /// \brief In case b_center or b_rotate is true, use these reference
-  /// coordinates
+  /// \brief Indicates that b_center and b_rotate are not false by default,
+  /// but following the user's choice instead: cvc's will not override
+  /// the value of b_center or b_rotate
+  bool b_prevent_fitting;
+
+  /// \brief use these reference coordinates, for b_center, b_rotate, or to compute
+  /// certain colvar components (orientation, rmsd, etc)
   std::vector<cvm::atom_pos> ref_pos;
   /// \brief Center of geometry of the reference coordinates; regardless
   /// of whether b_center is true, ref_pos is centered to zero at

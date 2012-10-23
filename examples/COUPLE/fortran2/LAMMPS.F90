@@ -563,7 +563,6 @@ contains !! Wrapper functions local to this module {{{1
       character (len=*), intent(in) :: id
       integer, intent(in) :: style, type
       type (C_ptr) :: Cptr
-      real (C_double), dimension(:,:), pointer :: Fptr
       integer :: nr, nc
       ! Check for the correct dimensionality
       if ( type == 0 ) then
@@ -578,9 +577,7 @@ contains !! Wrapper functions local to this module {{{1
       call lammps_extract_compute_arraysize (ptr, id, style, nr, nc)
       allocate (compute(nr, nc))
       Cptr = lammps_extract_compute_Cptr (ptr, id, style, type)
-      call C_F_pointer (Cptr, Fptr, (/nr, nc/))
-      compute = Fptr
-      nullify (Fptr)
+      compute = Cdoublestar_to_2darray (Cptr, nr, nc)
       ! C pointer should not be freed
    end subroutine lammps_extract_compute_dp2a
    subroutine lammps_extract_compute_r2a (compute, ptr, id, style, type)
@@ -710,7 +707,6 @@ contains !! Wrapper functions local to this module {{{1
       character (len=*), intent(in) :: id
       integer, intent(in) :: style, type, i, j
       type (C_ptr) :: Cptr
-      real (C_double), dimension(:,:), pointer :: Fptr
       integer :: nr, nc
       ! Check for the correct dimensionality
       if ( style == 0 ) then
@@ -729,9 +725,7 @@ contains !! Wrapper functions local to this module {{{1
       call lammps_extract_fix_arraysize (ptr, id, style, nr, nc)
       allocate (fix(nr, nc))
       Cptr = lammps_extract_fix_Cptr (ptr, id, style, type, i, j)
-      call C_F_pointer (Cptr, Fptr, (/nr, nc/))
-      fix = Fptr
-      nullify (Fptr)
+      fix = Cdoublestar_to_2darray (Cptr, nr, nc)
       ! C pointer should not be freed
    end subroutine lammps_extract_fix_dp2a
    subroutine lammps_extract_fix_r2a (fix, ptr, id, style, type, i, j)

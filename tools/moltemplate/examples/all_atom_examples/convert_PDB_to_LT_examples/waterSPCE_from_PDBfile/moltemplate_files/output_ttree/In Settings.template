@@ -1,7 +1,0 @@
-    bond_coeff   @/bond:SPCE/OH     harmonic                 200.0   1.0 
-    angle_coeff  @/angle:SPCE/HOH   harmonic                 200.0   109.47
-    pair_coeff   @/atom:SPCE/O @/atom:SPCE/O  lj/charmm/coul/long  0.1553  3.166 
-    pair_coeff   @/atom:SPCE/H @/atom:SPCE/H  lj/charmm/coul/long  0.0     2.058
-    group spce type  @/atom:SPCE/O  @/atom:SPCE/H
-    fix fSHAKE all shake 0.0001 10 100 b @/bond:SPCE/OH a @/angle:SPCE/HOH
-    # (Remember to "unfix" fSHAKE during minimization.)

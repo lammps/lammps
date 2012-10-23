@@ -196,11 +196,8 @@
 
     @dihedral:delta65_0  @atom:s* @atom:s* @atom:s* @atom:s*   *  *  *
 
-    # If tN atoms are present, use the @dihedral:turn parameters
+    # If "tN" (turn) atoms are present, use the @dihedral:turn parameters
     @dihedral:turn       @atom:tN @atom:*  @atom:*  @atom:*    *  *  *
-    @dihedral:turn       @atom:tN @atom:tN @atom:*  @atom:*    *  *  *
-    @dihedral:turn       @atom:tN @atom:tN @atom:tN @atom:*    *  *  *
-    @dihedral:turn       @atom:tN @atom:tN @atom:tN @atom:tN   *  *  *
   }
 
   write_once("In Settings") {

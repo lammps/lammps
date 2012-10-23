@@ -7,7 +7,7 @@
 # All rights reserved.
 
 """
-ltree_count.py
+lttree.py
 
 lttree.py is an extension of the generic ttree.py program.
 This version can understand and manipulate ttree-style templates which 
@@ -37,6 +37,7 @@ try:
 except NameError:
     # Python 3
     basestring = unicode = str
+
 
 data_atoms = 'Data Atoms' # <-- The name of the file/section storing Atom data.
 
@@ -256,7 +257,7 @@ def TransformAtomText(text, matrix):
     """ Apply transformations to the coordinates and other vector degrees 
     of freedom stored in the \"Data Atoms\" section of a LAMMPS data file.  
     This is the \"text\" argument.
-    The "matrix" stores the aggregate sum of combined transformations
+    The \"matrix\" stores the aggregate sum of combined transformations
     to be applied.
 
     """
@@ -401,6 +402,8 @@ def _ExecCommands(command_list,
         index += 1
 
         # For debugging only
+        #if ((not isinstance(command, StackableCommand)) and
+        #    (not isinstance(command, ScopeCommand))):
         sys.stderr.write(str(command)+'\n')
 
 
@@ -499,7 +502,7 @@ def _ExecCommands(command_list,
                 (command.tmpl_list[1].binding.full_name == '$/atom:polymer/monomers[6]/CA')):
                 pass
 
-            # ---- Throw away lines containin references to deleted variables:-----
+            # --- Throw away lines containin references to deleted variables:---
 
             # First: To edit the content of a template, 
             #        you need to make a deep local copy of it
@@ -513,11 +516,11 @@ def _ExecCommands(command_list,
                     tmpl_list.append(entry)
 
 
-            #   -- Now throw away lines with deleted variables ---
+            #     Now throw away lines with deleted variables 
 
             DeleteLinesWithBadVars(tmpl_list)
 
-            # ---- Now render the text:
+            # --- Now render the text ---
             text = Render(tmpl_list, 
                           substitute_vars)
 
@@ -655,8 +658,8 @@ if __name__ == "__main__":
 
     """
     g_program_name = 'lttree.py'
-    g_date_str     = '2012-9-25'
-    g_version_str  = '0.34'
+    g_date_str     = '2012-10-19'
+    g_version_str  = '0.35'
 
     #######  Main Code Below: #######
     sys.stderr.write(g_program_name+' v'+g_version_str+' '+g_date_str+' ')

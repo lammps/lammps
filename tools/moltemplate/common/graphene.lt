@@ -1,0 +1,70 @@
+# You can use the definitions in this file to 
+# create graphene, graphite, or nanotubes.
+
+
+
+Graphene {
+
+  2AtomCellAlignX {
+
+    #  The 2AtomCellAlignX "molecule" is a minimal basis cell 
+    # for any hexagonal arrangement of atoms in 2-dimensions.
+    # The distance between these two atoms is equal to "l", where "l" is 
+    # the length of each side of a hexegon, which I set to 1.420 Angstroms.
+    #
+    # l = length of each hexagonal side = 1.42 Angstroms
+    # L = length of each hexagon = 2*l  = 2.84 Angstroms
+    # W = width of each hexagon = 2*l*sqrt(3)/2 = 2.4595121467478056 Angstroms
+    #
+    #     The Lattice-cell vectors for graphene (graphite) are
+    # (2.4595121467478,    0,     0)  (aligned with X axis)
+    # (1.2297560733739,  2.13,    0)  (2.13 = 1.5*l)
+    # (        0         1.00, 3.35)  (3.35 = distance between layers of 
+    #                                  graphene sheets in graphite.)
+    
+
+    # atomID   molID     atomType charge       x               y       z
+    write("Data Atoms") {
+      $atom:C1  $mol:...  @atom:../C   0.0  -0.61487803668695 -0.355  0.0
+      $atom:C2  $mol:...  @atom:../C   0.0   0.61487803668695  0.355  0.0
+    }
+
+  } # 2AtomCellAlignX
+
+
+
+
+  # Notice that the two atoms in the unit-cell above lie in the XY plane.
+  # (Their z-coord is zero).  It's also handy to have a version of this 
+  # object which lies in the XZ plan, so we make this below.
+
+  2AtomCellAlignXZ = 2AtomCellAlignX.rot(90,1,0,0)
+
+
+
+
+  # Define properties of the Carbon-Hydrogen graphene atom
+  write_once("Data Masses") {
+    @atom:C  12.0
+  }
+
+  write_once("In Init") {
+    pair_style hybrid  lj/charmm/coul/charmm  9.0 10.0
+  }
+
+  write_once("In Settings") {
+    # Define a group consisting of only carbon atoms in graphene molecules
+    group Cgraphene type @atom:C
+
+    #              i       j                              epsilon     sigma 
+    pair_coeff  @atom:C @atom:C  lj/charmm/coul/charmm   0.068443     3.407
+
+    # These Lennard-Jones parameters come from
+    #  R. Saito, R. Matsuo, T. Kimura, G. Dresselhaus, M.S. Dresselhaus,
+    #  Chem Phys Lett, 348:187 (2001)
+  }
+
+} # Graphene
+
+
+

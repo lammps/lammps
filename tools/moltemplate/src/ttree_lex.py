@@ -1126,9 +1126,10 @@ def DeleteLinesWithBadVars(tmpl_list,
         if isinstance(entry, VarRef):
             var_ref = entry
             var_bindings = var_ref.nptr.cat_node.categories[var_ref.nptr.cat_name].bindings
-            if var_ref.nptr.leaf_node not in var_bindings:
+            #if var_ref.nptr.leaf_node not in var_bindings:
+            if var_ref.nptr.leaf_node.IsDeleted():
                 if delete_entire_template:
-                    tmpl_list = []
+                    del tmpl_list[:]
                     return 0
                 else:
                     i = DeleteLineFromTemplate(tmpl_list,

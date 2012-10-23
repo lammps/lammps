@@ -116,6 +116,7 @@ class Atom : protected Pointers {
 
   int map_style;                  // default or user-specified style of map
                                   // 0 = none, 1 = array, 2 = hash
+  int map_tag_max;                // max atom ID that map() is setup for
 
   // spatial sorting of atoms
 
@@ -198,8 +199,7 @@ class Atom : protected Pointers {
 
   // global to local ID mapping
 
-  int map_tag_max;      // size of map_array
-  int *map_array;       // direct map of length max atom ID + 1
+  int *map_array;       // direct map of length map_tag_max + 1
   int smax;             // max size of sametag
 
   struct HashElem {

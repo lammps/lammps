@@ -582,6 +582,14 @@ void colvarmodule::write_output_files()
   out.setf (std::ios::scientific, std::ios::floatfield);
   this->write_restart (out);
   out.close();
+
+  cvm::increase_depth();
+  for (std::vector<colvar *>::iterator cvi = colvars.begin();
+       cvi != colvars.end();
+       cvi++) {
+    (*cvi)->write_output_files();
+  }
+  cvm::decrease_depth();
   
   // do not close to avoid problems with multiple NAMD runs
   cv_traj_os.flush();

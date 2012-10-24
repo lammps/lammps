@@ -12,7 +12,7 @@
 cvm::atom_group::atom_group (std::string const &conf,
                              char const        *key,
                              atom_group        *ref_pos_group_in)
-  : b_center (false), b_rotate (false),
+  : b_center (false), b_rotate (false), b_prevent_fitting (false),
     ref_pos_group (NULL), // this is always set within parse(),
                           // regardless of ref_pos_group_in
     noforce (false)
@@ -49,12 +49,13 @@ void cvm::atom_group::parse (std::string const &conf,
   cvm::log ("Initializing atom group \""+std::string (key)+"\".\n");
 
   // whether or not to include messages in the log
-  colvarparse::Parse_Mode mode = parse_silent;
-  {
-    bool b_verbose;
-    get_keyval (group_conf, "verboseOutput", b_verbose, false, parse_silent);
-    if (b_verbose) mode = parse_normal;
-  }
+  // colvarparse::Parse_Mode mode = parse_silent;
+  // {
+  //   bool b_verbose;
+  //   get_keyval (group_conf, "verboseOutput", b_verbose, false, parse_silent);
+  //   if (b_verbose) mode = parse_normal;
+  // }
+  colvarparse::Parse_Mode mode = parse_normal;
 
   {
     // get the atoms by numbers
@@ -126,7 +127,7 @@ void cvm::atom_group::parse (std::string const &conf,
       std::string const &psf_segid = psf_segids.size() ? *psii : std::string ("");
 
       if (range_conf.size()) {
-        
+
         std::istringstream is (range_conf);
         std::string atom_name;
         int initial, final;
@@ -216,44 +217,49 @@ void cvm::atom_group::parse (std::string const &conf,
     }
   }
 
-  get_keyval (group_conf, "disableForces",   noforce,  false, mode);
+  if (!b_dummy)
+    get_keyval (group_conf, "disableForces", noforce, false, mode);
 
-  get_keyval (group_conf, "centerReference", b_center, false, mode);
-  get_keyval (group_conf, "rotateReference", b_rotate, false, mode);
 
-  if (b_center || b_rotate) {
+  // FITTING OPTIONS
 
-    if (b_dummy)
-      cvm::fatal_error ("Error: cannot set \"centerReference\" or "
-                        "\"rotateReference\" with \"dummyAtom\".\n");
+  bool fit_defined_by_user = 
+    ( get_keyval (group_conf, "centerReference", b_center, false, mode) || 
+      get_keyval (group_conf, "rotateReference", b_rotate, false, mode) );
+  if ((!b_rotate) && (!b_center) && fit_defined_by_user) 
+    b_prevent_fitting = true;
 
-    // use refPositionsGroup instead of this group as the one which is
-    // used to fit the coordinates
-    if (key_lookup (group_conf, "refPositionsGroup")) {
-      if (ref_pos_group) {
-        cvm::fatal_error ("Error: the atom group \""+
-                          std::string (key)+"\" has already a reference group "
-                          "for the rototranslational fit, which was communicated by the "
-                          "colvar component.  You should not use refPositionsGroup "
-                          "in this case.\n");
-      }
-      cvm::log ("Within atom group \""+std::string (key)+"\":\n");
-      ref_pos_group = new atom_group (group_conf, "refPositionsGroup");
+  // if ((b_center || b_rotate) && b_dummy)
+  //   cvm::fatal_error ("Error: cannot set \"centerReference\" or "
+  //                     "\"rotateReference\" when \"dummyAtom\" is defined.\n");
+
+  // instead of this group, define another group (refPositionsGroup) to be the one
+  // used to fit the coordinates
+  if (key_lookup (group_conf, "refPositionsGroup")) {
+    if (ref_pos_group) {
+      cvm::fatal_error ("Error: the atom group \""+
+                        std::string (key)+"\" has already a reference group "
+                        "for the rototranslational fit, which was communicated by the "
+                        "colvar component.  You should not use refPositionsGroup "
+                        "in this case.\n");
     }
+    cvm::log ("Within atom group \""+std::string (key)+"\":\n");
+    ref_pos_group = new atom_group (group_conf, "refPositionsGroup");
+  }
 
-    atom_group *ag = ref_pos_group ? ref_pos_group : this;
+  atom_group *group_for_fit = ref_pos_group ? ref_pos_group : this;
 
-    if (get_keyval (group_conf, "refPositions", ref_pos, ref_pos, mode)) {
-      cvm::log ("Using reference positions from input file.\n");
-      if (ref_pos.size() != ag->size()) {
-        cvm::fatal_error ("Error: the number of reference positions provided ("+
-                          cvm::to_str (ref_pos.size())+
-                          ") does not match the number of atoms within \""+
-                          std::string (key)+
-                          "\" ("+cvm::to_str (ag->size())+").\n");
-      }
+  if (get_keyval (group_conf, "refPositions", ref_pos, ref_pos, mode)) {
+    if (ref_pos.size() != group_for_fit->size()) {
+      cvm::fatal_error ("Error: the number of reference positions provided ("+
+                        cvm::to_str (ref_pos.size())+
+                        ") does not match the number of atoms of group \""+
+                        std::string (key)+
+                        "\" ("+cvm::to_str (group_for_fit->size())+").\n");
     }
+  }
 
+  {
     std::string ref_pos_file;
     if (get_keyval (group_conf, "refPositionsFile", ref_pos_file, std::string (""), mode)) {
 
@@ -273,55 +279,56 @@ void cvm::atom_group::parse (std::string const &conf,
                             "if provided, must be non-zero.\n");
       } else {
         // if not, rely on existing atom indices for the group
-        ag->create_sorted_ids();
+        group_for_fit->create_sorted_ids();
       }
-      cvm::load_coords (ref_pos_file.c_str(), ref_pos, ag->sorted_ids,
+      cvm::load_coords (ref_pos_file.c_str(), ref_pos, group_for_fit->sorted_ids,
                         ref_pos_col, ref_pos_col_value);
     }
-
-    if (ref_pos.size()) {
-
-      if (b_rotate) {
-        if (ref_pos.size() != ag->size())
-          cvm::fatal_error ("Error: the number of reference positions provided ("+
-                            cvm::to_str (ref_pos.size())+
-                            ") does not match the number of atoms within \""+
-                            std::string (key)+
-                            "\" ("+cvm::to_str (ag->size())+").\n");
-      }
-
-      // save the center of mass of ref_pos and then subtract it from
-      // them; in this way it is possible to use the coordinates for
-      // the rotational fit, if needed
-      ref_pos_cog = cvm::atom_pos (0.0, 0.0, 0.0);
-      std::vector<cvm::atom_pos>::iterator pi = ref_pos.begin();
-      for ( ; pi != ref_pos.end(); pi++) {
-        ref_pos_cog += *pi;
-      }
-      ref_pos_cog /= (cvm::real) ref_pos.size();
-
-      for (std::vector<cvm::atom_pos>::iterator pi = ref_pos.begin();
-           pi != ref_pos.end(); pi++) {
-        (*pi) -= ref_pos_cog;
-      }
-    } else {
-#if (! defined (COLVARS_STANDALONE))
-      if (!cvm::b_analysis)
-        cvm::fatal_error ("Error: no reference positions provided.\n");
-#endif
-    }
-
-    if (b_rotate && !noforce) {
-      cvm::log ("Warning: atom group \""+std::string (key)+
-                "\" is set to be rotated to a reference orientation: "
-                "a torque different than zero on this group "
-                "could make the simulation unstable.  "
-                "If this happens, set \"disableForces\" to yes "
-                "for this group.\n");
-    }
-
   }
 
+  if (ref_pos.size()) {
+
+    if (b_rotate) {
+      if (ref_pos.size() != group_for_fit->size())
+        cvm::fatal_error ("Error: the number of reference positions provided ("+
+                          cvm::to_str (ref_pos.size())+
+                          ") does not match the number of atoms within \""+
+                          std::string (key)+
+                          "\" ("+cvm::to_str (group_for_fit->size())+
+                          "): to perform a rotational fit, "+
+                          "these numbers should be equal.\n");
+    }
+
+    // save the center of geometry of ref_pos and then subtract it from
+    // them; in this way it will be possible to use ref_pos also for
+    // the rotational fit
+    ref_pos_cog = cvm::atom_pos (0.0, 0.0, 0.0);
+    std::vector<cvm::atom_pos>::iterator pi = ref_pos.begin();
+    for ( ; pi != ref_pos.end(); pi++) {
+      ref_pos_cog += *pi;
+    }
+    ref_pos_cog /= (cvm::real) ref_pos.size();
+    for (std::vector<cvm::atom_pos>::iterator pi = ref_pos.begin();
+         pi != ref_pos.end(); pi++) {
+      (*pi) -= ref_pos_cog;
+    }
+
+  } else {
+#if (! defined (COLVARS_STANDALONE))
+    cvm::fatal_error ("Error: no reference positions provided.\n");
+#endif
+  }
+
+  if (b_rotate && !noforce) {
+    cvm::log ("Warning: atom group \""+std::string (key)+
+              "\" will be fitted automatically onto a fixed orientation: "
+              "in few cases, torques applied on this group "
+              "may make the simulation unstable.  "
+              "If this happens, set \"disableForces\" to yes "
+              "for this group.\n");
+    // initialize rot member data
+    rot.request_group1_gradients (this->size());
+  }
 
   if (cvm::debug())
     cvm::log ("Done initializing atom group with name \""+

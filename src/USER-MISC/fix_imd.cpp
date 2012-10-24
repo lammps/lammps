@@ -576,8 +576,8 @@ FixIMD::~FixIMD()
 #endif
 
   inthash_t *hashtable = (inthash_t *)idmap;
-  memory->sfree(comm_buf);
-  memory->sfree(force_buf);
+  memory->destroy(comm_buf);
+  memory->destroy(force_buf);
   inthash_destroy(hashtable);
   delete hashtable;
   free(rev_idmap);
@@ -695,6 +695,7 @@ void FixIMD::setup(int)
     if (mask[i] & groupbit) ++nme;
 
   MPI_Allreduce(&nme,&nmax,1,MPI_INT,MPI_MAX,world);
+  memory->destroy(comm_buf);
   maxbuf = nmax*size_one;
   comm_buf = (void *) memory->smalloc(maxbuf,"imd:comm_buf");
 
@@ -1004,7 +1005,7 @@ void FixIMD::post_force(int vflag)
 
   MPI_Allreduce(&nme,&nmax,1,MPI_INT,MPI_MAX,world);
   if (nmax*size_one > maxbuf) {
-    memory->sfree(comm_buf);
+    memory->destroy(comm_buf);
     maxbuf = nmax*size_one;
     comm_buf = memory->smalloc(maxbuf,"imd:comm_buf");
   }

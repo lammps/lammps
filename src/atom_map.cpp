@@ -244,12 +244,18 @@ void Atom::map_one(int global, int local)
 
 void Atom::map_delete()
 {
+  memory->destroy(sametag);
+  sametag = NULL;
+
   if (map_style == 1) {
-    if (map_tag_max) memory->destroy(map_array);
+    memory->destroy(map_array);
+    map_array = NULL;
   } else {
     if (map_nhash) {
       delete [] map_bucket;
       delete [] map_hash;
+      map_bucket = NULL;
+      map_hash = NULL;
     }
     map_nhash = 0;
   }

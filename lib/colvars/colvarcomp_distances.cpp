@@ -466,6 +466,13 @@ colvar::distance_inv::distance_inv (std::string const &conf)
     cvm::fatal_error ("Error: negative or zero exponent provided.\n");
   }
 
+  for (cvm::atom_iter ai1 = group1.begin(); ai1 != group1.end(); ai1++) {
+    for (cvm::atom_iter ai2 = group2.begin(); ai2 != group2.end(); ai2++) {
+      if (ai1->id == ai2->id)
+        cvm::fatal_error ("Error: group1 and group1 have some atoms in common: this is not allowed for distanceInv.\n");
+    }
+  }
+
   b_inverse_gradients = false;
   b_Jacobian_derivative = false;
   x.type (colvarvalue::type_scalar);
@@ -716,17 +723,82 @@ void colvar::inertia_z::apply_force (colvarvalue const &force)
 
 
 colvar::rmsd::rmsd (std::string const &conf)
-  : orientation (conf)
+  : cvc (conf)
 {
   b_inverse_gradients = true;
   b_Jacobian_derivative = true;
   function_type = "rmsd";
   x.type (colvarvalue::type_scalar);
 
-  ref_pos_sum2 = 0.0;
-  for (size_t i = 0; i < ref_pos.size(); i++) {
-    ref_pos_sum2 += ref_pos[i].norm2();
+  parse_group (conf, "atoms", atoms);
+  atom_groups.push_back (&atoms);
+
+  if (atoms.b_dummy) 
+    cvm::fatal_error ("Error: \"atoms\" cannot be a dummy atom.");
+
+  if (!atoms.b_prevent_fitting) {
+    // fit everything, unless the user made an explicit choice
+    cvm::log ("No value was specified within \"atoms\" for \"centerReference\" or "
+              "\"rotateReference\": enabling both.\n");
+    // NOTE: this won't work for class V cvc's
+    atoms.b_center = true;
+    atoms.b_rotate = true;
   }
+
+  if (atoms.b_center || atoms.b_rotate) {
+    // request the calculation of the derivatives of the rotation defined by the atom group
+    atoms.rot.request_group1_gradients (atoms.size());
+    // request derivatives of optimal rotation wrt 2nd group for Jacobian: this is only
+    // required for ABF, but we do both groups here for better caching
+    atoms.rot.request_group2_gradients (atoms.size());
+
+    if (atoms.ref_pos_group != NULL) {
+      cvm::log ("The option \"refPositionsGroup\" (alternative group for fitting) was enabled: "
+                "Jacobian derivatives of the RMSD will not be calculated.\n");
+      b_Jacobian_derivative = false;
+    }
+  }
+
+  // the following is a simplified version of the corresponding atom group options: 
+  // to define the reference coordinates to compute this variable
+  if (get_keyval (conf, "refPositions", ref_pos, ref_pos)) {
+    cvm::log ("Using reference positions from configuration file to calculate the variable.\n");
+    if (ref_pos.size() != atoms.size()) {
+      cvm::fatal_error ("Error: the number of reference positions provided ("+
+                        cvm::to_str (ref_pos.size())+
+                        ") does not match the number of atoms of group \"atoms\" ("+
+                        cvm::to_str (atoms.size())+").\n");
+    }
+  }
+  {
+    std::string ref_pos_file;
+    if (get_keyval (conf, "refPositionsFile", ref_pos_file, std::string (""))) {
+
+      if (ref_pos.size()) {
+        cvm::fatal_error ("Error: cannot specify \"refPositionsFile\" and "
+                          "\"refPositions\" at the same time.\n");
+      }
+
+      std::string ref_pos_col;
+      double ref_pos_col_value;
+      
+      if (get_keyval (conf, "refPositionsCol", ref_pos_col, std::string (""))) {
+        // if provided, use PDB column to select coordinates
+        bool found = get_keyval (conf, "refPositionsColValue", ref_pos_col_value, 0.0);
+        if (found && !ref_pos_col_value)
+          cvm::fatal_error ("Error: refPositionsColValue, "
+                            "if provided, must be non-zero.\n");
+      } else {
+        // if not, rely on existing atom indices for the group
+        atoms.create_sorted_ids();
+      }
+      cvm::load_coords (ref_pos_file.c_str(), ref_pos, atoms.sorted_ids,
+                        ref_pos_col, ref_pos_col_value);
+    }
+  }
+  
+
+
 }
 
   
@@ -734,20 +806,28 @@ void colvar::rmsd::calc_value()
 {
   atoms.reset_atoms_data();
   atoms.read_positions();
+  // rotational fit is done internally
 
-  atoms_cog = atoms.center_of_geometry();
-  rot.calc_optimal_rotation (ref_pos, atoms.positions_shifted (-1.0 * atoms_cog));
+  // atoms_cog = atoms.center_of_geometry();
+  // rot.calc_optimal_rotation (ref_pos, atoms.positions_shifted (-1.0 * atoms_cog));
 
-  cvm::real group_pos_sum2 = 0.0;
-  for (size_t i = 0; i < atoms.size(); i++) {
-    group_pos_sum2 += (atoms[i].pos - atoms_cog).norm2();
+  // cvm::real group_pos_sum2 = 0.0;
+  // for (size_t i = 0; i < atoms.size(); i++) {
+  //   group_pos_sum2 += (atoms[i].pos - atoms_cog).norm2();
+  // }
+
+  // // value of the RMSD (Coutsias et al)
+  // cvm::real const MSD = 1.0/(cvm::real (atoms.size())) *
+  //   ( group_pos_sum2 + ref_pos_sum2 - 2.0 * rot.lambda );
+
+  // x.real_value = (MSD > 0.0) ? std::sqrt (MSD) : 0.0;
+
+  x.real_value = 0.0;
+  for (size_t ia = 0; ia < atoms.size(); ia++) {
+    x.real_value += (atoms[ia].pos - ref_pos[ia]).norm2();
   }
-
-  // value of the RMSD (Coutsias et al)
-  cvm::real const MSD = 1.0/(cvm::real (atoms.size())) *
-    ( group_pos_sum2 + ref_pos_sum2 - 2.0 * rot.lambda );
-
-  x.real_value = (MSD > 0.0) ? std::sqrt (MSD) : 0.0;
+  x.real_value /= cvm::real (atoms.size()); // MSD
+  x.real_value = (x.real_value > 0.0) ? std::sqrt (x.real_value) : 0.0;
 }
 
 
@@ -758,8 +838,7 @@ void colvar::rmsd::calc_gradients()
     0.0;
 
   for (size_t ia = 0; ia < atoms.size(); ia++) {
-    atoms[ia].grad  = (drmsddx2 * 2.0 * (atoms[ia].pos - atoms_cog -
-                                         rot.q.rotate (ref_pos[ia])));
+    atoms[ia].grad = (drmsddx2 * 2.0 * (atoms[ia].pos - atoms.ref_pos[ia]));
   }
 }
 
@@ -787,46 +866,47 @@ void colvar::rmsd::calc_force_invgrads()
 
 void colvar::rmsd::calc_Jacobian_derivative()
 {
-  // divergence of the back-rotated target coordinates
+  // divergence of the rotated coordinates (including only derivatives of the rotation matrix)
   cvm::real divergence = 0.0;
- 
-  // gradient of the rotation matrix
-  cvm::matrix2d <cvm::rvector, 3, 3> grad_rot_mat;
 
-  // gradients of products of 2 quaternion components 
-  cvm::rvector g11, g22, g33, g01, g02, g03, g12, g13, g23;
+  if (atoms.b_rotate) {
 
-  for (size_t ia = 0; ia < atoms.size(); ia++) {
+    // gradient of the rotation matrix
+    cvm::matrix2d <cvm::rvector, 3, 3> grad_rot_mat;
+    // gradients of products of 2 quaternion components 
+    cvm::rvector g11, g22, g33, g01, g02, g03, g12, g13, g23;
+    for (size_t ia = 0; ia < atoms.size(); ia++) {
 
-    // Gradient of optimal quaternion wrt current Cartesian position
-    cvm::vector1d< cvm::rvector, 4 >      &dq = rot.dQ0_2[ia];
+      // Gradient of optimal quaternion wrt current Cartesian position
+      cvm::vector1d< cvm::rvector, 4 >      &dq = atoms.rot.dQ0_1[ia];
 
-    g11 = 2.0 * (rot.q)[1]*dq[1];
-    g22 = 2.0 * (rot.q)[2]*dq[2];
-    g33 = 2.0 * (rot.q)[3]*dq[3];
-    g01 = (rot.q)[0]*dq[1] + (rot.q)[1]*dq[0];
-    g02 = (rot.q)[0]*dq[2] + (rot.q)[2]*dq[0];
-    g03 = (rot.q)[0]*dq[3] + (rot.q)[3]*dq[0];
-    g12 = (rot.q)[1]*dq[2] + (rot.q)[2]*dq[1];
-    g13 = (rot.q)[1]*dq[3] + (rot.q)[3]*dq[1];
-    g23 = (rot.q)[2]*dq[3] + (rot.q)[3]*dq[2];
+      g11 = 2.0 * (atoms.rot.q)[1]*dq[1];
+      g22 = 2.0 * (atoms.rot.q)[2]*dq[2];
+      g33 = 2.0 * (atoms.rot.q)[3]*dq[3];
+      g01 = (atoms.rot.q)[0]*dq[1] + (atoms.rot.q)[1]*dq[0];
+      g02 = (atoms.rot.q)[0]*dq[2] + (atoms.rot.q)[2]*dq[0];
+      g03 = (atoms.rot.q)[0]*dq[3] + (atoms.rot.q)[3]*dq[0];
+      g12 = (atoms.rot.q)[1]*dq[2] + (atoms.rot.q)[2]*dq[1];
+      g13 = (atoms.rot.q)[1]*dq[3] + (atoms.rot.q)[3]*dq[1];
+      g23 = (atoms.rot.q)[2]*dq[3] + (atoms.rot.q)[3]*dq[2];
 
-    // Gradient of the rotation matrix wrt current Cartesian position
-    grad_rot_mat[0][0] = -2.0 * (g22 + g33); 
-    grad_rot_mat[1][0] =  2.0 * (g12 + g03); 
-    grad_rot_mat[2][0] =  2.0 * (g13 - g02); 
-    grad_rot_mat[0][1] =  2.0 * (g12 - g03); 
-    grad_rot_mat[1][1] = -2.0 * (g11 + g33); 
-    grad_rot_mat[2][1] =  2.0 * (g01 + g23); 
-    grad_rot_mat[0][2] =  2.0 * (g02 + g13); 
-    grad_rot_mat[1][2] =  2.0 * (g23 - g01); 
-    grad_rot_mat[2][2] = -2.0 * (g11 + g22); 
+      // Gradient of the rotation matrix wrt current Cartesian position
+      grad_rot_mat[0][0] = -2.0 * (g22 + g33); 
+      grad_rot_mat[1][0] =  2.0 * (g12 + g03); 
+      grad_rot_mat[2][0] =  2.0 * (g13 - g02); 
+      grad_rot_mat[0][1] =  2.0 * (g12 - g03); 
+      grad_rot_mat[1][1] = -2.0 * (g11 + g33); 
+      grad_rot_mat[2][1] =  2.0 * (g01 + g23); 
+      grad_rot_mat[0][2] =  2.0 * (g02 + g13); 
+      grad_rot_mat[1][2] =  2.0 * (g23 - g01); 
+      grad_rot_mat[2][2] = -2.0 * (g11 + g22); 
 
-    cvm::atom_pos &y = ref_pos[ia]; 
+      cvm::atom_pos &x = atoms[ia].pos; 
 
-    for (size_t i = 0; i < 3; i++) {
-      for (size_t j = 0; j < 3; j++) {
-        divergence += grad_rot_mat[i][j][i] * y[j];
+      for (size_t i = 0; i < 3; i++) {
+        for (size_t j = 0; j < 3; j++) {
+          divergence += grad_rot_mat[i][j][i] * x[j];
+        }
       }
     }
   }
@@ -834,128 +914,6 @@ void colvar::rmsd::calc_Jacobian_derivative()
   jd.real_value = x.real_value > 0.0 ? (3.0 * atoms.size() - 4.0 - divergence) / x.real_value : 0.0;
 }
 
-
-
-colvar::logmsd::logmsd (std::string const &conf)
-  : orientation (conf)
-{
-  b_inverse_gradients = true;
-  b_Jacobian_derivative = true;
-  function_type = "logmsd";
-  x.type (colvarvalue::type_scalar);
-
-  ref_pos_sum2 = 0.0;
-  for (size_t i = 0; i < ref_pos.size(); i++) {
-    ref_pos_sum2 += ref_pos[i].norm2();
-  }
-}
-
-  
-void colvar::logmsd::calc_value()
-{
-  atoms.reset_atoms_data();
-  atoms.read_positions();
-
-  if (cvm::debug())
-    cvm::log ("colvar::logmsd: current com: "+
-              cvm::to_str (atoms.center_of_mass())+"\n");
-
-  atoms_cog = atoms.center_of_geometry();
-  rot.calc_optimal_rotation (ref_pos, atoms.positions_shifted (-1.0 * atoms_cog));
-
-  cvm::real group_pos_sum2 = 0.0;
-  for (size_t i = 0; i < atoms.size(); i++) {
-    group_pos_sum2 += (atoms[i].pos-atoms_cog).norm2();
-  }
-
-  // value of the MSD (Coutsias et al)
-  MSD = 1.0/(cvm::real (atoms.size())) *
-    ( group_pos_sum2 + ref_pos_sum2 - 2.0 * rot.lambda );
-
-  x.real_value = (MSD > 0.0) ? std::log(MSD) : 0.0;
-}
-
-
-void colvar::logmsd::calc_gradients()
-{
-  cvm::real fact = (MSD > 0.0) ? 2.0/(cvm::real (atoms.size()) * MSD) : 0.0;
-
-  for (size_t ia = 0; ia < atoms.size(); ia++) {
-    atoms[ia].grad = fact * (atoms[ia].pos - atoms_cog - rot.dL0_2[ia]);
-  }
-}
-
-
-void colvar::logmsd::apply_force (colvarvalue const &force)
-{
-  if (!atoms.noforce)
-    atoms.apply_colvar_force (force.real_value);
-}
-
-
-void colvar::logmsd::calc_force_invgrads()
-{
-  atoms.read_system_forces();
-  ft.real_value = 0.0;
-    
-  // Note: gradient square norm is 4.0 / (N_atoms * E)
-          
-  for (size_t ia = 0; ia < atoms.size(); ia++) {
-    ft.real_value += atoms[ia].grad * atoms[ia].system_force;
-  }
-  ft.real_value *= atoms.size() * MSD / 4.0;
-}
-
-
-void colvar::logmsd::calc_Jacobian_derivative()
-{
-  // divergence of the back-rotated target coordinates
-  cvm::real divergence = 0.0;
- 
-  // gradient of the rotation matrix
-  cvm::matrix2d <cvm::rvector, 3, 3> grad_rot_mat;
-
-  // gradients of products of 2 quaternion components 
-  cvm::rvector g11, g22, g33, g01, g02, g03, g12, g13, g23;
- 
-  for (size_t ia = 0; ia < atoms.size(); ia++) {
-
-    // Gradient of optimal quaternion wrt current Cartesian position
-    cvm::vector1d< cvm::rvector, 4 >      &dq = rot.dQ0_2[ia];
-
-    g11 = 2.0 * (rot.q)[1]*dq[1];
-    g22 = 2.0 * (rot.q)[2]*dq[2];
-    g33 = 2.0 * (rot.q)[3]*dq[3];
-    g01 = (rot.q)[0]*dq[1] + (rot.q)[1]*dq[0];
-    g02 = (rot.q)[0]*dq[2] + (rot.q)[2]*dq[0];
-    g03 = (rot.q)[0]*dq[3] + (rot.q)[3]*dq[0];
-    g12 = (rot.q)[1]*dq[2] + (rot.q)[2]*dq[1];
-    g13 = (rot.q)[1]*dq[3] + (rot.q)[3]*dq[1];
-    g23 = (rot.q)[2]*dq[3] + (rot.q)[3]*dq[2];
-
-    // Gradient of the rotation matrix wrt current Cartesian position
-    // Note: we are only going to use "diagonal" terms: grad_rot_mat[i][j][i]
-    grad_rot_mat[0][0] = -2.0 * (g22 + g33); 
-    grad_rot_mat[1][0] =  2.0 * (g12 + g03); 
-    grad_rot_mat[2][0] =  2.0 * (g13 - g02); 
-    grad_rot_mat[0][1] =  2.0 * (g12 - g03); 
-    grad_rot_mat[1][1] = -2.0 * (g11 + g33); 
-    grad_rot_mat[2][1] =  2.0 * (g01 + g23); 
-    grad_rot_mat[0][2] =  2.0 * (g02 + g13); 
-    grad_rot_mat[1][2] =  2.0 * (g23 - g01); 
-    grad_rot_mat[2][2] = -2.0 * (g11 + g22); 
-
-    cvm::atom_pos &y = ref_pos[ia]; 
-
-    for (size_t i = 0; i < 3; i++) {
-      for (size_t j = 0; j < 3; j++) {
-        divergence += grad_rot_mat[i][j][i] * y[j];
-      }
-    }
-  }
-
-  jd.real_value = (3.0 * atoms.size() - 3.0 - divergence) / 2.0;
-}
 
 
 

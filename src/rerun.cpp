@@ -35,10 +35,10 @@ Rerun::Rerun(LAMMPS *lmp) : Pointers(lmp) {}
 
 void Rerun::command(int narg, char **arg)
 {
-  if (narg < 2) error->all(FLERR,"Illegal rerun command");
-
   if (domain->box_exist == 0)
     error->all(FLERR,"Rerun command before simulation box is defined");
+
+  if (narg < 2) error->all(FLERR,"Illegal rerun command");
 
   // list of dump files = args until a keyword
 

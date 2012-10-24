@@ -86,6 +86,9 @@ ReadDump::~ReadDump()
 
 void ReadDump::command(int narg, char **arg)
 {
+  if (domain->box_exist == 0)
+    error->all(FLERR,"Read_dump command before simulation box is defined");
+
   if (narg < 2) error->all(FLERR,"Illegal read_dump command");
 
   store_files(1,&arg[0]);
@@ -321,14 +324,24 @@ void ReadDump::header(int fieldinfo)
   yhi = box[1][1];
   zlo = box[2][0];
   zhi = box[2][1];
-  xprd = xhi - xlo;
-  yprd = yhi - ylo;
-  zprd = zhi - zlo;
   if (triclinic_snap) {
     xy = box[0][2];
     xz = box[1][2];
     yz = box[2][2];
+    double xdelta = MIN(0.0,xy);
+    xdelta = MIN(xdelta,xz);
+    xdelta = MIN(xdelta,xy+xz);
+    xlo = xlo - xdelta;
+    xdelta = MAX(0.0,xy);
+    xdelta = MAX(xdelta,xz);
+    xdelta = MAX(xdelta,xy+xz);
+    xhi = xhi - xdelta;
+    ylo = ylo - MIN(0.0,yz);
+    yhi = yhi - MAX(0.0,yz);
   }
+  xprd = xhi - xlo;
+  yprd = yhi - ylo;
+  zprd = zhi - zlo;
 
   // done if not checking fields
 
@@ -662,21 +675,23 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
 
 void ReadDump::process_atoms(int n)
 {
-  int i,m,ifield,itype;
+  int i,m,ifield,itype,itag;;
   int xbox,ybox,zbox;
 
   double **x = atom->x;
   double **v = atom->v;
   tagint *image = atom->image;
   int nlocal = atom->nlocal;
+  int map_tag_max = atom->map_tag_max;
 
   for (i = 0; i < n; i++) {
     ucflag[i] = 0;
 
-    // map() call is invalid if purged all atoms
+    // check if new atom matches one I own
     // setting m = -1 forces new atom not to match
 
-    if (!purgeflag) m = atom->map(static_cast<int> (fields[i][0]));
+    itag = static_cast<int> (fields[i][0]);
+    if (itag <= map_tag_max) m = atom->map(static_cast<int> (fields[i][0]));
     else m = -1;
     if (m < 0 || m >= nlocal) continue;
 

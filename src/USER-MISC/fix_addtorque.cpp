@@ -109,19 +109,22 @@ void FixAddTorque::init()
 
   if (xstr) {
     xvar = input->variable->find(xstr);
-    if (xvar < 0) error->all(FLERR,"Variable name for fix addtorque does not exist");
+    if (xvar < 0) 
+      error->all(FLERR,"Variable name for fix addtorque does not exist");
     if (input->variable->equalstyle(xvar)) xstyle = EQUAL;
     else error->all(FLERR,"Variable for fix addtorque is invalid style");
   }
   if (ystr) {
     yvar = input->variable->find(ystr);
-    if (yvar < 0) error->all(FLERR,"Variable name for fix addtorque does not exist");
+    if (yvar < 0) 
+      error->all(FLERR,"Variable name for fix addtorque does not exist");
     if (input->variable->equalstyle(yvar)) ystyle = EQUAL;
     else error->all(FLERR,"Variable for fix addtorque is invalid style");
   }
   if (zstr) {
     zvar = input->variable->find(zstr);
-    if (zvar < 0) error->all(FLERR,"Variable name for fix addtorque does not exist");
+    if (zvar < 0) 
+      error->all(FLERR,"Variable name for fix addtorque does not exist");
     if (input->variable->equalstyle(zvar)) zstyle = EQUAL;
     else error->all(FLERR,"Variable for fix addtorque is invalid style");
   }
@@ -168,16 +171,14 @@ void FixAddTorque::post_force(int vflag)
   int nlocal = atom->nlocal;
   double mvv2e = force->mvv2e;
 
-  int xbox,ybox,zbox;
   double dx,dy,dz,vx,vy,vz,fx,fy,fz,massone,omegadotr;
-  double xprd = domain->xprd;
-  double yprd = domain->yprd;
-  double zprd = domain->zprd;
-
   double tcm[3],xcm[3],angmom[3],omega[3],itorque[3],domegadt[3],tlocal[3];
   double inertia[3][3];
+  double unwrap[3];
+
   // foriginal[0] = "potential energy" for added force
   // foriginal[123] = torque on atoms before extra force added
+
   foriginal[0] = foriginal[1] = foriginal[2] = foriginal[3] = 0.0;
   force_flag = 0;
 
@@ -200,12 +201,10 @@ void FixAddTorque::post_force(int vflag)
   tlocal[0] = tlocal[1] = tlocal[2] = 0.0;
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      xbox = (image[i] & IMGMASK) - IMGMAX;
-      ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-      zbox = (image[i] >> IMG2BITS) - IMGMAX;
-      dx = (x[i][0] + xbox*xprd) - xcm[0];
-      dy = (x[i][1] + ybox*yprd) - xcm[1];
-      dz = (x[i][2] + zbox*zprd) - xcm[2];
+      domain->unmap(x[i],image[i],unwrap)
+      dx = unwrap[0] - xcm[0];
+      dy = unwrap[1] - xcm[1];
+      dz = unwrap[2] - xcm[2];
       if (rmass) massone = rmass[i];
       else massone = mass[type[i]];
       omegadotr = omega[0]*dx+omega[1]*dy+omega[2]*dz;
@@ -222,12 +221,10 @@ void FixAddTorque::post_force(int vflag)
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      xbox = (image[i] & IMGMASK) - IMGMAX;
-      ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-      zbox = (image[i] >> IMG2BITS) - IMGMAX;
-      dx = (x[i][0] + xbox*xprd) - xcm[0];
-      dy = (x[i][1] + ybox*yprd) - xcm[1];
-      dz = (x[i][2] + zbox*zprd) - xcm[2];
+      domain->unmap(x[i],image[i],unwrap)
+      dx = unwrap[0] - xcm[0];
+      dy = unwrap[1] - xcm[1];
+      dz = unwrap[2] - xcm[2];
       vx = mvv2e*(dz*omega[1]-dy*omega[2]);
       vy = mvv2e*(dx*omega[2]-dz*omega[0]);
       vz = mvv2e*(dy*omega[0]-dx*omega[1]);

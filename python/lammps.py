@@ -23,8 +23,8 @@ class lammps:
     # if name = "g++", load liblammps_g++.so
     
     try:
-      if not name: self.lib = CDLL("liblammps.so")
-      else: self.lib = CDLL("liblammps_%s.so" % name)
+      if not name: self.lib = CDLL("liblammps.so",RTLD_GLOBAL)
+      else: self.lib = CDLL("liblammps_%s.so" % name,RTLD_GLOBAL)
     except:
       type,value,tb = sys.exc_info()
       traceback.print_exception(type,value,tb)

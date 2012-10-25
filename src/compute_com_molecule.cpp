@@ -96,8 +96,8 @@ void ComputeCOMMolecule::init()
 void ComputeCOMMolecule::compute_array()
 {
   int i,imol;
-  double xbox,ybox,zbox;
   double massone;
+  double unwrap[3];
 
   invoked_array = update->ntimestep;
 
@@ -113,23 +113,17 @@ void ComputeCOMMolecule::compute_array()
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
 
-  double xprd = domain->xprd;
-  double yprd = domain->yprd;
-  double zprd = domain->zprd;
-
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      xbox = (image[i] & IMGMASK) - IMGMAX;
-      ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-      zbox = (image[i] >> IMG2BITS) - IMGMAX;
       if (rmass) massone = rmass[i];
       else massone = mass[type[i]];
       imol = molecule[i];
       if (molmap) imol = molmap[imol-idlo];
       else imol--;
-      com[imol][0] += (x[i][0] + xbox*xprd) * massone;
-      com[imol][1] += (x[i][1] + ybox*yprd) * massone;
-      com[imol][2] += (x[i][2] + zbox*zprd) * massone;
+      domain->unmap(x[i],image[i],unwrap);
+      com[imol][0] += unwrap[0] * massone;
+      com[imol][1] += unwrap[1] * massone;
+      com[imol][2] += unwrap[2] * massone;
     }
 
   MPI_Allreduce(&com[0][0],&comall[0][0],3*nmolecules,

@@ -217,12 +217,6 @@ void FixAddForce::min_setup(int vflag)
 
 void FixAddForce::post_force(int vflag)
 {
-  int xbox,ybox,zbox;
-
-  double xprd = domain->xprd;
-  double yprd = domain->yprd;
-  double zprd = domain->zprd;
-
   double **x = atom->x;
   double **f = atom->f;
   int *mask = atom->mask;
@@ -247,18 +241,15 @@ void FixAddForce::post_force(int vflag)
   // potential energy = - x dot f in unwrapped coords
 
   if (varflag == CONSTANT) {
+    double unwrap[3];
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
         if (iregion >= 0 &&
             !domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
           continue;
 
-        xbox = (image[i] & IMGMASK) - IMGMAX;
-        ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-        zbox = (image[i] >> IMG2BITS) - IMGMAX;
-        foriginal[0] -= xvalue * (x[i][0]+xbox*xprd) +
-          yvalue * (x[i][1]+ybox*yprd) + zvalue * (x[i][2]+zbox*zprd);
-
+        domain->unmap(x[i],image[i],unwrap);
+        foriginal[0] -= xvalue*unwrap[0] + yvalue*unwrap[1] + zvalue*unwrap[2];
         foriginal[1] += f[i][0];
         foriginal[2] += f[i][1];
         foriginal[3] += f[i][2];

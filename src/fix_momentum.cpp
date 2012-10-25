@@ -57,7 +57,8 @@ FixMomentum::FixMomentum(LAMMPS *lmp, int narg, char **arg) :
 
   if (linear)
     if (xflag < 0 || xflag > 1 || yflag < 0 || yflag > 1 ||
-        zflag < 0 || zflag > 1) error->all(FLERR,"Illegal fix momentum command");
+        zflag < 0 || zflag > 1) 
+      error->all(FLERR,"Illegal fix momentum command");
 
   // cannot have 0 atoms in group
 
@@ -121,20 +122,15 @@ void FixMomentum::end_of_step()
     tagint *image = atom->image;
     int nlocal = atom->nlocal;
 
-    int xbox,ybox,zbox;
     double dx,dy,dz;
-    double xprd = domain->xprd;
-    double yprd = domain->yprd;
-    double zprd = domain->zprd;
+    double unwrap[3];
 
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-        xbox = (image[i] & IMGMASK) - IMGMAX;
-        ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-        zbox = (image[i] >> IMG2BITS) - IMGMAX;
-        dx = (x[i][0] + xbox*xprd) - xcm[0];
-        dy = (x[i][1] + ybox*yprd) - xcm[1];
-        dz = (x[i][2] + zbox*zprd) - xcm[2];
+        domain->unmap(x[i],image[i],unwrap);
+        dx = unwrap[0] - xcm[0];
+        dy = unwrap[1] - xcm[1];
+        dz = unwrap[2] - xcm[2];
         v[i][0] -= omega[1]*dz - omega[2]*dy;
         v[i][1] -= omega[2]*dx - omega[0]*dz;
         v[i][2] -= omega[0]*dy - omega[1]*dx;

@@ -123,8 +123,8 @@ void ComputeGyrationMolecule::init()
 void ComputeGyrationMolecule::compute_vector()
 {
   int i,imol;
-  double xbox,ybox,zbox,dx,dy,dz;
-  double massone;
+  double dx,dy,dz,massone;
+  double unwrap[3];
 
   invoked_array = update->ntimestep;
 
@@ -141,21 +141,16 @@ void ComputeGyrationMolecule::compute_vector()
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
 
-  double xprd = domain->xprd;
-  double yprd = domain->yprd;
-  double zprd = domain->zprd;
 
   for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      xbox = (image[i] & IMGMASK) - IMGMAX;
-      ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-      zbox = (image[i] >> IMG2BITS) - IMGMAX;
       imol = molecule[i];
       if (molmap) imol = molmap[imol-idlo];
       else imol--;
-      dx = (x[i][0] + xbox*xprd) - comall[imol][0];
-      dy = (x[i][1] + ybox*yprd) - comall[imol][1];
-      dz = (x[i][2] + zbox*zprd) - comall[imol][2];
+      domain->unmap(x[i],image[i],unwrap);
+      dx = unwrap[0] - comall[imol][0];
+      dy = unwrap[1] - comall[imol][1];
+      dz = unwrap[2] - comall[imol][2];
       if (rmass) massone = rmass[i];
       else massone = mass[type[i]];
       rg[imol] += (dx*dx + dy*dy + dz*dz) * massone;
@@ -171,8 +166,8 @@ void ComputeGyrationMolecule::compute_vector()
 void ComputeGyrationMolecule::compute_array()
 {
   int i,j,imol;
-  double xbox,ybox,zbox,dx,dy,dz;
-  double massone;
+  double dx,dy,dz,massone;
+  double unwrap[3];
 
   invoked_array = update->ntimestep;
 
@@ -191,21 +186,15 @@ void ComputeGyrationMolecule::compute_array()
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
 
-  double xprd = domain->xprd;
-  double yprd = domain->yprd;
-  double zprd = domain->zprd;
-
   for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      xbox = (image[i] & IMGMASK) - IMGMAX;
-      ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-      zbox = (image[i] >> IMG2BITS) - IMGMAX;
       imol = molecule[i];
       if (molmap) imol = molmap[imol-idlo];
       else imol--;
-      dx = (x[i][0] + xbox*xprd) - comall[imol][0];
-      dy = (x[i][1] + ybox*yprd) - comall[imol][1];
-      dz = (x[i][2] + zbox*zprd) - comall[imol][2];
+      domain->unmap(x[i],image[i],unwrap);
+      dx = unwrap[0] - comall[imol][0];
+      dy = unwrap[1] - comall[imol][1];
+      dz = unwrap[2] - comall[imol][2];
       if (rmass) massone = rmass[i];
       else massone = mass[type[i]];
       rgt[imol][0] += dx*dx * massone;
@@ -233,8 +222,8 @@ void ComputeGyrationMolecule::compute_array()
 void ComputeGyrationMolecule::molcom()
 {
   int i,imol;
-  double xbox,ybox,zbox,dx,dy,dz;
-  double massone;
+  double dx,dy,dz,massone;
+  double unwrap[3];
 
   for (i = 0; i < nmolecules; i++)
     com[i][0] = com[i][1] = com[i][2] = 0.0;
@@ -248,23 +237,17 @@ void ComputeGyrationMolecule::molcom()
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
 
-  double xprd = domain->xprd;
-  double yprd = domain->yprd;
-  double zprd = domain->zprd;
-
   for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      xbox = (image[i] & IMGMASK) - IMGMAX;
-      ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-      zbox = (image[i] >> IMG2BITS) - IMGMAX;
-      if (rmass) massone = rmass[i];
-      else massone = mass[type[i]];
       imol = molecule[i];
       if (molmap) imol = molmap[imol-idlo];
       else imol--;
-      com[imol][0] += (x[i][0] + xbox*xprd) * massone;
-      com[imol][1] += (x[i][1] + ybox*yprd) * massone;
-      com[imol][2] += (x[i][2] + zbox*zprd) * massone;
+      domain->unmap(x[i],image[i],unwrap);
+      if (rmass) massone = rmass[i];
+      else massone = mass[type[i]];
+      com[imol][0] += unwrap[0] * massone;
+      com[imol][1] += unwrap[1] * massone;
+      com[imol][2] += unwrap[2] * massone;
     }
 
   MPI_Allreduce(&com[0][0],&comall[0][0],3*nmolecules,

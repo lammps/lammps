@@ -1,4 +1,4 @@
-/* -------------------------------------------------------------------------
+/* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -32,6 +32,7 @@
 #include "kspace.h"
 #include "output.h"
 #include "update.h"
+#include "fix.h"
 #include "modify.h"
 #include "timer.h"
 #include "memory.h"
@@ -260,7 +261,8 @@ void VerletSplit::setup_minimal(int flag)
 
 void VerletSplit::run(int n)
 {
-  int nflag,ntimestep,sortflag;
+  bigint ntimestep;
+  int nflag,sortflag;
 
   // sync both partitions before start timer
 
@@ -271,6 +273,13 @@ void VerletSplit::run(int n)
   // setup initial Rspace <-> Kspace comm params
 
   rk_setup();
+
+  // check if OpenMP support fix defined
+
+  Fix *fix_omp;
+  int ifix = modify->find_fix("package_omp");
+  if (ifix < 0) fix_omp = NULL;
+  else fix_omp = modify->fix[ifix];
 
   // flags for timestepping iterations
 
@@ -360,6 +369,11 @@ void VerletSplit::run(int n)
       }
 
     } else {
+
+      // run FixOMP as sole pre_force fix, if defined
+
+      if (fix_omp) fix_omp->pre_force(vflag);
+
       if (force->kspace) {
         timer->stamp();
         force->kspace->compute(eflag,vflag);

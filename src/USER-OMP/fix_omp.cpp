@@ -22,6 +22,7 @@
 #include "force.h"
 #include "neighbor.h"
 #include "neigh_request.h"
+#include "universe.h"
 #include "update.h"
 #include "integrate.h"
 #include "min.h"
@@ -194,61 +195,76 @@ void FixOMP::init()
   if (strstr(update->integrate_style,"respa") != NULL)
     error->all(FLERR,"Cannot use r-RESPA with /omp styles");
 
-  int check_hybrid;
+  int check_hybrid, kspace_split;
   last_pair_hybrid = NULL;
   last_omp_style = NULL;
   const char *last_omp_name = NULL;
   const char *last_hybrid_name = NULL;
   const char *last_force_name = NULL;
 
+  // support for verlet/split operation.
+  // kspace_split == 0 : regular processing
+  // kspace_split < 0  : master partition, does not do kspace
+  // kspace_split > 0  : slave partition, only does kspace
+  if (strstr(update->integrate_style,"verlet/split") != NULL) {
+    if (universe->iworld == 0) kspace_split = -1;
+    else kspace_split = 1;
+  } else {
+    kspace_split = 0;
+  }
+
 // determine which is the last force style with OpenMP
 // support as this is the one that has to reduce the forces
 
-#define CheckStyleForOMP(name)                                                \
-  check_hybrid = 0;                                                        \
-  if (force->name) {                                                        \
-    if ( (strcmp(force->name ## _style,"hybrid") == 0) ||                \
-         (strcmp(force->name ## _style,"hybrid/overlay") == 0) )        \
-      check_hybrid=1;                                                        \
-    if (force->name->suffix_flag & Suffix::OMP) {                        \
-      last_force_name = (const char *) #name;                                \
-      last_omp_name = force->name ## _style;                                \
-      last_omp_style = (void *) force->name;                                \
-    }                                                                        \
+#define CheckStyleForOMP(name)						\
+  check_hybrid = 0;							\
+  if (force->name) {							\
+    if ( (strcmp(force->name ## _style,"hybrid") == 0) ||		\
+         (strcmp(force->name ## _style,"hybrid/overlay") == 0) )	\
+      check_hybrid=1;							\
+    if (force->name->suffix_flag & Suffix::OMP) {			\
+      last_force_name = (const char *) #name;				\
+      last_omp_name = force->name ## _style;				\
+      last_omp_style = (void *) force->name;				\
+    }									\
   }
 
-#define CheckHybridForOMP(name,Class)                                        \
-  if (check_hybrid) {                                                        \
-    Class ## Hybrid *style = (Class ## Hybrid *) force->name;                \
-    for (int i=0; i < style->nstyles; i++) {                                \
-      if (style->styles[i]->suffix_flag & Suffix::OMP) {                \
-        last_force_name = (const char *) #name;                                \
-        last_omp_name = style->keywords[i];                                \
-        last_omp_style = style->styles[i];                                \
-      }                                                                        \
-    }                                                                        \
+#define CheckHybridForOMP(name,Class) \
+  if (check_hybrid) {					      \
+    Class ## Hybrid *style = (Class ## Hybrid *) force->name; \
+    for (int i=0; i < style->nstyles; i++) {		      \
+      if (style->styles[i]->suffix_flag & Suffix::OMP) {      \
+        last_force_name = (const char *) #name;		      \
+        last_omp_name = style->keywords[i];		      \
+        last_omp_style = style->styles[i];		      \
+      }							      \
+    }							      \
   }
 
-  CheckStyleForOMP(pair);
-  CheckHybridForOMP(pair,Pair);
-  if (check_hybrid) {
-    last_pair_hybrid = last_omp_style;
-    last_hybrid_name = last_omp_name;
+  if (kspace_split <= 0) {
+    CheckStyleForOMP(pair);
+    CheckHybridForOMP(pair,Pair);
+    if (check_hybrid) {
+      last_pair_hybrid = last_omp_style;
+      last_hybrid_name = last_omp_name;
+    }
+
+    CheckStyleForOMP(bond);
+    CheckHybridForOMP(bond,Bond);
+
+    CheckStyleForOMP(angle);
+    CheckHybridForOMP(angle,Angle);
+
+    CheckStyleForOMP(dihedral);
+    CheckHybridForOMP(dihedral,Dihedral);
+
+    CheckStyleForOMP(improper);
+    CheckHybridForOMP(improper,Improper);
   }
 
-  CheckStyleForOMP(bond);
-  CheckHybridForOMP(bond,Bond);
-
-  CheckStyleForOMP(angle);
-  CheckHybridForOMP(angle,Angle);
-
-  CheckStyleForOMP(dihedral);
-  CheckHybridForOMP(dihedral,Dihedral);
-
-  CheckStyleForOMP(improper);
-  CheckHybridForOMP(improper,Improper);
-
-  CheckStyleForOMP(kspace);
+  if (kspace_split >= 0) {
+    CheckStyleForOMP(kspace);
+  }
 
 #undef CheckStyleForOMP
 #undef CheckHybridForOMP

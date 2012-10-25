@@ -58,7 +58,8 @@ class ThrOMP {
 
   enum {THR_NONE=0,THR_PAIR=1,THR_BOND=1<<1,THR_ANGLE=1<<2,
         THR_DIHEDRAL=1<<3,THR_IMPROPER=1<<4,THR_KSPACE=1<<5,
-        THR_CHARMM=1<<6,THR_PROXY=1<<7,THR_HYBRID=1<<8,THR_FIX=1<<9};
+        THR_CHARMM=1<<6, /*THR_PROXY=1<<7,*/ THR_HYBRID=1<<8,
+        THR_FIX=1<<9};
 
  protected:
   // extra ev_tally setup work for threaded styles
@@ -71,7 +72,7 @@ class ThrOMP {
 
   // reduce per thread data as needed
   void reduce_thr(void * const style, const int eflag, const int vflag,
-                  ThrData * const thr, const int nproxy=0);
+                  ThrData * const thr);
 
   // thread safe variant error abort support.
   // signals an error condition in any thread by making
@@ -167,14 +168,14 @@ class ThrOMP {
 
 // set loop range thread id, and force array offset for threaded runs.
 static inline void loop_setup_thr(int &ifrom, int &ito, int &tid,
-                                  int inum, int nthreads, int nproxy=0)
+                                  int inum, int nthreads)
 {
 #if defined(_OPENMP)
   tid = omp_get_thread_num();
 
   // each thread works on a fixed chunk of atoms.
-  const int idelta = 1 + inum/(nthreads-nproxy);
-  ifrom = (tid-nproxy)*idelta;
+  const int idelta = 1 + inum/nthreads;
+  ifrom = tid*idelta;
   ito   = ((ifrom + idelta) > inum) ? inum : ifrom + idelta;
 #else
   tid = 0;

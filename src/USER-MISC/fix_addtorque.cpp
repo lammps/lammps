@@ -201,7 +201,7 @@ void FixAddTorque::post_force(int vflag)
   tlocal[0] = tlocal[1] = tlocal[2] = 0.0;
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      domain->unmap(x[i],image[i],unwrap)
+      domain->unmap(x[i],image[i],unwrap);
       dx = unwrap[0] - xcm[0];
       dy = unwrap[1] - xcm[1];
       dz = unwrap[2] - xcm[2];
@@ -221,7 +221,7 @@ void FixAddTorque::post_force(int vflag)
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      domain->unmap(x[i],image[i],unwrap)
+      domain->unmap(x[i],image[i],unwrap);
       dx = unwrap[0] - xcm[0];
       dy = unwrap[1] - xcm[1];
       dz = unwrap[2] - xcm[2];

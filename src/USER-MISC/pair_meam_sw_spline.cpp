@@ -12,6 +12,12 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
+   Contributing author: Robert Rudd (LLNL), robert.rudd@llnl.gov
+   Based on the spline-based MEAM routine written by
+     Alexander Stukowski (LLNL), alex@stukowski.com
+------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
  * Spline-based Modified Embedded Atom Method plus Stillinger-Weber (MEAM+SW) potential routine.
  *
  * Copyright (2012) Lawrence Livermore National Security, LLC.

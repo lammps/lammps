@@ -946,7 +946,10 @@ package"_Section_start.html#start_3.
 "sdk"_angle_sdk.html,
 "cosine/shift"_angle_cosine_shift.html,
 "cosine/shift/exp"_angle_cosine_shift_exp.html,
-"dipole"_angle_dipole.html :tb(c=4,ea=c)
+"dipole"_angle_dipole.html,
+"fourier"_angle_fourier.html,
+"fourier/simple"_angle_fourier_simple.html,
+"quartic"_angle_quartic.html :tb(c=4,ea=c)
 
 These are accelerated angle styles, which can be used if LAMMPS is
 built with the "appropriate accelerated
@@ -986,6 +989,9 @@ These are dihedral styles contributed by users, which can be used if
 package"_Section_start.html#start_3.
 
 "cosine/shift/exp"_dihedral_cosine_shift_exp.html,
+"fourier"_dihedral_fourier.html,
+"nharmonic"_dihedral_nharmonic.html,
+"quadratic"_dihedral_quadratic.html,
 "table"_dihedral_table.html :tb(c=4,ea=c)
 
 These are accelerated dihedral styles, which can be used if LAMMPS is
@@ -1030,6 +1036,7 @@ package"_Section_accelerate.html.
 "class2/omp"_improper_class2.html,
 "cossq/omp"_improper_cossq.html,
 "cvff/omp"_improper_cvff.html,
+"fourier"_improper_fourier.html,
 "harmonic/omp"_improper_harmonic.html,
 "ring/omp"_improper_ring.html,
 "umbrella/omp"_improper_umbrella.html :tb(c=4,ea=c,w=100)

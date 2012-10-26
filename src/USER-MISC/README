@@ -20,17 +20,24 @@ about the feature or its coding.
 
 angle_style cosine/shift, Carsten Svaneborg, science at zqex.dk, 8 Aug 11
 angle_style cosine/shift/exp, Carsten Svaneborg, science at zqex.dk, 8 Aug 11
+angle_style fourier, Loukas Peristeras, loukas.peristeras at scienomics.com, 27 Oct 12
+angle_style fourier/simple, Loukas Peristeras, loukas.peristeras at scienomics.com, 27 Oct 12
 angle_style dipole, Mario Orsi, orsimario at gmail.com, 10 Jan 12
+angle_style quartic, Loukas Peristeras, loukas.peristeras at scienomics.com, 27 Oct 12
 bond_style harmonic/shift, Carsten Svaneborg, science at zqex.dk, 8 Aug 11
 bond_style harmonic/shift/cut, Carsten Svaneborg, science at zqex.dk, 8 Aug 11
 compute ackland/atom, Gerolf Ziegenhain, gerolf at ziegenhain.com, 4 Oct 2007
 compute temp/rotate, Laurent Joly (U Lyon), ljoly.ulyon at gmail.com, 8 Aug 11
 dihedral_style cosine/shift/exp, Carsten Svaneborg, science at zqex.dk, 8 Aug 11
+dihedral_style fourier, Loukas Peristeras, loukas.peristeras at scienomics.com, 27 Oct 12
+dihedral_style nharmonic, Loukas Peristeras, loukas.peristeras at scienomics.com, 27 Oct 12
+dihedral_style quadratic, Loukas Peristeras, loukas.peristeras at scienomics.com, 27 Oct 12
 dihedral_style table, Andrew Jewett, jewett.aij@gmail.com, 10 Jan 12
 fix addtorque, Laurent Joly (U Lyon), ljoly.ulyon at gmail.com, 8 Aug 11
 fix imd, Axel Kohlmeyer, akohlmey at gmail.com, 9 Nov 2009
 fix smd, Axel Kohlmeyer, akohlmey at gmail.com, 19 May 2008
 improper_style cossq, Georgios Vogiatzis, gvog at chemeng.ntua.gr, 25 May 12
+improper_style fourier, Loukas Peristeras, loukas.peristeras at scienomics.com, 27 Oct 12
 improper_style ring, Georgios Vogiatzis, gvog at chemeng.ntua.gr, 25 May 12
 pair_style coul/diel, Axel Kohlmeyer, akohlmey at gmail.com, 1 Dec 11
 pair_style dipole/sf, Mario Orsi, orsimario at gmail.com, 8 Aug 11
@@ -39,4 +46,7 @@ pair_style eam/cd, Alexander Stukowski, stukowski at mm.tu-darmstadt.de, 7 Nov 0
 pair_style gauss/cut, Axel Kohlmeyer, akohlmey at gmail.com, 1 Dec 11
 pair_style lj/sf, Laurent Joly (U Lyon), ljoly.ulyon at gmail.com, 8 Aug 11
 pair_style meam/spline, Alexander Stukowski (LLNL), alex at stukowski.com, 1 Feb 12
+pair_style meam/sw/spline, Robert Rudd (LLNL), robert.rudd at llnl.gov, 1 Oct 12
 pair_style tersoff/table, Luca Ferraro, luca.ferraro@caspur.it, 1 Dec 11
+
+

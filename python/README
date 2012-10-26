@@ -9,7 +9,7 @@ doc/Section_python.html and in doc/Section_start.html#start_5.
 Basically you need to follow these steps in the src directory:
 
 % make makeshlib                # creates Makefile.shlib
-% make -f Makefile.shlib g++    # or whatever machine target you wish
+% make -f Makefile.shlib g++    # build for whatever machine target you wish
 % make install-python           # may need to do this via sudo
 
 You can replace the last step with running the python/install.py

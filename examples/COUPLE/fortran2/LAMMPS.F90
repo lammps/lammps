@@ -57,7 +57,7 @@ module LAMMPS
       lammps_extract_atom, lammps_extract_compute, lammps_extract_fix, &
       lammps_extract_variable, lammps_get_natoms, lammps_gather_atoms, &
       lammps_scatter_atoms
-   public :: lammps_instance
+   public :: lammps_instance, C_ptr, C_double, C_int
 
    !! Functions supplemental to the prototypes in library.h. {{{1
    !! The function definitions (in C++) are contained in LAMMPS-wrapper.cpp.
@@ -224,52 +224,40 @@ module LAMMPS
 
    ! Generic functions for the wrappers below {{{1
 
-   ! Check the dimensions of the arrays these return; they are not always
-   ! easy to find.  Note that I consider returning pointers to arbitrary
-   ! memory locations with no information as to array size/shape to be
-   ! extremely sloppy and error-prone.  It would appear the Fortran standards
-   ! committee would agree, as they chose not to allow that sort of nonsense.
-
    interface lammps_extract_global
-      module procedure lammps_extract_global_i, lammps_extract_global_r, &
+      module procedure lammps_extract_global_i, &
          lammps_extract_global_dp
    end interface lammps_extract_global
 
    interface lammps_extract_atom
-      module procedure lammps_extract_atom_ia, lammps_extract_atom_ra, &
-         lammps_extract_atom_dpa, lammps_extract_atom_dp2a, &
-         lammps_extract_atom_r2a
+      module procedure lammps_extract_atom_ia, &
+         lammps_extract_atom_dpa, &
+         lammps_extract_atom_dp2a
    end interface lammps_extract_atom
 
    interface lammps_extract_compute
-      module procedure lammps_extract_compute_r, lammps_extract_compute_dp, &
-         lammps_extract_compute_ra, lammps_extract_compute_dpa, &
-         lammps_extract_compute_r2a, lammps_extract_compute_dp2a
+      module procedure lammps_extract_compute_dp, &
+         lammps_extract_compute_dpa, &
+         lammps_extract_compute_dp2a
    end interface lammps_extract_compute
 
    interface lammps_extract_fix
-      module procedure lammps_extract_fix_r, lammps_extract_fix_dp, &
-         lammps_extract_fix_ra, lammps_extract_fix_dpa, &
-         lammps_extract_fix_r2a, lammps_extract_fix_dp2a
+      module procedure lammps_extract_fix_dp, &
+         lammps_extract_fix_dpa, &
+         lammps_extract_fix_dp2a
    end interface lammps_extract_fix
 
    interface lammps_extract_variable
-      module procedure lammps_extract_variable_i, &
-         lammps_extract_variable_dp, &
-         lammps_extract_variable_r, &
-         lammps_extract_variable_ra, &
-         lammps_extract_variable_ia, &
+      module procedure lammps_extract_variable_dp, &
          lammps_extract_variable_dpa
    end interface lammps_extract_variable
 
    interface lammps_gather_atoms
-      module procedure lammps_gather_atoms_ia, lammps_gather_atoms_dpa, &
-         lammps_gather_atoms_ra
+      module procedure lammps_gather_atoms_ia, lammps_gather_atoms_dpa
    end interface lammps_gather_atoms
 
    interface lammps_scatter_atoms
-      module procedure lammps_scatter_atoms_ia, lammps_scatter_atoms_dpa, &
-         lammps_scatter_atoms_ra
+      module procedure lammps_scatter_atoms_ia, lammps_scatter_atoms_dpa
    end interface lammps_scatter_atoms
 
 contains !! Wrapper functions local to this module {{{1
@@ -336,38 +324,21 @@ contains !! Wrapper functions local to this module {{{1
       global = lammps_actual_extract_global (ptr, Cname)
    end function lammps_extract_global_Cptr
    subroutine lammps_extract_global_i (global, ptr, name)
-      integer, intent(out) :: global
+      integer (C_int), pointer, intent(out) :: global
       type (C_ptr), intent(in) :: ptr
       character (len=*), intent(in) :: name
       type (C_ptr) :: Cptr
-      integer (C_int), pointer :: Fptr
       Cptr = lammps_extract_global_Cptr (ptr, name)
-      call C_F_pointer (Cptr, Fptr)
-      global = Fptr
-      nullify (Fptr)
+      call C_F_pointer (Cptr, global)
    end subroutine lammps_extract_global_i
    subroutine lammps_extract_global_dp (global, ptr, name)
-      double precision, intent(out) :: global
+      real (C_double), pointer, intent(out) :: global
       type (C_ptr), intent(in) :: ptr
       character (len=*), intent(in) :: name
       type (C_ptr) :: Cptr
-      real (C_double), pointer :: Fptr
       Cptr = lammps_extract_global_Cptr (ptr, name)
-      call C_F_pointer (Cptr, Fptr)
-      global = Fptr
-      nullify (Fptr)
+      call C_F_pointer (Cptr, global)
    end subroutine lammps_extract_global_dp
-   subroutine lammps_extract_global_r (global, ptr, name)
-      real :: global
-      type (C_ptr), intent(in) :: ptr
-      character (len=*), intent(in) :: name
-      type (C_ptr) :: Cptr
-      real (C_double), pointer :: Fptr
-      Cptr = lammps_extract_global_Cptr (ptr, name)
-      call C_F_pointer (Cptr, Fptr)
-      global = real (Fptr)
-      nullify (Fptr)
-   end subroutine lammps_extract_global_r
 
 !-----------------------------------------------------------------------------
 
@@ -381,92 +352,69 @@ contains !! Wrapper functions local to this module {{{1
       atom = lammps_actual_extract_atom (ptr, Cname)
    end function lammps_extract_atom_Cptr
    subroutine lammps_extract_atom_ia (atom, ptr, name)
-      integer, dimension(:), allocatable, intent(out) :: atom
+      integer (C_int), dimension(:), pointer, intent(out) :: atom
       type (C_ptr), intent(in) :: ptr
       character (len=*), intent(in) :: name
       type (C_ptr) :: Cptr
-      integer (C_int), dimension(:), pointer :: Fptr
-      integer :: nelements
+      integer (C_int), pointer :: nelements
       call lammps_extract_global_i (nelements, ptr, 'nlocal')
       Cptr = lammps_extract_atom_Cptr (ptr, name)
-      call C_F_pointer (Cptr, Fptr, (/nelements/))
-      if ( .not. associated (Fptr) ) return
-      allocate (atom(nelements))
-      atom = Fptr
-      nullify (Fptr)
+      call C_F_pointer (Cptr, atom, (/nelements/))
    end subroutine lammps_extract_atom_ia
    subroutine lammps_extract_atom_dpa (atom, ptr, name)
-      double precision, dimension(:), allocatable, intent(out) :: atom
+      real (C_double), dimension(:), pointer, intent(out) :: atom
       type (C_ptr), intent(in) :: ptr
       character (len=*), intent(in) :: name
       type (C_ptr) :: Cptr
-      real (C_double), dimension(:), pointer :: Fptr
+      integer (C_int), pointer :: nlocal
       integer :: nelements
+      real (C_double), dimension(:), pointer :: Fptr
       if ( name == 'mass' ) then
-         nelements = lammps_get_ntypes (ptr)
-      else if ( name == 'x' .or. name == 'v' .or. name == 'f' ) then
-         ! We should not be getting 'x' or 'v' or 'f' here!
+         nelements = lammps_get_ntypes (ptr) + 1
+      else if ( name == 'x' .or. name == 'v' .or. name == 'f' .or. &
+                name == 'mu' .or. name == 'omega' .or. name == 'torque' .or. &
+                name == 'angmom' ) then
+         ! We should not be getting a rank-2 array here!
          call lammps_error_all (ptr, FLERR, 'You cannot extract those atom&
-            & data (x, v, or f) into a rank 1 array.')
+            & data (' // trim(name) // ') into a rank 1 array.')
          return
       else
          ! Everything else we can get is probably nlocal units long
-         call lammps_extract_global_i (nelements, ptr, 'nlocal')
+         call lammps_extract_global_i (nlocal, ptr, 'nlocal')
+         nelements = nlocal
       end if
       Cptr = lammps_extract_atom_Cptr (ptr, name)
+      call C_F_pointer (Cptr, Fptr, (/nelements/))
       if ( name == 'mass' ) then
-         call C_F_pointer (Cptr, Fptr, (/nelements + 1/))
-         if ( .not. associated (Fptr) ) return
-         allocate (atom(nelements))
-         atom = Fptr(2:) ! LAMMPS starts numbering at 1 (C does not)
+         atom(0:) => Fptr
       else
-         call C_F_pointer (Cptr, Fptr, (/nelements/))
-         if ( .not. associated (Fptr) ) return
-         allocate (atom(nelements))
-         atom = Fptr
+         atom => Fptr
       end if
-      nullify (Fptr)
    end subroutine lammps_extract_atom_dpa
-   subroutine lammps_extract_atom_ra (atom, ptr, name)
-      real, dimension(:), allocatable, intent(out) :: atom
-      type (C_ptr), intent(in) :: ptr
-      character (len=*), intent(in) :: name
-      double precision, dimension(:), allocatable :: d_atom
-      call lammps_extract_atom_dpa (d_atom, ptr, name)
-      allocate (atom(size(d_atom)))
-      atom = real(d_atom)
-      deallocate (d_atom)
-   end subroutine lammps_extract_atom_ra
    subroutine lammps_extract_atom_dp2a (atom, ptr, name)
-      double precision, dimension(:,:), allocatable, intent(out) :: atom
+      real (C_double), dimension(:,:), pointer, intent(out) :: atom
       type (C_ptr), intent(in) :: ptr
       character (len=*), intent(in) :: name
       type (C_ptr) :: Cptr
-      integer :: nelements
-      if ( name /= 'x' .and. name /= 'v' .and. name /= 'f' ) then
-         call lammps_error_all (ptr, FLERR, 'You cannot extract ' // name // &
-            ' into a rank 2 array.')
+      type (C_ptr), pointer, dimension(:) :: Catom
+      integer (C_int), pointer :: nelements
+      if ( name /= 'x' .and. name /= 'v' .and. name /= 'f' .and. &
+           name /= 'mu' .and. name /= 'omega' .and. name /= 'tandque' .and. &
+           name /= 'angmom' ) then
+         ! We should not be getting a rank-2 array here!
+         call lammps_error_all (ptr, FLERR, 'You cannot extract those atom&
+            & data (' // trim(name) // ') into a rank 2 array.')
          return
       end if
       Cptr = lammps_extract_atom_Cptr (ptr, name)
       call lammps_extract_global_i (nelements, ptr, 'nlocal')
-      allocate (atom(nelements,3))
-      atom = Cdoublestar_to_2darray (Cptr, nelements, 3)
+      ! Catom will now be the array of void* pointers that the void** pointer
+      ! pointed to.  Catom(1) is now the pointer to the first element.
+      call C_F_pointer (Cptr, Catom, (/nelements/))
+      ! Now get the actual array, which has its shape transposed from what we
+      ! might think of it in C
+      call C_F_pointer (Catom(1), atom, (/3, nelements/))
    end subroutine lammps_extract_atom_dp2a
-   subroutine lammps_extract_atom_r2a (atom, ptr, name)
-      real, dimension(:,:), allocatable, intent(out) :: atom
-      type (C_ptr), intent(in) :: ptr
-      character (len=*), intent(in) :: name
-      double precision, dimension(:,:), allocatable :: d_atom
-      call lammps_extract_atom_dp2a (d_atom, ptr, name)
-      if ( allocated (d_atom) ) then
-         allocate (atom(size(d_atom,1), size(d_atom,2)))
-      else
-         return
-      end if
-      atom = real(d_atom)
-      deallocate (d_atom)
-   end subroutine lammps_extract_atom_r2a
 
 !-----------------------------------------------------------------------------
 
@@ -484,12 +432,11 @@ contains !! Wrapper functions local to this module {{{1
       compute = lammps_actual_extract_compute (ptr, Cid, Cstyle, Ctype)
    end function lammps_extract_compute_Cptr
    subroutine lammps_extract_compute_dp (compute, ptr, id, style, type)
-      double precision, intent(out) :: compute
+      real (C_double), pointer, intent(out) :: compute
       type (C_ptr), intent(in) :: ptr
       character (len=*), intent(in) :: id
       integer, intent(in) :: style, type
       type (C_ptr) :: Cptr
-      real (C_double), pointer :: Fptr
       ! The only valid values of (style,type) are (0,0) for scalar 'compute'
       if ( style /= 0 ) then
          call lammps_error_all (ptr, FLERR, 'You cannot pack per-atom/local&
@@ -506,27 +453,14 @@ contains !! Wrapper functions local to this module {{{1
          return
       end if
       Cptr = lammps_extract_compute_Cptr (ptr, id, style, type)
-      call C_F_pointer (Cptr, Fptr)
-      compute = Fptr
-      nullify (Fptr)
-      ! C pointer should not be freed!
+      call C_F_pointer (Cptr, compute)
    end subroutine lammps_extract_compute_dp
-   subroutine lammps_extract_compute_r (compute, ptr, id, style, type)
-      real, intent(out) :: compute
-      type (C_ptr), intent(in) :: ptr
-      character (len=*), intent(in) :: id
-      integer, intent(in) :: style, type
-      double precision :: d_compute
-      call lammps_extract_compute_dp (d_compute, ptr, id, style, type)
-      compute = real(d_compute)
-   end subroutine lammps_extract_compute_r
    subroutine lammps_extract_compute_dpa (compute, ptr, id, style, type)
-      double precision, dimension(:), allocatable, intent(out) :: compute
+      real (C_double), dimension(:), pointer, intent(out) :: compute
       type (C_ptr), intent(in) :: ptr
       character (len=*), intent(in) :: id
       integer, intent(in) :: style, type
       type (C_ptr) :: Cptr
-      real (C_double), dimension(:), pointer :: Fptr
       integer :: nelements
       ! Check for the correct dimensionality
       if ( type == 0 ) then
@@ -539,30 +473,16 @@ contains !! Wrapper functions local to this module {{{1
          return
       end if
       nelements = lammps_extract_compute_vectorsize (ptr, id, style)
-      allocate (compute(nelements))
       Cptr = lammps_extract_compute_Cptr (ptr, id, style, type)
-      call C_F_pointer (Cptr, Fptr, (/nelements/))
-      compute = Fptr
-      nullify (Fptr)
-      ! C pointer should not be freed
+      call C_F_pointer (Cptr, compute, (/nelements/))
    end subroutine lammps_extract_compute_dpa
-   subroutine lammps_extract_compute_ra (compute, ptr, id, style, type)
-      real, dimension(:), allocatable, intent(out) :: compute
-      type (C_ptr), intent(in) :: ptr
-      character (len=*), intent(in) :: id
-      integer, intent(in) :: style, type
-      double precision, dimension(:), allocatable :: d_compute
-      call lammps_extract_compute_dpa (d_compute, ptr, id, style, type)
-      allocate (compute(size(d_compute)))
-      compute = real(d_compute)
-      deallocate (d_compute)
-   end subroutine lammps_extract_compute_ra
    subroutine lammps_extract_compute_dp2a (compute, ptr, id, style, type)
-      double precision, dimension(:,:), allocatable, intent(out) :: compute
+      real (C_double), dimension(:,:), pointer, intent(out) :: compute
       type (C_ptr), intent(in) :: ptr
       character (len=*), intent(in) :: id
       integer, intent(in) :: style, type
       type (C_ptr) :: Cptr
+      type (C_ptr), pointer, dimension(:) :: Ccompute
       integer :: nr, nc
       ! Check for the correct dimensionality
       if ( type == 0 ) then
@@ -575,22 +495,10 @@ contains !! Wrapper functions local to this module {{{1
          return
       end if
       call lammps_extract_compute_arraysize (ptr, id, style, nr, nc)
-      allocate (compute(nr, nc))
-      Cptr = lammps_extract_compute_Cptr (ptr, id, style, type)
-      compute = Cdoublestar_to_2darray (Cptr, nr, nc)
-      ! C pointer should not be freed
+      call C_F_pointer (Cptr, Ccompute, (/nr/))
+      ! Note that the matrix is transposed, from Fortran's perspective
+      call C_F_pointer (Ccompute(1), compute, (/nc, nr/))
    end subroutine lammps_extract_compute_dp2a
-   subroutine lammps_extract_compute_r2a (compute, ptr, id, style, type)
-      real, dimension(:,:), allocatable, intent(out) :: compute
-      type (C_ptr), intent(in) :: ptr
-      character (len=*), intent(in) :: id
-      integer, intent(in) :: style, type
-      double precision, dimension(:,:), allocatable :: d_compute
-      call lammps_extract_compute_dp2a (d_compute, ptr, id, style, type)
-      allocate (compute(size(d_compute,1), size(d_compute,2)))
-      compute = real(d_compute)
-      deallocate (d_compute)
-   end subroutine lammps_extract_compute_r2a
 
 !-----------------------------------------------------------------------------
 
@@ -616,7 +524,7 @@ contains !! Wrapper functions local to this module {{{1
       fix = lammps_actual_extract_fix (ptr, Cid, Cstyle, Ctype, Ci, Cj)
    end function lammps_extract_fix_Cptr
    subroutine lammps_extract_fix_dp (fix, ptr, id, style, type, i, j)
-      double precision, intent(out) :: fix
+      real (C_double), intent(out) :: fix
       type (C_ptr), intent(in) :: ptr
       character (len=*), intent(in) :: id
       integer, intent(in) :: style, type, i, j
@@ -635,8 +543,8 @@ contains !! Wrapper functions local to this module {{{1
             call lammps_error_all (ptr, FLERR, 'You cannot extract a fix''s &
                &per-atom/local array (rank 2) into a scalar.')
          case default
-            call lammps_error_all (ptr, FLERR, 'Invalid extract_fix style&
-               & value.')
+            call lammps_error_all (ptr, FLERR, 'Invalid extract_fix style/&
+               &type combination.')
          end select
          return
       end if
@@ -647,22 +555,12 @@ contains !! Wrapper functions local to this module {{{1
       ! Memory is only allocated for "global" fix variables
       if ( style == 0 ) call lammps_free (Cptr)
    end subroutine lammps_extract_fix_dp
-   subroutine lammps_extract_fix_r (fix, ptr, id, style, type, i, j)
-      real, intent(out) :: fix
-      type (C_ptr), intent(in) :: ptr
-      character (len=*), intent(in) :: id
-      integer, intent(in) :: style, type, i, j
-      double precision :: d_fix
-      call lammps_extract_fix_dp (d_fix, ptr, id, style, type, i, j)
-      fix = real(d_fix)
-   end subroutine lammps_extract_fix_r
    subroutine lammps_extract_fix_dpa (fix, ptr, id, style, type, i, j)
-      double precision, dimension(:), allocatable, intent(out) :: fix
+      real (C_double), dimension(:), pointer, intent(out) :: fix
       type (C_ptr), intent(in) :: ptr
       character (len=*), intent(in) :: id
       integer, intent(in) :: style, type, i, j
       type (C_ptr) :: Cptr
-      real (C_double), dimension(:), pointer :: Fptr
       integer :: fix_len
       ! Check for the correct dimensionality
       if ( style == 0 ) then
@@ -682,31 +580,17 @@ contains !! Wrapper functions local to this module {{{1
          return
       end if
       fix_len = lammps_extract_fix_vectorsize (ptr, id, style)
-      allocate (fix(fix_len))
-      Cptr = lammps_extract_fix_Cptr (ptr, id, style, type, i, j)
-      call C_F_pointer (Cptr, Fptr, (/fix_len/))
-      fix = Fptr
-      nullify (Fptr)
-      ! Memory is only allocated for "global" fix variables
-      if ( style == 0 ) call lammps_free (Cptr)
+      call C_F_pointer (Cptr, fix, (/fix_len/))
+      ! Memory is only allocated for "global" fix variables, which we should
+      ! never get here, so no need to call lammps_free!
    end subroutine lammps_extract_fix_dpa
-   subroutine lammps_extract_fix_ra (fix, ptr, id, style, type, i, j)
-      real, dimension(:), allocatable, intent(out) :: fix
-      type (C_ptr), intent(in) :: ptr
-      character (len=*), intent(in) :: id
-      integer, intent(in) :: style, type, i, j
-      double precision, dimension(:), allocatable :: d_fix
-      call lammps_extract_fix_dpa (d_fix, ptr, id, style, type, i, j)
-      allocate (fix(size(d_fix)))
-      fix = real(d_fix)
-      deallocate (d_fix)
-   end subroutine lammps_extract_fix_ra
    subroutine lammps_extract_fix_dp2a (fix, ptr, id, style, type, i, j)
-      double precision, dimension(:,:), allocatable, intent(out) :: fix
+      real (C_double), dimension(:,:), pointer, intent(out) :: fix
       type (C_ptr), intent(in) :: ptr
       character (len=*), intent(in) :: id
       integer, intent(in) :: style, type, i, j
       type (C_ptr) :: Cptr
+      type (C_ptr), pointer, dimension(:) :: Cfix
       integer :: nr, nc
       ! Check for the correct dimensionality
       if ( style == 0 ) then
@@ -723,22 +607,11 @@ contains !! Wrapper functions local to this module {{{1
          return
       end if
       call lammps_extract_fix_arraysize (ptr, id, style, nr, nc)
-      allocate (fix(nr, nc))
-      Cptr = lammps_extract_fix_Cptr (ptr, id, style, type, i, j)
-      fix = Cdoublestar_to_2darray (Cptr, nr, nc)
-      ! C pointer should not be freed
+      ! Extract pointer to first element as Cfix(1)
+      call C_F_pointer (Cptr, Cfix, (/nr/))
+      ! Now extract the array, which is transposed
+      call C_F_pointer (Cfix(1), fix, (/nc, nr/))
    end subroutine lammps_extract_fix_dp2a
-   subroutine lammps_extract_fix_r2a (fix, ptr, id, style, type, i, j)
-      real, dimension(:,:), allocatable, intent(out) :: fix
-      type (C_ptr), intent(in) :: ptr
-      character (len=*), intent(in) :: id
-      integer, intent(in) :: style, type, i, j
-      double precision, dimension(:,:), allocatable :: d_fix
-      call lammps_extract_fix_dp2a (d_fix, ptr, id, style, type, i, j)
-      allocate (fix(size(d_fix,1), size(d_fix,2)))
-      fix = real(d_fix)
-      deallocate (d_fix)
-   end subroutine lammps_extract_fix_r2a
 
 !-----------------------------------------------------------------------------
 
@@ -760,24 +633,11 @@ contains !! Wrapper functions local to this module {{{1
       variable = lammps_actual_extract_variable (ptr, Cname, Cgroup)
       deallocate (Cgroup)
    end function lammps_extract_variable_Cptr
-   subroutine lammps_extract_variable_i (variable, ptr, name, group)
-      type (C_ptr), intent(in) :: ptr
-      character (len=*), intent(in) :: name
-      character (len=*), intent(in), optional :: group
-      integer, intent(out) :: variable
-      double precision :: d_var
-      if ( present (group) ) then
-         call lammps_extract_variable_dp (d_var, ptr, name, group)
-      else
-         call lammps_extract_variable_dp (d_var, ptr, name)
-      end if
-      variable = nint(d_var)
-   end subroutine lammps_extract_variable_i
    subroutine lammps_extract_variable_dp (variable, ptr, name, group)
+      real (C_double), intent(out) :: variable
       type (C_ptr), intent(in) :: ptr
       character (len=*), intent(in) :: name
       character (len=*), intent(in), optional :: group
-      double precision, intent(out) :: variable
       type (C_ptr) :: Cptr
       real (C_double), pointer :: Fptr
       if ( present(group) ) then
@@ -790,37 +650,8 @@ contains !! Wrapper functions local to this module {{{1
       nullify (Fptr)
       call lammps_free (Cptr)
    end subroutine lammps_extract_variable_dp
-   subroutine lammps_extract_variable_r (variable, ptr, name, group)
-      type (C_ptr), intent(in) :: ptr
-      character (len=*), intent(in) :: name
-      character (len=*), intent(in), optional :: group
-      real, intent(out) :: variable
-      double precision :: d_var
-      if ( present (group) ) then
-         call lammps_extract_variable_dp (d_var, ptr, name, group)
-      else
-         call lammps_extract_variable_dp (d_var, ptr, name)
-      end if
-      variable = real(d_var)
-   end subroutine lammps_extract_variable_r
-
-   subroutine lammps_extract_variable_ia (variable, ptr, name, group)
-      type (C_ptr), intent(in) :: ptr
-      character (len=*), intent(in) :: name
-      character (len=*), intent(in), optional :: group
-      integer, dimension(:), allocatable, intent(out) :: variable
-      double precision, dimension(:), allocatable :: d_var
-      if ( present (group) ) then
-         call lammps_extract_variable_dpa (d_var, ptr, name, group)
-      else
-         call lammps_extract_variable_dpa (d_var, ptr, name)
-      end if
-      allocate (variable(size(d_var)))
-      variable = nint(d_var)
-      deallocate (d_var)
-   end subroutine lammps_extract_variable_ia
    subroutine lammps_extract_variable_dpa (variable, ptr, name, group)
-      double precision, dimension(:), allocatable, intent(out) :: variable
+      real (C_double), dimension(:), allocatable, intent(out) :: variable
       type (C_ptr), intent(in) :: ptr
       character (len=*), intent(in) :: name
       character (len=*), intent(in), optional :: group
@@ -839,21 +670,6 @@ contains !! Wrapper functions local to this module {{{1
       nullify (Fptr)
       call lammps_free (Cptr)
    end subroutine lammps_extract_variable_dpa
-   subroutine lammps_extract_variable_ra (variable, ptr, name, group)
-      type (C_ptr), intent(in) :: ptr
-      character (len=*), intent(in) :: name
-      character (len=*), intent(in), optional :: group
-      real, dimension(:), allocatable, intent(out) :: variable
-      double precision, dimension(:), allocatable :: d_var
-      if ( present (group) ) then
-         call lammps_extract_variable_dpa (d_var, ptr, name, group)
-      else
-         call lammps_extract_variable_dpa (d_var, ptr, name)
-      end if
-      allocate (variable(size(d_var)))
-      variable = real(d_var)
-      deallocate (d_var)
-   end subroutine lammps_extract_variable_ra
 
 !-------------------------------------------------------------------------2}}}
 
@@ -909,17 +725,6 @@ contains !! Wrapper functions local to this module {{{1
       data = Fdata(:)
       deallocate (Fdata)
    end subroutine lammps_gather_atoms_dpa
-   subroutine lammps_gather_atoms_ra (ptr, name, count, data)
-      type (C_ptr), intent(in) :: ptr
-      character (len=*), intent(in) :: name
-      integer, intent(in) :: count
-      real, dimension(:), allocatable, intent(out) :: data
-      double precision, dimension(:), allocatable :: d_data
-      call lammps_gather_atoms_dpa (ptr, name, count, d_data)
-      allocate (data(size(d_data)))
-      data = d_data
-      deallocate (d_data)
-   end subroutine lammps_gather_atoms_ra
 
 !-----------------------------------------------------------------------------
 
@@ -961,14 +766,6 @@ contains !! Wrapper functions local to this module {{{1
       Cdata = C_loc (Fdata(1))
       call lammps_actual_scatter_atoms (ptr, Cname, Ctype, Ccount, Cdata)
    end subroutine lammps_scatter_atoms_dpa
-   subroutine lammps_scatter_atoms_ra (ptr, name, data)
-      type (C_ptr), intent(in) :: ptr
-      character (len=*), intent(in) :: name
-      real, dimension(:), intent(in) :: data
-      double precision, dimension(size(data)) :: d_data
-      d_data = real (data, kind(d_data))
-      call lammps_scatter_atoms_dpa (ptr, name, d_data)
-   end subroutine lammps_scatter_atoms_ra
 
 !-----------------------------------------------------------------------------
 
@@ -1137,31 +934,6 @@ contains !! Wrapper functions local to this module {{{1
 
    end subroutine Cstring2argcargv
 
-!-----------------------------------------------------------------------------
-
-   function Cdoublestar_to_2darray (Carray, nrows, ncolumns) result (Farray)
-
-   ! Take a C/C++ array of pointers to pointers to doubles (sort of like a
-   ! two-dimensional array, and handled the same way from the programmer's
-   ! perspective) into a Fortran-style array.  Note that columns in C still
-   ! correspond to columns in Fortran here and the same for rows.
-
-      type (C_ptr), intent(in) :: Carray
-      integer, intent(in) :: nrows, ncolumns
-      double precision, dimension(nrows, ncolumns) :: Farray
-      type (C_ptr), dimension(:), pointer :: C_rows
-      real (C_double), dimension(:), pointer :: F_row
-      integer :: i
-
-      ! Convert each "C row pointer" into an array of rows
-      call C_F_pointer (Carray, C_rows, (/nrows/))
-      do i = 1, nrows
-         ! Convert each C pointer (an entire row) into a Fortran pointer
-         call C_F_pointer (C_rows(i), F_row, (/ncolumns/))
-         Farray (i,:) = real(F_row, kind(0.0D0))
-      end do
-
-   end function Cdoublestar_to_2darray
 ! 1}}}
 
 end module LAMMPS

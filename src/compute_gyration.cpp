@@ -83,25 +83,22 @@ void ComputeGyration::compute_vector()
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
 
-  int xbox,ybox,zbox;
   double dx,dy,dz,massone;
-  double xprd = domain->xprd;
-  double yprd = domain->yprd;
-  double zprd = domain->zprd;
+  double unwrap[3];
 
   double rg[6];
   rg[0] = rg[1] = rg[2] = rg[3] = rg[4] = rg[5] = 0.0;
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      xbox = (image[i] & IMGMASK) - IMGMAX;
-      ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-      zbox = (image[i] >> IMG2BITS) - IMGMAX;
-      dx = (x[i][0] + xbox*xprd) - xcm[0];
-      dy = (x[i][1] + ybox*yprd) - xcm[1];
-      dz = (x[i][2] + zbox*zprd) - xcm[2];
       if (rmass) massone = rmass[i];
       else massone = mass[type[i]];
+
+      domain->unmap(x[i],image[i],unwrap);
+      dx = unwrap[0] - xcm[0];
+      dy = unwrap[1] - xcm[1];
+      dz = unwrap[2] - xcm[2];
+
       rg[0] += dx*dx * massone;
       rg[1] += dy*dy * massone;
       rg[2] += dz*dz * massone;

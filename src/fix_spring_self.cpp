@@ -45,9 +45,10 @@ FixSpringSelf::FixSpringSelf(LAMMPS *lmp, int narg, char **arg) :
   if (k <= 0.0) error->all(FLERR,"Illegal fix spring/self command");
 
   xflag = yflag = zflag = 1;
+
   if (narg == 5) {
     if (strcmp(arg[4],"xyz") == 0) {
-      ; /* default */
+      xflag = yflag = zflag = 1;
     } else if (strcmp(arg[4],"xy") == 0) {
       zflag = 0;
     } else if (strcmp(arg[4],"xz") == 0) {
@@ -78,20 +79,9 @@ FixSpringSelf::FixSpringSelf(LAMMPS *lmp, int narg, char **arg) :
   tagint *image = atom->image;
   int nlocal = atom->nlocal;
 
-  double xprd = domain->xprd;
-  double yprd = domain->yprd;
-  double zprd = domain->zprd;
-  int xbox,ybox,zbox;
-
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
-      xbox = (image[i] & IMGMASK) - IMGMAX;
-      ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-      zbox = (image[i] >> IMG2BITS) - IMGMAX;
-      xoriginal[i][0] = x[i][0] + xbox*xprd;
-      xoriginal[i][1] = x[i][1] + ybox*yprd;
-      xoriginal[i][2] = x[i][2] + zbox*zprd;
-    } else xoriginal[i][0] = xoriginal[i][1] = xoriginal[i][2] = 0.0;
+    if (mask[i] & groupbit) domain->unmap(x[i],image[i],xoriginal[i]);
+    else xoriginal[i][0] = xoriginal[i][1] = xoriginal[i][2] = 0.0;
   }
 
   espring = 0.0;
@@ -161,21 +151,17 @@ void FixSpringSelf::post_force(int vflag)
   tagint *image = atom->image;
   int nlocal = atom->nlocal;
 
-  double xprd = domain->xprd;
-  double yprd = domain->yprd;
-  double zprd = domain->zprd;
-  int xbox,ybox,zbox;
   double dx,dy,dz;
+  double unwrap[3];
+
   espring = 0.0;
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      xbox = (image[i] & IMGMASK) - IMGMAX;
-      ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-      zbox = (image[i] >> IMG2BITS) - IMGMAX;
-      dx = x[i][0] + xbox*xprd - xoriginal[i][0];
-      dy = x[i][1] + ybox*yprd - xoriginal[i][1];
-      dz = x[i][2] + zbox*zprd - xoriginal[i][2];
+      domain->unmap(x[i],image[i],unwrap);
+      dx = unwrap[0] - xoriginal[i][0];
+      dy = unwrap[1] - xoriginal[i][1];
+      dz = unwrap[2] - xoriginal[i][2];
       if (!xflag) dx = 0.0;
       if (!yflag) dy = 0.0;
       if (!zflag) dz = 0.0;

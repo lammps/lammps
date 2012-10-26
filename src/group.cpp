@@ -766,34 +766,27 @@ void Group::xcm(int igroup, double masstotal, double *cm)
 
   double cmone[3];
   cmone[0] = cmone[1] = cmone[2] = 0.0;
-  double xprd = domain->xprd;
-  double yprd = domain->yprd;
-  double zprd = domain->zprd;
 
-  int xbox,ybox,zbox;
   double massone;
+  double unwrap[3];
 
   if (rmass) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-        xbox = (image[i] & IMGMASK) - IMGMAX;
-        ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-        zbox = (image[i] >> IMG2BITS) - IMGMAX;
         massone = rmass[i];
-        cmone[0] += (x[i][0] + xbox*xprd) * massone;
-        cmone[1] += (x[i][1] + ybox*yprd) * massone;
-        cmone[2] += (x[i][2] + zbox*zprd) * massone;
+        domain->unmap(x[i],image[i],unwrap);
+        cmone[0] += unwrap[0] * massone;
+        cmone[1] += unwrap[1] * massone;
+        cmone[2] += unwrap[2] * massone;
       }
   } else {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-        xbox = (image[i] & IMGMASK) - IMGMAX;
-        ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-        zbox = (image[i] >> IMG2BITS) - IMGMAX;
         massone = mass[type[i]];
-        cmone[0] += (x[i][0] + xbox*xprd) * massone;
-        cmone[1] += (x[i][1] + ybox*yprd) * massone;
-        cmone[2] += (x[i][2] + zbox*zprd) * massone;
+        domain->unmap(x[i],image[i],unwrap);
+        cmone[0] += unwrap[0] * massone;
+        cmone[1] += unwrap[1] * massone;
+        cmone[2] += unwrap[2] * massone;
       }
   }
 
@@ -827,34 +820,27 @@ void Group::xcm(int igroup, double masstotal, double *cm, int iregion)
 
   double cmone[3];
   cmone[0] = cmone[1] = cmone[2] = 0.0;
-  double xprd = domain->xprd;
-  double yprd = domain->yprd;
-  double zprd = domain->zprd;
 
-  int xbox,ybox,zbox;
   double massone;
+  double unwrap[3];
 
   if (rmass) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
-        xbox = (image[i] & IMGMASK) - IMGMAX;
-        ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-        zbox = (image[i] >> IMG2BITS) - IMGMAX;
         massone = rmass[i];
-        cmone[0] += (x[i][0] + xbox*xprd) * massone;
-        cmone[1] += (x[i][1] + ybox*yprd) * massone;
-        cmone[2] += (x[i][2] + zbox*zprd) * massone;
+        domain->unmap(x[i],image[i],unwrap);
+        cmone[0] += unwrap[0] * massone;
+        cmone[1] += unwrap[1] * massone;
+        cmone[2] += unwrap[2] * massone;
       }
   } else {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
-        xbox = (image[i] & IMGMASK) - IMGMAX;
-        ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-        zbox = (image[i] >> IMG2BITS) - IMGMAX;
         massone = mass[type[i]];
-        cmone[0] += (x[i][0] + xbox*xprd) * massone;
-        cmone[1] += (x[i][1] + ybox*yprd) * massone;
-        cmone[2] += (x[i][2] + zbox*zprd) * massone;
+        domain->unmap(x[i],image[i],unwrap);
+        cmone[0] += unwrap[0] * massone;
+        cmone[1] += unwrap[1] * massone;
+        cmone[2] += unwrap[2] * massone;
       }
   }
 
@@ -1102,21 +1088,16 @@ double Group::gyration(int igroup, double masstotal, double *cm)
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
 
-  int xbox,ybox,zbox;
   double dx,dy,dz,massone;
-  double xprd = domain->xprd;
-  double yprd = domain->yprd;
-  double zprd = domain->zprd;
+  double unwrap[3];
   double rg = 0.0;
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      xbox = (image[i] & IMGMASK) - IMGMAX;
-      ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-      zbox = (image[i] >> IMG2BITS) - IMGMAX;
-      dx = (x[i][0] + xbox*xprd) - cm[0];
-      dy = (x[i][1] + ybox*yprd) - cm[1];
-      dz = (x[i][2] + zbox*zprd) - cm[2];
+      domain->unmap(x[i],image[i],unwrap);
+      dx = unwrap[0] - cm[0];
+      dy = unwrap[1] - cm[1];
+      dz = unwrap[2] - cm[2];
       if (rmass) massone = rmass[i];
       else massone = mass[type[i]];
       rg += (dx*dx + dy*dy + dz*dz) * massone;
@@ -1147,21 +1128,16 @@ double Group::gyration(int igroup, double masstotal, double *cm, int iregion)
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
 
-  int xbox,ybox,zbox;
   double dx,dy,dz,massone;
-  double xprd = domain->xprd;
-  double yprd = domain->yprd;
-  double zprd = domain->zprd;
+  double unwrap[3];
   double rg = 0.0;
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
-      xbox = (image[i] & IMGMASK) - IMGMAX;
-      ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-      zbox = (image[i] >> IMG2BITS) - IMGMAX;
-      dx = (x[i][0] + xbox*xprd) - cm[0];
-      dy = (x[i][1] + ybox*yprd) - cm[1];
-      dz = (x[i][2] + zbox*zprd) - cm[2];
+      domain->unmap(x[i],image[i],unwrap);
+      dx = unwrap[0] - cm[0];
+      dy = unwrap[1] - cm[1];
+      dz = unwrap[2] - cm[2];
       if (rmass) massone = rmass[i];
       else massone = mass[type[i]];
       rg += (dx*dx + dy*dy + dz*dz) * massone;
@@ -1192,22 +1168,18 @@ void Group::angmom(int igroup, double *cm, double *lmom)
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
 
-  int xbox,ybox,zbox;
   double dx,dy,dz,massone;
-  double xprd = domain->xprd;
-  double yprd = domain->yprd;
-  double zprd = domain->zprd;
+  double unwrap[3];
+
   double p[3];
   p[0] = p[1] = p[2] = 0.0;
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      xbox = (image[i] & IMGMASK) - IMGMAX;
-      ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-      zbox = (image[i] >> IMG2BITS) - IMGMAX;
-      dx = (x[i][0] + xbox*xprd) - cm[0];
-      dy = (x[i][1] + ybox*yprd) - cm[1];
-      dz = (x[i][2] + zbox*zprd) - cm[2];
+      domain->unmap(x[i],image[i],unwrap);
+      dx = unwrap[0] - cm[0];
+      dy = unwrap[1] - cm[1];
+      dz = unwrap[2] - cm[2];
       if (rmass) massone = rmass[i];
       else massone = mass[type[i]];
       p[0] += massone * (dy*v[i][2] - dz*v[i][1]);
@@ -1238,22 +1210,18 @@ void Group::angmom(int igroup, double *cm, double *lmom, int iregion)
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
 
-  int xbox,ybox,zbox;
   double dx,dy,dz,massone;
-  double xprd = domain->xprd;
-  double yprd = domain->yprd;
-  double zprd = domain->zprd;
+  double unwrap[3];
+
   double p[3];
   p[0] = p[1] = p[2] = 0.0;
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
-      xbox = (image[i] & IMGMASK) - IMGMAX;
-      ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-      zbox = (image[i] >> IMG2BITS) - IMGMAX;
-      dx = (x[i][0] + xbox*xprd) - cm[0];
-      dy = (x[i][1] + ybox*yprd) - cm[1];
-      dz = (x[i][2] + zbox*zprd) - cm[2];
+      domain->unmap(x[i],image[i],unwrap);
+      dx = unwrap[0] - cm[0];
+      dy = unwrap[1] - cm[1];
+      dz = unwrap[2] - cm[2];
       if (rmass) massone = rmass[i];
       else massone = mass[type[i]];
       p[0] += massone * (dy*v[i][2] - dz*v[i][1]);
@@ -1280,22 +1248,18 @@ void Group::torque(int igroup, double *cm, double *tq)
   tagint *image = atom->image;
   int nlocal = atom->nlocal;
 
-  int xbox,ybox,zbox;
   double dx,dy,dz;
-  double xprd = domain->xprd;
-  double yprd = domain->yprd;
-  double zprd = domain->zprd;
+  double unwrap[3];
+
   double tlocal[3];
   tlocal[0] = tlocal[1] = tlocal[2] = 0.0;
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      xbox = (image[i] & IMGMASK) - IMGMAX;
-      ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-      zbox = (image[i] >> IMG2BITS) - IMGMAX;
-      dx = (x[i][0] + xbox*xprd) - cm[0];
-      dy = (x[i][1] + ybox*yprd) - cm[1];
-      dz = (x[i][2] + zbox*zprd) - cm[2];
+      domain->unmap(x[i],image[i],unwrap);
+      dx = unwrap[0] - cm[0];
+      dy = unwrap[1] - cm[1];
+      dz = unwrap[2] - cm[2];
       tlocal[0] += dy*f[i][2] - dz*f[i][1];
       tlocal[1] += dz*f[i][0] - dx*f[i][2];
       tlocal[2] += dx*f[i][1] - dy*f[i][0];
@@ -1321,22 +1285,18 @@ void Group::torque(int igroup, double *cm, double *tq, int iregion)
   tagint *image = atom->image;
   int nlocal = atom->nlocal;
 
-  int xbox,ybox,zbox;
   double dx,dy,dz;
-  double xprd = domain->xprd;
-  double yprd = domain->yprd;
-  double zprd = domain->zprd;
+  double unwrap[3];
+
   double tlocal[3];
   tlocal[0] = tlocal[1] = tlocal[2] = 0.0;
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
-      xbox = (image[i] & IMGMASK) - IMGMAX;
-      ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-      zbox = (image[i] >> IMG2BITS) - IMGMAX;
-      dx = (x[i][0] + xbox*xprd) - cm[0];
-      dy = (x[i][1] + ybox*yprd) - cm[1];
-      dz = (x[i][2] + zbox*zprd) - cm[2];
+      domain->unmap(x[i],image[i],unwrap);
+      dx = unwrap[0] - cm[0];
+      dy = unwrap[1] - cm[1];
+      dz = unwrap[2] - cm[2];
       tlocal[0] += dy*f[i][2] - dz*f[i][1];
       tlocal[1] += dz*f[i][0] - dx*f[i][2];
       tlocal[2] += dx*f[i][1] - dy*f[i][0];
@@ -1364,11 +1324,9 @@ void Group::inertia(int igroup, double *cm, double itensor[3][3])
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
 
-  int xbox,ybox,zbox;
   double dx,dy,dz,massone;
-  double xprd = domain->xprd;
-  double yprd = domain->yprd;
-  double zprd = domain->zprd;
+  double unwrap[3];
+
   double ione[3][3];
   for (i = 0; i < 3; i++)
     for (j = 0; j < 3; j++)
@@ -1376,12 +1334,10 @@ void Group::inertia(int igroup, double *cm, double itensor[3][3])
 
   for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      xbox = (image[i] & IMGMASK) - IMGMAX;
-      ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-      zbox = (image[i] >> IMG2BITS) - IMGMAX;
-      dx = (x[i][0] + xbox*xprd) - cm[0];
-      dy = (x[i][1] + ybox*yprd) - cm[1];
-      dz = (x[i][2] + zbox*zprd) - cm[2];
+      domain->unmap(x[i],image[i],unwrap);
+      dx = unwrap[0] - cm[0];
+      dy = unwrap[1] - cm[1];
+      dz = unwrap[2] - cm[2];
       if (rmass) massone = rmass[i];
       else massone = mass[type[i]];
       ione[0][0] += massone * (dy*dy + dz*dz);
@@ -1418,11 +1374,9 @@ void Group::inertia(int igroup, double *cm, double itensor[3][3], int iregion)
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
 
-  int xbox,ybox,zbox;
   double dx,dy,dz,massone;
-  double xprd = domain->xprd;
-  double yprd = domain->yprd;
-  double zprd = domain->zprd;
+  double unwrap[3];
+
   double ione[3][3];
   for (i = 0; i < 3; i++)
     for (j = 0; j < 3; j++)
@@ -1430,12 +1384,10 @@ void Group::inertia(int igroup, double *cm, double itensor[3][3], int iregion)
 
   for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
-      xbox = (image[i] & IMGMASK) - IMGMAX;
-      ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-      zbox = (image[i] >> IMG2BITS) - IMGMAX;
-      dx = (x[i][0] + xbox*xprd) - cm[0];
-      dy = (x[i][1] + ybox*yprd) - cm[1];
-      dz = (x[i][2] + zbox*zprd) - cm[2];
+      domain->unmap(x[i],image[i],unwrap);
+      dx = unwrap[0] - cm[0];
+      dy = unwrap[1] - cm[1];
+      dz = unwrap[2] - cm[2];
       if (rmass) massone = rmass[i];
       else massone = mass[type[i]];
       ione[0][0] += massone * (dy*dy + dz*dz);

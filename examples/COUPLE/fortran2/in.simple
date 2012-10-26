@@ -1,10 +1,11 @@
-units metal
-lattice bcc 3.1656
+units lj
+atom_modify map array
+lattice bcc 1.0
 region simbox block 0 10 0 10 0 10
 create_box 2 simbox
 create_atoms 1 region simbox
-pair_style eam/fs
-pair_coeff * * path/to/my_potential.eam.fs A1 A2
+pair_style lj/cut 2.5
+pair_coeff * * 1.0 1.0
 mass 1 58.2 # These are made-up numbers
 mass 2 28.3
 velocity all create 1200.0 7474848 dist gaussian

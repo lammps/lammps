@@ -110,20 +110,15 @@ void FixSpringRG::post_force(int vflag)
   int nlocal = atom->nlocal;
 
   double massfrac;
-  double xprd = domain->xprd;
-  double yprd = domain->yprd;
-  double zprd = domain->zprd;
+  double unwrap[3];
 
-  int xbox,ybox,zbox;
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
+      domain->unmap(x[i],image[i],unwrap);
+      dx = unwrap[0] - xcm[0];
+      dy = unwrap[1] - xcm[1];
+      dz = unwrap[2] - xcm[2];
       term1 = 2.0 * k * (1.0 - rg0/rg);
-      xbox = (image[i] & IMGMASK) - IMGMAX;
-      ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-      zbox = (image[i] >> IMG2BITS) - IMGMAX;
-      dx = (x[i][0] + xbox*xprd) - xcm[0];
-      dy = (x[i][1] + ybox*yprd) - xcm[1];
-      dz = (x[i][2] + zbox*zprd) - xcm[2];
       massfrac = mass[type[i]]/masstotal;
       f[i][0] -= term1*dx*massfrac;
       f[i][1] -= term1*dy*massfrac;

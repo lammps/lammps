@@ -1,0 +1,54 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+angle_style quartic command :h3
+
+[Syntax:]
+
+angle_style quartic :pre
+
+[Examples:]
+
+angle_style quartic
+angle_coeff 1 129.1948 56.8726 -25.9442 -14.2221 :pre
+
+[Description:]
+
+The {quartic} angle style uses the potential
+
+:c,image(Eqs/angle_quartic.jpg)
+
+where theta0 is the equilibrium value of the angle, and K is a
+prefactor.  Note that the usual 1/2 factor is included in K.
+
+The following coefficients must be defined for each angle type via the
+"angle_coeff"_angle_coeff.html command as in the example above, or in
+the data file or restart files read by the "read_data"_read_data.html
+or "read_restart"_read_restart.html commands:
+
+theta0 (degrees)
+K2 (energy/radian^2)
+K3 (energy/radian^3)
+K4 (energy/radian^4) :ul
+
+Theta0 is specified in degrees, but LAMMPS converts it to radians
+internally; hence the units of K are in energy/radian^2.
+
+:line
+
+[Restrictions:]
+
+This angle style can only be used if LAMMPS was built with the
+USER_MISC package.  See the "Making LAMMPS"_Section_start.html#start_3 
+section for more info on packages.
+
+[Related commands:]
+
+"angle_coeff"_angle_coeff.html
+
+[Default:] none

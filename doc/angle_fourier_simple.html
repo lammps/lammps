@@ -1,0 +1,52 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>angle_style fourier/simple command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>angle_style fourier/simple 
+</PRE>
+<P><B>Examples:</B>
+</P>
+<P>angle_style fourier/simple
+angle_coeff 100.0 -1.0 1.0
+</P>
+<P><B>Description:</B>
+</P>
+<P>The <I>fourier/simple</I> angle style uses the potential
+</P>
+<CENTER><IMG SRC = "Eqs/angle_fourier_simple.jpg">
+</CENTER>
+<P>The following coefficients must be defined for each angle type via the
+<A HREF = "angle_coeff.html">angle_coeff</A> command as in the example above, or in
+the data file or restart files read by the <A HREF = "read_data.html">read_data</A>
+or <A HREF = "read_restart.html">read_restart</A> commands:
+</P>
+<UL><LI>K (energy)
+<LI>c (real)
+<LI>n (real) 
+</UL>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>This angle style can only be used if LAMMPS was built with the
+USER_MISC package.  See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A> 
+section for more info on packages.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "angle_coeff.html">angle_coeff</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

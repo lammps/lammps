@@ -290,14 +290,6 @@ void VerletSplit::run(int n)
   int n_post_force = modify->n_post_force;
   int n_end_of_step = modify->n_end_of_step;
 
-  // get hold of OpenMP support fix, if defined
-  Fix *fix_omp;
-  int ifix = modify->find_fix("package_omp");
-  if (ifix < 0)
-   fix_omp = NULL;
-  else
-    fix_omp = modify->fix[ifix];
-
   if (atom->sortfreq > 0) sortflag = 1;
   else sortflag = 0;
 

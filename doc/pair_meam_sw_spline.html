@@ -1,0 +1,143 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>pair_style meam/sw/spline 
+</H3>
+<H3>pair_style meam/sw/spline/omp 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>pair_style meam/sw/spline 
+</PRE>
+<P><B>Examples:</B>
+</P>
+<PRE>pair_style meam/sw/spline
+pair_coeff * * Ti.meam.sw.spline Ti
+pair_coeff * * Ti.meam.sw.spline Ti Ti Ti 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>The <I>meam/sw/spline</I> style computes pairwise interactions for metals
+using a variant of modified embedded-atom method (MEAM) potentials
+<A HREF = "#Lenosky">(Lenosky)</A> with an additional Stillinger-Weber (SW) term
+<A HREF = "#Stillinger">(Stillinger)</A> in the energy.  This form of the potential
+was first proposed by Nicklas, Fellinger, and Park
+<A HREF = "#Nicklas">(Nicklas)</A>.  We refer to it as MEAM+SW.  The total energy E
+is given by
+</P>
+<CENTER><IMG SRC = "Eqs/pair_meam_sw_spline.jpg">
+</CENTER>
+<P>where rho_I is the density at atom I, theta_JIK is the angle between 
+atoms J, I, and K centered on atom I. The seven functions 
+Phi, F, G, U, rho, f, and g are represented by cubic splines.
+</P>
+<P>The cutoffs and the coefficients for these spline functions are listed
+in a parameter file which is specified by the
+<A HREF = "pair_coeff.html">pair_coeff</A> command.  Parameter files for different
+elements are included in the "potentials" directory of the LAMMPS
+distribution and have a ".meam.sw.spline" file suffix.  All of these
+files are parameterized in terms of LAMMPS <A HREF = "units.html">metal units</A>.
+</P>
+<P>Note that unlike for other potentials, cutoffs for spline-based
+MEAM+SW potentials are not set in the pair_style or pair_coeff
+command; they are specified in the potential files themselves.
+</P>
+<P>Unlike the EAM pair style, which retrieves the atomic mass from the
+potential file, the spline-based MEAM+SW potentials do not include
+mass information; thus you need to use the <A HREF = "mass.html">mass</A> command to
+specify it.
+</P>
+<P>Only a single pair_coeff command is used with the meam/sw/spline style
+which specifies a potential file with parameters for all needed
+elements.  These are mapped to LAMMPS atom types by specifying N
+additional arguments after the filename in the pair_coeff command,
+where N is the number of LAMMPS atom types:
+</P>
+<UL><LI>filename
+<LI>N element names = mapping of spline-based MEAM+SW elements to atom types 
+</UL>
+<P>As an example, imagine the Ti.meam.sw.spline file has values for Ti.
+If your LAMMPS simulation has 3 atoms types and they are all to be
+treated with this potential, you would use the following pair_coeff
+command:
+</P>
+<P>pair_coeff * * Ti.meam.sw.spline Ti Ti Ti
+</P>
+<P>The 1st 2 arguments must be * * so as to span all LAMMPS atom types.
+The three Ti arguments map LAMMPS atom types 1,2,3 to the Ti element
+in the potential file. If a mapping value is specified as NULL, the
+mapping is not performed. This can be used when a <I>meam/sw/spline</I>
+potential is used as part of the hybrid pair style. The NULL values
+are placeholders for atom types that will be used with other
+potentials.
+</P>
+<P>IMPORTANT NOTE: The <I>meam/sw/spline</I> style currently supports only
+single-element MEAM+SW potentials.  It may be extended for alloy
+systems in the future.
+</P>
+<P>Example input scripts that use this pair style are provided
+in the examples/USER/misc/meam_sw_spline directory.
+</P>
+<HR>
+
+<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
+</P>
+<P>The pair style does not support multiple element types or mixing. 
+It has been designed for pure elements only.
+</P>
+<P>This pair style does not support the <A HREF = "pair_modify.html">pair_modify</A>
+shift, table, and tail options.
+</P>
+<P>The <I>meam/sw/spline</I> pair style does not write its information to
+<A HREF = "restart.html">binary restart files</A>, since it is stored in an external
+potential parameter file.  Thus, you need to re-specify the pair_style
+and pair_coeff commands in an input script that reads a restart file.
+</P>
+<P>The <I>meam/sw/spline</I> pair style can only be used via the <I>pair</I>
+keyword of the <A HREF = "run_style.html">run_style respa</A> command.  They do not
+support the <I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
+</P>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>This pair style requires the <A HREF = "newton.html">newton</A> setting to be "on"
+for pair interactions.
+</P>
+<P>This pair style is only enabled if LAMMPS was built with the USER-MISC package.
+See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A> section for more info.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_coeff.html">pair_coeff</A>, <A HREF = "pair_meam.html">pair_style meam</A>,
+<A HREF = "pair_meam_spline.html">pair_style meam/spline</A>
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "Lenosky"></A>
+
+<P><B>(Lenosky)</B> Lenosky, Sadigh, Alonso, Bulatov, de la Rubia, Kim, Voter,
+Kress, Modell. Simul. Mater. Sci. Eng. 8, 825 (2000).
+</P>
+<A NAME = "Stillinger"></A>
+
+<P><B>(Stillinger)</B> Stillinger, Weber, Phys. Rev. B 31, 5262 (1985).
+</P>
+<A NAME = "Nicklas"></A>
+
+<P><B>(Nicklas)</B> 
+The spline-based MEAM+SW format was first devised and used to develop
+potentials for bcc transition metals by Jeremy Nicklas, Michael Fellinger,
+and Hyoungki Park at The Ohio State University.
+</P>
+</HTML>

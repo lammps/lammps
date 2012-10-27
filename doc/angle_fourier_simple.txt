@@ -1,0 +1,47 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+angle_style fourier/simple command :h3
+
+[Syntax:]
+
+angle_style fourier/simple :pre
+
+[Examples:]
+
+angle_style fourier/simple
+angle_coeff 100.0 -1.0 1.0
+
+[Description:]
+
+The {fourier/simple} angle style uses the potential
+
+:c,image(Eqs/angle_fourier_simple.jpg)
+
+The following coefficients must be defined for each angle type via the
+"angle_coeff"_angle_coeff.html command as in the example above, or in
+the data file or restart files read by the "read_data"_read_data.html
+or "read_restart"_read_restart.html commands:
+
+K (energy)
+c (real)
+n (real) :ul
+
+:line
+
+[Restrictions:]
+
+This angle style can only be used if LAMMPS was built with the
+USER_MISC package.  See the "Making LAMMPS"_Section_start.html#start_3 
+section for more info on packages.
+
+[Related commands:]
+
+"angle_coeff"_angle_coeff.html
+
+[Default:] none

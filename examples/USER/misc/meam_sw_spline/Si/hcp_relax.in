@@ -1,0 +1,40 @@
+# Si hcp
+
+units		metal
+boundary	p p p
+
+atom_style	atomic
+#lattice		custom 2.93093 a1 0.5 -0.866025 0 a2 0.5 0.866025 0 a3 0 0 1.596 basis 0.333333 0.666666 0.25 basis 0.666666 0.333333 0.75  
+lattice		custom 2.93093 a1 0.5 -0.866025 0 a2 0.5 0.866025 0 a3 0 0 1.7 basis 0.333333 0.666666 0.25 basis 0.666666 0.333333 0.75
+region		box block 0 1 0 1 0 1
+create_box		1 box
+create_atoms	1 box
+
+pair_style      meam/sw/spline
+pair_coeff      * * ../../potentials/Si.b.meam.sw.spline Si
+mass            * 28.085
+
+fix			relax all box/relax aniso 0
+thermo		1
+minimize	0 0 10000 100000
+
+variable	cohesive_energy equal pe/atoms
+variable	lattice_parameter equal lx
+variable	c_to_a equal lz/lx
+variable	atmVol equal vol/atoms
+run			0
+
+print		"===================================================="
+print		"Calculated cohesive energy: ${cohesive_energy} eV/atom"
+print		"Reference cohesive energy:  -4.290 eV/atom"
+print		"Calculated lattice parameter: ${lattice_parameter} A"
+print		"Reference lattice parameter:  2.925 A"
+print		"Atomic volume                 ${atmVol} A^3"
+print		"c/a ratio:                    ${c_to_a}"
+print		"Reference c/a ratio:          1.633"
+print		"===================================================="
+
+#dump		1 all custom 1 hcp.dump id type x y z fx fy fz
+#run 		0
+
+

@@ -22,11 +22,6 @@ me = 0
 #nprocs = pypar.size()
 
 from lammps import lammps
-from lammps import LMPINT as INT
-from lammps import LMPDOUBLE as DOUBLE
-from lammps import LMPIPTR as IPTR
-from lammps import LMPDPTR as DPTR
-from lammps import LMPDPTRPTR as DPTRPTR
 
 lmp = lammps()
 
@@ -36,9 +31,9 @@ lmp.file("in.demo")
 
 if me == 0: print "\nPython output:"
 
-natoms = lmp.extract_global("natoms",DOUBLE)
-mass = lmp.extract_atom("mass",DPTR)
-x = lmp.extract_atom("x",DPTRPTR)
+natoms = lmp.extract_global("natoms",0)
+mass = lmp.extract_atom("mass",2)
+x = lmp.extract_atom("x",3)
 print "Natoms, mass, x[0][0] coord =",natoms,mass[1],x[0][0]
 
 temp = lmp.extract_compute("thermo_temp",0,0)
@@ -53,13 +48,13 @@ print "Velocity component from atom-style variable =",vy[1]
 natoms = lmp.get_natoms()
 print "Natoms from get_natoms =",natoms
 
-xc = lmp.get_coords()
-print "Global coords from get_coords =",xc[0],xc[1],xc[31]
+xc = lmp.gather_atoms("x",1,3)
+print "Global coords from gather_atoms =",xc[0],xc[1],xc[31]
 
 xc[0] = xc[0] + 1.0
-lmp.put_coords(xc)
+lmp.scatter_atoms("x",1,3,xc)
 
-print "Changed x[0][0] via put_coords =",x[0][0]
+print "Changed x[0][0] via scatter_atoms =",x[0][0]
 
 # uncomment if running in parallel via Pypar
 #print "Proc %d out of %d procs has" % (me,nprocs), lmp

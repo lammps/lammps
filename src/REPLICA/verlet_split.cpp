@@ -1,4 +1,4 @@
-/* -------------------------------------------------------------------------
+/* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -274,6 +274,13 @@ void VerletSplit::run(int n)
 
   rk_setup();
 
+  // check if OpenMP support fix defined
+
+  Fix *fix_omp;
+  int ifix = modify->find_fix("package_omp");
+  if (ifix < 0) fix_omp = NULL;
+  else fix_omp = modify->fix[ifix];
+
   // flags for timestepping iterations
 
   int n_post_integrate = modify->n_post_integrate;
@@ -282,14 +289,6 @@ void VerletSplit::run(int n)
   int n_pre_force = modify->n_pre_force;
   int n_post_force = modify->n_post_force;
   int n_end_of_step = modify->n_end_of_step;
-
-  // get hold of OpenMP support fix, if defined
-  Fix *fix_omp;
-  int ifix = modify->find_fix("package_omp");
-  if (ifix < 0)
-   fix_omp = NULL;
-  else
-    fix_omp = modify->fix[ifix];
 
   if (atom->sortfreq > 0) sortflag = 1;
   else sortflag = 0;
@@ -372,7 +371,8 @@ void VerletSplit::run(int n)
     } else {
 
       // run FixOMP as sole pre_force fix, if defined
-      if (fix_omp != NULL) fix_omp->pre_force(vflag);
+
+      if (fix_omp) fix_omp->pre_force(vflag);
 
       if (force->kspace) {
         timer->stamp();

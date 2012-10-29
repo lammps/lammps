@@ -98,26 +98,17 @@ FixTMD::FixTMD(LAMMPS *lmp, int narg, char **arg) :
   double *mass = atom->mass;
   int nlocal = atom->nlocal;
 
-  double xprd = domain->xprd;
-  double yprd = domain->yprd;
-  double zprd = domain->zprd;
-
   double dx,dy,dz;
-  int xbox,ybox,zbox;
+
   rho_start = 0.0;
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
-      xbox = (image[i] & IMGMASK) - IMGMAX;
-      ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-      zbox = (image[i] >> IMG2BITS) - IMGMAX;
-      dx = x[i][0] + xbox*xprd - xf[i][0];
-      dy = x[i][1] + ybox*yprd - xf[i][1];
-      dz = x[i][2] + zbox*zprd - xf[i][2];
+      domain->unmap(x[i],image[i],xold[i]);
+      dx = xold[i][0] - xf[i][0];
+      dy = xold[i][1] - xf[i][1];
+      dz = xold[i][2] - xf[i][2];
       rho_start += mass[type[i]]*(dx*dx + dy*dy + dz*dz);
-      xold[i][0] = x[i][0] + xbox*xprd;
-      xold[i][1] = x[i][1] + ybox*yprd;
-      xold[i][2] = x[i][2] + zbox*zprd;
     } else xold[i][0] = xold[i][1] = xold[i][2] = 0.0;
   }
 
@@ -190,10 +181,8 @@ void FixTMD::initial_integrate(int vflag)
   double dxold,dyold,dzold,xback,yback,zback;
   double gamma_forward,gamma_back,gamma_max,lambda;
   double kt,fr,kttotal,frtotal,dtfm;
+  double unwrap[3];
 
-  double xprd = domain->xprd;
-  double yprd = domain->yprd;
-  double zprd = domain->zprd;
   double **x = atom->x;
   double **v = atom->v;
   double **f = atom->f;
@@ -202,7 +191,6 @@ void FixTMD::initial_integrate(int vflag)
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  int xbox,ybox,zbox;
 
   double delta = update->ntimestep - update->beginstep;
   delta /= update->endstep - update->beginstep;
@@ -216,12 +204,10 @@ void FixTMD::initial_integrate(int vflag)
       dxold = xold[i][0] - xf[i][0];
       dyold = xold[i][1] - xf[i][1];
       dzold = xold[i][2] - xf[i][2];
-      xbox = (image[i] & IMGMASK) - IMGMAX;
-      ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-      zbox = (image[i] >> IMG2BITS) - IMGMAX;
-      dx = x[i][0] + xbox*xprd - xf[i][0];
-      dy = x[i][1] + ybox*yprd - xf[i][1];
-      dz = x[i][2] + zbox*zprd - xf[i][2];
+      domain->unmap(x[i],image[i],unwrap);
+      dx = unwrap[0] - xf[i][0];
+      dy = unwrap[1] - xf[i][1];
+      dz = unwrap[2] - xf[i][2];
       a += mass[type[i]]*(dxold*dxold + dyold*dyold + dzold*dzold);
       b += mass[type[i]]*(dx   *dxold + dy   *dyold + dz   *dzold);
       e += mass[type[i]]*(dx   *dx    + dy   *dy    + dz   *dz);
@@ -258,12 +244,10 @@ void FixTMD::initial_integrate(int vflag)
       dxold = xold[i][0] - xf[i][0];
       dyold = xold[i][1] - xf[i][1];
       dzold = xold[i][2] - xf[i][2];
-      xbox = (image[i] & IMGMASK) - IMGMAX;
-      ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-      zbox = (image[i] >> IMG2BITS) - IMGMAX;
-      xback = x[i][0] + xbox*xprd + gamma_back*dxold;
-      yback = x[i][1] + ybox*yprd + gamma_back*dyold;
-      zback = x[i][2] + zbox*zprd + gamma_back*dzold;
+      domain->unmap(x[i],image[i],unwrap);
+      xback = unwrap[0] + gamma_back*dxold;
+      yback = unwrap[1] + gamma_back*dyold;
+      zback = unwrap[2] + gamma_back*dzold;
       dxkt = xback - xold[i][0];
       dykt = yback - xold[i][1];
       dzkt = zback - xold[i][2];
@@ -314,12 +298,7 @@ void FixTMD::initial_integrate(int vflag)
       x[i][2] += gamma_forward*dzold;
       v[i][2] += gamma_forward*dzold/dtv;
       f[i][2] += gamma_forward*dzold/dtv/dtfm;
-      xbox = (image[i] & IMGMASK) - IMGMAX;
-      ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-      zbox = (image[i] >> IMG2BITS) - IMGMAX;
-      xold[i][0] = x[i][0] + xbox*xprd;
-      xold[i][1] = x[i][1] + ybox*yprd;
-      xold[i][2] = x[i][2] + zbox*zprd;
+      domain->unmap(x[i],image[i],xold[i]);
     }
   }
 }

@@ -1,0 +1,53 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+dihedral_style fourier command :h3
+
+[Syntax:]
+
+dihedral_style fourier :pre
+
+[Examples:]
+
+dihedral_style fourier
+dihedral_coeff 3 -0.846200 3 0 7.578800 1 0 0.138000 2 -180 :pre
+
+[Description:]
+
+The {fourier} dihedral style uses the potential:
+
+:c,image(Eqs/dihedral_fourier.jpg)
+
+The following coefficients must be defined for each dihedral type via the
+"dihedral_coeff"_dihedral_coeff.html command as in the example above, or in
+the data file or restart files read by the "read_data"_read_data.html
+or "read_restart"_read_restart.html commands:
+
+m (integer >=1)
+K1 (energy)
+n1 (integer >= 0)
+d1 (integer value of degrees)
+....
+Km (energy)
+nm (integer >= 0)
+dm (integer value of degrees)
+
+:line
+
+[Restrictions:]
+
+This angle style can only be used if LAMMPS was built with the
+USER_MISC package.  See the "Making LAMMPS"_Section_start.html#start_3 
+section for more info on packages.
+
+[Related commands:]
+
+"dihedral_coeff"_dihedral_coeff.html
+
+[Default:] none
+

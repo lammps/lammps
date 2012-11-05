@@ -173,7 +173,7 @@ void PairLJCutCoulLongGPU::init_style()
 
   // setup force tables
 
-  if (ncoultablebits) init_tables();
+  if (ncoultablebits) init_tables(cut_coul,cut_respa);
 
   int maxspecial=0;
   if (atom->molecular)

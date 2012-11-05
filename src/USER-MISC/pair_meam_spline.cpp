@@ -12,46 +12,12 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
- * Spline-based Modified Embedded Atom method (MEAM) potential routine.
- *
- * Copyright (2011) Lawrence Livermore National Security, LLC.
- * Produced at the Lawrence Livermore National Laboratory.
- * Written by Alexander Stukowski (<alex@stukowski.com>).
- * LLNL-CODE-525797 All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License (as published by the Free
- * Software Foundation) version 2, dated June 1991.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the IMPLIED WARRANTY OF MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE. See the terms and conditions of the
- * GNU General Public License for more details.
- *
- * Our Preamble Notice
- * A. This notice is required to be provided under our contract with the
- * U.S. Department of Energy (DOE). This work was produced at the
- * Lawrence Livermore National Laboratory under Contract No.
- * DE-AC52-07NA27344 with the DOE.
- *
- * B. Neither the United States Government nor Lawrence Livermore National
- * Security, LLC nor any of their employees, makes any warranty, express or
- * implied, or assumes any liability or responsibility for the accuracy,
- * completeness, or usefulness of any information, apparatus, product, or
- * process disclosed, or represents that its use would not infringe
- * privately-owned rights.
- *
- * C. Also, reference herein to any specific commercial products, process,
- * or services by trade name, trademark, manufacturer or otherwise does not
- * necessarily constitute or imply its endorsement, recommendation, or
- * favoring by the United States Government or Lawrence Livermore National
- * Security, LLC. The views and opinions of authors expressed herein do not
- * necessarily state or reflect those of the United States Government or
- * Lawrence Livermore National Security, LLC, and shall not be used for
- * advertising or product endorsement purposes.
- *
+   Contributing author: Alexander Stukowski (LLNL), alex@stukowski.com
+   see LLNL copyright notice at bottom of file
+------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
  * File history of changes:
- *
  * 25-Oct-10 - AS: First code version.
  * 17-Feb-11 - AS: Several optimizations (introduced MEAM2Body struct).
  * 25-Mar-11 - AS: Fixed calculation of per-atom virial stress.
@@ -729,3 +695,43 @@ void PairMEAMSpline::SplineFunction::writeGnuplot(const char* filename, const ch
         fprintf(fp, "e\n");
         fclose(fp);
 }
+
+/* ----------------------------------------------------------------------
+ * Spline-based Modified Embedded Atom method (MEAM) potential routine.
+ *
+ * Copyright (2011) Lawrence Livermore National Security, LLC.
+ * Produced at the Lawrence Livermore National Laboratory.
+ * Written by Alexander Stukowski (<alex@stukowski.com>).
+ * LLNL-CODE-525797 All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License (as published by the Free
+ * Software Foundation) version 2, dated June 1991.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the IMPLIED WARRANTY OF MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the terms and conditions of the
+ * GNU General Public License for more details.
+ *
+ * Our Preamble Notice
+ * A. This notice is required to be provided under our contract with the
+ * U.S. Department of Energy (DOE). This work was produced at the
+ * Lawrence Livermore National Laboratory under Contract No.
+ * DE-AC52-07NA27344 with the DOE.
+ *
+ * B. Neither the United States Government nor Lawrence Livermore National
+ * Security, LLC nor any of their employees, makes any warranty, express or
+ * implied, or assumes any liability or responsibility for the accuracy,
+ * completeness, or usefulness of any information, apparatus, product, or
+ * process disclosed, or represents that its use would not infringe
+ * privately-owned rights.
+ *
+ * C. Also, reference herein to any specific commercial products, process,
+ * or services by trade name, trademark, manufacturer or otherwise does not
+ * necessarily constitute or imply its endorsement, recommendation, or
+ * favoring by the United States Government or Lawrence Livermore National
+ * Security, LLC. The views and opinions of authors expressed herein do not
+ * necessarily state or reflect those of the United States Government or
+ * Lawrence Livermore National Security, LLC, and shall not be used for
+ * advertising or product endorsement purposes.
+------------------------------------------------------------------------- */

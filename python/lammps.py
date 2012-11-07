@@ -152,7 +152,7 @@ class lammps:
   def gather_atoms(self,name,type,count):
     natoms = self.lib.lammps_get_natoms(self.lmp)
     if type == 0:
-      data = ((count*natoms)*c_double)()
+      data = ((count*natoms)*c_int)()
       self.lib.lammps_gather_atoms(self.lmp,name,type,count,data)
     elif type == 1:
       data = ((count*natoms)*c_double)()

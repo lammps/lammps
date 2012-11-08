@@ -158,6 +158,7 @@ void PairBornCoulLong::compute(int eflag, int vflag)
         } else forcecoul = 0.0;
 
         if (rsq < cut_ljsq[itype][jtype]) {
+          r = sqrt(rsq);
           r6inv = r2inv*r2inv*r2inv;
           rexp = exp((sigma[itype][jtype]-r)*rhoinv[itype][jtype]);
           forceborn = born1[itype][jtype]*r*rexp - born2[itype][jtype]*r6inv

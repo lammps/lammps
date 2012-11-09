@@ -921,7 +921,7 @@ void ReadData::mass()
       eof = fgets(&buf[m],MAXLINE,fp);
       if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
       m += strlen(&buf[m]);
-      if (buffer[m-1] != '\n') strcpy(&buffer[m++],"\n");
+      if (buf[m-1] != '\n') strcpy(&buf[m++],"\n");
       buf[m-1] = '\0';
     }
   }
@@ -951,7 +951,7 @@ void ReadData::paircoeffs()
       eof = fgets(&buf[m],MAXLINE,fp);
       if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
       m += strlen(&buf[m]);
-      if (buffer[m-1] != '\n') strcpy(&buffer[m++],"\n");
+      if (buf[m-1] != '\n') strcpy(&buf[m++],"\n");
       buf[m-1] = '\0';
     }
   }
@@ -983,7 +983,7 @@ void ReadData::bondcoeffs()
       eof = fgets(&buf[m],MAXLINE,fp);
       if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
       m += strlen(&buf[m]);
-      if (buffer[m-1] != '\n') strcpy(&buffer[m++],"\n");
+      if (buf[m-1] != '\n') strcpy(&buf[m++],"\n");
       buf[m-1] = '\0';
     }
   }
@@ -1015,7 +1015,7 @@ void ReadData::anglecoeffs(int which)
       eof = fgets(&buf[m],MAXLINE,fp);
       if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
       m += strlen(&buf[m]);
-      if (buffer[m-1] != '\n') strcpy(&buffer[m++],"\n");
+      if (buf[m-1] != '\n') strcpy(&buf[m++],"\n");
       buf[m-1] = '\0';
     }
   }
@@ -1049,7 +1049,7 @@ void ReadData::dihedralcoeffs(int which)
       eof = fgets(&buf[m],MAXLINE,fp);
       if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
       m += strlen(&buf[m]);
-      if (buffer[m-1] != '\n') strcpy(&buffer[m++],"\n");
+      if (buf[m-1] != '\n') strcpy(&buf[m++],"\n");
       buf[m-1] = '\0';
     }
   }
@@ -1086,7 +1086,7 @@ void ReadData::impropercoeffs(int which)
       eof = fgets(&buf[m],MAXLINE,fp);
       if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
       m += strlen(&buf[m]);
-      if (buffer[m-1] != '\n') strcpy(&buffer[m++],"\n");
+      if (buf[m-1] != '\n') strcpy(&buf[m++],"\n");
       buf[m-1] = '\0';
     }
   }

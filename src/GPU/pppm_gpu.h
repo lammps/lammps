@@ -35,20 +35,19 @@ class PPPMGPU : public PPPM {
   double memory_usage();
 
  protected:
-
   FFT_SCALAR ***density_brick_gpu, ***vd_brick;
   bool kspace_split, im_real_space;
+  int old_nlocal;
+  double poisson_time;
 
-  void allocate();
-  void deallocate();
   void brick2fft();
-  void fillbrick();
-  void fillbrick_ik();
   void poisson();
   void poisson_ik();
 
-  int old_nlocal;
-  double poisson_time;
+  void pack_forward(int, FFT_SCALAR *, int, int *);
+  void unpack_forward(int, FFT_SCALAR *, int, int *);
+  void pack_reverse(int, FFT_SCALAR *, int, int *);
+  void unpack_reverse(int, FFT_SCALAR *, int, int *);
 
   FFT_SCALAR ***create_3d_offset(int, int, int, int, int, int, const char *,
                                  FFT_SCALAR *, int);

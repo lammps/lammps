@@ -115,21 +115,22 @@ It should be used with "pair styles"_pair_style.html with a
 
 :line
 
-The {pppm/disp} and {pppm/disp/tip4p} styles add a long-range
-dispersion sum option for 1/r^6 potentials, similar to the
-{ewald/disp} style.  The 1/r^6 capability means that Lennard-Jones or
-Buckingham potentials can be used without a cutoff, i.e. they become
-full long-range potentials.
+The {pppm/disp} and {pppm/disp/tip4p} styles add a mesh-based long-range
+dispersion sum option for 1/r^6 potentials "(Isele-Holder)"_#Isele-Holder,
+similar to the {ewald/disp} style. The 1/r^6 capability means
+that Lennard-Jones or Buckingham potentials can be used without a cutoff,
+i.e. they become full long-range potentials.
 
 For these styles, it is currently recommended that you set the
 dispersion mesh size and other parameters explicitly via the
 "kspace_modify"_kspace_modify.html command, rather than let LAMMPS set
 them automatically.  For example, a set of parameters that works well
-for TIP4P water models is a LJ cutoff of 10 Angstrom, interpolation
-order = 5 (the default), grid spacing = 4.17 Angstroms, and Ewald
-parameter = 0.28.  These parameters work well for the {ik}
-differentiation.  For the {ad} setting, a smaller grid is needed,
-e.g. 3 Angstroms.
+for surface systems when using real units is a LJ cutoff of 10 Angstrom,
+interpolation order = 5 (the default), grid spacing = 4.17 Angstroms,
+and Ewald parameter = 0.28.  These parameters work well for the {ik}
+differentiation.  For the {ad} setting, a smaller grid spacing is needed,
+e.g. 3 Angstroms. Further information on the influence of the parameters
+and how to choose them is described in "(Isele-Holder)"_#Isele-Holder.
 
 :line
 
@@ -267,6 +268,9 @@ Adam Hilger, NY (1989).
 
 :link(Veld)
 [(Veld)] In 't Veld, Ismail, Grest, J Chem Phys, in press (2007).
+
+:link(Isele-Holder)
+[(Isele-Holder)] Isele-Holder, Mitchell, Ismail, J Chem Phys, 137, 174107 (2012). 
 
 :link(Hardy)
 [(Hardy)] David Hardy thesis: Multilevel Summation for the Fast

@@ -1488,7 +1488,7 @@ void Thermo::compute_spcpu()
 
 void Thermo::compute_atoms()
 {
-  bivalue = natoms;
+  bivalue = atom->natoms;
 }
 
 /* ---------------------------------------------------------------------- */

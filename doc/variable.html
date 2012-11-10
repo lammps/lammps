@@ -17,7 +17,7 @@
 </PRE>
 <UL><LI>name = name of variable to define 
 
-<LI>style = <I>delete</I> or <I>index</I> or <I>loop</I> or <I>world</I> or <I>universe</I> or <I>uloop</I> or <I>string</I> or <I>equal</I> or <I>atom</I> 
+<LI>style = <I>delete</I> or <I>index</I> or <I>loop</I> or <I>world</I> or <I>universe</I> or <I>uloop</I> or <I>string</I> or <I>file</I> or <I>equal</I> or <I>atom</I> 
 
 <PRE>  <I>delete</I> = no args
   <I>index</I> args = one or more strings
@@ -39,6 +39,7 @@
     N = integer size of loop
     pad = all values will be same length, e.g. 001, 002, ..., 100
   <I>string</I> arg = one string
+  <I>file</I> arg = filename
   <I>equal</I> or <I>atom</I> args = one formula containing numbers, thermo keywords, math operations, group functions, atom values and vectors, compute/fix/variable references
     numbers = 0.0, 100, -5.4, 2.8e-4, etc
     constants = PI
@@ -59,7 +60,7 @@
 		      bound(group,xmin,region), gyration(group,region), ke(group,reigon),
 		      angmom(group,dim,region), torque(group,dim,region), 
 		      inertia(group,dimdim,region), omega(group,dim,region)
-    special functions = sum(x), min(x), max(x), ave(x), trap(x), gmask(x), rmask(x), grmask(x,y)
+    special functions = sum(x), min(x), max(x), ave(x), trap(x), gmask(x), rmask(x), grmask(x,y), next(x)
     atom value = mass[i], type[i], x[i], y[i], z[i], vx[i], vy[i], vz[i], fx[i], fy[i], fz[i]
     atom vector = mass, type, x, y, z, vx, vy, vz, fx, fy, fz
     compute references = c_ID, c_ID[i], c_ID[i][j]
@@ -79,6 +80,7 @@ variable b equal xcm(mol1,x)/2.0
 variable b equal c_myTemp
 variable b atom x*y/vol
 variable foo string myfile
+variable f file values.txt
 variable temp world 300.0 310.0 320.0 ${Tfinal}
 variable x universe 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
 variable x uloop 15 pad
@@ -154,13 +156,13 @@ the variable's string.  The variable name can be referenced as $x if
 the name "x" is a single character, or as ${LoopVar} if the name
 "LoopVar" is one or more characters.
 </P>
-<P>As described below, for variable styles <I>index</I>, <I>loop</I>, <I>universe</I>,
-and <I>uloop</I>, which string is assigned to a variable can be incremented
-via the <A HREF = "next.html">next</A> command.  When there are no more strings to
-assign, the variable is exhausted and a flag is set that causes the
-next <A HREF = "jump.html">jump</A> command encountered in the input script to be
-skipped.  This enables the construction of simple loops in the input
-script that are iterated over and then exited from.
+<P>As described below, for variable styles <I>index</I>, <I>loop</I>, <I>file</I>,
+<I>universe</I>, and <I>uloop</I>, which string is assigned to a variable can be
+incremented via the <A HREF = "next.html">next</A> command.  When there are no more
+strings to assign, the variable is exhausted and a flag is set that
+causes the next <A HREF = "jump.html">jump</A> command encountered in the input
+script to be skipped.  This enables the construction of simple loops
+in the input script that are iterated over and then exited from.
 </P>
 <P>As explained above, an exhausted variable can be re-used in an input
 script.  The <I>delete</I> style also removes the variable, the same as if
@@ -235,6 +237,32 @@ strings are the integers from 1 to N.  This allows generation of long
 list of runs (e.g. 1000) without having to list N strings in the input
 script.
 </P>
+<P>For the <I>string</I> style, a single string is assigned to the variable.
+The only difference between this and using the <I>index</I> style with a
+single string is that a variable with <I>string</I> style can be redefined.
+E.g. by another command later in the input script, or if the script is
+read again in a loop.
+</P>
+<P>For the <I>file</I> style, a filename is provided which contains a list of
+strings to assign to the variable, one per line.  The strings can be
+numeric values if desired; see the discussion of the next() function
+below for equal-style variables, which will convert the string of a
+file-style variable into a numeric value in a formula.
+</P>
+<P>When a file-style variable is defined, the file is opened and the
+string on the first line is read and stored with the variable.  This
+means the variable can then be evaluated as many times as desired and
+will return that string.  There are two ways to cause the next string
+from the file to be read: use the <A HREF = "next.html">next</A> command or the
+next() function in an equal- or atom-style variable, as discussed
+below.
+</P>
+<P>The rules for formatting the file are as follows.  A comment character
+"#" can be used anywhere on a line; text starting with the comment
+character is stripped.  Blank lines are skipped.  The first "word" of
+a non-blank line, delimited by white space, is the "string" assigned
+to the variable.
+</P>
 <HR>
 
 <P>For the <I>equal</I> and <I>atom</I> styles, a single string is specified which
@@ -279,7 +307,7 @@ references to other variables.
 <TR><TD >Math functions</TD><TD > sqrt(x), exp(x), ln(x), log(x), sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x), random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x), ramp(x,y), stagger(x,y), logfreq(x,y,z), stride(x,y,z), vdisplace(x,y), swiggle(x,y,z), cwiggle(x,y,z)</TD></TR>
 <TR><TD >Group functions</TD><TD > count(ID), mass(ID), charge(ID), xcm(ID,dim),                  vcm(ID,dim), fcm(ID,dim), bound(ID,dir), 		 gyration(ID), ke(ID), angmom(ID,dim), torque(ID,dim), 		 inertia(ID,dimdim), omega(ID,dim)</TD></TR>
 <TR><TD >Region functions</TD><TD > count(ID,IDR), mass(ID,IDR), charge(ID,IDR), 		  xcm(ID,dim,IDR), vcm(ID,dim,IDR), fcm(ID,dim,IDR), 		  bound(ID,dir,IDR), gyration(ID,IDR), ke(ID,IDR), 		  angmom(ID,dim,IDR), torque(ID,dim,IDR),                   inertia(ID,dimdim,IDR), omega(ID,dim,IDR)</TD></TR>
-<TR><TD >Special functions</TD><TD > sum(x), min(x), max(x), ave(x), trap(x), gmask(x), rmask(x), grmask(x,y)</TD></TR>
+<TR><TD >Special functions</TD><TD > sum(x), min(x), max(x), ave(x), trap(x), gmask(x), rmask(x), grmask(x,y), next(x)</TD></TR>
 <TR><TD >Atom values</TD><TD > mass[i], type[i], x[i], y[i], z[i],              vx[i], vy[i], vz[i], fx[i], fy[i], fz[i]</TD></TR>
 <TR><TD >Atom vectors</TD><TD > mass, type, x, y, z, vx, vy, vz, fx, fy, fz</TD></TR>
 <TR><TD >Compute references</TD><TD > c_ID, c_ID[i], c_ID[i][j]</TD></TR>
@@ -559,6 +587,20 @@ and the second is a region ID.  It can only be used in atom-style
 variables.  It returns a 1 for atoms that are in both the group and
 region, and a 0 for atoms that are not in both.
 </P>
+<P>The next(x) function takes 1 argument which is a variable ID (not
+"v_foo", just "foo").  It must be for a file-style variable.  Each
+time the next() function is invoked (i.e. each time the equal-style or
+atom-style variable is evaluated), the current string value stored by
+the file-style variable is converted to a numeric value returned by
+the function, and the next value from the file is read and stored.
+Note that if the line previously read from the file was not a numeric
+string, then it will typically evaluate to 0.0, which is likely not
+what you want.  Since the file-style variable reads and stores the
+first line of the file when it is defined in the input script, this is
+the value that will be returned the first time the next() function is
+invoked.  If next() is invoked more times than there are lines in the
+file, the value for the last line is repeatedly returned.
+</P>
 <HR>
 
 <H4>Atom Values and Vectors 
@@ -649,20 +691,26 @@ the doc pages for individual fix commands for details.
 
 <H4>Variable References 
 </H4>
-<P>Variable references access quantities calulated by other variables,
-which will cause those variables to be evaluated.  The name in the
-reference should be replaced by the name of a variable defined
-elsewhere in the input script.  As discussed on this doc page,
-atom-style variables generate a per-atom vector of values; all other
-variable styles generate a global scalar value.  An equal-style
-variable can only use scalar values, which means another equal-style
-variable or an element of an atom-style variable.  Atom-style
-variables can use the same scalar values.  They can also use other
-atom-style variables.
+<P>Variable references access quantities stored or calculated by other
+variables, which will cause those variables to be evaluated.  The name
+in the reference should be replaced by the name of a variable defined
+elsewhere in the input script. 
+</P>
+<P>As discussed on this doc page, equal-style variables generate a global
+scalar numeric value; atom-style variables generate a per-atom vector
+of numeric values; all other variables store a string.  The formula
+for an equal-style variable can use any style of variable except an
+atom-style (unless only a single value from the atom-style variable is
+accessed via a subscript).  If a string-storing variable is used,
+the string is converted to a numeric value.  Note that this
+will typically produce a 0.0 if the string is not a numeric string,
+which is likely not what you want.  The formula for an atom-style
+variable can use any style of variable, including other atom-style
+variables.
 </P>
 <P>Examples of different kinds of variable references are as follows.
 There is no ambiguity as to what a reference means, since variables
-produce only a global scalar or a per-atom vectors, never both.
+produce only a global scalar or a per-atom vector, never both.
 </P>
 <DIV ALIGN=center><TABLE  BORDER=1 >
 <TR><TD >v_name</TD><TD > scalar, or per-atom vector</TD></TR>

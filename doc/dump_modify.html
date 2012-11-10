@@ -365,16 +365,22 @@ which should be specified as v_name, where name is the variable name.
 </P>
 <P>In this case, the variable is evaluated at the beginning of a run to
 determine the next timestep at which a dump snapshot will be written
-out.  On that timestep, the variable will be evaluated again to
+out.  On that timestep the variable will be evaluated again to
 determine the next timestep, etc.  Thus the variable should return
 timestep values.  See the stagger() and logfreq() and stride() math
 functions for <A HREF = "variable.html">equal-style variables</A>, as examples of
 useful functions to use in this context.  Other similar math functions
 could easily be added as options for <A HREF = "variable.html">equal-style
-variables</A>.  When using the variable option with the
-<I>every</I> keyword, you also need to use the <I>first</I> option if you want
-an initial snapshot written to the dump file.  The <I>every</I> keyword
-cannot be used with the dump <I>dcd</I> style.
+variables</A>.  Also see the next() function, which allows
+use of a file-style variable which reads successive values from a
+file, each time the variable is evaluated.  Used with the <I>every</I>
+keyword, if the file contains a list of ascending timesteps, you can
+output snapshots whenever you wish.
+</P>
+<P>Note that when using the variable option with the <I>every</I> keyword, you
+need to use the <I>first</I> option if you want an initial snapshot written
+to the dump file.  The <I>every</I> keyword cannot be used with the dump
+<I>dcd</I> style.
 </P>
 <P>For example, the following commands will
 write snapshots at timesteps 0,10,20,30,100,200,300,1000,2000,etc:
@@ -383,6 +389,25 @@ write snapshots at timesteps 0,10,20,30,100,200,300,1000,2000,etc:
 dump		1 all atom 100 tmp.dump
 dump_modify	1 every v_s first yes 
 </PRE>
+<P>The following commands would write snapshots at the timesteps listed
+in file tmp.times:
+</P>
+<PRE>variable        f file tmp.times
+variable	s equal next(f)
+dump		1 all atom 100 tmp.dump
+dump_modify	1 every v_s 
+</PRE>
+<P>IMPORTANT NOTE: When using a file-style variable with the <I>every</I>
+keyword, the file of timesteps must list a first timestep that is
+beyond the current timestep (e.g. it cannot be 0).  And it must list
+one or more timesteps beyond the length of the run you perform.  This
+is because the dump command will generate an error if the next
+timestep it reads from the file is not a value greater than the
+current timestep.  Thus if you wanted output on steps 0,15,100 of a
+100-timestep run, the file should contain the values 15,100,101 and
+you should also use the dump_modify first command.  Any final value >
+100 could be used in place of 101.
+</P>
 <HR>
 
 <P>The <I>first</I> keyword determines whether a dump snapshot is written on

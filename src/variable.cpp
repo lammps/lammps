@@ -39,10 +39,11 @@ using namespace MathConst;
 
 #define VARDELTA 4
 #define MAXLEVEL 4
+#define MAXLINE 256
 
 #define MYROUND(a) (( a-floor(a) ) >= .5) ? ceil(a) : floor(a)
 
-enum{INDEX,LOOP,WORLD,UNIVERSE,ULOOP,STRING,EQUAL,ATOM};
+enum{INDEX,LOOP,WORLD,UNIVERSE,ULOOP,STRING,FILEVAR,EQUAL,ATOM};
 enum{ARG,OP};
 
 // customize by adding a function
@@ -56,7 +57,7 @@ enum{DONE,ADD,SUBTRACT,MULTIPLY,DIVIDE,CARAT,UNARY,
 
 // customize by adding a special function
 
-enum{SUM,XMIN,XMAX,AVE,TRAP};
+enum{SUM,XMIN,XMAX,AVE,TRAP,NEXT};
 
 #define INVOKED_SCALAR 1
 #define INVOKED_VECTOR 2
@@ -77,6 +78,7 @@ Variable::Variable(LAMMPS *lmp) : Pointers(lmp)
   num = NULL;
   which = NULL;
   pad = NULL;
+  reader = NULL;
   data = NULL;
 
   eval_in_progress = NULL;
@@ -101,6 +103,7 @@ Variable::~Variable()
 {
   for (int i = 0; i < nvar; i++) {
     delete [] names[i];
+    delete reader[i];
     if (style[i] == LOOP || style[i] == ULOOP) delete [] data[i][0];
     else for (int j = 0; j < num[i]; j++) delete [] data[i][j];
     delete [] data[i];
@@ -110,6 +113,7 @@ Variable::~Variable()
   memory->destroy(num);
   memory->destroy(which);
   memory->destroy(pad);
+  memory->sfree(reader);
   memory->sfree(data);
 
   memory->destroy(eval_in_progress);
@@ -245,7 +249,8 @@ void Variable::set(int narg, char **arg)
     for (int jvar = 0; jvar < nvar; jvar++)
       if (num[jvar] && (style[jvar] == UNIVERSE || style[jvar] == ULOOP) &&
           num[nvar] != num[jvar])
-        error->all(FLERR,"All universe/uloop variables must have same # of values");
+        error->all(FLERR,
+                   "All universe/uloop variables must have same # of values");
 
   // STRING
   // remove pre-existing var if also style STRING (allows it to be reset)
@@ -266,6 +271,23 @@ void Variable::set(int narg, char **arg)
     pad[nvar] = 0;
     data[nvar] = new char*[num[nvar]];
     copy(1,&arg[2],data[nvar]);
+
+  // FILEVAR for strings or numbers
+  // which = 1st value
+
+  } else if (strcmp(arg[1],"file") == 0) {
+    if (narg != 3) error->all(FLERR,"Illegal variable command");
+    if (find(arg[0]) >= 0) return;
+    if (nvar == maxvar) grow();
+    style[nvar] = FILEVAR;
+    num[nvar] = 1;
+    which[nvar] = 0;
+    pad[nvar] = 0;
+    data[nvar] = new char*[num[nvar]];
+    data[nvar][0] = new char[MAXLINE];
+    reader[nvar] = new VarReader(lmp,arg[2]);
+    int flag = reader[nvar]->read(data[nvar][0]);
+    if (flag) error->all(FLERR,"File variable could not read value");
 
   // EQUAL
   // remove pre-existing var if also style EQUAL (allows it to be reset)
@@ -385,6 +407,17 @@ int Variable::next(int narg, char **arg)
       }
     }
 
+  } else if (istyle == FILEVAR) {
+
+    for (int iarg = 0; iarg < narg; iarg++) {
+      ivar = find(arg[iarg]);
+      int done = reader[ivar]->read(data[ivar][0]);
+      if (done) {
+        flag = 1;
+        remove(ivar);
+      }
+    }
+
   } else if (istyle == UNIVERSE || istyle == ULOOP) {
 
     // wait until lock file can be created and owned by proc 0 of this world
@@ -445,7 +478,8 @@ char *Variable::retrieve(char *name)
 
   char *str;
   if (style[ivar] == INDEX || style[ivar] == WORLD ||
-      style[ivar] == UNIVERSE || style[ivar] == STRING) {
+      style[ivar] == UNIVERSE || style[ivar] == STRING || 
+      style[ivar] == FILEVAR) {
     str = data[ivar][which[ivar]];
   } else if (style[ivar] == LOOP || style[ivar] == ULOOP) {
     char result[16];
@@ -575,6 +609,7 @@ void Variable::remove(int n)
     num[i-1] = num[i];
     which[i-1] = which[i];
     pad[i-1] = pad[i];
+    reader[i-1] = reader[i];
     data[i-1] = data[i];
   }
   nvar--;
@@ -586,14 +621,20 @@ void Variable::remove(int n)
 
 void Variable::grow()
 {
+  int old = maxvar;
   maxvar += VARDELTA;
-  names = (char **)
-  memory->srealloc(names,maxvar*sizeof(char *),"var:names");
+  names = (char **) memory->srealloc(names,maxvar*sizeof(char *),"var:names");
   memory->grow(style,maxvar,"var:style");
   memory->grow(num,maxvar,"var:num");
   memory->grow(which,maxvar,"var:which");
   memory->grow(pad,maxvar,"var:pad");
+
+  reader = (VarReader **) 
+    memory->srealloc(reader,maxvar*sizeof(VarReader *),"var:reader");
+  for (int i = old; i < maxvar; i++) reader[i] = NULL;
+
   data = (char ***) memory->srealloc(data,maxvar*sizeof(char **),"var:data");
+
   memory->grow(eval_in_progress,maxvar,"var:eval_in_progress");
   for (int i = 0; i < maxvar; i++) eval_in_progress[i] = 0;
 }
@@ -743,14 +784,16 @@ double Variable::evaluate(char *str, Tree **tree)
 
       if (strncmp(word,"c_",2) == 0) {
         if (domain->box_exist == 0)
-          error->all(FLERR,"Variable evaluation before simulation box is defined");
+          error->all(FLERR,
+                     "Variable evaluation before simulation box is defined");
 
         n = strlen(word) - 2 + 1;
         char *id = new char[n];
         strcpy(id,&word[2]);
 
         int icompute = modify->find_compute(id);
-        if (icompute < 0) error->all(FLERR,"Invalid compute ID in variable formula");
+        if (icompute < 0) 
+          error->all(FLERR,"Invalid compute ID in variable formula");
         Compute *compute = modify->compute[icompute];
         delete [] id;
 
@@ -2826,7 +2869,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
 
   if (strcmp(word,"sum") && strcmp(word,"min") && strcmp(word,"max") &&
       strcmp(word,"ave") && strcmp(word,"trap") && strcmp(word,"gmask") &&
-      strcmp(word,"rmask") && strcmp(word,"grmask"))
+      strcmp(word,"rmask") && strcmp(word,"grmask") && strcmp(word,"next"))
     return 0;
 
   // parse contents for arg1,arg2,arg3 separated by commas
@@ -2872,7 +2915,8 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
     else if (strcmp(word,"ave") == 0) method = AVE;
     else if (strcmp(word,"trap") == 0) method = TRAP;
 
-    if (narg != 1) error->all(FLERR,"Invalid special function in variable formula");
+    if (narg != 1) 
+      error->all(FLERR,"Invalid special function in variable formula");
 
     Compute *compute = NULL;
     Fix *fix = NULL;
@@ -2887,12 +2931,14 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
       } else index = 0;
 
       int icompute = modify->find_compute(&arg1[2]);
-      if (icompute < 0) error->all(FLERR,"Invalid compute ID in variable formula");
+      if (icompute < 0) 
+        error->all(FLERR,"Invalid compute ID in variable formula");
       compute = modify->compute[icompute];
       if (index == 0 && compute->vector_flag) {
         if (update->whichflag == 0) {
           if (compute->invoked_vector != update->ntimestep)
-            error->all(FLERR,"Compute used in variable between runs is not current");
+            error->all(FLERR,
+                       "Compute used in variable between runs is not current");
         } else if (!(compute->invoked_flag & INVOKED_VECTOR)) {
           compute->compute_vector();
           compute->invoked_flag |= INVOKED_VECTOR;
@@ -2986,10 +3032,6 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
 
     if (method == AVE) value /= nvec;
 
-    delete [] arg1;
-    delete [] arg2;
-    delete [] arg3;
-
     // save value in tree or on argstack
 
     if (tree) {
@@ -3005,7 +3047,8 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
   } else if (strcmp(word,"gmask") == 0) {
     if (tree == NULL)
       error->all(FLERR,"Gmask function in equal-style variable formula");
-    if (narg != 1) error->all(FLERR,"Invalid special function in variable formula");
+    if (narg != 1) 
+      error->all(FLERR,"Invalid special function in variable formula");
 
     int igroup = group->find(arg1);
     if (igroup == -1)
@@ -3020,7 +3063,8 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
   } else if (strcmp(word,"rmask") == 0) {
     if (tree == NULL)
       error->all(FLERR,"Rmask function in equal-style variable formula");
-    if (narg != 1) error->all(FLERR,"Invalid special function in variable formula");
+    if (narg != 1) 
+      error->all(FLERR,"Invalid special function in variable formula");
 
     int iregion = region_function(arg1);
 
@@ -3033,7 +3077,8 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
   } else if (strcmp(word,"grmask") == 0) {
     if (tree == NULL)
       error->all(FLERR,"Grmask function in equal-style variable formula");
-    if (narg != 2) error->all(FLERR,"Invalid special function in variable formula");
+    if (narg != 2) 
+      error->all(FLERR,"Invalid special function in variable formula");
 
     int igroup = group->find(arg1);
     if (igroup == -1)
@@ -3046,7 +3091,36 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
     newtree->ivalue2 = iregion;
     newtree->left = newtree->middle = newtree->right = NULL;
     treestack[ntreestack++] = newtree;
+
+  // file variable special function
+
+  } else if (strcmp(word,"next") == 0) {
+    if (narg != 1) 
+      error->all(FLERR,"Invalid special function in variable formula");
+
+    int ivar = find(arg1);
+    if (ivar == -1)
+      error->all(FLERR,"Variable ID in variable formula does not exist");
+    if (style[ivar] != FILEVAR)
+      error->all(FLERR,"Invalid variable in special function next");
+
+    double value = atof(data[ivar][0]);
+    reader[ivar]->read(data[ivar][0]);
+
+    // save value in tree or on argstack
+
+    if (tree) {
+      Tree *newtree = new Tree();
+      newtree->type = VALUE;
+      newtree->value = value;
+      newtree->left = newtree->middle = newtree->right = NULL;
+      treestack[ntreestack++] = newtree;
+    } else argstack[nargstack++] = value;
   }
+
+  delete [] arg1;
+  delete [] arg2;
+  delete [] arg3;
 
   return 1;
 }
@@ -3067,7 +3141,8 @@ void Variable::peratom2global(int flag, char *word,
                               double *argstack, int &nargstack)
 {
   if (atom->map_style == 0)
-    error->all(FLERR,"Indexed per-atom vector in variable formula without atom map");
+    error->all(FLERR,
+               "Indexed per-atom vector in variable formula without atom map");
 
   int index = atom->map(id);
 
@@ -3210,7 +3285,8 @@ double Variable::numeric(char *str)
     if (isdigit(str[i])) continue;
     if (str[i] == '-' || str[i] == '+' || str[i] == '.') continue;
     if (str[i] == 'e' || str[i] == 'E') continue;
-    error->all(FLERR,"Expected floating point parameter in variable definition");
+    error->all(FLERR,
+               "Expected floating point parameter in variable definition");
   }
 
   return atof(str);
@@ -3296,7 +3372,8 @@ double Variable::evaluate_boolean(char *str)
     // ----------------
 
     else if (onechar == '(') {
-      if (expect == OP) error->all(FLERR,"Invalid Boolean syntax in if command");
+      if (expect == OP) 
+        error->all(FLERR,"Invalid Boolean syntax in if command");
       expect = OP;
 
       char *contents;
@@ -3314,7 +3391,8 @@ double Variable::evaluate_boolean(char *str)
     // ----------------
 
     } else if (isdigit(onechar) || onechar == '.' || onechar == '-') {
-      if (expect == OP) error->all(FLERR,"Invalid Boolean syntax in if command");
+      if (expect == OP) 
+        error->all(FLERR,"Invalid Boolean syntax in if command");
       expect = OP;
 
       // istop = end of number, including scientific notation
@@ -3383,7 +3461,8 @@ double Variable::evaluate_boolean(char *str)
         continue;
       }
 
-      if (expect == ARG) error->all(FLERR,"Invalid Boolean syntax in if command");
+      if (expect == ARG) 
+        error->all(FLERR,"Invalid Boolean syntax in if command");
       expect = ARG;
 
       // evaluate stack as deep as possible while respecting precedence
@@ -3515,4 +3594,59 @@ unsigned int Variable::data_mask(char *str)
   }
 
   return datamask;
+}
+
+/* ----------------------------------------------------------------------
+   class to read variable values from a file, line by line
+------------------------------------------------------------------------- */
+
+VarReader::VarReader(LAMMPS *lmp, char *file) : Pointers(lmp)
+{
+  MPI_Comm_rank(world,&me);
+
+  if (me == 0) {
+    fp = fopen(file,"r");
+    if (fp == NULL) {
+      char str[128];
+      sprintf(str,"Cannot open file variable file %s",file);
+      error->one(FLERR,str);
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+VarReader::~VarReader()
+{
+  if (me == 0) fclose(fp);
+}
+
+/* ----------------------------------------------------------------------
+   read next value from file into str
+   strip comments, skip blank lines
+   return 0 if successful, 1 if end-of-file
+------------------------------------------------------------------------- */
+
+int VarReader::read(char *str)
+{
+  int n;
+  char *ptr;
+
+  if (me == 0) {
+    while (1) {
+      if (fgets(str,MAXLINE,fp) == NULL) n = 0;
+      else n = strlen(str);
+      if (n == 0) break;                                 // end of file
+      str[n-1] = '\0';                                   // strip newline
+      if (ptr = strchr(str,'#')) *ptr = '\0';            // strip comment
+      if (strtok(str," \t\n\r\f") == NULL) continue;     // skip if blank
+      n = strlen(str) + 1;
+      break;
+    }
+  }
+
+  MPI_Bcast(&n,1,MPI_INT,0,world);
+  if (n == 0) return 1;
+  MPI_Bcast(str,n,MPI_CHAR,0,world);
+  return 0;
 }

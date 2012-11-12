@@ -43,7 +43,6 @@ PairBuckCoulLong::PairBuckCoulLong(LAMMPS *lmp) : Pair(lmp)
 {
   ewaldflag = pppmflag = 1;
   ftable = NULL;
-  cut_respa = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -360,7 +359,8 @@ void PairBuckCoulLong::init_style()
   neighbor->request(this);
   
   // setup force tables
-  if (ncoultablebits) init_tables(cut_coul,cut_respa);
+
+  if (ncoultablebits) init_tables(cut_coul,NULL);
 }
 
 /* ----------------------------------------------------------------------

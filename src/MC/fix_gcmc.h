@@ -32,48 +32,75 @@ class FixGCMC : public Fix {
   int setmask();
   void init();
   void pre_exchange();
-  void attempt_move();
-  void attempt_deletion();
-  void attempt_insertion();
-  double energy(int, double *);
+  void attempt_atomic_translation();
+  void attempt_atomic_deletion();
+  void attempt_atomic_insertion();
+  void attempt_molecule_translation();
+  void attempt_molecule_rotation();
+  void attempt_molecule_deletion();
+  void attempt_molecule_insertion();
+  double energy(int, int, int, double *);
+  int pick_random_gas_atom();
+  int pick_random_gas_atom_in_region();
+  int pick_random_gas_molecule();
+  int pick_random_gas_molecule_in_region();
+  double molecule_energy(int);
+  void get_rotation_matrix(double, double *);
+  void get_model_molecule();
+  void update_gas_atoms_list();
   double compute_vector(int);
   double memory_usage();
   void write_restart(FILE *);
   void restart(char *);
 
  private:
-  int ntype,nevery,seed;
+  int rotation_group,rotation_groupbit;
+  int rotation_inversegroupbit;
+  int ngcmc_type,nevery,seed;
   int ncycles,nexchanges,nmcmoves;
-  int ngas;           // # of gas molecules (or atoms) on all procs
-  int ngas_local;     // # of gas molecules (or atoms) on this proc
-  int ngas_before;    // # of gas molecules (or atoms) on procs < this proc
-  int molflag;        // 0 = atomic, 1 = molecular system
-  int regionflag;     // 0 = anywhere, 1 = specific region
-  int iregion;        // exchange/move region
-  char *idregion;     // exchange/move region id
+  int ngas;                 // # of gas atoms on all procs
+  int ngas_local;           // # of gas atoms on this proc
+  int ngas_before;          // # of gas atoms on procs < this proc
+  int molflag;              // 0 = atomic, 1 = molecular system
+  int regionflag;           // 0 = anywhere in box, 1 = specific region
+  int iregion;              // GCMC region
+  char *idregion;           // GCMC region id
 
-  double nmove_attempts;
-  double nmove_successes;
-  double ndel_attempts;
-  double ndel_successes;
-  double ninsert_attempts;
-  double ninsert_successes;
+  int maxmol;               // largest molecule tag across all existing atoms
+  int natoms_per_molecule;  // number of atoms in each gas molecule
 
-  int nmax;
+  double ntranslation_attempts;
+  double ntranslation_successes;
+  double nrotation_attempts;
+  double nrotation_successes;
+  double ndeletion_attempts;
+  double ndeletion_successes;
+  double ninsertion_attempts;
+  double ninsertion_successes;
+
+  int gcmc_nmax;
   int max_region_attempts;
+  double gas_mass;
   double reservoir_temperature;
   double chemical_potential;
   double displace;
+  double max_rotation_angle;
   double beta,zz,sigma,volume;
   double xlo,xhi,ylo,yhi,zlo,zhi;
   double region_xlo,region_xhi,region_ylo,region_yhi,region_zlo,region_zhi;
   double *sublo,*subhi;
   int *local_gas_list;
   double **cutsq;
+  double **atom_coord;
+  double *model_atom_buf;
+  tagint imagetmp;
+
   class Pair *pair;
 
   class RanPark *random_equal;
   class RanPark *random_unequal;
+  
+  class Atom *model_atom;
 
   void options(int, char **);
 };
@@ -100,41 +127,83 @@ E: Cannot do GCMC on atoms in atom_modify first group
 This is a restriction due to the way atoms are organized in a list to
 enable the atom_modify first command.
 
-W: Fix GCMC may delete atom with non-zero molecule ID
+E: Fix GCMC cannot exchange individual atoms belonging to a molecule
 
-This is probably an error, since you should not delete only one atom
-of a molecule. The GCMC molecule exchange feature does not yet work.
+This is an error since you should not delete only one atom of a molecule.
+The user has specified atomic (non-molecular) gas exchanges, but an atom
+belonging to a molecule could be deleted.
 
-E: Fix GCMC molecule command requires atom attribute molecule
+E: All mol IDs should be set for fix GCMC group atoms
+
+The molecule flag is on, yet not all molecule ids in the fix group have
+been set to non-zero positive values by the user. This is an error since
+all atoms in the fix GCMC group are eligible for deletion, rotation, and
+translation and therefore must have valid molecule ids.
+
+E: Cannot use fix GCMC in a 2d simulation
+
+Fix GCMC is set up to run in 3d only. No 2d simulations with fix GCMC
+are allowed.
+
+E: Cannot use fix GCMC with a triclinic box
+
+Fix GCMC is set up to run with othogonal boxes only. Simulations with
+triclinic boxes and fix GCMC are not allowed.
+
+E: Fix GCMC molecule command requires that atoms have molecule attributes
 
 Should not choose the GCMC molecule feature if no molecules are being
 simulated. The general molecule flag is off, but GCMC's molecule flag
 is on.
 
-E: Fix GCMC molecule feature does not yet work
+E: Fix GCMC could not find any atoms in the user-supplied template molecule
 
-Fix GCMC cannot (yet) be used to exchange molecules, only atoms.
+When using the molecule option with fix GCMC, the user must supply a 
+template molecule in the usual LAMMPS data file with its molecule id
+specified in the fix GCMC command as the "type" of the exchanged gas.
 
 E: Fix GCMC incompatible with given pair_style
 
 Some pair_styles do not provide single-atom energies, which are needed
 by fix GCMC.
 
-E: Fix GCMC region does not support a bounding box
+E: Fix GCMC incorrect number of atoms per molecule
 
-Not all regions represent bounded volumes.  You cannot use
-such a region with the fix GCMC command.
+The number of atoms in each gas molecule was not computed correctly.
 
-E: Fix GCMC region cannot be dynamic
+E: Illegal fix GCMC gas mass <= 0
 
-Only static regions can be used with fix GCMC.
+The computed mass of the designated gas molecule or atom type was less 
+than or equal to zero.
 
-E: Deposition region extends outside simulation box
+E: Fix GCMC ran out of available molecule IDs
 
-Self-explanatory.
+This is a code limitation where more than MAXSMALLINT (usually around
+two billion) molecules have been created. The code needs to be 
+modified to either allow molecule ID recycling or use bigger ints for
+molecule IDs. A work-around is to run shorter simulations.
 
-E: Region ID for fix GCMC does not exist
+W: Fix GCMC fix group should be all
 
-Self-explanatory.
+Fix GCMC will ignore the fix group specified by the user. User should
+set the fix group to "all". Fix GCMC will overwrite the user-specified
+fix group with a group consisting of all GCMC gas atoms.
+
+E: Fix GCMC region does not support a bounding box 
+ 
+Not all regions represent bounded volumes.  You cannot use 
+such a region with the fix GCMC command. 
+ 
+E: Fix GCMC region cannot be dynamic 
+ 
+Only static regions can be used with fix GCMC. 
+ 
+E: Fix GCMC region extends outside simulation box 
+ 
+Self-explanatory. 
+ 
+E: Region ID for fix GCMC does not exist 
+ 
+Self-explanatory. 
 
 */

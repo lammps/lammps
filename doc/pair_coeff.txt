@@ -150,6 +150,7 @@ section of "this page"_Section_commands.html#cmd_5.
 "pair_style lubricateU"_pair_lubricateU.html - hydrodynamic lubrication forces for Fast Lubrication Dynamics
 "pair_style lubricateU/poly"_pair_lubricateU.html - hydrodynamic lubrication forces for Fast Lubrication Dynamics with polydispersity
 "pair_style meam"_pair_meam.html - modified embedded atom method (MEAM)
+"pair_style mie"_pair_mie.html - Mie potential
 "pair_style morse"_pair_morse.html - Morse potential
 "pair_style peri/lps"_pair_peri.html - peridynamic LPS potential
 "pair_style peri/pmb"_pair_peri.html - peridynamic PMB potential

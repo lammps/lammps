@@ -1,0 +1,105 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>pair_style mie/cut command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>pair_style mie/cut cutoff 
+</PRE>
+<UL><LI>cutoff = global cutoff for mie/cut interactions (distance units) 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>pair_style mie/cut 10.0
+pair_coeff 1 1 0.72 3.40 23.00 6.66
+pair_coeff 2 2 0.30 3.55 12.65 6.00
+pair_coeff 1 2 0.46 3.32 16.90 6.31 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>The <I>mie/cut</I> style computes the Mie potential, given by
+</P>
+<CENTER><IMG SRC = "Eqs/pair_mie.jpg">
+</CENTER>
+<P>Rc is the cutoff and C is a function that depends on the repulsive and 
+attractive exponents, given by:
+</P>
+<CENTER><IMG SRC = "Eqs/pair_mie2.jpg">
+</CENTER>
+<P>Note that for 12/6 exponents, C is equal to 4 and the formula is the
+same as the standard Lennard-Jones potential.
+</P>
+<P>The following coefficients must be defined for each pair of atoms
+types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
+above, or in the data file or restart files read by the
+<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
+commands, or by mixing as described below:
+</P>
+<UL><LI>epsilon (energy units)
+<LI>sigma (distance units)
+<LI>gammaR
+<LI>gammaA
+<LI>cutoff (distance units) 
+</UL>
+<P>The last coefficient is optional.  If not specified, the global 
+cutoff specified in the pair_style command is used.
+</P>
+<HR>
+
+<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
+</P>
+<P>For atom type pairs I,J and I != J, the epsilon and sigma coefficients
+and cutoff distance for all of the mie/cut pair styles can be mixed.
+If not explicity defined, both the repulsive and attractive gamma
+exponents for different atoms will be calculated following the same
+mixing rule defined for distances.  The default mix value is
+<I>geometric</I>. See the "pair_modify" command for details.
+</P>
+<P>This pair style supports the <A HREF = "pair_modify.html">pair_modify</A> shift
+option for the energy of the pair interaction.
+</P>
+<P>This pair style supports the <A HREF = "pair_modify.html">pair_modify</A> tail
+option for adding a long-range tail correction to the energy and
+pressure of the pair interaction.
+</P>
+<P>This pair style writes its information to <A HREF = "restart.html">binary restart
+files</A>, so pair_style and pair_coeff commands do not need
+to be specified in an input script that reads a restart file.
+</P>
+<P>This pair style supports the use of the <I>inner</I>, <I>middle</I>, and <I>outer</I>
+keywords of the <A HREF = "run_style.html">run_style respa</A> command, meaning the
+pairwise forces can be partitioned by distance at different levels of
+the rRESPA hierarchy.  See the <A HREF = "run_style.html">run_style</A> command for
+details.
+</P>
+<HR>
+
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_coeff.html">pair_coeff</A>
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "Mie"></A>
+
+<P><B>(Mie)</B> G. Mie, Ann Phys, 316, 657 (1903).
+</P>
+<A NAME = "Avendano"></A>
+
+<P><B>(Avendano)</B> C. Avendano, T. Lafitte, A. Galindo, C. S. Adjiman,
+G. Jackson, E. Muller, J Phys Chem B, 115, 11154 (2011).
+</P>
+</HTML>

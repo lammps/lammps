@@ -692,7 +692,7 @@ potentials.  Click on the style itself for a full description:
 "lubricateU"_pair_lubricateU.html,
 "lubricateU/poly"_pair_lubricateU.html,
 "meam"_pair_meam.html,
-"mie"_pair_mie.html,
+"mie/cut"_pair_mie.html,
 "morse"_pair_morse.html,
 "peri/lps"_pair_peri.html,
 "peri/pmb"_pair_peri.html,

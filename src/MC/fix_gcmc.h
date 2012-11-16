@@ -88,6 +88,7 @@ class FixGCMC : public Fix {
   double beta,zz,sigma,volume;
   double xlo,xhi,ylo,yhi,zlo,zhi;
   double region_xlo,region_xhi,region_ylo,region_yhi,region_zlo,region_zhi;
+  double region_volume;
   double *sublo,*subhi;
   int *local_gas_list;
   double **cutsq;

@@ -80,6 +80,7 @@ FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
   max_rotation_angle = 10*MY_PI/180;
   regionflag = 0; 
   iregion = -1; 
+  region_volume = 0;
   max_region_attempts = 1000; 
   rotation_group = 0;
   rotation_groupbit = 0;
@@ -89,6 +90,14 @@ FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
 
   options(narg-11,&arg[11]);
 
+  // random number generator, same for all procs
+
+  random_equal = new RanPark(lmp,seed);
+
+  // random number generator, not the same for all procs
+
+  random_unequal = new RanPark(lmp,seed);
+  
   // error checks on region and its extent being inside simulation box
 
   region_xlo = region_xhi = region_ylo = region_yhi = region_zlo = region_zhi = 0.0;
@@ -109,15 +118,25 @@ FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
         region_ylo < domain->boxlo[1] || region_yhi > domain->boxhi[1] ||
         region_zlo < domain->boxlo[2] || region_zhi > domain->boxhi[2])
       error->all(FLERR,"Fix GCMC region extends outside simulation box");
+
+    // estimate region volume using MC trials
+      
+    double coord[3];
+    int inside = 0;
+    int attempts = 10000000;
+    for (int i = 0; i < attempts; i++) {
+      coord[0] = region_xlo + random_equal->uniform() * (region_xhi-region_xlo);
+      coord[1] = region_ylo + random_equal->uniform() * (region_yhi-region_ylo);
+      coord[2] = region_zlo + random_equal->uniform() * (region_zhi-region_zlo);
+      if (domain->regions[iregion]->match(coord[0],coord[1],coord[2]) != 0) inside++;
+    }
+
+    double max_region_volume = (region_xhi - region_xlo)*
+     (region_yhi - region_ylo)*(region_zhi - region_zlo);
+
+    region_volume = max_region_volume*static_cast<double> (inside)/
+     static_cast<double> (attempts);
   }
-
-  // random number generator, same for all procs
-
-  random_equal = new RanPark(lmp,seed);
-
-  // random number generator, not the same for all procs
-
-  random_unequal = new RanPark(lmp,seed);
 
   // compute the number of MC cycles that occur nevery timesteps
 
@@ -336,7 +355,8 @@ void FixGCMC::pre_exchange()
   sublo = domain->sublo;
   subhi = domain->subhi;
 
-  volume = domain->xprd * domain->yprd * domain->zprd;
+  if (regionflag) volume = region_volume;
+  else volume = domain->xprd * domain->yprd * domain->zprd;
 
   update_gas_atoms_list();
 

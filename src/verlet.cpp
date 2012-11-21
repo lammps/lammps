@@ -316,12 +316,11 @@ void Verlet::cleanup()
 
 /* ----------------------------------------------------------------------
    clear force on own & ghost atoms
-   setup and clear other arrays as needed
+   clear other arrays as needed
 ------------------------------------------------------------------------- */
 
 void Verlet::force_clear()
 {
-  if (external_force_clear) return;
   int i;
 
   if (external_force_clear) return;

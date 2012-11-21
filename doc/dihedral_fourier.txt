@@ -15,7 +15,7 @@ dihedral_style fourier :pre
 [Examples:]
 
 dihedral_style fourier
-dihedral_coeff 3 -0.846200 3 0 7.578800 1 0 0.138000 2 -180 :pre
+dihedral_coeff 3 -0.846200 3 0.0 7.578800 1 0 0.138000 2 -180.0 :pre
 
 [Description:]
 
@@ -31,11 +31,11 @@ or "read_restart"_read_restart.html commands:
 m (integer >=1)
 K1 (energy)
 n1 (integer >= 0)
-d1 (integer value of degrees)
+d1 (degrees)
 ....
 Km (energy)
 nm (integer >= 0)
-dm (integer value of degrees)
+dm (degrees) :ul
 
 :line
 

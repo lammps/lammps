@@ -35,8 +35,8 @@ class DihedralFourier : public Dihedral {
   void read_restart(FILE *);
 
  protected:
-  double **k,**cos_shift,**sin_shift;
-  int **multiplicity,**shift;
+  double **k,**cos_shift,**sin_shift,**shift;
+  int **multiplicity;
   int *nterms;
   int implicit,weightflag;
 

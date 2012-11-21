@@ -78,21 +78,18 @@ void ImproperFourier::compute(int eflag, int vflag)
     vb1x = x[i2][0] - x[i1][0];
     vb1y = x[i2][1] - x[i1][1];
     vb1z = x[i2][2] - x[i1][2];
-    domain->minimum_image(vb1x,vb1y,vb1z);
 
     // 2nd bond
 
     vb2x = x[i3][0] - x[i1][0];
     vb2y = x[i3][1] - x[i1][1];
     vb2z = x[i3][2] - x[i1][2];
-    domain->minimum_image(vb2x,vb2y,vb2z);
 
     // 3rd bond
 
     vb3x = x[i4][0] - x[i1][0];
     vb3y = x[i4][1] - x[i1][1];
     vb3z = x[i4][2] - x[i1][2];
-    domain->minimum_image(vb3x,vb3y,vb3z);
 
     addone(i1,i2,i3,i4, type,evflag,eflag,
            vb1x, vb1y, vb1z, 
@@ -165,13 +162,17 @@ void ImproperFourier::addone(const int &i1,const int &i2,const int &i3,const int
               me,update->ntimestep,
               atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
       error->warning(FLERR,str,0);
-      fprintf(screen,"  1st atom: %d %g %g %g\n", me,x[i1][0],x[i1][1],x[i1][2]);
-      fprintf(screen,"  2nd atom: %d %g %g %g\n", me,x[i2][0],x[i2][1],x[i2][2]);
-      fprintf(screen,"  3rd atom: %d %g %g %g\n", me,x[i3][0],x[i3][1],x[i3][2]);
-      fprintf(screen,"  4th atom: %d %g %g %g\n", me,x[i4][0],x[i4][1],x[i4][2]);
+      fprintf(screen,"  1st atom: %d %g %g %g\n",
+              me,x[i1][0],x[i1][1],x[i1][2]);
+      fprintf(screen,"  2nd atom: %d %g %g %g\n",
+              me,x[i2][0],x[i2][1],x[i2][2]);
+      fprintf(screen,"  3rd atom: %d %g %g %g\n",
+              me,x[i3][0],x[i3][1],x[i3][2]);
+      fprintf(screen,"  4th atom: %d %g %g %g\n",
+              me,x[i4][0],x[i4][1],x[i4][2]);
     }
   }
-    
+
   if (c > 1.0) s = 1.0;
   if (c < -1.0) s = -1.0;
 
@@ -179,15 +180,15 @@ void ImproperFourier::addone(const int &i1,const int &i2,const int &i3,const int
   if (s < SMALL) s = SMALL;
   cotphi = c/s;
 
-  projhfg = (vb3x*vb1x+vb3y*vb1y+vb3z*vb1z) / 
-    sqrt(vb1x*vb1x+vb1y*vb1y+vb1z*vb1z); 
-  projhfg += (vb3x*vb2x+vb3y*vb2y+vb3z*vb2z) / 
+  projhfg = (vb3x*vb1x+vb3y*vb1y+vb3z*vb1z) /
+    sqrt(vb1x*vb1x+vb1y*vb1y+vb1z*vb1z);
+  projhfg += (vb3x*vb2x+vb3y*vb2y+vb3z*vb2z) /
     sqrt(vb2x*vb2x+vb2y*vb2y+vb2z*vb2z);
   if (projhfg > 0.0) {
     s *= -1.0;
     cotphi *= -1.0;
   }
-      
+
   //  force and energy
   //  E = k ( C0 + C1 cos(w) + C2 cos(w)
 

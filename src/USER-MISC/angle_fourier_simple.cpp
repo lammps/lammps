@@ -13,7 +13,7 @@
 
 /* ----------------------------------------------------------------------
    Contributing author: Loukas D. Peristeras (Scienomics SARL)
-   [ based on angle_cosine_quared.cpp Naveen Michaud-Agrawal (Johns Hopkins U)]
+   [ based on angle_cosine_squared.cpp Naveen Michaud-Agrawal (Johns Hopkins U)]
 ------------------------------------------------------------------------- */
 
 #include "math.h"
@@ -98,12 +98,12 @@ void AngleFourierSimple::compute(int eflag, int vflag)
 
     c = delx1*delx2 + dely1*dely2 + delz1*delz2;
     c /= r1*r2;
-        
+
     if (c > 1.0) c = 1.0;
     if (c < -1.0) c = -1.0;
-        
+
     // force & energy
-	
+
     th = acos(c);
     nth = N[type]*acos(c);
     cn = cos(nth);
@@ -160,7 +160,7 @@ void AngleFourierSimple::compute(int eflag, int vflag)
     }
 
     if (evflag) ev_tally(i1,i2,i3,nlocal,newton_bond,eangle,f1,f3,
-			 delx1,dely1,delz1,delx2,dely2,delz2);
+                         delx1,dely1,delz1,delx2,dely2,delz2);
   }
 }
 
@@ -256,7 +256,7 @@ double AngleFourierSimple::single(int type, int i1, int i2, int i3)
   double delz1 = x[i1][2] - x[i2][2];
   domain->minimum_image(delx1,dely1,delz1);
   double r1 = sqrt(delx1*delx1 + dely1*dely1 + delz1*delz1);
-  
+
   double delx2 = x[i3][0] - x[i2][0];
   double dely2 = x[i3][1] - x[i2][1];
   double delz2 = x[i3][2] - x[i2][2];
@@ -268,7 +268,7 @@ double AngleFourierSimple::single(int type, int i1, int i2, int i3)
   if (c > 1.0) c = 1.0;
   if (c < -1.0) c = -1.0;
   double cn = cos(N[type]*acos(c));
-  
+
   double eng = k[type]*(1.0+C[type]*cn);
   return eng;
 }

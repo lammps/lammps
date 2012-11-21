@@ -41,7 +41,7 @@ class PairGranHookeHistory : public Pair {
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
   void reset_dt();
-  double single(int, int, int, int, double, double, double, double &);
+  virtual double single(int, int, int, int, double, double, double, double &);
   int pack_comm(int, int *, double *, int, int *);
   void unpack_comm(int, int, double *);
   void *extract(const char *, int &);

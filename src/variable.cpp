@@ -3007,7 +3007,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
         else if (method == XMAX) value = MAX(value,vec[j]);
         else if (method == AVE) value += vec[j];
         else if (method == TRAP) {
-          if (i > 0 && i < nvec-1) value += vec[j];
+          if (i > 1 && i < nvec-1) value += vec[j];
           else value += 0.5*vec[j];
         }
         j += nstride;

@@ -99,7 +99,9 @@ command.  Thus, if the box size/shape changes dramatically, the
 mapping of processors to the simulation box may not end up as optimal
 as the initial mapping attempted to be.
 
-[Restrictions:] none
+:line
+
+[Restrictions:]
 
 You cannot rotate around any rotation vector except the z-axis for a
 2d simulation.

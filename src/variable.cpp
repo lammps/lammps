@@ -50,7 +50,7 @@ enum{ARG,OP};
 
 enum{DONE,ADD,SUBTRACT,MULTIPLY,DIVIDE,CARAT,UNARY,
      NOT,EQ,NE,LT,LE,GT,GE,AND,OR,
-     SQRT,EXP,LN,LOG,SIN,COS,TAN,ASIN,ACOS,ATAN,ATAN2,
+     SQRT,EXP,LN,LOG,ABS,SIN,COS,TAN,ASIN,ACOS,ATAN,ATAN2,
      RANDOM,NORMAL,CEIL,FLOOR,ROUND,RAMP,STAGGER,LOGFREQ,STRIDE,
      VDISPLACE,SWIGGLE,CWIGGLE,GMASK,RMASK,GRMASK,
      VALUE,ATOMARRAY,TYPEARRAY,INTARRAY};
@@ -661,7 +661,7 @@ void Variable::copy(int narg, char **from, char **to)
      thermo keyword = ke, vol, atoms, ...
      math operation = (),-x,x+y,x-y,x*y,x/y,x^y,
                       x==y,x!=y,x<y,x<=y,x>y,x>=y,x&&y,x||y,
-                      sqrt(x),exp(x),ln(x),log(x),
+                      sqrt(x),exp(x),ln(x),log(x),abs(x),
                       sin(x),cos(x),tan(x),asin(x),atan2(y,x),...
      group function = count(group), mass(group), xcm(group,x), ...
      special function = sum(x),min(x), ...
@@ -1481,7 +1481,7 @@ double Variable::evaluate(char *str, Tree **tree)
    remainder is converted to single VALUE
    this enables optimal eval_tree loop over atoms
    customize by adding a function:
-     sqrt(),exp(),ln(),log(),sin(),cos(),tan(),asin(),acos(),atan(),
+     sqrt(),exp(),ln(),log(),abs(),sin(),cos(),tan(),asin(),acos(),atan(),
      atan2(y,x),random(x,y,z),normal(x,y,z),ceil(),floor(),round(),
      ramp(x,y),stagger(x,y),logfreq(x,y,z),stride(x,y,z),
      vdisplace(x,y),swiggle(x,y,z),cwiggle(x,y,z),
@@ -1676,6 +1676,14 @@ double Variable::collapse_tree(Tree *tree)
     if (arg1 <= 0.0)
       error->one(FLERR,"Log of zero/negative value in variable formula");
     tree->value = log10(arg1);
+    return tree->value;
+  }
+
+  if (tree->type == ABS) {
+    arg1 = collapse_tree(tree->left);
+    if (tree->left->type != VALUE) return 0.0;
+    tree->type = VALUE;
+    tree->value = fabs(arg1);
     return tree->value;
   }
 
@@ -2001,6 +2009,8 @@ double Variable::eval_tree(Tree *tree, int i)
       error->one(FLERR,"Log of zero/negative value in variable formula");
     return log10(arg1);
   }
+  if (tree->type == ABS)
+    return fabs(eval_tree(tree->left,i));
 
   if (tree->type == SIN)
     return sin(eval_tree(tree->left,i));
@@ -2243,7 +2253,7 @@ int Variable::int_between_brackets(char *&ptr)
    contents = str between parentheses with one,two,three args
    return 0 if not a match, 1 if successfully processed
    customize by adding a math function:
-     sqrt(),exp(),ln(),log(),sin(),cos(),tan(),asin(),acos(),atan(),
+     sqrt(),exp(),ln(),log(),abs(),sin(),cos(),tan(),asin(),acos(),atan(),
      atan2(y,x),random(x,y,z),normal(x,y,z),ceil(),floor(),round(),
      ramp(x,y),stagger(x,y),logfreq(x,y,z),stride(x,y,z),
      vdisplace(x,y),swiggle(x,y,z),cwiggle(x,y,z)
@@ -2257,6 +2267,7 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
 
   if (strcmp(word,"sqrt") && strcmp(word,"exp") &&
       strcmp(word,"ln") && strcmp(word,"log") &&
+      strcmp(word,"abs") && 
       strcmp(word,"sin") && strcmp(word,"cos") &&
       strcmp(word,"tan") && strcmp(word,"asin") &&
       strcmp(word,"acos") && strcmp(word,"atan") &&
@@ -2372,6 +2383,11 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
         error->all(FLERR,"Log of zero/negative value in variable formula");
       argstack[nargstack++] = log10(value1);
     }
+  } else if (strcmp(word,"abs") == 0) {
+    if (narg != 1)
+      error->all(FLERR,"Invalid math function in variable formula");
+    if (tree) newtree->type = ABS;
+    else argstack[nargstack++] = fabs(value1);
 
   } else if (strcmp(word,"sin") == 0) {
     if (narg != 1)
@@ -3007,7 +3023,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
         else if (method == XMAX) value = MAX(value,vec[j]);
         else if (method == AVE) value += vec[j];
         else if (method == TRAP) {
-          if (i > 1 && i < nvec-1) value += vec[j];
+          if (i > 0 && i < nvec-1) value += vec[j];
           else value += 0.5*vec[j];
         }
         j += nstride;
@@ -3024,7 +3040,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
         else if (method == XMAX) value = MAX(value,one);
         else if (method == AVE) value += one;
         else if (method == TRAP) {
-          if (i > 1 && i < nvec-1) value += one;
+          if (i > 0 && i < nvec-1) value += one;
           else value += 0.5*one;
         }
       }

@@ -156,7 +156,7 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
       int col2 = atoi(arg[iarg+2]) - 1;
       if (col1 < 0 || col1 >= nvalues || col2 < 0 || col2 >= nvalues)
         error->all(FLERR,"Illegal compute reduce command");
-      if (col1 == col2)        error->all(FLERR,"Illegal compute reduce command");
+      if (col1 == col2) error->all(FLERR,"Illegal compute reduce command");
       if (replace[col1] >= 0 || replace[col2] >= 0)
         error->all(FLERR,"Invalid replace values in compute reduce");
       replace[col1] = col2;

@@ -760,7 +760,7 @@ void Output::memory_usage()
   bytes += update->memory_usage();
   bytes += force->memory_usage();
   bytes += modify->memory_usage();
-  for (int i = 0; i < ndump; i++) dump[i]->memory_usage();
+  for (int i = 0; i < ndump; i++) bytes += dump[i]->memory_usage();
 
   double mbytes = bytes/1024.0/1024.0;
 

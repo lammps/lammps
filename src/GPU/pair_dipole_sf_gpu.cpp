@@ -303,6 +303,7 @@ void PairDipoleSFGPU::cpu_compute(int start, int inum, int eflag, int vflag,
           if (mu[i][3] > 0.0 && q[j] != 0.0) { 
             r3inv = r2inv*rinv;
             r5inv = r3inv*r2inv;
+            pidotr = mu[i][0]*delx + mu[i][1]*dely + mu[i][2]*delz; 
             rcutcoul2inv=1.0/cut_coulsq[itype][jtype];
             pre1 = 3.0 * q[j] * r5inv * pidotr * (1-rsq*rcutcoul2inv);
             pqfac = 1.0 - 3.0*rsq*rcutcoul2inv + 
@@ -320,6 +321,7 @@ void PairDipoleSFGPU::cpu_compute(int start, int inum, int eflag, int vflag,
           if (mu[j][3] > 0.0 && qtmp != 0.0) { 
             r3inv = r2inv*rinv;
             r5inv = r3inv*r2inv;
+            pjdotr = mu[j][0]*delx + mu[j][1]*dely + mu[j][2]*delz;
             rcutcoul2inv=1.0/cut_coulsq[itype][jtype];
             pre1 = 3.0 * qtmp * r5inv * pjdotr * (1-rsq*rcutcoul2inv);
             qpfac = 1.0 - 3.0*rsq*rcutcoul2inv +

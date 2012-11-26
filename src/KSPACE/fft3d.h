@@ -314,14 +314,18 @@ struct fft_plan_3d {
 
 // function prototypes
 
-void fft_3d(FFT_DATA *, FFT_DATA *, int, struct fft_plan_3d *);
-struct fft_plan_3d *fft_3d_create_plan(MPI_Comm, int, int, int,
-  int, int, int, int, int, int, int, int, int, int, int, int,
-  int, int, int *);
-void fft_3d_destroy_plan(struct fft_plan_3d *);
-void factor(int, int *, int *);
-void bifactor(int, int *, int *);
-void fft_1d_only(FFT_DATA *, int, int, struct fft_plan_3d *);
+extern "C" { 
+  void fft_3d(FFT_DATA *, FFT_DATA *, int, struct fft_plan_3d *);
+  struct fft_plan_3d *fft_3d_create_plan(MPI_Comm, int, int, int,
+                                         int, int, int, int, int, 
+                                         int, int, int, int, int, int, int,
+                                         int, int, int *);
+  void fft_3d_destroy_plan(struct fft_plan_3d *);
+  void factor(int, int *, int *);
+  void bifactor(int, int *, int *);
+  void fft_1d_only(FFT_DATA *, int, int, struct fft_plan_3d *);
+}
+
 /* ERROR/WARNING messages:
 
 */

@@ -1,4 +1,4 @@
-/* -*- c++ -*- ----------------------------------------------------------
+/* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -13,25 +13,23 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(gran/hooke/history,PairGranHookeHistory)
+PairStyle(mie/cut,PairMIECut)
 
 #else
 
-#ifndef LMP_PAIR_GRAN_HOOKE_HISTORY_H
-#define LMP_PAIR_GRAN_HOOKE_HISTORY_H
+#ifndef LMP_PAIR_MIE_CUT_H
+#define LMP_PAIR_MIE_CUT_H
 
 #include "pair.h"
 
 namespace LAMMPS_NS {
 
-class PairGranHookeHistory : public Pair {
+class PairMIECut : public Pair {
  public:
-  int computeflag;
-
-  PairGranHookeHistory(class LAMMPS *);
-  virtual ~PairGranHookeHistory();
+  PairMIECut(class LAMMPS *);
+  virtual ~PairMIECut();
   virtual void compute(int, int);
-  virtual void settings(int, char **);
+  void settings(int, char **);
   void coeff(int, char **);
   void init_style();
   void init_list(int, class NeighList *);
@@ -40,28 +38,20 @@ class PairGranHookeHistory : public Pair {
   void read_restart(FILE *);
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
-  void reset_dt();
-  virtual double single(int, int, int, int, double, double, double, double &);
-  int pack_comm(int, int *, double *, int, int *);
-  void unpack_comm(int, int, double *);
+  double single(int, int, int, int, double, double, double, double &);
   void *extract(const char *, int &);
 
+  void compute_inner();
+  void compute_middle();
+  void compute_outer(int, int);
+
  protected:
-  double kn,kt,gamman,gammat,xmu;
-  int dampflag;
-  double dt;
-  int freeze_group_bit;
-  int history;
-
-  char *suffix;
-  int neighprev;
-  double *onerad_dynamic,*onerad_frozen;
-  double *maxrad_dynamic,*maxrad_frozen;
-
-  class FixShearHistory *fix_history;
-  class Fix *fix_rigid;
-  int *body;
-  double *mass_rigid;
+  double cut_global;
+  double **cut;
+  double **epsilon,**sigma;
+  double **gamR,**gamA,**Cmie;
+  double **mie1,**mie2,**mie3,**mie4,**offset;
+  double *cut_respa;
 
   void allocate();
 };
@@ -83,17 +73,9 @@ E: Incorrect args for pair coefficients
 
 Self-explanatory.  Check the input script or data file.
 
-E: Pair granular requires atom style sphere
+E: Pair cutoff < Respa interior cutoff
 
-Self-explanatory.
-
-E: Pair granular requires ghost atoms store velocity
-
-Use the communicate vel yes command to enable this.
-
-E: Pair granular with shear history requires newton pair off
-
-This is a current restriction of the implementation of pair
-granular styles with history.
+One or more pairwise cutoffs are too short to use with the specified
+rRESPA cutoffs.
 
 */

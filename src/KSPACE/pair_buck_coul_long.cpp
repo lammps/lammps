@@ -150,6 +150,7 @@ void PairBuckCoulLong::compute(int eflag, int vflag)
         } else forcecoul = 0.0;
 
         if (rsq < cut_ljsq[itype][jtype]) {
+          r = sqrt(rsq);
           r6inv = r2inv*r2inv*r2inv;
           rexp = exp(-r*rhoinv[itype][jtype]);
           forcebuck = buck1[itype][jtype]*r*rexp - buck2[itype][jtype]*r6inv;
@@ -358,7 +359,8 @@ void PairBuckCoulLong::init_style()
   neighbor->request(this);
   
   // setup force tables
-  if (ncoultablebits) init_tables(cut_coul,cut_respa);
+
+  if (ncoultablebits) init_tables(cut_coul,NULL);
 }
 
 /* ----------------------------------------------------------------------

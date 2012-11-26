@@ -122,21 +122,22 @@ It should be used with <A HREF = "pair_style.html">pair styles</A> with a
 </P>
 <HR>
 
-<P>The <I>pppm/disp</I> and <I>pppm/disp/tip4p</I> styles add a long-range
-dispersion sum option for 1/r^6 potentials, similar to the
-<I>ewald/disp</I> style.  The 1/r^6 capability means that Lennard-Jones or
-Buckingham potentials can be used without a cutoff, i.e. they become
-full long-range potentials.
+<P>The <I>pppm/disp</I> and <I>pppm/disp/tip4p</I> styles add a mesh-based long-range
+dispersion sum option for 1/r^6 potentials <A HREF = "#Isele-Holder">(Isele-Holder)</A>,
+similar to the <I>ewald/disp</I> style. The 1/r^6 capability means
+that Lennard-Jones or Buckingham potentials can be used without a cutoff,
+i.e. they become full long-range potentials.
 </P>
 <P>For these styles, it is currently recommended that you set the
 dispersion mesh size and other parameters explicitly via the
 <A HREF = "kspace_modify.html">kspace_modify</A> command, rather than let LAMMPS set
 them automatically.  For example, a set of parameters that works well
-for TIP4P water models is a LJ cutoff of 10 Angstrom, interpolation
-order = 5 (the default), grid spacing = 4.17 Angstroms, and Ewald
-parameter = 0.28.  These parameters work well for the <I>ik</I>
-differentiation.  For the <I>ad</I> setting, a smaller grid is needed,
-e.g. 3 Angstroms.
+for surface systems when using real units is a LJ cutoff of 10 Angstrom,
+interpolation order = 5 (the default), grid spacing = 4.17 Angstroms,
+and Ewald parameter = 0.28.  These parameters work well for the <I>ik</I>
+differentiation.  For the <I>ad</I> setting, a smaller grid spacing is needed,
+e.g. 3 Angstroms. Further information on the influence of the parameters
+and how to choose them is described in <A HREF = "#Isele-Holder">(Isele-Holder)</A>.
 </P>
 <HR>
 
@@ -281,6 +282,10 @@ Adam Hilger, NY (1989).
 <A NAME = "Veld"></A>
 
 <P><B>(Veld)</B> In 't Veld, Ismail, Grest, J Chem Phys, in press (2007).
+</P>
+<A NAME = "Isele-Holder"></A>
+
+<P><B>(Isele-Holder)</B> Isele-Holder, Mitchell, Ismail, J Chem Phys, 137, 174107 (2012). 
 </P>
 <A NAME = "Hardy"></A>
 

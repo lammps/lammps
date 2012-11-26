@@ -104,27 +104,23 @@ void DihedralFourier::compute(int eflag, int vflag)
     vb1x = x[i1][0] - x[i2][0];
     vb1y = x[i1][1] - x[i2][1];
     vb1z = x[i1][2] - x[i2][2];
-    domain->minimum_image(vb1x,vb1y,vb1z);
 
     // 2nd bond
 
     vb2x = x[i3][0] - x[i2][0];
     vb2y = x[i3][1] - x[i2][1];
     vb2z = x[i3][2] - x[i2][2];
-    domain->minimum_image(vb2x,vb2y,vb2z);
 
     vb2xm = -vb2x;
     vb2ym = -vb2y;
     vb2zm = -vb2z;
-    domain->minimum_image(vb2xm,vb2ym,vb2zm);
 
     // 3rd bond
 
     vb3x = x[i4][0] - x[i3][0];
     vb3y = x[i4][1] - x[i3][1];
     vb3z = x[i4][2] - x[i3][2];
-    domain->minimum_image(vb3x,vb3y,vb3z);
-    
+
     ax = vb1y*vb2zm - vb1z*vb2ym;
     ay = vb1z*vb2xm - vb1x*vb2zm;
     az = vb1x*vb2ym - vb1y*vb2xm;
@@ -136,7 +132,7 @@ void DihedralFourier::compute(int eflag, int vflag)
     rbsq = bx*bx + by*by + bz*bz;
     rgsq = vb2xm*vb2xm + vb2ym*vb2ym + vb2zm*vb2zm;
     rg = sqrt(rgsq);
-    
+
     rginv = ra2inv = rb2inv = 0.0;
     if (rg > 0) rginv = 1.0/rg;
     if (rasq > 0) ra2inv = 1.0/rasq;
@@ -152,22 +148,22 @@ void DihedralFourier::compute(int eflag, int vflag)
       int me;
       MPI_Comm_rank(world,&me);
       if (screen) {
-	char str[128];
-	sprintf(str,"Dihedral problem: %d " BIGINT_FORMAT " %d %d %d %d",
-		me,update->ntimestep,
-		atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
-	error->warning(FLERR,str,0);
-	fprintf(screen,"  1st atom: %d %g %g %g\n",
-		me,x[i1][0],x[i1][1],x[i1][2]);
-	fprintf(screen,"  2nd atom: %d %g %g %g\n",
-		me,x[i2][0],x[i2][1],x[i2][2]);
-	fprintf(screen,"  3rd atom: %d %g %g %g\n",
-		me,x[i3][0],x[i3][1],x[i3][2]);
-	fprintf(screen,"  4th atom: %d %g %g %g\n",
-		me,x[i4][0],x[i4][1],x[i4][2]);
+        char str[128];
+        sprintf(str,"Dihedral problem: %d " BIGINT_FORMAT " %d %d %d %d",
+                me,update->ntimestep,
+                atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
+        error->warning(FLERR,str,0);
+        fprintf(screen,"  1st atom: %d %g %g %g\n",
+                me,x[i1][0],x[i1][1],x[i1][2]);
+        fprintf(screen,"  2nd atom: %d %g %g %g\n",
+                me,x[i2][0],x[i2][1],x[i2][2]);
+        fprintf(screen,"  3rd atom: %d %g %g %g\n",
+                me,x[i3][0],x[i3][1],x[i3][2]);
+        fprintf(screen,"  4th atom: %d %g %g %g\n",
+                me,x[i4][0],x[i4][1],x[i4][2]);
       }
     }
-    
+
     if (c > 1.0) c = 1.0;
     if (c < -1.0) c = -1.0;
 
@@ -209,7 +205,7 @@ void DihedralFourier::compute(int eflag, int vflag)
     hgb = hg*rb2inv*rginv;
     gaa = -ra2inv*rg;
     gbb = rb2inv*rg;
-    
+
     dtfx = gaa*ax;
     dtfy = gaa*ay;
     dtfz = gaa*az;
@@ -219,7 +215,7 @@ void DihedralFourier::compute(int eflag, int vflag)
     dthx = gbb*bx;
     dthy = gbb*by;
     dthz = gbb*bz;
- 
+
     sx2 = df*dtgx;
     sy2 = df*dtgy;
     sz2 = df*dtgz;
@@ -268,7 +264,7 @@ void DihedralFourier::compute(int eflag, int vflag)
 
     if (evflag)
       ev_tally(i1,i2,i3,i4,nlocal,newton_bond,edihedral,f1,f3,f4,
-	       vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z);
+               vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z);
 
   }
 }
@@ -283,12 +279,12 @@ void DihedralFourier::allocate()
   memory->create(nterms,n+1,"dihedral:nterms");
   k = new double * [n+1];
   multiplicity = new int * [n+1];
-  shift = new int * [n+1];
+  shift = new double * [n+1];
   cos_shift = new double * [n+1];
   sin_shift = new double * [n+1];
   for (int i = 1; i <= n; i++) {
-    k[i] = cos_shift[i] = sin_shift[i] = 0;
-    multiplicity[i] = shift[i] = 0;
+    k[i] = shift[i] = cos_shift[i] = sin_shift[i] = 0;
+    multiplicity[i] = 0;
   }
   
   memory->create(setflag,n+1,"dihedral:setflag");
@@ -306,14 +302,14 @@ void DihedralFourier::coeff(int narg, char **arg)
 
   int ilo,ihi;
   force->bounds(arg[0],atom->ndihedraltypes,ilo,ihi);
-  
+
   // require integer values of shift for backwards compatibility
   // arbitrary phase angle shift could be allowed, but would break
   //   backwards compatibility and is probably not needed
-  
+
   double k_one;
   int multiplicity_one;
-  int shift_one;
+  double shift_one;
   int nterms_one = force->inumeric(arg[1]);
 
   if (nterms_one < 1)
@@ -327,14 +323,14 @@ void DihedralFourier::coeff(int narg, char **arg)
     nterms[i] = nterms_one;
     k[i] = new double [nterms_one];
     multiplicity[i] = new int [nterms_one];
-    shift[i] = new int [nterms_one];
+    shift[i] = new double [nterms_one];
     cos_shift[i] = new double [nterms_one]; 
     sin_shift[i] = new double [nterms_one]; 
     for (int j = 0; j<nterms_one; j++) {
       int offset = 1+3*j;
       k_one = force->numeric(arg[offset+1]);
       multiplicity_one = force->inumeric(arg[offset+2]);
-      shift_one = force->inumeric(arg[offset+3]);
+      shift_one = force->numeric(arg[offset+3]);
       k[i][j] = k_one;
       multiplicity[i][j] = multiplicity_one;
       shift[i][j] = shift_one;
@@ -359,7 +355,7 @@ void DihedralFourier::write_restart(FILE *fp)
   for(int i = 1; i <= atom->ndihedraltypes; i++) {
     fwrite(k[i],sizeof(double),nterms[i],fp);
     fwrite(multiplicity[i],sizeof(int),nterms[i],fp);
-    fwrite(shift[i],sizeof(int),nterms[i],fp);
+    fwrite(shift[i],sizeof(double),nterms[i],fp);
   }
 
 }
@@ -381,7 +377,7 @@ void DihedralFourier::read_restart(FILE *fp)
   for (int i=1; i<=atom->ndihedraltypes; i++) {
     k[i] = new double [nterms[i]];
     multiplicity[i] = new int [nterms[i]];
-    shift[i] = new int [nterms[i]];
+    shift[i] = new double [nterms[i]];
     cos_shift[i] = new double [nterms[i]];
     sin_shift[i] = new double [nterms[i]];
   }
@@ -390,14 +386,14 @@ void DihedralFourier::read_restart(FILE *fp)
     for (int i=1; i<=atom->ndihedraltypes; i++) {
       fread(k[i],sizeof(double),nterms[i],fp);
       fread(multiplicity[i],sizeof(int),nterms[i],fp);
-      fread(shift[i],sizeof(int),nterms[i],fp);
+      fread(shift[i],sizeof(double),nterms[i],fp);
     }
   }
 
   for (int i=1; i<=atom->ndihedraltypes; i++) {
     MPI_Bcast(k[i],nterms[i],MPI_DOUBLE,0,world);
     MPI_Bcast(multiplicity[i],nterms[i],MPI_INT,0,world);
-    MPI_Bcast(shift[i],nterms[i],MPI_INT,0,world);
+    MPI_Bcast(shift[i],nterms[i],MPI_DOUBLE,0,world);
   }
 
   for (int i=1; i <= atom->ndihedraltypes; i++) {

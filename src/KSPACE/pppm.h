@@ -150,10 +150,10 @@ class PPPM : public KSpace {
 
   // grid communication
 
-  void pack_forward(int, FFT_SCALAR *, int, int *);
-  void unpack_forward(int, FFT_SCALAR *, int, int *);
-  void pack_reverse(int, FFT_SCALAR *, int, int *);
-  void unpack_reverse(int, FFT_SCALAR *, int, int *);
+  virtual void pack_forward(int, FFT_SCALAR *, int, int *);
+  virtual void unpack_forward(int, FFT_SCALAR *, int, int *);
+  virtual void pack_reverse(int, FFT_SCALAR *, int, int *);
+  virtual void unpack_reverse(int, FFT_SCALAR *, int, int *);
 
   // group-group interactions
 

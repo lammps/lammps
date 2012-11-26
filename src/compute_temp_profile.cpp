@@ -27,6 +27,8 @@
 
 using namespace LAMMPS_NS;
 
+enum{TENSOR,BIN};
+
 /* ---------------------------------------------------------------------- */
 
 ComputeTempProfile::ComputeTempProfile(LAMMPS *lmp, int narg, char **arg) :
@@ -34,10 +36,8 @@ ComputeTempProfile::ComputeTempProfile(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 7) error->all(FLERR,"Illegal compute temp/profile command");
 
-  scalar_flag = vector_flag = 1;
-  size_vector = 6;
+  scalar_flag = 1;
   extscalar = 0;
-  extvector = 1;
   tempflag = 1;
   tempbias = 1;
 
@@ -54,42 +54,68 @@ ComputeTempProfile::ComputeTempProfile(LAMMPS *lmp, int narg, char **arg) :
   if (zflag) ivz = ncount++;
 
   nbinx = nbiny = nbinz = 1;
+  int lastarg;
 
-  if (strcmp(arg[6],"x") == 0) {
-    if (narg != 8) error->all(FLERR,"Illegal compute temp/profile command");
-    nbinx = atoi(arg[7]);
-  } else if (strcmp(arg[6],"y") == 0) {
-    if (narg != 8) error->all(FLERR,"Illegal compute temp/profile command");
-    nbiny = atoi(arg[7]);
-  } else if (strcmp(arg[6],"z") == 0) {
-    if (narg != 8) error->all(FLERR,"Illegal compute temp/profile command");
+  int iarg = 6;
+  if (strcmp(arg[iarg],"x") == 0) {
+    if (iarg+2 > narg) error->all(FLERR,"Illegal compute temp/profile command");
+    nbinx = atoi(arg[iarg+1]);
+    iarg += 2;
+  } else if (strcmp(arg[iarg],"y") == 0) {
+    if (iarg+2 > narg) error->all(FLERR,"Illegal compute temp/profile command");
+    nbiny = atoi(arg[iarg+1]);
+    iarg += 2;
+  } else if (strcmp(arg[iarg],"z") == 0) {
+    if (iarg+2 > narg) error->all(FLERR,"Illegal compute temp/profile command");
     if (domain->dimension == 2)
       error->all(FLERR,"Compute temp/profile cannot bin z for 2d systems");
-    nbinz = atoi(arg[7]);
-  } else if (strcmp(arg[6],"xy") == 0) {
-    if (narg != 9) error->all(FLERR,"Illegal compute temp/profile command");
-    nbinx = atoi(arg[7]);
-    nbiny = atoi(arg[8]);
-  } else if (strcmp(arg[6],"yz") == 0) {
-    if (narg != 9) error->all(FLERR,"Illegal compute temp/profile command");
+    nbinz = atoi(arg[iarg+1]);
+    iarg += 2;
+  } else if (strcmp(arg[iarg],"xy") == 0) {
+    if (iarg+3 > narg) error->all(FLERR,"Illegal compute temp/profile command");
+    nbinx = atoi(arg[iarg+1]);
+    nbiny = atoi(arg[iarg+2]);
+    iarg += 3;
+  } else if (strcmp(arg[iarg],"yz") == 0) {
+    if (iarg+3 > narg) error->all(FLERR,"Illegal compute temp/profile command");
     if (domain->dimension == 2)
       error->all(FLERR,"Compute temp/profile cannot bin z for 2d systems");
-    nbiny = atoi(arg[7]);
-    nbinz = atoi(arg[8]);
-  } else if (strcmp(arg[6],"xz") == 0) {
-    if (narg != 9) error->all(FLERR,"Illegal compute temp/profile command");
+    nbiny = atoi(arg[iarg+1]);
+    nbinz = atoi(arg[iarg+2]);
+    iarg += 3;
+  } else if (strcmp(arg[iarg],"xz") == 0) {
+    if (iarg+3 > narg) error->all(FLERR,"Illegal compute temp/profile command");
     if (domain->dimension == 2)
       error->all(FLERR,"Compute temp/profile cannot bin z for 2d systems");
-    nbinx = atoi(arg[7]);
-    nbinz = atoi(arg[8]);
-  } else if (strcmp(arg[6],"xyz") == 0) {
-    if (narg != 10) error->all(FLERR,"Illegal compute temp/profile command");
+    nbinx = atoi(arg[iarg+1]);
+    nbinz = atoi(arg[iarg+2]);
+    iarg += 3;
+  } else if (strcmp(arg[iarg],"xyz") == 0) {
+    if (iarg+4 > narg) error->all(FLERR,"Illegal compute temp/profile command");
     if (domain->dimension == 2)
       error->all(FLERR,"Compute temp/profile cannot bin z for 2d systems");
-    nbinx = atoi(arg[7]);
-    nbiny = atoi(arg[8]);
-    nbinz = atoi(arg[9]);
+    nbinx = atoi(arg[iarg+1]);
+    nbiny = atoi(arg[iarg+2]);
+    nbinz = atoi(arg[iarg+3]);
+    iarg += 4;
   } else error->all(FLERR,"Illegal compute temp/profile command");
+
+  // optional keywords
+
+  outflag = TENSOR;
+  
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"out") == 0) {
+      if (iarg+2 > narg)
+        error->all(FLERR,"Illegal compute temp/profile command");
+      if (strcmp(arg[iarg+1],"tensor") == 0) outflag = TENSOR;
+      else if (strcmp(arg[iarg+1],"bin") == 0) outflag = BIN;
+      else error->all(FLERR,"Illegal compute temp/profile command");
+      iarg += 2;
+    } else error->all(FLERR,"Illegal compute temp/profile command");
+  }
+
+  // setup
 
   nbins = nbinx*nbiny*nbinz;
   if (nbins <= 0) error->all(FLERR,"Illegal compute temp/profile command");
@@ -97,12 +123,26 @@ ComputeTempProfile::ComputeTempProfile(LAMMPS *lmp, int narg, char **arg) :
   memory->create(vbin,nbins,ncount+1,"temp/profile:vbin");
   memory->create(binave,nbins,ncount+1,"temp/profile:binave");
 
+  if (outflag == TENSOR) {
+    vector_flag = 1;
+    size_vector = 6;
+    extvector = 1;
+    vector = new double[size_vector];
+  } else {
+    array_flag = 1;
+    size_array_rows = nbins;
+    size_array_cols = 2;
+    extarray = 0;
+    memory->create(tbin,nbins,"temp/profile:tbin");
+    memory->create(tbinall,nbins,"temp/profile:tbinall");
+    memory->create(array,nbins,2,"temp/profile:array");
+  }
+
   maxatom = 0;
   bin = NULL;
 
   maxbias = 0;
   vbiasall = NULL;
-  vector = new double[6];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -113,7 +153,12 @@ ComputeTempProfile::~ComputeTempProfile()
   memory->destroy(binave);
   memory->destroy(bin);
   memory->destroy(vbiasall);
-  delete [] vector;
+  if (outflag == TENSOR) delete [] vector;
+  else {
+    memory->destroy(tbin);
+    memory->destroy(tbinall);
+    memory->destroy(array);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -242,6 +287,58 @@ void ComputeTempProfile::compute_vector()
 
   MPI_Allreduce(t,vector,6,MPI_DOUBLE,MPI_SUM,world);
   for (i = 0; i < 6; i++) vector[i] *= force->mvv2e;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputeTempProfile::compute_array()
+{
+  int i,ibin;
+  double vthermal[3];
+
+  invoked_array = update->ntimestep;
+
+  bin_average();
+
+  double **v = atom->v;
+  double *mass = atom->mass;
+  double *rmass = atom->rmass;
+  int *type = atom->type;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  for (i = 0; i < nbins; i++) tbin[i] = 0.0;
+
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit) {
+      ibin = bin[i];
+      if (xflag) vthermal[0] = v[i][0] - binave[ibin][ivx];
+      else vthermal[0] = v[i][0];
+      if (yflag) vthermal[1] = v[i][1] - binave[ibin][ivy];
+      else vthermal[1] = v[i][1];
+      if (zflag) vthermal[2] = v[i][2] - binave[ibin][ivz];
+      else vthermal[2] = v[i][2];
+
+      if (rmass)
+        tbin[ibin] += (vthermal[0]*vthermal[0] + vthermal[1]*vthermal[1] +
+                       vthermal[2]*vthermal[2]) * rmass[i];
+      else
+        tbin[ibin] += (vthermal[0]*vthermal[0] + vthermal[1]*vthermal[1] +
+                       vthermal[2]*vthermal[2]) * mass[type[i]];
+    }
+
+  MPI_Allreduce(tbin,tbinall,nbins,MPI_DOUBLE,MPI_SUM,world);
+
+  int nper = domain->dimension;
+  for (i = 0; i < nbins; i++) {
+    array[i][0] = binave[i][ncount];
+    if (array[i][0] > 0.0) {
+      dof = nper*array[i][0] - extra_dof;
+      if (dof > 0) tfactor = force->mvv2e / (dof * force->boltz);
+      else tfactor = 0.0;
+      array[i][1] = tfactor*tbinall[i];
+    } else array[i][1] = 0.0;
+  }
 }
 
 /* ----------------------------------------------------------------------

@@ -31,6 +31,7 @@ class ComputeTempProfile : public Compute {
   void init();
   double compute_scalar();
   void compute_vector();
+  void compute_array();
 
   void remove_bias(int, double *);
   void remove_bias_all();
@@ -39,7 +40,7 @@ class ComputeTempProfile : public Compute {
   double memory_usage();
 
  private:
-  int xflag,yflag,zflag,ncount;
+  int xflag,yflag,zflag,ncount,outflag;
   int nbinx,nbiny,nbinz,nbins;
   int ivx,ivy,ivz;
   int fix_dof;
@@ -53,6 +54,7 @@ class ComputeTempProfile : public Compute {
   int maxatom;
   int *bin;
   double **vbin,**binave;
+  double *tbin,*tbinall;
 
   void dof_compute();
   void bin_average();

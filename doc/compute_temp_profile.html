@@ -32,11 +32,18 @@
   <I>xyz</I> args = Nx Ny Nz
     Nx,Ny,Nz = number of velocity bins in x,y,z dimensions 
 </PRE>
+<LI>zero or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>out</I> 
+
+<PRE>  <I>out</I> value = <I>tensor</I> or <I>bin</I> 
+</PRE>
 
 </UL>
 <P><B>Examples:</B>
 </P>
 <PRE>compute myTemp flow temp/profile 1 1 1 x 10
+compute myTemp flow temp/profile 1 1 1 x 10 out bin
 compute myTemp flow temp/profile 0 1 1 xyz 20 20 20 
 </PRE>
 <P><B>Description:</B>
@@ -77,12 +84,17 @@ T, where KE = total kinetic energy of the group of atoms (sum of 1/2 m
 v^2), dim = 2 or 3 = dimensionality of the simulation, N = number of
 atoms in the group, k = Boltzmann constant, and T = temperature.
 </P>
-<P>A kinetic energy tensor, stored as a 6-element vector, is also
-calculated by this compute for use in the computation of a pressure
-tensor.  The formula for the components of the tensor is the same as
-the above formula, except that v^2 is replaced by vx*vy for the xy
-component, etc.  The 6 components of the vector are ordered xx, yy,
-zz, xy, xz, yz.
+<P>If the <I>out</I> keyword is used with a <I>tensor</I> value, which is the
+default, a kinetic energy tensor, stored as a 6-element vector, is
+also calculated by this compute for use in the computation of a
+pressure tensor.  The formula for the components of the tensor is the
+same as the above formula, except that v^2 is replaced by vx*vy for
+the xy component, etc.  The 6 components of the vector are ordered xx,
+yy, zz, xy, xz, yz.
+</P>
+<P>If the <I>out</I> keyword is used with a <I>bin</I> value, the count of atoms
+and computed temperature for each bin are stored for output, as an
+array of values, as described below.
 </P>
 <P>The number of atoms contributing to the temperature is assumed to be
 constant for the duration of the run; use the <I>dynamic</I> option of the
@@ -106,6 +118,12 @@ atoms that include these constraints will be computed correctly.  If
 needed, the subtracted degrees-of-freedom can be altered using the
 <I>extra</I> option of the <A HREF = "compute_modify.html">compute_modify</A> command.
 </P>
+<P>IMPORTANT NOTE: When using the <I>out</I> keyword with a value of <I>bin</I>,
+the calculated temperature for each bin does not include the
+degrees-of-freedom adjustment described in the preceeding paragraph,
+for fixes that constrain molecular motion.  It does include the
+adjustment due to the <I>extra</I> option, which is applied to each bin.
+</P>
 <P>See <A HREF = "Section_howto.html#howto_16">this howto section</A> of the manual for
 a discussion of different ways to compute temperature and perform
 thermostatting.  Using this compute in conjunction with a
@@ -114,18 +132,32 @@ profile-unbiased thermostat (PUT), as described in <A HREF = "#Evans">(Evans)</A
 </P>
 <P><B>Output info:</B>
 </P>
-<P>This compute calculates a global scalar (the temperature) and a global
-vector of length 6 (KE tensor), which can be accessed by indices 1-6.
-These values can be used by any command that uses global scalar or
-vector values from a compute as input.  See <A HREF = "Section_howto.html#howto_15">this
+<P>This compute calculates a global scalar (the temperature).  Depending
+on the setting of the <I>out</I> keyword, it also calculates a global
+vector or array.  For <I>out</I> = <I>tensor</I>, it calculates a vector of
+length 6 (KE tensor), which can be accessed by indices 1-6.  For <I>out</I>
+= <I>bin</I> it calculates a global array which has 2 columns and N rows,
+where N is the number of bins.  The first column contains the number
+of atoms in that bin.  The second contains the temperature of that
+bin, calculated as described above.  The ordering of rows in the array
+is as follows.  Bins in x vary fastest, then y, then z.  Thus for a
+10x10x10 3d array of bins, there will be 1000 rows.  The bin with
+indices ix,iy,iz = 2,3,4 would map to row M = (iz-1)*10*10 + (iy-1)*10
++ ix = 322, where the rows are numbered from 1 to 1000 and the bin
+indices are numbered from 1 to 10 in each dimension.
+</P>
+<P>These values can be used by any command that uses global scalar or
+vector or array values from a compute as input.  See <A HREF = "Section_howto.html#howto_15">this
 section</A> for an overview of LAMMPS output
 options.
 </P>
 <P>The scalar value calculated by this compute is "intensive".  The
-vector values are "extensive".
+vector values are "extensive".  The array values are "intensive".
 </P>
 <P>The scalar value will be in temperature <A HREF = "units.html">units</A>.  The
-vector values will be in energy <A HREF = "units.html">units</A>.
+vector values will be in energy <A HREF = "units.html">units</A>.  The first column
+of array values are counts; the values in the second column will be in
+temperature <A HREF = "units.html">units</A>.
 </P>
 <P><B>Restrictions:</B>
 </P>
@@ -144,7 +176,7 @@ pressure</A>
 </P>
 <P><B>Default:</B>
 </P>
-<P>The option default is units = lattice.
+<P>The option default is out = tensor.
 </P>
 <HR>
 

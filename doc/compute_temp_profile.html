@@ -94,7 +94,12 @@ yy, zz, xy, xz, yz.
 </P>
 <P>If the <I>out</I> keyword is used with a <I>bin</I> value, the count of atoms
 and computed temperature for each bin are stored for output, as an
-array of values, as described below.
+array of values, as described below.  The temperature of each bin is
+calculated as described above, where the bias velocity is subtracted
+and only the remaining thermal velocity of atoms in the bin
+contributes to the temperature.  See the note below for how the
+temperature is normalized by the degrees-of-freedom of atoms in the
+bin.
 </P>
 <P>The number of atoms contributing to the temperature is assumed to be
 constant for the duration of the run; use the <I>dynamic</I> option of the

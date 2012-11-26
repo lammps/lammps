@@ -48,8 +48,8 @@ MPI_LIB =	-lmpich
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-FFT_INC =       -DFFT_FFTW -I/cygdrive/c/cygwin/fftw/include
-FFT_PATH =	-L/cygdrive/c/cygwin/fftw/lib 
+FFT_INC =       -DFFT_FFTW -I/cygdrive/c/cygwin/usr/local/include
+FFT_PATH =	-L/cygdrive/c/cygwin/usr/local/lib 
 FFT_LIB =	-lfftw
 
 # JPEG library, OPTIONAL

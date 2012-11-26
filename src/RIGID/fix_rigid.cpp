@@ -2090,6 +2090,7 @@ void FixRigid::readfile(int which, double *vec, double **array, int *inbody)
         if (eof == NULL) error->one(FLERR,"Unexpected end of fix rigid file");
         m += strlen(&buffer[m]);
       }
+      if (buffer[m-1] != '\n') strcpy(&buffer[m++],"\n");
       m++;
     }
     MPI_Bcast(&m,1,MPI_INT,0,world);

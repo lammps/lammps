@@ -400,19 +400,19 @@ void FixTMD::readfile(char *file)
 
   int firstline = 1;
   int ncount = 0;
-  int eof = 0;
+  char *eof = NULL;
   xprd = yprd = zprd = -1.0;
 
   while (!eof) {
     if (me == 0) {
       m = 0;
       for (nlines = 0; nlines < CHUNK; nlines++) {
-        ptr = fgets(&buffer[m],MAXLINE,fp);
-        if (ptr == NULL) break;
+        eof = fgets(&buffer[m],MAXLINE,fp);
+        if (eof == NULL) break;
         m += strlen(&buffer[m]);
       }
-      if (ptr == NULL) eof = 1;
-      buffer[m++] = '\n';
+      if (buffer[m-1] != '\n') strcpy(&buffer[m++],"\n");
+      m++;
     }
 
     MPI_Bcast(&eof,1,MPI_INT,0,world);

@@ -13,7 +13,7 @@ displace_atoms command :h3
 displace_atoms group-ID style args keyword value ... :pre
 
 group-ID = ID of group of atoms to displace :ulb,l
-style = {move} or {ramp} or {random} :l
+style = {move} or {ramp} or {random} or {rotate} :l
   {move} args = delx dely delz
     delx,dely,delz = distance to displace in each dimension (distance units)
   {ramp} args = ddim dlo dhi dim clo chi
@@ -23,7 +23,12 @@ style = {move} or {ramp} or {random} :l
     clo,chi = lower and upper bound of domain to displace (distance units)
   {random} args = dx dy dz seed
     dx,dy,dz = random displacement magnitude in each dimension (distance units)
-    seed = random # seed (positive integer) :pre
+    seed = random # seed (positive integer)
+  {rotate} args = Px Py Pz Rx Ry Rz theta
+    Px,Py,Pz = origin point of axis of rotation (distance units)
+    Rx,Ry,Rz = axis of rotation vector
+    theta = angle of rotation (degrees) :pre
+
 zero or more keyword/value pairs may be appended :l
   keyword = {units}
     value = {box} or {lattice} :pre
@@ -59,10 +64,18 @@ random displacement, uniformly sampled from a value between -dx and
 used in such a way that the displacement of a particular atom is the
 same, regardless of how many processors are being used.
 
-Distance units for displacement are determined by the setting of {box}
-or {lattice} for the {units} keyword.  {Box} means distance units as
-defined by the "units"_units.html command - e.g. Angstroms for {real}
-units.  {Lattice} means distance units are in lattice spacings.  The
+The {rotate} style rotates each atom in the group by the angle {theta}
+around a rotation axis {R} = (Rx,Ry,Rz) that goes thru a point {P} =
+(Px,Py,Pz).  The direction of rotation for the atoms around the
+rotation axis is consistent with the right-hand rule: if your
+right-hand's thumb points along {R}, then your fingers wrap around the
+axis in the direction of positive theta.
+
+Distance units for displacements and the origin point of the {rotate}
+style are determined by the setting of {box} or {lattice} for the
+{units} keyword.  {Box} means distance units as defined by the
+"units"_units.html command - e.g. Angstroms for {real} units.
+{Lattice} means distance units are in lattice spacings.  The
 "lattice"_lattice.html command must have been previously used to
 define the lattice spacing.
 
@@ -88,9 +101,13 @@ as the initial mapping attempted to be.
 
 [Restrictions:] none
 
+You cannot rotate around any rotation vector except the z-axis for a
+2d simulation.
+
 [Related commands:]
 
-"lattice"_lattice.html, "change_box"_change_box.html
+"lattice"_lattice.html, "change_box"_change_box.html,
+"fix_move"_fix_move.html
 
 [Default:]
 

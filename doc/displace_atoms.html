@@ -17,7 +17,7 @@
 </PRE>
 <UL><LI>group-ID = ID of group of atoms to displace 
 
-<LI>style = <I>move</I> or <I>ramp</I> or <I>random</I> 
+<LI>style = <I>move</I> or <I>ramp</I> or <I>random</I> or <I>rotate</I> 
 
 <PRE>  <I>move</I> args = delx dely delz
     delx,dely,delz = distance to displace in each dimension (distance units)
@@ -28,7 +28,11 @@
     clo,chi = lower and upper bound of domain to displace (distance units)
   <I>random</I> args = dx dy dz seed
     dx,dy,dz = random displacement magnitude in each dimension (distance units)
-    seed = random # seed (positive integer) 
+    seed = random # seed (positive integer)
+  <I>rotate</I> args = Px Py Pz Rx Ry Rz theta
+    Px,Py,Pz = origin point of axis of rotation (distance units)
+    Rx,Ry,Rz = axis of rotation vector
+    theta = angle of rotation (degrees) 
 </PRE>
 <LI>zero or more keyword/value pairs may be appended 
 
@@ -67,10 +71,18 @@ random displacement, uniformly sampled from a value between -dx and
 used in such a way that the displacement of a particular atom is the
 same, regardless of how many processors are being used.
 </P>
-<P>Distance units for displacement are determined by the setting of <I>box</I>
-or <I>lattice</I> for the <I>units</I> keyword.  <I>Box</I> means distance units as
-defined by the <A HREF = "units.html">units</A> command - e.g. Angstroms for <I>real</I>
-units.  <I>Lattice</I> means distance units are in lattice spacings.  The
+<P>The <I>rotate</I> style rotates each atom in the group by the angle <I>theta</I>
+around a rotation axis <I>R</I> = (Rx,Ry,Rz) that goes thru a point <I>P</I> =
+(Px,Py,Pz).  The direction of rotation for the atoms around the
+rotation axis is consistent with the right-hand rule: if your
+right-hand's thumb points along <I>R</I>, then your fingers wrap around the
+axis in the direction of positive theta.
+</P>
+<P>Distance units for displacements and the origin point of the <I>rotate</I>
+style are determined by the setting of <I>box</I> or <I>lattice</I> for the
+<I>units</I> keyword.  <I>Box</I> means distance units as defined by the
+<A HREF = "units.html">units</A> command - e.g. Angstroms for <I>real</I> units.
+<I>Lattice</I> means distance units are in lattice spacings.  The
 <A HREF = "lattice.html">lattice</A> command must have been previously used to
 define the lattice spacing.
 </P>
@@ -96,9 +108,13 @@ as the initial mapping attempted to be.
 </P>
 <P><B>Restrictions:</B> none
 </P>
+<P>You cannot rotate around any rotation vector except the z-axis for a
+2d simulation.
+</P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "lattice.html">lattice</A>, <A HREF = "change_box.html">change_box</A>
+<P><A HREF = "lattice.html">lattice</A>, <A HREF = "change_box.html">change_box</A>,
+<A HREF = "fix_move.html">fix_move</A>
 </P>
 <P><B>Default:</B>
 </P>

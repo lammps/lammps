@@ -482,7 +482,7 @@ void PairEDIP::compute(int eflag, int vflag)
 
         evdwl = 0.0;
         if (evflag) ev_tally(i, j, nlocal, newton_pair, evdwl, 0.0,
-                             forceModCoord_ij, dr_ij[0], dr_ij[1], dr_ij[2]);
+                             -forceModCoord_ij, dr_ij[0], dr_ij[1], dr_ij[2]);
     }
   }
 

@@ -118,8 +118,10 @@ void RanPark::reset(int ibase, double *coord)
   hash += (hash << 15);
 
   // keep 31 bits of unsigned int as new seed
+  // do not allow seed = 0, since will cause hang in gaussian()
 
   seed = hash & 0x7ffffff;
+  if (!seed) seed = 1;
 
   // warm up the RNG
 

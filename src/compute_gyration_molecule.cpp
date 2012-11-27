@@ -141,7 +141,6 @@ void ComputeGyrationMolecule::compute_vector()
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
 
-
   for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       imol = molecule[i];

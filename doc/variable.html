@@ -526,9 +526,10 @@ of the formula.  Angmom() returns components of the angular momentum
 of the group of atoms around its center of mass.  Torque() returns
 components of the torque on the group of atoms around its center of
 mass, based on current forces on the atoms.  Inertia() returns one of
-6 components of the inertia tensor of the group of atoms around its
-center of mass.  Omega() returns components of the angular velocity of
-the group of atoms around its center of mass.
+6 components of the symmetric inertia tensor of the group of atoms
+around its center of mass, ordered as Ixx,Iyy,Izz,Ixy,Iyz,Ixz.
+Omega() returns components of the angular velocity of the group of
+atoms around its center of mass.
 </P>
 <P>Region functions are specified exactly the same way as group functions
 except they take an extra argument which is the region ID.  The

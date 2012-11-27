@@ -211,7 +211,7 @@ minimization"_minimize.html.
 
 [Related commands:]
 
-"fix nve"_fix_nve.html
+"fix nve"_fix_nve.html, "displace_atoms"_displace_atoms.html
 
 [Default:] none
 

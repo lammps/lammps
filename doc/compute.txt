@@ -184,6 +184,7 @@ available in LAMMPS:
 "gyration/molecule"_compute_gyration_molecule.html - radius of gyration for each molecule
 "heat/flux"_compute_heat_flux.html - heat flux through a group of atoms
 "improper/local"_compute_improper_local.html - angle of each improper
+"inertia/molecule"_compute_inertia_molecule.html - inertia tensor for each molecule
 "ke"_compute_ke.html - translational kinetic energy
 "ke/atom"_compute_ke_atom.html - kinetic energy for each atom
 "msd"_compute_msd.html - mean-squared displacement of group of atoms

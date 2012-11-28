@@ -567,6 +567,7 @@ each style or click on the style itself for a full description:
 "gyration/molecule"_compute_gyration_molecule.html,
 "heat/flux"_compute_heat_flux.html,
 "improper/local"_compute_improper_local.html,
+"inertia/molecule"_compute_inertia_molecule.html,
 "ke"_compute_ke.html,
 "ke/atom"_compute_ke_atom.html,
 "msd"_compute_msd.html,

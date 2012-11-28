@@ -17,7 +17,7 @@ gcmc = style name of this fix command :l
 N = invoke this fix every N steps :l
 X = number of exchanges to attempt every N steps :l
 M = number of MC displacements to attempt every N steps :l
-type = atom type of exchanged particles :l
+type = atom type or molecule ID of exchanged gas :l
 seed = random # seed (positive integer) :l
 T = temperature of the ideal gas reservoir (temperature units) :l
 mu = chemical potential of the ideal gas reservoir (energy units) :l
@@ -26,49 +26,61 @@ zero or more keyword/value pairs may be appended to args :l
 keyword = {molecule} or {region} :l
   {molecule} value = {no} or {yes}
   {region} value = region-ID
-    region-ID = ID of region to use as an exchange/move volume :pre
+    region-ID = ID of region to use as an exchange/move volume 
+  {maxangle} value = maximum molecular rotation angle (degrees) :pre
 :ule
 
 [Examples:]
 
-fix 2 all gcmc 10 1000 1000 2 29494 298.0 -0.5 0.01
-fix 3 all gcmc 10 100 100 1 3456543 3.0 -2.5 0.1 molecule yes
-fix 4 all gcmc 1 10 10 1 123456543 300.0 -12.5 1.0 region disk :pre
+fix 2 gas gcmc 10 1000 1000 2 29494 298.0 -0.5 0.01
+fix 3 Kr gcmc 10 100 100 1 3456543 3.0 -2.5 0.1 molecule yes maxrot 180
+fix 4 my_gas gcmc 1 10 10 1 123456543 300.0 -12.5 1.0 region disk :pre
 
 [Description:]
 
 This fix performs grand canonical Monte Carlo (GCMC) exchanges of
-particles of the given type with an imaginary ideal gas reservoir at
-the specified T and chemical potential (mu    ) as discussed in
+atoms or molecules of the given type with an imaginary ideal gas reservoir at
+the specified T and chemical potential (mu) as discussed in
 "(Frenkel)"_#Frenkel. If used with the "fix nvt"_fix_nh.html command,
 simulations in the grand canonical enemble (muVT, constant chemical
 potential, constant volume, and constant temperature) can be
 performed.  Specific uses include computing isotherms in microporous
 materials, or computing vapor-liquid coexistence curves.
 
-Perform up to X exchanges of particles of the given type between the
-simulation domain and the imaginary reservoir every N timesteps. Also
-perform M Monte Carlo displacements of particles of the given type
-within the simulation domain. M should typically be chosen to be
-approximately equal to the expected number of particles of the given
-type within the domain, which will result in roughly one MC
-translation per particle per MC cycle.
+Perform up to X exchanges of gas atoms or molecules of the given type 
+between the simulation domain and the imaginary reservoir every N 
+timesteps. Also perform M Monte Carlo displacements or rotations 
+(for molecules) of gas of the given type within the simulation domain.
+M should typically be chosen to be approximately equal to the expected
+number of gas atoms or molecules of the given type within the domain, 
+which will result in roughly one MC translation per atom or molecule 
+per MC cycle.
 
-This fix cannot be used to perform MC displacements of particles other
-than the exchanged type. All particles in the simulation domain can be
-moved using regular time integration displacements, e.g. via
-"fix_nvt"_fix_nvt.html, resulting in a hybrid GCMC+MD simulation.
+For MC moves of molecular gasses, rotations and translations are each 
+attempted with 50% probability. For MC moves of atomic gasses, 
+translations are attempted 100% of the time. For MC exchanges of either
+molecular or atomic gasses, deletions and insertions are each attempted
+with 50% probability.
 
-This command may optionally use the {region} keyword to define an
-exchange and move volume.  The specified region must have been
-previously defined with a "region"_region.html command.  It must be
-defined with side = {in}.  Insertion attempts occur only within the
-specified region. Move and deletion attempt candidates are selected
-from particles within the region. If no candidate can be found within
-the specified region after randomly selecting candidates 1000 times,
-the move or deletion attempt is considered a failure. Moves must start
-within the specified region, but may move the particle slightly
-outside of the region.
+This fix cannot be used to perform MC insertions of gas atoms or
+molecules other than the exchanged type, but MC deletions, translations,
+and rotations can be performed on any atom/molecule in the fix group. 
+All atoms in the simulation domain can be moved using regular time 
+integration displacements, e.g. via "fix_nvt"_fix_nvt.html, resulting
+in a hybrid GCMC+MD simulation. A smaller-than-usual timestep size 
+may be needed when running such a hybrid simulation, especially if 
+the inserted molecules are not well equilibrated.
+
+This command may optionally use the {region} keyword to define an 
+exchange and move volume.  The specified region must have been 
+previously defined with a "region"_region.html command.  It must be 
+defined with side = {in}.  Insertion attempts occur only within the 
+specified region. Move and deletion attempt candidates are selected 
+from gas atoms or molecules within the region. If no candidate can be 
+found within the specified region after randomly selecting candidates 
+1000 times, the move or deletion attempt is considered a failure. Moves 
+must start within the specified region, but may move the atom or molecule
+slightly outside of the region.
 
 If used with "fix_nvt"_fix_nvt.html, the temperature of the imaginary
 reservoir, T, should be set to be equivalent to the target temperature
@@ -79,17 +91,16 @@ Note that neighbor lists are re-built every timestep that this fix is
 invoked, so you should not set N to be too small.  However, periodic
 rebuilds are necessary in order to avoid dangerous rebuilds and missed
 interactions. Specifically, avoid performing so many MC displacements
-per timestep that a particle can move beyond the neighbor list skin
+per timestep that atoms can move beyond the neighbor list skin
 distance. See the "neighbor"_neighbor.html command for details.
 
-When a particle is to be inserted, its coordinates are chosen as a
-random position within the current simulation domain, and its velocity
-is randomly chosen from the specified temperature distribution given
-by T.
-
-Exchanged particles have the specified atom type and are assigned to
-two groups: the default group "all" and the group specified in the fix
-gcmc command (which can also be "all").
+When an atom or molecule is to be inserted, its center-of-mass 
+coordinates are chosen as a random position within the current 
+simulation domain, and new atom velocities are randomly chosen 
+from the specified temperature distribution given by T.  Relative 
+coordinates for atoms in a molecule are taken from the template
+molecule provided by the user. A random initial rotation is used in the
+case of molecule insertions.
 
 If the setting for the {molecule} keyword is {no}, then only single
 atoms are exchanged.  In this case, you should ensure you do not
@@ -100,7 +111,28 @@ non-zero molecule ID, but does not check for this at the time of
 deletion.
 
 If the setting for the {molecule} keyword is {yes}, entire molecules
-are exchanged. This feature is not yet supported.
+are exchanged. The user must supply a model molecule in the data
+file to use as a template for exchanges, and that molecule's number
+must be given in the fix GCMC command as the "type" of the exchanged
+gas. The model molecule can then be immediately deleted using the
+"delete_atoms"_delete_atoms.html command.
+
+Optionally, users may specify the maximum rotation angle for 
+molecular rotations using the {maxangle} keyword and specifying
+the angle in degrees. The specified angle will apply to all three 
+Euler angles used internally to define the rotation matrix for
+molecular rotations. The max angle can be set to zero, but rotations
+will be pointless. Note that the default is ten degrees for each 
+Euler angle.
+
+For atomic gasses, inserted atoms have the specified atom type, but
+deleted atoms are any atoms that have been inserted or that belong 
+to the user-specified fix group. For molecular gasses, exchanged 
+molecules use the same atom types as in the template molecule 
+supplied by the user.  In both cases, exchanged
+atoms/molecules are assigned to two groups: the default group "all"
+and the group specified in the fix gcmc command (which can also be 
+"all"). 
 
 Use of this fix typically will cause the number of atoms to fluctuate,
 therefore, you will want to use the
@@ -134,10 +166,12 @@ values are the following global cummulative quantities:
 
 1 = displacement attempts
 2 = displacement successes
-3 = deletion attempts
-4 = deletion successes
-5 = insertion attempts
-6 = insertion successes :ul
+3 = insertion attempts
+4 = insertion successes 
+5 = deletion attempts
+6 = deletion successes
+7 = rotation attempts
+8 = rotation successes :ul
 
 The vector values calculated by this fix are "extensive".
 
@@ -154,9 +188,6 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 Do not set "neigh_modify once yes" or else this fix will never be
 called.  Reneighboring is required.
 
-You cannot currently exchange charged particles or molecules with a
-net charge.
-
 Only pairwise interactions, as defined by the
 "pair_style"_pair_style.html command, are included in this
 calculation.  Long-range interactions due to a
@@ -167,14 +198,25 @@ this fix.  For example, 3-body potentials, such as
 be used.  "EAM"_pair_eam.html potentials for metals only include the
 pair potential portion of the EAM interaction, not the embedding term.
 
+Can be run in parallel, but aspects of the GCMC part will not scale 
+well in parallel. Only usable for 3D simulations with orthogonal 
+simulation cells.
+
+Note that very lengthy simulations involving insertions/deletions of
+billions of gas molecules may run out of atom or molecule IDs and
+trigger an error, so it is better to run multiple shorter-duration 
+simulations. Likewise, very large molecules have not been tested
+and may turn out to be problematic.
+
 [Related commands:]
 
 "fix_nvt"_fix_nvt.html, "neighbor"_neighbor.html, 
-"fix_deposit"_fix_deposit.html, "fix_evaporate"_fix_evaporate.html
+"fix_deposit"_fix_deposit.html, "fix_evaporate"_fix_evaporate.html,
+"delete_atoms"_delete_atoms.html
 
 [Default:]
 
-The option defaults are molecule = no.
+The option defaults are molecule = no, maxangle = 10.
 
 :line
 

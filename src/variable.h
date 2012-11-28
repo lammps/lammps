@@ -14,6 +14,7 @@
 #ifndef LMP_VARIABLE_H
 #define LMP_VARIABLE_H
 
+#include "stdlib.h"
 #include "pointers.h"
 
 namespace LAMMPS_NS {
@@ -45,7 +46,9 @@ class Variable : protected Pointers {
   int *num;                // # of values for each variable
   int *which;              // next available value for each variable
   int *pad;                // 1 = pad loop/uloop variables with 0s, 0 = no pad
+  class VarReader **reader;   // variable that reads lines from file
   char ***data;            // str value of each variable's values
+
   int *eval_in_progress;   // flag if evaluation of variable is in progress
 
   class RanMars *randomequal;   // random number generator for equal-style vars
@@ -88,6 +91,17 @@ class Variable : protected Pointers {
   int inumeric(char *);
   char *find_next_comma(char *);
   void print_tree(Tree *, int);
+};
+
+class VarReader : protected Pointers {
+ public:
+  VarReader(class LAMMPS *, char *);
+  ~VarReader();
+  int read(char *);
+
+ private:
+  int me;
+  FILE *fp;
 };
 
 }

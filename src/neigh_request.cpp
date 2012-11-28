@@ -37,7 +37,6 @@ NeighRequest::NeighRequest(LAMMPS *lmp) : Pointers(lmp)
   gran = granhistory = 0;
   respainner = respamiddle = respaouter = 0;
   half_from_full = 0;
-  ghost = 0;
 
   // default is every reneighboring
   // default is use newton_pair setting in force

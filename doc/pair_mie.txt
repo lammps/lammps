@@ -1,0 +1,100 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+pair_style mie/cut command :h3
+
+[Syntax:]
+
+pair_style mie/cut cutoff :pre
+
+cutoff = global cutoff for mie/cut interactions (distance units) :ul
+
+[Examples:]
+
+pair_style mie/cut 10.0
+pair_coeff 1 1 0.72 3.40 23.00 6.66
+pair_coeff 2 2 0.30 3.55 12.65 6.00
+pair_coeff 1 2 0.46 3.32 16.90 6.31 :pre
+
+[Description:]
+
+The {mie/cut} style computes the Mie potential, given by
+
+:c,image(Eqs/pair_mie.jpg)
+
+Rc is the cutoff and C is a function that depends on the repulsive and 
+attractive exponents, given by:
+
+:c,image(Eqs/pair_mie2.jpg)
+
+Note that for 12/6 exponents, C is equal to 4 and the formula is the
+same as the standard Lennard-Jones potential.
+
+The following coefficients must be defined for each pair of atoms
+types via the "pair_coeff"_pair_coeff.html command as in the examples
+above, or in the data file or restart files read by the
+"read_data"_read_data.html or "read_restart"_read_restart.html
+commands, or by mixing as described below:
+
+epsilon (energy units)
+sigma (distance units)
+gammaR
+gammaA
+cutoff (distance units) :ul
+
+The last coefficient is optional.  If not specified, the global 
+cutoff specified in the pair_style command is used.
+
+:line
+
+[Mixing, shift, table, tail correction, restart, rRESPA info]:
+
+For atom type pairs I,J and I != J, the epsilon and sigma coefficients
+and cutoff distance for all of the mie/cut pair styles can be mixed.
+If not explicity defined, both the repulsive and attractive gamma
+exponents for different atoms will be calculated following the same
+mixing rule defined for distances.  The default mix value is
+{geometric}. See the "pair_modify" command for details.
+
+This pair style supports the "pair_modify"_pair_modify.html shift
+option for the energy of the pair interaction.
+
+This pair style supports the "pair_modify"_pair_modify.html tail
+option for adding a long-range tail correction to the energy and
+pressure of the pair interaction.
+
+This pair style writes its information to "binary restart
+files"_restart.html, so pair_style and pair_coeff commands do not need
+to be specified in an input script that reads a restart file.
+
+This pair style supports the use of the {inner}, {middle}, and {outer}
+keywords of the "run_style respa"_run_style.html command, meaning the
+pairwise forces can be partitioned by distance at different levels of
+the rRESPA hierarchy.  See the "run_style"_run_style.html command for
+details.
+
+:line
+
+[Restrictions:] none
+
+[Related commands:]
+
+"pair_coeff"_pair_coeff.html
+
+[Default:] none
+
+:line
+
+:link(Mie)
+[(Mie)] G. Mie, Ann Phys, 316, 657 (1903).
+
+:link(Avendano)
+[(Avendano)] C. Avendano, T. Lafitte, A. Galindo, C. S. Adjiman,
+G. Jackson, E. Muller, J Phys Chem B, 115, 11154 (2011).
+
+

@@ -227,7 +227,7 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
   if (mstyle == ROTATE) {
     double len = sqrt(axis[0]*axis[0] + axis[1]*axis[1] + axis[2]*axis[2]);
     if (len == 0.0)
-      error->all(FLERR,"Fix move cannot have 0 length rotation vector");
+      error->all(FLERR,"Zero length rotation vector with fix move");
     runit[0] = axis[0]/len;
     runit[1] = axis[1]/len;
     runit[2] = axis[2]/len;

@@ -1,0 +1,83 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>compute inertia/molecule command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>compute ID group-ID inertia/molecule 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
+<LI>inertia/molecule = style name of this compute command 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>compute 1 fluid inertia/molecule 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define a computation that calculates the inertia tensor of individual
+molecules.  The calculation includes all effects due to atoms passing
+thru periodic boundaries.
+</P>
+<P>The symmetric intertia tensor has 6 components, ordered
+Ixx,Iyy,Izz,Ixy,Iyz,Ixz.  The tensor for a particular molecule is only
+computed if one or more of its atoms is in the specified group.
+Normally all atoms in the molecule should be in the group, however
+this is not required.  LAMMPS will warn you if this is not the case.
+Only atoms in the group contribute to the inertia tensor and
+associated center-of-mass calculation for the molecule.
+</P>
+<P>The ordering of per-molecule quantities produced by this compute is
+consistent with the ordering produced by other compute commands that
+generate per-molecule datums.  Conceptually, the molecule IDs will be
+in ascending order for any molecule with one or more of its atoms in
+the specified group.
+</P>
+<P>IMPORTANT NOTE: The coordinates of an atom contribute to the
+molecule's inertia tensor in "unwrapped" form, by using the image
+flags associated with each atom.  See the <A HREF = "dump.html">dump custom</A>
+command for a discussion of "unwrapped" coordinates.  See the Atoms
+section of the <A HREF = "read_data.html">read_data</A> command for a discussion of
+image flags and how they are set for each atom.  You can reset the
+image flags (e.g. to 0) before invoking this compute by using the <A HREF = "set.html">set
+image</A> command.
+</P>
+<P>IMPORTANT NOTE: If an atom is part of a rigid body (see the <A HREF = "fix_rigid.html">fix
+rigid</A> command), it's periodic image flags are altered,
+and its contribution to the inertia tensor may not reflect its true
+contribution.  See the <A HREF = "fix_rigid.html">fix rigid</A> command for details.
+Thus, to compute the inertia tensor of rigid bodies as they cross
+periodic boundaries, you will need to post-process a <A HREF = "dump.html">dump
+file</A> containing coordinates of the atoms in the bodies.
+</P>
+<P><B>Output info:</B>
+</P>
+<P>This compute calculates a global array where the number of rows =
+Nmolecules and the number of columns = 6 for the 6 components of the
+inertia tensor of each molecule, ordered as listed above.  These
+values can be accessed by any command that uses global array values
+from a compute as input.  See <A HREF = "Section_howto.html#howto_15">Section_howto
+15</A> for an overview of LAMMPS output
+options.
+</P>
+<P>The array values are "intensive".  The array values will be in
+distance <A HREF = "units.html">units</A>.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "variable.html">variable inertia() function</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

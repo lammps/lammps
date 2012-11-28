@@ -296,7 +296,8 @@ appropriate units if your simulation doesn't use "real" units.
 
 [Default:]
 
-The keyword defaults are checkqeq = yes, lgvdw = no, safezone = 1.2, mincap = 50.
+The keyword defaults are checkqeq = yes, lgvdw = no, safezone = 1.2,
+mincap = 50.
 
 :line
 
@@ -305,8 +306,8 @@ The keyword defaults are checkqeq = yes, lgvdw = no, safezone = 1.2, mincap = 50
 Journal of Physical Chemistry A, 112, 1040-1053 (2008).
 
 :link(Aktulga)
-[(Aktulga)] Aktulga, Fogarty, Pandit, Grama, Parallel Computing, to
-appear (2011).
+[(Aktulga)] Aktulga, Fogarty, Pandit, Grama, Parallel Computing, 38,
+245-259 (2012).
 
 :link(Liu_2011)
 [(Liu)] L. Liu, Y. Liu, S. V. Zybin, H. Sun and W. A. Goddard, Journal

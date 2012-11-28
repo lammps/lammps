@@ -56,8 +56,3 @@ section for more info on packages.
 
 [Default:] none
 
-:line
-
-:link(Mayo)
-[(Mayo)] Mayo, Olfason, Goddard III, J Phys Chem, 94, 8897-8909
-(1990),

@@ -91,9 +91,17 @@ number.
 swaps is computed by the fix and can be output.  Dividing this
 quantity by time and the cross-sectional area of the simulation box
 yields a heat flux.  The ratio of heat flux to the slope of the
-temperature profile is the thermal conductivity of the fluid,
-in appopriate units.  See the <A HREF = "#Muller-Plathe">Muller-Plathe paper</A> for
-details.
+temperature profile is proportional to the thermal conductivity of the
+fluid, in appropriate units.  See the <A HREF = "#Muller-Plathe">Muller-Plathe
+paper</A> for details.
+</P>
+<P>IMPORTANT NOTE: If your system is periodic in the direction of the
+heat flux, then the flux is going in 2 directions.  This means the
+effective heat flux in one direction is reduced by a factor of 2.  You
+will see this in the equations for thermal conductivity (kappa) in the
+Muller-Plathe paper.  LAMMPS is simply tallying kinetic energy which
+does not account for whether or not your system is periodic; you must
+use the value appropriately to yield a kappa for your system.
 </P>
 <P>IMPORTANT NOTE: After equilibration, if the temperature gradient you
 observe is not linear, then you are likely swapping energy too

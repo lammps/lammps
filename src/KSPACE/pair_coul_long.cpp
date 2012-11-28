@@ -240,15 +240,6 @@ void PairCoulLong::init_style()
 
   cut_coulsq = cut_coul * cut_coul;
 
-  // set & error check interior rRESPA cutoffs
-
-  if (strstr(update->integrate_style,"respa") &&
-      ((Respa *) update->integrate)->level_inner >= 0) {
-    cut_respa = ((Respa *) update->integrate)->cutoff;
-    if (cut_coul < cut_respa[3])
-      error->all(FLERR,"Pair cutoff < Respa interior cutoff");
-  } else cut_respa = NULL;
-
   // insure use of KSpace long-range solver, set g_ewald
 
  if (force->kspace == NULL)
@@ -257,7 +248,7 @@ void PairCoulLong::init_style()
 
   // setup force tables
 
-  if (ncoultablebits) init_tables(cut_coul,cut_respa);
+  if (ncoultablebits) init_tables(cut_coul,NULL);
 }
 
 /* ----------------------------------------------------------------------

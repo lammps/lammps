@@ -92,9 +92,17 @@ sense.  This is why <I>Nbin</I> is restricted to being an even number.
 swaps is computed by the fix and can be output.  Dividing this
 quantity by time and the cross-sectional area of the simulation box
 yields a momentum flux.  The ratio of momentum flux to the slope of
-the shear velocity profile is the viscosity of the fluid, in
-appopriate units.  See the <A HREF = "#Muller-Plathe">Muller-Plathe paper</A> for
-details.
+the shear velocity profile is proportional to the viscosity of the
+fluid, in appropriate units.  See the <A HREF = "#Muller-Plathe">Muller-Plathe
+paper</A> for details.
+</P>
+<P>IMPORTANT NOTE: If your system is periodic in the direction of the
+momentum flux, then the flux is going in 2 directions.  This means the
+effective momentum flux in one direction is reduced by a factor of 2.
+You will see this in the equations for viscosity in the Muller-Plathe
+paper.  LAMMPS is simply tallying momentum which does not account for
+whether or not your system is periodic; you must use the value
+appropriately to yield a viscosity for your system.
 </P>
 <P>IMPORTANT NOTE: After equilibration, if the velocity profile you
 observe is not linear, then you are likely swapping momentum too

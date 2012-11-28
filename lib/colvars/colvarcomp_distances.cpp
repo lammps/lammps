@@ -736,10 +736,11 @@ colvar::rmsd::rmsd (std::string const &conf)
   if (atoms.b_dummy) 
     cvm::fatal_error ("Error: \"atoms\" cannot be a dummy atom.");
 
-  if (!atoms.b_prevent_fitting) {
-    // fit everything, unless the user made an explicit choice
-    cvm::log ("No value was specified within \"atoms\" for \"centerReference\" or "
-              "\"rotateReference\": enabling both.\n");
+  if (atoms.b_user_defined_fit) {
+    cvm::log ("WARNING: explicit fitting parameters were provided for atom group \"atoms\".");
+    cvm::log ("Not computing standard minimum RMSD (if that is the desired result, leave atom group parameters at default values).");
+  } else {
+    // Default: fit everything
     // NOTE: this won't work for class V cvc's
     atoms.b_center = true;
     atoms.b_rotate = true;
@@ -792,13 +793,19 @@ colvar::rmsd::rmsd (std::string const &conf)
         // if not, rely on existing atom indices for the group
         atoms.create_sorted_ids();
       }
+
+      ref_pos.resize (atoms.size());
       cvm::load_coords (ref_pos_file.c_str(), ref_pos, atoms.sorted_ids,
                         ref_pos_col, ref_pos_col_value);
     }
   }
-  
 
-
+  if (!atoms.b_user_defined_fit) {
+    // Default case: reference positions for calculating the rmsd are also those used
+    // for fitting
+    atoms.ref_pos = ref_pos;
+    atoms.center_ref_pos();
+  }
 }
 
   
@@ -838,7 +845,7 @@ void colvar::rmsd::calc_gradients()
     0.0;
 
   for (size_t ia = 0; ia < atoms.size(); ia++) {
-    atoms[ia].grad = (drmsddx2 * 2.0 * (atoms[ia].pos - atoms.ref_pos[ia]));
+    atoms[ia].grad = (drmsddx2 * 2.0 * (atoms[ia].pos - ref_pos[ia]));
   }
 }
 
@@ -967,6 +974,7 @@ colvar::eigenvector::eigenvector (std::string const &conf)
   atoms.b_center = true;
   atoms.b_rotate = true;
   atoms.ref_pos = ref_pos;
+  atoms.center_ref_pos();
 
   // now load the eigenvector
   if (get_keyval (conf, "vector", eigenvec, eigenvec)) {
@@ -1008,8 +1016,9 @@ colvar::eigenvector::eigenvector (std::string const &conf)
   for (size_t i = 0; i < atoms.size(); i++) {
     center += eigenvec[i];
   }
+  center *= 1.0 / atoms.size();
 
-  cvm::log ("Subtracting sum of eigenvector components: " + cvm::to_str (center) + "\n");
+  cvm::log ("Subtracting center of eigenvector components: " + cvm::to_str (center) + "\n");
 
   for (size_t i = 0; i < atoms.size(); i++) {
     eigenvec[i] = eigenvec[i] - center;

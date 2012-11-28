@@ -156,10 +156,10 @@ public:
   /// Rotation between the group and its reference coordinates
   cvm::rotation rot;
 
-  /// \brief Indicates that b_center and b_rotate are not false by default,
-  /// but following the user's choice instead: cvc's will not override
-  /// the value of b_center or b_rotate
-  bool b_prevent_fitting;
+  /// \brief Indicates that the user has specified centerReference or
+  /// rotateReference (and the related reference coordinates):
+  /// cvc's (eg rmsd, eigenvector) should not override these settings
+  bool b_user_defined_fit;
 
   /// \brief use these reference coordinates, for b_center, b_rotate, or to compute
   /// certain colvar components (orientation, rmsd, etc)
@@ -211,6 +211,10 @@ public:
   /// true, center and/or rotate the coordinates right after reading
   /// them
   void read_positions();
+
+  /// \brief Save center of geometry fo ref positions,
+  /// then subtract it 
+  void center_ref_pos();
 
   /// \brief Move all positions
   void apply_translation (cvm::rvector const &t);

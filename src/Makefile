@@ -37,6 +37,7 @@ help:
 	@echo ''
 	@echo 'make clean-all           delete all object files'
 	@echo 'make clean-machine       delete object files for one machine'
+	@echo 'make purge               purge obsolete copies of package sources'
 	@echo 'make tar                 create lmp_src.tar.gz of src dir and packages'
 	@echo 'make makelib             create Makefile.lib for static library build'
 	@echo 'make makeshlib           create Makefile.shlib for shared library build'
@@ -98,6 +99,12 @@ clean-all:
 
 clean-%:
 	rm -rf Obj_$(@:clean-%=%)
+
+purge: Purge.list
+	@echo 'Purging obsolete and auto-generated source files'
+	@for f in `grep -v '#' Purge.list` ;		\
+	    do test -f $$f && rm $$f && echo $$f || : ;		\
+	done
 
 # Create a tarball of src dir and packages
 

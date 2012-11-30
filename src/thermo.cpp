@@ -864,9 +864,11 @@ void Thermo::parse_fields(char *str)
 
       } else if (word[0] == 'v') {
         n = input->variable->find(id);
-        if (n < 0) error->all(FLERR,"Could not find thermo custom variable name");
+        if (n < 0) 
+          error->all(FLERR,"Could not find thermo custom variable name");
         if (input->variable->equalstyle(n) == 0)
-          error->all(FLERR,"Thermo custom variable is not equal-style variable");
+          error->all(FLERR,
+                     "Thermo custom variable is not equal-style variable");
         if (argindex1[nfield])
           error->all(FLERR,"Thermo custom variable cannot be indexed");
 
@@ -952,6 +954,13 @@ int Thermo::add_variable(const char *id)
 
 int Thermo::evaluate_keyword(char *word, double *answer)
 {
+  // turn off normflag if natoms = 0 to avoid divide by 0
+  // normflag must be set for lo-level thermo routines that may be invoked
+
+  natoms = atom->natoms;
+  if (natoms == 0) normflag = 0;
+  else normflag = normvalue;
+
   // invoke a lo-level thermo routine to compute the variable value
   // if keyword requires a compute, error if thermo doesn't use the compute
   // if inbetween runs and needed compute is not current, error
@@ -1509,8 +1518,12 @@ void Thermo::compute_press()
 
 void Thermo::compute_pe()
 {
+  printf("TTT\n");
+  printf("UUU1 %d\n",normflag);
+  printf("UUU2 %ld\n",natoms);
   dvalue = pe->scalar;
   if (normflag) dvalue /= natoms;
+  printf("UUU3 %g\n",dvalue);
 }
 
 /* ---------------------------------------------------------------------- */

@@ -1518,12 +1518,8 @@ void Thermo::compute_press()
 
 void Thermo::compute_pe()
 {
-  printf("TTT\n");
-  printf("UUU1 %d\n",normflag);
-  printf("UUU2 %ld\n",natoms);
   dvalue = pe->scalar;
   if (normflag) dvalue /= natoms;
-  printf("UUU3 %g\n",dvalue);
 }
 
 /* ---------------------------------------------------------------------- */

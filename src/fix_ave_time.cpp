@@ -566,9 +566,7 @@ void FixAveTime::invoke_scalar(bigint ntimestep)
     // evaluate equal-style variable
 
     } else if (which[i] == VARIABLE)
-      printf("AAA\n");
       scalar = input->variable->compute_equal(m);
-      printf("BBB %g\n",scalar);
 
     // add value to vector or just set directly if offcol is set
 

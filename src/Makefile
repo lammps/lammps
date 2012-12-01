@@ -101,7 +101,7 @@ clean-%:
 	rm -rf Obj_$(@:clean-%=%)
 
 purge: Purge.list
-	@echo 'Purging obsoleted and generated source files'
+	@echo 'Purging obsolete and auto-generated source files'
 	@for f in `grep -v '#' Purge.list` ;		\
 	    do test -f $$f && rm $$f && echo $$f || : ;		\
 	done

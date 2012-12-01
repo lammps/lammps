@@ -1,3 +1,18 @@
+# auto-generated style files
+style_angle.h
+style_atom.h
+style_bond.h
+style_command.h
+style_compute.h
+style_dihedral.h
+style_dump.h
+style_fix.h
+style_improper.h
+style_integrate.h
+style_kspace.h
+style_minimize.h
+style_pair.h
+style_region.h
 # deleted on Fri Oct 19 15:27:15 2012 +0000
 pair_lj_charmm_coul_long_proxy_omp.cpp
 pair_lj_charmm_coul_long_proxy_omp.h
@@ -97,65 +112,9 @@ pair_cg_cmm_coul_long_cuda.cpp
 pair_cg_cmm_coul_long_cuda.h
 pair_cg_cmm_cuda.cpp
 pair_cg_cmm_cuda.h
-# deleted on Sat Jun 9 18:07:14 2012 -0400
-molfile_tester.cpp
-# deleted on Mon Mar 5 15:42:57 2012 +0000
-dirent.h
-erf.h
-fftw.h
-inttypes.h
-sleep.cpp
-sleep.h
-stdint.h
-time.h
-unistd.h
-style_angle.h
-style_atom.h
-style_bond.h
-style_command.h
-style_compute.h
-style_dihedral.h
-style_dump.h
-style_fix.h
-style_improper.h
-style_integrate.h
-style_kspace.h
-style_minimize.h
-style_pair.h
-style_region.h
-style_angle.h
-style_atom.h
-style_bond.h
-style_command.h
-style_compute.h
-style_dihedral.h
-style_dump.h
-style_fix.h
-style_improper.h
-style_integrate.h
-style_kspace.h
-style_minimize.h
-style_pair.h
-style_region.h
-style_angle.h
-style_atom.h
-style_bond.h
-style_command.h
-style_compute.h
-style_dihedral.h
-style_dump.h
-style_fix.h
-style_improper.h
-style_integrate.h
-style_kspace.h
-style_minimize.h
-style_pair.h
-style_region.h
 # deleted on Fri Jan 6 20:58:15 2012 +0000
 fix_reaxc_species.cpp
 fix_reaxc_species.h
-# deleted on Fri Jan 6 17:53:44 2012 +0000
-mpi.cpp
 # deleted on Sat Dec 31 20:27:05 2011 -0500
 ewald_cg.cpp
 ewald_cg.h
@@ -168,8 +127,6 @@ pair_lj_cut_coul_long_tip4p_omp.cpp
 pair_lj_cut_coul_long_tip4p_omp.h
 pair_omp.cpp
 pair_omp.h
-# deleted on Fri Dec 9 15:45:04 2011 -0500
-mpi.cpp
 # deleted on Thu Dec 8 23:13:51 2011 +0000
 pair_cg_cmm_coul_long_gpu.cpp
 pair_cg_cmm_coul_long_gpu.h
@@ -182,15 +139,6 @@ pair_cg_cmm_gpu.cpp
 pair_cg_cmm_gpu.h
 # deleted on Tue Oct 25 23:04:03 2011 -0400
 lj_sdk_common.cpp
-# deleted on Thu Oct 20 15:10:28 2011 +0000
-pair_line.cpp
-pair_line.h
-pair_tri.cpp
-pair_tri.h
-# deleted on Thu Oct 20 14:35:39 2011 +0000
-cuda_common.h
-cuda_precision.h
-cuda_shared.h
 # deleted on Fri Oct 7 08:55:40 2011 -0400
 pair_hybrid_overlay_omp.cpp
 pair_hybrid_overlay_omp.h
@@ -221,11 +169,6 @@ pppm_gpu_double.cpp
 pppm_gpu_double.h
 pppm_gpu_single.cpp
 pppm_gpu_single.h
-# deleted on Tue Jun 14 00:04:59 2011 +0000
-erfc.cpp
-erfc.h
-sleep.cpp
-sleep.h
 # deleted on Fri Apr 15 20:57:03 2011 -0400
 pair_lj_charmm_coul_long_gpu2.cpp
 pair_lj_charmm_coul_long_gpu2.h
@@ -254,33 +197,6 @@ pair_buck_coul_omp.h
 # deleted on Tue Jun 8 15:42:51 2010 -0400
 pair_buck_coul_omp.cpp
 pair_buck_coul_omp.h
-# deleted on Sat May 22 17:00:55 2010 -0400
-mpi.cpp
-# deleted on Tue Jan 12 01:37:48 2010 +0000
-style_asphere.h
-style_class2.h
-style_colloid.h
-style_dipole.h
-style_dsmc.h
-style_gpu.h
-style_granular.h
-style_kspace.h
-style_manybody.h
-style_meam.h
-style_molecule.h
-style_opt.h
-style_peri.h
-style_poems.h
-style_prd.h
-style_reax.h
-style_user_ackland.h
-style_user_atc.h
-style_user_cd_eam.h
-style_user_cg_cmm.h
-style_user_ewaldn.h
-style_user_imd.h
-style_user_smd.h
-style_xtc.h
 # deleted on Thu Dec 17 23:52:31 2009 +0000
 dump_bond.cpp
 dump_bond.h
@@ -288,27 +204,9 @@ dump_bond.h
 atom_vec_dpd.cpp
 atom_vec_dpd.h
 style_dpd.h
-# deleted on Mon Aug 10 20:28:57 2009 +0000
-style_gpu.h
 # deleted on Mon Jun 22 21:11:31 2009 +0000
 fix_write_reax_bonds.cpp
 fix_write_reax_bonds.h
-# deleted on Wed Feb 11 22:26:01 2009 +0000
-reax_cbkabo.h
-reax_cbkbo.h
-reax_cbkc.h
-reax_cbkch.h
-reax_cbkd.h
-reax_cbkia.h
-reax_cbklonpar.h
-reax_cbknubon2.h
-reax_cbkpairs.h
-reax_cbkqa.h
-reax_energies.h
-reax_fortran.h
-reax_functions.h
-reax_params.h
-reax_small.h
 # deleted on Thu Jan 8 16:53:09 2009 +0000
 pair_gran_hertzian.cpp
 pair_gran_hertzian.h
@@ -324,16 +222,9 @@ fix_nve_dipole.h
 # deleted on Mon Mar 17 23:23:24 2008 +0000
 fix_nve_gran.cpp
 fix_nve_gran.h
-# deleted on Tue Feb 19 16:22:21 2008 +0000
-style_meam.h
 # deleted on Fri Nov 30 21:49:20 2007 +0000
 fix_gran_diag.cpp
 fix_gran_diag.h
-# deleted on Wed Jun 20 15:38:27 2007 +0000
-style_colloid.h
-# deleted on Wed Jun 20 13:26:08 2007 +0000
-style_meam.h
-# deleted on Tue Jan 30 00:54:31 2007 +0000
 atom_angle.cpp
 atom_angle.h
 atom_bond.cpp

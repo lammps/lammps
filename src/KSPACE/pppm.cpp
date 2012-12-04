@@ -2434,7 +2434,7 @@ void PPPM::unpack_forward(int flag, FFT_SCALAR *buf, int nlist, int *list)
   } else if (flag == FORWARD_AD) {
     FFT_SCALAR *dest = &u_brick[nzlo_out][nylo_out][nxlo_out];
     for (int i = 0; i < nlist; i++)
-      dest[list[i]] = buf[n++];
+      dest[list[i]] = buf[i];
   } else if (flag == FORWARD_IK_PERATOM) {
     FFT_SCALAR *esrc = &u_brick[nzlo_out][nylo_out][nxlo_out];
     FFT_SCALAR *v0src = &v0_brick[nzlo_out][nylo_out][nxlo_out];

@@ -53,16 +53,13 @@ class MSM : public KSpace {
   int *nxhi_in_d,*nyhi_in_d,*nzhi_in_d;
   int *nxlo_out,*nylo_out,*nzlo_out;
   int *nxhi_out,*nyhi_out,*nzhi_out;
-  int *nxlo_ghost,*nxhi_ghost,*nylo_ghost;
-  int *nyhi_ghost,*nzlo_ghost,*nzhi_ghost;
   int *ngrid;
   int nxlo_direct,nxhi_direct,nylo_direct;
   int nyhi_direct,nzlo_direct,nzhi_direct;
   int nmax_direct;
   int nlower,nupper;
   int peratom_allocate_flag;
-  int levels;
-
+  int levels,cutlevel;
 
   double ****qgrid;
   double ****egrid;
@@ -75,20 +72,21 @@ class MSM : public KSpace {
   double **v3_direct,**v4_direct,**v5_direct;
 
   double **phi1d,**dphi1d;
-  
-  class CommGrid *cg;
-  class CommGrid *cg_peratom;
+
+  class CommGrid **cg;
+  class CommGrid **cg_IK;
+  class CommGrid **cg_peratom;
+  int current_level;
 
   int **part2grid;             // storage for particle -> grid mapping
   int nmax;
 
-  int triclinic;               // domain settings, orthog or triclinic
   double *boxlo;
 
   void set_grid_global();
   void set_grid_local();
   void setup_grid();
-  double estimate_a(double,double);
+  double estimate_cutoff(double,double);
   double estimate_1d_error(double,double);
   double estimate_3d_error();
   double estimate_total_error();
@@ -99,32 +97,25 @@ class MSM : public KSpace {
   void allocate_levels();
   void deallocate_levels();
   int factorable(int,int&,int&);
-  void compute_gf_denom();
-  double gf_denom(double, double, double);
   void particle_map();
   void make_rho();
-  void ghost_swap(int);
   void grid_swap(int,double*** &);
   void direct_ad(int);
   void direct(int);
   void direct_peratom(int);
   void restriction(int);
   void prolongation(int);
-  void fillbrick_ad_peratom(int);
-  void fillbrick(int);
   void fieldforce_ad();
   void fieldforce();
   void fieldforce_peratom();
-  void procs2grid2d(int,int,int,int*,int*);
   void compute_phis_and_dphis(const double &, const double &, const double &);
   double compute_phi(const double &);
   double compute_dphi(const double &);
   void get_g_direct();
   void get_dg_direct();
   void get_virial_direct();
-  
-  // grid communication
 
+  // grid communication
   void pack_forward(int, double *, int, int *);
   void unpack_forward(int, double *, int, int *);
   void pack_reverse(int, double *, int, int *);
@@ -162,18 +153,22 @@ This feature is not yet supported.
 
 E: Cannot use slab correction with MSM
 
-Slab correction can only be used with Ewald and PPPM, not MSM
+Slab correction can only be used with Ewald and PPPM, not MSM.
 
 E: MSM order must be 4, 6, 8, or 10
 
-This is a limitation of the MSM implementation in LAMMPS: 
+This is a limitation of the MSM implementation in LAMMPS:
 the MSM order can only be 4, 6, 8, or 10.
+
+E: Cannot (yet) use single precision with MSM (remove -DFFT_SINGLE from Makefile and recompile)
+
+Single precision cannot be used with MSM.
 
 E: KSpace style is incompatible with Pair style
 
 Setting a kspace style requires that a pair style with a long-range
 Coulombic component be selected that is compatible with MSM.  Note
-that TIP4P is not (yet) supported by MSM
+that TIP4P is not (yet) supported by MSM.
 
 E: Cannot use kspace solver on system with no charge
 
@@ -183,11 +178,6 @@ E: System is not charge neutral, net charge = %g
 
 The total charge on all atoms on the system is not 0.0, which
 is not valid for MSM.
-
-W: MSM parallel communication error, try reducing accuracy or number of procs
-
-Currently only nearest neighbor communication between processors is implemented in MSM.
-If charge from an atom spans more than one processor domain this error will result.
 
 E: MSM grid is too large
 
@@ -199,10 +189,21 @@ E: KSpace accuracy must be > 0
 
 The kspace accuracy designated in the input must be greater than zero.
 
+W: Number of MSM mesh points increased to be a multiple of 2
+
+MSM requires that the number of grid points in each direction be a multiple
+of two and the number of grid points in one or more directions have been
+adjusted to meet this requirement.
+
+W: Adjusting Coulombic cutoff for MSM, new cutoff = %g
+
+The adjust/cutoff command is turned on and the Coulombic cutoff has been
+adjusted to match the user-specified accuracy.
+
 E: Out of range atoms - cannot compute MSM
 
-One or more atoms are attempting to map their charge to a MSM grid
-point that is not owned by a processor.  This is likely for one of two
+One or more atoms are attempting to map their charge to a MSM grid point 
+that is not owned by a processor.  This is likely for one of two
 reasons, both of them bad.  First, it may mean that an atom near the
 boundary of a processor's sub-domain has moved more than 1/2 the
 "neighbor skin distance"_neighbor.html without neighbor lists being

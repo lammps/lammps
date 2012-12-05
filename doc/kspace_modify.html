@@ -74,7 +74,7 @@ Values for x,y,z of 0,0,0 unset the option.
 </P>
 <P>The <I>order</I> keyword determines how many grid spacings an atom's charge
 extends when it is mapped to the grid in kspace style <I>pppm</I> or <I>msm</I>.
-The default for this parameter is 5 for PPPM and 4 for MSM, which
+The default for this parameter is 5 for PPPM and 8 for MSM, which
 means each charge spans 5 or 4 grid cells in each dimension,
 respectively.  For the LAMMPS implementation of MSM, the order can
 range from 4 to 10 and must be even. For PPPM, the minimum allowed
@@ -103,7 +103,8 @@ allowed to extend beyond nearest-neighbor processors, e.g. when using
 lots of processors on a small problem.  If it is set to <I>no</I> then the
 communication will be limited to nearest-neighbor processors and the
 <I>order</I> setting will be reduced if necessary, as explained by the
-<I>minorder</I> keyword discussion. The same is also true for MSM.
+<I>minorder</I> keyword discussion. The <I>overlap</I> keyword is always set to
+<I>yes</I> in MSM.
 </P>
 <P>The <I>minorder</I> keyword allows LAMMPS to reduce the <I>order</I> setting if
 necessary to keep the communication of ghost grid point limited to
@@ -117,14 +118,16 @@ neighbor processors.  The <I>minorder</I> keyword limits how small the
 which is the default.  If <I>minorder</I> is set to the same value as
 <I>order</I> then no reduction is allowed, and LAMMPS will generate an
 error if the grid communcation is non-nearest-neighbor and <I>overlap</I>
-is set to <I>no</I>.
+is set to <I>no</I>. The <I>minorder</I> keyword is not currently supported in
+MSM.
 </P>
 <P>The PPPM order parameter may be reset by LAMMPS when it sets up the
 FFT grid if the implied grid stencil extends beyond the grid cells
 owned by neighboring processors.  Typically this will only occur when
 small problems are run on large numbers of processors.  A warning will
 be generated indicating the order parameter is being reduced to allow
-LAMMPS to run the problem. The same setup is also implemented in MSM. 
+LAMMPS to run the problem. Automatic adjustment of the order parameter
+is not supported in MSM. 
 </P>
 <P>The <I>force</I> keyword overrides the relative accuracy parameter set by
 the <A HREF = "kspace_style.html">kspace_style</A> command with an absolute
@@ -216,7 +219,7 @@ option.  Support for those PPPM variants will be added later.
 <P><B>Default:</B>
 </P>
 <P>The option defaults are mesh = mesh/disp = 0 0 0, order = order/disp =
-5 (PPPM), order = 4 (MSM), minorder = 2, overlap = yes, force = -1.0,
+5 (PPPM), order = 8 (MSM), minorder = 2, overlap = yes, force = -1.0,
 gewald = gewald/disp = 0.0, slab = 1.0, compute = yes, cutoff/adjust =
 yes, and diff = ik (PPPM), diff = ad (MSM).
 </P>

@@ -142,7 +142,7 @@ interpolating electric fields to particles) to be performed in single
 precision.  This option can speed-up long-range calulations,
 particularly in parallel or on GPUs.  The use of the -DFFT_SINGLE flag
 is discussed in "this section"_Section_start.html#start_2_4 of the
-manual.
+manual. MSM does not currently support the -DFFT_SINGLE compiler switch.
 
 :line
 
@@ -228,11 +228,6 @@ A simulation must be 3d and periodic in all dimensions to use an Ewald
 or PPPM solver.  The only exception is if the slab option is set with
 "kspace_modify"_kspace_modify.html, in which case the xy dimensions
 must be periodic and the z dimension must be non-periodic.
-
-The {msm} style is fairly new, and still lacks some important features
-and optimizations. The upper MSM levels (above the first level) are not 
-parallelized, so this MSM implementation may not yet scale very well 
-on large core counts.
 
 [Related commands:]
 

@@ -43,7 +43,7 @@
 #  init.mod. 
 #
 #  There are two alternate versions of displace.mod provided.
-#  They are displace_restart.mod to displace.mod. 
+#  They are displace_restart.mod and displace_reverse.mod. 
 #  The former resets the box using a restart file while 
 #  the latter reverses the deformation. Copy whichever
 #  one you like best to displace.mod.

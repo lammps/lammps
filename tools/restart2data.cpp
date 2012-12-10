@@ -606,6 +606,7 @@ void header(FILE *fp, Data &data)
 	char *substyle;
 	for (int i = 1; i <= nwords; i++) {
 	  substyle = read_char(fp);
+          strip_suffix(substyle);
 	  set_style(substyle,data,i);
 	}
       }
@@ -699,8 +700,10 @@ void groups(FILE *fp)
   int count = 0;
   for (int i = 0; i < MAX_GROUP; i++) {
     name = read_char(fp);
-    delete [] name;
-    count++;
+    if (name) {
+      delete [] name;
+      count++;
+    }
     if (count == ngroup) break;
   }
 }
@@ -2623,6 +2626,7 @@ void pair(FILE *fp, Data &data, char *style, int flag)
     int nstyles = read_int(fp);
     for (int i = 0; i < nstyles; i++) {
       char *substyle = read_char(fp);
+      strip_suffix(substyle);
       pair(fp,data,substyle,0);
     }
 

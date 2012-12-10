@@ -825,7 +825,7 @@ void FixGCMC::attempt_molecule_insertion()
         int nfix = modify->nfix;
         Fix **fix = modify->fix;
         for (int j = 0; j < nfix; j++)
-          if (fix[j]->create_attribute) fix[j]->set_arrays(i);
+          if (fix[j]->create_attribute) fix[j]->set_arrays(m);
 
       } else atom->nlocal--;
     }

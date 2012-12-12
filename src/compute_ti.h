@@ -35,6 +35,7 @@ class ComputeTI : public Compute {
   int nterms;
   int *which;
   int *ivar1,*ivar2;
+  int *ilo, *ihi; 
   char **var1,**var2;
   class Pair **pptr;
   char **pstyle;

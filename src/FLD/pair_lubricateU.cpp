@@ -680,7 +680,7 @@ void PairLubricateU::compute_Fh(double **x)
 
     // Find the contribution to stress from isotropic RS0
     // Set psuedo force to obtain the required contribution
-    // need to set delx  and fy only
+    // need to set delx and fy only
 
     fx = 0.0; delx = radi;
     fy = vxmu2f*RS0*gdot/2.0/radi; dely = 0.0;

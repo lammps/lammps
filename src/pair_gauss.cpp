@@ -217,7 +217,11 @@ void PairGauss::coeff(int narg, char **arg)
 
 double PairGauss::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+ 
+  // This error is triggered when ti is performed on lj/cut tail
+  // in presence of extra atom type for tether sites
+  // "i = 2 j = 1 ERROR: All pair coeffs are not set (pair_gauss.cpp:223)"
+  //  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
   if (offset_flag) offset[i][j] = a[i][j]*exp(-b[i][j]*cut[i][j]*cut[i][j]);
   else offset[i][j] = 0.0;

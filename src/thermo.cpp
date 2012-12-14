@@ -67,7 +67,7 @@ enum{SCALAR,VECTOR,ARRAY};
 #define INVOKED_VECTOR 2
 #define INVOKED_ARRAY 4
 
-#define MAXLINE 8192               // make this 4x longer than Input::MAXLINE
+#define MAXLINE 32768               // make this 4x longer than Input::MAXLINE
 #define DELTA 8
 
 /* ---------------------------------------------------------------------- */

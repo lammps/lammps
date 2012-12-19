@@ -26,6 +26,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "fix_qeq_reax.h"
+#include "pair_reax_c.h"
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
@@ -43,12 +44,10 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 #define EV_TO_KCAL_PER_MOL 14.4
-#define SAFE_ZONE       1.2
 #define DANGER_ZONE     0.95
 #define LOOSE_ZONE      0.7
 #define SQR(x) ((x)*(x))
 #define CUBE(x) ((x)*(x)*(x))
-#define MIN_CAP 50
 #define MIN_NBRS 100
 
 /* ---------------------------------------------------------------------- */
@@ -104,6 +103,9 @@ FixQEqReax::FixQEqReax(LAMMPS *lmp, int narg, char **arg) :
   for( int i = 0; i < atom->nmax; i++ )
     for (int j = 0; j < nprev; ++j )
       s_hist[i][j] = t_hist[i][j] = 0;
+
+  reaxc = NULL;
+  reaxc = (PairReaxC *) force->pair_match("reax/c",1);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -243,9 +245,11 @@ void FixQEqReax::reallocate_storage()
 void FixQEqReax::allocate_matrix()
 {
   int i,ii;
+  int mincap = reaxc->system->mincap;
+  double safezone = reaxc->system->safezone;
 
   n = atom->nlocal;
-  n_cap = MAX( (int)(n * SAFE_ZONE), MIN_CAP );
+  n_cap = MAX( (int)(n * safezone), mincap );
 
   // determine the total space for the H matrix
 
@@ -254,7 +258,7 @@ void FixQEqReax::allocate_matrix()
     i = list->ilist[ii];
     m += list->numneigh[i];
   }
-  m_cap = MAX( (int)(m * SAFE_ZONE), MIN_CAP * MIN_NBRS );
+  m_cap = MAX( (int)(m * safezone), mincap * MIN_NBRS );
 
   H.n = n_cap;
   H.m = m_cap;

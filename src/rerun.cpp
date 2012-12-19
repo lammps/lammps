@@ -154,7 +154,7 @@ void Rerun::command(int narg, char **arg)
     update->reset_timestep(ntimestep);
     rd->atoms();
 
-    modify->addstep_compute_all(ntimestep);
+    modify->init();
     update->integrate->setup_minimal(1);
     modify->end_of_step();
     if (firstflag) output->setup();

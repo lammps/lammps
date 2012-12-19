@@ -158,7 +158,8 @@ E: Triclinic box skew is too large
 
 The displacement in a skewed direction must be less than half the box
 length in that dimension.  E.g. the xy tilt must be between -half and
-+half of the x box length.
++half of the x box length. This constraint can be relaxed by increasing
+the value of DELTATILT defined in domain.cpp.
 
 E: Illegal simulation box
 

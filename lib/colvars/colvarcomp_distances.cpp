@@ -813,28 +813,15 @@ void colvar::rmsd::calc_value()
 {
   atoms.reset_atoms_data();
   atoms.read_positions();
-  // rotational fit is done internally
 
-  // atoms_cog = atoms.center_of_geometry();
-  // rot.calc_optimal_rotation (ref_pos, atoms.positions_shifted (-1.0 * atoms_cog));
-
-  // cvm::real group_pos_sum2 = 0.0;
-  // for (size_t i = 0; i < atoms.size(); i++) {
-  //   group_pos_sum2 += (atoms[i].pos - atoms_cog).norm2();
-  // }
-
-  // // value of the RMSD (Coutsias et al)
-  // cvm::real const MSD = 1.0/(cvm::real (atoms.size())) *
-  //   ( group_pos_sum2 + ref_pos_sum2 - 2.0 * rot.lambda );
-
-  // x.real_value = (MSD > 0.0) ? std::sqrt (MSD) : 0.0;
+  // rotational-translational fit is handled by the atom group
 
   x.real_value = 0.0;
   for (size_t ia = 0; ia < atoms.size(); ia++) {
     x.real_value += (atoms[ia].pos - ref_pos[ia]).norm2();
   }
   x.real_value /= cvm::real (atoms.size()); // MSD
-  x.real_value = (x.real_value > 0.0) ? std::sqrt (x.real_value) : 0.0;
+  x.real_value = std::sqrt (x.real_value);
 }
 
 
@@ -908,11 +895,14 @@ void colvar::rmsd::calc_Jacobian_derivative()
       grad_rot_mat[1][2] =  2.0 * (g23 - g01); 
       grad_rot_mat[2][2] = -2.0 * (g11 + g22); 
 
-      cvm::atom_pos &x = atoms[ia].pos; 
+      cvm::atom_pos &y = ref_pos[ia];
 
-      for (size_t i = 0; i < 3; i++) {
-        for (size_t j = 0; j < 3; j++) {
-          divergence += grad_rot_mat[i][j][i] * x[j];
+      for (size_t alpha = 0; alpha < 3; alpha++) {
+        for (size_t beta = 0; beta < 3; beta++) {
+          divergence += grad_rot_mat[beta][alpha][alpha] * y[beta];
+        // Note: equation was derived for inverse rotation (see colvars paper)
+        // so here the matrix is transposed
+        // (eq would give   divergence += grad_rot_mat[alpha][beta][alpha] * y[beta];)
         }
       }
     }

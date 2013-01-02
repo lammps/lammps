@@ -37,7 +37,7 @@ class GraphError(GenError):
         g_str = str(g)
         # If the string representation of the graph is too 
         # large to fit in one screen, truncate it
-        g_str_lines = split(g_str, '\n')
+        g_str_lines = g_str.split('\n')
         if (len(g_str_lines) > 12):
             g_str_lines = g_str_lines[0:12] + [' ...(additional lines not shown)]']
             g_str = '\n'.join(g_str_lines)

@@ -91,13 +91,13 @@ else:
 
 # We keep track of the program name and version.
 # (This is only used for generating error messages.)
-#g_file_name = 'ttree.py'
-g_file_name    = __file__.split('/')[-1]
-g_module_name  = g_file_name
-if g_file_name.rfind('.py') != -1:
-    g_module_name = g_file_name[:g_file_name.rfind('.py')]
-g_date_str     = '2012-10-19'
-g_version_str  = '0.47'
+#g_filename = 'ttree.py'
+g_filename    = __file__.split('/')[-1]
+g_module_name  = g_filename
+if g_filename.rfind('.py') != -1:
+    g_module_name = g_filename[:g_filename.rfind('.py')]
+g_date_str     = '2012-12-15'
+g_version_str  = '0.73'
 
 
 
@@ -133,7 +133,7 @@ class ClassReference(object):
                  srcloc=None, 
                  statobj=None):
         self.statobj_str  = statobj_str
-        if srcloc == None:
+        if srcloc is None:
             self.srcloc = OSrcLoc('', -1)
         else:
             self.srcloc = srcloc
@@ -173,7 +173,7 @@ class Command(object):
 class WriteFileCommand(Command):
     """ WriteFileCommand
 
-    file_name  This is the name of the file that will be written to
+    filename  This is the name of the file that will be written to
                when the command is executed.
     tmpl_list  This is the contents of what will be written to the file.
                Text strings are often simple strings, however more
@@ -185,24 +185,24 @@ class WriteFileCommand(Command):
     """
 
     def __init__(self, 
-                 file_name = None,
+                 filename = None,
                  tmpl_list = None,
                  srcloc = None):
-        self.file_name = file_name
-        if tmpl_list == None:
+        self.filename = filename
+        if tmpl_list is None:
             self.tmpl_list = []
         else:
             Command.__init__(self, srcloc)
             self.tmpl_list = tmpl_list
     def __str__(self):
-        if self.file_name:
-            return 'WriteFileCommand(\"'+self.file_name+'\")'
+        if self.filename:
+            return 'WriteFileCommand(\"'+self.filename+'\")'
         else:
             return 'WriteFileCommand(NULL)'
     def __copy__(self):
         tmpl_list = []
         CopyTmplList(self.tmpl_list, tmpl_list) #CHECK:IS_MEMORY_WASTED_HERE?
-        return WriteFileCommand(self.file_name, tmpl_list, self.srcloc)
+        return WriteFileCommand(self.filename, tmpl_list, self.srcloc)
 
 
 class InstantiateCommand(Command):
@@ -219,7 +219,7 @@ class InstantiateCommand(Command):
                  srcloc = None):
         Command.__init__(self, srcloc)
         self.name = name
-        #if class_ref == None:
+        #if class_ref is None:
         #    self.class_ref = ClassReference()
         #else:
         self.class_ref = class_ref
@@ -328,7 +328,7 @@ class PopRightCommand(PopCommand):
                  srcloc,
                  context_node=None):
         PopCommand.__init__(self, partner, srcloc, context_node)
-        assert((partner == None) or isinstance(partner, PushRightCommand))
+        assert((partner is None) or isinstance(partner, PushRightCommand))
 
     def __copy__(self):
         return PopRightCommand(self.partner, self.srcloc, self.context_node)
@@ -342,7 +342,7 @@ class PopLeftCommand(PopCommand):
                  srcloc,
                  context_node=None):
         PopCommand.__init__(self, partner, srcloc, context_node)
-        assert((partner == None) or isinstance(partner, PushLeftCommand))
+        assert((partner is None) or isinstance(partner, PushLeftCommand))
 
     def __copy__(self):
         return PopLeftCommand(self.partner, self.srcloc, self.context_node)
@@ -473,8 +473,8 @@ def CopyTmplList(source_tmpl_list, dest_cpy):
                                  #       "entry.nptr" should not contain
                                  #       any data yet, so we just ignore it.
                                  # I assert this below:
-                assert((entry.nptr.cat_node == None) and
-                       (entry.nptr.leaf_node == None))
+                assert((entry.nptr.cat_node is None) and
+                       (entry.nptr.leaf_node is None))
 
                 dest_cpy.append(var_ref)
             else:
@@ -554,7 +554,7 @@ def FindChild(name, node, dbg_loc):
        Note: I have not yet specified what kind of nodes FindChild() operates
     on.  Both StaticObjs and InstanceObjs have self.children and self.parent.
     However only StaticObjs have "self.class_parents". 
-    (These are "parents" in the object-oriented sense.)
+    ("class_parents" are "parents" in the object-oriented sense.)
     If "node" (2nd argument) happens t be an StaticObj, this means it also
     We must search over the children of these class_parents as well.
 
@@ -648,7 +648,7 @@ def FollowPath(path_tokens, starting_node, dbg_loc):
     while i < len(path_tokens):
 
         if path_tokens[i] == '..':
-            if node.parent == None:
+            if node.parent is None:
                 return i, node # <-return the index into the token list
                                #   Caller will know that something went awry
                                #   if the return value is not equal to the
@@ -671,13 +671,13 @@ def FollowPath(path_tokens, starting_node, dbg_loc):
             #  are immediate children of this node's parents are searched.)
             while node != None:
                 child = FindChild(search_target, node, dbg_loc)
-                if child == None:
+                if child is None:
                     node = node.parent 
                 else:
                     node = child
                     break
 
-            if node == None:
+            if node is None:
                 #   Caller will know that something went awry if the return
                 #   value is not equal to the length of the token list.
                 return i, node_before_ellipsis
@@ -696,7 +696,7 @@ def FollowPath(path_tokens, starting_node, dbg_loc):
             # node for one who's name matches path_tokens[i].
             child = FindChild(path_tokens[i], node, dbg_loc)
 
-            if child == None:
+            if child is None:
                 # In that case, return with the node_list incomplete.
                 # Let the caller check to see if something went wrong.
                 return i, node # <-return the index into the token list (i)
@@ -709,7 +709,7 @@ def FollowPath(path_tokens, starting_node, dbg_loc):
             i += 1
 
             if node.IsDeleted():
-                sys.stderr.write('(debug_msg: encountered deleted node: \"'+node.name+'\")\n')
+                #sys.stderr.write('(debug_msg: encountered deleted node: \"'+node.name+'\")\n')
                 break
 
     return len(path_tokens), node
@@ -727,7 +727,7 @@ def PtknsToNode(path_tokens, starting_node, dbg_loc):
     if i_last_ptkn < len(path_tokens):
         #assert(isinstance(last_node,StaticObj)) <--why did I assert this? seems wrong
 
-        if (last_node.parent == None) and (path_tokens[i_last_ptkn] == '..'):
+        if (last_node.parent is None) and (path_tokens[i_last_ptkn] == '..'):
             #In that case, we tried to back out beyond the root of the tree.
             raise InputError('Error('+g_module_name+'.PtknsToNode()):\n'
                              '        Invalid variable/class name:\n'
@@ -839,7 +839,7 @@ def NodeToPtkns(node):
 def NodeToStr(node):
     ptkns = NodeToPtkns(node)
     assert(len(ptkns) > 0)
-    if node.parent == None:
+    if node.parent is None:
         assert(node.name == '')
         return '/'
     path_str = ptkns[0]
@@ -860,40 +860,46 @@ def CatLeafNodesToTkns(cat_name, cat_node, leaf_node, dbg_loc):
     cat_node_ptkns.append(cat_name+':')
 
     # Determine the path of the leaf node (which should inherit from cat)
+    deleted = False
     leaf_node_ptkns = []
     if cat_node != leaf_node:
         node = leaf_node
         while node.parent != None:
+            if node.IsDeleted():
+                deleted = True
+                leaf_node_ptkns.append('DELETED_'+node.name)
+                break
             leaf_node_ptkns.append(node.name)
             if node.parent == cat_node:
                 break
             node = node.parent
         leaf_node_ptkns.reverse()
 
-        # Check that leaf inherits from cat.  If not, print error.
-        if ((node.parent != cat_node) and (node != cat_node)):
-            err_msg = 'Error('+g_module_name+'.CatLeafNodesToPtkns()):\n'+\
-                      '      Invalid variable (category:leaf) pair\n'
-            if dbg_loc != None:
-                cat_node_str = NodeToStr(cat_node)
-                leaf_node_str = NodeToStr(leaf_node)
-                err_msg += '    located near '+ErrorLeader(dbg_loc.infile, dbg_loc.lineno)+'\n'+\
-                           '    (\"'+leaf_node.name+'\" is not in the scope of \"'+cat_node_str+'/'+cat_name+':\")\n'+\
-                           '    This will happen if you used the \"category\" command to manually\n'+\
-                           '    create a category/counter which is not defined globally.\n'+\
-                           '\n'+\
-                           '    Note: Using the analogy of a unix style file system, \n'+\
-                           '    the problem is that \"'+leaf_node_str+'\"\n'+\
-                           '    is not a subdirectory of \"'+cat_node_str+'\".\n'+\
-                           '\n'+\
-                           '    Note: This often occurs when \".../\" is used. In that case, you may\n'+\
-                           '    be able to avoid this error by referring to your variable explicitly\n'+\
-                           '    by using chains of \"../\" tokens in the path instead of \".../\".\n'
-                           #'       Make sure that your variable you are using is defined in \n'+\
-                           #'       an environment (currently \"'+leaf_node_str+'\")\n'+\
-                           #'       which lies WITHIN the environment where the category was defined.\n'+\
-                           #'       (currently \"'+cat_node_str+'\").\n'
-                raise InputError(err_msg)
+        if not deleted:
+            # Check that leaf inherits from cat.  If not, print error.
+            if ((node.parent != cat_node) and (node != cat_node)):
+                err_msg = 'Error('+g_module_name+'.CatLeafNodesToPtkns()):\n'+\
+                          '      Invalid variable (category:leaf) pair\n'
+                if dbg_loc != None:
+                    cat_node_str = NodeToStr(cat_node)
+                    leaf_node_str = NodeToStr(leaf_node)
+                    err_msg += '    located near '+ErrorLeader(dbg_loc.infile, dbg_loc.lineno)+'\n'+\
+                               '    (\"'+leaf_node.name+'\" is not in the scope of \"'+cat_node_str+'/'+cat_name+':\")\n'+\
+                               '    This will happen if you used the \"category\" command to manually\n'+\
+                               '    create a category/counter which is not defined globally.\n'+\
+                               '\n'+\
+                               '    Note: Using the analogy of a unix style file system, \n'+\
+                               '    the problem is that \"'+leaf_node_str+'\"\n'+\
+                               '    is not a subdirectory of \"'+cat_node_str+'\".\n'+\
+                               '\n'+\
+                               '    Note: This often occurs when \".../\" is used. In that case, you may\n'+\
+                               '    be able to avoid this error by referring to your variable explicitly\n'+\
+                               '    by using chains of \"../\" tokens in the path instead of \".../\".\n'
+                               #'       Make sure that your variable you are using is defined in \n'+\
+                               #'       an environment (currently \"'+leaf_node_str+'\")\n'+\
+                               #'       which lies WITHIN the environment where the category was defined.\n'+\
+                               #'       (currently \"'+cat_node_str+'\").\n'
+                    raise InputError(err_msg)
     else:
         err_msg = 'Warning: Strange variable path'
         if dbg_loc != None:
@@ -983,11 +989,11 @@ def FindCatNode(category_name, current_node, srcloc):
         elif node.parent != None:
             node = node.parent
         else:
-            # node.parent == None,    ... we're done
+            # node.parent is None,    ... we're done
             break
 
-    if cat_node == None:
-        assert(node.parent == None)
+    if cat_node is None:
+        assert(node.parent is None)
         #sys.stderr.write('Warning near ' +
         #                 ErrorLeader(srcloc.infile, 
         #                             srcloc.lineno)+'\n'+
@@ -1327,7 +1333,7 @@ def DescrToCatLeafNodes(descr_str,
             cat_start_node = PtknsToNode(cat_ptkns[:-1], context_node, dbg_loc)
             # Later on, we will search upwards until we find an ancestor
             # node containing a category matching cat_name.  This will
-            # be taken care of later.  (See "if cat_node == None:" below.)
+            # be taken care of later.  (See "if cat_node is None:" below.)
         else:
             # In this case, the user supplied an explicit path
             # for the category node.  Find it now.
@@ -1339,7 +1345,7 @@ def DescrToCatLeafNodes(descr_str,
             # of the category node, which is what we want.
             leaf_start_node = cat_node
 
-    if cat_node == None:
+    if cat_node is None:
         # Otherwise, the user did not indicate where the category
         # node is defined, but only supplied the category name.
         # (This is the most common scenario.)
@@ -1441,7 +1447,7 @@ def DescrToCatLeafNodes(descr_str,
                 else:
                     #In that case, we were unable to find the node referenced by "..." 
                     raise InputError('Error('+g_module_name+'.DescrToCatLeafNodes()):\n'
-                                     '       Broken path containing ellipsis (...)\n'
+                                     '       Broken path.\n' # containing ellipsis (...)\n'
                                      '       class/variable \"'+search_target+'\" not found in this\n'
                                      '       context: \"'
                                      #+var_ref.prefix + var_ref.descr_str + var_ref.suffix+'\"\n'
@@ -1526,7 +1532,7 @@ def DescrToCatLeafNodes(descr_str,
             # Otherwise, the user made a mistake in the path.
             # Figure out which kind of mistake and print an error.
 
-            if (last_node.parent == None) and (leaf_ptkns[i_last_ptkn] == '..'):
+            if (last_node.parent is None) and (leaf_ptkns[i_last_ptkn] == '..'):
                 #In that case, we tried to back out beyond the root of the tree.
                 raise InputError('Error('+g_module_name+'.DescrToCatLeafNodes()):\n'
                                  '       Broken path in variable:\n'
@@ -1678,22 +1684,22 @@ class Category(object):
 
         self.name = name
 
-        if bindings == None:
+        if bindings is None:
             self.bindings = OrderedDict()
         else:
             self.bindings = bindings
 
-        if counter == None:
+        if counter is None:
             self.counter = SimpleCounter(1,1)
         else:
             self.counter = counter
 
-        if manual_assignments == None:
+        if manual_assignments is None:
             self.manual_assignments = OrderedDict()
         else:
             self.manual_assignments = manual_assignments
 
-        if reserved_values == None:
+        if reserved_values is None:
             self.reserved_values = OrderedDict()
         else:
             self.reserved_values = reserved_values
@@ -1888,7 +1894,7 @@ class StaticObj(object):
 
 
     ##vb##def AddVarBinding(self, var_binding):
-    ##vb##    if self.var_bindings == None:
+    ##vb##    if self.var_bindings is None:
     ##vb##        self.var_bindings = [var_binding]
     ##vb##    else:
     ##vb##        self.var_bindings.append(var_binding)
@@ -1908,7 +1914,7 @@ class StaticObj(object):
         # augment their original class definition, adding new content to an
         # existing class.  In that case self.srcloc_begin will have already 
         # been assigned.  We don't want to overwrite it in that case.)
-        if self.srcloc_begin == None:  # <-- not defined yet?
+        if self.srcloc_begin is None:  # <-- not defined yet?
             self.srcloc_begin = lex.GetSrcLoc()
 
         while True:
@@ -1967,48 +1973,7 @@ class StaticObj(object):
                 #   tmpl_filename = tmpl_filename.strip(lex.quotes) )
 
                 tmpl_contents = lex.ReadTemplate()
-
-                # Format quirks:
-                #1) Remove any newlines at the beginning of the first text block
-                # in tmpl_content.(Sometimes they cause ugly extra blank lines)
-                assert(len(tmpl_contents) > 0)
-                if isinstance(tmpl_contents[0], TextBlock):
-                    first_token_strip = tmpl_contents[0].text.lstrip(' ')
-                    if ((len(first_token_strip) > 0) and 
-                        (first_token_strip[0] in lex.newline)):
-                        tmpl_contents[0].text = first_token_strip[1:]
-
-                #2) Remove any trailing '}' characters, and complain if absent.
-                #   The last token
-                assert(isinstance(tmpl_contents[-1], TextBlock))
-                assert(tmpl_contents[-1].text in ['}',''])
-                if tmpl_contents[-1].text == '}':
-                    del tmpl_contents[-1]
-                else:
-                    tmpl_begin = None
-                    if isinstance(tmpl_contents[0], TextBlock):
-                        tmpl_begin = tmpl_contents[0].locBeg
-                    elif isinstance(tmpl_contents[0], VarRef):
-                        tmpl_begin = tmpl_contents[0].srcloc
-                    else:
-                        assert(False)
-                    raise InputError('Error('+g_module_name+'.StaticObj.Parse()):\n'
-                                     '      Error near '+lex.error_leader()+'\n\n'
-                                     '      Premature end to template.\n'
-                                     '(Missing terminator character, usually a \'}\'.) The\n'
-                                     'incomplete template begins near '+ErrorLeader(tmpl_begin.infile, tmpl_begin.lineno)+'\n')
-                #3) Finally, if there is nothing but whitespace between the
-                #   last newline and the end, then strip that off too.
-                if isinstance(tmpl_contents[-1], TextBlock):
-                    i = len(tmpl_contents[-1].text)-1
-                    if i >= 0:
-                        while ((i >= 0) and 
-                               (tmpl_contents[-1].text[i] in lex.whitespace) and
-                               (tmpl_contents[-1].text[i] not in lex.newline)):
-                            i -= 1
-                        if (tmpl_contents[-1].text[i] in lex.newline):
-                            tmpl_contents[-1].text = tmpl_contents[-1].text[0:i+1]
-
+                StaticObj.CleanupReadTemplate(tmpl_contents, lex)
 
                 #sys.stdout.write('  Parse() after ReadTemplate, tokens:\n\n')
                 #print(tmpl_contents)
@@ -2234,7 +2199,7 @@ class StaticObj(object):
                             break
                     # If found, we refer to it as "child". 
                     # If not, then we create a new StaticObj named "child". 
-                    if (child == None) or (child.name != child_name):
+                    if (child is None) or (child.name != child_name):
                         child = StaticObj(child_name, self)
                         self.children.append(child)
                     assert(child in self.children)
@@ -2343,13 +2308,16 @@ class StaticObj(object):
                                                      '     Error in new statement near '+lex.error_leader()+'\n'
                                                      '     A \'[\' character should be followed by a number and a \']\' character.')
                                 array_size.append(int(number_str))
-                                suffix = lex.GetParenExpr()
-                                if ((suffix == '') or 
-                                    (suffix == lex.eof)):
+                                suffix = lex.get_token()
+
+                                if ((suffix == '') or (suffix == lex.eof)):
                                     array_suffixes.append('')
                                     array_srclocs.append(base_srcloc)
                                     break
                                 if suffix[0] == '.':
+                                    lex.push_token(suffix[1:])
+                                    suffix_func = lex.GetParenExpr()
+                                    suffix = '.' + suffix_func
                                     array_suffixes.append(suffix)
                                     array_srclocs.append(lex.GetSrcLoc())
                                 else:
@@ -2593,13 +2561,13 @@ class StaticObj(object):
                             pop_mod_command  = ModCommand(pop_command, 
                                                           instobj_descr_str)
                             if instobj_descr_str != './':
-                                sys.stderr.write('DEBUG: Adding '+str(push_command)+' to '+
-                                                 staticobj.name+'.instance_commands\n')
+                                #sys.stderr.write('DEBUG: Adding '+str(push_command)+' to '+
+                                #                 staticobj.name+'.instance_commands\n')
                                 staticobj.instance_commands.append(push_mod_command)
                                 staticobj.instance_commands.append(pop_mod_command)
                             else:
-                                sys.stderr.write('DEBUG: Adding '+str(push_command)+' to '+
-                                                 staticobj.name+'.instance_commands_push\n')
+                                #sys.stderr.write('DEBUG: Adding '+str(push_command)+' to '+
+                                #                 staticobj.name+'.instance_commands_push\n')
                                 # CONTINUEHERE: should I make these PushRight commands and
                                 #               append them in the opposite order?
                                 #               If so I also have to worry about the case above.
@@ -2625,6 +2593,49 @@ class StaticObj(object):
         self.srcloc_end = lex.GetSrcLoc()
 
 
+
+    @staticmethod
+    def CleanupReadTemplate(tmpl_contents, lex):
+        #1) Remove any newlines at the beginning of the first text block
+        # in tmpl_content.(Sometimes they cause ugly extra blank lines)
+        assert(len(tmpl_contents) > 0)
+        if isinstance(tmpl_contents[0], TextBlock):
+            first_token_strip = tmpl_contents[0].text.lstrip(' ')
+            if ((len(first_token_strip) > 0) and 
+                (first_token_strip[0] in lex.newline)):
+                tmpl_contents[0].text = first_token_strip[1:]
+                tmpl_contents[0].srcloc.lineno += 1
+
+        #2) Remove any trailing '}' characters, and complain if absent.
+        #   The last token
+        assert(isinstance(tmpl_contents[-1], TextBlock))
+        assert(tmpl_contents[-1].text in ['}',''])
+        if tmpl_contents[-1].text == '}':
+            del tmpl_contents[-1]
+        else:
+            tmpl_begin = None
+            if isinstance(tmpl_contents[0], TextBlock):
+                tmpl_begin = tmpl_contents[0].srcloc
+            elif isinstance(tmpl_contents[0], VarRef):
+                tmpl_begin = tmpl_contents[0].srcloc
+            else:
+                assert(False)
+            raise InputError('Error('+g_module_name+'.StaticObj.Parse()):\n'
+                             '      Error near '+lex.error_leader()+'\n\n'
+                             '      Premature end to template.\n'
+                             '(Missing terminator character, usually a \'}\'.) The\n'
+                             'incomplete template begins near '+ErrorLeader(tmpl_begin.infile, tmpl_begin.lineno)+'\n')
+        #3) Finally, if there is nothing but whitespace between the
+        #   last newline and the end, then strip that off too.
+        if isinstance(tmpl_contents[-1], TextBlock):
+            i = len(tmpl_contents[-1].text)-1
+            if i >= 0:
+                while ((i >= 0) and 
+                       (tmpl_contents[-1].text[i] in lex.whitespace) and
+                       (tmpl_contents[-1].text[i] not in lex.newline)):
+                    i -= 1
+                if (tmpl_contents[-1].text[i] in lex.newline):
+                    tmpl_contents[-1].text = tmpl_contents[-1].text[0:i+1]
 
 
 
@@ -3006,7 +3017,7 @@ class InstanceObjBasic(object):
 
 
     ##vb##def AddVarBinding(self, var_binding):
-    ##vb##    if self.var_bindings == None:
+    ##vb##    if self.var_bindings is None:
     ##vb##        self.var_bindings = [var_binding]
     ##vb##    else:
     ##vb##        self.var_bindings.append(var_binding)
@@ -3014,7 +3025,7 @@ class InstanceObjBasic(object):
 
     def Dealloc(self):
         pass
-        ##vb##if self.var_bindings == None:
+        ##vb##if self.var_bindings is None:
         ##vb##    return
         ##vb##N = len(self.var_bindings)-1
         ##vb##for i in range(0,len(self.var_bindings)):
@@ -3036,7 +3047,14 @@ class InstanceObjBasic(object):
                             # eliminated unnecessary data members to save space.
 
     def IsDeleted(self):
-        return (self.parent == self)
+        # Return true if self.parent == self
+        # for this node (or for any ancestor node).
+        node = self
+        while node.parent != None:
+            if node.parent == node:
+                return True
+            node = node.parent
+        return False
 
 
 
@@ -3390,6 +3408,7 @@ class InstanceObj(InstanceObjBasic):
         #        del parent.children[i]
         #    else:
         #        i += 1
+
         self.Dealloc()
         InstanceObjBasic.DeleteSelf(self)
 
@@ -3437,8 +3456,8 @@ class InstanceObj(InstanceObjBasic):
         for class_parent in statobj.class_parents:
             # Avoid the "Diamond of Death" multiple inheritance problem
             if class_parent not in class_parents_in_use:
-                sys.stderr.write('  DEBUG: '+self.name+'.class_parent = '+
-                                 class_parent.name+'\n')
+                #sys.stderr.write('  DEBUG: '+self.name+'.class_parent = '+
+                #                 class_parent.name+'\n')
                 self.BuildInstanceTree(class_parent,
                                        class_parents_in_use)
             class_parents_in_use.add(class_parent)
@@ -3787,7 +3806,7 @@ def AssignVarOrderByFile(context_node, search_instance_commands=False):
                          isinstance(context_node, InstanceObjBasic))):
                     #if ((var_ref.prefix == '@') or
                     #    (not search_instance_commands)):
-                        if ((var_ref.binding.order == None) or 
+                        if ((var_ref.binding.order is None) or 
                             (var_ref.binding.order > var_ref.srcloc.order)):
                             var_ref.binding.order = var_ref.srcloc.order
 
@@ -3812,7 +3831,8 @@ def AssignVarOrderByCommand(command_list, prefix_filter):
             for var_ref in tmpl_list:
                 if isinstance(var_ref, VarRef):
                     if var_ref.prefix in prefix_filter:
-                        if ((var_ref.binding.order == None) or 
+                        count += 1
+                        if ((var_ref.binding.order is None) or 
                             (var_ref.binding.order > count)):
                             var_ref.binding.order = count
 
@@ -3874,7 +3894,7 @@ def AutoAssignVals(cat_node,
 
         for leaf_node,var_binding in var_bind_iter:
 
-            if ((var_binding.value == None) or ignore_prior_values):
+            if ((var_binding.value is None) or ignore_prior_values):
 
                 if var_binding.nptr.leaf_node.name[:9] == '__query__':
                     #   -- THE "COUNT" HACK --
@@ -3902,7 +3922,7 @@ def AutoAssignVals(cat_node,
                         while True:
                             cat.counter.incr()
                             value = str(cat.counter.query())
-                            if ((reserved_values == None) or 
+                            if ((reserved_values is None) or 
                                 ((cat, value) not in reserved_values)):
                                 break
 
@@ -4049,8 +4069,8 @@ def MergeWriteCommands(command_list):
     file_templates = defaultdict(list)
     for command in command_list:
         if isinstance(command, WriteFileCommand):
-            if command.file_name != None:
-                file_templates[command.file_name] += \
+            if command.filename != None:
+                file_templates[command.filename] += \
                     command.tmpl_list
 
     return file_templates
@@ -4062,28 +4082,28 @@ def WriteTemplatesValue(file_templates):
     write out the contents of the templates contain inside them).
 
     """
-    for file_name, tmpl_list in file_templates.items():
-        if file_name == '':
+    for filename, tmpl_list in file_templates.items():
+        if filename == '':
             out_file = sys.stdout
         else:
-            out_file = open(file_name, 'a')
+            out_file = open(filename, 'a')
 
         out_file.write(Render(tmpl_list, substitute_vars=True))
-        if file_name != '':
+        if filename != '':
             out_file.close()
 
     # Alternate (old method):
     #for command in command_list:
     #    if isinstance(command, WriteFileCommand):
-    #        if command.file_name != None:
-    #            if command.file_name == '':
+    #        if command.filename != None:
+    #            if command.filename == '':
     #                out_file = sys.stdout
     #            else:
-    #                out_file = open(command.file_name, 'a')
+    #                out_file = open(command.filename, 'a')
     #
     #            out_file.write(Render(command.tmpl_list))
     #
-    #           if command.file_name != '':
+    #           if command.filename != '':
     #               out_file.close()
 
 
@@ -4096,34 +4116,34 @@ def WriteTemplatesVarName(file_templates):
 
     """
 
-    for file_name, tmpl_list in file_templates.items():
-        if file_name != '':
-            out_file = open(file_name + '.template', 'a')
+    for filename, tmpl_list in file_templates.items():
+        if filename != '':
+            out_file = open(filename + '.template', 'a')
             out_file.write(Render(tmpl_list, substitute_vars=False))
             out_file.close()
 
 
 
 def EraseTemplateFiles(command_list):
-    file_names = set([])
+    filenames = set([])
     for command in command_list:
         if isinstance(command, WriteFileCommand):
-            if (command.file_name != None) and (command.file_name != ''):
-                if command.file_name not in file_names:
-                    file_names.add(command.file_name)
+            if (command.filename != None) and (command.filename != ''):
+                if command.filename not in filenames:
+                    filenames.add(command.filename)
                     # Openning the files (in mode 'w') and closing them again
                     # erases their contents.
-                    out_file = open(command.file_name, 'w')
+                    out_file = open(command.filename, 'w')
                     out_file.close()
-                    out_file = open(command.file_name + '.template', 'w')
+                    out_file = open(command.filename + '.template', 'w')
                     out_file.close()
 
 #def ClearTemplates(file_templates):
-#    for file_name in file_templates:
-#        if file_name != '':
-#            out_file = open(file_name, 'w')
+#    for filename in file_templates:
+#        if filename != '':
+#            out_file = open(filename, 'w')
 #            out_file.close()
-#            out_file = open(file_name + '.template', 'w')
+#            out_file = open(filename + '.template', 'w')
 #            out_file.close()
 
 
@@ -4154,11 +4174,19 @@ def WriteVarBindingsFile(node):
                 # Now omit variables whos names contain "*" or "?"
                 # (these are actually not variables, but wildcard patterns)
                 if not HasWildCard(var_binding.full_name):
+                    if len(var_binding.refs) > 0:
+                        usage_example = '       #'+\
+                            ErrorLeader(var_binding.refs[0].srcloc.infile, \
+                                        var_binding.refs[0].srcloc.lineno)
+                    else:
+                        usage_example = ''
                     out.write(SafelyEncodeString(var_binding.full_name) +'   '+
-                              SafelyEncodeString(var_binding.value)+'\n')
+                              SafelyEncodeString(var_binding.value)
+                              +usage_example+'\n')
     out.close()
     for child in node.children:
         WriteVarBindingsFile(child)
+
 
 
 def CustomizeBindings(bindings,
@@ -4209,13 +4237,13 @@ def CustomizeBindings(bindings,
 ##############################################################
 
 
-def BasicUIReadBindingsFile(bindings_so_far, file_name):
+def BasicUIReadBindingsFile(bindings_so_far, filename):
     try:
-        f = open(file_name, 'r')
+        f = open(filename, 'r')
     except IOError: 
-        sys.stderr.write('Error('+g_file_name+'):\n''       : unable to open file\n'
+        sys.stderr.write('Error('+g_filename+'):\n''       : unable to open file\n'
                          '\n'
-                         '       \"'+bindings_file_name+'\"\n'
+                         '       \"'+bindings_filename+'\"\n'
                          '       for reading.\n'
                          '\n'
                          '       (If you were not trying to open a file with this name, then this could\n'
@@ -4224,7 +4252,7 @@ def BasicUIReadBindingsFile(bindings_so_far, file_name):
                          '        to set the variable $atom:wat[2]/H1 to 20.)\n')
         sys.exit(1)
 
-    BasicUIReadBindingsStream(bindings_so_far, f, file_name)
+    BasicUIReadBindingsStream(bindings_so_far, f, filename)
     f.close()
 
 
@@ -4276,7 +4304,7 @@ def BasicUIReadBindingsStream(bindings_so_far, in_stream, source_name=''):
         text_block = tmpllist[i+1]
         assert(isinstance(var_ref, VarRef))
         if (not isinstance(text_block, TextBlock)):
-            raise InputError('Error('+g_file_name+'):\n'
+            raise InputError('Error('+g_filename+'):\n'
                              '       This is not a valid name-value pair:\n'
                              '          \"'+var_ref.prefix+var_ref.descr_str+' '+text_block.text.rstrip()+'\"\n'
                              '       Each variable asignment should contain a variable name (beginning with\n'
@@ -4374,14 +4402,14 @@ def BasicUIParseArgs(argv, settings):
         #sys.stderr.write('argv['+str(i)+'] = \"'+argv[i]+'\"\n')
         if argv[i] == '-a':
             if ((i+1 >= len(argv)) or (argv[i+1][:1] == '-')):
-                raise InputError('Error('+g_file_name+'):\n'
+                raise InputError('Error('+g_filename+'):\n'
                                  '      Error in -a \"'+argv[i+1]+' argument.\"\n'
                                  '      The -a flag '+bind_err_msg)
             if (argv[i+1][0] in '@$'):
                 #tokens = argv[i+1].strip().split(' ')
                 tokens = SplitQuotedString(argv[i+1].strip())
                 if len(tokens) < 2:
-                    raise InputError('Error('+g_file_name+'):\n'
+                    raise InputError('Error('+g_filename+'):\n'
                                      '      Error in -a \"'+argv[i+1]+'\" argument.\n'
                                      '      '+bind_err_msg_var)
                 BasicUIReadBindingsText(settings.user_bindings_x,
@@ -4394,14 +4422,14 @@ def BasicUIParseArgs(argv, settings):
             del(argv[i:i+2])
         elif argv[i] == '-b':
             if ((i+1 >= len(argv)) or (argv[i+1][:1] == '-')):
-                raise InputError('Error('+g_file_name+'):\n'
+                raise InputError('Error('+g_filename+'):\n'
                                  '      Error in -b \"'+argv[i+1]+' argument.\"\n'
                                  '      The -b flag '+bind_err_msg)
             if (argv[i+1][0] in '@$'):
                 #tokens = argv[i+1].strip().split(' ')
                 tokens = SplitQuotedString(argv[i+1].strip())
                 if len(tokens) < 2:
-                    raise InputError('Error('+g_file_name+'):\n'
+                    raise InputError('Error('+g_filename+'):\n'
                                      '      Error in -b \"'+argv[i+1]+'\" argument.\n'
                                      '      '+bind_err_msg_var)
                 BasicUIReadBindingsText(settings.user_bindings,
@@ -4427,7 +4455,7 @@ def BasicUIParseArgs(argv, settings):
               (argv[i] == '-import-path') or
               (argv[i] == '-import_path')):
             if ((i+1 >= len(argv)) or (argv[i+1][:1] == '-')):
-                raise InputError('Error('+g_file_name+'):\n'
+                raise InputError('Error('+g_filename+'):\n'
                                  '     Error in \"'+argv[i]+'\" argument.\"\n'
                                  '     The \"'+argv[i]+'\" argument should be followed by the name of\n'
                                  '     an environment variable storing a path for including/importing files.\n')
@@ -4436,7 +4464,7 @@ def BasicUIParseArgs(argv, settings):
 
         elif ((argv[i][0] == '-') and (__name__ == "__main__")):
             #elif (__name__ == "__main__"):
-            raise InputError('Error('+g_file_name+'):\n'
+            raise InputError('Error('+g_filename+'):\n'
                              'Unrecogized command line argument \"'+argv[i]+'\"\n')
         else:
             i += 1
@@ -4452,14 +4480,14 @@ def BasicUIParseArgs(argv, settings):
         #   python script which imports this module, so we let them handle it.)
 
         if len(argv) == 1:
-            raise InputError('Error('+g_file_name+'):\n'
+            raise InputError('Error('+g_filename+'):\n'
                              '       This program requires at least one argument\n'
                              '       the name of a file containing ttree template commands\n')
         elif len(argv) == 2:
             try:
                 settings.lex = TemplateLexer(open(argv[1], 'r'), argv[1]) # Parse text from file
             except IOError: 
-                sys.stderr.write('Error('+g_file_name+'):\n'
+                sys.stderr.write('Error('+g_filename+'):\n'
                                  '       unable to open file\n'
                                  '       \"'+argv[1]+'\"\n'
                                  '       for reading.\n')
@@ -4469,7 +4497,7 @@ def BasicUIParseArgs(argv, settings):
         else:
             # if there are more than 2 remaining arguments,
             problem_args = ['\"'+arg+'\"' for arg in argv[1:]]
-            raise InputError('Syntax Error ('+g_file_name+'):\n'
+            raise InputError('Syntax Error ('+g_filename+'):\n'
                              '       Problem with argument list.\n'
                              '       The remaining arguments are:\n\n'
                              '         '+(' '.join(problem_args))+'\n\n'
@@ -4527,12 +4555,13 @@ def BasicUI(settings,
     #         and replace the (static) variable references to pointers
     #         to nodes in the StaticObj tree:
     sys.stderr.write(' done\nlooking up @variables...')
+    # Here we assign pointers for variables in "write_once(){text}" templates:
     AssignVarPtrs(static_tree_root, search_instance_commands=False)
-    #gc.collect()
+    # Here we assign pointers for variables in "write(){text}" templates:
     AssignVarPtrs(static_tree_root, search_instance_commands=True)
-    #gc.collect()
     sys.stderr.write(' done\nconstructing the tree of class definitions...')
     sys.stderr.write(' done\n\nclass_def_tree = ' + str(static_tree_root) + '\n\n')
+    #gc.collect()
 
     # Step 4: Construct the instance tree (the tree of instantiated
     #         classes) from the static tree of type definitions.
@@ -4551,14 +4580,18 @@ def BasicUI(settings,
     AssignVarPtrs(instance_tree_root, search_instance_commands=False)
     #sys.stderr.write('done\n  garbage collection...')
     #gc.collect()
-    # CONTINUEHERE: EXPLANATION NEEDED
+
+    # Step 6: Now carry out all of the "delete" commands (deferred earlier).
+    # (These were deferred because the instance tree must be complete before any
+    #  references to target nodes (with non-trivial paths) can be understood.)
     InvokeAllDeletes(instance_tree_root, 
                      null_list_warning=False,
                      null_list_error=True)
     sys.stderr.write(' done\n')
     #sys.stderr.write('instance_v = ' + str(instance_tree_root) + '\n')
+    #gc.collect()
 
-    # Step 6: The commands must be carried out in a specific order.
+    # Step 7: The commands must be carried out in a specific order.
     #         (for example, the "write()" and "new" commands).
     #         Search through the tree, and append commands to a command list.
     #         Then re-order the list in the order the commands should have
@@ -4570,7 +4603,7 @@ def BasicUI(settings,
     #sys.stderr.write('static_commands = '+str(static_commands)+'\n')
     #sys.stderr.write('instance_commands = '+str(instance_commands)+'\n')
 
-    # Step 7: We are about to assign numbers to the variables.
+    # Step 8: We are about to assign numbers to the variables.
     #         We need to decide the order in which to assign them.
     #         By default static variables (@) are assigned in the order 
     #         they appear in the file.
@@ -4581,7 +4614,7 @@ def BasicUI(settings,
     AssignVarOrderByFile(static_tree_root, search_instance_commands=True)
     AssignVarOrderByCommand(instance_commands, '$')
 
-    # Step 8: Assign the variables.
+    # Step 9: Assign the variables.
     #         (If the user requested any customized variable bindings,
     #          load those now.)
     if len(settings.user_bindings_x) > 0:
@@ -4605,13 +4638,7 @@ def BasicUI(settings,
                           static_tree_root,
                           instance_tree_root)
 
-    # Step 9:  Now write the variable bindings/assignments table.
-    sys.stderr.write(' done\nwriting \"ttree_assignments.txt\" file...')
-    open('ttree_assignments.txt', 'w').close() # <-- erase previous version.
-    WriteVarBindingsFile(static_tree_root)
-    WriteVarBindingsFile(instance_tree_root)
-
-    # The task of writing the output files is left up to the caller.
+    sys.stderr.write(' done\n')
 
 
 
@@ -4631,7 +4658,7 @@ if __name__ == "__main__":
     """
 
     #######  Main Code Below: #######
-    g_program_name = g_file_name
+    g_program_name = g_filename
     sys.stderr.write(g_program_name+' v'+g_version_str+' '+g_date_str+' ')
     sys.stderr.write('\n(python version '+str(sys.version)+')\n')
 
@@ -4659,10 +4686,11 @@ if __name__ == "__main__":
                 g_instance_commands)
 
         # Now write the files
+        # (Finally carry out the "write()" and "write_once()" commands.)
 
         # Optional: Multiple commands to write to the same file can be merged to
         #           reduce the number of times the file is openned and closed.
-        sys.stderr.write(' done\nwriting templates...\n')
+        sys.stderr.write('writing templates...\n')
         # Erase the files that will be written to:
         EraseTemplateFiles(g_static_commands)
         EraseTemplateFiles(g_instance_commands)
@@ -4678,6 +4706,12 @@ if __name__ == "__main__":
         WriteTemplatesValue(g_instance_commands)
     
         sys.stderr.write(' done\n')
+
+        # Step 11: Now write the variable bindings/assignments table.
+        sys.stderr.write('writing \"ttree_assignments.txt\" file...')
+        open('ttree_assignments.txt', 'w').close() # <-- erase previous version.
+        WriteVarBindingsFile(g_objectdefs)
+        WriteVarBindingsFile(g_objects)
 
     except (ValueError, InputError) as err:
         sys.stderr.write('\n\n'+str(err)+'\n')

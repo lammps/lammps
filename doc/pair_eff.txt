@@ -10,25 +10,33 @@ pair_style eff/cut command :h3
 
 [Syntax:]
 
-pair_style eff/cut cutoff eradius_limit_flag pressure_flag
+pair_style eff/cut cutoff limit_eradius pressure_with_evirials ecp type1 element1 type2 element2 ... typeN elementN
 
 cutoff = global cutoff for Coulombic interactions
-eradius_limit_flag = 0 or 1 for whether electron size is restrained (optional)
-pressure_flag = 0 or 1 to define the type of pressure calculation (optional) :ul
+limit_eradius = limit electron size (optional)
+pressure_with_evirials = include electron virials in system pressure (optional)
+type1 ... typeN = lammps atom type
+element1 ... element2 = element symbol : ul
 
 [Examples:]
 
 pair_style eff/cut 39.7
-pair_style eff/cut 40.0 1 1
+pair_style eff/cut 40.0 limit_eradius
+pair_style eff/cut 40.0 limit_eradius pressure_with_evirials
+pair_style eff/cut 40.0 ecp 1 Si 3 C
 pair_coeff * *
-pair_coeff 2 2 20.0 :pre
+pair_coeff 2 2 20.0
+pair_coeff 1 s 0.320852 2.283269 0.814857 
+pair_coeff 3 22.721015 0.728733 1.103199 17.695345 6.693621 : pre
 
 [Description:]
 
 This pair style contains a LAMMPS implementation of the electron Force
 Field (eFF) potential currently under development at Caltech, as
-described in "(Jaramillo-Botero)"_#Jaramillo-Botero.  The eFF was
-first introduced by "(Su)"_#Su in 2007.
+described in "(Jaramillo-Botero)"_#Jaramillo-Botero.  The eFF for Z<6 was
+first introduced by "(Su)"_#Su in 2007. It has been extended to higher Zs 
+by using effective core potentials (ECPs) that now cover up to 2nd and 3rd 
+row p-block elements of the periodic table.
 
 eFF can be viewed as an approximation to QM wave packet dynamics and
 Fermionic molecular dynamics, combining the ability of electronic
@@ -135,24 +143,35 @@ individual I,J type pair via the "pair_coeff"_pair_coeff.html command.
 All type pairs use the same global cutoff specified in the pair_style
 command.
 
-The {eradius_limit_flag} and {pressure_flag} settings are optional.
-Neither or both must be specified.  If not specified they are
-both set to 0 by default.
+The {limit_eradius} and {pressure_with_evirials} settings are optional.
+Neither or both must be specified.  If not specified they are unset.
 
-The {eradius_limit_flag} is used to restrain electrons from becoming
-unbounded in size at very high temperatures were the Gaussian wave
+The {limit_eradius} is used to restrain electron size from becoming
+excessively diffuse at very high temperatures were the Gaussian wave
 packet representation breaks down, and from expanding as free
-particles to infinite size.  A setting of 0 means do not impose this
-restraint.  A setting of 1 imposes the restraint.  The restraining
-harmonic potential takes the form E = 1/2k_ss^2 for s > L_box/2, where
-k_s = 1 Hartrees/Bohr^2.
+particles to infinite size.  If unset, electron radius is free to
+increase without bounds.  If set, a restraining
+harmonic potential of the form E = 1/2k_ss^2 for s > L_box/2, where
+k_s = 1 Hartrees/Bohr^2, is applied on the electron radius.
 
-The {pressure_flag} is used to control between two types of pressure
-computation: if set to 0, the computed pressure does not include the
+The {pressure_with_evirials} is used to control between two types of pressure
+computation: if unset, the computed pressure does not include the
 electronic radial virials contributions to the total pressure (scalar
-or tensor).  If set to 1, the computed pressure will include the
+or tensor).  If set, the computed pressure will include the
 electronic radial virial contributions to the total pressure (scalar
 and tensor).
+
+The {ecp} is used to associate an ECP representation for a particular atom type.
+The ECP captures the orbital overlap between a core pseudo particle and valence electrons
+within the Pauli repulsion.  A list of type:element-symbol pairs may be provided for all 
+ECP representations, after the "ecp" keyword.
+
+IMPORTANT NOTE: Default ECP parameters are provided for C, N, O, Al, and Si.
+Users can modify these using the {pair_coeff} command as exemplified above.
+For this, the User must distinguish between two different functional forms supported,
+one that captures the orbital overlap assuming the s-type core interacts with an s-like valence electron (s-s) 
+and another that assumes the interaction is s-p.  For systems that exhibit significant p-character (e.g. C, N, O)
+the s-p form is recommended. The "s" ECP form requires 3 parameters and the "p" 5 parameters.
 
 IMPORTANT NOTE: there are two different pressures that can be reported
 for eFF when defining this pair_style, one (default) that considers
@@ -168,26 +187,24 @@ partitioning changes, the total energy remains similar).
 
 :line
 
-IMPORTANT NOTE: The currently implemented eFF gives a reasonably
-accurate description for systems containing nuclei from Z = 1-6.
-Users interested in applying eFF should restrict to systems where
-electrons are s-like, or contain p character only insofar as a single
-lobe of electron density is shifted away from the nuclear center.  See
-further details about some of the virtues and current limitations of
-the method in "(Jaramillo-Botero)"_#Jaramillo-Botero.
+IMPORTANT NOTE: This implemention of eFF gives a reasonably
+accurate description for systems containing nuclei from Z = 1-6 in "all electron" representations.
+For systems with increasingly non-spherical electrons, Users should use the ECP representations.
+ECPs are now supported and validated for most of the 2nd and 3rd row elements of the p-block. 
+Predefined parameters are provided for C, N, O, Al, and Si.  The ECP captures the orbital overlap 
+between the core and valence electrons (i.e. Pauli repulsion) with one of the functional forms:
 
-Work is underway to extend the eFF to higher Z elements with
-increasingly non-spherical electrons (p-block and d-block), to provide
-explicit terms for electron correlation/exchange, and to improve its
-computational efficiency via atom models with fixed 2 s core electrons
-and atom models represented as pseudo-cores plus valence electrons.
+:c,image(Eqs/eff_ECP1.jpg)
+:c,image(Eqs/eff_ECP2.jpg)
 
-The current version adds support for models with fixed-core and
-effective pseudo-core (i.e. effective core pseudopotentials, ECP)
+Where the 1st form correspond to core interactions with s-type valence electrons
+and the 2nd to core interactions with p-type valence electrons.
+
+The current version adds full support for models with fixed-core and ECP
 definitions.  to enable larger timesteps (i.e. by avoiding the high
 frequency vibrational modes -translational and radial- of the 2 s
-electrons), and in the ECP case to reduce the p-character effects in
-higher Z elements (e.g. Silicon).  A fixed-core should be defined with
+electrons), and in the ECP case to reduce the increased orbital complexity in higher Z elements (up to Z<18).  
+A fixed-core should be defined with
 a mass that includes the corresponding nuclear mass plus the 2 s
 electrons in atomic mass units (2x5.4857990943e-4), and a radius
 equivalent to that of minimized 1s electrons (see examples under
@@ -268,7 +285,7 @@ atoms.
 
 [Default:]
 
-If not specified, eradius_limit_flag = 0 and pressure_flag = 0.
+If not specified, limit_eradius = 0 and pressure_with_evirials = 0.
 
 :line
 

@@ -607,7 +607,7 @@ int MinLineSearch::linemin_forcezero(double eoriginal, double &alpha)
   // fraction to which we want to reduce the directional derivative
   double GRAD_TOL = 0.1;
   // largest alpha increment which will trigger a failed_linesearch
-  double MIN_ALPHA_FAC = 1e-20;
+  double MIN_ALPHA_FAC = 1e-14;
   double LIMIT_BOOST = 4.0;
 
   // fdothall = projection of search dir along downhill gradient

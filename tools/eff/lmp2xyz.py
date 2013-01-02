@@ -57,14 +57,15 @@ def lmp2xyz(lammps,xyz,xpos):
   countsnap=1
   if data!='n': coords={}
   else: coords=zeros((int(numatoms),4),dtype=float)
-  sys.stdout.write("Writing [%d]: "%(snaps))
-  sys.stdout.flush()
+#  sys.stdout.write("Writing %d snapshots\n"%(snaps))
+#  sys.stdout.flush()
   read_atoms=0
+  types={}
   for line in lines:
     if line.find('ITEM: TIMESTEP')==0:
       read_atom_flag=False
-      sys.stdout.write("%d "%(countsnap))
-      sys.stdout.flush()
+#      sys.stdout.write("%d "%(countsnap))
+#      sys.stdout.flush()
       fout.writelines("%s\nAtoms\n"%(numatoms))
       countsnap+=1
       continue
@@ -75,13 +76,11 @@ def lmp2xyz(lammps,xyz,xpos):
       read_atoms+=1
       parse=line.split()
       if parse[0]!="":
-#        print [mass_floor[int(floor(mass[int(parse[1])-1]))],float(parse[xpos-1]),float(parse[xpos]),float(parse[xpos+1])]
         if data!='n': 
-          if mass[int(parse[1])-1]==1.0:
-            type='Au'
-          else:
-            type=mass_floor[int(floor(mass[int(parse[1])-1]))]
-          coords[int(parse[0])-1]=[type,float(parse[xpos-1]),float(parse[xpos]),float(parse[xpos+1])]
+          if parse[1] not in types.keys():
+            type=raw_input("Atom name for type %s: "%parse[1])
+            types[parse[1]]=type
+          coords[int(parse[0])-1]=[types[parse[1]],float(parse[xpos-1]),float(parse[xpos]),float(parse[xpos+1])]
         else: 
           coords[int(parse[0])-1][0]=int(parse[1])
           coords[int(parse[0])-1][1]=float(parse[xpos-1])

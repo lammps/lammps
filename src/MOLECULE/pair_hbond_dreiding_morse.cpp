@@ -139,10 +139,10 @@ void PairHbondDreidingMorse::compute(int eflag, int vflag)
             r = sqrt(rsq);
             dr = r - pm->r0;
             dexp = exp(-pm->alpha * dr);
+            eng_morse = pm->d0 * (dexp*dexp - 2.0*dexp);
             force_kernel = pm->morse1*(dexp*dexp - dexp)/r * pow(c,(double)pm->ap);
             force_angle = pm->ap * eng_morse * pow(c,pm->ap-1.0)*s;
 
-            eng_morse = pm->d0 * (dexp*dexp - 2.0*dexp);
             if (rsq > pm->cut_innersq) {
               switch1 = (pm->cut_outersq-rsq) * (pm->cut_outersq-rsq) *
                         (pm->cut_outersq + 2.0*rsq - 3.0*pm->cut_innersq) /
@@ -215,7 +215,7 @@ void PairHbondDreidingMorse::compute(int eflag, int vflag)
 
 void PairHbondDreidingMorse::coeff(int narg, char **arg)
 {
-  if (narg < 8 || narg > 11)
+  if (narg < 7 || narg > 11)
     error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
@@ -415,10 +415,10 @@ double PairHbondDreidingMorse::single(int i, int j, int itype, int jtype,
     r = sqrt(rsq);
     dr = r - pm->r0;
     dexp = exp(-pm->alpha * dr);
+    eng_morse = pm->d0 * (dexp*dexp - 2.0*dexp);  //<-- BUGFIX 2012-11-14
     force_kernel = pm->morse1*(dexp*dexp - dexp)/r * pow(c,(double)pm->ap);
     force_angle = pm->ap * eng_morse * pow(c,pm->ap-1.0)*s;
 
-    eng_morse = pm->d0 * (dexp*dexp - 2.0*dexp);
     if (rsq > pm->cut_innersq) {
       switch1 = (pm->cut_outersq-rsq) * (pm->cut_outersq-rsq) *
                 (pm->cut_outersq + 2.0*rsq - 3.0*pm->cut_innersq) /

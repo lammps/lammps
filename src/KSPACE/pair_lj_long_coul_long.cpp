@@ -598,8 +598,10 @@ void PairLJLongCoulLong::compute_inner()
   int newton_pair = force->newton_pair;
   double qqrd2e = force->qqrd2e;
 
+
   double cut_out_on = cut_respa[0];
   double cut_out_off = cut_respa[1];
+
 
   double cut_out_diff = cut_out_off - cut_out_on;
   double cut_out_on_sq = cut_out_on*cut_out_on;
@@ -611,15 +613,12 @@ void PairLJLongCoulLong::compute_inner()
   vector xi, d;
 
   ineighn = (ineigh = list->ilist)+list->inum;
-
   for (; ineigh<ineighn; ++ineigh) {                        // loop over my atoms
     i = *ineigh; fi = f0+3*i;
-    qri = qqrd2e*q[i];
     memcpy(xi, x0+(i+(i<<1)), sizeof(vector));
     cut_ljsqi = cut_ljsq[typei = type[i]];
     lj1i = lj1[typei]; lj2i = lj2[typei];
     jneighn = (jneigh = list->firstneigh[i])+list->numneigh[i];
-
     for (; jneigh<jneighn; ++jneigh) {                        // loop over neighbors
       j = *jneigh;
       ni = sbmask(j);
@@ -633,9 +632,11 @@ void PairLJLongCoulLong::compute_inner()
       if ((rsq = vec_dot(d, d)) >= cut_out_off_sq) continue;
       r2inv = 1.0/rsq;
 
-      if (order1 && (rsq < cut_coulsq))                        // coulombic
+      if (order1 && (rsq < cut_coulsq)) {                       // coulombic
+        qri = qqrd2e*q[i];
         force_coul = ni == 0 ?
           qri*q[j]*sqrt(r2inv) : qri*q[j]*sqrt(r2inv)*special_coul[ni];
+      }
 
       if (rsq < cut_ljsqi[typej = type[j]]) {                // lennard-jones
         register double rn = r2inv*r2inv*r2inv;

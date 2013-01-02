@@ -15,31 +15,31 @@
 </P>
 <P>pair_style eff/cut cutoff limit_eradius pressure_with_evirials ecp type1 element1 type2 element2 ... typeN elementN
 </P>
-<P>cutoff = global cutoff for Coulombic interactions
-limit_eradius = limit electron size (optional)
-pressure_with_evirials = include electron virials in system pressure (optional)
-type1 ... typeN = lammps atom type
-element1 ... element2 = element symbol : ul
-</P>
+<UL><LI>cutoff = global cutoff for Coulombic interactions
+<LI>limit_eradius = limit electron size (optional)
+<LI>pressure_with_evirials = include electron virials in system pressure (optional)
+<LI>type1 ... typeN = LAMMPS atom type
+<LI>element1 ... element2 = element symbol 
+</UL>
 <P><B>Examples:</B>
 </P>
-<P>pair_style eff/cut 39.7
+<PRE>pair_style eff/cut 39.7
 pair_style eff/cut 40.0 limit_eradius
 pair_style eff/cut 40.0 limit_eradius pressure_with_evirials
 pair_style eff/cut 40.0 ecp 1 Si 3 C
 pair_coeff * *
 pair_coeff 2 2 20.0
 pair_coeff 1 s 0.320852 2.283269 0.814857 
-pair_coeff 3 22.721015 0.728733 1.103199 17.695345 6.693621 : pre
-</P>
+pair_coeff 3 22.721015 0.728733 1.103199 17.695345 6.693621 
+</PRE>
 <P><B>Description:</B>
 </P>
 <P>This pair style contains a LAMMPS implementation of the electron Force
 Field (eFF) potential currently under development at Caltech, as
-described in <A HREF = "#Jaramillo-Botero">(Jaramillo-Botero)</A>.  The eFF for Z<6 was
-first introduced by <A HREF = "#Su">(Su)</A> in 2007. It has been extended to higher Zs 
-by using effective core potentials (ECPs) that now cover up to 2nd and 3rd 
-row p-block elements of the periodic table.
+described in <A HREF = "#Jaramillo-Botero">(Jaramillo-Botero)</A>.  The eFF for Z<6
+was first introduced by <A HREF = "#Su">(Su)</A> in 2007. It has been extended to
+higher Zs by using effective core potentials (ECPs) that now cover up
+to 2nd and 3rd row p-block elements of the periodic table.
 </P>
 <P>eFF can be viewed as an approximation to QM wave packet dynamics and
 Fermionic molecular dynamics, combining the ability of electronic
@@ -164,17 +164,21 @@ or tensor).  If set, the computed pressure will include the
 electronic radial virial contributions to the total pressure (scalar
 and tensor).
 </P>
-<P>The <I>ecp</I> is used to associate an ECP representation for a particular atom type.
-The ECP captures the orbital overlap between a core pseudo particle and valence electrons
-within the Pauli repulsion.  A list of type:element-symbol pairs may be provided for all 
-ECP representations, after the "ecp" keyword.
+<P>The <I>ecp</I> is used to associate an ECP representation for a particular
+atom type.  The ECP captures the orbital overlap between a core pseudo
+particle and valence electrons within the Pauli repulsion.  A list of
+type:element-symbol pairs may be provided for all ECP representations,
+after the "ecp" keyword.
 </P>
-<P>IMPORTANT NOTE: Default ECP parameters are provided for C, N, O, Al, and Si.
-Users can modify these using the <I>pair_coeff</I> command as exemplified above.
-For this, the User must distinguish between two different functional forms supported,
-one that captures the orbital overlap assuming the s-type core interacts with an s-like valence electron (s-s) 
-and another that assumes the interaction is s-p.  For systems that exhibit significant p-character (e.g. C, N, O)
-the s-p form is recommended. The "s" ECP form requires 3 parameters and the "p" 5 parameters.
+<P>IMPORTANT NOTE: Default ECP parameters are provided for C, N, O, Al,
+and Si.  Users can modify these using the <I>pair_coeff</I> command as
+exemplified above.  For this, the User must distinguish between two
+different functional forms supported, one that captures the orbital
+overlap assuming the s-type core interacts with an s-like valence
+electron (s-s) and another that assumes the interaction is s-p.  For
+systems that exhibit significant p-character (e.g. C, N, O) the s-p
+form is recommended. The "s" ECP form requires 3 parameters and the
+"p" 5 parameters.
 </P>
 <P>IMPORTANT NOTE: there are two different pressures that can be reported
 for eFF when defining this pair_style, one (default) that considers
@@ -190,34 +194,38 @@ partitioning changes, the total energy remains similar).
 </P>
 <HR>
 
-<P>IMPORTANT NOTE: This implemention of eFF gives a reasonably
-accurate description for systems containing nuclei from Z = 1-6 in "all electron" representations.
-For systems with increasingly non-spherical electrons, Users should use the ECP representations.
-ECPs are now supported and validated for most of the 2nd and 3rd row elements of the p-block. 
-Predefined parameters are provided for C, N, O, Al, and Si.  The ECP captures the orbital overlap 
-between the core and valence electrons (i.e. Pauli repulsion) with one of the functional forms:
+<P>IMPORTANT NOTE: This implemention of eFF gives a reasonably accurate
+description for systems containing nuclei from Z = 1-6 in "all
+electron" representations.  For systems with increasingly
+non-spherical electrons, Users should use the ECP representations.
+ECPs are now supported and validated for most of the 2nd and 3rd row
+elements of the p-block.  Predefined parameters are provided for C, N,
+O, Al, and Si.  The ECP captures the orbital overlap between the core
+and valence electrons (i.e. Pauli repulsion) with one of the
+functional forms:
 </P>
 <CENTER><IMG SRC = "Eqs/eff_ECP1.jpg">
 </CENTER>
 <CENTER><IMG SRC = "Eqs/eff_ECP2.jpg">
 </CENTER>
-<P>Where the 1st form correspond to core interactions with s-type valence electrons
-and the 2nd to core interactions with p-type valence electrons.
-</P>
-<P>The current version adds full support for models with fixed-core and ECP
-definitions.  to enable larger timesteps (i.e. by avoiding the high
-frequency vibrational modes -translational and radial- of the 2 s
-electrons), and in the ECP case to reduce the increased orbital complexity in higher Z elements (up to Z<18).  
-A fixed-core should be defined with
-a mass that includes the corresponding nuclear mass plus the 2 s
-electrons in atomic mass units (2x5.4857990943e-4), and a radius
-equivalent to that of minimized 1s electrons (see examples under
-/examples/USER/eff/fixed-core).  An pseudo-core should be described
-with a mass that includes the corresponding nuclear mass, plus all the
-core electrons (i.e no outer shell electrons), and a radius equivalent
-to that of a corresponding minimized full-electron system.  The charge
-for a pseudo-core atom should be given by the number of outer shell
+<P>Where the 1st form correspond to core interactions with s-type valence
+electrons and the 2nd to core interactions with p-type valence
 electrons.
+</P>
+<P>The current version adds full support for models with fixed-core and
+ECP definitions.  to enable larger timesteps (i.e. by avoiding the
+high frequency vibrational modes -translational and radial- of the 2 s
+electrons), and in the ECP case to reduce the increased orbital
+complexity in higher Z elements (up to Z<18).  A fixed-core should be
+defined with a mass that includes the corresponding nuclear mass plus
+the 2 s electrons in atomic mass units (2x5.4857990943e-4), and a
+radius equivalent to that of minimized 1s electrons (see examples
+under /examples/USER/eff/fixed-core).  An pseudo-core should be
+described with a mass that includes the corresponding nuclear mass,
+plus all the core electrons (i.e no outer shell electrons), and a
+radius equivalent to that of a corresponding minimized full-electron
+system.  The charge for a pseudo-core atom should be given by the
+number of outer shell electrons.
 </P>
 <P>In general, eFF excels at computing the properties of materials in
 extreme conditions and tracing the system dynamics over multi-picosend

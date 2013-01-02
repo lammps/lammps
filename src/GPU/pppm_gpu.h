@@ -31,7 +31,8 @@ class PPPMGPU : public PPPM {
   void init();
   void setup();
   void compute(int, int);
-  int timing(int, double &, double &);
+  int timing_1d(int, double &);
+  int timing_3d(int, double &);
   double memory_usage();
 
  protected:
@@ -66,6 +67,10 @@ E: Illegal ... command
 Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
+
+E: Cannot currently use pppm/gpu with fix balance.
+
+Self-explanatory.
 
 E: Cannot (yet) do analytic differentiation with pppm/gpu.
 

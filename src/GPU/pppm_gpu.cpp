@@ -39,6 +39,7 @@
 #include "error.h"
 #include "update.h"
 #include "universe.h"
+#include "fix.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -120,9 +121,6 @@ void PPPMGPU::init()
   // NOTE: could free density_brick and vdxyz_brick after PPPM allocates them,
   //       before allocating db_gpu and vd_brick down below, if don't need,
   //       if do this, make sure to set them to NULL
-  // NOTE: delete/realloc of cg necessary b/c packing 4 values per grid pt,
-  //       not 3 as PPPM does - probably a better way to account for this
-  //       in PPPM::init()
 
   destroy_3d_offset(density_brick_gpu,nzlo_out,nylo_out);
   destroy_3d_offset(vd_brick,nzlo_out,nylo_out);
@@ -130,15 +128,11 @@ void PPPMGPU::init()
 
   PPPM::init();
 
-  if (differentiation_flag == 0) {
-    delete cg;
-    int (*procneigh)[2] = comm->procneigh;
-    cg = new CommGrid(lmp,world,4,1,
-                      nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
-                      nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out,
-                      procneigh[0][0],procneigh[0][1],procneigh[1][0],
-                      procneigh[1][1],procneigh[2][0],procneigh[2][1]);
-  }
+  // insure no conflict with fix balance
+
+  for (int i = 0; i < modify->nfix; i++)
+    if (strcmp(modify->fix[i]->style,"balance") == 0)
+      error->all(FLERR,"Cannot currently use pppm/gpu with fix balance.");
 
   // unsupported option
 
@@ -189,6 +183,8 @@ void PPPMGPU::init()
 
 void PPPMGPU::compute(int eflag, int vflag)
 {
+  int i,j;
+
   int nago;
   if (kspace_split) {
     if (im_real_space) return;
@@ -205,8 +201,12 @@ void PPPMGPU::compute(int eflag, int vflag)
   else evflag = evflag_atom = eflag_global = vflag_global = 
         eflag_atom = vflag_atom = 0;
 
+  // If need per-atom energies/virials, also do particle map on host
+  // concurrently with GPU calculations
   if (evflag_atom && !peratom_allocate_flag) {
     allocate_peratom();
+    cg_peratom->ghost_notify();
+    cg_peratom->setup();
     peratom_allocate_flag = 1;
   }
 
@@ -220,24 +220,21 @@ void PPPMGPU::compute(int eflag, int vflag)
   if (flag != 0)
     error->one(FLERR,"Out of range atoms - cannot compute PPPM");
 
-  // If need per-atom energies/virials, also do particle map on host
-  // concurrently with GPU calculations
-
-  if (evflag_atom) {
-    memory->destroy(part2grid);
-    nmax = atom->nmax;
-    memory->create(part2grid,nmax,3,"pppm:part2grid");
-    particle_map();
-  }
-
-  int i,j;
-
   // convert atoms from box to lamda coords
 
   if (triclinic == 0) boxlo = domain->boxlo;
   else {
     boxlo = domain->boxlo_lamda;
     domain->x2lamda(atom->nlocal);
+  }
+
+  // extend size of per-atom arrays if necessary
+
+  if (evflag_atom && atom->nlocal > nmax) {
+    memory->destroy(part2grid);
+    nmax = atom->nmax;
+    memory->create(part2grid,nmax,3,"pppm:part2grid");
+    particle_map();
   }
 
   double t3 = MPI_Wtime();
@@ -280,24 +277,7 @@ void PPPMGPU::compute(int eflag, int vflag)
   // per-atom energy/virial
   // energy includes self-energy correction
 
-  if (evflag_atom) {
-    double *q = atom->q;
-    int nlocal = atom->nlocal;
-
-    if (eflag_atom) {
-      for (i = 0; i < nlocal; i++) {
-        eatom[i] *= 0.5;
-        eatom[i] -= g_ewald*q[i]*q[i]/MY_PIS + MY_PI2*q[i]*qsum /
-          (g_ewald*g_ewald*volume);
-        eatom[i] *= qscale;
-      }
-    }
-
-    if (vflag_atom) {
-      for (i = 0; i < nlocal; i++)
-        for (j = 0; j < 6; j++) vatom[i][j] *= 0.5*qscale;
-    }
-  }
+  if (evflag_atom) fieldforce_peratom();
 
   // sum energy across procs and add in volume-dependent term
 
@@ -318,6 +298,28 @@ void PPPMGPU::compute(int eflag, int vflag)
     double virial_all[6];
     MPI_Allreduce(virial,virial_all,6,MPI_DOUBLE,MPI_SUM,world);
     for (i = 0; i < 6; i++) virial[i] = 0.5*qscale*volume*virial_all[i];
+  }
+
+  // per-atom energy/virial
+  // energy includes self-energy correction
+
+  if (evflag_atom) {
+    double *q = atom->q;
+    int nlocal = atom->nlocal;
+
+    if (eflag_atom) {
+      for (i = 0; i < nlocal; i++) {
+        eatom[i] *= 0.5;
+        eatom[i] -= g_ewald*q[i]*q[i]/MY_PIS + MY_PI2*q[i]*qsum /
+          (g_ewald*g_ewald*volume);
+        eatom[i] *= qscale;
+      }
+    }
+
+    if (vflag_atom) {
+      for (i = 0; i < nlocal; i++)
+        for (j = 0; j < 6; j++) vatom[i][j] *= 0.5*qscale;
+    }
   }
 
   // 2d slab correction
@@ -555,7 +557,7 @@ void PPPMGPU::unpack_forward(int flag, FFT_SCALAR *buf, int nlist, int *list)
 
   if (flag == FORWARD_IK) {
     int offset;
-    FFT_SCALAR *dest = &vdx_brick[nzlo_out][nylo_out][4*nxlo_out];
+    FFT_SCALAR *dest = &vd_brick[nzlo_out][nylo_out][4*nxlo_out];
     for (int i = 0; i < nlist; i++) {
       offset = 4*list[i];
       dest[offset++] = buf[n++];
@@ -565,7 +567,7 @@ void PPPMGPU::unpack_forward(int flag, FFT_SCALAR *buf, int nlist, int *list)
   } else if (flag == FORWARD_AD) {
     FFT_SCALAR *dest = &u_brick[nzlo_out][nylo_out][nxlo_out];
     for (int i = 0; i < nlist; i++)
-      dest[list[i]] = buf[n++];
+      dest[list[i]] = buf[i];
   } else if (flag == FORWARD_IK_PERATOM) {
     FFT_SCALAR *esrc = &u_brick[nzlo_out][nylo_out][nxlo_out];
     FFT_SCALAR *v0src = &v0_brick[nzlo_out][nylo_out][nxlo_out];
@@ -690,16 +692,30 @@ double PPPMGPU::memory_usage()
 }
 
 /* ----------------------------------------------------------------------
-   perform and time the 4 FFTs required for N timesteps
+   perform and time the 1d FFTs required for N timesteps
 ------------------------------------------------------------------------- */
 
-int PPPMGPU::timing(int n, double &time3d, double &time1d) {
+int PPPMGPU::timing_1d(int n, double &time1d)
+{
   if (im_real_space) {
-    time3d = 1.0;
     time1d = 1.0;
     return 4;
   }
-  PPPM::timing(n,time3d,time1d);
+  PPPM::timing_1d(n,time1d);
+  return 4;
+}
+
+/* ----------------------------------------------------------------------
+   perform and time the 3d FFTs required for N timesteps
+------------------------------------------------------------------------- */
+
+int PPPMGPU::timing_3d(int n, double &time3d)
+{
+  if (im_real_space) {
+    time3d = 1.0;
+    return 4;
+  }
+  PPPM::timing_3d(n,time3d);
   return 4;
 }
 

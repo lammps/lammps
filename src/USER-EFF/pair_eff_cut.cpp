@@ -31,6 +31,7 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
+#include "atom_vec_electron.h"
 
 using namespace LAMMPS_NS;
 
@@ -76,7 +77,7 @@ void PairEffCut::compute(int eflag, int vflag)
   double rsq,rc;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
-  energy = eke = epauli = ecoul = errestrain = 0.0;
+  energy = eke = epauli = ecp_epauli = ecoul = errestrain = 0.0;
   // pvector = [KE, Pauli, ecoul, radial_restraint]
   for (i=0; i<4; i++) pvector[i] = 0.0;
 
@@ -92,6 +93,8 @@ void PairEffCut::compute(int eflag, int vflag)
   int *type = atom->type;
   int nlocal = atom->nlocal;
 
+  int *id = atom->tag;
+
   int newton_pair = force->newton_pair;
   double qqrd2e = force->qqrd2e;
 
@@ -101,7 +104,6 @@ void PairEffCut::compute(int eflag, int vflag)
   firstneigh = list->firstneigh;
 
   // loop over neighbors of my atoms
-
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     xtmp = x[i][0];
@@ -154,7 +156,7 @@ void PairEffCut::compute(int eflag, int vflag)
       // Tally energy and compute radial atomic virial contribution
       if (evflag) {
         ev_tally_eff(i,i,nlocal,newton_pair,energy,0.0);
-        if (flexible_pressure_flag) // iff flexible pressure flag on
+        if (pressure_with_evirials_flag) // iff flexible pressure flag on
           ev_tally_eff(i,i,nlocal,newton_pair,0.0,e1rforce*eradius[i]);
       }
       if (eflag_global) {
@@ -221,8 +223,20 @@ void PairEffCut::compute(int eflag, int vflag)
           ElecCoreNuc(qxq, rc, eradius[i], &ecoul, &fpair);
         }
 
+        else if (spin[i] == 4 && spin[j] == 0) {
+          double qxq = q[i]*q[j];
+
+          ElecCoreNuc(qxq, rc, eradius[i], &ecoul, &fpair);
+        }
+
         // nucleus (i) - pseudo-core nucleus (j) interaction
         else if (spin[i] == 0 && spin[j] == 3) {
+          double qxq = q[i]*q[j];
+
+          ElecCoreNuc(qxq, rc, eradius[j], &ecoul, &fpair);
+        }
+
+        else if (spin[i] == 0 && spin[j] == 4) {
           double qxq = q[i]*q[j];
 
           ElecCoreNuc(qxq, rc, eradius[j], &ecoul, &fpair);
@@ -239,7 +253,7 @@ void PairEffCut::compute(int eflag, int vflag)
           erforce[j] += e1rforce;
 
           // Radial electron virial, iff flexible pressure flag set
-          if (evflag && flexible_pressure_flag) {
+          if (evflag && pressure_with_evirials_flag) {
             e1rvirial = eradius[j] * e1rforce;
             ev_tally_eff(j,j,nlocal,newton_pair,0.0,e1rvirial);
           }
@@ -256,7 +270,7 @@ void PairEffCut::compute(int eflag, int vflag)
           erforce[i] += e1rforce;
 
           // Radial electron virial, iff flexible pressure flag set
-          if (evflag && flexible_pressure_flag) {
+          if (evflag && pressure_with_evirials_flag) {
             e1rvirial = eradius[i] * e1rforce;
             ev_tally_eff(i,i,nlocal,newton_pair,0.0,e1rvirial);
           }
@@ -283,7 +297,7 @@ void PairEffCut::compute(int eflag, int vflag)
           erforce[j] += e2rforce;
 
           // Radial electron virial, iff flexible pressure flag set
-          if (evflag && flexible_pressure_flag) {
+          if (evflag && pressure_with_evirials_flag) {
             e1rvirial = eradius[i] * e1rforce;
             e2rvirial = eradius[j] * e2rforce;
             ev_tally_eff(i,j,nlocal,newton_pair,0.0,e1rvirial+e2rvirial);
@@ -315,7 +329,7 @@ void PairEffCut::compute(int eflag, int vflag)
           erforce[j] += e2rforce;
 
           // Radial electron virial, iff flexible pressure flag set
-          if (evflag && flexible_pressure_flag) {
+          if (evflag && pressure_with_evirials_flag) {
             e2rvirial = eradius[j] * e2rforce;
             ev_tally_eff(j,j,nlocal,newton_pair,0.0,e2rvirial);
           }
@@ -347,7 +361,7 @@ void PairEffCut::compute(int eflag, int vflag)
           erforce[i] += e2rforce;
 
           // add radial atomic virial, iff flexible pressure flag set
-          if (evflag && flexible_pressure_flag) {
+          if (evflag && pressure_with_evirials_flag) {
             e2rvirial = eradius[i] * e2rforce;
             ev_tally_eff(i,i,nlocal,newton_pair,0.0,e2rvirial);
           }
@@ -391,25 +405,48 @@ void PairEffCut::compute(int eflag, int vflag)
         else if (spin[i] == 3 && (abs(spin[j]) == 1 || spin[j] == 2)) {
           e2rforce = ecp_e2rforce = 0.0;
 
-          if (abs(spin[j]) == 1) {
-            ElecCoreElec(q[i],rc,eradius[i],eradius[j],&ecoul,
-                        &fpair,&e2rforce);
-            PauliCoreElec(rc,eradius[j],&ecp_epauli,&ecp_fpair,
-                        &ecp_e2rforce,PAULI_CORE_A, PAULI_CORE_B,
-                        PAULI_CORE_C);
-          } else { // add second s electron contribution from fixed-core
-            double qxq = q[i]*q[j];
-            ElecCoreNuc(qxq, rc, eradius[j], &ecoul, &fpair);
-            ElecCoreElec(q[i],rc,eradius[i],eradius[j],&ecoul,
-                        &fpair,&e2rforce);
-            ElecCoreElec(q[i],rc,eradius[i],eradius[j],&ecoul,
-                        &fpair,&e2rforce);
-            PauliCoreElec(rc,eradius[j],&ecp_epauli,&ecp_fpair,
-                        &ecp_e2rforce,PAULI_CORE_A, PAULI_CORE_B,
-                        PAULI_CORE_C);
-            PauliCoreElec(rc,eradius[j],&ecp_epauli,&ecp_fpair,
-                        &ecp_e2rforce,PAULI_CORE_A, PAULI_CORE_B,
-                        PAULI_CORE_C);
+          if (((PAULI_CORE_D[ecp_type[itype]]) == 0.0) && ((PAULI_CORE_E[ecp_type[itype]]) == 0.0)) {
+            if (abs(spin[j]) == 1) {
+              ElecCoreElec(q[i],rc,eradius[i],eradius[j],&ecoul,
+                          &fpair,&e2rforce);
+              PauliCoreElec(rc,eradius[j],&ecp_epauli,&ecp_fpair,
+                          &ecp_e2rforce,PAULI_CORE_A[ecp_type[itype]], PAULI_CORE_B[ecp_type[itype]],
+                          PAULI_CORE_C[ecp_type[itype]]);
+            } else { // add second s electron contribution from fixed-core
+              double qxq = q[i]*q[j];
+              ElecCoreNuc(qxq, rc, eradius[j], &ecoul, &fpair);
+              ElecCoreElec(q[i],rc,eradius[i],eradius[j],&ecoul,
+                          &fpair,&e2rforce);
+              ElecCoreElec(q[i],rc,eradius[i],eradius[j],&ecoul,
+                          &fpair,&e2rforce);
+              PauliCoreElec(rc,eradius[j],&ecp_epauli,&ecp_fpair,
+                          &ecp_e2rforce,PAULI_CORE_A[ecp_type[itype]], PAULI_CORE_B[ecp_type[itype]],
+                          PAULI_CORE_C[ecp_type[itype]]);
+              PauliCoreElec(rc,eradius[j],&ecp_epauli,&ecp_fpair,
+                          &ecp_e2rforce,PAULI_CORE_A[ecp_type[itype]], PAULI_CORE_B[ecp_type[itype]],
+                          PAULI_CORE_C[ecp_type[itype]]);
+            }
+          } else {
+            if (abs(spin[j]) == 1) {
+              ElecCoreElec(q[i],rc,eradius[i],eradius[j],&ecoul,
+                          &fpair,&e2rforce);
+              PauliCorePElec(rc,eradius[j],&ecp_epauli,&ecp_fpair,
+                          &ecp_e2rforce,PAULI_CORE_A[ecp_type[itype]],PAULI_CORE_B[ecp_type[itype]],
+                          PAULI_CORE_C[ecp_type[itype]],PAULI_CORE_D[ecp_type[itype]],PAULI_CORE_E[ecp_type[itype]]);
+            } else { // add second s electron contribution from fixed-core
+              double qxq = q[i]*q[j];
+              ElecCoreNuc(qxq, rc, eradius[j], &ecoul, &fpair);
+              ElecCoreElec(q[i],rc,eradius[i],eradius[j],&ecoul,
+                          &fpair,&e2rforce);
+              ElecCoreElec(q[i],rc,eradius[i],eradius[j],&ecoul,
+                          &fpair,&e2rforce);
+              PauliCorePElec(rc,eradius[j],&ecp_epauli,&ecp_fpair,
+                          &ecp_e2rforce,PAULI_CORE_A[ecp_type[itype]], PAULI_CORE_B[ecp_type[itype]],
+                          PAULI_CORE_C[ecp_type[itype]],PAULI_CORE_D[ecp_type[itype]],PAULI_CORE_E[ecp_type[itype]]);
+              PauliCorePElec(rc,eradius[j],&ecp_epauli,&ecp_fpair,
+                          &ecp_e2rforce,PAULI_CORE_A[ecp_type[itype]], PAULI_CORE_B[ecp_type[itype]],
+                          PAULI_CORE_C[ecp_type[itype]],PAULI_CORE_D[ecp_type[itype]],PAULI_CORE_E[ecp_type[itype]]);
+            }
           }
 
           // Apply conversion factor from Hartree to kcal/mol
@@ -421,7 +458,7 @@ void PairEffCut::compute(int eflag, int vflag)
           erforce[j] += e2rforce;
 
           // add radial atomic virial, iff flexible pressure flag set
-          if (evflag && flexible_pressure_flag) {
+          if (evflag && pressure_with_evirials_flag) {
             e2rvirial = eradius[j] * e2rforce;
             ev_tally_eff(j,j,nlocal,newton_pair,0.0,e2rvirial);
           }
@@ -432,25 +469,48 @@ void PairEffCut::compute(int eflag, int vflag)
         else if ((abs(spin[i]) == 1 || spin[i] == 2) && spin[j] == 3) {
           e1rforce = ecp_e1rforce = 0.0;
 
-          if (abs(spin[i]) == 1) {
-            ElecCoreElec(q[j],rc,eradius[j],eradius[i],&ecoul,
-                        &fpair,&e1rforce);
-            PauliCoreElec(rc,eradius[i],&ecp_epauli,&ecp_fpair,
-                        &ecp_e1rforce,PAULI_CORE_A,PAULI_CORE_B,
-                        PAULI_CORE_C);
+          if (((PAULI_CORE_D[ecp_type[jtype]]) == 0.0) && ((PAULI_CORE_E[ecp_type[jtype]]) == 0.0)) {
+            if (abs(spin[i]) == 1) {
+              ElecCoreElec(q[j],rc,eradius[j],eradius[i],&ecoul,
+                          &fpair,&e1rforce);
+              PauliCoreElec(rc,eradius[i],&ecp_epauli,&ecp_fpair,
+                          &ecp_e1rforce,PAULI_CORE_A[ecp_type[jtype]],PAULI_CORE_B[ecp_type[jtype]],
+                          PAULI_CORE_C[ecp_type[jtype]]);
+            } else {
+              double qxq = q[i]*q[j];
+              ElecCoreNuc(qxq,rc,eradius[i],&ecoul,&fpair);
+              ElecCoreElec(q[j],rc,eradius[j],eradius[i],&ecoul,
+                          &fpair,&e1rforce);
+              ElecCoreElec(q[j],rc,eradius[j],eradius[i],&ecoul,
+                          &fpair,&e1rforce);
+              PauliCoreElec(rc,eradius[i],&ecp_epauli,&ecp_fpair,
+                          &ecp_e1rforce,PAULI_CORE_A[ecp_type[jtype]], PAULI_CORE_B[ecp_type[jtype]],
+                          PAULI_CORE_C[ecp_type[jtype]]);
+              PauliCoreElec(rc,eradius[i],&ecp_epauli,&ecp_fpair,
+                          &ecp_e1rforce,PAULI_CORE_A[ecp_type[jtype]], PAULI_CORE_B[ecp_type[jtype]],
+                          PAULI_CORE_C[ecp_type[jtype]]);
+            }
           } else {
-            double qxq = q[i]*q[j];
-            ElecCoreNuc(qxq,rc,eradius[i],&ecoul,&fpair);
-            ElecCoreElec(q[j],rc,eradius[j],eradius[i],&ecoul,
-                        &fpair,&e1rforce);
-            ElecCoreElec(q[j],rc,eradius[j],eradius[i],&ecoul,
-                        &fpair,&e1rforce);
-            PauliCoreElec(rc,eradius[i],&ecp_epauli,&ecp_fpair,
-                        &ecp_e1rforce,PAULI_CORE_A, PAULI_CORE_B,
-                        PAULI_CORE_C);
-            PauliCoreElec(rc,eradius[i],&ecp_epauli,&ecp_fpair,
-                        &ecp_e1rforce,PAULI_CORE_A, PAULI_CORE_B,
-                        PAULI_CORE_C);
+            if (abs(spin[i]) == 1) {
+              ElecCoreElec(q[j],rc,eradius[j],eradius[i],&ecoul,
+                          &fpair,&e1rforce);
+              PauliCorePElec(rc,eradius[i],&ecp_epauli,&ecp_fpair,
+                          &ecp_e1rforce,PAULI_CORE_A[ecp_type[jtype]],PAULI_CORE_B[ecp_type[jtype]],
+                          PAULI_CORE_C[ecp_type[jtype]],PAULI_CORE_D[ecp_type[jtype]],PAULI_CORE_E[ecp_type[jtype]]);
+            } else {
+              double qxq = q[i]*q[j];
+              ElecCoreNuc(qxq,rc,eradius[i],&ecoul,&fpair);
+              ElecCoreElec(q[j],rc,eradius[j],eradius[i],&ecoul,
+                          &fpair,&e1rforce);
+              ElecCoreElec(q[j],rc,eradius[j],eradius[i],&ecoul,
+                          &fpair,&e1rforce);
+              PauliCorePElec(rc,eradius[i],&ecp_epauli,&ecp_fpair,
+                          &ecp_e1rforce,PAULI_CORE_A[ecp_type[jtype]], PAULI_CORE_B[ecp_type[jtype]],
+                          PAULI_CORE_C[ecp_type[jtype]],PAULI_CORE_D[ecp_type[jtype]],PAULI_CORE_E[ecp_type[jtype]]);
+              PauliCorePElec(rc,eradius[i],&ecp_epauli,&ecp_fpair,
+                          &ecp_e1rforce,PAULI_CORE_A[ecp_type[jtype]], PAULI_CORE_B[ecp_type[jtype]],
+                          PAULI_CORE_C[ecp_type[jtype]],PAULI_CORE_D[ecp_type[jtype]],PAULI_CORE_E[ecp_type[jtype]]);
+            }
           }
 
           // Apply conversion factor from Hartree to kcal/mol
@@ -462,7 +522,7 @@ void PairEffCut::compute(int eflag, int vflag)
           erforce[i] += e1rforce;
 
           // add radial atomic virial, iff flexible pressure flag set
-          if (evflag && flexible_pressure_flag) {
+          if (evflag && pressure_with_evirials_flag) {
             e1rvirial = eradius[i] * e1rforce;
             ev_tally_eff(i,i,nlocal,newton_pair,0.0,e1rvirial);
           }
@@ -470,7 +530,7 @@ void PairEffCut::compute(int eflag, int vflag)
 
         // pseudo-core (i) - pseudo-core (j) interactions
 
-        else if (spin[i] == 3 && abs(spin[j]) == 3) {
+        else if (spin[i] == 3 && spin[j] == 3) {
           double qxq = q[i]*q[j];
 
           ElecCoreCore(qxq,rc,eradius[i],eradius[j],&ecoul,&fpair);
@@ -527,7 +587,7 @@ void PairEffCut::compute(int eflag, int vflag)
 
     // limit electron stifness (size) for periodic systems, to max=half-box-size
 
-    if (abs(spin[i]) == 1 && limit_size_flag) {
+    if (abs(spin[i]) == 1 && limit_eradius_flag) {
       double half_box_length=0, dr, kfactor=hhmss2e*1.0;
       e1rforce = errestrain = 0.0;
 
@@ -548,7 +608,7 @@ void PairEffCut::compute(int eflag, int vflag)
           // Tally radial restrain energy and add radial restrain virial
           if (evflag) {
             ev_tally_eff(i,i,nlocal,newton_pair,errestrain,0.0);
-            if (flexible_pressure_flag)  // flexible electron pressure
+            if (pressure_with_evirials_flag)  // flexible electron pressure
               ev_tally_eff(i,i,nlocal,newton_pair,0.0,eradius[i]*e1rforce);
           }
         }
@@ -558,7 +618,7 @@ void PairEffCut::compute(int eflag, int vflag)
   }
   if (vflag_fdotr) {
     virial_fdotr_compute();
-    if (flexible_pressure_flag) virial_eff_compute();
+    if (pressure_with_evirials_flag) virial_eff_compute();
   }
 }
 
@@ -700,45 +760,79 @@ void PairEffCut::allocate()
 
 void PairEffCut::settings(int narg, char **arg)
 {
-  if (narg != 1 && narg != 3 && narg != 5 && narg != 7)
+  if (narg < 1)
     error->all(FLERR,"Illegal pair_style command");
 
-  // Defaults ECP parameters for Si
-  PAULI_CORE_A = 0.320852;
-  PAULI_CORE_B = 2.283269;
-  PAULI_CORE_C = 0.814857;
+  // Defaults ECP parameters for C (radius=0.154)
+  PAULI_CORE_A[6] = 22.721015;
+  PAULI_CORE_B[6] = 0.728733;
+  PAULI_CORE_C[6] = 1.103199;
+  PAULI_CORE_D[6] = 17.695345;
+  PAULI_CORE_E[6] = 6.693621;
 
-  if (narg == 1) {
-    cut_global = force->numeric(arg[0]);
-    limit_size_flag = 0;
-    flexible_pressure_flag = 0;
-  } else if (narg == 3) {
-    cut_global = force->numeric(arg[0]);
-    limit_size_flag = force->inumeric(arg[1]);
-    flexible_pressure_flag = force->inumeric(arg[2]);
-  } else if (narg == 5) {
-    cut_global = force->numeric(arg[0]);
-    limit_size_flag = 0;
-    flexible_pressure_flag = 0;
-    if (strcmp(arg[1],"ecp") != 0)
-      error->all(FLERR,"Illegal pair_style command");
-    else {
-      PAULI_CORE_A = force->numeric(arg[2]);
-      PAULI_CORE_B = force->numeric(arg[3]);
-      PAULI_CORE_C = force->numeric(arg[4]);
+  // Defaults ECP parameters for N (radius=0.394732)
+  PAULI_CORE_A[7] = 16.242367;
+  PAULI_CORE_B[7] = 0.602818;
+  PAULI_CORE_C[7] = 1.081856;
+  PAULI_CORE_D[7] = 7.150803;
+  PAULI_CORE_E[7] = 5.351936;
+
+  // Defaults p-element ECP parameters for Oxygen (radius=0.15)
+  PAULI_CORE_A[8] = 29.5185;
+  PAULI_CORE_B[8] = 0.32995;
+  PAULI_CORE_C[8] = 1.21676;
+  PAULI_CORE_D[8] = 11.98757;
+  PAULI_CORE_E[8] = 3.073417;
+
+  // Defaults ECP parameters for Al (radius=1.660)
+  PAULI_CORE_A[13] = 0.486;
+  PAULI_CORE_B[13] = 1.049;
+  PAULI_CORE_C[13] = 0.207;
+  PAULI_CORE_D[13] = 0.0;
+  PAULI_CORE_E[13] = 0.0;
+
+  // Defaults ECP parameters for Si (radius=1.691)
+  PAULI_CORE_A[14] = 0.320852;
+  PAULI_CORE_B[14] = 2.283269;
+  PAULI_CORE_C[14] = 0.814857;
+  PAULI_CORE_D[14] = 0.0;
+  PAULI_CORE_E[14] = 0.0;
+
+  cut_global = force->numeric(arg[0]);
+  limit_eradius_flag = 0;
+  pressure_with_evirials_flag = 0;
+
+  int atype;
+  int iarg = 1;
+  int ecp_found = 0;
+
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"limit_eradius") == 0) {
+      limit_eradius_flag = 1; 
+      iarg += 1;
     }
-  } else if (narg == 7) {
-    cut_global = force->numeric(arg[0]);
-    limit_size_flag = force->inumeric(arg[1]);
-    flexible_pressure_flag = force->inumeric(arg[2]);
-    if (strcmp(arg[3],"ecp") != 0)
-      error->all(FLERR,"Illegal pair_style command");
-    else {
-      PAULI_CORE_A = force->numeric(arg[4]);
-      PAULI_CORE_B = force->numeric(arg[5]);
-      PAULI_CORE_C = force->numeric(arg[6]);
+    else if (strcmp(arg[iarg],"pressure_with_evirials") == 0) {
+      pressure_with_evirials_flag = 1; 
+      iarg += 1;
+    }
+    else if (strcmp(arg[iarg],"ecp") == 0) {
+      iarg += 1;
+      while (iarg < narg) {
+        atype = force->inumeric(arg[iarg]);
+        if (strcmp(arg[iarg+1],"C") == 0) ecp_type[atype] = 6;
+        else if (strcmp(arg[iarg+1],"N") == 0) ecp_type[atype] = 7;
+        else if (strcmp(arg[iarg+1],"O") == 0) ecp_type[atype] = 8;
+        else if (strcmp(arg[iarg+1],"Al") == 0) ecp_type[atype] = 13;
+        else if (strcmp(arg[iarg+1],"Si") == 0) ecp_type[atype] = 14;
+        else error->all(FLERR, "Note: there are no default parameters for this atom ECP\n"); 
+        iarg += 2;
+        ecp_found = 1;
+      } 
     }
   }
+
+  if (!ecp_found && atom->ecp_flag) 
+    error->all(FLERR,"Need to specify ECP type on pair_style command");
 
   // Need to introduce 2 new constants w/out changing update.cpp
   if (force->qqr2e==332.06371) {        // i.e. Real units chosen
@@ -757,34 +851,6 @@ void PairEffCut::settings(int narg, char **arg)
       for (j = i+1; j <= atom->ntypes; j++)
         if (setflag[i][j]) cut[i][j] = cut_global;
   }
-}
-
-/* ----------------------------------------------------------------------
-   set coeffs for one or more type pairs
-------------------------------------------------------------------------- */
-
-void PairEffCut::coeff(int narg, char **arg)
-{
-  if (narg < 2 || narg > 3) error->all(FLERR,"Incorrect args for pair coefficients");
-  if (!allocated) allocate();
-
-  int ilo,ihi,jlo,jhi;
-  force->bounds(arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(arg[1],atom->ntypes,jlo,jhi);
-
-  double cut_one = cut_global;
-  if (narg == 3) cut_one = atof(arg[2]);
-
-  int count = 0;
-  for (int i = ilo; i <= ihi; i++) {
-    for (int j = MAX(jlo,i); j <= jhi; j++) {
-      cut[i][j] = cut_one;
-      setflag[i][j] = 1;
-      count++;
-    }
-  }
-
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -816,6 +882,51 @@ void PairEffCut::init_style()
 
   int irequest = neighbor->request(this);
 }
+
+/* ----------------------------------------------------------------------
+   set coeffs for one or more type electron pairs (ECP-only)
+------------------------------------------------------------------------- */
+
+void PairEffCut::coeff(int narg, char **arg)
+{
+  if (!allocated) allocate();
+
+  if ((strcmp(arg[0],"*") == 0) || (strcmp(arg[1],"*") == 0)) {
+    int ilo,ihi,jlo,jhi;
+    force->bounds(arg[0],atom->ntypes,ilo,ihi);
+    force->bounds(arg[1],atom->ntypes,jlo,jhi);
+
+    double cut_one = cut_global;
+    if (narg == 3) cut_one = atof(arg[2]);
+
+    int count = 0;
+    for (int i = ilo; i <= ihi; i++) {
+      for (int j = MAX(jlo,i); j <= jhi; j++) {
+        cut[i][j] = cut_one;
+        setflag[i][j] = 1;
+        count++;
+      }
+    }
+    if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  } else {
+    int ecp;
+    ecp = force->inumeric(arg[0]);
+    if (strcmp(arg[1],"s") ==0) {
+      PAULI_CORE_A[ecp_type[ecp]] = force->numeric(arg[2]);
+      PAULI_CORE_B[ecp_type[ecp]] = force->numeric(arg[3]);
+      PAULI_CORE_C[ecp_type[ecp]] = force->numeric(arg[4]);
+      PAULI_CORE_D[ecp_type[ecp]] = 0.0;
+      PAULI_CORE_E[ecp_type[ecp]] = 0.0;
+    } else if (strcmp(arg[1],"p") ==0) {
+      PAULI_CORE_A[ecp_type[ecp]] = force->numeric(arg[2]);
+      PAULI_CORE_B[ecp_type[ecp]] = force->numeric(arg[3]);
+      PAULI_CORE_C[ecp_type[ecp]] = force->numeric(arg[4]);
+      PAULI_CORE_D[ecp_type[ecp]] = force->numeric(arg[5]);
+      PAULI_CORE_E[ecp_type[ecp]] = force->numeric(arg[6]);
+    } else error->all(FLERR,"Illegal pair_coeff command"); 
+  }
+}
+
 
 /* ----------------------------------------------------------------------
    init for one type pair i,j and corresponding j,i

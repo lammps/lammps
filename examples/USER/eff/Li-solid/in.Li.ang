@@ -8,10 +8,10 @@ dielectric	1.0
 
 atom_style      electron
 
-#read_data       data.${sname}
-read_restart	${sname}.min.restart
+read_data       data.${sname}
+#read_restart	${sname}.min.restart
 
-pair_style      eff/cut 11.049221 1 1
+pair_style      eff/cut 11.049221 limit/eradius pressure/evirials
 pair_coeff      * *
 
 communicate	single vel yes

@@ -807,11 +807,11 @@ void PairEffCut::settings(int narg, char **arg)
   int ecp_found = 0;
 
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"limit_eradius") == 0) {
+    if (strcmp(arg[iarg],"limit/eradius") == 0) {
       limit_eradius_flag = 1; 
       iarg += 1;
     }
-    else if (strcmp(arg[iarg],"pressure_with_evirials") == 0) {
+    else if (strcmp(arg[iarg],"pressure/evirials") == 0) {
       pressure_with_evirials_flag = 1; 
       iarg += 1;
     }

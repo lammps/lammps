@@ -182,8 +182,8 @@ void Input::file()
     // echo the command unless scanning for label
 
     if (me == 0 && label_active == 0) {
-      if (echo_screen && screen) fprintf(screen,"%s",line);
-      if (echo_log && logfile) fprintf(logfile,"%s",line);
+      if (echo_screen && screen) fprintf(screen,"%s\n",line);
+      if (echo_log && logfile) fprintf(logfile,"%s\n",line);
     }
 
     // parse the line
@@ -417,8 +417,8 @@ void Input::substitute(char *&str, char *&str2, int &max1, int &max2, int flag)
       strcpy(str,str2);
       ptr += strlen(value);
       if (flag && me == 0 && label_active == 0) {
-        if (echo_screen && screen) fprintf(screen,"%s",str);
-        if (echo_log && logfile) fprintf(logfile,"%s",str);
+        if (echo_screen && screen) fprintf(screen,"%s\n",str);
+        if (echo_log && logfile) fprintf(logfile,"%s\n",str);
       }
       continue;
     }

@@ -89,6 +89,7 @@ class Fix : protected Pointers {
   virtual void init_list(int, class NeighList *) {}
   virtual void setup(int) {}
   virtual void setup_pre_exchange() {}
+  virtual void setup_pre_neighbor() {}
   virtual void setup_pre_force(int) {}
   virtual void min_setup(int) {}
   virtual void initial_integrate(int) {}

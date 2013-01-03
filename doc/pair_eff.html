@@ -13,19 +13,26 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<P>pair_style eff/cut cutoff limit_eradius pressure_with_evirials ecp type1 element1 type2 element2 ... typeN elementN
-</P>
-<UL><LI>cutoff = global cutoff for Coulombic interactions
-<LI>limit_eradius = limit electron size (optional)
-<LI>pressure_with_evirials = include electron virials in system pressure (optional)
-<LI>type1 ... typeN = LAMMPS atom type
-<LI>element1 ... element2 = element symbol 
+<PRE>pair_style eff/cut cutoff keyword args ... 
+</PRE>
+<UL><LI>cutoff = global cutoff for Coulombic interactions 
+
+<LI>zero or more keyword/value pairs may be appended 
+
+<PRE>keyword = <I>limit/eradius</I> or <I>pressure/evirials</I> or <I>ecp</I>
+  <I>limit/eradius</I> args = none
+  <I>pressure/evirials</I> args = none
+  <I>ecp</I> args = type element type element ...
+    type = LAMMPS atom type (1 to Ntypes)
+    element = element symbol (e.g. H, Si) 
+</PRE>
+
 </UL>
 <P><B>Examples:</B>
 </P>
 <PRE>pair_style eff/cut 39.7
-pair_style eff/cut 40.0 limit_eradius
-pair_style eff/cut 40.0 limit_eradius pressure_with_evirials
+pair_style eff/cut 40.0 limit/eradius
+pair_style eff/cut 40.0 limit/eradius pressure/evirials
 pair_style eff/cut 40.0 ecp 1 Si 3 C
 pair_coeff * *
 pair_coeff 2 2 20.0
@@ -146,32 +153,34 @@ individual I,J type pair via the <A HREF = "pair_coeff.html">pair_coeff</A> comm
 All type pairs use the same global cutoff specified in the pair_style
 command.
 </P>
-<P>The <I>limit_eradius</I> and <I>pressure_with_evirials</I> settings are optional.
+<HR>
+
+<P>The <I>limit/eradius</I> and <I>pressure/evirials</I> keywrods are optional.
 Neither or both must be specified.  If not specified they are unset.
 </P>
-<P>The <I>limit_eradius</I> is used to restrain electron size from becoming
-excessively diffuse at very high temperatures were the Gaussian wave
-packet representation breaks down, and from expanding as free
-particles to infinite size.  If unset, electron radius is free to
-increase without bounds.  If set, a restraining
-harmonic potential of the form E = 1/2k_ss^2 for s > L_box/2, where
-k_s = 1 Hartrees/Bohr^2, is applied on the electron radius.
+<P>The <I>limit/eradius</I> keyword is used to restrain electron size from
+becoming excessively diffuse at very high temperatures were the
+Gaussian wave packet representation breaks down, and from expanding as
+free particles to infinite size.  If unset, electron radius is free to
+increase without bounds.  If set, a restraining harmonic potential of
+the form E = 1/2k_ss^2 for s > L_box/2, where k_s = 1 Hartrees/Bohr^2,
+is applied on the electron radius.
 </P>
-<P>The <I>pressure_with_evirials</I> is used to control between two types of pressure
-computation: if unset, the computed pressure does not include the
-electronic radial virials contributions to the total pressure (scalar
-or tensor).  If set, the computed pressure will include the
-electronic radial virial contributions to the total pressure (scalar
-and tensor).
+<P>The <I>pressure/evirials</I> keyword is used to control between two types
+of pressure computation: if unset, the computed pressure does not
+include the electronic radial virials contributions to the total
+pressure (scalar or tensor).  If set, the computed pressure will
+include the electronic radial virial contributions to the total
+pressure (scalar and tensor).
 </P>
-<P>The <I>ecp</I> is used to associate an ECP representation for a particular
-atom type.  The ECP captures the orbital overlap between a core pseudo
-particle and valence electrons within the Pauli repulsion.  A list of
-type:element-symbol pairs may be provided for all ECP representations,
-after the "ecp" keyword.
+<P>The <I>ecp</I> keyword is used to associate an ECP representation for a
+particular atom type.  The ECP captures the orbital overlap between a
+core pseudo particle and valence electrons within the Pauli repulsion.
+A list of type:element-symbol pairs may be provided for all ECP
+representations, after the "ecp" keyword.
 </P>
 <P>IMPORTANT NOTE: Default ECP parameters are provided for C, N, O, Al,
-and Si.  Users can modify these using the <I>pair_coeff</I> command as
+and Si.  Users can modify these using the pair_coeff command as
 exemplified above.  For this, the User must distinguish between two
 different functional forms supported, one that captures the orbital
 overlap assuming the s-type core interacts with an s-like valence

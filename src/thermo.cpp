@@ -67,7 +67,6 @@ enum{SCALAR,VECTOR,ARRAY};
 #define INVOKED_VECTOR 2
 #define INVOKED_ARRAY 4
 
-#define MAXLINE 32768               // make this 4x longer than Input::MAXLINE
 #define DELTA 8
 
 /* ---------------------------------------------------------------------- */
@@ -89,11 +88,18 @@ Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   lostbefore = 0;
   flushflag = 0;
 
+  // line string used for 3 tasks
+  // concat of custom style args
+  // one-time thermo output of header line
+  // each line of numeric thermo output
+  // 256 = extra for ONE or MULTI string or multi formatting
+  // 32 = max per-arg chars in header or numeric output
+
+  line = new char[256+32*narg];
+
   // set style and corresponding lineflag
   // custom style builds its own line of keywords
   // customize a new thermo style by adding to if statement
-
-  line = new char[MAXLINE];
 
   if (strcmp(style,"one") == 0) {
     strcpy(line,ONE);
@@ -336,9 +342,6 @@ void Thermo::compute(int flag)
       loc += sprintf(&line[loc],format[ifield],bivalue);
     }
   }
-
-  // kludge for RedStorm timing issue
-  // if (ntimestep == 100) return;
 
   // print line to screen and logfile
 

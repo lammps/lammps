@@ -18,12 +18,11 @@
 #include "input.h"
 #include "modify.h"
 #include "variable.h"
+#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
-
-#define MAXLINE 1024
 
 /* ---------------------------------------------------------------------- */
 
@@ -39,6 +38,10 @@ FixPrint::FixPrint(LAMMPS *lmp, int narg, char **arg) :
   int n = strlen(arg[4]) + 1;
   string = new char[n];
   strcpy(string,arg[4]);
+
+  copy = (char *) memory->smalloc(n*sizeof(char),"fix/print:copy");
+  work = (char *) memory->smalloc(n*sizeof(char),"fix/print:work");
+  maxcopy = maxwork = n;
 
   // parse optional args
 
@@ -85,9 +88,6 @@ FixPrint::FixPrint(LAMMPS *lmp, int narg, char **arg) :
 
   delete [] title;
 
-  copy = new char[MAXLINE];
-  work = new char[MAXLINE];
-
   // add nfirst to all computes that store invocation times
   // since don't know a priori which are invoked via variables by this fix
   // once in end_of_step() can set timestep for ones actually invoked
@@ -101,8 +101,8 @@ FixPrint::FixPrint(LAMMPS *lmp, int narg, char **arg) :
 FixPrint::~FixPrint()
 {
   delete [] string;
-  delete [] copy;
-  delete [] work;
+  memory->sfree(copy);
+  memory->sfree(work);
 
   if (fp && me == 0) fclose(fp);
 }
@@ -128,16 +128,15 @@ void FixPrint::end_of_step()
   modify->clearstep_compute();
 
   strcpy(copy,string);
-  input->substitute(copy,0);
-  strcat(copy,"\n");
+  input->substitute(copy,work,maxcopy,maxwork,0);
 
   modify->addstep_compute(update->ntimestep + nevery);
 
   if (me == 0) {
-    if (screenflag && screen) fprintf(screen,"%s",copy);
-    if (screenflag && logfile) fprintf(logfile,"%s",copy);
+    if (screenflag && screen) fprintf(screen,"%s\n",copy);
+    if (screenflag && logfile) fprintf(logfile,"%s\n",copy);
     if (fp) {
-      fprintf(fp,"%s",copy);
+      fprintf(fp,"%s\n",copy);
       fflush(fp);
     }
   }

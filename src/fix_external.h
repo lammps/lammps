@@ -35,10 +35,17 @@ class FixExternal : public Fix {
   void post_force(int);
   void min_post_force(int);
 
+  double memory_usage();
+  void grow_arrays(int);
+  void copy_arrays(int, int);
+  int pack_exchange(int, double *);
+  int unpack_exchange(int, double *);
+
   typedef void (*FnPtr)(void *, int, int, int *, double **, double **);
   void set_callback(FnPtr, void *);
 
  private:
+  int mode,ncall,napply;
   FnPtr callback;
   void *ptr_caller;
   int nmax;

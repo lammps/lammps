@@ -66,7 +66,8 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
       pack_choice[nvalues++] = &FixStoreState::pack_id;
     } else if (strcmp(arg[iarg],"mol") == 0) {
       if (!atom->molecule_flag)
-        error->all(FLERR,"Fix store/state for atom property that isn't allocated");
+        error->all(FLERR,
+                   "Fix store/state for atom property that isn't allocated");
       pack_choice[nvalues++] = &FixStoreState::pack_molecule;
     } else if (strcmp(arg[iarg],"type") == 0) {
       pack_choice[nvalues++] = &FixStoreState::pack_type;
@@ -469,7 +470,7 @@ double FixStoreState::memory_usage()
 
 void FixStoreState::grow_arrays(int nmax)
 {
- memory->grow(values,nmax,nvalues,"store/state:values");
+  memory->grow(values,nmax,nvalues,"store/state:values");
   if (nvalues == 1) {
     if (nmax) vector_atom = &values[0][0];
     else vector_atom = NULL;

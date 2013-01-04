@@ -14,7 +14,7 @@ qstexe.h	    contains full pathname to Quest executable
 After editing the Makefile, lmppath.h, and qstexe.h to make them
 suitable for your box, type:
 
-g++ -f Makefile.g++
+make -f Makefile.g++
 
 and you should get the lmpqst executable.
 

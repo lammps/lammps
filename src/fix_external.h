@@ -48,7 +48,6 @@ class FixExternal : public Fix {
   int mode,ncall,napply;
   FnPtr callback;
   void *ptr_caller;
-  int nmax;
   double **fexternal;
 };
 

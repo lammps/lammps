@@ -14,7 +14,7 @@ mass		1 28.08
 velocity	all create 300.0 87293 loop geom
 
 fix		1 all nve
-fix		2 all external
+fix		2 all external pf/callback 1 1
 
 dump		1 all custom 1 dump.md id type x y z fx fy fz
 thermo		1

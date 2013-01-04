@@ -200,4 +200,3 @@ void FixExternal::set_callback(FnPtr caller_callback, void *caller_ptr)
   callback = caller_callback;
   ptr_caller = caller_ptr;
 }
-

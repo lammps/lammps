@@ -48,13 +48,9 @@ addforce"_fix_addforce.html command works.  Note that if {Ncall} >
 {Napply}, the force values produced by one callback will persist, and
 be used multiple times to update atom forces.
 
-The callback function "foo" will be invoked by the fix as:
+The callback function "foo" is invoked by the fix as:
 
-foo(ptr,timestep,nlocal,ids,x,fexternal); :pre
-
-which has this prototype:
-
-void foo(void *, int, int, int *, double **, double **);
+foo(void *ptr, bigint timestep, int nlocal, int *ids, double **x, double **fexternal); :pre
 
 The arguments are as follows:
 
@@ -64,6 +60,9 @@ nlocal = # of atoms on this processor
 ids = list of atom IDs on this processor
 x = coordinates of atoms on this processor
 fexternal = forces to add to atoms on this processor :ul
+
+Note that timestep is a "bigint" which is defined in src/lmptype.h,
+typically as a 64-bit integer.
 
 Fexternal are the forces returned by the driver program.
 
@@ -81,12 +80,16 @@ code "Quest"_quest.
 If mode is {pf/array} then the fix simply stores force values in an
 array.  The fix adds these forces to each atom in the group, once
 every {Napply} steps, similar to the way the "fix
-addforce"_fix_addforce.html command works.  It is up to the external
-program to set the values in this array to the desired quantities, as
-often as desired.  For example, the driver program might perform an MD
-run in stages of 1000 timesteps each.  In between calls to the LAMMPS
-"run"_run.html command, it could retrieve atom coordinates from
-LAMMPS, compute forces, set values in the fix external array, etc.
+addforce"_fix_addforce.html command works.
+
+It is up to the external program to set the values in this array to
+the desired quantities, as often as desired.  For example, the driver
+program might perform an MD run in stages of 1000 timesteps each.  In
+between calls to the LAMMPS "run"_run.html command, it could retrieve
+atom coordinates from LAMMPS, compute forces, set values in the fix
+external array, etc.
+
+:line
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 

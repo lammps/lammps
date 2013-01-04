@@ -55,14 +55,10 @@ addforce</A> command works.  Note that if <I>Ncall</I> >
 <I>Napply</I>, the force values produced by one callback will persist, and
 be used multiple times to update atom forces.
 </P>
-<P>The callback function "foo" will be invoked by the fix as:
+<P>The callback function "foo" is invoked by the fix as:
 </P>
-<PRE>foo(ptr,timestep,nlocal,ids,x,fexternal); 
+<PRE>foo(void *ptr, bigint timestep, int nlocal, int *ids, double **x, double **fexternal); 
 </PRE>
-<P>which has this prototype:
-</P>
-<P>void foo(void *, int, int, int *, double **, double **);
-</P>
 <P>The arguments are as follows:
 </P>
 <UL><LI>ptr = pointer provided by and simply passed back to external driver
@@ -72,6 +68,9 @@ be used multiple times to update atom forces.
 <LI>x = coordinates of atoms on this processor
 <LI>fexternal = forces to add to atoms on this processor 
 </UL>
+<P>Note that timestep is a "bigint" which is defined in src/lmptype.h,
+typically as a 64-bit integer.
+</P>
 <P>Fexternal are the forces returned by the driver program.
 </P>
 <P>The fix has a set_callback() method which the external driver can call
@@ -88,13 +87,17 @@ code <A HREF = "http://dft.sandia.gov/Quest">Quest</A>.
 <P>If mode is <I>pf/array</I> then the fix simply stores force values in an
 array.  The fix adds these forces to each atom in the group, once
 every <I>Napply</I> steps, similar to the way the <A HREF = "fix_addforce.html">fix
-addforce</A> command works.  It is up to the external
-program to set the values in this array to the desired quantities, as
-often as desired.  For example, the driver program might perform an MD
-run in stages of 1000 timesteps each.  In between calls to the LAMMPS
-<A HREF = "run.html">run</A> command, it could retrieve atom coordinates from
-LAMMPS, compute forces, set values in the fix external array, etc.
+addforce</A> command works.
 </P>
+<P>It is up to the external program to set the values in this array to
+the desired quantities, as often as desired.  For example, the driver
+program might perform an MD run in stages of 1000 timesteps each.  In
+between calls to the LAMMPS <A HREF = "run.html">run</A> command, it could retrieve
+atom coordinates from LAMMPS, compute forces, set values in the fix
+external array, etc.
+</P>
+<HR>
+
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>
 <P>No information about this fix is written to <A HREF = "restart.html">binary restart

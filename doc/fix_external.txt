@@ -10,25 +10,45 @@ fix external command :h3
 
 [Syntax:]
 
-fix ID group-ID external :pre
+fix ID group-ID external mode args :pre
 
-ID, group-ID are documented in "fix"_fix.html command
-external = style name of this fix command :ul
+ID, group-ID are documented in "fix"_fix.html command :ulb,l
+external = style name of this fix command :l
+mode = {pf/callback} or {pf/array} :l
+  {pf/callback} args = Ncall Napply
+    Ncall = make callback every Ncall steps
+    Napply = apply callback forces every Napply steps
+  {pf/array} args = Napply
+    Napply = apply array forces every Napply steps :pre
+:ule
 
 [Examples:]
 
-fix 1 all external :pre
+fix 1 all external pf/callback 1 1
+fix 1 all external pf/callback 100 1
+fix 1 all external pf/array 10 :pre
 
 [Description:]
 
-This fix makes a callback each timestep or minimization iteration to
-an external driver program that is using LAMMPS as a library.  This is
-a way to let another program compute forces on atoms which LAMMPS will
-include in its dynamics performed by the "run"_run.html command or its
-iterations performed by the "minimize"_minimize.html command
+This fix allows external programs that are running LAMMPS through its
+"library interface"_Section_howto.html#howto_19 to modify certain
+LAMMPS properties on specific timesteps, similar to the way other
+fixes do.  The external driver can be a "C/C++ or Fortran
+program"_Section_howto.html#howto_19 or a "Python
+script"_Section_python.html.
 
-The callback function "foo" will be invoked every timestep or
-iteration as:
+:line
+
+If mode is {pf/callback} then the fix will make a callback every
+{Ncall} timesteps or minimization iteration to the external program.
+The external program computes forces on atoms by setting values in an
+array owned by the fix.  The fix then adds these forces to each atom
+in the group, once every {Napply} steps, similar to the way the "fix
+addforce"_fix_addforce.html command works.  Note that if {Ncall} >
+{Napply}, the force values produced by one callback will persist, and
+be used multiple times to update atom forces.
+
+The callback function "foo" will be invoked by the fix as:
 
 foo(ptr,timestep,nlocal,ids,x,fexternal); :pre
 
@@ -43,18 +63,30 @@ timestep = current LAMMPS timestep
 nlocal = # of atoms on this processor
 ids = list of atom IDs on this processor
 x = coordinates of atoms on this processor
-fexternal = forces on atoms on this processor :ul
+fexternal = forces to add to atoms on this processor :ul
 
-Fexternal are the forces returned by the driver program,
-which LAMMPS adds to the current force on each atom.
+Fexternal are the forces returned by the driver program.
 
-See the couple/lammps_quest/lmpqst.cpp file in the LAMMPS distribution
-for an example of a coupling application that uses this fix, and how
-it makes a call to the fix to specify what function the fix should
-callback to.  The sample application performs classical MD using
-quantum forces computed by a density functional code "Quest"_quest.
+The fix has a set_callback() method which the external driver can call
+to pass a pointer to its foo() function.  See the
+couple/lammps_quest/lmpqst.cpp file in the LAMMPS distribution for an
+example of how this is done.  This sample application performs
+classical MD using quantum forces computed by a density functional
+code "Quest"_quest.
 
 :link(quest,http://dft.sandia.gov/Quest)
+
+:line
+
+If mode is {pf/array} then the fix simply stores force values in an
+array.  The fix adds these forces to each atom in the group, once
+every {Napply} steps, similar to the way the "fix
+addforce"_fix_addforce.html command works.  It is up to the external
+program to set the values in this array to the desired quantities, as
+often as desired.  For example, the driver program might perform an MD
+run in stages of 1000 timesteps each.  In between calls to the LAMMPS
+"run"_run.html command, it could retrieve atom coordinates from
+LAMMPS, compute forces, set values in the fix external array, etc.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 

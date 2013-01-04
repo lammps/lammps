@@ -13,25 +13,49 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>fix ID group-ID external 
+<PRE>fix ID group-ID external mode args 
 </PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
 <LI>external = style name of this fix command 
+
+<LI>mode = <I>pf/callback</I> or <I>pf/array</I> 
+
+<PRE>  <I>pf/callback</I> args = Ncall Napply
+    Ncall = make callback every Ncall steps
+    Napply = apply callback forces every Napply steps
+  <I>pf/array</I> args = Napply
+    Napply = apply array forces every Napply steps 
+</PRE>
+
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>fix 1 all external 
+<PRE>fix 1 all external pf/callback 1 1
+fix 1 all external pf/callback 100 1
+fix 1 all external pf/array 10 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>This fix makes a callback each timestep or minimization iteration to
-an external driver program that is using LAMMPS as a library.  This is
-a way to let another program compute forces on atoms which LAMMPS will
-include in its dynamics performed by the <A HREF = "run.html">run</A> command or its
-iterations performed by the <A HREF = "minimize.html">minimize</A> command
+<P>This fix allows external programs that are running LAMMPS through its
+<A HREF = "Section_howto.html#howto_19">library interface</A> to modify certain
+LAMMPS properties on specific timesteps, similar to the way other
+fixes do.  The external driver can be a <A HREF = "Section_howto.html#howto_19">C/C++ or Fortran
+program</A> or a <A HREF = "Section_python.html">Python
+script</A>.
 </P>
-<P>The callback function "foo" will be invoked every timestep or
-iteration as:
+<HR>
+
+<P>If mode is <I>pf/callback</I> then the fix will make a callback every
+<I>Ncall</I> timesteps or minimization iteration to the external program.
+The external program computes forces on atoms by setting values in an
+array owned by the fix.  The fix then adds these forces to each atom
+in the group, once every <I>Napply</I> steps, similar to the way the <A HREF = "fix_addforce.html">fix
+addforce</A> command works.  Note that if <I>Ncall</I> >
+<I>Napply</I>, the force values produced by one callback will persist, and
+be used multiple times to update atom forces.
+</P>
+<P>The callback function "foo" will be invoked by the fix as:
 </P>
 <PRE>foo(ptr,timestep,nlocal,ids,x,fexternal); 
 </PRE>
@@ -46,19 +70,31 @@ iteration as:
 <LI>nlocal = # of atoms on this processor
 <LI>ids = list of atom IDs on this processor
 <LI>x = coordinates of atoms on this processor
-<LI>fexternal = forces on atoms on this processor 
+<LI>fexternal = forces to add to atoms on this processor 
 </UL>
-<P>Fexternal are the forces returned by the driver program,
-which LAMMPS adds to the current force on each atom.
+<P>Fexternal are the forces returned by the driver program.
 </P>
-<P>See the couple/lammps_quest/lmpqst.cpp file in the LAMMPS distribution
-for an example of a coupling application that uses this fix, and how
-it makes a call to the fix to specify what function the fix should
-callback to.  The sample application performs classical MD using
-quantum forces computed by a density functional code <A HREF = "http://dft.sandia.gov/Quest">Quest</A>.
+<P>The fix has a set_callback() method which the external driver can call
+to pass a pointer to its foo() function.  See the
+couple/lammps_quest/lmpqst.cpp file in the LAMMPS distribution for an
+example of how this is done.  This sample application performs
+classical MD using quantum forces computed by a density functional
+code <A HREF = "http://dft.sandia.gov/Quest">Quest</A>.
 </P>
 
 
+<HR>
+
+<P>If mode is <I>pf/array</I> then the fix simply stores force values in an
+array.  The fix adds these forces to each atom in the group, once
+every <I>Napply</I> steps, similar to the way the <A HREF = "fix_addforce.html">fix
+addforce</A> command works.  It is up to the external
+program to set the values in this array to the desired quantities, as
+often as desired.  For example, the driver program might perform an MD
+run in stages of 1000 timesteps each.  In between calls to the LAMMPS
+<A HREF = "run.html">run</A> command, it could retrieve atom coordinates from
+LAMMPS, compute forces, set values in the fix external array, etc.
+</P>
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>
 <P>No information about this fix is written to <A HREF = "restart.html">binary restart

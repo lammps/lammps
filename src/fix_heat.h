@@ -39,6 +39,8 @@ class FixHeat : public Fix {
   double masstotal;
   double scale;
   char *idregion;
+  char *hstr;
+  int hstyle,hvar;
 };
 
 }

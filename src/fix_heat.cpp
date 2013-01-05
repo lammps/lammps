@@ -25,10 +25,15 @@
 #include "group.h"
 #include "force.h"
 #include "update.h"
+#include "modify.h"
+#include "input.h"
+#include "variable.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
+
+enum{CONSTANT,EQUAL};
 
 /* ---------------------------------------------------------------------- */
 
@@ -43,7 +48,17 @@ FixHeat::FixHeat(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   nevery = atoi(arg[3]);
   if (nevery <= 0) error->all(FLERR,"Illegal fix heat command");
 
-  heat_input = atof(arg[4]);
+  hstr = NULL;
+
+  if (strstr(arg[4],"v_") == arg[4]) {
+    int n = strlen(&arg[4][2]) + 1;
+    hstr = new char[n];
+    strcpy(hstr,&arg[4][2]);
+    hstyle = EQUAL;
+  } else {
+    heat_input = atof(arg[4]);
+    hstyle = CONSTANT;
+  }
 
   // optional args
 
@@ -71,6 +86,7 @@ FixHeat::FixHeat(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
 FixHeat::~FixHeat()
 {
+  delete [] hstr;
   delete [] idregion;
 }
 
@@ -95,6 +111,16 @@ void FixHeat::init()
       error->all(FLERR,"Region ID for fix heat does not exist");
   }
 
+  // check variable
+
+  if (hstr) {
+    hvar = input->variable->find(hstr);
+    if (hvar < 0) 
+      error->all(FLERR,"Variable name for fix heat does not exist");
+    if (!input->variable->equalstyle(hvar))
+      error->all(FLERR,"Variable for fix heat is invalid style");
+  }
+
   // cannot have 0 atoms in group
 
   if (group->count(igroup) == 0)
@@ -110,6 +136,12 @@ void FixHeat::end_of_step()
   double vsub[3],vcm[3];
   Region *region = NULL;
   if (iregion >= 0) region = domain->regions[iregion];
+
+  if (hstyle == EQUAL) {
+    modify->clearstep_compute();
+    heat_input = input->variable->compute_equal(hvar);
+    modify->addstep_compute(update->ntimestep + nevery);
+  }
 
   if (iregion < 0) {
     heat = heat_input*nevery*update->dt*force->ftm2v;

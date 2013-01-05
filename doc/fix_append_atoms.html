@@ -23,9 +23,12 @@
 
 <LI>zero or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>size</I> or <I>freq</I> or <I>temp</I> or <I>random</I> or <I>units</I>  
+<LI>keyword = <I>basis</I> or <I>size</I> or <I>freq</I> or <I>temp</I> or <I>random</I> or <I>units</I>  
 
-<PRE>  <I>size</I> args = Lz
+<PRE>  <I>basis</I> values = M itype
+    M = which basis atom
+    itype = atom type (1-N) to assign to this basis atom
+  <I>size</I> args = Lz
     Lz = z size of lattice region appended in a single event(distance units)
   <I>freq</I> args = freq
     freq = the number of timesteps between append events
@@ -61,6 +64,12 @@ Before using this command, a lattice must also be defined using the
 </P>
 <P>This fix will automatically freeze atoms on the zhi edge of the
 system, so that overlaps are avoided when new atoms are appended.
+</P>
+<P>The <I>basis</I> keyword specifies an atom type that will be assigned to
+specific basis atoms as they are created.  See the
+<A HREF = "lattice.html">lattice</A> command for specifics on how basis atoms are
+defined for the unit cell of the lattice.  By default, all created
+atoms are assigned type = 1 unless this keyword specifies differently.
 </P>
 <P>The <I>size</I> keyword defines the size in z of the chunk of material to
 be added.
@@ -108,6 +117,7 @@ than periodic.
 </P>
 <P><B>Default:</B>
 </P>
-<P>The keyword defaults are size = 0.0, freq = 0, units = lattice.
+<P>The keyword defaults are size = 0.0, freq = 0, units = lattice.  All
+added atoms are of type 1 unless the basis keyword is used.
 </P>
 </HTML>

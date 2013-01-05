@@ -30,7 +30,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJShiftedForce::PairLJShiftedForce(LAMMPS *lmp) : Pair(lmp) {}
+PairLJShiftedForce::PairLJShiftedForce(LAMMPS *lmp) : Pair(lmp)
+{
+  respa_enable = 0;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -149,11 +152,12 @@ void PairLJShiftedForce::allocate()
       setflag[i][j] = 0;
 
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
+
   memory->create(cut,n+1,n+1,"pair:cut");
   memory->create(epsilon,n+1,n+1,"pair:epsilon");
   memory->create(sigma,n+1,n+1,"pair:sigma");
   memory->create(lj1,n+1,n+1,"pair:lj1");
-  memory->create(lj3,n+1,n+1,"pair:lj2");
+  memory->create(lj2,n+1,n+1,"pair:lj2");
   memory->create(lj3,n+1,n+1,"pair:lj3");
   memory->create(lj4,n+1,n+1,"pair:lj4");
   memory->create(foffset,n+1,n+1,"pair:foffset");
@@ -189,7 +193,8 @@ void PairLJShiftedForce::settings(int narg, char **arg)
 
 void PairLJShiftedForce::coeff(int narg, char **arg)
 {
-  if (narg < 4 || narg > 5) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg < 4 || narg > 5)
+    error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;

@@ -16,6 +16,7 @@ ID, group-ID are documented in "fix"_fix.html command :ulb,l
 heat = style name of this fix command :l
 N = add/subtract heat every this many timesteps :l
 eflux = rate of heat addition or subtraction (energy/time units) :l
+eflux can be a variable (see below) :l
 zero or more keyword/value pairs may be appended to args :l
 keyword = {region}  :l
   {region} value = region-ID
@@ -25,6 +26,7 @@ keyword = {region}  :l
 [Examples:]
 
 fix 3 qin heat 1 1.0
+fix 3 qin heat 10 v_flux
 fix 4 qout heat 1 -1.0 region top :pre
 
 [Description:]
@@ -51,6 +53,17 @@ larger value of N will add/subtract a larger amount of energy each
 time the fix is invoked.  If heat is subtracted from the system too
 aggressively so that the group's kinetic energy would go to zero,
 LAMMPS halts with an error message.
+
+The {eflux} parameter can be specified as an equal-style
+"variable"_variable.html.  If the value is a variable, it should be
+specified as v_name, where name is the variable name.  In this case,
+the variable will be evaluated each timestep, and its value used to
+determine the flux.
+
+Equal-style variables can specify formulas with various mathematical
+functions, and include "thermo_style"_thermo_style.html command
+keywords for the simulation box parameters and timestep and elapsed
+time.  Thus it is easy to specify a time-dependent flux.
 
 Fix heat is different from a thermostat such as "fix nvt"_fix_nh.html
 or "fix temp/rescale"_fix_temp_rescale.html in that energy is
@@ -90,4 +103,3 @@ minimization"_minimize.html.
 temp/region"_compute_temp_region.html
 
 [Default:] none
-

@@ -23,6 +23,8 @@
 
 <LI>eflux = rate of heat addition or subtraction (energy/time units) 
 
+<LI>eflux can be a variable (see below) 
+
 <LI>zero or more keyword/value pairs may be appended to args 
 
 <LI>keyword = <I>region</I>  
@@ -35,6 +37,7 @@
 <P><B>Examples:</B>
 </P>
 <PRE>fix 3 qin heat 1 1.0
+fix 3 qin heat 10 v_flux
 fix 4 qout heat 1 -1.0 region top 
 </PRE>
 <P><B>Description:</B>
@@ -61,6 +64,17 @@ larger value of N will add/subtract a larger amount of energy each
 time the fix is invoked.  If heat is subtracted from the system too
 aggressively so that the group's kinetic energy would go to zero,
 LAMMPS halts with an error message.
+</P>
+<P>The <I>eflux</I> parameter can be specified as an equal-style
+<A HREF = "variable.html">variable</A>.  If the value is a variable, it should be
+specified as v_name, where name is the variable name.  In this case,
+the variable will be evaluated each timestep, and its value used to
+determine the flux.
+</P>
+<P>Equal-style variables can specify formulas with various mathematical
+functions, and include <A HREF = "thermo_style.html">thermo_style</A> command
+keywords for the simulation box parameters and timestep and elapsed
+time.  Thus it is easy to specify a time-dependent flux.
 </P>
 <P>Fix heat is different from a thermostat such as <A HREF = "fix_nh.html">fix nvt</A>
 or <A HREF = "fix_temp_rescale.html">fix temp/rescale</A> in that energy is

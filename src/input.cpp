@@ -233,12 +233,14 @@ void Input::file(const char *filename)
 }
 
 /* ----------------------------------------------------------------------
-   parse the command in single and execute it
+   copy command in single to line, parse and execute it
    return command name to caller
 ------------------------------------------------------------------------- */
 
 char *Input::one(const char *single)
 {
+  int n = strlen(single) + 1;
+  if (n > maxline) reallocate(line,maxline,n);
   strcpy(line,single);
 
   // echo the command unless scanning for label

@@ -73,7 +73,7 @@ style</A> to perform consistent short-range pairwise
 calculations.  This means that the name of the pair style contains a
 matching keyword to the name of the KSpace style, as in this table:
 </P>
-<DIV ALIGN=center><TABLE  BORDER=1 >
+<DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
 <TR ALIGN="center"><TD >Pair style </TD><TD > KSpace style </TD></TR>
 <TR ALIGN="center"><TD >coul/long </TD><TD > ewald or pppm</TD></TR>
 <TR ALIGN="center"><TD >coul/msm </TD><TD > msm</TD></TR>
@@ -159,13 +159,18 @@ mesh, and uses a multi-level hierarchy of coarser and coarser meshes
 on which direct coulomb solves are done.  This method does not use
 FFTs and scales as N. It may therefore be faster than the other
 K-space solvers for relatively large problems when running on large
-core counts.
+core counts. MSM can also be used for non-periodic boundary conditions and 
+for mixed periodic and non-periodic boundaries.
 </P>
 <P>MSM is most competitive versus Ewald and PPPM when only relatively 
 low accuracy forces, about 1e-4 relative error or less accurate, 
 are needed. Note that use of a larger coulomb cutoff (i.e. 15 
 angstroms instead of 10 angstroms) provides better MSM accuracy for 
 both the real space and grid computed forces.
+</P>
+<P>Currently the pressure calculation in MSM is expensive,
+so calculating the pressure at every timestep or using a fixed pressure
+simulation with MSM will cause the code to run slower.
 </P>
 <HR>
 
@@ -231,10 +236,14 @@ only enabled if LAMMPS was built with that package.  See the <A HREF = "Section_
 LAMMPS</A> section for more info.  Note that
 the KSPACE package is installed by default.
 </P>
-<P>A simulation must be 3d and periodic in all dimensions to use an Ewald
-or PPPM solver.  The only exception is if the slab option is set with
-<A HREF = "kspace_modify.html">kspace_modify</A>, in which case the xy dimensions
-must be periodic and the z dimension must be non-periodic.
+<P>For MSM, a simulation must be 3d and one can use any combination of 
+periodic, non-periodic, or shrink-wrapped boundaries (specified using 
+the <A HREF = "boundary.html">boundary</A> command). 
+</P>
+<P>For Ewald and PPPM, a simulation must be 3d and periodic in all dimensions.  
+The only exception is if the slab option is set with <A HREF = "kspace_modify.html">kspace_modify</A>, 
+in which case the xy dimensions must be periodic and the z dimension must be 
+non-periodic.
 </P>
 <P><B>Related commands:</B>
 </P>

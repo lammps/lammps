@@ -152,13 +152,18 @@ mesh, and uses a multi-level hierarchy of coarser and coarser meshes
 on which direct coulomb solves are done.  This method does not use
 FFTs and scales as N. It may therefore be faster than the other
 K-space solvers for relatively large problems when running on large
-core counts.
+core counts. MSM can also be used for non-periodic boundary conditions and 
+for mixed periodic and non-periodic boundaries.
 
 MSM is most competitive versus Ewald and PPPM when only relatively 
 low accuracy forces, about 1e-4 relative error or less accurate, 
 are needed. Note that use of a larger coulomb cutoff (i.e. 15 
 angstroms instead of 10 angstroms) provides better MSM accuracy for 
 both the real space and grid computed forces.
+
+Currently the pressure calculation in MSM is expensive,
+so calculating the pressure at every timestep or using a fixed pressure
+simulation with MSM will cause the code to run slower.
 
 :line
 
@@ -224,10 +229,14 @@ only enabled if LAMMPS was built with that package.  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info.  Note that
 the KSPACE package is installed by default.
 
-A simulation must be 3d and periodic in all dimensions to use an Ewald
-or PPPM solver.  The only exception is if the slab option is set with
-"kspace_modify"_kspace_modify.html, in which case the xy dimensions
-must be periodic and the z dimension must be non-periodic.
+For MSM, a simulation must be 3d and one can use any combination of 
+periodic, non-periodic, or shrink-wrapped boundaries (specified using 
+the "boundary"_boundary.html command). 
+
+For Ewald and PPPM, a simulation must be 3d and periodic in all dimensions.  
+The only exception is if the slab option is set with "kspace_modify"_kspace_modify.html, 
+in which case the xy dimensions must be periodic and the z dimension must be 
+non-periodic.
 
 [Related commands:]
 

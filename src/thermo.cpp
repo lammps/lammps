@@ -54,6 +54,7 @@ using namespace MathConst;
 // cella, cellb, cellc, cellalpha, cellbeta, cellgamma
 
 // customize a new thermo style by adding a DEFINE to this list
+// also insure allocation of line string is correct in constructor
 
 #define ONE "step temp epair emol etotal press"
 #define MULTI "etotal ke temp pe ebond eangle edihed eimp evdwl ecoul elong press"

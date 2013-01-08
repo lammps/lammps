@@ -44,8 +44,8 @@ using namespace MathConst;
 #define SMALL 0.00001
 #define LARGE 10000.0
 
-enum{REVERSE_RHO,REVERSE_IK,REVERSE_AD,REVERSE_IK_PERATOM,REVERSE_AD_PERATOM};
-enum{FORWARD_RHO,FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM};
+enum{REVERSE_RHO,REVERSE_AD,REVERSE_AD_PERATOM};
+enum{FORWARD_RHO,FORWARD_AD,FORWARD_AD_PERATOM};
 /* ---------------------------------------------------------------------- */
 
 MSM::MSM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
@@ -69,23 +69,21 @@ MSM::MSM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
   part2grid = NULL;
 
   g_direct = NULL;
-
-  dgx_direct = NULL;
-  dgy_direct = NULL;
-  dgz_direct = NULL;
+  g_direct_top = NULL;
 
   v0_direct = v1_direct = v2_direct = NULL;
   v3_direct = v4_direct = v5_direct = NULL;
 
-  cg = cg_IK = cg_peratom = NULL;
+  v0_direct_top = v1_direct_top = v2_direct_top = NULL;
+  v3_direct_top = v4_direct_top = v5_direct_top = NULL;
+
+  cg = cg_peratom = NULL;
 
   levels = 0;
 
   peratom_allocate_flag = 0;
 
   order = 8;
-
-  differentiation_flag = 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -99,15 +97,19 @@ MSM::~MSM()
   deallocate_peratom();
   memory->destroy(part2grid);
   memory->destroy(g_direct);
-  memory->destroy(dgx_direct);
-  memory->destroy(dgy_direct);
-  memory->destroy(dgz_direct);
+  memory->destroy(g_direct_top);
   memory->destroy(v0_direct);
   memory->destroy(v1_direct);
   memory->destroy(v2_direct);
   memory->destroy(v3_direct);
   memory->destroy(v4_direct);
   memory->destroy(v5_direct);
+  memory->destroy(v0_direct_top);
+  memory->destroy(v1_direct_top);
+  memory->destroy(v2_direct_top);
+  memory->destroy(v3_direct_top);
+  memory->destroy(v4_direct_top);
+  memory->destroy(v5_direct_top);
   deallocate_levels();
 }
 
@@ -134,9 +136,6 @@ void MSM::init()
 
   if (slabflag == 1)
       error->all(FLERR,"Cannot use slab correction with MSM");
-
-  if (domain->nonperiodic > 0)
-    error->all(FLERR,"Cannot (yet) use nonperiodic boundaries with MSM");
 
   if (order < 4 || order > 10) {
     char str[128];
@@ -252,23 +251,19 @@ double MSM::estimate_cutoff(double h, double prd)
   if (p == 3) {
     Mp = 9;
     cprime = 1.0/6.0;
-    if (differentiation_flag) error_scaling = 0.39189561;
-    else error_scaling = 0.215328372;
+    error_scaling = 0.39189561;
   } else if (p == 5) {
     Mp = 825;
     cprime = 1.0/30.0;
-    if (differentiation_flag) error_scaling = 0.150829428;
-    else error_scaling = 0.10751471;
+    error_scaling = 0.150829428;
   } else if (p == 7) {
     Mp = 130095;
     cprime = 1.0/140.0;
-    if (differentiation_flag) error_scaling = 0.049632967;
-    else error_scaling = 0.047579461;
+    error_scaling = 0.049632967;
   } else if (p == 9) {
     Mp = 34096545;
     cprime = 1.0/630.0;
-    if (differentiation_flag) error_scaling = 0.013520855;
-    else error_scaling = 0.010403771;
+    error_scaling = 0.013520855;
   } else {
     error->all(FLERR,"MSM order must be 4, 6, 8, or 10");
   }
@@ -308,23 +303,19 @@ double MSM::estimate_1d_error(double h, double prd)
   if (p == 3) {
     Mp = 9;
     cprime = 1.0/6.0;
-    if (differentiation_flag) error_scaling = 0.39189561;
-    else error_scaling = 0.215328372;
+    error_scaling = 0.39189561;
   } else if (p == 5) {
     Mp = 825;
     cprime = 1.0/30.0;
-    if (differentiation_flag) error_scaling = 0.150829428;
-    else error_scaling = 0.10751471;
+    error_scaling = 0.150829428;
   } else if (p == 7) {
     Mp = 130095;
     cprime = 1.0/140.0;
-    if (differentiation_flag) error_scaling = 0.049632967;
-    else error_scaling = 0.047579461;
+    error_scaling = 0.049632967;
   } else if (p == 9) {
     Mp = 34096545;
     cprime = 1.0/630.0;
-    if (differentiation_flag) error_scaling = 0.013520855;
-    else error_scaling = 0.010403771;
+    error_scaling = 0.013520855;
   } else {
     error->all(FLERR,"MSM order must be 4, 6, 8, or 10");
   }
@@ -405,7 +396,7 @@ void MSM::setup()
 
   // loop over grid levels
 
-  for (int n=0; n<levels-1; n++) {
+  for (int n=0; n<levels; n++) {
 
     delxinv[n] = nx_msm[n]/xprd;
     delyinv[n] = ny_msm[n]/yprd;
@@ -428,16 +419,20 @@ void MSM::setup()
 
   if (!peratom_allocate_flag) { // Timestep 0
     get_g_direct();
-    get_dg_direct();
     get_virial_direct();
+    if (domain->nonperiodic) {
+      get_g_direct_top(levels-1);
+      get_virial_direct_top(levels-1);
+    }
   } else {
-    if (differentiation_flag) get_g_direct();
-    if (!differentiation_flag) get_dg_direct();
-
-    if (!differentiation_flag && eflag_either) get_g_direct();
-    if (differentiation_flag && vflag_either) get_dg_direct();
-    if (vflag_either) get_virial_direct();
+    get_g_direct();
+    if (domain->nonperiodic) get_g_direct_top(levels-1);
+    if (vflag_either) {
+      get_virial_direct();
+      if (domain->nonperiodic) get_virial_direct_top(levels-1);
+    }
   }
+
   boxlo = domain->boxlo;
 
   set_grid_local();
@@ -448,13 +443,9 @@ void MSM::setup()
   allocate();
   peratom_allocate_flag = 0;
 
-  for (int n=0; n<levels-1; n++) {
+  for (int n=0; n<levels; n++) {
     cg[n]->ghost_notify();
     cg[n]->setup();
-    if (!differentiation_flag) {
-      cg_IK[n]->ghost_notify();
-      cg_IK[n]->setup();
-    }
   }
 
 }
@@ -474,9 +465,9 @@ void MSM::compute(int eflag, int vflag)
   else evflag = evflag_atom = eflag_global = vflag_global =
     eflag_atom = vflag_atom = eflag_either = vflag_either = 0;
 
-  if (evflag_atom && !peratom_allocate_flag) {
+  if (vflag_atom && !peratom_allocate_flag) {
     allocate_peratom();
-    for (int n=0; n<levels-1; n++) {
+    for (int n=0; n<levels; n++) {
       cg_peratom[n]->ghost_notify();
       cg_peratom[n]->setup();
     }
@@ -503,77 +494,35 @@ void MSM::compute(int eflag, int vflag)
   // all procs communicate density values from their ghost cells
   //   to fully sum contribution in their 3d bricks
 
-  for (int n=0; n<=cutlevel; n++) {
+  for (int n=0; n<=levels-2; n++) {
     current_level = n;
     cg[n]->forward_comm(this,FORWARD_RHO);
 
-  // Direct sum up to cutlevel is parallel
+    direct(n);
 
-    if (differentiation_flag) direct_ad(n);
-    else direct(n);
+    if (vflag_atom) direct_peratom(n);
 
-    if (evflag_atom) direct_peratom(n);
-
-    if (n < levels-2) restriction(n);
+    restriction(n);
+  }
+  
+  // top grid level
+  
+  if (domain->nonperiodic) {
+    direct_top(levels-1);
+    if (vflag_atom) direct_peratom_top(levels-1);
   }
 
-  if (cutlevel+1 < levels-2) grid_swap(cutlevel+1,qgrid[cutlevel+1]);
+  for (int n=levels-2; n>=0; n--) {
 
-  if (differentiation_flag) direct_ad(cutlevel+1);
-  else direct(cutlevel+1);
-
-  if (evflag_atom) direct_peratom(cutlevel+1);
-
-  if (eflag_global) {
-    double energy_all;
-    MPI_Allreduce(&energy,&energy_all,1,MPI_DOUBLE,MPI_SUM,world);
-    energy = energy_all;
-  }
-
-  if (vflag_global) {
-    double virial_all[6];
-    MPI_Allreduce(virial,virial_all,6,MPI_DOUBLE,MPI_SUM,world);
-    for (i = 0; i < 6; i++) virial[i] = virial_all[i];
-  }
-
-  if (cutlevel+1 < levels-2) restriction(cutlevel+1);
-
-  // compute potential gradient on my MSM grid and
-  //   portion of e_long on this proc's MSM grid
-  // return gradients (electric fields) in 3d brick decomposition
-
-  for (int n=cutlevel+2; n<levels-1; n++) {
-    if (differentiation_flag) direct_ad(n);
-    else direct(n);
-
-    if (evflag_atom) direct_peratom(n);
-
-    if (n < levels-2) restriction(n);
-  }
-
-  for (int n=levels-3; n>=cutlevel+1; n--)
-    if (n < levels-2) prolongation(n);
-
-  // all procs communicate E-field values
-  // to fill ghost cells surrounding their 3d bricks
-
-  for (int n=cutlevel; n>=0; n--) {
+    prolongation(n);
 
     current_level = n;
-    if (n < levels-2) prolongation(n);
+    cg[n]->reverse_comm(this,REVERSE_AD);
 
-    if (differentiation_flag) cg[n]->reverse_comm(this,REVERSE_AD);
-    else cg_IK[n]->reverse_comm(this,REVERSE_IK);
+    // extra per-atom virial communication
 
-    // extra per-atom energy/virial communication
-
-    if (evflag_atom) {
-      if (differentiation_flag && vflag_atom)
-        cg_peratom[n]->reverse_comm(this,REVERSE_AD_PERATOM);
-      else if (!differentiation_flag)
-        cg_peratom[n]->reverse_comm(this,REVERSE_IK_PERATOM);
-    }
-
+    if (vflag_atom)
+      cg_peratom[n]->reverse_comm(this,REVERSE_AD_PERATOM);
   }
 
   // all procs communicate E-field values
@@ -581,22 +530,16 @@ void MSM::compute(int eflag, int vflag)
 
   current_level = 0;
 
-  if (differentiation_flag) cg[0]->forward_comm(this,FORWARD_AD);
-  else cg_IK[0]->forward_comm(this,FORWARD_IK);
+  cg[0]->forward_comm(this,FORWARD_AD);
 
   // extra per-atom energy/virial communication
 
-  if (evflag_atom) {
-    if (differentiation_flag && vflag_atom)
-      cg_peratom[0]->forward_comm(this,FORWARD_AD_PERATOM);
-    else if (!differentiation_flag)
-      cg_peratom[0]->forward_comm(this,FORWARD_IK_PERATOM);
-  }
+  if (vflag_atom)
+    cg_peratom[0]->forward_comm(this,FORWARD_AD_PERATOM);
 
   // calculate the force on my particles (interpolation)
 
-  if (differentiation_flag) fieldforce_ad();
-  else fieldforce();
+  fieldforce();
 
   // calculate the per-atom energy for my particles
 
@@ -605,8 +548,12 @@ void MSM::compute(int eflag, int vflag)
   const double qscale = force->qqrd2e * scale;
 
   // Total long-range energy
-
+    
   if (eflag_global) {
+    double energy_all;
+    MPI_Allreduce(&energy,&energy_all,1,MPI_DOUBLE,MPI_SUM,world);
+    energy = energy_all;
+
     double e_self = qsqsum*gamma(0.0)/cutoff;  // Self-energy term
     energy -= e_self;
     energy *= 0.5*qscale;
@@ -615,7 +562,9 @@ void MSM::compute(int eflag, int vflag)
   // Total long-range virial
 
   if (vflag_global) {
-    for (i = 0; i < 6; i++) virial[i] *= 0.5*qscale;
+    double virial_all[6];
+    MPI_Allreduce(virial,virial_all,6,MPI_DOUBLE,MPI_SUM,world);
+    for (i = 0; i < 6; i++) virial[i] = 0.5*qscale*virial_all[i];
   }
 
   // per-atom energy/virial
@@ -653,21 +602,12 @@ void MSM::allocate()
 
   // allocate grid levels
 
-  for (int n=0; n<levels-1; n++) {
+  for (int n=0; n<levels; n++) {
     memory->create3d_offset(qgrid[n],nzlo_out[n],nzhi_out[n],
             nylo_out[n],nyhi_out[n],nxlo_out[n],nxhi_out[n],"msm:qgrid");
 
-    if (differentiation_flag) {
-      memory->create3d_offset(egrid[n],nzlo_out[n],nzhi_out[n],
-              nylo_out[n],nyhi_out[n],nxlo_out[n],nxhi_out[n],"msm:egrid");
-    } else {
-      memory->create3d_offset(fxgrid[n],nzlo_out[n],nzhi_out[n],
-              nylo_out[n],nyhi_out[n],nxlo_out[n],nxhi_out[n],"msm:fxgrid");
-      memory->create3d_offset(fygrid[n],nzlo_out[n],nzhi_out[n],
-              nylo_out[n],nyhi_out[n],nxlo_out[n],nxhi_out[n],"msm:fygrid");
-      memory->create3d_offset(fzgrid[n],nzlo_out[n],nzhi_out[n],
-              nylo_out[n],nyhi_out[n],nxlo_out[n],nxhi_out[n],"msm:fzgrid");
-    }
+    memory->create3d_offset(egrid[n],nzlo_out[n],nzhi_out[n],
+            nylo_out[n],nyhi_out[n],nxlo_out[n],nxhi_out[n],"msm:egrid");
 
     // create ghost grid object for rho and electric field communication
 
@@ -678,13 +618,6 @@ void MSM::allocate()
                       nxlo_out[n],nxhi_out[n],nylo_out[n],nyhi_out[n],nzlo_out[n],nzhi_out[n],
                       procneigh[0][0],procneigh[0][1],procneigh[1][0],
                       procneigh[1][1],procneigh[2][0],procneigh[2][1]);
-
-    if (!differentiation_flag)
-      cg_IK[n] = new CommGrid(lmp,world,3,3,
-                        nxlo_in[n],nxhi_in[n],nylo_in[n],nyhi_in[n],nzlo_in[n],nzhi_in[n],
-                        nxlo_out[n],nxhi_out[n],nylo_out[n],nyhi_out[n],nzlo_out[n],nzhi_out[n],
-                        procneigh[0][0],procneigh[0][1],procneigh[1][0],
-                        procneigh[1][1],procneigh[2][0],procneigh[2][1]);
   }
 }
 
@@ -696,11 +629,7 @@ void MSM::allocate_peratom()
 {
   // allocate grid levels
 
-  for (int n=0; n<levels-1; n++) {
-    if (!differentiation_flag)
-      memory->create3d_offset(egrid[n],nzlo_out[n],nzhi_out[n],
-              nylo_out[n],nyhi_out[n],nxlo_out[n],nxhi_out[n],"msm:egrid");
-
+  for (int n=0; n<levels; n++) {
     memory->create3d_offset(v0grid[n],nzlo_out[n],nzhi_out[n],
             nylo_out[n],nyhi_out[n],nxlo_out[n],nxhi_out[n],"msm:v0grid");
     memory->create3d_offset(v1grid[n],nzlo_out[n],nzhi_out[n],
@@ -714,25 +643,16 @@ void MSM::allocate_peratom()
     memory->create3d_offset(v5grid[n],nzlo_out[n],nzhi_out[n],
             nylo_out[n],nyhi_out[n],nxlo_out[n],nxhi_out[n],"msm:v5grid");
 
-
     // create ghost grid object for per-atom energy/virial
 
     int (*procneigh)[2] = comm->procneigh;
 
-    if (differentiation_flag)
-      cg_peratom[n] =
-        new CommGrid(lmp,world,6,6,
-                     nxlo_in[n],nxhi_in[n],nylo_in[n],nyhi_in[n],nzlo_in[n],nzhi_in[n],
-                     nxlo_out[n],nxhi_out[n],nylo_out[n],nyhi_out[n],nzlo_out[n],nzhi_out[n],
-                     procneigh[0][0],procneigh[0][1],procneigh[1][0],
-                     procneigh[1][1],procneigh[2][0],procneigh[2][1]);
-    else
-      cg_peratom[n] =
-        new CommGrid(lmp,world,7,7,
-                     nxlo_in[n],nxhi_in[n],nylo_in[n],nyhi_in[n],nzlo_in[n],nzhi_in[n],
-                     nxlo_out[n],nxhi_out[n],nylo_out[n],nyhi_out[n],nzlo_out[n],nzhi_out[n],
-                     procneigh[0][0],procneigh[0][1],procneigh[1][0],
-                     procneigh[1][1],procneigh[2][0],procneigh[2][1]);
+    cg_peratom[n] =
+      new CommGrid(lmp,world,6,6,
+                   nxlo_in[n],nxhi_in[n],nylo_in[n],nyhi_in[n],nzlo_in[n],nzhi_in[n],
+                   nxlo_out[n],nxhi_out[n],nylo_out[n],nyhi_out[n],nzlo_out[n],nzhi_out[n],
+                   procneigh[0][0],procneigh[0][1],procneigh[1][0],
+                   procneigh[1][1],procneigh[2][0],procneigh[2][1]);
   }
 }
 
@@ -747,27 +667,15 @@ void MSM::deallocate()
 
   // deallocate grid levels
 
-  for (int n=0; n<levels-1; n++) {
+  for (int n=0; n<levels; n++) {
     if (qgrid[n])
       memory->destroy3d_offset(qgrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
 
-    if (differentiation_flag) {
-      if (egrid[n])
-        memory->destroy3d_offset(egrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
-    } else {
-      if (fxgrid[n])
-        memory->destroy3d_offset(fxgrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
-      if (fygrid[n])
-        memory->destroy3d_offset(fygrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
-      if (fzgrid[n])
-        memory->destroy3d_offset(fzgrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
-    }
+    if (egrid[n])
+      memory->destroy3d_offset(egrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
 
     if (cg)
       if (cg[n]) delete cg[n];
-
-    if (cg_IK)
-      if (cg_IK[n]) delete cg_IK[n];
   }
 }
 
@@ -777,11 +685,7 @@ void MSM::deallocate()
 
 void MSM::deallocate_peratom()
 {
-  for (int n=0; n<levels-1; n++) {
-    if (!differentiation_flag)
-      if (egrid[n])
-        memory->destroy3d_offset(egrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
-
+  for (int n=0; n<levels; n++) {
     if (v0grid[n])
       memory->destroy3d_offset(v0grid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
     if (v1grid[n])
@@ -806,70 +710,57 @@ void MSM::deallocate_peratom()
 
 void MSM::allocate_levels()
 {
-  ngrid = new int[levels-1];
+  ngrid = new int[levels];
 
-  cg = new CommGrid*[levels-1];
-  cg_IK = new CommGrid*[levels-1];
-  cg_peratom = new CommGrid*[levels-1];
+  cg = new CommGrid*[levels];
+  cg_peratom = new CommGrid*[levels];
+  
+  alpha = new int[levels];
+  betax = new int[levels];
+  betay = new int[levels];
+  betaz = new int[levels];
 
-  nx_msm = new int[levels-1];
-  ny_msm = new int[levels-1];
-  nz_msm = new int[levels-1];
+  nx_msm = new int[levels];
+  ny_msm = new int[levels];
+  nz_msm = new int[levels];
 
-  nxlo_in = new int[levels-1];
-  nylo_in = new int[levels-1];
-  nzlo_in = new int[levels-1];
+  nxlo_in = new int[levels];
+  nylo_in = new int[levels];
+  nzlo_in = new int[levels];
 
-  nxhi_in = new int[levels-1];
-  nyhi_in = new int[levels-1];
-  nzhi_in = new int[levels-1];
+  nxhi_in = new int[levels];
+  nyhi_in = new int[levels];
+  nzhi_in = new int[levels];
 
-  nxlo_in_d = new int[levels-1];
-  nylo_in_d = new int[levels-1];
-  nzlo_in_d = new int[levels-1];
+  nxlo_out = new int[levels];
+  nylo_out = new int[levels];
+  nzlo_out = new int[levels];
 
-  nxhi_in_d = new int[levels-1];
-  nyhi_in_d = new int[levels-1];
-  nzhi_in_d = new int[levels-1];
+  nxhi_out = new int[levels];
+  nyhi_out = new int[levels];
+  nzhi_out = new int[levels];
 
-  nxlo_out = new int[levels-1];
-  nylo_out = new int[levels-1];
-  nzlo_out = new int[levels-1];
+  delxinv = new double[levels];
+  delyinv = new double[levels];
+  delzinv = new double[levels];
+  delvolinv = new double[levels];
 
-  nxhi_out = new int[levels-1];
-  nyhi_out = new int[levels-1];
-  nzhi_out = new int[levels-1];
+  qgrid = new double***[levels];
+  egrid = new double***[levels];
 
-  delxinv = new double[levels-1];
-  delyinv = new double[levels-1];
-  delzinv = new double[levels-1];
-  delvolinv = new double[levels-1];
+  v0grid = new double***[levels];
+  v1grid = new double***[levels];
+  v2grid = new double***[levels];
+  v3grid = new double***[levels];
+  v4grid = new double***[levels];
+  v5grid = new double***[levels];
 
-  qgrid = new double***[levels-1];
-  egrid = new double***[levels-1];
-
-  fxgrid = new double***[levels-1];
-  fygrid = new double***[levels-1];
-  fzgrid = new double***[levels-1];
-
-  v0grid = new double***[levels-1];
-  v1grid = new double***[levels-1];
-  v2grid = new double***[levels-1];
-  v3grid = new double***[levels-1];
-  v4grid = new double***[levels-1];
-  v5grid = new double***[levels-1];
-
-  for (int n=0; n<levels-1; n++) {
+  for (int n=0; n<levels; n++) {
     cg[n] = NULL;
-    cg_IK[n] = NULL;
     cg_peratom[n] = NULL;
 
     qgrid[n] = NULL;
     egrid[n] = NULL;
-
-    fxgrid[n] = NULL;
-    fygrid[n] = NULL;
-    fzgrid[n] = NULL;
 
     v0grid[n] = NULL;
     v1grid[n] = NULL;
@@ -890,8 +781,12 @@ void MSM::deallocate_levels()
   delete [] ngrid;
 
   delete [] cg;
-  delete [] cg_IK;
   delete [] cg_peratom;
+
+  delete [] alpha;
+  delete [] betax;
+  delete [] betay;
+  delete [] betaz;
 
   delete [] nx_msm;
   delete [] ny_msm;
@@ -904,14 +799,6 @@ void MSM::deallocate_levels()
   delete [] nxhi_in;
   delete [] nyhi_in;
   delete [] nzhi_in;
-
-  delete [] nxlo_in_d;
-  delete [] nylo_in_d;
-  delete [] nzlo_in_d;
-
-  delete [] nxhi_in_d;
-  delete [] nyhi_in_d;
-  delete [] nzhi_in_d;
 
   delete [] nxlo_out;
   delete [] nylo_out;
@@ -928,10 +815,6 @@ void MSM::deallocate_levels()
 
   delete [] qgrid;
   delete [] egrid;
-
-  delete [] fxgrid;
-  delete [] fygrid;
-  delete [] fzgrid;
 
   delete [] v0grid;
   delete [] v1grid;
@@ -1014,6 +897,23 @@ void MSM::set_grid_global()
   if (flag && gridflag && me == 0)
     error->warning(FLERR,"Number of MSM mesh points increased to be a multiple of 2");
 
+  // Find maximum number of levels
+
+  levels = MAX(xlevels,ylevels);
+  levels = MAX(levels,zlevels);
+
+  if (levels > MAX_LEVELS)
+    error->all(FLERR,"Too many MSM grid levels");
+
+// Need at least 2 MSM levels for periodic systems
+
+  if (levels <= 1) {
+    levels = xlevels = ylevels = zlevels = 2;
+    nx_max = ny_max = nz_max = 2;
+    if (gridflag) 
+      error->warning(FLERR,"MSM mesh too small, increasing to 2 points in each direction)");
+  }
+
   if (adjust_cutoff_flag) {
     hx = xprd/nx_max;
     hy = yprd/ny_max;
@@ -1034,20 +934,9 @@ void MSM::set_grid_global()
     if (me == 0) error->warning(FLERR,str);
   }
 
-  // Find maximum number of levels
-
-  levels = MAX(xlevels,ylevels);
-  levels = MAX(levels,zlevels);
-
-  if (levels > MAX_LEVELS)
-    error->all(FLERR,"Too many MSM grid levels");
-
   allocate_levels();
 
-  cutlevel = levels-3;
-  if (cutlevel < 0) cutlevel = 0;
-
-  for (int n = 0; n < levels-1; n++) {
+  for (int n = 0; n < levels; n++) {
 
     if (xlevels-n-1 > 0)
       nx_msm[n] = static_cast<int> (pow(2.0,xlevels-n-1));
@@ -1067,6 +956,20 @@ void MSM::set_grid_global()
 
   if (nx_msm[0] >= OFFSET || ny_msm[0] >= OFFSET || nz_msm[0] >= OFFSET)
     error->all(FLERR,"MSM grid is too large");
+    
+  if (domain->nonperiodic) {
+    alpha[0] = -(order/2 - 1);
+    betax[0] = nx_msm[0] + (order/2 - 1);
+    betay[0] = ny_msm[0] + (order/2 - 1);
+    betaz[0] = nz_msm[0] + (order/2 - 1);
+    for (int n = 1; n < levels; n++) {
+      alpha[n] = -((-alpha[n-1]+1)/2) - (order/2 - 1);
+      betax[n] = ((betax[n-1]+1)/2) + (order/2 - 1);
+      betay[n] = ((betay[n-1]+1)/2) + (order/2 - 1);
+      betaz[n] = ((betaz[n-1]+1)/2) + (order/2 - 1);
+    }
+  }
+
 }
 
 /* ----------------------------------------------------------------------
@@ -1083,57 +986,20 @@ void MSM::set_grid_local()
 
   // loop over grid levels
 
-  for (int n=0; n<levels-1; n++) {
+  for (int n=0; n<levels; n++) {
 
     // global indices of MSM grid range from 0 to N-1
     // nlo_in,nhi_in = lower/upper limits of the 3d sub-brick of
     //   global MSM grid that I own without ghost cells
 
-    if (n <= cutlevel+1) {
+    nxlo_in[n] = static_cast<int> (comm->xsplit[comm->myloc[0]] * nx_msm[n]);
+    nxhi_in[n] = static_cast<int> (comm->xsplit[comm->myloc[0]+1] * nx_msm[n]) - 1;
 
-      nxlo_in_d[n] = static_cast<int> (comm->xsplit[comm->myloc[0]] * nx_msm[n]);
-      nxhi_in_d[n] = static_cast<int> (comm->xsplit[comm->myloc[0]+1] * nx_msm[n]) - 1;
+    nylo_in[n] = static_cast<int> (comm->ysplit[comm->myloc[1]] * ny_msm[n]);
+    nyhi_in[n] = static_cast<int> (comm->ysplit[comm->myloc[1]+1] * ny_msm[n]) - 1;
 
-      nylo_in_d[n] = static_cast<int> (comm->ysplit[comm->myloc[1]] * ny_msm[n]);
-      nyhi_in_d[n] = static_cast<int> (comm->ysplit[comm->myloc[1]+1] * ny_msm[n]) - 1;
-
-      nzlo_in_d[n] = static_cast<int> (comm->zsplit[comm->myloc[2]] * nz_msm[n]);
-      nzhi_in_d[n] = static_cast<int> (comm->zsplit[comm->myloc[2]+1] * nz_msm[n]) - 1;
-
-    } else {
-
-      nxlo_in_d[n] = 0;
-      nxhi_in_d[n] = nx_msm[n] - 1;
-
-      nylo_in_d[n] = 0;
-      nyhi_in_d[n] = ny_msm[n] - 1;
-
-      nzlo_in_d[n] = 0;
-      nzhi_in_d[n] = nz_msm[n] - 1;
-    }
-
-    if (n <= cutlevel) {
-
-      nxlo_in[n] = static_cast<int> (comm->xsplit[comm->myloc[0]] * nx_msm[n]);
-      nxhi_in[n] = static_cast<int> (comm->xsplit[comm->myloc[0]+1] * nx_msm[n]) - 1;
-
-      nylo_in[n] = static_cast<int> (comm->ysplit[comm->myloc[1]] * ny_msm[n]);
-      nyhi_in[n] = static_cast<int> (comm->ysplit[comm->myloc[1]+1] * ny_msm[n]) - 1;
-
-      nzlo_in[n] = static_cast<int> (comm->zsplit[comm->myloc[2]] * nz_msm[n]);
-      nzhi_in[n] = static_cast<int> (comm->zsplit[comm->myloc[2]+1] * nz_msm[n]) - 1;
-
-    } else {
-
-      nxlo_in[n] = 0;
-      nxhi_in[n] = nx_msm[n] - 1;
-
-      nylo_in[n] = 0;
-      nyhi_in[n] = ny_msm[n] - 1;
-
-      nzlo_in[n] = 0;
-      nzhi_in[n] = nz_msm[n] - 1;
-    }
+    nzlo_in[n] = static_cast<int> (comm->zsplit[comm->myloc[2]] * nz_msm[n]);
+    nzhi_in[n] = static_cast<int> (comm->zsplit[comm->myloc[2]+1] * nz_msm[n]) - 1;
 
     // nlower,nupper = stencil size for mapping particles to MSM grid
 
@@ -1161,17 +1027,8 @@ void MSM::set_grid_local()
     // dist[3] = particle position bound = subbox + skin/2.0
     // nlo_out,nhi_out = nlo,nhi + stencil size for particle mapping
 
-
-    if (n <= cutlevel) {
-
-      sublo = domain->sublo;
-      subhi = domain->subhi;
-
-    } else {
-
-      sublo = boxlo;
-      subhi = domain->boxhi;
-    }
+    sublo = domain->sublo;
+    subhi = domain->subhi;
 
     double dist[3];
     double cuthalf = 0.0;
@@ -1200,6 +1057,47 @@ void MSM::set_grid_local()
                             nz_msm[n]/zprd + OFFSET) - OFFSET;
     nzlo_out[n] = nlo + MIN(-order,nzlo_direct);
     nzhi_out[n] = nhi + MAX(order,nzhi_direct);
+    
+    // Add extra grid points for nonperiodic boundary conditions
+
+    if (domain->nonperiodic) {
+
+      if (!domain->xperiodic) {
+        if (nxlo_in[n] == 0)
+          nxlo_in[n] = alpha[n];
+        nxlo_out[n] = MAX(nxlo_out[n],alpha[n]);
+
+        if (nxhi_in[n] == nx_msm[n] - 1)
+          nxhi_in[n] = betax[n];
+        nxhi_out[n] = MIN(nxhi_out[n],betax[n]);
+        if (nxhi_in[n] < 0)
+          nxhi_in[n] = alpha[n] - 1;
+      }
+      
+      if (!domain->yperiodic) {
+        if (nylo_in[n] == 0)
+          nylo_in[n] = alpha[n];
+        nylo_out[n] = MAX(nylo_out[n],alpha[n]);
+        
+        if (nyhi_in[n] == ny_msm[n] - 1)
+          nyhi_in[n] = betay[n];
+        nyhi_out[n] = MIN(nyhi_out[n],betay[n]);
+        if (nyhi_in[n] < 0)
+          nyhi_in[n] = alpha[n] - 1;
+      }
+
+      if (!domain->zperiodic) {
+        if (nzlo_in[n] == 0)
+          nzlo_in[n] = alpha[n];
+        nzlo_out[n] = MAX(nzlo_out[n],alpha[n]);
+        
+        if (nzhi_in[n] == nz_msm[n] - 1)
+          nzhi_in[n] = betaz[n];
+        nzhi_out[n] = MIN(nzhi_out[n],betaz[n]);
+        if (nzhi_in[n] < 0)
+          nzhi_in[n] = alpha[n] - 1;
+      }
+    }
 
     // MSM grids for this proc, including ghosts
 
@@ -1250,33 +1148,6 @@ int MSM::factorable(int n, int &flag, int &levels)
   }
 
   return 1;
-}
-
-/* ----------------------------------------------------------------------
-   MPI-Reduce so each processor has the full grid
-------------------------------------------------------------------------- */
-void MSM::grid_swap(int n, double*** &gridn)
-{
-  if (nprocs == 1) return;
-
-  double ***gridn_all;
-  memory->create3d_offset(gridn_all,nzlo_out[n],nzhi_out[n],nylo_out[n],nyhi_out[n],
-                          nxlo_out[n],nxhi_out[n],"msm:grid_all");
-
-  memset(&(gridn_all[nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),0,ngrid[n]*sizeof(double));
-
-  MPI_Allreduce(&(gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),
-                &(gridn_all[nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),
-                ngrid[n],MPI_DOUBLE,MPI_SUM,world);
-
-  // Swap pointers between gridn and gridn_all to avoid need of copy operation
-
-  double ***tmp;
-  tmp = gridn;
-  gridn = gridn_all;
-  gridn_all = tmp;
-
-  memory->destroy3d_offset(gridn_all,nzlo_out[n],nylo_out[n],nxlo_out[n]);
 }
 
 /* ----------------------------------------------------------------------
@@ -1379,214 +1250,90 @@ void MSM::make_rho()
    MSM direct part procedure for intermediate grid levels
 ------------------------------------------------------------------------- */
 
-void MSM::direct_ad(int n)
+void MSM::direct(int n)
 {
   //fprintf(screen,"Direct contribution on level %i\n\n",n);
 
   double ***egridn = egrid[n];
   double ***qgridn = qgrid[n];
 
-  // bitmask for PBCs (only works for power of 2 numbers)
-
-  int PBCx,PBCy,PBCz;
-
-  PBCx = nx_msm[n]-1;
-  PBCy = ny_msm[n]-1;
-  PBCz = nz_msm[n]-1;
-
   // zero out electric potential
 
   memset(&(egridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),0,ngrid[n]*sizeof(double));
 
-  int icx,icy,icz,ix,iy,iz,k;
+  int icx,icy,icz,ix,iy,iz,zk,zyk,k;
   int jj,kk;
+  int imin,imax,jmin,jmax,kmin,kmax;
   double qtmp;
   double esum,v0sum,v1sum,v2sum,v3sum,v4sum,v5sum;
+  
+  int nx = nxhi_direct - nxlo_direct + 1;
+  int ny = nyhi_direct - nylo_direct + 1;
+  int nz = nzhi_direct - nzlo_direct + 1;
 
-  for (icz = nzlo_in_d[n]; icz <= nzhi_in_d[n]; icz++) {
-    for (icy = nylo_in_d[n]; icy <= nyhi_in_d[n]; icy++) {
-      for (icx = nxlo_in_d[n]; icx <= nxhi_in_d[n]; icx++) {
-        if (evflag) {
-          esum = 0.0;
-          v0sum = v1sum = v2sum = 0.0;
-          v3sum = v4sum = v5sum = 0.0;
-        }
-
-        if (n <= cutlevel && nprocs > 1) {
-
-          k = 0;
-          for (iz = nzlo_direct; iz <= nzhi_direct; iz++) {
-            kk = icz+iz;
-            for (iy = nylo_direct; iy <= nyhi_direct; iy++) {
-              jj = icy+iy;
-              for (ix = nxlo_direct; ix <= nxhi_direct; ix++) {
-                qtmp = qgridn[kk][jj][icx+ix];
-                egridn[icz][icy][icx] += g_direct[n][k] * qtmp;
-
-                if (evflag) {
-                  if (eflag_global) esum += g_direct[n][k] * qtmp;
-                  if (vflag_global) {
-                    v0sum += v0_direct[n][k] * qtmp;
-                    v1sum += v1_direct[n][k] * qtmp;
-                    v2sum += v2_direct[n][k] * qtmp;
-                    v3sum += v3_direct[n][k] * qtmp;
-                    v4sum += v4_direct[n][k] * qtmp;
-                    v5sum += v5_direct[n][k] * qtmp;
-                  }
-                }
-                k++;
-              }
-            }
-          }
-
-        } else {
-
-          k = 0;
-          for (iz = nzlo_direct; iz <= nzhi_direct; iz++) {
-            kk = (icz+iz)&PBCz;
-            for (iy = nylo_direct; iy <= nyhi_direct; iy++) {
-              jj = (icy+iy)&PBCy;
-              for (ix = nxlo_direct; ix <= nxhi_direct; ix++) {
-                qtmp = qgridn[kk][jj][(icx+ix)&PBCx];
-                egridn[icz][icy][icx] += g_direct[n][k] * qtmp;
-
-                if (evflag) {
-                  if (eflag_global) esum += g_direct[n][k] * qtmp;
-                  if (vflag_global) {
-                    v0sum += v0_direct[n][k] * qtmp;
-                    v1sum += v1_direct[n][k] * qtmp;
-                    v2sum += v2_direct[n][k] * qtmp;
-                    v3sum += v3_direct[n][k] * qtmp;
-                    v4sum += v4_direct[n][k] * qtmp;
-                    v5sum += v5_direct[n][k] * qtmp;
-                  }
-                }
-                k++;
-              }
-            }
-          }
-
-        }
-
-        if (evflag) {
-          qtmp = qgridn[icz][icy][icx];
-          if (eflag_global) energy += esum * qtmp;
-          if (vflag_global) {
-            virial[0] += v0sum * qtmp;
-            virial[1] += v1sum * qtmp;
-            virial[2] += v2sum * qtmp;
-            virial[3] += v3sum * qtmp;
-            virial[4] += v4sum * qtmp;
-            virial[5] += v5sum * qtmp;
-          }
-        }
-
-      }
+  for (icz = nzlo_in[n]; icz <= nzhi_in[n]; icz++) {
+        
+    if (domain->zperiodic) {
+      kmin = nzlo_direct;
+      kmax = nzhi_direct;
+    } else {
+      kmin = MAX(nzlo_direct,alpha[n] - icz);
+      kmax = MIN(nzhi_direct,betaz[n] - icz);
     }
-  }
-}
+        
+    for (icy = nylo_in[n]; icy <= nyhi_in[n]; icy++) {
 
-/* ----------------------------------------------------------------------
-   MSM direct part procedure for intermediate grid levels
-------------------------------------------------------------------------- */
+      if (domain->yperiodic) {
+        jmin = nylo_direct;
+        jmax = nyhi_direct;
+      } else {
+        jmin = MAX(nylo_direct,alpha[n] - icy);
+        jmax = MIN(nyhi_direct,betay[n] - icy);
+      }
+        
+      for (icx = nxlo_in[n]; icx <= nxhi_in[n]; icx++) {
 
-void MSM::direct(int n)
-{
-  double ***qgridn = qgrid[n];
+        if (domain->xperiodic) {
+          imin = nxlo_direct;
+          imax = nxhi_direct;
+        } else {
+          imin = MAX(nxlo_direct,alpha[n] - icx);
+          imax = MIN(nxhi_direct,betax[n] - icx);
+        }
 
-  double ***fxgridn = fxgrid[n];
-  double ***fygridn = fygrid[n];
-  double ***fzgridn = fzgrid[n];
-
-  // bitmask for PBCs (only works for power of 2 numbers)
-
-  int PBCx,PBCy,PBCz;
-
-  PBCx = nx_msm[n]-1;
-  PBCy = ny_msm[n]-1;
-  PBCz = nz_msm[n]-1;
-
-  int icx,icy,icz,ix,iy,iz,k;
-
-  // zero out forces
-
-  memset(&(fxgridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),0,ngrid[n]*sizeof(double));
-  memset(&(fygridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),0,ngrid[n]*sizeof(double));
-  memset(&(fzgridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),0,ngrid[n]*sizeof(double));
-
-  int jj,kk;
-  double qtmp;
-  double esum,v0sum,v1sum,v2sum,v3sum,v4sum,v5sum;
-
-  for (icz = nzlo_in_d[n]; icz <= nzhi_in_d[n]; icz++) {
-    for (icy = nylo_in_d[n]; icy <= nyhi_in_d[n]; icy++) {
-      for (icx = nxlo_in_d[n]; icx <= nxhi_in_d[n]; icx++) {
         if (evflag) {
           esum = 0.0;
           v0sum = v1sum = v2sum = 0.0;
           v3sum = v4sum = v5sum = 0.0;
         }
+        
+        for (iz = kmin; iz <= kmax; iz++) {
+          kk = icz+iz;
+          zk = (iz + nzhi_direct)*nz;
+          for (iy = jmin; iy <= jmax; iy++) {
+            jj = icy+iy;
+            zyk = (zk + iy + nyhi_direct)*ny;
+            for (ix = imin; ix <= imax; ix++) {
+              qtmp = qgridn[kk][jj][icx+ix];
+              k = zyk + ix + nxhi_direct;
+              egridn[icz][icy][icx] += g_direct[n][k] * qtmp;
 
-        if (n <= cutlevel && nprocs > 1) {
-
-          k = 0;
-          for (iz = nzlo_direct; iz <= nzhi_direct; iz++) {
-            kk = icz+iz;
-            for (iy = nylo_direct; iy <= nyhi_direct; iy++) {
-              jj = icy+iy;
-              for (ix = nxlo_direct; ix <= nxhi_direct; ix++) {
-                qtmp = qgridn[kk][jj][icx+ix];
-                fxgridn[icz][icy][icx] += dgx_direct[n][k] * qtmp;
-                fygridn[icz][icy][icx] += dgy_direct[n][k] * qtmp;
-                fzgridn[icz][icy][icx] += dgz_direct[n][k] * qtmp;
-
-                if (evflag) {
-                  if (eflag_global) esum += g_direct[n][k] * qtmp;
-                  if (vflag_global) {
-                    v0sum += v0_direct[n][k] * qtmp;
-                    v1sum += v1_direct[n][k] * qtmp;
-                    v2sum += v2_direct[n][k] * qtmp;
-                    v3sum += v3_direct[n][k] * qtmp;
-                    v4sum += v4_direct[n][k] * qtmp;
-                    v5sum += v5_direct[n][k] * qtmp;
-                  }
+              if (evflag) {
+                if (eflag_global) esum += g_direct[n][k] * qtmp;
+                if (vflag_global) {
+                  v0sum += v0_direct[n][k] * qtmp;
+                  v1sum += v1_direct[n][k] * qtmp;
+                  v2sum += v2_direct[n][k] * qtmp;
+                  v3sum += v3_direct[n][k] * qtmp;
+                  v4sum += v4_direct[n][k] * qtmp;
+                  v5sum += v5_direct[n][k] * qtmp;
                 }
-
-                k++;
               }
-            }
-          }
 
-        } else {
-
-          k = 0;
-          for (iz = nzlo_direct; iz <= nzhi_direct; iz++) {
-            kk = (icz+iz)&PBCz;
-            for (iy = nylo_direct; iy <= nyhi_direct; iy++) {
-              jj = (icy+iy)&PBCy;
-              for (ix = nxlo_direct; ix <= nxhi_direct; ix++) {
-                qtmp = qgridn[kk][jj][(icx+ix)&PBCx];
-                fxgridn[icz][icy][icx] += dgx_direct[n][k] * qtmp;
-                fygridn[icz][icy][icx] += dgy_direct[n][k] * qtmp;
-                fzgridn[icz][icy][icx] += dgz_direct[n][k] * qtmp;
-
-                if (evflag) {
-                  if (eflag_global) esum += g_direct[n][k] * qtmp;
-                  if (vflag_global) {
-                    v0sum += v0_direct[n][k] * qtmp;
-                    v1sum += v1_direct[n][k] * qtmp;
-                    v2sum += v2_direct[n][k] * qtmp;
-                    v3sum += v3_direct[n][k] * qtmp;
-                    v4sum += v4_direct[n][k] * qtmp;
-                    v5sum += v5_direct[n][k] * qtmp;
-                  }
-                }
-
-                k++;
-              }
             }
           }
         }
+
         if (evflag) {
           qtmp = qgridn[icz][icy][icx];
           if (eflag_global) energy += esum * qtmp;
@@ -1611,7 +1358,6 @@ void MSM::direct(int n)
 
 void MSM::direct_peratom(int n)
 {
-  double ***egridn = egrid[n];
   double ***qgridn = qgrid[n];
 
   double ***v0gridn = v0grid[n];
@@ -1620,21 +1366,6 @@ void MSM::direct_peratom(int n)
   double ***v3gridn = v3grid[n];
   double ***v4gridn = v4grid[n];
   double ***v5gridn = v5grid[n];
-
-  // bitmask for PBCs (only works for power of 2 numbers)
-
-  int PBCx,PBCy,PBCz;
-
-  PBCx = nx_msm[n]-1;
-  PBCy = ny_msm[n]-1;
-  PBCz = nz_msm[n]-1;
-
-  int icx,icy,icz,ix,iy,iz,k;
-
-  // zero out electric potential
-
-  if (!differentiation_flag && eflag_atom)
-    memset(&(egridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),0,ngrid[n]*sizeof(double));
 
   // zero out virial
 
@@ -1647,69 +1378,155 @@ void MSM::direct_peratom(int n)
     memset(&(v5gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),0,ngrid[n]*sizeof(double));
   }
 
+  int icx,icy,icz,ix,iy,iz,zk,zyk,k;
   int jj,kk;
+  int imin,imax,jmin,jmax,kmin,kmax;
   double qtmp;
 
-  int ndiff_eflag_atom = !differentiation_flag && eflag_atom;
+  int nx = nxhi_direct - nxlo_direct + 1;
+  int ny = nyhi_direct - nylo_direct + 1;
+  int nz = nzhi_direct - nzlo_direct + 1;
 
-  for (icz = nzlo_in_d[n]; icz <= nzhi_in_d[n]; icz++) {
-    for (icy = nylo_in_d[n]; icy <= nyhi_in_d[n]; icy++) {
-      for (icx = nxlo_in_d[n]; icx <= nxhi_in_d[n]; icx++) {
+  for (icz = nzlo_in[n]; icz <= nzhi_in[n]; icz++) {
+        
+    if (domain->zperiodic) {
+      kmin = nzlo_direct;
+      kmax = nzhi_direct;
+    } else {
+      kmin = MAX(nzlo_direct,alpha[n] - icz);
+      kmax = MIN(nzhi_direct,betaz[n] - icz);
+    }
+        
+    for (icy = nylo_in[n]; icy <= nyhi_in[n]; icy++) {
 
-        if (n <= cutlevel && nprocs > 1) {
+      if (domain->yperiodic) {
+        jmin = nylo_direct;
+        jmax = nyhi_direct;
+      } else {
+        jmin = MAX(nylo_direct,alpha[n] - icy);
+        jmax = MIN(nyhi_direct,betay[n] - icy);
+      }
+        
+      for (icx = nxlo_in[n]; icx <= nxhi_in[n]; icx++) {
 
-          k = 0;
-          for (iz = nzlo_direct; iz <= nzhi_direct; iz++) {
-            kk = icz+iz;
-            for (iy = nylo_direct; iy <= nyhi_direct; iy++) {
-              jj = icy+iy;
-              for (ix = nxlo_direct; ix <= nxhi_direct; ix++) {
-                qtmp = qgridn[kk][jj][icx+ix];
-
-                if (ndiff_eflag_atom)
-                  egridn[icz][icy][icx] += g_direct[n][k] * qtmp;
-
-                if (vflag_atom) {
-                  v0gridn[icz][icy][icx] += v0_direct[n][k] * qtmp;
-                  v1gridn[icz][icy][icx] += v1_direct[n][k] * qtmp;
-                  v2gridn[icz][icy][icx] += v2_direct[n][k] * qtmp;
-                  v3gridn[icz][icy][icx] += v3_direct[n][k] * qtmp;
-                  v4gridn[icz][icy][icx] += v4_direct[n][k] * qtmp;
-                  v5gridn[icz][icy][icx] += v5_direct[n][k] * qtmp;
-                }
-
-                k++;
-              }
-            }
-          }
-
+        if (domain->xperiodic) {
+          imin = nxlo_direct;
+          imax = nxhi_direct;
         } else {
+          imin = MAX(nxlo_direct,alpha[n] - icx);
+          imax = MIN(nxhi_direct,betax[n] - icx);
+        }
 
-          k = 0;
-          for (iz = nzlo_direct; iz <= nzhi_direct; iz++) {
-            kk = (icz+iz)&PBCz;
-            for (iy = nylo_direct; iy <= nyhi_direct; iy++) {
-              jj = (icy+iy)&PBCy;
-              for (ix = nxlo_direct; ix <= nxhi_direct; ix++) {
-                qtmp = qgridn[kk][jj][(icx+ix)&PBCx];
+        for (iz = kmin; iz <= kmax; iz++) {
+          kk = icz+iz;
+          zk = (iz + nzhi_direct)*nz;
+          for (iy = jmin; iy <= jmax; iy++) {
+            jj = icy+iy;
+            zyk = (zk + iy + nyhi_direct)*ny;
+            for (ix = imin; ix <= imax; ix++) {
+              qtmp = qgridn[kk][jj][icx+ix];
+              k = zyk + ix + nxhi_direct;
 
-                if (ndiff_eflag_atom)
-                  egridn[icz][icy][icx] += g_direct[n][k] * qtmp;
-
-                if (vflag_atom) {
-                  v0gridn[icz][icy][icx] += v0_direct[n][k] * qtmp;
-                  v1gridn[icz][icy][icx] += v1_direct[n][k] * qtmp;
-                  v2gridn[icz][icy][icx] += v2_direct[n][k] * qtmp;
-                  v3gridn[icz][icy][icx] += v3_direct[n][k] * qtmp;
-                  v4gridn[icz][icy][icx] += v4_direct[n][k] * qtmp;
-                  v5gridn[icz][icy][icx] += v5_direct[n][k] * qtmp;
-                }
-
-                k++;
-              }
+              v0gridn[icz][icy][icx] += v0_direct[n][k] * qtmp;
+              v1gridn[icz][icy][icx] += v1_direct[n][k] * qtmp;
+              v2gridn[icz][icy][icx] += v2_direct[n][k] * qtmp;
+              v3gridn[icz][icy][icx] += v3_direct[n][k] * qtmp;
+              v4gridn[icz][icy][icx] += v4_direct[n][k] * qtmp;
+              v5gridn[icz][icy][icx] += v5_direct[n][k] * qtmp;
             }
           }
+        }
 
+      }
+    }
+  }
+}
+
+
+/* ----------------------------------------------------------------------
+   MSM direct part procedure for top grid level
+------------------------------------------------------------------------- */
+
+void MSM::direct_top(int n)
+{
+  //fprintf(screen,"Direct contribution on level %i\n\n",n);
+
+  double ***egridn = egrid[n];
+  double ***qgridn = qgrid[n];
+
+  // zero out electric potential
+
+  memset(&(egridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),0,ngrid[n]*sizeof(double));
+
+  int icx,icy,icz,ix,iy,iz,zk,zyk,k;
+  int jj,kk;
+  int imin,imax,jmin,jmax,kmin,kmax;
+  double qtmp;
+  double esum,v0sum,v1sum,v2sum,v3sum,v4sum,v5sum;
+
+  int nx_top = betax[n] - alpha[n];
+  int ny_top = betay[n] - alpha[n];
+  int nz_top = betaz[n] - alpha[n];
+  
+  int nx = 2*nx_top + 1;
+  int ny = 2*ny_top + 1;
+  int nz = 2*nz_top + 1;
+
+  for (icz = nzlo_in[n]; icz <= nzhi_in[n]; icz++) {
+      kmin = alpha[n] - icz;
+      kmax = betaz[n] - icz;
+    for (icy = nylo_in[n]; icy <= nyhi_in[n]; icy++) {
+        jmin = alpha[n] - icy;
+        jmax = betay[n] - icy;
+      for (icx = nxlo_in[n]; icx <= nxhi_in[n]; icx++) {
+          imin = alpha[n] - icx;
+          imax = betax[n] - icx;
+
+        if (evflag) {
+          esum = 0.0;
+          v0sum = v1sum = v2sum = 0.0;
+          v3sum = v4sum = v5sum = 0.0;
+        }
+
+        for (iz = kmin; iz <= kmax; iz++) {
+          kk = icz+iz;
+          zk = (iz + nz_top)*nz;
+          for (iy = jmin; iy <= jmax; iy++) {
+            jj = icy+iy;
+            zyk = (zk + iy + ny_top)*ny;
+            for (ix = imin; ix <= imax; ix++) {
+              qtmp = qgridn[kk][jj][icx+ix];
+              k = zyk + ix + nx_top;
+              qtmp = qgridn[kk][jj][icx+ix];
+              egridn[icz][icy][icx] += g_direct_top[k] * qtmp;
+
+              if (evflag) {
+                if (eflag_global) esum += g_direct_top[k] * qtmp;
+                if (vflag_global) {
+                  v0sum += v0_direct_top[k] * qtmp;
+                  v1sum += v1_direct_top[k] * qtmp;
+                  v2sum += v2_direct_top[k] * qtmp;
+                  v3sum += v3_direct_top[k] * qtmp;
+                  v4sum += v4_direct_top[k] * qtmp;
+                  v5sum += v5_direct_top[k] * qtmp;
+                }
+              }
+
+            }
+          }
+        }
+
+        if (evflag) {
+          qtmp = qgridn[icz][icy][icx];
+          if (eflag_global) energy += esum * qtmp;
+          if (vflag_global) {
+            virial[0] += v0sum * qtmp;
+            virial[1] += v1sum * qtmp;
+            virial[2] += v2sum * qtmp;
+            virial[3] += v3sum * qtmp;
+            virial[4] += v4sum * qtmp;
+            virial[5] += v5sum * qtmp;
+          }
         }
 
       }
@@ -1718,7 +1535,85 @@ void MSM::direct_peratom(int n)
 }
 
 /* ----------------------------------------------------------------------
-   MSM restriction  procedure for intermediate grid levels
+   MSM direct part procedure for top grid level
+------------------------------------------------------------------------- */
+
+void MSM::direct_peratom_top(int n)
+{
+  //fprintf(screen,"Direct contribution on level %i\n\n",n);
+
+  double ***qgridn = qgrid[n];
+
+  double ***v0gridn = v0grid[n];
+  double ***v1gridn = v1grid[n];
+  double ***v2gridn = v2grid[n];
+  double ***v3gridn = v3grid[n];
+  double ***v4gridn = v4grid[n];
+  double ***v5gridn = v5grid[n];
+
+  // zero out virial
+
+  if (vflag_atom) {
+    memset(&(v0gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),0,ngrid[n]*sizeof(double));
+    memset(&(v1gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),0,ngrid[n]*sizeof(double));
+    memset(&(v2gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),0,ngrid[n]*sizeof(double));
+    memset(&(v3gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),0,ngrid[n]*sizeof(double));
+    memset(&(v4gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),0,ngrid[n]*sizeof(double));
+    memset(&(v5gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),0,ngrid[n]*sizeof(double));
+  }
+
+  int icx,icy,icz,ix,iy,iz,zk,zyk,k;
+  int jj,kk;
+  int imin,imax,jmin,jmax,kmin,kmax;
+  double qtmp;
+
+  int nx_top = betax[n] - alpha[n];
+  int ny_top = betay[n] - alpha[n];
+  int nz_top = betaz[n] - alpha[n];
+  
+  int nx = 2*nx_top + 1;
+  int ny = 2*ny_top + 1;
+  int nz = 2*nz_top + 1;
+
+  for (icz = nzlo_in[n]; icz <= nzhi_in[n]; icz++) {
+      kmin = alpha[n] - icz;
+      kmax = betaz[n] - icz;
+    for (icy = nylo_in[n]; icy <= nyhi_in[n]; icy++) {
+        jmin = alpha[n] - icy;
+        jmax = betay[n] - icy;
+      for (icx = nxlo_in[n]; icx <= nxhi_in[n]; icx++) {
+          imin = alpha[n] - icx;
+          imax = betax[n] - icx;
+
+        for (iz = kmin; iz <= kmax; iz++) {
+          kk = icz+iz;
+          zk = (iz + nz_top)*nz;
+          for (iy = jmin; iy <= jmax; iy++) {
+            jj = icy+iy;
+            zyk = (zk + iy + ny_top)*ny;
+            for (ix = imin; ix <= imax; ix++) {
+              qtmp = qgridn[kk][jj][icx+ix];
+              k = zyk + ix + nx_top;
+              qtmp = qgridn[kk][jj][icx+ix];
+
+              v0gridn[icz][icy][icx] += v0_direct_top[k] * qtmp;
+              v1gridn[icz][icy][icx] += v1_direct_top[k] * qtmp;
+              v2gridn[icz][icy][icx] += v2_direct_top[k] * qtmp;
+              v3gridn[icz][icy][icx] += v3_direct_top[k] * qtmp;
+              v4gridn[icz][icy][icx] += v4_direct_top[k] * qtmp;
+              v5gridn[icz][icy][icx] += v5_direct_top[k] * qtmp;
+
+            }
+          }
+        }
+
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   MSM restriction procedure for intermediate grid levels
 ------------------------------------------------------------------------- */
 
 void MSM::restriction(int n)
@@ -1729,14 +1624,6 @@ void MSM::restriction(int n)
 
   double ***qgrid1 = qgrid[n];
   double ***qgrid2 = qgrid[n+1];
-
-  // bitmask for PBCs (only works for power of 2 numbers)
-
-  int PBCx,PBCy,PBCz;
-
-  PBCx = nx_msm[n]-1;
-  PBCy = ny_msm[n]-1;
-  PBCz = nz_msm[n]-1;
 
   //restrict grid (going from grid n to grid n+1, i.e. to a coarser grid)
 
@@ -1752,49 +1639,45 @@ void MSM::restriction(int n)
   }
 
   int ip,jp,kp,ic,jc,kc,i,j;
-  int jj,kk;
+  int ii,jj,kk;
   double phiz,phizy;
 
   // zero out charge on coarser grid
 
   memset(&(qgrid2[nzlo_out[n+1]][nylo_out[n+1]][nxlo_out[n+1]]),0,ngrid[n+1]*sizeof(double));
 
-  for (kp = nzlo_in_d[n+1]; kp <= nzhi_in_d[n+1]; kp++)
-    for (jp = nylo_in_d[n+1]; jp <= nyhi_in_d[n+1]; jp++)
-      for (ip = nxlo_in_d[n+1]; ip <= nxhi_in_d[n+1]; ip++) {
+  for (kp = nzlo_in[n+1]; kp <= nzhi_in[n+1]; kp++)
+    for (jp = nylo_in[n+1]; jp <= nyhi_in[n+1]; jp++)
+      for (ip = nxlo_in[n+1]; ip <= nxhi_in[n+1]; ip++) {
 
         ic = ip * static_cast<int> (delxinv[n]/delxinv[n+1]);
         jc = jp * static_cast<int> (delyinv[n]/delyinv[n+1]);
         kc = kp * static_cast<int> (delzinv[n]/delzinv[n+1]);
 
-        if (n <= cutlevel && nprocs > 1) {
-
-          for (k=0; k<=p+1; k++) {
-            kk = kc+index[k];
-            phiz = phi1d[2][k];
-            for (j=0; j<=p+1; j++) {
-              jj = jc+index[j];
-              phizy = phi1d[1][j]*phiz;
-              for (i=0; i<=p+1; i++) {
-                qgrid2[kp][jp][ip] += qgrid1[kk][jj][ic+index[i]] *
-                  phi1d[0][i]*phizy;
+        for (k=0; k<=p+1; k++) {
+          kk = kc+index[k];
+          if (!domain->zperiodic) {
+            if (kk < alpha[n]) continue;
+            if (kk > betaz[n]) break;
+          }
+          phiz = phi1d[2][k];
+          for (j=0; j<=p+1; j++) {
+            jj = jc+index[j];
+            if (!domain->yperiodic) {
+              if (jj < alpha[n]) continue;
+              if (jj > betay[n]) break;
+            }
+            phizy = phi1d[1][j]*phiz;
+            for (i=0; i<=p+1; i++) {
+              ii = ic+index[i];
+              if (!domain->xperiodic) {
+                if (ii < alpha[n]) continue;
+                if (ii > betax[n]) break;
               }
+              qgrid2[kp][jp][ip] += qgrid1[kk][jj][ii] *
+                phi1d[0][i]*phizy;
             }
           }
-        } else {
-          for (k=0; k<=p+1; k++) {
-            kk = (kc+index[k])&PBCz;
-            phiz = phi1d[2][k];
-            for (j=0; j<=p+1; j++) {
-              jj = (jc+index[j])&PBCy;
-              phizy = phi1d[1][j]*phiz;
-              for (i=0; i<=p+1; i++) {
-                qgrid2[kp][jp][ip] += qgrid1[kk][jj][(ic+index[i])&PBCx] *
-                  phi1d[0][i]*phizy;
-              }
-            }
-          }
-
         }
       }
 
@@ -1813,13 +1696,6 @@ void MSM::prolongation(int n)
   double ***egrid1 = egrid[n];
   double ***egrid2 = egrid[n+1];
 
-  double ***fxgrid1 = fxgrid[n];
-  double ***fxgrid2 = fxgrid[n+1];
-  double ***fygrid1 = fygrid[n];
-  double ***fygrid2 = fygrid[n+1];
-  double ***fzgrid1 = fzgrid[n];
-  double ***fzgrid2 = fzgrid[n+1];
-
   double ***v0grid1 = v0grid[n];
   double ***v0grid2 = v0grid[n+1];
   double ***v1grid1 = v1grid[n];
@@ -1832,14 +1708,6 @@ void MSM::prolongation(int n)
   double ***v4grid2 = v4grid[n+1];
   double ***v5grid1 = v5grid[n];
   double ***v5grid2 = v5grid[n+1];
-
-  // bitmask for PBCs (only works for power of 2 numbers)
-
-  int PBCx,PBCy,PBCz;
-
-  PBCx = nx_msm[n]-1;
-  PBCy = ny_msm[n]-1;
-  PBCz = nz_msm[n]-1;
 
   //prolongate grid (going from grid n to grid n-1, i.e. to a finer grid)
 
@@ -1855,86 +1723,54 @@ void MSM::prolongation(int n)
   }
 
   int ip,jp,kp,ic,jc,kc,i,j;
-  int jj,kk,ii;
+  int ii,jj,kk;
   double phiz,phizy,phi3d;
 
-  for (kp = nzlo_in_d[n+1]; kp <= nzhi_in_d[n+1]; kp++)
-    for (jp = nylo_in_d[n+1]; jp <= nyhi_in_d[n+1]; jp++)
-      for (ip = nxlo_in_d[n+1]; ip <= nxhi_in_d[n+1]; ip++) {
+  for (kp = nzlo_in[n+1]; kp <= nzhi_in[n+1]; kp++)
+    for (jp = nylo_in[n+1]; jp <= nyhi_in[n+1]; jp++)
+      for (ip = nxlo_in[n+1]; ip <= nxhi_in[n+1]; ip++) {
 
         ic = ip * static_cast<int> (delxinv[n]/delxinv[n+1]);
         jc = jp * static_cast<int> (delyinv[n]/delyinv[n+1]);
         kc = kp * static_cast<int> (delzinv[n]/delzinv[n+1]);
 
-        if (n <= cutlevel && nprocs > 1) {
-
-          for (k=0; k<=p+1; k++) { // Could make this faster creating separate functions
-            kk = kc+index[k];
-            phiz = phi1d[2][k];
-            for (j=0; j<=p+1; j++) {
-              jj = jc+index[j];
-              phizy = phi1d[1][j]*phiz;
-              for (i=0; i<=p+1; i++) {
-                ii = ic+index[i];
-                phi3d = phi1d[0][i]*phizy;
-
-                if (differentiation_flag || eflag_atom) {
-                  egrid1[kk][jj][ii] += egrid2[kp][jp][ip] * phi3d;
-                }
-
-                if (!differentiation_flag) {
-                  fxgrid1[kk][jj][ii] += fxgrid2[kp][jp][ip] * phi3d;
-                  fygrid1[kk][jj][ii] += fygrid2[kp][jp][ip] * phi3d;
-                  fzgrid1[kk][jj][ii] += fzgrid2[kp][jp][ip] * phi3d;
-                }
-
-                if (vflag_atom) {
-                  v0grid1[kk][jj][ii] += v0grid2[kp][jp][ip] * phi3d;
-                  v1grid1[kk][jj][ii] += v1grid2[kp][jp][ip] * phi3d;
-                  v2grid1[kk][jj][ii] += v2grid2[kp][jp][ip] * phi3d;
-                  v3grid1[kk][jj][ii] += v3grid2[kp][jp][ip] * phi3d;
-                  v4grid1[kk][jj][ii] += v4grid2[kp][jp][ip] * phi3d;
-                  v5grid1[kk][jj][ii] += v5grid2[kp][jp][ip] * phi3d;
-                }
+        for (k=0; k<=p+1; k++) {
+          kk = kc+index[k];
+          if (!domain->zperiodic) {
+            if (kk < alpha[n]) continue;
+            if (kk > betaz[n]) break;
+          }
+          phiz = phi1d[2][k];
+          for (j=0; j<=p+1; j++) {
+            jj = jc+index[j];
+            if (!domain->yperiodic) {
+              if (jj < alpha[n]) continue;
+              if (jj > betay[n]) break;
+            }
+            phizy = phi1d[1][j]*phiz;
+            for (i=0; i<=p+1; i++) {
+              ii = ic+index[i];
+              if (!domain->xperiodic) {
+                if (ii < alpha[n]) continue;
+                if (ii > betax[n]) break;
               }
+              phi3d = phi1d[0][i]*phizy;
+
+              egrid1[kk][jj][ii] += egrid2[kp][jp][ip] * phi3d;
+
+              if (vflag_atom) {
+                v0grid1[kk][jj][ii] += v0grid2[kp][jp][ip] * phi3d;
+                v1grid1[kk][jj][ii] += v1grid2[kp][jp][ip] * phi3d;
+                v2grid1[kk][jj][ii] += v2grid2[kp][jp][ip] * phi3d;
+                v3grid1[kk][jj][ii] += v3grid2[kp][jp][ip] * phi3d;
+                v4grid1[kk][jj][ii] += v4grid2[kp][jp][ip] * phi3d;
+                v5grid1[kk][jj][ii] += v5grid2[kp][jp][ip] * phi3d;
+              }
+              
             }
           }
-
-        } else {
-
-          for (k=0; k<=p+1; k++) { // Could make this faster by creating separate functions
-            kk = (kc+index[k])&PBCz;
-            phiz = phi1d[2][k];
-            for (j=0; j<=p+1; j++) {
-              jj = (jc+index[j])&PBCy;
-              phizy = phi1d[1][j]*phiz;
-              for (i=0; i<=p+1; i++) {
-                ii = (ic+index[i])&PBCx;
-                phi3d = phi1d[0][i]*phizy;
-
-                if (differentiation_flag || eflag_atom) {
-                  egrid1[kk][jj][ii] += egrid2[kp][jp][ip] * phi3d;
-                }
-
-                if (!differentiation_flag) {
-                  fxgrid1[kk][jj][ii] += fxgrid2[kp][jp][ip] * phi3d;
-                  fygrid1[kk][jj][ii] += fygrid2[kp][jp][ip] * phi3d;
-                  fzgrid1[kk][jj][ii] += fzgrid2[kp][jp][ip] * phi3d;
-                }
-
-                if (vflag_atom) {
-                  v0grid1[kk][jj][ii] += v0grid2[kp][jp][ip] * phi3d;
-                  v1grid1[kk][jj][ii] += v1grid2[kp][jp][ip] * phi3d;
-                  v2grid1[kk][jj][ii] += v2grid2[kp][jp][ip] * phi3d;
-                  v3grid1[kk][jj][ii] += v3grid2[kp][jp][ip] * phi3d;
-                  v4grid1[kk][jj][ii] += v4grid2[kp][jp][ip] * phi3d;
-                  v5grid1[kk][jj][ii] += v5grid2[kp][jp][ip] * phi3d;
-                }
-              }
-            }
-          }
-
         }
+        
       }
 
 }
@@ -1950,10 +1786,6 @@ void MSM::pack_forward(int flag, double *buf, int nlist, int *list)
   double ***qgridn = qgrid[n];
   double ***egridn = egrid[n];
 
-  double ***fxgridn = fxgrid[n];
-  double ***fygridn = fygrid[n];
-  double ***fzgridn = fzgrid[n];
-
   double ***v0gridn = v0grid[n];
   double ***v1gridn = v1grid[n];
   double ***v2gridn = v2grid[n];
@@ -1968,38 +1800,10 @@ void MSM::pack_forward(int flag, double *buf, int nlist, int *list)
     for (int i = 0; i < nlist; i++) {
       buf[k++] = qsrc[list[i]];
     }
-  } else if (flag == FORWARD_IK) {
-    double *xsrc = &fxgridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
-    double *ysrc = &fygridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
-    double *zsrc = &fzgridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
-    for (int i = 0; i < nlist; i++) {
-      buf[k++] = xsrc[list[i]];
-      buf[k++] = ysrc[list[i]];
-      buf[k++] = zsrc[list[i]];
-    }
   } else if (flag == FORWARD_AD) {
     double *src = &egridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
     for (int i = 0; i < nlist; i++)
       buf[i] = src[list[i]];
-  } else if (flag == FORWARD_IK_PERATOM) {
-    double *esrc = &egridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
-    double *v0src = &v0gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
-    double *v1src = &v1gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
-    double *v2src = &v2gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
-    double *v3src = &v3gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
-    double *v4src = &v4gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
-    double *v5src = &v5gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
-    for (int i = 0; i < nlist; i++) {
-      if (eflag_atom) buf[k++] = esrc[list[i]];
-      if (vflag_atom) {
-        buf[k++] = v0src[list[i]];
-        buf[k++] = v1src[list[i]];
-        buf[k++] = v2src[list[i]];
-        buf[k++] = v3src[list[i]];
-        buf[k++] = v4src[list[i]];
-        buf[k++] = v5src[list[i]];
-      }
-    }
   } else if (flag == FORWARD_AD_PERATOM) {
     double *v0src = &v0gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
     double *v1src = &v1gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
@@ -2029,10 +1833,6 @@ void MSM::unpack_forward(int flag, double *buf, int nlist, int *list)
   double ***qgridn = qgrid[n];
   double ***egridn = egrid[n];
 
-  double ***fxgridn = fxgrid[n];
-  double ***fygridn = fygrid[n];
-  double ***fzgridn = fzgrid[n];
-
   double ***v0gridn = v0grid[n];
   double ***v1gridn = v1grid[n];
   double ***v2gridn = v2grid[n];
@@ -2047,38 +1847,10 @@ void MSM::unpack_forward(int flag, double *buf, int nlist, int *list)
     for (int i = 0; i < nlist; i++) {
       dest[list[i]] = buf[k++];
     }
-  } else if (flag == FORWARD_IK) {
-    double *xdest = &fxgridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
-    double *ydest = &fygridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
-    double *zdest = &fzgridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
-    for (int i = 0; i < nlist; i++) {
-      xdest[list[i]] = buf[k++];
-      ydest[list[i]] = buf[k++];
-      zdest[list[i]] = buf[k++];
-    }
   } else if (flag == FORWARD_AD) {
     double *dest = &egridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
     for (int i = 0; i < nlist; i++)
       dest[list[i]] = buf[k++];
-  } else if (flag == FORWARD_IK_PERATOM) {
-    double *esrc = &egridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
-    double *v0src = &v0gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
-    double *v1src = &v1gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
-    double *v2src = &v2gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
-    double *v3src = &v3gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
-    double *v4src = &v4gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
-    double *v5src = &v5gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
-    for (int i = 0; i < nlist; i++) {
-      if (eflag_atom) esrc[list[i]] = buf[k++];
-      if (vflag_atom) {
-        v0src[list[i]] = buf[k++];
-        v1src[list[i]] = buf[k++];
-        v2src[list[i]] = buf[k++];
-        v3src[list[i]] = buf[k++];
-        v4src[list[i]] = buf[k++];
-        v5src[list[i]] = buf[k++];
-      }
-    }
   } else if (flag == FORWARD_AD_PERATOM) {
     double *v0src = &v0gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
     double *v1src = &v1gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
@@ -2108,10 +1880,6 @@ void MSM::pack_reverse(int flag, double *buf, int nlist, int *list)
   double ***qgridn = qgrid[n];
   double ***egridn = egrid[n];
 
-  double ***fxgridn = fxgrid[n];
-  double ***fygridn = fygrid[n];
-  double ***fzgridn = fzgrid[n];
-
   double ***v0gridn = v0grid[n];
   double ***v1gridn = v1grid[n];
   double ***v2gridn = v2grid[n];
@@ -2126,38 +1894,10 @@ void MSM::pack_reverse(int flag, double *buf, int nlist, int *list)
     for (int i = 0; i < nlist; i++) {
       buf[k++] = qsrc[list[i]];
     }
-  } else if (flag == REVERSE_IK) {
-    double *xsrc = &fxgridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
-    double *ysrc = &fygridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
-    double *zsrc = &fzgridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
-    for (int i = 0; i < nlist; i++) {
-      buf[k++] = xsrc[list[i]];
-      buf[k++] = ysrc[list[i]];
-      buf[k++] = zsrc[list[i]];
-    }
   } else if (flag == REVERSE_AD) {
     double *src = &egridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
     for (int i = 0; i < nlist; i++)
       buf[i] = src[list[i]];
-  } else if (flag == REVERSE_IK_PERATOM) {
-    double *esrc = &egridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
-    double *v0src = &v0gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
-    double *v1src = &v1gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
-    double *v2src = &v2gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
-    double *v3src = &v3gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
-    double *v4src = &v4gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
-    double *v5src = &v5gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
-    for (int i = 0; i < nlist; i++) {
-      if (eflag_atom) buf[k++] = esrc[list[i]];
-      if (vflag_atom) {
-        buf[k++] = v0src[list[i]];
-        buf[k++] = v1src[list[i]];
-        buf[k++] = v2src[list[i]];
-        buf[k++] = v3src[list[i]];
-        buf[k++] = v4src[list[i]];
-        buf[k++] = v5src[list[i]];
-      }
-    }
   } else if (flag == REVERSE_AD_PERATOM) {
     double *v0src = &v0gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
     double *v1src = &v1gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
@@ -2187,10 +1927,6 @@ void MSM::unpack_reverse(int flag, double *buf, int nlist, int *list)
   double ***qgridn = qgrid[n];
   double ***egridn = egrid[n];
 
-  double ***fxgridn = fxgrid[n];
-  double ***fygridn = fygrid[n];
-  double ***fzgridn = fzgrid[n];
-
   double ***v0gridn = v0grid[n];
   double ***v1gridn = v1grid[n];
   double ***v2gridn = v2grid[n];
@@ -2205,38 +1941,10 @@ void MSM::unpack_reverse(int flag, double *buf, int nlist, int *list)
     for (int i = 0; i < nlist; i++) {
       dest[list[i]] += buf[k++];
     }
-  } else if (flag == REVERSE_IK) {
-    double *xdest = &fxgridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
-    double *ydest = &fygridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
-    double *zdest = &fzgridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
-    for (int i = 0; i < nlist; i++) {
-      xdest[list[i]] += buf[k++];
-      ydest[list[i]] += buf[k++];
-      zdest[list[i]] += buf[k++];
-    }
   } else if (flag == REVERSE_AD) {
     double *dest = &egridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
     for (int i = 0; i < nlist; i++)
       dest[list[i]] += buf[k++];
-  } else if (flag == REVERSE_IK_PERATOM) {
-    double *esrc = &egridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
-    double *v0src = &v0gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
-    double *v1src = &v1gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
-    double *v2src = &v2gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
-    double *v3src = &v3gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
-    double *v4src = &v4gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
-    double *v5src = &v5gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
-    for (int i = 0; i < nlist; i++) {
-      if (eflag_atom) esrc[list[i]] += buf[k++];
-      if (vflag_atom) {
-        v0src[list[i]] += buf[k++];
-        v1src[list[i]] += buf[k++];
-        v2src[list[i]] += buf[k++];
-        v3src[list[i]] += buf[k++];
-        v4src[list[i]] += buf[k++];
-        v5src[list[i]] += buf[k++];
-      }
-    }
   } else if (flag == REVERSE_AD_PERATOM) {
     double *v0src = &v0gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
     double *v1src = &v1gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]];
@@ -2259,11 +1967,12 @@ void MSM::unpack_reverse(int flag, double *buf, int nlist, int *list)
    interpolate from grid to get force on my particles
 ------------------------------------------------------------------------- */
 
-void MSM::fieldforce_ad()
+void MSM::fieldforce()
 {
   //fprintf(screen,"MSM interpolation\n\n");
 
   double ***egridn = egrid[0];
+
   int i,l,m,n,nx,ny,nz,mx,my,mz;
   double dx,dy,dz;
   double phi_x,phi_y,phi_z;
@@ -2320,68 +2029,6 @@ void MSM::fieldforce_ad()
     // convert E-field to force
 
     const double qfactor = force->qqrd2e*scale*q[i];
-    f[i][0] += qfactor*ekx;
-    f[i][1] += qfactor*eky;
-    f[i][2] += qfactor*ekz;
-  }
-}
-
-/* ----------------------------------------------------------------------
-   interpolate from grid to get my particles
-------------------------------------------------------------------------- */
-
-void MSM::fieldforce()
-{
-  int i,l,m,n,nx,ny,nz,mx,my,mz;
-  double dx,dy,dz,x0,y0,z0;
-  double ekx,eky,ekz;
-
-  double ***fxgridn = fxgrid[0];
-  double ***fygridn = fygrid[0];
-  double ***fzgridn = fzgrid[0];
-
-  // loop over my charges, interpolate electric field from nearby grid points
-  // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
-  // (dx,dy,dz) = distance to "lower left" grid pt
-  // (mx,my,mz) = global coords of moving stencil pt
-  // ek = 3 components of E-field on particle
-
-  double *q = atom->q;
-  double **x = atom->x;
-  double **f = atom->f;
-
-  int nlocal = atom->nlocal;
-
-  for (i = 0; i < nlocal; i++) {
-    nx = part2grid[i][0];
-    ny = part2grid[i][1];
-    nz = part2grid[i][2];
-    dx = nx - (x[i][0]-boxlo[0])*delxinv[0];
-    dy = ny - (x[i][1]-boxlo[1])*delyinv[0];
-    dz = nz - (x[i][2]-boxlo[2])*delzinv[0];
-
-    compute_phis_and_dphis(dx,dy,dz);
-
-    ekx = eky = ekz = 0.0;
-    for (n = nlower; n <= nupper; n++) {
-      mz = n+nz;
-      z0 = phi1d[2][n];
-      for (m = nlower; m <= nupper; m++) {
-        my = m+ny;
-        y0 = z0*phi1d[1][m];
-        for (l = nlower; l <= nupper; l++) {
-          mx = l+nx;
-          x0 = y0*phi1d[0][l];
-          ekx -= x0*fxgridn[mz][my][mx];
-          eky -= x0*fygridn[mz][my][mx];
-          ekz -= x0*fzgridn[mz][my][mx];
-        }
-      }
-    }
-
-    // convert E-field to force
-
-    const double qfactor = force->qqrd2e * scale * q[i];
     f[i][0] += qfactor*ekx;
     f[i][1] += qfactor*eky;
     f[i][2] += qfactor*ekz;
@@ -2694,34 +2341,39 @@ double MSM::compute_dphi(const double &xi)
 }
 
 /* ----------------------------------------------------------------------
-   Compute direct interaction for each grid level
+   Compute direct interaction for intermediate grid levels
 ------------------------------------------------------------------------- */
 void MSM::get_g_direct()
 {
   if (g_direct) memory->destroy(g_direct);
-  memory->create(g_direct,levels-1,nmax_direct,"msm:g_direct");
+  memory->create(g_direct,levels,nmax_direct,"msm:g_direct");
 
   double a = cutoff;
 
-  int n,k,ix,iy,iz;
+  int n,zk,zyk,k,ix,iy,iz;
   double xdiff,ydiff,zdiff;
   double rsq,rho,two_n;
 
   two_n = 1.0;
 
-  for (n=0; n<levels-1; n++) {
+  int nx = nxhi_direct - nxlo_direct + 1;
+  int ny = nyhi_direct - nylo_direct + 1;
+  int nz = nzhi_direct - nzlo_direct + 1;
 
-    k = 0;
+  for (n=0; n<levels; n++) {
+
     for (iz = nzlo_direct; iz <= nzhi_direct; iz++) {
       zdiff = iz/delzinv[n];
+      zk = (iz + nzhi_direct)*nz;
       for (iy = nylo_direct; iy <= nyhi_direct; iy++) {
         ydiff = iy/delyinv[n];
+        zyk = (zk + iy + nyhi_direct)*ny;
         for (ix = nxlo_direct; ix <= nxhi_direct; ix++) {
           xdiff = ix/delxinv[n];
           rsq = xdiff*xdiff + ydiff*ydiff + zdiff*zdiff;
           rho = sqrt(rsq)/(two_n*a);
+          k = zyk + ix + nxhi_direct;
           g_direct[n][k] = gamma(rho)/(two_n*a) - gamma(rho/2.0)/(2.0*two_n*a);
-          k++;
         }
       }
     }
@@ -2730,51 +2382,69 @@ void MSM::get_g_direct()
 }
 
 /* ----------------------------------------------------------------------
-   Compute direct interaction for each grid level
+   Compute direct interaction for intermediate grid levels
 ------------------------------------------------------------------------- */
-void MSM::get_dg_direct()
+void MSM::get_virial_direct()
 {
-  if (dgx_direct) memory->destroy(dgx_direct);
-  memory->create(dgx_direct,levels-1,nmax_direct,"msm:dgx_direct");
-  if (dgy_direct) memory->destroy(dgy_direct);
-  memory->create(dgy_direct,levels-1,nmax_direct,"msm:dgy_direct");
-  if (dgz_direct) memory->destroy(dgz_direct);
-  memory->create(dgz_direct,levels-1,nmax_direct,"msm:dgz_direct");
+  if (v0_direct) memory->destroy(v0_direct);
+  memory->create(v0_direct,levels,nmax_direct,"msm:v0_direct");
+  if (v1_direct) memory->destroy(v1_direct);
+  memory->create(v1_direct,levels,nmax_direct,"msm:v1_direct");
+  if (v2_direct) memory->destroy(v2_direct);
+  memory->create(v2_direct,levels,nmax_direct,"msm:v2_direct");
+  if (v3_direct) memory->destroy(v3_direct);
+  memory->create(v3_direct,levels,nmax_direct,"msm:v3_direct");
+  if (v4_direct) memory->destroy(v4_direct);
+  memory->create(v4_direct,levels,nmax_direct,"msm:v4_direct");
+  if (v5_direct) memory->destroy(v5_direct);
+  memory->create(v5_direct,levels,nmax_direct,"msm:v5_direct");
 
   double a = cutoff;
   double a_sq = cutoff*cutoff;
 
-  int n,k,ix,iy,iz;
+  int n,zk,zyk,k,ix,iy,iz;
   double xdiff,ydiff,zdiff;
   double rsq,r,rho,two_n,two_nsq,dg;
 
   two_n = 1.0;
 
-  for (n=0; n<levels-1; n++) {
+  int nx = nxhi_direct - nxlo_direct + 1;
+  int ny = nyhi_direct - nylo_direct + 1;
+  int nz = nzhi_direct - nzlo_direct + 1;
+
+  for (n=0; n<levels; n++) {
     two_nsq = two_n * two_n;
 
-    k = 0;
     for (iz = nzlo_direct; iz <= nzhi_direct; iz++) {
       zdiff = iz/delzinv[n];
+      zk = (iz + nzhi_direct)*nz;
       for (iy = nylo_direct; iy <= nyhi_direct; iy++) {
         ydiff = iy/delyinv[n];
+        zyk = (zk + iy + nyhi_direct)*ny;
         for (ix = nxlo_direct; ix <= nxhi_direct; ix++) {
           xdiff = ix/delxinv[n];
           rsq = xdiff*xdiff + ydiff*ydiff + zdiff*zdiff;
+          k = zyk + ix + nxhi_direct;
           r = sqrt(rsq);
           if (r == 0) {
-            dgx_direct[n][k] = 0.0;
-            dgy_direct[n][k] = 0.0;
-            dgz_direct[n][k] = 0.0;
+            v0_direct[n][k] = 0.0;
+            v1_direct[n][k] = 0.0;
+            v2_direct[n][k] = 0.0;
+            v3_direct[n][k] = 0.0;
+            v4_direct[n][k] = 0.0;
+            v5_direct[n][k] = 0.0;
           } else {
             rho = r/(two_n*a);
             dg = -(dgamma(rho)/(two_nsq*a_sq) -
               dgamma(rho/2.0)/(4.0*two_nsq*a_sq))/r;
-            dgx_direct[n][k] = dg * xdiff;
-            dgy_direct[n][k] = dg * ydiff;
-            dgz_direct[n][k] = dg * zdiff;
+            v0_direct[n][k] = dg * xdiff * xdiff;
+            v1_direct[n][k] = dg * ydiff * ydiff;
+            v2_direct[n][k] = dg * zdiff * zdiff;
+            v3_direct[n][k] = dg * xdiff * ydiff;
+            v4_direct[n][k] = dg * xdiff * zdiff;
+            v5_direct[n][k] = dg * ydiff * zdiff;
           }
-          k++;
+
         }
       }
     }
@@ -2783,44 +2453,115 @@ void MSM::get_dg_direct()
 }
 
 /* ----------------------------------------------------------------------
-   Compute direct interaction for each grid level
+   Compute direct interaction for top grid level
 ------------------------------------------------------------------------- */
-void MSM::get_virial_direct()
+void MSM::get_g_direct_top(int n)
 {
-  if (v0_direct) memory->destroy(v0_direct);
-  memory->create(v0_direct,levels-1,nmax_direct,"msm:v0_direct");
-  if (v1_direct) memory->destroy(v1_direct);
-  memory->create(v1_direct,levels-1,nmax_direct,"msm:v1_direct");
-  if (v2_direct) memory->destroy(v2_direct);
-  memory->create(v2_direct,levels-1,nmax_direct,"msm:v2_direct");
-  if (v3_direct) memory->destroy(v3_direct);
-  memory->create(v3_direct,levels-1,nmax_direct,"msm:v3_direct");
-  if (v4_direct) memory->destroy(v4_direct);
-  memory->create(v4_direct,levels-1,nmax_direct,"msm:v4_direct");
-  if (v5_direct) memory->destroy(v5_direct);
-  memory->create(v5_direct,levels-1,nmax_direct,"msm:v5_direct");
+  int nx_top = betax[n] - alpha[n];
+  int ny_top = betay[n] - alpha[n];
+  int nz_top = betaz[n] - alpha[n];
+  
+  int nx = 2*nx_top + 1;
+  int ny = 2*ny_top + 1;
+  int nz = 2*nz_top + 1;
+  
+  int nmax_top = 8*(nx+1)*(ny*1)*(nz+1);
+  
+  if (g_direct_top) memory->destroy(g_direct_top);
+  memory->create(g_direct_top,nmax_top,"msm:g_direct_top");
 
-  int n,k,ix,iy,iz;
+  double a = cutoff;
+
+  int zk,zyk,k,ix,iy,iz;
   double xdiff,ydiff,zdiff;
+  double rsq,rho,two_n;
 
-  for (n=0; n<levels-1; n++) {
-    k = 0;
-    for (iz = nzlo_direct; iz <= nzhi_direct; iz++) {
-      zdiff = iz/delzinv[n];
-      for (iy = nylo_direct; iy <= nyhi_direct; iy++) {
-        ydiff = iy/delyinv[n];
-        for (ix = nxlo_direct; ix <= nxhi_direct; ix++) {
-          xdiff = ix/delxinv[n];
-          v0_direct[n][k] = dgx_direct[n][k] * xdiff;
-          v1_direct[n][k] = dgy_direct[n][k] * ydiff;
-          v2_direct[n][k] = dgz_direct[n][k] * zdiff;
-          v3_direct[n][k] = dgx_direct[n][k] * ydiff;
-          v4_direct[n][k] = dgx_direct[n][k] * zdiff;
-          v5_direct[n][k] = dgy_direct[n][k] * zdiff;
-          k++;
-        }
+  two_n = pow(2.0,n);
+
+  for (iz = -nz_top; iz <= nz_top; iz++) {
+    zdiff = iz/delzinv[n];
+    zk = (iz + nz_top)*nz;
+    for (iy = -ny_top; iy <= ny_top; iy++) {
+      ydiff = iy/delyinv[n];
+      zyk = (zk + iy + ny_top)*ny;
+      for (ix = -nx_top; ix <= nx_top; ix++) {
+        xdiff = ix/delxinv[n];
+        rsq = xdiff*xdiff + ydiff*ydiff + zdiff*zdiff;
+        rho = sqrt(rsq)/(two_n*a);
+        k = zyk + ix + nx_top;
+        g_direct_top[k] = gamma(rho)/(two_n*a);
       }
     }
   }
 }
 
+/* ----------------------------------------------------------------------
+   Compute direct interaction for top grid level
+------------------------------------------------------------------------- */
+void MSM::get_virial_direct_top(int n)
+{
+  int nx_top = betax[n] - alpha[n];
+  int ny_top = betay[n] - alpha[n];
+  int nz_top = betaz[n] - alpha[n];
+  
+  int nx = 2*nx_top + 1;
+  int ny = 2*ny_top + 1;
+  int nz = 2*nz_top + 1;
+  
+  int nmax_top = 8*(nx+1)*(ny*1)*(nz+1);
+  
+  if (v0_direct_top) memory->destroy(v0_direct_top);
+  memory->create(v0_direct_top,nmax_top,"msm:v0_direct_top");
+  if (v1_direct_top) memory->destroy(v1_direct_top);
+  memory->create(v1_direct_top,nmax_top,"msm:v1_direct_top");
+  if (v2_direct_top) memory->destroy(v2_direct_top);
+  memory->create(v2_direct_top,nmax_top,"msm:v2_direct_top");
+  if (v3_direct_top) memory->destroy(v3_direct_top);
+  memory->create(v3_direct_top,nmax_top,"msm:v3_direct_top");
+  if (v4_direct_top) memory->destroy(v4_direct_top);
+  memory->create(v4_direct_top,nmax_top,"msm:v4_direct_top");
+  if (v5_direct_top) memory->destroy(v5_direct_top);
+  memory->create(v5_direct_top,nmax_top,"msm:v5_direct_top");
+
+  double a = cutoff;
+  double a_sq = cutoff*cutoff;
+
+  int zk,zyk,k,ix,iy,iz;
+  double xdiff,ydiff,zdiff;
+  double rsq,r,rho,two_n,two_nsq,dg;
+
+  two_n = pow(2.0,n);
+  two_nsq = two_n * two_n;
+
+  for (iz = -nz_top; iz <= nz_top; iz++) {
+    zdiff = iz/delzinv[n];
+    zk = (iz + nz_top)*nz;
+    for (iy = -ny_top; iy <= ny_top; iy++) {
+      ydiff = iy/delyinv[n];
+      zyk = (zk + iy + ny_top)*ny;
+      for (ix = -nx_top; ix <= nx_top; ix++) {
+        xdiff = ix/delxinv[n];
+        rsq = xdiff*xdiff + ydiff*ydiff + zdiff*zdiff;
+        k = zyk + ix + nx_top;
+        r = sqrt(rsq);
+        if (r == 0) {
+          v0_direct_top[k] = 0.0;
+          v1_direct_top[k] = 0.0;
+          v2_direct_top[k] = 0.0;
+          v3_direct_top[k] = 0.0;
+          v4_direct_top[k] = 0.0;
+          v5_direct_top[k] = 0.0;
+        } else {
+          rho = r/(two_n*a);
+          dg = -(dgamma(rho)/(two_nsq*a_sq))/r;
+          v0_direct_top[k] = dg * xdiff * xdiff;
+          v1_direct_top[k] = dg * ydiff * ydiff;
+          v2_direct_top[k] = dg * zdiff * zdiff;
+          v3_direct_top[k] = dg * xdiff * ydiff;
+          v4_direct_top[k] = dg * xdiff * zdiff;
+          v5_direct_top[k] = dg * ydiff * zdiff;
+        }
+      }
+    }
+  }
+}

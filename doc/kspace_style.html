@@ -194,8 +194,10 @@ equation 9 of <A HREF = "#Petersen">(Petersen)</A>. RMS force errors in K-space 
 which is similar to equation 32 of <A HREF = "#Kolafa">(Kolafa)</A>. RMS force
 errors in K-space for <I>pppm</I> are estimated using equation 38 of
 <A HREF = "#Deserno">(Deserno)</A>. RMS force errors for <I>msm</I> are estimated 
-following the procedure outlined in chapter 3 of <A HREF = "#Hardy">(Hardy)</A>,
-with equation 3.197 of particular note.
+using ideas from chapter 3 of <A HREF = "#Hardy">(Hardy)</A>, with equation 3.197
+of particular note. When using <I>msm</I> with non-periodic boundary 
+conditions, it is expected that the error estimation will be too
+pessimistic.
 </P>
 <P>See the <A HREF = "kspace_modify.html">kspace_modify</A> command for additional
 options of the K-space solvers that can be set, including a <I>force</I>

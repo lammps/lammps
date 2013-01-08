@@ -40,8 +40,7 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixTMD::FixTMD(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+FixTMD::FixTMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 {
   if (narg < 6) error->all(FLERR,"Illegal fix tmd command");
 

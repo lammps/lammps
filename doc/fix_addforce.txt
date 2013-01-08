@@ -42,8 +42,8 @@ Any of the 3 quantities defining the force components can be specified
 as an equal-style or atom-style "variable"_variable.html, namely {fx},
 {fy}, {fz}.  If the value is a variable, it should be specified as
 v_name, where name is the variable name.  In this case, the variable
-will be evaluated each timestep, and its value used to determine the
-force component.
+will be evaluated each timestep, and its value(s) used to determine
+the force component.
 
 Equal-style variables can specify formulas with various mathematical
 functions, and include "thermo_style"_thermo_style.html command

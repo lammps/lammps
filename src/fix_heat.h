@@ -41,6 +41,9 @@ class FixHeat : public Fix {
   char *idregion;
   char *hstr;
   int hstyle,hvar;
+
+  int maxatom;
+  double *vheat;
 };
 
 }

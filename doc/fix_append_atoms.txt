@@ -16,7 +16,10 @@ ID, group-ID are documented in "fix"_fix.html command :ulb,l
 append/atoms = style name of this fix command :l
 face = {zhi} :l
 zero or more keyword/value pairs may be appended :l
-keyword = {size} or {freq} or {temp} or {random} or {units}  :l
+keyword = {basis} or {size} or {freq} or {temp} or {random} or {units}  :l
+  {basis} values = M itype
+    M = which basis atom
+    itype = atom type (1-N) to assign to this basis atom
   {size} args = Lz
     Lz = z size of lattice region appended in a single event(distance units)
   {freq} args = freq
@@ -52,6 +55,12 @@ Before using this command, a lattice must also be defined using the
 
 This fix will automatically freeze atoms on the zhi edge of the
 system, so that overlaps are avoided when new atoms are appended.
+
+The {basis} keyword specifies an atom type that will be assigned to
+specific basis atoms as they are created.  See the
+"lattice"_lattice.html command for specifics on how basis atoms are
+defined for the unit cell of the lattice.  By default, all created
+atoms are assigned type = 1 unless this keyword specifies differently.
 
 The {size} keyword defines the size in z of the chunk of material to
 be added.
@@ -99,4 +108,5 @@ than periodic.
 
 [Default:]
 
-The keyword defaults are size = 0.0, freq = 0, units = lattice.
+The keyword defaults are size = 0.0, freq = 0, units = lattice.  All
+added atoms are of type 1 unless the basis keyword is used.

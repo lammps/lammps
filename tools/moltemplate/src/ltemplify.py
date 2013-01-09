@@ -36,6 +36,10 @@ from lttree_styles import *
 def Intify(s):
     if s.isdigit():
         return int(s)
+    elif s[0:2] == 'id':
+        return int(s[2:])
+    elif s[0:4] == 'type':
+        return int(s[4:])
     else:
         return s
 
@@ -152,10 +156,12 @@ def BelongsToSel(i, sel):
 try:
 
     g_program_name = 'lemplify.py'
-    g_version_str  = '0.2'
-    g_date_str     = '2012-4-12'
+    g_version_str  = '0.3'
+    g_date_str     = '2012-12-11'
     sys.stderr.write(g_program_name+' v'+g_version_str+' '+g_date_str+'\n')
 
+    non_empty_output = False
+    no_warnings = True
     indent = 2
     cindent = 0
     atomid_selection = []
@@ -451,7 +457,6 @@ try:
 
             tokens = line.strip().split()
             if (len(tokens) > 0):
-
                 if ((tokens[0] == 'atom_style') and
                     atom_style_undefined):
                     
@@ -482,7 +487,10 @@ try:
                                         'impoper_style',
                                         'min_style',
                                         'pair_style',
-                                        'special_bonds'])):
+                                        'pair_modify',
+                                        'special_bonds',
+                                        'kspace_style',
+                                        'kspace_modify'])):
                     l_in_init.append((' '*indent)+line.lstrip())
 
                 #if (line.strip() == 'LAMMPS Description'):
@@ -515,6 +523,9 @@ try:
                                 complained_atom_style_mismatch = True
                                 sys.stderr.write('Warning: The number of columns in the \"Atoms\" section does\n'
                                                  '         not match the atom_style (see column name list above).\n')
+                                # this is not a very serious warning.
+                                #no_warnings = False <--no need. commenting out
+
 
                             atomid   = Intify(tokens[i_atomid])
                             atomtype = Intify(tokens[i_atomtype])
@@ -687,12 +698,14 @@ try:
                             elif some_in_selection:
                                 sys.stderr.write('WARNING: SELECTION BREAKS BONDS\n')
                                 sys.stderr.write('         (between atom ids: ')
+
                                 for n in range(0,2):
                                     sys.stderr.write(str(atomids[n])+' ')
                                 sys.stderr.write(')\n'
                                                  '         The atoms you selected are bonded\n'
                                                  '         to other atoms you didn\'t select.\n'
                                                  '         Are you sure you selected the correct atoms?\n')
+                                no_warnings = False
 
 
 
@@ -743,6 +756,7 @@ try:
                                                  '         interactions with other atoms you didn\'t select.\n'
                                                  '         (They will be ignored.)\n'
                                                  '         Are you sure you selected the correct atoms?\n')
+                                no_warnings = False
 
 
                 elif (line.strip() == 'Dihedrals'):
@@ -790,6 +804,7 @@ try:
                                                  '         interactions with other atoms you didn\'t select.\n'
                                                  '         (They will be ignored.)\n'
                                                  '         Are you sure you selected the correct atoms?\n')
+                                no_warnings = False
 
 
                 elif (line.strip() == 'Impropers'):
@@ -837,6 +852,7 @@ try:
                                                  '         interactions with other atoms you didn\'t select.\n'
                                                  '         (They will be ignored.)\n'
                                                  '         Are you sure you selected the correct atoms?\n')
+                                no_warnings = False
 
 
                 elif (line.strip() == 'Bond Coeffs'):
@@ -904,7 +920,7 @@ try:
                             atomtype_i_str = tokens[0]
                             if '*' in atomtype_i_str:
                                 raise InputError('PROBLEM near or before '+ErrorLeader(infile, lineno)+'\n'
-                                                 '         As of 2012-7, moltemplate discourages use of the "\*\" wildcard\n'
+                                                 '         As of 2012-7, moltemplate forbids use of the "\*\" wildcard\n'
                                                  '         character in the \"Pair Coeffs\" section.\n')
                             else:
                                 i = int(atomtype_i_str)
@@ -935,7 +951,7 @@ try:
                         raise InputError('Error: near or before '+ErrorLeader(infile, lineno)+'\n'
                                          '       Nonsensical bond_coeff command:\n'
                                          '       \"'+line.strip()+'\"\n')
-                    #tokens[0] = '@bond:type'+tokens[0]
+                    #tokens[1] = '@bond:type'+tokens[1]
                     l_in_bond_coeffs.append((' '*indent)+(' '.join(tokens)+'\n'))
 
                 elif (tokens[0] == 'angle_coeff'):
@@ -943,7 +959,7 @@ try:
                         raise InputError('Error: near or before '+ErrorLeader(infile, lineno)+'\n'
                                          '       Nonsensical angle_coeff command:\n'
                                          '       \"'+line.strip()+'\"\n')
-                    tokens[1] = '@angle:type'+tokens[1]
+                    #tokens[1] = '@angle:type'+tokens[1]
                     l_in_angle_coeffs.append((' '*indent)+(' '.join(tokens)+'\n'))
 
                 elif (tokens[0] == 'dihedral_coeff'):
@@ -951,14 +967,14 @@ try:
                         raise InputError('Error: near or before '+ErrorLeader(infile, lineno)+'\n'
                                          '       Nonsensical dihedral_coeff command:\n'
                                          '       \"'+line.strip()+'\"\n')
-                    tokens[1] = '@dihedral:type'+tokens[1]
+                    #tokens[1] = '@dihedral:type'+tokens[1]
                     l_in_dihedral_coeffs.append((' '*indent)+(' '.join(tokens)+'\n'))
                 elif (tokens[0] == 'improper_coeff'):
                     if (len(tokens) < 2):
                         raise InputError('Error: near or before '+ErrorLeader(infile, lineno)+'\n'
                                          '       Nonsensical improper_coeff command:\n'
                                          '       \"'+line.strip()+'\"\n')
-                    tokens[1] = '@improper:type'+tokens[1]
+                    #tokens[1] = '@improper:type'+tokens[1]
                     l_in_improper_coeffs.append((' '*indent)+(' '.join(tokens)+'\n'))
 
 
@@ -1188,21 +1204,20 @@ try:
         i_a_final = None
         i_b_final = None
         for i in range(i_a, i_b+1):
-            if ((i in needed_atomtypes) or
-                (min_sel_atomtype and min_sel_atomtype <= i)):
+            if ((i in needed_atomtypes) or (min_sel_atomtype <= i)):
                 i_a_final = i
                 break
         for i in reversed(range(i_a, i_b+1)):
-            if ((i in needed_atomtypes) or
-                (max_sel_atomtype and max_sel_atomtype >= i)):
+            if ((i in needed_atomtypes) or (max_sel_atomtype >= i)):
                 i_b_final = i
                 break
-        if i_a_final and i_b_final:
-            if i_a_final == i_b_final:
-                i_str = '@atom:type'+str(i_a_final)
-                tokens[1] = i_str
-            else:
-                i_str = '@{atom:type'+str(i_a_final)+'}*@{atom:type'+str(i_b_final)+'}'
+
+        #if i_a_final and i_b_final:
+        #    if i_a_final == i_b_final:
+        #        i_str = '@atom:type'+str(i_a_final)
+        #        tokens[1] = i_str
+        #    else:
+        #        i_str = '@{atom:type'+str(i_a_final)+'}*@{atom:type'+str(i_b_final)+'}'
 
 
 
@@ -1233,29 +1248,38 @@ try:
         j_a_final = None
         j_b_final = None
         for j in range(j_a, j_b+1):
-            if ((j in needed_atomtypes) or
-                (min_sel_atomtype and min_sel_atomtype <= j)):
+            if ((j in needed_atomtypes) or (min_sel_atomtype <= j)):
                 j_a_final = j
                 break
         for j in reversed(range(j_a, j_b+1)):
-            if ((j in needed_atomtypes) or
-                (max_sel_atomtype and max_sel_atomtype >= j)):
+            if ((j in needed_atomtypes) or (max_sel_atomtype >= j)):
                 j_b_final = j
                 break
-        if j_a_final and j_b_final:
-            if j_a_final == j_b_final:
-                j_str = '@atom:type'+str(j_a_final)
-                tokens[1] = j_str
-            else:
-                j_str = '@{atom:type'+str(j_a_final)+'}*@{atom:type'+str(j_b_final)+'}'
+
+        #if j_a_final and j_b_final:
+        #    if j_a_final == j_b_final:
+        #        j_str = '@atom:type'+str(j_a_final)
+        #        tokens[1] = j_str
+        #    else:
+        #        j_str = '@{atom:type'+str(j_a_final)+'}*@{atom:type'+str(j_b_final)+'}'
 
 
 
         if not (i_a_final and i_b_final and j_a_final and j_b_final):
             del(l_in_pair_coeffs[i_line])
+        elif (('*' in atomtype_i_str) or ('*' in atomtype_j_str)):
+            del(l_in_pair_coeffs[i_line])
+            for i in range(i_a_final, i_b_final+1):
+                for j in range(j_a_final, j_b_final+1):
+                    if j >= i:
+                        tokens[1] = '@atom:type'+str(i)
+                        tokens[2] = '@atom:type'+str(j)
+                        l_in_pair_coeffs.insert(i_line, 
+                                                (' '*indent)+(' '.join(tokens)+'\n'))
+                        i_line += 1
         else:
-            tokens[1] = i_str
-            tokens[2] = j_str
+            tokens[1] = '@atom:type'+tokens[1]
+            tokens[2] = '@atom:type'+tokens[2]
             l_in_pair_coeffs[i_line] = (' '*indent)+(' '.join(tokens)+'\n')
             i_line += 1
 
@@ -1311,26 +1335,31 @@ try:
         i_a_final = None
         i_b_final = None
         for i in range(i_a, i_b+1):
-            if ((i in needed_atomtypes) or
-                (min_sel_atomtype and min_sel_atomtype <= i)):
+            if ((i in needed_atomtypes) or (min_sel_atomtype <= i)):
                 i_a_final = i
                 break
         for i in reversed(range(i_a, i_b+1)):
-            if ((i in needed_atomtypes) or
-                (max_sel_atomtype and max_sel_atomtype >= i)):
+            if ((i in needed_atomtypes) or (max_sel_atomtype >= i)):
                 i_b_final = i
                 break
-        if i_a_final and i_b_final:
-            if i_a_final == i_b_final:
-                i_str = '@atom:type'+str(i_a_final)
-                tokens[1] = i_str
-            else:
-                i_str = '@{atom:type'+str(i_a_final)+'}*@{atom:type'+str(i_b_final)+'}'
+        #if i_a_final and i_b_final:
+        #    if i_a_final == i_b_final:
+        #        i_str = '@atom:type'+str(i_a_final)
+        #        tokens[1] = i_str
+        #    else:
+        #        i_str = '@{atom:type'+str(i_a_final)+'}*@{atom:type'+str(i_b_final)+'}'
 
         if not (i_a_final and i_b_final and j_a_final and j_b_final):
             del(l_in_masses[i_line])
+        elif ('*' in atomtype_i_str):
+            del(l_in_masses[i_line])
+            for i in range(i_a_final, i_b_final+1):
+                tokens[1] = '@atom:type'+str(i)
+                l_in_masses.insert(i_line, (' '*indent)+(' '.join(tokens)+'\n'))
+                i_line += 1
         else:
-            tokens[1] = i_str
+            assert(i_a == i_b)
+            tokens[1] = '@atom:type'+str(i_a)
             l_in_masses[i_line] = (' '*indent)+(' '.join(tokens)+'\n')
             i_line += 1
 
@@ -1355,7 +1384,7 @@ try:
         tokens[0] = '$bond:id'+str(bondid)
         tokens[1] = '@bond:type'+str(bondtype)
         tokens[2] = '$atom:id'+str(atomid1)
-        tokens[3] = '$atom:type'+str(atomid2)
+        tokens[3] = '$atom:id'+str(atomid2)
         needed_bondids.add(bondid)
         needed_bondtypes.add(bondtype)
         l_data_bonds[i_line] = (' '*indent)+(' '.join(tokens)+'\n')
@@ -1391,7 +1420,6 @@ try:
         tokens = line.strip().split()
         bondtype_str = tokens[1]
 
-
         if ('*' in bondtype_str):
             bondtype_tokens = bondtype_str.split('*')
 
@@ -1413,18 +1441,30 @@ try:
         if i_b > max_needed_bondtype:
             i_b = max_needed_bondtype
 
-        if i_a == i_b:
-            i_str = '@bond:type'+str(i_a)
-            tokens[1] = i_str
-        else:
-            i_str = '@{bond:type'+str(j_a_final)+'}*@{bond:type'+str(j_b_final)+'}'
+        #if i_a == i_b:
+        #    i_str = '@bond:type'+str(i_a)
+        #    tokens[1] = i_str
+        #else:
+        #    i_str = '@{bond:type'+str(j_a)+'}*@{bond:type'+str(j_b)+'}'
 
-        if ((i_a in needed_bondtypes) and
-            (i_b in needed_bondtypes)):
-            l_in_bond_coeffs[i_line] = (' '*indent)+(' '.join(tokens)+'\n')
-            i_line += 1
-        else:
+        if ('*' in bondtype_str):
             del(l_in_bond_coeffs[i_line])
+            for i in range(i_a, i_b+1):
+                if (i in needed_bondtypes):
+                    tokens[1] = '@bond:type'+str(i)
+                    l_in_bond_coeffs.insert(i_line, 
+                                            (' '*indent)+(' '.join(tokens)+'\n'))
+                    i_line += 1
+        else:
+            assert(i_a == i_b)
+            if (i_a in needed_bondtypes):
+                tokens[1] = '@bond:type'+str(i_a)
+                l_in_bond_coeffs[i_line] = (' '*indent)+(' '.join(tokens)+'\n')
+                i_line += 1
+            else:
+                del(l_in_bond_coeffs[i_line])
+
+
 
 
 
@@ -1484,7 +1524,6 @@ try:
         tokens = line.strip().split()
         angletype_str = tokens[1]
 
-
         if ('*' in angletype_str):
             angletype_tokens = angletype_str.split('*')
 
@@ -1506,18 +1545,28 @@ try:
         if i_b > max_needed_angletype:
             i_b = max_needed_angletype
 
-        if i_a == i_b:
-            i_str = '@angle:type'+str(i_a)
-            tokens[1] = i_str
-        else:
-            i_str = '@{angle:type'+str(j_a_final)+'}*@{angle:type'+str(j_b_final)+'}'
+        #if i_a == i_b:
+        #    i_str = '@angle:type'+str(i_a)
+        #    tokens[1] = i_str
+        #else:
+        #    i_str = '@{angle:type'+str(j_a)+'}*@{angle:type'+str(j_b)+'}'
 
-        if ((i_a in needed_angletypes) and
-            (i_b in needed_angletypes)):
-            l_in_angle_coeffs[i_line] = (' '*indent)+(' '.join(tokens)+'\n')
-            i_line += 1
-        else:
+        if ('*' in angletype_str):
             del(l_in_angle_coeffs[i_line])
+            for i in range(i_a, i_b+1):
+                if (i in needed_angletypes):
+                    tokens[1] = '@angle:type'+str(i)
+                    l_in_angle_coeffs.insert(i_line, 
+                                             (' '*indent)+(' '.join(tokens)+'\n'))
+                    i_line += 1
+        else:
+            assert(i_a == i_b)
+            if (i_a in needed_angletypes):
+                tokens[1] = '@angle:type'+str(i_a)
+                l_in_angle_coeffs[i_line] = (' '*indent)+(' '.join(tokens)+'\n')
+                i_line += 1
+            else:
+                del(l_in_angle_coeffs[i_line])
 
 
 
@@ -1579,7 +1628,6 @@ try:
         tokens = line.strip().split()
         dihedraltype_str = tokens[1]
 
-
         if ('*' in dihedraltype_str):
             dihedraltype_tokens = dihedraltype_str.split('*')
 
@@ -1601,20 +1649,28 @@ try:
         if i_b > max_needed_dihedraltype:
             i_b = max_needed_dihedraltype
 
-        if i_a == i_b:
-            i_str = '@dihedral:type'+str(i_a)
-            tokens[1] = i_str
-        else:
-            i_str = '@{dihedral:type'+str(j_a_final)+'}*@{dihedral:type'+str(j_b_final)+'}'
+        #if i_a == i_b:
+        #    i_str = '@dihedral:type'+str(i_a)
+        #    tokens[1] = i_str
+        #else:
+        #    i_str = '@{dihedral:type'+str(j_a)+'}*@{dihedral:type'+str(j_b)+'}'
 
-        if ((i_a in needed_dihedraltypes) and
-            (i_b in needed_dihedraltypes)):
-            l_in_dihedral_coeffs[i_line] = (' '*indent)+(' '.join(tokens)+'\n')
-            i_line += 1
-        else:
+        if ('*' in dihedraltype_str):
             del(l_in_dihedral_coeffs[i_line])
-
-
+            for i in range(i_a, i_b+1):
+                if (i in needed_dihedraltypes):
+                    tokens[1] = '@dihedral:type'+str(i)
+                    l_in_dihedral_coeffs.insert(i_line, 
+                                                (' '*indent)+(' '.join(tokens)+'\n'))
+                    i_line += 1
+        else:
+            assert(i_a == i_b)
+            if (i_a in needed_dihedraltypes):
+                tokens[1] = '@dihedral:type'+str(i_a)
+                l_in_dihedral_coeffs[i_line] = (' '*indent)+(' '.join(tokens)+'\n')
+                i_line += 1
+            else:
+                del(l_in_dihedral_coeffs[i_line])
 
 
 
@@ -1676,7 +1732,6 @@ try:
         tokens = line.strip().split()
         impropertype_str = tokens[1]
 
-
         if ('*' in impropertype_str):
             impropertype_tokens = impropertype_str.split('*')
 
@@ -1698,18 +1753,28 @@ try:
         if i_b > max_needed_impropertype:
             i_b = max_needed_impropertype
 
-        if i_a == i_b:
-            i_str = '@improper:type'+str(i_a)
-            tokens[1] = i_str
-        else:
-            i_str = '@{improper:type'+str(j_a_final)+'}*@{improper:type'+str(j_b_final)+'}'
+        #if i_a == i_b:
+        #    i_str = '@improper:type'+str(i_a)
+        #    tokens[1] = i_str
+        #else:
+        #    i_str = '@{improper:type'+str(j_a)+'}*@{improper:type'+str(j_b)+'}'
 
-        if ((i_a in needed_impropertypes) and
-            (i_b in needed_impropertypes)):
-            l_in_improper_coeffs[i_line] = (' '*indent)+(' '.join(tokens)+'\n')
-            i_line += 1
-        else:
+        if ('*' in impropertype_str):
             del(l_in_improper_coeffs[i_line])
+            for i in range(i_a, i_b+1):
+                if (i in needed_impropertypes):
+                    tokens[1] = '@improper:type'+str(i)
+                    l_in_improper_coeffs.insert(i_line, 
+                                                (' '*indent)+(' '.join(tokens)+'\n'))
+                    i_line += 1
+        else:
+            assert(i_a == i_b)
+            if (i_a in needed_impropertypes):
+                tokens[1] = '@improper:type'+str(i_a)
+                l_in_improper_coeffs[i_line] = (' '*indent)+(' '.join(tokens)+'\n')
+                i_line += 1
+            else:
+                del(l_in_improper_coeffs[i_line])
 
 
 
@@ -1721,6 +1786,7 @@ try:
     if not some_pair_coeffs_read:
         sys.stderr.write('Warning: No \"pair coeffs\" set.\n'
                          '         (No interactions between non-bonded atoms defined.)\n')
+        no_warnings = False
 
     #sys.stderr.write('Writing ttree data to standard out.\n'
     #                 '       You can redirect this to a file using:\n'+
@@ -1729,36 +1795,98 @@ try:
 
     if mol_name != '':
         sys.stdout.write(mol_name + ' {\n')
+
+    if len(l_in_init) > 0:
+        sys.stdout.write('\n### LAMMPS commands for initialization\n'
+                         '### (These can be overridden later.)\n\n')
+        l_in_init.insert(0, (' '*cindent)+'write_once(\"'+in_init+'\") {\n')
+        l_in_init.append((' '*cindent)+'}\n')
+        sys.stdout.write('\n')
+        sys.stdout.write(''.join(l_in_init))
+    if len(l_in_settings) > 0:
+        sys.stdout.write('\n### LAMMPS commands for settings\n'
+                         '### (These can be overridden later.)\n\n')
+        l_in_settings.insert(0, (' '*cindent)+'write_once(\"'+in_settings+'\") {\n')
+        l_in_settings.append((' '*cindent)+'}\n')
+        sys.stdout.write('\n')
+        sys.stdout.write(''.join(l_in_settings))
+        non_empty_output = True
+    if len(l_in_masses) > 0:
+        l_in_masses.insert(0, (' '*cindent)+'write_once(\"'+in_settings+'\") {\n')
+        l_in_masses.append((' '*cindent)+'}\n')
+        sys.stdout.write('\n')
+        sys.stdout.write(''.join(l_in_masses))
+        non_empty_output = True
+    if len(l_in_pair_coeffs) > 0:
+        l_in_pair_coeffs.insert(0, (' '*cindent)+'write_once(\"'+in_settings+'\") {\n')
+        l_in_pair_coeffs.append((' '*cindent)+'}\n')
+        sys.stdout.write('\n')
+        sys.stdout.write(''.join(l_in_pair_coeffs))
+        non_empty_output = True
+    if len(l_in_bond_coeffs) > 0:
+        l_in_bond_coeffs.insert(0, (' '*cindent)+'write_once(\"'+in_settings+'\") {\n')
+        l_in_bond_coeffs.append((' '*cindent)+'}\n')
+        sys.stdout.write('\n')
+        sys.stdout.write(''.join(l_in_bond_coeffs))
+        non_empty_output = True
+    if len(l_in_angle_coeffs) > 0:
+        l_in_angle_coeffs.insert(0, (' '*cindent)+'write_once(\"'+in_settings+'\") {\n')
+        l_in_angle_coeffs.append((' '*cindent)+'}\n')
+        sys.stdout.write('\n')
+        sys.stdout.write(''.join(l_in_angle_coeffs))
+        non_empty_output = True
+    if len(l_in_dihedral_coeffs) > 0:
+        l_in_dihedral_coeffs.insert(0, (' '*cindent)+'write_once(\"'+in_settings+'\") {\n')
+        l_in_dihedral_coeffs.append((' '*cindent)+'}\n')
+        sys.stdout.write('\n')
+        sys.stdout.write(''.join(l_in_dihedral_coeffs))
+        non_empty_output = True
+    if len(l_in_improper_coeffs) > 0:
+        l_in_improper_coeffs.insert(0, (' '*cindent)+'write_once(\"'+in_settings+'\") {\n')
+        l_in_improper_coeffs.append((' '*cindent)+'}\n')
+        sys.stdout.write('\n')
+        sys.stdout.write(''.join(l_in_improper_coeffs))
+        non_empty_output = True
+
+    if non_empty_output:
+        sys.stdout.write('\n### DATA sections\n\n')
+
     if len(l_data_masses) > 0:
         l_data_masses.insert(0, (' '*cindent)+'write_once(\"'+data_masses+'\") {\n')
         l_data_masses.append((' '*cindent)+'}\n')
         sys.stdout.write('\n')
         sys.stdout.write(''.join(l_data_masses))
+        non_empty_output = True
     if len(l_data_bond_coeffs) > 0:
         l_data_bond_coeffs.insert(0, (' '*cindent)+'write_once(\"'+data_bond_coeffs+'\") {\n')
         l_data_bond_coeffs.append((' '*cindent)+'}\n')
         sys.stdout.write('\n')
         sys.stdout.write(''.join(l_data_bond_coeffs))
+        non_empty_output = True
     if len(l_data_angle_coeffs) > 0:
         l_data_angle_coeffs.insert(0, (' '*cindent)+'write_once(\"'+data_angle_coeffs+'\") {\n')
         l_data_angle_coeffs.append((' '*cindent)+'}\n')
         sys.stdout.write('\n')
         sys.stdout.write(''.join(l_data_angle_coeffs))
+        non_empty_output = True
     if len(l_data_dihedral_coeffs) > 0:
         l_data_dihedral_coeffs.insert(0, (' '*cindent)+'write_once(\"'+data_dihedral_coeffs+'\") {\n')
         l_data_dihedral_coeffs.append((' '*cindent)+'}\n')
         sys.stdout.write('\n')
         sys.stdout.write(''.join(l_data_dihedral_coeffs))
+        non_empty_output = True
     if len(l_data_improper_coeffs) > 0:
         l_data_improper_coeffs.insert(0, (' '*cindent)+'write_once(\"'+data_improper_coeffs+'\") {\n')
         l_data_improper_coeffs.append((' '*cindent)+'}\n')
         sys.stdout.write('\n')
         sys.stdout.write(''.join(l_data_improper_coeffs))
+        non_empty_output = True
     if len(l_data_pair_coeffs) > 0:
         l_data_pair_coeffs.insert(0, (' '*cindent)+'write_once(\"'+data_pair_coeffs+'\") {\n')
         l_data_pair_coeffs.append((' '*cindent)+'}\n')
         sys.stdout.write('\n')
         sys.stdout.write(''.join(l_data_pair_coeffs))
+        non_empty_output = True
 
     # class2 force fields:
     if len(l_data_bondbond_coeffs) > 0:
@@ -1766,41 +1894,49 @@ try:
         l_data_bondbond_coeffs.append((' '*cindent)+'}\n')
         sys.stdout.write('\n')
         sys.stdout.write(''.join(l_data_bondbond_coeffs))
+        non_empty_output = True
     if len(l_data_bondangle_coeffs) > 0:
         l_data_bondangle_coeffs.insert(0, (' '*cindent)+'write_once(\"'+data_bondangle_coeffs+'\") {\n')
         l_data_bondangle_coeffs.append((' '*cindent)+'}\n')
         sys.stdout.write('\n')
         sys.stdout.write(''.join(l_data_bondangle_coeffs))
+        non_empty_output = True
     if len(l_data_middlebondtorsion_coeffs) > 0:
         l_data_middlebondtorsion_coeffs.insert(0, (' '*cindent)+'write_once(\"'+data_middlebondtorsion_coeffs+'\") {\n')
         l_data_middlebondtorsion_coeffs.append((' '*cindent)+'}\n')
         sys.stdout.write('\n')
         sys.stdout.write(''.join(l_data_middlebondtorsion_coeffs))
+        non_empty_output = True
     if len(l_data_endbondtorsion_coeffs) > 0:
         l_data_endbondtorsion_coeffs.insert(0, (' '*cindent)+'write_once(\"'+data_endbondtorsion_coeffs+'\") {\n')
         l_data_endbondtorsion_coeffs.append((' '*cindent)+'}\n')
         sys.stdout.write('\n')
         sys.stdout.write(''.join(l_data_endbondtorsion_coeffs))
+        non_empty_output = True
     if len(l_data_angletorsion_coeffs) > 0:
         l_data_angletorsion_coeffs.insert(0, (' '*cindent)+'write_once(\"'+data_angletorsion_coeffs+'\") {\n')
         l_data_angletorsion_coeffs.append((' '*cindent)+'}\n')
         sys.stdout.write('\n')
         sys.stdout.write(''.join(l_data_angletorsion_coeffs))
+        non_empty_output = True
     if len(l_data_angleangletorsion_coeffs) > 0:
         l_data_angleangletorsion_coeffs.insert(0, (' '*cindent)+'write_once(\"'+data_angleangletorsion_coeffs+'\") {\n')
         l_data_angleangletorsion_coeffs.append((' '*cindent)+'}\n')
         sys.stdout.write('\n')
         sys.stdout.write(''.join(l_data_angleangletorsion_coeffs))
+        non_empty_output = True
     if len(l_data_bondbond13_coeffs) > 0:
         l_data_bondbond13_coeffs.insert(0, (' '*cindent)+'write_once(\"'+data_bondbond13_coeffs+'\") {\n')
         l_data_bondbond13_coeffs.append((' '*cindent)+'}\n')
         sys.stdout.write('\n')
         sys.stdout.write(''.join(l_data_bondbond13_coeffs))
+        non_empty_output = True
     if len(l_data_angleangle_coeffs) > 0:
         l_data_angleangle_coeffs.insert(0, (' '*cindent)+'write_once(\"'+data_angleangle_coeffs+'\") {\n')
         l_data_angleangle_coeffs.append((' '*cindent)+'}\n')
         sys.stdout.write('\n')
         sys.stdout.write(''.join(l_data_angleangle_coeffs))
+        non_empty_output = True
 
     # automatic generation of bonded interactions by type:
     if len(l_data_angles_by_type) > 0:
@@ -1808,25 +1944,30 @@ try:
         l_data_angles_by_type.append((' '*cindent)+'}\n')
         sys.stdout.write('\n')
         sys.stdout.write(''.join(l_data_angles_by_type))
+        non_empty_output = True
     if len(l_data_dihedrals_by_type) > 0:
         l_data_dihedrals_by_type.insert(0, (' '*cindent)+'write_once(\"'+data_dihedrals_by_type+'\") {\n')
         l_data_dihedrals_by_type.append((' '*cindent)+'}\n')
         sys.stdout.write('\n')
         sys.stdout.write(''.join(l_data_dihedrals_by_type))
+        non_empty_output = True
     if len(l_data_impropers_by_type) > 0:
         l_data_impropers_by_type.insert(0, (' '*cindent)+'write_once(\"'+data_impropers_by_type+'\") {\n')
         l_data_impropers_by_type.append((' '*cindent)+'}\n')
         sys.stdout.write('\n')
         sys.stdout.write(''.join(l_data_impropers_by_type))
+        non_empty_output = True
 
     if len(l_data_atoms) > 0:
         l_data_atoms.insert(0, (' '*cindent)+'write(\"'+data_atoms+'\") {\n')
         l_data_atoms.append((' '*cindent)+'}\n')
         sys.stdout.write('\n')
         sys.stdout.write(''.join(l_data_atoms))
+        non_empty_output = True
     else:
         sys.stderr.write('Warning: missing \"Atoms\" section.\n'
                          '         (Did you include a LAMMPS data file in your argument list?)\n')
+        no_warnings = False
 
     # non-point-like particles
     if len(l_data_ellipsoids) > 0:
@@ -1855,65 +1996,38 @@ try:
         l_data_bonds.append((' '*cindent)+'}\n')
         sys.stdout.write('\n')
         sys.stdout.write(''.join(l_data_bonds))
+        non_empty_output = True
     if len(l_data_angles) > 0:
         l_data_angles.insert(0, (' '*cindent)+'write(\"'+data_angles+'\") {\n')
         l_data_angles.append((' '*cindent)+'}\n')
         sys.stdout.write('\n')
         sys.stdout.write(''.join(l_data_angles))
+        non_empty_output = True
     if len(l_data_dihedrals) > 0:
         l_data_dihedrals.insert(0, (' '*cindent)+'write(\"'+data_dihedrals+'\") {\n')
         l_data_dihedrals.append((' '*cindent)+'}\n')
         sys.stdout.write('\n')
         sys.stdout.write(''.join(l_data_dihedrals))
+        non_empty_output = True
     if len(l_data_impropers) > 0:
         l_data_impropers.insert(0, (' '*cindent)+'write(\"'+data_impropers+'\") {\n')
         l_data_impropers.append((' '*cindent)+'}\n')
         sys.stdout.write('\n')
         sys.stdout.write(''.join(l_data_impropers))
-    if len(l_in_pair_coeffs) > 0:
-        l_in_pair_coeffs.insert(0, (' '*cindent)+'write_once(\"'+in_settings+'\") {\n')
-        l_in_pair_coeffs.append((' '*cindent)+'}\n')
-        sys.stdout.write('\n')
-        sys.stdout.write(''.join(l_in_pair_coeffs))
-    if len(l_in_bond_coeffs) > 0:
-        l_in_bond_coeffs.insert(0, (' '*cindent)+'write_once(\"'+in_settings+'\") {\n')
-        l_in_bond_coeffs.append((' '*cindent)+'}\n')
-        sys.stdout.write('\n')
-        sys.stdout.write(''.join(l_in_bond_coeffs))
-    if len(l_in_angle_coeffs) > 0:
-        l_in_angle_coeffs.insert(0, (' '*cindent)+'write_once(\"'+in_settings+'\") {\n')
-        l_in_angle_coeffs.append((' '*cindent)+'}\n')
-        sys.stdout.write('\n')
-        sys.stdout.write(''.join(l_in_angle_coeffs))
-    if len(l_in_dihedral_coeffs) > 0:
-        l_in_dihedral_coeffs.insert(0, (' '*cindent)+'write_once(\"'+in_settings+'\") {\n')
-        l_in_dihedral_coeffs.append((' '*cindent)+'}\n')
-        sys.stdout.write('\n')
-        sys.stdout.write(''.join(l_in_dihedral_coeffs))
-    if len(l_in_improper_coeffs) > 0:
-        l_in_improper_coeffs.insert(0, (' '*cindent)+'write_once(\"'+in_settings+'\") {\n')
-        l_in_improper_coeffs.append((' '*cindent)+'}\n')
-        sys.stdout.write('\n')
-        sys.stdout.write(''.join(l_in_improper_coeffs))
-    if len(l_in_masses) > 0:
-        l_in_masses.insert(0, (' '*cindent)+'write_once(\"'+in_settings+'\") {\n')
-        l_in_masses.append((' '*cindent)+'}\n')
-        sys.stdout.write('\n')
-        sys.stdout.write(''.join(l_in_masses))
-
-    if len(l_in_settings) > 0:
-        l_in_settings.insert(0, (' '*cindent)+'write_once(\"'+in_settings+'\") {\n')
-        l_in_settings.append((' '*cindent)+'}\n')
-        sys.stdout.write('\n')
-        sys.stdout.write(''.join(l_in_settings))
-    if len(l_in_init) > 0:
-        l_in_init.insert(0, (' '*cindent)+'write_once(\"'+in_init+'\") {\n')
-        l_in_init.append((' '*cindent)+'}\n')
-        sys.stdout.write('\n')
-        sys.stdout.write(''.join(l_in_init))
+        non_empty_output = True
 
     if mol_name != '':
         sys.stdout.write('\n} # end of \"'+mol_name+'\" type definition\n')
+
+    if non_empty_output and no_warnings:
+        sys.stderr.write('WARNING: The '+g_program_name+' script has not been rigorously tested.\n'
+                         '         Exotic (manybody) pair styles (and other force-field styles\n'
+                         '         with unusual syntax) are not understood by '+g_program_name+'\n'
+                         '         (although they are supported by moltemplate).  Please look over\n'
+                         '         the resulting LT file and check for errors.  Convert any remaining\n'
+                         '         atom, bond, angle, dihedral, or improper id or type numbers to the\n'
+                         '         corresponding variables.  Feel free to report any bugs you find.\n'
+                         '         (-Andrew Jewett 2012-12-11)\n')
 
 except (ValueError, InputError) as err:
     sys.stderr.write('\n'+str(err)+'\n')

@@ -168,8 +168,10 @@ must prevent particle migration beyond the initial z-bounds, typically
 by providing a wall-style fix.  The methodology behind the <I>slab</I>
 option is explained in the paper by <A HREF = "#Yeh">(Yeh)</A>.  An alternative slab
 option can be invoked with the <I>nozforce</I> keyword in lieu of the
-volfactor. This turns off all kspace forces in the z direction. The
-<I>slab</I> and <I>nozforce</I> options are not allowed for MSM.
+volfactor. This turns off all kspace forces in the z direction. 
+The <I>nozforce</I> option is not supported by MSM. For MSM, any combination
+of periodic, non-periodic, or shrink-wrapped boundaries can be set 
+using <A HREF = "boundary.html">boundary</A> (the slab approximation in not needed).
 </P>
 <P>The <I>compute</I> keyword allows Kspace computations to be turned off,
 even though a <A HREF = "kspace_style.html">kspace_style</A> is defined.  This is
@@ -203,9 +205,7 @@ then performs analytic differentiation on the single quantity to
 generate the 3 components of the electric field at each grid point.
 This is sometimes referred to as "smoothed" PPPM.  This approach
 requires a somewhat larger PPPM mesh to achieve the same accuracy as
-the <I>ik</I> method.  Analogous approaches have been implemented in MSM
-and can be specified using the same keywords.  The <I>ad</I> approach is
-the default for MSM.
+the <I>ik</I> method. The <I>ad</I> method is always used for MSM.
 </P>
 <P>IMPORTANT NOTE: Currently, not all PPPM styles support the <I>ad</I>
 option.  Support for those PPPM variants will be added later.
@@ -221,7 +221,7 @@ option.  Support for those PPPM variants will be added later.
 <P>The option defaults are mesh = mesh/disp = 0 0 0, order = order/disp =
 5 (PPPM), order = 8 (MSM), minorder = 2, overlap = yes, force = -1.0,
 gewald = gewald/disp = 0.0, slab = 1.0, compute = yes, cutoff/adjust =
-yes, and diff = ik (PPPM), diff = ad (MSM).
+yes (MSM), and diff = ik (PPPM).
 </P>
 <HR>
 

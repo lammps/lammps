@@ -6,28 +6,30 @@
 # Copyright (c) 2012, Regents of the University of California
 # All rights reserved.
 
+G_PROGRAM_NAME="moltemplate.sh"
+G_VERSION="1.01"
+G_DATE="2012-12-15"
+
+echo "${G_PROGRAM_NAME} v${G_VERSION} ${G_DATE}" >&2
+echo "" >&2
+
 
 # First, determine the directory in which this shell script is located.
 # (The python script files should also be located here as well.)
-# method 1:
-#   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-# method 2:
-#   SOURCE="${BASH_SOURCE[0]}"
-#   while [ -h "$SOURCE" ] ; do SOURCE="$(readlink "$SOURCE")"; done
-#   SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
-# method 3:
 SCRIPT_DIR=$(dirname $0)
 
 
-#if which python3 > /dev/null; then 
-#    PYTHON_COMMAND='python3'
-#else
-#    PYTHON_COMMAND='python'
-#fi
-#
-# COMMENTING OUT: I don't use python3 any more because python3 has a larger 
-#                 memory footprint.  Just use regular python instead.)
-PYTHON_COMMAND='python'
+# Check for python:
+# I prefer python over python3 because python3 requires 
+# more memory.  Just use regular python when available.
+if which python > /dev/null; then 
+    PYTHON_COMMAND='python'
+elif which python3 > /dev/null; then 
+    PYTHON_COMMAND='python3'
+else
+    echo "Error:  $G_PROGRAM_NAME requires python or python3" >&2
+    exit 1
+fi
 
 
 IMOLPATH=""
@@ -35,11 +37,14 @@ if [ -n "${MOLTEMPLATE_PATH}" ]; then
   IMOLPATH="-importpath ${MOLTEMPLATE_PATH}"
 fi
 
+# command that invokes lttree.py
+LTTREE_COMMAND="$PYTHON_COMMAND ${SCRIPT_DIR}/lttree.py ${IMOLPATH}"
+
 # command that invokes lttree_check.py
 LTTREE_CHECK_COMMAND="$PYTHON_COMMAND ${SCRIPT_DIR}/lttree_check.py ${IMOLPATH}"
 
-# command that invokes lttree.py
-LTTREE_COMMAND="$PYTHON_COMMAND ${SCRIPT_DIR}/lttree.py ${IMOLPATH}"
+# command that invokes lttree_postprocess.py
+LTTREE_POSTPROCESS_COMMAND="$PYTHON_COMMAND ${SCRIPT_DIR}/lttree_postprocess.py ${IMOLPATH}"
 
 # command that invokes nbody_by_type.py
 NBODY_COMMAND="$PYTHON_COMMAND ${SCRIPT_DIR}/nbody_by_type.py"
@@ -331,6 +336,7 @@ while [ "$i" -lt "$ARGC" ]; do
     if [ "$A" = "-nocheck" ]; then
 	# Disable syntax checking by undefining LTTREE_CHECK_COMMAND
 	unset LTTREE_CHECK_COMMAND
+	unset LTTREE_POSTPROCESS_COMMAND
     elif [ "$A" = "-overlay-bonds" ]; then
 	# In that case, do not remove duplicate bond interactions
 	unset REMOVE_DUPLICATE_BONDS
@@ -524,7 +530,6 @@ fi
 
 
 
-
 # ---------------- Interactions By Type -----------------
 # At the time of writing, bonded-interactions-by-atom-type were not
 # understood by LAMMPS.  These features require auxilliary python scripts.
@@ -687,6 +692,16 @@ if [ -s "$data_impropers_by_type" ]; then
 
     mv -f ttree_assignments.tmp ttree_assignments.txt
     rm -f gen_Impropers.template.tmp new_Impropers.template.tmp 
+fi
+
+
+
+if [ -n "$LTTREE_POSTPROCESS_COMMAND" ]; then
+    echo "" >&2
+    if ! eval $LTTREE_POSTPROCESS_COMMAND $TTREE_ARGS; then
+        exit 1
+    fi
+    echo "" >&2
 fi
 
 
@@ -869,6 +884,7 @@ if [ -s "$data_boundary" ]; then
 
     if [ -n "$BOXSIZE_XY" ] || [ -n "$BOXSIZE_XZ" ] || [ -n "$BOXSIZE_YZ" ]; then
         if [ -n "$BOXSIZE_XY" ] && [ -n "$BOXSIZE_XZ" ] && [ -n "$BOXSIZE_YZ" ]; then
+            #echo "triclinic_parameters: XY XZ YZ = $BOXSIZE_XY $BOXSIZE_XZ $BOXSIZE_YZ" >&2
             TRICLINIC="True"
         else
             echo "Error: Problem with triclinic format (\"xy xz yz\") in \"$data_boundary\"" >&2
@@ -932,11 +948,13 @@ fi
 
 
 
-if [ -n $TRICLINIC ]; then
+if [ -z "$TRICLINIC" ]; then
     echo "  $BOXSIZE_MINX $BOXSIZE_MAXX xlo xhi" >> "$OUT_FILE_DATA"
     echo "  $BOXSIZE_MINY $BOXSIZE_MAXY ylo yhi" >> "$OUT_FILE_DATA"
     echo "  $BOXSIZE_MINZ $BOXSIZE_MAXZ zlo zhi" >> "$OUT_FILE_DATA"
 else
+    echo "triclinic parameters: XY XZ YZ = $BOXSIZE_XY $BOXSIZE_XZ $BOXSIZE_YZ" >&2
+    echo "" >&2
     # Otherwise, this is a triclinic (non orthoganal) crystal basis.
     # LAMMPS represents triclinic symmetry using a different set of parameters
     # (lx,ly,lz,xy,xz,yz) than the PDB file format (alpha,beta,gamma).
@@ -1334,7 +1352,7 @@ fi
 
 echo "" > input_scripts_so_far.tmp
 
-for file_name in "$OUT_FILE_INPUT_SCRIPT" "$OUT_FILE_SETTINGS" "$OUT_FILE_INIT"; do
+for file_name in "$OUT_FILE_INIT" "$OUT_FILE_INPUT_SCRIPT" "$OUT_FILE_SETTINGS"; do
     if [ -s "$file_name" ]; then
         echo "postprocessing file \"$file_name\"" >&2
 	postprocess_input_script.py input_scripts_so_far.tmp < "$file_name" > "$file_name".tmp

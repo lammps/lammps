@@ -77,9 +77,9 @@ __kernel void k_yukawa(const __global numtyp4 *restrict x_,
         
       int mtype=itype*lj_types+jtype;
       if (rsq<coeff[mtype].z) {
-        numtyp r2inv = (numtyp)1.0/rsq;
-        numtyp r = ucl_rsqrt(r2inv);
-        numtyp rinv = 1.0/r;
+        numtyp r2inv = ucl_recip(rsq);
+        numtyp r = ucl_sqrt(rsq);
+        numtyp rinv = ucl_recip(r);
         numtyp screening = exp(-kappa*r);
         numtyp force = coeff[mtype].x*screening*(kappa + rinv)*r2inv;
         force*=factor_lj;
@@ -165,9 +165,9 @@ __kernel void k_yukawa_fast(const __global numtyp4 *restrict x_,
       numtyp rsq = delx*delx+dely*dely+delz*delz;
         
       if (rsq<coeff[mtype].z) {
-        numtyp r2inv = (numtyp)1.0/rsq;
-        numtyp r = ucl_rsqrt(r2inv);
-        numtyp rinv = 1.0/r;
+        numtyp r2inv = ucl_recip(rsq);
+        numtyp r = ucl_sqrt(rsq);
+        numtyp rinv = ucl_recip(r);
         numtyp screening = exp(-kappa*r);
         numtyp force = coeff[mtype].x*screening*(kappa + rinv)*r2inv;
         force*=factor_lj;

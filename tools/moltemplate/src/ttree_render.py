@@ -21,13 +21,13 @@ from ttree import *
 import gc
 
 
-g_file_name    = __file__.split('/')[-1]
-g_module_name  = g_file_name
-if g_file_name.rfind('.py') != -1:
-    g_module_name = g_file_name[:g_file_name.rfind('.py')]
+g_filename    = __file__.split('/')[-1]
+g_module_name  = g_filename
+if g_filename.rfind('.py') != -1:
+    g_module_name = g_filename[:g_filename.rfind('.py')]
 g_date_str     = '2012-9-06'
 g_version_str  = '0.1'
-g_program_name = g_file_name
+g_program_name = g_filename
 #sys.stderr.write(g_program_name+' v'+g_version_str+' '+g_date_str+' ')
 
 
@@ -45,18 +45,18 @@ try:
                          '   (This is likely a programmer error.\n'
                          '    This script was not intended to be run by end users.)\n')
 
-    bindings_file_name = sys.argv[1]
-    f = open(bindings_file_name)
+    bindings_filename = sys.argv[1]
+    f = open(bindings_filename)
     assignments = {}
 
-    #BasicUIReadBindingsStream(assignments, f, bindings_file_name)
+    #BasicUIReadBindingsStream(assignments, f, bindings_filename)
 
     # The line above is robust but it uses far too much memory.
     # This for loop below works for most cases.
     for line in f:
         #tokens = lines.strip().split()
         tokens = SplitQuotedString(line.strip()) # like split but handles quotes
-        if len(tokens) != 2:
+        if len(tokens) < 2:
             continue
         assignments[tokens[0]] = tokens[1]
 
@@ -84,9 +84,9 @@ try:
 
             var_name = entry
             if var_name not in assignments:
-                raise(InputError('Error at '+
-                                 ErrorLeader(var_ref.src_loc.infile,
-                                             var_ref.src_loc.lineno)+
+                raise(InputError('Error('+g_program_name+')'
+                                 #' at '+ErrorLeader(var_ref.src_loc.infile,
+                                 #                  var_ref.src_loc.lineno)+
                                  ' unknown variable:\n'
                                  '         \"'+var_name+'\"\n'))
             else:

@@ -10,6 +10,7 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
+#include "stdint.h"
 
 #include "many2one.h"
 #include "one2many.h"
@@ -35,7 +36,7 @@ using namespace LAMMPS_NS;
 #define ANGSTROM_per_BOHR 0.529
 #define EV_per_RYDBERG 13.6056923
 
-void quest_callback(void *, int, int, int *, double **, double **);
+void quest_callback(void *, bigint, int, int *, double **, double **);
 
 struct Info {
   int me;
@@ -92,6 +93,7 @@ int main(int narg, char **arg)
   info.quest_input = quest_input;
 
   // set callback to Quest inside fix external
+  // this could also be done thru Python, using a ctypes callback
 
   int ifix = lmp->modify->find_fix("2");
   FixExternal *fix = (FixExternal *) lmp->modify->fix[ifix];
@@ -122,8 +124,8 @@ int main(int narg, char **arg)
    f can be NULL if proc owns no atoms
 ------------------------------------------------------------------------- */
 
-void quest_callback(void *ptr, int ntimestep, int nlocal,
-		    int *id, double **x, double **f)
+void quest_callback(void *ptr, bigint ntimestep,
+		    int nlocal, int *id, double **x, double **f)
 {
   int i,j;
   char str[128];

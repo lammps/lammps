@@ -347,11 +347,7 @@ void FixAdapt::change_settings()
 	int *mask = atom->mask;
 	int nlocal = atom->nlocal;
 	for (i = 0; i < nlocal; i++)
-	  if (mask[i] & groupbit) {
-//              cout<<"Fix adapt called now!\n";
-//            cout<<" Charge of atom: "<<i<<" is: "<<value; 
-            q[i] = value; 
-	  }
+	  if (mask[i] & groupbit) q[i] = value; 
       }
     }
   }

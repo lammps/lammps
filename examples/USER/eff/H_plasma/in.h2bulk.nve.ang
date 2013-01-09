@@ -9,7 +9,7 @@ atom_style	electron
 
 read_data  	data.${sname}
 
-pair_style      eff/cut 16.207559818252903 1 1
+pair_style      eff/cut 16.207559818252903 limit/eradius pressure/evirials
 pair_coeff	* * 
 
 neigh_modify    one 10000 page 100000

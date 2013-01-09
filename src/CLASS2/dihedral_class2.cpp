@@ -225,6 +225,19 @@ void DihedralClass2::compute(int eflag, int vflag)
     sinphi = sqrt(1.0 - c*c);
     sinphi = MAX(sinphi,SMALL);
 
+    // addition by Andrew Jewett, Jan 2013
+    // adjust the sign of phi if necessary for negative input angles
+    // n123 = vb2 x vb1
+
+    double n123x = vb1y*vb2z - vb1z*vb2y;
+    double n123y = vb1z*vb2x - vb1x*vb2z;
+    double n123z = vb1x*vb2y - vb1y*vb2x;
+    double n123_dot_vb3 = n123x*vb3x + n123y*vb3y + n123z*vb3z;
+    if (n123_dot_vb3 > 0.0) {
+      phi = -phi;
+      sinphi = -sinphi;
+    }
+
     a11 = -c*sb1*s1;
     a22 = sb2 * (2.0*costh13*s12 - c*(s1+s2));
     a33 = -c*sb3*s2;

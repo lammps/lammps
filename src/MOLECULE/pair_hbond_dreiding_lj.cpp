@@ -289,7 +289,7 @@ void PairHbondDreidingLJ::settings(int narg, char **arg)
 
 void PairHbondDreidingLJ::coeff(int narg, char **arg)
 {
-  if (narg < 6 || narg > 9)
+  if (narg < 6 || narg > 10)
     error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 

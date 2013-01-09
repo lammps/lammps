@@ -703,7 +703,6 @@ one line per atom
 line syntax: depends on atom style :ul
 
 all styles except those listed: atom-ID vx vy vz
-dipole: atom-ID vx vy vz wx wy wz
 electron: atom-ID vx vy vz ervel
 ellipsoid: atom-ID vx vy vz lx ly lz
 sphere: atom-ID vx vy vz wx wy wz
@@ -740,12 +739,6 @@ were used in the input script, each velocity line would have these
 fields:
 
 atom-ID vx vy vz ervel wx wy wz :pre
-
-Note that if a non-standard value is defined by multiple sub-styles,
-it must appear mutliple times in the velocity line.  E.g. the velocity
-line for atom_style hybrid dipole sphere would list "wx" twice:
-
-atom-ID vx vy vz wx wy wz wx wy wz :pre
 
 Translational velocities can also be set by the
 "velocity"_velocity.html command in the input script.

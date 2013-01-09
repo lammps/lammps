@@ -66,10 +66,6 @@ the end of a simulation.  Even if {reset} is specified as {yes}, a
 restart file written during a simulation will contain the modified
 settings.
 
-IMPORTANT NOTE: Currently, only the {pair} and {kspace} params
-are resettable.  {Atom} attributes are not.  This will be
-added at some point.
-
 If the {scale} keyword is set to {no}, then the value the parameter is
 set to will be whatever the variable generates.  If the {scale}
 keyword is set to {yes}, then the value of the altered parameter will
@@ -102,8 +98,8 @@ styles and their energy formulas for the meaning of these parameters:
 "coul/cut"_pair_coul.html: scale: type pairs:
 "coul/debye"_pair_coul.html: scale: type pairs:
 "coul/long"_pair_coul.html: scale: type pairs:
-"lj/cut"_pair_lj.html: epsilon: type pairs:
-"lj/cut/opt"_pair_lj.html: epsilon: type pairs:
+"lj/cut"_pair_lj.html: epsilon,sigma: type pairs:
+"lj/expand"_pair_lj_expand.html: epsilon,sigma,delta: type pairs:
 "lubricate"_pair_lubricate.html: mu: global:
 "gauss"_pair_gauss.html: a: type pairs:
 "soft"_pair_soft.html: a: type pairs :tb(c=3,s=:)
@@ -190,6 +186,7 @@ The {atom} keyword enables various atom properties to be changed.  The
 {aparam} argument is the name of the parameter to change.  This is the
 current list of atom parameters that can be varied by this fix:
 
+charge = charge on particle
 diameter = diameter of particle :ul
 
 The {v_name} argument of the {atom} keyword is the name of an
@@ -212,6 +209,8 @@ over the course of a 1000-step simulation:
 
 variable size equal ramp(1.0,0.1)
 fix 1 center adapt 10 atom diameter v_size :pre
+
+:line
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 

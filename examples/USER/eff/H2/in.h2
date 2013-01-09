@@ -9,7 +9,7 @@ atom_style	electron
 
 read_data  	data.${sname}
 
-pair_style      eff/cut 6.447968 0 1
+pair_style      eff/cut 6.447968 pressure/evirials
 pair_coeff 	* *
 
 communicate	single vel yes

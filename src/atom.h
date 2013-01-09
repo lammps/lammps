@@ -90,6 +90,7 @@ class Atom : protected Pointers {
   // customize by adding new flag
 
   int sphere_flag,ellipsoid_flag,line_flag,tri_flag,peri_flag,electron_flag;
+  int ecp_flag;
   int wavepacket_flag,sph_flag;
 
   int molecule_flag,q_flag,mu_flag;

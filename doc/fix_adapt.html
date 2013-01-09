@@ -79,10 +79,6 @@ the end of a simulation.  Even if <I>reset</I> is specified as <I>yes</I>, a
 restart file written during a simulation will contain the modified
 settings.
 </P>
-<P>IMPORTANT NOTE: Currently, only the <I>pair</I> and <I>kspace</I> params
-are resettable.  <I>Atom</I> attributes are not.  This will be
-added at some point.
-</P>
 <P>If the <I>scale</I> keyword is set to <I>no</I>, then the value the parameter is
 set to will be whatever the variable generates.  If the <I>scale</I>
 keyword is set to <I>yes</I>, then the value of the altered parameter will
@@ -116,8 +112,8 @@ styles and their energy formulas for the meaning of these parameters:
 <TR><TD ><A HREF = "pair_coul.html">coul/cut</A></TD><TD > scale</TD><TD > type pairs</TD></TR>
 <TR><TD ><A HREF = "pair_coul.html">coul/debye</A></TD><TD > scale</TD><TD > type pairs</TD></TR>
 <TR><TD ><A HREF = "pair_coul.html">coul/long</A></TD><TD > scale</TD><TD > type pairs</TD></TR>
-<TR><TD ><A HREF = "pair_lj.html">lj/cut</A></TD><TD > epsilon</TD><TD > type pairs</TD></TR>
-<TR><TD ><A HREF = "pair_lj.html">lj/cut/opt</A></TD><TD > epsilon</TD><TD > type pairs</TD></TR>
+<TR><TD ><A HREF = "pair_lj.html">lj/cut</A></TD><TD > epsilon,sigma</TD><TD > type pairs</TD></TR>
+<TR><TD ><A HREF = "pair_lj_expand.html">lj/expand</A></TD><TD > epsilon,sigma,delta</TD><TD > type pairs</TD></TR>
 <TR><TD ><A HREF = "pair_lubricate.html">lubricate</A></TD><TD > mu</TD><TD > global</TD></TR>
 <TR><TD ><A HREF = "pair_gauss.html">gauss</A></TD><TD > a</TD><TD > type pairs</TD></TR>
 <TR><TD ><A HREF = "pair_soft.html">soft</A></TD><TD > a</TD><TD > type pairs 
@@ -205,7 +201,8 @@ is set to <I>no</I> or <I>yes</I>.
 <I>aparam</I> argument is the name of the parameter to change.  This is the
 current list of atom parameters that can be varied by this fix:
 </P>
-<UL><LI>diameter = diameter of particle 
+<UL><LI>charge = charge on particle
+<LI>diameter = diameter of particle 
 </UL>
 <P>The <I>v_name</I> argument of the <I>atom</I> keyword is the name of an
 <A HREF = "variable.html">equal-style variable</A> which will be evaluated each time
@@ -228,6 +225,8 @@ over the course of a 1000-step simulation:
 <PRE>variable size equal ramp(1.0,0.1)
 fix 1 center adapt 10 atom diameter v_size 
 </PRE>
+<HR>
+
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>
 <P>No information about this fix is written to <A HREF = "restart.html">binary restart

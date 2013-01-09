@@ -193,7 +193,7 @@ void Ewald::init()
               kcount,kmax,kmax3d);
     }
     if (logfile) {
-      fprintf(logfile,"  G vector (1/distnace) = %g\n",g_ewald);
+      fprintf(logfile,"  G vector (1/distance) = %g\n",g_ewald);
       fprintf(logfile,"  estimated absolute RMS force accuracy = %g\n",
               estimated_accuracy);
       fprintf(logfile,"  estimated relative force accuracy = %g\n",

@@ -316,6 +316,7 @@ void KSpace::modify_params(int narg, char **arg)
     } else if (strcmp(arg[iarg],"order/disp") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
       order_6 = atoi(arg[iarg+1]);
+      iarg += 2;
     } else if (strcmp(arg[iarg],"minorder") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
       minorder = atoi(arg[iarg+1]);

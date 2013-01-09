@@ -60,6 +60,13 @@ FixAppendAtoms::FixAppendAtoms(LAMMPS *lmp, int narg, char **arg) :
   randomx = NULL;
   randomt = NULL;
 
+  if (!domain->lattice) 
+    error->all(FLERR,"Fix append/atoms requires a lattice be defined");
+
+  nbasis = domain->lattice->nbasis;
+  basistype = new int[nbasis];
+  for (int i = 0; i < nbasis; i++) basistype[i] = 1;
+
   int iarg = 0;
   iarg = 3;
   while (iarg < narg) {
@@ -116,6 +123,16 @@ FixAppendAtoms::FixAppendAtoms(LAMMPS *lmp, int narg, char **arg) :
       spatialid = new char[n];
       strcpy(spatialid,suffix);
       delete [] suffix;
+      iarg += 3;
+    } else if (strcmp(arg[iarg],"basis") == 0) {
+      if (iarg+3 > narg) error->all(FLERR,"Illegal fix append/atoms command");
+      if (domain->lattice == NULL)
+        error->all(FLERR,"Must define lattice to append/atoms");
+      int ibasis = atoi(arg[iarg+1]);
+      int itype = atoi(arg[iarg+2]);
+      if (ibasis <= 0 || ibasis > nbasis || itype <= 0 || itype > atom->ntypes)
+        error->all(FLERR,"Illegal fix append/atoms command");
+      basistype[ibasis-1] = itype;
       iarg += 3;
     } else if (strcmp(arg[iarg],"size") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix append/atoms command");
@@ -193,6 +210,8 @@ FixAppendAtoms::FixAppendAtoms(LAMMPS *lmp, int narg, char **arg) :
 
 FixAppendAtoms::~FixAppendAtoms()
 {
+  delete [] basistype;
+
   if (ranflag) delete randomx;
   if (tempflag) {
     delete randomt;
@@ -396,12 +415,6 @@ void FixAppendAtoms::pre_exchange()
   if (ntimestep % freq == 0) {
     if (spatflag==1) if (get_spatial()==0) return;
     if (comm->myloc[2] == comm->procgrid[2]-1) {
-      if (domain->lattice) {
-        nbasis = domain->lattice->nbasis;
-        basistype = new int[nbasis];
-        for (int i = 0; i < nbasis; i++) basistype[i] = 1;
-      } else error->all(FLERR,"Must define lattice to append/atoms");
-
       double bboxlo[3],bboxhi[3];
 
       bboxlo[0] = domain->sublo[0]; bboxhi[0] = domain->subhi[0];

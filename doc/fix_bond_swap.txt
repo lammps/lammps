@@ -99,6 +99,13 @@ chains then inter-chain swaps will occur, but they will not conserve
 chain length.  Neither of these scenarios is probably not what you
 want for this fix.
 
+IMPORTANT NOTE: When a bond swap occurs the image flags of monomers in
+the new polymer chains can become inconsistent.  See the
+"dump"_dump.html command for a discussion of image flags.  This is not
+an issue for running dynamics, but can affect calculation of some
+diagnostic quantities or the printing of unwrapped coordinates to a
+dump file.
+
 :line
 
 This fix computes a temperature each time it is invoked for use by the

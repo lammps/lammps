@@ -152,22 +152,22 @@ void FixHeat::end_of_step()
   double *mass = atom->mass;
   double *rmass = atom->rmass;
 
-  // reallocate vheat array if necessary
+  // reallocate per-atom arrays if necessary
 
   if (hstyle == ATOM && atom->nlocal > maxatom) {
     maxatom = atom->nmax;
     memory->destroy(vheat);
-    memory->create(vheat,maxatom,"heat:vheat");
     memory->destroy(vscale);
+    memory->create(vheat,maxatom,"heat:vheat");
     memory->create(vscale,maxatom,"heat:vscale");
   }
 
+  // evaluate variable
+
   if (hstyle != CONSTANT) {
     modify->clearstep_compute();
-
     if (hstyle == EQUAL) heat_input = input->variable->compute_equal(hvar);
     else input->variable->compute_atom(hvar,igroup,vheat,1,0);
-
     modify->addstep_compute(update->ntimestep + nevery);
   }
 
@@ -184,19 +184,22 @@ void FixHeat::end_of_step()
   }
   double vcmsq = vcm[0]*vcm[0] + vcm[1]*vcm[1] + vcm[2]*vcm[2];
 
-  // scale = velocity scale factor to accomplish eflux change in energy
-  // vsub = velocity subtracted from each atom to preserve momentum
 
   // add heat via scale factor on velocities for CONSTANT and EQUAL cases
+  // scale = velocity scale factor to accomplish eflux change in energy
+  // vsub = velocity subtracted from each atom to preserve momentum
+  // overall KE cannot go negative
 
   if (hstyle != ATOM) {
     heat = heat_input*nevery*update->dt*force->ftm2v;
-    double escale = (ke + heat - 0.5*vcmsq*masstotal)/(ke - 0.5*vcmsq*masstotal);
+    double escale = 
+      (ke + heat - 0.5*vcmsq*masstotal)/(ke - 0.5*vcmsq*masstotal);
     if (escale < 0.0) error->all(FLERR,"Fix heat kinetic energy went negative");
     scale = sqrt(escale);
     vsub[0] = (scale-1.0) * vcm[0];
     vsub[1] = (scale-1.0) * vcm[1];
     vsub[2] = (scale-1.0) * vcm[2];
+
     if (iregion < 0) {
       for (i = 0; i < nlocal; i++)
         if (mask[i] & groupbit) {
@@ -215,15 +218,21 @@ void FixHeat::end_of_step()
     }
 
   // add heat via per-atom scale factor on velocities for ATOM case
-    
+  // vscale = velocity scale factor to accomplish eflux change in energy
+  // vsub = velocity subtracted from each atom to preserve momentum
+  // KE of an atom cannot go negative
+
   } else {
     vsub[0] = vsub[1] = vsub[2] = 0.0;
     if (iregion < 0) {
-      for (i = 0; i < nlocal; i++)
+      for (i = 0; i < nlocal; i++) {
         if (mask[i] & groupbit) {
           heat = vheat[i]*nevery*update->dt*force->ftm2v;
-          vscale[i] = (ke + heat - 0.5*vcmsq*masstotal)/(ke - 0.5*vcmsq*masstotal);
-          if (vscale[i] < 0.0) error->all(FLERR,"Fix heat kinetic energy went negative");
+          vscale[i] = 
+            (ke + heat - 0.5*vcmsq*masstotal)/(ke - 0.5*vcmsq*masstotal);
+          if (vscale[i] < 0.0) 
+            error->all(FLERR,
+                       "Fix heat kinetic energy of an atom went negative");
           scale = sqrt(vscale[i]);
           if (rmass) massone = rmass[i];
           else massone = mass[type[i]];
@@ -231,9 +240,12 @@ void FixHeat::end_of_step()
           vsub[1] += (scale-1.0) * v[i][1]*massone;
           vsub[2] += (scale-1.0) * v[i][2]*massone;
         }
+      }
+
       vsub[0] /= masstotal;
       vsub[1] /= masstotal;
       vsub[2] /= masstotal;
+
       for (i = 0; i < nlocal; i++)
         if (mask[i] & groupbit) {
           scale = sqrt(vscale[i]);
@@ -241,13 +253,17 @@ void FixHeat::end_of_step()
           v[i][1] = scale*v[i][1] - vsub[1];
           v[i][2] = scale*v[i][2] - vsub[2];
         }
+
     } else {
       region = domain->regions[iregion];
-      for (i = 0; i < nlocal; i++)
+      for (i = 0; i < nlocal; i++) {
         if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
           heat = vheat[i]*nevery*update->dt*force->ftm2v;
-          vscale[i] = (ke + heat - 0.5*vcmsq*masstotal)/(ke - 0.5*vcmsq*masstotal);
-          if (vscale[i] < 0.0) error->all(FLERR,"Fix heat kinetic energy went negative");
+          vscale[i] = 
+            (ke + heat - 0.5*vcmsq*masstotal)/(ke - 0.5*vcmsq*masstotal);
+          if (vscale[i] < 0.0) 
+            error->all(FLERR,
+                       "Fix heat kinetic energy of an atom went negative");
           scale = sqrt(vscale[i]);
           if (rmass) massone = rmass[i];
           else massone = mass[type[i]];
@@ -255,9 +271,12 @@ void FixHeat::end_of_step()
           vsub[1] += (scale-1.0) * v[i][1]*massone;
           vsub[2] += (scale-1.0) * v[i][2]*massone;
         }
+      }
+
       vsub[0] /= masstotal;
       vsub[1] /= masstotal;
       vsub[2] /= masstotal;
+
       for (i = 0; i < nlocal; i++)
         if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
           scale = sqrt(vscale[i]);
@@ -276,4 +295,15 @@ double FixHeat::compute_scalar()
   // NOTE: what should this be for per-atom case?
 
   return scale;
+}
+
+/* ----------------------------------------------------------------------
+   memory usage of local atom-based arrays
+------------------------------------------------------------------------- */
+
+double FixHeat::memory_usage()
+{
+  double bytes = 0.0;
+  if (hstyle == ATOM) bytes = atom->nmax*2 * sizeof(double);
+  return bytes;
 }

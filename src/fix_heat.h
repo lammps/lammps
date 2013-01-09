@@ -44,6 +44,7 @@ class FixHeat : public Fix {
 
   int maxatom;
   double *vheat;
+  double *vscale;
 };
 
 }

@@ -1309,10 +1309,10 @@ void MSM::direct(int n)
         
         for (iz = kmin; iz <= kmax; iz++) {
           kk = icz+iz;
-          zk = (iz + nzhi_direct)*nz;
+          zk = (iz + nzhi_direct)*ny;
           for (iy = jmin; iy <= jmax; iy++) {
             jj = icy+iy;
-            zyk = (zk + iy + nyhi_direct)*ny;
+            zyk = (zk + iy + nyhi_direct)*nx;
             for (ix = imin; ix <= imax; ix++) {
               qtmp = qgridn[kk][jj][icx+ix];
               k = zyk + ix + nxhi_direct;
@@ -1419,10 +1419,10 @@ void MSM::direct_peratom(int n)
 
         for (iz = kmin; iz <= kmax; iz++) {
           kk = icz+iz;
-          zk = (iz + nzhi_direct)*nz;
+          zk = (iz + nzhi_direct)*ny;
           for (iy = jmin; iy <= jmax; iy++) {
             jj = icy+iy;
-            zyk = (zk + iy + nyhi_direct)*ny;
+            zyk = (zk + iy + nyhi_direct)*nx;
             for (ix = imin; ix <= imax; ix++) {
               qtmp = qgridn[kk][jj][icx+ix];
               k = zyk + ix + nxhi_direct;
@@ -1490,10 +1490,10 @@ void MSM::direct_top(int n)
 
         for (iz = kmin; iz <= kmax; iz++) {
           kk = icz+iz;
-          zk = (iz + nz_top)*nz;
+          zk = (iz + nz_top)*ny;
           for (iy = jmin; iy <= jmax; iy++) {
             jj = icy+iy;
-            zyk = (zk + iy + ny_top)*ny;
+            zyk = (zk + iy + ny_top)*nx;
             for (ix = imin; ix <= imax; ix++) {
               qtmp = qgridn[kk][jj][icx+ix];
               k = zyk + ix + nx_top;
@@ -1587,10 +1587,10 @@ void MSM::direct_peratom_top(int n)
 
         for (iz = kmin; iz <= kmax; iz++) {
           kk = icz+iz;
-          zk = (iz + nz_top)*nz;
+          zk = (iz + nz_top)*ny;
           for (iy = jmin; iy <= jmax; iy++) {
             jj = icy+iy;
-            zyk = (zk + iy + ny_top)*ny;
+            zyk = (zk + iy + ny_top)*nx;
             for (ix = imin; ix <= imax; ix++) {
               qtmp = qgridn[kk][jj][icx+ix];
               k = zyk + ix + nx_top;
@@ -2364,10 +2364,10 @@ void MSM::get_g_direct()
 
     for (iz = nzlo_direct; iz <= nzhi_direct; iz++) {
       zdiff = iz/delzinv[n];
-      zk = (iz + nzhi_direct)*nz;
+      zk = (iz + nzhi_direct)*ny;
       for (iy = nylo_direct; iy <= nyhi_direct; iy++) {
         ydiff = iy/delyinv[n];
-        zyk = (zk + iy + nyhi_direct)*ny;
+        zyk = (zk + iy + nyhi_direct)*nx;
         for (ix = nxlo_direct; ix <= nxhi_direct; ix++) {
           xdiff = ix/delxinv[n];
           rsq = xdiff*xdiff + ydiff*ydiff + zdiff*zdiff;
@@ -2417,10 +2417,10 @@ void MSM::get_virial_direct()
 
     for (iz = nzlo_direct; iz <= nzhi_direct; iz++) {
       zdiff = iz/delzinv[n];
-      zk = (iz + nzhi_direct)*nz;
+      zk = (iz + nzhi_direct)*ny;
       for (iy = nylo_direct; iy <= nyhi_direct; iy++) {
         ydiff = iy/delyinv[n];
-        zyk = (zk + iy + nyhi_direct)*ny;
+        zyk = (zk + iy + nyhi_direct)*nx;
         for (ix = nxlo_direct; ix <= nxhi_direct; ix++) {
           xdiff = ix/delxinv[n];
           rsq = xdiff*xdiff + ydiff*ydiff + zdiff*zdiff;
@@ -2480,10 +2480,10 @@ void MSM::get_g_direct_top(int n)
 
   for (iz = -nz_top; iz <= nz_top; iz++) {
     zdiff = iz/delzinv[n];
-    zk = (iz + nz_top)*nz;
+    zk = (iz + nz_top)*ny;
     for (iy = -ny_top; iy <= ny_top; iy++) {
       ydiff = iy/delyinv[n];
-      zyk = (zk + iy + ny_top)*ny;
+      zyk = (zk + iy + ny_top)*nx;
       for (ix = -nx_top; ix <= nx_top; ix++) {
         xdiff = ix/delxinv[n];
         rsq = xdiff*xdiff + ydiff*ydiff + zdiff*zdiff;
@@ -2535,10 +2535,10 @@ void MSM::get_virial_direct_top(int n)
 
   for (iz = -nz_top; iz <= nz_top; iz++) {
     zdiff = iz/delzinv[n];
-    zk = (iz + nz_top)*nz;
+    zk = (iz + nz_top)*ny;
     for (iy = -ny_top; iy <= ny_top; iy++) {
       ydiff = iy/delyinv[n];
-      zyk = (zk + iy + ny_top)*ny;
+      zyk = (zk + iy + ny_top)*nx;
       for (ix = -nx_top; ix <= nx_top; ix++) {
         xdiff = ix/delxinv[n];
         rsq = xdiff*xdiff + ydiff*ydiff + zdiff*zdiff;

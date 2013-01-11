@@ -865,7 +865,7 @@ void FixRigid::post_force(int vflag)
     double gamma1,gamma2;
 
     double delta = update->ntimestep - update->beginstep;
-    delta /= update->endstep - update->beginstep;
+    if (delta != 0.0) delta /= update->endstep - update->beginstep;
     t_target = t_start + delta * (t_stop-t_start);
     double tsqrt = sqrt(t_target);
 

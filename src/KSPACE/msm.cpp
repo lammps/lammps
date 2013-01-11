@@ -506,11 +506,11 @@ void MSM::compute(int eflag, int vflag)
   }
   
   // top grid level
-  
-  if (domain->nonperiodic) {
-    direct_top(levels-1);
-    if (vflag_atom) direct_peratom_top(levels-1);
-  }
+
+  current_level = levels-1;
+  cg[levels-1]->forward_comm(this,FORWARD_RHO);
+  direct_top(levels-1);
+  if (vflag_atom) direct_peratom_top(levels-1);
 
   for (int n=levels-2; n>=0; n--) {
 
@@ -1457,6 +1457,8 @@ void MSM::direct_top(int n)
   // zero out electric potential
 
   memset(&(egridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),0,ngrid[n]*sizeof(double));
+  
+  if (!domain->nonperiodic) return; // omit top grid level for periodic systems
 
   int icx,icy,icz,ix,iy,iz,zk,zyk,k;
   int jj,kk;
@@ -1561,6 +1563,8 @@ void MSM::direct_peratom_top(int n)
     memset(&(v4gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),0,ngrid[n]*sizeof(double));
     memset(&(v5gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),0,ngrid[n]*sizeof(double));
   }
+  
+  if (!domain->nonperiodic) return; // omit top grid level for periodic systems
 
   int icx,icy,icz,ix,iy,iz,zk,zyk,k;
   int jj,kk;

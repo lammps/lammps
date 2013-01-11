@@ -2093,9 +2093,7 @@ void FixNH::compute_deviatoric()
 void FixNH::compute_temp_target()
 {
   double delta = update->ntimestep - update->beginstep;
-  if (update->endstep > update->beginstep)
-    delta /= update->endstep - update->beginstep;
-  else delta = 0.0;
+  if (delta != 0.0) delta /= update->endstep - update->beginstep;
 
   t_target = t_start + delta * (t_stop-t_start);
   ke_target = tdof * boltz * t_target;
@@ -2108,9 +2106,7 @@ void FixNH::compute_temp_target()
 void FixNH::compute_press_target()
 {
   double delta = update->ntimestep - update->beginstep;
-  if (update->endstep > update->beginstep)
-    delta /= update->endstep - update->beginstep;
-  else delta = 0.0;
+  if (delta != 0.0) delta /= update->endstep - update->beginstep;
 
   p_hydro = 0.0;
   for (int i = 0; i < 3; i++)

@@ -213,7 +213,7 @@ void FixRestrain::restrain_bond(int m)
   int newton_bond = force->newton_bond;
 
   double delta = update->ntimestep - update->beginstep;
-  delta /= update->endstep - update->beginstep;
+  if (delta != 0.0) delta /= update->endstep - update->beginstep;
   double k = kstart[m] + delta * (kstop[m] - kstart[m]);
 
   i1 = atom->map(ids[m][0]);
@@ -294,7 +294,7 @@ void FixRestrain::restrain_angle(int m)
   int newton_bond = force->newton_bond;
 
   double delta = update->ntimestep - update->beginstep;
-  delta /= update->endstep - update->beginstep;
+  if (delta != 0.0) delta /= update->endstep - update->beginstep;
   double k = kstart[m] + delta * (kstop[m] - kstart[m]);
 
   i1 = atom->map(ids[m][0]);
@@ -422,7 +422,7 @@ void FixRestrain::restrain_dihedral(int m)
   int newton_bond = force->newton_bond;
 
   double delta = update->ntimestep - update->beginstep;
-  delta /= update->endstep - update->beginstep;
+  if (delta != 0.0) delta /= update->endstep - update->beginstep;
   double k = kstart[m] + delta * (kstop[m] - kstart[m]);
 
   i1 = atom->map(ids[m][0]);

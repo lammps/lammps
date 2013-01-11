@@ -679,7 +679,7 @@ void FixDeform::end_of_step()
   int i;
 
   double delta = update->ntimestep - update->beginstep;
-  delta /= update->endstep - update->beginstep;
+  if (delta != 0.0) delta /= update->endstep - update->beginstep;
 
   // wrap variable evaluations with clear/add
 

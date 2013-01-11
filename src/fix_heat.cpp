@@ -292,9 +292,38 @@ void FixHeat::end_of_step()
 
 double FixHeat::compute_scalar()
 {
-  // NOTE: what should this be for per-atom case?
-
-  return scale;
+  double average_scale = scale;
+  if (hstyle == ATOM) {  
+    double scale_sum = 0.0;
+    int ncount = 0;
+    int *mask = atom->mask;
+    double **x = atom->x;
+    int nlocal = atom->nlocal;
+    if (iregion < 0) {
+      for (int i = 0; i < nlocal; i++) {
+        if (mask[i] & groupbit) {
+          scale_sum += sqrt(vscale[i]);
+          ncount++;
+        }
+      }
+    } else {
+      Region *region;
+      region = domain->regions[iregion];
+      for (int i = 0; i < nlocal; i++) {
+        if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
+          scale_sum += sqrt(vscale[i]);
+          ncount++;
+        }
+      }
+    }
+    double scale_sum_all = 0.0;
+    int ncount_all = 0;
+    MPI_Allreduce(&scale_sum,&scale_sum_all,1,MPI_DOUBLE,MPI_SUM,world);
+    MPI_Allreduce(&ncount,&ncount_all,1,MPI_INT,MPI_SUM,world);
+    if (ncount_all == 0) average_scale = 0.0;
+    else average_scale = scale_sum_all/static_cast<double>(ncount_all);
+  }
+  return average_scale;
 }
 
 /* ----------------------------------------------------------------------

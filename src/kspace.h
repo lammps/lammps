@@ -79,8 +79,45 @@ class KSpace : protected Pointers {
   virtual int timing_3d(int, double &) {return 0;}
   virtual double memory_usage() {return 0.0;}
 
-  double gamma(const double &);
-  double dgamma(const double &);
+/* ----------------------------------------------------------------------
+   compute gamma for MSM and pair styles
+   see Eq 4 from Parallel Computing 35 (2009) 164177
+------------------------------------------------------------------------- */
+
+  double gamma(const double &rho) const {
+    if (rho <= 1.0) {
+      const int split_order = order/2;
+      const double rho2 = rho*rho;
+      double g = gcons[split_order][0];
+      double rho_n = rho2;
+      for (int n=1; n<=split_order; n++) {
+        g += gcons[split_order][n]*rho_n;
+        rho_n *= rho2;
+      }
+      return g;
+    } else
+      return (1.0/rho);
+  }
+
+/* ----------------------------------------------------------------------
+   compute the derivative of gamma for MSM and pair styles
+   see Eq 4 from Parallel Computing 35 (2009) 164-177
+------------------------------------------------------------------------- */
+
+  double dgamma(const double &rho) const {
+    if (rho <= 1.0) {
+      const int split_order = order/2;
+      const double rho2 = rho*rho;
+      double dg = dgcons[split_order][0]*rho;
+      double rho_n = rho*rho2;
+      for (int n=1; n<split_order; n++) {
+        dg += dgcons[split_order][n]*rho_n;
+        rho_n *= rho2;
+      }
+      return dg;
+    } else
+      return (-1.0/rho/rho);
+  }
 
  protected:
   int gridflag,gridflag_6;

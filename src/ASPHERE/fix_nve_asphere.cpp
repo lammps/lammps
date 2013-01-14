@@ -37,15 +37,16 @@ using namespace FixConst;
 FixNVEAsphere::FixNVEAsphere(LAMMPS *lmp, int narg, char **arg) :
   FixNVE(lmp, narg, arg)
 {
-  avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-  if (!avec)
-    error->all(FLERR,"Compute nve/asphere requires atom style ellipsoid");
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixNVEAsphere::init()
 {
+  avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
+  if (!avec)
+    error->all(FLERR,"Compute nve/asphere requires atom style ellipsoid");
+
   // check that all particles are finite-size ellipsoids
   // no point particles allowed, spherical is OK
 

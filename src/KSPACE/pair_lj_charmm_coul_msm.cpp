@@ -256,19 +256,6 @@ void PairLJCharmmCoulMSM::compute_outer(int eflag, int vflag)
             egamma = 1.0 - (r/cut_coul)*force->kspace->gamma(r/cut_coul); 
             fgamma = 1.0 + (rsq/cut_coulsq)*force->kspace->dgamma(r/cut_coul); 
             forcecoul = prefactor * (fgamma - 1.0); 
-            if (rsq > cut_in_off_sq) {
-              if (rsq < cut_in_on_sq) {
-                rsw = (r - cut_in_off)/cut_in_diff;
-                forcecoul += prefactor*rsw*rsw*(3.0 - 2.0*rsw);
-                if (factor_coul < 1.0)
-                  forcecoul -=
-                    (1.0-factor_coul)*prefactor*rsw*rsw*(3.0 - 2.0*rsw);
-              } else {
-                forcecoul += prefactor;
-                if (factor_coul < 1.0)
-                  forcecoul -= (1.0-factor_coul)*prefactor;
-              }
-            }
           } else {
             union_int_float_t rsq_lookup;
             rsq_lookup.f = rsq;

@@ -1256,6 +1256,7 @@ void MSM::direct(int n)
 
   double ***egridn = egrid[n];
   double ***qgridn = qgrid[n];
+  double *g_directn = g_direct[n];
 
   // zero out electric potential
 
@@ -1301,8 +1302,8 @@ void MSM::direct(int n)
           imax = MIN(nxhi_direct,betax[n] - icx);
         }
 
+        esum = 0.0;
         if (evflag) {
-          esum = 0.0;
           v0sum = v1sum = v2sum = 0.0;
           v3sum = v4sum = v5sum = 0.0;
         }
@@ -1316,10 +1317,9 @@ void MSM::direct(int n)
             for (ix = imin; ix <= imax; ix++) {
               qtmp = qgridn[kk][jj][icx+ix];
               k = zyk + ix + nxhi_direct;
-              egridn[icz][icy][icx] += g_direct[n][k] * qtmp;
+              esum += g_directn[k] * qtmp;
 
               if (evflag) {
-                if (eflag_global) esum += g_direct[n][k] * qtmp;
                 if (vflag_global) {
                   v0sum += v0_direct[n][k] * qtmp;
                   v1sum += v1_direct[n][k] * qtmp;
@@ -1329,10 +1329,10 @@ void MSM::direct(int n)
                   v5sum += v5_direct[n][k] * qtmp;
                 }
               }
-
             }
           }
         }
+        egridn[icz][icy][icx] = esum;
 
         if (evflag) {
           qtmp = qgridn[icz][icy][icx];

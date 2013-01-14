@@ -59,8 +59,10 @@ template <int EVFLAG> void MSMOMP::direct_eval(const int n)
 {
   //fprintf(screen,"Direct contribution on level %i\n\n",n);
 
-  double *** egridn = egrid[n];
+  double * const * const * const egridn = egrid[n];
   const double * const * const * const qgridn = qgrid[n];
+  const double * const g_directn = g_direct[n];
+
   double v0,v1,v2,v3,v4,v5,emsm;
   v0 = v1 = v2 = v3 = v4 = v5 = emsm = 0.0;
   const int alphan = alpha[n];
@@ -69,10 +71,10 @@ template <int EVFLAG> void MSMOMP::direct_eval(const int n)
   const int betazn = betaz[n];
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(egridn) reduction(+:v0,v1,v2,v3,v4,v5,emsm)
+#pragma omp parallel default(none) reduction(+:v0,v1,v2,v3,v4,v5,emsm)
 #endif
   {
-    double qtmp,etmp,esum,v0sum,v1sum,v2sum,v3sum,v4sum,v5sum;
+    double qtmp,esum,v0sum,v1sum,v2sum,v3sum,v4sum,v5sum;
     int icx,icy,icz,ix,iy,iz,zk,zyk,k;
     int jj,kk;
     int imin,imax,jmin,jmax,kmin,kmax;
@@ -95,7 +97,7 @@ template <int EVFLAG> void MSMOMP::direct_eval(const int n)
 #endif
 
     for (icz = iczfrom; icz < iczto; icz++) {
-        
+
       if (domain->zperiodic) {
         kmin = nzlo_direct;
         kmax = nzhi_direct;
@@ -125,9 +127,9 @@ template <int EVFLAG> void MSMOMP::direct_eval(const int n)
           }
 
           if (EVFLAG)
-            esum = v0sum = v1sum = v2sum = v3sum = v4sum = v5sum = 0.0;
+            v0sum = v1sum = v2sum = v3sum = v4sum = v5sum = 0.0;
 
-          etmp = 0.0;
+          esum = 0.0;
           for (iz = kmin; iz <= kmax; iz++) {
             kk = icz+iz;
             zk = (iz + nzhi_direct)*ny;
@@ -137,10 +139,9 @@ template <int EVFLAG> void MSMOMP::direct_eval(const int n)
               for (ix = imin; ix <= imax; ix++) {
                 qtmp = qgridn[kk][jj][icx+ix];
                 k = zyk + ix + nxhi_direct;
-                etmp += g_direct[n][k] * qtmp;
+                esum += g_directn[k] * qtmp;
 
                 if (EVFLAG) {
-                  if (eflag_global) esum += g_direct[n][k] * qtmp;
                   if (vflag_global) {
                     v0sum += v0_direct[n][k] * qtmp;
                     v1sum += v1_direct[n][k] * qtmp;
@@ -150,12 +151,10 @@ template <int EVFLAG> void MSMOMP::direct_eval(const int n)
                     v5sum += v5_direct[n][k] * qtmp;
                   }
                 }
-
               }
             }
           }
-          egridn[icz][icy][icx] = etmp;
-
+          egridn[icz][icy][icx] = esum;
 
           if (EVFLAG) {
             qtmp = qgridn[icz][icy][icx];

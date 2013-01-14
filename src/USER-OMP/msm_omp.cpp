@@ -42,6 +42,31 @@ MSMOMP::MSMOMP(LAMMPS *lmp, int narg, char **arg) :
 }
 
 /* ----------------------------------------------------------------------
+   run the regular toplevel compute method from plain PPPPM
+   which will have individual methods replaced by our threaded
+   versions and then call the obligatory force reduction.
+------------------------------------------------------------------------- */
+
+void MSMOMP::compute(int eflag, int vflag)
+{
+
+  MSM::compute(eflag,vflag);
+
+#if defined(_OPENMP)
+#pragma omp parallel default(none) shared(eflag,vflag)
+#endif
+  {
+#if defined(_OPENMP)
+    const int tid = omp_get_thread_num();
+#else
+    const int tid = 0;
+#endif
+    ThrData *thr = fix->get_thr(tid);
+    reduce_thr(this, eflag, vflag, thr);
+  } // end of omp parallel region
+}
+
+/* ----------------------------------------------------------------------
    MSM direct part procedure for intermediate grid levels
 ------------------------------------------------------------------------- */
 
@@ -172,7 +197,8 @@ template <int EVFLAG> void MSMOMP::direct_eval(const int n)
         }
       }
     }
-  }
+  } // end of omp parallel region
+
   if (EVFLAG) {
     if (eflag_global) energy += emsm;
     if (vflag_global) {
@@ -185,4 +211,3 @@ template <int EVFLAG> void MSMOMP::direct_eval(const int n)
     }
   }
 }
-

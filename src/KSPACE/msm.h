@@ -33,7 +33,7 @@ class MSM : public KSpace {
   virtual ~MSM();
   void init();
   void setup();
-  void compute(int, int);
+  virtual void compute(int, int);
 
  protected:
   int me,nprocs;

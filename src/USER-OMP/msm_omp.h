@@ -32,6 +32,7 @@ namespace LAMMPS_NS {
 
  protected:
   virtual void direct(int);
+  virtual void compute(int,int);
 
  private:
   template <int EVFLAG> void direct_eval(int);

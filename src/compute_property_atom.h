@@ -28,7 +28,7 @@ class ComputePropertyAtom : public Compute {
  public:
   ComputePropertyAtom(class LAMMPS *, int, char **);
   ~ComputePropertyAtom();
-  void init() {}
+  void init();
   void compute_peratom();
   double memory_usage();
 

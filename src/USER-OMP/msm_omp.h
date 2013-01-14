@@ -35,7 +35,7 @@ namespace LAMMPS_NS {
   virtual void compute(int,int);
 
  private:
-  template <int EVFLAG> void direct_eval(int);
+  template <int, int, int> void direct_eval(int);
 
 };
 

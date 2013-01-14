@@ -76,11 +76,25 @@ void MSMOMP::direct(int n)
 
   memset(&(egrid[n][nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),0,ngrid[n]*sizeof(double));
 
-  if (evflag) direct_eval<1>(n);
-  else direct_eval<0>(n);
+  if (evflag) {
+    if (eflag_global) {
+      if (vflag_global)
+        direct_eval<1,1,1>(n);
+      else
+        direct_eval<1,1,0>(n);
+    } else {
+      if (vflag_global)
+        direct_eval<1,0,1>(n);
+      else
+        direct_eval<1,0,0>(n);
+    }
+  } else {
+    direct_eval<0,0,0>(n);
+  }
 }
 
-template <int EVFLAG> void MSMOMP::direct_eval(const int n)
+template <int EVFLAG, int EFLAG_GLOBAL, int VFLAG_GLOBAL>
+void MSMOMP::direct_eval(const int n)
 {
   //fprintf(screen,"Direct contribution on level %i\n\n",n);
 
@@ -151,7 +165,7 @@ template <int EVFLAG> void MSMOMP::direct_eval(const int n)
             imax = MIN(nxhi_direct,betaxn - icx);
           }
 
-          if (EVFLAG)
+          if (VFLAG_GLOBAL)
             v0sum = v1sum = v2sum = v3sum = v4sum = v5sum = 0.0;
 
           esum = 0.0;
@@ -166,15 +180,13 @@ template <int EVFLAG> void MSMOMP::direct_eval(const int n)
                 k = zyk + ix + nxhi_direct;
                 esum += g_directn[k] * qtmp;
 
-                if (EVFLAG) {
-                  if (vflag_global) {
+                if (VFLAG_GLOBAL) {
                     v0sum += v0_direct[n][k] * qtmp;
                     v1sum += v1_direct[n][k] * qtmp;
                     v2sum += v2_direct[n][k] * qtmp;
                     v3sum += v3_direct[n][k] * qtmp;
                     v4sum += v4_direct[n][k] * qtmp;
                     v5sum += v5_direct[n][k] * qtmp;
-                  }
                 }
               }
             }
@@ -183,8 +195,8 @@ template <int EVFLAG> void MSMOMP::direct_eval(const int n)
 
           if (EVFLAG) {
             qtmp = qgridn[icz][icy][icx];
-            if (eflag_global) emsm += esum * qtmp;
-            if (vflag_global) {
+            if (EFLAG_GLOBAL) emsm += esum * qtmp;
+            if (VFLAG_GLOBAL) {
               v0 += v0sum * qtmp;
               v1 += v1sum * qtmp;
               v2 += v2sum * qtmp;
@@ -200,8 +212,8 @@ template <int EVFLAG> void MSMOMP::direct_eval(const int n)
   } // end of omp parallel region
 
   if (EVFLAG) {
-    if (eflag_global) energy += emsm;
-    if (vflag_global) {
+    if (EFLAG_GLOBAL) energy += emsm;
+    if (VFLAG_GLOBAL) {
       virial[0] += v0;
       virial[1] += v1;
       virial[2] += v2;

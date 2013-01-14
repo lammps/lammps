@@ -41,7 +41,7 @@ AtomVecDipole::AtomVecDipole(LAMMPS *lmp, int narg, char **arg) :
   size_border = 11;
   size_velocity = 3;
   size_data_atom = 9;
-  size_data_vel = 7;
+  size_data_vel = 4;
   xcol_data = 4;
 
   atom->q_flag = atom->mu_flag = 1;

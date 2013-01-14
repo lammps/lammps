@@ -30,13 +30,11 @@
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>pair_style hbond/dreiding/lj 4 4.5 5.0 90
-pair_coeff * * 3 i 100.0 3.1
-pair_coeff * * 2*5 i 100.0 3.1 2 15.0 20.0 135.0 
+<PRE>pair_style hybrid/overlay lj/cut 10.0 hbond/dreiding/lj 4 9.0 11.0 90
+pair_coeff 1 2 hbond/dreiding/lj 3 i 9.5 2.75 4 9.0 11.0 90.0 
 </PRE>
-<PRE>pair_style hbond/dreiding/morse 2 3.0 4.6 75.0 
-pair_coeff * * 3 j 100.0 1.0 2.0
-pair_coeff * * 2*5 j 100.0 1.0 2.0 4.0 6.0 
+<PRE>pair_style hybrid/overlay lj/cut 10.0 hbond/dreiding/morse 2 9.0 11.0 90
+pair_coeff 1 2 hbond/dreiding/morse 3 i 3.88 1.7241379 2.9 2 9 11 90 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -76,11 +74,30 @@ when n = 2.
 <P>See this <A HREF = "Section_howto.html#howto_4">howto section</A> of the manual for
 more information on the DREIDING forcefield.
 </P>
-<P>Because the Dreiding hydrogen bond potential is only one portion of
-an overall force field which typically includes other pairwise
-interactions, it is common to use it as a sub-style in a <A HREF = "pair_hybrid.html">pair_style
-hybrid or hybrid/overlay</A> command.
+<P>IMPORTANT NOTE: Because the Dreiding hydrogen bond potential is only
+one portion of an overall force field which typically includes other
+pairwise interactions, it is common to use it as a sub-style in a
+<A HREF = "pair_hybrid.html">pair_style hybrid/overlay</A> command, where another
+pair style provides the repulsive core interaction between pairs of
+atoms, e.g. a 1/r^12 Lennard-Jones repulsion.
 </P>
+<P>IMPORTANT NOTE: When using the hbond/dreiding pair styles with
+<A HREF = "pair_hybrid.html">pair_style hybrid/overlay</A>, you should explicitly
+define pair interactions between the donor atom and acceptor atoms,
+(as well as between these atoms and ALL other atoms in your system).
+Whenever <A HREF = "pair_hybrid.html">pair_style hybrid/overlay</A> is used,
+ordinary mixing rules are not applied to atoms like the donor and
+acceptor atoms because they are typically referenced in multiple pair
+styles.  Neglecting to do this can cause difficult-to-detect physics
+problems.
+</P>
+<P>IMPORTANT NOTE: In the original Dreiding force field paper 1-4
+non-bonded interactions ARE allowed.  If this is desired for your
+model, use the special_bonds command (e.g. "special_bonds lj 0.0 0.0
+1.0") to turn these interactions on.
+</P>
+<HR>
+
 <P>The following coefficients must be defined for pairs of eligible
 donor/acceptor types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as
 in the examples above.
@@ -109,7 +126,8 @@ follows:
 <LI>epsilon (energy units)
 <LI>sigma (distance units)
 <LI>n = exponent in formula above
-<LI>distance cutoff (distance units)
+<LI>distance cutoff Rin (distance units)
+<LI>distance cutoff Rout (distance units)
 <LI>angle cutoff (degrees) 
 </UL>
 <P>For the <I>hbond/dreiding/morse</I> style the list of coefficients is as
@@ -121,7 +139,8 @@ follows:
 <LI>alpha (1/distance units)
 <LI>r0 (distance units)
 <LI>n = exponent in formula above
-<LI>distance cutoff (distance units)
+<LI>distance cutoff Rin (distance units)
+<LI>distance cutoff Rout (distance units)
 <LI>angle cutoff (degrees) 
 </UL>
 <P>A single hydrogen atom type K can be specified, or a wild-card

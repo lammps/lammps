@@ -285,7 +285,7 @@ void FixLangevin::post_force_no_tally()
   int nlocal = atom->nlocal;
 
   double delta = update->ntimestep - update->beginstep;
-  delta /= update->endstep - update->beginstep;
+  if (delta != 0.0) delta /= update->endstep - update->beginstep;
 
   // set current t_target and t_sqrt
   // if variable temp, evaluate variable, wrap with clear/add
@@ -480,7 +480,7 @@ void FixLangevin::post_force_tally()
   int nlocal = atom->nlocal;
 
   double delta = update->ntimestep - update->beginstep;
-  delta /= update->endstep - update->beginstep;
+  if (delta != 0.0) delta /= update->endstep - update->beginstep;
 
   // set current t_target and t_sqrt
   // if variable temp, evaluate variable, wrap with clear/add

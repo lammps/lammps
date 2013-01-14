@@ -45,9 +45,9 @@ either be primitive shapes (block, sphere, cylinder, etc) or
 combinations of primitive shapes specified via the <I>union</I> or
 <I>intersect</I> region styles.  These latter styles can be used to
 construct particle containers with complex shapes.  Regions can also
-change over time via keywords like <I>linear</I>, <I>wiggle</I>, and <I>rotate</I>,
-which when used with this fix, have the effect of moving the region
-surface in a prescribed manner.
+change over time via the <A HREF = "region.html">region</A> command keywords (move)
+and <I>rotate</I>.  If such a region is used with this fix, then the of
+region surface will move over time in the corresponding manner.
 </P>
 <P>IMPORTANT NOTE: As discussed on the <A HREF = "region.html">region</A> command doc
 page, regions in LAMMPS do not get wrapped across periodic boundaries.

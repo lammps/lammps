@@ -49,6 +49,9 @@ namespace GPU_EXTRA {
       else if (all_success == -8)
         error->all(FLERR,
                    "GPU particle split must be set to 1 for this pair style.");
+      else if (all_success == -9)
+        error->all(FLERR,
+                   "CPU neighbor lists must be used for ellipsoid/sphere mix.");
       else
         error->all(FLERR,"Unknown error in GPU library");
     }
@@ -101,6 +104,11 @@ E: GPU particle split must be set to 1 for this pair style.
 
 For this pair style, you cannot run part of the force calculation on
 the host.  See the package command.
+
+E: CPU neighbor lists must be used for ellipsoid/sphere mix
+
+When using Gay-Berne or RE-squared pair styles with both ellipsoidal and
+spherical particles, the neighbor list must be built on the CPU
 
 E: Unknown error in GPU library
 

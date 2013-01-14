@@ -36,6 +36,7 @@ class FixPrint : public Fix {
   int me,screenflag;
   FILE *fp;
   char *string,*copy,*work;
+  int maxcopy,maxwork;
 };
 
 }

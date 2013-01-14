@@ -44,6 +44,7 @@ class Modify : protected Pointers {
   virtual void init();
   virtual void setup(int);
   virtual void setup_pre_exchange();
+  virtual void setup_pre_neighbor();
   virtual void setup_pre_force(int);
   virtual void initial_integrate(int);
   virtual void post_integrate();

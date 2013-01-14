@@ -14,6 +14,7 @@
 #include "math.h"
 #include "stdio.h"
 #include "stdlib.h"
+#include "string.h"
 #include "pair_lj_expand.h"
 #include "atom.h"
 #include "comm.h"
@@ -389,4 +390,15 @@ double PairLJExpand::single(int i, int j, int itype, int jtype, double rsq,
   philj = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
     offset[itype][jtype];
   return factor_lj*philj;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void *PairLJExpand::extract(const char *str, int &dim)
+{
+  dim = 2;
+  if (strcmp(str,"epsilon") == 0) return (void *) epsilon;
+  if (strcmp(str,"sigma") == 0) return (void *) sigma;
+  if (strcmp(str,"delta") == 0) return (void *) shift;
+  return NULL;
 }

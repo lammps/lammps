@@ -42,11 +42,19 @@ pair_style_list=[]
 swap_occured = False
 warn_wildcard = False
 
+i=0
+while i < len(lines_orig):
+    # Read the next logical line
+    # Any lines ending in '&' should be merged with the next line before breaking
+    line_orig = ''
+    while i < len(lines_orig):
+        line_counter = 1 + i - num_lines_ignore
+        line_orig += lines_orig[i]
+        if ((len(line_orig) < 2) or (line_orig[-2:] != '&\n')):
+            break
+        i += 1
+    line = line_orig.replace('&\n','\n').rstrip('\n')
 
-for i in range(0, len(lines_orig)):
-    line_counter = 1 + i - num_lines_ignore
-    line_orig = lines_orig[i]
-    line = line_orig.rstrip('\n')
     comment = ''
     if '#' in line_orig:
         ic = line.find('#')
@@ -82,11 +90,11 @@ for i in range(0, len(lines_orig)):
                 # If swapped atom types eariler, we also need to swap 'i' with 'j'.
                 #
                 # If "hbond/dreiding.." pair style is used with "hybrid" or 
-                # "overlay" then tokens[3] is the name of the pair style
+                # "hybrid/overlay" then tokens[3] is the name of the pair style
                 # and tokens[5] is either 'i' or 'j'.
                 if len(pair_style_list) > 0:
                     if ((pair_style_list[0] == 'hybrid') or 
-                     (pair_style_list[0] == 'overlay')):
+                        (pair_style_list[0] == 'hybrid/overlay')):
                         if ((tokens[5] == 'i') and (tokens[3][0:6]=='hbond/')):
                             tokens[5] = 'j'
                             sys.stderr.write('  (and replaced \"i\" with \"j\")\n')
@@ -101,7 +109,7 @@ for i in range(0, len(lines_orig)):
                             tokens[4] = 'i'
                             sys.stderr.write('  (and replaced \"j\" with \"i\")\n')
 
-                sys.stdout.write(' '.join(tokens)+comment+'\n')
+                sys.stdout.write((' '.join(tokens)+comment).replace('\n','&\n')+'\n')
 
         else:
             if ((('*' in tokens[1]) or ('*' in tokens[2]))
@@ -113,6 +121,8 @@ for i in range(0, len(lines_orig)):
     else:
         if i >= num_lines_ignore:
             sys.stdout.write(line_orig)
+
+    i += 1
 
 
 

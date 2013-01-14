@@ -795,7 +795,6 @@ orientation may be important for defining some interactions.
 </UL>
 <DIV ALIGN=center><TABLE  BORDER=1 >
 <TR><TD >all styles except those listed</TD><TD > atom-ID vx vy vz</TD></TR>
-<TR><TD >dipole</TD><TD > atom-ID vx vy vz wx wy wz</TD></TR>
 <TR><TD >electron</TD><TD > atom-ID vx vy vz ervel</TD></TR>
 <TR><TD >ellipsoid</TD><TD > atom-ID vx vy vz lx ly lz</TD></TR>
 <TR><TD >sphere</TD><TD > atom-ID vx vy vz wx wy wz</TD></TR>
@@ -833,12 +832,6 @@ above.  Thus if
 fields:
 </P>
 <PRE>atom-ID vx vy vz ervel wx wy wz 
-</PRE>
-<P>Note that if a non-standard value is defined by multiple sub-styles,
-it must appear mutliple times in the velocity line.  E.g. the velocity
-line for atom_style hybrid dipole sphere would list "wx" twice:
-</P>
-<PRE>atom-ID vx vy vz wx wy wz wx wy wz 
 </PRE>
 <P>Translational velocities can also be set by the
 <A HREF = "velocity.html">velocity</A> command in the input script.

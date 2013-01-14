@@ -49,33 +49,40 @@ class MSM : public KSpace {
   int *nx_msm,*ny_msm,*nz_msm;
   int *nxlo_in,*nylo_in,*nzlo_in;
   int *nxhi_in,*nyhi_in,*nzhi_in;
-  int *nxlo_in_d,*nylo_in_d,*nzlo_in_d;
-  int *nxhi_in_d,*nyhi_in_d,*nzhi_in_d;
   int *nxlo_out,*nylo_out,*nzlo_out;
   int *nxhi_out,*nyhi_out,*nzhi_out;
   int *ngrid;
+  int *alpha,*betax,*betay,*betaz;
   int nxlo_direct,nxhi_direct,nylo_direct;
   int nyhi_direct,nzlo_direct,nzhi_direct;
   int nmax_direct;
   int nlower,nupper;
   int peratom_allocate_flag;
-  int levels,cutlevel;
+  int levels;
+  
+  MPI_Comm *world_levels;  
 
   double ****qgrid;
   double ****egrid;
-  double ****fxgrid,****fygrid,****fzgrid;
   double ****v0grid,****v1grid,****v2grid;
   double ****v3grid,****v4grid,****v5grid;
   double **g_direct;
-  double **dgx_direct,**dgy_direct,**dgz_direct;
   double **v0_direct,**v1_direct,**v2_direct;
   double **v3_direct,**v4_direct,**v5_direct;
+  double *g_direct_top;
+  double *v0_direct_top,*v1_direct_top,*v2_direct_top;
+  double *v3_direct_top,*v4_direct_top,*v5_direct_top;
 
   double **phi1d,**dphi1d;
 
+  int procgrid[3];                  // procs assigned in each dim of 3d grid
+  int myloc[3];                     // which proc I am in each dim
+  int ***procneigh_levels;          // my 6 neighboring procs, 0/1 = left/right
   class CommGrid **cg;
-  class CommGrid **cg_IK;
   class CommGrid **cg_peratom;
+  class CommGrid *cg_all;
+  class CommGrid *cg_peratom_all;
+  
   int current_level;
 
   int **part2grid;             // storage for particle -> grid mapping
@@ -84,6 +91,7 @@ class MSM : public KSpace {
   double *boxlo;
 
   void set_grid_global();
+  void set_proc_grid(int);
   void set_grid_local();
   void setup_grid();
   double estimate_cutoff(double,double);
@@ -99,21 +107,21 @@ class MSM : public KSpace {
   int factorable(int,int&,int&);
   void particle_map();
   void make_rho();
-  void grid_swap(int,double*** &);
-  void direct_ad(int);
   void direct(int);
+  void direct_top(int);
   void direct_peratom(int);
+  void direct_peratom_top(int);
   void restriction(int);
   void prolongation(int);
-  void fieldforce_ad();
   void fieldforce();
   void fieldforce_peratom();
   void compute_phis_and_dphis(const double &, const double &, const double &);
   double compute_phi(const double &);
   double compute_dphi(const double &);
   void get_g_direct();
-  void get_dg_direct();
   void get_virial_direct();
+  void get_g_direct_top(int);
+  void get_virial_direct_top(int);
 
   // grid communication
   void pack_forward(int, double *, int, int *);
@@ -146,10 +154,6 @@ This feature is not yet supported.
 E: Kspace style requires atom attribute q
 
 The atom style defined does not have these attributes.
-
-E: Cannot (yet) use nonperiodic boundaries with MSM
-
-This feature is not yet supported.
 
 E: Cannot use slab correction with MSM
 
@@ -184,6 +188,11 @@ E: MSM grid is too large
 The global MSM grid is larger than OFFSET in one or more dimensions.
 OFFSET is currently set to 16384.  You likely need to decrease the
 requested accuracy.
+
+W: MSM mesh too small, increasing to 2 points in each direction
+
+The global MSM grid is too small, so the number of grid points has been
+increased
 
 E: KSpace accuracy must be > 0
 

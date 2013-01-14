@@ -109,10 +109,10 @@ int BaseEllipsoidT::init_base(const int nlocal, const int nall,
     for (int j=i; j<ntypes; j++)
       if (_host_form[i][j]!=ELLIPSE_ELLIPSE)
         _multiple_forms=true;
-  if (_multiple_forms && host_nlocal>0) {
-    std::cerr << "Cannot use Gayberne with multiple forms and GPU neighbor.\n";
-    exit(1);
-  }
+  if (_multiple_forms && host_nlocal>0)
+    return -8;
+  if (_multiple_forms && gpu_nbor!=0)
+    return -9;
   
   if (_multiple_forms)
     ans->force.zero();

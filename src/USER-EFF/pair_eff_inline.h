@@ -494,6 +494,42 @@ inline void PauliCoreElec(double rc, double re2, double *epauli, double *frc,
 
 /* ---------------------------------------------------------------------- */
 
+inline void PauliCorePElec(double rc, double re2, double *epauli, double *frc,
+                          double *fre2, double PAULI_CORE_P_A,
+                          double PAULI_CORE_P_B, double PAULI_CORE_P_C,
+                          double PAULI_CORE_P_D, double PAULI_CORE_P_E)
+{
+  double E, dEdrc, dEdre2;
+
+  E = PAULI_CORE_P_A *
+      pow((2.0 / (PAULI_CORE_P_B / re2 + re2 / PAULI_CORE_P_B)), 5.0) *
+      pow((rc - PAULI_CORE_P_C * re2), 2.0) * exp(-PAULI_CORE_P_D *
+      pow((rc - PAULI_CORE_P_C * re2), 2.0) / (PAULI_CORE_P_E + re2 * re2));
+
+  dEdrc = PAULI_CORE_P_A *
+          pow((2.0 / (PAULI_CORE_P_B / re2 + re2 / PAULI_CORE_P_B)), 5.0) *
+          2.0 * (rc - PAULI_CORE_P_C * re2) * exp(-PAULI_CORE_P_D *
+          pow((rc - PAULI_CORE_P_C * re2), 2.0) / (PAULI_CORE_P_E + re2 * re2))
+          + E * (-PAULI_CORE_P_D * 2.0 * (rc - PAULI_CORE_P_C * re2) /
+          (PAULI_CORE_P_E + re2 * re2));
+
+  dEdre2 = E * (-5.0 / (PAULI_CORE_P_B / re2 + re2 / PAULI_CORE_P_B) *
+           (-PAULI_CORE_P_B / (re2 * re2) + 1.0 / PAULI_CORE_P_B))
+           + PAULI_CORE_P_A *
+           pow((2.0 / (PAULI_CORE_P_B / re2 + re2 / PAULI_CORE_P_B)), 5.0) *
+           2.0 * (rc - PAULI_CORE_P_C * re2) * (-PAULI_CORE_P_C) *
+           exp(-PAULI_CORE_P_D * pow((rc - PAULI_CORE_P_C * re2), 2.0) /
+           (PAULI_CORE_P_E + re2 * re2)) + E * (2.0 * PAULI_CORE_P_D *
+           (rc - PAULI_CORE_P_C * re2) * (PAULI_CORE_P_C * PAULI_CORE_P_E +
+           rc * re2) / pow((PAULI_CORE_P_E + re2 * re2), 2.0));
+
+  *epauli += E;
+  *frc -= dEdrc;
+  *fre2 -= dEdre2;
+}
+
+/* ---------------------------------------------------------------------- */
+
 inline void RForce(double dx, double dy, double dz,
                    double rc, double force, double *fx, double *fy, double *fz)
 {

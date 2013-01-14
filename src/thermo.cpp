@@ -56,6 +56,7 @@ using namespace MathConst;
 // cella, cellb, cellc, cellalpha, cellbeta, cellgamma
 
 // customize a new thermo style by adding a DEFINE to this list
+// also insure allocation of line string is correct in constructor
 
 #define ONE "step temp epair emol etotal press"
 #define MULTI "etotal ke temp pe ebond eangle edihed eimp evdwl ecoul elong press"
@@ -69,7 +70,6 @@ enum{SCALAR,VECTOR,ARRAY};
 #define INVOKED_VECTOR 2
 #define INVOKED_ARRAY 4
 
-#define MAXLINE 32768               // make this 4x longer than Input::MAXLINE
 #define DELTA 8
 
 /* ---------------------------------------------------------------------- */
@@ -94,17 +94,24 @@ Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   // set style and corresponding lineflag
   // custom style builds its own line of keywords
   // customize a new thermo style by adding to if statement
-
-  line = new char[MAXLINE];
+  // allocate line string used for 3 tasks
+  //   concat of custom style args
+  //   one-time thermo output of header line
+  //   each line of numeric thermo output
+  //   256 = extra for ONE or MULTI string or multi formatting
+  //   64 = max per-arg chars in header or numeric output
 
   if (strcmp(style,"one") == 0) {
+    line = new char[256+6*64];
     strcpy(line,ONE);
   } else if (strcmp(style,"multi") == 0) {
+    line = new char[256+12*64];
     strcpy(line,MULTI);
     lineflag = MULTILINE;
 
   } else if (strcmp(style,"custom") == 0) {
     if (narg == 1) error->all(FLERR,"Illegal thermo style custom command");
+    line = new char[256+narg*64];
     line[0] = '\0';
     for (int iarg = 1; iarg < narg; iarg++) {
       strcat(line,arg[iarg]);
@@ -338,9 +345,6 @@ void Thermo::compute(int flag)
       loc += sprintf(&line[loc],format[ifield],bivalue);
     }
   }
-
-  // kludge for RedStorm timing issue
-  // if (ntimestep == 100) return;
 
   // print line to screen and logfile
 

@@ -357,7 +357,7 @@ void FixPressBerendsen::end_of_step()
   couple();
 
   double delta = update->ntimestep - update->beginstep;
-  delta /= update->endstep - update->beginstep;
+  if (delta != 0.0) delta /= update->endstep - update->beginstep;
 
   for (int i = 0; i < 3; i++) {
     if (p_flag[i]) {

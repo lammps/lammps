@@ -50,9 +50,9 @@ MPI_LIB =
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-FFT_INC =       -DFFT_FFTW -DFFT_SINGLE -DFFTW_SIZE
+FFT_INC =   -DFFT_FFTW3
 FFT_PATH = 
-FFT_LIB =	-lsfftw
+FFT_LIB =	-lfftw3
 
 # JPEG library, OPTIONAL
 # see discussion in doc/Section_start.html#2_2 (step 7)

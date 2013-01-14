@@ -40,8 +40,7 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixTMD::FixTMD(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+FixTMD::FixTMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 {
   if (narg < 6) error->all(FLERR,"Illegal fix tmd command");
 
@@ -193,7 +192,7 @@ void FixTMD::initial_integrate(int vflag)
   int nlocal = atom->nlocal;
 
   double delta = update->ntimestep - update->beginstep;
-  delta /= update->endstep - update->beginstep;
+  if (delta != 0.0) delta /= update->endstep - update->beginstep;
   double rho_target = rho_start + delta * (rho_stop - rho_start);
 
   // compute the Lagrange multiplier

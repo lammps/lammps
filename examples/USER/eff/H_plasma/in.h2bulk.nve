@@ -9,7 +9,7 @@ atom_style	electron
 
 read_data  	data.${sname}
 
-pair_style      eff/cut 30.627847 0 0
+pair_style      eff/cut 30.627847
 pair_coeff	* * 
 
 neigh_modify    one 10000 page 100000

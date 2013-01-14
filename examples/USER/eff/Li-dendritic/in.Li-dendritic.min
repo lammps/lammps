@@ -10,7 +10,7 @@ atom_style	electron
 #read_data  	data.${sname}
 read_restart	${sname}.min.restart2
 
-pair_style      eff/cut 50.112 0 0
+pair_style      eff/cut 50.112 
 pair_coeff	* * 
 
 communicate	single vel yes

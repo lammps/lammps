@@ -30,7 +30,7 @@ namespace LAMMPS_NS {
 class MSM : public KSpace {
  public:
   MSM(class LAMMPS *, int, char **);
-  ~MSM();
+  virtual ~MSM();
   void init();
   void setup();
   void compute(int, int);
@@ -107,7 +107,7 @@ class MSM : public KSpace {
   int factorable(int,int&,int&);
   void particle_map();
   void make_rho();
-  void direct(int);
+  virtual void direct(int);
   void direct_top(int);
   void direct_peratom(int);
   void direct_peratom_top(int);

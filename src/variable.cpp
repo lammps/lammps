@@ -1806,7 +1806,7 @@ double Variable::collapse_tree(Tree *tree)
     if (tree->left->type != VALUE || tree->right->type != VALUE) return 0.0;
     tree->type = VALUE;
     double delta = update->ntimestep - update->beginstep;
-    delta /= update->endstep - update->beginstep;
+    if (delta != 0.0) delta /= update->endstep - update->beginstep;
     tree->value = arg1 + delta*(arg2-arg1);
     return tree->value;
   }
@@ -2072,7 +2072,7 @@ double Variable::eval_tree(Tree *tree, int i)
     arg1 = eval_tree(tree->left,i);
     arg2 = eval_tree(tree->right,i);
     double delta = update->ntimestep - update->beginstep;
-    delta /= update->endstep - update->beginstep;
+    if (delta != 0.0) delta /= update->endstep - update->beginstep;
     arg = arg1 + delta*(arg2-arg1);
     return arg;
   }
@@ -2489,7 +2489,7 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
     if (tree) newtree->type = RAMP;
     else {
       double delta = update->ntimestep - update->beginstep;
-      delta /= update->endstep - update->beginstep;
+      if (delta != 0.0) delta /= update->endstep - update->beginstep;
       double value = value1 + delta*(value2-value1);
       argstack[nargstack++] = value;
     }

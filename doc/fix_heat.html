@@ -116,9 +116,10 @@ are relevant to this fix.
 <P>This fix computes a global scalar which can be accessed by various
 <A HREF = "Section_howto.html#howto_15">output commands</A>.  This scalar is the
 most recent value by which velocites were scaled.  The scalar value
-calculated by this fix is "intensive".
-</P>
-<P>// NOTE: what is the scalar output for an atom-style variable?
+calculated by this fix is "intensive".  If <I>eflux</I> is specified as 
+an atom-style variable, this fix computes the average value by which
+the velocities were scaled for all of the atoms that had their 
+velocities scaled.
 </P>
 <P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
 the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy

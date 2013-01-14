@@ -140,7 +140,7 @@ void FixTempBerendsen::end_of_step()
                "Computed temperature for fix temp/berendsen cannot be 0.0");
 
   double delta = update->ntimestep - update->beginstep;
-  delta /= update->endstep - update->beginstep;
+  if (delta != 0.0) delta /= update->endstep - update->beginstep;
 
   // set current t_target
   // if variable temp, evaluate variable, wrap with clear/add

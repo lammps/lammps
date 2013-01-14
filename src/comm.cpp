@@ -1665,6 +1665,7 @@ void Comm::set_processors(int narg, char **arg)
 bigint Comm::memory_usage()
 {
   bigint bytes = 0;
+  bytes += nprocs * sizeof(int);    // grid2proc
   for (int i = 0; i < nswap; i++)
     bytes += memory->usage(sendlist[i],maxsendlist[i]);
   bytes += memory->usage(buf_send,maxsend+BUFEXTRA);

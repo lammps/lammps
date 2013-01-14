@@ -32,6 +32,7 @@ class FixHeat : public Fix {
   void init();
   void end_of_step();
   double compute_scalar();
+  double memory_usage();
 
  private:
   int iregion;
@@ -44,6 +45,7 @@ class FixHeat : public Fix {
 
   int maxatom;
   double *vheat;
+  double *vscale;
 };
 
 }

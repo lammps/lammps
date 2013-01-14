@@ -210,6 +210,7 @@ void DumpCustom::init_style()
   for (int i = 0; i < size_one; i++) {
     if (i == 0) ptr = strtok(format," \0");
     else ptr = strtok(NULL," \0");
+    if (ptr == NULL) error->all(FLERR,"Dump_modify format string is too short");
     delete [] vformat[i];
     vformat[i] = new char[strlen(ptr) + 2];
     strcpy(vformat[i],ptr);

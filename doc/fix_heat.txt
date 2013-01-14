@@ -105,9 +105,10 @@ are relevant to this fix.
 This fix computes a global scalar which can be accessed by various
 "output commands"_Section_howto.html#howto_15.  This scalar is the
 most recent value by which velocites were scaled.  The scalar value
-calculated by this fix is "intensive".
-
-// NOTE: what is the scalar output for an atom-style variable?
+calculated by this fix is "intensive".  If {eflux} is specified as 
+an atom-style variable, this fix computes the average value by which
+the velocities were scaled for all of the atoms that had their 
+velocities scaled.
 
 No parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.  This fix is not invoked during "energy

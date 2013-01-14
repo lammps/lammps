@@ -49,7 +49,7 @@ void PairDPDTstat::compute(int eflag, int vflag)
 
   if (t_start != t_stop) {
     double delta = update->ntimestep - update->beginstep;
-    delta /= update->endstep - update->beginstep;
+    if (delta != 0.0) delta /= update->endstep - update->beginstep;
     temperature = t_start + delta * (t_stop-t_start);
     double boltz = force->boltz;
     for (i = 1; i <= atom->ntypes; i++)

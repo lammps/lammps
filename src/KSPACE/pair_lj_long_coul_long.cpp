@@ -820,7 +820,9 @@ void PairLJLongCoulLong::compute_outer(int eflag, int vflag)
       if ((rsq = vec_dot(d, d)) >= cutsqi[typej = type[j]]) continue;
       r2inv = 1.0/rsq;
 
-      if ((respa_flag = (rsq>cut_in_off_sq)&&(rsq<cut_in_on_sq))) {
+      frespa = 1.0;                                       // check whether and how to compute respa corrections
+      respa_flag = rsq < cut_in_on_sq ? 1 : 0;
+      if (respa_flag && (rsq > cut_in_off_sq)) {
         register double rsw = (sqrt(rsq)-cut_in_off)/cut_in_diff;
         frespa = rsw*rsw*(3.0-2.0*rsw);
       }
@@ -900,7 +902,7 @@ void PairLJLongCoulLong::compute_outer(int eflag, int vflag)
       else force_lj = respa_lj = evdwl = 0.0;
 
       fpair = (force_coul+force_lj)*r2inv;
-      frespa = fpair-(respa_coul+respa_lj)*r2inv;
+      frespa = respa_flag == 0 ? fpair :  fpair-(respa_coul+respa_lj)*r2inv;
 
       if (newton_pair || j < nlocal) {
         register double *fj = f0+(j+(j<<1)), f;

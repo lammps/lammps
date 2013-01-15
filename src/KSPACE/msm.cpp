@@ -380,7 +380,6 @@ double MSM::estimate_total_error()
 
 void MSM::setup()
 {
-  int i,j,k,l,m,n;
   double *prd;
 
   double a = cutoff;
@@ -499,9 +498,6 @@ void MSM::compute(int eflag, int vflag)
     cg[n]->forward_comm(this,FORWARD_RHO);
 
     direct(n);
-
-    if (vflag_atom) direct_peratom(n);
-
     restriction(n);
   }
   
@@ -510,7 +506,6 @@ void MSM::compute(int eflag, int vflag)
   current_level = levels-1;
   cg[levels-1]->forward_comm(this,FORWARD_RHO);
   direct_top(levels-1);
-  if (vflag_atom) direct_peratom_top(levels-1);
 
   for (int n=levels-2; n>=0; n--) {
 
@@ -1200,7 +1195,7 @@ void MSM::make_rho()
 {
   //fprintf(screen,"MSM aninterpolation\n\n");
 
-  int i,l,m,n,nn,nx,ny,nz,mx,my,mz;
+  int i,l,m,n,nx,ny,nz,mx,my,mz;
   double dx,dy,dz,x0,y0,z0;
 
   // clear 3d density array
@@ -1254,12 +1249,30 @@ void MSM::direct(int n)
 {
   //fprintf(screen,"Direct contribution on level %i\n\n",n);
 
-  double ***egridn = egrid[n];
   double ***qgridn = qgrid[n];
+  double ***egridn = egrid[n];
+  double ***v0gridn = v0grid[n];
+  double ***v1gridn = v1grid[n];
+  double ***v2gridn = v2grid[n];
+  double ***v3gridn = v3grid[n];
+  double ***v4gridn = v4grid[n];
+  double ***v5gridn = v5grid[n];
+  double *g_directn = g_direct[n];
 
   // zero out electric potential
 
   memset(&(egridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),0,ngrid[n]*sizeof(double));
+
+  // zero out virial
+
+  if (vflag_atom) {
+    memset(&(v0gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),0,ngrid[n]*sizeof(double));
+    memset(&(v1gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),0,ngrid[n]*sizeof(double));
+    memset(&(v2gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),0,ngrid[n]*sizeof(double));
+    memset(&(v3gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),0,ngrid[n]*sizeof(double));
+    memset(&(v4gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),0,ngrid[n]*sizeof(double));
+    memset(&(v5gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),0,ngrid[n]*sizeof(double));
+  }
 
   int icx,icy,icz,ix,iy,iz,zk,zyk,k;
   int jj,kk;
@@ -1269,7 +1282,6 @@ void MSM::direct(int n)
   
   int nx = nxhi_direct - nxlo_direct + 1;
   int ny = nyhi_direct - nylo_direct + 1;
-  int nz = nzhi_direct - nzlo_direct + 1;
 
   for (icz = nzlo_in[n]; icz <= nzhi_in[n]; icz++) {
         
@@ -1301,11 +1313,9 @@ void MSM::direct(int n)
           imax = MIN(nxhi_direct,betax[n] - icx);
         }
 
-        if (evflag) {
-          esum = 0.0;
-          v0sum = v1sum = v2sum = 0.0;
-          v3sum = v4sum = v5sum = 0.0;
-        }
+        esum = 0.0;
+        if (vflag_either)
+          v0sum = v1sum = v2sum = v3sum = v4sum = v5sum = 0.0;
         
         for (iz = kmin; iz <= kmax; iz++) {
           kk = icz+iz;
@@ -1316,22 +1326,28 @@ void MSM::direct(int n)
             for (ix = imin; ix <= imax; ix++) {
               qtmp = qgridn[kk][jj][icx+ix];
               k = zyk + ix + nxhi_direct;
-              egridn[icz][icy][icx] += g_direct[n][k] * qtmp;
+              esum += g_directn[k] * qtmp;
 
-              if (evflag) {
-                if (eflag_global) esum += g_direct[n][k] * qtmp;
-                if (vflag_global) {
-                  v0sum += v0_direct[n][k] * qtmp;
-                  v1sum += v1_direct[n][k] * qtmp;
-                  v2sum += v2_direct[n][k] * qtmp;
-                  v3sum += v3_direct[n][k] * qtmp;
-                  v4sum += v4_direct[n][k] * qtmp;
-                  v5sum += v5_direct[n][k] * qtmp;
-                }
+              if (vflag_either) {
+                v0sum += v0_direct[n][k] * qtmp;
+                v1sum += v1_direct[n][k] * qtmp;
+                v2sum += v2_direct[n][k] * qtmp;
+                v3sum += v3_direct[n][k] * qtmp;
+                v4sum += v4_direct[n][k] * qtmp;
+                v5sum += v5_direct[n][k] * qtmp;
               }
-
             }
           }
+        }
+        egridn[icz][icy][icx] = esum;
+
+        if (vflag_atom) {
+          v0gridn[icz][icy][icx] = v0sum;
+          v1gridn[icz][icy][icx] = v1sum;
+          v2gridn[icz][icy][icx] = v2sum;
+          v3gridn[icz][icy][icx] = v3sum;
+          v4gridn[icz][icy][icx] = v4sum;
+          v5gridn[icz][icy][icx] = v5sum;
         }
 
         if (evflag) {
@@ -1351,97 +1367,6 @@ void MSM::direct(int n)
     }
   }
 }
-
-/* ----------------------------------------------------------------------
-   MSM direct part procedure for intermediate grid levels
-------------------------------------------------------------------------- */
-
-void MSM::direct_peratom(int n)
-{
-  double ***qgridn = qgrid[n];
-
-  double ***v0gridn = v0grid[n];
-  double ***v1gridn = v1grid[n];
-  double ***v2gridn = v2grid[n];
-  double ***v3gridn = v3grid[n];
-  double ***v4gridn = v4grid[n];
-  double ***v5gridn = v5grid[n];
-
-  // zero out virial
-
-  if (vflag_atom) {
-    memset(&(v0gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),0,ngrid[n]*sizeof(double));
-    memset(&(v1gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),0,ngrid[n]*sizeof(double));
-    memset(&(v2gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),0,ngrid[n]*sizeof(double));
-    memset(&(v3gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),0,ngrid[n]*sizeof(double));
-    memset(&(v4gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),0,ngrid[n]*sizeof(double));
-    memset(&(v5gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),0,ngrid[n]*sizeof(double));
-  }
-
-  int icx,icy,icz,ix,iy,iz,zk,zyk,k;
-  int jj,kk;
-  int imin,imax,jmin,jmax,kmin,kmax;
-  double qtmp;
-
-  int nx = nxhi_direct - nxlo_direct + 1;
-  int ny = nyhi_direct - nylo_direct + 1;
-  int nz = nzhi_direct - nzlo_direct + 1;
-
-  for (icz = nzlo_in[n]; icz <= nzhi_in[n]; icz++) {
-        
-    if (domain->zperiodic) {
-      kmin = nzlo_direct;
-      kmax = nzhi_direct;
-    } else {
-      kmin = MAX(nzlo_direct,alpha[n] - icz);
-      kmax = MIN(nzhi_direct,betaz[n] - icz);
-    }
-        
-    for (icy = nylo_in[n]; icy <= nyhi_in[n]; icy++) {
-
-      if (domain->yperiodic) {
-        jmin = nylo_direct;
-        jmax = nyhi_direct;
-      } else {
-        jmin = MAX(nylo_direct,alpha[n] - icy);
-        jmax = MIN(nyhi_direct,betay[n] - icy);
-      }
-        
-      for (icx = nxlo_in[n]; icx <= nxhi_in[n]; icx++) {
-
-        if (domain->xperiodic) {
-          imin = nxlo_direct;
-          imax = nxhi_direct;
-        } else {
-          imin = MAX(nxlo_direct,alpha[n] - icx);
-          imax = MIN(nxhi_direct,betax[n] - icx);
-        }
-
-        for (iz = kmin; iz <= kmax; iz++) {
-          kk = icz+iz;
-          zk = (iz + nzhi_direct)*ny;
-          for (iy = jmin; iy <= jmax; iy++) {
-            jj = icy+iy;
-            zyk = (zk + iy + nyhi_direct)*nx;
-            for (ix = imin; ix <= imax; ix++) {
-              qtmp = qgridn[kk][jj][icx+ix];
-              k = zyk + ix + nxhi_direct;
-
-              v0gridn[icz][icy][icx] += v0_direct[n][k] * qtmp;
-              v1gridn[icz][icy][icx] += v1_direct[n][k] * qtmp;
-              v2gridn[icz][icy][icx] += v2_direct[n][k] * qtmp;
-              v3gridn[icz][icy][icx] += v3_direct[n][k] * qtmp;
-              v4gridn[icz][icy][icx] += v4_direct[n][k] * qtmp;
-              v5gridn[icz][icy][icx] += v5_direct[n][k] * qtmp;
-            }
-          }
-        }
-
-      }
-    }
-  }
-}
-
 
 /* ----------------------------------------------------------------------
    MSM direct part procedure for top grid level
@@ -1451,13 +1376,30 @@ void MSM::direct_top(int n)
 {
   //fprintf(screen,"Direct contribution on level %i\n\n",n);
 
-  double ***egridn = egrid[n];
   double ***qgridn = qgrid[n];
+  double ***egridn = egrid[n];
+  double ***v0gridn = v0grid[n];
+  double ***v1gridn = v1grid[n];
+  double ***v2gridn = v2grid[n];
+  double ***v3gridn = v3grid[n];
+  double ***v4gridn = v4grid[n];
+  double ***v5gridn = v5grid[n];
 
   // zero out electric potential
 
   memset(&(egridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),0,ngrid[n]*sizeof(double));
-  
+
+  // zero out virial
+
+  if (vflag_atom) {
+    memset(&(v0gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),0,ngrid[n]*sizeof(double));
+    memset(&(v1gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),0,ngrid[n]*sizeof(double));
+    memset(&(v2gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),0,ngrid[n]*sizeof(double));
+    memset(&(v3gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),0,ngrid[n]*sizeof(double));
+    memset(&(v4gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),0,ngrid[n]*sizeof(double));
+    memset(&(v5gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),0,ngrid[n]*sizeof(double));
+  }
+
   if (!domain->nonperiodic) return; // omit top grid level for periodic systems
 
   int icx,icy,icz,ix,iy,iz,zk,zyk,k;
@@ -1472,7 +1414,6 @@ void MSM::direct_top(int n)
   
   int nx = 2*nx_top + 1;
   int ny = 2*ny_top + 1;
-  int nz = 2*nz_top + 1;
 
   for (icz = nzlo_in[n]; icz <= nzhi_in[n]; icz++) {
       kmin = alpha[n] - icz;
@@ -1484,11 +1425,9 @@ void MSM::direct_top(int n)
           imin = alpha[n] - icx;
           imax = betax[n] - icx;
 
-        if (evflag) {
-          esum = 0.0;
-          v0sum = v1sum = v2sum = 0.0;
-          v3sum = v4sum = v5sum = 0.0;
-        }
+        esum = 0.0;
+        if (vflag_either)
+          v0sum = v1sum = v2sum = v3sum = v4sum = v5sum = 0.0;
 
         for (iz = kmin; iz <= kmax; iz++) {
           kk = icz+iz;
@@ -1499,23 +1438,28 @@ void MSM::direct_top(int n)
             for (ix = imin; ix <= imax; ix++) {
               qtmp = qgridn[kk][jj][icx+ix];
               k = zyk + ix + nx_top;
-              qtmp = qgridn[kk][jj][icx+ix];
-              egridn[icz][icy][icx] += g_direct_top[k] * qtmp;
+              esum += g_direct_top[k] * qtmp;
 
-              if (evflag) {
-                if (eflag_global) esum += g_direct_top[k] * qtmp;
-                if (vflag_global) {
-                  v0sum += v0_direct_top[k] * qtmp;
-                  v1sum += v1_direct_top[k] * qtmp;
-                  v2sum += v2_direct_top[k] * qtmp;
-                  v3sum += v3_direct_top[k] * qtmp;
-                  v4sum += v4_direct_top[k] * qtmp;
-                  v5sum += v5_direct_top[k] * qtmp;
-                }
+              if (vflag_either) {
+                v0sum += v0_direct_top[k] * qtmp;
+                v1sum += v1_direct_top[k] * qtmp;
+                v2sum += v2_direct_top[k] * qtmp;
+                v3sum += v3_direct_top[k] * qtmp;
+                v4sum += v4_direct_top[k] * qtmp;
+                v5sum += v5_direct_top[k] * qtmp;
               }
-
             }
           }
+        }
+        egridn[icz][icy][icx] = esum;
+
+        if (vflag_atom) {
+          v0gridn[icz][icy][icx] = v0sum;
+          v1gridn[icz][icy][icx] = v1sum;
+          v2gridn[icz][icy][icx] = v2sum;
+          v3gridn[icz][icy][icx] = v3sum;
+          v4gridn[icz][icy][icx] = v4sum;
+          v5gridn[icz][icy][icx] = v5sum;
         }
 
         if (evflag) {
@@ -1528,86 +1472,6 @@ void MSM::direct_top(int n)
             virial[3] += v3sum * qtmp;
             virial[4] += v4sum * qtmp;
             virial[5] += v5sum * qtmp;
-          }
-        }
-
-      }
-    }
-  }
-}
-
-/* ----------------------------------------------------------------------
-   MSM direct part procedure for top grid level
-------------------------------------------------------------------------- */
-
-void MSM::direct_peratom_top(int n)
-{
-  //fprintf(screen,"Direct contribution on level %i\n\n",n);
-
-  double ***qgridn = qgrid[n];
-
-  double ***v0gridn = v0grid[n];
-  double ***v1gridn = v1grid[n];
-  double ***v2gridn = v2grid[n];
-  double ***v3gridn = v3grid[n];
-  double ***v4gridn = v4grid[n];
-  double ***v5gridn = v5grid[n];
-
-  // zero out virial
-
-  if (vflag_atom) {
-    memset(&(v0gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),0,ngrid[n]*sizeof(double));
-    memset(&(v1gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),0,ngrid[n]*sizeof(double));
-    memset(&(v2gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),0,ngrid[n]*sizeof(double));
-    memset(&(v3gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),0,ngrid[n]*sizeof(double));
-    memset(&(v4gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),0,ngrid[n]*sizeof(double));
-    memset(&(v5gridn[nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),0,ngrid[n]*sizeof(double));
-  }
-  
-  if (!domain->nonperiodic) return; // omit top grid level for periodic systems
-
-  int icx,icy,icz,ix,iy,iz,zk,zyk,k;
-  int jj,kk;
-  int imin,imax,jmin,jmax,kmin,kmax;
-  double qtmp;
-
-  int nx_top = betax[n] - alpha[n];
-  int ny_top = betay[n] - alpha[n];
-  int nz_top = betaz[n] - alpha[n];
-  
-  int nx = 2*nx_top + 1;
-  int ny = 2*ny_top + 1;
-  int nz = 2*nz_top + 1;
-
-  for (icz = nzlo_in[n]; icz <= nzhi_in[n]; icz++) {
-      kmin = alpha[n] - icz;
-      kmax = betaz[n] - icz;
-    for (icy = nylo_in[n]; icy <= nyhi_in[n]; icy++) {
-        jmin = alpha[n] - icy;
-        jmax = betay[n] - icy;
-      for (icx = nxlo_in[n]; icx <= nxhi_in[n]; icx++) {
-          imin = alpha[n] - icx;
-          imax = betax[n] - icx;
-
-        for (iz = kmin; iz <= kmax; iz++) {
-          kk = icz+iz;
-          zk = (iz + nz_top)*ny;
-          for (iy = jmin; iy <= jmax; iy++) {
-            jj = icy+iy;
-            zyk = (zk + iy + ny_top)*nx;
-            for (ix = imin; ix <= imax; ix++) {
-              qtmp = qgridn[kk][jj][icx+ix];
-              k = zyk + ix + nx_top;
-              qtmp = qgridn[kk][jj][icx+ix];
-
-              v0gridn[icz][icy][icx] += v0_direct_top[k] * qtmp;
-              v1gridn[icz][icy][icx] += v1_direct_top[k] * qtmp;
-              v2gridn[icz][icy][icx] += v2_direct_top[k] * qtmp;
-              v3gridn[icz][icy][icx] += v3_direct_top[k] * qtmp;
-              v4gridn[icz][icy][icx] += v4_direct_top[k] * qtmp;
-              v5gridn[icz][icy][icx] += v5_direct_top[k] * qtmp;
-
-            }
           }
         }
 
@@ -2362,7 +2226,6 @@ void MSM::get_g_direct()
 
   int nx = nxhi_direct - nxlo_direct + 1;
   int ny = nyhi_direct - nylo_direct + 1;
-  int nz = nzhi_direct - nzlo_direct + 1;
 
   for (n=0; n<levels; n++) {
 
@@ -2414,7 +2277,6 @@ void MSM::get_virial_direct()
 
   int nx = nxhi_direct - nxlo_direct + 1;
   int ny = nyhi_direct - nylo_direct + 1;
-  int nz = nzhi_direct - nzlo_direct + 1;
 
   for (n=0; n<levels; n++) {
     two_nsq = two_n * two_n;

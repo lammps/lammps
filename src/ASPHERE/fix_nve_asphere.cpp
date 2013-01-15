@@ -35,9 +35,7 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixNVEAsphere::FixNVEAsphere(LAMMPS *lmp, int narg, char **arg) :
-  FixNVE(lmp, narg, arg)
-{
-}
+  FixNVE(lmp, narg, arg) {}
 
 /* ---------------------------------------------------------------------- */
 

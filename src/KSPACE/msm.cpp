@@ -380,7 +380,6 @@ double MSM::estimate_total_error()
 
 void MSM::setup()
 {
-  int i,j,k,l,m,n;
   double *prd;
 
   double a = cutoff;
@@ -1196,7 +1195,7 @@ void MSM::make_rho()
 {
   //fprintf(screen,"MSM aninterpolation\n\n");
 
-  int i,l,m,n,nn,nx,ny,nz,mx,my,mz;
+  int i,l,m,n,nx,ny,nz,mx,my,mz;
   double dx,dy,dz,x0,y0,z0;
 
   // clear 3d density array
@@ -2227,7 +2226,6 @@ void MSM::get_g_direct()
 
   int nx = nxhi_direct - nxlo_direct + 1;
   int ny = nyhi_direct - nylo_direct + 1;
-  int nz = nzhi_direct - nzlo_direct + 1;
 
   for (n=0; n<levels; n++) {
 
@@ -2279,7 +2277,6 @@ void MSM::get_virial_direct()
 
   int nx = nxhi_direct - nxlo_direct + 1;
   int ny = nyhi_direct - nylo_direct + 1;
-  int nz = nzhi_direct - nzlo_direct + 1;
 
   for (n=0; n<levels; n++) {
     two_nsq = two_n * two_n;

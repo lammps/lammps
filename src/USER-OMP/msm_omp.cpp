@@ -141,7 +141,7 @@ void MSMOMP::direct_eval(const int n)
 
   const int nzlo_inn = nzlo_in[n];
   const int nylo_inn = nylo_in[n];
-  const int nxlo_inn = nzlo_in[n];
+  const int nxlo_inn = nxlo_in[n];
   const int numz = nzhi_in[n] - nzlo_inn + 1;
   const int numy = nyhi_in[n] - nylo_inn + 1;
   const int numx = nxhi_in[n] - nxlo_inn + 1;

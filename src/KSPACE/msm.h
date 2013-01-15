@@ -109,8 +109,6 @@ class MSM : public KSpace {
   void make_rho();
   virtual void direct(int);
   void direct_top(int);
-  void direct_peratom(int);
-  void direct_peratom_top(int);
   void restriction(int);
   void prolongation(int);
   void fieldforce();

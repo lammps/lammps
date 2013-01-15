@@ -172,11 +172,11 @@ void MSMOMP::direct_eval(const int n)
       icx += nxlo_inn;
       
       const int kmin = zper ? nzlo_direct : MAX(nzlo_direct,alphan - icz);
-      const int kmax = zper ? nzhi_direct : MAX(nzhi_direct,betazn - icz);
+      const int kmax = zper ? nzhi_direct : MIN(nzhi_direct,betazn - icz);
       const int jmin = yper ? nylo_direct : MAX(nylo_direct,alphan - icy);
-      const int jmax = yper ? nyhi_direct : MAX(nyhi_direct,betayn - icy);
+      const int jmax = yper ? nyhi_direct : MIN(nyhi_direct,betayn - icy);
       const int imin = xper ? nxlo_direct : MAX(nxlo_direct,alphan - icx);
-      const int imax = xper ? nxhi_direct : MAX(nxhi_direct,betaxn - icx);
+      const int imax = xper ? nxhi_direct : MIN(nxhi_direct,betaxn - icx);
 
       esum = 0.0;
       if (VFLAG_GLOBAL || VFLAG_ATOM)

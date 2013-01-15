@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Axel Kohlmeyer (Temple U)
+   Contributing authors: Axel Kohlmeyer (Temple U), Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
 #include "msm_omp.h"
@@ -75,32 +75,57 @@ void MSMOMP::direct(int n)
   // zero out electric potential
 
   memset(&(egrid[n][nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),0,ngrid[n]*sizeof(double));
+  
+  // zero out virial
 
-  if (evflag) {
-    if (eflag_global) {
-      if (vflag_global)
+  if (vflag_atom) {
+    memset(&(v0grid[n][nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),0,ngrid[n]*sizeof(double));
+    memset(&(v1grid[n][nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),0,ngrid[n]*sizeof(double));
+    memset(&(v2grid[n][nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),0,ngrid[n]*sizeof(double));
+    memset(&(v3grid[n][nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),0,ngrid[n]*sizeof(double));
+    memset(&(v4grid[n][nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),0,ngrid[n]*sizeof(double));
+    memset(&(v5grid[n][nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),0,ngrid[n]*sizeof(double));
+  }
+
+  if (eflag_global) {
+    if (vflag_global) {
+      if (vflag_atom)
         direct_eval<1,1,1>(n);
       else
         direct_eval<1,1,0>(n);
     } else {
-      if (vflag_global)
+      if (vflag_atom)
         direct_eval<1,0,1>(n);
       else
         direct_eval<1,0,0>(n);
     }
-  } else {
-    direct_eval<0,0,0>(n);
+  } else { // !eflag_global
+    if (vflag_global) {
+      if (vflag_atom)
+        direct_eval<0,1,1>(n);
+      else
+        direct_eval<0,1,0>(n);
+    } else {
+      if (vflag_atom)
+        direct_eval<0,0,1>(n);
+      else
+        direct_eval<0,0,0>(n);
+    }
   }
 }
 
-template <int EVFLAG, int EFLAG_GLOBAL, int VFLAG_GLOBAL>
+template <int EFLAG_GLOBAL, int VFLAG_GLOBAL, int VFLAG_ATOM>
 void MSMOMP::direct_eval(const int n)
 {
-  //fprintf(screen,"Direct contribution on level %i\n\n",n);
-
-  double * const * const * const egridn = egrid[n];
+  double * const * const * const egridn  = egrid[n];
   const double * const * const * const qgridn = qgrid[n];
   const double * const g_directn = g_direct[n];
+  const double * const v0_directn = v0_direct[n];
+  const double * const v1_directn = v1_direct[n];
+  const double * const v2_directn = v2_direct[n];
+  const double * const v3_directn = v3_direct[n];
+  const double * const v4_directn = v4_direct[n];
+  const double * const v5_directn = v5_direct[n];
 
   double v0,v1,v2,v3,v4,v5,emsm;
   v0 = v1 = v2 = v3 = v4 = v5 = emsm = 0.0;
@@ -109,109 +134,103 @@ void MSMOMP::direct_eval(const int n)
   const int betayn = betay[n];
   const int betazn = betaz[n];
 
+  const int nx = nxhi_direct - nxlo_direct + 1;
+  const int ny = nyhi_direct - nylo_direct + 1;
+
+  // merge three outer loops into one for better threading
+
+  const int nzlo_inn = nzlo_in[n];
+  const int nylo_inn = nylo_in[n];
+  const int nxlo_inn = nzlo_in[n];
+  const int numz = nzhi_in[n] - nzlo_inn + 1;
+  const int numy = nyhi_in[n] - nylo_inn + 1;
+  const int numx = nxhi_in[n] - nxlo_inn + 1;
+  const int inum = numz*numy*numx;
+
+  const int zper = domain->zperiodic;
+  const int yper = domain->yperiodic;
+  const int xper = domain->xperiodic;
+
 #if defined(_OPENMP)
 #pragma omp parallel default(none) reduction(+:v0,v1,v2,v3,v4,v5,emsm)
 #endif
   {
     double qtmp,esum,v0sum,v1sum,v2sum,v3sum,v4sum,v5sum;
-    int icx,icy,icz,ix,iy,iz,zk,zyk,k;
-    int jj,kk;
-    int imin,imax,jmin,jmax,kmin,kmax;
-  
-    const int nx = nxhi_direct - nxlo_direct + 1;
-    const int ny = nyhi_direct - nylo_direct + 1;
+    int i,ifrom,ito,tid,icx,icy,icz,ix,iy,iz,k;
 
-#if defined(_OPENMP)
-    const int tid = omp_get_thread_num();
+    loop_setup_thr(ifrom, ito, tid, inum, comm->nthreads);
 
-    // each thread works on a fixed chunk of grid planes
-    const int inum = nzhi_in[n] - nzlo_in[n] + 1;
-    const int idelta = 1 + inum/comm->nthreads;
-    const int iczfrom = nzlo_in[n] + tid*idelta;
-    const int iczto   = ((iczfrom + idelta) > nzhi_in[n]+1) ? nzhi_in[n]+1 : iczfrom + idelta;
-#else
-    const int tid = 0;
-    const int iczfrom = nzlo_in[n];
-    const int iczto = nzhi_in[n];
-#endif
+    for (i = ifrom; i < ito; ++i) {
 
-    for (icz = iczfrom; icz < iczto; icz++) {
+      // infer outer loop indices icx, icy, icz from master loop index
 
-      if (domain->zperiodic) {
-        kmin = nzlo_direct;
-        kmax = nzhi_direct;
-      } else {
-        kmin = MAX(nzlo_direct,alphan - icz);
-        kmax = MIN(nzhi_direct,betazn - icz);
-      }
-        
-      for (icy = nylo_in[n]; icy <= nyhi_in[n]; icy++) {
+      icz = i/(numy*numx);
+      icy = (i - icz*numy*numx) / numx;
+      icx = i - icz*numy*numx - icy*numx;
+      icz += nzlo_inn;
+      icy += nylo_inn;
+      icx += nxlo_inn;
+      
+      const int kmin = zper ? nzlo_direct : MAX(nzlo_direct,alphan - icz);
+      const int kmax = zper ? nzhi_direct : MAX(nzhi_direct,betazn - icz);
+      const int jmin = yper ? nylo_direct : MAX(nylo_direct,alphan - icy);
+      const int jmax = yper ? nyhi_direct : MAX(nyhi_direct,betayn - icy);
+      const int imin = xper ? nxlo_direct : MAX(nxlo_direct,alphan - icx);
+      const int imax = xper ? nxhi_direct : MAX(nxhi_direct,betaxn - icx);
 
-        if (domain->yperiodic) {
-          jmin = nylo_direct;
-          jmax = nyhi_direct;
-        } else {
-          jmin = MAX(nylo_direct,alphan - icy);
-          jmax = MIN(nyhi_direct,betayn - icy);
+      esum = 0.0;
+      if (VFLAG_GLOBAL || VFLAG_ATOM)
+        v0sum = v1sum = v2sum = v3sum = v4sum = v5sum = 0.0;
+
+      for (iz = kmin; iz <= kmax; iz++) {
+        const int kk = icz+iz;
+        const int zk = (iz + nzhi_direct)*ny;
+        for (iy = jmin; iy <= jmax; iy++) {
+          const int jj = icy+iy;
+          const int zyk = (zk + iy + nyhi_direct)*nx;
+          for (ix = imin; ix <= imax; ix++) {
+            qtmp = qgridn[kk][jj][icx+ix];
+            k = zyk + ix + nxhi_direct;
+            esum += g_directn[k] * qtmp;
+
+            if (VFLAG_GLOBAL || VFLAG_ATOM) {
+              v0sum += v0_directn[k] * qtmp;
+              v1sum += v1_directn[k] * qtmp;
+              v2sum += v2_directn[k] * qtmp;
+              v3sum += v3_directn[k] * qtmp;
+              v4sum += v4_directn[k] * qtmp;
+              v5sum += v5_directn[k] * qtmp;
+            }
+          }
         }
-        
-        for (icx = nxlo_in[n]; icx <= nxhi_in[n]; icx++) {
+      }
+      egridn[icz][icy][icx] = esum;
 
-          if (domain->xperiodic) {
-            imin = nxlo_direct;
-            imax = nxhi_direct;
-          } else {
-            imin = MAX(nxlo_direct,alphan - icx);
-            imax = MIN(nxhi_direct,betaxn - icx);
-          }
+      if (VFLAG_ATOM) {
+        v0grid[n][icz][icy][icx] = v0sum;
+        v1grid[n][icz][icy][icx] = v1sum;
+        v2grid[n][icz][icy][icx] = v2sum;
+        v3grid[n][icz][icy][icx] = v3sum;
+        v4grid[n][icz][icy][icx] = v4sum;
+        v5grid[n][icz][icy][icx] = v5sum;
+      }
 
-          if (VFLAG_GLOBAL)
-            v0sum = v1sum = v2sum = v3sum = v4sum = v5sum = 0.0;
-
-          esum = 0.0;
-          for (iz = kmin; iz <= kmax; iz++) {
-            kk = icz+iz;
-            zk = (iz + nzhi_direct)*ny;
-            for (iy = jmin; iy <= jmax; iy++) {
-              jj = icy+iy;
-              zyk = (zk + iy + nyhi_direct)*nx;
-              for (ix = imin; ix <= imax; ix++) {
-                qtmp = qgridn[kk][jj][icx+ix];
-                k = zyk + ix + nxhi_direct;
-                esum += g_directn[k] * qtmp;
-
-                if (VFLAG_GLOBAL) {
-                    v0sum += v0_direct[n][k] * qtmp;
-                    v1sum += v1_direct[n][k] * qtmp;
-                    v2sum += v2_direct[n][k] * qtmp;
-                    v3sum += v3_direct[n][k] * qtmp;
-                    v4sum += v4_direct[n][k] * qtmp;
-                    v5sum += v5_direct[n][k] * qtmp;
-                }
-              }
-            }
-          }
-          egridn[icz][icy][icx] = esum;
-
-          if (EVFLAG) {
-            qtmp = qgridn[icz][icy][icx];
-            if (EFLAG_GLOBAL) emsm += esum * qtmp;
-            if (VFLAG_GLOBAL) {
-              v0 += v0sum * qtmp;
-              v1 += v1sum * qtmp;
-              v2 += v2sum * qtmp;
-              v3 += v3sum * qtmp;
-              v4 += v4sum * qtmp;
-              v5 += v5sum * qtmp;
-            }
-          }
-
+      if (EFLAG_GLOBAL || VFLAG_GLOBAL) {
+        qtmp = qgridn[icz][icy][icx];
+        if (EFLAG_GLOBAL) emsm += esum * qtmp;
+        if (VFLAG_GLOBAL) {
+          v0 += v0sum * qtmp;
+          v1 += v1sum * qtmp;
+          v2 += v2sum * qtmp;
+          v3 += v3sum * qtmp;
+          v4 += v4sum * qtmp;
+          v5 += v5sum * qtmp;
         }
       }
     }
   } // end of omp parallel region
 
-  if (EVFLAG) {
+  if (EFLAG_GLOBAL || VFLAG_GLOBAL) {
     if (EFLAG_GLOBAL) energy += emsm;
     if (VFLAG_GLOBAL) {
       virial[0] += v0;

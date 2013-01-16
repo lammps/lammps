@@ -33,9 +33,6 @@ using namespace LAMMPS_NS;
 
 PairTriLJ::PairTriLJ(LAMMPS *lmp) : Pair(lmp)
 {
-  avec = (AtomVecTri *) atom->style_match("tri");
-  if (!avec) error->all(FLERR,"Pair tri/lj requires atom style tri");
-
   dmax = nmax = 0;
   discrete = NULL;
   dnum = dfirst = NULL;
@@ -468,6 +465,18 @@ void PairTriLJ::coeff(int narg, char **arg)
   if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
+/* ----------------------------------------------------------------------
+   init specific to this pair style
+------------------------------------------------------------------------- */
+
+void PairTriLJ::init_style()
+{
+  avec = (AtomVecTri *) atom->style_match("tri");
+  if (!avec) error->all(FLERR,"Pair tri/lj requires atom style tri");
+
+  neighbor->request(this);
+}
+ 
 /* ----------------------------------------------------------------------
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */

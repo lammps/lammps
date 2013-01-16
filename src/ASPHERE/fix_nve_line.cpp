@@ -38,11 +38,6 @@ FixNVELine::FixNVELine(LAMMPS *lmp, int narg, char **arg) :
 
   MINUSPI = -MY_PI;
   TWOPI = 2.0*MY_PI;
-
-  // error checks
-
-  avec = (AtomVecLine *) atom->style_match("line");
-  if (!avec) error->all(FLERR,"Fix nve/line requires atom style line");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -62,6 +57,11 @@ int FixNVELine::setmask()
 void FixNVELine::init()
 {
   int i,itype;
+
+  // error checks
+
+  avec = (AtomVecLine *) atom->style_match("line");
+  if (!avec) error->all(FLERR,"Fix nve/line requires atom style line");
 
   if (domain->dimension != 2)
     error->all(FLERR,"Fix nve/line can only be used for 2d simulations");

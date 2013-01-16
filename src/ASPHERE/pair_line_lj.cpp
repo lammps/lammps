@@ -32,9 +32,6 @@ using namespace LAMMPS_NS;
 
 PairLineLJ::PairLineLJ(LAMMPS *lmp) : Pair(lmp)
 {
-  avec = (AtomVecLine *) atom->style_match("line");
-  if (!avec) error->all(FLERR,"Pair line/lj requires atom style line");
-
   dmax = nmax = 0;
   discrete = NULL;
   dnum = dfirst = NULL;
@@ -382,6 +379,18 @@ void PairLineLJ::coeff(int narg, char **arg)
   }
 
   if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+}
+
+/* ----------------------------------------------------------------------
+   init specific to this pair style
+------------------------------------------------------------------------- */
+
+void PairLineLJ::init_style()
+{
+  avec = (AtomVecLine *) atom->style_match("line");
+  if (!avec) error->all(FLERR,"Pair line/lj requires atom style line");
+
+  neighbor->request(this);
 }
 
 /* ----------------------------------------------------------------------

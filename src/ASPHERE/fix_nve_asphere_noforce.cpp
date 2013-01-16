@@ -34,18 +34,18 @@ FixNVEAsphereNoforce::FixNVEAsphereNoforce(LAMMPS *lmp, int narg, char **arg) :
   if (narg != 3) error->all(FLERR,"Illegal fix nve/asphere/noforce command");
 
   time_integrate = 1;
-
-  // error check
-
-  avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-  if (!atom->ellipsoid_flag)
-    error->all(FLERR,"Fix nve/asphere/noforce requires atom style ellipsoid");
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixNVEAsphereNoforce::init()
 {
+  // error check
+
+  avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
+  if (!atom->ellipsoid_flag)
+    error->all(FLERR,"Fix nve/asphere/noforce requires atom style ellipsoid");
+
   FixNVENoforce::init();
   dtq = 0.5 * dtv;
 

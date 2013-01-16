@@ -32,11 +32,6 @@ FixNVETri::FixNVETri(LAMMPS *lmp, int narg, char **arg) :
   if (narg != 3) error->all(FLERR,"Illegal fix nve/tri command");
 
   time_integrate = 1;
-
-  // error checks
-
-  avec = (AtomVecTri *) atom->style_match("tri");
-  if (!avec) error->all(FLERR,"Fix nve/tri requires atom style tri");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -56,6 +51,11 @@ int FixNVETri::setmask()
 void FixNVETri::init()
 {
   int i,itype;
+
+  // error checks
+
+  avec = (AtomVecTri *) atom->style_match("tri");
+  if (!avec) error->all(FLERR,"Fix nve/tri requires atom style tri");
 
   if (domain->dimension != 3)
     error->all(FLERR,"Fix nve/tri can only be used for 3d simulations");

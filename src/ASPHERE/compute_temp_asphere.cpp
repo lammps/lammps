@@ -73,11 +73,6 @@ ComputeTempAsphere::ComputeTempAsphere(LAMMPS *lmp, int narg, char **arg) :
 
   vector = new double[6];
 
-  // error check
-
-  avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-  if (!avec)
-    error->all(FLERR,"Compute temp/asphere requires atom style ellipsoid");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -92,6 +87,12 @@ ComputeTempAsphere::~ComputeTempAsphere()
 
 void ComputeTempAsphere::init()
 {
+  // error check
+
+  avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
+  if (!avec)
+    error->all(FLERR,"Compute temp/asphere requires atom style ellipsoid");
+
   // check that all particles are finite-size, no point particles allowed
 
   int *ellipsoid = atom->ellipsoid;

@@ -37,9 +37,6 @@ using namespace LAMMPS_NS;
 
 PairGayBerne::PairGayBerne(LAMMPS *lmp) : Pair(lmp)
 {
-  avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-  if (!avec) error->all(FLERR,"Pair gayberne requires atom style ellipsoid");
-
   single_enable = 0;
 }
 
@@ -335,6 +332,9 @@ void PairGayBerne::coeff(int narg, char **arg)
 
 void PairGayBerne::init_style()
 {
+  avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
+  if (!avec) error->all(FLERR,"Pair gayberne requires atom style ellipsoid");
+
   neighbor->request(this);
 
   // per-type shape precalculations

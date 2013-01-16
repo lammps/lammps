@@ -34,15 +34,16 @@ using namespace FixConst;
 FixNHAsphere::FixNHAsphere(LAMMPS *lmp, int narg, char **arg) :
   FixNH(lmp, narg, arg)
 {
-  avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-  if (!avec)
-    error->all(FLERR,"Compute nvt/nph/npt asphere requires atom style ellipsoid");
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixNHAsphere::init()
 {
+  avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
+  if (!avec)
+    error->all(FLERR,"Compute nvt/nph/npt asphere requires atom style ellipsoid");
+
   // check that all particles are finite-size
   // no point particles allowed, spherical is OK
 

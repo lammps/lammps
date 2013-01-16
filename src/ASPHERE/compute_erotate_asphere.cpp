@@ -35,7 +35,12 @@ ComputeERotateAsphere(LAMMPS *lmp, int narg, char **arg) :
 
   scalar_flag = 1;
   extscalar = 1;
+}
 
+/* ---------------------------------------------------------------------- */
+
+void ComputeERotateAsphere::init()
+{
   // error check
 
   avec_ellipsoid = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
@@ -44,12 +49,7 @@ ComputeERotateAsphere(LAMMPS *lmp, int narg, char **arg) :
   if (!avec_ellipsoid && !avec_line && !avec_tri)
     error->all(FLERR,"Compute erotate/asphere requires "
                "atom style ellipsoid or line or tri");
-}
 
-/* ---------------------------------------------------------------------- */
-
-void ComputeERotateAsphere::init()
-{
   // check that all particles are finite-size
   // no point particles allowed, spherical is OK
 

@@ -131,14 +131,6 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
     } else error->all(FLERR,"Illegal fix langevin command");
   }
 
-  // error check
-
-  if (aflag) {
-    avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-    if (!avec)
-      error->all(FLERR,"Fix langevin angmom requires atom style ellipsoid");
-  }
-
   // set temperature = NULL, user can override via fix_modify if wants bias
 
   id_temp = NULL;
@@ -213,6 +205,10 @@ void FixLangevin::init()
   }
 
   if (aflag) {
+    avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
+    if (!avec)
+      error->all(FLERR,"Fix langevin angmom requires atom style ellipsoid");
+
     int *ellipsoid = atom->ellipsoid;
     int *mask = atom->mask;
     int nlocal = atom->nlocal;

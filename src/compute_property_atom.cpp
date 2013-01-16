@@ -344,6 +344,15 @@ ComputePropertyAtom::~ComputePropertyAtom()
 
 /* ---------------------------------------------------------------------- */
 
+void ComputePropertyAtom::init()
+{
+  avec_ellipsoid = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
+  avec_line = (AtomVecLine *) atom->style_match("line");
+  avec_tri = (AtomVecTri *) atom->style_match("tri");
+}
+
+/* ---------------------------------------------------------------------- */
+
 void ComputePropertyAtom::compute_peratom()
 {
   invoked_peratom = update->ntimestep;

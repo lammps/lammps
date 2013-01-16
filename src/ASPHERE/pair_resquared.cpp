@@ -39,9 +39,6 @@ PairRESquared::PairRESquared(LAMMPS *lmp) : Pair(lmp),
                                             b_alpha(45.0/56.0),
                                             cr60(pow(60.0,1.0/3.0))
 {
-  avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-  if (!avec) error->all(FLERR,"Pair resquared requires atom style ellipsoid");
-
   single_enable = 0;
 
   cr60 = pow(60.0,1.0/3.0);
@@ -321,6 +318,9 @@ void PairRESquared::coeff(int narg, char **arg)
 
 void PairRESquared::init_style()
 {
+  avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
+  if (!avec) error->all(FLERR,"Pair resquared requires atom style ellipsoid");
+
   neighbor->request(this);
 
   // per-type shape precalculations

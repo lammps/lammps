@@ -511,12 +511,6 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   MINUSPI = -MY_PI;
   TWOPI = 2.0*MY_PI;
 
-  // atom style pointers to particles that store extra info
-
-  avec_ellipsoid = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-  avec_line = (AtomVecLine *) atom->style_match("line");
-  avec_tri = (AtomVecTri *) atom->style_match("tri");
-
   // print statistics
 
   int nsum = 0;
@@ -598,6 +592,12 @@ void FixRigid::init()
   int i,ibody;
 
   triclinic = domain->triclinic;
+
+  // atom style pointers to particles that store extra info
+
+  avec_ellipsoid = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
+  avec_line = (AtomVecLine *) atom->style_match("line");
+  avec_tri = (AtomVecTri *) atom->style_match("tri");
 
   // warn if more than one rigid fix
 

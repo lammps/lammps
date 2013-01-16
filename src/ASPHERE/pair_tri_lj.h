@@ -31,6 +31,7 @@ class PairTriLJ : public Pair {
   virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
+  virtual void init_style();
   double init_one(int, int);
 
  protected:

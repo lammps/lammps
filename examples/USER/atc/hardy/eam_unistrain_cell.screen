@@ -1,7 +1,7 @@
-LAMMPS (7 Jul 2009)
+LAMMPS (12 Jan 2013)
 Lattice spacing in x,y,z = 3.615 3.615 3.615
 Created orthogonal box = (-65.07 -10.845 -10.845) to (65.07 10.845 10.845)
-  1 by 1 by 1 processor grid
+  1 by 1 by 1 MPI processor grid
 Created 4896 atoms
 4608 atoms in group internal
 Constructing ATC transfer (hardy)
@@ -12,17 +12,17 @@ Setting up run ...
 ATC:: computing kernel matrix ..........done
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 4.95
-Memory usage per processor = 8.29119 Mbytes
+Memory usage per processor = 8.83292 Mbytes
 Step PotEng KinEng Press Lx Ly Lz 
        0   -17256.022            0   -2117.8338       130.14        21.69        21.69 
        1   -17256.022            0   -2117.8338       130.14        21.69        21.69 
-Loop time of 0.0510271 on 1 procs for 1 steps with 4896 atoms
+Loop time of 0.062633 on 1 procs for 1 steps with 4896 atoms
 
-Pair  time (%) = 0.0173669 (34.0347)
+Pair  time (%) = 0.020469 (32.6808)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000237226 (0.464903)
-Outpt time (%) = 0.00011301 (0.221472)
-Other time (%) = 0.0333099 (65.279)
+Comm  time (%) = 0.00018692 (0.298437)
+Outpt time (%) = 8.70228e-05 (0.138941)
+Other time (%) = 0.0418901 (66.8819)
 
 Nlocal:    4896 ave 4896 max 4896 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -37,23 +37,22 @@ Total # of neighbors = 260064
 Ave neighs/atom = 53.1176
 Neighbor list builds = 0
 Dangerous builds = 0
-System init for displace_atoms ...
 Displacing atoms ...
  ATC:: Warning : text output can create _LARGE_ files
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 4.95
-Memory usage per processor = 8.52007 Mbytes
+Memory usage per processor = 9.13809 Mbytes
 Step PotEng KinEng Press Lx Ly Lz 
        1   -17252.771            0   -14787.592       130.14        21.69        21.69 
        2   -17252.771            0   -14787.592       130.14        21.69        21.69 
-Loop time of 0.19337 on 1 procs for 1 steps with 4896 atoms
+Loop time of 0.182935 on 1 procs for 1 steps with 4896 atoms
 
-Pair  time (%) = 0.0174251 (9.01126)
+Pair  time (%) = 0.0202942 (11.0937)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000144005 (0.0744712)
-Outpt time (%) = 0.000128031 (0.0662103)
-Other time (%) = 0.175673 (90.8481)
+Comm  time (%) = 0.000153065 (0.0836716)
+Outpt time (%) = 6.50883e-05 (0.03558)
+Other time (%) = 0.162423 (88.7871)
 
 Nlocal:    4896 ave 4896 max 4896 min
 Histogram: 1 0 0 0 0 0 0 0 0 0

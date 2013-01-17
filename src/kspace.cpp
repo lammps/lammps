@@ -242,50 +242,6 @@ double KSpace::estimate_table_accuracy(double q2_over_sqrt, double spr)
 }
 
 /* ----------------------------------------------------------------------
-   compute gamma for MSM and pair styles
-   see Eq 4 from Parallel Computing 35 (2009) 164–177
-------------------------------------------------------------------------- */
-
-double KSpace::gamma(const double &rho)
-{
-  if (rho <= 1) {
-    int split_order = order/2;
-    double g = gcons[split_order][0];
-    double rho2 = rho*rho;
-    double rho_n = rho2;
-    for (int n=1; n<=split_order; n++) {
-      g += gcons[split_order][n]*rho_n;
-      rho_n *= rho2;
-    }
-    return g;
-  }
-  else
-    return (1.0/rho);
-}
-
-/* ----------------------------------------------------------------------
-   compute the derivative of gamma for MSM and pair styles
-   see Eq 4 from Parallel Computing 35 (2009) 164-177
-------------------------------------------------------------------------- */
-
-double KSpace::dgamma(const double &rho)
-{
-  if (rho <= 1) {
-    int split_order = order/2;
-    double dg = dgcons[split_order][0]*rho;
-    double rho2 = rho*rho;
-    double rho_n = rho*rho2;
-    for (int n=1; n<split_order; n++) {
-      dg += dgcons[split_order][n]*rho_n;
-      rho_n *= rho2;
-    }
-    return dg;
-  }
-  else
-    return (-1.0/rho/rho);
-}
-
-/* ----------------------------------------------------------------------
    modify parameters of the KSpace style
 ------------------------------------------------------------------------- */
 

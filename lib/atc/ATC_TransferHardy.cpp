@@ -913,6 +913,16 @@ namespace ATC {
       }
     }
 
+    // compute:eshelby_stress
+    if (fieldFlags_(HARDY_ESHELBY_STRESS)) {
+      if (! (gradFlags_(DISPLACEMENT)) ) {
+        throw ATC_Error(0,"displacement_gradient needs to be defined for eshelby stress");
+      }
+      compute_eshelby_stress(hardyData_["eshelby_stress"],
+                             hardyData_["energy"],hardyData_["stress"],
+                             hardyData_["displacement_gradient"]);
+    }
+
     // (3) computes
     map <string,int>::const_iterator iter;
     for (iter = computes_.begin(); iter != computes_.end(); iter++) {
@@ -2164,6 +2174,86 @@ namespace ATC {
         }
       }
     }// end if kernelFunction_
+  }
+
+  //-------------------------------------------------------------------
+  void ATC_TransferHardy::compute_eshelby_stress(DENS_MAT & M,
+    const DENS_MAT & E, const DENS_MAT & S, const DENS_MAT & H)
+  {
+    // eshelby stess:M, energy:E, stress:S, displacement gradient: H
+    // eshelby stress = W I - F^T.P = W I - C.S  [energy]
+    // symmetric if isotropic S = a_0 I + a_1 C + a_2 C^2
+    M.reset(nNodes_,fieldSizes_(HARDY_ESHELBY_STRESS));
+    double nktv2p = lammpsInterface_->nktv2p();
+    DENS_MAT P(3,3),FT(3,3),FTP(3,3),ESH(3,3);
+    for (int i = 0; i < nNodes_; i++) {
+      double W = E(i,0);
+      ESH = 0.0;
+      ESH(0,0) = W; ESH(1,1) = W; ESH(2,2) = W;
+      // NOTE make matrix function to make this easier? see VoigtOp HACK
+      // copy to local
+      if (atomToElementMapType_ == LAGRANGIAN) {
+        // Stress notation convention:: 0:11 1:12 2:13  3:21 4:22 5:23  6:31 7:32 8:33
+        P(0,0) = S(i,0); P(0,1) = S(i,1); P(0,2) = S(i,2);
+        P(1,0) = S(i,3); P(1,1) = S(i,4); P(1,2) = S(i,5);
+        P(2,0) = S(i,6); P(2,1) = S(i,7); P(2,2) = S(i,8);
+// NOTE can just remove \int P N dA in post-processing
+//#define H_BASED
+#ifdef H_BASED
+        FT(0,0) = H(i,0); FT(1,0) = H(i,1); FT(2,0) = H(i,2);
+        FT(0,1) = H(i,3); FT(1,1) = H(i,4); FT(2,1) = H(i,5);
+        FT(0,2) = H(i,6); FT(1,2) = H(i,7); FT(2,2) = H(i,8);
+#else
+        FT(0,0) = 1+H(i,0); FT(1,0) = H(i,1);   FT(2,0) = H(i,2);
+        FT(0,1) = H(i,3);   FT(1,1) = 1+H(i,4); FT(2,1) = H(i,5);
+        FT(0,2) = H(i,6);   FT(1,2) = H(i,7);   FT(2,2) = 1+H(i,8);
+#endif
+      }
+      else if (atomToElementMapType_ == EULERIAN) {
+        // Stress notation convention:: 0:11 1:22 2:33 3:12=21 4:13=31 5:23=32
+        P(0,0) = S(i,0); P(0,1) = S(i,3); P(0,2) = S(i,4);
+        P(1,0) = S(i,3); P(1,1) = S(i,1); P(1,2) = S(i,5);
+        P(2,0) = S(i,4); P(2,1) = S(i,5); P(2,2) = S(i,2);
+        FT(0,0) = H(i,0); FT(1,0) = H(i,1); FT(2,0) = H(i,2);
+        FT(0,1) = H(i,3); FT(1,1) = H(i,4); FT(2,1) = H(i,5);
+        FT(0,2) = H(i,6); FT(1,2) = H(i,7); FT(2,2) = H(i,8);
+      }
+      FTP = (1.0/nktv2p)*FT*P;
+      ESH -= FTP;
+      if (atomToElementMapType_ == EULERIAN) {
+        // For Eulerian analysis, M = F^T*(w-H^T.CauchyStress)
+        DENS_MAT Q(3,3);
+        // Q stores (1-H)
+        Q(0,0) = 1; Q(1,1) = 1; Q(2,2) = 1;
+        Q(0,1) = 0; Q(1,0) = 0;
+        Q(0,2) = 0; Q(2,0) = 0;
+        Q(1,2) = 0; Q(2,1) = 0;
+        Q -= FT.transpose();
+        DENS_MAT F; F.reset(3,3);
+        F = inv(Q); 
+        FT = F.transpose();
+        ESH = FT*ESH; 
+      }
+      // copy to global
+      M(i,0) = ESH(0,0); M(i,1) = ESH(0,1); M(i,2) = ESH(0,2);
+      M(i,3) = ESH(1,0); M(i,4) = ESH(1,1); M(i,5) = ESH(1,2);
+      M(i,6) = ESH(2,0); M(i,7) = ESH(2,1); M(i,8) = ESH(2,2);
+#ifdef EXTENDED_ERROR_CHECKING
+      if (atomToElementMapType_ == LAGRANGIAN) {
+        cout << i << " W: " << W << "\n";
+#ifdef H_BASED
+        FTP.print("H^T.P");
+#else
+        FTP.print("F^T.P");
+#endif
+      }
+      else if (atomToElementMapType_ == EULERIAN) {
+        cout << i << " w: " << W << "\n";
+        FTP.print("H^T.CauchyStress");
+      }
+      ESH.print("Eshelby stress");
+#endif
+    }
   }
 
   //-------------------------------------------------------------------

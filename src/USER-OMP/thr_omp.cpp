@@ -172,8 +172,6 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
 
     if (pair->vflag_fdotr) {
 
-      if (fix->last_pair_hybrid) return;
-
       // this is a non-hybrid pair style. compute per thread fdotr
       if (fix->last_pair_hybrid == NULL) {
         if (lmp->neighbor->includegroup == 0)

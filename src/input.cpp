@@ -367,13 +367,13 @@ char *Input::nextword(char *str, char **next)
 }
 
 /* ----------------------------------------------------------------------
-   substitute for $ variables in str and return it
-   reallocate str/str2 to hold expanded version if necessary & reset max1/max2
+   substitute for $ variables in str using work str2 and return it
+   reallocate str/str2 to hold expanded version if necessary & reset max/max2
    print updated string if flag is set and not searching for label
    label_active will be 0 if called from external class
 ------------------------------------------------------------------------- */
 
-void Input::substitute(char *&str, char *&str2, int &max1, int &max2, int flag)
+void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
 {
   // use str2 as scratch space to expand str, then copy back to str
   // reallocate str and str2 as necessary
@@ -381,7 +381,7 @@ void Input::substitute(char *&str, char *&str2, int &max1, int &max2, int flag)
   // var = pts at variable name, ended by NULL
   //   if $ is followed by '{', trailing '}' becomes NULL
   //   else $x becomes x followed by NULL
-  // beyond = pts at text following variable
+  // beyond = points to text following variable
 
   int n;
   char *var,*value,*beyond;
@@ -390,8 +390,12 @@ void Input::substitute(char *&str, char *&str2, int &max1, int &max2, int flag)
 
   n = strlen(str) + 1;
   if (n > max2) reallocate(str2,max2,n);
+  *str2 = '\0';
+  char *ptr2 = str2;
 
   while (*ptr) {
+    // expand variable and append to str2
+
     if (*ptr == '$' && !quote) {
       if (*(ptr+1) == '{') {
         var = ptr+2;
@@ -404,36 +408,48 @@ void Input::substitute(char *&str, char *&str2, int &max1, int &max2, int flag)
         var = ptr;
         var[0] = var[1];
         var[1] = '\0';
-        beyond = ptr + strlen(var) + 1;
+        beyond = ptr + 2;
       }
       value = variable->retrieve(var);
       if (value == NULL) error->one(FLERR,"Substitution for illegal variable");
 
-      *ptr = '\0';
-      strcpy(str2,str);
+      // check if storage in str2 needs to be expanded
+      // re-initialize ptr and ptr2 to the point beyond the variable.
+
       n = strlen(str2) + strlen(value) + strlen(beyond) + 1;
-      if (n > max1) reallocate(str,max1,n);
       if (n > max2) reallocate(str2,max2,n);
       strcat(str2,value);
-      strcat(str2,beyond);
-      strcpy(str,str2);
-      ptr += strlen(value);
+      ptr2 = str2 + strlen(str2);
+      ptr = beyond;
+
+      // output substitution progress if requested
+
       if (flag && me == 0 && label_active == 0) {
-        if (echo_screen && screen) fprintf(screen,"%s\n",str);
-        if (echo_log && logfile) fprintf(logfile,"%s\n",str);
+        if (echo_screen && screen) fprintf(screen,"%s%s\n",str2,beyond);
+        if (echo_log && logfile) fprintf(logfile,"%s%s\n",str2,beyond);
       }
       continue;
     }
     if (*ptr == quote) quote = '\0';
     else if (*ptr == '"' || *ptr == '\'') quote = *ptr;
-    ptr++;
+
+    // copy current character into str2
+
+    *ptr2++ = *ptr++;
+    *ptr2 = '\0';
   }
+
+  // set length of input str to length of work str2
+  // copy work string back to input str
+
+  if (max2 > max) reallocate(str,max,max2);
+  strcpy(str,str2);
 }
 
 /* ----------------------------------------------------------------------
    rellocate a string
    if n > 0: set max >= n in increments of DELTALINE
-   else just increment max by DELTALINE
+   if n = 0: just increment max by DELTALINE
 ------------------------------------------------------------------------- */
 
 void Input::reallocate(char *&str, int &max, int n)
@@ -1244,6 +1260,7 @@ void Input::package()
     for (int i = 1; i < narg; i++) fixarg[i+2] = arg[i];
     modify->add_fix(2+narg,fixarg,NULL);
     delete [] fixarg;
+    force->newton_pair = 0;
 
   } else if (strcmp(arg[0],"omp") == 0) {
     char **fixarg = new char*[2+narg];

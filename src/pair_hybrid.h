@@ -61,6 +61,7 @@ class PairHybrid : public Pair {
   int nallstyles;
 
   void allocate();
+  void flags();
   virtual void modify_requests();
   void build_styles();
   int known_style(char *);

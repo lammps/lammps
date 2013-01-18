@@ -1,28 +1,29 @@
-LAMMPS (7 Jul 2009)
-log    eam_kernel_convergence.log  
-units    metal
-dimension  3
-boundary  p p p
-atom_style      atomic
+LAMMPS (12 Jan 2013)
+log         eam_kernel_convergence.log
+units       metal
+dimension   3
+boundary    p p p
+atom_style  atomic
+atom_modify sort 0 1
 
 # create system
 variable a equal 4.08
 lattice		fcc $a
-lattice		fcc 4.08
+lattice		fcc 4.0800000000000000711
 Lattice spacing in x,y,z = 4.08 4.08 4.08
 region    SYSTEM    block -6 6 -6 6 -6 6
-create_box  1 SYSTEM 
+create_box  1 SYSTEM
 Created orthogonal box = (-24.48 -24.48 -24.48) to (24.48 24.48 24.48)
-  1 by 1 by 1 processor grid
+  1 by 1 by 1 MPI processor grid
 create_atoms  1 region SYSTEM
 Created 6912 atoms
-mass    1 196.97 
-group    internal region SYSTEM 
+mass    1 196.97
+group    internal region SYSTEM
 6912 atoms in group internal
 
 # n-th shell at sqrt(n/2) * a for FCC
 # distances 1:2.9   2:4.1  3:5.1   4:5.8   5:6.5
-# counts    1:12:12 2:6:18 3:24:42 4:12:54 5:24:78 
+# counts    1:12:12 2:6:18 3:24:42 4:12:54 5:24:78
 #pair_style  lj/cut/smooth 5.456108274435118
 #pair_coeff  * * 0.7242785984051078 2.598146797350056
 pair_style  eam
@@ -56,42 +57,42 @@ fix_modify  ATC transfer output        eam_kernel_convergenceFE 1 text tensor_co
 fix_modify  ATC transfer atomic_output eam_kernel_convergenceMD 1 tensor_components
 fix_modify  ATC transfer on_the_fly kernel on
 fix_modify  ATC transfer on_the_fly bond on
- 
+
 # relative to a
 variable d equal 0.1
 variable n equal 60
 variable i loop $n
 variable i loop 60
 label loop_i
-  variable R equal $i*$d 
-  variable R equal 1*$d 
-  variable R equal 1*0.1 
+  variable R equal $i*$d
+  variable R equal 1*$d
+  variable R equal 1*0.10000000000000000555
   variable Ra equal $R*$a
-  variable Ra equal 0.1*$a
-  variable Ra equal 0.1*4.08
+  variable Ra equal 0.10000000000000000555*$a
+  variable Ra equal 0.10000000000000000555*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 0.408
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 0.40800000000000002931
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 8.835 Mbytes
+Memory usage per processor = 9.45303 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
        0            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
 ATC:: computing potential stress: .done
        1            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 0.832908 on 1 procs for 1 steps with 6912 atoms
+Loop time of 0.792487 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0244911 (2.94043)
+Pair  time (%) = 0.026895 (3.39375)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000221968 (0.0266497)
-Outpt time (%) = 0.00019598 (0.0235296)
-Other time (%) = 0.807999 (97.0094)
+Comm  time (%) = 0.000197887 (0.0249704)
+Outpt time (%) = 0.00019002 (0.0239776)
+Other time (%) = 0.765204 (96.5573)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -109,34 +110,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 2*$d 
-  variable R equal 2*0.1 
+  variable R equal $i*$d
+  variable R equal 2*$d
+  variable R equal 2*0.10000000000000000555
   variable Ra equal $R*$a
-  variable Ra equal 0.2*$a
-  variable Ra equal 0.2*4.08
+  variable Ra equal 0.2000000000000000111*$a
+  variable Ra equal 0.2000000000000000111*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 0.816
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 0.81600000000000005862
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
        1            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
        2            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 0.431967 on 1 procs for 1 steps with 6912 atoms
+Loop time of 0.415175 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0242381 (5.6111)
+Pair  time (%) = 0.026638 (6.4161)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 7.58171e-05 (0.0175516)
-Outpt time (%) = 0.00019002 (0.0439894)
-Other time (%) = 0.407463 (94.3274)
+Comm  time (%) = 0.000150919 (0.0363507)
+Outpt time (%) = 0.00018096 (0.0435864)
+Other time (%) = 0.388205 (93.504)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -154,34 +155,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 3*$d 
-  variable R equal 3*0.1 
+  variable R equal $i*$d
+  variable R equal 3*$d
+  variable R equal 3*0.10000000000000000555
   variable Ra equal $R*$a
-  variable Ra equal 0.3*$a
-  variable Ra equal 0.3*4.08
+  variable Ra equal 0.30000000000000004441*$a
+  variable Ra equal 0.30000000000000004441*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 1.224
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 1.224000000000000199
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
        2            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
        3            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 0.43121 on 1 procs for 1 steps with 6912 atoms
+Loop time of 0.415644 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0241311 (5.59613)
+Pair  time (%) = 0.0266631 (6.41488)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 7.67708e-05 (0.0178036)
-Outpt time (%) = 0.000174046 (0.0403621)
-Other time (%) = 0.406828 (94.3457)
+Comm  time (%) = 0.000150681 (0.0362523)
+Outpt time (%) = 0.00018096 (0.0435372)
+Other time (%) = 0.388649 (93.5053)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -199,34 +200,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 4*$d 
-  variable R equal 4*0.1 
+  variable R equal $i*$d
+  variable R equal 4*$d
+  variable R equal 4*0.10000000000000000555
   variable Ra equal $R*$a
-  variable Ra equal 0.4*$a
-  variable Ra equal 0.4*4.08
+  variable Ra equal 0.4000000000000000222*$a
+  variable Ra equal 0.4000000000000000222*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 1.632
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 1.6320000000000001172
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
        3            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
        4            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 0.431978 on 1 procs for 1 steps with 6912 atoms
+Loop time of 0.414101 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0241389 (5.588)
+Pair  time (%) = 0.026639 (6.43297)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 7.51019e-05 (0.0173856)
-Outpt time (%) = 0.000186205 (0.0431052)
-Other time (%) = 0.407578 (94.3515)
+Comm  time (%) = 0.000152826 (0.0369056)
+Outpt time (%) = 0.000185966 (0.0449085)
+Other time (%) = 0.387123 (93.4852)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -244,34 +245,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 5*$d 
-  variable R equal 5*0.1 
+  variable R equal $i*$d
+  variable R equal 5*$d
+  variable R equal 5*0.10000000000000000555
   variable Ra equal $R*$a
   variable Ra equal 0.5*$a
-  variable Ra equal 0.5*4.08
+  variable Ra equal 0.5*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 2.04
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 2.0400000000000000355
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
        4            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
        5            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 0.432807 on 1 procs for 1 steps with 6912 atoms
+Loop time of 0.412699 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.024112 (5.57107)
+Pair  time (%) = 0.026638 (6.45459)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 7.58171e-05 (0.0175175)
-Outpt time (%) = 0.00017786 (0.0410946)
-Other time (%) = 0.408441 (94.3703)
+Comm  time (%) = 0.000151634 (0.0367421)
+Outpt time (%) = 0.00018096 (0.0438479)
+Other time (%) = 0.385728 (93.4648)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -289,34 +290,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 6*$d 
-  variable R equal 6*0.1 
+  variable R equal $i*$d
+  variable R equal 6*$d
+  variable R equal 6*0.10000000000000000555
   variable Ra equal $R*$a
-  variable Ra equal 0.6*$a
-  variable Ra equal 0.6*4.08
+  variable Ra equal 0.60000000000000008882*$a
+  variable Ra equal 0.60000000000000008882*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 2.448
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 2.4480000000000003979
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
        5            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
        6            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 0.432545 on 1 procs for 1 steps with 6912 atoms
+Loop time of 0.414185 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0241449 (5.58205)
+Pair  time (%) = 0.0266511 (6.4346)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 7.60555e-05 (0.0175833)
-Outpt time (%) = 0.000194073 (0.0448676)
-Other time (%) = 0.40813 (94.3555)
+Comm  time (%) = 0.000152111 (0.0367254)
+Outpt time (%) = 0.000188112 (0.0454174)
+Other time (%) = 0.387194 (93.4833)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -334,34 +335,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 7*$d 
-  variable R equal 7*0.1 
+  variable R equal $i*$d
+  variable R equal 7*$d
+  variable R equal 7*0.10000000000000000555
   variable Ra equal $R*$a
-  variable Ra equal 0.7*$a
-  variable Ra equal 0.7*4.08
+  variable Ra equal 0.70000000000000006661*$a
+  variable Ra equal 0.70000000000000006661*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 2.856
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 2.8560000000000003162
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
        6            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
        7            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 0.433564 on 1 procs for 1 steps with 6912 atoms
+Loop time of 0.415117 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0241129 (5.56156)
+Pair  time (%) = 0.0266759 (6.42613)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 7.70092e-05 (0.0177619)
-Outpt time (%) = 0.000196934 (0.0454221)
-Other time (%) = 0.409177 (94.3753)
+Comm  time (%) = 0.000150919 (0.0363558)
+Outpt time (%) = 0.00018096 (0.0435925)
+Other time (%) = 0.388109 (93.4939)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -379,34 +380,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 8*$d 
-  variable R equal 8*0.1 
+  variable R equal $i*$d
+  variable R equal 8*$d
+  variable R equal 8*0.10000000000000000555
   variable Ra equal $R*$a
-  variable Ra equal 0.8*$a
-  variable Ra equal 0.8*4.08
+  variable Ra equal 0.80000000000000004441*$a
+  variable Ra equal 0.80000000000000004441*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 3.264
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 3.2640000000000002345
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
        7            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
        8            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 0.442136 on 1 procs for 1 steps with 6912 atoms
+Loop time of 0.421207 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0241678 (5.46614)
+Pair  time (%) = 0.026685 (6.33537)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 7.72476e-05 (0.0174715)
-Outpt time (%) = 0.000174046 (0.0393647)
-Other time (%) = 0.417717 (94.477)
+Comm  time (%) = 0.000153065 (0.0363396)
+Outpt time (%) = 0.000180006 (0.0427358)
+Other time (%) = 0.394189 (93.5856)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -424,34 +425,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 9*$d 
-  variable R equal 9*0.1 
+  variable R equal $i*$d
+  variable R equal 9*$d
+  variable R equal 9*0.10000000000000000555
   variable Ra equal $R*$a
-  variable Ra equal 0.9*$a
-  variable Ra equal 0.9*4.08
+  variable Ra equal 0.9000000000000000222*$a
+  variable Ra equal 0.9000000000000000222*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 3.672
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 3.6720000000000001528
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
        8            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
        9            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 0.43886 on 1 procs for 1 steps with 6912 atoms
+Loop time of 0.419127 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.024117 (5.49537)
+Pair  time (%) = 0.0266428 (6.35674)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 7.70092e-05 (0.0175475)
-Outpt time (%) = 0.000178099 (0.0405821)
-Other time (%) = 0.414488 (94.4465)
+Comm  time (%) = 0.000152111 (0.0362924)
+Outpt time (%) = 0.00018096 (0.0431754)
+Other time (%) = 0.392151 (93.5638)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -469,34 +470,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 10*$d 
-  variable R equal 10*0.1 
+  variable R equal $i*$d
+  variable R equal 10*$d
+  variable R equal 10*0.10000000000000000555
   variable Ra equal $R*$a
   variable Ra equal 1*$a
-  variable Ra equal 1*4.08
+  variable Ra equal 1*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 4.08
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 4.0800000000000000711
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
        9            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
       10            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 0.439878 on 1 procs for 1 steps with 6912 atoms
+Loop time of 0.420732 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.024133 (5.48629)
+Pair  time (%) = 0.0266609 (6.33679)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 7.70092e-05 (0.0175069)
-Outpt time (%) = 0.000174046 (0.0395668)
-Other time (%) = 0.415494 (94.4566)
+Comm  time (%) = 0.000152111 (0.0361539)
+Outpt time (%) = 0.000181198 (0.0430673)
+Other time (%) = 0.393738 (93.584)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -514,34 +515,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 11*$d 
-  variable R equal 11*0.1 
+  variable R equal $i*$d
+  variable R equal 11*$d
+  variable R equal 11*0.10000000000000000555
   variable Ra equal $R*$a
-  variable Ra equal 1.1*$a
-  variable Ra equal 1.1*4.08
+  variable Ra equal 1.1000000000000000888*$a
+  variable Ra equal 1.1000000000000000888*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 4.488
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 4.4880000000000004334
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       10            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
       11            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 0.444444 on 1 procs for 1 steps with 6912 atoms
+Loop time of 0.424354 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.024122 (5.42745)
+Pair  time (%) = 0.026649 (6.2799)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000118971 (0.0267685)
-Outpt time (%) = 0.0001719 (0.0386775)
-Other time (%) = 0.420031 (94.5071)
+Comm  time (%) = 0.000164747 (0.0388231)
+Outpt time (%) = 0.000180006 (0.0424188)
+Other time (%) = 0.39736 (93.6389)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -559,34 +560,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 12*$d 
-  variable R equal 12*0.1 
+  variable R equal $i*$d
+  variable R equal 12*$d
+  variable R equal 12*0.10000000000000000555
   variable Ra equal $R*$a
-  variable Ra equal 1.2*$a
-  variable Ra equal 1.2*4.08
+  variable Ra equal 1.2000000000000001776*$a
+  variable Ra equal 1.2000000000000001776*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 4.896
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 4.8960000000000007958
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       11            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
       12            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 0.447241 on 1 procs for 1 steps with 6912 atoms
+Loop time of 0.427058 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0241439 (5.39842)
+Pair  time (%) = 0.026686 (6.24879)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 7.82013e-05 (0.0174853)
-Outpt time (%) = 0.000173092 (0.0387021)
-Other time (%) = 0.422846 (94.5454)
+Comm  time (%) = 0.000152111 (0.0356184)
+Outpt time (%) = 0.000179052 (0.0419269)
+Other time (%) = 0.400041 (93.6737)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -604,34 +605,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 13*$d 
-  variable R equal 13*0.1 
+  variable R equal $i*$d
+  variable R equal 13*$d
+  variable R equal 13*0.10000000000000000555
   variable Ra equal $R*$a
-  variable Ra equal 1.3*$a
-  variable Ra equal 1.3*4.08
+  variable Ra equal 1.3000000000000000444*$a
+  variable Ra equal 1.3000000000000000444*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 5.304
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 5.30400000000000027
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       12            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
       13            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 0.456658 on 1 procs for 1 steps with 6912 atoms
+Loop time of 0.435981 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0241241 (5.28276)
+Pair  time (%) = 0.026649 (6.11242)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 7.67708e-05 (0.0168114)
-Outpt time (%) = 0.000174046 (0.0381129)
-Other time (%) = 0.432283 (94.6623)
+Comm  time (%) = 0.000151873 (0.0348347)
+Outpt time (%) = 0.000179052 (0.0410688)
+Other time (%) = 0.409001 (93.8117)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -649,34 +650,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 14*$d 
-  variable R equal 14*0.1 
+  variable R equal $i*$d
+  variable R equal 14*$d
+  variable R equal 14*0.10000000000000000555
   variable Ra equal $R*$a
-  variable Ra equal 1.4*$a
-  variable Ra equal 1.4*4.08
+  variable Ra equal 1.4000000000000001332*$a
+  variable Ra equal 1.4000000000000001332*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 5.712
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 5.7120000000000006324
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       13            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
       14            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 0.458989 on 1 procs for 1 steps with 6912 atoms
+Loop time of 0.4356 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0241349 (5.25827)
+Pair  time (%) = 0.026623 (6.1118)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 7.62939e-05 (0.0166222)
-Outpt time (%) = 0.000174999 (0.0381271)
-Other time (%) = 0.434603 (94.687)
+Comm  time (%) = 0.000167131 (0.0383681)
+Outpt time (%) = 0.000179052 (0.0411048)
+Other time (%) = 0.408631 (93.8087)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -694,34 +695,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 15*$d 
-  variable R equal 15*0.1 
+  variable R equal $i*$d
+  variable R equal 15*$d
+  variable R equal 15*0.10000000000000000555
   variable Ra equal $R*$a
   variable Ra equal 1.5*$a
-  variable Ra equal 1.5*4.08
+  variable Ra equal 1.5*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 6.12
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 6.1200000000000001066
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       14            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
       15            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 0.465138 on 1 procs for 1 steps with 6912 atoms
+Loop time of 0.437444 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0240898 (5.17907)
+Pair  time (%) = 0.0266461 (6.09133)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 7.60555e-05 (0.0163512)
-Outpt time (%) = 0.000174046 (0.037418)
-Other time (%) = 0.440798 (94.7672)
+Comm  time (%) = 0.000158072 (0.0361353)
+Outpt time (%) = 0.000178814 (0.040877)
+Other time (%) = 0.410461 (93.8317)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -739,34 +740,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 16*$d 
-  variable R equal 16*0.1 
+  variable R equal $i*$d
+  variable R equal 16*$d
+  variable R equal 16*0.10000000000000000555
   variable Ra equal $R*$a
-  variable Ra equal 1.6*$a
-  variable Ra equal 1.6*4.08
+  variable Ra equal 1.6000000000000000888*$a
+  variable Ra equal 1.6000000000000000888*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 6.528
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 6.528000000000000469
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       15            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
       16            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 0.480107 on 1 procs for 1 steps with 6912 atoms
+Loop time of 0.447661 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0246329 (5.13072)
+Pair  time (%) = 0.0267229 (5.96945)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000151873 (0.0316331)
-Outpt time (%) = 0.000179052 (0.0372943)
-Other time (%) = 0.455143 (94.8004)
+Comm  time (%) = 0.000152111 (0.0339791)
+Outpt time (%) = 0.000180006 (0.0402103)
+Other time (%) = 0.420606 (93.9564)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -784,34 +785,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 17*$d 
-  variable R equal 17*0.1 
+  variable R equal $i*$d
+  variable R equal 17*$d
+  variable R equal 17*0.10000000000000000555
   variable Ra equal $R*$a
-  variable Ra equal 1.7*$a
-  variable Ra equal 1.7*4.08
+  variable Ra equal 1.7000000000000001776*$a
+  variable Ra equal 1.7000000000000001776*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 6.936
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 6.9360000000000008313
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       16            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
       17            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 0.473976 on 1 procs for 1 steps with 6912 atoms
+Loop time of 0.447114 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.02408 (5.08044)
+Pair  time (%) = 0.026649 (5.96022)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 7.60555e-05 (0.0160463)
-Outpt time (%) = 0.000172138 (0.0363179)
-Other time (%) = 0.449648 (94.8672)
+Comm  time (%) = 0.000152111 (0.0340206)
+Outpt time (%) = 0.000179052 (0.0400462)
+Other time (%) = 0.420134 (93.9657)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -829,34 +830,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 18*$d 
-  variable R equal 18*0.1 
+  variable R equal $i*$d
+  variable R equal 18*$d
+  variable R equal 18*0.10000000000000000555
   variable Ra equal $R*$a
-  variable Ra equal 1.8*$a
-  variable Ra equal 1.8*4.08
+  variable Ra equal 1.8000000000000000444*$a
+  variable Ra equal 1.8000000000000000444*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 7.344
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 7.3440000000000003055
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       17            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
       18            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 0.483746 on 1 procs for 1 steps with 6912 atoms
+Loop time of 0.452778 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0241649 (4.99537)
+Pair  time (%) = 0.0266571 (5.88745)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 7.72476e-05 (0.0159686)
-Outpt time (%) = 0.000174046 (0.0359787)
-Other time (%) = 0.45933 (94.9527)
+Comm  time (%) = 0.000150919 (0.0333318)
+Outpt time (%) = 0.000179052 (0.0395453)
+Other time (%) = 0.425791 (94.0397)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -874,34 +875,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 19*$d 
-  variable R equal 19*0.1 
+  variable R equal $i*$d
+  variable R equal 19*$d
+  variable R equal 19*0.10000000000000000555
   variable Ra equal $R*$a
-  variable Ra equal 1.9*$a
-  variable Ra equal 1.9*4.08
+  variable Ra equal 1.9000000000000001332*$a
+  variable Ra equal 1.9000000000000001332*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 7.752
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 7.7520000000000006679
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       18            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
       19            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 0.502217 on 1 procs for 1 steps with 6912 atoms
+Loop time of 0.469546 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0240901 (4.79674)
+Pair  time (%) = 0.0266399 (5.67355)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 7.60555e-05 (0.015144)
-Outpt time (%) = 0.000172138 (0.0342757)
-Other time (%) = 0.477879 (95.1538)
+Comm  time (%) = 0.000151873 (0.0323446)
+Outpt time (%) = 0.000180006 (0.0383362)
+Other time (%) = 0.442574 (94.2558)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -919,34 +920,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 20*$d 
-  variable R equal 20*0.1 
+  variable R equal $i*$d
+  variable R equal 20*$d
+  variable R equal 20*0.10000000000000000555
   variable Ra equal $R*$a
   variable Ra equal 2*$a
-  variable Ra equal 2*4.08
+  variable Ra equal 2*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 8.16
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 8.1600000000000001421
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       19            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
       20            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 0.501474 on 1 procs for 1 steps with 6912 atoms
+Loop time of 0.469246 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.024128 (4.81141)
+Pair  time (%) = 0.026655 (5.68038)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 7.70092e-05 (0.0153566)
-Outpt time (%) = 0.000174046 (0.0347068)
-Other time (%) = 0.477095 (95.1385)
+Comm  time (%) = 0.000152111 (0.032416)
+Outpt time (%) = 0.000179052 (0.0381574)
+Other time (%) = 0.44226 (94.249)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -964,34 +965,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 21*$d 
-  variable R equal 21*0.1 
+  variable R equal $i*$d
+  variable R equal 21*$d
+  variable R equal 21*0.10000000000000000555
   variable Ra equal $R*$a
-  variable Ra equal 2.1*$a
-  variable Ra equal 2.1*4.08
+  variable Ra equal 2.1000000000000000888*$a
+  variable Ra equal 2.1000000000000000888*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 8.568
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 8.5680000000000013927
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       20            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
       21            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 0.510272 on 1 procs for 1 steps with 6912 atoms
+Loop time of 0.473302 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.024092 (4.7214)
+Pair  time (%) = 0.026655 (5.6317)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 7.70092e-05 (0.0150918)
-Outpt time (%) = 0.000173807 (0.0340617)
-Other time (%) = 0.485929 (95.2295)
+Comm  time (%) = 0.000151157 (0.0319368)
+Outpt time (%) = 0.000180006 (0.0380319)
+Other time (%) = 0.446316 (94.2983)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -1009,34 +1010,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 22*$d 
-  variable R equal 22*0.1 
+  variable R equal $i*$d
+  variable R equal 22*$d
+  variable R equal 22*0.10000000000000000555
   variable Ra equal $R*$a
-  variable Ra equal 2.2*$a
-  variable Ra equal 2.2*4.08
+  variable Ra equal 2.2000000000000001776*$a
+  variable Ra equal 2.2000000000000001776*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 8.976
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 8.9760000000000008669
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       21            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
       22            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 0.528117 on 1 procs for 1 steps with 6912 atoms
+Loop time of 0.484476 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.024147 (4.57229)
+Pair  time (%) = 0.0266452 (5.4998)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 7.58171e-05 (0.0143561)
-Outpt time (%) = 0.000173807 (0.0329107)
-Other time (%) = 0.50372 (95.3804)
+Comm  time (%) = 0.000152111 (0.031397)
+Outpt time (%) = 0.000180006 (0.0371548)
+Other time (%) = 0.457499 (94.4317)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -1054,34 +1055,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 23*$d 
-  variable R equal 23*0.1 
+  variable R equal $i*$d
+  variable R equal 23*$d
+  variable R equal 23*0.10000000000000000555
   variable Ra equal $R*$a
-  variable Ra equal 2.3*$a
-  variable Ra equal 2.3*4.08
+  variable Ra equal 2.3000000000000002665*$a
+  variable Ra equal 2.3000000000000002665*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 9.384
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 9.3840000000000021174
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       22            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
       23            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 0.532035 on 1 procs for 1 steps with 6912 atoms
+Loop time of 0.491662 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0241368 (4.53669)
+Pair  time (%) = 0.0266612 (5.42266)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 7.62939e-05 (0.01434)
-Outpt time (%) = 0.000174046 (0.0327132)
-Other time (%) = 0.507648 (95.4163)
+Comm  time (%) = 0.000150919 (0.0306957)
+Outpt time (%) = 0.00018692 (0.038018)
+Other time (%) = 0.464663 (94.5086)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -1099,34 +1100,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 24*$d 
-  variable R equal 24*0.1 
+  variable R equal $i*$d
+  variable R equal 24*$d
+  variable R equal 24*0.10000000000000000555
   variable Ra equal $R*$a
-  variable Ra equal 2.4*$a
-  variable Ra equal 2.4*4.08
+  variable Ra equal 2.4000000000000003553*$a
+  variable Ra equal 2.4000000000000003553*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 9.792
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 9.7920000000000015916
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       23            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
       24            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 0.542327 on 1 procs for 1 steps with 6912 atoms
+Loop time of 0.502151 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.024147 (4.45249)
+Pair  time (%) = 0.026655 (5.30816)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 7.79629e-05 (0.0143756)
-Outpt time (%) = 0.00018096 (0.0333673)
-Other time (%) = 0.517921 (95.4998)
+Comm  time (%) = 0.000150919 (0.0300545)
+Outpt time (%) = 0.000180006 (0.035847)
+Other time (%) = 0.475165 (94.6259)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -1144,34 +1145,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 25*$d 
-  variable R equal 25*0.1 
+  variable R equal $i*$d
+  variable R equal 25*$d
+  variable R equal 25*0.10000000000000000555
   variable Ra equal $R*$a
   variable Ra equal 2.5*$a
-  variable Ra equal 2.5*4.08
+  variable Ra equal 2.5*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 10.2
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 10.199999999999999289
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       24            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
       25            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 0.558137 on 1 procs for 1 steps with 6912 atoms
+Loop time of 0.512156 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0249631 (4.47258)
+Pair  time (%) = 0.026499 (5.17402)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 8.2016e-05 (0.0146946)
-Outpt time (%) = 0.000181198 (0.0324648)
-Other time (%) = 0.532911 (95.4803)
+Comm  time (%) = 0.000152111 (0.0297001)
+Outpt time (%) = 0.00017786 (0.0347278)
+Other time (%) = 0.485327 (94.7616)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -1189,34 +1190,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 26*$d 
-  variable R equal 26*0.1 
+  variable R equal $i*$d
+  variable R equal 26*$d
+  variable R equal 26*0.10000000000000000555
   variable Ra equal $R*$a
-  variable Ra equal 2.6*$a
-  variable Ra equal 2.6*4.08
+  variable Ra equal 2.6000000000000000888*$a
+  variable Ra equal 2.6000000000000000888*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 10.608
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 10.60800000000000054
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       25            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
       26            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 0.585632 on 1 procs for 1 steps with 6912 atoms
+Loop time of 0.533657 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0241802 (4.1289)
+Pair  time (%) = 0.0266299 (4.99008)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000124931 (0.0213327)
-Outpt time (%) = 0.000187159 (0.0319584)
-Other time (%) = 0.56114 (95.8178)
+Comm  time (%) = 0.000158072 (0.0296204)
+Outpt time (%) = 0.000178814 (0.0335073)
+Other time (%) = 0.50669 (94.9468)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -1234,34 +1235,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 27*$d 
-  variable R equal 27*0.1 
+  variable R equal $i*$d
+  variable R equal 27*$d
+  variable R equal 27*0.10000000000000000555
   variable Ra equal $R*$a
-  variable Ra equal 2.7*$a
-  variable Ra equal 2.7*4.08
+  variable Ra equal 2.7000000000000001776*$a
+  variable Ra equal 2.7000000000000001776*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 11.016
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 11.016000000000001791
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       26            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
       27            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 0.594232 on 1 procs for 1 steps with 6912 atoms
+Loop time of 0.531399 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.024106 (4.05667)
+Pair  time (%) = 0.0266781 (5.02035)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 7.70092e-05 (0.0129594)
-Outpt time (%) = 0.000180006 (0.0302922)
-Other time (%) = 0.569869 (95.9001)
+Comm  time (%) = 0.000151873 (0.0285798)
+Outpt time (%) = 0.000178099 (0.0335151)
+Other time (%) = 0.504391 (94.9176)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -1279,34 +1280,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 28*$d 
-  variable R equal 28*0.1 
+  variable R equal $i*$d
+  variable R equal 28*$d
+  variable R equal 28*0.10000000000000000555
   variable Ra equal $R*$a
-  variable Ra equal 2.8*$a
-  variable Ra equal 2.8*4.08
+  variable Ra equal 2.8000000000000002665*$a
+  variable Ra equal 2.8000000000000002665*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 11.424
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 11.424000000000001265
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       27            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
       28            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 0.616565 on 1 procs for 1 steps with 6912 atoms
+Loop time of 0.551485 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0244782 (3.97009)
+Pair  time (%) = 0.026638 (4.83024)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000196695 (0.0319018)
-Outpt time (%) = 0.000178814 (0.0290016)
-Other time (%) = 0.591711 (95.969)
+Comm  time (%) = 0.000152111 (0.0275821)
+Outpt time (%) = 0.00018096 (0.0328132)
+Other time (%) = 0.524514 (95.1094)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -1324,34 +1325,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 29*$d 
-  variable R equal 29*0.1 
+  variable R equal $i*$d
+  variable R equal 29*$d
+  variable R equal 29*0.10000000000000000555
   variable Ra equal $R*$a
-  variable Ra equal 2.9*$a
-  variable Ra equal 2.9*4.08
+  variable Ra equal 2.9000000000000003553*$a
+  variable Ra equal 2.9000000000000003553*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 11.832
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 11.832000000000002515
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       28            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
       29            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 0.622642 on 1 procs for 1 steps with 6912 atoms
+Loop time of 0.558076 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0240681 (3.86548)
+Pair  time (%) = 0.0266459 (4.7746)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 7.70092e-05 (0.0123681)
-Outpt time (%) = 0.000173092 (0.0277996)
-Other time (%) = 0.598324 (96.0944)
+Comm  time (%) = 0.000152826 (0.0273845)
+Outpt time (%) = 0.000179052 (0.0320839)
+Other time (%) = 0.531098 (95.1659)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -1369,34 +1370,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 30*$d 
-  variable R equal 30*0.1 
+  variable R equal $i*$d
+  variable R equal 30*$d
+  variable R equal 30*0.10000000000000000555
   variable Ra equal $R*$a
   variable Ra equal 3*$a
-  variable Ra equal 3*4.08
+  variable Ra equal 3*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 12.24
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 12.240000000000000213
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       29            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
       30            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 0.64102 on 1 procs for 1 steps with 6912 atoms
+Loop time of 0.576373 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.024179 (3.77195)
+Pair  time (%) = 0.026655 (4.6246)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 7.82013e-05 (0.0121995)
-Outpt time (%) = 0.000179052 (0.0279324)
-Other time (%) = 0.616584 (96.1879)
+Comm  time (%) = 0.000153065 (0.0265565)
+Outpt time (%) = 0.000180006 (0.0312308)
+Other time (%) = 0.549385 (95.3176)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -1414,34 +1415,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 31*$d 
-  variable R equal 31*0.1 
+  variable R equal $i*$d
+  variable R equal 31*$d
+  variable R equal 31*0.10000000000000000555
   variable Ra equal $R*$a
-  variable Ra equal 3.1*$a
-  variable Ra equal 3.1*4.08
+  variable Ra equal 3.1000000000000000888*$a
+  variable Ra equal 3.1000000000000000888*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 12.648
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 12.648000000000001464
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       30            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
       31            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 0.684526 on 1 procs for 1 steps with 6912 atoms
+Loop time of 0.608049 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.025007 (3.65319)
+Pair  time (%) = 0.026648 (4.38255)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 9.89437e-05 (0.0144543)
-Outpt time (%) = 0.000174999 (0.025565)
-Other time (%) = 0.659245 (96.3068)
+Comm  time (%) = 0.000158072 (0.0259965)
+Outpt time (%) = 0.00018692 (0.030741)
+Other time (%) = 0.581056 (95.5607)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -1459,34 +1460,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 32*$d 
-  variable R equal 32*0.1 
+  variable R equal $i*$d
+  variable R equal 32*$d
+  variable R equal 32*0.10000000000000000555
   variable Ra equal $R*$a
-  variable Ra equal 3.2*$a
-  variable Ra equal 3.2*4.08
+  variable Ra equal 3.2000000000000001776*$a
+  variable Ra equal 3.2000000000000001776*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 13.056
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 13.056000000000000938
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       31            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
       32            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 0.693063 on 1 procs for 1 steps with 6912 atoms
+Loop time of 0.618226 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0242641 (3.50099)
+Pair  time (%) = 0.0266511 (4.31091)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 7.70092e-05 (0.0111114)
-Outpt time (%) = 0.000176191 (0.0254221)
-Other time (%) = 0.668546 (96.4625)
+Comm  time (%) = 0.000153065 (0.0247587)
+Outpt time (%) = 0.00017786 (0.0287695)
+Other time (%) = 0.591244 (95.6356)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -1504,34 +1505,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 33*$d 
-  variable R equal 33*0.1 
+  variable R equal $i*$d
+  variable R equal 33*$d
+  variable R equal 33*0.10000000000000000555
   variable Ra equal $R*$a
-  variable Ra equal 3.3*$a
-  variable Ra equal 3.3*4.08
+  variable Ra equal 3.3000000000000002665*$a
+  variable Ra equal 3.3000000000000002665*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 13.464
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 13.464000000000002188
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       32            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
       33            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 0.731111 on 1 procs for 1 steps with 6912 atoms
+Loop time of 0.632357 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0241039 (3.29688)
+Pair  time (%) = 0.0266988 (4.22211)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 7.72476e-05 (0.0105658)
-Outpt time (%) = 0.000183105 (0.0250448)
-Other time (%) = 0.706747 (96.6675)
+Comm  time (%) = 0.000153065 (0.0242054)
+Outpt time (%) = 0.00018096 (0.0286167)
+Other time (%) = 0.605324 (95.7251)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -1549,34 +1550,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 34*$d 
-  variable R equal 34*0.1 
+  variable R equal $i*$d
+  variable R equal 34*$d
+  variable R equal 34*0.10000000000000000555
   variable Ra equal $R*$a
-  variable Ra equal 3.4*$a
-  variable Ra equal 3.4*4.08
+  variable Ra equal 3.4000000000000003553*$a
+  variable Ra equal 3.4000000000000003553*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 13.872
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 13.872000000000001663
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       33            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
       34            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 0.753866 on 1 procs for 1 steps with 6912 atoms
+Loop time of 0.657665 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.024163 (3.20521)
+Pair  time (%) = 0.0266671 (4.05482)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 7.60555e-05 (0.0100887)
-Outpt time (%) = 0.00019002 (0.025206)
-Other time (%) = 0.729437 (96.7595)
+Comm  time (%) = 0.000153065 (0.023274)
+Outpt time (%) = 0.00018692 (0.0284218)
+Other time (%) = 0.630658 (95.8935)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -1594,34 +1595,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 35*$d 
-  variable R equal 35*0.1 
+  variable R equal $i*$d
+  variable R equal 35*$d
+  variable R equal 35*0.10000000000000000555
   variable Ra equal $R*$a
   variable Ra equal 3.5*$a
-  variable Ra equal 3.5*4.08
+  variable Ra equal 3.5*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 14.28
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 14.280000000000001137
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       34            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
       35            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 0.769074 on 1 procs for 1 steps with 6912 atoms
+Loop time of 0.658028 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0243189 (3.16211)
+Pair  time (%) = 0.0266662 (4.05244)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000105858 (0.0137643)
-Outpt time (%) = 0.000174046 (0.0226305)
-Other time (%) = 0.744475 (96.8015)
+Comm  time (%) = 0.000152111 (0.0231162)
+Outpt time (%) = 0.000179052 (0.0272105)
+Other time (%) = 0.631031 (95.8972)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -1639,34 +1640,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 36*$d 
-  variable R equal 36*0.1 
+  variable R equal $i*$d
+  variable R equal 36*$d
+  variable R equal 36*0.10000000000000000555
   variable Ra equal $R*$a
-  variable Ra equal 3.6*$a
-  variable Ra equal 3.6*4.08
+  variable Ra equal 3.6000000000000000888*$a
+  variable Ra equal 3.6000000000000000888*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 14.688
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 14.688000000000000611
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       35            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
       36            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 0.802796 on 1 procs for 1 steps with 6912 atoms
+Loop time of 0.687164 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0241311 (3.00588)
+Pair  time (%) = 0.026665 (3.88044)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 7.70092e-05 (0.00959262)
-Outpt time (%) = 0.000174999 (0.0217987)
-Other time (%) = 0.778413 (96.9627)
+Comm  time (%) = 0.000158072 (0.0230035)
+Outpt time (%) = 0.000185013 (0.0269241)
+Other time (%) = 0.660156 (96.0696)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -1684,34 +1685,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 37*$d 
-  variable R equal 37*0.1 
+  variable R equal $i*$d
+  variable R equal 37*$d
+  variable R equal 37*0.10000000000000000555
   variable Ra equal $R*$a
-  variable Ra equal 3.7*$a
-  variable Ra equal 3.7*4.08
+  variable Ra equal 3.7000000000000001776*$a
+  variable Ra equal 3.7000000000000001776*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 15.096
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 15.096000000000001862
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       36            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
       37            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 0.833597 on 1 procs for 1 steps with 6912 atoms
+Loop time of 0.719914 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.024153 (2.89744)
+Pair  time (%) = 0.026644 (3.701)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 7.72476e-05 (0.00926678)
-Outpt time (%) = 0.000183105 (0.0219657)
-Other time (%) = 0.809184 (97.0713)
+Comm  time (%) = 0.000151873 (0.0210959)
+Outpt time (%) = 0.00018096 (0.0251363)
+Other time (%) = 0.692937 (96.2528)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -1729,34 +1730,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 38*$d 
-  variable R equal 38*0.1 
+  variable R equal $i*$d
+  variable R equal 38*$d
+  variable R equal 38*0.10000000000000000555
   variable Ra equal $R*$a
-  variable Ra equal 3.8*$a
-  variable Ra equal 3.8*4.08
+  variable Ra equal 3.8000000000000002665*$a
+  variable Ra equal 3.8000000000000002665*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 15.504
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 15.504000000000001336
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       37            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
       38            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 0.870786 on 1 procs for 1 steps with 6912 atoms
+Loop time of 0.736854 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.024138 (2.77198)
+Pair  time (%) = 0.0266581 (3.61782)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000123978 (0.0142374)
-Outpt time (%) = 0.000175953 (0.0202062)
-Other time (%) = 0.846348 (97.1936)
+Comm  time (%) = 0.000152111 (0.0206433)
+Outpt time (%) = 0.000179052 (0.0242996)
+Other time (%) = 0.709865 (96.3372)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -1774,34 +1775,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 39*$d 
-  variable R equal 39*0.1 
+  variable R equal $i*$d
+  variable R equal 39*$d
+  variable R equal 39*0.10000000000000000555
   variable Ra equal $R*$a
-  variable Ra equal 3.9*$a
-  variable Ra equal 3.9*4.08
+  variable Ra equal 3.9000000000000003553*$a
+  variable Ra equal 3.9000000000000003553*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 15.912
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 15.912000000000002586
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       38            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
       39            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 0.887268 on 1 procs for 1 steps with 6912 atoms
+Loop time of 0.745193 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.024153 (2.72218)
+Pair  time (%) = 0.026649 (3.57612)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 7.70092e-05 (0.00867936)
-Outpt time (%) = 0.000179052 (0.0201802)
-Other time (%) = 0.862859 (97.249)
+Comm  time (%) = 0.000152111 (0.0204123)
+Outpt time (%) = 0.000178099 (0.0238997)
+Other time (%) = 0.718214 (96.3796)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -1819,34 +1820,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 40*$d 
-  variable R equal 40*0.1 
+  variable R equal $i*$d
+  variable R equal 40*$d
+  variable R equal 40*0.10000000000000000555
   variable Ra equal $R*$a
   variable Ra equal 4*$a
-  variable Ra equal 4*4.08
+  variable Ra equal 4*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 16.32
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 16.320000000000000284
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       39            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
       40            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 0.919449 on 1 procs for 1 steps with 6912 atoms
+Loop time of 0.775498 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0242 (2.63201)
+Pair  time (%) = 0.026664 (3.43831)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 8.89301e-05 (0.00967211)
-Outpt time (%) = 0.000185013 (0.0201221)
-Other time (%) = 0.894975 (97.3382)
+Comm  time (%) = 0.000152111 (0.0196146)
+Outpt time (%) = 0.000178099 (0.0229657)
+Other time (%) = 0.748504 (96.5191)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -1864,34 +1865,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 41*$d 
-  variable R equal 41*0.1 
+  variable R equal $i*$d
+  variable R equal 41*$d
+  variable R equal 41*0.10000000000000000555
   variable Ra equal $R*$a
-  variable Ra equal 4.1*$a
-  variable Ra equal 4.1*4.08
+  variable Ra equal 4.1000000000000005329*$a
+  variable Ra equal 4.1000000000000005329*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 16.728
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 16.728000000000001535
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       40            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
       41            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 0.937233 on 1 procs for 1 steps with 6912 atoms
+Loop time of 0.808638 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0243261 (2.59552)
+Pair  time (%) = 0.0266709 (3.29825)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000149012 (0.0158991)
-Outpt time (%) = 0.000172853 (0.018443)
-Other time (%) = 0.912585 (97.3701)
+Comm  time (%) = 0.000152111 (0.0188108)
+Outpt time (%) = 0.000185966 (0.0229975)
+Other time (%) = 0.781629 (96.6599)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -1909,34 +1910,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 42*$d 
-  variable R equal 42*0.1 
+  variable R equal $i*$d
+  variable R equal 42*$d
+  variable R equal 42*0.10000000000000000555
   variable Ra equal $R*$a
-  variable Ra equal 4.2*$a
-  variable Ra equal 4.2*4.08
+  variable Ra equal 4.2000000000000001776*$a
+  variable Ra equal 4.2000000000000001776*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 17.136
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 17.136000000000002785
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       41            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
       42            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 1.00801 on 1 procs for 1 steps with 6912 atoms
+Loop time of 0.83779 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0242832 (2.40902)
+Pair  time (%) = 0.0264981 (3.16285)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 8.39233e-05 (0.00832564)
-Outpt time (%) = 0.000175953 (0.0174555)
-Other time (%) = 0.983468 (97.5652)
+Comm  time (%) = 0.000151157 (0.0180424)
+Outpt time (%) = 0.000180006 (0.0214858)
+Other time (%) = 0.810961 (96.7976)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -1954,34 +1955,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 43*$d 
-  variable R equal 43*0.1 
+  variable R equal $i*$d
+  variable R equal 43*$d
+  variable R equal 43*0.10000000000000000555
   variable Ra equal $R*$a
-  variable Ra equal 4.3*$a
-  variable Ra equal 4.3*4.08
+  variable Ra equal 4.2999999999999998224*$a
+  variable Ra equal 4.2999999999999998224*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 17.544
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 17.544000000000000483
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       42            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
       43            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 1.0334 on 1 procs for 1 steps with 6912 atoms
+Loop time of 0.852486 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0240979 (2.33191)
+Pair  time (%) = 0.0266502 (3.12617)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000123024 (0.0119048)
-Outpt time (%) = 0.00018692 (0.0180879)
-Other time (%) = 1.00899 (97.6381)
+Comm  time (%) = 0.000152826 (0.0179271)
+Outpt time (%) = 0.000180006 (0.0211154)
+Other time (%) = 0.825503 (96.8348)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -1999,34 +2000,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 44*$d 
-  variable R equal 44*0.1 
+  variable R equal $i*$d
+  variable R equal 44*$d
+  variable R equal 44*0.10000000000000000555
   variable Ra equal $R*$a
-  variable Ra equal 4.4*$a
-  variable Ra equal 4.4*4.08
+  variable Ra equal 4.4000000000000003553*$a
+  variable Ra equal 4.4000000000000003553*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 17.952
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 17.952000000000001734
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       43            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
       44            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 1.08756 on 1 procs for 1 steps with 6912 atoms
+Loop time of 0.897979 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0241342 (2.21912)
+Pair  time (%) = 0.026685 (2.97167)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 7.58171e-05 (0.00697133)
-Outpt time (%) = 0.000174999 (0.0160911)
-Other time (%) = 1.06317 (97.7578)
+Comm  time (%) = 0.000153065 (0.0170455)
+Outpt time (%) = 0.000185966 (0.0207094)
+Other time (%) = 0.870955 (96.9906)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -2044,34 +2045,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 45*$d 
-  variable R equal 45*0.1 
+  variable R equal $i*$d
+  variable R equal 45*$d
+  variable R equal 45*0.10000000000000000555
   variable Ra equal $R*$a
   variable Ra equal 4.5*$a
-  variable Ra equal 4.5*4.08
+  variable Ra equal 4.5*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 18.36
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 18.359999999999999432
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       44            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
       45            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 1.08371 on 1 procs for 1 steps with 6912 atoms
+Loop time of 0.920067 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.024092 (2.22309)
+Pair  time (%) = 0.0266621 (2.89784)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 7.60555e-05 (0.00701805)
-Outpt time (%) = 0.000176907 (0.0163241)
-Other time (%) = 1.05937 (97.7536)
+Comm  time (%) = 0.000152111 (0.0165326)
+Outpt time (%) = 0.00018096 (0.0196681)
+Other time (%) = 0.893072 (97.066)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -2089,34 +2090,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 46*$d 
-  variable R equal 46*0.1 
+  variable R equal $i*$d
+  variable R equal 46*$d
+  variable R equal 46*0.10000000000000000555
   variable Ra equal $R*$a
-  variable Ra equal 4.6*$a
-  variable Ra equal 4.6*4.08
+  variable Ra equal 4.6000000000000005329*$a
+  variable Ra equal 4.6000000000000005329*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 18.768
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 18.768000000000004235
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       45            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
       46            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 1.15684 on 1 procs for 1 steps with 6912 atoms
+Loop time of 0.948939 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0246029 (2.12673)
+Pair  time (%) = 0.0266368 (2.80701)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000227213 (0.0196408)
-Outpt time (%) = 0.000174046 (0.0150449)
-Other time (%) = 1.13184 (97.8386)
+Comm  time (%) = 0.000156164 (0.0164567)
+Outpt time (%) = 0.000185966 (0.0195973)
+Other time (%) = 0.92196 (97.1569)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -2134,34 +2135,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 47*$d 
-  variable R equal 47*0.1 
+  variable R equal $i*$d
+  variable R equal 47*$d
+  variable R equal 47*0.10000000000000000555
   variable Ra equal $R*$a
-  variable Ra equal 4.7*$a
-  variable Ra equal 4.7*4.08
+  variable Ra equal 4.7000000000000001776*$a
+  variable Ra equal 4.7000000000000001776*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 19.176
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 19.176000000000001933
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       46            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
       47            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 1.21478 on 1 procs for 1 steps with 6912 atoms
+Loop time of 0.999157 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.024112 (1.98489)
+Pair  time (%) = 0.0266631 (2.66856)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 9.39369e-05 (0.00773285)
-Outpt time (%) = 0.000183105 (0.0150732)
-Other time (%) = 1.19039 (97.9923)
+Comm  time (%) = 0.000150681 (0.0150808)
+Outpt time (%) = 0.000181913 (0.0182067)
+Other time (%) = 0.972161 (97.2982)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -2179,34 +2180,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 48*$d 
-  variable R equal 48*0.1 
+  variable R equal $i*$d
+  variable R equal 48*$d
+  variable R equal 48*0.10000000000000000555
   variable Ra equal $R*$a
-  variable Ra equal 4.8*$a
-  variable Ra equal 4.8*4.08
+  variable Ra equal 4.8000000000000007105*$a
+  variable Ra equal 4.8000000000000007105*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 19.584
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 19.584000000000003183
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       47            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
       48            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 1.28075 on 1 procs for 1 steps with 6912 atoms
+Loop time of 1.04 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0241611 (1.88648)
+Pair  time (%) = 0.02665 (2.5625)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 7.58171e-05 (0.00591973)
-Outpt time (%) = 0.00018692 (0.0145946)
-Other time (%) = 1.25633 (98.093)
+Comm  time (%) = 0.000152111 (0.0146261)
+Outpt time (%) = 0.000180006 (0.0173083)
+Other time (%) = 1.01302 (97.4056)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -2224,34 +2225,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 49*$d 
-  variable R equal 49*0.1 
+  variable R equal $i*$d
+  variable R equal 49*$d
+  variable R equal 49*0.10000000000000000555
   variable Ra equal $R*$a
-  variable Ra equal 4.9*$a
-  variable Ra equal 4.9*4.08
+  variable Ra equal 4.9000000000000003553*$a
+  variable Ra equal 4.9000000000000003553*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 19.992
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 19.992000000000000881
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       48            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
       49            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 1.3079 on 1 procs for 1 steps with 6912 atoms
+Loop time of 1.07027 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0241141 (1.84373)
+Pair  time (%) = 0.0266371 (2.48882)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 7.67708e-05 (0.00586979)
-Outpt time (%) = 0.000182152 (0.0139271)
-Other time (%) = 1.28352 (98.1365)
+Comm  time (%) = 0.000158072 (0.0147693)
+Outpt time (%) = 0.000179052 (0.0167296)
+Other time (%) = 1.0433 (97.4797)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -2269,34 +2270,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 50*$d 
-  variable R equal 50*0.1 
+  variable R equal $i*$d
+  variable R equal 50*$d
+  variable R equal 50*0.10000000000000000555
   variable Ra equal $R*$a
   variable Ra equal 5*$a
-  variable Ra equal 5*4.08
+  variable Ra equal 5*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 20.4
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 20.399999999999998579
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       49            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
       50            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 1.36225 on 1 procs for 1 steps with 6912 atoms
+Loop time of 1.11255 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.024147 (1.77258)
+Pair  time (%) = 0.02666 (2.39629)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 7.70092e-05 (0.00565308)
-Outpt time (%) = 0.000174046 (0.0127763)
-Other time (%) = 1.33785 (98.209)
+Comm  time (%) = 0.000152111 (0.0136723)
+Outpt time (%) = 0.000186205 (0.0167368)
+Other time (%) = 1.08555 (97.5733)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -2314,34 +2315,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 51*$d 
-  variable R equal 51*0.1 
+  variable R equal $i*$d
+  variable R equal 51*$d
+  variable R equal 51*0.10000000000000000555
   variable Ra equal $R*$a
-  variable Ra equal 5.1*$a
-  variable Ra equal 5.1*4.08
+  variable Ra equal 5.1000000000000005329*$a
+  variable Ra equal 5.1000000000000005329*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 20.808
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 20.808000000000003382
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       50            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
       51            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 1.36975 on 1 procs for 1 steps with 6912 atoms
+Loop time of 1.14368 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.024096 (1.75916)
+Pair  time (%) = 0.0266519 (2.33037)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 7.79629e-05 (0.00569178)
-Outpt time (%) = 0.000179052 (0.0130719)
-Other time (%) = 1.34539 (98.2221)
+Comm  time (%) = 0.000152111 (0.0133002)
+Outpt time (%) = 0.000178099 (0.0155725)
+Other time (%) = 1.11669 (97.6408)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -2359,34 +2360,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 52*$d 
-  variable R equal 52*0.1 
+  variable R equal $i*$d
+  variable R equal 52*$d
+  variable R equal 52*0.10000000000000000555
   variable Ra equal $R*$a
-  variable Ra equal 5.2*$a
-  variable Ra equal 5.2*4.08
+  variable Ra equal 5.2000000000000001776*$a
+  variable Ra equal 5.2000000000000001776*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 21.216
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 21.21600000000000108
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       51            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
       52            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 1.46155 on 1 procs for 1 steps with 6912 atoms
+Loop time of 1.17359 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.024183 (1.65462)
+Pair  time (%) = 0.0266399 (2.26996)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 7.58171e-05 (0.00518746)
-Outpt time (%) = 0.000181198 (0.0123977)
-Other time (%) = 1.43711 (98.3278)
+Comm  time (%) = 0.000152111 (0.0129612)
+Outpt time (%) = 0.00018096 (0.0154194)
+Other time (%) = 1.14661 (97.7017)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -2404,34 +2405,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 53*$d 
-  variable R equal 53*0.1 
+  variable R equal $i*$d
+  variable R equal 53*$d
+  variable R equal 53*0.10000000000000000555
   variable Ra equal $R*$a
-  variable Ra equal 5.3*$a
-  variable Ra equal 5.3*4.08
+  variable Ra equal 5.3000000000000007105*$a
+  variable Ra equal 5.3000000000000007105*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 21.624
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 21.624000000000002331
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       52            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
       53            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 1.51199 on 1 procs for 1 steps with 6912 atoms
+Loop time of 1.22523 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0241201 (1.59526)
+Pair  time (%) = 0.026648 (2.17494)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 7.67708e-05 (0.00507747)
-Outpt time (%) = 0.000174046 (0.011511)
-Other time (%) = 1.48762 (98.3882)
+Comm  time (%) = 0.000160933 (0.0131349)
+Outpt time (%) = 0.000180006 (0.0146916)
+Other time (%) = 1.19824 (97.7972)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -2449,34 +2450,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 54*$d 
-  variable R equal 54*0.1 
+  variable R equal $i*$d
+  variable R equal 54*$d
+  variable R equal 54*0.10000000000000000555
   variable Ra equal $R*$a
-  variable Ra equal 5.4*$a
-  variable Ra equal 5.4*4.08
+  variable Ra equal 5.4000000000000003553*$a
+  variable Ra equal 5.4000000000000003553*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 22.032
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 22.032000000000003581
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       53            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
       54            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 1.59185 on 1 procs for 1 steps with 6912 atoms
+Loop time of 1.27852 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0241809 (1.51905)
+Pair  time (%) = 0.0266609 (2.08529)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 9.91821e-05 (0.00623063)
-Outpt time (%) = 0.000185013 (0.0116225)
-Other time (%) = 1.56738 (98.4631)
+Comm  time (%) = 0.000152111 (0.0118974)
+Outpt time (%) = 0.00018096 (0.0141538)
+Other time (%) = 1.25153 (97.8887)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -2494,34 +2495,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 55*$d 
-  variable R equal 55*0.1 
+  variable R equal $i*$d
+  variable R equal 55*$d
+  variable R equal 55*0.10000000000000000555
   variable Ra equal $R*$a
   variable Ra equal 5.5*$a
-  variable Ra equal 5.5*4.08
+  variable Ra equal 5.5*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 22.44
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 22.440000000000001279
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       54            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
       55            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 1.56392 on 1 procs for 1 steps with 6912 atoms
+Loop time of 1.30572 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0249412 (1.59478)
+Pair  time (%) = 0.026638 (2.0401)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 8.01086e-05 (0.00512228)
-Outpt time (%) = 0.00020504 (0.0131106)
-Other time (%) = 1.5387 (98.387)
+Comm  time (%) = 0.000152111 (0.0116496)
+Outpt time (%) = 0.000178814 (0.0136946)
+Other time (%) = 1.27875 (97.9346)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -2539,34 +2540,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 56*$d 
-  variable R equal 56*0.1 
+  variable R equal $i*$d
+  variable R equal 56*$d
+  variable R equal 56*0.10000000000000000555
   variable Ra equal $R*$a
-  variable Ra equal 5.6*$a
-  variable Ra equal 5.6*4.08
+  variable Ra equal 5.6000000000000005329*$a
+  variable Ra equal 5.6000000000000005329*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 22.848
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 22.84800000000000253
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       55            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
       56            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 1.60937 on 1 procs for 1 steps with 6912 atoms
+Loop time of 1.33993 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0241718 (1.50194)
+Pair  time (%) = 0.0266552 (1.9893)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000118256 (0.00734794)
-Outpt time (%) = 0.000205994 (0.0127996)
-Other time (%) = 1.58487 (98.4779)
+Comm  time (%) = 0.000152826 (0.0114056)
+Outpt time (%) = 0.000180006 (0.013434)
+Other time (%) = 1.31294 (97.9859)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -2584,34 +2585,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 57*$d 
-  variable R equal 57*0.1 
+  variable R equal $i*$d
+  variable R equal 57*$d
+  variable R equal 57*0.10000000000000000555
   variable Ra equal $R*$a
-  variable Ra equal 5.7*$a
-  variable Ra equal 5.7*4.08
+  variable Ra equal 5.7000000000000001776*$a
+  variable Ra equal 5.7000000000000001776*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 23.256
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 23.256000000000000227
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       56            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
       57            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 1.73621 on 1 procs for 1 steps with 6912 atoms
+Loop time of 1.37967 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0241349 (1.39009)
+Pair  time (%) = 0.0266459 (1.93133)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000126123 (0.0072643)
-Outpt time (%) = 0.000174999 (0.0100794)
-Other time (%) = 1.71177 (98.5926)
+Comm  time (%) = 0.000150919 (0.0109388)
+Outpt time (%) = 0.000180006 (0.0130471)
+Other time (%) = 1.35269 (98.0447)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -2629,34 +2630,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 58*$d 
-  variable R equal 58*0.1 
+  variable R equal $i*$d
+  variable R equal 58*$d
+  variable R equal 58*0.10000000000000000555
   variable Ra equal $R*$a
-  variable Ra equal 5.8*$a
-  variable Ra equal 5.8*4.08
+  variable Ra equal 5.8000000000000007105*$a
+  variable Ra equal 5.8000000000000007105*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 23.664
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 23.664000000000005031
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       57            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
       58            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 1.84337 on 1 procs for 1 steps with 6912 atoms
+Loop time of 1.45956 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0241101 (1.30793)
+Pair  time (%) = 0.0266299 (1.82452)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 7.58171e-05 (0.00411296)
-Outpt time (%) = 0.000191927 (0.0104117)
-Other time (%) = 1.81899 (98.6775)
+Comm  time (%) = 0.000151873 (0.0104054)
+Outpt time (%) = 0.000180006 (0.0123329)
+Other time (%) = 1.4326 (98.1527)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -2674,34 +2675,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 59*$d 
-  variable R equal 59*0.1 
+  variable R equal $i*$d
+  variable R equal 59*$d
+  variable R equal 59*0.10000000000000000555
   variable Ra equal $R*$a
-  variable Ra equal 5.9*$a
-  variable Ra equal 5.9*4.08
+  variable Ra equal 5.9000000000000003553*$a
+  variable Ra equal 5.9000000000000003553*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 24.072
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 24.072000000000002728
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       58            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
       59            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 1.81263 on 1 procs for 1 steps with 6912 atoms
+Loop time of 1.49204 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0241659 (1.33319)
+Pair  time (%) = 0.0266409 (1.78553)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 7.72476e-05 (0.00426163)
-Outpt time (%) = 0.000187159 (0.0103252)
-Other time (%) = 1.7882 (98.6522)
+Comm  time (%) = 0.000156164 (0.0104665)
+Outpt time (%) = 0.000180006 (0.0120644)
+Other time (%) = 1.46507 (98.1919)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -2719,34 +2720,34 @@ Dangerous builds = 0
 # increment (2)
 next i
 jump in.eam_kernel_convergence loop_i
-  variable R equal $i*$d 
-  variable R equal 60*$d 
-  variable R equal 60*0.1 
+  variable R equal $i*$d
+  variable R equal 60*$d
+  variable R equal 60*0.10000000000000000555
   variable Ra equal $R*$a
   variable Ra equal 6*$a
-  variable Ra equal 6*4.08
+  variable Ra equal 6*4.0800000000000000711
   #fix_modify	ATC transfer kernel step ${Ra}
   #fix_modify	ATC transfer kernel quartic_cylinder ${Ra}
   fix_modify	ATC transfer kernel quartic_sphere ${Ra}
-  fix_modify	ATC transfer kernel quartic_sphere 24.48
-  #fix_modify	ATC transfer kernel cell ${Ra} 
+  fix_modify	ATC transfer kernel quartic_sphere 24.480000000000000426
+  #fix_modify	ATC transfer kernel cell ${Ra}
 # initial (1)
 run 1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 5.55
-Memory usage per processor = 9.21646 Mbytes
+Memory usage per processor = 9.91079 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       59            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
 ATC:: computing potential stress: .done
       60            0    -27164.16    0.0224632    0.0224632    0.0224632 1.3034513e-12 
-Loop time of 1.84489 on 1 procs for 1 steps with 6912 atoms
+Loop time of 1.53112 on 1 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.024116 (1.30718)
+Pair  time (%) = 0.026649 (1.74049)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 7.58171e-05 (0.00410958)
-Outpt time (%) = 0.000188828 (0.0102352)
-Other time (%) = 1.82051 (98.6785)
+Comm  time (%) = 0.000151157 (0.00987232)
+Outpt time (%) = 0.000180006 (0.0117565)
+Other time (%) = 1.50414 (98.2379)
 
 Nlocal:    6912 ave 6912 max 6912 min
 Histogram: 1 0 0 0 0 0 0 0 0 0

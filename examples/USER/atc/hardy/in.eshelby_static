@@ -1,0 +1,128 @@
+# This test calculates the J-integral for a sequence of different loads 
+# for a system with a crack tip.
+#
+# loops around crack and one around undefected material
+# loop 0 - does not include crack
+# loop 1 - smallest contour around left crack tip
+# loop 2 - medium   contour around left crack tip
+# loop 3 - largest  contour around left crack tip
+# loop 4 - medium   contour around right crack tip
+#for Lennard-Jones potential for gold: 
+# surface energy (gamma) of 0.1599 eV/Å^2 = 2.56191 J/m2. 
+# 2*gamma = 0.3198 eV/Å^2 = 5.12382 J/m2
+# using the internal nktv2p conversion factor, 
+# the units of eshelby_stress are eV/Å^3, and
+# the resulting boundary integral is eV/Å since we also include thickness (a
+# boundary surface area rather than a periphery). If we multiply the 2*gamma
+# quantity times the thickness t = 3*4.08 = 12.24 Å, we obtain 2*gamma*t =
+# 3.914352 eV/Å, which agrees with the mesh calculation.  
+echo        both
+log         eshelby_static.log  
+units       metal
+atom_style  atomic
+dimension   3
+boundary    p p p
+atom_modify sort 0 1
+ 
+# create domain
+lattice fcc 4.08 origin 0.25 0.25 0.25
+region    SYSTEM    block -10 10 -10 10 0 3
+region    UPPER     block -10 10   0 10 0 3
+region    LOWER     block -10  0 -10 10 0 3
+create_box  1 SYSTEM 
+
+# create atoms
+create_atoms  1 region SYSTEM
+mass    1 63.55
+
+# group atoms by region
+group    internal region SYSTEM 
+group    upper region UPPER 
+group    lower region LOWER 
+
+# specify inter-atomic potential
+pair_style  lj/smooth/linear 5.456108274435118
+pair_coeff    * * 0.7242785984051078 2.598146797350056
+
+# define region above/below crack
+region  abovecrack block -2.01 2.01  0 8 INF INF units lattice 
+group   abovecrack region abovecrack
+region  belowcrack block -2.01 2.01 -8 0 INF INF units lattice 
+group   belowcrack region belowcrack
+
+# specify neighbor/re-neighboring parameters
+neighbor  1.0 bin
+neigh_modify  delay 1000000
+neigh_modify  exclude group abovecrack belowcrack 
+
+# setup thermal output
+thermo    10
+compute_modify  thermo_temp extra 0
+thermo_style  custom step ke pe press
+timestep  0.0
+
+# (1) minimize the system to get a relaxed configuration
+min_modify line quadratic
+variable tol equal 1.e-11
+minimize  0.0 ${tol} 100000 1000000  
+write_restart  eshelby.restart
+
+# setup ATC fix
+reset_timestep  0
+fix             PK1 internal atc hardy 
+fix_modify      PK1 fem create mesh 10 10 1 SYSTEM p f p
+fix_modify      PK1 transfer fields none
+fix_modify      PK1 transfer fields add density energy temperature stress displacement 
+fix_modify	PK1 transfer fields add eshelby_stress transformed_stress
+fix_modify      PK1 transfer gradients add displacement 
+fix_modify      PK1 transfer set reference_potential_energy
+fix_modify      PK1 transfer output eshelby_staticFE 1 text tensor_components
+fix_modify      PK1 transfer atomic_output eshelby_staticMD 1
+
+#-- make concentric loops around one/both of the crack tips 
+#-- & another around undefected material (loop0)
+fix_modify      PK1 mesh create_faceset loop0 box -6  0  6 10 -INF INF outward
+fix_modify      PK1 transfer boundary_integral eshelby_stress faceset loop0
+fix_modify      PK1 transfer boundary_integral         stress faceset loop0
+fix_modify      PK1 transfer boundary_integral         energy faceset loop0
+#fix_modify      PK1  transfer boundary_integral displacement_gradient faceset loop0
+fix_modify      PK1 mesh create_faceset loop1 box -6  0 -2 2 -INF INF outward
+fix_modify      PK1 transfer boundary_integral eshelby_stress faceset loop1
+fix_modify      PK1 transfer boundary_integral         stress faceset loop1
+fix_modify      PK1 transfer boundary_integral         energy faceset loop1
+#fix_modify      PK1  transfer boundary_integral displacement_gradient faceset loop1
+fix_modify      PK1 mesh create_faceset loop2 box -8  0 -4 4 -INF INF outward
+fix_modify      PK1 transfer boundary_integral eshelby_stress faceset loop2
+fix_modify      PK1 transfer boundary_integral         stress faceset loop2
+fix_modify      PK1 transfer boundary_integral         energy faceset loop2
+#fix_modify      PK1  transfer boundary_integral displacement_gradient faceset loop2
+fix_modify      PK1 mesh create_faceset loop3 box -10 0 -6 6 -INF INF outward
+fix_modify      PK1 transfer boundary_integral eshelby_stress faceset loop3
+fix_modify      PK1 transfer boundary_integral         stress faceset loop3
+fix_modify      PK1 transfer boundary_integral         energy faceset loop3
+#fix_modify      PK1  transfer boundary_integral displacement_gradient faceset loop3
+fix_modify      PK1 mesh create_faceset loop4 box  0  8 -6 6 -INF INF outward
+fix_modify      PK1 transfer boundary_integral eshelby_stress faceset loop4
+fix_modify      PK1 transfer boundary_integral         stress faceset loop4
+fix_modify      PK1 transfer boundary_integral         energy faceset loop4
+#fix_modify      PK1  transfer boundary_integral displacement_gradient faceset loop4
+
+# initial ATC step to designate reference state
+run   1
+
+# pull crack apart
+variable L equal 20
+variable n equal 10
+variable i loop $n
+# NOTE this does not generate KE
+# NOTE crack is complete at i =8 / 10
+variable s equal 0.08*$L/$n
+label loop_i
+  variable strain equal $i*$s
+  print ">>> step $i, total strain ${strain}"
+  change_box all y delta 0 $s remap units lattice
+  minimize  0.0 ${tol} 100000 1000000
+# reset_timestep  $i
+  run 1
+next i
+jump in.eshelby_static loop_i

@@ -4,6 +4,7 @@ log		eam_unistrain_mesh.log
 
 units		metal	
 atom_style	atomic
+atom_modify     sort 0 1
 
 # create domain
 lattice         fcc 3.615 origin 0.25 0.25 0.25

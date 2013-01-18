@@ -3,6 +3,7 @@ echo both
 
 units		metal	
 atom_style	atomic
+atom_modify     sort 0 1
 
 # create domain
 lattice         fcc 3.615 origin 0.25 0.25 0.25
@@ -57,7 +58,7 @@ reset_timestep	0
 run 		1
 
 # stretch system 
-displace_box	all x scale 1.001 y scale 1.001 z scale 1.001
+change_box	all x scale 1.001 y scale 1.001 z scale 1.001 remap
 
 fix_modify	AtC transfer output eam_volume_stretchFE 1 text tensor_components
 # fix_modify	AtC transfer atomic_output eam_volume_stretchMD 1 text

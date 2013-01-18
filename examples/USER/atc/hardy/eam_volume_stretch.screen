@@ -1,7 +1,8 @@
-LAMMPS (7 Jul 2009)
+LAMMPS (12 Jan 2013)
 
-units		metal	
+units		metal
 atom_style	atomic
+atom_modify     sort 0 1
 
 # create domain
 lattice         fcc 3.615 origin 0.25 0.25 0.25
@@ -13,12 +14,12 @@ region		mdInternal block -3 3 -3 3 -3 3
 boundary	p p p
 create_box	1 simRegion
 Created orthogonal box = (-10.845 -10.845 -10.845) to (10.845 10.845 10.845)
-  1 by 1 by 1 processor grid
+  1 by 1 by 1 MPI processor grid
 
 # create atoms
 create_atoms	1 region mdRegion
 Created 864 atoms
-mass		1 63.550 
+mass		1 63.550
 
 # specify interal/ghost atoms
 group		internal region mdInternal
@@ -39,13 +40,13 @@ thermo_style custom step pe ke press lx ly lz
 
 
 # time integrator
-fix		NVE all nve 
+fix		NVE all nve
 
 #               ID  group atc PhysicsType ParameterFile
 fix             AtC internal   atc hardy
 Constructing ATC transfer (hardy)
 atomPE compute created with ID: 3
-fix_modify      AtC transfer fields none 
+fix_modify      AtC transfer fields none
 fix_modify      AtC transfer fields add density
 fix_modify      AtC transfer fields add energy
 fix_modify      AtC transfer fields add stress
@@ -60,23 +61,23 @@ log		eam_volume_stretch.log
 # equilibrate MD field
 
 timestep 0.001
-reset_timestep	0	
+reset_timestep	0
 run 		1
 Setting up run ...
  ATC:: computing bond matrix ...........done
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 4.95
-Memory usage per processor = 4.02971 Mbytes
+Memory usage per processor = 4.34254 Mbytes
 Step PotEng KinEng Press Lx Ly Lz 
        0     -3058.56            0 -0.027860375        21.69        21.69        21.69 
        1     -3058.56 1.8391755e-30 -0.027860375        21.69        21.69        21.69 
-Loop time of 0.00839496 on 1 procs for 1 steps with 864 atoms
+Loop time of 0.0108039 on 1 procs for 1 steps with 864 atoms
 
-Pair  time (%) = 0.00306296 (36.4858)
+Pair  time (%) = 0.00339484 (31.4223)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 3.79086e-05 (0.451563)
-Outpt time (%) = 3.09944e-05 (0.369203)
-Other time (%) = 0.00526309 (62.6935)
+Comm  time (%) = 5.6982e-05 (0.527419)
+Outpt time (%) = 2.88486e-05 (0.26702)
+Other time (%) = 0.00732327 (67.7833)
 
 Nlocal:    864 ave 864 max 864 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -92,10 +93,12 @@ Ave neighs/atom = 54
 Neighbor list builds = 0
 Dangerous builds = 0
 
-# stretch system 
-displace_box	all x scale 1.001 y scale 1.001 z scale 1.001
-System init for displace_box ...
-Displacing box ...
+# stretch system
+change_box	all x scale 1.001 y scale 1.001 z scale 1.001 remap
+Changing box ...
+  orthogonal box = (-10.8558 -10.845 -10.845) to (10.8558 10.845 10.845)
+  orthogonal box = (-10.8558 -10.8558 -10.845) to (10.8558 10.8558 10.845)
+  orthogonal box = (-10.8558 -10.8558 -10.8558) to (10.8558 10.8558 10.8558)
 
 fix_modify	AtC transfer output eam_volume_stretchFE 1 text tensor_components
  ATC:: Warning : text output can create _LARGE_ files
@@ -105,17 +108,17 @@ run		1
 Setting up run ...
  ATC:: conversion factor for energy/vol -> stress 1.60218e+06
  ATC:: cutoff radius 4.95
-Memory usage per processor = 4.02971 Mbytes
+Memory usage per processor = 4.34254 Mbytes
 Step PotEng KinEng Press Lx Ly Lz 
        1   -3058.5204 1.8391755e-30   -4126.8763     21.71169     21.71169     21.71169 
        2   -3058.5204 2.3402676e-29   -4126.8763     21.71169     21.71169     21.71169 
-Loop time of 0.0824161 on 1 procs for 1 steps with 864 atoms
+Loop time of 0.0757251 on 1 procs for 1 steps with 864 atoms
 
-Pair  time (%) = 0.00323987 (3.93112)
+Pair  time (%) = 0.00336003 (4.43715)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 5.57899e-05 (0.0676931)
-Outpt time (%) = 2.69413e-05 (0.0326894)
-Other time (%) = 0.0790935 (95.9685)
+Comm  time (%) = 4.91142e-05 (0.0648586)
+Outpt time (%) = 2.88486e-05 (0.0380966)
+Other time (%) = 0.0722871 (95.4599)
 
 Nlocal:    864 ave 864 max 864 min
 Histogram: 1 0 0 0 0 0 0 0 0 0

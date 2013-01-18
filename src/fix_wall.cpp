@@ -49,6 +49,8 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
   fldflag = 0;
   int pbcflag = 0;
 
+  for (int i = 0; i < 6; i++) xstr[i] = estr[i] = sstr[i] = NULL;
+
   int iarg = 3;
   while (iarg < narg) {
     if ((strcmp(arg[iarg],"xlo") == 0) || (strcmp(arg[iarg],"xhi") == 0) ||
@@ -70,23 +72,41 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
 
       wallwhich[nwall] = newwall;
       if (strcmp(arg[iarg+1],"EDGE") == 0) {
-        wallstyle[nwall] = EDGE;
+        xstyle[nwall] = EDGE;
         int dim = wallwhich[nwall] / 2;
         int side = wallwhich[nwall] % 2;
         if (side == 0) coord0[nwall] = domain->boxlo[dim];
         else coord0[nwall] = domain->boxhi[dim];
       } else if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
-        wallstyle[nwall] = VARIABLE;
+        xstyle[nwall] = VARIABLE;
         int n = strlen(&arg[iarg+1][2]) + 1;
-        varstr[nwall] = new char[n];
-        strcpy(varstr[nwall],&arg[iarg+1][2]);
+        xstr[nwall] = new char[n];
+        strcpy(xstr[nwall],&arg[iarg+1][2]);
       } else {
-        wallstyle[nwall] = CONSTANT;
+        xstyle[nwall] = CONSTANT;
         coord0[nwall] = atof(arg[iarg+1]);
       }
 
-      epsilon[nwall] = atof(arg[iarg+2]);
-      sigma[nwall] = atof(arg[iarg+3]);
+      if (strstr(arg[iarg+2],"v_") == arg[iarg+2]) {
+        int n = strlen(&arg[iarg+2][2]) + 1;
+        estr[nwall] = new char[n];
+        strcpy(estr[nwall],&arg[iarg+2][2]);
+        estyle[nwall] = VARIABLE;
+      } else {
+        epsilon[nwall] = atof(arg[iarg+2]);
+        estyle[nwall] = CONSTANT;
+      }
+
+      if (strstr(arg[iarg+3],"v_") == arg[iarg+3]) {
+        int n = strlen(&arg[iarg+3][2]) + 1;
+        sstr[nwall] = new char[n];
+        strcpy(sstr[nwall],&arg[iarg+3][2]);
+        sstyle[nwall] = VARIABLE;
+      } else {
+        sigma[nwall] = atof(arg[iarg+3]);
+        sstyle[nwall] = CONSTANT;
+      }
+
       cutoff[nwall] = atof(arg[iarg+4]);
       nwall++;
       iarg += 5;
@@ -136,11 +156,11 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
     }
   }
 
-  // scale factors for CONSTANT and VARIABLE walls
+  // scale factors for wall position for CONSTANT and VARIABLE walls
 
   int flag = 0;
   for (int m = 0; m < nwall; m++)
-    if (wallstyle[m] != EDGE) flag = 1;
+    if (xstyle[m] != EDGE) flag = 1;
 
   if (flag) {
     if (scaleflag && domain->lattice == NULL)
@@ -154,18 +174,24 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
     else xscale = yscale = zscale = 1.0;
 
     for (int m = 0; m < nwall; m++) {
-      if (wallstyle[m] != CONSTANT) continue;
+      if (xstyle[m] != CONSTANT) continue;
       if (wallwhich[m] < YLO) coord0[m] *= xscale;
       else if (wallwhich[m] < ZLO) coord0[m] *= yscale;
       else coord0[m] *= zscale;
     }
   }
 
-  // set varflag if any wall positions are variable
+  // set xflag if any wall positions are variable
+  // set vflag if any wall positions are variable
+  // set wstyle to VARIABLE if either epsilon or sigma is a variable
 
-  varflag = 0;
-  for (int m = 0; m < nwall; m++)
-    if (wallstyle[m] == VARIABLE) varflag = 1;
+  vflag = xflag = 0;
+  for (int m = 0; m < nwall; m++) {
+    if (xstyle[m] == VARIABLE) xflag = 1;
+    if (xflag || estyle[m] == VARIABLE || sstyle[m] == VARIABLE) vflag = 1;
+    if (estyle[m] == VARIABLE || sstyle[m] == VARIABLE) wstyle[m] = VARIABLE;
+    else wstyle[m] = CONSTANT;
+  }
 
   eflag = 0;
   for (int m = 0; m <= nwall; m++) ewall[m] = 0.0;
@@ -175,8 +201,11 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
 
 FixWall::~FixWall()
 {
-  for (int m = 0; m < nwall; m++)
-    if (wallstyle[m] == VARIABLE) delete [] varstr[m];
+  for (int m = 0; m < nwall; m++) {
+    delete [] xstr[m];
+    delete [] estr[m];
+    delete [] sstr[m];
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -203,12 +232,27 @@ void FixWall::init()
   dt = update->dt;
 
   for (int m = 0; m < nwall; m++) {
-    if (wallstyle[m] != VARIABLE) continue;
-    varindex[m] = input->variable->find(varstr[m]);
-    if (varindex[m] < 0)
-      error->all(FLERR,"Variable name for fix wall does not exist");
-    if (!input->variable->equalstyle(varindex[m]))
-      error->all(FLERR,"Variable for fix wall is invalid style");
+    if (xstyle[m] == VARIABLE) {
+      xindex[m] = input->variable->find(xstr[m]);
+      if (xindex[m] < 0)
+        error->all(FLERR,"Variable name for fix wall does not exist");
+      if (!input->variable->equalstyle(xindex[m]))
+        error->all(FLERR,"Variable for fix wall is invalid style");
+    }
+    if (estyle[m] == VARIABLE) {
+      eindex[m] = input->variable->find(estr[m]);
+      if (eindex[m] < 0)
+        error->all(FLERR,"Variable name for fix wall does not exist");
+      if (!input->variable->equalstyle(eindex[m]))
+        error->all(FLERR,"Variable for fix wall is invalid style");
+    }
+    if (sstyle[m] == VARIABLE) {
+      sindex[m] = input->variable->find(sstr[m]);
+      if (sindex[m] < 0)
+        error->all(FLERR,"Variable name for fix wall does not exist");
+      if (!input->variable->equalstyle(sindex[m]))
+        error->all(FLERR,"Variable for fix wall is invalid style");
+    }
   }
 
   // setup coefficients
@@ -256,23 +300,31 @@ void FixWall::post_force(int vflag)
   for (int m = 0; m <= nwall; m++) ewall[m] = 0.0;
 
   // coord = current position of wall
-  // evaluate variable if necessary, wrap with clear/add
+  // evaluate variables if necessary, wrap with clear/add
+  // for epsilon/sigma variables need to re-invoke precompute()
 
-  if (varflag) modify->clearstep_compute();
+  if (vflag) modify->clearstep_compute();
 
   double coord;
   for (int m = 0; m < nwall; m++) {
-    if (wallstyle[m] == VARIABLE) {
-      coord = input->variable->compute_equal(varindex[m]);
+    if (xstyle[m] == VARIABLE) {
+      coord = input->variable->compute_equal(xindex[m]);
       if (wallwhich[m] < YLO) coord *= xscale;
       else if (wallwhich[m] < ZLO) coord *= yscale;
       else coord *= zscale;
     } else coord = coord0[m];
+    if (wstyle[m] == VARIABLE) {
+      if (estyle[m] == VARIABLE)
+        epsilon[m] = input->variable->compute_equal(eindex[m]);
+      if (sstyle[m] == VARIABLE)
+        sigma[m] = input->variable->compute_equal(sindex[m]);
+      precompute(m);
+    }
 
     wall_particle(m,wallwhich[m],coord);
   }
 
-  if (varflag) modify->addstep_compute(update->ntimestep + 1);
+  if (vflag) modify->addstep_compute(update->ntimestep + 1);
 }
 
 /* ---------------------------------------------------------------------- */

@@ -21,7 +21,7 @@ hgrid = grid spacing for SRD grouping (distance units)
 seed = random # seed (positive integer) :ul
 
 zero or more keyword/value pairs may be appended :ulb,l
-keyword = {lamda} or {collision} or {overlap} or {inside} or {exact} or {radius} or {bounce} or {search} or {cubic} or {shift} or {stream} :l
+keyword = {lamda} or {collision} or {overlap} or {inside} or {exact} or {radius} or {bounce} or {search} or {cubic} or {shift} or {tstat} or {rescale} :l
   {lamda} value = mean free path of SRD particles (distance units)
   {collision} value = {noslip} or {slip} = collision model
   {overlap} value = {yes} or {no} = whether big particles may overlap
@@ -33,7 +33,16 @@ keyword = {lamda} or {collision} or {overlap} or {inside} or {exact} or {radius}
   {cubic} values = style tolerance
     style = {error} or {warn}
     tolerance = fractional difference allowed (0 <= tol <= 1)
-  {tstat} value = {yes} or {no} = thermostat SRD particles or not :pre
+  {shift} = {yes} or {no} or {possible} = SRD bin shifting for better statistics
+    {yes} = perform bin shifting each time SRD velocities are rescaled
+    {no} = no shifting
+    {possible} = shift depending on mean free path and bin size
+  {tstat} value = {yes} or {no} = thermostat SRD particles or not
+  {rescale} value = {yes} or {no} or {rotate} or {collide} = rescaling of SRD velocities
+    {yes} = rescale during velocity rotation and collisions
+    {no} = no rescaling
+    {rotate} = rescale during velocity rotation, but not collisions
+    {collide} = rescale during collisions, but not velocity rotation :pre
 :ule
 
 [Examples:]
@@ -272,11 +281,31 @@ associated with the system, e.g. due to use of the "fix
 deform"_fix_deform.html command to perform a simulation undergoing
 shear, then that is also accounted for.  The mean velocity of each bin
 of SRD particles is set to the position-dependent streaming velocity,
-based on the coordinates of the center of the SRD bin.  Note that for
-streaming simulations, if no thermostatting is performed (the
-default), then it may take a long time for the SRD fluid to come to
-equilibrium with a velocity profile that matches the simulation box
-deformation.
+based on the coordinates of the center of the SRD bin.  Note that
+collisions of SRD particles with big particles or walls has a
+thermostatting effect on the colliding particles, so it may not be
+necessary to thermostat the SRD particles on a bin by bin basis in
+that case.  Also note that for streaming simulations, if no
+thermostatting is performed (the default), then it may take a long
+time for the SRD fluid to come to equilibrium with a velocity profile
+that matches the simulation box deformation.
+
+The {rescale} keyword enables rescaling of an SRD particle's velocity
+if it would travel more than 4 mean-free paths in an SRD timestep.  If
+an SRD particle exceeds this velocity it is possible it will be lost
+when migrating to other processors or that collisions with big
+particles will be missed, either of which will generate errors.  Thus
+the safest mode is to run with rescaling enabled.  However rescaling
+removes kinetic energy from the system (the particle's velocity is
+reduced).  The latter will not typically be a problem if
+thermostatting is enabled via the {tstat} keyword or if SRD collisions
+with big particles or walls effectively thermostat the system.  If you
+wish to turn off rescaling (on is the default), e.g. for a pure SRD
+system with no thermostatting so that the temperature does not decline
+over time, the {rescale} keyword can be used.  The {no} value turns
+rescaling off during collisions and the per-bin velocity rotation
+operation.  The {collide} and {rotate} values turn it on for
+one of the operations and off for the other.
 
 :line
 
@@ -320,8 +349,8 @@ the simulation, but treating them as intensive means they are not
 scaled when printed as part of thermodyanmic output.
 
 These are the 12 quantities.  All are values for the current timestep,
-except the last three which are cummulative quantities since the
-beginning of the run.
+except for quantity 5 and the last three, each of which are
+cummulative quantities since the beginning of the run.
 
 (1) # of SRD/big collision checks performed
 (2) # of SRDs which had a collision
@@ -334,7 +363,7 @@ beginning of the run.
 (9) SRD temperature
 (10) # of SRD particles which have undergone max # of bounces
 (11) max # of bounces any SRD particle has had in a single step
-(12) # of reneighborings dues to SRD particles moving too far :ul
+(12) # of reneighborings due to SRD particles moving too far :ul
 
 No parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.  This fix is not invoked during "energy
@@ -354,7 +383,8 @@ for more info on packages.
 
 The option defaults are lamda inferred from Tsrd, collision = noslip,
 overlap = no, inside = error, exact = yes, radius = 1.0, bounce = 0,
-search = hgrid, cubic = error 0.01, shift = no, tstat = no.
+search = hgrid, cubic = error 0.01, shift = no, tstat = no, and
+rescale = yes.
 
 :line
 

@@ -102,6 +102,7 @@ FixSRD::FixSRD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   shiftuser = SHIFT_NO;
   shiftseed = 0;
   tstat = 0;
+  rescale_rotate = rescale_collide = 1;
 
   int iarg = 8;
   while (iarg < narg) {
@@ -166,6 +167,21 @@ FixSRD::FixSRD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix srd command");
       if (strcmp(arg[iarg+1],"no") == 0) tstat = 0;
       else if (strcmp(arg[iarg+1],"yes") == 0) tstat = 1;
+      else error->all(FLERR,"Illegal fix srd command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"rescale") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix srd command");
+      if (strcmp(arg[iarg+1],"no") == 0) 
+        rescale_rotate = rescale_collide = 0;
+      else if (strcmp(arg[iarg+1],"yes") == 0) 
+        rescale_rotate = rescale_collide = 1;
+      else if (strcmp(arg[iarg+1],"rotate") == 0) {
+        rescale_rotate = 1;
+        rescale_collide = 0;
+      } else if (strcmp(arg[iarg+1],"collide") == 0) {
+        rescale_rotate = 0;
+        rescale_collide = 1;
+      }
       else error->all(FLERR,"Illegal fix srd command");
       iarg += 2;
     } else error->all(FLERR,"Illegal fix srd command");
@@ -393,6 +409,7 @@ void FixSRD::init()
 
   // zero per-run stats
 
+  nrescale = 0;
   bouncemaxnum = 0;
   bouncemax = 0;
   reneighcount = 0;
@@ -673,7 +690,7 @@ void FixSRD::post_force(int vflag)
   // zero per-timestep stats
 
   stats_flag = 0;
-  ncheck = ncollide = nbounce = ninside = nrescale = 0;
+  ncheck = ncollide = nbounce = ninside = 0;
 
   // zero ghost forces & torques on BIG particles
 
@@ -946,6 +963,10 @@ void FixSRD::reset_velocities()
       v[j][2] = u[2] + vave[2];
     }
 
+    // NOTE: vsq needs to be summed across shared bins in parallel
+    // like vave above via the vbin_comm() call
+    // else the computed scale factor below is incomplete for a shared bin
+
     if (tstat && n > 1) {
       if (deformflag) {
         xlamda = vbin[i].xctr;
@@ -988,14 +1009,16 @@ void FixSRD::reset_velocities()
 
   // rescale any too-large velocities
 
-  for (i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
-      vsq = v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2];
-      if (vsq > vmaxsq) {
-        nrescale++;
-        MathExtra::scale3(vmax/sqrt(vsq),v[i]);
+  if (rescale_rotate) {
+    for (i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
+        vsq = v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2];
+        if (vsq > vmaxsq) {
+          nrescale++;
+          MathExtra::scale3(vmax/sqrt(vsq),v[i]);
+        }
       }
-    }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1216,11 +1239,13 @@ void FixSRD::collisions_single()
 
           // check on rescaling of vsnew
 
-          double vsq = vsnew[0]*vsnew[0] + vsnew[1]*vsnew[1] +
-            vsnew[2]*vsnew[2];
-          if (vsq > vmaxsq) {
-            nrescale++;
-            MathExtra::scale3(vmax/sqrt(vsq),vsnew);
+          if (rescale_collide) {
+            double vsq = vsnew[0]*vsnew[0] + vsnew[1]*vsnew[1] +
+              vsnew[2]*vsnew[2];
+            if (vsq > vmaxsq) {
+              nrescale++;
+              MathExtra::scale3(vmax/sqrt(vsq),vsnew);
+            }
           }
 
           // update BIG particle and WALL and SRD
@@ -1395,10 +1420,12 @@ void FixSRD::collisions_multi()
 
       // check on rescaling of vsnew
 
-      double vsq = vsnew[0]*vsnew[0] + vsnew[1]*vsnew[1] + vsnew[2]*vsnew[2];
-      if (vsq > vmaxsq) {
-        nrescale++;
-        MathExtra::scale3(vmax/sqrt(vsq),vsnew);
+      if (rescale_collide) {
+        double vsq = vsnew[0]*vsnew[0] + vsnew[1]*vsnew[1] + vsnew[2]*vsnew[2];
+        if (vsq > vmaxsq) {
+          nrescale++;
+          MathExtra::scale3(vmax/sqrt(vsq),vsnew);
+        }
       }
 
       // update BIG particle and WALL and SRD

@@ -70,7 +70,7 @@ void Special::build()
   // setup ring of procs
 
   int next = me + 1;
-  int prev = me -1;
+  int prev = me - 1;
   if (next == nprocs) next = 0;
   if (prev < 0) prev = nprocs - 1;
 

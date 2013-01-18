@@ -7,6 +7,7 @@ log		consistency.log
 
 units		metal	
 atom_style	atomic
+atom_modify     sort 0 1
 variable L equal 16
 variable E equal 8
 
@@ -64,8 +65,7 @@ variable i loop $n
 label loop_i
   #variable s equal 0.02*$i/$n*$L
   #print ">>> step $i, displacement $s"
-  #displace_box all x delta 0 $s units lattice
-  displace_box all x scale 1.001
+  change_box all x scale 1.001 remap
   minimize  1.e-10 1.e-10 100000 1000000
   velocity all set 0 0 0
   run 1

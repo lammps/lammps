@@ -1,9 +1,10 @@
 echo both
-log    eam_kernel_convergence.log  
-units    metal
-dimension  3
-boundary  p p p
-atom_style      atomic
+log         eam_kernel_convergence.log  
+units       metal
+dimension   3
+boundary    p p p
+atom_style  atomic
+atom_modify sort 0 1
 
 # create system
 variable a equal 4.08

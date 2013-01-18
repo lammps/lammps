@@ -252,6 +252,19 @@ void PairHybrid::settings(int narg, char **arg)
     if (count == 1) multiple[i] = 0;
   }
 
+  // set pair flags from sub-style flags
+
+  flags();
+}
+
+/* ----------------------------------------------------------------------
+   set top-level pair flags from sub-style flags
+------------------------------------------------------------------------- */
+
+void PairHybrid::flags()
+{
+  int m;
+
   // set comm_forward, comm_reverse, comm_reverse_off to max of any sub-style
 
   for (m = 0; m < nstyles; m++) {
@@ -635,6 +648,10 @@ void PairHybrid::read_restart(FILE *fp)
     }
     if (count == 1) multiple[i] = 0;
   }
+
+  // set pair flags from sub-style flags
+
+  flags();
 }
 
 /* ----------------------------------------------------------------------

@@ -114,6 +114,8 @@ class FixNH : public Fix {
   int scalexy;                     // 1 if xy scaled with ly
   int flipflag;                    // 1 if box flips are invoked as needed
 
+  int pre_exchange_flag;           // set if pre_exchange needed for box flips
+
   double fixedpoint[3];            // location of dilation fixed-point
 
   void couple();

@@ -29,14 +29,18 @@
 
 <LI>face = <I>xlo</I> or <I>xhi</I> or <I>ylo</I> or <I>yhi</I> or <I>zlo</I> or <I>zhi</I> 
 
-<PRE>  args = coord epsilon sigma cutoff
+<LI>  args = coord epsilon sigma cutoff
     coord = position of wall = EDGE or constant or variable
       EDGE = current lo or hi edge of simulation box
       constant = number like 0.0 or -30.0 (distance units)
       variable = <A HREF = "variable.html">equal-style variable</A> like v_x or v_wiggle
     epsilon = strength factor for wall-particle interaction (energy or energy/distance^2 units)
-    sigma = size factor for wall-particle interaction (distance units)
-    cutoff = distance from wall at which wall-particle interaction is cut off (distance units) 
+      epsilon can be a variable (see below) 
+
+<LI>    sigma = size factor for wall-particle interaction (distance units)
+      sigma can be a variable (see below) 
+
+<PRE>    cutoff = distance from wall at which wall-particle interaction is cut off (distance units) 
 </PRE>
 <LI>zero or more keyword/value pairs may be appended 
 
@@ -47,9 +51,8 @@
     <I>box</I> = the wall position is defined in simulation box units
   <I>fld</I> value = <I>yes</I> or <I>no</I>
     <I>yes</I> = invoke the wall constraint to be compatible with implicit FLD
-    <I>no</I> = invoke the wall constraint in the normal way 
-</PRE>
-<PRE>  <I>pbc</I> value = <I>yes</I> or <I>no</I>
+    <I>no</I> = invoke the wall constraint in the normal way
+  <I>pbc</I> value = <I>yes</I> or <I>no</I>
     <I>yes</I> = allow periodic boundary in a wall dimension
     <I>no</I> = require non-perioidic boundaries in any wall dimension 
 </PRE>
@@ -144,6 +147,16 @@ constant K, and has units (energy/distance^2).  The input parameter
 spring is at the <I>cutoff</I>.  This is a repulsive-only spring since the
 interaction is truncated at the <I>cutoff</I>
 </P>
+<P>For any wall, the <I>epsilon</I> and/or <I>sigma</I> parameter can be specified
+as an <A HREF = "variable.html">equal-style variable</A>, in which case it should be
+specified as v_name, where name is the variable name.  As with a
+variable wall position, the variable is evaluated each timestep and
+the result becomes the current epsilon or sigma of the wall.
+Equal-style variables can specify formulas with various mathematical
+functions, and include <A HREF = "thermo_style.html">thermo_style</A> command
+keywords for the simulation box parameters and timestep and elapsed
+time.  Thus it is easy to specify a time-dependent wall interaction.
+</P>
 <P>IMPORTANT NOTE: For all of the styles, you must insure that r is
 always > 0 for all particles in the group, or LAMMPS will generate an
 error.  This means you cannot start your simulation with particles at
@@ -194,7 +207,8 @@ want.
 
 <P>Here are examples of variable definitions that move the wall position
 in a time-dependent fashion using equal-style
-<A HREF = "variable.html">variables</A>.
+<A HREF = "variable.html">variables</A>.  The wall interaction parameters (epsilon,
+sigma) could be varied with additional variable definitions.
 </P>
 <PRE>variable ramp equal ramp(0,10)
 fix 1 all wall xlo v_ramp 1.0 1.0 2.5 

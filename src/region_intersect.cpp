@@ -42,10 +42,14 @@ RegIntersect::RegIntersect(LAMMPS *lmp, int narg, char **arg) :
     list[nregion++] = iregion;
   }
 
-  // extent of intersection of regions
-  // has bounding box if interior and any sub-region has bounding box
+  // this region is variable shape if any of sub-regions are
 
   Region **regions = domain->regions;
+  for (int ilist = 0; ilist < nregion; ilist++)
+    if (regions[list[ilist]]->varshape) varshape = 1;
+
+  // extent of intersection of regions
+  // has bounding box if interior and any sub-region has bounding box
 
   bboxflag = 0;
   for (int ilist = 0; ilist < nregion; ilist++)
@@ -89,6 +93,16 @@ RegIntersect::~RegIntersect()
 {
   delete [] list;
   delete [] contact;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void RegIntersect::init()
+{
+  Region::init();
+  Region **regions = domain->regions;
+  for (int ilist = 0; ilist < nregion; ilist++)
+    regions[list[ilist]]->init();
 }
 
 /* ----------------------------------------------------------------------
@@ -205,4 +219,15 @@ int RegIntersect::surface_exterior(double *x, double cutoff)
     regions[list[ilist]]->interior ^= 1;
 
   return n;
+}
+
+/* ----------------------------------------------------------------------
+   change region shape of all sub-regions
+------------------------------------------------------------------------- */
+
+void RegIntersect::shape_update()
+{
+  Region **regions = domain->regions;
+  for (int ilist = 0; ilist < nregion; ilist++)
+    regions[list[ilist]]->shape_update();
 }

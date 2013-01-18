@@ -28,6 +28,7 @@ class Region : protected Pointers {
   double extent_ylo,extent_yhi;
   double extent_zlo,extent_zhi;
   int bboxflag;                     // 1 if bounding box is computable
+  int varshape;                     // 1 if region shape changes over time
 
   // contact = particle near region surface
 
@@ -56,8 +57,6 @@ class Region : protected Pointers {
   virtual void shape_update() {}
 
  protected:
-  int varshape;       // 1 if region shape changes over time
-
   void add_contact(int, double *, double, double, double);
   void options(int, char **);
 

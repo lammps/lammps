@@ -28,10 +28,12 @@ class RegUnion : public Region {
  public:
   RegUnion(class LAMMPS *, int, char **);
   ~RegUnion();
+  void init();
   int dynamic_check();
   int inside(double, double, double);
   int surface_interior(double *, double);
   int surface_exterior(double *, double);
+  void shape_update();
 
  private:
   int nregion;

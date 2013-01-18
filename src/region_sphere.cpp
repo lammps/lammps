@@ -15,9 +15,9 @@
 #include "stdlib.h"
 #include "string.h"
 #include "region_sphere.h"
+#include "update.h"
 #include "input.h"
 #include "variable.h"
-#include "update.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -43,14 +43,19 @@ RegSphere::RegSphere(LAMMPS *lmp, int narg, char **arg) :
     radius = 0.0;
     rstyle = VARIABLE;
     varshape = 1;
+    variable_check();
+    shape_update();
   } else {
     radius = xscale*atof(arg[5]);
     rstyle = CONSTANT;
   }
 
+  // error check
+
   if (radius < 0.0) error->all(FLERR,"Illegal region sphere command");
 
-  // extent of sphere, will be 0.0 for variable radius
+  // extent of sphere
+  // for variable radius, uses initial radius
 
   if (interior) {
     bboxflag = 1;
@@ -79,16 +84,7 @@ RegSphere::~RegSphere()
 void RegSphere::init()
 {
   Region::init();
-
-  // check variable
-
-  if (rstr) {
-    rvar = input->variable->find(rstr);
-    if (rvar < 0)
-      error->all(FLERR,"Variable name for region sphere does not exist");
-    if (!input->variable->equalstyle(rvar))
-      error->all(FLERR,"Variable for region sphere is invalid style");
-  }
+  if (rstr) variable_check();
 }
 
 /* ----------------------------------------------------------------------
@@ -167,4 +163,17 @@ void RegSphere::shape_update()
   radius = xscale * input->variable->compute_equal(rvar);
   if (radius < 0.0)
     error->one(FLERR,"Variable evaluation in region gave bad value");
+}
+
+/* ----------------------------------------------------------------------
+   error check on existence of variable
+------------------------------------------------------------------------- */
+
+void RegSphere::variable_check()
+{
+  rvar = input->variable->find(rstr);
+  if (rvar < 0)
+    error->all(FLERR,"Variable name for region sphere does not exist");
+  if (!input->variable->equalstyle(rvar))
+    error->all(FLERR,"Variable for region sphere is invalid style");
 }

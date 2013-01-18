@@ -40,27 +40,36 @@ class Region : protected Pointers {
 
   Region(class LAMMPS *, int, char **);
   virtual ~Region();
-  void init();
+  virtual void init();
   virtual int dynamic_check();
+
+  // called by other classes to check point versus region
+
   int match(double, double, double);
   int surface(double, double, double, double);
+
+  // implemented by each region, not called by other classes
 
   virtual int inside(double, double, double) = 0;
   virtual int surface_interior(double *, double) = 0;
   virtual int surface_exterior(double *, double) = 0;
+  virtual void shape_update() {}
 
  protected:
+  int varshape;       // 1 if region shape changes over time
+
   void add_contact(int, double *, double, double, double);
   void options(int, char **);
 
  private:
-  int dynamic;                      // 1 if region changes over time
-  int moveflag,rotateflag;
+  int dynamic;        // 1 if region position/orientation changes over time
+  int moveflag,rotateflag;   // 1 if position/orientation changes
+
   double point[3],axis[3],runit[3];
   char *xstr,*ystr,*zstr,*tstr;
   int xvar,yvar,zvar,tvar;
   double dx,dy,dz,theta;
-  bigint laststep;
+  bigint lastshape,lastdynamic;
 
   void forward_transform(double &, double &, double &);
   void inverse_transform(double &, double &, double &);

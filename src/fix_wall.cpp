@@ -314,10 +314,16 @@ void FixWall::post_force(int vflag)
       else coord *= zscale;
     } else coord = coord0[m];
     if (wstyle[m] == VARIABLE) {
-      if (estyle[m] == VARIABLE)
+      if (estyle[m] == VARIABLE) {
         epsilon[m] = input->variable->compute_equal(eindex[m]);
-      if (sstyle[m] == VARIABLE)
+        if (epsilon[m] < 0.0)
+          error->all(FLERR,"Variable evaluation in fix wall gave bad value");
+      }
+      if (sstyle[m] == VARIABLE) {
         sigma[m] = input->variable->compute_equal(sindex[m]);
+        if (sigma[m] < 0.0) 
+          error->all(FLERR,"Variable evaluation in fix wall gave bad value");
+      }
       precompute(m);
     }
 

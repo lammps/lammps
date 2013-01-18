@@ -2159,17 +2159,17 @@ double Variable::eval_tree(Tree *tree, int i)
   }
 
   if (tree->type == RMASK) {
-    if (domain->regions[tree->ivalue1]->inside(atom->x[i][0],
-                                               atom->x[i][1],
-                                               atom->x[i][2])) return 1.0;
+    if (domain->regions[tree->ivalue1]->match(atom->x[i][0],
+                                              atom->x[i][1],
+                                              atom->x[i][2])) return 1.0;
     else return 0.0;
   }
 
   if (tree->type == GRMASK) {
     if ((atom->mask[i] & tree->ivalue1) &&
-        (domain->regions[tree->ivalue2]->inside(atom->x[i][0],
-                                                atom->x[i][1],
-                                                atom->x[i][2]))) return 1.0;
+        (domain->regions[tree->ivalue2]->match(atom->x[i][0],
+                                               atom->x[i][1],
+                                               atom->x[i][2]))) return 1.0;
     else return 0.0;
   }
 

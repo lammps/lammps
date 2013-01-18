@@ -37,7 +37,8 @@ RegIntersect::RegIntersect(LAMMPS *lmp, int narg, char **arg) :
   int iregion;
   for (int iarg = 0; iarg < n; iarg++) {
     iregion = domain->find_region(arg[iarg+3]);
-    if (iregion == -1) error->all(FLERR,"Region intersect region ID does not exist");
+    if (iregion == -1) 
+      error->all(FLERR,"Region intersect region ID does not exist");
     list[nregion++] = iregion;
   }
 

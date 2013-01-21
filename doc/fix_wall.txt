@@ -25,7 +25,9 @@ face = {xlo} or {xhi} or {ylo} or {yhi} or {zlo} or {zhi} :l
       constant = number like 0.0 or -30.0 (distance units)
       variable = "equal-style variable"_variable.html like v_x or v_wiggle
     epsilon = strength factor for wall-particle interaction (energy or energy/distance^2 units)
+      epsilon can be a variable (see below) :l
     sigma = size factor for wall-particle interaction (distance units)
+      sigma can be a variable (see below) :l
     cutoff = distance from wall at which wall-particle interaction is cut off (distance units) :pre
 zero or more keyword/value pairs may be appended :l
 keyword = {units} or {fld} :l
@@ -34,7 +36,7 @@ keyword = {units} or {fld} :l
     {box} = the wall position is defined in simulation box units
   {fld} value = {yes} or {no}
     {yes} = invoke the wall constraint to be compatible with implicit FLD
-    {no} = invoke the wall constraint in the normal way :pre
+    {no} = invoke the wall constraint in the normal way
   {pbc} value = {yes} or {no}
     {yes} = allow periodic boundary in a wall dimension
     {no} = require non-perioidic boundaries in any wall dimension :pre
@@ -129,6 +131,16 @@ constant K, and has units (energy/distance^2).  The input parameter
 spring is at the {cutoff}.  This is a repulsive-only spring since the
 interaction is truncated at the {cutoff}
 
+For any wall, the {epsilon} and/or {sigma} parameter can be specified
+as an "equal-style variable"_variable.html, in which case it should be
+specified as v_name, where name is the variable name.  As with a
+variable wall position, the variable is evaluated each timestep and
+the result becomes the current epsilon or sigma of the wall.
+Equal-style variables can specify formulas with various mathematical
+functions, and include "thermo_style"_thermo_style.html command
+keywords for the simulation box parameters and timestep and elapsed
+time.  Thus it is easy to specify a time-dependent wall interaction.
+
 IMPORTANT NOTE: For all of the styles, you must insure that r is
 always > 0 for all particles in the group, or LAMMPS will generate an
 error.  This means you cannot start your simulation with particles at
@@ -179,7 +191,8 @@ want.
 
 Here are examples of variable definitions that move the wall position
 in a time-dependent fashion using equal-style
-"variables"_variable.html.
+"variables"_variable.html.  The wall interaction parameters (epsilon,
+sigma) could be varied with additional variable definitions.
 
 variable ramp equal ramp(0,10)
 fix 1 all wall xlo v_ramp 1.0 1.0 2.5 :pre

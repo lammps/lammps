@@ -20,6 +20,14 @@ namespace LAMMPS_NS {
 
 class FixWall : public Fix {
  public:
+  int nwall;
+  int wallwhich[6];
+  double coord0[6];
+  int xflag;           // 1 if any wall position is a variable
+  int xstyle[6];
+  int xindex[6];
+  char *xstr[6];
+
   FixWall(class LAMMPS *, int, char **);
   virtual ~FixWall();
   int setmask();
@@ -36,20 +44,15 @@ class FixWall : public Fix {
   virtual void precompute(int) = 0;
   virtual void wall_particle(int, int, double) = 0;
 
-  int nwall;
-  int wallwhich[6];
-  double coord0[6];
-  int varflag;
-  int wallstyle[6];
-  int varindex[6];
-  char *varstr[6];
-
-
  protected:
   double epsilon[6],sigma[6],cutoff[6];
   double ewall[7],ewall_all[7];
   double xscale,yscale,zscale;
-  int eflag;
+  int estyle[6],sstyle[6],wstyle[6];
+  int eindex[6],sindex[6];
+  char *estr[6],*sstr[6];
+  int vflag;                  // 1 if any wall position,epsilon,sigma is a var
+  int eflag;                  // per-wall flag for energy summation
   int nlevels_respa;
   double dt;
   int fldflag;

@@ -38,14 +38,19 @@ RegUnion::RegUnion(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg)
   int iregion;
   for (int iarg = 0; iarg < n; iarg++) {
     iregion = domain->find_region(arg[iarg+3]);
-    if (iregion == -1) error->all(FLERR,"Region union region ID does not exist");
+    if (iregion == -1) 
+      error->all(FLERR,"Region union region ID does not exist");
     list[nregion++] = iregion;
   }
 
-  // extent of union of regions
-  // has bounding box if interior and all sub-regions have bounding box
+  // this region is variable shape if any of sub-regions are
 
   Region **regions = domain->regions;
+  for (int ilist = 0; ilist < nregion; ilist++)
+    if (regions[list[ilist]]->varshape) varshape = 1;
+
+  // extent of union of regions
+  // has bounding box if interior and all sub-regions have bounding box
 
   bboxflag = 1;
   for (int ilist = 0; ilist < nregion; ilist++)
@@ -80,6 +85,16 @@ RegUnion::~RegUnion()
 {
   delete [] list;
   delete [] contact;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void RegUnion::init()
+{
+  Region::init();
+  Region **regions = domain->regions;
+  for (int ilist = 0; ilist < nregion; ilist++)
+    regions[list[ilist]]->init();
 }
 
 /* ----------------------------------------------------------------------
@@ -196,4 +211,15 @@ int RegUnion::surface_exterior(double *x, double cutoff)
     regions[list[ilist]]->interior ^= 1;
 
   return n;
+}
+
+/* ----------------------------------------------------------------------
+   change region shape of all sub-regions
+------------------------------------------------------------------------- */
+
+void RegUnion::shape_update()
+{
+  Region **regions = domain->regions;
+  for (int ilist = 0; ilist < nregion; ilist++)
+    regions[list[ilist]]->shape_update();
 }

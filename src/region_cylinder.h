@@ -30,15 +30,22 @@ class RegCylinder : public Region {
  public:
   RegCylinder(class LAMMPS *, int, char **);
   ~RegCylinder();
+  void init();
   int inside(double, double, double);
   int surface_interior(double *, double);
   int surface_exterior(double *, double);
+  void shape_update();
 
  private:
   char axis;
   double c1,c2;
   double radius;
   double lo,hi;
+  int rstyle,rvar;
+  char *rstr;
+
+  void variable_check();
+
 };
 
 }

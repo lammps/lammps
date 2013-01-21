@@ -28,13 +28,19 @@ class RegSphere : public Region {
  public:
   RegSphere(class LAMMPS *, int, char **);
   ~RegSphere();
+  void init();
   int inside(double, double, double);
   int surface_interior(double *, double);
   int surface_exterior(double *, double);
+  void shape_update();
 
  private:
   double xc,yc,zc;
   double radius;
+  int rstyle,rvar;
+  char *rstr;
+
+  void variable_check();
 };
 
 }

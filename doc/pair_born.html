@@ -23,6 +23,10 @@
 </H3>
 <H3>pair_style born/coul/long/omp command 
 </H3>
+<H3>pair_style born/coul/msm command 
+</H3>
+<H3>pair_style born/coul/msm/omp command 
+</H3>
 <H3>pair_style born/coul/wolf command 
 </H3>
 <H3>pair_style born/coul/wolf/gpu command 
@@ -33,12 +37,15 @@
 </P>
 <PRE>pair_style style args 
 </PRE>
-<UL><LI>style = <I>born</I> or <I>born/coul/long</I> or <I>born/coul/wolf</I>
+<UL><LI>style = <I>born</I> or <I>born/coul/long</I> or <I>born/coul/msm</I> or <I>born/coul/wolf</I>
 <LI>args = list of arguments for a particular style 
 </UL>
 <PRE>  <I>born</I> args = cutoff
     cutoff = global cutoff for non-Coulombic interactions (distance units)
   <I>born/coul/long</I> args = cutoff (cutoff2)
+    cutoff = global cutoff for non-Coulombic (and Coulombic if only 1 arg) (distance units)
+    cutoff2 = global cutoff for Coulombic (optional) (distance units)
+  <I>born/coul/msm</I> args = cutoff (cutoff2)
     cutoff = global cutoff for non-Coulombic (and Coulombic if only 1 arg) (distance units)
     cutoff2 = global cutoff for Coulombic (optional) (distance units)
   <I>born/coul/wolf</I> args = alpha cutoff (cutoff2)
@@ -57,6 +64,11 @@ pair_style born/coul/long 10.0 8.0
 pair_coeff * * 6.08 0.317 2.340 24.18 11.51
 pair_coeff 1 1 6.08 0.317 2.340 24.18 11.51 
 </PRE>
+<PRE>pair_style born/coul/msm 10.0
+pair_style born/coul/msm 10.0 8.0
+pair_coeff * * 6.08 0.317 2.340 24.18 11.51
+pair_coeff 1 1 6.08 0.317 2.340 24.18 11.51 
+</PRE>
 <PRE>pair_style born/coul/wolf 0.25 10.0
 pair_style born/coul/wolf 0.25 10.0 9.0
 pair_coeff * * 6.08 0.317 2.340 24.18 11.51
@@ -72,26 +84,23 @@ potential described in <A HREF = "#FumiTosi">(Fumi and Tosi)</A>, given by
 <P>where sigma is an interaction-dependent length parameter, rho is an
 ionic-pair dependent length parameter, and Rc is the cutoff.
 </P>
-<P>The <I>born/coul/long</I> style adds a Coulombic term as described for the
-<A HREF = "pair_coul.html">coul/long</A> pair style.  An additional damping factor
-is applied to the Coulombic term so it can be used in conjunction with
-the <A HREF = "kspace_style.html">kspace_style</A> command and its <I>ewald</I> or <I>pppm</I>
-option.  The Coulombic cutoff specified for this style means that
-pairwise interactions within this distance are computed directly;
-interactions outside that distance are computed in reciprocal space.
+<P>The styles with <I>coul/long</I> or <I>coul/msm</I> add a Coulombic term as
+described for the <A HREF = "pair_lj.html">lj/cut</A> pair styles.  An additional
+damping factor is applied to the Coulombic term so it can be used in
+conjunction with the <A HREF = "kspace_style.html">kspace_style</A> command and its
+<I>ewald</I> or <I>pppm</I> of <I>msm</I> option.  The Coulombic cutoff specified for
+this style means that pairwise interactions within this distance are
+computed directly; interactions outside that distance are computed in
+reciprocal space.
 </P>
-<P>If one cutoff is specified for the <I>born/coul/long</I> style, it is used
-for both the A,C,D and Coulombic terms.  If two cutoffs are specified,
-the first is used as the cutoff for the A,C,D terms, and the second is
-the cutoff for the Coulombic term.
+<P>If one cutoff is specified for the <I>born/coul/long</I> and
+<I>born/coul/msm</I> style, it is used for both the A,C,D and Coulombic
+terms.  If two cutoffs are specified, the first is used as the cutoff
+for the A,C,D terms, and the second is the cutoff for the Coulombic
+term.
 </P>
 <P>The <I>born/coul/wolf</I> style adds a Coulombic term as described for the
 Wolf potential in the <A HREF = "pair_coul.html">coul/wolf</A> pair style.
-</P>
-<P>If one cutoff is specified for the <I>born/coulk/long</I> style, it is used
-for both the A,C,D and Coulombic terms.  If two cutoffs are specified,
-the first is used as the cutoff for the A,C,D terms, and the second is
-the cutoff for the Coulombic term.
 </P>
 <P>Note that these potentials are related to the <A HREF = "pair_born.html">Buckingham
 potential</A>.

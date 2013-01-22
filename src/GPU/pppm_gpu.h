@@ -42,8 +42,7 @@ class PPPMGPU : public PPPM {
   double poisson_time;
 
   void brick2fft();
-  void poisson();
-  void poisson_ik();
+  virtual void poisson_ik();
 
   void pack_forward(int, FFT_SCALAR *, int, int *);
   void unpack_forward(int, FFT_SCALAR *, int, int *);

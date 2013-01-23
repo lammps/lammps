@@ -1209,6 +1209,10 @@ void Domain::add_region(int narg, char **arg)
 
   else error->all(FLERR,"Invalid region style");
 
+  // initialize any region variables via init()
+  // in case region is used between runs, e.g. to print a variable
+
+  regions[nregion]->init();
   nregion++;
 }
 

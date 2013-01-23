@@ -355,16 +355,6 @@ void PPPMGPU::brick2fft()
 }
 
 /* ----------------------------------------------------------------------
-   Same code as base class - necessary to call GPU version of poisson_ik
-------------------------------------------------------------------------- */
-
-void PPPMGPU::poisson()
-{
-  if (differentiation_flag == 1) poisson_ad();
-  else poisson_ik();
-}
-
-/* ----------------------------------------------------------------------
    FFT-based Poisson solver
 ------------------------------------------------------------------------- */
 

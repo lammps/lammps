@@ -163,16 +163,6 @@ void PPPMTIP4P::make_rho()
 }
 
 /* ----------------------------------------------------------------------
-   interpolate from grid to get electric field & force on my particles
-------------------------------------------------------------------------- */
-
-void PPPMTIP4P::fieldforce()
-{
-  if (differentiation_flag == 1) fieldforce_ad();
-  else fieldforce_ik();
-}
-
-/* ----------------------------------------------------------------------
    interpolate from grid to get electric field & force on my particles for ik
 ------------------------------------------------------------------------- */
 

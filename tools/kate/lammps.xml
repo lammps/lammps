@@ -1,0 +1,878 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Lammps Syntax Highlighting definitions for KDE-Kate editor
+     First version October 2011 by Alessandro L. Sellerio
+     Version 1.0 dated 09/01/2012 by Alessandro L. Sellerio
+     Contact the original author at alessandro.sellerio@ieni.cnr.it
+     Inspired by original KDE file: bash.xml 
+     Put this file in ~.kde/share/apps/katepart/syntax
+    -->
+    
+<!DOCTYPE language SYSTEM "language.dtd"
+[
+      <!ENTITY varname  "[A-Za-z_][A-Za-z0-9_]*">
+]>
+
+<language version="1.0" kateversion="3.9.4"
+          author="Alessandro L. Sellerio" license="GPL v.3 or greater"
+          name="Lammps" section="Scientific" extensions="*.lgg;*.lmp;*.lammps;*.liggghts" casesensitive="FALSE"
+          priority="9">
+	  
+<highlighting>
+  <list name="kw_commands">
+    <item>angle_coeff</item>
+    <item>angle_style</item>
+    <item>atom_modify</item>
+    <item>atom_style</item>
+    <item>balance</item>
+    <item>bond_coeff</item>
+    <item>bond_style</item>
+    <item>boundary</item>
+    <item>box</item>
+    <item>change_box</item>
+    <item>clear</item>
+    <item>communicate</item>
+    <item>compute</item>
+    <item>compute_modify</item>
+    <item>create_atoms</item>
+    <item>create_box</item>
+    <item>delete_atoms</item>
+    <item>delete_bonds</item>
+    <item>dielectric</item>
+    <item>dihedral_coeff</item>
+    <item>dihedral_style</item>
+    <item>dimension</item>
+    <item>displace_atoms</item>
+    <item>dump</item>
+    <item>dump_image</item>
+    <item>dump_modify</item>
+    <item>echo</item>
+    <item>fix</item>
+    <item>fix_modify</item>
+    <item>group</item>
+    <item>if</item>
+    <item>improper_coeff</item>
+    <item>improper_style</item>
+    <item>include</item>
+    <item>jump</item>
+    <item>kspace_modify</item>
+    <item>kspace_style</item>
+    <item>label</item>
+    <item>lattice</item>
+    <item>log</item>
+    <item>mass</item>
+    <item>minimize</item>
+    <item>min_modify</item>
+    <item>min_style</item>
+    <item>neb</item>
+    <item>neigh_modify</item>
+    <item>neighbor</item>
+    <item>newton</item>
+    <item>next</item>
+    <item>package</item>
+    <item>pair_coeff</item>
+    <item>pair_modify</item>
+    <item>pair_style</item>
+    <item>pair_write</item>
+    <item>partition</item>
+    <item>prd</item>
+    <item>print</item>
+    <item>processors</item>
+    <item>quit</item>
+    <item>read_data</item>
+    <item>read_dump</item>
+    <item>read_restart</item>
+    <item>region</item>
+    <item>replicate</item>
+    <item>rerun</item>
+    <item>reset_timestep</item>
+    <item>restart</item>
+    <item>run</item>
+    <item>run_style</item>
+    <item>set</item>
+    <item>shell</item>
+    <item>special_bonds</item>
+    <item>suffix</item>
+    <item>tad</item>
+    <item>temper</item>
+    <item>thermo</item>
+    <item>thermo_modify</item>
+    <item>thermo_style</item>
+    <item>timestep</item>
+    <item>uncompute</item>
+    <item>undump</item>
+    <item>unfix</item>
+    <item>units</item>
+    <item>variable</item>
+    <item>velocity</item>
+    <item>write_restart</item>
+  </list>
+  <list name="kw_fixes">
+    <item>adapt</item>
+    <item>addforce</item>
+    <item>append/atoms</item>
+    <item>aveforce</item>
+    <item>ave/atom</item>
+    <item>ave/correlate</item>
+    <item>ave/histo</item>
+    <item>ave/spatial</item>
+    <item>ave/time</item>
+    <item>balance</item>
+    <item>bond/break</item>
+    <item>bond/create</item>
+    <item>bond/swap</item>
+    <item>box/relax</item>
+    <item>deform</item>
+    <item>deposit</item>
+    <item>drag</item>
+    <item>dt/reset</item>
+    <item>efield</item>
+    <item>enforce2d</item>
+    <item>evaporate</item>
+    <item>external</item>
+    <item>freeze</item>
+    <item>gcmc</item>
+    <item>gravity</item>
+    <item>heat</item>
+    <item>indent</item>
+    <item>langevin</item>
+    <item>lineforce</item>
+    <item>momentum</item>
+    <item>move</item>
+    <item>msst</item>
+    <item>neb</item>
+    <item>nph</item>
+    <item>nphug</item>
+    <item>nph/asphere</item>
+    <item>nph/sphere</item>
+    <item>npt</item>
+    <item>npt/asphere</item>
+    <item>npt/sphere</item>
+    <item>nve</item>
+    <item>nve/asphere</item>
+    <item>nve/asphere/noforce</item>
+    <item>nve/limit</item>
+    <item>nve/line</item>
+    <item>nve/noforce</item>
+    <item>nve/sphere</item>
+    <item>nve/tri</item>
+    <item>nvt</item>
+    <item>nvt/asphere</item>
+    <item>nvt/sllod</item>
+    <item>nvt/sphere</item>
+    <item>orient/fcc</item>
+    <item>planeforce</item>
+    <item>poems</item>
+    <item>pour</item>
+    <item>press/berendsen</item>
+    <item>print</item>
+    <item>qeq/comb</item>
+    <item>reax/bonds</item>
+    <item>recenter</item>
+    <item>restrain</item>
+    <item>rigid</item>
+    <item>rigid/nph</item>
+    <item>rigid/npt</item>
+    <item>rigid/nve</item>
+    <item>rigid/nvt</item>
+    <item>setforce</item>
+    <item>shake</item>
+    <item>spring</item>
+    <item>spring/rg</item>
+    <item>spring/self</item>
+    <item>srd</item>
+    <item>store/force</item>
+    <item>store/state</item>
+    <item>temp/berendsen</item>
+    <item>temp/rescale</item>
+    <item>thermal/conductivity</item>
+    <item>tmd</item>
+    <item>ttm</item>
+    <item>viscosity</item>
+    <item>viscous</item>
+    <item>wall/colloid</item>
+    <item>wall/gran</item>
+    <item>wall/harmonic</item>
+    <item>wall/lj126</item>
+    <item>wall/lj93</item>
+    <item>wall/piston</item>
+    <item>wall/reflect</item>
+    <item>wall/region</item>
+    <item>wall/srd</item>
+  </list>
+  <list name="kw_optional_fixes">
+    <item>addtorque</item>
+    <item>atc</item>
+    <item>colvars</item>
+    <item>imd</item>
+    <item>langevin/eff</item>
+    <item>meso</item>
+    <item>meso/stationary</item>
+    <item>nph/eff</item>
+    <item>npt/eff</item>
+    <item>nve/eff</item>
+    <item>nvt/eff</item>
+    <item>nvt/sllod/eff</item>
+    <item>qeq/reax</item>
+    <item>reax/c/bonds</item>
+    <item>smd</item>
+    <item>temp/rescale/eff</item>
+  </list>    
+  <list name="kw_accelerated_fixes">
+    <item>freeze/cuda</item>
+    <item>addforce/cuda</item>
+    <item>aveforce/cuda</item>
+    <item>enforce2d/cuda</item>
+    <item>gravity/cuda</item>
+    <item>gravity/omp</item>
+    <item>npt/cuda</item>
+    <item>nve/cuda</item>
+    <item>nve/sphere/omp</item>
+    <item>nvt/cuda</item>
+    <item>qeq/comb/omp</item>
+    <item>setforce/cuda</item>
+    <item>shake/cuda</item>
+    <item>temp/berendsen/cuda</item>
+    <item>temp/rescale/cuda</item>
+    <item>temp/rescale/limit/cuda</item>
+    <item>viscous/cuda</item>
+  </list>    
+  <list name="kw_computes">
+    <item>angle/local</item>
+    <item>atom/molecule</item>
+    <item>bond/local</item>
+    <item>centro/atom</item>
+    <item>cluster/atom</item>
+    <item>cna/atom</item>
+    <item>com</item>
+    <item>com/molecule</item>
+    <item>contact/atom</item>
+    <item>coord/atom</item>
+    <item>damage/atom</item>
+    <item>dihedral/local</item>
+    <item>displace/atom</item>
+    <item>erotate/asphere</item>
+    <item>erotate/sphere</item>
+    <item>erotate/sphere/atom</item>
+    <item>event/displace</item>
+    <item>group/group</item>
+    <item>gyration</item>
+    <item>gyration/molecule</item>
+    <item>heat/flux</item>
+    <item>improper/local</item>
+    <item>ke</item>
+    <item>ke/atom</item>
+    <item>msd</item>
+    <item>msd/molecule</item>
+    <item>pair</item>
+    <item>pair/local</item>
+    <item>pe</item>
+    <item>pe/atom</item>
+    <item>pressure</item>
+    <item>property/atom</item>
+    <item>property/local</item>
+    <item>property/molecule</item>
+    <item>rdf</item>
+    <item>reduce</item>
+    <item>reduce/region</item>
+    <item>slice</item>
+    <item>stress/atom</item>
+    <item>temp</item>
+    <item>temp/asphere</item>
+    <item>temp/com</item>
+    <item>temp/deform</item>
+    <item>temp/partial</item>
+    <item>temp/profile</item>
+    <item>temp/ramp</item>
+    <item>temp/region</item>
+    <item>temp/sphere</item>
+  </list>
+  <list name="kw_optional_computes">
+    <item>ackland/atom</item>
+    <item>ke/eff</item>
+    <item>ke/atom/eff</item>
+    <item>meso_e/atom</item>
+    <item>meso_rho/atom</item>
+    <item>meso_t/atom</item>
+    <item>temp/eff</item>
+    <item>temp/deform/eff</item>
+    <item>temp/region/eff</item>
+    <item>temp/rotate</item>
+  </list>
+  <list name="kw_accelerated_computes">
+    <item>pe/cuda</item>
+    <item>pressure/cuda</item>
+    <item>temp/cuda</item>
+    <item>temp/partial/cuda</item>
+  </list>
+  <list name="kw_ps_potentials">
+    <item>none</item>
+    <item>hybrid</item>
+    <item>hybrid/overlay</item>
+    <item>adp</item>
+    <item>airebo</item>
+    <item>beck</item>
+    <item>bop</item>
+    <item>born</item>
+    <item>born/coul/long</item>
+    <item>born/coul/wolf</item>
+    <item>brownian</item>
+    <item>brownian/poly</item>
+    <item>buck</item>
+    <item>buck/coul/cut</item>
+    <item>buck/coul/long</item>
+    <item>buck/long/coul/long</item>
+    <item>colloid</item>
+    <item>comb</item>
+    <item>coul/cut</item>
+    <item>coul/debye</item>
+    <item>coul/dsf</item>
+    <item>coul/long</item>
+    <item>coul/wolf</item>
+    <item>dipole/cut</item>
+    <item>dpd</item>
+    <item>dpd/tstat</item>
+    <item>dsmc</item>
+    <item>eam</item>
+    <item>eam/alloy</item>
+    <item>eam/fs</item>
+    <item>eim</item>
+    <item>gauss</item>
+    <item>gayberne</item>
+    <item>gran/hertz/history</item>
+    <item>gran/hooke</item>
+    <item>gran/hooke/history</item>
+    <item>hbond/dreiding/lj</item>
+    <item>hbond/dreiding/morse</item>
+    <item>kim</item>
+    <item>lcbop</item>
+    <item>line/lj</item>
+    <item>lj/charmm/coul/charmm</item>
+    <item>lj/charmm/coul/charmm/implicit</item>
+    <item>lj/charmm/coul/long</item>
+    <item>lj/class2</item>
+    <item>lj/class2/coul/cut</item>
+    <item>lj/class2/coul/long</item>
+    <item>lj/cut</item>
+    <item>lj/cut/coul/cut</item>
+    <item>lj/cut/coul/debye</item>
+    <item>lj/cut/coul/dsf</item>
+    <item>lj/cut/coul/long</item>
+    <item>lj/long/coul/long</item>
+    <item>lj/cut/tip4p/long</item>
+    <item>lj/long/tip4p/long</item>
+    <item>lj/expand</item>
+    <item>lj/gromacs</item>
+    <item>lj/gromacs/coul/gromacs</item>
+    <item>lj/smooth</item>
+    <item>lj/smooth/linear</item>
+    <item>lj96/cut</item>
+    <item>lubricate</item>
+    <item>lubricate/poly</item>
+    <item>lubricateU</item>
+    <item>lubricateU/poly</item>
+    <item>meam</item>
+    <item>morse</item>
+    <item>peri/lps</item>
+    <item>peri/pmb</item>
+    <item>reax</item>
+    <item>rebo</item>
+    <item>resquared</item>
+    <item>soft</item>
+    <item>sw</item>
+    <item>table</item>
+    <item>tersoff</item>
+    <item>tersoff/zbl</item>
+    <item>tri/lj</item>
+    <item>yukawa</item>
+    <item>yukawa/colloid</item>
+  </list>
+  <list name="kw_optional_ps_potentials">
+    <item>awpmd/cut</item>
+    <item>coul/diel</item>
+    <item>dipole/sf</item>
+    <item>eam/cd</item>
+    <item>edip</item>
+    <item>eff/cut</item>
+    <item>gauss/cut</item>
+    <item>lj/sdk</item>
+    <item>lj/sdk/coul/long</item>
+    <item>lj/sf</item>
+    <item>meam/spline</item>
+    <item>meam/sw/spline</item>
+    <item>reax/c</item>
+    <item>sph/heatconduction</item>
+    <item>sph/idealgas</item>
+    <item>sph/lj</item>
+    <item>sph/rhosum</item>
+    <item>sph/taitwater</item>
+    <item>sph/taitwater/morris</item>
+    <item>tersoff/table</item>
+  </list>
+  <list name="kw_accelerated_ps_potentials">
+    <item>adp/omp</item>
+    <item>airebo/omp</item>
+    <item>beck/omp</item>
+    <item>born/coul/long/cuda</item>
+    <item>born/coul/long/gpu</item>
+    <item>born/coul/long/omp</item>
+    <item>born/coul/wolf/gpu</item>
+    <item>born/coul/wolf/omp</item>
+    <item>born/gpu</item>
+    <item>born/omp</item>
+    <item>brownian/omp</item>
+    <item>brownian/poly/omp</item>
+    <item>buck/coul/cut/cuda</item>
+    <item>buck/coul/cut/gpu</item>
+    <item>buck/coul/cut/omp</item>
+    <item>buck/coul/long/cuda</item>
+    <item>buck/coul/long/gpu</item>
+    <item>buck/coul/long/omp</item>
+    <item>buck/cuda</item>
+    <item>buck/long/coul/long/omp</item>
+    <item>buck/gpu</item>
+    <item>buck/omp</item>
+    <item>colloid/gpu</item>
+    <item>colloid/omp</item>
+    <item>comb/omp</item>
+    <item>coul/cut/omp</item>
+    <item>coul/debye/omp</item>
+    <item>coul/dsf/gpu</item>
+    <item>coul/long/gpu</item>
+    <item>coul/long/omp</item>
+    <item>coul/wolf</item>
+    <item>dipole/cut/gpu</item>
+    <item>dipole/cut/omp</item>
+    <item>dipole/sf/gpu</item>
+    <item>dipole/sf/omp</item>
+    <item>dpd/omp</item>
+    <item>dpd/tstat/omp</item>
+    <item>eam/alloy/cuda</item>
+    <item>eam/alloy/gpu</item>
+    <item>eam/alloy/omp</item>
+    <item>eam/alloy/opt</item>
+    <item>eam/cd/omp</item>
+    <item>eam/cuda</item>
+    <item>eam/fs/cuda</item>
+    <item>eam/fs/gpu</item>
+    <item>eam/fs/omp</item>
+    <item>eam/fs/opt</item>
+    <item>eam/gpu</item>
+    <item>eam/omp</item>
+    <item>eam/opt</item>
+    <item>edip/omp</item>
+    <item>eim/omp</item>
+    <item>gauss/gpu</item>
+    <item>gauss/omp</item>
+    <item>gayberne/gpu</item>
+    <item>gayberne/omp</item>
+    <item>gran/hertz/history/omp</item>
+    <item>gran/hooke/cuda</item>
+    <item>gran/hooke/history/omp</item>
+    <item>gran/hooke/omp</item>
+    <item>hbond/dreiding/lj/omp</item>
+    <item>hbond/dreiding/morse/omp</item>
+    <item>line/lj/omp</item>
+    <item>lj/charmm/coul/charmm/cuda</item>
+    <item>lj/charmm/coul/charmm/omp</item>
+    <item>lj/charmm/coul/charmm/implicit/cuda</item>
+    <item>lj/charmm/coul/charmm/implicit/omp</item>
+    <item>lj/charmm/coul/long/cuda</item>
+    <item>lj/charmm/coul/long/gpu</item>
+    <item>lj/charmm/coul/long/omp</item>
+    <item>lj/charmm/coul/long/opt</item>
+    <item>lj/charmm/coul/pppm/omp</item>
+    <item>lj/class2/coul/cut/cuda</item>
+    <item>lj/class2/coul/cut/omp</item>
+    <item>lj/class2/coul/long/cuda</item>
+    <item>lj/class2/coul/long/gpu</item>
+    <item>lj/class2/coul/pppm/omp</item>
+    <item>lj/class2/coul/long/omp</item>
+    <item>lj/class2/cuda</item>
+    <item>lj/class2/gpu</item>
+    <item>lj/class2/omp</item>
+    <item>lj/long/coul/long/omp</item>
+    <item>lj/cut/coul/cut/cuda</item>
+    <item>lj/cut/coul/cut/gpu</item>
+    <item>lj/cut/coul/cut/omp</item>
+    <item>lj/cut/coul/debye/cuda</item>
+    <item>lj/cut/coul/debye/gpu</item>
+    <item>lj/cut/coul/debye/omp</item>
+    <item>lj/cut/coul/dsf/gpu</item>
+    <item>lj/cut/coul/long/cuda</item>
+    <item>lj/cut/coul/long/gpu</item>
+    <item>lj/cut/coul/long/omp</item>
+    <item>lj/cut/coul/long/opt</item>
+    <item>lj/cut/coul/pppm/omp</item>
+    <item>lj/cut/cuda</item>
+    <item>lj/cut/experimental/cuda</item>
+    <item>lj/cut/gpu</item>
+    <item>lj/cut/omp</item>
+    <item>lj/cut/opt</item>
+    <item>lj/cut/tip4p/long/omp</item>
+    <item>lj/cut/tip4p/long/opt</item>
+    <item>lj/expand/cuda</item>
+    <item>lj/expand/gpu</item>
+    <item>lj/expand/omp</item>
+    <item>lj/gromacs/coul/gromacs/cuda</item>
+    <item>lj/gromacs/coul/gromacs/omp</item>
+    <item>lj/gromacs/cuda</item>
+    <item>lj/gromacs/omp</item>
+    <item>lj/sdk/gpu</item>
+    <item>lj/sdk/omp</item>
+    <item>lj/sdk/coul/long/gpu</item>
+    <item>lj/sdk/coul/long/omp</item>
+    <item>lj/sf/omp</item>
+    <item>lj/smooth/cuda</item>
+    <item>lj/smooth/omp</item>
+    <item>lj/smooth/linear/omp</item>
+    <item>lj96/cut/cuda</item>
+    <item>lj96/cut/gpu</item>
+    <item>lj96/cut/omp</item>
+    <item>lubricate/omp</item>
+    <item>lubricate/poly/omp</item>
+    <item>meam/spline/omp</item>
+    <item>morse/cuda</item>
+    <item>morse/gpu</item>
+    <item>morse/omp</item>
+    <item>morse/opt</item>
+    <item>peri/lps/omp</item>
+    <item>peri/pmb/omp</item>
+    <item>rebo/omp</item>
+    <item>resquared/gpu</item>
+    <item>resquared/omp</item>
+    <item>soft/omp</item>
+    <item>sw/cuda</item>
+    <item>sw/omp</item>
+    <item>table/gpu</item>
+    <item>table/omp</item>
+    <item>tersoff/cuda</item>
+    <item>tersoff/omp</item>
+    <item>tersoff/table/omp</item>
+    <item>tersoff/zbl/omp</item>
+    <item>tri/lj/omp</item>
+    <item>yukawa/gpu</item>
+    <item>yukawa/omp</item>
+    <item>yukawa/colloid/gpu</item>
+    <item>yukawa/colloid/omp</item>
+  </list>
+  <list name="kw_bs_potentials">
+    <item>none</item>
+    <item>hybrid</item>
+    <item>class2</item>
+    <item>fene</item>
+    <item>fene/expand</item>
+    <item>harmonic</item>
+    <item>morse</item>
+    <item>nonlinear</item>
+    <item>quartic</item>
+    <item>table</item>
+  </list>
+  <list name="kw_optional_bs_potentials">
+    <item>harmonic/shift</item>
+    <item>harmonic/shift/cut</item>
+  </list>
+  <list name="kw_accelerated_bs_potentials">
+    <item>class2/omp</item>
+    <item>fene/omp</item>
+    <item>fene/expand/omp</item>
+    <item>harmonic/omp</item>
+    <item>harmonic/shift/omp</item>
+    <item>harmonic/shift/cut/omp</item>
+    <item>morse/omp</item>
+    <item>nonlinear/omp</item>
+    <item>quartic/omp</item>
+    <item>table/omp</item>
+  </list>
+  <list name="kw_as_potentials">
+    <item>none</item>
+    <item>hybrid</item>
+    <item>charmm</item>
+    <item>class2</item>
+    <item>cosine</item>
+    <item>cosine/delta</item>
+    <item>cosine/periodic</item>
+    <item>cosine/squared</item>
+    <item>harmonic</item>
+    <item>table</item>
+  </list>
+  <list name="kw_optional_as_potentials">
+    <item>sdk</item>
+    <item>cosine/shift</item>
+    <item>cosine/shift/exp</item>
+    <item>dipole</item>
+    <item>fourier</item>
+    <item>fourier/simple</item>
+    <item>quartic</item>
+  </list>
+  <list name="kw_accelerated_as_potentials">
+    <item>charmm/omp</item>
+    <item>class2/omp</item>
+    <item>cosine/omp</item>
+    <item>cosine/delta/omp</item>
+    <item>cosine/periodic/omp</item>
+    <item>cosine/shift/omp</item>
+    <item>cosine/shift/exp/omp</item>
+    <item>cosine/squared/omp</item>
+    <item>dipole/ompharmonic/omp</item>
+    <item>table/omp</item>
+  </list>
+  <list name="kw_ds_potentials">
+    <item>none</item>
+    <item>hybrid</item>
+    <item>charmm</item>
+    <item>class2</item>
+    <item>harmonic</item>
+    <item>helix</item>
+    <item>multi/harmonic</item>
+    <item>opls</item>
+  </list>
+  <list name="kw_optional_ds_potentials">
+    <item>cosine/shift/exp</item>
+    <item>fourier</item>
+    <item>nharmonic</item>
+    <item>quadratic</item>
+    <item>table</item>
+  </list>
+  <list name="kw_accelerated_ds_potentials">
+    <item>charmm/omp</item>
+    <item>class2/omp</item>
+    <item>cosine/shift/exp/omp</item>
+    <item>harmonic/omp</item>
+    <item>helix/omp</item>
+    <item>multi/harmonic/omp</item>
+    <item>opls/omptable/omp</item>
+  </list>
+  <list name="kw_all_is_potentials">
+    <item>none</item>
+    <item>hybrid</item>
+    <item>class2</item>
+    <item>cvff</item>
+    <item>harmonic</item>
+    <item>umbrella</item>
+    <item>cossq</item>
+    <item>ring</item>
+    <item>class2/omp</item>
+    <item>cossq/omp</item>
+    <item>cvff/omp</item>
+    <item>fourier</item>
+    <item>harmonic/omp</item>
+    <item>ring/omp</item>
+    <item>umbrella/omp</item>
+  </list>
+  <list name="kw_all_kspace_solvers">
+    <item>ewald</item>
+    <item>ewald/disp</item>
+    <item>msm</item>
+    <item>pppm</item>
+    <item>pppm/cg</item>
+    <item>pppm/disp</item>
+    <item>pppm/disp/tip4p</item>
+    <item>pppm/tip4p</item>
+    <item>ewald/omp</item>
+    <item>pppm/cuda</item>
+    <item>pppm/gpu</item>
+    <item>pppm/omp</item>
+    <item>pppm/cg/omp</item>
+    <item>pppm/tip4p/omp</item>
+  </list>  
+  <list name="kw_operators">
+    <item>equal</item>
+    <item>add</item>
+    <item>sub</item>
+    <item>mult</item>
+    <item>div</item>
+  </list>
+  <list name="kw_special">
+    <item>NULL</item>
+    <item>EDGE</item>
+    <item>&amp;</item>
+</list>
+  <list name="kw_conditionals">
+    <item>if</item>
+    <item>then</item>
+    <item>elif</item>
+    <item>else</item>
+  </list>
+  
+  <!-- SHORT LIST OF DEFINED KEYWORD GROUPS
+	kw_commands
+	kw_fixes
+	kw_optional_fixes
+	kw_accelerated_fixes
+	kw_computes
+	kw_optional_computes
+	kw_accelerated_computes
+	kw_ps_potentials
+	kw_optional_ps_potentials
+	kw_accelerated_ps_potentials
+	kw_bs_potentials
+	kw_optional_bs_potentials
+	kw_accelerated_bs_potentials
+	kw_as_potentials
+	kw_optional_as_potentials
+	kw_accelerated_as_potentials
+	kw_ds_potentials
+	kw_optional_ds_potentials
+	kw_accelerated_ds_potentials
+	kw_all_is_potentials
+	kw_all_kspace_solvers
+	kw_operators
+	kw_special
+	kw_conditionals
+  -->
+  
+      <contexts>
+
+<!-- "Start" is the starting context -->
+      <context attribute="Normal Text" lineEndContext="#stay" name="Start">
+        <IncludeRules context="FindAll" />
+      </context>
+
+<!-- Following rulessets are then included -->
+
+<!-- FindAll tries to interpret all the strings including other rules -->
+      <context attribute="Normal Text" lineEndContext="#stay" name="FindAll">
+        <IncludeRules context="FindComments" />
+        <IncludeRules context="FindCommands" />
+        <IncludeRules context="FindStrings" />
+        <IncludeRules context="FindSubstitutions" />
+      </context>
+
+     <!-- FindComments consumes comments till EOL -->
+      <context attribute="Normal Text" lineEndContext="#pop" name="FindComments">
+        <DetectChar attribute="Comment" context="Comment" char="#" firstNonSpace="true"/>
+        <RegExpr attribute="Normal Text" context="Comment" String="[\s](?=#)" />
+      </context>
+      <context attribute="Comment" lineEndContext="#pop" name="Comment">
+      </context>
+
+      <!-- FindCommands matches expected items. -->
+      <context attribute="Normal Text" lineEndContext="#stay" name="FindCommands">
+
+      <!-- We handle float and integer numbers -->
+	<Float attribute="Floating" context="#stay"/>
+	<Int attribute="Integer" context="#stay"/>	
+	
+	
+	<!-- We handle variable assignments, using tricks on how
+	     variables are actually defined or recalled in lammps -->
+	<RegExpr attribute="Variable" context="#stay" String="\b&varname;(?=\s+equal)" />
+	
+	<RegExpr attribute="Variable" context="#stay" String="\bv_\S+" />
+	
+	<!-- Reading keywords -->
+	<keyword attribute="Commands" context="#stay" String="kw_commands" />
+	
+	<keyword attribute="Fixes" context="#stay" String="kw_fixes" />
+	<keyword attribute="Fixes" context="#stay" String="kw_accelerated_fixes" />
+	<keyword attribute="Fixes" context="#stay" String="kw_optional_fixes" />
+	
+	<keyword attribute="Computes" context="#stay" String="kw_computes" />
+	<keyword attribute="Computes" context="#stay" String="kw_optional_computes" />
+	<keyword attribute="Computes" context="#stay" String="kw_accelerated_computes" />
+	
+	<keyword attribute="Potentials" context="#stay" String="kw_ps_potentials" />
+	<keyword attribute="Potentials" context="#stay" String="kw_optional_ps_potentials" />
+	<keyword attribute="Potentials" context="#stay" String="kw_accelerated_ps_potentials" />
+	<keyword attribute="Potentials" context="#stay" String="kw_bs_potentials" />
+	<keyword attribute="Potentials" context="#stay" String="kw_optional_bs_potentials" />
+	<keyword attribute="Potentials" context="#stay" String="kw_accelerated_bs_potentials" />
+	<keyword attribute="Potentials" context="#stay" String="kw_as_potentials" />
+	<keyword attribute="Potentials" context="#stay" String="kw_optional_as_potentials" />
+	<keyword attribute="Potentials" context="#stay" String="kw_accelerated_as_potentials" />
+	<keyword attribute="Potentials" context="#stay" String="kw_ds_potentials" />
+	<keyword attribute="Potentials" context="#stay" String="kw_optional_ds_potentials" />
+	<keyword attribute="Potentials" context="#stay" String="kw_accelerated_ds_potentials" />
+	<keyword attribute="Potentials" context="#stay" String="kw_all_is_potentials" />
+	
+	<keyword attribute="KSpaceSolvers" context="#stay" String="kw_all_kspace_solvers" />
+	
+	<keyword attribute="Special" context="#stay" String="kw_special" />
+	
+	<keyword attribute="Conditionals" context="#stay" String="kw_conditionals" />
+	
+	<keyword attribute="Operators" context="#stay" String="kw_operators" />
+	
+	<!-- Getting the ampersand "&" right -->
+	<DetectChar char="&amp;" attribute="Special" context="#stay" /> 
+	
+	
+      </context>
+      
+      
+       <!-- FindStrings looks for single and double quoted strings, also with $-prefix -->
+      <context attribute="Normal Text" lineEndContext="#stay" name="FindStrings">
+        <DetectChar attribute="String" context="StringSQ" char="'" />
+        <DetectChar attribute="String" context="StringDQ" char="&quot;" />
+        <Detect2Chars attribute="String" context="StringEsc" char="$" char1="'" />
+        <Detect2Chars attribute="String" context="StringDQ" char="$" char1="&quot;" />
+      </context>
+      
+           <!-- FindSubstitutions looks for anything starting with $ and ` and their escapes -->
+      <context attribute="Normal Text" lineEndContext="#stay" name="FindSubstitutions">
+	<RegExpr attribute="Variable" context="#stay" String="\$&varname;" />
+	<RegExpr attribute="Variable" context="#stay" String="\$\{&varname;\}" />
+        <RegExpr attribute="Variable" context="#stay" String="\$\{#&varname;(\[[*@]\])?\}" />
+        <RegExpr attribute="Variable" context="#stay" String="\$\{!&varname;(\[[*@]\]|[*@])?\}" />
+        <RegExpr attribute="Variable" context="VarBraceErr" String="\$\{&varname;" />
+        <RegExpr attribute="Variable" context="VarBraceErr" String="\$\{[*@#?$!_0-9-](?=[:#%/=?+-])" />
+      </context>
+
+      
+<!-- FOLLOWING: contexts that can be branched to. -->
+      
+           <!-- StringSQ consumes anything till ' -->
+      <context attribute="String" lineEndContext="#stay" name="StringSQ">
+        <DetectChar attribute="String" context="#pop" char="'" />
+      </context>
+
+      <!-- StringDQ consumes anything till ", substitutes vars and expressions -->
+      <context attribute="String" lineEndContext="#stay" name="StringDQ">
+        <DetectChar attribute="String" context="#pop" char="&quot;" />
+        <RegExpr attribute="String" context="#stay" String="\\[`&quot;\\$\n]" />
+        <IncludeRules context="FindSubstitutions" />
+      </context>
+
+      <!-- StringEsc eats till ', but escaping many characters -->
+      <context attribute="String" lineEndContext="#stay" name="StringEsc">
+        <DetectChar attribute="String" context="#pop" char="'" />
+        <RegExpr attribute="String" context="#stay" String="\\[abefnrtv\\']" />
+        <RegExpr attribute="String" context="#stay" String="\\([0-7]{1,3}|x[A-Fa-f0-9]{1,2}|c.)" />
+      </context>
+
+      <!-- VarBraceErr is called as soon as ${xxx is encoutered -->
+      <context attribute="Error" lineEndContext="#stay" name="VarBraceErr">
+        <DetectChar attribute="Variable" context="#pop" char="}" />
+      </context>
+
+    </contexts>
+
+
+    <itemDatas>
+      <itemData name="Normal" defStyleNum="dsNormal"/>
+      <itemData name="Commands" defStyleNum="dsKeyword"/>
+      <itemData name="Fixes" defStyleNum="dsFunction"/>
+      <itemData name="Computes" defStyleNum="dsKeyword"/>
+      <itemData name="Potentials" defStyleNum="dsChar"/>
+      <itemData name="KSpaceSolvers" defStyleNum="dsKeyword"/>
+      <itemData name="Special" defStyleNum="dsAlert"/>
+      <itemData name="Conditionals" defStyleNum="dsChar"/>
+      <itemData name="Variable" defStyleNum="dsDataType"/>
+      <itemData name="Operators" defStyleNum="dsOthers"/>
+      <itemData name="String" defStyleNum="dsString"/>
+      <itemData name="Floating" defStyleNum="dsFloat" spellChecking="false"/>
+      <itemData name="Integer" defStyleNum="dsDecVal" spellChecking="false"/>
+      <itemData name="Comment" defStyleNum="dsComment"/>
+      <itemData name="Error" defStyleNum="dsError" />
+    </itemDatas>
+    
+</highlighting>
+
+<general>
+    <comments>
+        <comment name="singleLine" start="#" />
+    </comments>
+    <keywords casesensitive="0" weakDeliminator="[]$._{}-/" />
+</general>
+
+</language>

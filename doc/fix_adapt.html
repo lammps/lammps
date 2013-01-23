@@ -42,9 +42,8 @@
 
 <PRE>  <I>scale</I> value = <I>no</I> or <I>yes</I>
     <I>no</I> = the variable value is the new setting
-    <I>yes</I> = the variable value multiplies the original setting 
-</PRE>
-<PRE>  <I>reset</I> value = <I>no</I> or <I>yes</I>
+    <I>yes</I> = the variable value multiplies the original setting
+  <I>reset</I> value = <I>no</I> or <I>yes</I>
     <I>no</I> = values will remain altered at the end of a run
     <I>yes</I> = reset altered values to their original values at the end of a run 
 </PRE>
@@ -65,7 +64,11 @@ attributes which can be varied by this fix are discussed below.  Many
 other fixes can also be used to time-vary simulation parameters,
 e.g. the "fix deform" command will change the simulation box
 size/shape and the "fix move" command will change atom positions and
-velocities in a prescribed manner.
+velocities in a prescribed manner.  Also note that many commands allow
+variables as arguments for specific parameters, if described in that
+manner on their doc pages.  An equal-style variable can calculate a
+time-dependent quantity, so this is another way to vary a simulation
+parameter over time.
 </P>
 <P>If <I>N</I> is specified as 0, the specified attributes are only changed
 once, before the simulation begins.  This is all that is needed if the

@@ -33,11 +33,15 @@
 </H3>
 <H3>pair_style buck/coul/long/omp command 
 </H3>
+<H3>pair_style buck/coul/msm command 
+</H3>
+<H3>pair_style buck/coul/msm/omp command 
+</H3>
 <P><B>Syntax:</B>
 </P>
 <PRE>pair_style style args 
 </PRE>
-<UL><LI>style = <I>buck</I> or <I>buck/coul/cut</I> or <I>buck/coul/long</I>
+<UL><LI>style = <I>buck</I> or <I>buck/coul/cut</I> or <I>buck/coul/long</I> or <I>buck/coul/msm</I>
 <LI>args = list of arguments for a particular style 
 </UL>
 <PRE>  <I>buck</I> args = cutoff
@@ -46,6 +50,9 @@
     cutoff = global cutoff for Buckingham (and Coulombic if only 1 arg) (distance units)
     cutoff2 = global cutoff for Coulombic (optional) (distance units)
   <I>buck/coul/long</I> args = cutoff (cutoff2)
+    cutoff = global cutoff for Buckingham (and Coulombic if only 1 arg) (distance units)
+    cutoff2 = global cutoff for Coulombic (optional) (distance units)
+  <I>buck/coul/msm</I> args = cutoff (cutoff2)
     cutoff = global cutoff for Buckingham (and Coulombic if only 1 arg) (distance units)
     cutoff2 = global cutoff for Coulombic (optional) (distance units) 
 </PRE>
@@ -66,6 +73,11 @@ pair_style buck/coul/long 10.0 8.0
 pair_coeff * * 100.0 1.5 200.0
 pair_coeff 1 1 100.0 1.5 200.0 9.0 
 </PRE>
+<PRE>pair_style buck/coul/msm 10.0
+pair_style buck/coul/msm 10.0 8.0
+pair_coeff * * 100.0 1.5 200.0
+pair_coeff 1 1 100.0 1.5 200.0 9.0 
+</PRE>
 <P><B>Description:</B>
 </P>
 <P>The <I>buck</I> style computes a Buckingham potential (exp/6 instead of
@@ -76,20 +88,20 @@ Lennard-Jones 12/6) given by
 <P>where rho is an ionic-pair dependent length parameter, and Rc is the
 cutoff.
 </P>
-<P>The <I>buck/coul/cut</I> and <I>buck/coul/long</I> styles add a Coulombic term
-as described for the <A HREF = "pair_lj.html">lj/cut</A> pair styles.  For
-<I>buck/coul/long</I>, an additional damping factor is applied to the
-Coulombic term so it can be used in conjunction with the
-<A HREF = "kspace_style.html">kspace_style</A> command and its <I>ewald</I> or <I>pppm</I>
-option.  The Coulombic cutoff specified for this style means that
-pairwise interactions within this distance are computed directly;
+<P>The styles with <I>coul/cut</I> or <I>coul/long</I> or <I>coul/msm</I> add a
+Coulombic term as described for the <A HREF = "pair_lj.html">lj/cut</A> pair styles.
+For <I>buck/coul/long</I> and <I>buc/coul/msm</I>, an additional damping factor
+is applied to the Coulombic term so it can be used in conjunction with
+the <A HREF = "kspace_style.html">kspace_style</A> command and its <I>ewald</I> or <I>pppm</I>
+or <I>msm</I> option.  The Coulombic cutoff specified for this style means
+that pairwise interactions within this distance are computed directly;
 interactions outside that distance are computed in reciprocal space.
 </P>
 <P>If one cutoff is specified for the <I>born/coul/cut</I> and
-<I>born/coulk/long</I> styles, it is used for both the A,C and Coulombic
-terms.  If two cutoffs are specified, the first is used as the cutoff
-for the A,C terms, and the second is the cutoff for the Coulombic
-term.
+<I>born/coul/long</I> and <I>born/coul/msm</I> styles, it is used for both the
+A,C and Coulombic terms.  If two cutoffs are specified, the first is
+used as the cutoff for the A,C terms, and the second is the cutoff for
+the Coulombic term.
 </P>
 <P>Note that these potentials are related to the <A HREF = "pair_born.html">Born-Mayer-Huggins
 potential</A>.

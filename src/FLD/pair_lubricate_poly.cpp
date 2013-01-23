@@ -165,8 +165,8 @@ void PairLubricatePoly::compute(int eflag, int vflag)
          for (int m = 0; m < wallfix->nwall; m++){
            int dim = wallfix->wallwhich[m] / 2;
            int side = wallfix->wallwhich[m] % 2;
-           if (wallfix->wallstyle[m] == VARIABLE){
-             wallcoord = input->variable->compute_equal(wallfix->varindex[m]);
+           if (wallfix->xstyle[m] == VARIABLE){
+             wallcoord = input->variable->compute_equal(wallfix->xindex[m]);
            }
            else wallcoord = wallfix->coord0[m];
            if (side == 0) walllo[dim] = wallcoord;
@@ -492,7 +492,7 @@ void PairLubricatePoly::init_style()
     }
     if (strstr(modify->fix[i]->style,"wall") != NULL){
       flagwall = 1; // Walls exist
-      if (((FixWall *) modify->fix[i])->varflag ) {
+      if (((FixWall *) modify->fix[i])->xflag ) {
         flagwall = 2; // Moving walls exist
         wallfix = (FixWall *) modify->fix[i];
       }
@@ -511,10 +511,10 @@ void PairLubricatePoly::init_style()
     for (int m = 0; m < wallfix->nwall; m++){
       int dim = wallfix->wallwhich[m] / 2;
       int side = wallfix->wallwhich[m] % 2;
-      if (wallfix->wallstyle[m] == VARIABLE){
-        wallfix->varindex[m] = input->variable->find(wallfix->varstr[m]);
+      if (wallfix->xstyle[m] == VARIABLE){
+        wallfix->xindex[m] = input->variable->find(wallfix->xstr[m]);
         //Since fix->wall->init happens after pair->init_style
-        wallcoord = input->variable->compute_equal(wallfix->varindex[m]);
+        wallcoord = input->variable->compute_equal(wallfix->xindex[m]);
       }
       else wallcoord = wallfix->coord0[m];
 

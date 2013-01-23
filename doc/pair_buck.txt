@@ -18,12 +18,14 @@ pair_style buck/coul/long command :h3
 pair_style buck/coul/long/cuda command :h3
 pair_style buck/coul/long/gpu command :h3
 pair_style buck/coul/long/omp command :h3
+pair_style buck/coul/msm command :h3
+pair_style buck/coul/msm/omp command :h3
 
 [Syntax:]
 
 pair_style style args :pre
 
-style = {buck} or {buck/coul/cut} or {buck/coul/long}
+style = {buck} or {buck/coul/cut} or {buck/coul/long} or {buck/coul/msm}
 args = list of arguments for a particular style :ul
   {buck} args = cutoff
     cutoff = global cutoff for Buckingham interactions (distance units)
@@ -31,6 +33,9 @@ args = list of arguments for a particular style :ul
     cutoff = global cutoff for Buckingham (and Coulombic if only 1 arg) (distance units)
     cutoff2 = global cutoff for Coulombic (optional) (distance units)
   {buck/coul/long} args = cutoff (cutoff2)
+    cutoff = global cutoff for Buckingham (and Coulombic if only 1 arg) (distance units)
+    cutoff2 = global cutoff for Coulombic (optional) (distance units)
+  {buck/coul/msm} args = cutoff (cutoff2)
     cutoff = global cutoff for Buckingham (and Coulombic if only 1 arg) (distance units)
     cutoff2 = global cutoff for Coulombic (optional) (distance units) :pre
 
@@ -51,6 +56,11 @@ pair_style buck/coul/long 10.0 8.0
 pair_coeff * * 100.0 1.5 200.0
 pair_coeff 1 1 100.0 1.5 200.0 9.0 :pre
 
+pair_style buck/coul/msm 10.0
+pair_style buck/coul/msm 10.0 8.0
+pair_coeff * * 100.0 1.5 200.0
+pair_coeff 1 1 100.0 1.5 200.0 9.0 :pre
+
 [Description:]
 
 The {buck} style computes a Buckingham potential (exp/6 instead of
@@ -61,20 +71,20 @@ Lennard-Jones 12/6) given by
 where rho is an ionic-pair dependent length parameter, and Rc is the
 cutoff.
 
-The {buck/coul/cut} and {buck/coul/long} styles add a Coulombic term
-as described for the "lj/cut"_pair_lj.html pair styles.  For
-{buck/coul/long}, an additional damping factor is applied to the
-Coulombic term so it can be used in conjunction with the
-"kspace_style"_kspace_style.html command and its {ewald} or {pppm}
-option.  The Coulombic cutoff specified for this style means that
-pairwise interactions within this distance are computed directly;
+The styles with {coul/cut} or {coul/long} or {coul/msm} add a
+Coulombic term as described for the "lj/cut"_pair_lj.html pair styles.
+For {buck/coul/long} and {buc/coul/msm}, an additional damping factor
+is applied to the Coulombic term so it can be used in conjunction with
+the "kspace_style"_kspace_style.html command and its {ewald} or {pppm}
+or {msm} option.  The Coulombic cutoff specified for this style means
+that pairwise interactions within this distance are computed directly;
 interactions outside that distance are computed in reciprocal space.
 
 If one cutoff is specified for the {born/coul/cut} and
-{born/coulk/long} styles, it is used for both the A,C and Coulombic
-terms.  If two cutoffs are specified, the first is used as the cutoff
-for the A,C terms, and the second is the cutoff for the Coulombic
-term.
+{born/coul/long} and {born/coul/msm} styles, it is used for both the
+A,C and Coulombic terms.  If two cutoffs are specified, the first is
+used as the cutoff for the A,C terms, and the second is the cutoff for
+the Coulombic term.
 
 Note that these potentials are related to the "Born-Mayer-Huggins
 potential"_pair_born.html.

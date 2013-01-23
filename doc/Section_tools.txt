@@ -50,6 +50,7 @@ own sub-directories with their own Makefiles.
 "eff"_#eff
 "emacs"_#emacs
 "ipp"_#ipp
+"kate"_#kate
 "lmp2arc"_#arc
 "lmp2cfg"_#cfg
 "lmp2vmd"_#vmd
@@ -217,6 +218,17 @@ sandia.gov.
 
 See two examples in the tools/ipp directory.  One of them is for the
 tools/createatoms tool's input file.
+
+:line
+
+kate tool :h4,link(kate)
+
+The file in the tools/kate directory is an add-on to the Kate editor
+in the KDE suite that allow syntax highlighting of LAMMPS input
+scripts.  See the README.txt file for details.
+
+The file was provided by Alessandro Luigi Sellerio
+(alessandro.sellerio at ieni.cnr.it).
 
 :line
 

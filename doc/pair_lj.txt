@@ -27,6 +27,8 @@ pair_style lj/cut/coul/long/cuda command :h3
 pair_style lj/cut/coul/long/gpu command :h3
 pair_style lj/cut/coul/long/opt command :h3
 pair_style lj/cut/coul/long/omp command :h3
+pair_style lj/cut/coul/msm command :h3
+pair_style lj/cut/coul/msm/omp command :h3
 pair_style lj/cut/tip4p/long command :h3
 pair_style lj/cut/tip4p/long/omp command :h3
 pair_style lj/cut/tip4p/long/opt command :h3
@@ -35,7 +37,7 @@ pair_style lj/cut/tip4p/long/opt command :h3
 
 pair_style style args :pre
 
-style = {lj/cut} or {lj/cut/coul/cut} or {lj/cut/coul/debye} or {lj/cut/coul/dsf} or {lj/cut/coul/long} or {lj/cut/tip4p/long}
+style = {lj/cut} or {lj/cut/coul/cut} or {lj/cut/coul/debye} or {lj/cut/coul/dsf} or {lj/cut/coul/long} or {lj/cut/coul/msm} or {lj/cut/tip4p/long}
 args = list of arguments for a particular style :ul
   {lj/cut} args = cutoff
     cutoff = global cutoff for Lennard Jones interactions (distance units)
@@ -51,6 +53,9 @@ args = list of arguments for a particular style :ul
     cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
     cutoff2 = global cutoff for Coulombic (distance units)
   {lj/cut/coul/long} args = cutoff (cutoff2)
+    cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
+    cutoff2 = global cutoff for Coulombic (optional) (distance units)
+  {lj/cut/coul/msm} args = cutoff (cutoff2)
     cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
     cutoff2 = global cutoff for Coulombic (optional) (distance units)
   {lj/cut/tip4p/long} args = otype htype btype atype qdist cutoff (cutoff2)
@@ -84,6 +89,11 @@ pair_coeff 1 1 1.0 1.0 2.5 :pre
 
 pair_style lj/cut/coul/long 10.0
 pair_style lj/cut/coul/long 10.0 8.0
+pair_coeff * * 100.0 3.0
+pair_coeff 1 1 100.0 3.5 9.0 :pre
+
+pair_style lj/cut/coul/msm 10.0
+pair_style lj/cut/coul/msm 10.0 8.0
 pair_coeff * * 100.0 3.0
 pair_coeff 1 1 100.0 3.5 9.0 :pre
 
@@ -137,13 +147,14 @@ is enforced by shifting the potential through placement of image
 charges on the cutoff sphere. Convergence can often be improved by
 setting {alpha} to a small non-zero value.
 
-Style {lj/cut/coul/long} computes the same Coulombic interactions as
-style {lj/cut/coul/cut} except that an additional damping factor is
-applied to the Coulombic term so it can be used in conjunction with
-the "kspace_style"_kspace_style.html command and its {ewald} or {pppm}
-option.  The Coulombic cutoff specified for this style means that
-pairwise interactions within this distance are computed directly;
-interactions outside that distance are computed in reciprocal space.
+Styles {lj/cut/coul/long} and {lj/cut/coul/msm} compute the same
+Coulombic interactions as style {lj/cut/coul/cut} except that an
+additional damping factor is applied to the Coulombic term so it can
+be used in conjunction with the "kspace_style"_kspace_style.html
+command and its {ewald} or {pppm} option.  The Coulombic cutoff
+specified for this style means that pairwise interactions within this
+distance are computed directly; interactions outside that distance are
+computed in reciprocal space.
 
 Style {lj/cut/tip4p/long} implements the TIP4P water model of
 "(Jorgensen)"_#Jorgensen, which introduces a massless site located a
@@ -191,10 +202,10 @@ are specified, they are used as the LJ and Coulombic cutoffs for this
 type pair.  You cannot specify 2 cutoffs for style {lj/cut}, since it
 has no Coulombic terms.
 
-For {lj/cut/coul/long} and {lj/cut/tip4p/long} only the LJ cutoff
-can be specified since a Coulombic cutoff cannot be specified for an
-individual I,J type pair.  All type pairs use the same global
-Coulombic cutoff specified in the pair_style command.
+For {lj/cut/coul/long} and {lj/cut/coul/msm} and {lj/cut/tip4p/long}
+only the LJ cutoff can be specified since a Coulombic cutoff cannot be
+specified for an individual I,J type pair.  All type pairs use the
+same global Coulombic cutoff specified in the pair_style command.
 
 :line
 

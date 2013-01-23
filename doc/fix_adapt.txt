@@ -31,7 +31,7 @@ zero or more keyword/value pairs may be appended :l
 keyword = {scale} or {reset} :l
   {scale} value = {no} or {yes}
     {no} = the variable value is the new setting
-    {yes} = the variable value multiplies the original setting :pre
+    {yes} = the variable value multiplies the original setting
   {reset} value = {no} or {yes}
     {no} = values will remain altered at the end of a run
     {yes} = reset altered values to their original values at the end of a run :pre
@@ -52,7 +52,11 @@ attributes which can be varied by this fix are discussed below.  Many
 other fixes can also be used to time-vary simulation parameters,
 e.g. the "fix deform" command will change the simulation box
 size/shape and the "fix move" command will change atom positions and
-velocities in a prescribed manner.
+velocities in a prescribed manner.  Also note that many commands allow
+variables as arguments for specific parameters, if described in that
+manner on their doc pages.  An equal-style variable can calculate a
+time-dependent quantity, so this is another way to vary a simulation
+parameter over time.
 
 If {N} is specified as 0, the specified attributes are only changed
 once, before the simulation begins.  This is all that is needed if the

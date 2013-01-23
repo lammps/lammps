@@ -26,6 +26,7 @@ style = {delete} or {block} or {cone} or {cylinder} or {plane} or {prism} or {sp
     dim = {x} or {y} or {z} = axis of cylinder
     c1,c2 = coords of cylinder axis in other 2 dimensions (distance units)
     radius = cylinder radius (distance units)
+      radius can be a variable (see below)
     lo,hi = bounds of cylinder in dim (distance units)
   {plane} args = px py pz nx ny nz
     px,py,pz = point on the plane (distance units)
@@ -38,6 +39,7 @@ style = {delete} or {block} or {cone} or {cylinder} or {plane} or {prism} or {sp
   {sphere} args = x y z radius
     x,y,z = center of sphere (distance units)
     radius = radius of sphere (distance units)
+      radius can be a variable (see below)
   {union} args = N reg-ID1 reg-ID2 ...
     N = # of regions to follow, must be 2 or greater
     reg-ID1,reg-ID2, ... = IDs of regions to join together
@@ -165,6 +167,17 @@ between -5 and 5.  Similarly, both xz and yz must be between
 since if the maximum tilt factor is 5 (as in this example), then
 configurations with tilt = ..., -15, -5, 5, 15, 25, ... are all
 geometrically equivalent.
+
+The {radius} value for style {sphere} and {cylinder} can be specified
+as an equal-style "variable"_variable.html.  If the value is a
+variable, it should be specified as v_name, where name is the variable
+name.  In this case, the variable will be evaluated each timestep, and
+its value used to determine the radius of the region.
+
+Equal-style variables can specify formulas with various mathematical
+functions, and include "thermo_style"_thermo_style.html command
+keywords for the simulation box parameters and timestep and elapsed
+time.  Thus it is easy to specify a time-dependent radius.
 
 See "Section_howto 12"_Section_howto.html#howto_12 of the doc pages
 for a geometric description of triclinic boxes, as defined by LAMMPS,

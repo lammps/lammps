@@ -49,6 +49,15 @@ colvarbias_meta::colvarbias_meta (std::string const &conf, char const *key)
 
   get_keyval (conf, "hillWidth", hill_width, std::sqrt (2.0 * PI) / 2.0);
 
+  {
+    bool b_replicas = false;
+    get_keyval (conf, "multipleReplicas", b_replicas, false);
+    if (b_replicas)
+      comm = multiple_replicas;
+    else 
+      comm = single_replica;
+  }
+
   get_keyval (conf, "useGrids", use_grids, true);
 
   if (use_grids) {
@@ -82,15 +91,6 @@ colvarbias_meta::colvarbias_meta (std::string const &conf, char const *key)
     dump_fes = false;
     dump_fes_save = false;
     dump_replica_fes = false;
-  }
-
-  {
-    bool b_replicas = false;
-    get_keyval (conf, "multipleReplicas", b_replicas, false);
-    if (b_replicas)
-      comm = multiple_replicas;
-    else 
-      comm = single_replica;
   }
 
   if (comm != single_replica) {
@@ -373,34 +373,36 @@ cvm::real colvarbias_meta::update()
         int       &new_size = new_sizes[i];
         bool changed_lb = false, changed_ub = false;
 
-        if (curr_bin[i] < min_buffer) {
-          int const extra_points = (min_buffer - curr_bin[i]);
-          new_lb -= extra_points * colvars[i]->width;
-          new_size += extra_points;
-          // changed offset in this direction => the pointer needs to
-          // be changed, too
-          curr_bin[i] += extra_points;
+        if (!colvars[i]->hard_lower_boundary)
+          if (curr_bin[i] < min_buffer) {
+            int const extra_points = (min_buffer - curr_bin[i]);
+            new_lb -= extra_points * colvars[i]->width;
+            new_size += extra_points;
+            // changed offset in this direction => the pointer needs to
+            // be changed, too
+            curr_bin[i] += extra_points;
 
-          changed_lb = true;
-          cvm::log ("Metadynamics bias \""+this->name+"\""+
-                    ((comm != single_replica) ? ", replica \""+replica_id+"\"" : "")+
-                    ": new lower boundary for colvar \""+
-                    colvars[i]->name+"\", at "+
-                    cvm::to_str (new_lower_boundaries[i])+".\n");
-        }
+            changed_lb = true;
+            cvm::log ("Metadynamics bias \""+this->name+"\""+
+                      ((comm != single_replica) ? ", replica \""+replica_id+"\"" : "")+
+                      ": new lower boundary for colvar \""+
+                      colvars[i]->name+"\", at "+
+                      cvm::to_str (new_lower_boundaries[i])+".\n");
+          }
 
-        if (curr_bin[i] > new_size - min_buffer - 1) {
-          int const extra_points = (curr_bin[i] - (new_size - 1) + min_buffer);
-          new_ub += extra_points * colvars[i]->width;
-          new_size += extra_points;
+        if (!colvars[i]->hard_upper_boundary)
+          if (curr_bin[i] > new_size - min_buffer - 1) {
+            int const extra_points = (curr_bin[i] - (new_size - 1) + min_buffer);
+            new_ub += extra_points * colvars[i]->width;
+            new_size += extra_points;
 
-          changed_ub = true;
-          cvm::log ("Metadynamics bias \""+this->name+"\""+
-                    ((comm != single_replica) ? ", replica \""+replica_id+"\"" : "")+
-                    ": new upper boundary for colvar \""+
-                    colvars[i]->name+"\", at "+
-                    cvm::to_str (new_upper_boundaries[i])+".\n");
-        }
+            changed_ub = true;
+            cvm::log ("Metadynamics bias \""+this->name+"\""+
+                      ((comm != single_replica) ? ", replica \""+replica_id+"\"" : "")+
+                      ": new upper boundary for colvar \""+
+                      colvars[i]->name+"\", at "+
+                      cvm::to_str (new_upper_boundaries[i])+".\n");
+          }
 
         if (changed_lb || changed_ub)
           changed_grids = true;
@@ -1521,7 +1523,8 @@ std::ostream & colvarbias_meta::write_restart (std::ostream& os)
 void colvarbias_meta::write_pmf()
 {
   // allocate a new grid to store the pmf
-  colvar_grid_scalar *pmf = new colvar_grid_scalar (colvars);
+  colvar_grid_scalar *pmf = new colvar_grid_scalar (*hills_energy);
+  pmf->create();
 
   std::string fes_file_name_prefix (cvm::output_prefix);
   
@@ -1544,17 +1547,18 @@ void colvarbias_meta::write_pmf()
       cvm::real const well_temper_scale = (bias_temperature + cvm::temperature()) / bias_temperature;
       pmf->multiply_constant (well_temper_scale);
     }
-    std::string const fes_file_name (fes_file_name_prefix +
-                                     ((comm != single_replica) ? ".partial" : "") +
-                                     (dump_fes_save ?
-                                      "."+cvm::to_str (cvm::step_absolute()) : "") +
-                                     ".pmf");
-    cvm::backup_file (fes_file_name.c_str());
-    std::ofstream fes_os (fes_file_name.c_str());
-    pmf->write_multicol (fes_os);
-    fes_os.close();
+    {
+      std::string const fes_file_name (fes_file_name_prefix +
+                                       ((comm != single_replica) ? ".partial" : "") +
+                                       (dump_fes_save ?
+                                        "."+cvm::to_str (cvm::step_absolute()) : "") +
+                                       ".pmf");
+      cvm::backup_file (fes_file_name.c_str());
+      std::ofstream fes_os (fes_file_name.c_str());
+      pmf->write_multicol (fes_os);
+      fes_os.close();
+    }
   }
-
   if (comm != single_replica) {
     // output the combined PMF from all replicas
     pmf->reset();

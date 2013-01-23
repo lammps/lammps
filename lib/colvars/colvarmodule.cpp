@@ -46,11 +46,11 @@ colvarmodule::colvarmodule (char const  *config_filename,
 
   parse->get_keyval (conf, "analysis", b_analysis, false);
 
-  parse->get_keyval (conf, "debugGradientsStepSize", debug_gradients_step_size, 1.0e-03,
+  parse->get_keyval (conf, "debugGradientsStepSize", debug_gradients_step_size, 1.0e-07,
                      colvarparse::parse_silent);
 
   parse->get_keyval (conf, "eigenvalueCrossingThreshold",
-                     colvarmodule::rotation::crossing_threshold, 1.0e-04,
+                     colvarmodule::rotation::crossing_threshold, 1.0e-02,
                      colvarparse::parse_silent);
 
   parse->get_keyval (conf, "colvarsTrajFrequency", cv_traj_freq, 100);

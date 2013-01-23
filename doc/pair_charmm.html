@@ -31,11 +31,15 @@
 </H3>
 <H3>pair_style lj/charmm/coul/long/omp command 
 </H3>
+<H3>pair_style lj/charmm/coul/msm command 
+</H3>
+<H3>pair_style lj/charmm/coul/msm/omp command 
+</H3>
 <P><B>Syntax:</B>
 </P>
 <PRE>pair_style style args 
 </PRE>
-<UL><LI>style = <I>lj/charmm/coul/charmm</I> or <I>lj/charmm/coul/charmm/implicit</I> or <I>lj/charmm/coul/long</I>
+<UL><LI>style = <I>lj/charmm/coul/charmm</I> or <I>lj/charmm/coul/charmm/implicit</I> or <I>lj/charmm/coul/long</I> or <I>lj/charmm/coul/msm</I>
 <LI>args = list of arguments for a particular style 
 </UL>
 <PRE>  <I>lj/charmm/coul/charmm</I> args = inner outer (inner2) (outer2)
@@ -45,6 +49,9 @@
     inner, outer = global switching cutoffs for LJ (and Coulombic if only 2 args)
     inner2, outer2 = global switching cutoffs for Coulombic (optional)
   <I>lj/charmm/coul/long</I> args = inner outer (cutoff)
+    inner, outer = global switching cutoffs for LJ (and Coulombic if only 2 args)
+    cutoff = global cutoff for Coulombic (optional, outer is Coulombic cutoff if only 2 args)
+  <I>lj/charmm/coul/msm</I> args = inner outer (cutoff)
     inner, outer = global switching cutoffs for LJ (and Coulombic if only 2 args)
     cutoff = global cutoff for Coulombic (optional, outer is Coulombic cutoff if only 2 args) 
 </PRE>
@@ -62,6 +69,11 @@ pair_coeff 1 1 100.0 2.0 150.0 3.5
 </PRE>
 <PRE>pair_style lj/charmm/coul/long 8.0 10.0
 pair_style lj/charmm/coul/long 8.0 10.0 9.0
+pair_coeff * * 100.0 2.0
+pair_coeff 1 1 100.0 2.0 150.0 3.5 
+</PRE>
+<PRE>pair_style lj/charmm/coul/msm 8.0 10.0
+pair_style lj/charmm/coul/msm 8.0 10.0 9.0
 pair_coeff * * 100.0 2.0
 pair_coeff 1 1 100.0 2.0 150.0 3.5 
 </PRE>
@@ -91,13 +103,13 @@ which is a simple model for an implicit solvent with additional
 screening.  It is designed for use in a simulation of an unsolvated
 biomolecule (no explicit water molecules).
 </P>
-<P>Styles <I>lj/charmm/coul/long</I> computes the same formulas as style
-<I>lj/charmm/coul/charmm</I> except that an additional damping factor is
-applied to the Coulombic term, as in the discussion for pair style
-<I>lj/cut/coul/long</I>.  Only one Coulombic cutoff is specified for
-<I>lj/charmm/coul/long</I>; if only 2 arguments are used in the pair_style
-command, then the outer LJ cutoff is used as the single Coulombic
-cutoff.
+<P>Styles <I>lj/charmm/coul/long</I> and <I>lj/charmm/coul/msm</I> compute the same
+formulas as style <I>lj/charmm/coul/charmm</I> except that an additional
+damping factor is applied to the Coulombic term, as described for the
+<A HREF = "pair_lj.html">lj/cut</A> pair styles.  Only one Coulombic cutoff is
+specified for <I>lj/charmm/coul/long</I> and <I>lj/charmm/coul/msm</I>; if only
+2 arguments are used in the pair_style command, then the outer LJ
+cutoff is used as the single Coulombic cutoff.
 </P>
 <P>The following coefficients must be defined for each pair of atoms
 types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples

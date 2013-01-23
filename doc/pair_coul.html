@@ -27,6 +27,10 @@
 </H3>
 <H3>pair_style coul/long/gpu command 
 </H3>
+<H3>pair_style coul/msm command 
+</H3>
+<H3>pair_style coul/msm/omp command 
+</H3>
 <H3>pair_style coul/wolf command 
 </H3>
 <H3>pair_style coul/wolf/omp command 
@@ -58,6 +62,9 @@ pair_coeff 2 2 3.5
 pair_coeff * * 
 </PRE>
 <PRE>pair_style coul/long 10.0
+pair_coeff * * 
+</PRE>
+<PRE>pair_style coul/msm 10.0
 pair_coeff * * 
 </PRE>
 <PRE>pair_style coul/wolf 0.2 9.0
@@ -112,13 +119,13 @@ forces calcluated by the Wolf summation method approach those of the
 Ewald sum.  So it is a means of getting effective long-range
 interactions with a short-range potential.
 </P>
-<P>Style <I>coul/long</I> computes the same Coulombic interactions as style
-<I>coul/cut</I> except that an additional damping factor is applied so it
-can be used in conjunction with the <A HREF = "kspace_style.html">kspace_style</A>
-command and its <I>ewald</I> or <I>pppm</I> option.  The Coulombic cutoff
-specified for this style means that pairwise interactions within this
-distance are computed directly; interactions outside that distance are
-computed in reciprocal space.
+<P>Styles <I>coul/long</I> and <I>coul/msm</I> compute the same Coulombic
+interactions as style <I>coul/cut</I> except that an additional damping
+factor is applied so it can be used in conjunction with the
+<A HREF = "kspace_style.html">kspace_style</A> command and its <I>ewald</I> or <I>pppm</I>
+option.  The Coulombic cutoff specified for this style means that
+pairwise interactions within this distance are computed directly;
+interactions outside that distance are computed in reciprocal space.
 </P>
 <P>These potentials are designed to be combined with other pair
 potentials via the <A HREF = "pair_hybrid.html">pair_style hybrid/overlay</A>
@@ -138,9 +145,10 @@ commands, or by mixing as described below:
 If it is not used (as in some of the examples above), the default
 global value specified in the pair_style command is used.
 </P>
-<P>For <I>coul/long</I> no cutoff can be specified for an individual I,J type
-pair via the pair_coeff command.  All type pairs use the same global
-Coulombic cutoff specified in the pair_style command.
+<P>For <I>coul/long</I> and <I>coul/msm</I> no cutoff can be specified for an
+individual I,J type pair via the pair_coeff command.  All type pairs
+use the same global Coulombic cutoff specified in the pair_style
+command.
 </P>
 <HR>
 

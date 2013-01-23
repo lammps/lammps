@@ -12,7 +12,7 @@ kspace_style command :h3
 
 kspace_style style value :pre
 
-style = {none} or {ewald} or {ewald/disp} or {ewald/omp} or {pppm} or {pppm/cg} or {pppm/disp} or {pppm/tip4p} or {pppm/disp/tip4p} or {pppm/gpu} or {pppm/omp} or {pppm/cg/omp} or {pppm/tip4p/omp} or {msm} :ulb,l
+style = {none} or {ewald} or {ewald/disp} or {ewald/omp} or {pppm} or {pppm/cg} or {pppm/disp} or {pppm/tip4p} or {pppm/disp/tip4p} or {pppm/gpu} or {pppm/omp} or {pppm/cg/omp} or {pppm/tip4p/omp} or {msm} or {msm/omp} :ulb,l
   {none} value = none
   {ewald} value = accuracy
     accuracy = desired relative error in forces
@@ -40,6 +40,8 @@ style = {none} or {ewald} or {ewald/disp} or {ewald/omp} or {pppm} or {pppm/cg} 
   {pppm/tip4p/omp} value = accuracy
     accuracy = desired relative error in forces
   {msm} value = accuracy
+    accuracy = desired relative error in forces
+  {msm/omp} value = accuracy
     accuracy = desired relative error in forces :pre
 :ule
 

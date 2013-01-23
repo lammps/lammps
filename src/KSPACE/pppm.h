@@ -122,8 +122,8 @@ class PPPM : public KSpace {
   double estimate_ik_error(double, double, bigint);
   double compute_qopt();
   void compute_gf_denom();
-  void compute_gf_ik();
-  void compute_gf_ad();
+  virtual void compute_gf_ik();
+  virtual void compute_gf_ad();
   void compute_sf_precoeff();
   
   virtual void particle_map();
@@ -131,12 +131,12 @@ class PPPM : public KSpace {
   virtual void brick2fft();
   
   virtual void poisson();
-  void poisson_ik();
-  void poisson_ad();
+  virtual void poisson_ik();
+  virtual void poisson_ad();
   
   virtual void fieldforce();
-  void fieldforce_ik();
-  void fieldforce_ad();
+  virtual void fieldforce_ik();
+  virtual void fieldforce_ad();
   
   virtual void poisson_peratom();
   virtual void fieldforce_peratom();

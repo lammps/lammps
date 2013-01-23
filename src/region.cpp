@@ -397,8 +397,4 @@ void Region::options(int narg, char **arg)
 
   if (moveflag || rotateflag) dynamic = 1;
   else dynamic = 0;
-
-  // initialize option variables in case region is used between runs
-
-  init();
 }

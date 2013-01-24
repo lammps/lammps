@@ -91,8 +91,8 @@ void PairBrownianPolyOMP::compute(int eflag, int vflag)
         for (int m = 0; m < wallfix->nwall; m++){
           int dim = wallfix->wallwhich[m] / 2;
           int side = wallfix->wallwhich[m] % 2;
-          if (wallfix->wallstyle[m] == VARIABLE){
-            wallcoord = input->variable->compute_equal(wallfix->varindex[m]);
+          if (wallfix->xstyle[m] == VARIABLE){
+            wallcoord = input->variable->compute_equal(wallfix->xindex[m]);
           }
           else wallcoord = wallfix->coord0[m];
           if (side == 0) walllo[dim] = wallcoord;

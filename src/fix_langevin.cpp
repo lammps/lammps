@@ -628,7 +628,7 @@ void FixLangevin::omega_thermostat()
   int *type = atom->type;
   int nlocal = atom->nlocal;
 
-  // rescale gamma1/gamma2 by 10/3 and sqrt(10/3) for rotational thermostatting
+  // rescale gamma1/gamma2 by 10/3 & sqrt(10/3) for rotational thermostatting
 
   double tendivthree = 10.0/3.0;
   double tran[3];
@@ -674,7 +674,7 @@ void FixLangevin::angmom_thermostat()
   int *type = atom->type;
   int nlocal = atom->nlocal;
 
-  // rescale gamma1/gamma2 by 10/3 and sqrt(10/3) for rotational thermostatting
+  // rescale gamma1/gamma2 by 10/3 & sqrt(10/3) for rotational thermostatting
 
   double tendivthree = 10.0/3.0;
   double inertia[3],omega[3],tran[3];

@@ -182,7 +182,7 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
   }
 
   // set xflag if any wall positions are variable
-  // set vflag if any wall positions are variable
+  // set vflag if any wall positions or parameters are variable
   // set wstyle to VARIABLE if either epsilon or sigma is a variable
 
   vflag = xflag = 0;

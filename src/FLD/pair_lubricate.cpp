@@ -206,9 +206,7 @@ void PairLubricate::compute(int eflag, int vflag)
       }
     }
 
-
   // end of R0 adjustment code
-
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
@@ -595,12 +593,13 @@ void PairLubricate::init_style()
         error->all(FLERR,"Using pair lubricate with inconsistent "
                    "fix deform remap option");
     }
-    if (strstr(modify->fix[i]->style,"wall") != NULL){
+    if (strstr(modify->fix[i]->style,"wall") != NULL) {
+      if (flagwall) 
+        error->all(FLERR,
+                   "Cannot use multiple fix wall commands with pair lubricate");
       flagwall = 1; // Walls exist
-      if (((FixWall *) modify->fix[i])->xflag ) {
-        flagwall = 2; // Moving walls exist
-        wallfix = (FixWall *) modify->fix[i];
-      }
+      wallfix = (FixWall *) modify->fix[i];
+      if (wallfix->xflag) flagwall = 2; // Moving walls exist
     }
   }
 
@@ -616,6 +615,7 @@ void PairLubricate::init_style()
       wallhi[j] = domain->prd[j];
       walllo[j] = 0;
     }
+
     for (int m = 0; m < wallfix->nwall; m++){
       int dim = wallfix->wallwhich[m] / 2;
       int side = wallfix->wallwhich[m] % 2;

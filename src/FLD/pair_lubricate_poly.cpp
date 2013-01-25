@@ -490,6 +490,16 @@ void PairLubricatePoly::init_style()
         error->all(FLERR,"Using pair lubricate with inconsistent "
                    "fix deform remap option");
     }
+    if (strstr(modify->fix[i]->style,"wall") != NULL) {
+      if (flagwall) 
+        error->all(FLERR,
+                   "Cannot use multiple fix wall commands with "
+                   "pair lubricate/poly");
+      flagwall = 1; // Walls exist
+      wallfix = (FixWall *) modify->fix[i];
+      if (wallfix->xflag) flagwall = 2; // Moving walls exist
+    }
+
     if (strstr(modify->fix[i]->style,"wall") != NULL){
       flagwall = 1; // Walls exist
       if (((FixWall *) modify->fix[i])->xflag ) {

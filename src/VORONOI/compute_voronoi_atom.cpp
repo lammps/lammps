@@ -82,7 +82,7 @@ void ComputeVoronoi::compute_peratom()
 
   // grow per atom array if necessary
 
-  int local = atom->nlocal;
+  int nlocal = atom->nlocal;
   if (nlocal > nmax) {
     memory->destroy(voro);
     nmax = atom->nmax;
@@ -118,6 +118,7 @@ void ComputeVoronoi::compute_peratom()
 
   // invoke voro++ and fetch results for owned atoms in group
 
+  int *mask = atom->mask;
   std::vector<int> neigh;
 
   voronoicell_neighbor c;

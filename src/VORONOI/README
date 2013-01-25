@@ -1,0 +1,37 @@
+The VORONOI package adds a compute voronoi/atom command which
+calculates a Voronoi tesselation of the system.
+
+It uses the Voro++ library, available at http://math.lbl.gov/voro++ to
+compute the tesselation locally on each processor.  
+
+== Installation of the Voro++ library ==
+
+1.  Download Voro++ at http://math.lbl.gov/voro++/download
+    which gives instructions for using SVN to check-out the source:
+    % svn checkout https://codeforge.lbl.gov/anonscm/voro/trunk
+
+2.  compile Voro++
+    % make 
+
+3.  install Voro++ at the default location (/usr/local) 
+    % sudo make install
+
+3b. ..or change the PREFIX variable in the config.mk file 
+    to a location that is writable by the user i.e.
+    PREFIX=/home/maxuser/install/
+
+4.  In the LAMMPS src directory add the VORONOI package
+    % make yes-voronoi
+
+4b. if a different PREFIX than the default was used to install Voro++
+    update the paths in the src/VORONOI/Makefile.lammps file
+
+5.  Compile LAMMPS (you should know how that works)
+
+
+== Credits and license ==
+
+This compute was written by Daniel Schwen (daniel@schwen.de) and is
+licensed under the GPLv2 license.
+
+Please contribute changes back to the community.

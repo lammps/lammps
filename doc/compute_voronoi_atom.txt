@@ -49,7 +49,7 @@ systems, but may lead to underestimation of Voronoi volumes in low
 density systems.  By default, the set of ghost atoms stored by each
 processor is determined by the cutoff used for
 "pair_style"_pair_style.html interactions.  The cutoff can be set
-explicitly via the "communicate cutoff"_communcicate.html command.
+explicitly via the "communicate cutoff"_communicate.html command.
 
 [Output info:]
 

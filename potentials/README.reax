@@ -57,6 +57,6 @@ M.; van Duin, A. C. T.; Kubicki, J. D. J. Phys. Chem. A 2010, 114,
 ffield.reax.V_O_C_H: Reactive MD-force field: V/O/C/H potential:
 Chenoweth, K.; et al. J. Phys. Chem. C, 2008, 112, 14645-14654.
 
-ffield.reax.ZnOH: Reactive MD-force field: water/zinc: Raymand, D.;
-van Duin A.C.T.; Baudin M.; Hermannson K. Surface Science 2008, 602,
-1020-1031.
+ffield.reax.ZnOH: Reactive MD-force field: water/zinc: Raymand, D.; 
+van Duin, A. C. T.; Spangberg, D.; Goddard, W. A.; Hermansson, K. 
+Surface Science 2010, 604, 9-10, 741-752.

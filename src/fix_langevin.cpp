@@ -628,15 +628,18 @@ void FixLangevin::omega_thermostat()
   int *type = atom->type;
   int nlocal = atom->nlocal;
 
+  // rescale gamma1/gamma2 by 10/3 and sqrt(10/3) for rotational thermostatting
+
+  double tendivthree = 10.0/3.0;
   double tran[3];
   double inertiaone;
-
+  
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       inertiaone = SINERTIA*radius[i]*radius[i]*rmass[i];
       if (tstyle == ATOM) tsqrt = sqrt(tforce[i]);
-      gamma1 = -inertiaone / t_period / ftm2v;
-      gamma2 = sqrt(inertiaone) * sqrt(24.0*boltz/t_period/dt/mvv2e) / ftm2v;
+      gamma1 = -tendivthree*inertiaone / t_period / ftm2v;
+      gamma2 = sqrt(inertiaone) * sqrt(80.0*boltz/t_period/dt/mvv2e) / ftm2v;
       gamma1 *= 1.0/ratio[type[i]];
       gamma2 *= 1.0/sqrt(ratio[type[i]]) * tsqrt;
       tran[0] = gamma2*(random->uniform()-0.5);
@@ -671,6 +674,9 @@ void FixLangevin::angmom_thermostat()
   int *type = atom->type;
   int nlocal = atom->nlocal;
 
+  // rescale gamma1/gamma2 by 10/3 and sqrt(10/3) for rotational thermostatting
+
+  double tendivthree = 10.0/3.0;
   double inertia[3],omega[3],tran[3];
   double *shape,*quat;
 
@@ -684,8 +690,8 @@ void FixLangevin::angmom_thermostat()
       MathExtra::mq_to_omega(angmom[i],quat,inertia,omega);
 
       if (tstyle == ATOM) tsqrt = sqrt(tforce[i]);
-      gamma1 = -1.0 / t_period / ftm2v;
-      gamma2 = sqrt(24.0*boltz/t_period/dt/mvv2e) / ftm2v;
+      gamma1 = -tendivthree / t_period / ftm2v;
+      gamma2 = sqrt(80.0*boltz/t_period/dt/mvv2e) / ftm2v;
       gamma1 *= 1.0/ratio[type[i]];
       gamma2 *= 1.0/sqrt(ratio[type[i]]) * tsqrt;
       tran[0] = sqrt(inertia[0])*gamma2*(random->uniform()-0.5);

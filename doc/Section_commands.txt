@@ -594,7 +594,8 @@ each style or click on the style itself for a full description:
 "temp/ramp"_compute_temp_ramp.html,
 "temp/region"_compute_temp_region.html,
 "temp/sphere"_compute_temp_sphere.html,
-"ti"_compute_ti.html :tb(c=6,ea=c)
+"ti"_compute_ti.html,
+"voronoi/atom"_compute_coord_atom.html :tb(c=6,ea=c)
 
 These are compute styles contributed by users, which can be used if
 "LAMMPS is built with the appropriate

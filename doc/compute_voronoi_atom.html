@@ -1,0 +1,82 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>compute voronoi/atom command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>compute ID group-ID voronoi/atom 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
+<LI>voronoi/atom = style name of this compute command 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>compute 1 all voronoi/atom 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define a computation that calculates the Voronoi tesselation of the
+atoms in the simulation box.  The tesselation is calculated using
+all atoms in the simulatoin, but non-zero values are only stored
+for atoms in the group.
+</P>
+<P>Two quantites per atom are calculated by this compute.  The first is
+the volume of the Voronoi cell around each atom, which is the volume
+of points in space closest to that atom.  The second is the number of
+faces of the Voronoi cell, which is also the number of nearest
+neighbor atoms.
+</P>
+<P>The Voronoi calculation is performed by the freely available <A HREF = "http://math.lbl.gov/voro++">Voro++
+package</A>, written by Chris Rycroft at UC Berkeley and LBL,
+which must be installed on your system when building LAMMPS for use
+with this compute.  See instructions on obtaining and installing
+the Voro++ software in the src/VORONOI/README file.
+</P>
+
+
+<P>IMPORTANT NOTE: The calculation of Voronoi volumes is performed by
+each processor for the atoms it owns, and includes the effect of ghost
+atoms stored by the processor.  This assumes that the Voronoi cells of
+owned atoms are not affected by atoms beyond the ghost atom cut-off
+distance.  This is usually a good assumption for liquid and solid
+systems, but may lead to underestimation of Voronoi volumes in low
+density systems.  By default, the set of ghost atoms stored by each
+processor is determined by the cutoff used for
+<A HREF = "pair_style.html">pair_style</A> interactions.  The cutoff can be set
+explicitly via the <A HREF = "communcicate.html">communicate cutoff</A> command.
+</P>
+<P><B>Output info:</B>
+</P>
+<P>This compute calculates a per-atom array with 2 columns.  The first
+column is the Voronoi volume, the second is the neighbor count, as
+described above.  These values can be accessed by any command that
+uses per-atom values from a compute as input.  See <A HREF = "Section_howto.html#howto_15">Section_howto
+15</A> for an overview of LAMMPS output
+options.
+</P>
+<P>The Voronoi cell volume will be in distance <A HREF = "units.html">units</A> cubed.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This compute is part of the VORONOI package.  It is only enabled if
+LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>This command currently only works for 3d systems.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "dump.html">dump custom</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

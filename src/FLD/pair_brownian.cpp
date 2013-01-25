@@ -513,6 +513,7 @@ void PairBrownian::init_style()
 
   // set the isotropic constants depending on the volume fraction
   // vol_T = total volumeshearing = flagdeform = flagwall = 0;
+
   double vol_T, wallcoord;
   if (!flagwall) vol_T = domain->xprd*domain->yprd*domain->zprd;
   else {

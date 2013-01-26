@@ -518,7 +518,7 @@ one line per ellipsoid :ulb,l
 line syntax: atom-ID shapex shapey shapez quatw quati quatj quatk :l
   atom-ID = ID of atom which is an ellipsoid
   shapex,shapey,shapez = 3 diameters of ellipsoid (distance units)
-  quatw,quati,quatj,quatk = quaternion components for orientation of atom
+  quatw,quati,quatj,quatk = quaternion components for orientation of atom :pre
 example: :l
   12 1 2 1 1 0 0 0 :pre
 :ule
@@ -604,7 +604,7 @@ one line per line segment :ulb,l
 line syntax: atom-ID x1 y1 x2 y2 :l
   atom-ID = ID of atom which is a line segment
   x1,y1 = 1st end point
-  x2,y2 = 2nd end point
+  x2,y2 = 2nd end point :pre
 example: :l
   12 1.0 0.0 2.0 0.0 :pre
 :ule
@@ -677,7 +677,7 @@ line syntax: atom-ID x1 y1 x2 y2 :l
   atom-ID = ID of atom which is a line segment
   x1,y1,z1 = 1st corner point
   x2,y2,z2 = 2nd corner point
-  x3,y3,z3 = 3rd corner point
+  x3,y3,z3 = 3rd corner point :pre
 example: :l
   12 0.0 0.0 0.0 2.0 0.0 1.0 0.0 2.0 1.0 :pre
 :ule

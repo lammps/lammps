@@ -1,6 +1,6 @@
 <HEAD>
 <TITLE>LAMMPS-ICMS Users Manual</TITLE>
-<META NAME="docnumber" CONTENT="Large-scale Atomic/Molecular Massively Parallel Simulator">
+<META NAME="docnumber" CONTENT="24 Jan 2013 version">
 <META NAME="author" CONTENT="http://lammps.sandia.gov - Sandia National Laboratories">
 <META NAME="copyright" CONTENT="Copyright (2003) Sandia Corporation.  This software and manual is distributed under the GNU General Public License.">
 </HEAD>
@@ -18,6 +18,7 @@
 <H1></H1>
 
 LAMMPS-ICMS Documentation :c,h3
+27 Jan 2013 version :c,h4
 
 Version info: :h4
 
@@ -28,7 +29,8 @@ the WWW site"_bug.  Each dated copy of LAMMPS contains all the
 features and bug-fixes up to and including that version date. The
 version date is printed to the screen and logfile every time you run
 LAMMPS. It is also in the file src/version.h and in the LAMMPS
-directory name created when you unpack a tarball.
+directory name created when you unpack a tarball, and at the top of
+the first page of the manual (this page).
 
 LAMMPS-ICMS is an experimental variant of LAMMPS with additional
 features made available for testing before they will be submitted

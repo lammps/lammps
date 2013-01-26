@@ -1194,6 +1194,7 @@ void PairLubricateUPoly::init_style()
   for (int i = 0; i < nlocal; i++)
     if (radius[i] == 0.0)
       error->one(FLERR,"Pair lubricate/poly requires extended particles");
+
   // Set the isotropic constants depending on the volume fraction
 
   // Find the total volume
@@ -1211,17 +1212,19 @@ void PairLubricateUPoly::init_style()
     if (strcmp(modify->fix[i]->style,"deform") == 0)
       flagdeform = 1;
     else if (strstr(modify->fix[i]->style,"wall") != NULL){
+      if (flagwall) 
+        error->all(FLERR,
+                   "Cannot use multiple fix wall commands with "
+                   "pair lubricateU");
       flagwall = 1; // Walls exist
-      if (((FixWall *) modify->fix[i])->xflag ) {
-        flagwall = 2; // Moving walls exist
-        wallfix = (FixWall *) modify->fix[i];
-      }
+      wallfix = (FixWall *) modify->fix[i];
+      if (wallfix->xflag) flagwall = 2; // Moving walls exist
     }
   }
 
-
   // set the isotropic constants depending on the volume fraction
   // vol_T = total volumeshearing = flagdeform = flagwall = 0;
+
   double vol_T, wallcoord;
     if (!flagwall) vol_T = domain->xprd*domain->yprd*domain->zprd;
   else {

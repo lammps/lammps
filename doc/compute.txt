@@ -211,7 +211,8 @@ available in LAMMPS:
 "temp/ramp"_compute_temp_ramp.html - temperature excluding ramped velocity component
 "temp/region"_compute_temp_region.html - temperature of a region of atoms
 "temp/sphere"_compute_temp_sphere.html - temperature of spherical particles
-"ti"_compute_ti.html - thermodyanmic integration free energy values :ul
+"ti"_compute_ti.html - thermodyanmic integration free energy values
+"voronoi/atom"_compute_voronoi_atom.html - Voronoi volume and neighbors for each atom :ul
 
 There are also additional compute styles submitted by users which are
 included in the LAMMPS distribution.  The list of these with links to

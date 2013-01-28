@@ -1,5 +1,5 @@
-#ifndef COLVARDEF_H
-#define COLVARDEF_H
+#ifndef COLVARCOMP_H
+#define COLVARCOMP_H
 
 #include <fstream>
 #include <cmath>

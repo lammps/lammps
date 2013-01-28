@@ -1877,12 +1877,14 @@ void PairLubricateU::init_style()
   for (int i = 0; i < modify->nfix; i++){
     if (strcmp(modify->fix[i]->style,"deform") == 0)
       flagdeform = 1;
-    else if (strstr(modify->fix[i]->style,"wall") != NULL){
+    else if (strstr(modify->fix[i]->style,"wall") != NULL) {
+      if (flagwall) 
+        error->all(FLERR,
+                   "Cannot use multiple fix wall commands with "
+                   "pair lubricateU");
       flagwall = 1; // Walls exist
-      if (((FixWall *) modify->fix[i])->xflag ) {
-        flagwall = 2; // Moving walls exist
-        wallfix = (FixWall *) modify->fix[i];
-      }
+      wallfix = (FixWall *) modify->fix[i];
+      if (wallfix->xflag) flagwall = 2; // Moving walls exist
     }
   }
 

@@ -24,7 +24,6 @@
 #include "stdlib.h"
 #include "math.h"
 #include "pppm.h"
-#include "math_const.h"
 #include "atom.h"
 #include "comm.h"
 #include "commgrid.h"
@@ -39,8 +38,12 @@
 #include "memory.h"
 #include "error.h"
 
+#include "math_const.h"
+#include "math_special.h"
+
 using namespace LAMMPS_NS;
 using namespace MathConst;
+using namespace MathSpecial;
 
 #define MAXORDER 7
 #define OFFSET 16384
@@ -377,7 +380,7 @@ void PPPM::init()
 
 void PPPM::setup()
 {
-  int i,j,k,l,m,n;
+  int i,j,k,n;
   double *prd;
 
   // volume-dependent factors
@@ -1006,77 +1009,68 @@ double PPPM::compute_df_kspace()
 double PPPM::compute_qopt()
 {
   double qopt = 0.0;
-  int i,j,k,l,m,n;
-  double *prd;
-
-  if (triclinic == 0) prd = domain->prd;
-  else prd = domain->prd_lamda;
-
-  double xprd = prd[0];
-  double yprd = prd[1];
-  double zprd = prd[2];
-  double zprd_slab = zprd*slab_volfactor;
+  double *prd = (triclinic==0) ? domain->prd : domain->prd_lamda;
+  
+  const double xprd = prd[0];
+  const double yprd = prd[1];
+  const double zprd = prd[2];
+  const double zprd_slab = zprd*slab_volfactor;
   volume = xprd * yprd * zprd_slab;
-  double delvolcell = nx_pppm*ny_pppm*nz_pppm/volume;
 
-  double unitkx = (MY_2PI/xprd);
-  double unitky = (MY_2PI/yprd);
-  double unitkz = (MY_2PI/zprd_slab);
+  const double unitkx = (MY_2PI/xprd);
+  const double unitky = (MY_2PI/yprd);
+  const double unitkz = (MY_2PI/zprd_slab);
 
-  int nx,ny,nz,kper,lper,mper;
   double argx,argy,argz,wx,wy,wz,sx,sy,sz,qx,qy,qz;
-  double u2, sqk;
+  double u1, u2, sqk;
   double sum1,sum2,sum3,sum4,dot2;
-  double numerator,denominator;
 
-  int nbx = 2;
-  int nby = 2;
-  int nbz = 2;
-  double form = 1.0;
+  int k,l,m,nx,ny,nz;
+  const int twoorder = 2*order;
 
-  n = 0;
   for (m = nzlo_fft; m <= nzhi_fft; m++) {
-    mper = m - nz_pppm*(2*m/nz_pppm);
+    const int mper = m - nz_pppm*(2*m/nz_pppm);
 
     for (l = nylo_fft; l <= nyhi_fft; l++) {
-      lper = l - ny_pppm*(2*l/ny_pppm);
+      const int lper = l - ny_pppm*(2*l/ny_pppm);
 
       for (k = nxlo_fft; k <= nxhi_fft; k++) {
-        kper = k - nx_pppm*(2*k/nx_pppm);
+        const int kper = k - nx_pppm*(2*k/nx_pppm);
 
-        sqk = pow(unitkx*kper,2.0) + pow(unitky*lper,2.0) +
-          pow(unitkz*mper,2.0);
+        sqk = square(unitkx*kper) + square(unitky*lper) + square(unitkz*mper);
 
         if (sqk != 0.0) {
-          numerator = form*12.5663706;
 
           sum1 = 0.0;
           sum2 = 0.0;
           sum3 = 0.0;
           sum4 = 0.0;
-          for (nx = -nbx; nx <= nbx; nx++) {
+          for (nx = -2; nx <= 2; nx++) {
             qx = unitkx*(kper+nx_pppm*nx);
-            sx = exp(-0.25*pow(qx/g_ewald,2.0));
-            wx = 1.0;
+            sx = exp(-0.25*square(qx/g_ewald));
             argx = 0.5*qx*xprd/nx_pppm;
-            if (argx != 0.0) wx = pow(sin(argx)/argx,order);
-            for (ny = -nby; ny <= nby; ny++) {
-              qy = unitky*(lper+ny_pppm*ny);
-              sy = exp(-0.25*pow(qy/g_ewald,2.0));
-              wy = 1.0;
-              argy = 0.5*qy*yprd/ny_pppm;
-              if (argy != 0.0) wy = pow(sin(argy)/argy,order);
-              for (nz = -nbz; nz <= nbz; nz++) {
-                qz = unitkz*(mper+nz_pppm*nz);
-                sz = exp(-0.25*pow(qz/g_ewald,2.0));
-                wz = 1.0;
-                argz = 0.5*qz*zprd_slab/nz_pppm;
-                if (argz != 0.0) wz = pow(sin(argz)/argz,order);
+            wx = powsinxx(argx,twoorder);
+            qx *= qx;
 
-                dot2 = qx*qx+qy*qy+qz*qz;
-                u2 =  pow(wx*wy*wz,2.0);
-                sum1 += sx*sy*sz*sx*sy*sz/dot2*4.0*4.0*MY_PI*MY_PI;
-                sum2 += sx*sy*sz * u2*4.0*MY_PI;
+            for (ny = -2; ny <= 2; ny++) {
+              qy = unitky*(lper+ny_pppm*ny);
+              sy = exp(-0.25*square(qy/g_ewald));
+              argy = 0.5*qy*yprd/ny_pppm;
+              wy = powsinxx(argy,twoorder);
+              qy *= qy;
+
+              for (nz = -2; nz <= 2; nz++) {
+                qz = unitkz*(mper+nz_pppm*nz);
+                sz = exp(-0.25*square(qz/g_ewald));
+                argz = 0.5*qz*zprd_slab/nz_pppm;
+                wz = powsinxx(argz,twoorder);
+                qz *= qz;
+
+                dot2 = qx+qy+qz;
+                u1   = sx*sy*sz;
+                u2   = wx*wy*wz;
+                sum1 += u1*u1/dot2*MY_4PI*MY_4PI;
+                sum2 += u1 * u2 * MY_4PI;
                 sum3 += u2;
                 sum4 += dot2*u2;
               }
@@ -1137,7 +1131,6 @@ double PPPM::newton_raphson_f()
   double xprd = domain->xprd;
   double yprd = domain->yprd;
   double zprd = domain->zprd;
-  double zprd_slab = zprd*slab_volfactor;
   bigint natoms = atom->natoms;
 
   double df_rspace = 2.0*q2*exp(-g_ewald*g_ewald*cutoff*cutoff) /
@@ -1376,82 +1369,73 @@ void PPPM::compute_gf_denom()
 
 void PPPM::compute_gf_ik()
 {
-  int nx,ny,nz,kper,lper,mper;
-  double snx,sny,snz,snx2,sny2,snz2;
+  const double * const prd = (triclinic==0) ? domain->prd : domain->prd_lamda;
+
+  const double xprd = prd[0];
+  const double yprd = prd[1];
+  const double zprd = prd[2];
+  const double zprd_slab = zprd*slab_volfactor;
+  const double unitkx = (MY_2PI/xprd);
+  const double unitky = (MY_2PI/yprd);
+  const double unitkz = (MY_2PI/zprd_slab);
+
+  double snx,sny,snz;
   double argx,argy,argz,wx,wy,wz,sx,sy,sz,qx,qy,qz;
   double sum1,dot1,dot2;
   double numerator,denominator;
   double sqk;
 
-  int k,l,m,n;
-  double *prd;
+  int k,l,m,n,nx,ny,nz,kper,lper,mper;
 
-  if (triclinic == 0) prd = domain->prd;
-  else prd = domain->prd_lamda;
-
-  double xprd = prd[0];
-  double yprd = prd[1];
-  double zprd = prd[2];
-  double zprd_slab = zprd*slab_volfactor;
-  double unitkx = (MY_2PI/xprd);
-  double unitky = (MY_2PI/yprd);
-  double unitkz = (MY_2PI/zprd_slab);
-
-  int nbx = static_cast<int> ((g_ewald*xprd/(MY_PI*nx_pppm)) *
-                              pow(-log(EPS_HOC),0.25));
-  int nby = static_cast<int> ((g_ewald*yprd/(MY_PI*ny_pppm)) *
-                              pow(-log(EPS_HOC),0.25));
-  int nbz = static_cast<int> ((g_ewald*zprd_slab/(MY_PI*nz_pppm)) *
-                              pow(-log(EPS_HOC),0.25));
-
-  double form = 1.0;
+  const int nbx = static_cast<int> ((g_ewald*xprd/(MY_PI*nx_pppm)) *
+                                    pow(-log(EPS_HOC),0.25));
+  const int nby = static_cast<int> ((g_ewald*yprd/(MY_PI*ny_pppm)) *
+                                    pow(-log(EPS_HOC),0.25));
+  const int nbz = static_cast<int> ((g_ewald*zprd_slab/(MY_PI*nz_pppm)) *
+                                    pow(-log(EPS_HOC),0.25));
+  const int twoorder = 2*order;
 
   n = 0;
   for (m = nzlo_fft; m <= nzhi_fft; m++) {
     mper = m - nz_pppm*(2*m/nz_pppm);
-    snz = sin(0.5*unitkz*mper*zprd_slab/nz_pppm);
-    snz2 = snz*snz;
+    snz = square(sin(0.5*unitkz*mper*zprd_slab/nz_pppm));
 
     for (l = nylo_fft; l <= nyhi_fft; l++) {
       lper = l - ny_pppm*(2*l/ny_pppm);
-      sny = sin(0.5*unitky*lper*yprd/ny_pppm);
-      sny2 = sny*sny;
+      sny = square(sin(0.5*unitky*lper*yprd/ny_pppm));
 
       for (k = nxlo_fft; k <= nxhi_fft; k++) {
         kper = k - nx_pppm*(2*k/nx_pppm);
-        snx = sin(0.5*unitkx*kper*xprd/nx_pppm);
-        snx2 = snx*snx;
+        snx = square(sin(0.5*unitkx*kper*xprd/nx_pppm));
 
-        sqk = pow(unitkx*kper,2.0) + pow(unitky*lper,2.0) +
-          pow(unitkz*mper,2.0);
+        sqk = square(unitkx*kper) + square(unitky*lper) + square(unitkz*mper);
 
         if (sqk != 0.0) {
-          numerator = form*12.5663706/sqk;
-          denominator = gf_denom(snx2,sny2,snz2);
+          numerator = 12.5663706/sqk;
+          denominator = gf_denom(snx,sny,snz);
           sum1 = 0.0;
-          const double dorder = static_cast<double>(order);
+
           for (nx = -nbx; nx <= nbx; nx++) {
             qx = unitkx*(kper+nx_pppm*nx);
-            sx = exp(-0.25*pow(qx/g_ewald,2.0));
-            wx = 1.0;
+            sx = exp(-0.25*square(qx/g_ewald));
             argx = 0.5*qx*xprd/nx_pppm;
-            if (argx != 0.0) wx = pow(sin(argx)/argx,dorder);
+            wx = powsinxx(argx,twoorder);
+
             for (ny = -nby; ny <= nby; ny++) {
               qy = unitky*(lper+ny_pppm*ny);
-              sy = exp(-0.25*pow(qy/g_ewald,2.0));
-              wy = 1.0;
+              sy = exp(-0.25*square(qy/g_ewald));
               argy = 0.5*qy*yprd/ny_pppm;
-              if (argy != 0.0) wy = pow(sin(argy)/argy,dorder);
+              wy = powsinxx(argy,twoorder);
+
               for (nz = -nbz; nz <= nbz; nz++) {
                 qz = unitkz*(mper+nz_pppm*nz);
-                sz = exp(-0.25*pow(qz/g_ewald,2.0));
-                wz = 1.0;
+                sz = exp(-0.25*square(qz/g_ewald));
                 argz = 0.5*qz*zprd_slab/nz_pppm;
-                if (argz != 0.0) wz = pow(sin(argz)/argz,dorder);
+                wz = powsinxx(argz,twoorder);
 
                 dot1 = unitkx*kper*qx + unitky*lper*qy + unitkz*mper*qz;
                 dot2 = qx*qx+qy*qy+qz*qz;
-                sum1 += (dot1/dot2) * sx*sy*sz * pow(wx*wy*wz,2.0);
+                sum1 += (dot1/dot2) * sx*sy*sz * wx*wy*wz;
               }
             }
           }
@@ -1468,69 +1452,56 @@ void PPPM::compute_gf_ik()
 
 void PPPM::compute_gf_ad()
 {
-  int i,j,k,l,m,n;
-  double *prd;
 
-  if (triclinic == 0) prd = domain->prd;
-  else prd = domain->prd_lamda;
+  const double * const prd = (triclinic==0) ? domain->prd : domain->prd_lamda;
 
-  double xprd = prd[0];
-  double yprd = prd[1];
-  double zprd = prd[2];
-  double zprd_slab = zprd*slab_volfactor;
-  volume = xprd * yprd * zprd_slab;
+  const double xprd = prd[0];
+  const double yprd = prd[1];
+  const double zprd = prd[2];
+  const double zprd_slab = zprd*slab_volfactor;
+  const double unitkx = (MY_2PI/xprd);
+  const double unitky = (MY_2PI/yprd);
+  const double unitkz = (MY_2PI/zprd_slab);
 
-  double unitkx = (MY_2PI/xprd);
-  double unitky = (MY_2PI/yprd);
-  double unitkz = (MY_2PI/zprd_slab);
-
-  int nx,ny,nz,kper,lper,mper;
-  double snx,sny,snz,snx2,sny2,snz2;
-  double sqk, u2;
+  double snx,sny,snz,sqk;
   double argx,argy,argz,wx,wy,wz,sx,sy,sz,qx,qy,qz;
   double numerator,denominator;
+  int k,l,m,n,kper,lper,mper;
 
-  for (i = 0; i <= 5; i++) sf_coeff[i] = 0.0;
+  const int twoorder = 2*order;
+
+  for (int i = 0; i < 6; i++) sf_coeff[i] = 0.0;
 
   n = 0;
   for (m = nzlo_fft; m <= nzhi_fft; m++) {
     mper = m - nz_pppm*(2*m/nz_pppm);
     qz = unitkz*mper;
-    snz = sin(0.5*qz*zprd_slab/nz_pppm);
-    snz2 = snz*snz;
-    sz = exp(-0.25*pow(qz/g_ewald,2.0));
-    wz = 1.0;
+    snz = square(sin(0.5*qz*zprd_slab/nz_pppm));
+    sz = exp(-0.25*square(qz/g_ewald));
     argz = 0.5*qz*zprd_slab/nz_pppm;
-    if (argz != 0.0) wz = pow(sin(argz)/argz,order);
-    wz *= wz;
+    wz = powsinxx(argz,twoorder);
 
     for (l = nylo_fft; l <= nyhi_fft; l++) {
       lper = l - ny_pppm*(2*l/ny_pppm);
       qy = unitky*lper;
-      sny = sin(0.5*qy*yprd/ny_pppm);
-      sny2 = sny*sny;
-      sy = exp(-0.25*pow(qy/g_ewald,2.0));
-      wy = 1.0;
+      sny = square(sin(0.5*qy*yprd/ny_pppm));
+      sy = exp(-0.25*square(qy/g_ewald));
       argy = 0.5*qy*yprd/ny_pppm;
-      if (argy != 0.0) wy = pow(sin(argy)/argy,order);
-      wy *= wy;
+      wy = powsinxx(argy,twoorder);
 
       for (k = nxlo_fft; k <= nxhi_fft; k++) {
         kper = k - nx_pppm*(2*k/nx_pppm);
         qx = unitkx*kper;
-        snx = sin(0.5*qx*xprd/nx_pppm);
-        snx2 = snx*snx;
-        sx = exp(-0.25*pow(qx/g_ewald,2.0));
-        wx = 1.0;
+        snx = square(sin(0.5*qx*xprd/nx_pppm));
+        sx = exp(-0.25*square(qx/g_ewald));
         argx = 0.5*qx*xprd/nx_pppm;
-        if (argx != 0.0) wx = pow(sin(argx)/argx,order);
-        wx *= wx;
+        wx = powsinxx(argx,twoorder);
 
-        sqk = pow(qx,2.0) + pow(qy,2.0) + pow(qz,2.0);
+        sqk = qx*qx + qy*qy + qz*qz;
 
         if (sqk != 0.0) {
-          numerator = 4.0*MY_PI/sqk;
-          denominator = gf_denom(snx2,sny2,snz2);
+          numerator = MY_4PI/sqk;
+          denominator = gf_denom(snx,sny,snz);
           greensfn[n] = numerator*sx*sy*sz*wx*wy*wz/denominator;
           sf_coeff[0] += sf_precoeff1[n]*greensfn[n];
           sf_coeff[1] += sf_precoeff2[n]*greensfn[n];
@@ -1580,15 +1551,13 @@ void PPPM::compute_gf_ad()
 
 void PPPM::compute_sf_precoeff()
 {
-  int i,k,l,m,n,nb;
+  int i,k,l,m,n;
   int nx,ny,nz,kper,lper,mper;
-  double argx,argy,argz;
   double wx0[5],wy0[5],wz0[5],wx1[5],wy1[5],wz1[5],wx2[5],wy2[5],wz2[5];
   double qx0,qy0,qz0,qx1,qy1,qz1,qx2,qy2,qz2;
   double u0,u1,u2,u3,u4,u5,u6;
   double sum1,sum2,sum3,sum4,sum5,sum6;
 
-  nb = 2;
   n = 0;
   for (m = nzlo_fft; m <= nzhi_fft; m++) {
     mper = m - nz_pppm*(2*m/nz_pppm);
@@ -1600,51 +1569,34 @@ void PPPM::compute_sf_precoeff()
         kper = k - nx_pppm*(2*k/nx_pppm);
 
         sum1 = sum2 = sum3 = sum4 = sum5 = sum6 = 0.0;
-        for (i = -nb; i <= nb; i++) {
+        for (i = 0; i < 6; i++) {
 
-          qx0 = MY_2PI*(kper+nx_pppm*i);
-          qx1 = MY_2PI*(kper+nx_pppm*(i+1));
-          qx2 = MY_2PI*(kper+nx_pppm*(i+2));
-          wx0[i+2] = 1.0;
-          wx1[i+2] = 1.0;
-          wx2[i+2] = 1.0;
-          argx = 0.5*qx0/nx_pppm;
-          if (argx != 0.0) wx0[i+2] = pow(sin(argx)/argx,order);
-          argx = 0.5*qx1/nx_pppm;
-          if (argx != 0.0) wx1[i+2] = pow(sin(argx)/argx,order);
-          argx = 0.5*qx2/nx_pppm;
-          if (argx != 0.0) wx2[i+2] = pow(sin(argx)/argx,order);
+          qx0 = MY_2PI*(kper+nx_pppm*(i-2));
+          qx1 = MY_2PI*(kper+nx_pppm*(i-1));
+          qx2 = MY_2PI*(kper+nx_pppm*(i  ));
+          wx0[i] = powsinxx(0.5*qx0/nx_pppm,order);
+          wx1[i] = powsinxx(0.5*qx1/nx_pppm,order);
+          wx2[i] = powsinxx(0.5*qx2/nx_pppm,order);
 
-          qy0 = MY_2PI*(lper+ny_pppm*i);
-          qy1 = MY_2PI*(lper+ny_pppm*(i+1));
-          qy2 = MY_2PI*(lper+ny_pppm*(i+2));
-          wy0[i+2] = 1.0;
-          wy1[i+2] = 1.0;
-          wy2[i+2] = 1.0;
-          argy = 0.5*qy0/ny_pppm;
-          if (argy != 0.0) wy0[i+2] = pow(sin(argy)/argy,order);
-          argy = 0.5*qy1/ny_pppm;
-          if (argy != 0.0) wy1[i+2] = pow(sin(argy)/argy,order);
-          argy = 0.5*qy2/ny_pppm;
-          if (argy != 0.0) wy2[i+2] = pow(sin(argy)/argy,order);
+          qy0 = MY_2PI*(lper+ny_pppm*(i-2));
+          qy1 = MY_2PI*(lper+ny_pppm*(i-1));
+          qy2 = MY_2PI*(lper+ny_pppm*(i  ));
+          wy0[i] = powsinxx(0.5*qy0/ny_pppm,order);
+          wy1[i] = powsinxx(0.5*qy1/ny_pppm,order);
+          wy2[i] = powsinxx(0.5*qy2/ny_pppm,order);
 
-          qz0 = MY_2PI*(mper+nz_pppm*i);
-          qz1 = MY_2PI*(mper+nz_pppm*(i+1));
-          qz2 = MY_2PI*(mper+nz_pppm*(i+2));
-          wz0[i+2] = 1.0;
-          wz1[i+2] = 1.0;
-          wz2[i+2] = 1.0;
-          argz = 0.5*qz0/nz_pppm;
-          if (argz != 0.0) wz0[i+2] = pow(sin(argz)/argz,order);
-          argz = 0.5*qz1/nz_pppm;
-          if (argz != 0.0) wz1[i+2] = pow(sin(argz)/argz,order);
-          argz = 0.5*qz2/nz_pppm;
-          if (argz != 0.0) wz2[i+2] = pow(sin(argz)/argz,order);
+          qz0 = MY_2PI*(mper+nz_pppm*(i-2));
+          qz1 = MY_2PI*(mper+nz_pppm*(i-1));
+          qz2 = MY_2PI*(mper+nz_pppm*(i  ));
+
+          wz0[i] = powsinxx(0.5*qz0/nz_pppm,order);
+          wz1[i] = powsinxx(0.5*qz1/nz_pppm,order);
+          wz2[i] = powsinxx(0.5*qz2/nz_pppm,order);
         }
 
-        for (nx = 0; nx <= 4; nx++) {
-          for (ny = 0; ny <= 4; ny++) {
-            for (nz = 0; nz <= 4; nz++) {
+        for (nx = 0; nx < 5; nx++) {
+          for (ny = 0; ny < 5; ny++) {
+            for (nz = 0; nz < 5; nz++) {
               u0 = wx0[nx]*wy0[ny]*wz0[nz];
               u1 = wx1[nx]*wy0[ny]*wz0[nz];
               u2 = wx2[nx]*wy0[ny]*wz0[nz];
@@ -2208,7 +2160,7 @@ void PPPM::fieldforce_ik()
 void PPPM::fieldforce_ad()
 {
   int i,l,m,n,nx,ny,nz,mx,my,mz;
-  FFT_SCALAR dx,dy,dz,x0,y0,z0,dx0,dy0,dz0;
+  FFT_SCALAR dx,dy,dz;
   FFT_SCALAR ekx,eky,ekz;
   double s1,s2,s3;
   double sf = 0.0;
@@ -2220,7 +2172,6 @@ void PPPM::fieldforce_ad()
   double xprd = prd[0];
   double yprd = prd[1];
   double zprd = prd[2];
-  double zprd_slab = zprd*slab_volfactor;
 
   double hx_inv = nx_pppm/xprd;
   double hy_inv = ny_pppm/yprd;
@@ -2797,8 +2748,6 @@ void PPPM::compute_group_group(int groupbit_A, int groupbit_B, int BA_flag)
     error->all(FLERR,"Cannot (yet) use K-space slab "
                "correction with compute group/group");
 
-  int i,j;
-
   if (!group_allocate_flag) {
     allocate_groups();
     group_allocate_flag = 1;
@@ -2808,11 +2757,6 @@ void PPPM::compute_group_group(int groupbit_A, int groupbit_B, int BA_flag)
   f2group[0] = 0; //force in x-direction
   f2group[1] = 0; //force in y-direction
   f2group[2] = 0; //force in z-direction
-
-  double *q = atom->q;
-  int nlocal = atom->nlocal;
-  int *mask = atom->mask;
-
 
   // map my particle charge onto my local 3d density grid
 
@@ -2869,7 +2813,7 @@ void PPPM::compute_group_group(int groupbit_A, int groupbit_B, int BA_flag)
   double f2group_all[3];
   MPI_Allreduce(f2group,f2group_all,3,MPI_DOUBLE,MPI_SUM,world);
 
-  for (i = 0; i < 3; i++) f2group[i] = qscale*volume*f2group_all[i];
+  for (int i = 0; i < 3; i++) f2group[i] = qscale*volume*f2group_all[i];
 }
 
 /* ----------------------------------------------------------------------
@@ -2977,7 +2921,6 @@ void PPPM::make_rho_groups(int groupbit_A, int groupbit_B, int BA_flag)
 void PPPM::poisson_groups(int BA_flag)
 {
   int i,j,k,n;
-  double eng;
 
   // reuse memory (already declared)
 

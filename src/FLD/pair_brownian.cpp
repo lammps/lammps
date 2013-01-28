@@ -501,17 +501,19 @@ void PairBrownian::init_style()
   for (int i = 0; i < modify->nfix; i++){
     if (strcmp(modify->fix[i]->style,"deform") == 0)
       flagdeform = 1;
-    else if (strstr(modify->fix[i]->style,"wall") != NULL){
+    else if (strstr(modify->fix[i]->style,"wall") != NULL) {
+      if (flagwall) 
+        error->all(FLERR,
+                   "Cannot use multiple fix wall commands with pair brownian");
       flagwall = 1; // Walls exist
-      if (((FixWall *) modify->fix[i])->xflag ) {
-        flagwall = 2; // Moving walls exist
-        wallfix = (FixWall *) modify->fix[i];
-      }
+      wallfix = (FixWall *) modify->fix[i];
+      if (wallfix->xflag) flagwall = 2; // Moving walls exist
     }
   }
 
   // set the isotropic constants depending on the volume fraction
   // vol_T = total volumeshearing = flagdeform = flagwall = 0;
+
   double vol_T, wallcoord;
   if (!flagwall) vol_T = domain->xprd*domain->yprd*domain->zprd;
   else {

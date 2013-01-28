@@ -1,4 +1,4 @@
-Reactive MD-force field: water/zinc: Raymand, D.; van Duin A.C.T.; Baudin M.; Hermannson K. Surface Science 2008, 602, 1020-1031.
+Reactive MD-force field: water/zinc: Raymand, D.; van Duin, A. C. T.; Spangberg, D.; Goddard, W. A.; Hermansson, K. Surface Science 2010, 604, 9-10, 741-752.
  39       ! Number of general parameters                                        
    50.0000 !Overcoordination parameter                                          
     9.5469 !Overcoordination parameter                                          

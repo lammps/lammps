@@ -27,8 +27,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AtomVecAngle::AtomVecAngle(LAMMPS *lmp, int narg, char **arg) :
-  AtomVec(lmp, narg, arg)
+AtomVecAngle::AtomVecAngle(LAMMPS *lmp) : AtomVec(lmp)
 {
   molecular = 1;
   bonds_allow = angles_allow = 1;

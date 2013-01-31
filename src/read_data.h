@@ -49,6 +49,8 @@ class ReadData : protected Pointers {
   class AtomVecLine *avec_line;
   bigint ntris;
   class AtomVecTri *avec_tri;
+  bigint nbodies;
+  class AtomVecBody *avec_body;
 
   void open(char *);
   void scan(int &, int &, int &, int &);
@@ -61,6 +63,7 @@ class ReadData : protected Pointers {
   void atoms();
   void velocities();
   void bonus(bigint, class AtomVec *, const char *);
+  void bodies();
 
   void bonds();
   void angles();

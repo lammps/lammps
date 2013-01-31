@@ -27,8 +27,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AtomVecFull::AtomVecFull(LAMMPS *lmp, int narg, char **arg) :
-  AtomVec(lmp, narg, arg)
+AtomVecFull::AtomVecFull(LAMMPS *lmp) : AtomVec(lmp)
 {
   molecular = 1;
   bonds_allow = angles_allow = dihedrals_allow = impropers_allow = 1;

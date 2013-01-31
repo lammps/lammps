@@ -31,7 +31,7 @@ namespace LAMMPS_NS {
 
 class AtomVecWavepacket : public AtomVec {
 public:
-  AtomVecWavepacket(class LAMMPS *, int, char **);
+  AtomVecWavepacket(class LAMMPS *);
   ~AtomVecWavepacket() {}
   void grow(int);
   void grow_reset();

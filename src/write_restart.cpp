@@ -326,6 +326,7 @@ void WriteRestart::header()
   // atom_style must be written before atom class values
   // so read_restart can create class before reading class values
   // if style = hybrid, also write sub-class styles
+  // avec->write_restart() writes atom_style specific info
 
   write_char(ATOM_STYLE,atom->atom_style);
 
@@ -340,6 +341,8 @@ void WriteRestart::header()
       fwrite(keywords[i],sizeof(char),n,fp);
     }
   }
+
+  if (me == 0) atom->avec->write_restart_settings(fp);
 
   write_bigint(NATOMS,natoms);
   write_int(NTYPES,atom->ntypes);

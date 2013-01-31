@@ -27,8 +27,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AtomVecBond::AtomVecBond(LAMMPS *lmp, int narg, char **arg) :
-  AtomVec(lmp, narg, arg)
+AtomVecBond::AtomVecBond(LAMMPS *lmp) : AtomVec(lmp)
 {
   molecular = 1;
   bonds_allow = 1;

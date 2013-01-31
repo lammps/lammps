@@ -798,10 +798,13 @@ void Comm::exchange()
 
   // clear global->local map for owned and ghost atoms
   // b/c atoms migrate to new procs in exchange() and
-  // new ghosts are created in borders()
+  //   new ghosts are created in borders()
   // map_set() is done at end of borders()
+  // clear ghost count and any ghost bonus data internal to AtomVec
 
   if (map_style) atom->map_clear();
+  atom->nghost = 0;
+  atom->avec->clear_bonus();
 
   // subbox bounds for orthogonal or triclinic
 
@@ -835,6 +838,7 @@ void Comm::exchange()
       } else i++;
     }
     atom->nlocal = nlocal;
+
 
     // send/recv atoms in both directions
     // if 1 proc in dimension, no send/recv, set recv buf to send buf
@@ -906,11 +910,6 @@ void Comm::borders()
   MPI_Request request;
   MPI_Status status;
   AtomVec *avec = atom->avec;
-
-  // clear old ghosts and any ghost bonus data internal to AtomVec
-
-  atom->nghost = 0;
-  atom->avec->clear_bonus();
 
   // do swaps over all 3 dimensions
 

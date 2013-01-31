@@ -32,7 +32,7 @@ class AtomVecLine : public AtomVec {
   };
   struct Bonus *bonus;
 
-  AtomVecLine(class LAMMPS *, int, char **);
+  AtomVecLine(class LAMMPS *);
   ~AtomVecLine();
   void init();
   void grow(int);

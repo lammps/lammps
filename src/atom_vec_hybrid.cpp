@@ -27,29 +27,61 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AtomVecHybrid::AtomVecHybrid(LAMMPS *lmp, int narg, char **arg) :
-  AtomVec(lmp, narg, arg)
+AtomVecHybrid::AtomVecHybrid(LAMMPS *lmp) : AtomVec(lmp) {}
+
+/* ---------------------------------------------------------------------- */
+
+AtomVecHybrid::~AtomVecHybrid()
 {
-  int i,k,dummy;
+  for (int k = 0; k < nstyles; k++) delete styles[k];
+  delete [] styles;
+  for (int k = 0; k < nstyles; k++) delete [] keywords[k];
+  delete [] keywords;
+}
 
-  if (narg < 1) error->all(FLERR,"Illegal atom_style command");
+/* ----------------------------------------------------------------------
+   process sub-style args
+------------------------------------------------------------------------- */
 
-  // create sub-styles
+void AtomVecHybrid::settings(int narg, char **arg)
+{
+  // build list of all known atom styles
 
-  nstyles = narg;
-  styles = new AtomVec*[nstyles];
-  keywords = new char*[nstyles];
+  build_styles();
 
-  for (i = 0; i < narg; i++) {
-    for (k = 0; k < i; k++)
-      if (strcmp(arg[i],keywords[k]) == 0)
-        error->all(FLERR,"Atom style hybrid cannot use same atom style twice");
-    if (strcmp(arg[i],"hybrid") == 0)
+  // allocate list of sub-styles as big as possibly needed if no extra args
+
+  styles = new AtomVec*[narg];
+  keywords = new char*[narg];
+
+  // allocate each sub-style
+  // call settings() with set of args that are not atom style names
+  // use known_style() to determine which args these are
+
+  int i,jarg,dummy;
+
+  int iarg = 0;
+  nstyles = 0;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"hybrid") == 0)
       error->all(FLERR,"Atom style hybrid cannot have hybrid as an argument");
-    styles[i] = atom->new_avec(arg[i],0,NULL,NULL,dummy);
-    keywords[i] = new char[strlen(arg[i])+1];
-    strcpy(keywords[i],arg[i]);
+    for (i = 0; i < nstyles; i++)
+      if (strcmp(arg[iarg],keywords[i]) == 0)
+        error->all(FLERR,"Atom style hybrid cannot use same atom style twice");
+    styles[nstyles] = atom->new_avec(arg[iarg],NULL,dummy);
+    keywords[nstyles] = new char[strlen(arg[iarg])+1];
+    strcpy(keywords[nstyles],arg[iarg]);
+    jarg = iarg + 1;
+    while (jarg < narg && !known_style(arg[jarg])) jarg++;
+    styles[nstyles]->settings(jarg-iarg-1,&arg[iarg+1]);
+    iarg = jarg;
+    nstyles++;
   }
+
+  // free allstyles created by build_styles()
+
+  for (int i = 0; i < nallstyles; i++) delete [] allstyles[i];
+  delete [] allstyles;
 
   // hybrid settings are MAX or MIN of sub-style settings
   // hybrid sizes are minimial values plus extra values for each sub-style
@@ -64,7 +96,7 @@ AtomVecHybrid::AtomVecHybrid(LAMMPS *lmp, int narg, char **arg) :
   size_data_vel = 4;
   xcol_data = 3;
 
-  for (k = 0; k < nstyles; k++) {
+  for (int k = 0; k < nstyles; k++) {
     molecular = MAX(molecular,styles[k]->molecular);
     bonds_allow = MAX(bonds_allow,styles[k]->bonds_allow);
     angles_allow = MAX(angles_allow,styles[k]->angles_allow);
@@ -85,16 +117,6 @@ AtomVecHybrid::AtomVecHybrid(LAMMPS *lmp, int narg, char **arg) :
   size_velocity = 3;
   if (atom->omega_flag) size_velocity += 3;
   if (atom->angmom_flag) size_velocity += 3;
-}
-
-/* ---------------------------------------------------------------------- */
-
-AtomVecHybrid::~AtomVecHybrid()
-{
-  for (int k = 0; k < nstyles; k++) delete styles[k];
-  delete [] styles;
-  for (int k = 0; k < nstyles; k++) delete [] keywords[k];
-  delete [] keywords;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -780,6 +802,22 @@ int AtomVecHybrid::unpack_restart(double *buf)
   return m;
 }
 
+/* ---------------------------------------------------------------------- */
+
+void AtomVecHybrid::write_restart_settings(FILE *fp)
+{
+  for (int k = 0; k < nstyles; k++)
+    styles[k]->write_restart_settings(fp);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AtomVecHybrid::read_restart_settings(FILE *fp)
+{
+  for (int k = 0; k < nstyles; k++)
+    styles[k]->read_restart_settings(fp);
+}
+
 /* ----------------------------------------------------------------------
    create one atom of itype at coord
    create each sub-style one after the other
@@ -861,6 +899,45 @@ void AtomVecHybrid::data_vel(int m, char **values)
   int n = 3;
   for (int k = 0; k < nstyles; k++)
     n += styles[k]->data_vel_hybrid(m,&values[n]);
+}
+
+/* ----------------------------------------------------------------------
+   allstyles = list of all atom styles in this LAMMPS executable
+------------------------------------------------------------------------- */
+
+void AtomVecHybrid::build_styles()
+{
+  nallstyles = 0;
+#define ATOM_CLASS
+#define AtomStyle(key,Class) nallstyles++;
+#include "style_atom.h"
+#undef AtomStyle
+#undef ATOM_CLASS
+
+  allstyles = new char*[nallstyles];
+
+  int n;
+  nallstyles = 0;
+#define ATOM_CLASS
+#define AtomStyle(key,Class)                \
+  n = strlen(#key) + 1;                     \
+  allstyles[nallstyles] = new char[n];      \
+  strcpy(allstyles[nallstyles],#key);       \
+  nallstyles++;
+#include "style_atom.h"
+#undef AtomStyle
+#undef ATOM_CLASS
+}
+
+/* ----------------------------------------------------------------------
+   allstyles = list of all known atom styles
+------------------------------------------------------------------------- */
+
+int AtomVecHybrid::known_style(char *str)
+{
+  for (int i = 0; i < nallstyles; i++)
+    if (strcmp(str,allstyles[i]) == 0) return 1;
+  return 0;
 }
 
 /* ----------------------------------------------------------------------

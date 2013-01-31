@@ -34,8 +34,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AtomVecWavepacket::AtomVecWavepacket(LAMMPS *lmp, int narg, char **arg) :
-  AtomVec(lmp, narg, arg)
+AtomVecWavepacket::AtomVecWavepacket(LAMMPS *lmp) : AtomVec(lmp)
 {
   comm_x_only = comm_f_only = 0;
 
@@ -56,8 +55,6 @@ AtomVecWavepacket::AtomVecWavepacket(LAMMPS *lmp, int narg, char **arg) :
     atom->ervel_flag = atom->erforce_flag = 1;
 
   atom->cs_flag = atom->csforce_flag = atom->vforce_flag = atom->ervelforce_flag = atom->etag_flag = 1;
-
-
 }
 
 /* ----------------------------------------------------------------------

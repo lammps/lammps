@@ -26,7 +26,7 @@ namespace LAMMPS_NS {
 
 class AtomVecAngle : public AtomVec {
  public:
-  AtomVecAngle(class LAMMPS *, int, char **);
+  AtomVecAngle(class LAMMPS *);
   virtual ~AtomVecAngle() {}
   void grow(int);
   void grow_reset();

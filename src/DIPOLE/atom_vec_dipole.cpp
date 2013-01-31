@@ -28,8 +28,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AtomVecDipole::AtomVecDipole(LAMMPS *lmp, int narg, char **arg) :
-  AtomVec(lmp, narg, arg)
+AtomVecDipole::AtomVecDipole(LAMMPS *lmp) : AtomVec(lmp)
 {
   molecular = 0;
   mass_type = 1;

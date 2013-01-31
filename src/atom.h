@@ -53,7 +53,7 @@ class Atom : protected Pointers {
   double **omega,**angmom,**torque;
   double *radius,*rmass,*vfrac,*s0;
   double **x0;
-  int *ellipsoid,*line,*tri;
+  int *ellipsoid,*line,*tri,*body;
   int *spin;
   double *eradius,*ervel,*erforce,*ervelforce;
   double *cs,*csforce,*vforce;
@@ -89,7 +89,8 @@ class Atom : protected Pointers {
   // atom style and per-atom array existence flags
   // customize by adding new flag
 
-  int sphere_flag,ellipsoid_flag,line_flag,tri_flag,peri_flag,electron_flag;
+  int sphere_flag,ellipsoid_flag,line_flag,tri_flag,body_flag;
+  int peri_flag,electron_flag;
   int ecp_flag;
   int wavepacket_flag,sph_flag;
 
@@ -135,7 +136,7 @@ class Atom : protected Pointers {
 
   void settings(class Atom *);
   void create_avec(const char *, int, char **, char *suffix = NULL);
-  class AtomVec *new_avec(const char *, int, char **, char *, int &);
+  class AtomVec *new_avec(const char *, char *, int &);
   void init();
   void setup();
 
@@ -150,6 +151,7 @@ class Atom : protected Pointers {
   void data_atoms(int, char *);
   void data_vels(int, char *);
   void data_bonus(int, char *, class AtomVec *);
+  void data_bodies(int, char *, class AtomVecBody *);
 
   void data_bonds(int, char *);
   void data_angles(int, char *);

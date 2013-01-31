@@ -33,8 +33,7 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-AtomVecSphere::AtomVecSphere(LAMMPS *lmp, int narg, char **arg) :
-  AtomVec(lmp, narg, arg)
+AtomVecSphere::AtomVecSphere(LAMMPS *lmp) : AtomVec(lmp)
 {
   molecular = 0;
 

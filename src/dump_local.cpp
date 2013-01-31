@@ -194,6 +194,17 @@ void DumpLocal::write_header(bigint ndump)
     fprintf(fp,BIGINT_FORMAT "\n",update->ntimestep);
     fprintf(fp,"ITEM: NUMBER OF %s\n",label);
     fprintf(fp,BIGINT_FORMAT "\n",ndump);
+    if (domain->triclinic) {
+      fprintf(fp,"ITEM: BOX BOUNDS xy xz yz %s\n",boundstr);
+      fprintf(fp,"%g %g %g\n",boxxlo,boxxhi,boxxy);
+      fprintf(fp,"%g %g %g\n",boxylo,boxyhi,boxxz);
+      fprintf(fp,"%g %g %g\n",boxzlo,boxzhi,boxyz);
+    } else {
+      fprintf(fp,"ITEM: BOX BOUNDS %s\n",boundstr);
+      fprintf(fp,"%g %g\n",boxxlo,boxxhi);
+      fprintf(fp,"%g %g\n",boxylo,boxyhi);
+      fprintf(fp,"%g %g\n",boxzlo,boxzhi);
+    }
     fprintf(fp,"ITEM: %s %s\n",label,columns);
   }
 }
@@ -223,13 +234,15 @@ int DumpLocal::count()
   for (int i = 0; i < ncompute; i++) {
     if (nmine < 0) nmine = compute[i]->size_local_rows;
     else if (nmine != compute[i]->size_local_rows)
-      error->one(FLERR,"Dump local count is not consistent across input fields");
+      error->one(FLERR,
+                 "Dump local count is not consistent across input fields");
   }
 
   for (int i = 0; i < nfix; i++) {
     if (nmine < 0) nmine = fix[i]->size_local_rows;
     else if (nmine != fix[i]->size_local_rows)
-      error->one(FLERR,"Dump local count is not consistent across input fields");
+      error->one(FLERR,
+                 "Dump local count is not consistent across input fields");
   }
 
   return nmine;

@@ -59,8 +59,7 @@ using namespace LAMMPS_NS;
 #define BUF_FLOAT double
 /* ---------------------------------------------------------------------- */
 
-AtomVecChargeCuda::AtomVecChargeCuda(LAMMPS *lmp, int narg, char **arg) :
-  AtomVecCharge(lmp, narg, arg)
+AtomVecChargeCuda::AtomVecChargeCuda(LAMMPS *lmp) : AtomVecCharge(lmp)
 {
    cuda = lmp->cuda;
    if(cuda == NULL)

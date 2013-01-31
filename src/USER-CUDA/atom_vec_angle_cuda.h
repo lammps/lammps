@@ -37,7 +37,7 @@ namespace LAMMPS_NS {
 
 class AtomVecAngleCuda : public AtomVecAngle {
  public:
-  AtomVecAngleCuda(class LAMMPS *, int, char **);
+  AtomVecAngleCuda(class LAMMPS *);
   virtual ~AtomVecAngleCuda() {}
   void grow_copylist(int n);
   void grow_send(int n,double** buf_send,int flag);

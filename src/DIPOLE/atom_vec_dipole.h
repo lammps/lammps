@@ -26,7 +26,7 @@ namespace LAMMPS_NS {
 
 class AtomVecDipole : public AtomVec {
  public:
-  AtomVecDipole(class LAMMPS *, int, char **);
+  AtomVecDipole(class LAMMPS *);
   void grow(int);
   void grow_reset();
   void copy(int, int, int);

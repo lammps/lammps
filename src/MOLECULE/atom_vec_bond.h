@@ -26,7 +26,7 @@ namespace LAMMPS_NS {
 
 class AtomVecBond : public AtomVec {
  public:
-  AtomVecBond(class LAMMPS *, int, char **);
+  AtomVecBond(class LAMMPS *);
   void grow(int);
   void grow_reset();
   void copy(int, int, int);

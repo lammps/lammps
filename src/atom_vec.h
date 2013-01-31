@@ -14,6 +14,7 @@
 #ifndef LMP_ATOM_VEC_H
 #define LMP_ATOM_VEC_H
 
+#include "stdio.h"
 #include "pointers.h"
 
 namespace LAMMPS_NS {
@@ -41,8 +42,9 @@ class AtomVec : protected Pointers {
   int cudable;                         // 1 if atom style is CUDA-enabled
   int *maxsend;                        // CUDA-specific variable
 
-  AtomVec(class LAMMPS *, int, char **);
+  AtomVec(class LAMMPS *);
   virtual ~AtomVec() {}
+  virtual void settings(int, char **);
   virtual void init();
 
   virtual void grow(int) = 0;
@@ -75,6 +77,9 @@ class AtomVec : protected Pointers {
   virtual int size_restart() = 0;
   virtual int pack_restart(int, double *) = 0;
   virtual int unpack_restart(double *) = 0;
+
+  virtual void write_restart_settings(FILE *) {}
+  virtual void read_restart_settings(FILE *) {}
 
   virtual void create_atom(int, double *) = 0;
   virtual void data_atom(double *, tagint, char **) = 0;

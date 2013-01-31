@@ -49,7 +49,7 @@ namespace LAMMPS_NS {
 
 class AtomVecAtomicCuda : public AtomVecAtomic {
  public:
-  AtomVecAtomicCuda(class LAMMPS *, int, char **);
+  AtomVecAtomicCuda(class LAMMPS *);
   virtual ~AtomVecAtomicCuda() {}
   void grow_copylist(int n);
   void grow_send(int n,double** buf_send,int flag);

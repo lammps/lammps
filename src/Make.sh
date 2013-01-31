@@ -10,7 +10,7 @@
 # else Make will not recreate them
 
 style () {
-  list=`grep -l $1 $2*.h`
+  list=`grep -sl $1 $2*.h`
   if (test -e style_$3.tmp) then
     rm -f style_$3.tmp
   fi
@@ -19,8 +19,15 @@ style () {
     echo "#include $qfile" >> style_$3.tmp
   done
   if (test ! -e style_$3.tmp) then
-    rm -f style_$3.h
-    touch style_$3.h
+    if (test "`cat style_$3.h`" != "") then
+      rm -f style_$3.h
+      touch style_$3.h
+      rm -f Obj_*/$4.d
+      if (test $5) then 
+        rm -f Obj_*/$5.d
+      fi
+      rm -f Obj_*/lammps.d
+      fi
   elif (test ! -e style_$3.h) then
     mv style_$3.tmp style_$3.h
     rm -f Obj_*/$4.d
@@ -50,7 +57,8 @@ style () {
 if (test $1 = "style") then
 
   style ANGLE_CLASS     angle_      angle      force
-  style ATOM_CLASS      atom_vec_   atom       atom
+  style ATOM_CLASS      atom_vec_   atom       atom      atom_vec_hybrid
+  style BODY_CLASS      body_       body       atom_vec_body
   style BOND_CLASS      bond_       bond       force
   style COMMAND_CLASS   ""          command    input
   style COMPUTE_CLASS   compute_    compute    modify

@@ -33,7 +33,7 @@ class AtomVecEllipsoid : public AtomVec {
   };
   struct Bonus *bonus;
 
-  AtomVecEllipsoid(class LAMMPS *, int, char **);
+  AtomVecEllipsoid(class LAMMPS *);
   ~AtomVecEllipsoid();
   void grow(int);
   void grow_reset();

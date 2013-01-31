@@ -1983,9 +1983,9 @@ variable     pyz equal pyz
 fix          SS all ave/correlate $s $p $d &
              v_pxy v_pxz v_pyz type auto file S0St.dat ave running
 variable     scale equal $\{convert\}/($\{kB\}*$T)*$V*$s*$\{dt\}
-variable     v11 equal trap(f_SS\[3/])*$\{scale\}
-variable     v22 equal trap(f_SS\[4/])*$\{scale\}
-variable     v33 equal trap(f_SS\[5/])*$\{scale\}
+variable     v11 equal trap(f_SS\[3\])*$\{scale\}
+variable     v22 equal trap(f_SS\[4\])*$\{scale\}
+variable     v33 equal trap(f_SS\[5\])*$\{scale\}
 thermo_style custom step temp press v_pxy v_pxz v_pyz v_v11 v_v22 v_v33
 run          100000
 variable     v equal (v_v11+v_v22+v_v33)/3.0

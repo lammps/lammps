@@ -126,7 +126,7 @@ it gives quick access to documentation for all LAMMPS commands.
   6.11 "Visualizing LAMMPS snapshots"_howto_11 :b
   6.12 "Triclinic (non-orthogonal) simulation boxes"_howto_12 :b
   6.13 "NEMD simulations"_howto_13 :b
-  6.14 "Extended spherical and aspherical particles"_howto_14 :b
+  6.14 "Finite-size spherical and aspherical particles"_howto_14 :b
   6.15 "Output from LAMMPS (thermo, dumps, computes, fixes, variables)"_howto_15 :b
   6.16 "Thermostatting, barostatting, and compute temperature"_howto_16 :b
   6.17 "Walls"_howto_17 :b

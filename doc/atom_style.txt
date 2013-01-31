@@ -61,7 +61,7 @@ quantities.
 {charge} | charge | atomic system with charges |
 {dipole} | charge and dipole moment | system with dipolar particles |
 {electron} | charge and spin and eradius | electronic force field |
-{ellipsoid} | shape, quaternion, angular momentum | extended aspherical particles |
+{ellipsoid} | shape, quaternion, angular momentum | aspherical particles |
 {full} | molecular + charge | bio-molecules |
 {line} | end points, angular velocity | rigid bodies |
 {meso} | rho, e, cv | SPH particles |
@@ -73,7 +73,9 @@ quantities.
 
 All of the styles define point particles, except the {sphere},
 {ellipsoid}, {electron}, {peri}, {wavepacket}, {line}, {tri}, and
-{body} styles, which define finite-size particles.
+{body} styles, which define finite-size particles.  See "Section_howto
+14"_Section_howto.html#howto_14 for an overview of using finite-size
+particle models with LAMMPS.
 
 All of the styles assign mass to particles on a per-type basis, using
 the "mass"_mass.html command, except for the finite-size particle

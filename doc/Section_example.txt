@@ -27,15 +27,21 @@ Site"_lws.
 
 These are the sample problems in the examples sub-directories:
 
+body:     body particles, 2d system
 colloid:  big colloid particles in a small particle solvent, 2d system
 comb:	  models using the COMB potential
 crack:	  crack propagation in a 2d solid
 dipole:   point dipolar particles, 2d system
+dreiding: methanol via Dreiding FF
 eim:      NaCl using the EIM potential
 ellipse:  ellipsoidal particles in spherical solvent, 2d system
 flow:	  Couette and Poiseuille flow in a 2d channel
 friction: frictional contact of spherical asperities between 2d surfaces
+gpu:      use of the GPU package for GPU acceleration
+hugoniostat: Hugoniostat shock dynamics
 indent:	  spherical indenter into a 2d solid
+kim:      use of potentials in Knowledge Base for Interatomic Models (KIM)
+line:     line segment particles in 2d rigid bodies
 meam:	  MEAM test for SiC and shear (same as shear examples)
 melt:	  rapid melt of 3d LJ system
 micelle:  self-assembly of small lipid-like molecules into 2d bilayers
@@ -47,11 +53,13 @@ obstacle: flow around two voids in a 2d channel
 peptide:  dynamics of a small solvated peptide chain (5-mer)
 peri:	  Peridynamic model of cylinder impacted by indenter
 pour:     pouring of granular particles into a 3d box, then chute flow
-prd:      parallel replica dynamics of a vacancy diffusion in bulk Si
+prd:      parallel replica dynamics of vacancy diffusion in bulk Si
 reax:     RDX and TATB models using the ReaxFF
 rigid:    rigid bodies modeled as independent or coupled
 shear:    sideways shear applied to 2d solid, with and without a void
-srd:      stochastic rotation dynamics (SRD) particles as solvent :tb(s=:)
+srd:      stochastic rotation dynamics (SRD) particles as solvent
+tad:      temperature-accelerated dynamics of vacancy diffusion in bulk Si
+tri:      triangular particles in rigid bodies :tb(s=:)
 
 Here is how you might run and visualize one of the sample problems:
 

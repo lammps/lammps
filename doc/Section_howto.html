@@ -26,7 +26,7 @@
 6.11 <A HREF = "#howto_11">Visualizing LAMMPS snapshots</A><BR>
 6.12 <A HREF = "#howto_12">Triclinic (non-orthogonal) simulation boxes</A><BR>
 6.13 <A HREF = "#howto_13">NEMD simulations</A><BR>
-6.14 <A HREF = "#howto_14">Extended spherical and aspherical particles</A><BR>
+6.14 <A HREF = "#howto_14">Finite-size spherical and aspherical particles</A><BR>
 6.15 <A HREF = "#howto_15">Output from LAMMPS (thermo, dumps, computes, fixes, variables)</A><BR>
 6.16 <A HREF = "#howto_16">Thermostatting, barostatting and computing temperature</A><BR>
 6.17 <A HREF = "#howto_17">Walls</A><BR>
@@ -163,7 +163,7 @@ so that any forces induced by other fixes will be zeroed out.
 <P>Many of the example input scripts included in the LAMMPS distribution
 are for 2d models.
 </P>
-<P>IMPORTANT NOTE: Some models in LAMMPS treat particles as extended
+<P>IMPORTANT NOTE: Some models in LAMMPS treat particles as finite-size
 spheres, as opposed to point particles.  In 2d, the particles will
 still be spheres, not disks, meaning their moment of inertia will be
 the same as in 3d.
@@ -1012,7 +1012,7 @@ profile consistent with the applied shear strain rate.
 </P>
 <HR>
 
-<A NAME = "howto_14"></A><H4>6.14 Extended spherical and aspherical particles 
+<A NAME = "howto_14"></A><H4>6.14 Finite-size spherical and aspherical particles 
 </H4>
 <P>Typical MD models treat atoms or particles as point masses.  Sometimes
 it is desirable to have a model with finite-size particles such as
@@ -1028,8 +1028,12 @@ particles.  The following aspects are discussed in turn:
 <LI>pair potentials
 <LI>time integration
 <LI>computes, thermodynamics, and dump output
-<LI>rigid bodies composed of extended particles 
+<LI>rigid bodies composed of finite-size particles 
 </UL>
+<P>Example input scripts for these kinds of models are in the body,
+colloid, dipole, ellipse, line, peri, pour, and tri directories of the
+<A HREF = "Section_examples.html">examples directory</A> in the LAMMPS distribution.
+</P>
 <H5>Atom styles 
 </H5>
 <P>There are several <A HREF = "atom_style.html">atom styles</A> that allow for
@@ -1042,13 +1046,14 @@ particles store an angular velocity (omega) and can be acted upon by
 torque.  The "set" command can be used to modify the diameter and mass
 of individual particles, after then are created.
 </P>
-<P>The dipole style does not actually define extended particles, but is
-often used in conjunction with spherical particles, via a command like
+<P>The dipole style does not actually define finite-size particles, but
+is often used in conjunction with spherical particles, via a command
+like
 </P>
 <PRE>atom_style hybrid sphere dipole 
 </PRE>
 <P>This is because when dipoles interact with each other, they induce
-torques, and a particle must be extended (i.e. have a moment of
+torques, and a particle must be finite-size (i.e. have a moment of
 inertia) in order to respond and rotate.  See the <A HREF = "atom_style.html">atom_style
 dipole</A> command for details.  The "set" command can be
 used to modify the orientation and length of the dipole moment of
@@ -1094,30 +1099,29 @@ diameter is set to 0.0, it will be a point particle.  In the line or
 tri style, if the lineflag or triflag is specified as 0, then it
 will be a point particle.
 </P>
-<P>Many of the pair styles used to compute pairwise interactions between
-extended particles typically compute the correct interaction in these
-simplified (cheaper) cases.  e.g. the interaction between a point
-particle and an extended particle or between two point particles.  If
-necessary, <A HREF = "pair_hybrid.html">pair_style hybrid</A> can be used to insure
-the correct interactions are computed for the appropriate style of
-interactions.  Likewise, using groups to partition particles
-(ellipsoids versus spheres versus point particles) will allow you to
-use the appropriate time integrators and temperature computations for
-each class of particles.  See the doc pages for various commands for
-details.
+<P>Some of the pair styles used to compute pairwise interactions between
+finite-size particles also compute the correct interaction with point
+particles as well, e.g. the interaction between a point particle and a
+finite-size particle or between two point particles.  If necessary,
+<A HREF = "pair_hybrid.html">pair_style hybrid</A> can be used to insure the correct
+interactions are computed for the appropriate style of interactions.
+Likewise, using groups to partition particles (ellipsoids versus
+spheres versus point particles) will allow you to use the appropriate
+time integrators and temperature computations for each class of
+particles.  See the doc pages for various commands for details.
 </P>
 <P>Also note that for <A HREF = "dimension.html">2d simulations</A>, atom styles sphere
 and ellipsoid still use 3d particles, rather than as circular disks or
-ellipses.  This means they have the same moment of inertia as a 3d
-extended object.  When temperature is computed, the correct degrees of
-freedom are used for rotation in a 2d versus 3d system.
+ellipses.  This means they have the same moment of inertia as the 3d
+object.  When temperature is computed, the correct degrees of freedom
+are used for rotation in a 2d versus 3d system.
 </P>
 <H5>Pair potentials 
 </H5>
-<P>When a system with extended particles is defined, the particles will
-only rotate and experience torque if the force field computes such
-interactions.  These are the various <A HREF = "pair_style.html">pair styles</A>
-that generate torque:
+<P>When a system with finite-size particles is defined, the particles
+will only rotate and experience torque if the force field computes
+such interactions.  These are the various <A HREF = "pair_style.html">pair
+styles</A> that generate torque:
 </P>
 <UL><LI><A HREF = "pair_gran.html">pair_style gran/history</A>
 <LI><A HREF = "pair_gran.html">pair_style gran/hertzian</A>
@@ -1142,7 +1146,7 @@ triangular, and body particles respectively.
 </P>
 <H5>Time integration 
 </H5>
-<P>There are several fixes that perform time integration on extended
+<P>There are several fixes that perform time integration on finite-size
 spherical particles, meaning the integrators update the rotational
 orientation and angular velocity or angular momentum of the particles:
 </P>
@@ -1163,7 +1167,7 @@ calculation and thermostatting.  The <A HREF = "fix_langevin">fix langevin</A>
 command can also be used with its <I>omgea</I> or <I>angmom</I> options to
 thermostat the rotational degrees of freedom for spherical or
 ellipsoidal particles.  Other thermostatting fixes only operate on the
-translational kinetic energy of extended particles.
+translational kinetic energy of finite-size particles.
 </P>
 <P>These fixes perform constant NVE time integration on line segment,
 triangular, and body particles:
@@ -1172,9 +1176,9 @@ triangular, and body particles:
 <LI><A HREF = "fix_nve_tri.html">fix nve/tri</A>
 <LI><A HREF = "fix_nve_body.html">fix nve/body</A> 
 </UL>
-<P>Note that for mixtures of point and extended particles, these
+<P>Note that for mixtures of point and finite-size particles, these
 integration fixes can only be used with <A HREF = "group.html">groups</A> which
-contain extended particles.
+contain finite-size particles.
 </P>
 <H5>Computes, thermodynamics, and dump output 
 </H5>
@@ -1188,15 +1192,15 @@ rotational energy of spherical or ellipsoidal particles:
 </UL>
 <P>These include rotational degrees of freedom in their computation.  If
 you wish the thermodynamic output of temperature or pressure to use
-one of these computes (e.g. for a system entirely composed of extended
-particles), then the compute can be defined and the
+one of these computes (e.g. for a system entirely composed of
+finite-size particles), then the compute can be defined and the
 <A HREF = "thermo_modify.html">thermo_modify</A> command used.  Note that by default
 thermodynamic quantities will be calculated with a temperature that
 only includes translational degrees of freedom.  See the
 <A HREF = "thermo_style.html">thermo_style</A> command for details.
 </P>
-<P>These commands can be used to output various attributes
-of extended particles:
+<P>These commands can be used to output various attributes of finite-size
+particles:
 </P>
 <UL><LI><A HREF = "dump.html">dump custom</A>
 <LI><A HREF = "compute_property_atom.html">compute property/atom</A>
@@ -1207,23 +1211,23 @@ angular momentum, the quaternion, the torque, the end-point and
 corner-point coordinates (for line and tri particles), and
 sub-particle attributes of body particles.
 </P>
-<H5>Rigid bodies composed of extended particles 
+<H5>Rigid bodies composed of finite-size particles 
 </H5>
 <P>The <A HREF = "fix_rigid.html">fix rigid</A> command treats a collection of
 particles as a rigid body, computes its inertia tensor, sums the total
 force and torque on the rigid body each timestep due to forces on its
 constituent particles, and integrates the motion of the rigid body.
 </P>
-<P>If any of the constituent particles of a rigid body are extended
+<P>If any of the constituent particles of a rigid body are finite-size
 particles (spheres or ellipsoids or line segments or triangles), then
 their contribution to the inertia tensor of the body is different than
 if they were point particles.  This means the rotational dynamics of
 the rigid body will be different.  Thus a model of a dimer is
 different if the dimer consists of two point masses versus two
-extended sphereoids, even if the two particles have the same mass.
-Extended particles that experience torque due to their interaction
-with other particles will also impart that torque to a rigid body they
-are part of.
+spheroids, even if the two particles have the same mass.  Finite-size
+particles that experience torque due to their interaction with other
+particles will also impart that torque to a rigid body they are part
+of.
 </P>
 <P>See the "fix rigid" command for example of complex rigid-body models
 it is possible to define in LAMMPS.
@@ -1574,11 +1578,11 @@ pressure</A> command calculates pressure.
 velocities) that are removed when computing the thermal temperature.
 <A HREF = "compute_temp_sphere.html">Compute temp/sphere</A> and <A HREF = "compute_temp_asphere.html">compute
 temp/asphere</A> compute kinetic energy for
-extended particles that includes rotational degrees of freedom.  They
-both allow, as an extra argument, which is another temperature compute
-that subtracts a velocity bias.  This allows the translational
-velocity of extended spherical or aspherical particles to be adjusted
-in prescribed ways.
+finite-size particles that includes rotational degrees of freedom.
+They both allow, as an extra argument, which is another temperature
+compute that subtracts a velocity bias.  This allows the translational
+velocity of spherical or aspherical particles to be adjusted in
+prescribed ways.
 </P>
 <P>Thermostatting in LAMMPS is performed by <A HREF = "fix.html">fixes</A>, or in one
 case by a pair style.  Four thermostatting fixes are currently

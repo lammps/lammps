@@ -23,7 +23,7 @@ This section describes how to perform common tasks using LAMMPS.
 6.11 "Visualizing LAMMPS snapshots"_#howto_11
 6.12 "Triclinic (non-orthogonal) simulation boxes"_#howto_12
 6.13 "NEMD simulations"_#howto_13
-6.14 "Extended spherical and aspherical particles"_#howto_14
+6.14 "Finite-size spherical and aspherical particles"_#howto_14
 6.15 "Output from LAMMPS (thermo, dumps, computes, fixes, variables)"_#howto_15
 6.16 "Thermostatting, barostatting and computing temperature"_#howto_16
 6.17 "Walls"_#howto_17
@@ -159,7 +159,7 @@ so that any forces induced by other fixes will be zeroed out.
 Many of the example input scripts included in the LAMMPS distribution
 are for 2d models.
 
-IMPORTANT NOTE: Some models in LAMMPS treat particles as extended
+IMPORTANT NOTE: Some models in LAMMPS treat particles as finite-size
 spheres, as opposed to point particles.  In 2d, the particles will
 still be spheres, not disks, meaning their moment of inertia will be
 the same as in 3d.
@@ -1003,7 +1003,7 @@ An alternative method for calculating viscosities is provided via the
 
 :line
 
-6.14 Extended spherical and aspherical particles :link(howto_14),h4
+6.14 Finite-size spherical and aspherical particles :link(howto_14),h4
 
 Typical MD models treat atoms or particles as point masses.  Sometimes
 it is desirable to have a model with finite-size particles such as
@@ -1019,7 +1019,11 @@ atom styles
 pair potentials
 time integration
 computes, thermodynamics, and dump output
-rigid bodies composed of extended particles :ul
+rigid bodies composed of finite-size particles :ul
+
+Example input scripts for these kinds of models are in the body,
+colloid, dipole, ellipse, line, peri, pour, and tri directories of the
+"examples directory"_Section_examples.html in the LAMMPS distribution.
 
 Atom styles :h5
 
@@ -1033,13 +1037,14 @@ particles store an angular velocity (omega) and can be acted upon by
 torque.  The "set" command can be used to modify the diameter and mass
 of individual particles, after then are created.
 
-The dipole style does not actually define extended particles, but is
-often used in conjunction with spherical particles, via a command like
+The dipole style does not actually define finite-size particles, but
+is often used in conjunction with spherical particles, via a command
+like
 
 atom_style hybrid sphere dipole :pre
 
 This is because when dipoles interact with each other, they induce
-torques, and a particle must be extended (i.e. have a moment of
+torques, and a particle must be finite-size (i.e. have a moment of
 inertia) in order to respond and rotate.  See the "atom_style
 dipole"_atom_style.html command for details.  The "set" command can be
 used to modify the orientation and length of the dipole moment of
@@ -1085,30 +1090,29 @@ diameter is set to 0.0, it will be a point particle.  In the line or
 tri style, if the lineflag or triflag is specified as 0, then it
 will be a point particle.
 
-Many of the pair styles used to compute pairwise interactions between
-extended particles typically compute the correct interaction in these
-simplified (cheaper) cases.  e.g. the interaction between a point
-particle and an extended particle or between two point particles.  If
-necessary, "pair_style hybrid"_pair_hybrid.html can be used to insure
-the correct interactions are computed for the appropriate style of
-interactions.  Likewise, using groups to partition particles
-(ellipsoids versus spheres versus point particles) will allow you to
-use the appropriate time integrators and temperature computations for
-each class of particles.  See the doc pages for various commands for
-details.
+Some of the pair styles used to compute pairwise interactions between
+finite-size particles also compute the correct interaction with point
+particles as well, e.g. the interaction between a point particle and a
+finite-size particle or between two point particles.  If necessary,
+"pair_style hybrid"_pair_hybrid.html can be used to insure the correct
+interactions are computed for the appropriate style of interactions.
+Likewise, using groups to partition particles (ellipsoids versus
+spheres versus point particles) will allow you to use the appropriate
+time integrators and temperature computations for each class of
+particles.  See the doc pages for various commands for details.
 
 Also note that for "2d simulations"_dimension.html, atom styles sphere
 and ellipsoid still use 3d particles, rather than as circular disks or
-ellipses.  This means they have the same moment of inertia as a 3d
-extended object.  When temperature is computed, the correct degrees of
-freedom are used for rotation in a 2d versus 3d system.
+ellipses.  This means they have the same moment of inertia as the 3d
+object.  When temperature is computed, the correct degrees of freedom
+are used for rotation in a 2d versus 3d system.
 
 Pair potentials :h5
 
-When a system with extended particles is defined, the particles will
-only rotate and experience torque if the force field computes such
-interactions.  These are the various "pair styles"_pair_style.html
-that generate torque:
+When a system with finite-size particles is defined, the particles
+will only rotate and experience torque if the force field computes
+such interactions.  These are the various "pair
+styles"_pair_style.html that generate torque:
 
 "pair_style gran/history"_pair_gran.html
 "pair_style gran/hertzian"_pair_gran.html
@@ -1133,7 +1137,7 @@ triangular, and body particles respectively.
 
 Time integration :h5
 
-There are several fixes that perform time integration on extended
+There are several fixes that perform time integration on finite-size
 spherical particles, meaning the integrators update the rotational
 orientation and angular velocity or angular momentum of the particles:
 
@@ -1154,7 +1158,7 @@ calculation and thermostatting.  The "fix langevin"_fix_langevin
 command can also be used with its {omgea} or {angmom} options to
 thermostat the rotational degrees of freedom for spherical or
 ellipsoidal particles.  Other thermostatting fixes only operate on the
-translational kinetic energy of extended particles.
+translational kinetic energy of finite-size particles.
 
 These fixes perform constant NVE time integration on line segment,
 triangular, and body particles:
@@ -1163,9 +1167,9 @@ triangular, and body particles:
 "fix nve/tri"_fix_nve_tri.html
 "fix nve/body"_fix_nve_body.html :ul
 
-Note that for mixtures of point and extended particles, these
+Note that for mixtures of point and finite-size particles, these
 integration fixes can only be used with "groups"_group.html which
-contain extended particles.
+contain finite-size particles.
 
 Computes, thermodynamics, and dump output :h5
 
@@ -1179,15 +1183,15 @@ rotational energy of spherical or ellipsoidal particles:
 
 These include rotational degrees of freedom in their computation.  If
 you wish the thermodynamic output of temperature or pressure to use
-one of these computes (e.g. for a system entirely composed of extended
-particles), then the compute can be defined and the
+one of these computes (e.g. for a system entirely composed of
+finite-size particles), then the compute can be defined and the
 "thermo_modify"_thermo_modify.html command used.  Note that by default
 thermodynamic quantities will be calculated with a temperature that
 only includes translational degrees of freedom.  See the
 "thermo_style"_thermo_style.html command for details.
 
-These commands can be used to output various attributes
-of extended particles:
+These commands can be used to output various attributes of finite-size
+particles:
 
 "dump custom"_dump.html
 "compute property/atom"_compute_property_atom.html
@@ -1198,23 +1202,23 @@ angular momentum, the quaternion, the torque, the end-point and
 corner-point coordinates (for line and tri particles), and
 sub-particle attributes of body particles.
 
-Rigid bodies composed of extended particles :h5
+Rigid bodies composed of finite-size particles :h5
 
 The "fix rigid"_fix_rigid.html command treats a collection of
 particles as a rigid body, computes its inertia tensor, sums the total
 force and torque on the rigid body each timestep due to forces on its
 constituent particles, and integrates the motion of the rigid body.
 
-If any of the constituent particles of a rigid body are extended
+If any of the constituent particles of a rigid body are finite-size
 particles (spheres or ellipsoids or line segments or triangles), then
 their contribution to the inertia tensor of the body is different than
 if they were point particles.  This means the rotational dynamics of
 the rigid body will be different.  Thus a model of a dimer is
 different if the dimer consists of two point masses versus two
-extended sphereoids, even if the two particles have the same mass.
-Extended particles that experience torque due to their interaction
-with other particles will also impart that torque to a rigid body they
-are part of.
+spheroids, even if the two particles have the same mass.  Finite-size
+particles that experience torque due to their interaction with other
+particles will also impart that torque to a rigid body they are part
+of.
 
 See the "fix rigid" command for example of complex rigid-body models
 it is possible to define in LAMMPS.
@@ -1561,11 +1565,11 @@ All but the first 3 calculate velocity biases (i.e. advection
 velocities) that are removed when computing the thermal temperature.
 "Compute temp/sphere"_compute_temp_sphere.html and "compute
 temp/asphere"_compute_temp_asphere.html compute kinetic energy for
-extended particles that includes rotational degrees of freedom.  They
-both allow, as an extra argument, which is another temperature compute
-that subtracts a velocity bias.  This allows the translational
-velocity of extended spherical or aspherical particles to be adjusted
-in prescribed ways.
+finite-size particles that includes rotational degrees of freedom.
+They both allow, as an extra argument, which is another temperature
+compute that subtracts a velocity bias.  This allows the translational
+velocity of spherical or aspherical particles to be adjusted in
+prescribed ways.
 
 Thermostatting in LAMMPS is performed by "fixes"_fix.html, or in one
 case by a pair style.  Four thermostatting fixes are currently

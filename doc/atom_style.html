@@ -64,7 +64,7 @@ quantities.
 <TR><TD ><I>charge</I> </TD><TD > charge </TD><TD > atomic system with charges </TD></TR>
 <TR><TD ><I>dipole</I> </TD><TD > charge and dipole moment </TD><TD > system with dipolar particles </TD></TR>
 <TR><TD ><I>electron</I> </TD><TD > charge and spin and eradius </TD><TD > electronic force field </TD></TR>
-<TR><TD ><I>ellipsoid</I> </TD><TD > shape, quaternion, angular momentum </TD><TD > extended aspherical particles </TD></TR>
+<TR><TD ><I>ellipsoid</I> </TD><TD > shape, quaternion, angular momentum </TD><TD > aspherical particles </TD></TR>
 <TR><TD ><I>full</I> </TD><TD > molecular + charge </TD><TD > bio-molecules </TD></TR>
 <TR><TD ><I>line</I> </TD><TD > end points, angular velocity </TD><TD > rigid bodies </TD></TR>
 <TR><TD ><I>meso</I> </TD><TD > rho, e, cv </TD><TD > SPH particles </TD></TR>
@@ -77,7 +77,9 @@ quantities.
 
 <P>All of the styles define point particles, except the <I>sphere</I>,
 <I>ellipsoid</I>, <I>electron</I>, <I>peri</I>, <I>wavepacket</I>, <I>line</I>, <I>tri</I>, and
-<I>body</I> styles, which define finite-size particles.
+<I>body</I> styles, which define finite-size particles.  See <A HREF = "Section_howto.html#howto_14">Section_howto
+14</A> for an overview of using finite-size
+particle models with LAMMPS.
 </P>
 <P>All of the styles assign mass to particles on a per-type basis, using
 the <A HREF = "mass.html">mass</A> command, except for the finite-size particle

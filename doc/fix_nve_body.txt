@@ -25,8 +25,8 @@ Perform constant NVE integration to update position, velocity,
 orientation, and angular velocity for body particles in the group each
 timestep.  V is volume; E is energy.  This creates a system trajectory
 consistent with the microcanonical ensemble.  See "Section_howto
-22"_Section_howto.html of the manual for an overview of using body
-particles.
+14"_Section_howto.html#howto_14 of the manual and the "body"_body.html
+doc page for more details on using body particles.
 
 This fix differs from the "fix nve"_fix_nve.html command, which
 assumes point particles and only updates their position and velocity.

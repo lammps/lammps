@@ -484,10 +484,10 @@ Body particles can represent complex entities, such as surface meshes
 of discrete points, collections of sub-particles, deformable objects,
 etc.
 
-See "Section_howto 22"_Section_howto.html of the manual for an
-overview of using body particles and the "body"_body.html doc page for
-details on the various body styles LAMMPS supports.  New styles can be
-created to add new kinds of body particles to LAMMPS.
+See "Section_howto 14"_Section_howto.html#howto_14 of the manual for
+an overview of using body particles and the "body"_body.html doc page
+for details on the various body styles LAMMPS supports.  New styles
+can be created to add new kinds of body particles to LAMMPS.
 
 Body_nparticle.cpp is an example of a body particle that is treated as
 a rigid body containing N sub-particles.

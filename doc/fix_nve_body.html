@@ -9,27 +9,27 @@
 
 <HR>
 
-<H3>fix nve/line command 
+<H3>fix nve/body command 
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>fix ID group-ID nve/line 
+<PRE>fix ID group-ID nve/body 
 </PRE>
 <UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
-<LI>nve/line = style name of this fix command 
+<LI>nve/body = style name of this fix command 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>fix 1 all nve/line 
+<PRE>fix 1 all nve/body 
 </PRE>
 <P><B>Description:</B>
 </P>
 <P>Perform constant NVE integration to update position, velocity,
-orientation, and angular velocity for line segment particles in the
-group each timestep.  V is volume; E is energy.  This creates a system
-trajectory consistent with the microcanonical ensemble.  See
-<A HREF = "Section_howto.html">Section_howto 14</A> of the manual for an overview of
-using line segment particles.
+orientation, and angular velocity for body particles in the group each
+timestep.  V is volume; E is energy.  This creates a system trajectory
+consistent with the microcanonical ensemble.  See <A HREF = "Section_howto.html">Section_howto
+22</A> of the manual for an overview of using body
+particles.
 </P>
 <P>This fix differs from the <A HREF = "fix_nve.html">fix nve</A> command, which
 assumes point particles and only updates their position and velocity.
@@ -46,16 +46,21 @@ This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>
 </P>
 <P><B>Restrictions:</B> 
 </P>
-<P>This fix is part of the ASPHERE package.  It is only enabled if LAMMPS
+<P>This fix is part of the BODY package.  It is only enabled if LAMMPS
 was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
 LAMMPS</A> section for more info.
 </P>
-<P>This fix requires that particles be line segments as defined by the
-<A HREF = "atom_style.html">atom_style line</A> command.
+<P>This fix requires that atoms store torque and angular momementum and a
+quaternion as defined by the <A HREF = "atom_style.html">atom_style body</A>
+command.
+</P>
+<P>All particles in the group must be body particles.  They cannot be
+point particles.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "fix_nve.html">fix nve</A>, <A HREF = "fix_nve_asphere.html">fix nve/asphere</A>
+<P><A HREF = "fix_nve.html">fix nve</A>, <A HREF = "fix_nve_sphere.html">fix nve/sphere</A>, <A HREF = "fix_nve_asphere.html">fix
+nve/asphere</A>
 </P>
 <P><B>Default:</B> none
 </P>

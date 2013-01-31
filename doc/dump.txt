@@ -142,8 +142,8 @@ LAMMPS "post-processing tools"_Section_tools.html, including
 "Pizza.py"_http://www.sandia.gov/~sjplimp/pizza.html, work with this
 format, as does the "rerun"_rerun.html command.
 
-For post-processing purposes the {atom} and {custom} text files are
-self-describing in the following sense.
+For post-processing purposes the {atom}, {local}, and {custom} text
+files are self-describing in the following sense.
 
 The dimensions of the simulation box are included in each snapshot.
 For an orthogonal simulation box this information is is formatted as:

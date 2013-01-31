@@ -6,27 +6,27 @@
 
 :line
 
-fix nve/line command :h3
+fix nve/body command :h3
 
 [Syntax:]
 
-fix ID group-ID nve/line :pre
+fix ID group-ID nve/body :pre
 
 ID, group-ID are documented in "fix"_fix.html command
-nve/line = style name of this fix command :ul
+nve/body = style name of this fix command :ul
 
 [Examples:]
 
-fix 1 all nve/line :pre
+fix 1 all nve/body :pre
 
 [Description:]
 
 Perform constant NVE integration to update position, velocity,
-orientation, and angular velocity for line segment particles in the
-group each timestep.  V is volume; E is energy.  This creates a system
-trajectory consistent with the microcanonical ensemble.  See
-"Section_howto 14"_Section_howto.html of the manual for an overview of
-using line segment particles.
+orientation, and angular velocity for body particles in the group each
+timestep.  V is volume; E is energy.  This creates a system trajectory
+consistent with the microcanonical ensemble.  See "Section_howto
+22"_Section_howto.html of the manual for an overview of using body
+particles.
 
 This fix differs from the "fix nve"_fix_nve.html command, which
 assumes point particles and only updates their position and velocity.
@@ -43,15 +43,20 @@ This fix is not invoked during "energy minimization"_minimize.html.
 
 [Restrictions:] 
 
-This fix is part of the ASPHERE package.  It is only enabled if LAMMPS
+This fix is part of the BODY package.  It is only enabled if LAMMPS
 was built with that package.  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info.
 
-This fix requires that particles be line segments as defined by the
-"atom_style line"_atom_style.html command.
+This fix requires that atoms store torque and angular momementum and a
+quaternion as defined by the "atom_style body"_atom_style.html
+command.
+
+All particles in the group must be body particles.  They cannot be
+point particles.
 
 [Related commands:]
 
-"fix nve"_fix_nve.html, "fix nve/asphere"_fix_nve_asphere.html
+"fix nve"_fix_nve.html, "fix nve/sphere"_fix_nve_sphere.html, "fix
+nve/asphere"_fix_nve_asphere.html
 
 [Default:] none

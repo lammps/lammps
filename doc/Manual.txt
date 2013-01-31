@@ -133,7 +133,8 @@ it gives quick access to documentation for all LAMMPS commands.
   6.18 "Elastic constants"_howto_18 :b
   6.19 "Library interface to LAMMPS"_howto_19 :b
   6.20 "Calculating thermal conductivity"_howto_20 :b
-  6.21 "Calculating viscosity"_howto_21 :ule,b
+  6.21 "Calculating viscosity"_howto_21 :b
+  6.22 "Body particles"_howto_22 :ule,b
 "Example problems"_Section_example.html :l
 "Performance & scalability"_Section_perf.html :l
 "Additional tools"_Section_tools.html :l
@@ -153,13 +154,12 @@ it gives quick access to documentation for all LAMMPS commands.
   10.13 "Variable options"_mod_13 :b
   10.14 "Submitting new features for inclusion in LAMMPS"_mod_14 :ule,b
 "Python interface"_Section_python.html :l
-  11.1 "Extending Python with a serial version of LAMMPS"_py_1 :ulb,b
-  11.2 "Creating a shared MPI library"_py_2 :b
-  11.3 "Extending Python with a parallel version of LAMMPS"_py_3 :b
-  11.4 "Extending Python with MPI"_py_4 :b
-  11.5 "Testing the Python-LAMMPS interface"_py_5 :b
-  11.6 "Using LAMMPS from Python"_py_6 :b
-  11.7 "Example Python scripts that use LAMMPS"_py_7 :ule,b
+  11.1 "Building LAMMPS as a shared library"_py_1 :ulb,b
+  11.2 "Installing the Python wrapper into Python"_py_2 :b
+  11.3 "Extending Python with MPI to run in parallel"_py_3 :b
+  11.4 "Testing the Python-LAMMPS interface"_py_4 :b
+  11.5 "Using LAMMPS from Python"_py_5 :b
+  11.6 "Example Python scripts that use LAMMPS"_py_6 :ule,b
 "Errors"_Section_errors.html :l
   12.1 "Common problems"_err_1 :ulb,b
   12.2 "Reporting bugs"_err_2 :b
@@ -224,6 +224,7 @@ it gives quick access to documentation for all LAMMPS commands.
 :link(howto_19,Section_howto.html#howto_19)
 :link(howto_20,Section_howto.html#howto_20)
 :link(howto_21,Section_howto.html#howto_21)
+:link(howto_22,Section_howto.html#howto_22)
 
 :link(mod_1,Section_modify.html#mod_1)
 :link(mod_2,Section_modify.html#mod_2)
@@ -246,7 +247,6 @@ it gives quick access to documentation for all LAMMPS commands.
 :link(py_4,Section_python.html#py_4)
 :link(py_5,Section_python.html#py_5)
 :link(py_6,Section_python.html#py_6)
-:link(py_7,Section_python.html#py_7)
 
 :link(err_1,Section_errors.html#err_1)
 :link(err_2,Section_errors.html#err_2)

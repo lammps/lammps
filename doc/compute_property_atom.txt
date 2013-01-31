@@ -45,7 +45,7 @@ input = one or more atom attributes :l
       omegax,omegay,omegaz = angular velocity of extended particle
       angmomx,angmomy,angmomz = angular momentum of extended particle
       shapex,shapey,shapez = 3 diameters of aspherical particle
-      quatw,quati,quatj,quatk = quaternion components for aspherical particles
+      quatw,quati,quatj,quatk = quaternion components for aspherical or body particles
       tqx,tqy,tqz = torque on extended particles
       spin = electron spin
       eradius = electron radius
@@ -86,11 +86,12 @@ The additional quantities only accessible via this command, and not
 directly via the "dump custom"_dump.html command, are as follows.
 
 {Shapex}, {shapey}, and {shapez} are defined for ellipsoidal particles
-and define the 3d shape of each particle.  {Quatw}, {quati}, {quatj},
-and {quatk} are also defined for ellipsoidal particles and store the
-4-vector quaternion representing the orientation of each particle.
-See the "set"_set.html command for an explanation of the quaternion
-vector.
+and define the 3d shape of each particle.
+
+{Quatw}, {quati}, {quatj}, and {quatk} are defined for ellipsoidal
+particles and body particles and store the 4-vector quaternion
+representing the orientation of each particle.  See the "set"_set.html
+command for an explanation of the quaternion vector.
 
 {End1x}, {end1y}, {end1z}, {end2x}, {end2y}, {end2z}, are defined for
 line segment particles and define the end points of each line segment.

@@ -52,7 +52,7 @@
       omegax,omegay,omegaz = angular velocity of extended particle
       angmomx,angmomy,angmomz = angular momentum of extended particle
       shapex,shapey,shapez = 3 diameters of aspherical particle
-      quatw,quati,quatj,quatk = quaternion components for aspherical particles
+      quatw,quati,quatj,quatk = quaternion components for aspherical or body particles
       tqx,tqy,tqz = torque on extended particles
       spin = electron spin
       eradius = electron radius
@@ -94,11 +94,12 @@ quantities that are not defined for a particular particle in the group
 directly via the <A HREF = "dump.html">dump custom</A> command, are as follows.
 </P>
 <P><I>Shapex</I>, <I>shapey</I>, and <I>shapez</I> are defined for ellipsoidal particles
-and define the 3d shape of each particle.  <I>Quatw</I>, <I>quati</I>, <I>quatj</I>,
-and <I>quatk</I> are also defined for ellipsoidal particles and store the
-4-vector quaternion representing the orientation of each particle.
-See the <A HREF = "set.html">set</A> command for an explanation of the quaternion
-vector.
+and define the 3d shape of each particle.
+</P>
+<P><I>Quatw</I>, <I>quati</I>, <I>quatj</I>, and <I>quatk</I> are defined for ellipsoidal
+particles and body particles and store the 4-vector quaternion
+representing the orientation of each particle.  See the <A HREF = "set.html">set</A>
+command for an explanation of the quaternion vector.
 </P>
 <P><I>End1x</I>, <I>end1y</I>, <I>end1z</I>, <I>end2x</I>, <I>end2y</I>, <I>end2z</I>, are defined for
 line segment particles and define the end points of each line segment.

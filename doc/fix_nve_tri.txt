@@ -24,7 +24,9 @@ fix 1 all nve/tri :pre
 Perform constant NVE integration to update position, velocity,
 orientation, and angular momentum for triangular particles in the
 group each timestep.  V is volume; E is energy.  This creates a system
-trajectory consistent with the microcanonical ensemble.
+trajectory consistent with the microcanonical ensemble.  See
+"Section_howto 14"_Section_howto.html of the manual for an overview of
+using triangular particles.
 
 This fix differs from the "fix nve"_fix_nve.html command, which
 assumes point particles and only updates their position and velocity.

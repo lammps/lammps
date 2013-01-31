@@ -9,67 +9,66 @@
 
 <HR>
 
-<H3>pair_style line/lj command 
-</H3>
-<H3>pair_style line/lj/omp command 
+<H3>pair_style body command 
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>pair_style line/lj cutoff 
+<PRE>pair_style body cutoff 
 </PRE>
 <P>cutoff = global cutoff for interactions (distance units)
 </P>
 <P><B>Examples:</B>
 </P>
-<PRE>pair_style line/lj 3.0
+<PRE>pair_style body 3.0
 pair_coeff * * 1.0 1.0
 pair_coeff 1 1 1.0 1.5 2.5 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Style <I>line/lj</I> treats particles which are line segments as a set of
-small spherical particles that tile the line segment length as
-explained below.  Interactions between two line segments, each with N1
-and N2 spherical particles, are calculated as the pairwise sum of
-N1*N2 Lennard-Jones interactions.  Interactions between a line segment
-with N spherical particles and a point particle are treated as the
-pairwise sum of N Lennard-Jones interactions.  See the <A HREF = "pair_lj.html">pair_style
-lj/cut</A> doc page for the definition of Lennard-Jones
-interactions.
+<P>Style <I>body</I> treats particles which are body particles and computes
+pairwise body/body interaction as well as interactions between body
+and point-particles.  See <A HREF = "Section_howto.html">Section_howto 22</A> of the
+manual for an overview of using body particles.
 </P>
-<P>The cutoff distance for an interaction between 2 line segments, or
-between a line segment and a point particle, is calculated from the
-position of the line segment (its center), not between pairs of
-individual spheres comprising the line segment.  Thus an interaction
-is either calculated in its entirety or not at all.
+<P>This pair style is designed for use with the "nparticle" body style,
+which is specified as an argument to the "atom-style body" command.
+See the <A HREF = "body.html">body</A> doc page for more details about all the body
+styles LAMMPS supports.  The nparticle style treats a body particle as
+a rigid body composed of N sub-particles.
 </P>
-<P>The set of non-overlapping spherical particles that represent a line
-segment, for purposes of this pair style, are generated in the
-following manner.  Their size is a function of the line segment length
-and the specified sigma for that particle type.  If a line segment has
-a length L and is of type I, then the number of spheres N that
-represent the segment is calculated as N = L/sigma_II, rounded up to
-an integer value.  Thus if L is not evenly divisibly by sigam_II, N is
-incremented to include one extra sphere.  In this case, the spheres
-must be slightly smaller than sigma_II so as not to overlap, so a new
-sigma-prime is chosen as the sphere diameter, such that L/N =
-sigma-prime.  Thus the line segment interacts with other segments or
-point particles as a collection of N spheres of diameter sigma-prime,
-evenly spaced along the line segment, so as to exactly cover its
-length.
+<P>The position of a body particle is the position of its center-of-mass
+(COM).  If the COMs of a pair of body particles are within the cutoff
+(global or type-specific, as specified above), then all interactions
+between pairs of sub-particles in the two body particles are computed.
+E.g. if the first body particle has 3 sub-particles, and the second
+has 10, then 30 interactions are computed to sum the total force and
+torque on each body particle.  Note that all 30 interactions are
+computed even if the distance between a particular pair of
+sub-particles is greater than the cutoff.  Likewise, no interaction
+between two body particles is computed if the two COMs are further
+apart than the cutoff, even if the distance between some pairs of
+their sub-particles is within the cutoff.  Thus care should be used in
+defining the cutoff distances for body particles, depending on their
+shape and size.
 </P>
-<P>The LJ interaction between 2 spheres on different line segments of
-types I,J is computed with an arithmetic mixing of the sigma values of
-the 2 spheres and using the specified epsilon value for I,J atom
-types.  Note that because the sigma values for line segment spheres is
-computed using only sigma_II values, specific to the line segment's
-type, this means that any specified sigma_IJ values (for I != J) are
-effectively ignored.
+<P>Similar rules apply for a body particle interacting with a point
+particle.  The distance between the two particles is calculated using
+the COM of the body particle and the position of the point particle.
+If the distance is within the cutoff and the body particle has N
+sub-particles, then N interactions are computed with the point
+particle.  If the distance is not within the cutoff, no interactions
+between the body and point particle are computed.
 </P>
-<P>For style <I>line/lj</I>, the following coefficients must be defined for
-each pair of atoms types via the <A HREF = "pair_coeff.html">pair_coeff</A> command
-as in the examples above, or in the data file or restart files read by
-the <A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
+<P>The interaction between two sub-particles (or a sub-particle and point
+particle) is computed as a Lennard-Jones interaction, using the
+standard formula on the <A HREF = "pair_lj.html">pair_style lj/cut</A> doc page.
+The espilon and sigma values are based on the atom type of the parent
+body particle.
+</P>
+<P>For style <I>body</I>, the following coefficients must be defined for each
+pair of atoms types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in
+the examples above, or in the data file or restart files read by the
+<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
 commands:
 </P>
 <UL><LI>epsilon (energy units)
@@ -78,28 +77,6 @@ commands:
 </UL>
 <P>The last coefficient is optional.  If not specified, the global cutoff
 is used.
-</P>
-<HR>
-
-<P>Styles with a <I>cuda</I>, <I>gpu</I>, <I>omp</I>, or <I>opt</I> suffix are functionally
-the same as the corresponding style without the suffix.  They have
-been optimized to run faster, depending on your available hardware, as
-discussed in <A HREF = "Section_accelerate.html">Section_accelerate</A> of the
-manual.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-</P>
-<P>These accelerated styles are part of the USER-CUDA, GPU, USER-OMP and OPT
-packages, respectively.  They are only enabled if LAMMPS was built with
-those packages.  See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A>
-section for more info.
-</P>
-<P>You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the <A HREF = "Section_start.html#start_7">-suffix command-line
-switch</A> when you invoke LAMMPS, or you can
-use the <A HREF = "suffix.html">suffix</A> command in your input script.
-</P>
-<P>See <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual for
-more instructions on how to use the accelerated styles effectively.
 </P>
 <HR>
 
@@ -124,17 +101,17 @@ files</A>.
 
 <P><B>Restrictions:</B>
 </P>
-<P>This style is part of the ASPHERE package.  It is only enabled if
-LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_3">Making
+<P>This style is part of the BODY package.  It is only enabled if LAMMPS
+was built with that package.  See the <A HREF = "Section_start.html#2_3">Making
 LAMMPS</A> section for more info.
 </P>
-<P>Defining particles to be line segments so they participate in
-line/line or line/particle interactions requires the use the
-<A HREF = "atom_style.html">atom_style line</A> command.
+<P>Defining particles to be bodies so they participate in body/body or
+body/particle interactions requires the use of the <A HREF = "atom_style.html">atom_style
+body</A> command.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "pair_coeff.html">pair_coeff</A>, <A HREF = "pair_tri_lj.html">pair_style tri/lj</A>
+<P><A HREF = "pair_coeff.html">pair_coeff</A>, <A HREF = "fix_rigid.html">fix_rigid</A>
 </P>
 <P><B>Default:</B> none
 </P>

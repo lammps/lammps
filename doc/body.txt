@@ -118,7 +118,7 @@ atom-ID 1 M
 N
 x1 y1 z1 ...
 ...
-xN yN zN :pre
+... xN yN zN :pre
 
 N is the number of sub-particles in the body particle.  M = 3*N.  The
 integer line has a single value N.  The floating point line(s) list
@@ -126,22 +126,22 @@ the coordinates of the N sub-particles (x1 to zN) as 3N values on as
 many lines as required.  Note that this in not N lines, but 10 values
 per line; see the "read_data"_read_data.html command for details.  The
 coordinates of each sub-particle are specified as its x,y,z
-displacement from the center-of-mass of the body particle, which is
-specified as its coordinates in the {Atoms} section of the data file.
+displacement from the center-of-mass of the body particle, which in
+turn is given in the {Atoms} section of the data file.
 
 The "pair_style body"_pair_body.html command can be used with this
 body style to compute body/body and body/non-body interactions.
 
-For output purposes via the compute body/local and dump local
-commands, this body style produces one datum for each sub-particle in
-a body particle.  The datum has 3 values:
+For output purposes via the "compute
+body/local"_compute_body_local.html and "dump local"_dump.html
+commands, this body style produces one datum for each of the N
+sub-particles in a body particle.  The datum has 3 values:
 
 1 = x position of sub-particle
 2 = y position of sub-particle
-3 = z position of sub-particle
+3 = z position of sub-particle :pre
 
-These are the current position of the sub-particle within the
+These values are the current position of the sub-particle within the
 simulation domain, not a displacement from the center-of-mass (COM) of
 the body particle itself.  These values are calculated using the
-current COM and orientiation of the body particle, and the
-displacement of the sub-particle from the COM.
+current COM and orientiation of the body particle.

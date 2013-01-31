@@ -125,7 +125,7 @@ in the <I>Bodies</I> section of the data file:
 N
 x1 y1 z1 ...
 ...
-xN yN zN 
+... xN yN zN 
 </PRE>
 <P>N is the number of sub-particles in the body particle.  M = 3*N.  The
 integer line has a single value N.  The floating point line(s) list
@@ -133,24 +133,24 @@ the coordinates of the N sub-particles (x1 to zN) as 3N values on as
 many lines as required.  Note that this in not N lines, but 10 values
 per line; see the <A HREF = "read_data.html">read_data</A> command for details.  The
 coordinates of each sub-particle are specified as its x,y,z
-displacement from the center-of-mass of the body particle, which is
-specified as its coordinates in the <I>Atoms</I> section of the data file.
+displacement from the center-of-mass of the body particle, which in
+turn is given in the <I>Atoms</I> section of the data file.
 </P>
 <P>The <A HREF = "pair_body.html">pair_style body</A> command can be used with this
 body style to compute body/body and body/non-body interactions.
 </P>
-<P>For output purposes via the compute body/local and dump local
-commands, this body style produces one datum for each sub-particle in
-a body particle.  The datum has 3 values:
+<P>For output purposes via the <A HREF = "compute_body_local.html">compute
+body/local</A> and <A HREF = "dump.html">dump local</A>
+commands, this body style produces one datum for each of the N
+sub-particles in a body particle.  The datum has 3 values:
 </P>
-<P>1 = x position of sub-particle
+<PRE>1 = x position of sub-particle
 2 = y position of sub-particle
-3 = z position of sub-particle
-</P>
-<P>These are the current position of the sub-particle within the
+3 = z position of sub-particle 
+</PRE>
+<P>These values are the current position of the sub-particle within the
 simulation domain, not a displacement from the center-of-mass (COM) of
 the body particle itself.  These values are calculated using the
-current COM and orientiation of the body particle, and the
-displacement of the sub-particle from the COM.
+current COM and orientiation of the body particle.
 </P>
 </HTML>

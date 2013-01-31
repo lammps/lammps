@@ -32,6 +32,21 @@ identical answers to those in the log of dump files included here.
 See the Errors section of the LAMMPS documentation for more
 discussion.
 
+If you uncomment the dump command in the input script, a text dump
+file will be produced, which can be animated by various visualization
+programs (see http://lammps.sandia.gov/viz.html).  It can also be
+animated using the xmovie tool described in the Additional Tools
+section of the LAMMPS documentation.
+
+If you uncomment the dump image command in the input script, and
+assuming you have built LAMMPS with a JPG library, JPG snapshot images
+will be produced when the simulation runs.  They can be quickly
+post-processed into a movie using commands described on the dump image
+doc page.
+
+Animations of many of these examples can be viewed on the Movies
+section of the LAMMPS WWW Site.
+
 These are the sample problems and their output in the various
 sub-directories:
 
@@ -75,13 +90,10 @@ cd indent
 cp ../../src/lmp_linux .           # copy LAMMPS executable to this dir
 lmp_linux < in.indent              # run the problem
 
-If you uncomment the dump atom (or dump custom or dump cfg) line(s) in
-the input script a dump.* file will be produced by the run.  These can
-be animated using tools like VMD or AtomEye, or the xmovie tool
-described in the "Additional Tools" section of the LAMMPS
-documentation, e.g.
+Running the simulation produces the files {dump.indent} and
+{log.lammps}.  You can visualize the dump file as follows:
 
-% ../../tools/xmovie/xmovie -scale dump.indent
+../../tools/xmovie/xmovie -scale dump.indent
 
 If you uncomment the dump image line(s) in the input script a series
 of JPG images will be produced by the run.  These can be viewed
@@ -103,10 +115,6 @@ COUPLE/README file to get started.
 The ELASTIC directory has an example script for computing elastic
 constants, using a zero temperature Si example.  See the
 ELASTIC/in.elastic file for more info.
-
-------------------------------------------
-
-USER directory
 
 The USER directory contains subdirectories of user-provided example
 scripts for ser packages.  See the README files in those directories

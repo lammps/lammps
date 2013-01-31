@@ -1,0 +1,188 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>atom_style command 
+</H3>
+<P>These are the body styles that LAMMPS currently supports.  The name in
+the first column is used as the <I>bstyle</I> argument for atom_style body:
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR><TD ><I>nparticle</I> </TD><TD > body with N sub-particles 
+</TD></TR></TABLE></DIV>
+
+<P><B>Syntax:</B>
+</P>
+<PRE>atom_style style args 
+</PRE>
+<UL><LI>style = <I>angle</I> or <I>atomic</I> or <I>body</I> or <I>bond</I> or <I>charge</I> or <I>dipole</I> or         <I>electron</I> or <I>ellipsoid</I> or <I>full</I> or <I>line</I> or <I>meso</I> or 	<I>molecular</I> or <I>peri</I> or <I>sphere</I> or <I>tri</I> or <I>hybrid</I> 
+</UL>
+<PRE>  args = none for any style except <I>body</I> and <I>hybrid</I>
+  <I>body</I> args = bstyle
+    bstyle = style of body particles
+  <I>hybrid</I> args = list of one or more sub-styles, each with their args 
+</PRE>
+<P><B>Examples:</B>
+</P>
+<PRE>atom_style atomic
+atom_style bond
+atom_style full
+atom_style body nparticle 2 10
+atom_style hybrid charge bond
+atom_style hybrid charge body nparticle 2 5 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define what style of atoms to use in a simulation.  This determines
+what attributes are associated with the atoms.  This command must be
+used before a simulation is setup via a <A HREF = "read_data.html">read_data</A>,
+<A HREF = "read_restart.html">read_restart</A>, or <A HREF = "create_box.html">create_box</A>
+command.
+</P>
+<P>Once a style is assigned, it cannot be changed, so use a style general
+enough to encompass all attributes.  E.g. with style <I>bond</I>, angular
+terms cannot be used or added later to the model.  It is OK to use a
+style more general than needed, though it may be slightly inefficient.
+</P>
+<P>The choice of style affects what quantities are stored by each atom,
+what quantities are communicated between processors to enable forces
+to be computed, and what quantities are listed in the data file read
+by the <A HREF = "read_data.html">read_data</A> command.
+</P>
+<P>These are the additional attributes of each style and the typical
+kinds of physical systems they are used to model.  All styles store
+coordinates, velocities, atom IDs and types.  See the
+<A HREF = "read_data.html">read_data</A>, <A HREF = "create_atoms.html">create_atoms</A>, and
+<A HREF = "set.html">set</A> commands for info on how to set these various
+quantities.
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR><TD ><I>angle</I> </TD><TD > bonds and angles </TD><TD > bead-spring polymers with stiffness </TD></TR>
+<TR><TD ><I>atomic</I> </TD><TD > only the default values </TD><TD > coarse-grain liquids, solids, metals </TD></TR>
+<TR><TD ><I>body</I> </TD><TD > mass, inertia moments, quaternion, angular momentum </TD><TD > arbitrary bodies </TD></TR>
+<TR><TD ><I>bond</I> </TD><TD > bonds </TD><TD > bead-spring polymers </TD></TR>
+<TR><TD ><I>charge</I> </TD><TD > charge </TD><TD > atomic system with charges </TD></TR>
+<TR><TD ><I>dipole</I> </TD><TD > charge and dipole moment </TD><TD > system with dipolar particles </TD></TR>
+<TR><TD ><I>electron</I> </TD><TD > charge and spin and eradius </TD><TD > electronic force field </TD></TR>
+<TR><TD ><I>ellipsoid</I> </TD><TD > shape, quaternion, angular momentum </TD><TD > extended aspherical particles </TD></TR>
+<TR><TD ><I>full</I> </TD><TD > molecular + charge </TD><TD > bio-molecules </TD></TR>
+<TR><TD ><I>line</I> </TD><TD > end points, angular velocity </TD><TD > rigid bodies </TD></TR>
+<TR><TD ><I>meso</I> </TD><TD > rho, e, cv </TD><TD > SPH particles </TD></TR>
+<TR><TD ><I>molecular</I> </TD><TD > bonds, angles, dihedrals, impropers </TD><TD > uncharged molecules </TD></TR>
+<TR><TD ><I>peri</I> </TD><TD > mass, volume </TD><TD > mesocopic Peridynamic models </TD></TR>
+<TR><TD ><I>sphere</I> </TD><TD > diameter, mass, angular velocity </TD><TD > granular models </TD></TR>
+<TR><TD ><I>tri</I> </TD><TD > corner points, angular momentum </TD><TD > rigid bodies </TD></TR>
+<TR><TD ><I>wavepacket</I> </TD><TD > charge, spin, eradius, etag, cs_re, cs_im </TD><TD > AWPMD 
+</TD></TR></TABLE></DIV>
+
+<P>All of the styles define point particles, except the <I>sphere</I>,
+<I>ellipsoid</I>, <I>electron</I>, <I>peri</I>, <I>wavepacket</I>, <I>line</I>, <I>tri</I>, and
+<I>body</I> styles, which define finite-size particles.
+</P>
+<P>All of the styles assign mass to particles on a per-type basis, using
+the <A HREF = "mass.html">mass</A> command, except for the finite-size particle
+styles.  They assign mass to individual particles on a per-particle
+basis.
+</P>
+<P>For the <I>sphere</I> style, the particles are spheres and each stores a
+per-particle diameter and mass.  If the diameter > 0.0, the particle
+is a finite-size sphere.  If the diameter = 0.0, it is a point
+particle.
+</P>
+<P>For the <I>ellipsoid</I> style, the particles are ellipsoids and each
+stores a flag which indicates whether it is a finite-size ellipsoid or
+a point particle.  If it is an ellipsoid, it also stores a shape
+vector with the 3 diamters of the ellipsoid and a quaternion 4-vector
+with its orientation.
+</P>
+<P>For the <I>electron</I> style, the particles representing electrons are 3d
+Gaussians with a specified position and bandwidth or uncertainty in
+position, which is represented by the eradius = electron size.
+</P>
+<P>For the <I>peri</I> style, the particles are spherical and each stores a
+per-particle mass and volume.
+</P>
+<P>The <I>meso</I> style is for smoothed particle hydrodynamics (SPH)
+particles which store a density (rho), energy (e), and heat capacity
+(cv).
+</P>
+<P>The <I>wavepacket</I> style is similar to <I>electron</I>, but the electrons may
+consist of several Gaussian wave packets, summed up with coefficients
+cs= (cs_re,cs_im).  Each of the wave packets is treated as a separate
+particle in LAMMPS, wave packets belonging to the same electron must
+have identical <I>etag</I> values.
+</P>
+<P>For the <I>line</I> style, the particles are idealized line segments and
+each stores a per-particle mass and length and orientation (i.e. the
+end points of the line segment).
+</P>
+<P>For the <I>tri</I> style, the particles are planar triangles and each
+stores a per-particle mass and size and orientation (i.e. the corner
+points of the triangle).
+</P>
+<P>For the <I>body</I> style, the particles are arbitrary bodies with internal
+attributes defined by the "style" of the bodies, which is specified by
+the <I>bstyle</I> argument.  Each body particle stores moments of inertia
+and a quaternion 4-vector, so that its orientation and position can be
+time integrated due to forces and torques.  This atom style enables
+LAMMPS to work with particles that represent complex entities, such as
+surface meshes of discrete points, collections of sub-particles,
+deformable objects, etc.  Of course, the interactions between pairs of
+bodies will need to be encoded in an appropriate pair style.
+</P>
+<P>The <A HREF = "body.html">body</A> doc page descibes the body styles LAMMPS
+supports, and provides more details.
+</P>
+<HR>
+
+<P>Typically, simulations require only a single (non-hybrid) atom style.
+If some atoms in the simulation do not have all the properties defined
+by a particular style, use the simplest style that defines all the
+needed properties by any atom.  For example, if some atoms in a
+simulation are charged, but others are not, use the <I>charge</I> style.
+If some atoms have bonds, but others do not, use the <I>bond</I> style.
+</P>
+<P>The only scenario where the <I>hybrid</I> style is needed is if there is no
+single style which defines all needed properties of all atoms.  For
+example, if you want dipolar particles which will rotate due to
+torque, you would need to use "atom_style hybrid sphere dipole".  When
+a hybrid style is used, atoms store and communicate the union of all
+quantities implied by the individual styles.
+</P>
+<P>LAMMPS can be extended with new atom styles as well as new body
+styles; see <A HREF = "Section_modify.html">this section</A>.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This command cannot be used after the simulation box is defined by a
+<A HREF = "read_data.html">read_data</A> or <A HREF = "create_box.html">create_box</A> command.
+</P>
+<P>The <I>angle</I>, <I>bond</I>, <I>full</I>, and <I>molecular</I> styles are part of the
+MOLECULAR package.  The <I>line</I>, <I>tri</I>, and <I>body</I> styles are part of
+the ASPHERE pacakge.  The <I>dipole</I> style is part of the DIPOLE
+package.  The <I>peri</I> style is part of the PERI package for
+Peridynamics.  The <I>electron</I> style is part of the USER-EFF package
+for <A HREF = "pair_eff.html">electronic force fields</A>.  The <I>meso</I> style is part
+of the USER-SPH package for smoothed particle hydrodyanmics (SPH).
+See <A HREF = "USER/sph/SPH_LAMMPS_userguide.pdf">this PDF guide</A> to using SPH in
+LAMMPS.  The <I>wavepacket</I> style is part of the USER-AWPMD package for
+the <A HREF = "pair_awpmd.html">antisymmetrized wave packet MD method</A>.  They are
+only enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "read_data.html">read_data</A>, <A HREF = "pair_style.html">pair_style</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>atom_style atomic
+</P>
+</HTML>

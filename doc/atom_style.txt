@@ -118,11 +118,9 @@ points of the triangle).
 
 For the {body} style, the particles are arbitrary bodies with internal
 attributes defined by the "style" of the bodies, which is specified by
-the {bstyle} argument.  This atom style enables LAMMPS to work with
-particles that represent complex entities, such as surface meshes of
-discrete points, collections of sub-particles, deformable objects,
-etc.  Of course, the interactions between pairs of bodies will need to
-be encoded in an appropriate pair style.
+the {bstyle} argument.  Body particles can represent complex entities,
+such as surface meshes of discrete points, collections of
+sub-particles, deformable objects, etc.
 
 The "body"_body.html doc page descibes the body styles LAMMPS
 currently supports, and provides more details as to the kind of body

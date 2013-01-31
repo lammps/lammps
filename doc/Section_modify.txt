@@ -26,9 +26,10 @@ and extending its source code.
 10.9 "Minimization styles"_#mod_9
 10.10 "Pairwise potentials"_#mod_10
 10.11 "Region styles"_#mod_11
-10.12 "Thermodynamic output options"_#mod_12
-10.13 "Variable options"_#mod_13
-10.14 "Submitting new features for inclusion in LAMMPS"_#mod_14 :all(b)
+10.12 "Body styles"_#mod_12
+10.13 "Thermodynamic output options"_#mod_13
+10.14 "Variable options"_#mod_14
+10.15 "Submitting new features for inclusion in LAMMPS"_#mod_15 :all(b)
 
 LAMMPS is designed in a modular fashion so as to be easy to modify and
 extend with new functionality.  In fact, about 75% of its source code
@@ -476,7 +477,36 @@ match: determine whether a point is in the region :tb(s=:)
 
 :line
 
-10.12 Thermodynamic output options :link(mod_12),h4
+10.11 Body styles :link(mod_12),h4
+
+Classes that define body particles are derived from the Body class.
+Body particles can represent complex entities, such as surface meshes
+of discrete points, collections of sub-particles, deformable objects,
+etc.
+
+See "Section_howto 22"_Section_howto.html of the manual for an
+overview of using body particles and the "body"_body.html doc page for
+details on the various body styles LAMMPS supports.  New styles can be
+created to add new kinds of body particles to LAMMPS.
+
+Body_nparticle.cpp is an example of a body particle that is treated as
+a rigid body containing N sub-particles.
+
+Here is a brief description of methods you define in your new derived
+class.  See body.h for details.
+
+data_body: process a line from the Bodies section of a data file
+noutrow: number of sub-particles output is generated for
+noutcol: number of values per-sub-particle output is generated for
+output: output values for the Mth sub-particle
+pack_comm_body: body attributes to communicate every timestep
+unpack_comm_body: unpacking of those attributes
+pack_border_body: body attributes to communicate when reneighboring is done
+unpack_border_body: unpacking of those attributes :tb(s=:)
+
+:line
+
+10.13 Thermodynamic output options :link(mod_13),h4
 
 There is one class that computes and prints thermodynamic information
 to the screen and log file; see the file thermo.cpp.
@@ -505,7 +535,7 @@ by adding a new keyword to the thermo command.
 
 :line
 
-10.13 Variable options :link(mod_13),h4
+10.14 Variable options :link(mod_14),h4
 
 There is one class that computes and stores "variable"_variable.html
 information in LAMMPS; see the file variable.cpp.  The value
@@ -546,7 +576,7 @@ then be accessed by variables) was discussed
 :line
 :line
 
-10.14 Submitting new features for inclusion in LAMMPS :link(mod_14),h4
+10.15 Submitting new features for inclusion in LAMMPS :link(mod_15),h4
 
 We encourage users to submit new features that they add to LAMMPS to
 "the developers"_http://lammps.sandia.gov/authors.html, especially if

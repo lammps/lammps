@@ -27,9 +27,10 @@ and extending its source code.
 10.9 <A HREF = "#mod_9">Minimization styles</A><BR>
 10.10 <A HREF = "#mod_10">Pairwise potentials</A><BR>
 10.11 <A HREF = "#mod_11">Region styles</A><BR>
-10.12 <A HREF = "#mod_12">Thermodynamic output options</A><BR>
-10.13 <A HREF = "#mod_13">Variable options</A><BR>
-10.14 <A HREF = "#mod_14">Submitting new features for inclusion in LAMMPS</A> <BR>
+10.12 <A HREF = "#mod_12">Body styles</A><BR>
+10.13 <A HREF = "#mod_13">Thermodynamic output options</A><BR>
+10.14 <A HREF = "#mod_14">Variable options</A><BR>
+10.15 <A HREF = "#mod_15">Submitting new features for inclusion in LAMMPS</A> <BR>
 
 <P>LAMMPS is designed in a modular fashion so as to be easy to modify and
 extend with new functionality.  In fact, about 75% of its source code
@@ -499,7 +500,38 @@ class.  See region.h for details.
 
 <HR>
 
-<A NAME = "mod_12"></A><H4>10.12 Thermodynamic output options 
+<A NAME = "mod_12"></A><H4>10.11 Body styles 
+</H4>
+<P>Classes that define body particles are derived from the Body class.
+Body particles can represent complex entities, such as surface meshes
+of discrete points, collections of sub-particles, deformable objects,
+etc.
+</P>
+<P>See <A HREF = "Section_howto.html">Section_howto 22</A> of the manual for an
+overview of using body particles and the <A HREF = "body.html">body</A> doc page for
+details on the various body styles LAMMPS supports.  New styles can be
+created to add new kinds of body particles to LAMMPS.
+</P>
+<P>Body_nparticle.cpp is an example of a body particle that is treated as
+a rigid body containing N sub-particles.
+</P>
+<P>Here is a brief description of methods you define in your new derived
+class.  See body.h for details.
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR><TD >data_body</TD><TD > process a line from the Bodies section of a data file</TD></TR>
+<TR><TD >noutrow</TD><TD > number of sub-particles output is generated for</TD></TR>
+<TR><TD >noutcol</TD><TD > number of values per-sub-particle output is generated for</TD></TR>
+<TR><TD >output</TD><TD > output values for the Mth sub-particle</TD></TR>
+<TR><TD >pack_comm_body</TD><TD > body attributes to communicate every timestep</TD></TR>
+<TR><TD >unpack_comm_body</TD><TD > unpacking of those attributes</TD></TR>
+<TR><TD >pack_border_body</TD><TD > body attributes to communicate when reneighboring is done</TD></TR>
+<TR><TD >unpack_border_body</TD><TD > unpacking of those attributes 
+</TD></TR></TABLE></DIV>
+
+<HR>
+
+<A NAME = "mod_13"></A><H4>10.13 Thermodynamic output options 
 </H4>
 <P>There is one class that computes and prints thermodynamic information
 to the screen and log file; see the file thermo.cpp.
@@ -528,7 +560,7 @@ by adding a new keyword to the thermo command.
 </P>
 <HR>
 
-<A NAME = "mod_13"></A><H4>10.13 Variable options 
+<A NAME = "mod_14"></A><H4>10.14 Variable options 
 </H4>
 <P>There is one class that computes and stores <A HREF = "variable.html">variable</A>
 information in LAMMPS; see the file variable.cpp.  The value
@@ -570,7 +602,7 @@ then be accessed by variables) was discussed
 
 <HR>
 
-<A NAME = "mod_14"></A><H4>10.14 Submitting new features for inclusion in LAMMPS 
+<A NAME = "mod_15"></A><H4>10.15 Submitting new features for inclusion in LAMMPS 
 </H4>
 <P>We encourage users to submit new features that they add to LAMMPS to
 <A HREF = "http://lammps.sandia.gov/authors.html">the developers</A>, especially if

@@ -16,6 +16,13 @@ the first column is used as the {bstyle} argument for atom_style body:
 
 {nparticle} | body with N sub-particles :tb(c=2,s=|)
 
+Of course, the interactions
+between pairs of bodies will need to be encoded in an appropriate pair
+style.
+
+Body particles can represent complex entities,
+such as surface meshes of discrete points, collections of
+sub-particles, deformable objects, etc.
 
 
 [Syntax:]

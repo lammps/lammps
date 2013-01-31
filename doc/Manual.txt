@@ -150,9 +150,10 @@ it gives quick access to documentation for all LAMMPS commands.
   10.9 "Minimization styles"_mod_9 :b
   10.10 "Pairwise potentials"_mod_10 :b
   10.11 "Region styles"_mod_11 :b
-  10.12 "Thermodynamic output options"_mod_12 :b
-  10.13 "Variable options"_mod_13 :b
-  10.14 "Submitting new features for inclusion in LAMMPS"_mod_14 :ule,b
+  10.12 "Body styles"_mod_12 :b
+  10.13 "Thermodynamic output options"_mod_13 :b
+  10.14 "Variable options"_mod_14 :b
+  10.15 "Submitting new features for inclusion in LAMMPS"_mod_15 :ule,b
 "Python interface"_Section_python.html :l
   11.1 "Building LAMMPS as a shared library"_py_1 :ulb,b
   11.2 "Installing the Python wrapper into Python"_py_2 :b
@@ -240,6 +241,7 @@ it gives quick access to documentation for all LAMMPS commands.
 :link(mod_12,Section_modify.html#mod_12)
 :link(mod_13,Section_modify.html#mod_13)
 :link(mod_14,Section_modify.html#mod_14)
+:link(mod_15,Section_modify.html#mod_15)
 
 :link(py_1,Section_python.html#py_1)
 :link(py_2,Section_python.html#py_2)

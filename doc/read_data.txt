@@ -96,6 +96,7 @@ is different than the default.
 {ellipsoids} = # of ellipsoids in system
 {lines} = # of line segments in system
 {triangles} = # of triangles in system
+{bodies} = # of bodies in system
 {xlo xhi} = simulation box boundaries in x dimension
 {ylo yhi} = simulation box boundaries in y dimension
 {zlo zhi} = simulation box boundaries in z dimension
@@ -172,19 +173,21 @@ added to the system when a simulation runs, e.g. by using the "fix
 bond/create"_fix_bond_create.html command.  This will pre-allocate
 space in LAMMPS data structures for storing the new bonds.
 
-The "ellipsoids" and "lines" and "triangles" settings are only used
-with "atom_style ellipsoid or line or tri"_atom_style.html and
-specifies how many of the atoms are finite-size ellipsoids or lines or
-triangles; the remainder are point particles.  See the discussion of
-ellipsoidflag and the {Ellipsoids} section below.  See the discussion
-of lineflag and the {Lines} section below.  See the discussion of
-triangleflag and the {Triangles} section below.
+The "ellipsoids" and "lines" and "triangles" and "bodies" settings are
+only used with "atom_style ellipsoid or line or tri or
+body"_atom_style.html and specify how many of the atoms are
+finite-size ellipsoids or lines or triangles or bodies; the remainder
+are point particles.  See the discussion of ellipsoidflag and the
+{Ellipsoids} section below.  See the discussion of lineflag and the
+{Lines} section below.  See the discussion of triangleflag and the
+{Triangles} section below.  See the discussion of bodyflag and the
+{Bodies} section below.
 
 :line
 
 These are the section keywords for the body of the file.
 
-{Atoms, Velocities, Masses, Ellipsoids, Lines, Triangles} = atom-property sections 
+{Atoms, Velocities, Masses, Ellipsoids, Lines, Triangles, Bodies} = atom-property sections 
 {Bonds, Angles, Dihedrals, Impropers} = molecular topology sections 
 {Pair Coeffs, Bond Coeffs, Angle Coeffs, Dihedral Coeffs, \
    Improper Coeffs} = force field sections
@@ -286,6 +289,7 @@ of analysis.
 
 angle: atom-ID molecule-ID atom-type x y z
 atomic: atom-ID atom-type x y z
+body: atom-ID atom-type bodyflag mass x y z
 bond: atom-ID molecule-ID atom-type x y z
 charge: atom-ID atom-type q x y z
 dipole: atom-ID atom-type q x y z mux muy muz
@@ -311,8 +315,10 @@ diameter = diameter of spherical atom (distance units)
 ellipsoidflag = 1 for ellipsoidal particles, 0 for point particles
 lineflag = 1 for line segment particles, 0 for point particles
 triangleflag = 1 for triangular particles, 0 for point particles
+bodyflag = 1 for body particles, 0 for point particles
 density = density of particle (mass/distance^3 or mass/distance^2 or mass/distance units, depending on dimensionality of particle)
-volume = volume of atom (distance^3 units)
+mass = mass of particle (mass units)
+volume = volume of particle (distance^3 units)
 x,y,z = coordinates of atom
 mux,muy,muz = components of dipole moment of atom (dipole units)
 rho = density (need units) for SPH particles
@@ -347,24 +353,28 @@ keep track of molecule assignments.
 The diameter specifies the size of a finite-size spherical particle.
 It can be set to 0.0, which means that atom is a point particle.
 
-The ellipsoidflag, lineflag, and triangleflag determine whether the
-particle is a finite-size ellipsoid or line or triangle of finite
-size, or a point particle.  Additional attributes must be defined for
-each ellipsoid in the {Ellipsoids} section.  Additional attributes
-must be defined for each line in the {Lines} section.  Additional
-attributes must be defined for each triangle in the {Triangles}
-section.
+The ellipsoidflag, lineflag, triangleflag, and bodyflag determine
+whether the particle is a finite-size ellipsoid or line or triangle or
+body of finite size, or a point particle.  Additional attributes must
+be defined for each ellipsoid in the {Ellipsoids} section.  Additional
+attributes must be defined for each line in the {Lines} section.
+Additional attributes must be defined for each triangle in the
+{Triangles} section.  Additional attributes must be defined for each
+body in the {Bodies} section.
 
 Some pair styles and fixes and computes that operate on finite-size
 particles allow for a mixture of finite-size and point particles.  See
 the doc pages of individual commands for details.
 
-The density is used in conjunction with the particle volume for
-finite-size particles to set the mass of the particle as mass =
-density * volume.  In this context, volume can be a 3d quantity (for
-spheres or ellipsoids), a 2d quantity (for triangles), or a 1d
-quantity (for line segments).  If the volume is 0.0, meaning a point
-particle, then the density value is used as the mass.
+For finite-size particles, the density is used in conjunction with the
+particle volume to set the mass of each particle as mass = density *
+volume.  In this context, volume can be a 3d quantity (for spheres or
+ellipsoids), a 2d quantity (for triangles), or a 1d quantity (for line
+segments).  If the volume is 0.0, meaning a point particle, then the
+density value is used as the mass.  One exception is for the body
+style, in which case the mass of each particle (body or point
+particle) is specified explicitly.  This is because the volume of the
+body is not known.
 
 For atom_style hybrid, following the 5 initial values (ID,type,x,y,z),
 specific values for each sub-style must be listed.  The order of the
@@ -410,6 +420,49 @@ Atom velocities and other atom quantities not defined above are set to
 a {Velocities} section in the data file or by a
 "velocity"_velocity.html or "set"_set.html command in the input
 script.
+
+:line
+
+{Bodies} section:
+
+one or more lines per body :ulb,l
+first line syntax: atom-ID ninteger ndouble :l
+  ninteger = # of integer quantities for this particle
+  ndouble = # of floating-point quantities for this particle :pre
+0 or more integer lines: one line for every 10 integer quantities :l
+0 or more double lines: one line for every 10 double quantities :l
+example: :l
+  12 3 6
+  2 3 2
+  1.0 2.0 3.0 1.0 2.0 4.0 :pre
+example: :l
+  12 0 14
+  1.0 2.0 3.0 1.0 2.0 4.0 1.0 2.0 3.0 1.0
+  2.0 4.0 4.0 2.0 :pre
+:ule
+
+The {Bodies} section must appear if "atom_style body"_atom_style.html
+is used and any atoms are listed in the {Atoms} section with a
+bodyflag = 1.  The number of bodies should be specified in the header
+section via the "bodies" keyword.
+
+Each body can have a variable number of integer and/or floating-point
+values.  The number and meaning of the values is defined by the Body
+style which will process and store them for each body.  This style is
+given as an argument to the "atom_style body"_atom_style.html command.
+
+The ninteger and ndouble values determine how many integer and
+floating-point values are specified for this particle.  Ninteger and
+ndouble can be as large as needed and can be different for every body.
+Integer values are then listed on subsequent lines, 10 values per
+line.  Floating-point values follow on subsequent lines, again 10 per
+line.  If the number of lines is not evenly divisible by 10, the last
+line in that group contains the remaining values, e.g. 4 values out of
+14 in the last example above, for floating-point values.  If there are
+no values of a particular type, no lines appear for that type,
+e.g. there are no integer lines in the last example above.
+
+The {Bodies} section must appear after the {Atoms} section.
 
 :line
 

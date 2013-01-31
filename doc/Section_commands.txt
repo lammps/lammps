@@ -446,6 +446,7 @@ of each style or click on the style itself for a full description:
 "nve"_fix_nve.html,
 "nve/asphere"_fix_nve_asphere.html,
 "nve/asphere/noforce"_fix_nve_asphere_noforce.html,
+"nve/body"_fix_nve_body.html,
 "nve/limit"_fix_nve_limit.html,
 "nve/line"_fix_nve_line.html,
 "nve/noforce"_fix_nve_noforce.html,
@@ -547,6 +548,7 @@ each style or click on the style itself for a full description:
 
 "angle/local"_compute_angle_local.html,
 "atom/molecule"_compute_atom_molecule.html,
+"body/local"_compute_body_local.html,
 "bond/local"_compute_bond_local.html,
 "centro/atom"_compute_centro_atom.html,
 "cluster/atom"_compute_cluster_atom.html,
@@ -634,6 +636,7 @@ potentials.  Click on the style itself for a full description:
 "adp"_pair_adp.html,
 "airebo"_pair_airebo.html,
 "beck"_pair_beck.html,
+"body"_pair_body.html,
 "bop"_pair_bop.html,
 "born"_pair_born.html,
 "born/coul/long"_pair_born.html,

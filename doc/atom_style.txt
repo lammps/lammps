@@ -12,18 +12,22 @@ atom_style command :h3
 
 atom_style style args :pre
 
-style = {angle} or {atomic} or {bond} or {charge} or {dipole} or \
+style = {angle} or {atomic} or {body} or {bond} or {charge} or {dipole} or \
         {electron} or {ellipsoid} or {full} or {line} or {meso} or \
 	{molecular} or {peri} or {sphere} or {tri} or {hybrid} :ul
-  args = none for any style except {hybrid}
-  {hybrid} args = list of one or more sub-styles :pre
+  args = none for any style except {body} and {hybrid}
+  {body} args = Bstyle
+    Bstyle = style of body particles
+  {hybrid} args = list of one or more sub-styles, each with their args :pre
 
 [Examples:]
 
 atom_style atomic
 atom_style bond
 atom_style full
-atom_style hybrid charge bond :pre
+atom_style body nparticle
+atom_style hybrid charge bond
+atom_style hybrid charge body nparticle :pre
 
 [Description:]
 
@@ -52,11 +56,12 @@ quantities.
 
 {angle} | bonds and angles | bead-spring polymers with stiffness |
 {atomic} | only the default values | coarse-grain liquids, solids, metals |
+{body} | mass, inertia moments, quaternion, angular momentum | arbitrary bodies |
 {bond} | bonds | bead-spring polymers |
 {charge} | charge | atomic system with charges |
 {dipole} | charge and dipole moment | system with dipolar particles |
 {electron} | charge and spin and eradius | electronic force field |
-{ellipsoid} | shape, quaternion for particle orientation, angular momentum | extended aspherical particles |
+{ellipsoid} | shape, quaternion, angular momentum | extended aspherical particles |
 {full} | molecular + charge | bio-molecules |
 {line} | end points, angular velocity | rigid bodies |
 {meso} | rho, e, cv | SPH particles |
@@ -66,13 +71,14 @@ quantities.
 {tri} | corner points, angular momentum | rigid bodies |
 {wavepacket} | charge, spin, eradius, etag, cs_re, cs_im | AWPMD :tb(c=3,s=|)
 
+All of the styles define point particles, except the {sphere},
+{ellipsoid}, {electron}, {peri}, {wavepacket}, {line}, {tri}, and
+{body} styles, which define finite-size particles.
+
 All of the styles assign mass to particles on a per-type basis, using
 the "mass"_mass.html command, except for the finite-size particle
-styles discussed below.  They assign mass on a per-atom basis.
-
-All of the styles define point particles, except the {sphere},
-{ellipsoid}, {electron}, {peri}, {wavepacket}, {line}, and {tri}
-styles, which define finite-size particles.
+styles.  They assign mass to individual particles on a per-particle
+basis.
 
 For the {sphere} style, the particles are spheres and each stores a
 per-particle diameter and mass.  If the diameter > 0.0, the particle
@@ -110,6 +116,21 @@ For the {tri} style, the particles are planar triangles and each
 stores a per-particle mass and size and orientation (i.e. the corner
 points of the triangle).
 
+For the {body} style, the particles are arbitrary bodies with internal
+attributes defined by the "style" of the bodies, which is specified by
+the {Bstyle} argument.  Each body particle stores moments of inertia
+and a quaternion 4-vector, so that its orientation can be time
+integrated.  This atom style enables LAMMPS to work with particles
+that represent complex entities, such as surface meshes of discrete
+points, collections of sub-particles, deformable objects, etc.  Of
+course, the interactions between pairs of bodies will need to be
+encoded in an appropriate pair style.
+
+These are the body styles that LAMMPS currently supports.  The name in
+the first column is used as the {Bstyle} argument for atom_style body:
+
+{nparticle} | body with N sub-particles :tb(c=2,s=|)
+
 :line
 
 Typically, simulations require only a single (non-hybrid) atom style.
@@ -121,13 +142,13 @@ If some atoms have bonds, but others do not, use the {bond} style.
 
 The only scenario where the {hybrid} style is needed is if there is no
 single style which defines all needed properties of all atoms.  For
-example, if you want dipolar particles which will be torqued and
-rotate, you would need to use "atom_style hybrid sphere dipole".  When
+example, if you want dipolar particles which will rotate due to
+torque, you would need to use "atom_style hybrid sphere dipole".  When
 a hybrid style is used, atoms store and communicate the union of all
 quantities implied by the individual styles.
 
-LAMMPS can be extended with new atom styles; see "this
-section"_Section_modify.html.
+LAMMPS can be extended with new atom styles as well as new body
+styles; see "this section"_Section_modify.html.
 
 [Restrictions:]
 
@@ -135,7 +156,8 @@ This command cannot be used after the simulation box is defined by a
 "read_data"_read_data.html or "create_box"_create_box.html command.
 
 The {angle}, {bond}, {full}, and {molecular} styles are part of the
-MOLECULAR package.  The {dipole} style is part of the "dipole"
+MOLECULAR package.  The {line}, {tri}, and {body} styles are part of
+the ASPHERE pacakge.  The {dipole} style is part of the DIPOLE
 package.  The {peri} style is part of the PERI package for
 Peridynamics.  The {electron} style is part of the USER-EFF package
 for "electronic force fields"_pair_eff.html.  The {meso} style is part

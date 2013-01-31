@@ -102,6 +102,7 @@ is different than the default.
 <LI><I>ellipsoids</I> = # of ellipsoids in system
 <LI><I>lines</I> = # of line segments in system
 <LI><I>triangles</I> = # of triangles in system
+<LI><I>bodies</I> = # of bodies in system
 <LI><I>xlo xhi</I> = simulation box boundaries in x dimension
 <LI><I>ylo yhi</I> = simulation box boundaries in y dimension
 <LI><I>zlo zhi</I> = simulation box boundaries in z dimension
@@ -178,19 +179,21 @@ added to the system when a simulation runs, e.g. by using the <A HREF = "fix_bon
 bond/create</A> command.  This will pre-allocate
 space in LAMMPS data structures for storing the new bonds.
 </P>
-<P>The "ellipsoids" and "lines" and "triangles" settings are only used
-with <A HREF = "atom_style.html">atom_style ellipsoid or line or tri</A> and
-specifies how many of the atoms are finite-size ellipsoids or lines or
-triangles; the remainder are point particles.  See the discussion of
-ellipsoidflag and the <I>Ellipsoids</I> section below.  See the discussion
-of lineflag and the <I>Lines</I> section below.  See the discussion of
-triangleflag and the <I>Triangles</I> section below.
+<P>The "ellipsoids" and "lines" and "triangles" and "bodies" settings are
+only used with <A HREF = "atom_style.html">atom_style ellipsoid or line or tri or
+body</A> and specify how many of the atoms are
+finite-size ellipsoids or lines or triangles or bodies; the remainder
+are point particles.  See the discussion of ellipsoidflag and the
+<I>Ellipsoids</I> section below.  See the discussion of lineflag and the
+<I>Lines</I> section below.  See the discussion of triangleflag and the
+<I>Triangles</I> section below.  See the discussion of bodyflag and the
+<I>Bodies</I> section below.
 </P>
 <HR>
 
 <P>These are the section keywords for the body of the file.
 </P>
-<UL><LI><I>Atoms, Velocities, Masses, Ellipsoids, Lines, Triangles</I> = atom-property sections 
+<UL><LI><I>Atoms, Velocities, Masses, Ellipsoids, Lines, Triangles, Bodies</I> = atom-property sections 
 <LI><I>Bonds, Angles, Dihedrals, Impropers</I> = molecular topology sections 
 <LI><I>Pair Coeffs, Bond Coeffs, Angle Coeffs, Dihedral Coeffs,    Improper Coeffs</I> = force field sections
 <LI><I>BondBond Coeffs, BondAngle Coeffs, MiddleBondTorsion Coeffs,    EndBondTorsion Coeffs, AngleTorsion Coeffs, AngleAngleTorsion Coeffs,    BondBond13 Coeffs, AngleAngle Coeffs</I> = class 2 force field sections 
@@ -309,6 +312,7 @@ of analysis.
 <DIV ALIGN=center><TABLE  BORDER=1 >
 <TR><TD >angle</TD><TD > atom-ID molecule-ID atom-type x y z</TD></TR>
 <TR><TD >atomic</TD><TD > atom-ID atom-type x y z</TD></TR>
+<TR><TD >body</TD><TD > atom-ID atom-type bodyflag mass x y z</TD></TR>
 <TR><TD >bond</TD><TD > atom-ID molecule-ID atom-type x y z</TD></TR>
 <TR><TD >charge</TD><TD > atom-ID atom-type q x y z</TD></TR>
 <TR><TD >dipole</TD><TD > atom-ID atom-type q x y z mux muy muz</TD></TR>
@@ -335,8 +339,10 @@ of analysis.
 <LI>ellipsoidflag = 1 for ellipsoidal particles, 0 for point particles
 <LI>lineflag = 1 for line segment particles, 0 for point particles
 <LI>triangleflag = 1 for triangular particles, 0 for point particles
+<LI>bodyflag = 1 for body particles, 0 for point particles
 <LI>density = density of particle (mass/distance^3 or mass/distance^2 or mass/distance units, depending on dimensionality of particle)
-<LI>volume = volume of atom (distance^3 units)
+<LI>mass = mass of particle (mass units)
+<LI>volume = volume of particle (distance^3 units)
 <LI>x,y,z = coordinates of atom
 <LI>mux,muy,muz = components of dipole moment of atom (dipole units)
 <LI>rho = density (need units) for SPH particles
@@ -371,24 +377,28 @@ keep track of molecule assignments.
 <P>The diameter specifies the size of a finite-size spherical particle.
 It can be set to 0.0, which means that atom is a point particle.
 </P>
-<P>The ellipsoidflag, lineflag, and triangleflag determine whether the
-particle is a finite-size ellipsoid or line or triangle of finite
-size, or a point particle.  Additional attributes must be defined for
-each ellipsoid in the <I>Ellipsoids</I> section.  Additional attributes
-must be defined for each line in the <I>Lines</I> section.  Additional
-attributes must be defined for each triangle in the <I>Triangles</I>
-section.
+<P>The ellipsoidflag, lineflag, triangleflag, and bodyflag determine
+whether the particle is a finite-size ellipsoid or line or triangle or
+body of finite size, or a point particle.  Additional attributes must
+be defined for each ellipsoid in the <I>Ellipsoids</I> section.  Additional
+attributes must be defined for each line in the <I>Lines</I> section.
+Additional attributes must be defined for each triangle in the
+<I>Triangles</I> section.  Additional attributes must be defined for each
+body in the <I>Bodies</I> section.
 </P>
 <P>Some pair styles and fixes and computes that operate on finite-size
 particles allow for a mixture of finite-size and point particles.  See
 the doc pages of individual commands for details.
 </P>
-<P>The density is used in conjunction with the particle volume for
-finite-size particles to set the mass of the particle as mass =
-density * volume.  In this context, volume can be a 3d quantity (for
-spheres or ellipsoids), a 2d quantity (for triangles), or a 1d
-quantity (for line segments).  If the volume is 0.0, meaning a point
-particle, then the density value is used as the mass.
+<P>For finite-size particles, the density is used in conjunction with the
+particle volume to set the mass of each particle as mass = density *
+volume.  In this context, volume can be a 3d quantity (for spheres or
+ellipsoids), a 2d quantity (for triangles), or a 1d quantity (for line
+segments).  If the volume is 0.0, meaning a point particle, then the
+density value is used as the mass.  One exception is for the body
+style, in which case the mass of each particle (body or point
+particle) is specified explicitly.  This is because the volume of the
+body is not known.
 </P>
 <P>For atom_style hybrid, following the 5 initial values (ID,type,x,y,z),
 specific values for each sub-style must be listed.  The order of the
@@ -434,6 +444,58 @@ appropriate dimension) for the two atoms in such a bond.
 a <I>Velocities</I> section in the data file or by a
 <A HREF = "velocity.html">velocity</A> or <A HREF = "set.html">set</A> command in the input
 script.
+</P>
+<HR>
+
+<P><I>Bodies</I> section:
+</P>
+<UL><LI>one or more lines per body 
+
+<LI>first line syntax: atom-ID ninteger ndouble 
+
+<PRE>  ninteger = # of integer quantities for this particle
+  ndouble = # of floating-point quantities for this particle 
+</PRE>
+<LI>0 or more integer lines: one line for every 10 integer quantities 
+
+<LI>0 or more double lines: one line for every 10 double quantities 
+
+<LI>example: 
+
+<PRE>  12 3 6
+  2 3 2
+  1.0 2.0 3.0 1.0 2.0 4.0 
+</PRE>
+<LI>example: 
+
+<PRE>  12 0 14
+  1.0 2.0 3.0 1.0 2.0 4.0 1.0 2.0 3.0 1.0
+  2.0 4.0 4.0 2.0 
+</PRE>
+
+</UL>
+<P>The <I>Bodies</I> section must appear if <A HREF = "atom_style.html">atom_style body</A>
+is used and any atoms are listed in the <I>Atoms</I> section with a
+bodyflag = 1.  The number of bodies should be specified in the header
+section via the "bodies" keyword.
+</P>
+<P>Each body can have a variable number of integer and/or floating-point
+values.  The number and meaning of the values is defined by the Body
+style which will process and store them for each body.  This style is
+given as an argument to the <A HREF = "atom_style.html">atom_style body</A> command.
+</P>
+<P>The ninteger and ndouble values determine how many integer and
+floating-point values are specified for this particle.  Ninteger and
+ndouble can be as large as needed and can be different for every body.
+Integer values are then listed on subsequent lines, 10 values per
+line.  Floating-point values follow on subsequent lines, again 10 per
+line.  If the number of lines is not evenly divisible by 10, the last
+line in that group contains the remaining values, e.g. 4 values out of
+14 in the last example above, for floating-point values.  If there are
+no values of a particular type, no lines appear for that type,
+e.g. there are no integer lines in the last example above.
+</P>
+<P>The <I>Bodies</I> section must appear after the <I>Atoms</I> section.
 </P>
 <HR>
 

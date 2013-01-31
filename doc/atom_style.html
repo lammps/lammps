@@ -15,17 +15,21 @@
 </P>
 <PRE>atom_style style args 
 </PRE>
-<UL><LI>style = <I>angle</I> or <I>atomic</I> or <I>bond</I> or <I>charge</I> or <I>dipole</I> or         <I>electron</I> or <I>ellipsoid</I> or <I>full</I> or <I>line</I> or <I>meso</I> or 	<I>molecular</I> or <I>peri</I> or <I>sphere</I> or <I>tri</I> or <I>hybrid</I> 
+<UL><LI>style = <I>angle</I> or <I>atomic</I> or <I>body</I> or <I>bond</I> or <I>charge</I> or <I>dipole</I> or         <I>electron</I> or <I>ellipsoid</I> or <I>full</I> or <I>line</I> or <I>meso</I> or 	<I>molecular</I> or <I>peri</I> or <I>sphere</I> or <I>tri</I> or <I>hybrid</I> 
 </UL>
-<PRE>  args = none for any style except <I>hybrid</I>
-  <I>hybrid</I> args = list of one or more sub-styles 
+<PRE>  args = none for any style except <I>body</I> and <I>hybrid</I>
+  <I>body</I> args = Bstyle
+    Bstyle = style of body particles
+  <I>hybrid</I> args = list of one or more sub-styles, each with their args 
 </PRE>
 <P><B>Examples:</B>
 </P>
 <PRE>atom_style atomic
 atom_style bond
 atom_style full
-atom_style hybrid charge bond 
+atom_style body nparticle
+atom_style hybrid charge bond
+atom_style hybrid charge body nparticle 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -55,11 +59,12 @@ quantities.
 <DIV ALIGN=center><TABLE  BORDER=1 >
 <TR><TD ><I>angle</I> </TD><TD > bonds and angles </TD><TD > bead-spring polymers with stiffness </TD></TR>
 <TR><TD ><I>atomic</I> </TD><TD > only the default values </TD><TD > coarse-grain liquids, solids, metals </TD></TR>
+<TR><TD ><I>body</I> </TD><TD > mass, inertia moments, quaternion, angular momentum </TD><TD > arbitrary bodies </TD></TR>
 <TR><TD ><I>bond</I> </TD><TD > bonds </TD><TD > bead-spring polymers </TD></TR>
 <TR><TD ><I>charge</I> </TD><TD > charge </TD><TD > atomic system with charges </TD></TR>
 <TR><TD ><I>dipole</I> </TD><TD > charge and dipole moment </TD><TD > system with dipolar particles </TD></TR>
 <TR><TD ><I>electron</I> </TD><TD > charge and spin and eradius </TD><TD > electronic force field </TD></TR>
-<TR><TD ><I>ellipsoid</I> </TD><TD > shape, quaternion for particle orientation, angular momentum </TD><TD > extended aspherical particles </TD></TR>
+<TR><TD ><I>ellipsoid</I> </TD><TD > shape, quaternion, angular momentum </TD><TD > extended aspherical particles </TD></TR>
 <TR><TD ><I>full</I> </TD><TD > molecular + charge </TD><TD > bio-molecules </TD></TR>
 <TR><TD ><I>line</I> </TD><TD > end points, angular velocity </TD><TD > rigid bodies </TD></TR>
 <TR><TD ><I>meso</I> </TD><TD > rho, e, cv </TD><TD > SPH particles </TD></TR>
@@ -70,13 +75,14 @@ quantities.
 <TR><TD ><I>wavepacket</I> </TD><TD > charge, spin, eradius, etag, cs_re, cs_im </TD><TD > AWPMD 
 </TD></TR></TABLE></DIV>
 
+<P>All of the styles define point particles, except the <I>sphere</I>,
+<I>ellipsoid</I>, <I>electron</I>, <I>peri</I>, <I>wavepacket</I>, <I>line</I>, <I>tri</I>, and
+<I>body</I> styles, which define finite-size particles.
+</P>
 <P>All of the styles assign mass to particles on a per-type basis, using
 the <A HREF = "mass.html">mass</A> command, except for the finite-size particle
-styles discussed below.  They assign mass on a per-atom basis.
-</P>
-<P>All of the styles define point particles, except the <I>sphere</I>,
-<I>ellipsoid</I>, <I>electron</I>, <I>peri</I>, <I>wavepacket</I>, <I>line</I>, and <I>tri</I>
-styles, which define finite-size particles.
+styles.  They assign mass to individual particles on a per-particle
+basis.
 </P>
 <P>For the <I>sphere</I> style, the particles are spheres and each stores a
 per-particle diameter and mass.  If the diameter > 0.0, the particle
@@ -114,6 +120,23 @@ end points of the line segment).
 stores a per-particle mass and size and orientation (i.e. the corner
 points of the triangle).
 </P>
+<P>For the <I>body</I> style, the particles are arbitrary bodies with internal
+attributes defined by the "style" of the bodies, which is specified by
+the <I>Bstyle</I> argument.  Each body particle stores moments of inertia
+and a quaternion 4-vector, so that its orientation can be time
+integrated.  This atom style enables LAMMPS to work with particles
+that represent complex entities, such as surface meshes of discrete
+points, collections of sub-particles, deformable objects, etc.  Of
+course, the interactions between pairs of bodies will need to be
+encoded in an appropriate pair style.
+</P>
+<P>These are the body styles that LAMMPS currently supports.  The name in
+the first column is used as the <I>Bstyle</I> argument for atom_style body:
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR><TD ><I>nparticle</I> </TD><TD > body with N sub-particles 
+</TD></TR></TABLE></DIV>
+
 <HR>
 
 <P>Typically, simulations require only a single (non-hybrid) atom style.
@@ -125,13 +148,13 @@ If some atoms have bonds, but others do not, use the <I>bond</I> style.
 </P>
 <P>The only scenario where the <I>hybrid</I> style is needed is if there is no
 single style which defines all needed properties of all atoms.  For
-example, if you want dipolar particles which will be torqued and
-rotate, you would need to use "atom_style hybrid sphere dipole".  When
+example, if you want dipolar particles which will rotate due to
+torque, you would need to use "atom_style hybrid sphere dipole".  When
 a hybrid style is used, atoms store and communicate the union of all
 quantities implied by the individual styles.
 </P>
-<P>LAMMPS can be extended with new atom styles; see <A HREF = "Section_modify.html">this
-section</A>.
+<P>LAMMPS can be extended with new atom styles as well as new body
+styles; see <A HREF = "Section_modify.html">this section</A>.
 </P>
 <P><B>Restrictions:</B>
 </P>
@@ -139,7 +162,8 @@ section</A>.
 <A HREF = "read_data.html">read_data</A> or <A HREF = "create_box.html">create_box</A> command.
 </P>
 <P>The <I>angle</I>, <I>bond</I>, <I>full</I>, and <I>molecular</I> styles are part of the
-MOLECULAR package.  The <I>dipole</I> style is part of the "dipole"
+MOLECULAR package.  The <I>line</I>, <I>tri</I>, and <I>body</I> styles are part of
+the ASPHERE pacakge.  The <I>dipole</I> style is part of the DIPOLE
 package.  The <I>peri</I> style is part of the PERI package for
 Peridynamics.  The <I>electron</I> style is part of the USER-EFF package
 for <A HREF = "pair_eff.html">electronic force fields</A>.  The <I>meso</I> style is part

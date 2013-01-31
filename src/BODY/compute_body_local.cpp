@@ -84,6 +84,27 @@ ComputeBodyLocal::~ComputeBodyLocal()
 
 void ComputeBodyLocal::init()
 {
+  // if non-body particles in group insure only indices 1,2,3 are used
+
+  int nonbody = 0;
+  int *mask = atom->mask;
+  int *body = atom->body;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit) 
+      if (body[i] < 0) nonbody = 1;
+
+  int flag;
+  MPI_Allreduce(&nonbody,&flag,1,MPI_INT,MPI_SUM,world);
+
+  if (flag) {
+    for (int i = 0; i < nvalues; i++)
+      if (which[i] == INDEX && index[i] > 2)
+        error->all(FLERR,"Invalid index for non-body particles "
+                   "in compute body/local command");
+  }
+
   // do initial memory allocation so that memory_usage() is correct
 
   int ncount = compute_body(0);

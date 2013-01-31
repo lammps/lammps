@@ -22,11 +22,25 @@ different machines and different numbers of processors are included in
 the directories to compare your answers to.  E.g. a log file like
 log.crack.foo.P means it ran on P processors of machine "foo".
 </P>
-<P>The dump files produced by the example runs can be animated using the
-xmovie tool described in the <A HREF = "Section_tools.html">Additional Tools</A>
-section of the LAMMPS documentation.  Animations of many of these
-examples can be viewed on the Movies section of the <A HREF = "http://lammps.sandia.gov">LAMMPS WWW
-Site</A>.
+<P>For examples that use input data files, many of them were produced by
+<A HREF = "http://pizza.sandia.gov">Pizza.py</A> or setup tools described in the
+<A HREF = "Section_tools.html">Additional Tools</A> section of the LAMMPS
+documentation and provided with the LAMMPS distribution.
+</P>
+<P>If you uncomment the <A HREF = "dump.html">dump</A> command in the input script, a
+text dump file will be produced, which can be animated by various
+<A HREF = "http://lammps.sandia.gov/viz.html">visualization programs</A>.  It can
+also be animated using the xmovie tool described in the <A HREF = "Section_tools.html">Additional
+Tools</A> section of the LAMMPS documentation.
+</P>
+<P>If you uncomment the <A HREF = "dump.html">dump image</A> command in the input
+script, and assuming you have built LAMMPS with a JPG library, JPG
+snapshot images will be produced when the simulation runs.  They can
+be quickly post-processed into a movie using commands described on the
+<A HREF = "dump_image.html">dump image</A> doc page.
+</P>
+<P>Animations of many of these examples can be viewed on the Movies
+section of the <A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A>.
 </P>
 <P>These are the sample problems in the examples sub-directories:
 </P>
@@ -77,8 +91,22 @@ lmp_linux < in.indent              # run the problem
 </P>
 <PRE>../../tools/xmovie/xmovie -scale dump.indent 
 </PRE>
+<P>If you uncomment the <A HREF = "dump_image.html">dump image</A> line(s) in the input
+script a series of JPG images will be produced by the run.  These can
+be viewed individually or turned into a movie or animated by tools
+like ImageMagick or QuickTime or various Windows-based tools.  See the
+<A HREF = "dump_image.html">dump image</A> doc page for more details.  E.g. this
+Imagemagick command would create a GIF file suitable for viewing in a
+browser.
+</P>
+<PRE>% convert -loop 1 *.jpg foo.gif 
+</PRE>
 <HR>
 
+<P>There is also a COUPLE directory with examples of how to use LAMMPS as
+a library, either by itself or in tandem with another code or library.
+See the COUPLE/README file to get started.
+</P>
 <P>There is also an ELASTIC directory with an example script for
 computing elastic constants, using a zero temperature Si example.  See
 the in.elastic file for more info.

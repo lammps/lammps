@@ -16,8 +16,10 @@ style = {angle} or {atomic} or {body} or {bond} or {charge} or {dipole} or \
         {electron} or {ellipsoid} or {full} or {line} or {meso} or \
 	{molecular} or {peri} or {sphere} or {tri} or {hybrid} :ul
   args = none for any style except {body} and {hybrid}
-  {body} args = bstyle
+  {body} args = bstyle Nmin Nmax
     bstyle = style of body particles
+    Nmin = minimum # of sub-particles in any body
+    Nmax = maximum # of sub-particles in any body
   {hybrid} args = list of one or more sub-styles, each with their args :pre
 
 [Examples:]
@@ -122,13 +124,17 @@ For the {body} style, the particles are arbitrary bodies with internal
 attributes defined by the "style" of the bodies, which is specified by
 the {bstyle} argument.  Body particles can represent complex entities,
 such as surface meshes of discrete points, collections of
-sub-particles, deformable objects, etc.
+sub-particles, deformable objects, etc.  
 
 The "body"_body.html doc page descibes the body styles LAMMPS
 currently supports, and provides more details as to the kind of body
 particles they represent.  For all styles, each body particle stores
 moments of inertia and a quaternion 4-vector, so that its orientation
 and position can be time integrated due to forces and torques.
+
+Note that there may be additional arguments required along with the
+{bstyle} specification, in the atom_style body command.  These
+arguments are described in the "body"_body.html doc page.
 
 :line
 

@@ -18,8 +18,8 @@
 <UL><LI>style = <I>angle</I> or <I>atomic</I> or <I>body</I> or <I>bond</I> or <I>charge</I> or <I>dipole</I> or         <I>electron</I> or <I>ellipsoid</I> or <I>full</I> or <I>line</I> or <I>meso</I> or 	<I>molecular</I> or <I>peri</I> or <I>sphere</I> or <I>tri</I> or <I>hybrid</I> 
 </UL>
 <PRE>  args = none for any style except <I>body</I> and <I>hybrid</I>
-  <I>body</I> args = Bstyle
-    Bstyle = style of body particles
+  <I>body</I> args = bstyle
+    bstyle = style of body particles
   <I>hybrid</I> args = list of one or more sub-styles, each with their args 
 </PRE>
 <P><B>Examples:</B>
@@ -27,9 +27,9 @@
 <PRE>atom_style atomic
 atom_style bond
 atom_style full
-atom_style body nparticle
+atom_style body nparticle 2 10
 atom_style hybrid charge bond
-atom_style hybrid charge body nparticle 
+atom_style hybrid charge body nparticle 2 5 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -122,21 +122,18 @@ points of the triangle).
 </P>
 <P>For the <I>body</I> style, the particles are arbitrary bodies with internal
 attributes defined by the "style" of the bodies, which is specified by
-the <I>Bstyle</I> argument.  Each body particle stores moments of inertia
-and a quaternion 4-vector, so that its orientation can be time
-integrated.  This atom style enables LAMMPS to work with particles
-that represent complex entities, such as surface meshes of discrete
-points, collections of sub-particles, deformable objects, etc.  Of
-course, the interactions between pairs of bodies will need to be
-encoded in an appropriate pair style.
+the <I>bstyle</I> argument.  This atom style enables LAMMPS to work with
+particles that represent complex entities, such as surface meshes of
+discrete points, collections of sub-particles, deformable objects,
+etc.  Of course, the interactions between pairs of bodies will need to
+be encoded in an appropriate pair style.
 </P>
-<P>These are the body styles that LAMMPS currently supports.  The name in
-the first column is used as the <I>Bstyle</I> argument for atom_style body:
+<P>The <A HREF = "body.html">body</A> doc page descibes the body styles LAMMPS
+currently supports, and provides more details as to the kind of body
+particles they represent.  For all styles, each body particle stores
+moments of inertia and a quaternion 4-vector, so that its orientation
+and position can be time integrated due to forces and torques.
 </P>
-<DIV ALIGN=center><TABLE  BORDER=1 >
-<TR><TD ><I>nparticle</I> </TD><TD > body with N sub-particles 
-</TD></TR></TABLE></DIV>
-
 <HR>
 
 <P>Typically, simulations require only a single (non-hybrid) atom style.
@@ -162,15 +159,16 @@ styles; see <A HREF = "Section_modify.html">this section</A>.
 <A HREF = "read_data.html">read_data</A> or <A HREF = "create_box.html">create_box</A> command.
 </P>
 <P>The <I>angle</I>, <I>bond</I>, <I>full</I>, and <I>molecular</I> styles are part of the
-MOLECULAR package.  The <I>line</I>, <I>tri</I>, and <I>body</I> styles are part of
-the ASPHERE pacakge.  The <I>dipole</I> style is part of the DIPOLE
-package.  The <I>peri</I> style is part of the PERI package for
-Peridynamics.  The <I>electron</I> style is part of the USER-EFF package
-for <A HREF = "pair_eff.html">electronic force fields</A>.  The <I>meso</I> style is part
-of the USER-SPH package for smoothed particle hydrodyanmics (SPH).
-See <A HREF = "USER/sph/SPH_LAMMPS_userguide.pdf">this PDF guide</A> to using SPH in
-LAMMPS.  The <I>wavepacket</I> style is part of the USER-AWPMD package for
-the <A HREF = "pair_awpmd.html">antisymmetrized wave packet MD method</A>.  They are
+MOLECULAR package.  The <I>line</I> and <I>tri</I> styles are part of the
+ASPHERE pacakge.  The <I>body</I> style is part of the BODY package.  The
+<I>dipole</I> style is part of the DIPOLE package.  The <I>peri</I> style is
+part of the PERI package for Peridynamics.  The <I>electron</I> style is
+part of the USER-EFF package for <A HREF = "pair_eff.html">electronic force
+fields</A>.  The <I>meso</I> style is part of the USER-SPH
+package for smoothed particle hydrodyanmics (SPH).  See <A HREF = "USER/sph/SPH_LAMMPS_userguide.pdf">this PDF
+guide</A> to using SPH in LAMMPS.  The
+<I>wavepacket</I> style is part of the USER-AWPMD package for the
+<A HREF = "pair_awpmd.html">antisymmetrized wave packet MD method</A>.  They are
 only enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
 LAMMPS</A> section for more info.
 </P>

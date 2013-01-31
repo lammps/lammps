@@ -379,12 +379,10 @@ It can be set to 0.0, which means that atom is a point particle.
 </P>
 <P>The ellipsoidflag, lineflag, triangleflag, and bodyflag determine
 whether the particle is a finite-size ellipsoid or line or triangle or
-body of finite size, or a point particle.  Additional attributes must
-be defined for each ellipsoid in the <I>Ellipsoids</I> section.  Additional
-attributes must be defined for each line in the <I>Lines</I> section.
-Additional attributes must be defined for each triangle in the
-<I>Triangles</I> section.  Additional attributes must be defined for each
-body in the <I>Bodies</I> section.
+body of finite size, or whether the particle is a point particle.
+Additional attributes must be defined for each ellipsoid, line,
+triangle, or body in the corresponding <I>Ellipsoids</I>, <I>Lines</I>,
+<I>Triangles</I>, or <I>Bodies</I> section.
 </P>
 <P>Some pair styles and fixes and computes that operate on finite-size
 particles allow for a mixture of finite-size and point particles.  See
@@ -395,10 +393,10 @@ particle volume to set the mass of each particle as mass = density *
 volume.  In this context, volume can be a 3d quantity (for spheres or
 ellipsoids), a 2d quantity (for triangles), or a 1d quantity (for line
 segments).  If the volume is 0.0, meaning a point particle, then the
-density value is used as the mass.  One exception is for the body
+density value is used as the mass.  One exception is for the body atom
 style, in which case the mass of each particle (body or point
 particle) is specified explicitly.  This is because the volume of the
-body is not known.
+body is unknown.
 </P>
 <P>For atom_style hybrid, following the 5 initial values (ID,type,x,y,z),
 specific values for each sub-style must be listed.  The order of the
@@ -475,14 +473,15 @@ script.
 
 </UL>
 <P>The <I>Bodies</I> section must appear if <A HREF = "atom_style.html">atom_style body</A>
-is used and any atoms are listed in the <I>Atoms</I> section with a
-bodyflag = 1.  The number of bodies should be specified in the header
-section via the "bodies" keyword.
+is used and any atoms listed in the <I>Atoms</I> section have a bodyflag =
+1.  The number of bodies should be specified in the header section via
+the "bodies" keyword.
 </P>
 <P>Each body can have a variable number of integer and/or floating-point
-values.  The number and meaning of the values is defined by the Body
-style which will process and store them for each body.  This style is
-given as an argument to the <A HREF = "atom_style.html">atom_style body</A> command.
+values.  The number and meaning of the values is defined by the body
+style, as described in the <A HREF = "body.html">body</A> doc page.  The body style
+is given as an argument to the <A HREF = "atom_style.html">atom_style body</A>
+command.
 </P>
 <P>The ninteger and ndouble values determine how many integer and
 floating-point values are specified for this particle.  Ninteger and

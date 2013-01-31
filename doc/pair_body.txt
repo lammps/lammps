@@ -1,0 +1,135 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+pair_style line/lj command :h3
+pair_style line/lj/omp command :h3
+
+[Syntax:]
+
+pair_style line/lj cutoff :pre
+
+cutoff = global cutoff for interactions (distance units)
+
+[Examples:]
+
+pair_style line/lj 3.0
+pair_coeff * * 1.0 1.0
+pair_coeff 1 1 1.0 1.5 2.5 :pre
+
+[Description:]
+
+Style {line/lj} treats particles which are line segments as a set of
+small spherical particles that tile the line segment length as
+explained below.  Interactions between two line segments, each with N1
+and N2 spherical particles, are calculated as the pairwise sum of
+N1*N2 Lennard-Jones interactions.  Interactions between a line segment
+with N spherical particles and a point particle are treated as the
+pairwise sum of N Lennard-Jones interactions.  See the "pair_style
+lj/cut"_pair_lj.html doc page for the definition of Lennard-Jones
+interactions.
+
+The cutoff distance for an interaction between 2 line segments, or
+between a line segment and a point particle, is calculated from the
+position of the line segment (its center), not between pairs of
+individual spheres comprising the line segment.  Thus an interaction
+is either calculated in its entirety or not at all.
+
+The set of non-overlapping spherical particles that represent a line
+segment, for purposes of this pair style, are generated in the
+following manner.  Their size is a function of the line segment length
+and the specified sigma for that particle type.  If a line segment has
+a length L and is of type I, then the number of spheres N that
+represent the segment is calculated as N = L/sigma_II, rounded up to
+an integer value.  Thus if L is not evenly divisibly by sigam_II, N is
+incremented to include one extra sphere.  In this case, the spheres
+must be slightly smaller than sigma_II so as not to overlap, so a new
+sigma-prime is chosen as the sphere diameter, such that L/N =
+sigma-prime.  Thus the line segment interacts with other segments or
+point particles as a collection of N spheres of diameter sigma-prime,
+evenly spaced along the line segment, so as to exactly cover its
+length.
+
+The LJ interaction between 2 spheres on different line segments of
+types I,J is computed with an arithmetic mixing of the sigma values of
+the 2 spheres and using the specified epsilon value for I,J atom
+types.  Note that because the sigma values for line segment spheres is
+computed using only sigma_II values, specific to the line segment's
+type, this means that any specified sigma_IJ values (for I != J) are
+effectively ignored.
+
+For style {line/lj}, the following coefficients must be defined for
+each pair of atoms types via the "pair_coeff"_pair_coeff.html command
+as in the examples above, or in the data file or restart files read by
+the "read_data"_read_data.html or "read_restart"_read_restart.html
+commands:
+
+epsilon (energy units)
+sigma (distance units)
+cutoff (distance units) :ul
+
+The last coefficient is optional.  If not specified, the global cutoff
+is used.
+
+:line
+
+Styles with a {cuda}, {gpu}, {omp}, or {opt} suffix are functionally
+the same as the corresponding style without the suffix.  They have
+been optimized to run faster, depending on your available hardware, as
+discussed in "Section_accelerate"_Section_accelerate.html of the
+manual.  The accelerated styles take the same arguments and should
+produce the same results, except for round-off and precision issues.
+
+These accelerated styles are part of the USER-CUDA, GPU, USER-OMP and OPT
+packages, respectively.  They are only enabled if LAMMPS was built with
+those packages.  See the "Making LAMMPS"_Section_start.html#start_3
+section for more info.
+
+You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the "-suffix command-line
+switch"_Section_start.html#start_7 when you invoke LAMMPS, or you can
+use the "suffix"_suffix.html command in your input script.
+
+See "Section_accelerate"_Section_accelerate.html of the manual for
+more instructions on how to use the accelerated styles effectively.
+
+:line
+
+[Mixing, shift, table, tail correction, restart, rRESPA info]:
+
+For atom type pairs I,J and I != J, the epsilon and sigma coefficients
+and cutoff distance for all of this pair style can be mixed.  The
+default mix value is {geometric}.  See the "pair_modify" command for
+details.
+
+This pair style does not support the "pair_modify"_pair_modify.html
+shift, table, and tail options.
+
+This pair style does not write its information to "binary restart
+files"_restart.html.
+
+This pair style can only be used via the {pair} keyword of the
+"run_style respa"_run_style.html command.  It does not support the
+{inner}, {middle}, {outer} keywords.
+
+:line
+
+[Restrictions:]
+
+This style is part of the ASPHERE package.  It is only enabled if
+LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#2_3 section for more info.
+
+Defining particles to be line segments so they participate in
+line/line or line/particle interactions requires the use the
+"atom_style line"_atom_style.html command.
+
+[Related commands:]
+
+"pair_coeff"_pair_coeff.html, "pair_style tri/lj"_pair_tri_lj.html
+
+[Default:] none

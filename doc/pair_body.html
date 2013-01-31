@@ -1,0 +1,141 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>pair_style line/lj command 
+</H3>
+<H3>pair_style line/lj/omp command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>pair_style line/lj cutoff 
+</PRE>
+<P>cutoff = global cutoff for interactions (distance units)
+</P>
+<P><B>Examples:</B>
+</P>
+<PRE>pair_style line/lj 3.0
+pair_coeff * * 1.0 1.0
+pair_coeff 1 1 1.0 1.5 2.5 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Style <I>line/lj</I> treats particles which are line segments as a set of
+small spherical particles that tile the line segment length as
+explained below.  Interactions between two line segments, each with N1
+and N2 spherical particles, are calculated as the pairwise sum of
+N1*N2 Lennard-Jones interactions.  Interactions between a line segment
+with N spherical particles and a point particle are treated as the
+pairwise sum of N Lennard-Jones interactions.  See the <A HREF = "pair_lj.html">pair_style
+lj/cut</A> doc page for the definition of Lennard-Jones
+interactions.
+</P>
+<P>The cutoff distance for an interaction between 2 line segments, or
+between a line segment and a point particle, is calculated from the
+position of the line segment (its center), not between pairs of
+individual spheres comprising the line segment.  Thus an interaction
+is either calculated in its entirety or not at all.
+</P>
+<P>The set of non-overlapping spherical particles that represent a line
+segment, for purposes of this pair style, are generated in the
+following manner.  Their size is a function of the line segment length
+and the specified sigma for that particle type.  If a line segment has
+a length L and is of type I, then the number of spheres N that
+represent the segment is calculated as N = L/sigma_II, rounded up to
+an integer value.  Thus if L is not evenly divisibly by sigam_II, N is
+incremented to include one extra sphere.  In this case, the spheres
+must be slightly smaller than sigma_II so as not to overlap, so a new
+sigma-prime is chosen as the sphere diameter, such that L/N =
+sigma-prime.  Thus the line segment interacts with other segments or
+point particles as a collection of N spheres of diameter sigma-prime,
+evenly spaced along the line segment, so as to exactly cover its
+length.
+</P>
+<P>The LJ interaction between 2 spheres on different line segments of
+types I,J is computed with an arithmetic mixing of the sigma values of
+the 2 spheres and using the specified epsilon value for I,J atom
+types.  Note that because the sigma values for line segment spheres is
+computed using only sigma_II values, specific to the line segment's
+type, this means that any specified sigma_IJ values (for I != J) are
+effectively ignored.
+</P>
+<P>For style <I>line/lj</I>, the following coefficients must be defined for
+each pair of atoms types via the <A HREF = "pair_coeff.html">pair_coeff</A> command
+as in the examples above, or in the data file or restart files read by
+the <A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
+commands:
+</P>
+<UL><LI>epsilon (energy units)
+<LI>sigma (distance units)
+<LI>cutoff (distance units) 
+</UL>
+<P>The last coefficient is optional.  If not specified, the global cutoff
+is used.
+</P>
+<HR>
+
+<P>Styles with a <I>cuda</I>, <I>gpu</I>, <I>omp</I>, or <I>opt</I> suffix are functionally
+the same as the corresponding style without the suffix.  They have
+been optimized to run faster, depending on your available hardware, as
+discussed in <A HREF = "Section_accelerate.html">Section_accelerate</A> of the
+manual.  The accelerated styles take the same arguments and should
+produce the same results, except for round-off and precision issues.
+</P>
+<P>These accelerated styles are part of the USER-CUDA, GPU, USER-OMP and OPT
+packages, respectively.  They are only enabled if LAMMPS was built with
+those packages.  See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A>
+section for more info.
+</P>
+<P>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <A HREF = "Section_start.html#start_7">-suffix command-line
+switch</A> when you invoke LAMMPS, or you can
+use the <A HREF = "suffix.html">suffix</A> command in your input script.
+</P>
+<P>See <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual for
+more instructions on how to use the accelerated styles effectively.
+</P>
+<HR>
+
+<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
+</P>
+<P>For atom type pairs I,J and I != J, the epsilon and sigma coefficients
+and cutoff distance for all of this pair style can be mixed.  The
+default mix value is <I>geometric</I>.  See the "pair_modify" command for
+details.
+</P>
+<P>This pair style does not support the <A HREF = "pair_modify.html">pair_modify</A>
+shift, table, and tail options.
+</P>
+<P>This pair style does not write its information to <A HREF = "restart.html">binary restart
+files</A>.
+</P>
+<P>This pair style can only be used via the <I>pair</I> keyword of the
+<A HREF = "run_style.html">run_style respa</A> command.  It does not support the
+<I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
+</P>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>This style is part of the ASPHERE package.  It is only enabled if
+LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>Defining particles to be line segments so they participate in
+line/line or line/particle interactions requires the use the
+<A HREF = "atom_style.html">atom_style line</A> command.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_coeff.html">pair_coeff</A>, <A HREF = "pair_tri_lj.html">pair_style tri/lj</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

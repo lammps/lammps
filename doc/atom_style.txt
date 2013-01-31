@@ -16,10 +16,10 @@ style = {angle} or {atomic} or {body} or {bond} or {charge} or {dipole} or \
         {electron} or {ellipsoid} or {full} or {line} or {meso} or \
 	{molecular} or {peri} or {sphere} or {tri} or {hybrid} :ul
   args = none for any style except {body} and {hybrid}
-  {body} args = bstyle Nmin Nmax
+  {body} args = bstyle bstyle-args
     bstyle = style of body particles
-    Nmin = minimum # of sub-particles in any body
-    Nmax = maximum # of sub-particles in any body
+    bstyle-args = additional arguments specific to the bstyle
+                  see the "body"_body.html doc page for details
   {hybrid} args = list of one or more sub-styles, each with their args :pre
 
 [Examples:]

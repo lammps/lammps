@@ -1023,7 +1023,7 @@ rigid bodies composed of finite-size particles :ul
 
 Example input scripts for these kinds of models are in the body,
 colloid, dipole, ellipse, line, peri, pour, and tri directories of the
-"examples directory"_Section_examples.html in the LAMMPS distribution.
+"examples directory"_Section_example.html in the LAMMPS distribution.
 
 Atom styles :h5
 
@@ -1195,6 +1195,7 @@ particles:
 
 "dump custom"_dump.html
 "compute property/atom"_compute_property_atom.html
+"dump local"_dump.html
 "compute body/local"_compute_body_local.html :ul
 
 Attributes include the dipole moment, the angular velocity, the
@@ -1357,7 +1358,7 @@ command.
 
 Fixes that write output files :h5,link(fixoutput)
 
-Sevarl fixes take various quantities as input and can write output
+Several fixes take various quantities as input and can write output
 files: "fix ave/time"_fix_ave_time.html, "fix
 ave/spatial"_fix_ave_spatial.html, "fix ave/histo"_fix_ave_histo.html,
 "fix ave/correlate"_fix_ave_correlate.html, and "fix

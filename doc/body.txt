@@ -6,62 +6,142 @@
 
 :line
 
-body particles :h3
+Body particles :h3
 
-[Description:]
+[Overview:]
 
-This doc page is not about a specific LAMMPS input script command, but
-about body particles, 
+This doc page is not about a LAMMPS input script command, but about
+body particles, which are generalized finite-size particles.
+Individual body particles can represent complex entities, such as
+surface meshes of discrete points, collections of sub-particles,
+deformable objects, etc.  Note that other kinds of finite-size
+spherical and aspherical particles are also supported by LAMMPS, such
+as spheres, ellipsoids, line segments, and triangles, but they are
+simpler entities that body particles.  See "Section_howto
+14"_Section_howto.html#howto_14 for a general overview of all these
+particle types.
 
+Body particles are used via the "atom_style body"_atom_style.html
+command.  It takes a body style as an argument.  The current body
+styles supported by LAMMPS are as follows.  The name in the first
+column is used as the {bstyle} argument for the "atom_style
+body"_atom_style.html command.
 
-which are a specific kind of
-"atom_style"_atom_style.html supported by LAMMPS
+{nparticle} | rigid body with N sub-particles :tb(c=2,s=|)
 
+The body style determines what attributes are stored for each body and
+thus how they can be used to compute pairwise body/body or
+bond/non-body (point particle) interactions.  More details of each
+style are described below.
 
+We hope to add more styles in the future.  See "Section_modify
+12"_Section_modify.html#mod_12 for details on how to add a new body
+style to the code.
 
-These are the body styles that LAMMPS currently supports.  The name in
-the first column is used as the {bstyle} argument for atom_style body:
+:line
 
-{nparticle} | body with N sub-particles :tb(c=2,s=|)
+[When to use body particles:]
 
-Of course, the interactions
-between pairs of bodies will need to be encoded in an appropriate pair
-style.
+You should not use body particles to model a rigid body made of
+simpler particles (e.g. point, sphere, ellipsoid, line segment,
+triangular particles), if the interaction between pairs of rigid
+bodies is just the summation of pairwise interactions between the
+simpler particles.  LAMMPS already supports this kind of model via the
+"fix rigid"_fix_rigid.html command.  Any of the numerous pair styles
+that compute interactions between simpler particles can be used.  The
+"fix rigid"_fix_rigid.html command time integrates the motion of the
+rigid bodies.  All of the standard LAMMPS commands for thermostatting,
+adding constraints, performing output, etc will operate as expected on
+the simple particles.
 
-Body particles can represent complex entities,
-such as surface meshes of discrete points, collections of
-sub-particles, deformable objects, etc.
+By contrast, when body particles are used, LAMMPS treats an entire
+body as a single particle for purposes of computing pairwise
+interactions, building neighbor lists, migrating particles between
+processors, outputting particles to a dump file, etc.  This means that
+interactions between pairs of bodies or between a body and non-body
+(point) particle need to be encoded in an appropriate pair style.  If
+such a pair style were to mimic the "fix rigid"_fix_rigid.html model,
+it would need to loop over the entire collection of interactions
+between pairs of simple particles within the two bodies, each time a
+single body/body interaction was computed.
 
+Thus it only makes sense to use body particles and develop such a pair
+style, when particle/particle interactions are more complex than what
+the "fix rigid"_fix_rigid.html command can already calculate.  For
+example, if particles have one or more of the following attributes:
 
+represented by a surface mesh
+represented by a collection of geometric entities (e.g. planes + spheres)
+deformable
+internal stress that induces fragmentation :ul
 
+then the interaction between pairs of particles is likely to be more
+complex than the summation of simple sub-particle interactions.  An
+example is contact or frictional forces between particles with planar
+sufaces that inter-penetrate.
 
-By contrast, the "fix rigid"_fix_rigid.html command constructs rigid
-bodies out of multiple particles.  The particles can be point
-particles or finite-size particles (spheres, ellipsoids, line
-segments, triangles).  The particles in each rigid body interact with
-each other in the usual pairwise fashion via whatever pair style is
-defined.  The sum of these interactions determine the total force and
-torque on each rigid body, which the "fix rigid"_fix_rigid.html
-command then time integrates.
+These are additional LAMMPS commands that can be used with body
+particles of different styles
 
-[Syntax:]
+"fix nve/body"_fix_nve_body.html : integrate motion of a body particle
+"compute body/local"_compute_body_local.html : store sub-particle attributes of a body particle
+"dump local"_dump.html : output sub-particle attributes of a body particle :tb(s=:)
 
-atom_style style args :pre
+The pair styles defined for use with specific body styles are listed
+in the sections below.
 
-style = {angle} or {atomic} or {body} or {bond} or {charge} or {dipole} or \
-        {electron} or {ellipsoid} or {full} or {line} or {meso} or \
-	{molecular} or {peri} or {sphere} or {tri} or {hybrid} :ul
-  args = none for any style except {body} and {hybrid}
-  {body} args = bstyle
-    bstyle = style of body particles
-  {hybrid} args = list of one or more sub-styles, each with their args :pre
+:line
 
-[Examples:]
+[Specifics of body style nparticle:]
 
-atom_style atomic
-atom_style bond
-atom_style full
-atom_style body nparticle 2 10
-atom_style hybrid charge bond
-atom_style hybrid charge body nparticle 2 5 :pre
+The {nparticle} body style represents body particles as a rigid body
+with a variable number N of sub-particles.  It is provided as a
+vanillia, prototypical example of a body particle, although as
+mentioned above, the "fix rigid"_fix_rigid.html command already
+duplicates its functionality.
 
+The atom_style body command for this body style takes two additional
+arguments:
+
+atom_style body nparticle Nmin Nmax
+Nmin = minimum # of sub-particles in any body in the system
+Nmax = maximum # of sub-particles in any body in the system :pre
+
+The Nmin and Nmax arguments are used to bound the size of data
+structures used internally by each particle.
+
+When the "read_data"_read_data.html command reads a data file for this
+body style, the following information must be provided for each entry
+in the {Bodies} section of the data file:
+
+atom-ID 1 M
+N
+x1 y1 z1 ...
+...
+xN yN zN :pre
+
+N is the number of sub-particles in the body particle.  M = 3*N.  The
+integer line has a single value N.  The floating point line(s) list
+the coordinates of the N sub-particles (x1 to zN) as 3N values on as
+many lines as required.  Note that this in not N lines, but 10 values
+per line; see the "read_data"_read_data.html command for details.  The
+coordinates of each sub-particle are specified as its x,y,z
+displacement from the center-of-mass of the body particle, which is
+specified as its coordinates in the {Atoms} section of the data file.
+
+The "pair_style body"_pair_body.html command can be used with this
+body style to compute body/body and body/non-body interactions.
+
+For output purposes via the compute body/local and dump local
+commands, this body style produces one datum for each sub-particle in
+a body particle.  The datum has 3 values:
+
+1 = x position of sub-particle
+2 = y position of sub-particle
+3 = z position of sub-particle
+
+These are the current position of the sub-particle within the
+simulation domain, not a displacement from the center-of-mass (COM) of
+the body particle itself.  These values are calculated using the
+current COM and orientiation of the body particle, and the
+displacement of the sub-particle from the COM.

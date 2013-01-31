@@ -18,10 +18,10 @@
 <UL><LI>style = <I>angle</I> or <I>atomic</I> or <I>body</I> or <I>bond</I> or <I>charge</I> or <I>dipole</I> or         <I>electron</I> or <I>ellipsoid</I> or <I>full</I> or <I>line</I> or <I>meso</I> or 	<I>molecular</I> or <I>peri</I> or <I>sphere</I> or <I>tri</I> or <I>hybrid</I> 
 </UL>
 <PRE>  args = none for any style except <I>body</I> and <I>hybrid</I>
-  <I>body</I> args = bstyle Nmin Nmax
+  <I>body</I> args = bstyle bstyle-args
     bstyle = style of body particles
-    Nmin = minimum # of sub-particles in any body
-    Nmax = maximum # of sub-particles in any body
+    bstyle-args = additional arguments specific to the bstyle
+                  see the <A HREF = "body.html">body</A> doc page for details
   <I>hybrid</I> args = list of one or more sub-styles, each with their args 
 </PRE>
 <P><B>Examples:</B>

@@ -35,6 +35,7 @@ discussion.
 These are the sample problems and their output in the various
 sub-directories:
 
+body:     body particles, 2d system
 colloid:  big colloid particles in a small particle solvent, 2d system
 comb:	  models using the COMB potential
 crack:	  crack propagation in a 2d solid
@@ -48,6 +49,7 @@ gpu:      use of the GPU package for GPU acceleration
 hugoniostat: Hugoniostat shock dynamics
 indent:	  spherical indenter into a 2d solid
 kim:      use of potentials in Knowledge Base for Interatomic Models (KIM)
+line:     line segment particles in 2d rigid bodies
 meam:	  MEAM test for SiC and shear (same as shear examples)
 melt:	  rapid melt of 3d LJ system
 micelle:  self-assembly of small lipid-like molecules into 2d bilayers
@@ -65,6 +67,7 @@ rigid:    rigid bodies modeled as independent or coupled
 shear:    sideways shear applied to 2d solid, with and without a void
 srd:      stochastic rotation dynamics (SRD) particles as solvent
 tad:      temperature-accelerated dynamics of vacancy diffusion in bulk Si
+tri:      triangular particles in rigid bodies
 
 Here is how you might run and visualize one of the sample problems:
 

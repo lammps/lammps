@@ -14,6 +14,7 @@
 /* ----------------------------------------------------------------------
    Contributing author: Andrew Jewett (jewett.aij at g mail)
 ------------------------------------------------------------------------- */
+
 #ifdef DIHEDRAL_CLASS
 
 DihedralStyle(table,DihedralTable)
@@ -22,16 +23,13 @@ DihedralStyle(table,DihedralTable)
 
 #ifndef LMP_DIHEDRAL_TABLE_H
 #define LMP_DIHEDRAL_TABLE_H
+
 #include <cassert>
 #include <cmath>
 #include "domain.h"
 #include "dihedral.h"
-using namespace std;
-
 
 namespace LAMMPS_NS {
-
-
 
 class DihedralTable : public Dihedral {
  public:
@@ -157,18 +155,6 @@ class DihedralTable : public Dihedral {
   char checkF_fname[MAXLINE];
 
 }; //class DihedralTable
-
-
-
-
-
-
-
-
-
-
-
-
 
 // ------------------------------------------------------------------------
 // The following auxiliary functions were left out of the

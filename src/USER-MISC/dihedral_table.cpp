@@ -23,10 +23,7 @@
 #include <string>
 #include <fstream>
 #include <iostream>
-#define NDEBUG //(disable assert())
-#include <cassert>
 #include <sstream>
-using namespace std;
 
 #include "atom.h"
 #include "comm.h"
@@ -38,17 +35,371 @@ using namespace std;
 #include "error.h"
 #include "dihedral_table.h"
 
-// Additional header files available for numerical debugging:
-//#undef NDEBUG
-//#define DIH_DEBUG_NUM
-//#ifdef DIH_DEBUG_NUM
-//#include "dihedral_table_dbg.h"    //in "supporting_files/debug_numerical/"
-//#endif
-// and pointless posturing:
-//#include "dihedral_table_nd_mod.h" //in "supporting_files/nd/"
+#include "math_const.h"
+#include "math_extra.h"
 
+using namespace std;
 using namespace LAMMPS_NS;
-using namespace DIHEDRAL_TABLE_NS;
+using namespace MathConst;
+using namespace MathExtra;
+
+// ------------------------------------------------------------------------
+// The following auxiliary functions were left out of the
+// DihedralTable class either because they require template parameters,
+// or because they have nothing to do with dihedral angles.
+// ------------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+// ---------    The function was stolen verbatim from the    ---------
+// ---------    GNU Scientific Library (GSL, version 1.15)   ---------
+// -------------------------------------------------------------------
+
+/* Author: Gerard Jungman */
+/* for description of method see [Engeln-Mullges + Uhlig, p. 96]
+ *
+ *      diag[0]  offdiag[0]             0   .....  offdiag[N-1]
+ *   offdiag[0]     diag[1]    offdiag[1]   .....
+ *            0  offdiag[1]       diag[2]
+ *            0           0    offdiag[2]   .....
+ *          ...         ...
+ * offdiag[N-1]         ...
+ *
+ */
+// -- (A non-symmetric version of this function is also available.) --
+
+enum { //GSL status return codes.
+  GSL_FAILURE  = -1,
+  GSL_SUCCESS  = 0,
+  GSL_ENOMEM   = 8,
+  GSL_EZERODIV = 12,
+  GSL_EBADLEN  = 19
+};
+
+
+static int solve_cyc_tridiag( const double diag[], size_t d_stride,
+                              const double offdiag[], size_t o_stride,
+                              const double b[], size_t b_stride,
+                              double x[], size_t x_stride,
+                              size_t N)
+{
+  int status = GSL_SUCCESS;
+  double * delta = (double *) malloc (N * sizeof (double));
+  double * gamma = (double *) malloc (N * sizeof (double));
+  double * alpha = (double *) malloc (N * sizeof (double));
+  double * c = (double *) malloc (N * sizeof (double));
+  double * z = (double *) malloc (N * sizeof (double));
+
+  if (delta == 0 || gamma == 0 || alpha == 0 || c == 0 || z == 0) {
+    cerr << "Internal Cyclic Spline Error: failed to allocate working space\n";
+    exit(GSL_ENOMEM);
+  }
+  else
+    {
+      size_t i, j;
+      double sum = 0.0;
+
+      /* factor */
+
+      if (N == 1)
+        {
+          x[0] = b[0] / diag[0];
+          return GSL_SUCCESS;
+        }
+
+      alpha[0] = diag[0];
+      gamma[0] = offdiag[0] / alpha[0];
+      delta[0] = offdiag[o_stride * (N-1)] / alpha[0];
+
+      if (alpha[0] == 0) {
+        status = GSL_EZERODIV;
+      }
+
+      for (i = 1; i < N - 2; i++)
+        {
+          alpha[i] = diag[d_stride * i] - offdiag[o_stride * (i-1)] * gamma[i - 1];
+          gamma[i] = offdiag[o_stride * i] / alpha[i];
+          delta[i] = -delta[i - 1] * offdiag[o_stride * (i-1)] / alpha[i];
+          if (alpha[i] == 0) {
+            status = GSL_EZERODIV;
+          }
+        }
+
+      for (i = 0; i < N - 2; i++)
+        {
+          sum += alpha[i] * delta[i] * delta[i];
+        }
+
+      alpha[N - 2] = diag[d_stride * (N - 2)] - offdiag[o_stride * (N - 3)] * gamma[N - 3];
+
+      gamma[N - 2] = (offdiag[o_stride * (N - 2)] - offdiag[o_stride * (N - 3)] * delta[N - 3]) / alpha[N - 2];
+
+      alpha[N - 1] = diag[d_stride * (N - 1)] - sum - alpha[(N - 2)] * gamma[N - 2] * gamma[N - 2];
+
+      /* update */
+      z[0] = b[0];
+      for (i = 1; i < N - 1; i++)
+        {
+          z[i] = b[b_stride * i] - z[i - 1] * gamma[i - 1];
+        }
+      sum = 0.0;
+      for (i = 0; i < N - 2; i++)
+        {
+          sum += delta[i] * z[i];
+        }
+      z[N - 1] = b[b_stride * (N - 1)] - sum - gamma[N - 2] * z[N - 2];
+      for (i = 0; i < N; i++)
+        {
+          c[i] = z[i] / alpha[i];
+        }
+
+      /* backsubstitution */
+      x[x_stride * (N - 1)] = c[N - 1];
+      x[x_stride * (N - 2)] = c[N - 2] - gamma[N - 2] * x[x_stride * (N - 1)];
+      if (N >= 3)
+        {
+          for (i = N - 3, j = 0; j <= N - 3; j++, i--)
+            {
+              x[x_stride * i] = c[i] - gamma[i] * x[x_stride * (i + 1)] - delta[i] * x[x_stride * (N - 1)];
+            }
+        }
+    }
+
+  if (z != 0)
+    free (z);
+  if (c != 0)
+    free (c);
+  if (alpha != 0)
+    free (alpha);
+  if (gamma != 0)
+    free (gamma);
+  if (delta != 0)
+    free (delta);
+
+  if (status == GSL_EZERODIV) {
+    cerr <<"Internal Cyclic Spline Error: Matrix must be positive definite.\n";
+    exit(GSL_EZERODIV);
+  }
+
+  return status;
+} //solve_cyc_tridiag()
+
+/* ----------------------------------------------------------------------
+   spline and splint routines modified from Numerical Recipes
+------------------------------------------------------------------------- */
+
+static void cyc_spline(double const *xa,
+                       double const *ya,
+                       int n,
+                       double period,
+                       double *y2a)
+{
+
+  double *diag    = new double[n];
+  double *offdiag = new double[n];
+  double *rhs     = new double[n];
+  double xa_im1, xa_ip1;
+
+  // In the cyclic case, there are n equations with n unknows.
+  // The for loop sets up the equations we need to solve.
+  // Later we invoke the GSL tridiagonal matrix solver to solve them.
+
+  for(int i=0; i < n; i++) {
+
+    // I have to lookup xa[i+1] and xa[i-1].  This gets tricky because of
+    // periodic boundary conditions.  We handle that now.
+    int im1 = i-1;
+    if (im1<0) {
+      im1 += n;
+      xa_im1 = xa[im1] - period;
+    }
+    else
+      xa_im1 = xa[im1];
+
+    int ip1 = i+1;
+    if (ip1>=n) {
+      ip1 -= n;
+      xa_ip1 = xa[ip1] + period;
+    }
+    else
+      xa_ip1 = xa[ip1];
+
+    // Recall that we want to find the y2a[] parameters (there are n of them).
+    // To solve for them, we have a linear equation with n unknowns
+    // (in the cyclic case that is).  For details, the non-cyclic case is
+    // explained in equation 3.3.7 in Numerical Recipes in C, p. 115.
+    diag[i]    = (xa_ip1 - xa_im1) / 3.0;
+    offdiag[i] = (xa_ip1 - xa[i]) / 6.0;
+    rhs[i]     = ((ya[ip1] - ya[i]) / (xa_ip1 - xa[i])) -
+                 ((ya[i] - ya[im1]) / (xa[i] - xa_im1));
+  }
+
+  // Ordinarily we would have to invert a large matrix (with potentially
+  // thousands of rows and columns).  However because this matix happens
+  // to be tridiagonal (and cyclic), we can use the following cheap method:
+  solve_cyc_tridiag(diag, 1,
+                    offdiag, 1,
+                    rhs, 1,
+                    y2a, 1,
+                    n);
+
+  delete [] diag;
+  delete [] offdiag;
+  delete [] rhs;
+
+} // cyc_spline()
+
+/* ---------------------------------------------------------------------- */
+
+// cyc_splint(): Evaluates a spline at position x, with n control
+//           points located at xa[], ya[], and with parameters y2a[]
+//           The xa[] must be monotonically increasing and their
+//           range should not exceed period (ie xa[n-1] < xa[0] + period).
+//           x must lie in the range:  [(xa[n-1]-period), (xa[0]+period)]
+//           "period" is typically 2*PI.
+static double cyc_splint(double const *xa,
+                         double const *ya,
+                         double const *y2a,
+                         int n,
+                         double period,
+                         double x)
+{
+  int klo = -1;
+  int khi = n;
+  int k;
+  double xlo = xa[n-1] - period;
+  double xhi = xa[0] + period;
+  while (khi-klo > 1) {
+    k = (khi+klo) >> 1; //(k=(khi+klo)/2)
+    if (xa[k] > x) {
+      khi = k;
+      xhi = xa[k];
+    }
+    else {
+      klo = k;
+      xlo = xa[k];
+    }
+  }
+
+  if (khi == n) khi = 0;
+  if (klo ==-1) klo = n-1;
+
+  double h = xhi-xlo;
+  double a = (xhi-x) / h;
+  double b = (x-xlo) / h;
+  double y = a*ya[klo] + b*ya[khi] +
+    ((a*a*a-a)*y2a[klo] + (b*b*b-b)*y2a[khi]) * (h*h)/6.0;
+
+  return y;
+
+} // cyc_splint()
+
+// cyc_splintD(): Evaluate the deriviative of a cyclic spline at position x,
+//           with n control points at xa[], ya[], with parameters y2a[].
+//           The xa[] must be monotonically increasing and their
+//           range should not exceed period (ie xa[n-1] < xa[0] + period).
+//           x must lie in the range:  [(xa[n-1]-period), (xa[0]+period)]
+//           "period" is typically 2*PI.
+static double cyc_splintD(double const *xa,
+                          double const *ya,
+                          double const *y2a,
+                          int n,
+                          double period,
+                          double x)
+{
+  int klo = -1;
+  int khi = n; // (not n-1)
+  int k;
+  double xlo = xa[n-1] - period;
+  double xhi = xa[0] + period;
+  while (khi-klo > 1) {
+    k = (khi+klo) >> 1; //(k=(khi+klo)/2)
+    if (xa[k] > x) {
+      khi = k;
+      xhi = xa[k];
+    }
+    else {
+      klo = k;
+      xlo = xa[k];
+    }
+  }
+
+  if (khi == n) khi = 0;
+  if (klo ==-1) klo = n-1;
+
+  double yhi = ya[khi];
+  double ylo = ya[klo];
+  double h = xhi-xlo;
+  double g = yhi-ylo;
+  double a = (xhi-x) / h;
+  double b = (x-xlo) / h;
+  // Formula below taken from equation 3.3.5 of "numerical recipes in c"
+  // "yD" = the derivative of y
+  double yD = g/h - ( (3.0*a*a-1.0)*y2a[klo] - (3.0*b*b-1.0)*y2a[khi] ) * h/6.0;
+  // For rerefence: y = a*ylo + b*yhi +
+  //                  ((a*a*a-a)*y2a[klo] + (b*b*b-b)*y2a[khi]) * (h*h)/6.0;
+
+  return yD;
+
+} // cyc_splintD()
+
+// --------------------------------------------
+// ------- Calculate the dihedral angle -------
+// --------------------------------------------
+static const int g_dim=3;
+
+static double Phi(double const *x1, //array holding x,y,z coords atom 1
+                  double const *x2, // :       :      :      :        2
+                  double const *x3, // :       :      :      :        3
+                  double const *x4, // :       :      :      :        4
+                  Domain *domain, //<-periodic boundary information
+                  // The following arrays are of doubles with g_dim elements.
+                  // (g_dim is a constant known at compile time, usually 3).
+                  // Their contents is calculated by this function.
+                  // Space for these vectors must be allocated in advance.
+                  // (This is not hidden internally because these vectors
+                  //  may be needed outside the function, later on.)
+                  double *vb12, // will store x2-x1
+                  double *vb23, // will store x3-x2
+                  double *vb34, // will store x4-x3
+                  double *n123, // will store normal to plane x1,x2,x3
+                  double *n234) // will store normal to plane x2,x3,x4
+{
+
+  for (int d=0; d < g_dim; ++d) {
+    vb12[d] = x2[d] - x1[d]; // 1st bond
+    vb23[d] = x3[d] - x2[d]; // 2nd bond
+    vb34[d] = x4[d] - x3[d]; // 3rd bond
+  }
+
+  //Consider periodic boundary conditions:
+  domain->minimum_image(vb12[0],vb12[1],vb12[2]);
+  domain->minimum_image(vb23[0],vb23[1],vb23[2]);
+  domain->minimum_image(vb34[0],vb34[1],vb34[2]);
+
+  //--- Compute the normal to the planes formed by atoms 1,2,3 and 2,3,4 ---
+
+  cross3(vb23, vb12, n123);        // <- n123=vb23 x vb12
+  cross3(vb23, vb34, n234);        // <- n234=vb23 x vb34
+
+  norm3(n123);
+  norm3(n234);
+
+  double cos_phi = -dot3(n123, n234);
+
+  if (cos_phi > 1.0)
+    cos_phi = 1.0;
+  else if (cos_phi < -1.0)
+    cos_phi = -1.0;
+
+  double phi = acos(cos_phi);
+
+  if (dot3(n123, vb34) > 0.0) {
+    phi = -phi;   //(Note: Negative dihedral angles are possible only in 3-D.)
+    phi += MY_2PI; //<- This insure phi is always in the range 0 to 2*PI
+  }
+  return phi;
+} // DihedralTable::Phi()
+
 
 /* ---------------------------------------------------------------------- */
 
@@ -56,6 +407,7 @@ DihedralTable::DihedralTable(LAMMPS *lmp) : Dihedral(lmp)
 {
   ntables = 0;
   tables = NULL;
+  checkU_fname = checkF_fname = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -64,6 +416,8 @@ DihedralTable::~DihedralTable()
 {
   for (int m = 0; m < ntables; m++) free_table(&tables[m]);
   memory->sfree(tables);
+  memory->sfree(checkU_fname);
+  memory->sfree(checkF_fname);
 
   if (allocated) {
     memory->destroy(setflag);
@@ -133,9 +487,9 @@ void DihedralTable::compute(int eflag, int vflag)
   double n234[g_dim]; //n234=vb23 x vb34 / |vb23 x vb34|  ("x" is cross product)
 
   double proj12on23[g_dim];
-  //    proj12on23[d] = (vb23[d]/|vb23|) * DotProduct(vb12,vb23)/|vb12|*|vb23|
+  //    proj12on23[d] = (vb23[d]/|vb23|) * dot3(vb12,vb23)/|vb12|*|vb23|
   double proj34on23[g_dim];
-  //    proj34on23[d] = (vb34[d]/|vb23|) * DotProduct(vb34,vb23)/|vb34|*|vb23|
+  //    proj34on23[d] = (vb34[d]/|vb23|) * dot3(vb34,vb23)/|vb34|*|vb23|
   double perp12on23[g_dim];
   //    perp12on23[d] = v12[d] - proj12on23[d]
   double perp34on23[g_dim];
@@ -179,9 +533,9 @@ void DihedralTable::compute(int eflag, int vflag)
     double dphi_dx3[g_dim]; //               d x[i1][d]
     double dphi_dx4[g_dim]; //where d=0,1,2 corresponds to x,y,z  (if g_dim==3)
 
-    double dot123             = DotProduct(vb12, vb23);
-    double dot234             = DotProduct(vb23, vb34);
-    double L23sqr             = DotProduct(vb23, vb23);
+    double dot123             = dot3(vb12, vb23);
+    double dot234             = dot3(vb23, vb34);
+    double L23sqr             = dot3(vb23, vb23);
     double L23                = sqrt(L23sqr);   // (central bond length)
     double inv_L23sqr = 0.0;
     double inv_L23    = 0.0;
@@ -207,9 +561,9 @@ void DihedralTable::compute(int eflag, int vflag)
     // These two gradients point in the direction of n123 and n234,
     // and are scaled by the distances of atoms 1 and 4 from the central axis.
     // Distance of atom 1 to central axis:
-    double perp12on23_len = sqrt(DotProduct(perp12on23, perp12on23));
+    double perp12on23_len = sqrt(dot3(perp12on23, perp12on23));
     // Distance of atom 4 to central axis:
-    double perp34on23_len = sqrt(DotProduct(perp34on23, perp34on23));
+    double perp34on23_len = sqrt(dot3(perp34on23, perp34on23));
 
     double inv_perp12on23 = 0.0;
     if (perp12on23_len != 0.0) inv_perp12on23 = 1.0 / perp12on23_len;
@@ -265,37 +619,11 @@ void DihedralTable::compute(int eflag, int vflag)
       dphi_dx3[d] = dphi123_dx3_coef*dphi_dx1[d] + dphi234_dx3_coef*dphi_dx4[d];
     }
 
-
-
-
-    #ifdef DIH_DEBUG_NUM
-    // ----- Numerical test? -----
-
-    cerr << "  -- testing gradient for dihedral (n="<<n<<") for atoms ("
-         << i1 << "," << i2 << "," << i3 << "," << i4 << ") --" << endl;
-
-    PrintGradientComparison(*this, dphi_dx1, dphi_dx2, dphi_dx3, dphi_dx4,
-                            domain, x[i1], x[i2], x[i3], x[i4]);
-
-    for (int d=0; d < g_dim; ++d) {
-      // The sum of all the gradients should be near 0. (translational symmetry)
-      cerr <<"sum_gradients["<<d<<"]="<<dphi_dx1[d]<<"+"<<dphi_dx2[d]<<"+"<<dphi_dx3[d]<<"+"<<dphi_dx4[d]<<"="<<dphi_dx1[d]+dphi_dx2[d]+dphi_dx3[d]+dphi_dx4[d]<<endl;
-      // These should sum to zero
-      assert(abs(dphi_dx1[d]+dphi_dx2[d]+dphi_dx3[d]+dphi_dx4[d]) < 0.0002/L23);
-    }
-    #endif // #ifdef DIH_DEBUG_NUM
-
-
-
-
     // ----- Step 3: Calculate the energy and force in the phi direction -----
 
     // tabulated force & energy
     double u, m_du_dphi; //u = energy.   m_du_dphi = "minus" du/dphi
-    assert((0.0 <= phi) && (phi <= TWOPI));
-
     uf_lookup(type, phi, u, m_du_dphi);
-
 
     if (eflag) edihedral = u;
 
@@ -482,7 +810,7 @@ void DihedralTable::coeff(int narg, char **arg)
     }
   }
   else {
-    if ((phihi - philo) >= TWOPI) {
+    if ((phihi - philo) >= MY_2PI) {
       string err_msg;
       err_msg = string("Dihedral table angle range must be < 2*PI radians (")
         + string(arg[2]) + string(").");
@@ -493,10 +821,10 @@ void DihedralTable::coeff(int narg, char **arg)
   // convert phi from degrees to radians
   if (tb->use_degrees) {
     for (int i=0; i < tb->ninput; i++) {
-      tb->phifile[i] *= PI/180.0;
+      tb->phifile[i] *= MY_PI/180.0;
       // I assume that if angles are in degrees, then the forces (f=dU/dphi)
       // are specified with "phi" in radians as well.
-      tb->ffile[i] *= 180.0/PI;
+      tb->ffile[i] *= 180.0/MY_PI;
     }
   }
 
@@ -515,7 +843,7 @@ void DihedralTable::coeff(int narg, char **arg)
     for (int i=0; i < tb->ninput; i++) {
       double phi   = tb->phifile[i];
       // Add a multiple of 2*PI to phi until it lies in the range [0, 2*PI).
-      phi -= TWOPI * floor(phi/TWOPI);
+      phi -= MY_2PI * floor(phi/MY_2PI);
       phifile_tmp[i] = phi;
       efile_tmp[i] = tb->efile[i];
       ffile_tmp[i] = tb->ffile[i];
@@ -523,7 +851,6 @@ void DihedralTable::coeff(int narg, char **arg)
         //There should only be at most one discontinuity, because we have
         //insured that the data was sorted before imaging, and because the
         //range of angle values does not exceed 2*PI.
-        assert(i_discontinuity == tb->ninput); //<-should only happen once
         i_discontinuity = i;
       }
     }
@@ -533,17 +860,14 @@ void DihedralTable::coeff(int narg, char **arg)
       tb->phifile[I] = phifile_tmp[i];
       tb->efile[I] = efile_tmp[i];
       tb->ffile[I] = ffile_tmp[i];
-      assert((I==0) || (tb->phifile[I] > tb->phifile[I-1]));
       I++;
     }
     for (int i = 0; i < i_discontinuity; i++) {
       tb->phifile[I] = phifile_tmp[i];
       tb->efile[I] = efile_tmp[i];
       tb->ffile[I] = ffile_tmp[i];
-      assert((I==0) || (tb->phifile[I] > tb->phifile[I-1]));
       I++;
     }
-    assert(I == tb->ninput);
   }
 
   // spline read-in and compute r,e,f vectors within table
@@ -559,10 +883,10 @@ void DihedralTable::coeff(int narg, char **arg)
       ofstream checkU_file;
       checkU_file.open(checkU_fname, ios::out);
       for (int i=0; i < tablength; i++) {
-        double phi = i*TWOPI/tablength;
+        double phi = i*MY_2PI/tablength;
         double u = tb->e[i];
         if (tb->use_degrees)
-          phi *= 180.0/PI;
+          phi *= 180.0/MY_PI;
         checkU_file << phi << " " << u << "\n";
       }
       checkU_file.close();
@@ -573,7 +897,7 @@ void DihedralTable::coeff(int narg, char **arg)
       checkF_file.open(checkF_fname, ios::out);
       for (int i=0; i < tablength; i++)
       {
-        double phi = i*TWOPI/tablength;
+        double phi = i*MY_2PI/tablength;
         double f;
         if ((tabstyle == SPLINE) && (tb->f_unspecified)) {
           double dU_dphi =
@@ -585,17 +909,17 @@ void DihedralTable::coeff(int narg, char **arg)
             //  -cyc_splintD() routine to calculate the derivative of the
             //  energy spline, using the energy data (tb->e[]).
             //  To be nice and report something, I do the same thing here.)
-            cyc_splintD(tb->phi, tb->e, tb->e2, tablength, TWOPI,phi);
+            cyc_splintD(tb->phi, tb->e, tb->e2, tablength, MY_2PI,phi);
           f = -dU_dphi;
         }
         else
           // Otherwise we calculated the tb->f[] array.  Report its contents.
           f = tb->f[i];
         if (tb->use_degrees) {
-          phi *= 180.0/PI;
+          phi *= 180.0/MY_PI;
           // If the user wants degree angle units, we should convert our
           // internal force tables (in energy/radians) to (energy/degrees)
-          f *= PI/180.0;
+          f *= MY_PI/180.0;
         }
         checkF_file << phi << " " << f << "\n";
       }
@@ -680,7 +1004,7 @@ void DihedralTable::free_table(Table *tb)
 /* ----------------------------------------------------------------------
    read table file, only called by proc 0
 ------------------------------------------------------------------------- */
-
+static const int MAXLINE=2048;
 void DihedralTable::read_table(Table *tb, char *file, char *keyword)
 {
   char line[MAXLINE];
@@ -776,10 +1100,10 @@ void DihedralTable::spline_table(Table *tb)
   memory->create(tb->e2file,tb->ninput,"dihedral:e2file");
   memory->create(tb->f2file,tb->ninput,"dihedral:f2file");
 
-  cyc_spline(tb->phifile, tb->efile, tb->ninput, TWOPI, tb->e2file);
+  cyc_spline(tb->phifile, tb->efile, tb->ninput, MY_2PI, tb->e2file);
 
   if (! tb->f_unspecified) {
-    cyc_spline(tb->phifile, tb->ffile, tb->ninput, TWOPI, tb->f2file);
+    cyc_spline(tb->phifile, tb->ffile, tb->ninput, MY_2PI, tb->f2file);
   }
 
   // CHECK to help make sure the user calculated forces in a way
@@ -801,14 +1125,14 @@ void DihedralTable::spline_table(Table *tb)
       int im1 = i-1;
       if (im1 < 0) {
         im1 += tb->ninput;
-        phi_im1 = tb->phifile[im1] - TWOPI;
+        phi_im1 = tb->phifile[im1] - MY_2PI;
       }
       else
         phi_im1 = tb->phifile[im1];
       int ip1 = i+1;
       if (ip1 >= tb->ninput) {
         ip1 -= tb->ninput;
-        phi_ip1 = tb->phifile[ip1] + TWOPI;
+        phi_ip1 = tb->phifile[ip1] + MY_2PI;
       }
       else
         phi_ip1 = tb->phifile[ip1];
@@ -836,7 +1160,7 @@ void DihedralTable::spline_table(Table *tb)
       double f = -dU_dphi;
       // Alternately, we could use spline interpolation instead:
       // double f = - splintD(tb->phifile, tb->efile, tb->e2file,
-      //                      tb->ninput, TWOPI, tb->phifile[i]);
+      //                      tb->ninput, MY_2PI, tb->phifile[i]);
       // This is the way I originally did it, but I trust
       // the ugly simple linear way above better.
       // Recall this entire block of code doess not calculate
@@ -867,7 +1191,7 @@ void DihedralTable::spline_table(Table *tb)
 void DihedralTable::compute_table(Table *tb)
 {
   //delta = table spacing in dihedral angle for tablength (cyclic) bins
-  tb->delta = TWOPI / tablength;
+  tb->delta = MY_2PI / tablength;
   tb->invdelta = 1.0/tb->delta;
   tb->deltasq6 = tb->delta*tb->delta / 6.0;
 
@@ -889,9 +1213,9 @@ void DihedralTable::compute_table(Table *tb)
   for (int i = 0; i < tablength; i++) {
     double phi = i*tb->delta;
     tb->phi[i] = phi;
-    tb->e[i]= cyc_splint(tb->phifile,tb->efile,tb->e2file,tb->ninput,TWOPI,phi);
+    tb->e[i]= cyc_splint(tb->phifile,tb->efile,tb->e2file,tb->ninput,MY_2PI,phi);
     if (! tb->f_unspecified)
-      tb->f[i] = cyc_splint(tb->phifile,tb->ffile,tb->f2file,tb->ninput,TWOPI,phi);
+      tb->f[i] = cyc_splint(tb->phifile,tb->ffile,tb->f2file,tb->ninput,MY_2PI,phi);
   }
 
   if (tabstyle == LINEAR) {
@@ -918,9 +1242,9 @@ void DihedralTable::compute_table(Table *tb)
     }
   } // if (tabstyle == LINEAR)
 
-  cyc_spline(tb->phi, tb->e, tablength, TWOPI, tb->e2);
+  cyc_spline(tb->phi, tb->e, tablength, MY_2PI, tb->e2);
   if (! tb->f_unspecified)
-    cyc_spline(tb->phi, tb->f, tablength, TWOPI, tb->f2);
+    cyc_spline(tb->phi, tb->f, tablength, MY_2PI, tb->f2);
 }
 
 
@@ -936,8 +1260,6 @@ void DihedralTable::param_extract(Table *tb, char *line)
   tb->ninput = 0;
   tb->f_unspecified = false; //default
   tb->use_degrees   = true;  //default
-  strcpy(checkU_fname, "");
-  strcpy(checkF_fname, "");
 
   char *word = strtok(line," \t\n\r\f");
   while (word) {
@@ -956,11 +1278,15 @@ void DihedralTable::param_extract(Table *tb, char *line)
     }
     else if (strcmp(word,"CHECKU") == 0) {
       word = strtok(NULL," \t\n\r\f");
-      strncpy(checkU_fname, word, MAXLINE);
+      memory->sfree(checkU_fname);
+      memory->create(checkU_fname,strlen(word),"dihedral_table:checkU");
+      strcpy(checkU_fname, word);
     }
     else if (strcmp(word,"CHECKF") == 0) {
       word = strtok(NULL," \t\n\r\f");
-      strncpy(checkF_fname, word, MAXLINE);
+      memory->sfree(checkF_fname);
+      memory->create(checkF_fname,strlen(word),"dihedral_table:checkF");
+      strcpy(checkF_fname, word);
     }
     // COMMENTING OUT:  equilibrium angles are not supported
     //else if (strcmp(word,"EQ") == 0) {
@@ -1012,316 +1338,3 @@ void DihedralTable::bcast_table(Table *tb)
 }
 
 
-namespace LAMMPS_NS {
-namespace DIHEDRAL_TABLE_NS {
-
-
-// -------------------------------------------------------------------
-// ---------    The function was stolen verbatim from the    ---------
-// ---------    GNU Scientific Library (GSL, version 1.15)   ---------
-// -------------------------------------------------------------------
-
-/* Author: Gerard Jungman */
-/* for description of method see [Engeln-Mullges + Uhlig, p. 96]
- *
- *      diag[0]  offdiag[0]             0   .....  offdiag[N-1]
- *   offdiag[0]     diag[1]    offdiag[1]   .....
- *            0  offdiag[1]       diag[2]
- *            0           0    offdiag[2]   .....
- *          ...         ...
- * offdiag[N-1]         ...
- *
- */
-// -- (A non-symmetric version of this function is also available.) --
-
-enum { //GSL status return codes.
-  GSL_FAILURE  = -1,
-  GSL_SUCCESS  = 0,
-  GSL_ENOMEM   = 8,
-  GSL_EZERODIV = 12,
-  GSL_EBADLEN  = 19
-};
-
-
-int
-solve_cyc_tridiag(
-  const double diag[], size_t d_stride,
-  const double offdiag[], size_t o_stride,
-  const double b[], size_t b_stride,
-  double x[], size_t x_stride,
-  size_t N)
-{
-  int status = GSL_SUCCESS;
-  double * delta = (double *) malloc (N * sizeof (double));
-  double * gamma = (double *) malloc (N * sizeof (double));
-  double * alpha = (double *) malloc (N * sizeof (double));
-  double * c = (double *) malloc (N * sizeof (double));
-  double * z = (double *) malloc (N * sizeof (double));
-
-  if (delta == 0 || gamma == 0 || alpha == 0 || c == 0 || z == 0) {
-    cerr << "Internal Cyclic Spline Error: failed to allocate working space\n";
-    exit(GSL_ENOMEM);
-  }
-  else
-    {
-      size_t i, j;
-      double sum = 0.0;
-
-      /* factor */
-
-      if (N == 1)
-        {
-          x[0] = b[0] / diag[0];
-          return GSL_SUCCESS;
-        }
-
-      alpha[0] = diag[0];
-      gamma[0] = offdiag[0] / alpha[0];
-      delta[0] = offdiag[o_stride * (N-1)] / alpha[0];
-
-      if (alpha[0] == 0) {
-        status = GSL_EZERODIV;
-      }
-
-      for (i = 1; i < N - 2; i++)
-        {
-          alpha[i] = diag[d_stride * i] - offdiag[o_stride * (i-1)] * gamma[i - 1];
-          gamma[i] = offdiag[o_stride * i] / alpha[i];
-          delta[i] = -delta[i - 1] * offdiag[o_stride * (i-1)] / alpha[i];
-          if (alpha[i] == 0) {
-            status = GSL_EZERODIV;
-          }
-        }
-
-      for (i = 0; i < N - 2; i++)
-        {
-          sum += alpha[i] * delta[i] * delta[i];
-        }
-
-      alpha[N - 2] = diag[d_stride * (N - 2)] - offdiag[o_stride * (N - 3)] * gamma[N - 3];
-
-      gamma[N - 2] = (offdiag[o_stride * (N - 2)] - offdiag[o_stride * (N - 3)] * delta[N - 3]) / alpha[N - 2];
-
-      alpha[N - 1] = diag[d_stride * (N - 1)] - sum - alpha[(N - 2)] * gamma[N - 2] * gamma[N - 2];
-
-      /* update */
-      z[0] = b[0];
-      for (i = 1; i < N - 1; i++)
-        {
-          z[i] = b[b_stride * i] - z[i - 1] * gamma[i - 1];
-        }
-      sum = 0.0;
-      for (i = 0; i < N - 2; i++)
-        {
-          sum += delta[i] * z[i];
-        }
-      z[N - 1] = b[b_stride * (N - 1)] - sum - gamma[N - 2] * z[N - 2];
-      for (i = 0; i < N; i++)
-        {
-          c[i] = z[i] / alpha[i];
-        }
-
-      /* backsubstitution */
-      x[x_stride * (N - 1)] = c[N - 1];
-      x[x_stride * (N - 2)] = c[N - 2] - gamma[N - 2] * x[x_stride * (N - 1)];
-      if (N >= 3)
-        {
-          for (i = N - 3, j = 0; j <= N - 3; j++, i--)
-            {
-              x[x_stride * i] = c[i] - gamma[i] * x[x_stride * (i + 1)] - delta[i] * x[x_stride * (N - 1)];
-            }
-        }
-    }
-
-  if (z != 0)
-    free (z);
-  if (c != 0)
-    free (c);
-  if (alpha != 0)
-    free (alpha);
-  if (gamma != 0)
-    free (gamma);
-  if (delta != 0)
-    free (delta);
-
-  if (status == GSL_EZERODIV) {
-    cerr <<"Internal Cyclic Spline Error: Matrix must be positive definite.\n";
-    exit(GSL_EZERODIV);
-  }
-
-  return status;
-} //solve_cyc_tridiag()
-
-
-
-/* ----------------------------------------------------------------------
-   spline and splint routines modified from Numerical Recipes
-------------------------------------------------------------------------- */
-
-void cyc_spline(double const *xa,
-                double const *ya,
-                int n,
-                double period,
-                double *y2a)
-{
-
-  double *diag    = new double[n];
-  double *offdiag = new double[n];
-  double *rhs     = new double[n];
-  double xa_im1, xa_ip1;
-
-  // In the cyclic case, there are n equations with n unknows.
-  // The for loop sets up the equations we need to solve.
-  // Later we invoke the GSL tridiagonal matrix solver to solve them.
-
-  for(int i=0; i < n; i++) {
-
-    // I have to lookup xa[i+1] and xa[i-1].  This gets tricky because of
-    // periodic boundary conditions.  We handle that now.
-    int im1 = i-1;
-    if (im1<0) {
-      im1 += n;
-      xa_im1 = xa[im1] - period;
-    }
-    else
-      xa_im1 = xa[im1];
-
-    int ip1 = i+1;
-    if (ip1>=n) {
-      ip1 -= n;
-      xa_ip1 = xa[ip1] + period;
-    }
-    else
-      xa_ip1 = xa[ip1];
-
-    // Recall that we want to find the y2a[] parameters (there are n of them).
-    // To solve for them, we have a linear equation with n unknowns
-    // (in the cyclic case that is).  For details, the non-cyclic case is
-    // explained in equation 3.3.7 in Numerical Recipes in C, p. 115.
-    diag[i]    = (xa_ip1 - xa_im1) / 3.0;
-    offdiag[i] = (xa_ip1 - xa[i]) / 6.0;
-    rhs[i]     = ((ya[ip1] - ya[i]) / (xa_ip1 - xa[i])) -
-                 ((ya[i] - ya[im1]) / (xa[i] - xa_im1));
-  }
-
-  // Ordinarily we would have to invert a large matrix (with potentially
-  // thousands of rows and columns).  However because this matix happens
-  // to be tridiagonal (and cyclic), we can use the following cheap method:
-  solve_cyc_tridiag(diag, 1,
-                    offdiag, 1,
-                    rhs, 1,
-                    y2a, 1,
-                    n);
-
-  delete [] diag;
-  delete [] offdiag;
-  delete [] rhs;
-
-} // cyc_spline()
-
-
-
-/* ---------------------------------------------------------------------- */
-
-// cyc_splint(): Evaluates a spline at position x, with n control
-//           points located at xa[], ya[], and with parameters y2a[]
-//           The xa[] must be monotonically increasing and their
-//           range should not exceed period (ie xa[n-1] < xa[0] + period).
-//           x must lie in the range:  [(xa[n-1]-period), (xa[0]+period)]
-//           "period" is typically 2*PI.
-double cyc_splint(double const *xa,
-                  double const *ya,
-                  double const *y2a,
-                  int n,
-                  double period,
-                  double x)
-{
-  int klo = -1;
-  int khi = n;
-  int k;
-  double xlo = xa[n-1] - period;
-  double xhi = xa[0] + period;
-  assert((xlo <= x) && (x <= xhi));
-  while (khi-klo > 1) {
-    k = (khi+klo) >> 1; //(k=(khi+klo)/2)
-    if (xa[k] > x) {
-      khi = k;
-      xhi = xa[k];
-    }
-    else {
-      klo = k;
-      xlo = xa[k];
-    }
-  }
-  assert((xlo <= x) && (x <= xhi));
-
-  if (khi == n) khi = 0;
-  if (klo ==-1) klo = n-1;
-
-  double h = xhi-xlo;
-  double a = (xhi-x) / h;
-  double b = (x-xlo) / h;
-  double y = a*ya[klo] + b*ya[khi] +
-    ((a*a*a-a)*y2a[klo] + (b*b*b-b)*y2a[khi]) * (h*h)/6.0;
-
-  return y;
-
-} // cyc_splint()
-
-
-
-// cyc_splintD(): Evaluate the deriviative of a cyclic spline at position x,
-//           with n control points at xa[], ya[], with parameters y2a[].
-//           The xa[] must be monotonically increasing and their
-//           range should not exceed period (ie xa[n-1] < xa[0] + period).
-//           x must lie in the range:  [(xa[n-1]-period), (xa[0]+period)]
-//           "period" is typically 2*PI.
-double cyc_splintD(double const *xa,
-                   double const *ya,
-                   double const *y2a,
-                   int n,
-                   double period,
-                   double x)
-{
-  int klo = -1;
-  int khi = n; // (not n-1)
-  int k;
-  double xlo = xa[n-1] - period;
-  double xhi = xa[0] + period;
-  assert((xlo <= x) && (x <= xhi));
-  while (khi-klo > 1) {
-    k = (khi+klo) >> 1; //(k=(khi+klo)/2)
-    if (xa[k] > x) {
-      khi = k;
-      xhi = xa[k];
-    }
-    else {
-      klo = k;
-      xlo = xa[k];
-    }
-  }
-  assert((xlo <= x) && (x <= xhi));
-
-  if (khi == n) khi = 0;
-  if (klo ==-1) klo = n-1;
-
-  double yhi = ya[khi];
-  double ylo = ya[klo];
-  double h = xhi-xlo;
-  double g = yhi-ylo;
-  double a = (xhi-x) / h;
-  double b = (x-xlo) / h;
-  // Formula below taken from equation 3.3.5 of "numerical recipes in c"
-  // "yD" = the derivative of y
-  double yD = g/h - ( (3.0*a*a-1.0)*y2a[klo] - (3.0*b*b-1.0)*y2a[khi] ) * h/6.0;
-  // For rerefence: y = a*ylo + b*yhi +
-  //                  ((a*a*a-a)*y2a[klo] + (b*b*b-b)*y2a[khi]) * (h*h)/6.0;
-
-  return yD;
-
-} // cyc_splintD()
-
-
-
-} //namespace DIHEDRAL_TABLE_NS
-} //namespace LAMMPS_NS

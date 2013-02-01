@@ -175,6 +175,7 @@ public:
   /// create() must be called after that;
   colvar_grid (colvar_grid<T> const &g) : has_data (false),
                                           nd (g.nd),
+                                          nx (g.nx),
                                           mult (g.mult),
                                           cv (g.cv),
                                           lower_boundaries (g.lower_boundaries),

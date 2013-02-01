@@ -140,39 +140,42 @@ public:
   void create_sorted_ids (void);
   
 
-  /// \brief Before calculating colvars, move the group to overlap the
-  /// center of mass of reference coordinates
+  /// \brief When updating atomic coordinates, translate them to align with the
+  /// center of mass of the reference coordinates
   bool b_center;
 
-  /// \brief Right after updating atom coordinates (and after
-  /// centering coordinates, if b_center is true), rotate the group to
-  /// overlap the reference coordinates.  You should not manipulate
-  /// atoms individually if you turn on this flag.
+  /// \brief When updating atom coordinates (and after
+  /// centering them if b_center is set), rotate the group to
+  /// align with the reference coordinates.
   ///
   /// Note: gradients will be calculated in the rotated frame: when
   /// forces will be applied, they will rotated back to the original
   /// frame
   bool b_rotate;
-  /// Rotation between the group and its reference coordinates
+  /// The rotation calculated automatically if b_rotate is defined
   cvm::rotation rot;
 
-  /// \brief Indicates that the user has specified centerReference or
-  /// rotateReference (and the related reference coordinates):
-  /// cvc's (eg rmsd, eigenvector) should not override these settings
+  /// \brief Indicates that the user has explicitly set centerReference or
+  /// rotateReference, and the corresponding reference:
+  /// cvc's (eg rmsd, eigenvector) will not override the user's choice
   bool b_user_defined_fit;
 
-  /// \brief use these reference coordinates, for b_center, b_rotate, or to compute
-  /// certain colvar components (orientation, rmsd, etc)
+  /// \brief Whether or not the derivatives of the roto-translation
+  /// should be included when calculating the colvar's gradients (default: no)
+  bool b_fit_gradients;
+
+  /// \brief use reference coordinates for b_center or b_rotate
   std::vector<cvm::atom_pos> ref_pos;
+
   /// \brief Center of geometry of the reference coordinates; regardless
   /// of whether b_center is true, ref_pos is centered to zero at
   /// initialization, and ref_pos_cog serves to center the positions
   cvm::atom_pos              ref_pos_cog;
-  /// \brief In case b_center or b_rotate is true, fit this group to
-  /// the reference positions (default: the parent group itself)
+
+  /// \brief If b_center or b_rotate is true, use this group to
+  /// define the transformation (default: this group itself)
   atom_group                *ref_pos_group;
-
-
+  
   /// Total mass of the atom group
   cvm::real total_mass;
 
@@ -186,14 +189,12 @@ public:
   /// which is a member function so that a group can be initialized
   /// also after construction
   atom_group (std::string const &conf,
-              char const        *key,
-              atom_group        *ref_pos_group = NULL);
+              char const        *key);
 
   /// \brief Initialize the group by looking up its configuration
   /// string in conf and parsing it
   void parse (std::string const &conf,
-              char const        *key,
-              atom_group        *ref_pos_group = NULL);
+              char const        *key);
 
   /// \brief Initialize the group after a temporary vector of atoms
   atom_group (std::vector<cvm::atom> const &atoms);
@@ -208,9 +209,11 @@ public:
   ~atom_group();
 
   /// \brief Get the current positions; if b_center or b_rotate are
-  /// true, center and/or rotate the coordinates right after reading
-  /// them
+  /// true, calc_apply_roto_translation() will be called too
   void read_positions();
+
+  /// \brief (Re)calculate the optimal roto-translation
+  void calc_apply_roto_translation();
 
   /// \brief Save center of geometry fo ref positions,
   /// then subtract it 
@@ -238,6 +241,8 @@ public:
   {
     for (cvm::atom_iter ai = this->begin(); ai != this->end(); ai++)
       ai->reset_data();
+    if (ref_pos_group)
+      ref_pos_group->reset_atoms_data();
   }
 
   /// \brief Return a copy of the current atom positions
@@ -246,21 +251,15 @@ public:
   /// \brief Return a copy of the current atom positions, shifted by a constant vector
   std::vector<cvm::atom_pos> positions_shifted (cvm::rvector const &shift) const;
 
-  /// \brief Return the center of geometry of the positions \param ref_pos
-  /// Use the closest periodic images to this position
-  cvm::atom_pos center_of_geometry (cvm::atom_pos const &ref_pos);
   /// \brief Return the center of geometry of the positions, assuming
   /// that coordinates are already pbc-wrapped
   cvm::atom_pos center_of_geometry() const;
 
-  /// \brief Return the center of mass of the positions \param ref_pos
-  /// Use the closest periodic images to this position
-  cvm::atom_pos center_of_mass (cvm::atom_pos const &ref_pos);
   /// \brief Return the center of mass of the positions, assuming that
   /// coordinates are already pbc-wrapped
   cvm::atom_pos center_of_mass() const;
 
-  /// \brief Store atom positions from the previous step
+  /// \brief Atom positions at the previous step
   std::vector<cvm::atom_pos> old_pos;
 
 
@@ -279,6 +278,12 @@ public:
   /// \link center_of_mass() \endlink)
   void set_weighted_gradient (cvm::rvector const &grad);
 
+  /// \brief Calculate the derivatives of the fitting transformation
+  void calc_fit_gradients();
+
+  /// \brief Derivatives of the fitting transformation
+  std::vector<cvm::atom_pos> fit_gradients;
+
   /// \brief Used by a (scalar) colvar to apply its force on its \link
   /// atom_group \endlink members
   ///
@@ -290,7 +295,7 @@ public:
   /// colvar components, and use apply_force() or apply_forces()).  If
   /// the group is being rotated to a reference frame (e.g. to express
   /// the colvar independently from the solute rotation), the
-  /// gradients are temporarily to the original frame.
+  /// gradients are temporarily rotated to the original frame.
   void apply_colvar_force (cvm::real const &force);
 
   /// \brief Apply a force "to the center of mass", i.e. the force is

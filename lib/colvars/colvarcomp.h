@@ -1,5 +1,5 @@
-#ifndef COLVARDEF_H
-#define COLVARDEF_H
+#ifndef COLVARCOMP_H
+#define COLVARCOMP_H
 
 #include <fstream>
 #include <cmath>
@@ -106,10 +106,6 @@ public:
   /// Destructor
   virtual ~cvc();
 
-  /// \brief If true, calc_gradients() will calculate
-  /// finite-difference gradients alongside the analytical ones and
-  /// report their differences
-  bool b_debug_gradients;
 
   /// \brief If this flag is false (default), inverse gradients
   /// (derivatives of atom coordinates with respect to x) are
@@ -129,6 +125,12 @@ public:
   /// \brief Calculate the atomic gradients, to be reused later in
   /// order to apply forces
   virtual void calc_gradients() = 0;
+
+  /// \brief If true, calc_gradients() will call debug_gradients() for every group needed
+  bool b_debug_gradients;
+
+  /// \brief Calculate finite-difference gradients alongside the analytical ones, for each Cartesian component
+  virtual void debug_gradients (cvm::atom_group &group);
 
   /// \brief Calculate the total force from the system using the
   /// inverse atomic gradients
@@ -527,11 +529,8 @@ public:
 /// \brief Colvar component: moment of inertia of an atom group
 /// (colvarvalue::type_scalar type, range [0:*))
 class colvar::inertia
-  : public colvar::cvc
+  : public colvar::gyration
 {
-protected:
-  /// Atoms involved
-  cvm::atom_group atoms;
 public:
   /// Constructor
   inertia (std::string const &conf);
@@ -591,7 +590,10 @@ protected:
   /// Reference coordinates
   std::vector<cvm::atom_pos>  ref_pos;
 
-  /// Eigenvector (of a normal or essential mode)
+  /// Geometric center of the reference coordinates
+  cvm::rvector                ref_pos_center;
+
+  /// Eigenvector (of a normal or essential mode): will always have zero center
   std::vector<cvm::rvector>   eigenvec;
 
   /// Inverse square norm of the eigenvector
@@ -1136,7 +1138,6 @@ public:
   virtual cvm::real compare (colvarvalue const &x1,
                              colvarvalue const &x2) const;
 };
-
 
 
 // metrics functions for cvc implementations with a periodicity

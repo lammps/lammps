@@ -1,6 +1,7 @@
 *~
 lammps.pdf
 *.o
+*.so
 *.cu_o
 *.ptx
 *_ptx.h

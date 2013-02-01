@@ -165,8 +165,9 @@ void AtomVecTri::copy(int i, int j, int delflag)
   }
 
   // if atom I has bonus data, reset I's bonus.ilocal to loc J
+  // do NOT do this if self-copy (I=J) since I's bonus data is already deleted
 
-  if (tri[i] >= 0) bonus[tri[i]].ilocal = j;
+  if (tri[i] >= 0 && i != j) bonus[tri[i]].ilocal = j;
   tri[j] = tri[i];
 
   if (atom->nextra_grow)
@@ -176,13 +177,13 @@ void AtomVecTri::copy(int i, int j, int delflag)
 
 /* ----------------------------------------------------------------------
    copy bonus data from I to J, effectively deleting the J entry
-   insure index pointers between per-atom and bonus data are updated
+   also reset tri that points to I to now point to J
 ------------------------------------------------------------------------- */
 
 void AtomVecTri::copy_bonus(int i, int j)
 {
+  tri[bonus[i].ilocal] = j;
   memcpy(&bonus[j],&bonus[i],sizeof(Bonus));
-  tri[bonus[j].ilocal] = j;
 }
 
 /* ----------------------------------------------------------------------

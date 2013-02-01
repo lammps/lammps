@@ -179,15 +179,15 @@ void PairTable::compute(int eflag, int vflag)
 void PairTable::allocate()
 {
   allocated = 1;
-  int nt = atom->ntypes;
+  const int nt = atom->ntypes + 1;
 
-  memory->create(setflag,nt+1,nt+1,"pair:setflag");
-  for (int i = 1; i <= nt; i++)
-    for (int j = i; j <= nt; j++)
-      setflag[i][j] = 0;
+  memory->create(setflag,nt,nt,"pair:setflag");
+  memory->create(cutsq,nt,nt,"pair:cutsq");
+  memory->create(tabindex,nt,nt,"pair:tabindex");
 
-  memory->create(cutsq,nt+1,nt+1,"pair:cutsq");
-  memory->create(tabindex,nt+1,nt+1,"pair:tabindex");
+  memset(&setflag[0][0],0,nt*nt*sizeof(int));
+  memset(&cutsq[0][0],0,nt*nt*sizeof(double));
+  memset(&tabindex[0][0],0,nt*nt*sizeof(int));
 }
 
 /* ----------------------------------------------------------------------

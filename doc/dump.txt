@@ -442,22 +442,21 @@ defined with an atom style of {dipole}.  They give the orientation of
 the atom's point dipole moment.  The {mu} attribute gives the
 magnitude of the atom's dipole moment.
 
-The {radius} and {diameter} attributes are specific to extended
-spherical particles that have a finite size, such as those defined
-with an atom style of {sphere}.
+The {radius} and {diameter} attributes are specific to spherical
+particles that have a finite size, such as those defined with an atom
+style of {sphere}.
 
 The {omegax}, {omegay}, and {omegaz} attributes are specific to
-extended spherical or aspherical particles that have an angular
-velocity.  Only certain atom styles, such as {sphere} define this
-quantity.
+finite-size spherical particles that have an angular velocity.  Only
+certain atom styles, such as {sphere} define this quantity.
 
 The {angmomx}, {angmomy}, and {angmomz} attributes are specific to
-extended aspherical particles that have an angular momentum.  Only
+finite-size aspherical particles that have an angular momentum.  Only
 the {ellipsoid} atom style defines this quantity.
 
-The {tqx}, {tqy}, {tqz} attributes are for extended spherical or
-aspherical particles that can sustain a rotational torque due
-to interactions with other particles.
+The {tqx}, {tqy}, {tqz} attributes are for finite-size particles that
+can sustain a rotational torque due to interactions with other
+particles.
 
 The {spin}, {eradius}, {ervel}, and {erforce} attributes are for
 particles that represent nuclei and electrons modeled with the

@@ -209,7 +209,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 This pair style requires that atoms be ellipsoids as defined by the
 "atom_style ellipsoid"_atom_style.html command.
 
-Particles acted on by the potential can be extended aspherical or
+Particles acted on by the potential can be finite-size aspherical or
 spherical particles, or point particles.  Spherical particles have all
 3 of their shape parameters equal to each other.  Point particles have
 all 3 of their shape parameters equal to 0.0.

@@ -19,7 +19,9 @@ style () {
     echo "#include $qfile" >> style_$3.tmp
   done
   if (test ! -e style_$3.tmp) then
-    if (test "`cat style_$3.h`" != "") then
+    if (test ! -e style_$3.h) then
+      touch style_$3.h
+    elif (test "`cat style_$3.h`" != "") then
       rm -f style_$3.h
       touch style_$3.h
       rm -f Obj_*/$4.d
@@ -27,7 +29,7 @@ style () {
         rm -f Obj_*/$5.d
       fi
       rm -f Obj_*/lammps.d
-      fi
+    fi
   elif (test ! -e style_$3.h) then
     mv style_$3.tmp style_$3.h
     rm -f Obj_*/$4.d

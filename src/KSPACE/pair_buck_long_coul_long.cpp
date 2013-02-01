@@ -99,7 +99,7 @@ void PairBuckLongCoulLong::settings(int narg, char **arg)
   if (ewald_off&(1<<6)) error->all(FLERR,PAIR_LJ_OFF);
   if (!((ewald_order^ewald_off)&(1<<1))) error->all(FLERR,PAIR_COUL_CUT);
   cut_buck_global = force->numeric(*(arg++));
-  if (*arg&&(ewald_order&0x42==0x42)) error->all(FLERR,PAIR_CUTOFF);
+  if (*arg&&((ewald_order&0x42)==0x42)) error->all(FLERR,PAIR_CUTOFF);
   if (narg == 4) cut_coul = force->numeric(*arg);
   else cut_coul = cut_buck_global;
 

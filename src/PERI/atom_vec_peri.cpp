@@ -32,8 +32,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AtomVecPeri::AtomVecPeri(LAMMPS *lmp, int narg, char **arg) :
-  AtomVec(lmp, narg, arg)
+AtomVecPeri::AtomVecPeri(LAMMPS *lmp) : AtomVec(lmp)
 {
   molecular = 0;
 

@@ -34,7 +34,7 @@ class AtomVecTri : public AtomVec {
   };
   struct Bonus *bonus;
 
-  AtomVecTri(class LAMMPS *, int, char **);
+  AtomVecTri(class LAMMPS *);
   ~AtomVecTri();
   void init();
   void grow(int);

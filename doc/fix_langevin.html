@@ -93,11 +93,10 @@ a Gaussian random number) for speed.
 <P>Note that unless you use the <I>omega</I> or <I>angmom</I> keywords, the
 thermostat effect of this fix is applied to only the translational
 degrees of freedom for the particles, which is an important
-consideration if extended spherical or aspherical particles, which
-have rotational degrees of freedom, are being thermostatted.  The
-translational degrees of freedom can also have a bias velocity removed
-from them before thermostatting takes place; see the description
-below.
+consideration for finite-size particles, which have rotational degrees
+of freedom, are being thermostatted.  The translational degrees of
+freedom can also have a bias velocity removed from them before
+thermostatting takes place; see the description below.
 </P>
 <P>IMPORTANT NOTE: Unlike the <A HREF = "fix_nh.html">fix nvt</A> command which
 performs Nose/Hoover thermostatting AND time integration, this fix

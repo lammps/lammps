@@ -29,7 +29,7 @@ Restart files also store this setting.
 See the discussion in "Section_howto"_Section_howto.html for
 additional instructions on how to run 2d simulations.
 
-IMPORTANT NOTE: Some models in LAMMPS treat particles as extended
+IMPORTANT NOTE: Some models in LAMMPS treat particles as finite-size
 spheres or ellipsoids, as opposed to point particles.  In 2d, the
 particles will still be spheres or ellipsoids, not circular disks or
 ellipses, meaning their moment of inertia will be the same as in 3d.

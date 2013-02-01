@@ -38,11 +38,11 @@ thermostat <A HREF = "#Berendsen">(Berendsen)</A>, which rescales their velociti
 every timestep.
 </P>
 <P>The thermostat is applied to only the translational degrees of freedom
-for the particles, which is an important consideration if extended
-spherical or aspherical particles which have rotational degrees of
-freedom are being thermostatted with this fix.  The translational
-degrees of freedom can also have a bias velocity removed from them
-before thermostatting takes place; see the description below.
+for the particles, which is an important consideration for finite-size
+particles which have rotational degrees of freedom are being
+thermostatted with this fix.  The translational degrees of freedom can
+also have a bias velocity removed from them before thermostatting
+takes place; see the description below.
 </P>
 <P>The desired temperature at each timestep is a ramped value during the
 run from <I>Tstart</I> to <I>Tstop</I>.  The <I>Tdamp</I> parameter is specified in

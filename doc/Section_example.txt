@@ -19,23 +19,43 @@ different machines and different numbers of processors are included in
 the directories to compare your answers to.  E.g. a log file like
 log.crack.foo.P means it ran on P processors of machine "foo".
 
-The dump files produced by the example runs can be animated using the
-xmovie tool described in the "Additional Tools"_Section_tools.html
-section of the LAMMPS documentation.  Animations of many of these
-examples can be viewed on the Movies section of the "LAMMPS WWW
-Site"_lws.
+For examples that use input data files, many of them were produced by
+"Pizza.py"_http://pizza.sandia.gov or setup tools described in the
+"Additional Tools"_Section_tools.html section of the LAMMPS
+documentation and provided with the LAMMPS distribution.
+
+If you uncomment the "dump"_dump.html command in the input script, a
+text dump file will be produced, which can be animated by various
+"visualization programs"_http://lammps.sandia.gov/viz.html.  It can
+also be animated using the xmovie tool described in the "Additional
+Tools"_Section_tools.html section of the LAMMPS documentation.
+
+If you uncomment the "dump image"_dump.html command in the input
+script, and assuming you have built LAMMPS with a JPG library, JPG
+snapshot images will be produced when the simulation runs.  They can
+be quickly post-processed into a movie using commands described on the
+"dump image"_dump_image.html doc page.
+
+Animations of many of these examples can be viewed on the Movies
+section of the "LAMMPS WWW Site"_lws.
 
 These are the sample problems in the examples sub-directories:
 
+body:     body particles, 2d system
 colloid:  big colloid particles in a small particle solvent, 2d system
 comb:	  models using the COMB potential
 crack:	  crack propagation in a 2d solid
 dipole:   point dipolar particles, 2d system
+dreiding: methanol via Dreiding FF
 eim:      NaCl using the EIM potential
 ellipse:  ellipsoidal particles in spherical solvent, 2d system
 flow:	  Couette and Poiseuille flow in a 2d channel
 friction: frictional contact of spherical asperities between 2d surfaces
+gpu:      use of the GPU package for GPU acceleration
+hugoniostat: Hugoniostat shock dynamics
 indent:	  spherical indenter into a 2d solid
+kim:      use of potentials in Knowledge Base for Interatomic Models (KIM)
+line:     line segment particles in 2d rigid bodies
 meam:	  MEAM test for SiC and shear (same as shear examples)
 melt:	  rapid melt of 3d LJ system
 micelle:  self-assembly of small lipid-like molecules into 2d bilayers
@@ -47,11 +67,13 @@ obstacle: flow around two voids in a 2d channel
 peptide:  dynamics of a small solvated peptide chain (5-mer)
 peri:	  Peridynamic model of cylinder impacted by indenter
 pour:     pouring of granular particles into a 3d box, then chute flow
-prd:      parallel replica dynamics of a vacancy diffusion in bulk Si
+prd:      parallel replica dynamics of vacancy diffusion in bulk Si
 reax:     RDX and TATB models using the ReaxFF
 rigid:    rigid bodies modeled as independent or coupled
 shear:    sideways shear applied to 2d solid, with and without a void
-srd:      stochastic rotation dynamics (SRD) particles as solvent :tb(s=:)
+srd:      stochastic rotation dynamics (SRD) particles as solvent
+tad:      temperature-accelerated dynamics of vacancy diffusion in bulk Si
+tri:      triangular particles in rigid bodies :tb(s=:)
 
 Here is how you might run and visualize one of the sample problems:
 
@@ -64,7 +86,21 @@ Running the simulation produces the files {dump.indent} and
 
 ../../tools/xmovie/xmovie -scale dump.indent :pre
 
+If you uncomment the "dump image"_dump_image.html line(s) in the input
+script a series of JPG images will be produced by the run.  These can
+be viewed individually or turned into a movie or animated by tools
+like ImageMagick or QuickTime or various Windows-based tools.  See the
+"dump image"_dump_image.html doc page for more details.  E.g. this
+Imagemagick command would create a GIF file suitable for viewing in a
+browser.
+
+% convert -loop 1 *.jpg foo.gif :pre
+
 :line
+
+There is also a COUPLE directory with examples of how to use LAMMPS as
+a library, either by itself or in tandem with another code or library.
+See the COUPLE/README file to get started.
 
 There is also an ELASTIC directory with an example script for
 computing elastic constants, using a zero temperature Si example.  See

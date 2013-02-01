@@ -18,7 +18,7 @@
 <H1></H1>
 
 LAMMPS-ICMS Documentation :c,h3
-27 Jan 2013 version :c,h4
+1 Feb 2013 version :c,h4
 
 Version info: :h4
 
@@ -141,7 +141,7 @@ it gives quick access to documentation for all LAMMPS commands.
   6.11 "Visualizing LAMMPS snapshots"_howto_11 :b
   6.12 "Triclinic (non-orthogonal) simulation boxes"_howto_12 :b
   6.13 "NEMD simulations"_howto_13 :b
-  6.14 "Extended spherical and aspherical particles"_howto_14 :b
+  6.14 "Finite-size spherical and aspherical particles"_howto_14 :b
   6.15 "Output from LAMMPS (thermo, dumps, computes, fixes, variables)"_howto_15 :b
   6.16 "Thermostatting, barostatting, and compute temperature"_howto_16 :b
   6.17 "Walls"_howto_17 :b
@@ -164,17 +164,17 @@ it gives quick access to documentation for all LAMMPS commands.
   10.9 "Minimization styles"_mod_9 :b
   10.10 "Pairwise potentials"_mod_10 :b
   10.11 "Region styles"_mod_11 :b
-  10.12 "Thermodynamic output options"_mod_12 :b
-  10.13 "Variable options"_mod_13 :b
-  10.14 "Submitting new features for inclusion in LAMMPS"_mod_14 :ule,b
+  10.12 "Body styles"_mod_12 :b
+  10.13 "Thermodynamic output options"_mod_13 :b
+  10.14 "Variable options"_mod_14 :b
+  10.15 "Submitting new features for inclusion in LAMMPS"_mod_15 :ule,b
 "Python interface"_Section_python.html :l
-  11.1 "Extending Python with a serial version of LAMMPS"_py_1 :ulb,b
-  11.2 "Creating a shared MPI library"_py_2 :b
-  11.3 "Extending Python with a parallel version of LAMMPS"_py_3 :b
-  11.4 "Extending Python with MPI"_py_4 :b
-  11.5 "Testing the Python-LAMMPS interface"_py_5 :b
-  11.6 "Using LAMMPS from Python"_py_6 :b
-  11.7 "Example Python scripts that use LAMMPS"_py_7 :ule,b
+  11.1 "Building LAMMPS as a shared library"_py_1 :ulb,b
+  11.2 "Installing the Python wrapper into Python"_py_2 :b
+  11.3 "Extending Python with MPI to run in parallel"_py_3 :b
+  11.4 "Testing the Python-LAMMPS interface"_py_4 :b
+  11.5 "Using LAMMPS from Python"_py_5 :b
+  11.6 "Example Python scripts that use LAMMPS"_py_6 :ule,b
 "Errors"_Section_errors.html :l
   12.1 "Common problems"_err_1 :ulb,b
   12.2 "Reporting bugs"_err_2 :b
@@ -254,6 +254,7 @@ it gives quick access to documentation for all LAMMPS commands.
 :link(mod_12,Section_modify.html#mod_12)
 :link(mod_13,Section_modify.html#mod_13)
 :link(mod_14,Section_modify.html#mod_14)
+:link(mod_15,Section_modify.html#mod_15)
 
 :link(py_1,Section_python.html#py_1)
 :link(py_2,Section_python.html#py_2)
@@ -261,7 +262,6 @@ it gives quick access to documentation for all LAMMPS commands.
 :link(py_4,Section_python.html#py_4)
 :link(py_5,Section_python.html#py_5)
 :link(py_6,Section_python.html#py_6)
-:link(py_7,Section_python.html#py_7)
 
 :link(err_1,Section_errors.html#err_1)
 :link(err_2,Section_errors.html#err_2)

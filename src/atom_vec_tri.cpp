@@ -33,8 +33,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AtomVecTri::AtomVecTri(LAMMPS *lmp, int narg, char **arg) :
-  AtomVec(lmp, narg, arg)
+AtomVecTri::AtomVecTri(LAMMPS *lmp) : AtomVec(lmp)
 {
   molecular = 0;
 
@@ -117,6 +116,7 @@ void AtomVecTri::grow_reset()
   x = atom->x; v = atom->v; f = atom->f;
   molecule = atom->molecule; rmass = atom->rmass;
   angmom = atom->angmom; torque = atom->torque;
+  tri = atom->tri;
 }
 
 /* ----------------------------------------------------------------------
@@ -157,16 +157,16 @@ void AtomVecTri::copy(int i, int j, int delflag)
   angmom[j][1] = angmom[i][1];
   angmom[j][2] = angmom[i][2];
 
-  // if delflag and atom J has bonus data, then delete it
+  // if deleting atom J via delflag and J has bonus data, then delete it
 
   if (delflag && tri[j] >= 0) {
     copy_bonus(nlocal_bonus-1,tri[j]);
     nlocal_bonus--;
   }
 
-  // if atom I has bonus data and not deleting I, repoint I's bonus to J
+  // if atom I has bonus data, reset I's bonus.ilocal to loc J
 
-  if (tri[i] >= 0 && i != j) bonus[tri[i]].ilocal = j;
+  if (tri[i] >= 0) bonus[tri[i]].ilocal = j;
   tri[j] = tri[i];
 
   if (atom->nextra_grow)
@@ -1320,7 +1320,7 @@ void AtomVecTri::create_atom(int itype, double *coord)
 }
 
 /* ----------------------------------------------------------------------
-   unpack one tri from Atoms section of data file
+   unpack one line from Atoms section of data file
    initialize other atom quantities
 ------------------------------------------------------------------------- */
 
@@ -1387,7 +1387,7 @@ int AtomVecTri::data_atom_hybrid(int nlocal, char **values)
 }
 
 /* ----------------------------------------------------------------------
-   unpack one tri from Tris section of data file
+   unpack one line from Tris section of data file
 ------------------------------------------------------------------------- */
 
 void AtomVecTri::data_atom_bonus(int m, char **values)
@@ -1511,7 +1511,7 @@ void AtomVecTri::data_atom_bonus(int m, char **values)
 }
 
 /* ----------------------------------------------------------------------
-   unpack one tri from Velocities section of data file
+   unpack one line from Velocities section of data file
 ------------------------------------------------------------------------- */
 
 void AtomVecTri::data_vel(int m, char **values)
@@ -1555,7 +1555,8 @@ bigint AtomVecTri::memory_usage()
   if (atom->memcheck("molecule")) bytes += memory->usage(molecule,nmax);
   if (atom->memcheck("rmass")) bytes += memory->usage(rmass,nmax);
   if (atom->memcheck("angmom")) bytes += memory->usage(angmom,nmax,3);
-  if (atom->memcheck("torque")) bytes += memory->usage(torque,nmax*comm->nthreads,3);
+  if (atom->memcheck("torque")) bytes += 
+                                  memory->usage(torque,nmax*comm->nthreads,3);
   if (atom->memcheck("tri")) bytes += memory->usage(tri,nmax);
 
   bytes += nmax_bonus*sizeof(Bonus);

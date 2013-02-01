@@ -2139,9 +2139,9 @@ void FixRigid::readfile(int which, double *vec, double **array, int *inbody)
         array[id][0] = atof(values[5]);
         array[id][1] = atof(values[6]);
         array[id][2] = atof(values[7]);
-        array[id][5] = atof(values[8]);
-        array[id][4] = atof(values[9]);
         array[id][3] = atof(values[10]);
+        array[id][4] = atof(values[9]);
+        array[id][5] = atof(values[8]);
       }
 
       buf = next + 1;

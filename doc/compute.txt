@@ -164,6 +164,7 @@ available in LAMMPS:
 
 "angle/local"_compute_bond_local.html - theta and energy of each angle
 "atom/molecule"_compute_atom_molecule.html - sum per-atom properties for each molecule
+"body/local"_compute_body_local.html - attributes of body sub-particles
 "bond/local"_compute_bond_local.html - distance and energy of each bond
 "centro/atom"_compute_centro_atom.html - centro-symmetry parameter for each atom
 "cluster/atom"_compute_cluster_atom.html - cluster ID for each atom

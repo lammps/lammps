@@ -20,6 +20,7 @@ AtomStyle(hybrid,AtomVecHybrid)
 #ifndef LMP_ATOM_VEC_HYBRID_H
 #define LMP_ATOM_VEC_HYBRID_H
 
+#include "stdio.h"
 #include "atom_vec.h"
 
 namespace LAMMPS_NS {
@@ -30,8 +31,9 @@ class AtomVecHybrid : public AtomVec {
   class AtomVec **styles;
   char **keywords;
 
-  AtomVecHybrid(class LAMMPS *, int, char **);
+  AtomVecHybrid(class LAMMPS *);
   ~AtomVecHybrid();
+  void settings(int, char **);
   void init();
   void grow(int);
   void grow_reset();
@@ -52,6 +54,8 @@ class AtomVecHybrid : public AtomVec {
   int size_restart();
   int pack_restart(int, double *);
   int unpack_restart(double *);
+  void write_restart_settings(FILE *);
+  void read_restart_settings(FILE *);
   void create_atom(int, double *);
   void data_atom(double *, tagint, char **);
   int data_atom_hybrid(int, char **) {return 0;}
@@ -63,6 +67,12 @@ class AtomVecHybrid : public AtomVec {
   tagint *image;
   double **x,**v,**f;
   double **omega,**angmom;
+
+  int nallstyles;
+  char **allstyles;
+
+  void build_styles();
+  int known_style(char *);
 };
 
 }

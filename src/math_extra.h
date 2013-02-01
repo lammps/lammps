@@ -55,7 +55,7 @@ namespace MathExtra {
                                const double mat2[3][3],
                                double ans[3][3]);
   inline void invert3(const double mat[3][3], double ans[3][3]);
-  inline void matvec(const double mat[3][3], const double*vec, double *ans);
+  inline void matvec(const double mat[3][3], const double *vec, double *ans);
   inline void matvec(const double *ex, const double *ey, const double *ez,
                      const double *vec, double *ans);
   inline void transpose_matvec(const double mat[3][3], const double*vec,

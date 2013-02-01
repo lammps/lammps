@@ -558,7 +558,7 @@ packages.  If you have problems using a feature provided in a user
 package, you will likely need to contact the contributor directly to
 get help.  Information on how to submit additions you make to LAMMPS
 as a user-contributed package is given in "this
-section"_Section_modify.html#mod_14 of the documentation.
+section"_Section_modify.html#mod_15 of the documentation.
 
 :line
 

@@ -196,7 +196,8 @@ list of fix styles available in LAMMPS:
 "nve"_fix_nve.html - constant NVE time integration
 "nve/asphere"_fix_nve_asphere.html - NVE for aspherical particles
 "nve/asphere/noforce"_fix_nve_asphere_noforce.html - NVE for aspherical particles without forces"
-nve/limit"_fix_nve_limit.html - NVE with limited step length
+"nve/body"_fix_nve_body.html - NVE for body particles
+"nve/limit"_fix_nve_limit.html - NVE with limited step length
 "nve/line"_fix_nve_line.html - NVE for line segments
 "nve/noforce"_fix_nve_noforce.html - NVE without forces (v only)
 "nve/sphere"_fix_nve_sphere.html - NVE for spherical particles

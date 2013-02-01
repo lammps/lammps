@@ -37,7 +37,7 @@ namespace LAMMPS_NS {
 
 class AtomVecChargeCuda : public AtomVecCharge {
  public:
-  AtomVecChargeCuda(class LAMMPS *, int, char **);
+  AtomVecChargeCuda(class LAMMPS *);
   virtual ~AtomVecChargeCuda() {}
   void grow_copylist(int n);
   void grow_send(int n,double** buf_send,int flag);

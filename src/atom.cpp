@@ -42,6 +42,7 @@ using namespace LAMMPS_NS;
 #define DELTA_MEMSTR 1024
 #define EPSILON 1.0e-6
 #define CUDA_CHUNK 3000
+#define MAXBODY 20       // max # of lines in one body, also in ReadData class
 
 /* ---------------------------------------------------------------------- */
 
@@ -190,6 +191,7 @@ Atom::~Atom()
   memory->destroy(ellipsoid);
   memory->destroy(line);
   memory->destroy(tri);
+  memory->destroy(body);
   memory->destroy(spin);
   memory->destroy(eradius);
   memory->destroy(ervel);
@@ -271,7 +273,8 @@ void Atom::create_avec(const char *style, int narg, char **arg, char *suffix)
   vfrac_flag = spin_flag = eradius_flag = ervel_flag = erforce_flag = 0;
 
   int sflag;
-  avec = new_avec(style,narg,arg,suffix,sflag);
+  avec = new_avec(style,suffix,sflag);
+  avec->settings(narg,arg);
 
   if (sflag) {
     char estyle[256];
@@ -295,8 +298,7 @@ void Atom::create_avec(const char *style, int narg, char **arg, char *suffix)
    generate an AtomVec class, first with suffix appended
 ------------------------------------------------------------------------- */
 
-AtomVec *Atom::new_avec(const char *style, int narg, char **arg,
-                        char *suffix, int &sflag)
+AtomVec *Atom::new_avec(const char *style, char *suffix, int &sflag)
 {
   if (suffix && lmp->suffix_enable) {
     sflag = 1;
@@ -307,7 +309,7 @@ AtomVec *Atom::new_avec(const char *style, int narg, char **arg,
 
 #define ATOM_CLASS
 #define AtomStyle(key,Class) \
-    else if (strcmp(estyle,#key) == 0) return new Class(lmp,narg,arg);
+    else if (strcmp(estyle,#key) == 0) return new Class(lmp);
 #include "style_atom.h"
 #undef AtomStyle
 #undef ATOM_CLASS
@@ -320,7 +322,7 @@ AtomVec *Atom::new_avec(const char *style, int narg, char **arg,
 
 #define ATOM_CLASS
 #define AtomStyle(key,Class) \
-  else if (strcmp(style,#key) == 0) return new Class(lmp,narg,arg);
+  else if (strcmp(style,#key) == 0) return new Class(lmp);
 #include "style_atom.h"
 #undef ATOM_CLASS
 
@@ -716,6 +718,45 @@ void Atom::data_bonus(int n, char *buf, AtomVec *avec_bonus)
   }
 
   delete [] values;
+}
+
+/* ----------------------------------------------------------------------
+   unpack n lines from atom-style specific section of data file
+   check that atom IDs are > 0 and <= map_tag_max
+   call style-specific routine to parse line
+------------------------------------------------------------------------- */
+
+void Atom::data_bodies(int n, char *buf, AtomVecBody *avec_body)
+{
+  int j,m,tagdata,ninteger,ndouble;
+
+  char **ivalues = new char*[10*MAXBODY];
+  char **dvalues = new char*[10*MAXBODY];
+
+  // loop over lines of body data
+  // tokenize the lines into ivalues and dvalues
+  // if I own atom tag, unpack its values
+
+  for (int i = 0; i < n; i++) {
+    if (i == 0) tagdata = atoi(strtok(buf," \t\n\r\f"));
+    else tagdata = atoi(strtok(NULL," \t\n\r\f"));
+    ninteger = atoi(strtok(NULL," \t\n\r\f"));
+    ndouble = atoi(strtok(NULL," \t\n\r\f"));
+
+    for (j = 0; j < ninteger; j++)
+      ivalues[j] = strtok(NULL," \t\n\r\f");
+    for (j = 0; j < ndouble; j++)
+      dvalues[j] = strtok(NULL," \t\n\r\f");
+
+    if (tagdata <= 0 || tagdata > map_tag_max)
+      error->one(FLERR,"Invalid atom ID in Bodies section of data file");
+
+    if ((m = map(tagdata)) >= 0)
+      avec_body->data_body(m,ninteger,ndouble,ivalues,dvalues);
+  }
+
+  delete [] ivalues;
+  delete [] dvalues;
 }
 
 /* ----------------------------------------------------------------------

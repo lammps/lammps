@@ -26,7 +26,7 @@ namespace LAMMPS_NS {
 
 class AtomVecMeso : public AtomVec {
  public:
-  AtomVecMeso(class LAMMPS *, int, char **);
+  AtomVecMeso(class LAMMPS *);
   ~AtomVecMeso() {}
   void grow(int);
   void grow_reset();

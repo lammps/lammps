@@ -26,7 +26,7 @@ namespace LAMMPS_NS {
 
 class AtomVecCharge : public AtomVec {
  public:
-  AtomVecCharge(class LAMMPS *, int, char **);
+  AtomVecCharge(class LAMMPS *);
   virtual ~AtomVecCharge() {}
   void grow(int);
   void grow_reset();

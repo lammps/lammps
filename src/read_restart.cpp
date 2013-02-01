@@ -627,6 +627,8 @@ void ReadRestart::header()
       }
 
       atom->create_avec(style,nwords,words);
+      atom->avec->read_restart_settings(fp);
+
       for (int i = 0; i < nwords; i++) delete [] words[i];
       delete [] words;
       delete [] style;

@@ -21,13 +21,22 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AtomVec::AtomVec(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
+AtomVec::AtomVec(LAMMPS *lmp) : Pointers(lmp)
 {
   nmax = 0;
   bonds_allow = angles_allow = dihedrals_allow = impropers_allow = 0;
   mass_type = dipole_type = 0;
   size_data_bonus = 0;
   cudable = false;
+}
+
+/* ----------------------------------------------------------------------
+   no additional args by default
+------------------------------------------------------------------------- */
+
+void AtomVec::settings(int narg, char **arg)
+{
+  if (narg) error->all(FLERR,"Invalid atom_style command");
 }
 
 /* ----------------------------------------------------------------------

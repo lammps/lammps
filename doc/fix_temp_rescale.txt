@@ -34,11 +34,11 @@ Reset the temperature of a group of atoms by explicitly rescaling
 their velocities.
 
 The rescaling is applied to only the translational degrees of freedom
-for the particles, which is an important consideration if extended
-spherical or aspherical particles which have rotational degrees of
-freedom are being thermostatted with this fix.  The translational
-degrees of freedom can also have a bias velocity removed from them
-before thermostatting takes place; see the description below.
+for the particles, which is an important consideration if finite-size
+particles which have rotational degrees of freedom are being
+thermostatted with this fix.  The translational degrees of freedom can
+also have a bias velocity removed from them before thermostatting
+takes place; see the description below.
 
 Rescaling is performed every N timesteps.  The target temperature is a
 ramped value between the {Tstart} and {Tstop} temperatures at the

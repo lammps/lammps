@@ -19,6 +19,7 @@
 #include "atom_vec_ellipsoid.h"
 #include "atom_vec_line.h"
 #include "atom_vec_tri.h"
+#include "atom_vec_body.h"
 #include "update.h"
 #include "domain.h"
 #include "memory.h"
@@ -191,26 +192,36 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
       if (!avec_ellipsoid) error->all(FLERR,"Compute property/atom for "
                                       "atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_shapez;
+
     } else if (strcmp(arg[iarg],"quatw") == 0) {
       avec_ellipsoid = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-      if (!avec_ellipsoid) error->all(FLERR,"Compute property/atom for "
-                                      "atom property that isn't allocated");
+      avec_body = (AtomVecBody *) atom->style_match("body");
+      if (!avec_ellipsoid && !avec_body) 
+        error->all(FLERR,"Compute property/atom for "
+                   "atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_quatw;
     } else if (strcmp(arg[iarg],"quati") == 0) {
       avec_ellipsoid = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-      if (!avec_ellipsoid) error->all(FLERR,"Compute property/atom for "
-                                      "atom property that isn't allocated");
+      avec_body = (AtomVecBody *) atom->style_match("body");
+      if (!avec_ellipsoid && !avec_body) 
+        error->all(FLERR,"Compute property/atom for "
+                   "atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_quati;
     } else if (strcmp(arg[iarg],"quatj") == 0) {
       avec_ellipsoid = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-      if (!avec_ellipsoid) error->all(FLERR,"Compute property/atom for "
-                                      "atom property that isn't allocated");
+      avec_body = (AtomVecBody *) atom->style_match("body");
+      if (!avec_ellipsoid && !avec_body) 
+        error->all(FLERR,"Compute property/atom for "
+                   "atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_quatj;
     } else if (strcmp(arg[iarg],"quatk") == 0) {
       avec_ellipsoid = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-      if (!avec_ellipsoid) error->all(FLERR,"Compute property/atom for "
-                                      "atom property that isn't allocated");
+      avec_body = (AtomVecBody *) atom->style_match("body");
+      if (!avec_ellipsoid && !avec_body) 
+        error->all(FLERR,"Compute property/atom for "
+                   "atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_quatk;
+
     } else if (strcmp(arg[iarg],"tqx") == 0) {
       if (!atom->torque_flag)
         error->all(FLERR,"Compute property/atom for "
@@ -349,6 +360,7 @@ void ComputePropertyAtom::init()
   avec_ellipsoid = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
   avec_line = (AtomVecLine *) atom->style_match("line");
   avec_tri = (AtomVecTri *) atom->style_match("tri");
+  avec_body = (AtomVecBody *) atom->style_match("body");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1136,16 +1148,31 @@ void ComputePropertyAtom::pack_shapez(int n)
 
 void ComputePropertyAtom::pack_quatw(int n)
 {
-  AtomVecEllipsoid::Bonus *bonus = avec_ellipsoid->bonus;
-  int *ellipsoid = atom->ellipsoid;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
+  if (avec_ellipsoid) {
+    AtomVecEllipsoid::Bonus *bonus = avec_ellipsoid->bonus;
+    int *ellipsoid = atom->ellipsoid;
+    int *mask = atom->mask;
+    int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++) {
-    if ((mask[i] & groupbit) && ellipsoid[i] >= 0)
-      buf[n] = bonus[ellipsoid[i]].quat[0];
-    else buf[n] = 0.0;
-    n += nvalues;
+    for (int i = 0; i < nlocal; i++) {
+      if ((mask[i] & groupbit) && ellipsoid[i] >= 0)
+        buf[n] = bonus[ellipsoid[i]].quat[0];
+      else buf[n] = 0.0;
+      n += nvalues;
+    }
+
+  } else {
+    AtomVecBody::Bonus *bonus = avec_body->bonus;
+    int *body = atom->body;
+    int *mask = atom->mask;
+    int nlocal = atom->nlocal;
+
+    for (int i = 0; i < nlocal; i++) {
+      if ((mask[i] & groupbit) && body[i] >= 0)
+        buf[n] = bonus[body[i]].quat[0];
+      else buf[n] = 0.0;
+      n += nvalues;
+    }
   }
 }
 
@@ -1153,16 +1180,31 @@ void ComputePropertyAtom::pack_quatw(int n)
 
 void ComputePropertyAtom::pack_quati(int n)
 {
-  AtomVecEllipsoid::Bonus *bonus = avec_ellipsoid->bonus;
-  int *ellipsoid = atom->ellipsoid;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
+  if (avec_ellipsoid) {
+    AtomVecEllipsoid::Bonus *bonus = avec_ellipsoid->bonus;
+    int *ellipsoid = atom->ellipsoid;
+    int *mask = atom->mask;
+    int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++) {
-    if ((mask[i] & groupbit) && ellipsoid[i] >= 0)
-      buf[n] = bonus[ellipsoid[i]].quat[1];
-    else buf[n] = 0.0;
-    n += nvalues;
+    for (int i = 0; i < nlocal; i++) {
+      if ((mask[i] & groupbit) && ellipsoid[i] >= 0)
+        buf[n] = bonus[ellipsoid[i]].quat[1];
+      else buf[n] = 0.0;
+      n += nvalues;
+    }
+
+  } else {
+    AtomVecBody::Bonus *bonus = avec_body->bonus;
+    int *body = atom->body;
+    int *mask = atom->mask;
+    int nlocal = atom->nlocal;
+
+    for (int i = 0; i < nlocal; i++) {
+      if ((mask[i] & groupbit) && body[i] >= 0)
+        buf[n] = bonus[body[i]].quat[1];
+      else buf[n] = 0.0;
+      n += nvalues;
+    }
   }
 }
 
@@ -1170,16 +1212,31 @@ void ComputePropertyAtom::pack_quati(int n)
 
 void ComputePropertyAtom::pack_quatj(int n)
 {
-  AtomVecEllipsoid::Bonus *bonus = avec_ellipsoid->bonus;
-  int *ellipsoid = atom->ellipsoid;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
+  if (avec_ellipsoid) {
+    AtomVecEllipsoid::Bonus *bonus = avec_ellipsoid->bonus;
+    int *ellipsoid = atom->ellipsoid;
+    int *mask = atom->mask;
+    int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++) {
-    if ((mask[i] & groupbit) && ellipsoid[i] >= 0)
-      buf[n] = bonus[ellipsoid[i]].quat[2];
-    else buf[n] = 0.0;
-    n += nvalues;
+    for (int i = 0; i < nlocal; i++) {
+      if ((mask[i] & groupbit) && ellipsoid[i] >= 0)
+        buf[n] = bonus[ellipsoid[i]].quat[2];
+      else buf[n] = 0.0;
+      n += nvalues;
+    }
+
+  } else {
+    AtomVecBody::Bonus *bonus = avec_body->bonus;
+    int *body = atom->body;
+    int *mask = atom->mask;
+    int nlocal = atom->nlocal;
+
+    for (int i = 0; i < nlocal; i++) {
+      if ((mask[i] & groupbit) && body[i] >= 0)
+        buf[n] = bonus[body[i]].quat[2];
+      else buf[n] = 0.0;
+      n += nvalues;
+    }
   }
 }
 
@@ -1187,16 +1244,31 @@ void ComputePropertyAtom::pack_quatj(int n)
 
 void ComputePropertyAtom::pack_quatk(int n)
 {
-  AtomVecEllipsoid::Bonus *bonus = avec_ellipsoid->bonus;
-  int *ellipsoid = atom->ellipsoid;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
+  if (avec_ellipsoid) {
+    AtomVecEllipsoid::Bonus *bonus = avec_ellipsoid->bonus;
+    int *ellipsoid = atom->ellipsoid;
+    int *mask = atom->mask;
+    int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++) {
-    if ((mask[i] & groupbit) && ellipsoid[i] >= 0)
-      buf[n] = bonus[ellipsoid[i]].quat[3];
-    else buf[n] = 0.0;
-    n += nvalues;
+    for (int i = 0; i < nlocal; i++) {
+      if ((mask[i] & groupbit) && ellipsoid[i] >= 0)
+        buf[n] = bonus[ellipsoid[i]].quat[3];
+      else buf[n] = 0.0;
+      n += nvalues;
+    }
+
+  } else {
+    AtomVecBody::Bonus *bonus = avec_body->bonus;
+    int *body = atom->body;
+    int *mask = atom->mask;
+    int nlocal = atom->nlocal;
+
+    for (int i = 0; i < nlocal; i++) {
+      if ((mask[i] & groupbit) && body[i] >= 0)
+        buf[n] = bonus[body[i]].quat[3];
+      else buf[n] = 0.0;
+      n += nvalues;
+    }
   }
 }
 

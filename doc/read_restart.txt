@@ -47,7 +47,7 @@ Certain pair styles will not restart exactly, though they should
 provide statistically similar results.  This is because the forces
 they compute depend on atom velocities, which are used at half-step
 values every timestep when forces are computed.  When a run restarts,
-forces are initiall evaluated with a full-step velocity, which is
+forces are initially evaluated with a full-step velocity, which is
 different than if the run had continued.  These pair styles include
 "granular pair styles"_pair_gran.html, "pair dpd"_pair_dpd.html, and
 "pair lubricate"_pair_lubricate.html.

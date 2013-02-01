@@ -27,8 +27,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AtomVecMeso::AtomVecMeso(LAMMPS *lmp, int narg, char **arg) :
-  AtomVec(lmp, narg, arg) {
+AtomVecMeso::AtomVecMeso(LAMMPS *lmp) : AtomVec(lmp)
+{
   molecular = 0;
   mass_type = 1;
 

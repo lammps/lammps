@@ -32,8 +32,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AtomVecLine::AtomVecLine(LAMMPS *lmp, int narg, char **arg) :
-  AtomVec(lmp, narg, arg)
+AtomVecLine::AtomVecLine(LAMMPS *lmp) : AtomVec(lmp)
 {
   molecular = 0;
 
@@ -116,6 +115,7 @@ void AtomVecLine::grow_reset()
   x = atom->x; v = atom->v; f = atom->f;
   molecule = atom->molecule; rmass = atom->rmass;
   omega = atom->omega; torque = atom->torque;
+  line = atom->line;
 }
 
 /* ----------------------------------------------------------------------
@@ -155,16 +155,16 @@ void AtomVecLine::copy(int i, int j, int delflag)
   omega[j][1] = omega[i][1];
   omega[j][2] = omega[i][2];
 
-  // if delflag and atom J has bonus data, then delete it
+  // if deleting atom J via delflag and J has bonus data, then delete it
 
   if (delflag && line[j] >= 0) {
     copy_bonus(nlocal_bonus-1,line[j]);
     nlocal_bonus--;
   }
 
-  // if atom I has bonus data and not deleting I, repoint I's bonus to J
+  // if atom I has bonus data, reset I's bonus.ilocal to loc J
 
-  if (line[i] >= 0 && i != j) bonus[line[i]].ilocal = j;
+  if (line[i] >= 0) bonus[line[i]].ilocal = j;
   line[j] = line[i];
 
   if (atom->nextra_grow)

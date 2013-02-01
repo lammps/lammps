@@ -87,11 +87,26 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
 
   // use of OpenMP threads
   // query OpenMP for number of threads/process set by user at run-time
-  // need to be in a parallel area for this operation
+  // if the OMP_NUM_THREADS environment variable is not set, we default
+  // to using 1 thread. This follows the principle of the least surprise,
+  // while practically all OpenMP implementations violate it by using
+  // as many threads as there are (virtual) CPU cores by default.
 
   nthreads = 1;
 #ifdef _OPENMP
-  nthreads = omp_get_max_threads();
+  if (getenv("OMP_NUM_THREADS") == NULL) {
+    nthreads = 1;
+    if (me == 0)
+      error->warning(FLERR,"OMP_NUM_THREADS environment is not set.");
+  } else {
+    nthreads = omp_get_max_threads();
+  }
+
+  // enforce consistent number of threads across all MPI tasks
+
+  MPI_Bcast(&nthreads,1,MPI_INT,0,world);
+  omp_set_num_threads(nthreads);
+
   if (me == 0) {
     if (screen)
       fprintf(screen,"  using %d OpenMP thread(s) per MPI task\n",nthreads);

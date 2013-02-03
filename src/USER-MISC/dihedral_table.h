@@ -14,6 +14,7 @@
 /* ----------------------------------------------------------------------
    Contributing author: Andrew Jewett (jewett.aij at g mail)
 ------------------------------------------------------------------------- */
+
 #ifdef DIHEDRAL_CLASS
 
 DihedralStyle(table,DihedralTable)

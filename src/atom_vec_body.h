@@ -25,6 +25,12 @@ AtomStyle(body,AtomVecBody)
 namespace LAMMPS_NS {
 
 class AtomVecBody : public AtomVec {
+    friend class Comm;
+
+
+
+
+
  public:
   class Body *bptr;
 
@@ -96,6 +102,7 @@ class AtomVecBody : public AtomVec {
 
   void grow_bonus();
   void copy_bonus(int, int);
+  //void check(int);
 };
 
 }

@@ -163,8 +163,9 @@ void AtomVecLine::copy(int i, int j, int delflag)
   }
 
   // if atom I has bonus data, reset I's bonus.ilocal to loc J
+  // do NOT do this if self-copy (I=J) since I's bonus data is already deleted
 
-  if (line[i] >= 0) bonus[line[i]].ilocal = j;
+  if (line[i] >= 0 && i != j) bonus[line[i]].ilocal = j;
   line[j] = line[i];
 
   if (atom->nextra_grow)
@@ -174,13 +175,13 @@ void AtomVecLine::copy(int i, int j, int delflag)
 
 /* ----------------------------------------------------------------------
    copy bonus data from I to J, effectively deleting the J entry
-   insure index pointers between per-atom and bonus data are updated
+   also reset ine that points to I to now point to J
 ------------------------------------------------------------------------- */
 
 void AtomVecLine::copy_bonus(int i, int j)
 {
+  line[bonus[i].ilocal] = j;
   memcpy(&bonus[j],&bonus[i],sizeof(Bonus));
-  line[bonus[j].ilocal] = j;
 }
 
 /* ----------------------------------------------------------------------

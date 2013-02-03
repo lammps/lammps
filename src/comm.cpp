@@ -103,6 +103,7 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   }
 
   // enforce consistent number of threads across all MPI tasks
+
   MPI_Bcast(&nthreads,1,MPI_INT,0,world);
   omp_set_num_threads(nthreads);
 

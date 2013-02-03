@@ -78,7 +78,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   radius = rmass = NULL;
   vfrac = s0 = NULL;
   x0 = NULL;
-  ellipsoid = line = tri = NULL;
+  ellipsoid = line = tri = body = NULL;
   spin = NULL;
   eradius = ervel = erforce = NULL;
   cs = csforce = vforce = ervelforce = NULL;
@@ -109,7 +109,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   // initialize atom style and array existence flags
   // customize by adding new flag
 
-  sphere_flag = ellipsoid_flag = line_flag = tri_flag = 0;
+  sphere_flag = ellipsoid_flag = line_flag = tri_flag = body_flag = 0;
   peri_flag = electron_flag = 0;
   wavepacket_flag = sph_flag = 0;
 

@@ -244,6 +244,7 @@ Specialized features :h4
 These are LAMMPS capabilities which you may not think of as typical
 molecular dynamics options:
 
+"generalized aspherical particles"_body.html
 "stochastic rotation dynamics (SRD)"_fix_srd.html
 "real-time visualization and interactive MD"_fix_imd.html
 "atom-to-continuum coupling"_fix_atc.html with finite elements

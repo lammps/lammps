@@ -113,8 +113,7 @@ void AngleFourierSimple::compute(int eflag, int vflag)
 
     // handle sin(n th)/sin(th) singulatiries
 
-    if ( abs(c)-1.0 > 0.0001 )
-    {
+    if ( fabs(c)-1.0 > 0.0001 ) {
       a = k[type]*C[type]*N[type]*sin(nth)/sin(th);
     } else {
       if ( c >= 0.0 ) {

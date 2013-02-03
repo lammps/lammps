@@ -200,7 +200,7 @@ double AngleFourier::equilibrium_angle(int i)
   double ret=MY_PI;
   if ( C2[i] != 0.0 ) {
     ret = (C1[i]/4.0/C2[i]);
-    if ( abs(ret) <= 1.0 ) ret = acos(-ret);
+    if ( fabs(ret) <= 1.0 ) ret = acos(-ret);
   }
   return ret;
 }

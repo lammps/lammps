@@ -37,11 +37,13 @@
 #include "variable.h"
 #include "random_mars.h"
 #include "math_const.h"
+#include "math_special.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
+using namespace MathSpecial;
 
 // same as fix_wall.cpp
 
@@ -129,11 +131,11 @@ void PairBrownian::compute(int eflag, int vflag)
       double vol_f = vol_P/vol_T;
       if (flaglog == 0) {
         R0  = 6*MY_PI*mu*rad*(1.0 + 2.16*vol_f);
-        RT0 = 8*MY_PI*mu*pow(rad,3.0);
+        RT0 = 8*MY_PI*mu*cube(rad);
         //RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3)*(1.0 + 3.33*vol_f + 2.80*vol_f*vol_f);
       } else {
         R0  = 6*MY_PI*mu*rad*(1.0 + 2.725*vol_f - 6.583*vol_f*vol_f);
-        RT0 = 8*MY_PI*mu*pow(rad,3.0)*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f);
+        RT0 = 8*MY_PI*mu*cube(rad)*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f);
         //RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3)*(1.0 + 3.64*vol_f - 6.95*vol_f*vol_f);
       }
     }
@@ -208,7 +210,7 @@ void PairBrownian::compute(int eflag, int vflag)
         if (flaglog) {
           a_sq = 6.0*MY_PI*mu*radi*(1.0/4.0/h_sep + 9.0/40.0*log(1.0/h_sep));
           a_sh = 6.0*MY_PI*mu*radi*(1.0/6.0*log(1.0/h_sep));
-          a_pu = 8.0*MY_PI*mu*pow(radi,3.0)*(3.0/160.0*log(1.0/h_sep));
+          a_pu = 8.0*MY_PI*mu*cube(radi)*(3.0/160.0*log(1.0/h_sep));
         } else
           a_sq = 6.0*MY_PI*mu*radi*(1.0/4.0/h_sep);
 
@@ -543,7 +545,7 @@ void PairBrownian::init_style()
   // vol_P = volume of particles, assuming mono-dispersity
   // vol_f = volume fraction
 
-  vol_P = atom->natoms*(4.0/3.0)*MY_PI*pow(rad,3.0);
+  vol_P = atom->natoms*(4.0/3.0)*MY_PI*cube(rad);
 
   double vol_f = vol_P/vol_T;
 
@@ -552,10 +554,10 @@ void PairBrownian::init_style()
 
   if (flaglog == 0) {
     R0  = 6*MY_PI*mu*rad*(1.0 + 2.16*vol_f);
-    RT0 = 8*MY_PI*mu*pow(rad,3.0);  // not actually needed
+    RT0 = 8*MY_PI*mu*cube(rad);  // not actually needed
   } else {
     R0  = 6*MY_PI*mu*rad*(1.0 + 2.725*vol_f - 6.583*vol_f*vol_f);
-    RT0 = 8*MY_PI*mu*pow(rad,3.0)*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f);
+    RT0 = 8*MY_PI*mu*cube(rad)*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f);
   }
 }
 

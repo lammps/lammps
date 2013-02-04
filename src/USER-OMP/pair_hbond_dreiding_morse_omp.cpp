@@ -22,10 +22,12 @@
 #include "neigh_list.h"
 
 #include "math_const.h"
+#include "math_special.h"
 
 #include "suffix.h"
 using namespace LAMMPS_NS;
 using namespace MathConst;
+using namespace MathSpecial;
 
 #define SMALL 0.001
 
@@ -118,7 +120,6 @@ void PairHbondDreidingMorseOMP::eval(int iifrom, int iito, ThrData * const thr)
   double fi[3],fj[3],delr1[3],delr2[3];
   double r,dr,dexp,eng_morse,switch1,switch2;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  Param *pm;
 
   evdwl = 0.0;
 
@@ -177,9 +178,9 @@ void PairHbondDreidingMorseOMP::eval(int iifrom, int iito, ThrData * const thr)
         ktype = type[k];
         m = type2param[itype][jtype][ktype];
         if (m < 0) continue;
-        pm = &params[m];
+        const Param &pm = params[m];
 
-        if (rsq < pm->cut_outersq) {
+        if (rsq < pm.cut_outersq) {
           delr1[0] = xtmp - x[k][0];
           delr1[1] = ytmp - x[k][1];
           delr1[2] = ztmp - x[k][2];
@@ -202,31 +203,31 @@ void PairHbondDreidingMorseOMP::eval(int iifrom, int iito, ThrData * const thr)
           if (c < -1.0) c = -1.0;
           ac = acos(c);
 
-          if (ac > pm->cut_angle && ac < (2.0*MY_PI - pm->cut_angle)) {
+          if (ac > pm.cut_angle && ac < (2.0*MY_PI - pm.cut_angle)) {
             s = sqrt(1.0 - c*c);
             if (s < SMALL) s = SMALL;
 
             // Morse-specific kernel
 
             r = sqrt(rsq);
-            dr = r - pm->r0;
-            dexp = exp(-pm->alpha * dr);
-            eng_morse = pm->d0 * (dexp*dexp - 2.0*dexp);
-            force_kernel = pm->morse1*(dexp*dexp - dexp)/r * pow(c,(double)pm->ap);
-            force_angle = pm->ap * eng_morse * pow(c,(double)pm->ap-1.0)*s;
+            dr = r - pm.r0;
+            dexp = exp(-pm.alpha * dr);
+            eng_morse = pm.d0 * (dexp*dexp - 2.0*dexp);
+            force_kernel = pm.morse1*(dexp*dexp - dexp)/r * powint(c,pm.ap);
+            force_angle = pm.ap * eng_morse * powint(c,pm.ap-1)*s;
 
-            if (rsq > pm->cut_innersq) {
-              switch1 = (pm->cut_outersq-rsq) * (pm->cut_outersq-rsq) *
-                        (pm->cut_outersq + 2.0*rsq - 3.0*pm->cut_innersq) /
-                        pm->denom_vdw;
-              switch2 = 12.0*rsq * (pm->cut_outersq-rsq) *
-                        (rsq-pm->cut_innersq) / pm->denom_vdw;
+            if (rsq > pm.cut_innersq) {
+              switch1 = (pm.cut_outersq-rsq) * (pm.cut_outersq-rsq) *
+                        (pm.cut_outersq + 2.0*rsq - 3.0*pm.cut_innersq) /
+                        pm.denom_vdw;
+              switch2 = 12.0*rsq * (pm.cut_outersq-rsq) *
+                        (rsq-pm.cut_innersq) / pm.denom_vdw;
               force_kernel = force_kernel*switch1 + eng_morse*switch2;
               eng_morse *= switch1;
             }
 
             if (EFLAG) {
-              evdwl = eng_morse * pow(c,(double)params[m].ap);
+              evdwl = eng_morse * powint(c,pm.ap);
               evdwl *= factor_hb;
             }
 

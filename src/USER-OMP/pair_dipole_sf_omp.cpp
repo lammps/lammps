@@ -274,8 +274,9 @@ void PairDipoleSFOMP::eval(int iifrom, int iito, ThrData * const thr)
 
         if (EFLAG) {
           if (rsq < cut_coulsq[itype][jtype]) {
-            ecoul = qtmp * q[j] * rinv *
-              pow((1.0-sqrt(rsq)/sqrt(cut_coulsq[itype][jtype])),2.0);
+            ecoul = (1.0-sqrt(rsq)/sqrt(cut_coulsq[itype][jtype]));
+            ecoul *= ecoul;
+            ecoul *= qtmp * q[j] * rinv;
             if (mu[i][3] > 0.0 && mu[j][3] > 0.0)
               ecoul += bfac * (r3inv*pdotp - 3.0*r5inv*pidotr*pjdotr);
             if (mu[i][3] > 0.0 && q[j] != 0.0)

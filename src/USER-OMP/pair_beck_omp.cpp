@@ -19,9 +19,11 @@
 #include "force.h"
 #include "neighbor.h"
 #include "neigh_list.h"
+#include "math_special.h"
 
 #include "suffix.h"
 using namespace LAMMPS_NS;
+using namespace MathSpecial;
 
 /* ---------------------------------------------------------------------- */
 
@@ -126,7 +128,7 @@ void PairBeckOMP::eval(int iifrom, int iito, ThrData * const thr)
         alphaij = alpha[itype][jtype];
         betaij = beta[itype][jtype];
         term1 = aaij*aaij + rsq;
-        term2 = 1.0/pow(term1,5.0);
+        term2 = powint(term1,-5);
         term3 = 21.672 + 30.0*aaij*aaij + 6.0*rsq;
         term4 = alphaij + r5*betaij;
         term5 = alphaij + 6.0*r5*betaij;
@@ -146,7 +148,7 @@ void PairBeckOMP::eval(int iifrom, int iito, ThrData * const thr)
         }
 
         if (EFLAG) {
-          term6 = 1.0/pow(term1,3.0);
+          term6 = powint(term1,-3);
           term1inv = 1.0/term1;
           evdwl = AA[itype][jtype]*exp(-1.0*r*term4);
           evdwl -= BB[itype][jtype]*term6*(1.0+(2.709+3.0*aaij*aaij)*term1inv);

@@ -28,11 +28,13 @@
 #include "neigh_list.h"
 #include "domain.h"
 #include "math_const.h"
+#include "math_special.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
+using namespace MathSpecial;
 
 #define SMALL 0.001
 #define CHUNK 8
@@ -83,7 +85,6 @@ void PairHbondDreidingLJ::compute(int eflag, int vflag)
   double r2inv,r10inv;
   double switch1,switch2;
   int *ilist,*jlist,*klist,*numneigh,**firstneigh;
-  Param *pm;
 
   evdwl = ehbond = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
@@ -135,9 +136,9 @@ void PairHbondDreidingLJ::compute(int eflag, int vflag)
         ktype = type[k];
         m = type2param[itype][jtype][ktype];
         if (m < 0) continue;
-        pm = &params[m];
+        const Param &pm = params[m];
 
-        if (rsq < pm->cut_outersq) {
+        if (rsq < pm.cut_outersq) {
           delr1[0] = x[i][0] - x[k][0];
           delr1[1] = x[i][1] - x[k][1];
           delr1[2] = x[i][2] - x[k][2];
@@ -160,7 +161,7 @@ void PairHbondDreidingLJ::compute(int eflag, int vflag)
           if (c < -1.0) c = -1.0;
           ac = acos(c);
 
-          if (ac > pm->cut_angle && ac < (2.0*MY_PI - pm->cut_angle)) {
+          if (ac > pm.cut_angle && ac < (2.0*MY_PI - pm.cut_angle)) {
             s = sqrt(1.0 - c*c);
             if (s < SMALL) s = SMALL;
 
@@ -168,24 +169,24 @@ void PairHbondDreidingLJ::compute(int eflag, int vflag)
 
             r2inv = 1.0/rsq;
             r10inv = r2inv*r2inv*r2inv*r2inv*r2inv;
-            force_kernel = r10inv*(pm->lj1*r2inv - pm->lj2)*r2inv *
-              pow(c,(double)pm->ap);
-            force_angle = pm->ap * r10inv*(pm->lj3*r2inv - pm->lj4) *
-              pow(c,(double)pm->ap-1.0)*s;
+            force_kernel = r10inv*(pm.lj1*r2inv - pm.lj2)*r2inv *
+              powint(c,pm.ap);
+            force_angle = pm.ap * r10inv*(pm.lj3*r2inv - pm.lj4) *
+              powint(c,pm.ap-1)*s;
 
-            eng_lj = r10inv*(pm->lj3*r2inv - pm->lj4);
-            if (rsq > pm->cut_innersq) {
-              switch1 = (pm->cut_outersq-rsq) * (pm->cut_outersq-rsq) *
-                        (pm->cut_outersq + 2.0*rsq - 3.0*pm->cut_innersq) /
-                        pm->denom_vdw;
-              switch2 = 12.0*rsq * (pm->cut_outersq-rsq) *
-                        (rsq-pm->cut_innersq) / pm->denom_vdw;
+            eng_lj = r10inv*(pm.lj3*r2inv - pm.lj4);
+            if (rsq > pm.cut_innersq) {
+              switch1 = (pm.cut_outersq-rsq) * (pm.cut_outersq-rsq) *
+                        (pm.cut_outersq + 2.0*rsq - 3.0*pm.cut_innersq) /
+                        pm.denom_vdw;
+              switch2 = 12.0*rsq * (pm.cut_outersq-rsq) *
+                        (rsq-pm.cut_innersq) / pm.denom_vdw;
               force_kernel = force_kernel*switch1 + eng_lj*switch2;
               eng_lj *= switch1;
             }
 
             if (eflag) {
-              evdwl = eng_lj * pow(c,(double)pm->ap);
+              evdwl = eng_lj * powint(c,pm.ap);
               evdwl *= factor_hb;
               ehbond += evdwl;
             }
@@ -450,7 +451,6 @@ double PairHbondDreidingLJ::single(int i, int j, int itype, int jtype,
   double switch1,switch2;
   double delr1[3],delr2[3];
   int *klist;
-  Param *pm;
 
   double **x = atom->x;
   int **special = atom->special;
@@ -477,7 +477,7 @@ double PairHbondDreidingLJ::single(int i, int j, int itype, int jtype,
     ktype = type[k];
     m = type2param[itype][jtype][ktype];
     if (m < 0) continue;
-    pm = &params[m];
+    const Param &pm = params[m];
 
     delr1[0] = x[i][0] - x[k][0];
     delr1[1] = x[i][1] - x[k][1];
@@ -501,7 +501,7 @@ double PairHbondDreidingLJ::single(int i, int j, int itype, int jtype,
     if (c < -1.0) c = -1.0;
     ac = acos(c);
 
-    if (ac < pm->cut_angle || ac > (2.0*MY_PI - pm->cut_angle)) return 0.0;
+    if (ac < pm.cut_angle || ac > (2.0*MY_PI - pm.cut_angle)) return 0.0;
     s = sqrt(1.0 - c*c);
     if (s < SMALL) s = SMALL;
 
@@ -509,26 +509,24 @@ double PairHbondDreidingLJ::single(int i, int j, int itype, int jtype,
 
     r2inv = 1.0/rsq;
     r10inv = r2inv*r2inv*r2inv*r2inv*r2inv;
-    force_kernel = r10inv*(pm->lj1*r2inv - pm->lj2)*r2inv *
-      pow(c,(double)pm->ap);
-    force_angle = pm->ap * r10inv*(pm->lj3*r2inv - pm->lj4) *
-      pow(c,(double)pm->ap-1.0)*s;
+    force_kernel = r10inv*(pm.lj1*r2inv - pm.lj2)*r2inv * powint(c,pm.ap);
+    force_angle = pm.ap * r10inv*(pm.lj3*r2inv - pm.lj4) *
+      powint(c,pm.ap-1)*s;
 
     // only lj part for now
 
-    eng_lj = r10inv*(pm->lj3*r2inv - pm->lj4);
-    if (rsq > pm->cut_innersq) {
-      switch1 = (pm->cut_outersq-rsq) * (pm->cut_outersq-rsq) *
-                (pm->cut_outersq + 2.0*rsq - 3.0*pm->cut_innersq) /
-                pm->denom_vdw;
-      switch2 = 12.0*rsq * (pm->cut_outersq-rsq) *
-                (rsq-pm->cut_innersq) / pm->denom_vdw;
+    eng_lj = r10inv*(pm.lj3*r2inv - pm.lj4);
+    if (rsq > pm.cut_innersq) {
+      switch1 = (pm.cut_outersq-rsq) * (pm.cut_outersq-rsq) *
+                (pm.cut_outersq + 2.0*rsq - 3.0*pm.cut_innersq) / pm.denom_vdw;
+      switch2 = 12.0*rsq * (pm.cut_outersq-rsq) *
+                (rsq-pm.cut_innersq) / pm.denom_vdw;
       force_kernel = force_kernel*switch1 + eng_lj*switch2;
       eng_lj *= switch1;
     }
 
-    fforce += force_kernel*pow(c,(double)pm->ap) + eng_lj*force_angle;
-    eng += eng_lj * pow(c,(double)pm->ap) * factor_hb;
+    fforce += force_kernel*powint(c,pm.ap) + eng_lj*force_angle;
+    eng += eng_lj * powint(c,pm.ap) * factor_hb;
   }
 
   return eng;

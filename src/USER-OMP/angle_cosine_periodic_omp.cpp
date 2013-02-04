@@ -23,12 +23,14 @@
 #include "domain.h"
 
 #include "math_const.h"
+#include "math_special.h"
 
 #include <math.h>
 
 #include "suffix.h"
 using namespace LAMMPS_NS;
 using namespace MathConst;
+using namespace MathSpecial;
 
 #define SMALL 0.001
 
@@ -161,8 +163,8 @@ void AngleCosinePeriodicOMP::eval(int nfrom, int nto, ThrData * const thr)
       un_2 = un_1;
       un_1 = un;
     }
-    tn = b_factor*pow(-1.0,(double)m)*tn;
-    un = b_factor*pow(-1.0,(double)m)*m*un;
+    tn = b_factor*powsign(m)*tn;
+    un = b_factor*powsign(m)*m*un;
 
     if (EFLAG) eangle = 2*k[type]*(1.0 - tn);
 

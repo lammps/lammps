@@ -23,6 +23,7 @@
 #include "ewald_disp.h"
 #include "math_vector.h"
 #include "math_const.h"
+#include "math_special.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -33,6 +34,7 @@
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
+using namespace MathSpecial;
 
 #define SMALL 0.00001
 
@@ -418,7 +420,7 @@ void EwaldDisp::coefficients()
     if (func12) {                                        // -Bij/r^6 coeffs
       b1 = sqrt(b2);                                        // minus sign folded
       h1 = sqrt(h2);                                        // into constants
-      *(ke++) = c1 = -h1*h2*((c2=sqrt(MY_PI)*erfc(b1))+(0.5/b2-1.0)*expb2/b1);
+      *(ke++) = c1 = -h1*h2*((c2=MY_PIS*erfc(b1))+(0.5/b2-1.0)*expb2/b1);
       *(kv++) = c1-(c2 = 3.0*h1*(c2-expb2/b1))*h[0]*h[0];
       *(kv++) = c1-c2*h[1]*h[1];                        // lammps convention
       *(kv++) = c1-c2*h[2]*h[2];                        // instead of voigt
@@ -517,20 +519,20 @@ void EwaldDisp::init_self()
 
   if (function[0]) {                                        // 1/r
     virial_self[0] = -0.5*MY_PI*qscale/(g2*volume)*sum[0].x*sum[0].x;
-    energy_self[0] = sum[0].x2*qscale*g1/sqrt(MY_PI)-virial_self[0];
+    energy_self[0] = sum[0].x2*qscale*g1/MY_PIS-virial_self[0];
   }
   if (function[1]) {                                        // geometric 1/r^6
-    virial_self[1] = MY_PI*sqrt(MY_PI)*g3/(6.0*volume)*sum[1].x*sum[1].x;
+    virial_self[1] = MY_PI*MY_PIS*g3/(6.0*volume)*sum[1].x*sum[1].x;
     energy_self[1] = -sum[1].x2*g3*g3/12.0+virial_self[1];
   }
   if (function[2]) {                                        // arithmetic 1/r^6
-    virial_self[2] = MY_PI*sqrt(MY_PI)*g3/(48.0*volume)*(sum[2].x*sum[8].x+
+    virial_self[2] = MY_PI*MY_PIS*g3/(48.0*volume)*(sum[2].x*sum[8].x+
         sum[3].x*sum[7].x+sum[4].x*sum[6].x+0.5*sum[5].x*sum[5].x);
     energy_self[2] = -sum[2].x2*g3*g3/3.0+virial_self[2];
   }
   if (function[3]) {                                        // dipole
     virial_self[3] = 0;                                        // in surface
-    energy_self[3] = sum[9].x2*mumurd2e*2.0*g3/3.0/sqrt(MY_PI)-virial_self[3];
+    energy_self[3] = sum[9].x2*mumurd2e*2.0*g3/3.0/MY_PIS-virial_self[3];
   }
 }
 
@@ -551,7 +553,7 @@ void EwaldDisp::init_self_peratom()
   if (function[0]) {                                        // 1/r
     double *ei = energy;
     double *vi = virial;
-    double ce = qscale*g1/sqrt(MY_PI);
+    double ce = qscale*g1/MY_PIS;
     double cv = -0.5*MY_PI*qscale/(g2*volume);
     double *qi = atom->q, *qn = qi + nlocal;
     for (; qi < qn; qi++, vi += EWALD_NFUNCS, ei += EWALD_NFUNCS) {
@@ -564,7 +566,7 @@ void EwaldDisp::init_self_peratom()
     double *ei = energy+1;
     double *vi = virial+1;
     double ce = -g3*g3/12.0;
-    double cv = MY_PI*sqrt(MY_PI)*g3/(6.0*volume);
+    double cv = MY_PI*MY_PIS*g3/(6.0*volume);
     int *typei = atom->type, *typen = typei + atom->nlocal;
     for (; typei < typen; typei++, vi += EWALD_NFUNCS, ei += EWALD_NFUNCS) {
       double b = B[*typei];
@@ -577,7 +579,7 @@ void EwaldDisp::init_self_peratom()
     double *ei = energy+2;
     double *vi = virial+2;
     double ce = -g3*g3/3.0;
-    double cv = 0.5*MY_PI*sqrt(MY_PI)*g3/(48.0*volume);
+    double cv = 0.5*MY_PI*MY_PIS*g3/(48.0*volume);
     int *typei = atom->type, *typen = typei + atom->nlocal;
     for (; typei < typen; typei++, vi += EWALD_NFUNCS, ei += EWALD_NFUNCS) {
       bi = B+7*typei[0]+7;
@@ -601,7 +603,7 @@ void EwaldDisp::init_self_peratom()
     double *ei = energy+3;
     double *vi = virial+3;
     double *imu = atom->mu[0], *nmu = imu+4*atom->nlocal;
-    double ce = mumurd2e*2.0*g3/3.0/sqrt(MY_PI);
+    double ce = mumurd2e*2.0*g3/3.0/MY_PIS;
     for (; imu < nmu; imu += 4, vi += EWALD_NFUNCS, ei += EWALD_NFUNCS) {
       *vi = 0;                                                // in surface
       *ei = ce*imu[3]*imu[3]-vi[0];
@@ -729,9 +731,9 @@ void EwaldDisp::compute_force()
   double *mu = atom->mu ? atom->mu[0] : NULL;
   const double qscale = force->qqrd2e * scale;
   double *ke, c[EWALD_NFUNCS] = {
-    8.0*MY_PI*qscale/volume, 2.0*MY_PI*sqrt(MY_PI)/(12.0*volume),
-    2.0*MY_PI*sqrt(MY_PI)/(192.0*volume), 8.0*MY_PI*mumurd2e/volume};
-  double kt = 4.0*pow(g_ewald, 3.0)/3.0/sqrt(MY_PI)/c[3];
+    8.0*MY_PI*qscale/volume, 2.0*MY_PI*MY_PIS/(12.0*volume),
+    2.0*MY_PI*MY_PIS/(192.0*volume), 8.0*MY_PI*mumurd2e/volume};
+  double kt = 4.0*cube(g_ewald)/3.0/MY_PIS/c[3];
   int i, kx, ky, lbytes = (2*nbox+1)*sizeof(cvector), *type = atom->type;
   int func[EWALD_NFUNCS];
 
@@ -848,8 +850,8 @@ void EwaldDisp::compute_energy()
   double *ke = kenergy;
   const double qscale = force->qqrd2e * scale;
   double c[EWALD_NFUNCS] = {
-    4.0*MY_PI*qscale/volume, 2.0*MY_PI*sqrt(MY_PI)/(24.0*volume),
-    2.0*MY_PI*sqrt(MY_PI)/(192.0*volume), 4.0*MY_PI*mumurd2e/volume};
+    4.0*MY_PI*qscale/volume, 2.0*MY_PI*MY_PIS/(24.0*volume),
+    2.0*MY_PI*MY_PIS/(192.0*volume), 4.0*MY_PI*mumurd2e/volume};
   double sum[EWALD_NFUNCS];
   int func[EWALD_NFUNCS];
 
@@ -892,8 +894,8 @@ void EwaldDisp::compute_energy_peratom()
   const double qscale = force->qqrd2e * scale;
   double *ke = kenergy;
   double c[EWALD_NFUNCS] = {
-      4.0*MY_PI*qscale/volume, 2.0*MY_PI*sqrt(MY_PI)/(24.0*volume),
-      2.0*MY_PI*sqrt(MY_PI)/(192.0*volume), 4.0*MY_PI*mumurd2e/volume};
+      4.0*MY_PI*qscale/volume, 2.0*MY_PI*MY_PIS/(24.0*volume),
+      2.0*MY_PI*MY_PIS/(192.0*volume), 4.0*MY_PI*mumurd2e/volume};
   int i, kx, ky, lbytes = (2*nbox+1)*sizeof(cvector), *type = atom->type;
   int func[EWALD_NFUNCS];
 
@@ -968,8 +970,8 @@ void EwaldDisp::compute_virial()
   double *kv = kvirial;
   const double qscale = force->qqrd2e * scale;
   double c[EWALD_NFUNCS] = {
-    4.0*MY_PI*qscale/volume, 2.0*MY_PI*sqrt(MY_PI)/(24.0*volume),
-    2.0*MY_PI*sqrt(MY_PI)/(192.0*volume), 4.0*MY_PI*mumurd2e/volume};
+    4.0*MY_PI*qscale/volume, 2.0*MY_PI*MY_PIS/(24.0*volume),
+    2.0*MY_PI*MY_PIS/(192.0*volume), 4.0*MY_PI*mumurd2e/volume};
   shape sum[EWALD_NFUNCS];
   int func[EWALD_NFUNCS];
 
@@ -1025,8 +1027,8 @@ void EwaldDisp::compute_virial_peratom()
   double *mu = atom->mu ? atom->mu[0] : NULL;
   const double qscale = force->qqrd2e * scale;
   double c[EWALD_NFUNCS] = {
-    4.0*MY_PI*qscale/volume, 2.0*MY_PI*sqrt(MY_PI)/(24.0*volume),
-    2.0*MY_PI*sqrt(MY_PI)/(192.0*volume), 4.0*MY_PI*mumurd2e/volume};
+    4.0*MY_PI*qscale/volume, 2.0*MY_PI*MY_PIS/(24.0*volume),
+    2.0*MY_PI*MY_PIS/(192.0*volume), 4.0*MY_PI*mumurd2e/volume};
   shape sum[EWALD_MAX_NSUMS];
   int func[EWALD_NFUNCS];
 
@@ -1200,8 +1202,8 @@ double EwaldDisp::NewtonSolve(double x, double Rc,
 double EwaldDisp::f(double x, double Rc, bigint natoms, double vol, double b2)
 {
   double a = Rc*x;
-  double f = (4.0*MY_PI*b2*pow(x,4.0)/vol/sqrt((double)natoms)*erfc(a) *
-    (6.0*pow(a,-5.0) + 6.0*pow(a,-3.0) + 3.0/a + a) - accuracy);
+  double f = (4.0*MY_PI*b2*powint(x,4)/vol/sqrt((double)natoms)*erfc(a) *
+    (6.0*powint(a,-5) + 6.0*powint(a,-3) + 3.0/a + a) - accuracy);
   return f;
 }
 

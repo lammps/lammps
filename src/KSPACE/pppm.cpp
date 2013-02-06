@@ -1569,7 +1569,7 @@ void PPPM::compute_sf_precoeff()
         kper = k - nx_pppm*(2*k/nx_pppm);
 
         sum1 = sum2 = sum3 = sum4 = sum5 = sum6 = 0.0;
-        for (i = 0; i < 6; i++) {
+        for (i = 0; i < 5; i++) {
 
           qx0 = MY_2PI*(kper+nx_pppm*(i-2));
           qx1 = MY_2PI*(kper+nx_pppm*(i-1));

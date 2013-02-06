@@ -123,18 +123,25 @@ in the <I>Bodies</I> section of the data file:
 </P>
 <PRE>atom-ID 1 M
 N
-x1 y1 z1 ...
+ixx iyy izz ixy ixz iyz x1 y1 z1 ...
 ...
 ... xN yN zN 
 </PRE>
-<P>N is the number of sub-particles in the body particle.  M = 3*N.  The
-integer line has a single value N.  The floating point line(s) list
-the coordinates of the N sub-particles (x1 to zN) as 3N values on as
-many lines as required.  Note that this in not N lines, but 10 values
-per line; see the <A HREF = "read_data.html">read_data</A> command for details.  The
-coordinates of each sub-particle are specified as its x,y,z
-displacement from the center-of-mass of the body particle, which in
-turn is given in the <I>Atoms</I> section of the data file.
+<P>N is the number of sub-particles in the body particle.  M = 6 + 3*N.
+The integer line has a single value N.  The floating point line(s)
+list 6 moments of inertia followed by the coordinates of the N
+sub-particles (x1 to zN) as 3N values on as many lines as required.
+Note that this in not N lines, but 10 values per line; see the
+<A HREF = "read_data.html">read_data</A> command for details.  The 6 moments of
+inertia (ixx,iyy,izz,ixy,ixz,iyz) should be the values consistent with
+the current orientation of the rigid body around its center of mass.
+The values are with respect to the simulation box XYZ axes, not with
+respect to the prinicpal axes of the rigid body itself.  LAMMPS
+performs the latter calculation internally.  The coordinates of each
+sub-particle are specified as its x,y,z displacement from the
+center-of-mass of the body particle.  The center-of-mass position of
+the particle is specified by the x,y,z values in the <I>Atoms</I> section
+of the data file.
 </P>
 <P>The <A HREF = "pair_body.html">pair_style body</A> command can be used with this
 body style to compute body/body and body/non-body interactions.

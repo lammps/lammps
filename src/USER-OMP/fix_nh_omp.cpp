@@ -27,7 +27,9 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
+enum{NOBIAS,BIAS};
 enum{ISO,ANISO,TRICLINIC};
+
 #define TILTMAX 1.5
 
 /* ----------------------------------------------------------------------
@@ -216,6 +218,64 @@ void FixNHOMP::remap()
   if (nrigid)
     for (i = 0; i < nrigid; i++)
       modify->fix[rfix[i]]->deform(1);
+}
+
+
+/* ----------------------------------------------------------------------
+   perform half-step barostat scaling of velocities
+-----------------------------------------------------------------------*/
+
+void FixNHOMP::nh_v_press()
+{
+  const double factor0 = exp(-dt4*(omega_dot[0]+mtk_term2));
+  const double factor1 = exp(-dt4*(omega_dot[1]+mtk_term2));
+  const double factor2 = exp(-dt4*(omega_dot[2]+mtk_term2));
+  double * const * const v = atom->v;
+  const int * const mask = atom->mask;
+  const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
+  int i;
+
+  if (which == NOBIAS) {
+#if defined(_OPENMP)
+#pragma omp parallel for default(none) private(i) schedule(static)
+#endif
+    for (i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+        v[i][0] *= factor0;
+        v[i][1] *= factor1;
+        v[i][2] *= factor2;
+        if (pstyle == TRICLINIC) {
+          v[i][0] += -dthalf*(v[i][1]*omega_dot[5] + v[i][2]*omega_dot[4]);
+          v[i][1] += -dthalf*v[i][2]*omega_dot[3];
+        }
+        v[i][0] *= factor0;
+        v[i][1] *= factor1;
+        v[i][2] *= factor2;
+      }
+    }
+  } else if (which == BIAS) {
+#if 0 /* XXX need to make compute temp classes thread-safe */
+#if defined(_OPENMP)
+#pragma omp parallel for default(none) private(i) schedule(static)
+#endif
+#endif
+    for (i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+        temperature->remove_bias(i,v[i]);
+        v[i][0] *= factor0;
+        v[i][1] *= factor1;
+        v[i][2] *= factor2;
+        if (pstyle == TRICLINIC) {
+          v[i][0] += -dthalf*(v[i][1]*omega_dot[5] + v[i][2]*omega_dot[4]);
+          v[i][1] += -dthalf*v[i][2]*omega_dot[3];
+        }
+        v[i][0] *= factor0;
+        v[i][1] *= factor1;
+        v[i][2] *= factor2;
+        temperature->restore_bias(i,v[i]);
+      }
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------

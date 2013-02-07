@@ -34,26 +34,22 @@ using namespace LAMMPS_NS;
 
 void DomainOMP::pbc()
 {
+  double * const * const x = atom->x;
+  double * const * const v = atom->v;
+  const double * const lo     = (triclinic == 0) ? boxlo : boxlo_lamda;
+  const double * const hi     = (triclinic == 0) ? boxhi : boxhi_lamda;
+  const double * const period = (triclinic == 0) ? prd   : prd_lamda;
+  const int * const mask  = atom->mask;
+  tagint    * const image = atom->image;
+  const int nlocal = atom->nlocal;
+
   int i;
-  tagint idim,otherdims;
-  double *lo,*hi,*period;
-  int nlocal = atom->nlocal;
-  double **x = atom->x;
-  double **v = atom->v;
-  int *mask = atom->mask;
-  tagint *image = atom->image;
-
-  if (triclinic == 0) {
-    lo = boxlo;
-    hi = boxhi;
-    period = prd;
-  } else {
-    lo = boxlo_lamda;
-    hi = boxhi_lamda;
-    period = prd_lamda;
-  }
-
+#if defined(_OPENMP)
+#pragma omp parallel for private(i) default(none) schedule(static)
+#endif
   for (i = 0; i < nlocal; i++) {
+    tagint idim,otherdims;
+
     if (xperiodic) {
       if (x[i][0] < lo[0]) {
         x[i][0] += period[0];

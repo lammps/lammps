@@ -72,7 +72,7 @@ void FixNHAsphereOMP::nve_v()
   double * const * const angmom = atom->angmom;
   const double * const * const f = atom->f;
   const double * const * const torque = atom->torque;
-  const int * const type = atom->type;
+  const double * const rmass = atom->rmass;
   const int * const mask = atom->mask;
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
   int i;
@@ -80,37 +80,18 @@ void FixNHAsphereOMP::nve_v()
   // standard nve_v velocity update. for efficiency the loop is 
   // merged with FixNHOMP instead of calling it for the COM update.
 
-  if (atom->rmass) {
-    const double * const rmass = atom->rmass;
 #if defined(_OPENMP)
 #pragma omp parallel for default(none) private(i) schedule(static)
 #endif
-    for (i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
-        const double dtfm = dtf / rmass[i];
-        v[i][0] += dtfm*f[i][0];
-        v[i][1] += dtfm*f[i][1];
-        v[i][2] += dtfm*f[i][2];
-        angmom[i][0] += dtf*torque[i][0];
-        angmom[i][1] += dtf*torque[i][1];
-        angmom[i][2] += dtf*torque[i][2];
-      }
-    }
-  } else {
-    const double * const mass = atom->mass;
-#if defined(_OPENMP)
-#pragma omp parallel for default(none) private(i) schedule(static)
-#endif
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
-        const double dtfm = dtf / mass[type[i]];
-        v[i][0] += dtfm*f[i][0];
-        v[i][1] += dtfm*f[i][1];
-        v[i][2] += dtfm*f[i][2];
-        angmom[i][0] += dtf*torque[i][0];
-        angmom[i][1] += dtf*torque[i][1];
-        angmom[i][2] += dtf*torque[i][2];
-      }
+  for (i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) {
+      const double dtfm = dtf / rmass[i];
+      v[i][0] += dtfm*f[i][0];
+      v[i][1] += dtfm*f[i][1];
+      v[i][2] += dtfm*f[i][2];
+      angmom[i][0] += dtf*torque[i][0];
+      angmom[i][1] += dtf*torque[i][1];
+      angmom[i][2] += dtf*torque[i][2];
     }
   }
 }
@@ -181,7 +162,6 @@ void FixNHAsphereOMP::nh_v_temp()
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
   int i;
 
-  // standard nh_v_temp scaling
   if (which == NOBIAS) {
 #if defined(_OPENMP)
 #pragma omp parallel for default(none) private(i) schedule(static)

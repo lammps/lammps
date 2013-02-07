@@ -40,7 +40,6 @@ class ComputeTempCOM : public Compute {
  private:
   int fix_dof;
   double tfactor,masstotal;
-  double vbias[3];    // stored velocity bias for one atom
 
   void dof_compute();
 

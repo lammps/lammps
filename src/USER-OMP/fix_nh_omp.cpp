@@ -17,6 +17,7 @@
 
 #include "fix_nh_omp.h"
 #include "atom.h"
+#include "compute.h"
 #include "domain.h"
 #include "error.h"
 #include "modify.h"
@@ -254,10 +255,8 @@ void FixNHOMP::nh_v_press()
       }
     }
   } else if (which == BIAS) {
-#if 0 /* XXX need to make compute temp classes thread-safe */
 #if defined(_OPENMP)
 #pragma omp parallel for default(none) private(i) schedule(static)
-#endif
 #endif
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {

@@ -24,7 +24,9 @@ class FixNHOMP : public FixNH {
   virtual ~FixNHOMP() {};
 
  protected:
+  virtual void remap();
   virtual void nve_v();
+  virtual void nve_x();
 };
 
 }

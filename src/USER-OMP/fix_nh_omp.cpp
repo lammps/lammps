@@ -16,6 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_nh_omp.h"
+#include "atom.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

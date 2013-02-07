@@ -103,6 +103,11 @@ ComputeTempRamp::ComputeTempRamp(LAMMPS *lmp, int narg, char **arg) :
     coord_hi = zscale*atof(arg[8]);
   }
 
+  if (coord_hi <= coord_lo)
+    error->all(FLERR,"Illegal hi/lo coordinates in compute temp/ramp command");
+
+  inv_coord_delta = 1.0/(coord_hi - coord_lo);
+
   maxbias = 0;
   vbiasall = NULL;
   vector = new double[6];
@@ -154,10 +159,16 @@ double ComputeTempRamp::compute_scalar()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
+  if (nlocal > maxbias) {
+    memory->destroy(vbiasall);
+    maxbias = atom->nmax;
+    memory->create(vbiasall,maxbias,1,"temp/ramp:vbiasall");
+  }
+
   double t = 0.0;
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      fraction = (x[i][coord_dim] - coord_lo) / (coord_hi - coord_lo);
+      fraction = (x[i][coord_dim] - coord_lo) * inv_coord_delta;
       fraction = MAX(fraction,0.0);
       fraction = MIN(fraction,1.0);
       vramp = v_lo + fraction*(v_hi - v_lo);
@@ -165,6 +176,8 @@ double ComputeTempRamp::compute_scalar()
       vthermal[1] = v[i][1];
       vthermal[2] = v[i][2];
       vthermal[v_dim] -= vramp;
+      vbiasall[i][0] = vramp;
+
       if (rmass)
         t += (vthermal[0]*vthermal[0] + vthermal[1]*vthermal[1] +
               vthermal[2]*vthermal[2]) * rmass[i];
@@ -196,12 +209,18 @@ void ComputeTempRamp::compute_vector()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
+  if (nlocal > maxbias) {
+    memory->destroy(vbiasall);
+    maxbias = atom->nmax;
+    memory->create(vbiasall,maxbias,1,"temp/ramp:vbiasall");
+  }
+
   double massone,t[6];
   for (i = 0; i < 6; i++) t[i] = 0.0;
 
   for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      fraction = (x[i][coord_dim] - coord_lo) / (coord_hi - coord_lo);
+      fraction = (x[i][coord_dim] - coord_lo) * inv_coord_delta;
       fraction = MAX(fraction,0.0);
       fraction = MIN(fraction,1.0);
       vramp = v_lo + fraction*(v_hi - v_lo);
@@ -209,6 +228,7 @@ void ComputeTempRamp::compute_vector()
       vthermal[1] = v[i][1];
       vthermal[2] = v[i][2];
       vthermal[v_dim] -= vramp;
+      vbiasall[i][0] = vramp;
 
       if (rmass) massone = rmass[i];
       else massone = mass[type[i]];
@@ -230,11 +250,7 @@ void ComputeTempRamp::compute_vector()
 
 void ComputeTempRamp::remove_bias(int i, double *v)
 {
-  double fraction = (atom->x[i][coord_dim] - coord_lo) / (coord_hi - coord_lo);
-  fraction = MAX(fraction,0.0);
-  fraction = MIN(fraction,1.0);
-  vbias[v_dim] = v_lo + fraction*(v_hi - v_lo);
-  v[v_dim] -= vbias[v_dim];
+  v[v_dim] -= vbiasall[i][0];
 }
 
 /* ----------------------------------------------------------------------
@@ -247,20 +263,10 @@ void ComputeTempRamp::remove_bias_all()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  if (nlocal > maxbias) {
-    memory->destroy(vbiasall);
-    maxbias = atom->nmax;
-    memory->create(vbiasall,maxbias,3,"temp/ramp:vbiasall");
-  }
-
   double fraction;
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      fraction = (atom->x[i][coord_dim] - coord_lo) / (coord_hi - coord_lo);
-      fraction = MAX(fraction,0.0);
-      fraction = MIN(fraction,1.0);
-      vbiasall[i][v_dim] = v_lo + fraction*(v_hi - v_lo);
-      v[i][v_dim] -= vbiasall[i][v_dim];
+      v[i][v_dim] -= vbiasall[i][0];
     }
 }
 
@@ -271,7 +277,7 @@ void ComputeTempRamp::remove_bias_all()
 
 void ComputeTempRamp::restore_bias(int i, double *v)
 {
-  v[v_dim] += vbias[v_dim];
+  v[v_dim] += vbiasall[i][0];
 }
 
 /* ----------------------------------------------------------------------
@@ -287,13 +293,13 @@ void ComputeTempRamp::restore_bias_all()
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit)
-      v[i][v_dim] += vbiasall[i][v_dim];
+      v[i][v_dim] += vbiasall[i][0];
 }
 
 /* ---------------------------------------------------------------------- */
 
 double ComputeTempRamp::memory_usage()
 {
-  double bytes = maxbias * sizeof(double);
+  double bytes = maxbias * (sizeof(double) + sizeof(double *));
   return bytes;
 }

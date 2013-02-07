@@ -96,6 +96,12 @@ double ComputeTempRegion::compute_scalar()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
+  if (nlocal > maxbias) {
+    memory->destroy(vbiasall);
+    maxbias = atom->nmax;
+    memory->create(vbiasall,maxbias,3,"temp/region:vbiasall");
+  }
+
   Region *region = domain->regions[iregion];
   int count = 0;
   double t = 0.0;
@@ -141,6 +147,12 @@ void ComputeTempRegion::compute_vector()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
+  if (nlocal > maxbias) {
+    memory->destroy(vbiasall);
+    maxbias = atom->nmax;
+    memory->create(vbiasall,maxbias,3,"temp/region:vbiasall");
+  }
+
   Region *region = domain->regions[iregion];
   double massone,t[6];
   for (i = 0; i < 6; i++) t[i] = 0.0;
@@ -169,11 +181,11 @@ void ComputeTempRegion::remove_bias(int i, double *v)
 {
   double *x = atom->x[i];
   if (domain->regions[iregion]->match(x[0],x[1],x[2]))
-    vbias[0] = vbias[1] = vbias[2] = 0.0;
+    vbiasall[i][0] = vbiasall[i][1] = vbiasall[i][2] = 0.0;
   else {
-    vbias[0] = v[0];
-    vbias[1] = v[1];
-    vbias[2] = v[2];
+    vbiasall[i][0] = v[0];
+    vbiasall[i][1] = v[1];
+    vbiasall[i][2] = v[2];
     v[0] = v[1] = v[2] = 0.0;
   }
 }
@@ -188,12 +200,6 @@ void ComputeTempRegion::remove_bias_all()
   double **v = atom->v;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-
-  if (nlocal > maxbias) {
-    memory->destroy(vbiasall);
-    maxbias = atom->nmax;
-    memory->create(vbiasall,maxbias,3,"temp/region:vbiasall");
-  }
 
   Region *region = domain->regions[iregion];
 
@@ -217,9 +223,9 @@ void ComputeTempRegion::remove_bias_all()
 
 void ComputeTempRegion::restore_bias(int i, double *v)
 {
-  v[0] += vbias[0];
-  v[1] += vbias[1];
-  v[2] += vbias[2];
+  v[0] += vbiasall[i][0];
+  v[1] += vbiasall[i][1];
+  v[2] += vbiasall[i][2];
 }
 
 /* ----------------------------------------------------------------------
@@ -245,6 +251,6 @@ void ComputeTempRegion::restore_bias_all()
 
 double ComputeTempRegion::memory_usage()
 {
-  double bytes = maxbias * sizeof(double);
+  double bytes = maxbias * (3 * sizeof(double) + sizeof(double *));
   return bytes;
 }

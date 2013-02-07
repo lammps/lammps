@@ -21,7 +21,7 @@ namespace LAMMPS_NS {
 class FixNHOMP : public FixNH {
  public:
   FixNHOMP(class LAMMPS *lmp, int narg, char **args) : FixNH(lmp,narg,args) {};
-  virtual ~FixNH() {};
+  virtual ~FixNHOMP() {};
 
  protected:
   virtual void nve_v();

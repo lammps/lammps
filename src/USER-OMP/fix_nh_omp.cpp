@@ -36,7 +36,7 @@ void FixNHOMP::nve_v()
   if (atom->rmass) {
     const double * const rmass = atom->rmass;
 #if defined(_OPENMP)
-#pragma omp for default(none) private(i) schedule(static)
+#pragma omp parallel for default(none) private(i) schedule(static)
 #endif
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
@@ -49,7 +49,7 @@ void FixNHOMP::nve_v()
   } else {
     const double * const mass = atom->mass;
 #if defined(_OPENMP)
-#pragma omp for default(none) private(i) schedule(static)
+#pragma omp parallel for default(none) private(i) schedule(static)
 #endif
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {

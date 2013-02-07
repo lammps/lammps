@@ -424,7 +424,6 @@ void ComputeTempProfile::restore_bias_all()
       if (zflag)
         v[i][2] += binave[ibin][ivz];
     }
-  }
 }
 
 /* ----------------------------------------------------------------------

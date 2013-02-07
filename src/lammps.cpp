@@ -40,6 +40,7 @@
 #include "group.h"
 #include "output.h"
 #include "accelerator_cuda.h"
+#include "accelerator_omp.h"
 #include "timer.h"
 #include "memory.h"
 #include "error.h"
@@ -457,7 +458,11 @@ void LAMMPS::create()
   else comm = new Comm(this);
 
   if (cuda) domain = new DomainCuda(this);
+#ifdef LMP_USER_OMP
+  else domain = new DomainOMP(this);
+#else
   else domain = new Domain(this);
+#endif
 
   group = new Group(this);
   force = new Force(this);    // must be after group, to create temperature

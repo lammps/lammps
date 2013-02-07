@@ -105,6 +105,12 @@ double ComputeTempPartial::compute_scalar()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
+  if (nlocal > maxbias) {
+    memory->destroy(vbiasall);
+    maxbias = atom->nmax;
+    memory->create(vbiasall,maxbias,3,"temp/partial:vbiasall");
+  }
+
   double t = 0.0;
 
   if (rmass) {
@@ -140,6 +146,12 @@ void ComputeTempPartial::compute_vector()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
+  if (nlocal > maxbias) {
+    memory->destroy(vbiasall);
+    maxbias = atom->nmax;
+    memory->create(vbiasall,maxbias,3,"temp/partial:vbiasall");
+  }
+
   double massone,t[6];
   for (i = 0; i < 6; i++) t[i] = 0.0;
 
@@ -166,15 +178,15 @@ void ComputeTempPartial::compute_vector()
 void ComputeTempPartial::remove_bias(int i, double *v)
 {
   if (!xflag) {
-    vbias[0] = v[0];
+    vbiasall[i][0] = v[0];
     v[0] = 0.0;
   }
   if (!yflag) {
-    vbias[1] = v[1];
+    vbiasall[i][1] = v[1];
     v[1] = 0.0;
   }
   if (!zflag) {
-    vbias[2] = v[2];
+    vbiasall[i][2] = v[2];
     v[2] = 0.0;
   }
 }
@@ -188,12 +200,6 @@ void ComputeTempPartial::remove_bias_all()
   double **v = atom->v;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-
-  if (nlocal > maxbias) {
-    memory->destroy(vbiasall);
-    maxbias = atom->nmax;
-    memory->create(vbiasall,maxbias,3,"temp/partial:vbiasall");
-  }
 
   if (!xflag) {
     for (int i = 0; i < nlocal; i++)
@@ -225,9 +231,9 @@ void ComputeTempPartial::remove_bias_all()
 
 void ComputeTempPartial::restore_bias(int i, double *v)
 {
-  if (!xflag) v[0] += vbias[0];
-  if (!yflag) v[1] += vbias[1];
-  if (!zflag) v[2] += vbias[2];
+  if (!xflag) v[0] += vbiasall[i][0];
+  if (!yflag) v[1] += vbiasall[i][1];
+  if (!zflag) v[2] += vbiasall[i][2];
 }
 
 /* ----------------------------------------------------------------------
@@ -262,6 +268,6 @@ void ComputeTempPartial::restore_bias_all()
 
 double ComputeTempPartial::memory_usage()
 {
-  double bytes = maxbias * sizeof(double);
+  double bytes = maxbias * (3 * sizeof(double) + sizeof(double *));
   return bytes;
 }

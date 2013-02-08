@@ -89,17 +89,17 @@ void PairBuckLongCoulLong::settings(int narg, char **arg)
   ewald_order = 0;
   ewald_off = 0;
 
-  options(arg, 6);
-  options(++arg, 1);
+  options(arg,6);
+  options(++arg,1);
 
-  if (!comm->me && ewald_order&(1<<6)) error->warning(FLERR,PAIR_MIX);
-  if (!comm->me && ewald_order==((1<<1)|(1<<6))) 
+  if (!comm->me && ewald_order & (1<<6)) error->warning(FLERR,PAIR_MIX);
+  if (!comm->me && ewald_order == ((1<<1) | (1<<6))) 
     error->warning(FLERR,PAIR_LARGEST);
   if (!*(++arg)) error->all(FLERR,PAIR_MISSING);
-  if (ewald_off&(1<<6)) error->all(FLERR,PAIR_LJ_OFF);
-  if (!((ewald_order^ewald_off)&(1<<1))) error->all(FLERR,PAIR_COUL_CUT);
+  if (ewald_off & (1<<6)) error->all(FLERR,PAIR_LJ_OFF);
+  if (!((ewald_order^ewald_off) & (1<<1))) error->all(FLERR,PAIR_COUL_CUT);
   cut_buck_global = force->numeric(*(arg++));
-  if (*arg&&(ewald_order&0x42==0x42)) error->all(FLERR,PAIR_CUTOFF);
+  if (*arg && ((ewald_order & 0x42) == 0x42)) error->all(FLERR,PAIR_CUTOFF);
   if (narg == 4) cut_coul = force->numeric(*arg);
   else cut_coul = cut_buck_global;
 

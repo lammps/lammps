@@ -234,6 +234,7 @@ void Min::setup()
   if (atom->sortfreq > 0) atom->sort();
   comm->borders();
   if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
+  domain->image_check();
   domain->box_too_small_check();
   modify->setup_pre_neighbor();
   neighbor->build();
@@ -321,6 +322,7 @@ void Min::setup_minimal(int flag)
     comm->exchange();
     comm->borders();
     if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
+    domain->image_check();
     domain->box_too_small_check();
     modify->setup_pre_neighbor();
     neighbor->build();
@@ -436,7 +438,6 @@ void Min::cleanup()
   // delete fix at end of run, so its atom arrays won't persist
 
   modify->delete_fix("MINIMIZE");
-
   domain->box_too_small_check();
 }
 

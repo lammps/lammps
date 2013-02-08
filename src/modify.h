@@ -67,6 +67,7 @@ class Modify : protected Pointers {
   void final_integrate_respa(int, int);
 
   void min_pre_exchange();
+  void min_pre_neighbor();
   void min_pre_force(int);
   void min_post_force(int);
 

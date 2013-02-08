@@ -529,8 +529,77 @@ void Domain::pbc()
 }
 
 /* ----------------------------------------------------------------------
-   check that no pair of atoms in a bonded interaction
-   are further apart than half a periodic box length
+   warn if image flags of any bonded atoms are inconsistent
+   could be a problem when using replicate or fix rigid
+------------------------------------------------------------------------- */
+
+void Domain::image_check()
+{
+  int i,j,k;
+
+  // only need to check if system is molecular and some dimension is periodic
+  // if running verlet/split, don't check on KSpace partition since
+  //    it has no ghost atoms and thus bond partners won't exist
+
+  if (!atom->molecular) return;
+  if (!xperiodic && !yperiodic && (dimension == 2 || !zperiodic)) return;
+  if (strcmp(update->integrate_style,"verlet/split") == 0 &&
+      universe->iworld != 0) return;
+
+  // communicate unwrapped position of owned atoms to ghost atoms
+
+  double **unwrap;
+  memory->create(unwrap,atom->nmax,3,"domain:unwrap");
+
+  double **x = atom->x;
+  int *image = atom->image;
+  int nlocal = atom->nlocal;
+
+  for (i = 0; i < nlocal; i++)
+    unmap(x[i],image[i],unwrap[i]);
+
+  comm->forward_comm_array(3,unwrap);
+
+  // compute unwrapped extent of each bond
+  // flag if any bond component is longer than 1/2 of periodic box length
+  // flag if any bond component is longer than non-periodic box length
+  //   which means image flags in that dimension were different
+
+  int *num_bond = atom->num_bond;
+  int **bond_atom = atom->bond_atom;
+
+  double delx,dely,delz;
+
+  int flag = 0;
+  for (i = 0; i < nlocal; i++)
+    for (j = 0; j < num_bond[i]; j++) {
+      k = atom->map(bond_atom[i][j]);
+      if (k == -1) error->one(FLERR,"Bond atom missing in image check");
+
+      delx = unwrap[i][0] - unwrap[k][0];
+      dely = unwrap[i][1] - unwrap[k][1];
+      delz = unwrap[i][2] - unwrap[k][2];
+      
+      if (xperiodic && delx > xprd_half) flag = 1;
+      if (xperiodic && dely > yprd_half) flag = 1;
+      if (dimension == 3 && zperiodic && delz > zprd_half) flag = 1;
+      if (!xperiodic && delx > xprd) flag = 1;
+      if (!yperiodic && dely > yprd) flag = 1;
+      if (dimension == 3 && !zperiodic && delz > zprd) flag = 1;
+    }
+
+  int flagall;
+  MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_MAX,world);
+  if (flag && comm->me == 0) error->warning(FLERR,"Inconsistent image flags");
+
+  memory->destroy(unwrap);
+}
+
+/* ----------------------------------------------------------------------
+   warn if end atoms in any bonded interaction
+     are further apart than half a periodic box length
+   could cause problems when bonded neighbor list is built since
+     closest_image() could return wrong image
 ------------------------------------------------------------------------- */
 
 void Domain::box_too_small_check()
@@ -547,9 +616,10 @@ void Domain::box_too_small_check()
       universe->iworld != 0) return;
 
   // maxbondall = longest current bond length
-  // NOTE: if box is tiny (less than 2 * bond-length),
-  //       the check itself may compute bad bond lengths
-  //       not sure how to account for that extreme case
+  // if periodic box dim is tiny (less than 2 * bond-length),
+  //   minimum_image() itself may compute bad bond lengths
+  // in this case, image_check() should warn,
+  //   assuming 2 atoms have consistent image flags
 
   int *num_bond = atom->num_bond;
   int **bond_atom = atom->bond_atom;
@@ -566,7 +636,7 @@ void Domain::box_too_small_check()
       delx = x[i][0] - x[k][0];
       dely = x[i][1] - x[k][1];
       delz = x[i][2] - x[k][2];
-      domain->minimum_image(delx,dely,delz);
+      minimum_image(delx,dely,delz);
       rsq = delx*delx + dely*dely + delz*delz;
       maxbondme = MAX(maxbondme,rsq);
     }
@@ -582,18 +652,19 @@ void Domain::box_too_small_check()
   if (atom->nangles) maxdelta = 2.0 * maxbondall * BONDSTRETCH;
   if (atom->ndihedrals) maxdelta = 3.0 * maxbondall * BONDSTRETCH;
 
-  // maxdelta cannot be more than half a periodic box length,
-  // else when use minimg() in bond/angle/dihdral compute,
-  // could calculate incorrect distance between 2 atoms
+  // warn if maxdelta > than half any periodic box length
+  // since atoms in the interaction could rotate into that dimension
 
   int flag = 0;
   if (xperiodic && maxdelta > xprd_half) flag = 1;
   if (yperiodic && maxdelta > yprd_half) flag = 1;
   if (dimension == 3 && zperiodic && maxdelta > zprd_half) flag = 1;
 
-  if (flag)
-    error->all(FLERR,
-               "Bond/angle/dihedral extent > half of periodic box length");
+  int flagall;
+  MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_MAX,world);
+  if (flag && comm->me == 0)
+    error->warning(FLERR,
+                   "Bond/angle/dihedral extent > half of periodic box length");
 }
 
 /* ----------------------------------------------------------------------

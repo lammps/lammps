@@ -125,6 +125,7 @@ class Fix : protected Pointers {
   virtual void min_setup_pre_neighbor() {}
   virtual void min_setup_pre_force(int) {}
   virtual void min_pre_exchange() {}
+  virtual void min_pre_neighbor() {}
   virtual void min_pre_force(int) {}
   virtual void min_post_force(int) {}
 

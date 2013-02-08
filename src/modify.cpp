@@ -56,7 +56,7 @@ Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
   list_initial_integrate_respa = list_post_integrate_respa = NULL;
   list_pre_force_respa = list_post_force_respa = NULL;
   list_final_integrate_respa = NULL;
-  list_min_pre_exchange = list_pre_neighbor = NULL;
+  list_min_pre_exchange = list_min_pre_neighbor = NULL;
   list_min_pre_force = list_min_post_force = NULL;
   list_min_energy = NULL;
 
@@ -452,6 +452,16 @@ void Modify::min_pre_exchange()
 {
   for (int i = 0; i < n_min_pre_exchange; i++)
     fix[list_min_pre_exchange[i]]->min_pre_exchange();
+}
+
+/* ----------------------------------------------------------------------
+   minimizer pre-neighbor call, only for relevant fixes
+------------------------------------------------------------------------- */
+
+void Modify::min_pre_neighbor()
+{
+  for (int i = 0; i < n_min_pre_neighbor; i++)
+    fix[list_min_pre_neighbor[i]]->min_pre_neighbor();
 }
 
 /* ----------------------------------------------------------------------

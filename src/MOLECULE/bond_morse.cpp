@@ -186,10 +186,13 @@ void BondMorse::read_restart(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double BondMorse::single(int type, double rsq, int i, int j)
+double BondMorse::single(int type, double rsq, int i, int j,
+                         double &fforce)
 {
   double r = sqrt(rsq);
   double dr = r - r0[type];
   double ralpha = exp(-alpha[type]*dr);
+  fforce = 0;
+  if (r > 0.0) fforce = -2.0*d0[type]*alpha[type]*(1-ralpha)*ralpha/r;
   return d0[type]*(1-ralpha)*(1-ralpha);
 }

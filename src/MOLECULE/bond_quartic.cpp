@@ -296,7 +296,8 @@ void BondQuartic::read_restart(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double BondQuartic::single(int type, double rsq, int i, int j)
+double BondQuartic::single(int type, double rsq, int i, int j,
+                           double &fforce)
 {
   double r,dr,r2,ra,rb,sr2,sr6;
 
@@ -325,10 +326,13 @@ double BondQuartic::single(int type, double rsq, int i, int j)
   rb = dr - b2[type];
 
   eng += k[type]*r2*ra*rb + u0[type];
+  fforce = -k[type]/r * (r2*(ra+rb) + 2.0*dr*ra*rb);
+
   if (rsq < TWO_1_3) {
     sr2 = 1.0/rsq;
     sr6 = sr2*sr2*sr2;
     eng += 4.0*sr6*(sr6-1.0) + 1.0;
+    fforce += 48.0*sr6*(sr6-0.5)/rsq;
   }
 
   return eng;

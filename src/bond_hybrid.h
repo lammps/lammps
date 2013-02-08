@@ -42,7 +42,7 @@ class BondHybrid : public Bond {
   double equilibrium_distance(int);
   void write_restart(FILE *);
   void read_restart(FILE *);
-  double single(int, double, int, int);
+  double single(int, double, int, int, double &);
   double memory_usage();
 
  private:

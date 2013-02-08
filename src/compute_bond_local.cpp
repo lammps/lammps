@@ -135,6 +135,7 @@ int ComputeBondLocal::compute_bonds(int flag)
   Bond *bond = force->bond;
 
   m = n = 0;
+  double fforce; // unused
   for (atom1 = 0; atom1 < nlocal; atom1++) {
     if (!(mask[atom1] & groupbit)) continue;
     for (i = 0; i < num_bond[atom1]; i++) {
@@ -152,7 +153,7 @@ int ComputeBondLocal::compute_bonds(int flag)
         if (dflag >= 0) dbuf[n] = sqrt(rsq);
         if (eflag >= 0) {
           if (bond_type[atom1][i] > 0)
-            ebuf[n] = bond->single(bond_type[atom1][i],rsq,atom1,atom2);
+            ebuf[n] = bond->single(bond_type[atom1][i],rsq,atom1,atom2,fforce);
           else ebuf[n] = 0.0;
         }
         n += nvalues;

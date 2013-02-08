@@ -39,6 +39,7 @@
 #include "respa.h"
 #include "memory.h"
 #include "error.h"
+#include "reaxc_defs.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -85,6 +86,12 @@ FixQEqReax::FixQEqReax(LAMMPS *lmp, int narg, char **arg) :
   r = NULL;
   d = NULL;
 
+  // H matrix
+  H.firstnbr = NULL;
+  H.numnbrs = NULL;
+  H.jlist = NULL;
+  H.val = NULL;
+
   // GMRES
   //g = NULL;
   //y = NULL;
@@ -106,6 +113,7 @@ FixQEqReax::FixQEqReax(LAMMPS *lmp, int narg, char **arg) :
 
   reaxc = NULL;
   reaxc = (PairReaxC *) force->pair_match("reax/c",1);
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -245,8 +253,17 @@ void FixQEqReax::reallocate_storage()
 void FixQEqReax::allocate_matrix()
 {
   int i,ii;
-  int mincap = reaxc->system->mincap;
-  double safezone = reaxc->system->safezone;
+
+  int mincap;
+  double safezone;
+
+  if( reaxflag ) {
+    mincap = reaxc->system->mincap;
+    safezone = reaxc->system->safezone;
+  } else {
+    mincap = MIN_CAP;
+    safezone = SAFE_ZONE;
+  }
 
   n = atom->nlocal;
   n_cap = MAX( (int)(n * safezone), mincap );
@@ -365,8 +382,13 @@ void FixQEqReax::init_taper()
 void FixQEqReax::setup_pre_force(int vflag)
 {
   neighbor->build_one(list->index);
+
+  deallocate_storage();
   allocate_storage();
+
   init_storage();
+
+  deallocate_matrix();
   allocate_matrix();
 
   pre_force(vflag);
@@ -569,9 +591,11 @@ double FixQEqReax::calculate_H( double r, double gamma )
 
 int FixQEqReax::CG( double *b, double *x )
 {
-  int  i, j;
+  int  i, j, imax;
   double tmp, alpha, beta, b_norm;
   double sig_old, sig_new, sig0;
+
+  imax = 200;
 
   pack_flag = 1;
   sparse_matvec( &H, x, q );
@@ -585,7 +609,7 @@ int FixQEqReax::CG( double *b, double *x )
   sig_new = parallel_dot( r, d, n );
   sig0 = sig_new;
 
-  for( i = 1; i < 100 && sqrt(sig_new) / b_norm > tolerance; ++i ) {
+  for( i = 1; i < imax && sqrt(sig_new) / b_norm > tolerance; ++i ) {
     comm->forward_comm_fix(this); //Dist_vector( d );
     sparse_matvec( &H, d, q );
     comm->reverse_comm_fix(this); //Coll_vector( q );
@@ -609,11 +633,15 @@ int FixQEqReax::CG( double *b, double *x )
     vector_sum( d, 1., p, beta, d, n );
   }
 
-  if (i >= 100 && comm->me == 0)
-    error->warning(FLERR,"Fix qeq/reax CG convergence failed");
+  if (i >= imax && comm->me == 0) {
+    char str[128];
+    sprintf(str,"Fix qeq/reax CG convergence failed after %d iterations at %d step",i,update->ntimestep);
+    error->warning(FLERR,str);
+  }
 
   return i;
 }
+
 
 /* ---------------------------------------------------------------------- */
 
@@ -745,7 +773,7 @@ void FixQEqReax::grow_arrays(int nmax)
    copy values within fictitious charge arrays
 ------------------------------------------------------------------------- */
 
-void FixQEqReax::copy_arrays(int i, int j, int delflag)
+void FixQEqReax::copy_arrays(int i, int j)
 {
   for (int m = 0; m < nprev; m++) {
     s_hist[j][m] = s_hist[i][m];

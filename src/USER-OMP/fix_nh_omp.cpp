@@ -344,3 +344,41 @@ void FixNHOMP::nve_x()
     }
   }
 }
+/* ----------------------------------------------------------------------
+   perform half-step thermostat scaling of velocities
+-----------------------------------------------------------------------*/
+
+void FixNHOMP::nh_v_temp()
+{
+  double * const * const v = atom->v;
+  const int * const mask = atom->mask;
+  const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
+  int i;
+
+  if (which == NOBIAS) {
+#if defined(_OPENMP)
+#pragma omp parallel for default(none) private(i) schedule(static)
+#endif
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+        v[i][0] *= factor_eta;
+        v[i][1] *= factor_eta;
+        v[i][2] *= factor_eta;
+      }
+    }
+  } else if (which == BIAS) {
+#if defined(_OPENMP)
+#pragma omp parallel for default(none) private(i) schedule(static)
+#endif
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+        temperature->remove_bias(i,v[i]);
+        v[i][0] *= factor_eta;
+        v[i][1] *= factor_eta;
+        v[i][2] *= factor_eta;
+        temperature->restore_bias(i,v[i]);
+      }
+    }
+  }
+}
+

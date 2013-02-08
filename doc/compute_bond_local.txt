@@ -17,7 +17,7 @@ bond/local = style name of this compute command :l
 one or more keywords may be appended :l
 keyword = {dist} or {eng} :l
   {dist} = bond distance
-  {eng} = bond energy :pre
+  {eng} = bond energy
   {force} = bond force :pre
 :ule
 

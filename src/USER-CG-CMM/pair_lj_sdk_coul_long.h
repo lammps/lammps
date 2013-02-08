@@ -43,7 +43,7 @@ class PairLJSDKCoulLong : public Pair {
   virtual void write_restart_settings(FILE *);
   virtual void read_restart_settings(FILE *);
   virtual double single(int, int, int, int, double, double, double, double &);
-  void *extract(const char *, int &);
+  virtual void *extract(const char *, int &);
   virtual double memory_usage();
 
  protected:

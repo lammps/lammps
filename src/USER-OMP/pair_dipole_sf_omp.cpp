@@ -89,11 +89,11 @@ void PairDipoleSFOMP::eval(int iifrom, int iito, ThrData * const thr)
 
   evdwl = 0.0;
 
-  const vec3_t * _noalias const x = (vec3_t *) atom->x[0];
-  vec3_t * _noalias const f = (vec3_t *) thr->get_f()[0];
+  const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
+  dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
   double * const * const torque = thr->get_torque();
   const double * _noalias const q = atom->q;
-  const vec4_t * _noalias const mu = (vec4_t *) atom->mu[0];
+  const dbl4_t * _noalias const mu = (dbl4_t *) atom->mu[0];
   const int * _noalias const type = atom->type;
   const int nlocal = atom->nlocal;
   const double * _noalias const special_coul = force->special_coul;

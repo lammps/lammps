@@ -123,8 +123,8 @@ void PairHbondDreidingMorseOMP::eval(int iifrom, int iito, ThrData * const thr)
 
   evdwl = 0.0;
 
-  const vec3_t * _noalias const x = (vec3_t *) atom->x[0];
-  vec3_t * _noalias const f = (vec3_t *) thr->get_f()[0];
+  const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
+  dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
   const int * _noalias const type = atom->type;
   const double * _noalias const special_lj = force->special_lj;
   const int * const * const nspecial = atom->nspecial;

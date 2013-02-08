@@ -78,8 +78,8 @@ template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
 void PairLJCharmmCoulLongOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
 
-  const vec3_t * _noalias const x = (vec3_t *) atom->x[0];
-  vec3_t * _noalias const f = (vec3_t *) thr->get_f()[0];
+  const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
+  dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
   const double * _noalias const q = atom->q;
   const int * _noalias const type = atom->type;
   const double * _noalias const special_coul = force->special_coul;

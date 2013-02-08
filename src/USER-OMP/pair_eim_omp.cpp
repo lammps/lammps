@@ -102,8 +102,8 @@ void PairEIMOMP::eval(int iifrom, int iito, ThrData * const thr)
   evdwl = 0.0;
 
 
-  const vec3_t * _noalias const x = (vec3_t *) atom->x[0];
-  vec3_t * _noalias const f = (vec3_t *) thr->get_f()[0];
+  const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
+  dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
   double * const rho_t = thr->get_rho();
   double * const fp_t = thr->get_fp();
   const int tid = thr->get_tid();

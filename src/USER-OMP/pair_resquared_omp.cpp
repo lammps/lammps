@@ -82,9 +82,9 @@ void PairRESquaredOMP::eval(int iifrom, int iito, ThrData * const thr)
   int *ilist,*jlist,*numneigh,**firstneigh;
   RE2Vars wi,wj;
 
-  const vec3_t * _noalias const x = (vec3_t *) atom->x[0];
-  vec3_t * _noalias const f = (vec3_t *) thr->get_f()[0];
-  vec3_t * _noalias const tor = (vec3_t *) thr->get_torque()[0];
+  const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
+  dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
+  dbl3_t * _noalias const tor = (dbl3_t *) thr->get_torque()[0];
   const int * _noalias const type = atom->type;
   const int nlocal = atom->nlocal;
   const double * _noalias const special_lj = force->special_lj;

@@ -147,8 +147,8 @@ void PairEDIPOMP::eval(int iifrom, int iito, ThrData * const thr)
   double *pre_thrPow2B_ij = prePow2B_ij + tid * leadDimInteractionList;
   double *pre_thrForceCoord = preForceCoord + tid * leadDimInteractionList;
 
-  const vec3_t * _noalias const x = (vec3_t *) atom->x[0];
-  vec3_t * _noalias const f = (vec3_t *) thr->get_f()[0];
+  const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
+  dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
   const int * _noalias const type = atom->type;
   const int nlocal = atom->nlocal;
 

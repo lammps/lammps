@@ -33,7 +33,7 @@ enum{ISO,ANISO,TRICLINIC};
 
 #define TILTMAX 1.5
 
-typedef struct { double x,y,z; } vec3_t;
+typedef struct { double x,y,z; } dbl3_t;
 #if defined(__GNUC__)
 #define _noalias __restrict
 #else
@@ -238,7 +238,7 @@ void FixNHOMP::nh_v_press()
   const double factor0 = exp(-dt4*(omega_dot[0]+mtk_term2));
   const double factor1 = exp(-dt4*(omega_dot[1]+mtk_term2));
   const double factor2 = exp(-dt4*(omega_dot[2]+mtk_term2));
-  vec3_t * _noalias const v = (vec3_t *) atom->v[0];
+  dbl3_t * _noalias const v = (dbl3_t *) atom->v[0];
   const int * _noalias const mask = atom->mask;
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
   int i;
@@ -290,8 +290,8 @@ void FixNHOMP::nh_v_press()
 
 void FixNHOMP::nve_v()
 {
-  vec3_t * _noalias const v = (vec3_t *) atom->v[0];
-  const vec3_t * _noalias const f = (vec3_t *) atom->f[0];
+  dbl3_t * _noalias const v = (dbl3_t *) atom->v[0];
+  const dbl3_t * _noalias const f = (dbl3_t *) atom->f[0];
   const int * _noalias const mask = atom->mask;
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
   int i;
@@ -332,8 +332,8 @@ void FixNHOMP::nve_v()
 
 void FixNHOMP::nve_x()
 {
-  vec3_t * _noalias const x = (vec3_t *) atom->x[0];
-  const vec3_t * _noalias const v = (vec3_t *) atom->v[0];
+  dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
+  const dbl3_t * _noalias const v = (dbl3_t *) atom->v[0];
   const int * _noalias const mask = atom->mask;
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
   int i;
@@ -357,7 +357,7 @@ void FixNHOMP::nve_x()
 
 void FixNHOMP::nh_v_temp()
 {
-  vec3_t * _noalias const v = (vec3_t *) atom->v[0];
+  dbl3_t * _noalias const v = (dbl3_t *) atom->v[0];
   const int * _noalias const mask = atom->mask;
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
   int i;

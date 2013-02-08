@@ -24,11 +24,13 @@
 #include "comm.h"
 #include "force.h"
 #include "math_const.h"
+#include "math_special.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
+using namespace MathSpecial;
 
 #define SMALL 0.001
 
@@ -136,8 +138,8 @@ void AngleCosinePeriodic::compute(int eflag, int vflag)
       un_2 = un_1;
       un_1 = un;
     }
-    tn = b_factor*pow(-1.0,(double)m)*tn;
-    un = b_factor*pow(-1.0,(double)m)*m*un;
+    tn = b_factor*powsign(m)*tn;
+    un = b_factor*powsign(m)*m*un;
 
     if (eflag) eangle = 2*k[type]*(1.0 - tn);
 
@@ -284,5 +286,5 @@ double AngleCosinePeriodic::single(int type, int i1, int i2, int i3)
   if (c < -1.0) c = -1.0;
 
   c = cos(acos(c)*multiplicity[type]);
-  return k[type]*(1.0-b[type]*pow(-1.0,(double)multiplicity[type])*c);
+  return k[type]*(1.0-b[type]*powsign(multiplicity[type])*c);
 }

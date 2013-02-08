@@ -32,11 +32,13 @@
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "math_const.h"
+#include "math_special.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
+using namespace MathSpecial;
 
 #define MAXLINE 1024
 #define TOL 1.0e-9
@@ -994,7 +996,7 @@ void PairAIREBO::TORSION(int eflag, int vflag)
           cw2 = (.5*(1.0-cw));
           ekijl = epsilonT[ktype][ltype];
           Ec = 256.0*ekijl/405.0;
-          Vtors = (Ec*(pow(cw2,5.0)))-(ekijl/10.0);
+          Vtors = (Ec*(powint(cw2,5)))-(ekijl/10.0);
 
           if (eflag) evdwl = Vtors*w21*w23*w34*(1.0-tspjik)*(1.0-tspijl);
 
@@ -1048,7 +1050,7 @@ void PairAIREBO::TORSION(int eflag, int vflag)
           ddndil = cross321mag*dxjdil;
           dcwddn = -cwnum/(cwnom*cwnom);
           dcwdn = 1.0/cwnom;
-          dvpdcw = (-1.0)*Ec*(-.5)*5.0*pow(cw2,4.0) *
+          dvpdcw = (-1.0)*Ec*(-.5)*5.0*powint(cw2,4) *
             w23*w21*w34*(1.0-tspjik)*(1.0-tspijl);
 
           Ftmp[0] = dvpdcw*((dcwdn*dndij[0])+(dcwddn*ddndij*del23[0]/r23));
@@ -1289,7 +1291,7 @@ double PairAIREBO::bondorder(int i, int j, double rij[3],
   dN2[1] = 0.0;
   PijS = PijSpline(NijC,NijH,itype,jtype,dN2);
   pij = pow(1.0+Etmp+PijS,-0.5);
-  tmp = -0.5*pow(pij,3.0);
+  tmp = -0.5*cube(pij);
 
   // pij forces
 
@@ -1434,7 +1436,7 @@ double PairAIREBO::bondorder(int i, int j, double rij[3],
   dN2[1] = 0.0;
   PjiS = PijSpline(NjiC,NjiH,jtype,itype,dN2);
   pji = pow(1.0+Etmp+PjiS,-0.5);
-  tmp = -0.5*pow(pji,3.0);
+  tmp = -0.5*cube(pji);
 
   REBO_neighs = REBO_firstneigh[j];
   for (l = 0; l < REBO_numneigh[j]; l++) {
@@ -1460,11 +1462,11 @@ double PairAIREBO::bondorder(int i, int j, double rij[3],
       dcosijldri[2] = (-rjl[2]/(rijmag*rjlmag)) -
         (cosijl*rij[2]/(rijmag*rijmag));
       dcosijldrj[0] = ((-rij[0]+rjl[0])/(rijmag*rjlmag)) +
-        (cosijl*((rij[0]/pow(rijmag,2.0))-(rjl[0]/(rjlmag*rjlmag))));
+        (cosijl*((rij[0]/square(rijmag))-(rjl[0]/(rjlmag*rjlmag))));
       dcosijldrj[1] = ((-rij[1]+rjl[1])/(rijmag*rjlmag)) +
-        (cosijl*((rij[1]/pow(rijmag,2.0))-(rjl[1]/(rjlmag*rjlmag))));
+        (cosijl*((rij[1]/square(rijmag))-(rjl[1]/(rjlmag*rjlmag))));
       dcosijldrj[2] = ((-rij[2]+rjl[2])/(rijmag*rjlmag)) +
-        (cosijl*((rij[2]/pow(rijmag,2.0))-(rjl[2]/(rjlmag*rjlmag))));
+        (cosijl*((rij[2]/square(rijmag))-(rjl[2]/(rjlmag*rjlmag))));
       dcosijldrl[0] = (rij[0]/(rijmag*rjlmag))+(cosijl*rjl[0]/(rjlmag*rjlmag));
       dcosijldrl[1] = (rij[1]/(rijmag*rjlmag))+(cosijl*rjl[1]/(rjlmag*rjlmag));
       dcosijldrl[2] = (rij[2]/(rijmag*rjlmag))+(cosijl*rjl[2]/(rjlmag*rjlmag));
@@ -1774,7 +1776,7 @@ double PairAIREBO::bondorder(int i, int j, double rij[3],
                 cwnom = r21mag*r34mag*r23mag*r23mag*sin321*sin234;
                 om1234 = cwnum/cwnom;
                 cw = om1234;
-                Etmp += ((1.0-pow(om1234,2.0))*w21*w34) *
+                Etmp += ((1.0-square(om1234))*w21*w34) *
                   (1.0-tspjik)*(1.0-tspijl);
 
                 dt1dik = (rik2i)-(dctik*sink2i*cos321);
@@ -1801,7 +1803,7 @@ double PairAIREBO::bondorder(int i, int j, double rij[3],
 
                 aa = (prefactor*2.0*cw/cwnom)*w21*w34 *
                   (1.0-tspjik)*(1.0-tspijl);
-                aaa1 = -prefactor*(1.0-pow(om1234,2.0)) *
+                aaa1 = -prefactor*(1.0-square(om1234)) *
                   (1.0-tspjik)*(1.0-tspijl);
                 aaa2 = aaa1*w21*w34;
                 at2 = aa*cwnum;
@@ -2116,7 +2118,7 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
   dN2PIJ[1] = 0.0;
   PijS = PijSpline(NijC,NijH,itype,jtype,dN2PIJ);
   pij = pow(1.0+Etmp+PijS,-0.5);
-  tmppij = -.5*pow(pij,3.0);
+  tmppij = -.5*cube(pij);
   tmp3pij = tmp3;
   tmp = 0.0;
   tmp2 = 0.0;
@@ -2156,7 +2158,7 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
   dN2PJI[1] = 0.0;
   PjiS = PijSpline(NjiC,NjiH,jtype,itype,dN2PJI);
   pji = pow(1.0+Etmp+PjiS,-0.5);
-  tmppji = -.5*pow(pji,3.0);
+  tmppji = -.5*cube(pji);
   tmp3pji = tmp3;
 
   // evaluate Nij conj
@@ -2238,7 +2240,7 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
                                 (crosskij[1]*crossijl[1]) +
                                 (crosskij[2]*crossijl[2])) /
                                (crosskijmag*crossijlmag));
-                Etmp += ((1.0-pow(omkijl,2.0))*wik*wjl) *
+                Etmp += ((1.0-square(omkijl))*wik*wjl) *
                   (1.0-tspjik)*(1.0-tspijl);
               }
             }
@@ -2392,11 +2394,11 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
         dcosijldri[2] = (-rjl[2]/(rijmag*rjlmag)) -
           (cosijl*rij[2]/(rijmag*rijmag));
         dcosijldrj[0] = ((-rij[0]+rjl[0])/(rijmag*rjlmag)) +
-          (cosijl*((rij[0]/pow(rijmag,2.0))-(rjl[0]/(rjlmag*rjlmag))));
+          (cosijl*((rij[0]/square(rijmag))-(rjl[0]/(rjlmag*rjlmag))));
         dcosijldrj[1] = ((-rij[1]+rjl[1])/(rijmag*rjlmag)) +
-          (cosijl*((rij[1]/pow(rijmag,2.0))-(rjl[1]/(rjlmag*rjlmag))));
+          (cosijl*((rij[1]/square(rijmag))-(rjl[1]/(rjlmag*rjlmag))));
         dcosijldrj[2] = ((-rij[2]+rjl[2])/(rijmag*rjlmag)) +
-          (cosijl*((rij[2]/pow(rijmag,2.0))-(rjl[2]/(rjlmag*rjlmag))));
+          (cosijl*((rij[2]/square(rijmag))-(rjl[2]/(rjlmag*rjlmag))));
         dcosijldrl[0] = (rij[0]/(rijmag*rjlmag)) +
           (cosijl*rjl[0]/(rjlmag*rjlmag));
         dcosijldrl[1] = (rij[1]/(rijmag*rjlmag)) +
@@ -2703,7 +2705,7 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
                   cwnom = r21mag*r34mag*r23mag*r23mag*sin321*sin234;
                   om1234 = cwnum/cwnom;
                   cw = om1234;
-                  Etmp += ((1.0-pow(om1234,2.0))*w21*w34) *
+                  Etmp += ((1.0-square(om1234))*w21*w34) *
                     (1.0-tspjik)*(1.0-tspijl);
 
                   dt1dik = (rik2i)-(dctik*sink2i*cos321);
@@ -2733,7 +2735,7 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
 
                   aa = (prefactor*2.0*cw/cwnom)*w21*w34 *
                     (1.0-tspjik)*(1.0-tspijl);
-                  aaa1 = -prefactor*(1.0-pow(om1234,2.0)) *
+                  aaa1 = -prefactor*(1.0-square(om1234)) *
                     (1.0-tspjik)*(1.0-tspijl);
                   aaa2 = aaa1*w21*w34;
                   at2 = aa*cwnum;

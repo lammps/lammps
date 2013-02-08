@@ -43,7 +43,6 @@ class ComputeTempCOM : public Compute {
   double vbias[3];    // stored velocity bias for one atom
 
   void dof_compute();
-
 };
 
 }

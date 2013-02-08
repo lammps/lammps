@@ -30,6 +30,13 @@ enum{NOBIAS,BIAS};
 
 #define INERTIA 0.4          // moment of inertia prefactor for sphere
 
+typedef struct { double x,y,z; } vec3_t;
+#if defined(__GNUC__)
+#define _noalias __restrict
+#else
+#define _noalias
+#endif
+
 /* ---------------------------------------------------------------------- */
 
 FixNHSphereOMP::FixNHSphereOMP(LAMMPS *lmp, int narg, char **arg) :
@@ -64,13 +71,13 @@ void FixNHSphereOMP::init()
 
 void FixNHSphereOMP::nve_v()
 {
-  double * const * const v = atom->v;
-  double * const * const omega = atom->omega;
-  const double * const * const f = atom->f;
-  const double * const * const torque = atom->torque;
-  const double * const radius = atom->radius;
-  const double * const rmass = atom->rmass;
-  const int * const mask = atom->mask;
+  vec3_t * _noalias const v = (vec3_t *) atom->v[0];
+  vec3_t * _noalias const omega = (vec3_t *) atom->omega[0];
+  const vec3_t * _noalias const f = (vec3_t *) atom->f[0];
+  const vec3_t * _noalias const torque = (vec3_t *) atom->torque[0];
+  const double * _noalias const radius = atom->radius;
+  const double * _noalias const rmass = atom->rmass;
+  const int * _noalias const mask = atom->mask;
 
   // set timestep here since dt may have changed or come via rRESPA
 
@@ -92,13 +99,13 @@ void FixNHSphereOMP::nve_v()
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       const double dtfm = dtf / rmass[i];
-      v[i][0] += dtfm*f[i][0];
-      v[i][1] += dtfm*f[i][1];
-      v[i][2] += dtfm*f[i][2];
+      v[i].x += dtfm*f[i].x;
+      v[i].y += dtfm*f[i].y;
+      v[i].z += dtfm*f[i].z;
       const double dtirotate = dtfrotate / (radius[i]*radius[i]*rmass[i]);
-      omega[i][0] += dtirotate*torque[i][0];
-      omega[i][1] += dtirotate*torque[i][1];
-      omega[i][2] += dtirotate*torque[i][2];
+      omega[i].x += dtirotate*torque[i].x;
+      omega[i].y += dtirotate*torque[i].y;
+      omega[i].z += dtirotate*torque[i].z;
     }
   }
 }
@@ -109,9 +116,9 @@ void FixNHSphereOMP::nve_v()
 
 void FixNHSphereOMP::nh_v_temp()
 {
-  double * const * const v = atom->v;
-  double * const * const omega = atom->omega;
-  const int * const mask = atom->mask;
+  vec3_t * _noalias const v = (vec3_t *) atom->v[0];
+  vec3_t * _noalias const omega = (vec3_t *) atom->omega[0];
+  const int * _noalias const mask = atom->mask;
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
   int i;
 
@@ -121,28 +128,28 @@ void FixNHSphereOMP::nh_v_temp()
 #endif
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-        v[i][0] *= factor_eta;
-        v[i][1] *= factor_eta;
-        v[i][2] *= factor_eta;
-        omega[i][0] *= factor_eta;
-        omega[i][1] *= factor_eta;
-        omega[i][2] *= factor_eta;
+        v[i].x *= factor_eta;
+        v[i].y *= factor_eta;
+        v[i].z *= factor_eta;
+        omega[i].x *= factor_eta;
+        omega[i].y *= factor_eta;
+        omega[i].z *= factor_eta;
       }
     }
   } else if (which == BIAS) {
 #if defined(_OPENMP)
 #pragma omp parallel for default(none) private(i) schedule(static)
 #endif
-    for (int i = 0; i < nlocal; i++) {
+    for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-        temperature->remove_bias(i,v[i]);
-        v[i][0] *= factor_eta;
-        v[i][1] *= factor_eta;
-        v[i][2] *= factor_eta;
-        temperature->restore_bias(i,v[i]);
-        omega[i][0] *= factor_eta;
-        omega[i][1] *= factor_eta;
-        omega[i][2] *= factor_eta;
+        temperature->remove_bias(i,&v[i].x);
+        v[i].x *= factor_eta;
+        v[i].y *= factor_eta;
+        v[i].z *= factor_eta;
+        temperature->restore_bias(i,&v[i].x);
+        omega[i].x *= factor_eta;
+        omega[i].y *= factor_eta;
+        omega[i].z *= factor_eta;
       }
     }
   }

@@ -32,6 +32,13 @@ using namespace FixConst;
 
 enum{NOBIAS,BIAS};
 
+typedef struct { double x,y,z; } vec3_t;
+#if defined(__GNUC__)
+#define _noalias __restrict
+#else
+#define _noalias
+#endif
+
 /* ---------------------------------------------------------------------- */
 
 FixNHAsphereOMP::FixNHAsphereOMP(LAMMPS *lmp, int narg, char **arg) :
@@ -68,12 +75,12 @@ void FixNHAsphereOMP::init()
 
 void FixNHAsphereOMP::nve_v()
 {
-  double * const * const v = atom->v;
-  double * const * const angmom = atom->angmom;
-  const double * const * const f = atom->f;
-  const double * const * const torque = atom->torque;
-  const double * const rmass = atom->rmass;
-  const int * const mask = atom->mask;
+  vec3_t * _noalias const v = (vec3_t *) atom->v[0];
+  vec3_t * _noalias const angmom = (vec3_t *) atom->angmom[0];
+  const vec3_t * _noalias const f = (vec3_t *) atom->f[0];
+  const vec3_t * _noalias const torque = (vec3_t *) atom->torque[0];
+  const double * _noalias const rmass = atom->rmass;
+  const int * _noalias const mask = atom->mask;
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
   int i;
 
@@ -86,12 +93,12 @@ void FixNHAsphereOMP::nve_v()
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       const double dtfm = dtf / rmass[i];
-      v[i][0] += dtfm*f[i][0];
-      v[i][1] += dtfm*f[i][1];
-      v[i][2] += dtfm*f[i][2];
-      angmom[i][0] += dtf*torque[i][0];
-      angmom[i][1] += dtf*torque[i][1];
-      angmom[i][2] += dtf*torque[i][2];
+      v[i].x += dtfm*f[i].x;
+      v[i].y += dtfm*f[i].y;
+      v[i].z += dtfm*f[i].z;
+      angmom[i].x += dtf*torque[i].x;
+      angmom[i].y += dtf*torque[i].y;
+      angmom[i].z += dtf*torque[i].z;
     }
   }
 }
@@ -102,13 +109,13 @@ void FixNHAsphereOMP::nve_v()
 
 void FixNHAsphereOMP::nve_x()
 {
-  double * const * const x = atom->x;
-  const double * const * const v = atom->v;
-  double * const * const angmom = atom->angmom;
-  const double * const rmass = atom->rmass;
-  const int * const mask = atom->mask;
-  AtomVecEllipsoid::Bonus * const bonus = avec->bonus;
-  const int * const ellipsoid = atom->ellipsoid;
+  vec3_t * _noalias const x = (vec3_t *) atom->x[0];
+  const vec3_t * _noalias const v = (vec3_t *) atom->v[0];
+  vec3_t * _noalias const angmom = (vec3_t *) atom->angmom[0];
+  const double * _noalias const rmass = atom->rmass;
+  const int * _noalias const mask = atom->mask;
+  AtomVecEllipsoid::Bonus * _noalias const bonus = avec->bonus;
+  const int * _noalias const ellipsoid = atom->ellipsoid;
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
   int i;
 
@@ -128,9 +135,9 @@ void FixNHAsphereOMP::nve_x()
     if (mask[i] & groupbit) {
       double omega[3], inertia[3];
 
-      x[i][0] += dtv * v[i][0];
-      x[i][1] += dtv * v[i][1];
-      x[i][2] += dtv * v[i][2];
+      x[i].x += dtv * v[i].x;
+      x[i].y += dtv * v[i].y;
+      x[i].z += dtv * v[i].z;
 
       // principal moments of inertia
 
@@ -145,8 +152,8 @@ void FixNHAsphereOMP::nve_x()
       // update quaternion a full step via Richardson iteration
       // returns new normalized quaternion
 
-      MathExtra::mq_to_omega(angmom[i],quat,inertia,omega);
-      MathExtra::richardson(quat,angmom[i],omega,inertia,dtq);
+      MathExtra::mq_to_omega(&angmom[i].x,quat,inertia,omega);
+      MathExtra::richardson(quat,&angmom[i].x,omega,inertia,dtq);
     }
 }
 
@@ -156,9 +163,9 @@ void FixNHAsphereOMP::nve_x()
 
 void FixNHAsphereOMP::nh_v_temp()
 {
-  double * const * const v = atom->v;
-  double * const * const angmom = atom->angmom;
-  const int * const mask = atom->mask;
+  vec3_t * _noalias const v = (vec3_t *) atom->v[0];
+  vec3_t * _noalias const angmom = (vec3_t *) atom->angmom[0];
+  const int * _noalias const mask = atom->mask;
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
   int i;
 
@@ -168,28 +175,28 @@ void FixNHAsphereOMP::nh_v_temp()
 #endif
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-        v[i][0] *= factor_eta;
-        v[i][1] *= factor_eta;
-        v[i][2] *= factor_eta;
-        angmom[i][0] *= factor_eta;
-        angmom[i][1] *= factor_eta;
-        angmom[i][2] *= factor_eta;
+        v[i].x *= factor_eta;
+        v[i].y *= factor_eta;
+        v[i].z *= factor_eta;
+        angmom[i].x *= factor_eta;
+        angmom[i].y *= factor_eta;
+        angmom[i].z *= factor_eta;
       }
     }
   } else if (which == BIAS) {
 #if defined(_OPENMP)
 #pragma omp parallel for default(none) private(i) schedule(static)
 #endif
-    for (int i = 0; i < nlocal; i++) {
+    for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-        temperature->remove_bias(i,v[i]);
-        v[i][0] *= factor_eta;
-        v[i][1] *= factor_eta;
-        v[i][2] *= factor_eta;
-        temperature->restore_bias(i,v[i]);
-        angmom[i][0] *= factor_eta;
-        angmom[i][1] *= factor_eta;
-        angmom[i][2] *= factor_eta;
+        temperature->remove_bias(i,&v[i].x);
+        v[i].x *= factor_eta;
+        v[i].y *= factor_eta;
+        v[i].z *= factor_eta;
+        temperature->restore_bias(i,&v[i].x);
+        angmom[i].x *= factor_eta;
+        angmom[i].y *= factor_eta;
+        angmom[i].z *= factor_eta;
       }
     }
   }

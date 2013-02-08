@@ -33,6 +33,13 @@ enum{ISO,ANISO,TRICLINIC};
 
 #define TILTMAX 1.5
 
+typedef struct { double x,y,z; } vec3_t;
+#if defined(__GNUC__)
+#define _noalias __restrict
+#else
+#define _noalias
+#endif
+
 /* ----------------------------------------------------------------------
    change box size
    remap all atoms or dilate group atoms depending on allremap flag
@@ -231,8 +238,8 @@ void FixNHOMP::nh_v_press()
   const double factor0 = exp(-dt4*(omega_dot[0]+mtk_term2));
   const double factor1 = exp(-dt4*(omega_dot[1]+mtk_term2));
   const double factor2 = exp(-dt4*(omega_dot[2]+mtk_term2));
-  double * const * const v = atom->v;
-  const int * const mask = atom->mask;
+  vec3_t * _noalias const v = (vec3_t *) atom->v[0];
+  const int * _noalias const mask = atom->mask;
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
   int i;
 
@@ -242,16 +249,16 @@ void FixNHOMP::nh_v_press()
 #endif
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-        v[i][0] *= factor0;
-        v[i][1] *= factor1;
-        v[i][2] *= factor2;
+        v[i].x *= factor0;
+        v[i].y *= factor1;
+        v[i].z *= factor2;
         if (pstyle == TRICLINIC) {
-          v[i][0] += -dthalf*(v[i][1]*omega_dot[5] + v[i][2]*omega_dot[4]);
-          v[i][1] += -dthalf*v[i][2]*omega_dot[3];
+          v[i].x += -dthalf*(v[i].y*omega_dot[5] + v[i].z*omega_dot[4]);
+          v[i].y += -dthalf*v[i].z*omega_dot[3];
         }
-        v[i][0] *= factor0;
-        v[i][1] *= factor1;
-        v[i][2] *= factor2;
+        v[i].x *= factor0;
+        v[i].y *= factor1;
+        v[i].z *= factor2;
       }
     }
   } else if (which == BIAS) {
@@ -260,18 +267,18 @@ void FixNHOMP::nh_v_press()
 #endif
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-        temperature->remove_bias(i,v[i]);
-        v[i][0] *= factor0;
-        v[i][1] *= factor1;
-        v[i][2] *= factor2;
+        temperature->remove_bias(i,&v[i].x);
+        v[i].x *= factor0;
+        v[i].y *= factor1;
+        v[i].z *= factor2;
         if (pstyle == TRICLINIC) {
-          v[i][0] += -dthalf*(v[i][1]*omega_dot[5] + v[i][2]*omega_dot[4]);
-          v[i][1] += -dthalf*v[i][2]*omega_dot[3];
+          v[i].x += -dthalf*(v[i].y*omega_dot[5] + v[i].z*omega_dot[4]);
+          v[i].y += -dthalf*v[i].z*omega_dot[3];
         }
-        v[i][0] *= factor0;
-        v[i][1] *= factor1;
-        v[i][2] *= factor2;
-        temperature->restore_bias(i,v[i]);
+        v[i].x *= factor0;
+        v[i].y *= factor1;
+        v[i].z *= factor2;
+        temperature->restore_bias(i,&v[i].x);
       }
     }
   }
@@ -283,37 +290,37 @@ void FixNHOMP::nh_v_press()
 
 void FixNHOMP::nve_v()
 {
-  double * const * const v = atom->v;
-  const double * const * const f = atom->f;
-  const int * const type = atom->type;
-  const int * const mask = atom->mask;
+  vec3_t * _noalias const v = (vec3_t *) atom->v[0];
+  const vec3_t * _noalias const f = (vec3_t *) atom->f[0];
+  const int * _noalias const mask = atom->mask;
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
   int i;
 
   if (atom->rmass) {
-    const double * const rmass = atom->rmass;
+    const double * _noalias const rmass = atom->rmass;
 #if defined(_OPENMP)
 #pragma omp parallel for default(none) private(i) schedule(static)
 #endif
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
         const double dtfm = dtf / rmass[i];
-        v[i][0] += dtfm*f[i][0];
-        v[i][1] += dtfm*f[i][1];
-        v[i][2] += dtfm*f[i][2];
+        v[i].x += dtfm*f[i].x;
+        v[i].y += dtfm*f[i].y;
+        v[i].z += dtfm*f[i].z;
       }
     }
   } else {
-    const double * const mass = atom->mass;
+    const double *_noalias const mass = atom->mass;
+    const int * _noalias const type = atom->type;
 #if defined(_OPENMP)
 #pragma omp parallel for default(none) private(i) schedule(static)
 #endif
-    for (int i = 0; i < nlocal; i++) {
+    for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
         const double dtfm = dtf / mass[type[i]];
-        v[i][0] += dtfm*f[i][0];
-        v[i][1] += dtfm*f[i][1];
-        v[i][2] += dtfm*f[i][2];
+        v[i].x += dtfm*f[i].x;
+        v[i].y += dtfm*f[i].y;
+        v[i].z += dtfm*f[i].z;
       }
     }
   }
@@ -325,9 +332,9 @@ void FixNHOMP::nve_v()
 
 void FixNHOMP::nve_x()
 {
-  double * const * const x = atom->x;
-  const double * const * const v = atom->v;
-  const int * const mask = atom->mask;
+  vec3_t * _noalias const x = (vec3_t *) atom->x[0];
+  const vec3_t * _noalias const v = (vec3_t *) atom->v[0];
+  const int * _noalias const mask = atom->mask;
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
   int i;
 
@@ -338,9 +345,9 @@ void FixNHOMP::nve_x()
 #endif
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
-      x[i][0] += dtv * v[i][0];
-      x[i][1] += dtv * v[i][1];
-      x[i][2] += dtv * v[i][2];
+      x[i].x += dtv * v[i].x;
+      x[i].y += dtv * v[i].y;
+      x[i].z += dtv * v[i].z;
     }
   }
 }
@@ -350,8 +357,8 @@ void FixNHOMP::nve_x()
 
 void FixNHOMP::nh_v_temp()
 {
-  double * const * const v = atom->v;
-  const int * const mask = atom->mask;
+  vec3_t * _noalias const v = (vec3_t *) atom->v[0];
+  const int * _noalias const mask = atom->mask;
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
   int i;
 
@@ -359,24 +366,24 @@ void FixNHOMP::nh_v_temp()
 #if defined(_OPENMP)
 #pragma omp parallel for default(none) private(i) schedule(static)
 #endif
-    for (int i = 0; i < nlocal; i++) {
+    for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-        v[i][0] *= factor_eta;
-        v[i][1] *= factor_eta;
-        v[i][2] *= factor_eta;
+        v[i].x *= factor_eta;
+        v[i].y *= factor_eta;
+        v[i].z *= factor_eta;
       }
     }
   } else if (which == BIAS) {
 #if defined(_OPENMP)
 #pragma omp parallel for default(none) private(i) schedule(static)
 #endif
-    for (int i = 0; i < nlocal; i++) {
+    for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-        temperature->remove_bias(i,v[i]);
-        v[i][0] *= factor_eta;
-        v[i][1] *= factor_eta;
-        v[i][2] *= factor_eta;
-        temperature->restore_bias(i,v[i]);
+        temperature->remove_bias(i,&v[i].x);
+        v[i].x *= factor_eta;
+        v[i].y *= factor_eta;
+        v[i].z *= factor_eta;
+        temperature->restore_bias(i,&v[i].x);
       }
     }
   }

@@ -33,6 +33,13 @@ using namespace FixConst;
 
 enum{NO_REMAP,X_REMAP,V_REMAP};                   // same as fix_deform.cpp
 
+typedef struct { double x,y,z; } vec3_t;
+#if defined(__GNUC__)
+#define _noalias __restrict
+#else
+#define _noalias
+#endif
+
 /* ---------------------------------------------------------------------- */
 
 FixNVTSllodOMP::FixNVTSllodOMP(LAMMPS *lmp, int narg, char **arg) :
@@ -105,8 +112,8 @@ void FixNVTSllodOMP::nh_v_temp()
   //   calculate temperature since some computes require temp
   //   computed on current nlocal atoms to remove bias
 
-  double * const * const v = atom->v;
-  const int * const mask = atom->mask;
+  vec3_t * _noalias const v = (vec3_t *) atom->v[0];
+  const int * _noalias const mask = atom->mask;
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
   int i;
 
@@ -121,14 +128,14 @@ void FixNVTSllodOMP::nh_v_temp()
   for (i = 0; i < nlocal; i++) {
     double vdelu0,vdelu1,vdelu2;
     if (mask[i] & groupbit) {
-      vdelu0 = h_two[0]*v[i][0] + h_two[5]*v[i][1] + h_two[4]*v[i][2];
-      vdelu1 = h_two[1]*v[i][1] + h_two[3]*v[i][2];
-      vdelu2 = h_two[2]*v[i][2];
-      temperature->remove_bias(i,v[i]);
-      v[i][0] = v[i][0]*factor_eta - dthalf*vdelu0;
-      v[i][1] = v[i][1]*factor_eta - dthalf*vdelu1;
-      v[i][2] = v[i][2]*factor_eta - dthalf*vdelu2;
-      temperature->restore_bias(i,v[i]);
+      vdelu0 = h_two[0]*v[i].x + h_two[5]*v[i].y + h_two[4]*v[i].z;
+      vdelu1 = h_two[1]*v[i].y + h_two[3]*v[i].z;
+      vdelu2 = h_two[2]*v[i].z;
+      temperature->remove_bias(i,&v[i].x);
+      v[i].x = v[i].x*factor_eta - dthalf*vdelu0;
+      v[i].y = v[i].y*factor_eta - dthalf*vdelu1;
+      v[i].z = v[i].z*factor_eta - dthalf*vdelu2;
+      temperature->restore_bias(i,&v[i].x);
     }
   }
 }

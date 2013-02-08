@@ -18,6 +18,13 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
+typedef struct { double x,y,z; } vec3_t;
+#if defined(__GNUC__)
+#define _noalias __restrict
+#else
+#define _noalias
+#endif
+
 /* ---------------------------------------------------------------------- */
 
 FixNVEOMP::FixNVEOMP(LAMMPS *lmp, int narg, char **arg) :
@@ -31,9 +38,9 @@ void FixNVEOMP::initial_integrate(int vflag)
 {
   // update v and x of atoms in group
 
-  double * const * const x = atom->x;
-  double * const * const v = atom->v;
-  const double * const * const f = atom->f;
+  vec3_t * _noalias const x = (vec3_t *) atom->x[0];
+  vec3_t * _noalias const v = (vec3_t *) atom->v[0];
+  const vec3_t * _noalias const f = (vec3_t *) atom->f[0];
   const int * const mask = atom->mask;
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
   int i;
@@ -46,12 +53,12 @@ void FixNVEOMP::initial_integrate(int vflag)
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
         const double dtfm = dtf / rmass[i];
-        v[i][0] += dtfm * f[i][0];
-        v[i][1] += dtfm * f[i][1];
-        v[i][2] += dtfm * f[i][2];
-        x[i][0] += dtv * v[i][0];
-        x[i][1] += dtv * v[i][1];
-        x[i][2] += dtv * v[i][2];
+        v[i].x += dtfm * f[i].x;
+        v[i].y += dtfm * f[i].y;
+        v[i].z += dtfm * f[i].z;
+        x[i].x += dtv * v[i].x;
+        x[i].y += dtv * v[i].y;
+        x[i].z += dtv * v[i].z;
       }
 
   } else {
@@ -63,12 +70,12 @@ void FixNVEOMP::initial_integrate(int vflag)
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
         const double dtfm = dtf / mass[type[i]];
-        v[i][0] += dtfm * f[i][0];
-        v[i][1] += dtfm * f[i][1];
-        v[i][2] += dtfm * f[i][2];
-        x[i][0] += dtv * v[i][0];
-        x[i][1] += dtv * v[i][1];
-        x[i][2] += dtv * v[i][2];
+        v[i].x += dtfm * f[i].x;
+        v[i].y += dtfm * f[i].y;
+        v[i].z += dtfm * f[i].z;
+        x[i].x += dtv * v[i].x;
+        x[i].y += dtv * v[i].y;
+        x[i].z += dtv * v[i].z;
       }
   }
 }
@@ -79,31 +86,37 @@ void FixNVEOMP::final_integrate()
 {
   // update v of atoms in group
 
-  double * const * const v = atom->v;
-  const double * const * const f = atom->f;
+  vec3_t * _noalias const v = (vec3_t *) atom->v[0];
+  const vec3_t * _noalias const f = (vec3_t *) atom->f[0];
   const int * const mask = atom->mask;
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
   int i;
 
   if (atom->rmass) {
     const double * const rmass = atom->rmass;
+#if defined (_OPENMP)
+#pragma omp parallel for private(i) default(none) schedule(static)
+#endif
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
         const double dtfm = dtf / rmass[i];
-        v[i][0] += dtfm * f[i][0];
-        v[i][1] += dtfm * f[i][1];
-        v[i][2] += dtfm * f[i][2];
+        v[i].x += dtfm * f[i].x;
+        v[i].y += dtfm * f[i].y;
+        v[i].z += dtfm * f[i].z;
       }
 
   } else {
     const double * const mass = atom->mass;
     const int * const type = atom->type;
+#if defined (_OPENMP)
+#pragma omp parallel for private(i) default(none) schedule(static)
+#endif
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
         const double dtfm = dtf / mass[type[i]];
-        v[i][0] += dtfm * f[i][0];
-        v[i][1] += dtfm * f[i][1];
-        v[i][2] += dtfm * f[i][2];
+        v[i].x += dtfm * f[i].x;
+        v[i].y += dtfm * f[i].y;
+        v[i].z += dtfm * f[i].z;
       }
   }
 }

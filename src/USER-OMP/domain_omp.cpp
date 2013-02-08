@@ -21,6 +21,13 @@
 
 using namespace LAMMPS_NS;
 
+typedef struct { double x,y,z; } vec3_t;
+#if defined(__GNUC__)
+#define _noalias __restrict
+#else
+#define _noalias
+#endif
+
 /* ----------------------------------------------------------------------
    enforce PBC and modify box image flags for each atom
    called every reneighboring and by other commands that change atoms
@@ -34,13 +41,13 @@ using namespace LAMMPS_NS;
 
 void DomainOMP::pbc()
 {
-  double * const * const x = atom->x;
-  double * const * const v = atom->v;
-  const double * const lo     = (triclinic == 0) ? boxlo : boxlo_lamda;
-  const double * const hi     = (triclinic == 0) ? boxhi : boxhi_lamda;
-  const double * const period = (triclinic == 0) ? prd   : prd_lamda;
-  const int * const mask  = atom->mask;
-  tagint    * const image = atom->image;
+  vec3_t * _noalias const x = (vec3_t *)&atom->x[0][0];
+  vec3_t * _noalias const v = (vec3_t *)&atom->v[0][0];
+  const double * _noalias const lo     = (triclinic == 0) ? boxlo : boxlo_lamda;
+  const double * _noalias const hi     = (triclinic == 0) ? boxhi : boxhi_lamda;
+  const double * _noalias const period = (triclinic == 0) ? prd   : prd_lamda;
+  const int * _noalias const mask  = atom->mask;
+  tagint    * _noalias const image = atom->image;
   const int nlocal = atom->nlocal;
 
   int i;
@@ -51,19 +58,19 @@ void DomainOMP::pbc()
     tagint idim,otherdims;
 
     if (xperiodic) {
-      if (x[i][0] < lo[0]) {
-        x[i][0] += period[0];
-        if (deform_vremap && mask[i] & deform_groupbit) v[i][0] += h_rate[0];
+      if (x[i].x < lo[0]) {
+        x[i].x += period[0];
+        if (deform_vremap && mask[i] & deform_groupbit) v[i].x += h_rate[0];
         idim = image[i] & IMGMASK;
         otherdims = image[i] ^ idim;
         idim--;
         idim &= IMGMASK;
         image[i] = otherdims | idim;
       }
-      if (x[i][0] >= hi[0]) {
-        x[i][0] -= period[0];
-        x[i][0] = MAX(x[i][0],lo[0]);
-        if (deform_vremap && mask[i] & deform_groupbit) v[i][0] -= h_rate[0];
+      if (x[i].x >= hi[0]) {
+        x[i].x -= period[0];
+        x[i].x = MAX(x[i].x,lo[0]);
+        if (deform_vremap && mask[i] & deform_groupbit) v[i].x -= h_rate[0];
         idim = image[i] & IMGMASK;
         otherdims = image[i] ^ idim;
         idim++;
@@ -73,11 +80,11 @@ void DomainOMP::pbc()
     }
 
     if (yperiodic) {
-      if (x[i][1] < lo[1]) {
-        x[i][1] += period[1];
+      if (x[i].y < lo[1]) {
+        x[i].y += period[1];
         if (deform_vremap && mask[i] & deform_groupbit) {
-          v[i][0] += h_rate[5];
-          v[i][1] += h_rate[1];
+          v[i].x += h_rate[5];
+          v[i].y += h_rate[1];
         }
         idim = (image[i] >> IMGBITS) & IMGMASK;
         otherdims = image[i] ^ (idim << IMGBITS);
@@ -85,12 +92,12 @@ void DomainOMP::pbc()
         idim &= IMGMASK;
         image[i] = otherdims | (idim << IMGBITS);
       }
-      if (x[i][1] >= hi[1]) {
-        x[i][1] -= period[1];
-        x[i][1] = MAX(x[i][1],lo[1]);
+      if (x[i].y >= hi[1]) {
+        x[i].y -= period[1];
+        x[i].y = MAX(x[i].y,lo[1]);
         if (deform_vremap && mask[i] & deform_groupbit) {
-          v[i][0] -= h_rate[5];
-          v[i][1] -= h_rate[1];
+          v[i].x -= h_rate[5];
+          v[i].y -= h_rate[1];
         }
         idim = (image[i] >> IMGBITS) & IMGMASK;
         otherdims = image[i] ^ (idim << IMGBITS);
@@ -101,12 +108,12 @@ void DomainOMP::pbc()
     }
 
     if (zperiodic) {
-      if (x[i][2] < lo[2]) {
-        x[i][2] += period[2];
+      if (x[i].z < lo[2]) {
+        x[i].z += period[2];
         if (deform_vremap && mask[i] & deform_groupbit) {
-          v[i][0] += h_rate[4];
-          v[i][1] += h_rate[3];
-          v[i][2] += h_rate[2];
+          v[i].x += h_rate[4];
+          v[i].y += h_rate[3];
+          v[i].z += h_rate[2];
         }
         idim = image[i] >> IMG2BITS;
         otherdims = image[i] ^ (idim << IMG2BITS);
@@ -114,13 +121,13 @@ void DomainOMP::pbc()
         idim &= IMGMASK;
         image[i] = otherdims | (idim << IMG2BITS);
       }
-      if (x[i][2] >= hi[2]) {
-        x[i][2] -= period[2];
-        x[i][2] = MAX(x[i][2],lo[2]);
+      if (x[i].z >= hi[2]) {
+        x[i].z -= period[2];
+        x[i].z = MAX(x[i].z,lo[2]);
         if (deform_vremap && mask[i] & deform_groupbit) {
-          v[i][0] -= h_rate[4];
-          v[i][1] -= h_rate[3];
-          v[i][2] -= h_rate[2];
+          v[i].x -= h_rate[4];
+          v[i].y -= h_rate[3];
+          v[i].z -= h_rate[2];
         }
         idim = image[i] >> IMG2BITS;
         otherdims = image[i] ^ (idim << IMG2BITS);
@@ -139,7 +146,7 @@ void DomainOMP::pbc()
 
 void DomainOMP::lamda2x(int n)
 {
-  double * const * const x = atom->x;
+  vec3_t * _noalias const x = (vec3_t *)&atom->x[0][0];
   const int num = n;
   int i;
 
@@ -147,9 +154,9 @@ void DomainOMP::lamda2x(int n)
 #pragma omp parallel for private(i) default(none) schedule(static)
 #endif
   for (i = 0; i < num; i++) {
-    x[i][0] = h[0]*x[i][0] + h[5]*x[i][1] + h[4]*x[i][2] + boxlo[0];
-    x[i][1] = h[1]*x[i][1] + h[3]*x[i][2] + boxlo[1];
-    x[i][2] = h[2]*x[i][2] + boxlo[2];
+    x[i].x = h[0]*x[i].x + h[5]*x[i].y + h[4]*x[i].z + boxlo[0];
+    x[i].y = h[1]*x[i].y + h[3]*x[i].z + boxlo[1];
+    x[i].z = h[2]*x[i].z + boxlo[2];
   }
 }
 
@@ -160,7 +167,7 @@ void DomainOMP::lamda2x(int n)
 
 void DomainOMP::x2lamda(int n)
 {
-  double * const * const x = atom->x;
+  vec3_t * _noalias const x = (vec3_t *)&atom->x[0][0];
   const int num = n;
   int i;
 
@@ -168,13 +175,13 @@ void DomainOMP::x2lamda(int n)
 #pragma omp parallel for private(i) default(none) schedule(static)
 #endif
   for (i = 0; i < num; i++) {
-    double delta0 = x[i][0] - boxlo[0];
-    double delta1 = x[i][1] - boxlo[1];
-    double delta2 = x[i][2] - boxlo[2];
+    double delta0 = x[i].x - boxlo[0];
+    double delta1 = x[i].y - boxlo[1];
+    double delta2 = x[i].z - boxlo[2];
 
-    x[i][0] = h_inv[0]*delta0 + h_inv[5]*delta1 + h_inv[4]*delta2;
-    x[i][1] = h_inv[1]*delta1 + h_inv[3]*delta2;
-    x[i][2] = h_inv[2]*delta2;
+    x[i].x = h_inv[0]*delta0 + h_inv[5]*delta1 + h_inv[4]*delta2;
+    x[i].y = h_inv[1]*delta1 + h_inv[3]*delta2;
+    x[i].z = h_inv[2]*delta2;
   }
 }
 

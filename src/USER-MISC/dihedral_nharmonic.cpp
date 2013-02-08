@@ -60,7 +60,7 @@ void DihedralNHarmonic::compute(int eflag, int vflag)
   double edihedral,f1[3],f2[3],f3[3],f4[3];
   double sb1,sb2,sb3,rb1,rb3,c0,b1mag2,b1mag,b2mag2;
   double b2mag,b3mag2,b3mag,ctmp,r12c1,c1mag,r12c2;
-  double c2mag,sc1,sc2,s1,s12,c,p,pd,a,a11,a22;
+  double c2mag,sc1,sc2,s1,s12,c,p,pd,a11,a22;
   double a33,a12,a13,a23,sx2,sy2,sz2;
   double s2,sin2;
 
@@ -177,20 +177,19 @@ void DihedralNHarmonic::compute(int eflag, int vflag)
     // force & energy
     // p = sum (i=1,n) a_i * c**(i-1)
     // pd = dp/dc
-    p = this->a[type][0];
-    pd = this->a[type][1];
+    p = a[type][0];
+    pd = a[type][1];
     for (int i = 1; i < nterms[type]-1; i++) {
-      p += c * this->a[type][i];
-      pd += c * static_cast<double>(i+1) * this->a[type][i+1];
+      p += c * a[type][i];
+      pd += c * static_cast<double>(i+1) * a[type][i+1];
       c *= c;
     }
-    p += c * this->a[type][nterms[type]-1];
+    p += c * a[type][nterms[type]-1];
 
     if (eflag) edihedral = p;
 
-    a = pd;
-    c = c * a;
-    s12 = s12 * a;
+    c = c * pd;
+    s12 = s12 * pd;
     a11 = c*sb1*s1;
     a22 = -sb2 * (2.0*c0*s12 - c*(s1+s2));
     a33 = c*sb3*s2;

@@ -54,14 +54,14 @@ DihedralQuadratic::~DihedralQuadratic()
 
 void DihedralQuadratic::compute(int eflag, int vflag)
 {
-  int i1,i2,i3,i4,i,m,n,type;
+  int i1,i2,i3,i4,n,type;
   double vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z,vb2xm,vb2ym,vb2zm;
   double edihedral,f1[3],f2[3],f3[3],f4[3];
   double sb1,sb2,sb3,rb1,rb3,c0,b1mag2,b1mag,b2mag2;
   double b2mag,b3mag2,b3mag,ctmp,r12c1,c1mag,r12c2;
   double c2mag,sc1,sc2,s1,s12,c,p,pd,a,a11,a22;
   double a33,a12,a13,a23,sx2,sy2,sz2;
-  double s2,cx,cy,cz,cmag,dx,phi,si,siinv,sin2;
+  double s2,cx,cy,cz,cmag,dx,phi,si,sin2;
 
   edihedral = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
@@ -86,26 +86,22 @@ void DihedralQuadratic::compute(int eflag, int vflag)
     vb1x = x[i1][0] - x[i2][0];
     vb1y = x[i1][1] - x[i2][1];
     vb1z = x[i1][2] - x[i2][2];
-    domain->minimum_image(vb1x,vb1y,vb1z);
 
     // 2nd bond
 
     vb2x = x[i3][0] - x[i2][0];
     vb2y = x[i3][1] - x[i2][1];
     vb2z = x[i3][2] - x[i2][2];
-    domain->minimum_image(vb2x,vb2y,vb2z);
 
     vb2xm = -vb2x;
     vb2ym = -vb2y;
     vb2zm = -vb2z;
-    domain->minimum_image(vb2xm,vb2ym,vb2zm);
 
     // 3rd bond
 
     vb3x = x[i4][0] - x[i3][0];
     vb3y = x[i4][1] - x[i3][1];
     vb3z = x[i4][2] - x[i3][2];
-    domain->minimum_image(vb3x,vb3y,vb3z);
 
     // c0 calculation
 
@@ -179,7 +175,7 @@ void DihedralQuadratic::compute(int eflag, int vflag)
 		me,x[i4][0],x[i4][1],x[i4][2]);
       }
     }
-    
+
     if (c > 1.0) c = 1.0;
     if (c < -1.0) c = -1.0;
 

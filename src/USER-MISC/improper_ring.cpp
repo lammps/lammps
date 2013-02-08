@@ -48,11 +48,13 @@
 #include "force.h"
 #include "update.h"
 #include "math_const.h"
+#include "math_special.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
+using namespace MathSpecial;
 
 #define TOLERANCE 0.05
 #define SMALL     0.001
@@ -169,7 +171,7 @@ void ImproperRing::compute(int eflag, int vflag)
          /* Append the current angle to the sum of angle differences. */
          angle_summer += (bend_angle[icomb] - chi[type]);
       }
-      if (eflag) eimproper = (1.0/6.0) *k[type] * pow(angle_summer,6.0);
+      if (eflag) eimproper = (1.0/6.0) *k[type] * powint(angle_summer,6);
       /*
       printf("The tags: %d-%d-%d-%d, of type %d .\n",atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4],type);
       // printf("The coordinates of the first: %f, %f, %f.\n", x[i1][0], x[i1][1], x[i1][2]);
@@ -183,7 +185,7 @@ void ImproperRing::compute(int eflag, int vflag)
 
       /* Force calculation acting on all atoms.
          Calculate the derivatives of the potential. */
-      angfac = k[type] * pow(angle_summer,5.0);
+      angfac = k[type] * powint(angle_summer,5);
 
       f1[0] = 0.0; f1[1] = 0.0; f1[2] = 0.0;
       f3[0] = 0.0; f3[1] = 0.0; f3[2] = 0.0;

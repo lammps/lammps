@@ -15,7 +15,7 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "angle_cosine_periodic_omp.h"
+#include "angle_quartic_omp.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -23,28 +23,26 @@
 #include "domain.h"
 
 #include "math_const.h"
-#include "math_special.h"
 
 #include <math.h>
 
 #include "suffix.h"
 using namespace LAMMPS_NS;
 using namespace MathConst;
-using namespace MathSpecial;
 
 #define SMALL 0.001
 
 /* ---------------------------------------------------------------------- */
 
-AngleCosinePeriodicOMP::AngleCosinePeriodicOMP(class LAMMPS *lmp)
-  : AngleCosinePeriodic(lmp), ThrOMP(lmp,THR_ANGLE)
+AngleQuarticOMP::AngleQuarticOMP(class LAMMPS *lmp)
+  : AngleQuartic(lmp), ThrOMP(lmp,THR_ANGLE)
 {
   suffix_flag |= Suffix::OMP;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void AngleCosinePeriodicOMP::compute(int eflag, int vflag)
+void AngleQuarticOMP::compute(int eflag, int vflag)
 {
 
   if (eflag || vflag) {
@@ -83,13 +81,13 @@ void AngleCosinePeriodicOMP::compute(int eflag, int vflag)
 }
 
 template <int EVFLAG, int EFLAG, int NEWTON_BOND>
-void AngleCosinePeriodicOMP::eval(int nfrom, int nto, ThrData * const thr)
+void AngleQuarticOMP::eval(int nfrom, int nto, ThrData * const thr)
 {
-  int i,i1,i2,i3,n,m,type,b_factor;
+  int i1,i2,i3,n,type;
   double delx1,dely1,delz1,delx2,dely2,delz2;
   double eangle,f1[3],f3[3];
+  double dtheta,dtheta2,dtheta3,dtheta4,tk;
   double rsq1,rsq2,r1,r2,c,s,a,a11,a12,a22;
-  double tn,tn_1,tn_2,un,un_1,un_2;
 
   const double * const * const x = atom->x;
   double * const * const f = thr->get_f();
@@ -120,30 +118,13 @@ void AngleCosinePeriodicOMP::eval(int nfrom, int nto, ThrData * const thr)
     rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
     r2 = sqrt(rsq2);
 
-    // c = cosine of angle
+    // angle (cos and sin)
 
     c = delx1*delx2 + dely1*dely2 + delz1*delz2;
     c /= r1*r2;
+
     if (c > 1.0) c = 1.0;
     if (c < -1.0) c = -1.0;
-
-    m = multiplicity[type];
-    b_factor = b[type];
-
-    // cos(n*x) = Tn(cos(x))
-    // Tn(x) = Chebyshev polynomials of the first kind: T_0 = 1, T_1 = x, ...
-    // recurrence relationship:
-    // Tn(x) = 2*x*T[n-1](x) - T[n-2](x) where T[-1](x) = 0
-    // also, dTn(x)/dx = n*U[n-1](x)
-    // where Un(x) = 2*x*U[n-1](x) - U[n-2](x) and U[-1](x) = 0
-    // finally need to handle special case for n = 1
-
-    tn = 1.0;
-    tn_1 = 1.0;
-    tn_2 = 0.0;
-    un = 1.0;
-    un_1 = 2.0;
-    un_2 = 0.0;
 
     s = sqrt(1.0 - c*c);
     if (s < SMALL) s = SMALL;
@@ -151,24 +132,17 @@ void AngleCosinePeriodicOMP::eval(int nfrom, int nto, ThrData * const thr)
 
     // force & energy
 
-    tn_2 = c;
-    for (i = 1; i <= m; i++) {
-      tn = 2*c*tn_1 - tn_2;
-      tn_2 = tn_1;
-      tn_1 = tn;
+    dtheta = acos(c) - theta0[type];
+    dtheta2 = dtheta * dtheta;
+    dtheta3 = dtheta2 * dtheta;
+    tk =  2.0 * k2[type] * dtheta + 3.0 * k3[type] * dtheta2 + 4.0 * k4[type] * dtheta3;
+
+    if (EFLAG) {
+      dtheta4 = dtheta3 * dtheta;
+      eangle = k2[type] * dtheta2 + k3[type] * dtheta3 + k4[type] * dtheta4;
     }
 
-    for (i = 2; i <= m; i++) {
-      un = 2*c*un_1 - un_2;
-      un_2 = un_1;
-      un_1 = un;
-    }
-    tn = b_factor*powsign(m)*tn;
-    un = b_factor*powsign(m)*m*un;
-
-    if (EFLAG) eangle = 2*k[type]*(1.0 - tn);
-
-    a = -k[type]*un;
+    a = -2.0 * tk * s;
     a11 = a*c / rsq1;
     a12 = -a / (r1*r2);
     a22 = a*c / rsq2;

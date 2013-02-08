@@ -15,7 +15,7 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "angle_cosine_periodic_omp.h"
+#include "angle_fourier_simple_omp.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -23,28 +23,26 @@
 #include "domain.h"
 
 #include "math_const.h"
-#include "math_special.h"
 
 #include <math.h>
 
 #include "suffix.h"
 using namespace LAMMPS_NS;
 using namespace MathConst;
-using namespace MathSpecial;
 
 #define SMALL 0.001
 
 /* ---------------------------------------------------------------------- */
 
-AngleCosinePeriodicOMP::AngleCosinePeriodicOMP(class LAMMPS *lmp)
-  : AngleCosinePeriodic(lmp), ThrOMP(lmp,THR_ANGLE)
+AngleFourierSimpleOMP::AngleFourierSimpleOMP(class LAMMPS *lmp)
+  : AngleFourierSimple(lmp), ThrOMP(lmp,THR_ANGLE)
 {
   suffix_flag |= Suffix::OMP;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void AngleCosinePeriodicOMP::compute(int eflag, int vflag)
+void AngleFourierSimpleOMP::compute(int eflag, int vflag)
 {
 
   if (eflag || vflag) {
@@ -83,13 +81,13 @@ void AngleCosinePeriodicOMP::compute(int eflag, int vflag)
 }
 
 template <int EVFLAG, int EFLAG, int NEWTON_BOND>
-void AngleCosinePeriodicOMP::eval(int nfrom, int nto, ThrData * const thr)
+void AngleFourierSimpleOMP::eval(int nfrom, int nto, ThrData * const thr)
 {
-  int i,i1,i2,i3,n,m,type,b_factor;
+  int i1,i2,i3,n,type;
   double delx1,dely1,delz1,delx2,dely2,delz2;
   double eangle,f1[3],f3[3];
-  double rsq1,rsq2,r1,r2,c,s,a,a11,a12,a22;
-  double tn,tn_1,tn_2,un,un_1,un_2;
+  double term,sgn;
+  double rsq1,rsq2,r1,r2,c,cn,th,nth,a,a11,a12,a22;
 
   const double * const * const x = atom->x;
   double * const * const f = thr->get_f();
@@ -120,55 +118,39 @@ void AngleCosinePeriodicOMP::eval(int nfrom, int nto, ThrData * const thr)
     rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
     r2 = sqrt(rsq2);
 
-    // c = cosine of angle
+    // angle (cos and sin)
 
     c = delx1*delx2 + dely1*dely2 + delz1*delz2;
     c /= r1*r2;
+
     if (c > 1.0) c = 1.0;
     if (c < -1.0) c = -1.0;
 
-    m = multiplicity[type];
-    b_factor = b[type];
-
-    // cos(n*x) = Tn(cos(x))
-    // Tn(x) = Chebyshev polynomials of the first kind: T_0 = 1, T_1 = x, ...
-    // recurrence relationship:
-    // Tn(x) = 2*x*T[n-1](x) - T[n-2](x) where T[-1](x) = 0
-    // also, dTn(x)/dx = n*U[n-1](x)
-    // where Un(x) = 2*x*U[n-1](x) - U[n-2](x) and U[-1](x) = 0
-    // finally need to handle special case for n = 1
-
-    tn = 1.0;
-    tn_1 = 1.0;
-    tn_2 = 0.0;
-    un = 1.0;
-    un_1 = 2.0;
-    un_2 = 0.0;
-
-    s = sqrt(1.0 - c*c);
-    if (s < SMALL) s = SMALL;
-    s = 1.0/s;
-
     // force & energy
 
-    tn_2 = c;
-    for (i = 1; i <= m; i++) {
-      tn = 2*c*tn_1 - tn_2;
-      tn_2 = tn_1;
-      tn_1 = tn;
+    th = acos(c);
+    nth = N[type]*acos(c);
+    cn = cos(nth);
+    term = k[type]*(1.0+C[type]*cn);
+
+    if (EFLAG) eangle = term;
+
+    // handle sin(n th)/sin(th) singulatiries
+
+    if ( fabs(c)-1.0 > 0.0001 ) {
+      a = k[type]*C[type]*N[type]*sin(nth)/sin(th);
+    } else {
+      if ( c >= 0.0 ) {
+        term = 1.0 - c;
+        sgn = 1.0;
+      } else {
+        term = 1.0 + c;
+        sgn = ( fmodf((float)(N[type]),2.0) == 0.0f )?-1.0:1.0;
+      }
+      a = N[type]+N[type]*(1.0-N[type]*N[type])*term/3.0;
+      a = k[type]*C[type]*N[type]*(double)(sgn)*a;
     }
 
-    for (i = 2; i <= m; i++) {
-      un = 2*c*un_1 - un_2;
-      un_2 = un_1;
-      un_1 = un;
-    }
-    tn = b_factor*powsign(m)*tn;
-    un = b_factor*powsign(m)*m*un;
-
-    if (EFLAG) eangle = 2*k[type]*(1.0 - tn);
-
-    a = -k[type]*un;
     a11 = a*c / rsq1;
     a12 = -a / (r1*r2);
     a22 = a*c / rsq2;

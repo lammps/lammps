@@ -15,7 +15,10 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
+#include <cmath>
+#include <cstdlib>
+#include <cstdio>
+
 #include "dihedral_table_omp.h"
 #include "atom.h"
 #include "comm.h"
@@ -25,11 +28,76 @@
 #include "update.h"
 #include "error.h"
 
+#include "math_const.h"
+#include "math_extra.h"
+
 #include "suffix.h"
+
 using namespace LAMMPS_NS;
-using namespace DIHEDRAL_TABLE_NS;
+using namespace MathConst;
+using namespace MathExtra;
+
 #define TOLERANCE 0.05
 #define SMALL     0.001
+
+// --------------------------------------------
+// ------- Calculate the dihedral angle -------
+// --------------------------------------------
+static const int g_dim=3;
+
+static double Phi(double const *x1, //array holding x,y,z coords atom 1
+                  double const *x2, // :       :      :      :        2
+                  double const *x3, // :       :      :      :        3
+                  double const *x4, // :       :      :      :        4
+                  Domain *domain, //<-periodic boundary information
+                  // The following arrays are of doubles with g_dim elements.
+                  // (g_dim is a constant known at compile time, usually 3).
+                  // Their contents is calculated by this function.
+                  // Space for these vectors must be allocated in advance.
+                  // (This is not hidden internally because these vectors
+                  //  may be needed outside the function, later on.)
+                  double *vb12, // will store x2-x1
+                  double *vb23, // will store x3-x2
+                  double *vb34, // will store x4-x3
+                  double *n123, // will store normal to plane x1,x2,x3
+                  double *n234) // will store normal to plane x2,x3,x4
+{
+
+  for (int d=0; d < g_dim; ++d) {
+    vb12[d] = x2[d] - x1[d]; // 1st bond
+    vb23[d] = x3[d] - x2[d]; // 2nd bond
+    vb34[d] = x4[d] - x3[d]; // 3rd bond
+  }
+
+  //Consider periodic boundary conditions:
+  domain->minimum_image(vb12[0],vb12[1],vb12[2]);
+  domain->minimum_image(vb23[0],vb23[1],vb23[2]);
+  domain->minimum_image(vb34[0],vb34[1],vb34[2]);
+
+  //--- Compute the normal to the planes formed by atoms 1,2,3 and 2,3,4 ---
+
+  cross3(vb23, vb12, n123);        // <- n123=vb23 x vb12
+  cross3(vb23, vb34, n234);        // <- n234=vb23 x vb34
+
+  norm3(n123);
+  norm3(n234);
+
+  double cos_phi = -dot3(n123, n234);
+
+  if (cos_phi > 1.0)
+    cos_phi = 1.0;
+  else if (cos_phi < -1.0)
+    cos_phi = -1.0;
+
+  double phi = acos(cos_phi);
+
+  if (dot3(n123, vb34) > 0.0) {
+    phi = -phi;   //(Note: Negative dihedral angles are possible only in 3-D.)
+    phi += MY_2PI; //<- This insure phi is always in the range 0 to 2*PI
+  }
+  return phi;
+} // DihedralTable::Phi()
+
 
 /* ---------------------------------------------------------------------- */
 
@@ -178,9 +246,9 @@ void DihedralTableOMP::eval(int nfrom, int nto, ThrData * const thr)
     double dphi_dx3[g_dim]; //               d x[i1][d]
     double dphi_dx4[g_dim]; //where d=0,1,2 corresponds to x,y,z  (if g_dim==3)
 
-    double dot123             = DotProduct(vb12, vb23);
-    double dot234             = DotProduct(vb23, vb34);
-    double L23sqr             = DotProduct(vb23, vb23);
+    double dot123             = dot3(vb12, vb23);
+    double dot234             = dot3(vb23, vb34);
+    double L23sqr             = dot3(vb23, vb23);
     double L23                = sqrt(L23sqr);   // (central bond length)
     double inv_L23sqr = 0.0;
     double inv_L23    = 0.0;
@@ -200,15 +268,14 @@ void DihedralTableOMP::eval(int nfrom, int nto, ThrData * const thr)
       perp34on23[d] = vb34[d] - proj34on23[d];
     }
 
-
     // --- Compute the gradient vectors dphi/dx1 and dphi/dx4: ---
 
     // These two gradients point in the direction of n123 and n234,
     // and are scaled by the distances of atoms 1 and 4 from the central axis.
     // Distance of atom 1 to central axis:
-    double perp12on23_len = sqrt(DotProduct(perp12on23, perp12on23));
+    double perp12on23_len = sqrt(dot3(perp12on23, perp12on23));
     // Distance of atom 4 to central axis:
-    double perp34on23_len = sqrt(DotProduct(perp34on23, perp34on23));
+    double perp34on23_len = sqrt(dot3(perp34on23, perp34on23));
 
     double inv_perp12on23 = 0.0;
     if (perp12on23_len != 0.0) inv_perp12on23 = 1.0 / perp12on23_len;
@@ -265,33 +332,10 @@ void DihedralTableOMP::eval(int nfrom, int nto, ThrData * const thr)
     }
 
 
-
-
-    #ifdef DIH_DEBUG_NUM
-    // ----- Numerical test? -----
-
-    cerr << "  -- testing gradient for dihedral (n="<<n<<") for atoms ("
-         << i1 << "," << i2 << "," << i3 << "," << i4 << ") --" << endl;
-
-    PrintGradientComparison(*this, dphi_dx1, dphi_dx2, dphi_dx3, dphi_dx4,
-                            domain, x[i1], x[i2], x[i3], x[i4]);
-
-    for (int d=0; d < g_dim; ++d) {
-      // The sum of all the gradients should be near 0. (translational symmetry)
-      cerr <<"sum_gradients["<<d<<"]="<<dphi_dx1[d]<<"+"<<dphi_dx2[d]<<"+"<<dphi_dx3[d]<<"+"<<dphi_dx4[d]<<"="<<dphi_dx1[d]+dphi_dx2[d]+dphi_dx3[d]+dphi_dx4[d]<<endl;
-      // These should sum to zero
-      assert(abs(dphi_dx1[d]+dphi_dx2[d]+dphi_dx3[d]+dphi_dx4[d]) < 0.0002/L23);
-    }
-    #endif // #ifdef DIH_DEBUG_NUM
-
-
-
-
     // ----- Step 3: Calculate the energy and force in the phi direction -----
 
     // tabulated force & energy
     double u, m_du_dphi; //u = energy.   m_du_dphi = "minus" du/dphi
-    assert((0.0 <= phi) && (phi <= TWOPI));
 
     uf_lookup(type, phi, u, m_du_dphi);
 

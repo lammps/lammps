@@ -19,6 +19,7 @@
 #include "error.h"
 #include "force.h"
 #include "memory.h"
+#include "math_special.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 
@@ -28,6 +29,7 @@
 
 #include "suffix.h"
 using namespace LAMMPS_NS;
+using namespace MathSpecial;
 
 #define TOL 1.0e-9
 
@@ -2442,7 +2444,7 @@ void PairAIREBOOMP::TORSION_thr(int ifrom, int ito,
           cw2 = (.5*(1.0-cw));
           ekijl = epsilonT[ktype][ltype];
           Ec = 256.0*ekijl/405.0;
-          Vtors = (Ec*(pow(cw2,5.0)))-(ekijl/10.0);
+          Vtors = (Ec*(powint(cw2,5)))-(ekijl/10.0);
 
           if (eflag) evdwl = Vtors*w21*w23*w34*(1.0-tspjik)*(1.0-tspijl);
 
@@ -2496,7 +2498,7 @@ void PairAIREBOOMP::TORSION_thr(int ifrom, int ito,
           ddndil = cross321mag*dxjdil;
           dcwddn = -cwnum/(cwnom*cwnom);
           dcwdn = 1.0/cwnom;
-          dvpdcw = (-1.0)*Ec*(-.5)*5.0*pow(cw2,4.0) *
+          dvpdcw = (-1.0)*Ec*(-.5)*5.0*powint(cw2,4) *
             w23*w21*w34*(1.0-tspjik)*(1.0-tspijl);
 
           Ftmp[0] = dvpdcw*((dcwdn*dndij[0])+(dcwddn*ddndij*del23[0]/r23));

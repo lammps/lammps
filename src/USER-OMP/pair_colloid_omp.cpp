@@ -20,9 +20,11 @@
 #include "force.h"
 #include "neighbor.h"
 #include "neigh_list.h"
+#include "math_special.h"
 
 #include "suffix.h"
 using namespace LAMMPS_NS;
+using namespace MathSpecial;
 
 /* ---------------------------------------------------------------------- */
 
@@ -169,10 +171,10 @@ void PairColloidOMP::eval(int iifrom, int iito, ThrData * const thr)
         K[6] = K[2]-r;
         K[7] = 1.0/(K[3]*K[4]);
         K[8] = 1.0/(K[5]*K[6]);
-        g[0] = pow(K[3],-7.0);
-        g[1] = pow(K[4],-7.0);
-        g[2] = pow(K[5],-7.0);
-        g[3] = pow(K[6],-7.0);
+        g[0] = powint(K[3],-7);
+        g[1] = powint(K[4],-7);
+        g[2] = powint(K[5],-7);
+        g[3] = powint(K[6],-7);
         h[0] = ((K[3]+5.0*K[1])*K[3]+30.0*K[0])*g[0];
         h[1] = ((K[4]+5.0*K[1])*K[4]+30.0*K[0])*g[1];
         h[2] = ((K[5]+5.0*K[2])*K[5]-30.0*K[0])*g[2];

@@ -178,6 +178,13 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
           thr->virial_fdotr_compute(x, nlocal, nghost, -1);
         else
           thr->virial_fdotr_compute(x, nlocal, nghost, nfirst);
+      } else {
+        if (style == fix->last_pair_hybrid) {
+          // pair_style hybrid will compute fdotr for us
+          // but we first need to reduce the forces
+          data_reduce_thr(&(f[0][0]), nall, nthreads, 3, tid);
+          need_force_reduce = 0;
+        }
       }
     }
 

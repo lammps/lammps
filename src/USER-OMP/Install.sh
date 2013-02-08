@@ -1,11 +1,10 @@
 # Install/unInstall package files in LAMMPS
+
+# step 1: process all *_omp.cpp and *_omp.h files.
 # do not install child files if parent does not exist
 
 for file in *_omp.cpp *_omp.h ; do
-    # let us see if the "rain man" can count the toothpicks...
-   ofile=`echo $file | sed  \
-   -e s,\\\\\\(.\\*\\\\\\)_omp\\\\.h,\\\\1.h, \
-   -e s,\\\\\\(.\\*\\\\\\)_omp\\\\.cpp,\\\\1.cpp,`
+  ofile=`echo $file | sed  -e 's,\(.*\)_omp\.\(h\|cpp\),\1.\2,'
   if (test $1 = 1) then
     if (test $file = "thr_omp.h") || (test $file = "thr_omp.cpp") then
       :  # always install those files.
@@ -20,6 +19,7 @@ for file in *_omp.cpp *_omp.h ; do
   fi
 done
 
+# step 2: handle cases and tasks not handled in step 1.
 if (test $1 = 1) then
 
   if (test -e ../Makefile.package) then

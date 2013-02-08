@@ -731,6 +731,7 @@ package"_Section_start.html#start_3.
 "gauss/cut"_pair_gauss.html,
 "lj/sdk"_pair_sdk.html,
 "lj/sdk/coul/long"_pair_sdk.html,
+"lj/sdk/coul/msm"_pair_sdk.html,
 "lj/sf"_pair_lj_sf.html,
 "meam/spline"_pair_meam_spline.html,
 "meam/sw/spline"_pair_meam_sw_spline.html,
@@ -861,6 +862,7 @@ package"_Section_accelerate.html.
 "lj/sdk/omp"_pair_sdk.html,
 "lj/sdk/coul/long/gpu"_pair_sdk.html,
 "lj/sdk/coul/long/omp"_pair_sdk.html,
+"lj/sdk/coul/msm/omp"_pair_sdk.html,
 "lj/sf/omp"_pair_lj_sf.html,
 "lj/smooth/cuda"_pair_lj_smooth.html,
 "lj/smooth/omp"_pair_lj_smooth.html,
@@ -978,7 +980,10 @@ package"_Section_accelerate.html.
 "cosine/shift/exp/omp"_angle_cosine_shift_exp.html,
 "cosine/squared/omp"_angle_cosine_squared.html,
 "dipole/omp"_angle_dipole.html
+"fourier/omp"_angle_fourier.html,
+"fourier/simple/omp"_angle_fourier_simple.html,
 "harmonic/omp"_angle_harmonic.html,
+"quartic/omp"_angle_quartic.html
 "table/omp"_angle_table.html :tb(c=4,ea=c,w=100)
 
 :line
@@ -1015,10 +1020,13 @@ package"_Section_accelerate.html.
 "charmm/omp"_dihedral_charmm.html,
 "class2/omp"_dihedral_class2.html,
 "cosine/shift/exp/omp"_dihedral_cosine_shift_exp.html,
+"fourier/omp"_dihedral_fourier.html,
 "harmonic/omp"_dihedral_harmonic.html,
 "helix/omp"_dihedral_helix.html,
 "multi/harmonic/omp"_dihedral_multi_harmonic.html,
+"nharmonic/omp"_dihedral_nharmonic.html,
 "opls/omp"_dihedral_opls.html
+"quadratic/omp"_dihedral_quadratic.html,
 "table/omp"_dihedral_table.html :tb(c=4,ea=c,w=100)
 
 :line
@@ -1041,6 +1049,7 @@ These are improper styles contributed by users, which can be used if
 package"_Section_start.html#start_3.
 
 "cossq"_improper_cossq.html,
+"fourier"_improper_fourier.html,
 "ring"_improper_ring.html :tb(c=4,ea=c)
 
 These are accelerated improper styles, which can be used if LAMMPS is
@@ -1050,7 +1059,7 @@ package"_Section_accelerate.html.
 "class2/omp"_improper_class2.html,
 "cossq/omp"_improper_cossq.html,
 "cvff/omp"_improper_cvff.html,
-"fourier"_improper_fourier.html,
+"fourier/omp"_improper_fourier.html,
 "harmonic/omp"_improper_harmonic.html,
 "ring/omp"_improper_ring.html,
 "umbrella/omp"_improper_umbrella.html :tb(c=4,ea=c,w=100)
@@ -1065,6 +1074,7 @@ Kspace solvers.  Click on the style itself for a full description:
 "ewald"_kspace_style.html,
 "ewald/disp"_kspace_style.html,
 "msm"_kspace_style.html,
+"msm/cg"_kspace_style.html,
 "pppm"_kspace_style.html,
 "pppm/cg"_kspace_style.html,
 "pppm/disp"_kspace_style.html,
@@ -1077,6 +1087,7 @@ package"_Section_accelerate.html.
 
 "ewald/omp"_kspace_style.html,
 "msm/omp"_kspace_style.html,
+"msm/cg/omp"_kspace_style.html,
 "pppm/cuda"_kspace_style.html,
 "pppm/gpu"_kspace_style.html,
 "pppm/omp"_kspace_style.html,

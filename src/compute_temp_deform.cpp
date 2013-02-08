@@ -121,7 +121,7 @@ double ComputeTempDeform::compute_scalar()
 
   // lamda = 0-1 triclinic lamda coords
   // vbiasall = streaming velocity = Hrate*lamda + Hratelo
-  // vthermal = thermal velocity = v - vstream
+  // vthermal = thermal velocity = v - vbiasall
 
   double *h_rate = domain->h_rate;
   double *h_ratelo = domain->h_ratelo;

@@ -246,10 +246,13 @@ void Neighbor::angle_check()
   double **x = atom->x;
   int flag = 0;
 
-  for (int m = 0; m < nbondlist; m++) {
+  // check all 3 distances
+  // in case angle potential computes any of them
+
+  for (int m = 0; m < nanglelist; m++) {
     i = anglelist[m][0];
     j = anglelist[m][1];
-    k = anglelist[m][1];
+    k = anglelist[m][2];
     dxstart = dx = x[i][0] - x[j][0];
     dystart = dy = x[i][1] - x[j][1];
     dzstart = dz = x[i][2] - x[j][2];
@@ -258,6 +261,11 @@ void Neighbor::angle_check()
     dxstart = dx = x[i][0] - x[k][0];
     dystart = dy = x[i][1] - x[k][1];
     dzstart = dz = x[i][2] - x[k][2];
+    domain->minimum_image(dx,dy,dz);
+    if (dx != dxstart || dy != dystart || dz != dzstart) flag = 1;
+    dxstart = dx = x[j][0] - x[k][0];
+    dystart = dy = x[j][1] - x[k][1];
+    dzstart = dz = x[j][2] - x[k][2];
     domain->minimum_image(dx,dy,dz);
     if (dx != dxstart || dy != dystart || dz != dzstart) flag = 1;
   }
@@ -319,7 +327,7 @@ void Neighbor::dihedral_all()
       }
     }
 
-  if (cluster_check) dihedral_check(dihedrallist);
+  if (cluster_check) dihedral_check(ndihedrallist,dihedrallist);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -375,12 +383,12 @@ void Neighbor::dihedral_partial()
       }
     }
 
-  if (cluster_check) dihedral_check(dihedrallist);
+  if (cluster_check) dihedral_check(ndihedrallist,dihedrallist);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void Neighbor::dihedral_check(int **list)
+void Neighbor::dihedral_check(int nlist, int **list)
 {
   int i,j,k,l;
   double dx,dy,dz,dxstart,dystart,dzstart;
@@ -388,11 +396,14 @@ void Neighbor::dihedral_check(int **list)
   double **x = atom->x;
   int flag = 0;
 
-  for (int m = 0; m < nbondlist; m++) {
+  // check all 6 distances
+  // in case dihedral/improper potential computes any of them
+
+  for (int m = 0; m < nlist; m++) {
     i = list[m][0];
     j = list[m][1];
-    k = list[m][1];
-    l = list[m][1];
+    k = list[m][2];
+    l = list[m][3];
     dxstart = dx = x[i][0] - x[j][0];
     dystart = dy = x[i][1] - x[j][1];
     dzstart = dz = x[i][2] - x[j][2];
@@ -406,6 +417,21 @@ void Neighbor::dihedral_check(int **list)
     dxstart = dx = x[i][0] - x[l][0];
     dystart = dy = x[i][1] - x[l][1];
     dzstart = dz = x[i][2] - x[l][2];
+    domain->minimum_image(dx,dy,dz);
+    if (dx != dxstart || dy != dystart || dz != dzstart) flag = 1;
+    dxstart = dx = x[j][0] - x[k][0];
+    dystart = dy = x[j][1] - x[k][1];
+    dzstart = dz = x[j][2] - x[k][2];
+    domain->minimum_image(dx,dy,dz);
+    if (dx != dxstart || dy != dystart || dz != dzstart) flag = 1;
+    dxstart = dx = x[j][0] - x[l][0];
+    dystart = dy = x[j][1] - x[l][1];
+    dzstart = dz = x[j][2] - x[l][2];
+    domain->minimum_image(dx,dy,dz);
+    if (dx != dxstart || dy != dystart || dz != dzstart) flag = 1;
+    dxstart = dx = x[k][0] - x[l][0];
+    dystart = dy = x[k][1] - x[l][1];
+    dzstart = dz = x[k][2] - x[l][2];
     domain->minimum_image(dx,dy,dz);
     if (dx != dxstart || dy != dystart || dz != dzstart) flag = 1;
   }
@@ -468,7 +494,7 @@ void Neighbor::improper_all()
       }
     }
 
-  if (cluster_check) dihedral_check(improperlist);
+  if (cluster_check) dihedral_check(nimproperlist,improperlist);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -524,5 +550,5 @@ void Neighbor::improper_partial()
       }
     }
 
-  if (cluster_check) dihedral_check(improperlist);
+  if (cluster_check) dihedral_check(nimproperlist,improperlist);
 }

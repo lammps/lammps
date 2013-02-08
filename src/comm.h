@@ -53,10 +53,14 @@ class Comm : protected Pointers {
   virtual void reverse_comm_pair(class Pair *);    // reverse comm from a Pair
   virtual void forward_comm_fix(class Fix *);      // forward comm from a Fix
   virtual void reverse_comm_fix(class Fix *);      // reverse comm from a Fix
+  virtual void forward_comm_variable_fix(class Fix *); // variable-size variant
+  virtual void reverse_comm_variable_fix(class Fix *); // variable-size variant
   virtual void forward_comm_compute(class Compute *);  // forward from a Compute
   virtual void reverse_comm_compute(class Compute *);  // reverse from a Compute
   virtual void forward_comm_dump(class Dump *);    // forward comm from a Dump
   virtual void reverse_comm_dump(class Dump *);    // reverse comm from a Dump
+  void ring(int, int, char *, char *, int,
+            void (*)(int, char *));                // ring communication
 
   virtual void set(int, char **);         // set communication style
   void set_processors(int, char **);      // set 3d processor grid attributes
@@ -112,7 +116,7 @@ class Comm : protected Pointers {
 
   int updown(int, int, int, double, int, double *);
                                             // compare cutoff to procs
-  virtual void grow_send(int,int);          // reallocate send buffer
+  virtual void grow_send(int, int);         // reallocate send buffer
   virtual void grow_recv(int);              // free/allocate recv buffer
   virtual void grow_list(int, int);         // reallocate one sendlist
   virtual void grow_swap(int);              // grow swap and multi arrays

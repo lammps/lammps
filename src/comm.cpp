@@ -1160,6 +1160,7 @@ void Comm::reverse_comm_pair(Pair *pair)
 
 /* ----------------------------------------------------------------------
    forward communication invoked by a Fix
+   n = constant number of datums per atom
 ------------------------------------------------------------------------- */
 
 void Comm::forward_comm_fix(Fix *fix)
@@ -1197,6 +1198,7 @@ void Comm::forward_comm_fix(Fix *fix)
 
 /* ----------------------------------------------------------------------
    reverse communication invoked by a Fix
+   n = constant number of datums per atom
 ------------------------------------------------------------------------- */
 
 void Comm::reverse_comm_fix(Fix *fix)
@@ -1221,6 +1223,81 @@ void Comm::reverse_comm_fix(Fix *fix)
                   world,&request);
       if (recvnum[iswap])
         MPI_Send(buf_send,n*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,world);
+      if (sendnum[iswap]) MPI_Wait(&request,&status);
+      buf = buf_recv;
+    } else buf = buf_send;
+
+    // unpack buffer
+
+    fix->unpack_reverse_comm(sendnum[iswap],sendlist[iswap],buf);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   forward communication invoked by a Fix
+   n = total datums for all atoms, allows for variable number/atom
+------------------------------------------------------------------------- */
+
+void Comm::forward_comm_variable_fix(Fix *fix)
+{
+  int iswap,n;
+  double *buf;
+  MPI_Request request;
+  MPI_Status status;
+
+  for (iswap = 0; iswap < nswap; iswap++) {
+
+    // pack buffer
+
+    n = fix->pack_comm(sendnum[iswap],sendlist[iswap],
+                       buf_send,pbc_flag[iswap],pbc[iswap]);
+
+    // exchange with another proc
+    // if self, set recv buffer to send buffer
+
+    if (sendproc[iswap] != me) {
+      if (recvnum[iswap])
+        MPI_Irecv(buf_recv,maxrecv,MPI_DOUBLE,recvproc[iswap],0,
+                  world,&request);
+      if (sendnum[iswap])
+        MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
+      if (recvnum[iswap]) MPI_Wait(&request,&status);
+      buf = buf_recv;
+    } else buf = buf_send;
+
+    // unpack buffer
+
+    fix->unpack_comm(recvnum[iswap],firstrecv[iswap],buf);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   reverse communication invoked by a Fix
+   n = total datums for all atoms, allows for variable number/atom
+------------------------------------------------------------------------- */
+
+void Comm::reverse_comm_variable_fix(Fix *fix)
+{
+  int iswap,n;
+  double *buf;
+  MPI_Request request;
+  MPI_Status status;
+
+  for (iswap = nswap-1; iswap >= 0; iswap--) {
+
+    // pack buffer
+
+    n = fix->pack_reverse_comm(recvnum[iswap],firstrecv[iswap],buf_send);
+
+    // exchange with another proc
+    // if self, set recv buffer to send buffer
+
+    if (sendproc[iswap] != me) {
+      if (sendnum[iswap])
+        MPI_Irecv(buf_recv,maxrecv,MPI_DOUBLE,sendproc[iswap],0,
+                  world,&request);
+      if (recvnum[iswap])
+        MPI_Send(buf_send,n,MPI_DOUBLE,recvproc[iswap],0,world);
       if (sendnum[iswap]) MPI_Wait(&request,&status);
       buf = buf_recv;
     } else buf = buf_send;
@@ -1374,6 +1451,33 @@ void Comm::reverse_comm_dump(Dump *dump)
     // unpack buffer
 
     dump->unpack_reverse_comm(sendnum[iswap],sendlist[iswap],buf);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   reverse communication invoked by a Dump
+------------------------------------------------------------------------- */
+
+void Comm::ring(int n, int nmax, char *buf, char *bufcopy, int messtag,
+                void (*callback)(int, char *))
+{
+  MPI_Request request;
+  MPI_Status status;
+
+  int next = me + 1;
+  int prev = me - 1;
+  if (next == nprocs) next = 0;
+  if (prev < 0) prev = nprocs - 1;
+
+  for (int loop = 0; loop < nprocs; loop++) {
+    if (me != next) {
+      MPI_Irecv(bufcopy,nmax,MPI_CHAR,prev,messtag,world,&request);
+      MPI_Send(buf,n,MPI_CHAR,next,messtag,world);
+      MPI_Wait(&request,&status);
+      MPI_Get_count(&status,MPI_CHAR,&n);
+      memcpy(buf,bufcopy,n);
+      callback(n,buf);
+    }
   }
 }
 

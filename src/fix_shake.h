@@ -37,7 +37,7 @@ class FixShake : public Fix {
 
   double memory_usage();
   void grow_arrays(int);
-  void copy_arrays(int, int);
+  void copy_arrays(int, int, int);
   void set_arrays(int);
   int pack_exchange(int, double *);
   int unpack_exchange(int, double *);

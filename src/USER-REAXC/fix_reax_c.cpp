@@ -105,7 +105,7 @@ void FixReaxC::grow_arrays(int nmax)
    copy values within local atom-based arrays
 ------------------------------------------------------------------------- */
 
-void FixReaxC::copy_arrays(int i, int j)
+void FixReaxC::copy_arrays(int i, int j, int delflag)
 {
   num_bonds[j] = num_bonds[i];
   num_hbonds[j] = num_hbonds[i];

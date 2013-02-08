@@ -338,7 +338,7 @@ void FixTMD::grow_arrays(int nmax)
    copy values within local atom-based arrays
 ------------------------------------------------------------------------- */
 
-void FixTMD::copy_arrays(int i, int j)
+void FixTMD::copy_arrays(int i, int j, int delflag)
 {
   xf[j][0] = xf[i][0];
   xf[j][1] = xf[i][1];

@@ -745,7 +745,7 @@ void FixQEqReax::grow_arrays(int nmax)
    copy values within fictitious charge arrays
 ------------------------------------------------------------------------- */
 
-void FixQEqReax::copy_arrays(int i, int j)
+void FixQEqReax::copy_arrays(int i, int j, int delflag)
 {
   for (int m = 0; m < nprev; m++) {
     s_hist[j][m] = s_hist[i][m];

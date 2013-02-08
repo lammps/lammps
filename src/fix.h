@@ -105,7 +105,7 @@ class Fix : protected Pointers {
   virtual void restart(char *) {}
 
   virtual void grow_arrays(int) {}
-  virtual void copy_arrays(int, int) {}
+  virtual void copy_arrays(int, int, int) {}
   virtual void set_arrays(int) {}
   virtual int pack_exchange(int, double *) {return 0;}
   virtual int unpack_exchange(int, double *) {return 0;}

@@ -23,15 +23,17 @@
 
 <LI>keyword = <I>dist</I> or <I>eng</I> 
 
-<PRE>  <I>dist</I> = tabulate bond distances
-  <I>eng</I> = tablutate bond energies 
+<PRE>  <I>dist</I> = bond distance
+  <I>eng</I> = bond energy 
+</PRE>
+<PRE>  <I>force</I> = bond force 
 </PRE>
 
 </UL>
 <P><B>Examples:</B>
 </P>
 <PRE>compute 1 all bond/local eng
-compute 1 all bond/local dist eng 
+compute 1 all bond/local dist eng force 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -78,7 +80,8 @@ section</A> for an overview of LAMMPS output
 options.
 </P>
 <P>The output for <I>dist</I> will be in distance <A HREF = "units.html">units</A>.  The
-output for <I>eng</I> will be in energy <A HREF = "units.html">units</A>.
+output for <I>eng</I> will be in energy <A HREF = "units.html">units</A>.  The output for
+<I>force</I> will be in force <A HREF = "units.html">units</A>.
 </P>
 <P><B>Restrictions:</B> none
 </P>

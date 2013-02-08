@@ -16,14 +16,15 @@ ID, group-ID are documented in "compute"_compute.html command :ulb,l
 bond/local = style name of this compute command :l
 one or more keywords may be appended :l
 keyword = {dist} or {eng} :l
-  {dist} = tabulate bond distances
-  {eng} = tablutate bond energies :pre
+  {dist} = bond distance
+  {eng} = bond energy :pre
+  {force} = bond force :pre
 :ule
 
 [Examples:]
 
 compute 1 all bond/local eng
-compute 1 all bond/local dist eng :pre
+compute 1 all bond/local dist eng force :pre
 
 [Description:]
 
@@ -70,7 +71,8 @@ section"_Section_howto.html#howto_15 for an overview of LAMMPS output
 options.
 
 The output for {dist} will be in distance "units"_units.html.  The
-output for {eng} will be in energy "units"_units.html.
+output for {eng} will be in energy "units"_units.html.  The output for
+{force} will be in force "units"_units.html.
 
 [Restrictions:] none
 

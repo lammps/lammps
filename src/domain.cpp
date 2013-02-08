@@ -590,7 +590,8 @@ void Domain::image_check()
 
   int flagall;
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_MAX,world);
-  if (flag && comm->me == 0) error->warning(FLERR,"Inconsistent image flags");
+  if (flagall && comm->me == 0) 
+    error->warning(FLERR,"Inconsistent image flags");
 
   memory->destroy(unwrap);
 }
@@ -662,7 +663,7 @@ void Domain::box_too_small_check()
 
   int flagall;
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_MAX,world);
-  if (flag && comm->me == 0)
+  if (flagall && comm->me == 0)
     error->warning(FLERR,
                    "Bond/angle/dihedral extent > half of periodic box length");
 }

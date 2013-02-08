@@ -115,7 +115,7 @@ int Region::match(double x, double y, double z)
     lastshape = update->ntimestep;
   }
 
-  if (dynamic && update->ntimestep) inverse_transform(x,y,z);
+  if (dynamic) inverse_transform(x,y,z);
 
   return !(inside(x,y,z) ^ interior);
 }

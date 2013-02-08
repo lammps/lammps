@@ -188,7 +188,8 @@ static inline void loop_setup_thr(int &ifrom, int &ito, int &tid,
 
 // helpful definitions to help compilers optimizing code better
 
-typedef struct { double x,y,z; } vec3_t;
+typedef struct { double x,y,z;   } vec3_t;
+typedef struct { double x,y,z,w; } vec4_t;
 
 #if defined(__GNUC__)
 #define _noalias __restrict

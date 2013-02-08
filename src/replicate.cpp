@@ -127,9 +127,10 @@ void Replicate::command(int narg, char **arg)
   // if molecular and N > MAXTAGINT, error
   // if atomic and new N > MAXTAGINT, turn off tags for existing and new atoms
   // new system cannot exceed MAXBIGINT
-
   // change these 2 to MAXTAGINT when allow tagint = bigint
-  if (atom->molecular && (nrep*old->natoms < 0 || nrep*old->natoms > MAXSMALLINT))
+
+  if (atom->molecular && 
+      (nrep*old->natoms < 0 || nrep*old->natoms > MAXSMALLINT))
     error->all(FLERR,"Replicated molecular system atom IDs are too big");
   if (nrep*old->natoms < 0 || nrep*old->natoms > MAXSMALLINT)
     atom->tag_enable = 0;

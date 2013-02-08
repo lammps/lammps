@@ -27,7 +27,8 @@ class Modify : protected Pointers {
   int n_final_integrate,n_end_of_step,n_thermo_energy;
   int n_initial_integrate_respa,n_post_integrate_respa;
   int n_pre_force_respa,n_post_force_respa,n_final_integrate_respa;
-  int n_min_pre_exchange,n_min_pre_force,n_min_post_force,n_min_energy;
+  int n_min_pre_exchange,n_min_pre_neighbor;
+  int n_min_pre_force,n_min_post_force,n_min_energy;
 
   int restart_pbc_any;       // 1 if any fix sets restart_pbc
   int nfix_restart_global;   // stored fix global info from restart file
@@ -110,8 +111,9 @@ class Modify : protected Pointers {
   int *list_initial_integrate_respa,*list_post_integrate_respa;
   int *list_pre_force_respa,*list_post_force_respa;
   int *list_final_integrate_respa;
-  int *list_min_pre_exchange,*list_min_pre_force;
-  int *list_min_post_force,*list_min_energy;
+  int *list_min_pre_exchange,*list_min_pre_neighbor;
+  int *list_min_pre_force,*list_min_post_force;
+  int *list_min_energy;
 
   int *end_of_step_every;
 

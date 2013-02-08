@@ -35,6 +35,8 @@ class ComputeBondLocal : public Compute {
  private:
   int nvalues,dflag,eflag;
   int ncount;
+  int *bstyle;
+  int singleflag;
 
   int nmax;
   double *vector;

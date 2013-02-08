@@ -122,6 +122,7 @@ class Fix : protected Pointers {
   virtual void final_integrate_respa(int, int) {}
 
   virtual void min_setup_pre_exchange() {}
+  virtual void min_setup_pre_neighbor() {}
   virtual void min_setup_pre_force(int) {}
   virtual void min_pre_exchange() {}
   virtual void min_pre_force(int) {}
@@ -189,11 +190,12 @@ namespace FixConst {
   static const int POST_FORCE_RESPA =        1<<12;
   static const int FINAL_INTEGRATE_RESPA =   1<<13;
   static const int MIN_PRE_EXCHANGE =        1<<14;
-  static const int MIN_PRE_FORCE =           1<<15;
-  static const int MIN_POST_FORCE =          1<<16;
-  static const int MIN_ENERGY =              1<<17;
-  static const int POST_RUN =                1<<18;
-  static const int FIX_CONST_LAST =          1<<19;
+  static const int MIN_PRE_NEIGHBOR =        1<<15;
+  static const int MIN_PRE_FORCE =           1<<16;
+  static const int MIN_POST_FORCE =          1<<17;
+  static const int MIN_ENERGY =              1<<18;
+  static const int POST_RUN =                1<<19;
+  static const int FIX_CONST_LAST =          1<<20;
 }
 
 }

@@ -27,6 +27,8 @@ using namespace LAMMPS_NS;
 
 #define DELTA 10000
 
+enum{DIST,ENG,FORCE};
+
 /* ---------------------------------------------------------------------- */
 
 ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
@@ -42,16 +44,21 @@ ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
   if (nvalues == 1) size_local_cols = 0;
   else size_local_cols = nvalues;
 
-  dflag = eflag = -1;
-  nvalues = 0;
+  bstyle = new int[nvalues];
 
-  int i;
+  nvalues = 0;
   for (int iarg = 3; iarg < narg; iarg++) {
-    i = iarg-3;
-    if (strcmp(arg[iarg],"dist") == 0) dflag = nvalues++;
-    else if (strcmp(arg[iarg],"eng") == 0) eflag = nvalues++;
+    if (strcmp(arg[iarg],"dist") == 0) bstyle[nvalues++] = DIST;
+    else if (strcmp(arg[iarg],"eng") == 0) bstyle[nvalues++] = ENG;
+    else if (strcmp(arg[iarg],"force") == 0) bstyle[nvalues++] = FORCE;
     else error->all(FLERR,"Invalid keyword in compute bond/local command");
   }
+
+  // set singleflag if need to call bond->single()
+
+  singleflag = 0;
+  for (int i = 0; i < nvalues; i++)
+    if (bstyle[i] != DIST) singleflag = 1;
 
   nmax = 0;
   vector = NULL;
@@ -64,6 +71,7 @@ ComputeBondLocal::~ComputeBondLocal()
 {
   memory->destroy(vector);
   memory->destroy(array);
+  delete [] bstyle;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -109,7 +117,8 @@ int ComputeBondLocal::compute_bonds(int flag)
 {
   int i,m,n,atom1,atom2;
   double delx,dely,delz,rsq;
-  double *dbuf,*ebuf;
+  double *dbuf,*ebuf,*fbuf;
+  double *ptr;
 
   double **x = atom->x;
   int *num_bond = atom->num_bond;
@@ -120,22 +129,10 @@ int ComputeBondLocal::compute_bonds(int flag)
   int nlocal = atom->nlocal;
   int newton_bond = force->newton_bond;
 
-  if (flag) {
-    if (nvalues == 1) {
-      if (dflag >= 0) dbuf = vector;
-      if (eflag >= 0) ebuf = vector;
-    } else {
-      if (dflag >= 0 && array) dbuf = &array[0][dflag];
-      else dbuf = NULL;
-      if (eflag >= 0 && array) ebuf = &array[0][eflag];
-      else ebuf = NULL;
-    }
-  }
-
   Bond *bond = force->bond;
+  double eng,fbond;
 
   m = n = 0;
-  double fforce; // unused
   for (atom1 = 0; atom1 < nlocal; atom1++) {
     if (!(mask[atom1] & groupbit)) continue;
     for (i = 0; i < num_bond[atom1]; i++) {
@@ -150,13 +147,29 @@ int ComputeBondLocal::compute_bonds(int flag)
         delz = x[atom1][2] - x[atom2][2];
         domain->minimum_image(delx,dely,delz);
         rsq = delx*delx + dely*dely + delz*delz;
-        if (dflag >= 0) dbuf[n] = sqrt(rsq);
-        if (eflag >= 0) {
+
+        if (singleflag) {
           if (bond_type[atom1][i] > 0)
-            ebuf[n] = bond->single(bond_type[atom1][i],rsq,atom1,atom2,fforce);
-          else ebuf[n] = 0.0;
+            eng = bond->single(bond_type[atom1][i],rsq,atom1,atom2,fbond);
+          else eng = fbond = 0.0;
         }
-        n += nvalues;
+
+        if (nvalues == 1) ptr = &vector[m];
+        else ptr = array[m];
+
+        for (n = 0; n < nvalues; n++) {
+          switch (bstyle[n]) {
+          case DIST:
+            ptr[n] = sqrt(rsq);
+            break;
+          case ENG:
+            ptr[n] = eng;
+            break;
+          case FORCE:
+            ptr[n] = sqrt(rsq)*fbond;
+            break;
+          }
+        }
       }
 
       m++;

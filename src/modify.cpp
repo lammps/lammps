@@ -56,8 +56,9 @@ Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
   list_initial_integrate_respa = list_post_integrate_respa = NULL;
   list_pre_force_respa = list_post_force_respa = NULL;
   list_final_integrate_respa = NULL;
-  list_min_pre_exchange = list_min_pre_force =
-  list_min_post_force = list_min_energy = NULL;
+  list_min_pre_exchange = list_pre_neighbor = NULL;
+  list_min_pre_force = list_min_post_force = NULL;
+  list_min_energy = NULL;
 
   end_of_step_every = NULL;
 
@@ -104,6 +105,7 @@ Modify::~Modify()
   delete [] list_post_force_respa;
   delete [] list_final_integrate_respa;
   delete [] list_min_pre_exchange;
+  delete [] list_min_pre_neighbor;
   delete [] list_min_pre_force;
   delete [] list_min_post_force;
   delete [] list_min_energy;
@@ -150,6 +152,7 @@ void Modify::init()
             n_final_integrate_respa,list_final_integrate_respa);
 
   list_init(MIN_PRE_EXCHANGE,n_min_pre_exchange,list_min_pre_exchange);
+  list_init(MIN_PRE_NEIGHBOR,n_min_pre_neighbor,list_min_pre_neighbor);
   list_init(MIN_PRE_FORCE,n_min_pre_force,list_min_pre_force);
   list_init(MIN_POST_FORCE,n_min_post_force,list_min_post_force);
   list_init(MIN_ENERGY,n_min_energy,list_min_energy);
@@ -255,6 +258,9 @@ void Modify::setup_pre_neighbor()
   if (update->whichflag == 1)
     for (int i = 0; i < n_pre_neighbor; i++)
       fix[list_pre_neighbor[i]]->setup_pre_neighbor();
+  else if (update->whichflag == 2)
+    for (int i = 0; i < n_pre_neighbor; i++)
+      fix[list_min_pre_neighbor[i]]->min_setup_pre_neighbor();
 }
 
 /* ----------------------------------------------------------------------

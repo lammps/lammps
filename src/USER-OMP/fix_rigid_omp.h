@@ -30,11 +30,11 @@ class FixRigidOMP : public FixRigid {
   ~FixRigidOMP() {}
 
   virtual void initial_integrate(int);
-//  virtual void final_integrate();
+  virtual void final_integrate();
 
  private:
-  template <int, int>
-  void set_xv_thr();
+  template <int, int> void set_xv_thr();
+  template <int, int> void set_v_thr();
 };
 
 }

@@ -74,7 +74,9 @@ class DomainOMP : public Domain {
   // multi-threaded versions
   virtual void pbc();
   virtual void lamda2x(int);
+  virtual void lamda2x(double *lamda, double *x) {Domain::lamda2x(lamda,x);}
   virtual void x2lamda(int);
+  virtual void x2lamda(double *x, double *lamda) {Domain::x2lamda(x,lamda);}
 };
 }
 

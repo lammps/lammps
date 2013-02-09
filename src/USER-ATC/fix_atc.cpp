@@ -359,7 +359,7 @@ void FixATC::grow_arrays(int nmax)
   atcTransfer_->grow_arrays(nmax);
 }
 
-void FixATC::copy_arrays(int i, int j)
+void FixATC::copy_arrays(int i, int j, int delflag)
 {
   atcTransfer_->copy_arrays(i,j);
 }

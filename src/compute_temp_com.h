@@ -42,7 +42,6 @@ class ComputeTempCOM : public Compute {
   double tfactor,masstotal;
 
   void dof_compute();
-
 };
 
 }

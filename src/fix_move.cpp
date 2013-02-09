@@ -856,7 +856,7 @@ void FixMove::grow_arrays(int nmax)
    copy values within local atom-based array
 ------------------------------------------------------------------------- */
 
-void FixMove::copy_arrays(int i, int j)
+void FixMove::copy_arrays(int i, int j, int delflag)
 {
   xoriginal[j][0] = xoriginal[i][0];
   xoriginal[j][1] = xoriginal[i][1];

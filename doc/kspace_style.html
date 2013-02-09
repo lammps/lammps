@@ -15,7 +15,7 @@
 </P>
 <PRE>kspace_style style value 
 </PRE>
-<UL><LI>style = <I>none</I> or <I>ewald</I> or <I>ewald/disp</I> or <I>ewald/omp</I> or <I>pppm</I> or <I>pppm/cg</I> or <I>pppm/disp</I> or <I>pppm/tip4p</I> or <I>pppm/disp/tip4p</I> or <I>pppm/gpu</I> or <I>pppm/omp</I> or <I>pppm/cg/omp</I> or <I>pppm/tip4p/omp</I> or <I>msm</I> or <I>msm/omp</I> 
+<UL><LI>style = <I>none</I> or <I>ewald</I> or <I>ewald/disp</I> or <I>ewald/omp</I> or <I>pppm</I> or <I>pppm/cg</I> or <I>pppm/disp</I> or <I>pppm/tip4p</I> or <I>pppm/disp/tip4p</I> or <I>pppm/gpu</I> or <I>pppm/omp</I> or <I>pppm/cg/omp</I> or <I>pppm/tip4p/omp</I> or <I>msm</I> or <I>msm/cg</I> or <I>msm/omp</I> or <I>msm/cg/omp</I> 
 
 <PRE>  <I>none</I> value = none
   <I>ewald</I> value = accuracy
@@ -45,8 +45,14 @@
     accuracy = desired relative error in forces
   <I>msm</I> value = accuracy
     accuracy = desired relative error in forces
+  <I>msm/cg</I> value = accuracy (smallq)
+    accuracy = desired relative error in forces
+    smallq = cutoff for charges to be considered (optional) (charge units)
   <I>msm/omp</I> value = accuracy
-    accuracy = desired relative error in forces 
+    accuracy = desired relative error in forces
+  <I>msm/cg/omp</I> value = accuracy (smallq)
+    accuracy = desired relative error in forces
+    smallq = cutoff for charges to be considered (optional) (charge units) 
 </PRE>
 
 </UL>
@@ -113,6 +119,7 @@ choice <A HREF = "#Pollock">(Pollock)</A>.
 </P>
 <P>The <I>pppm/cg</I> style is identical to the <I>pppm</I> style except that it
 has an optimization for systems where most particles are uncharged.
+Similarly the <I>msm/cg</I> style implements the same optimization for <I>msm</I>.
 The optional <I>smallq</I> argument defines the cutoff for the absolute
 charge value which determines whether a particle is considered charged
 or not.  Its default value is 1.0e-5.

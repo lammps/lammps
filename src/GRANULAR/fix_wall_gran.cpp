@@ -697,7 +697,7 @@ void FixWallGran::grow_arrays(int nmax)
    copy values within local atom-based arrays
 ------------------------------------------------------------------------- */
 
-void FixWallGran::copy_arrays(int i, int j)
+void FixWallGran::copy_arrays(int i, int j, int delflag)
 {
   shear[j][0] = shear[i][0];
   shear[j][1] = shear[i][1];

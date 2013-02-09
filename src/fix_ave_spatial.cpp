@@ -1182,8 +1182,8 @@ void FixAveSpatial::atom2bin3d()
 
         zremap = x[i][kdim];
         if (periodicity[kdim]) {
-          if (zremap < boxlo[kdim]) yremap += prd[kdim];
-          if (zremap >= boxhi[kdim]) yremap -= prd[kdim];
+          if (zremap < boxlo[kdim]) zremap += prd[kdim];
+          if (zremap >= boxhi[kdim]) zremap -= prd[kdim];
         }
         i3bin = static_cast<int> ((zremap - offset[2]) * invdelta[2]);
         i3bin = MAX(i3bin,0);
@@ -1226,8 +1226,8 @@ void FixAveSpatial::atom2bin3d()
         i2bin = MIN(i2bin,nlayer2m1);
 
         if (periodicity[kdim]) {
-          if (zremap < boxlo[kdim]) yremap += prd[kdim];
-          if (zremap >= boxhi[kdim]) yremap -= prd[kdim];
+          if (zremap < boxlo[kdim]) zremap += prd[kdim];
+          if (zremap >= boxhi[kdim]) zremap -= prd[kdim];
         }
         i3bin = static_cast<int> ((zremap - offset[2]) * invdelta[2]);
         i3bin = MAX(i3bin,0);

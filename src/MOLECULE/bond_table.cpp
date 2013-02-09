@@ -241,11 +241,14 @@ void BondTable::read_restart(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double BondTable::single(int type, double rsq, int i, int j)
+double BondTable::single(int type, double rsq, int i, int j,
+                         double &fforce)
 {
   double r = sqrt(rsq);
   double u;
-  u_lookup(type,r,u);
+  double mdu;
+  uf_lookup(type,r,u,mdu);
+  fforce = mdu/r;
   return u;
 }
 

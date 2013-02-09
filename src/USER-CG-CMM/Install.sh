@@ -18,6 +18,11 @@ if (test $1 = 1) then
     cp pair_cg_cmm_coul_long.h ..
   fi
 
+  if (test -e ../msm.cpp) then
+    cp pair_lj_sdk_coul_msm.cpp ..
+    cp pair_lj_sdk_coul_msm.h ..
+  fi
+
   cp cg_cmm_parms.h ..
   cp cg_cmm_parms.cpp ..
 
@@ -59,4 +64,6 @@ elif (test $1 = 0) then
   rm -f ../pair_lj_sdk.h
   rm -f ../pair_lj_sdk_coul_long.cpp
   rm -f ../pair_lj_sdk_coul_long.h
+  rm -f ../pair_lj_sdk_coul_msm.cpp
+  rm -f ../pair_lj_sdk_coul_msm.h
 fi

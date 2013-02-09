@@ -160,7 +160,7 @@ void FixExternal::grow_arrays(int nmax)
    copy values within local atom-based array
 ------------------------------------------------------------------------- */
 
-void FixExternal::copy_arrays(int i, int j)
+void FixExternal::copy_arrays(int i, int j, int delflag)
 {
   fexternal[j][0] = fexternal[i][0];
   fexternal[j][1] = fexternal[i][1];

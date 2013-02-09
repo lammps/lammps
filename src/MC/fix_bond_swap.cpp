@@ -650,8 +650,9 @@ double FixBondSwap::pair_eng(int i, int j)
 
 double FixBondSwap::bond_eng(int btype, int i, int j)
 {
+  double tmp;
   double rsq = dist_rsq(i,j);
-  return force->bond->single(btype,rsq,i,j);
+  return force->bond->single(btype,rsq,i,j,tmp);
 }
 
 /* ---------------------------------------------------------------------- */

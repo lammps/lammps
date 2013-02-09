@@ -160,7 +160,7 @@ void AtomVecEllipsoid::copy(int i, int j, int delflag)
 
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
-      modify->fix[atom->extra_grow[iextra]]->copy_arrays(i,j);
+      modify->fix[atom->extra_grow[iextra]]->copy_arrays(i,j,delflag);
 }
 
 /* ----------------------------------------------------------------------
@@ -801,6 +801,7 @@ void AtomVecEllipsoid::unpack_border_vel(int n, int first, double *buf)
     ellipsoid[i] = static_cast<int> (buf[m++]);
     if (ellipsoid[i] == 0) ellipsoid[i] = -1;
     else {
+      j = nlocal_bonus + nghost_bonus;
       if (j == nmax_bonus) grow_bonus();
       shape = bonus[j].shape;
       quat = bonus[j].quat;

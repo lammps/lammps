@@ -197,12 +197,15 @@ void BondClass2::read_restart(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double BondClass2::single(int type, double rsq, int i, int j)
+double BondClass2::single(int type, double rsq, int i, int j, double &fforce)
 {
   double r = sqrt(rsq);
   double dr = r - r0[type];
   double dr2 = dr*dr;
   double dr3 = dr2*dr;
   double dr4 = dr3*dr;
+  double de_bond = 2.0*k2[type]*dr + 3.0*k3[type]*dr2 + 4.0*k4[type]*dr3;
+  if (r > 0.0) fforce = -de_bond/r;
+  else fforce = 0.0;
   return (k2[type]*dr2 + k3[type]*dr3 + k4[type]*dr4);
 }

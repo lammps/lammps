@@ -246,6 +246,9 @@ void Neighbor::angle_check()
   double **x = atom->x;
   int flag = 0;
 
+  // check all 3 distances
+  // in case angle potential computes any of them
+
   for (int m = 0; m < nanglelist; m++) {
     i = anglelist[m][0];
     j = anglelist[m][1];
@@ -324,7 +327,7 @@ void Neighbor::dihedral_all()
       }
     }
 
-  if (cluster_check) dihedral_check(dihedrallist,ndihedrallist);
+  if (cluster_check) dihedral_check(ndihedrallist,dihedrallist);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -380,18 +383,21 @@ void Neighbor::dihedral_partial()
       }
     }
 
-  if (cluster_check) dihedral_check(dihedrallist,ndihedrallist);
+  if (cluster_check) dihedral_check(ndihedrallist,dihedrallist);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void Neighbor::dihedral_check(int **list, int nlist)
+void Neighbor::dihedral_check(int nlist, int **list)
 {
   int i,j,k,l;
   double dx,dy,dz,dxstart,dystart,dzstart;
   
   double **x = atom->x;
   int flag = 0;
+
+  // check all 6 distances
+  // in case dihedral/improper potential computes any of them
 
   for (int m = 0; m < nlist; m++) {
     i = list[m][0];
@@ -488,7 +494,7 @@ void Neighbor::improper_all()
       }
     }
 
-  if (cluster_check) dihedral_check(improperlist,nimproperlist);
+  if (cluster_check) dihedral_check(nimproperlist,improperlist);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -544,5 +550,5 @@ void Neighbor::improper_partial()
       }
     }
 
-  if (cluster_check) dihedral_check(improperlist,nimproperlist);
+  if (cluster_check) dihedral_check(nimproperlist,improperlist);
 }

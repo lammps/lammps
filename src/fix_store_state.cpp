@@ -481,7 +481,7 @@ void FixStoreState::grow_arrays(int nmax)
    copy values within local atom-based array
 ------------------------------------------------------------------------- */
 
-void FixStoreState::copy_arrays(int i, int j)
+void FixStoreState::copy_arrays(int i, int j, int delflag)
 {
   for (int m = 0; m < nvalues; m++) values[j][m] = values[i][m];
 }

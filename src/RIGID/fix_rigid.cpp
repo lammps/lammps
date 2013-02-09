@@ -2165,7 +2165,7 @@ double FixRigid::memory_usage()
   int nmax = atom->nmax;
   double bytes = nmax * sizeof(int);
   bytes += nmax*3 * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);
+  bytes += maxvatom*6 * sizeof(double);    // vatom
   if (extended) {
     bytes += nmax * sizeof(int);
     if (orientflag) bytes = nmax*orientflag * sizeof(double);
@@ -2193,7 +2193,7 @@ void FixRigid::grow_arrays(int nmax)
    copy values within local atom-based arrays
 ------------------------------------------------------------------------- */
 
-void FixRigid::copy_arrays(int i, int j)
+void FixRigid::copy_arrays(int i, int j, int delflag)
 {
   body[j] = body[i];
   displace[j][0] = displace[i][0];

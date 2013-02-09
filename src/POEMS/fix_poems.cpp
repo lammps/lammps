@@ -1528,7 +1528,7 @@ void FixPOEMS::grow_arrays(int nmax)
    copy values within local atom-based arrays
 ------------------------------------------------------------------------- */
 
-void FixPOEMS::copy_arrays(int i, int j)
+void FixPOEMS::copy_arrays(int i, int j, int delflag)
 {
   natom2body[j] = natom2body[i];
   for (int k = 0; k < natom2body[j]; k++) atom2body[j][k] = atom2body[i][k];

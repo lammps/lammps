@@ -12,7 +12,7 @@ kspace_style command :h3
 
 kspace_style style value :pre
 
-style = {none} or {ewald} or {ewald/disp} or {ewald/omp} or {pppm} or {pppm/cg} or {pppm/disp} or {pppm/tip4p} or {pppm/disp/tip4p} or {pppm/gpu} or {pppm/omp} or {pppm/cg/omp} or {pppm/tip4p/omp} or {msm} or {msm/omp} :ulb,l
+style = {none} or {ewald} or {ewald/disp} or {ewald/omp} or {pppm} or {pppm/cg} or {pppm/disp} or {pppm/tip4p} or {pppm/disp/tip4p} or {pppm/gpu} or {pppm/omp} or {pppm/cg/omp} or {pppm/tip4p/omp} or {msm} or {msm/cg} or {msm/omp} or {msm/cg/omp} :ulb,l
   {none} value = none
   {ewald} value = accuracy
     accuracy = desired relative error in forces
@@ -41,8 +41,14 @@ style = {none} or {ewald} or {ewald/disp} or {ewald/omp} or {pppm} or {pppm/cg} 
     accuracy = desired relative error in forces
   {msm} value = accuracy
     accuracy = desired relative error in forces
+  {msm/cg} value = accuracy (smallq)
+    accuracy = desired relative error in forces
+    smallq = cutoff for charges to be considered (optional) (charge units)
   {msm/omp} value = accuracy
-    accuracy = desired relative error in forces :pre
+    accuracy = desired relative error in forces
+  {msm/cg/omp} value = accuracy (smallq)
+    accuracy = desired relative error in forces
+    smallq = cutoff for charges to be considered (optional) (charge units) :pre
 :ule
 
 [Examples:]
@@ -106,6 +112,7 @@ choice "(Pollock)"_#Pollock.
 
 The {pppm/cg} style is identical to the {pppm} style except that it
 has an optimization for systems where most particles are uncharged.
+Similarly the {msm/cg} style implements the same optimization for {msm}.
 The optional {smallq} argument defines the cutoff for the absolute
 charge value which determines whether a particle is considered charged
 or not.  Its default value is 1.0e-5.

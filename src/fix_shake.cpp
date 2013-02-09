@@ -2249,7 +2249,7 @@ void FixShake::grow_arrays(int nmax)
    copy values within local atom-based arrays
 ------------------------------------------------------------------------- */
 
-void FixShake::copy_arrays(int i, int j)
+void FixShake::copy_arrays(int i, int j, int delflag)
 {
   int flag = shake_flag[j] = shake_flag[i];
   if (flag == 1) {

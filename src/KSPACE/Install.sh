@@ -6,6 +6,7 @@ if (test $1 = 1) then
   cp ewald.cpp ..
   cp ewald_disp.cpp ..
   cp msm.cpp ..
+  cp msm_cg.cpp ..
   cp pppm.cpp ..
   cp pppm_old.cpp ..
   cp pppm_cg.cpp ..
@@ -35,6 +36,7 @@ if (test $1 = 1) then
   cp ewald.h ..
   cp ewald_disp.h ..
   cp msm.h ..
+  cp msm_cg.h ..
   cp pppm.h ..
   cp pppm_old.h ..
   cp pppm_cg.h ..
@@ -69,6 +71,7 @@ elif (test $1 = 0) then
   rm -f ../ewald.cpp
   rm -f ../ewald_disp.cpp
   rm -f ../msm.cpp
+  rm -f ../msm_cg.cpp
   rm -f ../pppm.cpp
   rm -f ../pppm_old.cpp
   rm -f ../pppm_cg.cpp
@@ -98,6 +101,7 @@ elif (test $1 = 0) then
   rm -f ../ewald.h
   rm -f ../ewald_disp.h
   rm -f ../msm.h
+  rm -f ../msm_cg.h
   rm -f ../pppm.h
   rm -f ../pppm_old.h
   rm -f ../pppm_cg.h

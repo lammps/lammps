@@ -20,18 +20,18 @@ namespace LAMMPS_NS {
 
 namespace MathSpecial {
 
-  // x**2. use instead of pow(x,2.0).
+  // x**2, use instead of pow(x,2.0)
 
   static inline double square(const double &x) { return x*x; }
 
-  // x**3. use instead of pow(x,3.0).
+  // x**3, use instead of pow(x,3.0)
   static inline double cube(const double &x) { return x*x*x; }
 
-  // return -1.0 for odd n, 1.0 for even n. like pow(-1.0,n)
+  // return -1.0 for odd n, 1.0 for even n, like pow(-1.0,n)
   static inline double powsign(const int n) { return (n & 1) ? -1.0 : 1.0; }
 
   // optimized version of pow(x,n) with n being integer
-  // up to 10x faster than pow(x,y).
+  // up to 10x faster than pow(x,y)
 
   static inline double powint(const double &x, const int n) {
     double yy,ww;

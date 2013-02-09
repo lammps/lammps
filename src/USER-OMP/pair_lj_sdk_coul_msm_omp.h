@@ -11,46 +11,39 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef BOND_CLASS
+/* ----------------------------------------------------------------------
+   Contributing author: Axel Kohlmeyer (Temple U)
+------------------------------------------------------------------------- */
 
-BondStyle(morse,BondMorse)
+#ifdef PAIR_CLASS
+
+PairStyle(lj/sdk/coul/msm/omp,PairLJSDKCoulMSMOMP)
+PairStyle(cg/cmm/coul/msm/omp,PairLJSDKCoulMSMOMP)
 
 #else
 
-#ifndef LMP_BOND_MORSE_H
-#define LMP_BOND_MORSE_H
+#ifndef LMP_PAIR_LJ_SDK_COUL_MSM_OMP_H
+#define LMP_PAIR_LJ_SDK_COUL_MSM_OMP_H
 
-#include "stdio.h"
-#include "bond.h"
+#include "pair_lj_sdk_coul_msm.h"
+#include "thr_omp.h"
 
 namespace LAMMPS_NS {
 
-class BondMorse : public Bond {
+class PairLJSDKCoulMSMOMP : public PairLJSDKCoulMSM, public ThrOMP {
+
  public:
-  BondMorse(class LAMMPS *);
-  virtual ~BondMorse();
+  PairLJSDKCoulMSMOMP(class LAMMPS *);
+
   virtual void compute(int, int);
-  void coeff(int, char **);
-  double equilibrium_distance(int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  double single(int, double, int, int, double &);
+  virtual double memory_usage();
 
- protected:
-  double *d0,*alpha,*r0;
-
-  void allocate();
+ private:
+  template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
+  void eval_msm_thr(int ifrom, int ito, ThrData * const thr);
 };
 
 }
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Incorrect args for bond coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-*/

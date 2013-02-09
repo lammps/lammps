@@ -187,7 +187,7 @@ void FixMinimize::grow_arrays(int nmax)
    copy values within local atom-based arrays
 ------------------------------------------------------------------------- */
 
-void FixMinimize::copy_arrays(int i, int j)
+void FixMinimize::copy_arrays(int i, int j, int delflag)
 {
   int m,iper,nper,ni,nj;
 

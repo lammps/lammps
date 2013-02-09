@@ -52,10 +52,10 @@ void FixNHOMP::remap()
   double oldlo,oldhi;
   double expfac;
 
-  double * const * const x = atom->x;
-  const int * const mask = atom->mask;
+  double * const * _noalias const x = atom->x;
+  const int * _noalias const mask = atom->mask;
   const int nlocal = atom->nlocal;
-  double * const h = domain->h;
+  double * _noalias const h = domain->h;
 
   // omega is not used, except for book-keeping
 
@@ -92,9 +92,9 @@ void FixNHOMP::remap()
   //
   // Ordering of operations preserves time symmetry.
 
-  double dto2 = dto/2.0;
-  double dto4 = dto/4.0;
-  double dto8 = dto/8.0;
+  const double dto2 = dto/2.0;
+  const double dto4 = dto/4.0;
+  const double dto8 = dto/8.0;
 
   // off-diagonal components, first half
 

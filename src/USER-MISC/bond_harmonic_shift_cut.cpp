@@ -190,13 +190,17 @@ void BondHarmonicShiftCut::read_restart(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double BondHarmonicShiftCut::single(int type, double rsq, int i, int j)
+double BondHarmonicShiftCut::single(int type, double rsq, int i, int j,
+				    double &fforce)
 {
+  fforce = 0.0;
   double r = sqrt(rsq);
 
-  if (r>r1[type]) return 0;
+  if (r>r1[type]) return 0.0;
 
   double dr = r - r0[type];
   double dr2=r0[type]-r1[type];
+
+  fforce = -2.0*k[type]*dr/r;
   return k[type]*(dr*dr - dr2*dr2);
 }

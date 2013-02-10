@@ -294,6 +294,6 @@ void ComputeTempRamp::restore_bias_all()
 
 double ComputeTempRamp::memory_usage()
 {
-  double bytes = maxbias * sizeof(double);
+  double bytes = 3*maxbias * sizeof(double);
   return bytes;
 }

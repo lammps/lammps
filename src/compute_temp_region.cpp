@@ -245,6 +245,6 @@ void ComputeTempRegion::restore_bias_all()
 
 double ComputeTempRegion::memory_usage()
 {
-  double bytes = maxbias * sizeof(double);
+  double bytes = 3*maxbias * sizeof(double);
   return bytes;
 }

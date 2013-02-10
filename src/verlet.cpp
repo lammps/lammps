@@ -243,6 +243,7 @@ void Verlet::run(int n)
       comm->forward_comm();
       timer->stamp(TIME_COMM);
     } else {
+      printf("RENEIGH %ld\n",ntimestep);
       if (n_pre_exchange) modify->pre_exchange();
       if (triclinic) domain->x2lamda(atom->nlocal);
       domain->pbc();

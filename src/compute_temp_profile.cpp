@@ -140,9 +140,6 @@ ComputeTempProfile::ComputeTempProfile(LAMMPS *lmp, int narg, char **arg) :
 
   maxatom = 0;
   bin = NULL;
-
-  maxbias = 0;
-  vbiasall = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -152,7 +149,6 @@ ComputeTempProfile::~ComputeTempProfile()
   memory->destroy(vbin);
   memory->destroy(binave);
   memory->destroy(bin);
-  memory->destroy(vbiasall);
   if (outflag == TENSOR) delete [] vector;
   else {
     memory->destroy(tbin);
@@ -348,18 +344,9 @@ void ComputeTempProfile::compute_array()
 void ComputeTempProfile::remove_bias(int i, double *v)
 {
   int ibin = bin[i];
-  if (xflag) {
-    vbias[0] = binave[ibin][ivx];
-    v[0] -= vbias[0];
-  }
-  if (yflag) {
-    vbias[1] = binave[ibin][ivy];
-    v[1] -= vbias[1];
-  }
-  if (zflag) {
-    vbias[2] = binave[ibin][ivz];
-    v[2] -= vbias[2];
-  }
+  if (xflag) v[0] -= binave[ibin][ivx];
+  if (yflag) v[1] -= binave[ibin][ivy];
+  if (zflag) v[2] -= binave[ibin][ivz];
 }
 
 /* ----------------------------------------------------------------------
@@ -372,28 +359,13 @@ void ComputeTempProfile::remove_bias_all()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  if (nlocal > maxbias) {
-    memory->destroy(vbiasall);
-    maxbias = atom->nmax;
-    memory->create(vbiasall,maxbias,3,"temp/profile:vbiasall");
-  }
-
   int ibin;
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       ibin = bin[i];
-      if (xflag) {
-        vbiasall[i][0] = binave[ibin][ivx];
-        v[i][0] -= vbiasall[i][0];
-      }
-      if (yflag) {
-        vbiasall[i][1] = binave[ibin][ivy];
-        v[i][1] -= vbiasall[i][1];
-      }
-      if (zflag) {
-        vbiasall[i][2] = binave[ibin][ivz];
-        v[i][2] -= vbiasall[i][2];
-      }
+      if (xflag) v[i][0] -= binave[ibin][ivx];
+      if (yflag) v[i][1] -= binave[ibin][ivy];
+      if (zflag) v[i][2] -= binave[ibin][ivz];
     }
 }
 
@@ -404,9 +376,10 @@ void ComputeTempProfile::remove_bias_all()
 
 void ComputeTempProfile::restore_bias(int i, double *v)
 {
-  if (xflag) v[0] += vbias[0];
-  if (yflag) v[1] += vbias[1];
-  if (zflag) v[2] += vbias[2];
+  int ibin = bin[i];
+  if (xflag) v[0] += binave[ibin][ivx];
+  if (yflag) v[1] += binave[ibin][ivy];
+  if (zflag) v[2] += binave[ibin][ivz];
 }
 
 /* ----------------------------------------------------------------------
@@ -420,21 +393,14 @@ void ComputeTempProfile::restore_bias_all()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  if (xflag) {
-    for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit)
-        v[i][0] += vbiasall[i][0];
-  }
-  if (yflag) {
-    for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit)
-        v[i][1] += vbiasall[i][1];
-  }
-  if (zflag) {
-    for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit)
-        v[i][2] += vbiasall[i][2];
-  }
+  int ibin;
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit) {
+      ibin = bin[i];
+      if (xflag) v[i][0] += binave[ibin][ivx];
+      if (yflag) v[i][1] += binave[ibin][ivy];
+      if (zflag) v[i][2] += binave[ibin][ivz];
+    }
 }
 
 /* ----------------------------------------------------------------------
@@ -563,8 +529,7 @@ void ComputeTempProfile::bin_assign()
 
 double ComputeTempProfile::memory_usage()
 {
-  double bytes = maxbias * sizeof(double);
-  bytes += maxatom * sizeof(int);
+  double bytes = maxatom * sizeof(int);
   bytes += nbins*(ncount+1) * sizeof(double);
   return bytes;
 }

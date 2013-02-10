@@ -262,6 +262,6 @@ void ComputeTempPartial::restore_bias_all()
 
 double ComputeTempPartial::memory_usage()
 {
-  double bytes = maxbias * sizeof(double);
+  double bytes = 3*maxbias * sizeof(double);
   return bytes;
 }

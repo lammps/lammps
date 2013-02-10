@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -40,9 +40,9 @@ class ComputeTempCOM : public Compute {
  private:
   int fix_dof;
   double tfactor,masstotal;
-  double vbias[3];    // stored velocity bias for one atom
 
   void dof_compute();
+
 };
 
 }

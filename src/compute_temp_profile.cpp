@@ -140,9 +140,6 @@ ComputeTempProfile::ComputeTempProfile(LAMMPS *lmp, int narg, char **arg) :
 
   maxatom = 0;
   bin = NULL;
-
-  maxbias = 0;
-  vbiasall = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -347,14 +344,9 @@ void ComputeTempProfile::compute_array()
 void ComputeTempProfile::remove_bias(int i, double *v)
 {
   int ibin = bin[i];
-  if (xflag)
-    v[0] -= binave[ibin][ivx];
-
-  if (yflag)
-    v[1] -= binave[ibin][ivy];
-
-  if (zflag)
-    v[2] -= binave[ibin][ivz];
+  if (xflag) v[0] -= binave[ibin][ivx];
+  if (yflag) v[1] -= binave[ibin][ivy];
+  if (zflag) v[2] -= binave[ibin][ivz];
 }
 
 /* ----------------------------------------------------------------------
@@ -371,14 +363,9 @@ void ComputeTempProfile::remove_bias_all()
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       ibin = bin[i];
-      if (xflag)
-        v[i][0] -= binave[ibin][ivx];
-
-      if (yflag)
-        v[i][1] -= binave[ibin][ivy];
-
-      if (zflag)
-        v[i][2] -= binave[ibin][ivz];
+      if (xflag) v[i][0] -= binave[ibin][ivx];
+      if (yflag) v[i][1] -= binave[ibin][ivy];
+      if (zflag) v[i][2] -= binave[ibin][ivz];
     }
 }
 
@@ -390,14 +377,9 @@ void ComputeTempProfile::remove_bias_all()
 void ComputeTempProfile::restore_bias(int i, double *v)
 {
   int ibin = bin[i];
-  if (xflag)
-    v[0] += binave[ibin][ivx];
-
-  if (yflag)
-    v[1] += binave[ibin][ivy];
-
-  if (zflag)
-    v[2] += binave[ibin][ivz];
+  if (xflag) v[0] += binave[ibin][ivx];
+  if (yflag) v[1] += binave[ibin][ivy];
+  if (zflag) v[2] += binave[ibin][ivz];
 }
 
 /* ----------------------------------------------------------------------
@@ -415,14 +397,9 @@ void ComputeTempProfile::restore_bias_all()
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       ibin = bin[i];
-      if (xflag)
-        v[i][0] += binave[ibin][ivx];
-
-      if (yflag)
-        v[i][1] += binave[ibin][ivy];
-
-      if (zflag)
-        v[i][2] += binave[ibin][ivz];
+      if (xflag) v[i][0] += binave[ibin][ivx];
+      if (yflag) v[i][1] += binave[ibin][ivy];
+      if (zflag) v[i][2] += binave[ibin][ivz];
     }
 }
 

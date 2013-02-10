@@ -1131,7 +1131,7 @@ void FixRigid::pre_neighbor()
 }
 
 /* ----------------------------------------------------------------------
-   count # of degrees-of-freedom removed by fix_rigid for atoms in igroup
+   count # of degrees-of-freedom removed by rigid bodies for atoms in igroup
 ------------------------------------------------------------------------- */
 
 int FixRigid::dof(int igroup)

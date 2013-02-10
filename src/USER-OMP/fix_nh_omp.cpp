@@ -48,9 +48,7 @@ typedef struct { double x,y,z; } dbl3_t;
 
 void FixNHOMP::remap()
 {
-  int i;
-  double oldlo,oldhi;
-  double expfac;
+  double oldlo,oldhi,expfac;
 
   double * const * _noalias const x = atom->x;
   const int * _noalias const mask = atom->mask;
@@ -65,6 +63,7 @@ void FixNHOMP::remap()
 
   if (allremap) domain->x2lamda(nlocal);
   else {
+    int i;
 #if defined (_OPENMP)
 #pragma omp parallel for private(i) default(none) schedule(static)
 #endif
@@ -74,7 +73,7 @@ void FixNHOMP::remap()
   }
 
   if (nrigid)
-    for (i = 0; i < nrigid; i++)
+    for (int i = 0; i < nrigid; i++)
       modify->fix[rfix[i]]->deform(0);
 
   // reset global and local box to new size/shape
@@ -215,6 +214,7 @@ void FixNHOMP::remap()
 
   if (allremap) domain->lamda2x(nlocal);
   else {
+    int i;
 #if defined (_OPENMP)
 #pragma omp parallel for private(i) default(none) schedule(static)
 #endif
@@ -224,7 +224,7 @@ void FixNHOMP::remap()
   }
 
   if (nrigid)
-    for (i = 0; i < nrigid; i++)
+    for (int i = 0; i < nrigid; i++)
       modify->fix[rfix[i]]->deform(1);
 }
 

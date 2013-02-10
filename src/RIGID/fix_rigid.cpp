@@ -901,7 +901,7 @@ void FixRigid::post_force(int vflag)
 void FixRigid::final_integrate()
 {
   int i,ibody;
-  double dtfm,xy,xz,yz;
+  double dtfm;
 
   // sum over atoms to get force and torque on rigid body
 
@@ -994,7 +994,7 @@ void FixRigid::final_integrate()
 ------------------------------------------------------------------------- */
 
 void FixRigid::no_squish_rotate(int k, double *p, double *q,
-                                double *inertia, double dt)
+                                double *inertia, double dt) const
 {
   double phi,c_phi,s_phi,kp[4],kq[4];
 
@@ -1229,7 +1229,7 @@ void FixRigid::deform(int flag)
 
 void FixRigid::set_xv()
 {
-  int ibody,itype;
+  int ibody;
   int xbox,ybox,zbox;
   double x0,x1,x2,v0,v1,v2,fc0,fc1,fc2,massone;
   double xy,xz,yz;
@@ -1406,9 +1406,7 @@ void FixRigid::set_xv()
 
 void FixRigid::set_v()
 {
-  int ibody,itype;
   int xbox,ybox,zbox;
-  double dx,dy,dz;
   double x0,x1,x2,v0,v1,v2,fc0,fc1,fc2,massone;
   double xy,xz,yz;
   double ione[3],exone[3],eyone[3],ezone[3],delta[3],vr[6];
@@ -1435,7 +1433,7 @@ void FixRigid::set_v()
 
   for (int i = 0; i < nlocal; i++) {
     if (body[i] < 0) continue;
-    ibody = body[i];
+    const int ibody = body[i];
 
     MathExtra::matvec(ex_space[ibody],ey_space[ibody],
                       ez_space[ibody],displace[i],delta);
@@ -1509,7 +1507,7 @@ void FixRigid::set_v()
 
     for (int i = 0; i < nlocal; i++) {
       if (body[i] < 0) continue;
-      ibody = body[i];
+      const int ibody = body[i];
 
       if (eflags[i] & SPHERE) {
         omega_one[i][0] = omega[ibody][0];
@@ -1548,7 +1546,7 @@ void FixRigid::set_v()
 
 void FixRigid::setup_bodies()
 {
-  int i,itype,ibody;
+  int i,ibody;
 
   // extended = 1 if any particle in a rigid body is finite size
   //              or has a dipole moment
@@ -1711,7 +1709,7 @@ void FixRigid::setup_bodies()
   // dx,dy,dz = coords relative to center-of-mass
   // symmetric 3x3 inertia tensor stored in Voigt notation as 6-vector
 
-  double dx,dy,dz,rad;
+  double dx,dy,dz;
 
   for (ibody = 0; ibody < nbody; ibody++)
     for (i = 0; i < 6; i++) sum[ibody][i] = 0.0;

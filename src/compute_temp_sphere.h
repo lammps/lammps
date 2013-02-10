@@ -33,7 +33,9 @@ class ComputeTempSphere : public Compute {
   void compute_vector();
 
   void remove_bias(int, double *);
+  void remove_bias_thr(int, double *, double *);
   void restore_bias(int, double *);
+  void restore_bias_thr(int, double *, double *);
 
  private:
   int fix_dof,mode;

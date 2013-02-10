@@ -11,7 +11,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Axel Kohlmeyer (Temple U)
+------------------------------------------------------------------------- */
+
 #include "fix_rigid_omp.h"
+
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
 #include "atom_vec_line.h"
@@ -32,11 +37,9 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
-enum{SINGLE,MOLECULE,GROUP};
+enum{SINGLE,MOLECULE,GROUP};	// same as in FixRigid
 
-#define SINERTIA 0.4            // moment of inertia prefactor for sphere
 #define EINERTIA 0.4            // moment of inertia prefactor for ellipsoid
-#define LINERTIA (1.0/12.0)     // moment of inertia prefactor for line segment
 
 typedef struct { double x,y,z; } dbl3_t;
 #if defined(__GNUC__)
@@ -44,13 +47,6 @@ typedef struct { double x,y,z; } dbl3_t;
 #else
 #define _noalias
 #endif
-
-/* ---------------------------------------------------------------------- */
-
-FixRigidOMP::FixRigidOMP(LAMMPS *lmp, int narg, char **arg) :
-  FixRigid(lmp, narg, arg)
-{
-}
 
 /* ---------------------------------------------------------------------- */
 
@@ -307,6 +303,8 @@ void FixRigidOMP::final_integrate()
    set orientation and rotation of extended particles
    x = Q displace + Xcm, mapped back to periodic box
    v = Vcm + (W cross (x - Xcm))
+
+   NOTE: this needs to be kept in sync with FixRigidNHOMP
 ------------------------------------------------------------------------- */
 template <int TRICLINIC, int EVFLAG>
 void FixRigidOMP::set_xv_thr()
@@ -507,6 +505,8 @@ void FixRigidOMP::set_xv_thr()
    set space-frame velocity of each atom in a rigid body
    set omega and angmom of extended particles
    v = Vcm + (W cross (x - Xcm))
+
+   NOTE: this needs to be kept in sync with FixRigidNHOMP
 ------------------------------------------------------------------------- */
 template <int TRICLINIC, int EVFLAG>
 void FixRigidOMP::set_v_thr()

@@ -20,11 +20,11 @@ KSpaceStyle(pppm/cg,PPPMCG)
 #ifndef LMP_PPPM_CG_H
 #define LMP_PPPM_CG_H
 
-#include "pppm_old.h"
+#include "pppm.h"
 
 namespace LAMMPS_NS {
 
-class PPPMCG : public PPPMOld {
+class PPPMCG : public PPPM {
  public:
   PPPMCG(class LAMMPS *, int, char **);
   virtual ~PPPMCG();
@@ -38,9 +38,11 @@ class PPPMCG : public PPPMOld {
 
   virtual void particle_map();
   virtual void make_rho();
-  virtual void fieldforce();
+  virtual void fieldforce_ik();
+  virtual void fieldforce_ad();
   virtual void fieldforce_peratom();
   virtual void slabcorr();
+  virtual void make_rho_groups(int, int, int);
 };
 
 }

@@ -1506,12 +1506,15 @@ void Comm::forward_comm_array(int n, double **array)
 
 /* ----------------------------------------------------------------------
    communicate inbuf around full ring of processors with messtag
-   nbytes = size of inbuf = n datums, each of size nper bytes
-   use callback() to allow caller to process each proc's inbuf
+   nbytes = size of inbuf = n datums * nper bytes
+   callback() is invoked to allow caller to process/update each proc's inbuf
+   note that callback() is invoked on final iteration for original inbuf
+   for non-NULL outbuf, final updated inbuf is copied to it
+   outbuf = inbuf is OK
 ------------------------------------------------------------------------- */
 
 void Comm::ring(int n, int nper, void *inbuf, int messtag,
-                void (*callback)(int, char *))
+                void (*callback)(int, char *), void *outbuf)
 {
   MPI_Request request;
   MPI_Status status;
@@ -1537,9 +1540,11 @@ void Comm::ring(int n, int nper, void *inbuf, int messtag,
       MPI_Wait(&request,&status);
       MPI_Get_count(&status,MPI_CHAR,&nbytes);
       memcpy(buf,bufcopy,nbytes);
-      callback(nbytes/nper,buf);
     }
+    callback(nbytes/nper,buf);
   }
+
+  if (outbuf) memcpy(outbuf,buf,nbytes);
 
   memory->destroy(buf);
   memory->destroy(bufcopy);

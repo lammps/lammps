@@ -956,7 +956,7 @@ void Special::dihedral_trim()
     if (next == nprocs) next = 0;
     if (prev < 0) prev = nprocs - 1;
 
-    int messtag = 7;
+    int messtag = 8;
     for (int loop = 0; loop < nprocs; loop++) {
       i = 0;
       while (i < size) {

@@ -45,6 +45,7 @@ using namespace MathConst;
 PPPMTIP4POMP::PPPMTIP4POMP(LAMMPS *lmp, int narg, char **arg) :
   PPPMOMP(lmp, narg, arg)
 {
+  tip4pflag = 1;
   suffix_flag |= Suffix::OMP;
 }
 
@@ -288,7 +289,6 @@ void PPPMTIP4POMP::fieldforce()
     FFT_SCALAR ekx,eky,ekz;
     int iH1,iH2;
     double xM[3], fx,fy,fz;
-    double ddotf, rOMx, rOMy, rOMz, f1x, f1y, f1z;
 
     // this if protects against having more threads than local atoms
     if (ifrom < nlocal) {
@@ -342,27 +342,17 @@ void PPPMTIP4POMP::fieldforce()
           fz = qfactor * ekz;
           find_M(i,iH1,iH2,xM);
 
-          rOMx = xM[0] - x[i][0];
-          rOMy = xM[1] - x[i][1];
-          rOMz = xM[2] - x[i][2];
+          f[i][0] += fx*(1 - alpha);
+          f[i][1] += fy*(1 - alpha);
+          f[i][2] += fz*(1 - alpha);
 
-          ddotf = (rOMx * fx + rOMy * fy + rOMz * fz) / (qdist * qdist);
+          f[iH1][0] += 0.5*alpha*fx;
+          f[iH1][1] += 0.5*alpha*fy;
+          f[iH1][2] += 0.5*alpha*fz;
 
-          f1x = ddotf * rOMx;
-          f1y = ddotf * rOMy;
-          f1z = ddotf * rOMz;
-
-          f[i][0] += fx - alpha * (fx - f1x);
-          f[i][1] += fy - alpha * (fy - f1y);
-          f[i][2] += fz - alpha * (fz - f1z);
-
-          f[iH1][0] += 0.5*alpha*(fx - f1x);
-          f[iH1][1] += 0.5*alpha*(fy - f1y);
-          f[iH1][2] += 0.5*alpha*(fz - f1z);
-
-          f[iH2][0] += 0.5*alpha*(fx - f1x);
-          f[iH2][1] += 0.5*alpha*(fy - f1y);
-          f[iH2][2] += 0.5*alpha*(fz - f1z);
+          f[iH2][0] += 0.5*alpha*fx;
+          f[iH2][1] += 0.5*alpha*fy;
+          f[iH2][2] += 0.5*alpha*fz;
         }
       }
     }

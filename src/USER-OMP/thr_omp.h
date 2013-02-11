@@ -162,7 +162,8 @@ class ThrOMP {
                     const double * const, const double * const, const double * const,
                     const double * const, const double * const, ThrData * const);
   void ev_tally_list_thr(Pair * const, const int, const int * const,
-                         const double , const double * const , ThrData * const);
+                         const double * const, const double, const double,
+                         ThrData * const);
 
 };
 

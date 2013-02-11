@@ -626,15 +626,36 @@ void ThrOMP::ev_tally4_thr(Pair * const pair, const int i, const int j,
    changes v values by dividing by n
  ------------------------------------------------------------------------- */
 
-void ThrOMP::ev_tally_list_thr(Pair * const pair, const int n,
-                               const int * const list, const double ecoul,
-                               const double * const v, ThrData * const thr)
+void ThrOMP::ev_tally_list_thr(Pair * const pair, const int key,
+                               const int * const list, const double * const v,
+                               const double ecoul, const double alpha,
+                               ThrData * const thr)
 {
+  int i;
   if (pair->eflag_either) {
     if (pair->eflag_global) thr->eng_coul += ecoul;
     if (pair->eflag_atom) {
-      double epairatom = ecoul/static_cast<double>(n);
-      for (int i = 0; i < n; i++) thr->eatom_pair[list[i]] += epairatom;
+      if (key == 0) {
+        thr->eatom_pair[list[0]] += 0.5*ecoul;
+        thr->eatom_pair[list[1]] += 0.5*ecoul;
+      } else if (key == 1) {
+        thr->eatom_pair[list[0]] += 0.5*ecoul*(1-alpha);
+        thr->eatom_pair[list[1]] += 0.25*ecoul*alpha;
+        thr->eatom_pair[list[2]] += 0.25*ecoul*alpha;
+        thr->eatom_pair[list[3]] += 0.5*ecoul;
+      } else if (key == 2) {
+        thr->eatom_pair[list[0]] += 0.5*ecoul;
+        thr->eatom_pair[list[1]] += 0.5*ecoul*(1-alpha);
+        thr->eatom_pair[list[2]] += 0.25*ecoul*alpha;
+        thr->eatom_pair[list[3]] += 0.25*ecoul*alpha;
+      } else {
+        thr->eatom_pair[list[0]] += 0.5*ecoul*(1-alpha);
+        thr->eatom_pair[list[1]] += 0.25*ecoul*alpha;
+        thr->eatom_pair[list[2]] += 0.25*ecoul*alpha;
+        thr->eatom_pair[list[3]] += 0.5*ecoul*(1-alpha);
+        thr->eatom_pair[list[4]] += 0.25*ecoul*alpha;
+        thr->eatom_pair[list[5]] += 0.25*ecoul*alpha;
+      }
     }
   }
 
@@ -643,19 +664,34 @@ void ThrOMP::ev_tally_list_thr(Pair * const pair, const int n,
       v_tally(thr->virial_pair,v);
 
     if (pair->vflag_atom) {
-      const double s = 1.0/static_cast<double>(n);
-      double vtmp[6];
-
-      vtmp[0] = s * v[0];
-      vtmp[1] = s * v[1];
-      vtmp[2] = s * v[2];
-      vtmp[3] = s * v[3];
-      vtmp[4] = s * v[4];
-      vtmp[5] = s * v[5];
-
-      for (int i = 0; i < n; i++) {
-        const int j = list[i];
-        v_tally(thr->vatom_pair[j],vtmp);
+      if (key == 0) {
+        for (i = 0; i <= 5; i++) {
+          thr->vatom_pair[list[0]][i] += 0.5*v[i];
+          thr->vatom_pair[list[1]][i] += 0.5*v[i];
+        }
+      } else if (key == 1) {
+        for (i = 0; i <= 5; i++) {
+          thr->vatom_pair[list[0]][i] += 0.5*v[i]*(1-alpha);
+          thr->vatom_pair[list[1]][i] += 0.25*v[i]*alpha;
+          thr->vatom_pair[list[2]][i] += 0.25*v[i]*alpha;
+          thr->vatom_pair[list[3]][i] += 0.5*v[i];
+        }
+      } else if (key == 2) {
+        for (i = 0; i <= 5; i++) {
+          thr->vatom_pair[list[0]][i] += 0.5*v[i];
+          thr->vatom_pair[list[1]][i] += 0.5*v[i]*(1-alpha);
+          thr->vatom_pair[list[2]][i] += 0.25*v[i]*alpha;
+          thr->vatom_pair[list[3]][i] += 0.25*v[i]*alpha;
+        }
+      } else {
+        for (i = 0; i <= 5; i++) {
+          thr->vatom_pair[list[0]][i] += 0.5*v[i]*(1-alpha);
+          thr->vatom_pair[list[1]][i] += 0.25*v[i]*alpha;
+          thr->vatom_pair[list[2]][i] += 0.25*v[i]*alpha;
+          thr->vatom_pair[list[3]][i] += 0.5*v[i]*(1-alpha);
+          thr->vatom_pair[list[4]][i] += 0.25*v[i]*alpha;
+          thr->vatom_pair[list[5]][i] += 0.25*v[i]*alpha;
+        }
       }
     }
   }

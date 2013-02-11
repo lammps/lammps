@@ -120,17 +120,16 @@ void PairLJCutTIP4PLongOMP::compute(int eflag, int vflag)
 template <int CTABLE, int EVFLAG, int EFLAG, int VFLAG>
 void PairLJCutTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
-  int i,j,ii,jj,jnum,itype,jtype,itable;
+  int i,j,ii,jj,jnum,itype,jtype,itable, key;
   int n,vlist[6];
   int iH1,iH2,jH1,jH2;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul;
   double fraction,table;
-  double delxOM,delyOM,delzOM;
   double r,rsq,r2inv,r6inv,forcecoul,forcelj,cforce;
   double factor_coul,factor_lj;
-  double grij,expm2,prefactor,t,erfc,ddotf;
+  double grij,expm2,prefactor,t,erfc;
   double v[6],xH1[3],xH2[3];
-  double fdx,fdy,fdz,f1x,f1y,f1z,fOx,fOy,fOz,fHx,fHy,fHz;
+  double fdx,fdy,fdz,fOx,fOy,fOz,fHx,fHy,fHz;
   const double *x1,*x2;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
@@ -317,6 +316,7 @@ void PairLJCutTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
           // vlist stores 2,4,6 atoms whose forces contribute to virial
 
           n = 0;
+          key = 0;
 
           if (itype != typeO) {
             fxtmp += delx * cforce;
@@ -330,33 +330,23 @@ void PairLJCutTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
               v[3] = x[i][0] * dely * cforce;
               v[4] = x[i][0] * delz * cforce;
               v[5] = x[i][1] * delz * cforce;
-              vlist[n++] = i;
             }
+            vlist[n++] = i;
 
           } else {
+            key++;
 
             fdx = delx*cforce;
             fdy = dely*cforce;
             fdz = delz*cforce;
 
-            delxOM = x[i][0] - x1[0];
-            delyOM = x[i][1] - x1[1];
-            delzOM = x[i][2] - x1[2];
+            fOx = fdx*(1 - alpha);
+            fOy = fdy*(1 - alpha);
+            fOz = fdz*(1 - alpha);
 
-            ddotf = (delxOM * fdx + delyOM * fdy + delzOM * fdz) /
-              (qdist*qdist);
-
-            f1x = alpha * (fdx - ddotf * delxOM);
-            f1y = alpha * (fdy - ddotf * delyOM);
-            f1z = alpha * (fdz - ddotf * delzOM);
-
-            fOx = fdx - f1x;
-            fOy = fdy - f1y;
-            fOz = fdz - f1z;
-
-            fHx = 0.5 * f1x;
-            fHy = 0.5 * f1y;
-            fHz = 0.5 * f1z;
+            fHx = 0.5*alpha * fdx;
+            fHy = 0.5*alpha * fdy;
+            fHz = 0.5*alpha * fdz;
 
             fxtmp += fOx;
             fytmp += fOy;
@@ -380,11 +370,10 @@ void PairLJCutTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
               v[3] = x[i][0]*fOy + xH1[0]*fHy + xH2[0]*fHy;
               v[4] = x[i][0]*fOz + xH1[0]*fHz + xH2[0]*fHz;
               v[5] = x[i][1]*fOz + xH1[1]*fHz + xH2[1]*fHz;
-
-              vlist[n++] = i;
-              vlist[n++] = iH1;
-              vlist[n++] = iH2;
             }
+            vlist[n++] = i;
+            vlist[n++] = iH1;
+            vlist[n++] = iH2;
           }
 
           if (jtype != typeO) {
@@ -399,33 +388,23 @@ void PairLJCutTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
               v[3] -= x[j][0] * dely * cforce;
               v[4] -= x[j][0] * delz * cforce;
               v[5] -= x[j][1] * delz * cforce;
-              vlist[n++] = j;
             }
+            vlist[n++] = j;
 
           } else {
+            key += 2;
 
             fdx = -delx*cforce;
             fdy = -dely*cforce;
             fdz = -delz*cforce;
 
-            delxOM = x[j][0] - x2[0];
-            delyOM = x[j][1] - x2[1];
-            delzOM = x[j][2] - x2[2];
+            fOx = fdx*(1 - alpha);
+            fOy = fdy*(1 - alpha);
+            fOz = fdz*(1 - alpha);
 
-            ddotf = (delxOM * fdx + delyOM * fdy + delzOM * fdz) /
-              (qdist*qdist);
-
-            f1x = alpha * (fdx - ddotf * delxOM);
-            f1y = alpha * (fdy - ddotf * delyOM);
-            f1z = alpha * (fdz - ddotf * delzOM);
-
-            fOx = fdx - f1x;
-            fOy = fdy - f1y;
-            fOz = fdz - f1z;
-
-            fHx = 0.5 * f1x;
-            fHy = 0.5 * f1y;
-            fHz = 0.5 * f1z;
+            fHx = 0.5*alpha * fdx;
+            fHy = 0.5*alpha * fdy;
+            fHz = 0.5*alpha * fdz;
 
             f[j][0] += fOx;
             f[j][1] += fOy;
@@ -449,11 +428,10 @@ void PairLJCutTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
               v[3] += x[j][0]*fOy + xH1[0]*fHy + xH2[0]*fHy;
               v[4] += x[j][0]*fOz + xH1[0]*fHz + xH2[0]*fHz;
               v[5] += x[j][1]*fOz + xH1[1]*fHz + xH2[1]*fHz;
-
-              vlist[n++] = j;
-              vlist[n++] = jH1;
-              vlist[n++] = jH2;
             }
+            vlist[n++] = j;
+            vlist[n++] = jH1;
+            vlist[n++] = jH2;
           }
 
           if (EFLAG) {
@@ -466,7 +444,7 @@ void PairLJCutTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
             if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
           } else ecoul = 0.0;
 
-          if (EVFLAG) ev_tally_list_thr(this,n,vlist,ecoul,v,thr);
+          if (EVFLAG) ev_tally_list_thr(this,key,vlist,v,ecoul,alpha,thr);
         }
       }
     }

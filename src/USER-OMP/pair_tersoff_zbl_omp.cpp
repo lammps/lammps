@@ -32,8 +32,10 @@
 #include "error.h"
 
 #include "math_const.h"
+#include "math_special.h"
 using namespace LAMMPS_NS;
 using namespace MathConst;
+using namespace MathSpecial;
 
 #define MAXLINE 1024
 #define DELTA 4
@@ -53,7 +55,7 @@ static double F_fermi(const double r, const double expsc, const double cut)
 
 static double F_fermi_d(const double r, const double expsc, const double cut)
 {
-  return expsc*exp(-expsc*(r-cut)) / pow(1.0 + exp(-expsc*(r-cut)),2.0);
+  return expsc*exp(-expsc*(r-cut)) / square(1.0 + exp(-expsc*(r-cut)));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -268,7 +270,7 @@ void PairTersoffZBLOMP::repulsive(Param *param, double rsq, double &fforce,
 
   // ZBL repulsive portion
 
-  double esq = pow(global_e,2.0);
+  double esq = square(global_e);
   double a_ij = (0.8854*global_a_0) /
     (pow(param->Z_i,0.23) + pow(param->Z_j,0.23));
   double premult = (param->Z_i * param->Z_j * esq)/(4.0*MY_PI*global_epsilon_0);
@@ -279,8 +281,8 @@ void PairTersoffZBLOMP::repulsive(Param *param, double rsq, double &fforce,
                               0.9423*0.5099*exp(-0.9423*r_ov_a) -
                               0.4029*0.2802*exp(-0.4029*r_ov_a) -
                               0.2016*0.02817*exp(-0.2016*r_ov_a));
-  double fforce_ZBL = premult*-pow(r,-2.0)* phi + premult*pow(r,-1.0)*dphi;
-  double eng_ZBL = premult*(1.0/r)*phi;
+  double fforce_ZBL = premult*-rsq* phi + premult/r*dphi;
+  double eng_ZBL = premult/r*phi;
 
   // combine two parts with smoothing by Fermi-like function
 

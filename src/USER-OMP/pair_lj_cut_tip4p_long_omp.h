@@ -33,16 +33,18 @@ class PairLJCutTIP4PLongOMP : public PairLJCutTIP4PLong, public ThrOMP {
 
  public:
   PairLJCutTIP4PLongOMP(class LAMMPS *);
-  virtual ~PairLJCutTIP4PLongOMP() {};
+  virtual ~PairLJCutTIP4PLongOMP();
 
   virtual void compute(int, int);
   virtual double memory_usage();
 
  private:
+  dbl3_t *newsite_thr;
+  int3_t *hneigh_thr;
   template <int CFLAG, int EVFLAG, int EFLAG, int VFLAG>
   void eval(int ifrom, int ito, ThrData * const thr);
-  void compute_newsite_thr(const double *, const double *,
-                           const double *, double *) const;
+  void compute_newsite_thr(const dbl3_t &, const dbl3_t &,
+                           const dbl3_t &, dbl3_t &) const;
 };
 
 }

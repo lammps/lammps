@@ -4,7 +4,7 @@
 # do not install child files if parent does not exist
 
 for file in *_omp.cpp *_omp.h ; do
-  ofile=`echo $file | sed  -e 's,\(.*\)_omp\.\(h\|cpp\),\1.\2,'`
+  ofile=`echo $file | sed  -e 's,\(.*\)_omp\.h,\1.h,' -e 's,\(.*\)_omp\.cpp,\1.cpp,'`
   if (test $1 = 1) then
     if (test $file = "thr_omp.h") || (test $file = "thr_omp.cpp") then
       :  # always install those files.

@@ -9,7 +9,7 @@ for file in *_omp.cpp *_omp.h ; do
     continue
   fi
   # derive name of non-OpenMP version
-  ofile=`echo $file | sed   -e 's,\(.*\)_omp\.\(h\|cpp\),\1.\2,'`
+  ofile=`echo $file | sed  -e 's,\(.*\)_omp\.h,\1.h,' -e 's,\(.*\)_omp\.cpp,\1.cpp,'`
   if (test ! -e ../$ofile) then
     if (test -e ../$file) then
       echo "  removing src/$file"

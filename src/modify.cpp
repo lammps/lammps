@@ -161,6 +161,7 @@ void Modify::init()
   // needs to come before compute init
   // this is b/c some computes call fix->dof()
   // FixRigid::dof() depends on its own init having been called
+  // NOTE: 2/13, this may no longer be needed b/c computes do dof in setup()
 
   for (i = 0; i < nfix; i++) fix[i]->init();
 

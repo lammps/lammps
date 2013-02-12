@@ -20,25 +20,40 @@ KSpaceStyle(pppm/tip4p/omp,PPPMTIP4POMP)
 #ifndef LMP_PPPM_TIP4P_OMP_H
 #define LMP_PPPM_TIP4P_OMP_H
 
-#include "pppm_omp.h"
+#include "pppm_tip4p.h"
+#include "thr_omp.h"
 
 namespace LAMMPS_NS {
 
-class PPPMTIP4POMP : public PPPMOMP {
+class PPPMTIP4POMP : public PPPMTIP4P, public ThrOMP {
  public:
   PPPMTIP4POMP(class LAMMPS *, int, char **);
   virtual ~PPPMTIP4POMP () {};
-  virtual void init();
+  virtual void compute(int, int);
 
  protected:
+  virtual void allocate();
+  virtual void deallocate();
+
+  virtual void compute_gf_ik();
+  virtual void compute_gf_ad();
+
   virtual void particle_map();
-  virtual void fieldforce();
-  virtual void make_rho();
+  virtual void make_rho();  // XXX: not (yet) multi-threaded
+
+  virtual void fieldforce_ik();
+  virtual void fieldforce_ad();
+  // virtual void fieldforce_peratom();  XXX: need to benchmark first.
 
  private:
-  void find_M(int, int &, int &, double *);
+  void compute_rho1d_thr(FFT_SCALAR * const * const, const FFT_SCALAR &,
+                         const FFT_SCALAR &, const FFT_SCALAR &);
+  void compute_drho1d_thr(FFT_SCALAR * const * const, const FFT_SCALAR &,
+			  const FFT_SCALAR &, const FFT_SCALAR &);
 
-//  void slabcorr(int);
+  void find_M_thr(const int, int &, int &, dbl3_t &);
+
+//  void slabcorr(int);  // XXX: not (yet) multi-threaded
 
 };
 

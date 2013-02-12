@@ -387,7 +387,7 @@ void PPPMOMP::fieldforce_ik()
       const double qfactor = qqrd2e * scale * q[i];
       f[i].x += qfactor*ekx;
       f[i].y += qfactor*eky;
-      if (slabflag != 2) f[i].y += qfactor*ekz;
+      if (slabflag != 2) f[i].z += qfactor*ekz;
     }
   } // end of parallel region
 }
@@ -449,9 +449,9 @@ void PPPMOMP::fieldforce_ad()
 	  my = m+ny;
 	  for (l = nlower; l <= nupper; l++) {
 	    mx = l+nx;
-	    ekx += drho1d[0][l]*rho1d[1][m]*rho1d[2][n]*u_brick[mz][my][mx];
-	    eky += rho1d[0][l]*drho1d[1][m]*rho1d[2][n]*u_brick[mz][my][mx];
-	    ekz += rho1d[0][l]*rho1d[1][m]*drho1d[2][n]*u_brick[mz][my][mx];
+	    ekx += d1d[0][l]*r1d[1][m]*r1d[2][n]*u_brick[mz][my][mx];
+	    eky += r1d[0][l]*d1d[1][m]*r1d[2][n]*u_brick[mz][my][mx];
+	    ekz += r1d[0][l]*r1d[1][m]*d1d[2][n]*u_brick[mz][my][mx];
 	  }
 	}
       }

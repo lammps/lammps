@@ -256,7 +256,7 @@ void PPPMTIP4P::fieldforce_ik()
 void PPPMTIP4P::fieldforce_ad()
 {
   int i,l,m,n,nx,ny,nz,mx,my,mz;
-  FFT_SCALAR dx,dy,dz,x0,y0,z0,dx0,dy0,dz0;
+  FFT_SCALAR dx,dy,dz;
   FFT_SCALAR ekx,eky,ekz;
   double *xi;
   int iH1,iH2;
@@ -272,13 +272,10 @@ void PPPMTIP4P::fieldforce_ad()
   double xprd = prd[0];
   double yprd = prd[1];
   double zprd = prd[2];
-  double zprd_slab = zprd*slab_volfactor;
 
   double hx_inv = nx_pppm/xprd;
   double hy_inv = ny_pppm/yprd;
   double hz_inv = nz_pppm/zprd;
-  
-
 
   // loop over my charges, interpolate electric field from nearby grid points
   // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
@@ -302,9 +299,9 @@ void PPPMTIP4P::fieldforce_ad()
     nx = part2grid[i][0];
     ny = part2grid[i][1];
     nz = part2grid[i][2];
-    dx = nx+shiftone - (x[i][0]-boxlo[0])*delxinv;
-    dy = ny+shiftone - (x[i][1]-boxlo[1])*delyinv;
-    dz = nz+shiftone - (x[i][2]-boxlo[2])*delzinv;
+    dx = nx+shiftone - (xi[0]-boxlo[0])*delxinv;
+    dy = ny+shiftone - (xi[1]-boxlo[1])*delyinv;
+    dz = nz+shiftone - (xi[2]-boxlo[2])*delzinv;
     
     compute_rho1d(dx,dy,dz);
     compute_drho1d(dx,dy,dz);
@@ -335,17 +332,17 @@ void PPPMTIP4P::fieldforce_ad()
     s3 = x[i][2]*hz_inv;
     sf = sf_coeff[0]*sin(2*MY_PI*s1);
     sf += sf_coeff[1]*sin(4*MY_PI*s1);
-    sf *= 2*q[i]*q[i];
+    sf *= 2.0*q[i]*q[i];
     fx = qfactor*(ekx*q[i] - sf);
 
     sf = sf_coeff[2]*sin(2*MY_PI*s2);
     sf += sf_coeff[3]*sin(4*MY_PI*s2);
-    sf *= 2*q[i]*q[i];
+    sf *= 2.0*q[i]*q[i];
     fy = qfactor*(eky*q[i] - sf);
 
     sf = sf_coeff[4]*sin(2*MY_PI*s3);
     sf += sf_coeff[5]*sin(4*MY_PI*s3);
-    sf *= 2*q[i]*q[i];
+    sf *= 2.0*q[i]*q[i];
     fz = qfactor*(ekz*q[i] - sf);
 
     if (type[i] != typeO) {
@@ -392,7 +389,6 @@ void PPPMTIP4P::fieldforce_peratom()
   // ek = 3 components of E-field on particle
   double *q = atom->q;
   double **x = atom->x;
-  double **f = atom->f;
 
   int *type = atom->type;
   int nlocal = atom->nlocal;

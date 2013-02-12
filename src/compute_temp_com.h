@@ -29,6 +29,7 @@ class ComputeTempCOM : public Compute {
   ComputeTempCOM(class LAMMPS *, int, char **);
   ~ComputeTempCOM();
   void init();
+  void setup();
   double compute_scalar();
   void compute_vector();
 

@@ -29,6 +29,7 @@ class ComputeTempProfile : public Compute {
   ComputeTempProfile(class LAMMPS *, int, char **);
   ~ComputeTempProfile();
   void init();
+  void setup();
   double compute_scalar();
   void compute_vector();
   void compute_array();

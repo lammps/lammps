@@ -61,7 +61,7 @@ ComputeTempPartial::~ComputeTempPartial()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeTempPartial::init()
+void ComputeTempPartial::setup()
 {
   fix_dof = 0;
   for (int i = 0; i < modify->nfix; i++)

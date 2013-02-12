@@ -118,7 +118,7 @@ ComputeTempRamp::~ComputeTempRamp()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeTempRamp::init()
+void ComputeTempRamp::setup()
 {
   fix_dof = 0;
   for (int i = 0; i < modify->nfix; i++)

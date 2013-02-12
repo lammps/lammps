@@ -187,6 +187,16 @@ void ComputeTempProfile::init()
 
 /* ---------------------------------------------------------------------- */
 
+void ComputeTempProfile::setup()
+{
+  fix_dof = 0;
+  for (int i = 0; i < modify->nfix; i++)
+    fix_dof += modify->fix[i]->dof(igroup);
+  dof_compute();
+}
+
+/* ---------------------------------------------------------------------- */
+
 void ComputeTempProfile::dof_compute()
 {
   double natoms = group->count(igroup);

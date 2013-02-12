@@ -29,6 +29,7 @@ class ComputeTempDeform : public Compute {
   ComputeTempDeform(class LAMMPS *, int, char **);
   virtual ~ComputeTempDeform();
   void init();
+  void setup();
   virtual double compute_scalar();
   virtual void compute_vector();
 

@@ -28,7 +28,8 @@ class ComputeTempRamp : public Compute {
  public:
   ComputeTempRamp(class LAMMPS *, int, char **);
   ~ComputeTempRamp();
-  void init();
+  void init() {}
+  void setup();
   double compute_scalar();
   void compute_vector();
 

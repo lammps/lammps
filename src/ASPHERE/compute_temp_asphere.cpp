@@ -56,14 +56,16 @@ ComputeTempAsphere::ComputeTempAsphere(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 3;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"bias") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal compute temp/asphere command");
+      if (iarg+2 > narg) 
+        error->all(FLERR,"Illegal compute temp/asphere command");
       tempbias = 1;
       int n = strlen(arg[iarg+1]) + 1;
       id_bias = new char[n];
       strcpy(id_bias,arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"dof") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal compute temp/asphere command");
+      if (iarg+2 > narg) 
+        error->all(FLERR,"Illegal compute temp/asphere command");
       if (strcmp(arg[iarg+1],"rotate") == 0) mode = ROTATE;
       else if (strcmp(arg[iarg+1],"all") == 0) mode = ALL;
       else error->all(FLERR,"Illegal compute temp/asphere command");
@@ -106,7 +108,8 @@ void ComputeTempAsphere::init()
 
   if (tempbias) {
     int i = modify->find_compute(id_bias);
-    if (i < 0) error->all(FLERR,"Could not find compute ID for temperature bias");
+    if (i < 0) 
+      error->all(FLERR,"Could not find compute ID for temperature bias");
     tbias = modify->compute[i];
     if (tbias->tempflag == 0)
       error->all(FLERR,"Bias compute does not calculate temperature");
@@ -118,7 +121,12 @@ void ComputeTempAsphere::init()
     if (strcmp(tbias->style,"temp/region") == 0) tempbias = 2;
     else tempbias = 1;
   }
+}
 
+/* ---------------------------------------------------------------------- */
+
+void ComputeTempAsphere::setup()
+{
   fix_dof = 0;
   for (int i = 0; i < modify->nfix; i++)
     fix_dof += modify->fix[i]->dof(igroup);

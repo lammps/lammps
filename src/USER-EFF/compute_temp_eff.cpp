@@ -56,7 +56,7 @@ ComputeTempEff::~ComputeTempEff()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeTempEff::init()
+void ComputeTempEff::setup()
 {
   fix_dof = 0;
   for (int i = 0; i < modify->nfix; i++)

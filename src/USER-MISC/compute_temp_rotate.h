@@ -29,6 +29,7 @@ class ComputeTempRotate : public Compute {
   ComputeTempRotate(class LAMMPS *, int, char **);
   ~ComputeTempRotate();
   void init();
+  void setup();
   double compute_scalar();
   void compute_vector();
 

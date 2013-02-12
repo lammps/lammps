@@ -226,7 +226,7 @@ void PPPMTIP4P::fieldforce_ik()
     if (type[i] != typeO) {
       f[i][0] += qfactor*ekx;
       f[i][1] += qfactor*eky;
-      f[i][2] += qfactor*ekz;
+      if (slabflag != 2) f[i][2] += qfactor*ekz;
 
     } else {
       fx = qfactor * ekx;
@@ -236,15 +236,15 @@ void PPPMTIP4P::fieldforce_ik()
 
       f[i][0] += fx*(1 - alpha);
       f[i][1] += fy*(1 - alpha);
-      f[i][2] += fz*(1 - alpha);
+      if (slabflag != 2) f[i][2] += fz*(1 - alpha);
 
       f[iH1][0] += 0.5*alpha*fx;
       f[iH1][1] += 0.5*alpha*fy;
-      f[iH1][2] += 0.5*alpha*fz;
+      if (slabflag != 2) f[iH1][2] += 0.5*alpha*fz;
 
       f[iH2][0] += 0.5*alpha*fx;
       f[iH2][1] += 0.5*alpha*fy;
-      f[iH2][2] += 0.5*alpha*fz;
+      if (slabflag != 2) f[iH2][2] += 0.5*alpha*fz;
     }
   }
 }
@@ -351,22 +351,22 @@ void PPPMTIP4P::fieldforce_ad()
     if (type[i] != typeO) {
       f[i][0] += fx;
       f[i][1] += fy;
-      f[i][2] += fz;
+      if (slabflag != 2) f[i][2] += fz;
 
     } else {
       find_M(i,iH1,iH2,xM);
 
       f[i][0] += fx*(1 - alpha);
       f[i][1] += fy*(1 - alpha);
-      f[i][2] += fz*(1 - alpha);
+      if (slabflag != 2) f[i][2] += fz*(1 - alpha);
 
       f[iH1][0] += 0.5*alpha*fx;
       f[iH1][1] += 0.5*alpha*fy;
-      f[iH1][2] += 0.5*alpha*fz;
+      if (slabflag != 2) f[iH1][2] += 0.5*alpha*fz;
 
       f[iH2][0] += 0.5*alpha*fx;
       f[iH2][1] += 0.5*alpha*fy;
-      f[iH2][2] += 0.5*alpha*fz;
+      if (slabflag != 2) f[iH2][2] += 0.5*alpha*fz;
     }
   }
 }

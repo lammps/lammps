@@ -54,6 +54,7 @@ class KSpace : protected Pointers {
   unsigned int datamask_ext;
 
   int compute_flag;               // 0 if skip compute()
+  int fftbench;                   // 0 if skip FFT timing
 
   KSpace(class LAMMPS *, int, char **);
   virtual ~KSpace();

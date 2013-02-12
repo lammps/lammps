@@ -73,7 +73,8 @@ void Finish::end(int flag)
     if (update->whichflag == 1 &&
         strcmp(update->integrate_style,"verlet/split") == 0 &&
         universe->iworld == 1) neighflag = 0;
-    if (force->kspace && force->kspace_match("pppm",0)) fftflag = 1;
+    if (force->kspace && force->kspace_match("pppm",0)
+        && force->kspace->fftbench) fftflag = 1;
   }
   if (flag == 2) prdflag = histoflag = neighflag = 1;
   if (flag == 3) tadflag = histoflag = neighflag = 1;

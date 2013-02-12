@@ -299,7 +299,7 @@ void PPPMOMP::compute_gf_ad()
 }
 
 /* ----------------------------------------------------------------------
-   run the regular toplevel compute method from plain PPPPM
+   run the regular toplevel compute method from plain PPPM
    which will have individual methods replaced by our threaded
    versions and then call the obligatory force reduction.
 ------------------------------------------------------------------------- */

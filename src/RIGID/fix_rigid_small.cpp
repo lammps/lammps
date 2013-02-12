@@ -54,7 +54,7 @@ FixRigidSmall *FixRigidSmall::frsptr;
 #define EINERTIA 0.4            // moment of inertia prefactor for ellipsoid
 #define LINERTIA (1.0/12.0)     // moment of inertia prefactor for line segment
 
-#define DELTA_BODY 1000
+#define DELTA_BODY 10000
 
 enum{FULL_BODY,INITIAL,FINAL,FORCE_TORQUE,VCM_ANGMOM,XCM_MASS,ITENSOR,DOF};
 

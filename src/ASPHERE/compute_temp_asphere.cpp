@@ -118,6 +118,7 @@ void ComputeTempAsphere::init()
     if (tbias->igroup != igroup)
       error->all(FLERR,"Bias compute group does not match compute group");
     tbias->init();
+    tbias->setup();
     if (strcmp(tbias->style,"temp/region") == 0) tempbias = 2;
     else tempbias = 1;
   }

@@ -52,7 +52,8 @@ class ComputeTempPartialCuda : public Compute {
  public:
   ComputeTempPartialCuda(class LAMMPS *, int, char **);
   ~ComputeTempPartialCuda();
-  void init();
+  void init() {}
+  void setup();
   double compute_scalar();
   void compute_vector();
 

@@ -29,6 +29,7 @@ class ComputeTempSphere : public Compute {
   ComputeTempSphere(class LAMMPS *, int, char **);
   ~ComputeTempSphere();
   void init();
+  void setup();
   double compute_scalar();
   void compute_vector();
 

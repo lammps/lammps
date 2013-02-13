@@ -18,7 +18,7 @@
 <H1></H1>
 
 LAMMPS-ICMS Documentation :c,h3
-12 Feb 2013 version :c,h4
+14 Feb 2013 version :c,h4
 
 Version info: :h4
 

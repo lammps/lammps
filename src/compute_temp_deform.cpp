@@ -67,11 +67,6 @@ void ComputeTempDeform::init()
 {
   int i;
 
-  fix_dof = 0;
-  for (i = 0; i < modify->nfix; i++)
-    fix_dof += modify->fix[i]->dof(igroup);
-  dof_compute();
-
   // check fix deform remap settings
 
   for (i = 0; i < modify->nfix; i++)
@@ -85,6 +80,16 @@ void ComputeTempDeform::init()
   if (i == modify->nfix && comm->me == 0)
     error->warning(FLERR,
                    "Using compute temp/deform with no fix deform defined");
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputeTempDeform::setup()
+{
+  fix_dof = 0;
+  for (int i = 0; i < modify->nfix; i++)
+    fix_dof += modify->fix[i]->dof(igroup);
+  dof_compute();
 }
 
 /* ---------------------------------------------------------------------- */

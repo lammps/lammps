@@ -29,6 +29,7 @@ class ComputeTempRegion : public Compute {
   ComputeTempRegion(class LAMMPS *, int, char **);
   virtual ~ComputeTempRegion();
   void init();
+  void setup();
   virtual double compute_scalar();
   virtual void compute_vector();
 

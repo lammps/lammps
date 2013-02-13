@@ -28,7 +28,8 @@ class ComputeTempPartial : public Compute {
  public:
   ComputeTempPartial(class LAMMPS *, int, char **);
   virtual ~ComputeTempPartial();
-  void init();
+  void init() {}
+  void setup();
   double compute_scalar();
   void compute_vector();
 

@@ -77,7 +77,12 @@ void ComputeTempRegionEff::init()
   iregion = domain->find_region(idregion);
   if (iregion == -1)
     error->all(FLERR,"Region ID for compute temp/region/eff does not exist");
+}
 
+/* ---------------------------------------------------------------------- */
+
+void ComputeTempRegionEff::setup()
+{
   dof = 0.0;
 }
 

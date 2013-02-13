@@ -161,6 +161,7 @@ void Modify::init()
   // needs to come before compute init
   // this is b/c some computes call fix->dof()
   // FixRigid::dof() depends on its own init having been called
+  // NOTE: 2/13, this may no longer be needed b/c computes do dof in setup()
 
   for (i = 0; i < nfix; i++) fix[i]->init();
 
@@ -221,7 +222,7 @@ void Modify::init()
 }
 
 /* ----------------------------------------------------------------------
-   setup for run, calls setup() of all fixes
+   setup for run, calls setup() of all fixes and computes
    called from Verlet, RESPA, Min
 ------------------------------------------------------------------------- */
 
@@ -231,6 +232,11 @@ void Modify::setup(int vflag)
     for (int i = 0; i < nfix; i++) fix[i]->setup(vflag);
   else if (update->whichflag == 2)
     for (int i = 0; i < nfix; i++) fix[i]->min_setup(vflag);
+
+  // call computes after fixes
+  // fix rigid dof() can't be called by temperature computes at init
+
+  for (int i = 0; i < ncompute; i++) compute[i]->setup();
 }
 
 /* ----------------------------------------------------------------------

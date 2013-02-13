@@ -90,6 +90,7 @@ class Compute : protected Pointers {
 
   virtual void init() = 0;
   virtual void init_list(int, class NeighList *) {}
+  virtual void setup() {}
   virtual double compute_scalar() {return 0.0;}
   virtual void compute_vector() {}
   virtual void compute_array() {}

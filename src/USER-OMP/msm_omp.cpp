@@ -117,15 +117,15 @@ void MSMOMP::direct(int n)
 template <int EFLAG_GLOBAL, int VFLAG_GLOBAL, int VFLAG_ATOM>
 void MSMOMP::direct_eval(const int nn)
 {
-  double * const * const * const egridn  = egrid[nn];
-  const double * const * const * const qgridn = qgrid[nn];
-  const double * const g_directn = g_direct[nn];
-  const double * const v0_directn = v0_direct[nn];
-  const double * const v1_directn = v1_direct[nn];
-  const double * const v2_directn = v2_direct[nn];
-  const double * const v3_directn = v3_direct[nn];
-  const double * const v4_directn = v4_direct[nn];
-  const double * const v5_directn = v5_direct[nn];
+  double * _noalias const * _noalias const * _noalias const egridn  = egrid[nn];
+  const double * _noalias const * _noalias const * _noalias const qgridn = qgrid[nn];
+  const double * _noalias const g_directn = g_direct[nn];
+  const double * _noalias const v0_directn = v0_direct[nn];
+  const double * _noalias const v1_directn = v1_direct[nn];
+  const double * _noalias const v2_directn = v2_direct[nn];
+  const double * _noalias const v3_directn = v3_direct[nn];
+  const double * _noalias const v4_directn = v4_direct[nn];
+  const double * _noalias const v5_directn = v5_direct[nn];
 
   double v0,v1,v2,v3,v4,v5,emsm;
   v0 = v1 = v2 = v3 = v4 = v5 = emsm = 0.0;
@@ -190,8 +190,9 @@ void MSMOMP::direct_eval(const int nn)
         for (iy = jmin; iy <= jmax; iy++) {
           const int jj = icy+iy;
           const int zyk = (zk + iy + nyhi_direct)*nx;
+          const double * _noalias const qgridnkj = & qgridn[kk][jj][icx];
           for (ix = imin; ix <= imax; ix++) {
-            qtmp = qgridn[kk][jj][icx+ix];
+            qtmp = qgridnkj[ix];
             k = zyk + ix + nxhi_direct;
             esum += g_directn[k] * qtmp;
 

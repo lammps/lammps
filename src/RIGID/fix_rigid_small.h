@@ -29,7 +29,7 @@ namespace LAMMPS_NS {
 
 class FixRigidSmall : public Fix {
  public:
-  // static variable for ring communication callback to access
+  // static variable for ring communication callback to access class data
 
   static FixRigidSmall *frsptr;
 

@@ -41,8 +41,8 @@ class PairLJCutTIP4PLongOMP : public PairLJCutTIP4PLong, public ThrOMP {
  private:
   dbl3_t *newsite_thr;
   int3_t *hneigh_thr;
-  template <int CFLAG, int EVFLAG, int EFLAG, int VFLAG>
-  void eval(int ifrom, int ito, ThrData * const thr);
+
+  template < int, int, int, int > void eval(int, int, ThrData *const);
   void compute_newsite_thr(const dbl3_t &, const dbl3_t &,
                            const dbl3_t &, dbl3_t &) const;
 };

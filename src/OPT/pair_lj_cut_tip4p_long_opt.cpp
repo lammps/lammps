@@ -106,19 +106,19 @@ template < const int CTABLE, const int EVFLAG,
            const int EFLAG, const int VFLAG>
 void PairLJCutTIP4PLongOpt::eval()
 {
+  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul;
+  double fraction,table;
+  double r,rsq,r2inv,r6inv,forcecoul,forcelj,cforce;
+  double factor_coul,factor_lj;
+  double grij,expm2,prefactor,t,erfc;
+  double v[6],xH1[3],xH2[3];
+  double fdx,fdy,fdz,fOx,fOy,fOz,fHx,fHy,fHz;
+  const double *x1,*x2;
+
+  int *ilist,*jlist,*numneigh,**firstneigh;
   int i,j,ii,jj,inum,jnum,itype,jtype,itable,key;
   int n,vlist[6];
   int iH1,iH2,jH1,jH2;
-  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul;
-  double fraction,table;
-  double delxOM,delyOM,delzOM;
-  double r,rsq,r2inv,r6inv,forcecoul,forcelj,cforce;
-  double factor_coul,factor_lj;
-  double grij,expm2,prefactor,t,erfc,ddotf;
-  double v[6],xH1[3],xH2[3];
-  double fdx,fdy,fdz,f1x,f1y,f1z,fOx,fOy,fOz,fHx,fHy,fHz;
-  const double *x1,*x2;
-  int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = ecoul = 0.0;
 
@@ -434,7 +434,6 @@ void PairLJCutTIP4PLongOpt::eval()
   }
 }
 
-/* ---------------------------------------------------------------------- */
 /* ----------------------------------------------------------------------
   compute position xM of fictitious charge site for O atom and 2 H atoms
   return it as xM

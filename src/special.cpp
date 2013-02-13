@@ -17,10 +17,15 @@
 #include "atom.h"
 #include "atom_vec.h"
 #include "force.h"
+#include "comm.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+
+// allocate space for static class variable
+
+Special *Special::sptr;
 
 /* ---------------------------------------------------------------------- */
 
@@ -49,10 +54,9 @@ Special::~Special()
 
 void Special::build()
 {
-  int i,j,k,m,n,loop,size,original;
-  int num12,num13,num14;
-  int max,maxall,messtag,nbuf,nbufmax;
-  int *buf,*bufcopy,*count;
+  int i,j,k,m,n,size;
+  int max,maxall,nbuf;
+  int *buf;
   MPI_Request request;
   MPI_Status status;
 
@@ -100,10 +104,7 @@ void Special::build()
 
     nbuf = 0;
     for (i = 0; i < nlocal; i++) nbuf += num_bond[i];
-    MPI_Allreduce(&nbuf,&nbufmax,1,MPI_INT,MPI_MAX,world);
-
-    buf = new int[nbufmax];
-    bufcopy = new int[nbufmax];
+    memory->create(buf,nbuf,"special:buf");
 
     // fill buffer with global tags of bond partners of my atoms
 
@@ -116,23 +117,10 @@ void Special::build()
     // when receive buffer, scan tags for atoms I own
     // when find one, increment nspecial count for that atom
 
-    messtag = 1;
-    for (loop = 0; loop < nprocs; loop++) {
-      for (i = 0; i < size; i++) {
-        m = atom->map(buf[i]);
-        if (m >= 0 && m < nlocal) nspecial[m][0]++;
-      }
-      if (me != next) {
-        MPI_Irecv(bufcopy,nbufmax,MPI_INT,prev,messtag,world,&request);
-        MPI_Send(buf,size,MPI_INT,next,messtag,world);
-        MPI_Wait(&request,&status);
-        MPI_Get_count(&status,MPI_INT,&size);
-        for (j = 0; j < size; j++) buf[j] = bufcopy[j];
-      }
-    }
+    sptr = this;
+    comm->ring(size,sizeof(int),buf,1,ring_one,NULL);
 
-    delete [] buf;
-    delete [] bufcopy;
+    memory->destroy(buf);
   }
 
   // ----------------------------------------------------
@@ -153,7 +141,7 @@ void Special::build()
 
   // count = accumulating counter
 
-  count = new int[nlocal];
+  memory->create(count,nlocal,"special:count");
   for (i = 0; i < nlocal; i++) count[i] = 0;
 
   // add bond partners stored by atom to onetwo list
@@ -172,10 +160,7 @@ void Special::build()
 
     nbuf = 0;
     for (i = 0; i < nlocal; i++) nbuf += 2*num_bond[i];
-    MPI_Allreduce(&nbuf,&nbufmax,1,MPI_INT,MPI_MAX,world);
-
-    buf = new int[nbufmax];
-    bufcopy = new int[nbufmax];
+    memory->create(buf,nbuf,"special:buf");
 
     // fill buffer with global tags of both atoms in bond
 
@@ -190,26 +175,13 @@ void Special::build()
     // when receive buffer, scan 2nd-atom tags for atoms I own
     // when find one, add 1st-atom tag to onetwo list for 2nd atom
 
-    messtag = 2;
-    for (loop = 0; loop < nprocs; loop++) {
-      for (i = 1; i < size; i += 2) {
-        m = atom->map(buf[i]);
-        if (m >= 0 && m < nlocal) onetwo[m][count[m]++] = buf[i-1];
-      }
-      if (me != next) {
-        MPI_Irecv(bufcopy,nbufmax,MPI_INT,prev,messtag,world,&request);
-        MPI_Send(buf,size,MPI_INT,next,messtag,world);
-        MPI_Wait(&request,&status);
-        MPI_Get_count(&status,MPI_INT,&size);
-        for (j = 0; j < size; j++) buf[j] = bufcopy[j];
-      }
-    }
+    sptr = this;
+    comm->ring(size,sizeof(int),buf,2,ring_two,NULL);
 
-    delete [] buf;
-    delete [] bufcopy;
+    memory->destroy(buf);
   }
 
-  delete [] count;
+  memory->destroy(count);
 
   // -----------------------------------------------------
   // done if special_bonds for 1-3, 1-4 are set to 1.0
@@ -230,10 +202,7 @@ void Special::build()
 
   nbuf = 0;
   for (i = 0; i < nlocal; i++) nbuf += 2 + nspecial[i][0];
-  MPI_Allreduce(&nbuf,&nbufmax,1,MPI_INT,MPI_MAX,world);
-
-  buf = new int[nbufmax];
-  bufcopy = new int[nbufmax];
+  memory->create(buf,nbuf,"special:buf");
 
   // fill buffer with:
   // (1) = counter for 1-3 neighbors, initialized to 0
@@ -252,27 +221,8 @@ void Special::build()
   // when find one, increment 1-3 count by # of 1-2 neighbors of my atom,
   //   subtracting one since my list will contain original atom
 
-  messtag = 3;
-  for (loop = 0; loop < nprocs; loop++) {
-    i = 0;
-    while (i < size) {
-      n = buf[i];
-      num12 = buf[i+1];
-      for (j = 0; j < num12; j++) {
-        m = atom->map(buf[i+2+j]);
-        if (m >= 0 && m < nlocal) n += nspecial[m][0] - 1;
-      }
-      buf[i] = n;
-      i += 2 + num12;
-    }
-    if (me != next) {
-      MPI_Irecv(bufcopy,nbufmax,MPI_INT,prev,messtag,world,&request);
-      MPI_Send(buf,size,MPI_INT,next,messtag,world);
-      MPI_Wait(&request,&status);
-      MPI_Get_count(&status,MPI_INT,&size);
-      for (j = 0; j < size; j++) buf[j] = bufcopy[j];
-    }
-  }
+  sptr = this;
+  comm->ring(size,sizeof(int),buf,3,ring_three,buf);
 
   // extract count from buffer that has cycled back to me
   // nspecial[i][1] = # of 1-3 neighbors of atom i
@@ -283,8 +233,7 @@ void Special::build()
     j += 2 + nspecial[i][0];
   }
 
-  delete [] buf;
-  delete [] bufcopy;
+  memory->destroy(buf);
 
   // ----------------------------------------------------
   // create onethree[i] = list of 1-3 neighbors for atom i
@@ -307,10 +256,7 @@ void Special::build()
 
   nbuf = 0;
   for (i = 0; i < nlocal; i++) nbuf += 4 + nspecial[i][0] + nspecial[i][1];
-  MPI_Allreduce(&nbuf,&nbufmax,1,MPI_INT,MPI_MAX,world);
-
-  buf = new int[nbufmax];
-  bufcopy = new int[nbufmax];
+  memory->create(buf,nbuf,"special:buf");
 
   // fill buffer with:
   // (1) = global tag of original atom
@@ -337,32 +283,8 @@ void Special::build()
   //   exclude the atom whose tag = original
   //   this process may include duplicates but they will be culled later
 
-  messtag = 4;
-  for (loop = 0; loop < nprocs; loop++) {
-    i = 0;
-    while (i < size) {
-      original = buf[i];
-      num12 = buf[i+1];
-      num13 = buf[i+2];
-      n = buf[i+3];
-      for (j = 0; j < num12; j++) {
-        m = atom->map(buf[i+4+j]);
-        if (m >= 0 && m < nlocal)
-          for (k = 0; k < nspecial[m][0]; k++)
-            if (onetwo[m][k] != original)
-              buf[i+4+num12+(n++)] = onetwo[m][k];
-      }
-      buf[i+3] = n;
-      i += 4 + num12 + num13;
-    }
-    if (me != next) {
-      MPI_Irecv(bufcopy,nbufmax,MPI_INT,prev,messtag,world,&request);
-      MPI_Send(buf,size,MPI_INT,next,messtag,world);
-      MPI_Wait(&request,&status);
-      MPI_Get_count(&status,MPI_INT,&size);
-      for (j = 0; j < size; j++) buf[j] = bufcopy[j];
-    }
-  }
+  sptr = this;
+  comm->ring(size,sizeof(int),buf,4,ring_four,buf);
 
   // fill onethree with buffer values that have been returned to me
   // sanity check: accumulated buf[i+3] count should equal
@@ -377,8 +299,7 @@ void Special::build()
       onethree[i][k] = buf[j++];
   }
 
-  delete [] buf;
-  delete [] bufcopy;
+  memory->destroy(buf);
 
   // done if special_bonds for 1-4 are set to 1.0
 
@@ -397,10 +318,7 @@ void Special::build()
 
   nbuf = 0;
   for (i = 0; i < nlocal; i++) nbuf += 2 + nspecial[i][1];
-  MPI_Allreduce(&nbuf,&nbufmax,1,MPI_INT,MPI_MAX,world);
-
-  buf = new int[nbufmax];
-  bufcopy = new int[nbufmax];
+  memory->create(buf,nbuf,"special:buf");
 
   // fill buffer with:
   // (1) = counter for 1-4 neighbors, initialized to 0
@@ -419,27 +337,8 @@ void Special::build()
   // when find one, increment 1-4 count by # of 1-2 neighbors of my atom
   //   may include duplicates and original atom but they will be culled later
 
-  messtag = 5;
-  for (loop = 0; loop < nprocs; loop++) {
-    i = 0;
-    while (i < size) {
-      n = buf[i];
-      num13 = buf[i+1];
-      for (j = 0; j < num13; j++) {
-        m = atom->map(buf[i+2+j]);
-        if (m >= 0 && m < nlocal) n += nspecial[m][0];
-      }
-      buf[i] = n;
-      i += 2 + num13;
-    }
-    if (me != next) {
-      MPI_Irecv(bufcopy,nbufmax,MPI_INT,prev,messtag,world,&request);
-      MPI_Send(buf,size,MPI_INT,next,messtag,world);
-      MPI_Wait(&request,&status);
-      MPI_Get_count(&status,MPI_INT,&size);
-      for (j = 0; j < size; j++) buf[j] = bufcopy[j];
-    }
-  }
+  sptr = this;
+  comm->ring(size,sizeof(int),buf,5,ring_five,buf);
 
   // extract count from buffer that has cycled back to me
   // nspecial[i][2] = # of 1-4 neighbors of atom i
@@ -450,8 +349,7 @@ void Special::build()
     j += 2 + nspecial[i][1];
   }
 
-  delete [] buf;
-  delete [] bufcopy;
+  memory->destroy(buf);
 
   // ----------------------------------------------------
   // create onefour[i] = list of 1-4 neighbors for atom i
@@ -475,10 +373,7 @@ void Special::build()
   nbuf = 0;
   for (i = 0; i < nlocal; i++)
     nbuf += 3 + nspecial[i][1] + nspecial[i][2];
-  MPI_Allreduce(&nbuf,&nbufmax,1,MPI_INT,MPI_MAX,world);
-
-  buf = new int[nbufmax];
-  bufcopy = new int[nbufmax];
+  memory->create(buf,nbuf,"special:buf");
 
   // fill buffer with:
   // (1) = # of 1-3 neighbors
@@ -502,30 +397,8 @@ void Special::build()
   //   incrementing the count in buf(i+4)
   //   this process may include duplicates but they will be culled later
 
-  messtag = 6;
-  for (loop = 0; loop < nprocs; loop++) {
-    i = 0;
-    while (i < size) {
-      num13 = buf[i];
-      num14 = buf[i+1];
-      n = buf[i+2];
-      for (j = 0; j < num13; j++) {
-        m = atom->map(buf[i+3+j]);
-        if (m >= 0 && m < nlocal)
-          for (k = 0; k < nspecial[m][0]; k++)
-            buf[i+3+num13+(n++)] = onetwo[m][k];
-      }
-      buf[i+2] = n;
-      i += 3 + num13 + num14;
-    }
-    if (me != next) {
-      MPI_Irecv(bufcopy,nbufmax,MPI_INT,prev,messtag,world,&request);
-      MPI_Send(buf,size,MPI_INT,next,messtag,world);
-      MPI_Wait(&request,&status);
-      MPI_Get_count(&status,MPI_INT,&size);
-      for (j = 0; j < size; j++) buf[j] = bufcopy[j];
-    }
-  }
+  sptr = this;
+  comm->ring(size,sizeof(int),buf,6,ring_six,buf);
 
   // fill onefour with buffer values that have been returned to me
   // sanity check: accumulated buf[i+2] count should equal
@@ -540,8 +413,7 @@ void Special::build()
       onefour[i][k] = buf[j++];
   }
 
-  delete [] buf;
-  delete [] bufcopy;
+  memory->destroy(buf);
 
   combine();
   if (force->special_angle) angle_trim();
@@ -699,7 +571,7 @@ void Special::combine()
 
 void Special::angle_trim()
 {
-  int i,j,m,n,iglobal,jglobal,ilocal,jlocal;
+  int i,j,m,n;
   MPI_Request request;
   MPI_Status status;
 
@@ -743,7 +615,6 @@ void Special::angle_trim()
     int maxcount = 0;
     for (i = 0; i < nlocal; i++)
       maxcount = MAX(maxcount,nspecial[i][1]-nspecial[i][0]);
-    int **dflag;
     memory->create(dflag,nlocal,maxcount,"special::dflag");
 
     for (i = 0; i < nlocal; i++) {
@@ -757,12 +628,8 @@ void Special::angle_trim()
 
     int nbuf = 0;
     for (i = 0; i < nlocal; i++) nbuf += 2*num_angle[i] + 2*2*num_dihedral[i];
-
-    int nbufmax;
-    MPI_Allreduce(&nbuf,&nbufmax,1,MPI_INT,MPI_MAX,world);
-
-    int *buf = new int[nbufmax];
-    int *bufcopy = new int[nbufmax];
+    int *buf;
+    memory->create(buf,nbuf,"special:buf");
 
     // fill buffer with list of 1,3 atoms in each angle
     // and with list of 1,3 and 2,4 atoms in each dihedral
@@ -785,41 +652,8 @@ void Special::angle_trim()
     // when receive buffer, scan list of 1,3 atoms looking for atoms I own
     // when find one, scan its 1-3 neigh list and mark I,J as in an angle
 
-    int next = me + 1;
-    int prev = me -1;
-    if (next == nprocs) next = 0;
-    if (prev < 0) prev = nprocs - 1;
-
-    int messtag = 7;
-    for (int loop = 0; loop < nprocs; loop++) {
-      i = 0;
-      while (i < size) {
-        iglobal = buf[i];
-        jglobal = buf[i+1];
-        ilocal = atom->map(iglobal);
-        jlocal = atom->map(jglobal);
-        if (ilocal >= 0 && ilocal < nlocal)
-          for (m = nspecial[ilocal][0]; m < nspecial[ilocal][1]; m++)
-            if (jglobal == special[ilocal][m]) {
-              dflag[ilocal][m-nspecial[ilocal][0]] = 1;
-              break;
-            }
-        if (jlocal >= 0 && jlocal < nlocal)
-          for (m = nspecial[jlocal][0]; m < nspecial[jlocal][1]; m++)
-            if (iglobal == special[jlocal][m]) {
-              dflag[jlocal][m-nspecial[jlocal][0]] = 1;
-              break;
-            }
-        i += 2;
-      }
-      if (me != next) {
-        MPI_Irecv(bufcopy,nbufmax,MPI_INT,prev,messtag,world,&request);
-        MPI_Send(buf,size,MPI_INT,next,messtag,world);
-        MPI_Wait(&request,&status);
-        MPI_Get_count(&status,MPI_INT,&size);
-        for (j = 0; j < size; j++) buf[j] = bufcopy[j];
-      }
-    }
+    sptr = this;
+    comm->ring(size,sizeof(int),buf,7,ring_seven,NULL);
 
     // delete 1-3 neighbors if they are not flagged in dflag
     // preserve 1-4 neighbors
@@ -839,8 +673,7 @@ void Special::angle_trim()
     // clean up
 
     memory->destroy(dflag);
-    delete [] buf;
-    delete [] bufcopy;
+    memory->destroy(buf);
 
   // if no angles or dihedrals are defined,
   // delete all 1-3 neighs, preserving 1-4 neighs
@@ -880,7 +713,7 @@ void Special::angle_trim()
 
 void Special::dihedral_trim()
 {
-  int i,j,m,n,iglobal,jglobal,ilocal,jlocal;
+  int i,j,m,n;
   MPI_Request request;
   MPI_Status status;
 
@@ -918,7 +751,6 @@ void Special::dihedral_trim()
     int maxcount = 0;
     for (i = 0; i < nlocal; i++)
       maxcount = MAX(maxcount,nspecial[i][2]-nspecial[i][1]);
-    int **dflag;
     memory->create(dflag,nlocal,maxcount,"special::dflag");
 
     for (i = 0; i < nlocal; i++) {
@@ -931,12 +763,8 @@ void Special::dihedral_trim()
 
     int nbuf = 0;
     for (i = 0; i < nlocal; i++) nbuf += 2*num_dihedral[i];
-
-    int nbufmax;
-    MPI_Allreduce(&nbuf,&nbufmax,1,MPI_INT,MPI_MAX,world);
-
-    int *buf = new int[nbufmax];
-    int *bufcopy = new int[nbufmax];
+    int *buf;
+    memory->create(buf,nbuf,"special:buf");
 
     // fill buffer with list of 1,4 atoms in each dihedral
 
@@ -951,41 +779,8 @@ void Special::dihedral_trim()
     // when receive buffer, scan list of 1,4 atoms looking for atoms I own
     // when find one, scan its 1-4 neigh list and mark I,J as in a dihedral
 
-    int next = me + 1;
-    int prev = me -1;
-    if (next == nprocs) next = 0;
-    if (prev < 0) prev = nprocs - 1;
-
-    int messtag = 8;
-    for (int loop = 0; loop < nprocs; loop++) {
-      i = 0;
-      while (i < size) {
-        iglobal = buf[i];
-        jglobal = buf[i+1];
-        ilocal = atom->map(iglobal);
-        jlocal = atom->map(jglobal);
-        if (ilocal >= 0 && ilocal < nlocal)
-          for (m = nspecial[ilocal][1]; m < nspecial[ilocal][2]; m++)
-            if (jglobal == special[ilocal][m]) {
-              dflag[ilocal][m-nspecial[ilocal][1]] = 1;
-              break;
-            }
-        if (jlocal >= 0 && jlocal < nlocal)
-          for (m = nspecial[jlocal][1]; m < nspecial[jlocal][2]; m++)
-            if (iglobal == special[jlocal][m]) {
-              dflag[jlocal][m-nspecial[jlocal][1]] = 1;
-              break;
-            }
-        i += 2;
-      }
-      if (me != next) {
-        MPI_Irecv(bufcopy,nbufmax,MPI_INT,prev,messtag,world,&request);
-        MPI_Send(buf,size,MPI_INT,next,messtag,world);
-        MPI_Wait(&request,&status);
-        MPI_Get_count(&status,MPI_INT,&size);
-        for (j = 0; j < size; j++) buf[j] = bufcopy[j];
-      }
-    }
+    sptr = this;
+    comm->ring(size,sizeof(int),buf,8,ring_eight,NULL);
 
     // delete 1-4 neighbors if they are not flagged in dflag
 
@@ -1000,8 +795,7 @@ void Special::dihedral_trim()
     // clean up
 
     memory->destroy(dflag);
-    delete [] buf;
-    delete [] bufcopy;
+    memory->destroy(buf);
 
   // if no dihedrals are defined, delete all 1-4 neighs
 
@@ -1024,3 +818,254 @@ void Special::dihedral_trim()
               "  %g = # of 1-4 neighbors after dihedral trim\n",allcount);
   }
 }
+
+/* ----------------------------------------------------------------------
+   when receive buffer, scan tags for atoms I own
+   when find one, increment nspecial count for that atom
+------------------------------------------------------------------------- */
+
+void Special::ring_one(int ndatum, char *cbuf)
+{
+  Atom *atom = sptr->atom;
+  int **nspecial = atom->nspecial;
+  int nlocal = atom->nlocal;
+
+  int *buf = (int *) cbuf;
+  int m;
+
+  for (int i = 0; i < ndatum; i++) {
+    m = atom->map(buf[i]);
+    if (m >= 0 && m < nlocal) nspecial[m][0]++;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   when receive buffer, scan 2nd-atom tags for atoms I own
+   when find one, add 1st-atom tag to onetwo list for 2nd atom
+------------------------------------------------------------------------- */
+
+void Special::ring_two(int ndatum, char *cbuf)
+{
+  Atom *atom = sptr->atom;
+  int nlocal = atom->nlocal;
+
+  int **onetwo = sptr->onetwo;
+  int *count = sptr->count;
+
+  int *buf = (int *) cbuf;
+  int m;
+
+  for (int i = 1; i < ndatum; i += 2) {
+    m = atom->map(buf[i]);
+    if (m >= 0 && m < nlocal) onetwo[m][count[m]++] = buf[i-1];
+  }
+}
+
+/* ----------------------------------------------------------------------
+   when receive buffer, scan list of 1-2 neighbors for atoms I own
+   when find one, increment 1-3 count by # of 1-2 neighbors of my atom,
+     subtracting one since my list will contain original atom
+------------------------------------------------------------------------- */
+
+void Special::ring_three(int ndatum, char *cbuf)
+{
+  Atom *atom = sptr->atom;
+  int **nspecial = atom->nspecial;
+  int nlocal = atom->nlocal;
+
+  int *buf = (int *) cbuf;
+  int i,j,m,n,num12;
+
+  i = 0;
+  while (i < ndatum) {
+    n = buf[i];
+    num12 = buf[i+1];
+    for (j = 0; j < num12; j++) {
+      m = atom->map(buf[i+2+j]);
+      if (m >= 0 && m < nlocal) n += nspecial[m][0] - 1;
+    }
+    buf[i] = n;
+    i += 2 + num12;
+  }
+}
+
+/* ----------------------------------------------------------------------
+  when receive buffer, scan list of 1-2 neighbors for atoms I own
+  when find one, add its neighbors to 1-3 list
+    increment the count in buf(i+4)
+    exclude the atom whose tag = original
+    this process may include duplicates but they will be culled later
+------------------------------------------------------------------------- */
+
+void Special::ring_four(int ndatum, char *cbuf)
+{
+  Atom *atom = sptr->atom;
+  int **nspecial = atom->nspecial;
+  int nlocal = atom->nlocal;
+
+  int **onetwo = sptr->onetwo;
+
+  int *buf = (int *) cbuf;
+  int i,j,k,m,n,original,num12,num13;
+
+  i = 0;
+  while (i < ndatum) {
+    original = buf[i];
+    num12 = buf[i+1];
+    num13 = buf[i+2];
+    n = buf[i+3];
+    for (j = 0; j < num12; j++) {
+      m = atom->map(buf[i+4+j]);
+      if (m >= 0 && m < nlocal)
+        for (k = 0; k < nspecial[m][0]; k++)
+          if (onetwo[m][k] != original)
+            buf[i+4+num12+(n++)] = onetwo[m][k];
+    }
+    buf[i+3] = n;
+    i += 4 + num12 + num13;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   when receive buffer, scan list of 1-3 neighbors for atoms I own
+   when find one, increment 1-4 count by # of 1-2 neighbors of my atom
+     may include duplicates and original atom but they will be culled later
+------------------------------------------------------------------------- */
+
+void Special::ring_five(int ndatum, char *cbuf)
+{
+  Atom *atom = sptr->atom;
+  int **nspecial = atom->nspecial;
+  int nlocal = atom->nlocal;
+
+  int *buf = (int *) cbuf;
+  int i,j,m,n,num13;
+
+  i = 0;
+  while (i < ndatum) {
+    n = buf[i];
+    num13 = buf[i+1];
+    for (j = 0; j < num13; j++) {
+      m = atom->map(buf[i+2+j]);
+      if (m >= 0 && m < nlocal) n += nspecial[m][0];
+    }
+      buf[i] = n;
+      i += 2 + num13;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   when receive buffer, scan list of 1-3 neighbors for atoms I own
+   when find one, add its neighbors to 1-4 list
+     incrementing the count in buf(i+4)
+     this process may include duplicates but they will be culled later
+------------------------------------------------------------------------- */
+
+void Special::ring_six(int ndatum, char *cbuf)
+{
+  Atom *atom = sptr->atom;
+  int **nspecial = atom->nspecial;
+  int nlocal = atom->nlocal;
+
+  int **onetwo = sptr->onetwo;
+
+  int *buf = (int *) cbuf;
+  int i,j,k,m,n,num13,num14;
+
+  i = 0;
+  while (i < ndatum) {
+    num13 = buf[i];
+    num14 = buf[i+1];
+    n = buf[i+2];
+    for (j = 0; j < num13; j++) {
+      m = atom->map(buf[i+3+j]);
+      if (m >= 0 && m < nlocal)
+        for (k = 0; k < nspecial[m][0]; k++)
+          buf[i+3+num13+(n++)] = onetwo[m][k];
+    }
+    buf[i+2] = n;
+    i += 3 + num13 + num14;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   when receive buffer, scan list of 1,3 atoms looking for atoms I own
+   when find one, scan its 1-3 neigh list and mark I,J as in an angle
+------------------------------------------------------------------------- */
+
+void Special::ring_seven(int ndatum, char *cbuf)
+{
+  Atom *atom = sptr->atom;
+  int **nspecial = atom->nspecial;
+  int **special = atom->special;
+  int nlocal = atom->nlocal;
+
+  int **dflag = sptr->dflag;
+
+  int *buf = (int *) cbuf;
+  int i,m,iglobal,jglobal,ilocal,jlocal;
+
+  i = 0;
+  while (i < ndatum) {
+    iglobal = buf[i];
+    jglobal = buf[i+1];
+    ilocal = atom->map(iglobal);
+    jlocal = atom->map(jglobal);
+    if (ilocal >= 0 && ilocal < nlocal)
+      for (m = nspecial[ilocal][0]; m < nspecial[ilocal][1]; m++)
+        if (jglobal == special[ilocal][m]) {
+          dflag[ilocal][m-nspecial[ilocal][0]] = 1;
+          break;
+        }
+    if (jlocal >= 0 && jlocal < nlocal)
+      for (m = nspecial[jlocal][0]; m < nspecial[jlocal][1]; m++)
+        if (iglobal == special[jlocal][m]) {
+          dflag[jlocal][m-nspecial[jlocal][0]] = 1;
+          break;
+        }
+    i += 2;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   when receive buffer, scan list of 1,4 atoms looking for atoms I own
+   when find one, scan its 1-4 neigh list and mark I,J as in a dihedral
+------------------------------------------------------------------------- */
+
+void Special::ring_eight(int ndatum, char *cbuf)
+{
+  Atom *atom = sptr->atom;
+  int **nspecial = atom->nspecial;
+  int **special = atom->special;
+  int nlocal = atom->nlocal;
+
+  int **dflag = sptr->dflag;
+
+  int *buf = (int *) cbuf;
+  int i,m,iglobal,jglobal,ilocal,jlocal;
+
+  i = 0;
+  while (i < ndatum) {
+    iglobal = buf[i];
+    jglobal = buf[i+1];
+    ilocal = atom->map(iglobal);
+    jlocal = atom->map(jglobal);
+    if (ilocal >= 0 && ilocal < nlocal)
+      for (m = nspecial[ilocal][1]; m < nspecial[ilocal][2]; m++)
+        if (jglobal == special[ilocal][m]) {
+          dflag[ilocal][m-nspecial[ilocal][1]] = 1;
+          break;
+        }
+    if (jlocal >= 0 && jlocal < nlocal)
+      for (m = nspecial[jlocal][1]; m < nspecial[jlocal][2]; m++)
+        if (iglobal == special[jlocal][m]) {
+          dflag[jlocal][m-nspecial[jlocal][1]] = 1;
+          break;
+        }
+    i += 2;
+  }
+}
+
+
+
+

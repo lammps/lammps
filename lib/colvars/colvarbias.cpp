@@ -201,7 +201,7 @@ void colvarbias_harmonic::change_configuration(std::string const &conf)
 }
 
 
-cvm::real colvarbias_harmonic::energy_difference(std::string const &conf)
+cvm::real colvarbias_harmonic::energy_difference (std::string const &conf)
 {
   std::vector<colvarvalue> alt_colvar_centers;
   cvm::real alt_force_k;
@@ -221,7 +221,7 @@ cvm::real colvarbias_harmonic::energy_difference(std::string const &conf)
 
   for (size_t i = 0; i < colvars.size(); i++) {
     alt_bias_energy += 0.5 * alt_force_k / (colvars[i]->width * colvars[i]->width) *
-              colvars[i]->dist2(colvars[i]->value(), alt_colvar_centers[i]);
+      colvars[i]->dist2 (colvars[i]->value(), alt_colvar_centers[i]);
   }
 
   return alt_bias_energy - bias_energy;

@@ -34,9 +34,10 @@ class Special : protected Pointers {
   int *count;
   int **dflag;
 
-  void combine();
+  void dedup();
   void angle_trim();
   void dihedral_trim();
+  void combine();
 
   // static variable for ring communication callback to access class data
   // callback functions for ring communication

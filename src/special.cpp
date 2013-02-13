@@ -189,6 +189,7 @@ void Special::build()
 
   if (force->special_lj[2] == 1.0 && force->special_coul[2] == 1.0 &&
       force->special_lj[3] == 1.0 && force->special_coul[3] == 1.0) {
+    dedup();
     combine();
     return;
   }
@@ -241,7 +242,6 @@ void Special::build()
 
   max = 0;
   for (i = 0; i < nlocal; i++) max = MAX(max,nspecial[i][1]);
-
   MPI_Allreduce(&max,&maxall,1,MPI_INT,MPI_MAX,world);
 
   if (me == 0) {
@@ -304,8 +304,9 @@ void Special::build()
   // done if special_bonds for 1-4 are set to 1.0
 
   if (force->special_lj[3] == 1.0 && force->special_coul[3] == 1.0) {
-    combine();
+    dedup();
     if (force->special_angle) angle_trim();
+    combine();
     return;
   }
 
@@ -357,7 +358,6 @@ void Special::build()
 
   max = 0;
   for (i = 0; i < nlocal; i++) max = MAX(max,nspecial[i][2]);
-
   MPI_Allreduce(&max,&maxall,1,MPI_INT,MPI_MAX,world);
 
   if (me == 0) {
@@ -415,14 +415,89 @@ void Special::build()
 
   memory->destroy(buf);
 
-  combine();
+  dedup();
   if (force->special_angle) angle_trim();
   if (force->special_dihedral) dihedral_trim();
+  combine();
+}
+
+/* ----------------------------------------------------------------------
+   remove duplicates within each of onetwo, onethree, onefour individually
+------------------------------------------------------------------------- */
+
+void Special::dedup()
+{
+  int i,j,m;
+
+  // clear map so it can be used as scratch space
+
+  atom->map_clear();
+
+  // use map to cull duplicates
+  // exclude original atom explicitly
+  // adjust onetwo, onethree, onefour values to reflect removed duplicates
+  // must unset map for each atom
+
+  int **nspecial = atom->nspecial;
+  int *tag = atom->tag;
+  int nlocal = atom->nlocal;
+
+  int unique;
+
+  for (i = 0; i < nlocal; i++) {
+    unique = 0;
+    atom->map_one(tag[i],0);
+    for (j = 0; j < nspecial[i][0]; j++) {
+      m = onetwo[i][j];
+      if (atom->map(m) < 0) {
+        onetwo[i][unique++] = m;
+        atom->map_one(m,0);
+      }
+    }
+    nspecial[i][0] = unique;
+    atom->map_one(tag[i],-1);
+    for (j = 0; j < unique; j++) atom->map_one(onetwo[i][j],-1);
+  }
+
+  for (i = 0; i < nlocal; i++) {
+    unique = 0;
+    atom->map_one(tag[i],0);
+    for (j = 0; j < nspecial[i][1]; j++) {
+      m = onethree[i][j];
+      if (atom->map(m) < 0) {
+        onethree[i][unique++] = m;
+        atom->map_one(m,0);
+      }
+    }
+    nspecial[i][1] = unique;
+    atom->map_one(tag[i],-1);
+    for (j = 0; j < unique; j++) atom->map_one(onethree[i][j],-1);
+  }
+
+  for (i = 0; i < nlocal; i++) {
+    unique = 0;
+    atom->map_one(tag[i],0);
+    for (j = 0; j < nspecial[i][2]; j++) {
+      m = onefour[i][j];
+      if (atom->map(m) < 0) {
+        onefour[i][unique++] = m;
+        atom->map_one(m,0);
+      }
+    }
+    nspecial[i][2] = unique;
+    atom->map_one(tag[i],-1);
+    for (j = 0; j < unique; j++) atom->map_one(onefour[i][j],-1);
+  }
+
+  // re-create map
+
+  atom->nghost = 0;
+  atom->map_set();
 }
 
 /* ----------------------------------------------------------------------
    concatenate onetwo, onethree, onefour into master atom->special list
-   remove duplicates
+   remove duplicates between 3 lists, leave dup in first list it appears in
    convert nspecial[0], nspecial[1], nspecial[2] into cumulative counters
 ------------------------------------------------------------------------- */
 
@@ -433,9 +508,9 @@ void Special::combine()
   int me;
   MPI_Comm_rank(world,&me);
 
-  int nlocal = atom->nlocal;
   int **nspecial = atom->nspecial;
   int *tag = atom->tag;
+  int nlocal = atom->nlocal;
 
   // ----------------------------------------------------
   // compute culled maxspecial = max # of special neighs of any atom
@@ -448,13 +523,12 @@ void Special::combine()
   // unique = # of unique nspecial neighbors of one atom
   // cull duplicates using map to check for them
   // exclude original atom explicitly
-  // must re-clear map for each atom
+  // must unset map for each atom
 
   int unique;
   int maxspecial = 0;
 
   for (i = 0; i < nlocal; i++) {
-
     unique = 0;
     atom->map_one(tag[i],0);
 
@@ -486,7 +560,6 @@ void Special::combine()
     for (j = 0; j < nspecial[i][0]; j++) atom->map_one(onetwo[i][j],-1);
     for (j = 0; j < nspecial[i][1]; j++) atom->map_one(onethree[i][j],-1);
     for (j = 0; j < nspecial[i][2]; j++) atom->map_one(onefour[i][j],-1);
-
   }
 
   // compute global maxspecial, must be at least 1
@@ -522,7 +595,6 @@ void Special::combine()
   // nspecial[i][1] and nspecial[i][2] now become cumulative counters
 
   for (i = 0; i < nlocal; i++) {
-
     unique = 0;
     atom->map_one(tag[i],0);
 
@@ -555,7 +627,6 @@ void Special::combine()
 
     atom->map_one(tag[i],-1);
     for (j = 0; j < nspecial[i][2]; j++) atom->map_one(special[i][j],-1);
-
   }
 
   // re-create map
@@ -567,6 +638,7 @@ void Special::combine()
 /* ----------------------------------------------------------------------
    trim list of 1-3 neighbors by checking defined angles
    delete a 1-3 neigh if they are not end atoms of a defined angle
+     and if they are not 1,3 or 2,4 atoms of a defined dihedral
 ------------------------------------------------------------------------- */
 
 void Special::angle_trim()
@@ -584,15 +656,12 @@ void Special::angle_trim()
   int **dihedral_atom3 = atom->dihedral_atom3;
   int **dihedral_atom4 = atom->dihedral_atom4;
   int **nspecial = atom->nspecial;
-  int **special = atom->special;
   int nlocal = atom->nlocal;
 
   // stats on old 1-3 neighbor counts
 
   double onethreecount = 0.0;
-  for (i = 0; i < nlocal; i++)
-    onethreecount += nspecial[i][1] - nspecial[i][0];
-
+  for (i = 0; i < nlocal; i++) onethreecount += nspecial[i][1];
   double allcount;
   MPI_Allreduce(&onethreecount,&allcount,1,MPI_DOUBLE,MPI_SUM,world);
 
@@ -613,12 +682,11 @@ void Special::angle_trim()
     // dflag = flag for 1-3 neighs of all owned atoms
 
     int maxcount = 0;
-    for (i = 0; i < nlocal; i++)
-      maxcount = MAX(maxcount,nspecial[i][1]-nspecial[i][0]);
+    for (i = 0; i < nlocal; i++) maxcount = MAX(maxcount,nspecial[i][1]);
     memory->create(dflag,nlocal,maxcount,"special::dflag");
 
     for (i = 0; i < nlocal; i++) {
-      n = nspecial[i][1] - nspecial[i][0];
+      n = nspecial[i][1];
       for (j = 0; j < n; j++) dflag[i][j] = 0;
     }
 
@@ -656,18 +724,12 @@ void Special::angle_trim()
     comm->ring(size,sizeof(int),buf,7,ring_seven,NULL);
 
     // delete 1-3 neighbors if they are not flagged in dflag
-    // preserve 1-4 neighbors
 
-    int offset;
     for (i = 0; i < nlocal; i++) {
-      offset = m = nspecial[i][0];
-      for (j = nspecial[i][0]; j < nspecial[i][1]; j++)
-        if (dflag[i][j-offset]) special[i][m++] = special[i][j];
-      offset = m;
-      for (j = nspecial[i][1]; j < nspecial[i][2]; j++)
-        special[i][m++] = special[i][j];
-      nspecial[i][1] = offset;
-      nspecial[i][2] = m;
+      m = 0;
+      for (j = 0; j < nspecial[i][1]; j++)
+        if (dflag[i][j]) onethree[i][m++] = onethree[i][j];
+      nspecial[i][1] = m;
     }
 
     // clean up
@@ -675,25 +737,16 @@ void Special::angle_trim()
     memory->destroy(dflag);
     memory->destroy(buf);
 
-  // if no angles or dihedrals are defined,
-  // delete all 1-3 neighs, preserving 1-4 neighs
+  // if no angles or dihedrals are defined, delete all 1-3 neighs
 
   } else {
-    for (i = 0; i < nlocal; i++) {
-      m = nspecial[i][0];
-      for (j = nspecial[i][1]; j < nspecial[i][2]; j++)
-        special[i][m++] = special[i][j];
-      nspecial[i][1] = nspecial[i][0];
-      nspecial[i][2] = m;
-    }
+    for (i = 0; i < nlocal; i++) nspecial[i][1] = 0;
   }
 
   // stats on new 1-3 neighbor counts
 
   onethreecount = 0.0;
-  for (i = 0; i < nlocal; i++)
-    onethreecount += nspecial[i][1] - nspecial[i][0];
-
+  for (i = 0; i < nlocal; i++) onethreecount += nspecial[i][1];
   MPI_Allreduce(&onethreecount,&allcount,1,MPI_DOUBLE,MPI_SUM,world);
 
   if (me == 0) {
@@ -721,15 +774,12 @@ void Special::dihedral_trim()
   int **dihedral_atom1 = atom->dihedral_atom1;
   int **dihedral_atom4 = atom->dihedral_atom4;
   int **nspecial = atom->nspecial;
-  int **special = atom->special;
   int nlocal = atom->nlocal;
 
   // stats on old 1-4 neighbor counts
 
   double onefourcount = 0.0;
-  for (i = 0; i < nlocal; i++)
-    onefourcount += nspecial[i][2] - nspecial[i][1];
-
+  for (i = 0; i < nlocal; i++) onefourcount += nspecial[i][2];
   double allcount;
   MPI_Allreduce(&onefourcount,&allcount,1,MPI_DOUBLE,MPI_SUM,world);
 
@@ -749,12 +799,11 @@ void Special::dihedral_trim()
     // dflag = flag for 1-4 neighs of all owned atoms
 
     int maxcount = 0;
-    for (i = 0; i < nlocal; i++)
-      maxcount = MAX(maxcount,nspecial[i][2]-nspecial[i][1]);
+    for (i = 0; i < nlocal; i++) maxcount = MAX(maxcount,nspecial[i][2]);
     memory->create(dflag,nlocal,maxcount,"special::dflag");
 
     for (i = 0; i < nlocal; i++) {
-      n = nspecial[i][2] - nspecial[i][1];
+      n = nspecial[i][2];
       for (j = 0; j < n; j++) dflag[i][j] = 0;
     }
 
@@ -786,9 +835,9 @@ void Special::dihedral_trim()
 
     int offset;
     for (i = 0; i < nlocal; i++) {
-      offset = m = nspecial[i][1];
-      for (j = nspecial[i][1]; j < nspecial[i][2]; j++)
-        if (dflag[i][j-offset]) special[i][m++] = special[i][j];
+      m = 0;
+      for (j = 0; j < nspecial[i][2]; j++)
+        if (dflag[i][j]) onefour[i][m++] = onefour[i][j];
       nspecial[i][2] = m;
     }
 
@@ -799,14 +848,14 @@ void Special::dihedral_trim()
 
   // if no dihedrals are defined, delete all 1-4 neighs
 
-  } else for (i = 0; i < nlocal; i++) nspecial[i][2] = nspecial[i][1];
+  } else {
+    for (i = 0; i < nlocal; i++) nspecial[i][2] = 0;
+  }
 
   // stats on new 1-4 neighbor counts
 
   onefourcount = 0.0;
-  for (i = 0; i < nlocal; i++)
-    onefourcount += nspecial[i][2] - nspecial[i][1];
-
+  for (i = 0; i < nlocal; i++) onefourcount += nspecial[i][2];
   MPI_Allreduce(&onefourcount,&allcount,1,MPI_DOUBLE,MPI_SUM,world);
 
   if (me == 0) {
@@ -882,7 +931,8 @@ void Special::ring_three(int ndatum, char *cbuf)
     num12 = buf[i+1];
     for (j = 0; j < num12; j++) {
       m = atom->map(buf[i+2+j]);
-      if (m >= 0 && m < nlocal) n += nspecial[m][0] - 1;
+      if (m >= 0 && m < nlocal)
+        n += nspecial[m][0] - 1;
     }
     buf[i] = n;
     i += 2 + num12;
@@ -997,9 +1047,9 @@ void Special::ring_seven(int ndatum, char *cbuf)
 {
   Atom *atom = sptr->atom;
   int **nspecial = atom->nspecial;
-  int **special = atom->special;
   int nlocal = atom->nlocal;
 
+  int **onethree = sptr->onethree;
   int **dflag = sptr->dflag;
 
   int *buf = (int *) cbuf;
@@ -1012,15 +1062,15 @@ void Special::ring_seven(int ndatum, char *cbuf)
     ilocal = atom->map(iglobal);
     jlocal = atom->map(jglobal);
     if (ilocal >= 0 && ilocal < nlocal)
-      for (m = nspecial[ilocal][0]; m < nspecial[ilocal][1]; m++)
-        if (jglobal == special[ilocal][m]) {
-          dflag[ilocal][m-nspecial[ilocal][0]] = 1;
+      for (m = 0; m < nspecial[ilocal][1]; m++)
+        if (jglobal == onethree[ilocal][m]) {
+          dflag[ilocal][m] = 1;
           break;
         }
     if (jlocal >= 0 && jlocal < nlocal)
-      for (m = nspecial[jlocal][0]; m < nspecial[jlocal][1]; m++)
-        if (iglobal == special[jlocal][m]) {
-          dflag[jlocal][m-nspecial[jlocal][0]] = 1;
+      for (m = 0; m < nspecial[jlocal][1]; m++)
+        if (iglobal == onethree[jlocal][m]) {
+          dflag[jlocal][m] = 1;
           break;
         }
     i += 2;
@@ -1036,9 +1086,9 @@ void Special::ring_eight(int ndatum, char *cbuf)
 {
   Atom *atom = sptr->atom;
   int **nspecial = atom->nspecial;
-  int **special = atom->special;
   int nlocal = atom->nlocal;
 
+  int **onefour = sptr->onefour;
   int **dflag = sptr->dflag;
 
   int *buf = (int *) cbuf;
@@ -1051,21 +1101,17 @@ void Special::ring_eight(int ndatum, char *cbuf)
     ilocal = atom->map(iglobal);
     jlocal = atom->map(jglobal);
     if (ilocal >= 0 && ilocal < nlocal)
-      for (m = nspecial[ilocal][1]; m < nspecial[ilocal][2]; m++)
-        if (jglobal == special[ilocal][m]) {
-          dflag[ilocal][m-nspecial[ilocal][1]] = 1;
+      for (m = 0; m < nspecial[ilocal][2]; m++)
+        if (jglobal == onefour[ilocal][m]) {
+          dflag[ilocal][m] = 1;
           break;
         }
     if (jlocal >= 0 && jlocal < nlocal)
-      for (m = nspecial[jlocal][1]; m < nspecial[jlocal][2]; m++)
-        if (iglobal == special[jlocal][m]) {
-          dflag[jlocal][m-nspecial[jlocal][1]] = 1;
+      for (m = 0; m < nspecial[jlocal][2]; m++)
+        if (iglobal == onefour[jlocal][m]) {
+          dflag[jlocal][m] = 1;
           break;
         }
     i += 2;
   }
 }
-
-
-
-

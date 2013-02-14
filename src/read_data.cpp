@@ -34,9 +34,9 @@
 #include "angle.h"
 #include "dihedral.h"
 #include "improper.h"
+#include "special.h"
 #include "error.h"
 #include "memory.h"
-#include "special.h"
 
 using namespace LAMMPS_NS;
 

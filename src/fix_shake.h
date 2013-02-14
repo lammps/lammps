@@ -82,6 +82,7 @@ class FixShake : public Fix {
                                          // for angle cluster, 3rd value
                                          //   is angletype
   double **xshake;                       // unconstrained atom coords
+  int *nshake;                           // count
 
   int vflag;                            // virial flag
   double dtv,dtfsq;                     // timesteps for trial move
@@ -102,13 +103,21 @@ class FixShake : public Fix {
   int masscheck(double);
   void unconstrained_update();
   void unconstrained_update_respa(int);
-  void shake2(int);
+  void shake(int);
   void shake3(int);
   void shake4(int);
   void shake3angle(int);
   void stats();
   int bondfind(int, int, int);
   int anglefind(int, int, int);
+
+  // static variable for ring communication callback to access class data
+  // callback functions for ring communication
+
+  static FixShake *fsptr;
+  static void ring_bonds(int, char *);
+  static void ring_nshake(int, char *);
+  static void ring_shake(int, char *);
 };
 
 }

@@ -265,7 +265,7 @@ void Modify::setup_pre_neighbor()
     for (int i = 0; i < n_pre_neighbor; i++)
       fix[list_pre_neighbor[i]]->setup_pre_neighbor();
   else if (update->whichflag == 2)
-    for (int i = 0; i < n_pre_neighbor; i++)
+    for (int i = 0; i < n_min_pre_neighbor; i++)
       fix[list_min_pre_neighbor[i]]->min_setup_pre_neighbor();
 }
 

@@ -38,6 +38,10 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
+// allocate space for static class variable
+
+FixShake *FixShake::fsptr;
+
 #define BIG 1.0e20
 #define MASSDELTA 0.1
 
@@ -521,7 +525,7 @@ void FixShake::post_force(int vflag)
   int m;
   for (int i = 0; i < nlist; i++) {
     m = list[i];
-    if (shake_flag[m] == 2) shake2(m);
+    if (shake_flag[m] == 2) shake(m);
     else if (shake_flag[m] == 3) shake3(m);
     else if (shake_flag[m] == 4) shake4(m);
     else shake3angle(m);
@@ -560,7 +564,7 @@ void FixShake::post_force_respa(int vflag, int ilevel, int iloop)
   int m;
   for (int i = 0; i < nlist; i++) {
     m = list[i];
-    if (shake_flag[m] == 2) shake2(m);
+    if (shake_flag[m] == 2) shake(m);
     else if (shake_flag[m] == 3) shake3(m);
     else if (shake_flag[m] == 4) shake4(m);
     else shake3angle(m);
@@ -656,7 +660,7 @@ void FixShake::find_clusters()
   int max = 0;
   for (i = 0; i < nlocal; i++) max = MAX(max,nspecial[i][0]);
 
-  int *npartner,*nshake;
+  int *npartner;
   memory->create(npartner,nlocal,"shake:npartner");
   memory->create(nshake,nlocal,"shake:nshake");
 
@@ -719,10 +723,7 @@ void FixShake::find_clusters()
     }
   }
 
-  MPI_Allreduce(&nbuf,&nbufmax,1,MPI_INT,MPI_MAX,world);
-
-  buf = new int[nbufmax];
-  bufcopy = new int[nbufmax];
+  memory->create(buf,nbuf,"shake:buf");
 
   // fill buffer with info
 
@@ -745,39 +746,9 @@ void FixShake::find_clusters()
   }
 
   // cycle buffer around ring of procs back to self
-  // when receive buffer, scan bond partner IDs for atoms I own
-  // if I own partner:
-  //   fill in mask and type and massflag
-  //   search for bond with 1st atom and fill in bondtype
 
-  messtag = 1;
-  for (loop = 0; loop < nprocs; loop++) {
-    i = 0;
-    while (i < size) {
-      m = atom->map(buf[i+1]);
-      if (m >= 0 && m < nlocal) {
-        buf[i+2] = mask[m];
-        buf[i+3] = type[m];
-        if (nmass) {
-          if (rmass) massone = rmass[m];
-          else massone = mass[type[m]];
-          buf[i+4] = masscheck(massone);
-        }
-        if (buf[i+5] == 0) {
-          n = bondfind(m,buf[i],buf[i+1]);
-          if (n >= 0) buf[i+5] = bond_type[m][n];
-        }
-      }
-      i += nper;
-    }
-    if (me != next) {
-      MPI_Irecv(bufcopy,nbufmax,MPI_INT,prev,messtag,world,&request);
-      MPI_Send(buf,size,MPI_INT,next,messtag,world);
-      MPI_Wait(&request,&status);
-      MPI_Get_count(&status,MPI_INT,&size);
-      for (j = 0; j < size; j++) buf[j] = bufcopy[j];
-    }
-  }
+  fsptr = this;
+  comm->ring(size,sizeof(int),buf,1,ring_bonds,buf);
 
   // store partner info returned to me
 
@@ -793,8 +764,7 @@ void FixShake::find_clusters()
     m += nper;
   }
 
-  delete [] buf;
-  delete [] bufcopy;
+  memory->destroy(buf);
 
   // error check for unfilled partner info
   // if partner_type not set, is an error
@@ -885,10 +855,7 @@ void FixShake::find_clusters()
     }
   }
 
-  MPI_Allreduce(&nbuf,&nbufmax,1,MPI_INT,MPI_MAX,world);
-
-  buf = new int[nbufmax];
-  bufcopy = new int[nbufmax];
+  memory->create(buf,nbuf,"shake:buf");
 
   // fill buffer with info
 
@@ -905,28 +872,12 @@ void FixShake::find_clusters()
   }
 
   // cycle buffer around ring of procs back to self
-  // when receive buffer, scan bond partner IDs for atoms I own
-  // if I own partner, fill in nshake value
 
-  messtag = 2;
-  for (loop = 0; loop < nprocs; loop++) {
-    i = 0;
-    while (i < size) {
-      m = atom->map(buf[i+1]);
-      if (m >= 0 && m < nlocal) buf[i+2] = nshake[m];
-      i += 3;
-    }
-    if (me != next) {
-      MPI_Irecv(bufcopy,nbufmax,MPI_INT,prev,messtag,world,&request);
-      MPI_Send(buf,size,MPI_INT,next,messtag,world);
-      MPI_Wait(&request,&status);
-      MPI_Get_count(&status,MPI_INT,&size);
-      for (j = 0; j < size; j++) buf[j] = bufcopy[j];
-    }
-  }
+  fsptr = this;
+  comm->ring(size,sizeof(int),buf,2,ring_nshake,buf);
 
   // store partner info returned to me
-
+  
   m = 0;
   while (m < size) {
     i = atom->map(buf[m]);
@@ -936,8 +887,7 @@ void FixShake::find_clusters()
     m += 3;
   }
 
-  delete [] buf;
-  delete [] bufcopy;
+  memory->destroy(buf);
 
   // -----------------------------------------------------
   // error checks
@@ -1050,10 +1000,7 @@ void FixShake::find_clusters()
     }
   }
 
-  MPI_Allreduce(&nbuf,&nbufmax,1,MPI_INT,MPI_MAX,world);
-
-  buf = new int[nbufmax];
-  bufcopy = new int[nbufmax];
+  memory->create(buf,nbuf,"shake:buf");
 
   // fill buffer with info
 
@@ -1079,37 +1026,11 @@ void FixShake::find_clusters()
   }
 
   // cycle buffer around ring of procs back to self
-  // when receive buffer, scan for ID that I own
-  // if I own ID, fill in shake array values
 
-  messtag = 3;
-  for (loop = 0; loop < nprocs; loop++) {
-    i = 0;
-    while (i < size) {
-      m = atom->map(buf[i]);
-      if (m >= 0 && m < nlocal) {
-        shake_flag[m] = buf[i+1];
-        shake_atom[m][0] = buf[i+2];
-        shake_atom[m][1] = buf[i+3];
-        shake_atom[m][2] = buf[i+4];
-        shake_atom[m][3] = buf[i+5];
-        shake_type[m][0] = buf[i+6];
-        shake_type[m][1] = buf[i+7];
-        shake_type[m][2] = buf[i+8];
-      }
-      i += 9;
-    }
-    if (me != next) {
-      MPI_Irecv(bufcopy,nbufmax,MPI_INT,prev,messtag,world,&request);
-      MPI_Send(buf,size,MPI_INT,next,messtag,world);
-      MPI_Wait(&request,&status);
-      MPI_Get_count(&status,MPI_INT,&size);
-      for (j = 0; j < size; j++) buf[j] = bufcopy[j];
-    }
-  }
+  fsptr = this;
+  comm->ring(size,sizeof(int),buf,3,ring_shake,NULL);
 
-  delete [] buf;
-  delete [] bufcopy;
+  memory->destroy(buf);
 
   // -----------------------------------------------------
   // free local memory
@@ -1197,6 +1118,99 @@ void FixShake::find_clusters()
 }
 
 /* ----------------------------------------------------------------------
+   when receive buffer, scan bond partner IDs for atoms I own
+   if I own partner:
+     fill in mask and type and massflag
+     search for bond with 1st atom and fill in bondtype
+------------------------------------------------------------------------- */
+
+void FixShake::ring_bonds(int ndatum, char *cbuf)
+{
+  Atom *atom = fsptr->atom;
+  double *rmass = atom->rmass;
+  double *mass = atom->mass;
+  int *mask = atom->mask;
+  int **bond_type = atom->bond_type;
+  int *type = atom->type;
+  int nlocal = atom->nlocal;
+  int nmass = fsptr->nmass;
+
+  int *buf = (int *) cbuf;
+  int m,n;
+  double massone;
+
+  for (int i = 0; i < ndatum; i += 6) {
+    m = atom->map(buf[i+1]);
+    if (m >= 0 && m < nlocal) {
+      buf[i+2] = mask[m];
+      buf[i+3] = type[m];
+      if (nmass) {
+        if (rmass) massone = rmass[m];
+        else massone = mass[type[m]];
+        buf[i+4] = fsptr->masscheck(massone);
+      }
+      if (buf[i+5] == 0) {
+        n = fsptr->bondfind(m,buf[i],buf[i+1]);
+        if (n >= 0) buf[i+5] = bond_type[m][n];
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   when receive buffer, scan bond partner IDs for atoms I own
+   if I own partner, fill in nshake value
+------------------------------------------------------------------------- */
+
+void FixShake::ring_nshake(int ndatum, char *cbuf)
+{
+  Atom *atom = fsptr->atom;
+  int nlocal = atom->nlocal;
+
+  int *nshake = fsptr->nshake;
+
+  int *buf = (int *) cbuf;
+  int m;
+
+  for (int i = 0; i < ndatum; i += 3) {
+    m = atom->map(buf[i+1]);
+    if (m >= 0 && m < nlocal) buf[i+2] = nshake[m];
+  }
+}
+
+/* ----------------------------------------------------------------------
+   when receive buffer, scan bond partner IDs for atoms I own
+   if I own partner, fill in nshake value
+------------------------------------------------------------------------- */
+
+void FixShake::ring_shake(int ndatum, char *cbuf)
+{
+  Atom *atom = fsptr->atom;
+  int nlocal = atom->nlocal;
+
+  int *shake_flag = fsptr->shake_flag;
+  int **shake_atom = fsptr->shake_atom;
+  int **shake_type = fsptr->shake_type;
+
+  int *buf = (int *) cbuf;
+  int m;
+
+  for (int i = 0; i < ndatum; i += 9) {
+    m = atom->map(buf[i]);
+    if (m >= 0 && m < nlocal) {
+      shake_flag[m] = buf[i+1];
+      shake_atom[m][0] = buf[i+2];
+      shake_atom[m][1] = buf[i+3];
+      shake_atom[m][2] = buf[i+4];
+      shake_atom[m][3] = buf[i+5];
+      shake_type[m][0] = buf[i+6];
+      shake_type[m][1] = buf[i+7];
+      shake_type[m][2] = buf[i+8];
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
    check if massone is within MASSDELTA of any mass in mass_list
    return 1 if yes, 0 if not
 ------------------------------------------------------------------------- */
@@ -1252,7 +1266,7 @@ void FixShake::unconstrained_update_respa(int ilevel)
   // for levels > 0 this includes more than one velocity update
   // xshake = predicted position from call to this routine at level N =
   // x + dt0 (v + dtN/m fN + 1/2 dt(N-1)/m f(N-1) + ... + 1/2 dt0/m f0)
-  // also set dtfsq = dt0*dtN so that shake2,shake3,etc can use it
+  // also set dtfsq = dt0*dtN so that shake,shake3,etc can use it
 
   double ***f_level = ((FixRespa *) modify->fix[ifix_respa])->f_level;
   dtfsq = dtf_inner * step_respa[ilevel];
@@ -1298,7 +1312,7 @@ void FixShake::unconstrained_update_respa(int ilevel)
 
 /* ---------------------------------------------------------------------- */
 
-void FixShake::shake2(int m)
+void FixShake::shake(int m)
 {
   int nlist,list[2];
   double v[6];

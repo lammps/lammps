@@ -72,7 +72,6 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   virial_flag = 1;
   create_attribute = 1;
 
-
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 
@@ -291,20 +290,26 @@ void FixRigidSmall::init()
     step_respa = ((Respa *) update->integrate)->step;
 }
 
+/* ----------------------------------------------------------------------
+   one-time initialization of rigid body attributes via local comm
+   extended flags, mass, COM, inertia tensor, displacement of each atom
+   require communication stencil have been setup by comm->borders()
+------------------------------------------------------------------------- */
+
+void FixRigidSmall::setup_pre_neighbor()
+{
+  if (firstflag) {
+    firstflag = 0;
+    setup_bodies();
+  }
+}
+
 /* ---------------------------------------------------------------------- */
 
 void FixRigidSmall::setup(int vflag)
 {
   int i,n,ibody;
   double massone,radone;
-
-  // one-time initialization of rigid body attributes via local comm
-  // extended flags, mass, COM, inertia tensor, displacement of each atom
-
-  if (firstflag) {
-    firstflag = 0;
-    setup_bodies();
-  }
 
   //check(1);
 
@@ -722,11 +727,6 @@ void FixRigidSmall::final_integrate_respa(int ilevel, int iloop)
 
 void FixRigidSmall::pre_neighbor()
 {
-  // do nothing if bodies are not yet initialized 
-  // i.e. pre_neighbor() is being called from Verlet::setup()
-
-  if (firstflag) return;
-
   // remap xcm and image flags of each body as needed
 
   tagint original,oldimage,newimage;
@@ -811,13 +811,6 @@ int FixRigidSmall::dof(int tgroup)
   int i,j;
 
   int tgroupbit = group->bitmask[tgroup];
-
-  // if firstflag, just return 0
-  // is being called by first run init()
-  // local comm stencil is not setup and rigid body inertia is not calculated
-  // will be called again by temperature compute setup()
-
-  if (firstflag) return 0;
 
   // counts = 3 values per rigid body I own
   // 0 = # of point particles in rigid body and in temperature group
@@ -1545,7 +1538,6 @@ void FixRigidSmall::setup_bodies()
   reset_atom2body();
 
   // compute mass & center-of-mass of each rigid body
-  // error if image flag is not 0 in a non-periodic dim
 
   double **x = atom->x;
   tagint *image = atom->image;
@@ -2084,7 +2076,10 @@ int FixRigidSmall::unpack_exchange(int nlocal, double *buf)
 
   // atom not in a rigid body
 
-  if (!bodytag[nlocal]) return m;
+  if (!bodytag[nlocal]) {
+    bodyown[nlocal] = -1;
+    return m;
+  }
 
   // atom does not own its rigid body
 

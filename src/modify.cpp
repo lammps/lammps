@@ -158,10 +158,10 @@ void Modify::init()
   list_init(MIN_ENERGY,n_min_energy,list_min_energy);
 
   // init each fix
-  // needs to come before compute init
-  // this is b/c some computes call fix->dof()
-  // FixRigid::dof() depends on its own init having been called
-  // NOTE: 2/13, this may no longer be needed b/c computes do dof in setup()
+  // not sure if now needs to come before compute init
+  // used to b/c temperature computes called fix->dof() in their init,
+  // and fix rigid required its own init before its dof() could be called,
+  // but computes now do their DOF in setup()
 
   for (i = 0; i < nfix; i++) fix[i]->init();
 
@@ -228,8 +228,9 @@ void Modify::init()
 
 void Modify::setup(int vflag)
 {
-  // invoke computes before fixes
-  // this is b/c NH fixes need temperature compute DOF
+  // setup each compute
+  // needs to come before fix setup
+  // this is b/c NH fixes need use DOF of temperature computes
 
   for (int i = 0; i < ncompute; i++) compute[i]->setup();
 

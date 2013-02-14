@@ -99,10 +99,16 @@ void ComputeTempSphere::init()
     if (tbias->igroup != igroup)
       error->all(FLERR,"Bias compute group does not match compute group");
     tbias->init();
+    tbias->setup();
     if (strcmp(tbias->style,"temp/region") == 0) tempbias = 2;
     else tempbias = 1;
   }
+}
 
+/* ---------------------------------------------------------------------- */
+
+void ComputeTempSphere::setup()
+{
   fix_dof = 0;
   for (int i = 0; i < modify->nfix; i++)
     fix_dof += modify->fix[i]->dof(igroup);

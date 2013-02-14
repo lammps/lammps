@@ -1131,12 +1131,13 @@ void FixRigid::pre_neighbor()
 }
 
 /* ----------------------------------------------------------------------
-   count # of degrees-of-freedom removed by rigid bodies for atoms in igroup
+   count # of DOF removed by rigid bodies for atoms in igroup
+   return total count of DOF
 ------------------------------------------------------------------------- */
 
-int FixRigid::dof(int igroup)
+int FixRigid::dof(int tgroup)
 {
-  int groupbit = group->bitmask[igroup];
+  int tgroupbit = group->bitmask[tgroup];
 
   // nall = # of point particles in each rigid body
   // mall = # of finite-size particles in each rigid body
@@ -1151,7 +1152,7 @@ int FixRigid::dof(int igroup)
     ncount[ibody] = mcount[ibody] = 0;
 
   for (int i = 0; i < nlocal; i++)
-    if (body[i] >= 0 && mask[i] & groupbit) {
+    if (body[i] >= 0 && mask[i] & tgroupbit) {
       if (extended && eflags[i]) mcount[body[i]]++;
       else ncount[body[i]]++;
     }

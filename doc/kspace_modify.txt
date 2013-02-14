@@ -36,6 +36,7 @@ keyword = {mesh} or {order} or {order/disp} or {overlap} or {minorder} or {force
   {nozforce} turns off kspace forces in the z direction
   {compute} value = {yes} or {no} 
   {cutoff/adjust} value = {yes} or {no} 
+  {fftbench} value = {yes} or {no} 
   {diff} value = {ad} or {ik} = 2 or 4 FFTs for PPPM in smoothed or non-smoothed mode :pre
 :ule
 
@@ -185,6 +186,11 @@ grid that minimizes cost using an estimate given by
 "(Hardy)"_#Hardy. Note that this cost estimate is not exact, somewhat
 experimental, and still may not yield the optimal parameters.
 
+The {fftbench} keyword applies only to PPPM. It is on by default. If
+this option is turned off, LAMMPS will not take the time at the end
+of a run to give FFT benchmark timings, and will finish a few seconds
+faster than it would if this option were on.
+
 The {diff} keyword specifies the differentiation scheme used by the
 PPPM method to compute forces on particles given electrostatic
 potentials on the PPPM mesh.  The {ik} approach is the default for
@@ -215,7 +221,7 @@ option.  Support for those PPPM variants will be added later.
 The option defaults are mesh = mesh/disp = 0 0 0, order = order/disp =
 5 (PPPM), order = 8 (MSM), minorder = 2, overlap = yes, force = -1.0,
 gewald = gewald/disp = 0.0, slab = 1.0, compute = yes, cutoff/adjust =
-yes (MSM), and diff = ik (PPPM).
+yes (MSM), fftbench = yes (PPPM), and diff = ik (PPPM).
 
 :line
 

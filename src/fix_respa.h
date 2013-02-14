@@ -27,6 +27,7 @@ namespace LAMMPS_NS {
 class FixRespa : public Fix {
   friend class Respa;
   friend class FixShake;
+  friend class FixShake2;
 
  public:
   FixRespa(class LAMMPS *, int, char **);

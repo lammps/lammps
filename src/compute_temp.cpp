@@ -50,7 +50,7 @@ ComputeTemp::~ComputeTemp()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeTemp::init()
+void ComputeTemp::setup()
 {
   fix_dof = 0;
   for (int i = 0; i < modify->nfix; i++)

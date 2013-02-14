@@ -41,11 +41,21 @@ PairLJCutTIP4PLongOMP::PairLJCutTIP4PLongOMP(LAMMPS *lmp) :
 {
   suffix_flag |= Suffix::OMP;
   respa_enable = 0;
+  newsite_thr = NULL;
+  hneigh_thr = NULL;
 
   // TIP4P cannot compute virial as F dot r
   // due to finding bonded H atoms which are not near O atom
 
   no_virial_fdotr_compute = 1;
+}
+
+/* ---------------------------------------------------------------------- */
+
+PairLJCutTIP4PLongOMP::~PairLJCutTIP4PLongOMP() 
+{
+  memory->destroy(hneigh_thr);
+  memory->destroy(newsite_thr);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -58,23 +68,27 @@ void PairLJCutTIP4PLongOMP::compute(int eflag, int vflag)
   const int nlocal = atom->nlocal;
   const int nall = nlocal + atom->nghost;
 
-  // reallocate hneigh & newsite if necessary
-  // initialize hneigh[0] to -1 on steps when reneighboring occurred
-  // initialize hneigh[2] to 0 every step
+  // reallocate hneigh_thr & newsite_thr if necessary
+  // initialize hneigh_thr[0] to -1 on steps when reneighboring occurred
+  // initialize hneigh_thr[2] to 0 every step
 
   if (atom->nmax > nmax) {
     nmax = atom->nmax;
-    memory->destroy(hneigh);
-    memory->create(hneigh,nmax,3,"pair:hneigh");
-    memory->destroy(newsite);
-    memory->create(newsite,nmax,3,"pair:newsite");
+    memory->destroy(hneigh_thr);
+    memory->create(hneigh_thr,nmax,"pair:hneigh_thr");
+    memory->destroy(newsite_thr);
+    memory->create(newsite_thr,nmax,"pair:newsite_thr");
   }
 
-  // XXX: this could be threaded, too.
   int i;
+  // tag entire list as completely invalid after a neighbor
+  // list update, since that can change the order of atoms.
   if (neighbor->ago == 0)
-    for (i = 0; i < nall; i++) hneigh[i][0] = -1;
-  for (i = 0; i < nall; i++) hneigh[i][2] = 0;
+    for (i = 0; i < nall; i++) hneigh_thr[i].a = -1;
+
+  // indicate that the coordinates for the M point need to
+  // be updated. this needs to be done in every step.
+  for (i = 0; i < nall; i++) hneigh_thr[i].t = 0;
 
   const int nthreads = comm->nthreads;
   const int inum = list->inum;
@@ -120,9 +134,6 @@ void PairLJCutTIP4PLongOMP::compute(int eflag, int vflag)
 template <int CTABLE, int EVFLAG, int EFLAG, int VFLAG>
 void PairLJCutTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
-  int i,j,ii,jj,jnum,itype,jtype,itable, key;
-  int n,vlist[6];
-  int iH1,iH2,jH1,jH2;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul;
   double fraction,table;
   double r,rsq,r2inv,r6inv,forcecoul,forcelj,cforce;
@@ -130,19 +141,22 @@ void PairLJCutTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
   double grij,expm2,prefactor,t,erfc;
   double v[6],xH1[3],xH2[3];
   double fdx,fdy,fdz,fOx,fOy,fOz,fHx,fHy,fHz;
-  const double *x1,*x2;
-  int *ilist,*jlist,*numneigh,**firstneigh;
+  dbl3_t x1,x2;
 
+  int *ilist,*jlist,*numneigh,**firstneigh;
+  int i,j,ii,jj,jnum,itype,jtype,itable, key;
+  int n,vlist[6];
+  int iH1,iH2,jH1,jH2;
+  
   evdwl = ecoul = 0.0;
 
-  const double * const * const x = atom->x;
-  double * const * const f = thr->get_f();
-  const double * const q = atom->q;
-  const int * const type = atom->type;
+  const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
+  dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
+  const double * _noalias const q = atom->q;
+  const int * _noalias const type = atom->type;
   const int nlocal = atom->nlocal;
-  const int tid = thr->get_tid();
-  const double * const special_coul = force->special_coul;
-  const double * const special_lj = force->special_lj;
+  const double * _noalias const special_coul = force->special_coul;
+  const double * _noalias const special_lj = force->special_lj;
   const double qqrd2e = force->qqrd2e;
   const double cut_coulsqplus = (cut_coul+2.0*qdist) * (cut_coul+2.0*qdist);
 
@@ -157,39 +171,39 @@ void PairLJCutTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
   for (ii = iifrom; ii < iito; ++ii) {
     i = ilist[ii];
     qtmp = q[i];
-    xtmp = x[i][0];
-    ytmp = x[i][1];
-    ztmp = x[i][2];
+    xtmp = x[i].x;
+    ytmp = x[i].y;
+    ztmp = x[i].z;
     itype = type[i];
 
     // if atom I = water O, set x1 = offset charge site
     // else x1 = x of atom I
     // NOTE: to make this part thread safe, we need to
-    // make sure that the hneigh[][] entries only get
+    // make sure that the hneigh_thr[][] entries only get
     // updated, when all data is in place. worst case,
     // some calculation is repeated, but since the results
     // will be the same, there is no race condition.
     if (itype == typeO) {
-      if (hneigh[i][0] < 0) {
+      if (hneigh_thr[i].a < 0) {
         iH1 = atom->map(atom->tag[i] + 1);
         iH2 = atom->map(atom->tag[i] + 2);
         if (iH1 == -1 || iH2 == -1)
           error->one(FLERR,"TIP4P hydrogen is missing");
         if (atom->type[iH1] != typeH || atom->type[iH2] != typeH)
           error->one(FLERR,"TIP4P hydrogen has incorrect atom type");
-        compute_newsite_thr(x[i],x[iH1],x[iH2],newsite[i]);
-        hneigh[i][2] = 1;
-        hneigh[i][1] = iH2;
-        hneigh[i][0] = iH1;
+        compute_newsite_thr(x[i],x[iH1],x[iH2],newsite_thr[i]);
+        hneigh_thr[i].t = 1;
+        hneigh_thr[i].b = iH2;
+        hneigh_thr[i].a = iH1;
       } else {
-        iH1 = hneigh[i][0];
-        iH2 = hneigh[i][1];
-        if (hneigh[i][2] == 0) {
-          compute_newsite_thr(x[i],x[iH1],x[iH2],newsite[i]);
-          hneigh[i][2] = 1;
+        iH1 = hneigh_thr[i].a;
+        iH2 = hneigh_thr[i].b;
+        if (hneigh_thr[i].t == 0) {
+          compute_newsite_thr(x[i],x[iH1],x[iH2],newsite_thr[i]);
+          hneigh_thr[i].t = 1;
         }
       }
-      x1 = newsite[i];
+      x1 = newsite_thr[i];
     } else x1 = x[i];
 
     jlist = firstneigh[i];
@@ -202,9 +216,9 @@ void PairLJCutTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
       factor_coul = special_coul[sbmask(j)];
       j &= NEIGHMASK;
 
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
+      delx = xtmp - x[j].x;
+      dely = ytmp - x[j].y;
+      delz = ztmp - x[j].z;
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
 
@@ -219,9 +233,9 @@ void PairLJCutTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
         fxtmp += delx*forcelj;
         fytmp += dely*forcelj;
         fztmp += delz*forcelj;
-        f[j][0] -= delx*forcelj;
-        f[j][1] -= dely*forcelj;
-        f[j][2] -= delz*forcelj;
+        f[j].x -= delx*forcelj;
+        f[j].y -= dely*forcelj;
+        f[j].z -= delz*forcelj;
 
         if (EFLAG) {
           evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
@@ -236,7 +250,7 @@ void PairLJCutTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
       // adjust rsq and delxyz for off-site O charge(s) if necessary
       // but only if they are within reach
       // NOTE: to make this part thread safe, we need to
-      // make sure that the hneigh[][] entries only get
+      // make sure that the hneigh_thr[][] entries only get
       // updated, when all data is in place. worst case,
       // some calculation is repeated, but since the results
       // will be the same, there is no race condition.
@@ -247,31 +261,31 @@ void PairLJCutTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
           // else x2 = x of atom J
 
           if (jtype == typeO) {
-            if (hneigh[j][0] < 0) {
+            if (hneigh_thr[j].a < 0) {
               jH1 = atom->map(atom->tag[j] + 1);
               jH2 = atom->map(atom->tag[j] + 2);
               if (jH1 == -1 || jH2 == -1)
                 error->one(FLERR,"TIP4P hydrogen is missing");
               if (atom->type[jH1] != typeH || atom->type[jH2] != typeH)
                 error->one(FLERR,"TIP4P hydrogen has incorrect atom type");
-              compute_newsite_thr(x[j],x[jH1],x[jH2],newsite[j]);
-              hneigh[j][2] = 1;
-              hneigh[j][1] = jH2;
-              hneigh[j][0] = jH1;
+              compute_newsite_thr(x[j],x[jH1],x[jH2],newsite_thr[j]);
+              hneigh_thr[j].t = 1;
+              hneigh_thr[j].b = jH2;
+              hneigh_thr[j].a = jH1;
             } else {
-              jH1 = hneigh[j][0];
-              jH2 = hneigh[j][1];
-              if (hneigh[j][2] == 0) {
-                compute_newsite_thr(x[j],x[jH1],x[jH2],newsite[j]);
-                hneigh[j][2] = 1;
+              jH1 = hneigh_thr[j].a;
+              jH2 = hneigh_thr[j].b;
+              if (hneigh_thr[j].t == 0) {
+                compute_newsite_thr(x[j],x[jH1],x[jH2],newsite_thr[j]);
+                hneigh_thr[j].t = 1;
               }
             }
-            x2 = newsite[j];
+            x2 = newsite_thr[j];
           } else x2 = x[j];
 
-          delx = x1[0] - x2[0];
-          dely = x1[1] - x2[1];
-          delz = x1[2] - x2[2];
+          delx = x1.x - x2.x;
+          dely = x1.y - x2.y;
+          delz = x1.z - x2.z;
           rsq = delx*delx + dely*dely + delz*delz;
         }
 
@@ -324,12 +338,12 @@ void PairLJCutTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
             fztmp += delz * cforce;
 
             if (VFLAG) {
-              v[0] = x[i][0] * delx * cforce;
-              v[1] = x[i][1] * dely * cforce;
-              v[2] = x[i][2] * delz * cforce;
-              v[3] = x[i][0] * dely * cforce;
-              v[4] = x[i][0] * delz * cforce;
-              v[5] = x[i][1] * delz * cforce;
+              v[0] = x[i].x * delx * cforce;
+              v[1] = x[i].y * dely * cforce;
+              v[2] = x[i].z * delz * cforce;
+              v[3] = x[i].x * dely * cforce;
+              v[4] = x[i].x * delz * cforce;
+              v[5] = x[i].y * delz * cforce;
             }
             vlist[n++] = i;
 
@@ -352,24 +366,24 @@ void PairLJCutTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
             fytmp += fOy;
             fztmp += fOz;
 
-            f[iH1][0] += fHx;
-            f[iH1][1] += fHy;
-            f[iH1][2] += fHz;
+            f[iH1].x += fHx;
+            f[iH1].y += fHy;
+            f[iH1].z += fHz;
 
-            f[iH2][0] += fHx;
-            f[iH2][1] += fHy;
-            f[iH2][2] += fHz;
+            f[iH2].x += fHx;
+            f[iH2].y += fHy;
+            f[iH2].z += fHz;
 
             if (VFLAG) {
-              domain->closest_image(x[i],x[iH1],xH1);
-              domain->closest_image(x[i],x[iH2],xH2);
+              domain->closest_image(&x[i].x,&x[iH1].x,xH1);
+              domain->closest_image(&x[i].x,&x[iH2].x,xH2);
 
-              v[0] = x[i][0]*fOx + xH1[0]*fHx + xH2[0]*fHx;
-              v[1] = x[i][1]*fOy + xH1[1]*fHy + xH2[1]*fHy;
-              v[2] = x[i][2]*fOz + xH1[2]*fHz + xH2[2]*fHz;
-              v[3] = x[i][0]*fOy + xH1[0]*fHy + xH2[0]*fHy;
-              v[4] = x[i][0]*fOz + xH1[0]*fHz + xH2[0]*fHz;
-              v[5] = x[i][1]*fOz + xH1[1]*fHz + xH2[1]*fHz;
+              v[0] = x[i].x*fOx + xH1[0]*fHx + xH2[0]*fHx;
+              v[1] = x[i].y*fOy + xH1[1]*fHy + xH2[1]*fHy;
+              v[2] = x[i].z*fOz + xH1[2]*fHz + xH2[2]*fHz;
+              v[3] = x[i].x*fOy + xH1[0]*fHy + xH2[0]*fHy;
+              v[4] = x[i].x*fOz + xH1[0]*fHz + xH2[0]*fHz;
+              v[5] = x[i].y*fOz + xH1[1]*fHz + xH2[1]*fHz;
             }
             vlist[n++] = i;
             vlist[n++] = iH1;
@@ -377,17 +391,17 @@ void PairLJCutTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
           }
 
           if (jtype != typeO) {
-            f[j][0] -= delx * cforce;
-            f[j][1] -= dely * cforce;
-            f[j][2] -= delz * cforce;
+            f[j].x -= delx * cforce;
+            f[j].y -= dely * cforce;
+            f[j].z -= delz * cforce;
 
             if (VFLAG) {
-              v[0] -= x[j][0] * delx * cforce;
-              v[1] -= x[j][1] * dely * cforce;
-              v[2] -= x[j][2] * delz * cforce;
-              v[3] -= x[j][0] * dely * cforce;
-              v[4] -= x[j][0] * delz * cforce;
-              v[5] -= x[j][1] * delz * cforce;
+              v[0] -= x[j].x * delx * cforce;
+              v[1] -= x[j].y * dely * cforce;
+              v[2] -= x[j].z * delz * cforce;
+              v[3] -= x[j].x * dely * cforce;
+              v[4] -= x[j].x * delz * cforce;
+              v[5] -= x[j].y * delz * cforce;
             }
             vlist[n++] = j;
 
@@ -406,28 +420,28 @@ void PairLJCutTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
             fHy = 0.5*alpha * fdy;
             fHz = 0.5*alpha * fdz;
 
-            f[j][0] += fOx;
-            f[j][1] += fOy;
-            f[j][2] += fOz;
+            f[j].x += fOx;
+            f[j].y += fOy;
+            f[j].z += fOz;
 
-            f[jH1][0] += fHx;
-            f[jH1][1] += fHy;
-            f[jH1][2] += fHz;
+            f[jH1].x += fHx;
+            f[jH1].y += fHy;
+            f[jH1].z += fHz;
 
-            f[jH2][0] += fHx;
-            f[jH2][1] += fHy;
-            f[jH2][2] += fHz;
+            f[jH2].x += fHx;
+            f[jH2].y += fHy;
+            f[jH2].z += fHz;
 
             if (VFLAG) {
-              domain->closest_image(x[j],x[jH1],xH1);
-              domain->closest_image(x[j],x[jH2],xH2);
+              domain->closest_image(&x[j].x,&x[jH1].x,xH1);
+              domain->closest_image(&x[j].x,&x[jH2].x,xH2);
 
-              v[0] += x[j][0]*fOx + xH1[0]*fHx + xH2[0]*fHx;
-              v[1] += x[j][1]*fOy + xH1[1]*fHy + xH2[1]*fHy;
-              v[2] += x[j][2]*fOz + xH1[2]*fHz + xH2[2]*fHz;
-              v[3] += x[j][0]*fOy + xH1[0]*fHy + xH2[0]*fHy;
-              v[4] += x[j][0]*fOz + xH1[0]*fHz + xH2[0]*fHz;
-              v[5] += x[j][1]*fOz + xH1[1]*fHz + xH2[1]*fHz;
+              v[0] += x[j].x*fOx + xH1[0]*fHx + xH2[0]*fHx;
+              v[1] += x[j].y*fOy + xH1[1]*fHy + xH2[1]*fHy;
+              v[2] += x[j].z*fOz + xH1[2]*fHz + xH2[2]*fHz;
+              v[3] += x[j].x*fOy + xH1[0]*fHy + xH2[0]*fHy;
+              v[4] += x[j].x*fOz + xH1[0]*fHz + xH2[0]*fHz;
+              v[5] += x[j].y*fOz + xH1[1]*fHz + xH2[1]*fHz;
             }
             vlist[n++] = j;
             vlist[n++] = jH1;
@@ -448,9 +462,9 @@ void PairLJCutTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
         }
       }
     }
-    f[i][0] += fxtmp;
-    f[i][1] += fytmp;
-    f[i][2] += fztmp;
+    f[i].x += fxtmp;
+    f[i].y += fytmp;
+    f[i].z += fztmp;
   }
 }
 
@@ -460,25 +474,25 @@ void PairLJCutTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
   return it as xM
 ------------------------------------------------------------------------- */
 
-void PairLJCutTIP4PLongOMP::compute_newsite_thr(const double * xO,
-                                                    const double * xH1,
-                                                    const double * xH2,
-                                                    double * xM) const
+void PairLJCutTIP4PLongOMP::compute_newsite_thr(const dbl3_t &xO,
+                                                const dbl3_t &xH1,
+                                                const dbl3_t &xH2,
+                                                dbl3_t &xM) const
 {
-  double delx1 = xH1[0] - xO[0];
-  double dely1 = xH1[1] - xO[1];
-  double delz1 = xH1[2] - xO[2];
+  double delx1 = xH1.x - xO.x;
+  double dely1 = xH1.y - xO.y;
+  double delz1 = xH1.z - xO.z;
   domain->minimum_image(delx1,dely1,delz1);
 
-  double delx2 = xH2[0] - xO[0];
-  double dely2 = xH2[1] - xO[1];
-  double delz2 = xH2[2] - xO[2];
+  double delx2 = xH2.x - xO.x;
+  double dely2 = xH2.y - xO.y;
+  double delz2 = xH2.z - xO.z;
   domain->minimum_image(delx2,dely2,delz2);
 
   const double prefac = alpha * 0.5;
-  xM[0] = xO[0] + prefac * (delx1 + delx2);
-  xM[1] = xO[1] + prefac * (dely1 + dely2);
-  xM[2] = xO[2] + prefac * (delz1 + delz2);
+  xM.x = xO.x + prefac * (delx1 + delx2);
+  xM.y = xO.y + prefac * (dely1 + dely2);
+  xM.z = xO.z + prefac * (delz1 + delz2);
 }
 
 /* ---------------------------------------------------------------------- */

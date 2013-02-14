@@ -50,6 +50,14 @@ ComputeTemp::~ComputeTemp()
 
 /* ---------------------------------------------------------------------- */
 
+void ComputeTemp::init()
+{
+  fix_dof = 0;
+  for (int i = 0; i < modify->nfix; i++)
+    fix_dof += modify->fix[i]->dof(igroup);
+  dof_compute();
+}
+
 void ComputeTemp::setup()
 {
   fix_dof = 0;

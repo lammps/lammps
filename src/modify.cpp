@@ -228,15 +228,15 @@ void Modify::init()
 
 void Modify::setup(int vflag)
 {
+  // invoke computes before fixes
+  // this is b/c NH fixes need temperature compute DOF
+
+  for (int i = 0; i < ncompute; i++) compute[i]->setup();
+
   if (update->whichflag == 1)
     for (int i = 0; i < nfix; i++) fix[i]->setup(vflag);
   else if (update->whichflag == 2)
     for (int i = 0; i < nfix; i++) fix[i]->min_setup(vflag);
-
-  // call computes after fixes
-  // fix rigid dof() can't be called by temperature computes at init
-
-  for (int i = 0; i < ncompute; i++) compute[i]->setup();
 }
 
 /* ----------------------------------------------------------------------

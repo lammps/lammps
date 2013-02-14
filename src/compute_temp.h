@@ -28,7 +28,7 @@ class ComputeTemp : public Compute {
  public:
   ComputeTemp(class LAMMPS *, int, char **);
   virtual ~ComputeTemp();
-  void init() {}
+  void init();
   void setup();
   double compute_scalar();
   void compute_vector();

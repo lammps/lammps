@@ -324,6 +324,93 @@ void PPPMCGOMP::compute(int eflag, int vflag)
 }
 
 /* ----------------------------------------------------------------------
+   create discretized "density" on section of global grid due to my particles
+   density(x,y,z) = charge "density" at grid points of my 3d brick
+   (nxlo:nxhi,nylo:nyhi,nzlo:nzhi) is extent of my brick (including ghosts)
+   in global grid
+------------------------------------------------------------------------- */
+
+void PPPMCGOMP::make_rho()
+{
+
+  // clear 3d density array
+
+  FFT_SCALAR * _noalias const d = &(density_brick[nzlo_out][nylo_out][nxlo_out]);
+  memset(d,0,ngrid*sizeof(FFT_SCALAR));
+
+  const int ix = nxhi_out - nxlo_out + 1;
+  const int iy = nyhi_out - nylo_out + 1;
+
+#if defined(_OPENMP)
+#pragma omp parallel default(none)
+#endif
+  {
+    const double * _noalias const q = atom->q;
+    const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
+    const int3_t * _noalias const p2g = (int3_t *) part2grid[0];
+
+    const double boxlox = boxlo[0];
+    const double boxloy = boxlo[1];
+    const double boxloz = boxlo[2];
+
+    // determine range of grid points handled by this thread
+    int i,jfrom,jto,tid;
+    loop_setup_thr(jfrom,jto,tid,ngrid,comm->nthreads);
+
+    // get per thread data
+    ThrData *thr = fix->get_thr(tid);
+    FFT_SCALAR * const * const r1d = static_cast<FFT_SCALAR **>(thr->get_rho1d());
+
+    // loop over my charges, add their contribution to nearby grid points
+    // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
+    // (dx,dy,dz) = distance to "lower left" grid pt
+
+    // loop over all local atoms for all threads
+
+    for (int j = 0; j < num_charged; j++) {
+      i = is_charged[j];
+
+      const int nx = p2g[i].a;
+      const int ny = p2g[i].b;
+      const int nz = p2g[i].t;
+
+      // pre-screen whether this atom will ever come within 
+      // reach of the data segement this thread is updating.
+      if ( ((nz+nlower-nzlo_out)*ix*iy >= jto)
+	   || ((nz+nupper-nzlo_out+1)*ix*iy < jfrom) ) continue;
+
+      const FFT_SCALAR dx = nx+shiftone - (x[i].x-boxlox)*delxinv;
+      const FFT_SCALAR dy = ny+shiftone - (x[i].y-boxloy)*delyinv;
+      const FFT_SCALAR dz = nz+shiftone - (x[i].z-boxloz)*delzinv;
+
+      compute_rho1d_thr(r1d,dx,dy,dz);
+
+      const FFT_SCALAR z0 = delvolinv * q[i];
+
+      for (int n = nlower; n <= nupper; ++n) {
+	const int jn = (nz+n-nzlo_out)*ix*iy;
+	const FFT_SCALAR y0 = z0*r1d[2][n];
+
+	for (int m = nlower; m <= nupper; ++m) {
+	  const int jm = jn+(ny+m-nylo_out)*ix;
+	  const FFT_SCALAR x0 = y0*r1d[1][m];
+
+	  for (int l = nlower; l <= nupper; ++l) {
+	    const int jl = jm+nx+l-nxlo_out;
+	    // make sure each thread only updates
+	    // "his" elements of the density grid
+	    if (jl >= jto) break;
+	    if (jl < jfrom) continue;
+
+	    d[jl] += x0*r1d[0][l];
+	  }
+	}
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
    interpolate from grid to get electric field & force on my particles for ik
 ------------------------------------------------------------------------- */
 

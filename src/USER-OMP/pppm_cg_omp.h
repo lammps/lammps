@@ -38,6 +38,7 @@ class PPPMCGOMP : public PPPMCG, public ThrOMP {
   virtual void compute_gf_ik();
   virtual void compute_gf_ad();
 
+  virtual void make_rho();
   virtual void fieldforce_ik();
   virtual void fieldforce_ad();
   virtual void fieldforce_peratom();

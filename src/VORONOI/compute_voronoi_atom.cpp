@@ -58,8 +58,6 @@ ComputeVoronoi::~ComputeVoronoi()
 
 void ComputeVoronoi::init()
 {
-  if (domain->dimension != 3)
-    error->all(FLERR,"Compute voronoi/atom not allowed for 2d systems");
   if (domain->triclinic != 0)
     error->all(FLERR,"Compute voronoi/atom not allowed for triclinic boxes");
 

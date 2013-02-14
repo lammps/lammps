@@ -38,7 +38,7 @@ LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_MEMALIGN=16
 
 MPI_INC =       -I../STUBS
 MPI_PATH =
-MPI_LIB =	../STUBS/libmpi.a
+MPI_LIB =	-L../STUBS -lmpi_stubs
 
 # FFT library, OPTIONAL
 # see discussion in doc/Section_start.html#2_2 (step 6)

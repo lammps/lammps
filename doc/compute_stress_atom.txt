@@ -125,4 +125,4 @@ The per-atom array values will be in pressure*volume
 [(Heyes)] Heyes, Phys Rev B 49, 755 (1994),
 
 :link(Sirk)
-[(Sirk)] Sirk, Brown, Moore, J Chem Phys, 138, 064505 (2013).
+[(Sirk)] Sirk, Moore, Brown, J Chem Phys, 138, 064505 (2013).

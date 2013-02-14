@@ -73,9 +73,10 @@ pairwise interactions between 1-4 atoms.  The virial contribution of
 these terms is included in the pair virial, not the dihedral virial.
 
 The KSpace contribution is calculated using the method in
-"(Heyes)"_#Heyes for the Ewald method and a related method for PPPM,
-as specified by the "kspace_style pppm"_kspace_style.html command.
-For PPPM, the calcluation requires 6 extra FFTs each timestep that
+"(Heyes)"_#Heyes for the Ewald method and by the methodology described
+in "(Sirk)"_#Sirk for PPPM.  The choice of KSpace solver is specified
+by the "kspace_style pppm"_kspace_style.html command.  Note that for
+PPPM, the calcluation requires 6 extra FFTs each timestep that
 per-atom stress is calculated.  Thus it can significantly increase the
 cost of the PPPM calculation if it is needed on a large fraction of
 the simulation timesteps.
@@ -122,3 +123,6 @@ The per-atom array values will be in pressure*volume
 
 :link(Heyes)
 [(Heyes)] Heyes, Phys Rev B 49, 755 (1994),
+
+:link(Sirk)
+[(Sirk)] Sirk, Brown, Moore, J Chem Phys, 138, 064505 (2013).

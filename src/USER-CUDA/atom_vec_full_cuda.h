@@ -37,7 +37,7 @@ namespace LAMMPS_NS {
 
 class AtomVecFullCuda : public AtomVecFull {
  public:
-  AtomVecFullCuda(class LAMMPS *, int, char **);
+  AtomVecFullCuda(class LAMMPS *);
   virtual ~AtomVecFullCuda() {}
   void grow_copylist(int n);
   void grow_send(int n,double** buf_send,int flag);

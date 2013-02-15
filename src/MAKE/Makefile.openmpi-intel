@@ -1,4 +1,4 @@
-# openmpi = Fedora Core 6, mpic++, OpenMPI-1.1, FFTW2
+# openmpi-intel = Redhat Enterprise Linux 6.x, OpenMPI-1.5.4, Intel 13.x, MKL
 
 SHELL = /bin/sh
 
@@ -9,12 +9,13 @@ SHELL = /bin/sh
 OPENMP= 
 
 CC =		env OMPI_CC=icc OMPI_CXX=icpc mpic++ $(OPENMP)
-CCFLAGS =	-O2 -fno-rtti -fno-exceptions -finline-functions \
+CCFLAGS =	-O2 -xHOST -fno-rtti -fno-exceptions -finline-functions \
 			-no-prec-div -pc64 -fast-transcendentals -rcd \
 			-funroll-loops -fstrict-aliasing -Wall -no-prec-sqrt
+SHFLAGS =       -fPIC
 DEPFLAGS =	-M
 LINK =		env OMPI_CC=icc OMPI_CXX=icpc mpic++ $(OPENMP)
-LINKFLAGS =	-O -g -fno-rtti -fno-exceptions -pc64 -static-intel
+LINKFLAGS =	-O -xHOST -fno-rtti -fno-exceptions -pc64 -static-intel
 LIB =           -lstdc++
 ARCHIVE =	ar
 ARFLAGS =	-rcsv
@@ -28,7 +29,7 @@ SIZE =		size
 # LAMMPS ifdef settings, OPTIONAL
 # see possible settings in doc/Section_start.html#2_2 (step 4)
 
-LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_MEMALIGN=16
+LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_MEMALIGN=16 -DLAMMPS_JPEG
 
 # MPI library, REQUIRED
 # see discussion in doc/Section_start.html#2_2 (step 5)
@@ -48,9 +49,9 @@ MPI_LIB =
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-FFT_INC =       -DFFT_FFTW -DFFT_SINGLE -DFFTW_SIZE
-FFT_PATH = 
-FFT_LIB =	-lsfftw
+FFT_INC =
+FFT_PATH =
+FFT_LIB =
 
 # JPEG library, OPTIONAL
 # see discussion in doc/Section_start.html#2_2 (step 7)
@@ -61,7 +62,7 @@ FFT_LIB =	-lsfftw
 
 JPG_INC =       
 JPG_PATH = 	
-JPG_LIB =	
+JPG_LIB =	-ljpeg
 
 # ---------------------------------------------------------------------
 # build rules and dependencies
@@ -80,15 +81,19 @@ $(EXE):	$(OBJ)
 	$(LINK) $(LINKFLAGS) $(EXTRA_PATH) $(OBJ) $(EXTRA_LIB) $(LIB) -o $(EXE)
 	$(SIZE) $(EXE)
 
-# Library target
+# Library targets
 
 lib:	$(OBJ)
 	$(ARCHIVE) $(ARFLAGS) $(EXE) $(OBJ)
 
+shlib:	$(OBJ)
+	$(CC) $(CCFLAGS) $(SHFLAGS) $(SHLIBFLAGS) $(EXTRA_PATH) -o $(EXE) \
+        $(OBJ) $(EXTRA_LIB) $(LIB)
+
 # Compilation rules
 
 %.o:%.cpp
-	$(CC) $(CCFLAGS) $(EXTRA_INC) -c $<
+	$(CC) $(CCFLAGS) $(SHFLAGS) $(EXTRA_INC) -c $<
 
 %.d:%.cpp
 	$(CC) $(CCFLAGS) $(EXTRA_INC) $(DEPFLAGS) $< > $@

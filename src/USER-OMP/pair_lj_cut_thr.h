@@ -39,6 +39,7 @@ class PairLJCutThr : public PairLJCut {
  private:
   template <int, int> void eval();
 
+};
 }
 
 #endif

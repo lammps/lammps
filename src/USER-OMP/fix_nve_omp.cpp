@@ -18,7 +18,7 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-typedef struct { double x,y,z; } vec3_t;
+typedef struct { double x,y,z; } dbl3_t;
 #if defined(__GNUC__)
 #define _noalias __restrict
 #else
@@ -38,9 +38,9 @@ void FixNVEOMP::initial_integrate(int vflag)
 {
   // update v and x of atoms in group
 
-  vec3_t * _noalias const x = (vec3_t *) atom->x[0];
-  vec3_t * _noalias const v = (vec3_t *) atom->v[0];
-  const vec3_t * _noalias const f = (vec3_t *) atom->f[0];
+  dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
+  dbl3_t * _noalias const v = (dbl3_t *) atom->v[0];
+  const dbl3_t * _noalias const f = (dbl3_t *) atom->f[0];
   const int * const mask = atom->mask;
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
   int i;
@@ -86,8 +86,8 @@ void FixNVEOMP::final_integrate()
 {
   // update v of atoms in group
 
-  vec3_t * _noalias const v = (vec3_t *) atom->v[0];
-  const vec3_t * _noalias const f = (vec3_t *) atom->f[0];
+  dbl3_t * _noalias const v = (dbl3_t *) atom->v[0];
+  const dbl3_t * _noalias const f = (dbl3_t *) atom->f[0];
   const int * const mask = atom->mask;
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
   int i;

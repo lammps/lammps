@@ -33,7 +33,7 @@ enum{ISO,ANISO,TRICLINIC};
 
 #define TILTMAX 1.5
 
-typedef struct { double x,y,z; } vec3_t;
+typedef struct { double x,y,z; } dbl3_t;
 #if defined(__GNUC__)
 #define _noalias __restrict
 #else
@@ -48,14 +48,12 @@ typedef struct { double x,y,z; } vec3_t;
 
 void FixNHOMP::remap()
 {
-  int i;
-  double oldlo,oldhi;
-  double expfac;
+  double oldlo,oldhi,expfac;
 
-  double * const * const x = atom->x;
-  const int * const mask = atom->mask;
+  double * const * _noalias const x = atom->x;
+  const int * _noalias const mask = atom->mask;
   const int nlocal = atom->nlocal;
-  double * const h = domain->h;
+  double * _noalias const h = domain->h;
 
   // omega is not used, except for book-keeping
 
@@ -65,6 +63,7 @@ void FixNHOMP::remap()
 
   if (allremap) domain->x2lamda(nlocal);
   else {
+    int i;
 #if defined (_OPENMP)
 #pragma omp parallel for private(i) default(none) schedule(static)
 #endif
@@ -74,7 +73,7 @@ void FixNHOMP::remap()
   }
 
   if (nrigid)
-    for (i = 0; i < nrigid; i++)
+    for (int i = 0; i < nrigid; i++)
       modify->fix[rfix[i]]->deform(0);
 
   // reset global and local box to new size/shape
@@ -92,9 +91,9 @@ void FixNHOMP::remap()
   //
   // Ordering of operations preserves time symmetry.
 
-  double dto2 = dto/2.0;
-  double dto4 = dto/4.0;
-  double dto8 = dto/8.0;
+  const double dto2 = dto/2.0;
+  const double dto4 = dto/4.0;
+  const double dto8 = dto/8.0;
 
   // off-diagonal components, first half
 
@@ -215,6 +214,7 @@ void FixNHOMP::remap()
 
   if (allremap) domain->lamda2x(nlocal);
   else {
+    int i;
 #if defined (_OPENMP)
 #pragma omp parallel for private(i) default(none) schedule(static)
 #endif
@@ -224,7 +224,7 @@ void FixNHOMP::remap()
   }
 
   if (nrigid)
-    for (i = 0; i < nrigid; i++)
+    for (int i = 0; i < nrigid; i++)
       modify->fix[rfix[i]]->deform(1);
 }
 
@@ -238,7 +238,7 @@ void FixNHOMP::nh_v_press()
   const double factor0 = exp(-dt4*(omega_dot[0]+mtk_term2));
   const double factor1 = exp(-dt4*(omega_dot[1]+mtk_term2));
   const double factor2 = exp(-dt4*(omega_dot[2]+mtk_term2));
-  vec3_t * _noalias const v = (vec3_t *) atom->v[0];
+  dbl3_t * _noalias const v = (dbl3_t *) atom->v[0];
   const int * _noalias const mask = atom->mask;
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
   int i;
@@ -266,6 +266,7 @@ void FixNHOMP::nh_v_press()
 #pragma omp parallel for default(none) private(i) schedule(static)
 #endif
     for (i = 0; i < nlocal; i++) {
+      double buf[3];
       if (mask[i] & groupbit) {
         temperature->remove_bias(i,&v[i].x);
         v[i].x *= factor0;
@@ -290,8 +291,8 @@ void FixNHOMP::nh_v_press()
 
 void FixNHOMP::nve_v()
 {
-  vec3_t * _noalias const v = (vec3_t *) atom->v[0];
-  const vec3_t * _noalias const f = (vec3_t *) atom->f[0];
+  dbl3_t * _noalias const v = (dbl3_t *) atom->v[0];
+  const dbl3_t * _noalias const f = (dbl3_t *) atom->f[0];
   const int * _noalias const mask = atom->mask;
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
   int i;
@@ -332,8 +333,8 @@ void FixNHOMP::nve_v()
 
 void FixNHOMP::nve_x()
 {
-  vec3_t * _noalias const x = (vec3_t *) atom->x[0];
-  const vec3_t * _noalias const v = (vec3_t *) atom->v[0];
+  dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
+  const dbl3_t * _noalias const v = (dbl3_t *) atom->v[0];
   const int * _noalias const mask = atom->mask;
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
   int i;
@@ -357,7 +358,7 @@ void FixNHOMP::nve_x()
 
 void FixNHOMP::nh_v_temp()
 {
-  vec3_t * _noalias const v = (vec3_t *) atom->v[0];
+  dbl3_t * _noalias const v = (dbl3_t *) atom->v[0];
   const int * _noalias const mask = atom->mask;
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
   int i;
@@ -378,6 +379,7 @@ void FixNHOMP::nh_v_temp()
 #pragma omp parallel for default(none) private(i) schedule(static)
 #endif
     for (i = 0; i < nlocal; i++) {
+      double buf[3];
       if (mask[i] & groupbit) {
         temperature->remove_bias(i,&v[i].x);
         v[i].x *= factor_eta;

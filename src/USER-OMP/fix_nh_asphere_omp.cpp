@@ -32,7 +32,7 @@ using namespace FixConst;
 
 enum{NOBIAS,BIAS};
 
-typedef struct { double x,y,z; } vec3_t;
+typedef struct { double x,y,z; } dbl3_t;
 #if defined(__GNUC__)
 #define _noalias __restrict
 #else
@@ -75,10 +75,10 @@ void FixNHAsphereOMP::init()
 
 void FixNHAsphereOMP::nve_v()
 {
-  vec3_t * _noalias const v = (vec3_t *) atom->v[0];
-  vec3_t * _noalias const angmom = (vec3_t *) atom->angmom[0];
-  const vec3_t * _noalias const f = (vec3_t *) atom->f[0];
-  const vec3_t * _noalias const torque = (vec3_t *) atom->torque[0];
+  dbl3_t * _noalias const v = (dbl3_t *) atom->v[0];
+  dbl3_t * _noalias const angmom = (dbl3_t *) atom->angmom[0];
+  const dbl3_t * _noalias const f = (dbl3_t *) atom->f[0];
+  const dbl3_t * _noalias const torque = (dbl3_t *) atom->torque[0];
   const double * _noalias const rmass = atom->rmass;
   const int * _noalias const mask = atom->mask;
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
@@ -109,9 +109,9 @@ void FixNHAsphereOMP::nve_v()
 
 void FixNHAsphereOMP::nve_x()
 {
-  vec3_t * _noalias const x = (vec3_t *) atom->x[0];
-  const vec3_t * _noalias const v = (vec3_t *) atom->v[0];
-  vec3_t * _noalias const angmom = (vec3_t *) atom->angmom[0];
+  dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
+  const dbl3_t * _noalias const v = (dbl3_t *) atom->v[0];
+  dbl3_t * _noalias const angmom = (dbl3_t *) atom->angmom[0];
   const double * _noalias const rmass = atom->rmass;
   const int * _noalias const mask = atom->mask;
   AtomVecEllipsoid::Bonus * _noalias const bonus = avec->bonus;
@@ -163,8 +163,8 @@ void FixNHAsphereOMP::nve_x()
 
 void FixNHAsphereOMP::nh_v_temp()
 {
-  vec3_t * _noalias const v = (vec3_t *) atom->v[0];
-  vec3_t * _noalias const angmom = (vec3_t *) atom->angmom[0];
+  dbl3_t * _noalias const v = (dbl3_t *) atom->v[0];
+  dbl3_t * _noalias const angmom = (dbl3_t *) atom->angmom[0];
   const int * _noalias const mask = atom->mask;
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
   int i;
@@ -188,6 +188,7 @@ void FixNHAsphereOMP::nh_v_temp()
 #pragma omp parallel for default(none) private(i) schedule(static)
 #endif
     for (i = 0; i < nlocal; i++) {
+      double buf[3];
       if (mask[i] & groupbit) {
         temperature->remove_bias(i,&v[i].x);
         v[i].x *= factor_eta;

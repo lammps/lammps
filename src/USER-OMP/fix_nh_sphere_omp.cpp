@@ -30,7 +30,7 @@ enum{NOBIAS,BIAS};
 
 #define INERTIA 0.4          // moment of inertia prefactor for sphere
 
-typedef struct { double x,y,z; } vec3_t;
+typedef struct { double x,y,z; } dbl3_t;
 #if defined(__GNUC__)
 #define _noalias __restrict
 #else
@@ -71,10 +71,10 @@ void FixNHSphereOMP::init()
 
 void FixNHSphereOMP::nve_v()
 {
-  vec3_t * _noalias const v = (vec3_t *) atom->v[0];
-  vec3_t * _noalias const omega = (vec3_t *) atom->omega[0];
-  const vec3_t * _noalias const f = (vec3_t *) atom->f[0];
-  const vec3_t * _noalias const torque = (vec3_t *) atom->torque[0];
+  dbl3_t * _noalias const v = (dbl3_t *) atom->v[0];
+  dbl3_t * _noalias const omega = (dbl3_t *) atom->omega[0];
+  const dbl3_t * _noalias const f = (dbl3_t *) atom->f[0];
+  const dbl3_t * _noalias const torque = (dbl3_t *) atom->torque[0];
   const double * _noalias const radius = atom->radius;
   const double * _noalias const rmass = atom->rmass;
   const int * _noalias const mask = atom->mask;
@@ -116,8 +116,8 @@ void FixNHSphereOMP::nve_v()
 
 void FixNHSphereOMP::nh_v_temp()
 {
-  vec3_t * _noalias const v = (vec3_t *) atom->v[0];
-  vec3_t * _noalias const omega = (vec3_t *) atom->omega[0];
+  dbl3_t * _noalias const v = (dbl3_t *) atom->v[0];
+  dbl3_t * _noalias const omega = (dbl3_t *) atom->omega[0];
   const int * _noalias const mask = atom->mask;
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
   int i;
@@ -141,6 +141,7 @@ void FixNHSphereOMP::nh_v_temp()
 #pragma omp parallel for default(none) private(i) schedule(static)
 #endif
     for (i = 0; i < nlocal; i++) {
+      double buf[3];
       if (mask[i] & groupbit) {
         temperature->remove_bias(i,&v[i].x);
         v[i].x *= factor_eta;

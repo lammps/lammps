@@ -47,8 +47,9 @@ enum{INDEX,LOOP,WORLD,UNIVERSE,ULOOP,STRING,FILEVAR,EQUAL,ATOM};
 enum{ARG,OP};
 
 // customize by adding a function
+// if add before OR, also set precedence level and precedence length in *.h
 
-enum{DONE,ADD,SUBTRACT,MULTIPLY,DIVIDE,CARAT,UNARY,
+enum{DONE,ADD,SUBTRACT,MULTIPLY,DIVIDE,CARAT,MODULO,UNARY,
      NOT,EQ,NE,LT,LE,GT,GE,AND,OR,
      SQRT,EXP,LN,LOG,ABS,SIN,COS,TAN,ASIN,ACOS,ATAN,ATAN2,
      RANDOM,NORMAL,CEIL,FLOOR,ROUND,RAMP,STAGGER,LOGFREQ,STRIDE,
@@ -86,13 +87,15 @@ Variable::Variable(LAMMPS *lmp) : Pointers(lmp)
   randomequal = NULL;
   randomatom = NULL;
 
+  // customize by assigning a precedence level
+
   precedence[DONE] = 0;
   precedence[OR] = 1;
   precedence[AND] = 2;
   precedence[EQ] = precedence[NE] = 3;
   precedence[LT] = precedence[LE] = precedence[GT] = precedence[GE] = 4;
   precedence[ADD] = precedence[SUBTRACT] = 5;
-  precedence[MULTIPLY] = precedence[DIVIDE] = 6;
+  precedence[MULTIPLY] = precedence[DIVIDE] = precedence[MODULO] = 6;
   precedence[CARAT] = 7;
   precedence[UNARY] = precedence[NOT] = 8;
 }
@@ -1323,11 +1326,12 @@ double Variable::evaluate(char *str, Tree **tree)
     // math operator, including end-of-string
     // ----------------
 
-    } else if (strchr("+-*/^<>=!&|\0",onechar)) {
+    } else if (strchr("+-*/^<>=!&|%\0",onechar)) {
       if (onechar == '+') op = ADD;
       else if (onechar == '-') op = SUBTRACT;
       else if (onechar == '*') op = MULTIPLY;
       else if (onechar == '/') op = DIVIDE;
+      else if (onechar == '%') op = MODULO;
       else if (onechar == '^') op = CARAT;
       else if (onechar == '=') {
         if (str[i+1] != '=')
@@ -1411,6 +1415,10 @@ double Variable::evaluate(char *str, Tree **tree)
             if (value2 == 0.0)
               error->all(FLERR,"Divide by 0 in variable formula");
             argstack[nargstack++] = value1 / value2;
+          } else if (opprevious == MODULO) {
+            if (value2 == 0.0)
+              error->all(FLERR,"Modulo 0 in variable formula");
+            argstack[nargstack++] = fmod(value1,value2);
           } else if (opprevious == CARAT) {
             if (value2 == 0.0)
               error->all(FLERR,"Power by 0 in variable formula");
@@ -1531,6 +1539,16 @@ double Variable::collapse_tree(Tree *tree)
     tree->type = VALUE;
     if (arg2 == 0.0) error->one(FLERR,"Divide by 0 in variable formula");
     tree->value = arg1 / arg2;
+    return tree->value;
+  }
+
+  if (tree->type == MODULO) {
+    arg1 = collapse_tree(tree->left);
+    arg2 = collapse_tree(tree->right);
+    if (tree->left->type != VALUE || tree->right->type != VALUE) return 0.0;
+    tree->type = VALUE;
+    if (arg2 == 0.0) error->one(FLERR,"Modulo 0 in variable formula");
+    tree->value = fmod(arg1,arg2);
     return tree->value;
   }
 
@@ -1942,6 +1960,11 @@ double Variable::eval_tree(Tree *tree, int i)
     double denom = eval_tree(tree->right,i);
     if (denom == 0.0) error->one(FLERR,"Divide by 0 in variable formula");
     return eval_tree(tree->left,i) / denom;
+  }
+  if (tree->type == MODULO) {
+    double denom = eval_tree(tree->right,i);
+    if (denom == 0.0) error->one(FLERR,"Modulo 0 in variable formula");
+    return fmod(eval_tree(tree->left,i),denom);
   }
   if (tree->type == CARAT) {
     double exponent = eval_tree(tree->right,i);

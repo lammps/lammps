@@ -55,6 +55,7 @@ class FixRigidSmall : public Fix {
   int pack_reverse_comm(int, int, double *);
   void unpack_reverse_comm(int, int *, double *);
 
+  void setup_pre_neighbor();
   void pre_neighbor();
   int dof(int);
   void deform(int);
@@ -79,7 +80,6 @@ class FixRigidSmall : public Fix {
     double torque[3];         // torque on COM
     double quat[4];           // quaternion for orientation of body
     double inertia[3];        // 3 principal components of inertia
-    double itensor[6];        // 6 space-frame components of inertia tensor
     double ex_space[3];       // principal axes in space coords
     double ey_space[3];
     double ez_space[3];
@@ -121,7 +121,10 @@ class FixRigidSmall : public Fix {
   class AtomVecLine *avec_line;
   class AtomVecTri *avec_tri;
 
-  int **counts;
+  // temporary per-body storage
+
+  int **counts;            // counts of atom types in bodies
+  double **itensor;        // 6 space-frame components of inertia tensor
 
   // Langevin thermostatting
 
@@ -148,8 +151,8 @@ class FixRigidSmall : public Fix {
 
   // callback functions for ring communication
 
-  static void bbox_update(int, char *);
-  static void nearest_update(int, char *);
+  static void ring_bbox(int, char *);
+  static void ring_nearest(int, char *);
 
   // debug
 

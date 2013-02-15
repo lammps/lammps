@@ -156,7 +156,7 @@ void FixRigidSmallOMP::final_integrate()
       ibody = atom2body[i];
       if ((ibody < 0) || (ibody % nthreads != tid)) continue;
     
-      Body &b = body[ibody]];
+      Body &b = body[ibody];
 
       double unwrap[3];
       domain->unmap(x[i],image[i],unwrap);
@@ -171,7 +171,7 @@ void FixRigidSmallOMP::final_integrate()
 
       fcm[0] += f[i].x;
       fcm[1] += f[i].y;
-      fcm[2] += f[i].y;
+      fcm[2] += f[i].z;
 
       tcm[0] += dy*f[i].z - dz*f[i].y;
       tcm[1] += dz*f[i].x - dx*f[i].z;

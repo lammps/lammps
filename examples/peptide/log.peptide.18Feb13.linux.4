@@ -1,0 +1,164 @@
+LAMMPS (18 Feb 2013)
+# Solvated 5-mer peptide
+
+units		real
+atom_style	full
+
+pair_style	lj/charmm/coul/long 8.0 10.0 10.0
+bond_style      harmonic
+angle_style     charmm
+dihedral_style  charmm
+improper_style  harmonic
+kspace_style	pppm 0.0001
+
+read_data	data.peptide
+  3 = max bonds/atom
+  6 = max angles/atom
+  14 = max dihedrals/atom
+  1 = max impropers/atom
+  orthogonal box = (36.8402 41.0137 29.7681) to (64.2116 68.3851 57.1395)
+  1 by 2 by 2 MPI processor grid
+  2004 atoms
+  2004 velocities
+  1365 bonds
+  786 angles
+  207 dihedrals
+  12 impropers
+  4 = max # of 1-2 neighbors
+  7 = max # of 1-3 neighbors
+  14 = max # of 1-4 neighbors
+  18 = max # of special neighbors
+
+neighbor	2.0 bin
+neigh_modify	delay 5
+
+timestep	2.0
+
+thermo_style	multi
+thermo		50
+
+fix		1 all nvt temp 275.0 275.0 100.0 tchain 1
+fix		2 all shake 0.0001 10 100 b 4 6 8 10 12 14 18 a 31
+  19 = # of size 2 clusters
+  6 = # of size 3 clusters
+  3 = # of size 4 clusters
+  640 = # of frozen angles
+
+group		peptide type <= 12
+84 atoms in group peptide
+
+#dump		1 peptide atom 10 dump.peptide
+
+#dump		1 peptide image 25 image.*.jpg type type #		axes yes 0.8 0.02 view 60 -30 bond atom 0.5
+#dump_modify	1 pad 3
+
+#compute		bnd all property/local btype batom1 batom2
+#dump		2 peptide local 300 dump.bond index c_bnd[1] c_bnd[2] c_bnd[3]
+
+run		300
+PPPM initialization ...
+  G vector (1/distance) = 0.268725
+  grid = 15 15 15
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.0228209
+  estimated relative force accuracy = 6.87243e-05
+  using double precision FFTs
+  3d grid and FFT values/proc = 4312 960
+SHAKE stats (type/ave/delta) on step 0
+  4 1.111 1.44264e-05
+  6 0.996998 7.26967e-06
+  8 1.08 1.32536e-05
+  10 1.111 1.22749e-05
+  12 1.08 1.11767e-05
+  14 0.96 0
+  18 0.957206 4.37979e-05
+  31 104.519 0.00396029
+Memory usage per processor = 10.3307 Mbytes
+---------------- Step        0 ----- CPU =      0.0000 (sec) ----------------
+TotEng   =     -5237.4580 KinEng   =      1134.9186 Temp     =       282.1005 
+PotEng   =     -6372.3766 E_bond   =        16.5572 E_angle  =        36.3726 
+E_dihed  =        15.5190 E_impro  =         1.9426 E_vdwl   =       692.8945 
+E_coul   =     26772.2646 E_long   =    -33907.9271 Press    =      -845.4774 
+---------------- Step       50 ----- CPU =      0.2826 (sec) ----------------
+TotEng   =     -5247.5490 KinEng   =      1132.4011 Temp     =       281.4748 
+PotEng   =     -6379.9501 E_bond   =        12.2118 E_angle  =        31.7365 
+E_dihed  =        18.8145 E_impro  =         2.3612 E_vdwl   =       658.1771 
+E_coul   =     26804.4490 E_long   =    -33907.7002 Press    =     -1331.7981 
+SHAKE stats (type/ave/delta) on step 100
+  4 1.111 7.80799e-07
+  6 0.997 1.06209e-06
+  8 1.08 6.20484e-07
+  10 1.111 6.23445e-07
+  12 1.08 2.68063e-07
+  14 0.96 0
+  18 0.957201 5.38018e-06
+  31 104.52 0.000502316
+---------------- Step      100 ----- CPU =      0.5630 (sec) ----------------
+TotEng   =     -5257.9973 KinEng   =      1078.0556 Temp     =       267.9664 
+PotEng   =     -6336.0529 E_bond   =        14.4828 E_angle  =        43.4429 
+E_dihed  =        15.2569 E_impro  =         2.3160 E_vdwl   =       708.3266 
+E_coul   =     26786.6840 E_long   =    -33906.5620 Press    =      -648.6639 
+---------------- Step      150 ----- CPU =      0.8510 (sec) ----------------
+TotEng   =     -5287.2845 KinEng   =      1098.6036 Temp     =       273.0739 
+PotEng   =     -6385.8881 E_bond   =        17.4924 E_angle  =        32.8593 
+E_dihed  =        15.1623 E_impro  =         1.6522 E_vdwl   =       736.9685 
+E_coul   =     26717.2583 E_long   =    -33907.2812 Press    =      -333.1895 
+SHAKE stats (type/ave/delta) on step 200
+  4 1.111 2.18836e-07
+  6 0.997 1.50856e-07
+  8 1.08 6.58343e-08
+  10 1.111 5.55349e-07
+  12 1.08 1.99243e-07
+  14 0.96 0
+  18 0.957201 3.59666e-06
+  31 104.52 0.000388184
+---------------- Step      200 ----- CPU =      1.1296 (sec) ----------------
+TotEng   =     -5308.4528 KinEng   =      1100.5056 Temp     =       273.5467 
+PotEng   =     -6408.9584 E_bond   =        18.2714 E_angle  =        33.3035 
+E_dihed  =        16.8150 E_impro  =         2.6053 E_vdwl   =       686.3261 
+E_coul   =     26736.1131 E_long   =    -33902.3928 Press    =     -1470.3869 
+---------------- Step      250 ----- CPU =      1.4237 (sec) ----------------
+TotEng   =     -5294.1808 KinEng   =      1071.1623 Temp     =       266.2530 
+PotEng   =     -6365.3431 E_bond   =        14.2022 E_angle  =        39.1953 
+E_dihed  =        19.4555 E_impro  =         3.1387 E_vdwl   =       753.5412 
+E_coul   =     26713.8465 E_long   =    -33908.7226 Press    =      -188.8075 
+SHAKE stats (type/ave/delta) on step 300
+  4 1.111 3.78266e-06
+  6 0.997001 3.50139e-06
+  8 1.08 2.09322e-06
+  10 1.111 5.6433e-06
+  12 1.08 2.10401e-06
+  14 0.96 0
+  18 0.957202 7.6799e-06
+  31 104.52 0.000806335
+---------------- Step      300 ----- CPU =      1.7161 (sec) ----------------
+TotEng   =     -5251.4350 KinEng   =      1123.6255 Temp     =       279.2935 
+PotEng   =     -6375.0605 E_bond   =        14.2249 E_angle  =        38.4712 
+E_dihed  =        18.1324 E_impro  =         2.3700 E_vdwl   =       715.4558 
+E_coul   =     26745.4101 E_long   =    -33909.1248 Press    =      -469.5428 
+Loop time of 1.71616 on 4 procs for 300 steps with 2004 atoms
+
+Pair  time (%) = 1.18558 (69.0834)
+Bond  time (%) = 0.00336462 (0.196056)
+Kspce time (%) = 0.247925 (14.4465)
+Neigh time (%) = 0.158655 (9.24477)
+Comm  time (%) = 0.0626211 (3.64892)
+Outpt time (%) = 0.000257373 (0.0149971)
+Other time (%) = 0.0577542 (3.36533)
+
+FFT time (% of Kspce) = 0.0315048 (12.7074)
+FFT Gflps 3d (1d only) = 5.22186 11.7303
+
+Nlocal:    501 ave 508 max 490 min
+Histogram: 1 0 0 0 0 0 1 1 0 1
+Nghost:    6586.25 ave 6628 max 6548 min
+Histogram: 1 0 1 0 0 0 1 0 0 1
+Neighs:    177007 ave 180562 max 170212 min
+Histogram: 1 0 0 0 0 0 0 1 1 1
+
+Total # of neighbors = 708028
+Ave neighs/atom = 353.307
+Ave special neighs/atom = 2.34032
+Neighbor list builds = 26
+Dangerous builds = 0
+

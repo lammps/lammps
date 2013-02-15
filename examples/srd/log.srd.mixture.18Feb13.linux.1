@@ -1,0 +1,142 @@
+LAMMPS (18 Feb 2013)
+# 2d SRD only test
+
+units		lj
+atom_style	atomic
+atom_modify	first empty
+dimension	2
+
+# create box with big lattice
+
+lattice		sq 0.4
+Lattice spacing in x,y,z = 1.58114 1.58114 1.58114
+region		box block 0 10 0 10 -0.5 0.5
+create_box	1 box
+Created orthogonal box = (0 0 -0.790569) to (15.8114 15.8114 0.790569)
+  1 by 1 by 1 MPI processor grid
+
+# add SRD particles as hi density lattice
+
+lattice		sq 0.4
+Lattice spacing in x,y,z = 1.58114 1.58114 1.58114
+region		plane block 0 10 0 10 -0.001 0.001
+lattice		sq 85.0
+Lattice spacing in x,y,z = 0.108465 0.108465 0.108465
+create_atoms	1 region plane
+Created 21316 atoms
+
+group		empty type 2
+0 atoms in group empty
+
+mass		1 0.01
+velocity	all create 1.0 593849 loop geom
+
+# settings - need dummy empty group to enable no communication
+
+neighbor	0.3 bin
+neigh_modify	delay 1 every 1 check no
+
+communicate	single group empty
+
+# timestep is big and SRD frequency is 1
+
+timestep	0.02
+
+fix	        1 all srd 1 NULL 1.0 0.25 49894 collision slip
+fix		2 all enforce2d
+
+# diagnostics
+
+thermo_style	custom step temp f_1[7] etotal press f_1[3] f_1[4] f_1[6]
+thermo		100
+
+#dump		1 all atom 250 dump.srd.pure
+
+#dump		1 all image 250 image.*.jpg type type zoom 1.6 adiam 0.2
+#dump_modify	1 pad 4
+
+run		5000
+SRD info:
+  SRD/big particles = 21316 0
+  big particle diameter max/min = 0 1e+20
+  SRD temperature & lamda = 1 0.2
+  SRD max distance & max velocity = 0.8 40
+  SRD grid counts: 63 63 1
+  SRD grid size: request, actual (xyz) = 0.25, 0.250974 0.250974 1.58114
+  SRD per actual grid cell = 5.37062
+  SRD viscosity = 0.439647
+  big/SRD mass density ratio = 0
+  # of rescaled SRD velocities = 0
+  ave/max all velocity = 13.2735 24.2873
+Memory usage per processor = 4.08604 Mbytes
+Step Temp 1[7] TotEng Press 1[3] 1[4] 1[6] 
+       0            1            0   0.99995309        85.26            0            0            0 
+     100   0.97820615         3969   0.97816026    83.401857            0            0            0 
+     200    0.9609326         3969   0.96088752    81.929113            0            0            0 
+     300   0.94460302         3969    0.9445587    80.536853            0            0            0 
+     400   0.93098293         3969   0.93093925    79.375605            0            0            0 
+     500   0.91803208         3969   0.91798901    78.271415            0            0            0 
+     600   0.90779378         3969   0.90775119    77.398497            0            0            0 
+     700   0.89695247         3969   0.89691039    76.474168            0            0            0 
+     800   0.88637078         3969   0.88632919    75.571972            0            0            0 
+     900   0.87833669         3969   0.87829548    74.886986            0            0            0 
+    1000   0.87030089         3969   0.87026006    74.201854            0            0            0 
+    1100   0.86318709         3969   0.86314659    73.595331            0            0            0 
+    1200   0.85736665         3969   0.85732643    73.099081            0            0            0 
+    1300   0.85147901         3969   0.85143906      72.5971            0            0            0 
+    1400   0.84496088         3969   0.84492124    72.041365            0            0            0 
+    1500   0.83857476         3969   0.83853542    71.496884            0            0            0 
+    1600    0.8336916         3969   0.83365249    71.080546            0            0            0 
+    1700   0.82954371         3969    0.8295048    70.726897            0            0            0 
+    1800   0.82570979         3969   0.82567105    70.400016            0            0            0 
+    1900   0.82189413         3969   0.82185557    70.074693            0            0            0 
+    2000   0.81818525         3969   0.81814687    69.758475            0            0            0 
+    2100   0.81436257         3969   0.81432436    69.432552            0            0            0 
+    2200   0.80997949         3969   0.80994149    69.058851            0            0            0 
+    2300   0.80685831         3969   0.80682045    68.792739            0            0            0 
+    2400   0.80374622         3969   0.80370851    68.527402            0            0            0 
+    2500   0.80103773         3969   0.80100015    68.296477            0            0            0 
+    2600   0.79858358         3969   0.79854611    68.087236            0            0            0 
+    2700   0.79617295         3969    0.7961356    67.881706            0            0            0 
+    2800   0.79312496         3969   0.79308775    67.621834            0            0            0 
+    2900   0.79126456         3969   0.79122744    67.463216            0            0            0 
+    3000   0.78897033         3969   0.78893331     67.26761            0            0            0 
+    3100   0.78632296         3969   0.78628607    67.041895            0            0            0 
+    3200   0.78442284         3969   0.78438604    66.879892            0            0            0 
+    3300   0.78168316         3969   0.78164649    66.646306            0            0            0 
+    3400    0.7788658         3969   0.77882926    66.406098            0            0            0 
+    3500   0.77703408         3969   0.77699762    66.249925            0            0            0 
+    3600   0.77441139         3969   0.77437506    66.026315            0            0            0 
+    3700    0.7723528         3969   0.77231656    65.850799            0            0            0 
+    3800   0.77019626         3969   0.77016013    65.666933            0            0            0 
+    3900   0.76835687         3969   0.76832082    65.510107            0            0            0 
+    4000   0.76701071         3969   0.76697473    65.395333            0            0            0 
+    4100   0.76552115         3969   0.76548523    65.268333            0            0            0 
+    4200   0.76360426         3969   0.76356843    65.104899            0            0            0 
+    4300   0.76173186         3969   0.76169613    64.945259            0            0            0 
+    4400   0.75933463         3969     0.759299     64.74087            0            0            0 
+    4500   0.75806391         3969   0.75802835    64.632529            0            0            0 
+    4600   0.75692832         3969   0.75689281    64.535709            0            0            0 
+    4700   0.75569109         3969   0.75565564    64.430222            0            0            0 
+    4800   0.75446697         3969   0.75443157    64.325854            0            0            0 
+    4900   0.75276753         3969   0.75273221    64.180959            0            0            0 
+    5000   0.75113693         3969   0.75110169    64.041935            0            0            0 
+Loop time of 7.80222 on 1 procs for 5000 steps with 21316 atoms
+
+Pair  time (%) = 0 (0)
+Neigh time (%) = 5.28019 (67.6755)
+Comm  time (%) = 0.629435 (8.06738)
+Outpt time (%) = 0.00304389 (0.0390131)
+Other time (%) = 1.88955 (24.2181)
+
+Nlocal:    21316 ave 21316 max 21316 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    0 ave 0 max 0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    0 ave 0 max 0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 0
+Ave neighs/atom = 0
+Neighbor list builds = 5000
+Dangerous builds = 0

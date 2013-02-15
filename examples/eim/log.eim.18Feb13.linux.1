@@ -1,0 +1,67 @@
+LAMMPS (18 Feb 2013)
+# NaCl test problem for embedded atom method (EIM) potential
+
+units		metal
+atom_style      atomic
+
+boundary	p p p
+
+lattice         diamond 5.0
+Lattice spacing in x,y,z = 5 5 5
+read_data       data.eim
+  orthogonal box = (-0.5 -0.5 -0.5) to (35.54 35.54 35.54)
+  1 by 1 by 1 MPI processor grid
+  2000 atoms
+  2000 velocities
+
+pair_style      eim
+pair_coeff      * * Na Cl ffield.eim Na Cl
+
+neighbor	0.3 bin
+neigh_modify	delay 0
+
+timestep        0.001
+thermo_style    custom step pe pxx pyy pzz temp
+thermo          50
+
+velocity        all create 1400.0 43454 dist gaussian mom yes
+fix             int all npt temp 1400.0 300.0 0.1 aniso 0.0 0.0 0.1
+
+#dump		id all atom 100 dump.eim
+
+#dump		1 all image 25 image.*.jpg element element #		axes yes 0.8 0.02 view 60 -30
+#dump_modify	1 pad 3 element Na Cl
+
+run             500
+Memory usage per processor = 2.20266 Mbytes
+Step PotEng Pxx Pyy Pzz Temp 
+       0   -5660.4738   -118151.29   -117613.39   -118064.41         1400 
+      50   -5773.8661    889.73924    898.43321     703.5365    891.68472 
+     100   -5742.8192     866.6183    817.86837    889.72898    838.77403 
+     150    -5738.752   -335.23317   -345.69716    -123.3196    900.54672 
+     200   -5704.2444   -172.01932   -508.83888   -654.45947    834.82705 
+     250   -5724.4679    375.50199    546.99196    405.29298    966.14585 
+     300   -5718.5442    428.47856    361.93998    752.00729    934.57116 
+     350   -5722.7694   -409.40162   -484.53168    42.702482    865.13075 
+     400   -5743.6862    173.43552    288.02324    107.96614    840.48912 
+     450   -5751.3366   -752.54635   -762.07316   -591.45022    743.42176 
+     500   -5780.5266   -157.23981    84.510897   -52.426827    712.64129 
+Loop time of 5.85191 on 1 procs for 500 steps with 2000 atoms
+
+Pair  time (%) = 5.38647 (92.0463)
+Neigh time (%) = 0.367301 (6.2766)
+Comm  time (%) = 0.0237942 (0.406605)
+Outpt time (%) = 0.000292301 (0.00499497)
+Other time (%) = 0.0740573 (1.26552)
+
+Nlocal:    2000 ave 2000 max 2000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    4194 ave 4194 max 4194 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    99537 ave 99537 max 99537 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 99537
+Ave neighs/atom = 49.7685
+Neighbor list builds = 89
+Dangerous builds = 10

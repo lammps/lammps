@@ -56,4 +56,16 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
+E: Variable evaluation in region gave bad value
+
+UNDOCUMENTED
+
+E: Variable name for region sphere does not exist
+
+UNDOCUMENTED
+
+E: Variable for region sphere is invalid style
+
+UNDOCUMENTED
+
 */

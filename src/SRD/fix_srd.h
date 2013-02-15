@@ -340,6 +340,10 @@ W: SRD particle %d started inside big particle %d on step %ld bounce %d
 See the inside keyword if you want this message to be an error vs
 warning.
 
+W: SRD particle %d started inside big particle %d on step %ld bounce %d
+
+UNDOCUMENTED
+
 E: Bad quadratic solve for particle/line collision
 
 This is an internal error.  It should nornally not occur.

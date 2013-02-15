@@ -85,16 +85,24 @@ void BodyNparticle::data_body(int ibonus, int ninteger, int ndouble,
   // error in data file if any values are NULL
 
   for (int i = 0; i < ninteger; i++)
-    if (ifile[0] == NULL) error->one(FLERR,"");
+    if (ifile[0] == NULL) 
+      error->one(FLERR,"Invalid format in Bodies section of data file");
   for (int i = 0; i < ndouble; i++)
-    if (dfile[0] == NULL) error->one(FLERR,"");
+    if (dfile[0] == NULL)
+      error->one(FLERR,"Invalid format in Bodies section of data file");
 
   // set ninteger, ndouble in bonus and allocate 2 vectors of ints, doubles  
 
-  if (ninteger != 1) error->one(FLERR,"");
+  if (ninteger != 1) 
+    error->one(FLERR,"Incorrect # of integer values in "
+               "Bodies section of data file");
   int nsub = atoi(ifile[0]);
-  if (nsub < 1) error->one(FLERR,"");
-  if (ndouble != 6 + 3*nsub) error->one(FLERR,"");
+  if (nsub < 1)
+    error->one(FLERR,"Incorrect integer value in "
+               "Bodies section of data file");
+  if (ndouble != 6 + 3*nsub) 
+    error->one(FLERR,"Incorrect # of floating-point values in "
+               "Bodies section of data file");
 
   bonus->ninteger = 1;
   memory->create(bonus->ivalue,bonus->ninteger,"body:ivalue");

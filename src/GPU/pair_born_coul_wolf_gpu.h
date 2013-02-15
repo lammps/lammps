@@ -55,7 +55,7 @@ E: Cannot use newton pair with born/coul/wolf/gpu pair style
 
 UNDOCUMENTED
 
-E: Pair style born/coul/wolf/gpu requires atom attribute q
+U: Pair style born/coul/wolf/gpu requires atom attribute q
 
 The atom style defined does not have this attribute.
 

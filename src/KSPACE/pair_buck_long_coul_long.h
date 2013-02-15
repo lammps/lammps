@@ -68,3 +68,55 @@ class PairBuckLongCoulLong : public Pair {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+UNDOCUMENTED
+
+W: Geometric mixing assumed for 1/r^6 coefficients
+
+UNDOCUMENTED
+
+W: Using largest cut-off for buck/coul long long
+
+UNDOCUMENTED
+
+E: Cut-offs missing in pair_style buck/coul
+
+UNDOCUMENTED
+
+E: LJ6 off not supported in pair_style buck/coul
+
+UNDOCUMENTED
+
+E: Coulombic cut not supported in pair_style buck/coul
+
+UNDOCUMENTED
+
+E: Only one cut-off allowed when requesting all long
+
+UNDOCUMENTED
+
+E: Incorrect args for pair coefficients
+
+UNDOCUMENTED
+
+E: Invoking coulombic in pair style lj/coul requires atom attribute q
+
+UNDOCUMENTED
+
+E: Pair style requires a KSpace style
+
+UNDOCUMENTED
+
+E: All pair coeffs are not set
+
+UNDOCUMENTED
+
+E: Pair cutoff < Respa interior cutoff
+
+UNDOCUMENTED
+
+*/

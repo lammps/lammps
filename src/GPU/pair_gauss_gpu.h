@@ -52,7 +52,11 @@ E: Insufficient memory on accelerator
 There is insufficient memory on one of the devices specified for the gpu
 package
 
-E: Cannot use newton pair with gauss/gpu pair style
+E: Cannot use newton pair with lj/cut/gpu pair style
+
+UNDOCUMENTED
+
+U: Cannot use newton pair with gauss/gpu pair style
 
 Self-explanatory.
 

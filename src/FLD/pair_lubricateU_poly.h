@@ -76,4 +76,8 @@ E: Pair lubricate/poly requires extended particles
 
 One of the particles has radius 0.0.
 
+E: Cannot use multiple fix wall commands with pair lubricateU
+
+UNDOCUMENTED
+
 */

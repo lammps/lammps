@@ -71,9 +71,9 @@ E: Cannot currently use pppm/gpu with fix balance.
 
 Self-explanatory.
 
-E: Cannot (yet) do analytic differentiation with pppm/gpu.
+E: Cannot (yet) do analytic differentiation with pppm/gpu
 
-Self-explanatory.
+UNDOCUMENTED
 
 E: Cannot use order greater than 8 with pppm/gpu.
 
@@ -99,5 +99,9 @@ every 1 check yes".  Second, it may mean that an atom has moved far
 outside a processor's sub-domain or even the entire simulation box.
 This indicates bad physics, e.g. due to highly overlapping atoms, too
 large a timestep, etc.
+
+U: Cannot (yet) do analytic differentiation with pppm/gpu.
+
+Self-explanatory.
 
 */

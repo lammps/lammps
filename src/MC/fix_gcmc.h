@@ -119,14 +119,25 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
+E: Fix GCMC region does not support a bounding box
+
+UNDOCUMENTED
+
+E: Fix GCMC region cannot be dynamic
+
+UNDOCUMENTED
+
+E: Fix GCMC region extends outside simulation box
+
+UNDOCUMENTED
+
+E: Region ID for fix GCMC does not exist
+
+UNDOCUMENTED
+
 E: Invalid atom type in fix GCMC command
 
 The atom type specified in the GCMC command does not exist.
-
-E: Cannot do GCMC on atoms in atom_modify first group
-
-This is a restriction due to the way atoms are organized in a list to
-enable the atom_modify first command.
 
 E: Fix GCMC cannot exchange individual atoms belonging to a molecule
 
@@ -141,6 +152,17 @@ been set to non-zero positive values by the user. This is an error since
 all atoms in the fix GCMC group are eligible for deletion, rotation, and
 translation and therefore must have valid molecule ids.
 
+E: Fix GCMC molecule command requires that atoms have molecule attributes
+
+Should not choose the GCMC molecule feature if no molecules are being
+simulated. The general molecule flag is off, but GCMC's molecule flag
+is on.
+
+E: Fix GCMC incompatible with given pair_style
+
+Some pair_styles do not provide single-atom energies, which are needed
+by fix GCMC.
+
 E: Cannot use fix GCMC in a 2d simulation
 
 Fix GCMC is set up to run in 3d only. No 2d simulations with fix GCMC
@@ -151,31 +173,19 @@ E: Cannot use fix GCMC with a triclinic box
 Fix GCMC is set up to run with othogonal boxes only. Simulations with
 triclinic boxes and fix GCMC are not allowed.
 
-E: Fix GCMC molecule command requires that atoms have molecule attributes
+E: Could not find fix group ID
 
-Should not choose the GCMC molecule feature if no molecules are being
-simulated. The general molecule flag is off, but GCMC's molecule flag
-is on.
-
-E: Fix GCMC could not find any atoms in the user-supplied template molecule
-
-When using the molecule option with fix GCMC, the user must supply a 
-template molecule in the usual LAMMPS data file with its molecule id
-specified in the fix GCMC command as the "type" of the exchanged gas.
-
-E: Fix GCMC incompatible with given pair_style
-
-Some pair_styles do not provide single-atom energies, which are needed
-by fix GCMC.
-
-E: Fix GCMC incorrect number of atoms per molecule
-
-The number of atoms in each gas molecule was not computed correctly.
+UNDOCUMENTED
 
 E: Illegal fix GCMC gas mass <= 0
 
 The computed mass of the designated gas molecule or atom type was less 
 than or equal to zero.
+
+E: Cannot do GCMC on atoms in atom_modify first group
+
+This is a restriction due to the way atoms are organized in a list to
+enable the atom_modify first command.
 
 E: Fix GCMC ran out of available molecule IDs
 
@@ -184,13 +194,23 @@ two billion) molecules have been created. The code needs to be
 modified to either allow molecule ID recycling or use bigger ints for
 molecule IDs. A work-around is to run shorter simulations.
 
-W: Fix GCMC fix group should be all
+E: Fix GCMC could not find any atoms in the user-supplied template molecule
+
+When using the molecule option with fix GCMC, the user must supply a 
+template molecule in the usual LAMMPS data file with its molecule id
+specified in the fix GCMC command as the "type" of the exchanged gas.
+
+E: Fix GCMC incorrect number of atoms per molecule
+
+The number of atoms in each gas molecule was not computed correctly.
+
+U: Fix GCMC fix group should be all
 
 Fix GCMC will ignore the fix group specified by the user. User should
 set the fix group to "all". Fix GCMC will overwrite the user-specified
 fix group with a group consisting of all GCMC gas atoms.
 
-E: Fix GCMC region does not support a bounding box 
+U: Fix GCMC region does not support a bounding box 
  
 Not all regions represent bounded volumes.  You cannot use 
 such a region with the fix GCMC command. 
@@ -205,6 +225,8 @@ Self-explanatory.
  
 E: Region ID for fix GCMC does not exist 
  
-Self-explanatory. 
+Self-explanatory.
+
+
 
 */

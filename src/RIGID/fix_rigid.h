@@ -176,6 +176,10 @@ E: Fix rigid langevin period must be > 0.0
 
 Self-explanatory.
 
+E: Fix rigid nvt/npt/nph dilate group ID does not exist
+
+UNDOCUMENTED
+
 E: One or zero atoms in rigid body
 
 Any rigid body defined by the fix rigid command must contain 2 or more

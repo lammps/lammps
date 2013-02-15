@@ -55,6 +55,14 @@ class PairCoulDSF : public Pair {
 
 /* ERROR/WARNING messages:
 
+E: Illegal ... command
+
+UNDOCUMENTED
+
+E: Incorrect args for pair coefficients
+
+UNDOCUMENTED
+
 E: Pair style coul/dsf requires atom attribute q
 
 The atom style defined does not have this attribute.

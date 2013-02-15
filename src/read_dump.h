@@ -94,6 +94,10 @@ private:
 
 /* ERROR/WARNING messages:
 
+E: Read_dump command before simulation box is defined
+
+UNDOCUMENTED
+
 E: Illegal ... command
 
 Self-explanatory.  Check the input script syntax and compare to the

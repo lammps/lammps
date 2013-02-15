@@ -112,9 +112,9 @@ E: Use of fix move with undefined lattice
 Must use lattice command with fix move command if units option is
 set to lattice.
 
-E: Fix move cannot have 0 length rotation vector
+E: Zero length rotation vector with fix move
 
-Self-explanatory.
+UNDOCUMENTED
 
 E: Variable name for fix move does not exist
 
@@ -131,5 +131,9 @@ Atoms can not be added afterwards to this fix option.
 E: Resetting timestep is not allowed with fix move
 
 This is because fix move is moving atoms based on elapsed time.
+
+U: Fix move cannot have 0 length rotation vector
+
+Self-explanatory.
 
 */

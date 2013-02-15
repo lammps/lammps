@@ -133,6 +133,11 @@ class Comm : protected Pointers {
 
 /* ERROR/WARNING messages:
 
+W: OMP_NUM_THREADS environment is not set.
+
+This environment variable must be set appropriately to use the
+USER-OMP pacakge.
+
 E: Bad grid of processors
 
 The 3d grid of processors defined by the processors command does not

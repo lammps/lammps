@@ -135,6 +135,10 @@ E: Cannot redefine variable as a different style
 An equal-style variable can be re-defined but only if it was
 originally an equal-style variable.
 
+E: File variable could not read value
+
+UNDOCUMENTED
+
 E: Variable name must be alphanumeric or underscore characters
 
 Self-explanatory.
@@ -219,6 +223,10 @@ E: Invalid variable name in variable formula
 
 Variable name is not recognized.
 
+E: Variable has circular dependency
+
+UNDOCUMENTED
+
 E: Invalid variable evaluation in variable formula
 
 A variable used in a formula could not be evaluated.
@@ -245,6 +253,10 @@ The keyword is not recognized.
 E: Divide by 0 in variable formula
 
 Self-explanatory.
+
+E: Modulo 0 in variable formula
+
+UNDOCUMENTED
 
 E: Power by 0 in variable formula
 
@@ -331,6 +343,14 @@ E: Grmask function in equal-style variable formula
 
 Grmask is per-atom operation.
 
+E: Variable ID in variable formula does not exist
+
+UNDOCUMENTED
+
+E: Invalid variable in special function next
+
+UNDOCUMENTED
+
 E: Indexed per-atom vector in variable formula without atom map
 
 Accessing a value from an atom vector requires the ability to lookup
@@ -358,5 +378,9 @@ The quantity being read is a floating point or non-numeric value.
 E: Invalid Boolean syntax in if command
 
 Self-explanatory.
+
+E: Cannot open file variable file %s
+
+UNDOCUMENTED
 
 */

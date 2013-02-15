@@ -329,6 +329,10 @@ E: Invalid atom type in neighbor exclusion list
 
 Atom types must range from 1 to Ntypes inclusive.
 
+W: Neighbor exclusions used with KSpace solver may give inconsistent Coulombic energies
+
+UNDOCUMENTED
+
 E: Neighbor include group not allowed with ghost neighbors
 
 This is a current restriction within LAMMPS.

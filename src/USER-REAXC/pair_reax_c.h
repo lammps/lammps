@@ -46,6 +46,8 @@ class PairReaxC : public Pair {
   double init_one(int, int);
   void *extract(const char *, int &);
   int fixbond_flag, fixspecies_flag;
+  int **tmpid;
+  double ** tmpbo, **tmpr;
 
   control_params *control;
   reax_system *system;
@@ -73,6 +75,9 @@ class PairReaxC : public Pair {
   int write_reax_lists();
   void read_reax_forces();
   void setup();
+
+  int nmax;
+  void FindBond();
 };
 
 }

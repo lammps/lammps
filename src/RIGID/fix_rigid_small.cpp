@@ -647,11 +647,11 @@ void FixRigidSmall::final_integrate()
 
   if (langflag) {
     for (int ibody = 0; ibody < nlocal_body; ibody++) {
-      fcm = body[atom2body[i]].fcm;
+      fcm = body[ibody].fcm;
       fcm[0] += langextra[ibody][0];
       fcm[1] += langextra[ibody][1];
       fcm[2] += langextra[ibody][2];
-      tcm = body[atom2body[i]].torque;
+      tcm = body[ibody].torque;
       tcm[0] += langextra[ibody][3];
       tcm[1] += langextra[ibody][4];
       tcm[2] += langextra[ibody][5];

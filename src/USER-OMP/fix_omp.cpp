@@ -142,6 +142,7 @@ FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg),
   // encourage the OS to use storage that is "close" to each thread's CPU.
   thr = new ThrData *[nthreads];
   _nthr = nthreads;
+  _clearforce = true;
 #if defined(_OPENMP)
 #pragma omp parallel default(none)
 #endif
@@ -286,10 +287,11 @@ void FixOMP::init()
         fprintf(logfile,"Last active /omp style is %s_style %s\n",
                 last_force_name, last_omp_name);
     } else {
+      _clearforce = false;
       if (screen)
         fprintf(screen,"No /omp style for force computation currently active\n");
       if (logfile)
-        fprintf(screen,"No /omp style for force computation currently active\n");
+        fprintf(logfile,"No /omp style for force computation currently active\n");
     }
   }
 }
@@ -325,13 +327,17 @@ void FixOMP::pre_force(int)
   double *de = atom->de;
   double *drho = atom->drho;
 
+  if (_clearforce) {
 #if defined(_OPENMP)
 #pragma omp parallel default(none) shared(f,torque,erforce,de,drho)
 #endif
-  {
-    const int tid = get_tid();
-    thr[tid]->check_tid(tid);
-    thr[tid]->init_force(nall,f,torque,erforce,de,drho);
+    {
+      const int tid = get_tid();
+      thr[tid]->check_tid(tid);
+      thr[tid]->init_force(nall,f,torque,erforce,de,drho);
+    }
+  } else {
+    thr[0]->init_force(nall,f,torque,erforce,de,drho);
   }
 }
 

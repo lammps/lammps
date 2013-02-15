@@ -74,6 +74,10 @@ void PairLJCutThr::init_style()
 
   neighbor->requests[irequest]->half = 0;
   neighbor->requests[irequest]->full = 1;
+#ifdef LMP_USER_OMP
+  // request multi-threaded neighbor list build, if compiled in.
+  neighbor->requests[irequest]->omp = 1;
+#endif
 }
 
 /* ---------------------------------------------------------------------- */

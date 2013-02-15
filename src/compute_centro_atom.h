@@ -64,6 +64,6 @@ uses a pairwise neighbor list.
 
 W: More than one compute centro/atom
 
-It is not efficient to use compute centro/atom  more than once.
+It is not efficient to use compute centro/atom more than once.
 
 */

@@ -72,7 +72,6 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   virial_flag = 1;
   create_attribute = 1;
 
-
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 
@@ -291,20 +290,26 @@ void FixRigidSmall::init()
     step_respa = ((Respa *) update->integrate)->step;
 }
 
+/* ----------------------------------------------------------------------
+   one-time initialization of rigid body attributes via local comm
+   extended flags, mass, COM, inertia tensor, displacement of each atom
+   require communication stencil have been setup by comm->borders()
+------------------------------------------------------------------------- */
+
+void FixRigidSmall::setup_pre_neighbor()
+{
+  if (firstflag) {
+    firstflag = 0;
+    setup_bodies();
+  }
+}
+
 /* ---------------------------------------------------------------------- */
 
 void FixRigidSmall::setup(int vflag)
 {
   int i,n,ibody;
   double massone,radone;
-
-  // one-time initialization of rigid body attributes via local comm
-  // extended flags, mass, COM, inertia tensor, displacement of each atom
-
-  if (firstflag) {
-    firstflag = 0;
-    setup_bodies();
-  }
 
   //check(1);
 
@@ -642,11 +647,11 @@ void FixRigidSmall::final_integrate()
 
   if (langflag) {
     for (int ibody = 0; ibody < nlocal_body; ibody++) {
-      fcm = body[atom2body[i]].fcm;
+      fcm = body[ibody].fcm;
       fcm[0] += langextra[ibody][0];
       fcm[1] += langextra[ibody][1];
       fcm[2] += langextra[ibody][2];
-      tcm = body[atom2body[i]].torque;
+      tcm = body[ibody].torque;
       tcm[0] += langextra[ibody][3];
       tcm[1] += langextra[ibody][4];
       tcm[2] += langextra[ibody][5];
@@ -722,11 +727,6 @@ void FixRigidSmall::final_integrate_respa(int ilevel, int iloop)
 
 void FixRigidSmall::pre_neighbor()
 {
-  // do nothing if bodies are not yet initialized 
-  // i.e. pre_neighbor() is being called from Verlet::setup()
-
-  if (firstflag) return;
-
   // remap xcm and image flags of each body as needed
 
   tagint original,oldimage,newimage;
@@ -811,13 +811,6 @@ int FixRigidSmall::dof(int tgroup)
   int i,j;
 
   int tgroupbit = group->bitmask[tgroup];
-
-  // if firstflag, just return 0
-  // is being called by first run init()
-  // local comm stencil is not setup and rigid body inertia is not calculated
-  // will be called again by temperature compute setup()
-
-  if (firstflag) return 0;
 
   // counts = 3 values per rigid body I own
   // 0 = # of point particles in rigid body and in temperature group
@@ -1314,7 +1307,7 @@ void FixRigidSmall::create_bodies()
   // when done, have full bbox for every rigid body my atoms are part of
 
   frsptr = this;
-  comm->ring(m,sizeof(double),buf,1,bbox_update,NULL);
+  comm->ring(m,sizeof(double),buf,1,ring_bbox,NULL);
 
   // ctr = center pt of each rigid body my atoms are part of
 
@@ -1354,7 +1347,7 @@ void FixRigidSmall::create_bodies()
   // when done, have idclose for every rigid body my atoms are part of
 
   frsptr = this;
-  comm->ring(m,sizeof(double),buf,2,nearest_update,NULL);
+  comm->ring(m,sizeof(double),buf,2,ring_nearest,NULL);
 
   // set bodytag of all owned atoms, based on idclose
 
@@ -1380,7 +1373,7 @@ void FixRigidSmall::create_bodies()
    update bounding box for rigid bodies my atoms are part of
 ------------------------------------------------------------------------- */
 
-void FixRigidSmall::bbox_update(int n, char *cbuf)
+void FixRigidSmall::ring_bbox(int n, char *cbuf)
 {
   std::map<int,int> *hash = frsptr->hash;
   double **bbox = frsptr->bbox;
@@ -1412,7 +1405,7 @@ void FixRigidSmall::bbox_update(int n, char *cbuf)
    update nearest atom to body center for rigid bodies my atoms are part of
 ------------------------------------------------------------------------- */
 
-void FixRigidSmall::nearest_update(int n, char *cbuf)
+void FixRigidSmall::ring_nearest(int n, char *cbuf)
 {
   std::map<int,int> *hash = frsptr->hash;
   double **ctr = frsptr->ctr;
@@ -1545,7 +1538,6 @@ void FixRigidSmall::setup_bodies()
   reset_atom2body();
 
   // compute mass & center-of-mass of each rigid body
-  // error if image flag is not 0 in a non-periodic dim
 
   double **x = atom->x;
   tagint *image = atom->image;
@@ -1601,11 +1593,12 @@ void FixRigidSmall::setup_bodies()
   // dx,dy,dz = coords relative to center-of-mass
   // symmetric 3x3 inertia tensor stored in Voigt notation as 6-vector
 
+  memory->create(itensor,nlocal_body+nghost_body,6,"rigid/small:itensor");
+  for (ibody = 0; ibody < nlocal_body+nghost_body; ibody++)
+    for (i = 0; i < 6; i++) itensor[ibody][i] = 0.0;
+
   double dx,dy,dz,rad;
   double *inertia;
-
-  for (ibody = 0; ibody < nlocal_body+nghost_body; ibody++)
-    for (i = 0; i < 6; i++) body[ibody].itensor[i] = 0.0;
 
   for (i = 0; i < nlocal; i++) {
     if (atom2body[i] < 0) continue;
@@ -1620,7 +1613,7 @@ void FixRigidSmall::setup_bodies()
     if (rmass) massone = rmass[i];
     else massone = mass[type[i]];
 
-    inertia = b->itensor;
+    inertia = itensor[atom2body[i]];
     inertia[0] += massone * (dy*dy + dz*dz);
     inertia[1] += massone * (dx*dx + dz*dz);
     inertia[2] += massone * (dx*dx + dy*dy);
@@ -1638,7 +1631,7 @@ void FixRigidSmall::setup_bodies()
 
     for (i = 0; i < nlocal; i++) {
       if (atom2body[i] < 0) continue;
-      inertia = body[atom2body[i]].itensor;
+      inertia = itensor[atom2body[i]];
 
       if (rmass) massone = rmass[i];
       else massone = mass[type[i]];
@@ -1681,10 +1674,6 @@ void FixRigidSmall::setup_bodies()
     }
   }
 
-  for (ibody = 0; ibody < nlocal_body; ibody++) {
-    inertia = body[atom2body[i]].itensor;
-  }
-
   // reverse communicate inertia tensor of all bodies
 
   commflag = ITENSOR;
@@ -1697,17 +1686,15 @@ void FixRigidSmall::setup_bodies()
   int ierror;
   double cross[3];
   double tensor[3][3],evectors[3][3];
-  double *itensor,*ex,*ey,*ez;
+  double *ex,*ey,*ez;
 
   for (ibody = 0; ibody < nlocal_body; ibody++) {
-    itensor = body[ibody].itensor;
-
-    tensor[0][0] = itensor[0];
-    tensor[1][1] = itensor[1];
-    tensor[2][2] = itensor[2];
-    tensor[1][2] = tensor[2][1] = itensor[3];
-    tensor[0][2] = tensor[2][0] = itensor[4];
-    tensor[0][1] = tensor[1][0] = itensor[5];
+    tensor[0][0] = itensor[ibody][0];
+    tensor[1][1] = itensor[ibody][1];
+    tensor[2][2] = itensor[ibody][2];
+    tensor[1][2] = tensor[2][1] = itensor[ibody][3];
+    tensor[0][2] = tensor[2][0] = itensor[ibody][4];
+    tensor[0][1] = tensor[1][0] = itensor[ibody][5];
 
     inertia = body[ibody].inertia;
     ierror = MathExtra::jacobi(tensor,inertia,evectors);
@@ -1816,11 +1803,11 @@ void FixRigidSmall::setup_bodies()
   // extended particles may contribute extra terms to moments of inertia
 
   for (ibody = 0; ibody < nlocal_body+nghost_body; ibody++)
-    for (i = 0; i < 6; i++) body[ibody].itensor[i] = 0.0;
+    for (i = 0; i < 6; i++) itensor[ibody][i] = 0.0;
 
   for (i = 0; i < nlocal; i++) {
     if (atom2body[i] < 0) continue;
-    inertia = body[atom2body[i]].itensor;
+    inertia = itensor[atom2body[i]];
 
     if (rmass) massone = rmass[i];
     else massone = mass[type[i]];
@@ -1843,7 +1830,7 @@ void FixRigidSmall::setup_bodies()
 
     for (i = 0; i < nlocal; i++) {
       if (atom2body[i] < 0) continue;
-      inertia = body[atom2body[i]].itensor;
+      inertia = itensor[atom2body[i]];
 
       if (rmass) massone = rmass[i];
       else massone = mass[type[i]];
@@ -1895,33 +1882,32 @@ void FixRigidSmall::setup_bodies()
   double norm;
   for (ibody = 0; ibody < nlocal_body; ibody++) {
     inertia = body[ibody].inertia;
-    itensor = body[ibody].itensor;
 
     if (inertia[0] == 0.0) {
-      if (fabs(itensor[0]) > TOLERANCE)
+      if (fabs(itensor[ibody][0]) > TOLERANCE)
         error->all(FLERR,"Fix rigid: Bad principal moments");
     } else {
-      if (fabs((itensor[0]-inertia[0])/inertia[0]) >
+      if (fabs((itensor[ibody][0]-inertia[0])/inertia[0]) >
           TOLERANCE) error->all(FLERR,"Fix rigid: Bad principal moments");
     }
     if (inertia[1] == 0.0) {
-      if (fabs(itensor[1]) > TOLERANCE)
+      if (fabs(itensor[ibody][1]) > TOLERANCE)
         error->all(FLERR,"Fix rigid: Bad principal moments");
     } else {
-      if (fabs((itensor[1]-inertia[1])/inertia[1]) >
+      if (fabs((itensor[ibody][1]-inertia[1])/inertia[1]) >
           TOLERANCE) error->all(FLERR,"Fix rigid: Bad principal moments");
     }
     if (inertia[2] == 0.0) {
-      if (fabs(itensor[2]) > TOLERANCE)
+      if (fabs(itensor[ibody][2]) > TOLERANCE)
         error->all(FLERR,"Fix rigid: Bad principal moments");
     } else {
-      if (fabs((itensor[2]-inertia[2])/inertia[2]) >
+      if (fabs((itensor[ibody][2]-inertia[2])/inertia[2]) >
           TOLERANCE) error->all(FLERR,"Fix rigid: Bad principal moments");
     }
     norm = (inertia[0] + inertia[1] + inertia[2]) / 3.0;
-    if (fabs(itensor[3]/norm) > TOLERANCE ||
-        fabs(itensor[4]/norm) > TOLERANCE ||
-        fabs(itensor[5]/norm) > TOLERANCE)
+    if (fabs(itensor[ibody][3]/norm) > TOLERANCE ||
+        fabs(itensor[ibody][4]/norm) > TOLERANCE ||
+        fabs(itensor[ibody][5]/norm) > TOLERANCE)
       error->all(FLERR,"Fix rigid: Bad principal moments");
   }
 }
@@ -2084,7 +2070,10 @@ int FixRigidSmall::unpack_exchange(int nlocal, double *buf)
 
   // atom not in a rigid body
 
-  if (!bodytag[nlocal]) return m;
+  if (!bodytag[nlocal]) {
+    bodyown[nlocal] = -1;
+    return m;
+  }
 
   // atom does not own its rigid body
 
@@ -2270,7 +2259,7 @@ void FixRigidSmall::unpack_comm(int n, int first, double *buf)
 int FixRigidSmall::pack_reverse_comm(int n, int first, double *buf)
 {
   int i,j,m,last;
-  double *fcm,*torque,*vcm,*angmom,*xcm,*itensor;
+  double *fcm,*torque,*vcm,*angmom,*xcm;
 
   m = 0;
   last = first + n;
@@ -2314,13 +2303,13 @@ int FixRigidSmall::pack_reverse_comm(int n, int first, double *buf)
   } else if (commflag == ITENSOR) {
     for (i = first; i < last; i++) {
       if (bodyown[i] < 0) continue;
-      itensor = body[bodyown[i]].itensor;
-      buf[m++] = itensor[0];
-      buf[m++] = itensor[1];
-      buf[m++] = itensor[2];
-      buf[m++] = itensor[3];
-      buf[m++] = itensor[4];
-      buf[m++] = itensor[5];
+      j = bodyown[i];
+      buf[m++] = itensor[j][0];
+      buf[m++] = itensor[j][1];
+      buf[m++] = itensor[j][2];
+      buf[m++] = itensor[j][3];
+      buf[m++] = itensor[j][4];
+      buf[m++] = itensor[j][5];
     }
 
   } else if (commflag == DOF) {
@@ -2343,7 +2332,7 @@ int FixRigidSmall::pack_reverse_comm(int n, int first, double *buf)
 void FixRigidSmall::unpack_reverse_comm(int n, int *list, double *buf)
 {
   int i,j,k;
-  double *fcm,*torque,*vcm,*angmom,*xcm,*itensor;
+  double *fcm,*torque,*vcm,*angmom,*xcm;
 
   int *tag = atom->tag;
   int nlocal = atom->nlocal;
@@ -2393,13 +2382,13 @@ void FixRigidSmall::unpack_reverse_comm(int n, int *list, double *buf)
     for (i = 0; i < n; i++) {
       j = list[i];
       if (bodyown[j] < 0) continue;
-      itensor = body[bodyown[j]].itensor;
-      itensor[0] += buf[m++];
-      itensor[1] += buf[m++];
-      itensor[2] += buf[m++];
-      itensor[3] += buf[m++];
-      itensor[4] += buf[m++];
-      itensor[5] += buf[m++];
+      k = bodyown[j];
+      itensor[k][0] += buf[m++];
+      itensor[k][1] += buf[m++];
+      itensor[k][2] += buf[m++];
+      itensor[k][3] += buf[m++];
+      itensor[k][4] += buf[m++];
+      itensor[k][5] += buf[m++];
     }
 
   } else if (commflag == DOF) {

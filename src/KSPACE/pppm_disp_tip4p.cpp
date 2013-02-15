@@ -232,7 +232,7 @@ void PPPMDispTIP4P::fieldforce_c_ik()
     if (type[i] != typeO) {
       f[i][0] += qfactor*ekx;
       f[i][1] += qfactor*eky;
-      f[i][2] += qfactor*ekz;
+      if (slabflag != 2) f[i][2] += qfactor*ekz;
 
     } else {
       fx = qfactor * ekx;
@@ -242,15 +242,15 @@ void PPPMDispTIP4P::fieldforce_c_ik()
 
       f[i][0] += fx*(1 - alpha);
       f[i][1] += fy*(1 - alpha);
-      f[i][2] += fz*(1 - alpha);
+      if (slabflag != 2) f[i][2] += fz*(1 - alpha);
 
       f[iH1][0] += 0.5*alpha*fx;
       f[iH1][1] += 0.5*alpha*fy;
-      f[iH1][2] += 0.5*alpha*fz;
+      if (slabflag != 2) f[iH1][2] += 0.5*alpha*fz;
 
       f[iH2][0] += 0.5*alpha*fx;
       f[iH2][1] += 0.5*alpha*fy;
-      f[iH2][2] += 0.5*alpha*fz;
+      if (slabflag != 2) f[iH2][2] += 0.5*alpha*fz;
     }
   }
 }
@@ -309,9 +309,9 @@ void PPPMDispTIP4P::fieldforce_c_ad()
     nx = part2grid[i][0];
     ny = part2grid[i][1];
     nz = part2grid[i][2];
-    dx = nx+shiftone - (x[i][0]-boxlo[0])*delxinv;
-    dy = ny+shiftone - (x[i][1]-boxlo[1])*delyinv;
-    dz = nz+shiftone - (x[i][2]-boxlo[2])*delzinv;
+    dx = nx+shiftone - (xi[0]-boxlo[0])*delxinv;
+    dy = ny+shiftone - (xi[1]-boxlo[1])*delyinv;
+    dz = nz+shiftone - (xi[2]-boxlo[2])*delzinv;
     
     compute_rho1d(dx,dy,dz, order, rho_coeff, rho1d);
     compute_drho1d(dx,dy,dz, order, drho_coeff, drho1d);
@@ -358,22 +358,22 @@ void PPPMDispTIP4P::fieldforce_c_ad()
     if (type[i] != typeO) {
       f[i][0] += fx;
       f[i][1] += fy;
-      f[i][2] += fz;
+      if (slabflag != 2) f[i][2] += fz;
 
     } else {
       find_M(i,iH1,iH2,xM);
 
       f[i][0] += fx*(1 - alpha);
       f[i][1] += fy*(1 - alpha);
-      f[i][2] += fz*(1 - alpha);
+      if (slabflag != 2) f[i][2] += fz*(1 - alpha);
 
       f[iH1][0] += 0.5*alpha*fx;
       f[iH1][1] += 0.5*alpha*fy;
-      f[iH1][2] += 0.5*alpha*fz;
+      if (slabflag != 2) f[iH1][2] += 0.5*alpha*fz;
 
       f[iH2][0] += 0.5*alpha*fx;
       f[iH2][1] += 0.5*alpha*fy;
-      f[iH2][2] += 0.5*alpha*fz;
+      if (slabflag != 2) f[iH2][2] += 0.5*alpha*fz;
     }
   }
 }

@@ -1517,13 +1517,16 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 
   } else if (strcmp(style,"brownian") == 0) {
     double mu = read_double(fp);
-    int flag1 = read_int(fp);
+    int flaglog = read_int(fp);
+    int flagfld = read_int(fp);
     double cut_inner_global = read_double(fp);
     double cut_global = read_double(fp);
     double t_target = read_double(fp);
     int seed = read_int(fp);
     int offset_flag = read_int(fp);
     int mix_flag = read_int(fp);
+    int flagHI = read_int(fp);
+    int flagVF = read_int(fp);
 
     if (!flag) return;
 
@@ -2369,14 +2372,17 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 	}
       }
 
-  } else if ((strcmp(style,"lubricate2") == 0) ||
+  } else if ((strcmp(style,"lubricate") == 0) ||
 	     (strcmp(style,"lubricateU") == 0)) {
     double mu = read_double(fp);
-    int flag = read_int(fp);
+    int flaglog = read_int(fp);
+    int flagfld = read_int(fp);
     double cut_inner_global = read_double(fp);
     double cut_global = read_double(fp);
     int offset_flag = read_int(fp);
     int mix_flag = read_int(fp);
+    int flagHI = read_int(fp);
+    int flagVF = read_int(fp);
 
     if (!flag) return;
 
@@ -3270,7 +3276,7 @@ void Data::write(FILE *fp, FILE *fp2, int write_coeffs, int write_vels)
 	(strcmp(pair_style,"gran/history") != 0) &&
 	(strcmp(pair_style,"gran/no_history") != 0) &&
 	(strcmp(pair_style,"gran/hertzian") != 0) &&
-	(strcmp(pair_style,"lubricate2") != 0) &&
+	(strcmp(pair_style,"lubricate") != 0) &&
 	(strcmp(pair_style,"lubricateU") != 0) &&
 	(strcmp(pair_style,"meam") != 0) &&
 	(strcmp(pair_style,"meam/spline") != 0) &&

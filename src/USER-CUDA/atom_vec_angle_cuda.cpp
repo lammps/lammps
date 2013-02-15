@@ -369,8 +369,8 @@ int AtomVecAngleCuda::pack_exchange(int dim, double *buf)
       {
         int dm= modify->fix[atom->extra_grow[iextra]]->pack_exchange(i,&buf_p[m]);
         m+=dm;
-                  nextra+=dm;
-                  if(i<nlocal)modify->fix[atom->extra_grow[iextra]]->copy_arrays(copylist[j],i,delflag);
+            nextra+=dm;
+            if(i<nlocal)modify->fix[atom->extra_grow[iextra]]->copy_arrays(copylist[j],i,1);
             if(m>*maxsend) {grow_send(m,buf_pointer,1); buf_p=*buf_pointer;}
       }
 

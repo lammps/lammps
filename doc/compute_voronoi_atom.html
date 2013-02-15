@@ -54,6 +54,16 @@ processor is determined by the cutoff used for
 <A HREF = "pair_style.html">pair_style</A> interactions.  The cutoff can be set
 explicitly via the <A HREF = "communicate.html">communicate cutoff</A> command.
 </P>
+<P>IMPORTANT NOTE: The Voro++ package performs its calculation in 3d.
+This should still work for a 2d LAMMPS simulation, to effectively
+compute Vornoi "areas", so long as the z-dimension of the box is
+roughly the same (or smaller) compared to the separation of the atoms.
+Typical values for the z box dimensions in a 2d LAMMPS model are -0.5
+to 0.5, which satisfies the criterion for most <A HREF = "doc/units.html">units</A>
+systems.  Note that you define the z extent of the simulation box for
+2d simulations when using the <A HREF = "create_box.html">create_box</A> or
+<A HREF = "read_data.html">read_data</A> commands.
+</P>
 <P><B>Output info:</B>
 </P>
 <P>This compute calculates a per-atom array with 2 columns.  The first
@@ -70,8 +80,6 @@ options.
 <P>This compute is part of the VORONOI package.  It is only enabled if
 LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
 LAMMPS</A> section for more info.
-</P>
-<P>This command currently only works for 3d systems.
 </P>
 <P><B>Related commands:</B>
 </P>

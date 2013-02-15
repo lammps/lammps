@@ -165,6 +165,34 @@ void ThrData::init_pppm(int order, Memory *memory)
 }
 
 /* ----------------------------------------------------------------------
+   if order > 0 : set up per thread storage for PPPM
+   if order < 0 : free per thread storage for PPPM
+------------------------------------------------------------------------- */
+#if defined(FFT_SINGLE)
+typedef float FFT_SCALAR;
+#else
+typedef double FFT_SCALAR;
+#endif
+
+void ThrData::init_pppm_disp(int order_6, Memory *memory)
+{
+  FFT_SCALAR **rho1d_6, **drho1d_6;
+  if (order_6 > 0) {
+      memory->create2d_offset(rho1d_6,3,-order_6/2,order_6/2,"thr_data:rho1d_6");
+      memory->create2d_offset(drho1d_6,3,-order_6/2,order_6/2,"thr_data:drho1d_6");
+      _rho1d_6 = static_cast<void *>(rho1d_6);
+      _drho1d_6 = static_cast<void *>(drho1d_6);
+  } else {
+    order_6 = -order_6;
+    rho1d_6 = static_cast<FFT_SCALAR **>(_rho1d_6);
+    drho1d_6 = static_cast<FFT_SCALAR **>(_drho1d_6);
+    memory->destroy2d_offset(rho1d_6,-order_6/2);
+    memory->destroy2d_offset(drho1d_6,-order_6/2);
+  }
+}
+
+
+/* ----------------------------------------------------------------------
    compute global pair virial via summing F dot r over own & ghost atoms
    at this point, only pairwise forces have been accumulated in atom->f
 ------------------------------------------------------------------------- */

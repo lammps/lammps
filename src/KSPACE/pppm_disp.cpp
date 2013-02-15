@@ -355,7 +355,6 @@ void PPPMDisp::init()
 
 
   // initialize the pair style to get the coefficients
-
   pair->init();
   init_coeffs();
 
@@ -4751,7 +4750,7 @@ void PPPMDisp::fieldforce_c_ik()
     const double qfactor = force->qqrd2e * scale * q[i];
     f[i][0] += qfactor*ekx;
     f[i][1] += qfactor*eky;
-    f[i][2] += qfactor*ekz;
+    if (slabflag != 2) f[i][2] += qfactor*ekz;
   }
 }
 /* ----------------------------------------------------------------------
@@ -4970,7 +4969,7 @@ void PPPMDisp::fieldforce_g_ik()
     lj = B[type];
     f[i][0] += lj*ekx;
     f[i][1] += lj*eky;
-    f[i][2] += lj*ekz;
+    if (slabflag != 2) f[i][2] += lj*ekz;
   }
 }
 
@@ -5228,7 +5227,7 @@ void PPPMDisp::fieldforce_a_ik()
     lj6 = B[7*type];
     f[i][0] += lj0*ekx0 + lj1*ekx1 + lj2*ekx2 + lj3*ekx3 + lj4*ekx4 + lj5*ekx5 + lj6*ekx6;
     f[i][1] += lj0*eky0 + lj1*eky1 + lj2*eky2 + lj3*eky3 + lj4*eky4 + lj5*eky5 + lj6*eky6;
-    f[i][2] += lj0*ekz0 + lj1*ekz1 + lj2*ekz2 + lj3*ekz3 + lj4*ekz4 + lj5*ekz5 + lj6*ekz6;
+    if (slabflag != 2) f[i][2] += lj0*ekz0 + lj1*ekz1 + lj2*ekz2 + lj3*ekz3 + lj4*ekz4 + lj5*ekz5 + lj6*ekz6;
   }
 }
 

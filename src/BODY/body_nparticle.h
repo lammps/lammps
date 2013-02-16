@@ -48,10 +48,12 @@ class BodyNparticle : public Body {
 
 /* ERROR/WARNING messages:
 
-E: Illegal ... command
+E: Invalid body nparticle command
 
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
+Arguments in atom-style command are not correct.
+
+E: Insufficient Jacobi rotations for body nparticle
+
+Eigensolve for rigid body was not sufficiently accurate.
 
 */

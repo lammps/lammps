@@ -159,12 +159,42 @@ E: Triclinic box skew is too large
 
 The displacement in a skewed direction must be less than half the box
 length in that dimension.  E.g. the xy tilt must be between -half and
-+half of the x box length. This constraint can be relaxed by increasing
-the value of DELTATILT defined in domain.cpp.
++half of the x box length.  This constraint can be relaxed by using
+the box tilt command.
+
+W: Triclinic box skew is large
+
+The displacement in a skewed direction is normally required to be less
+than half the box length in that dimension.  E.g. the xy tilt must be
+between -half and +half of the x box length.  You have relaxed the
+constraint using the box tilt command, but the warning means that a
+LAMMPS simulation may be inefficient as a result.
 
 E: Illegal simulation box
 
 The lower bound of the simulation box is greater than the upper bound.
+
+E: Bond atom missing in image check
+
+The 2nd atom in a particular bond is missing on this processor.
+Typically this is because the pairwise cutoff is set too short or the
+bond has blown apart and an atom is too far away.
+
+W: Inconsistent image flags
+
+The image flags for a pair on bonded atoms appear to be inconsistent.
+Inconstent means that when the coordinates of the two atoms
+are unwrapped using the image flags, the two atoms are far apart.
+Specifically they are further apart than half a periodic box length.
+Or they are more than a box length apart in a non-periodic dimension.
+This is usually due to the initial data file not having correct
+image flags for the 2 atoms in a bond that straddles a periodic
+boundary.  They should be different by 1 in that case.
+
+This is a warning because inconsistent image flags will not cause
+problems for dynamics or most LAMMPS simulations.  However they can
+cause problems when such atoms are used with the fix rigid or
+replicate commands.
 
 E: Bond atom missing in box size check
 
@@ -172,7 +202,7 @@ The 2nd atoms needed to compute a particular bond is missing on this
 processor.  Typically this is because the pairwise cutoff is set too
 short or the bond has blown apart and an atom is too far away.
 
-E: Bond/angle/dihedral extent > half of periodic box length
+W: Bond/angle/dihedral extent > half of periodic box length
 
 This is a restriction because LAMMPS can be confused about which image
 of an atom in the bonded interaction is the correct one to use.

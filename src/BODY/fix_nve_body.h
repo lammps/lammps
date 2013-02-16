@@ -39,3 +39,15 @@ class FixNVEBody : public FixNVE {
 }
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Fix nve/body requires atom style body
+
+UNDOCUMENTED
+
+E: Fix nve/body requires bodies
+
+UNDOCUMENTED
+
+*/

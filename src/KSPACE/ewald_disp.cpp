@@ -38,9 +38,6 @@ using namespace MathSpecial;
 
 #define SMALL 0.00001
 
-#define KSPACE_ILLEGAL        "Illegal kspace_style ewald/n command"
-#define KSPACE_ORDER        "Unsupported order in kspace_style ewald/n for"
-#define KSPACE_MIX        "Unsupported mixing rule in kspace_style ewald/n for"
 
 enum{GEOMETRIC,ARITHMETIC,SIXTHPOWER};   // same as in pair.h
 
@@ -50,7 +47,7 @@ enum{GEOMETRIC,ARITHMETIC,SIXTHPOWER};   // same as in pair.h
 
 EwaldDisp::EwaldDisp(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
 {
-  if (narg!=1) error->all(FLERR,KSPACE_ILLEGAL);
+  if (narg!=1) error->all(FLERR,"Illegal kspace_style ewald/n command");
   accuracy_relative = fabs(atof(arg[0]));
   memset(function, 0, EWALD_NORDER*sizeof(int));
   kenergy = kvirial = NULL;
@@ -129,11 +126,10 @@ void EwaldDisp::init()
         case 6:
           if (ewald_mix==GEOMETRIC) { k = 1; break; }
           else if (ewald_mix==ARITHMETIC) { k = 2; break; }
-          sprintf(str, "%s pair_style %s", KSPACE_MIX, force->pair_style);
-          error->all(FLERR,str);
+          error->all(FLERR,
+                     "Unsupported mixing rule in kspace_style ewald/disp");
         default:
-          sprintf(str, "%s pair_style %s", KSPACE_ORDER, force->pair_style);
-          error->all(FLERR,str);
+          error->all(FLERR,"Unsupported order in kspace_style ewald/disp");
       }
       nfunctions += function[k] = 1;
       nsums += n[k];

@@ -440,10 +440,6 @@ void PairLJLongTIP4PLong::compute(int eflag, int vflag)
 /* ----------------------------------------------------------------------
    global settings
 ------------------------------------------------------------------------- */
-#define PAIR_CUTOFF	"Only one cut-off allowed when requesting all long"
-#define PAIR_COUL_CUT	"Coulombic cut not supported in pair_style lj/coul"
-#define PAIR_LARGEST	"Using largest cut-off for lj/coul long long"
-#define PAIR_MIX	"Mixing forced for lj coefficients"
 
 void PairLJLongTIP4PLong::settings(int narg, char **arg)
 {
@@ -453,9 +449,12 @@ void PairLJLongTIP4PLong::settings(int narg, char **arg)
   ewald_order = 0;
   options(arg, 6);
   options(++arg, 1);
-  if (!comm->me && ewald_order&(1<<6)) error->warning(FLERR,PAIR_MIX);
-  if (!comm->me && ewald_order==((1<<1)|(1<<6))) error->warning(FLERR,PAIR_LARGEST);
-  if (!((ewald_order^ewald_off)&(1<<1))) error->all(FLERR,PAIR_COUL_CUT);
+  if (!comm->me && ewald_order&(1<<6)) 
+    error->warning(FLERR,"Mixing forced for lj coefficients");
+  if (!comm->me && ewald_order==((1<<1)|(1<<6))) 
+    error->warning(FLERR,"Using largest cut-off for lj/coul long long");
+  if (!((ewald_order^ewald_off)&(1<<1))) 
+    error->all(FLERR,"Coulombic cut not supported in pair_style lj/coul");
   typeO = force->inumeric(arg[1]);
   typeH = force->inumeric(arg[2]);
   typeB = force->inumeric(arg[3]);

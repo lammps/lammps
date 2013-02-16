@@ -256,10 +256,25 @@ W: System is not charge neutral, net charge = %g
 The total charge on all atoms on the system is not 0.0, which
 is not valid for Ewald or PPPM.
 
-W: Reducing PPPM order b/c stencil extends beyond neighbor processor
+W: Reducing PPPM order b/c stencil extends beyond nearest neighbor processor
 
-LAMMPS is attempting this in order to allow the simulation
-to run.  It should not effect the PPPM accuracy.
+UNDOCUMENTED
+
+E: PPPM order < minimum allowed order
+
+UNDOCUMENTED
+
+E: PPPM grid stencil extends beyond nearest neighbor processor
+
+UNDOCUMENTED
+
+E: KSpace accuracy must be > 0
+
+The kspace accuracy designated in the input must be greater than zero.
+
+E: Could not compute grid size!
+
+UNDOCUMENTED
 
 E: PPPM grid is too large
 
@@ -267,21 +282,9 @@ The global PPPM grid is larger than OFFSET in one or more dimensions.
 OFFSET is currently set to 4096.  You likely need to decrease the
 requested accuracy.
 
-E: PPPM order has been reduced to 0
+E: Could not compute g_ewald
 
-LAMMPS has attempted to reduce the PPPM order to enable the simulation
-to run, but can reduce the order no further.  Try increasing the
-accuracy of PPPM by reducing the tolerance size, thus inducing a
-larger PPPM grid.
-
-E: KSpace accuracy must be > 0
-
-The kspace accuracy designated in the input must be greater than zero.
-
-E: Cannot compute PPPM G
-
-LAMMPS failed to compute a valid approximation for the PPPM g_ewald
-factor that partitions the computation between real space and k-space.
+UNDOCUMENTED
 
 E: Out of range atoms - cannot compute PPPM
 
@@ -302,5 +305,22 @@ large a timestep, etc.
 E: Cannot (yet) use K-space slab correction with compute group/group
 
 This option is not yet supported.
+
+U: Reducing PPPM order b/c stencil extends beyond neighbor processor
+
+LAMMPS is attempting this in order to allow the simulation
+to run.  It should not effect the PPPM accuracy.
+
+U: PPPM order has been reduced to 0
+
+LAMMPS has attempted to reduce the PPPM order to enable the simulation
+to run, but can reduce the order no further.  Try increasing the
+accuracy of PPPM by reducing the tolerance size, thus inducing a
+larger PPPM grid.
+
+U: Cannot compute PPPM G
+
+LAMMPS failed to compute a valid approximation for the PPPM g_ewald
+factor that partitions the computation between real space and k-space.
 
 */

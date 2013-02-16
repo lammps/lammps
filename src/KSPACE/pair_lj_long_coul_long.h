@@ -68,3 +68,47 @@ class PairLJLongCoulLong : public Pair {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+UNDOCUMENTED
+
+W: Mixing forced for lj coefficients
+
+UNDOCUMENTED
+
+W: Using largest cut-off for lj/coul long long
+
+UNDOCUMENTED
+
+E: Cut-offs missing in pair_style lj/coul
+
+UNDOCUMENTED
+
+E: Coulombic cut not supported in pair_style lj/coul
+
+UNDOCUMENTED
+
+E: Only one cut-off allowed when requesting all long
+
+UNDOCUMENTED
+
+E: Incorrect args for pair coefficients
+
+UNDOCUMENTED
+
+E: Invoking coulombic in pair style lj/coul requires atom attribute q
+
+UNDOCUMENTED
+
+E: Pair style requires a KSpace style
+
+UNDOCUMENTED
+
+E: Pair cutoff < Respa interior cutoff
+
+UNDOCUMENTED
+
+*/

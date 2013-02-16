@@ -51,12 +51,16 @@ E: Out of memory on GPGPU
 
 UNDOCUMENTED
 
+E: Pair style born/coul/long/gpu requires atom attribute q
+
+The atom style defined does not have this attribute.
+
 E: Cannot use newton pair with born/coul/long/gpu pair style
 
 UNDOCUMENTED
 
-E: Pair style born/coul/long/gpu requires atom attribute q
+E: Pair style is incompatible with KSpace style
 
-The atom style defined does not have this attribute.
+UNDOCUMENTED
 
 */

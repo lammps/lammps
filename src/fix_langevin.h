@@ -85,11 +85,11 @@ E: Fix langevin period must be > 0.0
 
 The time window for temperature relaxation must be > 0
 
-E: Fix langevin angmom requires atom style ellipsoid
+E: Fix langevin omega requires atom style sphere
 
 Self-explanatory.
 
-E: Fix langevin omega requires atom style sphere
+E: Fix langevin angmom requires atom style ellipsoid
 
 Self-explanatory.
 

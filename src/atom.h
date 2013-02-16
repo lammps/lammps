@@ -291,6 +291,11 @@ E: Invalid atom ID in Bonus section of data file
 Atom IDs must be positive integers and within range of defined
 atoms.
 
+E: Invalid atom ID in Bodies section of data file
+
+Atom IDs must be positive integers and within range of defined
+atoms.
+
 E: Invalid atom ID in Bonds section of data file
 
 Atom IDs must be positive integers and within range of defined

@@ -57,6 +57,10 @@ class ImproperHybrid : public Improper {
 
 /* ERROR/WARNING messages:
 
+E: Illegal ... command
+
+UNDOCUMENTED
+
 E: Improper style hybrid cannot use same improper style twice
 
 Self-explanatory.

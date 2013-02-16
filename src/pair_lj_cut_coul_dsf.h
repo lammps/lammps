@@ -57,3 +57,19 @@ class PairLJCutCoulDSF : public Pair {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+UNDOCUMENTED
+
+E: Incorrect args for pair coefficients
+
+UNDOCUMENTED
+
+E: Pair style lj/cut/coul/dsf requires atom attribute q
+
+UNDOCUMENTED
+
+*/

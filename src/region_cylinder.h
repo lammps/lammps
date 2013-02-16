@@ -66,4 +66,16 @@ E: Cannot use region INF or EDGE when box does not exist
 Regions that extend to the box boundaries can only be used after the
 create_box command has been used.
 
+E: Variable evaluation in region gave bad value
+
+UNDOCUMENTED
+
+E: Variable name for region cylinder does not exist
+
+UNDOCUMENTED
+
+E: Variable for region cylinder is invalid style
+
+UNDOCUMENTED
+
 */

@@ -35,3 +35,31 @@ class FixRigidNPT : public FixRigidNH {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Did not set temp or press for fix rigid/npt
+
+UNDOCUMENTED
+
+E: Target temperature for fix rigid/npt cannot be 0.0
+
+UNDOCUMENTED
+
+E: Target pressure for fix rigid/npt cannot be 0.0
+
+UNDOCUMENTED
+
+E: Fix rigid/npt period must be > 0.0
+
+UNDOCUMENTED
+
+E: Illegal ... command
+
+UNDOCUMENTED
+
+E: Fix_modify order must be 3 or 5
+
+UNDOCUMENTED
+
+*/

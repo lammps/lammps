@@ -50,7 +50,7 @@ class PPPMDispTIP4P : public PPPMDisp {
 
 /* ERROR/WARNING messages:
 
-E: Kspace style pppm/tip4p requires newton on
+E: Kspace style pppm/disp/tip4p requires newton on
 
 UNDOCUMENTED
 
@@ -79,5 +79,9 @@ E: TIP4P hydrogen has incorrect atom type
 
 The TIP4P pairwise computation found an H atom whose type does not
 agree with the specified H type.
+
+U: Kspace style pppm/tip4p requires newton on
+
+UNDOCUMENTED
 
 */

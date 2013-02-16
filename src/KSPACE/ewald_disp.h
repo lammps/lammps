@@ -93,3 +93,62 @@ class EwaldDisp : public KSpace {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Cannot use EwaldDisp with 2d simulation
+
+This is a current restriction of this command.
+
+E: Cannot use nonperiodic boundaries with EwaldDisp
+
+UNDOCUMENTED
+
+E: Incorrect boundaries with slab EwaldDisp
+
+UNDOCUMENTED
+
+E: KSpace style is incompatible with Pair style
+
+UNDOCUMENTED
+
+E: Unsupported mixing rule in kspace_style ewald/disp
+
+UNDOCUMENTED
+
+E: Unsupported order in kspace_style ewald/disp
+
+UNDOCUMENTED
+
+E: Cannot use Ewald/disp solver on system with no charge or LJ particles
+
+UNDOCUMENTED
+
+W: System is not charge neutral, net charge = %g
+
+The total charge on all atoms on the system is not 0.0, which
+is not valid for Ewald or PPPM.
+
+E: KSpace accuracy too large to estimate G vector
+
+UNDOCUMENTED
+
+W: Ewald/disp Newton solver failed, using old method to estimate g_ewald
+
+UNDOCUMENTED
+
+E: KSpace accuracy too low
+
+UNDOCUMENTED
+
+E: epsilon or sigma reference not set by pair style in ewald/n
+
+UNDOCUMENTED
+
+*/

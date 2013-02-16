@@ -84,7 +84,7 @@ E: Cannot open fix balance output file
 
 Self-explanatory.
 
-E: Cannot yet use fix balance with PPPM
+U: Cannot yet use fix balance with PPPM
 
 This is a current limitation of LAMMPS.
 

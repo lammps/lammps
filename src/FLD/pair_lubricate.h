@@ -96,4 +96,8 @@ E: Using pair lubricate with inconsistent fix deform remap option
 
 Must use remap v option with fix deform with this pair style.
 
+E: Cannot use multiple fix wall commands with pair lubricate
+
+UNDOCUMENTED
+
 */

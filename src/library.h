@@ -47,4 +47,12 @@ void lammps_scatter_atoms(void *, char *, int, int, void *);
 
 /* ERROR/WARNING messages:
 
+W: Library error in lammps_gather_atoms
+
+UNDOCUMENTED
+
+W: Library error in lammps_scatter_atoms
+
+UNDOCUMENTED
+
 */

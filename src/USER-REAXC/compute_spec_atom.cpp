@@ -22,6 +22,10 @@
 #include "memory.h"
 #include "error.h"
 
+#include "reaxc_defs.h"
+#include "reaxc_types.h"
+#include "pair_reax_c.h"
+
 using namespace LAMMPS_NS;
 
 enum{KEYWORD,COMPUTE,FIX,VARIABLE};

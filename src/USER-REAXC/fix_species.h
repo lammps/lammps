@@ -21,15 +21,7 @@ FixStyle(species,FixSpecies)
 #define LMP_FIX_SPECIES_H
 
 #include "fix.h"
-#include "pointers.h"
-
-#include "pair_reax_c.h"
-#include "reaxc_types.h"
-#include "reaxc_defs.h"
-// #include "pair_foo.h"
-
-#define MAXSPECBOND 12
-#define BUFLEN 1000
+#include "pointers.h"  /* universal defines inside namespace */
 
 namespace LAMMPS_NS {
 
@@ -76,7 +68,6 @@ class FixSpecies : public Fix {
   class NeighList *list;
   class FixAveAtom *f_SPECBOND;
   class PairReaxC *reaxc;
-  // class PairFoo *foo;
 
 };
 }

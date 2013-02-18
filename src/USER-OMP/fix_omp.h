@@ -63,6 +63,7 @@ class FixOMP : public Fix {
   int  _nthr;     // number of currently active ThrData object
   bool _neighbor; // en/disable threads for neighbor list construction
   bool _newton;   // en/disable newton's 3rd law for local atoms.
+  bool _clearforce; // whether to clear per thread data objects
 
   void set_neighbor_omp();
 };

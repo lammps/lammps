@@ -65,8 +65,6 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
 {
   int i,ibody;
 
-  scalar_flag = 1;
-  extscalar = 0;
   time_integrate = 1;
   rigid_flag = 1;
   virial_flag = 1;

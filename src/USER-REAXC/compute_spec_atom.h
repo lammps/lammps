@@ -21,9 +21,6 @@ ComputeStyle(spec/atom,ComputeSpecAtom)
 #define LMP_COMPUTE_SPEC_ATOM_H
 
 #include "compute.h"
-#include "pair_reax_c.h"
-#include "reaxc_types.h"
-#include "reaxc_defs.h"
 #include "pointers.h"
 
 namespace LAMMPS_NS {
@@ -82,8 +79,8 @@ class ComputeSpecAtom : public Compute {
   void pack_abo12(int);
 
   class PairReaxC *reaxc;
-  reax_system  	*system;
-  reax_atom  	*my_atoms;
+  struct _reax_system  	*system;
+  struct _reax_atom  	*my_atoms;
 };
 
 }

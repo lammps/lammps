@@ -346,7 +346,7 @@ typedef struct
 
 
 
-typedef struct
+struct _reax_atom
 {
   int  orig_id;
   int  imprt_id;
@@ -371,7 +371,8 @@ typedef struct
   int nbr_id[MAX_BOND];          // ids of neighbors around atoms
   double nbr_bo[MAX_BOND];          // BO values of bond between i and nbr
   double sum_bo, no_lp;           // sum of BO values and no. of lone pairs
-} reax_atom;
+};
+typedef _reax_atom reax_atom;
 
 
 
@@ -470,7 +471,7 @@ typedef struct
 
 using LAMMPS_NS::Pair;
 
-typedef struct
+struct _reax_system
 {
   reax_interaction reax_param;
 
@@ -491,7 +492,8 @@ typedef struct
   int mincap;
   real safezone, saferzone;
 
-} reax_system;
+};
+typedef _reax_system reax_system;
 
 
 
@@ -855,7 +857,7 @@ typedef union
 } list_type;
 
 
-typedef struct
+struct _reax_list
 {
   int allocated;
 
@@ -867,7 +869,8 @@ typedef struct
 
   int type;
   list_type select;
-} reax_list;
+};
+typedef _reax_list  reax_list;
 
 
 typedef struct

@@ -37,6 +37,7 @@
 #include "memory.h"
 #include "error.h"
 #include "reaxc_list.h"
+#include "reaxc_defs.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

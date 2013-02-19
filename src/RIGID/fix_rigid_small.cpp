@@ -65,6 +65,9 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
 {
   int i,ibody;
 
+  scalar_flag = 1;
+  extscalar = 0;
+  global_freq = 1;
   time_integrate = 1;
   rigid_flag = 1;
   virial_flag = 1;
@@ -1983,25 +1986,6 @@ void FixRigidSmall::setup_bodies()
 }
 
 /* ----------------------------------------------------------------------
-   memory usage of local atom-based arrays
-------------------------------------------------------------------------- */
-
-double FixRigidSmall::memory_usage()
-{
-  int nmax = atom->nmax;
-  double bytes = 2 * nmax * sizeof(int);
-  bytes += nmax*3 * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);     // vatom
-  if (extended) {
-    bytes += nmax * sizeof(int);
-    if (orientflag) bytes = nmax*orientflag * sizeof(double);
-    if (dorientflag) bytes = nmax*3 * sizeof(double);
-  }
-  bytes += nmax_body * sizeof(Body);
-  return bytes;
-}
-
-/* ----------------------------------------------------------------------
    allocate local atom-based arrays
 ------------------------------------------------------------------------- */
 
@@ -2523,6 +2507,67 @@ void FixRigidSmall::reset_dt()
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
   dtq = 0.5 * update->dt;
+}
+
+/* ----------------------------------------------------------------------
+   return temperature of collection of rigid bodies
+   non-active DOF are removed by fflag/tflag and in tfactor
+------------------------------------------------------------------------- */
+
+double FixRigidSmall::compute_scalar()
+{
+  double wbody[3],rot[3][3];
+
+  double *vcm,*inertia;
+
+  double t = 0.0;
+
+  for (int i = 0; i < nlocal_body; i++) {
+    vcm = body[i].vcm;
+    t += body[i].mass * (vcm[0]*vcm[0] + vcm[1]*vcm[1] + vcm[2]*vcm[2]);
+
+    // for Iw^2 rotational term, need wbody = angular velocity in body frame 
+    // not omega = angular velocity in space frame
+
+    inertia = body[i].inertia;
+    MathExtra::quat_to_mat(body[i].quat,rot);
+    MathExtra::transpose_matvec(rot,body[i].angmom,wbody);
+    if (inertia[0] == 0.0) wbody[0] = 0.0;
+    else wbody[0] /= inertia[0];
+    if (inertia[1] == 0.0) wbody[1] = 0.0;
+    else wbody[1] /= inertia[1];
+    if (inertia[2] == 0.0) wbody[2] = 0.0;
+    else wbody[2] /= inertia[2];
+
+    t += inertia[0]*wbody[0]*wbody[0] + inertia[1]*wbody[1]*wbody[1] +
+      inertia[2]*wbody[2]*wbody[2];
+  }
+
+  double tall;
+  MPI_Allreduce(&t,&tall,1,MPI_DOUBLE,MPI_SUM,world);
+
+  double tfactor = force->mvv2e / (6.0*nbody * force->boltz);
+  tall *= tfactor;
+  return tall;
+}
+
+/* ----------------------------------------------------------------------
+   memory usage of local atom-based arrays
+------------------------------------------------------------------------- */
+
+double FixRigidSmall::memory_usage()
+{
+  int nmax = atom->nmax;
+  double bytes = 2 * nmax * sizeof(int);
+  bytes += nmax*3 * sizeof(double);
+  bytes += maxvatom*6 * sizeof(double);     // vatom
+  if (extended) {
+    bytes += nmax * sizeof(int);
+    if (orientflag) bytes = nmax*orientflag * sizeof(double);
+    if (dorientflag) bytes = nmax*3 * sizeof(double);
+  }
+  bytes += nmax_body * sizeof(Body);
+  return bytes;
 }
 
 /* ----------------------------------------------------------------------

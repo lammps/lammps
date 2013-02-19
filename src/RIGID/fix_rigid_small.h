@@ -44,7 +44,6 @@ class FixRigidSmall : public Fix {
   void initial_integrate_respa(int, int, int);
   void final_integrate_respa(int, int);
 
-  double memory_usage();
   void grow_arrays(int);
   void copy_arrays(int, int, int);
   void set_arrays(int);
@@ -60,6 +59,8 @@ class FixRigidSmall : public Fix {
   int dof(int);
   void deform(int);
   void reset_dt();
+  double compute_scalar();
+  double memory_usage();
 
  protected:
   int me,nprocs;

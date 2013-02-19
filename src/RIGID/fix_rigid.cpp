@@ -2294,7 +2294,7 @@ double FixRigid::compute_scalar()
 
   for (int i = 0; i < nbody; i++) {
     t += masstotal[i] * (fflag[i][0]*vcm[i][0]*vcm[i][0] +
-                             fflag[i][1]*vcm[i][1]*vcm[i][1] +        \
+                             fflag[i][1]*vcm[i][1]*vcm[i][1] +
                              fflag[i][2]*vcm[i][2]*vcm[i][2]);
 
     // wbody = angular velocity in body frame

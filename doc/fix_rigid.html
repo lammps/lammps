@@ -627,20 +627,19 @@ supported by the rigid/npt and rigid/nph fixes to change the computes used
 to calculate the instantaneous pressure tensor. Note that the rigid/nvt fix
 does not use any external compute to compute instantaneous temperature.
 </P>
-<P>No global or per-atom quantities are stored by the <I>rigid/small</I> fix
-for access by various <A HREF = "Section_howto.html#howto_15">output commands</A>.
-</P>
-<P>The <I>rigid</I> and <I>rigid/nve</I> fixes compute a global scalar which can be
-accessed by various <A HREF = "Section_howto.html#howto_15">output commands</A>.
-The scalar value calculated by these fixes is "intensive".  The scalar
-is the current temperature of the collection of rigid bodies.  This is
-averaged over all rigid bodies and their translational and rotational
-degrees of freedom.  The translational energy of a rigid body is 1/2 m
-v^2, where m = total mass of the body and v = the velocity of its
-center of mass.  The rotational energy of a rigid body is 1/2 I w^2,
-where I = the moment of inertia tensor of the body and w = its angular
-velocity.  Degrees of freedom constrained by the <I>force</I> and <I>torque</I>
-keywords are removed from this calculation.
+<P>The <I>rigid</I> and <I>rigid/small</I> and <I>rigid/nve</I> fixes compute a global
+scalar which can be accessed by various <A HREF = "Section_howto.html#howto_15">output
+commands</A>.  The scalar value calculated by
+these fixes is "intensive".  The scalar is the current temperature of
+the collection of rigid bodies.  This is averaged over all rigid
+bodies and their translational and rotational degrees of freedom.  The
+translational energy of a rigid body is 1/2 m v^2, where m = total
+mass of the body and v = the velocity of its center of mass.  The
+rotational energy of a rigid body is 1/2 I w^2, where I = the moment
+of inertia tensor of the body and w = its angular velocity.  Degrees
+of freedom constrained by the <I>force</I> and <I>torque</I> keywords are
+removed from this calculation, but only for the <I>rigid</I> and
+<I>rigid/nve</I> fixes.
 </P>
 <P>The <I>rigid/nvt</I>, <I>rigid/npt</I>, and <I>rigid/nph</I> fixes compute a global
 scalar which can be accessed by various <A HREF = "Section_howto.html#howto_15">output
@@ -648,8 +647,8 @@ commands</A>.  The scalar value calculated by
 these fixes is "extensive".  The scalar is the cumulative energy
 change due to the thermostatting and barostatting the fix performs.
 </P>
-<P>All of the <I>rigid</I> fixes (but not the <I>rigid/small</I> fix) compute a
-global array of values which can be accessed by various <A HREF = "Section_howto.html#howto_15">output
+<P>All of the <I>rigid</I> fixes except <I>rigid/small</I> compute a global array
+of values which can be accessed by various <A HREF = "Section_howto.html#howto_15">output
 commands</A>.  The number of rows in the
 array is equal to the number of rigid bodies.  The number of columns
 is 15.  Thus for each rigid body, 15 values are stored: the xyz coords

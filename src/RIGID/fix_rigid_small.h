@@ -79,14 +79,14 @@ class FixRigidSmall : public Fix {
     double xcm[3];            // COM position
     double vcm[3];            // COM velocity
     double fcm[3];            // force on COM
-    double torque[3];         // torque on COM
+    double torque[3];         // torque around COM
     double quat[4];           // quaternion for orientation of body
     double inertia[3];        // 3 principal components of inertia
     double ex_space[3];       // principal axes in space coords
     double ey_space[3];
     double ez_space[3];
-    double angmom[3];         // angular momentum of body
-    double omega[3];          // omega of body
+    double angmom[3];         // space-frame angular momentum of body
+    double omega[3];          // space-frame omega of body
     tagint image;             // image flags of xcm
     int remapflag[4];         // PBC remap flags
     int ilocal;               // index of owning atom

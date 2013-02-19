@@ -71,6 +71,7 @@ class FixRigidSmall : public Fix {
   int firstflag;            // 1 for first-time setup of rigid bodies
   int commflag;             // various modes of forward/reverse comm
   int nbody;                // total # of rigid bodies
+  double maxextent;         // furthest distance from body owner to body atom
 
   struct Body {
     double mass;              // total mass of body
@@ -141,6 +142,7 @@ class FixRigidSmall : public Fix {
   double **ctr;
   int *idclose;
   double *rsqclose;
+  double rsqfar;
 
   void set_xv();
   void set_v();
@@ -153,10 +155,11 @@ class FixRigidSmall : public Fix {
 
   static void ring_bbox(int, char *);
   static void ring_nearest(int, char *);
+  static void ring_farthest(int, char *);
 
   // debug
 
-  void check(int);
+  //void check(int);
 };
 
 }

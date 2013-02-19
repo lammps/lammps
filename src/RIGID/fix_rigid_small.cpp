@@ -193,12 +193,18 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   if (nbody == 0) error->all(FLERR,"No rigid bodies defined");
 
   if (me == 0) {
-    if (screen) fprintf(screen,
-                        "%d rigid bodies with " BIGINT_FORMAT " atoms\n",
-                        nbody,atomall);
-    if (logfile) fprintf(logfile,
-                        "%d rigid bodies with " BIGINT_FORMAT " atoms\n",
-                        nbody,atomall);
+    if (screen) {
+      fprintf(screen,"%d rigid bodies with " BIGINT_FORMAT " atoms\n",
+              nbody,atomall);
+      fprintf(screen,"  %g = max distance from body owner to body atom\n",
+              maxextent);
+    }
+    if (logfile) {
+      fprintf(logfile,"%d rigid bodies with " BIGINT_FORMAT " atoms\n",
+              nbody,atomall);
+      fprintf(logfile,"  %g = max distance from body owner to body atom\n",
+              maxextent);
+    }
   }
 
   // initialize Marsaglia RNG with processor-unique seed
@@ -1318,7 +1324,7 @@ void FixRigidSmall::create_bodies()
   }
 
   // idclose = ID of atom in body closest to center pt (smaller ID if tied)
-  // rsq = distance squared from idclose to center pt
+  // rsqclose = distance squared from idclose to center pt
 
   memory->create(idclose,n,"rigid/small:idclose");
   memory->create(rsqclose,n,"rigid/small:rsqclose");
@@ -1341,20 +1347,48 @@ void FixRigidSmall::create_bodies()
   }
 
   // pass buffer around ring of procs
-  // func = idclose,rsqclose with atom IDs from every proc
+  // func = update idclose,rsqclose with atom IDs from every proc
   // when done, have idclose for every rigid body my atoms are part of
 
   frsptr = this;
   comm->ring(m,sizeof(double),buf,2,ring_nearest,NULL);
 
   // set bodytag of all owned atoms, based on idclose
+  // find max value of rsqclose across all procs
 
+  double rsqmax = 0.0;
   for (i = 0; i < nlocal; i++) {
     bodytag[i] = 0;
     if (!(mask[i] & groupbit)) continue;
     m = hash->find(molecule[i])->second;
     bodytag[i] = idclose[m];
+    rsqmax = MAX(rsqmax,rsqclose[m]);
   }
+
+  // pack my atoms into buffer as bodytag of owning atom, unwrapped coords
+
+  m = 0;
+  for (i = 0; i < nlocal; i++) {
+    if (!(mask[i] & groupbit)) continue;
+    domain->unmap(x[i],image[i],unwrap);
+    buf[m++] = bodytag[i];
+    buf[m++] = unwrap[0];
+    buf[m++] = unwrap[1];
+    buf[m++] = unwrap[2];
+  }
+
+  // pass buffer around ring of procs
+  // func = update rsqfar for atoms belonging to bodies I own
+  // when done, have rsqfar for all atoms in bodies I own
+
+  rsqfar = 0.0;
+  frsptr = this;
+  comm->ring(m,sizeof(double),buf,3,ring_farthest,NULL);
+
+  // find maxextent of rsqfar across all procs
+
+  MPI_Allreduce(&rsqfar,&maxextent,1,MPI_DOUBLE,MPI_MAX,world);
+  maxextent = sqrt(maxextent);
 
   // clean up
 
@@ -1434,6 +1468,40 @@ void FixRigidSmall::ring_nearest(int n, char *cbuf)
         rsqclose[j] = rsq;
       }
     }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   process rigid body atoms from another proc
+   update rsqfar = distance from owning atom to other atom
+------------------------------------------------------------------------- */
+
+void FixRigidSmall::ring_farthest(int n, char *cbuf)
+{
+  double **x = frsptr->atom->x;
+  int *image = frsptr->atom->image;
+  int nlocal = frsptr->atom->nlocal;
+
+  double *buf = (double *) cbuf;
+  int ndatums = n/4;
+
+  int itag,iowner;
+  double delx,dely,delz,rsq;
+  double *xx;
+  double unwrap[3];
+
+  int m = 0;
+  for (int i = 0; i < ndatums; i++, m += 4) {
+    itag = static_cast<int> (buf[m]);
+    iowner = frsptr->atom->map(itag);
+    if (iowner < 0 || iowner >= nlocal) continue;
+    frsptr->domain->unmap(x[iowner],image[iowner],unwrap);
+    xx = &buf[m+1];
+    delx = xx[0] - unwrap[0];
+    dely = xx[1] - unwrap[1];
+    delz = xx[2] - unwrap[2];
+    rsq = delx*delx + dely*dely + delz*delz;
+    frsptr->rsqfar = MAX(frsptr->rsqfar,rsq);
   }
 }
 
@@ -1908,6 +1976,10 @@ void FixRigidSmall::setup_bodies()
         fabs(itensor[ibody][5]/norm) > TOLERANCE)
       error->all(FLERR,"Fix rigid: Bad principal moments");
   }
+
+  // clean up
+
+  memory->destroy(itensor);
 }
 
 /* ----------------------------------------------------------------------
@@ -2457,26 +2529,26 @@ void FixRigidSmall::reset_dt()
    debug method for sanity checking of atom/body data pointers
 ------------------------------------------------------------------------- */
 
+/*
 void FixRigidSmall::check(int flag)
 {
-  /*
   for (int i = 0; i < atom->nlocal; i++) {
     if (bodyown[i] >= 0) {
       if (bodytag[i] != atom->tag[i]) {
         printf("Proc %d, step %ld, flag %d\n",comm->me,update->ntimestep,flag);
-        error->one(FLERR,"BAD AAA");
+        errorx->one(FLERR,"BAD AAA");
       }
       if (bodyown[i] < 0 || bodyown[i] >= nlocal_body) {
         printf("Proc %d, step %ld, flag %d\n",comm->me,update->ntimestep,flag);
-        error->one(FLERR,"BAD BBB");
+        errorx->one(FLERR,"BAD BBB");
       }
       if (atom2body[i] != bodyown[i]) {
         printf("Proc %d, step %ld, flag %d\n",comm->me,update->ntimestep,flag);
-        error->one(FLERR,"BAD CCC");
+        errorx->one(FLERR,"BAD CCC");
       }
       if (body[bodyown[i]].ilocal != i) {
         printf("Proc %d, step %ld, flag %d\n",comm->me,update->ntimestep,flag);
-        error->one(FLERR,"BAD DDD");
+        errorx->one(FLERR,"BAD DDD");
       }
     }
   }
@@ -2485,11 +2557,11 @@ void FixRigidSmall::check(int flag)
     if (bodyown[i] < 0 && bodytag[i] > 0) {
       if (atom2body[i] < 0 || atom2body[i] >= nlocal_body+nghost_body) {
         printf("Proc %d, step %ld, flag %d\n",comm->me,update->ntimestep,flag);
-        error->one(FLERR,"BAD EEE");
+        errorx->one(FLERR,"BAD EEE");
       }
       if (bodytag[i] != atom->tag[body[atom2body[i]].ilocal]) {
         printf("Proc %d, step %ld, flag %d\n",comm->me,update->ntimestep,flag);
-        error->one(FLERR,"BAD FFF");
+        errorx->one(FLERR,"BAD FFF");
       }
     }
   }
@@ -2501,11 +2573,11 @@ void FixRigidSmall::check(int flag)
         printf("Values %d %d: %d %d %d\n",
                i,atom->tag[i],bodyown[i],nlocal_body,nghost_body);
         printf("Proc %d, step %ld, flag %d\n",comm->me,update->ntimestep,flag);
-        error->one(FLERR,"BAD GGG");
+        errorx->one(FLERR,"BAD GGG");
       }
       if (body[bodyown[i]].ilocal != i) {
         printf("Proc %d, step %ld, flag %d\n",comm->me,update->ntimestep,flag);
-        error->one(FLERR,"BAD HHH");
+        errorx->one(FLERR,"BAD HHH");
       }
     }
   }
@@ -2513,12 +2585,12 @@ void FixRigidSmall::check(int flag)
   for (int i = 0; i < nlocal_body; i++) {
     if (body[i].ilocal < 0 || body[i].ilocal >= atom->nlocal) {
       printf("Proc %d, step %ld, flag %d\n",comm->me,update->ntimestep,flag);
-      error->one(FLERR,"BAD III");
+      errorx->one(FLERR,"BAD III");
     }
     if (bodytag[body[i].ilocal] != atom->tag[body[i].ilocal] || 
         bodyown[body[i].ilocal] != i) {
       printf("Proc %d, step %ld, flag %d\n",comm->me,update->ntimestep,flag);
-      error->one(FLERR,"BAD JJJ");
+      errorx->one(FLERR,"BAD JJJ");
     }
   }
 
@@ -2526,12 +2598,12 @@ void FixRigidSmall::check(int flag)
     if (body[i].ilocal < atom->nlocal || 
         body[i].ilocal >= atom->nlocal + atom->nghost) {
       printf("Proc %d, step %ld, flag %d\n",comm->me,update->ntimestep,flag);
-      error->one(FLERR,"BAD KKK");
+      errorx->one(FLERR,"BAD KKK");
     }
     if (bodyown[body[i].ilocal] != i) {
       printf("Proc %d, step %ld, flag %d\n",comm->me,update->ntimestep,flag);
-      error->one(FLERR,"BAD LLL");
+      errorx->one(FLERR,"BAD LLL");
     }
   }
-  */
 }
+*/

@@ -103,6 +103,10 @@ class AtomVec : protected Pointers {
 
 /* ERROR/WARNING messages:
 
+E: Invalid atom_style command
+
+Self-explanatory.
+
 E: USER-CUDA package requires a cuda enabled atom_style
 
 Self-explanatory.

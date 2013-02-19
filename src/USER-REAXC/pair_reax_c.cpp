@@ -14,11 +14,14 @@
 /* ----------------------------------------------------------------------
    Contributing author: Hasan Metin Aktulga, Purdue University
    (now at Lawrence Berkeley National Laboratory, hmaktulga@lbl.gov)
-
    Please cite the related publication:
    H. M. Aktulga, J. C. Fogarty, S. A. Pandit, A. Y. Grama,
    "Parallel Reactive Molecular Dynamics: Numerical Methods and
    Algorithmic Techniques", Parallel Computing, in press.
+   ---
+   Per-atom energy/virial added by Ray Shan (Sandia)
+   Fix reax/c/bonds and fix species for pair_style reax/c added by 
+   	Ray Shan (Sandia)
 ------------------------------------------------------------------------- */
 
 #include "pair_reax_c.h"
@@ -102,6 +105,10 @@ PairReaxC::PairReaxC(LAMMPS *lmp) : Pair(lmp)
   setup_flag = 0;
 
   fixbond_flag = fixspecies_flag = 0;
+  tmpr = NULL;
+  tmpid = NULL;
+  tmpbo = NULL;
+  nmax = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -121,13 +128,10 @@ PairReaxC::~PairReaxC()
     Delete_List( lists+BONDS, world );
     Delete_List( lists+THREE_BODIES, world );
     Delete_List( lists+FAR_NBRS, world );
-    // fprintf( stderr, "3\n" );
-
 
     DeAllocate_Workspace( control, workspace );
     DeAllocate_System( system );
   }
-  //fprintf( stderr, "4\n" );
 
   memory->destroy( system );
   memory->destroy( control );
@@ -136,7 +140,6 @@ PairReaxC::~PairReaxC()
   memory->destroy( lists );
   memory->destroy( out_control );
   memory->destroy( mpi_data );
-  //fprintf( stderr, "5\n" );
 
   // deallocate interface storage
   if( allocated ) {
@@ -149,10 +152,12 @@ PairReaxC::~PairReaxC()
     delete [] eta;
     delete [] gamma;
   }
+  memory->destroy(tmpr);
+  memory->destroy(tmpid);
+  memory->destroy(tmpbo);
 
   delete [] pvector;
 
-  //fprintf( stderr, "6\n" );
 }
 
 /* ---------------------------------------------------------------------- */
@@ -438,13 +443,6 @@ void PairReaxC::compute(int eflag, int vflag)
   if (eflag || vflag) ev_setup(eflag,vflag);
   else ev_unset();
 
-/*  if ((eflag_atom || vflag_atom) && firstwarn) {
-    firstwarn = 0;
-    if (comm->me == 0)
-      error->warning(FLERR,"Pair reax/c cannot yet compute "
-                     "per-atom energy or stress");
-  } */
-
   if (vflag_global) control->virial = 1;
   else control->virial = 0;
 
@@ -522,13 +520,6 @@ void PairReaxC::compute(int eflag, int vflag)
 
   if (vflag_fdotr) virial_fdotr_compute();
 
-// #if defined(LOG_PERFORMANCE)
-//   if( comm->me == 0 && fix_qeq != NULL ) {
-//     data->timing.s_matvecs += fix_qeq->matvecs;
-//     data->timing.qEq += fix_qeq->qeq_time;
-//   }
-// #endif
-
 // Set internal timestep counter to that of LAMMPS
 
   data->step = update->ntimestep;
@@ -538,8 +529,29 @@ void PairReaxC::compute(int eflag, int vflag)
   if(fixbond_flag)
           fixbond( system, control, data, &lists, out_control, mpi_data );
 
-  if(fixspecies_flag)
-          fixspecies( system, control, data, &lists, out_control, mpi_data );
+  // populate tmpr and tmpbo arrays for fix reax/c/species
+  int i, j;
+
+  if(fixspecies_flag) {
+    if (system->N > nmax) {
+      memory->destroy(tmpr);
+      memory->destroy(tmpid);
+      memory->destroy(tmpbo);
+      nmax = system->N;
+      memory->create(tmpr,nmax,MAXBOND,"pair:tmpr");
+      memory->create(tmpid,nmax,MAXBOND,"pair:tmpid");
+      memory->create(tmpbo,nmax,MAXBOND,"pair:tmpbo");
+    }
+   
+    for (i = 0; i < system->N; i ++)
+      for (j = 0; j < MAXBOND; j ++) {
+        tmpr[i][j] = tmpbo[i][j] = 0.0;
+	tmpid[i][j] = -1;
+      }
+    
+    FindBond();
+
+  }
 
 }
 
@@ -740,6 +752,37 @@ void *PairReaxC::extract(const char *str, int &dim)
     return (void *) gamma;
   }
   return NULL;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairReaxC::FindBond()
+{
+  int i, ii, j, pj, jtag, nj, jtmp, jj;
+  double bo_tmp, bo_cut, rij, rsq, r_tmp;
+
+  bond_data *bo_ij;
+  bo_cut = 0.20;
+
+  for (i = 0; i < system->n; i++) {
+    nj = 0;
+    for( pj = Start_Index(i, lists); pj < End_Index(i, lists); ++pj ) {
+      bo_ij = &( lists->select.bond_list[pj] );
+      j = bo_ij->nbr;
+      if (j < i) continue;
+
+      bo_tmp = bo_ij->bo_data.BO;
+      r_tmp = bo_ij->d;
+
+      if (bo_tmp >= bo_cut ) {
+	tmpr[i][nj] = r_tmp;
+	tmpid[i][nj] = j;
+	tmpbo[i][nj] = bo_tmp;
+	nj ++;
+	if (nj > MAXBOND) error->all(FLERR,"Increase MAXSPECBOND in fix_reaxc_species.h");
+      }
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */

@@ -56,4 +56,12 @@ E: Cannot use newton pair with colloid/gpu pair style
 
 Self-explanatory.
 
+E: Overlapping small/large in pair colloid
+
+UNDOCUMENTED
+
+E: Overlapping large/large in pair colloid
+
+UNDOCUMENTED
+
 */

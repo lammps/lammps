@@ -78,11 +78,11 @@ E: Fix wall cutoff <= 0.0
 
 Self-explanatory.
 
-E: Cannot use fix wall in periodic dimension
+E: Cannot use fix wall zlo/zhi for a 2d simulation
 
 Self-explanatory.
 
-E: Cannot use fix wall zlo/zhi for a 2d simulation
+E: Cannot use fix wall in periodic dimension
 
 Self-explanatory.
 
@@ -98,5 +98,9 @@ Self-explanatory.
 E: Variable for fix wall is invalid style
 
 Only equal-style variables can be used.
+
+E: Variable evaluation in fix wall gave bad value
+
+UNDOCUMENTED
 
 */

@@ -116,6 +116,14 @@ E: Group region ID does not exist
 
 A region ID used in the group command does not exist.
 
+E: Variable name for group does not exist
+
+UNDOCUMENTED
+
+E: Variable for group is invalid style
+
+UNDOCUMENTED
+
 E: Group ID does not exist
 
 A group ID used in the group command does not exist.

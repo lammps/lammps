@@ -56,72 +56,6 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Cannot (yet) use MSM with triclinic box
-
-This feature is not yet supported.
-
-E: Cannot (yet) use MSM with 2d simulation
-
-This feature is not yet supported.
-
-E: Kspace style requires atom attribute q
-
-The atom style defined does not have these attributes.
-
-E: Cannot use slab correction with MSM
-
-Slab correction can only be used with Ewald and PPPM, not MSM.
-
-E: MSM order must be 4, 6, 8, or 10
-
-This is a limitation of the MSM implementation in LAMMPS:
-the MSM order can only be 4, 6, 8, or 10.
-
-E: Cannot (yet) use single precision with MSM (remove -DFFT_SINGLE from Makefile and recompile)
-
-Single precision cannot be used with MSM.
-
-E: KSpace style is incompatible with Pair style
-
-Setting a kspace style requires that a pair style with a long-range
-Coulombic component be selected that is compatible with MSM.  Note
-that TIP4P is not (yet) supported by MSM.
-
-E: Cannot use kspace solver on system with no charge
-
-No atoms in system have a non-zero charge.
-
-E: System is not charge neutral, net charge = %g
-
-The total charge on all atoms on the system is not 0.0, which
-is not valid for MSM.
-
-E: MSM grid is too large
-
-The global MSM grid is larger than OFFSET in one or more dimensions.
-OFFSET is currently set to 16384.  You likely need to decrease the
-requested accuracy.
-
-W: MSM mesh too small, increasing to 2 points in each direction
-
-The global MSM grid is too small, so the number of grid points has been
-increased
-
-E: KSpace accuracy must be > 0
-
-The kspace accuracy designated in the input must be greater than zero.
-
-W: Number of MSM mesh points increased to be a multiple of 2
-
-MSM requires that the number of grid points in each direction be a multiple
-of two and the number of grid points in one or more directions have been
-adjusted to meet this requirement.
-
-W: Adjusting Coulombic cutoff for MSM, new cutoff = %g
-
-The adjust/cutoff command is turned on and the Coulombic cutoff has been
-adjusted to match the user-specified accuracy.
-
 E: Out of range atoms - cannot compute MSM
 
 One or more atoms are attempting to map their charge to a MSM grid point 
@@ -137,5 +71,71 @@ every 1 check yes".  Second, it may mean that an atom has moved far
 outside a processor's sub-domain or even the entire simulation box.
 This indicates bad physics, e.g. due to highly overlapping atoms, too
 large a timestep, etc.
+
+U: Cannot (yet) use MSM with triclinic box
+
+This feature is not yet supported.
+
+U: Cannot (yet) use MSM with 2d simulation
+
+This feature is not yet supported.
+
+U: Kspace style requires atom attribute q
+
+The atom style defined does not have these attributes.
+
+U: Cannot use slab correction with MSM
+
+Slab correction can only be used with Ewald and PPPM, not MSM.
+
+U: MSM order must be 4, 6, 8, or 10
+
+This is a limitation of the MSM implementation in LAMMPS:
+the MSM order can only be 4, 6, 8, or 10.
+
+U: Cannot (yet) use single precision with MSM (remove -DFFT_SINGLE from Makefile and recompile)
+
+Single precision cannot be used with MSM.
+
+U: KSpace style is incompatible with Pair style
+
+Setting a kspace style requires that a pair style with a long-range
+Coulombic component be selected that is compatible with MSM.  Note
+that TIP4P is not (yet) supported by MSM.
+
+U: Cannot use kspace solver on system with no charge
+
+No atoms in system have a non-zero charge.
+
+U: System is not charge neutral, net charge = %g
+
+The total charge on all atoms on the system is not 0.0, which
+is not valid for MSM.
+
+U: MSM grid is too large
+
+The global MSM grid is larger than OFFSET in one or more dimensions.
+OFFSET is currently set to 16384.  You likely need to decrease the
+requested accuracy.
+
+U: MSM mesh too small, increasing to 2 points in each direction
+
+The global MSM grid is too small, so the number of grid points has been
+increased
+
+U: KSpace accuracy must be > 0
+
+The kspace accuracy designated in the input must be greater than zero.
+
+U: Number of MSM mesh points increased to be a multiple of 2
+
+MSM requires that the number of grid points in each direction be a multiple
+of two and the number of grid points in one or more directions have been
+adjusted to meet this requirement.
+
+U: Adjusting Coulombic cutoff for MSM, new cutoff = %g
+
+The adjust/cutoff command is turned on and the Coulombic cutoff has been
+adjusted to match the user-specified accuracy.
 
 */

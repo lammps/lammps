@@ -102,23 +102,13 @@ inline double FixRigidNH::maclaurin_series(double x)
 
 /* ERROR/WARNING messages:
 
-E: Illegal ... command
+E: Fix rigid npt/nph period must be > 0.0
 
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Target temperature for fix rigid nvt/npt cannot be 0.0
-
-Self-explanatory.
+UNDOCUMENTED
 
 E: Invalid fix rigid npt/nph command for a 2d simulation
 
 Cannot control z dimension in a 2d model.
-
-E: Fix rigid npt/nph dilate group ID does not exist
-
-Self-explanatory.
 
 E: Invalid fix rigid npt/nph command pressure settings
 
@@ -138,17 +128,31 @@ E: Fix rigid nvt/npt/nph damping parameters must be > 0.0
 
 Self-explanatory.
 
+E: Fix rigid npt/nph dilate group ID does not exist
+
+Self-explanatory.
+
+E: Temp ID for fix rigid npt/nph does not exist
+
+UNDOCUMENTED
+
+E: fix rigid npt/nph does not yet allow triclinic box
+
+UNDOCUMENTED
+
 E: Cannot use fix rigid npt/nph and fix deform on same component of stress tensor
 
 This would be changing the same box dimension twice.
 
-E: Temperature ID for fix rigid npt/nph does not exist
+E: Press ID for fix rigid npt/nph does not exist
 
-Self-explanatory.
+UNDOCUMENTED
 
-E: Pressure ID for fix rigid npt/nph does not exist
+E: Illegal ... command
 
-Self-explanatory.
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
 
 E: Could not find fix_modify temperature ID
 
@@ -174,5 +178,17 @@ The compute ID for computing pressure does not exist.
 E: Fix_modify pressure ID does not compute pressure
 
 The compute ID assigned to the fix must compute pressure.
+
+U: Target temperature for fix rigid nvt/npt cannot be 0.0
+
+Self-explanatory.
+
+U: Temperature ID for fix rigid npt/nph does not exist
+
+Self-explanatory.
+
+U: Pressure ID for fix rigid npt/nph does not exist
+
+Self-explanatory.
 
 */

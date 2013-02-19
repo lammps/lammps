@@ -125,11 +125,9 @@ When specifying an off-diagonal pressure component, the 2nd of the two
 dimensions must be periodic.  E.g. if the xy component is specified,
 then the y dimension must be periodic.
 
-E: Cannot use fix box/relax with tilt factor scaling on a 2nd non-periodic dimension"
+E: Cannot use fix box/relax with tilt factor scaling on a 2nd non-periodic dimension
 
-When specifying scaling on a tilt factor component, the 2nd of the two
-dimensions must be periodic.  E.g. if the xy component is specified,
-then the y dimension must be periodic.
+UNDOCUMENTED
 
 E: Cannot use fix box/relax with both relaxation and scaling on a tilt factor
 
@@ -192,5 +190,11 @@ The compute ID for computing pressure does not exist.
 E: Fix_modify pressure ID does not compute pressure
 
 The compute ID assigned to the fix must compute pressure.
+
+U: Cannot use fix box/relax with tilt factor scaling on a 2nd non-periodic dimension"
+
+When specifying scaling on a tilt factor component, the 2nd of the two
+dimensions must be periodic.  E.g. if the xy component is specified,
+then the y dimension must be periodic.
 
 */

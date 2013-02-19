@@ -70,12 +70,16 @@ E: Pair style lj/cut/coul/long requires atom attribute q
 
 The atom style defined does not have this attribute.
 
-E: Pair cutoff < Respa interior cutoff
+E: Pair style requires a KSpace style
+
+UNDOCUMENTED
+
+U: Pair cutoff < Respa interior cutoff
 
 One or more pairwise cutoffs are too short to use with the specified
 rRESPA cutoffs.
 
-E: Pair style is incompatible with KSpace style
+U: Pair style is incompatible with KSpace style
 
 If a pair style with a long-range Coulombic component is selected,
 then a kspace style must also be used.

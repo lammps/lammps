@@ -84,8 +84,7 @@ void PairBrownianPoly::compute(int eflag, int vflag)
   double xl[3],a_sq,a_sh,a_pu,Fbmag;
   double p1[3],p2[3],p3[3];
 
-
-  // This section of code adjusts R0/RT0/RS0 if necessary due to changes
+  // this section of code adjusts R0/RT0/RS0 if necessary due to changes
   // in the volume fraction as a result of fix deform or moving walls
 
   double dims[3], wallcoord;

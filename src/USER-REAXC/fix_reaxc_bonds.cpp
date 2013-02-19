@@ -35,6 +35,8 @@
 #include "memory.h"
 #include "error.h"
 #include "reaxc_list.h"
+#include "reaxc_types.h"
+#include "reaxc_defs.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -205,7 +207,7 @@ void FixReaxCBonds::Output_ReaxC_Bonds(bigint ntimestep, FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-void FixReaxCBonds::GatherBond( reax_system *system, reax_list *lists)
+void FixReaxCBonds::GatherBond( struct _reax_system *system, struct _reax_list *lists)
 {
   int *ilist, i, ii, inum;
   int j, pj, nj, jtag, jtype;
@@ -247,7 +249,7 @@ void FixReaxCBonds::GatherBond( reax_system *system, reax_list *lists)
 }
 /* ---------------------------------------------------------------------- */
 
-void FixReaxCBonds::FindBond( reax_system *system, reax_list *lists,
+void FixReaxCBonds::FindBond( struct _reax_system *system, struct _reax_list *lists,
                 int &numbonds)
 {
   int *ilist, i, ii, inum;
@@ -289,7 +291,7 @@ void FixReaxCBonds::FindBond( reax_system *system, reax_list *lists,
 
 /* ---------------------------------------------------------------------- */
 
-void FixReaxCBonds::PassBuffer( reax_system *system, double *buf,
+void FixReaxCBonds::PassBuffer( struct _reax_system *system, double *buf,
                 int &nbuf_local)
 {
   int i, j, k, jtag, numbonds;
@@ -325,7 +327,7 @@ void FixReaxCBonds::PassBuffer( reax_system *system, double *buf,
 
 /* ---------------------------------------------------------------------- */
 
-void FixReaxCBonds::RecvBuffer( reax_system *system, double *buf,
+void FixReaxCBonds::RecvBuffer( struct _reax_system *system, double *buf,
                 int nbuf, int nbuf_local, int natoms, int maxnum)
 {
   int i, j, k, l, itype, jtype, itag, jtag;

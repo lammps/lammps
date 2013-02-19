@@ -181,17 +181,6 @@ E: System is not charge neutral, net charge = %g
 The total charge on all atoms on the system is not 0.0, which
 is not valid for MSM.
 
-E: MSM grid is too large
-
-The global MSM grid is larger than OFFSET in one or more dimensions.
-OFFSET is currently set to 16384.  You likely need to decrease the
-requested accuracy.
-
-W: MSM mesh too small, increasing to 2 points in each direction
-
-The global MSM grid is too small, so the number of grid points has been
-increased
-
 E: KSpace accuracy must be > 0
 
 The kspace accuracy designated in the input must be greater than zero.
@@ -202,10 +191,24 @@ MSM requires that the number of grid points in each direction be a multiple
 of two and the number of grid points in one or more directions have been
 adjusted to meet this requirement.
 
+E: Too many MSM grid levels
+
+UNDOCUMENTED
+
+W: MSM mesh too small, increasing to 2 points in each direction)
+
+UNDOCUMENTED
+
 W: Adjusting Coulombic cutoff for MSM, new cutoff = %g
 
 The adjust/cutoff command is turned on and the Coulombic cutoff has been
 adjusted to match the user-specified accuracy.
+
+E: MSM grid is too large
+
+The global MSM grid is larger than OFFSET in one or more dimensions.
+OFFSET is currently set to 16384.  You likely need to decrease the
+requested accuracy.
 
 E: Out of range atoms - cannot compute MSM
 
@@ -222,5 +225,10 @@ every 1 check yes".  Second, it may mean that an atom has moved far
 outside a processor's sub-domain or even the entire simulation box.
 This indicates bad physics, e.g. due to highly overlapping atoms, too
 large a timestep, etc.
+
+U: MSM mesh too small, increasing to 2 points in each direction
+
+The global MSM grid is too small, so the number of grid points has been
+increased
 
 */

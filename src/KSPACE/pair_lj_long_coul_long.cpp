@@ -58,22 +58,22 @@ PairLJLongCoulLong::PairLJLongCoulLong(LAMMPS *lmp) : Pair(lmp)
    global settings
 ------------------------------------------------------------------------- */
 
-#define PAIR_ILLEGAL        "Illegal pair_style lj/coul command"
-#define PAIR_CUTOFF        "Only one cut-off allowed when requesting all long"
-#define PAIR_MISSING        "Cut-offs missing in pair_style lj/coul"
-#define PAIR_COUL_CUT        "Coulombic cut not supported in pair_style lj/coul"
-#define PAIR_LARGEST        "Using largest cut-off for lj/coul long long"
-#define PAIR_MIX        "Mixing forced for lj coefficients"
+#define PAIR_ILLEGAL        
+#define PAIR_CUTOFF        
+#define PAIR_MISSING        
+#define PAIR_COUL_CUT        
+#define PAIR_LARGEST        
+#define PAIR_MIX        
 
 void PairLJLongCoulLong::options(char **arg, int order)
 {
   const char *option[] = {"long", "cut", "off", NULL};
   int i;
 
-  if (!*arg) error->all(FLERR,PAIR_ILLEGAL);
+  if (!*arg) error->all(FLERR,"Illegal pair_style lj/long/coul/long command");
   for (i=0; option[i]&&strcmp(arg[0], option[i]); ++i);
   switch (i) {
-    default: error->all(FLERR,PAIR_ILLEGAL);
+    default: error->all(FLERR,"Illegal pair_style lj/long/coul/long command");
     case 0: ewald_order |= 1<<order; break;
     case 2: ewald_off |= 1<<order;
     case 1: break;
@@ -88,17 +88,21 @@ void PairLJLongCoulLong::settings(int narg, char **arg)
   ewald_order = 0;
   options(arg, 6);
   options(++arg, 1);
-  if (!comm->me && ewald_order & (1<<6)) error->warning(FLERR,PAIR_MIX);
+  if (!comm->me && ewald_order & (1<<6)) 
+    error->warning(FLERR,"Mixing forced for lj coefficients");
   if (!comm->me && ewald_order == ((1<<1) | (1<<6)))
-    error->warning(FLERR,PAIR_LARGEST);
-  if (!*(++arg)) error->all(FLERR,PAIR_MISSING);
-  if (!((ewald_order^ewald_off) & (1<<1))) error->all(FLERR,PAIR_COUL_CUT);
+    error->warning(FLERR,"Using largest cut-off for lj/coul long long");
+  if (!*(++arg)) 
+    error->all(FLERR,"Cut-offs missing in pair_style lj/coul");
+  if (!((ewald_order^ewald_off) & (1<<1))) 
+    error->all(FLERR,"Coulombic cut not supported in pair_style lj/coul");
   cut_lj_global = force->numeric(*(arg++));
-  if (*arg && ((ewald_order & 0x42) == 0x42)) error->all(FLERR,PAIR_CUTOFF);
+  if (*arg && ((ewald_order & 0x42) == 0x42)) 
+    error->all(FLERR,"Only one cut-off allowed when requesting all long");
   if (narg == 4) cut_coul = force->numeric(*arg);
   else cut_coul = cut_lj_global;
 
-  if (allocated) {                                        // reset explicit cuts
+  if (allocated) {
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
       for (j = i+1; j <= atom->ntypes; j++)

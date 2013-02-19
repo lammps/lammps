@@ -58,6 +58,12 @@ class DihedralHybrid : public Dihedral {
 
 /* ERROR/WARNING messages:
 
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
 E: Dihedral style hybrid cannot use same dihedral style twice
 
 Self-explanatory.

@@ -57,23 +57,15 @@ PairBuckLongCoulLong::PairBuckLongCoulLong(LAMMPS *lmp) : Pair(lmp)
    global settings
 ------------------------------------------------------------------------- */
 
-#define PAIR_ILLEGAL        "Illegal pair_style buck/coul command"
-#define PAIR_CUTOFF        "Only one cut-off allowed when requesting all long"
-#define PAIR_MISSING        "Cut-offs missing in pair_style buck/coul"
-#define PAIR_LJ_OFF        "LJ6 off not supported in pair_style buck/coul"
-#define PAIR_COUL_CUT        "Coulombic cut not supported in pair_style buck/coul"
-#define PAIR_LARGEST        "Using largest cut-off for buck/coul long long"
-#define PAIR_MIX        "Geometric mixing assumed for 1/r^6 coefficients"
-
 void PairBuckLongCoulLong::options(char **arg, int order)
 {
   const char *option[] = {"long", "cut", "off", NULL};
   int i;
 
-  if (!*arg) error->all(FLERR,PAIR_ILLEGAL);
+  if (!*arg) error->all(FLERR,"Illegal pair_style buck/coul command");
   for (i=0; option[i]&&strcmp(arg[0], option[i]); ++i);
   switch (i) {
-    default: error->all(FLERR,PAIR_ILLEGAL);
+    default: error->all(FLERR,"Illegal pair_style buck/coul command");
     case 0: ewald_order |= 1<<order; break;
     case 2: ewald_off |= 1<<order;
     case 1: break;
@@ -92,14 +84,18 @@ void PairBuckLongCoulLong::settings(int narg, char **arg)
   options(arg,6);
   options(++arg,1);
 
-  if (!comm->me && ewald_order & (1<<6)) error->warning(FLERR,PAIR_MIX);
+  if (!comm->me && ewald_order & (1<<6)) 
+    error->warning(FLERR,"Geometric mixing assumed for 1/r^6 coefficients");
   if (!comm->me && ewald_order == ((1<<1) | (1<<6))) 
-    error->warning(FLERR,PAIR_LARGEST);
-  if (!*(++arg)) error->all(FLERR,PAIR_MISSING);
-  if (ewald_off & (1<<6)) error->all(FLERR,PAIR_LJ_OFF);
-  if (!((ewald_order^ewald_off) & (1<<1))) error->all(FLERR,PAIR_COUL_CUT);
+    error->warning(FLERR,"Using largest cut-off for buck/coul long long");
+  if (!*(++arg)) error->all(FLERR,"Cut-offs missing in pair_style buck/coul");
+  if (ewald_off & (1<<6)) 
+    error->all(FLERR,"LJ6 off not supported in pair_style buck/coul");
+  if (!((ewald_order^ewald_off) & (1<<1))) 
+    error->all(FLERR,"Coulombic cut not supported in pair_style buck/coul");
   cut_buck_global = force->numeric(*(arg++));
-  if (*arg && ((ewald_order & 0x42) == 0x42)) error->all(FLERR,PAIR_CUTOFF);
+  if (*arg && ((ewald_order & 0x42) == 0x42)) 
+    error->all(FLERR,"Only one cut-off allowed when requesting all long");
   if (narg == 4) cut_coul = force->numeric(*arg);
   else cut_coul = cut_buck_global;
 

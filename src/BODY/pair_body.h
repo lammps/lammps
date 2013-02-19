@@ -58,3 +58,23 @@ class PairBody : public Pair {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+UNDOCUMENTED
+
+E: Incorrect args for pair coefficients
+
+UNDOCUMENTED
+
+E: Pair body requires atom style body
+
+UNDOCUMENTED
+
+E: Pair body requires body style nparticle
+
+UNDOCUMENTED
+
+*/

@@ -145,13 +145,13 @@ E: Small, tag, big integers are not sized correctly
 
 See description of these 3 data types in src/lmptype.h.
 
-E: 64-bit atom IDs are not yet supported
-
-See description of this data type in src/lmptype.h.
-
 E: Cannot use -cuda on without USER-CUDA installed
 
 The USER-CUDA package must be installed via "make yes-user-cuda"
 before LAMMPS is built.
+
+U: 64-bit atom IDs are not yet supported
+
+See description of this data type in src/lmptype.h.
 
 */

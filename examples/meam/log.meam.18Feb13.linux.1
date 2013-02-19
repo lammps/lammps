@@ -1,0 +1,63 @@
+LAMMPS (18 Feb 2013)
+# Test of MEAM potential for SiC system
+
+units		metal
+boundary	p p p
+
+atom_style	atomic
+
+read_data	data.meam
+  orthogonal box = (-6 -6 -6) to (5.97232 5.97232 5.97232)
+  1 by 1 by 1 MPI processor grid
+  128 atoms
+
+pair_style	meam
+pair_coeff	* * library.meam Si C SiC.meam Si C
+
+neighbor	0.3 bin
+neigh_modify	delay 10
+
+fix		1 all nve
+thermo		10
+timestep	0.001
+
+#dump		1 all atom 50 dump.meam
+
+#dump		1 all image 10 image.*.jpg element element #		axes yes 0.8 0.02 view 60 -30
+#dump_modify	1 pad 3 element Si C
+
+run		100
+Memory usage per processor = 5.10826 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0            0   -636.38121            0   -636.38121   -76571.819 
+      10    1807.8862   -666.21959            0   -636.54126   -150571.49 
+      20    1932.4467    -668.2581            0   -636.53498   -120223.52 
+      30    1951.3652   -668.58139            0   -636.54771    -100508.4 
+      40    2172.5974   -672.22715            0    -636.5617   -110753.34 
+      50    2056.9149   -670.33108            0   -636.56468   -105418.07 
+      60    1947.9564   -668.52788            0   -636.55015   -111413.04 
+      70    1994.7712   -669.28849            0   -636.54225   -109645.76 
+      80    2126.0903   -671.43755            0   -636.53557   -97475.831 
+      90     2065.755    -670.4349            0   -636.52338   -95858.837 
+     100    2051.4553   -670.20799            0   -636.53122    -107068.9 
+Loop time of 0.0824008 on 1 procs for 100 steps with 128 atoms
+
+Pair  time (%) = 0.0791755 (96.0858)
+Neigh time (%) = 0.00218797 (2.65527)
+Comm  time (%) = 0.000564575 (0.685157)
+Outpt time (%) = 0.000112295 (0.136279)
+Other time (%) = 0.000360489 (0.437482)
+
+Nlocal:    128 ave 128 max 128 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    543 ave 543 max 543 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    1526 ave 1526 max 1526 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:  3052 ave 3052 max 3052 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 3052
+Ave neighs/atom = 23.8438
+Neighbor list builds = 10
+Dangerous builds = 10

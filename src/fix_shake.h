@@ -84,7 +84,6 @@ class FixShake : public Fix {
   double **xshake;                       // unconstrained atom coords
   int *nshake;                           // count
 
-  int vflag;                            // virial flag
   double dtv,dtfsq;                     // timesteps for trial move
   double dtf_inner,dtf_innerhalf;       // timesteps for rRESPA trial move
 

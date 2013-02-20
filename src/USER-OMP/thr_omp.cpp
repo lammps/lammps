@@ -383,6 +383,12 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
     // nothing to do. XXX need to add support for per-atom info
     break;
 
+  case THR_INTGR:
+    // when running and /omp enabled integrator class.
+    // the reduction is run explicitly by the integrator
+    need_force_reduce = 0;
+    break;
+
   default:
     printf("tid:%d unhandled thr_style case %d\n", tid, thr_style);
     break;

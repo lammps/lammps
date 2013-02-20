@@ -22,7 +22,6 @@
 #include "atom.h"
 #include "domain.h"
 #include "comm.h"
-#include "atom.h"
 #include "force.h"
 #include "pair.h"
 #include "bond.h"

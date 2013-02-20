@@ -188,8 +188,9 @@ int FixOMP::setmask()
 
 void FixOMP::init()
 {
-  if (strstr(update->integrate_style,"respa") != NULL)
-    error->all(FLERR,"Cannot use r-RESPA with /omp styles");
+  if ((strstr(update->integrate_style,"respa") != NULL)
+      && (strstr(update->integrate_style,"respa/omp") == NULL))
+    error->all(FLERR,"Need to use respa/omp for r-RESPA with /omp styles");
 
   int check_hybrid, kspace_split;
   last_pair_hybrid = NULL;

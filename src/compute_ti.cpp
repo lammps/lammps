@@ -74,13 +74,12 @@ ComputeTI::ComputeTI(LAMMPS *lmp, int narg, char **arg) :
     if (iarg+4 > narg) error->all(FLERR,"Illegal compute ti command");
     if (strcmp(arg[iarg],"kspace") == 0) which[nterms] = KSPACE;
     else if (strcmp(arg[iarg],"tail") == 0) which[nterms] = TAIL;
-    else {
-      which[nterms] = PAIR;} 
+    else which[nterms] = PAIR;
+
     int n = strlen(arg[iarg]) + 1;
     pstyle[nterms] = new char[n];
     strcpy(pstyle[nterms],arg[iarg]);
     force->bounds(arg[iarg+1],atom->ntypes,ilo[nterms],ihi[nterms]);
-    
     iarg += 1;
 
     if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
@@ -136,7 +135,8 @@ void ComputeTI::init()
 
     if (which[m] == PAIR) {
       pptr[m] = force->pair_match(pstyle[m],1);
-      if (pptr[m] == NULL) error->all(FLERR,"Compute ti pair style does not exist");
+      if (pptr[m] == NULL)
+        error->all(FLERR,"Compute ti pair style does not exist");
 
     } else if (which[m] == TAIL) {
       if (force->pair == NULL || force->pair->tail_flag == 0)

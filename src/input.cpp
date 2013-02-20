@@ -383,7 +383,8 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
   //   else $x becomes x followed by NULL
   // beyond = points to text following variable
 
-  int n;
+  int i,n,paren_count;
+  char immediate[256];
   char *var,*value,*beyond;
   char quote = '\0';
   char *ptr = str;
@@ -394,23 +395,56 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
   char *ptr2 = str2;
 
   while (*ptr) {
-    // expand variable and append to str2
+    // variable substitution
 
     if (*ptr == '$' && !quote) {
+
+      // value = ptr to expanded variable
+      // variable name between curly braces, e.g. ${a}
+
       if (*(ptr+1) == '{') {
         var = ptr+2;
-        int i = 0;
+        i = 0;
+
         while (var[i] != '\0' && var[i] != '}') i++;
+
         if (var[i] == '\0') error->one(FLERR,"Invalid variable name");
         var[i] = '\0';
         beyond = ptr + strlen(var) + 3;
+        value = variable->retrieve(var);
+
+      // immediate variable between parenthesis, e.g. $(1/2)
+
+      } else if (*(ptr+1) == '(') {
+        var = ptr+2;
+        paren_count = 0;
+        i = 0;
+
+        while (var[i] != '\0' && !(var[i] == ')' && paren_count == 0)) {
+          switch (var[i]) {
+            case '(': paren_count++; break;
+            case ')': paren_count--; break;
+            default: ;
+          }
+          i++;
+        }
+
+        if (var[i] == '\0') error->one(FLERR,"Invalid immediate variable");
+        var[i] = '\0';
+        beyond = ptr + strlen(var) + 3;
+        sprintf(immediate,"%.20g",variable->compute_equal(var));
+        value = immediate;
+
+      // single character variable name, e.g. $a
+
       } else {
         var = ptr;
         var[0] = var[1];
         var[1] = '\0';
         beyond = ptr + 2;
+        value = variable->retrieve(var);
       }
-      value = variable->retrieve(var);
+
       if (value == NULL) error->one(FLERR,"Substitution for illegal variable");
 
       // check if storage in str2 needs to be expanded
@@ -428,8 +462,10 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
         if (echo_screen && screen) fprintf(screen,"%s%s\n",str2,beyond);
         if (echo_log && logfile) fprintf(logfile,"%s%s\n",str2,beyond);
       }
+
       continue;
     }
+
     if (*ptr == quote) quote = '\0';
     else if (*ptr == '"' || *ptr == '\'') quote = *ptr;
 

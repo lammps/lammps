@@ -71,13 +71,6 @@ void Special::build()
 
   if (me == 0 && screen) fprintf(screen,"Finding 1-2 1-3 1-4 neighbors ...\n");
 
-  // setup ring of procs
-
-  int next = me + 1;
-  int prev = me - 1;
-  if (next == nprocs) next = 0;
-  if (prev < 0) prev = nprocs - 1;
-
   // initialize nspecial counters to 0
 
   for (i = 0; i < nlocal; i++) {

@@ -44,7 +44,6 @@ class FixRigidSmall : public Fix {
   void initial_integrate_respa(int, int, int);
   void final_integrate_respa(int, int);
 
-  double memory_usage();
   void grow_arrays(int);
   void copy_arrays(int, int, int);
   void set_arrays(int);
@@ -60,6 +59,8 @@ class FixRigidSmall : public Fix {
   int dof(int);
   void deform(int);
   void reset_dt();
+  double compute_scalar();
+  double memory_usage();
 
  protected:
   int me,nprocs;
@@ -71,20 +72,21 @@ class FixRigidSmall : public Fix {
   int firstflag;            // 1 for first-time setup of rigid bodies
   int commflag;             // various modes of forward/reverse comm
   int nbody;                // total # of rigid bodies
+  double maxextent;         // furthest distance from body owner to body atom
 
   struct Body {
     double mass;              // total mass of body
     double xcm[3];            // COM position
     double vcm[3];            // COM velocity
     double fcm[3];            // force on COM
-    double torque[3];         // torque on COM
+    double torque[3];         // torque around COM
     double quat[4];           // quaternion for orientation of body
     double inertia[3];        // 3 principal components of inertia
     double ex_space[3];       // principal axes in space coords
     double ey_space[3];
     double ez_space[3];
-    double angmom[3];         // angular momentum of body
-    double omega[3];          // omega of body
+    double angmom[3];         // space-frame angular momentum of body
+    double omega[3];          // space-frame omega of body
     tagint image;             // image flags of xcm
     int remapflag[4];         // PBC remap flags
     int ilocal;               // index of owning atom
@@ -141,6 +143,7 @@ class FixRigidSmall : public Fix {
   double **ctr;
   int *idclose;
   double *rsqclose;
+  double rsqfar;
 
   void set_xv();
   void set_v();
@@ -153,10 +156,11 @@ class FixRigidSmall : public Fix {
 
   static void ring_bbox(int, char *);
   static void ring_nearest(int, char *);
+  static void ring_farthest(int, char *);
 
   // debug
 
-  void check(int);
+  //void check(int);
 };
 
 }

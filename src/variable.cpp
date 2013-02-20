@@ -527,6 +527,16 @@ double Variable::compute_equal(int ivar)
 }
 
 /* ----------------------------------------------------------------------
+   return result of immediate equal-style variable evaluation
+   called from Input::substitute()
+------------------------------------------------------------------------- */
+
+double Variable::compute_equal(char *str)
+{
+  return evaluate(str,NULL);
+}
+
+/* ----------------------------------------------------------------------
    compute result of atom-style variable evaluation
    only computed for atoms in igroup, else result is 0.0
    answers are placed every stride locations into result

@@ -31,6 +31,7 @@ class Variable : protected Pointers {
   int atomstyle(int);
   char *retrieve(char *);
   double compute_equal(int);
+  double compute_equal(char *);
   void compute_atom(int, int, double *, int, int);
   int int_between_brackets(char *&);
   double evaluate_boolean(char *);

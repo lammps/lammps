@@ -90,35 +90,35 @@ void ImproperUmbrellaOMP::eval(int nfrom, int nto, ThrData * const thr)
 
   eimproper = 0.0;
 
-  const double * const * const x = atom->x;
-  double * const * const f = thr->get_f();
-  const int * const * const improperlist = neighbor->improperlist;
+  const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
+  dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
+  const int5_t * _noalias const improperlist = (int5_t *) neighbor->improperlist[0];
   const int nlocal = atom->nlocal;
 
   for (n = nfrom; n < nto; n++) {
-    i1 = improperlist[n][0];
-    i2 = improperlist[n][1];
-    i3 = improperlist[n][2];
-    i4 = improperlist[n][3];
-    type = improperlist[n][4];
+    i1 = improperlist[n].a;
+    i2 = improperlist[n].b;
+    i3 = improperlist[n].c;
+    i4 = improperlist[n].d;
+    type = improperlist[n].t;
 
     // 1st bond
 
-    vb1x = x[i2][0] - x[i1][0];
-    vb1y = x[i2][1] - x[i1][1];
-    vb1z = x[i2][2] - x[i1][2];
+    vb1x = x[i2].x - x[i1].x;
+    vb1y = x[i2].y - x[i1].y;
+    vb1z = x[i2].z - x[i1].z;
 
     // 2nd bond
 
-    vb2x = x[i3][0] - x[i1][0];
-    vb2y = x[i3][1] - x[i1][1];
-    vb2z = x[i3][2] - x[i1][2];
+    vb2x = x[i3].x - x[i1].x;
+    vb2y = x[i3].y - x[i1].y;
+    vb2z = x[i3].z - x[i1].z;
 
     // 3rd bond
 
-    vb3x = x[i4][0] - x[i1][0];
-    vb3y = x[i4][1] - x[i1][1];
-    vb3z = x[i4][2] - x[i1][2];
+    vb3x = x[i4].x - x[i1].x;
+    vb3y = x[i4].y - x[i1].y;
+    vb3z = x[i4].z - x[i1].z;
 
     // c0 calculation
     // A = vb1 X vb2 is perpendicular to IJK plane
@@ -156,13 +156,13 @@ void ImproperUmbrellaOMP::eval(int nfrom, int nto, ThrData * const thr)
                 atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
         error->warning(FLERR,str,0);
         fprintf(screen,"  1st atom: %d %g %g %g\n",
-                me,x[i1][0],x[i1][1],x[i1][2]);
+                me,x[i1].x,x[i1].y,x[i1].z);
         fprintf(screen,"  2nd atom: %d %g %g %g\n",
-                me,x[i2][0],x[i2][1],x[i2][2]);
+                me,x[i2].x,x[i2].y,x[i2].z);
         fprintf(screen,"  3rd atom: %d %g %g %g\n",
-                me,x[i3][0],x[i3][1],x[i3][2]);
+                me,x[i3].x,x[i3].y,x[i3].z);
         fprintf(screen,"  4th atom: %d %g %g %g\n",
-                me,x[i4][0],x[i4][1],x[i4][2]);
+                me,x[i4].x,x[i4].y,x[i4].z);
       }
     }
 
@@ -226,27 +226,27 @@ void ImproperUmbrellaOMP::eval(int nfrom, int nto, ThrData * const thr)
     // apply force to each of 4 atoms
 
     if (NEWTON_BOND || i1 < nlocal) {
-      f[i1][0] += f1[0]*a;
-      f[i1][1] += f1[1]*a;
-      f[i1][2] += f1[2]*a;
+      f[i1].x += f1[0]*a;
+      f[i1].y += f1[1]*a;
+      f[i1].z += f1[2]*a;
     }
 
     if (NEWTON_BOND || i2 < nlocal) {
-      f[i2][0] += f3[0]*a;
-      f[i2][1] += f3[1]*a;
-      f[i2][2] += f3[2]*a;
+      f[i2].x += f3[0]*a;
+      f[i2].y += f3[1]*a;
+      f[i2].z += f3[2]*a;
     }
 
     if (NEWTON_BOND || i3 < nlocal) {
-      f[i3][0] += f2[0]*a;
-      f[i3][1] += f2[1]*a;
-      f[i3][2] += f2[2]*a;
+      f[i3].x += f2[0]*a;
+      f[i3].y += f2[1]*a;
+      f[i3].z += f2[2]*a;
     }
 
     if (NEWTON_BOND || i4 < nlocal) {
-      f[i4][0] += f4[0]*a;
-      f[i4][1] += f4[1]*a;
-      f[i4][2] += f4[2]*a;
+      f[i4].x += f4[0]*a;
+      f[i4].y += f4[1]*a;
+      f[i4].z += f4[2]*a;
     }
 
     if (EVFLAG)

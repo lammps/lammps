@@ -147,7 +147,7 @@ void PairLJCutTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
   int i,j,ii,jj,jnum,itype,jtype,itable, key;
   int n,vlist[6];
   int iH1,iH2,jH1,jH2;
-  
+
   evdwl = ecoul = 0.0;
 
   const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
@@ -329,8 +329,10 @@ void PairLJCutTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
           // virial = sum(r x F) where each water's atoms are near xi and xj
           // vlist stores 2,4,6 atoms whose forces contribute to virial
 
-          n = 0;
-          key = 0;
+          if (EVFLAG) {
+            n = 0;
+            key = 0;
+          }
 
           if (itype != typeO) {
             fxtmp += delx * cforce;
@@ -345,10 +347,10 @@ void PairLJCutTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
               v[4] = x[i].x * delz * cforce;
               v[5] = x[i].y * delz * cforce;
             }
-            vlist[n++] = i;
+            if (EVFLAG) vlist[n++] = i;
 
           } else {
-            key++;
+            if (EVFLAG) key++;
 
             fdx = delx*cforce;
             fdy = dely*cforce;
@@ -385,9 +387,11 @@ void PairLJCutTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
               v[4] = x[i].x*fOz + xH1[0]*fHz + xH2[0]*fHz;
               v[5] = x[i].y*fOz + xH1[1]*fHz + xH2[1]*fHz;
             }
-            vlist[n++] = i;
-            vlist[n++] = iH1;
-            vlist[n++] = iH2;
+            if (EVFLAG) {
+              vlist[n++] = i;
+              vlist[n++] = iH1;
+              vlist[n++] = iH2;
+            }
           }
 
           if (jtype != typeO) {
@@ -403,10 +407,10 @@ void PairLJCutTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
               v[4] -= x[j].x * delz * cforce;
               v[5] -= x[j].y * delz * cforce;
             }
-            vlist[n++] = j;
+            if (EVFLAG) vlist[n++] = j;
 
           } else {
-            key += 2;
+            if (EVFLAG) key += 2;
 
             fdx = -delx*cforce;
             fdy = -dely*cforce;
@@ -443,9 +447,11 @@ void PairLJCutTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
               v[4] += x[j].x*fOz + xH1[0]*fHz + xH2[0]*fHz;
               v[5] += x[j].y*fOz + xH1[1]*fHz + xH2[1]*fHz;
             }
-            vlist[n++] = j;
-            vlist[n++] = jH1;
-            vlist[n++] = jH2;
+            if (EVFLAG) {
+              vlist[n++] = j;
+              vlist[n++] = jH1;
+              vlist[n++] = jH2;
+            }
           }
 
           if (EFLAG) {
@@ -468,7 +474,6 @@ void PairLJCutTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
   }
 }
 
-/* ---------------------------------------------------------------------- */
 /* ----------------------------------------------------------------------
   compute position xM of fictitious charge site for O atom and 2 H atoms
   return it as xM

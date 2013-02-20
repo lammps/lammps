@@ -148,15 +148,15 @@ void PairCDEAMOMP::eval(int iifrom, int iito, ThrData * const thr)
 
   evdwl = 0.0;
 
-  const double * const * const x = atom->x;
-  double * const * const f = thr->get_f();
+  const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
+  dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
   double * const rho_t = thr->get_rho();
   double * const rhoB_t = thr->get_rhoB();
   double * const D_values_t = thr->get_D_values();
   const int tid = thr->get_tid();
   const int nthreads = comm->nthreads;
 
-  const int * const type = atom->type;
+  const int * _noalias const type = atom->type;
   const int nlocal = atom->nlocal;
   const int nall = nlocal + atom->nghost;
 
@@ -174,9 +174,9 @@ void PairCDEAMOMP::eval(int iifrom, int iito, ThrData * const thr)
 
   for (ii = iifrom; ii < iito; ii++) {
     i = ilist[ii];
-    xtmp = x[i][0];
-    ytmp = x[i][1];
-    ztmp = x[i][2];
+    xtmp = x[i].x;
+    ytmp = x[i].y;
+    ztmp = x[i].z;
     itype = type[i];
     jlist = firstneigh[i];
     jnum = numneigh[i];
@@ -185,9 +185,9 @@ void PairCDEAMOMP::eval(int iifrom, int iito, ThrData * const thr)
       j = jlist[jj];
       j &= NEIGHMASK;
 
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
+      delx = xtmp - x[j].x;
+      dely = ytmp - x[j].y;
+      delz = ztmp - x[j].z;
       rsq = delx*delx + dely*dely + delz*delz;
 
       if(rsq < cutforcesq) {
@@ -299,9 +299,9 @@ void PairCDEAMOMP::eval(int iifrom, int iito, ThrData * const thr)
     // Compute intermediate value D_i for each atom.
     for (ii = iifrom; ii < iito; ii++) {
       i = ilist[ii];
-      xtmp = x[i][0];
-      ytmp = x[i][1];
-      ztmp = x[i][2];
+      xtmp = x[i].x;
+      ytmp = x[i].y;
+      ztmp = x[i].z;
       itype = type[i];
       jlist = firstneigh[i];
       jnum = numneigh[i];
@@ -320,9 +320,9 @@ void PairCDEAMOMP::eval(int iifrom, int iito, ThrData * const thr)
         // This code line is required for ternary alloys.
         if(jtype != speciesA && jtype != speciesB) continue;
 
-        delx = xtmp - x[j][0];
-        dely = ytmp - x[j][1];
-        delz = ztmp - x[j][2];
+        delx = xtmp - x[j].x;
+        dely = ytmp - x[j].y;
+        delz = ztmp - x[j].z;
         rsq = delx*delx + dely*dely + delz*delz;
 
         if(rsq < cutforcesq) {
@@ -382,9 +382,9 @@ void PairCDEAMOMP::eval(int iifrom, int iito, ThrData * const thr)
   // Compute force acting on each atom.
   for (ii = iifrom; ii < iito; ii++) {
     i = ilist[ii];
-    xtmp = x[i][0];
-    ytmp = x[i][1];
-    ztmp = x[i][2];
+    xtmp = x[i].x;
+    ytmp = x[i].y;
+    ztmp = x[i].z;
     itype = type[i];
     fxtmp = fytmp = fztmp = 0.0;
 
@@ -417,9 +417,9 @@ void PairCDEAMOMP::eval(int iifrom, int iito, ThrData * const thr)
       j = jlist[jj];
       j &= NEIGHMASK;
 
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
+      delx = xtmp - x[j].x;
+      dely = ytmp - x[j].y;
+      delz = ztmp - x[j].z;
       rsq = delx*delx + dely*dely + delz*delz;
 
       if(rsq < cutforcesq) {
@@ -504,9 +504,9 @@ void PairCDEAMOMP::eval(int iifrom, int iito, ThrData * const thr)
         fytmp += dely*fpair;
         fztmp += delz*fpair;
         if(NEWTON_PAIR || j < nlocal) {
-          f[j][0] -= delx*fpair;
-          f[j][1] -= dely*fpair;
-          f[j][2] -= delz*fpair;
+          f[j].x -= delx*fpair;
+          f[j].y -= dely*fpair;
+          f[j].z -= delz*fpair;
         }
 
         if(EFLAG) evdwl = phi;
@@ -514,9 +514,9 @@ void PairCDEAMOMP::eval(int iifrom, int iito, ThrData * const thr)
                                 fpair,delx,dely,delz,thr);
       }
     }
-    f[i][0] += fxtmp;
-    f[i][1] += fytmp;
-    f[i][2] += fztmp;
+    f[i].x += fxtmp;
+    f[i].y += fytmp;
+    f[i].z += fztmp;
   }
 }
 

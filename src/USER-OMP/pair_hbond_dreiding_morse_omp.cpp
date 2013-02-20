@@ -123,10 +123,10 @@ void PairHbondDreidingMorseOMP::eval(int iifrom, int iito, ThrData * const thr)
 
   evdwl = 0.0;
 
-  const double * const * const x = atom->x;
-  double * const * const f = thr->get_f();
-  const int * const type = atom->type;
-  const double * const special_lj = force->special_lj;
+  const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
+  dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
+  const int * _noalias const type = atom->type;
+  const double * _noalias const special_lj = force->special_lj;
   const int * const * const nspecial = atom->nspecial;
   const int * const * const special = atom->special;
   double fxtmp,fytmp,fztmp;
@@ -155,9 +155,9 @@ void PairHbondDreidingMorseOMP::eval(int iifrom, int iito, ThrData * const thr)
     jnum = numneigh[i];
     fxtmp=fytmp=fztmp=0.0;
 
-    xtmp = x[i][0];
-    ytmp = x[i][1];
-    ztmp = x[i][2];
+    xtmp = x[i].x;
+    ytmp = x[i].y;
+    ztmp = x[i].z;
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
@@ -167,9 +167,9 @@ void PairHbondDreidingMorseOMP::eval(int iifrom, int iito, ThrData * const thr)
       jtype = type[j];
       if (!acceptor[jtype]) continue;
 
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
+      delx = xtmp - x[j].x;
+      dely = ytmp - x[j].y;
+      delz = ztmp - x[j].z;
       rsq = delx*delx + dely*dely + delz*delz;
 
       for (kk = 0; kk < knum; kk++) {
@@ -181,16 +181,16 @@ void PairHbondDreidingMorseOMP::eval(int iifrom, int iito, ThrData * const thr)
         const Param &pm = params[m];
 
         if (rsq < pm.cut_outersq) {
-          delr1[0] = xtmp - x[k][0];
-          delr1[1] = ytmp - x[k][1];
-          delr1[2] = ztmp - x[k][2];
+          delr1[0] = xtmp - x[k].x;
+          delr1[1] = ytmp - x[k].y;
+          delr1[2] = ztmp - x[k].z;
           domain->minimum_image(delr1);
           rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
           r1 = sqrt(rsq1);
 
-          delr2[0] = x[j][0] - x[k][0];
-          delr2[1] = x[j][1] - x[k][1];
-          delr2[2] = x[j][2] - x[k][2];
+          delr2[0] = x[j].x - x[k].x;
+          delr2[1] = x[j].y - x[k].y;
+          delr2[2] = x[j].z - x[k].z;
           domain->minimum_image(delr2);
           rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
           r2 = sqrt(rsq2);
@@ -256,13 +256,13 @@ void PairHbondDreidingMorseOMP::eval(int iifrom, int iito, ThrData * const thr)
             fytmp += fi[1];
             fztmp += fi[2];
 
-            f[j][0] += fj[0];
-            f[j][1] += fj[1];
-            f[j][2] += fj[2];
+            f[j].x += fj[0];
+            f[j].y += fj[1];
+            f[j].z += fj[2];
 
-            f[k][0] -= vx1 + vx2;
-            f[k][1] -= vy1 + vy2;
-            f[k][2] -= vz1 + vz2;
+            f[k].x -= vx1 + vx2;
+            f[k].y -= vy1 + vy2;
+            f[k].z -= vz1 + vz2;
 
             // KIJ instead of IJK b/c delr1/delr2 are both with respect to k
 
@@ -275,9 +275,9 @@ void PairHbondDreidingMorseOMP::eval(int iifrom, int iito, ThrData * const thr)
         }
       }
     }
-    f[i][0] += fxtmp;
-    f[i][1] += fytmp;
-    f[i][2] += fztmp;
+    f[i].x += fxtmp;
+    f[i].y += fytmp;
+    f[i].z += fztmp;
   }
   const int tid = thr->get_tid();
   hbcount_thr[tid] = static_cast<double>(hbcount);

@@ -21,7 +21,7 @@
 
 using namespace LAMMPS_NS;
 
-typedef struct { double x,y,z; } vec3_t;
+typedef struct { double x,y,z; } dbl3_t;
 #if defined(__GNUC__)
 #define _noalias __restrict
 #else
@@ -41,8 +41,8 @@ typedef struct { double x,y,z; } vec3_t;
 
 void DomainOMP::pbc()
 {
-  vec3_t * _noalias const x = (vec3_t *)&atom->x[0][0];
-  vec3_t * _noalias const v = (vec3_t *)&atom->v[0][0];
+  dbl3_t * _noalias const x = (dbl3_t *)&atom->x[0][0];
+  dbl3_t * _noalias const v = (dbl3_t *)&atom->v[0][0];
   const double * _noalias const lo     = (triclinic == 0) ? boxlo : boxlo_lamda;
   const double * _noalias const hi     = (triclinic == 0) ? boxhi : boxhi_lamda;
   const double * _noalias const period = (triclinic == 0) ? prd   : prd_lamda;
@@ -146,7 +146,7 @@ void DomainOMP::pbc()
 
 void DomainOMP::lamda2x(int n)
 {
-  vec3_t * _noalias const x = (vec3_t *)&atom->x[0][0];
+  dbl3_t * _noalias const x = (dbl3_t *)&atom->x[0][0];
   const int num = n;
   int i;
 
@@ -167,7 +167,7 @@ void DomainOMP::lamda2x(int n)
 
 void DomainOMP::x2lamda(int n)
 {
-  vec3_t * _noalias const x = (vec3_t *)&atom->x[0][0];
+  dbl3_t * _noalias const x = (dbl3_t *)&atom->x[0][0];
   const int num = n;
   int i;
 

@@ -65,12 +65,13 @@ static int get_tid()
 
 /* ---------------------------------------------------------------------- */
 
-FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg),
-              thr(NULL), last_omp_style(NULL), last_pair_hybrid(NULL),
-              _nthr(-1), _neighbor(true), _newton(false)
+FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg) 
+  :  Fix(lmp, narg, arg),
+     thr(NULL), last_omp_style(NULL), last_pair_hybrid(NULL),
+     _nthr(-1), _neighbor(true), _mixed(false)
 {
-  if ((narg < 4) || (narg > 6)) error->all(FLERR,"Illegal fix OMP command");
-  if (strcmp(arg[1],"all") != 0) error->all(FLERR,"Illegal fix OMP command");
+  if ((narg < 4) || (narg > 7)) error->all(FLERR,"Illegal package omp command");
+  if (strcmp(arg[1],"all") != 0) error->all(FLERR,"fix OMP has to operate on group 'all'");
 
   int nthreads = 1;
   if (narg > 3) {
@@ -84,64 +85,59 @@ FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg),
   }
 
   if (nthreads < 1)
-    error->all(FLERR,"Illegal number of threads requested.");
+    error->all(FLERR,"Illegal number of OpenMP threads requested");
 
   if (nthreads != comm->nthreads) {
 #if defined(_OPENMP)
     omp_set_num_threads(nthreads);
 #endif
     comm->nthreads = nthreads;
-    if (comm->me == 0) {
-      if (screen)
-        fprintf(screen,"  reset %d OpenMP thread(s) per MPI task\n", nthreads);
-      if (logfile)
-        fprintf(logfile,"  reset %d OpenMP thread(s) per MPI task\n", nthreads);
-    }
   }
 
-  if (narg > 4) {
-    if (strcmp(arg[4],"force/neigh") == 0)
+  int iarg = 4;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"force/neigh") == 0)
       _neighbor = true;
-    else if (strcmp(arg[4],"force") == 0)
+    else if (strcmp(arg[iarg],"force") == 0)
       _neighbor = false;
+    else if (strcmp(arg[iarg],"mixed") == 0)
+      _mixed = true;
+    else if (strcmp(arg[iarg],"double") == 0)
+      _mixed = false;
     else
-      error->all(FLERR,"Illegal fix omp mode requested.");
-
-    if (comm->me == 0) {
-      const char * const mode = _neighbor ? "OpenMP capable" : "serial";
-
-      if (screen)
-        fprintf(screen,"  using %s neighbor list subroutines\n", mode);
-      if (logfile)
-        fprintf(logfile,"  using %s neighbor list subroutines\n", mode);
-    }
+      error->all(FLERR,"Illegal package omp mode requested");
   }
 
-#if 0 /* to be enabled when we can switch between half and full neighbor lists */
-  if (narg > 5) {
-    if (strcmp(arg[5],"neigh/half") == 0)
-      _newton = true;
-    else if (strcmp(arg[5],"neigh/full") == 0)
-        _newton = false;
-    else
-      error->all(FLERR,"Illegal fix OMP command");
+  // print summary of settings
+  if (comm->me == 0) {
+    const char * const nmode = _neighbor ? "OpenMP capable" : "serial";
+    const char * const kmode = _mixed ? "mixed" : "double";
 
-    if (comm->me == 0) {
-      const char * const mode = _newton ? "half" : "full";
-
-      if (screen)
-        fprintf(screen,"  using /omp styles with %s neighbor list builds\n", mode);
-      if (logfile)
-        fprintf(logfile,"  using /omp styles with %s neighbor list builds\n", mode);
+    if (screen) {
+      fprintf(screen,"  reset %d OpenMP thread(s) per MPI task\n", nthreads);
+      fprintf(screen,"  using %s neighbor list subroutines\n", nmode);
+      if (_mixed)
+        fputs("  using mixed precision OpenMP force kernels where available\n", screen);
+      else
+        fputs("  using double precision OpenMP force kernels\n", screen);
+    }
+    
+    if (logfile) {
+      fprintf(logfile,"  reset %d OpenMP thread(s) per MPI task\n", nthreads);
+      fprintf(logfile,"  using %s neighbor list subroutines\n", nmode);
+      if (_mixed)
+        fputs("  using mixed precision OpenMP force kernels where available\n", logfile);
+      else
+        fputs("  using double precision OpenMP force kernels\n", logfile);
     }
   }
-#endif
 
   // allocate list for per thread accumulator manager class instances
   // and then have each thread create an instance of this class to
   // encourage the OS to use storage that is "close" to each thread's CPU.
   thr = new ThrData *[nthreads];
   _nthr = nthreads;
+  _clearforce = true;
 #if defined(_OPENMP)
 #pragma omp parallel default(none)
 #endif
@@ -261,7 +257,7 @@ void FixOMP::init()
     CheckStyleForOMP(improper);
     CheckHybridForOMP(improper,Improper);
   }
-
+  
   if (kspace_split >= 0) {
     CheckStyleForOMP(kspace);
   }
@@ -286,10 +282,11 @@ void FixOMP::init()
         fprintf(logfile,"Last active /omp style is %s_style %s\n",
                 last_force_name, last_omp_name);
     } else {
+      _clearforce = false;
       if (screen)
         fprintf(screen,"No /omp style for force computation currently active\n");
       if (logfile)
-        fprintf(screen,"No /omp style for force computation currently active\n");
+        fprintf(logfile,"No /omp style for force computation currently active\n");
     }
   }
 }
@@ -325,13 +322,17 @@ void FixOMP::pre_force(int)
   double *de = atom->de;
   double *drho = atom->drho;
 
+  if (_clearforce) {
 #if defined(_OPENMP)
 #pragma omp parallel default(none) shared(f,torque,erforce,de,drho)
 #endif
-  {
-    const int tid = get_tid();
-    thr[tid]->check_tid(tid);
-    thr[tid]->init_force(nall,f,torque,erforce,de,drho);
+    {
+      const int tid = get_tid();
+      thr[tid]->check_tid(tid);
+      thr[tid]->init_force(nall,f,torque,erforce,de,drho);
+    }
+  } else {
+    thr[0]->init_force(nall,f,torque,erforce,de,drho);
   }
 }
 

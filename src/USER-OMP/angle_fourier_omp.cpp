@@ -89,31 +89,31 @@ void AngleFourierOMP::eval(int nfrom, int nto, ThrData * const thr)
   double term;
   double rsq1,rsq2,r1,r2,c,c2,a,a11,a12,a22;
 
-  const double * const * const x = atom->x;
-  double * const * const f = thr->get_f();
-  const int * const * const anglelist = neighbor->anglelist;
+  const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
+  dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
+  const int4_t * _noalias const anglelist = (int4_t *) neighbor->anglelist[0];
   const int nlocal = atom->nlocal;
 
   for (n = nfrom; n < nto; n++) {
-    i1 = anglelist[n][0];
-    i2 = anglelist[n][1];
-    i3 = anglelist[n][2];
-    type = anglelist[n][3];
+    i1 = anglelist[n].a;
+    i2 = anglelist[n].b;
+    i3 = anglelist[n].c;
+    type = anglelist[n].t;
 
     // 1st bond
 
-    delx1 = x[i1][0] - x[i2][0];
-    dely1 = x[i1][1] - x[i2][1];
-    delz1 = x[i1][2] - x[i2][2];
+    delx1 = x[i1].x - x[i2].x;
+    dely1 = x[i1].y - x[i2].y;
+    delz1 = x[i1].z - x[i2].z;
 
     rsq1 = delx1*delx1 + dely1*dely1 + delz1*delz1;
     r1 = sqrt(rsq1);
 
     // 2nd bond
 
-    delx2 = x[i3][0] - x[i2][0];
-    dely2 = x[i3][1] - x[i2][1];
-    delz2 = x[i3][2] - x[i2][2];
+    delx2 = x[i3].x - x[i2].x;
+    dely2 = x[i3].y - x[i2].y;
+    delz2 = x[i3].z - x[i2].z;
 
     rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
     r2 = sqrt(rsq2);
@@ -148,21 +148,21 @@ void AngleFourierOMP::eval(int nfrom, int nto, ThrData * const thr)
     // apply force to each of 3 atoms
 
     if (NEWTON_BOND || i1 < nlocal) {
-      f[i1][0] += f1[0];
-      f[i1][1] += f1[1];
-      f[i1][2] += f1[2];
+      f[i1].x += f1[0];
+      f[i1].y += f1[1];
+      f[i1].z += f1[2];
     }
 
     if (NEWTON_BOND || i2 < nlocal) {
-      f[i2][0] -= f1[0] + f3[0];
-      f[i2][1] -= f1[1] + f3[1];
-      f[i2][2] -= f1[2] + f3[2];
+      f[i2].x -= f1[0] + f3[0];
+      f[i2].y -= f1[1] + f3[1];
+      f[i2].z -= f1[2] + f3[2];
     }
 
     if (NEWTON_BOND || i3 < nlocal) {
-      f[i3][0] += f3[0];
-      f[i3][1] += f3[1];
-      f[i3][2] += f3[2];
+      f[i3].x += f3[0];
+      f[i3].y += f3[1];
+      f[i3].z += f3[2];
     }
 
     if (EVFLAG) ev_tally_thr(this,i1,i2,i3,nlocal,NEWTON_BOND,eangle,f1,f3,

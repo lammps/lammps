@@ -37,16 +37,13 @@ class FixOMP : public Fix {
   virtual void init();
   virtual void pre_force(int);
 
-  virtual void setup_pre_force(int vflag)           { pre_force(vflag); };
-  virtual void min_setup_pre_force(int vflag)       { pre_force(vflag); };
-  virtual void min_pre_force(int vflag)             { pre_force(vflag); };
-  virtual void setup_pre_force_respa(int vflag,int) { pre_force(vflag); };
-  virtual void pre_force_respa(int vflag,int,int)   { pre_force(vflag); };
+  virtual void setup_pre_force(int vflag)           { pre_force(vflag); }
+  virtual void min_setup_pre_force(int vflag)       { pre_force(vflag); }
+  virtual void min_pre_force(int vflag)             { pre_force(vflag); }
+  virtual void setup_pre_force_respa(int vflag,int) { pre_force(vflag); }
+  virtual void pre_force_respa(int vflag,int,int)   { pre_force(vflag); }
 
   virtual double memory_usage();
-
-  ThrData *get_thr(int tid) { return thr[tid]; };
-  int get_nthr() const { return _nthr; }
 
  protected:
   ThrData **thr;
@@ -56,13 +53,17 @@ class FixOMP : public Fix {
                            // to call virial_fdot_compute()
 
  public:
-  bool get_neighbor() const {return _neighbor;};
-  bool get_newton() const   {return _newton;};
+  ThrData *get_thr(int tid) { return thr[tid];  }
+  int get_nthr()      const { return _nthr;     }
+
+  bool get_neighbor() const { return _neighbor; }
+  bool get_mixed()    const { return _mixed;    }
 
  private:
   int  _nthr;     // number of currently active ThrData object
   bool _neighbor; // en/disable threads for neighbor list construction
-  bool _newton;   // en/disable newton's 3rd law for local atoms.
+  bool _clearforce; // whether to clear per thread data objects
+  bool _mixed;     // whether to use a mixed precision compute kernel
 
   void set_neighbor_omp();
 };

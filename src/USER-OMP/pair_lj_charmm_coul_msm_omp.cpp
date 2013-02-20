@@ -79,12 +79,12 @@ template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
 void PairLJCharmmCoulMSMOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
 
-  const double * const * const x = atom->x;
-  double * const * const f = thr->get_f();
-  const double * const q = atom->q;
-  const int * const type = atom->type;
-  const double * const special_coul = force->special_coul;
-  const double * const special_lj = force->special_lj;
+  const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
+  dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
+  const double * _noalias const q = atom->q;
+  const int * _noalias const type = atom->type;
+  const double * _noalias const special_coul = force->special_coul;
+  const double * _noalias const special_lj = force->special_lj;
   const double qqrd2e = force->qqrd2e;
   const double inv_denom_lj = 1.0/denom_lj;
 
@@ -100,9 +100,9 @@ void PairLJCharmmCoulMSMOMP::eval(int iifrom, int iito, ThrData * const thr)
     const int i = ilist[ii];
     const int itype = type[i];
     const double qtmp = q[i];
-    const double xtmp = x[i][0];
-    const double ytmp = x[i][1];
-    const double ztmp = x[i][2];
+    const double xtmp = x[i].x;
+    const double ytmp = x[i].y;
+    const double ztmp = x[i].z;
     double fxtmp,fytmp,fztmp;
     fxtmp=fytmp=fztmp=0.0;
 
@@ -116,9 +116,9 @@ void PairLJCharmmCoulMSMOMP::eval(int iifrom, int iito, ThrData * const thr)
       const int sbindex = sbmask(jlist[jj]);
       const int j = jlist[jj] & NEIGHMASK;
 
-      const double delx = xtmp - x[j][0];
-      const double dely = ytmp - x[j][1];
-      const double delz = ztmp - x[j][2];
+      const double delx = xtmp - x[j].x;
+      const double dely = ytmp - x[j].y;
+      const double delz = ztmp - x[j].z;
       const double rsq = delx*delx + dely*dely + delz*delz;
       const int jtype = type[j];
 
@@ -190,18 +190,18 @@ void PairLJCharmmCoulMSMOMP::eval(int iifrom, int iito, ThrData * const thr)
         fytmp += dely*fpair;
         fztmp += delz*fpair;
         if (NEWTON_PAIR || j < nlocal) {
-          f[j][0] -= delx*fpair;
-          f[j][1] -= dely*fpair;
-          f[j][2] -= delz*fpair;
+          f[j].x -= delx*fpair;
+          f[j].y -= dely*fpair;
+          f[j].z -= delz*fpair;
         }
 
         if (EVFLAG) ev_tally_thr(this,i,j,nlocal,NEWTON_PAIR,
                                  evdwl,ecoul,fpair,delx,dely,delz,thr);
       }
     }
-    f[i][0] += fxtmp;
-    f[i][1] += fytmp;
-    f[i][2] += fztmp;
+    f[i].x += fxtmp;
+    f[i].y += fytmp;
+    f[i].z += fztmp;
   }
 }
 

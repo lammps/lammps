@@ -98,9 +98,9 @@ void PairTersoffTableOMP::eval(int iifrom, int iito, ThrData * const thr)
 
   double evdwl = 0.0;
 
-  const double * const * const x = atom->x;
-  double * const * const f = thr->get_f();
-  const int * const type = atom->type;
+  const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
+  dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
+  const int * _noalias const type = atom->type;
   const int nlocal = atom->nlocal;
   const int tid = thr->get_tid();
 
@@ -114,9 +114,9 @@ void PairTersoffTableOMP::eval(int iifrom, int iito, ThrData * const thr)
 
     i = ilist[ii];
     itype = map[type[i]];
-    xtmp = x[i][0];
-    ytmp = x[i][1];
-    ztmp = x[i][2];
+    xtmp = x[i].x;
+    ytmp = x[i].y;
+    ztmp = x[i].z;
     fxtmp = fytmp = fztmp = 0.0;
 
     jlist = firstneigh[i];
@@ -136,9 +136,9 @@ void PairTersoffTableOMP::eval(int iifrom, int iito, ThrData * const thr)
       j = jlist[neighbor_j];
       j &= NEIGHMASK;
 
-      dr_ij[0] = xtmp - x[j][0];
-      dr_ij[1] = ytmp - x[j][1];
-      dr_ij[2] = ztmp - x[j][2];
+      dr_ij[0] = xtmp - x[j].x;
+      dr_ij[1] = ytmp - x[j].y;
+      dr_ij[2] = ztmp - x[j].z;
       r_ij = dr_ij[0]*dr_ij[0] + dr_ij[1]*dr_ij[1] + dr_ij[2]*dr_ij[2];
 
       jtype = map[type[j]];
@@ -176,9 +176,9 @@ void PairTersoffTableOMP::eval(int iifrom, int iito, ThrData * const thr)
         ikparam = elem2param[itype][ktype][ktype];
         ijkparam = elem2param[itype][jtype][ktype];
 
-        dr_ik[0] = xtmp -x[k][0];
-        dr_ik[1] = ytmp -x[k][1];
-        dr_ik[2] = ztmp -x[k][2];
+        dr_ik[0] = xtmp -x[k].x;
+        dr_ik[1] = ytmp -x[k].y;
+        dr_ik[2] = ztmp -x[k].z;
         r_ik = dr_ik[0]*dr_ik[0] + dr_ik[1]*dr_ik[1] + dr_ik[2]*dr_ik[2];
 
         if (r_ik > params[ikparam].cutsq) continue;
@@ -223,9 +223,9 @@ void PairTersoffTableOMP::eval(int iifrom, int iito, ThrData * const thr)
       j = jlist[neighbor_j];
       j &= NEIGHMASK;
 
-      dr_ij[0] = xtmp - x[j][0];
-      dr_ij[1] = ytmp - x[j][1];
-      dr_ij[2] = ztmp - x[j][2];
+      dr_ij[0] = xtmp - x[j].x;
+      dr_ij[1] = ytmp - x[j].y;
+      dr_ij[2] = ztmp - x[j].z;
       r_ij = dr_ij[0]*dr_ij[0] + dr_ij[1]*dr_ij[1] + dr_ij[2]*dr_ij[2];
 
       jtype = map[type[j]];
@@ -276,9 +276,9 @@ void PairTersoffTableOMP::eval(int iifrom, int iito, ThrData * const thr)
         ikparam = elem2param[itype][ktype][ktype];
         ijkparam = elem2param[itype][jtype][ktype];
 
-        dr_ik[0] = xtmp -x[k][0];
-        dr_ik[1] = ytmp -x[k][1];
-        dr_ik[2] = ztmp -x[k][2];
+        dr_ik[0] = xtmp -x[k].x;
+        dr_ik[1] = ytmp -x[k].y;
+        dr_ik[2] = ztmp -x[k].z;
         r_ik = dr_ik[0]*dr_ik[0] + dr_ik[1]*dr_ik[1] + dr_ik[2]*dr_ik[2];
 
         if (r_ik > params[ikparam].cutsq) continue;
@@ -309,9 +309,9 @@ void PairTersoffTableOMP::eval(int iifrom, int iito, ThrData * const thr)
         ikparam = elem2param[itype][ktype][ktype];
         ijkparam = elem2param[itype][jtype][ktype];
 
-        dr_ik[0] = xtmp -x[k][0];
-        dr_ik[1] = ytmp -x[k][1];
-        dr_ik[2] = ztmp -x[k][2];
+        dr_ik[0] = xtmp -x[k].x;
+        dr_ik[1] = ytmp -x[k].y;
+        dr_ik[2] = ztmp -x[k].z;
         r_ik = dr_ik[0]*dr_ik[0] + dr_ik[1]*dr_ik[1] + dr_ik[2]*dr_ik[2];
 
         if (r_ik > params[ikparam].cutsq) continue;
@@ -349,9 +349,9 @@ void PairTersoffTableOMP::eval(int iifrom, int iito, ThrData * const thr)
       f_ij[1] = factor_force_ij * directorCos_ij_y;
       f_ij[2] = factor_force_ij * directorCos_ij_z;
 
-      f[j][0] += f_ij[0];
-      f[j][1] += f_ij[1];
-      f[j][2] += f_ij[2];
+      f[j].x += f_ij[0];
+      f[j].y += f_ij[1];
+      f[j].z += f_ij[2];
 
       fxtmp -= f_ij[0];
       fytmp -= f_ij[1];
@@ -376,9 +376,9 @@ void PairTersoffTableOMP::eval(int iifrom, int iito, ThrData * const thr)
         ikparam = elem2param[itype][ktype][ktype];
         ijkparam = elem2param[itype][jtype][ktype];
 
-        dr_ik[0] = xtmp -x[k][0];
-        dr_ik[1] = ytmp -x[k][1];
-        dr_ik[2] = ztmp -x[k][2];
+        dr_ik[0] = xtmp -x[k].x;
+        dr_ik[1] = ytmp -x[k].y;
+        dr_ik[2] = ztmp -x[k].z;
         r_ik = dr_ik[0]*dr_ik[0] + dr_ik[1]*dr_ik[1] + dr_ik[2]*dr_ik[2];
 
         if (r_ik > params[ikparam].cutsq) continue;
@@ -417,13 +417,13 @@ void PairTersoffTableOMP::eval(int iifrom, int iito, ThrData * const thr)
         f_ik[2] = factor_1_force3_ik * (directorCos_ik_z*cosTeta - directorCos_ij_z)
           + factor_2_force3_ik * directorCos_ik_z;
 
-        f[j][0] -= f_ij[0];
-        f[j][1] -= f_ij[1];
-        f[j][2] -= f_ij[2];
+        f[j].x -= f_ij[0];
+        f[j].y -= f_ij[1];
+        f[j].z -= f_ij[2];
 
-        f[k][0] -= f_ik[0];
-        f[k][1] -= f_ik[1];
-        f[k][2] -= f_ik[2];
+        f[k].x -= f_ik[0];
+        f[k].y -= f_ik[1];
+        f[k].z -= f_ik[2];
 
         fxtmp += f_ij[0] + f_ik[0];
         fytmp += f_ij[1] + f_ik[1];
@@ -442,9 +442,9 @@ void PairTersoffTableOMP::eval(int iifrom, int iito, ThrData * const thr)
         ikparam = elem2param[itype][ktype][ktype];
         ijkparam = elem2param[itype][jtype][ktype];
 
-        dr_ik[0] = xtmp -x[k][0];
-        dr_ik[1] = ytmp -x[k][1];
-        dr_ik[2] = ztmp -x[k][2];
+        dr_ik[0] = xtmp -x[k].x;
+        dr_ik[1] = ytmp -x[k].y;
+        dr_ik[2] = ztmp -x[k].z;
         r_ik = dr_ik[0]*dr_ik[0] + dr_ik[1]*dr_ik[1] + dr_ik[2]*dr_ik[2];
 
         if (r_ik > params[ikparam].cutsq) continue;
@@ -483,13 +483,13 @@ void PairTersoffTableOMP::eval(int iifrom, int iito, ThrData * const thr)
         f_ik[2] = factor_1_force3_ik * (directorCos_ik_z*cosTeta - directorCos_ij_z)
           + factor_2_force3_ik * directorCos_ik_z;
 
-        f[j][0] -= f_ij[0];
-        f[j][1] -= f_ij[1];
-        f[j][2] -= f_ij[2];
+        f[j].x -= f_ij[0];
+        f[j].y -= f_ij[1];
+        f[j].z -= f_ij[2];
 
-        f[k][0] -= f_ik[0];
-        f[k][1] -= f_ik[1];
-        f[k][2] -= f_ik[2];
+        f[k].x -= f_ik[0];
+        f[k].y -= f_ik[1];
+        f[k].z -= f_ik[2];
 
         fxtmp += f_ij[0] + f_ik[0];
         fytmp += f_ij[1] + f_ik[1];
@@ -499,9 +499,9 @@ void PairTersoffTableOMP::eval(int iifrom, int iito, ThrData * const thr)
 
       }
     } // loop on J
-    f[i][0] += fxtmp;
-    f[i][1] += fytmp;
-    f[i][2] += fztmp;
+    f[i].x += fxtmp;
+    f[i].y += fytmp;
+    f[i].z += fztmp;
   } // loop on I
 }
 

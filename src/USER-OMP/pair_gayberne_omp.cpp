@@ -83,13 +83,13 @@ void PairGayBerneOMP::eval(int iifrom, int iito, ThrData * const thr)
   int *ilist,*jlist,*numneigh,**firstneigh;
   double *iquat,*jquat;
 
-  const double * const * const x = atom->x;
-  double * const * const f = thr->get_f();
-  double * const * const tor = thr->get_torque();
-  const int * const type = atom->type;
+  const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
+  dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
+  dbl3_t * _noalias const tor = (dbl3_t *) thr->get_torque()[0];
+  const int * _noalias const type = atom->type;
   const int nlocal = atom->nlocal;
-  const double * const special_lj = force->special_lj;
-  const int * const ellipsoid = atom->ellipsoid;
+  const double * _noalias const special_lj = force->special_lj;
+  const int * _noalias const ellipsoid = atom->ellipsoid;
 
   AtomVecEllipsoid::Bonus *bonus = avec->bonus;
 
@@ -126,9 +126,9 @@ void PairGayBerneOMP::eval(int iifrom, int iito, ThrData * const thr)
 
       // r12 = center to center vector
 
-      r12[0] = x[j][0]-x[i][0];
-      r12[1] = x[j][1]-x[i][1];
-      r12[2] = x[j][2]-x[i][2];
+      r12[0] = x[j].x-x[i].x;
+      r12[1] = x[j].y-x[i].y;
+      r12[2] = x[j].z-x[i].z;
       rsq = MathExtra::dot3(r12,r12);
       jtype = type[j];
 
@@ -196,12 +196,12 @@ void PairGayBerneOMP::eval(int iifrom, int iito, ThrData * const thr)
           rtor[0] *= factor_lj;
           rtor[1] *= factor_lj;
           rtor[2] *= factor_lj;
-          f[j][0] -= fforce[0];
-          f[j][1] -= fforce[1];
-          f[j][2] -= fforce[2];
-          tor[j][0] += rtor[0];
-          tor[j][1] += rtor[1];
-          tor[j][2] += rtor[2];
+          f[j].x -= fforce[0];
+          f[j].y -= fforce[1];
+          f[j].z -= fforce[2];
+          tor[j].x += rtor[0];
+          tor[j].y += rtor[1];
+          tor[j].z += rtor[2];
         }
 
         if (EFLAG) evdwl = factor_lj*one_eng;
@@ -211,12 +211,12 @@ void PairGayBerneOMP::eval(int iifrom, int iito, ThrData * const thr)
                                      -r12[0],-r12[1],-r12[2],thr);
       }
     }
-    f[i][0] += fxtmp;
-    f[i][1] += fytmp;
-    f[i][2] += fztmp;
-    tor[i][0] += t1tmp;
-    tor[i][1] += t2tmp;
-    tor[i][2] += t3tmp;
+    f[i].x += fxtmp;
+    f[i].y += fytmp;
+    f[i].z += fztmp;
+    tor[i].x += t1tmp;
+    tor[i].y += t2tmp;
+    tor[i].z += t3tmp;
   }
 }
 

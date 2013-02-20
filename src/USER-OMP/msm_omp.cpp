@@ -115,41 +115,43 @@ void MSMOMP::direct(int n)
 }
 
 template <int EFLAG_GLOBAL, int VFLAG_GLOBAL, int VFLAG_ATOM>
-void MSMOMP::direct_eval(const int n)
+void MSMOMP::direct_eval(const int nn)
 {
-  double * const * const * const egridn  = egrid[n];
-  const double * const * const * const qgridn = qgrid[n];
-  const double * const g_directn = g_direct[n];
-  const double * const v0_directn = v0_direct[n];
-  const double * const v1_directn = v1_direct[n];
-  const double * const v2_directn = v2_direct[n];
-  const double * const v3_directn = v3_direct[n];
-  const double * const v4_directn = v4_direct[n];
-  const double * const v5_directn = v5_direct[n];
+  double * _noalias const * _noalias const * _noalias const egridn  = egrid[nn];
+  const double * _noalias const * _noalias const * _noalias const qgridn = qgrid[nn];
+  const double * _noalias const g_directn = g_direct[nn];
+  const double * _noalias const v0_directn = v0_direct[nn];
+  const double * _noalias const v1_directn = v1_direct[nn];
+  const double * _noalias const v2_directn = v2_direct[nn];
+  const double * _noalias const v3_directn = v3_direct[nn];
+  const double * _noalias const v4_directn = v4_direct[nn];
+  const double * _noalias const v5_directn = v5_direct[nn];
 
   double v0,v1,v2,v3,v4,v5,emsm;
   v0 = v1 = v2 = v3 = v4 = v5 = emsm = 0.0;
-  const int alphan = alpha[n];
-  const int betaxn = betax[n];
-  const int betayn = betay[n];
-  const int betazn = betaz[n];
+  const int alphan = alpha[nn];
+  const int betaxn = betax[nn];
+  const int betayn = betay[nn];
+  const int betazn = betaz[nn];
 
   const int nx = nxhi_direct - nxlo_direct + 1;
   const int ny = nyhi_direct - nylo_direct + 1;
 
   // merge three outer loops into one for better threading
 
-  const int nzlo_inn = nzlo_in[n];
-  const int nylo_inn = nylo_in[n];
-  const int nxlo_inn = nxlo_in[n];
-  const int numz = nzhi_in[n] - nzlo_inn + 1;
-  const int numy = nyhi_in[n] - nylo_inn + 1;
-  const int numx = nxhi_in[n] - nxlo_inn + 1;
+  const int nzlo_inn = nzlo_in[nn];
+  const int nylo_inn = nylo_in[nn];
+  const int nxlo_inn = nxlo_in[nn];
+  const int numz = nzhi_in[nn] - nzlo_inn + 1;
+  const int numy = nyhi_in[nn] - nylo_inn + 1;
+  const int numx = nxhi_in[nn] - nxlo_inn + 1;
   const int inum = numz*numy*numx;
 
   const int zper = domain->zperiodic;
   const int yper = domain->yperiodic;
   const int xper = domain->xperiodic;
+
+  const int n=nn;
 
 #if defined(_OPENMP)
 #pragma omp parallel default(none) reduction(+:v0,v1,v2,v3,v4,v5,emsm)
@@ -188,8 +190,9 @@ void MSMOMP::direct_eval(const int n)
         for (iy = jmin; iy <= jmax; iy++) {
           const int jj = icy+iy;
           const int zyk = (zk + iy + nyhi_direct)*nx;
+          const double * _noalias const qgridnkj = & qgridn[kk][jj][icx];
           for (ix = imin; ix <= imax; ix++) {
-            qtmp = qgridn[kk][jj][icx+ix];
+            qtmp = qgridnkj[ix];
             k = zyk + ix + nxhi_direct;
             esum += g_directn[k] * qtmp;
 

@@ -147,9 +147,9 @@ void PairEDIPOMP::eval(int iifrom, int iito, ThrData * const thr)
   double *pre_thrPow2B_ij = prePow2B_ij + tid * leadDimInteractionList;
   double *pre_thrForceCoord = preForceCoord + tid * leadDimInteractionList;
 
-  const double * const * const x = atom->x;
-  double * const * const f = thr->get_f();
-  const int * const type = atom->type;
+  const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
+  dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
+  const int * _noalias const type = atom->type;
   const int nlocal = atom->nlocal;
 
   inum = list->inum;
@@ -165,9 +165,9 @@ void PairEDIPOMP::eval(int iifrom, int iito, ThrData * const thr)
 
     i = ilist[ii];
     itype = map[type[i]];
-    xtmp = x[i][0];
-    ytmp = x[i][1];
-    ztmp = x[i][2];
+    xtmp = x[i].x;
+    ytmp = x[i].y;
+    ztmp = x[i].z;
 
     jlist = firstneigh[i];
     jnum = numneigh[i];
@@ -180,9 +180,9 @@ void PairEDIPOMP::eval(int iifrom, int iito, ThrData * const thr)
 
         double dr_ij[3], r_ij;
 
-        dr_ij[0] = xtmp - x[j][0];
-        dr_ij[1] = ytmp - x[j][1];
-        dr_ij[2] = ztmp - x[j][2];
+        dr_ij[0] = xtmp - x[j].x;
+        dr_ij[1] = ytmp - x[j].y;
+        dr_ij[2] = ztmp - x[j].z;
         r_ij = dr_ij[0]*dr_ij[0] + dr_ij[1]*dr_ij[1] + dr_ij[2]*dr_ij[2];
 
         jtype = map[type[j]];
@@ -297,9 +297,9 @@ void PairEDIPOMP::eval(int iifrom, int iito, ThrData * const thr)
       j = jlist[neighbor_j];
       j &= NEIGHMASK;
 
-      dr_ij[0] = x[j][0] - xtmp;
-      dr_ij[1] = x[j][1] - ytmp;
-      dr_ij[2] = x[j][2] - ztmp;
+      dr_ij[0] = x[j].x - xtmp;
+      dr_ij[1] = x[j].y - ytmp;
+      dr_ij[2] = x[j].z - ztmp;
       r_ij = dr_ij[0]*dr_ij[0] + dr_ij[1]*dr_ij[1] + dr_ij[2]*dr_ij[2];
 
       jtype = map[type[j]];
@@ -334,13 +334,13 @@ void PairEDIPOMP::eval(int iifrom, int iito, ThrData * const thr)
       f_ij[1] = forceMod2B * directorCos_ij_y;
       f_ij[2] = forceMod2B * directorCos_ij_z;
 
-      f[j][0] -= f_ij[0];
-      f[j][1] -= f_ij[1];
-      f[j][2] -= f_ij[2];
+      f[j].x -= f_ij[0];
+      f[j].y -= f_ij[1];
+      f[j].z -= f_ij[2];
 
-      f[i][0] += f_ij[0];
-      f[i][1] += f_ij[1];
-      f[i][2] += f_ij[2];
+      f[i].x += f_ij[0];
+      f[i].y += f_ij[1];
+      f[i].z += f_ij[2];
 
       // potential energy
 
@@ -360,9 +360,9 @@ void PairEDIPOMP::eval(int iifrom, int iito, ThrData * const thr)
           ikparam = elem2param[itype][ktype][ktype];
           ijkparam = elem2param[itype][jtype][ktype];
 
-          dr_ik[0] = x[k][0] - xtmp;
-          dr_ik[1] = x[k][1] - ytmp;
-          dr_ik[2] = x[k][2] - ztmp;
+          dr_ik[0] = x[k].x - xtmp;
+          dr_ik[1] = x[k].y - ytmp;
+          dr_ik[2] = x[k].z - ztmp;
           r_ik = dr_ik[0]*dr_ik[0] + dr_ik[1]*dr_ik[1] + dr_ik[2]*dr_ik[2];
 
           if (r_ik > params[ikparam].cutsq) continue;
@@ -426,17 +426,17 @@ void PairEDIPOMP::eval(int iifrom, int iito, ThrData * const thr)
           forceModCoord += (forceMod3B_factor2 *
                             (tauFunctionDerived -  0.5 * mu * cosTetaDiff));
 
-          f[j][0] += f_ij[0];
-          f[j][1] += f_ij[1];
-          f[j][2] += f_ij[2];
+          f[j].x += f_ij[0];
+          f[j].y += f_ij[1];
+          f[j].z += f_ij[2];
 
-          f[k][0] += f_ik[0];
-          f[k][1] += f_ik[1];
-          f[k][2] += f_ik[2];
+          f[k].x += f_ik[0];
+          f[k].y += f_ik[1];
+          f[k].z += f_ik[2];
 
-          f[i][0] -= f_ij[0] + f_ik[0];
-          f[i][1] -= f_ij[1] + f_ik[1];
-          f[i][2] -= f_ij[2] + f_ik[2];
+          f[i].x -= f_ij[0] + f_ik[0];
+          f[i].y -= f_ij[1] + f_ik[1];
+          f[i].z -= f_ij[2] + f_ik[2];
 
           // potential energy
 
@@ -464,13 +464,13 @@ void PairEDIPOMP::eval(int iifrom, int iito, ThrData * const thr)
         f_ij[1] = forceModCoord_ij * dr_ij[1];
         f_ij[2] = forceModCoord_ij * dr_ij[2];
 
-        f[j][0] -= f_ij[0];
-        f[j][1] -= f_ij[1];
-        f[j][2] -= f_ij[2];
+        f[j].x -= f_ij[0];
+        f[j].y -= f_ij[1];
+        f[j].z -= f_ij[2];
 
-        f[i][0] += f_ij[0];
-        f[i][1] += f_ij[1];
-        f[i][2] += f_ij[2];
+        f[i].x += f_ij[0];
+        f[i].y += f_ij[1];
+        f[i].z += f_ij[2];
 
         // potential energy
 

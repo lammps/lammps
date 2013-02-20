@@ -105,9 +105,9 @@ void ImproperClass2OMP::eval(int nfrom, int nto, ThrData * const thr)
 
   eimproper = 0.0;
 
-  const double * const * const x = atom->x;
-  double * const * const f = thr->get_f();
-  const int * const * const improperlist = neighbor->improperlist;
+  const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
+  dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
+  const int5_t * _noalias const improperlist = (int5_t *) neighbor->improperlist[0];
   const int nlocal = atom->nlocal;
 
   for (i = 0; i < 3; i++)
@@ -120,27 +120,27 @@ void ImproperClass2OMP::eval(int nfrom, int nto, ThrData * const thr)
       }
 
   for (n = nfrom; n < nto; n++) {
-    i1 = improperlist[n][0];
-    i2 = improperlist[n][1];
-    i3 = improperlist[n][2];
-    i4 = improperlist[n][3];
-    type = improperlist[n][4];
+    i1 = improperlist[n].a;
+    i2 = improperlist[n].b;
+    i3 = improperlist[n].c;
+    i4 = improperlist[n].d;
+    type = improperlist[n].t;
 
     if (k0[type] == 0.0) continue;
 
     // difference vectors
 
-    delr[0][0] = x[i1][0] - x[i2][0];
-    delr[0][1] = x[i1][1] - x[i2][1];
-    delr[0][2] = x[i1][2] - x[i2][2];
+    delr[0][0] = x[i1].x - x[i2].x;
+    delr[0][1] = x[i1].y - x[i2].y;
+    delr[0][2] = x[i1].z - x[i2].z;
 
-    delr[1][0] = x[i3][0] - x[i2][0];
-    delr[1][1] = x[i3][1] - x[i2][1];
-    delr[1][2] = x[i3][2] - x[i2][2];
+    delr[1][0] = x[i3].x - x[i2].x;
+    delr[1][1] = x[i3].y - x[i2].y;
+    delr[1][2] = x[i3].z - x[i2].z;
 
-    delr[2][0] = x[i4][0] - x[i2][0];
-    delr[2][1] = x[i4][1] - x[i2][1];
-    delr[2][2] = x[i4][2] - x[i2][2];
+    delr[2][0] = x[i4].x - x[i2].x;
+    delr[2][1] = x[i4].y - x[i2].y;
+    delr[2][2] = x[i4].z - x[i2].z;
 
     // bond lengths and associated values
 
@@ -173,13 +173,13 @@ void ImproperClass2OMP::eval(int nfrom, int nto, ThrData * const thr)
                   atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
           error->warning(FLERR,str,0);
           fprintf(screen,"  1st atom: %d %g %g %g\n",
-                  me,x[i1][0],x[i1][1],x[i1][2]);
+                  me,x[i1].x,x[i1].y,x[i1].z);
           fprintf(screen,"  2nd atom: %d %g %g %g\n",
-                  me,x[i2][0],x[i2][1],x[i2][2]);
+                  me,x[i2].x,x[i2].y,x[i2].z);
           fprintf(screen,"  3rd atom: %d %g %g %g\n",
-                  me,x[i3][0],x[i3][1],x[i3][2]);
+                  me,x[i3].x,x[i3].y,x[i3].z);
           fprintf(screen,"  4th atom: %d %g %g %g\n",
-                  me,x[i4][0],x[i4][1],x[i4][2]);
+                  me,x[i4].x,x[i4].y,x[i4].z);
         }
       }
     }
@@ -468,27 +468,27 @@ void ImproperClass2OMP::eval(int nfrom, int nto, ThrData * const thr)
     // apply force to each of 4 atoms
 
     if (NEWTON_BOND || i1 < nlocal) {
-      f[i1][0] += fabcd[0][0];
-      f[i1][1] += fabcd[0][1];
-      f[i1][2] += fabcd[0][2];
+      f[i1].x += fabcd[0][0];
+      f[i1].y += fabcd[0][1];
+      f[i1].z += fabcd[0][2];
     }
 
     if (NEWTON_BOND || i2 < nlocal) {
-      f[i2][0] += fabcd[1][0];
-      f[i2][1] += fabcd[1][1];
-      f[i2][2] += fabcd[1][2];
+      f[i2].x += fabcd[1][0];
+      f[i2].y += fabcd[1][1];
+      f[i2].z += fabcd[1][2];
     }
 
     if (NEWTON_BOND || i3 < nlocal) {
-      f[i3][0] += fabcd[2][0];
-      f[i3][1] += fabcd[2][1];
-      f[i3][2] += fabcd[2][2];
+      f[i3].x += fabcd[2][0];
+      f[i3].y += fabcd[2][1];
+      f[i3].z += fabcd[2][2];
     }
 
     if (NEWTON_BOND || i4 < nlocal) {
-      f[i4][0] += fabcd[3][0];
-      f[i4][1] += fabcd[3][1];
-      f[i4][2] += fabcd[3][2];
+      f[i4].x += fabcd[3][0];
+      f[i4].y += fabcd[3][1];
+      f[i4].z += fabcd[3][2];
     }
 
     if (EVFLAG)
@@ -522,31 +522,31 @@ void ImproperClass2OMP::angleangle_thr(int nfrom, int nto, ThrData * const thr)
 
   eimproper = 0.0;
 
-  const double * const * const x = atom->x;
-  double * const * const f = thr->get_f();
-  const int * const * const improperlist = neighbor->improperlist;
+  const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
+  dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
+  const int5_t * _noalias const improperlist = (int5_t *) neighbor->improperlist[0];
   const int nlocal = atom->nlocal;
 
   for (n = nfrom; n < nto; n++) {
-    i1 = improperlist[n][0];
-    i2 = improperlist[n][1];
-    i3 = improperlist[n][2];
-    i4 = improperlist[n][3];
-    type = improperlist[n][4];
+    i1 = improperlist[n].a;
+    i2 = improperlist[n].b;
+    i3 = improperlist[n].c;
+    i4 = improperlist[n].d;
+    type = improperlist[n].t;
 
     // difference vectors
 
-    delxAB = x[i1][0] - x[i2][0];
-    delyAB = x[i1][1] - x[i2][1];
-    delzAB = x[i1][2] - x[i2][2];
+    delxAB = x[i1].x - x[i2].x;
+    delyAB = x[i1].y - x[i2].y;
+    delzAB = x[i1].z - x[i2].z;
 
-    delxBC = x[i3][0] - x[i2][0];
-    delyBC = x[i3][1] - x[i2][1];
-    delzBC = x[i3][2] - x[i2][2];
+    delxBC = x[i3].x - x[i2].x;
+    delyBC = x[i3].y - x[i2].y;
+    delzBC = x[i3].z - x[i2].z;
 
-    delxBD = x[i4][0] - x[i2][0];
-    delyBD = x[i4][1] - x[i2][1];
-    delzBD = x[i4][2] - x[i2][2];
+    delxBD = x[i4].x - x[i2].x;
+    delyBD = x[i4].y - x[i2].y;
+    delzBD = x[i4].z - x[i2].z;
 
     // bond lengths
 
@@ -667,27 +667,27 @@ void ImproperClass2OMP::angleangle_thr(int nfrom, int nto, ThrData * const thr)
     // apply force to each of 4 atoms
 
     if (NEWTON_BOND || i1 < nlocal) {
-      f[i1][0] += fabcd[0][0];
-      f[i1][1] += fabcd[0][1];
-      f[i1][2] += fabcd[0][2];
+      f[i1].x += fabcd[0][0];
+      f[i1].y += fabcd[0][1];
+      f[i1].z += fabcd[0][2];
     }
 
     if (NEWTON_BOND || i2 < nlocal) {
-      f[i2][0] += fabcd[1][0];
-      f[i2][1] += fabcd[1][1];
-      f[i2][2] += fabcd[1][2];
+      f[i2].x += fabcd[1][0];
+      f[i2].y += fabcd[1][1];
+      f[i2].z += fabcd[1][2];
     }
 
     if (NEWTON_BOND || i3 < nlocal) {
-      f[i3][0] += fabcd[2][0];
-      f[i3][1] += fabcd[2][1];
-      f[i3][2] += fabcd[2][2];
+      f[i3].x += fabcd[2][0];
+      f[i3].y += fabcd[2][1];
+      f[i3].z += fabcd[2][2];
     }
 
     if (NEWTON_BOND || i4 < nlocal) {
-      f[i4][0] += fabcd[3][0];
-      f[i4][1] += fabcd[3][1];
-      f[i4][2] += fabcd[3][2];
+      f[i4].x += fabcd[3][0];
+      f[i4].y += fabcd[3][1];
+      f[i4].z += fabcd[3][2];
     }
 
     if (EVFLAG)

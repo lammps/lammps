@@ -51,13 +51,16 @@ off via the <A HREF = "neigh_modify.html">neigh_modify exclude</A> command.  The
 <A HREF = "fix_shake.html">fix shake</A> command also effectively turns off certain
 bond and angle interactions.
 </P>
-<P>For all styles, an interaction is only turned off (or on) if all the
-atoms involved are in the specified group.  For style <I>multi</I> this is
-the only criterion applied - all types of bonds, angles, dihedrals,
-impropers in the group turned off.
+<P>For all styles, by default, an interaction is only turned off (or on)
+if all the atoms involved are in the specified group.  See the <I>any</I>
+keyword to change the behavior.
 </P>
-<P>For style <I>atom</I>, one or more of the atoms involved must also be of
-the specified type.
+<P>For style <I>multi</I> all bond, angle, dihedral, and improper interactions
+of any type, involving atoms in the group, are turned off.
+</P>
+<P>Style <I>atom</I> is the same as style <I>multi</I> except that in addition, one
+or more of the atoms involved in the bond, angle, dihedral, or
+improper interaction must also be of the specified atom type.
 </P>
 <P>For style <I>bond</I>, only bonds are candidates for turn-off, and the bond
 must also be of the specified type.  Styles <I>angle</I>, <I>dihedral</I>, and
@@ -84,13 +87,13 @@ force and energy calculations.  This means that pairwise computations
 will proceed as if the bond (or angle, etc) were still turned on.
 </P>
 <P>Several keywords can be appended to the argument list to alter the
-default behavior.
+default behaviors.
 </P>
 <P>The <I>any</I> keyword changes the requirement that all atoms in the bond
 (angle, etc) must be in the specified group in order to turn-off the
-interaction.  If any of the atoms in the interaction are in the
-specified group, it will be turned off (or on if the <I>undo</I> keyword is
-used).
+interaction.  Instead, if any of the atoms in the interaction are in
+the specified group, it will be turned off (or on if the <I>undo</I>
+keyword is used).
 </P>
 <P>The <I>undo</I> keyword inverts the delete_bonds command so that the
 specified bonds, angles, etc are turned on if they are currently

@@ -182,19 +182,16 @@ double ComputeTI::compute_scalar()
         int npair = nlocal;
         int *mask = atom->mask;
         int *type = atom->type;
-
+        
         double *eatom = pptr[m]->eatom;
-
+        
         if (force->newton) npair += atom->nghost;
-        for(int i = 0; i < npair; i++)
-        {     
-          if ((ilo[m]<=type[i])&(ihi[m]>=type[i]))  
-            eng += eatom[i];  
-        }  
+        for (int i = 0; i < npair; i++)    
+          if ((ilo[m]<=type[i])&(ihi[m]>=type[i])) eng += eatom[i];  
         MPI_Allreduce(&eng,&engall,1,MPI_DOUBLE,MPI_SUM,world);
       }
       dUdl += engall/value1 * value2;
-
+      
     } else if (which[m] == TAIL) {
       double vol = domain->xprd*domain->yprd*domain->zprd;
       if (total_flag) 
@@ -216,9 +213,8 @@ double ComputeTI::compute_scalar()
         eng /= vol; 
       }
       dUdl += eng/value1 * value2;
-
+      
     } else if (which[m] == KSPACE) {
-
       int ntypes = atom->ntypes;
       int *mask = atom->mask; 
       if (total_flag) 
@@ -232,14 +228,14 @@ double ComputeTI::compute_scalar()
         eng = 0;
         for(int i = 0; i < nlocal; i++)
           if ((ilo[m]<=type[i])&(ihi[m]>=type[i])) 
-	    eng += eatom[i];  
+            eng += eatom[i];  
         MPI_Allreduce(&eng,&engall,1,MPI_DOUBLE,MPI_SUM,world);
         eng = engall;
       }
       dUdl += eng/value1 * value2;
     }
   }
-
+  
   scalar = dUdl;
   return scalar;
 }

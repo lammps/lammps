@@ -38,6 +38,8 @@ class FixQEQComb : public Fix {
   int pack_comm(int , int *, double *, int, int *);
   void unpack_comm(int , int , double *);
 
+  void min_post_force(int);
+
  protected:
   int me,firstflag;
   double precision;

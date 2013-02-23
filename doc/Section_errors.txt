@@ -6155,7 +6155,7 @@ This is because fix move is moving atoms based on elapsed time. :dd
 
 The first cutoff must be <= the second cutoff. :dd
 
-{Respa levels must be >= 1} :dt
+{Respa levels must be > 1} :dt
 
 Self-explanatory. :dd
 

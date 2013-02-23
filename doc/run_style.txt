@@ -12,7 +12,7 @@ run_style command :h3
 
 run_style style args :pre
 
-style = {verlet} or {verlet/split} or {respa} :ulb,l
+style = {verlet} or {verlet/split} or {respa} or {respa/omp} :ulb,l
   {verlet} args = none
   {verlet/split} args = none
   {respa} args = N n1 n2 ... keyword values ...
@@ -227,6 +227,28 @@ Kcal/mol, the following settings seem to work well:
 
 timestep  36.0  
 run_style respa 3 3 4 inner 1 3.0 4.0 middle 2 6.0 7.0 outer 3 :pre
+
+:line
+
+The {respa/omp} styles is a variant of {respa} adapted for use with
+pair, bond, angle, dihedral, improper, or kspace styles with an {omp}
+suffix. It is functionally to {respa} but performs additional required
+operations. For more on {omp} styles see the
+"Section_accelerate"_Section_accelerate.html of the manual.
+Accelerated styles take the same arguments and should produce the same
+results, except for round-off and precision issues.
+
+The {respa/omp} style is part of the USER-OMP packages.  It is only
+enabled if LAMMPS was built with this package included.  See the
+"Making LAMMPS"_Section_start.html#start_3 section for more info.
+
+You can specify {respa/omp} explicitly in your input script, or
+you can use the "-suffix command-line switch"_Section_start.html#start_7
+when you invoke LAMMPS, or you can use the "suffix"_suffix.html
+command in your input script.
+
+See "Section_accelerate"_Section_accelerate.html of the manual for
+more instructions on how to use the accelerated styles effectively.
 
 :line
 

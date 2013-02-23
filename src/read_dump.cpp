@@ -794,12 +794,12 @@ void ReadDump::process_atoms(int n)
     // create the atom on proc that owns it
     // reset v,image ptrs in case they are reallocated
 
+    m = atom->nlocal;
     atom->avec->create_atom(itype,one);
     nadd++;
 
     v = atom->v;
     image = atom->image;
-    m = atom->nlocal;
 
     // set atom attributes from other dump file fields
 

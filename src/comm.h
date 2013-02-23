@@ -61,7 +61,8 @@ class Comm : protected Pointers {
   virtual void reverse_comm_dump(class Dump *);    // reverse comm from a Dump
   void forward_comm_array(int, double **);         // forward comm of array
 
-  void ring(int, int, void *, int, void (*)(int, char *), void *); // ring comm
+  void ring(int, int, void *, int, void (*)(int, char *),   // ring comm
+            void *, int self = 1);
 
   virtual void set(int, char **);         // set communication style
   void set_processors(int, char **);      // set 3d processor grid attributes

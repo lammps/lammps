@@ -16,20 +16,24 @@ ID, group-ID are documented in "compute"_compute.html command :ulb,l
 ti = style name of this compute command :l
 one or more attribute/arg pairs may be appended :l
 keyword = pair style (lj/cut, gauss, born, etc) or {tail} or {kspace} :l
-  pair style args = v_name1 v_name2
+  pair style args = atype v_name1 v_name2
+    atype = atom type (see asterisk form below)
     v_name1 = variable with name1 that is energy scale factor and function of lambda
     v_name2 = variable with name2 that is derivative of v_name1 with respect to lambda
-  {tail} args = v_name1 v_name2
+  {tail} args = atype v_name1 v_name2
+    atype = atom type (see asterisk form below)
     v_name1 = variable with name1 that is energy tail correction scale factor and function of lambda
     v_name2 = variable with name2 that is derivative of v_name1 with respect to lambda
-  {kspace} args = v_name1 v_name2
+  {kspace} args = atype v_name1 v_name2
+    atype = atom type (see asterisk form below)
     v_name1 = variable with name1 that is K-Space scale factor and function of lambda
     v_name2 = variable with name2 that is derivative of v_name1 with respect to lambda :pre
 :ule
 
 [Examples:]
 
-compute 1 all ti lj/cut v_lj v_dlj coul/long v_c v_dc kspace v_ks v_dks :pre
+compute 1 all ti lj/cut 1 v_lj v_dlj coul/long 2 v_c v_dc kspace 1 v_ks v_dks
+compute 1 all ti lj/cut 1*3 v_lj v_dlj coul/long * v_c v_dc kspace * v_ks v_dks :pre
 
 [Description:] 
 
@@ -63,7 +67,18 @@ dUs / d(lambda) = U df(lambda)/dlambda = Us / f(lambda) df(lambda)/dlambda :pre
 which is the derivative of the system's scaled potential energy Us
 with respect to {lambda}.
 
-To do this calculation, you provide two functions, as "equal-style
+To perform this calculation, you provide one or more atom types as
+{atype}.  {Atype} can be specified in one of two ways.  An explicit
+numeric values can be used, as in the 1st example above.  Or a
+wildcard asterisk can be used in place of or in conjunction with the
+{atype} argument to select multiple atom types.  This takes the form
+"*" or "*n" or "n*" or "m*n".  If N = the number of atom types, then
+an asterisk with no numeric values means all types from 1 to N.  A
+leading asterisk means all types from 1 to n (inclusive).  A trailing
+asterisk means all types from n to N (inclusive).  A middle asterisk
+means all types from m to n (inclusive). 
+
+You also specify two functions, as "equal-style
 variables"_variable.html.  The first is specified as {v_name1}, where
 {name1} is the name of the variable, and is f(lambda) in the notation
 above.  The second is specified as {v_name2}, where {name2} is the

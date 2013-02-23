@@ -109,6 +109,7 @@ int FixQEQComb::setmask()
   int mask = 0;
   mask |= POST_FORCE;
   mask |= POST_FORCE_RESPA;
+  mask |= MIN_POST_FORCE;
   return mask;
 }
 
@@ -149,6 +150,13 @@ void FixQEQComb::setup(int vflag)
     ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
   }
   firstflag = 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixQEQComb::min_post_force(int vflag)
+{
+  post_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */

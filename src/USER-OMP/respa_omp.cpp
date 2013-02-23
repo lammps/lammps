@@ -38,6 +38,10 @@
 #include "memory.h"
 #include "error.h"
 
+#if defined(_OPENMP)
+#include <omp.h>
+#endif
+
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -55,7 +59,7 @@ void RespaOMP::init()
 {
   Respa::init();
 
-  if (lmp->atom->torque)
+  if (atom->torque)
     error->all(FLERR,"Extended particles are not supported by respa/omp\n");
   
   // set newton flag for each level
@@ -137,6 +141,25 @@ void RespaOMP::setup()
       force->kspace->setup();
       if (kspace_compute_flag) force->kspace->compute(eflag,vflag);
     }
+
+    // reduce forces from per-thread arrays, if needed
+    if (!fix->get_reduced()) {
+      const int nall = atom->nlocal + atom->nghost;
+      const int nthreads = comm->nthreads;
+#if defined(_OPENMP)
+#pragma omp parallel default(none)
+#endif
+      {
+#if defined(_OPENMP)
+	int tid = omp_get_thread_num();
+#else
+	int tid = 0;
+#endif
+	data_reduce_thr(atom->f[0], nall, nthreads, 3, tid);
+      }
+      fix->did_reduce();
+    }
+      
     if (newton[ilevel]) comm->reverse_comm();
     copy_f_flevel(ilevel);
   }
@@ -205,6 +228,25 @@ void RespaOMP::setup_minimal(int flag)
       force->kspace->setup();
       if (kspace_compute_flag) force->kspace->compute(eflag,vflag);
     }
+
+    // reduce forces from per-thread arrays, if needed
+    if (!fix->get_reduced()) {
+      const int nall = atom->nlocal + atom->nghost;
+      const int nthreads = comm->nthreads;
+#if defined(_OPENMP)
+#pragma omp parallel default(none)
+#endif
+      {
+#if defined(_OPENMP)
+	int tid = omp_get_thread_num();
+#else
+	int tid = 0;
+#endif
+	data_reduce_thr(atom->f[0], nall, nthreads, 3, tid);
+      }
+      fix->did_reduce();
+    }
+
     if (newton[ilevel]) comm->reverse_comm();
     copy_f_flevel(ilevel);
   }
@@ -313,6 +355,24 @@ void RespaOMP::recurse(int ilevel)
     if (level_kspace == ilevel && kspace_compute_flag) {
       force->kspace->compute(eflag,vflag);
       timer->stamp(Timer::KSPACE);
+    }
+
+    // reduce forces from per-thread arrays, if needed
+    if (!fix->get_reduced()) {
+      const int nall = atom->nlocal + atom->nghost;
+      const int nthreads = comm->nthreads;
+#if defined(_OPENMP)
+#pragma omp parallel default(none)
+#endif
+      {
+#if defined(_OPENMP)
+	int tid = omp_get_thread_num();
+#else
+	int tid = 0;
+#endif
+	data_reduce_thr(atom->f[0], nall, nthreads, 3, tid);
+      }
+      fix->did_reduce();
     }
 
     if (newton[ilevel]) {

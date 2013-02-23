@@ -47,7 +47,7 @@ Respa::Respa(LAMMPS *lmp, int narg, char **arg) : Integrate(lmp, narg, arg)
   if (narg < 1) error->all(FLERR,"Illegal run_style respa command");
 
   nlevels = atoi(arg[0]);
-  if (nlevels < 1) error->all(FLERR,"Respa levels must be >= 1");
+  if (nlevels <= 1) error->all(FLERR,"Respa levels must be > 1");
 
   if (narg < nlevels) error->all(FLERR,"Illegal run_style respa command");
   loop = new int[nlevels];
@@ -147,7 +147,7 @@ Respa::Respa(LAMMPS *lmp, int narg, char **arg) : Integrate(lmp, narg, arg)
     if (screen) {
       fprintf(screen,"Respa levels:\n");
       for (int i = 0; i < nlevels; i++) {
-        fprintf(screen,"  %d =",i);
+        fprintf(screen,"  %d =",i+1);
         if (level_bond == i) fprintf(screen," bond");
         if (level_angle == i) fprintf(screen," angle");
         if (level_dihedral == i) fprintf(screen," dihedral");
@@ -163,7 +163,7 @@ Respa::Respa(LAMMPS *lmp, int narg, char **arg) : Integrate(lmp, narg, arg)
     if (logfile) {
       fprintf(logfile,"Respa levels:\n");
       for (int i = 0; i < nlevels; i++) {
-        fprintf(logfile,"  %d =",i);
+        fprintf(logfile,"  %d =",i+1);
         if (level_bond == i) fprintf(logfile," bond");
         if (level_angle == i) fprintf(logfile," angle");
         if (level_dihedral == i) fprintf(logfile," dihedral");

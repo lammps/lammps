@@ -61,26 +61,6 @@ void RespaOMP::init()
 
   if (atom->torque)
     error->all(FLERR,"Extended particles are not supported by respa/omp\n");
-  
-  // set newton flag for each level
-
-  for (int ilevel = 0; ilevel < nlevels; ilevel++) {
-    newton[ilevel] = 0;
-    if (force->newton_bond) {
-      if (level_bond == ilevel || level_angle == ilevel ||
-          level_dihedral == ilevel || level_improper == ilevel)
-        newton[ilevel] = 1;
-    }
-    if (force->newton_pair) {
-      if (level_pair == ilevel || level_inner == ilevel ||
-          level_middle == ilevel || level_outer == ilevel)
-        newton[ilevel] = 1;
-    }
-  }
-
-  // orthogonal vs triclinic simulation box
-
-  triclinic = domain->triclinic;
 }
 
 /* ----------------------------------------------------------------------
@@ -296,9 +276,10 @@ void RespaOMP::recurse(int ilevel)
         if (atom->sortfreq > 0 && 
             update->ntimestep >= atom->nextsort) atom->sort();
         comm->borders();
-        if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
         timer->stamp(Timer::COMM);
+        if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
         if (modify->n_pre_neighbor) {
+          timer->stamp();
           modify->pre_neighbor();
           timer->stamp(Timer::MODIFY);
         }

@@ -167,7 +167,7 @@ void FixReaxCBonds::Output_ReaxC_Bonds(bigint ntimestep, FILE *fp)
   if (irepeat == 0)
     for (i = 0; i < nmax; i++) {
       sbo[i] = nlp[i] = avq[i] = 0.0;
-      for (j = 0; j < MAXBOND; j++) {
+      for (j = 0; j < MAXREAXBOND; j++) {
         tmpid[i][j] = 0;
         tmpabo[i][j] = 0.0;
       }
@@ -232,7 +232,7 @@ void FixReaxCBonds::GatherBond( struct _reax_system *system, struct _reax_list *
         here:;
         if (jtag != tmpid[i][nj] && tmpid[i][nj] != 0) {
           nj ++;
-          if (nj > MAXBOND) error->all(FLERR,"Increase MAXBOND value");
+          if (nj > MAXREAXBOND) error->all(FLERR,"Increase MAXREAXBOND value");
           goto here;
         }
         tmpid[i][nj] = jtag;
@@ -266,7 +266,7 @@ void FixReaxCBonds::FindBond( struct _reax_system *system, struct _reax_list *li
     nlp[i] /= repeat;
     avq[i] /= repeat;
     numneigh[i] = 0;
-    for (j = 0; j < MAXBOND; j++) {
+    for (j = 0; j < MAXREAXBOND; j++) {
       tmpabo[i][j] /= repeat;
       neighid[i][j] = 0;
       abo[i][j] = 0.0;
@@ -277,7 +277,7 @@ void FixReaxCBonds::FindBond( struct _reax_system *system, struct _reax_list *li
     i = ilist[ii];
     nj = 0;
 
-    for (j = 0; j < MAXBOND; j++){
+    for (j = 0; j < MAXREAXBOND; j++){
       if (tmpabo[i][j] > bo_cut) {
         neighid[i][nj] = tmpid[i][j];
         abo[i][nj] = tmpabo[i][j];
@@ -446,10 +446,10 @@ void FixReaxCBonds::allocate()
   memory->create(nlp,nmax,"reax/c/bonds:nlp");
   memory->create(avq,nmax,"reax/c/bonds:avq");
   memory->create(numneigh,nmax,"reax/c/bonds:numneigh");
-  memory->create(abo,nmax,MAXBOND,"reax/c/bonds:abo");
-  memory->create(neighid,nmax,MAXBOND,"reax/c/bonds:neighid");
-  memory->create(tmpabo,nmax,MAXBOND,"reax/c/bonds:tmpabo");
-  memory->create(tmpid,nmax,MAXBOND,"reax/c/bonds:tmpid");
+  memory->create(abo,nmax,MAXREAXBOND,"reax/c/bonds:abo");
+  memory->create(neighid,nmax,MAXREAXBOND,"reax/c/bonds:neighid");
+  memory->create(tmpabo,nmax,MAXREAXBOND,"reax/c/bonds:tmpabo");
+  memory->create(tmpid,nmax,MAXREAXBOND,"reax/c/bonds:tmpid");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -460,8 +460,8 @@ double FixReaxCBonds::memory_usage()
 
   bytes += 3.0*nmax*sizeof(double);
   bytes += nmax*sizeof(int);
-  bytes += 2.0*nmax*MAXBOND*sizeof(double);
-  bytes += 2.0*nmax*MAXBOND*sizeof(int);
+  bytes += 2.0*nmax*MAXREAXBOND*sizeof(double);
+  bytes += 2.0*nmax*MAXREAXBOND*sizeof(int);
 
   return bytes;
 }

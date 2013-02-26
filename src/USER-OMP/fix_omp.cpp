@@ -108,6 +108,7 @@ FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg)
       _mixed = false;
     else
       error->all(FLERR,"Illegal package omp mode requested");
+    ++iarg;
   }
 
   // print summary of settings

@@ -281,6 +281,7 @@ void PairReaxC::coeff( int nargs, char **args )
       continue;
     }
 
+    /*
     itmp = atoi(args[i]) - 1;
     map[i-2] = itmp;
 
@@ -288,10 +289,25 @@ void PairReaxC::coeff( int nargs, char **args )
 
     if (itmp < 0 || itmp >= nreax_types)
       error->all(FLERR,"Non-existent ReaxFF type");
-
+    */
+   
   }
 
   int n = atom->ntypes;
+
+  // pair_coeff element map
+  itmp = 0;
+  for (int i = 3; i < nargs; i++)
+    for (int j = 0; j < nreax_types; j++)
+      if (strcasecmp(args[i],system->reax_param.sbp[j].name) == 0) {
+        map[i-2] = j;
+	itmp ++;
+      }
+
+  // error check
+  if (itmp != n) 
+    error->all(FLERR,"Non-existent ReaxFF type");
+
 
   int count = 0;
   for (int i = 1; i <= n; i++)
@@ -538,13 +554,13 @@ void PairReaxC::compute(int eflag, int vflag)
       memory->destroy(tmpid);
       memory->destroy(tmpbo);
       nmax = system->N;
-      memory->create(tmpr,nmax,MAXBOND,"pair:tmpr");
-      memory->create(tmpid,nmax,MAXBOND,"pair:tmpid");
-      memory->create(tmpbo,nmax,MAXBOND,"pair:tmpbo");
+      memory->create(tmpr,nmax,MAXSPECBOND,"pair:tmpr");
+      memory->create(tmpid,nmax,MAXSPECBOND,"pair:tmpid");
+      memory->create(tmpbo,nmax,MAXSPECBOND,"pair:tmpbo");
     }
    
     for (i = 0; i < system->N; i ++)
-      for (j = 0; j < MAXBOND; j ++) {
+      for (j = 0; j < MAXSPECBOND; j ++) {
         tmpr[i][j] = tmpbo[i][j] = 0.0;
 	tmpid[i][j] = -1;
       }
@@ -779,7 +795,7 @@ void PairReaxC::FindBond()
 	tmpid[i][nj] = j;
 	tmpbo[i][nj] = bo_tmp;
 	nj ++;
-	if (nj > MAXBOND) error->all(FLERR,"Increase MAXSPECBOND in fix_reaxc_species.h");
+	if (nj > MAXSPECBOND) error->all(FLERR,"Increase MAXSPECBOND in fix_reaxc_species.h");
       }
     }
   }

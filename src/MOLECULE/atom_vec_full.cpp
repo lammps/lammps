@@ -957,8 +957,8 @@ void AtomVecFull::data_atom(double *coord, tagint imagetmp, char **values)
 
 int AtomVecFull::data_atom_hybrid(int nlocal, char **values)
 {
-  molecule[nlocal] = atoi(values[1]);
-  q[nlocal] = atof(values[3]);
+  molecule[nlocal] = atoi(values[0]);
+  q[nlocal] = atof(values[1]);
 
   num_bond[nlocal] = 0;
   num_angle[nlocal] = 0;

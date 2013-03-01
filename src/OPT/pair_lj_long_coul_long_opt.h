@@ -1,4 +1,4 @@
-/* -*- c++ -*- ----------------------------------------------------------
+/* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -11,52 +11,35 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------
-   Contributing author: Axel Kohlmeyer (Temple U)
-------------------------------------------------------------------------- */
-
 #ifdef PAIR_CLASS
 
-PairStyle(lj/long/coul/long/omp,PairLJLongCoulLongOMP)
+PairStyle(lj/long/coul/long/opt,PairLJLongCoulLongOpt)
 
 #else
 
-#ifndef LMP_PAIR_LJ_LONG_COUL_LONG_OMP_H
-#define LMP_PAIR_LJ_LONG_COUL_LONG_OMP_H
+#ifndef LMP_PAIR_LJ_LONG_COUL_LONG_OPT_H
+#define LMP_PAIR_LJ_LONG_COUL_LONG_OPT_H
 
 #include "pair_lj_long_coul_long.h"
-#include "thr_omp.h"
 
 namespace LAMMPS_NS {
 
-class PairLJLongCoulLongOMP : public PairLJLongCoulLong, public ThrOMP {
-
+class PairLJLongCoulLongOpt : public PairLJLongCoulLong {
  public:
-  PairLJLongCoulLongOMP(class LAMMPS *);
-
+  PairLJLongCoulLongOpt(class LAMMPS *);
   virtual void compute(int, int);
-  virtual void compute_inner();
-  virtual void compute_middle();
-  virtual void compute_outer(int, int);
-  virtual double memory_usage();
+  virtual void compute_outer(int,int);
 
- private:
+ protected:
   template <const int EVFLAG, const int EFLAG,
     const int NEWTON_PAIR, const int CTABLE, const int LJTABLE,
     const int ORDER1, const int ORDER6 >
-  void eval(int, int, ThrData * const);
+  void eval();
 
   template <const int EVFLAG, const int EFLAG,
     const int NEWTON_PAIR, const int CTABLE, const int LJTABLE,
     const int ORDER1, const int ORDER6 >
-  void eval_outer(int, int, ThrData * const);
-
-
-  void eval_inner(int, int, ThrData *const);
-  void eval_middle(int, int, ThrData *const);
-
-  
-
+  void eval_outer();
 };
 
 }

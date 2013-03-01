@@ -54,11 +54,9 @@ Special::~Special()
 
 void Special::build()
 {
-  int i,j,k,m,n,size;
+  int i,j,k,size;
   int max,maxall,nbuf;
   int *buf;
-  MPI_Request request;
-  MPI_Status status;
 
   MPI_Barrier(world);
 
@@ -637,8 +635,6 @@ void Special::combine()
 void Special::angle_trim()
 {
   int i,j,m,n;
-  MPI_Request request;
-  MPI_Status status;
 
   int *num_angle = atom->num_angle;
   int *num_dihedral = atom->num_dihedral;
@@ -760,8 +756,6 @@ void Special::angle_trim()
 void Special::dihedral_trim()
 {
   int i,j,m,n;
-  MPI_Request request;
-  MPI_Status status;
 
   int *num_dihedral = atom->num_dihedral;
   int **dihedral_atom1 = atom->dihedral_atom1;
@@ -826,7 +820,6 @@ void Special::dihedral_trim()
 
     // delete 1-4 neighbors if they are not flagged in dflag
 
-    int offset;
     for (i = 0; i < nlocal; i++) {
       m = 0;
       for (j = 0; j < nspecial[i][2]; j++)

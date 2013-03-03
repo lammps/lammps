@@ -203,7 +203,7 @@ class Pair : protected Pointers {
                       double, double, double, double, double, double);
   void virial_fdotr_compute();
 
-  inline int sbmask(int j) {
+  inline int sbmask(const int j) const {
     return j >> SBBITS & 3;
   }
 };

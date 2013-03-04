@@ -61,9 +61,9 @@ class PairList : public Pair {
 
  protected:
   double cut_global;    // global cutoff distance
-  int npairs;           // # of atom pairs in global list
   int *style;           // list of styles for pair interactions
   list_parm_t *params;  // lisf of pair interaction parameters
+  int npairs;           // # of atom pairs in global list
 };
 
 }

@@ -46,7 +46,7 @@ using namespace FixConst;
 FixReaxCBonds::FixReaxCBonds(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 7) error->all(FLERR,"Illegal fix reax/c/bonds command");
+  if (narg != 5) error->all(FLERR,"Illegal fix reax/c/bonds command");
 
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
@@ -54,19 +54,15 @@ FixReaxCBonds::FixReaxCBonds(LAMMPS *lmp, int narg, char **arg) :
   nmax = atom->nmax;
 
   nevery = atoi(arg[3]);
-  nrepeat = atoi(arg[4]);
-  global_freq = nfreq = atoi(arg[5]);
 
-  if (nevery <= 0 || nrepeat <= 0 || nfreq <= 0)
-    error->all(FLERR,"Illegal fix reax/c/bonds command");
-  if (nfreq % nevery || (nrepeat-1)*nevery >= nfreq)
+  if (nevery <= 0 )
     error->all(FLERR,"Illegal fix reax/c/bonds command");
 
   if (me == 0) {
-    fp = fopen(arg[6],"w");
+    fp = fopen(arg[4],"w");
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open fix reax/c/bonds file %s",arg[6]);
+      sprintf(str,"Cannot open fix reax/c/bonds file %s",arg[4]);
       error->one(FLERR,str);
     }
   }
@@ -74,19 +70,12 @@ FixReaxCBonds::FixReaxCBonds(LAMMPS *lmp, int narg, char **arg) :
   if (atom->tag_consecutive() == 0)
     error->all(FLERR,"Atom IDs must be consecutive for fix reax/c bonds");
 
-  sbo = NULL;
-  nlp = NULL;
-  avq = NULL;
-  numneigh = NULL;
-  neighid = NULL;
-  tmpid = NULL;
   abo = NULL;
-  tmpabo = NULL;
+  neighid = NULL;
+  numneigh = NULL;
 
   allocate();
 
-  irepeat = 0;
-  nvalid = nextvalid();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -124,20 +113,13 @@ void FixReaxCBonds::init()
   if (reaxc == NULL) error->all(FLERR,"Cannot use fix reax/c/bonds without "
                   "pair_style reax/c");
 
-  if (nvalid < update->ntimestep) {
-    irepeat = 0;
-    nvalid = nextvalid();
-  }
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixReaxCBonds::end_of_step()
 {
-  // skip if not step that requires calculating bonds
   bigint ntimestep = update->ntimestep;
-
-  if (ntimestep != nvalid) return;
 
   Output_ReaxC_Bonds(update->ntimestep,fp);
   if (me == 0) fflush(fp);
@@ -162,30 +144,14 @@ void FixReaxCBonds::Output_ReaxC_Bonds(bigint ntimestep, FILE *fp)
     allocate();
   }
 
-  repeat = nrepeat;
-  // zero out average BO for next Nfreq
-  if (irepeat == 0)
-    for (i = 0; i < nmax; i++) {
-      sbo[i] = nlp[i] = avq[i] = 0.0;
-      for (j = 0; j < MAXREAXBOND; j++) {
-        tmpid[i][j] = 0;
-        tmpabo[i][j] = 0.0;
-      }
+  for (i = 0; i < nmax; i++) {
+    numneigh[i] = 0.0;
+    for (j = 0; j < MAXREAXBOND; j++) {
+      neighid[i][j] = 0;
+      abo[i][j] = 0.0;
     }
-
-  // Accumulate bonding information for each nvalid
-  GatherBond( system, lists);
-
-  // done if irepeat < nrepeat, else reset irepeat and nvalid
-  irepeat++;
-  if (irepeat < nrepeat) {
-    nvalid += nevery;
-    return;
   }
-  irepeat = numbonds = 0;
-  nvalid = ntimestep + nfreq - (nrepeat-1)*nevery;
 
-  // Determine actual bonding based on averaged bond order
   FindBond( system, lists, numbonds);
 
   // allocate a temporary buffer for the snapshot info
@@ -207,7 +173,8 @@ void FixReaxCBonds::Output_ReaxC_Bonds(bigint ntimestep, FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-void FixReaxCBonds::GatherBond( struct _reax_system *system, struct _reax_list *lists)
+void FixReaxCBonds::FindBond( struct _reax_system *system, 
+		struct _reax_list *lists, int &numbonds)
 {
   int *ilist, i, ii, inum;
   int j, pj, nj, jtag, jtype;
@@ -216,7 +183,7 @@ void FixReaxCBonds::GatherBond( struct _reax_system *system, struct _reax_list *
   inum = reaxc->list->inum;
   ilist = reaxc->list->ilist;
   bond_data *bo_ij;
-  bo_cut = 0.10; //reaxc->control->bg_cut;
+  bo_cut = reaxc->control->bg_cut;
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
@@ -229,66 +196,16 @@ void FixReaxCBonds::GatherBond( struct _reax_system *system, struct _reax_list *
       bo_tmp = bo_ij->bo_data.BO;
 
       if (bo_tmp > bo_cut) {
-        here:;
-        if (jtag != tmpid[i][nj] && tmpid[i][nj] != 0) {
-          nj ++;
-          if (nj > MAXREAXBOND) error->all(FLERR,"Increase MAXREAXBOND value");
-          goto here;
-        }
-        tmpid[i][nj] = jtag;
-        tmpabo[i][nj] += bo_tmp;
-        nj ++;
-      }
-
-    }
-    sbo[i] += reaxc->workspace->total_bond_order[i];
-    nlp[i] += reaxc->workspace->nlp[i];
-    avq[i] += atom->q[i];
-  }
-
-}
-/* ---------------------------------------------------------------------- */
-
-void FixReaxCBonds::FindBond( struct _reax_system *system, struct _reax_list *lists,
-                int &numbonds)
-{
-  int *ilist, i, ii, inum;
-  int j, pj, nj, jtag, jtype;
-  double bo_tmp,bo_cut;
-
-  inum = reaxc->list->inum;
-  ilist = reaxc->list->ilist;
-  bo_cut = reaxc->control->bg_cut;
-
-  for (ii = 0; ii < inum; ii++) {
-    i = ilist[ii];
-    sbo[i] /= repeat;
-    nlp[i] /= repeat;
-    avq[i] /= repeat;
-    numneigh[i] = 0;
-    for (j = 0; j < MAXREAXBOND; j++) {
-      tmpabo[i][j] /= repeat;
-      neighid[i][j] = 0;
-      abo[i][j] = 0.0;
-    }
-  }
-
-  for (ii = 0; ii < inum; ii++) {
-    i = ilist[ii];
-    nj = 0;
-
-    for (j = 0; j < MAXREAXBOND; j++){
-      if (tmpabo[i][j] > bo_cut) {
-        neighid[i][nj] = tmpid[i][j];
-        abo[i][nj] = tmpabo[i][j];
+        neighid[i][nj] = jtag;
+        abo[i][nj] = bo_tmp;
         nj ++;
       }
     }
     numneigh[i] = nj;
     if (nj > numbonds) numbonds = nj;
   }
-}
 
+}
 /* ---------------------------------------------------------------------- */
 
 void FixReaxCBonds::PassBuffer( struct _reax_system *system, double *buf,
@@ -302,9 +219,9 @@ void FixReaxCBonds::PassBuffer( struct _reax_system *system, double *buf,
   for (i = 0; i < nlocal; i++) {
     buf[j-1] = atom->tag[i];
     buf[j+0] = atom->type[i];
-    buf[j+1] = sbo[i];
-    buf[j+2] = nlp[i];
-    buf[j+3] = avq[i];
+    buf[j+1] = reaxc->workspace->total_bond_order[i];
+    buf[j+2] = reaxc->workspace->nlp[i];
+    buf[j+3] = atom->q[i];
     buf[j+4] = numneigh[i];
     numbonds = nint(buf[j+4]);
 
@@ -407,49 +324,22 @@ int FixReaxCBonds::nint(const double &r)
   return i;
 }
 
-/* ----------------------------------------------------------------------
-   calculate nvalid = next step on which end_of_step does something
-   can be this timestep if multiple of nfreq and nrepeat = 1
-   else backup from next multiple of nfreq
-------------------------------------------------------------------------- */
-
-bigint FixReaxCBonds::nextvalid()
-{
-  bigint nvalid = (update->ntimestep/nfreq)*nfreq + nfreq;
-  if (nvalid-nfreq == update->ntimestep && nrepeat == 1)
-    nvalid = update->ntimestep;
-  else
-    nvalid -= (nrepeat-1)*nevery;
-  if (nvalid < update->ntimestep) nvalid += nfreq;
-  return nvalid;
-}
-
 /* ---------------------------------------------------------------------- */
 
 void FixReaxCBonds::destroy()
 {
-  memory->destroy(sbo);
-  memory->destroy(nlp);
-  memory->destroy(avq);
-  memory->destroy(numneigh);
-  memory->destroy(neighid);
-  memory->destroy(tmpid);
   memory->destroy(abo);
-  memory->destroy(tmpabo);
+  memory->destroy(neighid);
+  memory->destroy(numneigh);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixReaxCBonds::allocate()
 {
-  memory->create(sbo,nmax,"reax/c/bonds:sbo");
-  memory->create(nlp,nmax,"reax/c/bonds:nlp");
-  memory->create(avq,nmax,"reax/c/bonds:avq");
-  memory->create(numneigh,nmax,"reax/c/bonds:numneigh");
   memory->create(abo,nmax,MAXREAXBOND,"reax/c/bonds:abo");
   memory->create(neighid,nmax,MAXREAXBOND,"reax/c/bonds:neighid");
-  memory->create(tmpabo,nmax,MAXREAXBOND,"reax/c/bonds:tmpabo");
-  memory->create(tmpid,nmax,MAXREAXBOND,"reax/c/bonds:tmpid");
+  memory->create(numneigh,nmax,"reax/c/bonds:numneigh");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -460,8 +350,8 @@ double FixReaxCBonds::memory_usage()
 
   bytes += 3.0*nmax*sizeof(double);
   bytes += nmax*sizeof(int);
-  bytes += 2.0*nmax*MAXREAXBOND*sizeof(double);
-  bytes += 2.0*nmax*MAXREAXBOND*sizeof(int);
+  bytes += 1.0*nmax*MAXREAXBOND*sizeof(double);
+  bytes += 1.0*nmax*MAXREAXBOND*sizeof(int);
 
   return bytes;
 }

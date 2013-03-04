@@ -11,6 +11,8 @@
 
 <H3>fix reax/bonds command 
 </H3>
+<H3>fix reax/c/bonds command 
+</H3>
 <P><B>Syntax:</B>
 </P>
 <PRE>fix ID group-ID reax/bonds Nevery filename 
@@ -22,14 +24,18 @@
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>fix 1 all reax/bonds 100 bonds.tatb 
+<PRE>fix 1 all reax/bonds 100 bonds.tatb
+fix 1 all reax/c/bonds 100 bonds.reaxc 
 </PRE>
 <P><B>Description:</B>
 </P>
 <P>Write out the bond information computed by the ReaxFF potential
-specified by <A HREF = "pair_reax.html">pair_style reax</A>.  The bond information
+specified by <A HREF = "pair_reax.html">pair_style reax</A> or 
+<A HREF = "pair_reax_c.html">pair_style reax/c</A> in the exact same format as 
+the stand-alone ReaxFF code.  The bond information
 is written to <I>filename</I> on timesteps that are multiples of <I>Nevery</I>,
-including timestep 0.
+including timestep 0.  For time-averaged chemical species analysis, 
+please see the <A HREF = "fix_species.html">fix species</A> command.
 </P>
 <P>The format of the output file should be self-explantory.
 </P>
@@ -51,13 +57,17 @@ This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>
 reax</A> be invoked.  This fix is part of the REAX
 package.  It is only enabled if LAMMPS was built with that package,
 which also requires the REAX library be built and linked with LAMMPS.
+The fix reax/c/bonds command requires that the <A HREF = "pair_reax_c.html">pair_style
+reax/c</A> be invoked.  This fix is part of the USER-REAXC
+package.  It is only enabled if LAMMPS was built with that package.
 See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A> section for more
 info.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "pair_reax.html">pair_style reax</A>, <A HREF = "pair_reaxc_bonds.html">pair_style
-reax/c/bonds</A>
+<P><A HREF = "pair_reax.html">pair_style reax</A>, 
+<A HREF = "pair_reax_c.html">pair_style reax/c</A>, 
+<A HREF = "fix_species.html">fix species</A>
 </P>
 <P><B>Default:</B> none
 </P>

@@ -33,7 +33,7 @@
 pair_style reax/c controlfile checkqeq no
 pair_style reax/c NULL lgvdw yes
 pair_style reax/c NULL safezone 1.6 mincap 100
-pair_coeff * * ffield.reax 1 2 2 3 
+pair_coeff * * ffield.reax C H O N 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -172,7 +172,7 @@ additional arguments after the filename in the pair_coeff command,
 where N is the number of LAMMPS atom types:
 </P>
 <UL><LI>filename
-<LI>N indices = mapping of ReaxFF elements to atom types 
+<LI>N indices = ReaxFF elements 
 </UL>
 <P>The filename is the ReaxFF potential file.  Unlike for the <I>reax</I>
 pair style, any filename can be used.
@@ -198,7 +198,7 @@ elements are ordered as C, H, O, N in the <I>ffield</I> file.  If you want
 the LAMMPS atom type 1 and 2 to be C, type 3 to be N, and type 4 to be
 H, you would use the following pair_coeff command:
 </P>
-<PRE>pair_coeff * * ffield.reax 1 1 4 2 
+<PRE>pair_coeff * * ffield.reax C C N H 
 </PRE>
 <HR>
 
@@ -297,13 +297,14 @@ appropriate units if your simulation doesn't use "real" units.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "pair_coeff.html">pair_coeff</A>, <A HREF = "fix_qeq_reax.html">fix_qeq_reax</A>,
+<P><A HREF = "pair_coeff.html">pair_coeff</A>, <A HREF = "fix_qeq_reax.html">fix qeq/reax</A>,
+<A HREF = "fix_reax_bonds.html">fix reax/c/bonds</A>,
+<A HREF = "fix_species.html">fix species</A>,
 <A HREF = "pair_reax.html">pair_style reax</A>
 </P>
 <P><B>Default:</B>
 </P>
-<P>The keyword defaults are checkqeq = yes, lgvdw = no, safezone = 1.2,
-mincap = 50.
+<P>The keyword defaults are checkqeq = yes, lgvdw = no, safezone = 1.2, mincap = 50.
 </P>
 <HR>
 
@@ -314,8 +315,8 @@ Journal of Physical Chemistry A, 112, 1040-1053 (2008).
 </P>
 <A NAME = "Aktulga"></A>
 
-<P><B>(Aktulga)</B> Aktulga, Fogarty, Pandit, Grama, Parallel Computing, 38,
-245-259 (2012).
+<P><B>(Aktulga)</B> Aktulga, Fogarty, Pandit, Grama, Parallel Computing, to
+appear (2011).
 </P>
 <A NAME = "Liu_2011"></A>
 

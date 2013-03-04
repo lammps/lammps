@@ -27,7 +27,7 @@ pair_style reax/c NULL
 pair_style reax/c controlfile checkqeq no
 pair_style reax/c NULL lgvdw yes
 pair_style reax/c NULL safezone 1.6 mincap 100
-pair_coeff * * ffield.reax 1 2 2 3 :pre 
+pair_coeff * * ffield.reax C H O N :pre 
 
 [Description:]
 
@@ -166,7 +166,7 @@ additional arguments after the filename in the pair_coeff command,
 where N is the number of LAMMPS atom types:
 
 filename
-N indices = mapping of ReaxFF elements to atom types :ul
+N indices = ReaxFF elements :ul
 
 The filename is the ReaxFF potential file.  Unlike for the {reax}
 pair style, any filename can be used.
@@ -192,7 +192,7 @@ elements are ordered as C, H, O, N in the {ffield} file.  If you want
 the LAMMPS atom type 1 and 2 to be C, type 3 to be N, and type 4 to be
 H, you would use the following pair_coeff command:
 
-pair_coeff * * ffield.reax 1 1 4 2 :pre
+pair_coeff * * ffield.reax C C N H :pre
 
 :line
 
@@ -291,13 +291,14 @@ appropriate units if your simulation doesn't use "real" units.
 
 [Related commands:]
 
-"pair_coeff"_pair_coeff.html, "fix_qeq_reax"_fix_qeq_reax.html,
+"pair_coeff"_pair_coeff.html, "fix qeq/reax"_fix_qeq_reax.html,
+"fix reax/c/bonds"_fix_reax_bonds.html,
+"fix species"_fix_species.html,
 "pair_style reax"_pair_reax.html
 
 [Default:]
 
-The keyword defaults are checkqeq = yes, lgvdw = no, safezone = 1.2,
-mincap = 50.
+The keyword defaults are checkqeq = yes, lgvdw = no, safezone = 1.2, mincap = 50.
 
 :line
 
@@ -306,8 +307,8 @@ mincap = 50.
 Journal of Physical Chemistry A, 112, 1040-1053 (2008).
 
 :link(Aktulga)
-[(Aktulga)] Aktulga, Fogarty, Pandit, Grama, Parallel Computing, 38,
-245-259 (2012).
+[(Aktulga)] Aktulga, Fogarty, Pandit, Grama, Parallel Computing, to
+appear (2011).
 
 :link(Liu_2011)
 [(Liu)] L. Liu, Y. Liu, S. V. Zybin, H. Sun and W. A. Goddard, Journal

@@ -7,7 +7,7 @@ atom_style	charge
 read_data	data.CHO
 
 pair_style	reax/c lmp_control
-pair_coeff	* * ffield.reax.cho 2 1 3
+pair_coeff	* * ffield.reax.cho H C O
 
 neighbor	2 bin
 neigh_modify	every 10 delay 0 check no

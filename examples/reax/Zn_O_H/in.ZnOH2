@@ -7,7 +7,7 @@ atom_style	charge
 read_data	data.ZnOH2
 
 pair_style	reax/c lmp_control
-pair_coeff	* * ffield.reax.ZnOH 1 2 3
+pair_coeff	* * ffield.reax.ZnOH H O Zn
 
 neighbor	2 bin
 neigh_modify	every 10 delay 0 check no

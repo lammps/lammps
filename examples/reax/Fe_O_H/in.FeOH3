@@ -7,7 +7,7 @@ atom_style	charge
 read_data	data.FeOH3
 
 pair_style	reax/c lmp_control
-pair_coeff	* * ffield.reax.Fe_O_C_H 2 3 4
+pair_coeff	* * ffield.reax.Fe_O_C_H H O Fe
 
 neighbor	2 bin
 neigh_modify	every 10 delay 0 check no

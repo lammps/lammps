@@ -73,42 +73,45 @@ class PairLJLongCoulLong : public Pair {
 
 E: Illegal ... command
 
-UNDOCUMENTED
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
 
-W: Mixing forced for lj coefficients
+W: Mixing forced for LJ coefficients
 
-UNDOCUMENTED
+Self-explanatory.
 
-W: Using largest cut-off for lj/coul long long
+W: Using largest cutoff for pair_style lj/long/coul/long
 
-UNDOCUMENTED
+Self-explanatory.
 
-E: Cut-offs missing in pair_style lj/coul
+E: Cutoffs missing in pair_style lj/long/coul/long
 
-UNDOCUMENTED
+Self-explanatory.
 
-E: Coulombic cut not supported in pair_style lj/coul
+E: Coulomb cut not supported in pair_style lj/long/coul/long
 
-UNDOCUMENTED
+Must use long-range Coulombic interactions.
 
-E: Only one cut-off allowed when requesting all long
+E: Only one cutoff allowed when requesting all long
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Incorrect args for pair coefficients
 
-UNDOCUMENTED
+Self-explanatory.  Check the input script or data file.
 
-E: Invoking coulombic in pair style lj/coul requires atom attribute q
+E: Pair style lj/long/coul/long requires atom attribute q
 
-UNDOCUMENTED
+The atom style defined does not have this attribute.
 
 E: Pair style requires a KSpace style
 
-UNDOCUMENTED
+This pair style is designed for use with a KSpace style.
 
 E: Pair cutoff < Respa interior cutoff
 
-UNDOCUMENTED
+One or more pairwise cutoffs are too short to use with the specified
+rRESPA cutoffs.
 
 */

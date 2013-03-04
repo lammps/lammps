@@ -72,16 +72,6 @@ The atom style defined does not have this attribute.
 
 E: Pair style requires a KSpace style
 
-UNDOCUMENTED
-
-U: Pair cutoff < Respa interior cutoff
-
-One or more pairwise cutoffs are too short to use with the specified
-rRESPA cutoffs.
-
-U: Pair style is incompatible with KSpace style
-
-If a pair style with a long-range Coulombic component is selected,
-then a kspace style must also be used.
+This pair style is designed for use with a KSpace style.
 
 */

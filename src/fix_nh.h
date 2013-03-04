@@ -218,7 +218,7 @@ E: Cannot use fix npt and fix deform on same component of stress tensor
 
 This would be changing the same box dimension twice.
 
-E: Temperature ID for fix nvt/nph/npt does not exist
+E: Temperature ID for fix nvt/npt does not exist
 
 Self-explanatory.
 

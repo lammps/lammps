@@ -76,27 +76,29 @@ command-line option when running LAMMPS to see the offending line.
 
 W: Mixing forced for lj coefficients
 
-UNDOCUMENTED
+Self-explanatory.
 
-W: Using largest cut-off for lj/coul long long
+W: Using largest cutoff for pair_style lj/long/tip4p/long
 
-UNDOCUMENTED
+Self-explanatory.
 
-E: Coulombic cut not supported in pair_style lj/coul
+E: Coulomb cut not supported in pair_style lj/long/tip4p/long
 
-UNDOCUMENTED
+Must use long-range Coulombic interactions.
 
-E: Pair style lj/coul/tip4p requires atom IDs
+E: Pair style lj/long/tip4p/long requires atom IDs
 
-UNDOCUMENTED
+There are no atom IDs defined in the system and the TIP4P potential
+requires them to find O,H atoms with a water molecule.
 
-E: Pair style lj/coul/tip4p requires newton pair on
+E: Pair style lj/long/tip4p/long requires newton pair on
 
-UNDOCUMENTED
+This is because the computation of constraint forces within a water
+molecule adds forces to atoms owned by other processors.
 
-E: Pair style lj/coul/tip4p requires atom attribute q
+E: Pair style lj/long/tip4p/long requires atom attribute q
 
-UNDOCUMENTED
+The atom style defined does not have these attributes.
 
 E: Must use a bond style with TIP4P potential
 
@@ -108,27 +110,9 @@ E: Must use an angle style with TIP4P potential
 TIP4P potentials assume angles in water are constrained by a fix shake
 command.
 
-E: Water H epsilon must be 0.0 for pair style lj/coul/tip4p
+E: Water H epsilon must be 0.0 for pair style lj/long/tip4p/long
 
-UNDOCUMENTED
-
-U: Pair style lj/cut/coul/long/tip4p requires atom IDs
-
-There are no atom IDs defined in the system and the TIP4P potential
-requires them to find O,H atoms with a water molecule.
-
-U: Pair style lj/cut/coul/long/tip4p requires newton pair on
-
-This is because the computation of constraint forces within a water
-molecule adds forces to atoms owned by other processors.
-
-U: Pair style lj/cut/coul/long/tip4p requires atom attribute q
-
-The atom style defined does not have these attributes.
-
-U: Pair style is incompatible with KSpace style
-
-If a pair style with a long-range Coulombic component is selected,
-then a kspace style must also be used.
+This is because LAMMPS does not compute the Lennard-Jones interactions
+with these particles for efficiency reasons.
 
 */

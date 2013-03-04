@@ -108,27 +108,32 @@ This is a current restriction of this command.
 
 E: Cannot use nonperiodic boundaries with EwaldDisp
 
-UNDOCUMENTED
+For kspace style ewald/disp, all 3 dimensions must have periodic
+boundaries unless you use the kspace_modify command to define a 2d
+slab with a non-periodic z dimension.
 
 E: Incorrect boundaries with slab EwaldDisp
 
-UNDOCUMENTED
+Must have periodic x,y dimensions and non-periodic z dimension to use
+2d slab option with Ewald.
 
 E: KSpace style is incompatible with Pair style
 
-UNDOCUMENTED
+Setting a kspace style requires that a pair style with a long-range
+Coulombic and Dispersion component be selected.
 
 E: Unsupported mixing rule in kspace_style ewald/disp
 
-UNDOCUMENTED
+Only geometric mixing is supported.
 
 E: Unsupported order in kspace_style ewald/disp
 
-UNDOCUMENTED
+Only 1/r^6 dispersion terms are supported.
 
 E: Cannot use Ewald/disp solver on system with no charge or LJ particles
 
-UNDOCUMENTED
+No atoms in system have a non-zero charge or are LJ particles.  Change
+charges or change options of the kspace solver/pair style.
 
 W: System is not charge neutral, net charge = %g
 
@@ -137,18 +142,19 @@ is not valid for Ewald or PPPM.
 
 E: KSpace accuracy too large to estimate G vector
 
-UNDOCUMENTED
+Reduce the accuracy request or specify gwald explicitly
+via the kspace_modify command.
 
 W: Ewald/disp Newton solver failed, using old method to estimate g_ewald
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: KSpace accuracy too low
 
-UNDOCUMENTED
+Requested accuracy must be less than 1.0.
 
-E: epsilon or sigma reference not set by pair style in ewald/n
+E: Epsilon or sigma reference not set by pair style in ewald/n
 
-UNDOCUMENTED
+The pair style is not providing the needed epsilon or sigma values.
 
 */

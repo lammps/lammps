@@ -96,7 +96,8 @@ private:
 
 E: Read_dump command before simulation box is defined
 
-UNDOCUMENTED
+The read_dump command cannot be used before a read_data, read_restart,
+or create_box command.
 
 E: Illegal ... command
 

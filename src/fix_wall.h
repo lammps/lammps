@@ -101,6 +101,6 @@ Only equal-style variables can be used.
 
 E: Variable evaluation in fix wall gave bad value
 
-UNDOCUMENTED
+The returned value for epsilon or sigma < 0.0.
 
 */

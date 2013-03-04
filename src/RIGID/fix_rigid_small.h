@@ -178,11 +178,11 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Fix rigid/small langevin period must be > 0.0
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix rigid/small requires atom attribute molecule
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: No rigid bodies defined
 
@@ -207,7 +207,7 @@ not be accounted for.
 
 E: Fix rigid/small atom has non-zero image flag in a non-periodic dimension
 
-UNDOCUMENTED
+Image flags for non-periodic dimensions should not be set.
 
 E: Insufficient Jacobi rotations for rigid body
 
@@ -220,104 +220,10 @@ are not within the required tolerances.
 
 E: Rigid body atoms %d %d missing on proc %d at step %ld
 
-UNDOCUMENTED
-
-E: BAD AAA
-
-UNDOCUMENTED
-
-E: BAD BBB
-
-UNDOCUMENTED
-
-E: BAD CCC
-
-UNDOCUMENTED
-
-E: BAD DDD
-
-UNDOCUMENTED
-
-E: BAD EEE
-
-UNDOCUMENTED
-
-E: BAD FFF
-
-UNDOCUMENTED
-
-E: BAD GGG
-
-UNDOCUMENTED
-
-E: BAD HHH
-
-UNDOCUMENTED
-
-E: BAD III
-
-UNDOCUMENTED
-
-E: BAD JJJ
-
-UNDOCUMENTED
-
-E: BAD KKK
-
-UNDOCUMENTED
-
-E: BAD LLL
-
-UNDOCUMENTED
-
-U: Fix rigid molecule requires atom attribute molecule
-
-Self-explanatory.
-
-U: Could not find fix rigid group ID
-
-A group ID used in the fix rigid command does not exist.
-
-U: One or more atoms belong to multiple rigid bodies
-
-Two or more rigid bodies defined by the fix rigid command cannot
-contain the same atom.
-
-U: Fix rigid z force cannot be on for 2d simulation
-
-Self-explanatory.
-
-U: Fix rigid xy torque cannot be on for 2d simulation
-
-Self-explanatory.
-
-U: Fix rigid langevin period must be > 0.0
-
-Self-explanatory.
-
-U: One or zero atoms in rigid body
-
-Any rigid body defined by the fix rigid command must contain 2 or more
-atoms.
-
-U: Fix rigid atom has non-zero image flag in a non-periodic dimension
-
-You cannot set image flags for non-periodic dimensions.
-
-U: Cannot open fix rigid infile %s
-
-UNDOCUMENTED
-
-U: Unexpected end of fix rigid file
-
-UNDOCUMENTED
-
-U: Incorrect rigid body format in fix rigid file
-
-UNDOCUMENTED
-
-U: Invalid rigid body ID in fix rigid file
-
-UNDOCUMENTED
+This means that an atom cannot find the atom that owns the rigid body
+it is part of, or vice versa.  The solution is to use the communicate
+cutoff command to insure ghost atoms are acquired from far enough away
+to encompass the max distance printed when the fix rigid/small command
+was invoked.
 
 */

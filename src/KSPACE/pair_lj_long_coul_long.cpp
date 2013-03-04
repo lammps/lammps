@@ -82,16 +82,16 @@ void PairLJLongCoulLong::settings(int narg, char **arg)
   options(arg, 6);
   options(++arg, 1);
   if (!comm->me && ewald_order & (1<<6)) 
-    error->warning(FLERR,"Mixing forced for lj coefficients");
+    error->warning(FLERR,"Mixing forced for LJ coefficients");
   if (!comm->me && ewald_order == ((1<<1) | (1<<6)))
-    error->warning(FLERR,"Using largest cut-off for lj/coul long long");
+    error->warning(FLERR,"Using largest cutoff for pair_style lj/long/coullong");
   if (!*(++arg)) 
-    error->all(FLERR,"Cut-offs missing in pair_style lj/coul");
+    error->all(FLERR,"Cutoffs missing in pair_style lj/long/coul/long");
   if (!((ewald_order^ewald_off) & (1<<1))) 
-    error->all(FLERR,"Coulombic cut not supported in pair_style lj/coul");
+    error->all(FLERR,"Coulomb cut not supported in pair_style lj/long/coul/long");
   cut_lj_global = force->numeric(*(arg++));
   if (*arg && ((ewald_order & 0x42) == 0x42)) 
-    error->all(FLERR,"Only one cut-off allowed when requesting all long");
+    error->all(FLERR,"Only one cutoff allowed when requesting all long");
   if (narg == 4) cut_coul = force->numeric(*arg);
   else cut_coul = cut_lj_global;
 
@@ -226,8 +226,7 @@ void PairLJLongCoulLong::init_style()
   // require an atom style with charge defined
 
   if (!atom->q_flag && (ewald_order&(1<<1)))
-    error->all(FLERR,
-        "Invoking coulombic in pair style lj/coul requires atom attribute q");
+    error->all(FLERR,"Pair style lj/long/coul/long requires atom attribute q");
 
   // request regular or rRESPA neighbor lists
 

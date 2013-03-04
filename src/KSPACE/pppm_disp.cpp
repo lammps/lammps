@@ -276,24 +276,28 @@ void PPPMDisp::init()
 	case 6:
 	  if (ewald_mix==GEOMETRIC) { k = 1; break; }
 	  else if (ewald_mix==ARITHMETIC) { k = 2; break; }
-	  sprintf(str, "Unsupported mixing rule in kspace_style pppm/disp for pair_style %s", force->pair_style);
+	  sprintf(str,"Unsupported mixing rule in "
+		  "kspace_style pppm/disp for pair_style %s", force->pair_style);
 	  error->all(FLERR,str);
 	default:
-	  sprintf(str, "Unsupported order in kspace_style pppm/disp pair_style %s", force->pair_style);
+	  sprintf(str, "Unsupported order in "
+		  "kspace_style pppm/disp pair_style %s", force->pair_style);
 	  error->all(FLERR,str);
       }
       function[k] = 1;
     }
  
 
-  // warn, if function[0] is not set but charge attribute is set!
+  // warn, if function[0] is not set but charge attribute is set
+
   if (!function[0] && atom->q_flag && me == 0) {
     char str[128];
     sprintf(str, "Charges are set, but coulombic solver is not used");
     error->warning(FLERR, str);
   }
 
-  // compute qsum & qsqsum, if function[0] is set, print error if no charges are set or warn if not charge-neutral  
+  // compute qsum & qsqsum, if function[0] is set
+  // print error if no charges are set or warn if not charge-neutral  
  
   if (function[0]) {
     if (!atom->q_flag) error->all(FLERR,"Kspace style with selected options requires atom attribute q");
@@ -414,7 +418,7 @@ void PPPMDisp::init()
     }
 
     if (order < minorder)
-      error->all(FLERR,"Coulomb PPPMDisp order has been reduced below minorder");
+      error->all(FLERR,"Coulomb PPPMDisp order < minimum allowed order");
     if (cgtmp) delete cgtmp;
 
     // adjust g_ewald
@@ -1160,7 +1164,7 @@ void PPPMDisp::init_coeffs()				// local pair coeffs
     //cannot use sigma, because this has not been set yet
     double **sigma = (double **) force->pair->extract("sigma",tmp);  
     if (!(epsilon&&sigma))
-      error->all(FLERR,"epsilon or sigma reference not set by pair style in PPPMDisp");
+      error->all(FLERR,"Epsilon or sigma reference not set by pair style in PPPMDisp");
     double eps_i, sigma_i, sigma_n, *bi = B = new double[7*n+7];
     double c[7] = {
       1.0, sqrt(6.0), sqrt(15.0), sqrt(20.0), sqrt(15.0), sqrt(6.0), 1.0};
@@ -2008,7 +2012,8 @@ void PPPMDisp::set_grid()
 
       // break loop if the accuracy has been reached or too many loops have been performed
       if (dfkspace <= accuracy) break;
-      if (count > 500) error->all(FLERR, "Could not compute grid size for Coulomb interaction!");
+      if (count > 500) 
+	error->all(FLERR,"Could not compute grid size for Coulomb interaction");
       h *= 0.95;
       h_x = h_y = h_z = h;
     }

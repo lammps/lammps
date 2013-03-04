@@ -897,8 +897,7 @@ void MSM::set_grid_global()
   levels = MAX(xlevels,ylevels);
   levels = MAX(levels,zlevels);
 
-  if (levels > MAX_LEVELS)
-    error->all(FLERR,"Too many MSM grid levels");
+  if (levels > MAX_LEVELS) error->all(FLERR,"Too many MSM grid levels");
 
 // Need at least 2 MSM levels for periodic systems
 
@@ -906,7 +905,8 @@ void MSM::set_grid_global()
     levels = xlevels = ylevels = zlevels = 2;
     nx_max = ny_max = nz_max = 2;
     if (gridflag) 
-      error->warning(FLERR,"MSM mesh too small, increasing to 2 points in each direction)");
+      error->warning(FLERR,
+		     "MSM mesh too small, increasing to 2 points in each direction");
   }
 
   if (adjust_cutoff_flag) {

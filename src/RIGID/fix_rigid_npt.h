@@ -38,28 +38,26 @@ class FixRigidNPT : public FixRigidNH {
 
 /* ERROR/WARNING messages:
 
-E: Did not set temp or press for fix rigid/npt
+E: Did not set temperature or pressure for fix rigid/npt
 
-UNDOCUMENTED
+The temp and press keywords must be specified.
 
 E: Target temperature for fix rigid/npt cannot be 0.0
 
-UNDOCUMENTED
-
-E: Target pressure for fix rigid/npt cannot be 0.0
-
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix rigid/npt period must be > 0.0
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Illegal ... command
 
-UNDOCUMENTED
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
 
-E: Fix_modify order must be 3 or 5
+E: Fix rigid/npt temperature order must be 3 or 5
 
-UNDOCUMENTED
+Self-explanatory.
 
 */

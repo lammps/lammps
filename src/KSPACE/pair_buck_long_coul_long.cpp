@@ -62,10 +62,10 @@ void PairBuckLongCoulLong::options(char **arg, int order)
   const char *option[] = {"long", "cut", "off", NULL};
   int i;
 
-  if (!*arg) error->all(FLERR,"Illegal pair_style buck/coul command");
+  if (!*arg) error->all(FLERR,"Illegal pair_style buck/long/coul/long command");
   for (i=0; option[i]&&strcmp(arg[0], option[i]); ++i);
   switch (i) {
-    default: error->all(FLERR,"Illegal pair_style buck/coul command");
+    default: error->all(FLERR,"Illegal pair_style buck/long/coul/long command");
     case 0: ewald_order |= 1<<order; break;
     case 2: ewald_off |= 1<<order;
     case 1: break;
@@ -87,15 +87,15 @@ void PairBuckLongCoulLong::settings(int narg, char **arg)
   if (!comm->me && ewald_order & (1<<6)) 
     error->warning(FLERR,"Geometric mixing assumed for 1/r^6 coefficients");
   if (!comm->me && ewald_order == ((1<<1) | (1<<6))) 
-    error->warning(FLERR,"Using largest cut-off for buck/coul long long");
-  if (!*(++arg)) error->all(FLERR,"Cut-offs missing in pair_style buck/coul");
+    error->warning(FLERR,"Using largest cutoff for buck/long/coul/long");
+  if (!*(++arg)) error->all(FLERR,"Cutoffs missing in pair_style buck/long/coul/long");
   if (ewald_off & (1<<6)) 
-    error->all(FLERR,"LJ6 off not supported in pair_style buck/coul");
+    error->all(FLERR,"LJ6 off not supported in pair_style buck/long/coul/long");
   if (!((ewald_order^ewald_off) & (1<<1))) 
-    error->all(FLERR,"Coulombic cut not supported in pair_style buck/coul");
+    error->all(FLERR,"Coulomb cut not supported in pair_style buck/long/coul/coul");
   cut_buck_global = force->numeric(*(arg++));
   if (*arg && ((ewald_order & 0x42) == 0x42)) 
-    error->all(FLERR,"Only one cut-off allowed when requesting all long");
+    error->all(FLERR,"Only one cutoff allowed when requesting all long");
   if (narg == 4) cut_coul = force->numeric(*arg);
   else cut_coul = cut_buck_global;
 
@@ -229,8 +229,7 @@ void PairBuckLongCoulLong::init_style()
   // require an atom style with charge defined
 
   if (!atom->q_flag && (ewald_order&(1<<1)))
-    error->all(FLERR,
-        "Invoking coulombic in pair style lj/coul requires atom attribute q");
+    error->all(FLERR,"Pair style buck/long/coul/long requires atom attribute q");
 
   // request regular or rRESPA neighbor lists
 

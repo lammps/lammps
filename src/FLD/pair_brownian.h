@@ -97,6 +97,6 @@ All particles must be the same finite size.
 
 E: Cannot use multiple fix wall commands with pair brownian
 
-UNDOCUMENTED
+Self-explanatory.
 
 */

@@ -16,7 +16,6 @@
 #include "math_extra.h"
 #include "atom_vec_body.h"
 #include "atom.h"
-#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -37,6 +36,19 @@ BodyNparticle::BodyNparticle(LAMMPS *lmp, int narg, char **arg) :
 
   size_forward = 0;
   size_border = 1 + 3*nmax;
+
+  // NOTE: need to set appropriate nnbin param for dcp
+
+  icp = new MyPool<int>(1,1);
+  dcp = new MyPool<double>(3*nmin,3*nmax);
+}
+
+/* ---------------------------------------------------------------------- */
+
+BodyNparticle::~BodyNparticle()
+{
+  delete icp;
+  delete dcp;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -105,10 +117,10 @@ void BodyNparticle::data_body(int ibonus, int ninteger, int ndouble,
                "Bodies section of data file");
 
   bonus->ninteger = 1;
-  memory->create(bonus->ivalue,bonus->ninteger,"body:ivalue");
+  bonus->ivalue = icp->get(bonus->iindex);
   bonus->ivalue[0] = nsub;
   bonus->ndouble = 3*nsub;
-  memory->create(bonus->dvalue,3*nsub,"body:dvalue");
+  bonus->dvalue = dcp->get(bonus->ndouble,bonus->dindex);
 
   // diagonalize inertia tensor
 

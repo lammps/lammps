@@ -73,50 +73,54 @@ class PairBuckLongCoulLong : public Pair {
 
 E: Illegal ... command
 
-UNDOCUMENTED
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
 
 W: Geometric mixing assumed for 1/r^6 coefficients
 
-UNDOCUMENTED
+Self-explanatory.
 
-W: Using largest cut-off for buck/coul long long
+W: Using largest cutoff for buck/long/coul/long
 
-UNDOCUMENTED
+Self-exlanatory.
 
-E: Cut-offs missing in pair_style buck/coul
+E: Cutoffs missing in pair_style buck/long/coul/long
 
-UNDOCUMENTED
+Self-exlanatory.
 
-E: LJ6 off not supported in pair_style buck/coul
+E: LJ6 off not supported in pair_style buck/long/coul/long
 
-UNDOCUMENTED
+Self-exlanatory.
 
-E: Coulombic cut not supported in pair_style buck/coul
+E: Coulomb cut not supported in pair_style buck/long/coul/long
 
-UNDOCUMENTED
+Must use long-range Coulombic interactions.
 
-E: Only one cut-off allowed when requesting all long
+E: Only one cutoff allowed when requesting all long
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Incorrect args for pair coefficients
 
-UNDOCUMENTED
+Self-explanatory.  Check the input script or data file.
 
-E: Invoking coulombic in pair style lj/coul requires atom attribute q
+E: Pair style buck/long/coul/long requires atom attribute q
 
-UNDOCUMENTED
+The atom style defined does not have this attribute.
 
 E: Pair style requires a KSpace style
 
-UNDOCUMENTED
+This pair style is designed for use with a KSpace style.
 
 E: All pair coeffs are not set
 
-UNDOCUMENTED
+All pair coefficients must be set in the data file or by the
+pair_coeff command before running a simulation.
 
 E: Pair cutoff < Respa interior cutoff
 
-UNDOCUMENTED
+One or more pairwise cutoffs are too short to use with the specified
+rRESPA cutoffs.
 
 */

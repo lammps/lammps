@@ -452,9 +452,9 @@ void PairLJLongTIP4PLong::settings(int narg, char **arg)
   if (!comm->me && ewald_order&(1<<6)) 
     error->warning(FLERR,"Mixing forced for lj coefficients");
   if (!comm->me && ewald_order==((1<<1)|(1<<6))) 
-    error->warning(FLERR,"Using largest cut-off for lj/coul long long");
+    error->warning(FLERR,"Using largest cutoff for pair_style lj/long/tip4p/long");
   if (!((ewald_order^ewald_off)&(1<<1))) 
-    error->all(FLERR,"Coulombic cut not supported in pair_style lj/coul");
+    error->all(FLERR,"Coulombic cut not supported in pair_style lj/long/tip4p/long");
   typeO = force->inumeric(arg[1]);
   typeH = force->inumeric(arg[2]);
   typeB = force->inumeric(arg[3]);
@@ -484,11 +484,11 @@ void PairLJLongTIP4PLong::settings(int narg, char **arg)
 void PairLJLongTIP4PLong::init_style()
 {
   if (atom->tag_enable == 0)
-    error->all(FLERR,"Pair style lj/coul/tip4p requires atom IDs");
+    error->all(FLERR,"Pair style lj/long/tip4p/long requires atom IDs");
   if (!force->newton_pair) 
-    error->all(FLERR,"Pair style lj/coul/tip4p requires newton pair on");
+    error->all(FLERR,"Pair style lj/long/tip4p/long requires newton pair on");
   if (!atom->q_flag)
-    error->all(FLERR,"Pair style lj/coul/tip4p requires atom attribute q");
+    error->all(FLERR,"Pair style lj/long/tip4p/long requires atom attribute q");
   if (force->bond == NULL)
     error->all(FLERR,"Must use a bond style with TIP4P potential");
   if (force->angle == NULL)
@@ -517,7 +517,7 @@ double PairLJLongTIP4PLong::init_one(int i, int j)
 
   if ((i == typeH && epsilon[i][i] != 0.0))
     error->all(FLERR,"Water H epsilon must be 0.0 for "
-               "pair style lj/coul/tip4p");
+               "pair style lj/long/tip4p/long");
 
   if (i == typeH || j == typeH)
     cut_ljsq[j][i] = cut_ljsq[i][j] = 0.0;

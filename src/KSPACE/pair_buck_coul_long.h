@@ -81,11 +81,6 @@ The atom style defined does not have these attributes.
 
 E: Pair style requres a KSpace style
 
-UNDOCUMENTED
-
-U: Pair style is incompatible with KSpace style
-
-If a pair style with a long-range Coulombic component is selected,
-then a kspace style must also be used.
+This pair style is designed for use with a KSpace style.
 
 */

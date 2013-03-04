@@ -118,11 +118,11 @@ A region ID used in the group command does not exist.
 
 E: Variable name for group does not exist
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Variable for group is invalid style
 
-UNDOCUMENTED
+Only atom-style variables can be used.
 
 E: Group ID does not exist
 

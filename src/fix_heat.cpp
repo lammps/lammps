@@ -124,7 +124,7 @@ void FixHeat::init()
     if (hvar < 0) 
       error->all(FLERR,"Variable name for fix heat does not exist");
     if (input->variable->equalstyle(hvar)) hstyle = EQUAL;
-    else if (input->variable->equalstyle(hvar)) hstyle = ATOM;
+    else if (input->variable->atomstyle(hvar)) hstyle = ATOM;
     else error->all(FLERR,"Variable for fix heat is invalid style");
   }
 

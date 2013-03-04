@@ -49,10 +49,13 @@ void lammps_scatter_atoms(void *, char *, int, int, void *);
 
 W: Library error in lammps_gather_atoms
 
-UNDOCUMENTED
+This library function cannot be used if atom IDs are not defined
+or are not consecutively numbered.
 
 W: Library error in lammps_scatter_atoms
 
-UNDOCUMENTED
+This library function cannot be used if atom IDs are not defined or
+are not consecutively numbered, or if no atom map is defined.  See the
+atom_modify command for details about atom maps.
 
 */

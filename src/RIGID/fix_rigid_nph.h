@@ -38,16 +38,12 @@ class FixRigidNPH : public FixRigidNH {
 
 /* ERROR/WARNING messages:
 
-E: Pressure control must be used with fix nph
+E: Did not set pressure for fix rigid/nph
 
-UNDOCUMENTED
+The press keyword must be specified.
 
-E: Temperature control must not be used with fix nph
+E: Cannot set temperature for fix rigid/nph
 
-UNDOCUMENTED
-
-E: Target pressure for fix rigid/nph cannot be 0.0
-
-UNDOCUMENTED
+The temp keyword cannot be specified.
 
 */

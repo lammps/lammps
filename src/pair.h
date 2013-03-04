@@ -238,7 +238,7 @@ pair_coeff command before running a simulation.
 
 E: Pair style requres a KSpace style
 
-UNDOCUMENTED
+No kspace style is defined.
 
 E: Pair style does not support pair_write
 

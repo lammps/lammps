@@ -139,11 +139,11 @@ The Atoms section of a data file must come before a Triangles section.
 
 E: Invalid data file section: Bodies
 
-UNDOCUMENTED
+Atom style does not allow bodies.
 
 E: Must read Atoms before Bodies
 
-UNDOCUMENTED
+The Atoms section of a data file must come before a Bodies section.
 
 E: Invalid data file section: Bonds
 
@@ -319,7 +319,7 @@ Self-explanatory.  Check data file.
 
 E: No bodies allowed with this atom style
 
-UNDOCUMENTED
+Self-explanatory.  Check data file.
 
 E: System in data file is too big
 
@@ -369,7 +369,8 @@ Atom IDs must be positive integers.
 
 E: Too many lines in one body in data file - boost MAXBODY
 
-UNDOCUMENTED
+MAXBODY is a setting at the top of the src/read_data.cpp file.
+Set it larger and re-compile the code.
 
 E: Bonds assigned incorrectly
 

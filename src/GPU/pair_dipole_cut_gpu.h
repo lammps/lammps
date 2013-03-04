@@ -54,14 +54,10 @@ package
 
 E: Pair dipole/cut/gpu requires atom attributes q, mu, torque
 
-UNDOCUMENTED
+The atom style defined does not have this attribute.
 
 E: Cannot use newton pair with dipole/cut/gpu pair style
 
 Self-explanatory.
-
-U: Pair style dipole/cut/gpu requires atom attribute q
-
-The atom style defined does not have this attribute.
 
 */

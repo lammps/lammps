@@ -602,7 +602,7 @@ void FixNH::init()
 
   int icompute = modify->find_compute(id_temp);
   if (icompute < 0)
-    error->all(FLERR,"Temperature ID for fix nvt/nph/npt does not exist");
+    error->all(FLERR,"Temperature ID for fix nvt/npt does not exist");
   temperature = modify->compute[icompute];
 
   if (temperature->tempbias) which = BIAS;

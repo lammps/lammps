@@ -58,14 +58,14 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Variable evaluation in region gave bad value
 
-UNDOCUMENTED
+Variable returned a radius < 0.0.
 
 E: Variable name for region sphere does not exist
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Variable for region sphere is invalid style
 
-UNDOCUMENTED
+Only equal-style varaibles are allowed.
 
 */

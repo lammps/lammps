@@ -28,7 +28,7 @@ namespace LAMMPS_NS {
 class BodyNparticle : public Body {
  public:
   BodyNparticle(class LAMMPS *, int, char **);
-  ~BodyNparticle() {}
+  ~BodyNparticle();
   int nsub(class AtomVecBody::Bonus *);
   double *coords(class AtomVecBody::Bonus *);
 

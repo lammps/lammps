@@ -119,65 +119,66 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Fix GCMC region does not support a bounding box
+E: Fix gcmc region does not support a bounding box
 
-UNDOCUMENTED
+Not all regions represent bounded volumes.  You cannot use
+such a region with the fix gcmc command.
 
-E: Fix GCMC region cannot be dynamic
+E: Fix gcmc region cannot be dynamic
 
-UNDOCUMENTED
+Only static regions can be used with fix gcmc.
 
-E: Fix GCMC region extends outside simulation box
+E: Fix gcmc region extends outside simulation box
 
-UNDOCUMENTED
+Self-explanatory.
 
-E: Region ID for fix GCMC does not exist
+E: Region ID for fix gcmc does not exist
 
-UNDOCUMENTED
+Self-explanatory.
 
-E: Invalid atom type in fix GCMC command
+E: Invalid atom type in fix gcmc command
 
 The atom type specified in the GCMC command does not exist.
 
-E: Fix GCMC cannot exchange individual atoms belonging to a molecule
+E: Fix gcmc cannot exchange individual atoms belonging to a molecule
 
 This is an error since you should not delete only one atom of a molecule.
 The user has specified atomic (non-molecular) gas exchanges, but an atom
 belonging to a molecule could be deleted.
 
-E: All mol IDs should be set for fix GCMC group atoms
+E: All mol IDs should be set for fix gcmc group atoms
 
 The molecule flag is on, yet not all molecule ids in the fix group have
 been set to non-zero positive values by the user. This is an error since
-all atoms in the fix GCMC group are eligible for deletion, rotation, and
+all atoms in the fix gcmc group are eligible for deletion, rotation, and
 translation and therefore must have valid molecule ids.
 
-E: Fix GCMC molecule command requires that atoms have molecule attributes
+E: Fix gcmc molecule command requires that atoms have molecule attributes
 
 Should not choose the GCMC molecule feature if no molecules are being
 simulated. The general molecule flag is off, but GCMC's molecule flag
 is on.
 
-E: Fix GCMC incompatible with given pair_style
+E: Fix gcmc incompatible with given pair_style
 
 Some pair_styles do not provide single-atom energies, which are needed
-by fix GCMC.
+by fix gcmc.
 
-E: Cannot use fix GCMC in a 2d simulation
+E: Cannot use fix gcmc in a 2d simulation
 
-Fix GCMC is set up to run in 3d only. No 2d simulations with fix GCMC
+Fix gcmc is set up to run in 3d only. No 2d simulations with fix gcmc
 are allowed.
 
-E: Cannot use fix GCMC with a triclinic box
+E: Cannot use fix gcmc with a triclinic box
 
-Fix GCMC is set up to run with othogonal boxes only. Simulations with
-triclinic boxes and fix GCMC are not allowed.
+Fix gcmc is set up to run with othogonal boxes only. Simulations with
+triclinic boxes and fix gcmc are not allowed.
 
-E: Could not find fix group ID
+E: Could not find fix gcmc rotation group ID
 
-UNDOCUMENTED
+Self-explanatory.
 
-E: Illegal fix GCMC gas mass <= 0
+E: Illegal fix gcmc gas mass <= 0
 
 The computed mass of the designated gas molecule or atom type was less 
 than or equal to zero.
@@ -187,46 +188,33 @@ E: Cannot do GCMC on atoms in atom_modify first group
 This is a restriction due to the way atoms are organized in a list to
 enable the atom_modify first command.
 
-E: Fix GCMC ran out of available molecule IDs
+E: Fix gcmc ran out of available molecule IDs
 
 This is a code limitation where more than MAXSMALLINT (usually around
 two billion) molecules have been created. The code needs to be 
 modified to either allow molecule ID recycling or use bigger ints for
 molecule IDs. A work-around is to run shorter simulations.
 
-E: Fix GCMC could not find any atoms in the user-supplied template molecule
+E: Fix gcmc could not find any atoms in the user-supplied template molecule
 
-When using the molecule option with fix GCMC, the user must supply a 
+When using the molecule option with fix gcmc, the user must supply a 
 template molecule in the usual LAMMPS data file with its molecule id
-specified in the fix GCMC command as the "type" of the exchanged gas.
+specified in the fix gcmc command as the "type" of the exchanged gas.
 
-E: Fix GCMC incorrect number of atoms per molecule
+E: Fix gcmc incorrect number of atoms per molecule
 
 The number of atoms in each gas molecule was not computed correctly.
 
-U: Fix GCMC fix group should be all
-
-Fix GCMC will ignore the fix group specified by the user. User should
-set the fix group to "all". Fix GCMC will overwrite the user-specified
-fix group with a group consisting of all GCMC gas atoms.
-
-U: Fix GCMC region does not support a bounding box 
+E: Fix gcmc region cannot be dynamic 
  
-Not all regions represent bounded volumes.  You cannot use 
-such a region with the fix GCMC command. 
+Only static regions can be used with fix gcmc. 
  
-E: Fix GCMC region cannot be dynamic 
- 
-Only static regions can be used with fix GCMC. 
- 
-E: Fix GCMC region extends outside simulation box 
+E: Fix gcmc region extends outside simulation box 
  
 Self-explanatory. 
  
-E: Region ID for fix GCMC does not exist 
+E: Region ID for fix gcmc does not exist 
  
 Self-explanatory.
-
-
 
 */

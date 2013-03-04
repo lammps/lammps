@@ -40,21 +40,17 @@ FixRigidNPT::FixRigidNPT(LAMMPS *lmp, int narg, char **arg) :
   // error checks
 
   if (tstat_flag == 0 || pstat_flag == 0)
-    error->all(FLERR,"Did not set temp or press for fix rigid/npt");
+    error->all(FLERR,"Did not set temperature or pressure for fix rigid/npt");
   if (t_start <= 0.0 || t_stop <= 0.0)
     error->all(FLERR,"Target temperature for fix rigid/npt cannot be 0.0");
-  if (p_start[0] < 0.0 || p_start[1] < 0.0 || p_start[2] < 0.0 || 
-      p_stop[0] < 0.0 || p_stop[1] < 0.0 || p_stop[2] < 0.0)
-    error->all(FLERR,"Target pressure for fix rigid/npt cannot be 0.0");
-
   if (t_period <= 0.0) error->all(FLERR,"Fix rigid/npt period must be > 0.0");
 
   // thermostat chain parameters
 
-  if (t_chain < 1) error->all(FLERR,"Illegal fix_modify command");
-  if (t_iter < 1) error->all(FLERR,"Illegal fix_modify command");
+  if (t_chain < 1) error->all(FLERR,"Illegal fix rigid/npt command");
+  if (t_iter < 1) error->all(FLERR,"Illegal fix rigid/npt command");
   if (t_order != 3 && t_order != 5) 
-    error->all(FLERR,"Fix_modify order must be 3 or 5");
+    error->all(FLERR,"Fix rigid/npt temperature order must be 3 or 5");
 
   // convert input periods to frequency
 

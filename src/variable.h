@@ -138,7 +138,7 @@ originally an equal-style variable.
 
 E: File variable could not read value
 
-UNDOCUMENTED
+Check the file assigned to the variable.
 
 E: Variable name must be alphanumeric or underscore characters
 
@@ -226,7 +226,9 @@ Variable name is not recognized.
 
 E: Variable has circular dependency
 
-UNDOCUMENTED
+A circular dependency is when variable "a" in used by variable "b" and
+variable "b" is also used by varaible "a".  Circular dependencies with
+longer chains of dependence are also not allowed.
 
 E: Invalid variable evaluation in variable formula
 
@@ -257,7 +259,7 @@ Self-explanatory.
 
 E: Modulo 0 in variable formula
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Power by 0 in variable formula
 
@@ -346,11 +348,11 @@ Grmask is per-atom operation.
 
 E: Variable ID in variable formula does not exist
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Invalid variable in special function next
 
-UNDOCUMENTED
+Only file-style variables can be used with the next() function.
 
 E: Indexed per-atom vector in variable formula without atom map
 
@@ -382,6 +384,7 @@ Self-explanatory.
 
 E: Cannot open file variable file %s
 
-UNDOCUMENTED
+The specified file cannot be opened.  Check that the path and name are
+correct.
 
 */

@@ -21,16 +21,11 @@ AtomStyle(body,AtomVecBody)
 #define LMP_ATOM_VEC_BODY_H
 
 #include "atom_vec.h"
+#include "my_pool.h"
 
 namespace LAMMPS_NS {
 
 class AtomVecBody : public AtomVec {
-    friend class Comm;
-
-
-
-
-
  public:
   class Body *bptr;
 
@@ -38,6 +33,7 @@ class AtomVecBody : public AtomVec {
     double quat[4];
     double inertia[3];
     int ninteger,ndouble;
+    int iindex,dindex;
     int *ivalue;
     double *dvalue;
     int ilocal;
@@ -99,6 +95,9 @@ class AtomVecBody : public AtomVec {
   char **argcopy;        // for writing to restart file
   int copyflag;
   int intdoubleratio;    // sizeof(double) / sizeof(int)
+
+  MyPool<int> *icp;
+  MyPool<double> *dcp;
 
   void grow_bonus();
   void copy_bonus(int, int);

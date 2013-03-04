@@ -38,7 +38,8 @@ class FixRigidNH : public FixRigid {
   double boltz,nktv2p,mvv2e;          // boltzman constant, conversion factors
 
   int nf_t,nf_r;                      // trans/rot degrees of freedom
-  double onednft,onednfr;             // factors 1 + dimension/trans(rot) degrees of freedom
+  double onednft,onednfr;             // factors 1 + dimension/trans(rot) 
+                                      //   degrees of freedom
   double *w,*wdti1,*wdti2,*wdti4;     // Yoshida-Suzuki coefficients
   double *q_t,*q_r;                   // trans/rot thermostat masses
   double *eta_t,*eta_r;               // trans/rot thermostat positions
@@ -104,7 +105,7 @@ inline double FixRigidNH::maclaurin_series(double x)
 
 E: Fix rigid npt/nph period must be > 0.0
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Invalid fix rigid npt/nph command for a 2d simulation
 
@@ -132,21 +133,21 @@ E: Fix rigid npt/nph dilate group ID does not exist
 
 Self-explanatory.
 
-E: Temp ID for fix rigid npt/nph does not exist
+E: Temperature ID for fix rigid nvt/npt does not exist
 
-UNDOCUMENTED
+Self-explanatory
 
 E: fix rigid npt/nph does not yet allow triclinic box
 
-UNDOCUMENTED
+This is a current restriction of the command.
 
 E: Cannot use fix rigid npt/nph and fix deform on same component of stress tensor
 
 This would be changing the same box dimension twice.
 
-E: Press ID for fix rigid npt/nph does not exist
+E: Pressure ID for fix rigid npt/nph does not exist
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Illegal ... command
 
@@ -178,17 +179,5 @@ The compute ID for computing pressure does not exist.
 E: Fix_modify pressure ID does not compute pressure
 
 The compute ID assigned to the fix must compute pressure.
-
-U: Target temperature for fix rigid nvt/npt cannot be 0.0
-
-Self-explanatory.
-
-U: Temperature ID for fix rigid npt/nph does not exist
-
-Self-explanatory.
-
-U: Pressure ID for fix rigid npt/nph does not exist
-
-Self-explanatory.
 
 */

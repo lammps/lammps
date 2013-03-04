@@ -193,11 +193,11 @@ adjusted to meet this requirement.
 
 E: Too many MSM grid levels
 
-UNDOCUMENTED
+The max number of MSM grid levels is hardwired to 10.
 
 W: MSM mesh too small, increasing to 2 points in each direction)
 
-UNDOCUMENTED
+Self-explanatory.
 
 W: Adjusting Coulombic cutoff for MSM, new cutoff = %g
 
@@ -225,10 +225,5 @@ every 1 check yes".  Second, it may mean that an atom has moved far
 outside a processor's sub-domain or even the entire simulation box.
 This indicates bad physics, e.g. due to highly overlapping atoms, too
 large a timestep, etc.
-
-U: MSM mesh too small, increasing to 2 points in each direction
-
-The global MSM grid is too small, so the number of grid points has been
-increased
 
 */

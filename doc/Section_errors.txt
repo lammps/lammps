@@ -6739,12 +6739,6 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
-{Region ID for fix gcmc does not exist 
- 
-Self-explanatory.} :dt
-
- :dd
-
 {Region ID for fix heat does not exist} :dt
 
 Self-explanatory. :dd
@@ -8246,18 +8240,16 @@ to check your simulation geometry. :dd
 {Inconsistent image flags} :dt
 
 The image flags for a pair on bonded atoms appear to be inconsistent.
-Inconstent means that when the coordinates of the two atoms
-are unwrapped using the image flags, the two atoms are far apart.
+Inconsistent means that when the coordinates of the two atoms are
+unwrapped using the image flags, the two atoms are far apart.
 Specifically they are further apart than half a periodic box length.
 Or they are more than a box length apart in a non-periodic dimension.
-This is usually due to the initial data file not having correct
-image flags for the 2 atoms in a bond that straddles a periodic
-boundary.  They should be different by 1 in that case.
-
-This is a warning because inconsistent image flags will not cause
-problems for dynamics or most LAMMPS simulations.  However they can
-cause problems when such atoms are used with the fix rigid or
-replicate commands. :dd
+This is usually due to the initial data file not having correct image
+flags for the 2 atoms in a bond that straddles a periodic boundary.
+They should be different by 1 in that case.  This is a warning because
+inconsistent image flags will not cause problems for dynamics or most
+LAMMPS simulations.  However they can cause problems when such atoms
+are used with the fix rigid or replicate commands. :dd
 
 {KIM Model does not provide `energy'; Potential energy will be zero} :dt
 

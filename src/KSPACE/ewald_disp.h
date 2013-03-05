@@ -120,7 +120,7 @@ Must have periodic x,y dimensions and non-periodic z dimension to use
 E: KSpace style is incompatible with Pair style
 
 Setting a kspace style requires that a pair style with a long-range
-Coulombic and Dispersion component be selected.
+Coulombic or dispersion component be used.
 
 E: Unsupported mixing rule in kspace_style ewald/disp
 
@@ -138,7 +138,7 @@ charges or change options of the kspace solver/pair style.
 W: System is not charge neutral, net charge = %g
 
 The total charge on all atoms on the system is not 0.0, which
-is not valid for Ewald or PPPM.
+is not valid for the long-range Coulombic solvers.
 
 E: KSpace accuracy too large to estimate G vector
 

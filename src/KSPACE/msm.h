@@ -169,8 +169,7 @@ Single precision cannot be used with MSM.
 E: KSpace style is incompatible with Pair style
 
 Setting a kspace style requires that a pair style with a long-range
-Coulombic component be selected that is compatible with MSM.  Note
-that TIP4P is not (yet) supported by MSM.
+Coulombic or dispersion component be used.
 
 E: Cannot use kspace solver on system with no charge
 
@@ -179,7 +178,7 @@ No atoms in system have a non-zero charge.
 E: System is not charge neutral, net charge = %g
 
 The total charge on all atoms on the system is not 0.0, which
-is not valid for MSM.
+is not valid for the long-range Coulombic solvers.
 
 E: KSpace accuracy must be > 0
 
@@ -195,7 +194,7 @@ E: Too many MSM grid levels
 
 The max number of MSM grid levels is hardwired to 10.
 
-W: MSM mesh too small, increasing to 2 points in each direction)
+W: MSM mesh too small, increasing to 2 points in each direction
 
 Self-explanatory.
 

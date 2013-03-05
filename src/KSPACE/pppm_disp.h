@@ -383,7 +383,7 @@ This is a limitation of the PPPM implementation in LAMMPS.
 E: KSpace style is incompatible with Pair style
 
 Setting a kspace style requires that a pair style with a long-range
-Coulombic and Dispersion component be selected.
+Coulombic or dispersion component be used.
 
 E: Unsupported mixing rule in kspace_style pppm/disp for pair_style %s
 
@@ -411,7 +411,7 @@ options of the kspace solver/pair style.
 W: System is not charge neutral, net charge = %g
 
 The total charge on all atoms on the system is not 0.0, which
-is not valid for Ewald or PPPM coulombic solvers.
+is not valid for the long-range Coulombic solvers.
 
 E: Bond and angle potentials must be defined for TIP4P
 

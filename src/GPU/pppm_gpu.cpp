@@ -137,7 +137,7 @@ void PPPMGPU::init()
   // unsupported option
 
   if (differentiation_flag == 1)
-    error->all(FLERR,"Cannot do analytic differentiation with pppm/gpu");
+    error->all(FLERR,"Cannot (yet) do analytic differentiation with pppm/gpu");
 
   if (strcmp(update->integrate_style,"verlet/split") == 0) {
     kspace_split=true;

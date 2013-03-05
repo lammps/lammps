@@ -97,10 +97,10 @@ void BodyNparticle::data_body(int ibonus, int ninteger, int ndouble,
   // error in data file if any values are NULL
 
   for (int i = 0; i < ninteger; i++)
-    if (ifile[0] == NULL) 
+    if (ifile[i] == NULL) 
       error->one(FLERR,"Invalid format in Bodies section of data file");
   for (int i = 0; i < ndouble; i++)
-    if (dfile[0] == NULL)
+    if (dfile[i] == NULL)
       error->one(FLERR,"Invalid format in Bodies section of data file");
 
   // set ninteger, ndouble in bonus and allocate 2 vectors of ints, doubles  

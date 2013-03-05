@@ -79,8 +79,8 @@ E: Pair style buck/coul/long requires atom attribute q
 
 The atom style defined does not have these attributes.
 
-E: Pair style requres a KSpace style
+E: Pair style requires a KSpace style
 
-This pair style is designed for use with a KSpace style.
+No kspace style is defined.
 
 */

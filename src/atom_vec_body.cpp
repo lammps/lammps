@@ -1422,7 +1422,7 @@ void AtomVecBody::check(int flag)
   for (int i = 0; i < atom->nlocal; i++) {
     if (atom->body[i] >= 0 && atom->body[i] >= nlocal_bonus) {
       printf("Proc %d, step %ld, flag %d\n",comm->me,update->ntimestep,flag);
-      error->one(FLERR,"BAD AAA");
+      errorx->one(FLERR,"BAD AAA");
     }
   }
   for (int i = atom->nlocal; i < atom->nlocal+atom->nghost; i++) {
@@ -1430,32 +1430,32 @@ void AtomVecBody::check(int flag)
         (atom->body[i] < nlocal_bonus || 
          atom->body[i] >= nlocal_bonus+nghost_bonus)) {
       printf("Proc %d, step %ld, flag %d\n",comm->me,update->ntimestep,flag);
-      error->one(FLERR,"BAD BBB");
+      errorx->one(FLERR,"BAD BBB");
     }
   }
   for (int i = 0; i < nlocal_bonus; i++) {
     if (bonus[i].ilocal < 0 || bonus[i].ilocal >= atom->nlocal) {
       printf("Proc %d, step %ld, flag %d\n",comm->me,update->ntimestep,flag);
-      error->one(FLERR,"BAD CCC");
+      errorx->one(FLERR,"BAD CCC");
     }
   }
   for (int i = 0; i < nlocal_bonus; i++) {
     if (atom->body[bonus[i].ilocal] != i) {
       printf("Proc %d, step %ld, flag %d\n",comm->me,update->ntimestep,flag);
-      error->one(FLERR,"BAD DDD");
+      errorx->one(FLERR,"BAD DDD");
     }
   }
   for (int i = nlocal_bonus; i < nlocal_bonus+nghost_bonus; i++) {
     if (bonus[i].ilocal < atom->nlocal || 
         bonus[i].ilocal >= atom->nlocal+atom->nghost) {
       printf("Proc %d, step %ld, flag %d\n",comm->me,update->ntimestep,flag);
-      error->one(FLERR,"BAD EEE");
+      errorx->one(FLERR,"BAD EEE");
     }
   }
   for (int i = nlocal_bonus; i < nlocal_bonus+nghost_bonus; i++) {
     if (atom->body[bonus[i].ilocal] != i) {
       printf("Proc %d, step %ld, flag %d\n",comm->me,update->ntimestep,flag);
-      error->one(FLERR,"BAD FFF");
+      errorx->one(FLERR,"BAD FFF");
     }
   }
 }

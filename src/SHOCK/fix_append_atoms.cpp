@@ -127,7 +127,7 @@ FixAppendAtoms::FixAppendAtoms(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"basis") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix append/atoms command");
       if (domain->lattice == NULL)
-        error->all(FLERR,"Fis append/atoms requires a lattice be defined");
+        error->all(FLERR,"Fix append/atoms requires a lattice be defined");
       int ibasis = atoi(arg[iarg+1]);
       int itype = atoi(arg[iarg+2]);
       if (ibasis <= 0 || ibasis > nbasis || itype <= 0 || itype > atom->ntypes)

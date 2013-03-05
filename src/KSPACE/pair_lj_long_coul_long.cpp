@@ -84,11 +84,13 @@ void PairLJLongCoulLong::settings(int narg, char **arg)
   if (!comm->me && ewald_order & (1<<6)) 
     error->warning(FLERR,"Mixing forced for LJ coefficients");
   if (!comm->me && ewald_order == ((1<<1) | (1<<6)))
-    error->warning(FLERR,"Using largest cutoff for pair_style lj/long/coullong");
+    error->warning(FLERR,
+                   "Using largest cutoff for pair_style lj/long/coul/long");
   if (!*(++arg)) 
     error->all(FLERR,"Cutoffs missing in pair_style lj/long/coul/long");
   if (!((ewald_order^ewald_off) & (1<<1))) 
-    error->all(FLERR,"Coulomb cut not supported in pair_style lj/long/coul/long");
+    error->all(FLERR,
+               "Coulomb cut not supported in pair_style lj/long/coul/long");
   cut_lj_global = force->numeric(*(arg++));
   if (*arg && ((ewald_order & 0x42) == 0x42)) 
     error->all(FLERR,"Only one cutoff allowed when requesting all long");

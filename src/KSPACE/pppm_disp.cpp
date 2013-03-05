@@ -3009,9 +3009,12 @@ void PPPMDisp::set_n_pppm_6()
 
     count++;
 
-    // break loop if the accuracy has been reached or too many loops have been performed
+    // break loop if the accuracy has been reached 
+    // or too many loops have been performed
+
     if (df_kspace <= accuracy) break;
-    if (count > 500) error->all(FLERR, "Could not compute grid size for Dispersion!");
+    if (count > 500) 
+      error->all(FLERR,"Could not compute grid size for dispersion");
     h *= 0.95;
     h_x = h_y = h_z = h;
   }
@@ -3033,7 +3036,8 @@ double PPPMDisp::lj_rspace_error()
   double rgs = (cutoff_lj*g_ewald_6);
   rgs *= rgs;
   double rgs_inv = 1.0/rgs;
-  deltaf = csum/sqrt(natoms*xprd*yprd*zprd_slab*cutoff_lj)*sqrt(MY_PI)*pow(g_ewald_6, 5)*
+  deltaf = csum/sqrt(natoms*xprd*yprd*zprd_slab*cutoff_lj)*
+    sqrt(MY_PI)*pow(g_ewald_6,5)*
     exp(-rgs)*(1+rgs_inv*(3+rgs_inv*(6+rgs_inv*6)));
   return deltaf;
 }

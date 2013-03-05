@@ -60,7 +60,7 @@ class PairColloid : public Pair {
 
 E: Overlapping small/large in pair colloid
 
-This potential is inifinte when there is an overlap.
+This potential is infinite when there is an overlap.
 
 E: Overlapping large/large in pair colloid
 

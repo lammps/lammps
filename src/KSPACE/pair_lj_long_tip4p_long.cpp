@@ -452,9 +452,11 @@ void PairLJLongTIP4PLong::settings(int narg, char **arg)
   if (!comm->me && ewald_order&(1<<6)) 
     error->warning(FLERR,"Mixing forced for lj coefficients");
   if (!comm->me && ewald_order==((1<<1)|(1<<6))) 
-    error->warning(FLERR,"Using largest cutoff for pair_style lj/long/tip4p/long");
+    error->warning(FLERR,
+                   "Using largest cutoff for pair_style lj/long/tip4p/long");
   if (!((ewald_order^ewald_off)&(1<<1))) 
-    error->all(FLERR,"Coulombic cut not supported in pair_style lj/long/tip4p/long");
+    error->all(FLERR,
+               "Coulomb cut not supported in pair_style lj/long/tip4p/long");
   typeO = force->inumeric(arg[1]);
   typeH = force->inumeric(arg[2]);
   typeB = force->inumeric(arg[3]);

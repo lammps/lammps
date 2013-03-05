@@ -74,6 +74,6 @@ The atom style defined does not have this attribute.
 
 E: Pair style requires a KSpace style
 
-This pair style is designed for use with a KSpace style.
+No kspace style is defined.
 
 */

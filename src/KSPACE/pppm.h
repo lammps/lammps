@@ -232,7 +232,7 @@ This is a limitation of the PPPM implementation in LAMMPS.
 E: KSpace style is incompatible with Pair style
 
 Setting a kspace style requires that a pair style with a long-range
-Coulombic component be selected.
+Coulombic or dispersion component be used.
 
 E: Bond and angle potentials must be defined for TIP4P
 
@@ -254,7 +254,7 @@ No atoms in system have a non-zero charge.
 W: System is not charge neutral, net charge = %g
 
 The total charge on all atoms on the system is not 0.0, which
-is not valid for Ewald or PPPM.
+is not valid for the long-range Coulombic solvers.
 
 W: Reducing PPPM order b/c stencil extends beyond nearest neighbor processor
 

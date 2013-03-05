@@ -156,6 +156,10 @@ E: Invalid variable name
 
 Variable name used in an input script line is invalid.
 
+E: Invalid immediate variable
+
+Syntax of immediate value is incorrect.
+
 E: Substitution for illegal variable
 
 Input script line contained a variable that could not be substituted

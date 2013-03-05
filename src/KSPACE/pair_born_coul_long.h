@@ -80,6 +80,6 @@ An atom style that defines this attribute must be used.
 
 E: Pair style requires a KSpace style
 
-This pair style is designed for use with a KSpace style.
+No kspace style is defined.
 
 */

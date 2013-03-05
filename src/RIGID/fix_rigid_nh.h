@@ -133,13 +133,13 @@ E: Fix rigid npt/nph dilate group ID does not exist
 
 Self-explanatory.
 
-E: Temperature ID for fix rigid nvt/npt does not exist
+E: Temperature ID for fix rigid nvt/npt/nph does not exist
 
-Self-explanatory
+Self-explanatory.
 
-E: fix rigid npt/nph does not yet allow triclinic box
+E: Fix rigid npt/nph does not yet allow triclinic box
 
-This is a current restriction of the command.
+Self-explanatory.
 
 E: Cannot use fix rigid npt/nph and fix deform on same component of stress tensor
 

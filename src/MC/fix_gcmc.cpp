@@ -100,7 +100,8 @@ FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
   
   // error checks on region and its extent being inside simulation box
 
-  region_xlo = region_xhi = region_ylo = region_yhi = region_zlo = region_zhi = 0.0;
+  region_xlo = region_xhi = region_ylo = region_yhi = 
+    region_zlo = region_zhi = 0.0;
   if (regionflag) {
     if (domain->regions[iregion]->bboxflag == 0)
       error->all(FLERR,"Fix gcmc region does not support a bounding box");

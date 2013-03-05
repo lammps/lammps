@@ -205,14 +205,6 @@ E: Fix gcmc incorrect number of atoms per molecule
 
 The number of atoms in each gas molecule was not computed correctly.
 
-E: Fix gcmc region cannot be dynamic 
- 
-Only static regions can be used with fix gcmc. 
- 
-E: Fix gcmc region extends outside simulation box 
- 
-Self-explanatory. 
- 
 E: Region ID for fix gcmc does not exist 
  
 Self-explanatory.

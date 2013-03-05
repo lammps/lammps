@@ -162,11 +162,8 @@ No pair style is defined.
 
 E: KSpace style is incompatible with Pair style
 
-The Ewald and PPPM solvers work with pair styles with a "coul/long" in
-their name.  The MSM solver with pair styles with a "coul/msm" in
-their name, The dispersion solvers with pair styles with a "lj/long"
-in the name.  The TIP4P solvers with pair styles with a "tip4p" in the
-name.
+Setting a kspace style requires that a pair style with a long-range
+Coulombic or dispersion component be used.
 
 W: For better accuracy use 'pair_modify table 0'
 

@@ -93,7 +93,7 @@ TIP4P potentials assume bond lengths in water are constrained
 by a fix shake command.
 
 E: Must use an angle style with TIP4P potential
-d
+
 TIP4P potentials assume angles in water are constrained by a fix shake
 command.
 

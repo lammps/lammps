@@ -47,16 +47,13 @@ class PairBornCoulWolfGPU : public PairBornCoulWolf {
 
 /* ERROR/WARNING messages:
 
-E: Out of memory on GPGPU
+E: Insufficient memory on accelerator
 
-UNDOCUMENTED
+There is insufficient memory on one of the devices specified for the gpu
+package
 
 E: Cannot use newton pair with born/coul/wolf/gpu pair style
 
-UNDOCUMENTED
-
-U: Pair style born/coul/wolf/gpu requires atom attribute q
-
-The atom style defined does not have this attribute.
+Self-explanatory.
 
 */

@@ -158,11 +158,12 @@ class KSpace : protected Pointers {
 
 E: KSpace solver requires a pair style
 
-UNDOCUMENTED
+No pair style is defined.
 
 E: KSpace style is incompatible with Pair style
 
-UNDOCUMENTED
+Setting a kspace style requires that a pair style with a long-range
+Coulombic or dispersion component be used.
 
 W: For better accuracy use 'pair_modify table 0'
 

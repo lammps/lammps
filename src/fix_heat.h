@@ -67,11 +67,11 @@ Self-explanatory.
 
 E: Variable name for fix heat does not exist
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Variable for fix heat is invalid style
 
-UNDOCUMENTED
+Only equal-style or atom-style variables can be used.
 
 E: Fix heat group has no atoms
 
@@ -84,6 +84,7 @@ heat to be invalid.
 
 E: Fix heat kinetic energy of an atom went negative
 
-UNDOCUMENTED
+This will cause the velocity rescaling about to be performed by fix
+heat to be invalid.
 
 */

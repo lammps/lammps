@@ -7,7 +7,7 @@ atom_style	charge
 read_data	data.rdx
 
 pair_style      reax/c control.reax_c.rdx
-pair_coeff      * * ffield.reax 1 2 3 4
+pair_coeff      * * ffield.reax C H O N
 
 compute reax all pair reax/c
 

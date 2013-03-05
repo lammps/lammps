@@ -7,7 +7,7 @@ atom_style	charge
 read_data	data.tatb
 
 pair_style      reax/c control.reax_c.tatb
-pair_coeff      * * ffield.reax 1 2 3 4
+pair_coeff      * * ffield.reax C H O N
 
 compute reax all pair reax/c
 
@@ -31,7 +31,7 @@ neigh_modify	delay 0 every 5 check no
 
 fix		1 all nve
 fix             2 all qeq/reax 1 0.0 10.0 1.0e-6 reax/c
-#fix   		3 all reax/c/bonds 1 3 5 bonds.reaxc
+fix   		4 all reax/c/bonds 5 bonds.reaxc
 
 thermo		5
 thermo_style 	custom step temp epair etotal press &

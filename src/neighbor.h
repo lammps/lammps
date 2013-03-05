@@ -331,7 +331,13 @@ Atom types must range from 1 to Ntypes inclusive.
 
 W: Neighbor exclusions used with KSpace solver may give inconsistent Coulombic energies
 
-UNDOCUMENTED
+This is because excluding specific pair interactions also excludes
+them from long-range interactions which may not be the desired effect.
+The special_bonds command handles this consistently by insuring
+excluded (or weighted) 1-2, 1-3, 1-4 interactions are treated
+consistently by both the short-range pair style and the long-range
+solver.  This is not done for exclusions of charged atom pairs via the
+neigh_modify exclude command.
 
 E: Neighbor include group not allowed with ghost neighbors
 

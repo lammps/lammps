@@ -156,6 +156,10 @@ E: Invalid variable name
 
 Variable name used in an input script line is invalid.
 
+E: Invalid immediate variable
+
+Syntax of immediate value is incorrect.
+
 E: Substitution for illegal variable
 
 Input script line contained a variable that could not be substituted
@@ -220,7 +224,8 @@ or create_box command.
 
 E: Box command after simulation box is defined
 
-UNDOCUMENTED
+The box command cannot be used after a read_data, read_restart, or
+create_box command.
 
 E: Dihedral_coeff command before simulation box is defined
 
@@ -323,13 +328,5 @@ E: Units command after simulation box is defined
 
 The units command cannot be used after a read_data, read_restart, or
 create_box command.
-
-U: Input line too long: %s
-
-This is a hard (very large) limit defined in the input.cpp file.
-
-U: Input line too long after variable substitution
-
-This is a hard (very large) limit defined in the input.cpp file.
 
 */

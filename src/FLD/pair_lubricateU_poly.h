@@ -78,6 +78,6 @@ One of the particles has radius 0.0.
 
 E: Cannot use multiple fix wall commands with pair lubricateU
 
-UNDOCUMENTED
+Self-explanatory.
 
 */

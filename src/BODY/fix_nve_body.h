@@ -44,10 +44,10 @@ class FixNVEBody : public FixNVE {
 
 E: Fix nve/body requires atom style body
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix nve/body requires bodies
 
-UNDOCUMENTED
+This fix can only be used for particles that are bodies.
 
 */

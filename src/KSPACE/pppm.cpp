@@ -909,7 +909,7 @@ void PPPM::set_grid_global()
         // too many loops have been performed
 
         if (df_kspace <= accuracy) break;
-        if (count > 500) error->all(FLERR, "Could not compute grid size!");
+        if (count > 500) error->all(FLERR, "Could not compute grid size");
         h *= 0.95;
         h_x = h_y = h_z = h;
       }

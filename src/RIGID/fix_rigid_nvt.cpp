@@ -37,14 +37,14 @@ FixRigidNVT::FixRigidNVT(LAMMPS *lmp, int narg, char **arg) :
   // convert input period to frequency
 
   if (tstat_flag == 0)
-    error->all(FLERR,"Did not set temp for fix rigid/nvt");
+    error->all(FLERR,"Did not set temperature for fix rigid/nvt");
   if (t_start < 0.0 || t_stop <= 0.0)
     error->all(FLERR,"Target temperature for fix rigid/nvt cannot be 0.0");
   if (t_period <= 0.0) error->all(FLERR,"Fix rigid/nvt period must be > 0.0");
   t_freq = 1.0 / t_period;
 
-  if (t_chain < 1) error->all(FLERR,"Illegal fix_modify command");
-  if (t_iter < 1) error->all(FLERR,"Illegal fix_modify command");
+  if (t_chain < 1) error->all(FLERR,"Illegal fix rigid/nvt command");
+  if (t_iter < 1) error->all(FLERR,"Illegal fix rigid/nvt  command");
   if (t_order != 3 && t_order != 5) 
-    error->all(FLERR,"Fix_modify order must be 3 or 5"); 
+    error->all(FLERR,"Fix rigid/nvt temperature order must be 3 or 5"); 
 }

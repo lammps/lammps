@@ -68,14 +68,14 @@ create_box command has been used.
 
 E: Variable evaluation in region gave bad value
 
-UNDOCUMENTED
+Variable returned a radius < 0.0.
 
 E: Variable name for region cylinder does not exist
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Variable for region cylinder is invalid style
 
-UNDOCUMENTED
+Only equal-style varaibles are allowed.
 
 */

@@ -63,18 +63,20 @@ class PairBody : public Pair {
 
 E: Illegal ... command
 
-UNDOCUMENTED
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
 
 E: Incorrect args for pair coefficients
 
-UNDOCUMENTED
+Self-explanatory.  Check the input script or data file.
 
 E: Pair body requires atom style body
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Pair body requires body style nparticle
 
-UNDOCUMENTED
+This pair style is specific to the nparticle body style.
 
 */

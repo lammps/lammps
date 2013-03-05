@@ -114,7 +114,7 @@ set to lattice.
 
 E: Zero length rotation vector with fix move
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Variable name for fix move does not exist
 
@@ -131,9 +131,5 @@ Atoms can not be added afterwards to this fix option.
 E: Resetting timestep is not allowed with fix move
 
 This is because fix move is moving atoms based on elapsed time.
-
-U: Fix move cannot have 0 length rotation vector
-
-Self-explanatory.
 
 */

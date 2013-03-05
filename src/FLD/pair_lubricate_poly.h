@@ -61,7 +61,7 @@ Must use remap v option with fix deform with this pair style.
 
 E: Cannot use multiple fix wall commands with pair lubricate/poly
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Using pair lubricate/poly with inconsistent fix deform remap option
 

@@ -158,7 +158,7 @@ void EwaldDisp::init()
       error->warning(FLERR,str);
   }
 
-  //set accuracy (force units) from accuracy_relative or accuracy_absolute
+  // set accuracy (force units) from accuracy_relative or accuracy_absolute
 
   if (accuracy_absolute >= 0.0) accuracy = accuracy_absolute;
   else accuracy = accuracy_relative * two_charge_force;
@@ -200,7 +200,6 @@ void EwaldDisp::init()
   peratom_allocate_flag = 0;
 }
 
-
 /* ----------------------------------------------------------------------
    adjust EwaldDisp coeffs, called initially and whenever volume has changed
 ------------------------------------------------------------------------- */
@@ -212,9 +211,9 @@ void EwaldDisp::setup()
   shape_scalar_mult(unit, 2.0*MY_PI);
   unit[2] /= slab_volfactor;
 
-  //int nbox_old = nbox, nkvec_old = nkvec;
+  // int nbox_old = nbox, nkvec_old = nkvec;
 
-  if (accuracy>=1) {
+  if (accuracy >= 1) {
     nbox = 0;
     error->all(FLERR,"KSpace accuracy too low");
   }
@@ -457,7 +456,7 @@ void EwaldDisp::init_coeffs()
 
     if (!(epsilon&&sigma))
       error->all(
-          FLERR,"epsilon or sigma reference not set by pair style in ewald/n");
+          FLERR,"Epsilon or sigma reference not set by pair style in ewald/n");
     for (int i=0; i<=n; ++i) {
       eps_i = sqrt(epsilon[i][i]);
       sigma_i = sigma[i][i];

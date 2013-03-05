@@ -54,7 +54,7 @@ package
 
 E: Pair yukawa/colloid/gpu requires atom style sphere
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Cannot use newton pair with yukawa/colloid/gpu pair style
 

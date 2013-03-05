@@ -66,7 +66,7 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Fix append/atoms requires a lattice be defined
 
-UNDOCUMENTED
+Use the lattice command for this purpose.
 
 E: Only zhi currently implemented for fix append/atoms
 
@@ -81,10 +81,6 @@ E: Bad fix ID in fix append/atoms command
 
 The value of the fix_id for keyword spatial must start with the suffix
 f_.
-
-E: Must define lattice to append/atoms
-
-A lattice must be defined before using this fix.
 
 E: Cannot use append/atoms in periodic dimension
 

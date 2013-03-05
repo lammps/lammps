@@ -98,6 +98,6 @@ Must use remap v option with fix deform with this pair style.
 
 E: Cannot use multiple fix wall commands with pair lubricate
 
-UNDOCUMENTED
+Self-explanatory.
 
 */

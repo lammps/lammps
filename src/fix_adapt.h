@@ -102,10 +102,6 @@ The atom style being used does not specify an atom diameter.
 
 E: Fix adapt requires atom attribute charge
 
-UNDOCUMENTED
-
-U: Fix adapt requires atom attribute charge 
-
 The atom style being used does not specify an atom charge.
 
 */

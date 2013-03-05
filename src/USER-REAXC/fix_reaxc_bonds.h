@@ -37,15 +37,13 @@ class FixReaxCBonds : public Fix {
 
  private:
   int me, nprocs, nmax, ntypes, maxsize;
-  int nrepeat, irepeat, repeat, nfreq;
-  int *numneigh, **neighid, **tmpid;
-  double *sbo, *nlp, *avq, **abo, **tmpabo;
+  int *numneigh, **neighid;
+  double **abo;
   FILE *fp;
 
   void allocate();
   void destroy();
   void Output_ReaxC_Bonds(bigint, FILE *);
-  void GatherBond(struct _reax_system*, struct _reax_list*);
   void FindBond(struct _reax_system*, struct _reax_list*, int &);
   void PassBuffer(struct _reax_system*, double *, int &);
   void RecvBuffer(struct _reax_system*, double *, int, int, int, int);

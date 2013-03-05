@@ -150,8 +150,4 @@ E: Cannot use -cuda on without USER-CUDA installed
 The USER-CUDA package must be installed via "make yes-user-cuda"
 before LAMMPS is built.
 
-U: 64-bit atom IDs are not yet supported
-
-See description of this data type in src/lmptype.h.
-
 */

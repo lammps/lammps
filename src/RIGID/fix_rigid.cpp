@@ -425,7 +425,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
         int idilate = group->find(id_dilate);
         if (idilate == -1)
           error->all(FLERR,
-                     "Fix rigid nvt/npt/nph dilate group ID does not exist");
+                     "Fix rigid npt/nph dilate group ID does not exist");
       }
       iarg += 2;
 

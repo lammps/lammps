@@ -730,6 +730,7 @@ potentials.  Click on the style itself for a full description:
 "lj/cut/coul/long"_pair_lj.html,
 "lj/cut/coul/msm"_pair_lj.html,
 "lj/long/coul/long"_pair_lj_long.html,
+"lj/cut/tip4p/cut"_pair_lj.html,
 "lj/cut/tip4p/long"_pair_lj.html,
 "lj/long/tip4p/long"_pair_lj_long.html,
 "lj/expand"_pair_lj_expand.html,

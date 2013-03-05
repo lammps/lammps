@@ -96,8 +96,8 @@ class MyPool {
   // free all allocated memory
 
   ~MyPool() {
-    free(freehead);
-    free(chunksize);
+    delete [] freehead;
+    delete [] chunksize;
     if (npage) {
       free(freelist);
       for (int i = 0; i < npage; i++) free(pages[i]);

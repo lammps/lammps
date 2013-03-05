@@ -817,6 +817,15 @@ int FixRigidSmall::dof(int tgroup)
 {
   int i,j;
 
+  // cannot count DOF correctly unless setup_bodies() has been called
+
+  if (firstflag) {
+    if (comm->me == 0) 
+      error->warning(FLERR,"Cannot count rigid body degrees-of-freedom "
+                     "before bodies are fully initialized");
+    return 0;
+  }
+
   int tgroupbit = group->bitmask[tgroup];
 
   // counts = 3 values per rigid body I own

@@ -1137,6 +1137,15 @@ void FixRigid::pre_neighbor()
 
 int FixRigid::dof(int tgroup)
 {
+  // cannot count DOF correctly unless setup_bodies() has been called
+
+  if (firstflag) {
+    if (comm->me == 0) 
+      error->warning(FLERR,"Counting rigid body degrees-of-freedom "
+                     "before bodies are fully initialized");
+    return 0;
+  }
+
   int tgroupbit = group->bitmask[tgroup];
 
   // nall = # of point particles in each rigid body

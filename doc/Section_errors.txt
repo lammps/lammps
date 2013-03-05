@@ -175,10 +175,6 @@ An inconsistency was detected when computing the number of 1-4
 neighbors for each atom.  This likely means something is wrong with
 the bond topologies you have defined. :dd
 
-{64-bit atom IDs are not yet supported} :dt
-
-See description of this data type in src/lmptype.h. :dd
-
 {Accelerator sharing is not currently supported on system} :dt
 
 Multiple MPI processes cannot share the accelerator on your
@@ -211,6 +207,13 @@ For atom styles that define masses for each atom type, all masses must
 be set in the data file or by the mass command before running a
 simulation.  They must also be set before using the velocity
 command. :dd
+
+{All mol IDs should be set for fix gcmc group atoms} :dt
+
+The molecule flag is on, yet not all molecule ids in the fix group have
+been set to non-zero positive values by the user. This is an error since
+all atoms in the fix gcmc group are eligible for deletion, rotation, and
+translation and therefore must have valid molecule ids. :dd
 
 {All pair coeffs are not set} :dt
 
@@ -261,6 +264,12 @@ from a restart file is not recognized. :dd
 No angle coefficients have been assigned in the data file or via the
 angle_coeff command. :dd
 
+{Angle extent > half of periodic box length} :dt
+
+This error was detected by the neigh_modify check yes setting.  It is
+an error because the angle atoms are so far apart it is ambiguous how
+it should be defined. :dd
+
 {Angle potential must be defined for SHAKE} :dt
 
 When shaking angles, an angle_style potential must be used. :dd
@@ -273,7 +282,7 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
-{Angle style hybrid cannot use same pair style twice} :dt
+{Angle style hybrid cannot use same angle style twice} :dt
 
 Self-explanatory. :dd
 
@@ -330,6 +339,10 @@ Argument of arccos() must be between -1 and 1. :dd
 {Arcsin of invalid value in variable formula} :dt
 
 Argument of arcsin() must be between -1 and 1. :dd
+
+{Assigning body parameters to non-body atom} :dt
+
+Self-explanatory. :dd
 
 {Assigning ellipsoid parameters to non-ellipsoid atom} :dt
 
@@ -434,7 +447,15 @@ be computed. :dd
 
 Specified angle type is not valid. :dd
 
+{Bad TIP4P angle type for PPPMDisp/TIP4P} :dt
+
+Specified angle type is not valid. :dd
+
 {Bad TIP4P bond type for PPPM/TIP4P} :dt
+
+Specified bond type is not valid. :dd
+
+{Bad TIP4P bond type for PPPMDisp/TIP4P} :dt
 
 Specified bond type is not valid. :dd
 
@@ -541,6 +562,12 @@ The delete_bonds command cannot find one or more atoms in a particular
 bond on a particular processor.  The pairwise cutoff is too short or
 the atoms are too far apart to make a valid bond. :dd
 
+{Bond atom missing in image check} :dt
+
+The 2nd atom in a particular bond is missing on this processor.
+Typically this is because the pairwise cutoff is set too short or the
+bond has blown apart and an atom is too far away. :dd
+
 {Bond atom missing in set command} :dt
 
 The set command cannot find one or more atoms in a particular bond on
@@ -549,10 +576,9 @@ are too far apart to make a valid bond. :dd
 
 {Bond atoms %d %d missing on proc %d at step %ld} :dt
 
-One or both of 2 atoms needed to compute a particular bond are
-missing on this processor.  Typically this is because the pairwise
-cutoff is set too short or the bond has blown apart and an atom is
-too far away. :dd
+The 2nd atom needed to compute a particular bond is missing on this
+processor.  Typically this is because the pairwise cutoff is set too
+short or the bond has blown apart and an atom is too far away. :dd
 
 {Bond coeff for hybrid has invalid style} :dt
 
@@ -564,6 +590,12 @@ file is not recognized. :dd
 
 No bond coefficients have been assigned in the data file or via the
 bond_coeff command. :dd
+
+{Bond extent > half of periodic box length} :dt
+
+This error was detected by the neigh_modify check yes setting.  It is
+an error because the bond atoms are so far apart it is ambiguous how
+it should be defined. :dd
 
 {Bond potential must be defined for SHAKE} :dt
 
@@ -577,7 +609,7 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
-{Bond style hybrid cannot use same pair style twice} :dt
+{Bond style hybrid cannot use same bond style twice} :dt
 
 Self-explanatory. :dd
 
@@ -597,15 +629,6 @@ List of bond table parameters must include N setting. :dd
 {Bond table values are not increasing} :dt
 
 The values in the tabulated file must be monotonically increasing. :dd
-
-{Bond/angle/dihedral extent > half of periodic box length} :dt
-
-This is a restriction because LAMMPS can be confused about which image
-of an atom in the bonded interaction is the correct one to use.
-"Extent" in this context means the maximum end-to-end length of the
-bond/angle/dihedral.  LAMMPS computes this by taking the maximum bond
-length, multiplying by the number of bonds in the interaction (e.g. 3
-for a dihedral) and adding a small amount of stretch. :dd
 
 {Bond_coeff command before bond_style is defined} :dt
 
@@ -649,6 +672,16 @@ or create_box command. :dd
 The box boundaries specified in the read_data file are invalid.  The
 lo value must be less than the hi value for all 3 dimensions. :dd
 
+{Box command after simulation box is defined} :dt
+
+The box command cannot be used after a read_data, read_restart, or
+create_box command. :dd
+
+{CPU neighbor lists must be used for ellipsoid/sphere mix} :dt
+
+When using Gay-Berne or RE-squared pair styles with both ellipsoidal and
+spherical particles, the neighbor list must be built on the CPU :dd
+
 {Can not specify Pxy/Pxz/Pyz in fix box/relax with non-triclinic box} :dt
 
 Only triclinic boxes can be used with off-diagonal pressure components.
@@ -675,6 +708,10 @@ This is current restriction for NEB as implemented in LAMMPS. :dd
 
 This is current restriction for NEB as implemented in LAMMPS. :dd
 
+{Cannot (yet) do analytic differentiation with pppm/gpu} :dt
+
+This is a current restriction of this command. :dd
+
 {Cannot (yet) use K-space slab correction with compute group/group} :dt
 
 This option is not yet supported. :dd
@@ -683,9 +720,25 @@ This option is not yet supported. :dd
 
 This option is not yet supported. :dd
 
+{Cannot (yet) use MSM with 2d simulation} :dt
+
+This feature is not yet supported. :dd
+
+{Cannot (yet) use MSM with triclinic box} :dt
+
+This feature is not yet supported. :dd
+
 {Cannot (yet) use PPPM with triclinic box} :dt
 
 This feature is not yet supported. :dd
+
+{Cannot (yet) use PPPMDisp with triclinic box} :dt
+
+This feature is not yet supported. :dd
+
+{Cannot (yet) use single precision with MSM (remove -DFFT_SINGLE from Makefile and recompile)} :dt
+
+Single precision cannot be used with MSM. :dd
 
 {Cannot add atoms to fix move variable} :dt
 
@@ -756,10 +809,11 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
-{Cannot compute PPPM G} :dt
+{Cannot compute initial g_ewald_disp} :dt
 
-LAMMPS failed to compute a valid approximation for the PPPM g_ewald
-factor that partitions the computation between real space and k-space. :dd
+LAMMPS failed to compute an initial guess for the PPPM_disp g_ewald_6
+factor that partitions the computation between real space and k-space
+for Disptersion interactions. :dd
 
 {Cannot create an atom map unless atoms have IDs} :dt
 
@@ -790,6 +844,10 @@ or create_box command. :dd
 {Cannot currently use pair reax with pair hybrid} :dt
 
 This is not yet supported. :dd
+
+{Cannot currently use pppm/gpu with fix balance.} :dt
+
+Self-explanatory. :dd
 
 {Cannot delete group all} :dt
 
@@ -916,6 +974,11 @@ The output file for the dump command cannot be opened.  Check that the
 path and name are correct. :dd
 
 {Cannot open file %s} :dt
+
+The specified file cannot be opened.  Check that the path and name are
+correct. :dd
+
+{Cannot open file variable file %s} :dt
 
 The specified file cannot be opened.  Check that the path and name are
 correct. :dd
@@ -1072,10 +1135,6 @@ are defined. :dd
 You cannot reset the timestep when a fix that keeps track of elapsed
 time is in place. :dd
 
-{Cannot restart fix rigid/nvt with different # of chains} :dt
-
-This is because the restart file contains per-chain info. :dd
-
 {Cannot run 2d simulation with nonperiodic Z dimension} :dt
 
 Use the boundary command to make the z dimension periodic in order to
@@ -1117,6 +1176,10 @@ Self-explanatory. :dd
 In the rRESPA integrator, you must define both a inner and outer
 setting in order to use a middle setting. :dd
 
+{Cannot set temperature for fix rigid/nph} :dt
+
+The temp keyword cannot be specified. :dd
+
 {Cannot set theta for atom that is not a line} :dt
 
 Self-explanatory. :dd
@@ -1151,6 +1214,15 @@ The kspace style ewald cannot be used in 2d simulations.  You can use
 
 This feature is not yet supported. :dd
 
+{Cannot use Ewald/disp solver on system with no charge or LJ particles} :dt
+
+No atoms in system have a non-zero charge or are LJ particles.  Change
+charges or change options of the kspace solver/pair style. :dd
+
+{Cannot use EwaldDisp with 2d simulation} :dt
+
+This is a current restriction of this command. :dd
+
 {Cannot use NEB unless atom map exists} :dt
 
 Use the atom_modify command to create an atom map. :dd
@@ -1167,6 +1239,11 @@ This is current restriction for NEB implemented in LAMMPS. :dd
 
 The kspace style pppm cannot be used in 2d simulations.  You can use
 2d PPPM in a 3d simulation; see the kspace_modify command. :dd
+
+{Cannot use PPPMDisp with 2d simulation} :dt
+
+The kspace style pppm/disp cannot be used in 2d simulations.  You can
+use 2d PPPM in a 3d simulation; see the kspace_modify command. :dd
 
 {Cannot use PRD with a time-dependent fix defined} :dt
 
@@ -1264,6 +1341,18 @@ then the y dimension must be periodic. :dd
 When specifying a diagonal pressure component, the dimension must be
 periodic. :dd
 
+{Cannot use fix box/relax with both relaxation and scaling on a tilt factor} :dt
+
+When specifying scaling on a tilt factor component, that component can not
+also be controlled by the barostat. E.g. if scalexy yes is specified and
+also keyword tri or xy, this is wrong. :dd
+
+{Cannot use fix box/relax with tilt factor scaling on a 2nd non-periodic dimension} :dt
+
+When specifying scaling on a tilt factor component, the 2nd of the two
+dimensions must be periodic.  E.g. if the xy component is specified,
+then the y dimension must be periodic. :dd
+
 {Cannot use fix deform on a shrink-wrapped boundary} :dt
 
 The x, y, z options cannot be applied to shrink-wrapped
@@ -1281,6 +1370,16 @@ The trate style alters the current strain. :dd
 {Cannot use fix enforce2d with 3d simulation} :dt
 
 Self-explanatory. :dd
+
+{Cannot use fix gcmc in a 2d simulation} :dt
+
+Fix gcmc is set up to run in 3d only. No 2d simulations with fix gcmc
+are allowed. :dd
+
+{Cannot use fix gcmc with a triclinic box} :dt
+
+Fix gcmc is set up to run with othogonal boxes only. Simulations with
+triclinic boxes and fix gcmc are not allowed. :dd
 
 {Cannot use fix msst without per-type mass defined} :dt
 
@@ -1313,15 +1412,15 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
-{Cannot use fix nvt/npt/nph with xy dynamics when y is non-periodic dimension} :dt
+{Cannot use fix nvt/npt/nph with xy scaling when y is non-periodic dimension} :dt
 
 The 2nd dimension in the barostatted tilt factor must be periodic. :dd
 
-{Cannot use fix nvt/npt/nph with xz dynamics when z is non-periodic dimension} :dt
+{Cannot use fix nvt/npt/nph with xz scaling when z is non-periodic dimension} :dt
 
 The 2nd dimension in the barostatted tilt factor must be periodic. :dd
 
-{Cannot use fix nvt/npt/nph with yz dynamics when z is non-periodic dimension} :dt
+{Cannot use fix nvt/npt/nph with yz scaling when z is non-periodic dimension} :dt
 
 The 2nd dimension in the barostatted tilt factor must be periodic. :dd
 
@@ -1345,6 +1444,15 @@ Self-explanatory. :dd
 {Cannot use fix reax/bonds without pair_style reax} :dt
 
 Self-explantory. :dd
+
+{Cannot use fix rigid npt/nph and fix deform on same component of stress tensor} :dt
+
+This would be changing the same box dimension twice. :dd
+
+{Cannot use fix rigid npt/nph on a non-periodic dimension} :dt
+
+When specifying a diagonal pressure component, the dimension must be
+periodic. :dd
 
 {Cannot use fix shake with non-molecular system} :dt
 
@@ -1404,9 +1512,30 @@ in LAMMPS. :dd
 
 No atoms in system have a non-zero charge. :dd
 
+{Cannot use kspace solver with selected options on system with no charge} :dt
+
+No atoms in system have a non-zero charge. Change charges or change 
+options of the kspace solver/pair style. :dd
+
 {Cannot use lines with fix srd unless overlap is set} :dt
 
 This is because line segements are connected to each other. :dd
+
+{Cannot use multiple fix wall commands with pair brownian} :dt
+
+Self-explanatory. :dd
+
+{Cannot use multiple fix wall commands with pair lubricate} :dt
+
+Self-explanatory. :dd
+
+{Cannot use multiple fix wall commands with pair lubricate/poly} :dt
+
+Self-explanatory. :dd
+
+{Cannot use multiple fix wall commands with pair lubricateU} :dt
+
+Self-explanatory. :dd
 
 {Cannot use neigh_modify exclude with GPU neighbor builds} :dt
 
@@ -1418,6 +1547,18 @@ in LAMMPS. :dd
 Too many neighbor bins will be created.  This typically happens when
 the simulation box is very small in some dimension, compared to the
 neighbor cutoff.  Use the "nsq" style instead of "bin" style. :dd
+
+{Cannot use newton pair with born/coul/long/gpu pair style} :dt
+
+Self-explanatory. :dd
+
+{Cannot use newton pair with born/coul/wolf/gpu pair style} :dt
+
+Self-explanatory. :dd
+
+{Cannot use newton pair with born/gpu pair style} :dt
+
+Self-explantory. :dd
 
 {Cannot use newton pair with buck/coul/cut/gpu pair style} :dt
 
@@ -1431,11 +1572,27 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
+{Cannot use newton pair with colloid/gpu pair style} :dt
+
+Self-explanatory. :dd
+
+{Cannot use newton pair with coul/dsf/gpu pair style} :dt
+
+Self-explanatory. :dd
+
 {Cannot use newton pair with coul/long/gpu pair style} :dt
 
 Self-explanatory. :dd
 
+{Cannot use newton pair with dipole/cut/gpu pair style} :dt
+
+Self-explanatory. :dd
+
 {Cannot use newton pair with eam/gpu pair style} :dt
+
+Self-explanatory. :dd
+
+{Cannot use newton pair with gauss/gpu pair style} :dt
 
 Self-explanatory. :dd
 
@@ -1456,6 +1613,14 @@ Self-explanatory. :dd
 Self-explanatory. :dd
 
 {Cannot use newton pair with lj/cut/coul/cut/gpu pair style} :dt
+
+Self-explanatory. :dd
+
+{Cannot use newton pair with lj/cut/coul/debye/gpu pair style} :dt
+
+Self-explanatory. :dd
+
+{Cannot use newton pair with lj/cut/coul/dsf/gpu pair style} :dt
 
 Self-explanatory. :dd
 
@@ -1487,6 +1652,10 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
+{Cannot use newton pair with yukawa/colloid/gpu pair style} :dt
+
+Self-explanatory. :dd
+
 {Cannot use newton pair with yukawa/gpu pair style} :dt
 
 Self-explanatory. :dd
@@ -1506,11 +1675,23 @@ For kspace style ewald, all 3 dimensions must have periodic boundaries
 unless you use the kspace_modify command to define a 2d slab with a
 non-periodic z dimension. :dd
 
+{Cannot use nonperiodic boundaries with EwaldDisp} :dt
+
+For kspace style ewald/disp, all 3 dimensions must have periodic
+boundaries unless you use the kspace_modify command to define a 2d
+slab with a non-periodic z dimension. :dd
+
 {Cannot use nonperiodic boundaries with PPPM} :dt
 
 For kspace style pppm, all 3 dimensions must have periodic boundaries
 unless you use the kspace_modify command to define a 2d slab with a
 non-periodic z dimension. :dd
+
+{Cannot use nonperiodic boundaries with PPPMDisp} :dt
+
+For kspace style pppm/disp, all 3 dimensions must have periodic
+boundaries unless you use the kspace_modify command to define a 2d
+slab with a non-periodic z dimension. :dd
 
 {Cannot use order greater than 8 with pppm/gpu.} :dt
 
@@ -1544,6 +1725,10 @@ Atom IDs are not defined, so they cannot be used to identify an atom. :dd
 {Cannot use set mol with no molecule IDs defined} :dt
 
 Self-explanatory. :dd
+
+{Cannot use slab correction with MSM} :dt
+
+Slab correction can only be used with Ewald and PPPM, not MSM. :dd
 
 {Cannot use swiggle in variable formula between runs} :dt
 
@@ -1583,10 +1768,6 @@ Self-explanatory. :dd
 {Cannot wiggle and shear fix wall/gran} :dt
 
 Cannot specify both options at the same time. :dd
-
-{Cannot yet use fix balance with PPPM} :dt
-
-This is a current limitation of LAMMPS. :dd
 
 {Cannot zero Langevin force of 0 atoms} :dt
 
@@ -1696,6 +1877,10 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
+{Compute body/local requires atom style body} :dt
+
+Self-explanatory. :dd
+
 {Compute bond/local used when bonds are not allowed} :dt
 
 The atom style does not support bonds. :dd
@@ -1723,6 +1908,14 @@ Self-explantory. :dd
 Self-explantory. :dd
 
 {Compute com/molecule requires molecular atom style} :dt
+
+Self-explanatory. :dd
+
+{Compute contact/atom requires a pair style be defined} :dt
+
+Self-explantory. :dd
+
+{Compute contact/atom requires atom style sphere} :dt
 
 Self-explanatory. :dd
 
@@ -1761,6 +1954,10 @@ This compute cannot be used with point paritlces. :dd
 
 Self-explanatory. :dd
 
+{Compute erotate/sphere/atom requires atom style sphere} :dt
+
+Self-explanatory. :dd
+
 {Compute event/displace has invalid fix event assigned} :dt
 
 This is an internal LAMMPS error.  Please report it to the
@@ -1789,6 +1986,10 @@ Self-explanatory. :dd
 {Compute improper/local used when impropers are not allowed} :dt
 
 The atom style does not support impropers. :dd
+
+{Compute inertia/molecule requires molecular atom style} :dt
+
+Self-explanatory. :dd
 
 {Compute msd/molecule requires molecular atom style} :dt
 
@@ -1989,6 +2190,10 @@ must have been evaluated on the last timestep of the previous run in
 order for their value(s) to be accessed.  See the doc page for the
 variable command for more info. :dd
 
+{Compute voronoi/atom not allowed for triclinic boxes} :dt
+
+This is a current restriction of this command. :dd
+
 {Computed temperature for fix temp/berendsen cannot be 0.0} :dt
 
 Self-explanatory. :dd
@@ -1998,13 +2203,45 @@ Self-explanatory. :dd
 Cannot rescale the temperature to a new value if the current
 temperature is 0.0. :dd
 
+{Could not adjust g_ewald_6} :dt
+
+The Newton-Raphson solver failed to converge to a good value for
+g_ewald_6.  This error should not occur for typical problems.  Please
+send an email to the developers. :dd
+
+{Could not compute g_ewald} :dt
+
+The Newton-Raphson solver failed to converge to a good value for
+g_ewald.  This error should not occur for typical problems.  Please
+send an email to the developers. :dd
+
+{Could not compute grid size} :dt
+
+The code is unable to compute a grid size consistent with the desired
+accuracy.  This error should not occur for typical problems.  Please
+send an email to the developers. :dd
+
+{Could not compute grid size for Coulomb interaction} :dt
+
+The code is unable to compute a grid size consistent with the desired
+accuracy.  This error should not occur for typical problems.  Please
+send an email to the developers. :dd
+
+{Could not compute grid size for dispersion} :dt
+
+The code is unable to compute a grid size consistent with the desired
+accuracy.  This error should not occur for typical problems.  Please
+send an email to the developers. :dd
+
 {Could not count initial bonds in fix bond/create} :dt
 
 Could not find one of the atoms in a bond on this processor. :dd
 
 {Could not create 3d FFT plan} :dt
 
-The FFT setup in pppm failed. :dd
+The FFT setup for the PPPM solver failed, typically due
+to lack of memory.  This is an unusual error.  Check the
+size of the FFT grid you are requesting. :dd
 
 {Could not create 3d grid of processors} :dt
 
@@ -2132,6 +2369,10 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
+{Could not find fix gcmc rotation group ID} :dt
+
+Self-explanatory. :dd
+
 {Could not find fix group ID} :dt
 
 A group ID used in the fix command does not exist. :dd
@@ -2242,6 +2483,23 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
+{Coulomb PPPMDisp order < minimum allowed order} :dt
+
+The default minimum order is 2.  This can be reset by the
+kspace_modify minorder command. :dd
+
+{Coulomb cut not supported in pair_style buck/long/coul/coul} :dt
+
+Must use long-range Coulombic interactions. :dd
+
+{Coulomb cut not supported in pair_style lj/long/coul/long} :dt
+
+Must use long-range Coulombic interactions. :dd
+
+{Coulomb cut not supported in pair_style lj/long/tip4p/long} :dt
+
+Must use long-range Coulombic interactions. :dd
+
 {Coulomb cutoffs of pair hybrid sub-styles do not match} :dt
 
 If using a Kspace solver, all Coulomb cutoffs of long pair styles must
@@ -2268,6 +2526,14 @@ A region ID used in the create_box command does not exist. :dd
 
 Not all regions represent bounded volumes.  You cannot use
 such a region with the create_box command. :dd
+
+{Cutoffs missing in pair_style buck/long/coul/long} :dt
+
+Self-exlanatory. :dd
+
+{Cutoffs missing in pair_style lj/long/coul/long} :dt
+
+Self-explanatory. :dd
 
 {Cyclic loop in joint connections} :dt
 
@@ -2330,9 +2596,17 @@ weighting list via the special keyword. :dd
 
 Keyword used in pair_coeff command was not found in table file. :dd
 
-{Did not set temp for fix rigid/nvt} :dt
+{Did not set pressure for fix rigid/nph} :dt
 
-The temp keyword must be used. :dd
+The press keyword must be specified. :dd
+
+{Did not set temperature for fix rigid/nvt} :dt
+
+The temp keyword must be specified. :dd
+
+{Did not set temperature or pressure for fix rigid/npt} :dt
+
+The temp and press keywords must be specified. :dd
 
 {Dihedral atom missing in delete_bonds} :dt
 
@@ -2381,6 +2655,12 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
+{Dihedral/improper extent > half of periodic box length} :dt
+
+This error was detected by the neigh_modify check yes setting.  It is
+an error because the dihedral atoms are so far apart it is ambiguous
+how it should be defined. :dd
+
 {Dihedral_coeff command before dihedral_style is defined} :dt
 
 Coefficients cannot be set in the data file or via the dihedral_coeff
@@ -2413,6 +2693,11 @@ The data file header lists dihedrals but no dihedral types. :dd
 
 The dimension command cannot be used after a read_data,
 read_restart, or create_box command. :dd
+
+{Dispersion PPPMDisp order has been reduced below minorder} :dt
+
+This may lead to a larger grid than desired.  See the kspace_modify overlap
+command to prevent changing of the dipsersion order. :dd
 
 {Displace_atoms command before simulation box is defined} :dt
 
@@ -2514,7 +2799,7 @@ Self-explanatory. :dd
 
 {Dump file is incorrectly formatted} :dt
 
-No atoms were found in file. :dd
+Self-explanatory. :dd
 
 {Dump image bond not allowed with no bond types} :dt
 
@@ -2637,6 +2922,11 @@ Self-explanatory. :dd
 
 Use the dump_modify sort command to enable this. :dd
 
+{Dump_modify format string is too short} :dt
+
+There are more fields to be dumped in a line of output than
+your format string specifies. :dd
+
 {Dump_modify region ID does not exist} :dt
 
 Self-explanatory. :dd
@@ -2675,6 +2965,14 @@ You are using a thermo keyword that requires potentials to
 have tallied energy, but they didn't on this timestep.  See the
 variable doc page for ideas on how to make this work. :dd
 
+{Epsilon or sigma reference not set by pair style in PPPMDisp} :dt
+
+The pair style is not providing the needed epsilon or sigma values. :dd
+
+{Epsilon or sigma reference not set by pair style in ewald/n} :dt
+
+The pair style is not providing the needed epsilon or sigma values. :dd
+
 {Expected floating point parameter in input script or data file} :dt
 
 The quantity being read is an integer on non-numeric value. :dd
@@ -2705,24 +3003,13 @@ smaller simulation or on more processors. :dd
 
 This is not allowed.  Make your SRD bin size smaller. :dd
 
+{File variable could not read value} :dt
+
+Check the file assigned to the variable. :dd
+
 {Final box dimension due to fix deform is < 0.0} :dt
 
 Self-explanatory. :dd
-
-{Fix GCMC incompatible with given pair_style} :dt
-
-Some pair_styles do not provide single-atom energies, which are needed
-by fix GCMC. :dd
-
-{Fix GCMC molecule command requires atom attribute molecule} :dt
-
-Should not choose the GCMC molecule feature if no molecules are being
-simulated. The general molecule flag is off, but GCMC's molecule flag
-is on. :dd
-
-{Fix GCMC molecule feature does not yet work} :dt
-
-Fix GCMC cannot (yet) be used to exchange molecules, only atoms. :dd
 
 {Fix GPU split must be positive for hybrid pair styles} :dt
 
@@ -2813,6 +3100,10 @@ Self-explanatory :dd
 
 The pair style does not know about the parameter you specified. :dd
 
+{Fix adapt requires atom attribute charge} :dt
+
+The atom style being used does not specify an atom charge. :dd
+
 {Fix adapt requires atom attribute diameter} :dt
 
 The atom style being used does not specify an atom diameter. :dd
@@ -2820,6 +3111,10 @@ The atom style being used does not specify an atom diameter. :dd
 {Fix adapt type pair range is not valid for pair hybrid sub-style} :dt
 
 Self-explanatory. :dd
+
+{Fix append/atoms requires a lattice be defined} :dt
+
+Use the lattice command for this purpose. :dd
 
 {Fix ave/atom compute array is accessed out-of-range} :dt
 
@@ -3250,9 +3545,61 @@ is requesting a value on a non-allowed timestep. :dd
 
 The atom style defined does not have this attribute. :dd
 
+{Fix gcmc cannot exchange individual atoms belonging to a molecule} :dt
+
+This is an error since you should not delete only one atom of a molecule.
+The user has specified atomic (non-molecular) gas exchanges, but an atom
+belonging to a molecule could be deleted. :dd
+
+{Fix gcmc could not find any atoms in the user-supplied template molecule} :dt
+
+When using the molecule option with fix gcmc, the user must supply a 
+template molecule in the usual LAMMPS data file with its molecule id
+specified in the fix gcmc command as the "type" of the exchanged gas. :dd
+
+{Fix gcmc incompatible with given pair_style} :dt
+
+Some pair_styles do not provide single-atom energies, which are needed
+by fix gcmc. :dd
+
+{Fix gcmc incorrect number of atoms per molecule} :dt
+
+The number of atoms in each gas molecule was not computed correctly. :dd
+
+{Fix gcmc molecule command requires that atoms have molecule attributes} :dt
+
+Should not choose the GCMC molecule feature if no molecules are being
+simulated. The general molecule flag is off, but GCMC's molecule flag
+is on. :dd
+
+{Fix gcmc ran out of available molecule IDs} :dt
+
+This is a code limitation where more than MAXSMALLINT (usually around
+two billion) molecules have been created. The code needs to be 
+modified to either allow molecule ID recycling or use bigger ints for
+molecule IDs. A work-around is to run shorter simulations. :dd
+
+{Fix gcmc region cannot be dynamic} :dt
+
+Only static regions can be used with fix gcmc. :dd
+
+{Fix gcmc region does not support a bounding box} :dt
+
+Not all regions represent bounded volumes.  You cannot use
+such a region with the fix gcmc command. :dd
+
+{Fix gcmc region extends outside simulation box} :dt
+
+Self-explanatory. :dd
+
 {Fix heat group has no atoms} :dt
 
 Self-explanatory. :dd
+
+{Fix heat kinetic energy of an atom went negative} :dt
+
+This will cause the velocity rescaling about to be performed by fix
+heat to be invalid. :dd
 
 {Fix heat kinetic energy went negative} :dt
 
@@ -3293,10 +3640,6 @@ Self-explanatory. :dd
 Self-explanatory. :dd
 
 {Fix move cannot define z or vz variable for 2d problem} :dt
-
-Self-explanatory. :dd
-
-{Fix move cannot have 0 length rotation vector} :dt
 
 Self-explanatory. :dd
 
@@ -3348,6 +3691,14 @@ Self-explanatory. :dd
 {Fix nve/asphere/noforce requires extended particles} :dt
 
 One of the particles is not an ellipsoid. :dd
+
+{Fix nve/body requires atom style body} :dt
+
+Self-explanatory. :dd
+
+{Fix nve/body requires bodies} :dt
+
+This fix can only be used for particles that are bodies. :dd
 
 {Fix nve/line can only be used for 2d simulations} :dt
 
@@ -3469,13 +3820,29 @@ Self-explanatory. :dd
 
 {Fix rigid atom has non-zero image flag in a non-periodic dimension} :dt
 
-You cannot set image flags for non-periodic dimensions. :dd
+Image flags for non-periodic dimensions should not be set. :dd
 
 {Fix rigid langevin period must be > 0.0} :dt
 
 Self-explanatory. :dd
 
 {Fix rigid molecule requires atom attribute molecule} :dt
+
+Self-explanatory. :dd
+
+{Fix rigid npt/nph dilate group ID does not exist} :dt
+
+Self-explanatory. :dd
+
+{Fix rigid npt/nph does not yet allow triclinic box} :dt
+
+Self-explanatory. :dd
+
+{Fix rigid npt/nph period must be > 0.0} :dt
+
+Self-explanatory. :dd
+
+{Fix rigid nvt/npt/nph damping parameters must be > 0.0} :dt
 
 Self-explanatory. :dd
 
@@ -3487,9 +3854,33 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
+{Fix rigid/npt period must be > 0.0} :dt
+
+Self-explanatory. :dd
+
+{Fix rigid/npt temperature order must be 3 or 5} :dt
+
+Self-explanatory. :dd
+
 {Fix rigid/nvt period must be > 0.0} :dt
 
-Self-explanatory :dd
+Self-explanatory. :dd
+
+{Fix rigid/nvt temperature order must be 3 or 5} :dt
+
+Self-explanatory. :dd
+
+{Fix rigid/small atom has non-zero image flag in a non-periodic dimension} :dt
+
+Image flags for non-periodic dimensions should not be set. :dd
+
+{Fix rigid/small langevin period must be > 0.0} :dt
+
+Self-explanatory. :dd
+
+{Fix rigid/small requires atom attribute molecule} :dt
+
+Self-explanatory. :dd
 
 {Fix rigid: Bad principal moments} :dt
 
@@ -3677,10 +4068,6 @@ One of the particles has radius 0.0. :dd
 
 Self-explanatory. :dd
 
-{Fix_modify order must be 3 or 5} :dt
-
-Self-explanatory. :dd
-
 {Fix_modify pressure ID does not compute pressure} :dt
 
 The compute ID assigned to the fix must compute pressure. :dd
@@ -3769,6 +4156,11 @@ invalid. :dd
 
 One or more of the coefficients defined in the potential file is
 invalid. :dd
+
+{Illegal fix gcmc gas mass <= 0} :dt
+
+The computed mass of the designated gas molecule or atom type was less 
+than or equal to zero. :dd
 
 {Illegal fix wall/piston velocity} :dt
 
@@ -3879,6 +4271,14 @@ center point which is the atom coordinate. :dd
 The centroid of the triangle as defined by the corner points is not
 the atom coordinate. :dd
 
+{Incorrect # of floating-point values in Bodies section of data file} :dt
+
+See doc page for body style. :dd
+
+{Incorrect # of integer values in Bodies section of data file} :dt
+
+See doc page for body style. :dd
+
 {Incorrect args for angle coefficients} :dt
 
 Self-explanatory.  Check the input script or data file. :dd
@@ -3918,7 +4318,17 @@ bonus data must be formatted for certain atom styles. :dd
 Must have periodic x,y dimensions and non-periodic z dimension to use
 2d slab option with Ewald. :dd
 
+{Incorrect boundaries with slab EwaldDisp} :dt
+
+Must have periodic x,y dimensions and non-periodic z dimension to use
+2d slab option with Ewald. :dd
+
 {Incorrect boundaries with slab PPPM} :dt
+
+Must have periodic x,y dimensions and non-periodic z dimension to use
+2d slab option with PPPM. :dd
+
+{Incorrect boundaries with slab PPPMDisp} :dt
 
 Must have periodic x,y dimensions and non-periodic z dimension to use
 2d slab option with PPPM. :dd
@@ -3954,6 +4364,10 @@ Format of file read by fix tmd command is incorrect. :dd
 {Incorrect format in Tersoff potential file} :dt
 
 Incorrect number of words per line in the potential file. :dd
+
+{Incorrect integer value in Bodies section of data file} :dt
+
+See doc page for body style. :dd
 
 {Incorrect multiplicity arg for dihedral coefficients} :dt
 
@@ -3995,20 +4409,16 @@ Self-explantory. :dd
 
 An end quote must be followed by whitespace. :dd
 
-{Input line too long after variable substitution} :dt
-
-This is a hard (very large) limit defined in the input.cpp file. :dd
-
-{Input line too long: %s} :dt
-
-This is a hard (very large) limit defined in the input.cpp file. :dd
-
 {Insertion region extends outside simulation box} :dt
 
 Region specified with fix pour command extends outside the global
 simulation box. :dd
 
 {Insufficient Jacobi rotations for POEMS body} :dt
+
+Eigensolve for rigid body was not sufficiently accurate. :dd
+
+{Insufficient Jacobi rotations for body nparticle} :dt
 
 Eigensolve for rigid body was not sufficiently accurate. :dd
 
@@ -4025,6 +4435,10 @@ should not happen if it is a reasonably shaped triangle. :dd
 
 There is insufficient memory on one of the devices specified for the gpu
 package :dd
+
+{Internal error in atom_style body} :dt
+
+This error should not occur.  Contact the developers. :dd
 
 {Invalid -reorder N value} :dt
 
@@ -4056,6 +4470,10 @@ types. :dd
 
 Self-explanatory. :dd
 
+{Invalid args for non-hybrid pair coefficients} :dt
+
+"NULL" is only supported in pair_coeff calls when using pair hybrid :dd
+
 {Invalid atom ID in Angles section of data file} :dt
 
 Atom IDs must be positive integers and within range of defined
@@ -4064,6 +4482,11 @@ atoms. :dd
 {Invalid atom ID in Atoms section of data file} :dt
 
 Atom IDs must be positive integers. :dd
+
+{Invalid atom ID in Bodies section of data file} :dt
+
+Atom IDs must be positive integers and within range of defined
+atoms. :dd
 
 {Invalid atom ID in Bonds section of data file} :dt
 
@@ -4107,13 +4530,13 @@ Atom types must range from 1 to specified # of types. :dd
 The create_box command specified the range of valid atom types.
 An invalid type is being requested. :dd
 
-{Invalid atom type in fix GCMC command} :dt
-
-The atom type specified in the GCMC command does not exist. :dd
-
 {Invalid atom type in fix bond/create command} :dt
 
 Self-explanatory. :dd
+
+{Invalid atom type in fix gcmc command} :dt
+
+The atom type specified in the GCMC command does not exist. :dd
 
 {Invalid atom type in neighbor exclusion list} :dt
 
@@ -4131,6 +4554,14 @@ Atom types must range from 1 to Ntypes inclusive. :dd
 
 The atom vector is not recognized. :dd
 
+{Invalid atom_style body command} :dt
+
+No body style argument was provided. :dd
+
+{Invalid atom_style command} :dt
+
+Self-explanatory. :dd
+
 {Invalid attribute in dump custom command} :dt
 
 Self-explantory. :dd
@@ -4142,6 +4573,14 @@ Self-explantory. :dd
 {Invalid attribute in dump modify command} :dt
 
 Self-explantory. :dd
+
+{Invalid body nparticle command} :dt
+
+Arguments in atom-style command are not correct. :dd
+
+{Invalid body style} :dt
+
+The choice of body style is unknown. :dd
 
 {Invalid bond style} :dt
 
@@ -4221,6 +4660,10 @@ Atom style does not allow dihedrals. :dd
 {Invalid data file section: Angles} :dt
 
 Atom style does not allow angles. :dd
+
+{Invalid data file section: Bodies} :dt
+
+Atom style does not allow bodies. :dd
 
 {Invalid data file section: Bond Coeffs} :dt
 
@@ -4302,6 +4745,10 @@ dihedral types. :dd
 {Invalid dipole length in set command} :dt
 
 Self-explanatory. :dd
+
+{Invalid displace_atoms rotate axis for 2d} :dt
+
+Axis must be in z direction. :dd
 
 {Invalid dump dcd filename} :dt
 
@@ -4402,6 +4849,19 @@ The z component of pressure cannot be controlled for a 2d model. :dd
 
 Settings for coupled dimensions must be the same. :dd
 
+{Invalid fix rigid npt/nph command for a 2d simulation} :dt
+
+Cannot control z dimension in a 2d model. :dd
+
+{Invalid fix rigid npt/nph command pressure settings} :dt
+
+If multiple dimensions are coupled, those dimensions must be
+specified. :dd
+
+{Invalid fix rigid npt/nph pressure settings} :dt
+
+Settings for coupled dimensions must be the same. :dd
+
 {Invalid fix style} :dt
 
 The choice of fix style is unknown. :dd
@@ -4417,6 +4877,11 @@ Unrecognized entry in restart file. :dd
 {Invalid flag in type arrays section of restart file} :dt
 
 Unrecognized entry in restart file. :dd
+
+{Invalid format in Bodies section of data file} :dt
+
+The specified number of integer or floating point values does not
+appear. :dd
 
 {Invalid frequency in temper command} :dt
 
@@ -4442,6 +4907,10 @@ The lo value in the range is larger than the hi value. :dd
 
 Up vector cannot be (0,0,0). :dd
 
+{Invalid immediate variable} :dt
+
+Syntax of immediate value is incorrect. :dd
+
 {Invalid improper style} :dt
 
 The choice of improper style is unknown. :dd
@@ -4450,6 +4919,14 @@ The choice of improper style is unknown. :dd
 
 Improper type must be positive integer and within range of specified
 improper types. :dd
+
+{Invalid index for non-body particles in compute body/local command} :dt
+
+Only indices 1,2,3 can be used for non-body particles. :dd
+
+{Invalid index in compute body/local command} :dt
+
+Self-explanatory. :dd
 
 {Invalid keyword in angle table parameters} :dt
 
@@ -4670,6 +5147,10 @@ A variable used in a formula could not be evaluated. :dd
 
 Self-explanatory. :dd
 
+{Invalid variable in special function next} :dt
+
+Only file-style variables can be used with the next() function. :dd
+
 {Invalid variable name} :dt
 
 Variable name used in an input script line is invalid. :dd
@@ -4709,24 +5190,28 @@ A command (e.g. a dump) attempted to invoke the single() function on a
 pair style none, which is illegal.  You are probably attempting to
 compute per-atom quantities with an undefined pair style. :dd
 
-{KIM initialization failed} :dt
-
-This is an error generated by the KIM library. :dd
-
 {KIM neighbor iterator exceeded range} :dt
 
 This should not happen.  It likely indicates a bug
 in the KIM implementation of the interatomic potential
 where it is requesting neighbors incorrectly. :dd
 
-{KIM_DIR environment variable is unset} :dt
+{KSpace accuracy must be > 0} :dt
 
-This environment variable must be set to use pair_style kim.
-See the doc page for pair_style kim. :dd
+The kspace accuracy designated in the input must be greater than zero. :dd
 
 {KSpace accuracy too large to estimate G vector} :dt
 
-Paul will doc this. :dd
+Reduce the accuracy request or specify gwald explicitly
+via the kspace_modify command. :dd
+
+{KSpace accuracy too low} :dt
+
+Requested accuracy must be less than 1.0. :dd
+
+{KSpace solver requires a pair style} :dt
+
+No pair style is defined. :dd
 
 {KSpace style has not yet been set} :dt
 
@@ -4735,13 +5220,17 @@ Cannot use kspace_modify command until a kspace style is set. :dd
 {KSpace style is incompatible with Pair style} :dt
 
 Setting a kspace style requires that a pair style with a long-range
-Coulombic component be selected. :dd
+Coulombic or dispersion component be used. :dd
 
 {Keyword %s in MEAM parameter file not recognized} :dt
 
 Self-explanatory. :dd
 
 {Kspace style does not support compute group/group} :dt
+
+Self-explanatory. :dd
+
+{Kspace style pppm/disp/tip4p requires newton on} :dt
 
 Self-explanatory. :dd
 
@@ -4752,6 +5241,19 @@ Self-explanatory. :dd
 {Kspace style requires atom attribute q} :dt
 
 The atom style defined does not have these attributes. :dd
+
+{Kspace style with selected options requires atom attribute q} :dt
+
+The atom style defined does not have these attributes.
+Change the atom style or switch of the coulomb solver. :dd
+
+{LAMMPS unit_style lj not supported by KIM models} :dt
+
+Self-explanatory. Check the input script or data file. :dd
+
+{LJ6 off not supported in pair_style buck/long/coul/long} :dt
+
+Self-exlanatory. :dd
 
 {Label wasn't found in input script} :dt
 
@@ -4814,6 +5316,17 @@ The size of the MPI datatype does not match the size of a bigint. :dd
 
 The size of the MPI datatype does not match the size of a tagint. :dd
 
+{MSM grid is too large} :dt
+
+The global MSM grid is larger than OFFSET in one or more dimensions.
+OFFSET is currently set to 16384.  You likely need to decrease the
+requested accuracy. :dd
+
+{MSM order must be 4, 6, 8, or 10} :dt
+
+This is a limitation of the MSM implementation in LAMMPS:
+the MSM order can only be 4, 6, 8, or 10. :dd
+
 {Mass command before simulation box is defined} :dt
 
 The mass command cannot be used before a read_data, read_restart, or
@@ -4854,6 +5367,10 @@ A variable is referenced incorrectly or an atom-style variable that
 produces per-atom values is used in an equal-style variable
 formula. :dd
 
+{Modulo 0 in variable formula} :dt
+
+Self-explanatory. :dd
+
 {Molecular data file has too many atoms} :dt
 
 These kids of data files are currently limited to a number
@@ -4868,6 +5385,10 @@ Number of molecules must remain constant over time. :dd
 Number of molecules must remain constant over time. :dd
 
 {Molecule count changed in compute gyration/molecule} :dt
+
+Number of molecules must remain constant over time. :dd
+
+{Molecule count changed in compute inertia/molecule} :dt
 
 Number of molecules must remain constant over time. :dd
 
@@ -4952,10 +5473,6 @@ defines AngleAngle Coeffs. :dd
 Must use an improper_style command before reading a data file that
 defines Improper Coeffs. :dd
 
-{Must define lattice to append/atoms} :dt
-
-A lattice must be defined before using this fix. :dd
-
 {Must define pair_style before Pair Coeffs} :dt
 
 Must use a pair_style command before reading a data file that defines
@@ -4969,6 +5486,10 @@ the -partition command-line option. :dd
 {Must read Atoms before Angles} :dt
 
 The Atoms section of a data file must come before an Angles section. :dd
+
+{Must read Atoms before Bodies} :dt
+
+The Atoms section of a data file must come before a Bodies section. :dd
 
 {Must read Atoms before Bonds} :dt
 
@@ -5177,6 +5698,10 @@ but they were not present. :dd
 
 Basis atoms must be defined for lattice style user. :dd
 
+{No bodies allowed with this atom style} :dt
+
+Self-explanatory.  Check data file. :dd
+
 {No bond style is defined for compute bond/local} :dt
 
 Self-explanatory. :dd
@@ -5293,11 +5818,47 @@ contain the same atom. :dd
 Any rigid body defined by the fix rigid command must contain 2 or more
 atoms. :dd
 
+{Only one cutoff allowed when requesting all long} :dt
+
+Self-explanatory. :dd
+
 {Only zhi currently implemented for fix append/atoms} :dt
 
 Self-explanatory. :dd
 
+{Out of range atoms - cannot compute MSM} :dt
+
+One or more atoms are attempting to map their charge to a MSM grid point 
+that is not owned by a processor.  This is likely for one of two
+reasons, both of them bad.  First, it may mean that an atom near the
+boundary of a processor's sub-domain has moved more than 1/2 the
+"neighbor skin distance"_neighbor.html without neighbor lists being
+rebuilt and atoms being migrated to new processors.  This also means
+you may be missing pairwise interactions that need to be computed.
+The solution is to change the re-neighboring criteria via the
+"neigh_modify"_neigh_modify command.  The safest settings are "delay 0
+every 1 check yes".  Second, it may mean that an atom has moved far
+outside a processor's sub-domain or even the entire simulation box.
+This indicates bad physics, e.g. due to highly overlapping atoms, too
+large a timestep, etc. :dd
+
 {Out of range atoms - cannot compute PPPM} :dt
+
+One or more atoms are attempting to map their charge to a PPPM grid
+point that is not owned by a processor.  This is likely for one of two
+reasons, both of them bad.  First, it may mean that an atom near the
+boundary of a processor's sub-domain has moved more than 1/2 the
+"neighbor skin distance"_neighbor.html without neighbor lists being
+rebuilt and atoms being migrated to new processors.  This also means
+you may be missing pairwise interactions that need to be computed.
+The solution is to change the re-neighboring criteria via the
+"neigh_modify"_neigh_modify command.  The safest settings are "delay 0
+every 1 check yes".  Second, it may mean that an atom has moved far
+outside a processor's sub-domain or even the entire simulation box.
+This indicates bad physics, e.g. due to highly overlapping atoms, too
+large a timestep, etc. :dd
+
+{Out of range atoms - cannot compute PPPMDisp} :dt
 
 One or more atoms are attempting to map their charge to a PPPM grid
 point that is not owned by a processor.  This is likely for one of two
@@ -5319,7 +5880,7 @@ This potential is infinite when there is an overlap. :dd
 
 {Overlapping small/large in pair colloid} :dt
 
-This potential is inifinte when there is an overlap. :dd
+This potential is infinite when there is an overlap. :dd
 
 {POEMS fix must come before NPT/NPH fix} :dt
 
@@ -5332,16 +5893,34 @@ The global PPPM grid is larger than OFFSET in one or more dimensions.
 OFFSET is currently set to 4096.  You likely need to decrease the
 requested accuracy. :dd
 
+{PPPM grid stencil extends beyond nearest neighbor processor} :dt
+
+This is not allowed if the kspace_modify overlap setting is no. :dd
+
+{PPPM order < minimum allowed order} :dt
+
+The default minimum order is 2.  This can be reset by the
+kspace_modify minorder command. :dd
+
 {PPPM order cannot be < 2 or > than %d} :dt
 
 This is a limitation of the PPPM implementation in LAMMPS. :dd
 
-{PPPM order has been reduced to 0} :dt
+{PPPMDisp Coulomb grid is too large} :dt
 
-LAMMPS has attempted to reduce the PPPM order to enable the simulation
-to run, but can reduce the order no further.  Try increasing the
-accuracy of PPPM by reducing the tolerance size, thus inducing a
-larger PPPM grid. :dd
+The global PPPM grid is larger than OFFSET in one or more dimensions.
+OFFSET is currently set to 4096.  You likely need to decrease the
+requested accuracy. :dd
+
+{PPPMDisp Dispersion grid is too large} :dt
+
+The global dispersion grid is larger than OFFSET in one or more
+dimensions.  OFFSET is currently set to 4096.  You likely need to
+decrease the requested accuracy. :dd
+
+{PPPMDisp coulomb order cannot be greater than %d} :dt
+
+This is a limitation of the PPPM implementation in LAMMPS. :dd
 
 {PRD command before simulation box is defined} :dt
 
@@ -5356,11 +5935,6 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
-{PWD environment variable is unset} :dt
-
-This environment variable must be set to use pair_style kim.
-See the doc page for pair_style kim. :dd
-
 {Package command after simulation box is defined} :dt
 
 The package command cannot be used afer a read_data, read_restart, or
@@ -5370,6 +5944,14 @@ create_box command. :dd
 
 The USER-CUDA package must be installed via "make yes-user-cuda"
 before LAMMPS is built. :dd
+
+{Pair body requires atom style body} :dt
+
+Self-explanatory. :dd
+
+{Pair body requires body style nparticle} :dt
+
+This pair style is specific to the nparticle body style. :dd
 
 {Pair brownian requires atom style sphere} :dt
 
@@ -5399,6 +5981,10 @@ Self-explanatory. :dd
 
 Style in pair coeff must have been listed in pair_style command. :dd
 
+{Pair colloid/poly requires atom style sphere} :dt
+
+Self-explanatory. :dd
+
 {Pair coul/wolf requires atom attribute q} :dt
 
 The atom style defined does not have this attribute. :dd
@@ -5411,6 +5997,10 @@ rRESPA cutoffs. :dd
 {Pair dipole/cut requires atom attributes q, mu, torque} :dt
 
 The atom style defined does not have these attributes. :dd
+
+{Pair dipole/cut/gpu requires atom attributes q, mu, torque} :dt
+
+The atom style defined does not have this attribute. :dd
 
 {Pair distance < table inner cutoff} :dt
 
@@ -5638,6 +6228,10 @@ doc page for more details. :dd
 
 An atom style that defines this attribute must be used. :dd
 
+{Pair style born/coul/long/gpu requires atom attribute q} :dt
+
+The atom style defined does not have this attribute. :dd
+
 {Pair style born/coul/wolf requires atom attribute q} :dt
 
 The atom style defined does not have this attribute. :dd
@@ -5654,9 +6248,21 @@ The atom style defined does not have these attributes. :dd
 
 The atom style defined does not have this attribute. :dd
 
+{Pair style buck/long/coul/long requires atom attribute q} :dt
+
+The atom style defined does not have this attribute. :dd
+
 {Pair style coul/cut requires atom attribute q} :dt
 
 The atom style defined does not have these attributes. :dd
+
+{Pair style coul/dsf requires atom attribute q} :dt
+
+The atom style defined does not have this attribute. :dd
+
+{Pair style coul/dsf/gpu requires atom attribute q} :dt
+
+The atom style defined does not have this attribute. :dd
 
 {Pair style coul/long/gpu requires atom attribute q} :dt
 
@@ -5736,10 +6342,6 @@ Self-explanatory. :dd
 If a pair style with a long-range Coulombic component is selected,
 then a kspace style must also be used. :dd
 
-{Pair style kim requires newton pair off} :dt
-
-This is a current restriction of the KIM library. :dd
-
 {Pair style lj/charmm/coul/charmm requires atom attribute q} :dt
 
 The atom style defined does not have these attributes. :dd
@@ -5772,6 +6374,18 @@ The atom style defined does not have this attribute. :dd
 
 The atom style defined does not have this attribute. :dd
 
+{Pair style lj/cut/coul/debye/gpu requires atom attribute q} :dt
+
+The atom style defined does not have this attribute. :dd
+
+{Pair style lj/cut/coul/dsf requires atom attribute q} :dt
+
+The atom style defined does not have these attributes. :dd
+
+{Pair style lj/cut/coul/dsf/gpu requires atom attribute q} :dt
+
+The atom style defined does not have this attribute. :dd
+
 {Pair style lj/cut/coul/long requires atom attribute q} :dt
 
 The atom style defined does not have this attribute. :dd
@@ -5794,9 +6408,31 @@ The atom style defined does not have these attributes. :dd
 This is because the computation of constraint forces within a water
 molecule adds forces to atoms owned by other processors. :dd
 
+{Pair style lj/cut/coul/msm requires atom attribute q} :dt
+
+The atom style defined does not have this attribute. :dd
+
 {Pair style lj/gromacs/coul/gromacs requires atom attribute q} :dt
 
 An atom_style with this attribute is needed. :dd
+
+{Pair style lj/long/coul/long requires atom attribute q} :dt
+
+The atom style defined does not have this attribute. :dd
+
+{Pair style lj/long/tip4p/long requires atom IDs} :dt
+
+There are no atom IDs defined in the system and the TIP4P potential
+requires them to find O,H atoms with a water molecule. :dd
+
+{Pair style lj/long/tip4p/long requires atom attribute q} :dt
+
+The atom style defined does not have these attributes. :dd
+
+{Pair style lj/long/tip4p/long requires newton pair on} :dt
+
+This is because the computation of constraint forces within a water
+molecule adds forces to atoms owned by other processors. :dd
 
 {Pair style peri requires atom style peri} :dt
 
@@ -5809,6 +6445,10 @@ This is a requirement to use the ReaxFF potential. :dd
 {Pair style reax requires newton pair on} :dt
 
 This is a requirement to use the ReaxFF potential. :dd
+
+{Pair style requires a KSpace style} :dt
+
+No kspace style is defined. :dd
 
 {Pair table cutoffs must all be equal to use with KSpace} :dt
 
@@ -5835,6 +6475,14 @@ Self-explantory. :dd
 {Pair yukawa/colloid requires atoms with same type have same radius} :dt
 
 Self-explantory. :dd
+
+{Pair yukawa/colloid/gpu requires atom style sphere} :dt
+
+Self-explanatory. :dd
+
+{PairKIM only works with 3D problems.} :dt
+
+This is a current restriction of this pair style. :dd
 
 {Pair_coeff command before pair_style is defined} :dt
 
@@ -5928,6 +6576,10 @@ Self-explanatory. :dd
 The compute ID needed to compute pressure for the fix does not
 exist. :dd
 
+{Pressure ID for fix rigid npt/nph does not exist} :dt
+
+Self-explanatory. :dd
+
 {Pressure ID for thermo does not exist} :dt
 
 The compute ID needed to compute pressure for thermodynamics does not
@@ -6019,6 +6671,11 @@ Self-explanatory. :dd
 
 Equilibrium spring length is invalid. :dd
 
+{Read_dump command before simulation box is defined} :dt
+
+The read_dump command cannot be used before a read_data, read_restart,
+or create_box command. :dd
+
 {Read_dump field not found in dump file} :dt
 
 Self-explanatory. :dd
@@ -6077,6 +6734,16 @@ Self-explanatory. :dd
 {Region ID for fix evaporate does not exist} :dt
 
 Self-explanatory. :dd
+
+{Region ID for fix gcmc does not exist} :dt
+
+Self-explanatory. :dd
+
+{Region ID for fix gcmc does not exist 
+ 
+Self-explanatory.} :dt
+
+ :dd
 
 {Region ID for fix heat does not exist} :dt
 
@@ -6196,6 +6863,14 @@ A dump ID cannot be used twice. :dd
 {Reuse of region ID} :dt
 
 A region ID cannot be used twice. :dd
+
+{Rigid body atoms %d %d missing on proc %d at step %ld} :dt
+
+This means that an atom cannot find the atom that owns the rigid body
+it is part of, or vice versa.  The solution is to use the communicate
+cutoff command to insure ghost atoms are acquired from far enough away
+to encompass the max distance printed when the fix rigid/small command
+was invoked. :dd
 
 {Rigid body has degenerate moment of inertia} :dt
 
@@ -6346,6 +7021,11 @@ for. :dd
 
 See the setting for bigint in the src/lmptype.h file. :dd
 
+{System is not charge neutral, net charge = %g} :dt
+
+The total charge on all atoms on the system is not 0.0, which
+is not valid for the long-range Coulombic solvers. :dd
+
 {TAD nsteps must be multiple of t_event} :dt
 
 Self-explanatory. :dd
@@ -6382,6 +7062,10 @@ you are running. :dd
 
 Self-explanatory. :dd
 
+{Target temperature for fix rigid/npt cannot be 0.0} :dt
+
+Self-explanatory. :dd
+
 {Target temperature for fix rigid/nvt cannot be 0.0} :dt
 
 Self-explanatory. :dd
@@ -6399,11 +7083,15 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
-{Temperature ID for fix nvt/nph/npt does not exist} :dt
+{Temperature ID for fix nvt/npt does not exist} :dt
 
 Self-explanatory. :dd
 
 {Temperature ID for fix press/berendsen does not exist} :dt
+
+Self-explanatory. :dd
+
+{Temperature ID for fix rigid nvt/npt/nph does not exist} :dt
 
 Self-explanatory. :dd
 
@@ -6476,6 +7164,10 @@ The fix ID specified by the temper command does not exist. :dd
 
 The fix specified by the temper command is not one that controls
 temperature (nvt or langevin). :dd
+
+{Test_descriptor_string already allocated} :dt
+
+This should not happen. It likely indicates a bug in the pair_kim implementation. :dd
 
 {The package gpu command is required for gpu styles} :dt
 
@@ -6627,6 +7319,10 @@ The timestep must fit in a 32-bit integer to use this dump style. :dd
 Table size specified via pair_modify command does not work with your
 machine's floating point representation. :dd
 
+{Too many MSM grid levels} :dt
+
+The max number of MSM grid levels is hardwired to 10. :dd
+
 {Too many atom pairs for pair bop} :dt
 
 The number of atomic pairs exceeds the expected number.  Check your
@@ -6671,6 +7367,11 @@ given by MAX_GROUP in group.cpp and is 32. :dd
 
 You must use a number of iterations that fit in a 32-bit integer
 for minimization. :dd
+
+{Too many lines in one body in data file - boost MAXBODY} :dt
+
+MAXBODY is a setting at the top of the src/read_data.cpp file.
+Set it larger and re-compile the code. :dd
 
 {Too many local+ghost atoms for neighbor list} :dt
 
@@ -6731,7 +7432,8 @@ the bodies in a tree structure. :dd
 
 The displacement in a skewed direction must be less than half the box
 length in that dimension.  E.g. the xy tilt must be between -half and
-+half of the x box length. :dd
++half of the x box length.  This constraint can be relaxed by using
+the box tilt command. :dd
 
 {Tried to convert a double to int, but input_double > INT_MAX} :dt
 
@@ -6817,6 +7519,10 @@ Self-explanatory. :dd
 
 Style of table is invalid for use with pair_style table command. :dd
 
+{Unknown unit_style} :dt
+
+Self-explanatory. Check the input script or data file. :dd
+
 {Unrecognized lattice type in MEAM file 1} :dt
 
 The lattice type in an entry of the MEAM library file is not
@@ -6830,6 +7536,26 @@ valid. :dd
 {Unrecognized pair style in compute pair command} :dt
 
 Self-explanatory. :dd
+
+{Unrecognized virial argument in pair_style command} :dt
+
+Only two options are supported: LAMMPSvirial and KIMvirial :dd
+
+{Unsupported mixing rule in kspace_style ewald/disp} :dt
+
+Only geometric mixing is supported. :dd
+
+{Unsupported mixing rule in kspace_style pppm/disp for pair_style %s} :dt
+
+Only geometric mixing is supported. :dd
+
+{Unsupported order in kspace_style ewald/disp} :dt
+
+Only 1/r^6 dispersion terms are supported. :dd
+
+{Unsupported order in kspace_style pppm/disp pair_style %s} :dt
+
+Only 1/r^6 dispersion terms are supported. :dd
 
 {Use of change_box with undefined lattice} :dt
 
@@ -6924,10 +7650,22 @@ Must use remap v option with fix deform with this pair style. :dd
 
 If fix deform is used, the remap v option is required. :dd
 
+{Variable ID in variable formula does not exist} :dt
+
+Self-explanatory. :dd
+
 {Variable evaluation before simulation box is defined} :dt
 
 Cannot evaluate a compute or fix or atom-based value in a variable
 before the simulation has been setup. :dd
+
+{Variable evaluation in fix wall gave bad value} :dt
+
+The returned value for epsilon or sigma < 0.0. :dd
+
+{Variable evaluation in region gave bad value} :dt
+
+Variable returned a radius < 0.0. :dd
 
 {Variable for compute ti is invalid style} :dt
 
@@ -6981,6 +7719,10 @@ Only equal-style variables can be used. :dd
 
 Only equal-style variables can be used. :dd
 
+{Variable for fix heat is invalid style} :dt
+
+Only equal-style or atom-style variables can be used. :dd
+
 {Variable for fix indent is invalid style} :dt
 
 Only equal-style variables can be used. :dd
@@ -7021,6 +7763,14 @@ Only equal-style variables can be used. :dd
 
 Only equal-style variables can be used. :dd
 
+{Variable for group is invalid style} :dt
+
+Only atom-style variables can be used. :dd
+
+{Variable for region cylinder is invalid style} :dt
+
+Only equal-style varaibles are allowed. :dd
+
 {Variable for region is invalid style} :dt
 
 Only equal-style variables can be used. :dd
@@ -7028,6 +7778,10 @@ Only equal-style variables can be used. :dd
 {Variable for region is not equal style} :dt
 
 Self-explanatory. :dd
+
+{Variable for region sphere is invalid style} :dt
+
+Only equal-style varaibles are allowed. :dd
 
 {Variable for restart is invalid style} :dt
 
@@ -7056,6 +7810,12 @@ Self-explanatory. :dd
 {Variable formula fix vector is accessed out-of-range} :dt
 
 Self-explanatory. :dd
+
+{Variable has circular dependency} :dt
+
+A circular dependency is when variable "a" in used by variable "b" and
+variable "b" is also used by varaible "a".  Circular dependencies with
+longer chains of dependence are also not allowed. :dd
 
 {Variable name for compute atom/molecule does not exist} :dt
 
@@ -7137,6 +7897,10 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
+{Variable name for fix heat does not exist} :dt
+
+Self-explanatory. :dd
+
 {Variable name for fix indent does not exist} :dt
 
 Self-explanatory. :dd
@@ -7177,7 +7941,19 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
+{Variable name for group does not exist} :dt
+
+Self-explanatory. :dd
+
+{Variable name for region cylinder does not exist} :dt
+
+Self-explanatory. :dd
+
 {Variable name for region does not exist} :dt
+
+Self-explanatory. :dd
+
+{Variable name for region sphere does not exist} :dt
 
 Self-explanatory. :dd
 
@@ -7251,6 +8027,11 @@ Self-explanatory. :dd
 This is because LAMMPS does not compute the Lennard-Jones interactions
 with these particles for efficiency reasons. :dd
 
+{Water H epsilon must be 0.0 for pair style lj/long/tip4p/long} :dt
+
+This is because LAMMPS does not compute the Lennard-Jones interactions
+with these particles for efficiency reasons. :dd
+
 {World variable count doesn't match # of partitions} :dt
 
 A world-style variable must specify a number of values equal to the
@@ -7260,6 +8041,14 @@ number of processor partitions. :dd
 
 The write_restart command cannot be used before a read_data,
 read_restart, or create_box command. :dd
+
+{Zero length rotation vector with displace_atoms} :dt
+
+Self-explanatory. :dd
+
+{Zero length rotation vector with fix move} :dt
+
+Self-explanatory. :dd
 
 {Zero-length lattice orient vector} :dt
 
@@ -7271,11 +8060,25 @@ Warnings: :h4,link(warn)
 
 :dlb
 
+{Adjusting Coulombic cutoff for MSM, new cutoff = %g} :dt
+
+The adjust/cutoff command is turned on and the Coulombic cutoff has been
+adjusted to match the user-specified accuracy. :dd
+
 {Atom with molecule ID = 0 included in compute molecule group} :dt
 
 The group used in a compute command that operates on moleclues
 includes atoms with no molecule ID.  This is probably not what you
 want. :dd
+
+{Bond/angle/dihedral extent > half of periodic box length} :dt
+
+This is a restriction because LAMMPS can be confused about which image
+of an atom in the bonded interaction is the correct one to use.
+"Extent" in this context means the maximum end-to-end length of the
+bond/angle/dihedral.  LAMMPS computes this by taking the maximum bond
+length, multiplying by the number of bonds in the interaction (e.g. 3
+for a dihedral) and adding a small amount of stretch. :dd
 
 {Both groups in compute group/group have a net charge; the Kspace boundary correction to energy will be non-zero} :dt
 
@@ -7299,6 +8102,11 @@ Self-explanatory. :dd
 {Cannot include log terms without 1/r terms; setting flagHI to 1.} :dt
 
 Self-explanatory. :dd
+
+{Charges are set, but coulombic solver is not used} :dt
+
+The atom style supports charge, but this KSpace style does not include
+long-range Coulombics. :dd
 
 {Compute cna/atom cutoff may be too large to find ghost atom neighbors} :dt
 
@@ -7327,6 +8135,10 @@ to check your simulation geometry. :dd
 If the fix changes the timestep, the dump dcd file will not
 reflect the change. :dd
 
+{Ewald/disp Newton solver failed, using old method to estimate g_ewald} :dt
+
+Self-explanatory. :dd
+
 {FENE bond too long: %ld %d %d %g} :dt
 
 A FENE bond has stretched dangerously far.  It's interaction strength
@@ -7336,11 +8148,6 @@ will be truncated to attempt to prevent the bond from blowing up. :dd
 
 A FENE bond has stretched dangerously far.  It's interaction strength
 will be truncated to attempt to prevent the bond from blowing up. :dd
-
-{Fix GCMC may delete atom with non-zero molecule ID} :dt
-
-This is probably an error, since you should not delete only one atom
-of a molecule. The GCMC molecule exchange feature does not yet work. :dd
 
 {Fix SRD walls overlap but fix srd overlap not set} :dt
 
@@ -7416,6 +8223,15 @@ this may cause a glitch in the profile since you are averaging
 immediately after swaps have occurred.  Flipping the order
 of the 2 fixes typically helps. :dd
 
+{For better accuracy use 'pair_modify table 0'} :dt
+
+The user-specified force accuracy cannot be achieved unless the table
+feature is disabled by using 'pair_modify table 0'. :dd
+
+{Geometric mixing assumed for 1/r^6 coefficients} :dt
+
+Self-explanatory. :dd
+
 {Group for fix_modify temp != fix group} :dt
 
 The fix_modify command is specifying a temperature computation that
@@ -7427,6 +8243,38 @@ itself operates on.  This is probably not what you want to do. :dd
 Conformation of the 4 listed improper atoms is extreme; you may want
 to check your simulation geometry. :dd
 
+{Inconsistent image flags} :dt
+
+The image flags for a pair on bonded atoms appear to be inconsistent.
+Inconstent means that when the coordinates of the two atoms
+are unwrapped using the image flags, the two atoms are far apart.
+Specifically they are further apart than half a periodic box length.
+Or they are more than a box length apart in a non-periodic dimension.
+This is usually due to the initial data file not having correct
+image flags for the 2 atoms in a bond that straddles a periodic
+boundary.  They should be different by 1 in that case.
+
+This is a warning because inconsistent image flags will not cause
+problems for dynamics or most LAMMPS simulations.  However they can
+cause problems when such atoms are used with the fix rigid or
+replicate commands. :dd
+
+{KIM Model does not provide `energy'; Potential energy will be zero} :dt
+
+Self-explanatory. :dd
+
+{KIM Model does not provide `forces'; Forces will be zero} :dt
+
+Self-explanatory. :dd
+
+{KIM Model does not provide `particleEnergy'; energy per atom will be zero} :dt
+
+Self-explanatory. :dd
+
+{KIM Model does not provide `particleVirial'; virial per atom will be zero} :dt
+
+Self-explanatory. :dd
+
 {Kspace_modify slab param < 2.0 may cause unphysical behavior} :dt
 
 The kspace_modify slab parameter should be larger to insure periodic
@@ -7437,6 +8285,17 @@ grids padded with empty space do not overlap. :dd
 Less atom insertions occurred on this timestep due to the fix pour
 command than were scheduled.  This is probably because there were too
 many overlaps detected. :dd
+
+{Library error in lammps_gather_atoms} :dt
+
+This library function cannot be used if atom IDs are not defined
+or are not consecutively numbered. :dd
+
+{Library error in lammps_scatter_atoms} :dt
+
+This library function cannot be used if atom IDs are not defined or
+are not consecutively numbered, or if no atom map is defined.  See the
+atom_modify command for details about atom maps. :dd
 
 {Lost atoms via change_box: original %ld current %ld} :dt
 
@@ -7454,14 +8313,26 @@ bad dynamics, e.g. atoms have been blown far out of the simulation
 box, or moved futher than one processor's sub-domain away before
 reneighboring. :dd
 
+{MSM mesh too small, increasing to 2 points in each direction} :dt
+
+Self-explanatory. :dd
+
 {Mismatch between velocity and compute groups} :dt
 
 The temperature computation used by the velocity command will not be
 on the same group of atoms that velocities are being set for. :dd
 
+{Mixing forced for LJ coefficients} :dt
+
+Self-explanatory. :dd
+
+{Mixing forced for lj coefficients} :dt
+
+Self-explanatory. :dd
+
 {More than one compute centro/atom} :dt
 
-It is not efficient to use compute centro/atom  more than once. :dd
+It is not efficient to use compute centro/atom more than once. :dd
 
 {More than one compute cluster/atom} :dt
 
@@ -7471,6 +8342,10 @@ It is not efficient to use compute cluster/atom  more than once. :dd
 
 It is not efficient to use compute cna/atom  more than once. :dd
 
+{More than one compute contact/atom} :dt
+
+It is not efficient to use compute contact/atom more than once. :dd
+
 {More than one compute coord/atom} :dt
 
 It is not efficient to use compute coord/atom more than once. :dd
@@ -7479,9 +8354,17 @@ It is not efficient to use compute coord/atom more than once. :dd
 
 It is not efficient to use compute ke/atom more than once. :dd
 
+{More than one compute erotate/sphere/atom} :dt
+
+It is not efficient to use compute erorate/sphere/atom more than once. :dd
+
 {More than one compute ke/atom} :dt
 
 It is not efficient to use compute ke/atom more than once. :dd
+
+{More than one compute voronoi/atom command} :dt
+
+It is not efficient to use compute voronoi/atom more than once. :dd
 
 {More than one fix poems} :dt
 
@@ -7490,6 +8373,16 @@ It is not efficient to use fix poems more than once. :dd
 {More than one fix rigid} :dt
 
 It is not efficient to use fix rigid more than once. :dd
+
+{Neighbor exclusions used with KSpace solver may give inconsistent Coulombic energies} :dt
+
+This is because excluding specific pair interactions also excludes
+them from long-range interactions which may not be the desired effect.
+The special_bonds command handles this consistently by insuring
+excluded (or weighted) 1-2, 1-3, 1-4 interactions are treated
+consistently by both the short-range pair style and the long-range
+solver.  This is not done for exclusions of charged atom pairs via the
+neigh_modify exclude command. :dd
 
 {New thermo_style command, previous thermo_modify settings will be lost} :dt
 
@@ -7519,6 +8412,17 @@ fix rigid. :dd
 
 This is most likely an error, unless you have created your own ReaxFF
 parameter file in a different set of units. :dd
+
+{Number of MSM mesh points increased to be a multiple of 2} :dt
+
+MSM requires that the number of grid points in each direction be a multiple
+of two and the number of grid points in one or more directions have been
+adjusted to meet this requirement. :dd
+
+{OMP_NUM_THREADS environment is not set.} :dt
+
+This environment variable must be set appropriately to use the
+USER-OMP pacakge. :dd
 
 {One or more atoms are time integrated more than once} :dt
 
@@ -7566,10 +8470,20 @@ The fix deposit command was not able to insert as many atoms as
 needed.  The requested volume fraction may be too high, or other atoms
 may be in the insertion region. :dd
 
-{Reducing PPPM order b/c stencil extends beyond neighbor processor} :dt
+{Reducing PPPM order b/c stencil extends beyond nearest neighbor processor} :dt
 
-LAMMPS is attempting this in order to allow the simulation
-to run.  It should not effect the PPPM accuracy. :dd
+This may lead to a larger grid than desired.  See the kspace_modify overlap
+command to prevent changing of the PPPM order. :dd
+
+{Reducing PPPMDisp Coulomb order b/c stencil extends beyond neighbor processor.} :dt
+
+This may lead to a larger grid than desired.  See the kspace_modify overlap
+command to prevent changing of the PPPM order. :dd
+
+{Reducing PPPMDisp Dispersion order b/c stencil extends beyond neighbor processor} :dt
+
+This may lead to a larger grid than desired.  See the kspace_modify overlap
+command to prevent changing of the PPPM order. :dd
 
 {Replacing a fix, but new group != old group} :dt
 
@@ -7674,7 +8588,7 @@ LAMMPS allows this, but their dynamics are not computed correctly. :dd
 {System is not charge neutral, net charge = %g} :dt
 
 The total charge on all atoms on the system is not 0.0, which
-is not valid for Ewald or PPPM. :dd
+is not valid for the long-range Coulombic solvers. :dd
 
 {Table inner cutoff >= outer cutoff} :dt
 
@@ -7722,6 +8636,14 @@ Self-explanatory. :dd
 More than the maximum # of neighbors was found multiple times.  This
 was unexpected. :dd
 
+{Triclinic box skew is large} :dt
+
+The displacement in a skewed direction is normally required to be less
+than half the box length in that dimension.  E.g. the xy tilt must be
+between -half and +half of the x box length.  You have relaxed the
+constraint using the box tilt command, but the warning means that a
+LAMMPS simulation may be inefficient as a result. :dd
+
 {Use special bonds = 0,1,1 with bond style fene} :dt
 
 Most FENE models need this setting for the special_bonds command. :dd
@@ -7744,6 +8666,18 @@ compute temp/deform in this case. :dd
 
 The deformation will heat the SRD particles so this can
 be dangerous. :dd
+
+{Using largest cutoff for buck/long/coul/long} :dt
+
+Self-exlanatory. :dd
+
+{Using largest cutoff for pair_style lj/long/coul/long} :dt
+
+Self-explanatory. :dd
+
+{Using largest cutoff for pair_style lj/long/tip4p/long} :dt
+
+Self-explanatory. :dd
 
 {Using pair tail corrections with nonperiodic system} :dt
 

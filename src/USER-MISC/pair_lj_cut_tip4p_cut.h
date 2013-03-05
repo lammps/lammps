@@ -1,21 +1,21 @@
 #ifdef PAIR_CLASS
 
-PairStyle(lj/cut/coul/cut/tip4p,PairLJCutCoulCutTIP4P)
+PairStyle(lj/cut/tip4p/cut,PairLJCutTIP4PCut)
 
 #else
 
-#ifndef LMP_PAIR_LJ_CUT_COUL_CUT_TIP4P_H
-#define LMP_PAIR_LJ_CUT_COUL_CUT_TIP4P_H
+#ifndef LMP_PAIR_LJ_CUT_TIP4P_CUT_H
+#define LMP_PAIR_LJ_CUT_TIP4P_CUT_H
 
 #include "pair.h"
 
 namespace LAMMPS_NS {
 
-class PairLJCutCoulCutTIP4P : public Pair {
+class PairLJCutTIP4PCut : public Pair {
 
  public:
-  PairLJCutCoulCutTIP4P(class LAMMPS *);
- ~PairLJCutCoulCutTIP4P();
+  PairLJCutTIP4PCut(class LAMMPS *);
+ ~PairLJCutTIP4PCut();
   void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);

@@ -1,4 +1,4 @@
-#include "pair_lj_cut_coul_cut_tip4p.h"
+#include "pair_lj_cut_tip4p_cut.h"
 
 #include "universe.h"
 #include "force.h"
@@ -20,7 +20,7 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutCoulCutTIP4P::PairLJCutCoulCutTIP4P(LAMMPS *lmp):Pair(lmp)
+PairLJCutTIP4PCut::PairLJCutTIP4PCut(LAMMPS *lmp):Pair(lmp)
 {
   single_enable = 0;
 
@@ -36,7 +36,7 @@ PairLJCutCoulCutTIP4P::PairLJCutCoulCutTIP4P(LAMMPS *lmp):Pair(lmp)
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutCoulCutTIP4P::~PairLJCutCoulCutTIP4P()
+PairLJCutTIP4PCut::~PairLJCutTIP4PCut()
 {
   if (allocated) {
     memory->destroy(setflag);
@@ -58,7 +58,7 @@ PairLJCutCoulCutTIP4P::~PairLJCutCoulCutTIP4P()
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJCutCoulCutTIP4P::compute(int eflag, int vflag)
+void PairLJCutTIP4PCut::compute(int eflag, int vflag)
 {
 
   int i,j,ii,jj,inum,jnum,itype,jtype;
@@ -369,7 +369,7 @@ void PairLJCutCoulCutTIP4P::compute(int eflag, int vflag)
 
    ---------------------------------------------------------------------- */
 
-void PairLJCutCoulCutTIP4P::settings(int narg, char **arg)
+void PairLJCutTIP4PCut::settings(int narg, char **arg)
 {
   // arg is an array of values in the config line like
   // "pair_style lj/cut/coul/cut/tip4p arg[0] arg[1] ... arg[n-1]"
@@ -407,7 +407,7 @@ void PairLJCutCoulCutTIP4P::settings(int narg, char **arg)
      init specific to this pair style
    ---------------------------------------------------------------------- */
 
-void PairLJCutCoulCutTIP4P::init_style()
+void PairLJCutTIP4PCut::init_style()
 {
 
   if (atom->tag_enable == 0)
@@ -437,7 +437,7 @@ void PairLJCutCoulCutTIP4P::init_style()
 
    ---------------------------------------------------------------------- */
 
-void PairLJCutCoulCutTIP4P::coeff(int narg, char **arg)
+void PairLJCutTIP4PCut::coeff(int narg, char **arg)
 {
   if (narg < 4 || narg > 6)
    error->all(FLERR,"Incorrect args for pair coefficients");
@@ -472,7 +472,7 @@ void PairLJCutCoulCutTIP4P::coeff(int narg, char **arg)
 }
 
 
-void PairLJCutCoulCutTIP4P::allocate()
+void PairLJCutTIP4PCut::allocate()
 {
   // Here i and j correspond to atomtypes defined by the read_data command;
   // the numbering in the arrays starts from 0, but the zero-th elements
@@ -520,7 +520,7 @@ void PairLJCutCoulCutTIP4P::allocate()
 
    ---------------------------------------------------------------------- */
 
-double PairLJCutCoulCutTIP4P::init_one(int i, int j){
+double PairLJCutTIP4PCut::init_one(int i, int j){
 
   if (setflag[i][j] == 0) {
      epsilon[i][j] = mix_energy(epsilon[i][i],epsilon[j][j],
@@ -574,7 +574,7 @@ double PairLJCutCoulCutTIP4P::init_one(int i, int j){
 
    ---------------------------------------------------------------------- */
 
-void PairLJCutCoulCutTIP4P::compute_newsite(double *xO,  double *xH1,
+void PairLJCutTIP4PCut::compute_newsite(double *xO,  double *xH1,
                                             double *xH2, double *xM)
 {
   double delx1 = xH1[0] - xO[0];
@@ -593,7 +593,7 @@ void PairLJCutCoulCutTIP4P::compute_newsite(double *xO,  double *xH1,
 
 }
 
-void PairLJCutCoulCutTIP4P::write_restart(FILE *fp)
+void PairLJCutTIP4PCut::write_restart(FILE *fp)
 {
   write_restart_settings(fp);
 
@@ -610,7 +610,7 @@ void PairLJCutCoulCutTIP4P::write_restart(FILE *fp)
   }
 }
 
-void PairLJCutCoulCutTIP4P::read_restart(FILE *fp)
+void PairLJCutTIP4PCut::read_restart(FILE *fp)
 {
   read_restart_settings(fp);
   allocate();
@@ -635,7 +635,7 @@ void PairLJCutCoulCutTIP4P::read_restart(FILE *fp)
   }
 }
 
-void PairLJCutCoulCutTIP4P::write_restart_settings(FILE *fp)
+void PairLJCutTIP4PCut::write_restart_settings(FILE *fp)
 {
   fwrite(&typeO,sizeof(int),1,fp);
   fwrite(&typeH,sizeof(int),1,fp);
@@ -648,7 +648,7 @@ void PairLJCutCoulCutTIP4P::write_restart_settings(FILE *fp)
   fwrite(&cut_coulsqplus,sizeof(double),1,fp);
 }
 
-void PairLJCutCoulCutTIP4P::read_restart_settings(FILE *fp)
+void PairLJCutTIP4PCut::read_restart_settings(FILE *fp)
 {
   int me = comm->me;
   if (me == 0) {

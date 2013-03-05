@@ -1,3 +1,13 @@
+/* ----------------------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
+
+   This software is distributed under the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
 #include "pair_lj_cut_tip4p_cut.h"
 
 #include "universe.h"
@@ -18,7 +28,9 @@
 using namespace LAMMPS_NS; 
 using namespace MathConst;
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   Contributing author: Pavel Elkind (Gothenburg University)
+------------------------------------------------------------------------- */
 
 PairLJCutTIP4PCut::PairLJCutTIP4PCut(LAMMPS *lmp):Pair(lmp)
 {

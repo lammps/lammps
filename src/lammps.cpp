@@ -460,6 +460,7 @@ void LAMMPS::create()
   if (cuda) domain = new DomainCuda(this);
 #ifdef LMP_USER_OMP
   else domain = new DomainOMP(this);
+  atom->avec->grow(0);
 #else
   else domain = new Domain(this);
 #endif

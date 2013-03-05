@@ -139,7 +139,7 @@ section of "this page"_Section_commands.html#cmd_5.
 "pair_style lj/cut/coul/cut"_pair_lj.html - LJ with cutoff Coulomb
 "pair_style lj/cut/coul/debye"_pair_lj.html - LJ with Debye screening added to Coulomb
 "pair_style lj/cut/coul/long"_pair_lj.html - LJ with long-range Coulomb
-"pair_style lj/cut/coul/long/tip4p"_pair_lj.html - LJ with long-range Coulomb for TIP4P water
+"pair_style lj/cut/tip4p/long"_pair_lj.html - LJ with long-range Coulomb for TIP4P water
 "pair_style lj/expand"_pair_lj_expand.html - Lennard-Jones for variable size particles
 "pair_style lj/gromacs"_pair_gromacs.html - GROMACS-style Lennard-Jones potential
 "pair_style lj/gromacs/coul/gromacs"_pair_gromacs.html - GROMACS-style LJ and Coulombic potential

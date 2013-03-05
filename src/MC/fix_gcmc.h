@@ -205,8 +205,4 @@ E: Fix gcmc incorrect number of atoms per molecule
 
 The number of atoms in each gas molecule was not computed correctly.
 
-E: Region ID for fix gcmc does not exist 
- 
-Self-explanatory.
-
 */

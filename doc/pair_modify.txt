@@ -13,12 +13,16 @@ pair_modify command :h3
 pair_modify keyword value ... :pre
 
 one or more keyword/value pairs may be listed :ulb,l
-keyword = {shift} or {mix} or {table} or {tabinner} or {tail} or {compute} :l
+keyword = {shift} or {mix} or {table} or {table/disp} or {tabinner} or {tabinner/disp} or {tail} or {compute} :l
   {mix} value = {geometric} or {arithmetic} or {sixthpower}
   {shift} value = {yes} or {no}
   {table} value = N
     2^N = # of values in table
+  {table/disp} value = N
+    2^N = # of values in table
   {tabinner} value = cutoff
+    cutoff = inner cutoff at which to begin table (distance units)
+  {tabinner/disp} value = cutoff
     cutoff = inner cutoff at which to begin table (distance units)
   {tail} value = {yes} or {no}
   {compute} value = {yes} or {no} :pre
@@ -76,9 +80,10 @@ output, but does not affect pair forces or atom trajectories.  See the
 doc page for individual pair styles to see which ones support this
 option.
 
-The {table} keyword applies to pair styles with a long-range Coulombic
-term; see the doc page for individual styles to see which potentials
-support this option.  If N is non-zero, a table of length 2^N is
+The {table} and {table/disp} keywords apply to pair styles with a
+long-range Coulombic term or long-range dispersion term respectively;
+see the doc page for individual styles to see which potentials support
+these options.  If N is non-zero, a table of length 2^N is
 pre-computed for forces and energies, which can shrink their
 computational cost by up to a factor of 2.  The table is indexed via a
 bit-mapping technique "(Wolff)"_#Wolff and a linear interpolation is
@@ -97,14 +102,16 @@ evaluation, which is what earlier versions of LAMMPS did.  Values
 greater than 16 typically slow down the simulation and will not
 improve accuracy; values from 1 to 8 give unreliable results.
 
-The {tabinner} keyword sets an inner cutoff above which the pairwise
-computation is done by table lookup (if tables are invoked).  The
-smaller this value is set, the less accurate the table becomes (for a
-given number of table values), which can require use of larger tables.
-The default cutoff value is sqrt(2.0) distance units which means
-nearly all pairwise interactions are computed via table lookup for
-simulations with "real" units, but some close pairs may be computed
-directly (non-table) for simulations with "lj" units.
+The {tabinner} and {tabinner/disp} keywords set an inner cutoff above
+which the pairwise computation is done by table lookup (if tables are
+invoked), for the corresponding Coulombic and dispersion tables
+discussed with the {table} and {table/disp} keywords.  The smaller the
+cutoff is set, the less accurate the table becomes (for a given number
+of table values), which can require use of larger tables.  The default
+cutoff value is sqrt(2.0) distance units which means nearly all
+pairwise interactions are computed via table lookup for simulations
+with "real" units, but some close pairs may be computed directly
+(non-table) for simulations with "lj" units.
 
 When the {tail} keyword is set to {yes}, certain pair styles will add
 a long-range VanderWaals tail "correction" to the energy and pressure.

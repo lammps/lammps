@@ -13,6 +13,8 @@
 
 /* ----------------------------------------------------------------------
    Contributing author: Pieter J. in 't Veld (SNL)
+   Tabulation for long-range dispersion added by Wayne Mitchell (Loyola 
+   University New Orleans)
 ------------------------------------------------------------------------- */
 
 #include "math.h"
@@ -51,6 +53,7 @@ PairLJLongCoulLong::PairLJLongCoulLong(LAMMPS *lmp) : Pair(lmp)
   dispersionflag = ewaldflag = pppmflag = 1;
   respa_enable = 1;
   ftable = NULL;
+  fdisptable = NULL;
   qdist = 0.0;
 }
  
@@ -82,22 +85,19 @@ void PairLJLongCoulLong::settings(int narg, char **arg)
   options(arg, 6);
   options(++arg, 1);
   if (!comm->me && ewald_order & (1<<6)) 
-    error->warning(FLERR,"Mixing forced for LJ coefficients");
+    error->warning(FLERR,"Mixing forced for lj coefficients");
   if (!comm->me && ewald_order == ((1<<1) | (1<<6)))
-    error->warning(FLERR,
-                   "Using largest cutoff for pair_style lj/long/coul/long");
+    error->warning(FLERR,"Using largest cut-off for lj/coul long long");
   if (!*(++arg)) 
-    error->all(FLERR,"Cutoffs missing in pair_style lj/long/coul/long");
+    error->all(FLERR,"Cut-offs missing in pair_style lj/coul");
   if (!((ewald_order^ewald_off) & (1<<1))) 
-    error->all(FLERR,
-               "Coulomb cut not supported in pair_style lj/long/coul/long");
-  cut_lj_global = force->numeric(*(arg++));
+    error->all(FLERR,"Coulombic cut not supported in pair_style lj/coul");  cut_lj_global = force->numeric(*(arg++));
   if (*arg && ((ewald_order & 0x42) == 0x42)) 
-    error->all(FLERR,"Only one cutoff allowed when requesting all long");
+    error->all(FLERR,"Only one cut-off allowed when requesting all long");
   if (narg == 4) cut_coul = force->numeric(*arg);
   else cut_coul = cut_lj_global;
 
-  if (allocated) {
+  if (allocated) {    
     int i,j;
     for (i = 1; i <= atom->ntypes; i++)
       for (j = i+1; j <= atom->ntypes; j++)
@@ -228,7 +228,8 @@ void PairLJLongCoulLong::init_style()
   // require an atom style with charge defined
 
   if (!atom->q_flag && (ewald_order&(1<<1)))
-    error->all(FLERR,"Pair style lj/long/coul/long requires atom attribute q");
+    error->all(FLERR,
+        "Invoking coulombic in pair style lj/coul requires atom attribute q");
 
   // request regular or rRESPA neighbor lists
 
@@ -281,10 +282,12 @@ void PairLJLongCoulLong::init_style()
     error->all(FLERR,"Pair style requires a KSpace style");
   if (force->kspace) g_ewald = force->kspace->g_ewald;
   if (force->kspace) g_ewald_6 = force->kspace->g_ewald_6;
-
+  
   // setup force tables
-
+  
   if (ncoultablebits) init_tables(cut_coul,cut_respa);
+  if (ndisptablebits) init_tables_disp(cut_lj_global);
+  
 }
 
 /* ----------------------------------------------------------------------
@@ -526,22 +529,40 @@ void PairLJLongCoulLong::compute(int eflag, int vflag)
       else force_coul = ecoul = 0.0;
 
       if (rsq < cut_ljsqi[typej]) {                        // lj
-               if (order6) {                                        // long-range lj
-          register double rn = r2inv*r2inv*r2inv;
-          register double x2 = g2*rsq, a2 = 1.0/x2;
-          x2 = a2*exp(-x2)*lj4i[typej];
-          if (ni == 0) {
-            force_lj =
+        if (order6) {                                        // long-range lj
+          if(!ndisptablebits || rsq <= tabinnerdispsq) {				// series real space
+            register double rn = r2inv*r2inv*r2inv;
+            register double x2 = g2*rsq, a2 = 1.0/x2;
+            x2 = a2*exp(-x2)*lj4i[typej];
+            if (ni == 0) {
+              force_lj =
               (rn*=rn)*lj1i[typej]-g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq;
-            if (eflag)
-              evdwl = rn*lj3i[typej]-g6*((a2+1.0)*a2+0.5)*x2;
-          }
-          else {                                        // special case
-            register double f = special_lj[ni], t = rn*(1.0-f);
-            force_lj = f*(rn *= rn)*lj1i[typej]-
+              if (eflag)
+                evdwl = rn*lj3i[typej]-g6*((a2+1.0)*a2+0.5)*x2;
+            }
+            else {                                        // special case
+              register double f = special_lj[ni], t = rn*(1.0-f);
+              force_lj = f*(rn *= rn)*lj1i[typej]-
               g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq+t*lj2i[typej];
-            if (eflag)
-              evdwl = f*rn*lj3i[typej]-g6*((a2+1.0)*a2+0.5)*x2+t*lj4i[typej];
+              if (eflag)
+                evdwl = f*rn*lj3i[typej]-g6*((a2+1.0)*a2+0.5)*x2+t*lj4i[typej];
+            }
+          }
+          else {						// table real space
+            register union_int_float_t disp_t;
+            disp_t.f = rsq;
+            register const int disp_k = (disp_t.i & ndispmask)>>ndispshiftbits;
+            register double f_disp = (rsq-rdisptable[disp_k])*drdisptable[disp_k];
+            register double rn = r2inv*r2inv*r2inv;
+            if (ni == 0) {
+              force_lj = (rn*=rn)*lj1i[typej]-(fdisptable[disp_k]+f_disp*dfdisptable[disp_k])*lj4i[typej];
+              if (eflag) evdwl = rn*lj3i[typej]-(edisptable[disp_k]+f_disp*dedisptable[disp_k])*lj4i[typej];
+            }
+            else {					// special case
+              register double f = special_lj[ni], t = rn*(1.0-f);
+              force_lj = f*(rn *= rn)*lj1i[typej]-(fdisptable[disp_k]+f_disp*dfdisptable[disp_k])*lj4i[typej]+t*lj2i[typej];
+              if (eflag) evdwl = f*rn*lj3i[typej]-(edisptable[disp_k]+f_disp*dedisptable[disp_k])*lj4i[typej]+t*lj4i[typej];
+            }
           }
         }
         else {                                                // cut lj
@@ -558,6 +579,7 @@ void PairLJLongCoulLong::compute(int eflag, int vflag)
           }
         }
       }
+      
       else force_lj = evdwl = 0.0;
 
       fpair = (force_coul+force_lj)*r2inv;
@@ -701,7 +723,7 @@ void PairLJLongCoulLong::compute_middle()
 
   for (; ineigh<ineighn; ++ineigh) {                        // loop over my atoms
     i = *ineigh; fi = f0+3*i;
-    qri = qqrd2e*q[i];
+    if (order1) qri = qqrd2e*q[i];
     memcpy(xi, x0+(i+(i<<1)), sizeof(vector));
     cut_ljsqi = cut_ljsq[typei = type[i]];
     lj1i = lj1[typei]; lj2i = lj2[typei];
@@ -767,7 +789,7 @@ void PairLJLongCoulLong::compute_outer(int eflag, int vflag)
   evdwl = ecoul = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = 0;
-
+  
   double **x = atom->x, *x0 = x[0];
   double **f = atom->f, *f0 = f[0], *fi = f0;
   double *q = atom->q;
@@ -777,7 +799,7 @@ void PairLJLongCoulLong::compute_outer(int eflag, int vflag)
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
   double qqrd2e = force->qqrd2e;
-
+  
   int i, j, order1 = ewald_order&(1<<1), order6 = ewald_order&(1<<6);
   int *ineigh, *ineighn, *jneigh, *jneighn, typei, typej, ni, respa_flag;
   double qi = 0.0, qri = 0.0;
@@ -786,16 +808,16 @@ void PairLJLongCoulLong::compute_outer(int eflag, int vflag)
   double g2 = g_ewald_6*g_ewald_6, g6 = g2*g2*g2, g8 = g6*g2;
   double respa_lj = 0.0, respa_coul = 0.0, frespa = 0.0;
   vector xi, d;
-
+  
   double cut_in_off = cut_respa[2];
   double cut_in_on = cut_respa[3];
-
+  
   double cut_in_diff = cut_in_on - cut_in_off;
   double cut_in_off_sq = cut_in_off*cut_in_off;
   double cut_in_on_sq = cut_in_on*cut_in_on;
-
+  
   ineighn = (ineigh = list->ilist)+list->inum;
-
+  
   for (; ineigh<ineighn; ++ineigh) {                        // loop over my atoms
     i = *ineigh; fi = f0+3*i;
     if (order1) qri = (qi = q[i])*qqrd2e;                // initialize constants
@@ -804,20 +826,20 @@ void PairLJLongCoulLong::compute_outer(int eflag, int vflag)
     cutsqi = cutsq[typei]; cut_ljsqi = cut_ljsq[typei];
     memcpy(xi, x0+(i+(i<<1)), sizeof(vector));
     jneighn = (jneigh = list->firstneigh[i])+list->numneigh[i];
-
+    
     for (; jneigh<jneighn; ++jneigh) {                        // loop over neighbors
       j = *jneigh;
       ni = sbmask(j);
       j &= NEIGHMASK;
-
+      
       { register double *xj = x0+(j+(j<<1));
         d[0] = xi[0] - xj[0];                                // pair vector
         d[1] = xi[1] - xj[1];
         d[2] = xi[2] - xj[2]; }
-
+      
       if ((rsq = vec_dot(d, d)) >= cutsqi[typej = type[j]]) continue;
       r2inv = 1.0/rsq;
-
+      
       frespa = 1.0;                                       // check whether and how to compute respa corrections
       respa_coul = 0;
       respa_lj = 0;
@@ -826,7 +848,7 @@ void PairLJLongCoulLong::compute_outer(int eflag, int vflag)
         register double rsw = (sqrt(rsq)-cut_in_off)/cut_in_diff;
         frespa = 1-rsw*rsw*(3.0-2.0*rsw);
       }
-
+      
       if (order1 && (rsq < cut_coulsq)) {                // coulombic
         if (!ncoultablebits || rsq <= tabinnersq) {        // series real space
           register double r = sqrt(rsq), s = qri*q[j];
@@ -867,6 +889,7 @@ void PairLJLongCoulLong::compute_outer(int eflag, int vflag)
           }
         }
       }
+       
       else force_coul = respa_coul = ecoul = 0.0;
 
       if (rsq < cut_ljsqi[typej]) {                        // lennard-jones
@@ -875,19 +898,37 @@ void PairLJLongCoulLong::compute_outer(int eflag, int vflag)
             frespa*rn*(rn*lj1i[typej]-lj2i[typej]) :
             frespa*rn*(rn*lj1i[typej]-lj2i[typej])*special_lj[ni];
         if (order6) {                                        // long-range form
-          register double x2 = g2*rsq, a2 = 1.0/x2;
-          x2 = a2*exp(-x2)*lj4i[typej];
-          if (ni == 0) {
-            force_lj =
-              (rn*=rn)*lj1i[typej]-g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq-respa_lj;
-            if (eflag) evdwl = rn*lj3i[typej]-g6*((a2+1.0)*a2+0.5)*x2;
+          if (!ndisptablebits || rsq <= tabinnerdispsq) {
+            register double x2 = g2*rsq, a2 = 1.0/x2;
+            x2 = a2*exp(-x2)*lj4i[typej];
+            if (ni == 0) {
+              force_lj =
+                (rn*=rn)*lj1i[typej]-g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq-respa_lj;
+              if (eflag) evdwl = rn*lj3i[typej]-g6*((a2+1.0)*a2+0.5)*x2;
+            }
+            else {                                        // correct for special
+              register double f = special_lj[ni], t = rn*(1.0-f);
+              force_lj = f*(rn *= rn)*lj1i[typej]-
+                g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq+t*lj2i[typej]-respa_lj;
+              if (eflag)
+                evdwl = f*rn*lj3i[typej]-g6*((a2+1.0)*a2+0.5)*x2+t*lj4i[typej];
+            }
           }
-          else {                                        // correct for special
-            register double f = special_lj[ni], t = rn*(1.0-f);
-            force_lj = f*(rn *= rn)*lj1i[typej]-
-              g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq+t*lj2i[typej]-respa_lj;
-            if (eflag)
-              evdwl = f*rn*lj3i[typej]-g6*((a2+1.0)*a2+0.5)*x2+t*lj4i[typej];
+          else {						// table real space
+            register union_int_float_t disp_t;
+            disp_t.f = rsq;
+            register const int disp_k = (disp_t.i & ndispmask)>>ndispshiftbits;
+            register double f_disp = (rsq-rdisptable[disp_k])*drdisptable[disp_k];
+            register double rn = r2inv*r2inv*r2inv;
+            if (ni == 0) {
+              force_lj = (rn*=rn)*lj1i[typej]-(fdisptable[disp_k]+f_disp*dfdisptable[disp_k])*lj4i[typej]-respa_lj;
+              if (eflag) evdwl = rn*lj3i[typej]-(edisptable[disp_k]+f_disp*dedisptable[disp_k])*lj4i[typej];
+            }
+            else {					// special case
+              register double f = special_lj[ni], t = rn*(1.0-f);
+              force_lj = f*(rn *= rn)*lj1i[typej]-(fdisptable[disp_k]+f_disp*dfdisptable[disp_k])*lj4i[typej]+t*lj2i[typej]-respa_lj;
+              if (eflag) evdwl = f*rn*lj3i[typej]-(edisptable[disp_k]+f_disp*dedisptable[disp_k])*lj4i[typej]+t*lj4i[typej];
+            }
           }
         }
         else {                                                // cut form
@@ -904,9 +945,9 @@ void PairLJLongCoulLong::compute_outer(int eflag, int vflag)
         }
       }
       else force_lj = respa_lj = evdwl = 0.0;
-
+      
       fpair = (force_coul+force_lj)*r2inv;
-
+      
       if (newton_pair || j < nlocal) {
         register double *fj = f0+(j+(j<<1)), f;
         fi[0] += f = d[0]*fpair; fj[0] -= f;
@@ -918,11 +959,11 @@ void PairLJLongCoulLong::compute_outer(int eflag, int vflag)
         fi[1] += d[1]*fpair;
         fi[2] += d[2]*fpair;
       }
-
+      
       if (evflag) {
-          fvirial = (force_coul + force_lj + respa_coul + respa_lj)*r2inv;
-          ev_tally(i,j,nlocal,newton_pair,
-                           evdwl,ecoul,fvirial,d[0],d[1],d[2]);
+        fvirial = (force_coul + force_lj + respa_coul + respa_lj)*r2inv;
+        ev_tally(i,j,nlocal,newton_pair,
+                 evdwl,ecoul,fvirial,d[0],d[1],d[2]);
       }
     }
   }

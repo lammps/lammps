@@ -75,7 +75,9 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   tail_flag = 0;
   etail = ptail = etail_ij = ptail_ij = 0.0;
   ncoultablebits = 12;
+  ndisptablebits = 12;
   tabinner = sqrt(2.0);
+  tabinner_disp = sqrt(2.0);
 
   allocated = 0;
   suffix_flag = Suffix::NONE;
@@ -126,9 +128,19 @@ void Pair::modify_params(int narg, char **arg)
       if (ncoultablebits > sizeof(float)*CHAR_BIT)
         error->all(FLERR,"Too many total bits for bitmapped lookup table");
       iarg += 2;
+    } else if (strcmp(arg[iarg],"table/disp") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
+      ndisptablebits = atoi(arg[iarg+1]);
+      if (ndisptablebits > sizeof(float)*CHAR_BIT)
+        error->all(FLERR,"Too many total bits for bitmapped lookup table");
+      iarg += 2;
     } else if (strcmp(arg[iarg],"tabinner") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
       tabinner = atof(arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"tabinner/disp") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
+      tabinner_disp = atof(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"tail") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
@@ -245,7 +257,7 @@ void Pair::init_list(int which, NeighList *ptr)
 }
 
 /* ----------------------------------------------------------------------
-   setup force tables used in compute routines
+   setup Coulomb force tables used in compute routines
 ------------------------------------------------------------------------- */
 
 void Pair::init_tables(double cut_coul, double *cut_respa)
@@ -255,7 +267,7 @@ void Pair::init_tables(double cut_coul, double *cut_respa)
   double qqrd2e = force->qqrd2e;
 
   if (force->kspace == NULL)
-    error->all(FLERR,"Pair style requires a KSpace style");
+    error->all(FLERR,"Pair style requres a KSpace style");
   double g_ewald = force->kspace->g_ewald;
   
   double cut_coulsq = cut_coul * cut_coul;
@@ -455,7 +467,111 @@ void Pair::init_tables(double cut_coul, double *cut_respa)
 }
 
 /* ----------------------------------------------------------------------
-   free memory for tables used in pair computations
+ setup force tables for dispersion used in compute routines
+ ------------------------------------------------------------------------- */
+
+void Pair::init_tables_disp(double cut_lj_global)
+{
+  int masklo,maskhi;
+  double r, rsq, r2inv, force_coul, force_lj;
+  double g_ewald_6 = force->kspace->g_ewald_6;
+  double g2 = g_ewald_6*g_ewald_6, g6 = g2*g2*g2, g8 = g6*g2;
+  
+  tabinnerdispsq = tabinner_disp*tabinner_disp;
+  init_bitmap(tabinner_disp,cut_lj_global,ndisptablebits,
+              masklo,maskhi,ndispmask,ndispshiftbits);
+  
+  int ntable = 1;
+  for (int i = 0; i < ndisptablebits; i++) ntable *= 2;
+  
+  // linear lookup tables of length N = 2^ndisptablebits
+  // stored value = value at lower edge of bin
+  // d values = delta from lower edge to upper edge of bin
+  
+  if (fdisptable) free_disp_tables();
+  
+  memory->create(rdisptable,ntable,"pair:rdisptable");
+  memory->create(fdisptable,ntable,"pair:fdisptable");
+  memory->create(edisptable,ntable,"pair:edisptable");
+  memory->create(drdisptable,ntable,"pair:drdisptable");
+  memory->create(dfdisptable,ntable,"pair:dfdisptable");
+  memory->create(dedisptable,ntable,"pair:dedisptable");
+  
+  union_int_float_t rsq_lookup;
+  union_int_float_t minrsq_lookup;
+  int itablemin;
+  minrsq_lookup.i = 0 << ndispshiftbits;
+  minrsq_lookup.i |= maskhi;
+  
+  for (int i = 0; i < ntable; i++) {
+    rsq_lookup.i = i << ndispshiftbits;
+    rsq_lookup.i |= masklo;
+    if (rsq_lookup.f < tabinnerdispsq) {
+      rsq_lookup.i = i << ndispshiftbits;
+      rsq_lookup.i |= maskhi;
+    }
+    r = sqrtf(rsq_lookup.f);
+    rsq = rsq_lookup.f;
+    register double x2 = g2*rsq, a2 = 1.0/x2;
+    x2 = a2*exp(-x2);
+    
+    rdisptable[i] = rsq_lookup.f;
+    fdisptable[i] = g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq;
+    edisptable[i] = g6*((a2+1.0)*a2+0.5)*x2;
+    
+    minrsq_lookup.f = MIN(minrsq_lookup.f,rsq_lookup.f);
+  }
+  
+  tabinnerdispsq = minrsq_lookup.f;
+  
+  int ntablem1 = ntable - 1;
+  
+  for (int i = 0; i < ntablem1; i++) {
+    drdisptable[i] = 1.0/(rdisptable[i+1] - rdisptable[i]);
+    dfdisptable[i] = fdisptable[i+1] - fdisptable[i];
+    dedisptable[i] = edisptable[i+1] - edisptable[i];
+  }
+  
+  // get the delta values for the last table entries
+  // tables are connected periodically between 0 and ntablem1
+  
+  drdisptable[ntablem1] = 1.0/(rdisptable[0] - rdisptable[ntablem1]);
+  dfdisptable[ntablem1] = fdisptable[0] - fdisptable[ntablem1];
+  dedisptable[ntablem1] = edisptable[0] - edisptable[ntablem1];
+  
+  // get the correct delta values at itablemax
+  // smallest r is in bin itablemin
+  // largest r is in bin itablemax, which is itablemin-1,
+  //   or ntablem1 if itablemin=0
+  // deltas at itablemax only needed if corresponding rsq < cut*cut
+  // if so, compute deltas between rsq and cut*cut
+  
+  double f_tmp,c_tmp,e_tmp,p_tmp = 0.0,v_tmp = 0.0;
+  double cut_lj_globalsq;
+  itablemin = minrsq_lookup.i & ndispmask;
+  itablemin >>= ndispshiftbits;
+  int itablemax = itablemin - 1;
+  if (itablemin == 0) itablemax = ntablem1;
+  rsq_lookup.i = itablemax << ndispshiftbits;
+  rsq_lookup.i |= maskhi;
+  
+  if (rsq_lookup.f < (cut_lj_globalsq = cut_lj_global * cut_lj_global)) {
+    rsq_lookup.f = cut_lj_globalsq;
+    r = sqrtf(rsq_lookup.f);
+    
+    register double x2 = g2*rsq, a2 = 1.0/x2;
+    x2 = a2*exp(-x2);
+    f_tmp = g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq;
+    e_tmp = g6*((a2+1.0)*a2+0.5)*x2;
+    
+    drdisptable[itablemax] = 1.0/(rsq_lookup.f - rdisptable[itablemax]);
+    dfdisptable[itablemax] = f_tmp - fdisptable[itablemax];
+    dedisptable[itablemax] = e_tmp - edisptable[itablemax];
+  }
+}
+
+/* ----------------------------------------------------------------------
+   free memory for tables used in Coulombic pair computations
 ------------------------------------------------------------------------- */
 
 void Pair::free_tables()
@@ -474,6 +590,19 @@ void Pair::free_tables()
   memory->destroy(dptable);
 }
 
+/* ----------------------------------------------------------------------
+  free memory for tables used in pair computations for dispersion
+  ------------------------------------------------------------------------- */
+
+void Pair::free_disp_tables()
+{
+  memory->destroy(rdisptable);
+  memory->destroy(drdisptable);
+  memory->destroy(fdisptable);
+  memory->destroy(dfdisptable);
+  memory->destroy(edisptable);
+  memory->destroy(dedisptable);
+}
 /* ----------------------------------------------------------------------
    mixing of pair potential prefactors (epsilon)
 ------------------------------------------------------------------------- */
@@ -697,7 +826,7 @@ void Pair::ev_tally(int i, int j, int nlocal, int newton_pair,
     }
   }
 }
-
+ 
 /* ----------------------------------------------------------------------
    tally eng_vdwl and virial into global and per-atom accumulators
    can use this version with full neighbor lists

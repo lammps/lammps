@@ -35,6 +35,7 @@ typedef double FFT_SCALAR;
 
 namespace LAMMPS_NS {
 
+
 #define EWALD_MAXORDER	6
 #define EWALD_FUNCS	3
 
@@ -91,13 +92,6 @@ Variables needed for calculating the 1/r and 1/r^6 potential
   int nxlo_fft_6,nylo_fft_6,nzlo_fft_6,nxhi_fft_6,nyhi_fft_6,nzhi_fft_6;
   int nlower_6,nupper_6;
   int ngrid_6,nfft_6,nfft_both_6;
-
-  //// variables needed for splitting the fourier transformed
-  int com_max, com_procs;
-  FFT_SCALAR **splitbuf1, **splitbuf2;
-  int **dict_send, **dict_rec;
-  int *com_each, *com_order;
-  FFT_SCALAR *split_1, *split_2;
 
   //// the following variables are needed for every structure factor
   FFT_SCALAR ***density_brick;
@@ -181,6 +175,7 @@ Variables needed for calculating the 1/r and 1/r^6 potential
   FFT_SCALAR *work1,*work2;
   FFT_SCALAR *work1_6, *work2_6;
 
+
   class FFT3d *fft1,*fft2 ;
   class FFT3d *fft1_6, *fft2_6;
   class Remap *remap;
@@ -230,7 +225,6 @@ Variables needed for calculating the 1/r and 1/r^6 potential
   double compute_qopt_6_ad();
 
   void calc_csum();
-  void prepare_splitting();
 
   virtual void allocate();
   virtual void allocate_peratom();
@@ -332,8 +326,6 @@ Variables needed for calculating the 1/r and 1/r^6 potential
 		      const FFT_SCALAR &, int, FFT_SCALAR **, FFT_SCALAR **);
   void compute_rho_coeff(FFT_SCALAR **,FFT_SCALAR **, int);
   void slabcorr(int);
-  void split_fourier();
-  void split_order(int **);
 
   // grid communication
 
@@ -358,45 +350,40 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Cannot (yet) use PPPMDisp with triclinic box
 
-This feature is not yet supported.
+UNDOCUMENTED
 
 E: Cannot use PPPMDisp with 2d simulation
 
-The kspace style pppm/disp cannot be used in 2d simulations.  You can
-use 2d PPPM in a 3d simulation; see the kspace_modify command.
+UNDOCUMENTED
 
 E: Cannot use nonperiodic boundaries with PPPMDisp
 
-For kspace style pppm/disp, all 3 dimensions must have periodic
-boundaries unless you use the kspace_modify command to define a 2d
-slab with a non-periodic z dimension.
+UNDOCUMENTED
 
 E: Incorrect boundaries with slab PPPMDisp
 
-Must have periodic x,y dimensions and non-periodic z dimension to use
-2d slab option with PPPM.
+UNDOCUMENTED
 
 E: PPPMDisp coulomb order cannot be greater than %d
 
-This is a limitation of the PPPM implementation in LAMMPS.
+UNDOCUMENTED
 
 E: KSpace style is incompatible with Pair style
 
 Setting a kspace style requires that a pair style with a long-range
-Coulombic or dispersion component be used.
+Coulombic and Dispersion component be selected.
 
 E: Unsupported mixing rule in kspace_style pppm/disp for pair_style %s
 
-Only geometric mixing is supported.
+UNDOCUMENTED
 
 E: Unsupported order in kspace_style pppm/disp pair_style %s
 
-Only 1/r^6 dispersion terms are supported.
+UNDOCUMENTED
 
 W: Charges are set, but coulombic solver is not used
 
-The atom style supports charge, but this KSpace style does not include
-long-range Coulombics.
+UNDOCUMENTED
 
 E: Kspace style with selected options requires atom attribute q
 
@@ -411,7 +398,7 @@ options of the kspace solver/pair style.
 W: System is not charge neutral, net charge = %g
 
 The total charge on all atoms on the system is not 0.0, which
-is not valid for the long-range Coulombic solvers.
+is not valid for Ewald or PPPM coulombic solvers.
 
 E: Bond and angle potentials must be defined for TIP4P
 
@@ -420,74 +407,59 @@ are defined.
 
 E: Bad TIP4P angle type for PPPMDisp/TIP4P
 
-Specified angle type is not valid.
+UNDOCUMENTED
 
 E: Bad TIP4P bond type for PPPMDisp/TIP4P
 
-Specified bond type is not valid.
+UNDOCUMENTED
 
 W: Reducing PPPMDisp Coulomb order b/c stencil extends beyond neighbor processor.
 
-This may lead to a larger grid than desired.  See the kspace_modify overlap
-command to prevent changing of the PPPM order.
+UNDOCUMENTED
 
 E: PPPMDisp Coulomb grid is too large
 
-The global PPPM grid is larger than OFFSET in one or more dimensions.
-OFFSET is currently set to 4096.  You likely need to decrease the
-requested accuracy.
+UNDOCUMENTED
 
-E: Coulomb PPPMDisp order < minimum allowed order
+E: Coulomb PPPMDisp order has been reduced below minorder
 
-The default minimum order is 2.  This can be reset by the
-kspace_modify minorder command.
+UNDOCUMENTED
 
 W: Reducing PPPMDisp Dispersion order b/c stencil extends beyond neighbor processor
 
-This may lead to a larger grid than desired.  See the kspace_modify overlap
-command to prevent changing of the PPPM order.
+UNDOCUMENTED
 
 E: PPPMDisp Dispersion grid is too large
 
-The global dispersion grid is larger than OFFSET in one or more
-dimensions.  OFFSET is currently set to 4096.  You likely need to
-decrease the requested accuracy.
+UNDOCUMENTED
 
 E: Dispersion PPPMDisp order has been reduced below minorder
 
-This may lead to a larger grid than desired.  See the kspace_modify overlap
-command to prevent changing of the dipsersion order.
+UNDOCUMENTED
 
 E: PPPM grid stencil extends beyond nearest neighbor processor
 
-This is not allowed if the kspace_modify overlap setting is no.
+UNDOCUMENTED
 
-E: Epsilon or sigma reference not set by pair style in PPPMDisp
+E: epsilon or sigma reference not set by pair style in PPPMDisp
 
-The pair style is not providing the needed epsilon or sigma values.
+UNDOCUMENTED
 
 E: KSpace accuracy too large to estimate G vector
 
-Reduce the accuracy request or specify gwald explicitly
-via the kspace_modify command.
+UNDOCUMENTED
 
-E: Could not compute grid size for Coulomb interaction
+E: Could not compute grid size for Coulomb interaction!
 
-The code is unable to compute a grid size consistent with the desired
-accuracy.  This error should not occur for typical problems.  Please
-send an email to the developers.
+UNDOCUMENTED
 
 E: Could not compute g_ewald
 
-The Newton-Raphson solver failed to converge to a good value for
-g_ewald.  This error should not occur for typical problems.  Please
-send an email to the developers.
+UNDOCUMENTED
 
 E: Could not adjust g_ewald_6
 
-The Newton-Raphson solver failed to converge to a good value for
-g_ewald_6.  This error should not occur for typical problems.  Please
-send an email to the developers.
+UNDOCUMENTED
 
 E: Cannot compute initial g_ewald_disp
 
@@ -495,15 +467,114 @@ LAMMPS failed to compute an initial guess for the PPPM_disp g_ewald_6
 factor that partitions the computation between real space and k-space
 for Disptersion interactions.
 
-E: Could not compute grid size for dispersion
+E: Could not compute grid size for Dispersion!
 
-The code is unable to compute a grid size consistent with the desired
-accuracy.  This error should not occur for typical problems.  Please
-send an email to the developers.
+UNDOCUMENTED
 
 E: Out of range atoms - cannot compute PPPMDisp
 
-One or more atoms are attempting to map their charge to a PPPM grid
+UNDOCUMENTED
+
+U: Cannot (yet) use PPPM_disp with triclinic box
+
+This feature is not yet supported.
+
+U: Cannot use PPPM_disp with 2d simulation
+
+The kspace style pppm_disp cannot be used in 2d simulations.  You can use
+2d PPPM_disp in a 3d simulation; see the kspace_modify command.
+
+U: Cannot use nonperiodic boundaries with PPPM_disp
+
+For kspace style pppm_disp, all 3 dimensions must have periodic boundaries
+unless you use the kspace_modify command to define a 2d slab with a
+non-periodic z dimension.
+
+U: Incorrect boundaries with slab PPPM_disp
+
+Must have periodic x,y dimensions and non-periodic z dimension to use
+2d slab option with PPPM_disp.
+
+U: PPPM_disp coulomb order cannot be greater than %d
+
+Self-explanatory.
+
+U: PPPM_disp dispersion order cannot be greater than %d
+
+Self-explanatory.
+
+U: Unsupported mixing rule in kspace_style pppm_disp for pair_style %s
+
+PPPM_disp requires arithemtic or geometric mixing rules.
+
+U: Unsupported order in kspace_style pppm_disp pair_style %s
+
+PPPM_disp only works for 1/r and 1/r^6 potentials
+
+U: Charges are set, but coulombic long-range solver is not used.
+
+Charges have been specified, however, calculations are performed
+as if they were zero.
+
+U: Bad TIP4P angle type for PPPM_disp/TIP4P
+
+Specified angle type is not valid.
+
+U: Bad TIP4P bond type for PPPM_disp/TIP4P
+
+Specified bond type is not valid.
+
+U: Reducing PPPM_disp Coulomb order b/c stencil extends beyond neighbor processor
+
+LAMMPS is attempting this in order to allow the simulation
+to run.  It should not effect the PPPM_disp accuracy.
+
+U: Reducing PPPM_disp Dispersion order b/c stencil extends beyond neighbor processor
+
+LAMMPS is attempting this in order to allow the simulation
+to run.  It should not effect the PPPM_disp accuracy.
+
+U: PPPM_disp Coulomb grid is too large
+
+The global PPPM_disp grid for Coulomb interactions is larger than OFFSET in one or more dimensions.
+OFFSET is currently set to 16384.  You likely need to decrease the
+requested precision.
+
+U: PPPM_grid Dispersion grid is too large
+
+One of the PPPM_disp grids for Dispersion interactions is larger than OFFSET in one or more dimensions.
+OFFSET is currently set to 16384.  You likely need to decrease the
+requested precision.
+
+U: Coulomb PPPM_disp order has been reduced to 0
+
+LAMMPS has attempted to reduce the PPPM_disp coulomb order to enable the simulation
+to run, but can reduce the order no further.  Try increasing the
+accuracy of PPPM_disp coulomb by reducing the tolerance size, thus inducing a 
+larger PPPM_disp coulomb grid.
+
+U: Dispersion PPPM_disp order has been reduced to 0
+
+LAMMPS has attempted to reduce the PPPM_disp dispersion order to enable the simulation
+to run, but can reduce the order no further.  Try increasing the
+accuracy of PPPM_disp dispersion by reducing the tolerance size, thus inducing a 
+larger PPPM_disp dispersion grid.
+
+U: Cannot compute PPPM_disp g_ewald
+
+LAMMPS failed to compute a valid approximation for the PPPM_disp g_ewald
+factor that partitions the computation between real space and k-space
+for Coulomb interactions.
+
+U: Cannot compute final g_ewald_disp
+
+LAMMPS failed to compute a final value for the PPPM_disp g_ewald_6
+factor that partitions the computation between real space and k-space
+for Disptersion interactions.
+
+U: Out of range atoms - cannot compute PPPM_disp
+
+One or more atoms are attempting to map their charge to a PPPM_disp grid
 point that is not owned by a processor.  This is likely for one of two
 reasons, both of them bad.  First, it may mean that an atom near the
 boundary of a processor's sub-domain has moved more than 1/2 the

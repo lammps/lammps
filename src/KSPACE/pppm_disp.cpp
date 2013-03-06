@@ -164,15 +164,6 @@ PPPMDisp::PPPMDisp(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
   part2grid = NULL;
   part2grid_6 = NULL;
 
-  splitbuf1 = NULL;
-  splitbuf2 = NULL;
-  dict_send = NULL;
-  dict_rec = NULL;
-  com_each = NULL;
-  com_order = NULL;
-  split_1 = NULL;
-  split_2 = NULL;
-
   cg = NULL;
   cg_peratom = NULL;
   cg_6 = NULL;
@@ -187,18 +178,16 @@ PPPMDisp::~PPPMDisp()
 {
   delete [] factors;
   delete [] B;
+  B = NULL;
   delete [] cii;
+  cii = NULL;
   delete [] csumi;
+  csumi = NULL;
   deallocate();
   deallocate_peratom();
   memory->destroy(part2grid);
   memory->destroy(part2grid_6);
-  memory->destroy(com_order);
-  memory->destroy(com_each);
-  memory->destroy(dict_send);
-  memory->destroy(dict_rec);
-  memory->destroy(splitbuf1);
-  memory->destroy(splitbuf2);
+  part2grid = part2grid_6 = NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -232,10 +221,10 @@ void PPPMDisp::init()
   }
 
   // free all arrays previously allocated
-
   deallocate();
   deallocate_peratom(); 
   peratom_allocate_flag = 0;
+
 
 
   // set scale
@@ -276,31 +265,31 @@ void PPPMDisp::init()
 	case 6:
 	  if (ewald_mix==GEOMETRIC) { k = 1; break; }
 	  else if (ewald_mix==ARITHMETIC) { k = 2; break; }
-	  sprintf(str,"Unsupported mixing rule in "
-		  "kspace_style pppm/disp for pair_style %s", force->pair_style);
+	  sprintf(str, "Unsupported mixing rule in kspace_style "
+                  "pppm/disp for pair_style %s", force->pair_style);
 	  error->all(FLERR,str);
 	default:
-	  sprintf(str, "Unsupported order in "
-		  "kspace_style pppm/disp pair_style %s", force->pair_style);
+	  sprintf(str, "Unsupported order in kspace_style "
+                  "pppm/disp pair_style %s", force->pair_style);
 	  error->all(FLERR,str);
       }
       function[k] = 1;
     }
  
 
-  // warn, if function[0] is not set but charge attribute is set
-
+  // warn, if function[0] is not set but charge attribute is set!
   if (!function[0] && atom->q_flag && me == 0) {
     char str[128];
     sprintf(str, "Charges are set, but coulombic solver is not used");
     error->warning(FLERR, str);
   }
 
-  // compute qsum & qsqsum, if function[0] is set
-  // print error if no charges are set or warn if not charge-neutral  
+  // compute qsum & qsqsum, if function[0] is set, print error if no charges are set or warn if not charge-neutral  
  
   if (function[0]) {
-    if (!atom->q_flag) error->all(FLERR,"Kspace style with selected options requires atom attribute q");
+    if (!atom->q_flag) 
+      error->all(FLERR,"Kspace style with selected options "
+                 "requires atom attribute q");
  
     qsum = qsqsum = 0.0;
     for (int i = 0; i < atom->nlocal; i++) {
@@ -316,7 +305,8 @@ void PPPMDisp::init()
     qsqsum = tmp;
 
     if (qsqsum == 0.0)
-      error->all(FLERR,"Cannot use kspace solver with selected options on system with no charge");
+      error->all(FLERR,"Cannot use kspace solver with selected options "
+                 "on system with no charge");
     if (fabs(qsum) > SMALL && me == 0) {
       char str[128];
       sprintf(str,"System is not charge neutral, net charge = %g",qsum);
@@ -381,8 +371,8 @@ void PPPMDisp::init()
     while (order >= minorder) {
 
       if (iteration && me == 0)
-          error->warning(FLERR,"Reducing PPPMDisp Coulomb order b/c stencil extends "
-			 "beyond neighbor processor.");
+          error->warning(FLERR,"Reducing PPPMDisp Coulomb order "
+                         "b/c stencil extends beyond neighbor processor");
       iteration++;
 
       // set grid for dispersion interaction and coulomb interactions!
@@ -407,7 +397,8 @@ void PPPMDisp::init()
 
       cgtmp = new CommGrid(lmp, world,1,1,
                            nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
-                           nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out,
+                           nxlo_out,nxhi_out,nylo_out,nyhi_out,
+                           nzlo_out,nzhi_out,
                            procneigh[0][0],procneigh[0][1],procneigh[1][0],
                            procneigh[1][1],procneigh[2][0],procneigh[2][1]);
       cgtmp->ghost_notify();
@@ -418,7 +409,8 @@ void PPPMDisp::init()
     }
 
     if (order < minorder)
-      error->all(FLERR,"Coulomb PPPMDisp order < minimum allowed order");
+      error->all(FLERR,
+                 "Coulomb PPPMDisp order has been reduced below minorder");
     if (cgtmp) delete cgtmp;
 
     // adjust g_ewald
@@ -458,7 +450,8 @@ void PPPMDisp::init()
         fprintf(logfile,"  Coulomb G vector (1/distance) = %g\n",g_ewald);
         fprintf(logfile,"  Coulomb grid = %d %d %d\n",nx_pppm,ny_pppm,nz_pppm);
         fprintf(logfile,"  Coulomb stencil order = %d\n",order);
-        fprintf(logfile,"  Coulomb estimated absolute RMS force accuracy = %g\n",
+        fprintf(logfile,
+                "  Coulomb estimated absolute RMS force accuracy = %g\n",
                 acc);
         fprintf(logfile,"  Coulomb estimated relative force accuracy = %g\n",
                 acc/two_charge_force);
@@ -475,8 +468,8 @@ void PPPMDisp::init()
     while (order_6 >= minorder) {
 
       if (iteration && me == 0)
-          error->warning(FLERR,"Reducing PPPMDisp Dispersion order b/c stencil extends "
-  		     "beyond neighbor processor");
+          error->warning(FLERR,"Reducing PPPMDisp dispersion order "
+                         "b/c stencil extends beyond neighbor processor");
       iteration++;
 
       set_grid_6();
@@ -498,17 +491,21 @@ void PPPMDisp::init()
       if (overlap_allowed) break;
 
       cgtmp = new CommGrid(lmp,world,1,1,
-                            nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
-                            nxlo_out_6,nxhi_out_6,nylo_out_6,nyhi_out_6,nzlo_out_6,nzhi_out_6,
-                            procneigh[0][0],procneigh[0][1],procneigh[1][0],
-                            procneigh[1][1],procneigh[2][0],procneigh[2][1]);
+                           nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,
+                           nzlo_in_6,nzhi_in_6,
+                           nxlo_out_6,nxhi_out_6,nylo_out_6,nyhi_out_6,
+                           nzlo_out_6,nzhi_out_6,
+                           procneigh[0][0],procneigh[0][1],procneigh[1][0],
+                           procneigh[1][1],procneigh[2][0],procneigh[2][1]);
       cgtmp->ghost_notify();
       if (!cgtmp->ghost_overlap()) break;
       delete cgtmp;
       order_6--;
     }
 
-    if (order_6 < minorder) error->all(FLERR,"Dispersion PPPMDisp order has been reduced below minorder");
+    if (order_6 < minorder) 
+      error->all(FLERR,"Dispersion PPPMDisp order has been "
+                 "reduced below minorder");
     if (cgtmp) delete cgtmp;
 
     // adjust g_ewald_6
@@ -535,10 +532,11 @@ void PPPMDisp::init()
   
       if (screen) {
         fprintf(screen,"  Dispersion G vector (1/distance)= %g\n",g_ewald_6);
-        fprintf(screen,"  Dispersion grid = %d %d %d\n",nx_pppm_6,ny_pppm_6,nz_pppm_6);
+        fprintf(screen,"  Dispersion grid = %d %d %d\n",
+                nx_pppm_6,ny_pppm_6,nz_pppm_6);
         fprintf(screen,"  Dispersion stencil order = %d\n",order_6);
-        fprintf(screen,"  Dispersion estimated absolute RMS force accuracy = %g\n",
-                acc);
+        fprintf(screen,"  Dispersion estimated absolute "
+                "RMS force accuracy = %g\n",acc);
         fprintf(screen,"  Dispersion estimated relative force accuracy = %g\n",
                 acc/two_charge_force);
         fprintf(screen,"  using %s precision FFTs\n",fft_prec);
@@ -547,10 +545,11 @@ void PPPMDisp::init()
       }
       if (logfile) {
         fprintf(logfile,"  Dispersion G vector (1/distance) = %g\n",g_ewald_6);
-        fprintf(logfile,"  Dispersion grid = %d %d %d\n",nx_pppm_6,ny_pppm_6,nz_pppm_6);
+        fprintf(logfile,"  Dispersion grid = %d %d %d\n",
+                nx_pppm_6,ny_pppm_6,nz_pppm_6);
         fprintf(logfile,"  Dispersion stencil order = %d\n",order_6);
-        fprintf(logfile,"  Dispersion estimated absolute RMS force accuracy = %g\n",
-                acc);
+        fprintf(logfile,"  Dispersion estimated absolute "
+                "RMS force accuracy = %g\n",acc);
         fprintf(logfile,"  Disperion estimated relative force accuracy = %g\n",
                 acc/two_charge_force);
         fprintf(logfile,"  using %s precision FFTs\n",fft_prec);
@@ -559,16 +558,14 @@ void PPPMDisp::init()
       }
     }
   }
- 
-  // prepare the splitting of the Fourier Transformed vectors
-
-  if (function[2]) prepare_splitting();
 
   // allocate K-space dependent memory
+
   allocate();
 
   // pre-compute Green's function denomiator expansion
   // pre-compute 1d charge distribution coefficients
+
   if (function[0]) {
     compute_gf_denom(gf_b, order);
     compute_rho_coeff(rho_coeff, drho_coeff, order);
@@ -782,6 +779,7 @@ void PPPMDisp::setup_grid()
   peratom_allocate_flag = 0;
 
   // reset portion of global grid that each proc owns
+
   if (function[0])
     set_fft_parameters(nx_pppm, ny_pppm, nz_pppm,
                        nxlo_fft, nylo_fft, nzlo_fft,
@@ -896,13 +894,15 @@ void PPPMDisp::compute(int eflag, int vflag)
     if (function[1] + function[2]) memory->destroy(part2grid_6);
     nmax = atom->nmax;
     if (function[0]) memory->create(part2grid,nmax,3,"pppm/disp:part2grid");
-    if (function[1] + function[2]) memory->create(part2grid_6,nmax,3,"pppm/disp:part2grid_6");
+    if (function[1] + function[2]) 
+      memory->create(part2grid_6,nmax,3,"pppm/disp:part2grid_6");
   }
 
   energy = 0.0;
   energy_1 = 0.0;
   energy_6 = 0.0;
   if (vflag) for (i = 0; i < 6; i++) virial_6[i] = virial_1[i] = 0.0;
+
   // find grid points for all my particles
   // distribute partcles' charges/dispersion coefficients on the grid
   // communication between processors and remapping two fft
@@ -1164,7 +1164,7 @@ void PPPMDisp::init_coeffs()				// local pair coeffs
     //cannot use sigma, because this has not been set yet
     double **sigma = (double **) force->pair->extract("sigma",tmp);  
     if (!(epsilon&&sigma))
-      error->all(FLERR,"Epsilon or sigma reference not set by pair style in PPPMDisp");
+      error->all(FLERR,"epsilon or sigma reference not set by pair style in PPPMDisp");
     double eps_i, sigma_i, sigma_n, *bi = B = new double[7*n+7];
     double c[7] = {
       1.0, sqrt(6.0), sqrt(15.0), sqrt(20.0), sqrt(15.0), sqrt(6.0), 1.0};
@@ -1364,8 +1364,6 @@ void PPPMDisp::allocate()
     memory->create2d_offset(drho1d_6,3,-order_6/2,order_6/2,"pppm/disp:drho1d_6");
     memory->create2d_offset(drho_coeff_6,order_6,(1-order_6)/2,order_6/2,"pppm/disp:drho_coeff_6");
 
-    memory->create(split_1,2*nfft_both_6 , "pppm/disp:split_1");
-    memory->create(split_2,2*nfft_both_6 , "pppm/disp:split_2");
     memory->create(greensfn_6,nfft_both_6,"pppm/disp:greensfn_6");
     memory->create(vg_6,nfft_both_6,6,"pppm/disp:vg_6");
     memory->create(vg2_6,nfft_both_6,3,"pppm/disp:vg2_6");
@@ -1735,54 +1733,72 @@ void PPPMDisp::deallocate()
   memory->destroy3d_offset(vdy_brick,nzlo_out,nylo_out,nxlo_out);
   memory->destroy3d_offset(vdz_brick,nzlo_out,nylo_out,nxlo_out);
   memory->destroy(density_fft);
+  density_brick = vdx_brick = vdy_brick = vdz_brick = NULL;
+  density_fft = NULL;
 
   memory->destroy3d_offset(density_brick_g,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy3d_offset(vdx_brick_g,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy3d_offset(vdy_brick_g,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy3d_offset(vdz_brick_g,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy(density_fft_g);
+  density_brick_g = vdx_brick_g = vdy_brick_g = vdz_brick_g = NULL;
+  density_fft_g = NULL;
 
   memory->destroy3d_offset(density_brick_a0,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy3d_offset(vdx_brick_a0,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy3d_offset(vdy_brick_a0,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy3d_offset(vdz_brick_a0,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy(density_fft_a0);
+  density_brick_a0 = vdx_brick_a0 = vdy_brick_a0 = vdz_brick_a0 = NULL;
+  density_fft_a0 = NULL;
 
   memory->destroy3d_offset(density_brick_a1,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy3d_offset(vdx_brick_a1,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy3d_offset(vdy_brick_a1,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy3d_offset(vdz_brick_a1,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy(density_fft_a1);
+  density_brick_a1 = vdx_brick_a1 = vdy_brick_a1 = vdz_brick_a1 = NULL;
+  density_fft_a1 = NULL;
 
   memory->destroy3d_offset(density_brick_a2,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy3d_offset(vdx_brick_a2,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy3d_offset(vdy_brick_a2,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy3d_offset(vdz_brick_a2,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy(density_fft_a2);
+  density_brick_a2 = vdx_brick_a2 = vdy_brick_a2 = vdz_brick_a2 = NULL;
+  density_fft_a2 = NULL;
 
   memory->destroy3d_offset(density_brick_a3,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy3d_offset(vdx_brick_a3,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy3d_offset(vdy_brick_a3,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy3d_offset(vdz_brick_a3,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy(density_fft_a3);
+  density_brick_a3 = vdx_brick_a3 = vdy_brick_a3 = vdz_brick_a3 = NULL;
+  density_fft_a3 = NULL;
  
   memory->destroy3d_offset(density_brick_a4,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy3d_offset(vdx_brick_a4,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy3d_offset(vdy_brick_a4,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy3d_offset(vdz_brick_a4,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy(density_fft_a4);
- 
+  density_brick_a4 = vdx_brick_a4 = vdy_brick_a4 = vdz_brick_a4 = NULL;
+  density_fft_a4 = NULL;
+
   memory->destroy3d_offset(density_brick_a5,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy3d_offset(vdx_brick_a5,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy3d_offset(vdy_brick_a5,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy3d_offset(vdz_brick_a5,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy(density_fft_a5);
+  density_brick_a5 = vdx_brick_a5 = vdy_brick_a5 = vdz_brick_a5 = NULL;
+  density_fft_a5 = NULL;
 
   memory->destroy3d_offset(density_brick_a6,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy3d_offset(vdx_brick_a6,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy3d_offset(vdy_brick_a6,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy3d_offset(vdz_brick_a6,nzlo_out_6,nylo_out_6,nxlo_out_6);
   memory->destroy(density_fft_a6);
+  density_brick_a6 = vdx_brick_a6 = vdy_brick_a6 = vdz_brick_a6 = NULL;
+  density_fft_a6 = NULL;
 
   memory->destroy(sf_precoeff1);
   memory->destroy(sf_precoeff2);
@@ -1790,6 +1806,7 @@ void PPPMDisp::deallocate()
   memory->destroy(sf_precoeff4);
   memory->destroy(sf_precoeff5);
   memory->destroy(sf_precoeff6);
+  sf_precoeff1 = sf_precoeff2 = sf_precoeff3 = sf_precoeff4 = sf_precoeff5 = sf_precoeff6 = NULL;
 
   memory->destroy(sf_precoeff1_6);
   memory->destroy(sf_precoeff2_6);
@@ -1797,6 +1814,7 @@ void PPPMDisp::deallocate()
   memory->destroy(sf_precoeff4_6);
   memory->destroy(sf_precoeff5_6);
   memory->destroy(sf_precoeff6_6);
+  sf_precoeff1_6 = sf_precoeff2_6 = sf_precoeff3_6 = sf_precoeff4_6 = sf_precoeff5_6 = sf_precoeff6_6 = NULL;
 
   memory->destroy(greensfn);
   memory->destroy(greensfn_6);
@@ -1808,48 +1826,61 @@ void PPPMDisp::deallocate()
   memory->destroy(vg2);
   memory->destroy(vg_6);
   memory->destroy(vg2_6);
+  greensfn = greensfn_6 = NULL;
+  work1 = work2 = work1_6 = work2_6 = NULL;
+  vg = vg2 = vg_6 = vg2_6 = NULL;
 
   memory->destroy1d_offset(fkx,nxlo_fft);
   memory->destroy1d_offset(fky,nylo_fft);
   memory->destroy1d_offset(fkz,nzlo_fft);
+  fkx = fky = fkz = NULL;
 
   memory->destroy1d_offset(fkx2,nxlo_fft);
   memory->destroy1d_offset(fky2,nylo_fft);
   memory->destroy1d_offset(fkz2,nzlo_fft);
+  fkx2 = fky2 = fkz2 = NULL;
 
   memory->destroy1d_offset(fkx_6,nxlo_fft_6);
   memory->destroy1d_offset(fky_6,nylo_fft_6);
   memory->destroy1d_offset(fkz_6,nzlo_fft_6);
+  fkx_6 = fky_6 = fkz_6 = NULL;
 
   memory->destroy1d_offset(fkx2_6,nxlo_fft_6);
   memory->destroy1d_offset(fky2_6,nylo_fft_6);
   memory->destroy1d_offset(fkz2_6,nzlo_fft_6);
+  fkx2_6 = fky2_6 = fkz2_6 = NULL;
 
-  memory->destroy(split_1);
-  memory->destroy(split_2);
- 
 
   memory->destroy(gf_b);
   memory->destroy2d_offset(rho1d,-order/2);
   memory->destroy2d_offset(rho_coeff,(1-order)/2);
   memory->destroy2d_offset(drho1d,-order/2);
   memory->destroy2d_offset(drho_coeff, (1-order)/2);
+  gf_b = NULL;
+  rho1d = rho_coeff = drho1d = drho_coeff = NULL;
 
   memory->destroy(gf_b_6);
   memory->destroy2d_offset(rho1d_6,-order_6/2);
   memory->destroy2d_offset(rho_coeff_6,(1-order_6)/2);
   memory->destroy2d_offset(drho1d_6,-order_6/2); 
   memory->destroy2d_offset(drho_coeff_6,(1-order_6)/2);
+  gf_b_6 = NULL;
+  rho1d_6 = rho_coeff_6 = drho1d_6 = drho_coeff_6 = NULL;
 
   delete fft1;
   delete fft2;
   delete remap;
   delete cg;
+  fft1 = fft2 = NULL;
+  remap = NULL;
 
   delete fft1_6;
   delete fft2_6;
   delete remap_6;
   delete cg_6;
+  fft1_6 = fft2_6 = NULL;
+  remap_6 = NULL;
+  cg_6 = NULL;
 }
 
 
@@ -1867,6 +1898,7 @@ void PPPMDisp::deallocate_peratom()
   memory->destroy3d_offset(v3_brick, nzlo_out, nylo_out, nxlo_out);
   memory->destroy3d_offset(v4_brick, nzlo_out, nylo_out, nxlo_out);
   memory->destroy3d_offset(v5_brick, nzlo_out, nylo_out, nxlo_out);
+  u_brick = v0_brick = v1_brick = v2_brick = v3_brick = v4_brick = v5_brick = NULL;
 
   memory->destroy3d_offset(u_brick_g, nzlo_out_6, nylo_out_6, nxlo_out_6);
   memory->destroy3d_offset(v0_brick_g, nzlo_out_6, nylo_out_6, nxlo_out_6);
@@ -1875,6 +1907,7 @@ void PPPMDisp::deallocate_peratom()
   memory->destroy3d_offset(v3_brick_g, nzlo_out_6, nylo_out_6, nxlo_out_6);
   memory->destroy3d_offset(v4_brick_g, nzlo_out_6, nylo_out_6, nxlo_out_6);
   memory->destroy3d_offset(v5_brick_g, nzlo_out_6, nylo_out_6, nxlo_out_6);
+  u_brick_g = v0_brick_g = v1_brick_g = v2_brick_g = v3_brick_g = v4_brick_g = v5_brick_g = NULL;
 
   memory->destroy3d_offset(u_brick_a0, nzlo_out_6, nylo_out_6, nxlo_out_6);
   memory->destroy3d_offset(v0_brick_a0, nzlo_out_6, nylo_out_6, nxlo_out_6);
@@ -1883,6 +1916,7 @@ void PPPMDisp::deallocate_peratom()
   memory->destroy3d_offset(v3_brick_a0, nzlo_out_6, nylo_out_6, nxlo_out_6);
   memory->destroy3d_offset(v4_brick_a0, nzlo_out_6, nylo_out_6, nxlo_out_6);
   memory->destroy3d_offset(v5_brick_a0, nzlo_out_6, nylo_out_6, nxlo_out_6);
+  u_brick_a0 = v0_brick_a0 = v1_brick_a0 = v2_brick_a0 = v3_brick_a0 = v4_brick_a0 = v5_brick_a0 = NULL;
 
   memory->destroy3d_offset(u_brick_a1, nzlo_out_6, nylo_out_6, nxlo_out_6);
   memory->destroy3d_offset(v0_brick_a1, nzlo_out_6, nylo_out_6, nxlo_out_6);
@@ -1891,6 +1925,7 @@ void PPPMDisp::deallocate_peratom()
   memory->destroy3d_offset(v3_brick_a1, nzlo_out_6, nylo_out_6, nxlo_out_6);
   memory->destroy3d_offset(v4_brick_a1, nzlo_out_6, nylo_out_6, nxlo_out_6);
   memory->destroy3d_offset(v5_brick_a1, nzlo_out_6, nylo_out_6, nxlo_out_6);
+  u_brick_a1 = v0_brick_a1 = v1_brick_a1 = v2_brick_a1 = v3_brick_a1 = v4_brick_a1 = v5_brick_a1 = NULL;
 
   memory->destroy3d_offset(u_brick_a2, nzlo_out_6, nylo_out_6, nxlo_out_6);
   memory->destroy3d_offset(v0_brick_a2, nzlo_out_6, nylo_out_6, nxlo_out_6);
@@ -1899,6 +1934,7 @@ void PPPMDisp::deallocate_peratom()
   memory->destroy3d_offset(v3_brick_a2, nzlo_out_6, nylo_out_6, nxlo_out_6);
   memory->destroy3d_offset(v4_brick_a2, nzlo_out_6, nylo_out_6, nxlo_out_6);
   memory->destroy3d_offset(v5_brick_a2, nzlo_out_6, nylo_out_6, nxlo_out_6);
+  u_brick_a2 = v0_brick_a2 = v1_brick_a2 = v2_brick_a2 = v3_brick_a2 = v4_brick_a2 = v5_brick_a2 = NULL;
 
   memory->destroy3d_offset(u_brick_a3, nzlo_out_6, nylo_out_6, nxlo_out_6);
   memory->destroy3d_offset(v0_brick_a3, nzlo_out_6, nylo_out_6, nxlo_out_6);
@@ -1907,6 +1943,7 @@ void PPPMDisp::deallocate_peratom()
   memory->destroy3d_offset(v3_brick_a3, nzlo_out_6, nylo_out_6, nxlo_out_6);
   memory->destroy3d_offset(v4_brick_a3, nzlo_out_6, nylo_out_6, nxlo_out_6);
   memory->destroy3d_offset(v5_brick_a3, nzlo_out_6, nylo_out_6, nxlo_out_6);
+  u_brick_a3 = v0_brick_a3 = v1_brick_a3 = v2_brick_a3 = v3_brick_a3 = v4_brick_a3 = v5_brick_a3 = NULL;
  
   memory->destroy3d_offset(u_brick_a4, nzlo_out_6, nylo_out_6, nxlo_out_6);
   memory->destroy3d_offset(v0_brick_a4, nzlo_out_6, nylo_out_6, nxlo_out_6);
@@ -1915,6 +1952,7 @@ void PPPMDisp::deallocate_peratom()
   memory->destroy3d_offset(v3_brick_a4, nzlo_out_6, nylo_out_6, nxlo_out_6);
   memory->destroy3d_offset(v4_brick_a4, nzlo_out_6, nylo_out_6, nxlo_out_6);
   memory->destroy3d_offset(v5_brick_a4, nzlo_out_6, nylo_out_6, nxlo_out_6);
+  u_brick_a4 = v0_brick_a4 = v1_brick_a4 = v2_brick_a4 = v3_brick_a4 = v4_brick_a4 = v5_brick_a4 = NULL;
  
   memory->destroy3d_offset(u_brick_a5, nzlo_out_6, nylo_out_6, nxlo_out_6);
   memory->destroy3d_offset(v0_brick_a5, nzlo_out_6, nylo_out_6, nxlo_out_6);
@@ -1923,6 +1961,7 @@ void PPPMDisp::deallocate_peratom()
   memory->destroy3d_offset(v3_brick_a5, nzlo_out_6, nylo_out_6, nxlo_out_6);
   memory->destroy3d_offset(v4_brick_a5, nzlo_out_6, nylo_out_6, nxlo_out_6);
   memory->destroy3d_offset(v5_brick_a5, nzlo_out_6, nylo_out_6, nxlo_out_6);
+  u_brick_a5 = v0_brick_a5 = v1_brick_a5 = v2_brick_a5 = v3_brick_a5 = v4_brick_a5 = v5_brick_a5 = NULL;
 
   memory->destroy3d_offset(u_brick_a6, nzlo_out_6, nylo_out_6, nxlo_out_6);
   memory->destroy3d_offset(v0_brick_a6, nzlo_out_6, nylo_out_6, nxlo_out_6);
@@ -1931,9 +1970,11 @@ void PPPMDisp::deallocate_peratom()
   memory->destroy3d_offset(v3_brick_a6, nzlo_out_6, nylo_out_6, nxlo_out_6);
   memory->destroy3d_offset(v4_brick_a6, nzlo_out_6, nylo_out_6, nxlo_out_6);
   memory->destroy3d_offset(v5_brick_a6, nzlo_out_6, nylo_out_6, nxlo_out_6);
+  u_brick_a6 = v0_brick_a6 = v1_brick_a6 = v2_brick_a6 = v3_brick_a6 = v4_brick_a6 = v5_brick_a6 = NULL;
 
   delete cg_peratom;
   delete cg_peratom_6;
+  cg_peratom = cg_peratom_6 = NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -2012,8 +2053,7 @@ void PPPMDisp::set_grid()
 
       // break loop if the accuracy has been reached or too many loops have been performed
       if (dfkspace <= accuracy) break;
-      if (count > 500) 
-	error->all(FLERR,"Could not compute grid size for Coulomb interaction");
+      if (count > 500) error->all(FLERR, "Could not compute grid size for Coulomb interaction!");
       h *= 0.95;
       h_x = h_y = h_z = h;
     }
@@ -3009,12 +3049,9 @@ void PPPMDisp::set_n_pppm_6()
 
     count++;
 
-    // break loop if the accuracy has been reached 
-    // or too many loops have been performed
-
+    // break loop if the accuracy has been reached or too many loops have been performed
     if (df_kspace <= accuracy) break;
-    if (count > 500) 
-      error->all(FLERR,"Could not compute grid size for dispersion");
+    if (count > 500) error->all(FLERR, "Could not compute grid size for Dispersion!");
     h *= 0.95;
     h_x = h_y = h_z = h;
   }
@@ -3036,180 +3073,11 @@ double PPPMDisp::lj_rspace_error()
   double rgs = (cutoff_lj*g_ewald_6);
   rgs *= rgs;
   double rgs_inv = 1.0/rgs;
-  deltaf = csum/sqrt(natoms*xprd*yprd*zprd_slab*cutoff_lj)*
-    sqrt(MY_PI)*pow(g_ewald_6,5)*
+  deltaf = csum/sqrt(natoms*xprd*yprd*zprd_slab*cutoff_lj)*sqrt(MY_PI)*pow(g_ewald_6, 5)*
     exp(-rgs)*(1+rgs_inv*(3+rgs_inv*(6+rgs_inv*6)));
   return deltaf;
 }
 
-/* ----------------------------------------------------------------------
-   make all preperations for later being able to rapidely split the
-   fourier transformed vectors
-------------------------------------------------------------------------- */
-
-void PPPMDisp::prepare_splitting()
-{
-  // allocate vectors
-  // communication = stores how many points are exchanged with each processor
-  // com_matrix, com_matrix_all = communication matrix between the processors
-  // fftpoins stores the maximum and minimum value of the fft points of each proc
-  int *communication;
-  int **com_matrix;
-  int **com_matrix_all;
-  int **fftpoints;
- 
-  memory->create(communication, nprocs, "pppm/disp:communication");
-  memory->create(com_matrix, nprocs, nprocs, "pppm/disp:com_matrix");
-  memory->create(com_matrix_all, nprocs, nprocs, "pppm/disp:com_matrix_all");
-  memory->create(fftpoints, nprocs, 4, "pppm/disp:fftpoints");
-  memset(&(com_matrix[0][0]), 0, nprocs*nprocs*sizeof(int));
-  memset(communication, 0, nprocs*sizeof(int));
- 
-  //// loop over all values of me to determine the fft_points
-
-  int npey_fft,npez_fft;
-  if (nz_pppm_6 >= nprocs) {
-    npey_fft = 1;
-    npez_fft = nprocs;
-  } else procs2grid2d(nprocs,ny_pppm_6,nz_pppm_6,&npey_fft,&npez_fft);
-
-  int me_y = me % npey_fft;
-  int me_z = me / npey_fft;
-
-  int i,m,n;
-  for (m = 0; m < nprocs; m++) {
-    me_y = m % npey_fft;
-    me_z = m / npey_fft;
-    fftpoints[m][0] = me_y*ny_pppm_6/npey_fft;
-    fftpoints[m][1] = (me_y+1)*ny_pppm_6/npey_fft - 1;
-    fftpoints[m][2] = me_z*nz_pppm_6/npez_fft;
-    fftpoints[m][3] = (me_z+1)*nz_pppm_6/npez_fft - 1;
-  }
-
-  //// loop over all local fft points to find out on which processor its counterpart is!
-  int x1,y1,z1,x2,y2,z2;
-  for (x1 = nxlo_fft_6; x1 <= nxhi_fft_6; x1++)
-    for (y1 = nylo_fft_6; y1 <= nyhi_fft_6; y1++) {
-      y2 = (ny_pppm_6 - y1) % ny_pppm_6;
-      for (z1 = nzlo_fft_6; z1 <= nzhi_fft_6; z1++) {
-        z2 = (nz_pppm_6 - z1) % nz_pppm_6;
-        m = -1;
-        while (1) {
-          m++;
-          if (y2 >= fftpoints[m][0] && y2 <= fftpoints[m][1] &&
-              z2 >= fftpoints[m][2] && z2 <= fftpoints[m][3] ) break;
-        }
-        communication[m]++;
-        com_matrix[m][me] = 1;
-        com_matrix[me][m] = 1;
-      }
-    }
-
-  //// set com_max and com_procs
-  //// com_max = maximum amount of points that have to be communicated with a processor
-  //// com_procs = number of processors with which has to be communicated
-  com_max = 0;
-  com_procs = 0;
-  for (m = 0; m < nprocs; m++) {
-    com_max = MAX(com_max, communication[m]);
-    com_procs += com_matrix[me][m];
-  }
-  if (!com_matrix[me][me]) com_procs++;
- 
-  //// allocate further vectors
-  memory->create(splitbuf1, com_procs, com_max*2, "pppm/disp:splitbuf1");
-  memory->create(splitbuf2, com_procs, com_max*2, "pppm/disp:splitbuf2");
-  memory->create(dict_send, nfft_6, 2, "pppm/disp:dict_send");
-  memory->create(dict_rec,com_procs, com_max, "pppm/disp:dict_rec");
-  memory->create(com_each, com_procs, "pppm/disp:com_each");
-  memory->create(com_order, com_procs, "pppm/disp:com_order");
- 
-  //// exchange communication matrix between the procs
-  if (nprocs > 1){
-    for (m = 0; m < nprocs; m++) MPI_Allreduce(com_matrix[m],
-      com_matrix_all[m], nprocs, MPI_INT, MPI_MAX, world);
-  }
-  //// determine the communication order!!!
-
-  split_order(com_matrix_all);
- 
-  //// fill com_each
-  for (i = 0; i < com_procs; i++) com_each[i] = 2*communication[com_order[i]];
- 
-  int *com_send;
-  memory->create(com_send, com_procs, "pppm/disp:com_send");
-  memset(com_send, 0, com_procs*sizeof(int));
-  int **changelist;
-  memory->create(changelist, nfft_6, 5, "pppm/disp:changelist");
-  int whichproc;
- 
-  //// loop over mesh points to fill dict_send
-  n = 0;
-  for (z1 = nzlo_fft_6; z1 <= nzhi_fft_6; z1++) {
-    z2 = (nz_pppm_6 - z1) % nz_pppm_6;
-    for (y1 = nylo_fft_6; y1 <= nyhi_fft_6; y1++) {
-      y2 = (ny_pppm_6 - y1) % ny_pppm_6;
-      for (x1 = nxlo_fft_6; x1 <= nxhi_fft_6; x1++) {
-        x2 = (nx_pppm_6 - x1) % nx_pppm_6;
-        m = -1;
-        while (1) {
-          m++;
-          if (y2 >= fftpoints[m][0] && y2 <= fftpoints[m][1] &&
-              z2 >= fftpoints[m][2] && z2 <= fftpoints[m][3] ) break;
-        }
-        whichproc = -1;
-        while (1) {
-          whichproc++;
-          if (m == com_order[whichproc]) break;
-	}
-        dict_send[n][0] = whichproc;
-        dict_send[n][1] = 2*com_send[whichproc]++;
-        changelist[n][0] = x2;
-        changelist[n][1] = y2;
-        changelist[n][2] = z2;
-        changelist[n][3] = n;;
-        changelist[n++][4] = whichproc;
-      }
-    }
-  }
-
-  //// change the order of changelist
-  int changed;
-  int help;
-  int j, k, l;
-  for ( l = 0; l < 3; l++) {
-    k = nfft_6;
-    changed = 1;
-    while (k > 1 && changed == 1) {
-      changed = 0;
-      for (i = 0; i < k-1; i++) {
-        if (changelist[i][l] > changelist[i+1][l]){
-          for (j = 0; j < 5; j++) {
-            help = changelist[i][j];
-            changelist[i][j] = changelist[i+1][j];
-            changelist[i+1][j] = help;
-	  }
-          changed = 1;
-        }
-      }
-      k = k - 1;
-    }
-  }
-
-  //// determine the values for dict_rec
-  memset(com_send, 0, com_procs*sizeof(int));
-  for (n = 0; n < nfft_6; n++) {
-    whichproc = changelist[n][4];
-    dict_rec[whichproc][com_send[whichproc]++] = 2*changelist[n][3];
-  }
-
-  memory->destroy(communication);
-  memory->destroy(com_matrix);
-  memory->destroy(com_matrix_all);
-  memory->destroy(fftpoints);
-  memory->destroy(com_send);
-  memory->destroy(changelist);
-}
 
 /* ----------------------------------------------------------------------
    Compyute the modified (hockney-eastwood) coulomb green function
@@ -4272,26 +4140,40 @@ void PPPMDisp::poisson_2s_ik(FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
   int i,j,k,n;
   double eng;
 
-  // transform charge/dispersion density (r -> k) 
-
-  n = 0;
-  for (i = 0; i < nfft_6; i++) {
-    work1_6[n++] = dfft_1[i];
-    work1_6[n++] = dfft_2[i];
-  }
-  
-  fft1_6->compute(work1_6,work1_6,1);
-
-  // if requested, compute energy and virial contribution
   double scaleinv = 1.0/(nx_pppm_6*ny_pppm_6*nz_pppm_6);
-  double s2 = scaleinv*scaleinv;
-  if (eflag_global || vflag_global) {
-    //split the work1_6 vector into its even an odd parts!
-    split_fourier();
+
+  // transform charge/dispersion density (r -> k)
+  // only one tansform required when energies and pressures do not
+  //  need to be calculated 
+  if (eflag_global + vflag_global == 0) {
+    n = 0;
+    for (i = 0; i < nfft_6; i++) {
+      work1_6[n++] = dfft_1[i];
+      work1_6[n++] = dfft_2[i];
+    }
+  
+    fft1_6->compute(work1_6,work1_6,1);
+  }
+  // two transforms are required when energies and pressures are
+  //   calculated
+  else {
+    n = 0;
+    for (i = 0; i < nfft_6; i++) {
+      work1_6[n] = dfft_1[i];
+      work2_6[n++] = ZEROF;
+      work1_6[n] = ZEROF;
+      work2_6[n++] = dfft_2[i];
+    }
+
+    fft1_6->compute(work1_6,work1_6,1);
+    fft2_6->compute(work2_6,work2_6,1);
+
+    double s2 = scaleinv*scaleinv;
+
     if (vflag_global) {
       n = 0;
       for (i = 0; i < nfft_6; i++) {
-	eng = 2 * s2 * greensfn_6[i] * (split_1[n]*split_2[n+1] + split_1[n+1]*split_2[n]);
+	eng = 2 * s2 * greensfn_6[i] * (work1_6[n]*work2_6[n+1] - work1_6[n+1]*work2_6[n]);
 	for (j = 0; j < 6; j++) virial_6[j] += eng*vg_6[i][j];
 	if (eflag_global)energy_6 += eng;
 	n += 2;
@@ -4300,12 +4182,15 @@ void PPPMDisp::poisson_2s_ik(FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
       n = 0;
       for (i = 0; i < nfft_6; i++) {
 	energy_6 += 
-	  2 * s2 * greensfn_6[i] * (split_1[n]*split_2[n+1] + split_1[n+1]*split_2[n]);
+	  2 * s2 * greensfn_6[i] * (work1_6[n]*work2_6[n+1] - work1_6[n+1]*work2_6[n]);
 	n += 2;
       }
     }
+    // unify the two transformed vectors for efficient calculations later
+    for ( i = 0; i < 2*nfft_6; i++) {
+      work1_6[i] += work2_6[i];
+    }
   }
-
 
   n = 0;
   for (i = 0; i < nfft_6; i++) {
@@ -4421,26 +4306,40 @@ void PPPMDisp::poisson_2s_ad(FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
   int i,j,k,n;
   double eng;
 
-  // transform charge/dispersion density (r -> k) 
-
-  n = 0;
-  for (i = 0; i < nfft_6; i++) {
-    work1_6[n++] = dfft_1[i];
-    work1_6[n++] = dfft_2[i];
-  }
-  
-  fft1_6->compute(work1_6,work1_6,1);
-
-  // if requested, compute energy and virial contribution
   double scaleinv = 1.0/(nx_pppm_6*ny_pppm_6*nz_pppm_6);
-  double s2 = scaleinv*scaleinv;
-  if (eflag_global || vflag_global) {
-    //split the work1_6 vector into its even an odd parts!
-    split_fourier();
+
+  // transform charge/dispersion density (r -> k)
+  // only one tansform required when energies and pressures do not
+  //  need to be calculated 
+  if (eflag_global + vflag_global == 0) {
+    n = 0;
+    for (i = 0; i < nfft_6; i++) {
+      work1_6[n++] = dfft_1[i];
+      work1_6[n++] = dfft_2[i];
+    }
+  
+    fft1_6->compute(work1_6,work1_6,1);
+  }
+  // two transforms are required when energies and pressures are
+  //   calculated
+  else {
+    n = 0;
+    for (i = 0; i < nfft_6; i++) {
+      work1_6[n] = dfft_1[i];
+      work2_6[n++] = ZEROF;
+      work1_6[n] = ZEROF;
+      work2_6[n++] = dfft_2[i];
+    }
+
+    fft1_6->compute(work1_6,work1_6,1);
+    fft2_6->compute(work2_6,work2_6,1);
+
+    double s2 = scaleinv*scaleinv;
+
     if (vflag_global) {
       n = 0;
       for (i = 0; i < nfft_6; i++) {
-	eng = 2 * s2 * greensfn_6[i] * (split_1[n]*split_2[n+1] + split_1[n+1]*split_2[n]);
+	eng = 2 * s2 * greensfn_6[i] * (work1_6[n]*work2_6[n+1] - work1_6[n+1]*work2_6[n]);
 	for (j = 0; j < 6; j++) virial_6[j] += eng*vg_6[i][j];
 	if (eflag_global)energy_6 += eng;
 	n += 2;
@@ -4449,9 +4348,13 @@ void PPPMDisp::poisson_2s_ad(FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
       n = 0;
       for (i = 0; i < nfft_6; i++) {
 	energy_6 += 
-	  2 * s2 * greensfn_6[i] * (split_1[n]*split_2[n+1] + split_1[n+1]*split_2[n]);
+	  2 * s2 * greensfn_6[i] * (work1_6[n]*work2_6[n+1] - work1_6[n+1]*work2_6[n]);
 	n += 2;
       }
+    }
+    // unify the two transformed vectors for efficient calculations later
+    for ( i = 0; i < 2*nfft_6; i++) {
+      work1_6[i] += work2_6[i];
     }
   }
 
@@ -4607,101 +4510,6 @@ void PPPMDisp::poisson_2s_peratom(FFT_SCALAR*** v0_pa_1, FFT_SCALAR*** v1_pa_1, 
         v5_pa_1[k][j][i] = work2_6[n++];
         v5_pa_2[k][j][i] = work2_6[n++];
       }
-}
-
-/* ----------------------------------------------------------------------
-   determine the order of communication between the procs when
-   splitting the fourier transform
-   ------------------------------------------------------------------------- */
-
-void PPPMDisp::split_order(int** com_matrix)
-{
-  // first element of com_order
-  com_order[0] = me;
-  //deleate diagonal elements of com_matrix
-  int i,j;
-  for (i = 0; i < nprocs; i++) com_matrix[i][i] = 0;
-
-  int *busy;
-  int *act_point = 0;
-  int sum = 1;
-  int curr_order = 1;
-  memory->create(busy, nprocs, "pppm/disp:busy");
-  memory->create(act_point, nprocs, "pppm/disp:actpoint");
-  memset(act_point, 0, nprocs*sizeof(int));
-  //repeate untill all entries in com_matrix are zero
-  while (sum != 0) {
-    memset(busy, 0, nprocs*sizeof(int));
-    //loop over all procs
-    for (i = 0; i < nprocs; i++) {
-      //if current proc is not busy, search for a partner
-      if (!busy[i]) {
-        // move the current position of act_point;
-        for (j = 0; j < 12; j++) {
-          act_point[i]--;
-          if (act_point[i] == -1) act_point[i] = nprocs-1;
-          // if a partner is found:
-          if (com_matrix[i][act_point[i]] && !busy[act_point[i]]) {
-            busy[i] = busy[act_point[i]] = 1;
-            com_matrix[i][act_point[i]] = com_matrix[act_point[i]][i] = 0;
-            act_point[act_point[i]] = i;
-	    break;
-          }
-        }
-      }
-    }
-    if (busy[me]) com_order[curr_order++] = act_point[me];
-    // calcualte the sum of all values of com_matrix
-    sum = 0;
-    for (i = 0; i <nprocs; i++)
-      for (j = 0; j < nprocs; j++) sum += com_matrix[i][j];
-  }
-
-  memory->destroy(busy);
-  memory->destroy(act_point);
-}
-
-/* ----------------------------------------------------------------------
-   split the work vector into its real and imaginary parts
-   ------------------------------------------------------------------------- */
-
-void PPPMDisp::split_fourier()
-{
-  // add / substract half the value of work1 to split
-  // fill work1 in splitbuf1 for communication
-  int n,m,o;
-  MPI_Request request;
-  MPI_Status status;
-
-  m = 0;
-  for (n = 0; n < nfft_6; n++) {
-    split_1[m] = 0.5*work1_6[m];
-    split_2[m] = 0.5*work1_6[m];
-    splitbuf1[dict_send[n][0]][dict_send[n][1]] = work1_6[m++];
-    split_1[m] = -0.5*work1_6[m];
-    split_2[m] = 0.5*work1_6[m];
-    splitbuf1[dict_send[n][0]][dict_send[n][1]+1] = work1_6[m++];
-  }
-    
-  // "exchange" points with yourself
-  for (n = 0; n < com_each[0]; n++) splitbuf2[0][n] = splitbuf1[0][n];
-  // exchange points with other procs
-  for (n = 1; n < com_procs; n++) {
-    MPI_Irecv(splitbuf2[n],com_each[n],MPI_FFT_SCALAR,com_order[n],0,world,&request);
-    MPI_Send(splitbuf1[n],com_each[n],MPI_FFT_SCALAR,com_order[n],0,world);
-    MPI_Wait(&request,&status);
-  }
-
-  // add received values to split_1 and split_2
-  for (n = 0; n < com_procs; n++) {
-    o = 0;
-    for (m = 0; m < com_each[n]/2; m++) {
-      split_1[dict_rec[n][m]] += 0.5*splitbuf2[n][o];
-      split_2[dict_rec[n][m]] -= 0.5*splitbuf2[n][o++];
-      split_1[dict_rec[n][m]+1] += 0.5*splitbuf2[n][o];
-      split_2[dict_rec[n][m]+1] += 0.5*splitbuf2[n][o++];  
-    }
-  }
 }
  
 /* ----------------------------------------------------------------------

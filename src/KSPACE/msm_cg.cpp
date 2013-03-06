@@ -78,15 +78,19 @@ void MSMCG::compute(int eflag, int vflag)
   int i,j,n;
 
   // set energy/virial flags
-  // invoke allocate_peratom() if needed for first time
 
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = evflag_atom = eflag_global = vflag_global =
     eflag_atom = vflag_atom = eflag_either = vflag_either = 0;
 
+  // invoke allocate_peratom() if needed for first time
+
   if (vflag_atom && !peratom_allocate_flag) {
     allocate_peratom();
-    for (n=0; n<levels; n++) {
+    cg_peratom_all->ghost_notify();
+    cg_peratom_all->setup();
+    for (int n=0; n<levels; n++) {
+      if (!active_flag[n]) continue;
       cg_peratom[n]->ghost_notify();
       cg_peratom[n]->setup();
     }
@@ -161,28 +165,52 @@ void MSMCG::compute(int eflag, int vflag)
   particle_map();
   make_rho();
 
+  // all procs reverse communicate charge density values from their ghost grid points
+  //   to fully sum contribution in their 3d grid
+
   current_level = 0;
-  cg[0]->reverse_comm(this,REVERSE_RHO);
+  cg_all->reverse_comm(this,REVERSE_RHO);
 
-  // all procs communicate density values from their ghost cells
-  //   to fully sum contribution in their 3d bricks
+  // forward communicate charge density values to fill ghost grid points
+  // compute direct sum interaction and then restrict to coarser grid
 
-  for (n=0; n<=levels-2; n++) {
+  for (int n=0; n<=levels-2; n++) {
+    if (!active_flag[n]) continue;
     current_level = n;
     cg[n]->forward_comm(this,FORWARD_RHO);
 
     direct(n);
     restriction(n);
   }
-  
-  // top grid level
 
-  current_level = levels-1;
-  cg[levels-1]->forward_comm(this,FORWARD_RHO);
-  direct_top(levels-1);
 
-  for (n=levels-2; n>=0; n--) {
+  // compute direct interation for top grid level for nonperiodic
+  //   and for second from top grid level for periodic
 
+  if (active_flag[levels-1]) {
+    if (domain->nonperiodic) {
+      current_level = levels-1;
+      cg[levels-1]->forward_comm(this,FORWARD_RHO);
+      direct_top(levels-1);
+      cg[levels-1]->reverse_comm(this,REVERSE_AD);
+      if (vflag_atom)
+        cg_peratom[levels-1]->reverse_comm(this,REVERSE_AD_PERATOM);
+    } else {
+      // Here using MPI_Allreduce is cheaper than using commgrid
+      grid_swap_forward(levels-1,qgrid[levels-1]);
+      direct(levels-1);
+      grid_swap_reverse(levels-1,egrid[levels-1]);
+      current_level = levels-1;
+      if (vflag_atom)
+        cg_peratom[levels-1]->reverse_comm(this,REVERSE_AD_PERATOM);
+    }
+  }
+
+  // prolongate energy/virial from coarser grid to finer grid
+  // reverse communicate from ghost grid points to get full sum
+
+  for (int n=levels-2; n>=0; n--) {
+    if (!active_flag[n]) continue;
     prolongation(n);
 
     current_level = n;
@@ -198,26 +226,25 @@ void MSMCG::compute(int eflag, int vflag)
   // to fill ghost cells surrounding their 3d bricks
 
   current_level = 0;
-
-  cg[0]->forward_comm(this,FORWARD_AD);
+  cg_all->forward_comm(this,FORWARD_AD);
 
   // extra per-atom energy/virial communication
 
   if (vflag_atom)
-    cg_peratom[0]->forward_comm(this,FORWARD_AD_PERATOM);
+    cg_peratom_all->forward_comm(this,FORWARD_AD_PERATOM);
 
   // calculate the force on my particles (interpolation)
 
   fieldforce();
 
-  // calculate the per-atom energy for my particles
+  // calculate the per-atom energy/virial for my particles
 
   if (evflag_atom) fieldforce_peratom();
 
+  // total long-range energy
+
   const double qscale = force->qqrd2e * scale;
 
-  // Total long-range energy
-    
   if (eflag_global) {
     double energy_all;
     MPI_Allreduce(&energy,&energy_all,1,MPI_DOUBLE,MPI_SUM,world);
@@ -228,7 +255,7 @@ void MSMCG::compute(int eflag, int vflag)
     energy *= 0.5*qscale;
   }
 
-  // Total long-range virial
+  // total long-range virial
 
   if (vflag_global) {
     double virial_all[6];
@@ -338,7 +365,7 @@ void MSMCG::make_rho()
     dy = ny - (x[i][1]-boxlo[1])*delyinv[0];
     dz = nz - (x[i][2]-boxlo[2])*delzinv[0];
 
-    compute_phis_and_dphis(dx,dy,dz);
+    compute_phis(dx,dy,dz);
 
     z0 = q[i];
     for (n = nlower; n <= nupper; n++) {

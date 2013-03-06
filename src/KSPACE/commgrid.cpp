@@ -30,8 +30,8 @@ CommGrid::CommGrid(LAMMPS *lmp, MPI_Comm gcomm, int forward, int reverse,
                    int pxlo, int pxhi, int pylo, int pyhi, int pzlo, int pzhi) 
   : Pointers(lmp)
 {
-  me = comm->me;
   gridcomm = gcomm;
+  MPI_Comm_rank(gridcomm,&me);
 
   nforward = forward;
   nreverse = reverse;
@@ -49,6 +49,61 @@ CommGrid::CommGrid(LAMMPS *lmp, MPI_Comm gcomm, int forward, int reverse,
   outyhi = oyhi;
   outzlo = ozlo;
   outzhi = ozhi;
+
+  outxlo_max = oxlo;
+  outxhi_max = oxhi;
+  outylo_max = oylo;
+  outyhi_max = oyhi;
+  outzlo_max = ozlo;
+  outzhi_max = ozhi;
+
+  procxlo = pxlo;
+  procxhi = pxhi;
+  procylo = pylo;
+  procyhi = pyhi;
+  proczlo = pzlo;
+  proczhi = pzhi;
+
+  nswap = 0;
+  swap = NULL;
+  buf1 = buf2 = NULL;
+}
+
+/* ---------------------------------------------------------------------- */
+
+CommGrid::CommGrid(LAMMPS *lmp, MPI_Comm gcomm, int forward, int reverse,
+                   int ixlo, int ixhi, int iylo, int iyhi, int izlo, int izhi,
+                   int oxlo, int oxhi, int oylo, int oyhi, int ozlo, int ozhi,
+                   int oxlo_max, int oxhi_max, int oylo_max, int oyhi_max, int ozlo_max, int ozhi_max,
+                   int pxlo, int pxhi, int pylo, int pyhi, int pzlo, int pzhi) 
+  : Pointers(lmp)
+{
+  gridcomm = gcomm;
+  MPI_Comm_rank(gridcomm,&me);
+
+  nforward = forward;
+  nreverse = reverse;
+
+  inxlo = ixlo;
+  inxhi = ixhi;
+  inylo = iylo;
+  inyhi = iyhi;
+  inzlo = izlo;
+  inzhi = izhi;
+
+  outxlo = oxlo;
+  outxhi = oxhi;
+  outylo = oylo;
+  outyhi = oyhi;
+  outzlo = ozlo;
+  outzhi = ozhi;
+
+  outxlo_max = oxlo_max;
+  outxhi_max = oxhi_max;
+  outylo_max = oylo_max;
+  outyhi_max = oyhi_max;
+  outzlo_max = ozlo_max;
+  outzhi_max = ozhi_max;
 
   procxlo = pxlo;
   procxhi = pxhi;
@@ -482,7 +537,8 @@ void CommGrid::reverse_comm(KSpace *kspace, int which)
 
 /* ----------------------------------------------------------------------
    create 1d list of offsets into 3d array section (xlo:xhi,ylo:yhi,zlo:zhi)
-   assume 3d array is allocated as (outxlo:outxhi,outylo:outyhi,outzlo:outzhi)
+   assume 3d array is allocated as (outxlo_max:outxhi_max,outylo_max:outyhi_max,
+     outzlo_max:outzhi_max)
 ------------------------------------------------------------------------- */
 
 int CommGrid::indices(int *&list, 
@@ -491,15 +547,15 @@ int CommGrid::indices(int *&list,
   int nmax = (xhi-xlo+1) * (yhi-ylo+1) * (zhi-zlo+1);
   memory->create(list,nmax,"Commgrid:list");
 
-  int nx = (outxhi-outxlo+1);
-  int ny = (outyhi-outylo+1);
+  int nx = (outxhi_max-outxlo_max+1);
+  int ny = (outyhi_max-outylo_max+1);
 
   int n = 0;
   int ix,iy,iz;
   for (iz = zlo; iz <= zhi; iz++)
     for (iy = ylo; iy <= yhi; iy++)
       for (ix = xlo; ix <= xhi; ix++)
-        list[n++] = (iz-outzlo)*ny*nx + (iy-outylo)*nx + (ix-outxlo);
+        list[n++] = (iz-outzlo_max)*ny*nx + (iy-outylo_max)*nx + (ix-outxlo_max);
 
   return nmax;
 }

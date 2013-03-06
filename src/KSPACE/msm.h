@@ -51,8 +51,10 @@ class MSM : public KSpace {
   int *nxhi_in,*nyhi_in,*nzhi_in;
   int *nxlo_out,*nylo_out,*nzlo_out;
   int *nxhi_out,*nyhi_out,*nzhi_out;
-  int *ngrid;
+  int *ngrid,*active_flag;
   int *alpha,*betax,*betay,*betaz;
+  int nxlo_out_all,nylo_out_all,nzlo_out_all;
+  int nxhi_out_all,nyhi_out_all,nzhi_out_all;
   int nxlo_direct,nxhi_direct,nylo_direct;
   int nyhi_direct,nzlo_direct,nzhi_direct;
   int nmax_direct;
@@ -108,14 +110,19 @@ class MSM : public KSpace {
   void particle_map();
   void make_rho();
   virtual void direct(int);
+  void direct_peratom(int);
   void direct_top(int);
+  void direct_peratom_top(int);
   void restriction(int);
   void prolongation(int);
+  void grid_swap_forward(int,double*** &);
+  void grid_swap_reverse(int,double*** &);
   void fieldforce();
   void fieldforce_peratom();
+  void compute_phis(const double &, const double &, const double &);
   void compute_phis_and_dphis(const double &, const double &, const double &);
-  double compute_phi(const double &);
-  double compute_dphi(const double &);
+  inline double compute_phi(const double &);
+  inline double compute_dphi(const double &);
   void get_g_direct();
   void get_virial_direct();
   void get_g_direct_top(int);
@@ -153,9 +160,9 @@ E: Kspace style requires atom attribute q
 
 The atom style defined does not have these attributes.
 
-E: Cannot use slab correction with MSM
+E: Slab correction not needed for MSM
 
-Slab correction can only be used with Ewald and PPPM, not MSM.
+Slab correction can only be used with Ewald and PPPM and is not needed by MSM.
 
 E: MSM order must be 4, 6, 8, or 10
 

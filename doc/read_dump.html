@@ -51,6 +51,10 @@
 <P><B>Examples:</B>
 </P>
 <PRE>read_dump dump.file 5000 x y z
+read_dump dump.xyz 5 x y z format xyz box no
+read_dump dump.xyz 10 x y z format molfile box no reader xyz "../plugins"
+read_dump dump.dcd 0 x y z format molfile box yes reader dcd
+read_dump dump.file 1000 x y z vx vy vz format molfile box yes reader lammpstrj /usr/local/lib/vmd/plugins/LINUXAMD64/plugins/molfile
 read_dump dump.file 5000 x y vx vy trim yes
 read_dump ../run7/dump.file.gz 10000 x y z box yes 
 read_dump dump.xyz 5 x y z box no format xyz

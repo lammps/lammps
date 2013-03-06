@@ -287,7 +287,7 @@ This should create a libmpi_stubs.a file suitable for linking to
 LAMMPS.  If the build fails, you will need to edit the STUBS/Makefile
 for your platform.
 </P>
-<P>The file STUBS/mpi.cpp provides a CPU timer function called
+<P>The file STUBS/mpi.c provides a CPU timer function called
 MPI_Wtime() that calls gettimeofday() .  If your system doesn't
 support gettimeofday() , you'll need to insert code to call another
 timer.  Note that the ANSI-standard function clock() rolls over after

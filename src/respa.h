@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -40,18 +40,18 @@ class Respa : public Integrate {
   int level_inner,level_middle,level_outer;
 
   Respa(class LAMMPS *, int, char **);
-  ~Respa();
-  void init();
-  void setup();
-  void setup_minimal(int);
-  void run(int);
-  void cleanup();
-  void reset_dt();
+  virtual ~Respa();
+  virtual void init();
+  virtual void setup();
+  virtual void setup_minimal(int);
+  virtual void run(int);
+  virtual void cleanup();
+  virtual void reset_dt();
 
   void copy_f_flevel(int);
   void copy_flevel_f(int);
 
- private:
+ protected:
   int triclinic;                    // 0 if domain is orthog, 1 if triclinic
   int torqueflag,erforceflag;
   int e_flag,rho_flag;
@@ -59,7 +59,7 @@ class Respa : public Integrate {
   int *newton;                      // newton flag at each level
   class FixRespa *fix_respa;        // Fix to store the force level array
 
-  void recurse(int);
+  virtual void recurse(int);
   void force_clear(int);
   void sum_flevel_f();
 };

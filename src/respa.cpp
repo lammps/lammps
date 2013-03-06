@@ -22,7 +22,6 @@
 #include "atom.h"
 #include "domain.h"
 #include "comm.h"
-#include "atom.h"
 #include "force.h"
 #include "pair.h"
 #include "bond.h"
@@ -148,7 +147,7 @@ Respa::Respa(LAMMPS *lmp, int narg, char **arg) : Integrate(lmp, narg, arg)
     if (screen) {
       fprintf(screen,"Respa levels:\n");
       for (int i = 0; i < nlevels; i++) {
-        fprintf(screen,"  %d =",i);
+        fprintf(screen,"  %d =",i+1);
         if (level_bond == i) fprintf(screen," bond");
         if (level_angle == i) fprintf(screen," angle");
         if (level_dihedral == i) fprintf(screen," dihedral");
@@ -164,7 +163,7 @@ Respa::Respa(LAMMPS *lmp, int narg, char **arg) : Integrate(lmp, narg, arg)
     if (logfile) {
       fprintf(logfile,"Respa levels:\n");
       for (int i = 0; i < nlevels; i++) {
-        fprintf(logfile,"  %d =",i);
+        fprintf(logfile,"  %d =",i+1);
         if (level_bond == i) fprintf(logfile," bond");
         if (level_angle == i) fprintf(logfile," angle");
         if (level_dihedral == i) fprintf(logfile," dihedral");
@@ -286,6 +285,10 @@ void Respa::init()
   // setup lists of computes for global and per-atom PE and pressure
 
   ev_setup();
+
+  // detect if fix omp is present and will clear force arrays for us
+  int ifix = modify->find_fix("package_omp");
+  if (ifix >= 0) external_force_clear = 1;
 
   // set flags for what arrays to clear in force_clear()
   // need to clear additionals arrays if they exist
@@ -615,6 +618,8 @@ void Respa::recurse(int ilevel)
 
 void Respa::force_clear(int newtonflag)
 {
+  if (external_force_clear) return;
+
   int i;
 
   if (external_force_clear) return;
@@ -625,37 +630,15 @@ void Respa::force_clear(int newtonflag)
   int nall;
   if (newtonflag) nall = atom->nlocal + atom->nghost;
   else nall = atom->nlocal;
-  int ntot = nall * comm->nthreads;
 
-  double **f = atom->f;
-  for (i = 0; i < ntot; i++) {
-    f[i][0] = 0.0;
-    f[i][1] = 0.0;
-    f[i][2] = 0.0;
-  }
+  size_t nbytes = sizeof(double) * nall;
 
-  if (torqueflag) {
-    double **torque = atom->torque;
-    for (i = 0; i < nall; i++) {
-      torque[i][0] = 0.0;
-      torque[i][1] = 0.0;
-      torque[i][2] = 0.0;
-    }
-  }
-
-  if (erforceflag) {
-    double *erforce = atom->erforce;
-    for (i = 0; i < nall; i++) erforce[i] = 0.0;
-  }
-
-  if (e_flag) {
-    double *de = atom->de;
-    for (i = 0; i < nall; i++) de[i] = 0.0;
-  }
-
-  if (rho_flag) {
-    double *drho = atom->drho;
-    for (i = 0; i < nall; i++) drho[i] = 0.0;
+  if (nbytes > 0 ) {
+    memset(&(atom->f[0][0]),0,3*nbytes);
+    if (torqueflag)  memset(&(atom->torque[0][0]),0,3*nbytes);
+    if (erforceflag) memset(&(atom->erforce[0]),  0,  nbytes);
+    if (e_flag)      memset(&(atom->de[0]),       0,  nbytes);
+    if (rho_flag)    memset(&(atom->drho[0]),     0,  nbytes);
   }
 }
 

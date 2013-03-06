@@ -186,7 +186,7 @@ and cutoff distance for all of the lj/long pair styles can be mixed.
 The default mix value is <I>geometric</I>.  See the "pair_modify" command
 for details.
 </P>
-<P>These pair style supports the <A HREF = "pair_modify.html">pair_modify</A> shift
+<P>These pair styles support the <A HREF = "pair_modify.html">pair_modify</A> shift
 option for the energy of the Lennard-Jones portion of the pair
 interaction, assuming <I>flag_lj</I> is <I>cut</I>.
 </P>
@@ -194,19 +194,19 @@ interaction, assuming <I>flag_lj</I> is <I>cut</I>.
 table/disp options since they can tabulate the short-range portion of
 the long-range Coulombic and dispersion interactions.
 </P>
-<P>This pair style does not support the <A HREF = "pair_modify.html">pair_modify</A>
+<P>Thes pair styles do not support the <A HREF = "pair_modify.html">pair_modify</A>
 tail option for adding a long-range tail correction to the
 Lennard-Jones portion of the energy and pressure.
 </P>
-<P>This pair style writes its information to <A HREF = "restart.html">binary restart
+<P>These pair styles write their information to <A HREF = "restart.html">binary restart
 files</A>, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
 </P>
-<P>This pair style supports the use of the <I>inner</I>, <I>middle</I>, and <I>outer</I>
-keywords of the <A HREF = "run_style.html">run_style respa</A> command, meaning the
-pairwise forces can be partitioned by distance at different levels of
-the rRESPA hierarchy.  See the <A HREF = "run_style.html">run_style</A> command for
-details.
+<P>The pair lj/long/coul/long styles support the use of the <I>inner</I>,
+<I>middle</I>, and <I>outer</I> keywords of the <A HREF = "run_style.html">run_style respa</A>
+command, meaning the pairwise forces can be partitioned by distance at
+different levels of the rRESPA hierarchy.  See the
+<A HREF = "run_style.html">run_style</A> command for details.
 </P>
 <HR>
 

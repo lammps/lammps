@@ -29,6 +29,7 @@ class ThrData;
 
 class FixOMP : public Fix {
   friend class ThrOMP;
+  friend class RespaOMP;
 
  public:
   FixOMP(class LAMMPS *, int, char **);
@@ -51,6 +52,8 @@ class FixOMP : public Fix {
                            // to do the general force reduction
   void *last_pair_hybrid;  // pointer to the pair style that needs
                            // to call virial_fdot_compute()
+  // signal that an /omp style did the force reduction. needed by respa/omp
+  void did_reduce() { _reduced = true;  }
 
  public:
   ThrData *get_thr(int tid) { return thr[tid];  }
@@ -58,12 +61,13 @@ class FixOMP : public Fix {
 
   bool get_neighbor() const { return _neighbor; }
   bool get_mixed()    const { return _mixed;    }
+  bool get_reduced()  const { return _reduced;  }
 
  private:
-  int  _nthr;     // number of currently active ThrData object
-  bool _neighbor; // en/disable threads for neighbor list construction
-  bool _clearforce; // whether to clear per thread data objects
-  bool _mixed;     // whether to use a mixed precision compute kernel
+  int  _nthr;       // number of currently active ThrData objects
+  bool _neighbor;   // en/disable threads for neighbor list construction
+  bool _mixed;      // whether to prefer mixed precision compute kernels
+  bool _reduced;    // whether forces have been reduced for this step
 
   void set_neighbor_omp();
 };

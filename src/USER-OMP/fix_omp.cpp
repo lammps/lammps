@@ -68,7 +68,7 @@ static int get_tid()
 FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg) 
   :  Fix(lmp, narg, arg),
      thr(NULL), last_omp_style(NULL), last_pair_hybrid(NULL),
-     _nthr(-1), _neighbor(true), _mixed(false)
+     _nthr(-1), _neighbor(true), _mixed(false), _reduced(true)
 {
   if ((narg < 4) || (narg > 7)) error->all(FLERR,"Illegal package omp command");
   if (strcmp(arg[1],"all") != 0) error->all(FLERR,"fix OMP has to operate on group 'all'");
@@ -87,8 +87,10 @@ FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg)
   if (nthreads < 1)
     error->all(FLERR,"Illegal number of OpenMP threads requested");
 
+  int reset_thr = 0;
   if (nthreads != comm->nthreads) {
 #if defined(_OPENMP)
+    reset_thr = 1;
     omp_set_num_threads(nthreads);
 #endif
     comm->nthreads = nthreads;
@@ -110,25 +112,21 @@ FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg)
 
   // print summary of settings
   if (comm->me == 0) {
-    const char * const nmode = _neighbor ? "OpenMP capable" : "serial";
+    const char * const nmode = _neighbor ? "multi-threaded" : "serial";
     const char * const kmode = _mixed ? "mixed" : "double";
 
     if (screen) {
-      fprintf(screen,"  reset %d OpenMP thread(s) per MPI task\n", nthreads);
-      fprintf(screen,"  using %s neighbor list subroutines\n", nmode);
-      if (_mixed)
-        fputs("  using mixed precision OpenMP force kernels where available\n", screen);
-      else
-        fputs("  using double precision OpenMP force kernels\n", screen);
+      if (reset_thr)
+	fprintf(screen,"set %d OpenMP thread(s) per MPI task\n", nthreads);
+      fprintf(screen,"using %s neighbor list subroutines\n", nmode);
+      fprintf(screen,"prefer %s precision OpenMP force kernels\n", kmode);
     }
     
     if (logfile) {
-      fprintf(logfile,"  reset %d OpenMP thread(s) per MPI task\n", nthreads);
-      fprintf(logfile,"  using %s neighbor list subroutines\n", nmode);
-      if (_mixed)
-        fputs("  using mixed precision OpenMP force kernels where available\n", logfile);
-      else
-        fputs("  using double precision OpenMP force kernels\n", logfile);
+      if (reset_thr)
+	fprintf(logfile,"set %d OpenMP thread(s) per MPI task\n", nthreads);
+      fprintf(logfile,"using %s neighbor list subroutines\n", nmode);
+      fprintf(logfile,"prefer %s precision OpenMP force kernels\n", kmode);
     }
   }
 
@@ -137,7 +135,6 @@ FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg)
   // encourage the OS to use storage that is "close" to each thread's CPU.
   thr = new ThrData *[nthreads];
   _nthr = nthreads;
-  _clearforce = true;
 #if defined(_OPENMP)
 #pragma omp parallel default(none)
 #endif
@@ -188,8 +185,9 @@ int FixOMP::setmask()
 
 void FixOMP::init()
 {
-  if (strstr(update->integrate_style,"respa") != NULL)
-    error->all(FLERR,"Cannot use r-RESPA with /omp styles");
+  if ((strstr(update->integrate_style,"respa") != NULL)
+      && (strstr(update->integrate_style,"respa/omp") == NULL))
+    error->all(FLERR,"Need to use respa/omp for r-RESPA with /omp styles");
 
   int check_hybrid, kspace_split;
   last_pair_hybrid = NULL;
@@ -282,7 +280,6 @@ void FixOMP::init()
         fprintf(logfile,"Last active /omp style is %s_style %s\n",
                 last_force_name, last_omp_name);
     } else {
-      _clearforce = false;
       if (screen)
         fprintf(screen,"No /omp style for force computation currently active\n");
       if (logfile)
@@ -322,18 +319,16 @@ void FixOMP::pre_force(int)
   double *de = atom->de;
   double *drho = atom->drho;
 
-  if (_clearforce) {
 #if defined(_OPENMP)
 #pragma omp parallel default(none) shared(f,torque,erforce,de,drho)
 #endif
-    {
-      const int tid = get_tid();
-      thr[tid]->check_tid(tid);
-      thr[tid]->init_force(nall,f,torque,erforce,de,drho);
-    }
-  } else {
-    thr[0]->init_force(nall,f,torque,erforce,de,drho);
-  }
+  {
+    const int tid = get_tid();
+    thr[tid]->check_tid(tid);
+    thr[tid]->init_force(nall,f,torque,erforce,de,drho);
+  } // end of omp parallel region
+
+  _reduced = false;
 }
 
 /* ---------------------------------------------------------------------- */

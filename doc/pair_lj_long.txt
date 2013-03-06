@@ -175,17 +175,17 @@ more instructions on how to use the accelerated styles effectively.
 [Mixing, shift, table, tail correction, restart, rRESPA info]:
 
 For atom type pairs I,J and I != J, the epsilon and sigma coefficients
-and cutoff distance for all of the lj/cut pair styles can be mixed.
+and cutoff distance for all of the lj/long pair styles can be mixed.
 The default mix value is {geometric}.  See the "pair_modify" command
 for details.
 
-This pair style supports the "pair_modify"_pair_modify.html shift
+These pair style supports the "pair_modify"_pair_modify.html shift
 option for the energy of the Lennard-Jones portion of the pair
 interaction, assuming {flag_lj} is {cut}.
 
-This pair style supports the "pair_modify"_pair_modify.html table
-option since it can tabulate the short-range portion of the long-range
-Coulombic interaction.
+These pair styles support the "pair_modify"_pair_modify.html table and
+table/disp options since they can tabulate the short-range portion of
+the long-range Coulombic and dispersion interactions.
 
 This pair style does not support the "pair_modify"_pair_modify.html
 tail option for adding a long-range tail correction to the

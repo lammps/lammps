@@ -1141,7 +1141,7 @@ int FixRigid::dof(int tgroup)
 
   if (firstflag) {
     if (comm->me == 0) 
-      error->warning(FLERR,"Counting rigid body degrees-of-freedom "
+      error->warning(FLERR,"Cannot count rigid body degrees-of-freedom "
                      "before bodies are fully initialized");
     return 0;
   }

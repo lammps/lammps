@@ -360,6 +360,10 @@ void FixGCMC::pre_exchange()
   if (regionflag) volume = region_volume;
   else volume = domain->xprd * domain->yprd * domain->zprd;
 
+  domain->pbc();
+  comm->exchange();
+  atom->nghost = 0;
+  comm->borders();
   update_gas_atoms_list();
 
   if (molflag) {
@@ -433,6 +437,8 @@ void FixGCMC::attempt_atomic_translation()
   MPI_Allreduce(&success,&success_all,1,MPI_INT,MPI_MAX,world);
 
   if (success_all) {
+    domain->pbc();
+    comm->exchange();
     atom->nghost = 0;
     comm->borders();
     update_gas_atoms_list();
@@ -597,6 +603,8 @@ void FixGCMC::attempt_molecule_translation()
         x[i][2] += com_displace[2];
       }
     }
+    domain->pbc();
+    comm->exchange();
     atom->nghost = 0;
     comm->borders();
     update_gas_atoms_list();
@@ -675,6 +683,8 @@ void FixGCMC::attempt_molecule_rotation()
         n++;
       }
     }
+    domain->pbc();
+    comm->exchange();
     atom->nghost = 0;
     comm->borders();
     update_gas_atoms_list();

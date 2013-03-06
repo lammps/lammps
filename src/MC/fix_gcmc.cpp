@@ -433,6 +433,7 @@ void FixGCMC::attempt_atomic_translation()
   MPI_Allreduce(&success,&success_all,1,MPI_INT,MPI_MAX,world);
 
   if (success_all) {
+    atom->nghost = 0;
     comm->borders();
     update_gas_atoms_list();
     ntranslation_successes += 1.0;
@@ -470,6 +471,7 @@ void FixGCMC::attempt_atomic_deletion()
       atom->natoms--;
       if (atom->map_style) atom->map_init();
     }
+    atom->nghost = 0;
     comm->borders();
     update_gas_atoms_list();
     ndeletion_successes += 1.0;
@@ -537,6 +539,7 @@ void FixGCMC::attempt_atomic_insertion()
       atom->tag_extend();
       if (atom->map_style) atom->map_init();
     }
+    atom->nghost = 0;
     comm->borders();
     update_gas_atoms_list();
     ninsertion_successes += 1.0;
@@ -594,6 +597,7 @@ void FixGCMC::attempt_molecule_translation()
         x[i][2] += com_displace[2];
       }
     }
+    atom->nghost = 0;
     comm->borders();
     update_gas_atoms_list();
     ntranslation_successes += 1.0;
@@ -671,6 +675,7 @@ void FixGCMC::attempt_molecule_rotation()
         n++;
       }
     }
+    atom->nghost = 0;
     comm->borders();
     update_gas_atoms_list();
     nrotation_successes += 1.0;
@@ -703,6 +708,7 @@ void FixGCMC::attempt_molecule_deletion()
     }
     atom->natoms -= natoms_per_molecule;
     atom->map_init();
+    atom->nghost = 0;
     comm->borders();
     update_gas_atoms_list();
     ndeletion_successes += 1.0;
@@ -833,6 +839,7 @@ void FixGCMC::attempt_molecule_insertion()
     }
     atom->natoms += natoms_per_molecule;
     atom->map_init();
+    atom->nghost = 0;
     comm->borders();
     update_gas_atoms_list();
     ninsertion_successes += 1.0;

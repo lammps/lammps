@@ -99,6 +99,9 @@ void PairList::compute(int eflag, int vflag)
     i = atom->map(par.id1);
     j = atom->map(par.id2);
 
+    // if one of the two atoms is missing on the node skip
+    if ((i < 0) || (j < 0)) continue;
+
     // both atoms are ghosts -> skip
     if ((i >= nlocal) && (j >= nlocal)) continue;
 

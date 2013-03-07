@@ -273,13 +273,10 @@ void Atom::create_avec(const char *style, int narg, char **arg, char *suffix)
   vfrac_flag = spin_flag = eradius_flag = ervel_flag = erforce_flag = 0;
 
   // create instance of AtomVec
-  // use grow to initialize atom-based arrays to length 1
-  // so that x[0][0] can be referenced even if proc has no atoms
 
   int sflag;
   avec = new_avec(style,suffix,sflag);
   avec->settings(narg,arg);
-  avec->grow(1);
 
   if (sflag) {
     char estyle[256];

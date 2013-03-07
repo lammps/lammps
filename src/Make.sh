@@ -86,8 +86,8 @@ elif (test $1 = "Makefile.lib") then
   list=`ls -1 *.h | tr "[:cntrl:]" " "`
   sed -i -e "s/INC =	.*/INC =	$list/" Makefile.lib
 
-# edit Makefile.lib, for creating non-shared lib
-# called by "make makelib"
+# edit Makefile.shlib, for creating shared lib
+# called by "make makeshlib"
 # use current list of *.cpp and *.h files in src dir w/out main.cpp
 
 elif (test $1 = "Makefile.shlib") then

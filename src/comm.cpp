@@ -854,7 +854,6 @@ void Comm::exchange()
     }
     atom->nlocal = nlocal;
 
-
     // send/recv atoms in both directions
     // if 1 proc in dimension, no send/recv, set recv buf to send buf
     // if 2 procs in dimension, single send/recv

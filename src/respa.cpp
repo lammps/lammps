@@ -189,12 +189,12 @@ Respa::Respa(LAMMPS *lmp, int narg, char **arg) : Integrate(lmp, narg, arg)
   }
   if (level_pair == -1 && level_middle == -1) {
     if (level_inner < level_improper || level_outer < level_inner ||
-        level_kspace != level_outer)
+        level_kspace < level_outer)
       error->all(FLERR,"Invalid order of forces within respa levels");
   }
   if (level_pair == -1 && level_middle >= 0) {
     if (level_inner < level_improper || level_middle < level_inner ||
-        level_outer < level_inner || level_kspace != level_outer)
+        level_outer < level_inner || level_kspace < level_outer)
       error->all(FLERR,"Invalid order of forces within respa levels");
   }
 

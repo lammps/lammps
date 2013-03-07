@@ -18,6 +18,7 @@
 #include "pair_list.h"
 #include "atom.h"
 #include "comm.h"
+#include "domain.h"
 #include "force.h"
 #include "memory.h"
 
@@ -62,6 +63,9 @@ PairList::PairList(LAMMPS *lmp) : Pair(lmp)
   cut_global = 0.0;
   style = NULL;
   params = NULL;
+
+  // XXX: make this selectable via pair_modify and turn it off by default.
+  check = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -94,6 +98,7 @@ void PairList::compute(int eflag, int vflag)
   double fpair,epair;
   int i,j;
 
+  int pc = 0;
   for (int n=0; n < npairs; ++n) {
     const list_parm_t &par = params[n];
     i = atom->map(par.id1);
@@ -116,12 +121,16 @@ void PairList::compute(int eflag, int vflag)
     // make sure that i < j
     if (i > j) { int k = j; j = i; i = k; }
 
-    const double dx = x[i].x - x[j].x;
-    const double dy = x[i].y - x[j].y;
-    const double dz = x[i].z - x[j].z;
+    double dx = x[i].x - x[j].x;
+    double dy = x[i].y - x[j].y;
+    double dz = x[i].z - x[j].z;
+    domain->minimum_image(dx,dy,dz);
     const double rsq = dx*dx + dy*dy + dz*dz;
 
     fpair = epair = 0.0;
+    if (newton_pair || i < nlocal) ++pc;
+    if (newton_pair || j < nlocal) ++pc;
+  
     if (rsq < par.cutsq) {
       const double r2inv = 1.0/rsq;
 
@@ -166,9 +175,16 @@ void PairList::compute(int eflag, int vflag)
       }
 
       if (evflag) ev_tally(i,j,nlocal,newton_pair,epair,0.0,fpair,dx,dy,dz);
-    }
+    } 
   }
   if (vflag_fdotr) virial_fdotr_compute();
+
+  if (check) {
+     int tmp;
+     MPI_Allreduce(&pc,&tmp,1,MPI_INT,MPI_SUM,world);
+     if (comm->me == 0 && tmp != 2*npairs)
+       printf("incorrect pairs: %d vs. %d\n", tmp>>1, npairs);
+  }
 }
 
 /* ----------------------------------------------------------------------

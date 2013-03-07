@@ -64,6 +64,7 @@ class PairList : public Pair {
   int *style;           // list of styles for pair interactions
   list_parm_t *params;  // lisf of pair interaction parameters
   int npairs;           // # of atom pairs in global list
+  int check;            // 1 if checking for missing pairs
 };
 
 }

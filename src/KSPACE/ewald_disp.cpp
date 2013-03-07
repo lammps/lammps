@@ -38,7 +38,6 @@ using namespace MathSpecial;
 
 #define SMALL 0.00001
 
-
 enum{GEOMETRIC,ARITHMETIC,SIXTHPOWER};   // same as in pair.h
 
 //#define DEBUG
@@ -48,7 +47,10 @@ enum{GEOMETRIC,ARITHMETIC,SIXTHPOWER};   // same as in pair.h
 EwaldDisp::EwaldDisp(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
 {
   if (narg!=1) error->all(FLERR,"Illegal kspace_style ewald/n command");
+
+  ewaldflag = dispersionflag = 1;
   accuracy_relative = fabs(atof(arg[0]));
+
   memset(function, 0, EWALD_NORDER*sizeof(int));
   kenergy = kvirial = NULL;
   cek_local = cek_global = NULL;

@@ -51,7 +51,7 @@ using namespace LAMMPS_NS;
 PairLJLongTIP4PLong::PairLJLongTIP4PLong(LAMMPS *lmp) : 
   PairLJLongCoulLong(lmp)
 {
-  tip4pflag = 1;
+  dispersionflag = tip4pflag = 1;
   single_enable = 0;
   respa_enable = 0;
 

@@ -29,12 +29,12 @@ class PairList : public Pair {
   PairList(class LAMMPS *);
   virtual ~PairList();
 
-  void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  void init_style();
-  double init_one(int, int);
-  double memory_usage();
+  virtual void compute(int, int);
+  virtual void settings(int, char **);
+  virtual void coeff(int, char **);
+  virtual void init_style();
+  virtual double init_one(int, int);
+  virtual double memory_usage();
 
  protected:
   void allocate();
@@ -64,7 +64,7 @@ class PairList : public Pair {
   int *style;           // list of styles for pair interactions
   list_parm_t *params;  // lisf of pair interaction parameters
   int npairs;           // # of atom pairs in global list
-  int check;            // 1 if checking for missing pairs
+  int check_flag;       // 1 if checking for missing pairs
 };
 
 }

@@ -63,9 +63,7 @@ PairList::PairList(LAMMPS *lmp) : Pair(lmp)
   cut_global = 0.0;
   style = NULL;
   params = NULL;
-
-  // XXX: make this selectable via pair_modify and turn it off by default.
-  check = 1;
+  check_flag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -118,26 +116,24 @@ void PairList::compute(int eflag, int vflag)
       if ((j >= nlocal) && ((par.id1+par.id2) & 1) == 1) continue;
     }
 
-    // make sure that i < j
-    if (i > j) { int k = j; j = i; i = k; }
-
-    double dx = x[i].x - x[j].x;
-    double dy = x[i].y - x[j].y;
-    double dz = x[i].z - x[j].z;
-    domain->minimum_image(dx,dy,dz);
+    const double dx = x[i].x - x[j].x;
+    const double dy = x[i].y - x[j].y;
+    const double dz = x[i].z - x[j].z;
     const double rsq = dx*dx + dy*dy + dz*dz;
 
     fpair = epair = 0.0;
-    if (newton_pair || i < nlocal) ++pc;
-    if (newton_pair || j < nlocal) ++pc;
-  
+    if (check_flag) {
+      if (newton_pair || i < nlocal) ++pc;
+      if (newton_pair || j < nlocal) ++pc;
+    }
+
     if (rsq < par.cutsq) {
       const double r2inv = 1.0/rsq;
 
       if (style[n] == HARM) {
 	const double r = sqrt(rsq);
-	const double dr = r - par.parm.harm.r0;
-	fpair = -2.0*par.parm.harm.k*dr/r;
+	const double dr = par.parm.harm.r0 - r;
+	fpair = 2.0*par.parm.harm.k*dr/r;
 
 	if (eflag_either)
 	  epair = par.parm.harm.k*dr*dr - par.offset;
@@ -145,9 +141,10 @@ void PairList::compute(int eflag, int vflag)
       } else if (style[n] == MORSE) {
 
 	const double r = sqrt(rsq);
-	const double dr = r - par.parm.morse.r0;
-	const double dexp = exp(-par.parm.morse.alpha * dr);
-	fpair = 2.0*par.parm.morse.d0*par.parm.morse.alpha * (dexp*dexp - dexp) / r;
+	const double dr = par.parm.morse.r0 - r;
+	const double dexp = exp(par.parm.morse.alpha * dr);
+	fpair = 2.0*par.parm.morse.d0*par.parm.morse.alpha 
+                * (dexp*dexp - dexp) / r;
 
 	if (eflag_either)
 	  epair = par.parm.morse.d0 * (dexp*dexp - 2.0*dexp) - par.offset;
@@ -156,10 +153,12 @@ void PairList::compute(int eflag, int vflag)
 
 	const double r6inv = r2inv*r2inv*r2inv;
 	const double sig6  = mypow(par.parm.lj126.sigma,6);
-	fpair =  24.0*par.parm.lj126.epsilon*r6inv * (2.0*sig6*sig6*r6inv - sig6) * r2inv;
+	fpair =  24.0*par.parm.lj126.epsilon*r6inv 
+                 * (2.0*sig6*sig6*r6inv - sig6) * r2inv;
 
 	if (eflag_either)
-	  epair = 4.0*par.parm.lj126.epsilon*r6inv * (    sig6*sig6*r6inv - sig6) - par.offset;
+	  epair = 4.0*par.parm.lj126.epsilon*r6inv 
+                  * (sig6*sig6*r6inv - sig6) - par.offset;
       }
 
       if (newton_pair || i < nlocal) {
@@ -179,11 +178,11 @@ void PairList::compute(int eflag, int vflag)
   }
   if (vflag_fdotr) virial_fdotr_compute();
 
-  if (check) {
+  if (check_flag) {
      int tmp;
      MPI_Allreduce(&pc,&tmp,1,MPI_INT,MPI_SUM,world);
-     if (comm->me == 0 && tmp != 2*npairs)
-       printf("incorrect pairs: %d vs. %d\n", tmp>>1, npairs);
+     if (tmp != 2*npairs)
+       error->all(FLERR,"Not all pairs processed in pair_style list");
   }
 }
 
@@ -214,6 +213,10 @@ void PairList::settings(int narg, char **arg)
     error->all(FLERR,"Illegal pair_style command");
 
   cut_global = force->numeric(arg[1]);
+  if (narg > 2) {
+    if (strcmp(arg[2],"nocheck") == 0) check_flag = 0;
+    if (strcmp(arg[2],"check") == 0) check_flag = 1;
+  }
 
   FILE *fp = fopen(arg[0],"r");
   char line[1024];
@@ -374,14 +377,12 @@ void PairList::init_style()
       list_parm_t &par = params[n];
 
       if (style[n] == HARM) {
-	const double r = sqrt(par.cutsq);
-	const double dr = r - par.parm.harm.r0;
+	const double dr = sqrt(par.cutsq) - par.parm.harm.r0;
 	par.offset = par.parm.harm.k*dr*dr;
 
       } else if (style[n] == MORSE) {
-	const double r = sqrt(par.cutsq);
-	const double dr = r - par.parm.morse.r0;
-	const double dexp = exp(-par.parm.morse.alpha * dr);
+	const double dr = par.parm.morse.r0 - sqrt(par.cutsq);
+	const double dexp = exp(par.parm.morse.alpha * dr);
 	par.offset = par.parm.morse.d0 * (dexp*dexp - 2.0*dexp);
 
       } else if (style[n] == LJ126) {

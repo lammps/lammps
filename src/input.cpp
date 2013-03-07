@@ -1003,11 +1003,6 @@ void Input::atom_style()
   if (domain->box_exist)
     error->all(FLERR,"Atom_style command after simulation box is defined");
   atom->create_avec(arg[0],narg-1,&arg[1],lmp->suffix);
-
-  // use grow to initialize atom-based arrays to length 1
-  // so that x[0][0] can be referenced even if proc has no atoms
-
-  //atom->avec->grow(1);
 }
 
 /* ---------------------------------------------------------------------- */

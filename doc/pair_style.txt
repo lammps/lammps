@@ -98,21 +98,27 @@ section of "this page"_Section_commands.html#cmd_5.
 
 "pair_style adp"_pair_adp.html - angular dependent potential (ADP) of Mishin
 "pair_style airebo"_pair_airebo.html - AIREBO potential of Stuart
+"pair_style beck"_pair_beck.html - Beck potential
 "pair_style body"_pair_body.html - interactions between body particles
 "pair_style bop"_pair_bop.html - BOP potential of Pettifor
 "pair_style born"_pair_born.html - Born-Mayer-Huggins potential
 "pair_style born/coul/long"_pair_born.html - Born-Mayer-Huggins with long-range Coulombics
-"pair_style born/coul/wolf"_pair_born.html - Born-Mayer-Huggins with Coulombics via Wolf potential
+"pair_style born/coul/msm"_pair_born.html - Born-Mayer-Huggins with long-range MSM Coulombics
+pair_style born/coul/wolf"_pair_born.html - Born-Mayer-Huggins with Coulombics via Wolf potential
 "pair_style brownian"_pair_brownian.html - Brownian potential for Fast Lubrication Dynamics
 "pair_style brownian/poly"_pair_brownian.html - Brownian potential for Fast Lubrication Dynamics with polydispersity
 "pair_style buck"_pair_buck.html - Buckingham potential
 "pair_style buck/coul/cut"_pair_buck.html - Buckingham with cutoff Coulomb
-"pair_style buck/coul/long"_pair_buck.html - Buckingham with long-range Coulomb
+"pair_style buck/coul/long"_pair_buck.html - Buckingham with long-range Coulombics
+"pair_style buck/coul/msm"_pair_buck.html - Buckingham long-range MSM Coulombics
+"pair_style buck/long/coul/long"_pair_buck.html - long-range Buckingham with long-range Coulombics
 "pair_style colloid"_pair_colloid.html - integrated colloidal potential
 "pair_style comb"_pair_comb.html - charge-optimized many-body (COMB) potential
 "pair_style coul/cut"_pair_coul.html - cutoff Coulombic potential
 "pair_style coul/debye"_pair_coul.html - cutoff Coulombic potential with Debye screening
+"pair_style coul/dsf"_pair_coul.html - Coulombics via damped shifted forces
 "pair_style coul/long"_pair_coul.html - long-range Coulombic potential
+"pair_style coul/msm"_pair_coul.html - long-range MSM Coulombics
 "pair_style coul/wolf"_pair_coul.html - Coulombics via Wolf potential
 "pair_style dipole/cut"_pair_dipole.html - point dipoles with cutoff
 "pair_style dpd"_pair_dpd.html - dissipative particle dynamics (DPD)
@@ -129,22 +135,29 @@ section of "this page"_Section_commands.html#cmd_5.
 "pair_style gran/hooke/history"_pair_gran.html - granular potential without history effects
 "pair_style hbond/dreiding/lj"_pair_hbond_dreiding.html - DREIDING hydrogen bonding LJ potential
 "pair_style hbond/dreiding/morse"_pair_hbond_dreiding.html - DREIDING hydrogen bonding Morse potential
+"pair_style kim"_pair_kim.html - interface to potentials provided by KIM project
 "pair_style lcbop"_pair_lcbop.html - long-range bond-order potential (LCBOP)
 "pair_style line/lj"_pair_line_lj.html - LJ potential between line segments
 "pair_style lj/charmm/coul/charmm"_pair_charmm.html - CHARMM potential with cutoff Coulomb
 "pair_style lj/charmm/coul/charmm/implicit"_pair_charmm.html - CHARMM for implicit solvent
 "pair_style lj/charmm/coul/long"_pair_charmm.html - CHARMM with long-range Coulomb
+"pair_style lj/charmm/coul/msm"_pair_charmm.html - CHARMM with long-range MSM Coulombics
 "pair_style lj/class2"_pair_class2.html - COMPASS (class 2) force field with no Coulomb
 "pair_style lj/class2/coul/cut"_pair_class2.html - COMPASS with cutoff Coulomb
 "pair_style lj/class2/coul/long"_pair_class2.html - COMPASS with long-range Coulomb
 "pair_style lj/cut"_pair_lj.html - cutoff Lennard-Jones potential with no Coulomb
 "pair_style lj/cut/coul/cut"_pair_lj.html - LJ with cutoff Coulomb
 "pair_style lj/cut/coul/debye"_pair_lj.html - LJ with Debye screening added to Coulomb
-"pair_style lj/cut/coul/long"_pair_lj.html - LJ with long-range Coulomb
-"pair_style lj/cut/coul/long/tip4p"_pair_lj.html - LJ with long-range Coulomb for TIP4P water
+"pair_style lj/cut/coul/dsf"_pair_lj.html - LJ with Coulombics via damped shifted forces
+"pair_style lj/cut/coul/long"_pair_lj.html - LJ with long-range Coulombics
+"pair_style lj/cut/coul/msm"_pair_lj.html - LJ with long-range MSM Coulombics
+"pair_style lj/cut/tip4p/cut"_pair_lj.html - LJ with cutoff Coulomb for TIP4P water
+"pair_style lj/cut/tip4p/long"_pair_lj.html - LJ with long-range Coulomb for TIP4P water
 "pair_style lj/expand"_pair_lj_expand.html - Lennard-Jones for variable size particles
 "pair_style lj/gromacs"_pair_gromacs.html - GROMACS-style Lennard-Jones potential
 "pair_style lj/gromacs/coul/gromacs"_pair_gromacs.html - GROMACS-style LJ and Coulombic potential
+"pair_style lj/long/coul/long"_pair_lj_long.html - long-range LJ and long-range Coulombics
+"pair_style lj/long/tip4p/long"_pair_lj_long.html - long-range LJ and long-range Coulomb for TIP4P water
 "pair_style lj/smooth"_pair_lj_smooth.html - smoothed Lennard-Jones potential
 "pair_style lj/smooth/linear"_pair_lj_smooth_linear.html - linear smoothed Lennard-Jones potential
 "pair_style lj96/cut"_pair_lj96.html - Lennard-Jones 9/6 potential

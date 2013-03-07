@@ -29,6 +29,8 @@ pair_style lj/cut/coul/long/opt command :h3
 pair_style lj/cut/coul/long/omp command :h3
 pair_style lj/cut/coul/msm command :h3
 pair_style lj/cut/coul/msm/omp command :h3
+pair_style lj/cut/tip4p/cut command :h3
+pair_style lj/cut/tip4p/cut/omp command :h3
 pair_style lj/cut/tip4p/long command :h3
 pair_style lj/cut/tip4p/long/omp command :h3
 pair_style lj/cut/tip4p/long/opt command :h3
@@ -56,6 +58,12 @@ args = list of arguments for a particular style :ul
     cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
     cutoff2 = global cutoff for Coulombic (optional) (distance units)
   {lj/cut/coul/msm} args = cutoff (cutoff2)
+    cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
+    cutoff2 = global cutoff for Coulombic (optional) (distance units)
+  {lj/cut/tip4p/cut} args = otype htype btype atype qdist cutoff (cutoff2)
+    otype,htype = atom types for TIP4P O and H
+    btype,atype = bond and angle types for TIP4P waters
+    qdist = distance from O atom to massless charge (distance units)
     cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
     cutoff2 = global cutoff for Coulombic (optional) (distance units)
   {lj/cut/tip4p/long} args = otype htype btype atype qdist cutoff (cutoff2)
@@ -161,7 +169,9 @@ Style {lj/cut/tip4p/long} implements the TIP4P water model of
 short distance away from the oxygen atom along the bisector of the HOH
 angle.  The atomic types of the oxygen and hydrogen atoms, the bond
 and angle types for OH and HOH interactions, and the distance to the
-massless charge site are specified as pair_style arguments.
+massless charge site are specified as pair_style arguments.  Style
+{lj/cut/tip4p/cut} is similar to {lj/cut/tip4p/long}, only it uses a
+cutoff for Coulomb interactions.
 
 IMPORTANT NOTE: For each TIP4P water molecule in your system, the atom
 IDs for the O and 2 H atoms must be consecutive, with the O atom
@@ -179,11 +189,12 @@ LJ cutoff >= Coulomb cutoff + 2*qdist, to shrink the size of the
 neighbor list.  This leads to slightly larger cost for the long-range
 calculation, so you can test the trade-off for your model.
 
-The following coefficients must be defined for each pair of atoms
-types via the "pair_coeff"_pair_coeff.html command as in the examples
-above, or in the data file or restart files read by the
-"read_data"_read_data.html or "read_restart"_read_restart.html
-commands, or by mixing as described below:
+For all of the {lj/cut} pair styles, the following coefficients must
+be defined for each pair of atoms types via the
+"pair_coeff"_pair_coeff.html command as in the examples above, or in
+the data file or restart files read by the "read_data"_read_data.html
+or "read_restart"_read_restart.html commands, or by mixing as
+described below:
 
 epsilon (energy units)
 sigma (distance units)
@@ -238,7 +249,7 @@ and cutoff distance for all of the lj/cut pair styles can be mixed.
 The default mix value is {geometric}.  See the "pair_modify" command
 for details.
 
-All of the lj/cut pair styles support the
+All of the {lj/cut} pair styles support the
 "pair_modify"_pair_modify.html shift option for the energy of the
 Lennard-Jones portion of the pair interaction.
 
@@ -246,16 +257,16 @@ The {lj/cut/coul/long} and {lj/cut/tip4p/long} pair styles support the
 "pair_modify"_pair_modify.html table option since they can tabulate
 the short-range portion of the long-range Coulombic interaction.
 
-All of the lj/cut pair styles support the
+All of the {lj/cut} pair styles support the
 "pair_modify"_pair_modify.html tail option for adding a long-range
 tail correction to the energy and pressure for the Lennard-Jones
 portion of the pair interaction.
 
-All of the lj/cut pair styles write their information to "binary
+All of the {lj/cut} pair styles write their information to "binary
 restart files"_restart.html, so pair_style and pair_coeff commands do
 not need to be specified in an input script that reads a restart file.
 
-The lj/cut and lj/cut/coul/long pair styles support the use of the
+The {lj/cut} and {lj/cut/coul/long} pair styles support the use of the
 {inner}, {middle}, and {outer} keywords of the "run_style
 respa"_run_style.html command, meaning the pairwise forces can be
 partitioned by distance at different levels of the rRESPA hierarchy.
@@ -267,9 +278,11 @@ See the "run_style"_run_style.html command for details.
 [Restrictions:]
 
 The {lj/cut/coul/long} and {lj/cut/tip4p/long} styles are part of the
-KSPACE package.  They are only enabled if LAMMPS was built with those
+KSPACE package. The {lj/cut/tip4p/cut} style is part of the MOLECULE
+package. These styles are only enabled if LAMMPS was built with those
 packages.  See the "Making LAMMPS"_Section_start.html#start_3 section
-for more info.  Note that the KSPACE package is installed by default.
+for more info.  Note that the KSPACE and MOLECULE packages are
+installed by default.
 
 [Related commands:]
 

@@ -493,7 +493,7 @@ angle style of {harmonic} or {charmm} should also be used.
 
 A TIP4P model is run with LAMMPS using two commands:
 
-"pair_style lj/cut/coul/long/tip4p"_pair_lj.html
+"pair_style lj/cut/tip4p/long"_pair_lj.html
 "kspace_style pppm/tip4p"_kspace_style.html :ul
 
 Note that only a TIP4P model with long-range Coulombics is currently
@@ -549,7 +549,7 @@ cutoff + 2*(OM distance), to shrink the size of the neighbor list.
 This leads to slightly larger cost for the long-range calculation, so
 you can test the trade-off for your model.  The OM distance and the LJ
 and Coulombic cutoffs are set in the "pair_style
-lj/cut/coul/long/tip4p"_pair_lj.html command.
+lj/cut/tip4p/long"_pair_lj.html command.
 
 Wikipedia also has a nice article on "water
 models"_http://en.wikipedia.org/wiki/Water_model.

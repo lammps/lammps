@@ -6394,16 +6394,16 @@ The atom style defined does not have this attribute. :dd
 
 The atom style defined does not have this attribute. :dd
 
-{Pair style lj/cut/coul/long/tip4p requires atom IDs} :dt
+{Pair style lj/cut/tip4p/long requires atom IDs} :dt
 
 There are no atom IDs defined in the system and the TIP4P potential
 requires them to find O,H atoms with a water molecule. :dd
 
-{Pair style lj/cut/coul/long/tip4p requires atom attribute q} :dt
+{Pair style lj/cut/tip4p/long requires atom attribute q} :dt
 
 The atom style defined does not have these attributes. :dd
 
-{Pair style lj/cut/coul/long/tip4p requires newton pair on} :dt
+{Pair style lj/cut/tip4p/long requires newton pair on} :dt
 
 This is because the computation of constraint forces within a water
 molecule adds forces to atoms owned by other processors. :dd
@@ -8016,7 +8016,7 @@ Self-explanatory. :dd
 
 Self-explanatory. :dd
 
-{Water H epsilon must be 0.0 for pair style lj/cut/coul/long/tip4p} :dt
+{Water H epsilon must be 0.0 for pair style lj/cut/tip4p/long} :dt
 
 This is because LAMMPS does not compute the Lennard-Jones interactions
 with these particles for efficiency reasons. :dd

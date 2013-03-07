@@ -145,11 +145,8 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   map_bucket = NULL;
   map_hash = NULL;
 
-  // default atom style = atomic
-
   atom_style = NULL;
   avec = NULL;
-  create_avec("atomic",0,NULL,lmp->suffix);
 
   datamask = ALL_MASK;
   datamask_ext = ALL_MASK;
@@ -277,6 +274,7 @@ void Atom::create_avec(const char *style, int narg, char **arg, char *suffix)
   int sflag;
   avec = new_avec(style,suffix,sflag);
   avec->settings(narg,arg);
+  avec->grow(1);
 
   if (sflag) {
     char estyle[256];

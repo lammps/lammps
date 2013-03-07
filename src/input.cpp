@@ -1007,7 +1007,7 @@ void Input::atom_style()
   // use grow to initialize atom-based arrays to length 1
   // so that x[0][0] can be referenced even if proc has no atoms
 
-  atom->avec->grow(1);
+  //atom->avec->grow(1);
 }
 
 /* ---------------------------------------------------------------------- */

@@ -560,6 +560,11 @@ void Respa::recurse(int ilevel)
       timer->stamp(TIME_COMM);
     }
 
+    // force computations
+    // important that ordering is same as Verlet
+    // so that any order dependencies are the same
+    // when potentials are invoked at same level
+
     force_clear(newton[ilevel]);
     if (modify->n_pre_force_respa)
       modify->pre_force_respa(vflag,ilevel,iloop);

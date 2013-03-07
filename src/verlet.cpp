@@ -263,6 +263,9 @@ void Verlet::run(int n)
     }
 
     // force computations
+    // important for pair to come before bonded contributions
+    // since some bonded potentials tally pairwise energy/virial
+    // and Pair:ev_tally() needs to be called before any tallying
 
     force_clear();
     if (n_pre_force) modify->pre_force(vflag);

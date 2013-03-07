@@ -449,7 +449,7 @@ LAMMPS::~LAMMPS()
 
 void LAMMPS::create()
 {
-  // Comm class must be created before Atom
+  // Comm class must be created before Atom class
   // so that nthreads is defined when create_avec invokes grow()
 
   if (cuda) comm = new CommCuda(this);

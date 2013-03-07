@@ -554,6 +554,7 @@ void Respa::recurse(int ilevel)
         comm->forward_comm();
         timer->stamp(TIME_COMM);
       }
+
     } else if (ilevel == 0) {
       timer->stamp();
       comm->forward_comm();

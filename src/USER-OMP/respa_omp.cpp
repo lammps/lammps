@@ -369,4 +369,3 @@ void RespaOMP::recurse(int ilevel)
 
   copy_f_flevel(ilevel);
 }
-

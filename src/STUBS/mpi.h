@@ -43,6 +43,9 @@ extern "C" {
 #define MPI_MINLOC 5
 #define MPI_LOR 6
 
+#define MPI_UNDEFINED -1
+#define MPI_COMM_NULL -1
+
 #define MPI_ANY_SOURCE -1
 
 #define MPI_Comm int

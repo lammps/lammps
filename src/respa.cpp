@@ -47,7 +47,7 @@ Respa::Respa(LAMMPS *lmp, int narg, char **arg) : Integrate(lmp, narg, arg)
   if (narg < 1) error->all(FLERR,"Illegal run_style respa command");
 
   nlevels = atoi(arg[0]);
-  if (nlevels <= 1) error->all(FLERR,"Respa levels must be > 1");
+  if (nlevels < 1) error->all(FLERR,"Respa levels must be >= 1");
 
   if (narg < nlevels) error->all(FLERR,"Illegal run_style respa command");
   loop = new int[nlevels];
@@ -367,14 +367,6 @@ void Respa::setup()
   for (int ilevel = 0; ilevel < nlevels; ilevel++) {
     force_clear(newton[ilevel]);
     modify->setup_pre_force_respa(vflag,ilevel);
-    if (level_bond == ilevel && force->bond)
-      force->bond->compute(eflag,vflag);
-    if (level_angle == ilevel && force->angle)
-      force->angle->compute(eflag,vflag);
-    if (level_dihedral == ilevel && force->dihedral)
-      force->dihedral->compute(eflag,vflag);
-    if (level_improper == ilevel && force->improper)
-      force->improper->compute(eflag,vflag);
     if (level_pair == ilevel && pair_compute_flag)
       force->pair->compute(eflag,vflag);
     if (level_inner == ilevel && pair_compute_flag)
@@ -383,6 +375,14 @@ void Respa::setup()
       force->pair->compute_middle();
     if (level_outer == ilevel && pair_compute_flag)
       force->pair->compute_outer(eflag,vflag);
+    if (level_bond == ilevel && force->bond)
+      force->bond->compute(eflag,vflag);
+    if (level_angle == ilevel && force->angle)
+      force->angle->compute(eflag,vflag);
+    if (level_dihedral == ilevel && force->dihedral)
+      force->dihedral->compute(eflag,vflag);
+    if (level_improper == ilevel && force->improper)
+      force->improper->compute(eflag,vflag);
     if (level_kspace == ilevel && force->kspace) {
       force->kspace->setup();
       if (kspace_compute_flag) force->kspace->compute(eflag,vflag);
@@ -435,14 +435,6 @@ void Respa::setup_minimal(int flag)
   for (int ilevel = 0; ilevel < nlevels; ilevel++) {
     force_clear(newton[ilevel]);
     modify->setup_pre_force_respa(vflag,ilevel);
-    if (level_bond == ilevel && force->bond)
-      force->bond->compute(eflag,vflag);
-    if (level_angle == ilevel && force->angle)
-      force->angle->compute(eflag,vflag);
-    if (level_dihedral == ilevel && force->dihedral)
-      force->dihedral->compute(eflag,vflag);
-    if (level_improper == ilevel && force->improper)
-      force->improper->compute(eflag,vflag);
     if (level_pair == ilevel && pair_compute_flag)
       force->pair->compute(eflag,vflag);
     if (level_inner == ilevel && pair_compute_flag)
@@ -451,6 +443,14 @@ void Respa::setup_minimal(int flag)
       force->pair->compute_middle();
     if (level_outer == ilevel && pair_compute_flag)
       force->pair->compute_outer(eflag,vflag);
+    if (level_bond == ilevel && force->bond)
+      force->bond->compute(eflag,vflag);
+    if (level_angle == ilevel && force->angle)
+      force->angle->compute(eflag,vflag);
+    if (level_dihedral == ilevel && force->dihedral)
+      force->dihedral->compute(eflag,vflag);
+    if (level_improper == ilevel && force->improper)
+      force->improper->compute(eflag,vflag);
     if (level_kspace == ilevel && force->kspace) {
       force->kspace->setup();
       if (kspace_compute_flag) force->kspace->compute(eflag,vflag);
@@ -562,6 +562,10 @@ void Respa::recurse(int ilevel)
         }
         neighbor->build();
         timer->stamp(Timer::NEIGHBOR);
+      } else if (ilevel == 0) {
+        timer->stamp();
+        comm->forward_comm();
+        timer->stamp(Timer::COMM);
       }
 
     } else if (ilevel == 0) {
@@ -569,6 +573,11 @@ void Respa::recurse(int ilevel)
       comm->forward_comm();
       timer->stamp(Timer::COMM);
     }
+
+    // force computations
+    // important that ordering is same as Verlet
+    // so that any order dependencies are the same
+    // when potentials are invoked at same level
 
     force_clear(newton[ilevel]);
     if (modify->n_pre_force_respa) {
@@ -578,22 +587,6 @@ void Respa::recurse(int ilevel)
     }
 
     timer->stamp();
-    if (level_bond == ilevel && force->bond) {
-      force->bond->compute(eflag,vflag);
-      timer->stamp(Timer::BOND);
-    }
-    if (level_angle == ilevel && force->angle) {
-      force->angle->compute(eflag,vflag);
-      timer->stamp(Timer::BOND);
-    }
-    if (level_dihedral == ilevel && force->dihedral) {
-      force->dihedral->compute(eflag,vflag);
-      timer->stamp(Timer::BOND);
-    }
-    if (level_improper == ilevel && force->improper) {
-      force->improper->compute(eflag,vflag);
-      timer->stamp(Timer::BOND);
-    }
     if (level_pair == ilevel && pair_compute_flag) {
       force->pair->compute(eflag,vflag);
       timer->stamp(Timer::PAIR);
@@ -609,6 +602,22 @@ void Respa::recurse(int ilevel)
     if (level_outer == ilevel && pair_compute_flag) {
       force->pair->compute_outer(eflag,vflag);
       timer->stamp(Timer::PAIR);
+    }
+    if (level_bond == ilevel && force->bond) {
+      force->bond->compute(eflag,vflag);
+      timer->stamp(Timer::BOND);
+    }
+    if (level_angle == ilevel && force->angle) {
+      force->angle->compute(eflag,vflag);
+      timer->stamp(Timer::BOND);
+    }
+    if (level_dihedral == ilevel && force->dihedral) {
+      force->dihedral->compute(eflag,vflag);
+      timer->stamp(Timer::BOND);
+    }
+    if (level_improper == ilevel && force->improper) {
+      force->improper->compute(eflag,vflag);
+      timer->stamp(Timer::BOND);
     }
     if (level_kspace == ilevel && kspace_compute_flag) {
       force->kspace->compute(eflag,vflag);
@@ -635,10 +644,6 @@ void Respa::recurse(int ilevel)
 
 void Respa::force_clear(int newtonflag)
 {
-  if (external_force_clear) return;
-
-  int i;
-
   if (external_force_clear) return;
 
   // clear global force array

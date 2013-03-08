@@ -12,48 +12,30 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Amalie Frischknecht and Ahmed Ismail (SNL)
-   simpler force assignment added by Rolf Isele-Holder (Aachen University)
+   Contributing author: Pavel Elkind (Gothenburg University)
 ------------------------------------------------------------------------- */
 
 #include "math.h"
-#include "stdio.h"
 #include "stdlib.h"
-#include "string.h"
-#include "pair_lj_cut_tip4p_long.h"
-#include "angle.h"
+#include "pair_lj_cut_tip4p_cut.h"
 #include "atom.h"
-#include "bond.h"
-#include "comm.h"
-#include "domain.h"
 #include "force.h"
-#include "kspace.h"
-#include "update.h"
-#include "respa.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
+#include "domain.h"
+#include "angle.h"
+#include "bond.h"
+#include "comm.h"
 #include "memory.h"
 #include "error.h"
 
-using namespace LAMMPS_NS;
-
-#define EWALD_F   1.12837917
-#define EWALD_P   0.3275911
-#define A1        0.254829592
-#define A2       -0.284496736
-#define A3        1.421413741
-#define A4       -1.453152027
-#define A5        1.061405429
+using namespace LAMMPS_NS; 
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutTIP4PLong::PairLJCutTIP4PLong(LAMMPS *lmp) :
-  PairLJCutCoulLong(lmp)
+PairLJCutTIP4PCut::PairLJCutTIP4PCut(LAMMPS *lmp) : Pair(lmp)
 {
-  tip4pflag = 1;
   single_enable = 0;
-  respa_enable = 0;
 
   nmax = 0;
   hneigh = NULL;
@@ -67,29 +49,42 @@ PairLJCutTIP4PLong::PairLJCutTIP4PLong(LAMMPS *lmp) :
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutTIP4PLong::~PairLJCutTIP4PLong()
+PairLJCutTIP4PCut::~PairLJCutTIP4PCut()
 {
+  if (allocated) {
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
+
+    memory->destroy(cut_lj);
+    memory->destroy(cut_ljsq);
+    memory->destroy(epsilon);
+    memory->destroy(sigma);
+    memory->destroy(lj1);
+    memory->destroy(lj2);
+    memory->destroy(lj3);
+    memory->destroy(lj4);
+    memory->destroy(offset);
+  }
+
   memory->destroy(hneigh);
   memory->destroy(newsite);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJCutTIP4PLong::compute(int eflag, int vflag)
+void PairLJCutTIP4PCut::compute(int eflag, int vflag)
 {
-  int i,j,ii,jj,inum,jnum,itype,jtype,itable,key;
+  int i,j,ii,jj,inum,jnum,itype,jtype;
+  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul;
+  double rsq,r2inv,r6inv,forcecoul,forcelj,factor_lj,factor_coul;
+  int *ilist,*jlist,*numneigh,**firstneigh;
+
+  int key;
   int n,vlist[6];
   int iH1,iH2,jH1,jH2;
-  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul;
-  double fraction,table;
-  double delxOM, delyOM, delzOM;
-  double r,r2inv,r6inv,forcecoul,forcelj,cforce;
-  double factor_coul,factor_lj;
-  double grij,expm2,prefactor,t,erfc,ddotf;
-  double xiM[3],xjM[3],fO[3],fH[3],fd[3],f1[3],v[6],xH1[3],xH2[3];
+  double cforce;
+  double fO[3],fH[3],fd[3],v[6],xH1[3],xH2[3];
   double *x1,*x2;
-  int *ilist,*jlist,*numneigh,**firstneigh;
-  double rsq;
 
   evdwl = ecoul = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
@@ -117,11 +112,10 @@ void PairLJCutTIP4PLong::compute(int eflag, int vflag)
   double **x = atom->x;
   double *q = atom->q;
   int *type = atom->type;
-  double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
+  double *special_coul = force->special_coul;
   int newton_pair = force->newton_pair;
   double qqrd2e = force->qqrd2e;
-  double cut_coulsqplus = (cut_coul+2.0*qdist) * (cut_coul+2.0*qdist);
 
   inum = list->inum;
   ilist = list->ilist;
@@ -137,9 +131,6 @@ void PairLJCutTIP4PLong::compute(int eflag, int vflag)
     ytmp = x[i][1];
     ztmp = x[i][2];
     itype = type[i];
-
-    // if atom I = water O, set x1 = offset charge site
-    // else x1 = x of atom I
 
     if (itype == typeO) {
       if (hneigh[i][0] < 0) {
@@ -241,42 +232,17 @@ void PairLJCutTIP4PLong::compute(int eflag, int vflag)
         // Coulombic interaction based on modified rsq
 
         if (rsq < cut_coulsq) {
-          r2inv = 1 / rsq;
-          if (!ncoultablebits || rsq <= tabinnersq) {
-            r = sqrt(rsq);
-            grij = g_ewald * r;
-            expm2 = exp(-grij*grij);
-            t = 1.0 / (1.0 + EWALD_P*grij);
-            erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
-            prefactor = qqrd2e * qtmp*q[j]/r;
-            forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
-            if (factor_coul < 1.0) {
-              forcecoul -= (1.0-factor_coul)*prefactor;
-            }
-          } else {
-            union_int_float_t rsq_lookup;
-            rsq_lookup.f = rsq;
-            itable = rsq_lookup.i & ncoulmask;
-            itable >>= ncoulshiftbits;
-            fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
-            table = ftable[itable] + fraction*dftable[itable];
-            forcecoul = qtmp*q[j] * table;
-            if (factor_coul < 1.0) {
-              table = ctable[itable] + fraction*dctable[itable];
-              prefactor = qtmp*q[j] * table;
-              forcecoul -= (1.0-factor_coul)*prefactor;
-            }
-          }
+          r2inv = 1.0 / rsq;
+          forcecoul = qqrd2e * qtmp * q[j] * sqrt(r2inv);
+          cforce = factor_coul * forcecoul * r2inv;
 
-          cforce = forcecoul * r2inv;
-
-          // if i,j are not O atoms, force is applied directly
-          // if i or j are O atoms, force is on fictitious atom & partitioned
-          // force partitioning due to Feenstra, J Comp Chem, 20, 786 (1999)
-          // f_f = fictitious force, fO = f_f (1 - 2 alpha), fH = alpha f_f
-          // preserves total force and torque on water molecule
-          // virial = sum(r x F) where each water's atoms are near xi and xj
-          // vlist stores 2,4,6 atoms whose forces contribute to virial
+        // if i,j are not O atoms, force is applied directly;
+        // if i or j are O atoms, force is on fictitious atom & partitioned
+        // force partitioning due to Feenstra, J Comp Chem, 20, 786 (1999)
+        // f_f = fictitious force, fO = f_f (1 - 2 alpha), fH = alpha f_f
+        // preserves total force and torque on water molecule
+        // virial = sum(r x F) where each water's atoms are near xi and xj
+        // vlist stores 2,4,6 atoms whose forces contribute to virial
 
           n = 0;
           key = 0;
@@ -303,9 +269,9 @@ void PairLJCutTIP4PLong::compute(int eflag, int vflag)
             fd[1] = dely*cforce;
             fd[2] = delz*cforce;
 
-            fO[0] = fd[0]*(1 - alpha);
-            fO[1] = fd[1]*(1 - alpha);
-            fO[2] = fd[2]*(1 - alpha);
+            fO[0] = fd[0]*(1.0 - alpha);
+            fO[1] = fd[1]*(1.0 - alpha);
+            fO[2] = fd[2]*(1.0 - alpha);
 
             fH[0] = 0.5 * alpha * fd[0];
             fH[1] = 0.5 * alpha * fd[1];
@@ -323,7 +289,7 @@ void PairLJCutTIP4PLong::compute(int eflag, int vflag)
             f[iH2][1] += fH[1];
             f[iH2][2] += fH[2];
 
-            if (vflag) {
+            if(vflag) {
               domain->closest_image(x[i],x[iH1],xH1);
               domain->closest_image(x[i],x[iH2],xH2);
 
@@ -398,13 +364,8 @@ void PairLJCutTIP4PLong::compute(int eflag, int vflag)
           }
 
           if (eflag) {
-            if (!ncoultablebits || rsq <= tabinnersq)
-              ecoul = prefactor*erfc;
-            else {
-              table = etable[itable] + fraction*detable[itable];
-              ecoul = qtmp*q[j] * table;
-            }
-            if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
+            ecoul = qqrd2e * qtmp * q[j] * sqrt(r2inv);
+            ecoul *= factor_coul;
           } else ecoul = 0.0;
 
           if (evflag) ev_tally_tip4p(key,vlist,v,ecoul,alpha);
@@ -415,12 +376,39 @@ void PairLJCutTIP4PLong::compute(int eflag, int vflag)
 }
 
 /* ----------------------------------------------------------------------
+   allocate all arrays
+------------------------------------------------------------------------- */
+
+void PairLJCutTIP4PCut::allocate()
+{
+  allocated = 1;
+  int n = atom->ntypes;
+
+  memory->create(setflag,n+1,n+1,"pair:setflag");
+  for (int i = 1; i <= n; i++)
+    for (int j = i; j <= n; j++)
+      setflag[i][j] = 0;
+
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
+
+  memory->create(cut_lj,n+1,n+1,"pair:cut_lj");
+  memory->create(cut_ljsq,n+1,n+1,"pair:cut_ljsq");
+  memory->create(epsilon,n+1,n+1,"pair:epsilon");
+  memory->create(sigma,n+1,n+1,"pair:sigma");
+  memory->create(lj1,n+1,n+1,"pair:lj1");
+  memory->create(lj2,n+1,n+1,"pair:lj2");
+  memory->create(lj3,n+1,n+1,"pair:lj3");
+  memory->create(lj4,n+1,n+1,"pair:lj4");
+  memory->create(offset,n+1,n+1,"pair:offset");
+}
+
+/* ----------------------------------------------------------------------
    global settings
 ------------------------------------------------------------------------- */
 
-void PairLJCutTIP4PLong::settings(int narg, char **arg)
+void PairLJCutTIP4PCut::settings(int narg, char **arg)
 {
-  if (narg < 6 || narg > 7) error->all(FLERR,"Illegal pair_style command");
+  if (narg != 7) error->all(FLERR,"Illegal pair_style command");
 
   typeO = force->inumeric(arg[0]);
   typeH = force->inumeric(arg[1]);
@@ -429,10 +417,9 @@ void PairLJCutTIP4PLong::settings(int narg, char **arg)
   qdist = force->numeric(arg[4]);
 
   cut_lj_global = force->numeric(arg[5]);
-  if (narg == 6) cut_coul = cut_lj_global;
-  else cut_coul = force->numeric(arg[6]);
-
-  // reset cutoffs that have been explicitly set
+  cut_coul = force->numeric(arg[6]);
+  cut_coulsq = cut_coul * cut_coul;
+  cut_coulsqplus = (cut_coul + 2.0*qdist) * (cut_coul + 2.0*qdist);
 
   if (allocated) {
     int i,j;
@@ -443,25 +430,55 @@ void PairLJCutTIP4PLong::settings(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
+   set coeffs for one or more type pairs
+------------------------------------------------------------------------- */
+
+void PairLJCutTIP4PCut::coeff(int narg, char **arg)
+{
+  if (narg != 4) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (!allocated) allocate();
+
+  int ilo,ihi,jlo,jhi;
+  force->bounds(arg[0],atom->ntypes,ilo,ihi);
+  force->bounds(arg[1],atom->ntypes,jlo,jhi);
+
+  double epsilon_one = force->numeric(arg[2]);
+  double sigma_one = force->numeric(arg[3]);
+
+  int count = 0;
+  for (int i = ilo; i <= ihi; i++) {
+    for (int j = MAX(jlo,i); j <= jhi; j++) {
+      epsilon[i][j] = epsilon_one;
+      sigma[i][j] = sigma_one;
+      cut_lj[i][j] = cut_lj_global;
+      setflag[i][j] = 1;
+      count++;
+    }
+  }
+
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+}
+
+/* ----------------------------------------------------------------------
    init specific to this pair style
 ------------------------------------------------------------------------- */
 
-void PairLJCutTIP4PLong::init_style()
+void PairLJCutTIP4PCut::init_style()
 {
   if (atom->tag_enable == 0)
-    error->all(FLERR,"Pair style lj/cut/coul/long/tip4p requires atom IDs");
+    error->all(FLERR,"Pair style lj/cut/coul/cut/tip4p requires atom IDs");
   if (!force->newton_pair)
     error->all(FLERR,
-               "Pair style lj/cut/coul/long/tip4p requires newton pair on");
+               "Pair style lj/cut/coul/cut/tip4p requires newton pair on");
   if (!atom->q_flag)
     error->all(FLERR,
-               "Pair style lj/cut/coul/long/tip4p requires atom attribute q");
+               "Pair style lj/cut/coul/cut/tip4p requires atom attribute q");
   if (force->bond == NULL)
     error->all(FLERR,"Must use a bond style with TIP4P potential");
   if (force->angle == NULL)
     error->all(FLERR,"Must use an angle style with TIP4P potential");
-
-  PairLJCutCoulLong::init_style();
+  
+  neighbor->request(this);
 
   // set alpha parameter
 
@@ -474,22 +491,49 @@ void PairLJCutTIP4PLong::init_style()
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairLJCutTIP4PLong::init_one(int i, int j)
+double PairLJCutTIP4PCut::init_one(int i, int j)
 {
-  double cut = PairLJCutCoulLong::init_one(i,j);
+  if (setflag[i][j] == 0) {
+    epsilon[i][j] = mix_energy(epsilon[i][i],epsilon[j][j],
+                               sigma[i][i],sigma[j][j]);
+    sigma[i][j] = mix_distance(sigma[i][i],sigma[j][j]);
+    cut_lj[i][j] = mix_distance(cut_lj[i][i],cut_lj[j][j]);
+  }
 
+  // include TIP4P qdist in full cutoff, qdist = 0.0 if not TIP4P
+
+  double cut = MAX(cut_lj[i][j],cut_coul+2.0*qdist);
+  cut_ljsq[i][j] = cut_lj[i][j] * cut_lj[i][j];
+
+  lj1[i][j] = 48.0 * epsilon[i][j] * pow(sigma[i][j],12.0);
+  lj2[i][j] = 24.0 * epsilon[i][j] * pow(sigma[i][j],6.0);
+  lj3[i][j] = 4.0 * epsilon[i][j] * pow(sigma[i][j],12.0);
+  lj4[i][j] = 4.0 * epsilon[i][j] * pow(sigma[i][j],6.0);
+
+  if (offset_flag) {
+    double ratio = sigma[i][j] / cut_lj[i][j];
+    offset[i][j] = 4.0 * epsilon[i][j] * (pow(ratio,12.0) - pow(ratio,6.0));
+  } else offset[i][j] = 0.0;
+  
+  cut_ljsq[j][i] = cut_ljsq[i][j];
+  lj1[j][i] = lj1[i][j];
+  lj2[j][i] = lj2[i][j];
+  lj3[j][i] = lj3[i][j];
+  lj4[j][i] = lj4[i][j];
+  offset[j][i] = offset[i][j];
+  
   // check that LJ epsilon = 0.0 for water H
   // set LJ cutoff to 0.0 for any interaction involving water H
   // so LJ term isn't calculated in compute()
-
+  
   if ((i == typeH && epsilon[i][i] != 0.0) ||
       (j == typeH && epsilon[j][j] != 0.0))
     error->all(FLERR,"Water H epsilon must be 0.0 for "
                "pair style lj/cut/coul/long/tip4p");
-
+  
   if (i == typeH || j == typeH)
     cut_ljsq[j][i] = cut_ljsq[i][j] = 0.0;
-
+  
   return cut;
 }
 
@@ -497,28 +541,74 @@ double PairLJCutTIP4PLong::init_one(int i, int j)
   proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairLJCutTIP4PLong::write_restart_settings(FILE *fp)
+void PairLJCutTIP4PCut::write_restart(FILE *fp)
 {
-  fwrite(&typeO,sizeof(int),1,fp);
-  fwrite(&typeH,sizeof(int),1,fp);
-  fwrite(&typeB,sizeof(int),1,fp);
-  fwrite(&typeA,sizeof(int),1,fp);
-  fwrite(&qdist,sizeof(double),1,fp);
+  write_restart_settings(fp);
 
-  fwrite(&cut_lj_global,sizeof(double),1,fp);
-  fwrite(&cut_coul,sizeof(double),1,fp);
-  fwrite(&offset_flag,sizeof(int),1,fp);
-  fwrite(&mix_flag,sizeof(int),1,fp);
-  fwrite(&tail_flag,sizeof(int),1,fp);
-  fwrite(&ncoultablebits,sizeof(int),1,fp);
-  fwrite(&tabinner,sizeof(double),1,fp);
+  int i,j;
+  for (i = 1; i <= atom->ntypes; i++) {
+    for (j = i; j <= atom->ntypes; j++) {
+      fwrite(&setflag[i][j],sizeof(int),1,fp);
+      if (setflag[i][j]){
+        fwrite(&epsilon[i][j],sizeof(double),1,fp);
+        fwrite(&sigma[i][j],sizeof(double),1,fp);
+        fwrite(&cut_lj[i][j],sizeof(double),1,fp);
+      }
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------
   proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairLJCutTIP4PLong::read_restart_settings(FILE *fp)
+void PairLJCutTIP4PCut::read_restart(FILE *fp)
+{
+  read_restart_settings(fp);
+  allocate();
+
+  int i,j;
+  int me = comm->me;
+  for (i = 1; i <= atom->ntypes; i++) {
+    for (j = i; j <= atom->ntypes; j++) {
+      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
+      if (setflag[i][j]) {
+        if (me == 0) {
+          fread(&epsilon[i][j],sizeof(double),1,fp);
+          fread(&sigma[i][j],sizeof(double),1,fp);
+          fread(&cut_lj[i][j],sizeof(double),1,fp);
+        }
+        MPI_Bcast(&epsilon[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&cut_lj[i][j],1,MPI_DOUBLE,0,world);
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+  proc 0 writes to restart file
+------------------------------------------------------------------------- */
+
+void PairLJCutTIP4PCut::write_restart_settings(FILE *fp)
+{
+  fwrite(&typeO,sizeof(int),1,fp);
+  fwrite(&typeH,sizeof(int),1,fp);
+  fwrite(&typeB,sizeof(int),1,fp);
+  fwrite(&typeA,sizeof(int),1,fp);
+  fwrite(&qdist,sizeof(double),1,fp);
+  fwrite(&cut_lj_global,sizeof(double),1,fp);
+  fwrite(&cut_coul,sizeof(double),1,fp);
+  fwrite(&cut_coulsq,sizeof(double),1,fp);
+  fwrite(&cut_coulsqplus,sizeof(double),1,fp);
+}
+
+/* ----------------------------------------------------------------------
+  proc 0 reads from restart file, bcasts
+------------------------------------------------------------------------- */
+
+void PairLJCutTIP4PCut::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
     fread(&typeO,sizeof(int),1,fp);
@@ -526,14 +616,10 @@ void PairLJCutTIP4PLong::read_restart_settings(FILE *fp)
     fread(&typeB,sizeof(int),1,fp);
     fread(&typeA,sizeof(int),1,fp);
     fread(&qdist,sizeof(double),1,fp);
-
     fread(&cut_lj_global,sizeof(double),1,fp);
     fread(&cut_coul,sizeof(double),1,fp);
-    fread(&offset_flag,sizeof(int),1,fp);
-    fread(&mix_flag,sizeof(int),1,fp);
-    fread(&tail_flag,sizeof(int),1,fp);
-    fread(&ncoultablebits,sizeof(int),1,fp);
-    fread(&tabinner,sizeof(double),1,fp);
+    fread(&cut_coulsq,sizeof(double),1,fp);
+    fread(&cut_coulsqplus,sizeof(double),1,fp);  
   }
 
   MPI_Bcast(&typeO,1,MPI_INT,0,world);
@@ -541,14 +627,10 @@ void PairLJCutTIP4PLong::read_restart_settings(FILE *fp)
   MPI_Bcast(&typeB,1,MPI_INT,0,world);
   MPI_Bcast(&typeA,1,MPI_INT,0,world);
   MPI_Bcast(&qdist,1,MPI_DOUBLE,0,world);
-
   MPI_Bcast(&cut_lj_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&cut_coul,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
-  MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
-  MPI_Bcast(&tail_flag,1,MPI_INT,0,world);
-  MPI_Bcast(&ncoultablebits,1,MPI_INT,0,world);
-  MPI_Bcast(&tabinner,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&cut_coulsq,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&cut_coulsqplus,1,MPI_DOUBLE,0,world);
 }
 
 /* ----------------------------------------------------------------------
@@ -556,8 +638,8 @@ void PairLJCutTIP4PLong::read_restart_settings(FILE *fp)
   return it as xM
 ------------------------------------------------------------------------- */
 
-void PairLJCutTIP4PLong::compute_newsite(double *xO, double *xH1,
-                                         double *xH2, double *xM)
+void PairLJCutTIP4PCut::compute_newsite(double *xO,  double *xH1,
+                                        double *xH2, double *xM)
 {
   double delx1 = xH1[0] - xO[0];
   double dely1 = xH1[1] - xO[1];
@@ -574,25 +656,11 @@ void PairLJCutTIP4PLong::compute_newsite(double *xO, double *xH1,
   xM[2] = xO[2] + alpha * 0.5 * (delz1 + delz2);
 }
 
-/* ---------------------------------------------------------------------- */
-
-void *PairLJCutTIP4PLong::extract(const char *str, int &dim)
-{
-  dim = 0;
-  if (strcmp(str,"qdist") == 0) return (void *) &qdist;
-  if (strcmp(str,"typeO") == 0) return (void *) &typeO;
-  if (strcmp(str,"typeH") == 0) return (void *) &typeH;
-  if (strcmp(str,"typeA") == 0) return (void *) &typeA;
-  if (strcmp(str,"typeB") == 0) return (void *) &typeB;
-  if (strcmp(str,"cut_coul") == 0) return (void *) &cut_coul;
-  return NULL;
-}
-
 /* ----------------------------------------------------------------------
    memory usage of hneigh
 ------------------------------------------------------------------------- */
 
-double PairLJCutTIP4PLong::memory_usage()
+double PairLJCutTIP4PCut::memory_usage()
 {
   double bytes = maxeatom * sizeof(double);
   bytes += maxvatom*6 * sizeof(double);

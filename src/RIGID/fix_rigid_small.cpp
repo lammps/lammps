@@ -308,7 +308,7 @@ void FixRigidSmall::setup_pre_neighbor()
   if (firstflag) {
     firstflag = 0;
     setup_bodies();
-  }
+  } else pre_neighbor();
 }
 
 /* ---------------------------------------------------------------------- */

@@ -35,6 +35,7 @@ if (test $1 = 1) then
   cp pair_hbond_dreiding_morse.cpp ..
   cp pair_lj_charmm_coul_charmm.cpp ..
   cp pair_lj_charmm_coul_charmm_implicit.cpp ..
+  cp pair_lj_cut_tip4p_cut.cpp ..
 
   cp angle_charmm.h ..
   cp angle_cosine.h ..
@@ -69,6 +70,7 @@ if (test $1 = 1) then
   cp pair_hbond_dreiding_morse.h ..
   cp pair_lj_charmm_coul_charmm.h ..
   cp pair_lj_charmm_coul_charmm_implicit.h ..
+  cp pair_lj_cut_tip4p_cut.h ..
 
 elif (test $1 = 0) then
 
@@ -105,6 +107,7 @@ elif (test $1 = 0) then
   rm -f ../pair_hbond_dreiding_morse.cpp
   rm -f ../pair_lj_charmm_coul_charmm.cpp
   rm -f ../pair_lj_charmm_coul_charmm_implicit.cpp
+  rm -f ../pair_lj_cut_tip4p_cut.cpp
 
   rm -f ../angle_charmm.h
   rm -f ../angle_cosine.h
@@ -139,5 +142,6 @@ elif (test $1 = 0) then
   rm -f ../pair_hbond_dreiding_morse.h
   rm -f ../pair_lj_charmm_coul_charmm.h
   rm -f ../pair_lj_charmm_coul_charmm_implicit.h
+  rm -f ../pair_lj_cut_tip4p_cut.h
 
 fi

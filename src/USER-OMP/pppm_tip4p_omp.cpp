@@ -392,6 +392,10 @@ void PPPMTIP4POMP::make_rho()
   FFT_SCALAR * _noalias const d = &(density_brick[nzlo_out][nylo_out][nxlo_out]);
   memset(d,0,ngrid*sizeof(FFT_SCALAR));
 
+  // no local atoms => nothing else to do
+
+  if (nlocal == 0) return;
+
   const int ix = nxhi_out - nxlo_out + 1;
   const int iy = nyhi_out - nylo_out + 1;
 
@@ -432,13 +436,13 @@ void PPPMTIP4POMP::make_rho()
       // pre-screen whether this atom will ever come within 
       // reach of the data segement this thread is updating.
       if ( ((nz+nlower-nzlo_out)*ix*iy >= jto)
-	   || ((nz+nupper-nzlo_out+1)*ix*iy < jfrom) ) continue;
+           || ((nz+nupper-nzlo_out+1)*ix*iy < jfrom) ) continue;
 
-    if (type[i] == typeO) {
-      find_M_thr(i,iH1,iH2,xM);
-    } else {
-      xM = x[i];
-    }
+      if (type[i] == typeO) {
+        find_M_thr(i,iH1,iH2,xM);
+      } else {
+        xM = x[i];
+      }
       const FFT_SCALAR dx = nx+shiftone - (xM.x-boxlox)*delxinv;
       const FFT_SCALAR dy = ny+shiftone - (xM.y-boxloy)*delyinv;
       const FFT_SCALAR dz = nz+shiftone - (xM.z-boxloz)*delzinv;
@@ -448,23 +452,23 @@ void PPPMTIP4POMP::make_rho()
       const FFT_SCALAR z0 = delvolinv * q[i];
 
       for (int n = nlower; n <= nupper; ++n) {
-	const int jn = (nz+n-nzlo_out)*ix*iy;
-	const FFT_SCALAR y0 = z0*r1d[2][n];
+        const int jn = (nz+n-nzlo_out)*ix*iy;
+        const FFT_SCALAR y0 = z0*r1d[2][n];
 
-	for (int m = nlower; m <= nupper; ++m) {
-	  const int jm = jn+(ny+m-nylo_out)*ix;
-	  const FFT_SCALAR x0 = y0*r1d[1][m];
+        for (int m = nlower; m <= nupper; ++m) {
+          const int jm = jn+(ny+m-nylo_out)*ix;
+          const FFT_SCALAR x0 = y0*r1d[1][m];
 
-	  for (int l = nlower; l <= nupper; ++l) {
-	    const int jl = jm+nx+l-nxlo_out;
-	    // make sure each thread only updates
-	    // "his" elements of the density grid
-	    if (jl >= jto) break;
-	    if (jl < jfrom) continue;
+          for (int l = nlower; l <= nupper; ++l) {
+            const int jl = jm+nx+l-nxlo_out;
+            // make sure each thread only updates
+            // "his" elements of the density grid
+            if (jl >= jto) break;
+            if (jl < jfrom) continue;
 
-	    d[jl] += x0*r1d[0][l];
-	  }
-	}
+            d[jl] += x0*r1d[0][l];
+          }
+        }
       }
     }
   }

@@ -36,6 +36,7 @@ namespace LAMMPS_NS {
 
  private:
   template <int, int, int> void direct_eval(int);
+  template <int> void direct_peratom(int);
 
 };
 

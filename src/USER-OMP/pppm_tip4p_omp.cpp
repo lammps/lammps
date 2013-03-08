@@ -330,6 +330,10 @@ void PPPMTIP4POMP::compute(int eflag, int vflag)
 
 void PPPMTIP4POMP::particle_map()
 {
+  // no local atoms => nothing to do
+
+  if (atom->nlocal == 0) return;
+
   const int * _noalias const type = atom->type;
   const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
   int3_t * _noalias const p2g = (int3_t *) part2grid[0];
@@ -480,6 +484,13 @@ void PPPMTIP4POMP::make_rho()
 
 void PPPMTIP4POMP::fieldforce_ik()
 {
+  const int nthreads = comm->nthreads;
+  const int nlocal = atom->nlocal;
+
+  // no local atoms => nothing to do
+
+  if (nlocal == 0) return;
+
   // loop over my charges, interpolate electric field from nearby grid points
   // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
   // (dx,dy,dz) = distance to "lower left" grid pt
@@ -495,9 +506,6 @@ void PPPMTIP4POMP::fieldforce_ik()
   const double boxlox = boxlo[0];
   const double boxloy = boxlo[1];
   const double boxloz = boxlo[2];
-
-  const int nthreads = comm->nthreads;
-  const int nlocal = atom->nlocal;
 
 #if defined(_OPENMP)
 #pragma omp parallel default(none)
@@ -580,6 +588,13 @@ void PPPMTIP4POMP::fieldforce_ik()
 
 void PPPMTIP4POMP::fieldforce_ad()
 {
+  const int nthreads = comm->nthreads;
+  const int nlocal = atom->nlocal;
+
+  // no local atoms => nothing to do
+
+  if (nlocal == 0) return;
+
   const double *prd = (triclinic == 0) ? domain->prd : domain->prd_lamda;
   const double hx_inv = nx_pppm/prd[0];
   const double hy_inv = ny_pppm/prd[1];
@@ -600,9 +615,6 @@ void PPPMTIP4POMP::fieldforce_ad()
   const double boxlox = boxlo[0];
   const double boxloy = boxlo[1];
   const double boxloz = boxlo[2];
-
-  const int nthreads = comm->nthreads;
-  const int nlocal = atom->nlocal;
 
 #if defined(_OPENMP)
 #pragma omp parallel default(none)

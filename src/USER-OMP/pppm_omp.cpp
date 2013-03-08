@@ -423,6 +423,13 @@ void PPPMOMP::fieldforce_ik()
   // (mx,my,mz) = global coords of moving stencil pt
   // ek = 3 components of E-field on particle
 
+  const int nthreads = comm->nthreads;
+  const int nlocal = atom->nlocal;
+
+  // no local atoms => nothing to do
+
+  if (nlocal == 0) return;
+
   const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
   const double * _noalias const q = atom->q;
   const int3_t * _noalias const p2g = (int3_t *) part2grid[0];
@@ -431,9 +438,6 @@ void PPPMOMP::fieldforce_ik()
   const double boxlox = boxlo[0];
   const double boxloy = boxlo[1];
   const double boxloz = boxlo[2];
-
-  const int nthreads = comm->nthreads;
-  const int nlocal = atom->nlocal;
 
 #if defined(_OPENMP)
 #pragma omp parallel default(none)
@@ -492,6 +496,13 @@ void PPPMOMP::fieldforce_ik()
 
 void PPPMOMP::fieldforce_ad()
 {
+  const int nthreads = comm->nthreads;
+  const int nlocal = atom->nlocal;
+
+  // no local atoms => nothing to do
+
+  if (nlocal == 0) return;
+
   const double *prd = (triclinic == 0) ? domain->prd : domain->prd_lamda;
   const double hx_inv = nx_pppm/prd[0];
   const double hy_inv = ny_pppm/prd[1];
@@ -510,9 +521,6 @@ void PPPMOMP::fieldforce_ad()
   const double boxlox = boxlo[0];
   const double boxloy = boxlo[1];
   const double boxloz = boxlo[2];
-
-  const int nthreads = comm->nthreads;
-  const int nlocal = atom->nlocal;
 
 #if defined(_OPENMP)
 #pragma omp parallel default(none)
@@ -590,6 +598,13 @@ void PPPMOMP::fieldforce_ad()
 
 void PPPMOMP::fieldforce_peratom()
 {
+  const int nthreads = comm->nthreads;
+  const int nlocal = atom->nlocal;
+
+  // no local atoms => nothing to do
+
+  if (nlocal == 0) return;
+
   // loop over my charges, interpolate from nearby grid points
   // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
   // (dx,dy,dz) = distance to "lower left" grid pt
@@ -597,8 +612,6 @@ void PPPMOMP::fieldforce_peratom()
 
   const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
   const double * _noalias const q = atom->q;
-  const int nthreads = comm->nthreads;
-  const int nlocal = atom->nlocal;
 
 #if defined(_OPENMP)
 #pragma omp parallel default(none)

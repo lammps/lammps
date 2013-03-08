@@ -690,6 +690,13 @@ void PPPMDispOMP::make_rho_a()
 
 void PPPMDispOMP::fieldforce_c_ik()
 {
+  const int nthreads = comm->nthreads;
+  const int nlocal = atom->nlocal;
+
+  // no local atoms => nothing to do
+
+  if (nlocal == 0) return;
+
   // loop over my charges, interpolate electric field from nearby grid points
   // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
   // (dx,dy,dz) = distance to "lower left" grid pt
@@ -698,8 +705,6 @@ void PPPMDispOMP::fieldforce_c_ik()
 
   const double * const q = atom->q;
   const double * const * const x = atom->x;
-  const int nthreads = comm->nthreads;
-  const int nlocal = atom->nlocal;
   const double qqrd2e = force->qqrd2e;
 
 #if defined(_OPENMP)
@@ -773,6 +778,13 @@ void PPPMDispOMP::fieldforce_c_ik()
 
 void PPPMDispOMP::fieldforce_c_ad()
 {
+  const int nthreads = comm->nthreads;
+  const int nlocal = atom->nlocal;
+
+  // no local atoms => nothing to do
+
+  if (nlocal == 0) return;
+
   // loop over my charges, interpolate electric field from nearby grid points
   // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
   // (dx,dy,dz) = distance to "lower left" grid pt
@@ -781,8 +793,6 @@ void PPPMDispOMP::fieldforce_c_ad()
 
   const double * const q = atom->q;
   const double * const * const x = atom->x;
-  const int nthreads = comm->nthreads;
-  const int nlocal = atom->nlocal;
   const double qqrd2e = force->qqrd2e;
   //const double * const sf_c = sf_coeff;
 
@@ -890,6 +900,13 @@ void PPPMDispOMP::fieldforce_c_ad()
 
 void PPPMDispOMP::fieldforce_c_peratom()
 {
+  const int nthreads = comm->nthreads;
+  const int nlocal = atom->nlocal;
+
+  // no local atoms => nothing to do
+
+  if (nlocal == 0) return;
+
   // loop over my charges, interpolate from nearby grid points
   // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
   // (dx,dy,dz) = distance to "lower left" grid pt
@@ -897,8 +914,6 @@ void PPPMDispOMP::fieldforce_c_peratom()
 
   const double * const q = atom->q;
   const double * const * const x = atom->x;
-  const int nthreads = comm->nthreads;
-  const int nlocal = atom->nlocal;
 
 #if defined(_OPENMP)
 #pragma omp parallel default(none)
@@ -982,6 +997,13 @@ void PPPMDispOMP::fieldforce_c_peratom()
 
 void PPPMDispOMP::fieldforce_g_ik()
 {
+  const int nthreads = comm->nthreads;
+  const int nlocal = atom->nlocal;
+
+  // no local atoms => nothing to do
+
+  if (nlocal == 0) return;
+
   // loop over my charges, interpolate electric field from nearby grid points
   // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
   // (dx,dy,dz) = distance to "lower left" grid pt
@@ -989,8 +1011,6 @@ void PPPMDispOMP::fieldforce_g_ik()
   // ek = 3 components of E-field on particle
 
   const double * const * const x = atom->x;
-  const int nthreads = comm->nthreads;
-  const int nlocal = atom->nlocal;
   const double qqrd2e = force->qqrd2e;
 
 #if defined(_OPENMP)
@@ -1067,6 +1087,13 @@ void PPPMDispOMP::fieldforce_g_ik()
 
 void PPPMDispOMP::fieldforce_g_ad()
 {
+  const int nthreads = comm->nthreads;
+  const int nlocal = atom->nlocal;
+
+  // no local atoms => nothing to do
+
+  if (nlocal == 0) return;
+
   // loop over my charges, interpolate electric field from nearby grid points
   // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
   // (dx,dy,dz) = distance to "lower left" grid pt
@@ -1074,9 +1101,6 @@ void PPPMDispOMP::fieldforce_g_ad()
   // ek = 3 components of E-field on particle
 
   const double * const * const x = atom->x;
-  const int nthreads = comm->nthreads;
-  const int nlocal = atom->nlocal;
-
   double *prd;
 
   if (triclinic == 0) prd = domain->prd;
@@ -1185,14 +1209,19 @@ void PPPMDispOMP::fieldforce_g_ad()
 
 void PPPMDispOMP::fieldforce_g_peratom()
 {
+  const int nthreads = comm->nthreads;
+  const int nlocal = atom->nlocal;
+
+  // no local atoms => nothing to do
+
+  if (nlocal == 0) return;
+
   // loop over my charges, interpolate from nearby grid points
   // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
   // (dx,dy,dz) = distance to "lower left" grid pt
   // (mx,my,mz) = global coords of moving stencil pt
 
   const double * const * const x = atom->x;
-  const int nthreads = comm->nthreads;
-  const int nlocal = atom->nlocal;
 
 #if defined(_OPENMP)
 #pragma omp parallel default(none)
@@ -1279,6 +1308,13 @@ void PPPMDispOMP::fieldforce_g_peratom()
 
 void PPPMDispOMP::fieldforce_a_ik()
 {
+  const int nthreads = comm->nthreads;
+  const int nlocal = atom->nlocal;
+
+  // no local atoms => nothing to do
+
+  if (nlocal == 0) return;
+
   // loop over my charges, interpolate electric field from nearby grid points
   // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
   // (dx,dy,dz) = distance to "lower left" grid pt
@@ -1286,8 +1322,6 @@ void PPPMDispOMP::fieldforce_a_ik()
   // ek = 3 components of E-field on particle
 
   const double * const * const x = atom->x;
-  const int nthreads = comm->nthreads;
-  const int nlocal = atom->nlocal;
   const double qqrd2e = force->qqrd2e;
 
 #if defined(_OPENMP)
@@ -1396,6 +1430,13 @@ void PPPMDispOMP::fieldforce_a_ik()
 
 void PPPMDispOMP::fieldforce_a_ad()
 {
+  const int nthreads = comm->nthreads;
+  const int nlocal = atom->nlocal;
+
+  // no local atoms => nothing to do
+
+  if (nlocal == 0) return;
+
   // loop over my charges, interpolate electric field from nearby grid points
   // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
   // (dx,dy,dz) = distance to "lower left" grid pt
@@ -1403,9 +1444,6 @@ void PPPMDispOMP::fieldforce_a_ad()
   // ek = 3 components of E-field on particle
 
   const double * const * const x = atom->x;
-  const int nthreads = comm->nthreads;
-  const int nlocal = atom->nlocal;
-
   double *prd;
 
   if (triclinic == 0) prd = domain->prd;
@@ -1581,14 +1619,19 @@ void PPPMDispOMP::fieldforce_a_ad()
 
 void PPPMDispOMP::fieldforce_a_peratom()
 {
+  const int nthreads = comm->nthreads;
+  const int nlocal = atom->nlocal;
+
+  // no local atoms => nothing to do
+
+  if (nlocal == 0) return;
+
   // loop over my charges, interpolate from nearby grid points
   // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
   // (dx,dy,dz) = distance to "lower left" grid pt
   // (mx,my,mz) = global coords of moving stencil pt
 
   const double * const * const x = atom->x;
-  const int nthreads = comm->nthreads;
-  const int nlocal = atom->nlocal;
 
 #if defined(_OPENMP)
 #pragma omp parallel default(none)

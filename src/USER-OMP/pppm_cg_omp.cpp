@@ -420,6 +420,10 @@ void PPPMCGOMP::make_rho()
 
 void PPPMCGOMP::fieldforce_ik()
 {
+  // no local atoms with a charge => nothing to do
+
+  if (num_charged == 0) return;
+
   // loop over my charges, interpolate electric field from nearby grid points
   // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
   // (dx,dy,dz) = distance to "lower left" grid pt
@@ -459,19 +463,19 @@ void PPPMCGOMP::fieldforce_ik()
 
       ekx = eky = ekz = ZEROF;
       for (n = nlower; n <= nupper; n++) {
-	mz = n+nz;
-	z0 = r1d[2][n];
-	for (m = nlower; m <= nupper; m++) {
-	  my = m+ny;
-	  y0 = z0*r1d[1][m];
-	  for (l = nlower; l <= nupper; l++) {
-	    mx = l+nx;
-	    x0 = y0*r1d[0][l];
-	    ekx -= x0*vdx_brick[mz][my][mx];
-	    eky -= x0*vdy_brick[mz][my][mx];
-	    ekz -= x0*vdz_brick[mz][my][mx];
-	  }
-	}
+        mz = n+nz;
+        z0 = r1d[2][n];
+        for (m = nlower; m <= nupper; m++) {
+          my = m+ny;
+          y0 = z0*r1d[1][m];
+          for (l = nlower; l <= nupper; l++) {
+            mx = l+nx;
+            x0 = y0*r1d[0][l];
+            ekx -= x0*vdx_brick[mz][my][mx];
+            eky -= x0*vdy_brick[mz][my][mx];
+            ekz -= x0*vdz_brick[mz][my][mx];
+          }
+        }
       }
 
       // convert E-field to force
@@ -490,6 +494,10 @@ void PPPMCGOMP::fieldforce_ik()
 
 void PPPMCGOMP::fieldforce_ad()
 {
+  // no local atoms with a charge => nothing to do
+
+  if (num_charged == 0) return;
+
   const double *prd = (triclinic == 0) ? domain->prd : domain->prd_lamda;
   const double hx_inv = nx_pppm/prd[0];
   const double hy_inv = ny_pppm/prd[1];
@@ -537,16 +545,16 @@ void PPPMCGOMP::fieldforce_ad()
 
       ekx = eky = ekz = ZEROF;
       for (n = nlower; n <= nupper; n++) {
-	mz = n+nz;
-	for (m = nlower; m <= nupper; m++) {
-	  my = m+ny;
-	  for (l = nlower; l <= nupper; l++) {
-	    mx = l+nx;
-	    ekx += d1d[0][l]*r1d[1][m]*r1d[2][n]*u_brick[mz][my][mx];
-	    eky += r1d[0][l]*d1d[1][m]*r1d[2][n]*u_brick[mz][my][mx];
-	    ekz += r1d[0][l]*r1d[1][m]*d1d[2][n]*u_brick[mz][my][mx];
-	  }
-	}
+        mz = n+nz;
+        for (m = nlower; m <= nupper; m++) {
+          my = m+ny;
+          for (l = nlower; l <= nupper; l++) {
+            mx = l+nx;
+            ekx += d1d[0][l]*r1d[1][m]*r1d[2][n]*u_brick[mz][my][mx];
+            eky += r1d[0][l]*d1d[1][m]*r1d[2][n]*u_brick[mz][my][mx];
+            ekz += r1d[0][l]*r1d[1][m]*d1d[2][n]*u_brick[mz][my][mx];
+          }
+        }
       }
       ekx *= hx_inv;
       eky *= hy_inv;
@@ -584,6 +592,10 @@ void PPPMCGOMP::fieldforce_ad()
 
 void PPPMCGOMP::fieldforce_peratom()
 {
+  // no local atoms with a charge => nothing to do
+
+  if (num_charged == 0) return;
+
   // loop over my charges, interpolate from nearby grid points
   // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
   // (dx,dy,dz) = distance to "lower left" grid pt
@@ -621,36 +633,36 @@ void PPPMCGOMP::fieldforce_peratom()
 
       u = v0 = v1 = v2 = v3 = v4 = v5 = ZEROF;
       for (n = nlower; n <= nupper; n++) {
-	mz = n+nz;
-	z0 = r1d[2][n];
-	for (m = nlower; m <= nupper; m++) {
-	  my = m+ny;
-	  y0 = z0*r1d[1][m];
-	  for (l = nlower; l <= nupper; l++) {
-	    mx = l+nx;
-	    x0 = y0*r1d[0][l];
-	    if (eflag_atom) u += x0*u_brick[mz][my][mx];
-	    if (vflag_atom) {
-	      v0 += x0*v0_brick[mz][my][mx];
-	      v1 += x0*v1_brick[mz][my][mx];
-	      v2 += x0*v2_brick[mz][my][mx];
-	      v3 += x0*v3_brick[mz][my][mx];
-	      v4 += x0*v4_brick[mz][my][mx];
-	      v5 += x0*v5_brick[mz][my][mx];
-	    }
-	  }
-	}
+        mz = n+nz;
+        z0 = r1d[2][n];
+        for (m = nlower; m <= nupper; m++) {
+          my = m+ny;
+          y0 = z0*r1d[1][m];
+          for (l = nlower; l <= nupper; l++) {
+            mx = l+nx;
+            x0 = y0*r1d[0][l];
+            if (eflag_atom) u += x0*u_brick[mz][my][mx];
+            if (vflag_atom) {
+              v0 += x0*v0_brick[mz][my][mx];
+              v1 += x0*v1_brick[mz][my][mx];
+              v2 += x0*v2_brick[mz][my][mx];
+              v3 += x0*v3_brick[mz][my][mx];
+              v4 += x0*v4_brick[mz][my][mx];
+              v5 += x0*v5_brick[mz][my][mx];
+            }
+          }
+        }
       }
 
       const double qi = q[i];
       if (eflag_atom) eatom[i] += qi*u;
       if (vflag_atom) {
-	vatom[i][0] += qi*v0;
-	vatom[i][1] += qi*v1;
-	vatom[i][2] += qi*v2;
-	vatom[i][3] += qi*v3;
-	vatom[i][4] += qi*v4;
-	vatom[i][5] += qi*v5;
+        vatom[i][0] += qi*v0;
+        vatom[i][1] += qi*v1;
+        vatom[i][2] += qi*v2;
+        vatom[i][3] += qi*v3;
+        vatom[i][4] += qi*v4;
+        vatom[i][5] += qi*v5;
       }
     }
   } // end of parallel region

@@ -394,6 +394,7 @@ void PPPMTIP4POMP::make_rho()
 
   // no local atoms => nothing else to do
 
+  const int nlocal = atom->nlocal;
   if (nlocal == 0) return;
 
   const int ix = nxhi_out - nxlo_out + 1;
@@ -426,7 +427,6 @@ void PPPMTIP4POMP::make_rho()
     // (dx,dy,dz) = distance to "lower left" grid pt
 
     // loop over all local atoms for all threads
-    const int nlocal = atom->nlocal;
     for (i = 0; i < nlocal; i++) {
 
       const int nx = p2g[i].a;

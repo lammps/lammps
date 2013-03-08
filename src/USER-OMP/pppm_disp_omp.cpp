@@ -403,6 +403,7 @@ void PPPMDispOMP::make_rho_c()
 
   // no local atoms => nothing else to do
 
+  const int nlocal = atom->nlocal;
   if (nlocal == 0) return;
 
   const int ix = nxhi_out - nxlo_out + 1;
@@ -433,7 +434,6 @@ void PPPMDispOMP::make_rho_c()
     // (dx,dy,dz) = distance to "lower left" grid pt
 
     // loop over all local atoms for all threads
-    const int nlocal = atom->nlocal;
     for (i = 0; i < nlocal; i++) {
 
       const int nx = p2g[i].a;
@@ -491,6 +491,7 @@ void PPPMDispOMP::make_rho_g()
 
   // no local atoms => nothing else to do
 
+  const int nlocal = atom->nlocal;
   if (nlocal == 0) return;
 
   const int ix = nxhi_out_6 - nxlo_out_6 + 1;
@@ -520,7 +521,6 @@ void PPPMDispOMP::make_rho_g()
     // (dx,dy,dz) = distance to "lower left" grid pt
 
     // loop over all local atoms for all threads
-    const int nlocal = atom->nlocal;
     for (i = 0; i < nlocal; i++) {
 
       const int nx = p2g[i].a;
@@ -593,6 +593,7 @@ void PPPMDispOMP::make_rho_a()
 
   // no local atoms => nothing else to do
 
+  const int nlocal = atom->nlocal;
   if (nlocal == 0) return;
 
   const int ix = nxhi_out_6 - nxlo_out_6 + 1;
@@ -622,7 +623,6 @@ void PPPMDispOMP::make_rho_a()
     // (dx,dy,dz) = distance to "lower left" grid pt
 
     // loop over all local atoms for all threads
-    const int nlocal = atom->nlocal;
     for (i = 0; i < nlocal; i++) {
 
       const int nx = p2g[i].a;

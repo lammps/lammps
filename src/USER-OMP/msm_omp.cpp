@@ -331,4 +331,9 @@ void MSMOMP::direct_eval(const int nn)
       virial[5] += v5;
     }
   }
+
+  // compute per-atom virial (if requested)
+
+  if (VFLAG_ATOM)
+    MSM::direct_peratom(n);
 }

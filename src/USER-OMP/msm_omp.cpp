@@ -157,14 +157,14 @@ void MSMOMP::direct_eval(const int nn)
 #pragma omp parallel default(none) reduction(+:v0,v1,v2,v3,v4,v5,emsm)
 #endif
   {
-    double qtmp,esum,v0sum,v1sum,v2sum,v3sum,v4sum,v5sum;
+    double esum,v0sum,v1sum,v2sum,v3sum,v4sum,v5sum;
     int i,ifrom,ito,tid,icx,icy,icz,ix,iy,iz,k;
 
     loop_setup_thr(ifrom, ito, tid, inum, comm->nthreads);
 
     for (i = ifrom; i < ito; ++i) {
 
-      // infer outer loop indices icx, icy, icz from master loop index
+      // infer outer loop indices icx, icy, icz from master loop index i
 
       icz = i/(numy*numx);
       icy = (i - icz*numy*numx) / numx;
@@ -173,41 +173,128 @@ void MSMOMP::direct_eval(const int nn)
       icy += nylo_inn;
       icx += nxlo_inn;
       
-      const int kmin = zper ? nzlo_direct : MAX(nzlo_direct,alphan - icz);
       const int kmax = zper ? nzhi_direct : MIN(nzhi_direct,betazn - icz);
       const int jmin = yper ? nylo_direct : MAX(nylo_direct,alphan - icy);
       const int jmax = yper ? nyhi_direct : MIN(nyhi_direct,betayn - icy);
       const int imin = xper ? nxlo_direct : MAX(nxlo_direct,alphan - icx);
       const int imax = xper ? nxhi_direct : MIN(nxhi_direct,betaxn - icx);
 
+      const double qtmp = qgridn[icz][icy][icx]; // charge on center grid point
+
       esum = 0.0;
       if (VFLAG_GLOBAL || VFLAG_ATOM)
         v0sum = v1sum = v2sum = v3sum = v4sum = v5sum = 0.0;
 
-      for (iz = kmin; iz <= kmax; iz++) {
+      // use hemisphere to avoid double computation of pair-wise
+      //   interactions in direct sum (no computations in -z direction)
+
+      for (iz = 1; iz <= kmax; iz++) {
         const int kk = icz+iz;
         const int zk = (iz + nzhi_direct)*ny;
         for (iy = jmin; iy <= jmax; iy++) {
           const int jj = icy+iy;
           const int zyk = (zk + iy + nyhi_direct)*nx;
-          const double * _noalias const qgridnkj = & qgridn[kk][jj][icx];
+          const double * _noalias const qgridnkj = &qgridn[kk][jj][icx];
+          double * _noalias const egridnkj = &egridn[kk][jj][icx];
           for (ix = imin; ix <= imax; ix++) {
-            qtmp = qgridnkj[ix];
+            const double qtmp2 = qgridnkj[ix];
             k = zyk + ix + nxhi_direct;
-            esum += g_directn[k] * qtmp;
+            const double gtmp = g_directn[k];
+            esum += gtmp * qtmp2;
+
+#if defined(_OPENMP)
+#pragma omp atomic
+#endif
+            egridnkj[ix] += gtmp * qtmp;
 
             if (VFLAG_GLOBAL || VFLAG_ATOM) {
-              v0sum += v0_directn[k] * qtmp;
-              v1sum += v1_directn[k] * qtmp;
-              v2sum += v2_directn[k] * qtmp;
-              v3sum += v3_directn[k] * qtmp;
-              v4sum += v4_directn[k] * qtmp;
-              v5sum += v5_directn[k] * qtmp;
+              v0sum += v0_directn[k] * qtmp2;
+              v1sum += v1_directn[k] * qtmp2;
+              v2sum += v2_directn[k] * qtmp2;
+              v3sum += v3_directn[k] * qtmp2;
+              v4sum += v4_directn[k] * qtmp2;
+              v5sum += v5_directn[k] * qtmp2;
             }
           }
         }
       }
-      egridn[icz][icy][icx] = esum;
+
+      // iz=0
+
+      const int zk = nzhi_direct*ny;
+      for (iy = 1; iy <= jmax; iy++) {
+        const int jj = icy+iy;
+        const int zyk = (zk + iy + nyhi_direct)*nx;
+        const double * _noalias const qgridnkj = &qgridn[icz][jj][icx];
+        double * _noalias const egridnkj = &egridn[icz][jj][icx];
+        for (ix = imin; ix <= imax; ix++) {
+          const double qtmp2 = qgridnkj[ix];
+          k = zyk + ix + nxhi_direct;
+          const double gtmp = g_directn[k];
+          esum += gtmp * qtmp2;
+
+#if defined(_OPENMP)
+#pragma omp atomic
+#endif
+          egridnkj[ix] += gtmp * qtmp;
+
+          if (VFLAG_GLOBAL || VFLAG_ATOM) {
+            v0sum += v0_directn[k] * qtmp2;
+            v1sum += v1_directn[k] * qtmp2;
+            v2sum += v2_directn[k] * qtmp2;
+            v3sum += v3_directn[k] * qtmp2;
+            v4sum += v4_directn[k] * qtmp2;
+            v5sum += v5_directn[k] * qtmp2;
+          }
+        }
+      }
+
+      // iz=0, iy=0
+
+      const int zyk = (zk + nyhi_direct)*nx;
+      const double * _noalias const qgridnkj = &qgridn[icz][icy][icx];
+      double * _noalias const egridnkj = &egridn[icz][icy][icx];
+      for (ix = 1; ix <= imax; ix++) {
+        const double qtmp2 = qgridnkj[ix];
+        k = zyk + ix + nxhi_direct;
+        const double gtmp = g_directn[k];
+        esum += gtmp * qtmp2;
+
+#if defined(_OPENMP)
+#pragma omp atomic
+#endif
+        egridnkj[ix] += gtmp * qtmp;
+
+        if (VFLAG_GLOBAL || VFLAG_ATOM) {
+          v0sum += v0_directn[k] * qtmp2;
+          v1sum += v1_directn[k] * qtmp2;
+          v2sum += v2_directn[k] * qtmp2;
+          v3sum += v3_directn[k] * qtmp2;
+          v4sum += v4_directn[k] * qtmp2;
+          v5sum += v5_directn[k] * qtmp2;
+        }
+      }
+
+      // iz=0, iy=0, ix=0
+
+      const double qtmp2 = qgridnkj[0];
+      k = zyk + nxhi_direct;
+      const double gtmp = g_directn[k];
+      esum += 0.5 * gtmp * qtmp2;
+
+#if defined(_OPENMP)
+#pragma omp atomic
+#endif
+      egridnkj[0] += 0.5 * gtmp * qtmp;
+
+      // virial is zero for iz=0, iy=0, ix=0
+
+      // accumulate per-atom energy/virial
+
+#if defined(_OPENMP)
+#pragma omp atomic
+#endif
+      egridnkj[0] += esum;
 
       if (VFLAG_ATOM) {
         v0grid[n][icz][icy][icx] = v0sum;
@@ -219,15 +306,15 @@ void MSMOMP::direct_eval(const int nn)
       }
 
       if (EFLAG_GLOBAL || VFLAG_GLOBAL) {
-        qtmp = qgridn[icz][icy][icx];
-        if (EFLAG_GLOBAL) emsm += esum * qtmp;
+        const double qtmp3 = qgridn[icz][icy][icx];
+        if (EFLAG_GLOBAL) emsm += 2.0 * esum * qtmp3;
         if (VFLAG_GLOBAL) {
-          v0 += v0sum * qtmp;
-          v1 += v1sum * qtmp;
-          v2 += v2sum * qtmp;
-          v3 += v3sum * qtmp;
-          v4 += v4sum * qtmp;
-          v5 += v5sum * qtmp;
+          v0 += 2.0 * v0sum * qtmp3;
+          v1 += 2.0 * v1sum * qtmp3;
+          v2 += 2.0 * v2sum * qtmp3;
+          v3 += 2.0 * v3sum * qtmp3;
+          v4 += 2.0 * v4sum * qtmp3;
+          v5 += 2.0 * v5sum * qtmp3;
         }
       }
     }

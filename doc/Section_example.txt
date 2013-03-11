@@ -108,5 +108,6 @@ the in.elastic file for more info.
 
 There is also a USER directory which contains subdirectories of
 user-provided examples for user packages.  See the README files in
-those directories for more info.  See the doc/Section_start.html file
-for more info about user packages.
+those directories for more info.  See the
+"Section_start.html"_Section_start.html file for more info about user
+packages.

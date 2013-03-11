@@ -371,9 +371,9 @@ Run lammps/lib/gpu/nvc_get_devices to list supported devices and properties :ul
 As with other packages that include a separately compiled library, you
 need to first build the GPU library, before building LAMMPS itself.
 General instructions for doing this are in "this
-section"_doc/Section_start.html#start_3 of the manual.  For this
-package, do the following, using a Makefile in lib/gpu appropriate for
-your system:
+section"_Section_start.html#start_3 of the manual.  For this package,
+do the following, using a Makefile in lib/gpu appropriate for your
+system:
 
 cd lammps/lib/gpu
 make -f Makefile.linux

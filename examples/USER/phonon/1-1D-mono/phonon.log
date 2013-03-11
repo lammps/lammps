@@ -1,0 +1,110 @@
+############################################################
+# group name of the atoms under study      : all
+# total number of atoms in the group       : 16
+# dimension of the system                  : 1 D
+# number of atoms per unit cell            : 1
+# dimension of the FFT mesh                : 16 x 1 x 1
+# number of wait steps before measurement  : 500000
+# frequency of GFC measurement             : 10
+# output result after this many measurement: 50000
+# number of processors used by this run    : 1
+############################################################
+# mapping information between lattice index and atom id
+# nx ny nz nucell
+16 1 1 1
+# l1 l2 l3 k atom_id
+0 0 0 0 1
+1 0 0 0 2
+2 0 0 0 3
+3 0 0 0 4
+4 0 0 0 5
+5 0 0 0 6
+6 0 0 0 7
+7 0 0 0 8
+8 0 0 0 9
+9 0 0 0 10
+10 0 0 0 11
+11 0 0 0 12
+12 0 0 0 13
+13 0 0 0 14
+14 0 0 0 15
+15 0 0 0 16
+############################################################
+############################################################
+# Current time step                      : 1000000
+# Total number of measurements           : 50000
+# Average temperature of the measurement : 0.00497657
+# Boltzmann constant under current units : 1
+# basis vector A1 = [1 0 0]
+# basis vector A2 = [0 2 0]
+# basis vector A3 = [0 0 0.0002]
+############################################################
+# qx	 qy 	 qz 		 Phi(q)
+0 0 0 0 0
+0.0625 0 0 0.167273 0
+0.125 0 0 0.607758 0
+0.1875 0 0 1.27824 0
+0.25 0 0 2.00811 0
+0.3125 0 0 2.67802 0
+0.375 0 0 3.48112 0
+0.4375 0 0 3.7829 0
+0.5 0 0 4.014 0
+0.5625 0 0 3.7829 0
+0.625 0 0 3.48112 0
+0.6875 0 0 2.67802 0
+0.75 0 0 2.00811 0
+0.8125 0 0 1.27824 0
+0.875 0 0 0.607758 0
+0.9375 0 0 0.167273 0
+############################################################
+# Current time step                      : 1500000
+# Total number of measurements           : 100000
+# Average temperature of the measurement : 0.00498233
+# Boltzmann constant under current units : 1
+# basis vector A1 = [1 0 0]
+# basis vector A2 = [0 2 0]
+# basis vector A3 = [0 0 0.0002]
+############################################################
+# qx	 qy 	 qz 		 Phi(q)
+0 0 0 0 0
+0.0625 0 0 0.171588 0
+0.125 0 0 0.587006 0
+0.1875 0 0 1.24373 0
+0.25 0 0 1.9907 0
+0.3125 0 0 2.71759 0
+0.375 0 0 3.39634 0
+0.4375 0 0 3.89609 0
+0.5 0 0 3.83695 0
+0.5625 0 0 3.89609 0
+0.625 0 0 3.39634 0
+0.6875 0 0 2.71759 0
+0.75 0 0 1.9907 0
+0.8125 0 0 1.24373 0
+0.875 0 0 0.587006 0
+0.9375 0 0 0.171588 0
+############################################################
+# Current time step                      : 2000000
+# Total number of measurements           : 150000
+# Average temperature of the measurement : 0.00499855
+# Boltzmann constant under current units : 1
+# basis vector A1 = [1 0 0]
+# basis vector A2 = [0 2 0]
+# basis vector A3 = [0 0 0.0002]
+############################################################
+# qx	 qy 	 qz 		 Phi(q)
+0 0 0 0 0
+0.0625 0 0 0.165047 0
+0.125 0 0 0.595774 0
+0.1875 0 0 1.24996 0
+0.25 0 0 1.95831 0
+0.3125 0 0 2.73508 0
+0.375 0 0 3.42181 0
+0.4375 0 0 3.88925 0
+0.5 0 0 3.90276 0
+0.5625 0 0 3.88925 0
+0.625 0 0 3.42181 0
+0.6875 0 0 2.73508 0
+0.75 0 0 1.95831 0
+0.8125 0 0 1.24996 0
+0.875 0 0 0.595774 0
+0.9375 0 0 0.165047 0

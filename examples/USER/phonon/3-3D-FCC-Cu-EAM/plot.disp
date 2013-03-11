@@ -1,0 +1,18 @@
+set term post enha colo 20
+set out 'pdisp.eps'
+
+set xlabel 'q'
+set ylabel '{/Symbol n} (THz)'
+set xtics ("{/Symbol G}" 0., "X" 0.7071, "W" 1.06066, "X'" 1.41421, "{/Symbol G}" 2.63896, "L" 3.50498)
+set xr [0:3.50498]
+set yr [0:8.5]
+set key at 3.0,8.2
+set grid xtics lt 9
+
+plot './disp-ld.dat' u 2:6 w l lt -1 t 'LD',\
+     ''              u 2:7 w l lt -1 t '',  \
+     ''              u 2:8 w l lt -1 t '',\
+     './disp.dat'    u 4:5 w p pt 7 lt 1 t 'MD',\
+     ''              u 4:6 w p pt 7 lt 1 t '',\
+     ''              u 4:7 w p pt 7 lt 1 t '', \
+     'disp-expr.dat' u 5:2 w p pt 5 lt 3 t 'expr'

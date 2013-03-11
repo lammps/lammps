@@ -1,0 +1,25 @@
+m = 1.
+M = 2.
+k = 1.
+
+omp(x) = sqrt( k*(m+M)/(m*M)*(1. + (1.-4*m*M/(m+M)**2*(sin(pi*x))**2)**0.5))
+omm(x) = sqrt( k*(m+M)/(m*M)*(1. - (1.-4*m*M/(m+M)**2*(sin(pi*x))**2)**0.5))
+
+set xlabel 'q'
+set ylabel '{/Symbol w}'
+set xr [-0.5:0.5]
+set yr [0:2.0]
+
+set format y '%.1f'
+set term post enha color 20
+set out 'pdisp.eps'
+set key top left
+set xtics ("-{/Symbol p}/2a" -0.5, "{/Symbol G}" 0.0, "{/Symbol p}/2a" 0.5)
+set samples 101
+
+set grid xtics lt 9
+
+plot omp(x)     w l lt 1 lc 3 t 'Theory',\
+     omm(x)     w l lt 1 lc 3 t '',\
+     'disp.dat' u 1:5 w p pt 7 ps 1.0 lt 1 t 'MD',\
+     ''         u 1:6 w p pt 7 ps 1.0 lt 1 t ''

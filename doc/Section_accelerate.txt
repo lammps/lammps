@@ -514,9 +514,9 @@ that its sample projects can be compiled without problems.
 As with other packages that include a separately compiled library, you
 need to first build the USER-CUDA library, before building LAMMPS
 itself.  General instructions for doing this are in "this
-section"_doc/Section_start.html#start_3 of the manual.  For this
-package, do the following, using settings in the lib/cuda Makefiles
-appropriate for your system:
+section"_Section_start.html#start_3 of the manual.  For this package,
+do the following, using settings in the lib/cuda Makefiles appropriate
+for your system:
 
 Go to the lammps/lib/cuda directory :ulb,l
 

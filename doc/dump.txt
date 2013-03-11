@@ -159,7 +159,7 @@ characters that encode the style of boundary for each of the 6
 simulation box boundaries (xlo,xhi and ylo,yhi and zlo,zhi).  Each of
 the 6 characters is either p = periodic, f = fixed, s = shrink wrap,
 or m = shrink wrapped with a minimum value.  See the
-"boundary"_doc/boundary.html command for details.
+"boundary"_boundary.html command for details.
 
 For triclinic simulation boxes (non-orthogonal), an orthogonal
 bounding box which encloses the triclinic simulation box is output,

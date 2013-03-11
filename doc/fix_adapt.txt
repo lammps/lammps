@@ -151,7 +151,7 @@ asterisks imply type pairs where J < I, they are ignored.
 IMPROTANT NOTE: If "pair_style hybrid or
 hybrid/overlay"_pair_hybrid.html is being used, then the {pstyle} will
 be a sub-style name.  You must specify I,J arguments that correspond
-to type pair values defined (via the "pair_coeff"_doc/pair_coeff.html
+to type pair values defined (via the "pair_coeff"_pair_coeff.html
 command) for that sub-style.
 
 The {v_name} argument for keyword {pair} is the name of an

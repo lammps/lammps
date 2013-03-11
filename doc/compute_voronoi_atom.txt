@@ -56,7 +56,7 @@ This should still work for a 2d LAMMPS simulation, to effectively
 compute Vornoi "areas", so long as the z-dimension of the box is
 roughly the same (or smaller) compared to the separation of the atoms.
 Typical values for the z box dimensions in a 2d LAMMPS model are -0.5
-to 0.5, which satisfies the criterion for most "units"_doc/units.html
+to 0.5, which satisfies the criterion for most "units"_units.html
 systems.  Note that you define the z extent of the simulation box for
 2d simulations when using the "create_box"_create_box.html or
 "read_data"_read_data.html commands.

@@ -337,6 +337,9 @@ void PPPMDispTIP4POMP::particle_map_c(double dxinv, double dyinv,
                                       int nxhi_o, int nyhi_o,
                                       int nzhi_o)
 {
+  // no local atoms => nothing to do
+  if (atom->nlocal == 0) return;
+
   const int * _noalias const type = atom->type;
   const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
   int3_t * _noalias const p2g = (int3_t *) part2grid[0];
@@ -411,6 +414,9 @@ void PPPMDispTIP4POMP::particle_map(double dxinv, double dyinv,
                                int nxhi_o, int nyhi_o,
                                int nzhi_o)
 {
+  // no local atoms => nothing to do
+  if (atom->nlocal == 0) return;
+
   const int * _noalias const type = atom->type;
   const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
   int3_t * _noalias const p2g = (int3_t *) part2grid[0];
@@ -478,6 +484,11 @@ void PPPMDispTIP4POMP::make_rho_c()
   FFT_SCALAR * _noalias const d = &(density_brick[nzlo_out][nylo_out][nxlo_out]);
   memset(d,0,ngrid*sizeof(FFT_SCALAR));
 
+  // no local atoms => nothing else to do
+
+  const int nlocal = atom->nlocal;
+  if (nlocal == 0) return;
+
   const int ix = nxhi_out - nxlo_out + 1;
   const int iy = nyhi_out - nylo_out + 1;
 
@@ -508,7 +519,6 @@ void PPPMDispTIP4POMP::make_rho_c()
     // (dx,dy,dz) = distance to "lower left" grid pt
 
     // loop over all local atoms for all threads
-    const int nlocal = atom->nlocal;
     for (i = 0; i < nlocal; i++) {
 
       const int nx = p2g[i].a;
@@ -518,13 +528,13 @@ void PPPMDispTIP4POMP::make_rho_c()
       // pre-screen whether this atom will ever come within 
       // reach of the data segement this thread is updating.
       if ( ((nz+nlower-nzlo_out)*ix*iy >= jto)
-	   || ((nz+nupper-nzlo_out+1)*ix*iy < jfrom) ) continue;
+           || ((nz+nupper-nzlo_out+1)*ix*iy < jfrom) ) continue;
 
-    if (type[i] == typeO) {
-      find_M_thr(i,iH1,iH2,xM);
-    } else {
-      xM = x[i];
-    }
+      if (type[i] == typeO) {
+        find_M_thr(i,iH1,iH2,xM);
+      } else {
+        xM = x[i];
+      }
       const FFT_SCALAR dx = nx+shiftone - (xM.x-boxlox)*delxinv;
       const FFT_SCALAR dy = ny+shiftone - (xM.y-boxloy)*delyinv;
       const FFT_SCALAR dz = nz+shiftone - (xM.z-boxloz)*delzinv;
@@ -534,23 +544,23 @@ void PPPMDispTIP4POMP::make_rho_c()
       const FFT_SCALAR z0 = delvolinv * q[i];
 
       for (int n = nlower; n <= nupper; ++n) {
-	const int jn = (nz+n-nzlo_out)*ix*iy;
-	const FFT_SCALAR y0 = z0*r1d[2][n];
+        const int jn = (nz+n-nzlo_out)*ix*iy;
+        const FFT_SCALAR y0 = z0*r1d[2][n];
 
-	for (int m = nlower; m <= nupper; ++m) {
-	  const int jm = jn+(ny+m-nylo_out)*ix;
-	  const FFT_SCALAR x0 = y0*r1d[1][m];
+        for (int m = nlower; m <= nupper; ++m) {
+          const int jm = jn+(ny+m-nylo_out)*ix;
+          const FFT_SCALAR x0 = y0*r1d[1][m];
 
-	  for (int l = nlower; l <= nupper; ++l) {
-	    const int jl = jm+nx+l-nxlo_out;
-	    // make sure each thread only updates
-	    // "his" elements of the density grid
-	    if (jl >= jto) break;
-	    if (jl < jfrom) continue;
+          for (int l = nlower; l <= nupper; ++l) {
+            const int jl = jm+nx+l-nxlo_out;
+            // make sure each thread only updates
+            // "his" elements of the density grid
+            if (jl >= jto) break;
+            if (jl < jfrom) continue;
 
-	    d[jl] += x0*r1d[0][l];
-	  }
-	}
+            d[jl] += x0*r1d[0][l];
+          }
+        }
       }
     }
   }
@@ -568,6 +578,11 @@ void PPPMDispTIP4POMP::make_rho_g()
 
   FFT_SCALAR * _noalias const d = &(density_brick_g[nzlo_out_6][nylo_out_6][nxlo_out_6]);
   memset(d,0,ngrid_6*sizeof(FFT_SCALAR));
+
+  // no local atoms => nothing else to do
+
+  const int nlocal = atom->nlocal;
+  if (nlocal == 0) return;
 
   const int ix = nxhi_out_6 - nxlo_out_6 + 1;
   const int iy = nyhi_out_6 - nylo_out_6 + 1;
@@ -596,7 +611,6 @@ void PPPMDispTIP4POMP::make_rho_g()
     // (dx,dy,dz) = distance to "lower left" grid pt
 
     // loop over all local atoms for all threads
-    const int nlocal = atom->nlocal;
     for (i = 0; i < nlocal; i++) {
 
       const int nx = p2g[i].a;
@@ -606,7 +620,7 @@ void PPPMDispTIP4POMP::make_rho_g()
       // pre-screen whether this atom will ever come within 
       // reach of the data segement this thread is updating.
       if ( ((nz+nlower_6-nzlo_out_6)*ix*iy >= jto)
-	   || ((nz+nupper_6-nzlo_out_6+1)*ix*iy < jfrom) ) continue;
+           || ((nz+nupper_6-nzlo_out_6+1)*ix*iy < jfrom) ) continue;
 
       const FFT_SCALAR dx = nx+shiftone_6 - (x[i].x-boxlox)*delxinv_6;
       const FFT_SCALAR dy = ny+shiftone_6 - (x[i].y-boxloy)*delyinv_6;
@@ -619,23 +633,23 @@ void PPPMDispTIP4POMP::make_rho_g()
       const FFT_SCALAR z0 = delvolinv_6 * lj;
 
       for (int n = nlower_6; n <= nupper_6; ++n) {
-	const int jn = (nz+n-nzlo_out_6)*ix*iy;
-	const FFT_SCALAR y0 = z0*r1d[2][n];
+        const int jn = (nz+n-nzlo_out_6)*ix*iy;
+        const FFT_SCALAR y0 = z0*r1d[2][n];
 
-	for (int m = nlower_6; m <= nupper_6; ++m) {
-	  const int jm = jn+(ny+m-nylo_out_6)*ix;
-	  const FFT_SCALAR x0 = y0*r1d[1][m];
+        for (int m = nlower_6; m <= nupper_6; ++m) {
+          const int jm = jn+(ny+m-nylo_out_6)*ix;
+          const FFT_SCALAR x0 = y0*r1d[1][m];
 
-	  for (int l = nlower_6; l <= nupper_6; ++l) {
-	    const int jl = jm+nx+l-nxlo_out_6;
-	    // make sure each thread only updates
-	    // "his" elements of the density grid
-	    if (jl >= jto) break;
-	    if (jl < jfrom) continue;
+          for (int l = nlower_6; l <= nupper_6; ++l) {
+            const int jl = jm+nx+l-nxlo_out_6;
+            // make sure each thread only updates
+            // "his" elements of the density grid
+            if (jl >= jto) break;
+            if (jl < jfrom) continue;
 
-	    d[jl] += x0*r1d[0][l];
-	  }
-	}
+            d[jl] += x0*r1d[0][l];
+          }
+        }
       }
     }
   }
@@ -667,6 +681,11 @@ void PPPMDispTIP4POMP::make_rho_a()
   memset(d5,0,ngrid_6*sizeof(FFT_SCALAR));
   memset(d6,0,ngrid_6*sizeof(FFT_SCALAR));
 
+  // no local atoms => nothing else to do
+
+  const int nlocal = atom->nlocal;
+  if (nlocal == 0) return;
+
   const int ix = nxhi_out_6 - nxlo_out_6 + 1;
   const int iy = nyhi_out_6 - nylo_out_6 + 1;
 
@@ -694,7 +713,6 @@ void PPPMDispTIP4POMP::make_rho_a()
     // (dx,dy,dz) = distance to "lower left" grid pt
 
     // loop over all local atoms for all threads
-    const int nlocal = atom->nlocal;
     for (i = 0; i < nlocal; i++) {
 
       const int nx = p2g[i].a;
@@ -704,7 +722,7 @@ void PPPMDispTIP4POMP::make_rho_a()
       // pre-screen whether this atom will ever come within 
       // reach of the data segement this thread is updating.
       if ( ((nz+nlower_6-nzlo_out_6)*ix*iy >= jto)
-	   || ((nz+nupper_6-nzlo_out_6+1)*ix*iy < jfrom) ) continue;
+           || ((nz+nupper_6-nzlo_out_6+1)*ix*iy < jfrom) ) continue;
 
       const FFT_SCALAR dx = nx+shiftone_6 - (x[i].x-boxlox)*delxinv_6;
       const FFT_SCALAR dy = ny+shiftone_6 - (x[i].y-boxloy)*delyinv_6;
@@ -724,31 +742,31 @@ void PPPMDispTIP4POMP::make_rho_a()
       const FFT_SCALAR z0 = delvolinv_6;
 
       for (int n = nlower_6; n <= nupper_6; ++n) {
-	const int jn = (nz+n-nzlo_out_6)*ix*iy;
-	const FFT_SCALAR y0 = z0*r1d[2][n];
+        const int jn = (nz+n-nzlo_out_6)*ix*iy;
+        const FFT_SCALAR y0 = z0*r1d[2][n];
 
-	for (int m = nlower_6; m <= nupper_6; ++m) {
-	  const int jm = jn+(ny+m-nylo_out_6)*ix;
-	  const FFT_SCALAR x0 = y0*r1d[1][m];
+        for (int m = nlower_6; m <= nupper_6; ++m) {
+          const int jm = jn+(ny+m-nylo_out_6)*ix;
+          const FFT_SCALAR x0 = y0*r1d[1][m];
 
-	  for (int l = nlower_6; l <= nupper_6; ++l) {
-	    const int jl = jm+nx+l-nxlo_out_6;
-	    // make sure each thread only updates
-	    // "his" elements of the density grid
-	    if (jl >= jto) break;
-	    if (jl < jfrom) continue;
+          for (int l = nlower_6; l <= nupper_6; ++l) {
+            const int jl = jm+nx+l-nxlo_out_6;
+            // make sure each thread only updates
+            // "his" elements of the density grid
+            if (jl >= jto) break;
+            if (jl < jfrom) continue;
 
             const double w = x0*r1d[0][l];
 
-	    d0[jl] += w*lj0;
-	    d1[jl] += w*lj1;
-	    d2[jl] += w*lj2;
-	    d3[jl] += w*lj3;
-	    d4[jl] += w*lj4;
-	    d5[jl] += w*lj5;
-	    d6[jl] += w*lj6;
-	  }
-	}
+            d0[jl] += w*lj0;
+            d1[jl] += w*lj1;
+            d2[jl] += w*lj2;
+            d3[jl] += w*lj3;
+            d4[jl] += w*lj4;
+            d5[jl] += w*lj5;
+            d6[jl] += w*lj6;
+          }
+        }
       }
     }
   }
@@ -760,6 +778,13 @@ void PPPMDispTIP4POMP::make_rho_a()
 
 void PPPMDispTIP4POMP::fieldforce_c_ik()
 {
+  const int nthreads = comm->nthreads;
+  const int nlocal = atom->nlocal;
+
+  // no local atoms => nothing to do
+
+  if (nlocal == 0) return;
+
   // loop over my charges, interpolate electric field from nearby grid points
   // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
   // (dx,dy,dz) = distance to "lower left" grid pt
@@ -775,9 +800,6 @@ void PPPMDispTIP4POMP::fieldforce_c_ik()
   const double boxlox = boxlo[0];
   const double boxloy = boxlo[1];
   const double boxloz = boxlo[2];
-
-  const int nthreads = comm->nthreads;
-  const int nlocal = atom->nlocal;
 
 #if defined(_OPENMP)
 #pragma omp parallel default(none)
@@ -860,6 +882,13 @@ void PPPMDispTIP4POMP::fieldforce_c_ik()
 
 void PPPMDispTIP4POMP::fieldforce_c_ad()
 {
+  const int nthreads = comm->nthreads;
+  const int nlocal = atom->nlocal;
+
+  // no local atoms => nothing to do
+
+  if (nlocal == 0) return;
+
   const double *prd = (triclinic == 0) ? domain->prd : domain->prd_lamda;
   const double hx_inv = nx_pppm/prd[0];
   const double hy_inv = ny_pppm/prd[1];
@@ -880,9 +909,6 @@ void PPPMDispTIP4POMP::fieldforce_c_ad()
   const double boxlox = boxlo[0];
   const double boxloy = boxlo[1];
   const double boxloz = boxlo[2];
-
-  const int nthreads = comm->nthreads;
-  const int nlocal = atom->nlocal;
 
 #if defined(_OPENMP)
 #pragma omp parallel default(none)
@@ -985,6 +1011,13 @@ void PPPMDispTIP4POMP::fieldforce_c_ad()
 
 void PPPMDispTIP4POMP::fieldforce_g_ik()
 {
+  const int nthreads = comm->nthreads;
+  const int nlocal = atom->nlocal;
+
+  // no local atoms => nothing to do
+
+  if (nlocal == 0) return;
+
   // loop over my charges, interpolate electric field from nearby grid points
   // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
   // (dx,dy,dz) = distance to "lower left" grid pt
@@ -992,8 +1025,6 @@ void PPPMDispTIP4POMP::fieldforce_g_ik()
   // ek = 3 components of E-field on particle
 
   const double * const * const x = atom->x;
-  const int nthreads = comm->nthreads;
-  const int nlocal = atom->nlocal;
   const double qqrd2e = force->qqrd2e;
 
 #if defined(_OPENMP)
@@ -1070,6 +1101,13 @@ void PPPMDispTIP4POMP::fieldforce_g_ik()
 
 void PPPMDispTIP4POMP::fieldforce_g_ad()
 {
+  const int nthreads = comm->nthreads;
+  const int nlocal = atom->nlocal;
+
+  // no local atoms => nothing to do
+
+  if (nlocal == 0) return;
+
   // loop over my charges, interpolate electric field from nearby grid points
   // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
   // (dx,dy,dz) = distance to "lower left" grid pt
@@ -1077,9 +1115,6 @@ void PPPMDispTIP4POMP::fieldforce_g_ad()
   // ek = 3 components of E-field on particle
 
   const double * const * const x = atom->x;
-  const int nthreads = comm->nthreads;
-  const int nlocal = atom->nlocal;
-
   double *prd;
 
   if (triclinic == 0) prd = domain->prd;
@@ -1188,14 +1223,19 @@ void PPPMDispTIP4POMP::fieldforce_g_ad()
 
 void PPPMDispTIP4POMP::fieldforce_g_peratom()
 {
+  const int nthreads = comm->nthreads;
+  const int nlocal = atom->nlocal;
+
+  // no local atoms => nothing to do
+
+  if (nlocal == 0) return;
+
   // loop over my charges, interpolate from nearby grid points
   // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
   // (dx,dy,dz) = distance to "lower left" grid pt
   // (mx,my,mz) = global coords of moving stencil pt
 
   const double * const * const x = atom->x;
-  const int nthreads = comm->nthreads;
-  const int nlocal = atom->nlocal;
 
 #if defined(_OPENMP)
 #pragma omp parallel default(none)
@@ -1282,6 +1322,13 @@ void PPPMDispTIP4POMP::fieldforce_g_peratom()
 
 void PPPMDispTIP4POMP::fieldforce_a_ik()
 {
+  const int nthreads = comm->nthreads;
+  const int nlocal = atom->nlocal;
+
+  // no local atoms => nothing to do
+
+  if (nlocal == 0) return;
+
   // loop over my charges, interpolate electric field from nearby grid points
   // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
   // (dx,dy,dz) = distance to "lower left" grid pt
@@ -1289,8 +1336,6 @@ void PPPMDispTIP4POMP::fieldforce_a_ik()
   // ek = 3 components of E-field on particle
 
   const double * const * const x = atom->x;
-  const int nthreads = comm->nthreads;
-  const int nlocal = atom->nlocal;
   const double qqrd2e = force->qqrd2e;
 
 #if defined(_OPENMP)
@@ -1399,6 +1444,13 @@ void PPPMDispTIP4POMP::fieldforce_a_ik()
 
 void PPPMDispTIP4POMP::fieldforce_a_ad()
 {
+  const int nthreads = comm->nthreads;
+  const int nlocal = atom->nlocal;
+
+  // no local atoms => nothing to do
+
+  if (nlocal == 0) return;
+
   // loop over my charges, interpolate electric field from nearby grid points
   // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
   // (dx,dy,dz) = distance to "lower left" grid pt
@@ -1406,9 +1458,6 @@ void PPPMDispTIP4POMP::fieldforce_a_ad()
   // ek = 3 components of E-field on particle
 
   const double * const * const x = atom->x;
-  const int nthreads = comm->nthreads;
-  const int nlocal = atom->nlocal;
-
   double *prd;
 
   if (triclinic == 0) prd = domain->prd;
@@ -1584,14 +1633,19 @@ void PPPMDispTIP4POMP::fieldforce_a_ad()
 
 void PPPMDispTIP4POMP::fieldforce_a_peratom()
 {
+  const int nthreads = comm->nthreads;
+  const int nlocal = atom->nlocal;
+
+  // no local atoms => nothing to do
+
+  if (nlocal == 0) return;
+
   // loop over my charges, interpolate from nearby grid points
   // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
   // (dx,dy,dz) = distance to "lower left" grid pt
   // (mx,my,mz) = global coords of moving stencil pt
 
   const double * const * const x = atom->x;
-  const int nthreads = comm->nthreads;
-  const int nlocal = atom->nlocal;
 
 #if defined(_OPENMP)
 #pragma omp parallel default(none)

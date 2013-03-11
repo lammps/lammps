@@ -58,6 +58,7 @@ own sub-directories with their own Makefiles.
 "micelle2d"_#micelle
 "moltemplate"_#moltemplate
 "msi2lmp"_#msi
+"phonon"_#phonon
 "pymol_asphere"_#pymol
 "python"_#pythontools
 "reax"_#reax
@@ -333,6 +334,20 @@ This tool was written by John Carpenter (Cray), Michael Peachey
 This tool may be out-of-date with respect to the current LAMMPS and
 Insight versions.  Since we don't use it at Sandia, you'll need to
 experiment with it yourself.
+
+:line
+
+phonon tool :h4,link(phonon)
+
+The phonon sub-directory contains a post-processing tool useful for
+analyzing the output of the "fix phonon"_fix_phonon.html command in
+the USER-PHONON package.
+
+See the README file for instruction on building the tool and what
+library it needs.  And see the examples/USER/phonon directory
+for example problems that can be post-processed with this tool.
+
+This tool was written by Ling-Ti Kong.
 
 :line
 

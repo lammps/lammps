@@ -30,6 +30,7 @@ lmp2vmd                tools for visualizing and analyzing LAMMPS data with VMD
 matlab		       MatLab scripts for post-processing LAMMPS output
 micelle2d	       create a data file of small lipid chains in solvent
 msi2lmp		       use Accelrys Insight code to setup LAMMPS input
+phonon                 post-process output of fix phonon command
 pymol_asphere	       convert LAMMPS output of ellipsoids to PyMol format
 python		       Python scripts for post-processing LAMMPS output
 reax	       	       Tools for analyzing output of ReaxFF simulations

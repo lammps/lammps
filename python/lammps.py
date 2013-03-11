@@ -105,7 +105,7 @@ class lammps:
     if type == 0:
       if style > 0: return None
       self.lib.lammps_extract_fix.restype = POINTER(c_double)
-      ptr = self.lib.lammps_extract_bix(self.lmp,id,style,type,i,j)
+      ptr = self.lib.lammps_extract_fix(self.lmp,id,style,type,i,j)
       result = ptr[0]
       self.lib.lammps_free(ptr)
       return result

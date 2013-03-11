@@ -1,18 +1,19 @@
-This package contains a method to measure the dynamical matrices, and
-consequently the phonon dispersion, directly from molecular dynamics
-simulations.  It is implemented as a fix phonon command.
+This package contains a fix phonon command that calculates dynamical
+matrices, which can then be used to compute phonon dispersion
+relations, directly from molecular dynamics simulations.
 
 See the doc page for the fix phonon command for detailed usage
 instructions.
 
-The compiling of this package along with LAMMPS requires that the FFT3d
-wrappers from the kspace package of LAMMPS be included as well.
+Use of this package requires building LAMMPS with FFT suppport, as
+described in doc/Section_start.html.
 
 There are example scripts for using this package in
 examples/USER/phonon.
 
-There is an auxiliary post-processing tool for using this package in
-tools/phonon.
+There is an auxiliary post-processing tool in tools/phonon that will
+compute phonon frequencies and dispersion relations from the dynamical
+matrices output by this command.
 
 The person who created this package is Ling-Ti Kong (konglt at
 sjtu.edu.cn) at Shanghai Jiao Tong University.  Contact him directly

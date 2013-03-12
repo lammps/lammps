@@ -1,17 +1,20 @@
 This directory has an application that models grain growth in the
-presence of strain.  The grain growth is simulated by a Potts model in
-a kinetic Monte Carlo code SPPARKS.  Clusters of like spins on a
-lattice represent grains.  The Hamiltonian for the energy due of a
-collection of spins includes a strain term and is described on this
-page in the SPPARKS documentation:
+presence of strain.
 
-http://www.sandia.gov/~sjplimp/spparks/doc/app_potts_strain.html.
+The grain growth is simulated by a Potts model in a kinetic Monte
+Carlo code SPPARKS.  Clusters of like spins on a lattice represent
+grains.  The Hamiltonian for the energy due of a collection of spins
+includes a strain term and is described on this page in the SPPARKS
+documentation:
 
-The strain is computed by LAMMPS as a particle displacement where
-pairs of atoms across a grain boundary are of different types and thus
-push off from each other due to a Lennard-Jones sigma between
-particles of different types that is larger than the sigma between
-particles of the same type (interior to grains).
+http://spparks.sandia.gov/doc/app_potts_strain.html.
+
+The strain is computed by the molecular dynamics code LAMMPS as a
+particle displacement where pairs of atoms across a grain boundary are
+of different types and thus push off from each other due to a
+Lennard-Jones sigma between particles of different types that is
+larger than the sigma between particles of the same type (interior to
+grains).
 
 lmpspk.cpp	    main program
 		    it links LAMMPS and SPPARKS as libraries

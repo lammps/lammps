@@ -1,0 +1,207 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix phonon command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID phonon N Noutput Nwait map_file prefix keyword values ... 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>phonon = style name of this fix command 
+
+<LI>N = measure the Green's function every this many timesteps 
+
+<LI>Noutput = output the dynamical matrix every this many measurements 
+
+<LI>Nwait = wait this many timesteps before measuring 
+
+<LI>map_file = file containing the mapping info between atom ID and the lattice indices 
+
+<LI>prefix = prefix for output files 
+
+<LI>one or none keyword/value pairs may be appended 
+
+<LI>keyword = <I>sysdim</I> or <I>nasr</I> 
+
+<PRE>  <I>sysdim</I> value = d
+    d = dimension of the system, usually the same as the MD model dimension
+  <I>nasr</I> value = n
+    n = number of iterations to enforce the acoustic sum rule 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 1 all phonon 20 5000 200000 map.in LJ1D sysdim 1
+fix 1 all phonon 20 5000 200000 map.in EAM3D 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Calculate the dynamical matrix from molecular dynamics simulations
+based on fluctuation-dissipation theory for a group of atoms.
+</P>
+<P>Consider a crystal with <I>N</I> unit cells in three dimensions labelled <I>l
+= (l<sub>1</sub>,l<sub>2</sub>,l<sub>3</sub>)</I> where <I>l<sub>i</sub></I>
+are integers.  Each unit cell is defined by three linearly independent
+vectors <B>a</B><sub>1</sub>, <B>a</B><sub>2</sub>, <B>a</B><sub>3</sub> forming a
+parallelipiped, containing <I>K</I> basis atoms labelled <I>k</I>.
+</P>
+<P>Based on fluctuation-dissipation theory, the force constant
+coefficients of the system in reciprocal space are given by
+(<A HREF = "#Campana">Campa&ntilde;&aacute;</A> , <A HREF = "#Kong">Kong</A>)
+<center><b>&Phi;</b><sub>k&alpha;,k'&beta;</sub>(<b>q</b>) =
+k<sub>B</sub>T
+<b>G</b><sup>-1</sup><sub>k&alpha;,k'&beta;</sub>(<b>q</b>),</center>
+</P>
+<P>where <B>G</B> is the Green's functions coefficients given by
+</P>
+<center><b>G</b><sub>k&alpha;,k'&beta;</sub>(<b>q</b>) =
+<<b>u</b><sub>k&alpha;</sub>(<b>q</b>)&#149;<b>u</b><sub>k'&beta;</sub><sup>*</sup>(<b>q</b>)>,</center>
+
+<P>where <...> denotes the ensemble average, and
+<center><B>u</B><sub>k&alpha;</sub>(<b>q</b>) = &sum;<sub>l</sub>
+<b>u</b><sub>lk&alpha;</sub> exp(i<B>qr</B><sub>l</sub>)</center>
+</P>
+<P>is the &alpha; component of the atomic displacement for the <I>k</I>th atom
+in the unit cell in reciprocal space at <B>q</B>. In practice, the Green's
+functions coefficients can also be measured according to the following
+formula,
+</P>
+<center><b>G</b><sub>k&alpha;,k'&beta;</sub>(<b>q</b>) =
+<<b>R</b><sub>k&alpha;</sub>(<b>q</b>)&#149;<b>R</b><sup>*</sup><sub>k'&beta;</sub>(<b>q</b>)>
+- <<b>R</b>><sub>k&alpha;</sub>(<b>q</b>)&#149;<<b>R</b>><sup>*</sup><sub>k'&beta;</sub>(<b>q</b>),
+</center>
+
+<P>where <B>R</B> is the instantaneous positions of atoms, and <<B>R</B>> is the
+averaged atomic positions. It gives essentially the same results as
+the displacement method and is easier to implement in an MD code.
+</P>
+<P>Once the force constant matrix is known, the dynamical matrix <B>D</B> can
+then be obtained by
+</P>
+<center><b>D</b><sub>k&alpha;, k'&beta;</sub>(<b>q</b>) = (m<sub>k</sub>m<sub>k'</sub>)<sup>-1/2</sup> <b>&Phi;</b><sub>k&alpha;,k'&beta;</sub>(<b>q</b>)</center>
+
+<P>whose eigenvalues are exactly the phonon frequencies at <B>q</B>.
+</P>
+<P>This fix uses positions of atoms in the specified group and calculates
+two-point correlations.  To achieve this. the positions of the atoms
+are examined every <I>Nevery</I> steps and are Fourier-transformed into
+reciprocal space, where the averaging process and correlation
+computation is then done.  After every <I>Noutput</I> measurements, the
+matrix <B>G</B>(<B>q</B>) is calculated and inverted to obtain the elastic
+stiffness coefficients.  The dynamical matrices are then constructed
+and written to <I>prefix</I>.bin.timestep files in binary format and to the
+file <I>prefix</I>.log for each wavevector <B>q</B>.
+</P>
+<P>A detailed description of this method can be found in
+(<A HREF = "#Kong2011">Kong2011</A>).
+</P>
+<P>The <I>sysdim</I> keyword is optional.  If specified with a value smaller
+than the dimensionality of the LAMMPS simulation, its value is used
+for the dynamical matrix calculation.  For example, using LAMMPS ot
+model a 2D or 3D system, the phonon dispersion of a 1D atomic chain
+can be computed using <I>sysdim</I> = 1.
+</P>
+<P>The <I>nasr</I> keyword is optional.  An iterative procedure is employed to
+enforce the acoustic sum rule on &Phi; at &Gamma;, and the number
+provided by keyword <I>nasr</I> gives the total number of iterations. For a
+system whose unit cell has only one atom, <I>nasr</I> = 1 is sufficient;
+for other systems, <I>nasr</I> = 10 is typically sufficient.
+</P>
+<P>The <I>map_file</I> contains the mapping information between the lattice
+indices and the atom IDs, which tells the code which atom sits at
+which lattice point; the lattice indices start from 0. An auxiliary
+code, <A HREF = "http://code.google.com/p/latgen">latgen</A>, can be employed to
+generate the compatible map file for various crystals.
+</P>
+<P>The calculated dynamical matrix elements are written out in
+<A HREF = "units.html">energy/distance^2/mass</A> units.  The coordinates for <I>q</I>
+points in the log file is in the units of the basis vectors of the
+corresponding reciprocal lattice.
+</P>
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>No information about this fix is written to <A HREF = "restart.html">binary restart
+files</A>. 
+</P>
+<P>The <A HREF = "fix_modify.html">fix_modify</A> <I>temp</I> option is supported by this
+fix. You can use it to change the temperature compute from thermo_temp
+to the one that reflects the true temperature of atoms in the group.
+</P>
+<P>No global scalar or vector or per-atom quantities are stored by this
+fix for access by various <A HREF = "Section_howto.html#4_15">output commands</A>.
+</P>
+<P>Instead, this fix outputs its initialization information (including
+mapping information) and the calculated dynamical matrices to the file
+<I>prefix</I>.log, with the specified <I>prefix</I>.  The dynamical matrices are
+also written to files <I>prefix</I>.bin.timestep in binary format.  These
+can be read by the post-processing tool in tools/phonon to compute the
+phonon density of states and/or phonon dispersion curves.
+</P>
+<P>No parameter of this fix can be used with the <I>start/stop</I> keywords
+of the <A HREF = "run.html">run</A> command.
+</P>
+<P>This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This fix assumes a crystalline system with periodical lattice. The
+temperature of the system should not exceed the melting temperature to
+keep the system in its solid state.
+</P>
+<P>This fix is part of the USER-PHONON package.  It is only enabled if
+LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>This fix requires LAMMPS be built with an FFT library.  See the
+<A HREF = "Section_start.html#start_2">Making LAMMPS</A> section for more info.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "compute_msd.html">compute msd</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>The option defaults are sysdim = the same dimemsion as specified by
+the <A HREF = "dimension">dimension</A> command, and nasr = 20.
+</P>
+<HR>
+
+<A NAME = "Campana"></A>
+
+<P><B>(Campa&ntilde;&aacute;)</B> C. Campa&ntilde;&aacute; and
+M. H. M&uuml;ser, <I>Practical Green's function approach to the
+simulation of elastic semi-infinite solids</I>, <A HREF = "http://dx.doi.org/10.1103/PhysRevB.74.075420">Phys. Rev. B <B>74</B>,
+075420 (2006)</A>
+</P>
+<A NAME = "Kong"></A>
+
+<P><B>(Kong)</B> L.T. Kong, G. Bartels, C. Campa&ntilde;&aacute;,
+C. Denniston, and Martin H. M&uuml;ser, <I>Implementation of Green's
+function molecular dynamics: An extension to LAMMPS</I>, <A HREF = "http://dx.doi.org/10.1016/j.cpc.2008.12.035">Computer
+Physics Communications <B>180</B>(6):1004-1010
+(2009).</A>
+</P>
+<P>L.T. Kong, C. Denniston, and Martin H. M&uuml;ser,
+<I>An improved version of the Green's function molecular dynamics
+method</I>, <A HREF = "http://dx.doi.org/10.1016/j.cpc.2010.10.006">Computer Physics Communications <B>182</B>(2):540-541
+(2011).</A>
+</P>
+<A NAME = "Kong2011"></A>
+
+<P><B>(Kong2011)</B> L.T. Kong, <I>Phonon dispersion measured directly from
+molecular dynamics simulations</I>, <A HREF = "http://dx.doi.org/10.1016/j.cpc.2011.04.019">Computer Physics Communications
+<B>182</B>(10):2201-2207,
+(2011).</A>
+</P>
+</HTML>

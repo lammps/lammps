@@ -221,11 +221,10 @@ void PPPMDisp::init()
   }
 
   // free all arrays previously allocated
+
   deallocate();
   deallocate_peratom(); 
   peratom_allocate_flag = 0;
-
-
 
   // set scale
 

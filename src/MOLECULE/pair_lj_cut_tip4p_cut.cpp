@@ -26,10 +26,12 @@
 #include "angle.h"
 #include "bond.h"
 #include "comm.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS; 
+using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -408,7 +410,7 @@ void PairLJCutTIP4PCut::allocate()
 
 void PairLJCutTIP4PCut::settings(int narg, char **arg)
 {
-  if (narg != 7) error->all(FLERR,"Illegal pair_style command");
+  if (narg < 6 || narg > 7) error->all(FLERR,"Illegal pair_style command");
 
   typeO = force->inumeric(arg[0]);
   typeH = force->inumeric(arg[1]);
@@ -417,7 +419,8 @@ void PairLJCutTIP4PCut::settings(int narg, char **arg)
   qdist = force->numeric(arg[4]);
 
   cut_lj_global = force->numeric(arg[5]);
-  cut_coul = force->numeric(arg[6]);
+  if (narg == 6) cut_coul = cut_lj_global;
+  else cut_coul = force->numeric(arg[6]);
   cut_coulsq = cut_coul * cut_coul;
   cut_coulsqplus = (cut_coul + 2.0*qdist) * (cut_coul + 2.0*qdist);
 
@@ -435,7 +438,8 @@ void PairLJCutTIP4PCut::settings(int narg, char **arg)
 
 void PairLJCutTIP4PCut::coeff(int narg, char **arg)
 {
-  if (narg != 4) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg < 4 || narg > 5)
+    error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -445,12 +449,15 @@ void PairLJCutTIP4PCut::coeff(int narg, char **arg)
   double epsilon_one = force->numeric(arg[2]);
   double sigma_one = force->numeric(arg[3]);
 
+  double cut_lj_one = cut_lj_global;
+  if (narg == 5) cut_lj_one = force->numeric(arg[4]);
+
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     for (int j = MAX(jlo,i); j <= jhi; j++) {
       epsilon[i][j] = epsilon_one;
       sigma[i][j] = sigma_one;
-      cut_lj[i][j] = cut_lj_global;
+      cut_lj[i][j] = cut_lj_one;
       setflag[i][j] = 1;
       count++;
     }
@@ -522,6 +529,32 @@ double PairLJCutTIP4PCut::init_one(int i, int j)
   lj4[j][i] = lj4[i][j];
   offset[j][i] = offset[i][j];
   
+  // compute I,J contribution to long-range tail correction
+  // count total # of atoms of type I and J via Allreduce
+
+  if (tail_flag) {
+    int *type = atom->type;
+    int nlocal = atom->nlocal;
+
+    double count[2],all[2];
+    count[0] = count[1] = 0.0;
+    for (int k = 0; k < nlocal; k++) {
+      if (type[k] == i) count[0] += 1.0;
+      if (type[k] == j) count[1] += 1.0;
+    }
+    MPI_Allreduce(count,all,2,MPI_DOUBLE,MPI_SUM,world);
+
+    double sig2 = sigma[i][j]*sigma[i][j];
+    double sig6 = sig2*sig2*sig2;
+    double rc3 = cut_lj[i][j]*cut_lj[i][j]*cut_lj[i][j];
+    double rc6 = rc3*rc3;
+    double rc9 = rc3*rc6;
+    etail_ij = 8.0*MY_PI*all[0]*all[1]*epsilon[i][j] *
+      sig6 * (sig6 - 3.0*rc6) / (9.0*rc9);
+    ptail_ij = 16.0*MY_PI*all[0]*all[1]*epsilon[i][j] *
+      sig6 * (2.0*sig6 - 3.0*rc6) / (9.0*rc9);
+  }
+
   // check that LJ epsilon = 0.0 for water H
   // set LJ cutoff to 0.0 for any interaction involving water H
   // so LJ term isn't calculated in compute()

@@ -2153,6 +2153,7 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 	     (strcmp(style,"lj/cut/coul/debye") == 0) ||
 	     (strcmp(style,"lj/cut/coul/long") == 0) ||
 	     (strcmp(style,"lj/cut/coul/long/proxy") == 0) ||
+	     (strcmp(style,"lj/cut/tip4p/cut") == 0) ||
 	     (strcmp(style,"lj/cut/tip4p/long") == 0) ||
 	     (strcmp(style,"lj/long/coullong") == 0)) {
 
@@ -2201,6 +2202,18 @@ void pair(FILE *fp, Data &data, char *style, int flag)
       int tail_flag = read_int(fp);
       int ncoultablebits = read_int(fp);
       double tabinner = read_double(fp);
+    } else if (strcmp(style,"lj/cut/tip4p/cut") == 0) {
+      m = 0;
+      int typeO = read_int(fp);
+      int typeH = read_int(fp);
+      int typeB = read_int(fp);
+      int typeA = read_int(fp);
+      double qdist = read_double(fp);
+      double cut_lj_global = read_double(fp);
+      double cut_lj_coul = read_double(fp);
+      int offset_flag = read_int(fp);
+      int mix_flag = read_int(fp);
+      int tail_flag = read_int(fp);
     } else if (strcmp(style,"lj/cut/tip4p/long") == 0) {
       m = 0;
       int typeO = read_int(fp);
@@ -3358,6 +3371,7 @@ void Data::write(FILE *fp, FILE *fp2, int write_coeffs, int write_vels)
 	       (strcmp(pair_style,"lj/cut/coul/debye") == 0) ||
 	       (strcmp(pair_style,"lj/cut/coul/long") == 0) ||
 	       (strcmp(pair_style,"lj/cut/coul/long/proxy") == 0) ||
+	       (strcmp(pair_style,"lj/cut/tip4p/cut") == 0) ||
 	       (strcmp(pair_style,"lj/cut/tip4p/long") == 0) ||
 	       (strcmp(pair_style,"lj/long/coul/long") == 0)) {
       for (int i = 1; i <= ntypes; i++)

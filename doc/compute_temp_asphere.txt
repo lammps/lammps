@@ -58,6 +58,11 @@ should have 3 dof instead of 6 in 3d (or 2 instead of 3 in 2d).  A
 uniaxial aspherical particle has two of its three shape parameters the
 same.  If it does not rotate around the axis perpendicular to its
 circular cross section, then it should have 5 dof instead of 6 in 3d.
+The latter is the case for uniaxial ellipsoids in a "GayBerne
+model"_pair_gayberne.html since there is no induced torque around the
+optical axis.  It will also be the case for biaxial ellipsoids when
+exactly two of the semiaxes have the same length and the corresponding
+relative well depths are equal.
 
 The translational kinetic energy is computed the same as is described
 by the "compute temp"_compute_temp.html command.  The rotational

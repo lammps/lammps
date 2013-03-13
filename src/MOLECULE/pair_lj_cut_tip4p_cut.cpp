@@ -421,6 +421,7 @@ void PairLJCutTIP4PCut::settings(int narg, char **arg)
   cut_lj_global = force->numeric(arg[5]);
   if (narg == 6) cut_coul = cut_lj_global;
   else cut_coul = force->numeric(arg[6]);
+
   cut_coulsq = cut_coul * cut_coul;
   cut_coulsqplus = (cut_coul + 2.0*qdist) * (cut_coul + 2.0*qdist);
 
@@ -631,10 +632,12 @@ void PairLJCutTIP4PCut::write_restart_settings(FILE *fp)
   fwrite(&typeB,sizeof(int),1,fp);
   fwrite(&typeA,sizeof(int),1,fp);
   fwrite(&qdist,sizeof(double),1,fp);
+
   fwrite(&cut_lj_global,sizeof(double),1,fp);
   fwrite(&cut_coul,sizeof(double),1,fp);
-  fwrite(&cut_coulsq,sizeof(double),1,fp);
-  fwrite(&cut_coulsqplus,sizeof(double),1,fp);
+  fwrite(&offset_flag,sizeof(int),1,fp);
+  fwrite(&mix_flag,sizeof(int),1,fp);
+  fwrite(&tail_flag,sizeof(int),1,fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -649,10 +652,12 @@ void PairLJCutTIP4PCut::read_restart_settings(FILE *fp)
     fread(&typeB,sizeof(int),1,fp);
     fread(&typeA,sizeof(int),1,fp);
     fread(&qdist,sizeof(double),1,fp);
+
     fread(&cut_lj_global,sizeof(double),1,fp);
     fread(&cut_coul,sizeof(double),1,fp);
-    fread(&cut_coulsq,sizeof(double),1,fp);
-    fread(&cut_coulsqplus,sizeof(double),1,fp);  
+    fread(&offset_flag,sizeof(int),1,fp);
+    fread(&mix_flag,sizeof(int),1,fp);
+    fread(&tail_flag,sizeof(int),1,fp);
   }
 
   MPI_Bcast(&typeO,1,MPI_INT,0,world);
@@ -660,10 +665,15 @@ void PairLJCutTIP4PCut::read_restart_settings(FILE *fp)
   MPI_Bcast(&typeB,1,MPI_INT,0,world);
   MPI_Bcast(&typeA,1,MPI_INT,0,world);
   MPI_Bcast(&qdist,1,MPI_DOUBLE,0,world);
+
   MPI_Bcast(&cut_lj_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&cut_coul,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&cut_coulsq,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&cut_coulsqplus,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
+  MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
+  MPI_Bcast(&tail_flag,1,MPI_INT,0,world);
+
+  cut_coulsq = cut_coul * cut_coul;
+  cut_coulsqplus = (cut_coul + 2.0*qdist) * (cut_coul + 2.0*qdist);
 }
 
 /* ----------------------------------------------------------------------

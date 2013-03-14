@@ -45,9 +45,9 @@ class PairBuckLongCoulLong : public Pair {
   double single(int, int, int, int, double, double, double, double &);
   void *extract(const char *, int &);
 
-  void compute_inner();
-  void compute_middle();
-  void compute_outer(int, int);
+  virtual void compute_inner();
+  virtual void compute_middle();
+  virtual void compute_outer(int, int);
 
  protected:
   double cut_buck_global;

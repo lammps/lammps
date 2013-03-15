@@ -162,7 +162,10 @@ FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
   gcmc_nmax = 0;
   local_gas_list = NULL;
 
-  model_atom = NULL;
+   atom_coord = NULL;
+   model_atom = NULL;
+   model_atom_buf = NULL;
+
 }
 
 /* ----------------------------------------------------------------------
@@ -204,6 +207,7 @@ void FixGCMC::options(int narg, char **arg)
 
 FixGCMC::~FixGCMC()
 {
+  if (regionflag) delete [] idregion;
   delete random_equal;
   delete random_unequal;
   memory->destroy(local_gas_list);

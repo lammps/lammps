@@ -440,40 +440,33 @@ set to 0.0, it corresponds to the original 1983 TIP3P model
 "(Jorgensen)"_#Jorgensen.
 
 O mass = 15.9994
-H mass = 1.008 :all(b),p
-
+H mass = 1.008
 O charge = -0.834
-H charge = 0.417 :all(b),p
-
+H charge = 0.417
 LJ epsilon of OO = 0.1521
 LJ sigma of OO = 3.1507
 LJ epsilon of HH = 0.0460
 LJ sigma of HH = 0.4000
 LJ epsilon of OH = 0.0836
-LJ sigma of OH = 1.7753 :all(b),p
-
+LJ sigma of OH = 1.7753
 K of OH bond = 450
-r0 of OH bond = 0.9572 :all(b),p
-
+r0 of OH bond = 0.9572
 K of HOH angle = 55
 theta of HOH angle = 104.52 :all(b),p
 
 These are the parameters to use for TIP3P with a long-range Coulombic
-solver (Ewald or PPPM in LAMMPS), see "(Price)"_#Price for details:
+solver (e.g. Ewald or PPPM in LAMMPS), see "(Price)"_#Price for
+details:
 
 O mass = 15.9994
-H mass = 1.008 :all(b),p
-
+H mass = 1.008
 O charge = -0.830
-H charge = 0.415 :all(b),p
-
+H charge = 0.415
 LJ epsilon of OO = 0.102
 LJ sigma of OO = 3.188
-LJ epsilon, sigma of OH, HH = 0.0 :all(b),p
-
+LJ epsilon, sigma of OH, HH = 0.0
 K of OH bond = 450
-r0 of OH bond = 0.9572 :all(b),p
-
+r0 of OH bond = 0.9572
 K of HOH angle = 55
 theta of HOH angle = 104.52 :all(b),p
 
@@ -491,15 +484,18 @@ This site M is located at a fixed distance away from the oxygen along
 the bisector of the HOH bond angle.  A bond style of {harmonic} and an
 angle style of {harmonic} or {charmm} should also be used.
 
-A TIP4P model is run with LAMMPS using two commands:
+A TIP4P model is run with LAMMPS using either this command
+for a cutoff model:
+
+"pair_style lj/cut/tip4p/cut"_pair_lj.html
+
+or these two commands for a long-range model:
 
 "pair_style lj/cut/tip4p/long"_pair_lj.html
 "kspace_style pppm/tip4p"_kspace_style.html :ul
 
-Note that only a TIP4P model with long-range Coulombics is currently
-implemented.  A cutoff version may be added in the future.  for both
-models, the bond lengths and bond angles should be held fixed using
-the "fix shake"_fix_shake.html command.
+For both models, the bond lengths and bond angles should be held fixed
+using the "fix shake"_fix_shake.html command.
 
 These are the additional parameters (in real units) to set for O and H
 atoms and the water molecule to run a rigid TIP4P model with a cutoff
@@ -508,34 +504,57 @@ the "pair_style"_pair_style.html command, not as part of the pair
 coefficients.
 
 O mass = 15.9994
-H mass = 1.008 :all(b),p
-
+H mass = 1.008
 O charge = -1.040
-H charge = 0.520 :all(b),p
-
+H charge = 0.520
 r0 of OH bond = 0.9572
-theta of HOH angle = 104.52 :all(b),p
-
-OM distance = 0.15 :all(b),p
-
+theta of HOH angle = 104.52 
+OM distance = 0.15
 LJ epsilon of O-O = 0.1550
 LJ sigma of O-O = 3.1536
-LJ epsilon, sigma of OH, HH = 0.0 :all(b),p
+LJ epsilon, sigma of OH, HH = 0.0
+Coulombic cutoff = 8.5 :all(b),p
 
-These are the parameters to use for TIP4P with a long-range Coulombic
-solver (Ewald or PPPM in LAMMPS):
+For the TIP4/Ice model (J Chem Phys, 122, 234511 (2005);
+http://dx.doi.org/10.1063/1.1931662) these values can be used:
 
 O mass = 15.9994
-H mass = 1.008 :all(b),p
-
-O charge = -1.0484
-H charge = 0.5242 :all(b),p
-
+H mass =  1.008
+O charge = -1.1794
+H charge =  0.5897
 r0 of OH bond = 0.9572
-theta of HOH angle = 104.52 :all(b),p
+theta of HOH angle = 104.52
+OM distance = 0.1577
+LJ epsilon of O-O = 0.21084
+LJ sigma of O-O = 3.1668
+LJ epsilon, sigma of OH, HH = 0.0
+Coulombic cutoff = 8.5 :all(b),p
 
-OM distance = 0.1250 :all(b),p
+For the TIP4P/2005 model (J Chem Phys, 123, 234505 (2005);
+http://dx.doi.org/10.1063/1.2121687), these values can be used:
 
+O mass = 15.9994
+H mass =  1.008
+O charge = -1.1128
+H charge = 0.5564
+r0 of OH bond = 0.9572
+theta of HOH angle = 104.52
+OM distance = 0.1546
+LJ epsilon of O-O = 0.1852
+LJ sigma of O-O = 3.1589
+LJ epsilon, sigma of OH, HH = 0.0
+Coulombic cutoff = 8.5 :all(b),p
+
+These are the parameters to use for TIP4P with a long-range Coulombic
+solver (e.g. Ewald or PPPM in LAMMPS):
+
+O mass = 15.9994
+H mass = 1.008
+O charge = -1.0484
+H charge = 0.5242
+r0 of OH bond = 0.9572
+theta of HOH angle = 104.52
+OM distance = 0.1250
 LJ epsilon of O-O = 0.16275
 LJ sigma of O-O = 3.16435
 LJ epsilon, sigma of OH, HH = 0.0 :all(b),p
@@ -569,15 +588,12 @@ These are the additional parameters (in real units) to set for O and H
 atoms and the water molecule to run a rigid SPC model.
 
 O mass = 15.9994
-H mass = 1.008 :all(b),p
-
+H mass = 1.008
 O charge = -0.820
-H charge = 0.410 :all(b),p
-
+H charge = 0.410
 LJ epsilon of OO = 0.1553
 LJ sigma of OO = 3.166
-LJ epsilon, sigma of OH, HH = 0.0 :all(b),p
-
+LJ epsilon, sigma of OH, HH = 0.0
 r0 of OH bond = 1.0
 theta of HOH angle = 109.47 :all(b),p
 

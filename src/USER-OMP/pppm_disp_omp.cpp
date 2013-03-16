@@ -284,11 +284,13 @@ void PPPMDispOMP::compute_gf_6()
       
 	  sqk = pow(qx,2.0) + pow(qy,2.0) + pow(qz,2.0);
 
-	  denominator = gf_denom(snx2,sny2,snz2, gf_b_6, order_6); 
-	  rtsqk = sqrt(sqk);
-          term = (1-2*sqk*inv2ew*inv2ew)*sx*sy*sz +
-                  2*sqk*rtsqk*inv2ew*inv2ew*inv2ew*rtpi*erfc(rtsqk*inv2ew);
-	  greensfn_6[nn] = numerator*term*wx*wy*wz/denominator;
+          if (sqk != 0.0) {
+	    denominator = gf_denom(snx2,sny2,snz2, gf_b_6, order_6); 
+	    rtsqk = sqrt(sqk);
+            term = (1-2*sqk*inv2ew*inv2ew)*sx*sy*sz +
+                    2*sqk*rtsqk*inv2ew*inv2ew*inv2ew*rtpi*erfc(rtsqk*inv2ew);
+	    greensfn_6[nn] = numerator*term*wx*wy*wz/denominator;
+          } else greensfn_6[nn] = 0.0;
         }
       }
     }

@@ -169,7 +169,8 @@ void PairDPDTstat::settings(int narg, char **arg)
 
 void PairDPDTstat::coeff(int narg, char **arg)
 {
-  if (narg < 3 || narg > 4) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg < 3 || narg > 4) 
+    error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;

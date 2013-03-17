@@ -15,7 +15,7 @@ fix ID group-ID langevin Tstart Tstop damp seed keyword values ... :pre
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 langevin = style name of this fix command :l
 Tstart,Tstop = desired temperature at start/end of run (temperature units) :l
-  Tstart can be a variable (see below) :pre
+Tstart can be a variable (see below) :l
 damp = damping parameter (time units) :l
 seed = random number seed to use for white noise (positive integer) :l
 zero or more keyword/value pairs may be appended :l

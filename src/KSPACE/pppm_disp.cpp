@@ -168,6 +168,8 @@ PPPMDisp::PPPMDisp(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
   cg_peratom = NULL;
   cg_6 = NULL;
   cg_peratom_6 = NULL;
+
+  memset(function, 0, EWALD_FUNCS*sizeof(int));
 }
 
 /* ----------------------------------------------------------------------

@@ -2155,7 +2155,7 @@ void pair(FILE *fp, Data &data, char *style, int flag)
 	     (strcmp(style,"lj/cut/coul/long/proxy") == 0) ||
 	     (strcmp(style,"lj/cut/tip4p/cut") == 0) ||
 	     (strcmp(style,"lj/cut/tip4p/long") == 0) ||
-	     (strcmp(style,"lj/long/coullong") == 0)) {
+	     (strcmp(style,"lj/long/coul/long") == 0)) {
 
     if (strcmp(style,"lj/cut") == 0) {
       m = 0;

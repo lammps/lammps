@@ -29,6 +29,9 @@ class PairLJLongTIP4PLong : public PairLJLongCoulLong {
   PairLJLongTIP4PLong(class LAMMPS *);
   ~PairLJLongTIP4PLong();
   virtual void compute(int, int);
+  virtual void compute_inner();
+  virtual void compute_middle();
+  virtual void compute_outer(int, int);
   void settings(int, char **);
   void init_style();
   double init_one(int, int);

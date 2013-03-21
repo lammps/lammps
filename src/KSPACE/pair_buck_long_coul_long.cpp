@@ -236,7 +236,7 @@ void PairBuckLongCoulLong::init_style()
 
   int irequest;
 
-  if (update->whichflag == 0 && strstr(update->integrate_style,"respa")) {
+  if (update->whichflag == 1 && strstr(update->integrate_style,"respa")) {
     int respa = 0;
     if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
     if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
@@ -627,14 +627,14 @@ void PairBuckLongCoulLong::compute_inner()
   double qri, *cut_bucksqi, *buck1i, *buck2i, *rhoinvi;
   vector xi, d;
 
-  ineighn = (ineigh = list->ilist) + list->inum;
+  ineighn = (ineigh = listinner->ilist) + listinner->inum;
   for (; ineigh<ineighn; ++ineigh) {                        // loop over my atoms
     i = *ineigh; fi = f0+3*i;
     if (order1) qri = qqrd2e*q[i];
     memcpy(xi, x0+(i+(i<<1)), sizeof(vector));
     cut_bucksqi = cut_bucksq[typei = type[i]];
     buck1i = buck1[typei]; buck2i = buck2[typei]; rhoinvi = rhoinv[typei];
-    jneighn = (jneigh = list->firstneigh[i])+list->numneigh[i];
+    jneighn = (jneigh = listinner->firstneigh[i])+listinner->numneigh[i];
 
     for (; jneigh<jneighn; ++jneigh) {                        // loop over neighbors
       j = *jneigh;
@@ -716,7 +716,7 @@ void PairBuckLongCoulLong::compute_middle()
   double qri, *cut_bucksqi, *buck1i, *buck2i, *rhoinvi;
   vector xi, d;
 
-  ineighn = (ineigh = list->ilist)+list->inum;
+  ineighn = (ineigh = listmiddle->ilist)+listmiddle->inum;
 
   for (; ineigh<ineighn; ++ineigh) {                        // loop over my atoms
     i = *ineigh; fi = f0+3*i;
@@ -724,7 +724,7 @@ void PairBuckLongCoulLong::compute_middle()
     memcpy(xi, x0+(i+(i<<1)), sizeof(vector));
     cut_bucksqi = cut_bucksq[typei = type[i]];
     buck1i = buck1[typei]; buck2i = buck2[typei]; rhoinvi = rhoinv[typei];
-    jneighn = (jneigh = list->firstneigh[i])+list->numneigh[i];
+    jneighn = (jneigh = listmiddle->firstneigh[i])+listmiddle->numneigh[i];
 
     for (; jneigh<jneighn; ++jneigh) {                        // loop over neighbors
       j = *jneigh;
@@ -815,7 +815,7 @@ void PairBuckLongCoulLong::compute_outer(int eflag, int vflag)
   double cut_in_off_sq = cut_in_off*cut_in_off;
   double cut_in_on_sq = cut_in_on*cut_in_on;
 
-  ineighn = (ineigh = list->ilist)+list->inum;
+  ineighn = (ineigh = listouter->ilist)+listouter->inum;
 
   for (; ineigh<ineighn; ++ineigh) {                        // loop over my atoms
     i = *ineigh; fi = f0+3*i;
@@ -825,7 +825,7 @@ void PairBuckLongCoulLong::compute_outer(int eflag, int vflag)
     buckai = buck_a[typei]; buckci = buck_c[typei]; rhoinvi = rhoinv[typei];
     cutsqi = cutsq[typei]; cut_bucksqi = cut_bucksq[typei];
     memcpy(xi, x0+(i+(i<<1)), sizeof(vector));
-    jneighn = (jneigh = list->firstneigh[i])+list->numneigh[i];
+    jneighn = (jneigh = listouter->firstneigh[i])+listouter->numneigh[i];
 
     for (; jneigh<jneighn; ++jneigh) {                        // loop over neighbors
       j = *jneigh;

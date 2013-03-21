@@ -35,11 +35,28 @@ class PairLJLongCoulLongOMP : public PairLJLongCoulLong, public ThrOMP {
   PairLJLongCoulLongOMP(class LAMMPS *);
 
   virtual void compute(int, int);
+  virtual void compute_inner();
+  virtual void compute_middle();
+  virtual void compute_outer(int, int);
   virtual double memory_usage();
 
  private:
-  template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-  void eval(int ifrom, int ito, ThrData * const thr);
+  template <const int EVFLAG, const int EFLAG,
+    const int NEWTON_PAIR, const int CTABLE, const int LJTABLE,
+    const int ORDER1, const int ORDER6 >
+  void eval(int, int, ThrData * const);
+
+  template <const int EVFLAG, const int EFLAG,
+    const int NEWTON_PAIR, const int CTABLE, const int LJTABLE,
+    const int ORDER1, const int ORDER6 >
+  void eval_outer(int, int, ThrData * const);
+
+
+  void eval_inner(int, int, ThrData *const);
+  void eval_middle(int, int, ThrData *const);
+
+  
+
 };
 
 }

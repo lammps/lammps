@@ -726,7 +726,7 @@ void PairLJLongCoulLongOpt::eval_outer()
   double cut_in_off_sq = cut_in_off*cut_in_off;
   double cut_in_on_sq = cut_in_on*cut_in_on;
   
-  ineighn = (ineigh = list->ilist)+list->inum;
+  ineighn = (ineigh = listouter->ilist)+listouter->inum;
   
   for (; ineigh<ineighn; ++ineigh) {                        // loop over my atoms
     i = *ineigh; fi = f0+3*i;
@@ -735,7 +735,7 @@ void PairLJLongCoulLongOpt::eval_outer()
     lj1i = lj1[typei]; lj2i = lj2[typei]; lj3i = lj3[typei]; lj4i = lj4[typei];
     cutsqi = cutsq[typei]; cut_ljsqi = cut_ljsq[typei];
     memcpy(xi, x0+(i+(i<<1)), sizeof(vector));
-    jneighn = (jneigh = list->firstneigh[i])+list->numneigh[i];
+    jneighn = (jneigh = listouter->firstneigh[i])+listouter->numneigh[i];
     
     for (; jneigh<jneighn; ++jneigh) {                        // loop over neighbors
       j = *jneigh;

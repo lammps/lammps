@@ -13,7 +13,8 @@ DEPFLAGS =	-M
 
 LINK =		pgCC
 LINKFLAGS =	
-LIB =           -lstdc++
+LIB =           
+#LIB =           -lstdc++
 SIZE =		size
 
 ARCHIVE =	ar

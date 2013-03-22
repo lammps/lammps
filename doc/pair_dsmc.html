@@ -83,11 +83,20 @@ neigh_modify every 1 delay 0 check no
 atom_modify sort 0 0.0
 communicate single cutoff 0.0 
 </PRE>
-<P>These commands insure that LAMMPS communicates particles to
+<P>These commands ensure that LAMMPS communicates particles to
 neighboring processors every timestep and that no ghost atoms are
 created.  The output statistics for a simulation run should indicate
 there are no ghost particles or neighbors.
 </P>
+<P>In order to get correct DSMC collision statistics, users should
+specify a Gaussian velocity distribution when populating the 
+simulation domain. Note that the default velocity distribution is
+uniform, which will not give good DSMC collision rates. Specify
+"dist gaussian" when using the <A HREF = "velocity.html">velocity</A> command 
+as in the following:
+</P>
+<PRE>velocity all create 594.6 87287 loop geom dist gaussian 
+</PRE>
 <HR>
 
 <P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:

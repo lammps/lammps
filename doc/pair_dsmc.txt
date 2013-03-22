@@ -77,6 +77,7 @@ these commands:
 
 neighbor 0.0 bin
 neigh_modify every 1 delay 0 check no
+atom_modify sort 0 0.0
 communicate single cutoff 0.0 :pre
 
 These commands insure that LAMMPS communicates particles to

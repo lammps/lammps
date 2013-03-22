@@ -110,13 +110,13 @@ void FixExternal::post_force(int vflag)
   // invoke the callback in driver program
   // it will fill fexternal with forces
 
-  if (mode == PF_CALLBACK && ntimestep & ncall == 0)
+  if (mode == PF_CALLBACK && ntimestep % ncall == 0)
     (this->callback)(ptr_caller,update->ntimestep,
                      atom->nlocal,atom->tag,atom->x,fexternal);
 
   // add forces from fexternal to atoms in group
 
-  if (ntimestep & napply == 0) {
+  if (ntimestep % napply == 0) {
     double **f = atom->f;
     int *mask = atom->mask;
     int nlocal = atom->nlocal;

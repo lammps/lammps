@@ -149,7 +149,7 @@ void CreateAtoms::command(int narg, char **arg)
   }
 
   // set bounds for my proc in sublo[3] & subhi[3]
-  // if periodic:
+  // if periodic and style = BOX or REGION, i.e. using lattice:
   //   should create exactly 1 atom when 2 images are both "on" the boundary
   //   either image may be slightly inside/outside true box due to round-off
   //   if I am lo proc, decrement lower bound by EPSILON
@@ -180,17 +180,19 @@ void CreateAtoms::command(int narg, char **arg)
     sublo[2] = domain->sublo_lamda[2]; subhi[2] = domain->subhi_lamda[2];
   }
 
-  if (domain->xperiodic) {
-    if (comm->myloc[0] == 0) sublo[0] -= epsilon[0];
-    if (comm->myloc[0] == comm->procgrid[0]-1) subhi[0] -= 2.0*epsilon[0];
-  }
-  if (domain->yperiodic) {
-    if (comm->myloc[1] == 0) sublo[1] -= epsilon[1];
-    if (comm->myloc[1] == comm->procgrid[1]-1) subhi[1] -= 2.0*epsilon[1];
-  }
-  if (domain->zperiodic) {
-    if (comm->myloc[2] == 0) sublo[2] -= epsilon[2];
-    if (comm->myloc[2] == comm->procgrid[2]-1) subhi[2] -= 2.0*epsilon[2];
+  if (style == BOX || style == REGION) {
+    if (domain->xperiodic) {
+      if (comm->myloc[0] == 0) sublo[0] -= epsilon[0];
+      if (comm->myloc[0] == comm->procgrid[0]-1) subhi[0] -= 2.0*epsilon[0];
+    }
+    if (domain->yperiodic) {
+      if (comm->myloc[1] == 0) sublo[1] -= epsilon[1];
+      if (comm->myloc[1] == comm->procgrid[1]-1) subhi[1] -= 2.0*epsilon[1];
+    }
+    if (domain->zperiodic) {
+      if (comm->myloc[2] == 0) sublo[2] -= epsilon[2];
+      if (comm->myloc[2] == comm->procgrid[2]-1) subhi[2] -= 2.0*epsilon[2];
+    }
   }
 
   // add atoms in one of 3 ways

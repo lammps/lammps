@@ -8,10 +8,11 @@ SHELL = /bin/sh
 
 CC =		mpic++
 CCFLAGS =	-O2 -fomit-frame-pointer -fno-rtti -fno-exceptions -g \
-			-march=native -ffast-math -mpc64 -finline-functions \
+			-ffast-math -mpc64 -finline-functions \
 			-funroll-loops -fstrict-aliasing -Wall -W -Wno-uninitialized
+#			-march=native -ffast-math -mpc64 -finline-functions 
 SHFLAGS =	-fPIC
-DEPFLAGS =	-M
+DEPFLAGS =	-MM
 
 LINK =		mpic++
 LINKFLAGS =	-O -g -fno-rtti -fno-exceptions -mpc64

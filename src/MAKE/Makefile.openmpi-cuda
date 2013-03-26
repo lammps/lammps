@@ -12,7 +12,7 @@ CC =		mpic++ $(OPENMP)
 CCFLAGS =	-O2 -fomit-frame-pointer \
 			-march=native -ffast-math -mpc64 -g -finline-functions \
 			-funroll-loops -fstrict-aliasing -Wall -W -Wno-uninitialized
-DEPFLAGS =	-M
+DEPFLAGS =	-MM
 LINK =		mpic++ $(OPENMP)
 LINKFLAGS =	-O -g -mpc64
 LIB =  -Wl,-rpath,$(HOME)/cuda/lib64 -lstdc++

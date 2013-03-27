@@ -23,11 +23,13 @@ T = temperature of the ideal gas reservoir (temperature units) :l
 mu = chemical potential of the ideal gas reservoir (energy units) :l
 displace = maximum Monte Carlo displacement distance (length units) :l
 zero or more keyword/value pairs may be appended to args :l
-keyword = {molecule} or {region} :l
+keyword = {molecule}, {region}, {maxangle}, {pressure}, or {fugacity_coeff} :l
   {molecule} value = {no} or {yes}
   {region} value = region-ID
     region-ID = ID of region to use as an exchange/move volume 
-  {maxangle} value = maximum molecular rotation angle (degrees) :pre
+  {maxangle} value = maximum molecular rotation angle (degrees) 
+  {pressure} value = pressue of the gas reservoir (pressure units)
+  {fugacity_coeff} value = fugacity coefficient of the gas reservoir (unitless) :pre
 :ule
 
 [Examples:]
@@ -133,6 +135,11 @@ supplied by the user.  In both cases, exchanged
 atoms/molecules are assigned to two groups: the default group "all"
 and the group specified in the fix gcmc command (which can also be 
 "all"). 
+
+The gas reservoir pressure can be specified using the {pressure} 
+keyword, in which case the user-specified chemical potential is 
+ignored. For non-ideal gas reservoirs, the user may also specify the 
+fugacity coefficient using the {fugacity_coeff} keyword.
 
 Use of this fix typically will cause the number of atoms to fluctuate,
 therefore, you will want to use the

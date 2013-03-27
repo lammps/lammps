@@ -85,6 +85,9 @@ FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
   rotation_group = 0;
   rotation_groupbit = 0;
   rotation_inversegroupbit = 0;
+  pressure_flag = false;
+  pressure = 0.0;
+  fugacity_coeff = 1.0;
 
   // read options from end of input line
 
@@ -198,6 +201,15 @@ void FixGCMC::options(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
       max_rotation_angle = atof(arg[iarg+1]);
       max_rotation_angle *= MY_PI/180;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"pressure") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
+      pressure = atof(arg[iarg+1]);
+      pressure_flag = true;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"fugacity_coeff") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
+      fugacity_coeff = atof(arg[iarg+1]);
       iarg += 2;
     } else error->all(FLERR,"Illegal fix gcmc command");
   }
@@ -335,6 +347,7 @@ void FixGCMC::init()
                         force->boltz*reservoir_temperature));
   sigma = sqrt(force->boltz*reservoir_temperature/gas_mass/force->mvv2e);
   zz = exp(beta*chemical_potential)/(pow(lambda,3.0));
+  if (pressure_flag) zz = pressure*fugacity_coeff*beta/force->nktv2p;
   
   imagetmp = ((tagint) IMGMAX << IMG2BITS) | 
              ((tagint) IMGMAX << IMGBITS) | IMGMAX;

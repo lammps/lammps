@@ -41,9 +41,7 @@ class FixGCMC : public Fix {
   void attempt_molecule_insertion();
   double energy(int, int, int, double *);
   int pick_random_gas_atom();
-  int pick_random_gas_atom_in_region();
   int pick_random_gas_molecule();
-  int pick_random_gas_molecule_in_region();
   double molecule_energy(int);
   void get_rotation_matrix(double, double *);
   void get_model_molecule();

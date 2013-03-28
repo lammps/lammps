@@ -12,7 +12,7 @@ CC =		mpic++ $(OPENMP)
 CCFLAGS =	-O2 -fomit-frame-pointer -fno-rtti -fno-exceptions \
 			-march=native -ffast-math -mpc64 -g -finline-functions \
 			-funroll-loops -fstrict-aliasing -Wall -W -Wno-uninitialized
-DEPFLAGS =	-M
+DEPFLAGS =	-MM
 LINK =		mpic++ $(OPENMP)
 LINKFLAGS =	-O -g -fno-rtti -fno-exceptions -mpc64
 LIB =           -lstdc++

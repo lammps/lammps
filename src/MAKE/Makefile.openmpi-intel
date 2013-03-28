@@ -13,7 +13,7 @@ CCFLAGS =	-O2 -xHOST -fno-rtti -fno-exceptions -finline-functions \
 			-no-prec-div -pc64 -fast-transcendentals -rcd \
 			-funroll-loops -fstrict-aliasing -Wall -no-prec-sqrt
 SHFLAGS =       -fPIC
-DEPFLAGS =	-M
+DEPFLAGS =	-MM
 LINK =		env OMPI_CC=icc OMPI_CXX=icpc mpic++ $(OPENMP)
 LINKFLAGS =	-O -xHOST -fno-rtti -fno-exceptions -pc64 -static-intel
 LIB =           -lstdc++

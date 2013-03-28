@@ -10,7 +10,7 @@ CC =		mpic++
 CCFLAGS =	-O2 -fno-rtti -fno-exceptions -pg -g -finline-functions
 			-march=native -ffast-math -mpc64 \
 			-funroll-loops -fstrict-aliasing -Wall -W -Wno-uninitialized
-DEPFLAGS =	-M
+DEPFLAGS =	-MM
 LINK =		mpic++
 LINKFLAGS =	-O -pg -g -fno-rtti -fno-exceptions -mpc64
 LIB =           -lstdc++

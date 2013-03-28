@@ -10,7 +10,7 @@ CCFLAGS =	-O2 -xHOST -no-prec-div -no-prec-sqrt -fast-transcendentals	\
 			-fno-exceptions -fno-rtti -pc64 -falign-functions=16 		\
 			-funroll-loops -fstrict-aliasing
 
-DEPFLAGS =	-M
+DEPFLAGS =	-MM
 LINK =		env OMPI_CC=icc OMPI_CXX=icpc mpic++
 LINKFLAGS =	-O -static-intel
 LIB =           -Wl,-rpath,/usr/lib64/openmpi/lib #-lstdc++

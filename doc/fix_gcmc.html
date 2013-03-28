@@ -37,12 +37,14 @@
 
 <LI>zero or more keyword/value pairs may be appended to args 
 
-<LI>keyword = <I>molecule</I> or <I>region</I> 
+<LI>keyword = <I>molecule</I>, <I>region</I>, <I>maxangle</I>, <I>pressure</I>, or <I>fugacity_coeff</I> 
 
 <PRE>  <I>molecule</I> value = <I>no</I> or <I>yes</I>
   <I>region</I> value = region-ID
     region-ID = ID of region to use as an exchange/move volume 
   <I>maxangle</I> value = maximum molecular rotation angle (degrees) 
+  <I>pressure</I> value = pressue of the gas reservoir (pressure units)
+  <I>fugacity_coeff</I> value = fugacity coefficient of the gas reservoir (unitless) 
 </PRE>
 
 </UL>
@@ -149,6 +151,11 @@ supplied by the user.  In both cases, exchanged
 atoms/molecules are assigned to two groups: the default group "all"
 and the group specified in the fix gcmc command (which can also be 
 "all"). 
+</P>
+<P>The gas reservoir pressure can be specified using the <I>pressure</I> 
+keyword, in which case the user-specified chemical potential is 
+ignored. For non-ideal gas reservoirs, the user may also specify the 
+fugacity coefficient using the <I>fugacity_coeff</I> keyword.
 </P>
 <P>Use of this fix typically will cause the number of atoms to fluctuate,
 therefore, you will want to use the

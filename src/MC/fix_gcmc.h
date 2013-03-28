@@ -41,9 +41,7 @@ class FixGCMC : public Fix {
   void attempt_molecule_insertion();
   double energy(int, int, int, double *);
   int pick_random_gas_atom();
-  int pick_random_gas_atom_in_region();
   int pick_random_gas_molecule();
-  int pick_random_gas_molecule_in_region();
   double molecule_energy(int);
   void get_rotation_matrix(double, double *);
   void get_model_molecule();
@@ -65,6 +63,7 @@ class FixGCMC : public Fix {
   int regionflag;           // 0 = anywhere in box, 1 = specific region
   int iregion;              // GCMC region
   char *idregion;           // GCMC region id
+  bool pressure_flag;       // true if user specified reservoir pressure, false otherwise
 
   int maxmol;               // largest molecule tag across all existing atoms
   int natoms_per_molecule;  // number of atoms in each gas molecule
@@ -86,6 +85,7 @@ class FixGCMC : public Fix {
   double displace;
   double max_rotation_angle;
   double beta,zz,sigma,volume;
+  double pressure,fugacity_coeff;
   double xlo,xhi,ylo,yhi,zlo,zhi;
   double region_xlo,region_xhi,region_ylo,region_yhi,region_zlo,region_zhi;
   double region_volume;

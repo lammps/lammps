@@ -85,6 +85,9 @@ FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
   rotation_group = 0;
   rotation_groupbit = 0;
   rotation_inversegroupbit = 0;
+  pressure_flag = false;
+  pressure = 0.0;
+  fugacity_coeff = 1.0;
 
   // read options from end of input line
 
@@ -198,6 +201,15 @@ void FixGCMC::options(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
       max_rotation_angle = atof(arg[iarg+1]);
       max_rotation_angle *= MY_PI/180;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"pressure") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
+      pressure = atof(arg[iarg+1]);
+      pressure_flag = true;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"fugacity_coeff") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
+      fugacity_coeff = atof(arg[iarg+1]);
       iarg += 2;
     } else error->all(FLERR,"Illegal fix gcmc command");
   }
@@ -335,6 +347,7 @@ void FixGCMC::init()
                         force->boltz*reservoir_temperature));
   sigma = sqrt(force->boltz*reservoir_temperature/gas_mass/force->mvv2e);
   zz = exp(beta*chemical_potential)/(pow(lambda,3.0));
+  if (pressure_flag) zz = pressure*fugacity_coeff*beta/force->nktv2p;
   
   imagetmp = ((tagint) IMGMAX << IMG2BITS) | 
              ((tagint) IMGMAX << IMGBITS) | IMGMAX;
@@ -407,9 +420,7 @@ void FixGCMC::attempt_atomic_translation()
   
   if (ngas == 0) return;
 
-  int i;
-  if (regionflag) i = pick_random_gas_atom_in_region();
-  else i = pick_random_gas_atom();
+  int i = pick_random_gas_atom();
   
   int success = 0;
   if (i >= 0) {
@@ -459,9 +470,7 @@ void FixGCMC::attempt_atomic_deletion()
 
   if (ngas == 0) return;
   
-  int i;
-  if (regionflag) i = pick_random_gas_atom_in_region();
-  else i = pick_random_gas_atom();
+  int i = pick_random_gas_atom();
 
   int success = 0;
   if (i >= 0) {
@@ -565,9 +574,7 @@ void FixGCMC::attempt_molecule_translation()
 
   if (ngas == 0) return;
 
-  int translation_molecule;
-  if (regionflag) translation_molecule = pick_random_gas_molecule_in_region();
-  else translation_molecule = pick_random_gas_molecule();
+  int translation_molecule = pick_random_gas_molecule();
   if (translation_molecule == -1) return;
 
   double energy_before_sum = molecule_energy(translation_molecule);
@@ -625,9 +632,7 @@ void FixGCMC::attempt_molecule_rotation()
 
   if (ngas == 0) return;
 
-  int rotation_molecule;
-  if (regionflag) rotation_molecule = pick_random_gas_molecule_in_region();
-  else rotation_molecule = pick_random_gas_molecule();
+  int rotation_molecule = pick_random_gas_molecule();
   if (rotation_molecule == -1) return;
   
   double energy_before_sum = molecule_energy(rotation_molecule);
@@ -705,9 +710,7 @@ void FixGCMC::attempt_molecule_deletion()
 
   if (ngas == 0) return;
   
-  int deletion_molecule;
-  if (regionflag) deletion_molecule = pick_random_gas_molecule_in_region();
-  else deletion_molecule = pick_random_gas_molecule();
+  int deletion_molecule = pick_random_gas_molecule();
   if (deletion_molecule == -1) return;
 
   double deletion_energy_sum = molecule_energy(deletion_molecule);
@@ -919,34 +922,6 @@ int FixGCMC::pick_random_gas_atom()
 /* ----------------------------------------------------------------------
 ------------------------------------------------------------------------- */
 
-int FixGCMC::pick_random_gas_atom_in_region()
-{
-  int i = -1;
-  int i_own_candidate = 0;
-  int i_own_candidate_all = 0;
-  int region_attempt = 0;
-  double **x = atom->x;
-  while (!i_own_candidate_all) {
-    int iwhichglobal = static_cast<int> (ngas*random_equal->uniform());
-    if ((iwhichglobal >= ngas_before) &&
-        (iwhichglobal < ngas_before + ngas_local)) {
-      i_own_candidate = 1;
-      int iwhichlocal = iwhichglobal - ngas_before;
-      i = local_gas_list[iwhichlocal];
-      if (domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]) == 0)
-        i_own_candidate = 0;
-    }
-    MPI_Allreduce(&i_own_candidate,&i_own_candidate_all,1,MPI_INT,MPI_MAX,world);
-    region_attempt++;
-    if (region_attempt >= max_region_attempts) return -1;
-  }
-
-  return i;
-}
-
-/* ----------------------------------------------------------------------
-------------------------------------------------------------------------- */
-
 int FixGCMC::pick_random_gas_molecule()
 {
   int iwhichglobal = static_cast<int> (ngas*random_equal->uniform());
@@ -961,34 +936,6 @@ int FixGCMC::pick_random_gas_molecule()
   int gas_molecule_id_all = 0;
   MPI_Allreduce(&gas_molecule_id,&gas_molecule_id_all,1,MPI_INT,MPI_MAX,world);
   
-  return gas_molecule_id_all;
-}
-
-/* ----------------------------------------------------------------------
-------------------------------------------------------------------------- */
-
-int FixGCMC::pick_random_gas_molecule_in_region()
-{
-  int region_attempt = 0;
-  int gas_molecule_id = 0;
-  int gas_molecule_id_all = 0;
-  double **x = atom->x;
-  while (!gas_molecule_id_all) {
-    int iwhichglobal = static_cast<int> (ngas*random_equal->uniform());
-    if ((iwhichglobal >= ngas_before) &&
-        (iwhichglobal < ngas_before + ngas_local)) {
-      int iwhichlocal = iwhichglobal - ngas_before;
-      int i = local_gas_list[iwhichlocal];
-      if (domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]) != 0) {
-        gas_molecule_id = atom->molecule[i];
-      }
-    }
-    gas_molecule_id_all = 0;
-    MPI_Allreduce(&gas_molecule_id,&gas_molecule_id_all,1,MPI_INT,MPI_MAX,world);
-    region_attempt++;
-    if (region_attempt >= max_region_attempts) return -1;
-  }
-
   return gas_molecule_id_all;
 }
 
@@ -1247,10 +1194,22 @@ void FixGCMC::update_gas_atoms_list()
   }
 
   ngas_local = 0;
-  for (int i = 0; i < atom->nlocal; i++) {
-    if (atom->mask[i] & groupbit) {
-      local_gas_list[ngas_local] = i;
-      ngas_local++;
+  if (regionflag) {
+    for (int i = 0; i < atom->nlocal; i++) {
+      if (atom->mask[i] & groupbit) {
+        double **x = atom->x;
+        if (domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]) == 1) {
+          local_gas_list[ngas_local] = i;
+          ngas_local++;
+        }
+      }
+    }
+  } else {
+    for (int i = 0; i < atom->nlocal; i++) {
+      if (atom->mask[i] & groupbit) {
+        local_gas_list[ngas_local] = i;
+        ngas_local++;
+      }
     }
   }
 

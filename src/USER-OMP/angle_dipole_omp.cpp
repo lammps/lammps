@@ -67,11 +67,12 @@ void AngleDipoleOMP::compute(int eflag, int vflag)
     ThrData *thr = fix->get_thr(tid);
     ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
 
-    if (eflag)
-      eval<1>(ifrom, ito, thr);
-    else
-      eval<0>(ifrom, ito, thr);
-
+    if (inum > 0) {
+      if (eflag)
+        eval<1>(ifrom, ito, thr);
+      else
+        eval<0>(ifrom, ito, thr);
+    }
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 

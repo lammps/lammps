@@ -8,7 +8,6 @@ if (test $1 = 1) then
   cp angle_cosine_periodic.cpp ..
   cp angle_cosine_squared.cpp ..
   cp angle_harmonic.cpp ..
-  cp angle_hybrid.cpp ..
   cp angle_table.cpp ..
   cp atom_vec_angle.cpp ..
   cp atom_vec_bond.cpp ..
@@ -24,12 +23,10 @@ if (test $1 = 1) then
   cp dihedral_charmm.cpp ..
   cp dihedral_harmonic.cpp ..
   cp dihedral_helix.cpp ..
-  cp dihedral_hybrid.cpp ..
   cp dihedral_multi_harmonic.cpp ..
   cp dihedral_opls.cpp ..
   cp improper_cvff.cpp ..
   cp improper_harmonic.cpp ..
-  cp improper_hybrid.cpp ..
   cp improper_umbrella.cpp ..
   cp pair_hbond_dreiding_lj.cpp ..
   cp pair_hbond_dreiding_morse.cpp ..
@@ -43,7 +40,6 @@ if (test $1 = 1) then
   cp angle_cosine_periodic.h ..
   cp angle_cosine_squared.h ..
   cp angle_harmonic.h ..
-  cp angle_hybrid.h ..
   cp angle_table.h ..
   cp atom_vec_angle.h ..
   cp atom_vec_bond.h ..
@@ -59,12 +55,10 @@ if (test $1 = 1) then
   cp dihedral_charmm.h ..
   cp dihedral_harmonic.h ..
   cp dihedral_helix.h ..
-  cp dihedral_hybrid.h ..
   cp dihedral_multi_harmonic.h ..
   cp dihedral_opls.h ..
   cp improper_cvff.h ..
   cp improper_harmonic.h ..
-  cp improper_hybrid.h ..
   cp improper_umbrella.h ..
   cp pair_hbond_dreiding_lj.h ..
   cp pair_hbond_dreiding_morse.h ..
@@ -80,7 +74,6 @@ elif (test $1 = 0) then
   rm -f ../angle_cosine_periodic.cpp
   rm -f ../angle_cosine_squared.cpp
   rm -f ../angle_harmonic.cpp
-  rm -f ../angle_hybrid.cpp
   rm -f ../angle_table.cpp
   rm -f ../atom_vec_angle.cpp
   rm -f ../atom_vec_bond.cpp
@@ -96,12 +89,10 @@ elif (test $1 = 0) then
   rm -f ../dihedral_charmm.cpp
   rm -f ../dihedral_harmonic.cpp
   rm -f ../dihedral_helix.cpp
-  rm -f ../dihedral_hybrid.cpp
   rm -f ../dihedral_multi_harmonic.cpp
   rm -f ../dihedral_opls.cpp
   rm -f ../improper_cvff.cpp
   rm -f ../improper_harmonic.cpp
-  rm -f ../improper_hybrid.cpp
   rm -f ../improper_umbrella.cpp
   rm -f ../pair_hbond_dreiding_lj.cpp
   rm -f ../pair_hbond_dreiding_morse.cpp
@@ -115,7 +106,6 @@ elif (test $1 = 0) then
   rm -f ../angle_cosine_periodic.h
   rm -f ../angle_cosine_squared.h
   rm -f ../angle_harmonic.h
-  rm -f ../angle_hybrid.h
   rm -f ../angle_table.h
   rm -f ../atom_vec_angle.h
   rm -f ../atom_vec_bond.h
@@ -131,12 +121,10 @@ elif (test $1 = 0) then
   rm -f ../dihedral_charmm.h
   rm -f ../dihedral_harmonic.h
   rm -f ../dihedral_helix.h
-  rm -f ../dihedral_hybrid.h
   rm -f ../dihedral_multi_harmonic.h
   rm -f ../dihedral_opls.h
   rm -f ../improper_cvff.h
   rm -f ../improper_harmonic.h
-  rm -f ../improper_hybrid.h
   rm -f ../improper_umbrella.h
   rm -f ../pair_hbond_dreiding_lj.h
   rm -f ../pair_hbond_dreiding_morse.h

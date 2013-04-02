@@ -14,6 +14,7 @@
 #ifndef LMP_DUMP_H
 #define LMP_DUMP_H
 
+#include "mpi.h"
 #include "stdio.h"
 #include "pointers.h"
 
@@ -55,7 +56,14 @@ class Dump : protected Pointers {
   int compressed;            // 1 if dump file is written compressed, 0 no
   int binary;                // 1 if dump file is written binary, 0 no
   int multifile;             // 0 = one big file, 1 = one file per timestep
-  int multiproc;             // 0 = proc 0 writes for all, 1 = one file/proc
+
+  int multiproc;             // 0 = proc 0 writes for all, 
+                             // else # of procs writing files
+  int nclusterprocs;         // # of procs in my cluster that write to one file
+  int filewriter;            // 1 if this proc writes a file, else 0
+  int fileproc;              // ID of proc in my cluster who writes to file
+  char *multiname;           // dump filename with % converted to cluster ID
+  MPI_Comm dumpcomm;
 
   int header_flag;           // 0 = item, 2 = xyz
   int flush_flag;            // 0 if no flush, 1 if flush every dump
@@ -80,7 +88,7 @@ class Dump : protected Pointers {
   double boxzlo,boxzhi;
   double boxxy,boxxz,boxyz;
 
-  bigint ntotal;             // # of per-atom lines in snapshot
+  bigint ntotal;             // total # of per-atom lines in snapshot
   int reorderflag;           // 1 if OK to reorder instead of sort
   int ntotal_reorder;        // # of atoms that must be in snapshot
   int nme_reorder;           // # of atoms I must own in snapshot

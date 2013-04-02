@@ -104,7 +104,7 @@ Dump::Dump(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     nclusterprocs = 1;
     filewriter = 1;
     fileproc = me;
-    MPI_Comm_split(world,me,0,&dumpcomm);
+    MPI_Comm_split(world,me,0,&clustercomm);
     multiname = new char[strlen(filename) + 16];
     *ptr = '\0';
     sprintf(multiname,"%s%d%s",filename,me,ptr+1);
@@ -140,7 +140,7 @@ Dump::~Dump()
   memory->destroy(proclist);
   delete irregular;
 
-  if (multiproc) MPI_Comm_free(&dumpcomm);
+  if (multiproc) MPI_Comm_free(&clustercomm);
 
   // XTC style sets fp to NULL since it closes file in its destructor
 
@@ -290,11 +290,12 @@ void Dump::write()
   else nmax = nme;
 
   // write timestep header
-  // for multiproc, nheader = # of lines in this file via Allreduce on dumpcomm
+  // for multiproc,
+  //   nheader = # of lines in this file via Allreduce on clustercomm
 
   bigint nheader = ntotal;
   if (multiproc)
-    MPI_Allreduce(&bnme,&nheader,1,MPI_LMP_BIGINT,MPI_SUM,dumpcomm);
+    MPI_Allreduce(&bnme,&nheader,1,MPI_LMP_BIGINT,MPI_SUM,clustercomm);
 
   if (filewriter) write_header(nheader);
 
@@ -694,8 +695,8 @@ void Dump::modify_params(int narg, char **arg)
       else filewriter = 0;
       int icluster = fileproc/nper;
 
-      MPI_Comm_free(&dumpcomm);
-      MPI_Comm_split(world,icluster,0,&dumpcomm);
+      MPI_Comm_free(&clustercomm);
+      MPI_Comm_split(world,icluster,0,&clustercomm);
 
       delete [] multiname;
       multiname = new char[strlen(filename) + 16];
@@ -745,8 +746,8 @@ void Dump::modify_params(int narg, char **arg)
       if (me == fileproc) filewriter = 1;
       else filewriter = 0;
 
-      MPI_Comm_free(&dumpcomm);
-      MPI_Comm_split(world,icluster,0,&dumpcomm);
+      MPI_Comm_free(&clustercomm);
+      MPI_Comm_split(world,icluster,0,&clustercomm);
 
       delete [] multiname;
       multiname = new char[strlen(filename) + 16];

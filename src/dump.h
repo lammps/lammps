@@ -63,7 +63,7 @@ class Dump : protected Pointers {
   int filewriter;            // 1 if this proc writes a file, else 0
   int fileproc;              // ID of proc in my cluster who writes to file
   char *multiname;           // dump filename with % converted to cluster ID
-  MPI_Comm dumpcomm;
+  MPI_Comm clustercomm;      // MPI communicator within my cluster of procs
 
   int header_flag;           // 0 = item, 2 = xyz
   int flush_flag;            // 0 if no flush, 1 if flush every dump

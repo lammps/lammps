@@ -175,7 +175,8 @@ void Dump::init()
 
   if (sort_flag) {
     if (multiproc > 1) 
-      error->all(FLERR,"Cannot dump sort when multiple procs write the dump file");
+      error->all(FLERR,
+                 "Cannot dump sort when multiple procs write the dump file");
     if (sortcol == 0 && atom->tag_enable == 0)
       error->all(FLERR,"Cannot dump sort on atom IDs with no atom IDs defined");
     if (sortcol && sortcol > size_one)

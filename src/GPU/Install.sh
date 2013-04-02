@@ -51,6 +51,11 @@ include ..\/..\/lib\/gpu\/Makefile.lammps
     cp pair_table_gpu.h ..
   fi
 
+  if (test -e ../pair_born_coul_long.cpp) then
+    cp pair_born_coul_long_gpu.cpp ..
+    cp pair_born_coul_long_gpu.h ..
+  fi
+
   if (test -e ../pair_buck.cpp) then
     cp pair_buck_gpu.cpp ..
     cp pair_buck_gpu.h ..
@@ -132,7 +137,6 @@ include ..\/..\/lib\/gpu\/Makefile.lammps
   cp pair_lj_cut_coul_debye_gpu.cpp ..
   cp pair_born_gpu.cpp ..
   cp pair_born_coul_wolf_gpu.cpp ..
-  cp pair_born_coul_long_gpu.cpp ..
   cp pair_gauss_gpu.cpp ..
   
   cp fix_gpu.cpp ..
@@ -147,7 +151,6 @@ include ..\/..\/lib\/gpu\/Makefile.lammps
   cp pair_lj_cut_coul_debye_gpu.h ..
   cp pair_born_gpu.h ..
   cp pair_born_coul_wolf_gpu.h ..
-  cp pair_born_coul_long_gpu.h ..
   cp pair_gauss_gpu.h ..
   
   cp fix_gpu.h ..

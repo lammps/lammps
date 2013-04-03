@@ -34,7 +34,8 @@ class WriteData : protected Pointers {
  private:
   int me,nprocs;
   FILE *fp;
-  bigint natoms;         // natoms (sum of nlocal) to write into file
+  bigint nbonds_local;
+  bigint nangles_local;
 
   void header();
   void type_arrays();

@@ -112,6 +112,7 @@ void WriteData::write(char *file)
   // if unequal and thermo lostflag is "error", don't write data file
 
   bigint nblocal = atom->nlocal;
+  bigint natoms;
   MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
   if (natoms != atom->natoms && output->thermo->lostflag == ERROR)
     error->all(FLERR,"Atom count is inconsistent, cannot write data file");
@@ -165,11 +166,17 @@ void WriteData::header()
   fprintf(fp,"%d atom types\n",atom->ntypes);
 
   if (atom->nbonds || atom->nbondtypes) {
-    fprintf(fp,BIGINT_FORMAT " bonds\n",atom->nbonds);
+    nbonds_local = atom->avec->pack_bond(NULL);
+    bigint nbonds;
+    MPI_Allreduce(&nbonds_local,&nbonds,1,MPI_LMP_BIGINT,MPI_SUM,world);
+    fprintf(fp,BIGINT_FORMAT " bonds\n",nbonds);
     fprintf(fp,"%d bond types\n",atom->nbondtypes);
   }
   if (atom->nangles || atom->nangletypes) {
-    fprintf(fp,BIGINT_FORMAT " angles\n",atom->nangles);
+    nangles_local = atom->avec->pack_angle(NULL);
+    bigint nangles;
+    MPI_Allreduce(&nangles_local,&nangles,1,MPI_LMP_BIGINT,MPI_SUM,world);
+    fprintf(fp,BIGINT_FORMAT " angles\n",nangles);
     fprintf(fp,"%d angle types\n",atom->nangletypes);
   }
   if (atom->ndihedrals || atom->ndihedraltypes) {
@@ -214,19 +221,21 @@ void WriteData::force_fields()
     fprintf(fp,"\nPair Coeffs\n\n");
     force->pair->write_data(fp);
   }
-  if (atom->avec->bonds_allow && force->bond) {
+  if (atom->avec->bonds_allow && force->bond && force->bond->writedata) {
     fprintf(fp,"\nBond Coeffs\n\n");
     force->bond->write_data(fp);
   }
-  if (atom->avec->angles_allow && force->angle) {
+  if (atom->avec->angles_allow && force->angle && force->angle->writedata) {
     fprintf(fp,"\nAngle Coeffs\n\n");
     force->angle->write_data(fp);
   }
-  if (atom->avec->dihedrals_allow && force->dihedral) {
+  if (atom->avec->dihedrals_allow && force->dihedral && 
+      force->dihedral->writedata) {
     fprintf(fp,"\nDihedral Coeffs\n\n");
     force->dihedral->write_data(fp);
   }
-  if (atom->avec->impropers_allow && force->improper) {
+  if (atom->avec->impropers_allow && force->improper && 
+      force->improper->writedata) {
     fprintf(fp,"\nImproper Coeffs\n\n");
     force->improper->write_data(fp);
   }
@@ -343,27 +352,9 @@ void WriteData::velocities()
 void WriteData::bonds()
 {
   // communication buffer for all my Bond info
-  // max_size = largest buffer needed by any proc
 
   int ncol = 3;
-
-  int *tag = atom->tag;
-  int *num_bond = atom->num_bond;
-  int **bond_atom = atom->bond_atom;
-  int nlocal = atom->nlocal;
-  int newton_bond = force->newton_bond;
-
-  int i,j;
-  int sendrow = 0;
-  if (newton_bond) {
-    for (i = 0; i < nlocal; i++)
-      sendrow += num_bond[i];
-  } else {
-    for (i = 0; i < nlocal; i++)
-      for (j = 0; j < num_bond[i]; j++)
-        if (tag[i] < bond_atom[i][j]) sendrow++;
-  }
-
+  int sendrow = static_cast<int> (nbonds_local);
   int maxrow;
   MPI_Allreduce(&sendrow,&maxrow,1,MPI_INT,MPI_MAX,world);
 
@@ -413,27 +404,9 @@ void WriteData::bonds()
 void WriteData::angles()
 {
   // communication buffer for all my Angle info
-  // max_size = largest buffer needed by any proc
 
   int ncol = 4;
-
-  int *tag = atom->tag;
-  int *num_angle = atom->num_angle;
-  int **angle_atom2 = atom->angle_atom2;
-  int nlocal = atom->nlocal;
-  int newton_bond = force->newton_bond;
-
-  int i,j;
-  int sendrow = 0;
-  if (newton_bond) {
-    for (i = 0; i < nlocal; i++)
-      sendrow += num_angle[i];
-  } else {
-    for (i = 0; i < nlocal; i++)
-      for (j = 0; j < num_angle[i]; j++)
-        if (tag[i] == angle_atom2[i][j]) sendrow++;
-  }
-
+  int sendrow = static_cast<int> (nangles_local);
   int maxrow;
   MPI_Allreduce(&sendrow,&maxrow,1,MPI_INT,MPI_MAX,world);
 

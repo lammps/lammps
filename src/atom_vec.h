@@ -98,9 +98,9 @@ class AtomVec : protected Pointers {
   virtual void write_vel(FILE *, int, double **);
   virtual int write_vel_hybrid(FILE *, double *) {return 0;}
 
-  void pack_bond(int **);
+  int pack_bond(int **);
   void write_bond(FILE *, int, int **, int);
-  void pack_angle(int **);
+  int pack_angle(int **);
   void write_angle(FILE *, int, int **, int);
   void pack_dihedral(int **);
   void write_dihedral(FILE *, int, int **, int);

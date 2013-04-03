@@ -96,10 +96,13 @@ void AtomVec::write_vel(FILE *fp, int n, double **buf)
 }
 
 /* ----------------------------------------------------------------------
-   pack bond info for data file
+   pack bond info for data file into buf if non-NULL
+   return count of bonds from this proc
+   do not count/pack bonds with bondtype = 0
+   if bondtype is negative, flip back to positive
 ------------------------------------------------------------------------- */
 
-void AtomVec::pack_bond(int **buf)
+int AtomVec::pack_bond(int **buf)
 {
   int *tag = atom->tag;
   int *num_bond = atom->num_bond;
@@ -113,21 +116,29 @@ void AtomVec::pack_bond(int **buf)
   if (newton_bond) {
     for (i = 0; i < nlocal; i++)
       for (j = 0; j < num_bond[i]; j++) {
-        buf[m][0] = bond_type[i][j];
-        buf[m][1] = tag[i];
-        buf[m][2] = bond_atom[i][j];
+        if (bond_type[i][j] == 0) continue;
+        if (buf) {
+          buf[m][0] = MAX(bond_type[i][j],-bond_type[i][j]);
+          buf[m][1] = tag[i];
+          buf[m][2] = bond_atom[i][j];
+        }
         m++;
       }
   } else {
     for (i = 0; i < nlocal; i++)
       for (j = 0; j < num_bond[i]; j++)
         if (tag[i] < bond_atom[i][j]) {
-          buf[m][0] = bond_type[i][j];
-          buf[m][1] = tag[i];
-          buf[m][2] = bond_atom[i][j];
+          if (bond_type[i][j] == 0) continue;
+          if (buf) {
+            buf[m][0] = MAX(bond_type[i][j],-bond_type[i][j]);
+            buf[m][1] = tag[i];
+            buf[m][2] = bond_atom[i][j];
+          }
           m++;
         }
   }
+
+  return m;
 }
 
 /* ----------------------------------------------------------------------
@@ -143,10 +154,13 @@ void AtomVec::write_bond(FILE *fp, int n, int **buf, int index)
 }
 
 /* ----------------------------------------------------------------------
-   pack angle info for data file
+   pack angle info for data file into buf if non-NULL
+   return count of angles from this proc
+   do not count/pack angles with angletype = 0
+   if angletype is negative, flip back to positive
 ------------------------------------------------------------------------- */
 
-void AtomVec::pack_angle(int **buf)
+int AtomVec::pack_angle(int **buf)
 {
   int *tag = atom->tag;
   int *num_angle = atom->num_angle;
@@ -162,23 +176,31 @@ void AtomVec::pack_angle(int **buf)
   if (newton_bond) {
     for (i = 0; i < nlocal; i++)
       for (j = 0; j < num_angle[i]; j++) {
-        buf[m][0] = angle_type[i][j];
-        buf[m][1] = angle_atom1[i][j];
-        buf[m][2] = angle_atom2[i][j];
-        buf[m][3] = angle_atom3[i][j];
+        if (angle_type[i][j] == 0) continue;
+        if (buf) {
+          buf[m][0] = MAX(angle_type[i][j],-angle_type[i][j]);
+          buf[m][1] = angle_atom1[i][j];
+          buf[m][2] = angle_atom2[i][j];
+          buf[m][3] = angle_atom3[i][j];
+        }
         m++;
       }
   } else {
     for (i = 0; i < nlocal; i++)
       for (j = 0; j < num_angle[i]; j++)
         if (tag[i] == angle_atom2[i][j]) {
-          buf[m][0] = angle_type[i][j];
-          buf[m][1] = angle_atom1[i][j];
-          buf[m][2] = angle_atom2[i][j];
-          buf[m][3] = angle_atom3[i][j];
+          if (angle_type[i][j] == 0) continue;
+          if (buf) {
+            buf[m][0] = MAX(angle_type[i][j],-angle_type[i][j]);
+            buf[m][1] = angle_atom1[i][j];
+            buf[m][2] = angle_atom2[i][j];
+            buf[m][3] = angle_atom3[i][j];
+          }
           m++;
         }
   }
+
+  return m;
 }
 
 /* ----------------------------------------------------------------------

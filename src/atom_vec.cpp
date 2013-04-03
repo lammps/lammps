@@ -14,6 +14,7 @@
 #include "stdlib.h"
 #include "atom_vec.h"
 #include "atom.h"
+#include "force.h"
 #include "domain.h"
 #include "error.h"
 
@@ -63,4 +64,242 @@ void AtomVec::data_vel(int m, char **values)
   v[m][0] = atof(values[0]);
   v[m][1] = atof(values[1]);
   v[m][2] = atof(values[2]);
+}
+
+/* ----------------------------------------------------------------------
+   pack velocity info for data file
+------------------------------------------------------------------------- */
+
+void AtomVec::pack_vel(double **buf)
+{
+  double **v = atom->v;
+  int *tag = atom->tag;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) {
+    buf[i][0] = tag[i];
+    buf[i][1] = v[i][0];
+    buf[i][2] = v[i][1];
+    buf[i][3] = v[i][2];
+  }
+}
+
+/* ----------------------------------------------------------------------
+   write velocity info to data file
+------------------------------------------------------------------------- */
+
+void AtomVec::write_vel(FILE *fp, int n, double **buf)
+{
+  for (int i = 0; i < n; i++)
+    fprintf(fp,"%d %g %g %g\n",
+            (int) buf[i][0],buf[i][1],buf[i][2],buf[i][3]);
+}
+
+/* ----------------------------------------------------------------------
+   pack bond info for data file
+------------------------------------------------------------------------- */
+
+void AtomVec::pack_bond(int **buf)
+{
+  int *tag = atom->tag;
+  int *num_bond = atom->num_bond;
+  int **bond_type = atom->bond_type;
+  int **bond_atom = atom->bond_atom;
+  int nlocal = atom->nlocal;
+  int newton_bond = force->newton_bond;
+
+  int i,j;
+  int m = 0;
+  if (newton_bond) {
+    for (i = 0; i < nlocal; i++)
+      for (j = 0; j < num_bond[i]; j++) {
+        buf[m][0] = bond_type[i][j];
+        buf[m][1] = tag[i];
+        buf[m][2] = bond_atom[i][j];
+        m++;
+      }
+  } else {
+    for (i = 0; i < nlocal; i++)
+      for (j = 0; j < num_bond[i]; j++)
+        if (tag[i] < bond_atom[i][j]) {
+          buf[m][0] = bond_type[i][j];
+          buf[m][1] = tag[i];
+          buf[m][2] = bond_atom[i][j];
+          m++;
+        }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   write bond info to data file
+------------------------------------------------------------------------- */
+
+void AtomVec::write_bond(FILE *fp, int n, int **buf, int index)
+{
+  for (int i = 0; i < n; i++) {
+    fprintf(fp,"%d %d %d %d\n",index,buf[i][0],buf[i][1],buf[i][2]);
+    index++;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   pack angle info for data file
+------------------------------------------------------------------------- */
+
+void AtomVec::pack_angle(int **buf)
+{
+  int *tag = atom->tag;
+  int *num_angle = atom->num_angle;
+  int **angle_type = atom->angle_type;
+  int **angle_atom1 = atom->angle_atom1;
+  int **angle_atom2 = atom->angle_atom2;
+  int **angle_atom3 = atom->angle_atom3;
+  int nlocal = atom->nlocal;
+  int newton_bond = force->newton_bond;
+
+  int i,j;
+  int m = 0;
+  if (newton_bond) {
+    for (i = 0; i < nlocal; i++)
+      for (j = 0; j < num_angle[i]; j++) {
+        buf[m][0] = angle_type[i][j];
+        buf[m][1] = angle_atom1[i][j];
+        buf[m][2] = angle_atom2[i][j];
+        buf[m][3] = angle_atom3[i][j];
+        m++;
+      }
+  } else {
+    for (i = 0; i < nlocal; i++)
+      for (j = 0; j < num_angle[i]; j++)
+        if (tag[i] == angle_atom2[i][j]) {
+          buf[m][0] = angle_type[i][j];
+          buf[m][1] = angle_atom1[i][j];
+          buf[m][2] = angle_atom2[i][j];
+          buf[m][3] = angle_atom3[i][j];
+          m++;
+        }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   write angle info to data file
+------------------------------------------------------------------------- */
+
+void AtomVec::write_angle(FILE *fp, int n, int **buf, int index)
+{
+  for (int i = 0; i < n; i++) {
+    fprintf(fp,"%d %d %d %d %d\n",index,
+            buf[i][0],buf[i][1],buf[i][2],buf[i][3]);
+    index++;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   pack dihedral info for data file
+------------------------------------------------------------------------- */
+
+void AtomVec::pack_dihedral(int **buf)
+{
+  int *tag = atom->tag;
+  int *num_dihedral = atom->num_dihedral;
+  int **dihedral_type = atom->dihedral_type;
+  int **dihedral_atom1 = atom->dihedral_atom1;
+  int **dihedral_atom2 = atom->dihedral_atom2;
+  int **dihedral_atom3 = atom->dihedral_atom3;
+  int **dihedral_atom4 = atom->dihedral_atom4;
+  int nlocal = atom->nlocal;
+  int newton_bond = force->newton_bond;
+
+  int i,j;
+  int m = 0;
+  if (newton_bond) {
+    for (i = 0; i < nlocal; i++)
+      for (j = 0; j < num_dihedral[i]; j++) {
+        buf[m][0] = dihedral_type[i][j];
+        buf[m][1] = dihedral_atom1[i][j];
+        buf[m][2] = dihedral_atom2[i][j];
+        buf[m][3] = dihedral_atom3[i][j];
+        buf[m][4] = dihedral_atom4[i][j];
+        m++;
+      }
+  } else {
+    for (i = 0; i < nlocal; i++)
+      for (j = 0; j < num_dihedral[i]; j++)
+        if (tag[i] == dihedral_atom2[i][j]) {
+          buf[m][0] = dihedral_type[i][j];
+          buf[m][1] = dihedral_atom1[i][j];
+          buf[m][2] = dihedral_atom2[i][j];
+          buf[m][3] = dihedral_atom3[i][j];
+          buf[m][4] = dihedral_atom4[i][j];
+          m++;
+        }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   write dihedral info to data file
+------------------------------------------------------------------------- */
+
+void AtomVec::write_dihedral(FILE *fp, int n, int **buf, int index)
+{
+  for (int i = 0; i < n; i++) {
+    fprintf(fp,"%d %d %d %d %d %d\n",index,
+            buf[i][0],buf[i][1],buf[i][2],buf[i][3],buf[i][4]);
+    index++;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   pack improper info for data file
+------------------------------------------------------------------------- */
+
+void AtomVec::pack_improper(int **buf)
+{
+  int *tag = atom->tag;
+  int *num_improper = atom->num_improper;
+  int **improper_type = atom->improper_type;
+  int **improper_atom1 = atom->improper_atom1;
+  int **improper_atom2 = atom->improper_atom2;
+  int **improper_atom3 = atom->improper_atom3;
+  int **improper_atom4 = atom->improper_atom4;
+  int nlocal = atom->nlocal;
+  int newton_bond = force->newton_bond;
+
+  int i,j;
+  int m = 0;
+  if (newton_bond) {
+    for (i = 0; i < nlocal; i++)
+      for (j = 0; j < num_improper[i]; j++) {
+        buf[m][0] = improper_type[i][j];
+        buf[m][1] = improper_atom1[i][j];
+        buf[m][2] = improper_atom2[i][j];
+        buf[m][3] = improper_atom3[i][j];
+        buf[m][4] = improper_atom4[i][j];
+        m++;
+      }
+  } else {
+    for (i = 0; i < nlocal; i++)
+      for (j = 0; j < num_improper[i]; j++)
+        if (tag[i] == improper_atom2[i][j]) {
+          buf[m][0] = improper_type[i][j];
+          buf[m][1] = improper_atom1[i][j];
+          buf[m][2] = improper_atom2[i][j];
+          buf[m][3] = improper_atom3[i][j];
+          buf[m][4] = improper_atom4[i][j];
+          m++;
+        }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   write improper info to data file
+------------------------------------------------------------------------- */
+
+void AtomVec::write_improper(FILE *fp, int n, int **buf, int index)
+{
+  for (int i = 0; i < n; i++) {
+    fprintf(fp,"%d %d %d %d %d %d\n",index,
+            buf[i][0],buf[i][1],buf[i][2],buf[i][3],buf[i][4]);
+    index++;
+  }
 }

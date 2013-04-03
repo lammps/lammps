@@ -616,6 +616,37 @@ void AtomVecAtomic::data_atom(double *coord, tagint imagetmp, char **values)
 }
 
 /* ----------------------------------------------------------------------
+   pack atom info for data file including 3 image flags
+------------------------------------------------------------------------- */
+
+void AtomVecAtomic::pack_data(double **buf)
+{
+  int nlocal = atom->nlocal;
+  for (int i = 0; i < nlocal; i++) {
+    buf[i][0] = tag[i];
+    buf[i][1] = type[i];
+    buf[i][2] = x[i][0];
+    buf[i][3] = x[i][1];
+    buf[i][4] = x[i][2];
+    buf[i][5] = (image[i] & IMGMASK) - IMGMAX;
+    buf[i][6] = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+    buf[i][7] = (image[i] >> IMG2BITS) - IMGMAX;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   write atom info to data file including 3 image flags
+------------------------------------------------------------------------- */
+
+void AtomVecAtomic::write_data(FILE *fp, int n, double **buf)
+{
+  for (int i = 0; i < n; i++)
+    fprintf(fp,"%d %d %g %g %g %d %d %d\n",
+            (int) buf[i][0],(int) buf[i][1],buf[i][2],buf[i][3],buf[i][4],
+            (int) buf[i][5],(int) buf[i][6],(int) buf[i][7]);
+}
+
+/* ----------------------------------------------------------------------
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 

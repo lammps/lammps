@@ -82,11 +82,30 @@ class AtomVec : protected Pointers {
   virtual void read_restart_settings(FILE *) {}
 
   virtual void create_atom(int, double *) = 0;
+
   virtual void data_atom(double *, tagint, char **) = 0;
   virtual void data_atom_bonus(int, char **) {}
   virtual int data_atom_hybrid(int, char **) {return 0;}
   virtual void data_vel(int, char **);
   virtual int data_vel_hybrid(int, char **) {return 0;}
+
+  virtual void pack_data(double **) = 0;
+  virtual int pack_data_hybrid(int, double *) {return 0;}
+  virtual void write_data(FILE *, int, double **) = 0;
+  virtual int write_data_hybrid(FILE *, double *) {return 0;}
+  virtual void pack_vel(double **);
+  virtual int pack_vel_hybrid(int, double *) {return 0;}
+  virtual void write_vel(FILE *, int, double **);
+  virtual int write_vel_hybrid(FILE *, double *) {return 0;}
+
+  void pack_bond(int **);
+  void write_bond(FILE *, int, int **, int);
+  void pack_angle(int **);
+  void write_angle(FILE *, int, int **, int);
+  void pack_dihedral(int **);
+  void write_dihedral(FILE *, int, int **, int);
+  void pack_improper(int **);
+  void write_improper(FILE *, int, int **, int);
 
   virtual bigint memory_usage() = 0;
 

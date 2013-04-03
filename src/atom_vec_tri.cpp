@@ -1538,6 +1538,135 @@ int AtomVecTri::data_vel_hybrid(int m, char **values)
 }
 
 /* ----------------------------------------------------------------------
+   pack atom info for data file including 3 image flags
+------------------------------------------------------------------------- */
+
+void AtomVecTri::pack_data(double **buf)
+{
+  double c2mc1[2],c3mc1[3],norm[3];
+  double area;
+
+  int nlocal = atom->nlocal;
+  for (int i = 0; i < nlocal; i++) {
+    buf[i][0] = tag[i];
+    buf[i][1] = molecule[i];
+    buf[i][2] = type[i];
+    if (tri[i] < 0) buf[i][3] = 0;
+    else buf[i][3] = 1;
+    if (tri[i] < 0) buf[i][4] = rmass[i];
+    else {
+      MathExtra::sub3(bonus[tri[i]].c2,bonus[tri[i]].c1,c2mc1);
+      MathExtra::sub3(bonus[tri[i]].c3,bonus[tri[i]].c1,c3mc1);
+      MathExtra::cross3(c2mc1,c3mc1,norm);
+      area = 0.5 * MathExtra::len3(norm);
+      buf[i][4] = rmass[i]/area;
+    }
+    buf[i][5] = x[i][0];
+    buf[i][6] = x[i][1];
+    buf[i][7] = x[i][2];
+    buf[i][8] = (image[i] & IMGMASK) - IMGMAX;
+    buf[i][9] = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+    buf[i][10] = (image[i] >> IMG2BITS) - IMGMAX;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   pack hybrid atom info for data file
+------------------------------------------------------------------------- */
+
+int AtomVecTri::pack_data_hybrid(int i, double *buf)
+{
+  buf[0] = molecule[i];
+  if (tri[i] < 0) buf[1] = 0;
+  else buf[1] = 1;
+  if (tri[i] < 0) buf[2] = rmass[i];
+  else {
+    double c2mc1[2],c3mc1[3],norm[3];
+    MathExtra::sub3(bonus[tri[i]].c2,bonus[tri[i]].c1,c2mc1);
+    MathExtra::sub3(bonus[tri[i]].c3,bonus[tri[i]].c1,c3mc1);
+    MathExtra::cross3(c2mc1,c3mc1,norm);
+    double area = 0.5 * MathExtra::len3(norm);
+    buf[2] = rmass[i]/area;
+  }
+  return 3;
+}
+
+/* ----------------------------------------------------------------------
+   write atom info to data file including 3 image flags
+------------------------------------------------------------------------- */
+
+void AtomVecTri::write_data(FILE *fp, int n, double **buf)
+{
+  for (int i = 0; i < n; i++)
+    fprintf(fp,"%d %d %d %d %g %g %g %g %d %d %d\n",
+            (int) buf[i][0],(int) buf[i][1],(int) buf[i][2],(int) buf[i][3],
+            buf[i][4],buf[i][5],buf[i][6],buf[i][7],
+            (int) buf[i][8],(int) buf[i][9],(int) buf[i][10]);
+}
+
+/* ----------------------------------------------------------------------
+   write hybrid atom info to data file
+------------------------------------------------------------------------- */
+
+int AtomVecTri::write_data_hybrid(FILE *fp, double *buf)
+{
+  fprintf(fp," %d %d %g",(int) buf[0],(int) buf[1],buf[2]);
+  return 3;
+}
+
+/* ----------------------------------------------------------------------
+   pack velocity info for data file
+------------------------------------------------------------------------- */
+
+void AtomVecTri::pack_vel(double **buf)
+{
+  int nlocal = atom->nlocal;
+  for (int i = 0; i < nlocal; i++) {
+    buf[i][0] = tag[i];
+    buf[i][1] = v[i][0];
+    buf[i][2] = v[i][1];
+    buf[i][3] = v[i][2];
+    buf[i][4] = angmom[i][0];
+    buf[i][5] = angmom[i][1];
+    buf[i][6] = angmom[i][2];
+  }
+}
+
+/* ----------------------------------------------------------------------
+   pack hybrid velocity info for data file
+------------------------------------------------------------------------- */
+
+int AtomVecTri::pack_vel_hybrid(int i, double *buf)
+{
+  buf[0] = angmom[i][0];
+  buf[1] = angmom[i][1];
+  buf[2] = angmom[i][2];
+  return 3;
+}
+
+/* ----------------------------------------------------------------------
+   write velocity info to data file
+------------------------------------------------------------------------- */
+
+void AtomVecTri::write_vel(FILE *fp, int n, double **buf)
+{
+  for (int i = 0; i < n; i++)
+    fprintf(fp,"%d %g %g %g %g %g %g\n",
+            (int) buf[i][0],buf[i][1],buf[i][2],buf[i][3],
+            buf[i][4],buf[i][5],buf[i][6]);
+}
+
+/* ----------------------------------------------------------------------
+   write hybrid velocity info to data file
+------------------------------------------------------------------------- */
+
+int AtomVecTri::write_vel_hybrid(FILE *fp, double *buf)
+{
+  fprintf(fp," %g %g %g",buf[0],buf[1],buf[2]);
+  return 3;
+}
+
+/* ----------------------------------------------------------------------
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 

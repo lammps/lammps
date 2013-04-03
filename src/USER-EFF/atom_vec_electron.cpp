@@ -830,6 +830,111 @@ int AtomVecElectron::data_vel_hybrid(int m, char **values)
 }
 
 /* ----------------------------------------------------------------------
+   pack atom info for data file including 3 image flags
+------------------------------------------------------------------------- */
+
+void AtomVecElectron::pack_data(double **buf)
+{
+  int nlocal = atom->nlocal;
+  for (int i = 0; i < nlocal; i++) {
+    buf[i][0] = tag[i];
+    buf[i][1] = type[i];
+    buf[i][2] = q[i];
+    buf[i][3] = spin[i];
+    buf[i][4] = eradius[i];
+    buf[i][5] = x[i][0];
+    buf[i][6] = x[i][1];
+    buf[i][7] = x[i][2];
+    buf[i][8] = (image[i] & IMGMASK) - IMGMAX;
+    buf[i][9] = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+    buf[i][10] = (image[i] >> IMG2BITS) - IMGMAX;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   pack hybrid atom info for data file
+------------------------------------------------------------------------- */
+
+int AtomVecElectron::pack_data_hybrid(int i, double *buf)
+{
+  buf[0] = q[i];
+  buf[1] = spin[i];
+  buf[2] = eradius[i];
+  return 3;
+}
+
+/* ----------------------------------------------------------------------
+   write atom info to data file including 3 image flags
+------------------------------------------------------------------------- */
+
+void AtomVecElectron::write_data(FILE *fp, int n, double **buf)
+{
+  for (int i = 0; i < n; i++)
+    fprintf(fp,"%d %d %g %d %g %g %g %g %d %d %d\n",
+            (int) buf[i][0],(int) buf[i][1],buf[i][2],
+            (int) buf[i][3],buf[i][4],
+            buf[i][5],buf[i][6],buf[i][7],
+            (int) buf[i][8],(int) buf[i][9],(int) buf[i][10]);
+}
+
+/* ----------------------------------------------------------------------
+   write hybrid atom info to data file
+------------------------------------------------------------------------- */
+
+int AtomVecElectron::write_data_hybrid(FILE *fp, double *buf)
+{
+  fprintf(fp," %g %d %g",buf[0],(int) buf[1],buf[2]);
+  return 3;
+}
+
+/* ----------------------------------------------------------------------
+   pack velocity info for data file
+------------------------------------------------------------------------- */
+
+void AtomVecElectron::pack_vel(double **buf)
+{
+  int nlocal = atom->nlocal;
+  for (int i = 0; i < nlocal; i++) {
+    buf[i][0] = tag[i];
+    buf[i][1] = v[i][0];
+    buf[i][2] = v[i][1];
+    buf[i][3] = v[i][2];
+    buf[i][4] = ervel[i];
+  }
+}
+
+/* ----------------------------------------------------------------------
+   pack velocity info for data file
+------------------------------------------------------------------------- */
+
+int AtomVecElectron::pack_vel_hybrid(int i, double *buf)
+{
+  buf[0] = ervel[i];
+  return 1;
+}
+
+/* ----------------------------------------------------------------------
+   write hybrid velocity info to data file
+------------------------------------------------------------------------- */
+
+void AtomVecElectron::write_vel(FILE *fp, int n, double **buf)
+{
+  for (int i = 0; i < n; i++)
+    fprintf(fp,"%d %g %g %g %g\n",
+            (int) buf[i][0],buf[i][1],buf[i][2],buf[i][3],buf[i][4]);
+}
+
+/* ----------------------------------------------------------------------
+   write hybrid velocity info to data file
+------------------------------------------------------------------------- */
+
+int AtomVecElectron::write_vel_hybrid(FILE *fp, double *buf)
+{
+  fprintf(fp," %g",buf[0]);
+  return 1;
+}
+
+/* ----------------------------------------------------------------------
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 
@@ -849,7 +954,8 @@ bigint AtomVecElectron::memory_usage()
   if (atom->memcheck("spin")) bytes += memory->usage(spin,nmax);
   if (atom->memcheck("eradius")) bytes += memory->usage(eradius,nmax);
   if (atom->memcheck("ervel")) bytes += memory->usage(ervel,nmax);
-  if (atom->memcheck("erforce")) bytes += memory->usage(erforce,nmax*comm->nthreads);
+  if (atom->memcheck("erforce")) 
+    bytes += memory->usage(erforce,nmax*comm->nthreads);
 
   return bytes;
 }

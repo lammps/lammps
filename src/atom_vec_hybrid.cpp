@@ -902,6 +902,95 @@ void AtomVecHybrid::data_vel(int m, char **values)
 }
 
 /* ----------------------------------------------------------------------
+   pack atom info for data file including 3 image flags
+------------------------------------------------------------------------- */
+
+void AtomVecHybrid::pack_data(double **buf)
+{
+  int k,m;
+
+  int nlocal = atom->nlocal;
+  for (int i = 0; i < nlocal; i++) {
+    buf[i][0] = tag[i];
+    buf[i][1] = type[i];
+    buf[i][2] = x[i][0];
+    buf[i][3] = x[i][1];
+    buf[i][4] = x[i][2];
+
+    m = 5;
+    for (k = 0; k < nstyles; k++)
+      m += styles[k]->pack_data_hybrid(i,&buf[i][m]);
+
+    buf[i][m] = (image[i] & IMGMASK) - IMGMAX;
+    buf[i][m+1] = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+    buf[i][m+2] = (image[i] >> IMG2BITS) - IMGMAX;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   write atom info to data file including 3 image flags
+------------------------------------------------------------------------- */
+
+void AtomVecHybrid::write_data(FILE *fp, int n, double **buf)
+{
+  int k,m;
+
+  for (int i = 0; i < n; i++) {
+    fprintf(fp,"%d %d %g %g %g",
+            (int) buf[i][0],(int) buf[i][1],
+            buf[i][2],buf[i][3],buf[i][4]);
+
+    m = 5;
+    for (k = 0; k < nstyles; k++)
+      m += styles[k]->write_data_hybrid(fp,&buf[i][m]);
+
+    fprintf(fp," %d %d %d\n",
+            (int) buf[i][m],(int) buf[i][m+1],(int) buf[i][m+2]);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   pack velocity info for data file
+------------------------------------------------------------------------- */
+
+void AtomVecHybrid::pack_vel(double **buf)
+{
+  int k,m;
+
+  int nlocal = atom->nlocal;
+  for (int i = 0; i < nlocal; i++) {
+    buf[i][0] = tag[i];
+    buf[i][1] = v[i][0];
+    buf[i][2] = v[i][1];
+    buf[i][3] = v[i][2];
+
+    m = 4;
+    for (k = 0; k < nstyles; k++)
+      m += styles[k]->pack_vel_hybrid(i,&buf[i][m]);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   write velocity info to data file
+------------------------------------------------------------------------- */
+
+void AtomVecHybrid::write_vel(FILE *fp, int n, double **buf)
+{
+  int k,m;
+
+  for (int i = 0; i < n; i++) {
+    fprintf(fp,"%d %g %g %g",
+            (int) buf[i][0],buf[i][1],buf[i][2],buf[i][3]);
+
+    m = 4;
+    for (k = 0; k < nstyles; k++)
+      m += styles[k]->write_vel_hybrid(fp,&buf[i][m]);
+
+    fprintf(fp,"\n");
+  }
+}
+
+/* ----------------------------------------------------------------------
    allstyles = list of all atom styles in this LAMMPS executable
 ------------------------------------------------------------------------- */
 

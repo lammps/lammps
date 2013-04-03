@@ -208,18 +208,19 @@ void Input::file()
 
 /* ----------------------------------------------------------------------
    process all input from filename
+   called from library interface
 ------------------------------------------------------------------------- */
 
 void Input::file(const char *filename)
 {
-  // error if another nested file still open
-  // if single open file is not stdin, close it
-  // open new filename and set infile, infiles[0]
+  // error if another nested file still open, should not be possible
+  // open new filename and set infile, infiles[0], nfile
+  // call to file() will close filename and decrement nfile
 
   if (me == 0) {
     if (nfile > 1)
-      error->one(FLERR,"Another input script is already being processed");
-    if (infile != stdin) fclose(infile);
+      error->one(FLERR,"Invalid use of library file() function");
+
     infile = fopen(filename,"r");
     if (infile == NULL) {
       char str[128];
@@ -227,7 +228,8 @@ void Input::file(const char *filename)
       error->one(FLERR,str);
     }
     infiles[0] = infile;
-  } else infile = NULL;
+    nfile = 1;
+  }
 
   file();
 }

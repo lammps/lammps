@@ -333,15 +333,21 @@ command can be used to insure all timestep numbers are the same length
 (e.g. 00010), which can make it easier to read a series of dump files
 in order by some post-processing tools.
 </P>
-<P>If a "%" character appears in the filename, then one file is written
-for each processor and the "%" character is replaced with the
-processor ID from 0 to P-1.  For example, tmp.dump.% becomes
+<P>If a "%" character appears in the filename, then each of P processors
+writes a portion of the dump file, and the "%" character is replaced
+with the processor ID from 0 to P-1.  For example, tmp.dump.% becomes
 tmp.dump.0, tmp.dump.1, ... tmp.dump.P-1, etc.  This creates smaller
 files and can be a fast mode of output on parallel machines that
 support parallel I/O for output. This option is not available for the
 <I>dcd</I>, <I>xtc</I>, and <I>xyz</I> styles.
 </P>
-<P>Note that the "*" and "%" characters can be used together to produce a
+<P>By default, P = the number of processors meaning one file per
+processor, but P can be set to a smaller value via the <I>nfile</I> or
+<I>fileper</I> keywords of the <A HREF = "dump_modify.html">dump_modify</A> command.
+These options can be the most efficient way of writing out dump files
+when running on large numbers of processors.
+</P>
+<P>Note that using the "*" and "%" characters together can produce a
 large number of small dump files!
 </P>
 <P>If the filename ends with ".bin", the dump file (or files, if "*" or

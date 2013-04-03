@@ -30,7 +30,10 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-AngleHarmonic::AngleHarmonic(LAMMPS *lmp) : Angle(lmp) {}
+AngleHarmonic::AngleHarmonic(LAMMPS *lmp) : Angle(lmp)
+{
+  writedata = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -219,6 +222,16 @@ void AngleHarmonic::read_restart(FILE *fp)
   MPI_Bcast(&theta0[1],atom->nangletypes,MPI_DOUBLE,0,world);
 
   for (int i = 1; i <= atom->nangletypes; i++) setflag[i] = 1;
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void AngleHarmonic::write_data(FILE *fp)
+{
+  for (int i = 1; i <= atom->nangletypes; i++)
+    fprintf(fp,"%d %g %g\n",i,k[i],theta0[i]/MY_PI*180.0);
 }
 
 /* ---------------------------------------------------------------------- */

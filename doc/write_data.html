@@ -19,48 +19,62 @@
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>write_data data.polymer 
+<PRE>write_data data.polymer
+write_data data.* 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Write a text data file of the current state of the simulation.
+<P>Write a data file in text format of the current state of the
+simulation.  Data files can be read by the <A HREF = "read_data.html">read data</A>
+command to begin a simulation.  The <A HREF = "read_data.html">read_data</A> command
+also describes their format.
 </P>
-<P>During a long simulation, the <A HREF = "restart.html">restart</A> command is
-typically used to dump restart files periodically.  The write_restart
-command is useful after a minimization or whenever you wish to write
-out a single current restart file.
+<P>Similar to <A HREF = "dump.html">dump</A> files, the data filename can contain a "*"
+wild-card character.  The "*" is replaced with the current timestep
+value.
 </P>
-<P>Similar to <A HREF = "dump.html">dump</A> files, the restart filename can contain
-two wild-card characters.  If a "*" appears in the filename, it is
-replaced with the current timestep value.  If a "%" character appears
-in the filename, then one file is written by each processor and the
-"%" character is replaced with the processor ID from 0 to P-1.  An
-additional file with the "%" replaced by "base" is also written, which
-contains global information.  For example, the files written for
-filename restart.% would be restart.base, restart.0, restart.1, ...
-restart.P-1.  This creates smaller files and can be a fast mode of
-output and subsequent input on parallel machines that support parallel
-I/O.
+<P>IMPORTANT NOTE: The write-data command is not yet fully implemented in
+two respects.  First, most pair, bond, angle, dihedral, improper
+styles do not yet write their coefficient information into the data
+file.  This means you will need to specify that information in your
+input script that reads the data file, e.g. with the
+<A HREF = "pair_coeff.html">pair_coeff</A> command.  Second, a few of the <A HREF = "atom_style.html">atom
+styles</A> (body, ellipsoid, line, tri) that store
+auxiliary "bonus" information about aspherical particles, do not yet
+write the bonus info into the data file.  Both these functionalities
+will be added to the write_data command later.
 </P>
-<P>Restart files can be read by a <A HREF = "read_restart.html">read_restart</A>
-command to restart a simulation from a particular state.  Because the
-file is binary (to enable exact restarts), it may not be readable on
-another machine.  In this case, the restart2data program in the tools
-directory can be used to convert a restart file to an ASCII data file.
-Both the read_restart command and restart2data tool can read in a
-restart file that was written with the "%" character so that multiple
-files were created.
+<P>Because a data file is in text format, if you use a data file written
+out by this command to restart a simulation, the initial state of the
+new run will be slightly different than the final state of the old run
+(when the file was written) which was represented internally by LAMMPS
+in binary format.  A new simulation which reads the data file will
+thus typically diverge from a simulation that continued in the
+original input script.
 </P>
-<P>IMPORTANT NOTE: Although the purpose of restart files is to enable
-restarting a simulation from where it left off, not all information
-about a simulation is stored in the file.  For example, the list of
-fixes that were specified during the initial run is not stored, which
-means the new input script must specify any fixes you want to use.
-Even when restart information is stored in the file, as it is for some
-fixes, commands may need to be re-specified in the new input script,
-in order to re-use that information.  See the
-<A HREF = "read_restart.html">read_restart</A> command for information about what is
-stored in a restart file.
+<P>If you want to do more exact restarts, using binary files, see the
+<A HREF = "restart.html">restart</A>, <A HREF = "write_restart.html">write_restart</A>, and
+<A HREF = "read_restart.html">read_restart</A> commands.  You can also convert
+binary restart files to text data files, after a simulation has run,
+using the <A HREF = "Section_tools.html#restart2data">restart2data</A> tool in the
+tools directory.  When the write_data command is fully implemented
+(see NOTE above), the restart2data command will be obsolete and will
+be removed from the LAMMPS distribution.
+</P>
+<P>IMPORTANT NOTE: Only limited information about a simulation is stored
+in a data file.  For example, no information about atom
+<A HREF = "group.html">groups</A> and <A HREF = "fix.html">fixes</A> are stored.  <A HREF = "read_restart.html">Binary restart
+files</A> store more information.
+</P>
+<P>Bond interactions (angle, etc) that have been turned off by the <A HREF = "fix_shake.html">fix
+shake</A> or <A HREF = "delete_bonds.html">delete_bonds</A> command will
+be written to a data file as if they are turned on.  This means they
+will need to be turned off again in a new run after the data file is
+read.
+</P>
+<P>Bonds that are broken (e.g. by a bond-breaking potential) are not
+written to the data file.  Thus these bonds will not exist when the
+data file is read.
 </P>
 <P><B>Restrictions:</B>
 </P>

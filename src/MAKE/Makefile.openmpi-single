@@ -68,6 +68,11 @@ EXTRA_INC = $(LMP_INC) $(PKG_INC) $(MPI_INC) $(FFT_INC)
 EXTRA_PATH = $(PKG_PATH) $(MPI_PATH) $(FFT_PATH) $(PKG_SYSPATH)
 EXTRA_LIB = $(PKG_LIB) $(MPI_LIB) $(FFT_LIB) $(PKG_SYSLIB)
 
+# Path to src files
+
+vpath %.cpp ..
+vpath %.h ..
+
 # Link target
 
 $(EXE):	$(OBJ)

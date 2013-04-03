@@ -1,4 +1,4 @@
-# jaguar = ORNL Jaguar Cray XT5, CC, native MPICH, FFTW
+# serial-clang = RedHat Linux box, clang, no MPI, no FFTs
 
 SHELL = /bin/sh
 
@@ -6,14 +6,14 @@ SHELL = /bin/sh
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-CXX =           CC
-CCFLAGS =	-g -O
+CC =		clang
+CCFLAGS =	-O3  -fno-exceptions
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
-LINK =		$(CXX)
-LINKFLAGS =	-g -O
-LIB =           
+LINK =		clang
+LINKFLAGS =	-O3  -fno-exceptions
+LIB =           -lstdc++
 SIZE =		size
 
 ARCHIVE =	ar
@@ -28,7 +28,7 @@ SHLIBFLAGS =	-shared
 # LAMMPS ifdef settings, OPTIONAL
 # see possible settings in doc/Section_start.html#2_2 (step 4)
 
-LMP_INC =	-DLAMMPS_GZIP -DNODE_PARTITION
+LMP_INC =	#-DLAMMPS_GZIP -DMALLOC_MEMALIGN=64
 
 # MPI library, REQUIRED
 # see discussion in doc/Section_start.html#2_2 (step 5)
@@ -37,9 +37,9 @@ LMP_INC =	-DLAMMPS_GZIP -DNODE_PARTITION
 # PATH = path for MPI library
 # LIB = name of MPI library
 
-MPI_INC =       -DMPICH_SKIP_MPICXX 
-MPI_PATH = 
-MPI_LIB =	-lmpich -lpthread
+MPI_INC =       -I../STUBS
+MPI_PATH =      -L../STUBS
+MPI_LIB =	-lmpi_stubs
 
 # FFT library, OPTIONAL
 # see discussion in doc/Section_start.html#2_2 (step 6)
@@ -48,9 +48,9 @@ MPI_LIB =	-lmpich -lpthread
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-FFT_INC =       -DFFT_FFTW3 -I$(FFTW_INC)
-FFT_PATH =	 -L$(FFTW_DIR)
-FFT_LIB =	-lfftw3
+FFT_INC =
+FFT_PATH = 
+FFT_LIB =       -lfftw3f
 
 # JPEG library, OPTIONAL
 # see discussion in doc/Section_start.html#2_2 (step 7)

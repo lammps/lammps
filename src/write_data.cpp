@@ -140,8 +140,8 @@ void WriteData::write(char *file)
 
   if (natoms) atoms();
   if (natoms) velocities();
-  if (atom->nbonds) bonds();
-  if (atom->nangles) angles();
+  if (nbonds) bonds();
+  if (nangles) angles();
   if (atom->ndihedrals) dihedrals();
   if (atom->nimpropers) impropers();
 
@@ -167,14 +167,12 @@ void WriteData::header()
 
   if (atom->nbonds || atom->nbondtypes) {
     nbonds_local = atom->avec->pack_bond(NULL);
-    bigint nbonds;
     MPI_Allreduce(&nbonds_local,&nbonds,1,MPI_LMP_BIGINT,MPI_SUM,world);
     fprintf(fp,BIGINT_FORMAT " bonds\n",nbonds);
     fprintf(fp,"%d bond types\n",atom->nbondtypes);
   }
   if (atom->nangles || atom->nangletypes) {
     nangles_local = atom->avec->pack_angle(NULL);
-    bigint nangles;
     MPI_Allreduce(&nangles_local,&nangles,1,MPI_LMP_BIGINT,MPI_SUM,world);
     fprintf(fp,BIGINT_FORMAT " angles\n",nangles);
     fprintf(fp,"%d angle types\n",atom->nangletypes);

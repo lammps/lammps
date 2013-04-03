@@ -9,22 +9,21 @@
 
 <HR>
 
-<H3>write_restart command 
+<H3>write_data command 
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>write_restart file 
+<PRE>write_data file 
 </PRE>
-<UL><LI>file = name of file to write restart information to 
+<UL><LI>file = name of data file to write out 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>write_restart restart.equil
-write_restart poly.%.* 
+<PRE>write_data data.polymer 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Write a binary restart file of the current state of the simulation.
+<P>Write a text data file of the current state of the simulation.
 </P>
 <P>During a long simulation, the <A HREF = "restart.html">restart</A> command is
 typically used to dump restart files periodically.  The write_restart
@@ -66,14 +65,13 @@ stored in a restart file.
 <P><B>Restrictions:</B>
 </P>
 <P>This command requires inter-processor communication to migrate atoms
-before the restart file is written.  This means that your system must
-be ready to perform a simulation before using this command (force
-fields setup, atom masses initialized, etc).
+before the data file is written.  This means that your system must be
+ready to perform a simulation before using this command (force fields
+setup, atom masses initialized, etc).
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "restart.html">restart</A>, <A HREF = "read_restart.html">read_restart</A>,
-<A HREF = "write_data.html">write_data</A>
+<P><A HREF = "read_data.html">read_data</A>, <A HREF = "write_restart.html">write_restart</A>
 </P>
 <P><B>Default:</B> none
 </P>

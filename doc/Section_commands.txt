@@ -302,7 +302,7 @@ Output:
 "dump_modify"_dump_modify.html, "restart"_restart.html,
 "thermo"_thermo.html, "thermo_modify"_thermo_modify.html,
 "thermo_style"_thermo_style.html, "undump"_undump.html,
-"write_restart"_write_restart.html
+"write_data"_write_data.html, "write_restart"_write_restart.html
 
 Actions:
 
@@ -416,6 +416,7 @@ in the command's documentation.
 "units"_units.html,
 "variable"_variable.html,
 "velocity"_velocity.html,
+"write_data"_write_data.html,
 "write_restart"_write_restart.html :tb(c=6,ea=c)
 
 :line

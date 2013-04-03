@@ -402,6 +402,13 @@ the README.txt file for more info.
 
 <H4><A NAME = "restart"></A>restart2data tool 
 </H4>
+<P>IMPORTANT NOTE: LAMMPS now has a <A HREF = "write_data.html">write_data</A> command,
+which can create a data file from within an input script.  This means
+a two line input script can read a restart file, and write it as a
+data file.  When the write_data command is fully functional, the
+restart2data tool will be obsolete, and will be retired from the
+distribution.
+</P>
 <P>The file restart2data.cpp converts a binary LAMMPS restart file into
 an ASCII data file.  The syntax for running the tool is
 </P>

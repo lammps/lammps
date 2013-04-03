@@ -729,7 +729,7 @@ void AtomVecCharge::write_data(FILE *fp, int n, double **buf)
 
 int AtomVecCharge::write_data_hybrid(FILE *fp, double *buf)
 {
-  fprintf(fp," %d",buf[0]);
+  fprintf(fp," %g",buf[0]);
   return 1;
 }
 

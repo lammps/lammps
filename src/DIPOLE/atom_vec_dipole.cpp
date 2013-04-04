@@ -810,6 +810,66 @@ int AtomVecDipole::data_atom_hybrid(int nlocal, char **values)
 }
 
 /* ----------------------------------------------------------------------
+   pack atom info for data file including 3 image flags
+------------------------------------------------------------------------- */
+
+void AtomVecDipole::pack_data(double **buf)
+{
+  int nlocal = atom->nlocal;
+  for (int i = 0; i < nlocal; i++) {
+    buf[i][0] = tag[i];
+    buf[i][1] = type[i];
+    buf[i][2] = q[i];
+    buf[i][3] = x[i][0];
+    buf[i][4] = x[i][1];
+    buf[i][5] = x[i][2];
+    buf[i][6] = mu[i][0];
+    buf[i][7] = mu[i][1];
+    buf[i][8] = mu[i][2];
+    buf[i][9] = (image[i] & IMGMASK) - IMGMAX;
+    buf[i][10] = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+    buf[i][11] = (image[i] >> IMG2BITS) - IMGMAX;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   pack hybrid atom info for data file
+------------------------------------------------------------------------- */
+
+int AtomVecDipole::pack_data_hybrid(int i, double *buf)
+{
+  buf[0] = q[i];
+  buf[1] = mu[i][0];
+  buf[2] = mu[i][1];
+  buf[3] = mu[i][2];
+  return 4;
+}
+
+/* ----------------------------------------------------------------------
+   write atom info to data file including 3 image flags
+------------------------------------------------------------------------- */
+
+void AtomVecDipole::write_data(FILE *fp, int n, double **buf)
+{
+  for (int i = 0; i < n; i++)
+    fprintf(fp,"%d %d %g %g %g %g %g %g %g %d %d %d\n",
+            (int) buf[i][0],(int) buf[i][1],buf[i][2],
+            buf[i][3],buf[i][4],buf[i][5],
+            buf[i][6],buf[i][7],buf[i][8],
+            (int) buf[i][9],(int) buf[i][10],(int) buf[i][11]);
+}
+
+/* ----------------------------------------------------------------------
+   write hybrid atom info to data file
+------------------------------------------------------------------------- */
+
+int AtomVecDipole::write_data_hybrid(FILE *fp, double *buf)
+{
+  fprintf(fp," %g %g %g %g",buf[0],buf[1],buf[2],buf[3]);
+  return 4;
+}
+
+/* ----------------------------------------------------------------------
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 

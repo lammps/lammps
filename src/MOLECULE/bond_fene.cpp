@@ -29,6 +29,7 @@ using namespace LAMMPS_NS;
 
 BondFENE::BondFENE(LAMMPS *lmp) : Bond(lmp)
 {
+  writedata = 1;
   TWO_1_3 = pow(2.0,(1.0/3.0));
 }
 
@@ -227,6 +228,16 @@ void BondFENE::read_restart(FILE *fp)
   MPI_Bcast(&sigma[1],atom->nbondtypes,MPI_DOUBLE,0,world);
 
   for (int i = 1; i <= atom->nbondtypes; i++) setflag[i] = 1;
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void BondFENE::write_data(FILE *fp)
+{
+  for (int i = 1; i <= atom->nbondtypes; i++)
+    fprintf(fp,"%d %g %g %g %g\n",i,k[i],r0[i],epsilon[i],sigma[i]);
 }
 
 /* ---------------------------------------------------------------------- */

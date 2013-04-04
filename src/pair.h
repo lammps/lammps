@@ -47,6 +47,7 @@ class Pair : protected Pointers {
   int respa_enable;              // 1 if inner/middle/outer rRESPA routines
   int one_coeff;                 // 1 if allows only one coeff * * call
   int no_virial_fdotr_compute;   // 1 if does not invoke virial_fdotr_compute()
+  int writedata;                 // 1 if writes coeffs to data file
   int ghostneigh;                // 1 if pair style needs neighbors of ghosts
   double **cutghost;             // cutoff for each ghost pair
 
@@ -151,6 +152,7 @@ class Pair : protected Pointers {
   virtual void read_restart(FILE *) {}
   virtual void write_restart_settings(FILE *) {}
   virtual void read_restart_settings(FILE *) {}
+  virtual void write_data(FILE *) {}
 
   virtual int pack_comm(int, int *, double *, int, int *) {return 0;}
   virtual void unpack_comm(int, int, double *) {}

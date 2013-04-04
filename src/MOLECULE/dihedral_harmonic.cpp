@@ -36,7 +36,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-DihedralHarmonic::DihedralHarmonic(LAMMPS *lmp) : Dihedral(lmp) {}
+DihedralHarmonic::DihedralHarmonic(LAMMPS *lmp) : Dihedral(lmp)
+{
+  writedata = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -345,3 +348,14 @@ void DihedralHarmonic::read_restart(FILE *fp)
     }
   }
 }
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void DihedralHarmonic::write_data(FILE *fp)
+{
+  for (int i = 1; i <= atom->ndihedraltypes; i++)
+    fprintf(fp,"%d %g %d %d\n",i,k[i],sign[i],multiplicity[i]);
+}
+

@@ -398,6 +398,13 @@ These tools were written by Aidan Thompson at Sandia.
 
 restart2data tool :h4,link(restart)
 
+IMPORTANT NOTE: LAMMPS now has a "write_data"_write_data.html command,
+which can create a data file from within an input script.  This means
+a two line input script can read a restart file, and write it as a
+data file.  When the write_data command is fully functional, the
+restart2data tool will be obsolete, and will be retired from the
+distribution.
+
 The file restart2data.cpp converts a binary LAMMPS restart file into
 an ASCII data file.  The syntax for running the tool is
 

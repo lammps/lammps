@@ -31,6 +31,7 @@ using namespace LAMMPS_NS;
 Bond::Bond(LAMMPS *lmp) : Pointers(lmp)
 {
   energy = 0.0;
+  writedata = 0;
 
   allocated = 0;
   suffix_flag = Suffix::NONE;

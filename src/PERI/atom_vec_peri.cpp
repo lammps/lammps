@@ -789,7 +789,6 @@ void AtomVecPeri::data_atom(double *coord, tagint imagetmp, char **values)
   atom->nlocal++;
 }
 
-
 /* ----------------------------------------------------------------------
    unpack hybrid quantities from one line in Atoms section of data file
    initialize other atom quantities for this sub-style
@@ -806,6 +805,62 @@ int AtomVecPeri::data_atom_hybrid(int nlocal, char **values)
   x0[nlocal][1] = x[nlocal][1];
   x0[nlocal][2] = x[nlocal][2];
 
+  return 2;
+}
+
+/* ----------------------------------------------------------------------
+   pack atom info for data file including 3 image flags
+------------------------------------------------------------------------- */
+
+void AtomVecPeri::pack_data(double **buf)
+{
+  int nlocal = atom->nlocal;
+  for (int i = 0; i < nlocal; i++) {
+    buf[i][0] = tag[i];
+    buf[i][1] = type[i];
+    buf[i][2] = vfrac[i];
+    buf[i][3] = rmass[i];
+    buf[i][4] = x[i][0];
+    buf[i][5] = x[i][1];
+    buf[i][6] = x[i][2];
+    buf[i][7] = (image[i] & IMGMASK) - IMGMAX;
+    buf[i][8] = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+    buf[i][9] = (image[i] >> IMG2BITS) - IMGMAX;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   pack hybrid atom info for data file
+------------------------------------------------------------------------- */
+
+int AtomVecPeri::pack_data_hybrid(int i, double *buf)
+{
+  buf[0] = vfrac[i];
+  buf[1] = rmass[i];
+  return 2;
+}
+
+/* ----------------------------------------------------------------------
+   write atom info to data file including 3 image flags
+------------------------------------------------------------------------- */
+
+void AtomVecPeri::write_data(FILE *fp, int n, double **buf)
+{
+  for (int i = 0; i < n; i++)
+    fprintf(fp,"%d %d %g %g %g %g %g %d %d %d\n",
+            (int) buf[i][0],(int) buf[i][1],
+            buf[i][2],buf[i][3],
+            buf[i][4],buf[i][5],buf[i][6],
+            (int) buf[i][7],(int) buf[i][8],(int) buf[i][9]);
+}
+
+/* ----------------------------------------------------------------------
+   write hybrid atom info to data file
+------------------------------------------------------------------------- */
+
+int AtomVecPeri::write_data_hybrid(FILE *fp, double *buf)
+{
+  fprintf(fp," %g %g",buf[0],buf[1]);
   return 2;
 }
 

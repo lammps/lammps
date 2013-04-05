@@ -37,6 +37,7 @@ enum{LINEAR,SPLINE};
 
 BondTable::BondTable(LAMMPS *lmp) : Bond(lmp)
 {
+  writedata = 0;
   ntables = 0;
   tables = NULL;
 }

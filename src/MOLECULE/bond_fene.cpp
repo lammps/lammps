@@ -29,7 +29,6 @@ using namespace LAMMPS_NS;
 
 BondFENE::BondFENE(LAMMPS *lmp) : Bond(lmp)
 {
-  writedata = 1;
   TWO_1_3 = pow(2.0,(1.0/3.0));
 }
 

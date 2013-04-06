@@ -16,14 +16,14 @@
 
 #include "pointers.h"
 #include "atom_vec_body.h"
-#include "my_pool.h"
+#include "my_pool_chunk.h"
 
 namespace LAMMPS_NS {
 
 class Body : protected Pointers {
  public:
-  MyPool<int> *icp;
-  MyPool<double> *dcp;
+  MyPoolChunk<int> *icp;
+  MyPoolChunk<double> *dcp;
 
   char *style;
   int size_forward;           // max extra values packed for comm

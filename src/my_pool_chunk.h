@@ -12,21 +12,20 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-MyPool = templated class for storing chunks of datums in pages
+MyPoolChunk = templated class for storing chunks of datums in pages
   chunks can be returned to pool for reuse
   chunks come in nbin different fixed sizes so can reuse
-  unused chunks of each size are stored in free list, pointed to by freehead
   replaces many small mallocs with a few large mallocs
   pages are never freed, so can reuse w/out reallocs
 usage:
   continously get() and put() chunks as needed
   NOTE: could add a clear() if retain info on mapping of pages to bins
 inputs:
-   template T = one object, e.g. int, double, struct
+   template T = one datum, e.g. int, double, struct
    minchunk = min # of datums in one chunk, def = 1
    maxchunk = max # of datums in one chunk, def = 1
    nbin = # of bins between minchunk and maxchunk
-   pagesize = # of datums in one page, def = 1024
+   chunkperpage = # of chunks in one page, def = 1024
    pagedelta = # of pages to allocate at a time, def = 1
 methods:
    T *get(index) = return ptr/index to unused chunk of size maxchunk
@@ -37,30 +36,30 @@ methods:
 public varaibles:
    ndatum = total # of stored datums
    nchunk = total # of stored chunks
-   size = total size of all allocated pages
+   size = total size of all allocated pages in daums
    errorflag = flag for various error conditions
 ------------------------------------------------------------------------- */
 
-#ifndef LAMMPS_MY_POOL_H
-#define LAMMPS_MY_POOL_H
+#ifndef LAMMPS_MY_POOL_CHUNK_H
+#define LAMMPS_MY_POOL_CHUNK_H
 
 #include "stdlib.h"
 
 namespace LAMMPS_NS {
 
 template<class T>
-class MyPool {
+class MyPoolChunk {
  public:
   int ndatum;      // total # of stored datums
   int nchunk;      // total # of stored chunks
-  int size;        // total size of all allocated pages
+  int size;        // total size of all allocated pages in datums
   int errorflag;   // flag > 1 if error has occurred
                    // 1 = invalid inputs
                    // 2 = memory allocation error
                    // 3 = chunk size exceeded maxchunk
 
-  MyPool(int user_minchunk = 1, int user_maxchunk = 1, int user_nbin = 1,
-	 int user_chunkperpage = 1024, int user_pagedelta = 1) {
+  MyPoolChunk(int user_minchunk = 1, int user_maxchunk = 1, int user_nbin = 1,
+              int user_chunkperpage = 1024, int user_pagedelta = 1) {
     minchunk = user_minchunk;
     maxchunk = user_maxchunk;
     nbin = user_nbin;
@@ -95,7 +94,7 @@ class MyPool {
 
   // free all allocated memory
 
-  ~MyPool() {
+  ~MyPoolChunk() {
     delete [] freehead;
     delete [] chunksize;
     if (npage) {
@@ -164,7 +163,7 @@ class MyPool {
   int nbin;           // # of bins to split min-to-max into
   int chunkperpage;   // # of chunks on every page, regardless of which bin
   int pagedelta;      // # of pages to allocate at once, default = 1
-  int binsize;        // # of datums per bin
+  int binsize;        // delta in chunk sizes between adjacent bins
 
   T **pages;          // list of allocated pages
   int *whichbin;      // which bin each page belongs to
@@ -189,7 +188,7 @@ class MyPool {
     for (int i = oldpage; i < npage; i++) {
       whichbin[i] = ibin;
       pages[i] = (T *) malloc(chunkperpage*chunksize[ibin]*sizeof(T));
-      size += chunkperpage*chunksize[ibin]*sizeof(T);
+      size += chunkperpage*chunksize[ibin];
       if (!pages[i]) errorflag = 2;
     }
 

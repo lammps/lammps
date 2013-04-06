@@ -140,8 +140,8 @@ void WriteData::write(char *file)
 
   if (natoms) atoms();
   if (natoms) velocities();
-  if (nbonds) bonds();
-  if (nangles) angles();
+  if (atom->nbonds && nbonds) bonds();
+  if (atom->nangles && nangles) angles();
   if (atom->ndihedrals) dihedrals();
   if (atom->nimpropers) impropers();
 

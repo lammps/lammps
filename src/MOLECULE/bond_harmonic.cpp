@@ -174,6 +174,16 @@ void BondHarmonic::read_restart(FILE *fp)
   for (int i = 1; i <= atom->nbondtypes; i++) setflag[i] = 1;
 }
 
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void BondHarmonic::write_data(FILE *fp)
+{
+  for (int i = 1; i <= atom->nbondtypes; i++)
+    fprintf(fp,"%d %g %g\n",i,k[i],r0[i]);
+}
+
 /* ---------------------------------------------------------------------- */
 
 double BondHarmonic::single(int type, double rsq, int i, int j,

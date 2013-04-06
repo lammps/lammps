@@ -32,6 +32,7 @@ using namespace LAMMPS_NS;
 Dihedral::Dihedral(LAMMPS *lmp) : Pointers(lmp)
 {
   energy = 0.0;
+  writedata = 0;
 
   allocated = 0;
 

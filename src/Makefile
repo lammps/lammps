@@ -77,7 +77,6 @@ help:
 	@test -f MAKE/Makefile.$@
 	@if [ ! -d Obj_$@ ]; then mkdir Obj_$@; fi
 	@$(SHELL) Make.sh style
-	@cp -p *.cpp *.h Obj_$@
 	@cp MAKE/Makefile.$@ Obj_$@/Makefile
 	@if [ ! -e Makefile.package ]; \
 	  then cp Makefile.package.empty Makefile.package; fi
@@ -87,7 +86,6 @@ help:
 	@cd Obj_$@; \
 	$(MAKE) $(MFLAGS) "OBJ = $(OBJ)" "INC = $(INC)" "SHFLAGS =" \
 	  "EXE = ../$(EXE)" ../$(EXE)
-	@if [ -d Obj_$@ ]; then cd Obj_$@; rm -f $(SRC) $(INC) Makefile*; fi
 
 # Remove machine-specific object files
 

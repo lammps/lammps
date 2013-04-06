@@ -833,6 +833,64 @@ int AtomVecMeso::data_atom_hybrid(int nlocal, char **values) {
 }
 
 /* ----------------------------------------------------------------------
+   pack atom info for data file including 3 image flags
+------------------------------------------------------------------------- */
+
+void AtomVecMeso::pack_data(double **buf)
+{
+  int nlocal = atom->nlocal;
+  for (int i = 0; i < nlocal; i++) {
+    buf[i][0] = tag[i];
+    buf[i][1] = type[i];
+    buf[i][2] = rho[i];
+    buf[i][3] = e[i];
+    buf[i][4] = cv[i];
+    buf[i][5] = x[i][0];
+    buf[i][6] = x[i][1];
+    buf[i][7] = x[i][2];
+    buf[i][8] = (image[i] & IMGMASK) - IMGMAX;
+    buf[i][9] = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+    buf[i][10] = (image[i] >> IMG2BITS) - IMGMAX;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   pack hybrid atom info for data file
+------------------------------------------------------------------------- */
+
+int AtomVecMeso::pack_data_hybrid(int i, double *buf)
+{
+  buf[0] = rho[i];
+  buf[1] = e[i];
+  buf[2] = cv[i];
+  return 3;
+}
+
+/* ----------------------------------------------------------------------
+   write atom info to data file including 3 image flags
+------------------------------------------------------------------------- */
+
+void AtomVecMeso::write_data(FILE *fp, int n, double **buf)
+{
+  for (int i = 0; i < n; i++)
+    fprintf(fp,"%d %d %g %g %g %g %g %g %d %d %d\n",
+            (int) buf[i][0],(int) buf[i][1],
+            buf[i][2],buf[i][3],buf[i][4],
+            buf[i][5],buf[i][6],buf[i][7],
+            (int) buf[i][8],(int) buf[i][9],(int) buf[i][10]);
+}
+
+/* ----------------------------------------------------------------------
+   write hybrid atom info to data file
+------------------------------------------------------------------------- */
+
+int AtomVecMeso::write_data_hybrid(FILE *fp, double *buf)
+{
+  fprintf(fp," %g %g %g",buf[0],buf[1],buf[2]);
+  return 3;
+}
+
+/* ----------------------------------------------------------------------
    return # of bytes of allocated memory
    ------------------------------------------------------------------------- */
 

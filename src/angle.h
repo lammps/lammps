@@ -25,6 +25,7 @@ class Angle : protected Pointers {
  public:
   int allocated;
   int *setflag;
+  int writedata;                  // 1 if writes coeffs to data file
   double energy;                  // accumulated energies
   double virial[6];               // accumlated virial
   double *eatom,**vatom;          // accumulated per-atom energy/virial
@@ -41,6 +42,7 @@ class Angle : protected Pointers {
   virtual double equilibrium_angle(int) = 0;
   virtual void write_restart(FILE *) = 0;
   virtual void read_restart(FILE *) = 0;
+  virtual void write_data(FILE *) {}
   virtual double single(int, int, int, int) = 0;
   virtual double memory_usage();
 

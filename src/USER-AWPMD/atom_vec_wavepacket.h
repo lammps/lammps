@@ -62,6 +62,14 @@ public:
   int data_atom_hybrid(int, char **);
   void data_vel(int, char **);
   int data_vel_hybrid(int, char **);
+  void pack_data(double **);
+  int pack_data_hybrid(int, double *);
+  void write_data(FILE *, int, double **);
+  int write_data_hybrid(FILE *, double *);
+  void pack_vel(double **);
+  int pack_vel_hybrid(int, double *);
+  void write_vel(FILE *, int, double **);
+  int write_vel_hybrid(FILE *, double *);
   bigint memory_usage();
 
 private:

@@ -41,6 +41,7 @@ using namespace MathConst;
 PairLJCut::PairLJCut(LAMMPS *lmp) : Pair(lmp)
 {
   respa_enable = 1;
+  writedata = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -677,6 +678,16 @@ void PairLJCut::read_restart_settings(FILE *fp)
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
   MPI_Bcast(&tail_flag,1,MPI_INT,0,world);
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void PairLJCut::write_data(FILE *fp)
+{
+  for (int i = 1; i <= atom->ntypes; i++)
+    fprintf(fp,"%d %g %g\n",i,epsilon[i][i],sigma[i][i]);
 }
 
 /* ---------------------------------------------------------------------- */

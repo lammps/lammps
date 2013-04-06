@@ -30,6 +30,7 @@ using namespace MathConst;
 Angle::Angle(LAMMPS *lmp) : Pointers(lmp)
 {
   energy = 0.0;
+  writedata = 0;
 
   allocated = 0;
   suffix_flag = Suffix::NONE;

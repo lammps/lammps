@@ -1034,6 +1034,118 @@ int AtomVecSphere::data_vel_hybrid(int m, char **values)
 }
 
 /* ----------------------------------------------------------------------
+   pack atom info for data file including 3 image flags
+------------------------------------------------------------------------- */
+
+void AtomVecSphere::pack_data(double **buf)
+{
+  int nlocal = atom->nlocal;
+  for (int i = 0; i < nlocal; i++) {
+    buf[i][0] = tag[i];
+    buf[i][1] = type[i];
+    buf[i][2] = 2.0*radius[i];
+    if (radius[i] == 0.0) buf[i][3] = rmass[i];
+    else 
+      buf[i][3] = rmass[i] / (4.0*MY_PI/3.0 * radius[i]*radius[i]*radius[i]);
+    buf[i][4] = x[i][0];
+    buf[i][5] = x[i][0];
+    buf[i][6] = x[i][1];
+    buf[i][7] = x[i][2];
+    buf[i][8] = (image[i] & IMGMASK) - IMGMAX;
+    buf[i][9] = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+    buf[i][10] = (image[i] >> IMG2BITS) - IMGMAX;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   pack hybrid atom info for data file
+------------------------------------------------------------------------- */
+
+int AtomVecSphere::pack_data_hybrid(int i, double *buf)
+{
+  buf[0] = 2.0*radius[i];
+  if (radius[i] == 0.0) buf[1] = rmass[i];
+  else buf[1] = rmass[i] / (4.0*MY_PI/3.0 * radius[i]*radius[i]*radius[i]);
+  return 2;
+}
+
+/* ----------------------------------------------------------------------
+   write atom info to data file including 3 image flags
+------------------------------------------------------------------------- */
+
+void AtomVecSphere::write_data(FILE *fp, int n, double **buf)
+{
+  for (int i = 0; i < n; i++)
+    fprintf(fp,"%d %d %g %g %g %g %g %d %d %d\n",
+            (int) buf[i][0],(int) buf[i][1],
+            buf[i][2],buf[i][3],
+            buf[i][4],buf[i][5],buf[i][6],
+            (int) buf[i][7],(int) buf[i][8],(int) buf[i][9]);
+}
+
+/* ----------------------------------------------------------------------
+   write hybrid atom info to data file
+------------------------------------------------------------------------- */
+
+int AtomVecSphere::write_data_hybrid(FILE *fp, double *buf)
+{
+  fprintf(fp," %g %g",buf[0],buf[1]);
+  return 2;
+}
+
+/* ----------------------------------------------------------------------
+   pack velocity info for data file
+------------------------------------------------------------------------- */
+
+void AtomVecSphere::pack_vel(double **buf)
+{
+  int nlocal = atom->nlocal;
+  for (int i = 0; i < nlocal; i++) {
+    buf[i][0] = tag[i];
+    buf[i][1] = v[i][0];
+    buf[i][2] = v[i][1];
+    buf[i][3] = v[i][2];
+    buf[i][4] = omega[i][0];
+    buf[i][5] = omega[i][1];
+    buf[i][6] = omega[i][2];
+  }
+}
+
+/* ----------------------------------------------------------------------
+   pack hybrid velocity info for data file
+------------------------------------------------------------------------- */
+
+int AtomVecSphere::pack_vel_hybrid(int i, double *buf)
+{
+  buf[0] = omega[i][0];
+  buf[1] = omega[i][1];
+  buf[2] = omega[i][2];
+  return 3;
+}
+
+/* ----------------------------------------------------------------------
+   write velocity info to data file
+------------------------------------------------------------------------- */
+
+void AtomVecSphere::write_vel(FILE *fp, int n, double **buf)
+{
+  for (int i = 0; i < n; i++)
+    fprintf(fp,"%d %g %g %g %g %g %g\n",
+            (int) buf[i][0],buf[i][1],buf[i][2],buf[i][3],
+            buf[i][4],buf[i][5],buf[i][6]);
+}
+
+/* ----------------------------------------------------------------------
+   write hybrid velocity info to data file
+------------------------------------------------------------------------- */
+
+int AtomVecSphere::write_vel_hybrid(FILE *fp, double *buf)
+{
+  fprintf(fp," %g %g %g",buf[0],buf[1],buf[2]);
+  return 3;
+}
+
+/* ----------------------------------------------------------------------
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 
@@ -1052,7 +1164,8 @@ bigint AtomVecSphere::memory_usage()
   if (atom->memcheck("radius")) bytes += memory->usage(radius,nmax);
   if (atom->memcheck("rmass")) bytes += memory->usage(rmass,nmax);
   if (atom->memcheck("omega")) bytes += memory->usage(omega,nmax,3);
-  if (atom->memcheck("torque")) bytes += memory->usage(torque,nmax*comm->nthreads,3);
+  if (atom->memcheck("torque")) 
+    bytes += memory->usage(torque,nmax*comm->nthreads,3);
 
   return bytes;
 }

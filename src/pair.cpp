@@ -58,6 +58,7 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   respa_enable = 0;
   one_coeff = 0;
   no_virial_fdotr_compute = 0;
+  writedata = 0;
   ghostneigh = 0;
 
   nextra = 0;

@@ -69,6 +69,7 @@ fields setup, atom masses initialized, etc).
 
 [Related commands:]
 
-"restart"_restart.html, "read_restart"_read_restart.html
+"restart"_restart.html, "read_restart"_read_restart.html,
+"write_data"_write_data.html
 
 [Default:] none

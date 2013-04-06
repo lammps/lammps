@@ -1,4 +1,4 @@
-# mingw_mpich = Windows 32bit, mpich-1, cross-compiled on Linux (Fedora 12), gcc-4.4.1, MinGW cross-compiler 
+# mingw32-cross = Windows 32bit, mpich-1, cross-compiled on Linux (Fedora 12), gcc-4.4.1, MinGW cross-compiler 
 # 
 SHELL = /bin/sh
 
@@ -68,6 +68,11 @@ include	Makefile.package
 EXTRA_INC = $(LMP_INC) $(PKG_INC) $(MPI_INC) $(FFT_INC)
 EXTRA_PATH = $(PKG_PATH) $(MPI_PATH) $(FFT_PATH) $(PKG_SYSPATH)
 EXTRA_LIB = $(PKG_LIB) $(MPI_LIB) $(FFT_LIB) $(PKG_SYSLIB)
+
+# Path to src files
+
+vpath %.cpp ..
+vpath %.h ..
 
 # Link target
 

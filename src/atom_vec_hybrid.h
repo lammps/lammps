@@ -60,6 +60,10 @@ class AtomVecHybrid : public AtomVec {
   void data_atom(double *, tagint, char **);
   int data_atom_hybrid(int, char **) {return 0;}
   void data_vel(int, char **);
+  void pack_data(double **);
+  void write_data(FILE *, int, double **);
+  void pack_vel(double **);
+  void write_vel(FILE *, int, double **);
   bigint memory_usage();
 
  private:

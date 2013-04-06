@@ -240,6 +240,16 @@ void BondFENEExpand::read_restart(FILE *fp)
   for (int i = 1; i <= atom->nbondtypes; i++) setflag[i] = 1;
 }
 
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void BondFENEExpand::write_data(FILE *fp)
+{
+  for (int i = 1; i <= atom->nbondtypes; i++)
+    fprintf(fp,"%d %g %g %g %g %g\n",i,k[i],r0[i],epsilon[i],sigma[i],shift[i]);
+}
+
 /* ---------------------------------------------------------------------- */
 
 double BondFENEExpand::single(int type, double rsq, int i, int j,

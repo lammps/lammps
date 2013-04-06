@@ -34,7 +34,10 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-ImproperHarmonic::ImproperHarmonic(LAMMPS *lmp) : Improper(lmp) {}
+ImproperHarmonic::ImproperHarmonic(LAMMPS *lmp) : Improper(lmp)
+{
+  writedata = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -281,4 +284,14 @@ void ImproperHarmonic::read_restart(FILE *fp)
   MPI_Bcast(&chi[1],atom->nimpropertypes,MPI_DOUBLE,0,world);
 
   for (int i = 1; i <= atom->nimpropertypes; i++) setflag[i] = 1;
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void ImproperHarmonic::write_data(FILE *fp)
+{
+  for (int i = 1; i <= atom->nimpropertypes; i++)
+    fprintf(fp,"%d %g %g\n",i,k[i],chi[i]/MY_PI*180.0);
 }

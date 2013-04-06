@@ -11,49 +11,44 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef COMPUTE_CLASS
+#ifdef FIX_CLASS
 
-ComputeStyle(displace/atom,ComputeDisplaceAtom)
+FixStyle(STORE,FixStore)
 
 #else
 
-#ifndef LMP_COMPUTE_DISPLACE_ATOM_H
-#define LMP_COMPUTE_DISPLACE_ATOM_H
+#ifndef LMP_FIX_STORE_H
+#define LMP_FIX_STORE_H
 
-#include "compute.h"
+#include "fix.h"
 
 namespace LAMMPS_NS {
 
-class ComputeDisplaceAtom : public Compute {
+class FixStore : public Fix {
  public:
-  ComputeDisplaceAtom(class LAMMPS *, int, char **);
-  ~ComputeDisplaceAtom();
-  void init();
-  void compute_peratom();
+  double *vstore;        // vector storage if nvalues = 1
+  double **astore;       // array storage if nvalues > 1
+
+  FixStore(class LAMMPS *, int, char **);
+  ~FixStore();
+  int setmask();
+
   double memory_usage();
+  void grow_arrays(int);
+  void copy_arrays(int, int, int);
+  int pack_exchange(int, double *);
+  int unpack_exchange(int, double *);
+  int pack_restart(int, double *);
+  void unpack_restart(int, int);
+  int size_restart(int);
+  int maxsize_restart();
 
  private:
-  int nmax;
-  double **displace;
-  char *id_fix;
-  class FixStore *fix;
+  int nvalues;                  // total # of values per atom
+  int vecflag;                  // 1 if nvalues = 1
 };
 
 }
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Could not find compute displace/atom fix ID
-
-Self-explanatory.
-
-*/

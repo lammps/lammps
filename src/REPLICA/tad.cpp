@@ -71,7 +71,6 @@ TAD::~TAD()
 
 void TAD::command(int narg, char **arg)
 {
-
   fix_event_list = NULL;
   n_event_list = 0;
   nmax_event_list = 0;

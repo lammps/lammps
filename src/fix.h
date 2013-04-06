@@ -76,6 +76,7 @@ class Fix : protected Pointers {
   double virial[6];              // accumlated virial
   double **vatom;                // accumulated per-atom virial
 
+  int restart_reset;             // 1 if restart just re-initialized fix
   unsigned int datamask;
   unsigned int datamask_ext;
 

@@ -32,7 +32,7 @@ methods:
    T *get(index) = return ptr/index to unused chunk of size maxchunk
    T *get(N,index) = return ptr/index to unused chunk of size N
                      minchunk < N < maxchunk required
-   put(index) = return indexed chunk to pool
+   put(index) = return indexed chunk to pool (same index returned by get)
    int size() = return total size of allocated pages in bytes
 public varaibles:
    ndatum = total # of stored datums

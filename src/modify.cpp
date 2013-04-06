@@ -728,6 +728,7 @@ void Modify::add_fix(int narg, char **arg, char *suffix)
         strcmp(style_restart_peratom[i],fix[ifix]->style) == 0) {
       for (int j = 0; j < atom->nlocal; j++)
         fix[ifix]->unpack_restart(j,index_restart_peratom[i]);
+      fix[ifix]->restart_reset = 1;
       if (comm->me == 0) {
         char *str = (char *) ("Resetting per-atom state of Fix %s Style %s "
                      "from restart file info\n");

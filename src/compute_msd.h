@@ -35,7 +35,7 @@ class ComputeMSD : public Compute {
   int comflag,nmsd;
   double masstotal;
   char *id_fix;
-  class Fix *fix;
+  class FixStore *fix;
 };
 
 }

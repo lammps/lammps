@@ -36,7 +36,7 @@
 #include "compute.h"
 #include "fix.h"
 #include "fix_event_tad.h"
-#include "fix_store_state.h"
+#include "fix_store.h"
 #include "force.h"
 #include "pair.h"
 #include "random_park.h"
@@ -141,25 +141,17 @@ void TAD::command(int narg, char **arg)
   fix_event = (FixEventTAD *) modify->fix[modify->nfix-1];
   delete [] args;
 
-  // create FixStoreState object to store revert state
+  // create FixStore object to store revert state
 
-  narg2 = 13;
+  narg2 = 5;
   args = new char*[narg2];
   args[0] = (char *) "tad_revert";
   args[1] = (char *) "all";
-  args[2] = (char *) "store/state";
+  args[2] = (char *) "STORE";
   args[3] = (char *) "0";
-  args[4] = (char *) "x";
-  args[5] = (char *) "y";
-  args[6] = (char *) "z";
-  args[7] = (char *) "ix";
-  args[8] = (char *) "iy";
-  args[9] = (char *) "iz";
-  args[10] = (char *) "vx";
-  args[11] = (char *) "vy";
-  args[12] = (char *) "vz";
+  args[4] = (char *) "7";
   modify->add_fix(narg2,args);
-  fix_revert = (FixStoreState *) modify->fix[modify->nfix-1];
+  fix_revert = (FixStore *) modify->fix[modify->nfix-1];
   delete [] args;
 
   // create Finish for timing output
@@ -312,7 +304,7 @@ void TAD::command(int narg, char **arg)
 
           // store hot state in revert
 
-          fix_revert->end_of_step();
+          store_state();
         }
         if (!event_flag) break;
 
@@ -323,7 +315,7 @@ void TAD::command(int narg, char **arg)
         confident_flag = check_confidence();
         MPI_Bcast(&confident_flag,1,MPI_INT,0,universe->uworld);
         if (confident_flag) break;
-        if (universe->iworld == 0) revert();
+        if (universe->iworld == 0) revert_state();
       }
       if (!confident_flag) break;
 
@@ -822,28 +814,51 @@ int TAD::check_confidence()
 }
 
 /* ----------------------------------------------------------------------
-   reflect back in to starting state
+   store state in fix_revert
 ------------------------------------------------------------------------- */
 
-void TAD::revert()
+void TAD::store_state()
 {
   double **x = atom->x;
   double **v = atom->v;
   tagint *image = atom->image;
   int nlocal = atom->nlocal;
 
-  double **array_atom = fix_revert->array_atom;
+  double **astore = fix_revert->astore;
 
   for (int i = 0; i < nlocal; i++) {
-    x[i][0] = array_atom[i][0];
-    x[i][1] = array_atom[i][1];
-    x[i][2] = array_atom[i][2];
-    image[i] = ((tagint) (int(array_atom[i][3]) + IMGMAX) & IMGMASK) |
-      (((tagint) (int(array_atom[i][4]) + IMGMAX) & IMGMASK) << IMGBITS) |
-      (((tagint) (int(array_atom[i][5]) + IMGMAX) & IMGMASK) << IMG2BITS);
-    v[i][0] = -array_atom[i][6];
-    v[i][1] = -array_atom[i][7];
-    v[i][2] = -array_atom[i][8];
+    astore[i][0] = x[i][0];
+    astore[i][1] = x[i][1];
+    astore[i][2] = x[i][2];
+    astore[i][3] = v[i][0];
+    astore[i][4] = v[i][1];
+    astore[i][5] = v[i][2];
+    *((tagint *) &astore[i][6]) = image[i];
+  }
+}
+
+/* ----------------------------------------------------------------------
+   restore state archived in fix_revert
+   flip sign of velocities to reflect back to starting state
+------------------------------------------------------------------------- */
+
+void TAD::revert_state()
+{
+  double **x = atom->x;
+  double **v = atom->v;
+  tagint *image = atom->image;
+  int nlocal = atom->nlocal;
+
+  double **astore = fix_revert->astore;
+
+  for (int i = 0; i < nlocal; i++) {
+    x[i][0] = astore[i][0];
+    x[i][1] = astore[i][1];
+    x[i][2] = astore[i][2];
+    v[i][0] = -astore[i][3];
+    v[i][1] = -astore[i][4];
+    v[i][2] = -astore[i][5];
+    image[i] = *((tagint *) &astore[i][6]);
   }
 }
 

@@ -21,7 +21,7 @@ AtomStyle(body,AtomVecBody)
 #define LMP_ATOM_VEC_BODY_H
 
 #include "atom_vec.h"
-#include "my_pool.h"
+#include "my_pool_chunk.h"
 
 namespace LAMMPS_NS {
 
@@ -104,8 +104,8 @@ class AtomVecBody : public AtomVec {
   int copyflag;
   int intdoubleratio;    // sizeof(double) / sizeof(int)
 
-  MyPool<int> *icp;
-  MyPool<double> *dcp;
+  MyPoolChunk<int> *icp;
+  MyPoolChunk<double> *dcp;
 
   void grow_bonus();
   void copy_bonus(int, int);

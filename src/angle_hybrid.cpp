@@ -31,6 +31,7 @@ using namespace LAMMPS_NS;
 
 AngleHybrid::AngleHybrid(LAMMPS *lmp) : Angle(lmp)
 {
+  writedata = 0;
   nstyles = 0;
 }
 

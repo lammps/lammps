@@ -112,7 +112,8 @@ void AngleQuartic::compute(int eflag, int vflag)
     dtheta = acos(c) - theta0[type];
     dtheta2 = dtheta * dtheta;
     dtheta3 = dtheta2 * dtheta;
-    tk =  2.0 * k2[type] * dtheta + 3.0 * k3[type] * dtheta2 + 4.0 * k4[type] * dtheta3;
+    tk =  2.0 * k2[type] * dtheta + 3.0 * k3[type] * dtheta2 + 
+      4.0 * k4[type] * dtheta3;
 
     if (eflag) {
       dtheta4 = dtheta3 * dtheta;
@@ -245,6 +246,16 @@ void AngleQuartic::read_restart(FILE *fp)
   for (int i = 1; i <= atom->nangletypes; i++) setflag[i] = 1;
 }
 
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void AngleQuartic::write_data(FILE *fp)
+{
+  for (int i = 1; i <= atom->nangletypes; i++)
+    fprintf(fp,"%d %g %g %g %g\n",i,k2[i],k3[i],k4[i],theta0[i]/MY_PI*180.0);
+}
+
 /* ---------------------------------------------------------------------- */
 
 double AngleQuartic::single(int type, int i1, int i2, int i3)
@@ -272,6 +283,7 @@ double AngleQuartic::single(int type, int i1, int i2, int i3)
   double dtheta2 = dtheta * dtheta;
   double dtheta3 = dtheta2 * dtheta;
   double dtheta4 = dtheta3 * dtheta;
-  double tk = 2.0 * k2[type] * dtheta + 3.0 * k3[type] * dtheta2 + 4.0 * k4[type] * dtheta3;
+  double tk = 2.0 * k2[type] * dtheta + 3.0 * k3[type] * dtheta2 + 
+    4.0 * k4[type] * dtheta3;
   return k2[type] * dtheta2 + k3[type] * dtheta3 + k4[type] * dtheta4;
 }

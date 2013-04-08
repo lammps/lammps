@@ -233,6 +233,16 @@ void AngleCosineShift::read_restart(FILE *fp)
   for (int i = 1; i <= atom->nangletypes; i++) setflag[i] = 1;
 }
 
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void AngleCosineShift::write_data(FILE *fp)
+{
+  for (int i = 1; i <= atom->nangletypes; i++)
+    fprintf(fp,"%d %g %g\n",i,2.0*k[i],theta0[i]/MY_PI*180.0);
+}
+
 /* ---------------------------------------------------------------------- */
 
 double AngleCosineShift::single(int type, int i1, int i2, int i3)

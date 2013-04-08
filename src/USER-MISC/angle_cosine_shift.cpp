@@ -23,10 +23,12 @@
 #include "domain.h"
 #include "comm.h"
 #include "force.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define SMALL 0.001
 
@@ -180,9 +182,9 @@ void AngleCosineShift::coeff(int narg, char **arg)
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     k[i] = umin/2;
-    kcost[i] = umin/2*cos(theta0*3.14159265/180);
-    ksint[i] = umin/2*sin(theta0*3.14159265/180);
-    theta[i] = theta0*3.14159265/180;
+    kcost[i] = umin/2*cos(theta0*MY_PI / 180.0);
+    ksint[i] = umin/2*sin(theta0*MY_PI / 180.0);
+    theta[i] = theta0*MY_PI / 180.0;
 
     setflag[i] = 1;
     count++;
@@ -240,7 +242,7 @@ void AngleCosineShift::read_restart(FILE *fp)
 void AngleCosineShift::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->nangletypes; i++)
-    fprintf(fp,"%d %g %g\n",i,2.0*k[i],theta0[i]/MY_PI*180.0);
+    fprintf(fp,"%d %g %g\n",i,2.0*k[i],theta[i]/MY_PI*180.0);
 }
 
 /* ---------------------------------------------------------------------- */

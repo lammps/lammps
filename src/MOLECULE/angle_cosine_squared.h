@@ -34,6 +34,7 @@ class AngleCosineSquared : public Angle {
   double equilibrium_angle(int);
   void write_restart(FILE *);
   void read_restart(FILE *);
+  void write_data(FILE *);
   virtual double single(int, int, int, int);
 
  protected:

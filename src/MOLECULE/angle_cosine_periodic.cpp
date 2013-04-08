@@ -262,6 +262,17 @@ void AngleCosinePeriodic::read_restart(FILE *fp)
   for (int i = 1; i <= atom->nangletypes; i++) setflag[i] = 1;
 }
 
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void AngleCosinePeriodic::write_data(FILE *fp)
+{
+  for (int i = 1; i <= atom->nangletypes; i++)
+    fprintf(fp,"%d %g %d %d\n",i,k[i],b[i],multiplicity[i]);
+}
+
 /* ---------------------------------------------------------------------- */
 
 double AngleCosinePeriodic::single(int type, int i1, int i2, int i3)

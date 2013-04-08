@@ -221,6 +221,16 @@ void AngleCosineSquared::read_restart(FILE *fp)
   for (int i = 1; i <= atom->nangletypes; i++) setflag[i] = 1;
 }
 
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void AngleCosineSquared::write_data(FILE *fp)
+{
+  for (int i = 1; i <= atom->nangletypes; i++)
+    fprintf(fp,"%d %g %g\n",i,k[i],theta0[i]/MY_PI*180.0);
+}
+
 /* ---------------------------------------------------------------------- */
 
 double AngleCosineSquared::single(int type, int i1, int i2, int i3)

@@ -259,6 +259,17 @@ void AngleCharmm::read_restart(FILE *fp)
   for (int i = 1; i <= atom->nangletypes; i++) setflag[i] = 1;
 }
 
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void AngleCharmm::write_data(FILE *fp)
+{
+  for (int i = 1; i <= atom->nangletypes; i++)
+    fprintf(fp,"%d %g %g %g %g\n",
+            i,k[i],theta0[i]/MY_PI*180.0,k_ub[i],r_ub[i]);
+}
+
 /* ---------------------------------------------------------------------- */
 
 double AngleCharmm::single(int type, int i1, int i2, int i3)

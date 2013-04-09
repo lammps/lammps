@@ -239,6 +239,16 @@ void AngleFourier::read_restart(FILE *fp)
   for (int i = 1; i <= atom->nangletypes; i++) setflag[i] = 1;
 }
 
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void AngleFourier::write_data(FILE *fp)
+{
+  for (int i = 1; i <= atom->nangletypes; i++)
+    fprintf(fp,"%d %g %g %g %g\n",i,k[i],C0[i],C1[i],C2[i]);
+}
+
 /* ---------------------------------------------------------------------- */
 
 double AngleFourier::single(int type, int i1, int i2, int i3)

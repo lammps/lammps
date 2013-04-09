@@ -41,6 +41,7 @@ enum{LINEAR,SPLINE};
 
 AngleTable::AngleTable(LAMMPS *lmp) : Angle(lmp)
 {
+  writedata = 0;
   ntables = 0;
   tables = NULL;
 }

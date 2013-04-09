@@ -439,12 +439,12 @@ void FixStoreState::end_of_step()
         if (j == 0) {
           double *compute_vector = compute->vector_atom;
           for (i = 0; i < nlocal; i++)
-            if (mask[i] & groupbit) values[i][m] += compute_vector[i];
+            if (mask[i] & groupbit) values[i][m] = compute_vector[i];
         } else {
           int jm1 = j - 1;
           double **compute_array = compute->array_atom;
           for (i = 0; i < nlocal; i++)
-            if (mask[i] & groupbit) values[i][m] += compute_array[i][jm1];
+            if (mask[i] & groupbit) values[i][m] = compute_array[i][jm1];
         }
 
       // access fix fields, guaranteed to be ready
@@ -453,12 +453,12 @@ void FixStoreState::end_of_step()
         if (j == 0) {
           double *fix_vector = modify->fix[n]->vector_atom;
           for (i = 0; i < nlocal; i++)
-            if (mask[i] & groupbit) values[i][m] += fix_vector[i];
+            if (mask[i] & groupbit) values[i][m] = fix_vector[i];
         } else {
           int jm1 = j - 1;
           double **fix_array = modify->fix[n]->array_atom;
           for (i = 0; i < nlocal; i++)
-            if (mask[i] & groupbit) values[i][m] += fix_array[i][jm1];
+            if (mask[i] & groupbit) values[i][m] = fix_array[i][jm1];
         }
 
       // evaluate atom-style variable

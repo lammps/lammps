@@ -403,6 +403,25 @@ void AngleClass2::read_restart(FILE *fp)
   for (int i = 1; i <= atom->nangletypes; i++) setflag[i] = 1;
 }
 
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void AngleClass2::write_data(FILE *fp)
+{
+  for (int i = 1; i <= atom->nangletypes; i++)
+    fprintf(fp,"%d %g %g %g %g\n",
+            i,theta0[i]/MY_PI*180.0,k2[i],k3[i],k4[i]);
+
+  fprintf(fp,"\nBondBond Coeffs\n\n");
+  for (int i = 1; i <= atom->nangletypes; i++)
+    fprintf(fp,"%d %g %g %g\n",i,bb_k[i],bb_r1[i],bb_r2[i]);
+
+  fprintf(fp,"\nBondAngle Coeffs\n\n");
+  for (int i = 1; i <= atom->nangletypes; i++)
+    fprintf(fp,"%d %g %g %g %gx\n",i,ba_k1[i],ba_k2[i],ba_r1[i],ba_r2[i]);
+}
+
 /* ---------------------------------------------------------------------- */
 
 double AngleClass2::single(int type, int i1, int i2, int i3)

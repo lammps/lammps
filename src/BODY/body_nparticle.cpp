@@ -39,8 +39,8 @@ BodyNparticle::BodyNparticle(LAMMPS *lmp, int narg, char **arg) :
 
   // NOTE: need to set appropriate nnbin param for dcp
 
-  icp = new MyPool<int>(1,1);
-  dcp = new MyPool<double>(3*nmin,3*nmax);
+  icp = new MyPoolChunk<int>(1,1);
+  dcp = new MyPoolChunk<double>(3*nmin,3*nmax);
 }
 
 /* ---------------------------------------------------------------------- */

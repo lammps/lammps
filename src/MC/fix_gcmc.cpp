@@ -809,7 +809,7 @@ void FixGCMC::attempt_molecule_insertion()
     int *molecule = atom->molecule;
     int *tag = atom->tag;
     for (int i = 0; i < natoms_per_molecule; i++) {
-      k += atom->avec->unpack_restart(&model_atom_buf[k]);
+      k += atom->avec->unpack_exchange(&model_atom_buf[k]);
       if (procflag[i]) {
         int m = atom->nlocal - 1;
         image[m] = imagetmp;
@@ -846,7 +846,10 @@ void FixGCMC::attempt_molecule_insertion()
             atom->improper_atom3[m][j] += atom_offset;
             atom->improper_atom4[m][j] += atom_offset;
           }
-        
+
+        for (int j = 0; j < atom->nspecial[m][2]; j++)
+          atom->special[m][j] += atom_offset;
+
         int nfix = modify->nfix;
         Fix **fix = modify->fix;
         for (int j = 0; j < nfix; j++)
@@ -1035,6 +1038,7 @@ void FixGCMC::get_model_molecule()
   int buf_send_size = atom->avec->size_restart(); 
   
   MPI_Allreduce(&buf_send_size,&max_size,1,MPI_INT,MPI_MAX,world);
+  max_size *= 2;
   double *buf;
   memory->create(buf,max_size,"fixGCMC:buf");
   
@@ -1070,6 +1074,7 @@ void FixGCMC::get_model_molecule()
   atom->angle_per_atom = old_atom->angle_per_atom;
   atom->dihedral_per_atom = old_atom->dihedral_per_atom;
   atom->improper_per_atom = old_atom->improper_per_atom;
+  atom->maxspecial = old_atom->maxspecial;
   atom->extra_bond_per_atom = old_atom->extra_bond_per_atom;
   atom->allocate_type_arrays();
   atom->avec->grow(natoms_per_molecule);
@@ -1096,7 +1101,7 @@ void FixGCMC::get_model_molecule()
     if (comm->me == iproc) {
       for (int i = 0; i < old_atom->nlocal; i++) {
         if (old_atom->molecule[i] == model_molecule_number) {
-          nbuf_iproc += old_avec->pack_restart(i,&buf[nbuf_iproc]);
+          nbuf_iproc += old_avec->pack_exchange(i,&buf[nbuf_iproc]);
         }
       }
     }
@@ -1107,7 +1112,7 @@ void FixGCMC::get_model_molecule()
      
     int m = 0;
     while (m < nbuf_iproc)
-      m += model_avec->unpack_restart(&buf[m]);
+      m += model_avec->unpack_exchange(&buf[m]);
   }
 
   // free communication buffer 
@@ -1165,6 +1170,8 @@ void FixGCMC::get_model_molecule()
         atom->improper_atom3[i][j] -= atom_offset;
         atom->improper_atom4[i][j] -= atom_offset;
       }
+    for (int j = 0; j < atom->nspecial[i][2]; j++)
+      atom->special[i][j] -= atom_offset;
   }
 
   // pack model atoms into a buffer for use during molecule insertions
@@ -1172,7 +1179,7 @@ void FixGCMC::get_model_molecule()
   memory->create(model_atom_buf,model_buf_size,"fixGCMC:model_atom_buf");
   int n = 0;
   for (int i = 0; i < nlocal; i++) 
-    n += model_avec->pack_restart(i,&model_atom_buf[n]);
+    n += model_avec->pack_exchange(i,&model_atom_buf[n]);
 
   // move atom to model_atom and restore old_atom class pointer back to atom
 

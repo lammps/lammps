@@ -25,9 +25,9 @@ face = {xlo} or {xhi} or {ylo} or {yhi} or {zlo} or {zhi} :l
       constant = number like 0.0 or -30.0 (distance units)
       variable = "equal-style variable"_variable.html like v_x or v_wiggle
     epsilon = strength factor for wall-particle interaction (energy or energy/distance^2 units)
-      epsilon can be a variable (see below) :l
+      epsilon can be a variable (see below)
     sigma = size factor for wall-particle interaction (distance units)
-      sigma can be a variable (see below) :l
+      sigma can be a variable (see below)
     cutoff = distance from wall at which wall-particle interaction is cut off (distance units) :pre
 zero or more keyword/value pairs may be appended :l
 keyword = {units} or {fld} :l

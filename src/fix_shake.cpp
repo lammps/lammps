@@ -2304,6 +2304,33 @@ void FixShake::set_arrays(int i)
 }
 
 /* ----------------------------------------------------------------------
+   update one atom's array values, called when atom is created
+------------------------------------------------------------------------- */
+
+void FixShake::update_arrays(int i, int atom_offset)
+{
+  int flag = shake_flag[i];
+
+  if (flag == 1) {
+    shake_atom[i][0] += atom_offset;
+    shake_atom[i][1] += atom_offset;
+    shake_atom[i][2] += atom_offset;
+  } else if (flag == 2) { 
+    shake_atom[i][0] += atom_offset;
+    shake_atom[i][1] += atom_offset;
+  } else if (flag == 3) {
+    shake_atom[i][0] += atom_offset;
+    shake_atom[i][1] += atom_offset;
+    shake_atom[i][2] += atom_offset;
+  } else if (flag == 4) {
+    shake_atom[i][0] += atom_offset;
+    shake_atom[i][1] += atom_offset;
+    shake_atom[i][2] += atom_offset;
+    shake_atom[i][3] += atom_offset;
+  }
+}
+
+/* ----------------------------------------------------------------------
    pack values in local atom-based arrays for exchange with another proc
 ------------------------------------------------------------------------- */
 

@@ -852,8 +852,11 @@ void FixGCMC::attempt_molecule_insertion()
 
         int nfix = modify->nfix;
         Fix **fix = modify->fix;
-        for (int j = 0; j < nfix; j++)
-          if (fix[j]->create_attribute) fix[j]->set_arrays(m);
+        for (int j = 0; j < nfix; j++) {
+          if (strcmp(modify->fix[j]->style,"shake") == 0) {
+            fix[j]->update_arrays(m,atom_offset);
+          } else if (fix[j]->create_attribute) fix[j]->set_arrays(m);
+        }
 
       } else atom->nlocal--;
     }
@@ -1075,10 +1078,18 @@ void FixGCMC::get_model_molecule()
   atom->dihedral_per_atom = old_atom->dihedral_per_atom;
   atom->improper_per_atom = old_atom->improper_per_atom;
   atom->maxspecial = old_atom->maxspecial;
+  atom->nextra_grow = old_atom->nextra_grow;
+
+  if (atom->nextra_grow) {
+    memory->grow(atom->extra_grow,old_atom->nextra_grow_max,"fixGCMC:extra_grow");
+    for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
+      atom->extra_grow[iextra] = old_atom->extra_grow[iextra];
+  }
+
   atom->extra_bond_per_atom = old_atom->extra_bond_per_atom;
   atom->allocate_type_arrays();
   atom->avec->grow(natoms_per_molecule);
-  
+
   // copy type arrays to model atom class
   
   if (atom->mass) {

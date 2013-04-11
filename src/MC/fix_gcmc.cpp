@@ -715,7 +715,7 @@ void FixGCMC::attempt_molecule_deletion()
 
   double deletion_energy_sum = molecule_energy(deletion_molecule);
 
-  if (random_equal->uniform() < ngas*exp(beta*deletion_energy_sum)/(zz*volume)) {
+  if (random_equal->uniform() < ngas*exp(beta*deletion_energy_sum)/(zz*volume*natoms_per_molecule)) {
     int i = 0;
     while (i < atom->nlocal) {
       if (atom->molecule[i] == deletion_molecule) {
@@ -791,7 +791,7 @@ void FixGCMC::attempt_molecule_insertion()
   double insertion_energy_sum = 0.0;
   MPI_Allreduce(&insertion_energy,&insertion_energy_sum,1,MPI_DOUBLE,MPI_SUM,world);
 
-  if (random_equal->uniform() < zz*volume*exp(-beta*insertion_energy_sum)/(ngas+1)) {  
+  if (random_equal->uniform() < zz*volume*natoms_per_molecule*exp(-beta*insertion_energy_sum)/(ngas+1)) {  
     maxmol++;
     if (maxmol >= MAXSMALLINT) 
       error->all(FLERR,"Fix gcmc ran out of available molecule IDs");

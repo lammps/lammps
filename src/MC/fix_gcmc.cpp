@@ -715,7 +715,7 @@ void FixGCMC::attempt_molecule_deletion()
 
   double deletion_energy_sum = molecule_energy(deletion_molecule);
 
-  if (random_equal->uniform() < ngas*exp(beta*deletion_energy_sum)/(zz*volume)) {
+  if (random_equal->uniform() < ngas*exp(beta*deletion_energy_sum)/(zz*volume*natoms_per_molecule)) {
     int i = 0;
     while (i < atom->nlocal) {
       if (atom->molecule[i] == deletion_molecule) {
@@ -791,7 +791,7 @@ void FixGCMC::attempt_molecule_insertion()
   double insertion_energy_sum = 0.0;
   MPI_Allreduce(&insertion_energy,&insertion_energy_sum,1,MPI_DOUBLE,MPI_SUM,world);
 
-  if (random_equal->uniform() < zz*volume*exp(-beta*insertion_energy_sum)/(ngas+1)) {  
+  if (random_equal->uniform() < zz*volume*natoms_per_molecule*exp(-beta*insertion_energy_sum)/(ngas+1)) {  
     maxmol++;
     if (maxmol >= MAXSMALLINT) 
       error->all(FLERR,"Fix gcmc ran out of available molecule IDs");
@@ -852,8 +852,11 @@ void FixGCMC::attempt_molecule_insertion()
 
         int nfix = modify->nfix;
         Fix **fix = modify->fix;
-        for (int j = 0; j < nfix; j++)
-          if (fix[j]->create_attribute) fix[j]->set_arrays(m);
+        for (int j = 0; j < nfix; j++) {
+          if (strcmp(modify->fix[j]->style,"shake") == 0) {
+            fix[j]->update_arrays(m,atom_offset);
+          } else if (fix[j]->create_attribute) fix[j]->set_arrays(m);
+        }
 
       } else atom->nlocal--;
     }
@@ -1075,10 +1078,18 @@ void FixGCMC::get_model_molecule()
   atom->dihedral_per_atom = old_atom->dihedral_per_atom;
   atom->improper_per_atom = old_atom->improper_per_atom;
   atom->maxspecial = old_atom->maxspecial;
+  atom->nextra_grow = old_atom->nextra_grow;
+
+  if (atom->nextra_grow) {
+    memory->grow(atom->extra_grow,old_atom->nextra_grow_max,"fixGCMC:extra_grow");
+    for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
+      atom->extra_grow[iextra] = old_atom->extra_grow[iextra];
+  }
+
   atom->extra_bond_per_atom = old_atom->extra_bond_per_atom;
   atom->allocate_type_arrays();
   atom->avec->grow(natoms_per_molecule);
-  
+
   // copy type arrays to model atom class
   
   if (atom->mass) {

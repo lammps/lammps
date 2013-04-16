@@ -64,8 +64,8 @@ For style {wall/lj126}, the energy E is given by the 12/6 potential:
 
 :c,image(Eqs/pair_lj.jpg)
 
-For style {wall/colloid}, the energy E is given by an integrated form of
-the "pair_style colloid"_pair_colloid.html potential:
+For style {wall/colloid}, the energy E is given by an integrated form
+of the "pair_style colloid"_pair_colloid.html potential:
 
 :c,image(Eqs/fix_wall_colloid.jpg)
 
@@ -112,18 +112,26 @@ The {wall/lj93} interaction is derived by integrating over a 3d
 half-lattice of Lennard-Jones 12/6 particles.  The {wall/lj126}
 interaction is effectively a harder, more repulsive wall interaction.
 
-For the {wall/colloid} style, {epsilon} is effectively a Hamaker
-constant with energy units for the colloid-wall interaction, {R} is
-the radius of the colloid particle, {D} is the distance from the
-surface of the colloid particle to the wall (r-R), and {sigma} is the
-size of a constituent LJ particle inside the colloid particle.  Note
-that the cutoff distance Rc in this case is the distance from the
-colloid particle center to the wall.
+For the {wall/colloid} style, {R} is the radius of the colloid
+particle, {D} is the distance from the surface of the colloid particle
+to the wall (r-R), and {sigma} is the size of a constituent LJ
+particle inside the colloid particle and wall.  Note that the cutoff
+distance Rc in this case is the distance from the colloid particle
+center to the wall.  The prefactor {epsilon} can be thought of as an
+effective Hamaker constant with energy units for the strength of the
+colloid-wall interaction.  More specifically, the {epsilon} pre-factor
+= 4 * pi^2 * rho_wall * rho_colloid * epsilon * sigma^6, where epsilon
+and sigma are the LJ parameters for the constituent LJ
+particles. Rho_wall and rho_colloid are the number density of the
+constituent particles, in the wall and colloid respectively, in units
+of 1/volume.
 
 The {wall/colloid} interaction is derived by integrating over
 constituent LJ particles of size {sigma} within the colloid particle
 and a 3d half-lattice of Lennard-Jones 12/6 particles of size {sigma}
-in the wall.
+in the wall.  As mentioned in the preceeding paragraph, the density of
+particles in the wall and colloid can be different, as specified by
+the {epsilon} pre-factor.
 
 For the {wall/harmonic} style, {epsilon} is effectively the spring
 constant K, and has units (energy/distance^2).  The input parameter

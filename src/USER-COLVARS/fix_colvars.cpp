@@ -347,6 +347,7 @@ FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
   force_buf = NULL;
   proxy = NULL;
   idmap = NULL;
+  unwrap_flag = 0;
 
   /* storage required to communicate a single coordinate or force. */
   size_one = sizeof(struct commdata);
@@ -538,6 +539,14 @@ void FixColvars::init()
   memory->create(comm_buf,nmax,"colvars:comm_buf");
 
   const double * const * const x = atom->x;
+  const tagint * const image = atom->image;
+
+  const double xprd = domain->xprd;
+  const double yprd = domain->yprd;
+  const double zprd = domain->zprd;
+  const double xy = domain->xy;
+  const double xz = domain->xz;
+  const double yz = domain->yz;
 
   if (me == 0) {
 
@@ -549,12 +558,24 @@ void FixColvars::init()
     for (i=0; i<num_coords; ++i) {
       const int k = atom->map(taglist[i]);
       if ((k >= 0) && (k < nlocal)) {
+
         of[i].tag  = cd[i].tag  = tag[k];
         of[i].type = cd[i].type = type[k];
-        cd[i].x = x[k][0];
-        cd[i].y = x[k][1];
-        cd[i].z = x[k][2];
         of[i].x = of[i].y = of[i].z = 0.0;
+
+        if (unwrap_flag) {
+          const int ix = (image[k] & IMGMASK) - IMGMAX;
+          const int iy = (image[k] >> IMGBITS & IMGMASK) - IMGMAX;
+          const int iz = (image[k] >> IMG2BITS) - IMGMAX;
+
+          cd[i].x = x[k][0] + ix * xprd + iy * xy + iz * xz;
+          cd[i].y = x[k][1] + iy * yprd + iz * yz;
+          cd[i].z = x[k][2] + iz * zprd;
+        } else {
+          cd[i].x = x[k][0];
+          cd[i].y = x[k][1];
+          cd[i].z = x[k][2];
+        }
       }
     }
 
@@ -588,11 +609,24 @@ void FixColvars::init()
     for (i=0; i<num_coords; ++i) {
       const int k = atom->map(taglist[i]);
       if ((k >= 0) && (k < nlocal)) {
+
         comm_buf[nme].tag  = tag[k];
         comm_buf[nme].type = type[k];
-        comm_buf[nme].x    = x[k][0];
-        comm_buf[nme].y    = x[k][1];
-        comm_buf[nme].z    = x[k][2];
+
+        if (unwrap_flag) {
+          const int ix = (image[k] & IMGMASK) - IMGMAX;
+          const int iy = (image[k] >> IMGBITS & IMGMASK) - IMGMAX;
+          const int iz = (image[k] >> IMG2BITS) - IMGMAX;
+
+          comm_buf[nme].x = x[k][0] + ix * xprd + iy * xy + iz * xz;
+          comm_buf[nme].y = x[k][1] + iy * yprd + iz * yz;
+          comm_buf[nme].z = x[k][2] + iz * zprd;
+        } else {
+          comm_buf[nme].x = x[k][0];
+          comm_buf[nme].y = x[k][1];
+          comm_buf[nme].z = x[k][2];
+        }
+
         ++nme;
       }
     }
@@ -643,6 +677,14 @@ void FixColvars::post_force(int vflag)
   const int * const tag = atom->tag;
   const double * const * const x = atom->x;
   double * const * const f = atom->f;
+  const tagint * const image = atom->image;
+
+  const double xprd = domain->xprd;
+  const double yprd = domain->yprd;
+  const double zprd = domain->zprd;
+  const double xy = domain->xy;
+  const double xz = domain->xz;
+  const double yz = domain->yz;
   const int nlocal = atom->nlocal;
 
   /* check and potentially grow local communication buffers. */
@@ -671,9 +713,20 @@ void FixColvars::post_force(int vflag)
     for (i=0; i<num_coords; ++i) {
       const int k = atom->map(taglist[i]);
       if ((k >= 0) && (k < nlocal)) {
-        cd[i].x = x[k][0];
-        cd[i].y = x[k][1];
-        cd[i].z = x[k][2];
+
+        if (unwrap_flag) {
+          const int ix = (image[k] & IMGMASK) - IMGMAX;
+          const int iy = (image[k] >> IMGBITS & IMGMASK) - IMGMAX;
+          const int iz = (image[k] >> IMG2BITS) - IMGMAX;
+
+          cd[i].x = x[k][0] + ix * xprd + iy * xy + iz * xz;
+          cd[i].y = x[k][1] + iy * yprd + iz * yz;
+          cd[i].z = x[k][2] + iz * zprd;
+        } else {
+          cd[i].x = x[k][0];
+          cd[i].y = x[k][1];
+          cd[i].z = x[k][2];
+        }
       }
     }
 
@@ -703,9 +756,21 @@ void FixColvars::post_force(int vflag)
       const int k = atom->map(taglist[i]);
       if ((k >= 0) && (k < nlocal)) {
         comm_buf[nme].tag = tag[k];
-        comm_buf[nme].x = x[k][0];
-        comm_buf[nme].y = x[k][1];
-        comm_buf[nme].z = x[k][2];
+
+        if (unwrap_flag) {
+          const int ix = (image[k] & IMGMASK) - IMGMAX;
+          const int iy = (image[k] >> IMGBITS & IMGMASK) - IMGMAX;
+          const int iz = (image[k] >> IMG2BITS) - IMGMAX;
+
+          comm_buf[nme].x = x[k][0] + ix * xprd + iy * xy + iz * xz;
+          comm_buf[nme].y = x[k][1] + iy * yprd + iz * yz;
+          comm_buf[nme].z = x[k][2] + iz * zprd;
+        } else {
+          comm_buf[nme].x = x[k][0];
+          comm_buf[nme].y = x[k][1];
+          comm_buf[nme].z = x[k][2];
+        }
+
         ++nme;
       }
     }

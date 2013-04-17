@@ -80,6 +80,7 @@ class FixColvars : public Fix {
 
   int nlevels_respa;   // flag to determine respa levels.
   int store_forces;    // flag to determine whether to store total forces
+  int unwrap_flag;     // 1 if atom coords are unwrapped, 0 if not
   static  int instances; // count fix instances, since colvars currently
                          // only supports one instance at a time
 };

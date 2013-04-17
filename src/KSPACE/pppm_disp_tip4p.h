@@ -50,9 +50,9 @@ class PPPMDispTIP4P : public PPPMDisp {
 
 /* ERROR/WARNING messages:
 
-E: Kspace style pppm/tip4p requires newton on
+E: Kspace style pppm/disp/tip4p requires newton on
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Out of range atoms - cannot compute PPPM
 

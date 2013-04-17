@@ -87,11 +87,6 @@ E: Pair style lj/cut/coul/long/tip4p requires atom attribute q
 
 The atom style defined does not have these attributes.
 
-E: Pair style is incompatible with KSpace style
-
-If a pair style with a long-range Coulombic component is selected,
-then a kspace style must also be used.
-
 E: Must use a bond style with TIP4P potential
 
 TIP4P potentials assume bond lengths in water are constrained

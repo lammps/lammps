@@ -449,13 +449,14 @@ LAMMPS::~LAMMPS()
 
 void LAMMPS::create()
 {
-  atom = new Atom(this);
-
-  if (cuda) neighbor = new NeighborCuda(this);
-  else neighbor = new Neighbor(this);
+  // Comm class must be created before Atom class
+  // so that nthreads is defined when create_avec invokes grow()
 
   if (cuda) comm = new CommCuda(this);
   else comm = new Comm(this);
+
+  if (cuda) neighbor = new NeighborCuda(this);
+  else neighbor = new Neighbor(this);
 
   if (cuda) domain = new DomainCuda(this);
 #ifdef LMP_USER_OMP
@@ -463,6 +464,9 @@ void LAMMPS::create()
 #else
   else domain = new Domain(this);
 #endif
+
+  atom = new Atom(this);
+  atom->create_avec("atomic",0,NULL,suffix);
 
   group = new Group(this);
   force = new Force(this);    // must be after group, to create temperature

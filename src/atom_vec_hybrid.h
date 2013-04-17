@@ -60,6 +60,10 @@ class AtomVecHybrid : public AtomVec {
   void data_atom(double *, tagint, char **);
   int data_atom_hybrid(int, char **) {return 0;}
   void data_vel(int, char **);
+  void pack_data(double **);
+  void write_data(FILE *, int, double **);
+  void pack_vel(double **);
+  void write_vel(FILE *, int, double **);
   bigint memory_usage();
 
  private:
@@ -82,17 +86,11 @@ class AtomVecHybrid : public AtomVec {
 
 /* ERROR/WARNING messages:
 
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Atom style hybrid cannot use same atom style twice
+E: Atom style hybrid cannot have hybrid as an argument
 
 Self-explanatory.
 
-E: Atom style hybrid cannot have hybrid as an argument
+E: Atom style hybrid cannot use same atom style twice
 
 Self-explanatory.
 

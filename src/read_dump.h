@@ -94,6 +94,11 @@ private:
 
 /* ERROR/WARNING messages:
 
+E: Read_dump command before simulation box is defined
+
+The read_dump command cannot be used before a read_data, read_restart,
+or create_box command.
+
 E: Illegal ... command
 
 Self-explanatory.  Check the input script syntax and compare to the

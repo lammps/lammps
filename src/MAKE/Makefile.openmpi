@@ -8,10 +8,11 @@ SHELL = /bin/sh
 
 CC =		mpic++
 CCFLAGS =	-O2 -fomit-frame-pointer -fno-rtti -fno-exceptions -g \
-			-march=native -ffast-math -mpc64 -finline-functions \
+			-ffast-math -mpc64 -finline-functions \
 			-funroll-loops -fstrict-aliasing -Wall -W -Wno-uninitialized
+#			-march=native -ffast-math -mpc64 -finline-functions 
 SHFLAGS =	-fPIC
-DEPFLAGS =	-M
+DEPFLAGS =	-MM
 
 LINK =		mpic++
 LINKFLAGS =	-O -g -fno-rtti -fno-exceptions -mpc64
@@ -75,6 +76,11 @@ include	Makefile.package
 EXTRA_INC = $(LMP_INC) $(PKG_INC) $(MPI_INC) $(FFT_INC) $(JPG_INC) $(PKG_SYSINC)
 EXTRA_PATH = $(PKG_PATH) $(MPI_PATH) $(FFT_PATH) $(JPG_PATH) $(PKG_SYSPATH)
 EXTRA_LIB = $(PKG_LIB) $(MPI_LIB) $(FFT_LIB) $(JPG_LIB) $(PKG_SYSLIB)
+
+# Path to src files
+
+vpath %.cpp ..
+vpath %.h ..
 
 # Link target
 

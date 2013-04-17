@@ -47,16 +47,22 @@ class PairBornCoulLongGPU : public PairBornCoulLong {
 
 /* ERROR/WARNING messages:
 
-E: Out of memory on GPGPU
+E: Insufficient memory on accelerator
 
-UNDOCUMENTED
-
-E: Cannot use newton pair with born/coul/long/gpu pair style
-
-UNDOCUMENTED
+There is insufficient memory on one of the devices specified for the gpu
+package
 
 E: Pair style born/coul/long/gpu requires atom attribute q
 
 The atom style defined does not have this attribute.
+
+E: Cannot use newton pair with born/coul/long/gpu pair style
+
+Self-explanatory.
+
+E: Pair style is incompatible with KSpace style
+
+If a pair style with a long-range Coulombic component is selected,
+then a kspace style must also be used.
 
 */

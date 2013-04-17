@@ -136,6 +136,14 @@ E: Must read Atoms before Triangles
 
 The Atoms section of a data file must come before a Triangles section.
 
+E: Invalid data file section: Bodies
+
+Atom style does not allow bodies.
+
+E: Must read Atoms before Bodies
+
+The Atoms section of a data file must come before a Bodies section.
+
 E: Invalid data file section: Bonds
 
 Atom style does not allow bonds.
@@ -308,6 +316,10 @@ E: No triangles allowed with this atom style
 
 Self-explanatory.  Check data file.
 
+E: No bodies allowed with this atom style
+
+Self-explanatory.  Check data file.
+
 E: System in data file is too big
 
 See the setting for bigint in the src/lmptype.h file.
@@ -353,6 +365,11 @@ outside a non-periodic simulation box.
 E: Invalid atom ID in Atoms section of data file
 
 Atom IDs must be positive integers.
+
+E: Too many lines in one body in data file - boost MAXBODY
+
+MAXBODY is a setting at the top of the src/read_data.cpp file.
+Set it larger and re-compile the code.
 
 E: Bonds assigned incorrectly
 

@@ -162,6 +162,7 @@ void PairDSMC::compute(int eflag, int vflag)
 
         for (int k = 0; k < num_of_collisions; k++) {
           if ((number_of_A < 1) or (number_of_B < 1)) break;
+          if ((itype == jtype) and (number_of_A < 2)) break;
           int ith_A = static_cast<int>(random->uniform()*number_of_A);
           int jth_B = static_cast<int>(random->uniform()*number_of_B);
           int i = particle_list[itype][ith_A];

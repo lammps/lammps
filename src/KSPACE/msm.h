@@ -51,8 +51,10 @@ class MSM : public KSpace {
   int *nxhi_in,*nyhi_in,*nzhi_in;
   int *nxlo_out,*nylo_out,*nzlo_out;
   int *nxhi_out,*nyhi_out,*nzhi_out;
-  int *ngrid;
+  int *ngrid,*active_flag;
   int *alpha,*betax,*betay,*betaz;
+  int nxlo_out_all,nylo_out_all,nzlo_out_all;
+  int nxhi_out_all,nyhi_out_all,nzhi_out_all;
   int nxlo_direct,nxhi_direct,nylo_direct;
   int nyhi_direct,nzlo_direct,nzhi_direct;
   int nmax_direct;
@@ -108,14 +110,19 @@ class MSM : public KSpace {
   void particle_map();
   void make_rho();
   virtual void direct(int);
+  void direct_peratom(int);
   void direct_top(int);
+  void direct_peratom_top(int);
   void restriction(int);
   void prolongation(int);
+  void grid_swap_forward(int,double*** &);
+  void grid_swap_reverse(int,double*** &);
   void fieldforce();
   void fieldforce_peratom();
+  void compute_phis(const double &, const double &, const double &);
   void compute_phis_and_dphis(const double &, const double &, const double &);
-  double compute_phi(const double &);
-  double compute_dphi(const double &);
+  inline double compute_phi(const double &);
+  inline double compute_dphi(const double &);
   void get_g_direct();
   void get_virial_direct();
   void get_g_direct_top(int);
@@ -153,9 +160,9 @@ E: Kspace style requires atom attribute q
 
 The atom style defined does not have these attributes.
 
-E: Cannot use slab correction with MSM
+E: Slab correction not needed for MSM
 
-Slab correction can only be used with Ewald and PPPM, not MSM.
+Slab correction can only be used with Ewald and PPPM and is not needed by MSM.
 
 E: MSM order must be 4, 6, 8, or 10
 
@@ -169,8 +176,7 @@ Single precision cannot be used with MSM.
 E: KSpace style is incompatible with Pair style
 
 Setting a kspace style requires that a pair style with a long-range
-Coulombic component be selected that is compatible with MSM.  Note
-that TIP4P is not (yet) supported by MSM.
+Coulombic or dispersion component be used.
 
 E: Cannot use kspace solver on system with no charge
 
@@ -179,18 +185,7 @@ No atoms in system have a non-zero charge.
 E: System is not charge neutral, net charge = %g
 
 The total charge on all atoms on the system is not 0.0, which
-is not valid for MSM.
-
-E: MSM grid is too large
-
-The global MSM grid is larger than OFFSET in one or more dimensions.
-OFFSET is currently set to 16384.  You likely need to decrease the
-requested accuracy.
-
-W: MSM mesh too small, increasing to 2 points in each direction
-
-The global MSM grid is too small, so the number of grid points has been
-increased
+is not valid for the long-range Coulombic solvers.
 
 E: KSpace accuracy must be > 0
 
@@ -202,10 +197,24 @@ MSM requires that the number of grid points in each direction be a multiple
 of two and the number of grid points in one or more directions have been
 adjusted to meet this requirement.
 
+E: Too many MSM grid levels
+
+The max number of MSM grid levels is hardwired to 10.
+
+W: MSM mesh too small, increasing to 2 points in each direction
+
+Self-explanatory.
+
 W: Adjusting Coulombic cutoff for MSM, new cutoff = %g
 
 The adjust/cutoff command is turned on and the Coulombic cutoff has been
 adjusted to match the user-specified accuracy.
+
+E: MSM grid is too large
+
+The global MSM grid is larger than OFFSET in one or more dimensions.
+OFFSET is currently set to 16384.  You likely need to decrease the
+requested accuracy.
 
 E: Out of range atoms - cannot compute MSM
 

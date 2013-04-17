@@ -31,6 +31,7 @@ using namespace LAMMPS_NS;
 
 BondHybrid::BondHybrid(LAMMPS *lmp) : Bond(lmp)
 {
+  writedata = 0;
   nstyles = 0;
 }
 

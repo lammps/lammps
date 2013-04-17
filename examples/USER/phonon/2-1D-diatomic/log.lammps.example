@@ -1,0 +1,113 @@
+LAMMPS (21 Feb 2013)
+# 3D simple cubic lattice simulation
+dimension   2
+boundary    p f p
+
+units		   lj
+atom_style	bond
+atom_modify sort 0 1.
+bond_style  harmonic
+pair_style  none
+communicate single cutoff 2.0
+
+# geometry
+read_data	data.pos
+  2 = max bonds/atom
+  orthogonal box = (0 0 0) to (64 1 1)
+  1 by 1 by 1 MPI processor grid
+  64 atoms
+  64 bonds
+  2 = max # of 1-2 neighbors
+  2 = max # of 1-3 neighbors
+  4 = max # of 1-4 neighbors
+  6 = max # of special neighbors
+
+#
+neighbor 1.0 nsq
+neigh_modify  delay 0 check no
+
+#Langevin random seed
+variable r equal 571101
+
+#Langevin Temperature
+variable t equal 0.005
+
+# Langevin Damping variable
+variable d equal 0.5
+
+# Create velocities and equilibrate
+compute   MyTemp all temp/partial 1 0 0
+velocity  all create $t 28711 mom yes rot yes dist gaussian temp MyTemp
+velocity  all create 0.0050000000000000001041 28711 mom yes rot yes dist gaussian temp MyTemp
+velocity  all set NULL 0.0 0.0 units box
+#
+fix        1 all langevin $t $t $d $r
+fix        1 all langevin 0.0050000000000000001041 $t $d $r
+fix        1 all langevin 0.0050000000000000001041 0.0050000000000000001041 $d $r
+fix        1 all langevin 0.0050000000000000001041 0.0050000000000000001041 0.5 $r
+fix        1 all langevin 0.0050000000000000001041 0.0050000000000000001041 0.5 571101
+fix_modify 1 temp MyTemp
+fix        2 all setforce NULL 0. 0.
+fix        3 all nve
+fix        4 all phonon 10 50000 500000 map.in phonon sysdim 1
+fix_modify 4 temp MyTemp
+
+#                    1    2    3  4
+thermo_style  custom step temp pe etotal
+thermo_modify temp MyTemp
+thermo   100
+
+#
+run 		 2000000
+Memory usage per processor = 2.01061 Mbytes
+Step Temp PotEng TotEng 
+       0        0.005            0  0.002421875 
+     100 0.0044233185 0.00069227571 0.0028348206 
+     200 0.0051557212 0.0012425996  0.003739902 
+     300  0.004357315 0.0012750554 0.0033856298 
+     400 0.0048269093 0.0014376622 0.0037756964 
+     500 0.0047025425 0.0016352541 0.0039130482 
+     600 0.0054651713 0.0016709504 0.0043181428 
+     700 0.0053552729 0.0018353947 0.0044293551 
+     800  0.005954909 0.0019755263 0.0048599354 
+     900 0.0042057592 0.0023020508 0.0043392155 
+    1000 0.0057669621 0.0025897902 0.0053831625 
+...
+ 1998400 0.0063659105 0.0026460546 0.0057295425 
+ 1998500 0.0043373725 0.0027045125 0.0048054273 
+ 1998600 0.0048756101 0.0024999167 0.0048615404 
+ 1998700 0.0046508855 0.0023965866 0.0046493593 
+ 1998800 0.0062661518 0.0022217336 0.0052569009 
+ 1998900 0.0061555738 0.0023546222 0.0053362283 
+ 1999000 0.0043069574 0.0024786217 0.0045648042 
+ 1999100 0.0055141568 0.0028549884 0.0055259081 
+ 1999200 0.0034372635 0.0027990632 0.0044639877 
+ 1999300 0.0048351937 0.0023526277 0.0046946746 
+ 1999400 0.0057087851 0.0020335116 0.0047987044 
+ 1999500 0.0033912965 0.0023030393 0.0039456986 
+ 1999600 0.0054813169 0.0023096891  0.004964702 
+ 1999700 0.0048389727 0.0021943385 0.0045382159 
+ 1999800 0.0059277298 0.0020055057 0.0048767498 
+ 1999900 0.0059290305  0.002299977 0.0051718512 
+ 2000000 0.0047343315 0.0026625608 0.0049557526 
+Loop time of 32.3665 on 1 procs for 2000000 steps with 64 atoms
+
+Pair  time (%) = 0 (0)
+Bond  time (%) = 6.21905 (19.2145)
+Neigh time (%) = 3.25312 (10.0509)
+Comm  time (%) = 3.04437 (9.40594)
+Outpt time (%) = 0.0748212 (0.231169)
+Other time (%) = 19.7751 (61.0975)
+
+Nlocal:    64 ave 64 max 64 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    4 ave 4 max 4 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    0 ave 0 max 0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 0
+Ave neighs/atom = 0
+Ave special neighs/atom = 6
+Neighbor list builds = 2000000
+Dangerous builds = 0

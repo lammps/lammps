@@ -38,10 +38,6 @@ using namespace MathSpecial;
 
 #define SMALL 0.00001
 
-#define KSPACE_ILLEGAL        "Illegal kspace_style ewald/n command"
-#define KSPACE_ORDER        "Unsupported order in kspace_style ewald/n for"
-#define KSPACE_MIX        "Unsupported mixing rule in kspace_style ewald/n for"
-
 enum{GEOMETRIC,ARITHMETIC,SIXTHPOWER};   // same as in pair.h
 
 //#define DEBUG
@@ -50,8 +46,11 @@ enum{GEOMETRIC,ARITHMETIC,SIXTHPOWER};   // same as in pair.h
 
 EwaldDisp::EwaldDisp(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
 {
-  if (narg!=1) error->all(FLERR,KSPACE_ILLEGAL);
+  if (narg!=1) error->all(FLERR,"Illegal kspace_style ewald/n command");
+
+  ewaldflag = dispersionflag = 1;
   accuracy_relative = fabs(atof(arg[0]));
+
   memset(function, 0, EWALD_NORDER*sizeof(int));
   kenergy = kvirial = NULL;
   cek_local = cek_global = NULL;
@@ -129,11 +128,10 @@ void EwaldDisp::init()
         case 6:
           if (ewald_mix==GEOMETRIC) { k = 1; break; }
           else if (ewald_mix==ARITHMETIC) { k = 2; break; }
-          sprintf(str, "%s pair_style %s", KSPACE_MIX, force->pair_style);
-          error->all(FLERR,str);
+          error->all(FLERR,
+                     "Unsupported mixing rule in kspace_style ewald/disp");
         default:
-          sprintf(str, "%s pair_style %s", KSPACE_ORDER, force->pair_style);
-          error->all(FLERR,str);
+          error->all(FLERR,"Unsupported order in kspace_style ewald/disp");
       }
       nfunctions += function[k] = 1;
       nsums += n[k];
@@ -162,7 +160,7 @@ void EwaldDisp::init()
       error->warning(FLERR,str);
   }
 
-  //set accuracy (force units) from accuracy_relative or accuracy_absolute
+  // set accuracy (force units) from accuracy_relative or accuracy_absolute
 
   if (accuracy_absolute >= 0.0) accuracy = accuracy_absolute;
   else accuracy = accuracy_relative * two_charge_force;
@@ -204,7 +202,6 @@ void EwaldDisp::init()
   peratom_allocate_flag = 0;
 }
 
-
 /* ----------------------------------------------------------------------
    adjust EwaldDisp coeffs, called initially and whenever volume has changed
 ------------------------------------------------------------------------- */
@@ -216,9 +213,9 @@ void EwaldDisp::setup()
   shape_scalar_mult(unit, 2.0*MY_PI);
   unit[2] /= slab_volfactor;
 
-  //int nbox_old = nbox, nkvec_old = nkvec;
+  // int nbox_old = nbox, nkvec_old = nkvec;
 
-  if (accuracy>=1) {
+  if (accuracy >= 1) {
     nbox = 0;
     error->all(FLERR,"KSpace accuracy too low");
   }
@@ -461,7 +458,7 @@ void EwaldDisp::init_coeffs()
 
     if (!(epsilon&&sigma))
       error->all(
-          FLERR,"epsilon or sigma reference not set by pair style in ewald/n");
+          FLERR,"Epsilon or sigma reference not set by pair style in ewald/n");
     for (int i=0; i<=n; ++i) {
       eps_i = sqrt(epsilon[i][i]);
       sigma_i = sigma[i][i];

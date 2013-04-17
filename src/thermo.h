@@ -20,6 +20,7 @@ namespace LAMMPS_NS {
 
 class Thermo : protected Pointers {
   friend class WriteRestart;           // accesses lostflag
+  friend class WriteData;              // accesses lostflag
   friend class MinCG;                  // accesses compute_pe
 
  public:

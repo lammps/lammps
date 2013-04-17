@@ -245,13 +245,13 @@ void FixRigidNH::init()
   if (tcomputeflag) {  
     icompute = modify->find_compute(id_temp);
     if (icompute < 0) 
-      error->all(FLERR,"Temp ID for fix rigid npt/nph does not exist");
+      error->all(FLERR,"Temperature ID for fix rigid nvt/npt/nph does not exist");
     temperature = modify->compute[icompute];
   }
 
   if (pstat_flag) {
     if (domain->triclinic) 
-      error->all(FLERR,"fix rigid npt/nph does not yet allow triclinic box");
+      error->all(FLERR,"Fix rigid npt/nph does not yet allow triclinic box");
   
     // ensure no conflict with fix deform
 
@@ -283,7 +283,7 @@ void FixRigidNH::init()
 
     icompute = modify->find_compute(id_press);
     if (icompute < 0) 
-      error->all(FLERR,"Press ID for fix rigid npt/nph does not exist");
+      error->all(FLERR,"Pressure ID for fix rigid npt/nph does not exist");
     pressure = modify->compute[icompute];
     
     // detect if any rigid fixes exist so rigid bodies move on remap

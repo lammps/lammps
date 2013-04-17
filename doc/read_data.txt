@@ -68,8 +68,8 @@ The formatting of individual lines in the data file (indentation,
 spacing between words and numbers) is not important except that header
 and section keywords (e.g. atoms, xlo xhi, Masses, Bond Coeffs) must
 be capitalized as shown and can't have extra white space between their
-words - e.g. two spaces or a tab between "Bond" and "Coeffs" is not
-valid.
+words - e.g. two spaces or a tab between the 2 words in "xlo xhi" or
+the 2 words in "Bond Coeffs", is not valid.
 
 :line
 
@@ -806,6 +806,6 @@ LAMMPS"_Section_start.html#start_2 section of the documentation.
 [Related commands:]
 
 "read_dump"_read_dump.html, "read_restart"_read_restart.html,
-"create_atoms"_create_atoms.html
+"create_atoms"_create_atoms.html, "write_data"_write_data.html
 
 [Default:] none

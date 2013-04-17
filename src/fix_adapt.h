@@ -100,7 +100,7 @@ E: Fix adapt requires atom attribute diameter
 
 The atom style being used does not specify an atom diameter.
 
-E: Fix adapt requires atom attribute charge 
+E: Fix adapt requires atom attribute charge
 
 The atom style being used does not specify an atom charge.
 

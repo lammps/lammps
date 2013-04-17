@@ -18,7 +18,8 @@ PACKAGE = asphere body class2 colloid dipole fld gpu granular kim \
 	  rigid shock srd voronoi xtc
 
 PACKUSER = user-misc user-atc user-awpmd user-cg-cmm user-colvars \
-	   user-cuda user-eff user-omp user-molfile user-reaxc user-sph
+	   user-cuda user-eff user-omp user-molfile user-phonon \
+	   user-reaxc user-sph
 
 PACKLIB = gpu kim meam poems reax voronoi \
 	  user-atc user-awpmd user-colvars user-cuda user-molfile
@@ -76,7 +77,6 @@ help:
 	@test -f MAKE/Makefile.$@
 	@if [ ! -d Obj_$@ ]; then mkdir Obj_$@; fi
 	@$(SHELL) Make.sh style
-	@cp -p *.cpp *.h Obj_$@
 	@cp MAKE/Makefile.$@ Obj_$@/Makefile
 	@if [ ! -e Makefile.package ]; \
 	  then cp Makefile.package.empty Makefile.package; fi
@@ -86,7 +86,6 @@ help:
 	@cd Obj_$@; \
 	$(MAKE) $(MFLAGS) "OBJ = $(OBJ)" "INC = $(INC)" "SHFLAGS =" \
 	  "EXE = ../$(EXE)" ../$(EXE)
-	@if [ -d Obj_$@ ]; then cd Obj_$@; rm -f $(SRC) $(INC) Makefile*; fi
 
 # Remove machine-specific object files
 

@@ -106,7 +106,7 @@ restart files.  The doc pages for individual pair styles note if this
 is the case.  This is also true of bond_style hybrid (and angle_style,
 dihedral_style, improper_style hybrid).
 
-All settings made by the "pair_modify"_doc/pair_modify.html command,
+All settings made by the "pair_modify"_pair_modify.html command,
 such as the shift and tail settings, are stored in the restart file
 with the pair style.  The one exception is the "pair_modify
 compute"_pair_modify.html setting is not stored.
@@ -143,9 +143,9 @@ bonds will still be broken when the restart file is read.
 IMPORTANT NOTE: No other information is stored in the restart file.
 This means that an input script that reads a restart file should
 specify settings for quantities like "timestep size"_timestep.html,
-"thermodynamic"_thermo_style.html, "neighbor list"_doc/neighbor.html
+"thermodynamic"_thermo_style.html, "neighbor list"_neighbor.html
 criteria including settings made via the
-"neigh_modify"_doc/neigh_modify.html comand, "dump"_dump.html file
+"neigh_modify"_neigh_modify.html comand, "dump"_dump.html file
 output, "geometric regions"_region.html, etc.
 
 :line

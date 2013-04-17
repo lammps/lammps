@@ -1,0 +1,31 @@
+phana = post-processing program for the fix phonon command
+
+This program reads the binary file created by the fix phonon command
+and helps to analyse the phonon related info.
+
+The clapack library is needed to solve the eigen problems, which could
+be downloaded from: http://www.netlib.org/clapack/
+
+The tricubic library is also needed to to tricubic interpolations,
+which could be obtained from:
+http://orca.princeton.edu/francois/software/tricubic/ or
+http://code.google.com/p/fix-phonon/downloads/list
+
+The spglib (version 0.7.1) is optionally needed, enabling one to
+evaluate the phonon density of states or vibrational thermal
+properties using only the irreducible q-points in the first Brillouin
+zone.
+
+To compile the code, one needs therefore to install the above
+libraries and set the paths correctly in the Makefile.
+
+The units of the output frequencies by this code is THz for LAMMPS
+units "real", "si", "metal", and "cgs"; in these cases, the
+frequencies are $\nu$ instead of $\omega$.
+
+One is encouraged to visit http://code.google.com/p/fix-phonon/ to
+check out the latest revision on fix-phonon and the post-processing
+code.
+
+Author: Ling-Ti Kong (konglt at sjtu.edu.cn)
+Feb 2013

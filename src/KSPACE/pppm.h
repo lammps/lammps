@@ -232,7 +232,7 @@ This is a limitation of the PPPM implementation in LAMMPS.
 E: KSpace style is incompatible with Pair style
 
 Setting a kspace style requires that a pair style with a long-range
-Coulombic component be selected.
+Coulombic or dispersion component be used.
 
 E: Bond and angle potentials must be defined for TIP4P
 
@@ -254,12 +254,31 @@ No atoms in system have a non-zero charge.
 W: System is not charge neutral, net charge = %g
 
 The total charge on all atoms on the system is not 0.0, which
-is not valid for Ewald or PPPM.
+is not valid for the long-range Coulombic solvers.
 
-W: Reducing PPPM order b/c stencil extends beyond neighbor processor
+W: Reducing PPPM order b/c stencil extends beyond nearest neighbor processor
 
-LAMMPS is attempting this in order to allow the simulation
-to run.  It should not effect the PPPM accuracy.
+This may lead to a larger grid than desired.  See the kspace_modify overlap
+command to prevent changing of the PPPM order.
+
+E: PPPM order < minimum allowed order
+
+The default minimum order is 2.  This can be reset by the
+kspace_modify minorder command.
+
+E: PPPM grid stencil extends beyond nearest neighbor processor
+
+This is not allowed if the kspace_modify overlap setting is no.
+
+E: KSpace accuracy must be > 0
+
+The kspace accuracy designated in the input must be greater than zero.
+
+E: Could not compute grid size
+
+The code is unable to compute a grid size consistent with the desired
+accuracy.  This error should not occur for typical problems.  Please
+send an email to the developers.
 
 E: PPPM grid is too large
 
@@ -267,21 +286,11 @@ The global PPPM grid is larger than OFFSET in one or more dimensions.
 OFFSET is currently set to 4096.  You likely need to decrease the
 requested accuracy.
 
-E: PPPM order has been reduced to 0
+E: Could not compute g_ewald
 
-LAMMPS has attempted to reduce the PPPM order to enable the simulation
-to run, but can reduce the order no further.  Try increasing the
-accuracy of PPPM by reducing the tolerance size, thus inducing a
-larger PPPM grid.
-
-E: KSpace accuracy must be > 0
-
-The kspace accuracy designated in the input must be greater than zero.
-
-E: Cannot compute PPPM G
-
-LAMMPS failed to compute a valid approximation for the PPPM g_ewald
-factor that partitions the computation between real space and k-space.
+The Newton-Raphson solver failed to converge to a good value for
+g_ewald.  This error should not occur for typical problems.  Please
+send an email to the developers.
 
 E: Out of range atoms - cannot compute PPPM
 

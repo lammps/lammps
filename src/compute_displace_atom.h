@@ -36,7 +36,7 @@ class ComputeDisplaceAtom : public Compute {
   int nmax;
   double **displace;
   char *id_fix;
-  class Fix *fix;
+  class FixStore *fix;
 };
 
 }

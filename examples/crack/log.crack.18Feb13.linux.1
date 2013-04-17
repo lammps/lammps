@@ -1,0 +1,135 @@
+LAMMPS (18 Feb 2013)
+# 2d LJ crack simulation
+
+dimension	2
+boundary	s s p
+
+atom_style	atomic
+neighbor	0.3 bin
+neigh_modify	delay 5
+
+# create geometry
+
+lattice		hex 0.93
+Lattice spacing in x,y,z = 1.11428 1.92998 1.11428
+region		box block 0 100 0 40 -0.25 0.25
+create_box	5 box
+Created orthogonal box = (0 0 -0.278569) to (111.428 77.1994 0.278569)
+  1 by 1 by 1 MPI processor grid
+create_atoms	1 box
+Created 8141 atoms
+
+mass		1 1.0
+mass		2 1.0
+mass		3 1.0
+mass		4 1.0
+mass		5 1.0
+
+# LJ potentials
+
+pair_style	lj/cut 2.5
+pair_coeff	* * 1.0 1.0 2.5
+
+# define groups
+
+region	        1 block INF INF INF 1.25 INF INF
+group		lower region 1
+302 atoms in group lower
+region		2 block INF INF 38.75 INF INF INF
+group		upper region 2
+302 atoms in group upper
+group		boundary union lower upper
+604 atoms in group boundary
+group		mobile subtract all boundary
+7537 atoms in group mobile
+
+region		leftupper block INF 20 20 INF INF INF
+region		leftlower block INF 20 INF 20 INF INF
+group		leftupper region leftupper
+841 atoms in group leftupper
+group		leftlower region leftlower
+841 atoms in group leftlower
+
+set		group leftupper type 2
+  841 settings made for type
+set		group leftlower type 3
+  841 settings made for type
+set		group lower type 4
+  302 settings made for type
+set		group upper type 5
+  302 settings made for type
+
+# initial velocities
+
+compute	  	new mobile temp
+velocity	mobile create 0.01 887723 temp new
+velocity	upper set 0.0 0.3 0.0
+velocity	mobile ramp vy 0.0 0.3 y 1.25 38.75 sum yes
+
+# fixes
+
+fix		1 all nve
+fix		2 boundary setforce NULL 0.0 0.0
+
+# run
+
+timestep	0.003
+thermo		200
+thermo_modify	temp new
+WARNING: Temperature for thermo pressure is not for group all (thermo.cpp:436)
+
+neigh_modify	exclude type 2 3
+
+#dump		1 all atom 500 dump.crack
+
+#dump		1 all image 250 image.*.jpg type type #		zoom 1.6 adiam 1.5
+#dump_modify	1 pad 4
+
+run		5000
+Memory usage per processor = 2.09943 Mbytes
+Step Temp E_pair E_mol TotEng Press Volume 
+       0  0.065651733   -3.2595015            0   -3.1987287 -0.036239172    8605.5917 
+     200  0.060086376   -3.2531936            0   -3.1975725  -0.23125026    8638.8101 
+     400  0.060533553   -3.2509973            0   -3.1949623   -0.4305406    8679.2464 
+     600   0.06082965   -3.2466949            0   -3.1903858   -0.6028531    8716.7569 
+     800  0.061677224   -3.2413215            0   -3.1842278   -0.7482749     8756.226 
+    1000  0.062383731   -3.2349273            0   -3.1771796  -0.87425132    8793.1116 
+    1200  0.063709246   -3.2276094            0   -3.1686347  -0.98020161    8828.8863 
+    1400  0.065404552   -3.2196608            0   -3.1591168   -1.0695384    8866.4893 
+    1600  0.067579602   -3.2110378            0   -3.1484804   -1.1456387    8900.6772 
+    1800  0.069324241   -3.2018536            0   -3.1376812   -1.2020999     8933.017 
+    2000  0.071014927   -3.1921108            0   -3.1263733   -1.2430105    8963.9853 
+    2200  0.072992881   -3.1818701            0   -3.1143017   -1.2701297    9004.4136 
+    2400  0.075000723   -3.1712313            0   -3.1018043   -1.2830866    9034.9991 
+    2600  0.076843477   -3.1601004            0   -3.0889675     -1.27924    9072.1325 
+    2800  0.078671706   -3.1487747            0   -3.0759495   -1.2659604    9103.9526 
+    3000  0.080713586   -3.1373277            0   -3.0626123   -1.2440673     9134.552 
+    3200   0.08309469   -3.1260242            0   -3.0491047    -1.214547    9169.0003 
+    3400  0.085424766   -3.1146623            0   -3.0355859   -1.1839326     9206.909 
+    3600  0.087396485   -3.1029493            0   -3.0220477    -1.143412     9233.783 
+    3800  0.089007987    -3.090822            0   -3.0084286   -1.1000791    9259.0348 
+    4000  0.089813071   -3.0794078            0   -2.9962692    -1.062847      9281.82 
+    4200   0.08584753   -3.0668559            0   -2.9873882    -1.037972    9308.8113 
+    4400  0.086197517   -3.0559678            0   -2.9761761    -1.028843    9328.9666 
+    4600  0.086766447   -3.0437627            0   -2.9634443   -1.0208785    9361.9925 
+    4800  0.088195149   -3.0328502            0   -2.9512093   -1.0272063    9395.6122 
+    5000  0.089415266   -3.0228825            0   -2.9401122   -1.0215336    9436.1637 
+Loop time of 6.84719 on 1 procs for 5000 steps with 8141 atoms
+
+Pair  time (%) = 5.70829 (83.3669)
+Neigh time (%) = 0.278341 (4.06504)
+Comm  time (%) = 0.0058105 (0.0848597)
+Outpt time (%) = 0.000735044 (0.010735)
+Other time (%) = 0.854015 (12.4725)
+
+Nlocal:    8141 ave 8141 max 8141 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    0 ave 0 max 0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    71389 ave 71389 max 71389 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 71389
+Ave neighs/atom = 8.76907
+Neighbor list builds = 100
+Dangerous builds = 0

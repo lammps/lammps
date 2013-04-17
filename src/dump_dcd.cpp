@@ -68,7 +68,8 @@ DumpDCD::DumpDCD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
   // allocate global array for atom coords
 
   bigint n = group->count(igroup);
-  if (n > MAXSMALLINT/sizeof(float)) error->all(FLERR,"Too many atoms for dump dcd");
+  if (n > MAXSMALLINT/sizeof(float)) 
+    error->all(FLERR,"Too many atoms for dump dcd");
   natoms = static_cast<int> (n);
 
   memory->create(coords,3*natoms,"dump:coords");

@@ -523,7 +523,7 @@ void PairREAX::coeff(int narg, char **arg)
   // read args that map atom types to elements in potential file
   // map[i] = which element the Ith atom type is, -1 if NULL
   // NOTE: for now throw an error if NULL is used to disallow use with hybrid
-  //       qEq atrix solver needs to be modified to exclude atoms
+  //       qEq matrix solver needs to be modified to exclude atoms
 
   for (int i = 3; i < narg; i++) {
     if (strcmp(arg[i],"NULL") == 0) {

@@ -63,6 +63,12 @@ for file in *.cpp *.h; do
   if (test $file = pair_colloid_gpu.h -a ! -e ../pair_colloid.cpp) then
     continue
   fi
+  if (test $file = pair_born_coul_long_gpu.cpp -a ! -e ../pair_born_coul_long.cpp) then
+    continue
+  fi
+  if (test $file = pair_born_coul_long_gpu.h -a ! -e ../pair_born_coul_long.cpp) then
+    continue
+  fi
   if (test $file = pair_buck_coul_long_gpu.cpp -a ! -e ../pair_buck_coul_long.cpp) then
     continue
   fi

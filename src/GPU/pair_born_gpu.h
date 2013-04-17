@@ -47,12 +47,13 @@ class PairBornGPU : public PairBorn {
 
 /* ERROR/WARNING messages:
 
-E: Out of memory on GPGPU
+E: Insufficient memory on accelerator
 
-UNDOCUMENTED
+There is insufficient memory on one of the devices specified for the gpu
+package
 
 E: Cannot use newton pair with born/gpu pair style
 
-UNDOCUMENTED
+Self-explantory.
 
 */

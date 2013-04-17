@@ -41,7 +41,7 @@ KSpace::KSpace(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   gewaldflag = 0;
   minorder = 2;
   overlap_allowed = 1;
-  fftbench = 1;
+  fftbench = 0;
 
   order_6 = 5;
   gridflag_6 = 0;

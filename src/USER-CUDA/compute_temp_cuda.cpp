@@ -87,7 +87,7 @@ ComputeTempCuda::~ComputeTempCuda()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeTempCuda::init()
+void ComputeTempCuda::setup()
 {
   fix_dof = 0;
   for (int i = 0; i < modify->nfix; i++)

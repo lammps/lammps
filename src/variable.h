@@ -31,6 +31,7 @@ class Variable : protected Pointers {
   int atomstyle(int);
   char *retrieve(char *);
   double compute_equal(int);
+  double compute_equal(char *);
   void compute_atom(int, int, double *, int, int);
   int int_between_brackets(char *&);
   double evaluate_boolean(char *);
@@ -54,8 +55,8 @@ class Variable : protected Pointers {
   class RanMars *randomequal;   // random number generator for equal-style vars
   class RanMars *randomatom;    // random number generator for atom-style vars
 
-  int precedence[16];      // precedence level of math operators
-                           // set length to include OR in enum
+  int precedence[17];      // precedence level of math operators
+                           // set length to include up to OR in enum
   int me;
 
   struct Tree {            // parse tree for atom-style variables
@@ -134,6 +135,10 @@ E: Cannot redefine variable as a different style
 
 An equal-style variable can be re-defined but only if it was
 originally an equal-style variable.
+
+E: File variable could not read value
+
+Check the file assigned to the variable.
 
 E: Variable name must be alphanumeric or underscore characters
 
@@ -219,6 +224,12 @@ E: Invalid variable name in variable formula
 
 Variable name is not recognized.
 
+E: Variable has circular dependency
+
+A circular dependency is when variable "a" in used by variable "b" and
+variable "b" is also used by varaible "a".  Circular dependencies with
+longer chains of dependence are also not allowed.
+
 E: Invalid variable evaluation in variable formula
 
 A variable used in a formula could not be evaluated.
@@ -243,6 +254,10 @@ E: Invalid thermo keyword in variable formula
 The keyword is not recognized.
 
 E: Divide by 0 in variable formula
+
+Self-explanatory.
+
+E: Modulo 0 in variable formula
 
 Self-explanatory.
 
@@ -331,6 +346,14 @@ E: Grmask function in equal-style variable formula
 
 Grmask is per-atom operation.
 
+E: Variable ID in variable formula does not exist
+
+Self-explanatory.
+
+E: Invalid variable in special function next
+
+Only file-style variables can be used with the next() function.
+
 E: Indexed per-atom vector in variable formula without atom map
 
 Accessing a value from an atom vector requires the ability to lookup
@@ -358,5 +381,10 @@ The quantity being read is a floating point or non-numeric value.
 E: Invalid Boolean syntax in if command
 
 Self-explanatory.
+
+E: Cannot open file variable file %s
+
+The specified file cannot be opened.  Check that the path and name are
+correct.
 
 */

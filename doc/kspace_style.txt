@@ -120,7 +120,7 @@ or not.  Its default value is 1.0e-5.
 The {pppm/tip4p} style is identical to the {pppm} style except that it
 adds a charge at the massless 4th site in each TIP4P water molecule.
 It should be used with "pair styles"_pair_style.html with a
-{long/tip4p} in their style name.
+{tip4p/long} in their style name.
 
 :line
 

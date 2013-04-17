@@ -54,7 +54,7 @@ class KSpace : protected Pointers {
   unsigned int datamask_ext;
 
   int compute_flag;               // 0 if skip compute()
-  int fftbench;                   // 0 if skip FFT timing.
+  int fftbench;                   // 0 if skip FFT timing
 
   KSpace(class LAMMPS *, int, char **);
   virtual ~KSpace();
@@ -156,6 +156,20 @@ class KSpace : protected Pointers {
 
 /* ERROR/WARNING messages:
 
+E: KSpace solver requires a pair style
+
+No pair style is defined.
+
+E: KSpace style is incompatible with Pair style
+
+Setting a kspace style requires that a pair style with a long-range
+Coulombic or dispersion component be used.
+
+W: For better accuracy use 'pair_modify table 0'
+
+The user-specified force accuracy cannot be achieved unless the table
+feature is disabled by using 'pair_modify table 0'.
+
 E: Illegal ... command
 
 Self-explanatory.  Check the input script syntax and compare to the
@@ -170,10 +184,5 @@ W: Kspace_modify slab param < 2.0 may cause unphysical behavior
 
 The kspace_modify slab parameter should be larger to insure periodic
 grids padded with empty space do not overlap.
-
-W: For better accuracy use 'pair_modify table 0'
-
-The user-specified force accuracy cannot be achieved unless the table
-feature is disabled by using 'pair_modify table 0'.
 
 */

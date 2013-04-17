@@ -176,6 +176,10 @@ E: Fix rigid langevin period must be > 0.0
 
 Self-explanatory.
 
+E: Fix rigid npt/nph dilate group ID does not exist
+
+Self-explanatory.
+
 E: One or zero atoms in rigid body
 
 Any rigid body defined by the fix rigid command must contain 2 or more
@@ -200,7 +204,7 @@ not be accounted for.
 
 E: Fix rigid atom has non-zero image flag in a non-periodic dimension
 
-You cannot set image flags for non-periodic dimensions.
+Image flags for non-periodic dimensions should not be set.
 
 E: Insufficient Jacobi rotations for rigid body
 

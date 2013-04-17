@@ -100,37 +100,33 @@ void Neighbor::respa_nsq_no_newton_omp(NeighList *list)
 #if defined(_OPENMP)
 #pragma omp critical
 #endif
+   {
     if (pgsize - npnt < oneatom) {
       npnt = 0;
       npage += nthreads;
-      if (npage == list->maxpage) list->add_pages(nthreads);
+      if (npage >= list->maxpage) list->add_pages(nthreads);
     }
     neighptr = &(list->pages[npage][npnt]);
     n = 0;
 
-#if defined(_OPENMP)
-#pragma omp critical
-#endif
     if (pgsize - npnt_inner < oneatom) {
       npnt_inner = 0;
       npage_inner += nthreads;
-      if (npage_inner == listinner->maxpage) listinner->add_pages(nthreads);
+      if (npage_inner >= listinner->maxpage) listinner->add_pages(nthreads);
     }
     neighptr_inner = &(listinner->pages[npage_inner][npnt_inner]);
     n_inner = 0;
 
-#if defined(_OPENMP)
-#pragma omp critical
-#endif
     if (respamiddle) {
       if (pgsize - npnt_middle < oneatom) {
         npnt_middle = 0;
         npage_middle += nthreads;
-        if (npage_middle == listmiddle->maxpage) listmiddle->add_pages(nthreads);
+        if (npage_middle >= listmiddle->maxpage) listmiddle->add_pages(nthreads);
       }
       neighptr_middle = &(listmiddle->pages[npage_middle][npnt_middle]);
       n_middle = 0;
     }
+   }
 
     itype = type[i];
     xtmp = x[i][0];
@@ -281,37 +277,33 @@ void Neighbor::respa_nsq_newton_omp(NeighList *list)
 #if defined(_OPENMP)
 #pragma omp critical
 #endif
+   {
     if (pgsize - npnt < oneatom) {
       npnt = 0;
       npage += nthreads;
-      if (npage == list->maxpage) list->add_pages(nthreads);
+      if (npage >= list->maxpage) list->add_pages(nthreads);
     }
     neighptr = &(list->pages[npage][npnt]);
     n = 0;
 
-#if defined(_OPENMP)
-#pragma omp critical
-#endif
     if (pgsize - npnt_inner < oneatom) {
       npnt_inner = 0;
       npage_inner += nthreads;
-      if (npage_inner == listinner->maxpage) listinner->add_pages(nthreads);
+      if (npage_inner >= listinner->maxpage) listinner->add_pages(nthreads);
     }
     neighptr_inner = &(listinner->pages[npage_inner][npnt_inner]);
     n_inner = 0;
 
-#if defined(_OPENMP)
-#pragma omp critical
-#endif
     if (respamiddle) {
       if (pgsize - npnt_middle < oneatom) {
         npnt_middle = 0;
         npage_middle += nthreads;
-        if (npage_middle == listmiddle->maxpage) listmiddle->add_pages(nthreads);
+        if (npage_middle >= listmiddle->maxpage) listmiddle->add_pages(nthreads);
       }
       neighptr_middle = &(listmiddle->pages[npage_middle][npnt_middle]);
       n_middle = 0;
     }
+   }
 
     itag = tag[i];
     itype = type[i];
@@ -484,37 +476,33 @@ void Neighbor::respa_bin_no_newton_omp(NeighList *list)
 #if defined(_OPENMP)
 #pragma omp critical
 #endif
+   {
     if (pgsize - npnt < oneatom) {
       npnt = 0;
       npage += nthreads;
-      if (npage == list->maxpage) list->add_pages(nthreads);
+      if (npage >= list->maxpage) list->add_pages(nthreads);
     }
     neighptr = &(list->pages[npage][npnt]);
     n = 0;
 
-#if defined(_OPENMP)
-#pragma omp critical
-#endif
     if (pgsize - npnt_inner < oneatom) {
       npnt_inner = 0;
       npage_inner += nthreads;
-      if (npage_inner == listinner->maxpage) listinner->add_pages(nthreads);
+      if (npage_inner >= listinner->maxpage) listinner->add_pages(nthreads);
     }
     neighptr_inner = &(listinner->pages[npage_inner][npnt_inner]);
     n_inner = 0;
 
-#if defined(_OPENMP)
-#pragma omp critical
-#endif
     if (respamiddle) {
       if (pgsize - npnt_middle < oneatom) {
         npnt_middle = 0;
         npage_middle += nthreads;
-        if (npage_middle == listmiddle->maxpage) listmiddle->add_pages(nthreads);
+        if (npage_middle >= listmiddle->maxpage) listmiddle->add_pages(nthreads);
       }
       neighptr_middle = &(listmiddle->pages[npage_middle][npnt_middle]);
       n_middle = 0;
     }
+   }
 
     itype = type[i];
     xtmp = x[i][0];
@@ -677,37 +665,33 @@ void Neighbor::respa_bin_newton_omp(NeighList *list)
 #if defined(_OPENMP)
 #pragma omp critical
 #endif
+   {
     if (pgsize - npnt < oneatom) {
       npnt = 0;
       npage += nthreads;
-      if (npage == list->maxpage) list->add_pages(nthreads);
+      if (npage >= list->maxpage) list->add_pages(nthreads);
     }
     neighptr = &(list->pages[npage][npnt]);
     n = 0;
 
-#if defined(_OPENMP)
-#pragma omp critical
-#endif
     if (pgsize - npnt_inner < oneatom) {
       npnt_inner = 0;
       npage_inner += nthreads;
-      if (npage_inner == listinner->maxpage) listinner->add_pages(nthreads);
+      if (npage_inner >= listinner->maxpage) listinner->add_pages(nthreads);
     }
     neighptr_inner = &(listinner->pages[npage_inner][npnt_inner]);
     n_inner = 0;
 
-#if defined(_OPENMP)
-#pragma omp critical
-#endif
     if (respamiddle) {
       if (pgsize - npnt_middle < oneatom) {
         npnt_middle = 0;
         npage_middle += nthreads;
-        if (npage_middle == listmiddle->maxpage) listmiddle->add_pages(nthreads);
+        if (npage_middle >= listmiddle->maxpage) listmiddle->add_pages(nthreads);
       }
       neighptr_middle = &(listmiddle->pages[npage_middle][npnt_middle]);
       n_middle = 0;
     }
+   }
 
     itype = type[i];
     xtmp = x[i][0];
@@ -911,37 +895,33 @@ void Neighbor::respa_bin_newton_tri_omp(NeighList *list)
 #if defined(_OPENMP)
 #pragma omp critical
 #endif
+   {
     if (pgsize - npnt < oneatom) {
       npnt = 0;
       npage += nthreads;
-      if (npage == list->maxpage) list->add_pages(nthreads);
+      if (npage >= list->maxpage) list->add_pages(nthreads);
     }
     neighptr = &(list->pages[npage][npnt]);
     n = 0;
 
-#if defined(_OPENMP)
-#pragma omp critical
-#endif
     if (pgsize - npnt_inner < oneatom) {
       npnt_inner = 0;
       npage_inner += nthreads;
-      if (npage_inner == listinner->maxpage) listinner->add_pages(nthreads);
+      if (npage_inner >= listinner->maxpage) listinner->add_pages(nthreads);
     }
     neighptr_inner = &(listinner->pages[npage_inner][npnt_inner]);
     n_inner = 0;
 
-#if defined(_OPENMP)
-#pragma omp critical
-#endif
     if (respamiddle) {
       if (pgsize - npnt_middle < oneatom) {
         npnt_middle = 0;
         npage_middle += nthreads;
-        if (npage_middle == listmiddle->maxpage) listmiddle->add_pages(nthreads);
+        if (npage_middle >= listmiddle->maxpage) listmiddle->add_pages(nthreads);
       }
       neighptr_middle = &(listmiddle->pages[npage_middle][npnt_middle]);
       n_middle = 0;
     }
+   }
 
     itype = type[i];
     xtmp = x[i][0];

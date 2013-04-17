@@ -29,18 +29,16 @@
 
 <LI>face = <I>xlo</I> or <I>xhi</I> or <I>ylo</I> or <I>yhi</I> or <I>zlo</I> or <I>zhi</I> 
 
-<LI>  args = coord epsilon sigma cutoff
+<PRE>  args = coord epsilon sigma cutoff
     coord = position of wall = EDGE or constant or variable
       EDGE = current lo or hi edge of simulation box
       constant = number like 0.0 or -30.0 (distance units)
       variable = <A HREF = "variable.html">equal-style variable</A> like v_x or v_wiggle
     epsilon = strength factor for wall-particle interaction (energy or energy/distance^2 units)
-      epsilon can be a variable (see below) 
-
-<LI>    sigma = size factor for wall-particle interaction (distance units)
-      sigma can be a variable (see below) 
-
-<PRE>    cutoff = distance from wall at which wall-particle interaction is cut off (distance units) 
+      epsilon can be a variable (see below)
+    sigma = size factor for wall-particle interaction (distance units)
+      sigma can be a variable (see below)
+    cutoff = distance from wall at which wall-particle interaction is cut off (distance units) 
 </PRE>
 <LI>zero or more keyword/value pairs may be appended 
 

@@ -1,0 +1,77 @@
+LAMMPS (18 Feb 2013)
+# 3d Lennard-Jones melt
+
+newton          off
+package 	gpu force/neigh 0 1 1
+
+variable	x index 2
+variable	y index 2
+variable	z index 2
+
+variable	xx equal 20*$x
+variable	xx equal 20*2
+variable	yy equal 20*$y
+variable	yy equal 20*2
+variable	zz equal 20*$z
+variable	zz equal 20*2
+
+units		lj
+atom_style	atomic
+
+lattice		fcc 0.8442
+Lattice spacing in x,y,z = 1.6796 1.6796 1.6796
+region		box block 0 ${xx} 0 ${yy} 0 ${zz}
+region		box block 0 40 0 ${yy} 0 ${zz}
+region		box block 0 40 0 40 0 ${zz}
+region		box block 0 40 0 40 0 40
+create_box	1 box
+Created orthogonal box = (0 0 0) to (67.1838 67.1838 67.1838)
+  1 by 1 by 1 MPI processor grid
+create_atoms	1 box
+Created 256000 atoms
+mass		1 1.0
+
+velocity	all create 1.44 87287 loop geom
+
+pair_style	lj/cut/gpu 2.5
+pair_coeff	1 1 1.0 1.0 2.5
+
+neighbor	0.3 bin
+neigh_modify	delay 0 every 20 check no
+
+fix		1 all nve
+
+thermo 		100
+run		1000
+Memory usage per processor = 46.8462 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0         1.44   -6.7733685            0   -4.6133769   -5.0196738 
+     100   0.75865618    -5.760326            0   -4.6223462   0.19586078 
+     200   0.75643081   -5.7572862            0   -4.6226445   0.22641252 
+     300   0.74927357   -5.7463992            0   -4.6224932    0.2973801 
+     400    0.7404924   -5.7329247            0   -4.6221905   0.37767073 
+     500   0.73092032   -5.7182616            0   -4.6218854   0.46900679 
+     600   0.72315678    -5.706314            0    -4.621583    0.5348031 
+     700   0.71597165   -5.6952207            0   -4.6212675   0.59549602 
+     800   0.71194748   -5.6889042            0   -4.6209871   0.63784817 
+     900   0.70596464   -5.6796285            0   -4.6206857   0.68573109 
+    1000   0.70323336     -5.67534            0   -4.6204941    0.7069076 
+Loop time of 19.9863 on 1 procs for 1000 steps with 256000 atoms
+
+Pair  time (%) = 12.3568 (61.8261)
+Neigh time (%) = 7.41482e-05 (0.000370995)
+Comm  time (%) = 1.09925 (5.50003)
+Outpt time (%) = 0.0106428 (0.0532503)
+Other time (%) = 6.51958 (32.6202)
+
+Nlocal:    256000 ave 256000 max 256000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    69905 ave 69905 max 69905 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    0 ave 0 max 0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 0
+Ave neighs/atom = 0
+Neighbor list builds = 50
+Dangerous builds = 0

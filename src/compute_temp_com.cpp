@@ -55,12 +55,17 @@ ComputeTempCOM::~ComputeTempCOM()
 
 void ComputeTempCOM::init()
 {
+  masstotal = group->mass(igroup);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputeTempCOM::setup()
+{
   fix_dof = 0;
   for (int i = 0; i < modify->nfix; i++)
     fix_dof += modify->fix[i]->dof(igroup);
   dof_compute();
-
-  masstotal = group->mass(igroup);
 }
 
 /* ---------------------------------------------------------------------- */

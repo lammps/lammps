@@ -28,7 +28,7 @@ namespace LAMMPS_NS {
 class BodyNparticle : public Body {
  public:
   BodyNparticle(class LAMMPS *, int, char **);
-  ~BodyNparticle() {}
+  ~BodyNparticle();
   int nsub(class AtomVecBody::Bonus *);
   double *coords(class AtomVecBody::Bonus *);
 
@@ -48,10 +48,29 @@ class BodyNparticle : public Body {
 
 /* ERROR/WARNING messages:
 
-E: Illegal ... command
+E: Invalid body nparticle command
 
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
+Arguments in atom-style command are not correct.
+
+E: Invalid format in Bodies section of data file
+
+The specified number of integer or floating point values does not
+appear.
+
+E: Incorrect # of integer values in Bodies section of data file
+
+See doc page for body style.
+
+E: Incorrect integer value in Bodies section of data file
+
+See doc page for body style.
+
+E: Incorrect # of floating-point values in Bodies section of data file
+
+See doc page for body style.
+
+E: Insufficient Jacobi rotations for body nparticle
+
+Eigensolve for rigid body was not sufficiently accurate.
 
 */

@@ -182,13 +182,13 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
   }
 
   // set xflag if any wall positions are variable
-  // set vflag if any wall positions or parameters are variable
+  // set varflag if any wall positions or parameters are variable
   // set wstyle to VARIABLE if either epsilon or sigma is a variable
 
-  vflag = xflag = 0;
+  varflag = xflag = 0;
   for (int m = 0; m < nwall; m++) {
     if (xstyle[m] == VARIABLE) xflag = 1;
-    if (xflag || estyle[m] == VARIABLE || sstyle[m] == VARIABLE) vflag = 1;
+    if (xflag || estyle[m] == VARIABLE || sstyle[m] == VARIABLE) varflag = 1;
     if (estyle[m] == VARIABLE || sstyle[m] == VARIABLE) wstyle[m] = VARIABLE;
     else wstyle[m] = CONSTANT;
   }
@@ -303,7 +303,7 @@ void FixWall::post_force(int vflag)
   // evaluate variables if necessary, wrap with clear/add
   // for epsilon/sigma variables need to re-invoke precompute()
 
-  if (vflag) modify->clearstep_compute();
+  if (varflag) modify->clearstep_compute();
 
   double coord;
   for (int m = 0; m < nwall; m++) {
@@ -330,7 +330,7 @@ void FixWall::post_force(int vflag)
     wall_particle(m,wallwhich[m],coord);
   }
 
-  if (vflag) modify->addstep_compute(update->ntimestep + 1);
+  if (varflag) modify->addstep_compute(update->ntimestep + 1);
 }
 
 /* ---------------------------------------------------------------------- */

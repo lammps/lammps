@@ -36,7 +36,7 @@ doc/angle_table.html
 doc/atom_modify.html
 doc/atom_style.html
 doc/balance.html
-doc/box.html
+doc/body.html
 doc/bond_class2.html
 doc/bond_coeff.html
 doc/bond_fene_expand.html
@@ -51,6 +51,7 @@ doc/bond_nonlinear.html
 doc/bond_quartic.html
 doc/bond_style.html
 doc/bond_table.html
+doc/box.html
 doc/boundary.html
 doc/change_box.html
 doc/clear.html
@@ -60,6 +61,7 @@ doc/compute_modify.html
 doc/compute_ackland_atom.html
 doc/compute_angle_local.html
 doc/compute_atom_molecule.html
+doc/compute_body_local.html
 doc/compute_bond_local.html
 doc/compute_centro_atom.html
 doc/compute_cluster_atom.html
@@ -198,6 +200,7 @@ doc/fix_nve.html
 doc/fix_nve_eff.html
 doc/fix_nve_asphere.html
 doc/fix_nve_asphere_noforce.html
+doc/fix_nve_body.html
 doc/fix_nve_limit.html
 doc/fix_nve_line.html
 doc/fix_nve_noforce.html
@@ -223,6 +226,7 @@ doc/fix_rigid.html
 doc/fix_setforce.html
 doc/fix_shake.html
 doc/fix_smd.html
+doc/fix_species.html
 doc/fix_spring.html
 doc/fix_spring_rg.html
 doc/fix_spring_self.html
@@ -280,6 +284,7 @@ doc/pair_adp.html
 doc/pair_airebo.html
 doc/pair_awpmd.html
 doc/pair_beck.html
+doc/pair_body.html
 doc/pair_bop.html
 doc/pair_born.html
 doc/pair_brownian.html

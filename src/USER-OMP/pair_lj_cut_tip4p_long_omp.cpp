@@ -350,7 +350,7 @@ void PairLJCutTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
             if (EVFLAG) vlist[n++] = i;
 
           } else {
-            if (EVFLAG) key += 1;
+            if (EVFLAG) key++;
 
             fdx = delx*cforce;
             fdy = dely*cforce;

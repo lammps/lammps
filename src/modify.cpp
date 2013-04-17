@@ -158,9 +158,10 @@ void Modify::init()
   list_init(MIN_ENERGY,n_min_energy,list_min_energy);
 
   // init each fix
-  // needs to come before compute init
-  // this is b/c some computes call fix->dof()
-  // FixRigid::dof() depends on its own init having been called
+  // not sure if now needs to come before compute init
+  // used to b/c temperature computes called fix->dof() in their init,
+  // and fix rigid required its own init before its dof() could be called,
+  // but computes now do their DOF in setup()
 
   for (i = 0; i < nfix; i++) fix[i]->init();
 
@@ -221,12 +222,17 @@ void Modify::init()
 }
 
 /* ----------------------------------------------------------------------
-   setup for run, calls setup() of all fixes
+   setup for run, calls setup() of all fixes and computes
    called from Verlet, RESPA, Min
 ------------------------------------------------------------------------- */
 
 void Modify::setup(int vflag)
 {
+  // compute setup needs to come before fix setup
+  // b/c NH fixes need use DOF of temperature computes
+
+  for (int i = 0; i < ncompute; i++) compute[i]->setup();
+
   if (update->whichflag == 1)
     for (int i = 0; i < nfix; i++) fix[i]->setup(vflag);
   else if (update->whichflag == 2)
@@ -259,7 +265,7 @@ void Modify::setup_pre_neighbor()
     for (int i = 0; i < n_pre_neighbor; i++)
       fix[list_pre_neighbor[i]]->setup_pre_neighbor();
   else if (update->whichflag == 2)
-    for (int i = 0; i < n_pre_neighbor; i++)
+    for (int i = 0; i < n_min_pre_neighbor; i++)
       fix[list_min_pre_neighbor[i]]->min_setup_pre_neighbor();
 }
 
@@ -722,6 +728,7 @@ void Modify::add_fix(int narg, char **arg, char *suffix)
         strcmp(style_restart_peratom[i],fix[ifix]->style) == 0) {
       for (int j = 0; j < atom->nlocal; j++)
         fix[ifix]->unpack_restart(j,index_restart_peratom[i]);
+      fix[ifix]->restart_reset = 1;
       if (comm->me == 0) {
         char *str = (char *) ("Resetting per-atom state of Fix %s Style %s "
                      "from restart file info\n");

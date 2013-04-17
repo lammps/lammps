@@ -48,6 +48,8 @@ class AtomVecAtomic : public AtomVec {
   int unpack_restart(double *);
   void create_atom(int, double *);
   void data_atom(double *, tagint, char **);
+  void pack_data(double **);
+  void write_data(FILE *, int, double **);
   bigint memory_usage();
 
  protected:

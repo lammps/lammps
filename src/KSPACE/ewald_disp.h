@@ -93,3 +93,68 @@ class EwaldDisp : public KSpace {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Cannot use EwaldDisp with 2d simulation
+
+This is a current restriction of this command.
+
+E: Cannot use nonperiodic boundaries with EwaldDisp
+
+For kspace style ewald/disp, all 3 dimensions must have periodic
+boundaries unless you use the kspace_modify command to define a 2d
+slab with a non-periodic z dimension.
+
+E: Incorrect boundaries with slab EwaldDisp
+
+Must have periodic x,y dimensions and non-periodic z dimension to use
+2d slab option with Ewald.
+
+E: KSpace style is incompatible with Pair style
+
+Setting a kspace style requires that a pair style with a long-range
+Coulombic or dispersion component be used.
+
+E: Unsupported mixing rule in kspace_style ewald/disp
+
+Only geometric mixing is supported.
+
+E: Unsupported order in kspace_style ewald/disp
+
+Only 1/r^6 dispersion terms are supported.
+
+E: Cannot use Ewald/disp solver on system with no charge or LJ particles
+
+No atoms in system have a non-zero charge or are LJ particles.  Change
+charges or change options of the kspace solver/pair style.
+
+W: System is not charge neutral, net charge = %g
+
+The total charge on all atoms on the system is not 0.0, which
+is not valid for the long-range Coulombic solvers.
+
+E: KSpace accuracy too large to estimate G vector
+
+Reduce the accuracy request or specify gwald explicitly
+via the kspace_modify command.
+
+W: Ewald/disp Newton solver failed, using old method to estimate g_ewald
+
+Self-explanatory.
+
+E: KSpace accuracy too low
+
+Requested accuracy must be less than 1.0.
+
+E: Epsilon or sigma reference not set by pair style in ewald/n
+
+The pair style is not providing the needed epsilon or sigma values.
+
+*/

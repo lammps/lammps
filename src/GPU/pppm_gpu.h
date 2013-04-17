@@ -71,9 +71,9 @@ E: Cannot currently use pppm/gpu with fix balance.
 
 Self-explanatory.
 
-E: Cannot (yet) do analytic differentiation with pppm/gpu.
+E: Cannot (yet) do analytic differentiation with pppm/gpu
 
-Self-explanatory.
+This is a current restriction of this command.
 
 E: Cannot use order greater than 8 with pppm/gpu.
 

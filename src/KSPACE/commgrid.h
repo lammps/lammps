@@ -32,6 +32,11 @@ class CommGrid : protected Pointers {
            int, int, int, int, int, int,
            int, int, int, int, int, int,
            int, int, int, int, int, int);
+  CommGrid(class LAMMPS *, MPI_Comm, int, int,
+           int, int, int, int, int, int,
+           int, int, int, int, int, int,
+           int, int, int, int, int, int,
+           int, int, int, int, int, int);
   ~CommGrid();
   void ghost_notify();
   int ghost_overlap();
@@ -55,6 +60,7 @@ class CommGrid : protected Pointers {
 
   int inxlo,inxhi,inylo,inyhi,inzlo,inzhi;
   int outxlo,outxhi,outylo,outyhi,outzlo,outzhi;
+  int outxlo_max,outxhi_max,outylo_max,outyhi_max,outzlo_max,outzhi_max;
   int procxlo,procxhi,procylo,procyhi,proczlo,proczhi;
   int ghostxlo,ghostxhi,ghostylo,ghostyhi,ghostzlo,ghostzhi;
 

@@ -28,7 +28,8 @@ class ComputeTempEff : public Compute {
  public:
   ComputeTempEff(class LAMMPS *, int, char **);
   virtual ~ComputeTempEff();
-  void init();
+  void init() {}
+  void setup();
   double compute_scalar();
   void compute_vector();
 

@@ -909,7 +909,7 @@ void PPPM::set_grid_global()
         // too many loops have been performed
 
         if (df_kspace <= accuracy) break;
-        if (count > 500) error->all(FLERR, "Could not compute grid size!");
+        if (count > 500) error->all(FLERR, "Could not compute grid size");
         h *= 0.95;
         h_x = h_y = h_z = h;
       }
@@ -2778,6 +2778,7 @@ void PPPM::compute_group_group(int groupbit_A, int groupbit_B, int BA_flag)
   density_brick = density_A_brick;
   density_fft = density_A_fft;
 
+  cg->reverse_comm(this,REVERSE_RHO);
   brick2fft();
 
   // group B
@@ -2785,6 +2786,7 @@ void PPPM::compute_group_group(int groupbit_A, int groupbit_B, int BA_flag)
   density_brick = density_B_brick;
   density_fft = density_B_fft;
 
+  cg->reverse_comm(this,REVERSE_RHO);
   brick2fft();
 
   // switch back pointers

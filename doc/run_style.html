@@ -15,7 +15,7 @@
 </P>
 <PRE>run_style style args 
 </PRE>
-<UL><LI>style = <I>verlet</I> or <I>verlet/split</I> or <I>respa</I> 
+<UL><LI>style = <I>verlet</I> or <I>verlet/split</I> or <I>respa</I> or <I>respa/omp</I> 
 
 <PRE>  <I>verlet</I> args = none
   <I>verlet/split</I> args = none
@@ -233,6 +233,28 @@ Kcal/mol, the following settings seem to work well:
 <PRE>timestep  36.0  
 run_style respa 3 3 4 inner 1 3.0 4.0 middle 2 6.0 7.0 outer 3 
 </PRE>
+<HR>
+
+<P>The <I>respa/omp</I> styles is a variant of <I>respa</I> adapted for use with
+pair, bond, angle, dihedral, improper, or kspace styles with an <I>omp</I>
+suffix. It is functionally to <I>respa</I> but performs additional required
+operations. For more on <I>omp</I> styles see the
+<A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual.
+Accelerated styles take the same arguments and should produce the same
+results, except for round-off and precision issues.
+</P>
+<P>The <I>respa/omp</I> style is part of the USER-OMP packages.  It is only
+enabled if LAMMPS was built with this package included.  See the
+<A HREF = "Section_start.html#start_3">Making LAMMPS</A> section for more info.
+</P>
+<P>You can specify <I>respa/omp</I> explicitly in your input script, or
+you can use the <A HREF = "Section_start.html#start_7">-suffix command-line switch</A>
+when you invoke LAMMPS, or you can use the <A HREF = "suffix.html">suffix</A>
+command in your input script.
+</P>
+<P>See <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual for
+more instructions on how to use the accelerated styles effectively.
+</P>
 <HR>
 
 <P><B>Restrictions:</B>

@@ -1,0 +1,81 @@
+LAMMPS (18 Feb 2013)
+# ReaxFF potential for RDX system
+
+units		real
+
+atom_style	charge
+read_data	data.rdx
+  orthogonal box = (35 35 35) to (48 48 48)
+  1 by 1 by 1 MPI processor grid
+  21 atoms
+
+#     reax args: hbcut hbnewflag tripflag precision
+
+pair_style	reax 6.0 1 1 1.0e-6
+pair_coeff	* * ffield.reax 1 2 3 4
+
+compute reax all pair reax
+
+variable eb  	 equal c_reax[1]
+variable ea  	 equal c_reax[2]
+variable elp 	 equal c_reax[3]
+variable emol 	 equal c_reax[4]
+variable ev 	 equal c_reax[5]
+variable epen 	 equal c_reax[6]
+variable ecoa 	 equal c_reax[7]
+variable ehb 	 equal c_reax[8]
+variable et 	 equal c_reax[9]
+variable eco 	 equal c_reax[10]
+variable ew 	 equal c_reax[11]
+variable ep 	 equal c_reax[12]
+variable efi 	 equal c_reax[13]
+variable eqeq 	 equal c_reax[14]
+
+neighbor	2.5 bin
+neigh_modify	every 10 delay 0 check no
+
+fix		1 all nve
+
+thermo		10
+thermo_style    custom step temp epair etotal press 	     	v_eb v_ea v_elp v_emol v_ev v_epen v_ecoa v_ehb 		v_et v_eco v_ew v_ep v_efi v_eqeq
+
+timestep	1.0
+
+#dump            1 all custom 10 dump.reax.rdx id type q xs ys zs
+
+#dump		1 all image 25 image.*.jpg type type #		axes yes 0.8 0.02 view 60 -30
+#dump_modify	1 pad 3
+
+run		100
+Memory usage per processor = 2.21677 Mbytes
+Step Temp E_pair TotEng Press eb ea elp emol ev epen ecoa ehb et eco ew ep efi eqeq 
+       0            0   -1885.1268   -1885.1268    27233.074   -2958.4712    79.527715   0.31082031            0    97.771125    25.846176  -0.18034154            0    16.709078   -9.1620736    938.43732   -244.79972            0     168.8843 
+      10    1281.7558   -1989.1322   -1912.7188   -19609.913   -2733.8828   -15.775275   0.20055725            0    55.020231    3.1070523   -77.710916            0    14.963568   -5.8082204    843.41939   -180.17724            0     107.5115 
+      20    516.83079    -1941.677   -1910.8655   -12525.411   -2801.8626    7.4107972  0.073134187            0    81.986983    0.2281551   -57.494871            0    30.656735   -10.102557    877.78696   -158.93385            0    88.574159 
+      30     467.2641    -1940.978   -1913.1215   -35957.488    -2755.021   -6.9179958  0.049322445            0    78.853174   0.13604392   -51.653635            0    19.862871   -9.7098575    853.79334     -151.232            0    80.861769 
+      40    647.45542   -1951.1994   -1912.6006    -5883.714   -2798.3556     17.33481   0.15102863            0    63.235118   0.18070929    -54.59896            0    17.325008   -12.052278    883.01668   -164.21335            0    96.777423 
+      50    716.38085   -1949.4707   -1906.7628    5473.2048    -2800.931    9.2056931    0.1541327            0     85.37148    3.2986104   -78.253597            0     34.86177   -8.5531232    882.01439    -193.8522            0    117.21316 
+      60    1175.2706    -1975.961   -1905.8958   -1939.4802   -2726.5818   -11.651983   0.24296785            0    48.320653    7.1799711   -75.363637            0    16.520124   -4.8869434    844.75415   -194.23296            0    119.73842 
+      70       1156.7   -1975.3463   -1906.3882    24628.243   -2880.5226    25.652536   0.26894314            0    83.724875    7.1049199    -68.70095            0    24.750741   -8.6338272    911.20093   -183.41949            0    113.22771 
+      80    840.23792   -1955.4773   -1905.3855   -17731.433   -2755.7299   -8.0168345   0.13867988            0    86.147409    2.2387302   -76.945849            0    23.595809   -7.2609612    853.63488   -167.88294            0    94.603642 
+      90    365.79009   -1926.4058   -1904.5988     898.4147   -2842.1833    47.368255   0.23109012            0    92.288131   0.38031335   -61.361504            0    18.476365   -12.255471    900.24235   -186.48053            0    116.88854 
+     100    801.32068   -1953.4184   -1905.6467   -2417.7238    -2802.725    4.6677502   0.18046561            0    76.730118    5.4177141   -77.102576            0    24.997222   -7.7554226    898.67346   -196.89124            0    120.38907 
+Loop time of 0.419315 on 1 procs for 100 steps with 21 atoms
+
+Pair  time (%) = 0.417611 (99.5936)
+Neigh time (%) = 0.000760555 (0.18138)
+Comm  time (%) = 0.000501871 (0.119688)
+Outpt time (%) = 0.000254154 (0.0606118)
+Other time (%) = 0.000187635 (0.0447481)
+
+Nlocal:    21 ave 21 max 21 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    546 ave 546 max 546 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    1106 ave 1106 max 1106 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 1106
+Ave neighs/atom = 52.6667
+Neighbor list builds = 10
+Dangerous builds = 0

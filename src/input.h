@@ -130,10 +130,6 @@ E: Label wasn't found in input script
 
 Self-explanatory.
 
-E: Input line too long: %s
-
-This is a hard (very large) limit defined in the input.cpp file.
-
 E: Unknown command: %s
 
 The command is not known to LAMMPS.  Check the input script.
@@ -160,14 +156,14 @@ E: Invalid variable name
 
 Variable name used in an input script line is invalid.
 
+E: Invalid immediate variable
+
+Syntax of immediate value is incorrect.
+
 E: Substitution for illegal variable
 
 Input script line contained a variable that could not be substituted
 for.
-
-E: Input line too long after variable substitution
-
-This is a hard (very large) limit defined in the input.cpp file.
 
 E: Illegal ... command
 
@@ -225,6 +221,11 @@ E: Boundary command after simulation box is defined
 
 The boundary command cannot be used after a read_data, read_restart,
 or create_box command.
+
+E: Box command after simulation box is defined
+
+The box command cannot be used after a read_data, read_restart, or
+create_box command.
 
 E: Dihedral_coeff command before simulation box is defined
 

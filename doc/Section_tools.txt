@@ -58,6 +58,7 @@ own sub-directories with their own Makefiles.
 "micelle2d"_#micelle
 "moltemplate"_#moltemplate
 "msi2lmp"_#msi
+"phonon"_#phonon
 "pymol_asphere"_#pymol
 "python"_#pythontools
 "reax"_#reax
@@ -336,6 +337,21 @@ experiment with it yourself.
 
 :line
 
+phonon tool :h4,link(phonon)
+
+The phonon sub-directory contains a post-processing tool useful for
+analyzing the output of the "fix phonon"_fix_phonon.html command in
+the USER-PHONON package.
+
+See the README file for instruction on building the tool and what
+library it needs.  And see the examples/USER/phonon directory
+for example problems that can be post-processed with this tool.
+
+This tool was written by Ling-Ti Kong at Shanghai Jiao Tong
+University.
+
+:line
+
 pymol_asphere tool :h4,link(pymol)
 
 The pymol_asphere sub-directory contains a tool for converting a
@@ -381,6 +397,13 @@ These tools were written by Aidan Thompson at Sandia.
 :line
 
 restart2data tool :h4,link(restart)
+
+IMPORTANT NOTE: LAMMPS now has a "write_data"_write_data.html command,
+which can create a data file from within an input script.  This means
+a two line input script can read a restart file, and write it as a
+data file.  When the write_data command is fully functional, the
+restart2data tool will be obsolete, and will be retired from the
+distribution.
 
 The file restart2data.cpp converts a binary LAMMPS restart file into
 an ASCII data file.  The syntax for running the tool is

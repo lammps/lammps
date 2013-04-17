@@ -72,8 +72,8 @@ AtomVecBody::~AtomVecBody()
 {
   int nall = nlocal_bonus + nghost_bonus;
   for (int i = 0; i < nall; i++) {
-    memory->destroy(bonus[i].ivalue);
-    memory->destroy(bonus[i].dvalue);
+    icp->put(bonus[i].iindex);
+    dcp->put(bonus[i].dindex);
   }
   memory->sfree(bonus);
 
@@ -105,6 +105,8 @@ void AtomVecBody::settings(int narg, char **arg)
   else error->all(FLERR,"Invalid body style");
 
   bptr->avec = this;
+  icp = bptr->icp;
+  dcp = bptr->dcp;
 
   // max size of forward/border comm
   // 7,16 are packed in pack_comm/pack_border
@@ -145,7 +147,7 @@ void AtomVecBody::grow(int n)
   type = memory->grow(atom->type,nmax,"atom:type");
   mask = memory->grow(atom->mask,nmax,"atom:mask");
   image = memory->grow(atom->image,nmax,"atom:image");
-  x = memory->grow(atom->x,nmax,3,"atom:x");
+  x = memory->grow(atom->x,nmax+1,3,"atom:x");
   v = memory->grow(atom->v,nmax,3,"atom:v");
   f = memory->grow(atom->f,nmax*comm->nthreads,3,"atom:f");
 
@@ -212,8 +214,8 @@ void AtomVecBody::copy(int i, int j, int delflag)
   // if deleting atom J via delflag and J has bonus data, then delete it
 
   if (delflag && body[j] >= 0) {
-    memory->destroy(bonus[body[j]].ivalue);
-    memory->destroy(bonus[body[j]].dvalue);
+    icp->put(bonus[body[j]].iindex);
+    dcp->put(bonus[body[j]].dindex);
     copy_bonus(nlocal_bonus-1,body[j]);
     nlocal_bonus--;
   }
@@ -249,8 +251,8 @@ void AtomVecBody::clear_bonus()
 {
   int nall = nlocal_bonus + nghost_bonus;
   for (int i = nlocal_bonus; i < nall; i++) {
-    memory->destroy(bonus[i].ivalue);
-    memory->destroy(bonus[i].dvalue);
+    icp->put(bonus[i].iindex);
+    dcp->put(bonus[i].dindex);
   }
   nghost_bonus = 0;
 }
@@ -841,8 +843,8 @@ void AtomVecBody::unpack_border(int n, int first, double *buf)
       inertia[2] = buf[m++];
       bonus[j].ninteger = static_cast<int> (buf[m++]);
       bonus[j].ndouble = static_cast<int> (buf[m++]);
-      memory->create(bonus[j].ivalue,bonus[j].ninteger,"body:ivalue");
-      memory->create(bonus[j].dvalue,bonus[j].ndouble,"body:dvalue");
+      bonus[j].ivalue = icp->get(bonus[j].ninteger,bonus[j].iindex);
+      bonus[j].dvalue = dcp->get(bonus[j].ndouble,bonus[j].dindex);
       m += bptr->unpack_border_body(&bonus[j],&buf[m]);
       bonus[j].ilocal = i;
       body[i] = j;
@@ -884,8 +886,8 @@ void AtomVecBody::unpack_border_vel(int n, int first, double *buf)
       inertia[2] = buf[m++];
       bonus[j].ninteger = static_cast<int> (buf[m++]);
       bonus[j].ndouble = static_cast<int> (buf[m++]);
-      memory->create(bonus[j].ivalue,bonus[j].ninteger,"body:ivalue");
-      memory->create(bonus[j].dvalue,bonus[j].ndouble,"body:dvalue");
+      bonus[j].ivalue = icp->get(bonus[j].ninteger,bonus[j].iindex);
+      bonus[j].dvalue = dcp->get(bonus[j].ndouble,bonus[j].dindex);
       m += bptr->unpack_border_body(&bonus[j],&buf[m]);
       bonus[j].ilocal = i;
       body[i] = j;
@@ -926,8 +928,8 @@ int AtomVecBody::unpack_border_hybrid(int n, int first, double *buf)
       inertia[2] = buf[m++];
       bonus[j].ninteger = static_cast<int> (buf[m++]);
       bonus[j].ndouble = static_cast<int> (buf[m++]);
-      memory->create(bonus[j].ivalue,bonus[j].ninteger,"body:ivalue");
-      memory->create(bonus[j].dvalue,bonus[j].ndouble,"body:dvalue");
+      bonus[j].ivalue = icp->get(bonus[j].ninteger,bonus[j].iindex);
+      bonus[j].dvalue = dcp->get(bonus[j].ndouble,bonus[j].dindex);
       m += bptr->unpack_border_body(&bonus[j],&buf[m]);
       bonus[j].ilocal = i;
       body[i] = j;
@@ -1030,10 +1032,10 @@ int AtomVecBody::unpack_exchange(double *buf)
     inertia[2] = buf[m++];
     bonus[nlocal_bonus].ninteger = static_cast<int> (buf[m++]);
     bonus[nlocal_bonus].ndouble = static_cast<int> (buf[m++]);
-    memory->create(bonus[nlocal_bonus].ivalue,bonus[nlocal_bonus].ninteger,
-                   "body:ivalue");
-    memory->create(bonus[nlocal_bonus].dvalue,bonus[nlocal_bonus].ndouble,
-                   "body:dvalue");
+    bonus[nlocal_bonus].ivalue = icp->get(bonus[nlocal_bonus].ninteger,
+					  bonus[nlocal_bonus].iindex);
+    bonus[nlocal_bonus].dvalue = dcp->get(bonus[nlocal_bonus].ndouble,
+					  bonus[nlocal_bonus].dindex);
     memcpy(bonus[nlocal_bonus].ivalue,&buf[m],
            bonus[nlocal_bonus].ninteger*sizeof(int));
     if (intdoubleratio == 1) m += bonus[nlocal_bonus].ninteger;
@@ -1182,10 +1184,10 @@ int AtomVecBody::unpack_restart(double *buf)
     inertia[2] = buf[m++];
     bonus[nlocal_bonus].ninteger = static_cast<int> (buf[m++]);
     bonus[nlocal_bonus].ndouble = static_cast<int> (buf[m++]);
-    memory->create(bonus[nlocal_bonus].ivalue,bonus[nlocal_bonus].ninteger,
-                   "body:ivalue");
-    memory->create(bonus[nlocal_bonus].dvalue,bonus[nlocal_bonus].ndouble,
-                   "body:dvalue");
+    bonus[nlocal_bonus].ivalue = icp->get(bonus[nlocal_bonus].ninteger,
+					  bonus[nlocal_bonus].iindex);
+    bonus[nlocal_bonus].dvalue = dcp->get(bonus[nlocal_bonus].ndouble,
+					  bonus[nlocal_bonus].dindex);
     memcpy(bonus[nlocal_bonus].ivalue,&buf[m],
            bonus[nlocal_bonus].ninteger*sizeof(int));
     if (intdoubleratio == 1) m += bonus[nlocal_bonus].ninteger;
@@ -1377,6 +1379,118 @@ int AtomVecBody::data_vel_hybrid(int m, char **values)
 }
 
 /* ----------------------------------------------------------------------
+   pack atom info for data file including 3 image flags
+------------------------------------------------------------------------- */
+
+void AtomVecBody::pack_data(double **buf)
+{
+  double c2mc1[2],c3mc1[3],norm[3];
+  double area;
+
+  int nlocal = atom->nlocal;
+  for (int i = 0; i < nlocal; i++) {
+    buf[i][0] = tag[i];
+    buf[i][1] = type[i];
+    if (body[i] < 0) buf[i][2] = 0;
+    else buf[i][2] = 1;
+    buf[i][3] = rmass[i];
+    buf[i][4] = x[i][0];
+    buf[i][5] = x[i][1];
+    buf[i][6] = x[i][2];
+    buf[i][7] = (image[i] & IMGMASK) - IMGMAX;
+    buf[i][8] = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+    buf[i][9] = (image[i] >> IMG2BITS) - IMGMAX;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   pack hybrid atom info for data file
+------------------------------------------------------------------------- */
+
+int AtomVecBody::pack_data_hybrid(int i, double *buf)
+{
+  if (body[i] < 0) buf[0] = 0;
+  else buf[0] = 1;
+  buf[1] = rmass[i];
+  return 2;
+}
+
+/* ----------------------------------------------------------------------
+   write atom info to data file including 3 image flags
+------------------------------------------------------------------------- */
+
+void AtomVecBody::write_data(FILE *fp, int n, double **buf)
+{
+  for (int i = 0; i < n; i++)
+    fprintf(fp,"%d %d %d %g %g %g %g %d %d %d\n",
+            (int) buf[i][0],(int) buf[i][1],(int) buf[i][2],
+            buf[i][3],buf[i][4],buf[i][5],buf[i][6],
+            (int) buf[i][7],(int) buf[i][8],(int) buf[i][9]);
+}
+
+/* ----------------------------------------------------------------------
+   write hybrid atom info to data file
+------------------------------------------------------------------------- */
+
+int AtomVecBody::write_data_hybrid(FILE *fp, double *buf)
+{
+  fprintf(fp," %d %g",(int) buf[0],buf[1]);
+  return 2;
+}
+
+/* ----------------------------------------------------------------------
+   pack velocity info for data file
+------------------------------------------------------------------------- */
+
+void AtomVecBody::pack_vel(double **buf)
+{
+  int nlocal = atom->nlocal;
+  for (int i = 0; i < nlocal; i++) {
+    buf[i][0] = tag[i];
+    buf[i][1] = v[i][0];
+    buf[i][2] = v[i][1];
+    buf[i][3] = v[i][2];
+    buf[i][4] = angmom[i][0];
+    buf[i][5] = angmom[i][1];
+    buf[i][6] = angmom[i][2];
+  }
+}
+
+/* ----------------------------------------------------------------------
+   pack hybrid velocity info for data file
+------------------------------------------------------------------------- */
+
+int AtomVecBody::pack_vel_hybrid(int i, double *buf)
+{
+  buf[0] = angmom[i][0];
+  buf[1] = angmom[i][1];
+  buf[2] = angmom[i][2];
+  return 3;
+}
+
+/* ----------------------------------------------------------------------
+   write velocity info to data file
+------------------------------------------------------------------------- */
+
+void AtomVecBody::write_vel(FILE *fp, int n, double **buf)
+{
+  for (int i = 0; i < n; i++)
+    fprintf(fp,"%d %g %g %g %g %g %g\n",
+            (int) buf[i][0],buf[i][1],buf[i][2],buf[i][3],
+            buf[i][4],buf[i][5],buf[i][6]);
+}
+
+/* ----------------------------------------------------------------------
+   write hybrid velocity info to data file
+------------------------------------------------------------------------- */
+
+int AtomVecBody::write_vel_hybrid(FILE *fp, double *buf)
+{
+  fprintf(fp," %g %g %g",buf[0],buf[1],buf[2]);
+  return 3;
+}
+
+/* ----------------------------------------------------------------------
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 
@@ -1399,6 +1513,7 @@ bigint AtomVecBody::memory_usage()
   if (atom->memcheck("body")) bytes += memory->usage(body,nmax);
 
   bytes += nmax_bonus*sizeof(Bonus);
+  bytes += icp->size + dcp->size;
 
   int nall = nlocal_bonus + nghost_bonus;
   for (int i = 0; i < nall; i++) {
@@ -1419,7 +1534,7 @@ void AtomVecBody::check(int flag)
   for (int i = 0; i < atom->nlocal; i++) {
     if (atom->body[i] >= 0 && atom->body[i] >= nlocal_bonus) {
       printf("Proc %d, step %ld, flag %d\n",comm->me,update->ntimestep,flag);
-      error->one(FLERR,"BAD AAA");
+      errorx->one(FLERR,"BAD AAA");
     }
   }
   for (int i = atom->nlocal; i < atom->nlocal+atom->nghost; i++) {
@@ -1427,32 +1542,32 @@ void AtomVecBody::check(int flag)
         (atom->body[i] < nlocal_bonus || 
          atom->body[i] >= nlocal_bonus+nghost_bonus)) {
       printf("Proc %d, step %ld, flag %d\n",comm->me,update->ntimestep,flag);
-      error->one(FLERR,"BAD BBB");
+      errorx->one(FLERR,"BAD BBB");
     }
   }
   for (int i = 0; i < nlocal_bonus; i++) {
     if (bonus[i].ilocal < 0 || bonus[i].ilocal >= atom->nlocal) {
       printf("Proc %d, step %ld, flag %d\n",comm->me,update->ntimestep,flag);
-      error->one(FLERR,"BAD CCC");
+      errorx->one(FLERR,"BAD CCC");
     }
   }
   for (int i = 0; i < nlocal_bonus; i++) {
     if (atom->body[bonus[i].ilocal] != i) {
       printf("Proc %d, step %ld, flag %d\n",comm->me,update->ntimestep,flag);
-      error->one(FLERR,"BAD DDD");
+      errorx->one(FLERR,"BAD DDD");
     }
   }
   for (int i = nlocal_bonus; i < nlocal_bonus+nghost_bonus; i++) {
     if (bonus[i].ilocal < atom->nlocal || 
         bonus[i].ilocal >= atom->nlocal+atom->nghost) {
       printf("Proc %d, step %ld, flag %d\n",comm->me,update->ntimestep,flag);
-      error->one(FLERR,"BAD EEE");
+      errorx->one(FLERR,"BAD EEE");
     }
   }
   for (int i = nlocal_bonus; i < nlocal_bonus+nghost_bonus; i++) {
     if (atom->body[bonus[i].ilocal] != i) {
       printf("Proc %d, step %ld, flag %d\n",comm->me,update->ntimestep,flag);
-      error->one(FLERR,"BAD FFF");
+      errorx->one(FLERR,"BAD FFF");
     }
   }
 }

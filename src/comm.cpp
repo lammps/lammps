@@ -854,7 +854,6 @@ void Comm::exchange()
     }
     atom->nlocal = nlocal;
 
-
     // send/recv atoms in both directions
     // if 1 proc in dimension, no send/recv, set recv buf to send buf
     // if 2 procs in dimension, single send/recv
@@ -1514,7 +1513,7 @@ void Comm::forward_comm_array(int n, double **array)
 ------------------------------------------------------------------------- */
 
 void Comm::ring(int n, int nper, void *inbuf, int messtag,
-                void (*callback)(int, char *), void *outbuf)
+                void (*callback)(int, char *), void *outbuf, int self)
 {
   MPI_Request request;
   MPI_Status status;
@@ -1541,7 +1540,7 @@ void Comm::ring(int n, int nper, void *inbuf, int messtag,
       MPI_Get_count(&status,MPI_CHAR,&nbytes);
       memcpy(buf,bufcopy,nbytes);
     }
-    callback(nbytes/nper,buf);
+    if (self || loop < nprocs-1) callback(nbytes/nper,buf);
   }
 
   if (outbuf) memcpy(outbuf,buf,nbytes);

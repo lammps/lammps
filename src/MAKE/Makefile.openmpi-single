@@ -8,7 +8,7 @@ SHELL = /bin/sh
 
 CC =		mpic++
 CCFLAGS =	-O3 -march=native -mpc64 -fno-exceptions -fno-rtti -ffast-math -funroll-loops -fstrict-aliasing -Wall -W -Wno-uninitialized
-DEPFLAGS =	-M
+DEPFLAGS =	-MM
 LINK =		mpic++
 LINKFLAGS =	-O 
 LIB =           -Wl,-rpath,/usr/lib64/openmpi/lib -lstdc++
@@ -67,6 +67,11 @@ include	Makefile.package
 EXTRA_INC = $(LMP_INC) $(PKG_INC) $(MPI_INC) $(FFT_INC)
 EXTRA_PATH = $(PKG_PATH) $(MPI_PATH) $(FFT_PATH) $(PKG_SYSPATH)
 EXTRA_LIB = $(PKG_LIB) $(MPI_LIB) $(FFT_LIB) $(PKG_SYSLIB)
+
+# Path to src files
+
+vpath %.cpp ..
+vpath %.h ..
 
 # Link target
 

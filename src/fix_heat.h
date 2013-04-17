@@ -65,11 +65,24 @@ E: Region ID for fix heat does not exist
 
 Self-explanatory.
 
+E: Variable name for fix heat does not exist
+
+Self-explanatory.
+
+E: Variable for fix heat is invalid style
+
+Only equal-style or atom-style variables can be used.
+
 E: Fix heat group has no atoms
 
 Self-explanatory.
 
 E: Fix heat kinetic energy went negative
+
+This will cause the velocity rescaling about to be performed by fix
+heat to be invalid.
+
+E: Fix heat kinetic energy of an atom went negative
 
 This will cause the velocity rescaling about to be performed by fix
 heat to be invalid.

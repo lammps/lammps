@@ -10,7 +10,7 @@ CCFLAGS =	-O2 -xHOST -no-prec-div -no-prec-sqrt -fast-transcendentals	\
 			-fno-exceptions -fno-rtti -pc64 -falign-functions=16 		\
 			-funroll-loops -fstrict-aliasing
 
-DEPFLAGS =	-M
+DEPFLAGS =	-MM
 LINK =		env OMPI_CC=icc OMPI_CXX=icpc mpic++
 LINKFLAGS =	-O -static-intel
 LIB =           -Wl,-rpath,/usr/lib64/openmpi/lib #-lstdc++
@@ -69,6 +69,11 @@ include	Makefile.package
 EXTRA_INC = $(LMP_INC) $(PKG_INC) $(MPI_INC) $(FFT_INC)
 EXTRA_PATH = $(PKG_PATH) $(MPI_PATH) $(FFT_PATH) $(PKG_SYSPATH)
 EXTRA_LIB = $(PKG_LIB) $(MPI_LIB) $(FFT_LIB) $(PKG_SYSLIB)
+
+# Path to src files
+
+vpath %.cpp ..
+vpath %.h ..
 
 # Link target
 

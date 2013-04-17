@@ -12,7 +12,7 @@ CC =		mpic++ $(OPENMP)
 CCFLAGS =	-O2 -fomit-frame-pointer -fno-rtti -fno-exceptions \
 			-march=native -ffast-math -mpc64 -g -finline-functions \
 			-funroll-loops -fstrict-aliasing -Wall -W -Wno-uninitialized
-DEPFLAGS =	-M
+DEPFLAGS =	-MM
 LINK =		mpic++ $(OPENMP)
 LINKFLAGS =	-O -g -fno-rtti -fno-exceptions -mpc64
 LIB =           -lstdc++
@@ -73,6 +73,11 @@ include	Makefile.package
 EXTRA_INC = $(LMP_INC) $(PKG_INC) $(MPI_INC) $(FFT_INC) $(JPG_INC) $(PKG_SYSINC)
 EXTRA_PATH = $(PKG_PATH) $(MPI_PATH) $(FFT_PATH) $(JPG_PATH) $(PKG_SYSPATH)
 EXTRA_LIB = $(PKG_LIB) $(MPI_LIB) $(FFT_LIB) $(JPG_LIB) $(PKG_SYSLIB)
+
+# Path to src files
+
+vpath %.cpp ..
+vpath %.h ..
 
 # Link target
 

@@ -64,6 +64,10 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
+E: Fix append/atoms requires a lattice be defined
+
+Use the lattice command for this purpose.
+
 E: Only zhi currently implemented for fix append/atoms
 
 Self-explanatory.
@@ -95,9 +99,5 @@ A lattice must be defined before using this fix.
 E: Fix ID for fix ave/spatial does not exist
 
 Self-explanatory.
-
-E: Must define lattice to append/atoms
-
-A lattice must be defined before using this fix.
 
 */

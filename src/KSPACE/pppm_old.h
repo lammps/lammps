@@ -165,3 +165,6 @@ class PPPMOld : public KSpace {
 #endif
 #endif
 
+/* ERROR/WARNING messages:
+
+*/

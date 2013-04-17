@@ -38,7 +38,8 @@ class FixRigidNH : public FixRigid {
   double boltz,nktv2p,mvv2e;          // boltzman constant, conversion factors
 
   int nf_t,nf_r;                      // trans/rot degrees of freedom
-  double onednft,onednfr;             // factors 1 + dimension/trans(rot) degrees of freedom
+  double onednft,onednfr;             // factors 1 + dimension/trans(rot) 
+                                      //   degrees of freedom
   double *w,*wdti1,*wdti2,*wdti4;     // Yoshida-Suzuki coefficients
   double *q_t,*q_r;                   // trans/rot thermostat masses
   double *eta_t,*eta_r;               // trans/rot thermostat positions
@@ -102,23 +103,13 @@ inline double FixRigidNH::maclaurin_series(double x)
 
 /* ERROR/WARNING messages:
 
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Target temperature for fix rigid nvt/npt cannot be 0.0
+E: Fix rigid npt/nph period must be > 0.0
 
 Self-explanatory.
 
 E: Invalid fix rigid npt/nph command for a 2d simulation
 
 Cannot control z dimension in a 2d model.
-
-E: Fix rigid npt/nph dilate group ID does not exist
-
-Self-explanatory.
 
 E: Invalid fix rigid npt/nph command pressure settings
 
@@ -138,17 +129,31 @@ E: Fix rigid nvt/npt/nph damping parameters must be > 0.0
 
 Self-explanatory.
 
+E: Fix rigid npt/nph dilate group ID does not exist
+
+Self-explanatory.
+
+E: Temperature ID for fix rigid nvt/npt/nph does not exist
+
+Self-explanatory.
+
+E: Fix rigid npt/nph does not yet allow triclinic box
+
+Self-explanatory.
+
 E: Cannot use fix rigid npt/nph and fix deform on same component of stress tensor
 
 This would be changing the same box dimension twice.
 
-E: Temperature ID for fix rigid npt/nph does not exist
-
-Self-explanatory.
-
 E: Pressure ID for fix rigid npt/nph does not exist
 
 Self-explanatory.
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
 
 E: Could not find fix_modify temperature ID
 

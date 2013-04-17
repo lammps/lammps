@@ -425,7 +425,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
         int idilate = group->find(id_dilate);
         if (idilate == -1)
           error->all(FLERR,
-                     "Fix rigid nvt/npt/nph dilate group ID does not exist");
+                     "Fix rigid npt/nph dilate group ID does not exist");
       }
       iarg += 2;
 
@@ -1131,12 +1131,22 @@ void FixRigid::pre_neighbor()
 }
 
 /* ----------------------------------------------------------------------
-   count # of degrees-of-freedom removed by rigid bodies for atoms in igroup
+   count # of DOF removed by rigid bodies for atoms in igroup
+   return total count of DOF
 ------------------------------------------------------------------------- */
 
-int FixRigid::dof(int igroup)
+int FixRigid::dof(int tgroup)
 {
-  int groupbit = group->bitmask[igroup];
+  // cannot count DOF correctly unless setup_bodies() has been called
+
+  if (firstflag) {
+    if (comm->me == 0) 
+      error->warning(FLERR,"Cannot count rigid body degrees-of-freedom "
+                     "before bodies are fully initialized");
+    return 0;
+  }
+
+  int tgroupbit = group->bitmask[tgroup];
 
   // nall = # of point particles in each rigid body
   // mall = # of finite-size particles in each rigid body
@@ -1151,7 +1161,7 @@ int FixRigid::dof(int igroup)
     ncount[ibody] = mcount[ibody] = 0;
 
   for (int i = 0; i < nlocal; i++)
-    if (body[i] >= 0 && mask[i] & groupbit) {
+    if (body[i] >= 0 && mask[i] & tgroupbit) {
       if (extended && eflags[i]) mcount[body[i]]++;
       else ncount[body[i]]++;
     }
@@ -2291,7 +2301,7 @@ double FixRigid::compute_scalar()
 
   for (int i = 0; i < nbody; i++) {
     t += masstotal[i] * (fflag[i][0]*vcm[i][0]*vcm[i][0] +
-                             fflag[i][1]*vcm[i][1]*vcm[i][1] +        \
+                             fflag[i][1]*vcm[i][1]*vcm[i][1] +
                              fflag[i][2]*vcm[i][2]*vcm[i][2]);
 
     // wbody = angular velocity in body frame

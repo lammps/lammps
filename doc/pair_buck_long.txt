@@ -131,9 +131,9 @@ This pair style does not support the "pair_modify"_pair_modify.html
 shift option for the energy of the Buckingham portion of the pair
 interaction.
 
-This pair style does not support the "pair_modify"_pair_modify.html
-table option since a tabulation capability has not yet been added to
-this potential.
+This pair style supports the "pair_modify"_pair_modify.html table and
+table/disp options since they can tabulate the short-range portion of
+the long-range Coulombic and dispersion interactions.
 
 This pair style write its information to "binary restart
 files"_restart.html, so pair_style and pair_coeff commands do not need

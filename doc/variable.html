@@ -119,8 +119,8 @@ evaluation of the string.  Note that the same string can generate
 different values when it is evaluated at different times during a
 simulation.
 </P>
-<P>IMPORTANT NOTE: When the input script line that defines a variable of
-style <I>equal</I> or <I>atom</I> that contain a formula is encountered, the
+<P>IMPORTANT NOTE: When the input script line is encountered that defines
+a variable of style <I>equal</I> or <I>atom</I> that contains a formula, the
 formula is NOT immediately evaluated and the result stored.  See the
 discussion below about "Immediate Evaluation of Variables" if you want
 to do this.
@@ -724,10 +724,17 @@ produce only a global scalar or a per-atom vector, never both.
 </P>
 <P>There is a difference between referencing a variable with a leading $
 sign (e.g. $x or ${abc}) versus with a leading "v_" (e.g. v_x or
-v_abc).  The former can be used in any command, including a variable
-command, to force the immediate evaluation of the referenced variable
-and the substitution of its value into the command.  The latter is a
-required kind of argument to some commands (e.g. the <A HREF = "fix_ave_spatial.html">fix
+v_abc).  The former can be used in any input script command, including
+a variable command.  The input script parser evaluates the reference
+variable immediately and substitutes its value into the command.  As
+explained in <A HREF = "Section_commands.html#3_2">Section commands 3.2</A> for
+"Parsing rules", you can also use un-named "immediate" variables for
+this purpose.  An variable reference such as
+$((xlo+xhi)/2+sqrt(v_area)) evaluates the string between the
+parenthesis as an equal-style variable.
+</P>
+<P>Referencing a variable with a leading "v_" is an optional or required
+kind of argument for some commands (e.g. the <A HREF = "fix_ave_spatial.html">fix
 ave/spatial</A> or <A HREF = "dump.html">dump custom</A> or
 <A HREF = "thermo_style.html">thermo_style</A> commands) if you wish it to evaluate
 a variable periodically during a run.  It can also be used in a

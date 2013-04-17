@@ -51,9 +51,9 @@ using namespace LAMMPS_NS;
 PairLJCutTIP4PLong::PairLJCutTIP4PLong(LAMMPS *lmp) :
   PairLJCutCoulLong(lmp)
 {
+  tip4pflag = 1;
   single_enable = 0;
   respa_enable = 0;
-  tip4pflag = 1;
 
   nmax = 0;
   hneigh = NULL;
@@ -557,7 +557,7 @@ void PairLJCutTIP4PLong::read_restart_settings(FILE *fp)
 ------------------------------------------------------------------------- */
 
 void PairLJCutTIP4PLong::compute_newsite(double *xO, double *xH1,
-                                             double *xH2, double *xM)
+                                         double *xH2, double *xM)
 {
   double delx1 = xH1[0] - xO[0];
   double dely1 = xH1[1] - xO[1];
@@ -599,4 +599,3 @@ double PairLJCutTIP4PLong::memory_usage()
   bytes += 2 * nmax * sizeof(double);
   return bytes;
 }
-

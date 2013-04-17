@@ -63,7 +63,7 @@ void AtomVecFull::grow(int n)
   type = memory->grow(atom->type,nmax,"atom:type");
   mask = memory->grow(atom->mask,nmax,"atom:mask");
   image = memory->grow(atom->image,nmax,"atom:image");
-  x = memory->grow(atom->x,nmax,3,"atom:x");
+  x = memory->grow(atom->x,nmax+1,3,"atom:x");
   v = memory->grow(atom->v,nmax,3,"atom:v");
   f = memory->grow(atom->f,nmax*comm->nthreads,3,"atom:f");
 
@@ -957,14 +957,69 @@ void AtomVecFull::data_atom(double *coord, tagint imagetmp, char **values)
 
 int AtomVecFull::data_atom_hybrid(int nlocal, char **values)
 {
-  molecule[nlocal] = atoi(values[1]);
-  q[nlocal] = atof(values[3]);
+  molecule[nlocal] = atoi(values[0]);
+  q[nlocal] = atof(values[1]);
 
   num_bond[nlocal] = 0;
   num_angle[nlocal] = 0;
   num_dihedral[nlocal] = 0;
   num_improper[nlocal] = 0;
 
+  return 2;
+}
+
+/* ----------------------------------------------------------------------
+   pack atom info for data file including 3 image flags
+------------------------------------------------------------------------- */
+
+void AtomVecFull::pack_data(double **buf)
+{
+  int nlocal = atom->nlocal;
+  for (int i = 0; i < nlocal; i++) {
+    buf[i][0] = tag[i];
+    buf[i][1] = molecule[i];
+    buf[i][2] = type[i];
+    buf[i][3] = q[i];
+    buf[i][4] = x[i][0];
+    buf[i][5] = x[i][1];
+    buf[i][6] = x[i][2];
+    buf[i][7] = (image[i] & IMGMASK) - IMGMAX;
+    buf[i][8] = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+    buf[i][9] = (image[i] >> IMG2BITS) - IMGMAX;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   pack hybrid atom info for data file
+------------------------------------------------------------------------- */
+
+int AtomVecFull::pack_data_hybrid(int i, double *buf)
+{
+  buf[0] = molecule[i];
+  buf[1] = q[i];
+  return 2;
+}
+
+/* ----------------------------------------------------------------------
+   write atom info to data file including 3 image flags
+------------------------------------------------------------------------- */
+
+void AtomVecFull::write_data(FILE *fp, int n, double **buf)
+{
+  for (int i = 0; i < n; i++)
+    fprintf(fp,"%d %d %d %g %g %g %g %d %d %d\n",
+            (int) buf[i][0],(int) buf[i][1],(int) buf[i][2],
+            buf[i][3],buf[i][4],buf[i][5],buf[i][6],
+            (int) buf[i][7],(int) buf[i][8],(int) buf[i][9]);
+}
+
+/* ----------------------------------------------------------------------
+   write hybrid atom info to data file
+------------------------------------------------------------------------- */
+
+int AtomVecFull::write_data_hybrid(FILE *fp, double *buf)
+{
+  fprintf(fp," %d %g",(int) buf[0],buf[1]);
   return 2;
 }
 

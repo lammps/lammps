@@ -47,6 +47,7 @@ class Pair : protected Pointers {
   int respa_enable;              // 1 if inner/middle/outer rRESPA routines
   int one_coeff;                 // 1 if allows only one coeff * * call
   int no_virial_fdotr_compute;   // 1 if does not invoke virial_fdotr_compute()
+  int writedata;                 // 1 if writes coeffs to data file
   int ghostneigh;                // 1 if pair style needs neighbors of ghosts
   double **cutghost;             // cutoff for each ghost pair
 
@@ -65,10 +66,15 @@ class Pair : protected Pointers {
   int vflag_either,vflag_global,vflag_atom;
 
   int ncoultablebits;            // size of Coulomb table, accessed by KSpace
+  int ndisptablebits;            // size of dispersion table
   double tabinnersq;
+  double tabinnerdispsq;
   double *rtable,*drtable,*ftable,*dftable,*ctable,*dctable;
   double *etable,*detable,*ptable,*dptable,*vtable,*dvtable;
+  double *rdisptable, *drdisptable, *fdisptable, *dfdisptable;
+  double *edisptable, *dedisptable;
   int ncoulshiftbits,ncoulmask;
+  int ndispshiftbits, ndispmask;
 
   int nextra;                    // # of extra quantities pair style calculates
   double *pvector;               // vector of extra pair quantities
@@ -138,12 +144,15 @@ class Pair : protected Pointers {
   virtual double init_one(int, int) {return 0.0;}
 
   virtual void init_tables(double, double *);
+  virtual void init_tables_disp(double);
   virtual void free_tables();
+  virtual void free_disp_tables();
 
   virtual void write_restart(FILE *) {}
   virtual void read_restart(FILE *) {}
   virtual void write_restart_settings(FILE *) {}
   virtual void read_restart_settings(FILE *) {}
+  virtual void write_data(FILE *) {}
 
   virtual int pack_comm(int, int *, double *, int, int *) {return 0;}
   virtual void unpack_comm(int, int, double *) {}
@@ -172,6 +181,7 @@ class Pair : protected Pointers {
                                        // pair_modify settings
   int offset_flag,mix_flag;            // flags for offset and mixing
   double tabinner;                     // inner cutoff for Coulomb table
+  double tabinner_disp;                 // inner cutoff for dispersion table
 
   // custom data type for accessing Coulomb tables
 
@@ -195,7 +205,7 @@ class Pair : protected Pointers {
                       double, double, double, double, double, double);
   void virial_fdotr_compute();
 
-  inline int sbmask(int j) {
+  inline int sbmask(const int j) const {
     return j >> SBBITS & 3;
   }
 };

@@ -112,7 +112,7 @@ E: Use of fix move with undefined lattice
 Must use lattice command with fix move command if units option is
 set to lattice.
 
-E: Fix move cannot have 0 length rotation vector
+E: Zero length rotation vector with fix move
 
 Self-explanatory.
 

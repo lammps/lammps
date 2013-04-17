@@ -156,6 +156,7 @@ void Velocity::create(double t_desired, int seed)
   if (igroup != temperature->igroup && comm->me == 0)
     error->warning(FLERR,"Mismatch between velocity and compute groups");
   temperature->init();
+  temperature->setup();
 
   // store a copy of current velocities
 
@@ -531,6 +532,7 @@ void Velocity::scale(int narg, char **arg)
   if (igroup != temperature->igroup && comm->me == 0)
     error->warning(FLERR,"Mismatch between velocity and compute groups");
   temperature->init();
+  temperature->setup();
 
   // scale temp to desired value
 

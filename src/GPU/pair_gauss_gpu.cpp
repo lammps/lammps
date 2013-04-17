@@ -123,7 +123,7 @@ void PairGaussGPU::compute(int eflag, int vflag)
 void PairGaussGPU::init_style()
 {
   if (force->newton_pair) 
-    error->all(FLERR,"Cannot use newton pair with lj/cut/gpu pair style");
+    error->all(FLERR,"Cannot use newton pair with gauss/gpu pair style");
 
   // Repeat cutsq calculation because done after call to init_style
   double maxcut = -1.0;

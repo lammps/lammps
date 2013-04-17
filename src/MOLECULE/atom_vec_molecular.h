@@ -50,6 +50,10 @@ class AtomVecMolecular : public AtomVec {
   void create_atom(int, double *);
   void data_atom(double *, tagint, char **);
   int data_atom_hybrid(int, char **);
+  void pack_data(double **);
+  int pack_data_hybrid(int, double *);
+  void write_data(FILE *, int, double **);
+  int write_data_hybrid(FILE *, double *);
   bigint memory_usage();
 
  private:

@@ -298,10 +298,8 @@ void DumpCustom::header_binary(bigint ndump)
   fwrite(&boxzlo,sizeof(double),1,fp);
   fwrite(&boxzhi,sizeof(double),1,fp);
   fwrite(&size_one,sizeof(int),1,fp);
-  if (multiproc) {
-    int one = 1;
-    fwrite(&one,sizeof(int),1,fp);
-  } else fwrite(&nprocs,sizeof(int),1,fp);
+  if (multiproc) fwrite(&nclusterprocs,sizeof(int),1,fp);
+  else fwrite(&nprocs,sizeof(int),1,fp);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -322,10 +320,8 @@ void DumpCustom::header_binary_triclinic(bigint ndump)
   fwrite(&boxxz,sizeof(double),1,fp);
   fwrite(&boxyz,sizeof(double),1,fp);
   fwrite(&size_one,sizeof(int),1,fp);
-  if (multiproc) {
-    int one = 1;
-    fwrite(&one,sizeof(int),1,fp);
-  } else fwrite(&nprocs,sizeof(int),1,fp);
+  if (multiproc) fwrite(&nclusterprocs,sizeof(int),1,fp);
+  else fwrite(&nprocs,sizeof(int),1,fp);
 }
 
 /* ---------------------------------------------------------------------- */

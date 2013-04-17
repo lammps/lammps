@@ -1,4 +1,4 @@
-# shampoo = Fedora 12 x86_64 Linux box, all native rpms, gfortran 4.4, g++ 4.4/3.4,
+# fermi = Fedora 12 x86_64 Linux box, all native rpms, gfortran 4.4, g++ 4.4/3.4,
 #           OpenMPI-1.4.1, FFTW-2.1.5, BLAS/LAPACK-3.2.1
 
 SHELL = /bin/sh
@@ -72,6 +72,11 @@ include	Makefile.package
 EXTRA_INC = $(LMP_INC) $(PKG_INC) $(MPI_INC) $(FFT_INC)
 EXTRA_PATH = $(PKG_PATH) $(MPI_PATH) $(FFT_PATH) $(PKG_SYSPATH)
 EXTRA_LIB = $(PKG_LIB) $(MPI_LIB) $(FFT_LIB) $(PKG_SYSLIB)
+
+# Path to src files
+
+vpath %.cpp ..
+vpath %.h ..
 
 # Link target
 

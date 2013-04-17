@@ -1,4 +1,4 @@
-# serial = RedHat Linux box, g++4, no MPI, internal FFT, OpenMP
+# serial-omp = RedHat Linux box, g++4, no MPI, internal FFT, OpenMP
 
 SHELL = /bin/sh
 
@@ -38,7 +38,7 @@ LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_MEMALIGN=16
 
 MPI_INC =       -I../STUBS
 MPI_PATH =
-MPI_LIB =	../STUBS/libmpi.a
+MPI_LIB =	-L../STUBS -lmpi_stubs
 
 # FFT library, OPTIONAL
 # see discussion in doc/Section_start.html#2_2 (step 6)
@@ -72,6 +72,11 @@ include	Makefile.package
 EXTRA_INC = $(LMP_INC) $(PKG_INC) $(MPI_INC) $(FFT_INC) $(JPG_INC) $(PKG_SYSINC)
 EXTRA_PATH = $(PKG_PATH) $(MPI_PATH) $(FFT_PATH) $(JPG_PATH) $(PKG_SYSPATH)
 EXTRA_LIB = $(PKG_LIB) $(MPI_LIB) $(FFT_LIB) $(JPG_LIB) $(PKG_SYSLIB)
+
+# Path to src files
+
+vpath %.cpp ..
+vpath %.h ..
 
 # Link target
 

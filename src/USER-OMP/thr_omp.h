@@ -58,8 +58,8 @@ class ThrOMP {
 
   enum {THR_NONE=0,THR_PAIR=1,THR_BOND=1<<1,THR_ANGLE=1<<2,
         THR_DIHEDRAL=1<<3,THR_IMPROPER=1<<4,THR_KSPACE=1<<5,
-        THR_CHARMM=1<<6, /*THR_PROXY=1<<7,*/ THR_HYBRID=1<<8,
-        THR_FIX=1<<9};
+        THR_CHARMM=1<<6, /*THR_PROXY=1<<7,THR_HYBRID=1<<8, */
+        THR_FIX=1<<9,THR_INTGR=1<<10};
 
  protected:
   // extra ev_tally setup work for threaded styles
@@ -185,8 +185,6 @@ static inline void loop_setup_thr(int &ifrom, int &ito, int &tid,
 #endif
 }
 
-}
-
 // helpful definitions to help compilers optimizing code better
 
 typedef struct { double x,y,z;   } dbl3_t;
@@ -194,6 +192,12 @@ typedef struct { double x,y,z,w; } dbl4_t;
 typedef struct { int a,b,t;      } int3_t;
 typedef struct { int a,b,c,t;    } int4_t;
 typedef struct { int a,b,c,d,t;  } int5_t;
+
+}
+
+#ifdef _noalias
+#undef _noalias
+#endif
 
 #if defined(__GNUC__)
 #define _noalias __restrict

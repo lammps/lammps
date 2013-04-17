@@ -96,13 +96,34 @@ single leading "#" will comment out the entire command.
 
 (3) The line is searched repeatedly for $ characters, which indicate
 variables that are replaced with a text string.  See an exception in
-(6).  If the $ is followed by curly brackets, then the variable name
-is the text inside the curly brackets.  If no curly brackets follow
-the $, then the variable name is the single character immediately
-following the $.  Thus $\{myTemp\} and $x refer to variable names
-"myTemp" and "x".  See the "variable"_variable.html command for
-details of how strings are assigned to variables and how they are
-substituted for in input script commands.
+(6).
+
+If the $ is followed by curly brackets, then the variable name is the
+text inside the curly brackets.  If no curly brackets follow the $,
+then the variable name is the single character immediately following
+the $.  Thus $\{myTemp\} and $x refer to variable names "myTemp" and
+"x". 
+
+If the $ is followed by parenthesis, then the text inside the
+parenthesis is treated as an "immediate" variable and evaluated as an
+"equal-style variable"_variable.html.  This is a way to use numeric
+formulas in an input script without having to assign them to variable
+names.  For example, these 3 input script lines:
+
+variable X equal (xlo+xhi)/2+sqrt(v_area)
+region 1 block $X 2 INF INF EDGE EDGE
+variable X delete :pre
+
+can be replaced by 
+
+region 1 block $((xlo+xhi)/2+sqrt(v_area)) 2 INF INF EDGE EDGE :pre
+
+The latter produces an identical result, without having to define and
+discard a temporary variable X.
+
+See the "variable"_variable.html command for more details of how
+strings are assigned to variables and evaluated, and how they can be
+used in input script commands.
 
 (4) The line is broken into "words" separated by whitespace (tabs,
 spaces).  Note that words can thus contain letters, digits,
@@ -115,13 +136,14 @@ line are arguments.
 it can be enclosed in either double or single quotes.  E.g.
 
 print "Volume = $v"
-print 'Volume = $v' :pre
+print 'Volume = $v' 
+if "${steps} > 1000" then quit :pre
 
 The quotes are removed when the single argument is stored internally.
-See the "dump modify format"_dump_modify.html or "if"_if.html commands
-for examples.  A "#" or "$" character that is between quotes will not
-be treated as a comment indicator in (2) or substituted for as a
-variable in (3).
+See the "dump modify format"_dump_modify.html or "print"_print.html or
+"if"_if.html commands for examples.  A "#" or "$" character that is
+between quotes will not be treated as a comment indicator in (2) or
+substituted for as a variable in (3). 
 
 IMPORTANT NOTE: If the argument is itself a command that requires a
 quoted argument (e.g. using a "print"_print.html command as part of an
@@ -280,7 +302,7 @@ Output:
 "dump_modify"_dump_modify.html, "restart"_restart.html,
 "thermo"_thermo.html, "thermo_modify"_thermo_modify.html,
 "thermo_style"_thermo_style.html, "undump"_undump.html,
-"write_restart"_write_restart.html
+"write_data"_write_data.html, "write_restart"_write_restart.html
 
 Actions:
 
@@ -394,6 +416,7 @@ in the command's documentation.
 "units"_units.html,
 "variable"_variable.html,
 "velocity"_velocity.html,
+"write_data"_write_data.html,
 "write_restart"_write_restart.html :tb(c=6,ea=c)
 
 :line
@@ -471,6 +494,7 @@ of each style or click on the style itself for a full description:
 "rigid/npt"_fix_rigid.html,
 "rigid/nve"_fix_rigid.html,
 "rigid/nvt"_fix_rigid.html,
+"rigid/small"_fix_rigid.html,
 "setforce"_fix_setforce.html,
 "shake"_fix_shake.html,
 "spring"_fix_spring.html,
@@ -512,8 +536,9 @@ package"_Section_start.html#start_3.
 "nve/eff"_fix_nve_eff.html,
 "nvt/eff"_fix_nh_eff.html,
 "nvt/sllod/eff"_fix_nvt_sllod_eff.html,
+"phonon"_fix_phonon.html,
 "qeq/reax"_fix_qeq_reax.html,
-"reax/c/bonds"_fix_reaxc_bonds.html,
+"reax/c/bonds"_fix_reax_bonds.html,
 "smd"_fix_smd.html,
 "temp/rescale/eff"_fix_temp_rescale_eff.html :tb(c=6,ea=c)
 
@@ -527,11 +552,29 @@ package"_Section_accelerate.html.
 "enforce2d/cuda"_fix_enforce2d.html,
 "gravity/cuda"_fix_gravity.html,
 "gravity/omp"_fix_gravity.html,
+"nph/omp"_fix_nh.html,
+"nphug/omp"_fix_nphug.html,
+"nph/asphere/omp"_fix_nph_asphere.html,
+"nph/sphere/omp"_fix_nph_sphere.html,
 "npt/cuda"_fix_nh.html,
+"npt/omp"_fix_nh.html,
+"npt/asphere/omp"_fix_npt_asphere.html,
+"npt/sphere/omp"_fix_npt_sphere.html,
 "nve/cuda"_fix_nh.html,
+"nve/omp"_fix_nve.html,
 "nve/sphere/omp"_fix_nve_sphere.html,
 "nvt/cuda"_fix_nh.html,
+"nvt/omp"_fix_nh.html,
+"nvt/asphere/omp"_fix_nvt_asphere.html,
+"nvt/sllod/omp"_fix_nvt_sllod.html,
+"nvt/sphere/omp"_fix_nvt_sphere.html,
 "qeq/comb/omp"_fix_qeq_comb.html,
+"rigid/omp"_fix_rigid.html,
+"rigid/nph/omp"_fix_rigid.html,
+"rigid/npt/omp"_fix_rigid.html,
+"rigid/nve/omp"_fix_rigid.html,
+"rigid/nvt/omp"_fix_rigid.html,
+"rigid/small/omp"_fix_rigid.html,
 "setforce/cuda"_fix_setforce.html,
 "shake/cuda"_fix_shake.html,
 "temp/berendsen/cuda"_fix_temp_berendsen.html,
@@ -688,12 +731,13 @@ potentials.  Click on the style itself for a full description:
 "lj/cut/coul/dsf"_pair_lj.html,
 "lj/cut/coul/long"_pair_lj.html,
 "lj/cut/coul/msm"_pair_lj.html,
-"lj/long/coul/long"_pair_lj_long.html,
+"lj/cut/tip4p/cut"_pair_lj.html,
 "lj/cut/tip4p/long"_pair_lj.html,
-"lj/long/tip4p/long"_pair_lj_long.html,
 "lj/expand"_pair_lj_expand.html,
 "lj/gromacs"_pair_gromacs.html,
 "lj/gromacs/coul/gromacs"_pair_gromacs.html,
+"lj/long/coul/long"_pair_lj_long.html,
+"lj/long/tip4p/long"_pair_lj_long.html,
 "lj/smooth"_pair_lj_smooth.html,
 "lj/smooth/linear"_pair_lj_smooth_linear.html,
 "lj96/cut"_pair_lj96.html,
@@ -729,6 +773,7 @@ package"_Section_start.html#start_3.
 "edip"_pair_edip.html,
 "eff/cut"_pair_eff.html,
 "gauss/cut"_pair_gauss.html,
+"lj/cut/tip4p/cut"_pair_lj.html,
 "lj/sdk"_pair_sdk.html,
 "lj/sdk/coul/long"_pair_sdk.html,
 "lj/sdk/coul/msm"_pair_sdk.html,
@@ -849,6 +894,7 @@ package"_Section_accelerate.html.
 "lj/cut/gpu"_pair_lj.html,
 "lj/cut/omp"_pair_lj.html,
 "lj/cut/opt"_pair_lj.html,
+"lj/cut/tip4p/cut/omp"_pair_lj.html,
 "lj/cut/tip4p/long/omp"_pair_lj.html,
 "lj/cut/tip4p/long/opt"_pair_lj.html,
 "lj/expand/cuda"_pair_lj_expand.html,
@@ -858,6 +904,7 @@ package"_Section_accelerate.html.
 "lj/gromacs/coul/gromacs/omp"_pair_gromacs.html,
 "lj/gromacs/cuda"_pair_gromacs.html,
 "lj/gromacs/omp"_pair_gromacs.html,
+"lj/long/coul/long/opt"_pair_lj_long.html,
 "lj/sdk/gpu"_pair_sdk.html,
 "lj/sdk/omp"_pair_sdk.html,
 "lj/sdk/coul/long/gpu"_pair_sdk.html,

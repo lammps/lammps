@@ -91,7 +91,10 @@ viz_tool.py in.viz 100 5000
 vizplotgui_tool.py in.viz 100 thermo_temp
 
 You can un-comment the Pypar calls if you want to run these in
-parallel.
+parallel.  Then, for example, you can type:
+
+% mpirun -np 4 trivial.py in.trivial
+% mpirun -np 4 python trivial.py in.trivial
 
 Each script has more documentation in the file that explains how to
 use it and what it is doing.

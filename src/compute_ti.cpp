@@ -74,13 +74,12 @@ ComputeTI::ComputeTI(LAMMPS *lmp, int narg, char **arg) :
     if (iarg+4 > narg) error->all(FLERR,"Illegal compute ti command");
     if (strcmp(arg[iarg],"kspace") == 0) which[nterms] = KSPACE;
     else if (strcmp(arg[iarg],"tail") == 0) which[nterms] = TAIL;
-    else {
-      which[nterms] = PAIR;} 
+    else which[nterms] = PAIR;
+
     int n = strlen(arg[iarg]) + 1;
     pstyle[nterms] = new char[n];
     strcpy(pstyle[nterms],arg[iarg]);
     force->bounds(arg[iarg+1],atom->ntypes,ilo[nterms],ihi[nterms]);
-    
     iarg += 1;
 
     if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
@@ -136,7 +135,8 @@ void ComputeTI::init()
 
     if (which[m] == PAIR) {
       pptr[m] = force->pair_match(pstyle[m],1);
-      if (pptr[m] == NULL) error->all(FLERR,"Compute ti pair style does not exist");
+      if (pptr[m] == NULL)
+        error->all(FLERR,"Compute ti pair style does not exist");
 
     } else if (which[m] == TAIL) {
       if (force->pair == NULL || force->pair->tail_flag == 0)
@@ -182,19 +182,16 @@ double ComputeTI::compute_scalar()
         int npair = nlocal;
         int *mask = atom->mask;
         int *type = atom->type;
-
+        
         double *eatom = pptr[m]->eatom;
-
+        
         if (force->newton) npair += atom->nghost;
-        for(int i = 0; i < npair; i++)
-        {     
-          if ((ilo[m]<=type[i])&(ihi[m]>=type[i]))  
-            eng += eatom[i];  
-        }  
+        for (int i = 0; i < npair; i++)    
+          if ((ilo[m]<=type[i])&(ihi[m]>=type[i])) eng += eatom[i];  
         MPI_Allreduce(&eng,&engall,1,MPI_DOUBLE,MPI_SUM,world);
       }
       dUdl += engall/value1 * value2;
-
+      
     } else if (which[m] == TAIL) {
       double vol = domain->xprd*domain->yprd*domain->zprd;
       if (total_flag) 
@@ -216,9 +213,8 @@ double ComputeTI::compute_scalar()
         eng /= vol; 
       }
       dUdl += eng/value1 * value2;
-
+      
     } else if (which[m] == KSPACE) {
-
       int ntypes = atom->ntypes;
       int *mask = atom->mask; 
       if (total_flag) 
@@ -232,14 +228,14 @@ double ComputeTI::compute_scalar()
         eng = 0;
         for(int i = 0; i < nlocal; i++)
           if ((ilo[m]<=type[i])&(ihi[m]>=type[i])) 
-	    eng += eatom[i];  
+            eng += eatom[i];  
         MPI_Allreduce(&eng,&engall,1,MPI_DOUBLE,MPI_SUM,world);
         eng = engall;
       }
       dUdl += eng/value1 * value2;
     }
   }
-
+  
   scalar = dUdl;
   return scalar;
 }

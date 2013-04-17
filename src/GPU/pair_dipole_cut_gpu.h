@@ -52,7 +52,7 @@ E: Insufficient memory on accelerator
 There is insufficient memory on one of the devices specified for the gpu
 package
 
-E: Pair style dipole/cut/gpu requires atom attribute q
+E: Pair dipole/cut/gpu requires atom attributes q, mu, torque
 
 The atom style defined does not have this attribute.
 

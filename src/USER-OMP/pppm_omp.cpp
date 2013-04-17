@@ -336,6 +336,11 @@ void PPPMOMP::make_rho()
   FFT_SCALAR * _noalias const d = &(density_brick[nzlo_out][nylo_out][nxlo_out]);
   memset(d,0,ngrid*sizeof(FFT_SCALAR));
 
+  // no local atoms => nothing else to do
+
+  const int nlocal = atom->nlocal;
+  if (nlocal == 0) return;
+
   const int ix = nxhi_out - nxlo_out + 1;
   const int iy = nyhi_out - nylo_out + 1;
 
@@ -364,7 +369,6 @@ void PPPMOMP::make_rho()
     // (dx,dy,dz) = distance to "lower left" grid pt
 
     // loop over all local atoms for all threads
-    const int nlocal = atom->nlocal;
     for (i = 0; i < nlocal; i++) {
 
       const int nx = p2g[i].a;
@@ -374,7 +378,7 @@ void PPPMOMP::make_rho()
       // pre-screen whether this atom will ever come within 
       // reach of the data segement this thread is updating.
       if ( ((nz+nlower-nzlo_out)*ix*iy >= jto)
-	   || ((nz+nupper-nzlo_out+1)*ix*iy < jfrom) ) continue;
+           || ((nz+nupper-nzlo_out+1)*ix*iy < jfrom) ) continue;
 
       const FFT_SCALAR dx = nx+shiftone - (x[i].x-boxlox)*delxinv;
       const FFT_SCALAR dy = ny+shiftone - (x[i].y-boxloy)*delyinv;
@@ -385,23 +389,23 @@ void PPPMOMP::make_rho()
       const FFT_SCALAR z0 = delvolinv * q[i];
 
       for (int n = nlower; n <= nupper; ++n) {
-	const int jn = (nz+n-nzlo_out)*ix*iy;
-	const FFT_SCALAR y0 = z0*r1d[2][n];
+        const int jn = (nz+n-nzlo_out)*ix*iy;
+        const FFT_SCALAR y0 = z0*r1d[2][n];
 
-	for (int m = nlower; m <= nupper; ++m) {
-	  const int jm = jn+(ny+m-nylo_out)*ix;
-	  const FFT_SCALAR x0 = y0*r1d[1][m];
+        for (int m = nlower; m <= nupper; ++m) {
+          const int jm = jn+(ny+m-nylo_out)*ix;
+          const FFT_SCALAR x0 = y0*r1d[1][m];
 
-	  for (int l = nlower; l <= nupper; ++l) {
-	    const int jl = jm+nx+l-nxlo_out;
-	    // make sure each thread only updates
-	    // "his" elements of the density grid
-	    if (jl >= jto) break;
-	    if (jl < jfrom) continue;
+          for (int l = nlower; l <= nupper; ++l) {
+            const int jl = jm+nx+l-nxlo_out;
+            // make sure each thread only updates
+            // "his" elements of the density grid
+            if (jl >= jto) break;
+            if (jl < jfrom) continue;
 
-	    d[jl] += x0*r1d[0][l];
-	  }
-	}
+            d[jl] += x0*r1d[0][l];
+          }
+        }
       }
     }
   }
@@ -419,6 +423,13 @@ void PPPMOMP::fieldforce_ik()
   // (mx,my,mz) = global coords of moving stencil pt
   // ek = 3 components of E-field on particle
 
+  const int nthreads = comm->nthreads;
+  const int nlocal = atom->nlocal;
+
+  // no local atoms => nothing to do
+
+  if (nlocal == 0) return;
+
   const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
   const double * _noalias const q = atom->q;
   const int3_t * _noalias const p2g = (int3_t *) part2grid[0];
@@ -427,9 +438,6 @@ void PPPMOMP::fieldforce_ik()
   const double boxlox = boxlo[0];
   const double boxloy = boxlo[1];
   const double boxloz = boxlo[2];
-
-  const int nthreads = comm->nthreads;
-  const int nlocal = atom->nlocal;
 
 #if defined(_OPENMP)
 #pragma omp parallel default(none)
@@ -488,6 +496,13 @@ void PPPMOMP::fieldforce_ik()
 
 void PPPMOMP::fieldforce_ad()
 {
+  const int nthreads = comm->nthreads;
+  const int nlocal = atom->nlocal;
+
+  // no local atoms => nothing to do
+
+  if (nlocal == 0) return;
+
   const double *prd = (triclinic == 0) ? domain->prd : domain->prd_lamda;
   const double hx_inv = nx_pppm/prd[0];
   const double hy_inv = ny_pppm/prd[1];
@@ -506,9 +521,6 @@ void PPPMOMP::fieldforce_ad()
   const double boxlox = boxlo[0];
   const double boxloy = boxlo[1];
   const double boxloz = boxlo[2];
-
-  const int nthreads = comm->nthreads;
-  const int nlocal = atom->nlocal;
 
 #if defined(_OPENMP)
 #pragma omp parallel default(none)
@@ -586,6 +598,13 @@ void PPPMOMP::fieldforce_ad()
 
 void PPPMOMP::fieldforce_peratom()
 {
+  const int nthreads = comm->nthreads;
+  const int nlocal = atom->nlocal;
+
+  // no local atoms => nothing to do
+
+  if (nlocal == 0) return;
+
   // loop over my charges, interpolate from nearby grid points
   // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
   // (dx,dy,dz) = distance to "lower left" grid pt
@@ -593,8 +612,6 @@ void PPPMOMP::fieldforce_peratom()
 
   const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
   const double * _noalias const q = atom->q;
-  const int nthreads = comm->nthreads;
-  const int nlocal = atom->nlocal;
 
 #if defined(_OPENMP)
 #pragma omp parallel default(none)

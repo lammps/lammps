@@ -101,7 +101,7 @@ ComputeTempPartialCuda::~ComputeTempPartialCuda()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeTempPartialCuda::init()
+void ComputeTempPartialCuda::setup()
 {
   fix_dof = 0;
   for (int i = 0; i < modify->nfix; i++)

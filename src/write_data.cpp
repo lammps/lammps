@@ -117,6 +117,18 @@ void WriteData::write(char *file)
   if (natoms != atom->natoms && output->thermo->lostflag == ERROR)
     error->all(FLERR,"Atom count is inconsistent, cannot write data file");
 
+  // sum up bond,angle counts
+  // may be different than atom->nbonds,nangles if broken/turned-off
+
+  if (atom->nbonds || atom->nbondtypes) {
+    nbonds_local = atom->avec->pack_bond(NULL);
+    MPI_Allreduce(&nbonds_local,&nbonds,1,MPI_LMP_BIGINT,MPI_SUM,world);
+  }
+  if (atom->nangles || atom->nangletypes) {
+    nangles_local = atom->avec->pack_angle(NULL);
+    MPI_Allreduce(&nangles_local,&nangles,1,MPI_LMP_BIGINT,MPI_SUM,world);
+  }
+
   // open data file
 
   if (me == 0) {
@@ -166,14 +178,10 @@ void WriteData::header()
   fprintf(fp,"%d atom types\n",atom->ntypes);
 
   if (atom->nbonds || atom->nbondtypes) {
-    nbonds_local = atom->avec->pack_bond(NULL);
-    MPI_Allreduce(&nbonds_local,&nbonds,1,MPI_LMP_BIGINT,MPI_SUM,world);
     fprintf(fp,BIGINT_FORMAT " bonds\n",nbonds);
     fprintf(fp,"%d bond types\n",atom->nbondtypes);
   }
   if (atom->nangles || atom->nangletypes) {
-    nangles_local = atom->avec->pack_angle(NULL);
-    MPI_Allreduce(&nangles_local,&nangles,1,MPI_LMP_BIGINT,MPI_SUM,world);
     fprintf(fp,BIGINT_FORMAT " angles\n",nangles);
     fprintf(fp,"%d angle types\n",atom->nangletypes);
   }
@@ -278,8 +286,9 @@ void WriteData::atoms()
         MPI_Send(&tmp,0,MPI_INT,iproc,0,world);
         MPI_Wait(&request,&status);
         MPI_Get_count(&status,MPI_DOUBLE,&recvrow);
+        recvrow /= ncol;
       } else recvrow = sendrow;
-      
+
       atom->avec->write_data(fp,recvrow,buf);
     }
     
@@ -330,6 +339,7 @@ void WriteData::velocities()
         MPI_Send(&tmp,0,MPI_INT,iproc,0,world);
         MPI_Wait(&request,&status);
         MPI_Get_count(&status,MPI_DOUBLE,&recvrow);
+        recvrow /= ncol;
       } else recvrow = sendrow;
       
       atom->avec->write_vel(fp,recvrow,buf);
@@ -362,7 +372,7 @@ void WriteData::bonds()
 
   // pack my bond data into buf
 
-  atom->avec->pack_bond(buf);
+  int foo = atom->avec->pack_bond(buf);
 
   // write one chunk of atoms per proc to file
   // proc 0 pings each proc, receives its chunk, writes to file
@@ -377,19 +387,20 @@ void WriteData::bonds()
     fprintf(fp,"\nBonds\n\n");
     for (int iproc = 0; iproc < nprocs; iproc++) {
       if (iproc) {
-        MPI_Irecv(&buf[0][0],maxrow*ncol,MPI_DOUBLE,iproc,0,world,&request);
+        MPI_Irecv(&buf[0][0],maxrow*ncol,MPI_INT,iproc,0,world,&request);
         MPI_Send(&tmp,0,MPI_INT,iproc,0,world);
         MPI_Wait(&request,&status);
-        MPI_Get_count(&status,MPI_DOUBLE,&recvrow);
+        MPI_Get_count(&status,MPI_INT,&recvrow);
+        recvrow /= ncol;
       } else recvrow = sendrow;
-      
+
       atom->avec->write_bond(fp,recvrow,buf,index);
       index += recvrow;
     }
     
   } else {
     MPI_Recv(&tmp,0,MPI_INT,0,0,world,&status);
-    MPI_Rsend(&buf[0][0],sendrow*ncol,MPI_DOUBLE,0,0,world);
+    MPI_Rsend(&buf[0][0],sendrow*ncol,MPI_INT,0,0,world);
   }
 
   memory->destroy(buf);
@@ -429,10 +440,11 @@ void WriteData::angles()
     fprintf(fp,"\nAngles\n\n");
     for (int iproc = 0; iproc < nprocs; iproc++) {
       if (iproc) {
-        MPI_Irecv(&buf[0][0],maxrow*ncol,MPI_DOUBLE,iproc,0,world,&request);
+        MPI_Irecv(&buf[0][0],maxrow*ncol,MPI_INT,iproc,0,world,&request);
         MPI_Send(&tmp,0,MPI_INT,iproc,0,world);
         MPI_Wait(&request,&status);
-        MPI_Get_count(&status,MPI_DOUBLE,&recvrow);
+        MPI_Get_count(&status,MPI_INT,&recvrow);
+        recvrow /= ncol;
       } else recvrow = sendrow;
       
       atom->avec->write_angle(fp,recvrow,buf,index);
@@ -441,7 +453,7 @@ void WriteData::angles()
     
   } else {
     MPI_Recv(&tmp,0,MPI_INT,0,0,world,&status);
-    MPI_Rsend(&buf[0][0],sendrow*ncol,MPI_DOUBLE,0,0,world);
+    MPI_Rsend(&buf[0][0],sendrow*ncol,MPI_INT,0,0,world);
   }
 
   memory->destroy(buf);
@@ -499,10 +511,11 @@ void WriteData::dihedrals()
     fprintf(fp,"\nDihedrals\n\n");
     for (int iproc = 0; iproc < nprocs; iproc++) {
       if (iproc) {
-        MPI_Irecv(&buf[0][0],maxrow*ncol,MPI_DOUBLE,iproc,0,world,&request);
+        MPI_Irecv(&buf[0][0],maxrow*ncol,MPI_INT,iproc,0,world,&request);
         MPI_Send(&tmp,0,MPI_INT,iproc,0,world);
         MPI_Wait(&request,&status);
-        MPI_Get_count(&status,MPI_DOUBLE,&recvrow);
+        MPI_Get_count(&status,MPI_INT,&recvrow);
+        recvrow /= ncol;
       } else recvrow = sendrow;
       
       atom->avec->write_dihedral(fp,recvrow,buf,index);
@@ -511,7 +524,7 @@ void WriteData::dihedrals()
     
   } else {
     MPI_Recv(&tmp,0,MPI_INT,0,0,world,&status);
-    MPI_Rsend(&buf[0][0],sendrow*ncol,MPI_DOUBLE,0,0,world);
+    MPI_Rsend(&buf[0][0],sendrow*ncol,MPI_INT,0,0,world);
   }
 
   memory->destroy(buf);
@@ -569,10 +582,11 @@ void WriteData::impropers()
     fprintf(fp,"\nImpropers\n\n");
     for (int iproc = 0; iproc < nprocs; iproc++) {
       if (iproc) {
-        MPI_Irecv(&buf[0][0],maxrow*ncol,MPI_DOUBLE,iproc,0,world,&request);
+        MPI_Irecv(&buf[0][0],maxrow*ncol,MPI_INT,iproc,0,world,&request);
         MPI_Send(&tmp,0,MPI_INT,iproc,0,world);
         MPI_Wait(&request,&status);
-        MPI_Get_count(&status,MPI_DOUBLE,&recvrow);
+        MPI_Get_count(&status,MPI_INT,&recvrow);
+        recvrow /= ncol;
       } else recvrow = sendrow;
       
       atom->avec->write_improper(fp,recvrow,buf,index);
@@ -581,7 +595,7 @@ void WriteData::impropers()
     
   } else {
     MPI_Recv(&tmp,0,MPI_INT,0,0,world,&status);
-    MPI_Rsend(&buf[0][0],sendrow*ncol,MPI_DOUBLE,0,0,world);
+    MPI_Rsend(&buf[0][0],sendrow*ncol,MPI_INT,0,0,world);
   }
 
   memory->destroy(buf);

@@ -300,7 +300,7 @@ FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
   if (atom->rmass_flag)
     error->all(FLERR,"Cannot use fix colvars for atoms with rmass attribute");
 
-  if (instances)
+  if (instances > 0)
     error->all(FLERR,"Only one fix colvars can be active at a time");
   ++instances;
 
@@ -313,6 +313,7 @@ FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
 
   conf_file = strdup(arg[3]);
   rng_seed = 1966;
+  unwrap_flag = 0;
 
   inp_name = NULL;
   out_name = NULL;
@@ -327,6 +328,14 @@ FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
       out_name = strdup(arg[argsdone+1]);
     } else if (0 == strcmp(arg[argsdone], "seed")) {
       rng_seed = atoi(arg[argsdone+1]);
+    } else if (0 == strcmp(arg[argsdone], "unwrap")) {
+      if (0 == strcmp(arg[argsdone+1], "yes")) {
+        unwrap_flag = 1;
+      } else if (0 == strcmp(arg[argsdone+1], "no")) {
+        unwrap_flag = 0;
+      } else {
+        error->all(FLERR,"Incorrect fix colvars unwrap flag");
+      }
     } else if (0 == strcmp(arg[argsdone], "tstat")) {
       tmp_name = strdup(arg[argsdone+1]);
     } else {
@@ -347,7 +356,6 @@ FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
   force_buf = NULL;
   proxy = NULL;
   idmap = NULL;
-  unwrap_flag = 0;
 
   /* storage required to communicate a single coordinate or force. */
   size_one = sizeof(struct commdata);

@@ -1291,7 +1291,7 @@ std::ostream & colvar::write_traj_label (std::ostream & os)
   if (tasks[task_output_system_force]) {
 
     os << " fs_"
-       << cvm::wrap_string (this->name, this_cv_width-2);
+       << cvm::wrap_string (this->name, this_cv_width-3);
 
     if (tasks[task_extended_lagrangian]) {
       // restraint center
@@ -1302,7 +1302,7 @@ std::ostream & colvar::write_traj_label (std::ostream & os)
 
   if (tasks[task_output_applied_force]) {
     os << " fa_"
-       << cvm::wrap_string (this->name, this_cv_width-2);
+       << cvm::wrap_string (this->name, this_cv_width-3);
   }
 
   return os;

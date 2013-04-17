@@ -754,7 +754,8 @@ colvar::rmsd::rmsd (std::string const &conf)
     cvm::log ("WARNING: explicit fitting parameters were provided for atom group \"atoms\".");
   } else {
     // Default: fit everything
-    cvm::log ("No explicit fitting parameters: enabling both centerReference and rotateReference to compute standard minimum RMSD.");
+    cvm::log ("Enabling \"centerReference\" and \"rotateReference\", to minimize RMSD before calculating it as a variable: "
+              "if this is not the desired behavior, disable them explicitly within the \"atoms\" block.\n");
     atoms.b_center = true;
     atoms.b_rotate = true;
     // default case: reference positions for calculating the rmsd are also those used
@@ -936,7 +937,8 @@ colvar::eigenvector::eigenvector (std::string const &conf)
     cvm::log ("WARNING: explicit fitting parameters were provided for atom group \"atoms\".\n");
   } else {
     // default: fit everything
-    cvm::log ("Enabling centerReference and rotateReference (minimize RMSD before calculating the projection).\n");
+    cvm::log ("Enabling \"centerReference\" and \"rotateReference\", to minimize RMSD before calculating the vector projection: "
+              "if this is not the desired behavior, disable them explicitly within the \"atoms\" block.\n");
     atoms.b_center = true;
     atoms.b_rotate = true;
     atoms.ref_pos = ref_pos;
@@ -996,34 +998,32 @@ colvar::eigenvector::eigenvector (std::string const &conf)
   eig_center *= 1.0 / atoms.size();
   cvm::log ("Geometric center of the provided vector: "+cvm::to_str (eig_center)+"\n");
 
-  bool b_difference_vector;
+  bool b_difference_vector = false;
   get_keyval (conf, "differenceVector", b_difference_vector, false);
+
   if (b_difference_vector) {
 
-    cvm::log ("Subtracting the reference positions from the provided vector.\n");
-
     if (atoms.b_center) {
-      cvm::log ("centerReference is on: recentering the provided vector to the reference positions.\n");
       // both sets should be centered on the origin for fitting
       for (size_t i = 0; i < atoms.size(); i++) {
         eigenvec[i] -= eig_center;
         ref_pos[i]  -= ref_pos_center;
       }
     }
-
     if (atoms.b_rotate) {
-      cvm::log ("rotateReference is on: aligning the provided vector to the reference positions.\n");
       atoms.rot.calc_optimal_rotation (eigenvec, ref_pos);
       for (size_t i = 0; i < atoms.size(); i++) {
         eigenvec[i] = atoms.rot.rotate (eigenvec[i]);
-        eigenvec[i] -= ref_pos[i];
       }
     }
-
+    cvm::log ("\"differenceVector\" is on: subtracting the reference positions from the provided vector: v = v - x0.\n");
+    for (size_t i = 0; i < atoms.size(); i++) {
+      eigenvec[i] -= ref_pos[i];
+    }
     if (atoms.b_center) {
       // bring back the ref positions to where they were
       for (size_t i = 0; i < atoms.size(); i++) {
-        ref_pos[i] -= ref_pos_center;
+        ref_pos[i] += ref_pos_center;
       }
     }
 
@@ -1034,7 +1034,7 @@ colvar::eigenvector::eigenvector (std::string const &conf)
     }
   }
 
-  cvm::log ("The first three components (v1x, v1y, v1z) of the resulting vector are: "+cvm::to_str (eigenvec[0])+".\n");
+  // cvm::log ("The first three components (v1x, v1y, v1z) of the resulting vector are: "+cvm::to_str (eigenvec[0])+".\n");
 
   // for inverse gradients
   eigenvec_invnorm2 = 0.0;
@@ -1042,6 +1042,15 @@ colvar::eigenvector::eigenvector (std::string const &conf)
     eigenvec_invnorm2 += eigenvec[i].norm2();
   }
   eigenvec_invnorm2 = 1.0 / eigenvec_invnorm2;
+
+  if (b_difference_vector) {
+    cvm::log ("\"differenceVector\" is on: normalizing the vector.\n");
+    for (size_t i = 0; i < atoms.size(); i++) {
+      eigenvec[i] *= eigenvec_invnorm2;
+    }
+  } else {
+    cvm::log ("The norm of the vector is |v| = "+cvm::to_str (eigenvec_invnorm2)+".\n");
+  }
 }
 
   

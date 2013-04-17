@@ -105,9 +105,19 @@ void cvm::atom_group::parse (std::string const &conf,
   colvarparse::Parse_Mode mode = parse_normal;
 
   {
-    // get the atoms by numbers
+    //    std::vector<int> atom_indexes;
+    std::string numbers_conf = "";
+    size_t pos = 0;
     std::vector<int> atom_indexes;
-    while (get_keyval (group_conf, "atomNumbers", atom_indexes, atom_indexes, mode)) {
+    while (key_lookup (group_conf, "atomNumbers", numbers_conf, pos)) {
+      if (numbers_conf.size()) {
+        std::istringstream is (numbers_conf);
+        int ia;
+        while (is >> ia) {
+          atom_indexes.push_back (ia);
+        }
+      }
+
       if (atom_indexes.size()) {
         this->reserve (this->size()+atom_indexes.size());
         for (size_t i = 0; i < atom_indexes.size(); i++) {
@@ -116,6 +126,7 @@ void cvm::atom_group::parse (std::string const &conf,
       } else
         cvm::fatal_error ("Error: no numbers provided for \""
                           "atomNumbers\".\n");
+
       atom_indexes.clear();
     }
   }
@@ -381,7 +392,7 @@ void cvm::atom_group::parse (std::string const &conf,
   this->check_keywords (group_conf, key);
 
   cvm::log ("Atom group \""+std::string (key)+"\" defined, "+
-            cvm::to_str (this->size())+" initialized: total mass = "+
+            cvm::to_str (this->size())+" atoms initialized: total mass = "+
             cvm::to_str (this->total_mass)+".\n");
 
   cvm::decrease_depth();

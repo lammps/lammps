@@ -2,7 +2,7 @@
 #define COLVARMODULE_H
 
 #ifndef COLVARS_VERSION
-#define COLVARS_VERSION "2013-01-23"
+#define COLVARS_VERSION "2013-04-17"
 #endif
 
 #ifndef COLVARS_DEBUG
@@ -168,11 +168,13 @@ public:
   /// Initialize collective variable biases
   void init_biases (std::string const &conf);
 
-  /// Load new configuration - force constant and/or centers only
-  void change_configuration(std::string const &name, std::string const &conf);
+  /// Load new configuration for the given bias -
+  /// currently works for harmonic (force constant and/or centers)
+  void change_configuration (std::string const &bias_name, std::string const &conf);
 
-  /// Calculate change in energy from using alternate configuration
-  real energy_difference(std::string const &name, std::string const &conf);
+  /// Calculate change in energy from using alt. config. for the given bias -
+  /// currently works for harmonic (force constant and/or centers)
+  real energy_difference (std::string const &bias_name, std::string const &conf);
 
   /// Calculate collective variables and biases
   void calc();

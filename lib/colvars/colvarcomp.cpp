@@ -93,21 +93,22 @@ void colvar::cvc::debug_gradients (cvm::atom_group &group)
 
   // it only makes sense to debug the fit gradients
   // when the fitting group is the same as this group
-  if (group.b_fit_gradients && (group.ref_pos_group == NULL)) {
-    group.calc_fit_gradients();
-    if (group.b_rotate) {
-      // fit_gradients are in the original frame, we should print them in the rotated frame
-      for (size_t j = 0; j < group.fit_gradients.size(); j++) {
-        group.fit_gradients[j] = rot_0.rotate (group.fit_gradients[j]);
+  if (group.b_rotate || group.b_center)
+    if (group.b_fit_gradients && (group.ref_pos_group == NULL)) {
+      group.calc_fit_gradients();
+      if (group.b_rotate) {
+        // fit_gradients are in the original frame, we should print them in the rotated frame
+        for (size_t j = 0; j < group.fit_gradients.size(); j++) {
+          group.fit_gradients[j] = rot_0.rotate (group.fit_gradients[j]);
+        }
+      }
+      cvm::log ("fit_gradients = "+cvm::to_str (group.fit_gradients)+"\n");
+      if (group.b_rotate) {
+        for (size_t j = 0; j < group.fit_gradients.size(); j++) {
+          group.fit_gradients[j] = rot_inv.rotate (group.fit_gradients[j]);
+        }
       }
     }
-    cvm::log ("fit_gradients = "+cvm::to_str (group.fit_gradients)+"\n");
-    if (group.b_rotate) {
-      for (size_t j = 0; j < group.fit_gradients.size(); j++) {
-        group.fit_gradients[j] = rot_inv.rotate (group.fit_gradients[j]);
-      }
-    }
-  }
 
   for (size_t ia = 0; ia < group.size(); ia++) {
 
@@ -130,7 +131,7 @@ void colvar::cvc::debug_gradients (cvm::atom_group &group)
       cvm::log ("Atom "+cvm::to_str (ia)+", component "+cvm::to_str (id)+":\n");
       cvm::log ("dx(actual) = "+cvm::to_str (x_1 - x_0,
                              21, 14)+"\n");
-      cvm::real const dx_pred = (group.b_fit_gradients && (group.ref_pos_group == NULL)) ?
+      cvm::real const dx_pred = (group.fit_gradients.size() && (group.ref_pos_group == NULL)) ?
         (cvm::debug_gradients_step_size * (atom_grad[id] + group.fit_gradients[ia][id])) :
         (cvm::debug_gradients_step_size * atom_grad[id]);
       cvm::log ("dx(interp) = "+cvm::to_str (dx_pred,

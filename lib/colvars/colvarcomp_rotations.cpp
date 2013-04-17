@@ -85,8 +85,8 @@ colvar::orientation::orientation()
 
 void colvar::orientation::calc_value()
 {
-  atoms.reset_atoms_data();
-  atoms.read_positions();
+  // atoms.reset_atoms_data();
+  // atoms.read_positions();
 
   atoms_cog = atoms.center_of_geometry();
 
@@ -142,8 +142,8 @@ colvar::orientation_angle::orientation_angle()
 
 void colvar::orientation_angle::calc_value()
 {
-  atoms.reset_atoms_data();
-  atoms.read_positions();
+  // atoms.reset_atoms_data();
+  // atoms.read_positions();
 
   atoms_cog = atoms.center_of_geometry();
 
@@ -206,8 +206,8 @@ colvar::tilt::tilt()
 
 void colvar::tilt::calc_value()
 {
-  atoms.reset_atoms_data();
-  atoms.read_positions();
+  // atoms.reset_atoms_data();
+  // atoms.read_positions();
 
   atoms_cog = atoms.center_of_geometry();
 
@@ -226,6 +226,11 @@ void colvar::tilt::calc_gradients()
     for (size_t iq = 0; iq < 4; iq++) {
       atoms[ia].grad += (dxdq[iq] * (rot.dQ0_2[ia])[iq]);
     }
+  }
+
+  if (b_debug_gradients) {
+    cvm::log ("Debugging tilt component gradients:\n");
+    debug_gradients (atoms);
   }
 }
 
@@ -271,8 +276,8 @@ colvar::spin_angle::spin_angle()
 
 void colvar::spin_angle::calc_value()
 {
-  atoms.reset_atoms_data();
-  atoms.read_positions();
+  // atoms.reset_atoms_data();
+  // atoms.read_positions();
 
   atoms_cog = atoms.center_of_geometry();
 

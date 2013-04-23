@@ -690,6 +690,17 @@ void PairLJCut::write_data(FILE *fp)
     fprintf(fp,"%d %g %g\n",i,epsilon[i][i],sigma[i][i]);
 }
 
+/* ----------------------------------------------------------------------
+   proc 0 writes all pairs to data file
+------------------------------------------------------------------------- */
+
+void PairLJCut::write_data_all(FILE *fp)
+{
+  for (int i = 1; i <= atom->ntypes; i++)
+    for (int j = i; j <= atom->ntypes; j++)
+      fprintf(fp,"%d %d %g %g %g\n",i,j,epsilon[i][i],sigma[i][i],cut[i][j]);
+}
+
 /* ---------------------------------------------------------------------- */
 
 double PairLJCut::single(int i, int j, int itype, int jtype, double rsq,

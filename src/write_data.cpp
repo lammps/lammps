@@ -37,6 +37,7 @@
 using namespace LAMMPS_NS;
 
 enum{IGNORE,WARN,ERROR};                    // same as thermo.cpp
+enum{II,IJ};
 
 /* ---------------------------------------------------------------------- */
 
@@ -54,7 +55,8 @@ void WriteData::command(int narg, char **arg)
 {
   if (domain->box_exist == 0)
     error->all(FLERR,"Write_data command before simulation box is defined");
-  if (narg != 1) error->all(FLERR,"Illegal write_data command");
+
+  if (narg < 1) error->all(FLERR,"Illegal write_data command");
 
   // if filename contains a "*", replace with current timestep
 
@@ -66,6 +68,21 @@ void WriteData::command(int narg, char **arg)
     *ptr = '\0';
     sprintf(file,"%s" BIGINT_FORMAT "%s",arg[0],update->ntimestep,ptr+1);
   } else strcpy(file,arg[0]);
+
+  // read optional args
+
+  pairflag = II;
+
+  int iarg = 1;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"pair") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal write_data command");
+      if (strcmp(arg[iarg+1],"ii") == 0) pairflag = II;
+      else if (strcmp(arg[iarg+1],"ij") == 0) pairflag = IJ;
+      else error->all(FLERR,"Illegal write_data command");
+      iarg += 2;
+    } else error->all(FLERR,"Illegal write_data command");
+  }
 
   // init entire system since comm->exchange is done
   // comm::init needs neighbor::init needs pair::init needs kspace::init, etc
@@ -224,8 +241,13 @@ void WriteData::type_arrays()
 void WriteData::force_fields()
 {
   if (force->pair && force->pair->writedata) {
-    fprintf(fp,"\nPair Coeffs\n\n");
-    force->pair->write_data(fp);
+    if (pairflag == II) {
+      fprintf(fp,"\nPair Coeffs\n\n");
+      force->pair->write_data(fp);
+    } else if (pairflag == IJ) {
+      fprintf(fp,"\nPairIJ Coeffs\n\n");
+      force->pair->write_data_all(fp);
+    }
   }
   if (atom->avec->bonds_allow && force->bond && force->bond->writedata) {
     fprintf(fp,"\nBond Coeffs\n\n");

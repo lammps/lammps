@@ -29,10 +29,13 @@
 
 <LI>one or more keyword/value pairs may be appended to args 
 
-<LI>keyword = <I>region</I> or <I>global</I> or <I>local</I> or <I>near</I> or <I>attempt</I> or <I>rate</I> or <I>vx</I> or <I>vy</I> or <I>vz</I> or <I>units</I> 
+<LI>keyword = <I>region</I> or <I>id</I> or <I>global</I> or <I>local</I> or <I>near</I> or <I>attempt</I> or <I>rate</I> or <I>vx</I> or <I>vy</I> or <I>vz</I> or <I>units</I> 
 
 <PRE>  <I>region</I> value = region-ID
     region-ID = ID of region to use as insertion volume
+  <I>id</I> value = <I>max</I> or <I>next</I>
+    max = atom ID for new atom is max ID of all current atoms plus one
+    next = atom ID for new atom increments by one for every deposition
   <I>global</I> values = lo hi
     lo,hi = put new particle a distance lo-hi above all other particles (distance units)
   <I>local</I> values = lo hi delta
@@ -134,6 +137,16 @@ inserted particle will be changed in a way so that it would pass
 through the specified coordinate. This allows convenient simulation
 of a sputtering process.
 </P>
+<P>The <I>id</I> keyword determines how an atom ID is assigned to newly
+deposited atoms.  For the <I>max</I> setting, the IDs of all current atoms
+are checked and the new ID is the current maximum value plus one.
+This means that if atoms have left the system, the new ID may reflect
+this fact.  For the <I>next</I> setting, the maximum ID of all atoms is
+stored at the time the fix is defined.  Each time a deposited atom is
+added, this value is incremented by one and assigned to the new atom.
+Thus atom IDs for deposited atoms will be consecutive even if atoms
+leave the system over time.
+</P>
 <P>The <I>units</I> keyword determines the meaning of the distance units used
 for the other deposition parameters.  A <I>box</I> value selects standard
 distance units as defined by the <A HREF = "units.html">units</A> command,
@@ -171,7 +184,8 @@ defined by the <A HREF = "region.html">region</A> command.
 </P>
 <P><B>Default:</B>
 </P>
-<P>The option defaults are delta = 0.0, near = 0.0, attempt = 10, rate =
-0.0, vx = 0.0 0.0, vy = 0.0 0.0, vz = 0.0 0.0, and units = lattice.
+<P>The option defaults are id = max, delta = 0.0, near = 0.0, attempt =
+10, rate = 0.0, vx = 0.0 0.0, vy = 0.0 0.0, vz = 0.0 0.0, and units =
+lattice.
 </P>
 </HTML>

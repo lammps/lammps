@@ -90,7 +90,8 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
   // optional args
 
   for (int i = 1; i <= atom->ntypes; i++) ratio[i] = 1.0;
-  oflag = aflag = 0;
+  oflag = 0;
+  ascale = 0.0;
   tally = 0;
   zeroflag = 0;
 
@@ -98,9 +99,8 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"angmom") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix langevin command");
-      if (strcmp(arg[iarg+1],"no") == 0) aflag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) aflag = 1;
-      else error->all(FLERR,"Illegal fix langevin command");
+      if (strcmp(arg[iarg+1],"no") == 0) ascale = 0.0;
+      else ascale = force->numeric(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"omega") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix langevin command");
@@ -177,7 +177,7 @@ void FixLangevin::init()
 {
   if (oflag && !atom->sphere_flag)
     error->all(FLERR,"Fix langevin omega requires atom style sphere");
-  if (aflag && !atom->ellipsoid_flag)
+  if (ascale && !atom->ellipsoid_flag)
     error->all(FLERR,"Fix langevin angmom requires atom style ellipsoid");
 
   // check variable
@@ -191,7 +191,7 @@ void FixLangevin::init()
     else error->all(FLERR,"Variable for fix langevin is invalid style");
   }
 
-  // if oflag or aflag set, check that all group particles are finite-size
+  // if oflag or ascale set, check that all group particles are finite-size
 
   if (oflag) {
     double *radius = atom->radius;
@@ -204,7 +204,7 @@ void FixLangevin::init()
           error->one(FLERR,"Fix langevin omega requires extended particles");
   }
 
-  if (aflag) {
+  if (ascale) {
     avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
     if (!avec)
       error->all(FLERR,"Fix langevin angmom requires atom style ellipsoid");
@@ -451,7 +451,7 @@ void FixLangevin::post_force_no_tally()
   // thermostat omega and angmom
 
   if (oflag) omega_thermostat();
-  if (aflag) angmom_thermostat();
+  if (ascale) angmom_thermostat();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -604,7 +604,7 @@ void FixLangevin::post_force_tally()
   // thermostat omega and angmom
 
   if (oflag) omega_thermostat();
-  if (aflag) angmom_thermostat();
+  if (ascale) angmom_thermostat();
 }
 
 /* ----------------------------------------------------------------------
@@ -628,7 +628,9 @@ void FixLangevin::omega_thermostat()
   int *type = atom->type;
   int nlocal = atom->nlocal;
 
-  // rescale gamma1/gamma2 by 10/3 & sqrt(10/3) for rotational thermostatting
+  // rescale gamma1/gamma2 by 10/3 & sqrt(10/3) for spherical particles
+  // does not affect rotational thermosatting
+  // gives correct rotational diffusivity behavior
 
   double tendivthree = 10.0/3.0;
   double tran[3];
@@ -674,9 +676,11 @@ void FixLangevin::angmom_thermostat()
   int *type = atom->type;
   int nlocal = atom->nlocal;
 
-  // rescale gamma1/gamma2 by 10/3 & sqrt(10/3) for rotational thermostatting
+  // rescale gamma1/gamma2 by ascale for aspherical particles
+  // does not affect rotational thermosatting
+  // gives correct rotational diffusivity behavior if (nearly) spherical
+  // any value will be incorrect for rotational diffusivity if aspherical
 
-  double tendivthree = 10.0/3.0;
   double inertia[3],omega[3],tran[3];
   double *shape,*quat;
 
@@ -690,8 +694,8 @@ void FixLangevin::angmom_thermostat()
       MathExtra::mq_to_omega(angmom[i],quat,inertia,omega);
 
       if (tstyle == ATOM) tsqrt = sqrt(tforce[i]);
-      gamma1 = -tendivthree / t_period / ftm2v;
-      gamma2 = sqrt(80.0*boltz/t_period/dt/mvv2e) / ftm2v;
+      gamma1 = -ascale / t_period / ftm2v;
+      gamma2 = sqrt(ascale*24.0*boltz/t_period/dt/mvv2e) / ftm2v;
       gamma1 *= 1.0/ratio[type[i]];
       gamma2 *= 1.0/sqrt(ratio[type[i]]) * tsqrt;
       tran[0] = sqrt(inertia[0])*gamma2*(random->uniform()-0.5);

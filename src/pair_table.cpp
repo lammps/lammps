@@ -196,7 +196,7 @@ void PairTable::allocate()
 
 void PairTable::settings(int narg, char **arg)
 {
-  if (narg != 2) error->all(FLERR,"Illegal pair_style command");
+  if (narg < 2) error->all(FLERR,"Illegal pair_style command");
 
   // new settings
 
@@ -208,6 +208,20 @@ void PairTable::settings(int narg, char **arg)
 
   tablength = force->inumeric(arg[1]);
   if (tablength < 2) error->all(FLERR,"Illegal number of pair table entries");
+
+  // optional keywords
+  // assert the tabulation is compatible with a specific long-range solver
+
+  int iarg = 2;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"ewald") == 0) ewaldflag = 1;
+    else if (strcmp(arg[iarg],"pppm") == 0) pppmflag = 1;
+    else if (strcmp(arg[iarg],"msm") == 0) msmflag = 1;
+    else if (strcmp(arg[iarg],"dispersion") == 0) dispersionflag = 1;
+    else if (strcmp(arg[iarg],"tip4p") == 0) tip4pflag = 1;
+    else error->all(FLERR,"Illegal pair_style command");
+    iarg++;
+  }
 
   // delete old tables, since cannot just change settings
 

@@ -44,6 +44,7 @@ class FixDeposit : public Fix {
   double xlo,xhi,ylo,yhi,zlo,zhi;
   double tx,ty,tz;
   int nfirst,ninserted;
+  int idnext,maxtag_all;
   class RanPark *random;
 
   void options(int, char **);

@@ -1068,7 +1068,8 @@ void colvarmodule::rotation::calc_optimal_rotation
   if (q_old.norm2() > 0.0) {
     q.match (q_old);
     if (q_old.inner (q) < (1.0 - crossing_threshold)) {
-      cvm::log ("Warning: discontinuous rotation!\n");
+      cvm::log ("Warning: one molecular orientation has changed by more than "+
+                cvm::to_str (crossing_threshold)+": discontinuous rotation ?\n");
     }
   }
   q_old = q;

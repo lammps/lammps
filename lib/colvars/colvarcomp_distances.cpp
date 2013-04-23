@@ -521,9 +521,6 @@ colvar::gyration::gyration (std::string const &conf)
   if (atoms.b_user_defined_fit) {
     cvm::log ("WARNING: explicit fitting parameters were provided for atom group \"atoms\".");
   } else {
-    // default: fit everything
-    cvm::log ("No explicit fitting parameters: enabling centerReference by default to align with the origin\n");
-    cvm::log (" (rotateReference will not affect results for gyration and inertia, but it will for inertiaZ).\n");
     atoms.b_center = true;
     atoms.ref_pos.assign (1, cvm::rvector (0.0, 0.0, 0.0));
   }
@@ -613,7 +610,7 @@ void colvar::inertia::calc_value()
 {
   x.real_value = 0.0;
   for (cvm::atom_iter ai = atoms.begin(); ai != atoms.end(); ai++) {
-    x.real_value += ai->mass * (ai->pos).norm2();
+    x.real_value += (ai->pos).norm2();
   }
 }
 
@@ -621,7 +618,7 @@ void colvar::inertia::calc_value()
 void colvar::inertia::calc_gradients()
 {
   for (cvm::atom_iter ai = atoms.begin(); ai != atoms.end(); ai++) {
-    ai->grad = 2.0 * ai->mass * ai->pos;
+    ai->grad = 2.0 * ai->pos;
   }
 
   if (b_debug_gradients) {
@@ -666,7 +663,7 @@ void colvar::inertia_z::calc_value()
   x.real_value = 0.0;
   for (cvm::atom_iter ai = atoms.begin(); ai != atoms.end(); ai++) {
     cvm::real const iprod = ai->pos * axis;
-    x.real_value += ai->mass * iprod * iprod;
+    x.real_value += iprod * iprod;
   }
 }
 
@@ -674,7 +671,7 @@ void colvar::inertia_z::calc_value()
 void colvar::inertia_z::calc_gradients()
 {
   for (cvm::atom_iter ai = atoms.begin(); ai != atoms.end(); ai++) {
-    ai->grad = 2.0 * ai->mass * (ai->pos * axis) * axis;
+    ai->grad = 2.0 * (ai->pos * axis) * axis;
   }
 
   if (b_debug_gradients) {
@@ -757,7 +754,8 @@ colvar::rmsd::rmsd (std::string const &conf)
     cvm::log ("WARNING: explicit fitting parameters were provided for atom group \"atoms\".");
   } else {
     // Default: fit everything
-    cvm::log ("No explicit fitting parameters: enabling both centerReference and rotateReference to compute standard minimum RMSD.");
+    cvm::log ("Enabling \"centerReference\" and \"rotateReference\", to minimize RMSD before calculating it as a variable: "
+              "if this is not the desired behavior, disable them explicitly within the \"atoms\" block.\n");
     atoms.b_center = true;
     atoms.b_rotate = true;
     // default case: reference positions for calculating the rmsd are also those used
@@ -939,7 +937,8 @@ colvar::eigenvector::eigenvector (std::string const &conf)
     cvm::log ("WARNING: explicit fitting parameters were provided for atom group \"atoms\".\n");
   } else {
     // default: fit everything
-    cvm::log ("Enabling centerReference and rotateReference (minimize RMSD before calculating the projection).\n");
+    cvm::log ("Enabling \"centerReference\" and \"rotateReference\", to minimize RMSD before calculating the vector projection: "
+              "if this is not the desired behavior, disable them explicitly within the \"atoms\" block.\n");
     atoms.b_center = true;
     atoms.b_rotate = true;
     atoms.ref_pos = ref_pos;
@@ -999,34 +998,32 @@ colvar::eigenvector::eigenvector (std::string const &conf)
   eig_center *= 1.0 / atoms.size();
   cvm::log ("Geometric center of the provided vector: "+cvm::to_str (eig_center)+"\n");
 
-  bool b_vector_difference;
-  get_keyval (conf, "vectorDifference", b_vector_difference, false);
-  if (b_vector_difference) {
+  bool b_difference_vector = false;
+  get_keyval (conf, "differenceVector", b_difference_vector, false);
 
-    cvm::log ("Subtracting the reference positions from the provided vector.\n");
+  if (b_difference_vector) {
 
     if (atoms.b_center) {
-      cvm::log ("centerReference is on: recentering the provided vector to the reference positions.\n");
       // both sets should be centered on the origin for fitting
       for (size_t i = 0; i < atoms.size(); i++) {
         eigenvec[i] -= eig_center;
         ref_pos[i]  -= ref_pos_center;
       }
     }
-
     if (atoms.b_rotate) {
-      cvm::log ("rotateReference is on: aligning the provided vector to the reference positions.\n");
       atoms.rot.calc_optimal_rotation (eigenvec, ref_pos);
       for (size_t i = 0; i < atoms.size(); i++) {
         eigenvec[i] = atoms.rot.rotate (eigenvec[i]);
-        eigenvec[i] -= ref_pos[i];
       }
     }
-
+    cvm::log ("\"differenceVector\" is on: subtracting the reference positions from the provided vector: v = v - x0.\n");
+    for (size_t i = 0; i < atoms.size(); i++) {
+      eigenvec[i] -= ref_pos[i];
+    }
     if (atoms.b_center) {
       // bring back the ref positions to where they were
       for (size_t i = 0; i < atoms.size(); i++) {
-        ref_pos[i] -= ref_pos_center;
+        ref_pos[i] += ref_pos_center;
       }
     }
 
@@ -1037,7 +1034,7 @@ colvar::eigenvector::eigenvector (std::string const &conf)
     }
   }
 
-  cvm::log ("The first three components (v1x, v1y, v1z) of the resulting vector are: "+cvm::to_str (eigenvec[0])+".\n");
+  // cvm::log ("The first three components (v1x, v1y, v1z) of the resulting vector are: "+cvm::to_str (eigenvec[0])+".\n");
 
   // for inverse gradients
   eigenvec_invnorm2 = 0.0;
@@ -1045,6 +1042,15 @@ colvar::eigenvector::eigenvector (std::string const &conf)
     eigenvec_invnorm2 += eigenvec[i].norm2();
   }
   eigenvec_invnorm2 = 1.0 / eigenvec_invnorm2;
+
+  if (b_difference_vector) {
+    cvm::log ("\"differenceVector\" is on: normalizing the vector.\n");
+    for (size_t i = 0; i < atoms.size(); i++) {
+      eigenvec[i] *= eigenvec_invnorm2;
+    }
+  } else {
+    cvm::log ("The norm of the vector is |v| = "+cvm::to_str (eigenvec_invnorm2)+".\n");
+  }
 }
 
   
@@ -1059,152 +1065,13 @@ void colvar::eigenvector::calc_value()
 
 void colvar::eigenvector::calc_gradients()
 {
-  // There are two versions of this code
-  // The simple version is not formally exact, but its
-  // results are numerically indistinguishable from the
-  // exact one. The exact one is more expensive and possibly
-  // less stable in cases where the optimal rotation
-  // becomes ill-defined.
-
-  // Version A: simple, intuitive, cheap, robust. Wrong.
-  // Works just fine in practice.
   for (size_t ia = 0; ia < atoms.size(); ia++) {
     atoms[ia].grad = eigenvec[ia];
   }
 
-  std::vector<cvm::rvector> gradients (atoms.size());
-  for (size_t i = 0; i < atoms.size(); i++) {
-    gradients[i] = atoms[i].grad;
-  }
-  std::vector<cvm::rvector> gradients_jh_correct (atoms.size());
-
-  /*
-
-  // Version B: complex, expensive, fragile. Right.
- 
-  // gradient of the rotation matrix
-  cvm::matrix2d <cvm::rvector, 3, 3> grad_rot_mat;
-
-  cvm::quaternion &quat0 = atoms.rot.q;
-
-  // gradients of products of 2 quaternion components
-  cvm::rvector g11, g22, g33, g01, g02, g03, g12, g13, g23;
-
-  // a term that involves the rotation gradients
-  cvm::rvector rot_grad_term;
-
-  cvm::atom_pos x_relative;
-  cvm::atom_pos atoms_cog = atoms.center_of_geometry();
-
-  for (size_t ia = 0; ia < atoms.size(); ia++) {
-
-    // Gradient of optimal quaternion wrt current Cartesian position
-    cvm::vector1d< cvm::rvector, 4 >      &dq = atoms.rot.dQ0_1[ia];
-
-    g11 = 2.0 * quat0[1]*dq[1];
-    g22 = 2.0 * quat0[2]*dq[2];
-    g33 = 2.0 * quat0[3]*dq[3];
-    g01 = quat0[0]*dq[1] + quat0[1]*dq[0];
-    g02 = quat0[0]*dq[2] + quat0[2]*dq[0];
-    g03 = quat0[0]*dq[3] + quat0[3]*dq[0];
-    g12 = quat0[1]*dq[2] + quat0[2]*dq[1];
-    g13 = quat0[1]*dq[3] + quat0[3]*dq[1];
-    g23 = quat0[2]*dq[3] + quat0[3]*dq[2];
-
-    // Gradient of the rotation matrix wrt current Cartesian position
-    grad_rot_mat[0][0] = -2.0 * (g22 + g33);
-    grad_rot_mat[1][0] =  2.0 * (g12 + g03);
-    grad_rot_mat[2][0] =  2.0 * (g13 - g02);
-    grad_rot_mat[0][1] =  2.0 * (g12 - g03);
-    grad_rot_mat[1][1] = -2.0 * (g11 + g33);
-    grad_rot_mat[2][1] =  2.0 * (g01 + g23);
-    grad_rot_mat[0][2] =  2.0 * (g02 + g13);
-    grad_rot_mat[1][2] =  2.0 * (g23 - g01);
-    grad_rot_mat[2][2] = -2.0 * (g11 + g22);
-
-    // this term needs to be rotated back, so we sum it separately
-    rot_grad_term.reset();
-
-    for (size_t ja = 0; ja < atoms.size(); ja++) {
-      x_relative = atoms[ja].pos - atoms_cog;
-
-      for (size_t i = 0; i < 3; i++) {
-        for (size_t j = 0; j < 3; j++) {
-          rot_grad_term += eigenvec[ja][i] * grad_rot_mat[i][j] * x_relative[j];
-        }
-      }
-    }
-
-    // Rotate correction term back to reference frame
-    //    atoms[ia].grad = eigenvec[ia] + quat0.rotate (rot_grad_term);
-    //    atoms[ia].grad = eigenvec[ia] + quat0.rotate (rot_grad_term);
-
-    gradients_jh_correct[ia] = eigenvec[ia] + quat0.rotate (rot_grad_term);
-  }
-  */
-
-  // TODO replace this with a call to debug_gradients()
   if (b_debug_gradients) {
-
-    // the following code should work for any scalar variable;
-    // the only difference is the name of the atom group object (here, "atoms")
-
-    cvm::rotation const rot_0 = atoms.rot;
-    cvm::rotation const rot_inv = atoms.rot.inverse();
-
-    cvm::real const x_0 = x.real_value;
-
-    cvm::log ("gradients     = "+cvm::to_str (gradients)+"\n");
-    /*    cvm::log ("gradients(JH-correct) = "+cvm::to_str (gradients_jh_correct)+"\n"); */
-
-    if (atoms.b_fit_gradients) {
-      atoms.calc_fit_gradients();
-      if (atoms.b_rotate) {
-        // fit_gradients are in the original frame, output them in the rotated frame
-        for (size_t j = 0; j < atoms.fit_gradients.size(); j++) {
-          atoms.fit_gradients[j] = rot_0.rotate (atoms.fit_gradients[j]);
-        }
-      }
-      cvm::log ("fit_gradients = "+cvm::to_str (atoms.fit_gradients)+"\n");
-      if (atoms.b_rotate) {
-        for (size_t j = 0; j < atoms.fit_gradients.size(); j++) {
-          atoms.fit_gradients[j] = rot_inv.rotate (atoms.fit_gradients[j]);
-        }
-      }
-    }
-
-    for (size_t ia = 0; ia < atoms.size(); ia++) {
-
-      // tests are best conducted in the unrotated (simulation) frame
-      cvm::rvector const atom_grad = atoms.b_rotate ?
-        rot_inv.rotate (atoms[ia].grad) :
-        atoms[ia].grad;
-
-      for (size_t id = 0; id < 3; id++) {
-        // (re)read original positions
-        atoms.read_positions();
-        // change one coordinate 
-        atoms[ia].pos[id] += cvm::debug_gradients_step_size;
-        // (re)do the fit (if defined)
-        if (atoms.b_center || atoms.b_rotate) {
-          atoms.calc_apply_roto_translation();
-        }
-        calc_value();
-        cvm::real const x_1 = x.real_value;
-        cvm::log ("Atom "+cvm::to_str (ia)+", component "+cvm::to_str (id)+":\n");
-        cvm::log ("dx(real) = "+cvm::to_str (x_1 - x_0)+"\n");
-        cvm::real const dx_pred = atoms.b_fit_gradients ?
-          (cvm::debug_gradients_step_size * (atom_grad[id] + atoms.fit_gradients[ia][id])) :
-          (cvm::debug_gradients_step_size * atom_grad[id]);
-        cvm::log ("dx(pred) = "+cvm::to_str (dx_pred)+"\n");
-        cvm::log ("|dx(real) - dx(pred)|/dx(real) = "+
-                  cvm::to_str (std::fabs (x_1 - x_0 - dx_pred) /
-                               std::fabs (x_1 - x_0),
-                               cvm::cv_width, cvm::cv_prec)+
-                  ".\n");
-
-      }
-    }
+    cvm::log ("Debugging gradients:\n");
+    debug_gradients (atoms);
   }
 }
 

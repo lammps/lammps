@@ -195,7 +195,7 @@ are point particles.  See the discussion of ellipsoidflag and the
 </P>
 <UL><LI><I>Atoms, Velocities, Masses, Ellipsoids, Lines, Triangles, Bodies</I> = atom-property sections 
 <LI><I>Bonds, Angles, Dihedrals, Impropers</I> = molecular topology sections 
-<LI><I>Pair Coeffs, Bond Coeffs, Angle Coeffs, Dihedral Coeffs,    Improper Coeffs</I> = force field sections
+<LI><I>Pair Coeffs, PairIJ Coeffs, Bond Coeffs, Angle Coeffs, Dihedral Coeffs,    Improper Coeffs</I> = force field sections
 <LI><I>BondBond Coeffs, BondAngle Coeffs, MiddleBondTorsion Coeffs,    EndBondTorsion Coeffs, AngleTorsion Coeffs, AngleAngleTorsion Coeffs,    BondBond13 Coeffs, AngleAngle Coeffs</I> = class 2 force field sections 
 </UL>
 <P>Each section is listed below in alphabetic order.  The format of each
@@ -814,8 +814,42 @@ e.g. <A HREF = "atom_style.html">atom_style sphere</A>.
 </UL>
 <P>The number and meaning of the coefficients are specific to the defined
 pair style.  See the <A HREF = "pair_style.html">pair_style</A> and
-<A HREF = "pair_coeff.html">pair_coeff</A> commands for details.  Coefficients can
-also be set via the <A HREF = "pair_coeff.html">pair_coeff</A> command in the input
+<A HREF = "pair_coeff.html">pair_coeff</A> commands for details.  Since pair
+coefficients for types I != J are not specified, these will be
+generated automatically by the pair style's mixing rule.  See the
+individual pair_style doc pages and the <A HREF = "pair_modify.html">pair_modify
+mix</A> command for details.  Pair coefficients can also
+be set via the <A HREF = "pair_coeff.html">pair_coeff</A> command in the input
+script.
+</P>
+<HR>
+
+<P><I>PairIJ Coeffs</I> section:
+</P>
+<UL><LI>one line per pair of atom types for all I,J with I <= J 
+
+<LI>line syntax: ID1 ID2 coeffs 
+
+<PRE>  ID1 = atom type I = 1-N
+  ID2 = atom type J = I-N, with I <= J
+  coeffs = list of coeffs 
+</PRE>
+<LI>examples: 
+
+<PRE>  3 3 0.022 2.35197 0.022 2.35197
+  3 5 0.022 2.35197 0.022 2.35197 
+</PRE>
+
+</UL>
+<P>This section must have N*(N+1)/2 lines where N = # of atom types.  The
+number and meaning of the coefficients are specific to the defined
+pair style.  See the <A HREF = "pair_style.html">pair_style</A> and
+<A HREF = "pair_coeff.html">pair_coeff</A> commands for details.  Since pair
+coefficients for types I != J are all specified, these values will
+turn off the default mixing rule defined by the pair style.  See the
+individual pair_style doc pages and the <A HREF = "pair_modify.html">pair_modify
+mix</A> command for details.  Pair coefficients can also
+be set via the <A HREF = "pair_coeff.html">pair_coeff</A> command in the input
 script.
 </P>
 <HR>

@@ -47,7 +47,7 @@ using namespace LAMMPS_NS;
 #define MAXBODY 20         // max # of lines in one body, also in Atom class
 
                            // customize for new sections
-#define NSECTIONS 24       // change when add to header::section_keywords
+#define NSECTIONS 25       // change when add to header::section_keywords
 
 /* ---------------------------------------------------------------------- */
 
@@ -255,6 +255,10 @@ void ReadData::command(int narg, char **arg)
       if (force->pair == NULL)
         error->all(FLERR,"Must define pair_style before Pair Coeffs");
       paircoeffs();
+    } else if (strcmp(keyword,"PairIJ Coeffs") == 0) {
+      if (force->pair == NULL)
+        error->all(FLERR,"Must define pair_style before PairIJ Coeffs");
+      pairIJcoeffs();
     } else if (strcmp(keyword,"Bond Coeffs") == 0) {
       if (atom->avec->bonds_allow == 0)
         error->all(FLERR,"Invalid data file section: Bond Coeffs");
@@ -387,7 +391,7 @@ void ReadData::header(int flag)
   const char *section_keywords[NSECTIONS] =
     {"Atoms","Velocities","Ellipsoids","Lines","Triangles","Bodies",
      "Bonds","Angles","Dihedrals","Impropers",
-     "Masses","Pair Coeffs","Bond Coeffs","Angle Coeffs",
+     "Masses","Pair Coeffs","PairIJ Coeffs","Bond Coeffs","Angle Coeffs",
      "Dihedral Coeffs","Improper Coeffs",
      "BondBond Coeffs","BondAngle Coeffs","MiddleBondTorsion Coeffs",
      "EndBondTorsion Coeffs","AngleTorsion Coeffs",
@@ -1062,6 +1066,40 @@ void ReadData::paircoeffs()
 
 /* ---------------------------------------------------------------------- */
 
+void ReadData::pairIJcoeffs()
+{
+  int i,j,m;
+  char *buf = new char[atom->ntypes*(atom->ntypes+1)/2 * MAXLINE];
+  char *original = buf;
+
+  if (me == 0) {
+    char *eof;
+    m = 0;
+    for (i = 0; i < atom->ntypes; i++)
+      for (j = i; j < atom->ntypes; j++) {
+        eof = fgets(&buf[m],MAXLINE,fp);
+        if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
+        m += strlen(&buf[m]);
+        if (buf[m-1] != '\n') strcpy(&buf[m++],"\n");
+        buf[m-1] = '\0';
+      }
+  }
+
+  MPI_Bcast(&m,1,MPI_INT,0,world);
+  MPI_Bcast(buf,m,MPI_CHAR,0,world);
+
+  for (i = 0; i < atom->ntypes; i++)
+    for (j = i; j < atom->ntypes; j++) {
+      m = strlen(buf) + 1;
+      parse_coeffs(buf,NULL,0);
+      force->pair->coeff(narg,arg);
+      buf += m;
+    }
+  delete [] original;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void ReadData::bondcoeffs()
 {
   int i,m;
@@ -1305,6 +1343,10 @@ void ReadData::scan(int &bond_per_atom, int &angle_per_atom,
       if (force->pair == NULL)
         error->one(FLERR,"Must define pair_style before Pair Coeffs");
       skip_lines(atom->ntypes);
+    } else if (strcmp(keyword,"PairIJ Coeffs") == 0) {
+      if (force->pair == NULL)
+        error->one(FLERR,"Must define pair_style before Pair Coeffs");
+      skip_lines(atom->ntypes*(atom->ntypes+1)/2);
     } else if (strcmp(keyword,"Bond Coeffs") == 0) {
       if (atom->avec->bonds_allow == 0)
         error->one(FLERR,"Invalid data file section: Bond Coeffs");

@@ -42,7 +42,8 @@ class FixLangevin : public Fix {
   virtual void *extract(const char *, int &);
 
  protected:
-  int which,tally,zeroflag,oflag,aflag;
+  int which,tally,zeroflag,oflag;
+  double ascale;
   double t_start,t_stop,t_period,t_target;
   double *gfactor1,*gfactor2,*ratio;
   double energy,energy_onestep;

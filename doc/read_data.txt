@@ -189,7 +189,7 @@ These are the section keywords for the body of the file.
 
 {Atoms, Velocities, Masses, Ellipsoids, Lines, Triangles, Bodies} = atom-property sections 
 {Bonds, Angles, Dihedrals, Impropers} = molecular topology sections 
-{Pair Coeffs, Bond Coeffs, Angle Coeffs, Dihedral Coeffs, \
+{Pair Coeffs, PairIJ Coeffs, Bond Coeffs, Angle Coeffs, Dihedral Coeffs, \
    Improper Coeffs} = force field sections
 {BondBond Coeffs, BondAngle Coeffs, MiddleBondTorsion Coeffs, \
    EndBondTorsion Coeffs, AngleTorsion Coeffs, AngleAngleTorsion Coeffs, \
@@ -716,8 +716,37 @@ example: :l
 
 The number and meaning of the coefficients are specific to the defined
 pair style.  See the "pair_style"_pair_style.html and
-"pair_coeff"_pair_coeff.html commands for details.  Coefficients can
-also be set via the "pair_coeff"_pair_coeff.html command in the input
+"pair_coeff"_pair_coeff.html commands for details.  Since pair
+coefficients for types I != J are not specified, these will be
+generated automatically by the pair style's mixing rule.  See the
+individual pair_style doc pages and the "pair_modify
+mix"_pair_modify.html command for details.  Pair coefficients can also
+be set via the "pair_coeff"_pair_coeff.html command in the input
+script.
+
+:line
+
+{PairIJ Coeffs} section:
+
+one line per pair of atom types for all I,J with I <= J :ulb,l
+line syntax: ID1 ID2 coeffs :l
+  ID1 = atom type I = 1-N
+  ID2 = atom type J = I-N, with I <= J
+  coeffs = list of coeffs :pre
+examples: :l
+  3 3 0.022 2.35197 0.022 2.35197
+  3 5 0.022 2.35197 0.022 2.35197 :pre
+:ule
+
+This section must have N*(N+1)/2 lines where N = # of atom types.  The
+number and meaning of the coefficients are specific to the defined
+pair style.  See the "pair_style"_pair_style.html and
+"pair_coeff"_pair_coeff.html commands for details.  Since pair
+coefficients for types I != J are all specified, these values will
+turn off the default mixing rule defined by the pair style.  See the
+individual pair_style doc pages and the "pair_modify
+mix"_pair_modify.html command for details.  Pair coefficients can also
+be set via the "pair_coeff"_pair_coeff.html command in the input
 script.
 
 :line

@@ -17,15 +17,18 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>pair_style table style N 
+<PRE>pair_style table style N keyword ... 
 </PRE>
 <UL><LI>style = <I>lookup</I> or <I>linear</I> or <I>spline</I> or <I>bitmap</I> = method of interpolation
 <LI>N = use N values in <I>lookup</I>, <I>linear</I>, <I>spline</I> tables
-<LI>N = use 2^N values in <I>bitmap</I> tables 
+<LI>N = use 2^N values in <I>bitmap</I> tables
+<LI>zero or more keywords may be appended
+<LI>keyword = <I>ewald</I> or <I>pppm</I> or <I>msm</I> or <I>dispersion</I> or <I>tip4p</I> 
 </UL>
 <P><B>Examples:</B>
 </P>
 <PRE>pair_style table linear 1000
+pair_style table linear 1000 pppm
 pair_style table bitmap 12
 pair_coeff * 3 morse.table ENTRY1
 pair_coeff * 3 morse.table ENTRY1 7.0 
@@ -75,6 +78,18 @@ table itself (see below) will be used to build an interpolation table
 that extend to the largest tabulated distance.  If specified, only
 file values up to the cutoff are used to create the interpolation
 table.  The format of this file is described below.
+</P>
+<P>If your tabulated potential(s) are designed to be used as the
+short-range part of one of the long-range solvers specified by the
+<A HREF = "kspace_style.html">kspace_style</A> command, then you must use one or
+more of the optional keywords listed above for the pair_style command.
+These are <I>ewald</I> or <I>pppm</I> or <I>msm</I> or <I>dispersion</I> or <I>tip4p</I>.  This
+is so LAMMPS can insure the short-range potential and long-range
+solver are compatible with each other, as it does for other
+short-range pair styles, such as <A HREF = "pair_lj.html">pair_style
+lj/cut/coul/long</A>.  Note that it is up to you to insure
+the tabulated values for each pair of atom types has the correct
+functional form to be compatible with the matching long-range solver.
 </P>
 <HR>
 

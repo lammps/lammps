@@ -13,9 +13,19 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>write_data file 
+<PRE>write_data file keyword value ... 
 </PRE>
 <UL><LI>file = name of data file to write out 
+
+<LI>zero or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>pair</I> 
+
+<PRE>  <I>pair</I> value = <I>ii</I> or <I>ij</I>
+    <I>ii</I> = write one line of pair coefficient info per atom type
+    <I>ij</I> = write one line of pair coefficient info per IJ atom type pair 
+</PRE>
+
 </UL>
 <P><B>Examples:</B>
 </P>
@@ -34,15 +44,14 @@ wild-card character.  The "*" is replaced with the current timestep
 value.
 </P>
 <P>IMPORTANT NOTE: The write-data command is not yet fully implemented in
-two respects.  First, most pair, bond, angle, dihedral, improper
-styles do not yet write their coefficient information into the data
-file.  This means you will need to specify that information in your
-input script that reads the data file, e.g. with the
-<A HREF = "pair_coeff.html">pair_coeff</A> command.  Second, a few of the <A HREF = "atom_style.html">atom
-styles</A> (body, ellipsoid, line, tri) that store
-auxiliary "bonus" information about aspherical particles, do not yet
-write the bonus info into the data file.  Both these functionalities
-will be added to the write_data command later.
+two respects.  First, most pair styles do not yet write their
+coefficient information into the data file.  This means you will need
+to specify that information in your input script that reads the data
+file, via the <A HREF = "pair_coeff.html">pair_coeff</A> command.  Second, a few of
+the <A HREF = "atom_style.html">atom styles</A> (body, ellipsoid, line, tri) that
+store auxiliary "bonus" information about aspherical particles, do not
+yet write the bonus info into the data file.  Both these
+functionalities will be added to the write_data command later.
 </P>
 <P>Because a data file is in text format, if you use a data file written
 out by this command to restart a simulation, the initial state of the
@@ -76,6 +85,31 @@ read.
 written to the data file.  Thus these bonds will not exist when the
 data file is read.
 </P>
+<HR>
+
+<P>The <I>pair</I> keyword lets you specify in what format the pair
+coefficient information is written into the data file.  If the value
+is specified as <I>ii</I>, then one line per atom type is written, to
+specify the coefficients for each of the I=J interactions.  This means
+that no cross-interactions for I != J will be specified in the data
+file and the pair style will apply its mixing rule, as documented on
+individual <A HREF = "pair_style.html">pair_style</A> doc pages.  Of course this
+behavior can be overridden in the input script after reading the data
+file, by specifying additional <A HREF = "pair_coeff.html">pair_coeff</A> commands
+for any desired I,J pairs.
+</P>
+<P>If the value is specified as <I>ij</I>, then one line of coefficients is
+written for all I,J pairs where I <= J.  These coefficients will
+include any specific settings made in the input script up to that
+point.  The presence of these I != J coefficients in the data file
+will effectively turn off the default mixing rule for the pair style.
+Again, the coefficient values in the data file can can be overridden
+in the input script after reading the data file, by specifying
+additional <A HREF = "pair_coeff.html">pair_coeff</A> commands for any desired I,J
+pairs.
+</P>
+<HR>
+
 <P><B>Restrictions:</B>
 </P>
 <P>This command requires inter-processor communication to migrate atoms
@@ -87,6 +121,8 @@ setup, atom masses initialized, etc).
 </P>
 <P><A HREF = "read_data.html">read_data</A>, <A HREF = "write_restart.html">write_restart</A>
 </P>
-<P><B>Default:</B> none
+<P><B>Default:</B>
+</P>
+<P>The option defaults are pair = ii.
 </P>
 </HTML>

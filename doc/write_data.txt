@@ -10,9 +10,15 @@ write_data command :h3
 
 [Syntax:]
 
-write_data file :pre
+write_data file keyword value ... :pre
 
-file = name of data file to write out :ul
+file = name of data file to write out :ulb,l
+zero or more keyword/value pairs may be appended :l
+keyword = {pair} :l
+  {pair} value = {ii} or {ij}
+    {ii} = write one line of pair coefficient info per atom type
+    {ij} = write one line of pair coefficient info per IJ atom type pair :pre
+:ule
 
 [Examples:]
 
@@ -31,15 +37,14 @@ wild-card character.  The "*" is replaced with the current timestep
 value.
 
 IMPORTANT NOTE: The write-data command is not yet fully implemented in
-two respects.  First, most pair, bond, angle, dihedral, improper
-styles do not yet write their coefficient information into the data
-file.  This means you will need to specify that information in your
-input script that reads the data file, e.g. with the
-"pair_coeff"_pair_coeff.html command.  Second, a few of the "atom
-styles"_atom_style.html (body, ellipsoid, line, tri) that store
-auxiliary "bonus" information about aspherical particles, do not yet
-write the bonus info into the data file.  Both these functionalities
-will be added to the write_data command later.
+two respects.  First, most pair styles do not yet write their
+coefficient information into the data file.  This means you will need
+to specify that information in your input script that reads the data
+file, via the "pair_coeff"_pair_coeff.html command.  Second, a few of
+the "atom styles"_atom_style.html (body, ellipsoid, line, tri) that
+store auxiliary "bonus" information about aspherical particles, do not
+yet write the bonus info into the data file.  Both these
+functionalities will be added to the write_data command later.
 
 Because a data file is in text format, if you use a data file written
 out by this command to restart a simulation, the initial state of the
@@ -73,6 +78,31 @@ Bonds that are broken (e.g. by a bond-breaking potential) are not
 written to the data file.  Thus these bonds will not exist when the
 data file is read.
 
+:line
+
+The {pair} keyword lets you specify in what format the pair
+coefficient information is written into the data file.  If the value
+is specified as {ii}, then one line per atom type is written, to
+specify the coefficients for each of the I=J interactions.  This means
+that no cross-interactions for I != J will be specified in the data
+file and the pair style will apply its mixing rule, as documented on
+individual "pair_style"_pair_style.html doc pages.  Of course this
+behavior can be overridden in the input script after reading the data
+file, by specifying additional "pair_coeff"_pair_coeff.html commands
+for any desired I,J pairs.
+
+If the value is specified as {ij}, then one line of coefficients is
+written for all I,J pairs where I <= J.  These coefficients will
+include any specific settings made in the input script up to that
+point.  The presence of these I != J coefficients in the data file
+will effectively turn off the default mixing rule for the pair style.
+Again, the coefficient values in the data file can can be overridden
+in the input script after reading the data file, by specifying
+additional "pair_coeff"_pair_coeff.html commands for any desired I,J
+pairs.
+
+:line
+
 [Restrictions:]
 
 This command requires inter-processor communication to migrate atoms
@@ -84,4 +114,7 @@ setup, atom masses initialized, etc).
 
 "read_data"_read_data.html, "write_restart"_write_restart.html
 
-[Default:] none
+[Default:]
+
+The option defaults are pair = ii.
+

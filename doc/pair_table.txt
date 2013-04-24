@@ -12,15 +12,18 @@ pair_style table/omp command :h3
 
 [Syntax:]
 
-pair_style table style N :pre
+pair_style table style N keyword ... :pre
 
 style = {lookup} or {linear} or {spline} or {bitmap} = method of interpolation
 N = use N values in {lookup}, {linear}, {spline} tables
-N = use 2^N values in {bitmap} tables :ul
+N = use 2^N values in {bitmap} tables
+zero or more keywords may be appended
+keyword = {ewald} or {pppm} or {msm} or {dispersion} or {tip4p} :ul
 
 [Examples:]
 
 pair_style table linear 1000
+pair_style table linear 1000 pppm
 pair_style table bitmap 12
 pair_coeff * 3 morse.table ENTRY1
 pair_coeff * 3 morse.table ENTRY1 7.0 :pre
@@ -70,6 +73,18 @@ table itself (see below) will be used to build an interpolation table
 that extend to the largest tabulated distance.  If specified, only
 file values up to the cutoff are used to create the interpolation
 table.  The format of this file is described below.
+
+If your tabulated potential(s) are designed to be used as the
+short-range part of one of the long-range solvers specified by the
+"kspace_style"_kspace_style.html command, then you must use one or
+more of the optional keywords listed above for the pair_style command.
+These are {ewald} or {pppm} or {msm} or {dispersion} or {tip4p}.  This
+is so LAMMPS can insure the short-range potential and long-range
+solver are compatible with each other, as it does for other
+short-range pair styles, such as "pair_style
+lj/cut/coul/long"_pair_lj.html.  Note that it is up to you to insure
+the tabulated values for each pair of atom types has the correct
+functional form to be compatible with the matching long-range solver.
 
 :line
 

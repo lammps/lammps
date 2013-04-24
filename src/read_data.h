@@ -71,6 +71,7 @@ class ReadData : protected Pointers {
 
   void mass();
   void paircoeffs();
+  void pairIJcoeffs();
   void bondcoeffs();
   void anglecoeffs(int);
   void dihedralcoeffs(int);

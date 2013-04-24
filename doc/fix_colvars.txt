@@ -26,8 +26,8 @@ keyword = {input} or {output} or {seed} or {tstat} :l
 
 [Examples:]
 
-fix colvars peptide peptide.colvars.inp seed 2122 input peptide.colvars.state output peptide unwrap yes
-fix colvars all colvars.inp :pre
+fix mtd all colvars peptide.colvars.inp seed 2122 input peptide.colvars.state output peptide
+fix abf all colvars colvars.inp tstat 1 :pre
 
 [Description:]
 

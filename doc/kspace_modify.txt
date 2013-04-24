@@ -70,7 +70,7 @@ Values for x,y,z of 0,0,0 unset the option.
 The {order} keyword determines how many grid spacings an atom's charge
 extends when it is mapped to the grid in kspace style {pppm} or {msm}.
 The default for this parameter is 5 for PPPM and 8 for MSM, which
-means each charge spans 5 or 4 grid cells in each dimension,
+means each charge spans 5 or 8 grid cells in each dimension,
 respectively.  For the LAMMPS implementation of MSM, the order can
 range from 4 to 10 and must be even. For PPPM, the minimum allowed
 setting is 2 and the maximum allowed setting is 7.  The larger the

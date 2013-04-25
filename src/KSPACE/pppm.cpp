@@ -1174,7 +1174,7 @@ double PPPM::final_accuracy()
   bigint natoms = atom->natoms;
 
   double df_kspace = compute_df_kspace();
-  double q2_over_sqrt = q2 / sqrt(natoms*cutoff*xprd*yprd*zprd_slab);
+  double q2_over_sqrt = q2 / sqrt(natoms*cutoff*xprd*yprd*zprd);
   double df_rspace = 2.0 * q2_over_sqrt * exp(-g_ewald*g_ewald*cutoff*cutoff);
   double df_table = estimate_table_accuracy(q2_over_sqrt,df_rspace);
   double estimated_accuracy = sqrt(df_kspace*df_kspace + df_rspace*df_rspace +

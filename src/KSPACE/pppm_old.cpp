@@ -1194,7 +1194,7 @@ void PPPMOld::compute_gf_denom()
     gf_b[0] = 4.0 * (gf_b[0]*(l-m)*(l-m-0.5));
   }
 
-  int ifact = 1;
+  bigint ifact = 1;
   for (k = 1; k < 2*order; k++) ifact *= k;
   double gaminv = 1.0/ifact;
   for (l = 0; l < order; l++) gf_b[l] *= gaminv;

@@ -1088,7 +1088,7 @@ void FixGCMC::get_model_molecule()
 
   atom->extra_bond_per_atom = old_atom->extra_bond_per_atom;
   atom->allocate_type_arrays();
-  atom->avec->grow(natoms_per_molecule);
+  atom->avec->grow(natoms_per_molecule + old_atom->nlocal);
 
   // copy type arrays to model atom class
   

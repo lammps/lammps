@@ -1097,52 +1097,51 @@ void Domain::remap_near(double *xnew, double *xold)
 
   // iterative form
   // if (xperiodic) {
-  //   while (xnew[0]-xold[0] > half[0]) xnew[0] -= period[0];
-  //   while (xold[0]-xnew[0] > half[0]) xnew[0] += period[0];
+  //   while (coordnew[0]-coordold[0] > half[0]) coordnew[0] -= period[0];
+  //   while (coordold[0]-coordnew[0] > half[0]) coordnew[0] += period[0];
   // }
 
   if (xperiodic) {
     if (coordnew[0]-coordold[0] > period[0]) {
       n = static_cast<int> ((coordnew[0]-coordold[0])/period[0]);
-      xnew[0] -= n*period[0];
+      coordnew[0] -= n*period[0];
     }
-    while (xnew[0]-xold[0] > half[0]) xnew[0] -= period[0];
-    if (xold[0]-xnew[0] > period[0]) {
-      n = static_cast<int> ((xold[0]-xnew[0])/period[0]);
-      xnew[0] += n*period[0];
+    while (coordnew[0]-coordold[0] > half[0]) coordnew[0] -= period[0];
+    if (coordold[0]-coordnew[0] > period[0]) {
+      n = static_cast<int> ((coordold[0]-coordnew[0])/period[0]);
+      coordnew[0] += n*period[0];
     }
-    while (xold[0]-xnew[0] > half[0]) xnew[0] += period[0];
+    while (coordold[0]-coordnew[0] > half[0]) coordnew[0] += period[0];
   }
 
   if (yperiodic) {
     if (coordnew[1]-coordold[1] > period[1]) {
       n = static_cast<int> ((coordnew[1]-coordold[1])/period[1]);
-      xnew[1] -= n*period[1];
+      coordnew[1] -= n*period[1];
     }
-    while (xnew[1]-xold[1] > half[1]) xnew[1] -= period[1];
-    if (xold[1]-xnew[1] > period[1]) {
-      n = static_cast<int> ((xold[1]-xnew[1])/period[1]);
-      xnew[1] += n*period[1];
+    while (coordnew[1]-coordold[1] > half[1]) coordnew[1] -= period[1];
+    if (coordold[1]-coordnew[1] > period[1]) {
+      n = static_cast<int> ((coordold[1]-coordnew[1])/period[1]);
+      coordnew[1] += n*period[1];
     }
-    while (xold[1]-xnew[1] > half[1]) xnew[1] += period[1];
+    while (coordold[1]-coordnew[1] > half[1]) coordnew[1] += period[1];
   }
 
   if (zperiodic) {
     if (coordnew[2]-coordold[2] > period[2]) {
       n = static_cast<int> ((coordnew[2]-coordold[2])/period[2]);
-      xnew[2] -= n*period[2];
+      coordnew[2] -= n*period[2];
     }
-    while (xnew[2]-xold[2] > half[2]) xnew[2] -= period[2];
-    if (xold[2]-xnew[2] > period[2]) {
-      n = static_cast<int> ((xold[2]-xnew[2])/period[2]);
-      xnew[2] += n*period[2];
+    while (coordnew[2]-coordold[2] > half[2]) coordnew[2] -= period[2];
+    if (coordold[2]-coordnew[2] > period[2]) {
+      n = static_cast<int> ((coordold[2]-coordnew[2])/period[2]);
+      coordnew[2] += n*period[2];
     }
-    while (xold[2]-xnew[2] > half[2]) xnew[2] += period[2];
+    while (coordold[2]-coordnew[2] > half[2]) coordnew[2] += period[2];
   }
 
   if (triclinic) {
     lamda2x(coordnew,xnew);
-    lamda2x(coordold,xold);
   }
 }
 

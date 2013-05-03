@@ -116,8 +116,9 @@ If the setting for the {molecule} keyword is {yes}, entire molecules
 are exchanged. The user must supply a model molecule in the data
 file to use as a template for exchanges, and that molecule's number
 must be given in the fix GCMC command as the "type" of the exchanged
-gas. The model molecule can then be immediately deleted using the
-"delete_atoms"_delete_atoms.html command.
+gas. Note that the model molecule must be present whenever the fix 
+is initialized. This is a limitation that will likely be remedied
+in the not-to-distant future.
 
 Optionally, users may specify the maximum rotation angle for 
 molecular rotations using the {maxangle} keyword and specifying

@@ -1015,7 +1015,7 @@ void FixGCMC::get_model_molecule()
   }
 
   natoms_per_molecule = 0;
-  MPI_Allreduce(&natoms_per_molecule_local,&natoms_per_molecule,1,MPI_INT,MPI_MAX,world);
+  MPI_Allreduce(&natoms_per_molecule_local,&natoms_per_molecule,1,MPI_INT,MPI_SUM,world);
 
   if (natoms_per_molecule == 0)
     error->all(FLERR,"Fix gcmc could not find any atoms in the user-supplied template molecule");

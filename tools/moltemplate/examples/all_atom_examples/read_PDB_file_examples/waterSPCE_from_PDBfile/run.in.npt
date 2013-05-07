@@ -1,0 +1,49 @@
+##################################################
+# Box of water
+##################################################
+#
+# define the system being simulated:
+
+# ----- init section -----
+
+include system.in.init
+
+
+# ----- atom definition section -----
+
+read_data system.data
+
+
+# ----- settings section -----
+
+include system.in.settings
+
+# Load the atom coordinates:
+
+include "system.in.coords"
+
+# ----- run section -----
+
+
+# -- minimization protocol --
+# In general, it's always a good idea to minimize the system beforehand.
+# fSHAKE was defined in system.in.settings. It is incompatible with "minimize".
+unfix         fSHAKE
+minimize 1.0e-5 1.0e-7 100000 400000
+# Now read "system.in.settings" in order to redefine fSHAKE again:
+include       system.in.settings
+
+# -- simulation protocol --
+
+
+timestep        2.0
+
+dump            1 all custom 100 traj_npt.lammpstrj id mol type x y z ix iy iz
+fix             fxnpt all npt temp 300.0 300.0 100.0 aniso 1.0 1.0 1000.0 drag 1.0
+
+thermo_style    custom step temp pe etotal press vol epair ebond eangle edihed
+thermo          100
+
+run             20000
+
+write_restart   system_after_npt.rst

@@ -1,0 +1,58 @@
+# run.in.npt
+#
+# --  Usage  --
+#
+# lmp_g++ -i run.in.npt
+# (assuming lmp_g++ is the name of your lammps binary)
+#
+# --  Prerequisite Input Files:  --
+#   systen.data, system.in.init, system.in.settings, system.in.sw
+#
+# You can generate these files with this command:
+#   moltemplate.sh -a "@atom:/WatMW/mW 1" system.lt
+# ---------------------------------
+
+# ----- Init Section -----
+
+
+include system.in.init
+
+
+# ----- Atom Definition Section -----
+
+
+read_data system.data
+
+
+# ----- Settings Section -----
+
+
+include system.in.settings
+
+
+# ----- Run Section -----
+
+
+
+# -- minimization protocol --
+
+# Note: The minimization step is not necessary in this example.  However
+#       in general, it's always a good idea to minimize the system beforehand.
+
+minimize 1.0e-5 1.0e-7 100000 400000
+
+
+# -- simulation protocol --
+
+
+timestep        2.0  # <- This can be increased to 5.0 or 10.0 for bulk water
+dump            1 all custom 500 traj_npt.lammpstrj id mol type x y z ix iy iz
+fix             fxnpt all npt temp 300.0 300.0 100.0 iso 1.0 1.0 1000.0 drag 1.0
+
+
+thermo_style    custom step temp pe etotal press vol epair ebond eangle edihed
+thermo          500  # time interval for printing out "thermo" data
+
+run             200000
+
+write_restart   system_after_npt.rst

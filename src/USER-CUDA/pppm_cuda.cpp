@@ -109,6 +109,8 @@ PPPMCuda::PPPMCuda(LAMMPS *lmp, int narg, char **arg) :
   #ifndef FFT_CUFFT
   error->all(FLERR,"Using kspace_style pppm/cuda without cufft is not possible. Compile with cufft=1 to include cufft. Aborting.");
   #endif
+
+  triclinic_support = 0;
   accuracy_relative = atof(arg[0]);
 
   nfactors = 3;
@@ -209,8 +211,7 @@ void PPPMCuda::init()
 
   // error check
 
-  if (domain->triclinic)
-    error->all(FLERR,"Cannot (yet) use PPPMCuda with triclinic box");
+  triclinic_check();
   if (domain->dimension == 2) error->all(FLERR,"Cannot use PPPMCuda with 2d simulation");
 
   if (!atom->q_flag) error->all(FLERR,"Kspace style requires atom attribute q");

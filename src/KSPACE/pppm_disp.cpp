@@ -68,6 +68,7 @@ PPPMDisp::PPPMDisp(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
 {
   if (narg < 1) error->all(FLERR,"Illegal kspace_style pppm/disp command");
 
+  triclinic_support = 0;
   pppmflag = dispersionflag = 1;
   accuracy_relative = atof(arg[0]);
   
@@ -203,8 +204,7 @@ void PPPMDisp::init()
     if (logfile) fprintf(logfile,"PPPMDisp initialization ...\n");
   }
 
-  if (domain->triclinic)
-    error->all(FLERR,"Cannot (yet) use PPPMDisp with triclinic box");
+  triclinic_check();
   if (domain->dimension == 2)
     error->all(FLERR,"Cannot use PPPMDisp with 2d simulation");
 
@@ -226,8 +226,6 @@ void PPPMDisp::init()
   deallocate();
   deallocate_peratom(); 
   peratom_allocate_flag = 0;
-
-
 
   // set scale
 

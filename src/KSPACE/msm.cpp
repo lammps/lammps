@@ -142,7 +142,9 @@ void MSM::init()
 
   if (order%2 != 0) error->all(FLERR,"MSM order must be 4, 6, 8, or 10");
 
-  if (sizeof(FFT_SCALAR) != 8) error->all(FLERR,"Cannot (yet) use single precision with MSM (remove -DFFT_SINGLE from Makefile and recompile)");
+  if (sizeof(FFT_SCALAR) != 8) 
+    error->all(FLERR,"Cannot (yet) use single precision with MSM "
+               "(remove -DFFT_SINGLE from Makefile and recompile)");
 
   pair_check();
 

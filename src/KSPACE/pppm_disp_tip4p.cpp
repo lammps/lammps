@@ -44,6 +44,7 @@ using namespace MathConst;
 PPPMDispTIP4P::PPPMDispTIP4P(LAMMPS *lmp, int narg, char **arg) :
   PPPMDisp(lmp, narg, arg)
 {
+  triclinic_support = 0;
   tip4pflag = 1;
 }
 

@@ -30,12 +30,13 @@ class KSpace : protected Pointers {
   friend class ThrOMP;
   friend class FixOMP;
  public:
-  double energy;                  // accumulated energy
+  double energy;                 // accumulated energies
   double energy_1,energy_6;
-  double virial[6];               // accumlated virial
-  double *eatom,**vatom;          // accumulated per-atom energy/virial
-  double e2group;                 // accumulated group-group energy
-  double f2group[3];              // accumulated group-group force
+  double virial[6];              // accumlated virial
+  double *eatom,**vatom;         // accumulated per-atom energy/virial
+  double e2group;                // accumulated group-group energy
+  double f2group[3];             // accumulated group-group force
+  int triclinic_support;         // 1 if supports triclinic geometries
 
   int ewaldflag;                 // 1 if a Ewald solver
   int pppmflag;                  // 1 if a PPPM solver
@@ -58,6 +59,7 @@ class KSpace : protected Pointers {
 
   KSpace(class LAMMPS *, int, char **);
   virtual ~KSpace();
+  void triclinic_check();
   void modify_params(int, char **);
   void *extract(const char *);
   void compute_dummy(int, int);

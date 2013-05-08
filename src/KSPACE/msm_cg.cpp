@@ -48,10 +48,10 @@ MSMCG::MSMCG(LAMMPS *lmp, int narg, char **arg) : MSM(lmp, narg, arg)
   if ((narg < 1) || (narg > 2))
     error->all(FLERR,"Illegal kspace_style msm/cg command");
 
-  if (narg == 2)
-    smallq = atof(arg[1]);
-  else
-    smallq = SMALLQ;
+  triclinic_support = 0;
+
+  if (narg == 2) smallq = atof(arg[1]);
+  else smallq = SMALLQ;
 
   num_charged = -1;
   is_charged = NULL;
@@ -65,7 +65,6 @@ MSMCG::~MSMCG()
 {
   memory->destroy(is_charged);
 }
-
 
 /* ----------------------------------------------------------------------
    compute the MSM long-range force, energy, virial
@@ -288,7 +287,6 @@ void MSMCG::compute(int eflag, int vflag)
   }
 
 }
-
 
 /* ----------------------------------------------------------------------
    find center grid pt for each of my particles

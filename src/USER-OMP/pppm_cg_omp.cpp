@@ -49,6 +49,7 @@ using namespace MathSpecial;
 PPPMCGOMP::PPPMCGOMP(LAMMPS *lmp, int narg, char **arg) :
   PPPMCG(lmp, narg, arg), ThrOMP(lmp, THR_KSPACE)
 {
+  triclinic_support = 0;
   suffix_flag |= Suffix::OMP;
 }
 

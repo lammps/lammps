@@ -99,7 +99,8 @@ void Ewald::init()
         domain->boundary[2][0] != 1 || domain->boundary[2][1] != 1)
       error->all(FLERR,"Incorrect boundaries with slab Ewald");
     if (domain->triclinic)
-      error->all(FLERR,"Cannot (yet) use Ewald with triclinic box and slab correction");
+      error->all(FLERR,"Cannot (yet) use Ewald with triclinic box "
+                 "and slab correction");
   }
 
   // extract short-range Coulombic cutoff from pair style

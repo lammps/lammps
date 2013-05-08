@@ -60,6 +60,7 @@ PPPMOld::PPPMOld(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
 {
   if (narg < 1) error->all(FLERR,"Illegal kspace_style pppm command");
 
+  triclinic_support = 0;
   pppmflag = 1;
   group_group_enable = 1;
 
@@ -123,8 +124,7 @@ void PPPMOld::init()
 
   // error check
 
-  if (domain->triclinic)
-    error->all(FLERR,"Cannot (yet) use PPPM with triclinic box");
+  triclinic_check();
   if (domain->dimension == 2) error->all(FLERR,
                                          "Cannot use PPPM with 2d simulation");
 

@@ -126,9 +126,6 @@ void MSM::init()
 
   // error check
 
-  if (domain->triclinic)
-    error->all(FLERR,"Cannot (yet) use MSM with triclinic box");
-
   if (domain->dimension == 2)
     error->all(FLERR,"Cannot (yet) use MSM with 2d simulation");
 
@@ -185,6 +182,8 @@ void MSM::init()
     sprintf(str,"System is not charge neutral, net charge = %g",qsum);
     error->all(FLERR,str);
   }
+
+  triclinic = domain->triclinic;
 
   // set accuracy (force units) from accuracy_relative or accuracy_absolute
 
@@ -343,9 +342,9 @@ double MSM::estimate_3d_error()
   double xprd = domain->xprd;
   double yprd = domain->yprd;
   double zprd = domain->zprd;
-  double error_x = estimate_1d_error(xprd/nx_msm[0],xprd);
-  double error_y = estimate_1d_error(yprd/ny_msm[0],yprd);
-  double error_z = estimate_1d_error(zprd/nz_msm[0],zprd);
+  double error_x = estimate_1d_error(h_x,xprd);
+  double error_y = estimate_1d_error(h_y,yprd);
+  double error_z = estimate_1d_error(h_z,zprd);
   double error_3d =
    sqrt(error_x*error_x + error_y*error_y + error_z*error_z) / sqrt(3.0);
   return error_3d;
@@ -394,21 +393,39 @@ void MSM::setup()
   // loop over grid levels and compute grid spacing
 
   for (int n=0; n<levels; n++) {
+    if (triclinic == 0) {
+      delxinv[n] = nx_msm[n]/xprd;
+      delyinv[n] = ny_msm[n]/yprd;
+      delzinv[n] = nz_msm[n]/zprd;
+    } else { // use lamda (0-1) coordinates
+      delxinv[n] = nx_msm[n];
+      delyinv[n] = ny_msm[n];
+      delzinv[n] = nz_msm[n];
+    }
+  }
 
-    delxinv[n] = nx_msm[n]/xprd;
-    delyinv[n] = ny_msm[n]/yprd;
-    delzinv[n] = nz_msm[n]/zprd;
+  double ax = a;
+  double ay = a;
+  double az = a;
 
-    delvolinv[n] = delxinv[n]*delyinv[n]*delzinv[n];
+  // transform the interaction sphere in box coords to an ellipsoid in lamda (0-1) coords to
+  // get the direct sum interaction limits for a triclinic system
+
+  if (triclinic) {
+    double tmp[3];
+    kspacebbox(a,&tmp[0]);
+    ax = tmp[0];
+    ay = tmp[1];
+    az = tmp[2];
   }
 
   // direct sum interaction limits
 
-  nxhi_direct = static_cast<int> (2.0*a*delxinv[0]);
+  nxhi_direct = static_cast<int> (2.0*ax*delxinv[0]);
   nxlo_direct = -nxhi_direct;
-  nyhi_direct = static_cast<int> (2.0*a*delyinv[0]);
+  nyhi_direct = static_cast<int> (2.0*ay*delyinv[0]);
   nylo_direct = -nyhi_direct;
-  nzhi_direct = static_cast<int> (2.0*a*delzinv[0]);
+  nzhi_direct = static_cast<int> (2.0*az*delzinv[0]);
   nzlo_direct = -nzhi_direct;
 
   nmax_direct = 8*(nxhi_direct+1)*(nyhi_direct+1)*(nzhi_direct+1);
@@ -434,7 +451,10 @@ void MSM::setup()
     }
   }
 
-  boxlo = domain->boxlo;
+  if (!triclinic)
+    boxlo = domain->boxlo;
+  else
+    boxlo = domain->boxlo_lamda;
 
   // ghost grid points depend on direct sum interaction limits, so need to recompute local grid
 
@@ -485,6 +505,11 @@ void MSM::compute(int eflag, int vflag)
     }
     peratom_allocate_flag = 1;
   }
+
+  // convert atoms from box to lamda coords
+
+  if (triclinic)
+    domain->x2lamda(atom->nlocal);
 
   // extend size of per-atom arrays if necessary
 
@@ -618,6 +643,10 @@ void MSM::compute(int eflag, int vflag)
     }
   }
 
+  // convert atoms back from lamda to box coords
+
+  if (triclinic)
+    domain->lamda2x(atom->nlocal);
 }
 
 /* ----------------------------------------------------------------------
@@ -810,7 +839,6 @@ void MSM::allocate_levels()
   delxinv = new double[levels];
   delyinv = new double[levels];
   delzinv = new double[levels];
-  delvolinv = new double[levels];
 
   qgrid = new double***[levels];
   egrid = new double***[levels];
@@ -882,7 +910,6 @@ void MSM::deallocate_levels()
   delete [] delxinv;
   delete [] delyinv;
   delete [] delzinv;
-  delete [] delvolinv;
 
   delete [] qgrid;
   delete [] egrid;
@@ -917,14 +944,16 @@ void MSM::set_grid_global()
     int p = order - 1;
     double hmin = 3072.0*(p+1)/(p-1)/
       (448.0*MY_PI + 56.0*MY_PI*order/2 + 1701.0);
-    hmin = pow(hmin,1.0/6.0)/pow(atom->natoms,1.0/3.0);
-    hx = hmin*xprd;
-    hy = hmin*yprd;
-    hz = hmin*zprd;
+    hmin = pow(hmin,1.0/6.0)*pow(xprd*yprd*zprd/atom->natoms,1.0/3.0);
 
-    nx_max = static_cast<int>(xprd/hx);
-    ny_max = static_cast<int>(yprd/hy);
-    nz_max = static_cast<int>(zprd/hz);
+    nx_max = static_cast<int>(xprd/hmin);
+    ny_max = static_cast<int>(yprd/hmin);
+    nz_max = static_cast<int>(zprd/hmin);
+
+    nx_max = MAX(nx_max,2);
+    ny_max = MAX(ny_max,2);
+    nz_max = MAX(nz_max,2);
+
   } else if (!gridflag) {
     // Coulombic cutoff is set by user, choose grid to give requested error
     nx_max = ny_max = nz_max = 2;
@@ -960,39 +989,6 @@ void MSM::set_grid_global()
     nz_max = nz_msm_max;
   }
 
-  // boost grid size until it is factorable by 2
-
-  int flag = 0;
-  int xlevels,ylevels,zlevels;
-
-  while (!factorable(nx_max,flag,xlevels)) nx_max++;
-  while (!factorable(ny_max,flag,ylevels)) ny_max++;
-  while (!factorable(nz_max,flag,zlevels)) nz_max++;
-
-  if (flag && gridflag && me == 0)
-    error->warning(FLERR,"Number of MSM mesh points increased to be a multiple of 2");
-
-  // find maximum number of levels
-
-  levels = MAX(xlevels,ylevels);
-  levels = MAX(levels,zlevels);
-
-  if (levels > MAX_LEVELS) error->all(FLERR,"Too many MSM grid levels");
-
-  // need at least 2 MSM levels for periodic systems
-
-  if (levels <= 1) {
-    levels = xlevels = ylevels = zlevels = 2;
-    nx_max = ny_max = nz_max = 2;
-    if (gridflag)
-      error->warning(FLERR,
-             "MSM mesh too small, increasing to 2 points in each direction");
-  }
-
-  // omit top grid level for periodic systems
-
-  if (!domain->nonperiodic) levels -= 1;
-
   // adjust Coulombic cutoff to give desired error (if requested)
 
   if (adjust_cutoff_flag) {
@@ -1014,6 +1010,67 @@ void MSM::set_grid_global()
     sprintf(str,"Adjusting Coulombic cutoff for MSM, new cutoff = %g",cutoff);
     if (me == 0) error->warning(FLERR,str);
   }
+
+  // scale grid for triclinic skew
+
+  if (triclinic && !gridflag) {
+    double tmp[3];
+    tmp[0] = nx_max/xprd;
+    tmp[1] = ny_max/yprd;
+    tmp[2] = nz_max/zprd;
+    lamda2xT(&tmp[0],&tmp[0]);
+    nx_max = static_cast<int>(tmp[0]);
+    ny_max = static_cast<int>(tmp[1]);
+    nz_max = static_cast<int>(tmp[2]);
+  }
+
+  // boost grid size until it is factorable by 2
+
+  int flag = 0;
+  int xlevels,ylevels,zlevels;
+
+  while (!factorable(nx_max,flag,xlevels)) nx_max++;
+  while (!factorable(ny_max,flag,ylevels)) ny_max++;
+  while (!factorable(nz_max,flag,zlevels)) nz_max++;
+
+  if (flag && gridflag && me == 0)
+    error->warning(FLERR,"Number of MSM mesh points increased to be a multiple of 2");
+
+  if (triclinic == 0) {
+    h_x = xprd/nx_max;
+    h_y = yprd/ny_max;
+    h_z = zprd/nz_max;
+  } else {
+    double tmp[3];
+    tmp[0] = nx_max;
+    tmp[1] = ny_max;
+    tmp[2] = nz_max;
+    x2lamdaT(&tmp[0],&tmp[0]);
+    h_x = 1.0/tmp[0];
+    h_y = 1.0/tmp[1];
+    h_z = 1.0/tmp[2];
+  }
+
+  // find maximum number of levels
+
+  levels = MAX(xlevels,ylevels);
+  levels = MAX(levels,zlevels);
+
+  if (levels > MAX_LEVELS) error->all(FLERR,"Too many MSM grid levels");
+
+  // need at least 2 MSM levels for periodic systems
+
+  if (levels <= 1) {
+    levels = xlevels = ylevels = zlevels = 2;
+    nx_max = ny_max = nz_max = 2;
+    if (gridflag)
+      error->warning(FLERR,
+             "MSM mesh too small, increasing to 2 points in each direction");
+  }
+
+  // omit top grid level for periodic systems
+
+  if (!domain->nonperiodic) levels -= 1;
 
   allocate_levels();
 
@@ -1104,12 +1161,15 @@ void MSM::set_grid_local()
 
     double *prd,*sublo,*subhi,*boxhi;
 
-    prd = domain->prd;
-    boxlo = domain->boxlo;
-    boxhi = domain->boxhi;
-
-    sublo = domain->sublo;
-    subhi = domain->subhi;
+    if (!triclinic) {
+      prd = domain->prd;
+      sublo = domain->sublo;
+      subhi = domain->subhi;
+    } else {
+      prd = domain->prd_lamda;
+      sublo = domain->sublo_lamda;
+      subhi = domain->subhi_lamda;
+    }
 
     double xprd = prd[0];
     double yprd = prd[1];
@@ -1130,6 +1190,7 @@ void MSM::set_grid_local()
     double cuthalf = 0.0;
     if (n == 0) cuthalf = 0.5*neighbor->skin; // only applies to finest grid
     dist[0] = dist[1] = dist[2] = cuthalf;
+    if (triclinic) kspacebbox(cuthalf,&dist[0]);
 
     int nlo,nhi;
 
@@ -2698,6 +2759,19 @@ void MSM::fieldforce()
     eky *= delyinv[0];
     ekz *= delzinv[0];
 
+    // effectively divide by length for a triclinic system
+
+    if (triclinic) {
+      double tmp[3];
+      tmp[0] = ekx;
+      tmp[1] = eky;
+      tmp[2] = ekz;
+      x2lamdaT(&tmp[0],&tmp[0]);
+      ekx = tmp[0];
+      eky = tmp[1];
+      ekz = tmp[2];
+    }
+
     // convert E-field to force
 
     const double qfactor = force->qqrd2e*scale*q[i];
@@ -3036,6 +3110,8 @@ void MSM::get_g_direct()
 
   int n,zk,zyk,k,ix,iy,iz;
   double xdiff,ydiff,zdiff;
+  double dx,dy,dz;
+  double tmp[3];
   double rsq,rho,two_n;
 
   two_n = 1.0;
@@ -3053,7 +3129,25 @@ void MSM::get_g_direct()
         zyk = (zk + iy + nyhi_direct)*nx;
         for (ix = nxlo_direct; ix <= nxhi_direct; ix++) {
           xdiff = ix/delxinv[n];
-          rsq = xdiff*xdiff + ydiff*ydiff + zdiff*zdiff;
+
+          // transform grid point pair-wise distance from lamda (0-1) coords to box coords          
+
+          if (triclinic) {
+            tmp[0] = xdiff;
+            tmp[1] = ydiff;
+            tmp[2] = zdiff;
+            lamda2xvector(&tmp[0],&tmp[0]);
+            dx = tmp[0];
+            dy = tmp[1];
+            dz = tmp[2];
+          } else {
+            dx = xdiff;
+            dy = ydiff;
+            dz = zdiff;
+          }
+
+          rsq = dx*dx + dy*dy + dz*dz;
+
           rho = sqrt(rsq)/(two_n*a);
           k = zyk + ix + nxhi_direct;
           g_direct[n][k] = gamma(rho)/(two_n*a) - gamma(rho/2.0)/(2.0*two_n*a);
@@ -3087,6 +3181,8 @@ void MSM::get_virial_direct()
 
   int n,zk,zyk,k,ix,iy,iz;
   double xdiff,ydiff,zdiff;
+  double dx,dy,dz;
+  double tmp[3];
   double rsq,r,rho,two_n,two_nsq,dg;
 
   two_n = 1.0;
@@ -3105,7 +3201,22 @@ void MSM::get_virial_direct()
         zyk = (zk + iy + nyhi_direct)*nx;
         for (ix = nxlo_direct; ix <= nxhi_direct; ix++) {
           xdiff = ix/delxinv[n];
-          rsq = xdiff*xdiff + ydiff*ydiff + zdiff*zdiff;
+
+          if (triclinic) {
+            tmp[0] = xdiff;
+            tmp[1] = ydiff;
+            tmp[2] = zdiff;
+            lamda2xvector(&tmp[0],&tmp[0]);
+            dx = tmp[0];
+            dy = tmp[1];
+            dz = tmp[2];
+          } else {
+            dx = xdiff;
+            dy = ydiff;
+            dz = zdiff;
+          }
+
+          rsq = dx*dx + dy*dy + dz*dz;
           k = zyk + ix + nxhi_direct;
           r = sqrt(rsq);
           if (r == 0) {
@@ -3119,12 +3230,12 @@ void MSM::get_virial_direct()
             rho = r/(two_n*a);
             dg = -(dgamma(rho)/(two_nsq*a_sq) -
               dgamma(rho/2.0)/(4.0*two_nsq*a_sq))/r;
-            v0_direct[n][k] = dg * xdiff * xdiff;
-            v1_direct[n][k] = dg * ydiff * ydiff;
-            v2_direct[n][k] = dg * zdiff * zdiff;
-            v3_direct[n][k] = dg * xdiff * ydiff;
-            v4_direct[n][k] = dg * xdiff * zdiff;
-            v5_direct[n][k] = dg * ydiff * zdiff;
+            v0_direct[n][k] = dg * dx * dx;
+            v1_direct[n][k] = dg * dy * dy;
+            v2_direct[n][k] = dg * dz * dz;
+            v3_direct[n][k] = dg * dx * dy;
+            v4_direct[n][k] = dg * dx * dz;
+            v5_direct[n][k] = dg * dy * dz;
           }
 
         }
@@ -3157,6 +3268,8 @@ void MSM::get_g_direct_top(int n)
 
   int zk,zyk,k,ix,iy,iz;
   double xdiff,ydiff,zdiff;
+  double dx,dy,dz;
+  double tmp[3];
   double rsq,rho,two_n;
 
   two_n = pow(2.0,n);
@@ -3169,7 +3282,22 @@ void MSM::get_g_direct_top(int n)
       zyk = (zk + iy + ny_top)*nx;
       for (ix = -nx_top; ix <= nx_top; ix++) {
         xdiff = ix/delxinv[n];
-        rsq = xdiff*xdiff + ydiff*ydiff + zdiff*zdiff;
+
+        if (triclinic) {
+          tmp[0] = xdiff;
+          tmp[1] = ydiff;
+          tmp[2] = zdiff;
+          lamda2xvector(&tmp[0],&tmp[0]);
+          dx = tmp[0];
+          dy = tmp[1];
+          dz = tmp[2];
+        } else {
+          dx = xdiff;
+          dy = ydiff;
+          dz = zdiff;
+        }
+
+        rsq = dx*dx + dy*dy + dz*dz;
         rho = sqrt(rsq)/(two_n*a);
         k = zyk + ix + nx_top;
         g_direct_top[k] = gamma(rho)/(two_n*a);
@@ -3212,6 +3340,8 @@ void MSM::get_virial_direct_top(int n)
 
   int zk,zyk,k,ix,iy,iz;
   double xdiff,ydiff,zdiff;
+  double dx,dy,dz;
+  double tmp[3];
   double rsq,r,rho,two_n,two_nsq,dg;
 
   two_n = pow(2.0,n);
@@ -3225,7 +3355,21 @@ void MSM::get_virial_direct_top(int n)
       zyk = (zk + iy + ny_top)*nx;
       for (ix = -nx_top; ix <= nx_top; ix++) {
         xdiff = ix/delxinv[n];
-        rsq = xdiff*xdiff + ydiff*ydiff + zdiff*zdiff;
+        if (triclinic) {
+          tmp[0] = xdiff;
+          tmp[1] = ydiff;
+          tmp[2] = zdiff;
+          lamda2xvector(&tmp[0],&tmp[0]);
+          dx = tmp[0];
+          dy = tmp[1];
+          dz = tmp[2];
+        } else {
+          dx = xdiff;
+          dy = ydiff;
+          dz = zdiff;
+        }
+
+        rsq = dx*dx + dy*dy + dz*dz;
         k = zyk + ix + nx_top;
         r = sqrt(rsq);
         if (r == 0) {
@@ -3238,12 +3382,12 @@ void MSM::get_virial_direct_top(int n)
         } else {
           rho = r/(two_n*a);
           dg = -(dgamma(rho)/(two_nsq*a_sq))/r;
-          v0_direct_top[k] = dg * xdiff * xdiff;
-          v1_direct_top[k] = dg * ydiff * ydiff;
-          v2_direct_top[k] = dg * zdiff * zdiff;
-          v3_direct_top[k] = dg * xdiff * ydiff;
-          v4_direct_top[k] = dg * xdiff * zdiff;
-          v5_direct_top[k] = dg * ydiff * zdiff;
+          v0_direct_top[k] = dg * dx * dx;
+          v1_direct_top[k] = dg * dy * dy;
+          v2_direct_top[k] = dg * dz * dz;
+          v3_direct_top[k] = dg * dx * dy;
+          v4_direct_top[k] = dg * dx * dz;
+          v5_direct_top[k] = dg * dy * dz;
         }
       }
     }

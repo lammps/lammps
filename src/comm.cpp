@@ -534,6 +534,7 @@ void Comm::setup()
     maxneed[0] = MAX(all[0],all[1]);
     maxneed[1] = MAX(all[2],all[3]);
     maxneed[2] = MAX(all[4],all[5]);
+    if (me == 0) printf("MAXNEED %d %d %d\n",maxneed[0],maxneed[1],maxneed[2]);
   }
 
   // allocate comm memory

@@ -563,37 +563,44 @@ int PRD::check_event(int replica_num)
   if (replica_num >= 0 && replica_num != universe->iworld) worldflag = 0;
 
   timer->barrier_start(TIME_LOOP);
+
   if (me == 0) MPI_Allreduce(&worldflag,&universeflag,1,
                              MPI_INT,MPI_SUM,comm_replica);
   MPI_Bcast(&universeflag,1,MPI_INT,0,world);
+
   ncoincident = universeflag;
+
   if (!universeflag) ireplica = -1;
   else {
 
     // multiple events, choose one at random
     // iwhich = random # from 1 to N, N = # of events to choose from
     // scanflag = 1 to N on replicas with an event, 0 on non-event replicas
-    // worldflag = 1 on chosen replica, 0 on all others
+    // exit with worldflag = 1 on chosen replica, 0 on all others
+    // note worldflag is already 0 on replicas that didn't perform event
 
     if (universeflag > 1) {
       int iwhich = static_cast<int>
         (universeflag*random_select->uniform()) + 1;
-      if (me == 0) {
+
+      if (me == 0)
         MPI_Scan(&worldflag,&scanflag,1,MPI_INT,MPI_SUM,comm_replica);
-        scanflag *= worldflag;
-      }
       MPI_Bcast(&scanflag,1,MPI_INT,0,world);
+
       if (scanflag != iwhich) worldflag = 0;
     }
 
     if (worldflag) replicaflag = universe->iworld;
     else replicaflag = 0;
+
     if (me == 0) MPI_Allreduce(&replicaflag,&ireplica,1,
                                MPI_INT,MPI_SUM,comm_replica);
     MPI_Bcast(&ireplica,1,MPI_INT,0,world);
   }
+
   timer->barrier_stop(TIME_LOOP);
   time_comm += timer->array[TIME_LOOP];
+
   return ireplica;
 }
 

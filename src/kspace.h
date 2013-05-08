@@ -62,6 +62,13 @@ class KSpace : protected Pointers {
   void *extract(const char *);
   void compute_dummy(int, int);
 
+  // triclinic
+
+  void x2lamdaT(double *, double *);
+  void lamda2xT(double *, double *);
+  void lamda2xvector(double *, double *);
+  void kspacebbox(double, double *);
+
   // general child-class methods
 
   virtual void init() = 0;

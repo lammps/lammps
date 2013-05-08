@@ -15,6 +15,7 @@
    Contributing authors: Roy Pollock (LLNL), Paul Crozier (SNL)
      per-atom energy/virial & group/group energy/force added by Stan Moore (BYU)
      analytic diff (2 FFT) option added by Rolf Isele-Holder (Aachen University)
+     triclinic added by Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
 #include "lmptype.h"
@@ -170,8 +171,10 @@ void PPPM::init()
 
   // error check
 
-  if (domain->triclinic)
-    error->all(FLERR,"Cannot (yet) use PPPM with triclinic box");
+  if (domain->triclinic && differentiation_flag == 1)
+    error->all(FLERR,"Cannot (yet) use PPPM with triclinic box and 'kspace_modify diff ad'");
+  if (domain->triclinic && slabflag)
+    error->all(FLERR,"Cannot (yet) use PPPM with triclinic box and slab correction");
   if (domain->dimension == 2) error->all(FLERR,
                                          "Cannot use PPPM with 2d simulation");
 
@@ -234,6 +237,8 @@ void PPPM::init()
     double theta = force->angle->equilibrium_angle(typeA);
     double blen = force->bond->equilibrium_distance(typeB);
     alpha = qdist / (cos(0.5*theta) * blen);
+    if (domain->triclinic)
+      error->all(FLERR,"Cannot (yet) use PPPM with triclinic box and TIP4P");
   }
 
   // compute qsum & qsqsum and warn if not charge-neutral
@@ -380,6 +385,11 @@ void PPPM::init()
 
 void PPPM::setup()
 {
+  if (triclinic) {
+    setup_triclinic();
+    return;
+  }
+
   int i,j,k,n;
   double *prd;
 
@@ -457,6 +467,87 @@ void PPPM::setup()
 
   if (differentiation_flag == 1) compute_gf_ad();
   else compute_gf_ik();
+}
+
+/* ----------------------------------------------------------------------
+   adjust PPPM coeffs, called initially and whenever volume has changed
+   for a triclinic system
+------------------------------------------------------------------------- */
+
+void PPPM::setup_triclinic()
+{
+  int i,j,k,n;
+  double *prd;
+
+  // volume-dependent factors
+  // adjust z dimension for 2d slab PPPM
+  // z dimension for 3d PPPM is zprd since slab_volfactor = 1.0
+
+  prd = domain->prd;
+
+  double xprd = prd[0];
+  double yprd = prd[1];
+  double zprd = prd[2];
+  double zprd_slab = zprd*slab_volfactor;
+  volume = xprd * yprd * zprd_slab;
+
+  // use lamda (0-1) coordinates
+
+  delxinv = nx_pppm;
+  delyinv = ny_pppm;
+  delzinv = nz_pppm;
+  delvolinv = delxinv*delyinv*delzinv/volume;
+
+  // fkx,fky,fkz for my FFT grid pts
+
+  double per_i,per_j,per_k;
+
+  n = 0;
+  for (k = nzlo_fft; k <= nzhi_fft; k++) {
+    per_k = k - nz_pppm*(2*k/nz_pppm);
+    for (j = nylo_fft; j <= nyhi_fft; j++) {
+      per_j = j - ny_pppm*(2*j/ny_pppm);
+      for (i = nxlo_fft; i <= nxhi_fft; i++) {
+        per_i = i - nx_pppm*(2*i/nx_pppm);
+
+        double unitk_lamda[3];
+        unitk_lamda[0] = 2.0*MY_PI*per_i;
+        unitk_lamda[1] = 2.0*MY_PI*per_j;
+        unitk_lamda[2] = 2.0*MY_PI*per_k;
+        x2lamdaT(&unitk_lamda[0],&unitk_lamda[0]);
+        fkx[n] = unitk_lamda[0];
+        fky[n] = unitk_lamda[1];
+        fkz[n] = unitk_lamda[2];
+        n++;
+      }
+    }
+  }
+
+  // virial coefficients
+
+  double sqk,vterm;
+
+  for (n = 0; n < nfft; n++) {
+    sqk = fkx[n]*fkx[n] + fky[n]*fky[n] + fkz[n]*fkz[n];
+    if (sqk == 0.0) {
+      vg[n][0] = 0.0;
+      vg[n][1] = 0.0;
+      vg[n][2] = 0.0;
+      vg[n][3] = 0.0;
+      vg[n][4] = 0.0;
+      vg[n][5] = 0.0;
+    } else {
+      vterm = -2.0 * (1.0/sqk + 0.25/(g_ewald*g_ewald));
+      vg[n][0] = 1.0 + vterm*fkx[n]*fkx[n];
+      vg[n][1] = 1.0 + vterm*fky[n]*fky[n];
+      vg[n][2] = 1.0 + vterm*fkz[n]*fkz[n];
+      vg[n][3] = vterm*fkx[n]*fky[n];
+      vg[n][4] = vterm*fkx[n]*fkz[n];
+      vg[n][5] = vterm*fky[n]*fkz[n];
+    }
+  }
+
+  compute_gf_ik_triclinic();
 }
 
 /* ----------------------------------------------------------------------
@@ -652,9 +743,15 @@ void PPPM::allocate()
   memory->create(work2,2*nfft_both,"pppm:work2");
   memory->create(vg,nfft_both,6,"pppm:vg");
 
-  memory->create1d_offset(fkx,nxlo_fft,nxhi_fft,"pppm:fkx");
-  memory->create1d_offset(fky,nylo_fft,nyhi_fft,"pppm:fky");
-  memory->create1d_offset(fkz,nzlo_fft,nzhi_fft,"pppm:fkz");
+  if (triclinic == 0) {
+    memory->create1d_offset(fkx,nxlo_fft,nxhi_fft,"pppm:fkx");
+    memory->create1d_offset(fky,nylo_fft,nyhi_fft,"pppm:fky");
+    memory->create1d_offset(fkz,nzlo_fft,nzhi_fft,"pppm:fkz");
+  } else {
+    memory->create(fkx,nfft_both,"pppm:fkx");
+    memory->create(fky,nfft_both,"pppm:fky");
+    memory->create(fkz,nfft_both,"pppm:fkz");
+  }
 
   if (differentiation_flag == 1) {
     memory->create3d_offset(u_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
@@ -796,9 +893,15 @@ void PPPM::deallocate()
   memory->destroy(work2);
   memory->destroy(vg);
 
-  memory->destroy1d_offset(fkx,nxlo_fft);
-  memory->destroy1d_offset(fky,nylo_fft);
-  memory->destroy1d_offset(fkz,nzlo_fft);
+  if (triclinic == 0) {
+    memory->destroy1d_offset(fkx,nxlo_fft);
+    memory->destroy1d_offset(fky,nylo_fft);
+    memory->destroy1d_offset(fkz,nzlo_fft);
+  } else {
+    memory->destroy(fkx);
+    memory->destroy(fky);
+    memory->destroy(fkz);
+  }
 
   memory->destroy(gf_b);
   memory->destroy2d_offset(rho1d,-order/2);
@@ -838,7 +941,7 @@ void PPPM::deallocate_peratom()
 
 void PPPM::set_grid_global()
 {
-  // use xprd,yprd,zprd even if triclinic so grid size is the same
+  // use xprd,yprd,zprd (even if triclinic, and then scale later)
   // adjust z dimension for 2d slab PPPM
   // 3d PPPM just uses zprd since slab_volfactor = 1.0
 
@@ -852,7 +955,7 @@ void PPPM::set_grid_global()
   // fluid-occupied volume used to estimate real-space error
   // zprd used rather than zprd_slab
 
-  double h,h_x,h_y,h_z;
+  double h;
   bigint natoms = atom->natoms;
 
   if (!gewaldflag) {
@@ -944,6 +1047,19 @@ void PPPM::set_grid_global()
         h_z = zprd_slab/nz_pppm;
       }
     }
+
+    // scale grid for triclinic skew
+    
+    if (triclinic) {
+      double tmp[3];
+      tmp[0] = nx_pppm/xprd;
+      tmp[1] = ny_pppm/yprd;
+      tmp[2] = nz_pppm/zprd;
+      lamda2xT(&tmp[0],&tmp[0]);
+      nx_pppm = static_cast<int>(tmp[0]) + 1;
+      ny_pppm = static_cast<int>(tmp[1]) + 1;
+      nz_pppm = static_cast<int>(tmp[2]) + 1;
+    }
   }
 
   // boost grid size until it is factorable
@@ -951,6 +1067,21 @@ void PPPM::set_grid_global()
   while (!factorable(nx_pppm)) nx_pppm++;
   while (!factorable(ny_pppm)) ny_pppm++;
   while (!factorable(nz_pppm)) nz_pppm++;
+
+  if (triclinic == 0) {
+    h_x = xprd/nx_pppm;
+    h_y = yprd/ny_pppm;
+    h_z = zprd_slab/nz_pppm;
+  } else {
+    double tmp[3];
+    tmp[0] = nx_pppm;
+    tmp[1] = ny_pppm;
+    tmp[2] = nz_pppm;
+    x2lamdaT(&tmp[0],&tmp[0]);
+    h_x = 1.0/tmp[0];
+    h_y = 1.0/tmp[1];
+    h_z = 1.0/tmp[2];
+  }
 
   if (nx_pppm >= OFFSET || ny_pppm >= OFFSET || nz_pppm >= OFFSET)
     error->all(FLERR,"PPPM grid is too large");
@@ -994,9 +1125,9 @@ double PPPM::compute_df_kspace()
     double qopt = compute_qopt();
     df_kspace = sqrt(qopt/natoms)*q2/(xprd*yprd*zprd_slab);
   } else {
-    double lprx = estimate_ik_error(xprd/nx_pppm,xprd,natoms);
-    double lpry = estimate_ik_error(yprd/ny_pppm,yprd,natoms);
-    double lprz = estimate_ik_error(zprd_slab/nz_pppm,zprd_slab,natoms);
+    double lprx = estimate_ik_error(h_x,xprd,natoms);
+    double lpry = estimate_ik_error(h_y,yprd,natoms);
+    double lprz = estimate_ik_error(h_z,zprd_slab,natoms);
     df_kspace = sqrt(lprx*lprx + lpry*lpry + lprz*lprz) / sqrt(3.0);
   }
   return df_kspace;
@@ -1009,7 +1140,7 @@ double PPPM::compute_df_kspace()
 double PPPM::compute_qopt()
 {
   double qopt = 0.0;
-  double *prd = (triclinic==0) ? domain->prd : domain->prd_lamda;
+  double *prd = domain->prd;
   
   const double xprd = prd[0];
   const double yprd = prd[1];
@@ -1254,11 +1385,7 @@ void PPPM::set_grid_local()
   double dist[3];
   double cuthalf = 0.5*neighbor->skin + qdist;
   if (triclinic == 0) dist[0] = dist[1] = dist[2] = cuthalf;
-  else {
-    dist[0] = cuthalf/domain->prd[0];
-    dist[1] = cuthalf/domain->prd[1];
-    dist[2] = cuthalf/domain->prd[2];
-  }
+  else kspacebbox(cuthalf,&dist[0]);
 
   int nlo,nhi;
 
@@ -1369,7 +1496,7 @@ void PPPM::compute_gf_denom()
 
 void PPPM::compute_gf_ik()
 {
-  const double * const prd = (triclinic==0) ? domain->prd : domain->prd_lamda;
+  const double * const prd = domain->prd;
 
   const double xprd = prd[0];
   const double yprd = prd[1];
@@ -1447,13 +1574,104 @@ void PPPM::compute_gf_ik()
 }
 
 /* ----------------------------------------------------------------------
+   pre-compute modified (Hockney-Eastwood) Coulomb Green's function
+   for a triclinic system
+------------------------------------------------------------------------- */
+
+void PPPM::compute_gf_ik_triclinic()
+{
+  double snx,sny,snz;
+  double argx,argy,argz,wx,wy,wz,sx,sy,sz,qx,qy,qz;
+  double sum1,dot1,dot2;
+  double numerator,denominator;
+  double sqk;
+
+  int k,l,m,n,nx,ny,nz,kper,lper,mper;
+
+  double tmp[3];
+  tmp[0] = (g_ewald/(MY_PI*nx_pppm)) * pow(-log(EPS_HOC),0.25);
+  tmp[1] = (g_ewald/(MY_PI*ny_pppm)) * pow(-log(EPS_HOC),0.25);
+  tmp[2] = (g_ewald/(MY_PI*nz_pppm)) * pow(-log(EPS_HOC),0.25);
+  lamda2xT(&tmp[0],&tmp[0]);
+  const int nbx = static_cast<int> (tmp[0]);
+  const int nby = static_cast<int> (tmp[1]);
+  const int nbz = static_cast<int> (tmp[2]);
+
+  const int twoorder = 2*order;
+
+  n = 0;
+  for (m = nzlo_fft; m <= nzhi_fft; m++) {
+    mper = m - nz_pppm*(2*m/nz_pppm);
+    snz = square(sin(MY_PI*mper/nz_pppm));
+
+    for (l = nylo_fft; l <= nyhi_fft; l++) {
+      lper = l - ny_pppm*(2*l/ny_pppm);
+      sny = square(sin(MY_PI*lper/ny_pppm));
+
+      for (k = nxlo_fft; k <= nxhi_fft; k++) {
+        kper = k - nx_pppm*(2*k/nx_pppm);
+        snx = square(sin(MY_PI*kper/nx_pppm));
+
+        double unitk_lamda[3];
+        unitk_lamda[0] = 2.0*MY_PI*kper;
+        unitk_lamda[1] = 2.0*MY_PI*lper;
+        unitk_lamda[2] = 2.0*MY_PI*mper;
+        x2lamdaT(&unitk_lamda[0],&unitk_lamda[0]);
+
+        sqk = square(unitk_lamda[0]) + square(unitk_lamda[1]) + square(unitk_lamda[2]);
+
+        if (sqk != 0.0) {
+          numerator = 12.5663706/sqk;
+          denominator = gf_denom(snx,sny,snz);
+          sum1 = 0.0;
+
+          for (nx = -nbx; nx <= nbx; nx++) {
+            argx = MY_PI*kper/nx_pppm + MY_PI*nx;
+            wx = powsinxx(argx,twoorder);
+
+            for (ny = -nby; ny <= nby; ny++) {
+              argy = MY_PI*lper/ny_pppm + MY_PI*ny;
+              wy = powsinxx(argy,twoorder);
+
+              for (nz = -nbz; nz <= nbz; nz++) {
+                argz = MY_PI*mper/nz_pppm + MY_PI*nz;
+                wz = powsinxx(argz,twoorder);
+
+                double b[3];
+                b[0] = 2.0*MY_PI*nx_pppm*nx;
+                b[1] = 2.0*MY_PI*ny_pppm*ny;
+                b[2] = 2.0*MY_PI*nz_pppm*nz;
+                x2lamdaT(&b[0],&b[0]);
+
+                qx = unitk_lamda[0]+b[0];
+                sx = exp(-0.25*square(qx/g_ewald));
+
+                qy = unitk_lamda[1]+b[1];
+                sy = exp(-0.25*square(qy/g_ewald));
+
+                qz = unitk_lamda[2]+b[2];
+                sz = exp(-0.25*square(qz/g_ewald));
+
+                dot1 = unitk_lamda[0]*qx + unitk_lamda[1]*qy + unitk_lamda[2]*qz;
+                dot2 = qx*qx+qy*qy+qz*qz;
+                sum1 += (dot1/dot2) * sx*sy*sz * wx*wy*wz;
+              }
+            }
+          }
+          greensfn[n++] = numerator*sum1/denominator;
+        } else greensfn[n++] = 0.0;
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
    compute optimized Green's function for energy calculation
 ------------------------------------------------------------------------- */
 
 void PPPM::compute_gf_ad()
 {
-
-  const double * const prd = (triclinic==0) ? domain->prd : domain->prd_lamda;
+  const double * const prd = domain->prd;
 
   const double xprd = prd[0];
   const double yprd = prd[1];
@@ -1807,6 +2025,13 @@ void PPPM::poisson_ik()
 
   if (evflag_atom) poisson_peratom();
 
+  // triclinic system
+
+  if (triclinic) {
+    poisson_ik_triclinic();
+    return;
+  }
+
   // compute gradients of V(r) in each of 3 dims by transformimg -ik*V(k)
   // FFT leaves data in 3d brick decomposition
   // copy it into inner portion of vdx,vdy,vdz arrays
@@ -1863,6 +2088,76 @@ void PPPM::poisson_ik()
         work2[n+1] = -fkz[k]*work1[n];
         n += 2;
       }
+
+  fft2->compute(work2,work2,-1);
+
+  n = 0;
+  for (k = nzlo_in; k <= nzhi_in; k++)
+    for (j = nylo_in; j <= nyhi_in; j++)
+      for (i = nxlo_in; i <= nxhi_in; i++) {
+        vdz_brick[k][j][i] = work2[n];
+        n += 2;
+      }
+}
+
+/* ----------------------------------------------------------------------
+   FFT-based Poisson solver for ik for a triclinic system
+------------------------------------------------------------------------- */
+
+void PPPM::poisson_ik_triclinic()
+{
+  int i,j,k,n;
+
+  // compute gradients of V(r) in each of 3 dims by transformimg -ik*V(k)
+  // FFT leaves data in 3d brick decomposition
+  // copy it into inner portion of vdx,vdy,vdz arrays
+
+  // x direction gradient
+
+  n = 0;
+  for (i = 0; i < nfft; i++) {
+    work2[n] = fkx[i]*work1[n+1];
+    work2[n+1] = -fkx[i]*work1[n];
+    n += 2;
+  }
+
+  fft2->compute(work2,work2,-1);
+
+  n = 0;
+  for (k = nzlo_in; k <= nzhi_in; k++)
+    for (j = nylo_in; j <= nyhi_in; j++)
+      for (i = nxlo_in; i <= nxhi_in; i++) {
+        vdx_brick[k][j][i] = work2[n];
+        n += 2;
+      }
+
+  // y direction gradient
+
+  n = 0;
+  for (i = 0; i < nfft; i++) {
+    work2[n] = fky[i]*work1[n+1];
+    work2[n+1] = -fky[i]*work1[n];
+    n += 2;
+  }
+
+  fft2->compute(work2,work2,-1);
+
+  n = 0;
+  for (k = nzlo_in; k <= nzhi_in; k++)
+    for (j = nylo_in; j <= nyhi_in; j++)
+      for (i = nxlo_in; i <= nxhi_in; i++) {
+        vdy_brick[k][j][i] = work2[n];
+        n += 2;
+      }
+
+  // z direction gradient
+
+  n = 0;
+  for (i = 0; i < nfft; i++) {
+    work2[n] = fkz[i]*work1[n+1];
+    work2[n+1] = -fkz[i]*work1[n];
+    n += 2;
+  }
 
   fft2->compute(work2,work2,-1);
 
@@ -2166,9 +2461,7 @@ void PPPM::fieldforce_ad()
   double sf = 0.0;
   double *prd;
 
-  if (triclinic == 0) prd = domain->prd;
-  else prd = domain->prd_lamda;
-
+  prd = domain->prd;
   double xprd = prd[0];
   double yprd = prd[1];
   double zprd = prd[2];
@@ -2717,6 +3010,7 @@ double PPPM::memory_usage()
   } else {
     bytes += 4 * nbrick * sizeof(FFT_SCALAR);
   }
+  if (triclinic) bytes += 3 * nfft_both * sizeof(double);
   bytes += 6 * nfft_both * sizeof(double);
   bytes += nfft_both * sizeof(double);
   bytes += nfft_both*5 * sizeof(FFT_SCALAR);
@@ -2748,9 +3042,21 @@ void PPPM::compute_group_group(int groupbit_A, int groupbit_B, int BA_flag)
     error->all(FLERR,"Cannot (yet) use K-space slab "
                "correction with compute group/group");
 
+  if (differentiation_flag)
+    error->all(FLERR,"Cannot (yet) use 'kspace_modify "
+               "diff ad' with compute group/group");
+
   if (!group_allocate_flag) {
     allocate_groups();
     group_allocate_flag = 1;
+  }
+
+  // convert atoms from box to lamda coords
+
+  if (triclinic == 0) boxlo = domain->boxlo;
+  else {
+    boxlo = domain->boxlo_lamda;
+    domain->x2lamda(atom->nlocal);
   }
 
   e2group = 0; //energy
@@ -2816,6 +3122,10 @@ void PPPM::compute_group_group(int groupbit_A, int groupbit_B, int BA_flag)
   MPI_Allreduce(f2group,f2group_all,3,MPI_DOUBLE,MPI_SUM,world);
 
   for (int i = 0; i < 3; i++) f2group[i] = qscale*volume*f2group_all[i];
+
+  // convert atoms back from lamda to box coords
+
+  if (triclinic) domain->lamda2x(atom->nlocal);
 }
 
 /* ----------------------------------------------------------------------
@@ -2979,6 +3289,13 @@ void PPPM::poisson_groups(int BA_flag)
     work_A[n++] *= s2 * greensfn[i];
   }
 
+  // triclinic system
+  
+  if (triclinic) {
+    poisson_groups_triclinic();
+    return;
+  }
+
   double partial_group;
 
   // force, x direction
@@ -3013,4 +3330,48 @@ void PPPM::poisson_groups(int BA_flag)
         f2group[2] += fkz[k] * partial_group;
         n += 2;
       }
+}
+
+/* ----------------------------------------------------------------------
+   FFT-based Poisson solver for group-group interactions
+   for a triclinic system
+ ------------------------------------------------------------------------- */
+
+void PPPM::poisson_groups_triclinic()
+{
+  int i,j,k,n;
+
+  // reuse memory (already declared)
+
+  FFT_SCALAR *work_A = work1;
+  FFT_SCALAR *work_B = work2;
+
+  double partial_group;
+
+  // force, x direction
+
+  n = 0;
+  for (i = 0; i < nfft; i++) {
+    partial_group = work_A[n+1]*work_B[n] - work_A[n]*work_B[n+1];
+    f2group[0] += fkx[i] * partial_group;
+    n += 2;
+  }
+
+  // force, y direction
+
+  n = 0;
+  for (i = 0; i < nfft; i++) {
+    partial_group = work_A[n+1]*work_B[n] - work_A[n]*work_B[n+1];
+    f2group[1] += fky[i] * partial_group;
+    n += 2;
+  }
+
+  // force, z direction
+
+  n = 0;
+  for (i = 0; i < nfft; i++) {
+    partial_group = work_A[n+1]*work_B[n] - work_A[n]*work_B[n+1];
+    f2group[2] += fkz[i] * partial_group;
+    n += 2;
+  }
 }

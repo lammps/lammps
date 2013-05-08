@@ -22,6 +22,7 @@
 #include "atom_masks.h"
 #include "error.h"
 #include "suffix.h"
+#include "domain.h"
 
 using namespace LAMMPS_NS;
 
@@ -240,6 +241,86 @@ double KSpace::estimate_table_accuracy(double q2_over_sqrt, double spr)
   }
 
   return table_accuracy;
+}
+
+/* ----------------------------------------------------------------------
+   convert box coords vector to transposed triclinic lamda (0-1) coords
+   vector, lamda = [(H^-1)^T] * v, does not preserve vector magnitude
+   v and lamda can point to same 3-vector
+------------------------------------------------------------------------- */
+
+void KSpace::x2lamdaT(double *v, double *lamda)
+{
+  double *h_inv = domain->h_inv;
+  double lamda_tmp[3];
+
+  lamda_tmp[0] = h_inv[0]*v[0];
+  lamda_tmp[1] = h_inv[5]*v[0] + h_inv[1]*v[1];
+  lamda_tmp[2] = h_inv[4]*v[0] + h_inv[3]*v[1] + h_inv[2]*v[2];
+
+  lamda[0] = lamda_tmp[0];
+  lamda[1] = lamda_tmp[1];
+  lamda[2] = lamda_tmp[2];
+}
+
+/* ----------------------------------------------------------------------
+   convert lamda (0-1) coords vector to transposed box coords vector
+   lamda = (H^T) * v, does not preserve vector magnitude
+   v and lamda can point to same 3-vector
+------------------------------------------------------------------------- */
+
+void KSpace::lamda2xT(double *lamda, double *v)
+{
+  double *h = domain->h;
+  double v_tmp[3];
+
+  v_tmp[0] = h[0]*lamda[0];
+  v_tmp[1] = h[5]*lamda[0] + h[1]*lamda[1];
+  v_tmp[2] = h[4]*lamda[0] + h[3]*lamda[1] + h[2]*lamda[2];
+
+  v[0] = v_tmp[0];
+  v[1] = v_tmp[1];
+  v[2] = v_tmp[2];
+}
+
+/* ----------------------------------------------------------------------
+   convert triclinic lamda (0-1) coords vector to box coords vector
+   v = H * lamda, does not preserve vector magnitude
+   lamda and v can point to same 3-vector
+------------------------------------------------------------------------- */
+
+void KSpace::lamda2xvector(double *lamda, double *v)
+{
+  double *h = domain->h;
+
+  v[0] = h[0]*lamda[0] + h[5]*lamda[1] + h[4]*lamda[2];
+  v[1] = h[1]*lamda[1] + h[3]*lamda[2];
+  v[2] = h[2]*lamda[2];
+}
+
+/* ----------------------------------------------------------------------
+   convert a sphere in box coords to an ellipsoid in lamda (0-1)
+   coords and return the tight (axis-aligned) bounding box, does not 
+   preserve vector magnitude
+   see http://www.loria.fr/~shornus/ellipsoid-bbox.html and
+   http://yiningkarlli.blogspot.com/2013/02/bounding-boxes-for-ellipsoidsfigure.html
+------------------------------------------------------------------------- */
+
+void KSpace::kspacebbox(double r, double *b)
+{
+  double *h = domain->h;
+  double lx,ly,lz,xy,xz,yz;
+  lx = h[0];
+  ly = h[1];
+  lz = h[2];
+  yz = h[3];
+  xz = h[4];
+  xy = h[5];
+
+  b[0] = r*sqrt(ly*ly*lz*lz + ly*ly*xz*xz - 2.0*ly*xy*xz*yz + lz*lz*xy*xy + 
+         xy*xy*yz*yz)/(lx*ly*lz);
+  b[1] = r*sqrt(lz*lz + yz*yz)/(ly*lz);
+  b[2] = r/lz;
 }
 
 /* ----------------------------------------------------------------------

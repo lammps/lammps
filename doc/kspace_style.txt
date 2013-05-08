@@ -94,10 +94,6 @@ but in a more efficient manner than the {ewald} style.  The 1/r^6
 capability means that Lennard-Jones or Buckingham potentials can be
 used without a cutoff, i.e. they become full long-range potentials.
 
-The {ewald/disp} style can also be used with non-orthogonal (triclinic
-symmetry) simulation boxes.  It is currently the only long-range
-solver that has this capability.
-
 :line
 
 The {pppm} style invokes a particle-particle particle-mesh solver
@@ -187,7 +183,19 @@ smaller than the reference force.
 
 The accuracy setting is used in conjunction with the pairwise cutoff
 to determine the number of K-space vectors for style {ewald} or the
-grid size for style {pppm} or {msm}.
+grid size for style {pppm} or {msm}. 
+
+Note that style {pppm} only computes the grid size at the beginning of
+a simulation, so if the length or triclinic tilt of the simulation cell
+increases dramatically during the course of the simulation, the accuracy
+of the simulation may degrade. For example, for a triclinic system with 
+all three tilt factors set to the maximum limit, the PPPM grid should be
+increased roughly by a factor of 1.5 in the y direction and 2.0 in the z
+direction as compared to the same system using a cubic orthogonal simulation
+cell. One way to ensure the accuracy requirement is being met is to run a 
+short simulation at the maximum expected tilt or length, note the required
+grid size, and then use the "kspace_modify"_kspace_modify.html {mesh} 
+command to manually set the PPPM grid size to this value.
 
 RMS force errors in real space for {ewald} and {pppm} are estimated
 using equation 18 of "(Kolafa)"_#Kolafa, which is also referenced as
@@ -234,6 +242,11 @@ See "Section_accelerate"_Section_accelerate.html of the manual for
 more instructions on how to use the accelerated styles effectively.
 
 [Restrictions:]
+
+The {ewald/disp}, {ewald}, {pppm}, and {msm} styles support 
+non-orthogonal (triclinic symmetry) simulation boxes. However, triclinic
+simulation cells may not yet be supported by suffix versions of these 
+styles (such as {pppm/cuda}). 
 
 All of the kspace styles are part of the KSPACE package.  They are
 only enabled if LAMMPS was built with that package.  See the "Making

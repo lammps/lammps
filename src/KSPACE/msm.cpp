@@ -126,13 +126,13 @@ void MSM::init()
 
   // error check
 
+  triclinic_check();
   if (domain->dimension == 2)
     error->all(FLERR,"Cannot (yet) use MSM with 2d simulation");
 
   if (!atom->q_flag) error->all(FLERR,"Kspace style requires atom attribute q");
 
-  if (slabflag == 1)
-      error->all(FLERR,"Slab correction not needed for MSM");
+  if (slabflag == 1) error->all(FLERR,"Slab correction not needed for MSM");
 
   if (order < 4 || order > 10) {
     char str[128];

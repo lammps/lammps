@@ -171,6 +171,7 @@ void PPPM::init()
 
   // error check
 
+  triclinic_check();
   if (domain->triclinic && differentiation_flag == 1)
     error->all(FLERR,"Cannot (yet) use PPPM with triclinic box "
                "and kspace_modify diff a'");

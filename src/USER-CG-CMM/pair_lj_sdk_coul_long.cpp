@@ -54,6 +54,7 @@ PairLJSDKCoulLong::PairLJSDKCoulLong(LAMMPS *lmp) : Pair(lmp)
 {
   ewaldflag = pppmflag = 1;
   respa_enable = 0;
+  writedata = 1;
   ftable = NULL;
 }
 
@@ -634,6 +635,28 @@ void PairLJSDKCoulLong::read_restart_settings(FILE *fp)
   MPI_Bcast(&tail_flag,1,MPI_INT,0,world);
   MPI_Bcast(&ncoultablebits,1,MPI_INT,0,world);
   MPI_Bcast(&tabinner,1,MPI_DOUBLE,0,world);
+}
+
+/* ----------------------------------------------------------------------
+   lj/sdk does not support per atom type output with mixing
+------------------------------------------------------------------------- */
+
+void PairLJSDKCoulLong::write_data(FILE *)
+{
+  error->one(FLERR, "Pair style lj/sdk/coul/* requires using "
+             "write_data with the 'pair ij' option");
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes all pairs to data file
+------------------------------------------------------------------------- */
+
+void PairLJSDKCoulLong::write_data_all(FILE *fp)
+{
+  for (int i = 1; i <= atom->ntypes; i++)
+    for (int j = i; j <= atom->ntypes; j++)
+      fprintf(fp,"%d %d %s %g %g %g\n",i,j,lj_type_list[lj_type[i][j]],
+              epsilon[i][j],sigma[i][j],cut_lj[i][j]);
 }
 
 /* ----------------------------------------------------------------------

@@ -45,6 +45,7 @@ PairLJSDK::PairLJSDK(LAMMPS *lmp) : Pair(lmp)
 {
   respa_enable = 0;
   single_enable = 1;
+  writedata = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -426,6 +427,28 @@ void PairLJSDK::read_restart_settings(FILE *fp)
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
   MPI_Bcast(&tail_flag,1,MPI_INT,0,world);
+}
+
+/* ----------------------------------------------------------------------
+   lj/sdk does not support per atom type output with mixing
+------------------------------------------------------------------------- */
+
+void PairLJSDK::write_data(FILE *)
+{
+  error->one(FLERR, "Pair style lj/sdk requires using "
+             "write_data with the 'pair ij' option");
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes all pairs to data file
+------------------------------------------------------------------------- */
+
+void PairLJSDK::write_data_all(FILE *fp)
+{
+  for (int i = 1; i <= atom->ntypes; i++)
+    for (int j = i; j <= atom->ntypes; j++)
+      fprintf(fp,"%d %d %s %g %g %g\n",i,j,lj_type_list[lj_type[i][j]],
+              epsilon[i][j],sigma[i][j],cut[i][j]);
 }
 
 /* ---------------------------------------------------------------------- */

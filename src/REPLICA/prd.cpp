@@ -569,11 +569,19 @@ int PRD::check_event(int replica_num)
   ncoincident = universeflag;
   if (!universeflag) ireplica = -1;
   else {
+
+    // multiple events, choose one at random
+    // iwhich = random # from 1 to N, N = # of events to choose from
+    // scanflag = 1 to N on replicas with an event, 0 on non-event replicas
+    // worldflag = 1 on chosen replica, 0 on all others
+
     if (universeflag > 1) {
       int iwhich = static_cast<int>
         (universeflag*random_select->uniform()) + 1;
-      if (me == 0) MPI_Scan(&worldflag,&scanflag,1,
-                            MPI_INT,MPI_SUM,comm_replica);
+      if (me == 0) {
+        MPI_Scan(&worldflag,&scanflag,1,MPI_INT,MPI_SUM,comm_replica);
+        scanflag *= worldflag;
+      }
       MPI_Bcast(&scanflag,1,MPI_INT,0,world);
       if (scanflag != iwhich) worldflag = 0;
     }

@@ -213,12 +213,13 @@ void WriteData::header()
 
   fprintf(fp,"\n");
 
-  fprintf(fp,"%g %g xlo xhi\n",domain->boxlo[0],domain->boxhi[0]);
-  fprintf(fp,"%g %g ylo yhi\n",domain->boxlo[1],domain->boxhi[1]);
-  fprintf(fp,"%g %g zlo zhi\n",domain->boxlo[2],domain->boxhi[2]);
+  fprintf(fp,"%-1.16e %-1.16e xlo xhi\n",domain->boxlo[0],domain->boxhi[0]);
+  fprintf(fp,"%-1.16e %-1.16e ylo yhi\n",domain->boxlo[1],domain->boxhi[1]);
+  fprintf(fp,"%-1.16e %-1.16e zlo zhi\n",domain->boxlo[2],domain->boxhi[2]);
 
   if (domain->triclinic)
-    fprintf(fp,"%g %g %g xy xz yz\n",domain->xy,domain->xz,domain->yz);
+    fprintf(fp,"%-1.16e %-1.16e %-1.16e xy xz yz\n",
+            domain->xy,domain->xz,domain->yz);
 }
 
 /* ----------------------------------------------------------------------

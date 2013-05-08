@@ -873,7 +873,8 @@ int AtomVecMeso::pack_data_hybrid(int i, double *buf)
 void AtomVecMeso::write_data(FILE *fp, int n, double **buf)
 {
   for (int i = 0; i < n; i++)
-    fprintf(fp,"%d %d %g %g %g %g %g %g %d %d %d\n",
+    fprintf(fp,"%d %d %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e "
+            "%d %d %d\n",
             (int) buf[i][0],(int) buf[i][1],
             buf[i][2],buf[i][3],buf[i][4],
             buf[i][5],buf[i][6],buf[i][7],
@@ -886,7 +887,7 @@ void AtomVecMeso::write_data(FILE *fp, int n, double **buf)
 
 int AtomVecMeso::write_data_hybrid(FILE *fp, double *buf)
 {
-  fprintf(fp," %g %g %g",buf[0],buf[1],buf[2]);
+  fprintf(fp," %-1.16e %-1.16e %-1.16e",buf[0],buf[1],buf[2]);
   return 3;
 }
 

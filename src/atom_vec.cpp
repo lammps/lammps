@@ -91,7 +91,7 @@ void AtomVec::pack_vel(double **buf)
 void AtomVec::write_vel(FILE *fp, int n, double **buf)
 {
   for (int i = 0; i < n; i++)
-    fprintf(fp,"%d %g %g %g\n",
+    fprintf(fp,"%d %-1.16e %-1.16e %-1.16e\n",
             (int) buf[i][0],buf[i][1],buf[i][2],buf[i][3]);
 }
 

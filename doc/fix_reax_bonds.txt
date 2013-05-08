@@ -61,8 +61,7 @@ info.
 
 [Related commands:]
 
-"pair_style reax"_pair_reax.html, 
-"pair_style reax/c"_pair_reax_c.html, 
-"fix species"_fix_species.html
+"pair_style reax"_pair_reax.html, "pair_style
+reax/c"_pair_reax_c.html, "fix reax/c/species"_fix_reaxc_species.html
 
 [Default:] none

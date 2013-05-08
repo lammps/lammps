@@ -291,14 +291,15 @@ appropriate units if your simulation doesn't use "real" units.
 
 [Related commands:]
 
-"pair_coeff"_pair_coeff.html, "fix qeq/reax"_fix_qeq_reax.html,
-"fix reax/c/bonds"_fix_reax_bonds.html,
-"fix species"_fix_species.html,
-"pair_style reax"_pair_reax.html
+"pair_coeff"_pair_coeff.html, "fix qeq/reax"_fix_qeq_reax.html, "fix
+reax/c/bonds"_fix_reax_bonds.html, "fix
+reax/c/species"_fix_reaxc_species.html, "pair_style
+reax"_pair_reax.html
 
 [Default:]
 
-The keyword defaults are checkqeq = yes, lgvdw = no, safezone = 1.2, mincap = 50.
+The keyword defaults are checkqeq = yes, lgvdw = no, safezone = 1.2,
+mincap = 50.
 
 :line
 

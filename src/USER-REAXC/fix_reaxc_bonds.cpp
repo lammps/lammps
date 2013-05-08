@@ -145,14 +145,15 @@ void FixReaxCBonds::Output_ReaxC_Bonds(bigint ntimestep, FILE *fp)
   }
 
   for (i = 0; i < nmax; i++) {
-    numneigh[i] = 0.0;
+    numneigh[i] = 0;
     for (j = 0; j < MAXREAXBOND; j++) {
       neighid[i][j] = 0;
       abo[i][j] = 0.0;
     }
   }
+  numbonds = 0;
 
-  FindBond( system, lists, numbonds);
+  FindBond(lists, numbonds);
 
   // allocate a temporary buffer for the snapshot info
   MPI_Allreduce(&numbonds,&numbonds_max,1,MPI_INT,MPI_MAX,world);
@@ -162,10 +163,10 @@ void FixReaxCBonds::Output_ReaxC_Bonds(bigint ntimestep, FILE *fp)
   for (i = 0; i < nbuf; i ++) buf[i] = 0.0;
 
   // Pass information to buffer
-  PassBuffer( system, buf, nbuf_local);
+  PassBuffer(buf, nbuf_local);
 
   // Receive information from buffer for output
-  RecvBuffer( system, buf, nbuf, nbuf_local, nlocal_tot, numbonds_max);
+  RecvBuffer(buf, nbuf, nbuf_local, nlocal_tot, numbonds_max);
 
   memory->destroy(buf);
 
@@ -173,8 +174,7 @@ void FixReaxCBonds::Output_ReaxC_Bonds(bigint ntimestep, FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-void FixReaxCBonds::FindBond( struct _reax_system *system, 
-		struct _reax_list *lists, int &numbonds)
+void FixReaxCBonds::FindBond(struct _reax_list *lists, int &numbonds)
 {
   int *ilist, i, ii, inum;
   int j, pj, nj, jtag, jtype;
@@ -192,7 +192,7 @@ void FixReaxCBonds::FindBond( struct _reax_system *system,
     for( pj = Start_Index(i, reaxc->lists); pj < End_Index(i, reaxc->lists); ++pj ) {
       bo_ij = &( reaxc->lists->select.bond_list[pj] );
       j = bo_ij->nbr;
-      jtag = reaxc->system->my_atoms[j].orig_id;
+      jtag = atom->tag[j];
       bo_tmp = bo_ij->bo_data.BO;
 
       if (bo_tmp > bo_cut) {
@@ -208,8 +208,7 @@ void FixReaxCBonds::FindBond( struct _reax_system *system,
 }
 /* ---------------------------------------------------------------------- */
 
-void FixReaxCBonds::PassBuffer( struct _reax_system *system, double *buf,
-                int &nbuf_local)
+void FixReaxCBonds::PassBuffer(double *buf, int &nbuf_local)
 {
   int i, j, k, jtag, numbonds;
   int nlocal = atom->nlocal;
@@ -244,13 +243,13 @@ void FixReaxCBonds::PassBuffer( struct _reax_system *system, double *buf,
 
 /* ---------------------------------------------------------------------- */
 
-void FixReaxCBonds::RecvBuffer( struct _reax_system *system, double *buf,
-                int nbuf, int nbuf_local, int natoms, int maxnum)
+void FixReaxCBonds::RecvBuffer(double *buf, int nbuf, int nbuf_local, 
+		int natoms, int maxnum)
 {
   int i, j, k, l, itype, jtype, itag, jtag;
   int inode, nlocal_tmp, numbonds, molid;
   int nlocal = atom->nlocal;
-  int ntimestep = update->ntimestep;
+  bigint ntimestep = update->ntimestep;
   double sbotmp, nlptmp, avqtmp, abotmp;
 
   double cutof3 = reaxc->control->bg_cut;
@@ -348,7 +347,7 @@ double FixReaxCBonds::memory_usage()
 {
   double bytes;
 
-  bytes += 3.0*nmax*sizeof(double);
+  bytes = 3.0*nmax*sizeof(double);
   bytes += nmax*sizeof(int);
   bytes += 1.0*nmax*MAXREAXBOND*sizeof(double);
   bytes += 1.0*nmax*MAXREAXBOND*sizeof(int);

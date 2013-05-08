@@ -20,7 +20,7 @@
    Algorithmic Techniques", Parallel Computing, in press.
    ---
    Per-atom energy/virial added by Ray Shan (Sandia)
-   Fix reax/c/bonds and fix species for pair_style reax/c added by 
+   Fix reax/c/bonds and fix reax/c/species for pair_style reax/c added by 
    	Ray Shan (Sandia)
 ------------------------------------------------------------------------- */
 
@@ -104,10 +104,6 @@ PairReaxC::PairReaxC(LAMMPS *lmp) : Pair(lmp)
 
   setup_flag = 0;
 
-  fixbond_flag = fixspecies_flag = 0;
-  tmpr = NULL;
-  tmpid = NULL;
-  tmpbo = NULL;
   nmax = 0;
 }
 
@@ -152,9 +148,6 @@ PairReaxC::~PairReaxC()
     delete [] eta;
     delete [] gamma;
   }
-  memory->destroy(tmpr);
-  memory->destroy(tmpid);
-  memory->destroy(tmpbo);
 
   delete [] pvector;
 
@@ -197,6 +190,7 @@ void PairReaxC::settings(int narg, char **arg)
     control->hbond_cut = 7.50;
     control->thb_cut = 0.001;
     control->thb_cutsq = 0.00001;
+    control->bg_cut = 0.3;
 
     out_control->write_steps = 0;
     out_control->traj_method = 0;
@@ -280,17 +274,6 @@ void PairReaxC::coeff( int nargs, char **args )
       map[i-2] = -1;
       continue;
     }
-
-    /*
-    itmp = atoi(args[i]) - 1;
-    map[i-2] = itmp;
-
-    // error check
-
-    if (itmp < 0 || itmp >= nreax_types)
-      error->all(FLERR,"Non-existent ReaxFF type");
-    */
-   
   }
 
   int n = atom->ntypes;
@@ -307,7 +290,6 @@ void PairReaxC::coeff( int nargs, char **args )
   // error check
   if (itmp != n) 
     error->all(FLERR,"Non-existent ReaxFF type");
-
 
   int count = 0;
   for (int i = 1; i <= n; i++)
@@ -542,33 +524,6 @@ void PairReaxC::compute(int eflag, int vflag)
 
   Output_Results( system, control, data, &lists, out_control, mpi_data );
 
-  if(fixbond_flag)
-          fixbond( system, control, data, &lists, out_control, mpi_data );
-
-  // populate tmpr and tmpbo arrays for fix reax/c/species
-  int i, j;
-
-  if(fixspecies_flag) {
-    if (system->N > nmax) {
-      memory->destroy(tmpr);
-      memory->destroy(tmpid);
-      memory->destroy(tmpbo);
-      nmax = system->N;
-      memory->create(tmpr,nmax,MAXSPECBOND,"pair:tmpr");
-      memory->create(tmpid,nmax,MAXSPECBOND,"pair:tmpid");
-      memory->create(tmpbo,nmax,MAXSPECBOND,"pair:tmpbo");
-    }
-   
-    for (i = 0; i < system->N; i ++)
-      for (j = 0; j < MAXSPECBOND; j ++) {
-        tmpr[i][j] = tmpbo[i][j] = 0.0;
-	tmpid[i][j] = -1;
-      }
-    
-    FindBond();
-
-  }
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -768,37 +723,6 @@ void *PairReaxC::extract(const char *str, int &dim)
     return (void *) gamma;
   }
   return NULL;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void PairReaxC::FindBond()
-{
-  int i, ii, j, pj, jtag, nj, jtmp, jj;
-  double bo_tmp, bo_cut, rij, rsq, r_tmp;
-
-  bond_data *bo_ij;
-  bo_cut = 0.20;
-
-  for (i = 0; i < system->n; i++) {
-    nj = 0;
-    for( pj = Start_Index(i, lists); pj < End_Index(i, lists); ++pj ) {
-      bo_ij = &( lists->select.bond_list[pj] );
-      j = bo_ij->nbr;
-      if (j < i) continue;
-
-      bo_tmp = bo_ij->bo_data.BO;
-      r_tmp = bo_ij->d;
-
-      if (bo_tmp >= bo_cut ) {
-	tmpr[i][nj] = r_tmp;
-	tmpid[i][nj] = j;
-	tmpbo[i][nj] = bo_tmp;
-	nj ++;
-	if (nj > MAXSPECBOND) error->all(FLERR,"Increase MAXSPECBOND in fix_reaxc_species.h");
-      }
-    }
-  }
 }
 
 /* ---------------------------------------------------------------------- */

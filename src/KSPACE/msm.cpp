@@ -151,7 +151,7 @@ void MSM::init()
   // extract short-range Coulombic cutoff from pair style
 
   int itmp;
-  double *p_cutoff = (double *) force->pair->extract("cut_msm",itmp);
+  double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
   if (p_cutoff == NULL)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
   cutoff = *p_cutoff;
@@ -1005,7 +1005,7 @@ void MSM::set_grid_global()
 
     cutoff = sqrt(ax*ax + ay*ay + az*az)/sqrt(3.0);
     int itmp;
-    double *p_cutoff = (double *) force->pair->extract("cut_msm",itmp);
+    double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
     *p_cutoff = cutoff;
 
     char str[128];

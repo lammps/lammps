@@ -156,93 +156,97 @@ void Group::assign(int narg, char **arg)
       if (domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
         mask[i] |= bit;
 
-  // style = logical condition
-
-  } else if (narg >= 3 &&
-             (strcmp(arg[2],"<") == 0 || strcmp(arg[2],">") == 0 ||
-              strcmp(arg[2],"<=") == 0 || strcmp(arg[2],">=") == 0 ||
-              strcmp(arg[2],"<>") == 0)) {
-
-    if (narg < 4 || narg > 5) error->all(FLERR,"Illegal group command");
-    int category,condition,bound1,bound2;
-
-    if (strcmp(arg[1],"type") == 0) category = TYPE;
-    else if (strcmp(arg[1],"molecule") == 0) category = MOLECULE;
-    else if (strcmp(arg[1],"id") == 0) category = ID;
-    else error->all(FLERR,"Illegal group command");
-
-    if (strcmp(arg[2],"<") == 0) condition = LT;
-    else if (strcmp(arg[2],"<=") == 0) condition = LE;
-    else if (strcmp(arg[2],">") == 0) condition = GT;
-    else if (strcmp(arg[2],">=") == 0) condition = GE;
-    else if (strcmp(arg[2],"==") == 0) condition = EQ;
-    else if (strcmp(arg[2],"!=") == 0) condition = NEQ;
-    else if (strcmp(arg[2],"<>") == 0) condition = BETWEEN;
-    else error->all(FLERR,"Illegal group command");
-
-    bound1 = atoi(arg[3]);
-    bound2 = -1;
-
-    if (condition == BETWEEN) {
-      if (narg != 5) error->all(FLERR,"Illegal group command");
-      bound2 = atoi(arg[4]);
-    }
-
-    int *attribute;
-    if (category == TYPE) attribute = atom->type;
-    else if (category == MOLECULE) attribute = atom->molecule;
-    else if (category == ID) attribute = atom->tag;
-
-    // add to group if meets condition
-
-    if (condition == LT) {
-      for (i = 0; i < nlocal; i++) if (attribute[i] < bound1) mask[i] |= bit;
-    } else if (condition == LE) {
-      for (i = 0; i < nlocal; i++) if (attribute[i] <= bound1) mask[i] |= bit;
-    } else if (condition == GT) {
-      for (i = 0; i < nlocal; i++) if (attribute[i] > bound1) mask[i] |= bit;
-    } else if (condition == GE) {
-      for (i = 0; i < nlocal; i++) if (attribute[i] >= bound1) mask[i] |= bit;
-    } else if (condition == EQ) {
-      for (i = 0; i < nlocal; i++) if (attribute[i] == bound1) mask[i] |= bit;
-    } else if (condition == NEQ) {
-      for (i = 0; i < nlocal; i++) if (attribute[i] != bound1) mask[i] |= bit;
-    } else if (condition == BETWEEN) {
-      for (i = 0; i < nlocal; i++)
-        if (attribute[i] >= bound1 && attribute[i] <= bound2) mask[i] |= bit;
-    }
-
-  // style = list of values
+  // style = type, molecule, id
 
   } else if (strcmp(arg[1],"type") == 0 || strcmp(arg[1],"molecule") == 0 ||
              strcmp(arg[1],"id") == 0) {
 
     if (narg < 3) error->all(FLERR,"Illegal group command");
 
-    int length = narg-2;
-    int *list = new int[length];
-
     int category;
     if (strcmp(arg[1],"type") == 0) category = TYPE;
     else if (strcmp(arg[1],"molecule") == 0) category = MOLECULE;
     else if (strcmp(arg[1],"id") == 0) category = ID;
-    else error->all(FLERR,"Illegal group command");
 
-    length = narg - 2;
-    for (int iarg = 2; iarg < narg; iarg++) list[iarg-2] = atoi(arg[iarg]);
+    // args = logical condition
+    
+    if (narg > 3 &&
+        (strcmp(arg[2],"<") == 0 || strcmp(arg[2],">") == 0 ||
+         strcmp(arg[2],"<=") == 0 || strcmp(arg[2],">=") == 0 ||
+         strcmp(arg[2],"<>") == 0)) {
 
-    int *attribute;
-    if (category == TYPE) attribute = atom->type;
-    else if (category == MOLECULE) attribute = atom->molecule;
-    else if (category == ID) attribute = atom->tag;
+      int condition,bound1,bound2;
+      if (strcmp(arg[2],"<") == 0) condition = LT;
+      else if (strcmp(arg[2],"<=") == 0) condition = LE;
+      else if (strcmp(arg[2],">") == 0) condition = GT;
+      else if (strcmp(arg[2],">=") == 0) condition = GE;
+      else if (strcmp(arg[2],"==") == 0) condition = EQ;
+      else if (strcmp(arg[2],"!=") == 0) condition = NEQ;
+      else if (strcmp(arg[2],"<>") == 0) condition = BETWEEN;
+      else error->all(FLERR,"Illegal group command");
+      
+      bound1 = atoi(arg[3]);
+      bound2 = -1;
 
-    // add to group if attribute is any in list
+      if (condition == BETWEEN) {
+        if (narg != 5) error->all(FLERR,"Illegal group command");
+        bound2 = atoi(arg[4]);
+      } else if (narg != 4) error->all(FLERR,"Illegal group command");
 
-    for (int ilist = 0; ilist < length; ilist++)
+      int *attribute;
+      if (category == TYPE) attribute = atom->type;
+      else if (category == MOLECULE) attribute = atom->molecule;
+      else if (category == ID) attribute = atom->tag;
+
+      // add to group if meets condition
+
+      if (condition == LT) {
+        for (i = 0; i < nlocal; i++) if (attribute[i] < bound1) mask[i] |= bit;
+      } else if (condition == LE) {
+        for (i = 0; i < nlocal; i++) if (attribute[i] <= bound1) mask[i] |= bit;
+      } else if (condition == GT) {
+        for (i = 0; i < nlocal; i++) if (attribute[i] > bound1) mask[i] |= bit;
+      } else if (condition == GE) {
+        for (i = 0; i < nlocal; i++) if (attribute[i] >= bound1) mask[i] |= bit;
+      } else if (condition == EQ) {
+        for (i = 0; i < nlocal; i++) if (attribute[i] == bound1) mask[i] |= bit;
+      } else if (condition == NEQ) {
+        for (i = 0; i < nlocal; i++) if (attribute[i] != bound1) mask[i] |= bit;
+      } else if (condition == BETWEEN) {
       for (i = 0; i < nlocal; i++)
-        if (attribute[i] == list[ilist]) mask[i] |= bit;
+        if (attribute[i] >= bound1 && attribute[i] <= bound2) mask[i] |= bit;
+      }
+      
+    // args = list of values
+      
+    } else {
+      int *attribute;
+      if (category == TYPE) attribute = atom->type;
+      else if (category == MOLECULE) attribute = atom->molecule;
+      else if (category == ID) attribute = atom->tag;
 
-    delete [] list;
+      char *ptr;
+      int start,stop,delta;
+
+      for (int iarg = 2; iarg < narg; iarg++) {
+        if (strchr(arg[iarg],':')) {
+          start = atoi(strtok(arg[iarg],":")); 
+          stop = atoi(strtok(NULL,":"));
+          ptr = strtok(NULL,":");
+          if (ptr) delta = atoi(ptr);
+          else delta = 1;
+        } else {
+          start = stop = atoi(arg[iarg]);
+          delta = 1;
+        }
+
+        // add to group if attribute matches value or sequence
+      
+        for (i = 0; i < nlocal; i++)
+          if (attribute[i] >= start && attribute[i] <= stop &&
+              (attribute[i]-start) % delta == 0) mask[i] |= bit;
+      }
+    }
 
   // style = variable
 

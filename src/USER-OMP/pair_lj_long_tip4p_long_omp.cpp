@@ -711,7 +711,7 @@ void PairLJLongTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
   int *ilist,*jlist,*numneigh,**firstneigh;
   double rsq;
 
-  evdwl = ecoul - 0.0;
+  evdwl = ecoul = 0.0;
 
   int ni;
   double  *cut_ljsqi, *lj1i, *lj2i, *lj3i, *lj4i, *offseti;

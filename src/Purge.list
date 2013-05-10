@@ -13,6 +13,11 @@ style_kspace.h
 style_minimize.h
 style_pair.h
 style_region.h
+# deleted on Wed May 8 15:24:36 2013 +0000
+compute_spec_atom.cpp
+compute_spec_atom.h
+fix_species.cpp
+fix_species.h
 # deleted on Fri Oct 19 15:27:15 2012 +0000
 pair_lj_charmm_coul_long_proxy_omp.cpp
 pair_lj_charmm_coul_long_proxy_omp.h

@@ -6,15 +6,11 @@ if (test $1 = 1) then
     cp -p fix_qeq_reax.cpp ..
     cp -p fix_reax_c.cpp ..
     cp -p fix_reaxc_bonds.cpp ..
-    cp -p fix_species.cpp ..
-    cp -p compute_spec_atom.cpp ..
 
     cp -p pair_reax_c.h ..
     cp -p fix_qeq_reax.h ..
     cp -p fix_reax_c.h ..
     cp -p fix_reaxc_bonds.h ..
-    cp -p fix_species.h ..
-    cp -p compute_spec_atom.h ..
 
     cp -p reaxc_allocate.cpp ..
     cp -p reaxc_basic_comm.cpp ..
@@ -68,15 +64,11 @@ elif (test $1 = 0) then
     rm -f ../fix_qeq_reax.cpp
     rm -f ../fix_reax_c.cpp
     rm -f ../fix_reaxc_bonds.cpp 
-    rm -f ../fix_species.cpp
-    rm -f ../compute_spec_atom.cpp
 
     rm -f ../pair_reax_c.h
     rm -f ../fix_qeq_reax.h
     rm -f ../fix_reax_c.h
     rm -f ../fix_reaxc_bonds.h
-    rm -f ../fix_species.h
-    rm -f ../compute_spec_atom.h
 
     rm -f ../reaxc_allocate.cpp
     rm -f ../reaxc_basic_comm.cpp

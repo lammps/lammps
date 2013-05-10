@@ -44,14 +44,13 @@ class FixReaxCBonds : public Fix {
   void allocate();
   void destroy();
   void Output_ReaxC_Bonds(bigint, FILE *);
-  void FindBond(struct _reax_system*, struct _reax_list*, int &);
-  void PassBuffer(struct _reax_system*, double *, int &);
-  void RecvBuffer(struct _reax_system*, double *, int, int, int, int);
+  void FindBond(struct _reax_list*, int &);
+  void PassBuffer(double *, int &);
+  void RecvBuffer(double *, int, int, int, int);
   int nint(const double &);
   double memory_usage();
 
   bigint nvalid, nextvalid();
-  struct _reax_system *system;
   struct _reax_list *lists;
   class PairReaxC *reaxc;
   class NeighList *list;

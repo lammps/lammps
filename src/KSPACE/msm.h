@@ -44,7 +44,8 @@ class MSM : public KSpace {
   double qqrd2e;
   double cutoff;
   double volume;
-  double *delxinv,*delyinv,*delzinv,*delvolinv;
+  double *delxinv,*delyinv,*delzinv;
+  double h_x,h_y,h_z;
 
   int *nx_msm,*ny_msm,*nz_msm;
   int *nxlo_in,*nylo_in,*nzlo_in;
@@ -128,6 +129,10 @@ class MSM : public KSpace {
   void get_g_direct_top(int);
   void get_virial_direct_top(int);
 
+  // triclinic
+
+  int triclinic;
+
   // grid communication
   void pack_forward(int, double *, int, int *);
   void unpack_forward(int, double *, int, int *);
@@ -147,10 +152,6 @@ E: Illegal ... command
 Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
-
-E: Cannot (yet) use MSM with triclinic box
-
-This feature is not yet supported.
 
 E: Cannot (yet) use MSM with 2d simulation
 

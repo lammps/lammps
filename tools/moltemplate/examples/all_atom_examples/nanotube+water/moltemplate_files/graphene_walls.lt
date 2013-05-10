@@ -1,12 +1,14 @@
+
 import "graphene.lt"
 
 # -------------- graphene sheet -----------------
 
 # Notes:
 #    Hexagonal lattice with:
-# l = length of each hexagonal side = 1.42 Angstroms
-# L = length of each hexagon = 2*l  = 2.84 Angstroms
-# W =  width of each hexagon = 2*l*sqrt(3)/2 = 2.4595121467478 Angstroms
+# d = length of each hexagonal side  = 1.42 Angstroms
+# L = length of each hexagon = 2*d   = 2.84 Angstroms
+# W =  width of each hexagon = 2*d*sqrt(3)/2 = 2.4595121467478 Angstroms
+# w =  width of hexagon rows = 1.5*d = 2.13 Angstroms
 
 Wall {
   unitcells = new Graphene/2AtomCellAlignX [14].move(1.2297560733739, 2.13, 0)
@@ -32,3 +34,21 @@ Wall {
 
 wall1 = new Wall.move(0, 0, 32.0)
 wall2 = new Wall.move(0, 0, 58.26)
+
+
+# WARNING:  A reader has emailed me to point out that:
+#         THIS IS NOT A REALISTIC MODEL OF A GRAPHENE-NANOTUBE JUNCTION.
+#           A real junction would be curved and deformed near the boundary,
+#           (not 90 degrees) and it would not be built entirely from hexagons.
+#           (This is not a problem in this example because the carbon atoms
+#           are immobilized.)  If you want to simulate the behavior of
+#           real graphene or nanotube junctions, you must be more careful.
+#          To solve this problem:
+#           Moltemplate allows you to move, customize or delete individual
+#           atoms near the boundary.  You can move atoms by overwriting their 
+#           coordinates using additional write("Data Atoms") statements (after
+#           the walls and tube are created).  You can also change their charge.
+#          Alternately, you could start with the structure provided here, and 
+#           relax/minimize the coordinates of the carbon atoms using LAMMPS
+#           before using it in other simulations.
+#          Or you could do both (customization & minimization).

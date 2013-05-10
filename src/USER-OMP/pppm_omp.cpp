@@ -47,6 +47,7 @@ using namespace MathSpecial;
 PPPMOMP::PPPMOMP(LAMMPS *lmp, int narg, char **arg) :
   PPPM(lmp, narg, arg), ThrOMP(lmp, THR_KSPACE)
 {
+  triclinic_support = 0;
   suffix_flag |= Suffix::OMP;
 }
 

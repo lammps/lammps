@@ -1140,9 +1140,7 @@ void Domain::remap_near(double *xnew, double *xold)
     while (coordold[2]-coordnew[2] > half[2]) coordnew[2] += period[2];
   }
 
-  if (triclinic) {
-    lamda2x(coordnew,xnew);
-  }
+  if (triclinic) lamda2x(coordnew,xnew);
 }
 
 /* ----------------------------------------------------------------------

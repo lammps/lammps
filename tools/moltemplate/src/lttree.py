@@ -164,7 +164,7 @@ def LttreeParseArgs(argv, settings):
 
         elif ((argv[i][0] == '-') and (__name__ == "__main__")):
             #elif (__name__ == "__main__"):
-            raise InputError('Error('+__file__+'):\n'
+            raise InputError('Error('+g_program_name+'):\n'
                              'Unrecogized command line argument \"'+argv[i]+'\"\n')
         else:
             i += 1
@@ -195,7 +195,7 @@ def LttreeParseArgs(argv, settings):
         else:
             # if there are more than 2 remaining arguments,
             problem_args = ['\"'+arg+'\"' for arg in argv[1:]]
-            raise InputError('Syntax Error('+__file__+'):\n\n'
+            raise InputError('Syntax Error('+g_program_name+'):\n\n'
                              '       Problem with argument list.\n'
                              '       The remaining arguments are:\n\n'
                              '         '+(' '.join(problem_args))+'\n\n'
@@ -262,8 +262,17 @@ def TransformAtomText(text, matrix):
     #sys.stderr.write('matrix_stack.M = \n'+ MatToStr(matrix) + '\n')
 
     lines = text.split('\n')
+
     for i in range(0, len(lines)):
-        line = lines[i]
+        line_orig = lines[i]
+        ic = line_orig.find('#')
+        if ic != -1:
+            line = line_orig[:ic]
+            comment = ' '+line_orig[ic:].rstrip('\n')
+        else:
+            line = line_orig.rstrip('\n')
+            comment = ''
+
         columns = line.split()
         if len(columns) > 0:
             if len(columns) == len(settings.column_names)+3:
@@ -295,7 +304,7 @@ def TransformAtomText(text, matrix):
                     LinearTransform(x, matrix, x0)  # x = matrix * x0
                 for d in range(0,3):
                     columns[cxcycz[d]] = str(x[d])
-        lines[i] = ' '.join(columns)
+        lines[i] = ' '.join(columns) + comment
     return '\n'.join(lines)
 
 
@@ -649,14 +658,14 @@ if __name__ == "__main__":
     5)and carries out the "write" commands to write the templates a file(s).
 
     """
-    g_program_name = 'lttree.py'
-    g_date_str     = '2012-12-15'
-    g_version_str  = '0.7'
+    g_program_name = __file__.split('/')[-1]  # ='lttree.py'
+    g_date_str     = '2013-2-15'
+    g_version_str  = '0.71'
 
     #######  Main Code Below: #######
     sys.stderr.write(g_program_name+' v'+g_version_str+' '+g_date_str+' ')
     sys.stderr.write('\n(python version '+str(sys.version)+')\n')
-    if sys.version < '2.6':
+    if sys.version < '2.7':
         raise InputError('Error: Alas, you must upgrade to a newever version of python.')
 
     try:

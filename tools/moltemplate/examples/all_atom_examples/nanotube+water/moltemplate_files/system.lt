@@ -35,3 +35,4 @@ write_once("In Settings") {
   pair_coeff @atom:Graphene/C @atom:SPCE/O lj/charmm/coul/long 0.114 3.28
   pair_coeff @atom:Graphene/C @atom:SPCE/H lj/charmm/coul/long 0.0   3.28
 }
+

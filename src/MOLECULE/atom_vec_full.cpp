@@ -63,7 +63,7 @@ void AtomVecFull::grow(int n)
   type = memory->grow(atom->type,nmax,"atom:type");
   mask = memory->grow(atom->mask,nmax,"atom:mask");
   image = memory->grow(atom->image,nmax,"atom:image");
-  x = memory->grow(atom->x,nmax+1,3,"atom:x");
+  x = memory->grow(atom->x,nmax,3,"atom:x");
   v = memory->grow(atom->v,nmax,3,"atom:v");
   f = memory->grow(atom->f,nmax*comm->nthreads,3,"atom:f");
 
@@ -1007,7 +1007,7 @@ int AtomVecFull::pack_data_hybrid(int i, double *buf)
 void AtomVecFull::write_data(FILE *fp, int n, double **buf)
 {
   for (int i = 0; i < n; i++)
-    fprintf(fp,"%d %d %d %g %-1.16e %-1.16e %-1.16e %d %d %d\n",
+    fprintf(fp,"%d %d %d %-1.16e %-1.16e %-1.16e %-1.16e %d %d %d\n",
             (int) buf[i][0],(int) buf[i][1],(int) buf[i][2],
             buf[i][3],buf[i][4],buf[i][5],buf[i][6],
             (int) buf[i][7],(int) buf[i][8],(int) buf[i][9]);
@@ -1019,7 +1019,7 @@ void AtomVecFull::write_data(FILE *fp, int n, double **buf)
 
 int AtomVecFull::write_data_hybrid(FILE *fp, double *buf)
 {
-  fprintf(fp," %d %g",(int) buf[0],buf[1]);
+  fprintf(fp," %d %-1.16e",(int) buf[0],buf[1]);
   return 2;
 }
 

@@ -46,29 +46,23 @@ Monomer {
     $bond:CR2  @bond:sidechain  $atom:CA  $atom:R2
   }
 
-  # bond-type          k     r0
-
-  write_once("Data Bond Coeffs") {
-    @bond:sidechain   30.0   1.2
-    @bond:bb          30.0   2.0    # "bb" shorthand for "backbone"
+  write_once("In Settings") {
+    #           bond-type          k     r0
+    bond_coeff  @bond:sidechain   30.0   1.2
+    bond_coeff  @bond:bb          30.0   2.0    # "bb" shorthand for "backbone"
   }
 
   # Although there's no need to define angular interactions (because this 
   # "molecule" only contains two atoms), we define the settings for angles
   # or dihedrals which might be present later when we build a polymer.
 
-  # angle-type         k    theta0
-
-  write_once("Data Angle Coeffs") {
-    @angle:backbone   50.00  160
-    @angle:sidechain  50.00  120
-    @angle:RCR        50.00  120
-  }
-
-  # dihedral-type      K1      K2      K3      K4
-
-  write_once("Data Dihedral Coeffs") {
-    @dihedral:backbn  1.411036 -0.271016 3.145034 0.0
+  write_once("In Settings") {
+    #            angle-type         k    theta0
+    angle_coeff  @angle:backbone   50.00  160
+    angle_coeff  @angle:sidechain  50.00  120
+    angle_coeff  @angle:RCR        50.00  120
+    #                  dihedral-type      K1      K2      K3      K4
+    dihedral_coeff  @dihedral:backbn  1.411036 -0.271016 3.145034 0.0
   }
 
   #  Rules for determining 3 and 4-body bonded interactions by type

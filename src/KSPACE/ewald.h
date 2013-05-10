@@ -43,6 +43,7 @@ class Ewald : public KSpace {
 
   double unitk[3];
   int *kxvecs,*kyvecs,*kzvecs;
+  int kxmax_orig,kymax_orig,kzmax_orig;
   double *ug;
   double **eg,**vg;
   double **ek;
@@ -61,6 +62,12 @@ class Ewald : public KSpace {
   virtual void allocate();
   void deallocate();
   void slabcorr();
+
+  // triclinic
+
+  int triclinic;
+  void eik_dot_r_triclinic();
+  void coeffs_triclinic();
 
   // group-group interactions
 
@@ -81,10 +88,6 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Cannot use Ewald with triclinic box
-
-This feature is not yet supported.
-
 E: Cannot use Ewald with 2d simulation
 
 The kspace style ewald cannot be used in 2d simulations.  You can use
@@ -104,6 +107,10 @@ E: Incorrect boundaries with slab Ewald
 
 Must have periodic x,y dimensions and non-periodic z dimension to use
 2d slab option with Ewald.
+
+E: Cannot (yet) use Ewald with triclinic box and slab correction
+
+This feature is not yet supported.
 
 E: KSpace style is incompatible with Pair style
 

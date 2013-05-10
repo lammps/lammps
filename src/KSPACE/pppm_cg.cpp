@@ -53,10 +53,10 @@ PPPMCG::PPPMCG(LAMMPS *lmp, int narg, char **arg) : PPPM(lmp, narg, arg)
   if ((narg < 1) || (narg > 2))
     error->all(FLERR,"Illegal kspace_style pppm/cg command");
 
-  if (narg == 2)
-    smallq = atof(arg[1]);
-  else
-    smallq = SMALLQ;
+  triclinic_support = 0;
+
+  if (narg == 2) smallq = atof(arg[1]);
+  else smallq = SMALLQ;
 
   num_charged = -1;
   is_charged = NULL;
@@ -78,7 +78,6 @@ PPPMCG::~PPPMCG()
 
 void PPPMCG::compute(int eflag, int vflag)
 {
-
   // set energy/virial flags
   // invoke allocate_peratom() if needed for first time
 

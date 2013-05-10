@@ -155,7 +155,7 @@ def BelongsToSel(i, sel):
 
 try:
 
-    g_program_name = 'lemplify.py'
+    g_program_name = __file__.split('/')[-1]  # = 'lemplify.py'
     g_version_str  = '0.3'
     g_date_str     = '2012-12-11'
     sys.stderr.write(g_program_name+' v'+g_version_str+' '+g_date_str+'\n')

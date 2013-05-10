@@ -1025,7 +1025,8 @@ int AtomVecWavepacket::pack_data_hybrid(int i, double *buf)
 void AtomVecWavepacket::write_data(FILE *fp, int n, double **buf)
 {
   for (int i = 0; i < n; i++)
-    fprintf(fp,"%d %d %g %g %g %g %g %g %g %g %g %d %d %d\n",
+    fprintf(fp,"%d %d %-1.16e %d %-1.16e %d %-1.16e %-1.16e %-1.16e "
+            "%-1.16e %-1.16e %d %d %d\n",
             (int) buf[i][0],(int) buf[i][1],
             buf[i][2],(int) buf[i][3],buf[i][4],
             (int) buf[i][5],buf[i][6],buf[i][7],
@@ -1039,7 +1040,7 @@ void AtomVecWavepacket::write_data(FILE *fp, int n, double **buf)
 
 int AtomVecWavepacket::write_data_hybrid(FILE *fp, double *buf)
 {
-  fprintf(fp," %g %d %g %d %g %g",
+  fprintf(fp," %-1.16e %d %-1.16e %d %-1.16e %-1.16e",
           buf[0],(int) buf[1],buf[2],(int) buf[3],buf[4],buf[5]);
   return 6;
 }
@@ -1077,7 +1078,7 @@ int AtomVecWavepacket::pack_vel_hybrid(int i, double *buf)
 void AtomVecWavepacket::write_vel(FILE *fp, int n, double **buf)
 {
   for (int i = 0; i < n; i++)
-    fprintf(fp,"%d %g %g %g %g\n",
+    fprintf(fp,"%d %-1.16e %-1.16e %-1.16e %-1.16e\n",
             (int) buf[i][0],buf[i][1],buf[i][2],buf[i][3],buf[i][4]);
 }
 
@@ -1087,7 +1088,7 @@ void AtomVecWavepacket::write_vel(FILE *fp, int n, double **buf)
 
 int AtomVecWavepacket::write_vel_hybrid(FILE *fp, double *buf)
 {
-  fprintf(fp," %g",buf[0]);
+  fprintf(fp," %-1.16e",buf[0]);
   return 1;
 }
 

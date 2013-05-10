@@ -1,0 +1,132 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+fix reax/c/species command :h3
+
+[Syntax:]
+
+fix ID group-ID reax/c/species Nevery Nrepeat Nfreq filename keyword value ... :pre
+
+ID, group-ID are documented in "fix"_fix.html command :ulb,l
+reax/c/species = style name of this command :l
+
+Nevery = sample bond-order every this many timesteps :l
+Nrepeat = # of bond-order samples used for calculating averages :l
+Nfreq = calculate average bond-order every this many timesteps :l
+filename = name of output file :l
+
+zero or more keyword/value pairs may be appended :l
+keyword = {cutoff} or {element} or {position} :l
+  {cutoff} value = I J Cutoff
+    I, J = atom types
+    Cutoff = Bond-order cutoff value for this pair of atom types
+  {element} value = Element1, Element2, ... 
+  {position} value = posfreq filepos
+    posfreq = write position files every this many timestep
+    filepos = name of position output file :pre
+:ule
+
+[Examples:]
+
+fix 1 all species 10 10 100 species.out
+fix 1 all species 1 2 20 species.out cutoff 1 1 0.40 cutoff 1 2 0.55
+fix 1 all species 1 100 100 species.out element Au O H position 1000 AuOH.pos :pre
+
+[Description:]
+
+Write out the chemical species information computed by the ReaxFF potential
+specified by "pair_style reax/c"_pair_reax_c.html.  Bond-order values 
+(either averaged or instantaneous, depending on value of {Nrepeat}) 
+are used to determine chemical bonds. Every {Nfreq} timesteps,
+chemical species  information is written to {filename} as a two line output.
+The first line is a header containing labels. The second line consists 
+of the following: timestep, total number of molecules, 
+total number of distinct species, number of molecules of each species.
+The chemical formula of each species is given in the first line.
+
+Optional keyword {cutoff} can be assigned to change the minimum bond-order values 
+used in identifying chemical bonds between pairs of atoms.  Bond-order cutoffs 
+should be carefully chosen, as bond-order cutoffs that are too small may include 
+too many bonds (which will result in an error), while too-large cutoffs will 
+result in fragmented molecules.  The default cutoff of 0.3 usually gives good 
+estimate. 
+
+Optional keyword {element} can be used to specify the chemical symbol printed for
+each LAMMPS atom type. The number of symbols must match the number of LAMMPS atom types
+and each symbol must consist of 1 or 2 alphanumeric characters. Normally, these
+symbols should be chosen to match the chemical identity of each LAMMPS atom type,
+as specified using the "reax/c pair_coeff"_pair_reax_c.html command and 
+the ReaxFF force field file. 
+
+Optional keyword {position} writes center-of-mass positions of each identified 
+molecules to file {filepos} every {posfreq} timesteps.  The first line contains
+information on timestep, total number of molecules, total number of distinct 
+species, and box dimensions.  The second line is a header containing labels.
+From the third line downward, each molecule writes a line of output containing 
+the following information: molecule ID, number of atoms in this molecule, chemical 
+formula, total charge, and center-of-mass xyz positions of this molecule.  The xyz
+positions are in fractional coordinates relative to the box dimensions.  
+
+Keyword {position} output file {filepos} can contain the wildcard character "*".  
+If the "*" character appears in {filepos}, then one file per snapshot is written 
+at {posfreq} and the "*" character is replaced with the timestep value.  
+For example, AuO.pos.* becomes AuO.pos.0, AuO.pos.1000, etc.
+
+:line
+
+The {Nevery}, {Nrepeat}, and {Nfreq} arguments specify on what
+timesteps the bond-order values are sampled to get the average bond
+order.  The species analysis is performed using the average bond-order
+on timesteps
+that are a multiple of {Nfreq}.  The average is over {Nrepeat}
+bond-order samples, computed in the preceding portion of the simulation every
+{Nevery} timesteps.  {Nfreq} must be a multiple of {Nevery} and
+{Nevery} must be non-zero even if {Nrepeat} is 1.  Also, the timesteps
+contributing to the average bond-order cannot overlap, i.e. Nfreq >
+(Nrepeat-1)*Nevery is required.
+
+For example, if Nevery=2, Nrepeat=6, and Nfreq=100, then bond-order values on
+timesteps 90,92,94,96,98,100 will be used to compute the average bond-order
+ for the species analysis output on timestep 100.  
+
+:line
+
+[Restart, fix_modify, output, run start/stop, minimize info:]
+
+No information about this fix is written to "binary restart
+files"_restart.html.  None of the "fix_modify"_fix_modify.html options
+are relevant to this fix.  No global or per-atom quantities are stored
+by this fix for access by various "output
+commands"_Section_howto.html#howto_15.  No parameter of this fix can
+be used with the {start/stop} keywords of the "run"_run.html command.
+This fix is not invoked during "energy minimization"_minimize.html.
+
+[Restrictions:]
+
+The fix species currently only works with 
+"pair_style reax/c"_pair_reax_c.html and it requires that the "pair_style
+reax/c"_pair_reax_c.html be invoked.  This fix is part of the
+USER-REAXC package.  It is only enabled if LAMMPS was built with that
+package.  See the "Making LAMMPS"_Section_start.html#start_3 section
+for more info.
+
+It should be possible to extend it to other reactive pair_styles (such as 
+"rebo"_pair_airebo.html, "airebo"_pair_airebo.html, 
+"comb"_pair_comb.html, and "bop"_pair_bop.html), but this has not yet been done.
+
+[Related commands:]
+
+"pair_style reax/c"_pair_reax_c.html, "fix
+reax/bonds"_fix_reax_bonds.html
+
+[Default:] 
+
+The default values for bond-order cutoffs are 0.3 for all I-J pairs.  The
+default element symbols are C, H, O, N.  Position files are not written 
+by default.
+

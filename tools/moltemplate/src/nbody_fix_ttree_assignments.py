@@ -45,9 +45,11 @@ I wrote this python script (instead of using awk) just to handle quoted stings
 import sys
 from ttree_lex import SplitQuotedString, EscCharStrToChar, SafelyEncodeString, InputError
 
+g_program_name = __file__.split('/')[-1]
+
 try:
     if (len(sys.argv) != 3):
-        raise InputError('Error running  \"'+__file__+'\"\n'
+        raise InputError('Error running  \"'+g_program_name+'\"\n'
                          '   Wrong number of arguments.\n'
                          '   (This is likely a programmer error.\n'
                          '    This script was not intended to be run by end users.)\n')

@@ -1,19 +1,14 @@
-# This is just an example.
+# --- Running LAMMPS ---
+#  -- Prerequisites: --
+# The "run.in.nvt" file is a LAMMPS input script containing
+# references to the input scripts and data files
+# you hopefully have created earlier with moltemplate.sh:
+#   system.in.init, system.in.settings, system.data
+# If not, carry out the instructions in "README_setup.sh".
 #
-# Note: The "run.in.nvt" file is a LAMMPS input script which attempts to read 
-#       the input scripts and data files you created with moltemplate:
-#       system.in.init, system.in.settings, system.data
+#  -- Instructions: --
+# If "lmp_linux" is the name of the command you use to invoke lammps,
+# then you would run lammps on these files this way:
 
-LAMMPS_COMMAND="lmp_ubuntu"
 
-# Here "$LAMMPS_BINARY" is the name of the command you use to invoke lammps
-# (such as lmp_linux, lmp_g++, lmp_mac, lmp_cygwin, etc...) Change if necessary.
-
-# Run lammps using the following 3 commands:
-
-"$LAMMPS_COMMAND" -i run.in.nvt
-
-# Alternately, if you have MPI installed, try something like this:
-
-#NUMPROCS=4
-#mpirun -np $NUMPROCS "$LAMMPS_COMMAND" -i run.in.nvt
+lmp_linux -i run.in.nvt

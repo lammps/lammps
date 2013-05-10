@@ -1,31 +1,31 @@
-# You would probably run lammps this way:
+# --- Running LAMMPS ---
+#  -- Prerequisites: --
+# The 2 files "run.in.npt", and "run.in.nvt" are LAMMPS 
+# input scripts which link to the input scripts and data files
+# you hopefully have created earlier with moltemplate.sh:
+#   system.in.init, system.in.settings, system.data
+# If not, carry out the instructions in "README_setup.sh".
 #
-# lmp_ubuntu -i run.in.nvt
-
-# The "run.in.nvt" file is a LAMMPS input scripts which refers
-# to the input scripts & data files you created earlier when you ran moltemplate
-# system.in.init, system.in.settings, system.data
+#  -- Instructions: --
+# If "lmp_linux" is the name of the command you use to invoke lammps,
+# then you would run lammps on these files this way:
 
 
+lmp_linux -i run.in.npt  # minimization and simulation at constant pressure
+lmp_linux -i run.in.nvt  # minimization and simulation at constant volume
 
-# -----------------------------------
+#(Note: The constant volume simulation lacks pressure equilibration. These are
+#       completely separate simulations. The results of the constant pressure
+#       simulation are ignored when beginning the simulation at constant volume.
+#       This can be fixed.  Read "run.in.nvt" for equilibration instructions.)
 
 
 
-LAMMPS_COMMAND="lmp_ubuntu"
 
-# Here "$LAMMPS_BINARY" is the name of the command you use to invoke lammps
-# (such as lmp_linux, lmp_g++, lmp_mac, lmp_cygwin, etc...) Change if necessary.
 
-# Run lammps using the following 3 commands:
 
-"$LAMMPS_COMMAND" -i run.in.min    # minimize
-"$LAMMPS_COMMAND" -i run.in.npt    # pressure equilibration
-"$LAMMPS_COMMAND" -i run.in.nvt    # production run
 
-# Alternately, if you have MPI installed, try something like this:
-
-#NUMPROCS=4
-#mpirun -np $NUMPROCS "$LAMMPS_COMMAND" -i run.in.min
-#mpirun -np $NUMPROCS "$LAMMPS_COMMAND" -i run.in.nvt
-#mpirun -np $NUMPROCS "$LAMMPS_COMMAND" -i run.in.nvt
+# If you have compiled the MPI version of lammps, you can run lammps in parallel
+#mpirun -np 4 lmp_linux -i run.in.npt
+#mpirun -np 4 lmp_linux -i run.in.nvt
+# (assuming you have 4 processors available)

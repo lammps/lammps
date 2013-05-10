@@ -49,10 +49,10 @@ MSMCGOMP::MSMCGOMP(LAMMPS *lmp, int narg, char **arg) : MSMOMP(lmp, narg, arg)
   if ((narg < 1) || (narg > 2))
     error->all(FLERR,"Illegal kspace_style msm/cg/omp command");
 
-  if (narg == 2)
-    smallq = atof(arg[1]);
-  else
-    smallq = SMALLQ;
+  triclinic_support = 0;
+
+  if (narg == 2) smallq = atof(arg[1]);
+  else smallq = SMALLQ;
 
   num_charged = -1;
   is_charged = NULL;
@@ -66,7 +66,6 @@ MSMCGOMP::~MSMCGOMP()
 {
   memory->destroy(is_charged);
 }
-
 
 /* ----------------------------------------------------------------------
    compute the MSM long-range force, energy, virial

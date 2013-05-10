@@ -145,6 +145,22 @@ from ttree_lex import *
 from lttree_styles import AtomStyle2ColNames, ColNames2AidAtypeMolid
 
 
+if sys.version < '2.6':
+    raise InputError('Error: Using python '+sys.version+'\n'
+                     '       Alas, you must upgrade to a newever version of python (2.7 or later).')
+elif sys.version < '2.7':
+    sys.stderr.write('--------------------------------------------------------\n'
+                     '----------------- WARNING: OLD PYTHON VERSION ----------\n'
+                     '  This program is untested on your python version ('+sys.version+').\n'
+                     '  PLEASE LET ME KNOW IF THIS PROGRAM CRASHES (and upgrade python).\n'
+                     '    -Andrew   2012-4-16\n'
+                     '--------------------------------------------------------\n'
+                     '--------------------------------------------------------\n')
+    from ordereddict import OrderedDict
+else:
+    from collections import OrderedDict
+
+
 
 def GenInteractions_lines(lines_atoms,
                           lines_bonds,
@@ -342,9 +358,9 @@ def GenInteractions_files(lines_data,
 
 if __name__ == "__main__":
 
-    g_program_name = 'nbody_by_type.py'
-    g_date_str     = '2012-8-14'
-    g_version_str  = '0.10'
+    g_program_name = __file__.split('/')[-1]  # = 'nbody_by_type.py'
+    g_date_str     = '2013-4-16'
+    g_version_str  = '0.11'
 
     #######  Main Code Below: #######
     sys.stderr.write(g_program_name+' v'+g_version_str+' '+g_date_str+' ')
@@ -450,7 +466,7 @@ if __name__ == "__main__":
                 del(argv[i:i+2])
 
             elif argv[i][0] == '-':
-                raise InputError('Error('+__file__+'):\n'
+                raise InputError('Error('+g_program_name+'):\n'
                                  'Unrecogized command line argument \"'+argv[i]+'\"\n')
             else:
                 i += 1
@@ -471,7 +487,7 @@ if __name__ == "__main__":
         else:
             # if there are more than 2 remaining arguments,
             problem_args = ['\"'+arg+'\"' for arg in argv[1:]]
-            raise InputError('Syntax Error('+__file__+'):\n\n'
+            raise InputError('Syntax Error('+g_program_name+'):\n\n'
                              '       Problem with argument list.\n'
                              '       The remaining arguments are:\n\n'
                              '         '+(' '.join(problem_args))+'\n\n'

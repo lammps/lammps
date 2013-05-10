@@ -35,7 +35,7 @@ g_program_name = g_filename
 try:
 
     if (len(sys.argv) != 2):
-        raise InputError('Error running  \"'+__file__+'\"\n'
+        raise InputError('Error running  \"'+g_program_name+'\"\n'
                          ' Typical usage:\n'
                          ' ttree_render.py ttree_assignments.txt < file.template > file.rendered\n'
                          '\n'

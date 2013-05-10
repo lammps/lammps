@@ -2,7 +2,8 @@ import "spce.lt"
 
 # --------------- water ------------------
 
-# Create a rectangular box of water
+# Create a rhombohedral box of water. (A rectangular box works also.)
+
 wat  =  new SPCE  [9].move(3.5526287,    0,      0 )
                   [9].move(1.77631435, 3.3133,   0 )
                   [6].move(   0,         0,    3.45)

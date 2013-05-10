@@ -38,6 +38,7 @@ using namespace LAMMPS_NS;
 MSMOMP::MSMOMP(LAMMPS *lmp, int narg, char **arg) :
   MSM(lmp, narg, arg), ThrOMP(lmp, THR_KSPACE)
 {
+  triclinic_support = 0;
   suffix_flag |= Suffix::OMP;
 }
 

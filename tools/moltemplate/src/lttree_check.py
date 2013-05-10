@@ -48,7 +48,7 @@ from lttree_styles import *
 from lttree import *
 from ttree_lex import InputError
 
-if sys.version < '2.6':
+if sys.version < '2.7':
     raise InputError('Error: Alas, you must upgrade to a newever version of python.')
 
 
@@ -1813,7 +1813,7 @@ def LttreeCheckParseArgs(argv, settings):
         else:
             # if there are more than 2 remaining arguments,
             problem_args = ['\"'+arg+'\"' for arg in argv[1:]]
-            raise InputError('Syntax Error('+__file__+'):\n\n'
+            raise InputError('Syntax Error('+g_program_name+'):\n\n'
                              '       Unrecognized argument.\n'
                              '         (That or there is some other problem with the argument list.)\n'
                              '       The problem begins with these arguments:\n'
@@ -1832,9 +1832,9 @@ def LttreeCheckParseArgs(argv, settings):
 
 if __name__ == "__main__":
 
-    g_program_name = 'lttree_check.py'
-    g_version_str  = '0.72'
-    g_date_str     = '2012-12-15'
+    g_program_name = __file__.split('/')[-1]  # = 'lttree_check.py'
+    g_version_str  = '0.73'
+    g_date_str     = '2013-2-15'
     sys.stderr.write(g_program_name+' v'+g_version_str+' '+g_date_str+'\n')
 
     try:

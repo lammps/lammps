@@ -167,6 +167,8 @@ volfactor. This turns off all kspace forces in the z direction.
 The {nozforce} option is not supported by MSM. For MSM, any combination
 of periodic, non-periodic, or shrink-wrapped boundaries can be set 
 using "boundary"_boundary.html (the slab approximation in not needed).
+The {slab} keyword is not currently supported by Ewald or PPPM when
+using a triclinic simulation cell.
 
 The {compute} keyword allows Kspace computations to be turned off,
 even though a "kspace_style"_kspace_style.html is defined.  This is
@@ -205,7 +207,9 @@ then performs analytic differentiation on the single quantity to
 generate the 3 components of the electric field at each grid point.
 This is sometimes referred to as "smoothed" PPPM.  This approach
 requires a somewhat larger PPPM mesh to achieve the same accuracy as
-the {ik} method. The {ad} method is always used for MSM.
+the {ik} method. Currently, only the {ik} method (default) can be 
+used for a triclinic simulation cell with PPPM. The {ad} method is 
+always used for MSM.
 
 IMPORTANT NOTE: Currently, not all PPPM styles support the {ad}
 option.  Support for those PPPM variants will be added later.

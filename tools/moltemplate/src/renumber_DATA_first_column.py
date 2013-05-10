@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 
 """
-   Get rid of lines containing duplicate copies of the same atom in the "Atoms"
-   section of a LAMMPS data file.  Duplicate lines which occur later are
-   preserved and the earlier lines are erased.
-   The file is read from sys.stdin.  This program does not parse the entire 
-   data file.  The text from the "Atoms" section of the LAMMPS file must 
-   be extracted in advance before it is sent to this program.)
+   renumber the integers at the beginning of ever line in the file
+   to make sure these numbers are contiguous.
+   The file is read from sys.stdin.
+   This program does not parse an entire LAMMPS data file.
+   The text from the "Atoms" section
+    (or "Bonds", or "Angles", or "Dihedrals", or "Impropers" sections) 
+   of the LAMMPS file must be extracted in advance.
 
 """
 
@@ -31,9 +32,11 @@ i = 0
 while i < len(lines):
     line_orig = lines[i]
     line = line_orig.rstrip('\n')
+    comment = ''
     if '#' in line_orig:
         ic = line.find('#')
         line = line_orig[:ic]
+        comment = ' '+line_orig[ic:].rstrip('\n')
 
     tokens = line.strip().split()
     if len(tokens) > 0:
@@ -41,7 +44,7 @@ while i < len(lines):
             column1 = int(tokens[0])
         else:
             column1 = tokens[0]
-        column1_iorig_columnsAfter1.append([column1, i, ' '.join(tokens[1:])])
+        column1_iorig_columnsAfter1.append([column1, i, ' '.join(tokens[1:])+comment])
     i += 1
 
 # Sort the list of lines by the first number on each line

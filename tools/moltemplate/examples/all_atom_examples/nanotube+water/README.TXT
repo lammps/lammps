@@ -33,3 +33,19 @@ Note: Other modeling tools:
       with it later.  (In the "cnad-cnt" example, the carbon nanotube was built
       using "Nanotube Builder" and topotools, and processed with ltemplify.py)
 
+
+# WARNING: THIS IS NOT A REALISTIC MODEL OF A GRAPHENE-NANOTUBE JUNCTION.
+#           A real junction would be curved and deformed near the boundary,
+#           (not 90 degrees) and it would not be built entirely from hexagons.
+#           (This is not a problem in this example because the carbon atoms
+#           are immobilized.)  If you want to simulate the behavior of
+#           real graphene or nanotube junctions, you must be more careful.
+#          To solve this problem:
+#           Moltemplate allows you to move, customize or delete individual
+#           atoms near the boundary.  You can move atoms by overwriting their 
+#           coordinates using additional write("Data Atoms") statements (after
+#           the walls and tube are created).  You can also change their charge.
+#          Alternately, you could start with the structure provided here, and 
+#           relax/minimize the coordinates of the carbon atoms using LAMMPS
+#           before using it in other simulations.  
+#          Or you could do both (customization & minimization).

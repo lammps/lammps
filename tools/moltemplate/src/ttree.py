@@ -65,20 +65,18 @@ except NameError:
 from ttree_lex import *
 
 
-#   -- ordereddict.py --
-# For users who are not able to upgrade to python 2.7 or higher, 
-# I included a copy of "ordereddict.py" (MIT license)
-# by Raymond Hettinger (v1.1, rev345), downloaded from these sources:
-# https://projects.coin-or.org/CoinBazaar/browser/projects/PyCoinInstall/trunk/tpl/ordereddict.py
-# http://pypi.python.org/pypi/ordereddict
-# http://code.activestate.com/recipes/576693/
-# If you are using python 2.7 (or 3) or higher, you can 
-# delete "odereddict.py"
-
-if sys.version < '2.7':
+if sys.version < '2.6':
+    raise InputError('Error: Using python '+sys.version+'\n'
+                     '       Alas, you must upgrade to a newever version of python (2.7 or later).')
+elif sys.version < '2.7':
+    sys.stderr.write('--------------------------------------------------------\n'
+                     '----------------- WARNING: OLD PYTHON VERSION ----------\n'
+                     '  This program is untested on your python version ('+sys.version+').\n'
+                     '  PLEASE LET ME KNOW IF THIS PROGRAM CRASHES (and upgrade python).\n'
+                     '    -Andrew   2012-4-16\n'
+                     '--------------------------------------------------------\n'
+                     '--------------------------------------------------------\n')
     from ordereddict import OrderedDict
-elif sys.version < '2.6':
-    raise InputError('Error: Alas, you must upgrade to a newever version of python.')
 else:
     from collections import OrderedDict
 
@@ -96,8 +94,8 @@ g_filename    = __file__.split('/')[-1]
 g_module_name  = g_filename
 if g_filename.rfind('.py') != -1:
     g_module_name = g_filename[:g_filename.rfind('.py')]
-g_date_str     = '2012-12-15'
-g_version_str  = '0.73'
+g_date_str     = '2013-4-16'
+g_version_str  = '0.74'
 
 
 
@@ -2492,9 +2490,9 @@ class StaticObj(object):
                             child.instance_commands_push.append(push_mod_command)
                             child.instance_commands_pop.insert(0,pop_mod_command)
 
-                            sys.stderr.write('child.instance_commands_push = '+str(child.instance_commands_push)+'\n')
+                            #sys.stderr.write('child.instance_commands_push = '+str(child.instance_commands_push)+'\n')
 
-                            sys.stderr.write('child.instance_commands_pop = '+str(child.instance_commands_pop)+'\n')
+                            #sys.stderr.write('child.instance_commands_pop = '+str(child.instance_commands_pop)+'\n')
                          
                         # Check to see if this class has already been defined. 
                         # (IE. check if it present in the list of children.) 

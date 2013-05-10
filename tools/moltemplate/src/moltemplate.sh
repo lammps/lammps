@@ -7,8 +7,8 @@
 # All rights reserved.
 
 G_PROGRAM_NAME="moltemplate.sh"
-G_VERSION="1.01"
-G_DATE="2012-12-15"
+G_VERSION="1.02"
+G_DATE="2013-2-15"
 
 echo "${G_PROGRAM_NAME} v${G_VERSION} ${G_DATE}" >&2
 echo "" >&2
@@ -30,6 +30,24 @@ else
     echo "Error:  $G_PROGRAM_NAME requires python or python3" >&2
     exit 1
 fi
+
+
+MSG_BAD_PATH=$(cat <<EOF
+
+ERROR: Did you remember to set your PATH environment variable?
+       If not, follow the instructions in the "Installation" section of the
+       moltemplate manual. (You may need to log out before changes take effect.)
+
+       (Note: Do not move the "moltemplate.sh" file out of its "src" directory.)
+EOF
+)
+
+
+ERR_BAD_PATH()
+{
+  echo "$MSG_BAD_PATH" >&2
+  exit 1
+}
 
 
 IMOLPATH=""
@@ -478,7 +496,7 @@ done
 
 if [ -n "$LTTREE_CHECK_COMMAND" ]; then
     if ! eval $LTTREE_CHECK_COMMAND $TTREE_ARGS; then
-        exit 1
+        ERR_BAD_PATH
     fi
 fi
 
@@ -488,7 +506,7 @@ fi
 # 3, 2, 1, ...
 
 if ! eval $LTTREE_COMMAND $TTREE_ARGS; then
-    exit 1
+    ERR_BAD_PATH
 fi
 
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -504,13 +522,25 @@ fi
 
 echo "" >&2
 
-
 if [ -s "${data_atoms}" ]; then
-    remove_duplicate_atoms.py < "${data_atoms}" > "${data_atoms}.tmp"
+    if ! $PYTHON_COMMAND ${SCRIPT_DIR}/remove_duplicate_atoms.py \
+                                   < "${data_atoms}" \
+                                   > "${data_atoms}.tmp"; then
+        ERR_BAD_PATH
+    fi
     mv -f "${data_atoms}.tmp" "${data_atoms}"
-    remove_duplicate_atoms.py < "${data_atoms}".template > "${data_atoms}.tmp"
-    mv -f "${data_atoms}.tmp" "${data_atoms}".template
-    renumber_DATA_first_column.py < ${data_atoms} > "${data_atoms}.tmp"
+    if ! $PYTHON_COMMAND ${SCRIPT_DIR}/remove_duplicate_atoms.py \
+                                   < "${data_atoms}.template" \
+                                   > "${data_atoms}.tmp"; then
+        ERR_BAD_PATH
+    fi
+    mv -f "${data_atoms}.tmp" "${data_atoms}.template"
+
+    if ! $PYTHON_COMMAND ${SCRIPT_DIR}/renumber_DATA_first_column.py \
+                                       < "${data_atoms}" \
+                                       > "${data_atoms}.tmp"; then
+        ERR_BAD_PATH
+    fi
     mv -f "${data_atoms}.tmp" "${data_atoms}"
 else
     echo "Error: There are no atoms in your system." >&2
@@ -544,7 +574,7 @@ if [ -s "$data_angles_by_type" ]; then
         -bonds "${data_bonds}.template" \
         -nbodybytype "${data_angles_by_type}.template" \
 	-prefix '$/angle:bytype' > gen_Angles.template.tmp; then
-	exit 1
+        ERR_BAD_PATH
     fi
 
     # ---- cleanup: ----
@@ -569,7 +599,7 @@ if [ -s "$data_angles_by_type" ]; then
     if ! $NBODY_FIX_COMMAND '/angle' gen_Angles.template.tmp \
           < ttree_assignments.txt \
           > ttree_assignments.tmp; then
-        exit 1
+        ERR_BAD_PATH
     fi
 
     echo "(Rendering ttree_assignments.tmp file after angles added.)" >&2
@@ -581,7 +611,7 @@ if [ -s "$data_angles_by_type" ]; then
     if ! $TTREE_RENDER  ttree_assignments.tmp \
            < "${data_angles}.template" \
            > "$data_angles"; then
-        exit 1
+        ERR_BAD_PATH
     fi
 
     mv -f ttree_assignments.tmp ttree_assignments.txt
@@ -598,7 +628,7 @@ if [ -s "$data_dihedrals_by_type" ]; then
         -bonds "${data_bonds}.template" \
         -nbodybytype "${data_dihedrals_by_type}.template" \
 	-prefix '$/dihedral:bytype' > gen_Dihedrals.template.tmp; then
-	exit 1
+        ERR_BAD_PATH
     fi
     # ---- cleanup: ----
     # ---- Re-build the "${data_dihedrals}.template" file ----
@@ -622,7 +652,7 @@ if [ -s "$data_dihedrals_by_type" ]; then
     if ! $NBODY_FIX_COMMAND '/dihedral' gen_Dihedrals.template.tmp \
           < ttree_assignments.txt \
           > ttree_assignments.tmp; then
-	exit 1
+        ERR_BAD_PATH
     fi
 
     echo "(Rendering ttree_assignments.tmp file after dihedral added.)" >&2
@@ -634,7 +664,7 @@ if [ -s "$data_dihedrals_by_type" ]; then
     if ! $TTREE_RENDER  ttree_assignments.tmp \
            < "${data_dihedrals}.template" \
            > "$data_dihedrals"; then
-	exit 1
+        ERR_BAD_PATH
     fi
 
     mv -f ttree_assignments.tmp ttree_assignments.txt
@@ -651,7 +681,7 @@ if [ -s "$data_impropers_by_type" ]; then
         -bonds "${data_bonds}.template" \
         -nbodybytype "${data_impropers_by_type}.template" \
 	-prefix '$/improper:bytype' > gen_Impropers.template.tmp; then
-	exit 1
+        ERR_BAD_PATH
     fi
     # ---- cleanup: ----
     # ---- Re-build the "${data_impropers}.template" file ----
@@ -675,7 +705,7 @@ if [ -s "$data_impropers_by_type" ]; then
     if ! $NBODY_FIX_COMMAND '/improper' gen_Impropers.template.tmp \
           < ttree_assignments.txt \
           > ttree_assignments.tmp; then
-	exit 1
+        ERR_BAD_PATH
     fi
 
     echo "(Rendering ttree_assignments.tmp file after impropers added.)" >&2
@@ -687,7 +717,7 @@ if [ -s "$data_impropers_by_type" ]; then
     if ! $TTREE_RENDER  ttree_assignments.tmp \
            < "${data_impropers}.template" \
            > "$data_impropers"; then
-	exit 1
+        ERR_BAD_PATH
     fi
 
     mv -f ttree_assignments.tmp ttree_assignments.txt
@@ -699,7 +729,7 @@ fi
 if [ -n "$LTTREE_POSTPROCESS_COMMAND" ]; then
     echo "" >&2
     if ! eval $LTTREE_POSTPROCESS_COMMAND $TTREE_ARGS; then
-        exit 1
+        ERR_BAD_PATH
     fi
     echo "" >&2
 fi
@@ -720,6 +750,8 @@ fi
 
 if [ -s "${data_bonds}" ]; then
     if [ ! -z $REMOVE_DUPLICATE_BONDS ]; then
+        nbody_reorder_atoms.py Bonds < "${data_bonds}" > "${data_bonds}.tmp"
+	cp -f "${data_bonds}.tmp" "${data_bonds}"
         remove_duplicates_nbody.py 2 < "${data_bonds}" > "${data_bonds}.tmp"
         mv "${data_bonds}.tmp" "${data_bonds}"
         remove_duplicates_nbody.py 2 < "${data_bonds}".template > "${data_bonds}.tmp"
@@ -732,6 +764,8 @@ fi
 
 if [ -s "${data_angles}" ]; then
     if [ ! -z $REMOVE_DUPLICATE_ANGLES ]; then
+        nbody_reorder_atoms.py Angles < "${data_angles}" > "${data_angles}.tmp"
+	cp -f "${data_angles}.tmp" "${data_angles}"
         remove_duplicates_nbody.py 3 < "${data_angles}" > "${data_angles}.tmp"
         mv "${data_angles}.tmp" "${data_angles}"
         remove_duplicates_nbody.py 3 < "${data_angles}".template > "${data_angles}.tmp"
@@ -744,6 +778,8 @@ fi
 
 if [ -s "${data_dihedrals}" ]; then
     if [ ! -z $REMOVE_DUPLICATE_DIHEDRALS ]; then
+        nbody_reorder_atoms.py Dihedrals < "${data_dihedrals}" > "${data_dihedrals}.tmp"
+	cp -f "${data_dihedrals}.tmp" "${data_dihedrals}"
         remove_duplicates_nbody.py 4 < "${data_dihedrals}" > "${data_dihedrals}.tmp"
         mv "${data_dihedrals}.tmp" "${data_dihedrals}"
         remove_duplicates_nbody.py 4 < "${data_dihedrals}".template > "${data_dihedrals}.tmp"
@@ -756,6 +792,8 @@ fi
 
 if [ -s "${data_impropers}" ]; then
     if [ ! -z $REMOVE_DUPLICATE_IMPROPERS ]; then
+        nbody_reorder_atoms.py Impropers < "${data_impropers}" > "${data_impropers}.tmp"
+	cp -f "${data_impropers}.tmp" "${data_impropers}"
         remove_duplicates_nbody.py 4 < "${data_impropers}" > "${data_impropers}.tmp"
         mv "${data_impropers}.tmp" "${data_impropers}"
         remove_duplicates_nbody.py 4 < "${data_impropers}".template > "${data_impropers}.tmp"

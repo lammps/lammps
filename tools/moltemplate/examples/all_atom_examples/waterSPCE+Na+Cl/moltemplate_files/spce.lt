@@ -39,8 +39,8 @@ SPCE {
   }
 
   write_once("In Settings") {
-    bond_coeff   @bond:OH     harmonic                 200.0   1.0 
-    angle_coeff  @angle:HOH   harmonic                 200.0   109.47
+    bond_coeff   @bond:OH     harmonic                 1000.0  1.0 
+    angle_coeff  @angle:HOH   harmonic                 1000.0  109.47
     pair_coeff   @atom:O @atom:O  lj/charmm/coul/long  0.1553  3.166 
     pair_coeff   @atom:H @atom:H  lj/charmm/coul/long  0.0     2.058
     group spce type  @atom:O  @atom:H

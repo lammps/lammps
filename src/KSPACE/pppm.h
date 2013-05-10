@@ -57,6 +57,7 @@ class PPPM : public KSpace {
   double cutoff;
   double volume;
   double delxinv,delyinv,delzinv,delvolinv;
+  double h_x,h_y,h_z;
   double shift,shiftone;
   int peratom_allocate_flag;
 
@@ -99,7 +100,6 @@ class PPPM : public KSpace {
   int **part2grid;             // storage for particle -> grid mapping
   int nmax;
 
-  int triclinic;               // domain settings, orthog or triclinic
   double *boxlo;
                                // TIP4P settings
   int typeH,typeO;             // atom types of TIP4P water H and O atoms
@@ -155,6 +155,14 @@ class PPPM : public KSpace {
   virtual void pack_reverse(int, FFT_SCALAR *, int, int *);
   virtual void unpack_reverse(int, FFT_SCALAR *, int, int *);
 
+  // triclinic
+
+  int triclinic;               // domain settings, orthog or triclinic
+  void setup_triclinic();
+  void compute_gf_ik_triclinic();
+  void poisson_ik_triclinic();
+  void poisson_groups_triclinic();
+
   // group-group interactions
 
   virtual void allocate_groups();
@@ -201,7 +209,11 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Cannot (yet) use PPPM with triclinic box
+E: Cannot (yet) use PPPM with triclinic box and 'kspace_modify diff ad'
+
+This feature is not yet supported.
+
+E: Cannot (yet) use PPPM with triclinic box and slab correction
 
 This feature is not yet supported.
 
@@ -246,6 +258,10 @@ Specified angle type is not valid.
 E: Bad TIP4P bond type for PPPM/TIP4P
 
 Specified bond type is not valid.
+
+E: Cannot (yet) use PPPM with triclinic box and TIP4P
+
+This feature is not yet supported.
 
 E: Cannot use kspace solver on system with no charge
 
@@ -309,6 +325,10 @@ This indicates bad physics, e.g. due to highly overlapping atoms, too
 large a timestep, etc.
 
 E: Cannot (yet) use K-space slab correction with compute group/group
+
+This option is not yet supported.
+
+E: Cannot (yet) use 'kspace_modify diff ad' with compute group/group
 
 This option is not yet supported.
 

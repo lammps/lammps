@@ -53,6 +53,8 @@ write_once("In Init") {
 
 # Optional: Define a group named "ions" consisting of either Na or Cl ions.
 write_once("In Settings") {
-  group ions type  @atom:NaIon/Na @atom:ClIon/Cl
+  group ionNa type  @atom:NaIon/Na @atom:NaIon/Na
+  group ionCl type  @atom:ClIon/Cl @atom:ClIon/Cl
+  group ions  type  @atom:NaIon/Na @atom:ClIon/Cl
 }
 

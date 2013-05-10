@@ -90,6 +90,7 @@ void EwaldDisp::init()
     if (logfile) fprintf(logfile,"EwaldDisp initialization ...\n");
   }
 
+  triclinic_check();
   if (domain->dimension == 2)
     error->all(FLERR,"Cannot use EwaldDisp with 2d simulation");
   if (slabflag == 0 && domain->nonperiodic > 0)

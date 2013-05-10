@@ -15,7 +15,9 @@ import sys
 from lttree_styles import *
 from ttree_lex import ExtractCatName
 
-g_program_name = 'lttree_postprocess.py'
+g_program_name = __file__.split('/')[-1]  # = 'lttree_postprocess.py'
+g_version_str  = '0.4'
+g_date_str     = '2012-12-12'
 atom_style = 'full'
 ttree_assignments_fname = 'ttree_assignments.txt'
 defined_mols = set([])
@@ -71,9 +73,6 @@ i_max_column = max(i_atomid, i_molid)
 #data_impropers="Data Impropers"
 
 
-g_program_name = 'lttree_postprocess.py'
-g_version_str  = '0.4'
-g_date_str     = '2012-12-12'
 sys.stderr.write(g_program_name+' v'+g_version_str+' '+g_date_str+'\n')
 
 try:
@@ -244,15 +243,18 @@ try:
         if len(tokens) > 0:
             # This file contains a list of variables of the form:
             #
-            # @/atom:MoleculeType1:C   1
-            # @/atom:MoleculeType2:N   2
+            # @/atom:MoleculeType1:C    1
+            # @/atom:MoleculeType1:H    2
+            # @/atom:MoleculeType2:N    3
+            # $/atom:molecule1:N1    1
+            # $/atom:molecule1:C1    2
             #   :
-            # $/atom:molecule1141:C2    13578
-            # $/atom:molecule1142:N1    13579
-            #
+            # $/atom:molecule1141:CH    13578
+            # $/atom:molecule1142:N3    13579
+            #   :
             # We only care about instance variables (which use the '$' prefix)
-            # Lines in this file with a different prefix ('@') which don't
-            # contain '$' should be ignored.
+            # Lines corresponding to static variables (which use the '@' prefix)
+            # are ignored during this pass.
             i_prefix = tokens[0].find('$')
             if i_prefix != -1:
                 descr_str = tokens[0][i_prefix+1:]
@@ -303,14 +305,21 @@ try:
                                      '     you specified the correct path which leads to it (using / and ..))\n\n'+
                                      g_no_check_msg)
 
-                elif ((cat_name == 'mol') and
-                    (tokens[0] not in defined_mols)):
-                    raise InputError('Error('+g_program_name+'): '+usage_location_str+'\n'+
-                                     '      Reference to undefined $mol (molecule-ID) variable:\n\n'
-                                     '            '+tokens[0]+'     (<--full name)\n\n'+
-                                     '    (If that molecule is part of a larger molecule, then make sure that\n'+
-                                     '     you specified the correct path which leads to it (using / and ..))\n\n'+
-                                     g_no_check_msg)
+                # I used to generate an error when a users defines a $mol 
+                # variable but does not associate any atoms with it (or if the
+                # user systematically deletes all the atoms in that molecule),
+                # but I stopped this practice.
+                # I don't think there is any real need to complain if some
+                # molecule id numbers are undefined.  LAMMPS does not care.
+                #
+                #elif ((cat_name == 'mol') and
+                #    (tokens[0] not in defined_mols)):
+                #    raise InputError('Error('+g_program_name+'): '+usage_location_str+'\n'+
+                #                     '      Reference to undefined $mol (molecule-ID) variable:\n\n'
+                #                     '            '+tokens[0]+'     (<--full name)\n\n'+
+                #                     '    (If that molecule is part of a larger molecule, then make sure that\n'+
+                #                     '     you specified the correct path which leads to it (using / and ..))\n\n'+
+                #                     g_no_check_msg)
 
 
     f.close()

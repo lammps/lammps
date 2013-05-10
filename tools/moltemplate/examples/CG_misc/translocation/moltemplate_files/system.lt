@@ -43,11 +43,13 @@ polymer.move(19.5,22.5,16.5) # move it near the openning of the hole
 ####################### Notes: #########################
 #
 # In this example we deleted solvent and wall molecule objects.
+# You can also delete a monomer inside the polymer.  To do that use:
+#   delete polymer/monomers[6]
 # You can also delete individual atoms, bonds, angles, dihedrals, & impropers
 # from existing molecules.  For example to delete an atom in the middle 
 # of the polymer try this.  (Bonds and other interactions will also be removed.)
 #   delete polymer/monomers[6]/CA
 # To delete a bond, try this
 #   delete polymer/bb6
-# Note: This will not delete the angular bonded interactions. Delete them too.
+# Note: This will not delete the angular interactions. Delete them manually
 # Note: In both cases the two molecule fragments will keep the same mol counter.

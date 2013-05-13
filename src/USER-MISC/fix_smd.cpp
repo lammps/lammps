@@ -226,22 +226,36 @@ void FixSMD::smd_tether()
   int *mask = atom->mask;
   int *type = atom->type;
   double *mass = atom->mass;
+  double *rmass = atom->rmass;
+  double massfrac;
   int nlocal = atom->nlocal;
 
   ftotal[0] = ftotal[1] = ftotal[2] = 0.0;
   force_flag = 0;
 
-  double massfrac;
-  for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
-      massfrac = mass[type[i]]/masstotal;
-      f[i][0] -= fx*massfrac;
-      f[i][1] -= fy*massfrac;
-      f[i][2] -= fz*massfrac;
-      ftotal[0] -= fx*massfrac;
-      ftotal[1] -= fy*massfrac;
-      ftotal[2] -= fz*massfrac;
-    }
+  if (rmass) {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
+        massfrac = rmass[i]/masstotal;
+        f[i][0] -= fx*massfrac;
+        f[i][1] -= fy*massfrac;
+        f[i][2] -= fz*massfrac;
+        ftotal[0] -= fx*massfrac;
+        ftotal[1] -= fy*massfrac;
+        ftotal[2] -= fz*massfrac;
+      }
+  } else {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
+        massfrac = mass[type[i]]/masstotal;
+        f[i][0] -= fx*massfrac;
+        f[i][1] -= fy*massfrac;
+        f[i][2] -= fz*massfrac;
+        ftotal[0] -= fx*massfrac;
+        ftotal[1] -= fy*massfrac;
+        ftotal[2] -= fz*massfrac;
+      }
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -314,27 +328,48 @@ void FixSMD::smd_couple()
   int *mask = atom->mask;
   int *type = atom->type;
   double *mass = atom->mass;
+  double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
 
   ftotal[0] = ftotal[1] = ftotal[2] = 0.0;
   force_flag = 0;
 
   double massfrac;
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
-      massfrac = mass[type[i]]/masstotal;
-      f[i][0] += fx*massfrac;
-      f[i][1] += fy*massfrac;
-      f[i][2] += fz*massfrac;
-      ftotal[0] += fx*massfrac;
-      ftotal[1] += fy*massfrac;
-      ftotal[2] += fz*massfrac;
+  if (rmass) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+        massfrac = rmass[i]/masstotal;
+        f[i][0] += fx*massfrac;
+        f[i][1] += fy*massfrac;
+        f[i][2] += fz*massfrac;
+        ftotal[0] += fx*massfrac;
+        ftotal[1] += fy*massfrac;
+        ftotal[2] += fz*massfrac;
+      }
+      if (mask[i] & group2bit) {
+        massfrac = rmass[i]/masstotal2;
+        f[i][0] -= fx*massfrac;
+        f[i][1] -= fy*massfrac;
+        f[i][2] -= fz*massfrac;
+      }
     }
-    if (mask[i] & group2bit) {
-      massfrac = mass[type[i]]/masstotal2;
-      f[i][0] -= fx*massfrac;
-      f[i][1] -= fy*massfrac;
-      f[i][2] -= fz*massfrac;
+  } else {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+        massfrac = mass[type[i]]/masstotal;
+        f[i][0] += fx*massfrac;
+        f[i][1] += fy*massfrac;
+        f[i][2] += fz*massfrac;
+        ftotal[0] += fx*massfrac;
+        ftotal[1] += fy*massfrac;
+        ftotal[2] += fz*massfrac;
+      }
+      if (mask[i] & group2bit) {
+        massfrac = mass[type[i]]/masstotal2;
+        f[i][0] -= fx*massfrac;
+        f[i][1] -= fy*massfrac;
+        f[i][2] -= fz*massfrac;
+      }
     }
   }
 }

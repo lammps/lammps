@@ -361,6 +361,7 @@ in the command's documentation.
 "fix"_fix.html,
 "fix_modify"_fix_modify.html,
 "group"_group.html,
+"group2ndx"_group2ndx.html,
 "if"_if.html,
 "improper_coeff"_improper_coeff.html,
 "improper_style"_improper_style.html,

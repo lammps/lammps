@@ -50,6 +50,6 @@ to identify atoms in a gromacs style index file.
 
 E: Cannot open index file for writing
 
-Self-explanatory. Check your filename, permissions, and disk space or quota. 
+Self-explanatory. Check your filename, permissions, and disk space or quota.
 
 */

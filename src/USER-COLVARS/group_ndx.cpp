@@ -46,7 +46,7 @@ static int cmpint(const void *p1, const void *p2)
    ---------------------------------------------------------------------- */
 
 static void write_group(FILE *fp, int gid, Atom *atom, Group *group, int me,
-			int np, MPI_Comm world, FILE *screen, FILE *logfile)
+                        int np, MPI_Comm world, FILE *screen, FILE *logfile)
 {
   char fmt[8];
   int *sendlist, *recvlist;
@@ -93,15 +93,15 @@ static void write_group(FILE *fp, int gid, Atom *atom, Group *group, int me,
     int nrecv,allrecv;
     if (me == 0) {
       for (i = 0; i < lnum; i++)
-	recvlist[i] = sendlist[i];
-      
+        recvlist[i] = sendlist[i];
+
       allrecv = lnum;
       for (int i=1; i < np; ++i) {
-	MPI_Irecv(recvlist+allrecv,num-allrecv,MPI_INT,i,0, world,&request);
-	MPI_Send(&nrecv,0,MPI_INT,i,0,world);
-	MPI_Wait(&request,&status);
-	MPI_Get_count(&status,MPI_INT,&nrecv);
-	allrecv += nrecv;
+        MPI_Irecv(recvlist+allrecv,num-allrecv,MPI_INT,i,0, world,&request);
+        MPI_Send(&nrecv,0,MPI_INT,i,0,world);
+        MPI_Wait(&request,&status);
+        MPI_Get_count(&status,MPI_INT,&nrecv);
+        allrecv += nrecv;
       }
 
       // sort received list
@@ -119,8 +119,8 @@ static void write_group(FILE *fp, int gid, Atom *atom, Group *group, int me,
       fprintf(fp,fmt,recvlist[i]);
       ++j;
       if (j == cols) {
-	fputs("\n",fp);
-	j = 0;
+        fputs("\n",fp);
+        j = 0;
       }
     }
     if (j > 0) fputs("\n",fp);
@@ -135,12 +135,12 @@ static void write_group(FILE *fp, int gid, Atom *atom, Group *group, int me,
 void Group2Ndx::command(int narg, char **arg)
 {
   FILE *fp;
- 
+
   if (narg < 1) error->all(FLERR,"Illegal group2ndx command");
 
   if (atom->tag_enable == 0)
       error->all(FLERR,"Must have atom IDs for group2ndx command");
- 
+
   if (comm->me == 0) {
     fp = fopen(arg[0], "w");
     if (fp == NULL)

@@ -33,7 +33,7 @@ The following coefficients must be defined for each bond type via the
 the data file or restart files read by the "read_data"_read_data.html
 or "read_restart"_read_restart.html commands:
 
-K (energy/distance^2)
+K (energy/distance^4)
 B1 (distance)
 B2 (distance)
 Rc (distance)

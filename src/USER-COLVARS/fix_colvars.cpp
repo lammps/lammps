@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 /* ----------------------------------------------------------------------
-   Contributing author:  Axel Kohlmeyer (TempleU)
+   Contributing author:  Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
 #include <math.h>
@@ -286,7 +286,6 @@ int FixColvars::instances=0;
   seed    <integer>         (seed for RNG, defaults to '1966')
   tstat   <fix label>       (label of thermostatting fix)
 
- TODO: add (optional) arguments for RNG seed, temperature compute
  ***************************************************************/
 FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
@@ -313,7 +312,7 @@ FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
 
   conf_file = strdup(arg[3]);
   rng_seed = 1966;
-  unwrap_flag = 0;
+  unwrap_flag = 1;
 
   inp_name = NULL;
   out_name = NULL;

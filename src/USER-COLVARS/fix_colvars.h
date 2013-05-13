@@ -90,10 +90,3 @@ class FixColvars : public Fix {
 #endif
 #endif
 
-// Local Variables:
-// mode: c++
-// compile-command: "make -j4 openmpi"
-// c-basic-offset: 2
-// fill-column: 76
-// indent-tabs-mode: nil
-// End:

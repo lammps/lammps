@@ -20,14 +20,14 @@ keyword = {input} or {output} or {seed} or {tstat} :l
   {output} arg = output filename prefix (default: out)
   {seed} arg = seed for random number generator (default: 1966)
   {unwrap} arg = {yes} or {no}
-    use unwrapped coordinates in collective variables (default: no)
+    use unwrapped coordinates in collective variables (default: yes)
   {tstat} arg = fix id of a thermostat or NULL (default: NULL) :pre
 :ule
 
 [Examples:]
 
-fix colvars peptide peptide.colvars.inp seed 2122 input peptide.colvars.state output peptide unwrap yes
-fix colvars all colvars.inp :pre
+fix mtd all colvars peptide.colvars.inp seed 2122 input peptide.colvars.state output peptide
+fix abf all colvars colvars.inp tstat 1 :pre
 
 [Description:]
 
@@ -70,10 +70,10 @@ that will be used in the colvars module.
 
 The {unwrap} keyword controls whether wrapped or unwrapped coordinates
 are passed to the colvars library for calculation of the collective
-variables and the resulting forces. The default is {no}, i.e. to use the
-current local coordinates that are wrapped back into the simulation cell
-at each re-neighboring. Setting this to {yes} will use the image flags
-to reconstruct the absolute atom positions.
+variables and the resulting forces. The default is {yes}, i.e. to use
+the image flags to reconstruct the absolute atom positions.
+Setting this to {no} will use the current local coordinates that are
+wrapped back into the simulation cell at each re-neighboring instead.
 
 The {tstat} keyword can be either NULL or the label of a thermostating
 fix that thermostats all atoms in the fix colvars group. This will be
@@ -112,8 +112,8 @@ really a deficit in practice.
 
 [Default:]
 
-The default options are input = NULL, output = out, seed = 1966, and
-tstat = NULL.
+The default options are input = NULL, output = out, seed = 1966, unwrap yes, 
+and tstat = NULL.
 
 :line
 

@@ -104,7 +104,7 @@ section of "this page"_Section_commands.html#cmd_5.
 "pair_style born"_pair_born.html - Born-Mayer-Huggins potential
 "pair_style born/coul/long"_pair_born.html - Born-Mayer-Huggins with long-range Coulombics
 "pair_style born/coul/msm"_pair_born.html - Born-Mayer-Huggins with long-range MSM Coulombics
-pair_style born/coul/wolf"_pair_born.html - Born-Mayer-Huggins with Coulombics via Wolf potential
+"pair_style born/coul/wolf"_pair_born.html - Born-Mayer-Huggins with Coulombics via Wolf potential
 "pair_style brownian"_pair_brownian.html - Brownian potential for Fast Lubrication Dynamics
 "pair_style brownian/poly"_pair_brownian.html - Brownian potential for Fast Lubrication Dynamics with polydispersity
 "pair_style buck"_pair_buck.html - Buckingham potential

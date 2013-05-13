@@ -200,7 +200,7 @@ double PairCoulMSM::single(int i, int j, int itype, int jtype,
 
 void *PairCoulMSM::extract(const char *str, int &dim)
 {
-  if (strcmp(str,"cut_msm") == 0) {
+  if (strcmp(str,"cut_coul") == 0) {
     dim = 0;
     return (void *) &cut_coul;
   }

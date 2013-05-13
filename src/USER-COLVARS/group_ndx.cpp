@@ -172,28 +172,3 @@ void Group2Ndx::command(int narg, char **arg)
   }
 }
 
-/* ---------------------------------------------------------------------- */
-
-void Ndx2Group::command(int narg, char **arg)
-{
-  FILE *fp;
-  const int me = comm->me;
-
-  if (narg < 1) error->all(FLERR,"Illegal ndx2group command");
-
-  if (me == 0) {
-    fp = fopen(arg[0], "r");
-    if (fp == NULL) error->one(FLERR,"Cannot open index file for reading");
-    if (screen)
-      fprintf(screen, "Reading groups from index file %s:",arg[0]);
-    if (logfile)
-      fprintf(logfile,"Reading groups from index file %s:",arg[0]);
-  }
-
-
-  if (me == 0) {
-    if (screen) fputs("\n",screen);
-    if (logfile) fputs("\n",logfile);
-    fclose(fp);
-  }
-}

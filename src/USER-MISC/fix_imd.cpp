@@ -42,7 +42,7 @@ negotiate an appropriate license for such distribution."
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author:  Axel Kohlmeyer (TempleU)
+   Contributing author:  Axel Kohlmeyer (Temple U)
    IMD API, hash, and socket code written by: John E. Stone,
    Justin Gullingsrud, and James Phillips, (TCBG, Beckman Institute, UIUC)
 ------------------------------------------------------------------------- */

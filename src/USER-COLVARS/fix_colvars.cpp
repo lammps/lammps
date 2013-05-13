@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 /* ----------------------------------------------------------------------
-   Contributing author:  Axel Kohlmeyer (TempleU)
+   Contributing author:  Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
 #include <math.h>

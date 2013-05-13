@@ -65,13 +65,13 @@ static void write_group(FILE *fp, int gid, Atom *atom, Group *group, int me,
     }
 
     // derive format string for index lists
-    bigint j = num;
+    bigint j = atom->natoms;
     int i = 0;
     while (j > 0) {
       ++i;
       j /= 10;
     }
-    sprintf(fmt,"%% %dd ", i);
+    sprintf(fmt,"%%%dd ", i);
     cols = 80 / (i+1);
   }
 

@@ -476,7 +476,7 @@ void *PairLJCharmmCoulMSM::extract(const char *str, int &dim)
 
   dim = 0;
   if (strcmp(str,"implicit") == 0) return (void *) &implicit;
-  if (strcmp(str,"cut_msm") == 0) return (void *) &cut_coul;
+  if (strcmp(str,"cut_coul") == 0) return (void *) &cut_coul;
 
   return NULL;
 }

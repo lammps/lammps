@@ -26,13 +26,8 @@ if (test $1 = 1) then
   if (test -e fix_imd.h) then
     cd USER-MISC; /bin/sh Install.sh 1; cd ..
   fi
-<<<<<<< HEAD
   if (test -e fix_phonon.h) then
     cd USER-PHONON; /bin/sh Install.sh 1; cd ..
-=======
-  if (test -e thr_omp.h) then
-    cd USER-OMP; /bin/sh Install.sh 1; cd ..
->>>>>>> lammps-ro/master
   fi
 
 elif (test $1 = 0) then

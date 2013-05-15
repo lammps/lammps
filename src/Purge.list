@@ -117,9 +117,6 @@ pair_cg_cmm_coul_long_cuda.cpp
 pair_cg_cmm_coul_long_cuda.h
 pair_cg_cmm_cuda.cpp
 pair_cg_cmm_cuda.h
-# deleted on Fri Jan 6 20:58:15 2012 +0000
-fix_reaxc_species.cpp
-fix_reaxc_species.h
 # deleted on Sat Dec 31 20:27:05 2011 -0500
 ewald_cg.cpp
 ewald_cg.h

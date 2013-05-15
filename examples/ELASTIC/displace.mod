@@ -26,17 +26,17 @@ include potential.mod
 
 variable delta equal -${up}*${len0}
 if "${dir} == 1" then &
-   "change_box all x delta 0 ${delta} units box"
+   "change_box all x delta 0 ${delta} remap units box"
 if "${dir} == 2" then &
-   "change_box all y delta 0 ${delta} units box"
+   "change_box all y delta 0 ${delta} remap units box"
 if "${dir} == 3" then &
-   "change_box all z delta 0 ${delta} units box"
+   "change_box all z delta 0 ${delta} remap units box"
 if "${dir} == 4" then &
-   "change_box all yz delta ${delta} units box"
+   "change_box all yz delta ${delta} remap units box"
 if "${dir} == 5" then &
-   "change_box all xz delta ${delta} units box"
+   "change_box all xz delta ${delta} remap units box"
 if "${dir} == 6" then &
-   "change_box all xy delta ${delta} units box"
+   "change_box all xy delta ${delta} remap units box"
 
 # Relax atoms positions
 
@@ -76,17 +76,17 @@ include potential.mod
 
 variable delta equal ${up}*${len0}
 if "${dir} == 1" then &
-   "change_box all x delta 0 ${delta} units box"
+   "change_box all x delta 0 ${delta} remap units box"
 if "${dir} == 2" then &
-   "change_box all y delta 0 ${delta} units box"
+   "change_box all y delta 0 ${delta} remap units box"
 if "${dir} == 3" then &
-   "change_box all z delta 0 ${delta} units box"
+   "change_box all z delta 0 ${delta} remap units box"
 if "${dir} == 4" then &
-   "change_box all yz delta ${delta} units box"
+   "change_box all yz delta ${delta} remap units box"
 if "${dir} == 5" then &
-   "change_box all xz delta ${delta} units box"
+   "change_box all xz delta ${delta} remap units box"
 if "${dir} == 6" then &
-   "change_box all xy delta ${delta} units box"
+   "change_box all xy delta ${delta} remap units box"
 
 # Relax atoms positions
 

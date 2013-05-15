@@ -26,7 +26,7 @@ SRC =	dasum.f daxpy.f dcopy.f ddot.f dgecon.f dgemm.f dgemv.f dger.f 	\
 	idamax.f ieeeck.f ilaenv.f iparmq.f lsame.f xerbla.f zdotc.f	\
 	zdscal.f zhpr.f zpptrf.f zpptri.f zscal.f ztpmv.f ztpsv.f ztptri.f
 
-FILES = $(SRC) Makefile.*
+FILES = $(SRC) Makefile.* README
 
 # ------ DEFINITIONS ------
 

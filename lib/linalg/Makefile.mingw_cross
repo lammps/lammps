@@ -14,7 +14,7 @@ SHELL = /bin/sh
 
 # ------ FILES ------
 
-SRC = dasum.f daxpy.f dcopy.f ddot.f dgecon.f dgemm.f dgemv.f dger.f dgetf2.f dgetrf.f dgetri.f dlabad.f dlamch.f dlacn2.f dlange.f dlassq.f dlaswp.f dlatrs.f drscl.f dscal.f dswap.f dtrmm.f dtrmv.f dtrsm.f dtrsv.f dtrti2.f dtrtri.f idamax.f ieeeck.f ilaenv.f iparmq.f lsame.f xerbla.f
+SRC = dasum.f daxpy.f dcopy.f ddot.f dgecon.f dgemm.f dgemv.f dger.f dgetf2.f dgetrf.f dgetri.f dlabad.f dlamch.f dlacn2.f dlange.f dlassq.f dlaswp.f dlatrs.f drscl.f dscal.f dswap.f dtrmm.f dtrmv.f dtrsm.f dtrsv.f dtrti2.f dtrtri.f idamax.f ieeeck.f ilaenv.f iparmq.f lsame.f xerbla.f zpptri.f zpptrf.f zdscal.f zdotc.f zhpr.f ztpmv.f ztpsv.f ztptri.f zscal.f
 
 
 FILES = $(SRC) Makefile 
@@ -59,5 +59,5 @@ clean:
 	-rm *.o *.mod *~ $(LIB)
 
 tar:
-	-tar -cvf ../linalg.tar $(FILES)
+	-tar -czvf ../linalg.tar.gz $(FILES)
 

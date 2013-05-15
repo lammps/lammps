@@ -1,9 +1,9 @@
       INTEGER          FUNCTION IEEECK( ISPEC, ZERO, ONE )
 *
-*  -- LAPACK auxiliary routine (version 3.2) --
+*  -- LAPACK auxiliary routine (version 3.2.2) --
 *  -- LAPACK is a software package provided by Univ. of Tennessee,    --
 *  -- Univ. of California Berkeley, Univ. of Colorado Denver and NAG Ltd..--
-*     November 2006
+*     June 2010
 *
 *     .. Scalar Arguments ..
       INTEGER            ISPEC
@@ -112,7 +112,7 @@
 *
       NAN5 = NEGINF*NEGZRO
 *
-      NAN6 = NAN5*0.0
+      NAN6 = NAN5*ZERO
 *
       IF( NAN1.EQ.NAN1 ) THEN
          IEEECK = 0

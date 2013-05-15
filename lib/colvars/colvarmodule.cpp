@@ -44,6 +44,11 @@ colvarmodule::colvarmodule (char const  *config_filename,
     config_s.close();
   }
 
+  std::string index_file_name;
+  if (parse->get_keyval (conf, "indexFile", index_file_name)) {
+    read_index_file (index_file_name.c_str());
+  }
+
   parse->get_keyval (conf, "analysis", b_analysis, false);
 
   parse->get_keyval (conf, "debugGradientsStepSize", debug_gradients_step_size, 1.0e-07,
@@ -478,6 +483,11 @@ void colvarmodule::calc() {
 	   cvi++) {
 	(*cvi)->write_traj_label (cv_traj_os);
       }
+      for (std::vector<colvarbias *>::iterator bi = biases.begin();
+	   bi != biases.end();
+	   bi++) {
+	(*bi)->write_traj_label (cv_traj_os);
+      }
       cv_traj_os << "\n";
       if (cvm::debug()) 
         cv_traj_os.flush();
@@ -493,6 +503,11 @@ void colvarmodule::calc() {
 	   cvi != colvars.end();
 	   cvi++) {
         (*cvi)->write_traj (cv_traj_os);
+      }
+      for (std::vector<colvarbias *>::iterator bi = biases.begin();
+	   bi != biases.end();
+	   bi++) {
+	(*bi)->write_traj (cv_traj_os);
       }
       cv_traj_os << "\n";
       if (cvm::debug())
@@ -564,7 +579,6 @@ colvarmodule::~colvarmodule()
   }
 
   delete parse;
-  proxy = NULL;
 }  
 
 
@@ -721,6 +735,55 @@ void cvm::exit (std::string const &message)
 }
 
 
+void cvm::read_index_file (char const *filename)
+{
+  std::ifstream is (filename);
+  if (!is.good())
+    fatal_error ("Error: in opening index file \""+
+                 std::string (filename)+"\".\n");
+  // std::list<std::string>::iterator names_i = cvm::index_group_names.begin();
+  // std::list<std::vector<int> >::iterator lists_i = cvm::index_groups.begin();
+  while (is.good()) {
+    char open, close;
+    std::string group_name;
+    if ( (is >> open) && (open == '[') && 
+         (is >> group_name) &&
+         (is >> close) && (close == ']') ) {
+      cvm::index_group_names.push_back (group_name);
+      cvm::index_groups.push_back (std::vector<int> ());
+    } else {
+      cvm::fatal_error ("Error: in parsing index file \""+
+                 std::string (filename)+"\".\n");
+    }
+
+    int atom_number = 1;
+    size_t pos = is.tellg();
+    while ( (is >> atom_number) && (atom_number > 0) ) {
+      (cvm::index_groups.back()).push_back (atom_number);
+      pos = is.tellg();
+    }
+    is.clear();
+    is.seekg (pos, std::ios::beg);
+    std::string delim;
+    if ( (is >> delim) && (delim == "[") ) {
+      // new group
+      is.clear();
+      is.seekg (pos, std::ios::beg);
+    } else {
+      break;
+    }
+  }
+
+  cvm::log ("The following index groups were read from the index file \""+
+            std::string (filename)+"\":\n");
+  std::list<std::string>::iterator names_i = cvm::index_group_names.begin();
+  std::list<std::vector<int> >::iterator lists_i = cvm::index_groups.begin();
+  for ( ; names_i != cvm::index_group_names.end() ; names_i++, lists_i++) {
+    cvm::log ("  "+(*names_i)+" ("+cvm::to_str (lists_i->size())+" atoms).\n");
+  }
+
+}
+
 
 // static pointers
 std::vector<colvar *>     colvarmodule::colvars;
@@ -741,6 +804,8 @@ size_t    colvarmodule::cv_traj_freq = 0;
 size_t    colvarmodule::depth = 0;
 bool      colvarmodule::b_analysis = false;
 cvm::real colvarmodule::rotation::crossing_threshold = 1.0E-04;
+std::list<std::string> colvarmodule::index_group_names;
+std::list<std::vector<int> > colvarmodule::index_groups;
 
 
 // file name prefixes
@@ -932,14 +997,12 @@ cvm::quaternion::position_derivative_inner (cvm::rvector const &pos,
 
 
 
+
+
 // Calculate the optimal rotation between two groups, and implement it
 // as a quaternion.  The method is the one documented in: Coutsias EA,
 // Seok C, Dill KA.  Using quaternions to calculate RMSD.  J Comput
 // Chem. 25(15):1849-57 (2004) DOI: 10.1002/jcc.20110 PubMed: 15376254
-
-
-
-
 
 void colvarmodule::rotation::build_matrix (std::vector<cvm::atom_pos> const &pos1,
                                            std::vector<cvm::atom_pos> const &pos2,

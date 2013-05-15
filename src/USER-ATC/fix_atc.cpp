@@ -33,6 +33,7 @@
 #include "comm.h"
 #include "error.h"
 
+using namespace std;
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
@@ -278,6 +279,11 @@ FixATC::~FixATC()
 }
 
 /* ---------------------------------------------------------------------- */
+void FixATC::init_list(int id, NeighList *ptr) {
+  ATC::LammpsInterface::instance()->init_list(id,ptr);
+}
+
+/* ---------------------------------------------------------------------- */
 
 int FixATC::setmask()
 {
@@ -334,6 +340,13 @@ void FixATC::setup(int vflag)
   }
   groupbit = atcTransfer_->get_groupbit();
 }
+
+/* ---------------------------------------------------------------------- */
+double FixATC::compute_scalar() {return atcTransfer_->compute_scalar();}
+
+/* ---------------------------------------------------------------------- */
+
+double FixATC::compute_vector(int n) {return atcTransfer_->compute_vector(n);}
 
 /* ----------------------------------------------------------------------
    pass throughs to atc functions to handle swapping atom data on

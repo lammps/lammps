@@ -53,15 +53,6 @@ include ..\/..\/lib\/cuda\/Makefile.lammps
     cp pair_buck_coul_long_cuda.h ..
   fi
 
-  if (test -e ../pair_cg_cmm.cpp) then
-    cp pair_cg_cmm_cuda.cpp ..
-    cp pair_cg_cmm_coul_cut_cuda.cpp ..
-    cp pair_cg_cmm_coul_debye_cuda.cpp ..
-    cp pair_cg_cmm_cuda.h ..
-    cp pair_cg_cmm_coul_cut_cuda.h ..
-    cp pair_cg_cmm_coul_debye_cuda.h ..
-  fi
-
   if (test -e ../pair_lj_sdk.cpp) then
     cp pair_lj_sdk_cuda.cpp ..
     #cp pair_lj_sdk_coul_cut_cuda.cpp ..

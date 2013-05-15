@@ -2,8 +2,10 @@
 
 if (test $1 = 1) then
 
-  cp fix_phonon.h ..
-  cp fix_phonon.cpp ..
+  if (test -e ../fft3d_wrap.h) then
+    cp fix_phonon.h ..
+    cp fix_phonon.cpp ..
+  fi
 
 elif (test $1 = 0) then
 

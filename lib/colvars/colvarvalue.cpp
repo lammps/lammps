@@ -242,7 +242,7 @@ std::istream & operator >> (std::istream &is, colvarvalue &x)
 }
 
 
-size_t colvarvalue::output_width (size_t const &real_width)
+size_t colvarvalue::output_width (size_t const &real_width) const
 {
   switch (this->value_type) {
   case colvarvalue::type_scalar:

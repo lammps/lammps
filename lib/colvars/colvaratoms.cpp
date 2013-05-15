@@ -129,6 +129,25 @@ void cvm::atom_group::parse (std::string const &conf,
 
       atom_indexes.clear();
     }
+
+    std::string index_group_name;
+    if (get_keyval (group_conf, "indexGroup", index_group_name)) {
+      // use an index group from the index file read globally
+      std::list<std::string>::iterator names_i = cvm::index_group_names.begin();
+      std::list<std::vector<int> >::iterator index_groups_i = cvm::index_groups.begin();
+      for ( ; names_i != cvm::index_group_names.end() ; names_i++, index_groups_i++) {
+        if (*names_i == index_group_name)
+          break;
+      }
+      if (names_i == cvm::index_group_names.end()) {
+        cvm::fatal_error ("Error: could not find index group "+
+                          index_group_name+" among those provided by the index file.\n");
+      }
+      this->reserve (index_groups_i->size());
+      for (size_t i = 0; i < index_groups_i->size(); i++) {
+        this->push_back (cvm::atom ((*index_groups_i)[i]));
+      }
+    }
   }
 
   {

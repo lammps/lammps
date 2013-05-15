@@ -2,7 +2,7 @@
 #define COLVARMODULE_H
 
 #ifndef COLVARS_VERSION
-#define COLVARS_VERSION "2013-04-23"
+#define COLVARS_VERSION "2013-05-14"
 #endif
 
 #ifndef COLVARS_DEBUG
@@ -288,6 +288,16 @@ public:
   /// without using position_distance()
   static void select_closest_images (std::vector<atom_pos> &pos,
                                      atom_pos const &ref_pos);
+
+
+  /// \brief Names of groups from a Gromacs .ndx file to be read at startup
+  static std::list<std::string> index_group_names;
+
+  /// \brief Groups from a Gromacs .ndx file read at startup
+  static std::list<std::vector<int> > index_groups;
+
+  /// \brief Read a Gromacs .ndx file
+  static void read_index_file (char const *filename);
 
 
   /// \brief Create atoms from a file \param filename name of the file

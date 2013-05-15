@@ -1,9 +1,126 @@
+*> \brief \b ZTPTRI
+*
+*  =========== DOCUMENTATION ===========
+*
+* Online html documentation available at 
+*            http://www.netlib.org/lapack/explore-html/ 
+*
+*> \htmlonly
+*> Download ZTPTRI + dependencies 
+*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.tgz?format=tgz&filename=/lapack/lapack_routine/ztptri.f"> 
+*> [TGZ]</a> 
+*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.zip?format=zip&filename=/lapack/lapack_routine/ztptri.f"> 
+*> [ZIP]</a> 
+*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.txt?format=txt&filename=/lapack/lapack_routine/ztptri.f"> 
+*> [TXT]</a>
+*> \endhtmlonly 
+*
+*  Definition:
+*  ===========
+*
+*       SUBROUTINE ZTPTRI( UPLO, DIAG, N, AP, INFO )
+* 
+*       .. Scalar Arguments ..
+*       CHARACTER          DIAG, UPLO
+*       INTEGER            INFO, N
+*       ..
+*       .. Array Arguments ..
+*       COMPLEX*16         AP( * )
+*       ..
+*  
+*
+*> \par Purpose:
+*  =============
+*>
+*> \verbatim
+*>
+*> ZTPTRI computes the inverse of a complex upper or lower triangular
+*> matrix A stored in packed format.
+*> \endverbatim
+*
+*  Arguments:
+*  ==========
+*
+*> \param[in] UPLO
+*> \verbatim
+*>          UPLO is CHARACTER*1
+*>          = 'U':  A is upper triangular;
+*>          = 'L':  A is lower triangular.
+*> \endverbatim
+*>
+*> \param[in] DIAG
+*> \verbatim
+*>          DIAG is CHARACTER*1
+*>          = 'N':  A is non-unit triangular;
+*>          = 'U':  A is unit triangular.
+*> \endverbatim
+*>
+*> \param[in] N
+*> \verbatim
+*>          N is INTEGER
+*>          The order of the matrix A.  N >= 0.
+*> \endverbatim
+*>
+*> \param[in,out] AP
+*> \verbatim
+*>          AP is COMPLEX*16 array, dimension (N*(N+1)/2)
+*>          On entry, the upper or lower triangular matrix A, stored
+*>          columnwise in a linear array.  The j-th column of A is stored
+*>          in the array AP as follows:
+*>          if UPLO = 'U', AP(i + (j-1)*j/2) = A(i,j) for 1<=i<=j;
+*>          if UPLO = 'L', AP(i + (j-1)*((2*n-j)/2) = A(i,j) for j<=i<=n.
+*>          See below for further details.
+*>          On exit, the (triangular) inverse of the original matrix, in
+*>          the same packed storage format.
+*> \endverbatim
+*>
+*> \param[out] INFO
+*> \verbatim
+*>          INFO is INTEGER
+*>          = 0:  successful exit
+*>          < 0:  if INFO = -i, the i-th argument had an illegal value
+*>          > 0:  if INFO = i, A(i,i) is exactly zero.  The triangular
+*>                matrix is singular and its inverse can not be computed.
+*> \endverbatim
+*
+*  Authors:
+*  ========
+*
+*> \author Univ. of Tennessee 
+*> \author Univ. of California Berkeley 
+*> \author Univ. of Colorado Denver 
+*> \author NAG Ltd. 
+*
+*> \date November 2011
+*
+*> \ingroup complex16OTHERcomputational
+*
+*> \par Further Details:
+*  =====================
+*>
+*> \verbatim
+*>
+*>  A triangular matrix A can be transferred to packed storage using one
+*>  of the following program segments:
+*>
+*>  UPLO = 'U':                      UPLO = 'L':
+*>
+*>        JC = 1                           JC = 1
+*>        DO 2 J = 1, N                    DO 2 J = 1, N
+*>           DO 1 I = 1, J                    DO 1 I = J, N
+*>              AP(JC+I-1) = A(I,J)              AP(JC+I-J) = A(I,J)
+*>      1    CONTINUE                    1    CONTINUE
+*>           JC = JC + J                      JC = JC + N - J + 1
+*>      2 CONTINUE                       2 CONTINUE
+*> \endverbatim
+*>
+*  =====================================================================
       SUBROUTINE ZTPTRI( UPLO, DIAG, N, AP, INFO )
 *
-*  -- LAPACK routine (version 3.2) --
+*  -- LAPACK computational routine (version 3.4.0) --
 *  -- LAPACK is a software package provided by Univ. of Tennessee,    --
 *  -- Univ. of California Berkeley, Univ. of Colorado Denver and NAG Ltd..--
-*     November 2006
+*     November 2011
 *
 *     .. Scalar Arguments ..
       CHARACTER          DIAG, UPLO
@@ -12,58 +129,6 @@
 *     .. Array Arguments ..
       COMPLEX*16         AP( * )
 *     ..
-*
-*  Purpose
-*  =======
-*
-*  ZTPTRI computes the inverse of a complex upper or lower triangular
-*  matrix A stored in packed format.
-*
-*  Arguments
-*  =========
-*
-*  UPLO    (input) CHARACTER*1
-*          = 'U':  A is upper triangular;
-*          = 'L':  A is lower triangular.
-*
-*  DIAG    (input) CHARACTER*1
-*          = 'N':  A is non-unit triangular;
-*          = 'U':  A is unit triangular.
-*
-*  N       (input) INTEGER
-*          The order of the matrix A.  N >= 0.
-*
-*  AP      (input/output) COMPLEX*16 array, dimension (N*(N+1)/2)
-*          On entry, the upper or lower triangular matrix A, stored
-*          columnwise in a linear array.  The j-th column of A is stored
-*          in the array AP as follows:
-*          if UPLO = 'U', AP(i + (j-1)*j/2) = A(i,j) for 1<=i<=j;
-*          if UPLO = 'L', AP(i + (j-1)*((2*n-j)/2) = A(i,j) for j<=i<=n.
-*          See below for further details.
-*          On exit, the (triangular) inverse of the original matrix, in
-*          the same packed storage format.
-*
-*  INFO    (output) INTEGER
-*          = 0:  successful exit
-*          < 0:  if INFO = -i, the i-th argument had an illegal value
-*          > 0:  if INFO = i, A(i,i) is exactly zero.  The triangular
-*                matrix is singular and its inverse can not be computed.
-*
-*  Further Details
-*  ===============
-*
-*  A triangular matrix A can be transferred to packed storage using one
-*  of the following program segments:
-*
-*  UPLO = 'U':                      UPLO = 'L':
-*
-*        JC = 1                           JC = 1
-*        DO 2 J = 1, N                    DO 2 J = 1, N
-*           DO 1 I = 1, J                    DO 1 I = J, N
-*              AP(JC+I-1) = A(I,J)              AP(JC+I-J) = A(I,J)
-*      1    CONTINUE                    1    CONTINUE
-*           JC = JC + J                      JC = JC + N - J + 1
-*      2 CONTINUE                       2 CONTINUE
 *
 *  =====================================================================
 *

@@ -1,26 +1,71 @@
-      DOUBLE COMPLEX FUNCTION ZDOTC(N,ZX,INCX,ZY,INCY)
+*> \brief \b ZDOTC
+*
+*  =========== DOCUMENTATION ===========
+*
+* Online html documentation available at 
+*            http://www.netlib.org/lapack/explore-html/ 
+*
+*  Definition:
+*  ===========
+*
+*       COMPLEX*16 FUNCTION ZDOTC(N,ZX,INCX,ZY,INCY)
+* 
+*       .. Scalar Arguments ..
+*       INTEGER INCX,INCY,N
+*       ..
+*       .. Array Arguments ..
+*       COMPLEX*16 ZX(*),ZY(*)
+*       ..
+*  
+*
+*> \par Purpose:
+*  =============
+*>
+*> \verbatim
+*>
+*> ZDOTC forms the dot product of a vector.
+*> \endverbatim
+*
+*  Authors:
+*  ========
+*
+*> \author Univ. of Tennessee 
+*> \author Univ. of California Berkeley 
+*> \author Univ. of Colorado Denver 
+*> \author NAG Ltd. 
+*
+*> \date November 2011
+*
+*> \ingroup complex16_blas_level1
+*
+*> \par Further Details:
+*  =====================
+*>
+*> \verbatim
+*>
+*>     jack dongarra, 3/11/78.
+*>     modified 12/3/93, array(1) declarations changed to array(*)
+*> \endverbatim
+*>
+*  =====================================================================
+      COMPLEX*16 FUNCTION ZDOTC(N,ZX,INCX,ZY,INCY)
+*
+*  -- Reference BLAS level1 routine (version 3.4.0) --
+*  -- Reference BLAS is a software package provided by Univ. of Tennessee,    --
+*  -- Univ. of California Berkeley, Univ. of Colorado Denver and NAG Ltd..--
+*     November 2011
+*
 *     .. Scalar Arguments ..
       INTEGER INCX,INCY,N
 *     ..
 *     .. Array Arguments ..
-      DOUBLE COMPLEX ZX(*),ZY(*)
+      COMPLEX*16 ZX(*),ZY(*)
 *     ..
-*
-*  Purpose
-*  =======
-*
-*  ZDOTC forms the dot product of a vector.
-*
-*  Further Details
-*  ===============
-*
-*     jack dongarra, 3/11/78.
-*     modified 12/3/93, array(1) declarations changed to array(*)
 *
 *  =====================================================================
 *
 *     .. Local Scalars ..
-      DOUBLE COMPLEX ZTEMP
+      COMPLEX*16 ZTEMP
       INTEGER I,IX,IY
 *     ..
 *     .. Intrinsic Functions ..
@@ -29,28 +74,28 @@
       ZTEMP = (0.0d0,0.0d0)
       ZDOTC = (0.0d0,0.0d0)
       IF (N.LE.0) RETURN
-      IF (INCX.EQ.1 .AND. INCY.EQ.1) GO TO 20
+      IF (INCX.EQ.1 .AND. INCY.EQ.1) THEN
+*
+*        code for both increments equal to 1
+*
+         DO I = 1,N
+            ZTEMP = ZTEMP + DCONJG(ZX(I))*ZY(I)
+         END DO
+      ELSE
 *
 *        code for unequal increments or equal increments
 *          not equal to 1
 *
-      IX = 1
-      IY = 1
-      IF (INCX.LT.0) IX = (-N+1)*INCX + 1
-      IF (INCY.LT.0) IY = (-N+1)*INCY + 1
-      DO 10 I = 1,N
-          ZTEMP = ZTEMP + DCONJG(ZX(IX))*ZY(IY)
-          IX = IX + INCX
-          IY = IY + INCY
-   10 CONTINUE
-      ZDOTC = ZTEMP
-      RETURN
-*
-*        code for both increments equal to 1
-*
-   20 DO 30 I = 1,N
-          ZTEMP = ZTEMP + DCONJG(ZX(I))*ZY(I)
-   30 CONTINUE
+         IX = 1
+         IY = 1
+         IF (INCX.LT.0) IX = (-N+1)*INCX + 1
+         IF (INCY.LT.0) IY = (-N+1)*INCY + 1
+         DO I = 1,N
+            ZTEMP = ZTEMP + DCONJG(ZX(IX))*ZY(IY)
+            IX = IX + INCX
+            IY = IY + INCY
+         END DO
+      END IF
       ZDOTC = ZTEMP
       RETURN
       END

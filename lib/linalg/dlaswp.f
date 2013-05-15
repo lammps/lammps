@@ -1,9 +1,123 @@
+*> \brief \b DLASWP performs a series of row interchanges on a general rectangular matrix.
+*
+*  =========== DOCUMENTATION ===========
+*
+* Online html documentation available at 
+*            http://www.netlib.org/lapack/explore-html/ 
+*
+*> \htmlonly
+*> Download DLASWP + dependencies 
+*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.tgz?format=tgz&filename=/lapack/lapack_routine/dlaswp.f"> 
+*> [TGZ]</a> 
+*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.zip?format=zip&filename=/lapack/lapack_routine/dlaswp.f"> 
+*> [ZIP]</a> 
+*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.txt?format=txt&filename=/lapack/lapack_routine/dlaswp.f"> 
+*> [TXT]</a>
+*> \endhtmlonly 
+*
+*  Definition:
+*  ===========
+*
+*       SUBROUTINE DLASWP( N, A, LDA, K1, K2, IPIV, INCX )
+* 
+*       .. Scalar Arguments ..
+*       INTEGER            INCX, K1, K2, LDA, N
+*       ..
+*       .. Array Arguments ..
+*       INTEGER            IPIV( * )
+*       DOUBLE PRECISION   A( LDA, * )
+*       ..
+*  
+*
+*> \par Purpose:
+*  =============
+*>
+*> \verbatim
+*>
+*> DLASWP performs a series of row interchanges on the matrix A.
+*> One row interchange is initiated for each of rows K1 through K2 of A.
+*> \endverbatim
+*
+*  Arguments:
+*  ==========
+*
+*> \param[in] N
+*> \verbatim
+*>          N is INTEGER
+*>          The number of columns of the matrix A.
+*> \endverbatim
+*>
+*> \param[in,out] A
+*> \verbatim
+*>          A is DOUBLE PRECISION array, dimension (LDA,N)
+*>          On entry, the matrix of column dimension N to which the row
+*>          interchanges will be applied.
+*>          On exit, the permuted matrix.
+*> \endverbatim
+*>
+*> \param[in] LDA
+*> \verbatim
+*>          LDA is INTEGER
+*>          The leading dimension of the array A.
+*> \endverbatim
+*>
+*> \param[in] K1
+*> \verbatim
+*>          K1 is INTEGER
+*>          The first element of IPIV for which a row interchange will
+*>          be done.
+*> \endverbatim
+*>
+*> \param[in] K2
+*> \verbatim
+*>          K2 is INTEGER
+*>          The last element of IPIV for which a row interchange will
+*>          be done.
+*> \endverbatim
+*>
+*> \param[in] IPIV
+*> \verbatim
+*>          IPIV is INTEGER array, dimension (K2*abs(INCX))
+*>          The vector of pivot indices.  Only the elements in positions
+*>          K1 through K2 of IPIV are accessed.
+*>          IPIV(K) = L implies rows K and L are to be interchanged.
+*> \endverbatim
+*>
+*> \param[in] INCX
+*> \verbatim
+*>          INCX is INTEGER
+*>          The increment between successive values of IPIV.  If IPIV
+*>          is negative, the pivots are applied in reverse order.
+*> \endverbatim
+*
+*  Authors:
+*  ========
+*
+*> \author Univ. of Tennessee 
+*> \author Univ. of California Berkeley 
+*> \author Univ. of Colorado Denver 
+*> \author NAG Ltd. 
+*
+*> \date September 2012
+*
+*> \ingroup doubleOTHERauxiliary
+*
+*> \par Further Details:
+*  =====================
+*>
+*> \verbatim
+*>
+*>  Modified by
+*>   R. C. Whaley, Computer Science Dept., Univ. of Tenn., Knoxville, USA
+*> \endverbatim
+*>
+*  =====================================================================
       SUBROUTINE DLASWP( N, A, LDA, K1, K2, IPIV, INCX )
 *
-*  -- LAPACK auxiliary routine (version 3.2) --
+*  -- LAPACK auxiliary routine (version 3.4.2) --
 *  -- LAPACK is a software package provided by Univ. of Tennessee,    --
 *  -- Univ. of California Berkeley, Univ. of Colorado Denver and NAG Ltd..--
-*     November 2006
+*     September 2012
 *
 *     .. Scalar Arguments ..
       INTEGER            INCX, K1, K2, LDA, N
@@ -12,49 +126,6 @@
       INTEGER            IPIV( * )
       DOUBLE PRECISION   A( LDA, * )
 *     ..
-*
-*  Purpose
-*  =======
-*
-*  DLASWP performs a series of row interchanges on the matrix A.
-*  One row interchange is initiated for each of rows K1 through K2 of A.
-*
-*  Arguments
-*  =========
-*
-*  N       (input) INTEGER
-*          The number of columns of the matrix A.
-*
-*  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
-*          On entry, the matrix of column dimension N to which the row
-*          interchanges will be applied.
-*          On exit, the permuted matrix.
-*
-*  LDA     (input) INTEGER
-*          The leading dimension of the array A.
-*
-*  K1      (input) INTEGER
-*          The first element of IPIV for which a row interchange will
-*          be done.
-*
-*  K2      (input) INTEGER
-*          The last element of IPIV for which a row interchange will
-*          be done.
-*
-*  IPIV    (input) INTEGER array, dimension (K2*abs(INCX))
-*          The vector of pivot indices.  Only the elements in positions
-*          K1 through K2 of IPIV are accessed.
-*          IPIV(K) = L implies rows K and L are to be interchanged.
-*
-*  INCX    (input) INTEGER
-*          The increment between successive values of IPIV.  If IPIV
-*          is negative, the pivots are applied in reverse order.
-*
-*  Further Details
-*  ===============
-*
-*  Modified by
-*   R. C. Whaley, Computer Science Dept., Univ. of Tenn., Knoxville, USA
 *
 * =====================================================================
 *

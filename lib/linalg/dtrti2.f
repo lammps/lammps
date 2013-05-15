@@ -1,9 +1,119 @@
+*> \brief \b DTRTI2 computes the inverse of a triangular matrix (unblocked algorithm).
+*
+*  =========== DOCUMENTATION ===========
+*
+* Online html documentation available at 
+*            http://www.netlib.org/lapack/explore-html/ 
+*
+*> \htmlonly
+*> Download DTRTI2 + dependencies 
+*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.tgz?format=tgz&filename=/lapack/lapack_routine/dtrti2.f"> 
+*> [TGZ]</a> 
+*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.zip?format=zip&filename=/lapack/lapack_routine/dtrti2.f"> 
+*> [ZIP]</a> 
+*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.txt?format=txt&filename=/lapack/lapack_routine/dtrti2.f"> 
+*> [TXT]</a>
+*> \endhtmlonly 
+*
+*  Definition:
+*  ===========
+*
+*       SUBROUTINE DTRTI2( UPLO, DIAG, N, A, LDA, INFO )
+* 
+*       .. Scalar Arguments ..
+*       CHARACTER          DIAG, UPLO
+*       INTEGER            INFO, LDA, N
+*       ..
+*       .. Array Arguments ..
+*       DOUBLE PRECISION   A( LDA, * )
+*       ..
+*  
+*
+*> \par Purpose:
+*  =============
+*>
+*> \verbatim
+*>
+*> DTRTI2 computes the inverse of a real upper or lower triangular
+*> matrix.
+*>
+*> This is the Level 2 BLAS version of the algorithm.
+*> \endverbatim
+*
+*  Arguments:
+*  ==========
+*
+*> \param[in] UPLO
+*> \verbatim
+*>          UPLO is CHARACTER*1
+*>          Specifies whether the matrix A is upper or lower triangular.
+*>          = 'U':  Upper triangular
+*>          = 'L':  Lower triangular
+*> \endverbatim
+*>
+*> \param[in] DIAG
+*> \verbatim
+*>          DIAG is CHARACTER*1
+*>          Specifies whether or not the matrix A is unit triangular.
+*>          = 'N':  Non-unit triangular
+*>          = 'U':  Unit triangular
+*> \endverbatim
+*>
+*> \param[in] N
+*> \verbatim
+*>          N is INTEGER
+*>          The order of the matrix A.  N >= 0.
+*> \endverbatim
+*>
+*> \param[in,out] A
+*> \verbatim
+*>          A is DOUBLE PRECISION array, dimension (LDA,N)
+*>          On entry, the triangular matrix A.  If UPLO = 'U', the
+*>          leading n by n upper triangular part of the array A contains
+*>          the upper triangular matrix, and the strictly lower
+*>          triangular part of A is not referenced.  If UPLO = 'L', the
+*>          leading n by n lower triangular part of the array A contains
+*>          the lower triangular matrix, and the strictly upper
+*>          triangular part of A is not referenced.  If DIAG = 'U', the
+*>          diagonal elements of A are also not referenced and are
+*>          assumed to be 1.
+*>
+*>          On exit, the (triangular) inverse of the original matrix, in
+*>          the same storage format.
+*> \endverbatim
+*>
+*> \param[in] LDA
+*> \verbatim
+*>          LDA is INTEGER
+*>          The leading dimension of the array A.  LDA >= max(1,N).
+*> \endverbatim
+*>
+*> \param[out] INFO
+*> \verbatim
+*>          INFO is INTEGER
+*>          = 0: successful exit
+*>          < 0: if INFO = -k, the k-th argument had an illegal value
+*> \endverbatim
+*
+*  Authors:
+*  ========
+*
+*> \author Univ. of Tennessee 
+*> \author Univ. of California Berkeley 
+*> \author Univ. of Colorado Denver 
+*> \author NAG Ltd. 
+*
+*> \date September 2012
+*
+*> \ingroup doubleOTHERcomputational
+*
+*  =====================================================================
       SUBROUTINE DTRTI2( UPLO, DIAG, N, A, LDA, INFO )
 *
-*  -- LAPACK routine (version 3.2) --
+*  -- LAPACK computational routine (version 3.4.2) --
 *  -- LAPACK is a software package provided by Univ. of Tennessee,    --
 *  -- Univ. of California Berkeley, Univ. of Colorado Denver and NAG Ltd..--
-*     November 2006
+*     September 2012
 *
 *     .. Scalar Arguments ..
       CHARACTER          DIAG, UPLO
@@ -12,51 +122,6 @@
 *     .. Array Arguments ..
       DOUBLE PRECISION   A( LDA, * )
 *     ..
-*
-*  Purpose
-*  =======
-*
-*  DTRTI2 computes the inverse of a real upper or lower triangular
-*  matrix.
-*
-*  This is the Level 2 BLAS version of the algorithm.
-*
-*  Arguments
-*  =========
-*
-*  UPLO    (input) CHARACTER*1
-*          Specifies whether the matrix A is upper or lower triangular.
-*          = 'U':  Upper triangular
-*          = 'L':  Lower triangular
-*
-*  DIAG    (input) CHARACTER*1
-*          Specifies whether or not the matrix A is unit triangular.
-*          = 'N':  Non-unit triangular
-*          = 'U':  Unit triangular
-*
-*  N       (input) INTEGER
-*          The order of the matrix A.  N >= 0.
-*
-*  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
-*          On entry, the triangular matrix A.  If UPLO = 'U', the
-*          leading n by n upper triangular part of the array A contains
-*          the upper triangular matrix, and the strictly lower
-*          triangular part of A is not referenced.  If UPLO = 'L', the
-*          leading n by n lower triangular part of the array A contains
-*          the lower triangular matrix, and the strictly upper
-*          triangular part of A is not referenced.  If DIAG = 'U', the
-*          diagonal elements of A are also not referenced and are
-*          assumed to be 1.
-*
-*          On exit, the (triangular) inverse of the original matrix, in
-*          the same storage format.
-*
-*  LDA     (input) INTEGER
-*          The leading dimension of the array A.  LDA >= max(1,N).
-*
-*  INFO    (output) INTEGER
-*          = 0: successful exit
-*          < 0: if INFO = -k, the k-th argument had an illegal value
 *
 *  =====================================================================
 *

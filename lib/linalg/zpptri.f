@@ -1,9 +1,102 @@
+*> \brief \b ZPPTRI
+*
+*  =========== DOCUMENTATION ===========
+*
+* Online html documentation available at 
+*            http://www.netlib.org/lapack/explore-html/ 
+*
+*> \htmlonly
+*> Download ZPPTRI + dependencies 
+*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.tgz?format=tgz&filename=/lapack/lapack_routine/zpptri.f"> 
+*> [TGZ]</a> 
+*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.zip?format=zip&filename=/lapack/lapack_routine/zpptri.f"> 
+*> [ZIP]</a> 
+*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.txt?format=txt&filename=/lapack/lapack_routine/zpptri.f"> 
+*> [TXT]</a>
+*> \endhtmlonly 
+*
+*  Definition:
+*  ===========
+*
+*       SUBROUTINE ZPPTRI( UPLO, N, AP, INFO )
+* 
+*       .. Scalar Arguments ..
+*       CHARACTER          UPLO
+*       INTEGER            INFO, N
+*       ..
+*       .. Array Arguments ..
+*       COMPLEX*16         AP( * )
+*       ..
+*  
+*
+*> \par Purpose:
+*  =============
+*>
+*> \verbatim
+*>
+*> ZPPTRI computes the inverse of a complex Hermitian positive definite
+*> matrix A using the Cholesky factorization A = U**H*U or A = L*L**H
+*> computed by ZPPTRF.
+*> \endverbatim
+*
+*  Arguments:
+*  ==========
+*
+*> \param[in] UPLO
+*> \verbatim
+*>          UPLO is CHARACTER*1
+*>          = 'U':  Upper triangular factor is stored in AP;
+*>          = 'L':  Lower triangular factor is stored in AP.
+*> \endverbatim
+*>
+*> \param[in] N
+*> \verbatim
+*>          N is INTEGER
+*>          The order of the matrix A.  N >= 0.
+*> \endverbatim
+*>
+*> \param[in,out] AP
+*> \verbatim
+*>          AP is COMPLEX*16 array, dimension (N*(N+1)/2)
+*>          On entry, the triangular factor U or L from the Cholesky
+*>          factorization A = U**H*U or A = L*L**H, packed columnwise as
+*>          a linear array.  The j-th column of U or L is stored in the
+*>          array AP as follows:
+*>          if UPLO = 'U', AP(i + (j-1)*j/2) = U(i,j) for 1<=i<=j;
+*>          if UPLO = 'L', AP(i + (j-1)*(2n-j)/2) = L(i,j) for j<=i<=n.
+*>
+*>          On exit, the upper or lower triangle of the (Hermitian)
+*>          inverse of A, overwriting the input factor U or L.
+*> \endverbatim
+*>
+*> \param[out] INFO
+*> \verbatim
+*>          INFO is INTEGER
+*>          = 0:  successful exit
+*>          < 0:  if INFO = -i, the i-th argument had an illegal value
+*>          > 0:  if INFO = i, the (i,i) element of the factor U or L is
+*>                zero, and the inverse could not be computed.
+*> \endverbatim
+*
+*  Authors:
+*  ========
+*
+*> \author Univ. of Tennessee 
+*> \author Univ. of California Berkeley 
+*> \author Univ. of Colorado Denver 
+*> \author NAG Ltd. 
+*
+*> \date November 2011
+*
+*> \ingroup complex16OTHERcomputational
+*
+*  =====================================================================
       SUBROUTINE ZPPTRI( UPLO, N, AP, INFO )
 *
-*  -- LAPACK routine (version 3.2) --
+*  -- LAPACK computational routine (version 3.4.0) --
 *  -- LAPACK is a software package provided by Univ. of Tennessee,    --
 *  -- Univ. of California Berkeley, Univ. of Colorado Denver and NAG Ltd..--
-*     November 2006
+*     November 2011
 *
 *     .. Scalar Arguments ..
       CHARACTER          UPLO
@@ -12,40 +105,6 @@
 *     .. Array Arguments ..
       COMPLEX*16         AP( * )
 *     ..
-*
-*  Purpose
-*  =======
-*
-*  ZPPTRI computes the inverse of a complex Hermitian positive definite
-*  matrix A using the Cholesky factorization A = U**H*U or A = L*L**H
-*  computed by ZPPTRF.
-*
-*  Arguments
-*  =========
-*
-*  UPLO    (input) CHARACTER*1
-*          = 'U':  Upper triangular factor is stored in AP;
-*          = 'L':  Lower triangular factor is stored in AP.
-*
-*  N       (input) INTEGER
-*          The order of the matrix A.  N >= 0.
-*
-*  AP      (input/output) COMPLEX*16 array, dimension (N*(N+1)/2)
-*          On entry, the triangular factor U or L from the Cholesky
-*          factorization A = U**H*U or A = L*L**H, packed columnwise as
-*          a linear array.  The j-th column of U or L is stored in the
-*          array AP as follows:
-*          if UPLO = 'U', AP(i + (j-1)*j/2) = U(i,j) for 1<=i<=j;
-*          if UPLO = 'L', AP(i + (j-1)*(2n-j)/2) = L(i,j) for j<=i<=n.
-*
-*          On exit, the upper or lower triangle of the (Hermitian)
-*          inverse of A, overwriting the input factor U or L.
-*
-*  INFO    (output) INTEGER
-*          = 0:  successful exit
-*          < 0:  if INFO = -i, the i-th argument had an illegal value
-*          > 0:  if INFO = i, the (i,i) element of the factor U or L is
-*                zero, and the inverse could not be computed.
 *
 *  =====================================================================
 *
@@ -97,7 +156,7 @@
      $   RETURN
       IF( UPPER ) THEN
 *
-*        Compute the product inv(U) * inv(U)'.
+*        Compute the product inv(U) * inv(U)**H.
 *
          JJ = 0
          DO 10 J = 1, N
@@ -111,7 +170,7 @@
 *
       ELSE
 *
-*        Compute the product inv(L)' * inv(L).
+*        Compute the product inv(L)**H * inv(L).
 *
          JJ = 1
          DO 20 J = 1, N

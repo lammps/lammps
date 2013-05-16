@@ -33,6 +33,7 @@ if (test $1 = 1) then
   cp pair_dipole_sf.cpp ..
   cp pair_edip.cpp ..
   cp pair_gauss_cut.cpp ..
+  cp pair_list.cpp ..
   cp pair_lj_sf.cpp ..
   cp pair_meam_spline.cpp ..
   cp pair_meam_sw_spline.cpp ..
@@ -64,6 +65,7 @@ if (test $1 = 1) then
   cp pair_dipole_sf.h ..
   cp pair_edip.h ..
   cp pair_gauss_cut.h ..
+  cp pair_list.h ..
   cp pair_lj_sf.h ..
   cp pair_meam_spline.h ..
   cp pair_meam_sw_spline.h ..
@@ -98,6 +100,7 @@ elif (test $1 = 0) then
   rm -f ../pair_dipole_sf.cpp
   rm -f ../pair_edip.cpp
   rm -f ../pair_gauss_cut.cpp
+  rm -f ../pair_list.cpp
   rm -f ../pair_lj_sf.cpp
   rm -f ../pair_meam_spline.cpp
   rm -f ../pair_meam_sw_spline.cpp
@@ -130,6 +133,7 @@ elif (test $1 = 0) then
   rm -f ../pair_dipole_sf.h
   rm -f ../pair_edip.h
   rm -f ../pair_gauss_cut.h
+  rm -f ../pair_list.h
   rm -f ../pair_lj_sf.h
   rm -f ../pair_meam_spline.h
   rm -f ../pair_meam_sw_spline.h

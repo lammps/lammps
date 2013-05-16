@@ -372,6 +372,9 @@ void PairList::coeff(int narg, char **arg)
 
 void PairList::init_style()
 {
+  if (atom->tag_enable == 0)
+    error->all(FLERR,"Pair style list requires atom IDs");
+
   if (offset_flag) {
     for (int n=0; n < npairs; ++n) {
       list_parm_t &par = params[n];

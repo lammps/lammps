@@ -1,4 +1,4 @@
-# mingw32-cross = Windows 32-bit, cross-compiled on Fedora 18, gcc-4.7.1, MinGW, internal FFT, no MPI
+# mingw32-cross = Windows 32-bit, cross-compiled on Fedora 18, gcc-4.7.1, MinGW, internal FFT, no MPI, OpenMP
 
 SHELL = /bin/sh
 
@@ -7,15 +7,15 @@ SHELL = /bin/sh
 # specify flags and libraries needed for your compiler
 
 CC =		i686-w64-mingw32-g++
-CCFLAGS =	-O3 -march=i686 -mtune=generic -mfpmath=387 -mpc64 \
+CCFLAGS =	-O3 -march=i686 -mtune=generic -mfpmath=387 -mpc64 -fopenmp \
 		 -ffast-math -fstrict-aliasing -Wall -W -Wno-uninitialized
 SHFLAGS =	# -fPIC (not needed on windows, all code is PIC)
 DEPFLAGS =	-M
 
 LINK =		i686-w64-mingw32-g++
-LINKFLAGS =	-O2 -march=i686 -mtune=generic -mfpmath=387 -mp64 \
-LIB =  
-SIZE =		size
+LINKFLAGS =	-O2 -march=i686 -mtune=generic -mfpmath=387 -mpc64 -fopenmp
+LIB =           -lwsock32
+SIZE =		i686-w64-mingw32-size
 
 ARCHIVE =	i686-w64-mingw32-ar
 ARFLAGS =	-rc

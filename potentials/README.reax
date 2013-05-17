@@ -60,3 +60,5 @@ Chenoweth, K.; et al. J. Phys. Chem. C, 2008, 112, 14645-14654.
 ffield.reax.ZnOH: Reactive MD-force field: water/zinc: Raymand, D.; 
 van Duin, A. C. T.; Spangberg, D.; Goddard, W. A.; Hermansson, K. 
 Surface Science 2010, 604, 9-10, 741-752.
+
+ffield.reax.lg: Reactive MD-force field: nitramines (RDX/HMX/TATB/PETN))+lg: L. Liu, Y. Liu, S. V. Zybin, H. Sun and W. A. Goddard, Journal of Physical Chemistry A, 115, 11016-11022 (2011).

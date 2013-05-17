@@ -11,7 +11,7 @@ INC =		mpi.h
 # Definitions
 
 EXE =		libmpi_mingw32.a
-OBJ = 		$(SRC:.c=.o)
+OBJ = 		$(SRC:%.c=%_mingw32.o)
 
 # System-specific settings
 

@@ -62,7 +62,7 @@ negotiate an appropriate license for such distribution."
 #include <stdlib.h>
 #include <string.h>
 
-#if defined(_MSC_VER) || defined(__MINGW32_VERSION)
+#if defined(_MSC_VER) || defined(__MINGW32__)
 #include <winsock2.h>
 #else
 #include <arpa/inet.h>
@@ -1179,7 +1179,7 @@ double FixIMD::memory_usage(void)
  ***************************************************************************/
 
 int imdsock_init(void) {
-#if defined(_MSC_VER) || defined(__MINGW32_VERSION)
+#if defined(_MSC_VER) || defined(__MINGW32__)
   int rc = 0;
   static int initialized=0;
 
@@ -1258,7 +1258,7 @@ void *imdsock_accept(void * v) {
 
 int  imdsock_write(void * v, const void *buf, int len) {
   imdsocket *s = (imdsocket *) v;
-#if defined(_MSC_VER) || defined(__MINGW32_VERSION)
+#if defined(_MSC_VER) || defined(__MINGW32__)
   return send(s->sd, (const char*) buf, len, 0);  /* windows lacks the write() call */
 #else
   return write(s->sd, buf, len);
@@ -1267,7 +1267,7 @@ int  imdsock_write(void * v, const void *buf, int len) {
 
 int  imdsock_read(void * v, void *buf, int len) {
   imdsocket *s = (imdsocket *) v;
-#if defined(_MSC_VER) || defined(__MINGW32_VERSION)
+#if defined(_MSC_VER) || defined(__MINGW32__)
   return recv(s->sd, (char*) buf, len, 0); /* windows lacks the read() call */
 #else
   return read(s->sd, buf, len);
@@ -1280,7 +1280,7 @@ void imdsock_shutdown(void *v) {
   if (s == NULL)
     return;
 
-#if defined(_MSC_VER) || defined(__MINGW32_VERSION)
+#if defined(_MSC_VER) || defined(__MINGW32__)
   shutdown(s->sd, SD_SEND);
 #else
   shutdown(s->sd, 1);  /* complete sends and send FIN */
@@ -1292,7 +1292,7 @@ void imdsock_destroy(void * v) {
   if (s == NULL)
     return;
 
-#if defined(_MSC_VER) || defined(__MINGW32_VERSION)
+#if defined(_MSC_VER) || defined(__MINGW32__)
   closesocket(s->sd);
 #else
   close(s->sd);

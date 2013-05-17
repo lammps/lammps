@@ -913,7 +913,7 @@ void Input::shell()
 
   } else if (strcmp(arg[0],"mkdir") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal shell command");
-#if !defined(WINDOWS) && !defined(__MINGW32_VERSION)
+#if !defined(WINDOWS) && !defined(__MINGW32__)
     if (me == 0)
       for (int i = 1; i < narg; i++)
         mkdir(arg[i], S_IRWXU | S_IRGRP | S_IXGRP);

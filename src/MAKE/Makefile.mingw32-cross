@@ -7,8 +7,10 @@ SHELL = /bin/sh
 # specify flags and libraries needed for your compiler
 
 CC =		i686-w64-mingw32-g++
-CCFLAGS =	-O3 -march=i686 -mtune=generic -mfpmath=387 -mpc64 -fopenmp \
-		 -ffast-math -fstrict-aliasing -Wall -W -Wno-uninitialized
+CCFLAGS =	-O3 -march=i686 -mtune=generic -mfpmath=387 -mpc64 -fopenmp	\
+		-ffast-math -fstrict-aliasing -fno-rtti -fno-exceptions	\
+		-Wall -W -Wno-uninitialized
+
 SHFLAGS =	# -fPIC (not needed on windows, all code is PIC)
 DEPFLAGS =	-M
 
@@ -20,6 +22,9 @@ SIZE =		i686-w64-mingw32-size
 ARCHIVE =	i686-w64-mingw32-ar
 ARFLAGS =	-rc
 SHLIBFLAGS =	-shared
+
+# name of object file subdir for libraries in lib with leading '/'
+LIBOBJDIR = 	/obj_mingw32-cross
 
 # ---------------------------------------------------------------------
 # LAMMPS-specific settings

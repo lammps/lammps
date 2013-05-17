@@ -10,14 +10,14 @@ INC =		mpi.h
 
 # Definitions
 
-EXE =		libmpi_mingw32.a
+EXE =		libmpi_mingw64.a
 OBJ = 		$(SRC:.c=.o)
 
 # System-specific settings
 
-CC =	        i686-w64-mingw32-gcc
-CCFLAGS =	-O2 -Wall -march=i686 -mtune=generic -mfpmath=387 -mpc64
-ARCHIVE =	i686-w64-mingw32-ar
+CC =	        x86_64-w64-mingw32-gcc
+CCFLAGS =	-O2 -Wall -march=core2 -mtune=core2 -msse2 -mpc64
+ARCHIVE =	x86_64-w64-mingw32-ar
 ARCHFLAG =	rs
 
 # Target

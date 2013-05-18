@@ -24,7 +24,7 @@ ARFLAGS =	-rc
 SHLIBFLAGS =	-shared
 
 # name of object file subdir for libraries in lib with leading '/'
-LIBOBJDIR = 	/obj_mingw32-cross
+LIBOBJDIR = 	/Obj_mingw32
 
 # ---------------------------------------------------------------------
 # LAMMPS-specific settings

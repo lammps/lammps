@@ -18,7 +18,7 @@ SRC = colvaratoms.cpp colvarbias_abf.cpp colvarbias.cpp colvarbias_meta.cpp	\
  colvarcomp_distances.cpp colvarcomp_protein.cpp colvarcomp_rotations.cpp	\
  colvargrid.cpp colvarmodule.cpp colvarparse.cpp colvarvalue.cpp
 
-DIR = obj_mingw64-cross/
+DIR = Obj_mingw64/
 LIB = $(DIR)libcolvars.a
 OBJ = $(SRC:%.cpp=$(DIR)%.o)
 EXE = #colvars_standalone

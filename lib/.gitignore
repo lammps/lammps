@@ -1,3 +1,4 @@
 *.o
 *.a
 *.mod
+obj_mingw*

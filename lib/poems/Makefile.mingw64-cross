@@ -61,21 +61,21 @@ FILES = $(SRC) $(INC) Makefile Authors_List.txt Grants_List.txt POEMS_License.tx
 
 # ------ DEFINITIONS ------
 
-DIR = Obj_mingw32/
+DIR = Obj_mingw64/
 LIB = $(DIR)libpoems.a
 OBJ = $(SRC:%.cpp=$(DIR)%.o)
 
 # ------ SETTINGS ------
 
-CC =	        i686-w64-mingw32-g++
-CCFLAGS =	-O2 -march=i686 -mtune=generic -mfpmath=387 -mpc64	\
+CC =	        x86_64-w64-mingw32-g++
+CCFLAGS =	-O2 -march=core2 -mtune=core2 -msse2 -mpc64	\
 		-ffast-math -funroll-loops -finline-functions -fno-rtti	\
 		-fno-exceptions -fstrict-aliasing \
 		-Wall -W -Wno-uninitialized 
-ARCHIVE =	i686-w64-mingw32-ar
+ARCHIVE =	x86_64-w64-mingw32-ar
 ARCHFLAG =	-rcs
 DEPFLAGS =      -M
-LINK =         	i686-w64-mingw32-g++
+LINK =         	x86_64-w64-mingw32-g++
 LINKFLAGS =	-O
 USRLIB =
 SYSLIB =

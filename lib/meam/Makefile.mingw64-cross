@@ -23,20 +23,20 @@ FILES = $(SRC) Makefile
 
 # ------ DEFINITIONS ------
 
-DIR = Obj_mingw32/
+DIR = Obj_mingw64/
 LIB = $(DIR)libmeam.a
 OBJ = $(SRC:%.F=$(DIR)%.o)
 
 # ------ SETTINGS ------
 
-F90 =           i686-w64-mingw32-gfortran
-F90FLAGS =      -O3 -march=i686 -mtune=generic -mfpmath=387 -mpc64  \
+F90 =           x86_64-w64-mingw32-gfortran
+F90FLAGS =      -O3 -march=core2 -mtune=core2 -msse2 -mpc64  \
 		-ffast-math -funroll-loops -fstrict-aliasing -J$(DIR) \
 		-Wall -W -Wno-uninitialized -fno-second-underscore
 #F90FLAGS =      -O 
-ARCHIVE =	i686-w64-mingw32-ar
+ARCHIVE =	x86_64-w64-mingw32-ar
 ARCHFLAG =	-rcs
-LINK =         	i686-w64-mingw32-g++
+LINK =         	x86_64-w64-mingw32-g++
 LINKFLAGS =	-O
 USRLIB =
 SYSLIB =

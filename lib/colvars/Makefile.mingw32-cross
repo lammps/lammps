@@ -1,4 +1,4 @@
-# library build makefile for colvars module
+# library build -*- makefile -*- for colvars module
 
 # ------ SETTINGS ------
 
@@ -13,12 +13,12 @@ SHELL =		/bin/sh
 
 # ------ DEFINITIONS ------
 
-SRC = colvaratoms.cpp colvarbias_abf.cpp colvarbias.cpp colvarbias_meta.cpp	\
- colvar.cpp colvarcomp_angles.cpp colvarcomp.cpp colvarcomp_coordnums.cpp	\
- colvarcomp_distances.cpp colvarcomp_protein.cpp colvarcomp_rotations.cpp	\
+SRC = colvaratoms.cpp colvarbias_abf.cpp colvarbias.cpp colvarbias_meta.cpp \
+ colvar.cpp colvarcomp_angles.cpp colvarcomp.cpp colvarcomp_coordnums.cpp   \
+ colvarcomp_distances.cpp colvarcomp_protein.cpp colvarcomp_rotations.cpp   \
  colvargrid.cpp colvarmodule.cpp colvarparse.cpp colvarvalue.cpp
 
-DIR = obj_mingw32-cross/
+DIR = Obj_mingw32/
 LIB = $(DIR)libcolvars.a
 OBJ = $(SRC:%.cpp=$(DIR)%.o)
 EXE = #colvars_standalone
@@ -99,4 +99,5 @@ $(DIR)colvarvalue.o: colvarvalue.cpp colvarmodule.h colvartypes.h colvarproxy.h 
 
 clean:
 	-rm $(DIR)*.o *~ $(LIB)
+	-rmdir $(DIR)
 

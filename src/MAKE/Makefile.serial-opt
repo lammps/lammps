@@ -27,7 +27,7 @@ SIZE =		size
 # LAMMPS ifdef settings, OPTIONAL
 # see possible settings in doc/Section_start.html#2_2 (step 4)
 
-LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_MEMALIGN=16
+LMP_INC =	-DLAMMPS_JPEG -DLAMMPS_GZIP -DLAMMPS_MEMALIGN=16
 
 # MPI library, REQUIRED
 # see discussion in doc/Section_start.html#2_2 (step 5)
@@ -37,8 +37,8 @@ LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_MEMALIGN=16
 # LIB = name of MPI library
 
 MPI_INC =       -I../STUBS
-MPI_PATH =
-MPI_LIB =	../STUBS/libmpi.a
+MPI_PATH =	-L../STUBS
+MPI_LIB =	-lmpi_stubs
 
 # FFT library, OPTIONAL
 # see discussion in doc/Section_start.html#2_2 (step 6)
@@ -60,7 +60,7 @@ FFT_LIB =
 
 JPG_INC =       
 JPG_PATH = 	
-JPG_LIB =	
+JPG_LIB =	-ljpeg
 
 # ---------------------------------------------------------------------
 # build rules and dependencies

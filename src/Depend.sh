@@ -29,6 +29,9 @@ if (test $1 = 1) then
   if (test -e fix_phonon.h) then
     cd USER-PHONON; /bin/sh Install.sh 1; cd ..
   fi
+#  if (test -e thr_omp.h) then
+#    cd USER-OMP; /bin/sh Install.sh 1; cd ..
+#  fi
 
 elif (test $1 = 0) then
 
@@ -50,5 +53,8 @@ elif (test $1 = 0) then
   if (test -e fix_phonon.h) then
     cd USER-PHONON; /bin/sh Install.sh 0; /bin/sh Install.sh 1; cd ..
   fi
+#  if (test -e thr_omp.h) then
+#    cd USER-OMP; /bin/sh Install.sh 0; /bin/sh Install.sh 1; cd ..
+#  fi
 
 fi

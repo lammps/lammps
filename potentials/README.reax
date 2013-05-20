@@ -28,6 +28,7 @@ Pentaerythritol Tetranitrate," J. Phys. Chem., 113 13142 (2009).
 ffield.reax.rdx: nitramines (RDX/HMX/TATB/PETN) 
 This version requires hbnewflag = 1
 
+Strachan, A.; et al. Phys. Rev. Lett. 2003, 91, 098301
 Zhang, L., van Duin, A.C.T., Zybin, S. and Goddard, W.A. (2009) Carbon
 Cluster Formation during Thermal Decomposition of
 Octahydro-1,3,5,7-tetranitro-1,3,5,7-tetrazocine and
@@ -60,3 +61,5 @@ Chenoweth, K.; et al. J. Phys. Chem. C, 2008, 112, 14645-14654.
 ffield.reax.ZnOH: Reactive MD-force field: water/zinc: Raymand, D.; 
 van Duin, A. C. T.; Spangberg, D.; Goddard, W. A.; Hermansson, K. 
 Surface Science 2010, 604, 9-10, 741-752.
+
+ffield.reax.lg: Reactive MD-force field: nitramines (RDX/HMX/TATB/PETN))+lg: L. Liu, Y. Liu, S. V. Zybin, H. Sun and W. A. Goddard, Journal of Physical Chemistry A, 115, 11016-11022 (2011).

@@ -1,0 +1,44 @@
+Voro++ basic example codes
+==========================
+These programs demonstrate some basic usage of the Voro++ library.
+
+1. single_cell.cc introduces the basic voronoicell class. It creates a simple
+cell by cutting it with a number of random planes. It outputs the cell to a file
+called single_cell.gnu, which can be visualized in gnuplot using the following
+commands:
+
+set style data lines
+splot 'single_cell.gnu'
+
+2. platonic.cc uses the voronoicell class to make the five Platonic solids,
+which are output to files that can be visualized in gnuplot.
+
+3. random_points.cc introduces the container class, for holding particle
+positions in a box. After creating a container, it adds a small number of
+random points to the box. It then calculates the sum of the volumes of the
+Voronoi cells, and compares it to the container volume - since the cells should
+perfectly partition the container, these two should be identical to within
+numerical accuracy. The code then saves the particle positions to
+"random_points_p.gnu" and the Voronoi cells to "random_points_v.gnu". These can
+be visualized in gnuplot using the command:
+
+splot 'random_points_p.gnu' u 2:3:4 with points, 'random_points_v.gnu' with lines
+
+4. import.cc demonstrates the ability of the code to import a list of particles
+from a text file. The code imports a text file called 'pack_ten_cube' which
+contains a thousand particles in a cube of side length 10. Each line of this
+file has the form:
+
+<Numerical ID> <x coordinate> <y coordinate> <z coordinate>
+
+The code imports the particles into the container, and then saves the particles
+and Voronoi cells in gnuplot and POV-Ray formats. To visualize the particles in
+gnuplot, use the command:
+
+splot 'pack_ten_cube' u 2:3:4 with points, 'pack_ten_cube.gnu' with lines
+
+To create a POV-Ray rendering of the particles, the scene header file
+import.pov must be used, which includes the output from the program. To render
+an 800x600 image with antialiasing, use the command:
+
+povray +W800 +H600 +A0.01 +Oimport.png import.pov

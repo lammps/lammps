@@ -1,0 +1,12 @@
+Timing examples
+===============
+These codes and scripts can be used to test the code's performance. The program
+timing_test.cc creates a container with 100000 particles, and then times the
+computation of all the cells in the container, using the dummy function
+compute_all_cells().
+
+The code will compile and run in the usual way, but it can also be tuned using
+the preprocessor macro NNN to configure the grid size. The perl script
+timing_test.pl will compile and run the program multiple times for NNN in the
+range 10 to 40. For each value of NNN, it carries out three runs, and prints a
+mean and standard deviation of times.

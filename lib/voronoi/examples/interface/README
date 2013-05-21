@@ -1,0 +1,52 @@
+C++ interface output examples
+=============================
+Since version 0.4, Voro++ has contained many routines that allow for programs
+to directly analyze features of a single Voronoi cell, and Voronoi cells in a
+particle packing. These example codes demonstrate this functionality.
+
+1. odd_even.cc constructs a single Voronoi cell using random planes, in the
+same manner as the basic single_cell.cc example. It then calls several routines
+to gain information about the computed cell's faces. Using this information it
+constructs a POV-Ray scene in which the faces are colored white or black
+depending on whether the have an odd or even number of sides. The POV-Ray
+header file odd_even.pov can be used to visualize the result.
+
+2. loops.cc demonstrates the loop classes, that can be used to iterate over a
+certain subset of particles within a container. It demonstrates the
+c_loop_order class, which can loop over a specific pre-computed list of
+particles. It also demonstrates the c_loop_subset class, which can loop over
+particles in a certain region of the container. These classes are used to
+compute Voronoi cells in two interlocking tori. The POV-Ray header file
+loops.pov can be used to visualize the result.
+
+3. polygons.cc demonstrates how routines can be used to find all faces in a
+Voronoi tessellation that have a specific number of sides. The routine also
+demonstrates the pre_container class, that can aid in correctly configuring the
+underlying grid that the code uses, in cases whether the amount of input data
+is not known a priori. When run, the code generates POV-Ray scenes of all
+quadrilateral, pentagonal, and hexagonal faces in a Voronoi tessellation. The
+can be visualized using the POV-Ray header files polygons4.pov, polygons5.pov,
+and polygons6.pov.
+
+4. find_voro_cell.cc demonstrates the find_voronoi_cell routine. For a given
+position vector, this routine will return the Voronoi cell that the vector is
+within. The code creates a unit cube and randomly adds twenty particles to it.
+It carries out a number of find_voronoi_cell calls for a slice through the
+cube, creating a file with vectors from each sample point to the particle whose
+Voronoi cell contains the point. The results can be visualized in Gnuplot with
+
+splot 'find_voro_cell_v.gnu' w l t 'Voronoi cells', 'find_voro_cell.vec' w vec t 'Voronoi cell vectors', 'find_voro_cell_p.gnu' w p u 2:3:4 t 'Particles' 
+
+The example also uses the find_voronoi_cell routine to estimate the size of
+each Voronoi cell. It scans a grid covering the entire container, making
+find_voronoi_cell calls at each location. The number of times each Voronoi cell
+is returned gives an estimate of its volume. These sampled volumes, as well as
+the exact calculated voulmes are saved to 'find_voro_cell.vol'. A graph
+comparing the two can be plotted in Gnuplot with
+
+set xlabel 'Calculated volume'
+set ylabel 'Sampled volume'
+plot [0:0.1] [0:0.1] 'find_voro_cell.vol' u 5:6
+
+Altering the size of scanning grid alters who accurate the sampled volumes will
+match the calculated results.

@@ -1,0 +1,72 @@
+# library build -*- makefile -*- for voro++ library
+
+# ------ SETTINGS ------
+
+CXX =		i686-w64-mingw32-g++
+CXXFLAGS =	-O2 -march=i686 -mtune=generic -mfpmath=387 -mpc64	\
+		-fno-rtti -fno-exceptions -finline-functions		\
+                -ffast-math -funroll-loops -fstrict-aliasing		\
+                -Wall -W -Wno-uninitialized
+ARCHIVE =	i686-w64-mingw32-ar
+ARCHFLAG =	-rscv
+SHELL =		/bin/sh
+
+# ------ DEFINITIONS ------
+
+SRC =	src/cell.cc src/c_loops.cc src/common.cc src/container.cc	\
+	src/container_prd.cc src/pre_container.cc src/unitcell.cc	\
+	src/v_base.cc src/v_compute.cc src/wall.cc
+
+DIR = Obj_mingw32/
+LIB = $(DIR)libvoronoi.a
+OBJ = $(SRC:src/%.cc=$(DIR)%.o)
+
+# ------ MAKE PROCEDURE ------
+
+default: $(DIR) $(LIB) $(EXE)
+
+$(DIR):
+	mkdir $(DIR)
+
+$(LIB): $(DIR)	$(OBJ)
+	$(ARCHIVE) $(ARFLAGS) $(LIB) $(OBJ)
+
+# ------ CLEAN ------
+
+clean:
+	-rm $(DIR)*.o *~ $(LIB)
+	-rmdir $(DIR)
+
+# ------ MAKE FLAGS ------
+
+.SUFFIXES:
+.SUFFIXES: .cc .o
+
+.PHONY: default clean
+
+# ------ COMPILE RULES ------
+
+$(DIR)%.o: src/%.cc
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+# ------ DEPENDENCIES ------
+
+$(DIR)cell.o: src/cell.cc src/config.hh src/common.hh src/cell.hh
+$(DIR)c_loops.o: src/c_loops.cc src/c_loops.hh src/config.hh
+$(DIR)common.o: src/common.cc src/common.hh src/config.hh
+$(DIR)container.o: src/container.cc src/container.hh src/config.hh \
+ src/common.hh src/v_base.hh src/worklist.hh src/cell.hh src/c_loops.hh \
+ src/v_compute.hh src/rad_option.hh
+$(DIR)container_prd.o: src/container_prd.cc src/container_prd.hh src/config.hh \
+ src/common.hh src/v_base.hh src/worklist.hh src/cell.hh src/c_loops.hh \
+ src/v_compute.hh src/unitcell.hh src/rad_option.hh
+$(DIR)pre_container.o: src/pre_container.cc src/config.hh src/pre_container.hh \
+ src/c_loops.hh src/container.hh src/common.hh src/v_base.hh \
+ src/worklist.hh src/cell.hh src/v_compute.hh src/rad_option.hh
+$(DIR)unitcell.o: src/unitcell.cc src/unitcell.hh src/config.hh src/cell.hh \
+ src/common.hh
+$(DIR)v_base.o: src/v_base.cc src/v_base.hh src/worklist.hh src/config.hh \
+ src/v_base_wl.cc
+$(DIR)wall.o: src/wall.cc src/wall.hh src/cell.hh src/config.hh src/common.hh \
+ src/container.hh src/v_base.hh src/worklist.hh src/c_loops.hh \
+ src/v_compute.hh src/rad_option.hh

@@ -1,0 +1,47 @@
+Wall support
+============
+The structure of Voro++ makes it easy to handle complicated boundary conditions
+by adding in additional plane cuts due to walls. The code has built-in support
+for plane, cylindrical, and spherical walls, and extra ones can be easily coded
+as derived C++ classes.
+
+1. cylinder.cc - this example creates a cylinder wall object, and imports a
+test packing from "pack_cylinder". It outputs POV-Ray files for particles at
+cylinder_p.pov, and Voronoi cells at cylinder_v.pov. These can be rendered
+using the scene file cylinder.pov with the command:
+
+povray +W600 +H800 +A0.3 +Ocylinder.png cylinder.pov
+
+2. frustum.cc - this example creates a frustum by making use of a cone wall
+object. It fills the frustum with 500 random points, and outputs the
+Voronoi cells in gnuplot format. Due to the conical wall being approximated
+with plane cuts, some inaccuracies can be seen.
+
+3. tetrahedron.cc - this example creates a tetrahedron with four planes, and
+randomly inserts particles into it, using the point_inside() function to
+determine whether the points are within the walls. It outputs the particles to
+tetrahedron_p.gnu, and the Voronoi cells to tetrahedron_v.gnu. These can be
+visualized in gnuplot using:
+
+splot 'tetrahedron_p.gnu' with points, 'tetrahedron_v.gnu' with lines
+
+Currently, the curved walls are made by a single approximating plane cut. This
+provides good results when particles are pressed against the walls, but is
+inaccurate it the particles are sparse. It would be possible to improve this by
+approximating the curved surface with a sequence of planes rather than just
+one.
+
+The code currently only supports walls which lead to convex computational
+domains, since a non-convex domain would lead to non-convex cells. To correctly
+handle these cases, the easiest way would be to divide the domain into several
+convex sub-domains, carry out a calculation in each, and then glue the cells
+that cross the divisions. Native support for non-convex domains may be added in
+a later version.
+
+4. torus.cc - this example shows how to create a custom wall object, derived
+from the pure virtual "wall" class. A routine is written that can cut a Voronoi
+cell in response to a torus centered on the origin that is aligned with the xy
+plane. The program writes POV-Ray files of the particles and Voronoi cells, and
+these can be rendered using the following command:
+
+povray +W800 +H600 +A0.3 +Otorus.png torus.pov

@@ -1,0 +1,346 @@
+.TH VORO++ 1 "August 28 2011"
+.UC 4
+.SH NAME
+voro++ \- a 3D Voronoi cell library
+.SH SYNOPSIS
+.B voro++
+[options] <x_min> <x_max> <y_min> <y_max> <z_min> <z_max> <filename>
+.br
+.SH DESCRIPTION
+.PP
+Voro++ is a software library for carrying out three-dimensional computations of
+the Voronoi tessellation. A distinguishing feature of the Voro++ library is
+that it carries out cell-based calculations, computing the Voronoi cell for
+each particle individually, rather than computing the Voronoi tessellation as a
+global network of vertices and edges. It is particularly well-suited for
+applications that rely on cell-based statistics, where features of Voronoi
+cells (
+.I eg.
+volume, centroid, number of faces) can be used to analyze a system of
+particles.
+
+.PP
+Voro++ is written in C++ and can be built as a static library that can be
+linked to. This man page describes a command-line utility that is provided with
+the library, which can be used to access most of the library's functionality.
+The utility imports text files of particle positions, computes the Voronoi
+cells for them, and then saves text files containing various types of
+information about the Voronoi cells.
+
+.SH FILE INPUT AND OUTPUT
+.PP
+The input file should have entries on separate lines with the following
+format:
+.PP
+.RS
+<Numerical ID label> <x coordinate> <y coordinate> <z coordinate>
+.RE
+.PP
+When the command imports the particles, any that lie outside the container
+geometry are ignored. The program then computes Voronoi cells for all the
+particles, and generates an output file using the same filename but with a
+".vol" suffix, that has the following entries:
+.PP
+.RS
+<Numerical ID label> <x coordinate> <y coordinate> <z coordinate> <Voronoi cell volume>
+.RE
+.PP
+To compute different statistics about the Voronoi cells, the \-c option can be
+used to specify a custom output string. By default, the command assumes
+non-periodic boundary conditions, although this can be modified with the \-p
+option described below. If periodicity is enabled, then particles will be
+re-mapped into the primary domain when the file is imported.
+
+.PP
+Under normal operation, the output file should have exactly the same number
+of lines in as the input file. However, if particles lie outside the container
+geometry, they will be omitted by the program, and will not appear in the
+output file. In certain cases, a Voronoi cell for a valid particle may be
+completely deleted (
+.I eg.
+by a wall cut) and it will also not appear in
+the output file. By default, the particles in the output file may be ordered
+differently to those in the input file, although the original ordering can be
+preserved with the \-o option described below.
+
+.SH INTERNAL COMPUTATIONAL GRID
+.PP
+To carry out the computation, the code divides the computational box into a
+grid of equally-sized rectangular blocks. Particles are internally sorted into
+this grid for computational efficiency, with maximum performance usually being
+achieved when there is an average of 3 to 8 particles per block. Performance is
+also improved if the blocks are close to cubes, with similar side lengths in
+three directions. In general the code is not very sensitive to the block size,
+and reasonable performance is achieved over a large range of values.
+.PP
+By default, the code estimates the grid size to use by counting the number
+of particles in the input file and choosing the number of blocks to aim for a
+3 to 8 particles per block. However, is also possible to manually configure the
+grid size using the \-l and \-n options.
+
+.SH OPTIONS
+The utility accepts the following basic options:
+
+.B
+.IP \-c <string>
+This option allows the format of the output file to be customized to hold a
+variety of statistics about the computed Voronoi cells. The specified string
+can contain regular characters, plus control sequences beginning with
+percentage signs that are expanded to contain different Voronoi cell
+statistics. See below for a full custom output reference.
+.B
+.IP \-g
+If this option is specified, then an additional output file is generated with
+the ".gnu" extension, which contains a description of all the cells in a format
+that can be viewed using gnuplot using the
+.I splot
+command. Caution: For large input files, the gnuplot output file will be
+extremely large, so this option is best used on smaller systems.
+.B
+.IP \-h or \-\-help
+This option prints out a summary of the command syntax and the available
+options.
+.B
+.IP \-hc
+This option prints out all the available control sequences for the customized
+output.
+.B
+.IP -l <len>
+Manually specify a typical length scale between particles, with which to
+configure the internal grid size. For example, if the particles represent
+densely-packed hard spheres of diameter d, then d would be an appropriate value
+to use. The length scale can be used to estimate the optimal grid size. Using
+this option will result in a small performance boost, since the internal grid
+can be set up immediately, and it is not necessary to temporarily store the
+input file contents while estimating the grid size.
+.B
+.IP -m <mem>
+Manually specify the initial number of particles that can be stored in each
+block. By default a value of 8 is used. For any block where this limit is
+reached, the code will dynamically allocate more memory as neccessary, so
+usually it is not necessary to alter this.
+.B
+.IP -n <nx> <ny> <nz>
+Manually specify the internal computational grid to have nx, ny, and nz blocks
+in the x, y, and z directions respectively, giving nx*ny*nz blocks in total.
+Manually specifying the size will result in a small performance boost, since
+the internal grid can be set up immediately, and it is not necessary to
+temporarily store the input file contents while estimating the size.
+.B
+.IP \-o
+Ensure that particles in the output file are in the same order as those in the
+input file. This may result in a very small increase in memory usage and
+execution time, and is turned off by default.
+.B
+.B
+.IP \-p
+Make the container periodic in all three coordinate directions.
+.B
+.IP \-px
+Make container periodic in the x direction.
+.B
+.IP \-py
+Make container periodic in the y direction.
+.B
+.IP \-pz
+Make container periodic in the z direction.
+.B
+.IP \-r
+Carry out a Voronoi tessellation for a polydisperse particle arrangement using
+the radical Voronoi tessellation. For this case, an extra column is required in
+the input file, that contains the particle radii. The radii are also included
+in the output file.
+.B
+.IP \-v
+Verbose output. After the computation is completed, some statistics are printed
+about the container geometry, the internal computational grid, the number of
+particles imported, the number Voronoi cells computed, and the volume of the
+computed Voronoi cells.
+.B
+.IP \-\-version
+Print version information.
+.B
+.IP \-y
+Save the particles in POV-Ray format to "filename_p.pov" and the Voronoi cells
+in POV-Ray format to "filename_v.pov". Caution: For large input files, the
+POV-Ray Voronoi cell file will be extremely large, so this option is best used
+on smaller systems.
+.B
+.IP \-yp
+Save the particles in POV-Ray format to "filename_p.pov".
+.B
+.IP \-yv
+Save the Voronoi cells in POV-Ray format to "filename_v.pov".
+
+.SH OPTIONS FOR WALLS
+In addition, a number of options can be used to specify wall objects. Walls
+are implemented by applying extra plane cuts during the cell construction
+process. At present, four wall types are supported:
+
+.B
+.IP \-wb <x1> <x2> <x3> <x4> <x5> <x6>
+Add six plane wall objects to make a box containing the space x1<x<x2, x3<y<x4,
+and x5<z<z6. This can be useful for embedding a smaller box within a larger
+container, in cases when the influence of particles outside the smaller box
+still need to be considered. This option is shorthand to avoid using the \-wp
+option six times.
+.B
+.IP \-wc <x1> <x2> <x3> <x4> <x5> <x6> <x7>
+Add a cylindrical wall object, where (x1,x2,x3) is a point on the cylinder
+axis, (x4,x5,x6) is a vector along the cylinder axis, and x7 is the cylinder
+radius.
+.B
+.IP \-wo <x1> <x2> <x3> <x4> <x5> <x6> <x7>
+Add a conical wall object, with apex at (x1,x2,x3), axis along (x4,x5,x6), and
+half angle x7 (specified in radians).
+.B
+.IP \-ws <x1> <x2> <x3> <x4>
+Add a spherical wall object, centered on (x1,x2,x3), with radius x4.
+.B
+.IP \-wp <x1> <x2> <x3> <x4>
+Add a plane wall object, with normal (x1,x2,x3), and displacement x4.
+
+Each wall is accounted for using a single approximating plane; several of the
+examples on the library website discuss this in more detail. If neighbor
+information is requested via the custom output string, then the walls are
+numbered sequentially, starting at -7 and decreasing.
+
+.SH CUSTOM OUTPUT COMMANDS
+.PP
+The output files created by Voro++ can be fully customized to contain a variety
+of different statistics about the computed Voronoi cells. This is done by
+specifying a format string that contains text plus additional control sequences
+that begin with percentage signs. The output file contains a line for each
+particle, where the control sequences are expanded to different statistics.
+Several examples on the library website describe the customized output in
+more detail.
+
+.PP
+Particle-related entries:
+
+.B
+.IP %i
+The particle ID number.	
+.B
+.IP %x
+The x coordinate of the particle.
+.B
+.IP %y
+The y coordinate of the particle.
+.B
+.IP %z
+The z coordinate of the particle.
+.B
+.IP %q
+The position vector of the particle, short for "%x %y %z".
+.B
+.IP %r
+The radius of the particle (only printed if the polydisperse information is
+available).
+
+.PP
+Vertex-related entries:
+
+.B
+.IP %w
+The number of vertices in the Voronoi cell.
+.B
+.IP %p
+A list of the vertices of the Voronoi cell in the format (x,y,z), relative to
+the particle center.
+.B
+.IP %P
+A list of the vertices of the Voronoi cell in the format (x,y,z), relative to
+the global coordinate system.
+.B
+.IP %o
+A list of the orders of each vertex.
+.B
+.IP %m
+The maximum radius squared of a vertex position, relative to the particle
+center.
+
+.PP
+Edge-related entries:
+
+.B
+.IP %g
+The number of edges of the Voronoi cell.
+.B
+.IP %E
+The total edge distance.
+.B
+.IP %e
+A list of perimeters of each face.
+
+.PP
+Face-related entries:
+
+.B
+.IP %s
+The number of faces of the Voronoi cell.
+.B
+.IP %F
+The total surface area of the Voronoi cell.
+.B
+.IP %A
+A frequency table of the orders of the faces.
+.B
+.IP %a
+A list of the orders of the faces, showing how many edges make up each face.
+.B
+.IP %f
+A list of areas of each face.
+.B
+.IP %t
+A list of bracketed sequences of vertices that make up each face.
+.B
+.IP %l
+A list of normal vectors for each face.
+.B
+.IP %n
+A list of the neighboring particle or wall IDs corresponding to each face. The
+list can contain negative numbers. For the non-periodic case these correspond
+to when the particles have faces created by the edges of the computational
+region. The numbers -1 to -6 correspond to the minimum x, maximum x, minimum y,
+maximum y, minimum z, and maximum z walls respectively. For periodic boundary
+conditions, negative numbers correspond to the cases when a face of the Voronoi
+cell is created by the periodic image of the current particle.
+
+In general, the neighbor information will be symmetric, so that if particle A
+reports particle B as a neighbor, then particle B will report particle A as a
+neighbor. However, due to the fact that Voro++ computes each Voronoi cell
+individually, it does not provide an explicit guarantee that the neighbor
+information will always be symmetric. Suppose there is a very small Voronoi
+face connecting A to B - it may be the case that due to roundoff error, the
+Voronoi cell computed for particle A has a face connecting it to B, but the
+cell computed for particle B does not have a face connecting it to A. If the
+user requires perfectly symmetric neighbor information, this can be achieved by
+scanning the output for any one-sided connections, and either deleting them or
+adding in the reverse connections. The face areas output from "%f" can also be
+used to remove connections between particles that only have a very small face
+between them.
+
+.PP
+Volume-related entries:
+.B
+.IP %v
+The volume of the Voronoi cell.
+.B
+.IP %c
+The centroid of the Voronoi cell, relative to the particle center.
+.B
+.IP %C
+The centroid of the Voronoi cell, in the global coordinate system.
+
+
+.SH AUTHOR
+Voro++ is written and maintained by Chris H. Rycroft, a visiting assistant
+professor in the Department of Mathematics, University of California, Berkeley
+and Department of Mathematics, Lawrence Berkeley National Laboratory.
+Feedback about the code is welcome; please email chr@alum.mit.edu.
+.SH BUGS
+Contact Chris H. Rycroft (chr@alum.mit.edu) to report problems with the code.
+.SH SEE ALSO
+See the library website http://math.lbl.gov/voro++/ for complete documentation
+and examples.

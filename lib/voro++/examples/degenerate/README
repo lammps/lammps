@@ -1,0 +1,21 @@
+Examples of degenerate vertex support
+=====================================
+Voronoi cells are irregular polyhedra whose faces are made by random plane cuts
+due to neighboring particles, and typically all the vertices of these polyhedra
+have order 3, since creating higher order vertices can only occur if a plane
+cut intersects an existing vertex.
+
+In order to make the code robust for handling very large systems, Voro++
+correctly handles these cases, by taking the approach that if a plane is within
+a particular numerical tolerance of an existing vertex, it treats the plane as
+perfectly intersecting that vertex, and it recomputes the cell topology
+accordingly, allowing it to have perfect representations of objects such as an
+octahedron. These example codes demonstrate this support:
+
+1. higher_test.cc - this code creates an object by cutting with planes aligned
+in a conical arragement along the positive and negative axes in the x, y, and z
+directions. This results in six very high order vertices, and often many order
+four vertices.
+
+2. higher_test2.cc - this code creates an approximation to a sphere, by cutting
+with many different planes aligned in locally random conical arrangements.

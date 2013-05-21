@@ -1,0 +1,29 @@
+Voro++ example directory
+========================
+These directories contain example programs that make use of the Voro++ code,
+and they are divided into six sections:
+
+basic - this contains several simple scripts that introduce this basic classes
+and carry out simple operations, such as constructing a single cell, or making
+a Voronoi tessellation for a small number of a random particles in a box.
+
+walls - these programs demonstrate the use of wall objects, to calculate the
+Voronoi cells in non-standard geometries.
+
+custom - these programs demonstrate how to customize the output of the library
+to contain a variety of different statistics about the computed Voronoi cells.
+The radical tessellation for a polydisperse packing of particles is also
+demonstrated.
+
+interface - these programs demonstrate features of the library's C++ interface.
+
+extra - this contains miscellaneous additional applications of the library for
+non-standard usage. It also includes an example of using a wall object to
+approximately deal with a case of an irregular boundary.
+
+degenerate - these codes demonstrate cases when "degenerate" vertices of order
+bigger than 3 are created, when the cutting planes are aligned to existing
+vertices within the numerical tolerance.
+
+timing - these programs and scripts can be used to test the performance of the
+code under different configurations.

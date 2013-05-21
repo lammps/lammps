@@ -1,0 +1,12 @@
+Voro++ helper scripts
+=====================
+This directory contains auxiliary helper perl scripts for use with the library.
+
+random.pl - generates a random file of particles for testing the command-line
+utility. Type "perl -h random.pl" for more information.
+
+network.pl - creates a neighbor network plot from a .vol file created by the
+command line utility using the -n option.
+
+sum.pl - sums the volumes in a .vol file created by the command line utility,
+for checking purposes.

@@ -1,0 +1,27 @@
+Customized output examples
+==========================
+The output of Voro++ can be customized to contain a variety of statistics about
+the Voronoi cells. Voro++ can also calculated the radical Voronoi tessellation
+for polydisperse packings where the cutting plane positions are displaced
+according to the particle radii.
+
+1. cell_statistics.cc constructs a simple Voronoi cell, and then demonstrates
+the large number of routines in the voronoicell class that will compute
+different statistics about the cell.
+
+2. custom_output.cc loads in a small monodisperse packing in a cube of side
+length six from the file pack_six_cube. It then uses the basic output routine
+print_all() to save the particle positions and Voronoi volumes to the file
+packing.standard. The routine print_all_neighbor() is also demonstrated, saving
+the particle positions, Voronoi volumes and neighbors to the file
+packing.neighbor. Three customized outputs are then created using the
+print_all_custom() routine.
+
+3. radical.cc loads in a small monodisperse packing from the file
+pack_six_cube, and saves the Voronoi tessellation to pack_six_cube.gnu. It then
+loads in a polydisperse packing in the same geometry from the file
+pack_six_cube_poly, and it saves the radical Voronoi tessellation to
+pack_six_cube_poly.gnu. These can be overlaid in gnuplot using the commands:
+
+set style data lines
+splot 'pack_six_cube.gnu', 'pack_six_cube_poly.gnu'

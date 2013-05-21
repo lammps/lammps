@@ -406,8 +406,8 @@ bool voronoicell_base::nplane(vc_class &vc,double x,double y,double z,double rsq
 	int us=0,ls=0,qs,iqs,cs,uw,qw,lw;
 	int *edp,*edd;
 	double u,l,r,q;
-        bool complicated_setup=false,new_double_edge=false,double_edge=false;
-        bool exception=false;
+	bool complicated_setup=false,new_double_edge=false,double_edge=false;
+	bool exception=false;
 
 	// Initialize the safe testing routine
 	n_marg=0;px=x;py=y;pz=z;prsq=rsq;
@@ -420,7 +420,6 @@ bool voronoicell_base::nplane(vc_class &vc,double x,double y,double z,double rsq
 	// to try and find an edge which intersects the cutting plane,
 	// or a vertex which is on the plane
 
-	// try {
 	{
 		if(uw==1) {
 			// The test point is inside the cutting plane.
@@ -515,12 +514,12 @@ bool voronoicell_base::nplane(vc_class &vc,double x,double y,double z,double rsq
 	}
 
 exit:
-	if (exception) { //  catch(bool except) {
+	if (exception) { 
 		// This routine is a fall-back, in case floating point errors
 		// cause the usual search routine to fail. In the fall-back
 		// routine, we just test every edge to find one straddling
 		// the plane.
-#if VOROPP_VERBOSE >=1 || 1
+#if VOROPP_VERBOSE >=1
 		fputs("Bailed out of convex calculation\n",stderr);
 #endif
 		qw=1;lw=0;

@@ -15,10 +15,10 @@ SHELL =		/bin/sh
 
 SRC =	src/cell.cc src/c_loops.cc src/common.cc src/container.cc	\
 	src/container_prd.cc src/pre_container.cc src/unitcell.cc	\
-	src/v_base.cc src/wall.cc
+	src/v_base.cc src/v_compute.cc src/wall.cc
 
 DIR = Obj_mingw32/
-LIB = $(DIR)libvoro++.a
+LIB = $(DIR)libvoronoi.a
 OBJ = $(SRC:src/%.cc=$(DIR)%.o)
 
 # ------ MAKE PROCEDURE ------

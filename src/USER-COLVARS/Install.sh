@@ -19,7 +19,6 @@ if (test $1 = 1) then
     sed -i -e '4 i \
 include ..\/..\/lib\/colvars\/Makefile.lammps
 ' ../Makefile.package.settings
-
   fi
 
   cp colvarproxy_lammps.h ..

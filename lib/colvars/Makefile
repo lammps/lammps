@@ -2,7 +2,7 @@
 
 SHELL=/bin/sh
 
-TARGETS= $(patsubst Makefile.%,%,$(wildcard Makefile.*))
+TARGETS= fermi mingw32-cross mingw64-cross
 CLEAN = $(patsubst %,clean-%,$(TARGETS))
 
 default:

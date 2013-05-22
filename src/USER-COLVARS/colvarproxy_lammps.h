@@ -88,6 +88,12 @@ class colvarproxy_lammps : public colvarproxy {
   // perform colvars computation. returns biasing energy
   double compute();
 
+  // dump status to string
+  std::string & serialize_status(std::string &);
+
+  // set status from string
+  bool deserialize_status(std::string &);
+
   // implementation of pure methods from base class
  public:
 

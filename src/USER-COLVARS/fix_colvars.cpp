@@ -307,6 +307,7 @@ FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   nevery = 1;
   extscalar = 1;
+  restart_global = 1;
 
   me = comm->me;
 
@@ -398,6 +399,9 @@ void FixColvars::deallocate()
 
 void FixColvars::post_run()
 {
+  printf("post_run\n");
+  this->write_restart(stdout);
+  fflush(stdout);
   deallocate();
   memory->sfree(inp_name);
   inp_name = strdup(out_name);
@@ -431,6 +435,7 @@ void FixColvars::init()
 
   MPI_Status status;
   MPI_Request request;
+
 
   // collect a list of atom type by atom id for the entire system.
   // the colvar module requires this information to set masses. :-(
@@ -477,6 +482,7 @@ void FixColvars::init()
       type_buf[nme+1] = type[i];
       nme +=2;
     }
+
     /* blocking receive to wait until it is our turn to send data. */
     MPI_Recv(&tmp, 0, MPI_INT, 0, 0, world, &status);
     MPI_Rsend(type_buf, nme, MPI_INT, 0, 0, world);
@@ -918,6 +924,28 @@ void FixColvars::end_of_step()
     }
   }
 }
+
+void FixColvars::write_restart(FILE *)
+{
+  if (me == 0) {
+    std::string rest_text("");
+    rest_text = proxy->serialize_status(rest_text);
+    printf("restart_data:\n%s\n", rest_text.c_str());
+  }
+}
+
+void FixColvars::restart(char *)
+{
+  if (me == 0) {
+    std::string rest_text("");
+    if (proxy->deserialize_status(rest_text)) {
+      printf("restart succesful:\n%s\n", rest_text.c_str());
+    } else {
+      printf("restart failed:\n%s\n", rest_text.c_str());
+    }
+  }
+}
+
 
 /* ---------------------------------------------------------------------- */
 

@@ -50,6 +50,9 @@ class FixColvars : public Fix {
   virtual double compute_scalar();
   virtual double memory_usage();
 
+  virtual void write_restart(FILE *);
+  virtual void restart(char *);
+
  protected:
   void   deallocate();        // free internal buffers
 

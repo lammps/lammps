@@ -164,6 +164,24 @@ double colvarproxy_lammps::compute()
   return bias_energy;
 }
 
+std::string & colvarproxy_lammps::serialize_status(std::string &rst)
+{
+  std::ostringstream os(rst);
+  colvars->write_restart(os);
+  return rst;
+}
+
+// set status from string
+bool colvarproxy_lammps::deserialize_status(std::string &rst)
+{
+  std::istringstream is(rst);
+  if (!colvars->read_restart(is)) {
+    return false;
+  } else {
+    return true;
+  }
+}
+
 cvm::rvector colvarproxy_lammps::position_distance(cvm::atom_pos const &pos1,
                                                    cvm::atom_pos const &pos2)
 {

@@ -27,6 +27,8 @@ include ..\/..\/lib\/colvars\/Makefile.lammps
   cp fix_colvars.cpp ..
   cp group_ndx.h ..
   cp group_ndx.cpp ..
+  cp write_dump.h ..
+  cp write_dump.cpp ..
 
 elif (test $1 = 0) then
 
@@ -44,4 +46,6 @@ elif (test $1 = 0) then
   rm -f ../fix_colvars.cpp
   rm -f ../group_ndx.h
   rm -f ../group_ndx.cpp
+  rm -f ../write_dump.h
+  rm -f ../write_dump.cpp
 fi

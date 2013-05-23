@@ -1,0 +1,143 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix reax/c/species command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID reax/c/species Nevery Nrepeat Nfreq filename keyword value ... 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>reax/c/species = style name of this command 
+
+<LI>Nevery = sample bond-order every this many timesteps 
+
+<LI>Nrepeat = # of bond-order samples used for calculating averages 
+
+<LI>Nfreq = calculate average bond-order every this many timesteps 
+
+<LI>filename = name of output file 
+
+<LI>zero or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>cutoff</I> or <I>element</I> or <I>position</I> 
+
+<PRE>  <I>cutoff</I> value = I J Cutoff
+    I, J = atom types
+    Cutoff = Bond-order cutoff value for this pair of atom types
+  <I>element</I> value = Element1, Element2, ... 
+  <I>position</I> value = posfreq filepos
+    posfreq = write position files every this many timestep
+    filepos = name of position output file 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 1 all species 10 10 100 species.out
+fix 1 all species 1 2 20 species.out cutoff 1 1 0.40 cutoff 1 2 0.55
+fix 1 all species 1 100 100 species.out element Au O H position 1000 AuOH.pos 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Write out the chemical species information computed by the ReaxFF potential
+specified by <A HREF = "pair_reax_c.html">pair_style reax/c</A>.  Bond-order values 
+(either averaged or instantaneous, depending on value of <I>Nrepeat</I>) 
+are used to determine chemical bonds. Every <I>Nfreq</I> timesteps,
+chemical species  information is written to <I>filename</I> as a two line output.
+The first line is a header containing labels. The second line consists 
+of the following: timestep, total number of molecules, 
+total number of distinct species, number of molecules of each species.
+The chemical formula of each species is given in the first line.
+</P>
+<P>Optional keyword <I>cutoff</I> can be assigned to change the minimum bond-order values 
+used in identifying chemical bonds between pairs of atoms.  Bond-order cutoffs 
+should be carefully chosen, as bond-order cutoffs that are too small may include 
+too many bonds (which will result in an error), while too-large cutoffs will 
+result in fragmented molecules.  The default cutoff of 0.3 usually gives good 
+estimate. 
+</P>
+<P>Optional keyword <I>element</I> can be used to specify the chemical symbol printed for
+each LAMMPS atom type. The number of symbols must match the number of LAMMPS atom types
+and each symbol must consist of 1 or 2 alphanumeric characters. Normally, these
+symbols should be chosen to match the chemical identity of each LAMMPS atom type,
+as specified using the <A HREF = "pair_reax_c.html">reax/c pair_coeff</A> command and 
+the ReaxFF force field file. 
+</P>
+<P>Optional keyword <I>position</I> writes center-of-mass positions of each identified 
+molecules to file <I>filepos</I> every <I>posfreq</I> timesteps.  The first line contains
+information on timestep, total number of molecules, total number of distinct 
+species, and box dimensions.  The second line is a header containing labels.
+From the third line downward, each molecule writes a line of output containing 
+the following information: molecule ID, number of atoms in this molecule, chemical 
+formula, total charge, and center-of-mass xyz positions of this molecule.  The xyz
+positions are in fractional coordinates relative to the box dimensions.  
+</P>
+<P>Keyword <I>position</I> output file <I>filepos</I> can contain the wildcard character "*".  
+If the "*" character appears in <I>filepos</I>, then one file per snapshot is written 
+at <I>posfreq</I> and the "*" character is replaced with the timestep value.  
+For example, AuO.pos.* becomes AuO.pos.0, AuO.pos.1000, etc.
+</P>
+<HR>
+
+<P>The <I>Nevery</I>, <I>Nrepeat</I>, and <I>Nfreq</I> arguments specify on what
+timesteps the bond-order values are sampled to get the average bond
+order.  The species analysis is performed using the average bond-order
+on timesteps
+that are a multiple of <I>Nfreq</I>.  The average is over <I>Nrepeat</I>
+bond-order samples, computed in the preceding portion of the simulation every
+<I>Nevery</I> timesteps.  <I>Nfreq</I> must be a multiple of <I>Nevery</I> and
+<I>Nevery</I> must be non-zero even if <I>Nrepeat</I> is 1.  Also, the timesteps
+contributing to the average bond-order cannot overlap, i.e. Nfreq >
+(Nrepeat-1)*Nevery is required.
+</P>
+<P>For example, if Nevery=2, Nrepeat=6, and Nfreq=100, then bond-order values on
+timesteps 90,92,94,96,98,100 will be used to compute the average bond-order
+ for the species analysis output on timestep 100.  
+</P>
+<HR>
+
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>No information about this fix is written to <A HREF = "restart.html">binary restart
+files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
+are relevant to this fix.  No global or per-atom quantities are stored
+by this fix for access by various <A HREF = "Section_howto.html#howto_15">output
+commands</A>.  No parameter of this fix can
+be used with the <I>start/stop</I> keywords of the <A HREF = "run.html">run</A> command.
+This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>The fix species currently only works with 
+<A HREF = "pair_reax_c.html">pair_style reax/c</A> and it requires that the <A HREF = "pair_reax_c.html">pair_style
+reax/c</A> be invoked.  This fix is part of the
+USER-REAXC package.  It is only enabled if LAMMPS was built with that
+package.  See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A> section
+for more info.
+</P>
+<P>It should be possible to extend it to other reactive pair_styles (such as 
+<A HREF = "pair_airebo.html">rebo</A>, <A HREF = "pair_airebo.html">airebo</A>, 
+<A HREF = "pair_comb.html">comb</A>, and <A HREF = "pair_bop.html">bop</A>), but this has not yet been done.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_reax_c.html">pair_style reax/c</A>, <A HREF = "fix_reax_bonds.html">fix
+reax/bonds</A>
+</P>
+<P><B>Default:</B> 
+</P>
+<P>The default values for bond-order cutoffs are 0.3 for all I-J pairs.  The
+default element symbols are C, H, O, N.  Position files are not written 
+by default.
+</P>
+</HTML>

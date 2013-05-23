@@ -31,7 +31,6 @@ class FixDtReset : public Fix {
   int setmask();
   void init();
   void setup(int);
-  void initial_integrate(int);
   void end_of_step();
   double compute_scalar();
   double compute_vector(int);
@@ -41,7 +40,7 @@ class FixDtReset : public Fix {
   int minbound,maxbound;
   double tmin,tmax,xmax;
   double ftm2v;
-  double dt,t_elapsed,t_laststep;
+  double dt,t_laststep;
   int respaflag;
 };
 

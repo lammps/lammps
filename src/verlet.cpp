@@ -319,6 +319,7 @@ void Verlet::cleanup()
 {
   modify->post_run();
   domain->box_too_small_check();
+  update->update_time();
 }
 
 /* ----------------------------------------------------------------------

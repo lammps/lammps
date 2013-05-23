@@ -38,6 +38,8 @@ Update::Update(LAMMPS *lmp) : Pointers(lmp)
   char *str;
 
   ntimestep = 0;
+  atime = 0.0;
+  atimestep = 0;
   first_update = 0;
 
   whichflag = 0;
@@ -356,6 +358,7 @@ void Update::reset_timestep(int narg, char **arg)
 
 /* ----------------------------------------------------------------------
    reset timestep
+   set atimestep to new timestep, so future update_time() calls will be correct
    trigger reset of timestep for output and for fixes that require it
    do not allow any timestep-dependent fixes to be defined
    reset eflag/vflag global so nothing will think eng/virial are current
@@ -370,6 +373,8 @@ void Update::reset_timestep(bigint newstep)
   ntimestep = newstep;
   if (ntimestep < 0) error->all(FLERR,"Timestep must be >= 0");
   if (ntimestep > MAXBIGINT) error->all(FLERR,"Too big a timestep");
+
+  atimestep = ntimestep;
 
   output->reset_timestep(ntimestep);
 
@@ -398,6 +403,17 @@ void Update::reset_timestep(bigint newstep)
   //for (int i = 0; i < domain->nregion; i++)
   //  if (domain->regions[i]->dynamic_check())
   //    error->all(FLERR,"Cannot reset timestep with a dynamic region defined");
+}
+
+/* ----------------------------------------------------------------------
+   update elapsed simulation time
+   called at end of runs or when timestep size changes
+------------------------------------------------------------------------- */
+
+void Update::update_time()
+{
+  atime += (ntimestep-atimestep) * dt;
+  atimestep = ntimestep;
 }
 
 /* ----------------------------------------------------------------------

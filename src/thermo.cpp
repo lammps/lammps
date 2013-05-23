@@ -45,7 +45,7 @@ using namespace MathConst;
 
 // customize a new keyword by adding to this list:
 
-// step, elapsed, elaplong, dt, cpu, tpcpu, spcpu
+// step, elapsed, elaplong, dt, time, cpu, tpcpu, spcpu
 // atoms, temp, press, pe, ke, etotal, enthalpy
 // evdwl, ecoul, epair, ebond, eangle, edihed, eimp, emol, elong, etail
 // vol, lx, ly, lz, xlo, xhi, ylo, yhi, zlo, zhi, xy, xz, yz, xlat, ylat, zlat
@@ -647,6 +647,8 @@ void Thermo::parse_fields(char *str)
       addfield("Elaplong",&Thermo::compute_elapsed_long,BIGINT);
     } else if (strcmp(word,"dt") == 0) {
       addfield("Dt",&Thermo::compute_dt,FLOAT);
+    } else if (strcmp(word,"time") == 0) {
+      addfield("Time",&Thermo::compute_time,FLOAT);
     } else if (strcmp(word,"cpu") == 0) {
       addfield("CPU",&Thermo::compute_cpu,FLOAT);
     } else if (strcmp(word,"tpcpu") == 0) {
@@ -993,6 +995,9 @@ int Thermo::evaluate_keyword(char *word, double *answer)
 
   } else if (strcmp(word,"dt") == 0) {
     compute_dt();
+
+  } else if (strcmp(word,"time") == 0) {
+    compute_time();
 
   } else if (strcmp(word,"cpu") == 0) {
     if (update->whichflag == 0)
@@ -1443,6 +1448,13 @@ void Thermo::compute_elapsed_long()
 void Thermo::compute_dt()
 {
   dvalue = update->dt;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_time()
+{
+  dvalue = update->atime + (update->ntimestep-update->atimestep)*update->dt;
 }
 
 /* ---------------------------------------------------------------------- */

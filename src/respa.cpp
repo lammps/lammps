@@ -499,6 +499,7 @@ void Respa::cleanup()
   modify->post_run();
   modify->delete_fix("RESPA");
   domain->box_too_small_check();
+  update->update_time();
 }
 
 /* ---------------------------------------------------------------------- */

@@ -1048,12 +1048,11 @@ void AtomVecSphere::pack_data(double **buf)
     else 
       buf[i][3] = rmass[i] / (4.0*MY_PI/3.0 * radius[i]*radius[i]*radius[i]);
     buf[i][4] = x[i][0];
-    buf[i][5] = x[i][0];
-    buf[i][6] = x[i][1];
-    buf[i][7] = x[i][2];
-    buf[i][8] = (image[i] & IMGMASK) - IMGMAX;
-    buf[i][9] = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-    buf[i][10] = (image[i] >> IMG2BITS) - IMGMAX;
+    buf[i][5] = x[i][1];
+    buf[i][6] = x[i][2];
+    buf[i][7] = (image[i] & IMGMASK) - IMGMAX;
+    buf[i][8] = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+    buf[i][9] = (image[i] >> IMG2BITS) - IMGMAX;
   }
 }
 

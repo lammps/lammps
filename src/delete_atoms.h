@@ -21,6 +21,7 @@ CommandStyle(delete_atoms,DeleteAtoms)
 #define LMP_DELETE_ATOMS_H
 
 #include "pointers.h"
+#include <map>
 
 namespace LAMMPS_NS {
 
@@ -31,7 +32,8 @@ class DeleteAtoms : protected Pointers {
 
  private:
   int *dlist;
-  int compress_flag;
+  int compress_flag,mol_flag;
+  std::map<int,int> *hash;
 
   void delete_group(int, char **);
   void delete_region(int, char **);
@@ -42,6 +44,12 @@ class DeleteAtoms : protected Pointers {
   inline int sbmask(int j) {
     return j >> SBBITS & 3;
   }
+
+  // static variable for ring communication callback to access class data
+  // callback functions for ring communication
+
+  static DeleteAtoms *cptr;
+  static void molring(int, char *);
 };
 
 }

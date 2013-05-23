@@ -28,7 +28,13 @@
 #include "memory.h"
 #include "error.h"
 
+#include <map>
+
 using namespace LAMMPS_NS;
+
+// allocate space for static class variable
+
+DeleteAtoms *DeleteAtoms::cptr;
 
 /* ---------------------------------------------------------------------- */
 
@@ -138,6 +144,7 @@ void DeleteAtoms::delete_group(int narg, char **arg)
 
 /* ----------------------------------------------------------------------
    delete all atoms in region
+   if mol_flag is set, also delete atoms in molecules with any deletions
 ------------------------------------------------------------------------- */
 
 void DeleteAtoms::delete_region(int narg, char **arg)
@@ -158,6 +165,54 @@ void DeleteAtoms::delete_region(int narg, char **arg)
 
   for (int i = 0; i < nlocal; i++)
     if (domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2])) dlist[i] = 1;
+
+  if (mol_flag == 0) return;
+
+  // delete entire molecules if any atom in molecule was deleted
+  // store list of molecule IDs I delete atoms from in list
+  // pass list from proc to proc via ring communication
+
+  hash = new std::map<int,int>();
+
+  int *molecule = atom->molecule;
+  for (int i = 0; i < nlocal; i++)
+    if (dlist[i] && hash->find(molecule[i]) == hash->end())
+      (*hash)[molecule[i]] = 1;
+
+  int n = hash->size();
+  int *list;
+  memory->create(list,n,"delete_atoms:list");
+
+  n = 0;
+  std::map<int,int>::iterator pos;
+  for (pos = hash->begin(); pos != hash->end(); ++pos) list[n++] = pos->first;
+
+  cptr = this;
+  comm->ring(n,sizeof(int),list,1,molring,NULL);
+
+  delete hash;
+  memory->destroy(list);
+}
+
+/* ----------------------------------------------------------------------
+   callback from comm->ring()
+   cbuf = list of N molecule IDs, put them in hash
+   loop over my atoms, if matches moleculed ID in hash, delete that atom
+------------------------------------------------------------------------- */
+
+void DeleteAtoms::molring(int n, char *cbuf)
+{
+  int *list = (int *) cbuf;
+  int *dlist = cptr->dlist;
+  std::map<int,int> *hash = cptr->hash;
+  int nlocal = cptr->atom->nlocal;
+  int *molecule = cptr->atom->molecule;
+
+  hash->clear();
+  for (int i = 0; i < n; i++) (*hash)[list[i]] = 1;
+
+  for (int i = 0; i < nlocal; i++)
+    if (hash->find(molecule[i]) != hash->end()) dlist[i] = 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -346,6 +401,7 @@ void DeleteAtoms::delete_porosity(int narg, char **arg)
 void DeleteAtoms::options(int narg, char **arg)
 {
   compress_flag = 1;
+  mol_flag = 0;
 
   int iarg = 0;
   while (iarg < narg) {
@@ -353,6 +409,12 @@ void DeleteAtoms::options(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal delete_bonds command");
       if (strcmp(arg[iarg+1],"yes") == 0) compress_flag = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) compress_flag = 0;
+      else error->all(FLERR,"Illegal delete_bonds command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"mol") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal delete_bonds command");
+      if (strcmp(arg[iarg+1],"yes") == 0) mol_flag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) mol_flag = 0;
       else error->all(FLERR,"Illegal delete_bonds command");
       iarg += 2;
     } else error->all(FLERR,"Illegal delete_bonds command");

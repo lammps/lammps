@@ -1,11 +1,11 @@
-# Depend.sh = Install/unInstall files for dependent packages
+# Depend.sh = Install/unInstall files due to package dependencies
+# this script is invoked after any package is installed/uninstalled
 
 # parent package = has files that files in another package derive from
 # child package = has files that derive from files in another package
 # all parent/child package dependencies should be listed below
 
-# this script is invoked after any package is installed/uninstalled
-# this script re-installs child packages that depend on the parent,
+# re-install child packages that depend on the parent,
 #   but only if the child package is already installed
 # this is necessary to insure the child package installs
 #   only child files whose parent package files are now installed

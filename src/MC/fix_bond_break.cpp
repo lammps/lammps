@@ -154,7 +154,7 @@ void FixBondBreak::init()
 void FixBondBreak::post_integrate()
 {
   int i,j,k,m,n,i1,i2,n1,n3,type;
-  double delx,dely,delz,rsq,min,max;
+  double delx,dely,delz,rsq;
   int *slist;
 
   if (update->ntimestep % nevery) return;
@@ -248,13 +248,14 @@ void FixBondBreak::post_integrate()
     j = atom->map(partner[i]);
     if (partner[j] != tag[i]) continue;
 
-    // apply probability constraint
-    // MIN,MAX insures values are added in same order on different procs
+    // apply probability constraint using RN for atom with smallest ID
 
     if (fraction < 1.0) {
-      min = MIN(probability[i],probability[j]);
-      max = MAX(probability[i],probability[j]);
-      if (0.5*(min+max) >= fraction) continue;
+      if (tag[i] < tag[j]) {
+        if (probability[i] >= fraction) continue;
+      } else {
+        if (probability[j] >= fraction) continue;
+      }
     }
 
     // delete bond from atom I if I stores it

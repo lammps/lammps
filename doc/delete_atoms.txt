@@ -24,8 +24,9 @@ style = {group} or {region} or {overlap} or {porosity} :ulb,l
     fraction = delete this fraction of atoms
     seed = random number seed (positive integer) :pre
 zero or more keyword/value pairs may be appended :l
-keyword = {compress} :l
-  {compress} value = {no} or {yes} :pre
+keyword = {compress} or {mol} :l
+  {compress} value = {no} or {yes}
+  {mol} value = {no} or {yes} :pre
 :ule
 
 [Examples:]
@@ -45,6 +46,9 @@ close to each other (e.g. at a grain boundary).
 For style {group}, all atoms belonging to the group are deleted.
 
 For style {region}, all atoms in the region volume are deleted.
+Additional atoms can be deleted if they are in a molecule for which
+one or more atoms were deleted within the region; see the {mol}
+keyword discussion below.
 
 For style {overlap} pairs of atoms whose distance of separation is
 within the specified cutoff distance are searched for, and one of the
@@ -77,6 +81,12 @@ number of atoms in the system.  This is not done for molecular systems
 {compress} setting, since it would foul up the bond connectivity that
 has already been assigned.
 
+It the {mol} keyword is set to {yes}, then for every atom that is
+deleted, all other atoms in the same molecule will also be deleted.
+This keyword is only used by the {region} style.  It is a way to
+insure that entire molecules are deleted instead of only a subset of
+atoms in a bond or angle or dihedral interaction.
+
 [Restrictions:]
 
 The {overlap} styles requires inter-processor communication to acquire
@@ -100,4 +110,4 @@ deleting one atom in a bonded pair anyway.
 
 [Default:]
 
-The option defaults are compress = yes.
+The option defaults are compress = yes and mol = no.

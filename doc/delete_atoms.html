@@ -30,9 +30,10 @@
 </PRE>
 <LI>zero or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>compress</I> 
+<LI>keyword = <I>compress</I> or <I>mol</I> 
 
-<PRE>  <I>compress</I> value = <I>no</I> or <I>yes</I> 
+<PRE>  <I>compress</I> value = <I>no</I> or <I>yes</I>
+  <I>mol</I> value = <I>no</I> or <I>yes</I> 
 </PRE>
 
 </UL>
@@ -53,6 +54,9 @@ close to each other (e.g. at a grain boundary).
 <P>For style <I>group</I>, all atoms belonging to the group are deleted.
 </P>
 <P>For style <I>region</I>, all atoms in the region volume are deleted.
+Additional atoms can be deleted if they are in a molecule for which
+one or more atoms were deleted within the region; see the <I>mol</I>
+keyword discussion below.
 </P>
 <P>For style <I>overlap</I> pairs of atoms whose distance of separation is
 within the specified cutoff distance are searched for, and one of the
@@ -85,6 +89,12 @@ number of atoms in the system.  This is not done for molecular systems
 <I>compress</I> setting, since it would foul up the bond connectivity that
 has already been assigned.
 </P>
+<P>It the <I>mol</I> keyword is set to <I>yes</I>, then for every atom that is
+deleted, all other atoms in the same molecule will also be deleted.
+This keyword is only used by the <I>region</I> style.  It is a way to
+insure that entire molecules are deleted instead of only a subset of
+atoms in a bond or angle or dihedral interaction.
+</P>
 <P><B>Restrictions:</B>
 </P>
 <P>The <I>overlap</I> styles requires inter-processor communication to acquire
@@ -108,6 +118,6 @@ deleting one atom in a bonded pair anyway.
 </P>
 <P><B>Default:</B>
 </P>
-<P>The option defaults are compress = yes.
+<P>The option defaults are compress = yes and mol = no.
 </P>
 </HTML>

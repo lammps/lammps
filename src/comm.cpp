@@ -534,7 +534,8 @@ void Comm::setup()
     maxneed[0] = MAX(all[0],all[1]);
     maxneed[1] = MAX(all[2],all[3]);
     maxneed[2] = MAX(all[4],all[5]);
-    // if (me == 0) printf("MAXNEED %d %d %d\n",maxneed[0],maxneed[1],maxneed[2]);
+    //if (me == 0) 
+    //printf("MAXNEED %d %d %d\n",maxneed[0],maxneed[1],maxneed[2]);
   }
 
   // allocate comm memory
@@ -1508,9 +1509,10 @@ void Comm::forward_comm_array(int n, double **array)
    communicate inbuf around full ring of processors with messtag
    nbytes = size of inbuf = n datums * nper bytes
    callback() is invoked to allow caller to process/update each proc's inbuf
-   note that callback() is invoked on final iteration for original inbuf
+   if self=1 (default), then callback() is invoked on final iteration
+     using original inbuf, which may have been updated
    for non-NULL outbuf, final updated inbuf is copied to it
-   outbuf = inbuf is OK
+     outbuf = inbuf is OK
 ------------------------------------------------------------------------- */
 
 void Comm::ring(int n, int nper, void *inbuf, int messtag,

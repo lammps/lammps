@@ -43,7 +43,10 @@ class FixPour : public Fix {
 
  private:
   int ninsert,ntype,seed;
+  int dstyle,npoly;
+  double radius_one,radius_max;
   double radius_lo,radius_hi;
+  double *radius_poly,*frac_poly;
   double density_lo,density_hi;
   double volfrac;
   int maxattempt;
@@ -63,6 +66,7 @@ class FixPour : public Fix {
 
   int overlap(int);
   void xyz_random(double, double *);
+  double radius_sample();
 };
 
 }

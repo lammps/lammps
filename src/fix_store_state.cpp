@@ -357,6 +357,9 @@ int FixStoreState::setmask()
 void FixStoreState::init()
 {
   // set indices and check validity of all computes,fixes,variables
+  // no error check if end_of_step() will not be called
+
+  if (!firstflag && nevery == 0) return;
 
   for (int m = 0; m < nvalues; m++) {
     if (which[m] == COMPUTE) {

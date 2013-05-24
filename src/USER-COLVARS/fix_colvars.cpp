@@ -929,7 +929,7 @@ void FixColvars::write_restart(FILE *)
 {
   if (me == 0) {
     std::string rest_text("");
-    rest_text = proxy->serialize_status(rest_text);
+    proxy->serialize_status(rest_text);
     printf("restart_data:\n%s\n", rest_text.c_str());
   }
 }

@@ -164,17 +164,19 @@ double colvarproxy_lammps::compute()
   return bias_energy;
 }
 
-std::string & colvarproxy_lammps::serialize_status(std::string &rst)
+void colvarproxy_lammps::serialize_status(std::string &rst)
 {
-  std::ostringstream os(rst);
+  std::ostringstream os;
   colvars->write_restart(os);
-  return rst;
+  rst = os.str();
 }
 
 // set status from string
 bool colvarproxy_lammps::deserialize_status(std::string &rst)
 {
-  std::istringstream is(rst);
+  std::istringstream is;
+  is.str(rst);
+
   if (!colvars->read_restart(is)) {
     return false;
   } else {

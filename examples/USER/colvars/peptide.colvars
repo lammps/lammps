@@ -33,7 +33,7 @@ harmonic {
   name h_pot
   colvars one two
   centers 10.00 10.0
-  forceConstant 100.0 100.0
+  forceConstant 100.0
 }
 
 

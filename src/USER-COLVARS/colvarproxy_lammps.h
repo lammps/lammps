@@ -89,7 +89,7 @@ class colvarproxy_lammps : public colvarproxy {
   double compute();
 
   // dump status to string
-  std::string & serialize_status(std::string &);
+  void serialize_status(std::string &);
 
   // set status from string
   bool deserialize_status(std::string &);

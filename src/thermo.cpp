@@ -741,16 +741,10 @@ void Thermo::parse_fields(char *str)
       addfield("Yz",&Thermo::compute_yz,FLOAT);
 
     } else if (strcmp(word,"xlat") == 0) {
-      if (domain->lattice == NULL)
-        error->all(FLERR,"Thermo keyword requires lattice be defined");
       addfield("Xlat",&Thermo::compute_xlat,FLOAT);
     } else if (strcmp(word,"ylat") == 0) {
-      if (domain->lattice == NULL)
-        error->all(FLERR,"Thermo keyword requires lattice be defined");
       addfield("Ylat",&Thermo::compute_ylat,FLOAT);
     } else if (strcmp(word,"zlat") == 0) {
-      if (domain->lattice == NULL)
-        error->all(FLERR,"Thermo keyword requires lattice be defined");
       addfield("Zlat",&Thermo::compute_zlat,FLOAT);
 
     } else if (strcmp(word,"pxx") == 0) {
@@ -1245,16 +1239,10 @@ int Thermo::evaluate_keyword(char *word, double *answer)
   else if (strcmp(word,"yz") == 0) compute_yz();
 
   else if (strcmp(word,"xlat") == 0) {
-    if (domain->lattice == NULL)
-      error->all(FLERR,"Thermo keyword in variable requires lattice be defined");
     compute_xlat();
   } else if (strcmp(word,"ylat") == 0) {
-    if (domain->lattice == NULL)
-      error->all(FLERR,"Thermo keyword in variable requires lattice be defined");
     compute_ylat();
   } else if (strcmp(word,"zlat") == 0) {
-    if (domain->lattice == NULL)
-      error->all(FLERR,"Thermo keyword in variable requires lattice be defined");
     compute_zlat();
 
   } else if (strcmp(word,"pxx") == 0) {

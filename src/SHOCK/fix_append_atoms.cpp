@@ -60,7 +60,7 @@ FixAppendAtoms::FixAppendAtoms(LAMMPS *lmp, int narg, char **arg) :
   randomx = NULL;
   randomt = NULL;
 
-  if (!domain->lattice) 
+  if (domain->lattice->nbasis == 0)
     error->all(FLERR,"Fix append/atoms requires a lattice be defined");
 
   nbasis = domain->lattice->nbasis;
@@ -126,12 +126,10 @@ FixAppendAtoms::FixAppendAtoms(LAMMPS *lmp, int narg, char **arg) :
       iarg += 3;
     } else if (strcmp(arg[iarg],"basis") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix append/atoms command");
-      if (domain->lattice == NULL)
-        error->all(FLERR,"Fix append/atoms requires a lattice be defined");
       int ibasis = atoi(arg[iarg+1]);
       int itype = atoi(arg[iarg+2]);
       if (ibasis <= 0 || ibasis > nbasis || itype <= 0 || itype > atom->ntypes)
-        error->all(FLERR,"Illegal fix append/atoms command");
+        error->all(FLERR,"Invalid basis setting in fix append/atoms command");
       basistype[ibasis-1] = itype;
       iarg += 3;
     } else if (strcmp(arg[iarg],"size") == 0) {
@@ -183,9 +181,6 @@ FixAppendAtoms::FixAppendAtoms(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Cannot append atoms to a triclinic box");
 
   // setup scaling
-
-  if (scaleflag && domain->lattice == NULL)
-    error->all(FLERR,"Use of fix append/atoms with undefined lattice");
 
   double xscale,yscale,zscale;
   if (scaleflag) {

@@ -77,9 +77,6 @@ void DisplaceAtoms::command(int narg, char **arg)
 
   // setup scaling
 
-  if (scaleflag && domain->lattice == NULL)
-    error->all(FLERR,"Use of displace_atoms with undefined lattice");
-
   double xscale,yscale,zscale;
   if (scaleflag) {
     xscale = domain->lattice->xlattice;

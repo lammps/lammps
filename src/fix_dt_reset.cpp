@@ -83,8 +83,6 @@ FixDtReset::FixDtReset(LAMMPS *lmp, int narg, char **arg) :
 
   // setup scaling, based on xlattice parameter
 
-  if (scaleflag && domain->lattice == NULL)
-    error->all(FLERR,"Use of fix dt/reset with undefined lattice");
   if (scaleflag) xmax *= domain->lattice->xlattice;
 
   // initializations

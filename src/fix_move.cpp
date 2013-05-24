@@ -192,9 +192,6 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
 
   if ((mstyle == LINEAR || mstyle == WIGGLE || mstyle == ROTATE) &&
       scaleflag) {
-    if (domain->lattice == NULL)
-      error->all(FLERR,"Use of fix move with undefined lattice");
-
     double xscale,yscale,zscale;
     if (scaleflag) {
       xscale = domain->lattice->xlattice;

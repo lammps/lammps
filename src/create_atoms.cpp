@@ -91,22 +91,18 @@ void CreateAtoms::command(int narg, char **arg)
   int scaleflag = 1;
   remapflag = 0;
 
-  if (domain->lattice) {
-    nbasis = domain->lattice->nbasis;
-    basistype = new int[nbasis];
-    for (int i = 0; i < nbasis; i++) basistype[i] = itype;
-  }
+  nbasis = domain->lattice->nbasis;
+  basistype = new int[nbasis];
+  for (int i = 0; i < nbasis; i++) basistype[i] = itype;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"basis") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal create_atoms command");
-      if (domain->lattice == NULL)
-        error->all(FLERR,"Cannot create atoms with undefined lattice");
       int ibasis = atoi(arg[iarg+1]);
       itype = atoi(arg[iarg+2]);
       if (ibasis <= 0 || ibasis > nbasis ||
           itype <= 0 || itype > atom->ntypes)
-        error->all(FLERR,"Illegal create_atoms command");
+        error->all(FLERR,"Invalid basis setting in create_atoms command");
       basistype[ibasis-1] = itype;
       iarg += 3;
     } else if (strcmp(arg[iarg],"remap") == 0) {
@@ -131,18 +127,16 @@ void CreateAtoms::command(int narg, char **arg)
     if (seed <= 0) error->all(FLERR,"Illegal create_atoms command");
   }
 
-  // demand lattice be defined
-  // else setup scaling for single atom
+  // demand non-none lattice be defined for BOX and REGION
+  // else setup scaling for SINGLE and RANDOM
   // could use domain->lattice->lattice2box() to do conversion of
   //   lattice to box, but not consistent with other uses of units=lattice
   // triclinic remapping occurs in add_single()
 
   if (style == BOX || style == REGION) {
-    if (domain->lattice == NULL)
+    if (nbasis == 0)
       error->all(FLERR,"Cannot create atoms with undefined lattice");
   } else if (scaleflag == 1) {
-    if (domain->lattice == NULL)
-      error->all(FLERR,"Cannot create atoms with undefined lattice");
     xone[0] *= domain->lattice->xlattice;
     xone[1] *= domain->lattice->ylattice;
     xone[2] *= domain->lattice->zlattice;

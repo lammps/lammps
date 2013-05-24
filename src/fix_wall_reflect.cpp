@@ -115,9 +115,6 @@ FixWallReflect::FixWallReflect(LAMMPS *lmp, int narg, char **arg) :
     if (wallstyle[m] != EDGE) flag = 1;
 
   if (flag) {
-    if (scaleflag && domain->lattice == NULL)
-      error->all(FLERR,"Use of fix wall with undefined lattice");
-
     if (scaleflag) {
       xscale = domain->lattice->xlattice;
       yscale = domain->lattice->ylattice;

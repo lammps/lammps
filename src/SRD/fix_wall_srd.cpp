@@ -127,9 +127,6 @@ FixWallSRD::FixWallSRD(LAMMPS *lmp, int narg, char **arg) :
     if (wallstyle[m] == CONSTANT) flag = 1;
 
   if (flag) {
-    if (scaleflag && domain->lattice == NULL)
-      error->all(FLERR,"Use of fix wall with undefined lattice");
-
     double xscale,yscale,zscale;
     if (scaleflag) {
       xscale = domain->lattice->xlattice;

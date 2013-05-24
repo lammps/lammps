@@ -51,7 +51,9 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   else error->all(FLERR,"Illegal lattice command");
 
   if (style == NONE) {
-    if (narg > 1) error->all(FLERR,"Illegal lattice command");
+    if (narg != 2) error->all(FLERR,"Illegal lattice command");
+    xlattice = ylattice = zlattice = atof(arg[1]);
+    if (xlattice <= 0.0) error->all(FLERR,"Illegal lattice command");
     return;
   }
 

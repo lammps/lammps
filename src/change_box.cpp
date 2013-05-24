@@ -185,9 +185,6 @@ void ChangeBox::command(int narg, char **arg)
   for (int i = 0; i < nops; i++)
     if (ops[i].style == FINAL || ops[i].style == DELTA) flag = 1;
 
-  if (flag && scaleflag && domain->lattice == NULL)
-    error->all(FLERR,"Use of change_box with undefined lattice");
-
   if (flag && scaleflag) {
     scale[0] = domain->lattice->xlattice;
     scale[1] = domain->lattice->ylattice;

@@ -59,9 +59,6 @@ ComputeTempRamp::ComputeTempRamp(LAMMPS *lmp, int narg, char **arg) :
 
   // setup scaling
 
-  if (scaleflag && domain->lattice == NULL)
-    error->all(FLERR,"Use of compute temp/ramp with undefined lattice");
-
   if (scaleflag) {
     xscale = domain->lattice->xlattice;
     yscale = domain->lattice->ylattice;

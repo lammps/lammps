@@ -118,8 +118,19 @@ can be replaced by
 
 region 1 block $((xlo+xhi)/2+sqrt(v_area)) 2 INF INF EDGE EDGE :pre
 
-The latter produces an identical result, without having to define and
-discard a temporary variable X.
+so that you do not have to define (or discard) a temporary variable X.
+
+Note that neither the curly-bracket or immediate form of variables can
+contain nested $ characters for other variables to substitute for.
+Thus you cannot do this:
+
+variable        a equal 2
+variable        b2 equal 4
+print           "B2 = $\{b$a\}" :pre
+
+Nor can you specify this $($x-1.0) for an immediate variable, but
+you could use $(v_x-1.0), since the latter is valid syntax for an
+"equal-style variable"_variable.html.
 
 See the "variable"_variable.html command for more details of how
 strings are assigned to variables and evaluated, and how they can be

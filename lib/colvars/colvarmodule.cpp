@@ -15,8 +15,8 @@ colvarmodule::colvarmodule (char const  *config_filename,
     proxy = proxy_in;
     parse = new colvarparse();
   } else {
-    cvm::fatal_error ("Error: trying to allocate twice the collective "
-                      "variable module.\n");
+    cvm::fatal_error ("Error: trying to allocate the collective "
+                      "variable module twice.\n");
   }
 
   cvm::log (cvm::line_marker);
@@ -579,6 +579,7 @@ colvarmodule::~colvarmodule()
   }
 
   delete parse;
+  proxy = NULL;
 }  
 
 

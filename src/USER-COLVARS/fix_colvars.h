@@ -45,7 +45,6 @@ class FixColvars : public Fix {
   virtual void min_post_force(int);
   virtual void post_force(int);
   virtual void post_force_respa(int, int, int);
-  virtual void post_run();
   virtual void end_of_step();
   virtual double compute_scalar();
   virtual double memory_usage();
@@ -84,6 +83,7 @@ class FixColvars : public Fix {
   int nlevels_respa;   // flag to determine respa levels.
   int store_forces;    // flag to determine whether to store total forces
   int unwrap_flag;     // 1 if atom coords are unwrapped, 0 if not
+  int init_flag;       // 1 if initialized, 0 if not
   static  int instances; // count fix instances, since colvars currently
                          // only supports one instance at a time
 };

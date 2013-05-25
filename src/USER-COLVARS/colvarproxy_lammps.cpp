@@ -56,13 +56,11 @@ static void my_backup_file(const char *filename, const char *extension)
 ////////////////////////////////////////////////////////////////////////
 
 colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp,
-                                       const char *conf_file,
                                        const char *inp_name,
                                        const char *out_name,
                                        const int seed,
-                                       const double temp,
-                                       const int *typemap)
-  : _lmp(lmp), _typemap(typemap)
+                                       const double temp)
+  : _lmp(lmp)
 {
   if (cvm::debug())
     log("Initializing the colvars proxy object.\n");
@@ -95,6 +93,12 @@ colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp,
   // trim off unwanted stuff from the restart prefix
   if (restart_prefix_str.rfind(".*") != std::string::npos)
     restart_prefix_str.erase(restart_prefix_str.rfind(".*"),2);
+}
+
+
+void colvarproxy_lammps::init(const char *conf_file, const int *typemap)
+{
+  _typemap = typemap;
 
   // create the colvarmodule instance
   colvars = new colvarmodule(conf_file,this);
@@ -112,14 +116,14 @@ colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp,
     log(cvm::line_marker);
     log("Info: done initializing the colvars proxy object.\n");
   }
-  // this is only valid through the constructor.
+
+  // this is only valid in this function.
   _typemap = NULL;
 }
 
 colvarproxy_lammps::~colvarproxy_lammps()
 {
   delete _random;
-
   if (colvars != NULL) {
     colvars->write_output_files();
     delete colvars;

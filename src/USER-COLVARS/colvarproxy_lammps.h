@@ -63,9 +63,10 @@ class colvarproxy_lammps : public colvarproxy {
 
  public:
   friend class cvm::atom;
-  colvarproxy_lammps (LAMMPS_NS::LAMMPS *lmp, const char *, const char *,
-                      const char *, const int, const double, const int *);
+  colvarproxy_lammps (LAMMPS_NS::LAMMPS *lmp, const char *,
+                      const char *, const int, const double);
   virtual ~colvarproxy_lammps();
+  void init(const char*, const int *);
 
  // disable default and copy constructor
  private:

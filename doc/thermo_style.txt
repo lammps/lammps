@@ -17,7 +17,7 @@ args = list of arguments for a particular style :l
   {one} args = none
   {multi} args = none
   {custom} args = list of attributes
-    possible attributes = step, elapsed, elaplong, dt, cpu, tpcpu, spcpu,
+    possible attributes = step, elapsed, elaplong, dt, time, cpu, tpcpu, spcpu,
                           atoms, temp, press, pe, ke, etotal, enthalpy,
                           evdwl, ecoul, epair, ebond, eangle, edihed, eimp,
                           emol, elong, etail,
@@ -33,6 +33,7 @@ args = list of arguments for a particular style :l
       elapsed = timesteps since start of this run
       elaplong = timesteps since start of initial run in a series of runs
       dt = timestep size
+      time = simulation time
       cpu = elapsed CPU time in seconds
       tpcpu = time per CPU second
       spcpu = timesteps per CPU second
@@ -206,6 +207,15 @@ an initial run in a series of runs.  See the {start} and {stop}
 keywords for the "run"_run.html for info on how to invoke a series of
 runs that keep track of an initial starting time.  If these keywords
 are not used, then {elapsed} and {elaplong} are the same value.
+
+The {dt} keyword is the current timestep size in time
+"units"_units.html.  The {time} keyword is the current elapsed
+simulation time, also in time "units"_units.html, which is simply
+(step*dt) if the timestep size has not changed and the timestep has
+not been reset.  If the timestep has changed (e.g. via "fix
+dt/reset"_fix_dt_reset.html) or the timestep has been reset (e.g. via
+the "reset_timestep" command), then the simulation time is effectively
+a cummulative value up to the current point.
 
 The {cpu} keyword is elapsed CPU seconds since the beginning of this
 run.  The {tpcpu} and {spcpu} keywords are measures of how fast your

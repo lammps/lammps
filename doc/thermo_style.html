@@ -22,7 +22,7 @@
 <PRE>  <I>one</I> args = none
   <I>multi</I> args = none
   <I>custom</I> args = list of attributes
-    possible attributes = step, elapsed, elaplong, dt, cpu, tpcpu, spcpu,
+    possible attributes = step, elapsed, elaplong, dt, time, cpu, tpcpu, spcpu,
                           atoms, temp, press, pe, ke, etotal, enthalpy,
                           evdwl, ecoul, epair, ebond, eangle, edihed, eimp,
                           emol, elong, etail,
@@ -38,6 +38,7 @@
       elapsed = timesteps since start of this run
       elaplong = timesteps since start of initial run in a series of runs
       dt = timestep size
+      time = simulation time
       cpu = elapsed CPU time in seconds
       tpcpu = time per CPU second
       spcpu = timesteps per CPU second
@@ -212,6 +213,15 @@ an initial run in a series of runs.  See the <I>start</I> and <I>stop</I>
 keywords for the <A HREF = "run.html">run</A> for info on how to invoke a series of
 runs that keep track of an initial starting time.  If these keywords
 are not used, then <I>elapsed</I> and <I>elaplong</I> are the same value.
+</P>
+<P>The <I>dt</I> keyword is the current timestep size in time
+<A HREF = "units.html">units</A>.  The <I>time</I> keyword is the current elapsed
+simulation time, also in time <A HREF = "units.html">units</A>, which is simply
+(step*dt) if the timestep size has not changed and the timestep has
+not been reset.  If the timestep has changed (e.g. via <A HREF = "fix_dt_reset.html">fix
+dt/reset</A>) or the timestep has been reset (e.g. via
+the "reset_timestep" command), then the simulation time is effectively
+a cummulative value up to the current point.
 </P>
 <P>The <I>cpu</I> keyword is elapsed CPU seconds since the beginning of this
 run.  The <I>tpcpu</I> and <I>spcpu</I> keywords are measures of how fast your

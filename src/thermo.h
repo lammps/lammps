@@ -122,6 +122,7 @@ class Thermo : protected Pointers {
   void compute_elapsed();
   void compute_elapsed_long();
   void compute_dt();
+  void compute_time();
   void compute_cpu();
   void compute_tpcpu();
   void compute_spcpu();

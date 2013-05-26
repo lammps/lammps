@@ -85,6 +85,11 @@ Domain::Domain(LAMMPS *lmp) : Pointers(lmp)
   boxhi_lamda[0] = boxhi_lamda[1] = boxhi_lamda[2] = 1.0;
 
   lattice = NULL;
+  char **args = new char*[2];
+  args[0] = (char *) "none";
+  args[1] = (char *) "1.0";
+  set_lattice(2,args);
+
   nregion = maxregion = 0;
   regions = NULL;
 }
@@ -1229,17 +1234,12 @@ void Domain::image_flip(int m, int n, int p)
 
 /* ----------------------------------------------------------------------
    create a lattice
-   delete it if style = none
 ------------------------------------------------------------------------- */
 
 void Domain::set_lattice(int narg, char **arg)
 {
   if (lattice) delete lattice;
   lattice = new Lattice(lmp,narg,arg);
-  if (lattice->style == 0) {
-    delete lattice;
-    lattice = NULL;
-  }
 }
 
 /* ----------------------------------------------------------------------

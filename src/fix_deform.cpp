@@ -256,9 +256,6 @@ FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
     if (set[i].style == FINAL || set[i].style == DELTA ||
         set[i].style == VEL || set[i].style == WIGGLE) flag = 1;
 
-  if (flag && scaleflag && domain->lattice == NULL)
-    error->all(FLERR,"Use of fix deform with undefined lattice");
-
   double xscale,yscale,zscale;
   if (flag && scaleflag) {
     xscale = domain->lattice->xlattice;

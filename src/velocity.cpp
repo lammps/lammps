@@ -378,20 +378,14 @@ void Velocity::set(int narg, char **arg)
   xscale = yscale = zscale = 1.0;
 
   if (xstyle && !xstr) {
-    if (scale_flag && domain->lattice == NULL)
-      error->all(FLERR,"Use of velocity with undefined lattice");
     if (scale_flag) xscale = domain->lattice->xlattice;
     vx *= xscale;
   }
   if (ystyle && !ystr) {
-    if (scale_flag && domain->lattice == NULL)
-      error->all(FLERR,"Use of velocity with undefined lattice");
     if (scale_flag) yscale = domain->lattice->ylattice;
     vy *= yscale;
   }
   if (zstyle && !zstr) {
-    if (scale_flag && domain->lattice == NULL)
-      error->all(FLERR,"Use of velocity with undefined lattice");
     if (scale_flag) zscale = domain->lattice->zlattice;
     vz *= zscale;
   }
@@ -551,9 +545,6 @@ void Velocity::scale(int narg, char **arg)
 void Velocity::ramp(int narg, char **arg)
 {
   // set scale factors
-
-  if (scale_flag && domain->lattice == NULL)
-    error->all(FLERR,"Use of velocity with undefined lattice");
 
   if (scale_flag) {
     xscale = domain->lattice->xlattice;

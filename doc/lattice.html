@@ -19,11 +19,8 @@
 
 <LI>scale = scale factor between lattice and simulation box 
 
-<PRE>  for style <I>none</I>:
-    scale is not specified (nor any optional arguments)
-  for all other styles:
-    scale = reduced density rho* (for LJ units)
-    scale = lattice constant in distance units (for non-LJ units) 
+<PRE>  scale = reduced density rho* (for LJ units)
+  scale = lattice constant in distance units (for all other units) 
 </PRE>
 <LI>zero or more keyword/value pairs may be appended 
 
@@ -50,7 +47,7 @@ lattice hex 0.85
 lattice sq 0.8 origin 0.0 0.5 0.0 orient x 1 1 0 orient y -1 1 0
 lattice custom 3.52 a1 1.0 0.0 0.0 a2 0.5 1.0 0.0 a3 0.0 0.0 0.5 &
                     basis 0.0 0.0 0.0 basis 0.5 0.5 0.5
-lattice none 
+lattice none 2.0 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -87,6 +84,16 @@ minimum volume.
 </P>
 <HR>
 
+<P>A lattice of style <I>none</I> does not define a unit cell and basis set,
+so it cannot be used with the <A HREF = "create_atoms.html">create_atoms</A>
+command.  However it does define a lattice spacing via the specified
+scale parameter.  As explained above the lattice spacings in x,y,z can
+be used by other commands as distance units.  No additional
+keyword/value pairs can be specified for the <I>none</I> style.  By
+default, a "lattice none 1.0" is defined, which means the lattice
+spacing is the same as one distance unit, as defined by the
+<A HREF = "units.html">units</A> command.
+</P>
 <P>Lattices of style <I>sc</I>, <I>fcc</I>, <I>bcc</I>, and <I>diamond</I> are 3d lattices
 that define a cubic unit cell with edge length = 1.0.  This means a1 =
 1 0 0, a2 = 0 1 0, and a3 = 0 0 1.  Style <I>hcp</I> has a1 = 1 0 0, a2 = 0
@@ -217,14 +224,6 @@ spacings should be decipherable.
 </P>
 <HR>
 
-<P>The command "lattice none" can be used to turn off a previous lattice
-definition.  Any command that attempts to use the lattice directly
-(<A HREF = "create_atoms.html">create_atoms</A>) or associated lattice spacings will
-then generate an error.  No additional arguments need be used with
-"lattice none".
-</P>
-<HR>
-
 <P><B>Restrictions:</B>
 </P>
 <P>The <I>a1,a2,a3,basis</I> keywords can only be used with style <I>custom</I>.
@@ -236,7 +235,7 @@ then generate an error.  No additional arguments need be used with
 </P>
 <P><B>Default:</B>
 </P>
-<PRE>lattice none 
+<PRE>lattice none 1.0 
 </PRE>
 <P>For other lattice styles, the option defaults are origin = 0.0 0.0
 0.0, orient = x 1 0 0, orient = y 0 1 0, orient = z 0 0 1, a1 = 1 0 0,

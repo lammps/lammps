@@ -17,12 +17,12 @@ pair_style style mu flaglog flagfld cutinner cutoff flagHI flagVF :pre
 
 style = {lubricate} or {lubricate/poly}
 mu = dynamic viscosity (dynamic viscosity units)
-flaglog = 0/1 log terms in the lubrication approximation off/on
-flagfld = 0/1 to include/exclude Fast Lubrication Dynamics effects
+flaglog = 0/1 to exclude/include log terms in the lubrication approximation
+flagfld = 0/1 to exclude/include Fast Lubrication Dynamics (FLD) effects
 cutinner = inner cutoff distance (distance units)
 cutoff = outer cutoff for interactions (distance units)
-flagHI (optional) = 0/1 to include/exclude 1/r hydrodynamic interactions
-flagVF (optional) = 0/1 to include/exclude volume fraction corrections in the long-range isotropic terms :ul
+flagHI (optional) = 0/1 to exclude/include 1/r hydrodynamic interactions
+flagVF (optional) = 0/1 to exclude/include volume fraction corrections in the long-range isotropic terms :ul
 
 [Examples:] (all assume radius = 1)
 

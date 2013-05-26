@@ -1,6 +1,6 @@
 # Update package files in LAMMPS
 # cp package file to src if doesn't exist or is different
-# do not copy eam and charmm files if non-OPT versions do not exist
+# do not copy dependent files if non-OPT versions do not exist
 
 for file in *.cpp *.h; do
   if (test $file = pair_eam_opt.cpp -a ! -e ../pair_eam.cpp) then

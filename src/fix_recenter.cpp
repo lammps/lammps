@@ -75,9 +75,6 @@ FixRecenter::FixRecenter(LAMMPS *lmp, int narg, char **arg) :
 
   // scale xcom,ycom,zcom
 
-  if (scaleflag == LATTICE && domain->lattice == NULL)
-    error->all(FLERR,"Use of fix recenter with undefined lattice");
-
   double xscale,yscale,zscale;
   if (scaleflag == LATTICE) {
     xscale = domain->lattice->xlattice;

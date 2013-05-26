@@ -340,9 +340,6 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,
                "Fix ave/spatial for triclinic boxes requires units reduced");
 
-  if (scaleflag == LATTICE && domain->lattice == NULL)
-    error->all(FLERR,"Use of fix ave/spatial with undefined lattice");
-
   if (scaleflag == LATTICE) {
     xscale = domain->lattice->xlattice;
     yscale = domain->lattice->ylattice;

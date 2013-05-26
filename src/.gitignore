@@ -1,8 +1,4 @@
 Makefile.package*
-lammps-icms-win.exe
-lammps-icms-win.zip
-lammps-icms-mpich-win.exe
-lammps-icms-mpich-win.zip
 lmp_*
 
 colvarproxy_lammps.cpp
@@ -96,10 +92,14 @@ atom_vec_full.cpp
 atom_vec_full.h
 atom_vec_granular.cpp
 atom_vec_granular.h
+atom_vec_meso.cpp
+atom_vec_meso.h
 atom_vec_molecular.cpp
 atom_vec_molecular.h
 atom_vec_peri.cpp
 atom_vec_peri.h
+body_nparticle.cpp
+body_nparticle.h
 bond_class2.cpp
 bond_class2.h
 bond_class2_omp.cpp
@@ -146,6 +146,8 @@ commgrid.cpp
 commgrid.h
 compute_ackland_atom.cpp
 compute_ackland_atom.h
+compute_body_local.cpp
+compute_body_local.h
 compute_cna_atom2.cpp
 compute_cna_atom2.h
 compute_damage_atom.cpp
@@ -158,6 +160,12 @@ compute_ke_atom_eff.cpp
 compute_ke_atom_eff.h
 compute_ke_eff.cpp
 compute_ke_eff.h
+compute_meso_e_atom.cpp
+compute_meso_e_atom.h
+compute_meso_rho_atom.cpp
+compute_meso_rho_atom.h
+compute_meso_t_atom.cpp
+compute_meso_t_atom.h
 compute_spec_atom.cpp
 compute_spec_atom.h
 compute_temp_asphere.cpp
@@ -170,6 +178,8 @@ compute_temp_region_eff.cpp
 compute_temp_region_eff.h
 compute_temp_rotate.cpp
 compute_temp_rotate.h
+compute_voronoi_atom.cpp
+compute_voronoi_atom.h
 dihedral_omp.cpp
 dihedral_omp.h
 dihedral_charmm.cpp
@@ -265,6 +275,12 @@ fix_imd.cpp
 fix_imd.h
 fix_langevin_eff.cpp
 fix_langevin_eff.h
+fix_load_report.cpp
+fix_load_report.h
+fix_meso.cpp
+fix_meso.h
+fix_meso_stationary.cpp
+fix_meso_stationary.h
 fix_msst.cpp
 fix_msst.h
 fix_neb.cpp
@@ -279,6 +295,8 @@ fix_nve_asphere.cpp
 fix_nve_asphere.h
 fix_nve_asphere_noforce.cpp
 fix_nve_asphere_noforce.h
+fix_nve_body.cpp
+fix_nve_body.h
 fix_nvt_asphere.cpp
 fix_nvt_asphere.h
 fix_nh_eff.cpp
@@ -337,6 +355,8 @@ fix_peri_neigh.cpp
 fix_peri_neigh.h
 fix_peri_neigh_omp.cpp
 fix_peri_neigh_omp.h
+fix_phonon.cpp
+fix_phonon.h
 fix_poems.cpp
 fix_poems.h
 fix_pour.cpp
@@ -355,6 +375,8 @@ fix_reax_c.cpp
 fix_reax_c.h
 fix_reaxc_bonds.cpp
 fix_reaxc_bonds.h
+fix_reaxc_species.cpp
+fix_reaxc_species.h
 fix_rigid.cpp
 fix_rigid.h
 fix_rigid_nh.cpp
@@ -406,6 +428,8 @@ fix_wall_piston.h
 fix_wall_srd.cpp
 fix_wall_srd.h
 gpu_extra.h
+group2ndx.cpp
+group2ndx.h
 improper_class2.cpp
 improper_class2.h
 improper_class2_omp.cpp
@@ -468,6 +492,8 @@ pair_airebo_omp.cpp
 pair_airebo_omp.h
 pair_beck_omp.cpp
 pair_beck_omp.h
+pair_body.cpp
+pair_body.h
 pair_bop.cpp
 pair_bop.h
 pair_born_omp.cpp
@@ -653,6 +679,8 @@ pair_line_lj.cpp
 pair_line_lj.h
 pair_line_lj_omp.cpp
 pair_line_lj_omp.h
+pair_list.cpp
+pair_list.h
 pair_lj_charmm_coul_charmm.cpp
 pair_lj_charmm_coul_charmm.h
 pair_lj_charmm_coul_charmm_omp.cpp
@@ -701,6 +729,10 @@ pair_lj_cubic_omp.cpp
 pair_lj_cubic_omp.h
 pair_lj_cut_coul_cut_omp.cpp
 pair_lj_cut_coul_cut_omp.h
+pair_lj_cut_tip4p_cut.cpp
+pair_lj_cut_tip4p_cut.h
+pair_lj_cut_tip4p_cut_omp.cpp
+pair_lj_cut_tip4p_cut_omp.h
 pair_lj_cut_coul_debye_omp.cpp
 pair_lj_cut_coul_debye_omp.h
 pair_lj_cut_coul_long.cpp
@@ -733,8 +765,12 @@ pair_lj_long_coul_long.cpp
 pair_lj_long_coul_long.h
 pair_lj_long_coul_long_omp.cpp
 pair_lj_long_coul_long_omp.h
+pair_lj_long_coul_long_opt.cpp
+pair_lj_long_coul_long_opt.h
 pair_lj_long_tip4p_long.cpp
 pair_lj_long_tip4p_long.h
+pair_lj_long_tip4p_long_omp.cpp
+pair_lj_long_tip4p_long_omp.h
 pair_lj_cut_gpu.cpp
 pair_lj_cut_gpu.h
 pair_lj_cut_omp.cpp
@@ -838,6 +874,18 @@ pair_resquared_omp.cpp
 pair_resquared_omp.h
 pair_soft_omp.cpp
 pair_soft_omp.h
+pair_sph_heatconduction.cpp
+pair_sph_heatconduction.h
+pair_sph_idealgas.cpp
+pair_sph_idealgas.h
+pair_sph_lj.cpp
+pair_sph_lj.h
+pair_sph_rhosum.cpp
+pair_sph_rhosum.h
+pair_sph_taitwater.cpp
+pair_sph_taitwater.h
+pair_sph_taitwater_morris.cpp
+pair_sph_taitwater_morris.h
 pair_sw.cpp
 pair_sw.h
 pair_sw_omp.cpp
@@ -979,5 +1027,7 @@ thr_omp.cpp
 thr_omp.h
 verlet_split.cpp
 verlet_split.h
+write_dump.cpp
+write_dump.h
 xdr_compat.cpp
 xdr_compat.h

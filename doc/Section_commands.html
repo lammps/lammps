@@ -122,8 +122,19 @@ variable X delete
 </P>
 <PRE>region 1 block $((xlo+xhi)/2+sqrt(v_area)) 2 INF INF EDGE EDGE 
 </PRE>
-<P>The latter produces an identical result, without having to define and
-discard a temporary variable X.
+<P>so that you do not have to define (or discard) a temporary variable X.
+</P>
+<P>Note that neither the curly-bracket or immediate form of variables can
+contain nested $ characters for other variables to substitute for.
+Thus you cannot do this:
+</P>
+<PRE>variable        a equal 2
+variable        b2 equal 4
+print           "B2 = ${b$a}" 
+</PRE>
+<P>Nor can you specify this $($x-1.0) for an immediate variable, but
+you could use $(v_x-1.0), since the latter is valid syntax for an
+<A HREF = "variable.html">equal-style variable</A>.
 </P>
 <P>See the <A HREF = "variable.html">variable</A> command for more details of how
 strings are assigned to variables and evaluated, and how they can be

@@ -186,7 +186,7 @@ void PairGranHookeCuda::init_style()
     if (strcmp(modify->fix[i]->style,"pour") == 0) break;
   if (i < modify->nfix) {
     pour_type = ((FixPour *) modify->fix[i])->ntype;
-    pour_maxrad = ((FixPour *) modify->fix[i])->radius_hi;
+    pour_maxrad = ((FixPour *) modify->fix[i])->radius_max;
   }
 
   // set maxrad_dynamic and maxrad_frozen for each type

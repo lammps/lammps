@@ -59,9 +59,6 @@ FixIndent::FixIndent(LAMMPS *lmp, int narg, char **arg) :
 
   // setup scaling
 
-  if (scaleflag && domain->lattice == NULL)
-    error->all(FLERR,"Use of fix indent with undefined lattice");
-
   double xscale,yscale,zscale;
   if (scaleflag) {
     xscale = domain->lattice->xlattice;

@@ -15,11 +15,8 @@ lattice style scale keyword values ... :pre
 style = {none} or {sc} or {bcc} or {fcc} or {hcp} or {diamond} or \
         {sq} or {sq2} or {hex} or {custom} :ulb,l
 scale = scale factor between lattice and simulation box :l
-  for style {none}:
-    scale is not specified (nor any optional arguments)
-  for all other styles:
-    scale = reduced density rho* (for LJ units)
-    scale = lattice constant in distance units (for non-LJ units) :pre
+  scale = reduced density rho* (for LJ units)
+  scale = lattice constant in distance units (for all other units) :pre
 zero or more keyword/value pairs may be appended :l
 keyword = {origin} or {orient} or {spacing} or {a1} or {a2} or {a3} or {basis} :l
   {origin} values = x y z
@@ -42,7 +39,7 @@ lattice hex 0.85
 lattice sq 0.8 origin 0.0 0.5 0.0 orient x 1 1 0 orient y -1 1 0
 lattice custom 3.52 a1 1.0 0.0 0.0 a2 0.5 1.0 0.0 a3 0.0 0.0 0.5 &
                     basis 0.0 0.0 0.0 basis 0.5 0.5 0.5
-lattice none :pre
+lattice none 2.0 :pre
 
 [Description:]
 
@@ -78,6 +75,16 @@ unit cell they determine does not have to be a "primitive cell" of
 minimum volume.
 
 :line
+
+A lattice of style {none} does not define a unit cell and basis set,
+so it cannot be used with the "create_atoms"_create_atoms.html
+command.  However it does define a lattice spacing via the specified
+scale parameter.  As explained above the lattice spacings in x,y,z can
+be used by other commands as distance units.  No additional
+keyword/value pairs can be specified for the {none} style.  By
+default, a "lattice none 1.0" is defined, which means the lattice
+spacing is the same as one distance unit, as defined by the
+"units"_units.html command.
 
 Lattices of style {sc}, {fcc}, {bcc}, and {diamond} are 3d lattices
 that define a cubic unit cell with edge length = 1.0.  This means a1 =
@@ -209,14 +216,6 @@ spacings should be decipherable.
 
 :line
 
-The command "lattice none" can be used to turn off a previous lattice
-definition.  Any command that attempts to use the lattice directly
-("create_atoms"_create_atoms.html) or associated lattice spacings will
-then generate an error.  No additional arguments need be used with
-"lattice none".
-
-:line
-
 [Restrictions:]
 
 The {a1,a2,a3,basis} keywords can only be used with style {custom}.
@@ -228,7 +227,7 @@ The {a1,a2,a3,basis} keywords can only be used with style {custom}.
 
 [Default:]
 
-lattice none :pre
+lattice none 1.0 :pre
 
 For other lattice styles, the option defaults are origin = 0.0 0.0
 0.0, orient = x 1 0 0, orient = y 0 1 0, orient = z 0 0 1, a1 = 1 0 0,

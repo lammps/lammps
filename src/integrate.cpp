@@ -45,6 +45,8 @@ Integrate::~Integrate()
 
 void Integrate::init()
 {
+  update->atimestep = update->ntimestep;
+
   // allow pair and Kspace compute() to be turned off via modify flags
 
   if (force->pair && force->pair->compute_flag) pair_compute_flag = 1;

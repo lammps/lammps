@@ -359,12 +359,11 @@ void PairPeriPMB::init_style()
 {
   // error checks
 
-  if (!atom->peri_flag) error->all(FLERR,"Pair style peri requires atom style peri");
+  if (!atom->peri_flag) 
+    error->all(FLERR,"Pair style peri requires atom style peri");
   if (atom->map_style == 0)
     error->all(FLERR,"Pair peri requires an atom map, see atom_modify");
 
-  if (domain->lattice == NULL)
-    error->all(FLERR,"Pair peri requires a lattice be defined");
   if (domain->lattice->xlattice != domain->lattice->ylattice ||
       domain->lattice->xlattice != domain->lattice->zlattice ||
       domain->lattice->ylattice != domain->lattice->zlattice)

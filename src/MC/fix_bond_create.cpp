@@ -268,7 +268,7 @@ void FixBondCreate::setup(int vflag)
 void FixBondCreate::post_integrate()
 {
   int i,j,m,ii,jj,inum,jnum,itype,jtype,n1,n3,possible;
-  double xtmp,ytmp,ztmp,delx,dely,delz,rsq,min,max;
+  double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *ilist,*jlist,*numneigh,**firstneigh,*slist;
 
   if (update->ntimestep % nevery) return;
@@ -397,13 +397,14 @@ void FixBondCreate::post_integrate()
     j = atom->map(partner[i]);
     if (partner[j] != tag[i]) continue;
 
-    // apply probability constraint
-    // MIN,MAX insures values are added in same order on different procs
+    // apply probability constraint using RN for atom with smallest ID
 
     if (fraction < 1.0) {
-      min = MIN(probability[i],probability[j]);
-      max = MAX(probability[i],probability[j]);
-      if (0.5*(min+max) >= fraction) continue;
+      if (tag[i] < tag[j]) {
+        if (probability[i] >= fraction) continue;
+      } else {
+        if (probability[j] >= fraction) continue;
+      }
     }
 
     // if newton_bond is set, only store with I or J

@@ -1,6 +1,6 @@
 # Update package files in LAMMPS
 # cp package file to src if doesn't exist or is different
-# do not copy gayberne files if non-GPU version does not exist
+# do not copy dependent files if non-GPU version does not exist
 
 for file in *.cpp *.h; do
   if (test $file = pair_gayberne_gpu.cpp -a ! -e ../pair_gayberne.cpp) then

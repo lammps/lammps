@@ -37,6 +37,8 @@ using namespace MathConst;
 
 #define EPSILON 0.001
 
+enum{ONE,RANGE,POLY};
+
 /* ---------------------------------------------------------------------- */
 
 FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
@@ -60,7 +62,9 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
   // option defaults
 
   int iregion = -1;
-  radius_lo = radius_hi = 0.5;
+  dstyle = ONE;
+  radius_max = radius_one = 0.5;
+  radius_poly = frac_poly = NULL;
   density_lo = density_hi = 1.0;
   volfrac = 0.25;
   maxattempt = 50;
@@ -76,11 +80,48 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
       iregion = domain->find_region(arg[iarg+1]);
       if (iregion == -1) error->all(FLERR,"Fix pour region ID does not exist");
       iarg += 2;
+
     } else if (strcmp(arg[iarg],"diam") == 0) {
-      if (iarg+3 > narg) error->all(FLERR,"Illegal fix pour command");
-      radius_lo = 0.5 * atof(arg[iarg+1]);
-      radius_hi = 0.5 * atof(arg[iarg+2]);
-      iarg += 3;
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix pour command");
+      if (strcmp(arg[iarg+1],"one") == 0) {
+        if (iarg+3 > narg) error->all(FLERR,"Illegal fix pour command");
+        dstyle = ONE;
+        radius_one = 0.5 * atof(arg[iarg+2]);
+        radius_max = radius_one;
+        iarg += 3;
+      } else if (strcmp(arg[iarg+1],"range") == 0) {
+        if (iarg+4 > narg) error->all(FLERR,"Illegal fix pour command");
+        dstyle = RANGE;
+        radius_lo = 0.5 * atof(arg[iarg+2]);
+        radius_hi = 0.5 * atof(arg[iarg+3]);
+        radius_max = radius_hi;
+        iarg += 4;
+      } else if (strcmp(arg[iarg+1],"poly") == 0) {
+        if (iarg+3 > narg) error->all(FLERR,"Illegal fix pour command");
+        dstyle = POLY;
+        npoly = atoi(arg[iarg+2]);
+        if (npoly <= 0) error->all(FLERR,"Illegal fix pour command");
+        if (iarg+3 + 2*npoly > narg) 
+          error->all(FLERR,"Illegal fix pour command");
+        radius_poly = new double[npoly];
+        frac_poly = new double[npoly];
+        iarg += 3;
+        radius_max = 0.0;
+        for (int i = 0; i < npoly; i++) {
+          radius_poly[i] = 0.5 * atof(arg[iarg++]);
+          frac_poly[i] = atof(arg[iarg++]);
+          if (radius_poly[i] <= 0.0 || frac_poly[i] < 0.0)
+            error->all(FLERR,"Illegal fix pour command");
+          radius_max = MAX(radius_max,radius_poly[i]);
+        }
+        double sum = 0.0;
+        for (int i = 0; i < npoly; i++) sum += frac_poly[i];
+        if (sum != 1.0) {
+          printf("SUM %g\n",sum);
+          error->all(FLERR,"Fix pour polydisperse fractions do not sum to 1.0");
+        }
+      } else error->all(FLERR,"Illegal fix pour command");
+
     } else if (strcmp(arg[iarg],"dens") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix pour command");
       density_lo = atof(arg[iarg+1]);
@@ -152,7 +193,8 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
   } else error->all(FLERR,"Must use a block or cylinder region with fix pour");
 
   if (region_style == 2 && domain->dimension == 2)
-    error->all(FLERR,"Must use a block region with fix pour for 2d simulations");
+    error->all(FLERR,
+               "Must use a block region with fix pour for 2d simulations");
 
   // random number generator, same for all procs
 
@@ -218,10 +260,23 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
       if (dy < 1.0) dy = 1.0;
       volume = (xhi-xlo) * dy * (zhi-zlo);
     } else volume = MY_PI*rc*rc * (zhi-zlo);
-    volume_one = 4.0/3.0 * MY_PI * radius_hi*radius_hi*radius_hi;
+    if (dstyle == ONE || dstyle == RANGE)
+      volume_one = 4.0/3.0 * MY_PI * radius_max*radius_max*radius_max;
+    else if (dstyle == POLY) {
+      volume_one = 0.0;
+      for (int i = 0; i < npoly; i++)
+        volume_one += (4.0/3.0 * MY_PI * 
+          radius_poly[i]*radius_poly[i]*radius_poly[i]) * frac_poly[i];
+    }
   } else {
     volume = (xhi-xlo) * (yhi-ylo);
-    volume_one = MY_PI * radius_hi*radius_hi;
+    if (dstyle == ONE || dstyle == RANGE) 
+      volume_one = MY_PI * radius_max*radius_max;
+    else if (dstyle == POLY) {
+      volume_one = 0.0;
+      for (int i = 0; i < npoly; i++)
+        volume_one += (MY_PI * radius_poly[i]*radius_poly[i]) * frac_poly[i];
+    }
   }
 
   nper = static_cast<int> (volfrac*volume/volume_one);
@@ -246,6 +301,8 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
 FixPour::~FixPour()
 {
   delete random;
+  delete [] radius_poly;
+  delete [] frac_poly;
   delete [] recvcounts;
   delete [] displs;
 }
@@ -263,7 +320,8 @@ int FixPour::setmask()
 
 void FixPour::init()
 {
-  if (domain->triclinic) error->all(FLERR,"Cannot use fix pour with triclinic box");
+  if (domain->triclinic) 
+    error->all(FLERR,"Cannot use fix pour with triclinic box");
 
   // insure gravity fix exists
   // for 3d must point in -z, for 2d must point in -y
@@ -389,7 +447,7 @@ void FixPour::pre_exchange()
   while (nnear < ntotal) {
     rn = random->uniform();
     h = hi_current - rn*rn * (hi_current-lo_current);
-    radtmp = radius_lo + random->uniform() * (radius_hi-radius_lo);
+    radtmp = radius_sample();
     success = 0;
     while (attempt < max) {
       attempt++;
@@ -518,12 +576,12 @@ void FixPour::pre_exchange()
 /* ----------------------------------------------------------------------
    check if particle i could overlap with a particle inserted into region
    return 1 if yes, 0 if no
-   use maximum diameter for inserted particle
+   use radius_hi = maximum size for inserted particle
 ------------------------------------------------------------------------- */
 
 int FixPour::overlap(int i)
 {
-  double delta = radius_hi + atom->radius[i];
+  double delta = radius_max + atom->radius[i];
   double **x = atom->x;
 
   if (domain->dimension == 3) {
@@ -572,6 +630,25 @@ void FixPour::xyz_random(double h, double *coord)
     coord[1] = h;
     coord[2] = 0.0;
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+double FixPour::radius_sample()
+{
+  if (dstyle == ONE) return radius_one;
+  if (dstyle == RANGE) return radius_lo + 
+                         random->uniform()*(radius_hi-radius_lo);
+
+  double value = random->uniform();
+
+  int i = 0;
+  double sum = 0.0;
+  while (sum < value) {
+    sum += frac_poly[i];
+    i++;
+  }
+  return radius_poly[i-1];
 }
 
 /* ---------------------------------------------------------------------- */

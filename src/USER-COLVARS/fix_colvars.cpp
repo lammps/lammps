@@ -321,7 +321,11 @@ FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
 
   /* parse optional arguments */
   int argsdone = 4;
-  while (argsdone+1 < narg) {
+  while (argsdone < narg) {
+    // we have keyword/value pairs. check if value is missing
+    if (argsdone+1 == narg)
+      error->all(FLERR,"Missing argument to keyword");
+
     if (0 == strcmp(arg[argsdone], "input")) {
       inp_name = strdup(arg[argsdone+1]);
     } else if (0 == strcmp(arg[argsdone], "output")) {

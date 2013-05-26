@@ -76,7 +76,8 @@ colvarbias_meta::colvarbias_meta (std::string const &conf, char const *key)
     }
 
     get_keyval (conf, "keepHills", keep_hills, false);
-    get_keyval (conf, "dumpFreeEnergyFile", dump_fes, true);
+    if (! get_keyval (conf, "writeFreeEnergyFile", dump_fes, true))
+      get_keyval (conf, "dumpFreeEnergyFile", dump_fes, true, colvarparse::parse_silent);
     get_keyval (conf, "saveFreeEnergyFile", dump_fes_save, false);
 
     for (size_t i = 0; i < colvars.size(); i++) {

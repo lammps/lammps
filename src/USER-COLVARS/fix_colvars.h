@@ -42,6 +42,7 @@ class FixColvars : public Fix {
   virtual int setmask();
   virtual void init();
   virtual void setup(int);
+  virtual void min_setup(int vflag) {setup(vflag);};
   virtual void min_post_force(int);
   virtual void post_force(int);
   virtual void post_force_respa(int, int, int);
@@ -51,9 +52,6 @@ class FixColvars : public Fix {
 
   virtual void write_restart(FILE *);
   virtual void restart(char *);
-
- protected:
-  void   deallocate();        // free internal buffers
 
  protected:
   class colvarproxy_lammps *proxy; // pointer to the colvars proxy class

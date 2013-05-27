@@ -428,8 +428,8 @@ fix_wall_piston.h
 fix_wall_srd.cpp
 fix_wall_srd.h
 gpu_extra.h
-group2ndx.cpp
-group2ndx.h
+group_ndx.cpp
+group_ndx.h
 improper_class2.cpp
 improper_class2.h
 improper_class2_omp.cpp

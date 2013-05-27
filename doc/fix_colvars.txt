@@ -82,8 +82,10 @@ temperature.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
-No information about this fix is written to "binary restart
-files"_restart.html.
+This fix writes the current status of the colvars module into
+"binary restart files"_restart.html. This is in addition to the text
+mode status file that is written by the colvars module itself and the
+kind of information in both files is identical.
 
 The "fix_modify"_fix_modify.html {energy} option is supported by this
 fix to add the energy change from the biasing force added by the fix

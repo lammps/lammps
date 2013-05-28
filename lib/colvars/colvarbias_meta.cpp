@@ -259,6 +259,9 @@ colvarbias_meta::~colvarbias_meta()
 
   if (hills_traj_os.good())
     hills_traj_os.close();
+
+  if (cvm::n_meta_biases > 0)
+    cvm::n_meta_biases -= 1;
 }
 
 

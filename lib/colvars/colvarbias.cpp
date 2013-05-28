@@ -214,6 +214,12 @@ colvarbias_harmonic::colvarbias_harmonic (std::string const &conf,
     cvm::log ("Done initializing a new harmonic restraint bias.\n");
 }
 
+colvarbias_harmonic::~colvarbias_harmonic ()
+{
+  if (cvm::n_harm_biases > 0)
+    cvm::n_harm_biases -= 1;
+}
+
 
 void colvarbias_harmonic::change_configuration (std::string const &conf)
 {

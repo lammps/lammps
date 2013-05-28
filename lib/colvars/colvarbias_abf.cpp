@@ -114,6 +114,9 @@ colvarbias_abf::~colvarbias_abf()
   }
 
   delete [] force;
+
+  if (cvm::n_abf_biases > 0)
+    cvm::n_abf_biases -= 1;
 }
 
 
@@ -395,6 +398,9 @@ colvarbias_histogram::~colvarbias_histogram()
     delete grid;
     grid = NULL;
   }
+
+  if (cvm::n_histo_biases > 0)
+    cvm::n_histo_biases -= 1;
 }
 
 /// Update the grid

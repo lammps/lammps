@@ -113,7 +113,7 @@ public:
   colvarbias_harmonic (std::string const &conf, char const *key);
 
   /// Destructor
-  virtual inline ~colvarbias_harmonic() {}
+  virtual ~colvarbias_harmonic();
 
 
 protected:

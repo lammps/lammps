@@ -42,19 +42,14 @@ if (test $2 = "status") then
 elif (test $2 = "update") then
   echo "Updating src files from $1 package files"
   if (test $installed = 1) then
-    if (test ! -e Package.sh) then
-      for file in *.cpp *.h; do
-        if (test ! -e ../$file) then
-          echo "  creating src/$file"
-          cp $file ..
-        elif (test "`diff --brief $file ../$file`" != "") then
-          echo "  updating src/$file"
-          cp $file ..
-        fi
-      done
-    else
-      /bin/sh Package.sh
-    fi
+    for file in *.cpp *.h; do
+      if (test ! -e ../$file) then
+        continue
+      elif (test "`diff --brief $file ../$file`" != "") then
+        echo "  updating src/$file"
+        cp $file ..
+      fi
+    done
   else
     echo "  $1 package is not installed, no action"
   fi
@@ -69,7 +64,7 @@ elif (test $2 = "overwrite") then
   if (test $installed = 1) then
     for file in *.cpp *.h; do
       if (test ! -e ../$file) then
-        echo "  src/$file does not exist"
+        continue
       elif (test "`diff --brief $file ../$file`" != "") then
         echo "  overwriting $1/$file"
         cp ../$file .

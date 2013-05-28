@@ -188,7 +188,8 @@ class Atom : protected Pointers {
 
   inline int map(int global) {
     if (map_style == 1) return map_array[global];
-    else return map_find_hash(global);
+    else if (map_style == 2) return map_find_hash(global);
+    else return -1; // no map => atom not found.
   };
 
   void map_init();

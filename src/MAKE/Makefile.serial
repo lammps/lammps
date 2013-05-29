@@ -50,7 +50,7 @@ MPI_LIB =	-lmpi_stubs
 
 FFT_INC =
 FFT_PATH = 
-FFT_LIB =       -lfftw3f
+FFT_LIB =
 
 # JPEG library, OPTIONAL
 # see discussion in doc/Section_start.html#2_2 (step 7)

@@ -17,9 +17,8 @@ for file in *.cpp *.h; do
   fi
 done
 
-# status
-# if installed:
-# issue warning if any package file is not in src or is different
+# status, only if installed
+# issue warning for any package file not in src or that is different
 
 if (test $2 = "status") then
   if (test $installed = 1) then
@@ -35,29 +34,39 @@ if (test $2 = "status") then
     echo "Installed  NO: package $1"
   fi
 
-# update
-# if installed:
-# cp package file to src if doesn't exist or is different
+# update, only if installed
+# if package dir has its own Package.sh, use it
+# cp package file to src if it exists and is different
+# set installflag if any package file is not in src and do full install
+# this is needed when a patch has added a new file to the package
 
 elif (test $2 = "update") then
   echo "Updating src files from $1 package files"
   if (test $installed = 1) then
-    for file in *.cpp *.h; do
-      if (test ! -e ../$file) then
-        continue
-      elif (test "`diff --brief $file ../$file`" != "") then
-        echo "  updating src/$file"
-        cp $file ..
+    if (test ! -e Package.sh) then
+      installflag=0
+      for file in *.cpp *.h; do
+        if (test ! -e ../$file) then
+          installflag=1
+        elif (test "`diff --brief $file ../$file`" != "") then
+          echo "  updating src/$file"
+          cp $file ..
+        fi
+      done
+      if (test $installflag = 1) then
+         echo "  reinstalling package $1"
+	 /bin/sh Install.sh 1
+         /bin/sh ../Depend.sh $1 1
       fi
-    done
+    else
+      /bin/sh Package.sh
+    fi
   else
     echo "  $1 package is not installed, no action"
   fi
 
-# overwrite
-# if installed:
-# if package file not in src, issue warning
-# if src file different than package file, overwrite package file
+# overwrite, only if installed
+# overwrite package file with src file, if the two are different
 
 elif (test $2 = "overwrite") then
   echo "Overwriting $1 package files with src files"

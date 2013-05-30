@@ -1,69 +1,47 @@
 # Install/unInstall package files in LAMMPS
-# do not install child files if parent does not exist
+# mode = 0/1/2 for uninstall/install/update
 
-if (test $1 = 1) then
+mode=$1
 
-  if (test -e ../angle_harmonic.cpp) then
-    cp angle_cg_cmm.h ..
-    cp angle_cg_cmm.cpp ..
+# arg1 = file, arg2 = file it depends on
 
-    cp angle_sdk.h ..
-    cp angle_sdk.cpp ..
+action () {
+  if (test $mode = 0) then
+    rm -f ../$1
+  elif (! cmp -s $1 ../$1) then
+    if (test -z "$2" || test -e ../$2) then
+      cp $1 ..
+      if (test $mode = 2) then
+        echo "  updating src/$1"
+      fi
+    fi
+  elif (test ! -z "$2") then
+    if (test ! -e ../$2) then
+      rm -f ../$1
+    fi
   fi
+}
 
-  if (test -e ../pppm.cpp) then
-    cp pair_lj_sdk_coul_long.cpp ..
-    cp pair_cg_cmm_coul_long.cpp ..
-    cp pair_lj_sdk_coul_long.h ..
-    cp pair_cg_cmm_coul_long.h ..
-  fi
+# list of files with optional dependcies
 
-  if (test -e ../msm.cpp) then
-    cp pair_lj_sdk_coul_msm.cpp ..
-    cp pair_lj_sdk_coul_msm.h ..
-  fi
-
-  cp cg_cmm_parms.h ..
-  cp cg_cmm_parms.cpp ..
-
-  cp pair_cmm_common.h ..
-  cp pair_cmm_common.cpp ..
-  cp pair_cg_cmm.cpp ..
-  cp pair_cg_cmm.h ..
-  cp pair_cg_cmm_coul_cut.cpp ..
-  cp pair_cg_cmm_coul_cut.h ..
-
-  cp pair_lj_sdk.cpp ..
-  cp pair_lj_sdk.h ..
-  cp lj_sdk_common.h ..
-
-elif (test $1 = 0) then
-
-  rm -f ../angle_cg_cmm.h
-  rm -f ../angle_cg_cmm.cpp
-
-  rm -f ../cg_cmm_parms.h
-  rm -f ../cg_cmm_parms.cpp
-
-  rm -f ../pair_cmm_common.h
-  rm -f ../pair_cmm_common.cpp
-  rm -f ../pair_cg_cmm.cpp
-  rm -f ../pair_cg_cmm.h
-  rm -f ../pair_cg_cmm_coul_cut.cpp
-  rm -f ../pair_cg_cmm_coul_cut.h
-
-  rm -f ../pair_cg_cmm_coul_long.cpp
-  rm -f ../pair_cg_cmm_coul_long.h
-
-  rm -f ../lj_sdk_common.h
-
-  rm -f ../angle_sdk.h
-  rm -f ../angle_sdk.cpp
-
-  rm -f ../pair_lj_sdk.cpp
-  rm -f ../pair_lj_sdk.h
-  rm -f ../pair_lj_sdk_coul_long.cpp
-  rm -f ../pair_lj_sdk_coul_long.h
-  rm -f ../pair_lj_sdk_coul_msm.cpp
-  rm -f ../pair_lj_sdk_coul_msm.h
-fi
+action angle_cg_cmm.cpp angle_harmonic.cpp
+action angle_cg_cmm.h angle_harmonic.cpp
+action angle_sdk.cpp angle_harmonic.cpp
+action angle_sdk.h angle_harmonic.cpp
+action cg_cmm_parms.cpp
+action cg_cmm_parms.h
+action lj_sdk_common.h
+action pair_cg_cmm.cpp
+action pair_cg_cmm.h
+action pair_cg_cmm_coul_cut.cpp
+action pair_cg_cmm_coul_cut.h
+action pair_cg_cmm_coul_long.cpp pppm.cpp
+action pair_cg_cmm_coul_long.h pppm.cpp
+action pair_cmm_common.cpp
+action pair_cmm_common.h
+action pair_lj_sdk.cpp
+action pair_lj_sdk.h
+action pair_lj_sdk_coul_long.cpp pppm.cpp
+action pair_lj_sdk_coul_long.h pppm.cpp
+action pair_lj_sdk_coul_msm.cpp msm.cpp
+action pair_lj_sdk_coul_msm.h msm.cpp

@@ -1,7 +1,8 @@
 # Install/unInstall package files in LAMMPS
 # mode = 0/1/2 for uninstall/install/update
+
 # this is default Install.sh for all packages
-# if package has an auxiliary library or some package files have dependencies,
+# if package has an auxiliary library or a file with a dependency,
 # then package dir has its own customized Install.sh
 
 mode=$1

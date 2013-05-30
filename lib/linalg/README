@@ -1,18 +1,19 @@
 This directory has BLAS and LAPACK files needed by the USER-ATC and
-USER-AWPMD packages, and possibly other packages in the future.
+USER-AWPMD packages, and possibly by other packages in the future.
 
-You should only need to build and use the files in this directory if
-you want to build LAMMPS with the a package that needs BLAS/LAPACK
-routines and do not have the standard BLAS and LAPACK libraries on
-your system.
+You only need to build and use the files in this directory if you want
+to build LAMMPS with a package that needs BLAS/LAPACK routines and you
+do not have the standard BLAS and LAPACK libraries on your system.
 
-Use one of the Makefiles provided to build this library.
-You may need to edit if for your system.
+Build the library using one of the provided Makefile.* files or create
+your own, specific to your compiler and system.  For example:
 
-When you are done building this library, one file should
-exist in this directory:
+make -f Makefile.gfortran
+
+When you are done building this library, one file should exist in this
+directory:
 
 liblinalg.a		the library LAMMPS will link against
 
-You can then include this library and its path in any packages that
-need it, e.g. in the lib/atc/Makefile.lammps file.
+You can then include this library and its path in the Makefile.lammps
+file of any packages that need it, e.g. in lib/atc/Makefile.lammps.

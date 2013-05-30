@@ -9,6 +9,10 @@
 
 SHELL = /bin/sh
 
+# which file will be copied to Makefile.lammps
+
+EXTRAMAKE = Makefile.lammps.pgf90
+
 # ------ FILES ------
 
 SRC = meam_data.F meam_setup_done.F meam_setup_global.F meam_setup_param.F meam_dens_init.F meam_dens_final.F meam_force.F meam_cleanup.F
@@ -33,6 +37,7 @@ SYSLIB =
 
 lib: 	$(OBJ)
 	$(ARCHIVE) $(ARFLAGS) $(LIB) $(OBJ)
+	@cp $(EXTRAMAKE) Makefile.lammps
 
 # ------ COMPILE RULES ------
 

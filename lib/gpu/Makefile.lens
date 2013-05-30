@@ -1,3 +1,8 @@
+
+# which file will be copied to Makefile.lammps
+
+EXTRAMAKE = Makefile.lammps.standard
+
 CUDA_HOME = /sw/analysis-x64/cuda/3.2/centos5.5_binary/
 NVCC = nvcc
 

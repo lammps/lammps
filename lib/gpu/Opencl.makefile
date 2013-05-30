@@ -407,6 +407,7 @@ $(BIN_DIR)/ocl_get_devices: ./geryon/ucl_get_devices.cpp
 
 $(OCL_LIB): $(OBJS) $(PTXS)
 	$(AR) -crusv $(OCL_LIB) $(OBJS)
+	@cp $(EXTRAMAKE) Makefile.lammps
 
 opencl: $(OCL_EXECS)
 

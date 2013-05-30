@@ -3,6 +3,10 @@
 #     - Use "module load cuda".
 # ------------------------------------------------------------------------- */
 
+# which file will be copied to Makefile.lammps
+
+EXTRAMAKE = Makefile.lammps.standard
+
 CUDA_HOME = $(TACC_CUDA_DIR)
 NVCC = nvcc
 CUDA_ARCH = -arch=sm_13

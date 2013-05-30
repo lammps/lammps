@@ -573,6 +573,7 @@ $(BIN_DIR)/nvc_get_devices: ./geryon/ucl_get_devices.cpp $(NVD_H)
 
 $(GPU_LIB): $(OBJS) $(CUDPP)
 	$(AR) -crusv $(GPU_LIB) $(OBJS) $(CUDPP)
+	@cp $(EXTRAMAKE) Makefile.lammps
 
 clean:
 	rm -f $(EXECS) $(GPU_LIB) $(OBJS) $(CUDPP) $(CBNS) *.linkinfo

@@ -2,6 +2,10 @@
 # Makefile for NCSA's lincoln GPU cluster. Tested with "soft +cuda-2.3"
 # ------------------------------------------------------------------------- */
 
+# which file will be copied to Makefile.lammps
+
+EXTRAMAKE = Makefile.lammps.standard
+
 CUDA_HOME = /usr/local/cuda-2.3
 NVCC = $(CUDA_HOME)/bin/nvcc
 

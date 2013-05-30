@@ -1,69 +1,46 @@
-# Install/unInstall package files in LAMMPS
-# do not install child files if parent does not exist
+# Install/unInstall/Update package files in LAMMPS
+# do not install or update child files if parent does not exist
+mode=$1
 
-if (test $1 = 1) then
-
-  if (test -e ../angle_harmonic.cpp) then
-    cp angle_cg_cmm.h ..
-    cp angle_cg_cmm.cpp ..
-
-    cp angle_sdk.h ..
-    cp angle_sdk.cpp ..
+action () {
+  if (test $mode = 0) then
+    rm -f ../$1
+  elif (test -z "$2" || test -e ../$2) then
+    if (test $mode = 1) then
+      cp $1 ..
+    elif (test $mode = 2) then
+      if (! cmp -s $1 ../$1) then
+        echo "updating src/$1"
+        cp $1 ..
+      fi
+    fi
   fi
+}
 
-  if (test -e ../pppm.cpp) then
-    cp pair_lj_sdk_coul_long.cpp ..
-    cp pair_cg_cmm_coul_long.cpp ..
-    cp pair_lj_sdk_coul_long.h ..
-    cp pair_cg_cmm_coul_long.h ..
-  fi
+#      package file               dependency (optional)
+action angle_cg_cmm.h             angle_harmonic.cpp
+action angle_cg_cmm.cpp           angle_harmonic.cpp
+action angle_sdk.h                angle_harmonic.cpp
+action angle_sdk.cpp              angle_harmonic.cpp
 
-  if (test -e ../msm.cpp) then
-    cp pair_lj_sdk_coul_msm.cpp ..
-    cp pair_lj_sdk_coul_msm.h ..
-  fi
+action pair_cg_cmm_coul_long.h    pppm.cpp
+action pair_cg_cmm_coul_long.cpp  pppm.cpp
+action pair_lj_sdk_coul_long.h    pppm.cpp
+action pair_lj_sdk_coul_long.cpp  pppm.cpp
 
-  cp cg_cmm_parms.h ..
-  cp cg_cmm_parms.cpp ..
+action pair_lj_sdk_coul_msm.h     msm.cpp
+action pair_lj_sdk_coul_msm.cpp   msm.cpp
 
-  cp pair_cmm_common.h ..
-  cp pair_cmm_common.cpp ..
-  cp pair_cg_cmm.cpp ..
-  cp pair_cg_cmm.h ..
-  cp pair_cg_cmm_coul_cut.cpp ..
-  cp pair_cg_cmm_coul_cut.h ..
+action cg_cmm_parms.h
+action cg_cmm_parms.cpp
 
-  cp pair_lj_sdk.cpp ..
-  cp pair_lj_sdk.h ..
-  cp lj_sdk_common.h ..
+action pair_cmm_common.h
+action pair_cmm_common.cpp
+action pair_cg_cmm.h
+action pair_cg_cmm.cpp
+action pair_cg_cmm_coul_cut.h
+action pair_cg_cmm_coul_cut.cpp
 
-elif (test $1 = 0) then
-
-  rm -f ../angle_cg_cmm.h
-  rm -f ../angle_cg_cmm.cpp
-
-  rm -f ../cg_cmm_parms.h
-  rm -f ../cg_cmm_parms.cpp
-
-  rm -f ../pair_cmm_common.h
-  rm -f ../pair_cmm_common.cpp
-  rm -f ../pair_cg_cmm.cpp
-  rm -f ../pair_cg_cmm.h
-  rm -f ../pair_cg_cmm_coul_cut.cpp
-  rm -f ../pair_cg_cmm_coul_cut.h
-
-  rm -f ../pair_cg_cmm_coul_long.cpp
-  rm -f ../pair_cg_cmm_coul_long.h
-
-  rm -f ../lj_sdk_common.h
-
-  rm -f ../angle_sdk.h
-  rm -f ../angle_sdk.cpp
-
-  rm -f ../pair_lj_sdk.cpp
-  rm -f ../pair_lj_sdk.h
-  rm -f ../pair_lj_sdk_coul_long.cpp
-  rm -f ../pair_lj_sdk_coul_long.h
-  rm -f ../pair_lj_sdk_coul_msm.cpp
-  rm -f ../pair_lj_sdk_coul_msm.h
-fi
+action lj_sdk_common.h
+action pair_lj_sdk.h
+action pair_lj_sdk.cpp

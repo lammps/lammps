@@ -50,7 +50,7 @@ SYSLIB =
 
 lib: 	$(OBJ)
 	$(ARCHIVE) $(ARFLAGS) $(LIB) $(OBJ)
-        @cp $(EXTRAMAKE) Makefile.lammps
+	@cp $(EXTRAMAKE) Makefile.lammps
 
 # ------ COMPILE RULES ------
 

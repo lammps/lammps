@@ -22,7 +22,7 @@ action () {
   fi
 }
 
-# list of files with optional dependcies
+# list of files with optional dependencies
 
 action pair_eam_alloy_opt.cpp pair_eam_alloy.cpp
 action pair_eam_alloy_opt.h pair_eam_alloy.cpp

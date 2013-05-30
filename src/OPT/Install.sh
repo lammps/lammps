@@ -37,7 +37,7 @@ action pair_lj_cut_coul_long_opt.h pair_lj_cut_coul_long.cpp
 action pair_lj_cut_opt.cpp
 action pair_lj_cut_opt.h
 action pair_lj_cut_tip4p_long_opt.cpp pair_lj_cut_tip4p_long.cpp
-action pair_lj_cut_tip4p_long_opt.h pair_lj_cut_tip3p_long.cpp 
+action pair_lj_cut_tip4p_long_opt.h pair_lj_cut_tip4p_long.cpp 
 action pair_lj_long_coul_long_opt.cpp pair_lj_long_coul_long.cpp
 action pair_lj_long_coul_long_opt.h pair_lj_long_coul_long.cpp
 action pair_morse_opt.cpp

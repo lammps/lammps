@@ -42,9 +42,9 @@ elif (test $2 = "update") then
   if (test $installed = 1) then
     echo "  re-installing package $1"
     if (test -e Install.sh) then
-      cd $1; /bin/sh Install.sh 1; cd ..
+      /bin/sh Install.sh 1
     else
-      cd $1; /bin/sh ../Install.sh 1; cd ..
+      /bin/sh ../Install.sh 1
     fi
     cd ..
     /bin/sh Depend.sh $1 1

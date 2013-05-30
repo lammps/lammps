@@ -1,0 +1,5 @@
+# Settings that the LAMMPS build will import when this package library is used
+
+gpu_SYSINC =
+gpu_SYSLIB = -lcudart -lcuda
+gpu_SYSPATH = -L/usr/local/cuda/lib64

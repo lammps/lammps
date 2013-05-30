@@ -1,0 +1,37 @@
+# /* ----------------------------------------------------------------------   
+#  Generic Linux Makefile for CUDA 
+#     - Change CUDA_ARCH for your GPU
+# ------------------------------------------------------------------------- */
+
+# which file will be copied to Makefile.lammps
+
+EXTRAMAKE = Makefile.lammps.standard
+
+CUDA_HOME = /usr/local/cuda
+NVCC = nvcc
+
+# Tesla CUDA
+CUDA_ARCH = -arch=sm_21
+# newer CUDA
+#CUDA_ARCH = -arch=sm_13
+# older CUDA
+#CUDA_ARCH = -arch=sm_10 -DCUDA_PRE_THREE
+
+CUDA_PRECISION = -D_SINGLE_DOUBLE
+CUDA_INCLUDE = -I$(CUDA_HOME)/include
+CUDA_LIB = -L$(CUDA_HOME)/lib64
+CUDA_OPTS = -DUNIX -O3 -Xptxas -v --use_fast_math
+
+CUDR_CPP = mpic++ -DMPI_GERYON -DUCL_NO_EXIT -DMPICH_IGNORE_CXX_SEEK
+CUDR_OPTS = -O2 # -xHost -no-prec-div -ansi-alias
+
+BIN_DIR = ./
+OBJ_DIR = ./
+LIB_DIR = ./
+AR = ar
+BSH = /bin/sh
+
+CUDPP_OPT = -DUSE_CUDPP -Icudpp_mini
+
+include Nvidia.makefile
+

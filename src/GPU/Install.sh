@@ -1,6 +1,102 @@
 # Install/unInstall package files in LAMMPS
+# mode = 0/1/2 for uninstall/install/update
+
+mode=$1
+
+# arg1 = file, arg2 = file it depends on
+
+action () {
+  if (test $mode = 0) then
+    rm -f ../$1
+  elif (! cmp -s $1 ../$1) then
+    if (test -z "$2" || test -e ../$2) then
+      cp $1 ..
+      if (test $mode = 2) then
+        echo "  updating src/$1"
+      fi
+    fi
+  elif (test ! -z "$2") then
+    if (test ! -e ../$2) then
+      rm -f ../$1
+    fi
+  fi
+}
+
+# list of files with optional dependcies
+
+action fix_gpu.cpp
+action fix_gpu.h
+action gpu_extra.h
+action pair_born_coul_long_gpu.cpp pair_born_coul_long.cpp
+action pair_born_coul_long_gpu.h pair_born_coul_long.cpp
+action pair_born_coul_wolf_gpu.cpp
+action pair_born_coul_wolf_gpu.h
+action pair_born_gpu.cpp
+action pair_born_gpu.h
+action pair_buck_coul_cut_gpu.cpp pair_buck_coul_cut.cpp
+action pair_buck_coul_cut_gpu.h pair_buck_coul_cut.cpp
+action pair_buck_coul_long_gpu.cpp pair_buck_coul_long.cpp
+action pair_buck_coul_long_gpu.h pair_buck_coul_long.cpp
+action pair_buck_gpu.cpp pair_buck.cpp
+action pair_buck_gpu.h pair_buck.cpp
+action pair_colloid_gpu.cpp pair_colloid.cpp
+action pair_colloid_gpu.h pair_colloid.cpp
+action pair_coul_dsf_gpu.cpp
+action pair_coul_dsf_gpu.h
+action pair_coul_long_gpu.cpp pair_coul_long.cpp
+action pair_coul_long_gpu.h pair_coul_long.cpp
+action pair_dipole_cut_gpu.cpp pair_dipole_cut.cpp
+action pair_dipole_cut_gpu.h pair_dipole_cut.cpp
+action pair_dipole_sf_gpu.cpp pair_dipole_sf.cpp
+action pair_dipole_sf_gpu.h pair_dipole_sf.cpp
+action pair_eam_alloy_gpu.cpp pair_eam.cpp
+action pair_eam_alloy_gpu.h pair_eam.cpp
+action pair_eam_fs_gpu.cpp pair_eam.cpp 
+action pair_eam_fs_gpu.h pair_eam.cpp
+action pair_eam_gpu.cpp pair_eam.cpp 
+action pair_eam_gpu.h pair_eam.cpp
+action pair_gauss_gpu.cpp
+action pair_gauss_gpu.h
+action pair_gayberne_gpu.cpp pair_gayberne.cpp
+action pair_gayberne_gpu.h pair_gayberne.cpp
+action pair_lj96_cut_gpu.cpp
+action pair_lj96_cut_gpu.h
+action pair_lj_charmm_coul_long_gpu.cpp pair_lj_charmm_coul_long.cpp
+action pair_lj_charmm_coul_long_gpu.h pair_lj_charmm_coul_long.cpp
+action pair_lj_class2_coul_long_gpu.cpp pair_lj_class2_coul_long.cpp
+action pair_lj_class2_coul_long_gpu.h pair_lj_class2_coul_long.cpp
+action pair_lj_class2_gpu.cpp pair_lj_class2.cpp
+action pair_lj_class2_gpu.h pair_lj_class2.cpp
+action pair_lj_cut_coul_cut_gpu.cpp
+action pair_lj_cut_coul_cut_gpu.h
+action pair_lj_cut_coul_debye_gpu.cpp
+action pair_lj_cut_coul_debye_gpu.h
+action pair_lj_cut_coul_dsf_gpu.cpp
+action pair_lj_cut_coul_dsf_gpu.h
+action pair_lj_cut_coul_long_gpu.cpp pair_lj_cut_coul_long.cpp
+action pair_lj_cut_coul_long_gpu.h pair_lj_cut_coul_long.cpp
+action pair_lj_cut_gpu.cpp
+action pair_lj_cut_gpu.h
+action pair_lj_expand_gpu.cpp
+action pair_lj_expand_gpu.h
+action pair_lj_sdk_coul_long_gpu.cpp pair_lj_sdk_coul_long.cpp
+action pair_lj_sdk_coul_long_gpu.h pair_lj_sdk_coul_long.cpp
+action pair_lj_sdk_gpu.cpp pair_lj_sdk.cpp
+action pair_lj_sdk_gpu.h pair_lj_sdk.cpp
+action pair_morse_gpu.cpp
+action pair_morse_gpu.h
+action pair_resquared_gpu.cpp pair_resquared.cpp
+action pair_resquared_gpu.h pair_resquared.cpp
+action pair_table_gpu.cpp pair_table.cpp
+action pair_table_gpu.h pair_table.cpp
+action pair_yukawa_colloid_gpu.cpp pair_yukawa_colloid.cpp
+action pair_yukawa_colloid_gpu.h pair_yukawa_colloid.cpp
+action pair_yukawa_gpu.cpp pair_yukawa.cpp
+action pair_yukawa_gpu.h pair_yukawa.cpp
+action pppm_gpu.cpp pppm.cpp
+action pppm_gpu.h pppm.cpp
+
 # edit 2 Makefile.package files to include/exclude GPU info
-# do not install child files if parent does not exist
 
 if (test $1 = 1) then
 
@@ -20,141 +116,6 @@ if (test $1 = 1) then
 include ..\/..\/lib\/gpu\/Makefile.lammps
 ' ../Makefile.package.settings
   fi
-  
-  if (test -e ../pair_dipole_sf.cpp) then
-    cp pair_dipole_sf_gpu.cpp ..
-    cp pair_dipole_sf_gpu.h ..
-  fi
-
-  if (test -e ../pair_dipole_cut.cpp) then
-    cp pair_dipole_cut_gpu.cpp ..
-    cp pair_dipole_cut_gpu.h ..
-  fi
-  
-  if (test -e ../pair_yukawa_colloid.cpp) then
-    cp pair_yukawa_colloid_gpu.cpp ..
-    cp pair_yukawa_colloid_gpu.h ..
-  fi
-  
-  if (test -e ../pair_colloid.cpp) then
-    cp pair_colloid_gpu.cpp ..
-    cp pair_colloid_gpu.h ..
-  fi
-  
-  if (test -e ../pair_yukawa.cpp) then
-    cp pair_yukawa_gpu.cpp ..
-    cp pair_yukawa_gpu.h ..
-  fi
-  
-  if (test -e ../pair_table.cpp) then
-    cp pair_table_gpu.cpp ..
-    cp pair_table_gpu.h ..
-  fi
-
-  if (test -e ../pair_born_coul_long.cpp) then
-    cp pair_born_coul_long_gpu.cpp ..
-    cp pair_born_coul_long_gpu.h ..
-  fi
-
-  if (test -e ../pair_buck.cpp) then
-    cp pair_buck_gpu.cpp ..
-    cp pair_buck_gpu.h ..
-  fi
-
-  if (test -e ../pair_buck_coul_cut.cpp) then
-    cp pair_buck_coul_cut_gpu.cpp ..
-    cp pair_buck_coul_cut_gpu.h ..
-  fi
-
-  if (test -e ../pair_buck_coul_long.cpp) then
-    cp pair_buck_coul_long_gpu.cpp ..
-    cp pair_buck_coul_long_gpu.h ..
-  fi
-  
-  if (test -e ../pair_eam.cpp) then
-    cp pair_eam_gpu.cpp ..
-    cp pair_eam_gpu.h ..
-    cp pair_eam_alloy_gpu.cpp ..
-    cp pair_eam_alloy_gpu.h ..
-    cp pair_eam_fs_gpu.cpp ..
-    cp pair_eam_fs_gpu.h ..
-  fi
-
-  if (test -e ../pair_gayberne.cpp) then
-    cp pair_gayberne_gpu.cpp ..
-    cp pair_gayberne_gpu.h ..
-    cp pair_resquared_gpu.cpp ..
-    cp pair_resquared_gpu.h ..
-  fi
-  
-  if (test -e ../pair_lj_cut_coul_long.cpp) then
-    cp pair_lj_cut_coul_long_gpu.cpp ..
-    cp pair_lj_cut_coul_long_gpu.h ..
-  fi
-
-  if (test -e ../pair_lj_class2.cpp) then
-    cp pair_lj_class2_gpu.cpp ..
-    cp pair_lj_class2_gpu.h ..
-  fi
-
-  if (test -e ../pair_lj_class2_coul_long.cpp) then
-    cp pair_lj_class2_coul_long_gpu.cpp ..
-    cp pair_lj_class2_coul_long_gpu.h ..
-  fi
-
-  if (test -e ../pair_lj_charmm_coul_long.cpp) then
-    cp pair_lj_charmm_coul_long_gpu.cpp ..
-    cp pair_lj_charmm_coul_long_gpu.h ..
-  fi
-
-  if (test -e ../pair_coul_long.cpp) then
-    cp pair_coul_long_gpu.cpp ..
-    cp pair_coul_long_gpu.h ..
-  fi
-
-  if (test -e ../pair_lj_sdk.cpp) then
-    cp pair_lj_sdk_gpu.cpp ..
-    cp pair_lj_sdk_gpu.h ..
-  fi
-
-  if (test -e ../pair_lj_sdk_coul_long.cpp) then
-    cp pair_lj_sdk_coul_long_gpu.cpp ..
-    cp pair_lj_sdk_coul_long_gpu.h ..
-  fi
-
-  if (test -e ../pppm.cpp) then
-    cp pppm_gpu.cpp ..
-    cp pppm_gpu.h ..
-  fi
-
-  cp pair_lj_cut_gpu.cpp ..
-  cp pair_morse_gpu.cpp ..
-  cp pair_lj96_cut_gpu.cpp ..
-  cp pair_lj_expand_gpu.cpp ..
-  cp pair_lj_cut_coul_cut_gpu.cpp ..
-  cp pair_lj_cut_coul_dsf_gpu.cpp ..
-  cp pair_coul_dsf_gpu.cpp ..
-  cp pair_lj_cut_coul_debye_gpu.cpp ..
-  cp pair_born_gpu.cpp ..
-  cp pair_born_coul_wolf_gpu.cpp ..
-  cp pair_gauss_gpu.cpp ..
-  
-  cp fix_gpu.cpp ..
-
-  cp pair_lj_cut_gpu.h ..
-  cp pair_morse_gpu.h ..
-  cp pair_lj96_cut_gpu.h ..
-  cp pair_lj_expand_gpu.h ..
-  cp pair_lj_cut_coul_cut_gpu.h ..
-  cp pair_lj_cut_coul_dsf_gpu.h ..
-  cp pair_coul_dsf_gpu.h ..
-  cp pair_lj_cut_coul_debye_gpu.h ..
-  cp pair_born_gpu.h ..
-  cp pair_born_coul_wolf_gpu.h ..
-  cp pair_gauss_gpu.h ..
-  
-  cp fix_gpu.h ..
-  cp gpu_extra.h ..
 
 elif (test $1 = 0) then
 
@@ -166,80 +127,4 @@ elif (test $1 = 0) then
     sed -i -e '/^include.*gpu.*$/d' ../Makefile.package.settings
   fi
 
-  rm -f ../pair_buck_coul_cut_gpu.cpp
-  rm -f ../pair_buck_coul_long_gpu.cpp
-  rm -f ../pair_buck_gpu.cpp
-  rm -f ../pair_coul_long_gpu.cpp
-  rm -f ../pair_eam_alloy_gpu.cpp
-  rm -f ../pair_eam_fs_gpu.cpp
-  rm -f ../pair_eam_gpu.cpp
-  rm -f ../pair_gayberne_gpu.cpp
-  rm -f ../pair_lj96_cut_gpu.cpp
-  rm -f ../pair_lj_charmm_coul_long_gpu.cpp
-  rm -f ../pair_lj_class2_coul_long_gpu.cpp
-  rm -f ../pair_lj_class2_gpu.cpp
-  rm -f ../pair_lj_cut_coul_cut_gpu.cpp
-  rm -f ../pair_lj_cut_coul_long_gpu.cpp
-  rm -f ../pair_lj_cut_gpu.cpp
-  rm -f ../pair_lj_expand_gpu.cpp
-  rm -f ../pair_lj_sdk_coul_long_gpu.cpp
-  rm -f ../pair_lj_sdk_gpu.cpp
-  rm -f ../pair_morse_gpu.cpp
-  rm -f ../pair_resquared_gpu.cpp
-  rm -f ../pair_table_gpu.cpp
-  rm -f ../pair_yukawa_gpu.cpp
-  rm -f ../pair_born_gpu.cpp
-  rm -f ../pair_born_coul_wolf_gpu.cpp
-  rm -f ../pair_born_coul_long_gpu.cpp
-  rm -f ../pair_gauss_gpu.cpp
-  rm -f ../pair_colloid_gpu.cpp
-  rm -f ../pair_yukawa_colloid_gpu.cpp
-  rm -f ../pair_dipole_cut_gpu.cpp
-  rm -f ../pair_dipole_sf_gpu.cpp
-  rm -f ../pair_lj_cut_coul_dsf_gpu.cpp
-  rm -f ../pair_coul_dsf_gpu.cpp
-  rm -f ../pair_lj_cut_coul_debye_gpu.cpp
-  rm -f ../pppm_gpu.cpp
-
-  rm -f ../fix_gpu.cpp
-
-  rm -f ../pair_buck_coul_cut_gpu.h
-  rm -f ../pair_buck_coul_long_gpu.h
-  rm -f ../pair_buck_gpu.h
-  rm -f ../pair_coul_long_gpu.h
-  rm -f ../pair_eam_alloy_gpu.h
-  rm -f ../pair_eam_fs_gpu.h
-  rm -f ../pair_eam_gpu.h
-  rm -f ../pair_gayberne_gpu.h
-  rm -f ../pair_lj96_cut_gpu.h
-  rm -f ../pair_lj_charmm_coul_long_gpu.h
-  rm -f ../pair_lj_class2_coul_long_gpu.h
-  rm -f ../pair_lj_class2_gpu.h
-  rm -f ../pair_lj_cut_coul_cut_gpu.h
-  rm -f ../pair_lj_cut_coul_long_gpu.h
-  rm -f ../pair_lj_cut_gpu.h
-  rm -f ../pair_lj_expand_gpu.h
-  rm -f ../pair_lj_sdk_coul_long_gpu.h
-  rm -f ../pair_lj_sdk_gpu.h
-  rm -f ../pair_morse_gpu.h
-  rm -f ../pair_resquared_gpu.h
-  rm -f ../pair_table_gpu.h
-  rm -f ../pair_yukawa_gpu.h
-  rm -f ../pair_born_gpu.h
-  rm -f ../pair_born_coul_wolf_gpu.h
-  rm -f ../pair_born_coul_long_gpu.h
-  rm -f ../pair_gauss_gpu.h
-  rm -f ../pair_colloid_gpu.h
-  rm -f ../pair_yukawa_colloid_gpu.h
-  rm -f ../pair_dipole_cut_gpu.h
-  rm -f ../pair_dipole_sf_gpu.h
-  rm -f ../pair_lj_cut_coul_dsf_gpu.h
-  rm -f ../pair_coul_dsf_gpu.h
-  rm -f ../pair_lj_cut_coul_debye_gpu.h
-  rm -f ../pppm_gpu.h
-
-  rm -f ../fix_gpu.h
-  rm -f ../gpu_extra.h
-  
 fi
-

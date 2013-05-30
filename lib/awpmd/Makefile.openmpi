@@ -1,5 +1,9 @@
 SHELL = /bin/sh
 
+# which file will be copied to Makefile.lammps
+
+EXTRAMAKE = Makefile.lammps.installed
+
 # ------ FILES ------
 
 SRC = \
@@ -46,6 +50,7 @@ SYSLIB =
 
 lib: 	$(OBJ)
 	$(ARCHIVE) $(ARFLAGS) $(LIB) $(OBJ)
+        @cp $(EXTRAMAKE) Makefile.lammps
 
 # ------ COMPILE RULES ------
 

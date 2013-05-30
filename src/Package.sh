@@ -1,10 +1,6 @@
 # Package.sh = package management, called from Makefile
 # Syntax: sh Package.sh DIR status/update/overwrite/diff
 
-# style used to translate dir name to package name
-
-style=`echo $1 | sed 'y/-ABCDEFGHIJKLMNOPQRSTUVWXYZ/_abcdefghijklmnopqrstuvwxyz/'`
-
 # package is already installed if any package *.cpp or *.h file is in src
 # else not installed
 
@@ -79,18 +75,13 @@ elif (test $2 = "diff") then
     echo "Installed YES: package $1"
     for file in *.cpp *.h; do
       if (test ! -e ../$file) then
-        echo "************************************************************************"
         echo "  src/$file does not exist"
-        echo "************************************************************************"
       elif (test "`diff --brief $file ../$file`" != "") then
-        echo "************************************************************************"
+        echo "************************************************"
         echo "diff $1/$file src/$file "
-        echo "************************************************************************"
+        echo "************************************************"
 	diff $file  ../$file 
       fi
     done
   fi
 fi
-
-
-

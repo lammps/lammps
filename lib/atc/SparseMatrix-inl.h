@@ -701,7 +701,7 @@ DenseVector<INDEX> SparseMatrix<T>::column_count() const
 {
   compress(*this);
   INDEX i,j;
-  Vector<INDEX> counts(nCols());
+  DenseVector<INDEX> counts(nCols());
   
   for (i=0; i<_nRowsCRS; i++) 
     for(j=_ia[i]; j<_ia[i+1]; j++)  counts(_ja[j])++;

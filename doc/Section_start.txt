@@ -1156,7 +1156,7 @@ so that the processors in each partition will be
 See the "processors" command for how to insure processors from each
 partition could then be grouped optimally for quad-core nodes.
 
-If the keyword is {custom", then a file that specifies a permutation
+If the keyword is {custom}, then a file that specifies a permutation
 of the processor ranks is also specified.  The format of the reorder
 file is as follows.  Any number of initial blank or comment lines
 (starting with a "#" character) can be present.  These should be

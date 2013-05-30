@@ -18,7 +18,7 @@ built, so LAMMPS can link against it.
 Build the library using one of the provided Makefile.* files or create
 your own, specific to your compiler and system.  For example:
 
-make -f Makefile.g++
+make -f Makefile.gfortran
 
 When you are done building this library, two files should
 exist in this directory:

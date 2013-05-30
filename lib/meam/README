@@ -1,48 +1,51 @@
+ATC (Atom To Continuum methods)
+
+Reese Jones, Jeremy Templeton, Jonathan Zimmerman (Sandia National Labs)
+rjones, jatempl, jzimmer at sandia.gov
+September 2009
+
+This is version 1.0 of the ATC library, which provides continuum field
+estimation and molecular dynamics-finite element coupling methods.
+
+-------------------------------------------------
+
 This directory has source files to build a library that LAMMPS
-links against when using the MEAM package.
+links against when using the USER-ATC package.
+
+This library must be built with a C++ compiler, before LAMMPS is
+built, so LAMMPS can link against it.
+
+Build the library using one of the provided Makefile.* files or create
+your own, specific to your compiler and system.  For example:
+
+make -f Makefile.g++
+
+Note that the this library makes MPI calls, so you must build it with
+the same MPI library that is used to build LAMMPS, i.e. as specified
+by settings in the lammps/src/MAKE/Makefile.machine file you are
+using.
 
 When you are done building this library, two files should
 exist in this directory:
 
-libmeam.a		the library LAMMPS will link against
+libatc.a		the library LAMMPS will link against
 Makefile.lammps		settings the LAMMPS Makefile will import
 
-The latter file will have settings like this (can be omitted if blank):
+Makefile.lammps is created by the make command, by copying one of the
+Makefile.lammps.* files.  See the EXTRAMAKE setting at the top of the
+Makefile.* files.
 
-meam_SYSINC =
-meam_SYSLIB = -lgfortran
-meam_SYSPATH =
+IMPORTANT: You must examine the final Makefile.lammps to insure it is
+correct for your system, else the LAMMPS build will likely fail.
 
-SYSINC is for settings needed to compile LAMMPS source files
-SYSLIB is for additional system libraries needed by this package
-SYSPATH is the path(s) to where those libraries are
+Makefile.lammps has settings for 3 variables:
 
-You must insure these settings are correct for your system, else
-the LAMMPS build will likely fail.
+user-atc_SYSINC = leave blank for this package
+user-atc_SYSLIB = auxiliary F90 libs needed to link a F90 lib with
+                  a C++ program (LAMMPS) via a C++ compiler
+user-atc_SYSPATH = path(s) to where those libraries are
 
-Note that the source files for this library are Fortran.  LAMMPS is
-built with a C++ compiler/linker.  Thus you need to insure the
-settings above enable usage of a Fortran library by a C++ program.
-
--------------------------------------------------------------------------
-
-MEAM (modified embedded atom method) library
-
-Greg Wagner, Sandia National Labs
-gjwagne at sandia.gov
-Jan 2007
-
--------------------------------------------------------------------------
-
-This library is in implementation of the MEAM potential, specifically
-designed to work with LAMMPS.
-
-This library must be built with a F90 compiler, before LAMMPS is
-built, so LAMMPS can link against it.
-
-Build the library using one of the provided Makefiles or creating your
-own, specific to your compiler and system.  For example:
-
-make -f Makefile.g95
-
-If the build is successful, you should end up with a libmeam.a file.
+Because you have a F90 compiler on your system, you should have these
+libraries.  But you will have to figure out which ones are needed and
+where they are.  Examples of common configurations are in the
+Makefile.lammps.* files.

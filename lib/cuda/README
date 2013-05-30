@@ -1,26 +1,59 @@
-This directory has source files to build a library that LAMMPS
-links against when using the USER-CUDA package.
+USER-CUDA library
+Christian Trott, crtrott at sandia.gov
 
-When you are done building this library, two files should
-exist in this directory:
+-------------------------------------------------------------------
+
+This directory has source files to build a library that LAMMPS links
+against when using the USER-CUDA package.
+
+This library must be built before LAMMPS is built, so LAMMPS can link
+against it.  The build process also write settings into the
+Makefile.lammps file which are used when files in the src/USER-CUDA
+package are compiled.
+
+Thus if you re-build this library (e.g. for a different precision),
+you MUST re-compile the src/USER-CUDA files as well.  You can force
+this to happen by uninstalling, then re-installing the USER-CUDA
+package (make no-user-cuda; make yes-user-cuda) before doing
+a LAMMPS build.
+
+Build this library in two steps.  First type:
+
+make OPTIONS
+
+where OPTIONS is one or more of the following settings:
+
+precision=N to set the precision level
+  N = 1 for single precision (default)
+  N = 2 for double precision
+  N = 3 for positions in double precision
+  N = 4 for positions and velocities in double precision
+arch=M to set GPU compute capability
+  M = 20 for CC2.0 (GF100/110, e.g. C2050,GTX580,GTX470) (default)
+  M = 21 for CC2.1 (GF104/114,  e.g. GTX560, GTX460, GTX450)
+  M = 13 for CC1.3 (GF200, e.g. C1060, GTX285)
+prec_timer=0/1 to use hi-precision timers
+  0 = do not use them (default)
+  1 = use these timers
+  this is usually only useful for Mac machines 
+dbg=0/1 to activate debug mode
+  0 = no debug mode (default)
+  1 = yes debug mode
+  this is only useful for developers
+cufft=1 to determine usage of CUDA FFT library
+  0 = no CUFFT support (default)
+  in the future other CUDA-enabled FFT libraries might be supported 
+
+This will write settings to the Makefile.defaults file.
+
+Then type "make" with with no arguments to build the library with the
+new settings.
+
+After the second make, two files should exist in this directory:
 
 liblammpscuda.a		the library LAMMPS will link against
 Makefile.lammps		settings the LAMMPS Makefile will import
 
-The latter file will have settings like this (can be omitted if blank):
-
-user-cuda_SYSINC = -I$(CUDA_INSTALL_PATH)/include 
-user-cuda_SYSLIB = -lcuda -lcudart -lrt 
-user-cuda_SYSPATH = -L$(CUDA_INSTALL_PATH)/lib64 -L$(CUDA_INSTALL_PATH)/lib $(CUDA_USRLIB_CONDITIONAL)
-
-SYSINC is for settings needed to compile LAMMPS source files
-SYSLIB is for additional system libraries needed by this package
-SYSPATH is the path(s) to where those libraries are
-
-You must insure these settings are correct for your system, else
-the LAMMPS build will likely fail.
-
--------------------------------------------------------------------------
-
-Christian - there needs to additional info here about how
-to build the lammpscuda lib.
+Makefile.lammps is created by the make command and will have settings
+consistent with the OPTIONS you selected.  It is used by the LAMMPS
+build, both for compile-time and link-time settings.

@@ -2,4 +2,4 @@
 
 user-atc_SYSINC =
 user-atc_SYSLIB = -llinalg
-user-atc_SYSPATH = -l../../lib/linalg
+user-atc_SYSPATH = -L../../lib/linalg

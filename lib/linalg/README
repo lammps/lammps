@@ -1,10 +1,10 @@
-This directory has BLAS and LAPACK files needed
-by the USER-ATC package (or other packages in the future).
+This directory has BLAS and LAPACK files needed by the USER-ATC and
+USER-AWPMD packages, and possibly other packages in the future.
 
-You should only need to build and use the files in this
-directory if you want to build LAMMPS with the USER-ATC package
-and do not have the standard BLAS and LAPACK libraries on your
-system.
+You should only need to build and use the files in this directory if
+you want to build LAMMPS with the a package that needs BLAS/LAPACK
+routines and do not have the standard BLAS and LAPACK libraries on
+your system.
 
 Use one of the Makefiles provided to build this library.
 You may need to edit if for your system.

@@ -47,7 +47,7 @@ class Variable : protected Pointers {
   int *num;                // # of values for each variable
   int *which;              // next available value for each variable
   int *pad;                // 1 = pad loop/uloop variables with 0s, 0 = no pad
-  class VarReader **reader;   // variable that reads lines from file
+  class VarReader **reader;   // variable that reads from file
   char ***data;            // str value of each variable's values
 
   int *eval_in_progress;   // flag if evaluation of variable is in progress
@@ -96,12 +96,13 @@ class Variable : protected Pointers {
 
 class VarReader : protected Pointers {
  public:
-  VarReader(class LAMMPS *, char *);
+    VarReader(class LAMMPS *, char *, int);
   ~VarReader();
   int read(char *);
+  int read(double *);
 
  private:
-  int me;
+  int me,style;
   FILE *fp;
 };
 

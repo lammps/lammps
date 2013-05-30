@@ -35,34 +35,21 @@ if (test $2 = "status") then
   fi
 
 # update, only if installed
-# if package dir has its own Package.sh, use it
-# cp package file to src if it exists and is different
-# set installflag if any package file is not in src and do full install
-# this is needed when a patch has added a new file to the package
+# perform a re-install, but only if the package is already installed
 
 elif (test $2 = "update") then
   echo "Updating src files from $1 package files"
   if (test $installed = 1) then
-    if (test ! -e Package.sh) then
-      installflag=0
-      for file in *.cpp *.h; do
-        if (test ! -e ../$file) then
-          installflag=1
-        elif (test "`diff --brief $file ../$file`" != "") then
-          echo "  updating src/$file"
-          cp $file ..
-        fi
-      done
-      if (test $installflag = 1) then
-         echo "  reinstalling package $1"
-	 /bin/sh Install.sh 1
-         /bin/sh ../Depend.sh $1 1
-      fi
+    echo "  re-installing package $1"
+    if (test -e Install.sh) then
+      cd $1; /bin/sh Install.sh 1; cd ..
     else
-      /bin/sh Package.sh
+      cd $1; /bin/sh ../Install.sh 1; cd ..
     fi
+    cd ..
+    /bin/sh Depend.sh $1 1
   else
-    echo "  $1 package is not installed, no action"
+    echo "  $1 package is not installed"
   fi
 
 # overwrite, only if installed
@@ -80,7 +67,7 @@ elif (test $2 = "overwrite") then
       fi
     done
   else
-    echo "  $1 package is not installed, no action"
+    echo "  $1 package is not installed"
   fi
 
 # diff

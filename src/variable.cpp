@@ -43,7 +43,7 @@ using namespace MathConst;
 
 #define MYROUND(a) (( a-floor(a) ) >= .5) ? ceil(a) : floor(a)
 
-enum{INDEX,LOOP,WORLD,UNIVERSE,ULOOP,STRING,FILEVAR,EQUAL,ATOM};
+enum{INDEX,LOOP,WORLD,UNIVERSE,ULOOP,STRING,FILEVAR,AFILEVAR,EQUAL,ATOM};
 enum{ARG,OP};
 
 // customize by adding a function
@@ -288,9 +288,26 @@ void Variable::set(int narg, char **arg)
     pad[nvar] = 0;
     data[nvar] = new char*[num[nvar]];
     data[nvar][0] = new char[MAXLINE];
-    reader[nvar] = new VarReader(lmp,arg[2]);
+    reader[nvar] = new VarReader(lmp,arg[2],FILEVAR);
     int flag = reader[nvar]->read(data[nvar][0]);
     if (flag) error->all(FLERR,"File variable could not read value");
+
+  // AFILEVAR for numbers
+  // which = 1st value
+
+  } else if (strcmp(arg[1],"afile") == 0) {
+    if (narg != 3) error->all(FLERR,"Illegal variable command");
+    if (find(arg[0]) >= 0) return;
+    if (nvar == maxvar) grow();
+    style[nvar] = AFILEVAR;
+    num[nvar] = 1;
+    which[nvar] = 0;
+    pad[nvar] = 0;
+    //data[nvar] = new char*[num[nvar]];
+    //data[nvar][0] = new char[MAXLINE];
+    reader[nvar] = new VarReader(lmp,arg[2],AFILEVAR);
+    int flag = reader[nvar]->read(data[nvar][0]);
+    if (flag) error->all(FLERR,"Afile variable could not read values");
 
   // EQUAL
   // remove pre-existing var if also style EQUAL (allows it to be reset)
@@ -3649,9 +3666,10 @@ unsigned int Variable::data_mask(char *str)
    class to read variable values from a file, line by line
 ------------------------------------------------------------------------- */
 
-VarReader::VarReader(LAMMPS *lmp, char *file) : Pointers(lmp)
+VarReader::VarReader(LAMMPS *lmp, char *file, int flag) : Pointers(lmp)
 {
   MPI_Comm_rank(world,&me);
+  style = flag;
 
   if (me == 0) {
     fp = fopen(file,"r");
@@ -3671,6 +3689,7 @@ VarReader::~VarReader()
 }
 
 /* ----------------------------------------------------------------------
+   read for FILEVAR style
    read next value from file into str
    strip comments, skip blank lines
    return 0 if successful, 1 if end-of-file
@@ -3698,4 +3717,12 @@ int VarReader::read(char *str)
   if (n == 0) return 1;
   MPI_Bcast(str,n,MPI_CHAR,0,world);
   return 0;
+}
+
+/* ----------------------------------------------------------------------
+   read for AFILEVAR style
+------------------------------------------------------------------------- */
+
+int VarReader::read(double *)
+{
 }

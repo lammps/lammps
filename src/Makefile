@@ -191,18 +191,26 @@ yes-%:
 	  then cp Makefile.package.settings.empty Makefile.package.settings; fi
 	@if [ ! -e $(YESDIR) ]; then \
 	  echo "Package $(@:yes-%=%) does not exist"; \
-	else \
+	elif [ -e $(YESDIR)/Install.sh ]; then \
 	  echo "Installing package $(@:yes-%=%)"; \
 	  cd $(YESDIR); $(SHELL) Install.sh 1; cd ..; \
+		$(SHELL) Depend.sh $(YESDIR) 1; \
+	else \
+	  echo "Installing package $(@:yes-%=%)"; \
+	  cd $(YESDIR); $(SHELL) ../Install.sh 1; cd ..; \
 		$(SHELL) Depend.sh $(YESDIR) 1; \
 	fi;
 
 no-%:
 	@if [ ! -e $(NODIR) ]; then \
 	  echo "Package $(@:no-%=%) does not exist"; \
-	else \
+	elif [ -e $(NODIR)/Install.sh ]; then \
 	  echo "Uninstalling package $(@:no-%=%)"; \
 	  cd $(NODIR); $(SHELL) Install.sh 0; cd ..; \
+		$(SHELL) Depend.sh $(NODIR) 0; \
+	else \
+	  echo "Uninstalling package $(@:no-%=%)"; \
+	  cd $(NODIR); $(SHELL) ../Install.sh 0; cd ..; \
 		$(SHELL) Depend.sh $(NODIR) 0; \
         fi;
 

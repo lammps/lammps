@@ -25,17 +25,17 @@ depend () {
       installed=1
     fi
   done
+
   cd ..
   if (test $installed = 0) then
     return
   fi
 
-  if (test $2 = 1) then
-    echo "  reinstalling package $1"
+  echo "  re-installing package $1"
+  if (test -e $1/Install.sh) then
     cd $1; /bin/sh Install.sh 1; cd ..
-  elif (test $2 = 0) then
-    echo "  un/reinstalling package $1"
-    cd $1; /bin/sh Install.sh 0; /bin/sh Install.sh 1; cd ..
+  else
+    cd $1; /bin/sh ../Install.sh 1; cd ..
   fi
 }
 

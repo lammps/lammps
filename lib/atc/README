@@ -7,7 +7,7 @@ September 2009
 This is version 1.0 of the ATC library, which provides continuum field
 estimation and molecular dynamics-finite element coupling methods.
 
----------------------------
+-------------------------------------------------
 
 This directory has source files to build a library that LAMMPS
 links against when using the USER-ATC package.
@@ -15,14 +15,15 @@ links against when using the USER-ATC package.
 This library must be built with a C++ compiler, before LAMMPS is
 built, so LAMMPS can link against it.
 
-Build the library using one of the provided Makefiles or create your
-own, specific to your compiler and system.  For example:
+Build the library using one of the provided Makefile.* files or create
+your own, specific to your compiler and system.  For example:
 
 make -f Makefile.g++
 
 Note that the ATC library makes MPI calls, so you must build it with
-the same MPI library that is used to build LAMMPS, e.g. as specified
-by settings in the lammps/src/MAKE/Makefile.foo file.
+the same MPI library that is used to build LAMMPS, i.e. as specified
+by settings in the lammps/src/MAKE/Makefile.machine file you are
+using.
 
 When you are done building this library, two files should
 exist in this directory:
@@ -34,8 +35,8 @@ Makefile.lammps is created by the make command, by copying one of the
 Makefile.lammps.* files.  See the EXTRAMAKE setting at the top of the
 Makefile.* files.
 
-It is IMPORTANT that you examine the final Makefile.lammps to insure
-it is correct for your system, else the LAMMPS build will likely fail.
+IMPORTANT: You must examine the final Makefile.lammps to insure it is
+correct for your system, else the LAMMPS build will likely fail.
 
 Makefile.lammps has settings for 3 variables:
 
@@ -48,15 +49,11 @@ You have several choices for these settings:
 If the 2 libraries are already installed on your system, the settings
 in Makefile.lammps.installed should work.
 
-If they are not, you can install them yourself, and make
-the appropriate settings.
+If they are not, you can install them yourself, and speficy the
+appropriate settings accordingly.
 
-If you want to use the version provided with LAMMPS in lib/linalg,
-then the settings in Makefile.lammps.linalg should work.  Note that in
-this case you also need to build the linear-algebra in lib/linalg; see
-the lib/linalg/README for more details.
-
-You can leave these settings blank and specify them in your
-src/MAKE/Makefile.machine file instead.  In this case you should edit
-the Makefile.* to use Makefile.lammps.empty when it creates
-Makefile.lammps.
+If you want to use the minimalist version of these libraries provided
+with LAMMPS in lib/linalg, then the settings in Makefile.lammps.linalg
+should work.  Note that in this case you also need to build the
+linear-algebra in lib/linalg; see the lib/linalg/README for more
+details.

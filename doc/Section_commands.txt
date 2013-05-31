@@ -629,6 +629,7 @@ each style or click on the style itself for a full description:
 "ke/atom"_compute_ke_atom.html,
 "msd"_compute_msd.html,
 "msd/molecule"_compute_msd_molecule.html,
+"msd/nongauss"_compute_msd_nongauss.html,
 "pair"_compute_pair.html,
 "pair/local"_compute_pair_local.html,
 "pe"_compute_pe.html,

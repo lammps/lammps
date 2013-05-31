@@ -1,0 +1,151 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>pair_style list command 
+</H3>
+<P><B>Syntax:</B> 
+</P>
+<PRE>pair_style list listfile cutoff keyword 
+</PRE>
+<UL><LI>listfile = name of file with list of pairwise interactions
+<LI>cutoff = global cutoff (distance units) 
+<LI>keyword = optional flag <I>nocheck</I> or <I>check</I> (default is <I>check</I>) 
+</UL>
+<P><B>Examples:</B> 
+</P>
+<PRE>pair_style list restraints.txt 200.0
+pair_coeff * * 
+</PRE>
+<PRE>pair_style hybrid/overlay lj/cut 1.1225 list pair_list.txt 300.0
+pair_coeff * * lj/cut 1.0 1.0
+pair_coeff 3* 3* list 
+</PRE>
+<P><B>Description:</B> 
+</P>
+<P>Style <I>list</I> computes interactions between explicitly listed pairs of
+atoms with the option to select functional form and parameters for
+each individual pair.  Because the parameters are set in the list
+file, the pair_coeff command has no parameters (but still needs to be
+provided).  The <I>check</I> and <I>nocheck</I> keywords enable/disable a test
+that checks whether all listed bonds were present and computed.
+</P>
+<P>This pair style can be thought of as a hybrid between bonded,
+non-bonded, and restraint interactions.  It will typically be used as
+an additional interaction within the <I>hybrid/overlay</I> pair style.  It
+currently supports three interaction styles: a 12-6 Lennard-Jones, a
+Morse and a harmonic potential.
+</P>
+<P>The format of the list file is as follows:
+</P>
+<UL><LI>one line per pair of atoms 
+
+<LI>empty lines will be ignored 
+
+<LI>comment text starts with a '#' character 
+line syntax: ID1 ID2 style coeffs cutoff 
+
+<PRE>  ID1 = atom ID of first atom
+  ID2 = atom ID of second atom
+  style = style of interaction
+  coeffs = list of coeffs
+  cutoff = cutoff for interaction (optional) 
+</PRE>
+
+</UL>
+<P>The cutoff parameter is optional. If not specified, the global cutoff
+is used.
+</P>
+<P>Here is an example file:
+</P>
+<PRE># this is a comment 
+</PRE>
+<PRE>15 259 lj126     1.0 1.0      50.0
+15 603 morse    10.0 1.2 2.0  10.0 # and another comment 
+18 470 harmonic 50.0 1.2       5.0  
+</PRE>
+<P>The style <I>lj126</I> computes pairwise interactions with the formula
+</P>
+<CENTER><IMG SRC = "Eqs/pair_lj.jpg">
+</CENTER>
+<P>and the coefficients:
+</P>
+<UL><LI>epsilon (energy units)
+<LI>sigma (distance units) 
+</UL>
+<P>The style <I>morse</I> computes pairwise interactions with the formula
+</P>
+<CENTER><IMG SRC = "Eqs/pair_morse.jpg">
+</CENTER>
+<P>and the coefficients:
+</P>
+<UL><LI>D0 (energy units)
+<LI>alpha (1/distance units)
+<LI>r0 (distance units) 
+</UL>
+<P>The style <I>harmonic</I> computes pairwise interactions with the formula
+</P>
+<CENTER><IMG SRC = "Eqs/bond_harmonic.jpg">
+</CENTER>
+<P>and the coefficients:
+</P>
+<UL><LI>K (energy units)
+<LI>r0 (distance units) 
+</UL>
+<P>Note that the usual 1/2 factor is included in K. 
+</P>
+<HR>
+
+<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
+</P>
+<P>This pair style does not support mixing since all parameters are
+explicit for each pair.
+</P>
+<P>The <A HREF = "pair_modify.html">pair_modify</A> shift option is supported by this
+pair style.
+</P>
+<P>The <A HREF = "pair_modify.html">pair_modify</A> table and tail options are not
+relevant for this pair style.
+</P>
+<P>This pair style does not write its information to <A HREF = "restart.html">binary restart
+files</A>, so pair_style and pair_coeff commands need
+to be specified in an input script that reads a restart file.
+</P>
+<P>This pair style can only be used via the <I>pair</I> keyword of the
+<A HREF = "run_style.html">run_style respa</A> command.  It does not support the
+<I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
+</P>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>This pair style does not use a neighbor list and instead identifies
+atoms by their IDs. This has two consequences: 1) The cutoff has to be
+chosen sufficiently large, so that the second atom of a pair has to be
+a ghost atom on the same node on which the first atom is local;
+otherwise the interaction will be skipped. You can use the <I>check</I>
+option to detect, if interactions are missing. 2) Unlike for the rest
+of LAMMPS, minimum image conventions apply.
+</P>
+<P>This style is part of the USER-MISC package. It is only enabled if
+LAMMPS is build with that package. See the <A HREF = "Section_start.html#3">Making of
+LAMMPS</A> section for more info.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_coeff.html">pair_coeff</A>,
+<A HREF = "pair_hybrid.html">pair_style hybrid/overlay</A>,
+<A HREF = "pair_lj.html">pair_style lj/cut</A>,
+<A HREF = "pair_morse.html">pair_style morse</A>,
+<A HREF = "bond_harmonic.html">bond_style harmonic</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

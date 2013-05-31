@@ -18,7 +18,6 @@
 #include "group.h"
 #include "domain.h"
 #include "modify.h"
-#include "fix.h"
 #include "fix_store.h"
 #include "error.h"
 

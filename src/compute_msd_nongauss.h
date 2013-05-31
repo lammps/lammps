@@ -13,29 +13,22 @@
 
 #ifdef COMPUTE_CLASS
 
-ComputeStyle(msd,ComputeMSD)
+ComputeStyle(msd/nongauss,ComputeMSDNonGauss)
 
 #else
 
-#ifndef LMP_COMPUTE_MSD_H
-#define LMP_COMPUTE_MSD_H
+#ifndef LMP_COMPUTE_MSD_NONGAUSS_H
+#define LMP_COMPUTE_MSD_NONGAUSS_H
 
-#include "compute.h"
+#include "compute_msd.h"
 
 namespace LAMMPS_NS {
 
-class ComputeMSD : public Compute {
+class ComputeMSDNonGauss : public ComputeMSD {
  public:
-  ComputeMSD(class LAMMPS *, int, char **);
-  virtual ~ComputeMSD();
-  void init();
-  virtual void compute_vector();
-
- protected:
-  int comflag,nmsd;
-  double masstotal;
-  char *id_fix;
-  class FixStore *fix;
+  ComputeMSDNonGauss(class LAMMPS *, int, char **);
+  ~ComputeMSDNonGauss() {}
+  void compute_vector();
 };
 
 }

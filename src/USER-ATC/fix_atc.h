@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -24,10 +24,9 @@ FixStyle(atc,FixATC)
 
 #include "pointers.h" // access to lammps pointers
 
-// NOTE what is the correct way?
-//class ATC::ATC_Transfer;
-#include "ATC_Transfer.h"
-#include "LammpsInterface.h"
+namespace ATC {
+  class ATC_Transfer;
+}
 
 namespace LAMMPS_NS {
   // fwd decl
@@ -41,9 +40,7 @@ namespace LAMMPS_NS {
 
     /** calls ATC_Transfer */
     void init();
-    void init_list(int id, NeighList *ptr) {
-      ATC::LammpsInterface::instance()->init_list(id,ptr);
-    }
+    void init_list(int, NeighList *);
     void setup(int vflag);
 
     /** setmask: tell LAMMPS which fix methods to call */
@@ -81,8 +78,9 @@ namespace LAMMPS_NS {
 
   protected:
     /** functions for "thermo" output */
-    virtual double compute_scalar() {return atcTransfer_->compute_scalar();}
-    virtual double compute_vector(int n) {return atcTransfer_->compute_vector(n);}
+    virtual double compute_scalar();
+    virtual double compute_vector(int n);
+
     double dtv,dtf;
     ATC::ATC_Transfer *atcTransfer_;
   };

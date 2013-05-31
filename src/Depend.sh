@@ -1,20 +1,20 @@
 # Depend.sh = Install/unInstall files due to package dependencies
 # this script is invoked after any package is installed/uninstalled
 
+# all parent/child package dependencies should be listed below
 # parent package = has files that files in another package derive from
 # child package = has files that derive from files in another package
-# all parent/child package dependencies should be listed below
 
-# re-install child packages that depend on the parent,
+# update child packages that depend on the parent,
 #   but only if the child package is already installed
 # this is necessary to insure the child package installs
 #   only child files whose parent package files are now installed
 # decisions on (un)installing individual child files are made by
 #   the Install.sh script in the child package
 
-# depend function: args = child-package
+# depend function: arg = child-package
 # checks if child-package is installed, if not just return
-# otherwise update child package according to its dependencies
+# otherwise invoke update of child package via its Install.sh
 
 depend () {
   cd $1
@@ -40,8 +40,6 @@ depend () {
 
 # add one if statement per parent package
 # add one depend() call per child package that depends on that parent
-# list of child packages:
-#   GPU, OPT, USER-CUDA, USER-MISC, USER-OMP
 
 if (test $1 = "ASPHERE") then
   depend GPU
@@ -74,6 +72,7 @@ if (test $1 = "KSPACE") then
   depend OPT
   depend USER-CUDA
   depend USER-OMP
+  depend USER-PHONON
 fi
 
 if (test $1 = "MANYBODY") then

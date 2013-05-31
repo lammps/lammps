@@ -103,7 +103,7 @@ more instructions on how to use the accelerated styles effectively.
 
 [Mixing, shift, table, tail correction, restart, rRESPA info]:
 
-These pair style do not support mixing.  Thus, coefficients for all
+These pair styles do not support mixing. Thus, coefficients for all
 I,J pairs must be specified explicitly.
 
 The {gauss} style does not support the "pair_modify"_pair_modify.html
@@ -115,21 +115,17 @@ option for the energy of the Gauss-potential portion of the pair
 interaction.
 
 The "pair_modify"_pair_modify.html table and tail options are not
-relevant for this pair style.
+relevant for these pair styles.
 
-This pair style does not support the "pair_modify"_pair_modify.html
-table option, since a tabulation capability does not exist for this
-potential.
-
-This pair style writes its information to "binary restart
+These pair styles write their information to "binary restart
 files"_restart.html, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
-This pair style can only be used via the {pair} keyword of the
-"run_style respa"_run_style.html command.  It does not support the
+These pair styles can only be used via the {pair} keyword of the
+"run_style respa"_run_style.html command.  They do not support the
 {inner}, {middle}, {outer} keywords.
 
-Thes {gauss} pair style tallies an "occupancy" count of how many Gaussian-well
+The {gauss} pair style tallies an "occupancy" count of how many Gaussian-well
 sites have an atom within the distance at which the force is a maximum
 = sqrt(0.5/b).  This quantity can be accessed via the "compute
 pair"_compute_pair.html command as a vector of values of length 1.
@@ -155,3 +151,12 @@ LAMMPS"_Section_start.html#3 section for more info.
 "pair_style coul/diel"_pair_coul_diel.html
 
 [Default:] none
+
+:link(Lenart)
+[(Lenart)] Lenart , Jusufi, and Panagiotopoulos, J Chem Phys, 126,
+044509 (2007).
+
+:link(Jusufi)
+[(Jusufi)] Jusufi, Hynninen, and Panagiotopoulos, J Phys Chem B, 112,
+13783 (2008).
+

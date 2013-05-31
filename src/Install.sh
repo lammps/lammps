@@ -19,7 +19,7 @@ action () {
         echo "  updating src/$1"
       fi
     fi
-  elif (test ! -z "$2") then
+  elif (test -n "$2") then
     if (test ! -e ../$2) then
       rm -f ../$1
     fi

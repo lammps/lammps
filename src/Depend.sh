@@ -12,10 +12,9 @@
 # decisions on (un)installing individual child files are made by
 #   the Install.sh script in the child package
 
-# depend function: args = child-package 0/1
+# depend function: args = child-package
 # checks if child-package is installed, if not just return
-# if parent package is being installed, reinstall the child
-# if parent package is being uninstalled, uninstall the child, reinstall it
+# otherwise update child package according to its dependencies
 
 depend () {
   cd $1
@@ -31,11 +30,11 @@ depend () {
     return
   fi
 
-  echo "  re-installing package $1"
+  echo "  updating package $1"
   if (test -e $1/Install.sh) then
-    cd $1; /bin/sh Install.sh 1; cd ..
+    cd $1; /bin/sh Install.sh 2; cd ..
   else
-    cd $1; /bin/sh ../Install.sh 1; cd ..
+    cd $1; /bin/sh ../Install.sh 2; cd ..
   fi
 }
 
@@ -45,57 +44,69 @@ depend () {
 #   GPU, OPT, USER-CUDA, USER-MISC, USER-OMP
 
 if (test $1 = "ASPHERE") then
-  depend GPU $2
-  depend USER-OMP $2
+  depend GPU
+  depend USER-OMP
 fi
 
 if (test $1 = "CLASS2") then
-  depend GPU $2
-  depend USER-CUDA $2
-  depend USER-OMP $2
+  depend GPU
+  depend USER-CUDA
+  depend USER-OMP
 fi
 
 if (test $1 = "COLLOID") then
-  depend GPU $2
-  depend USER-OMP $2
+  depend GPU
+  depend USER-OMP
+fi
+
+if (test $1 = "DIPOLE") then
+  depend USER-MISC
+  depend USER-OMP
 fi
 
 if (test $1 = "GRANULAR") then
-  depend USER-CUDA $2
-  depend USER-OMP $2
+  depend USER-CUDA
+  depend USER-OMP
 fi
 
 if (test $1 = "KSPACE") then
-  depend GPU $2
-  depend OPT $2
-  depend USER-CUDA $2
-  depend USER-OMP $2
+  depend GPU
+  depend OPT
+  depend USER-CUDA
+  depend USER-OMP
 fi
 
 if (test $1 = "MANYBODY") then
-  depend GPU $2
-  depend OPT $2
-  depend USER-CUDA $2
-  depend USER-MISC $2
-  depend USER-OMP $2
+  depend GPU
+  depend OPT
+  depend USER-CUDA
+  depend USER-MISC
+  depend USER-OMP
+fi
+
+if (test $1 = "MOLECULE") then
+  depend GPU
+  depend USER-CUDA
+  depend USER-MISC
+  depend USER-OMP
 fi
 
 if (test $1 = "PERI") then
-  depend USER-OMP $2
+  depend USER-OMP
 fi
 
 if (test $1 = "RIGID") then
-  depend USER-OMP $2
+  depend USER-OMP
 fi
 
 if (test $1 = "USER-CG-CMM") then
-  depend GPU $2
-  depend USER-CUDA $2
-  depend USER-OMP $2
+  depend GPU
+  depend USER-CUDA
+  depend USER-OMP
 fi
 
 if (test $1 = "USER-MISC") then
-  depend GPU $2
-  depend USER-OMP $2
+  depend GPU
+  depend USER-OMP
 fi
 

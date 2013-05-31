@@ -22,7 +22,7 @@ if (test $2 = "status") then
     for file in *.cpp *.h; do
       if (test ! -e ../$file) then
         echo "  src/$file does not exist"
-      elif (test "`diff --brief $file ../$file`" != "") then
+      elif (! cmp -s $file ../$file) then
         echo "  src/$file and $1/$file are different"
       fi
     done
@@ -36,14 +36,14 @@ if (test $2 = "status") then
 elif (test $2 = "update") then
   echo "Updating src files from $1 package files"
   if (test $installed = 1) then
-    echo "  re-installing package $1"
+    echo "  updating package $1"
     if (test -e Install.sh) then
-      /bin/sh Install.sh 1
+      /bin/sh Install.sh 2
     else
-      /bin/sh ../Install.sh 1
+      /bin/sh ../Install.sh 2
     fi
     cd ..
-    /bin/sh Depend.sh $1 1
+    /bin/sh Depend.sh $1
   else
     echo "  $1 package is not installed"
   fi
@@ -57,7 +57,7 @@ elif (test $2 = "overwrite") then
     for file in *.cpp *.h; do
       if (test ! -e ../$file) then
         continue
-      elif (test "`diff --brief $file ../$file`" != "") then
+      elif (! cmp -s $file ../$file) then
         echo "  overwriting $1/$file"
         cp ../$file .
       fi
@@ -76,7 +76,7 @@ elif (test $2 = "diff") then
     for file in *.cpp *.h; do
       if (test ! -e ../$file) then
         echo "  src/$file does not exist"
-      elif (test "`diff --brief $file ../$file`" != "") then
+      elif (! cmp -s $file ../$file) then
         echo "************************************************"
         echo "diff $1/$file src/$file "
         echo "************************************************"

@@ -1,9 +1,145 @@
+*> \brief \b DLACN2 estimates the 1-norm of a square matrix, using reverse communication for evaluating matrix-vector products.
+*
+*  =========== DOCUMENTATION ===========
+*
+* Online html documentation available at 
+*            http://www.netlib.org/lapack/explore-html/ 
+*
+*> \htmlonly
+*> Download DLACN2 + dependencies 
+*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.tgz?format=tgz&filename=/lapack/lapack_routine/dlacn2.f"> 
+*> [TGZ]</a> 
+*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.zip?format=zip&filename=/lapack/lapack_routine/dlacn2.f"> 
+*> [ZIP]</a> 
+*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.txt?format=txt&filename=/lapack/lapack_routine/dlacn2.f"> 
+*> [TXT]</a>
+*> \endhtmlonly 
+*
+*  Definition:
+*  ===========
+*
+*       SUBROUTINE DLACN2( N, V, X, ISGN, EST, KASE, ISAVE )
+* 
+*       .. Scalar Arguments ..
+*       INTEGER            KASE, N
+*       DOUBLE PRECISION   EST
+*       ..
+*       .. Array Arguments ..
+*       INTEGER            ISGN( * ), ISAVE( 3 )
+*       DOUBLE PRECISION   V( * ), X( * )
+*       ..
+*  
+*
+*> \par Purpose:
+*  =============
+*>
+*> \verbatim
+*>
+*> DLACN2 estimates the 1-norm of a square, real matrix A.
+*> Reverse communication is used for evaluating matrix-vector products.
+*> \endverbatim
+*
+*  Arguments:
+*  ==========
+*
+*> \param[in] N
+*> \verbatim
+*>          N is INTEGER
+*>         The order of the matrix.  N >= 1.
+*> \endverbatim
+*>
+*> \param[out] V
+*> \verbatim
+*>          V is DOUBLE PRECISION array, dimension (N)
+*>         On the final return, V = A*W,  where  EST = norm(V)/norm(W)
+*>         (W is not returned).
+*> \endverbatim
+*>
+*> \param[in,out] X
+*> \verbatim
+*>          X is DOUBLE PRECISION array, dimension (N)
+*>         On an intermediate return, X should be overwritten by
+*>               A * X,   if KASE=1,
+*>               A**T * X,  if KASE=2,
+*>         and DLACN2 must be re-called with all the other parameters
+*>         unchanged.
+*> \endverbatim
+*>
+*> \param[out] ISGN
+*> \verbatim
+*>          ISGN is INTEGER array, dimension (N)
+*> \endverbatim
+*>
+*> \param[in,out] EST
+*> \verbatim
+*>          EST is DOUBLE PRECISION
+*>         On entry with KASE = 1 or 2 and ISAVE(1) = 3, EST should be
+*>         unchanged from the previous call to DLACN2.
+*>         On exit, EST is an estimate (a lower bound) for norm(A). 
+*> \endverbatim
+*>
+*> \param[in,out] KASE
+*> \verbatim
+*>          KASE is INTEGER
+*>         On the initial call to DLACN2, KASE should be 0.
+*>         On an intermediate return, KASE will be 1 or 2, indicating
+*>         whether X should be overwritten by A * X  or A**T * X.
+*>         On the final return from DLACN2, KASE will again be 0.
+*> \endverbatim
+*>
+*> \param[in,out] ISAVE
+*> \verbatim
+*>          ISAVE is INTEGER array, dimension (3)
+*>         ISAVE is used to save variables between calls to DLACN2
+*> \endverbatim
+*
+*  Authors:
+*  ========
+*
+*> \author Univ. of Tennessee 
+*> \author Univ. of California Berkeley 
+*> \author Univ. of Colorado Denver 
+*> \author NAG Ltd. 
+*
+*> \date September 2012
+*
+*> \ingroup doubleOTHERauxiliary
+*
+*> \par Further Details:
+*  =====================
+*>
+*> \verbatim
+*>
+*>  Originally named SONEST, dated March 16, 1988.
+*>
+*>  This is a thread safe version of DLACON, which uses the array ISAVE
+*>  in place of a SAVE statement, as follows:
+*>
+*>     DLACON     DLACN2
+*>      JUMP     ISAVE(1)
+*>      J        ISAVE(2)
+*>      ITER     ISAVE(3)
+*> \endverbatim
+*
+*> \par Contributors:
+*  ==================
+*>
+*>     Nick Higham, University of Manchester
+*
+*> \par References:
+*  ================
+*>
+*>  N.J. Higham, "FORTRAN codes for estimating the one-norm of
+*>  a real or complex matrix, with applications to condition estimation",
+*>  ACM Trans. Math. Soft., vol. 14, no. 4, pp. 381-396, December 1988.
+*>
+*  =====================================================================
       SUBROUTINE DLACN2( N, V, X, ISGN, EST, KASE, ISAVE )
 *
-*  -- LAPACK auxiliary routine (version 3.2) --
+*  -- LAPACK auxiliary routine (version 3.4.2) --
 *  -- LAPACK is a software package provided by Univ. of Tennessee,    --
 *  -- Univ. of California Berkeley, Univ. of Colorado Denver and NAG Ltd..--
-*     November 2006
+*     September 2012
 *
 *     .. Scalar Arguments ..
       INTEGER            KASE, N
@@ -13,63 +149,6 @@
       INTEGER            ISGN( * ), ISAVE( 3 )
       DOUBLE PRECISION   V( * ), X( * )
 *     ..
-*
-*  Purpose
-*  =======
-*
-*  DLACN2 estimates the 1-norm of a square, real matrix A.
-*  Reverse communication is used for evaluating matrix-vector products.
-*
-*  Arguments
-*  =========
-*
-*  N      (input) INTEGER
-*         The order of the matrix.  N >= 1.
-*
-*  V      (workspace) DOUBLE PRECISION array, dimension (N)
-*         On the final return, V = A*W,  where  EST = norm(V)/norm(W)
-*         (W is not returned).
-*
-*  X      (input/output) DOUBLE PRECISION array, dimension (N)
-*         On an intermediate return, X should be overwritten by
-*               A * X,   if KASE=1,
-*               A' * X,  if KASE=2,
-*         and DLACN2 must be re-called with all the other parameters
-*         unchanged.
-*
-*  ISGN   (workspace) INTEGER array, dimension (N)
-*
-*  EST    (input/output) DOUBLE PRECISION
-*         On entry with KASE = 1 or 2 and ISAVE(1) = 3, EST should be
-*         unchanged from the previous call to DLACN2.
-*         On exit, EST is an estimate (a lower bound) for norm(A). 
-*
-*  KASE   (input/output) INTEGER
-*         On the initial call to DLACN2, KASE should be 0.
-*         On an intermediate return, KASE will be 1 or 2, indicating
-*         whether X should be overwritten by A * X  or A' * X.
-*         On the final return from DLACN2, KASE will again be 0.
-*
-*  ISAVE  (input/output) INTEGER array, dimension (3)
-*         ISAVE is used to save variables between calls to DLACN2
-*
-*  Further Details
-*  ======= =======
-*
-*  Contributed by Nick Higham, University of Manchester.
-*  Originally named SONEST, dated March 16, 1988.
-*
-*  Reference: N.J. Higham, "FORTRAN codes for estimating the one-norm of
-*  a real or complex matrix, with applications to condition estimation",
-*  ACM Trans. Math. Soft., vol. 14, no. 4, pp. 381-396, December 1988.
-*
-*  This is a thread safe version of DLACON, which uses the array ISAVE
-*  in place of a SAVE statement, as follows:
-*
-*     DLACON     DLACN2
-*      JUMP     ISAVE(1)
-*      J        ISAVE(2)
-*      ITER     ISAVE(3)
 *
 *  =====================================================================
 *

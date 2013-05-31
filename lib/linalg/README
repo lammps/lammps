@@ -1,9 +1,13 @@
 This directory has BLAS and LAPACK files needed by the USER-ATC and
 USER-AWPMD packages, and possibly by other packages in the future.
 
-You only need to build and use the files in this directory if you want
-to build LAMMPS with a package that needs BLAS/LAPACK routines and you
-do not have the standard BLAS and LAPACK libraries on your system.
+Note that this is an *incomplete* subset of full BLAS/LAPACK.
+
+You should only need to build and use the resulting library in this
+directory if you want to build LAMMPS with the USER-ATC and/or
+USER-AWPMD packages AND you do not have any other suitable BLAS and
+LAPACK libraries installed on your system.  E.g. ATLAS, GOTO-BLAS,
+OpenBLAS, ACML, or MKL.
 
 Build the library using one of the provided Makefile.* files or create
 your own, specific to your compiler and system.  For example:

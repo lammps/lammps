@@ -23,11 +23,12 @@
      konglt@sjtu.edu.cn; konglt@gmail.com
 ------------------------------------------------------------------------- */
 
+#include "string.h"
+#include "fix_phonon.h"
 #include "atom.h"
 #include "compute.h"
 #include "domain.h"
 #include "error.h"
-#include "fix_phonon.h"
 #include "fft3d_wrap.h"
 #include "force.h"
 #include "group.h"
@@ -35,7 +36,6 @@
 #include "memory.h"
 #include "modify.h"
 #include "update.h"
-#include "string.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

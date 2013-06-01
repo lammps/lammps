@@ -2,6 +2,10 @@
 #  Generic Mac Makefile for OpenCL 
 # ------------------------------------------------------------------------- */
 
+# which file will be copied to Makefile.lammps
+
+EXTRAMAKE = Makefile.lammps.standard
+
 OCL_CPP = mpic++ -O3 -DMPI_GERYON -DUCL_NO_EXIT
 OCL_LINK = -framework OpenCL
 OCL_PREC = -D_SINGLE_SINGLE

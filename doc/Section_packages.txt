@@ -49,7 +49,7 @@ GRANULAR, granular systems, -, "Section_howto"_Section_howto.html#howto_6, pour,
 KIM, openKIM potentials, Smirichinski & Elliot & Tadmor (3), "pair_style kim"_pair_kim.html, kim, lib/kim
 KSPACE, long-range Coulombic solvers, -, "kspace_style"_kspace_style.html, peptide, -
 MANYBODY, many-body potentials, -, "pair_style tersoff"_pair_tersoff.html, shear, -
-MEAM, modified EAM potential, Greg Wagner (Sandia), "pair_style meam"_pair_meam.html, meam, lib/meam
+MEAM, modified EAM potential, Greg Wagner (Sandia), "pair_style meam"_pair_meam.html, meam, KIM
 MC, Monte Carlo options, -, "fix gcmc"_fix_gcmc.html, -, -
 MOLECULE, molecular system force fields, -, "Section_howto"_Section_howto.html#howto_3, peptide, -
 OPT, optimized pair potentials, Fischer & Richie & Natoli (2), "Section accelerate"_Section_accelerate.html#acc_4, -, -
@@ -60,6 +60,7 @@ REPLICA, multi-replica methods, -, "Section_howto"_Section_howto.html#howto_5, t
 RIGID, rigid bodies, -, "fix rigid"_fix_rigid.html, rigid, -
 SHOCK, shock loading methods, -, "fix msst"_fix_msst.html, -, -
 SRD, stochastic rotation dynamics, -, "fix srd"_fix_srd.html, srd, -
+VORONOI, Voronoi tesselations, Daniel Schwen (LANL), "compute voronoi/atom"_compute_voronoi_atom.html, -, Voro++
 XTC, dumps in XTC format, -, "dump"_dump.html, -, -
 :tb(ea=c)
 
@@ -84,7 +85,16 @@ The "Example" column is a sub-directory in the examples directory of
 the distribution which has an input script that uses the package.
 E.g. "peptide" refers to the examples/peptide directory.
 
-The "Library" column lists an external library which must be built first and which LAMMPS links to when it is built.  These are in the lib directory of the distribution.  "This section"_Section_start.html#start_3_3 of the manual gives details on the 2-step build process with external libraries.
+The "Library" column lists an external library which must be built
+first and which LAMMPS links to when it is built.  If it is listed as
+lib/package, then the code for the library is under the lib directory
+of the LAMMPS distribution.  See the lib/package/README file for info
+on how to build the library.  If it is not listed as lib/package, then
+it is a third-party library not included in the LAMMPS distribution.
+See the src/package/Makefile.lammps file for info on where to download
+the library.  "Section start"_Section_start.html#start_3_3 of the
+manual also gives details on how to build LAMMPS with both kinds of
+auxiliary libraries.
 
 :line
 :line
@@ -94,14 +104,14 @@ The "Library" column lists an external library which must be built first and whi
 The current list of user-contributed packages is as follows:
 
 Package, Description, Author(s), Doc page, Example, Pic/movie, Library
-USER-MISC, single-file contributions, USER-MISC/README, USER-MISC/README, -, -, -
 USER-ATC, atom-to-continuum coupling, Jones & Templeton & Zimmerman (2), "fix atc"_fix_atc.html, USER/atc, "atc"_atc, lib/atc
 USER-AWPMD, wave-packet MD, Ilya Valuev (JIHT), "pair_style awpmd/cut"_pair_awpmd.html, USER/awpmd, -, lib/awpmd
 USER-CG-CMM, coarse-graining model, Axel Kohlmeyer (Temple U), "pair_style lj/sdk"_pair_sdk.html, USER/cg-cmm, "cg"_cg, -
 USER-COLVARS, collective variables, Fiorin & Henin & Kohlmeyer (3), "fix colvars"_fix_colvars.html, USER/colvars, "colvars"_colvars, lib/colvars
 USER-CUDA, NVIDIA GPU styles, Christian Trott (U Tech Ilmenau), "Section accelerate"_Section_accelerate.html#acc_7, USER/cuda, -, lib/cuda
 USER-EFF, electron force field, Andres Jaramillo-Botero (Caltech), "pair_style eff/cut"_pair_eff.html, USER/eff, "eff"_eff, -
-USER-MOLFILE, "VMD"_VMD molfile plug-ins, Axel Kohlmeyer (Temple U), "dump molfile"_dump_molfile.html, -, -, lib/molfile
+USER-MISC, single-file contributions, USER-MISC/README, USER-MISC/README, -, -, -
+USER-MOLFILE, "VMD"_VMD molfile plug-ins, Axel Kohlmeyer (Temple U), "dump molfile"_dump_molfile.html, -, -, VMD-MOLFILE
 USER-OMP, OpenMP threaded styles, Axel Kohlmeyer (Temple U), "Section accelerate"_Section_accelerate.html#acc_5, -, -, -
 USER-REAXC, C version of ReaxFF, Metin Aktulga (LBNL), "pair_style reaxc"_pair_reax_c.html, reax, -, -
 USER-SPH, smoothed particle hydrodynamics, Georg Ganzenmuller (EMI), "userguide.pdf"_USER/sph/SPH_LAMMPS_userguide.pdf, USER/sph, "sph"_sph, -
@@ -115,6 +125,11 @@ USER-SPH, smoothed particle hydrodynamics, Georg Ganzenmuller (EMI), "userguide.
 
 The "Authors" column lists a name(s) if a specific person is
 responible for creating and maintaining the package.
+
+If the Library is not listed as lib/package, then it is a third-party
+library not included in the LAMMPS distribution.  See the
+src/package/Makefile.lammps file for info on where to download the
+library from.
 
 (2) The ATC package was created by Reese Jones, Jeremy Templeton, and
 Jon Zimmerman (Sandia).
@@ -134,13 +149,18 @@ E.g. "peptide" refers to the examples/peptide directory.  USER/cuda
 refers to the examples/USER/cuda directory.
 
 The "Library" column lists an external library which must be built
-first and which LAMMPS links to when it is built.  These are in the
-lib directory of the distribution.  "This
-section"_Section_start.html#start_3_3 of the manual gives details on
-the 2-step build process with external libraries.
+first and which LAMMPS links to when it is built.  If it is listed as
+lib/package, then the code for the library is under the lib directory
+of the LAMMPS distribution.  See the lib/package/README file for info
+on how to build the library.  If it is not listed as lib/package, then
+it is a third-party library not included in the LAMMPS distribution.
+See the src/package/Makefile.lammps file for info on where to download
+the library.  "Section start"_Section_start.html#start_3_3 of the
+manual also gives details on how to build LAMMPS with both kinds of
+auxiliary libraries.
 
-More details on each package, from the USER-blah/README file
-is given below.
+More details on each package, from the USER-*/README file is given
+below.
 
 :line
 

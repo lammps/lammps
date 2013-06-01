@@ -28,7 +28,9 @@ compute 1 upper msd com yes :pre
 
 Define a computation that calculates the mean-squared displacement
 (MSD) of the group of atoms, including all effects due to atoms
-passing thru periodic boundaries.
+passing thru periodic boundaries.  For computation of the non-Gaussian
+parameter of mean-squared displacement, see the "compute
+msd/nongauss"_compute_msd_nongauss.html command.
 
 A vector of four quantites is calculated by this compute.  The first 3
 elements of the vector are the squared dx,dy,dz displacements, summed
@@ -40,30 +42,20 @@ The slope of the mean-squared displacement (MSD) versus time is
 proportional to the diffusion coefficient of the diffusing atoms.
 
 The displacement of an atom is from its original position at the time
-the compute command was issued.  To store the original coordinates,
-the compute creates its own fix of style "store/state", as if this
-command had been issued:
-
-fix compute-ID_store_state group-ID store/state xu yu zu :pre
-
-See the "fix store/state"_fix_store_state.html command for details.
-Note that the ID of the new fix is the compute-ID + underscore +
-"store_state", and the group for the new fix is the same as the
-compute group.
+the compute command was issued.  The value of the displacement will be
+0.0 for atoms not in the specified compute group.
 
 If the {com} option is set to {yes} then the effect of any drift in
 the center-of-mass of the group of atoms is subtracted out before the
-displacment of each atom is calcluated.  The {com} option is also
-passed to the created fix store/state.
+displacment of each atom is calcluated.
 
-IMPORTANT NOTE: Fix store/state stores the initial coordinates in
-"unwrapped" form, by using the image flags associated with each atom.
-See the "dump custom"_dump.html command for a discussion of
-"unwrapped" coordinates.  See the Atoms section of the
-"read_data"_read_data.html command for a discussion of image flags and
-how they are set for each atom.  You can reset the image flags
-(e.g. to 0) before invoking this compute by using the "set
-image"_set.html command.
+IMPORTANT NOTE: Initial coordinates are stored in "unwrapped" form, by
+using the image flags associated with each atom.  See the "dump
+custom"_dump.html command for a discussion of "unwrapped" coordinates.
+See the Atoms section of the "read_data"_read_data.html command for a
+discussion of image flags and how they are set for each atom.  You can
+reset the image flags (e.g. to 0) before invoking this compute by
+using the "set image"_set.html command.
 
 IMPORTANT NOTE: If an atom is part of a rigid body (see the "fix
 rigid"_fix_rigid.html command), it's periodic image flags are altered,
@@ -95,7 +87,8 @@ distance^2 "units"_units.html.
 
 [Related commands:]
 
-"compute displace_atom"_compute_displace_atom.html, "fix
+"compute msd/nongauss"_compute_msd_nongauss.html, "compute
+displace_atom"_compute_displace_atom.html, "fix
 store/state"_fix_store_state.html, "compute
 msd/molecule"_compute_msd_molecule.html
 

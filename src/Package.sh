@@ -22,7 +22,7 @@ if (test $2 = "status") then
     for file in *.cpp *.h; do
       if (test ! -e ../$file) then
         echo "  src/$file does not exist"
-      elif (test "`diff --brief $file ../$file`" != "") then
+      elif (! cmp -s $file ../$file) then
         echo "  src/$file and $1/$file are different"
       fi
     done
@@ -31,34 +31,21 @@ if (test $2 = "status") then
   fi
 
 # update, only if installed
-# if package dir has its own Package.sh, use it
-# cp package file to src if it exists and is different
-# set installflag if any package file is not in src and do full install
-# this is needed when a patch has added a new file to the package
+# perform a re-install, but only if the package is already installed
 
 elif (test $2 = "update") then
   echo "Updating src files from $1 package files"
   if (test $installed = 1) then
-    if (test ! -e Package.sh) then
-      installflag=0
-      for file in *.cpp *.h; do
-        if (test ! -e ../$file) then
-          installflag=1
-        elif (test "`diff --brief $file ../$file`" != "") then
-          echo "  updating src/$file"
-          cp $file ..
-        fi
-      done
-      if (test $installflag = 1) then
-         echo "  reinstalling package $1"
-	 /bin/sh Install.sh 1
-         /bin/sh ../Depend.sh $1 1
-      fi
+    echo "  updating package $1"
+    if (test -e Install.sh) then
+      /bin/sh Install.sh 2
     else
-      /bin/sh Package.sh
+      /bin/sh ../Install.sh 2
     fi
+    cd ..
+    /bin/sh Depend.sh $1
   else
-    echo "  $1 package is not installed, no action"
+    echo "  $1 package is not installed"
   fi
 
 # overwrite, only if installed
@@ -70,13 +57,13 @@ elif (test $2 = "overwrite") then
     for file in *.cpp *.h; do
       if (test ! -e ../$file) then
         continue
-      elif (test "`diff --brief $file ../$file`" != "") then
+      elif (! cmp -s $file ../$file) then
         echo "  overwriting $1/$file"
         cp ../$file .
       fi
     done
   else
-    echo "  $1 package is not installed, no action"
+    echo "  $1 package is not installed"
   fi
 
 # diff
@@ -88,18 +75,13 @@ elif (test $2 = "diff") then
     echo "Installed YES: package $1"
     for file in *.cpp *.h; do
       if (test ! -e ../$file) then
-        echo "************************************************************************"
         echo "  src/$file does not exist"
-        echo "************************************************************************"
-      elif (test "`diff --brief $file ../$file`" != "") then
-        echo "************************************************************************"
+      elif (! cmp -s $file ../$file) then
+        echo "************************************************"
         echo "diff $1/$file src/$file "
-        echo "************************************************************************"
+        echo "************************************************"
 	diff $file  ../$file 
       fi
     done
   fi
 fi
-
-
-

@@ -18,28 +18,27 @@ keyword = optional flag {nocheck} or {check} (default is {check}) :ul
 
 [Examples:] 
 
-pair_style list restraints.txt 200.0 :pre
-pair_coeff * *
+pair_style list restraints.txt 200.0
+pair_coeff * * :pre
 
 pair_style hybrid/overlay lj/cut 1.1225 list pair_list.txt 300.0
-pair_coeff  *  * lj/cut 1.0 1.0
+pair_coeff * * lj/cut 1.0 1.0
 pair_coeff 3* 3* list :pre
 
 [Description:] 
 
 Style {list} computes interactions between explicitly listed pairs of
-atoms with the option to select functional form and parameters different
-for each individual pair. Because the parameters are all set in the 
-list file, the pair_coeff statement has to be empty (but it needs to 
-be provided). The {check} and {nocheck} keyword respectively enables
-or disables a test that checks whether all listed bonds were present
-and computed.
+atoms with the option to select functional form and parameters for
+each individual pair.  Because the parameters are set in the list
+file, the pair_coeff command has no parameters (but still needs to be
+provided).  The {check} and {nocheck} keywords enable/disable a test
+that checks whether all listed bonds were present and computed.
 
-As a consequence, this style is a hybrid between bonded, non-bonded
-and restraint interactions and most likely to be used as an additional
-interaction with the {hybrid/overlay} pair style. It currently supports
-three interaction styles: a 12-6 Lennard-Jones, a Morse and a Harmonic
-potential.
+This pair style can be thought of as a hybrid between bonded,
+non-bonded, and restraint interactions.  It will typically be used as
+an additional interaction within the {hybrid/overlay} pair style.  It
+currently supports three interaction styles: a 12-6 Lennard-Jones, a
+Morse and a harmonic potential.
 
 The format of the list file is as follows:
 
@@ -52,16 +51,18 @@ line syntax: ID1 ID2 style coeffs cutoff :l
   style = style of interaction
   coeffs = list of coeffs
   cutoff = cutoff for interaction (optional) :pre
-examples: :l
+:ule
 
-# this is a comment
+The cutoff parameter is optional. If not specified, the global cutoff
+is used.
+
+Here is an example file:
+
+# this is a comment :pre
 
 15 259 lj126     1.0 1.0      50.0
 15 603 morse    10.0 1.2 2.0  10.0 # and another comment 
 18 470 harmonic 50.0 1.2       5.0  :pre
-:ule
-
-The cutoff parameter is optional. If not specified, the global cutoff is used.
 
 The style {lj126} computes pairwise interactions with the formula
 
@@ -119,15 +120,17 @@ This pair style can only be used via the {pair} keyword of the
 [Restrictions:]
 
 This pair style does not use a neighbor list and instead identifies
-atoms by their IDs. This has two consequences: 1) The cutoff has to
-be chosen sufficiently large, so that the second atom of a pair has
-to be a ghost atom on the same node on which the first atom is local;
+atoms by their IDs. This has two consequences: 1) The cutoff has to be
+chosen sufficiently large, so that the second atom of a pair has to be
+a ghost atom on the same node on which the first atom is local;
 otherwise the interaction will be skipped. You can use the {check}
-option to detect, if interactions are missing. 2) Unlike for the rest
-of LAMMPS, minimum image conventions apply.
+option to detect, if interactions are missing. 2) Unlike other pair
+styles in LAMMPS, an atom I will not interact with multiple images of
+atom J (assuming the images are within the cutoff distance), but only
+with the nearest image.
 
-The {list} style is part of the "user-misc" package. It is only
-enabled if LAMMPS is build with that package. See the "Making of
+This style is part of the USER-MISC package. It is only enabled if
+LAMMPS is build with that package. See the "Making of
 LAMMPS"_Section_start.html#3 section for more info.
 
 [Related commands:]

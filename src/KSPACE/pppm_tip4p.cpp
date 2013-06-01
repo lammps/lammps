@@ -388,6 +388,7 @@ void PPPMTIP4P::fieldforce_peratom()
   // (dx,dy,dz) = distance to "lower left" grid pt
   // (mx,my,mz) = global coords of moving stencil pt
   // ek = 3 components of E-field on particle
+
   double *q = atom->q;
   double **x = atom->x;
 
@@ -431,7 +432,6 @@ void PPPMTIP4P::fieldforce_peratom()
         }
       }
     }
-
 
     if (eflag_atom) {
       if (type[i] != typeO) {

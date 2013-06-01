@@ -21,29 +21,27 @@
 </UL>
 <P><B>Examples:</B> 
 </P>
-<PRE>pair_style list restraints.txt 200.0 
+<PRE>pair_style list restraints.txt 200.0
+pair_coeff * * 
 </PRE>
-<P>pair_coeff * *
-</P>
 <PRE>pair_style hybrid/overlay lj/cut 1.1225 list pair_list.txt 300.0
-pair_coeff  *  * lj/cut 1.0 1.0
+pair_coeff * * lj/cut 1.0 1.0
 pair_coeff 3* 3* list 
 </PRE>
 <P><B>Description:</B> 
 </P>
 <P>Style <I>list</I> computes interactions between explicitly listed pairs of
-atoms with the option to select functional form and parameters different
-for each individual pair. Because the parameters are all set in the 
-list file, the pair_coeff statement has to be empty (but it needs to 
-be provided). The <I>check</I> and <I>nocheck</I> keyword respectively enables
-or disables a test that checks whether all listed bonds were present
-and computed.
+atoms with the option to select functional form and parameters for
+each individual pair.  Because the parameters are set in the list
+file, the pair_coeff command has no parameters (but still needs to be
+provided).  The <I>check</I> and <I>nocheck</I> keywords enable/disable a test
+that checks whether all listed bonds were present and computed.
 </P>
-<P>As a consequence, this style is a hybrid between bonded, non-bonded
-and restraint interactions and most likely to be used as an additional
-interaction with the <I>hybrid/overlay</I> pair style. It currently supports
-three interaction styles: a 12-6 Lennard-Jones, a Morse and a Harmonic
-potential.
+<P>This pair style can be thought of as a hybrid between bonded,
+non-bonded, and restraint interactions.  It will typically be used as
+an additional interaction within the <I>hybrid/overlay</I> pair style.  It
+currently supports three interaction styles: a 12-6 Lennard-Jones, a
+Morse and a harmonic potential.
 </P>
 <P>The format of the list file is as follows:
 </P>
@@ -60,18 +58,19 @@ line syntax: ID1 ID2 style coeffs cutoff
   coeffs = list of coeffs
   cutoff = cutoff for interaction (optional) 
 </PRE>
-<LI>examples: 
 
-<P># this is a comment
+</UL>
+<P>The cutoff parameter is optional. If not specified, the global cutoff
+is used.
 </P>
+<P>Here is an example file:
+</P>
+<PRE># this is a comment 
+</PRE>
 <PRE>15 259 lj126     1.0 1.0      50.0
 15 603 morse    10.0 1.2 2.0  10.0 # and another comment 
 18 470 harmonic 50.0 1.2       5.0  
 </PRE>
-
-</UL>
-<P>The cutoff parameter is optional. If not specified, the global cutoff is used.
-</P>
 <P>The style <I>lj126</I> computes pairwise interactions with the formula
 </P>
 <CENTER><IMG SRC = "Eqs/pair_lj.jpg">
@@ -128,15 +127,17 @@ to be specified in an input script that reads a restart file.
 <P><B>Restrictions:</B>
 </P>
 <P>This pair style does not use a neighbor list and instead identifies
-atoms by their IDs. This has two consequences: 1) The cutoff has to
-be chosen sufficiently large, so that the second atom of a pair has
-to be a ghost atom on the same node on which the first atom is local;
+atoms by their IDs. This has two consequences: 1) The cutoff has to be
+chosen sufficiently large, so that the second atom of a pair has to be
+a ghost atom on the same node on which the first atom is local;
 otherwise the interaction will be skipped. You can use the <I>check</I>
-option to detect, if interactions are missing. 2) Unlike for the rest
-of LAMMPS, minimum image conventions apply.
+option to detect, if interactions are missing. 2) Unlike other pair
+styles in LAMMPS, an atom I will not interact with multiple images of
+atom J (assuming the images are within the cutoff distance), but only
+with the nearest image.
 </P>
-<P>The <I>list</I> style is part of the "user-misc" package. It is only
-enabled if LAMMPS is build with that package. See the <A HREF = "Section_start.html#3">Making of
+<P>This style is part of the USER-MISC package. It is only enabled if
+LAMMPS is build with that package. See the <A HREF = "Section_start.html#3">Making of
 LAMMPS</A> section for more info.
 </P>
 <P><B>Related commands:</B>

@@ -7,16 +7,11 @@
 # *      CONTACT: gjwagne@sandia.gov                                        *
 # *_________________________________________________________________________*/
 
-# As of April 2009, you can compile and link LAMMPS to the library
-# created by this file, using the following changes to the
-# standard version of src/MAKE/Makefile.tbird
-#
-# LINKFLAGS =    -O -L../../lib/meam -L/projects/global/x86_64/compilers/intel/intel-11.0-cprof-074/lib/intel64
-# USRLIB =       $(BLASLIB) $(FFTW_LINK_LINE) -lstdc++ -lmeam
-# SYSLIB =       -lm -lsvml -lifport -lifcore
-#
-
 SHELL = /bin/sh
+
+# which file will be copied to Makefile.lammps
+
+EXTRAMAKE = Makefile.lammps.glory
 
 # ------ FILES ------
 
@@ -44,6 +39,7 @@ SYSLIB =
 
 lib: 	$(OBJ)
 	$(ARCHIVE) $(ARFLAGS) $(LIB) $(OBJ)
+	@cp $(EXTRAMAKE) Makefile.lammps
 
 # ------ COMPILE RULES ------
 

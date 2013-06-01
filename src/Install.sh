@@ -1,6 +1,10 @@
 # Install/unInstall package files in LAMMPS
 # mode = 0/1/2 for uninstall/install/update
 
+# this is default Install.sh for all packages
+# if package has an auxiliary library or a file with a dependency,
+# then package dir has its own customized Install.sh
+
 mode=$1
 
 # arg1 = file, arg2 = file it depends on
@@ -22,7 +26,8 @@ action () {
   fi
 }
 
-# list of files with optional dependcies
+# all package files with no dependencies
 
-action fix_phonon.cpp fft3d_wrap.h
-action fix_phonon.h fft3d_wrap.h
+for file in *.cpp *.h; do
+  action $file
+done

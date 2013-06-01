@@ -54,7 +54,7 @@ packages, more details are provided.
 <TR ALIGN="center"><TD >KIM</TD><TD > openKIM potentials</TD><TD > Smirichinski & Elliot & Tadmor (3)</TD><TD > <A HREF = "pair_kim.html">pair_style kim</A></TD><TD > kim</TD><TD > lib/kim</TD></TR>
 <TR ALIGN="center"><TD >KSPACE</TD><TD > long-range Coulombic solvers</TD><TD > -</TD><TD > <A HREF = "kspace_style.html">kspace_style</A></TD><TD > peptide</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >MANYBODY</TD><TD > many-body potentials</TD><TD > -</TD><TD > <A HREF = "pair_tersoff.html">pair_style tersoff</A></TD><TD > shear</TD><TD > -</TD></TR>
-<TR ALIGN="center"><TD >MEAM</TD><TD > modified EAM potential</TD><TD > Greg Wagner (Sandia)</TD><TD > <A HREF = "pair_meam.html">pair_style meam</A></TD><TD > meam</TD><TD > lib/meam</TD></TR>
+<TR ALIGN="center"><TD >MEAM</TD><TD > modified EAM potential</TD><TD > Greg Wagner (Sandia)</TD><TD > <A HREF = "pair_meam.html">pair_style meam</A></TD><TD > meam</TD><TD > KIM</TD></TR>
 <TR ALIGN="center"><TD >MC</TD><TD > Monte Carlo options</TD><TD > -</TD><TD > <A HREF = "fix_gcmc.html">fix gcmc</A></TD><TD > -</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >MOLECULE</TD><TD > molecular system force fields</TD><TD > -</TD><TD > <A HREF = "Section_howto.html#howto_3">Section_howto</A></TD><TD > peptide</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >OPT</TD><TD > optimized pair potentials</TD><TD > Fischer & Richie & Natoli (2)</TD><TD > <A HREF = "Section_accelerate.html#acc_4">Section accelerate</A></TD><TD > -</TD><TD > -</TD></TR>
@@ -65,6 +65,7 @@ packages, more details are provided.
 <TR ALIGN="center"><TD >RIGID</TD><TD > rigid bodies</TD><TD > -</TD><TD > <A HREF = "fix_rigid.html">fix rigid</A></TD><TD > rigid</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >SHOCK</TD><TD > shock loading methods</TD><TD > -</TD><TD > <A HREF = "fix_msst.html">fix msst</A></TD><TD > -</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >SRD</TD><TD > stochastic rotation dynamics</TD><TD > -</TD><TD > <A HREF = "fix_srd.html">fix srd</A></TD><TD > srd</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >VORONOI</TD><TD > Voronoi tesselations</TD><TD > Daniel Schwen (LANL)</TD><TD > <A HREF = "compute_voronoi_atom.html">compute voronoi/atom</A></TD><TD > -</TD><TD > Voro++</TD></TR>
 <TR ALIGN="center"><TD >XTC</TD><TD > dumps in XTC format</TD><TD > -</TD><TD > <A HREF = "dump.html">dump</A></TD><TD > -</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >
 </TD></TR></TABLE></DIV>
@@ -90,7 +91,16 @@ command implemented as part of the package.
 the distribution which has an input script that uses the package.
 E.g. "peptide" refers to the examples/peptide directory.
 </P>
-<P>The "Library" column lists an external library which must be built first and which LAMMPS links to when it is built.  These are in the lib directory of the distribution.  <A HREF = "Section_start.html#start_3_3">This section</A> of the manual gives details on the 2-step build process with external libraries.
+<P>The "Library" column lists an external library which must be built
+first and which LAMMPS links to when it is built.  If it is listed as
+lib/package, then the code for the library is under the lib directory
+of the LAMMPS distribution.  See the lib/package/README file for info
+on how to build the library.  If it is not listed as lib/package, then
+it is a third-party library not included in the LAMMPS distribution.
+See the src/package/Makefile.lammps file for info on where to download
+the library.  <A HREF = "Section_start.html#start_3_3">Section start</A> of the
+manual also gives details on how to build LAMMPS with both kinds of
+auxiliary libraries.
 </P>
 <HR>
 
@@ -102,14 +112,14 @@ E.g. "peptide" refers to the examples/peptide directory.
 </P>
 <DIV ALIGN=center><TABLE  BORDER=1 >
 <TR ALIGN="center"><TD >Package</TD><TD > Description</TD><TD > Author(s)</TD><TD > Doc page</TD><TD > Example</TD><TD > Pic/movie</TD><TD > Library</TD></TR>
-<TR ALIGN="center"><TD >USER-MISC</TD><TD > single-file contributions</TD><TD > USER-MISC/README</TD><TD > USER-MISC/README</TD><TD > -</TD><TD > -</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >USER-ATC</TD><TD > atom-to-continuum coupling</TD><TD > Jones & Templeton & Zimmerman (2)</TD><TD > <A HREF = "fix_atc.html">fix atc</A></TD><TD > USER/atc</TD><TD > <A HREF = "http://lammps.sandia.gov/pictures.html#atc">atc</A></TD><TD > lib/atc</TD></TR>
 <TR ALIGN="center"><TD >USER-AWPMD</TD><TD > wave-packet MD</TD><TD > Ilya Valuev (JIHT)</TD><TD > <A HREF = "pair_awpmd.html">pair_style awpmd/cut</A></TD><TD > USER/awpmd</TD><TD > -</TD><TD > lib/awpmd</TD></TR>
 <TR ALIGN="center"><TD >USER-CG-CMM</TD><TD > coarse-graining model</TD><TD > Axel Kohlmeyer (Temple U)</TD><TD > <A HREF = "pair_sdk.html">pair_style lj/sdk</A></TD><TD > USER/cg-cmm</TD><TD > <A HREF = "http://lammps.sandia.gov/pictures.html#cg">cg</A></TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >USER-COLVARS</TD><TD > collective variables</TD><TD > Fiorin & Henin & Kohlmeyer (3)</TD><TD > <A HREF = "fix_colvars.html">fix colvars</A></TD><TD > USER/colvars</TD><TD > <A HREF = "colvars">colvars</A></TD><TD > lib/colvars</TD></TR>
 <TR ALIGN="center"><TD >USER-CUDA</TD><TD > NVIDIA GPU styles</TD><TD > Christian Trott (U Tech Ilmenau)</TD><TD > <A HREF = "Section_accelerate.html#acc_7">Section accelerate</A></TD><TD > USER/cuda</TD><TD > -</TD><TD > lib/cuda</TD></TR>
 <TR ALIGN="center"><TD >USER-EFF</TD><TD > electron force field</TD><TD > Andres Jaramillo-Botero (Caltech)</TD><TD > <A HREF = "pair_eff.html">pair_style eff/cut</A></TD><TD > USER/eff</TD><TD > <A HREF = "http://lammps.sandia.gov/movies.html#eff">eff</A></TD><TD > -</TD></TR>
-<TR ALIGN="center"><TD >USER-MOLFILE</TD><TD > <A HREF = "http://www.ks.uiuc.edu/Research/vmd">VMD</A> molfile plug-ins</TD><TD > Axel Kohlmeyer (Temple U)</TD><TD > <A HREF = "dump_molfile.html">dump molfile</A></TD><TD > -</TD><TD > -</TD><TD > lib/molfile</TD></TR>
+<TR ALIGN="center"><TD >USER-MISC</TD><TD > single-file contributions</TD><TD > USER-MISC/README</TD><TD > USER-MISC/README</TD><TD > -</TD><TD > -</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >USER-MOLFILE</TD><TD > <A HREF = "http://www.ks.uiuc.edu/Research/vmd">VMD</A> molfile plug-ins</TD><TD > Axel Kohlmeyer (Temple U)</TD><TD > <A HREF = "dump_molfile.html">dump molfile</A></TD><TD > -</TD><TD > -</TD><TD > VMD-MOLFILE</TD></TR>
 <TR ALIGN="center"><TD >USER-OMP</TD><TD > OpenMP threaded styles</TD><TD > Axel Kohlmeyer (Temple U)</TD><TD > <A HREF = "Section_accelerate.html#acc_5">Section accelerate</A></TD><TD > -</TD><TD > -</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >USER-REAXC</TD><TD > C version of ReaxFF</TD><TD > Metin Aktulga (LBNL)</TD><TD > <A HREF = "pair_reax_c.html">pair_style reaxc</A></TD><TD > reax</TD><TD > -</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >USER-SPH</TD><TD > smoothed particle hydrodynamics</TD><TD > Georg Ganzenmuller (EMI)</TD><TD > <A HREF = "USER/sph/SPH_LAMMPS_userguide.pdf">userguide.pdf</A></TD><TD > USER/sph</TD><TD > <A HREF = "http://lammps.sandia.gov/movies.html#sph">sph</A></TD><TD > -</TD></TR>
@@ -129,6 +139,11 @@ E.g. "peptide" refers to the examples/peptide directory.
 <P>The "Authors" column lists a name(s) if a specific person is
 responible for creating and maintaining the package.
 </P>
+<P>If the Library is not listed as lib/package, then it is a third-party
+library not included in the LAMMPS distribution.  See the
+src/package/Makefile.lammps file for info on where to download the
+library from.
+</P>
 <P>(2) The ATC package was created by Reese Jones, Jeremy Templeton, and
 Jon Zimmerman (Sandia).
 </P>
@@ -147,13 +162,18 @@ E.g. "peptide" refers to the examples/peptide directory.  USER/cuda
 refers to the examples/USER/cuda directory.
 </P>
 <P>The "Library" column lists an external library which must be built
-first and which LAMMPS links to when it is built.  These are in the
-lib directory of the distribution.  <A HREF = "Section_start.html#start_3_3">This
-section</A> of the manual gives details on
-the 2-step build process with external libraries.
+first and which LAMMPS links to when it is built.  If it is listed as
+lib/package, then the code for the library is under the lib directory
+of the LAMMPS distribution.  See the lib/package/README file for info
+on how to build the library.  If it is not listed as lib/package, then
+it is a third-party library not included in the LAMMPS distribution.
+See the src/package/Makefile.lammps file for info on where to download
+the library.  <A HREF = "Section_start.html#start_3_3">Section start</A> of the
+manual also gives details on how to build LAMMPS with both kinds of
+auxiliary libraries.
 </P>
-<P>More details on each package, from the USER-blah/README file
-is given below.
+<P>More details on each package, from the USER-*/README file is given
+below.
 </P>
 <HR>
 

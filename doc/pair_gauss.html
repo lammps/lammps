@@ -109,7 +109,7 @@ more instructions on how to use the accelerated styles effectively.
 
 <P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
 </P>
-<P>These pair style do not support mixing.  Thus, coefficients for all
+<P>These pair styles do not support mixing. Thus, coefficients for all
 I,J pairs must be specified explicitly.
 </P>
 <P>The <I>gauss</I> style does not support the <A HREF = "pair_modify.html">pair_modify</A>
@@ -121,21 +121,17 @@ option for the energy of the Gauss-potential portion of the pair
 interaction.
 </P>
 <P>The <A HREF = "pair_modify.html">pair_modify</A> table and tail options are not
-relevant for this pair style.
+relevant for these pair styles.
 </P>
-<P>This pair style does not support the <A HREF = "pair_modify.html">pair_modify</A>
-table option, since a tabulation capability does not exist for this
-potential.
-</P>
-<P>This pair style writes its information to <A HREF = "restart.html">binary restart
+<P>These pair styles write their information to <A HREF = "restart.html">binary restart
 files</A>, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
 </P>
-<P>This pair style can only be used via the <I>pair</I> keyword of the
-<A HREF = "run_style.html">run_style respa</A> command.  It does not support the
+<P>These pair styles can only be used via the <I>pair</I> keyword of the
+<A HREF = "run_style.html">run_style respa</A> command.  They do not support the
 <I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
 </P>
-<P>Thes <I>gauss</I> pair style tallies an "occupancy" count of how many Gaussian-well
+<P>The <I>gauss</I> pair style tallies an "occupancy" count of how many Gaussian-well
 sites have an atom within the distance at which the force is a maximum
 = sqrt(0.5/b).  This quantity can be accessed via the <A HREF = "compute_pair.html">compute
 pair</A> command as a vector of values of length 1.
@@ -161,5 +157,15 @@ LAMMPS</A> section for more info.
 <A HREF = "pair_coul_diel.html">pair_style coul/diel</A>
 </P>
 <P><B>Default:</B> none
+</P>
+<A NAME = "Lenart"></A>
+
+<P><B>(Lenart)</B> Lenart , Jusufi, and Panagiotopoulos, J Chem Phys, 126,
+044509 (2007).
+</P>
+<A NAME = "Jusufi"></A>
+
+<P><B>(Jusufi)</B> Jusufi, Hynninen, and Panagiotopoulos, J Phys Chem B, 112,
+13783 (2008).
 </P>
 </HTML>

@@ -3,6 +3,10 @@
 #     - Change CUDA_ARCH for your GPU
 # ------------------------------------------------------------------------- */
 
+# which file will be copied to Makefile.lammps
+
+EXTRAMAKE = Makefile.lammps.standard
+
 CUDA_HOME = /usr/local/cuda
 NVCC = nvcc
 

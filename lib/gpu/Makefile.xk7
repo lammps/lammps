@@ -3,6 +3,9 @@
 #  - Uses PrgEnv-gnu
 # ------------------------------------------------------------------------- */
 
+# which file will be copied to Makefile.lammps
+
+EXTRAMAKE = Makefile.lammps.standard
 
 CUDA_HOME = $(CRAY_CUDATOOLKIT_DIR)
 NVCC = nvcc 

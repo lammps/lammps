@@ -1137,7 +1137,8 @@ void PPPMDisp::compute(int eflag, int vflag)
   // 2d slab correction
 
   if (slabflag) slabcorr(eflag);
-  energy = energy_1 + energy_6;
+  if (function[0]) energy += energy_1;
+  if (function[1]) energy += energy_6;
 
   // convert atoms back from lamda to box coords
   
@@ -4168,7 +4169,7 @@ void PPPMDisp::poisson_2s_ik(FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
     }
 
     fft1_6->compute(work1_6,work1_6,1);
-    fft2_6->compute(work2_6,work2_6,1);
+    fft1_6->compute(work2_6,work2_6,1);
 
     double s2 = scaleinv*scaleinv;
 
@@ -4334,7 +4335,7 @@ void PPPMDisp::poisson_2s_ad(FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
     }
 
     fft1_6->compute(work1_6,work1_6,1);
-    fft2_6->compute(work2_6,work2_6,1);
+    fft1_6->compute(work2_6,work2_6,1);
 
     double s2 = scaleinv*scaleinv;
 

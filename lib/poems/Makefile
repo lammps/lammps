@@ -2,7 +2,7 @@
 
 SHELL=/bin/sh
 
-TARGETS= $(patsubst Makefile.%,%,$(wildcard Makefile.*))
+TARGETS= fermi 32-bit
 CLEAN = $(patsubst %,clean-%,$(TARGETS))
 
 default:

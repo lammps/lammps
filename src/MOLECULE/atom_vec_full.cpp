@@ -867,6 +867,8 @@ int AtomVecFull::unpack_restart(double *buf)
     improper_atom4[nlocal][k] = static_cast<int> (buf[m++]);
   }
 
+  nspecial[nlocal][0] = nspecial[nlocal][1] = nspecial[nlocal][2] = 0;
+
   double **extra = atom->extra;
   if (atom->nextra_store) {
     int size = static_cast<int> (buf[0]) - m;

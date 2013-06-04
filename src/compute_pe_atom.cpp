@@ -97,14 +97,17 @@ void ComputePEAtom::compute_peratom()
   //   b/c some bonds/dihedrals call pair::ev_tally with pairwise info
   // nbond includes ghosts if newton_bond is set
   // ntotal includes ghosts if either newton flag is set
+  // KSpace includes ghosts if tip4pflag is set
 
   int nlocal = atom->nlocal;
   int npair = nlocal;
   int nbond = nlocal;
   int ntotal = nlocal;
+  int nkspace = nlocal;
   if (force->newton) npair += atom->nghost;
   if (force->newton_bond) nbond += atom->nghost;
   if (force->newton) ntotal += atom->nghost;
+  if (force->kspace->tip4pflag) nkspace += atom->nghost;
 
   // clear local energy array
 
@@ -137,16 +140,15 @@ void ComputePEAtom::compute_peratom()
     for (i = 0; i < nbond; i++) energy[i] += eatom[i];
   }
 
-  // communicate ghost energy between neighbor procs
-
-  if (force->newton) comm->reverse_comm_compute(this);
-
-  // KSpace contribution is already per local atom
-
   if (kspaceflag && force->kspace) {
     double *eatom = force->kspace->eatom;
-    for (i = 0; i < nlocal; i++) energy[i] += eatom[i];
+    for (i = 0; i < nkspace; i++) energy[i] += eatom[i];
   }
+
+  // communicate ghost energy between neighbor procs
+
+  if (force->newton || force->kspace->tip4pflag) 
+    comm->reverse_comm_compute(this);
 
   // zero energy of atoms not in group
   // only do this after comm since ghost contributions must be included

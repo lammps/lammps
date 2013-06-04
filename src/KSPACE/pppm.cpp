@@ -700,10 +700,13 @@ void PPPM::compute(int eflag, int vflag)
 
   // per-atom energy/virial
   // energy includes self-energy correction
+  // notal accounts for TIP4P tallying eatom/vatom for ghost atoms
 
   if (evflag_atom) {
     double *q = atom->q;
     int nlocal = atom->nlocal;
+    int ntotal = nlocal;
+    if (tip4pflag) ntotal += atom->nghost;
 
     if (eflag_atom) {
       for (i = 0; i < nlocal; i++) {
@@ -712,10 +715,11 @@ void PPPM::compute(int eflag, int vflag)
           (g_ewald*g_ewald*volume);
         eatom[i] *= qscale;
       }
+      for (i = nlocal; i < ntotal; i++) eatom[i] *= 0.5*qscale;
     }
 
     if (vflag_atom) {
-      for (i = 0; i < nlocal; i++)
+      for (i = 0; i < ntotal; i++)
         for (j = 0; j < 6; j++) vatom[i][j] *= 0.5*qscale;
     }
   }

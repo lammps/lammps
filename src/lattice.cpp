@@ -18,6 +18,7 @@
 #include "update.h"
 #include "domain.h"
 #include "comm.h"
+#include "force.h"
 #include "memory.h"
 #include "error.h"
 
@@ -161,9 +162,9 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
       if (dim == 0) orient = orientx;
       else if (dim == 1) orient = orienty;
       else if (dim == 2) orient = orientz;
-      orient[0] = atoi(arg[iarg+2]);
-      orient[1] = atoi(arg[iarg+3]);
-      orient[2] = atoi(arg[iarg+4]);
+      orient[0] = force->inumeric(arg[iarg+2]);
+      orient[1] = force->inumeric(arg[iarg+3]);
+      orient[2] = force->inumeric(arg[iarg+4]);
       iarg += 5;
 
     } else if (strcmp(arg[iarg],"spacing") == 0) {

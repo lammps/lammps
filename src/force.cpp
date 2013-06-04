@@ -669,7 +669,6 @@ void Force::bounds(char *str, int nmax, int &nlo, int &nhi)
 /* ----------------------------------------------------------------------
    read a floating point value from a string
    generate an error if not a legitimate floating point value
-   called by force fields to check validity of their arguments
 ------------------------------------------------------------------------- */
 
 double Force::numeric(char *str)
@@ -689,7 +688,6 @@ double Force::numeric(char *str)
 /* ----------------------------------------------------------------------
    read an integer value from a string
    generate an error if not a legitimate integer value
-   called by force fields to check validity of their arguments
 ------------------------------------------------------------------------- */
 
 int Force::inumeric(char *str)

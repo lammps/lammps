@@ -188,12 +188,12 @@ void KSpace::ev_setup(int eflag, int vflag)
 
   // reallocate per-atom arrays if necessary
 
-  if (eflag_atom && atom->nlocal > maxeatom) {
+  if (eflag_atom && atom->nmax > maxeatom) {
     maxeatom = atom->nmax;
     memory->destroy(eatom);
     memory->create(eatom,maxeatom,"kspace:eatom");
   }
-  if (vflag_atom && atom->nlocal > maxvatom) {
+  if (vflag_atom && atom->nmax > maxvatom) {
     maxvatom = atom->nmax;
     memory->destroy(vatom);
     memory->create(vatom,maxvatom,6,"kspace:vatom");
@@ -205,10 +205,12 @@ void KSpace::ev_setup(int eflag, int vflag)
   if (vflag_global) for (i = 0; i < 6; i++) virial[i] = 0.0;
   if (eflag_atom) {
     n = atom->nlocal;
+    if (tip4pflag) n += atom->nghost;
     for (i = 0; i < n; i++) eatom[i] = 0.0;
   }
   if (vflag_atom) {
     n = atom->nlocal;
+    if (tip4pflag) n += atom->nghost;
     for (i = 0; i < n; i++) {
       vatom[i][0] = 0.0;
       vatom[i][1] = 0.0;

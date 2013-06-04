@@ -187,7 +187,7 @@ PPPMDisp::~PPPMDisp()
   delete [] csumi;
   csumi = NULL;
   deallocate();
-  deallocate_peratom();
+  if (peratom_allocate_flag) deallocate_peratom();
   memory->destroy(part2grid);
   memory->destroy(part2grid_6);
   part2grid = part2grid_6 = NULL;
@@ -223,9 +223,9 @@ void PPPMDisp::init()
   }
 
   // free all arrays previously allocated
+
   deallocate();
-  deallocate_peratom(); 
-  peratom_allocate_flag = 0;
+  if (peratom_allocate_flag) deallocate_peratom(); 
 
   // set scale
 
@@ -775,8 +775,7 @@ void PPPMDisp::setup_grid()
   // free all arrays previously allocated
 
   deallocate();
-  deallocate_peratom();
-  peratom_allocate_flag = 0;
+  if (peratom_allocate_flag) deallocate_peratom();
 
   // reset portion of global grid that each proc owns
 

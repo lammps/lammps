@@ -89,6 +89,7 @@ Domain::Domain(LAMMPS *lmp) : Pointers(lmp)
   args[0] = (char *) "none";
   args[1] = (char *) "1.0";
   set_lattice(2,args);
+  delete [] args;
 
   nregion = maxregion = 0;
   regions = NULL;

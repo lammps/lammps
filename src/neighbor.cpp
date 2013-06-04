@@ -51,7 +51,7 @@ using namespace LAMMPS_NS;
 
 enum{NSQ,BIN,MULTI};     // also in neigh_list.cpp
 
-#define NEIGH_LIST_DEBUG 1
+//#define NEIGH_LIST_DEBUG 1
 
 /* ---------------------------------------------------------------------- */
 

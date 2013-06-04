@@ -966,7 +966,7 @@ void Balance::dumpout(bigint tstep, FILE *bfp)
           fprintf(bfp,"%d %d %g %g %g\n",m+1,1,
                   boxlo[0] + prd[0]*comm->xsplit[i],
                   boxlo[1] + prd[1]*comm->ysplit[j],
-                  boxlo[2] + prd[2]*comm->zsplit[j]);
+                  boxlo[2] + prd[2]*comm->zsplit[k]);
           m++;
       }
   }

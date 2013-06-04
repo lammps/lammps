@@ -51,7 +51,7 @@ using namespace LAMMPS_NS;
 
 enum{NSQ,BIN,MULTI};     // also in neigh_list.cpp
 
-//#define NEIGH_LIST_DEBUG 1
+#define NEIGH_LIST_DEBUG 1
 
 /* ---------------------------------------------------------------------- */
 
@@ -469,10 +469,12 @@ void Neighbor::init()
     }
 
     // detect lists that are connected to other lists
-    // if-then-else sequence is important
+    // if-then-else sequence and processed flag is important
     //   since don't want to re-process skip or copy lists further down
+    //   skip list needs to have granhistory or respa info added
     // copy: point this list at request->otherlist, could be a skip list
     // skip: point this list at request->otherlist, copy skip info from request
+    //   also set granular and respa info if applicable
     // half_from_full: point this list at preceeding full list
     // granhistory: set preceeding list's listgranhistory to this list
     //   also set preceeding list's ptr to FixShearHistory
@@ -491,22 +493,31 @@ void Neighbor::init()
     //   if no matches, do nothing, fix/compute list will be built directly
     //   ok if parent is copy list
 
-    for (i = 0; i < nlist; i++) {
-      if (requests[i]->copy)
-        lists[i]->listcopy = lists[requests[i]->otherlist];
+    int processed;
 
-      else if (requests[i]->skip) {
+    for (i = 0; i < nlist; i++) {
+      processed = 0;
+
+      if (requests[i]->copy) {
+        lists[i]->listcopy = lists[requests[i]->otherlist];
+        processed = 1;
+
+      } else if (requests[i]->skip) {
         lists[i]->listskip = lists[requests[i]->otherlist];
         lists[i]->copy_skip_info(requests[i]->iskip,requests[i]->ijskip);
+        processed = 1;
 
-      } else if (requests[i]->half_from_full)
+      } else if (requests[i]->half_from_full) {
         lists[i]->listfull = lists[i-1];
+        processed = 1;
+      }
 
-      else if (requests[i]->granhistory) {
+      if (requests[i]->granhistory) {
         lists[i-1]->listgranhistory = lists[i];
         for (int ifix = 0; ifix < modify->nfix; ifix++)
           if (strcmp(modify->fix[ifix]->style,"SHEAR_HISTORY") == 0)
             lists[i-1]->fix_history = (FixShearHistory *) modify->fix[ifix];
+        processed = 1;
 
       } else if (requests[i]->respaouter) {
         if (requests[i-1]->respainner) {
@@ -517,8 +528,12 @@ void Neighbor::init()
           lists[i]->listmiddle = lists[i-1];
           lists[i]->listinner = lists[i-2];
         }
+        processed = 1;
+      }
 
-      } else if (requests[i]->pair && requests[i]->half) {
+      if (processed) continue;
+
+      if (requests[i]->pair && requests[i]->half) {
         for (j = 0; j < nlist; j++)
           if (requests[j]->full && requests[j]->occasional == 0 &&
               requests[j]->skip == 0) break;
@@ -527,7 +542,7 @@ void Neighbor::init()
           requests[i]->half_from_full = 1;
           lists[i]->listfull = lists[j];
         }
-
+        
       } else if (requests[i]->fix || requests[i]->compute) {
         for (j = 0; j < nlist; j++) {
           if (requests[i]->half && requests[j]->pair &&

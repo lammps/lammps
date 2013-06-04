@@ -170,8 +170,8 @@ void AngleHarmonic::coeff(int narg, char **arg)
   int ilo,ihi;
   force->bounds(arg[0],atom->nangletypes,ilo,ihi);
 
-  double k_one = force->numeric(arg[1]);
-  double theta0_one = force->numeric(arg[2]);
+  double k_one = force->numeric(FLERR,arg[1]);
+  double theta0_one = force->numeric(FLERR,arg[2]);
 
   // convert theta0 from degrees to radians
 

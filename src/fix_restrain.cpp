@@ -78,9 +78,9 @@ FixRestrain::FixRestrain(LAMMPS *lmp, int narg, char **arg) :
       rstyle[nrestrain] = BOND;
       ids[nrestrain][0] = atoi(arg[iarg+1]);
       ids[nrestrain][1] = atoi(arg[iarg+2]);
-      kstart[nrestrain] = force->numeric(arg[iarg+3]);
-      kstop[nrestrain] = force->numeric(arg[iarg+4]);
-      target[nrestrain] = force->numeric(arg[iarg+5]);
+      kstart[nrestrain] = force->numeric(FLERR,arg[iarg+3]);
+      kstop[nrestrain] = force->numeric(FLERR,arg[iarg+4]);
+      target[nrestrain] = force->numeric(FLERR,arg[iarg+5]);
       iarg += 6;
     } else if (strcmp(arg[iarg],"angle") == 0) {
       if (iarg+7 > narg) error->all(FLERR,"Illegal fix restrain command");
@@ -88,9 +88,9 @@ FixRestrain::FixRestrain(LAMMPS *lmp, int narg, char **arg) :
       ids[nrestrain][0] = atoi(arg[iarg+1]);
       ids[nrestrain][1] = atoi(arg[iarg+2]);
       ids[nrestrain][2] = atoi(arg[iarg+3]);
-      kstart[nrestrain] = force->numeric(arg[iarg+4]);
-      kstop[nrestrain] = force->numeric(arg[iarg+5]);
-      target[nrestrain] = force->numeric(arg[iarg+6]);
+      kstart[nrestrain] = force->numeric(FLERR,arg[iarg+4]);
+      kstop[nrestrain] = force->numeric(FLERR,arg[iarg+5]);
+      target[nrestrain] = force->numeric(FLERR,arg[iarg+6]);
       target[nrestrain] *= MY_PI / 180.0;
       iarg += 7;
     } else if (strcmp(arg[iarg],"dihedral") == 0) {
@@ -100,9 +100,9 @@ FixRestrain::FixRestrain(LAMMPS *lmp, int narg, char **arg) :
       ids[nrestrain][1] = atoi(arg[iarg+2]);
       ids[nrestrain][2] = atoi(arg[iarg+3]);
       ids[nrestrain][3] = atoi(arg[iarg+4]);
-      kstart[nrestrain] = force->numeric(arg[iarg+5]);
-      kstop[nrestrain] = force->numeric(arg[iarg+6]);
-      target[nrestrain] = force->numeric(arg[iarg+7]);
+      kstart[nrestrain] = force->numeric(FLERR,arg[iarg+5]);
+      kstop[nrestrain] = force->numeric(FLERR,arg[iarg+6]);
+      target[nrestrain] = force->numeric(FLERR,arg[iarg+7]);
       target[nrestrain] *= MY_PI / 180.0;
       cos_target[nrestrain] = cos(target[nrestrain]);
       sin_target[nrestrain] = sin(target[nrestrain]);

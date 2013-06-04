@@ -241,7 +241,7 @@ void PairLJSDK::settings(int narg, char **arg)
 {
   if (narg != 1) error->all(FLERR,"Illegal pair_style command");
 
-  cut_global = force->numeric(arg[0]);
+  cut_global = force->numeric(FLERR,arg[0]);
 
   // reset cutoffs that have been explicitly set
 
@@ -270,11 +270,11 @@ void PairLJSDK::coeff(int narg, char **arg)
   if (lj_type_one == LJ_NOT_SET)
     error->all(FLERR,"Cannot parse LJ type flag.");
 
-  double epsilon_one = force->numeric(arg[3]);
-  double sigma_one = force->numeric(arg[4]);
+  double epsilon_one = force->numeric(FLERR,arg[3]);
+  double sigma_one = force->numeric(FLERR,arg[4]);
 
   double cut_one = cut_global;
-  if (narg == 6) cut_one = force->numeric(arg[5]);
+  if (narg == 6) cut_one = force->numeric(FLERR,arg[5]);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

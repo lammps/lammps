@@ -672,14 +672,14 @@ void Force::bounds(char *str, int nmax, int &nlo, int &nhi)
    called by force fields to check validity of their arguments
 ------------------------------------------------------------------------- */
 
-double Force::numeric(char *str)
+double Force::numeric(const char *file, int line, char *str)
 {
   int n = strlen(str);
   for (int i = 0; i < n; i++) {
     if (isdigit(str[i])) continue;
     if (str[i] == '-' || str[i] == '+' || str[i] == '.') continue;
     if (str[i] == 'e' || str[i] == 'E') continue;
-    error->all(FLERR,"Expected floating point parameter in "
+    error->all(file,line,"Expected floating point parameter in "
                "input script or data file");
   }
 
@@ -692,12 +692,12 @@ double Force::numeric(char *str)
    called by force fields to check validity of their arguments
 ------------------------------------------------------------------------- */
 
-int Force::inumeric(char *str)
+int Force::inumeric(const char *file, int line, char *str)
 {
   int n = strlen(str);
   for (int i = 0; i < n; i++) {
     if (isdigit(str[i]) || str[i] == '-' || str[i] == '+') continue;
-    error->all(FLERR,"Expected integer parameter in input script or data file");
+    error->all(file,line,"Expected integer parameter in input script or data file");
   }
 
   return atoi(str);

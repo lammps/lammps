@@ -133,10 +133,10 @@ void PairLJCutCoulDebye::settings(int narg, char **arg)
 {
   if (narg < 2 || narg > 3) error->all(FLERR,"Illegal pair_style command");
 
-  kappa = force->numeric(arg[0]);
-  cut_lj_global = force->numeric(arg[1]);
+  kappa = force->numeric(FLERR,arg[0]);
+  cut_lj_global = force->numeric(FLERR,arg[1]);
   if (narg == 2) cut_coul_global = cut_lj_global;
-  else cut_coul_global = force->numeric(arg[2]);
+  else cut_coul_global = force->numeric(FLERR,arg[2]);
 
   // reset cutoffs that were previously set from data file
 

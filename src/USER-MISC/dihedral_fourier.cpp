@@ -310,7 +310,7 @@ void DihedralFourier::coeff(int narg, char **arg)
   double k_one;
   int multiplicity_one;
   double shift_one;
-  int nterms_one = force->inumeric(arg[1]);
+  int nterms_one = force->inumeric(FLERR,arg[1]);
 
   if (nterms_one < 1)
     error->all(FLERR,"Incorrect number of terms arg for dihedral coefficients");
@@ -328,9 +328,9 @@ void DihedralFourier::coeff(int narg, char **arg)
     sin_shift[i] = new double [nterms_one]; 
     for (int j = 0; j<nterms_one; j++) {
       int offset = 1+3*j;
-      k_one = force->numeric(arg[offset+1]);
-      multiplicity_one = force->inumeric(arg[offset+2]);
-      shift_one = force->numeric(arg[offset+3]);
+      k_one = force->numeric(FLERR,arg[offset+1]);
+      multiplicity_one = force->inumeric(FLERR,arg[offset+2]);
+      shift_one = force->numeric(FLERR,arg[offset+3]);
       k[i][j] = k_one;
       multiplicity[i][j] = multiplicity_one;
       shift[i][j] = shift_one;

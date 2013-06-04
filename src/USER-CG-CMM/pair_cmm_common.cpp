@@ -105,13 +105,13 @@ void PairCMMCommon::settings(int narg, char **arg)
 {
   if ((narg < 1) || (narg > 3)) error->all(FLERR,"Illegal pair_style command");
 
-  cut_lj_global = force->numeric(arg[0]);
+  cut_lj_global = force->numeric(FLERR,arg[0]);
   if (narg == 1) cut_coul_global = cut_lj_global;
-  else cut_coul_global = force->numeric(arg[1]);
+  else cut_coul_global = force->numeric(FLERR,arg[1]);
   cut_coulsq_global = cut_coul_global*cut_coul_global;
 
   // exponential coulomb screening (optional)
-  if (narg == 3) kappa = force->numeric(arg[2]);
+  if (narg == 3) kappa = force->numeric(FLERR,arg[2]);
   if (fabs(kappa) < SMALL) kappa=0.0;
 
   // reset cutoffs that have been explicitly set
@@ -148,13 +148,13 @@ void PairCMMCommon::coeff(int narg, char **arg)
   int cg_type_one=find_cg_type(arg[2]);
   if (cg_type_one == CG_NOT_SET) error->all(FLERR,"Error reading CG type flag.");
 
-  double epsilon_one = force->numeric(arg[3]);
-  double sigma_one = force->numeric(arg[4]);
+  double epsilon_one = force->numeric(FLERR,arg[3]);
+  double sigma_one = force->numeric(FLERR,arg[4]);
 
   double cut_lj_one = cut_lj_global;
   double cut_coul_one = cut_coul_global;
-  if (narg >= 6) cut_lj_one = force->numeric(arg[5]);
-  if (narg == 7) cut_coul_one = force->numeric(arg[6]);
+  if (narg >= 6) cut_lj_one = force->numeric(FLERR,arg[5]);
+  if (narg == 7) cut_coul_one = force->numeric(FLERR,arg[6]);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

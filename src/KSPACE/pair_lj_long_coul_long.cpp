@@ -92,10 +92,10 @@ void PairLJLongCoulLong::settings(int narg, char **arg)
     error->all(FLERR,"Cutoffs missing in pair_style lj/long/coul/long");
   if (!((ewald_order^ewald_off) & (1<<1))) 
     error->all(FLERR,"Coulomb cut not supported in pair_style lj/long/coul/long");
-  cut_lj_global = force->numeric(*(arg++));
+  cut_lj_global = force->numeric(FLERR,*(arg++));
   if (narg == 4 && ((ewald_order & 0x42) == 0x42)) 
     error->all(FLERR,"Only one cutoff allowed when requesting all long");
-  if (narg == 4) cut_coul = force->numeric(*arg);
+  if (narg == 4) cut_coul = force->numeric(FLERR,*arg);
   else cut_coul = cut_lj_global;
 
   if (allocated) {    
@@ -195,11 +195,11 @@ void PairLJLongCoulLong::coeff(int narg, char **arg)
   force->bounds(arg[0],atom->ntypes,ilo,ihi);
   force->bounds(arg[1],atom->ntypes,jlo,jhi);
 
-  double epsilon_one = force->numeric(arg[2]);
-  double sigma_one = force->numeric(arg[3]);
+  double epsilon_one = force->numeric(FLERR,arg[2]);
+  double sigma_one = force->numeric(FLERR,arg[3]);
 
   double cut_lj_one = cut_lj_global;
-  if (narg == 5) cut_lj_one = force->numeric(arg[4]);
+  if (narg == 5) cut_lj_one = force->numeric(FLERR,arg[4]);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

@@ -175,8 +175,8 @@ void PairSPHHeatConduction::coeff(int narg, char **arg) {
   force->bounds(arg[0], atom->ntypes, ilo, ihi);
   force->bounds(arg[1], atom->ntypes, jlo, jhi);
 
-  double alpha_one = force->numeric(arg[2]);
-  double cut_one   = force->numeric(arg[3]);
+  double alpha_one = force->numeric(FLERR,arg[2]);
+  double cut_one   = force->numeric(FLERR,arg[3]);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

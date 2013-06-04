@@ -412,15 +412,15 @@ void PairLJCutTIP4PCut::settings(int narg, char **arg)
 {
   if (narg < 6 || narg > 7) error->all(FLERR,"Illegal pair_style command");
 
-  typeO = force->inumeric(arg[0]);
-  typeH = force->inumeric(arg[1]);
-  typeB = force->inumeric(arg[2]);
-  typeA = force->inumeric(arg[3]);
-  qdist = force->numeric(arg[4]);
+  typeO = force->inumeric(FLERR,arg[0]);
+  typeH = force->inumeric(FLERR,arg[1]);
+  typeB = force->inumeric(FLERR,arg[2]);
+  typeA = force->inumeric(FLERR,arg[3]);
+  qdist = force->numeric(FLERR,arg[4]);
 
-  cut_lj_global = force->numeric(arg[5]);
+  cut_lj_global = force->numeric(FLERR,arg[5]);
   if (narg == 6) cut_coul = cut_lj_global;
-  else cut_coul = force->numeric(arg[6]);
+  else cut_coul = force->numeric(FLERR,arg[6]);
 
   cut_coulsq = cut_coul * cut_coul;
   cut_coulsqplus = (cut_coul + 2.0*qdist) * (cut_coul + 2.0*qdist);
@@ -447,11 +447,11 @@ void PairLJCutTIP4PCut::coeff(int narg, char **arg)
   force->bounds(arg[0],atom->ntypes,ilo,ihi);
   force->bounds(arg[1],atom->ntypes,jlo,jhi);
 
-  double epsilon_one = force->numeric(arg[2]);
-  double sigma_one = force->numeric(arg[3]);
+  double epsilon_one = force->numeric(FLERR,arg[2]);
+  double sigma_one = force->numeric(FLERR,arg[3]);
 
   double cut_lj_one = cut_lj_global;
-  if (narg == 5) cut_lj_one = force->numeric(arg[4]);
+  if (narg == 5) cut_lj_one = force->numeric(FLERR,arg[4]);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

@@ -47,8 +47,8 @@ FixQEQComb::FixQEQComb(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   size_peratom_cols = 0;
   peratom_freq = 1;
 
-  nevery = force->inumeric(arg[3]);
-  precision = force->numeric(arg[4]);
+  nevery = force->inumeric(FLERR,arg[3]);
+  precision = force->numeric(FLERR,arg[4]);
 
   if (nevery <= 0 || precision <= 0.0)
     error->all(FLERR,"Illegal fix qeq/comb command");

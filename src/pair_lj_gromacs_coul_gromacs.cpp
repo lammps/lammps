@@ -216,14 +216,14 @@ void PairLJGromacsCoulGromacs::settings(int narg, char **arg)
   if (narg != 2 && narg != 4)
     error->all(FLERR,"Illegal pair_style command");
 
-  cut_lj_inner = force->numeric(arg[0]);
-  cut_lj = force->numeric(arg[1]);
+  cut_lj_inner = force->numeric(FLERR,arg[0]);
+  cut_lj = force->numeric(FLERR,arg[1]);
   if (narg == 2) {
     cut_coul_inner = cut_lj_inner;
     cut_coul = cut_lj;
   } else {
-    cut_coul_inner = force->numeric(arg[2]);
-    cut_coul = force->numeric(arg[3]);
+    cut_coul_inner = force->numeric(FLERR,arg[2]);
+    cut_coul = force->numeric(FLERR,arg[3]);
   }
 
   if (cut_lj_inner <= 0.0 || cut_coul_inner < 0.0)
@@ -245,8 +245,8 @@ void PairLJGromacsCoulGromacs::coeff(int narg, char **arg)
   force->bounds(arg[0],atom->ntypes,ilo,ihi);
   force->bounds(arg[1],atom->ntypes,jlo,jhi);
 
-  double epsilon_one = force->numeric(arg[2]);
-  double sigma_one = force->numeric(arg[3]);
+  double epsilon_one = force->numeric(FLERR,arg[2]);
+  double sigma_one = force->numeric(FLERR,arg[3]);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

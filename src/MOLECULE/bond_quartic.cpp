@@ -205,11 +205,11 @@ void BondQuartic::coeff(int narg, char **arg)
   int ilo,ihi;
   force->bounds(arg[0],atom->nbondtypes,ilo,ihi);
 
-  double k_one = force->numeric(arg[1]);
-  double b1_one = force->numeric(arg[2]);
-  double b2_one = force->numeric(arg[3]);
-  double rc_one = force->numeric(arg[4]);
-  double u0_one = force->numeric(arg[5]);
+  double k_one = force->numeric(FLERR,arg[1]);
+  double b1_one = force->numeric(FLERR,arg[2]);
+  double b2_one = force->numeric(FLERR,arg[3]);
+  double rc_one = force->numeric(FLERR,arg[4]);
+  double u0_one = force->numeric(FLERR,arg[5]);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

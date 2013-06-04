@@ -242,8 +242,8 @@ void AngleSDK::coeff(int narg, char **arg)
   int ilo,ihi;
   force->bounds(arg[0],atom->nangletypes,ilo,ihi);
 
-  double k_one = force->numeric(arg[1]);
-  double theta0_one = force->numeric(arg[2]);
+  double k_one = force->numeric(FLERR,arg[1]);
+  double theta0_one = force->numeric(FLERR,arg[2]);
   double repscale_one;
 
   // backward compatibility with old cg/cmm style input:
@@ -252,9 +252,9 @@ void AngleSDK::coeff(int narg, char **arg)
   // otherwise assume repscale 1.0, since we were using
   // epsilon to turn repulsion on or off.
   if (narg == 6) {
-    repscale_one = force->numeric(arg[4]);
+    repscale_one = force->numeric(FLERR,arg[4]);
     if (repscale_one > 0.0) repscale_one = 1.0;
-  } else if (narg == 4) repscale_one = force->numeric(arg[3]);
+  } else if (narg == 4) repscale_one = force->numeric(FLERR,arg[3]);
   else if (narg == 3) repscale_one = 1.0;
   else error->all(FLERR,"Incorrect args for angle coefficients");
 

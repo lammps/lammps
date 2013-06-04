@@ -286,10 +286,10 @@ void DihedralOPLS::coeff(int narg, char **arg)
   int ilo,ihi;
   force->bounds(arg[0],atom->ndihedraltypes,ilo,ihi);
 
-  double k1_one = force->numeric(arg[1]);
-  double k2_one = force->numeric(arg[2]);
-  double k3_one = force->numeric(arg[3]);
-  double k4_one = force->numeric(arg[4]);
+  double k1_one = force->numeric(FLERR,arg[1]);
+  double k2_one = force->numeric(FLERR,arg[2]);
+  double k3_one = force->numeric(FLERR,arg[3]);
+  double k4_one = force->numeric(FLERR,arg[4]);
 
   // store 1/2 factor with prefactor
 

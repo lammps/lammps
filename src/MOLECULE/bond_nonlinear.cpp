@@ -125,9 +125,9 @@ void BondNonlinear::coeff(int narg, char **arg)
   int ilo,ihi;
   force->bounds(arg[0],atom->nbondtypes,ilo,ihi);
 
-  double epsilon_one = force->numeric(arg[1]);
-  double r0_one = force->numeric(arg[2]);
-  double lamda_one = force->numeric(arg[3]);
+  double epsilon_one = force->numeric(FLERR,arg[1]);
+  double r0_one = force->numeric(FLERR,arg[2]);
+  double lamda_one = force->numeric(FLERR,arg[3]);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

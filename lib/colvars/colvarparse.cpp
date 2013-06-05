@@ -371,8 +371,8 @@ void colvarparse::check_keywords (std::string &conf, char const *key)
     std::string uk;
     std::istringstream line_is (line);
     line_is >> uk;
-    if (cvm::debug())
-      cvm::log ("Checking the validity of \""+uk+"\" from line:\n" + line);
+    // if (cvm::debug())
+    //   cvm::log ("Checking the validity of \""+uk+"\" from line:\n" + line);
     uk = to_lower_cppstr (uk);
 
     bool found_keyword = false;

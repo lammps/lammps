@@ -682,6 +682,8 @@ void colvar::calc()
     cvm::log ("Calculating colvar \""+this->name+"\".\n");
 
   // prepare atom groups for calculation
+  if (cvm::debug())
+    cvm::log ("Collecting data from atom groups.\n");
   for (size_t i = 0; i < cvcs.size(); i++) {
     for (size_t ig = 0; ig < cvcs[i]->atom_groups.size(); ig++) {
       cvm::atom_group &atoms = *(cvcs[i]->atom_groups[ig]);
@@ -710,6 +712,8 @@ void colvar::calc()
 
   // calculate the value of the colvar
 
+  if (cvm::debug())
+    cvm::log ("Calculating colvar components.\n");
   x.reset();
   if (x.type() == colvarvalue::type_scalar) {
     // polynomial combination allowed

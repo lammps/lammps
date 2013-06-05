@@ -410,9 +410,11 @@ cvm::atom::atom(cvm::atom const &a)
 
 cvm::atom::~atom()
 {
-  colvarproxy_lammps *cp = (colvarproxy_lammps *) cvm::proxy;
-  if (cp->colvars_atoms_ncopies[this->index] > 0)
-    cp->colvars_atoms_ncopies[this->index] -= 1;
+  if (this->index >= 0) {
+    colvarproxy_lammps *cp = (colvarproxy_lammps *) cvm::proxy;
+    if (cp->colvars_atoms_ncopies[this->index] > 0)
+      cp->colvars_atoms_ncopies[this->index] -= 1;
+  }
 }
 
 

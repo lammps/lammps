@@ -23,7 +23,7 @@ protected:
 
   /// \brief Index in the list of atoms involved by the colvars (\b
   /// NOT in the global topology!)
-  size_t        index;
+  int           index;
 
 public:
 
@@ -57,8 +57,8 @@ public:
   /// implementation
   cvm::rvector   grad;
 
-  /// \brief Default constructor, setting id to a non-valid value
-  inline atom() {}
+  /// \brief Default constructor, setting id and index to invalid numbers
+  atom() : id (-1), index (-1) { reset_data(); }
 
   /// \brief Initialize an atom for collective variable calculation
   /// and get its internal identifier \param atom_number Atom index in

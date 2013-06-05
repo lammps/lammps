@@ -132,7 +132,7 @@ void colvar::coordnum::calc_value()
   if (b_group2_center_only) {
 
     // create a fake atom to hold the group2 com coordinates
-    cvm::atom group2_com_atom (group2[0]);
+    cvm::atom group2_com_atom;
     group2_com_atom.pos = group2.center_of_mass();
 
     if (b_anisotropic) {
@@ -165,8 +165,9 @@ void colvar::coordnum::calc_gradients()
   if (b_group2_center_only) {
 
     // create a fake atom to hold the group2 com coordinates
-    cvm::atom group2_com_atom (group2[0]);
+    cvm::atom group2_com_atom;
     group2_com_atom.pos = group2.center_of_mass();
+
 
     if (b_anisotropic) {
       for (cvm::atom_iter ai1 = group1.begin(); ai1 != group1.end(); ai1++)

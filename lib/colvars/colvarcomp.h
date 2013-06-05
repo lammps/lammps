@@ -1,6 +1,16 @@
 #ifndef COLVARCOMP_H
 #define COLVARCOMP_H
 
+// Declaration of colvar::cvc base class and derived ones.
+//
+// Future cvc's could be declared on additional header files.
+// After the declaration of a new derived class, its metric 
+// functions must be reimplemented as well.
+// If the new cvc has no symmetry or periodicity,
+// this can be done straightforwardly by using the macro:
+// simple_scalar_dist_functions (derived_class)
+
+
 #include <fstream>
 #include <cmath>
 
@@ -1140,6 +1150,62 @@ public:
 };
 
 
+
+// metrics functions for cvc implementations 
+
+// simple definitions of the distance functions; these are useful only
+// for optimization (the type check performed in the default
+// colvarcomp functions is skipped)
+
+// definitions assuming the scalar type
+
+#define simple_scalar_dist_functions(TYPE)                              \
+                                                                        \
+  inline cvm::real colvar::TYPE::dist2 (colvarvalue const &x1,          \
+                                        colvarvalue const &x2) const    \
+  {                                                                     \
+    return (x1.real_value - x2.real_value)*(x1.real_value - x2.real_value); \
+  }                                                                     \
+                                                                        \
+  inline colvarvalue colvar::TYPE::dist2_lgrad (colvarvalue const &x1,  \
+                                                colvarvalue const &x2) const \
+  {                                                                     \
+    return 2.0 * (x1.real_value - x2.real_value);                       \
+  }                                                                     \
+                                                                        \
+  inline colvarvalue colvar::TYPE::dist2_rgrad (colvarvalue const &x1,  \
+                                                colvarvalue const &x2) const \
+  {                                                                     \
+    return this->dist2_lgrad (x2, x1);                                  \
+  }                                                                     \
+                                                                        \
+  inline cvm::real colvar::TYPE::compare (colvarvalue const &x1,        \
+                                          colvarvalue const &x2) const  \
+  {                                                                     \
+    return this->dist2_lgrad (x1, x2);                                  \
+  }                                                                     \
+                                                                        \
+
+  simple_scalar_dist_functions (distance)
+  // NOTE: distance_z has explicit functions, see below 
+  simple_scalar_dist_functions (distance_xy)
+  simple_scalar_dist_functions (distance_inv)
+  simple_scalar_dist_functions (angle)
+  simple_scalar_dist_functions (coordnum)
+  simple_scalar_dist_functions (selfcoordnum)
+  simple_scalar_dist_functions (h_bond)
+  simple_scalar_dist_functions (gyration)
+  simple_scalar_dist_functions (inertia)
+  simple_scalar_dist_functions (inertia_z)
+  simple_scalar_dist_functions (rmsd)
+  simple_scalar_dist_functions (orientation_angle)
+  simple_scalar_dist_functions (tilt)
+  simple_scalar_dist_functions (eigenvector)
+  //  simple_scalar_dist_functions (alpha_dihedrals)
+  simple_scalar_dist_functions (alpha_angles)
+  simple_scalar_dist_functions (dihedPC)
+
+
 // metrics functions for cvc implementations with a periodicity
 
 inline cvm::real colvar::dihedral::dist2 (colvarvalue const &x1,
@@ -1231,58 +1297,6 @@ inline void colvar::spin_angle::wrap (colvarvalue &x) const
 
   return;
 }
-
-// simple definitions of the distance functions; these are useful only
-// for optimization (the type check performed in the default
-// colvarcomp functions is skipped)
-
-// definitions assuming the scalar type
-
-#define simple_scalar_dist_functions(TYPE)                              \
-                                                                        \
-  inline cvm::real colvar::TYPE::dist2 (colvarvalue const &x1,          \
-                                        colvarvalue const &x2) const    \
-  {                                                                     \
-    return (x1.real_value - x2.real_value)*(x1.real_value - x2.real_value); \
-  }                                                                     \
-                                                                        \
-  inline colvarvalue colvar::TYPE::dist2_lgrad (colvarvalue const &x1,  \
-                                                colvarvalue const &x2) const \
-  {                                                                     \
-    return 2.0 * (x1.real_value - x2.real_value);                       \
-  }                                                                     \
-                                                                        \
-  inline colvarvalue colvar::TYPE::dist2_rgrad (colvarvalue const &x1,  \
-                                                colvarvalue const &x2) const \
-  {                                                                     \
-    return this->dist2_lgrad (x2, x1);                                  \
-  }                                                                     \
-                                                                        \
-  inline cvm::real colvar::TYPE::compare (colvarvalue const &x1,        \
-                                          colvarvalue const &x2) const  \
-  {                                                                     \
-    return this->dist2_lgrad (x1, x2);                                  \
-  }                                                                     \
-                                                                        \
-
-  simple_scalar_dist_functions (distance)
-  // NOTE: distance_z has explicit functions, see below 
-  simple_scalar_dist_functions (distance_xy)
-  simple_scalar_dist_functions (distance_inv)
-  simple_scalar_dist_functions (angle)
-  simple_scalar_dist_functions (coordnum)
-  simple_scalar_dist_functions (selfcoordnum)
-  simple_scalar_dist_functions (h_bond)
-  simple_scalar_dist_functions (gyration)
-  simple_scalar_dist_functions (inertia)
-  simple_scalar_dist_functions (inertia_z)
-  simple_scalar_dist_functions (rmsd)
-  simple_scalar_dist_functions (orientation_angle)
-  simple_scalar_dist_functions (tilt)
-  simple_scalar_dist_functions (eigenvector)
-  //  simple_scalar_dist_functions (alpha_dihedrals)
-  simple_scalar_dist_functions (alpha_angles)
-  simple_scalar_dist_functions (dihedPC)
 
 
 // Projected distance
@@ -1420,9 +1434,6 @@ inline cvm::real colvar::orientation::compare (colvarvalue const &x1,
   cvm::fatal_error ("Error: cannot compare() two quaternions.\n");
   return 0.0;
 }
-
-
-
 
 
 #endif

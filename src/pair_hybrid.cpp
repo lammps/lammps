@@ -65,7 +65,7 @@ PairHybrid::~PairHybrid()
 }
 
 /* ----------------------------------------------------------------------
-  call each sub-style's compute function
+  call each sub-style's compute() or compute_outer() function
   accumulate sub-style global/peratom energy/virial in hybrid
   for global vflag = 1:
     each sub-style computes own virial[6]
@@ -100,7 +100,12 @@ void PairHybrid::compute(int eflag, int vflag)
   else vflag_substyle = vflag;
 
   for (m = 0; m < nstyles; m++) {
-    if (outerflag) styles[m]->compute(eflag,vflag_substyle);
+
+    // invoke compute() unless 
+    // outerflag is set and sub-style has a compute_outer() method
+
+    if (outerflag && styles[m]->respa_enable) 
+      styles[m]->compute(eflag,vflag_substyle);
     else styles[m]->compute_outer(eflag,vflag_substyle);
 
     if (eflag_global) {

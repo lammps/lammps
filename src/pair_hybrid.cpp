@@ -37,6 +37,8 @@ PairHybrid::PairHybrid(LAMMPS *lmp) : Pair(lmp)
   styles = NULL;
   keywords = NULL;
   multiple = NULL;
+
+  outerflag = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -98,7 +100,8 @@ void PairHybrid::compute(int eflag, int vflag)
   else vflag_substyle = vflag;
 
   for (m = 0; m < nstyles; m++) {
-    styles[m]->compute(eflag,vflag_substyle);
+    if (outerflag) styles[m]->compute(eflag,vflag_substyle);
+    else styles[m]->compute_outer(eflag,vflag_substyle);
 
     if (eflag_global) {
       eng_vdwl += styles[m]->eng_vdwl;
@@ -146,8 +149,9 @@ void PairHybrid::compute_middle()
 
 void PairHybrid::compute_outer(int eflag, int vflag)
 {
-  for (int m = 0; m < nstyles; m++)
-    if (styles[m]->respa_enable) styles[m]->compute_outer(eflag,vflag);
+  outerflag = 1;
+  compute(eflag,vflag);
+  outerflag = 0;
 }
 
 /* ----------------------------------------------------------------------

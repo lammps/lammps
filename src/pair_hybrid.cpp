@@ -105,8 +105,8 @@ void PairHybrid::compute(int eflag, int vflag)
     // outerflag is set and sub-style has a compute_outer() method
 
     if (outerflag && styles[m]->respa_enable) 
-      styles[m]->compute(eflag,vflag_substyle);
-    else styles[m]->compute_outer(eflag,vflag_substyle);
+      styles[m]->compute_outer(eflag,vflag_substyle);
+    else styles[m]->compute(eflag,vflag_substyle);
 
     if (eflag_global) {
       eng_vdwl += styles[m]->eng_vdwl;

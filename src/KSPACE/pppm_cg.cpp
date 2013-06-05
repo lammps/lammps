@@ -89,7 +89,6 @@ void PPPMCG::compute(int eflag, int vflag)
     allocate_peratom();
     cg_peratom->ghost_notify();
     cg_peratom->setup();
-    peratom_allocate_flag = 1;
   }
 
   // convert atoms from box to lamda coords

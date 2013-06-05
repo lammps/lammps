@@ -111,14 +111,17 @@ void ComputeStressAtom::compute_peratom()
   //   b/c some bonds/dihedrals call pair::ev_tally with pairwise info
   // nbond includes ghosts if newton_bond is set
   // ntotal includes ghosts if either newton flag is set
+  // KSpace includes ghosts if tip4pflag is set
 
   int nlocal = atom->nlocal;
   int npair = nlocal;
   int nbond = nlocal;
   int ntotal = nlocal;
+  int nkspace = nlocal;
   if (force->newton) npair += atom->nghost;
   if (force->newton_bond) nbond += atom->nghost;
   if (force->newton) ntotal += atom->nghost;
+  if (force->kspace->tip4pflag) nkspace += atom->nghost;
 
   // clear local stress array
 
@@ -163,6 +166,13 @@ void ComputeStressAtom::compute_peratom()
         stress[i][j] += vatom[i][j];
   }
 
+  if (kspaceflag && force->kspace) {
+    double **vatom = force->kspace->vatom;
+    for (i = 0; i < nkspace; i++)
+      for (j = 0; j < 6; j++)
+        stress[i][j] += vatom[i][j];
+  }
+
   // add in per-atom contributions from relevant fixes
   // skip if vatom = NULL
   // possible during setup phase if fix has not initialized its vatom yet
@@ -180,18 +190,10 @@ void ComputeStressAtom::compute_peratom()
       }
   }
 
-  // communicate ghost atom virials between neighbor procs
+  // communicate ghost virials between neighbor procs
 
-  if (force->newton) comm->reverse_comm_compute(this);
-
-  // KSpace contribution is already per local atom
-
-  if (kspaceflag && force->kspace) {
-    double **vatom = force->kspace->vatom;
-    for (i = 0; i < nlocal; i++)
-      for (j = 0; j < 6; j++)
-        stress[i][j] += vatom[i][j];
-  }
+  if (force->newton || force->kspace->tip4pflag) 
+    comm->reverse_comm_compute(this);
 
   // zero virial of atoms not in group
   // only do this after comm since ghost contributions must be included

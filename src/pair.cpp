@@ -320,7 +320,8 @@ void Pair::init_tables(double cut_coul, double *cut_respa)
     r = sqrtf(rsq_lookup.f);
     if (msmflag) {
       egamma = 1.0 - (r/cut_coul)*force->kspace->gamma(r/cut_coul);
-      fgamma = 1.0 + (rsq_lookup.f/cut_coulsq)*force->kspace->dgamma(r/cut_coul);
+      fgamma = 1.0 + (rsq_lookup.f/cut_coulsq)*
+        force->kspace->dgamma(r/cut_coul);
     } else {
       grij = g_ewald * r;
       expm2 = exp(-grij*grij);
@@ -416,7 +417,8 @@ void Pair::init_tables(double cut_coul, double *cut_respa)
     r = sqrtf(rsq_lookup.f);
     if (msmflag) {
       egamma = 1.0 - (r/cut_coul)*force->kspace->gamma(r/cut_coul);
-      fgamma = 1.0 + (rsq_lookup.f/cut_coulsq)*force->kspace->dgamma(r/cut_coul);
+      fgamma = 1.0 + (rsq_lookup.f/cut_coulsq)*
+        force->kspace->dgamma(r/cut_coul);
     } else {
       grij = g_ewald * r;
       expm2 = exp(-grij*grij);

@@ -443,43 +443,44 @@ void PPPMDispTIP4P::fieldforce_c_peratom()
       }
     }
 
+    const double qfactor = 0.5*force->qqrd2e * scale * q[i];
 
     if (eflag_atom) {
       if (type[i] != typeO) {
-        eatom[i] += q[i]*u_pa;
+        eatom[i] += qfactor*u_pa;
       } else {
-        eatom[i] += q[i]*u_pa*(1-alpha);
-        eatom[iH1] += q[i]*u_pa*alpha*0.5;
-        eatom[iH2] += q[i]*u_pa*alpha*0.5;
+        eatom[i] += qfactor*u_pa*(1-alpha);
+        eatom[iH1] += qfactor*u_pa*alpha*0.5;
+        eatom[iH2] += qfactor*u_pa*alpha*0.5;
       }
     }
     if (vflag_atom) {
       if (type[i] != typeO) {
-        vatom[i][0] += v0*q[i];
-        vatom[i][1] += v1*q[i];
-        vatom[i][2] += v2*q[i];
-        vatom[i][3] += v3*q[i];
-        vatom[i][4] += v4*q[i];
-        vatom[i][5] += v5*q[i];
+        vatom[i][0] += v0*qfactor;
+        vatom[i][1] += v1*qfactor;
+        vatom[i][2] += v2*qfactor;
+        vatom[i][3] += v3*qfactor;
+        vatom[i][4] += v4*qfactor;
+        vatom[i][5] += v5*qfactor;
       } else {
-        vatom[i][0] += v0*(1-alpha)*q[i];
-        vatom[i][1] += v1*(1-alpha)*q[i];
-        vatom[i][2] += v2*(1-alpha)*q[i];
-        vatom[i][3] += v3*(1-alpha)*q[i];
-        vatom[i][4] += v4*(1-alpha)*q[i];
-        vatom[i][5] += v5*(1-alpha)*q[i];
-        vatom[iH1][0] += v0*alpha*0.5*q[i];
-        vatom[iH1][1] += v1*alpha*0.5*q[i];
-        vatom[iH1][2] += v2*alpha*0.5*q[i];
-        vatom[iH1][3] += v3*alpha*0.5*q[i];
-        vatom[iH1][4] += v4*alpha*0.5*q[i];
-        vatom[iH1][5] += v5*alpha*0.5*q[i];
-        vatom[iH2][0] += v0*alpha*0.5*q[i];
-        vatom[iH2][1] += v1*alpha*0.5*q[i];
-        vatom[iH2][2] += v2*alpha*0.5*q[i];
-        vatom[iH2][3] += v3*alpha*0.5*q[i];
-        vatom[iH2][4] += v4*alpha*0.5*q[i];
-        vatom[iH2][5] += v5*alpha*0.5*q[i];
+        vatom[i][0] += v0*(1-alpha)*qfactor;
+        vatom[i][1] += v1*(1-alpha)*qfactor;
+        vatom[i][2] += v2*(1-alpha)*qfactor;
+        vatom[i][3] += v3*(1-alpha)*qfactor;
+        vatom[i][4] += v4*(1-alpha)*qfactor;
+        vatom[i][5] += v5*(1-alpha)*qfactor;
+        vatom[iH1][0] += v0*alpha*0.5*qfactor;
+        vatom[iH1][1] += v1*alpha*0.5*qfactor;
+        vatom[iH1][2] += v2*alpha*0.5*qfactor;
+        vatom[iH1][3] += v3*alpha*0.5*qfactor;
+        vatom[iH1][4] += v4*alpha*0.5*qfactor;
+        vatom[iH1][5] += v5*alpha*0.5*qfactor;
+        vatom[iH2][0] += v0*alpha*0.5*qfactor;
+        vatom[iH2][1] += v1*alpha*0.5*qfactor;
+        vatom[iH2][2] += v2*alpha*0.5*qfactor;
+        vatom[iH2][3] += v3*alpha*0.5*qfactor;
+        vatom[iH2][4] += v4*alpha*0.5*qfactor;
+        vatom[iH2][5] += v5*alpha*0.5*qfactor;
       }
     }
   }

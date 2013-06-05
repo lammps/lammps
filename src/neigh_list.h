@@ -22,6 +22,7 @@ class NeighList : protected Pointers {
  public:
   int index;                       // index of which neigh list it is
                                    // needed when a class invokes it directly
+                                   // also indexes the request it came from
 
   int buildflag;                   // 1 if pair_build invoked every reneigh
   int growflag;                    // 1 if stores atom-based arrays & pages

@@ -79,6 +79,24 @@ MSM::MSM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
   cg_all = cg_peratom_all = NULL;
   cg = cg_peratom = NULL;
 
+  ngrid = NULL;
+  cg = NULL;
+  cg_peratom = NULL;
+  procneigh_levels = NULL;
+  world_levels = NULL;
+  active_flag = NULL;
+
+  alpha = betax = betay = betaz = NULL;
+  nx_msm = ny_msm = nz_msm = NULL;
+  nxlo_in = nylo_in = nzlo_in = NULL;
+  nxhi_in = nyhi_in = nzhi_in = NULL;
+  nxlo_out = nylo_out = nzlo_out = NULL;
+  nxhi_out = nyhi_out = nzhi_out = NULL;
+  delxinv = delyinv = delzinv = NULL;
+  qgrid = NULL;
+  egrid = NULL;
+  v0grid = v1grid = v2grid = v3grid = v4grid = v5grid = NULL;
+
   levels = 0;
 
   peratom_allocate_flag = 0;
@@ -94,7 +112,7 @@ MSM::~MSM()
 {
   delete [] factors;
   deallocate();
-  deallocate_peratom();
+  if (peratom_allocate_flag) deallocate_peratom();
   memory->destroy(part2grid);
   memory->destroy(g_direct);
   memory->destroy(g_direct_top);
@@ -466,7 +484,6 @@ void MSM::setup()
   // don't invoke allocate_peratom(), compute() will allocate when needed
 
   allocate();
-  peratom_allocate_flag = 0;
 
   // setup commgrid
 
@@ -505,7 +522,6 @@ void MSM::compute(int eflag, int vflag)
       cg_peratom[n]->ghost_notify();
       cg_peratom[n]->setup();
     }
-    peratom_allocate_flag = 1;
   }
 
   // convert atoms from box to lamda coords
@@ -697,11 +713,40 @@ void MSM::allocate()
 }
 
 /* ----------------------------------------------------------------------
+   deallocate memory that depends on # of grid points
+------------------------------------------------------------------------- */
+
+void MSM::deallocate()
+{
+  memory->destroy2d_offset(phi1d,-order);
+  memory->destroy2d_offset(dphi1d,-order);
+
+  if (cg_all) delete cg_all;
+
+  for (int n=0; n<levels; n++) {
+    if (qgrid[n])
+      memory->destroy3d_offset(qgrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
+
+    if (egrid[n])
+      memory->destroy3d_offset(egrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
+
+    if (world_levels)
+      if (world_levels[n] != MPI_COMM_NULL)
+          MPI_Comm_free(&world_levels[n]);
+
+    if (cg)
+      if (cg[n]) delete cg[n];
+  }
+}
+
+/* ----------------------------------------------------------------------
    allocate per-atom virial memory that depends on # of grid points
 ------------------------------------------------------------------------- */
 
 void MSM::allocate_peratom()
 {
+  peratom_allocate_flag = 1;
+
   // create commgrid object for per-atom virial using all processors
 
   int (*procneigh_all)[2] = comm->procneigh;
@@ -745,38 +790,13 @@ void MSM::allocate_peratom()
 }
 
 /* ----------------------------------------------------------------------
-   deallocate memory that depends on # of grid points
-------------------------------------------------------------------------- */
-
-void MSM::deallocate()
-{
-  memory->destroy2d_offset(phi1d,-order);
-  memory->destroy2d_offset(dphi1d,-order);
-
-  if (cg_all) delete cg_all;
-
-  for (int n=0; n<levels; n++) {
-    if (qgrid[n])
-      memory->destroy3d_offset(qgrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
-
-    if (egrid[n])
-      memory->destroy3d_offset(egrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
-
-    if (world_levels)
-      if (world_levels[n] != MPI_COMM_NULL)
-          MPI_Comm_free(&world_levels[n]);
-
-    if (cg)
-      if (cg[n]) delete cg[n];
-  }
-}
-
-/* ----------------------------------------------------------------------
    deallocate per-atom virial memory that depends on # of grid points
 ------------------------------------------------------------------------- */
 
 void MSM::deallocate_peratom()
 {
+  peratom_allocate_flag = 0;
+
   if (cg_peratom_all) delete cg_peratom_all;
 
   for (int n=0; n<levels; n++) {
@@ -1074,6 +1094,7 @@ void MSM::set_grid_global()
 
   if (!domain->nonperiodic) levels -= 1;
 
+  deallocate_levels();
   allocate_levels();
 
   // find number of grid levels in each direction

@@ -40,15 +40,20 @@ class FixLangevin : public Fix {
   virtual double compute_scalar();
   double memory_usage();
   virtual void *extract(const char *, int &);
+  void grow_arrays(int);
+  void copy_arrays(int, int, int);
+  int pack_exchange(int, double *);
+  int unpack_exchange(int, double *);
 
  protected:
-  int which,tally,zeroflag,oflag;
+  int gjfflag,oflag,tallyflag,zeroflag,tbiasflag;
   double ascale;
   double t_start,t_stop,t_period,t_target;
   double *gfactor1,*gfactor2,*ratio;
   double energy,energy_onestep;
   double tsqrt;
   int tstyle,tvar;
+  double gjffac;
   char *tstr;
 
   class AtomVecEllipsoid *avec;
@@ -56,6 +61,8 @@ class FixLangevin : public Fix {
   int maxatom1,maxatom2;
   double **flangevin;
   double *tforce;
+  double **franprev, **array;
+  int nvalues;
 
   char *id_temp;
   class Compute *temperature;
@@ -63,10 +70,19 @@ class FixLangevin : public Fix {
   int nlevels_respa;
   class RanMars *random;
 
-  virtual void post_force_no_tally();
-  virtual void post_force_tally();
+  // comment next line to turn off templating
+#define TEMPLATED_FIX_LANGEVIN
+#ifdef TEMPLATED_FIX_LANGEVIN
+  template < int Tp_TSTYLEATOM, int Tp_GJF, int Tp_TALLY, 
+	     int Tp_BIAS, int Tp_RMASS, int Tp_ZERO > 
+  void post_force_templated();
+#else
+  void post_force_untemplated(int, int, int, 
+			      int, int, int);
+#endif
   void omega_thermostat();
   void angmom_thermostat();
+  void compute_target();
 };
 
 }

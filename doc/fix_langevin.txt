@@ -23,6 +23,9 @@ keyword = {angmom} or {omega} or {scale} or {tally} or {zero} :l
   {angmom} value = {no} or scale
     {no} = do not thermostat rotational degrees of freedom via the angular momentum
     factor = do thermostat rotational degrees of freedom via the angular momentum and apply numeric factor as discussed below
+  {gjf} value = {no} or {yes}
+    {no} = use standard formulation
+    {yes} = use Gronbech-Jensen/Farago formulation
   {omega} value = {no} or {yes}
     {no} = do not thermostat rotational degrees of freedom via the angular velocity
     {yes} = do thermostat rotational degrees of freedom via the angular velocity
@@ -223,6 +226,19 @@ to zero by subtracting off an equal part of it from each atom in the
 group.  As a result, the center-of-mass of a system with zero initial
 momentum will not drift over time.
 
+The keyword {gjf} can be used to run the 
+"Gronbech-Jensen/Farago "_#Gronbech-Jensen
+time-discretization of the Langevin model. The effective random force 
+is composed of
+the average of two random forces representing half-contributions from
+the previous and current time intervals. This discretization has been shown
+to be consistent with the underlying physical model of Langevin dynamics 
+and produces the correct statistical distribution of energy for large
+timesteps, up to the numerical stability limit. A typical simulation
+with flexible hydrogen-carbon covalent bonds 
+can be run with a timestep of 3 fs, instead of 1 fs with the
+standard Langevin method.
+
 :line
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
@@ -269,7 +285,7 @@ dpd/tstat"_pair_dpd.html
 [Default:]
 
 The option defaults are angmom = no, omega = no, scale = 1.0 for all
-types, tally = no, zero = no.
+types, tally = no, zero = no, gjf = no.
 
 :line
 
@@ -277,4 +293,7 @@ types, tally = no, zero = no.
 [(Dunweg)] Dunweg and Paul, Int J of Modern Physics C, 2, 817-27 (1991).
 
 :link(Schneider)
-[(Schneider)] Schneider and Stoll, Phys Rev B, 17, 1302 (1978). 
+[(Schneider)] Schneider and Stoll, Phys Rev B, 17, 1302 (1978).
+
+:link(Gronbech-Jensen)
+[(Gronbech-Jensen)] Gronbech-Jensen, Hayre, and Farago, arXiv:1303.7011.v2; Gronbech-Jensen and Farago, Mol. Phys. 111 (2013); 

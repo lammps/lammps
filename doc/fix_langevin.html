@@ -34,6 +34,9 @@
 <PRE>  <I>angmom</I> value = <I>no</I> or scale
     <I>no</I> = do not thermostat rotational degrees of freedom via the angular momentum
     factor = do thermostat rotational degrees of freedom via the angular momentum and apply numeric factor as discussed below
+  <I>gjf</I> value = <I>no</I> or <I>yes</I>
+    <I>no</I> = use standard formulation
+    <I>yes</I> = use Gronbech-Jensen/Farago formulation
   <I>omega</I> value = <I>no</I> or <I>yes</I>
     <I>no</I> = do not thermostat rotational degrees of freedom via the angular velocity
     <I>yes</I> = do thermostat rotational degrees of freedom via the angular velocity
@@ -235,6 +238,19 @@ to zero by subtracting off an equal part of it from each atom in the
 group.  As a result, the center-of-mass of a system with zero initial
 momentum will not drift over time.
 </P>
+<P>The keyword <I>gjf</I> can be used to run the 
+<A HREF = "#Gronbech-Jensen">Gronbech-Jensen/Farago </A>
+time-discretization of the Langevin model. The effective random force 
+is composed of
+the average of two random forces representing half-contributions from
+the previous and current time intervals. This discretization has been shown
+to be consistent with the underlying physical model of Langevin dynamics 
+and produces the correct statistical distribution of energy for large
+timesteps, up to the numerical stability limit. A typical simulation
+with flexible hydrogen-carbon covalent bonds 
+can be run with a timestep of 3 fs, instead of 1 fs with the
+standard Langevin method.
+</P>
 <HR>
 
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
@@ -281,7 +297,7 @@ dpd/tstat</A>
 <P><B>Default:</B>
 </P>
 <P>The option defaults are angmom = no, omega = no, scale = 1.0 for all
-types, tally = no, zero = no.
+types, tally = no, zero = no, gjf = no.
 </P>
 <HR>
 
@@ -291,6 +307,10 @@ types, tally = no, zero = no.
 </P>
 <A NAME = "Schneider"></A>
 
-<P><B>(Schneider)</B> Schneider and Stoll, Phys Rev B, 17, 1302 (1978). 
+<P><B>(Schneider)</B> Schneider and Stoll, Phys Rev B, 17, 1302 (1978).
+</P>
+<A NAME = "Gronbech-Jensen"></A>
+
+<P><B>(Gronbech-Jensen)</B> Gronbech-Jensen, Hayre, and Farago, arXiv:1303.7011.v2; Gronbech-Jensen and Farago, Mol. Phys. 111 (2013); 
 </P>
 </HTML>

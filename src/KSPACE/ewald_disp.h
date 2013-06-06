@@ -52,7 +52,7 @@ class EwaldDisp : public KSpace {
   int peratom_allocate_flag;
   int nmax;
   double bytes;
-  double gsqmx,q2,b2;
+  double gsqmx,q2,b2,M2;
   double *kenergy, energy_self[EWALD_NFUNCS];
   double *kvirial, virial_self[EWALD_NFUNCS];
   double **energy_self_peratom;
@@ -65,7 +65,7 @@ class EwaldDisp : public KSpace {
   struct Sum { double x, x2; } sum[EWALD_MAX_NSUMS];
   complex *cek_local, *cek_global;
 
-  double rms(int, double, bigint, double, double);
+  double rms(int, double, bigint, double, double, double);
   void reallocate();
   void allocate_peratom();
   void reallocate_atoms();
@@ -82,6 +82,7 @@ class EwaldDisp : public KSpace {
   void compute_energy();
   void compute_energy_peratom();
   void compute_virial();
+  void compute_virial_dipole();
   void compute_virial_peratom();
   void compute_slabcorr();
   double NewtonSolve(double, double, bigint, double, double);
@@ -128,12 +129,16 @@ Only geometric mixing is supported.
 
 E: Unsupported order in kspace_style ewald/disp
 
-Only 1/r^6 dispersion terms are supported.
+Only 1/r^6 dispersion or dipole terms are supported.
 
-E: Cannot use Ewald/disp solver on system with no charge or LJ particles
+E: Cannot (yet) use 'electron' units with dipoles
 
-No atoms in system have a non-zero charge or are LJ particles.  Change
-charges or change options of the kspace solver/pair style.
+This feature is not yet supported.
+
+E: Cannot use Ewald/disp solver on system with no charge, dipole, or LJ particles
+
+No atoms in system have a non-zero charge or dipole, or are LJ particles.  Change
+charges/dipoles or change options of the kspace solver/pair style.
 
 W: System is not charge neutral, net charge = %g
 
@@ -147,7 +152,7 @@ via the kspace_modify command.
 
 W: Ewald/disp Newton solver failed, using old method to estimate g_ewald
 
-Self-explanatory.
+Self-explanatory. Choosing a different cutoff value may help.
 
 E: KSpace accuracy too low
 

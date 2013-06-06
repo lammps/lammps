@@ -1,11 +1,11 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   www.cs.sandia.gov/~sjplimp/lammps.html
+   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under
+   certain rights in this software.  This software is distributed under 
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -13,37 +13,43 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(dipole/cut,PairDipoleCut)
+PairStyle(lj/cut/dipole/long,PairLJCutDipoleLong)
 
 #else
 
-#ifndef LMP_PAIR_DIPOLE_CUT_H
-#define LMP_PAIR_DIPOLE_CUT_H
+#ifndef LMP_PAIR_LJ_CUT_DIPOLE_LONG_H
+#define LMP_PAIR_LJ_CUT_DIPOLE_LONG_H
 
 #include "pair.h"
 
 namespace LAMMPS_NS {
 
-class PairDipoleCut : public Pair {
+class PairLJCutDipoleLong : public Pair {
  public:
-  PairDipoleCut(class LAMMPS *);
-  virtual ~PairDipoleCut();
-  virtual void compute(int, int);
+  double cut_coul;
+  double **sigma;
+
+  PairLJCutDipoleLong(class LAMMPS *);
+  ~PairLJCutDipoleLong();
+  void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
-  void init_style();
   double init_one(int, int);
+  void init_style();
   void write_restart(FILE *);
   void read_restart(FILE *);
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
 
- protected:
-  double cut_lj_global,cut_coul_global;
+ private:
+  double cut_lj_global;
   double **cut_lj,**cut_ljsq;
-  double **cut_coul,**cut_coulsq;
-  double **epsilon,**sigma;
+  double cut_coulsq;
+  double **epsilon;
   double **lj1,**lj2,**lj3,**lj4,**offset;
+  double g_ewald;
+  int ewald_order;
+  virtual void *extract(const char *, int &);
 
   void allocate();
 };
@@ -59,6 +65,10 @@ E: Incorrect args in pair_style command
 
 Self-explanatory.
 
+E: Cannot (yet) use 'electron' units with dipoles
+
+This feature is not yet supported.
+
 E: Incorrect args for pair coefficients
 
 Self-explanatory.  Check the input script or data file.
@@ -66,5 +76,9 @@ Self-explanatory.  Check the input script or data file.
 E: Pair dipole/cut requires atom attributes q, mu, torque
 
 The atom style defined does not have these attributes.
+
+E: Pair style requires a KSpace style
+
+No kspace style is defined.
 
 */

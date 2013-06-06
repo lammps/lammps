@@ -13,7 +13,7 @@
 
 #include "math.h"
 #include "stdlib.h"
-#include "pair_dipole_cut.h"
+#include "pair_lj_cut_dipole_cut.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "neigh_list.h"
@@ -21,19 +21,21 @@
 #include "force.h"
 #include "memory.h"
 #include "error.h"
+#include "update.h"
+#include "string.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairDipoleCut::PairDipoleCut(LAMMPS *lmp) : Pair(lmp)
+PairLJCutDipoleCut::PairLJCutDipoleCut(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
-PairDipoleCut::~PairDipoleCut()
+PairLJCutDipoleCut::~PairLJCutDipoleCut()
 {
   if (allocated) {
     memory->destroy(setflag);
@@ -55,7 +57,7 @@ PairDipoleCut::~PairDipoleCut()
 
 /* ---------------------------------------------------------------------- */
 
-void PairDipoleCut::compute(int eflag, int vflag)
+void PairLJCutDipoleCut::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fx,fy,fz;
@@ -259,7 +261,7 @@ void PairDipoleCut::compute(int eflag, int vflag)
    allocate all arrays
 ------------------------------------------------------------------------- */
 
-void PairDipoleCut::allocate()
+void PairLJCutDipoleCut::allocate()
 {
   allocated = 1;
   int n = atom->ntypes;
@@ -288,10 +290,13 @@ void PairDipoleCut::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairDipoleCut::settings(int narg, char **arg)
+void PairLJCutDipoleCut::settings(int narg, char **arg)
 {
   if (narg < 1 || narg > 2)
     error->all(FLERR,"Incorrect args in pair_style command");
+
+  if (strcmp(update->unit_style,"electron") == 0)
+    error->all(FLERR,"Cannot (yet) use 'electron' units with dipoles");
 
   cut_lj_global = force->numeric(arg[0]);
   if (narg == 1) cut_coul_global = cut_lj_global;
@@ -314,7 +319,7 @@ void PairDipoleCut::settings(int narg, char **arg)
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
 
-void PairDipoleCut::coeff(int narg, char **arg)
+void PairLJCutDipoleCut::coeff(int narg, char **arg)
 {
   if (narg < 4 || narg > 6)
     error->all(FLERR,"Incorrect args for pair coefficients");
@@ -351,7 +356,7 @@ void PairDipoleCut::coeff(int narg, char **arg)
    init specific to this pair style
 ------------------------------------------------------------------------- */
 
-void PairDipoleCut::init_style()
+void PairLJCutDipoleCut::init_style()
 {
   if (!atom->q_flag || !atom->mu_flag || !atom->torque_flag)
     error->all(FLERR,"Pair dipole/cut requires atom attributes q, mu, torque");
@@ -363,7 +368,7 @@ void PairDipoleCut::init_style()
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairDipoleCut::init_one(int i, int j)
+double PairLJCutDipoleCut::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) {
     epsilon[i][j] = mix_energy(epsilon[i][i],epsilon[j][j],
@@ -402,7 +407,7 @@ double PairDipoleCut::init_one(int i, int j)
    proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairDipoleCut::write_restart(FILE *fp)
+void PairLJCutDipoleCut::write_restart(FILE *fp)
 {
   write_restart_settings(fp);
 
@@ -423,7 +428,7 @@ void PairDipoleCut::write_restart(FILE *fp)
    proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairDipoleCut::read_restart(FILE *fp)
+void PairLJCutDipoleCut::read_restart(FILE *fp)
 {
   read_restart_settings(fp);
 
@@ -454,7 +459,7 @@ void PairDipoleCut::read_restart(FILE *fp)
    proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairDipoleCut::write_restart_settings(FILE *fp)
+void PairLJCutDipoleCut::write_restart_settings(FILE *fp)
 {
   fwrite(&cut_lj_global,sizeof(double),1,fp);
   fwrite(&cut_coul_global,sizeof(double),1,fp);
@@ -466,7 +471,7 @@ void PairDipoleCut::write_restart_settings(FILE *fp)
    proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairDipoleCut::read_restart_settings(FILE *fp)
+void PairLJCutDipoleCut::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
     fread(&cut_lj_global,sizeof(double),1,fp);

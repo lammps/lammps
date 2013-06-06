@@ -17,7 +17,7 @@
 
 #include "math.h"
 #include "stdlib.h"
-#include "pair_dipole_sf.h"
+#include "pair_lj_sf_dipole_sf.h"
 #include "atom.h"
 #include "neighbor.h"
 #include "neigh_list.h"
@@ -25,19 +25,21 @@
 #include "force.h"
 #include "memory.h"
 #include "error.h"
+#include "update.h"
+#include "string.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairDipoleSF::PairDipoleSF(LAMMPS *lmp) : Pair(lmp)
+PairLJSFDipoleSF::PairLJSFDipoleSF(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
-PairDipoleSF::~PairDipoleSF()
+PairLJSFDipoleSF::~PairLJSFDipoleSF()
 {
   if (allocated) {
     memory->destroy(setflag);
@@ -58,7 +60,7 @@ PairDipoleSF::~PairDipoleSF()
 
 /* ---------------------------------------------------------------------- */
 
-void PairDipoleSF::compute(int eflag, int vflag)
+void PairLJSFDipoleSF::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fx,fy,fz;
@@ -293,7 +295,7 @@ void PairDipoleSF::compute(int eflag, int vflag)
    allocate all arrays
 ------------------------------------------------------------------------- */
 
-void PairDipoleSF::allocate()
+void PairLJSFDipoleSF::allocate()
 {
   allocated = 1;
   int n = atom->ntypes;
@@ -321,10 +323,13 @@ void PairDipoleSF::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairDipoleSF::settings(int narg, char **arg)
+void PairLJSFDipoleSF::settings(int narg, char **arg)
 {
   if (narg < 1 || narg > 2)
     error->all(FLERR,"Incorrect args in pair_style command");
+
+  if (strcmp(update->unit_style,"electron") == 0)
+    error->all(FLERR,"Cannot (yet) use 'electron' units with dipoles");
 
   cut_lj_global = force->numeric(arg[0]);
   if (narg == 1) cut_coul_global = cut_lj_global;
@@ -347,7 +352,7 @@ void PairDipoleSF::settings(int narg, char **arg)
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
 
-void PairDipoleSF::coeff(int narg, char **arg)
+void PairLJSFDipoleSF::coeff(int narg, char **arg)
 {
   if (narg < 4 || narg > 6)
     error->all(FLERR,"Incorrect args for pair coefficients");
@@ -384,7 +389,7 @@ void PairDipoleSF::coeff(int narg, char **arg)
    init specific to this pair style
 ------------------------------------------------------------------------- */
 
-void PairDipoleSF::init_style()
+void PairLJSFDipoleSF::init_style()
 {
   if (!atom->q_flag || !atom->mu_flag || !atom->torque_flag)
     error->all(FLERR,"Pair dipole/sf requires atom attributes q, mu, torque");
@@ -396,7 +401,7 @@ void PairDipoleSF::init_style()
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairDipoleSF::init_one(int i, int j)
+double PairLJSFDipoleSF::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) {
     epsilon[i][j] = mix_energy(epsilon[i][i],epsilon[j][j],
@@ -429,7 +434,7 @@ double PairDipoleSF::init_one(int i, int j)
    proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairDipoleSF::write_restart(FILE *fp)
+void PairLJSFDipoleSF::write_restart(FILE *fp)
 {
   write_restart_settings(fp);
 
@@ -450,7 +455,7 @@ void PairDipoleSF::write_restart(FILE *fp)
    proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairDipoleSF::read_restart(FILE *fp)
+void PairLJSFDipoleSF::read_restart(FILE *fp)
 {
   read_restart_settings(fp);
 
@@ -481,7 +486,7 @@ void PairDipoleSF::read_restart(FILE *fp)
    proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairDipoleSF::write_restart_settings(FILE *fp)
+void PairLJSFDipoleSF::write_restart_settings(FILE *fp)
 {
   fwrite(&cut_lj_global,sizeof(double),1,fp);
   fwrite(&cut_coul_global,sizeof(double),1,fp);
@@ -492,7 +497,7 @@ void PairDipoleSF::write_restart_settings(FILE *fp)
    proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairDipoleSF::read_restart_settings(FILE *fp)
+void PairLJSFDipoleSF::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
     fread(&cut_lj_global,sizeof(double),1,fp);

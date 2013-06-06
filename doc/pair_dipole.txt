@@ -6,34 +6,54 @@
 
 :line
 
-pair_style dipole/cut command :h3
-pair_style dipole/cut/gpu command :h3
-pair_style dipole/cut/omp command :h3
-pair_style dipole/sf command :h3
-pair_style dipole/sf/gpu command :h3
-pair_style dipole/sf/omp command :h3
+pair_style lj/cut/dipole/cut command :h3
+pair_style lj/cut/dipole/cut/gpu command :h3
+pair_style lj/cut/dipole/cut/omp command :h3
+pair_style lj/sf/dipole/sf command :h3
+pair_style lj/sf/dipole/sf/gpu command :h3
+pair_style lj/sf/dipole/sf/omp command :h3
+pair_style lj/cut/dipole/long command :h3
+pair_style lj/long/dipole/long command :h3
 
 [Syntax:]
 
-pair_style dipole/cut cutoff (cutoff2) :pre
-pair_style dipole/sf cutoff (cutoff2) :pre
+pair_style lj/cut/dipole/cut cutoff (cutoff2) :pre
+pair_style lj/sf/dipole/sf cutoff (cutoff2) :pre
+pair_style lj/cut/dipole/long cutoff (cutoff2) :pre
+pair_style lj/long/dipole/long flag_lj flag_coul cutoff (cutoff2) :pre
 
-cutoff = global cutoff LJ (and Coulombic if only 1 arg) (distance units)
-cutoff2 = global cutoff for Coulombic (optional) (distance units) :ul
+cutoff = global cutoff LJ (and Coulombic if only 1 arg) (distance units) :ulb,l
+cutoff2 = global cutoff for Coulombic and dipole (optional) (distance units) :l
+flag_lj = {long} or {cut} or {off} :l
+  {long} = use long-range damping on dispersion 1/r^6 term
+  {cut} = use a cutoff on dispersion 1/r^6 term
+  {off} = omit disperion 1/r^6 term entirely :pre
+flag_coul = {long} or {off} :l
+  {long} = use long-range damping on Coulombic 1/r and point-dipole terms
+  {off} = omit Coulombic and point-dipole terms entirely :pre
+:ule
 
 [Examples:]
 
-pair_style dipole/cut 10.0
+pair_style lj/cut/dipole/cut 10.0
 pair_coeff * * 1.0 1.0 
 pair_coeff 2 3 1.0 1.0 2.5 4.0 :pre
 
-pair_style dipole/sf 9.0
+pair_style lj/sf/dipole/sf 9.0
+pair_coeff * * 1.0 1.0 
+pair_coeff 2 3 1.0 1.0 2.5 4.0 :pre
+
+pair_style lj/cut/dipole/long 10.0
+pair_coeff * * 1.0 1.0 
+pair_coeff 2 3 1.0 1.0 2.5 4.0 :pre
+
+pair_style lj/long/dipole/long long long 3.5 10.0
 pair_coeff * * 1.0 1.0 
 pair_coeff 2 3 1.0 1.0 2.5 4.0 :pre
 
 [Description:]
 
-Style {dipole/cut} computes interactions between pairs of particles
+Style {lj/cut/dipole/cut} computes interactions between pairs of particles
 that each have a charge and/or a point dipole moment.  In addition to
 the usual Lennard-Jones interaction between the particles (Elj) the
 charge-charge (Eqq), charge-dipole (Eqp), and dipole-dipole (Epp)
@@ -50,17 +70,17 @@ and force, Fij = -Fji as symmetric forces, and Tij != -Tji since the
 torques do not act symmetrically.  These formulas are discussed in
 "(Allen)"_#Allen and in "(Toukmaji)"_#Toukmaji.
 
-Style {dipole/sf} computes "shifted-force" interactions between pairs
-of particles that each have a charge and/or a point dipole moment. In
-general, a shifted-force potential is a (sligthly) modified potential
-containing extra terms that make both the energy and its derivative go
-to zero at the cutoff distance; this removes (cutoff-related) problems
-in energy conservation and any numerical instability in the equations
-of motion "(Allen)"_#Allen. Shifted-force interactions for the
-Lennard-Jones (E_LJ), charge-charge (Eqq), charge-dipole (Eqp),
-dipole-charge (Epq) and dipole-dipole (Epp) potentials are computed by
-these formulas for the energy (E), force (F), and torque (T) between
-particles I and J:
+Style {lj/sf/dipole/sf} computes "shifted-force" interactions between
+pairs of particles that each have a charge and/or a point dipole
+moment. In general, a shifted-force potential is a (sligthly) modified
+potential containing extra terms that make both the energy and its
+derivative go to zero at the cutoff distance; this removes
+(cutoff-related) problems in energy conservation and any numerical
+instability in the equations of motion "(Allen)"_#Allen. Shifted-force
+interactions for the Lennard-Jones (E_LJ), charge-charge (Eqq),
+charge-dipole (Eqp), dipole-charge (Epq) and dipole-dipole (Epp)
+potentials are computed by these formulas for the energy (E), force
+(F), and torque (T) between particles I and J:
 
 :c,image(Eqs/pair_dipole_sf.jpg)
 :c,image(Eqs/pair_dipole_sf2.jpg)
@@ -85,9 +105,40 @@ both the LJ and Coulombic (q,p) terms.  If two cutoffs are specified,
 they are used as cutoffs for the LJ and Coulombic (q,p) terms
 respectively.
 
+Style {lj/cut/dipole/long} computes long-range point-dipole
+interactions as discussed in "(Toukmaji)"_#Toukmaji. Dipole-dipole,
+dipole-charge, and charge-charge interactions are all supported, along
+with the standard 12/6 Lennard-Jones interactions, which are computed
+with a cutoff.  A "kspace_style"_kspace_style.html must be defined to
+use this pair style.  Currently, only "kspace_style
+ewald/disp"_kspace_style.html support long-range point-dipole
+interactions.
+
+Style {lj/long/dipole/long} also computes point-dipole interactions as
+discussed in "(Toukmaji)"_#Toukmaji. Long-range dipole-dipole,
+dipole-charge, and charge-charge interactions are all supported, along
+with the standard 12/6 Lennard-Jones interactions. LJ interactions can
+be cutoff or long-ranged.
+
+For style {lj/long/dipole/long}, if {flag_lj} is set to {long}, no
+cutoff is used on the LJ 1/r^6 dispersion term.  The long-range
+portion is calculated by using the "kspace_style
+ewald_disp"_kspace_style.html command.  The specified LJ cutoff then
+determines which portion of the LJ interactions are computed directly
+by the pair potential versus which part is computed in reciprocal
+space via the Kspace style.  If {flag_lj} is set to {cut}, the LJ
+interactions are simply cutoff, as with "pair_style
+lj/cut"_pair_lj.html. If {flag_coul} is set to {long}, no cutoff is
+used on the Coulombic or dipole interactions.  The long-range portion
+is calculated by using {ewald_disp} of the
+"kspace_style"_kspace_style.html command. If {flag_coul} is set to
+{off}, Coulombic and dipole interactions are not computed at all.
+
 Atoms with dipole moments should be integrated using the "fix
 nve/sphere update dipole"_fix_nve_sphere.html command to rotate the
-dipole moments.  The "compute temp/sphere"_compute_temp_sphere.html
+dipole moments.  The {omega} option on the "fix
+langevin"_fix_langevin.html command can be used to thermostat the
+rotational motion.  The "compute temp/sphere"_compute_temp_sphere.html
 command can be used to monitor the temperature, since it includes
 rotational degrees of freedom.  The "atom_style
 dipole"_atom_style.html command should be used since it defines the
@@ -173,13 +224,17 @@ This pair style can only be used via the {pair} keyword of the
 
 [Restrictions:]
 
-The {dipole/cut} style is part of the DIPOLE package.  It is only
-enabled if LAMMPS was built with that package.  See the "Making
+The {lj/cut/dipole/cut}, {lj/cut/dipole/long}, and
+{lj/long/dipole/long} styles are part of the DIPOLE package.  They are
+only enabled if LAMMPS was built with that package.  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info.
 
-The {dipole/sf} style is part of the USER-MISC package.  It is only
-enabled if LAMMPS was built with that package.  See the "Making
+The {lj/sf/dipole/sf} style is part of the USER-MISC package.  It is
+only enabled if LAMMPS was built with that package.  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info.
+
+Using dipole pair styles with {electron} "units"_units.html is not
+currently supported.
 
 [Related commands:]
 

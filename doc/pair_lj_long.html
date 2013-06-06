@@ -25,9 +25,10 @@
 <LI>args = list of arguments for a particular style 
 </UL>
 <PRE>  <I>lj/long/coul/long</I> args = flag_lj flag_coul cutoff (cutoff2)
-    flag_lj = <I>long</I> or <I>cut</I>
+    flag_lj = <I>long</I> or <I>cut</I> or <I>off</I>
       <I>long</I> = use Kspace long-range summation for dispersion 1/r^6 term
-      <I>cut</I> = use a cutoff
+      <I>cut</I> = use a cutoff on dispersion 1/r^6 term
+      <I>off</I> = omit disperion 1/r^6 term entirely
     flag_coul = <I>long</I> or <I>off</I>
       <I>long</I> = use Kspace long-range summation for Coulombic 1/r term
       <I>off</I> = omit Coulombic term

@@ -9,40 +9,70 @@
 
 <HR>
 
-<H3>pair_style dipole/cut command 
+<H3>pair_style lj/cut/dipole/cut command 
 </H3>
-<H3>pair_style dipole/cut/gpu command 
+<H3>pair_style lj/cut/dipole/cut/gpu command 
 </H3>
-<H3>pair_style dipole/cut/omp command 
+<H3>pair_style lj/cut/dipole/cut/omp command 
 </H3>
-<H3>pair_style dipole/sf command 
+<H3>pair_style lj/sf/dipole/sf command 
 </H3>
-<H3>pair_style dipole/sf/gpu command 
+<H3>pair_style lj/sf/dipole/sf/gpu command 
 </H3>
-<H3>pair_style dipole/sf/omp command 
+<H3>pair_style lj/sf/dipole/sf/omp command 
+</H3>
+<H3>pair_style lj/cut/dipole/long command 
+</H3>
+<H3>pair_style lj/long/dipole/long command 
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>pair_style dipole/cut cutoff (cutoff2) 
+<PRE>pair_style lj/cut/dipole/cut cutoff (cutoff2) 
 </PRE>
-<PRE>pair_style dipole/sf cutoff (cutoff2) 
+<PRE>pair_style lj/sf/dipole/sf cutoff (cutoff2) 
 </PRE>
-<UL><LI>cutoff = global cutoff LJ (and Coulombic if only 1 arg) (distance units)
-<LI>cutoff2 = global cutoff for Coulombic (optional) (distance units) 
+<PRE>pair_style lj/cut/dipole/long cutoff (cutoff2) 
+</PRE>
+<PRE>pair_style lj/long/dipole/long flag_lj flag_coul cutoff (cutoff2) 
+</PRE>
+<UL><LI>cutoff = global cutoff LJ (and Coulombic if only 1 arg) (distance units) 
+
+<LI>cutoff2 = global cutoff for Coulombic and dipole (optional) (distance units) 
+
+<LI>flag_lj = <I>long</I> or <I>cut</I> or <I>off</I> 
+
+<PRE>  <I>long</I> = use long-range damping on dispersion 1/r^6 term
+  <I>cut</I> = use a cutoff on dispersion 1/r^6 term
+  <I>off</I> = omit disperion 1/r^6 term entirely 
+</PRE>
+<LI>flag_coul = <I>long</I> or <I>off</I> 
+
+<PRE>  <I>long</I> = use long-range damping on Coulombic 1/r and point-dipole terms
+  <I>off</I> = omit Coulombic and point-dipole terms entirely 
+</PRE>
+
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>pair_style dipole/cut 10.0
+<PRE>pair_style lj/cut/dipole/cut 10.0
 pair_coeff * * 1.0 1.0 
 pair_coeff 2 3 1.0 1.0 2.5 4.0 
 </PRE>
-<PRE>pair_style dipole/sf 9.0
+<PRE>pair_style lj/sf/dipole/sf 9.0
+pair_coeff * * 1.0 1.0 
+pair_coeff 2 3 1.0 1.0 2.5 4.0 
+</PRE>
+<PRE>pair_style lj/cut/dipole/long 10.0
+pair_coeff * * 1.0 1.0 
+pair_coeff 2 3 1.0 1.0 2.5 4.0 
+</PRE>
+<PRE>pair_style lj/long/dipole/long long long 3.5 10.0
 pair_coeff * * 1.0 1.0 
 pair_coeff 2 3 1.0 1.0 2.5 4.0 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Style <I>dipole/cut</I> computes interactions between pairs of particles
+<P>Style <I>lj/cut/dipole/cut</I> computes interactions between pairs of particles
 that each have a charge and/or a point dipole moment.  In addition to
 the usual Lennard-Jones interaction between the particles (Elj) the
 charge-charge (Eqq), charge-dipole (Eqp), and dipole-dipole (Epp)
@@ -59,17 +89,17 @@ and force, Fij = -Fji as symmetric forces, and Tij != -Tji since the
 torques do not act symmetrically.  These formulas are discussed in
 <A HREF = "#Allen">(Allen)</A> and in <A HREF = "#Toukmaji">(Toukmaji)</A>.
 </P>
-<P>Style <I>dipole/sf</I> computes "shifted-force" interactions between pairs
-of particles that each have a charge and/or a point dipole moment. In
-general, a shifted-force potential is a (sligthly) modified potential
-containing extra terms that make both the energy and its derivative go
-to zero at the cutoff distance; this removes (cutoff-related) problems
-in energy conservation and any numerical instability in the equations
-of motion <A HREF = "#Allen">(Allen)</A>. Shifted-force interactions for the
-Lennard-Jones (E_LJ), charge-charge (Eqq), charge-dipole (Eqp),
-dipole-charge (Epq) and dipole-dipole (Epp) potentials are computed by
-these formulas for the energy (E), force (F), and torque (T) between
-particles I and J:
+<P>Style <I>lj/sf/dipole/sf</I> computes "shifted-force" interactions between
+pairs of particles that each have a charge and/or a point dipole
+moment. In general, a shifted-force potential is a (sligthly) modified
+potential containing extra terms that make both the energy and its
+derivative go to zero at the cutoff distance; this removes
+(cutoff-related) problems in energy conservation and any numerical
+instability in the equations of motion <A HREF = "#Allen">(Allen)</A>. Shifted-force
+interactions for the Lennard-Jones (E_LJ), charge-charge (Eqq),
+charge-dipole (Eqp), dipole-charge (Epq) and dipole-dipole (Epp)
+potentials are computed by these formulas for the energy (E), force
+(F), and torque (T) between particles I and J:
 </P>
 <CENTER><IMG SRC = "Eqs/pair_dipole_sf.jpg">
 </CENTER>
@@ -95,9 +125,40 @@ both the LJ and Coulombic (q,p) terms.  If two cutoffs are specified,
 they are used as cutoffs for the LJ and Coulombic (q,p) terms
 respectively.
 </P>
+<P>Style <I>lj/cut/dipole/long</I> computes long-range point-dipole
+interactions as discussed in <A HREF = "#Toukmaji">(Toukmaji)</A>. Dipole-dipole,
+dipole-charge, and charge-charge interactions are all supported, along
+with the standard 12/6 Lennard-Jones interactions, which are computed
+with a cutoff.  A <A HREF = "kspace_style.html">kspace_style</A> must be defined to
+use this pair style.  Currently, only <A HREF = "kspace_style.html">kspace_style
+ewald/disp</A> support long-range point-dipole
+interactions.
+</P>
+<P>Style <I>lj/long/dipole/long</I> also computes point-dipole interactions as
+discussed in <A HREF = "#Toukmaji">(Toukmaji)</A>. Long-range dipole-dipole,
+dipole-charge, and charge-charge interactions are all supported, along
+with the standard 12/6 Lennard-Jones interactions. LJ interactions can
+be cutoff or long-ranged.
+</P>
+<P>For style <I>lj/long/dipole/long</I>, if <I>flag_lj</I> is set to <I>long</I>, no
+cutoff is used on the LJ 1/r^6 dispersion term.  The long-range
+portion is calculated by using the <A HREF = "kspace_style.html">kspace_style
+ewald_disp</A> command.  The specified LJ cutoff then
+determines which portion of the LJ interactions are computed directly
+by the pair potential versus which part is computed in reciprocal
+space via the Kspace style.  If <I>flag_lj</I> is set to <I>cut</I>, the LJ
+interactions are simply cutoff, as with <A HREF = "pair_lj.html">pair_style
+lj/cut</A>. If <I>flag_coul</I> is set to <I>long</I>, no cutoff is
+used on the Coulombic or dipole interactions.  The long-range portion
+is calculated by using <I>ewald_disp</I> of the
+<A HREF = "kspace_style.html">kspace_style</A> command. If <I>flag_coul</I> is set to
+<I>off</I>, Coulombic and dipole interactions are not computed at all.
+</P>
 <P>Atoms with dipole moments should be integrated using the <A HREF = "fix_nve_sphere.html">fix
 nve/sphere update dipole</A> command to rotate the
-dipole moments.  The <A HREF = "compute_temp_sphere.html">compute temp/sphere</A>
+dipole moments.  The <I>omega</I> option on the <A HREF = "fix_langevin.html">fix
+langevin</A> command can be used to thermostat the
+rotational motion.  The <A HREF = "compute_temp_sphere.html">compute temp/sphere</A>
 command can be used to monitor the temperature, since it includes
 rotational degrees of freedom.  The <A HREF = "atom_style.html">atom_style
 dipole</A> command should be used since it defines the
@@ -183,13 +244,17 @@ to be specified in an input script that reads a restart file.
 </P>
 <P><B>Restrictions:</B>
 </P>
-<P>The <I>dipole/cut</I> style is part of the DIPOLE package.  It is only
-enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+<P>The <I>lj/cut/dipole/cut</I>, <I>lj/cut/dipole/long</I>, and
+<I>lj/long/dipole/long</I> styles are part of the DIPOLE package.  They are
+only enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
 LAMMPS</A> section for more info.
 </P>
-<P>The <I>dipole/sf</I> style is part of the USER-MISC package.  It is only
-enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+<P>The <I>lj/sf/dipole/sf</I> style is part of the USER-MISC package.  It is
+only enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
 LAMMPS</A> section for more info.
+</P>
+<P>Using dipole pair styles with <I>electron</I> <A HREF = "units.html">units</A> is not
+currently supported.
 </P>
 <P><B>Related commands:</B>
 </P>

@@ -126,7 +126,7 @@ Particle and model types :h4
   coarse-grained mesoscale models
   finite-size spherical and ellipsoidal particles
   finite-size  line segment (2d) and triangle (3d) particles
-  point dipolar particles
+  point dipole particles
   rigid collections of particles
   hybrid combinations of these :ul
 
@@ -140,7 +140,8 @@ commands)
     Yukawa, soft, class 2 (COMPASS), hydrogen bond, tabulated
   charged pairwise potentials: Coulombic, point-dipole
   manybody potentials: EAM, Finnis/Sinclair EAM, modified EAM (MEAM), \
-    embedded ion method (EIM), EDIP, ADP, Stillinger-Weber, Tersoff, REBO, AIREBO, ReaxFF, COMB
+    embedded ion method (EIM), EDIP, ADP, Stillinger-Weber, Tersoff, \
+    REBO, AIREBO, ReaxFF, COMB
   electron force field (eFF, AWPMD)
   coarse-grained potentials: DPD, GayBerne, REsquared, colloidal, DLVO
   mesoscopic potentials: granular, Peridynamics, SPH
@@ -155,9 +156,10 @@ commands)
   water potentials: TIP3P, TIP4P, SPC
   implicit solvent potentials: hydrodynamic lubrication, Debye
   "KIM archive"_http://openkim.org of potentials
-  long-range Coulombics and dispersion: Ewald, Wolf, \
-    PPPM (similar to particle-mesh Ewald), Ewald/N for long-range Lennard-Jones
-  force-field compatibility with common CHARMM, AMBER, DREIDING, OPLS, GROMACS, COMPASS options
+  long-range interactions for charge, point-dipoles, and LJ dispersion: \
+    Ewald, Wolf, PPPM (similar to particle-mesh Ewald)
+  force-field compatibility with common CHARMM, AMBER, DREIDING, \
+    OPLS, GROMACS, COMPASS options
   handful of GPU-enabled pair styles
   hybrid potentials: multiple pair, bond, angle, dihedral, improper \
     potentials can be used in one simulation

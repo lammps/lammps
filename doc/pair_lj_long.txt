@@ -18,9 +18,10 @@ pair_style style args :pre
 style = {lj/long/coul/long} or {lj/long/tip4p/long}
 args = list of arguments for a particular style :ul
   {lj/long/coul/long} args = flag_lj flag_coul cutoff (cutoff2)
-    flag_lj = {long} or {cut}
+    flag_lj = {long} or {cut} or {off}
       {long} = use Kspace long-range summation for dispersion 1/r^6 term
-      {cut} = use a cutoff
+      {cut} = use a cutoff on dispersion 1/r^6 term
+      {off} = omit disperion 1/r^6 term entirely
     flag_coul = {long} or {off}
       {long} = use Kspace long-range summation for Coulombic 1/r term
       {off} = omit Coulombic term

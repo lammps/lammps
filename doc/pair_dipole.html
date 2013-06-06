@@ -134,8 +134,8 @@ interactions.
 <P>Style <I>lj/long/dipole/long</I> also computes point-dipole interactions as
 discussed in <A HREF = "#Toukmaji">(Toukmaji)</A>. Long-range dipole-dipole,
 dipole-charge, and charge-charge interactions are all supported, along
-with the standard 12/6 Lennard-Jones interactions. LJ interactions can
-be cutoff or long-ranged.
+with the standard 12/6 Lennard-Jones interactions.  LJ interactions
+can be cutoff or long-ranged.
 </P>
 <P>For style <I>lj/long/dipole/long</I>, if <I>flag_lj</I> is set to <I>long</I>, no
 cutoff is used on the LJ 1/r^6 dispersion term.  The long-range
@@ -145,11 +145,14 @@ determines which portion of the LJ interactions are computed directly
 by the pair potential versus which part is computed in reciprocal
 space via the Kspace style.  If <I>flag_lj</I> is set to <I>cut</I>, the LJ
 interactions are simply cutoff, as with <A HREF = "pair_lj.html">pair_style
-lj/cut</A>. If <I>flag_coul</I> is set to <I>long</I>, no cutoff is
-used on the Coulombic or dipole interactions.  The long-range portion
-is calculated by using <I>ewald_disp</I> of the
-<A HREF = "kspace_style.html">kspace_style</A> command. If <I>flag_coul</I> is set to
-<I>off</I>, Coulombic and dipole interactions are not computed at all.
+lj/cut</A>.  If <I>flag_lj</I> is set to <I>off</I>, LJ interactions
+are not computed at all.
+</P>
+<P>If <I>flag_coul</I> is set to <I>long</I>, no cutoff is used on the Coulombic or
+dipole interactions.  The long-range portion is calculated by using
+<I>ewald_disp</I> of the <A HREF = "kspace_style.html">kspace_style</A> command. If
+<I>flag_coul</I> is set to <I>off</I>, Coulombic and dipole interactions are not
+computed at all.
 </P>
 <P>Atoms with dipole moments should be integrated using the <A HREF = "fix_nve_sphere.html">fix
 nve/sphere update dipole</A> command to rotate the

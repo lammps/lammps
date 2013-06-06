@@ -121,7 +121,7 @@ void ComputeStressAtom::compute_peratom()
   if (force->newton) npair += atom->nghost;
   if (force->newton_bond) nbond += atom->nghost;
   if (force->newton) ntotal += atom->nghost;
-  if (force->kspace->tip4pflag) nkspace += atom->nghost;
+  if (force->kspace && force->kspace->tip4pflag) nkspace += atom->nghost;
 
   // clear local stress array
 

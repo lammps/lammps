@@ -161,9 +161,9 @@ E: Kspace style requires atom attribute q
 
 The atom style defined does not have these attributes.
 
-E: Slab correction not needed for MSM
+W: Slab correction not needed for MSM
 
-Slab correction can only be used with Ewald and PPPM and is not needed by MSM.
+Slab correction is intended to be used with Ewald or PPPM and is not needed by MSM.
 
 E: MSM order must be 4, 6, 8, or 10
 

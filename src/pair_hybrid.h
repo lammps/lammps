@@ -54,6 +54,8 @@ class PairHybrid : public Pair {
   int check_ijtype(int, int, char *);
 
  protected:
+  int outerflag;                // toggle compute() when invoked by outer()
+
   int **nmap;                   // # of sub-styles itype,jtype points to
   int ***map;                   // list of sub-styles itype,jtype points to
 

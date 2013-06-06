@@ -61,7 +61,7 @@ class FixLangevin : public Fix {
   int maxatom1,maxatom2;
   double **flangevin;
   double *tforce;
-  double **franprev, **array;
+  double **franprev;
   int nvalues;
 
   char *id_temp;

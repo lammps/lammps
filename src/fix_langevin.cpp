@@ -160,7 +160,7 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
 
   if (gjfflag) {
     nvalues = 3;
-    grow_arrays(atom->nlocal);
+    grow_arrays(atom->nmax);
     atom->add_callback(0);
 
   // initialize franprev to zero
@@ -308,10 +308,10 @@ void FixLangevin::post_force(int vflag)
 	if (tbiasflag == BIAS)
 	  if (rmass)
 	    if (zeroflag) post_force_templated<1,1,1,1,1,1>();
-	    else          post_force_templated<1,1,1,1,1,0>();
+            else          post_force_templated<1,1,1,1,1,0>();
 	  else
 	    if (zeroflag) post_force_templated<1,1,1,1,0,1>();
-	    else          post_force_templated<1,1,1,1,0,0>();
+            else          post_force_templated<1,1,1,1,0,0>();
 	else
 	  if (rmass)
 	    if (zeroflag) post_force_templated<1,1,1,0,1,1>();
@@ -884,9 +884,7 @@ double FixLangevin::memory_usage()
 
 void FixLangevin::grow_arrays(int nmax)
 {
-  if (!gjfflag) return;
   memory->grow(franprev,nmax,3,"fix_langevin:franprev");
-  array = franprev;
 }
 
 /* ----------------------------------------------------------------------
@@ -896,7 +894,7 @@ void FixLangevin::grow_arrays(int nmax)
 void FixLangevin::copy_arrays(int i, int j, int delflag)
 {
   for (int m = 0; m < nvalues; m++)
-    array[j][m] = array[i][m];
+    franprev[j][m] = franprev[i][m];
 }
 
 /* ----------------------------------------------------------------------
@@ -905,7 +903,7 @@ void FixLangevin::copy_arrays(int i, int j, int delflag)
 
 int FixLangevin::pack_exchange(int i, double *buf)
 {
-  for (int m = 0; m < nvalues; m++) buf[m] = array[i][m];
+  for (int m = 0; m < nvalues; m++) buf[m] = franprev[i][m];
   return nvalues;
 }
 
@@ -915,7 +913,6 @@ int FixLangevin::pack_exchange(int i, double *buf)
 
 int FixLangevin::unpack_exchange(int nlocal, double *buf)
 {
-  for (int m = 0; m < nvalues; m++) array[nlocal][m] = buf[m];
+  for (int m = 0; m < nvalues; m++) franprev[nlocal][m] = buf[m];
   return nvalues;
 }
-

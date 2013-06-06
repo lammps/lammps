@@ -17,9 +17,9 @@ pair_style lj/long/dipole/long command :h3
 
 [Syntax:]
 
-pair_style lj/cut/dipole/cut cutoff (cutoff2) :pre
-pair_style lj/sf/dipole/sf cutoff (cutoff2) :pre
-pair_style lj/cut/dipole/long cutoff (cutoff2) :pre
+pair_style lj/cut/dipole/cut cutoff (cutoff2)
+pair_style lj/sf/dipole/sf cutoff (cutoff2)
+pair_style lj/cut/dipole/long cutoff (cutoff2)
 pair_style lj/long/dipole/long flag_lj flag_coul cutoff (cutoff2) :pre
 
 cutoff = global cutoff LJ (and Coulombic if only 1 arg) (distance units) :ulb,l

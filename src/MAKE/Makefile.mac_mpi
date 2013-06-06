@@ -8,12 +8,12 @@ SHELL = /bin/sh
 # unless additional compiler/linker flags or libraries needed for your machine
 
 CC =		${MPI_GCC46_PATH}/mpic++
-CCFLAGS =	-O
+CCFLAGS =	-O3 
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
 LINK =		${MPI_GCC46_PATH}/mpic++
-LINKFLAGS =	-O
+LINKFLAGS =	-O3
 LIB =           
 SIZE =		size
 
@@ -29,7 +29,7 @@ SHLIBFLAGS =	-shared
 # LAMMPS ifdef settings, OPTIONAL
 # see possible settings in doc/Section_start.html#2_2 (step 4)
 
-LMP_INC =	-DLAMMPS_GZIP -DQUIP_GFORTRAN
+LMP_INC =	-DLAMMPS_GZIP -DQUIP_GFORTRAN -DLAMMPS_JPEG
 
 # MPI library, REQUIRED
 # see discussion in doc/Section_start.html#2_2 (step 5)

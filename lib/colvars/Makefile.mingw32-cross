@@ -29,10 +29,13 @@ EXE = #colvars_standalone
 
 # ------ MAKE PROCEDURE ------
 
-default: $(DIR) $(LIB) $(EXE)
+default: $(DIR) $(LIB) $(EXE) Makefile.lammps
 
 $(DIR):
 	mkdir $(DIR)
+
+Makefile.lammps:
+	@cp $(EXTRAMAKE) Makefile.lammps
 
 $(LIB): $(DIR)	$(OBJ)
 	$(ARCHIVE) $(ARFLAGS) $(LIB) $(OBJ)

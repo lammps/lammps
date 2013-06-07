@@ -1,4 +1,8 @@
-# library build makefile for colvars module
+# library build -*- makefile -*- for colvars module
+
+# which file will be copied to Makefile.lammps
+
+EXTRAMAKE = Makefile.lammps.empty
 
 # ------ SETTINGS ------
 
@@ -13,9 +17,9 @@ SHELL =		/bin/sh
 
 # ------ DEFINITIONS ------
 
-SRC = colvaratoms.cpp colvarbias_abf.cpp colvarbias.cpp colvarbias_meta.cpp	\
- colvar.cpp colvarcomp_angles.cpp colvarcomp.cpp colvarcomp_coordnums.cpp	\
- colvarcomp_distances.cpp colvarcomp_protein.cpp colvarcomp_rotations.cpp	\
+SRC = colvaratoms.cpp colvarbias_abf.cpp colvarbias.cpp colvarbias_meta.cpp \
+ colvar.cpp colvarcomp_angles.cpp colvarcomp.cpp colvarcomp_coordnums.cpp   \
+ colvarcomp_distances.cpp colvarcomp_protein.cpp colvarcomp_rotations.cpp   \
  colvargrid.cpp colvarmodule.cpp colvarparse.cpp colvarvalue.cpp
 
 DIR = Obj_mingw64/
@@ -25,10 +29,13 @@ EXE = #colvars_standalone
 
 # ------ MAKE PROCEDURE ------
 
-default: $(DIR) $(LIB) $(EXE)
+default: $(DIR) $(LIB) $(EXE) Makefile.lammps
 
 $(DIR):
 	mkdir $(DIR)
+
+Makefile.lammps:
+	@cp $(EXTRAMAKE) Makefile.lammps
 
 $(LIB): $(DIR)	$(OBJ)
 	$(ARCHIVE) $(ARFLAGS) $(LIB) $(OBJ)
@@ -99,4 +106,4 @@ $(DIR)colvarvalue.o: colvarvalue.cpp colvarmodule.h colvartypes.h colvarproxy.h 
 
 clean:
 	-rm $(DIR)*.o *~ $(LIB)
-
+	-rmdir $(DIR)

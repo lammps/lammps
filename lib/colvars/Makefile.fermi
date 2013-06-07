@@ -26,11 +26,13 @@ EXE = #colvars_standalone
 
 # ------ MAKE PROCEDURE ------
 
-default: $(LIB) $(EXE)
+default: $(LIB) $(EXE) Makefile.lammps
+
+Makefile.lammps:
+	@cp $(EXTRAMAKE) Makefile.lammps
 
 $(LIB):	$(OBJ)
 	$(ARCHIVE) $(ARFLAGS) $(LIB) $(OBJ)
-	@cp $(EXTRAMAKE) Makefile.lammps
 
 colvars_standalone: colvars_main.o colvarproxy_standalone.o $(LIB)
 	$(CXX) -o $@ $(CXXFLAGS) $^

@@ -4,6 +4,16 @@ that allows enhanced sampling in molecular dynamics simulations.
 The module is written to maximize performance, portability,
 flexibility of usage for the user, and extensibility for the developer.
 
+The development of the colvars library is now hosted on github at:
+https://github.com/colvars/colvars
+You can use this site to get access to the latest development sources.
+
+The detailed documentation is at:
+https://github.com/colvars/colvars/blob/master/doc/colvars-refman-lammps.pdf
+
+Please report bugs and request new features at:
+https://github.com/colvars/colvars/issues
+
 The following publication describes the principles of
 the implementation of this library:
 

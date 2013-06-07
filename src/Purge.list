@@ -13,6 +13,17 @@ style_kspace.h
 style_minimize.h
 style_pair.h
 style_region.h
+# deleted on Thu Jun 6 15:19:12 2013 +0000
+pair_dipole_cut.h
+pair_dipole_cut.cpp
+pair_dipole_cut_gpu.h
+pair_dipole_cut_gpu.cpp
+pair_dipole_cut_omp.h
+pair_dipole_cut_omp.cpp
+pair_dipole_sf.h
+pair_dipole_sf.cpp
+pair_dipole_sf_omp.h
+pair_dipole_sf_omp.cpp
 # deleted on Wed May 8 15:24:36 2013 +0000
 compute_spec_atom.cpp
 compute_spec_atom.h

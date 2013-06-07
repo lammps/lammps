@@ -100,6 +100,8 @@ any solid-state physics text.
 but in a more efficient manner than the <I>ewald</I> style.  The 1/r^6
 capability means that Lennard-Jones or Buckingham potentials can be
 used without a cutoff, i.e. they become full long-range potentials.
+The <I>ewald/disp</I> style can also be used with point-dipoles <A HREF = "#Toukmaji">(Toukmaji)</A>
+and is currently the only kspace solver in LAMMPS with this capability.
 </P>
 <HR>
 
@@ -214,7 +216,8 @@ errors in K-space for <I>pppm</I> are estimated using equation 38 of
 using ideas from chapter 3 of <A HREF = "#Hardy">(Hardy)</A>, with equation 3.197
 of particular note. When using <I>msm</I> with non-periodic boundary 
 conditions, it is expected that the error estimation will be too
-pessimistic.
+pessimistic. RMS force errors for dipoles when using <I>ewald/disp</I>
+are estimated using equations 33 and 46 of <A HREF = "#Wang">(Wang)</A>.
 </P>
 <P>See the <A HREF = "kspace_modify.html">kspace_modify</A> command for additional
 options of the K-space solvers that can be set, including a <I>force</I>
@@ -249,6 +252,10 @@ section for more info.
 more instructions on how to use the accelerated styles effectively.
 </P>
 <P><B>Restrictions:</B>
+</P>
+<P>Note that the long-range electrostatic solvers in LAMMPS assume conducting
+metal (tinfoil) boundary conditions for both charge and dipole
+interactions. Vacuum boundary conditions are not currently supported.
 </P>
 <P>The <I>ewald/disp</I>, <I>ewald</I>, <I>pppm</I>, and <I>msm</I> styles support 
 non-orthogonal (triclinic symmetry) simulation boxes. However, triclinic
@@ -303,13 +310,22 @@ Adam Hilger, NY (1989).
 
 <P><B>(Petersen)</B> Petersen, J Chem Phys, 103, 3668 (1995).
 </P>
+<A NAME = "Wang"></A>
+
+<P><B>(Wang)</B> Wang and Holm, J Chem Phys, 115, 6277 (2001).
+</P>
 <A NAME = "Pollock"></A>
 
 <P><B>(Pollock)</B> Pollock and Glosli, Comp Phys Comm, 95, 93 (1996).
 </P>
 <A NAME = "Veld"></A>
 
-<P><B>(Veld)</B> In 't Veld, Ismail, Grest, J Chem Phys, in press (2007).
+<P><B>(Veld)</B> In 't Veld, Ismail, Grest, J Chem Phys, 127, 144711 (2007).
+</P>
+<A NAME = "Toukmaji"></A>
+
+<P><B>(Toukmaji)</B> Toukmaji, Sagui, Board, and Darden, J Chem Phys, 113,
+10913 (2000).
 </P>
 <A NAME = "Isele-Holder"></A>
 

@@ -25,9 +25,10 @@
 <LI>args = list of arguments for a particular style 
 </UL>
 <PRE>  <I>lj/long/coul/long</I> args = flag_lj flag_coul cutoff (cutoff2)
-    flag_lj = <I>long</I> or <I>cut</I>
+    flag_lj = <I>long</I> or <I>cut</I> or <I>off</I>
       <I>long</I> = use Kspace long-range summation for dispersion 1/r^6 term
-      <I>cut</I> = use a cutoff
+      <I>cut</I> = use a cutoff on dispersion 1/r^6 term
+      <I>off</I> = omit disperion 1/r^6 term entirely
     flag_coul = <I>long</I> or <I>off</I>
       <I>long</I> = use Kspace long-range summation for Coulombic 1/r term
       <I>off</I> = omit Coulombic term
@@ -112,15 +113,16 @@ cutoff then determines which portion of the LJ interactions are
 computed directly by the pair potential versus which part is computed
 in reciprocal space via the Kspace style.  If <I>flag_lj</I> is set to
 <I>cut</I>, the LJ interactions are simply cutoff, as with <A HREF = "pair_lj.html">pair_style
-lj/cut</A>.
+lj/cut</A>.  If <I>flag_lj</I> is set to
+<I>off</I>, LJ interactions are not computed at all.
 </P>
 <P>If <I>flag_coul</I> is set to <I>long</I>, no cutoff is used on the Coulombic
 interactions.  The long-range portion is calculated by using any
 style, including <I>ewald/n</I> of the <A HREF = "kspace_style.html">kspace_style</A>
 command.  Note that if <I>flag_lj</I> is also set to long, then only the
-<I>ewald/n</I> Kspace style can perform the long-range calculations for
+<I>ewald/n</I> KSpace style can perform the long-range calculations for
 both the LJ and Coulombic interactions.  If <I>flag_coul</I> is set to
-<I>off</I>, Coulombic interactions are not computed.
+<I>off</I>, Coulombic interactions are not computed at all.
 </P>
 <P>The following coefficients must be defined for each pair of atoms
 types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples

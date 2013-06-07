@@ -93,6 +93,8 @@ The {ewald/disp} style adds a long-range dispersion sum option for
 but in a more efficient manner than the {ewald} style.  The 1/r^6
 capability means that Lennard-Jones or Buckingham potentials can be
 used without a cutoff, i.e. they become full long-range potentials.
+The {ewald/disp} style can also be used with point-dipoles "(Toukmaji)"_#Toukmaji
+and is currently the only kspace solver in LAMMPS with this capability.
 
 :line
 
@@ -207,7 +209,8 @@ errors in K-space for {pppm} are estimated using equation 38 of
 using ideas from chapter 3 of "(Hardy)"_#Hardy, with equation 3.197
 of particular note. When using {msm} with non-periodic boundary 
 conditions, it is expected that the error estimation will be too
-pessimistic.
+pessimistic. RMS force errors for dipoles when using {ewald/disp}
+are estimated using equations 33 and 46 of "(Wang)"_#Wang.
 
 See the "kspace_modify"_kspace_modify.html command for additional
 options of the K-space solvers that can be set, including a {force}
@@ -242,6 +245,10 @@ See "Section_accelerate"_Section_accelerate.html of the manual for
 more instructions on how to use the accelerated styles effectively.
 
 [Restrictions:]
+
+Note that the long-range electrostatic solvers in LAMMPS assume conducting
+metal (tinfoil) boundary conditions for both charge and dipole
+interactions. Vacuum boundary conditions are not currently supported.
 
 The {ewald/disp}, {ewald}, {pppm}, and {msm} styles support 
 non-orthogonal (triclinic symmetry) simulation boxes. However, triclinic
@@ -291,11 +298,18 @@ Adam Hilger, NY (1989).
 :link(Petersen)
 [(Petersen)] Petersen, J Chem Phys, 103, 3668 (1995).
 
+:link(Wang)
+[(Wang)] Wang and Holm, J Chem Phys, 115, 6277 (2001).
+
 :link(Pollock)
 [(Pollock)] Pollock and Glosli, Comp Phys Comm, 95, 93 (1996).
 
 :link(Veld)
-[(Veld)] In 't Veld, Ismail, Grest, J Chem Phys, in press (2007).
+[(Veld)] In 't Veld, Ismail, Grest, J Chem Phys, 127, 144711 (2007).
+
+:link(Toukmaji)
+[(Toukmaji)] Toukmaji, Sagui, Board, and Darden, J Chem Phys, 113,
+10913 (2000).
 
 :link(Isele-Holder)
 [(Isele-Holder)] Isele-Holder, Mitchell, Ismail, J Chem Phys, 137, 174107 (2012). 

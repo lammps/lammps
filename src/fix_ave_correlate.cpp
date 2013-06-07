@@ -19,6 +19,7 @@
 
 #include "stdlib.h"
 #include "string.h"
+#include "unistd.h"
 #include "fix_ave_correlate.h"
 #include "update.h"
 #include "modify.h"
@@ -484,6 +485,10 @@ void FixAveCorrelate::end_of_step()
       fprintf(fp,"\n");
     }
     fflush(fp);
+    if (overwrite) {
+      long fileend = ftell(fp);
+      ftruncate(fileno(fp),fileend);
+    }
   }
 
   // zero accumulation if requested

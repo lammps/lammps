@@ -63,6 +63,14 @@ FixLangevinEff::~FixLangevinEff()
 
 /* ---------------------------------------------------------------------- */
 
+void FixLangevinEff::post_force(int vflag)
+{
+  if (tallyflag) post_force_tally();
+  else post_force_no_tally();
+}
+
+/* ---------------------------------------------------------------------- */
+
 void FixLangevinEff::post_force_no_tally()
 {
   double gamma1,gamma2,t_target;
@@ -159,7 +167,7 @@ void FixLangevinEff::post_force_no_tally()
   // extra dof from electron size
   double gfactor3=(double) (dof+nelectrons)/dofnuclei;
 
-  if (which == NOBIAS) {
+  if (tbiasflag == NOBIAS) {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
         if (tstyle == ATOM) tsqrt = sqrt(tforce[i]);
@@ -181,7 +189,7 @@ void FixLangevinEff::post_force_no_tally()
         }
       }
     }
-  } else if (which == BIAS) {
+  } else if (tbiasflag == BIAS) {
     temperature->compute_scalar();
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
@@ -333,7 +341,7 @@ void FixLangevinEff::post_force_tally()
   // extra dof from electron size
   double gfactor3=(double) (dof+nelectrons)/dofnuclei;
 
-  if (which == NOBIAS) {
+  if (tbiasflag == NOBIAS) {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
         if (tstyle == ATOM) tsqrt = sqrt(tforce[i]);
@@ -351,7 +359,7 @@ void FixLangevinEff::post_force_tally()
         }
       }
     }
-  } else if (which == BIAS) {
+  } else if (tbiasflag == BIAS) {
     temperature->compute_scalar();
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
@@ -385,7 +393,7 @@ void FixLangevinEff::post_force_tally()
 
 void FixLangevinEff::end_of_step()
 {
-  if (!tally) return;
+  if (!tallyflag) return;
 
   double **v = atom->v;
   int *mask = atom->mask;
@@ -407,7 +415,7 @@ void FixLangevinEff::end_of_step()
 
 double FixLangevinEff::compute_scalar()
 {
-  if (!tally || flangevin == NULL || erforcelangevin == NULL) return 0.0;
+  if (!tallyflag || flangevin == NULL || erforcelangevin == NULL) return 0.0;
 
   // capture the very first energy transfer to thermal reservoir
 

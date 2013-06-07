@@ -31,7 +31,7 @@ class FixLangevin : public Fix {
   int setmask();
   void init();
   void setup(int);
-  void post_force(int);
+  virtual void post_force(int);
   void post_force_respa(int, int, int);
   virtual void end_of_step();
   void reset_target(double);

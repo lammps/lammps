@@ -30,6 +30,7 @@ class FixLangevinEff : public FixLangevin {
   ~FixLangevinEff();
   void end_of_step();
   double compute_scalar();
+  void post_force(int);
 
  private:
   double *erforcelangevin;

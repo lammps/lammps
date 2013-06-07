@@ -128,6 +128,6 @@ and tstat = NULL.
 :line
 
 :link(Henin)
-[(Henin)] Hénin, Fiorin, Chipot, Klein, J. Chem. Theory Comput., 6,
+[(Henin)] Henin, Fiorin, Chipot, Klein, J. Chem. Theory Comput., 6,
 35-47 (2010)
 

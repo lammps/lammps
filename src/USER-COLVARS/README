@@ -10,9 +10,11 @@ Sampling and Restraints. This code consists of two parts:
   Philadelphia, PA, USA) and Jerome Henin (LISM, CNRS,
   Marseille, France).
 
-  This code is located in the directory lib/colvars and
-  needs to be compiled first. More info about this code
-  can be found in the publication:
+  A copy of this code is located in the directory lib/colvars
+  and needs to be compiled first. More info about this code
+  can be found at: https://github.com/colvars/colvars/
+
+  and in the publication:
   Exploring Multidimensional Free Energy Landscapes Using
   Time-Dependent Biases on Collective Variables,
    J. Hénin, G. Fiorin, C. Chipot, and M. L. Klein,
@@ -26,17 +28,9 @@ See the doc page of fix colvars for more details
 There are example scripts for using this package in
 examples/USER/colvars
 
-This is a very new interface that does not yet support all
-features in the module and will see future optimizations
-and improvements. The colvars module library is also available
-in NAMD has been thoroughly used and tested there. Bugs and
-problems are likely due to the interface layers code.
-Thus the current version of this package should be considered
-beta quality.
-
 The person who created this package is Axel Kohlmeyer at Temple U
 (akohlmey at gmail.com).  Contact him directly if you have questions.
  
 ---------------------------------
 
-version: 0.1 / 2012-03-03
+Version: 2013-06-07

@@ -9,7 +9,7 @@
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
--------------------------------------------------------------------------
+------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
    Contributing author: Pieter J. in 't Veld and Stan Moore (Sandia)
@@ -98,10 +98,10 @@ void PairLJLongDipoleLong::settings(int narg, char **arg)
     error->all(FLERR,PAIR_MISSING);
   if (!((ewald_order^ewald_off)&(1<<3)))
     error->all(FLERR,PAIR_COUL_CUT);
-  cut_lj_global = force->numeric(*(arg++));
+  cut_lj_global = force->numeric(FLERR,*(arg++));
   if (narg == 4 && (ewald_order==74))
     error->all(FLERR,PAIR_CUTOFF);
-  if (narg == 4) cut_coul = force->numeric(*(arg++));
+  if (narg == 4) cut_coul = force->numeric(FLERR,*(arg++));
   else cut_coul = cut_lj_global;
 
   if (allocated) {					// reset explicit cuts

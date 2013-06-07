@@ -67,7 +67,8 @@ string allflag;
 
 int main(int narg, char **arg)
 {
-  int n,npair;
+  int npair;
+  size_t n;
   string *infile;
   FILE *in,*out;
   int style,ifirst,ilast;
@@ -202,18 +203,32 @@ int next_paragraph(FILE *fp, string &paragraph)
   char *ptr;
   char str[MAXLINE];
   int first = 1;
+  int len = 0;
 
   while (1) {
     ptr = fgets(str,MAXLINE,fp);
     if (ptr == NULL && first) return 0;
     if (ptr == NULL) return 1;
-    if (strlen(str) == MAXLINE-1) {
+    len = strlen(str);
+    if (len == MAXLINE-1) {
       fprintf(stderr,"ERROR: File has too-long a string - increase MAXLINE\n");
       exit(1);
     }
+
+    // check for valid 7-bit ascii characters
+    bool nonascii = false;
+    for (int i=0; i < len; ++i) {
+      char c = str[i];
+      if (c != '\n' && c != '\t' && (c < ' ' || c > '~'))
+        nonascii = true;
+    }
+    if (nonascii)
+      fprintf(stderr,"WARNING: Non-portable characters in line: %s",ptr);
+
     if (strspn(str," \t\n") == strlen(str) && first) continue;
     if (strspn(str," \t\n") == strlen(str)) return 1;
     first = 0;
+
     paragraph += str;
     if (paragraph[index_of_first_char_of_last_word(paragraph)] == ':')
       return 2;
@@ -224,8 +239,8 @@ int next_paragraph(FILE *fp, string &paragraph)
 
 int index_of_first_char_of_last_word(string &paragraph)
 {
-  int n = paragraph.find_last_not_of(" \t\n");
-  int m = paragraph.find_last_of(" \t\n",n);
+  size_t n = paragraph.find_last_not_of(" \t\n");
+  size_t m = paragraph.find_last_of(" \t\n",n);
   if (m == string::npos) return 0;
   else return m+1;
 }
@@ -234,7 +249,8 @@ int index_of_first_char_of_last_word(string &paragraph)
 
 void process_commands(int flag, string &s, string &pre, string &post)
 {
-  int start,stop,last,narg;
+  size_t start,stop,last;
+  int narg;
   string command;
   vector<string> arg;
 
@@ -481,7 +497,7 @@ void process_commands(int flag, string &s, string &pre, string &post)
 
 void substitute(string &s)
 {
-  int n,m,p;
+  size_t n,m,p;
   char c;
   string text,link,href;
   string punctuation = ".,?!;:()";
@@ -587,15 +603,15 @@ void substitute(string &s)
     int currentc=0; // current column
     int nend = 0;
     int n1=0;
-    int n = find_n(s,nend,n1);    
+    long n = find_n(s,nend,n1);    
     
-    // if there are no separators, go to the end of the stringx
+    // if there are no separators, go to the end of the string
 
     if (n < 0) n = s.length();
 
     // while n exists:
 
-    while (n != string::npos) {
+    while (n != static_cast<long>(string::npos)) {
 
       // ignore = 0 when pass by \n because looking for delimiters only
       // when ignore==0 do not put in a <tr>
@@ -755,7 +771,7 @@ void file_open(int npair, string &infile, FILE **in, FILE **out)
   else if (npair == 1) *out = stdout;
   else {
     string outfile;
-    int pos = infile.rfind(".txt");
+    size_t pos = infile.rfind(".txt");
     if (pos == infile.length()-4) outfile = infile.substr(0,pos) + ".html";
     else outfile = infile + ".html";
     *out = fopen(outfile.c_str(),"w");

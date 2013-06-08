@@ -59,7 +59,7 @@ void DihedralNHarmonic::compute(int eflag, int vflag)
   double vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z,vb2xm,vb2ym,vb2zm;
   double edihedral,f1[3],f2[3],f3[3],f4[3];
   double sb1,sb2,sb3,rb1,rb3,c0,b1mag2,b1mag,b2mag2;
-  double b2mag,b3mag2,b3mag,ctmp,r12c1,c1mag,r12c2;
+  double b2mag,b3mag2,b3mag,ctmp,c_,r12c1,c1mag,r12c2;
   double c2mag,sc1,sc2,s1,s12,c,p,pd,a11,a22;
   double a33,a12,a13,a23,sx2,sy2,sz2;
   double s2,sin2;
@@ -177,14 +177,15 @@ void DihedralNHarmonic::compute(int eflag, int vflag)
     // force & energy
     // p = sum (i=1,n) a_i * c**(i-1)
     // pd = dp/dc
-    p = a[type][0];
-    pd = a[type][1];
+    c_ = c;
+    p = this->a[type][0];
+    pd = this->a[type][1];
     for (int i = 1; i < nterms[type]-1; i++) {
-      p += c * a[type][i];
-      pd += c * static_cast<double>(i+1) * a[type][i+1];
-      c *= c;
+      p += c_ * this->a[type][i];
+      pd += c_ * static_cast<double>(i+1) * this->a[type][i+1];
+      c_ *= c;
     }
-    p += c * a[type][nterms[type]-1];
+    p += c_ * this->a[type][nterms[type]-1];
 
     if (eflag) edihedral = p;
 
@@ -284,7 +285,7 @@ void DihedralNHarmonic::coeff(int narg, char **arg)
     a[i] = new double [n];
     nterms[i] = n;
     for (int j = 0; j < n; j++ ) {
-      a[i][j] = force->numeric(arg[2+i]);
+      a[i][j] = force->numeric(arg[2+j]);
       setflag[i] = 1;
     }
     count++;

@@ -63,6 +63,14 @@ FixLangevinEff::~FixLangevinEff()
 
 /* ---------------------------------------------------------------------- */
 
+void FixLangevinEff::post_force(int vflag)
+{
+  if (tallyflag) post_force_tally();
+  else post_force_no_tally();
+}
+
+/* ---------------------------------------------------------------------- */
+
 void FixLangevinEff::post_force_no_tally()
 {
   double gamma1,gamma2,t_target;

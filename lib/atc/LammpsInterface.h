@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include "mpi.h"
 #include "../../src/lammps.h"
+#include "../../src/lmptype.h"
 
 #include "ATC_TypeDefs.h"
 

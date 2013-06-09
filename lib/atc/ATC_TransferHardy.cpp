@@ -1589,6 +1589,7 @@ namespace ATC {
         //int tag_i = (lammpsInterface_->atom_tag())[lammps_i];
         for (int j = 0; j < numneigh[lammps_i]; j++) {
           int lammps_j = firstneigh[lammps_i][j];
+          lammps_j &= NEIGHMASK;
           //int tag_j = (lammpsInterface_->atom_tag())[lammps_j];
           //if (lammps_i > lammps_j) continue; // skip a > b pairs
           //if (tag_i > tag_j) continue; // skip a > b pairs
@@ -1741,6 +1742,7 @@ namespace ATC {
       int lammps_i = internalToAtom_(i);
       for (int k = 0; k < numneigh[lammps_i]; k++) {
         int j = firstneigh[lammps_i][k];
+        j &= NEIGHMASK;
         pair_ij.first = lammps_i;
         pair_ij.second = j;
         pairMapIterator = pairMap_.find(pair_ij);
@@ -1900,6 +1902,7 @@ namespace ATC {
           periodicity_correction(xaI);
           for (int k = 0; k < numneigh[lammps_j]; ++k) {
             int lammps_k = firstneigh[lammps_j][k];
+            lammps_k &= NEIGHMASK;
             // first atom location
             xb.copy(xPointer_[lammps_k],3);
             double * xk = xatom[lammps_k];
@@ -1960,6 +1963,7 @@ namespace ATC {
         xa.copy(xPointer_[lammps_j],3);
         for (int k = 0; k < numneigh[lammps_j]; ++k) {
           int lammps_k = firstneigh[lammps_j][k];
+          lammps_k &= NEIGHMASK;
           //if (lammps_k < lammps_j) continue; // full neighbor list
           // second (neighbor) atom location
           xb.copy(xPointer_[lammps_k],3);
@@ -2070,6 +2074,7 @@ namespace ATC {
           periodicity_correction(xaI);
           for (int k = 0; k < numneigh[lammps_j]; ++k) {
             int lammps_k = firstneigh[lammps_j][k];
+            lammps_k &= NEIGHMASK;
             // first atom location
             xb.copy(xPointer_[lammps_k],3);
             double * xk = xatom[lammps_k];
@@ -2121,6 +2126,7 @@ namespace ATC {
         xa.copy(xPointer_[lammps_j],3);
         for (int k = 0; k < numneigh[lammps_j]; ++k) {
           int lammps_k = firstneigh[lammps_j][k];
+          lammps_k &= NEIGHMASK;
           //if (lammps_k < lammps_j) continue; // full neighbor list
           // second (neighbor) atom location
           xb.copy(xPointer_[lammps_k],3);

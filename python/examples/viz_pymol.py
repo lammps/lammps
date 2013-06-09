@@ -1,4 +1,4 @@
-#!/usr/local/bin/python -i
+#!/usr/bin/env python -i
 # preceeding line should have path for Python on your machine
 
 # viz_pymol.py

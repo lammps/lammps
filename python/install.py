@@ -1,4 +1,4 @@
-#!/usr/local/bin/python
+#!/usr/bin/env python
 
 # copy LAMMPS src/liblammps.so and lammps.py to system dirs
 

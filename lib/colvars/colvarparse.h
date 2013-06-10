@@ -53,15 +53,15 @@ public:
   {}
 
   /// How a keyword is parsed in a string
-  enum Parse_Mode { 
+  enum Parse_Mode {
     /// \brief (default) Read the first instance of a keyword (if
     /// any), report its value, and print a warning when there is more
     /// than one
-    parse_normal, 
+    parse_normal,
     /// \brief Like parse_normal, but don't send any message to the log
     /// (useful e.g. in restart files when such messages are very
     /// numerous and redundant)
-    parse_silent 
+    parse_silent
   };
 
   /// \fn get_keyval bool const get_keyval (std::string const &conf,
@@ -112,7 +112,7 @@ public:
                    std::vector<_type_> const &def_values =              \
                    std::vector<_type_> (0, static_cast<_type_>(_def_value_)),                \
                    Parse_Mode const parse_mode = parse_normal)
-  
+
     _get_keyval_vector_proto_ (int, 0);
     _get_keyval_vector_proto_ (size_t, 0);
     _get_keyval_vector_proto_ (std::string, std::string (""));
@@ -169,7 +169,7 @@ public:
   /// data (optional) holds the string provided after "key", if any
   /// \param save_pos (optional) stores the position of the keyword
   /// within "conf", useful when doing multiple calls \param
-  /// save_delimiters (optional) 
+  /// save_delimiters (optional)
   bool key_lookup (std::string const &conf,
                    char const *key,
                    std::string &data = dummy_string,

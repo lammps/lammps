@@ -74,7 +74,7 @@ colvar::orientation::orientation (std::string const &conf)
 
 }
 
-  
+
 colvar::orientation::orientation()
   : cvc ()
 {
@@ -160,7 +160,7 @@ void colvar::orientation_angle::calc_value()
 void colvar::orientation_angle::calc_gradients()
 {
   cvm::real const dxdq0 =
-    ( ((rot.q).q0 * (rot.q).q0 < 1.0) ? 
+    ( ((rot.q).q0 * (rot.q).q0 < 1.0) ?
       ((180.0 / PI) * (-2.0) / std::sqrt (1.0 - ((rot.q).q0 * (rot.q).q0))) :
       0.0 );
 

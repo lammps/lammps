@@ -9,7 +9,7 @@
 
 colvarmodule::colvarmodule (char const  *config_filename,
                             colvarproxy *proxy_in)
-{ 
+{
   // pointer to the proxy object
   if (proxy == NULL) {
     proxy = proxy_in;
@@ -85,7 +85,7 @@ colvarmodule::colvarmodule (char const  *config_filename,
              std::string (output_prefix+".colvars.state") :
              std::string ("colvars.state"))+"\".\n");
 
-  cv_traj_name = 
+  cv_traj_name =
     (output_prefix.size() ?
      std::string (output_prefix+".colvars.traj") :
      std::string ("colvars.traj"));
@@ -140,7 +140,7 @@ colvarmodule::colvarmodule (char const  *config_filename,
 }
 
 
-std::istream & colvarmodule::read_restart (std::istream &is) 
+std::istream & colvarmodule::read_restart (std::istream &is)
 {
   {
     // read global restart information
@@ -197,7 +197,7 @@ void colvarmodule::init_colvars (std::string const &conf)
       (colvars.back())->check_keywords (colvar_conf, "colvar");
       cvm::decrease_depth();
     } else {
-      cvm::log ("Warning: \"colvar\" keyword found without any configuration.\n"); 
+      cvm::log ("Warning: \"colvar\" keyword found without any configuration.\n");
     }
     colvar_conf = "";
   }
@@ -352,13 +352,13 @@ void colvarmodule::calc() {
   }
 
   // calculate collective variables and their gradients
-  if (cvm::debug()) 
+  if (cvm::debug())
     cvm::log ("Calculating collective variables.\n");
   cvm::increase_depth();
   for (std::vector<colvar *>::iterator cvi = colvars.begin();
        cvi != colvars.end();
        cvi++) {
-    (*cvi)->calc(); 
+    (*cvi)->calc();
   }
   cvm::decrease_depth();
 
@@ -370,7 +370,7 @@ void colvarmodule::calc() {
   for (std::vector<colvarbias *>::iterator bi = biases.begin();
        bi != biases.end();
        bi++) {
-    total_bias_energy += (*bi)->update(); 
+    total_bias_energy += (*bi)->update();
   }
   cvm::decrease_depth();
 
@@ -381,12 +381,12 @@ void colvarmodule::calc() {
   for (std::vector<colvar *>::iterator cvi = colvars.begin();
        cvi != colvars.end();
        cvi++) {
-    (*cvi)->reset_bias_force(); 
+    (*cvi)->reset_bias_force();
   }
   for (std::vector<colvarbias *>::iterator bi = biases.begin();
        bi != biases.end();
        bi++) {
-    (*bi)->communicate_forces(); 
+    (*bi)->communicate_forces();
   }
   cvm::decrease_depth();
 
@@ -398,12 +398,12 @@ void colvarmodule::calc() {
     for (std::vector<colvar *>::iterator cvi = colvars.begin();
          cvi != colvars.end();
          cvi++) {
-      (*cvi)->analyse(); 
+      (*cvi)->analyse();
     }
     for (std::vector<colvarbias *>::iterator bi = biases.begin();
          bi != biases.end();
          bi++) {
-      (*bi)->analyse(); 
+      (*bi)->analyse();
     }
     cvm::decrease_depth();
   }
@@ -431,7 +431,7 @@ void colvarmodule::calc() {
        cvi != colvars.end();
        cvi++) {
     if ((*cvi)->tasks[colvar::task_gradients])
-      (*cvi)->communicate_forces(); 
+      (*cvi)->communicate_forces();
   }
   cvm::decrease_depth();
 
@@ -447,7 +447,7 @@ void colvarmodule::calc() {
       if (!write_restart (restart_out_os))
         cvm::fatal_error ("Error: in writing restart file.\n");
       restart_out_os.close();
-    }    
+    }
   }
 
   // write trajectory file, if needed
@@ -476,7 +476,7 @@ void colvarmodule::calc() {
     if ((cvm::step_absolute() % (cv_traj_freq * 1000)) == 0 || cvm::step_relative() == 0) {
       cv_traj_os << "# " << cvm::wrap_string ("step", cvm::it_width-2)
                  << " ";
-      if (cvm::debug()) 
+      if (cvm::debug())
         cv_traj_os.flush();
       for (std::vector<colvar *>::iterator cvi = colvars.begin();
 	   cvi != colvars.end();
@@ -489,7 +489,7 @@ void colvarmodule::calc() {
 	(*bi)->write_traj_label (cv_traj_os);
       }
       cv_traj_os << "\n";
-      if (cvm::debug()) 
+      if (cvm::debug())
         cv_traj_os.flush();
     }
     cvm::decrease_depth();
@@ -515,7 +515,7 @@ void colvarmodule::calc() {
     }
     cvm::decrease_depth();
 
-    if (restart_out_freq) { 
+    if (restart_out_freq) {
       // flush the trajectory file if we are at the restart frequency
       if ( (cvm::step_relative() > 0) &&
            ((cvm::step_absolute() % restart_out_freq) == 0) ) {
@@ -542,7 +542,7 @@ void colvarmodule::analyze()
        cvi != colvars.end();
        cvi++) {
     cvm::increase_depth();
-    (*cvi)->analyse(); 
+    (*cvi)->analyse();
     cvm::decrease_depth();
   }
 
@@ -551,7 +551,7 @@ void colvarmodule::analyze()
        bi != biases.end();
        bi++) {
     cvm::increase_depth();
-    (*bi)->analyse(); 
+    (*bi)->analyse();
     cvm::decrease_depth();
   }
 
@@ -580,7 +580,7 @@ colvarmodule::~colvarmodule()
 
   delete parse;
   proxy = NULL;
-}  
+}
 
 
 void colvarmodule::write_output_files()
@@ -605,7 +605,7 @@ void colvarmodule::write_output_files()
     (*cvi)->write_output_files();
   }
   cvm::decrease_depth();
-  
+
   // do not close to avoid problems with multiple NAMD runs
   cv_traj_os.flush();
 }
@@ -646,7 +646,7 @@ bool colvarmodule::read_traj (char const *traj_filename,
 
         continue;
 
-      } else { 
+      } else {
 
         if ((it % 1000) == 0)
           std::cerr << "Reading from trajectory, step = " << it
@@ -747,7 +747,7 @@ void cvm::read_index_file (char const *filename)
   while (is.good()) {
     char open, close;
     std::string group_name;
-    if ( (is >> open) && (open == '[') && 
+    if ( (is >> open) && (open == '[') &&
          (is >> group_name) &&
          (is >> close) && (close == ']') ) {
       cvm::index_group_names.push_back (group_name);
@@ -893,7 +893,7 @@ std::istream & operator >> (std::istream &is, colvarmodule::quaternion &q)
                          std::string ("euler")) ) {
 
     // parse the Euler angles
-    
+
     char sep;
     cvm::real phi, theta, psi;
     if ( !(is >> sep)   || !(sep == '(') ||
@@ -912,7 +912,7 @@ std::istream & operator >> (std::istream &is, colvarmodule::quaternion &q)
 
     // parse the quaternion components
 
-    is.seekg (start_pos, std::ios::beg);      
+    is.seekg (start_pos, std::ios::beg);
     char sep;
     if ( !(is >> sep)  || !(sep == '(') ||
          !(is >> q.q0) || !(is >> sep)  || !(sep == ',') ||
@@ -1023,7 +1023,7 @@ void colvarmodule::rotation::build_matrix (std::vector<cvm::atom_pos> const &pos
     C.zx() += pos1[i].z * pos2[i].x;
     C.zy() += pos1[i].z * pos2[i].y;
     C.zz() += pos1[i].z * pos2[i].z;
-  } 
+  }
 
   // build the "overlap" matrix, whose eigenvectors are stationary
   // points of the RMSD in the space of rotations
@@ -1137,7 +1137,7 @@ void colvarmodule::rotation::calc_optimal_rotation
     }
   }
   q_old = q;
-                     
+
   if (cvm::debug()) {
     if (b_debug_gradients) {
       cvm::log ("L0 = "+cvm::to_str (L0, cvm::cv_width, cvm::cv_prec)+
@@ -1208,8 +1208,8 @@ void colvarmodule::rotation::calc_optimal_rotation
       for (size_t i = 0; i < 4; i++) {
         for (size_t j = 0; j < 4; j++) {
           dq0_1[p] +=
-            (Q1[i] * ds_1[i][j] * Q0[j]) / (L0-L1) * Q1[p] + 
-            (Q2[i] * ds_1[i][j] * Q0[j]) / (L0-L2) * Q2[p] + 
+            (Q1[i] * ds_1[i][j] * Q0[j]) / (L0-L1) * Q1[p] +
+            (Q2[i] * ds_1[i][j] * Q0[j]) / (L0-L2) * Q2[p] +
             (Q3[i] * ds_1[i][j] * Q0[j]) / (L0-L3) * Q3[p];
         }
       }
@@ -1258,15 +1258,15 @@ void colvarmodule::rotation::calc_optimal_rotation
       for (size_t i = 0; i < 4; i++) {
         for (size_t j = 0; j < 4; j++) {
           dq0_2[p] +=
-            (Q1[i] * ds_2[i][j] * Q0[j]) / (L0-L1) * Q1[p] + 
-            (Q2[i] * ds_2[i][j] * Q0[j]) / (L0-L2) * Q2[p] + 
+            (Q1[i] * ds_2[i][j] * Q0[j]) / (L0-L1) * Q1[p] +
+            (Q2[i] * ds_2[i][j] * Q0[j]) / (L0-L2) * Q2[p] +
             (Q3[i] * ds_2[i][j] * Q0[j]) / (L0-L3) * Q3[p];
         }
       }
     }
 
     if (cvm::debug()) {
-      
+
       if (b_debug_gradients) {
 
       matrix2d<cvm::real, 4, 4> S_new;
@@ -1281,7 +1281,7 @@ void colvarmodule::rotation::calc_optimal_rotation
           // diagonalize the new overlap matrix
           for (size_t i = 0; i < 4; i++) {
             for (size_t j = 0; j < 4; j++) {
-              S_new[i][j] += 
+              S_new[i][j] +=
                 colvarmodule::debug_gradients_step_size * ds_2[i][j][comp];
             }
           }

@@ -14,7 +14,7 @@ public:
 
   /// Name of this bias
   std::string    name;
-  
+
   /// Add a new collective variable to this bias
   void add_colvar (std::string const &cv_name);
 
@@ -35,7 +35,7 @@ public:
   void communicate_forces();
 
   /// \brief Constructor
-  /// 
+  ///
   /// The constructor of the colvarbias base class is protected, so
   /// that it can only be called from inherited classes
   colvarbias (std::string const &conf, char const *key);
@@ -161,7 +161,7 @@ protected:
 
   /// \brief Exponent for varying the force constant
   cvm::real force_k_exp;
-  
+
   /// \brief Intermediate quantity to compute the restraint free energy
   /// (in TI, would be the accumulating FE derivative)
   cvm::real restraint_FE;

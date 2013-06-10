@@ -72,7 +72,7 @@ cvm::real colvar::coordnum::switching_function (cvm::rvector const &r0_vec,
 
 colvar::coordnum::coordnum (std::string const &conf)
   : distance (conf), b_anisotropic (false), b_group2_center_only (false)
-{ 
+{
   function_type = "coordnum";
   x.type (colvarvalue::type_scalar);
 
@@ -80,7 +80,7 @@ colvar::coordnum::coordnum (std::string const &conf)
   if (group1.b_dummy)
     cvm::fatal_error ("Error: only group2 is allowed to be a dummy atom\n");
 
-  
+
   // need to specify this explicitly because the distance() constructor
   // has set it to true
   b_inverse_gradients = false;
@@ -307,7 +307,7 @@ void colvar::h_bond::apply_force (colvarvalue const &force)
 
 colvar::selfcoordnum::selfcoordnum (std::string const &conf)
  : distance (conf, false)
-{ 
+{
   function_type = "selfcoordnum";
   x.type (colvarvalue::type_scalar);
 

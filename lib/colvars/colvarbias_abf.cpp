@@ -15,7 +15,7 @@ colvarbias_abf::colvarbias_abf (std::string const &conf, char const *key)
 {
   if (cvm::temperature() == 0.0)
     cvm::log ("WARNING: ABF should not be run without a thermostat or at 0 Kelvin!\n");
-  
+
   // ************* parsing general ABF options ***********************
 
   get_keyval (conf, "applyBias",  apply_bias, true);
@@ -32,7 +32,7 @@ colvarbias_abf::colvarbias_abf (std::string const &conf, char const *key)
   }
 
   get_keyval (conf, "fullSamples", full_samples, 200);
-  if ( full_samples <= 1 ) full_samples = 1; 
+  if ( full_samples <= 1 ) full_samples = 1;
   min_samples = full_samples / 2;
   // full_samples - min_samples >= 1 is guaranteed
 
@@ -79,7 +79,7 @@ colvarbias_abf::colvarbias_abf (std::string const &conf, char const *key)
     }
 
     // Here we could check for orthogonality of the Cartesian coordinates
-    // and make it just a warning if some parameter is set? 
+    // and make it just a warning if some parameter is set?
   }
 
   bin.assign (colvars.size(), 0);
@@ -96,7 +96,7 @@ colvarbias_abf::colvarbias_abf (std::string const &conf, char const *key)
   if ( input_prefix.size() > 0 ) {
     read_gradients_samples ();
   }
-  
+
   cvm::log ("Finished ABF setup.\n");
 }
 
@@ -128,7 +128,7 @@ cvm::real colvarbias_abf::update()
   if (cvm::debug()) cvm::log ("Updating ABF bias " + this->name);
 
   if (cvm::step_relative() == 0) {
-	
+
     // At first timestep, do only:
     // initialization stuff (file operations relying on n_abf_biases
     // compute current value of colvars
@@ -161,7 +161,7 @@ cvm::real colvarbias_abf::update()
   }
 
   // save bin for next timestep
-  force_bin = bin;  
+  force_bin = bin;
 
   // Reset biasing forces from previous timestep
   for (size_t i=0; i<colvars.size(); i++) {
@@ -179,7 +179,7 @@ cvm::real colvarbias_abf::update()
       fact = ( count < min_samples) ? 0.0 :
         (cvm::real (count - min_samples)) / (cvm::real (full_samples - min_samples));
     }
-	
+
     const cvm::real * grad  = &(gradients->value (bin));
 
     if ( fact != 0.0 ) {
@@ -253,7 +253,7 @@ void colvarbias_abf::read_gradients_samples ()
     samples_in_name = input_prefix[i] + ".count";
     gradients_in_name = input_prefix[i] + ".grad";
     // For user-provided files, the per-bias naming scheme may not apply
-    
+
     std::ifstream is;
 
     cvm::log ("Reading sample count from " + samples_in_name + " and gradients from " + gradients_in_name);
@@ -275,7 +275,7 @@ void colvarbias_abf::read_gradients_samples ()
 std::ostream & colvarbias_abf::write_restart (std::ostream& os)
 {
 
-  std::ios::fmtflags flags (os.flags ()); 
+  std::ios::fmtflags flags (os.flags ());
   os.setf(std::ios::fmtflags (0), std::ios::floatfield); // default floating-point format
 
   os << "abf {\n"
@@ -328,7 +328,7 @@ std::istream & colvarbias_abf::read_restart (std::istream& is)
   if ( name == "" ) {
     cvm::fatal_error ("Error: \"abf\" block in the restart file has no name.\n");
   }
-  
+
   if ( !(is >> key)   || !(key == "samples")) {
     cvm::log ("Error: in reading restart configuration for ABF bias \""+
               this->name+"\" at position "+
@@ -384,7 +384,7 @@ colvarbias_histogram::colvarbias_histogram (std::string const &conf, char const 
   bin.assign (colvars.size(), 0);
 
   out_name = cvm::output_prefix + "." + this->name + ".dat";
-  cvm::log ("Histogram will be written to file " + out_name); 
+  cvm::log ("Histogram will be written to file " + out_name);
 
   cvm::log ("Finished histogram setup.\n");
 }
@@ -458,7 +458,7 @@ std::istream & colvarbias_histogram::read_restart (std::istream& is)
     cvm::fatal_error ("Error: \"histogram\" block in the restart file "
                       "has no name.\n");
   }
-  
+
   if ( !(is >> key)   || !(key == "grid")) {
     cvm::log ("Error: in reading restart configuration for histogram \""+
               this->name+"\" at position "+

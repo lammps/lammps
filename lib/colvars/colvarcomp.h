@@ -4,7 +4,7 @@
 // Declaration of colvar::cvc base class and derived ones.
 //
 // Future cvc's could be declared on additional header files.
-// After the declaration of a new derived class, its metric 
+// After the declaration of a new derived class, its metric
 // functions must be reimplemented as well.
 // If the new cvc has no symmetry or periodicity,
 // this can be done straightforwardly by using the macro:
@@ -50,7 +50,7 @@
 /// 2. add a call to the parser in colvar.C, within the function colvar::colvar() \par
 /// 3. declare the class in colvarcomp.h \par
 /// 4. implement the class in one of the files colvarcomp_*.C
-/// 
+///
 /// </b>
 /// The cvm::atom and cvm::atom_group classes are available to
 /// transparently communicate with the simulation program.  However,
@@ -68,7 +68,7 @@ public:
   std::string name;
 
   /// \brief Description of the type of collective variable
-  /// 
+  ///
   /// Normally this string is set by the parent \link colvar \endlink
   /// object within its constructor, when all \link cvc \endlink
   /// objects are initialized; therefore the main "config string"
@@ -104,7 +104,7 @@ public:
 
   /// \brief Within the constructor, make a group parse its own
   /// options from the provided configuration string
-  void parse_group (std::string const &conf, 
+  void parse_group (std::string const &conf,
                     char const *group_key,
                     cvm::atom_group &group,
                     bool optional = false);
@@ -174,7 +174,7 @@ public:
   /// \brief Square distance between x1 and x2 (can be redefined to
   /// transparently implement constraints, symmetries and
   /// periodicities)
-  /// 
+  ///
   /// colvar::cvc::dist2() and the related functions are
   /// declared as "const" functions, but not "static", because
   /// additional parameters defining the metrics (e.g. the
@@ -192,7 +192,7 @@ public:
   /// to provide a gradient which is compatible with the constraint,
   /// i.e. already deprived of its component normal to the constraint
   /// hypersurface.
-  /// 
+  ///
   /// Finally, another useful application, if you are performing very
   /// many operations with these functions, could be to override the
   /// \link colvarvalue \endlink member functions and access directly
@@ -701,7 +701,7 @@ protected:
   /// \brief Compute system force on first site only to avoid unwanted
   /// coupling to other colvars (see e.g. Ciccotti et al., 2005)
   bool b_1site_force;
-  
+
 public:
 
   /// Initialize by parsing the configuration
@@ -769,7 +769,7 @@ public:
   static cvm::real switching_function (cvm::real const &r0,
                                        int const &exp_num, int const &exp_den,
                                        cvm::atom &A1, cvm::atom &A2);
-  
+
   template<bool b_gradients>
   /// \brief Calculate a coordination number through the function
   /// (1-x**n)/(1-x**m), x = |(A1-A2)*(r0_vec)^-|1 \param r0_vec
@@ -818,7 +818,7 @@ public:
   static cvm::real switching_function (cvm::real const &r0,
                                        int const &exp_num, int const &exp_den,
                                        cvm::atom &A1, cvm::atom &A2);
-  
+
   virtual cvm::real dist2 (colvarvalue const &x1,
                            colvarvalue const &x2) const;
   virtual colvarvalue dist2_lgrad (colvarvalue const &x1,
@@ -832,7 +832,7 @@ public:
 /// \brief Colvar component: hydrogen bond, defined as the product of
 /// a colvar::coordnum and 1/2*(1-cos((180-ang)/ang_tol))
 /// (colvarvalue::type_scalar type, range [0:1])
-class colvar::h_bond 
+class colvar::h_bond
   : public colvar::cvc
 {
 protected:
@@ -897,7 +897,7 @@ public:
 //   alpha_dihedrals();
 //   virtual inline ~alpha_dihedrals() {}
 //   virtual void calc_value();
-//   virtual void calc_gradients(); 
+//   virtual void calc_gradients();
 //   virtual void apply_force (colvarvalue const &force);
 //   virtual cvm::real dist2 (colvarvalue const &x1,
 //                            colvarvalue const &x2) const;
@@ -931,7 +931,7 @@ protected:
   /// List of hydrogen bonds
   std::vector<h_bond *>   hb;
 
-  /// Contribution of the hb terms 
+  /// Contribution of the hb terms
   cvm::real hb_coeff;
 
 public:
@@ -1151,7 +1151,7 @@ public:
 
 
 
-// metrics functions for cvc implementations 
+// metrics functions for cvc implementations
 
 // simple definitions of the distance functions; these are useful only
 // for optimization (the type check performed in the default
@@ -1187,7 +1187,7 @@ public:
                                                                         \
 
   simple_scalar_dist_functions (distance)
-  // NOTE: distance_z has explicit functions, see below 
+  // NOTE: distance_z has explicit functions, see below
   simple_scalar_dist_functions (distance_xy)
   simple_scalar_dist_functions (distance_inv)
   simple_scalar_dist_functions (angle)
@@ -1243,12 +1243,12 @@ inline void colvar::dihedral::wrap (colvarvalue &x) const
   if ((x.real_value - wrap_center) >= 180.0) {
     x.real_value -= 360.0;
     return;
-  } 
+  }
 
   if ((x.real_value - wrap_center) < -180.0) {
     x.real_value += 360.0;
     return;
-  } 
+  }
 
   return;
 }
@@ -1288,12 +1288,12 @@ inline void colvar::spin_angle::wrap (colvarvalue &x) const
   if ((x.real_value - wrap_center) >= 180.0) {
     x.real_value -= 360.0;
     return;
-  } 
+  }
 
   if ((x.real_value - wrap_center) < -180.0) {
     x.real_value += 360.0;
     return;
-  } 
+  }
 
   return;
 }

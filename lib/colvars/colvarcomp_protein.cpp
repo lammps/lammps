@@ -122,7 +122,7 @@ void colvar::alpha_angles::calc_value()
 
   if (theta.size()) {
 
-    cvm::real const theta_norm = 
+    cvm::real const theta_norm =
       (1.0-hb_coeff) / cvm::real (theta.size());
 
     for (size_t i = 0; i < theta.size(); i++) {
@@ -162,7 +162,7 @@ void colvar::alpha_angles::calc_value()
 
 void colvar::alpha_angles::calc_gradients()
 {
-  for (size_t i = 0; i < theta.size(); i++) 
+  for (size_t i = 0; i < theta.size(); i++)
     (theta[i])->calc_gradients();
 
   for (size_t i = 0; i < hb.size(); i++)
@@ -175,9 +175,9 @@ void colvar::alpha_angles::apply_force (colvarvalue const &force)
 
   if (theta.size()) {
 
-    cvm::real const theta_norm = 
+    cvm::real const theta_norm =
       (1.0-hb_coeff) / cvm::real (theta.size());
-    
+
     for (size_t i = 0; i < theta.size(); i++) {
 
       cvm::real const t = ((theta[i])->value().real_value-theta_ref)/theta_tol;
@@ -185,10 +185,10 @@ void colvar::alpha_angles::apply_force (colvarvalue const &force)
                             (1.0 - std::pow (t, (int) 4)) );
 
       cvm::real const dfdt =
-        1.0/(1.0 - std::pow (t, (int) 4)) * 
+        1.0/(1.0 - std::pow (t, (int) 4)) *
         ( (-2.0 * t) + (-1.0*f)*(-4.0 * std::pow (t, (int) 3)) );
 
-      (theta[i])->apply_force (theta_norm * 
+      (theta[i])->apply_force (theta_norm *
                                dfdt * (1.0/theta_tol) *
                                force.real_value );
     }
@@ -216,7 +216,7 @@ void colvar::alpha_angles::apply_force (colvarvalue const &force)
     // of this cvc (alpha)
     // This is true of all cvcs with sub-cvcs, and those
     // that do not calculate explicit gradients
-    // SO: we need a flag giving the availability of 
+    // SO: we need a flag giving the availability of
     // atomic gradients
 colvar::dihedPC::dihedPC (std::string const &conf)
   : cvc (conf)
@@ -260,7 +260,7 @@ colvar::dihedPC::dihedPC (std::string const &conf)
   std::string vecFileName;
   int         vecNumber;
   if (get_keyval (conf, "vectorFile", vecFileName, vecFileName)) {
-    get_keyval (conf, "vectorNumber", vecNumber, 0); 
+    get_keyval (conf, "vectorNumber", vecNumber, 0);
     if (vecNumber < 1)
       cvm::fatal_error ("A positive value of vectorNumber is required.");
 

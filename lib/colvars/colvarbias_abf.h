@@ -84,7 +84,7 @@ private:
   std::vector<int>  bin;
   std::string	  out_name;
 
-  int		  output_freq;  
+  int		  output_freq;
   void		  write_grid ();
   std::ofstream	  grid_os;  /// Stream for writing grid to disk
 

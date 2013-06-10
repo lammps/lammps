@@ -141,7 +141,7 @@ void colvar_grid_gradient::write_1D_integral (std::ostream &os)
 {
   cvm::real bin, min, integral;
   std::vector<cvm::real> int_vals;
-  
+
   os << "#       xi            A(xi)\n";
 
   if ( cv.size() != 1 ) {
@@ -162,7 +162,7 @@ void colvar_grid_gradient::write_1D_integral (std::ostream &os)
   }
 
   for (std::vector<int> ix = new_index(); index_ok (ix); incr (ix), bin += 1.0 ) {
-	  
+
     if (samples) {
       size_t const samples_here = samples->value (ix);
       if (samples_here)

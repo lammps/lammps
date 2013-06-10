@@ -33,7 +33,7 @@ public:
 
   /// Destructor
   virtual ~colvarbias_meta();
-  
+
   virtual cvm::real update();
 
   virtual std::istream & read_restart (std::istream &is);
@@ -84,7 +84,7 @@ protected:
   std::istream & read_hill (std::istream &is);
 
   /// \brief step present in a state file
-  /// 
+  ///
   /// When using grids and reading state files containing them
   /// (multiple replicas), this is used to check whether a hill is
   /// newer or older than the grids
@@ -147,10 +147,10 @@ protected:
   /// time steps, appending the step number to each file
   bool       dump_fes_save;
 
-  /// \brief Whether to use well-tempered metadynamics 
-  bool       well_tempered; 
+  /// \brief Whether to use well-tempered metadynamics
+  bool       well_tempered;
 
-  /// \brief Biasing temperature in well-tempered metadynamics 
+  /// \brief Biasing temperature in well-tempered metadynamics
   cvm::real  bias_temperature;
 
   /// \brief Try to read the restart information by allocating new
@@ -282,7 +282,7 @@ public:
       centers[i] = cv[i]->value();
       widths[i] = cv[i]->width * hill_width;
     }
-    if (cvm::debug()) 
+    if (cvm::debug())
       cvm::log ("New hill, applied to "+cvm::to_str (cv.size())+
                 " collective variables, with centers "+
                 cvm::to_str (centers)+", widths "+
@@ -322,7 +322,7 @@ public:
   /// Destructor
   inline ~hill()
   {}
-  
+
   /// Get the energy
   inline cvm::real energy()
   {

@@ -39,7 +39,7 @@ colvar::cvc::cvc (std::string const &conf)
 }
 
 
-void colvar::cvc::parse_group (std::string const &conf, 
+void colvar::cvc::parse_group (std::string const &conf,
                                char const *group_key,
                                cvm::atom_group &group,
                                bool optional)
@@ -120,7 +120,7 @@ void colvar::cvc::debug_gradients (cvm::atom_group &group)
     for (size_t id = 0; id < 3; id++) {
       // (re)read original positions
       group.read_positions();
-      // change one coordinate 
+      // change one coordinate
       group[ia].pos[id] += cvm::debug_gradients_step_size;
       // (re)do the fit (if defined)
       if (group.b_center || group.b_rotate) {

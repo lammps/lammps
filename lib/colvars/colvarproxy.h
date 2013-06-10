@@ -80,7 +80,7 @@ public:
 
   /// \brief Get the closest periodic image to a reference position
   /// \param pos The position to look for the closest periodic image
-  /// \param ref_pos The reference position 
+  /// \param ref_pos The reference position
   virtual void select_closest_image (cvm::atom_pos &pos,
                                      cvm::atom_pos const &ref_pos) = 0;
 

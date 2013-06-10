@@ -1,9 +1,20 @@
-# verified on Fedora 18 / x86_64 2013-06-09
+# verified on Fedora 18     / x86_64 / 2013-06-09
+# verified on Fedora 19     / x86_64 / 2013-06-10
+# verified on CentOS 6.4    / x86_64 / 2013-06-10
+# verified on OpenSuSE 12.3 / x86_64 / 2013-06-10
 
 %ifnarch s390 s390x
 %global with_openmpi 1
 %else
 %global with_openmpi 0
+%endif
+
+%if %{defined suse_version}
+%global with_suse 1
+%global _openmpi_load :
+%global _openmpi_unload :
+%else
+%global with_suse 0
 %endif
 
 # to find the proper location for installing the lammps.py* files
@@ -20,9 +31,14 @@ URL:            http://lammps.sandia.gov
 Source0:        lammps-current.tar.gz
 
 BuildRequires:  gcc-c++
-BuildRequires:  gcc-gfortran
 BuildRequires:  fftw-devel
+%if %{with_suse}
+BuildRequires:  gcc-fortran
+BuildRequires:  libjpeg8-devel
+%else
+BuildRequires:  gcc-gfortran
 BuildRequires:  libjpeg-devel
+%endif
 Requires:       lammps-common = %{version}-%{release}
 
 %global lammps_desc \
@@ -65,6 +81,9 @@ BuildRequires:  openmpi-devel
 This package contains a parallel LAMMPS executable for OpenMPI.
 %endif
 
+%if %{with_suse}
+# no out-of-the-box support for MPICH2
+%else
 %package mpich2
 Summary:        LAMMPS MPICH2 executable
 Group:          Applications/Engineering
@@ -76,6 +95,7 @@ BuildRequires:  mpich2-devel
 %{lammps_desc}
 
 This package contains a parallel LAMMPS executable for MPICH2.
+%endif
 
 %package python
 Summary:        LAMMPS Python module
@@ -168,6 +188,9 @@ mv src/lmp_g++ openmpi/
 %{_openmpi_unload}
 %endif
 
+%if %{with_suse}
+# no MPICH2 build with SuSE
+%else
 # build MPICH2 parallel version
 %{_mpich2_load}
 # need to rebuild lib/atc
@@ -186,6 +209,7 @@ cd ../
 mkdir mpich2
 mv src/lmp_g++ mpich2/
 %{_mpich2_unload}
+%endif
 
 # build done (so far)
 
@@ -204,10 +228,14 @@ install -p -m 755 openmpi/lmp_g++ $RPM_BUILD_ROOT/%{_libdir}/openmpi/bin/
 %{_openmpi_unload}
 %endif
 
+%if %{with_suse}
+# no MPICH2 support in SuSE
+%else
 %{_mpich2_load}
 mkdir -p $RPM_BUILD_ROOT/%{_libdir}/mpich2/bin
 install -p -m 755 mpich2/lmp_g++ $RPM_BUILD_ROOT/%{_libdir}/mpich2/bin/
 %{_mpich2_unload}
+%endif
 
 mkdir -p $RPM_BUILD_ROOT/%{python_sitearch}
 mkdir -p $RPM_BUILD_ROOT/%{_libdir}
@@ -234,9 +262,13 @@ rm -rf %{buildroot}
 %{_libdir}/openmpi/bin/lmp_g++
 %endif
 
+%if %{with_suse}
+# no MPICH2 package for suse
+%else
 %files mpich2
 %defattr(-,root,root,-)
 %{_libdir}/mpich2/bin/lmp_g++
+%endif
 
 %files python
 %defattr(-,root,root,-)

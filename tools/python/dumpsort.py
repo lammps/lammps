@@ -1,4 +1,4 @@
-#!/usr/local/bin/python
+#!/usr/bin/env python
 
 # Script:  dumpsort.py
 # Purpose: sort the snapshots in a LAMMPS dump file by atom ID

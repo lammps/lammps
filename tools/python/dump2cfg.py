@@ -1,4 +1,4 @@
-#!/usr/local/bin/python
+#!/usr/bin/env python
 
 # Script:  dump2cfg.py
 # Purpose: convert a LAMMPS dump file to CFG format

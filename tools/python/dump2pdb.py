@@ -1,4 +1,4 @@
-#!/usr/local/bin/python
+#!/usr/bin/env python
 
 # Script:  dump2pdb.py
 # Purpose: convert a LAMMPS dump file to PDB format

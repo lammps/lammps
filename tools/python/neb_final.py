@@ -1,4 +1,4 @@
-#!/usr/local/bin/python
+#!/usr/bin/env python
 
 # make new dump file from final snapshots from multiple NEB replica dumps
 # Syntax: neb_final.py -switch arg(s) -switch arg(s) ...

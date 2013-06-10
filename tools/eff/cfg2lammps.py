@@ -1,4 +1,4 @@
-#!/usr/local/bin/python-2.5/bin/python
+#!/usr/bin/env python
 
 Info="""
 Module name: cfg2lammps.py

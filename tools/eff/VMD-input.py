@@ -1,4 +1,4 @@
-#!/usr/local/bin/python-2.5/bin/python
+#!/usr/bin/env python
 
 import sys, os
 from getopt import gnu_getopt as getopt

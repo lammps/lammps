@@ -88,7 +88,7 @@ colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp,
   LAMMPS_NS::Output *outp = _lmp->output;
   if ((outp->restart_every_single > 0) && (outp->restart1 != 0)) {
       restart_prefix_str = std::string(outp->restart1);
-  } else if  ((outp->restart_every_double > 0) && (outp->restart2a != 0)) { 
+  } else if  ((outp->restart_every_double > 0) && (outp->restart2a != 0)) {
     restart_prefix_str = std::string(outp->restart2a);
   }
   // trim off unwanted stuff from the restart prefix
@@ -152,6 +152,11 @@ double colvarproxy_lammps::compute()
     cvm::log(cvm::line_marker+
              "colvarproxy_lammps, step no. "+cvm::to_str(colvars->it)+"\n"+
              "Updating internal data.\n");
+  }
+
+  // zero the forces on the atoms, so that they can be accumulated by the colvars
+  for (size_t i = 0; i < colvars_atoms.size(); i++) {
+    applied_forces[i].x = applied_forces[i].y = applied_forces[i].z = 0.0;
   }
 
   // call the collective variable module
@@ -445,7 +450,7 @@ void cvm::atom::read_system_force()
 void cvm::atom::apply_force(cvm::rvector const &new_force)
 {
   colvarproxy_lammps *cp = (colvarproxy_lammps *) cvm::proxy;
-  cp->applied_forces[this->index].x = new_force.x;
-  cp->applied_forces[this->index].y = new_force.y;
-  cp->applied_forces[this->index].z = new_force.z;
+  cp->applied_forces[this->index].x += new_force.x;
+  cp->applied_forces[this->index].y += new_force.y;
+  cp->applied_forces[this->index].z += new_force.z;
 }

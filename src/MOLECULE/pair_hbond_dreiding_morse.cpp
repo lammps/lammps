@@ -182,9 +182,9 @@ void PairHbondDreidingMorse::compute(int eflag, int vflag)
             fi[0] = vx1 + (b+d)*delx;
             fi[1] = vy1 + (b+d)*dely;
             fi[2] = vz1 + (b+d)*delz;
-            fj[0] = vx2 - (b-d)*delx;
-            fj[1] = vy2 - (b-d)*dely;
-            fj[2] = vz2 - (b-d)*delz;
+            fj[0] = vx2 - (b+d)*delx;
+            fj[1] = vy2 - (b+d)*dely;
+            fj[2] = vz2 - (b+d)*delz;
 
             f[i][0] += fi[0];
             f[i][1] += fi[1];

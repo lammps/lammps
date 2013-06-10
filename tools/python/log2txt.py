@@ -1,4 +1,4 @@
-#!/usr/local/bin/python
+#!/usr/bin/env python
 
 # Script:  log2txt.py
 # Purpose: extract thermo info from LAMMPS log file

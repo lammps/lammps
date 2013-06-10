@@ -1,4 +1,4 @@
-#!/usr/local/bin/python
+#!/usr/bin/env python
 
 # Script:  dump2xyz.py
 # Purpose: convert a LAMMPS dump file to XYZ format

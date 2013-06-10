@@ -755,6 +755,12 @@ pair_lj_cut_coul_pppm_omp.cpp
 pair_lj_cut_coul_pppm_omp.h
 pair_lj_cut_coul_pppm_tip4p_omp.cpp
 pair_lj_cut_coul_pppm_tip4p_omp.h
+pair_lj_cut_dipole_cut.cpp
+pair_lj_cut_dipole_cut.h
+pair_lj_cut_dipole_cut_omp.cpp
+pair_lj_cut_dipole_cut_omp.h
+pair_lj_cut_dipole_long.cpp
+pair_lj_cut_dipole_long.h
 pair_lj_cut_tip4p_long.cpp
 pair_lj_cut_tip4p_long.h
 pair_lj_cut_tip4p_long_omp.cpp
@@ -767,6 +773,8 @@ pair_lj_long_coul_long_omp.cpp
 pair_lj_long_coul_long_omp.h
 pair_lj_long_coul_long_opt.cpp
 pair_lj_long_coul_long_opt.h
+pair_lj_long_dipole_long.cpp
+pair_lj_long_dipole_long.h
 pair_lj_long_tip4p_long.cpp
 pair_lj_long_tip4p_long.h
 pair_lj_long_tip4p_long_omp.cpp
@@ -815,6 +823,10 @@ pair_lj_sf.cpp
 pair_lj_sf.h
 pair_lj_sf_omp.cpp
 pair_lj_sf_omp.h
+pair_lj_sf_dipole_sf.cpp
+pair_lj_sf_dipole_sf.h
+pair_lj_sf_dipole_sf_omp.cpp
+pair_lj_sf_dipole_sf_omp.h
 pair_lj96_cut_omp.cpp
 pair_lj96_cut_omp.h
 pair_lj96_cut_gpu.cpp

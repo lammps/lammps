@@ -155,7 +155,7 @@ double colvarproxy_lammps::compute()
   }
 
   // zero the forces on the atoms, so that they can be accumulated by the colvars
-  for (size_t i = 0; i < colvars_atoms.size(); i++) {
+  for (size_t i = 0; i < applied_forces.size(); i++) {
     applied_forces[i].x = applied_forces[i].y = applied_forces[i].z = 0.0;
   }
 

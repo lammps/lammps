@@ -167,6 +167,9 @@ colvar::colvar (std::string const &conf)
   // check the available features of each cvc
   for (size_t i = 0; i < cvcs.size(); i++) {
 
+    if ((cvcs[i])->b_debug_gradients)
+      enable (task_gradients);
+
     if ((cvcs[i])->sup_np != 1) {
       if (cvm::debug() && b_linear)
         cvm::log ("Warning: You are using a non-linear polynomial "

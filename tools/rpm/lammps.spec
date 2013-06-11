@@ -102,7 +102,6 @@ Summary:        LAMMPS Python module
 Group:          Applications/Engineering
 Requires:       lammps-common
 Requires:       python
-BuildRequires:  python-devel
 
 %description python
 %{lammps_desc}

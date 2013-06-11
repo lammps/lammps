@@ -13,7 +13,7 @@
 
 #ifdef DIHEDRAL_CLASS
 
-DihedralStyle(n/harmonic,DihedralNHarmonic)
+DihedralStyle(nharmonic,DihedralNHarmonic)
 
 #else
 

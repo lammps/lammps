@@ -220,7 +220,8 @@ public:
 
 };
 
-    /*double w=wk.get_width();
+#if 0
+    double w=wk.get_width();
           Vector_3 r=wk.get_r();
           double t=3/(2*w*w*w);
           fe_w[ic1+k1]+= t*E_der[s1][indw1+8*k1]+imag(wk.a)*E_der[s1][indw1+8*k1+1]/w;
@@ -230,7 +231,8 @@ public:
             fe_p[ic1+k1][i]+= (-E_der[s1][indw1+8*k1+2+2*i+1])*(m_electron/h_plank); //*(h_plank/m_electron);
             fe_pw[ic1+k1]+=(r[i]*E_der[s1][indw1+8*k1+2+2*i+1]/w)/h_plank;  
             fe_w[ic1+k1]+=2*r[i]*(t*E_der[s1][indw1+8*k1+2+2*i]+imag(wk.a)*E_der[s1][indw1+8*k1+2+2*i+1]/w);
-          }*/
+          }
+#endif
 
 
 /// constructs a conjugate packet

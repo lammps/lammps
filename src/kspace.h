@@ -44,6 +44,17 @@ class KSpace : protected Pointers {
   int dispersionflag;            // 1 if a LJ/dispersion solver
   int tip4pflag;                 // 1 if a TIP4P solver
   int dipoleflag;                // 1 if a dipole solver
+  int differentiation_flag;
+  int slabflag;
+  double slab_volfactor;
+
+  int order,order_6;
+  double accuracy;                  // accuracy of KSpace solver (force units)
+  double accuracy_absolute;         // user-specifed accuracy in force units
+  double accuracy_relative;         // user-specified dimensionless accuracy
+                                    // accurary = acc_rel * two_charge_force
+  double two_charge_force;          // force in user units of two point
+                                    // charges separated by 1 Angstrom
 
   double g_ewald,g_ewald_6;
   int nx_pppm,ny_pppm,nz_pppm;           // global FFT grid for Coulombics
@@ -133,22 +144,11 @@ class KSpace : protected Pointers {
  protected:
   int gridflag,gridflag_6;
   int gewaldflag,gewaldflag_6;
-  int order,order_6;
   int minorder,overlap_allowed;
-  int differentiation_flag;
-  int slabflag;
   int adjust_cutoff_flag;
   int suffix_flag;                  // suffix compatibility flag
   double scale;
-  double slab_volfactor;
   double **gcons,**dgcons;          // accumulated per-atom energy/virial
-
-  double accuracy;                  // accuracy of KSpace solver (force units)
-  double accuracy_absolute;         // user-specifed accuracy in force units
-  double accuracy_relative;         // user-specified dimensionless accuracy
-                                    // accurary = acc_rel * two_charge_force
-  double two_charge_force;          // force in user units of two point
-                                    // charges separated by 1 Angstrom
 
   int evflag,evflag_atom;
   int eflag_either,eflag_global,eflag_atom;

@@ -1,0 +1,106 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix tune/kspace command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID tune/kspace N 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>tune/kspace = style name of this fix command 
+
+<LI>N = invoke this fix every N steps 
+
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 2 all tune/kspace 100 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>This fix tests each kspace style (Ewald, PPPM, and MSM), and 
+automatically selects the fastest style to use for the remainder
+of the run. If the fastest style is Ewald or PPPM, the fix also
+adjusts the coulomb cutoff towards optimal speed. Future versions 
+of this fix will automatically select other kspace parameters 
+to use for maximum simulation speed. The kspace parameters may 
+include the style, cutoff, grid points in each direction, order, 
+Ewald parameter, MSM parallelization cut-point, MPI tasks to use, etc.
+</P>
+<P>The rationale for this fix is to provide the user with as-fast-as-possible
+simulations that include long-range electrostatics (kspace) while meeting
+the user-prescribed accuracy requirement. A simple heuristic could never 
+capture the optimal combination of parameters for every possible run-time
+scenario. But by performing short tests of various kspace parameter sets, 
+this fix allows parameters to be tailored specifically to the user’s 
+machine, MPI ranks, use of threading or accelerators, the simulated system, 
+and the simulation details. In addition, it is possible that parameters 
+could be evolved with the simulation on-the-fly, which is useful for 
+systems that are dynamically evolving (e.g. changes in box size/shape or
+number of particles).
+</P>
+<P>When this fix is invoked, LAMMPS will perform short timed tests of 
+various parameter sets to determine the optimal parameters. Tests are 
+performed on-the-fly, with a new test initialized every N steps. N should
+be chosen large enough so that adequate CPU time lapses between tests, 
+thereby providing statistically significant timings. But N should not be
+chosen to be so large that an unfortunate parameter set test takes an 
+inordinate amount of wall time to complete. An N of 100 for most problems
+seems reasonable. Once an optimal parameter set is found, that set is 
+used for the remainder of the run.
+</P>
+<P>This fix uses heristics to guide it's selection of parameter sets to test,
+but the actual timed results will be used to decide which set to use in the
+simulation.
+</P>
+<P>It is not necessary to discard trajectories produced using sub-optimal 
+parameter sets, or a mix of various parameter sets, since the user-prescribed
+accuracy will have been maintained throughout. However, some users may prefer
+to use this fix only to discover the optimal parameter set for a given setup 
+that can then be used on subsequent production runs.
+</P>
+<P>This fix starts with kspace parameters that are set by the user with the
+<A HREF = "kspace_style.html">kspace_style</A> and <A HREF = "kspace_modify.html">kspace_modify</A> 
+commands. The prescribed accuracy will be maintained by this fix throughout 
+the simulation.
+</P>
+<P>None of the <A HREF = "fix_modify.html">fix_modify</A> options are relevant to this
+fix.
+</P>
+<P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
+the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy
+minimization</A>.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This fix is part of the KSPACE package.  It is only enabled if LAMMPS was
+built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>Do not set "neigh_modify once yes" or else this fix will never be
+called.  Reneighboring is required.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "kspace_style.html">kspace_style</A>, <A HREF = "boundary.html">boundary</A>
+<A HREF = "kspace_modify.html">kspace_modify</A>, <A HREF = "pair_lj.html">pair_style
+lj/cut/coul/long</A>, <A HREF = "pair_charmm.html">pair_style
+lj/charmm/coul/long</A>, <A HREF = "pair_lj_coul.html">pair_style
+lj/coul</A>, <A HREF = "pair_buck.html">pair_style buck/coul/long</A>
+</P>
+<P><B>Default:</B>
+</P>
+<HR>
+
+</HTML>

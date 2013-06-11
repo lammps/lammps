@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 """
   function: 
     parse the block of thermo data in a lammps logfile and perform auto- and 

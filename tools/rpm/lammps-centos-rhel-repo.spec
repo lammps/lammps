@@ -1,4 +1,4 @@
-Name:           lammps-centos-repo
+Name:           lammps-centos-rhel-repo
 Version:        1
 Release:        1
 Summary:        LAMMPS-ICMS Snapshot Repository Configuration

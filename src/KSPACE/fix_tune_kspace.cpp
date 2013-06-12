@@ -164,7 +164,7 @@ void FixTuneKspace::pre_exchange()
     adjust_rcut(time);
   }
 
-  last_spcpu = timer->elapsed(TIME_LOOP);
+  last_spcpu = timer->elapsed(Timer::LOOP);
 }
 
 /* ----------------------------------------------------------------------
@@ -182,7 +182,7 @@ double FixTuneKspace::get_timing_info()
     dvalue = 0.0;
     firststep = 1;
   } else {
-    new_cpu = timer->elapsed(TIME_LOOP);
+    new_cpu = timer->elapsed(Timer::LOOP);
     double cpu_diff = new_cpu - last_spcpu;
     int step_diff = new_step - last_step;
     if (step_diff > 0.0) dvalue = cpu_diff/step_diff;

@@ -1,6 +1,6 @@
 Name:           lammps-centos-repo
 Version:        1
-Release:        1%{?dist}
+Release:        1
 Summary:        LAMMPS-ICMS Snapshot Repository Configuration
 
 Group:          System Environment/Base

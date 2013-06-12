@@ -1,0 +1,14 @@
+# LAMMPS-ICMS snapshot repo for RedHat Enterprise Linux and CentOS installations
+
+[lammps-icms]
+name=CentOS/RHEL-$releasever - $basearch - LAMMPS-ICMS snapshot builds
+enabled=1
+gpgcheck=0
+baseurl=http://klein-group.icms.temple.edu/rpmbuild/centos/$releasever/$basearch/
+
+[lammps-icms-debuginfo]
+name=CentOS/RHEL-$releasever - $basearch - LAMMPS-ICMS snapshot builds - Debug
+enabled=0
+gpgcheck=0
+baseurl=http://klein-group.icms.temple.edu/rpmbuild/centos/$releasever/$basearch/debug
+

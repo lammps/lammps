@@ -1,0 +1,31 @@
+Steps to set up a virtual machine for building RPMs
+
+Configure a new virtual machine instance for each platform and distribution
+Tested KVM/QEMU settings:
+ 1 CPU, 2048 MB RAM, 10 GB disk image, VGA graphics, Core2duo CPU 32-bit/64-bit
+
+Install distribution via CD/DVD ISO image (netinstall version)
+- standard (non-LVM) partition layout, 2GB Swap only, 500MB /boot, rest /
+- perform "Minimal" install choice
+
+Make sure the following additional packages (and dependencies) are installed
+  + on RedHat/Fedora/CentOS:
+    vim-enhanced openssh-clients python tar
+    yum-utils rpmdevtools rpm-build redhat-rpm-config createrepo
+    git make gcc-c++ gcc-gfortran
+    mpich2-devel openmpi-devel fftw-devel libjpeg-devel
+  + on OpenSuSE
+
+Create user 'rpmbuild' and set password.
+Log in and create ssh key pair and copy to host for automatic file transfer
+Copy $HOME/.rpmmacros file from host
+Run rpmdev-setuptree
+
+Edit $HOME/.bash_profile to set environment variables for depositing files
+MYRPM_REPO_HOST MYRPM_REPO_USER MYRPM_REPO_DIR
+
+Clone LAMMPS-ICMS tree via:
+ git clone git://git.icms.temple.edu/lammps-icms.git lammps-icms
+
+cd lammps-icms; git pull ; ./tools/rpm/build-rpm-from-git.sh >& build.log
+

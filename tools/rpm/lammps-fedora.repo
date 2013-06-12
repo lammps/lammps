@@ -1,0 +1,14 @@
+# LAMMPS-ICMS snapshot repo for Fedora Linux installations
+
+[lammps-icms]
+name=Fedora $releasever - $basearch - LAMMPS-ICMS snapshot builds
+enabled=1
+gpgcheck=0
+baseurl=http://klein-group.icms.temple.edu/rpmbuild/fedora/$releasever/$basearch/
+
+[lammps-icms-debuginfo]
+name=Fedora $releasever - $basearch - LAMMPS-ICMS snapshot builds - Debug
+enabled=0
+gpgcheck=0
+baseurl=http://klein-group.icms.temple.edu/rpmbuild/fedora/$releasever/$basearch/debug
+

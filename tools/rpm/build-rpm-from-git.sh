@@ -6,8 +6,8 @@ then
     exit 1
 fi
 
-MY_RPM_BUILD_DIR=$(rpmbuild --showrc 2>&1 | sed -n -e 's/^.*: _topdir[	 ]\+\(.*\)$/\1/p')
-echo Building RPMs in ${MY_RPM_BUILD_DIR}
+MYRPM_BUILD_DIR=$(rpmbuild --showrc 2>&1 | sed -n -e 's/^.*: _topdir[	 ]\+\(.*\)$/\1/p')
+echo Building RPMs in ${MYRPM_BUILD_DIR}
 
 for d in "${PWD}" "${PWD%/src}" "${PWD%/tools/rpm}" "$1"
 do \
@@ -23,22 +23,39 @@ then
     echo "'${PWD}' is not a suitable working directory"
     exit 1
 fi
-pushd "${LAMMPS_PATH}"
 
 for d in SPECS SOURCES RPMS SRPMS BUILD BUILDROOT
 do \
-  dir="${MY_RPM_BUILD_DIR}/${d}"
+  dir="${MYRPM_BUILD_DIR}/${d}"
   test -d "${dir}" || mkdir -p "${dir}" || exit 2
 done
 
+for d in cache debug drpms repodata
+do \
+  dir="${MYRPM_BUILD_DIR}/RPMS/${d}"
+  test -d "${dir}" || mkdir -p "${dir}" || exit 2
+done
+
+pushd "${LAMMPS_PATH}"
 datestr=$(date +%Y%m%d)
-sed -e "/^Version/s/\(Version:[ 	]\+\)[0-9].*$/\1${datestr}/" tools/rpm/lammps.spec > ${MY_RPM_BUILD_DIR}/SPECS/lammps.spec
+sed -e "/^Version/s/\(Version:[ 	]\+\)[0-9].*$/\1${datestr}/" tools/rpm/lammps.spec > ${MYRPM_BUILD_DIR}/SPECS/lammps.spec
 
 git archive -v --format=tar --prefix=lammps-current/ HEAD \
     README LICENSE doc/Manual.pdf src lib python bench potentials \
     tools/*.cpp tools/*.f \
-    | gzip -9c - > "${MY_RPM_BUILD_DIR}/SOURCES/lammps-current.tar.gz"
-
-rpmbuild --clean --rmsource --rmspec -ba "${MY_RPM_BUILD_DIR}/SPECS/lammps.spec"
-
+    | gzip -9c - > "${MYRPM_BUILD_DIR}/SOURCES/lammps-current.tar.gz"
 popd
+
+rpmbuild --clean --rmsource --rmspec -ba "${MYRPM_BUILD_DIR}/SPECS/lammps.spec"
+
+if [ -n "${MYRPM_REPO_USER}" ] \
+&& [ -n "${MYRPM_REPO_HOST}" ] \
+&& [ -n "${MYRPM_REPO_DIR}" ]
+then
+    pushd ${MYRPM_BUILD_DIR}/RPMS
+    mv -v *-debuginfo-*.rpm debug/
+    createrepo -v --cachedir cache --deltas --num-deltas 5 .
+    rsync -arpv debug repodata drpms *.rpm \
+        ${MYRPM_REPO_USER}@${MYRPM_REPO_HOST}:${MYRPM_REPO_DIR}/
+    popd
+fi

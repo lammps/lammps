@@ -47,15 +47,3 @@ git archive -v --format=tar --prefix=lammps-current/ HEAD \
 popd
 
 rpmbuild --clean --rmsource --rmspec -ba "${MYRPM_BUILD_DIR}/SPECS/lammps.spec"
-
-if [ -n "${MYRPM_REPO_USER}" ] \
-&& [ -n "${MYRPM_REPO_HOST}" ] \
-&& [ -n "${MYRPM_REPO_DIR}" ]
-then
-    pushd ${MYRPM_BUILD_DIR}/RPMS
-    mv -v *-debuginfo-*.rpm debug/
-    createrepo -v --cachedir cache --deltas --num-deltas 5 .
-    rsync -arpv debug repodata drpms *.rpm \
-        ${MYRPM_REPO_USER}@${MYRPM_REPO_HOST}:${MYRPM_REPO_DIR}/
-    popd
-fi

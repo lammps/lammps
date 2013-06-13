@@ -57,15 +57,22 @@ as using multi-threading via OpenMP inside each simulation domain.
 This package contains a LAMMPS executable compiled without MPI support.
 
 %package common
-Summary:        LAMMPS utilities and documentation
+Summary:        LAMMPS utilities and potentials
 Group:          Applications/Engineering
 
 %description common
 %{lammps_desc}
 
-This package contains common utilities and the documentation 
+This package contains common utilities and potential files
 
+%package doc
+Summary:        LAMMPS documentation and benchmark tests
+Group:          Applications/Engineering
 
+%description doc
+%{lammps_desc}
+
+This package contains the documentation and benchmark tests
 
 %if %{with_openmpi}
 %package openmpi
@@ -253,7 +260,11 @@ rm -rf %{buildroot}
 %{_bindir}/restart2data
 %{_bindir}/binary2txt
 %{_bindir}/chain.x
-%doc README LICENSE doc/Manual.pdf bench potentials
+%doc README LICENSE potentials
+
+%files doc
+%defattr(-,root,root,-)
+%doc doc/Manual.pdf bench
 
 %if %{with_openmpi}
 %files openmpi
@@ -277,6 +288,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Jun 13 2013 Axel Kohlmeyer <akohlmey@gmail.com> - 20130609-1
+- split off manual and benchmarks from common into doc package
+
 * Sun Jun  9 2013 Axel Kohlmeyer <akohlmey@gmail.com> - 20130609-1
 - Added subpackage for python wrapper
 

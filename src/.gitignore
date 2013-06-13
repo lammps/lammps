@@ -417,6 +417,8 @@ fix_srd.cpp
 fix_srd.h
 fix_temp_rescale_eff.cpp
 fix_temp_rescale_eff.h
+fix_tune_kspace.cpp
+fix_tune_kspace.h
 fix_wall_colloid.cpp
 fix_wall_colloid.h
 fix_wall_gran.cpp

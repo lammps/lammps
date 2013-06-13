@@ -82,6 +82,20 @@ colvarbias_abf::colvarbias_abf (std::string const &conf, char const *key)
     // and make it just a warning if some parameter is set?
   }
 
+  if (get_keyval (conf, "maxForce", max_force)) {
+    if (max_force.size() != colvars.size()) {
+      cvm::fatal_error ("Error: Number of parameters to maxForce does not match number of colvars.");
+    }
+    for (size_t i=0; i<colvars.size(); i++) {
+      if (max_force[i] < 0.0) {
+        cvm::fatal_error ("Error: maxForce should be non-negative.");
+      }
+    }
+    cap_force = true;
+  } else {
+    cap_force = false;
+  }
+
   bin.assign (colvars.size(), 0);
   force_bin.assign (colvars.size(), 0);
   force = new cvm::real [colvars.size()];
@@ -183,15 +197,21 @@ cvm::real colvarbias_abf::update()
     const cvm::real * grad  = &(gradients->value (bin));
 
     if ( fact != 0.0 ) {
-
       if ( (colvars.size() == 1) && colvars[0]->periodic_boundaries() ) {
         // Enforce a zero-mean bias on periodic, 1D coordinates
-        colvar_forces[0].real_value += fact * (grad[0] / cvm::real (count) - gradients->average ());
+        // in other words: boundary condition is that the biasing potential is periodic
+        colvar_forces[0].real_value = fact * (grad[0] / cvm::real (count) - gradients->average ());
       } else {
         for (size_t i=0; i<colvars.size(); i++) {
           // subtracting the mean force (opposite of the FE gradient) means adding the gradient
-          colvar_forces[i].real_value += fact * grad[i] / cvm::real (count);
-          // without .real_value, the above would do (cheap) runtime type checking
+          colvar_forces[i].real_value = fact * grad[i] / cvm::real (count);
+        }
+      }
+      if (cap_force) {
+        for (size_t i=0; i<colvars.size(); i++) {
+          if ( colvar_forces[i].real_value * colvar_forces[i].real_value > max_force[i] * max_force[i] ) {
+            colvar_forces[i].real_value = (colvar_forces[i].real_value > 0 ? max_force[i] : -1.0 * max_force[i]);
+          }
         }
       }
     }
@@ -206,7 +226,7 @@ cvm::real colvarbias_abf::update()
     // otherwise, backup and replace
     write_gradients_samples (output_prefix + ".hist", (cvm::step_absolute() > 0));
   }
-  return 0.0; // TODO compute bias energy whenever possible (i.e. 1D with updateBias off)
+  return 0.0;
 }
 
 

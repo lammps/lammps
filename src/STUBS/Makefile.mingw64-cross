@@ -28,13 +28,10 @@ $(EXE):	$(OBJ)
 # Clean
 
 clean:
-	rm *.o libmpi.a $(EXE) $(OBJ)
+	rm $(EXE) $(OBJ)
 
 # Compilation rules
 
-.c.o:
-	$(CC) $(CCFLAGS) -c $<
+$(OBJ): $(SRC) $(INC)
+	$(CC) $(CCFLAGS) -c $< -o $@
 
-# Individual dependencies
-
-$(OBJ):	$(INC)

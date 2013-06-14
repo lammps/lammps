@@ -11,7 +11,7 @@ SHELL = /bin/sh
 
 # which file will be copied to Makefile.lammps
 
-EXTRAMAKE = Makefile.lammps.installed
+EXTRAMAKE = Makefile.lammps.gfortran
 
 # ------ FILES ------
 

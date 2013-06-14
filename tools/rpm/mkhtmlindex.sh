@@ -19,27 +19,26 @@ do \
     <hr>
     <table>
     <tbody>
-      <tr><th>[DIR]</th><th></th><th><a href="../index.html">(Up one level)</a></th></tr>
+      <tr><th>[DIR]</th><th></th><th align="left"> &nbsp; <a href="../index.html">(Up one level)</a></th></tr>
 EOF
     # first all directory entries
     for e in $(/bin/ls -1 "$d")
-    do \
-        if [ -d "$d/$e" ]
-          then
-          echo '<tr><td>[DIR]</td><td></td><td>' >> "$d/index.html"
-          echo "</td><td><a href=\"$e/index.html\">$e</a></td></tr>" >> "$d/index.html"
+      do [ "$e" = "repodata" ] && continue
+      [ "$e" = "drpms" ] && continue
+      if [ -d "$d/$e" ]
+      then
+        echo '<tr><td>[DIR]</td><td></td>' >> "$d/index.html"
+        echo "<td> &nbsp; <a href=\"$e/index.html\"> $e</a></td></tr>" >> "$d/index.html"
       fi
     done
     # then all file entries
     for e in $(/bin/ls -1 "$d")
-    do \
-        if [ -f "$d/$e" ]
-          then
-          echo '<tr><td>' >> "$d/index.html"
-          ls -lh "$d/$e" | cut -d \  -f  5-5 >> "$d/index.html"
-          echo '</td><td>' >> "$d/index.html"
-          ls -lh "$d/$e" | cut -d \  -f  6-8 >> "$d/index.html"
-          echo "</td><td><a href=\"$e\">$e</a></td></tr>" >> "$d/index.html"
+      do [ "$e" = "index.html" ] && continue
+      if [ -f "$d/$e" ]
+      then
+        echo '<tr><td>' >> "$d/index.html"
+        ls -lh "$d/$e" | cut -d \  -f  6-7 >> "$d/index.html"
+        echo "</td><td> &nbsp; <a href=\"$e\"> $e</a></td></tr>" >> "$d/index.html"
       fi
     done
     # footer

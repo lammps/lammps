@@ -519,6 +519,7 @@ of each style or click on the style itself for a full description:
 "thermal/conductivity"_fix_thermal_conductivity.html,
 "tmd"_fix_tmd.html,
 "ttm"_fix_ttm.html,
+"tune/kspace"_fix_tune_kspace.html,
 "viscosity"_fix_viscosity.html,
 "viscous"_fix_viscous.html,
 "wall/colloid"_fix_wall.html,

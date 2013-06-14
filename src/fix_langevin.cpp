@@ -450,9 +450,9 @@ template < int Tp_TSTYLEATOM, int Tp_GJF, int Tp_TALLY,
 	   int Tp_BIAS, int Tp_RMASS, int Tp_ZERO >
 void FixLangevin::post_force_templated()
 #else
-void FixLangevin::post_force_untemplated(int Tp_TSTYLEATOM, 
-					 int Tp_GJF, int Tp_TALLY, 
-					 int Tp_BIAS, int Tp_RMASS, int Tp_ZERO)
+void FixLangevin::post_force_untemplated
+  (int Tp_TSTYLEATOM, int Tp_GJF, int Tp_TALLY, 
+   int Tp_BIAS, int Tp_RMASS, int Tp_ZERO)
 #endif
 {
   double gamma1,gamma2;

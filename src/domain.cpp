@@ -42,7 +42,7 @@ using namespace MathConst;
 
 #define BIG   1.0e20
 #define SMALL 1.0e-4
-#define DELTA 1
+#define DELTAREGION 4
 #define BONDSTRETCH 1.1
 
 enum{NO_REMAP,X_REMAP,V_REMAP};                   // same as fix_deform.cpp
@@ -1261,7 +1261,7 @@ void Domain::add_region(int narg, char **arg)
   // extend Region list if necessary
 
   if (nregion == maxregion) {
-    maxregion += DELTA;
+    maxregion += DELTAREGION;
     regions = (Region **)
       memory->srealloc(regions,maxregion*sizeof(Region *),"domain:regions");
   }

@@ -6,7 +6,7 @@ Tested KVM/QEMU settings:
 
 Install distribution via CD/DVD ISO image (netinstall version)
 - standard (non-LVM) partition layout, 2GB Swap only, 500MB /boot, rest /
-- perform "Minimal" install choice
+- choose "Minimal" installation
 
 Make sure the following additional packages (and dependencies) are installed
   + on RedHat/Fedora/CentOS:
@@ -17,8 +17,9 @@ Make sure the following additional packages (and dependencies) are installed
   + on OpenSuSE
 
 Create user 'rpmbuild' and set password.
-Log in and create ssh key pair and copy to host for automatic file transfer
-Copy $HOME/.rpmmacros file from host
+Log in and create ssh key pair and append the public key the .ssh/authorized_keys
+file of the repository account for automatic file transfer
+Setup a suitable $HOME/.rpmmacros file
 Run rpmdev-setuptree
 
 Edit $HOME/.bash_profile to set environment variables for depositing files
@@ -27,5 +28,9 @@ MYRPM_REPO_HOST MYRPM_REPO_USER MYRPM_REPO_DIR
 Clone LAMMPS-ICMS tree via:
  git clone git://git.icms.temple.edu/lammps-icms.git lammps-icms
 
-cd lammps-icms; git pull ; ./tools/rpm/build-rpm-from-git.sh >& build.log
+Build and sync the RPMs to the repository with:
+cd lammps-icms;
+git pull
+./tools/rpm/build-rpm-from-git.sh
+./sync-to-repo.sh
 

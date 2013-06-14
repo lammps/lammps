@@ -17,17 +17,17 @@ do \
     <h1>LAMMPS-ICMS RPM Repository: $d</h1>
     <h2>Contents of $dir</h2>
     <hr>
-    <ui>
-      <li> <a href="../index.html">[DIR] (Up one level)</a></li>
+    <table>
+    <tbody>
+      <tr><th>[DIR]</th><th></th><th><a href="../index.html">(Up one level)</a></th></tr>
 EOF
     # first all directory entries
     for e in $(/bin/ls -1 "$d")
     do \
         if [ -d "$d/$e" ]
           then
-          echo '<li>[DIR]' >> "$d/index.html"
-          ls -lhd "$d/$e" | cut -d \  -f  6-8 >> "$d/index.html"
-          echo "<a href=\"$e/index.html\">$e</a></li>" >> "$d/index.html"
+          echo '<tr><td>[DIR]</td><td></td><td>' >> "$d/index.html"
+          echo "</td><td><a href=\"$e/index.html\">$e</a></td></tr>" >> "$d/index.html"
       fi
     done
     # then all file entries
@@ -35,14 +35,16 @@ EOF
     do \
         if [ -f "$d/$e" ]
           then
-          echo '<li>' >> "$d/index.html"
-          ls -lhd "$d/$e" | cut -d \  -f  5-8 >> "$d/index.html"
-          echo "<a href=\"$e\">$e</a></li>" >> "$d/index.html"
+          echo '<tr><td>' >> "$d/index.html"
+          ls -lh "$d/$e" | cut -d \  -f  5-5 >> "$d/index.html"
+          echo '</td><td>' >> "$d/index.html"
+          ls -lh "$d/$e" | cut -d \  -f  6-8 >> "$d/index.html"
+          echo "</td><td><a href=\"$e\">$e</a></td></tr>" >> "$d/index.html"
       fi
     done
     # footer
     cat >> "$d/index.html" <<EOF
-    <ui>
+    </table>
   </body>
 </html>
 EOF

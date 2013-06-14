@@ -8,6 +8,7 @@ License:        BSD
 URL:            https://sites.google.com/site/akohlmey/software/lammps-icms
 Source0:        lammps-centos-rhel.repo
 
+BuildArch:      noarch
 ExclusiveArch:  noarch
 
 %description

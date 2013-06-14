@@ -1,0 +1,115 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>LAMMPS-ICMS Snapshot RPM Repository</title>
+  </head>
+
+  <body style="font-family: Helvetica,Arial,Verdana, sans-serif; margin-bottom: 2%; margin-top: 2%; margin-left: 5%; margin-right: 5%;">
+    <h1>LAMMPS-ICMS Snapshot RPM Repository</h1>
+    <p align="justify">
+      This repository is hosting precompiled RPM packages of the
+      <a href="http://lammps.sandia.gov/" target="-blank">LAMMPS</a>
+      molecular dynamics simulation software packages.
+      The binaries are built using the 
+      <a href="http://goo.gl/oKYI" target="_blank">LAMMPS-ICMS</a>
+      branch <a href="http://git.icms.temple.edu/git/" target="_blank">git repository</a>.
+
+      The packages are configued to depend only on packages that are
+      part of the respective distributions, so dependencies should be
+      resolved automatically when using yum to install the packages.
+
+      The LAMMPS binaries contain <b>all</b> optional packages included in
+      the source distribution <b>except</b>: GPU, KIM, and
+      USER-CUDA since those depend on libraries that do not exist as
+      regular RPM packages and/or where the license is incompatible with
+      including them in a binary distribution like this one.
+    </p>
+
+    <p align="justify">
+      The LAMMPS distribution is split into multiple subpackages and you
+      only need to install the ones that you need. Available subpackages
+      are:
+    </p>
+
+    <dl>
+      <dt><b>lammps</b></dt>
+      <dd>Non-MPI LAMMPS executable compiled multi-threading support via OpenMP.
+        The name of the executable is: <strong><code>lmp_g++</code></strong>.</dd>
+
+      <dt><b>lammps-openmpi</b></dt>
+      <dd>LAMMPS executable compiled with OpenMPI and multi-threading via OpenMP.
+        The name of the executable is: <strong><code>lmp_g++</code></strong>.</dd>
+
+      <dt><b>lammps-mpich2</b></dt>
+      <dd>LAMMPS executable compiled with MPICH2 and multi-threading via OpenMP.
+        The name of the executable is: <strong><code>lmp_g++</code></strong>.</dd>
+
+      <dt><b>lammps-python</b></dt>
+      <dd>Non-MPI LAMMPS shared library and Python wrapper compiled with OpenMP multi-threading.
+        Use in your python scripts as <strong><code>lammps</code></strong> module.</dd>
+
+      <dt><b>lammps-common</b></dt>
+      <dd>Contains a few bundled tools (<strong><code>restart2data</code></strong>,
+        <strong><code>binary2txt</code></strong> and <strong><code>chain.x</code></strong>), and
+        bundled potential files in <strong><code>/usr/share/lammps/potentials</code></strong>.<br>
+        <em>This package is required if one or more of the four previous packages are 
+          installed</em>.</dd>
+
+      <dt><b>lammps-doc</b></dt>
+      <dd>Contains the LAMMPS manual and additional documentation in PDF format.
+        It also contains the benchmark and example inputs in 
+        <strong><code>/usr/share/lammps/bench</code></strong>
+        <strong><code>/usr/share/lammps/examples</code></strong>, respectively.</dd>
+    </dl>
+
+    <h2>Available Repositories</h2>
+    <p align="justify">
+      Binary RPMs are currently provided for up-to-date versions of
+      RHEL/CentOS (6.4 at the time of this writing) and 
+      <a href="http://fedoraproject.org" target="_blank">Fedora</a>
+      (18 at the time of this writing) for 32-bit (i386) and 64-bit (x86_64)
+      x86 versions. Binaries for additional distributions and versions
+      may be added based on demand and available resources. The packages
+      are provided without warranty and are unsupported. If you notice
+      any problems or would like to see binaries for other distributions
+      or versions or platforms made available, you can contact 
+      <a href="http://goo.gl/1wk0">Axel Kohlmeyer</a>.
+    </p>
+    <ul>
+      <li>Go to CentOS / RedHat Enterprise Linux <a href="centos">repository</a></li>
+      <li>Go to Fedora Linux <a href="centos">repository</a></li>
+      <li>Go to Source RPM <a href="sources">repository</a></li>
+    </ul>
+
+    <h2>Other RPM-based Distributions</h2>
+    <p align="justify">
+      There is a huge number of Linux distributions on a large variety of hardware
+      around and it is impossible to provide binaries for all of them, even if they
+      do use the RPM package format. Currently only RPMs for OpenSuSE (version 12.3
+      as of this writing) are available. For all other RPM based distributions, you
+      can download the corresponding source RPMs, install the necessary packages
+      required for building the binary RPM and do a <code>rpmbuild --rebuild</code>.
+      If you notice any problems, you can contact 
+      <a href="http://goo.gl/1wk0">Axel Kohlmeyer</a>
+      to see, if there is a (simple) solution.
+    </p>    
+    <ul>
+      <li>Go to OpenSuSE <a href="suse">repository</a></li>
+      <li>Go to Source RPM <a href="sources">repository</a></li>
+    </ul>
+
+    <h2>Non-RPM-based Distributions</h2>
+    <p align="justify">
+      For Ubuntu and similar distributions based on the Debian packaging system,
+      you can use the LAMMPS daily build repository set up by Anton Gladky.
+      Instructions for accessing it are on the
+      <a href="http://lammps.sandia.gov/download.html#ubuntu">LAMMPS Download page</a>.
+    </p>
+    <hr>
+    <address><a href="http://goo.gl/1wk0">Axel Kohlmeyer</a></address>
+<!-- Created: Fri Jun 14 08:59:35 CEST 2013 -->
+<!-- hhmts start -->
+Last modified: Fri Jun 14 12:18:30 CEST 2013
+<!-- hhmts end -->
+  </body>
+</html>

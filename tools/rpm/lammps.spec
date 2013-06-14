@@ -23,7 +23,7 @@
 %{!?python_sitearch: %global python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
 
 Name:           lammps
-Version:        20130609
+Version:        20130614
 Release:        1%{?dist}
 Summary:        LAMMPS Molecular Dynamics Simulator
 Group:          Applications/Engineering
@@ -247,8 +247,11 @@ install -p -m 755 mpich2/lmp_g++ $RPM_BUILD_ROOT/%{_libdir}/mpich2/bin/
 
 mkdir -p $RPM_BUILD_ROOT/%{python_sitearch}
 mkdir -p $RPM_BUILD_ROOT/%{_libdir}
+mkdir -p $RPM_BUILD_ROOT/%{_datadir}/lammps
 cp python/lammps.py* $RPM_BUILD_ROOT/%{python_sitearch}
 cp serial/liblammps.so $RPM_BUILD_ROOT/%{_libdir}
+cp -arp potentials $RPM_BUILD_ROOT/%{_datadir}/lammps/
+cp -arp bench $RPM_BUILD_ROOT/%{_datadir}/lammps/
 
 %clean
 rm -rf %{buildroot}
@@ -262,11 +265,14 @@ rm -rf %{buildroot}
 %{_bindir}/restart2data
 %{_bindir}/binary2txt
 %{_bindir}/chain.x
-%doc README LICENSE potentials
+%{_datadir}/lammps/potentials
+%doc README LICENSE
 
 %files doc
 %defattr(-,root,root,-)
-%doc doc/Manual.pdf bench
+%{_datadir}/lammps/bench
+%doc doc/Manual.pdf
+%doc doc/PDF/*.pdf
 
 %if %{with_openmpi}
 %files openmpi
@@ -290,6 +296,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Jun 14 2013 Axel Kohlmeyer <akohlmey@gmail.com> - 20130609-1
+- included more documentation pdfs and move potentials and benchmarks to _datadir/lammps
+
 * Thu Jun 13 2013 Axel Kohlmeyer <akohlmey@gmail.com> - 20130609-1
 - split off manual and benchmarks from common into doc package
 

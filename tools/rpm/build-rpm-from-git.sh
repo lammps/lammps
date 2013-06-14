@@ -41,8 +41,8 @@ datestr=$(date +%Y%m%d)
 sed -e "/^Version/s/\(Version:[ 	]\+\)[0-9].*$/\1${datestr}/" tools/rpm/lammps.spec > ${MYRPM_BUILD_DIR}/SPECS/lammps.spec
 
 git archive -v --format=tar --prefix=lammps-current/ HEAD \
-    README LICENSE doc/Manual.pdf src lib python bench potentials \
-    tools/*.cpp tools/*.f \
+    README LICENSE doc/Manual.pdf doc/PDF src lib python  \
+    bench potentials tools/*.cpp tools/*.f \
     | gzip -9c - > "${MYRPM_BUILD_DIR}/SOURCES/lammps-current.tar.gz"
 popd
 

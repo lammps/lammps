@@ -1,6 +1,8 @@
-# verified on Fedora 18     / x86_64 / 2013-06-09
+# verified on Fedora 18     / x86_64 / 2013-06-13
+# verified on Fedora 18     / i386   / 2013-06-13
 # verified on Fedora 19     / x86_64 / 2013-06-10
-# verified on CentOS 6.4    / x86_64 / 2013-06-10
+# verified on CentOS 6.4    / x86_64 / 2013-06-13
+# verified on CentOS 6.4    / i386   / 2013-06-13
 # verified on OpenSuSE 12.3 / x86_64 / 2013-06-10
 
 %ifnarch s390 s390x

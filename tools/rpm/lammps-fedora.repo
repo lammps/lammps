@@ -4,11 +4,20 @@
 name=Fedora $releasever - $basearch - LAMMPS-ICMS snapshot builds
 enabled=1
 gpgcheck=0
-baseurl=http://klein-group.icms.temple.edu/rpmbuild/fedora/$releasever/$basearch/
+baseurl=http://git.icms.temple.edu/rpm/fedora/$releasever/$basearch/
+gpgkey=http://git.icms.temple.edu/rpm/RPM-GPG-KEY-akohlmey
 
 [lammps-icms-debuginfo]
 name=Fedora $releasever - $basearch - LAMMPS-ICMS snapshot builds - Debug
 enabled=0
 gpgcheck=0
-baseurl=http://klein-group.icms.temple.edu/rpmbuild/fedora/$releasever/$basearch/debug
+baseurl=http://git.icms.temple.edu/rpm/fedora/$releasever/$basearch/debug
+gpgkey=http://git.icms.temple.edu/rpm/RPM-GPG-KEY-akohlmey
+
+[lammps-icms-sources]
+name=LAMMPS-ICMS snapshot builds - Sources
+enabled=0
+gpgcheck=0
+baseurl=http://git.icms.temple.edu/rpm/sources
+gpgkey=http://git.icms.temple.edu/rpm/RPM-GPG-KEY-akohlmey
 

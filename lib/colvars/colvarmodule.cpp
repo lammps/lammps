@@ -89,8 +89,6 @@ colvarmodule::colvarmodule (char const  *config_filename,
     (output_prefix.size() ?
      std::string (output_prefix+".colvars.traj") :
      std::string ("colvars.traj"));
-  cvm::log ("The trajectory file will be \""+
-            cv_traj_name+"\".\n");
 
   if (cv_traj_freq) {
     // open trajectory file
@@ -99,6 +97,8 @@ colvarmodule::colvarmodule (char const  *config_filename,
                 "\".\n");
       cv_traj_os.open (cv_traj_name.c_str(), std::ios::app);
     } else {
+      cvm::log ("Writing to colvar trajectory file \""+cv_traj_name+
+                "\".\n");
       proxy->backup_file (cv_traj_name.c_str());
       cv_traj_os.open (cv_traj_name.c_str(), std::ios::out);
     }

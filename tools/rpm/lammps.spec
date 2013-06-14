@@ -1,8 +1,8 @@
-# verified on Fedora 18     / x86_64 / 2013-06-13
-# verified on Fedora 18     / i386   / 2013-06-13
+# verified on Fedora 18     / x86_64 / 2013-06-14
+# verified on Fedora 18     / i386   / 2013-06-14
 # verified on Fedora 19     / x86_64 / 2013-06-10
-# verified on CentOS 6.4    / x86_64 / 2013-06-13
-# verified on CentOS 6.4    / i386   / 2013-06-13
+# verified on CentOS 6.4    / x86_64 / 2013-06-14
+# verified on CentOS 6.4    / i386   / 2013-06-14
 # verified on OpenSuSE 12.3 / x86_64 / 2013-06-10
 
 %ifnarch s390 s390x
@@ -68,13 +68,14 @@ Group:          Applications/Engineering
 This package contains common utilities and potential files
 
 %package doc
-Summary:        LAMMPS documentation and benchmark tests
+Summary:        LAMMPS documentation, example inputs, and benchmark tests
 Group:          Applications/Engineering
 
 %description doc
 %{lammps_desc}
 
-This package contains the documentation and benchmark tests
+This package contains the LAMMPS manual and addtional documentation as
+well as example and benchmark test inputs.
 
 %if %{with_openmpi}
 %package openmpi
@@ -252,6 +253,7 @@ cp python/lammps.py* $RPM_BUILD_ROOT/%{python_sitearch}
 cp serial/liblammps.so $RPM_BUILD_ROOT/%{_libdir}
 cp -arp potentials $RPM_BUILD_ROOT/%{_datadir}/lammps/
 cp -arp bench $RPM_BUILD_ROOT/%{_datadir}/lammps/
+cp -arp examples $RPM_BUILD_ROOT/%{_datadir}/lammps/
 
 %clean
 rm -rf %{buildroot}
@@ -271,6 +273,7 @@ rm -rf %{buildroot}
 %files doc
 %defattr(-,root,root,-)
 %{_datadir}/lammps/bench
+%{_datadir}/lammps/examples
 %doc doc/Manual.pdf
 %doc doc/PDF/*.pdf
 
@@ -296,11 +299,14 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Jun 14 2013 Axel Kohlmeyer <akohlmey@gmail.com> - 20130614-1
+- Added bundling (most) example inputs with the doc subpackage
+
 * Fri Jun 14 2013 Axel Kohlmeyer <akohlmey@gmail.com> - 20130609-1
-- included more documentation pdfs and move potentials and benchmarks to _datadir/lammps
+- Included more documentation pdfs and move potentials and benchmarks to _datadir/lammps
 
 * Thu Jun 13 2013 Axel Kohlmeyer <akohlmey@gmail.com> - 20130609-1
-- split off manual and benchmarks from common into doc package
+- Split off manual and benchmarks from common into doc package
 
 * Sun Jun  9 2013 Axel Kohlmeyer <akohlmey@gmail.com> - 20130609-1
 - Added subpackage for python wrapper

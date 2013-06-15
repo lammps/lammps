@@ -9,12 +9,18 @@ Install distribution via CD/DVD ISO image (netinstall version)
 - choose "Minimal" installation
 
 Make sure the following additional packages (and dependencies) are installed
+
   + on RedHat/Fedora/CentOS:
-    vim-enhanced openssh-clients python tar
+    vim-enhanced openssh-clients python tar screen
     yum-utils rpmdevtools rpm-build redhat-rpm-config createrepo
     git make gcc-c++ gcc-gfortran
     mpich2-devel openmpi-devel fftw-devel libjpeg-devel
+
   + on OpenSuSE
+    yast2-online-update-frontend
+    vim-enhanced screen
+    build rpm-build git-core python createrepo
+    openmpi-devel libjpeg8-devel fftw3-devel gcc-fortran gcc-c++
 
 Create user 'rpmbuild' and set password.
 Log in and create ssh key pair and append the public key the .ssh/authorized_keys

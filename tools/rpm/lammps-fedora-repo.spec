@@ -1,6 +1,6 @@
 Name:           lammps-fedora-repo
 Version:        1
-Release:        1
+Release:        2
 Summary:        LAMMPS-ICMS Snapshot Repository Configuration
 
 Group:          System Environment/Base
@@ -35,8 +35,11 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/yum.repos.d/*.repo
 
 %changelog
+* Sat Jun 15 2013 Axel Kohlmeyer <akohlmey@gmail.com> - 1-2
+- Updated repo file to not include source packages. No need.
 
-* Wed Jun  12 2013 Axel Kohlmeyer <akohlmey@gmail.com> - 20130612-1
+
+* Wed Jun  12 2013 Axel Kohlmeyer <akohlmey@gmail.com> - 1-1
 - Initial Fedora style SPEC file
 
 

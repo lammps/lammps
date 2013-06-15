@@ -14,10 +14,4 @@ gpgcheck=0
 baseurl=http://git.icms.temple.edu/rpm/fedora/$releasever/$basearch/debug
 gpgkey=http://git.icms.temple.edu/rpm/RPM-GPG-KEY-akohlmey
 
-[lammps-icms-sources]
-name=LAMMPS-ICMS snapshot builds - Sources
-enabled=0
-gpgcheck=0
-baseurl=http://git.icms.temple.edu/rpm/sources
-gpgkey=http://git.icms.temple.edu/rpm/RPM-GPG-KEY-akohlmey
 

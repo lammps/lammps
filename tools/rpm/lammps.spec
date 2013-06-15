@@ -1,9 +1,10 @@
-# verified on Fedora 18     / x86_64 / 2013-06-14
-# verified on Fedora 18     / i386   / 2013-06-14
+# verified on Fedora 18     / x86_64 / 2013-06-15
+# verified on Fedora 18     / i386   / 2013-06-15
 # verified on Fedora 19     / x86_64 / 2013-06-10
-# verified on CentOS 6.4    / x86_64 / 2013-06-14
-# verified on CentOS 6.4    / i386   / 2013-06-14
-# verified on OpenSuSE 12.3 / x86_64 / 2013-06-10
+# verified on CentOS 6.4    / x86_64 / 2013-06-15
+# verified on CentOS 6.4    / i386   / 2013-06-15
+# verified on OpenSuSE 12.3 / x86_64 / 2013-06-15
+# verified on OpenSuSE 12.3 / i586   / 2013-06-15
 
 %ifnarch s390 s390x
 %global with_openmpi 1
@@ -23,7 +24,7 @@
 %{!?python_sitearch: %global python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
 
 Name:           lammps
-Version:        20130614
+Version:        20130615
 Release:        1%{?dist}
 Summary:        LAMMPS Molecular Dynamics Simulator
 Group:          Applications/Engineering
@@ -231,10 +232,15 @@ install -p -m 755 serial/binary2txt %{buildroot}%{_bindir}
 install -p -m 755 serial/chain.x %{buildroot}%{_bindir}
 
 %if %{with_openmpi}
+%if %{with_suse}
+mkdir -p $RPM_BUILD_ROOT/%{_libdir}/mpi/gcc/openmpi/bin
+install -p -m 755 openmpi/lmp_g++ $RPM_BUILD_ROOT/%{_libdir}/mpi/gcc/openmpi/bin/
+%else
 %{_openmpi_load}
 mkdir -p $RPM_BUILD_ROOT/%{_libdir}/openmpi/bin
 install -p -m 755 openmpi/lmp_g++ $RPM_BUILD_ROOT/%{_libdir}/openmpi/bin/
 %{_openmpi_unload}
+%endif
 %endif
 
 %if %{with_suse}
@@ -280,7 +286,11 @@ rm -rf %{buildroot}
 %if %{with_openmpi}
 %files openmpi
 %defattr(-,root,root,-)
+%if %{with_suse}
+%{_libdir}/mpi/gcc/openmpi/bin/lmp_g++
+%else
 %{_libdir}/openmpi/bin/lmp_g++
+%endif
 %endif
 
 %if %{with_suse}
@@ -299,6 +309,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Sat Jun 15 2013 Axel Kohlmeyer <akohlmey@gmail.com> - 20130615-1
+- added proper installation directory for SuSE OpenMPI version
+
 * Fri Jun 14 2013 Axel Kohlmeyer <akohlmey@gmail.com> - 20130614-1
 - Added bundling (most) example inputs with the doc subpackage
 

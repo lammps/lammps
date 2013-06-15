@@ -29,7 +29,7 @@ then
         rsync -arpv *.rpm \
             ${MYRPM_REPO_USER}@${MYRPM_REPO_HOST}:${MYRPM_REPO_DIR}/../../../source/
     fi
-    ssh ${MYRPM_REPO_USER}@${MYRPM_REPO_HOST} "cd ${MYRPM_REPO_DIR}/../../../; ./mkhtmlindex.sh"
+    ssh ${MYRPM_REPO_USER}@${MYRPM_REPO_HOST} "cd ${MYRPM_REPO_DIR}/../../../; ./mkhtmlindex.sh *"
     popd
 else
     cat <<EOF

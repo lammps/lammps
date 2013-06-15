@@ -26,7 +26,11 @@
       including them in a binary distribution like this one.
     </p>
 
-    <p>Proceed to the <a href="install.html">Installation and Configuration Instructions</a>.
+    <div style="background-color: #e8e8f0;">
+      <br>
+      &nbsp;<b>&gt;</b>&nbsp; Proceed to the <b><a href="install.html">Installation and Configuration Instructions</a>.</b><br>
+      <br>
+    </div>
 
     <p align="justify">
       The LAMMPS distribution is split into multiple subpackages and you
@@ -71,39 +75,55 @@
     <p align="justify">
       Binary RPMs are currently provided for up-to-date versions of
       RHEL/<a href="http://www.centos.org/" target="_blank">CentOS</a>
-      (6.4 at the time of this writing) and 
+      (6.4 at the time of this writing),
       <a href="http://fedoraproject.org" target="_blank">Fedora</a>
-      (18 at the time of this writing) for 32-bit (i386) and 64-bit (x86_64)
-      x86 versions. Binaries for additional distributions and versions
-      may be added based on demand and available resources. The packages
-      are provided without warranty and are unsupported. If you notice
-      any problems or would like to see binaries for other distributions
-      or versions or platforms made available, you can contact 
-      <a href="http://goo.gl/1wk0" target="_blank">Axel Kohlmeyer</a>.
+      (18 at the time of this writing)
+      and <a href="http://www.opensuse.org/" target="_blank">OpenSuSE</a>
+      (version 12.3 as of this writing) for 32-bit (i386/i586) and
+      64-bit (x86_64) Intel/AMD x86 CPU versions. Binaries for
+      additional distributions and versions may be added based on demand
+      and available resources. The packages are provided <b>without
+      warranty and support</b>. If you notice any problems or would like
+      to see binaries for other distributions or versions or platforms
+      made available, you can contact
+      <a href="http://goo.gl/1wk0" target="_blank">Axel Kohlmeyer</a>
+      and we can try to find a solution.
     </p>
+    <div style="background-color: #e8e8f0;">
+      <br>
+      &nbsp;<b>&gt;</b>&nbsp; Proceed to the <b><a href="install.html">Installation and Configuration Instructions</a>.</b><br>
+      <br>
+    </div>
     <ul>
-      <li>Go to CentOS / RedHat Enterprise Linux <a href="centos">repository</a></li>
-      <li>Go to Fedora Linux <a href="fedora">repository</a></li>
-      <li>Go to Source RPM <a href="sources">repository</a></li>
+      <li>Browse the CentOS / RedHat Enterprise Linux <a href="centos">repository</a></li>
+      <li>Browse the Fedora Linux <a href="fedora">repository</a></li>
+      <li>Browse the openSuSE Linux <a href="suse">repository</a></li>
     </ul>
 
     <h2>Other RPM-based Distributions</h2>
     <p align="justify">
-      There is a huge number of Linux distributions on a large variety of hardware
-      around and it is impossible to provide binaries for all of them, even if they
-      do use the RPM package format. Currently only RPMs for 
-      <a href="http://www.opensuse.org/" target="_blank">OpenSuSE</a>
-      (version 12.3 as of this writing) are available.
-      For all other RPM based distributions, you
-      can download the corresponding source RPMs, install the necessary packages
-      required for building the binary RPM and do a <code>rpmbuild --rebuild</code>.
-      If you notice any problems, you can contact 
-      <a href="http://goo.gl/1wk0" target="_blank">Axel Kohlmeyer</a>
-      to see, if there is a (simple) solution.
+      There is a huge number of Linux distributions on a large variety
+      of hardware around and it is impossible to provide binaries for
+      all of them, even if they do use the RPM package format. For those
+      distributions, you can download a source RPM from below and try a
+      custom RPM build after installing the necessary packages required
+      for building the binary RPM via the command:<br>
+      <code>rpmbuild --rebuild &lt;name of the source rpm file&gt;</code>.
+    </p>
+
+    <p align="justify">
+
+      If your distribution is not simply a different version of the ones
+      listed above, chances are, that some additional tweaks to the
+      lammps.spec file are required. You can contact 
+      <a href="http://goo.gl/1wk0" target="_blank">Axel Kohlmeyer</a> to
+      see, if there is a (simple) solution. But very likely you will be
+      better off following the
+      <a href="http://lammps.sandia.gov/doc/Section_start.html" target="_blank">
+        generic compilation instructions</a> in the LAMMPS manual.
     </p>    
     <ul>
-      <li>Go to OpenSuSE <a href="suse">repository</a></li>
-      <li>Go to Source RPM <a href="sources">repository</a></li>
+      <li>Browse Source RPM <a href="source">repository</a></li>
     </ul>
 
     <h2>Non-RPM-based Distributions</h2>
@@ -117,7 +137,7 @@
     <address><a href="http://goo.gl/1wk0" target="_blank">Axel Kohlmeyer</a></address>
 <!-- Created: Fri Jun 14 08:59:35 CEST 2013 -->
 <!-- hhmts start -->
-Last modified: Fri Jun 14 18:14:27 CEST 2013
+Last modified: Sat Jun 15 16:53:10 CEST 2013
 <!-- hhmts end -->
   </body>
 </html>

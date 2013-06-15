@@ -15,7 +15,7 @@
       <a href="http://goo.gl/oKYI" target="_blank">LAMMPS-ICMS</a>
       branch <a href="http://git.icms.temple.edu/git/" target="_blank">git repository</a>.
 
-      The packages are configued to depend only on packages that are
+      The packages are configured to depend only on packages that are
       part of the respective distributions, so dependencies should be
       resolved automatically when using yum to install the packages.
 
@@ -23,7 +23,11 @@
       the source distribution <b>except</b>: GPU, KIM, and
       USER-CUDA since those depend on libraries that do not exist as
       regular RPM packages and/or where the license is incompatible with
-      including them in a binary distribution like this one.
+      including them in a binary distribution like this one. In addition
+      the Fortran variant of ReaxFF support has been omitted, since this
+      has been superseded by the C/C++ version in the USER-REAXC package.
+      The USER-REAXC code has been proven to produce results consistent
+      with the Fortran version and be faster and more flexible.
     </p>
 
     <div style="background-color: #e8e8f0;">
@@ -137,7 +141,7 @@
     <address><a href="http://goo.gl/1wk0" target="_blank">Axel Kohlmeyer</a></address>
 <!-- Created: Fri Jun 14 08:59:35 CEST 2013 -->
 <!-- hhmts start -->
-Last modified: Sat Jun 15 16:53:10 CEST 2013
+Last modified: Sat Jun 15 19:46:54 CEST 2013
 <!-- hhmts end -->
   </body>
 </html>

@@ -19,7 +19,7 @@ then
     do \
         test -f $f && mv -v $f debug/
     done
-    createrepo -v --deltas --num-deltas 2 --max-delta-size 30000000 .
+    createrepo -v --deltas --num-deltas 2 --max-delta-rpm-size 30000000 .
     rsync -arpv debug repodata drpms *.rpm \
         ${MYRPM_REPO_USER}@${MYRPM_REPO_HOST}:${MYRPM_REPO_DIR}/
     # we use the source rpm on suse, since they do not have a "dist" tag.
@@ -27,9 +27,9 @@ then
     then
         cd ../SRPMS
         rsync -arpv *.rpm \
-            ${MYRPM_REPO_USER}@${MYRPM_REPO_HOST}:${MYRPM_REPO_DIR}/../../source/
+            ${MYRPM_REPO_USER}@${MYRPM_REPO_HOST}:${MYRPM_REPO_DIR}/../../../source/
     fi
-    ssh ${MYRPM_REPO_USER}@${MYRPM_REPO_HOST} "cd ${MYRPM_REPO_DIR}/../../; ./mkindexhtml.sh"
+    ssh ${MYRPM_REPO_USER}@${MYRPM_REPO_HOST} "cd ${MYRPM_REPO_DIR}/../../../; ./mkindexhtml.sh"
     popd
 else
     cat <<EOF

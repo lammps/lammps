@@ -14,9 +14,32 @@ if [ -n "${MYRPM_REPO_USER}" ] \
 && [ -n "${MYRPM_REPO_DIR}" ]
 then
     pushd ${MYRPM_BUILD_DIR}/RPMS
-    mv -v *-debuginfo-*.rpm debug/
-    createrepo -v --deltas --num-deltas 5 .
+    # move debuginfo rpms, if present
+    for f in *-debuginfo-*.rpm
+    do \
+        test -f $f && mv -v $f debug/
+    done
+    createrepo -v --deltas --num-deltas 2 --max-delta-size 30000000 .
     rsync -arpv debug repodata drpms *.rpm \
         ${MYRPM_REPO_USER}@${MYRPM_REPO_HOST}:${MYRPM_REPO_DIR}/
+    # we use the source rpm on suse, since they do not have a "dist" tag.
+    if grep -q -i suse /etc/issue && test $(uname -i) = i386
+    then
+        cd ../SRPMS
+        rsync -arpv *.rpm \
+            ${MYRPM_REPO_USER}@${MYRPM_REPO_HOST}:${MYRPM_REPO_DIR}/../../source/
+    fi
+    ssh ${MYRPM_REPO_USER}@${MYRPM_REPO_HOST} "cd ${MYRPM_REPO_DIR}/../../; ./mkindexhtml.sh"
     popd
+else
+    cat <<EOF
+
+Required environment variables to determine the target repository
+account, server and location are not fully configured.
+MYRPM_REPO_USER=${MYRPM_REPO_USER}
+MYRPM_REPO_HOST=${MYRPM_REPO_HOST}
+MYRPM_REPO_DIR=${MYRPM_REPO_DIR}
+
+EOF
+    exit 1
 fi

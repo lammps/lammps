@@ -449,6 +449,7 @@ void Output::write_restart(bigint ntimestep)
 
 void Output::reset_timestep(bigint ntimestep)
 {
+  next_dump_any = MAXBIGINT;
   for (int idump = 0; idump < ndump; idump++) {
     if (every_dump[idump]) {
       next_dump[idump] = (ntimestep/every_dump[idump])*every_dump[idump];
@@ -464,8 +465,7 @@ void Output::reset_timestep(bigint ntimestep)
       next_dump[idump] = nextdump;
       modify->addstep_compute(next_dump[idump]);
     }
-    if (idump) next_dump_any = MIN(next_dump_any,next_dump[idump]);
-    else next_dump_any = next_dump[0];
+    next_dump_any = MIN(next_dump_any,next_dump[idump]);
   }
 
   if (restart_flag_single) {

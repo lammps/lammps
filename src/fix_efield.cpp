@@ -13,6 +13,7 @@
 
 /* ----------------------------------------------------------------------
    Contributing author: Christina Payne (Vanderbilt U)
+                        Stan Moore (Sandia) for dipole terms
 ------------------------------------------------------------------------- */
 
 #include "math.h"
@@ -21,6 +22,7 @@
 #include "fix_efield.h"
 #include "atom.h"
 #include "update.h"
+#include "domain.h"
 #include "modify.h"
 #include "force.h"
 #include "respa.h"
@@ -32,7 +34,7 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum{CONSTANT,EQUAL,ATOM};
+enum{NONE,CONSTANT,EQUAL,ATOM};
 
 /* ---------------------------------------------------------------------- */
 
@@ -78,6 +80,23 @@ FixEfield::FixEfield(LAMMPS *lmp, int narg, char **arg) :
     zstyle = CONSTANT;
   }
 
+  // optional args
+
+  estr = NULL;
+
+  int iarg = 6;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"energy") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix addforce command");
+      if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
+        int n = strlen(&arg[iarg+1][2]) + 1;
+        estr = new char[n];
+        strcpy(estr,&arg[iarg+1][2]);
+      } else error->all(FLERR,"Illegal fix addforce command");
+      iarg += 2;
+    } else error->all(FLERR,"Illegal fix addforce command");
+  }
+
   force_flag = 0;
   fsum[0] = fsum[1] = fsum[2] = fsum[3] = 0.0;
 
@@ -92,6 +111,7 @@ FixEfield::~FixEfield()
   delete [] xstr;
   delete [] ystr;
   delete [] zstr;
+  delete [] estr;
   memory->destroy(efield);
 }
 
@@ -111,7 +131,11 @@ int FixEfield::setmask()
 
 void FixEfield::init()
 {
-  if (!atom->q_flag) error->all(FLERR,"Fix efield requires atom attribute q");
+  qflag = muflag = 0;
+  if (atom->q_flag) qflag = 1;
+  if (atom->mu_flag && atom->torque_flag) muflag = 1;
+  if (!qflag && !muflag) 
+    error->all(FLERR,"Fix efield requires atom attribute q or mu");
 
   // check variables
 
@@ -139,12 +163,29 @@ void FixEfield::init()
     else if (input->variable->atomstyle(zvar)) zstyle = ATOM;
     else error->all(FLERR,"Variable for fix efield is invalid style");
   }
+  if (estr) {
+    evar = input->variable->find(estr);
+    if (evar < 0) 
+      error->all(FLERR,"Variable name for fix efield does not exist");
+    if (input->variable->atomstyle(evar)) estyle = ATOM;
+    else error->all(FLERR,"Variable for fix efield is invalid style");
+  } else estyle = NONE;
 
   if (xstyle == ATOM || ystyle == ATOM || zstyle == ATOM)
     varflag = ATOM;
   else if (xstyle == EQUAL || ystyle == EQUAL || zstyle == EQUAL)
     varflag = EQUAL;
   else varflag = CONSTANT;
+
+  if (muflag && varflag == ATOM)
+    error->all(FLERR,"Fix efield with dipoles cannot use atom-style variables");
+
+  if (varflag == CONSTANT && estyle != NONE)
+    error->all(FLERR,"Cannot use variable energy with "
+               "constant efield in fix efield");
+  if ((varflag == EQUAL || varflag == ATOM) &&
+      update->whichflag == 2 && estyle == NONE)
+    error->all(FLERR,"Must use variable energy with fix efield");
 
   if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
@@ -179,6 +220,7 @@ void FixEfield::post_force(int vflag)
   double **f = atom->f;
   double *q = atom->q;
   int *mask = atom->mask;
+  tagint *image = atom->image;
   int nlocal = atom->nlocal;
 
   // reallocate efield array if necessary
@@ -186,7 +228,7 @@ void FixEfield::post_force(int vflag)
   if (varflag == ATOM && nlocal > maxatom) {
     maxatom = atom->nmax;
     memory->destroy(efield);
-    memory->create(efield,maxatom,3,"efield:efield");
+    memory->create(efield,maxatom,4,"efield:efield");
   }
 
   // fsum[0] = "potential energy" for added force
@@ -198,23 +240,53 @@ void FixEfield::post_force(int vflag)
   double **x = atom->x;
   double fx,fy,fz;
 
-  if (varflag == CONSTANT) {
-    for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
-        fx = q[i]*ex;
-        fy = q[i]*ey;
-        fz = q[i]*ez;
-        f[i][0] += fx;
-        f[i][1] += fy;
-        f[i][2] += fz;
+  // constant efield
 
-        fsum[0] -= fx*x[i][0]+fy*x[i][1]+fz*x[i][2];
-        fsum[1] += fx;
-        fsum[2] += fy;
-        fsum[3] += fz;
-      }
+  if (varflag == CONSTANT) {
+    double unwrap[3];
+
+    // charge interactions
+    // force = qE, potential energy = F dot x in unwrapped coords
+
+    if (qflag) {
+      for (int i = 0; i < nlocal; i++)
+        if (mask[i] & groupbit) {
+          fx = q[i]*ex;
+          fy = q[i]*ey;
+          fz = q[i]*ez;
+          f[i][0] += fx;
+          f[i][1] += fy;
+          f[i][2] += fz;
+          
+          domain->unmap(x[i],image[i],unwrap);
+          fsum[0] -= fx*unwrap[0]+fy*unwrap[1]+fz*unwrap[2];
+          fsum[1] += fx;
+          fsum[2] += fy;
+          fsum[3] += fz;
+        }
+    }
+
+    // dipole interactions
+    // no force, torque = mu cross E, potential energy = -mu dot E
+
+    if (muflag) {
+      double **mu = atom->mu;
+      double **t = atom->torque;
+      double tx,ty,tz;
+      for (int i = 0; i < nlocal; i++)
+        if (mask[i] & groupbit) {
+          tx = ez*mu[i][1] - ey*mu[i][2];
+          ty = ex*mu[i][2] - ez*mu[i][0];
+          tz = ey*mu[i][0] - ex*mu[i][1];
+          t[i][0] += tx;
+          t[i][1] += ty;
+          t[i][2] += tz;
+          fsum[0] -= mu[i][0]*ex + mu[i][1]*ey + mu[i][2]*ez;
+        }
+    }
 
   // variable efield, wrap with clear/add
+  // potential energy = evar if defined, else 0.0
 
   } else {
 
@@ -229,25 +301,50 @@ void FixEfield::post_force(int vflag)
     if (zstyle == EQUAL) ez = qe2f * input->variable->compute_equal(zvar);
     else if (zstyle == ATOM && efield)
       input->variable->compute_atom(zvar,igroup,&efield[0][2],3,0);
+    if (estyle == ATOM && efield)
+      input->variable->compute_atom(evar,igroup,&efield[0][3],4,0);
 
     modify->addstep_compute(update->ntimestep + 1);
 
-    for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
-        if (xstyle == ATOM) fx = qe2f * q[i]*efield[i][0];
-        else fx = q[i]*ex;
-        f[i][0] += fx;
-        fsum[1] += fx;
-        if (ystyle == ATOM) fy = qe2f * q[i]*efield[i][1];
-        else fy = q[i]*ey;
-        f[i][1] += fy;
-        fsum[2] += fy;
-        if (zstyle == ATOM) fz = qe2f * q[i]*efield[i][2];
-        else fz = q[i]*ez;
-        f[i][2] += fz;
-        fsum[3] += fz;
-        fsum[0] -= fx*x[i][0]+fy*x[i][1]+fz*x[i][2];
-      }
+    // charge interactions
+    // force = qE
+
+    if (qflag) {
+      for (int i = 0; i < nlocal; i++)
+        if (mask[i] & groupbit) {
+          if (xstyle == ATOM) fx = qe2f * q[i]*efield[i][0];
+          else fx = q[i]*ex;
+          f[i][0] += fx;
+          fsum[1] += fx;
+          if (ystyle == ATOM) fy = qe2f * q[i]*efield[i][1];
+          else fy = q[i]*ey;
+          f[i][1] += fy;
+          fsum[2] += fy;
+          if (zstyle == ATOM) fz = qe2f * q[i]*efield[i][2];
+          else fz = q[i]*ez;
+          f[i][2] += fz;
+          fsum[3] += fz;
+          if (estyle == ATOM) fsum[0] += efield[0][3];
+        }
+    }
+
+    // dipole interactions
+    // no force, torque = mu cross E
+
+    if (muflag) {
+      double **mu = atom->mu;
+      double **t = atom->torque;
+      double tx,ty,tz;
+      for (int i = 0; i < nlocal; i++)
+        if (mask[i] & groupbit) {
+          tx = ez*mu[i][1] - ey*mu[i][2];
+          ty = ex*mu[i][2] - ez*mu[i][0];
+          tz = ey*mu[i][0] - ex*mu[i][1];
+          t[i][0] += tx;
+          t[i][1] += ty;
+          t[i][2] += tz;
+        }
+    }
   }
 }
 
@@ -272,7 +369,7 @@ void FixEfield::min_post_force(int vflag)
 double FixEfield::memory_usage()
 {
   double bytes = 0.0;
-  if (varflag == ATOM) bytes = atom->nmax*3 * sizeof(double);
+  if (varflag == ATOM) bytes = atom->nmax*4 * sizeof(double);
   return bytes;
 } 
 
@@ -301,4 +398,3 @@ double FixEfield::compute_vector(int n)
   }
   return fsum_all[n+1];
 }
-

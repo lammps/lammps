@@ -42,11 +42,12 @@ class FixEfield : public Fix {
  private:
   double ex,ey,ez;
   int varflag;
-  char *xstr,*ystr,*zstr;
-  int xvar,yvar,zvar,xstyle,ystyle,zstyle;
+  char *xstr,*ystr,*zstr,*estr;
+  int xvar,yvar,zvar,evar,xstyle,ystyle,zstyle,estyle;
   int nlevels_respa;
   double qe2f;
   double fdotx;
+  int qflag,muflag;
 
   int maxatom;
   double **efield;
@@ -79,5 +80,9 @@ Self-explanatory.
 E: Variable for fix efield is invalid style
 
 Only equal-style variables can be used.
+
+E: Cannot (yet) use atom-style variable for fix efield with dipoles
+
+This feature is not yet supported.
 
 */

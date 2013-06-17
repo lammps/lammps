@@ -88,14 +88,14 @@ FixEfield::FixEfield(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 6;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"energy") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix addforce command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix efield command");
       if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
         int n = strlen(&arg[iarg+1][2]) + 1;
         estr = new char[n];
         strcpy(estr,&arg[iarg+1][2]);
-      } else error->all(FLERR,"Illegal fix addforce command");
+      } else error->all(FLERR,"Illegal fix efield command");
       iarg += 2;
-    } else error->all(FLERR,"Illegal fix addforce command");
+    } else error->all(FLERR,"Illegal fix efield command");
   }
 
   force_flag = 0;

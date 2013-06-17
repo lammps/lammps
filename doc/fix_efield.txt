@@ -25,14 +25,20 @@ fix kick external-field efield 0.0 0.0 v_oscillate :pre
 [Description:]
 
 Add a force F = qE to each charged atom in the group due to an
-external electric field being applied to the system.
+external electric field being applied to the system.  If the system
+contains point-dipoles, also add a torque on the dipoles due to the
+external electric field.
 
-Any of the 3 quantities defining the E-field components can be
-specified as an equal-style or atom-style "variable"_variable.html,
-namely {ex}, {ey}, {ez}.  If the value is a variable, it should be
-specified as v_name, where name is the variable name.  In this case,
-the variable will be evaluated each timestep, and its value used to
-determine the E-field component.
+For charges, any of the 3 quantities defining the E-field components
+can be specified as an equal-style or atom-style
+"variable"_variable.html, namely {ex}, {ey}, {ez}.  If the value is a
+variable, it should be specified as v_name, where name is the variable
+name.  In this case, the variable will be evaluated each timestep, and
+its value used to determine the E-field component.  For point-dipoles,
+equal-style variables can be used, but atom-style variables are not
+currently supported, since they imply a spatial gradient in the
+electric field which means additional terms with gradients of the
+field are required for the force and torque on dipoles.
 
 Equal-style variables can specify formulas with various mathematical
 functions, and include "thermo_style"_thermo_style.html command
@@ -56,14 +62,16 @@ output"_thermo_style.html.  This is a fictitious quantity but is
 needed so that the "minimize"_minimize.html command can include the
 forces added by this fix in a consistent manner.  I.e. there is a
 decrease in potential energy when atoms move in the direction of the
-added force.
+added force.  The potential energy contribution of dipoles in the
+electric field is also included.
 
 This fix computes a global scalar and a global 3-vector of forces,
 which can be accessed by various "output
 commands"_Section_howto.html#howto_15.  The scalar is the potential
 energy discussed above.  The vector is the total force added to the
 group of atoms.  The scalar and vector values calculated by this fix
-are "extensive".
+are "extensive".  The added torques for point-dipoles cannot currently
+be output in this manner.
 
 No parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.

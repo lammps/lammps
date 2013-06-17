@@ -23,6 +23,7 @@
 #include "atom.h"
 #include "update.h"
 #include "domain.h"
+#include "comm.h"
 #include "modify.h"
 #include "force.h"
 #include "respa.h"
@@ -179,6 +180,11 @@ void FixEfield::init()
 
   if (muflag && varflag == ATOM)
     error->all(FLERR,"Fix efield with dipoles cannot use atom-style variables");
+
+  if (muflag && update->whichflag == 2 && comm->me == 0)
+    error->warning(FLERR,
+                   "The minimizer does not re-orient dipoles "
+                   "when using fix efield");
 
   if (varflag == CONSTANT && estyle != NONE)
     error->all(FLERR,"Cannot use variable energy with "

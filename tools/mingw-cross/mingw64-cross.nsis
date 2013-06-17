@@ -1,0 +1,63 @@
+#!Nsis Installer Command Script
+#
+# This is an NSIS Installer Command Script generated automatically
+# by the Fedora nsiswrapper program.  For more information see:
+#
+#   http://fedoraproject.org/wiki/MinGW
+#
+# To build an installer from the script you would normally do:
+#
+#   makensis this_script
+#
+# which will generate the output file 'lammps-icms-64bit.exe' which is a Windows
+# installer containing your program.
+
+Name "LAMMPS-ICMS-64bit"
+OutFile "lammps-icms-64bit.exe"
+InstallDir "$ProgramFiles\LAMMPS-ICMS-64bit"
+InstallDirRegKey HKLM SOFTWARE\LAMMPS-ICMS-64bit "Install_Dir"
+
+ShowInstDetails hide
+ShowUninstDetails hide
+
+# Uncomment this to enable BZip2 compression, which results in
+# slightly smaller files but uses more memory at install time.
+#SetCompressor bzip2
+
+XPStyle on
+
+Page components
+Page directory
+Page instfiles
+
+ComponentText "Select which optional components you want to install."
+
+DirText "Please select the installation folder."
+
+Section "LAMMPS-ICMS-64bit"
+  SectionIn RO
+
+  SetOutPath "$INSTDIR"
+  File "/usr/x86_64-w64-mingw32/sys-root/mingw/bin/libgomp-1.dll"
+  File "/usr/x86_64-w64-mingw32/sys-root/mingw/bin/pthreadgc2.dll"
+  File "lmp_64bit.exe"
+SectionEnd
+
+Section "Start Menu Shortcuts"
+  CreateDirectory "$SMPROGRAMS\LAMMPS-ICMS-64bit"
+  CreateShortCut "$SMPROGRAMS\LAMMPS-ICMS-64bit\Uninstall LAMMPS-ICMS-64bit.lnk" "$INSTDIR\Uninstall LAMMPS-ICMS-64bit.exe" "" "$INSTDIR\Uninstall LAMMPS-ICMS-64bit.exe" 0
+SectionEnd
+
+Section "Uninstall"
+  Delete /rebootok "$SMPROGRAMS\LAMMPS-ICMS-64bit\Uninstall LAMMPS-ICMS-64bit.lnk"
+  RMDir "$SMPROGRAMS\LAMMPS-ICMS-64bit"
+
+  Delete /rebootok "$INSTDIR\lmp_64bit.exe"
+  Delete /rebootok "$INSTDIR\pthreadgc2.dll"
+  Delete /rebootok "$INSTDIR\libgomp-1.dll"
+  RMDir "$INSTDIR"
+SectionEnd
+
+Section -post
+  WriteUninstaller "$INSTDIR\Uninstall LAMMPS-ICMS-64bit.exe"
+SectionEnd

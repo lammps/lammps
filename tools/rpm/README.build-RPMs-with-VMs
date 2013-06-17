@@ -23,6 +23,11 @@ Make sure the following additional packages (and dependencies) are installed
     openmpi-devel libjpeg8-devel fftw3-devel gcc-fortran gcc-c++
 
 Create user 'rpmbuild' and set password.
+Use 'visudo' to allow 'rpmbuild' to shutdown the virtual machine
+without a password by adding the line:
+
+rpmbuild  ALL = NOPASSWD: /sbin/shutdown
+
 Log in and create ssh key pair and append the public key the .ssh/authorized_keys
 file of the repository account for automatic file transfer
 Setup a suitable $HOME/.rpmmacros file

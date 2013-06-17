@@ -56,6 +56,7 @@ PairTersoffTable::PairTersoffTable(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
   one_coeff = 1;
+  manybody_flag = 1;
 
   nelements = 0;
   elements = NULL;

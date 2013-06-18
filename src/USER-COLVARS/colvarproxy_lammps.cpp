@@ -97,12 +97,11 @@ colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp,
 }
 
 
-void colvarproxy_lammps::init(const char *conf_file, const int *typemap)
+void colvarproxy_lammps::init(const char *conf_file)
 {
-  _typemap = typemap;
-
   // create the colvarmodule instance
   colvars = new colvarmodule(conf_file,this);
+  cvm::log ("Notice! Postponing initializing of masses.\n");
 
   if (_lmp->update->ntimestep != 0) {
     cvm::log ("Initializing step number as firstTimestep.\n");
@@ -117,9 +116,6 @@ void colvarproxy_lammps::init(const char *conf_file, const int *typemap)
     log(cvm::line_marker);
     log("Info: done initializing the colvars proxy object.\n");
   }
-
-  // this is only valid in this function.
-  _typemap = NULL;
 }
 
 colvarproxy_lammps::~colvarproxy_lammps()
@@ -130,6 +126,12 @@ colvarproxy_lammps::~colvarproxy_lammps()
     delete colvars;
     colvars = NULL;
   }
+}
+
+// re-initialize data where needed
+void colvarproxy_lammps::setup()
+{
+  colvars->setup();
 }
 
 // trigger colvars computation
@@ -338,7 +340,7 @@ void colvarproxy_lammps::backup_file(char const *filename)
 int colvarproxy_lammps::init_lammps_atom(const int &aid, cvm::atom *atom)
 {
   atom->id = aid;
-  atom->mass = _lmp->atom->mass[_typemap[aid]];
+  atom->mass = 0.0;
 
   for (size_t i = 0; i < colvars_atoms.size(); i++) {
     if (colvars_atoms[i] == aid) {
@@ -353,7 +355,7 @@ int colvarproxy_lammps::init_lammps_atom(const int &aid, cvm::atom *atom)
   colvars_atoms.push_back(aid);
   struct commdata c;
   c.tag = aid;
-  c.type = _typemap[aid];
+  c.type = 0;
   c.x = c.y = c.z = 0.0;
   positions.push_back(c);
   total_forces.push_back(c);
@@ -422,13 +424,13 @@ cvm::atom::~atom()
   }
 }
 
-
 void cvm::atom::read_position()
 {
   colvarproxy_lammps const * const cp = (colvarproxy_lammps *) cvm::proxy;
   this->pos.x = cp->positions[this->index].x;
   this->pos.y = cp->positions[this->index].y;
   this->pos.z = cp->positions[this->index].z;
+  this->mass = cp->positions[this->index].m;
 }
 
 void cvm::atom::read_velocity()

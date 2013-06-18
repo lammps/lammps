@@ -293,9 +293,6 @@ FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 4)
     error->all(FLERR,"Illegal fix colvars command: too few arguments");
 
-  if (atom->rmass_flag)
-    error->all(FLERR,"Cannot use fix colvars for atoms with rmass attribute");
-
   if (instances > 0)
     error->all(FLERR,"Only one colvars fix can be active at a time");
   ++instances;
@@ -420,7 +417,6 @@ void FixColvars::init()
 
 void FixColvars::setup(int vflag)
 {
-  int *typemap,*type_buf;
   const int * const tag  = atom->tag;
   const int * const type = atom->type;
   int i,nme,tmp,ndata,nlocal_max,tag_max,max;
@@ -432,6 +428,8 @@ void FixColvars::setup(int vflag)
   // one time initialization
   if (init_flag == 0) {
     init_flag = 1;
+
+#if 0
 
     // collect a list of atom type by atom id for the entire system.
     // the colvar module requires this information to set masses. :-(
@@ -478,6 +476,7 @@ void FixColvars::setup(int vflag)
       MPI_Rsend(type_buf, nme, MPI_INT, 0, 0, world);
     }
     delete type_buf;
+#endif
 
     // now create and initialize the colvars proxy
 
@@ -505,13 +504,11 @@ void FixColvars::setup(int vflag)
       }
 
       proxy = new colvarproxy_lammps(lmp,inp_name,out_name,rng_seed,t_target);
-      proxy->init(conf_file,typemap);
+      proxy->init(conf_file);
       coords = proxy->get_coords();
       forces = proxy->get_forces();
       oforce = proxy->get_oforce();
       num_coords = coords->size();
-
-      delete typemap;
     }
 
     // send the list of all colvar atom IDs to all nodes.
@@ -585,6 +582,11 @@ void FixColvars::setup(int vflag)
           cd[i].y = x[k][1];
           cd[i].z = x[k][2];
         }
+        if (atom->rmass_flag) {
+          cd[i].m = atom->rmass[k];
+        } else {
+          cd[i].m = atom->mass[type[k]];
+        }
       }
     }
 
@@ -606,6 +608,7 @@ void FixColvars::setup(int vflag)
           cd[j].x = comm_buf[k].x;
           cd[j].y = comm_buf[k].y;
           cd[j].z = comm_buf[k].z;
+          cd[j].m = comm_buf[k].m;
           of[j].x = of[j].y = of[j].z = 0.0;
         }
       }
@@ -636,6 +639,12 @@ void FixColvars::setup(int vflag)
           comm_buf[nme].z = x[k][2];
         }
 
+        if (atom->rmass_flag) {
+          comm_buf[nme].m = atom->rmass[k];
+        } else {
+          comm_buf[nme].m = atom->mass[type[k]];
+        }
+
         ++nme;
       }
     }
@@ -643,6 +652,9 @@ void FixColvars::setup(int vflag)
     MPI_Recv(&tmp, 0, MPI_INT, 0, 0, world, &status);
     MPI_Rsend(comm_buf, nme*size_one, MPI_BYTE, 0, 0, world);
   }
+
+  // run pre-run setup in colvarproxy
+  proxy->setup();
 
   // initialize forces
   if (strstr(update->integrate_style,"verlet") || (update->whichflag == 2))

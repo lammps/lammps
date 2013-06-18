@@ -55,16 +55,6 @@ void colvar::cvc::parse_group (std::string const &conf,
 }
 
 
-void colvar::cvc::setup()
-{
-  // loop over all atom groups to reset their masses
-  for (std::vector<cvm::atom_group *>::iterator agi = atom_groups.begin();
-       agi != atom_groups.end();  agi++) {
-    (*agi)->reset_mass();
-  }
-}
-
-
 colvar::cvc::~cvc()
 {}
 

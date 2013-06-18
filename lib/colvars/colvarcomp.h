@@ -113,10 +113,6 @@ public:
   /// objects are declared within other ones)
   cvc();
 
-  /// \brief Reinitialize internal data for MD codes that
-  /// can change parameters between runs
-  void setup();
-
   /// Destructor
   virtual ~cvc();
 

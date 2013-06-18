@@ -673,7 +673,7 @@ void colvar::setup() {
     for (size_t ig = 0; ig < cvcs[i]->atom_groups.size(); ig++) {
       cvm::atom_group &atoms = *(cvcs[i]->atom_groups[ig]);
       atoms.read_positions();
-      atoms.reset_mass();
+      atoms.reset_mass(name,i,ig);
     }
   }
 }

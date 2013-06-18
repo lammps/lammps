@@ -101,7 +101,6 @@ void colvarproxy_lammps::init(const char *conf_file)
 {
   // create the colvarmodule instance
   colvars = new colvarmodule(conf_file,this);
-  cvm::log ("Notice! Postponing initializing of masses.\n");
 
   if (_lmp->update->ntimestep != 0) {
     cvm::log ("Initializing step number as firstTimestep.\n");

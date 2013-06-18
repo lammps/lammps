@@ -205,7 +205,7 @@ public:
   /// \brief Re-initialize the total mass of a group.
   /// This is needed in case the hosting MD code has an option to
   /// change atom masses after their initialization.
-  void reset_mass ();
+  void reset_mass (std::string &name, int i, int j);
 
   /// \brief Default constructor
   atom_group();

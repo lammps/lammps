@@ -33,6 +33,7 @@ using namespace LAMMPS_NS;
 PairEAMAlloy::PairEAMAlloy(LAMMPS *lmp) : PairEAM(lmp)
 {
   one_coeff = 1;
+  manybody_flag = 1;
 }
 
 /* ----------------------------------------------------------------------

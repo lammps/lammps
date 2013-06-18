@@ -95,6 +95,7 @@ class Pair : protected Pointers {
   unsigned int datamask_ext;
 
   int compute_flag;              // 0 if skip compute()
+  int manybody_flag;             // 1 if abort for manybody style with bonds
 
   Pair(class LAMMPS *);
   virtual ~Pair();

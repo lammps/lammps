@@ -6,10 +6,10 @@
   </head>
 
   <body style="font-family: Helvetica,Arial,Verdana, sans-serif; margin-bottom: 2%; margin-top: 2%; margin-left: 5%; margin-right: 5%;">
-    <h1>LAMMPS-ICMS Snapshot RPM Repository</h1>
-    <div style="display: inline; margin-left: 10px; border: 5px; border-style: groove; float: right;">
-      <img src="lammpsrpmlogo.png" border="0" style="" width="300" height="182">
+    <div style="display: inline; margin-left: 10px; margin-bottom: 5px; border: 5px; border-style: groove; float: right;">
+      <img src="lammpsrpmlogo.png" border="0" style="" width="250" height="150">
     </div>
+    <h1>LAMMPS-ICMS Snapshot RPM Repository</h1>
     <p align="justify">
       This repository is hosting precompiled RPM packages of the
       <a href="http://lammps.sandia.gov/" target="_blank">LAMMPS</a>
@@ -45,6 +45,9 @@
       are:
     </p>
     
+    <div style="display: inline; margin-left: 10px; border: 5px; border-style: groove; float: right;">
+      <a imageanchor="1" href="package-kit-centos.jpg" style=""><img src="package-kit-centos.jpg" border="0" style="" width="250" height="252"></a>
+    </div>
     <div style="background-color: #e8e8f0;">
       <dl>
         <dt><b>lammps</b></dt>
@@ -56,14 +59,16 @@
           The name of the executable is: <strong><code>lmp_g++</code></strong>.
           Switching between the serial and parallel executable is done via
           loading the openmpi environment module using the
-          <code>module load</code> and <code>module unload</code> commands</dd>
+          <strong><code>module load</code></strong> and
+          <strong><code>module unload</code></strong> commands</dd>
         
         <dt><b>lammps-mpich2</b></dt>
         <dd>LAMMPS executable compiled with MPICH2 and multi-threading via OpenMP.
-          The name of the executable is: <strong><code>lmp_g++</code></strong>.</dd>
+          The name of the executable is: <strong><code>lmp_g++</code></strong>.
           Switching between the serial and parallel executable is done via
           loading the MPICH2 environment module using the
-          <code>module load</code> and <code>module unload</code> commands</dd>
+          <strong><code>module load</code></strong> and
+          <strong><code>module unload</code></strong> commands</dd>
         
         <dt><b>lammps-python</b></dt>
         <dd>Non-MPI LAMMPS shared library and Python wrapper compiled with OpenMP multi-threading.
@@ -71,10 +76,12 @@
         
         <dt><b>lammps-common</b></dt>
         <dd>Contains a few bundled tools (<strong><code>restart2data</code></strong>,
-          <strong><code>binary2txt</code></strong> and <strong><code>chain.x</code></strong>), and
-          bundled potential files in <strong><code>/usr/share/lammps/potentials</code></strong>.<br>
-          <em>This package is required if one or more of the four previous packages are 
-            installed</em>.</dd>
+          <strong><code>binary2txt</code></strong> and
+          <strong><code>chain.x</code></strong>), and
+          bundled potential files in 
+          <strong><code>/usr/share/lammps/potentials</code></strong>.<br>
+          <em><u>This package is required if one or more of the four previous packages are 
+            installed</u></em>.</dd>
         
         <dt><b>lammps-doc</b></dt>
         <dd>Contains the LAMMPS manual and additional documentation in PDF format.
@@ -86,9 +93,6 @@
     <hr width="100%">
 
     <h2>Available Repositories</h2>
-    <div style="display: inline; margin-left: 10px; border: 5px; border-style: groove; float: right;">
-      <a imageanchor="1" href="package-kit-centos.jpg" style=""><img src="package-kit-centos.jpg" border="0" style="" width="227" height="229"></a>
-    </div>
     <p align="justify">
       Binary RPMs are currently provided for up-to-date versions of
       <a href="http://www.redhat.com/rhel/" target="_blank">Red Hat Enterprise Linux</a>
@@ -162,7 +166,7 @@
     <address><a href="http://goo.gl/1wk0" target="_blank">Axel Kohlmeyer</a></address>
 <!-- Created: Fri Jun 14 08:59:35 CEST 2013 -->
 <!-- hhmts start -->
-Last modified: Tue Jun 18 12:14:25 CEST 2013
+Last modified: Tue Jun 18 13:30:31 CEST 2013
 <!-- hhmts end -->
   </body>
 </html>

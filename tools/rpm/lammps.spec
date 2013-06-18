@@ -12,6 +12,12 @@
 %global with_openmpi 0
 %endif
 
+%ifarch x86_64
+%global bigintsize -DLAMMPS_SMALLBIG
+%else
+%global bigintsize -DLAMMPS_SMALLSMALL
+%endif
+
 %if %{defined suse_version}
 %global with_suse 1
 %global _openmpi_load :
@@ -125,19 +131,19 @@ This package contains the LAMMPS Python module
 %build
 # build supporting libraries for MPI stubs
 cd lib/atc
-make -f Makefile.g++ CC=g++ CCFLAGS="-fPIC -I../../src -I../../src/STUBS  ${RPM_OPT_FLAGS}" EXTRAMAKE=Makefile.lammps.linalg
+make -f Makefile.g++ CC=g++ CCFLAGS="-fPIC -I../../src -I../../src/STUBS  ${RPM_OPT_FLAGS} %{bigintsize}" EXTRAMAKE=Makefile.lammps.linalg
 cd ../awpmd
-make -f Makefile.openmpi CC=g++ CCFLAGS="-fPIC -Isystems/interact/TCP/ -Isystems/interact -Iivutils/include ${RPM_OPT_FLAGS}" EXTRAMAKE=Makefile.lammps.linalg
+make -f Makefile.openmpi CC=g++ CCFLAGS="-fPIC -Isystems/interact/TCP/ -Isystems/interact -Iivutils/include ${RPM_OPT_FLAGS} %{bigintsize}" EXTRAMAKE=Makefile.lammps.linalg
 cd ../colvars
-make -f Makefile.g++ CXX=g++ CXXFLAGS="-fPIC ${RPM_OPT_FLAGS}" EXTRAMAKE=Makefile.lammps.empty
+make -f Makefile.g++ CXX=g++ CXXFLAGS="-fPIC ${RPM_OPT_FLAGS} %{bigintsize}" EXTRAMAKE=Makefile.lammps.empty
 cd ../linalg
 make -f Makefile.gfortran FC=gfortran FFLAGS="-fPIC ${RPM_OPT_FLAGS}" FFLAGS0="${RPM_OPT_FLAGS} -O0 -fPIC"
 cd ../meam
 make -f Makefile.gfortran F90=gfortran F90LAGS="-fPIC ${RPM_OPT_FLAGS}" EXTRAMAKE=Makefile.lammps.gfortran
 cd ../poems
-make -f Makefile.g++ CC=g++ CCFLAGS="-fPIC ${RPM_OPT_FLAGS}" EXTRAMAKE=Makefile.lammps.empty
+make -f Makefile.g++ CC=g++ CCFLAGS="-fPIC ${RPM_OPT_FLAGS} %{bigintsize}" EXTRAMAKE=Makefile.lammps.empty
 cd ../voronoi
-make -f Makefile.g++ CXX=g++ CXXFLAGS="-fPIC ${RPM_OPT_FLAGS}" EXTRAMAKE=Makefile.lammps.empty
+make -f Makefile.g++ CXX=g++ CXXFLAGS="-fPIC ${RPM_OPT_FLAGS} %{bigintsize}" EXTRAMAKE=Makefile.lammps.empty
 
 # now build in main source directory
 cd ../../src
@@ -148,12 +154,12 @@ make yes-all no-kim no-gpu no-user-cuda no-reax
 
 make -C STUBS
 
-make g++ CC=g++ CCFLAGS="${RPM_OPT_FLAGS} -fopenmp -fPIC" LINK=g++ LINKFLAGS="${RPM_LD_FLAGS} -fopenmp" LMP_INC="-DLAMMPS_GZIP -DLAMMPS_JPEG" MPI_INC="-I../STUBS" MPI_PATH="-L../STUBS" MPI_LIB=-lmpi_stubs FFT_INC=-DFFT_FFTW3 FFT_LIB=-lfftw3 JPG_LIB=-ljpeg
+make g++ CC=g++ CCFLAGS="${RPM_OPT_FLAGS} -fopenmp -fPIC" LINK=g++ LINKFLAGS="${RPM_LD_FLAGS} -fopenmp" LMP_INC="-DLAMMPS_GZIP -DLAMMPS_JPEG %{bigintsize}" MPI_INC="-I../STUBS" MPI_PATH="-L../STUBS" MPI_LIB=-lmpi_stubs FFT_INC=-DFFT_FFTW3 FFT_LIB=-lfftw3 JPG_LIB=-ljpeg
 
 # build shared library for python bindings
 mv Obj_g++ Obj_shlib_g++
 make makeshlib
-make -f Makefile.shlib g++ CC=g++ CCFLAGS="${RPM_OPT_FLAGS} -fopenmp" LINK=g++ LINKFLAGS="${RPM_LD_FLAGS} -fopenmp" LMP_INC="-DLAMMPS_GZIP -DLAMMPS_JPEG" MPI_INC="-I../STUBS" MPI_PATH="-L../STUBS" MPI_LIB=-lmpi_stubs FFT_INC=-DFFT_FFTW3 FFT_LIB=-lfftw3 JPG_LIB=-ljpeg
+make -f Makefile.shlib g++ CC=g++ CCFLAGS="${RPM_OPT_FLAGS} -fopenmp" LINK=g++ LINKFLAGS="${RPM_LD_FLAGS} -fopenmp" LMP_INC="-DLAMMPS_GZIP -DLAMMPS_JPEG %{bigintsize}" MPI_INC="-I../STUBS" MPI_PATH="-L../STUBS" MPI_LIB=-lmpi_stubs FFT_INC=-DFFT_FFTW3 FFT_LIB=-lfftw3 JPG_LIB=-ljpeg
 mv Obj_shlib_g++ Obj_g++
 
 # stash executable and shared lib away
@@ -183,13 +189,13 @@ gfortran -o serial/chain.x ${RPM_OPT_FLAGS} tools/chain.f
 # need to rebuild lib/atc
 cd lib/atc
 make -f Makefile.g++ clean
-make -f Makefile.g++ CC=mpicxx CCFLAGS="-fPIC -I../../src -DMPICH_IGNORE_CXX_SEEK -DOMPI_SKIP_MPICXX=1 ${RPM_OPT_FLAGS}" EXTRAMAKE=Makefile.lammps.linalg
+make -f Makefile.g++ CC=mpicxx CCFLAGS="-fPIC -I../../src -DMPICH_IGNORE_CXX_SEEK -DOMPI_SKIP_MPICXX=1 ${RPM_OPT_FLAGS} %{bigintsize}" EXTRAMAKE=Makefile.lammps.linalg
 
 # back to main source dir
 cd ../../src
 make clean-g++
 
-make g++ CC=mpicxx CCFLAGS="${RPM_OPT_FLAGS} -fopenmp" LINK=mpicxx LINKFLAGS="${RPM_LD_FLAGS} -fopenmp" LMP_INC="-DLAMMPS_GZIP -DLAMMPS_JPEG" MPI_INC="" MPI_PATH="" MPI_LIB="" FFT_INC=-DFFT_FFTW3 FFT_LIB=-lfftw3 JPG_LIB=-ljpeg
+make g++ CC=mpicxx CCFLAGS="${RPM_OPT_FLAGS} -fopenmp" LINK=mpicxx LINKFLAGS="${RPM_LD_FLAGS} -fopenmp" LMP_INC="-DLAMMPS_GZIP -DLAMMPS_JPEG %{bigintsize}" MPI_INC="" MPI_PATH="" MPI_LIB="" FFT_INC=-DFFT_FFTW3 FFT_LIB=-lfftw3 JPG_LIB=-ljpeg
 
 # and save the executable
 cd ../
@@ -206,13 +212,13 @@ mv src/lmp_g++ openmpi/
 # need to rebuild lib/atc
 cd lib/atc
 make -f Makefile.g++ clean
-make -f Makefile.g++ CC=mpicxx CCFLAGS="-fPIC -I../../src -DMPICH_IGNORE_CXX_SEEK -DOMPI_SKIP_MPICXX=1 ${RPM_OPT_FLAGS}" EXTRAMAKE=Makefile.lammps.linalg
+make -f Makefile.g++ CC=mpicxx CCFLAGS="-fPIC -I../../src -DMPICH_IGNORE_CXX_SEEK -DOMPI_SKIP_MPICXX=1 ${RPM_OPT_FLAGS} %{bigintsize}" EXTRAMAKE=Makefile.lammps.linalg
 
 # back to main source dir
 cd ../../src
 make clean-g++
 
-make g++ CC=mpicxx CCFLAGS="${RPM_OPT_FLAGS} -fopenmp" LINK=mpicxx LINKFLAGS="${RPM_LD_FLAGS} -fopenmp" LMP_INC="-DLAMMPS_GZIP -DLAMMPS_JPEG" MPI_INC="" MPI_PATH="" MPI_LIB="" FFT_INC=-DFFT_FFTW3 FFT_LIB=-lfftw3 JPG_LIB=-ljpeg
+make g++ CC=mpicxx CCFLAGS="${RPM_OPT_FLAGS} -fopenmp" LINK=mpicxx LINKFLAGS="${RPM_LD_FLAGS} -fopenmp" LMP_INC="-DLAMMPS_GZIP -DLAMMPS_JPEG %{bigintsize}" MPI_INC="" MPI_PATH="" MPI_LIB="" FFT_INC=-DFFT_FFTW3 FFT_LIB=-lfftw3 JPG_LIB=-ljpeg
 
 # and save the executable
 cd ../

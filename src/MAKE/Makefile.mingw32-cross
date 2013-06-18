@@ -16,7 +16,7 @@ DEPFLAGS =	-M
 
 LINK =		i686-w64-mingw32-g++
 LINKFLAGS =	-O2 -march=i686 -mtune=generic -mfpmath=387 -mpc64 -fopenmp
-LIB =           -lwsock32 -static-libgcc -static-libstdc++
+LIB =           -lwsock32 -static-libgcc
 SIZE =		i686-w64-mingw32-size
 
 ARCHIVE =	i686-w64-mingw32-ar
@@ -67,7 +67,7 @@ FFT_LIB =
 
 JPG_INC =       
 JPG_PATH = 	
-JPG_LIB =	-Wl,-Bstatic,-ljpeg
+JPG_LIB =	-ljpeg
 
 # ---------------------------------------------------------------------
 # build rules and dependencies

@@ -667,6 +667,15 @@ void colvar::disable (colvar::task const &t)
 }
 
 
+void colvar::setup() {
+  // loop over all components to reset masses of all groups
+  for (std::vector<cvc *>::iterator cci = cvcs.begin();
+       cci != cvcs.end(); cci++) {
+    (*cci)->setup();
+  }
+}
+
+
 colvar::~colvar()
 {
   for (size_t i = 0; i < cvcs.size(); i++) {

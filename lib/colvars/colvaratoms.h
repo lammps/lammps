@@ -121,7 +121,7 @@ class colvarmodule::atom_group
     public colvarparse
 {
 public:
-  // Note: all members here are kept public, to make possible to any
+  // Note: all members here are kept public, to allow any
   // object accessing and manipulating them
 
 
@@ -201,6 +201,11 @@ public:
 
   /// \brief Add an atom to this group
   void add_atom (cvm::atom const &a);
+
+  /// \brief Re-initialize the total mass of a group.
+  /// This is needed in case the hosting MD code has an option to
+  /// change atom masses after their initialization.
+  void reset_mass ();
 
   /// \brief Default constructor
   atom_group();

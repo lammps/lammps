@@ -557,6 +557,14 @@ void colvarmodule::analyze()
 
 }
 
+void colvarmodule::setup()
+{
+  // loop over all components of all colvars to reset masses of all groups
+  for (std::vector<colvar *>::iterator cvi = colvars.begin();
+       cvi != colvars.end();  cvi++) {
+    (*cvi)->setup();
+  }
+}
 
 colvarmodule::~colvarmodule()
 {

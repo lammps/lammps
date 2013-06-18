@@ -71,6 +71,15 @@ void cvm::atom_group::add_atom (cvm::atom const &a)
 }
 
 
+void cvm::atom_group::reset_mass()
+{
+  total_mass = 0.0;
+  for (cvm::atom_iter ai = this->begin();
+       ai != this->end(); ai++) {
+    total_mass += ai->mass;
+  }
+}
+
 void cvm::atom_group::parse (std::string const &conf,
                              char const        *key)
 {

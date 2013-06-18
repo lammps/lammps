@@ -2,7 +2,7 @@
 #define COLVARMODULE_H
 
 #ifndef COLVARS_VERSION
-#define COLVARS_VERSION "2013-06-13"
+#define COLVARS_VERSION "2013-06-18"
 #endif
 
 #ifndef COLVARS_DEBUG
@@ -159,6 +159,7 @@ public:
   /// \param restart_name (optional) Restart file name
   colvarmodule (char const *config_name,
                 colvarproxy *proxy_in);
+
   /// Destructor
   ~colvarmodule();
 
@@ -167,6 +168,11 @@ public:
 
   /// Initialize collective variable biases
   void init_biases (std::string const &conf);
+
+  /// Re-initialize data at the beginning of a run. For use with
+  /// MD codes that can change system parameters like atom masses
+  /// between run commands.
+  void setup();
 
   /// Load new configuration for the given bias -
   /// currently works for harmonic (force constant and/or centers)

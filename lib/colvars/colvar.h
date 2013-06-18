@@ -288,6 +288,9 @@ public:
   /// Disable the specified task
   void disable (colvar::task const &t);
 
+  /// Get ready for a run and possibly re-initialize internal data
+  void setup();
+
   /// Destructor
   ~colvar();
 

@@ -429,55 +429,6 @@ void FixColvars::setup(int vflag)
   if (init_flag == 0) {
     init_flag = 1;
 
-#if 0
-
-    // collect a list of atom type by atom id for the entire system.
-    // the colvar module requires this information to set masses. :-(
-
-    max=0;
-    for (i = 0; i < nlocal; i++) max = MAX(max,tag[i]);
-    MPI_Allreduce(&max,&tag_max,1,MPI_INT,MPI_MAX,world);
-    MPI_Allreduce(&nlocal,&nlocal_max,1,MPI_INT,MPI_MAX,world);
-
-    if (me == 0) {
-      typemap = new int[tag_max+1];
-      memset(typemap,0,sizeof(int)*tag_max);
-    }
-    type_buf = new int[2*nlocal_max];
-
-    if (me == 0) {
-      for (i=0; i<nlocal; ++i)
-        typemap[tag[i]] = type[i];
-
-      // loop over procs to receive and apply remote data
-
-      for (i=1; i < comm->nprocs; ++i) {
-        MPI_Irecv(type_buf, 2*nlocal_max, MPI_INT, i, 0, world, &request);
-        MPI_Send(&tmp, 0, MPI_INT, i, 0, world);
-        MPI_Wait(&request, &status);
-        MPI_Get_count(&status, MPI_INT, &ndata);
-
-        for (int k=0; k<ndata; k+=2)
-          typemap[type_buf[k]] = type_buf[k+1];
-      }
-    } else { // me != 0
-
-      // copy tag/type data into communication buffer
-
-      nme = 0;
-      for (i=0; i<nlocal; ++i) {
-        type_buf[nme] = tag[i];
-        type_buf[nme+1] = type[i];
-        nme +=2;
-      }
-
-      /* blocking receive to wait until it is our turn to send data. */
-      MPI_Recv(&tmp, 0, MPI_INT, 0, 0, world, &status);
-      MPI_Rsend(type_buf, nme, MPI_INT, 0, 0, world);
-    }
-    delete type_buf;
-#endif
-
     // now create and initialize the colvars proxy
 
     if (me == 0) {

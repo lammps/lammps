@@ -238,6 +238,7 @@ doc/fix_temp_rescale.html
 doc/fix_temp_rescale_eff.html
 doc/fix_thermal_conductivity.html
 doc/fix_tmd.html
+doc/fix_tune_kspace.html
 doc/fix_ttm.html
 doc/fix_viscosity.html
 doc/fix_viscous.html

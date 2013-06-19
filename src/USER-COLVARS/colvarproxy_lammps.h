@@ -17,7 +17,7 @@
 /* struct for packed data communication of coordinates and forces. */
 struct commdata {
   int tag,type;
-    double x,y,z,m;
+  double x,y,z,m;
 };
 
 inline std::ostream & operator<< (std::ostream &out, const commdata &cd)

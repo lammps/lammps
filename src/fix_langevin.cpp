@@ -513,6 +513,8 @@ void FixLangevin::post_force_untemplated
     }
   }
 
+  if (Tp_BIAS) temperature->compute_scalar();
+
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       if (Tp_TSTYLEATOM) tsqrt = sqrt(tforce[i]);

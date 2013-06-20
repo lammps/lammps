@@ -19,6 +19,7 @@
 #include "mpi.h"
 #include "math.h"
 #include "stdlib.h"
+#include "string.h"
 #include "dihedral_charmm.h"
 #include "atom.h"
 #include "comm.h"
@@ -38,7 +39,7 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-DihedralCharmm::DihedralCharmm(LAMMPS *lmp) : Dihedral(lmp) {}
+DihedralCharmm::DihedralCharmm(LAMMPS *lmp) : Dihedral(lmp) { weightflag=-1; }
 
 /* ---------------------------------------------------------------------- */
 
@@ -310,6 +311,7 @@ void DihedralCharmm::allocate()
   memory->create(cos_shift,n+1,"dihedral:cos_shift");
   memory->create(sin_shift,n+1,"dihedral:sin_shift");
   memory->create(weight,n+1,"dihedral:weight");
+  memset(weight,0,sizeof(double)*(n+1));
 
   memory->create(setflag,n+1,"dihedral:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
@@ -323,6 +325,7 @@ void DihedralCharmm::coeff(int narg, char **arg)
 {
   if (narg != 5) error->all(FLERR,"Incorrect args for dihedral coefficients");
   if (!allocated) allocate();
+  weightflag=0;
 
   int ilo,ihi;
   force->bounds(arg[0],atom->ndihedraltypes,ilo,ihi);
@@ -364,6 +367,11 @@ void DihedralCharmm::init_style()
 {
   // insure use of CHARMM pair_style if any weight factors are non-zero
   // set local ptrs to LJ 14 arrays setup by Pair
+
+  // if we use a hybrid dihedral type, we may get called, even though
+  // there is actually no charmm dihedral configured.
+
+  if (weightflag < 0) return;
 
   weightflag = 0;
   for (int i = 1; i <= atom->ndihedraltypes; i++)

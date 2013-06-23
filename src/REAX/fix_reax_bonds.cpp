@@ -41,7 +41,7 @@ FixReaxBonds::FixReaxBonds(LAMMPS *lmp, int narg, char **arg) :
 
   MPI_Comm_rank(world,&me);
 
-  nevery = atoi(arg[3]);
+  nevery = force->inumeric(FLERR,arg[3]);
   if (nevery < 1) error->all(FLERR,"Illegal fix reax/bonds command");
 
   if (me == 0) {

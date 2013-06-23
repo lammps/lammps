@@ -19,6 +19,7 @@
 #include "update.h"
 #include "respa.h"
 #include "error.h"
+#include "force.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -29,9 +30,9 @@ FixLineForce::FixLineForce(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
   if (narg != 6) error->all(FLERR,"Illegal fix lineforce command");
-  xdir = atof(arg[3]);
-  ydir = atof(arg[4]);
-  zdir = atof(arg[5]);
+  xdir = force->numeric(FLERR,arg[3]);
+  ydir = force->numeric(FLERR,arg[4]);
+  zdir = force->numeric(FLERR,arg[5]);
 
   double len = sqrt(xdir*xdir + ydir*ydir + zdir*zdir);
   if (len == 0.0) error->all(FLERR,"Illegal fix lineforce command");

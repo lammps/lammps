@@ -17,6 +17,7 @@
 #include "atom.h"
 #include "memory.h"
 #include "error.h"
+#include "force.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -29,8 +30,8 @@ FixStore::FixStore(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
   // syntax: id group style 0/1 nvalue
 
-  restart_peratom = atoi(arg[3]);
-  nvalues = atoi(arg[4]);
+  restart_peratom = force->inumeric(FLERR,arg[3]);
+  nvalues = force->inumeric(FLERR,arg[4]);
 
   vecflag = 0;
   if (nvalues == 1) vecflag = 1;

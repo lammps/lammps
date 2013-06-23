@@ -375,18 +375,18 @@ void PairBrownian::settings(int narg, char **arg)
 {
   if (narg != 7 && narg != 9) error->all(FLERR,"Illegal pair_style command");
 
-  mu = atof(arg[0]);
-  flaglog = atoi(arg[1]);
-  flagfld = atoi(arg[2]);
-  cut_inner_global = atof(arg[3]);
-  cut_global = atof(arg[4]);
-  t_target = atof(arg[5]);
-  seed = atoi(arg[6]);
+  mu = force->numeric(FLERR,arg[0]);
+  flaglog = force->inumeric(FLERR,arg[1]);
+  flagfld = force->inumeric(FLERR,arg[2]);
+  cut_inner_global = force->numeric(FLERR,arg[3]);
+  cut_global = force->numeric(FLERR,arg[4]);
+  t_target = force->numeric(FLERR,arg[5]);
+  seed = force->inumeric(FLERR,arg[6]);
 
   flagHI = flagVF = 1;
   if (narg == 9) {
-    flagHI = atoi(arg[7]);
-    flagVF = atoi(arg[8]);
+    flagHI = force->inumeric(FLERR,arg[7]);
+    flagVF = force->inumeric(FLERR,arg[8]);
   }
 
   if (flaglog == 1 && flagHI == 0) {
@@ -431,8 +431,8 @@ void PairBrownian::coeff(int narg, char **arg)
   double cut_one = cut_global;
 
   if (narg == 4) {
-    cut_inner_one = atof(arg[2]);
-    cut_one = atof(arg[3]);
+    cut_inner_one = force->numeric(FLERR,arg[2]);
+    cut_one = force->numeric(FLERR,arg[3]);
   }
 
   int count = 0;

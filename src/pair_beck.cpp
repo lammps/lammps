@@ -174,7 +174,7 @@ void PairBeck::settings(int narg, char **arg)
 {
   if (narg != 1) error->all(FLERR,"Illegal pair_style command");
 
-  cut_global = atof(arg[0]);
+  cut_global = force->numeric(FLERR,arg[0]);
 
   // reset cutoffs that have been explicitly set
 
@@ -202,14 +202,14 @@ void PairBeck::coeff(int narg, char **arg)
   force->bounds(arg[0],atom->ntypes,ilo,ihi);
   force->bounds(arg[1],atom->ntypes,jlo,jhi);
 
-  double AA_one = atof(arg[2]);
-  double BB_one = atof(arg[3]);
-  double aa_one = atof(arg[4]);
-  double alpha_one = atof(arg[5]);
-  double beta_one = atof(arg[6]);
+  double AA_one = force->numeric(FLERR,arg[2]);
+  double BB_one = force->numeric(FLERR,arg[3]);
+  double aa_one = force->numeric(FLERR,arg[4]);
+  double alpha_one = force->numeric(FLERR,arg[5]);
+  double beta_one = force->numeric(FLERR,arg[6]);
 
   double cut_one = cut_global;
-  if (narg == 8) cut_one = atof(arg[7]);
+  if (narg == 8) cut_one = force->numeric(FLERR,arg[7]);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

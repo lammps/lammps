@@ -24,6 +24,7 @@
 #include "respa.h"
 #include "memory.h"
 #include "error.h"
+#include "force.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -41,7 +42,7 @@ FixSpringSelf::FixSpringSelf(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extscalar = 1;
 
-  k = atof(arg[3]);
+  k = force->numeric(FLERR,arg[3]);
   if (k <= 0.0) error->all(FLERR,"Illegal fix spring/self command");
 
   xflag = yflag = zflag = 1;

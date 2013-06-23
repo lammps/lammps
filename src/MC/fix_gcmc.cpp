@@ -58,14 +58,14 @@ FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
 
   // required args
 
-  nevery = atoi(arg[3]);
-  nexchanges = atoi(arg[4]);
-  nmcmoves = atoi(arg[5]);
-  ngcmc_type = atoi(arg[6]);
-  seed = atoi(arg[7]);
-  reservoir_temperature = atof(arg[8]);
-  chemical_potential = atof(arg[9]);
-  displace = atof(arg[10]);
+  nevery = force->inumeric(FLERR,arg[3]);
+  nexchanges = force->inumeric(FLERR,arg[4]);
+  nmcmoves = force->inumeric(FLERR,arg[5]);
+  ngcmc_type = force->inumeric(FLERR,arg[6]);
+  seed = force->inumeric(FLERR,arg[7]);
+  reservoir_temperature = force->numeric(FLERR,arg[8]);
+  chemical_potential = force->numeric(FLERR,arg[9]);
+  displace = force->numeric(FLERR,arg[10]);
 
   if (nexchanges < 0) error->all(FLERR,"Illegal fix gcmc command");
   if (nmcmoves < 0) error->all(FLERR,"Illegal fix gcmc command");
@@ -199,17 +199,17 @@ void FixGCMC::options(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"maxangle") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
-      max_rotation_angle = atof(arg[iarg+1]);
+      max_rotation_angle = force->numeric(FLERR,arg[iarg+1]);
       max_rotation_angle *= MY_PI/180;
       iarg += 2;
     } else if (strcmp(arg[iarg],"pressure") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
-      pressure = atof(arg[iarg+1]);
+      pressure = force->numeric(FLERR,arg[iarg+1]);
       pressure_flag = true;
       iarg += 2;
     } else if (strcmp(arg[iarg],"fugacity_coeff") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
-      fugacity_coeff = atof(arg[iarg+1]);
+      fugacity_coeff = force->numeric(FLERR,arg[iarg+1]);
       iarg += 2;
     } else error->all(FLERR,"Illegal fix gcmc command");
   }

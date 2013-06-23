@@ -24,6 +24,7 @@
 #include "output.h"
 #include "respa.h"
 #include "error.h"
+#include "force.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -59,9 +60,9 @@ FixWallRegion::FixWallRegion(LAMMPS *lmp, int narg, char **arg) :
   else if (strcmp(arg[4],"harmonic") == 0) style = HARMONIC;
   else error->all(FLERR,"Illegal fix wall/region command");
 
-  epsilon = atof(arg[5]);
-  sigma = atof(arg[6]);
-  cutoff = atof(arg[7]);
+  epsilon = force->numeric(FLERR,arg[5]);
+  sigma = force->numeric(FLERR,arg[6]);
+  cutoff = force->numeric(FLERR,arg[7]);
 
   if (cutoff <= 0.0) error->all(FLERR,"Fix wall/region cutoff <= 0.0");
 

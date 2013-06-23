@@ -46,11 +46,11 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
 
   int dimension = domain->dimension;
 
-  nevery = atoi(arg[3]);
+  nevery = force->inumeric(FLERR,arg[3]);
   if (strlen(arg[4]) > 3) error->all(FLERR,"Illegal fix balance command");
   strcpy(bstr,arg[4]);
-  nitermax = atoi(arg[5]);
-  thresh = atof(arg[6]);
+  nitermax = force->inumeric(FLERR,arg[5]);
+  thresh = force->numeric(FLERR,arg[6]);
 
   if (nevery < 0 || nitermax <= 0 || thresh < 1.0)
     error->all(FLERR,"Illegal fix balance command");

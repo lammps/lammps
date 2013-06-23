@@ -55,7 +55,7 @@ PPPMCG::PPPMCG(LAMMPS *lmp, int narg, char **arg) : PPPM(lmp, narg, arg)
 
   triclinic_support = 0;
 
-  if (narg == 2) smallq = atof(arg[1]);
+  if (narg == 2) smallq = fabs(force->numeric(FLERR,arg[1]));
   else smallq = SMALLQ;
 
   num_charged = -1;

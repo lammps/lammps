@@ -17,6 +17,7 @@
 #include "atom_vec_body.h"
 #include "atom.h"
 #include "error.h"
+#include "force.h"
 
 using namespace LAMMPS_NS;
 
@@ -29,8 +30,8 @@ BodyNparticle::BodyNparticle(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg != 3) error->all(FLERR,"Invalid body nparticle command");
 
-  int nmin = atoi(arg[1]);
-  int nmax = atoi(arg[2]);
+  int nmin = force->inumeric(FLERR,arg[1]);
+  int nmax = force->inumeric(FLERR,arg[2]);
   if (nmin <= 0 || nmin > nmax) 
     error->all(FLERR,"Invalid body nparticle command");
 

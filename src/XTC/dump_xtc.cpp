@@ -34,6 +34,7 @@
 #include "group.h"
 #include "output.h"
 #include "error.h"
+#include "force.h"
 #include "memory.h"
 
 using namespace LAMMPS_NS;
@@ -272,7 +273,7 @@ int DumpXTC::modify_param(int narg, char **arg)
     return 2;
   } else if (strcmp(arg[0],"precision") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
-    precision = atof(arg[1]);
+    precision = force->numeric(FLERR,arg[1]);
     if ((fabs(precision-10.0) > EPS) && (fabs(precision-100.0) > EPS) &&
         (fabs(precision-1000.0) > EPS) && (fabs(precision-10000.0) > EPS) &&
         (fabs(precision-100000.0) > EPS) &&

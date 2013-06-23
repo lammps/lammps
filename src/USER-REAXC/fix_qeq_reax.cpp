@@ -58,10 +58,10 @@ FixQEqReax::FixQEqReax(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg != 8) error->all(FLERR,"Illegal fix qeq/reax command");
 
-  nevery = atoi(arg[3]);
-  swa = atof(arg[4]);
-  swb = atof(arg[5]);
-  tolerance = atof(arg[6]);
+  nevery = force->inumeric(FLERR,arg[3]);
+  swa = force->numeric(FLERR,arg[4]);
+  swb = force->numeric(FLERR,arg[5]);
+  tolerance = force->numeric(FLERR,arg[6]);
   pertype_parameters(arg[7]);
 
   shld = NULL;

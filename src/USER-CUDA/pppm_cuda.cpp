@@ -111,7 +111,7 @@ PPPMCuda::PPPMCuda(LAMMPS *lmp, int narg, char **arg) :
   #endif
 
   triclinic_support = 0;
-  accuracy_relative = atof(arg[0]);
+  accuracy_relative = fabs(force->numeric(FLERR,arg[0]));
 
   nfactors = 3;
   factors = new int[nfactors];

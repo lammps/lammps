@@ -19,6 +19,7 @@
 #include "input.h"
 #include "variable.h"
 #include "error.h"
+#include "force.h"
 
 using namespace LAMMPS_NS;
 
@@ -31,9 +32,9 @@ RegSphere::RegSphere(LAMMPS *lmp, int narg, char **arg) :
 {
   options(narg-6,&arg[6]);
 
-  xc = xscale*atof(arg[2]);
-  yc = yscale*atof(arg[3]);
-  zc = zscale*atof(arg[4]);
+  xc = xscale*force->numeric(FLERR,arg[2]);
+  yc = yscale*force->numeric(FLERR,arg[3]);
+  zc = zscale*force->numeric(FLERR,arg[4]);
 
   rstr = NULL;
   if (strstr(arg[5],"v_") == arg[5]) {
@@ -46,7 +47,7 @@ RegSphere::RegSphere(LAMMPS *lmp, int narg, char **arg) :
     variable_check();
     shape_update();
   } else {
-    radius = xscale*atof(arg[5]);
+    radius = xscale*force->numeric(FLERR,arg[5]);
     rstyle = CONSTANT;
   }
 

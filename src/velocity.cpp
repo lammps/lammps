@@ -100,8 +100,8 @@ void Velocity::command(int narg, char **arg)
   // create() invoked differently, so can be called externally
 
   if (style == CREATE) {
-    double t_desired = atof(arg[2]);
-    int seed = atoi(arg[3]);
+    double t_desired = force->numeric(FLERR,arg[2]);
+    int seed = force->inumeric(FLERR,arg[3]);
     create(t_desired,seed);
   }
   else if (style == SET) set(narg-2,&arg[2]);
@@ -357,21 +357,21 @@ void Velocity::set(int narg, char **arg)
     xstr = new char[n];
     strcpy(xstr,&arg[0][2]);
   } else if (strcmp(arg[0],"NULL") == 0) xstyle = NONE;
-  else vx = atof(arg[0]);
+  else vx = force->numeric(FLERR,arg[0]);
 
   if (strstr(arg[1],"v_") == arg[1]) {
     int n = strlen(&arg[1][2]) + 1;
     ystr = new char[n];
     strcpy(ystr,&arg[1][2]);
   } else if (strcmp(arg[1],"NULL") == 0) ystyle = NONE;
-  else vy = atof(arg[1]);
+  else vy = force->numeric(FLERR,arg[1]);
 
   if (strstr(arg[2],"v_") == arg[2]) {
     int n = strlen(&arg[2][2]) + 1;
     zstr = new char[n];
     strcpy(zstr,&arg[2][2]);
   } else if (strcmp(arg[2],"NULL") == 0) zstyle = NONE;
-  else vz = atof(arg[2]);
+  else vz = force->numeric(FLERR,arg[2]);
 
   // set and apply scale factors
 
@@ -505,7 +505,7 @@ void Velocity::set(int narg, char **arg)
 
 void Velocity::scale(int narg, char **arg)
 {
-  double t_desired = atof(arg[0]);
+  double t_desired = force->numeric(FLERR,arg[0]);
 
   // if temperature = NULL, create a new ComputeTemp with the velocity group
 
@@ -566,14 +566,14 @@ void Velocity::ramp(int narg, char **arg)
 
   double v_lo,v_hi;
   if (v_dim == 0) {
-    v_lo = xscale*atof(arg[1]);
-    v_hi = xscale*atof(arg[2]);
+    v_lo = xscale*force->numeric(FLERR,arg[1]);
+    v_hi = xscale*force->numeric(FLERR,arg[2]);
   } else if (v_dim == 1) {
-    v_lo = yscale*atof(arg[1]);
-    v_hi = yscale*atof(arg[2]);
+    v_lo = yscale*force->numeric(FLERR,arg[1]);
+    v_hi = yscale*force->numeric(FLERR,arg[2]);
   } else if (v_dim == 2) {
-    v_lo = zscale*atof(arg[1]);
-    v_hi = zscale*atof(arg[2]);
+    v_lo = zscale*force->numeric(FLERR,arg[1]);
+    v_hi = zscale*force->numeric(FLERR,arg[2]);
   }
 
   int coord_dim;
@@ -584,14 +584,14 @@ void Velocity::ramp(int narg, char **arg)
 
   double coord_lo,coord_hi;
   if (coord_dim == 0) {
-    coord_lo = xscale*atof(arg[4]);
-    coord_hi = xscale*atof(arg[5]);
+    coord_lo = xscale*force->numeric(FLERR,arg[4]);
+    coord_hi = xscale*force->numeric(FLERR,arg[5]);
   } else if (coord_dim == 1) {
-    coord_lo = yscale*atof(arg[4]);
-    coord_hi = yscale*atof(arg[5]);
+    coord_lo = yscale*force->numeric(FLERR,arg[4]);
+    coord_hi = yscale*force->numeric(FLERR,arg[5]);
   } else if (coord_dim == 2) {
-    coord_lo = zscale*atof(arg[4]);
-    coord_hi = zscale*atof(arg[5]);
+    coord_lo = zscale*force->numeric(FLERR,arg[4]);
+    coord_hi = zscale*force->numeric(FLERR,arg[5]);
   }
 
   // vramp = ramped velocity component for v_dim

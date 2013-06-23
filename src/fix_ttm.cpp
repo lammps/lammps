@@ -53,16 +53,16 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
   restart_peratom = 1;
   restart_global = 1;
 
-  seed = atoi(arg[3]);
-  electronic_specific_heat = atof(arg[4]);
-  electronic_density = atof(arg[5]);
-  electronic_thermal_conductivity = atof(arg[6]);
-  gamma_p = atof(arg[7]);
-  gamma_s = atof(arg[8]);
-  v_0 = atof(arg[9]);
-  nxnodes = atoi(arg[10]);
-  nynodes = atoi(arg[11]);
-  nznodes = atoi(arg[12]);
+  seed = force->inumeric(FLERR,arg[3]);
+  electronic_specific_heat = force->numeric(FLERR,arg[4]);
+  electronic_density = force->numeric(FLERR,arg[5]);
+  electronic_thermal_conductivity = force->numeric(FLERR,arg[6]);
+  gamma_p = force->numeric(FLERR,arg[7]);
+  gamma_s = force->numeric(FLERR,arg[8]);
+  v_0 = force->numeric(FLERR,arg[9]);
+  nxnodes = force->inumeric(FLERR,arg[10]);
+  nynodes = force->inumeric(FLERR,arg[11]);
+  nznodes = force->inumeric(FLERR,arg[12]);
 
   fpr = fopen(arg[13],"r");
   if (fpr == NULL) {
@@ -71,7 +71,7 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
     error->one(FLERR,str);
   }
 
-  nfileevery = atoi(arg[14]);
+  nfileevery = force->inumeric(FLERR,arg[14]);
 
   if (nfileevery) {
     if (narg != 16) error->all(FLERR,"Illegal fix ttm command");

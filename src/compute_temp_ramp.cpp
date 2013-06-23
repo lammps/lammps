@@ -74,14 +74,14 @@ ComputeTempRamp::ComputeTempRamp(LAMMPS *lmp, int narg, char **arg) :
   else error->all(FLERR,"Illegal compute temp/ramp command");
 
   if (v_dim == 0) {
-    v_lo = xscale*atof(arg[4]);
-    v_hi = xscale*atof(arg[5]);
+    v_lo = xscale*force->numeric(FLERR,arg[4]);
+    v_hi = xscale*force->numeric(FLERR,arg[5]);
   } else if (v_dim == 1) {
-    v_lo = yscale*atof(arg[4]);
-    v_hi = yscale*atof(arg[5]);
+    v_lo = yscale*force->numeric(FLERR,arg[4]);
+    v_hi = yscale*force->numeric(FLERR,arg[5]);
   } else if (v_dim == 2) {
-    v_lo = zscale*atof(arg[4]);
-    v_hi = zscale*atof(arg[5]);
+    v_lo = zscale*force->numeric(FLERR,arg[4]);
+    v_hi = zscale*force->numeric(FLERR,arg[5]);
   }
 
   if (strcmp(arg[6],"x") == 0) coord_dim = 0;
@@ -90,14 +90,14 @@ ComputeTempRamp::ComputeTempRamp(LAMMPS *lmp, int narg, char **arg) :
   else error->all(FLERR,"Illegal compute temp/ramp command");
 
   if (coord_dim == 0) {
-    coord_lo = xscale*atof(arg[7]);
-    coord_hi = xscale*atof(arg[8]);
+    coord_lo = xscale*force->numeric(FLERR,arg[7]);
+    coord_hi = xscale*force->numeric(FLERR,arg[8]);
   } else if (coord_dim == 1) {
-    coord_lo = yscale*atof(arg[7]);
-    coord_hi = yscale*atof(arg[8]);
+    coord_lo = yscale*force->numeric(FLERR,arg[7]);
+    coord_hi = yscale*force->numeric(FLERR,arg[8]);
   } else if (coord_dim == 2) {
-    coord_lo = zscale*atof(arg[7]);
-    coord_hi = zscale*atof(arg[8]);
+    coord_lo = zscale*force->numeric(FLERR,arg[7]);
+    coord_hi = zscale*force->numeric(FLERR,arg[8]);
   }
 
   maxbias = 0;

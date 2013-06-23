@@ -23,6 +23,7 @@
 #include "update.h"
 #include "memory.h"
 #include "error.h"
+#include "force.h"
 
 using namespace LAMMPS_NS;
 
@@ -39,7 +40,7 @@ DumpLocal::DumpLocal(LAMMPS *lmp, int narg, char **arg) :
 
   clearstep = 1;
 
-  nevery = atoi(arg[3]);
+  nevery = force->inumeric(FLERR,arg[3]);
 
   size_one = nfield = narg-5;
   pack_choice = new FnPtrPack[nfield];

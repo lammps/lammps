@@ -21,6 +21,7 @@
 #include "input.h"
 #include "variable.h"
 #include "error.h"
+#include "force.h"
 
 using namespace LAMMPS_NS;
 
@@ -349,12 +350,12 @@ void Region::options(int narg, char **arg)
       int n = strlen(&arg[iarg+1][2]) + 1;
       tstr = new char[n];
       strcpy(tstr,&arg[iarg+1][2]);
-      point[0] = atof(arg[iarg+2]);
-      point[1] = atof(arg[iarg+3]);
-      point[2] = atof(arg[iarg+4]);
-      axis[0] = atof(arg[iarg+5]);
-      axis[1] = atof(arg[iarg+6]);
-      axis[2] = atof(arg[iarg+7]);
+      point[0] = force->numeric(FLERR,arg[iarg+2]);
+      point[1] = force->numeric(FLERR,arg[iarg+3]);
+      point[2] = force->numeric(FLERR,arg[iarg+4]);
+      axis[0] = force->numeric(FLERR,arg[iarg+5]);
+      axis[1] = force->numeric(FLERR,arg[iarg+6]);
+      axis[2] = force->numeric(FLERR,arg[iarg+7]);
       rotateflag = 1;
       iarg += 8;
     } else error->all(FLERR,"Illegal region command");

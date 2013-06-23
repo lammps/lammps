@@ -95,9 +95,9 @@ FixShakeCuda::FixShakeCuda(LAMMPS* lmp, int narg, char** arg) :
 
   if(narg < 8) error->all(FLERR, "Illegal fix shake command");
 
-  tolerance = atof(arg[3]);
-  max_iter = atoi(arg[4]);
-  output_every = atoi(arg[5]);
+  tolerance = force->numeric(FLERR,arg[3]);
+  max_iter = force->inumeric(FLERR,arg[4]);
+  output_every = force->inumeric(FLERR,arg[5]);
 
   // parse SHAKE args for bond and angle types
   // will be used by find_clusters
@@ -133,7 +133,7 @@ FixShakeCuda::FixShakeCuda(LAMMPS* lmp, int narg, char** arg) :
       atom->check_mass();
 
     } else if(mode == 'b') {
-      int i = atoi(arg[next]);
+      int i = force->inumeric(FLERR,arg[next]);
 
       if(i < 1 || i > atom->nbondtypes)
         error->all(FLERR, "Invalid bond type index for fix shake");
@@ -141,7 +141,7 @@ FixShakeCuda::FixShakeCuda(LAMMPS* lmp, int narg, char** arg) :
       bond_flag[i] = 1;
 
     } else if(mode == 'a') {
-      int i = atoi(arg[next]);
+      int i = force->inumeric(FLERR,arg[next]);
 
       if(i < 1 || i > atom->nangletypes)
         error->all(FLERR, "Invalid angle type index for fix shake");
@@ -149,7 +149,7 @@ FixShakeCuda::FixShakeCuda(LAMMPS* lmp, int narg, char** arg) :
       angle_flag[i] = 1;
 
     } else if(mode == 't') {
-      int i = atoi(arg[next]);
+      int i = force->inumeric(FLERR,arg[next]);
 
       if(i < 1 || i > atom->ntypes)
         error->all(FLERR, "Invalid atom type index for fix shake");
@@ -157,7 +157,7 @@ FixShakeCuda::FixShakeCuda(LAMMPS* lmp, int narg, char** arg) :
       type_flag[i] = 1;
 
     } else if(mode == 'm') {
-      double massone = atof(arg[next]);
+      double massone = force->numeric(FLERR,arg[next]);
 
       if(massone == 0.0) error->all(FLERR, "Invalid atom mass for fix shake");
 

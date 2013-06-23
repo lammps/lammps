@@ -41,7 +41,7 @@ ComputeCentroAtom::ComputeCentroAtom(LAMMPS *lmp, int narg, char **arg) :
 
   if (strcmp(arg[3],"fcc") == 0) nnn = 12;
   else if (strcmp(arg[3],"bcc") == 0) nnn = 8;
-  else nnn = atoi(arg[3]);
+  else nnn = force->inumeric(FLERR,arg[3]);
 
   if (nnn <= 0 || nnn % 2)
     error->all(FLERR,"Illegal neighbor value for compute centro/atom command");

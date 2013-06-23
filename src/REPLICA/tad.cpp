@@ -91,12 +91,12 @@ void TAD::command(int narg, char **arg)
 
   if (narg < 7) error->universe_all(FLERR,"Illegal tad command");
 
-  nsteps = atoi(arg[0]);
-  t_event = atoi(arg[1]);
-  templo = atof(arg[2]);
-  temphi = atof(arg[3]);
-  delta_conf = atof(arg[4]);
-  tmax = atof(arg[5]);
+  nsteps = force->inumeric(FLERR,arg[0]);
+  t_event = force->inumeric(FLERR,arg[1]);
+  templo = force->numeric(FLERR,arg[2]);
+  temphi = force->numeric(FLERR,arg[3]);
+  delta_conf = force->numeric(FLERR,arg[4]);
+  tmax = force->numeric(FLERR,arg[5]);
 
   char *id_compute = new char[strlen(arg[6])+1];
   strcpy(id_compute,arg[6]);
@@ -596,10 +596,10 @@ void TAD::options(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"min") == 0) {
       if (iarg+5 > narg) error->all(FLERR,"Illegal tad command");
-      etol = atof(arg[iarg+1]);
-      ftol = atof(arg[iarg+2]);
-      maxiter = atoi(arg[iarg+3]);
-      maxeval = atoi(arg[iarg+4]);
+      etol = force->numeric(FLERR,arg[iarg+1]);
+      ftol = force->numeric(FLERR,arg[iarg+2]);
+      maxiter = force->inumeric(FLERR,arg[iarg+3]);
+      maxeval = force->inumeric(FLERR,arg[iarg+4]);
       if (maxiter < 0 || maxeval < 0 ||
           etol < 0.0 || ftol < 0.0 )
         error->all(FLERR,"Illegal tad command");
@@ -607,11 +607,11 @@ void TAD::options(int narg, char **arg)
 
     } else if (strcmp(arg[iarg],"neb") == 0) {
       if (iarg+6 > narg) error->all(FLERR,"Illegal tad command");
-      etol_neb = atof(arg[iarg+1]);
-      ftol_neb = atof(arg[iarg+2]);
-      n1steps_neb = atoi(arg[iarg+3]);
-      n2steps_neb = atoi(arg[iarg+4]);
-      nevery_neb = atoi(arg[iarg+5]);
+      etol_neb = force->numeric(FLERR,arg[iarg+1]);
+      ftol_neb = force->numeric(FLERR,arg[iarg+2]);
+      n1steps_neb = force->inumeric(FLERR,arg[iarg+3]);
+      n2steps_neb = force->inumeric(FLERR,arg[iarg+4]);
+      nevery_neb = force->inumeric(FLERR,arg[iarg+5]);
       if (etol_neb < 0.0 || ftol_neb < 0.0 ||
           n1steps_neb < 0 || n2steps_neb < 0 ||
           nevery_neb < 0) error->all(FLERR,"Illegal tad command");

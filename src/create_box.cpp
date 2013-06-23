@@ -94,7 +94,7 @@ void CreateBox::command(int narg, char **arg)
 
   // set atom and topology type quantities
 
-  atom->ntypes = atoi(arg[0]);
+  atom->ntypes = force->inumeric(FLERR,arg[0]);
   atom->nbondtypes = 0;
   atom->nangletypes = 0;
   atom->ndihedraltypes = 0;

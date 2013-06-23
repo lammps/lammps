@@ -65,17 +65,17 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[4],"NULL") == 0) vxflag = 0;
     else {
       vxflag = 1;
-      vx = atof(arg[4]);
+      vx = force->numeric(FLERR,arg[4]);
     }
     if (strcmp(arg[5],"NULL") == 0) vyflag = 0;
     else {
       vyflag = 1;
-      vy = atof(arg[5]);
+      vy = force->numeric(FLERR,arg[5]);
     }
     if (strcmp(arg[6],"NULL") == 0) vzflag = 0;
     else {
       vzflag = 1;
-      vz = atof(arg[6]);
+      vz = force->numeric(FLERR,arg[6]);
     }
 
   } else if (strcmp(arg[3],"wiggle") == 0) {
@@ -85,31 +85,31 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[4],"NULL") == 0) axflag = 0;
     else {
       axflag = 1;
-      ax = atof(arg[4]);
+      ax = force->numeric(FLERR,arg[4]);
     }
     if (strcmp(arg[5],"NULL") == 0) ayflag = 0;
     else {
       ayflag = 1;
-      ay = atof(arg[5]);
+      ay = force->numeric(FLERR,arg[5]);
     }
     if (strcmp(arg[6],"NULL") == 0) azflag = 0;
     else {
       azflag = 1;
-      az = atof(arg[6]);
+      az = force->numeric(FLERR,arg[6]);
     }
-    period = atof(arg[7]);
+    period = force->numeric(FLERR,arg[7]);
 
   } else if (strcmp(arg[3],"rotate") == 0) {
     if (narg < 11) error->all(FLERR,"Illegal fix move command");
     iarg = 11;
     mstyle = ROTATE;
-    point[0] = atof(arg[4]);
-    point[1] = atof(arg[5]);
-    point[2] = atof(arg[6]);
-    axis[0] = atof(arg[7]);
-    axis[1] = atof(arg[8]);
-    axis[2] = atof(arg[9]);
-    period = atof(arg[10]);
+    point[0] = force->numeric(FLERR,arg[4]);
+    point[1] = force->numeric(FLERR,arg[5]);
+    point[2] = force->numeric(FLERR,arg[6]);
+    axis[0] = force->numeric(FLERR,arg[7]);
+    axis[1] = force->numeric(FLERR,arg[8]);
+    axis[2] = force->numeric(FLERR,arg[9]);
+    period = force->numeric(FLERR,arg[10]);
 
   } else if (strcmp(arg[3],"variable") == 0) {
     if (narg < 10) error->all(FLERR,"Illegal fix move command");

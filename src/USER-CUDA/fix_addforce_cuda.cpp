@@ -30,6 +30,7 @@
 #include "update.h"
 #include "respa.h"
 #include "error.h"
+#include "force.h"
 #include "domain.h"
 #include "cuda.h"
 #include "memory.h"
@@ -58,9 +59,9 @@ FixAddForceCuda::FixAddForceCuda(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 1;
   extvector = 1;
 
-  xvalue = atof(arg[3]);
-  yvalue = atof(arg[4]);
-  zvalue = atof(arg[5]);
+  xvalue = force->numeric(FLERR,arg[3]);
+  yvalue = force->numeric(FLERR,arg[4]);
+  zvalue = force->numeric(FLERR,arg[5]);
 
   // optional args
 

@@ -53,6 +53,7 @@ negotiate an appropriate license for such distribution."
 #include "update.h"
 #include "respa.h"
 #include "domain.h"
+#include "force.h"
 #include "error.h"
 #include "group.h"
 #include "memory.h"
@@ -447,7 +448,7 @@ FixIMD::FixIMD(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 4)
     error->all(FLERR,"Illegal fix imd command");
 
-  imd_port = atoi(arg[3]);
+  imd_port = force->inumeric(FLERR,arg[3]);
   if (imd_port < 1024)
     error->all(FLERR,"Illegal fix imd parameter: port < 1024");
 
@@ -474,9 +475,9 @@ FixIMD::FixIMD(LAMMPS *lmp, int narg, char **arg) :
         nowait_flag = 0;
       }
     } else if (0 == strcmp(arg[argsdone], "fscale")) {
-      imd_fscale = atof(arg[argsdone+1]);
+      imd_fscale = force->numeric(FLERR,arg[argsdone+1]);
     } else if (0 == strcmp(arg[argsdone], "trate")) {
-      imd_trate = atoi(arg[argsdone+1]);
+      imd_trate = force->inumeric(FLERR,arg[argsdone+1]);
     } else {
       error->all(FLERR,"Unknown fix imd parameter");
     }

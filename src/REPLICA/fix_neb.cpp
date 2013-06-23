@@ -24,6 +24,7 @@
 #include "atom.h"
 #include "memory.h"
 #include "error.h"
+#include "force.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -35,7 +36,7 @@ FixNEB::FixNEB(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg != 4) error->all(FLERR,"Illegal fix neb command");
 
-  kspring = atof(arg[3]);
+  kspring = force->numeric(FLERR,arg[3]);
   if (kspring <= 0.0) error->all(FLERR,"Illegal fix neb command");
 
   // nreplica = number of partitions

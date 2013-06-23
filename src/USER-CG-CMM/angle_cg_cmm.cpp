@@ -302,14 +302,14 @@ void AngleCGCMM::coeff(int narg, char **arg)
   int ilo,ihi;
   force->bounds(arg[0],atom->nangletypes,ilo,ihi);
 
-  double k_one = atof(arg[1]);
-  double theta0_one = atof(arg[2]);
+  double k_one = force->numeric(FLERR,arg[1]);
+  double theta0_one = force->numeric(FLERR,arg[2]);
 
   int cg_type_one=find_cg_type(arg[3]);
   if (cg_type_one == CG_NOT_SET) error->all(FLERR,"Error reading CG type flag.");
 
-  double epsilon_one = atof(arg[4]);
-  double sigma_one = atof(arg[5]);
+  double epsilon_one = force->numeric(FLERR,arg[4]);
+  double sigma_one = force->numeric(FLERR,arg[5]);
 
   // find minimum of LJ potential. we only want to include
   // the repulsive part of the 1-3 LJ.

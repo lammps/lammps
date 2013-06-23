@@ -42,17 +42,17 @@ FixTempRescaleEff::FixTempRescaleEff(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 8) error->all(FLERR,"Illegal fix temp/rescale/eff command");
 
-  nevery = atoi(arg[3]);
+  nevery = force->inumeric(FLERR,arg[3]);
   if (nevery <= 0) error->all(FLERR,"Illegal fix temp/rescale/eff command");
 
   scalar_flag = 1;
   global_freq = nevery;
   extscalar = 1;
 
-  t_start = atof(arg[4]);
-  t_stop = atof(arg[5]);
-  t_window = atof(arg[6]);
-  fraction = atof(arg[7]);
+  t_start = force->numeric(FLERR,arg[4]);
+  t_stop = force->numeric(FLERR,arg[5]);
+  t_window = force->numeric(FLERR,arg[6]);
+  fraction = force->numeric(FLERR,arg[7]);
 
   // create a new compute temp/eff
   // id = fix-ID + temp, compute group = fix group

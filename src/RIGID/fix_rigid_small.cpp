@@ -108,10 +108,10 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
       if (strcmp(style,"rigid/small") != 0)
         error->all(FLERR,"Illegal fix rigid/small command");
       langflag = 1;
-      t_start = atof(arg[iarg+1]);
-      t_stop = atof(arg[iarg+2]);
-      t_period = atof(arg[iarg+3]);
-      seed = atoi(arg[iarg+4]);
+      t_start = force->numeric(FLERR,arg[iarg+1]);
+      t_stop = force->numeric(FLERR,arg[iarg+2]);
+      t_period = force->numeric(FLERR,arg[iarg+3]);
+      seed = force->inumeric(FLERR,arg[iarg+4]);
       if (t_period <= 0.0)
         error->all(FLERR,"Fix rigid/small langevin period must be > 0.0");
       if (seed <= 0) error->all(FLERR,"Illegal fix rigid/small command");

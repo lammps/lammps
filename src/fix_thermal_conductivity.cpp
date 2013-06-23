@@ -42,7 +42,7 @@ FixThermalConductivity::FixThermalConductivity(LAMMPS *lmp,
 
   MPI_Comm_rank(world,&me);
 
-  nevery = atoi(arg[3]);
+  nevery = force->inumeric(FLERR,arg[3]);
   if (nevery <= 0) error->all(FLERR,"Illegal fix thermal/conductivity command");
 
   scalar_flag = 1;
@@ -54,7 +54,7 @@ FixThermalConductivity::FixThermalConductivity(LAMMPS *lmp,
   else if (strcmp(arg[4],"z") == 0) edim = 2;
   else error->all(FLERR,"Illegal fix thermal/conductivity command");
 
-  nbin = atoi(arg[5]);
+  nbin = force->inumeric(FLERR,arg[5]);
   if (nbin % 2 || nbin <= 2)
     error->all(FLERR,"Illegal fix thermal/conductivity command");
 
@@ -67,7 +67,7 @@ FixThermalConductivity::FixThermalConductivity(LAMMPS *lmp,
     if (strcmp(arg[iarg],"swap") == 0) {
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal fix thermal/conductivity command");
-      nswap = atoi(arg[iarg+1]);
+      nswap = force->inumeric(FLERR,arg[iarg+1]);
       if (nswap <= 0)
         error->all(FLERR,
                    "Fix thermal/conductivity swap value must be positive");

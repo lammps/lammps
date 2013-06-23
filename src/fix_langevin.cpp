@@ -66,14 +66,14 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
     tstr = new char[n];
     strcpy(tstr,&arg[3][2]);
   } else {
-    t_start = atof(arg[3]);
+    t_start = force->numeric(FLERR,arg[3]);
     t_target = t_start;
     tstyle = CONSTANT;
   }
 
-  t_stop = atof(arg[4]);
-  t_period = atof(arg[5]);
-  int seed = atoi(arg[6]);
+  t_stop = force->numeric(FLERR,arg[4]);
+  t_period = force->numeric(FLERR,arg[5]);
+  int seed = force->inumeric(FLERR,arg[6]);
 
   if (t_period <= 0.0) error->all(FLERR,"Fix langevin period must be > 0.0");
   if (seed <= 0) error->all(FLERR,"Illegal fix langevin command");
@@ -118,8 +118,8 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"scale") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix langevin command");
-      int itype = atoi(arg[iarg+1]);
-      double scale = atof(arg[iarg+2]);
+      int itype = force->inumeric(FLERR,arg[iarg+1]);
+      double scale = force->numeric(FLERR,arg[iarg+2]);
       if (itype <= 0 || itype > atom->ntypes)
         error->all(FLERR,"Illegal fix langevin command");
       ratio[itype] = scale;

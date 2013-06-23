@@ -26,6 +26,7 @@
 #include "fix_event.h"
 #include "memory.h"
 #include "error.h"
+#include "force.h"
 #include "update.h"
 
 using namespace LAMMPS_NS;
@@ -42,7 +43,7 @@ ComputeEventDisplace::ComputeEventDisplace(LAMMPS *lmp, int narg, char **arg) :
   scalar_flag = 1;
   extscalar = 0;
 
-  double displace_dist = atof(arg[3]);
+  double displace_dist = force->numeric(FLERR,arg[3]);
   if (displace_dist <= 0.0)
     error->all(FLERR,"Distance must be > 0 for compute event/displace");
   displace_distsq = displace_dist * displace_dist;

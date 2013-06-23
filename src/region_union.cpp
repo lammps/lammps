@@ -16,6 +16,7 @@
 #include "region_union.h"
 #include "domain.h"
 #include "error.h"
+#include "force.h"
 
 using namespace LAMMPS_NS;
 
@@ -26,7 +27,7 @@ using namespace LAMMPS_NS;
 RegUnion::RegUnion(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg)
 {
   if (narg < 5) error->all(FLERR,"Illegal region command");
-  int n = atoi(arg[2]);
+  int n = force->inumeric(FLERR,arg[2]);
   if (n < 2) error->all(FLERR,"Illegal region command");
   options(narg-(n+3),&arg[n+3]);
 

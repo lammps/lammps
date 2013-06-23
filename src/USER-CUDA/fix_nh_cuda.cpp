@@ -99,9 +99,9 @@ FixNHCuda::FixNHCuda(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
     if (strcmp(arg[iarg],"temp") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
       tstat_flag = 1;
-      t_start = atof(arg[iarg+1]);
-      t_stop = atof(arg[iarg+2]);
-      t_period = atof(arg[iarg+3]);
+      t_start = force->numeric(FLERR,arg[iarg+1]);
+      t_stop = force->numeric(FLERR,arg[iarg+2]);
+      t_period = force->numeric(FLERR,arg[iarg+3]);
       if (t_start < 0.0 || t_stop <= 0.0)
         error->all(FLERR,"Target T for fix nvt/npt/nph cannot be 0.0");
       iarg += 4;
@@ -109,9 +109,9 @@ FixNHCuda::FixNHCuda(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
     } else if (strcmp(arg[iarg],"iso") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
       pcouple = XYZ;
-      p_start[0] = p_start[1] = p_start[2] = atof(arg[iarg+1]);
-      p_stop[0] = p_stop[1] = p_stop[2] = atof(arg[iarg+2]);
-      p_period[0] = p_period[1] = p_period[2] = atof(arg[iarg+3]);
+      p_start[0] = p_start[1] = p_start[2] = force->numeric(FLERR,arg[iarg+1]);
+      p_stop[0] = p_stop[1] = p_stop[2] = force->numeric(FLERR,arg[iarg+2]);
+      p_period[0] = p_period[1] = p_period[2] = force->numeric(FLERR,arg[iarg+3]);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
       if (dimension == 2) {
         p_start[2] = p_stop[2] = p_period[2] = 0.0;
@@ -121,9 +121,9 @@ FixNHCuda::FixNHCuda(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
     } else if (strcmp(arg[iarg],"aniso") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
       pcouple = NONE;
-      p_start[0] = p_start[1] = p_start[2] = atof(arg[iarg+1]);
-      p_stop[0] = p_stop[1] = p_stop[2] = atof(arg[iarg+2]);
-      p_period[0] = p_period[1] = p_period[2] = atof(arg[iarg+3]);
+      p_start[0] = p_start[1] = p_start[2] = force->numeric(FLERR,arg[iarg+1]);
+      p_stop[0] = p_stop[1] = p_stop[2] = force->numeric(FLERR,arg[iarg+2]);
+      p_period[0] = p_period[1] = p_period[2] = force->numeric(FLERR,arg[iarg+3]);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
       if (dimension == 2) {
         p_start[2] = p_stop[2] = p_period[2] = 0.0;
@@ -133,13 +133,13 @@ FixNHCuda::FixNHCuda(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
     } else if (strcmp(arg[iarg],"tri") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
       pcouple = NONE;
-      p_start[0] = p_start[1] = p_start[2] = atof(arg[iarg+1]);
-      p_stop[0] = p_stop[1] = p_stop[2] = atof(arg[iarg+2]);
-      p_period[0] = p_period[1] = p_period[2] = atof(arg[iarg+3]);
+      p_start[0] = p_start[1] = p_start[2] = force->numeric(FLERR,arg[iarg+1]);
+      p_stop[0] = p_stop[1] = p_stop[2] = force->numeric(FLERR,arg[iarg+2]);
+      p_period[0] = p_period[1] = p_period[2] = force->numeric(FLERR,arg[iarg+3]);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
       p_start[3] = p_start[4] = p_start[5] = 0.0;
       p_stop[3] = p_stop[4] = p_stop[5] = 0.0;
-      p_period[3] = p_period[4] = p_period[5] = atof(arg[iarg+3]);
+      p_period[3] = p_period[4] = p_period[5] = force->numeric(FLERR,arg[iarg+3]);
       p_flag[3] = p_flag[4] = p_flag[5] = 1;
       if (dimension == 2) {
         p_start[2] = p_stop[2] = p_period[2] = 0.0;
@@ -153,25 +153,25 @@ FixNHCuda::FixNHCuda(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
     } else if (strcmp(arg[iarg],"x") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      p_start[0] = atof(arg[iarg+1]);
-      p_stop[0] = atof(arg[iarg+2]);
-      p_period[0] = atof(arg[iarg+3]);
+      p_start[0] = force->numeric(FLERR,arg[iarg+1]);
+      p_stop[0] = force->numeric(FLERR,arg[iarg+2]);
+      p_period[0] = force->numeric(FLERR,arg[iarg+3]);
       p_flag[0] = 1;
       deviatoric_flag = 1;
       iarg += 4;
     } else if (strcmp(arg[iarg],"y") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      p_start[1] = atof(arg[iarg+1]);
-      p_stop[1] = atof(arg[iarg+2]);
-      p_period[1] = atof(arg[iarg+3]);
+      p_start[1] = force->numeric(FLERR,arg[iarg+1]);
+      p_stop[1] = force->numeric(FLERR,arg[iarg+2]);
+      p_period[1] = force->numeric(FLERR,arg[iarg+3]);
       p_flag[1] = 1;
       deviatoric_flag = 1;
       iarg += 4;
     } else if (strcmp(arg[iarg],"z") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      p_start[2] = atof(arg[iarg+1]);
-      p_stop[2] = atof(arg[iarg+2]);
-      p_period[2] = atof(arg[iarg+3]);
+      p_start[2] = force->numeric(FLERR,arg[iarg+1]);
+      p_stop[2] = force->numeric(FLERR,arg[iarg+2]);
+      p_period[2] = force->numeric(FLERR,arg[iarg+3]);
       p_flag[2] = 1;
       deviatoric_flag = 1;
       iarg += 4;
@@ -180,9 +180,9 @@ FixNHCuda::FixNHCuda(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
     } else if (strcmp(arg[iarg],"yz") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      p_start[3] = atof(arg[iarg+1]);
-      p_stop[3] = atof(arg[iarg+2]);
-      p_period[3] = atof(arg[iarg+3]);
+      p_start[3] = force->numeric(FLERR,arg[iarg+1]);
+      p_stop[3] = force->numeric(FLERR,arg[iarg+2]);
+      p_period[3] = force->numeric(FLERR,arg[iarg+3]);
       p_flag[3] = 1;
       deviatoric_flag = 1;
       iarg += 4;
@@ -190,9 +190,9 @@ FixNHCuda::FixNHCuda(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
         error->all(FLERR,"Invalid fix nvt/npt/nph command for a 2d simulation");
     } else if (strcmp(arg[iarg],"xz") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      p_start[4] = atof(arg[iarg+1]);
-      p_stop[4] = atof(arg[iarg+2]);
-      p_period[4] = atof(arg[iarg+3]);
+      p_start[4] = force->numeric(FLERR,arg[iarg+1]);
+      p_stop[4] = force->numeric(FLERR,arg[iarg+2]);
+      p_period[4] = force->numeric(FLERR,arg[iarg+3]);
       p_flag[4] = 1;
       deviatoric_flag = 1;
       iarg += 4;
@@ -200,9 +200,9 @@ FixNHCuda::FixNHCuda(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
         error->all(FLERR,"Invalid fix nvt/npt/nph command for a 2d simulation");
     } else if (strcmp(arg[iarg],"xy") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      p_start[5] = atof(arg[iarg+1]);
-      p_stop[5] = atof(arg[iarg+2]);
-      p_period[5] = atof(arg[iarg+3]);
+      p_start[5] = force->numeric(FLERR,arg[iarg+1]);
+      p_stop[5] = force->numeric(FLERR,arg[iarg+2]);
+      p_period[5] = force->numeric(FLERR,arg[iarg+3]);
       p_flag[5] = 1;
       deviatoric_flag = 1;
       iarg += 4;
@@ -219,7 +219,7 @@ FixNHCuda::FixNHCuda(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
     } else if (strcmp(arg[iarg],"drag") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      drag = atof(arg[iarg+1]);
+      drag = force->numeric(FLERR,arg[iarg+1]);
       if (drag < 0.0) error->all(FLERR,"Illegal fix nvt/npt/nph command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"dilate") == 0) {
@@ -230,12 +230,12 @@ FixNHCuda::FixNHCuda(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"tchain") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      mtchain = atoi(arg[iarg+1]);
+      mtchain = force->inumeric(FLERR,arg[iarg+1]);
       if (mtchain < 1) error->all(FLERR,"Illegal fix nvt/npt/nph command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"pchain") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      mpchain = atoi(arg[iarg+1]);
+      mpchain = force->inumeric(FLERR,arg[iarg+1]);
       if (mpchain < 0) error->all(FLERR,"Illegal fix nvt/npt/nph command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"mtk") == 0) {
@@ -246,17 +246,17 @@ FixNHCuda::FixNHCuda(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"tloop") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      nc_tchain = atoi(arg[iarg+1]);
+      nc_tchain = force->inumeric(FLERR,arg[iarg+1]);
       if (nc_tchain < 0) error->all(FLERR,"Illegal fix nvt/npt/nph command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"ploop") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      nc_pchain = atoi(arg[iarg+1]);
+      nc_pchain = force->inumeric(FLERR,arg[iarg+1]);
       if (nc_pchain < 0) error->all(FLERR,"Illegal fix nvt/npt/nph command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"nreset") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      nreset_h0 = atoi(arg[iarg+1]);
+      nreset_h0 = force->inumeric(FLERR,arg[iarg+1]);
       if (nreset_h0 < 0) error->all(FLERR,"Illegal fix nvt/npt/nph command");
       iarg += 2;
     } else error->all(FLERR,"Illegal fix nvt/npt/nph command");

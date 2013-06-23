@@ -12,7 +12,8 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Paul Crozier (SNL)
+   Contributing author: Axel Kohlmeyer (Temple U)
+   based on fix spring by: Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
 #include "math.h"
@@ -24,6 +25,7 @@
 #include "respa.h"
 #include "domain.h"
 #include "error.h"
+#include "force.h"
 #include "group.h"
 
 using namespace LAMMPS_NS;
@@ -45,18 +47,18 @@ FixSpringPull::FixSpringPull(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 1;
   extvector = 1;
 
-  k_spring = atof(arg[3]);
+  k_spring = force->numeric(FLERR,arg[3]);
   xflag = yflag = zflag = 1;
   if (strcmp(arg[4],"NULL") == 0) xflag = 0;
-  else xc = atof(arg[4]);
+  else xc = force->numeric(FLERR,arg[4]);
   if (strcmp(arg[5],"NULL") == 0) yflag = 0;
-  else yc = atof(arg[5]);
+  else yc = force->numeric(FLERR,arg[5]);
   if (strcmp(arg[6],"NULL") == 0) zflag = 0;
-  else zc = atof(arg[6]);
-  xv = atof(arg[7]);
-  yv = atof(arg[8]);
-  zv = atof(arg[9]);
-  r0 = atof(arg[10]);
+  else zc = force->numeric(FLERR,arg[6]);
+  xv = force->numeric(FLERR,arg[7]);
+  yv = force->numeric(FLERR,arg[8]);
+  zv = force->numeric(FLERR,arg[9]);
+  r0 = force->numeric(FLERR,arg[10]);
   if (r0 < 0) error->all(FLERR,"R0 < 0 for fix spring/pull command");
 
   ftotal[0] = ftotal[1] = ftotal[2] = ftotal[3] = 0.0;

@@ -163,9 +163,9 @@ void Balance::command(int narg, char **arg)
       if (dimension == 3) zflag = DYNAMIC;
       if (strlen(arg[iarg+1]) > 3) error->all(FLERR,"Illegal balance command");
       strcpy(bstr,arg[iarg+1]);
-      nitermax = atoi(arg[iarg+2]);
+      nitermax = force->inumeric(FLERR,arg[iarg+2]);
       if (nitermax <= 0) error->all(FLERR,"Illegal balance command");
-      thresh = atof(arg[iarg+3]);
+      thresh = force->numeric(FLERR,arg[iarg+3]);
       if (thresh < 1.0) error->all(FLERR,"Illegal balance command");
       iarg += 4;
 

@@ -53,13 +53,13 @@ FixTempBerendsen::FixTempBerendsen(LAMMPS *lmp, int narg, char **arg) :
     strcpy(tstr,&arg[3][2]);
     tstyle = EQUAL;
   } else {
-    t_start = atof(arg[3]);
+    t_start = force->numeric(FLERR,arg[3]);
     t_target = t_start;
     tstyle = CONSTANT;
   }
 
-  t_stop = atof(arg[4]);
-  t_period = atof(arg[5]);
+  t_stop = force->numeric(FLERR,arg[4]);
+  t_period = force->numeric(FLERR,arg[5]);
 
   // error checks
 

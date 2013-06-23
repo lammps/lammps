@@ -68,8 +68,8 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   } else
     error->all(FLERR,"Illegal fix GPU command");
 
-  first_gpu = atoi(arg[4]);
-  last_gpu = atoi(arg[5]);
+  first_gpu = force->inumeric(FLERR,arg[4]);
+  last_gpu = force->inumeric(FLERR,arg[5]);
 
   _particle_split = force->numeric(FLERR,arg[6]);
   if (_particle_split==0 || _particle_split>1)
@@ -84,11 +84,11 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
     if (iarg+2 > narg) error->all(FLERR,"Illegal fix GPU command");
 
     if (strcmp(arg[iarg],"threads_per_atom") == 0)
-      threads_per_atom = atoi(arg[iarg+1]);
+      threads_per_atom = force->inumeric(FLERR,arg[iarg+1]);
     else if (strcmp(arg[iarg],"nthreads") == 0)
-      nthreads = atoi(arg[iarg+1]);
+      nthreads = force->inumeric(FLERR,arg[iarg+1]);
     else if (strcmp(arg[iarg],"cellsize") == 0)
-      cell_size = atof(arg[iarg+1]);
+      cell_size = force->numeric(FLERR,arg[iarg+1]);
     else
       error->all(FLERR,"Illegal fix GPU command");
 

@@ -228,14 +228,14 @@ void PairReaxC::settings(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"safezone") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style reax/c command");
-      system->safezone = atof(arg[iarg+1]);
+      system->safezone = force->numeric(FLERR,arg[iarg+1]);
       if (system->safezone < 0.0) 
 	error->all(FLERR,"Illegal pair_style reax/c safezone command");
       system->saferzone = system->safezone + 0.2;
       iarg += 2;
     } else if (strcmp(arg[iarg],"mincap") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style reax/c command");
-      system->mincap = atoi(arg[iarg+1]);
+      system->mincap = force->inumeric(FLERR,arg[iarg+1]);
       if (system->mincap < 0) 
 	error->all(FLERR,"Illegal pair_style reax/c mincap command");
       iarg += 2;

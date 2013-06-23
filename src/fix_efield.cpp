@@ -59,7 +59,7 @@ FixEfield::FixEfield(LAMMPS *lmp, int narg, char **arg) :
     xstr = new char[n];
     strcpy(xstr,&arg[3][2]);
   } else {
-    ex = qe2f * atof(arg[3]);
+    ex = qe2f * force->numeric(FLERR,arg[3]);
     xstyle = CONSTANT;
   }
 
@@ -68,7 +68,7 @@ FixEfield::FixEfield(LAMMPS *lmp, int narg, char **arg) :
     ystr = new char[n];
     strcpy(ystr,&arg[4][2]);
   } else {
-    ey = qe2f * atof(arg[4]);
+    ey = qe2f * force->numeric(FLERR,arg[4]);
     ystyle = CONSTANT;
   }
 
@@ -77,7 +77,7 @@ FixEfield::FixEfield(LAMMPS *lmp, int narg, char **arg) :
     zstr = new char[n];
     strcpy(zstr,&arg[5][2]);
   } else {
-    ez = qe2f * atof(arg[5]);
+    ez = qe2f * force->numeric(FLERR,arg[5]);
     zstyle = CONSTANT;
   }
 

@@ -71,9 +71,9 @@ ComputeTempPartialCuda::ComputeTempPartialCuda(LAMMPS *lmp, int narg, char **arg
   tempflag = 1;
   tempbias = 1;
 
-  xflag = atoi(arg[3]);
-  yflag = atoi(arg[4]);
-  zflag = atoi(arg[5]);
+  xflag = force->inumeric(FLERR,arg[3]);
+  yflag = force->inumeric(FLERR,arg[4]);
+  zflag = force->inumeric(FLERR,arg[5]);
   if (zflag && domain->dimension == 2)
     error->all(FLERR,"Compute temp/partial cannot use vz for 2d systemx");
 

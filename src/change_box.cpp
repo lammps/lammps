@@ -27,6 +27,7 @@
 #include "output.h"
 #include "group.h"
 #include "error.h"
+#include "force.h"
 
 using namespace LAMMPS_NS;
 
@@ -86,23 +87,23 @@ void ChangeBox::command(int narg, char **arg)
       if (strcmp(arg[iarg+1],"final") == 0) {
         if (iarg+4 > narg) error->all(FLERR,"Illegal change_box command");
         ops[nops].flavor = FINAL;
-        ops[nops].flo = atof(arg[iarg+2]);
-        ops[nops].fhi = atof(arg[iarg+3]);
+        ops[nops].flo = force->numeric(FLERR,arg[iarg+2]);
+        ops[nops].fhi = force->numeric(FLERR,arg[iarg+3]);
         ops[nops].vdim1 = ops[nops].vdim2 = -1;
         nops++;
         iarg += 4;
       } else if (strcmp(arg[iarg+1],"delta") == 0) {
         if (iarg+4 > narg) error->all(FLERR,"Illegal change_box command");
         ops[nops].flavor = DELTA;
-        ops[nops].dlo = atof(arg[iarg+2]);
-        ops[nops].dhi = atof(arg[iarg+3]);
+        ops[nops].dlo = force->numeric(FLERR,arg[iarg+2]);
+        ops[nops].dhi = force->numeric(FLERR,arg[iarg+3]);
         ops[nops].vdim1 = ops[nops].vdim2 = -1;
         nops++;
         iarg += 4;
       } else if (strcmp(arg[iarg+1],"scale") == 0) {
         if (iarg+3 > narg) error->all(FLERR,"Illegal change_box command");
         ops[nops].flavor = SCALE;
-        ops[nops].scale = atof(arg[iarg+2]);
+        ops[nops].scale = force->numeric(FLERR,arg[iarg+2]);
         ops[nops].vdim1 = ops[nops].vdim2 = -1;
         nops++;
         iarg += 3;
@@ -132,13 +133,13 @@ void ChangeBox::command(int narg, char **arg)
       if (strcmp(arg[iarg+1],"final") == 0) {
         if (iarg+3 > narg) error->all(FLERR,"Illegal change_box command");
         ops[nops].flavor = FINAL;
-        ops[nops].ftilt = atof(arg[iarg+2]);
+        ops[nops].ftilt = force->numeric(FLERR,arg[iarg+2]);
         nops++;
         iarg += 3;
       } else if (strcmp(arg[iarg+1],"delta") == 0) {
         if (iarg+3 > narg) error->all(FLERR,"Illegal change_box command");
         ops[nops].flavor = DELTA;
-        ops[nops].dtilt = atof(arg[iarg+2]);
+        ops[nops].dtilt = force->numeric(FLERR,arg[iarg+2]);
         nops++;
         iarg += 3;
       } else error->all(FLERR,"Illegal change_box command");

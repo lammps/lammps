@@ -25,6 +25,7 @@
 #include "output.h"
 #include "memory.h"
 #include "error.h"
+#include "force.h"
 
 using namespace LAMMPS_NS;
 
@@ -667,7 +668,7 @@ void Dump::modify_params(int narg, char **arg)
         strcpy(output->var_dump[idump],&arg[iarg+1][2]);
         n = 0;
       } else {
-        n = atoi(arg[iarg+1]);
+        n = force->inumeric(FLERR,arg[iarg+1]);
         if (n <= 0) error->all(FLERR,"Illegal dump_modify command");
       }
       output->every_dump[idump] = n;
@@ -684,7 +685,7 @@ void Dump::modify_params(int narg, char **arg)
       if (!multiproc)
 	error->all(FLERR,"Cannot use dump_modify fileper "
                    "without % in dump file name");
-      int nper = atoi(arg[iarg+1]);
+      int nper = force->inumeric(FLERR,arg[iarg+1]);
       if (nper <= 0) error->all(FLERR,"Illegal dump_modify command");
       
       multiproc = nprocs/nper;
@@ -730,7 +731,7 @@ void Dump::modify_params(int narg, char **arg)
       if (!multiproc)
 	error->all(FLERR,"Cannot use dump_modify nfile "
                    "without % in dump file name");
-      int nfile = atoi(arg[iarg+1]);
+      int nfile = force->inumeric(FLERR,arg[iarg+1]);
       if (nfile <= 0) error->all(FLERR,"Illegal dump_modify command");
       nfile = MIN(nfile,nprocs);
 
@@ -760,7 +761,7 @@ void Dump::modify_params(int narg, char **arg)
 
     } else if (strcmp(arg[iarg],"pad") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
-      padflag = atoi(arg[iarg+1]);
+      padflag = force->inumeric(FLERR,arg[iarg+1]);
       if (padflag < 0) error->all(FLERR,"Illegal dump_modify command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"sort") == 0) {
@@ -772,7 +773,7 @@ void Dump::modify_params(int narg, char **arg)
         sortorder = ASCEND;
       } else {
         sort_flag = 1;
-        sortcol = atoi(arg[iarg+1]);
+        sortcol = force->inumeric(FLERR,arg[iarg+1]);
         sortorder = ASCEND;
         if (sortcol == 0) error->all(FLERR,"Illegal dump_modify command");
         if (sortcol < 0) {

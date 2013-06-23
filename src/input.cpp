@@ -1087,7 +1087,7 @@ void Input::compute_modify()
 void Input::dielectric()
 {
   if (narg != 1) error->all(FLERR,"Illegal dielectric command");
-  force->dielectric = atof(arg[0]);
+  force->dielectric = force->numeric(FLERR,arg[0]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1121,7 +1121,7 @@ void Input::dimension()
   if (narg != 1) error->all(FLERR,"Illegal dimension command");
   if (domain->box_exist)
     error->all(FLERR,"Dimension command after simulation box is defined");
-  domain->dimension = atoi(arg[0]);
+  domain->dimension = force->inumeric(FLERR,arg[0]);
   if (domain->dimension != 2 && domain->dimension != 3)
     error->all(FLERR,"Illegal dimension command");
 
@@ -1482,7 +1482,7 @@ void Input::thermo_style()
 void Input::timestep()
 {
   if (narg != 1) error->all(FLERR,"Illegal timestep command");
-  update->dt = atof(arg[0]);
+  update->dt = force->numeric(FLERR,arg[0]);
 }
 
 /* ---------------------------------------------------------------------- */

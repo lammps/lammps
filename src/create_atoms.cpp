@@ -25,6 +25,7 @@
 #include "region.h"
 #include "random_park.h"
 #include "error.h"
+#include "force.h"
 
 using namespace LAMMPS_NS;
 
@@ -50,7 +51,7 @@ void CreateAtoms::command(int narg, char **arg)
   // parse arguments
 
   if (narg < 2) error->all(FLERR,"Illegal create_atoms command");
-  itype = atoi(arg[0]);
+  itype = force->inumeric(FLERR,arg[0]);
   if (itype <= 0 || itype > atom->ntypes)
     error->all(FLERR,"Invalid atom type in create_atoms command");
 
@@ -68,15 +69,15 @@ void CreateAtoms::command(int narg, char **arg)
   } else if (strcmp(arg[1],"single") == 0) {
     style = SINGLE;
     if (narg < 5) error->all(FLERR,"Illegal create_atoms command");
-    xone[0] = atof(arg[2]);
-    xone[1] = atof(arg[3]);
-    xone[2] = atof(arg[4]);
+    xone[0] = force->numeric(FLERR,arg[2]);
+    xone[1] = force->numeric(FLERR,arg[3]);
+    xone[2] = force->numeric(FLERR,arg[4]);
     iarg = 5;
   } else if (strcmp(arg[1],"random") == 0) {
     style = RANDOM;
     if (narg < 5) error->all(FLERR,"Illegal create_atoms command");
-    nrandom = atoi(arg[2]);
-    seed = atoi(arg[3]);
+    nrandom = force->inumeric(FLERR,arg[2]);
+    seed = force->inumeric(FLERR,arg[3]);
     if (strcmp(arg[4],"NULL") == 0) nregion = -1;
     else {
       nregion = domain->find_region(arg[4]);
@@ -98,8 +99,8 @@ void CreateAtoms::command(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"basis") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal create_atoms command");
-      int ibasis = atoi(arg[iarg+1]);
-      itype = atoi(arg[iarg+2]);
+      int ibasis = force->inumeric(FLERR,arg[iarg+1]);
+      itype = force->inumeric(FLERR,arg[iarg+2]);
       if (ibasis <= 0 || ibasis > nbasis ||
           itype <= 0 || itype > atom->ntypes)
         error->all(FLERR,"Invalid basis setting in create_atoms command");

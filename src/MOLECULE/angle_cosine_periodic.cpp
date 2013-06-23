@@ -207,9 +207,9 @@ void AngleCosinePeriodic::coeff(int narg, char **arg)
   int ilo,ihi;
   force->bounds(arg[0],atom->nangletypes,ilo,ihi);
 
-  double c_one = atof(arg[1]);
-  int b_one = atoi(arg[2]);
-  int n_one = atoi(arg[3]);
+  double c_one = force->numeric(FLERR,arg[1]);
+  int b_one = force->inumeric(FLERR,arg[2]);
+  int n_one = force->inumeric(FLERR,arg[3]);
   if (n_one <= 0) error->all(FLERR,"Incorrect args for angle coefficients");
 
   int count = 0;

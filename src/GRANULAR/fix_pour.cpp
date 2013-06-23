@@ -53,9 +53,9 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
 
   // required args
 
-  ninsert = atoi(arg[3]);
-  ntype = atoi(arg[4]);
-  seed = atoi(arg[5]);
+  ninsert = force->inumeric(FLERR,arg[3]);
+  ntype = force->inumeric(FLERR,arg[4]);
+  seed = force->inumeric(FLERR,arg[5]);
 
   if (seed <= 0) error->all(FLERR,"Illegal fix pour command");
 
@@ -86,20 +86,20 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
       if (strcmp(arg[iarg+1],"one") == 0) {
         if (iarg+3 > narg) error->all(FLERR,"Illegal fix pour command");
         dstyle = ONE;
-        radius_one = 0.5 * atof(arg[iarg+2]);
+        radius_one = 0.5 * force->numeric(FLERR,arg[iarg+2]);
         radius_max = radius_one;
         iarg += 3;
       } else if (strcmp(arg[iarg+1],"range") == 0) {
         if (iarg+4 > narg) error->all(FLERR,"Illegal fix pour command");
         dstyle = RANGE;
-        radius_lo = 0.5 * atof(arg[iarg+2]);
-        radius_hi = 0.5 * atof(arg[iarg+3]);
+        radius_lo = 0.5 * force->numeric(FLERR,arg[iarg+2]);
+        radius_hi = 0.5 * force->numeric(FLERR,arg[iarg+3]);
         radius_max = radius_hi;
         iarg += 4;
       } else if (strcmp(arg[iarg+1],"poly") == 0) {
         if (iarg+3 > narg) error->all(FLERR,"Illegal fix pour command");
         dstyle = POLY;
-        npoly = atoi(arg[iarg+2]);
+        npoly = force->inumeric(FLERR,arg[iarg+2]);
         if (npoly <= 0) error->all(FLERR,"Illegal fix pour command");
         if (iarg+3 + 2*npoly > narg) 
           error->all(FLERR,"Illegal fix pour command");
@@ -108,8 +108,8 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
         iarg += 3;
         radius_max = 0.0;
         for (int i = 0; i < npoly; i++) {
-          radius_poly[i] = 0.5 * atof(arg[iarg++]);
-          frac_poly[i] = atof(arg[iarg++]);
+          radius_poly[i] = 0.5 * force->numeric(FLERR,arg[iarg++]);
+          frac_poly[i] = force->numeric(FLERR,arg[iarg++]);
           if (radius_poly[i] <= 0.0 || frac_poly[i] < 0.0)
             error->all(FLERR,"Illegal fix pour command");
           radius_max = MAX(radius_max,radius_poly[i]);
@@ -124,32 +124,32 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (strcmp(arg[iarg],"dens") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix pour command");
-      density_lo = atof(arg[iarg+1]);
-      density_hi = atof(arg[iarg+2]);
+      density_lo = force->numeric(FLERR,arg[iarg+1]);
+      density_hi = force->numeric(FLERR,arg[iarg+2]);
       iarg += 3;
     } else if (strcmp(arg[iarg],"vol") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix pour command");
-      volfrac = atof(arg[iarg+1]);
-      maxattempt = atoi(arg[iarg+2]);
+      volfrac = force->numeric(FLERR,arg[iarg+1]);
+      maxattempt = force->inumeric(FLERR,arg[iarg+2]);
       iarg += 3;
     } else if (strcmp(arg[iarg],"rate") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix pour command");
-      rate = atof(arg[iarg+1]);
+      rate = force->numeric(FLERR,arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"vel") == 0) {
       if (domain->dimension == 3) {
         if (iarg+6 > narg) error->all(FLERR,"Illegal fix pour command");
-        vxlo = atof(arg[iarg+1]);
-        vxhi = atof(arg[iarg+2]);
-        vylo = atof(arg[iarg+3]);
-        vyhi = atof(arg[iarg+4]);
-        vz = atof(arg[iarg+5]);
+        vxlo = force->numeric(FLERR,arg[iarg+1]);
+        vxhi = force->numeric(FLERR,arg[iarg+2]);
+        vylo = force->numeric(FLERR,arg[iarg+3]);
+        vyhi = force->numeric(FLERR,arg[iarg+4]);
+        vz = force->numeric(FLERR,arg[iarg+5]);
         iarg += 6;
       } else {
         if (iarg+4 > narg) error->all(FLERR,"Illegal fix pour command");
-        vxlo = atof(arg[iarg+1]);
-        vxhi = atof(arg[iarg+2]);
-        vy = atof(arg[iarg+3]);
+        vxlo = force->numeric(FLERR,arg[iarg+1]);
+        vxhi = force->numeric(FLERR,arg[iarg+2]);
+        vy = force->numeric(FLERR,arg[iarg+3]);
         vz = 0.0;
         iarg += 4;
       }

@@ -76,7 +76,7 @@ void DeleteBonds::command(int narg, char **arg)
   int which;
   if (style != MULTI && style != STATS) {
     if (narg < 3) error->all(FLERR,"Illegal delete_bonds command");
-    which = atoi(arg[2]);
+    which = force->inumeric(FLERR,arg[2]);
     iarg++;
   }
 

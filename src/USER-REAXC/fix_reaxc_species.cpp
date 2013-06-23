@@ -58,9 +58,9 @@ FixReaxCSpecies::FixReaxCSpecies(LAMMPS *lmp, int narg, char **arg) :
   MPI_Comm_size(world,&nprocs);
   ntypes = atom->ntypes;
 
-  nevery = atoi(arg[3]);
-  nrepeat = atoi(arg[4]);
-  global_freq = nfreq = atoi(arg[5]);
+  nevery = force->inumeric(FLERR,arg[3]);
+  nrepeat = force->inumeric(FLERR,arg[4]);
+  global_freq = nfreq = force->inumeric(FLERR,arg[5]);
 
   comm_forward = 1;
   
@@ -127,9 +127,9 @@ FixReaxCSpecies::FixReaxCSpecies(LAMMPS *lmp, int narg, char **arg) :
     // set BO cutoff
     if (strcmp(arg[iarg],"cutoff") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix reax/c/species command");
-      itype = atoi(arg[iarg+1]);
-      jtype = atoi(arg[iarg+2]);
-      bo_cut = atof(arg[iarg+3]);
+      itype = force->inumeric(FLERR,arg[iarg+1]);
+      jtype = force->inumeric(FLERR,arg[iarg+2]);
+      bo_cut = force->numeric(FLERR,arg[iarg+3]);
       if (itype > ntypes || jtype > ntypes) 
 	error->all(FLERR,"Illegal fix reax/c/species command");
       if (itype <= 0 || jtype <= 0) 
@@ -154,7 +154,7 @@ FixReaxCSpecies::FixReaxCSpecies(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"position") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix species command");
       posflag = 1;
-      posfreq = atoi(arg[iarg+1]);
+      posfreq = force->inumeric(FLERR,arg[iarg+1]);
       filepos = new char[n];
       strcpy(filepos,arg[iarg+2]);
       if (strchr(filepos,'*')) {

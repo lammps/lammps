@@ -52,9 +52,9 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
 
   MPI_Comm_rank(world,&me);
 
-  nevery = atoi(arg[3]);
-  nrepeat = atoi(arg[4]);
-  nfreq = atoi(arg[5]);
+  nevery = force->inumeric(FLERR,arg[3]);
+  nrepeat = force->inumeric(FLERR,arg[4]);
+  nfreq = force->inumeric(FLERR,arg[5]);
 
   global_freq = nfreq;
   no_change_box = 1;
@@ -75,9 +75,9 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
     else if (strcmp(arg[iarg+1],"center") == 0) originflag[ndim] = CENTER;
     else if (strcmp(arg[iarg+1],"upper") == 0) originflag[ndim] = UPPER;
     else originflag[ndim] = COORD;
-    if (originflag[ndim] == COORD) origin[ndim] = atof(arg[iarg+1]);
+    if (originflag[ndim] == COORD) origin[ndim] = force->numeric(FLERR,arg[iarg+1]);
 
-    delta[ndim] = atof(arg[iarg+2]);
+    delta[ndim] = force->numeric(FLERR,arg[iarg+2]);
     ndim++;
     iarg += 3;
   }
@@ -213,7 +213,7 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
       else error->all(FLERR,"Illegal fix ave/spatial command");
       if (ave == WINDOW) {
         if (iarg+3 > narg) error->all(FLERR,"Illegal fix ave/spatial command");
-        nwindow = atoi(arg[iarg+2]);
+        nwindow = force->inumeric(FLERR,arg[iarg+2]);
         if (nwindow <= 0) error->all(FLERR,"Illegal fix ave/spatial command");
       }
       iarg += 2;

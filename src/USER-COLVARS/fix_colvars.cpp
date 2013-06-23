@@ -325,7 +325,7 @@ FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
     } else if (0 == strcmp(arg[argsdone], "output")) {
       out_name = strdup(arg[argsdone+1]);
     } else if (0 == strcmp(arg[argsdone], "seed")) {
-      rng_seed = atoi(arg[argsdone+1]);
+      rng_seed = force->inumeric(FLERR,arg[argsdone+1]);
     } else if (0 == strcmp(arg[argsdone], "unwrap")) {
       if (0 == strcmp(arg[argsdone+1], "yes")) {
         unwrap_flag = 1;

@@ -537,7 +537,7 @@ void Thermo::modify_params(int narg, char **arg)
         format_float_user = new char[n];
         strcpy(format_float_user,arg[iarg+2]);
       } else {
-        int i = atoi(arg[iarg+1]) - 1;
+        int i = force->inumeric(FLERR,arg[iarg+1]) - 1;
         if (i < 0 || i >= nfield_initial)
           error->all(FLERR,"Illegal thermo_modify command");
         if (format_user[i]) delete [] format_user[i];

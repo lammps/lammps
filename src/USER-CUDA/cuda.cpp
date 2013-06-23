@@ -213,14 +213,14 @@ void Cuda::accelerator(int narg, char** arg)
       if(++i == narg)
         error->all(FLERR, "Invalid Options for 'accelerator' command. Expecting a number after 'gpu/node' option.");
 
-      pppn = atoi(arg[i]);
+      pppn = force->inumeric(FLERR,arg[i]);
     }
 
     if(strcmp(arg[i], "gpu/node/special") == 0) {
       if(++i == narg)
         error->all(FLERR, "Invalid Options for 'accelerator' command. Expecting number of GPUs to be used per node after keyword 'gpu/node/special'.");
 
-      pppn = atoi(arg[i]);
+      pppn = force->inumeric(FLERR,arg[i]);
 
       if(pppn < 1) error->all(FLERR, "Invalid Options for 'accelerator' command. Expecting number of GPUs to be used per node after keyword 'gpu/node special'.");
 
@@ -231,7 +231,7 @@ void Cuda::accelerator(int narg, char** arg)
 
       for(int k = 0; k < pppn; k++) {
         i++;
-        devicelist[k] = atoi(arg[i]);
+        devicelist[k] = force->inumeric(FLERR,arg[i]);
       }
     }
 
@@ -239,7 +239,7 @@ void Cuda::accelerator(int narg, char** arg)
       if(++i == narg)
         error->all(FLERR, "Invalid Options for 'accelerator' command. Expecting a number after 'pinned' option.");
 
-      pinned = atoi(arg[i]) == 0 ? false : true;
+      pinned = force->inumeric(FLERR,arg[i]) == 0 ? false : true;
 
       if((pinned == false) && (universe->me == 0)) printf(" #CUDA: Pinned memory is not used for communication\n");
     }
@@ -263,7 +263,7 @@ void Cuda::accelerator(int narg, char** arg)
       if(++i == narg)
         error->all(FLERR, "Invalid Options for 'accelerator' command. Expecting a number after 'test' option.");
 
-      testatom = atof(arg[i]);
+      testatom = force->numeric(FLERR,arg[i]);
       dotestatom = true;
     }
 
@@ -271,7 +271,7 @@ void Cuda::accelerator(int narg, char** arg)
       if(++i == narg)
         error->all(FLERR, "Invalid Options for 'accelerator' command. Expecting a number after 'override/bpa' option.");
 
-      shared_data.pair.override_block_per_atom = atoi(arg[i]);
+      shared_data.pair.override_block_per_atom = force->inumeric(FLERR,arg[i]);
     }
   }
 

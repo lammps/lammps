@@ -73,15 +73,15 @@ void PRD::command(int narg, char **arg)
 
   if (narg < 7) error->universe_all(FLERR,"Illegal prd command");
 
-  nsteps = atoi(arg[0]);
-  t_event = atoi(arg[1]);
-  n_dephase = atoi(arg[2]);
-  t_dephase = atoi(arg[3]);
-  t_corr = atoi(arg[4]);
+  nsteps = force->inumeric(FLERR,arg[0]);
+  t_event = force->inumeric(FLERR,arg[1]);
+  n_dephase = force->inumeric(FLERR,arg[2]);
+  t_dephase = force->inumeric(FLERR,arg[3]);
+  t_corr = force->inumeric(FLERR,arg[4]);
 
   char *id_compute = new char[strlen(arg[5])+1];
   strcpy(id_compute,arg[5]);
-  int seed = atoi(arg[6]);
+  int seed = force->inumeric(FLERR,arg[6]);
 
   options(narg-7,&arg[7]);
 
@@ -800,17 +800,17 @@ void PRD::options(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"min") == 0) {
       if (iarg+5 > narg) error->all(FLERR,"Illegal prd command");
-      etol = atof(arg[iarg+1]);
-      ftol = atof(arg[iarg+2]);
-      maxiter = atoi(arg[iarg+3]);
-      maxeval = atoi(arg[iarg+4]);
+      etol = force->numeric(FLERR,arg[iarg+1]);
+      ftol = force->numeric(FLERR,arg[iarg+2]);
+      maxiter = force->inumeric(FLERR,arg[iarg+3]);
+      maxeval = force->inumeric(FLERR,arg[iarg+4]);
       if (maxiter < 0) error->all(FLERR,"Illegal prd command");
       iarg += 5;
 
     } else if (strcmp(arg[iarg],"temp") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal prd command");
       temp_flag = 1;
-      temp_dephase = atof(arg[iarg+1]);
+      temp_dephase = force->numeric(FLERR,arg[iarg+1]);
       if (temp_dephase <= 0.0) error->all(FLERR,"Illegal prd command");
       iarg += 2;
 

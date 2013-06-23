@@ -51,16 +51,16 @@ FixDtReset::FixDtReset(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 0;
   extvector = 0;
 
-  nevery = atoi(arg[3]);
+  nevery = force->inumeric(FLERR,arg[3]);
   if (nevery <= 0) error->all(FLERR,"Illegal fix dt/reset command");
 
   minbound = maxbound = 1;
   tmin = tmax = 0.0;
   if (strcmp(arg[4],"NULL") == 0) minbound = 0;
-  else tmin = atof(arg[4]);
+  else tmin = force->numeric(FLERR,arg[4]);
   if (strcmp(arg[5],"NULL") == 0) maxbound = 0;
-  else tmax = atof(arg[5]);
-  xmax = atof(arg[6]);
+  else tmax = force->numeric(FLERR,arg[5]);
+  xmax = force->numeric(FLERR,arg[6]);
 
   if (minbound && tmin < 0.0) error->all(FLERR,"Illegal fix dt/reset command");
   if (maxbound && tmax < 0.0) error->all(FLERR,"Illegal fix dt/reset command");

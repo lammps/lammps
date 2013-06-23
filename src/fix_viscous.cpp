@@ -19,6 +19,7 @@
 #include "update.h"
 #include "respa.h"
 #include "error.h"
+#include "force.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -30,7 +31,7 @@ FixViscous::FixViscous(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 4) error->all(FLERR,"Illegal fix viscous command");
 
-  double gamma_one = atof(arg[3]);
+  double gamma_one = force->numeric(FLERR,arg[3]);
   gamma = new double[atom->ntypes+1];
   for (int i = 1; i <= atom->ntypes; i++) gamma[i] = gamma_one;
 
@@ -40,8 +41,8 @@ FixViscous::FixViscous(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"scale") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix viscous command");
-      int itype = atoi(arg[iarg+1]);
-      double scale = atof(arg[iarg+2]);
+      int itype = force->inumeric(FLERR,arg[iarg+1]);
+      double scale = force->numeric(FLERR,arg[iarg+2]);
       if (itype <= 0 || itype > atom->ntypes)
         error->all(FLERR,"Illegal fix viscous command");
       gamma[itype] = gamma_one * scale;

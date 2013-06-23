@@ -28,6 +28,7 @@
 #include "update.h"
 #include "respa.h"
 #include "error.h"
+#include "force.h"
 #include "cuda.h"
 #include "memory.h"
 #include "cuda_modify_flags.h"
@@ -55,11 +56,11 @@ FixSetForceCuda::FixSetForceCuda(LAMMPS *lmp, int narg, char **arg) :
 
   flagx = flagy = flagz = 1;
   if (strcmp(arg[3],"NULL") == 0) flagx = 0;
-  else xvalue = atof(arg[3]);
+  else xvalue = force->numeric(FLERR,arg[3]);
   if (strcmp(arg[4],"NULL") == 0) flagy = 0;
-  else yvalue = atof(arg[4]);
+  else yvalue = force->numeric(FLERR,arg[4]);
   if (strcmp(arg[5],"NULL") == 0) flagz = 0;
-  else zvalue = atof(arg[5]);
+  else zvalue = force->numeric(FLERR,arg[5]);
 
   force_flag = 0;
   foriginal[0] = foriginal[1] = foriginal[2] = 0.0;

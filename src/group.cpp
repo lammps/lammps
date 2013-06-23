@@ -185,12 +185,12 @@ void Group::assign(int narg, char **arg)
       else if (strcmp(arg[2],"<>") == 0) condition = BETWEEN;
       else error->all(FLERR,"Illegal group command");
       
-      bound1 = atoi(arg[3]);
+      bound1 = force->inumeric(FLERR,arg[3]);
       bound2 = -1;
 
       if (condition == BETWEEN) {
         if (narg != 5) error->all(FLERR,"Illegal group command");
-        bound2 = atoi(arg[4]);
+        bound2 = force->inumeric(FLERR,arg[4]);
       } else if (narg != 4) error->all(FLERR,"Illegal group command");
 
       int *attribute;

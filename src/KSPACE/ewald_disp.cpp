@@ -50,7 +50,7 @@ EwaldDisp::EwaldDisp(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
   if (narg!=1) error->all(FLERR,"Illegal kspace_style ewald/n command");
 
   ewaldflag = dispersionflag = dipoleflag = 1;
-  accuracy_relative = fabs(atof(arg[0]));
+  accuracy_relative = fabs(force->numeric(FLERR,arg[0]));
 
   memset(function, 0, EWALD_NORDER*sizeof(int));
   kenergy = kvirial = NULL;

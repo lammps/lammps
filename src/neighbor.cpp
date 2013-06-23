@@ -1635,7 +1635,7 @@ void Neighbor::set(int narg, char **arg)
 {
   if (narg != 2) error->all(FLERR,"Illegal neighbor command");
 
-  skin = atof(arg[0]);
+  skin = force->numeric(FLERR,arg[0]);
   if (skin < 0.0) error->all(FLERR,"Illegal neighbor command");
 
   if (strcmp(arg[1],"nsq") == 0) style = NSQ;
@@ -1654,12 +1654,12 @@ void Neighbor::modify_params(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"every") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal neigh_modify command");
-      every = atoi(arg[iarg+1]);
+      every = force->inumeric(FLERR,arg[iarg+1]);
       if (every <= 0) error->all(FLERR,"Illegal neigh_modify command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"delay") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal neigh_modify command");
-      delay = atoi(arg[iarg+1]);
+      delay = force->inumeric(FLERR,arg[iarg+1]);
       if (delay < 0) error->all(FLERR,"Illegal neigh_modify command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"check") == 0) {
@@ -1676,15 +1676,15 @@ void Neighbor::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"page") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal neigh_modify command");
-      pgsize = atoi(arg[iarg+1]);
+      pgsize = force->inumeric(FLERR,arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"one") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal neigh_modify command");
-      oneatom = atoi(arg[iarg+1]);
+      oneatom = force->inumeric(FLERR,arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"binsize") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal neigh_modify command");
-      binsize_user = atof(arg[iarg+1]);
+      binsize_user = force->numeric(FLERR,arg[iarg+1]);
       if (binsize_user <= 0.0) binsizeflag = 0;
       else binsizeflag = 1;
       iarg += 2;
@@ -1716,8 +1716,8 @@ void Neighbor::modify_params(int narg, char **arg)
           memory->grow(ex1_type,maxex_type,"neigh:ex1_type");
           memory->grow(ex2_type,maxex_type,"neigh:ex2_type");
         }
-        ex1_type[nex_type] = atoi(arg[iarg+2]);
-        ex2_type[nex_type] = atoi(arg[iarg+3]);
+        ex1_type[nex_type] = force->inumeric(FLERR,arg[iarg+2]);
+        ex2_type[nex_type] = force->inumeric(FLERR,arg[iarg+3]);
         nex_type++;
         iarg += 4;
 

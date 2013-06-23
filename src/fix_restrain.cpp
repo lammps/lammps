@@ -76,8 +76,8 @@ FixRestrain::FixRestrain(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[iarg],"bond") == 0) {
       if (iarg+6 > narg) error->all(FLERR,"Illegal fix restrain command");
       rstyle[nrestrain] = BOND;
-      ids[nrestrain][0] = atoi(arg[iarg+1]);
-      ids[nrestrain][1] = atoi(arg[iarg+2]);
+      ids[nrestrain][0] = force->inumeric(FLERR,arg[iarg+1]);
+      ids[nrestrain][1] = force->inumeric(FLERR,arg[iarg+2]);
       kstart[nrestrain] = force->numeric(FLERR,arg[iarg+3]);
       kstop[nrestrain] = force->numeric(FLERR,arg[iarg+4]);
       target[nrestrain] = force->numeric(FLERR,arg[iarg+5]);
@@ -85,9 +85,9 @@ FixRestrain::FixRestrain(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"angle") == 0) {
       if (iarg+7 > narg) error->all(FLERR,"Illegal fix restrain command");
       rstyle[nrestrain] = ANGLE;
-      ids[nrestrain][0] = atoi(arg[iarg+1]);
-      ids[nrestrain][1] = atoi(arg[iarg+2]);
-      ids[nrestrain][2] = atoi(arg[iarg+3]);
+      ids[nrestrain][0] = force->inumeric(FLERR,arg[iarg+1]);
+      ids[nrestrain][1] = force->inumeric(FLERR,arg[iarg+2]);
+      ids[nrestrain][2] = force->inumeric(FLERR,arg[iarg+3]);
       kstart[nrestrain] = force->numeric(FLERR,arg[iarg+4]);
       kstop[nrestrain] = force->numeric(FLERR,arg[iarg+5]);
       target[nrestrain] = force->numeric(FLERR,arg[iarg+6]);
@@ -96,10 +96,10 @@ FixRestrain::FixRestrain(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"dihedral") == 0) {
       if (iarg+8 > narg) error->all(FLERR,"Illegal fix restrain command");
       rstyle[nrestrain] = DIHEDRAL;
-      ids[nrestrain][0] = atoi(arg[iarg+1]);
-      ids[nrestrain][1] = atoi(arg[iarg+2]);
-      ids[nrestrain][2] = atoi(arg[iarg+3]);
-      ids[nrestrain][3] = atoi(arg[iarg+4]);
+      ids[nrestrain][0] = force->inumeric(FLERR,arg[iarg+1]);
+      ids[nrestrain][1] = force->inumeric(FLERR,arg[iarg+2]);
+      ids[nrestrain][2] = force->inumeric(FLERR,arg[iarg+3]);
+      ids[nrestrain][3] = force->inumeric(FLERR,arg[iarg+4]);
       kstart[nrestrain] = force->numeric(FLERR,arg[iarg+5]);
       kstop[nrestrain] = force->numeric(FLERR,arg[iarg+6]);
       target[nrestrain] = force->numeric(FLERR,arg[iarg+7]);

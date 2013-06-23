@@ -31,6 +31,7 @@
 #include "timer.h"
 #include "memory.h"
 #include "error.h"
+#include "force.h"
 
 using namespace LAMMPS_NS;
 
@@ -105,11 +106,11 @@ void NEB::command(int narg, char **arg)
 
   if (narg != 6) error->universe_all(FLERR,"Illegal NEB command");
 
-  etol = atof(arg[0]);
-  ftol = atof(arg[1]);
-  n1steps = atoi(arg[2]);
-  n2steps = atoi(arg[3]);
-  nevery = atoi(arg[4]);
+  etol = force->numeric(FLERR,arg[0]);
+  ftol = force->numeric(FLERR,arg[1]);
+  n1steps = force->inumeric(FLERR,arg[2]);
+  n2steps = force->inumeric(FLERR,arg[3]);
+  nevery = force->inumeric(FLERR,arg[4]);
   infile = arg[5];
 
   // error checks

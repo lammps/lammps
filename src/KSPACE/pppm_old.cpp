@@ -64,7 +64,7 @@ PPPMOld::PPPMOld(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
   pppmflag = 1;
   group_group_enable = 1;
 
-  accuracy_relative = atof(arg[0]);
+  accuracy_relative = fabs(force->numeric(FLERR,arg[0]));
 
   nfactors = 3;
   factors = new int[nfactors];

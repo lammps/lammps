@@ -42,13 +42,13 @@ FixEvaporate::FixEvaporate(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extscalar = 0;
 
-  nevery = atoi(arg[3]);
-  nflux = atoi(arg[4]);
+  nevery = force->inumeric(FLERR,arg[3]);
+  nflux = force->inumeric(FLERR,arg[4]);
   iregion = domain->find_region(arg[5]);
   int n = strlen(arg[5]) + 1;
   idregion = new char[n];
   strcpy(idregion,arg[5]);
-  int seed = atoi(arg[6]);
+  int seed = force->inumeric(FLERR,arg[6]);
 
   if (nevery <= 0 || nflux <= 0)
     error->all(FLERR,"Illegal fix evaporate command");

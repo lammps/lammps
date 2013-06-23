@@ -36,7 +36,7 @@ ComputeClusterAtom::ComputeClusterAtom(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg != 4) error->all(FLERR,"Illegal compute cluster/atom command");
 
-  double cutoff = atof(arg[3]);
+  double cutoff = force->numeric(FLERR,arg[3]);
   cutsq = cutoff*cutoff;
 
   peratom_flag = 1;

@@ -24,6 +24,7 @@
 #include "respa.h"
 #include "domain.h"
 #include "error.h"
+#include "force.h"
 #include "group.h"
 
 using namespace LAMMPS_NS;
@@ -52,15 +53,15 @@ FixSpring::FixSpring(LAMMPS *lmp, int narg, char **arg) :
   if (strcmp(arg[3],"tether") == 0) {
     if (narg != 9) error->all(FLERR,"Illegal fix spring command");
     styleflag = TETHER;
-    k_spring = atof(arg[4]);
+    k_spring = force->numeric(FLERR,arg[4]);
     xflag = yflag = zflag = 1;
     if (strcmp(arg[5],"NULL") == 0) xflag = 0;
-    else xc = atof(arg[5]);
+    else xc = force->numeric(FLERR,arg[5]);
     if (strcmp(arg[6],"NULL") == 0) yflag = 0;
-    else yc = atof(arg[6]);
+    else yc = force->numeric(FLERR,arg[6]);
     if (strcmp(arg[7],"NULL") == 0) zflag = 0;
-    else zc = atof(arg[7]);
-    r0 = atof(arg[8]);
+    else zc = force->numeric(FLERR,arg[7]);
+    r0 = force->numeric(FLERR,arg[8]);
     if (r0 < 0) error->all(FLERR,"R0 < 0 for fix spring command");
 
   } else if (strcmp(arg[3],"couple") == 0) {
@@ -77,15 +78,15 @@ FixSpring::FixSpring(LAMMPS *lmp, int narg, char **arg) :
       error->all(FLERR,"Two groups cannot be the same in fix spring couple");
     group2bit = group->bitmask[igroup2];
 
-    k_spring = atof(arg[5]);
+    k_spring = force->numeric(FLERR,arg[5]);
     xflag = yflag = zflag = 1;
     if (strcmp(arg[6],"NULL") == 0) xflag = 0;
-    else xc = atof(arg[6]);
+    else xc = force->numeric(FLERR,arg[6]);
     if (strcmp(arg[7],"NULL") == 0) yflag = 0;
-    else yc = atof(arg[7]);
+    else yc = force->numeric(FLERR,arg[7]);
     if (strcmp(arg[8],"NULL") == 0) zflag = 0;
-    else zc = atof(arg[8]);
-    r0 = atof(arg[9]);
+    else zc = force->numeric(FLERR,arg[8]);
+    r0 = force->numeric(FLERR,arg[9]);
     if (r0 < 0) error->all(FLERR,"R0 < 0 for fix spring command");
 
   } else error->all(FLERR,"Illegal fix spring command");

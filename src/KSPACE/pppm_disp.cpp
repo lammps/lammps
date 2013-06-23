@@ -70,7 +70,7 @@ PPPMDisp::PPPMDisp(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
 
   triclinic_support = 0;
   pppmflag = dispersionflag = 1;
-  accuracy_relative = atof(arg[0]);
+  accuracy_relative = fabs(force->numeric(FLERR,arg[0]));
   
   nfactors = 3;
   factors = new int[nfactors];

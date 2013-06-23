@@ -16,7 +16,7 @@ dihedral_style fourier :pre
 [Examples:]
 
 dihedral_style fourier
-dihedral_coeff 3 -0.846200 3 0.0 7.578800 1 0 0.138000 2 -180.0 :pre
+dihedral_coeff 1 3 -0.846200 3 0.0 7.578800 1 0 0.138000 2 -180.0 :pre
 
 [Description:]
 

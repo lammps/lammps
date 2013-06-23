@@ -522,7 +522,7 @@ colvar::gyration::gyration (std::string const &conf)
     cvm::log ("WARNING: explicit fitting parameters were provided for atom group \"atoms\".");
   } else {
     atoms.b_center = true;
-    atoms.ref_pos.assign (1, cvm::rvector (0.0, 0.0, 0.0));
+    atoms.ref_pos.assign (1, cvm::atom_pos (0.0, 0.0, 0.0));
   }
 
   x.type (colvarvalue::type_scalar);
@@ -991,7 +991,7 @@ colvar::eigenvector::eigenvector (std::string const &conf)
                       "and eigenvector must be defined.\n");
   }
 
-  cvm::rvector eig_center (0.0, 0.0, 0.0);
+  cvm::atom_pos eig_center (0.0, 0.0, 0.0);
   for (size_t i = 0; i < atoms.size(); i++) {
     eig_center += eigenvec[i];
   }

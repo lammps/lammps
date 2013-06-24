@@ -286,8 +286,8 @@ void WriteData::atoms()
   MPI_Allreduce(&sendrow,&maxrow,1,MPI_INT,MPI_MAX,world);
 
   double **buf;
-  if (me == 0) memory->create(buf,maxrow,ncol,"write_data:buf");
-  else memory->create(buf,sendrow,ncol,"write_data:buf");
+  if (me == 0) memory->create(buf,MAX(1,maxrow),ncol,"write_data:buf");
+  else memory->create(buf,MAX(1,sendrow),ncol,"write_data:buf");
 
   // pack my atom data into buf
 
@@ -339,8 +339,8 @@ void WriteData::velocities()
   MPI_Allreduce(&sendrow,&maxrow,1,MPI_INT,MPI_MAX,world);
 
   double **buf;
-  if (me == 0) memory->create(buf,maxrow,ncol,"write_data:buf");
-  else memory->create(buf,sendrow,ncol,"write_data:buf");
+  if (me == 0) memory->create(buf,MAX(1,maxrow),ncol,"write_data:buf");
+  else memory->create(buf,MAX(1,sendrow),ncol,"write_data:buf");
 
   // pack my velocity data into buf
 

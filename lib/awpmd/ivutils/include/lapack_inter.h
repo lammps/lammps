@@ -8,7 +8,7 @@ typedef int lapack_int;
 typedef complex<float> lapack_complex_float;
 typedef complex<double> lapack_complex_double;
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
 
   //#define MKL_Complex8 lapack_complex_float
   //#define MKL_Complex16 lapack_complex_double

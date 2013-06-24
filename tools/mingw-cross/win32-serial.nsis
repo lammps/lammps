@@ -1,0 +1,61 @@
+#!Nsis Installer Command Script
+#
+# This is an NSIS Installer Command Script
+# To build an installer from the script you would normally do:
+#
+#   makensis this_script
+
+Name "LAMMPS 32-bit NoMPI"
+OutFile "lammps-32bit-nompi.exe"
+InstallDir "$ProgramFiles\LAMMPS 32-bit NoMPI"
+InstallDirRegKey HKLM SOFTWARE\LAMMPS-32-bit-nompi "Install_Dir"
+
+ShowInstDetails hide
+ShowUninstDetails hide
+
+XPStyle on
+
+Page directory
+Page instfiles
+
+DirText "Please select the installation folder."
+
+Section "LAMMPS 32-bit NoMPI"
+  SectionIn RO
+
+  SetOutPath "$INSTDIR"
+  File "/usr/i686-w64-mingw32/sys-root/mingw/bin/libgcc_s_sjlj-1.dll"
+  File "/usr/i686-w64-mingw32/sys-root/mingw/bin/libgfortran-3.dll"
+  File "/usr/i686-w64-mingw32/sys-root/mingw/bin/libgomp-1.dll"
+  File "/usr/i686-w64-mingw32/sys-root/mingw/bin/libjpeg-62.dll"
+  File "/usr/i686-w64-mingw32/sys-root/mingw/bin/libquadmath-0.dll"
+  File "/usr/i686-w64-mingw32/sys-root/mingw/bin/libstdc++-6.dll"
+  File "/usr/i686-w64-mingw32/sys-root/mingw/bin/pthreadGC2.dll"
+
+  SetOutPath "$INSTDIR"
+  File "lmp_serial.exe"
+SectionEnd
+
+Section "Start Menu Shortcuts"
+  CreateDirectory "$SMPROGRAMS\LAMMPS 32-bit NoMPI"
+  CreateShortCut "$SMPROGRAMS\LAMMPS 32-bit\Uninstall LAMMPS 32-bit NoMPI.lnk" "$INSTDIR\Uninstall LAMMPS 32-bit NoMPI.exe" "" "$INSTDIR\Uninstall LAMMPS 32-bit NoMPI.exe" 0
+SectionEnd
+
+Section "Uninstall"
+  Delete /rebootok "$SMPROGRAMS\LAMMPS 32-bit\Uninstall LAMMPS 32-bit NoMPI.lnk"
+  RMDir "$SMPROGRAMS\LAMMPS 32-bit NoMPI"
+
+  Delete /rebootok "$INSTDIR\lmp_serial.exe"
+  Delete /rebootok "$INSTDIR\libstdc++-6.dll"
+  Delete /rebootok "$INSTDIR\libquadmath-0.dll"
+  Delete /rebootok "$INSTDIR\libjpeg-62.dll"
+  Delete /rebootok "$INSTDIR\libgomp-1.dll"
+  Delete /rebootok "$INSTDIR\libgfortran-3.dll"
+  Delete /rebootok "$INSTDIR\libgcc_s_sjlj-1.dll"
+  Delete /rebootok "$INSTDIR\pthreadGC2.dll"
+  RMDir "$INSTDIR"
+SectionEnd
+
+Section -post
+  WriteUninstaller "$INSTDIR\Uninstall LAMMPS 32-bit NoMPI.exe"
+SectionEnd

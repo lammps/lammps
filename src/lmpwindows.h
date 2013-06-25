@@ -19,41 +19,11 @@
 
 // the following functions ared defined to get rid of
 // 'ambiguous call to overloaded function' error in VSS for mismathched type arguments
-
-#if defined(__MINGW32__)
-static inline double pow(const double &x, const int n) {
-  double yy,ww;
-
-  if (x == 0.0) return 0.0;
-  int nn = (n > 0) ? n : -n;
-  ww = x;
-
-  for (yy = 1.0; nn != 0; nn >>= 1, ww *=ww)
-    if (nn & 1) yy *= ww;
-
-  return (n > 0) ? yy : 1.0/yy;
-}
-
-static inline int pow(const int x, const int n) {
-int yy,ww,nn;
-
-  if ((x == 0) || (x == 1)) return x;
-  if (n < 0) return 0;
-  ww = x;
-  nn = n;
-
-  for (yy = 1; nn != 0; nn >>= 1, ww *=ww)
-    if (nn & 1) yy *= ww;
-
-  return yy;
-}
-
-#else
+#if !defined(__MINGW32__)
 inline double pow(int i, int j){
   return pow((double)i,j);
 }
 #endif
-
 inline double sqrt(int i){
   return sqrt((double) i);
 }

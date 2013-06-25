@@ -48,12 +48,12 @@ Section "Start Menu Shortcuts"
 SectionEnd
 
 Section "Updating Environment"
-# make lammps find potentials from environment variable a la CPMD
-  Push $INSTDIR
-  Call AddToPath
+  ${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$INSTDIR"
 SectionEnd
 
 Section "Uninstall"
+  ${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR"
+
   Delete /rebootok "$SMPROGRAMS\LAMMPS 64-bit\Uninstall LAMMPS 64-bit NoMPI @VERSION@.lnk"
   RMDir "$SMPROGRAMS\LAMMPS 64-bit NoMPI @VERSION@"
 
@@ -69,9 +69,6 @@ Section "Uninstall"
   Delete /rebootok "$INSTDIR\libgcc_s_sjlj-1.dll"
   Delete /rebootok "$INSTDIR\pthreadGC2.dll"
   RMDir "$INSTDIR"
-
-  Push $INSTDIR
-  Call un.RemoveFromPath
 SectionEnd
 
 Section -post

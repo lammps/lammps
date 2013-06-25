@@ -31,7 +31,7 @@ pushd "${LAMMPS_PATH}"
 git archive -v --format=tar --prefix=lammps-current/ HEAD \
     README LICENSE doc/Manual.pdf doc/PDF src lib python  \
     examples/{README,dipole,peri,hugoniostat,colloid,crack,friction,msst,obstacle,body,sputter,pour,ELASTIC,neb,ellipse,flow,meam,min,indent,micelle,shear,srd,dreiding,eim,prd,rigid,COUPLE,peptide,melt,comb,tad,reax,USER/{awpmd,misc,phonon,cg-cmm}} \
-    bench potentials tools/*.cpp tools/*.f tools/mingw32-cross \
+    bench potentials tools/*.cpp tools/*.f tools/mingw-cross \
     | tar -C ${MINGW_BUILD_DIR} -xvf -
 popd
 

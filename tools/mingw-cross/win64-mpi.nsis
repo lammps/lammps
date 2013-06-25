@@ -7,11 +7,12 @@
 
 !include "LogicLib.nsh"
 !include "EnvVarUpdate.nsh"
+!include "x64.nsh"
 
 Name "LAMMPS 64-bit MPICH2 @VERSION@"
 OutFile "lammps-64bit-mpich2-@VERSION@.exe"
-InstallDir "$ProgramFiles\LAMMPS 64-bit MPICH2 @VERSION@"
-InstallDirRegKey HKLM SOFTWARE\LAMMPS-64-bit-mpich2-@VERSION@ "Install_Dir"
+InstallDir "$ProgramFiles64\LAMMPS 64-bit MPICH2 @VERSION@"
+InstallDirRegKey HKLM SOFTWARE\LAMMPS-64bit-mpich2-@VERSION@ "Install_Dir"
 
 ShowInstDetails hide
 ShowUninstDetails hide
@@ -25,6 +26,7 @@ DirText "Please select the installation folder."
 
 Section "LAMMPS 64-bit MPICH2 @VERSION@"
   SectionIn RO
+  SetRegView 64
 
   SetOutPath "$INSTDIR"
   File "/usr/x86_64-w64-mingw32/sys-root/mingw/bin/libgcc_s_sjlj-1.dll"
@@ -36,25 +38,35 @@ Section "LAMMPS 64-bit MPICH2 @VERSION@"
   File "/usr/x86_64-w64-mingw32/sys-root/mingw/bin/pthreadGC2.dll"
 
   SetOutPath "$INSTDIR"
-  File "lmp_mpi.exe"
-  File "restart2data.exe"
-  File "binary2txt.exe"
-  File "chain.exe"
+  File "64bit-mpi/lmp_mpi.exe"
+  File "64bit/restart2data.exe"
+  File "64bit/binary2txt.exe"
+  File "64bit/chain.exe"
+
+  CreateDirectory "$INSTDIR\doc"
+  SetOutPath "$INSTDIR\doc"
+  File "lammps-current/doc/Manual.pdf"
 SectionEnd
 
 Section "Start Menu Shortcuts"
+  SetRegView 64
   CreateDirectory "$SMPROGRAMS\LAMMPS 64-bit MPICH2 @VERSION@"
-  CreateShortCut "$SMPROGRAMS\LAMMPS 64-bit\Uninstall LAMMPS 64-bit MPICH2 @VERSION@.lnk" "$INSTDIR\Uninstall LAMMPS 64-bit MPICH2 @VERSION@.exe" "" "$INSTDIR\Uninstall LAMMPS 64-bit MPICH2 @VERSION@.exe" 0
+  CreateShortCut "$SMPROGRAMS\LAMMPS 64-bit MPICH2 @VERSION@\Uninstall.lnk" "$INSTDIR\Uninstall LAMMPS 64-bit MPICH2 @VERSION@.exe" "" "$INSTDIR\Uninstall LAMMPS 64-bit MPICH2 @VERSION@.exe" 0
+  CreateShortCut "$SMPROGRAMS\LAMMPS 64-bit MPICH2 @VERSION@\Manual.lnk" "$INSTDIR\doc\Manual.pdf" "" "$INSTDIR\doc\Manual.pdf" 0
+
 SectionEnd
 
 Section "Updating Environment"
+  SetRegView 64
   ${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$INSTDIR"
 SectionEnd
 
 Section "Uninstall"
+  SetRegView 64
   ${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR"
 
-  Delete /rebootok "$SMPROGRAMS\LAMMPS 64-bit\Uninstall LAMMPS 64-bit MPICH2 @VERSION@.lnk"
+  Delete /rebootok "$SMPROGRAMS\LAMMPS 64-bit MPICH2 @VERSION@\Uninstall.lnk"
+  Delete /rebootok "$SMPROGRAMS\LAMMPS 64-bit MPICH2 @VERSION@\Manual.lnk"
   RMDir "$SMPROGRAMS\LAMMPS 64-bit MPICH2 @VERSION@"
 
   Delete /rebootok "$INSTDIR\lmp_mpi.exe"
@@ -68,11 +80,14 @@ Section "Uninstall"
   Delete /rebootok "$INSTDIR\libgfortran-3.dll"
   Delete /rebootok "$INSTDIR\libgcc_s_sjlj-1.dll"
   Delete /rebootok "$INSTDIR\pthreadGC2.dll"
+  Delete /rebootok "$INSTDIR\doc\Manual.pdf"
+  RMDir "$INSTDIR\doc"
   RMDir "$INSTDIR"
 SectionEnd
 
 Section -post
-  WriteUninstaller "$INSTDIR\Uninstall LAMMPS 64-bit MPICH2 @VERSION@.exe"
+  SetRegView 64
+  WriteUninstaller "$INSTDIR\Uninstall LAMMPS 64-bit @VERSION@.exe"
 SectionEnd
 
 # Local Variables:

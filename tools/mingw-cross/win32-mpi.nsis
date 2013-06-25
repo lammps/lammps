@@ -36,15 +36,21 @@ Section "LAMMPS 32-bit MPICH2 @VERSION@"
   File "/usr/i686-w64-mingw32/sys-root/mingw/bin/pthreadGC2.dll"
 
   SetOutPath "$INSTDIR"
-  File "lmp_mpi.exe"
-  File "restart2data.exe"
-  File "binary2txt.exe"
-  File "chain.exe"
+  File "32bit-mpi/lmp_mpi.exe"
+  File "32bit/restart2data.exe"
+  File "32bit/binary2txt.exe"
+  File "32bit/chain.exe"
+
+  CreateDirectory "$INSTDIR\doc"
+  SetOutPath "$INSTDIR\doc"
+  File "lammps-current/doc/Manual.pdf"
 SectionEnd
 
 Section "Start Menu Shortcuts"
   CreateDirectory "$SMPROGRAMS\LAMMPS 32-bit MPICH2 @VERSION@"
-  CreateShortCut "$SMPROGRAMS\LAMMPS 32-bit\Uninstall LAMMPS 32-bit MPICH2 @VERSION@.lnk" "$INSTDIR\Uninstall LAMMPS 32-bit MPICH2 @VERSION@.exe" "" "$INSTDIR\Uninstall LAMMPS 32-bit MPICH2 @VERSION@.exe" 0
+  CreateShortCut "$SMPROGRAMS\LAMMPS 32-bit MPICH2 @VERSION@\Uninstall.lnk" "$INSTDIR\Uninstall LAMMPS 32-bit MPICH2 @VERSION@.exe" "" "$INSTDIR\Uninstall LAMMPS 32-bit MPICH2 @VERSION@.exe" 0
+  CreateShortCut "$SMPROGRAMS\LAMMPS 32-bit MPICH2 @VERSION@\Manual.lnk" "$INSTDIR\doc\Manual.pdf" "" "$INSTDIR\doc\Manual.pdf" 0
+
 SectionEnd
 
 Section "Updating Environment"
@@ -54,7 +60,8 @@ SectionEnd
 Section "Uninstall"
   ${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR"
 
-  Delete /rebootok "$SMPROGRAMS\LAMMPS 32-bit\Uninstall LAMMPS 32-bit MPICH2 @VERSION@.lnk"
+  Delete /rebootok "$SMPROGRAMS\LAMMPS 32-bit MPICH2 @VERSION@\Uninstall.lnk"
+  Delete /rebootok "$SMPROGRAMS\LAMMPS 32-bit MPICH2 @VERSION@\Manual.lnk"
   RMDir "$SMPROGRAMS\LAMMPS 32-bit MPICH2 @VERSION@"
 
   Delete /rebootok "$INSTDIR\lmp_mpi.exe"
@@ -68,6 +75,8 @@ Section "Uninstall"
   Delete /rebootok "$INSTDIR\libgfortran-3.dll"
   Delete /rebootok "$INSTDIR\libgcc_s_sjlj-1.dll"
   Delete /rebootok "$INSTDIR\pthreadGC2.dll"
+  Delete /rebootok "$INSTDIR\doc\Manual.pdf"
+  RMDir "$INSTDIR\doc"
   RMDir "$INSTDIR"
 SectionEnd
 

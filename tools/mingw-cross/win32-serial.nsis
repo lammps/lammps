@@ -8,10 +8,10 @@
 !include "LogicLib.nsh"
 !include "EnvVarUpdate.nsh"
 
-Name "LAMMPS 32-bit NoMPI @VERSION@"
-OutFile "lammps-32bit-nompi-@VERSION@.exe"
-InstallDir "$ProgramFiles\LAMMPS 32-bit NoMPI @VERSION@"
-InstallDirRegKey HKLM SOFTWARE\LAMMPS-32-bit-nompi-@VERSION@ "Install_Dir"
+Name "LAMMPS 32-bit @VERSION@"
+OutFile "lammps-32bit-@VERSION@.exe"
+InstallDir "$ProgramFiles\LAMMPS 32-bit @VERSION@"
+InstallDirRegKey HKLM SOFTWARE\LAMMPS-32bit-@VERSION@ "Install_Dir"
 
 ShowInstDetails hide
 ShowUninstDetails hide
@@ -23,7 +23,7 @@ Page instfiles
 
 DirText "Please select the installation folder."
 
-Section "LAMMPS 32-bit NoMPI @VERSION@"
+Section "LAMMPS 32-bit @VERSION@"
   SectionIn RO
 
   SetOutPath "$INSTDIR"
@@ -36,15 +36,21 @@ Section "LAMMPS 32-bit NoMPI @VERSION@"
   File "/usr/i686-w64-mingw32/sys-root/mingw/bin/pthreadGC2.dll"
 
   SetOutPath "$INSTDIR"
-  File "lmp_serial.exe"
-  File "restart2data.exe"
-  File "binary2txt.exe"
-  File "chain.exe"
+  File "32bit/lmp_serial.exe"
+  File "32bit/restart2data.exe"
+  File "32bit/binary2txt.exe"
+  File "32bit/chain.exe"
+
+  CreateDirectory "$INSTDIR\doc"
+  SetOutPath "$INSTDIR\doc"
+  File "lammps-current/doc/Manual.pdf"
 SectionEnd
 
 Section "Start Menu Shortcuts"
-  CreateDirectory "$SMPROGRAMS\LAMMPS 32-bit NoMPI @VERSION@"
-  CreateShortCut "$SMPROGRAMS\LAMMPS 32-bit\Uninstall LAMMPS 32-bit NoMPI @VERSION@.lnk" "$INSTDIR\Uninstall LAMMPS 32-bit NoMPI @VERSION@.exe" "" "$INSTDIR\Uninstall LAMMPS 32-bit NoMPI @VERSION@.exe" 0
+  CreateDirectory "$SMPROGRAMS\LAMMPS 32-bit @VERSION@"
+  CreateShortCut "$SMPROGRAMS\LAMMPS 32-bit @VERSION@\Uninstall.lnk" "$INSTDIR\Uninstall LAMMPS 32-bit @VERSION@.exe" "" "$INSTDIR\Uninstall LAMMPS 32-bit @VERSION@.exe" 0
+  CreateShortCut "$SMPROGRAMS\LAMMPS 32-bit @VERSION@\Manual.lnk" "$INSTDIR\doc\Manual.pdf" "" "$INSTDIR\doc\Manual.pdf" 0
+
 SectionEnd
 
 Section "Updating Environment"
@@ -54,8 +60,9 @@ SectionEnd
 Section "Uninstall"
   ${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR"
 
-  Delete /rebootok "$SMPROGRAMS\LAMMPS 32-bit\Uninstall LAMMPS 32-bit NoMPI @VERSION@.lnk"
-  RMDir "$SMPROGRAMS\LAMMPS 32-bit NoMPI @VERSION@"
+  Delete /rebootok "$SMPROGRAMS\LAMMPS 32-bit @VERSION@\Uninstall.lnk"
+  Delete /rebootok "$SMPROGRAMS\LAMMPS 32-bit @VERSION@\Manual.lnk"
+  RMDir "$SMPROGRAMS\LAMMPS 32-bit @VERSION@"
 
   Delete /rebootok "$INSTDIR\lmp_serial.exe"
   Delete /rebootok "$INSTDIR\restart2data.exe"
@@ -68,11 +75,13 @@ Section "Uninstall"
   Delete /rebootok "$INSTDIR\libgfortran-3.dll"
   Delete /rebootok "$INSTDIR\libgcc_s_sjlj-1.dll"
   Delete /rebootok "$INSTDIR\pthreadGC2.dll"
+  Delete /rebootok "$INSTDIR\doc\Manual.pdf"
+  RMDir "$INSTDIR\doc"
   RMDir "$INSTDIR"
 SectionEnd
 
 Section -post
-  WriteUninstaller "$INSTDIR\Uninstall LAMMPS 32-bit NoMPI @VERSION@.exe"
+  WriteUninstaller "$INSTDIR\Uninstall LAMMPS 32-bit @VERSION@.exe"
 SectionEnd
 
 # Local Variables:

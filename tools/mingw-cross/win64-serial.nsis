@@ -5,6 +5,9 @@
 #
 #   makensis this_script
 
+!include "LogicLib.nsh"
+!include "EnvVarUpdate.nsh"
+
 Name "LAMMPS 64-bit NoMPI @VERSION@"
 OutFile "lammps-64bit-nompi-@VERSION@.exe"
 InstallDir "$ProgramFiles\LAMMPS 64-bit NoMPI @VERSION@"
@@ -44,6 +47,12 @@ Section "Start Menu Shortcuts"
   CreateShortCut "$SMPROGRAMS\LAMMPS 64-bit\Uninstall LAMMPS 64-bit NoMPI @VERSION@.lnk" "$INSTDIR\Uninstall LAMMPS 64-bit NoMPI @VERSION@.exe" "" "$INSTDIR\Uninstall LAMMPS 64-bit NoMPI @VERSION@.exe" 0
 SectionEnd
 
+Section "Updating Environment"
+# make lammps find potentials from environment variable a la CPMD
+  Push $INSTDIR
+  Call AddToPath
+SectionEnd
+
 Section "Uninstall"
   Delete /rebootok "$SMPROGRAMS\LAMMPS 64-bit\Uninstall LAMMPS 64-bit NoMPI @VERSION@.lnk"
   RMDir "$SMPROGRAMS\LAMMPS 64-bit NoMPI @VERSION@"
@@ -60,8 +69,15 @@ Section "Uninstall"
   Delete /rebootok "$INSTDIR\libgcc_s_sjlj-1.dll"
   Delete /rebootok "$INSTDIR\pthreadGC2.dll"
   RMDir "$INSTDIR"
+
+  Push $INSTDIR
+  Call un.RemoveFromPath
 SectionEnd
 
 Section -post
   WriteUninstaller "$INSTDIR\Uninstall LAMMPS 64-bit NoMPI @VERSION@.exe"
 SectionEnd
+
+# Local Variables:
+# mode: sh
+# End:

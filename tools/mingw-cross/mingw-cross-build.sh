@@ -26,9 +26,12 @@ do \
 done
 
 pushd "${LAMMPS_PATH}"
+
 datestr=$(date +%Y%m%d)
-# XXX
-#sed -e "/^Version/s/\(Version:[ 	]\+\)[0-9].*$/\1${datestr}/" tools/mingw/win32-serial.nsis > ${MINGW_BUILD_DIR}/32bit/lammps.nsis
+sed -e "s/@VERSION@/${datestr}/" tools/mingw/win32-serial.nsis \
+    > ${MINGW_BUILD_DIR}/32bit/lammps.nsis
+sed -e "s/@VERSION@/${datestr}/" tools/mingw/win64-serial.nsis \
+    > ${MINGW_BUILD_DIR}/64bit/lammps.nsis
 
 git archive -v --format=tar --prefix=lammps-current/ HEAD \
     README LICENSE doc/Manual.pdf doc/PDF src lib python  \
@@ -66,25 +69,38 @@ cp lmp_mingw64-cross ${MINGW_BUILD_DIR}/64bit/lmp_serial.exe
 popd
 
 # now build some utilities
-i686-w64-mingw32-g++ -o ${MINGW_BUILD_DIR}/32bit/restart2data.exe -DLAMMPS_SMALLSMALL \
-	-O2 -march=i686 -mtune=generic -mfpmath=387 -mpc64 tools/restart2data.cpp
-cp ${MINGW_BUILD_DIR}/32bit/restart2data.exe ${MINGW_BUILD_DIR}/32bit-mpi/restart2data.exe
-x86_64-w64-mingw32-g++ -o ${MINGW_BUILD_DIR}/64bit/restart2data.exe -DLAMMPS_SMALLBIG \
-	-O2 -march=core2 -mtune=core2 -mpc64 -msse2 tools/restart2data.cpp
-cp ${MINGW_BUILD_DIR}/64bit/restart2data.exe ${MINGW_BUILD_DIR}/64bit-mpi/restart2data.exe
+pushd ${MINGW_BUILD_DIR}/32bit
 
-i686-w64-mingw32-g++ -o ${MINGW_BUILD_DIR}/32bit/binary2txt.exe -DLAMMPS_SMALLSMALL \
-	-O2 -march=i686 -mtune=generic -mfpmath=387 -mpc64 tools/binary2txt.cpp
-cp ${MINGW_BUILD_DIR}/32bit/binary2txt.exe ${MINGW_BUILD_DIR}/32bit-mpi/binary2txt.exe
-x86_64-w64-mingw32-g++ -o ${MINGW_BUILD_DIR}/64bit/binary2txt.exe -DLAMMPS_SMALLBIG \
-	-O2 -march=core2 -mtune=core2 -mpc64 -msse2 tools/binary2txt.cpp
-cp ${MINGW_BUILD_DIR}/64bit/binary2txt.exe ${MINGW_BUILD_DIR}/64bit-mpi/binary2txt.exe
+i686-w64-mingw32-g++ -o restart2data.exe -DLAMMPS_SMALLSMALL -O2 -march=i686 \
+    -mtune=generic -mfpmath=387 -mpc64 ${LAMMPS_PATH}/tools/restart2data.cpp
+cp restart2data.exe ../32bit-mpi/
 
-i686-w64-mingw32-gfortran -o ${MINGW_BUILD_DIR}/32bit/chain.exe -DLAMMPS_SMALLSMALL \
-	-O2 -march=i686 -mtune=generic -mfpmath=387 -mpc64 tools/chain.f
-cp ${MINGW_BUILD_DIR}/32bit/chain.exe ${MINGW_BUILD_DIR}/32bit-mpi/chain.exe
-x86_64-w64-mingw32-gfortran -o ${MINGW_BUILD_DIR}/64bit/chain.exe -DLAMMPS_SMALLBIG \
-	-O2 -march=core2 -mtune=core2 -mpc64 -msse2 tools/chain.f
-cp ${MINGW_BUILD_DIR}/64bit/chain.exe ${MINGW_BUILD_DIR}/64bit-mpi/chain.exe
+i686-w64-mingw32-g++ -o binary2txt.exe -DLAMMPS_SMALLSMALL -O2 -march=i686 \
+    -mtune=generic -mfpmath=387 -mpc64 ${LAMMPS_PATH}/tools/binary2txt.cpp
+cp binary2txt.exe ../32bit-mpi/
 
+i686-w64-mingw32-gfortran -o chain.exe -O2 -march=i686 -mtune=generic \
+    -mfpmath=387 -mpc64 ${LAMMPS_PATH}/tools/chain.f
+cp chain.exe ../32bit-mpi/chain.exe
+
+cd ../64bit
+
+x86_64-w64-mingw32-g++ -o restart2data.exe -DLAMMPS_SMALLBIG -O2 -march=core2 \
+    -mtune=core2 -mpc64 -msse2 ${LAMMPS_PATH}/tools/restart2data.cpp
+cp restart2data.exe ../64bit-mpi/
+
+x86_64-w64-mingw32-g++ -o binary2txt.exe -DLAMMPS_SMALLBIG -O2 -march=core2 \
+    -mtune=core2 -mpc64 -msse2 ${LAMMPS_PATH}/tools/binary2txt.cpp
+cp binary2txt.exe ../64bit-mpi/
+
+x86_64-w64-mingw32-gfortran -o ${MINGW_BUILD_DIR}/64bit/chain.exe -O2 \
+    -march=core2 -mtune=core2 -mpc64 -msse2 ${LAMMPS_PATH}/tools/chain.f
+cp chain.exe ../64bit-mpi/chain.exe
+
+cd ../32bit
+makensis lammps.nsis
+cd ../64bit
+makensis lammps.nsis
+
+popd
 

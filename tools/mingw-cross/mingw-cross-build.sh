@@ -30,7 +30,7 @@ pushd "${LAMMPS_PATH}"
 git archive -v --format=tar --prefix=lammps-current/ HEAD \
     README LICENSE doc/Manual.pdf doc/PDF src lib python  \
     examples/{README,dipole,peri,hugoniostat,colloid,crack,friction,msst,obstacle,body,sputter,pour,ELASTIC,neb,ellipse,flow,meam,min,indent,micelle,shear,srd,dreiding,eim,prd,rigid,COUPLE,peptide,melt,comb,tad,reax,USER/{awpmd,misc,phonon,cg-cmm}} \
-    bench potentials tools/*.cpp tools/*.f \
+    bench potentials tools/*.cpp tools/*.f tools/mingw32-cross \
     | tar -C ${MINGW_BUILD_DIR} -xvf -
 popd
 
@@ -42,7 +42,7 @@ pushd lib
 for d in atc awpmd colvars linalg meam poems voronoi
 do \
     pushd $d
-    make mingw32-cross mingw64-cross || exit 1
+    make mingw32-cross mingw64-cross mingw32-cross-mpi mingw64-cross-mpi
     popd
 done
 
@@ -56,9 +56,11 @@ make -f Makefile.mingw64-cross
 popd
 
 make yes-all no-kim no-gpu no-user-cuda no-reax no-user-atc no-user-awpmd
-make mingw32-cross mingw64-cross || exit 2
+make mingw32-cross mingw64-cross mingw32-cross-mpi mingw64-cross-mpi
 cp lmp_mingw32-cross ${MINGW_BUILD_DIR}/32bit/lmp_serial.exe
 cp lmp_mingw64-cross ${MINGW_BUILD_DIR}/64bit/lmp_serial.exe
+cp lmp_mingw32-cross-mpi ${MINGW_BUILD_DIR}/32bit-mpi/lmp_mpi.exe
+cp lmp_mingw64-cross-mpi ${MINGW_BUILD_DIR}/64bit-mpi/lmp_mpi.exe
 
 popd
 
@@ -96,11 +98,22 @@ cp tools/mingw-cross/win32-serial.nsis 32bit/lammps.nsis
 sed -i -e "s/@VERSION@/${datestr}/" 32bit/lammps.nsis
 cp tools/mingw-cross/win64-serial.nsis 64bit/lammps.nsis
 sed -i -e "s/@VERSION@/${datestr}/" 64bit/lammps.nsis
+cp tools/mingw-cross/win32-mpi.nsis 32bit-mpi/lammps.nsis
+sed -i -e "s/@VERSION@/${datestr}/" 32bit-mpi/lammps.nsis
+cp tools/mingw-cross/win64-mpi.nsis 64bit-mpi/lammps.nsis
+sed -i -e "s/@VERSION@/${datestr}/" 64bit-mpi/lammps.nsis
 
 cd ../32bit
 cp ../lammps-current/tools/mingw-cross/EnvVarUpdate.nsh .
 makensis lammps.nsis
 cd ../64bit
+cp ../lammps-current/tools/mingw-cross/EnvVarUpdate.nsh .
+makensis lammps.nsis
+
+cd ../32bit-mpi
+cp ../lammps-current/tools/mingw-cross/EnvVarUpdate.nsh .
+makensis lammps.nsis
+cd ../64bit-mpi
 cp ../lammps-current/tools/mingw-cross/EnvVarUpdate.nsh .
 makensis lammps.nsis
 

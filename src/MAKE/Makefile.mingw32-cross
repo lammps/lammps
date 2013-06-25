@@ -8,8 +8,7 @@ SHELL = /bin/sh
 
 CC =		i686-w64-mingw32-g++
 CCFLAGS =	-O3 -march=i686 -mtune=generic -mfpmath=387 -mpc64 -fopenmp	\
-		-ffast-math -fstrict-aliasing -fno-rtti -fno-exceptions	\
-		-Wall -W -Wno-uninitialized
+		-ffast-math -fstrict-aliasing -Wall -W -Wno-uninitialized
 
 SHFLAGS =	# -fPIC (not needed on windows, all code is PIC)
 DEPFLAGS =	-M

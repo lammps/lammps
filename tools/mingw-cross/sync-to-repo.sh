@@ -17,7 +17,7 @@ then
     rsync -arpv --delete lammps-64bit-mpich2-20??????.exe \
         ${MINGW_REPO_USER}@${MINGW_REPO_HOST}:${MINGW_REPO_DIR}/64bit-mpi
 
-    ssh ${MINGW_REPO_USER}@${MINGW_REPO_HOST} "cd ${MINGW_REPO_DIR}/../../../; ./mkhtmlindex.sh *"
+    ssh ${MINGW_REPO_USER}@${MINGW_REPO_HOST} "cd ${MINGW_REPO_DIR}/../; ./mkhtmlindex.sh *"
     popd
 else
     cat <<EOF

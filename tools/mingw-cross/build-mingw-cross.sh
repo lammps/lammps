@@ -19,11 +19,12 @@ then
     exit 1
 fi
 
-test -d ${MINGW_BUILD_DIR} && rm -rvf ${MINGW_BUILD_DIR}
-for d in 32bit 32bit-mpi 64bit 64bit-mpi
+# clean up leftovers from an old build and rebuild directories
+for d in 32bit 32bit-mpi 64bit 64bit-mpi lammps-current
 do \
   dir="${MINGW_BUILD_DIR}/${d}"
-  test -d "${dir}" || mkdir -p "${dir}" || exit 2
+  rm -rf ${dir}
+  mkdir -p "${dir}" || exit 2
 done
 
 pushd "${LAMMPS_PATH}"
@@ -90,6 +91,16 @@ cp lammps-current/tools/mingw-cross/win??-*.nsis .
 cp lammps-current/tools/mingw-cross/EnvVarUpdate.nsh .
 sed -i -e "s/@VERSION@/${datestr}/g" win??-*.nsis
 
+# determine os vendor and release for installer tweaks.
+vendor=$(grep  release /etc/issue | cut -d \  -f 1)
+release=$(grep  release /etc/issue | cut -d \  -f 1)
+
+# Fedora 19 ships with GCC-4.8.x which has different exception handling in libgcc
+if [ "$vendor" = "Fedora" ] && [ $release -ge 19 ]
+then
+    sed -i -e "s/libgcc_s_sjlj-1.dll/libgcc_s_seh-1.dll/g" win64-*.nsis
+fi
+
 # build installers
 makensis win32-serial.nsis
 makensis win32-mpi.nsis
@@ -98,3 +109,12 @@ makensis win64-mpi.nsis
 
 popd
 
+exit 0
+
+# clean up build and temporary directories (not yet)
+for d in 32bit 32bit-mpi 64bit 64bit-mpi lammps-current
+do \
+  dir="${MINGW_BUILD_DIR}/${d}"
+  rm -rf ${dir}
+  mkdir -p "${dir}" || exit 2
+done

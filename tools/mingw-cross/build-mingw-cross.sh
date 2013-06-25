@@ -43,21 +43,22 @@ pushd lib
 for d in atc awpmd colvars linalg meam poems voronoi
 do \
     pushd $d
-    make mingw32-cross mingw64-cross mingw32-cross-mpi mingw64-cross-mpi
+    make mingw32-cross mingw64-cross mingw32-cross-mpi mingw64-cross-mpi || exit 3
     popd
 done
 
 popd
 
-# now to the main source dir
+# now to the main source dir and build MPI stub libraries
 pushd src
 pushd STUBS
 make -f Makefile.mingw32-cross
 make -f Makefile.mingw64-cross
 popd
 
-make yes-all no-kim no-gpu no-user-cuda no-reax no-user-atc no-user-awpmd
-make mingw32-cross mingw64-cross mingw32-cross-mpi mingw64-cross-mpi
+# configure installed packages
+make yes-all no-kim no-gpu no-user-cuda no-reax
+make mingw32-cross mingw64-cross mingw32-cross-mpi mingw64-cross-mpi || exit 4
 cp lmp_mingw32-cross ${MINGW_BUILD_DIR}/32bit/lmp_serial.exe
 cp lmp_mingw64-cross ${MINGW_BUILD_DIR}/64bit/lmp_serial.exe
 cp lmp_mingw32-cross-mpi ${MINGW_BUILD_DIR}/32bit-mpi/lmp_mpi.exe
@@ -66,57 +67,34 @@ cp lmp_mingw64-cross-mpi ${MINGW_BUILD_DIR}/64bit-mpi/lmp_mpi.exe
 popd
 
 # now build some utilities
-pushd ${MINGW_BUILD_DIR}/32bit
+pushd ${MINGW_BUILD_DIR}
 
-i686-w64-mingw32-g++ -o restart2data.exe -DLAMMPS_SMALLSMALL -O2 -march=i686 \
-    -mtune=generic -mfpmath=387 -mpc64 ../lammps-current/tools/restart2data.cpp
-cp restart2data.exe ../32bit-mpi/
+i686-w64-mingw32-g++ -o 32bit/restart2data.exe -DLAMMPS_SMALLSMALL -O2 -march=i686 \
+    -mtune=generic -mfpmath=387 -mpc64 lammps-current/tools/restart2data.cpp
+x86_64-w64-mingw32-g++ -o 64bit/restart2data.exe -DLAMMPS_SMALLBIG -O2 -march=core2 \
+    -mtune=core2 -mpc64 -msse2 lammps-current/tools/restart2data.cpp
 
-i686-w64-mingw32-g++ -o binary2txt.exe -DLAMMPS_SMALLSMALL -O2 -march=i686 \
-    -mtune=generic -mfpmath=387 -mpc64 ../lammps-current/tools/binary2txt.cpp
-cp binary2txt.exe ../32bit-mpi/
+i686-w64-mingw32-g++ -o 32bit/binary2txt.exe -DLAMMPS_SMALLSMALL -O2 -march=i686 \
+    -mtune=generic -mfpmath=387 -mpc64 lammps-current/tools/binary2txt.cpp
+x86_64-w64-mingw32-g++ -o 64bit/binary2txt.exe -DLAMMPS_SMALLBIG -O2 -march=core2 \
+    -mtune=core2 -mpc64 -msse2 lammps-current/tools/binary2txt.cpp
 
-i686-w64-mingw32-gfortran -o chain.exe -O2 -march=i686 -mtune=generic \
-    -mfpmath=387 -mpc64 ../lammps-current/tools/chain.f
-cp chain.exe ../32bit-mpi/chain.exe
+i686-w64-mingw32-gfortran -o 32bit/chain.exe -O2 -march=i686 -mtune=generic \
+    -mfpmath=387 -mpc64 lammps-current/tools/chain.f
+x86_64-w64-mingw32-gfortran -o 64bit/chain.exe -O2 -march=core2 -mtune=core2 \
+    -mpc64 -msse2 lammps-current/tools/chain.f
 
-cd ../64bit
-
-x86_64-w64-mingw32-g++ -o restart2data.exe -DLAMMPS_SMALLBIG -O2 -march=core2 \
-    -mtune=core2 -mpc64 -msse2 ../lammps-current/tools/restart2data.cpp
-cp restart2data.exe ../64bit-mpi/
-
-x86_64-w64-mingw32-g++ -o binary2txt.exe -DLAMMPS_SMALLBIG -O2 -march=core2 \
-    -mtune=core2 -mpc64 -msse2 ../lammps-current/tools/binary2txt.cpp
-cp binary2txt.exe ../64bit-mpi/
-
-x86_64-w64-mingw32-gfortran -o ${MINGW_BUILD_DIR}/64bit/chain.exe -O2 \
-    -march=core2 -mtune=core2 -mpc64 -msse2 ../lammps-current/tools/chain.f
-cp chain.exe ../64bit-mpi/chain.exe
-
+# assemble and customize installer scripts 
 datestr=$(date +%Y%m%d)
-cp tools/mingw-cross/win32-serial.nsis 32bit/lammps.nsis
-sed -i -e "s/@VERSION@/${datestr}/g" 32bit/lammps.nsis
-cp tools/mingw-cross/win64-serial.nsis 64bit/lammps.nsis
-sed -i -e "s/@VERSION@/${datestr}/g" 64bit/lammps.nsis
-cp tools/mingw-cross/win32-mpi.nsis 32bit-mpi/lammps.nsis
-sed -i -e "s/@VERSION@/${datestr}/g" 32bit-mpi/lammps.nsis
-cp tools/mingw-cross/win64-mpi.nsis 64bit-mpi/lammps.nsis
-sed -i -e "s/@VERSION@/${datestr}/g" 64bit-mpi/lammps.nsis
+cp lammps-current/tools/mingw-cross/win??-*.nsis .
+cp lammps-current/tools/mingw-cross/EnvVarUpdate.nsh .
+sed -i -e "s/@VERSION@/${datestr}/g" win??-*.nsis
 
-cd ../32bit
-cp ../lammps-current/tools/mingw-cross/EnvVarUpdate.nsh .
-makensis lammps.nsis
-cd ../64bit
-cp ../lammps-current/tools/mingw-cross/EnvVarUpdate.nsh .
-makensis lammps.nsis
-
-cd ../32bit-mpi
-cp ../lammps-current/tools/mingw-cross/EnvVarUpdate.nsh .
-makensis lammps.nsis
-cd ../64bit-mpi
-cp ../lammps-current/tools/mingw-cross/EnvVarUpdate.nsh .
-makensis lammps.nsis
+# build installers
+makensis win32-serial.nsis
+makensis win32-mpi.nsis
+makensis win64-serial.nsis
+makensis win64-mpi.nsis
 
 popd
 

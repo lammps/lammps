@@ -8,10 +8,10 @@
 !include "LogicLib.nsh"
 !include "EnvVarUpdate.nsh"
 
-Name "LAMMPS 64-bit NoMPI @VERSION@"
-OutFile "lammps-64bit-nompi-@VERSION@.exe"
-InstallDir "$ProgramFiles\LAMMPS 64-bit NoMPI @VERSION@"
-InstallDirRegKey HKLM SOFTWARE\LAMMPS-64-bit-nompi-@VERSION@ "Install_Dir"
+Name "LAMMPS 64-bit MPICH2 @VERSION@"
+OutFile "lammps-64bit-mpich2-@VERSION@.exe"
+InstallDir "$ProgramFiles\LAMMPS 64-bit MPICH2 @VERSION@"
+InstallDirRegKey HKLM SOFTWARE\LAMMPS-64-bit-mpich2-@VERSION@ "Install_Dir"
 
 ShowInstDetails hide
 ShowUninstDetails hide
@@ -23,7 +23,7 @@ Page instfiles
 
 DirText "Please select the installation folder."
 
-Section "LAMMPS 64-bit NoMPI @VERSION@"
+Section "LAMMPS 64-bit MPICH2 @VERSION@"
   SectionIn RO
 
   SetOutPath "$INSTDIR"
@@ -43,8 +43,8 @@ Section "LAMMPS 64-bit NoMPI @VERSION@"
 SectionEnd
 
 Section "Start Menu Shortcuts"
-  CreateDirectory "$SMPROGRAMS\LAMMPS 64-bit NoMPI @VERSION@"
-  CreateShortCut "$SMPROGRAMS\LAMMPS 64-bit\Uninstall LAMMPS 64-bit NoMPI @VERSION@.lnk" "$INSTDIR\Uninstall LAMMPS 64-bit NoMPI @VERSION@.exe" "" "$INSTDIR\Uninstall LAMMPS 64-bit NoMPI @VERSION@.exe" 0
+  CreateDirectory "$SMPROGRAMS\LAMMPS 64-bit MPICH2 @VERSION@"
+  CreateShortCut "$SMPROGRAMS\LAMMPS 64-bit\Uninstall LAMMPS 64-bit MPICH2 @VERSION@.lnk" "$INSTDIR\Uninstall LAMMPS 64-bit MPICH2 @VERSION@.exe" "" "$INSTDIR\Uninstall LAMMPS 64-bit MPICH2 @VERSION@.exe" 0
 SectionEnd
 
 Section "Updating Environment"
@@ -54,8 +54,8 @@ SectionEnd
 Section "Uninstall"
   ${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR"
 
-  Delete /rebootok "$SMPROGRAMS\LAMMPS 64-bit\Uninstall LAMMPS 64-bit NoMPI @VERSION@.lnk"
-  RMDir "$SMPROGRAMS\LAMMPS 64-bit NoMPI @VERSION@"
+  Delete /rebootok "$SMPROGRAMS\LAMMPS 64-bit\Uninstall LAMMPS 64-bit MPICH2 @VERSION@.lnk"
+  RMDir "$SMPROGRAMS\LAMMPS 64-bit MPICH2 @VERSION@"
 
   Delete /rebootok "$INSTDIR\lmp_serial.exe"
   Delete /rebootok "$INSTDIR\restart2data.exe"
@@ -72,7 +72,7 @@ Section "Uninstall"
 SectionEnd
 
 Section -post
-  WriteUninstaller "$INSTDIR\Uninstall LAMMPS 64-bit NoMPI @VERSION@.exe"
+  WriteUninstaller "$INSTDIR\Uninstall LAMMPS 64-bit MPICH2 @VERSION@.exe"
 SectionEnd
 
 # Local Variables:

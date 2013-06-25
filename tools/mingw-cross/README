@@ -7,18 +7,24 @@ mingw32-nsis
 mingw32-gcc-c++ mingw32-gcc-gfortran mingw32-libjpeg-static mingw32-pthreads-static mingw32-libgomp
 mingw64-gcc-c++ mingw64-gcc-gfortran mingw64-libjpeg-static mingw64-pthreads-static mingw64-libgomp
 
-Create a LAMMPS-ICMS (plain LAMMPS is missing stuff yet) git repo clone and do
+Create user 'winbuild' and set password.
+Use 'visudo' to allow 'winbuild' to shutdown the virtual machine
+without a password by adding the line:
 
-cd lib
-for d in colvars linalg meam poems voronoi
-  do make -C $d mingw32-cross mingw64-cross
-done
-cd ../src
-make yes-all
-make no-lib
-make yes-user-colvars yes-voronoi yes-meam yes-poems yes-user-molfile
-make -C STUBS -f Makefile.mingw32-cross
-make -C STUBS -f Makefile.mingw64-cross
-make mingw32-cross mingw64-cross
+winbuild  ALL = NOPASSWD: /sbin/shutdown
 
+Log in and create ssh key pair and append the public key the .ssh/authorized_keys
+file of the repository account for automatic file transfer
+
+Edit $HOME/.bash_profile to set environment variables for depositing files
+MINGW_REPO_HOST MINGW_REPO_USER MINGW_REPO_DIR
+
+Clone LAMMPS-ICMS tree via:
+ git clone git://git.icms.temple.edu/lammps-icms.git lammps-icms
+
+From now on, to build and sync the windows installers to the repository with:
+cd ~/lammps-icms;
+git pull
+./tools/mingw-cross/build-mingw-cross.sh
+./tools/mingw-cross/sync-to-repo.sh
 

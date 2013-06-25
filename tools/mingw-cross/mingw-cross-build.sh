@@ -42,12 +42,7 @@ pushd ${MINGW_BUILD_DIR}/lammps-current
 # start by building libraries
 pushd lib
 
-#cd lib/atc
-#make -f Makefile.g++ CC=g++ CCFLAGS="-fPIC -I../../src -I../../src/STUBS  ${RPM_OPT_FLAGS} %{bigintsize}" EXTRAMAKE=Makefile.lammps.linalg
-#cd ../awpmd
-#make -f Makefile.openmpi CC=g++ CCFLAGS="-fPIC -Isystems/interact/TCP/ -Isystems/interact -Iivutils/include ${RPM_OPT_FLAGS} %{bigintsize}" EXTRAMAKE=Makefile.lammps.linalg
-
-for d in colvars linalg meam poems voronoi
+for d in atc awpmd colvars linalg meam poems voronoi
 do \
     pushd $d
     make mingw32-cross mingw64-cross || exit 1

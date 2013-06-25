@@ -19,6 +19,7 @@ then
     exit 1
 fi
 
+test -d ${MINGW_BUILD_DIR} && rm -rvf ${MINGW_BUILD_DIR}
 for d in 32bit 32bit-mpi 64bit 64bit-mpi
 do \
   dir="${MINGW_BUILD_DIR}/${d}"

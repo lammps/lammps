@@ -26,8 +26,8 @@
 
 molfile_SYSINC =
 ifneq ($(LIBOBJDIR),/Obj_mingw32)
-ifneq ($(LIBOBJDIR),/Obj_mingw32-mpi)
 ifneq ($(LIBOBJDIR),/Obj_mingw64)
+ifneq ($(LIBOBJDIR),/Obj_mingw32-mpi)
 ifneq ($(LIBOBJDIR),/Obj_mingw64-mpi)
 molfile_SYSLIB = -ldl
 endif

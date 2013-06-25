@@ -106,7 +106,7 @@ CC =		i686-w64-mingw32-g++
 CCFLAGS =	-I../../src -I../../src/STUBS -DMPICH_IGNORE_CXX_SEEK	\
 		-O3 -march=i686 -mtune=generic -mfpmath=387 -mpc64	\
                 -ffast-math -funroll-loops -fstrict-aliasing 	\
-		-Wno-uninitialized
+		-DLAMMPS_SMALLSMALL -Wno-uninitialized
 ARCHIVE =	i686-w64-mingw32-ar
 ARCHFLAG =	-rcs
 DEPFLAGS =      -M

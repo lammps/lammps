@@ -106,7 +106,7 @@ CC =		  x86_64-w64-mingw32-g++
 CCFLAGS =	-I../../src -I../../src/STUBS -DMPICH_IGNORE_CXX_SEEK	\
 		-O3 -march=core2 -mtune=core2 -mpc64 -msse2    \
                 -ffast-math -funroll-loops -fstrict-aliasing		\
-		-Wno-uninitialized
+		-DLAMMPS_SMALLBIG -Wno-uninitialized
 ARCHIVE =	x86_64-w64-mingw32-ar
 ARCHFLAG =	-rcs
 DEPFLAGS =      -M

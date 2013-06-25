@@ -43,5 +43,5 @@ Build and sync the RPMs to the repository with:
 cd lammps-icms;
 git pull
 ./tools/rpm/build-rpm-from-git.sh
-./sync-to-repo.sh
+./tools/rpm/sync-to-repo.sh
 

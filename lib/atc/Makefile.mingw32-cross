@@ -125,7 +125,7 @@ $(DIR):
 Makefile.lammps:
 	@cp $(EXTRAMAKE) Makefile.lammps
 
-$(LIB): 	$(OBJ)
+$(LIB): $(OBJ)
 	$(ARCHIVE) $(ARFLAGS) $(LIB) $(OBJ)
 	@cp $(EXTRAMAKE) Makefile.lammps
 
@@ -145,4 +145,5 @@ DEPENDS = $(OBJ:.o=.d)
 clean:
 	rm $(DIR)*.o $(DIR)*.d *~ $(LIB)
 
+$(DEPENDS) : $(DIR)
 sinclude $(DEPENDS)

@@ -145,4 +145,5 @@ DEPENDS = $(OBJ:.o=.d)
 clean:
 	rm $(DIR)*.o $(DIR)*.d *~ $(LIB)
 
+$(DEPENDS) : $(DIR)
 sinclude $(DEPENDS)

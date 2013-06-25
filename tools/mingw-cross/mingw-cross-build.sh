@@ -95,13 +95,13 @@ cp chain.exe ../64bit-mpi/chain.exe
 
 datestr=$(date +%Y%m%d)
 cp tools/mingw-cross/win32-serial.nsis 32bit/lammps.nsis
-sed -i -e "s/@VERSION@/${datestr}/" 32bit/lammps.nsis
+sed -i -e "s/@VERSION@/${datestr}/g" 32bit/lammps.nsis
 cp tools/mingw-cross/win64-serial.nsis 64bit/lammps.nsis
-sed -i -e "s/@VERSION@/${datestr}/" 64bit/lammps.nsis
+sed -i -e "s/@VERSION@/${datestr}/g" 64bit/lammps.nsis
 cp tools/mingw-cross/win32-mpi.nsis 32bit-mpi/lammps.nsis
-sed -i -e "s/@VERSION@/${datestr}/" 32bit-mpi/lammps.nsis
+sed -i -e "s/@VERSION@/${datestr}/g" 32bit-mpi/lammps.nsis
 cp tools/mingw-cross/win64-mpi.nsis 64bit-mpi/lammps.nsis
-sed -i -e "s/@VERSION@/${datestr}/" 64bit-mpi/lammps.nsis
+sed -i -e "s/@VERSION@/${datestr}/g" 64bit-mpi/lammps.nsis
 
 cd ../32bit
 cp ../lammps-current/tools/mingw-cross/EnvVarUpdate.nsh .

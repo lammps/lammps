@@ -238,18 +238,16 @@ to zero by subtracting off an equal part of it from each atom in the
 group.  As a result, the center-of-mass of a system with zero initial
 momentum will not drift over time.
 </P>
-<P>The keyword <I>gjf</I> can be used to run the 
-<A HREF = "#Gronbech-Jensen">Gronbech-Jensen/Farago </A>
-time-discretization of the Langevin model. The effective random force 
-is composed of
-the average of two random forces representing half-contributions from
-the previous and current time intervals. This discretization has been shown
-to be consistent with the underlying physical model of Langevin dynamics 
-and produces the correct statistical distribution of energy for large
-timesteps, up to the numerical stability limit. A typical simulation
-with flexible hydrogen-carbon covalent bonds 
-can be run with a timestep of 3 fs, instead of 1 fs with the
-standard Langevin method.
+<P>The keyword <I>gjf</I> can be used to run the <A HREF = "#Gronbech-Jensen">Gronbech-Jensen/Farago
+</A> time-discretization of the Langevin model. The
+effective random force is composed of the average of two random forces
+representing half-contributions from the previous and current time
+intervals. This discretization has been shown to be consistent with
+the underlying physical model of Langevin dynamics and produces the
+correct statistical distribution of energy for large timesteps, up to
+the numerical stability limit. A typical simulation with flexible
+hydrogen-carbon covalent bonds can be run with a timestep of 3 fs,
+instead of 1 fs with the standard Langevin method.
 </P>
 <HR>
 

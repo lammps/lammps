@@ -423,6 +423,7 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   // once in end_of_step() can set timestep for ones actually invoked
 
   nvalid = nextvalid();
+  printf("NVALID %d\n",nvalid);
   modify->addstep_compute_all(nvalid);
 }
 

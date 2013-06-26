@@ -78,5 +78,3 @@ diff -ru icd.orig/icd_dispatch.h icd/icd_dispatch.h
  
  /* cl_khr_d3d10_sharing */
  
-Only in icd/inc: CL
-Only in icd.orig: Makefile

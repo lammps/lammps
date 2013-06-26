@@ -38,13 +38,13 @@ Cross compiling an OpenCL installable driver library:
 - create a build-32 directory, cd into it, and run:
   cmake -DCMAKE_TOOLCHAIN_FILE=${LAMMPS_PATH}/tools/mingw-cross/Toolchain-mingw32.cmake \
          -DCMAKE_C_FLAGS=-DIGNORE_DIRECTX ..
-  make
+  make OpenCL
   mv ../bin/*OpenCL.dll .
 
 - For building the 64-bit version correspondingly do inside a build-64 directory:
   cmake -DCMAKE_TOOLCHAIN_FILE=${LAMMPS_PATH}/tools/mingw-cross/Toolchain-mingw64.cmake \
           -DCMAKE_C_FLAGS=-DIGNORE_DIRECTX ..
-  make
+  make OpenCL
   mv ../bin/*OpenCL.dll .
 
 

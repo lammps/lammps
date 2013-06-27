@@ -545,7 +545,7 @@ void PairADP::read_file(char *filename)
   char line[MAXLINE];
 
   if (me == 0) {
-    fp = fopen(filename,"r");
+    fp = open_potential(filename);
     if (fp == NULL) {
       char str[128];
       sprintf(str,"Cannot open ADP potential file %s",filename);

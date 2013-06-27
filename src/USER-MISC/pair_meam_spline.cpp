@@ -434,7 +434,7 @@ void PairMEAMSpline::coeff(int narg, char **arg)
 void PairMEAMSpline::read_file(const char* filename)
 {
         if(comm->me == 0) {
-                FILE *fp = fopen(filename, "r");
+                FILE *fp = open_potential(filename);
                 if(fp == NULL) {
                         char str[1024];
                         sprintf(str,"Cannot open spline MEAM potential file %s", filename);

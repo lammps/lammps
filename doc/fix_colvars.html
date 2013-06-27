@@ -44,30 +44,38 @@ module library which allows to calculate potentials of mean force
 (PMFs) for any set of colvars, using different sampling methods:
 currently implemented are the Adaptive Biasing Force (ABF) method,
 metadynamics, Steered Molecular Dynamics (SMD) and Umbrella Sampling
-(US) via a flexible harmonic restraint bias. This documentation
-describes only the colvars fix itself and LAMMPS specific parts of the
-code.  The documentation of the colvars implementation itself is
-available as part of the <A HREF = "http://www.ks.uiuc.edu/Research/namd/2.8/ug/node53.html">NAMD online
-documentation</A>
+(US) via a flexible harmonic restraint bias. The colvars library is
+hosted at <A HREF = "http://colvars.github.io/">http://colvars.github.io/</A>
 </P>
-<P>There are example scripts for using this package with LAMMPS in
-examples/USER/colvars.
+<P>This documentation describes only the fix colvars command itself and 
+LAMMPS specific parts of the code.  The full documentation of the 
+colvars library is available as <A HREF = "PDF/colvars-refman-lammps.pdf">this supplementary PDF document</A>
 </P>
-<P>The implementation of the portable collective variable library is also
-documented in <A HREF = "#Henin">(Henin)</A>
+<P>A detailed discussion of the implementation of the portable collective
+variable library is in <A HREF = "#Fiorin">(Fiorin)</A>. Additional information can
+be found in <A HREF = "#Henin">(Henin)</A>.
+</P>
+<P>There are some example scripts for using this package with LAMMPS in the
+examples/USER/colvars directory.
 </P>
 <HR>
 
 <P>The only mandatory argument to the fix is the filename to the colvars
-input file that contains all input that is independent from the MD
+input file that contains the input that is independent from the MD
 program in which the colvars library has been integrated.
 </P>
 <P>The <I>group-ID</I> entry is ignored. The collective variable module will
-always apply to the entire system, i.e. use the group <I>all</I>.
+always apply to the entire system and there can only be one instance
+of the colvars fix at a time. The colvars fix will only communicate
+the minimum information necessary and the colvars library supports
+multiple, completely independent collective variables, so there is
+no restriction to functionaliry by limiting the number of colvars fixes.
 </P>
 <P>The <I>input</I> keyword allows to specify a state file that would contain
-the information required in order to continue a calculation, e.g.
-from a restart. Setting it to NULL will start a new colvars run.
+the restart information required in order to continue a calculation from
+a prerecorded state. Fix colvars records it state in <A HREF = "restart.html">binary restart</A>
+files, so when using the <A HREF = "read_restart.html">read_restart</A> command,
+this is usually not needed.
 </P>
 <P>The <I>output</I> keyword allows to specify the output prefix. All output
 files generated will use this prefix followed by the ".colvars." and
@@ -90,8 +98,10 @@ temperature.
 </P>
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>
-<P>No information about this fix is written to <A HREF = "restart.html">binary restart
-files</A>.
+<P>This fix writes the current status of the colvars module into
+<A HREF = "restart.html">binary restart files</A>. This is in addition to the text
+mode status file that is written by the colvars module itself and the
+kind of information in both files is identical.
 </P>
 <P>The <A HREF = "fix_modify.html">fix_modify</A> <I>energy</I> option is supported by this
 fix to add the energy change from the biasing force added by the fix
@@ -109,10 +119,10 @@ calculated by this fix is "extensive".
 LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
 LAMMPS</A> section for more info.
 </P>
-<P>There can only be one colvars fix active at a time. Since the
-colvars module itself can handle an arbitrary number of collective
-variables and always applies to the entire system, this is not
-really a deficit in practice.
+<P>There can only be one colvars fix active at a time. Since the interface
+communicates only the minimum amount of information and colvars module
+itself can handle an arbitrary number of collective variables, this is
+not a limitation of functionality.
 </P>
 <P><B>Related commands:</B>
 </P>
@@ -125,9 +135,13 @@ and tstat = NULL.
 </P>
 <HR>
 
+<A NAME = "Fiorin"></A>
+
+<P><B>(Fiorin)</B> Fiorin , Klein, Henin, Mol. Phys., DOI:10.1080/00268976.2013.813594
+</P>
 <A NAME = "Henin"></A>
 
-<P><B>(Henin)</B> Hénin, Fiorin, Chipot, Klein, J. Chem. Theory Comput., 6,
+<P><B>(Henin)</B> Henin, Fiorin, Chipot, Klein, J. Chem. Theory Comput., 6,
 35-47 (2010)
 </P>
 </HTML>

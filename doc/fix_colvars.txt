@@ -36,30 +36,38 @@ module library which allows to calculate potentials of mean force
 (PMFs) for any set of colvars, using different sampling methods:
 currently implemented are the Adaptive Biasing Force (ABF) method,
 metadynamics, Steered Molecular Dynamics (SMD) and Umbrella Sampling
-(US) via a flexible harmonic restraint bias. This documentation
-describes only the colvars fix itself and LAMMPS specific parts of the
-code.  The documentation of the colvars implementation itself is
-available as part of the "NAMD online
-documentation"_http://www.ks.uiuc.edu/Research/namd/2.8/ug/node53.html
+(US) via a flexible harmonic restraint bias. The colvars library is
+hosted at "http://colvars.github.io/"_http://colvars.github.io/
 
-There are example scripts for using this package with LAMMPS in
-examples/USER/colvars.
+This documentation describes only the fix colvars command itself and 
+LAMMPS specific parts of the code.  The full documentation of the 
+colvars library is available as "this supplementary PDF document"_PDF/colvars-refman-lammps.pdf
 
-The implementation of the portable collective variable library is also
-documented in "(Henin)"_#Henin
+A detailed discussion of the implementation of the portable collective
+variable library is in "(Fiorin)"_#Fiorin. Additional information can
+be found in "(Henin)"_#Henin.
+
+There are some example scripts for using this package with LAMMPS in the
+examples/USER/colvars directory.
 
 :line
 
 The only mandatory argument to the fix is the filename to the colvars
-input file that contains all input that is independent from the MD
+input file that contains the input that is independent from the MD
 program in which the colvars library has been integrated.
 
 The {group-ID} entry is ignored. The collective variable module will
-always apply to the entire system, i.e. use the group {all}.
+always apply to the entire system and there can only be one instance
+of the colvars fix at a time. The colvars fix will only communicate
+the minimum information necessary and the colvars library supports
+multiple, completely independent collective variables, so there is
+no restriction to functionaliry by limiting the number of colvars fixes.
 
 The {input} keyword allows to specify a state file that would contain
-the information required in order to continue a calculation, e.g.
-from a restart. Setting it to NULL will start a new colvars run.
+the restart information required in order to continue a calculation from
+a prerecorded state. Fix colvars records it state in "binary restart"_restart.html
+files, so when using the "read_restart"_read_restart.html command,
+this is usually not needed.
 
 The {output} keyword allows to specify the output prefix. All output
 files generated will use this prefix followed by the ".colvars." and
@@ -82,8 +90,10 @@ temperature.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
-No information about this fix is written to "binary restart
-files"_restart.html.
+This fix writes the current status of the colvars module into
+"binary restart files"_restart.html. This is in addition to the text
+mode status file that is written by the colvars module itself and the
+kind of information in both files is identical.
 
 The "fix_modify"_fix_modify.html {energy} option is supported by this
 fix to add the energy change from the biasing force added by the fix
@@ -101,10 +111,10 @@ This fix is part of the USER-COLVARS package.  It is only enabled if
 LAMMPS was built with that package.  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info.
 
-There can only be one colvars fix active at a time. Since the
-colvars module itself can handle an arbitrary number of collective
-variables and always applies to the entire system, this is not
-really a deficit in practice.
+There can only be one colvars fix active at a time. Since the interface
+communicates only the minimum amount of information and colvars module
+itself can handle an arbitrary number of collective variables, this is
+not a limitation of functionality.
 
 [Related commands:]
 
@@ -117,7 +127,10 @@ and tstat = NULL.
 
 :line
 
+:link(Fiorin)
+[(Fiorin)] Fiorin , Klein, Henin, Mol. Phys., DOI:10.1080/00268976.2013.813594
+
 :link(Henin)
-[(Henin)] Hénin, Fiorin, Chipot, Klein, J. Chem. Theory Comput., 6,
+[(Henin)] Henin, Fiorin, Chipot, Klein, J. Chem. Theory Comput., 6,
 35-47 (2010)
 

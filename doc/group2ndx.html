@@ -1,0 +1,58 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>group2ndx command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>group2ndx file group-ID ... 
+</PRE>
+<UL><LI>file = name of index file to write out 
+
+<LI>zero or more group IDs may be appended 
+
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>group2ndx allindex.ndx
+group2ndx someindex.ndx upper lower mobile 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Write a Gromacs style index file in text format that associates atom IDs
+with the corresponding group definitions. This index file can be used 
+with in combination with Gromacs analysis tools or to import group
+definitions into the <A HREF = "fix_colvars.html">fix colvars</A> input file.
+</P>
+<P>Without specifying any group IDs, all groups will be written to the index
+file. When specifying group IDs, only those groups will be written to the
+index file. In order to follow the Gromacs conventions, the group <I>all</I>
+will be renamed to <I>System</I> in the index file.
+</P>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>This command requires that atoms have atom IDs, since this is the
+information that is written to the index file.
+</P>
+<P>This fix is part of the USER-COLVARS package.  It is only enabled if
+LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "group.html">group</A>, <A HREF = "dump.html">dump</A>, <A HREF = "fix_colvars.html">fix colvars</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

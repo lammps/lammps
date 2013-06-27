@@ -52,7 +52,8 @@ enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM};
 
 /* ---------------------------------------------------------------------- */
 
-PPPMStagger::PPPMStagger(LAMMPS *lmp, int narg, char **arg) : PPPM(lmp, narg, arg)
+PPPMStagger::PPPMStagger(LAMMPS *lmp, int narg, char **arg) : 
+  PPPM(lmp, narg, arg)
 {
   if (narg < 1) error->all(FLERR,"Illegal kspace_style pppm/stagger command");
   stagger_flag = 1;
@@ -107,7 +108,8 @@ void PPPMStagger::init()
   // error check
 
   if (domain->triclinic)
-   error->all(FLERR,"Cannot (yet) use kspace_style pppm/stagger with triclinic systems");
+   error->all(FLERR,"Cannot (yet) use kspace_style pppm/stagger "
+              "with triclinic systems");
 
   PPPM::init();
 }

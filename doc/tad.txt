@@ -298,7 +298,7 @@ The option defaults are {min} = 0.1 0.1 40 50, {neb} = 0.01 100 100
 :line
 
 :link(Voter)
-[(Voter)] Sørensen and Voter, J Chem Phys, 112, 9599 (2000) 
+[(Voter)] Sorensen and Voter, J Chem Phys, 112, 9599 (2000) 
 
 :link(Voter2)
 [(Voter2)] Voter, Montalenti, Germann, Annual Review of Materials

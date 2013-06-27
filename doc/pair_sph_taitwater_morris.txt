@@ -74,6 +74,6 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 :line
 
 :link(Morris)
-[(Morris)] Morris, Fox, Zhu, J Comp Physics, 136, 214–226 (1997).
+[(Morris)] Morris, Fox, Zhu, J Comp Physics, 136, 214-226 (1997).
 
 

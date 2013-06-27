@@ -120,8 +120,8 @@ class PPPM : public KSpace {
   int factorable(int);
   double compute_df_kspace();
   double estimate_ik_error(double, double, bigint);
-  virtual double compute_qopt();
-  virtual void compute_gf_denom();
+  double compute_qopt();
+  void compute_gf_denom();
   virtual void compute_gf_ik();
   virtual void compute_gf_ad();
   void compute_sf_precoeff();

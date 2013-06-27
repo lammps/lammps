@@ -132,7 +132,7 @@ Image::~Image()
   memory->destroy(surfacecopy);
   memory->destroy(rgbcopy);
 
-  if (random) delete random;
+  delete random;
 }
 
 /* ----------------------------------------------------------------------

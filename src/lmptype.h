@@ -55,7 +55,7 @@ namespace LAMMPS_NS {
 
 // default to 32-bit smallint and tagint, 64-bit bigint
 
-#if !defined(LAMMPS_SMALLSMALL) && !defined(LAMMPS_BIGBIG)
+#if !defined(LAMMPS_SMALLSMALL) && !defined(LAMMPS_BIGBIG) && !defined(LAMMPS_SMALLBIG)
 #define LAMMPS_SMALLBIG
 #endif
 

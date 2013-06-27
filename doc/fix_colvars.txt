@@ -37,15 +37,15 @@ module library which allows to calculate potentials of mean force
 currently implemented are the Adaptive Biasing Force (ABF) method,
 metadynamics, Steered Molecular Dynamics (SMD) and Umbrella Sampling
 (US) via a flexible harmonic restraint bias. The colvars library is
-hosted at "https://github.com/colvars/colvars"_https://github.com/colvars/colvars
+hosted at "http://colvars.github.io/"_http://colvars.github.io/
 
 This documentation describes only the fix colvars command itself and 
 LAMMPS specific parts of the code.  The full documentation of the 
-colvars library is available as a downloadable PDF document at:
-"https://github.com/colvars/colvars/blob/master/doc/colvars-refman-lammps.pdf"_https://github.com/colvars/colvars/blob/master/doc/colvars-refman-lammps.pdf
+colvars library is available as "this supplementary PDF document"_PDF/colvars-refman-lammps.pdf
 
-The implementation of the portable collective variable library is also
-documented in "(Henin)"_#Henin
+A detailed discussion of the implementation of the portable collective
+variable library is in "(Fiorin)"_#Fiorin. Additional information can
+be found in "(Henin)"_#Henin.
 
 There are some example scripts for using this package with LAMMPS in the
 examples/USER/colvars directory.
@@ -126,6 +126,9 @@ The default options are input = NULL, output = out, seed = 1966, unwrap yes,
 and tstat = NULL.
 
 :line
+
+:link(Fiorin)
+[(Fiorin)] Fiorin , Klein, Henin, Mol. Phys., DOI:10.1080/00268976.2013.813594
 
 :link(Henin)
 [(Henin)] Henin, Fiorin, Chipot, Klein, J. Chem. Theory Comput., 6,

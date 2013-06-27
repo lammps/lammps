@@ -7,14 +7,20 @@ Sampling and Restraints. This code consists of two parts:
 
 - a portable collective variable module library written
   and maintained by Giacomo Fiorin (ICMS, Temple University,
-  Philadelphia, PA, USA) and Jerome Henin (LISM, CNRS,
-  Marseille, France).
+  Philadelphia, PA, USA) and Jerome Henin (IBPC, CNRS,
+  Paris, France).
 
   A copy of this code is located in the directory lib/colvars
   and needs to be compiled first. More info about this code
-  can be found at: https://github.com/colvars/colvars/
+  can be found at: http://colvars.github.io/
 
-  and in the publication:
+  and in the publications:
+
+  Using collective variables to drive molecular dynamics
+  simulations,
+   Giacomo Fiorin , Michael L. Klein & Jérôme Hénin (2013):
+   Molecular Physics DOI:10.1080/00268976.2013.813594
+
   Exploring Multidimensional Free Energy Landscapes Using
   Time-Dependent Biases on Collective Variables,
    J. Hénin, G. Fiorin, C. Chipot, and M. L. Klein,
@@ -22,6 +28,8 @@ Sampling and Restraints. This code consists of two parts:
 
 - the colvars fix and a thin interface layer, which exchanges
   information between LAMMPS and the collective variable module.
+  This interface was written and is maintained by
+  Axel Kohlmeyer (akohlmey@gmail.com)
 
 See the doc page of fix colvars for more details
 
@@ -33,4 +41,4 @@ The person who created this package is Axel Kohlmeyer at Temple U
  
 ---------------------------------
 
-Version: 2013-06-07
+Version: 2013-06-27

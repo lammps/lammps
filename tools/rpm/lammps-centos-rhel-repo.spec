@@ -1,7 +1,7 @@
 Name:           lammps-centos-rhel-repo
 Version:        1
-Release:        2
-Summary:        LAMMPS-ICMS Snapshot Repository Configuration
+Release:        3
+Summary:        LAMMPS-ICMS Repository Configuration
 
 Group:          System Environment/Base
 License:        BSD
@@ -13,7 +13,7 @@ ExclusiveArch:  noarch
 
 %description
 This package contains the Yum package manager configuration files for the
-LAMMPS-ICMS snapshot repository of precompiled LAMMPS binaries for CentOS
+LAMMPS-ICMS repository of precompiled LAMMPS binaries for CentOS
 and RedHat Enterprise Linux installations.
 
 %prep

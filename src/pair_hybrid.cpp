@@ -285,6 +285,7 @@ void PairHybrid::flags()
 
   // single_enable = 1 if any sub-style is set
   // respa_enable = 1 if any sub-style is set
+  // manybody_flag = 1 if any sub-style is set
   // no_virial_fdotr_compute = 1 if any sub-style is set
   // ghostneigh = 1 if any sub-style is set
   // ewaldflag, pppmflag, msmflag, dispersionflag, tip4pflag = 1
@@ -294,6 +295,7 @@ void PairHybrid::flags()
   for (m = 0; m < nstyles; m++) {
     if (styles[m]->single_enable) single_enable = 1;
     if (styles[m]->respa_enable) respa_enable = 1;
+    if (styles[m]->manybody_flag) manybody_flag = 1;
     if (styles[m]->no_virial_fdotr_compute) no_virial_fdotr_compute = 1;
     if (styles[m]->ghostneigh) ghostneigh = 1;
     if (styles[m]->ewaldflag) ewaldflag = 1;

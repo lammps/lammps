@@ -17,7 +17,7 @@ done
 make -C txt2html
 
 # convert all .txt files to html
-./txt2html/txt2html doc/*.txt
+./txt2html/txt2html -b doc/*.txt
 
 # check if we have any new html files,
 # that are not yet in the book file.

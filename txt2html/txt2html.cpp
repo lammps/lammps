@@ -5,9 +5,14 @@
 // txt2html converts a text file with simple formatting & markup into HTML
 // formatting & markup specification is given in README
 //
-// Syntax: txt2html file                read file, write to stdout
-//         txt2html file1 file2 ...     read each file, write each to file.html
+// Syntax: txt2html options file                read one file, write to stdout
+//         txt2html optoins file1 file2 ...     read files, write files.html
 //
+// options:
+//   -b = add a page-break comment to end of each HTML file
+//     useful when set of HTML files will be converted to PDF
+//   -x file = skip a file even if it appears in file list
+//     specify full file name of input file
 // input files are first opened as-is
 //   if that fails a .txt suffix is added
 // output files have an .html suffix added or replaced
@@ -20,6 +25,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+
 using namespace std;
 
 #define MAXLINE 1024
@@ -74,26 +80,59 @@ int main(int narg, char **arg)
   int style,ifirst,ilast;
   string raw,pre,post,body,commands,final;
 
-  // parse command-line args and setup list of files to process
+  // parse command-line options and args
+  // setup list of files to process
   // npair = # of files to process
   // infile = input file names
+
   if (narg == 1) {
-    fprintf(stderr,
-	    "Syntax: txt2html file\n        txt2html file1 file2 ...\n");
+    fprintf(stderr,"Syntax: txt2html options file\n");
+    fprintf(stderr,"        txt2html options file1 file2 ...\n");
     exit(1);
-  } else if (narg == 2) {
+  }
+
+  int breakflag = 0;
+  int nskip = 0;
+  char **skipfiles = NULL;
+
+  int iarg = 1;
+  while (arg[iarg][0] == '-') {
+    if (strcmp(arg[iarg],"-b") == 0) breakflag = 1;
+    else if (strcmp(arg[iarg],"-x") == 0) {
+      skipfiles = (char **) realloc(skipfiles,(nskip+1)*sizeof(char *));
+      n = strlen(arg[iarg+1]) + 1;
+      skipfiles[nskip] = new char[n];
+      strcpy(skipfiles[nskip],arg[iarg+1]);
+      nskip++;
+      iarg++;
+    } else {
+      fprintf(stderr,"Syntax: txt2html options file\n");
+      fprintf(stderr,"        txt2html options file1 file2 ...\n");
+      exit(1);
+    }
+    iarg++;
+  }
+
+  if (narg-iarg == 1) {
     npair = 1;
     infile = new string[npair];
-    infile[0] = arg[1];
+    infile[0] = arg[narg-1];
   } else {
-    npair = narg-1;
+    npair = narg-iarg;
     infile = new string[npair];
-    for (int i = 0; i < narg-1; i++) infile[i] = arg[i+1];
+    for (int i = 0; i < npair; i++) infile[i] = arg[i+iarg];
   }
 
   // loop over files
 
   for (int ipair = 0; ipair < npair; ipair++) {
+
+    // skip file if matches -x switch
+
+    int flag = 0;
+    for (int i = 0; i < nskip; i++)
+      if (strcmp(infile[ipair].c_str(),skipfiles[i]) == 0) flag = 1;
+    if (flag) continue;
 
     // clear global variables before processing file
 
@@ -177,6 +216,7 @@ int main(int narg, char **arg)
 
     // write trailing </HTML>
 
+    if (breakflag) fprintf(out,"<!-- PAGE BREAK -->\n");
     fprintf(out,"</HTML>\n");
 
     // close files
@@ -186,7 +226,9 @@ int main(int narg, char **arg)
   }
 
   // clean up memory
-
+  
+  for (int i = 0; i < nskip; i++) delete [] skipfiles[i];
+  if (skipfiles) free(skipfiles);
   delete [] infile;
 }
 
@@ -408,7 +450,7 @@ void process_commands(int flag, string &s, string &pre, string &post)
       colvalign.clear();
 
       tabledelim = ",";
-      string tw = "";// = " WIDTH=\"0%\" ";
+      string tw = "";
       dwidth = "0";
 
       for (int i = 0; i < narg; i++) {     // loop through each tb() arg
@@ -832,19 +874,22 @@ string td_tag(int currentc) {
       va = " VALIGN =\"" + valign + "\"";
     } else va = " ";
   }
+
   // put in special width if specified
   // new code
-
   // if dwidth has not been set, dw is blank
-  if (dwidth=="0") dw = " ";       
   // if dwidth has been set, dw has that... unless
+
+  if (dwidth=="0") dw = " ";       
   else dw =" WIDTH=\""+ dwidth + "\"";
+
   for (int counter = 0; counter < ncnum; counter++){ 
     // if it is the right column, dw = cwidth property
     if (cnum[counter] == currentc) dw= " WIDTH=\"" + cwidth[counter] + "\"";
   }
   
   // DT is set for all of this particular separator : reset next separator
+
   DT = "<TD" + dw + eacolumn + va + ">"; 
   
   return DT;
@@ -855,6 +900,7 @@ string td_tag(int currentc) {
 // if there is either a delim or newline 
 // decide which is first
 // set n = to that position
+// nsep is position of the next separator. changes in here.
 
 long find_n(string &s, int nend, int &nsep)
   // nsep is position of the next separator. changes in here.
@@ -870,7 +916,7 @@ long find_n(string &s, int nend, int &nsep)
     if (nsep >= 0) n = nsep;
     else{
       if (n2 < m) n = n2;
-      else n=string::npos;
+      else n = string::npos;
     }
   }
       

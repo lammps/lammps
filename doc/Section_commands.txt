@@ -430,6 +430,11 @@ in the command's documentation.
 "write_data"_write_data.html,
 "write_restart"_write_restart.html :tb(c=6,ea=c)
 
+These are commands contributed by users, which can be used if "LAMMPS
+is built with the appropriate package"_Section_start.html#start_3.
+
+"group2ndx"_group2ndx.html :tb(c=1,ea=c)
+
 :line
 
 Fix styles :h4

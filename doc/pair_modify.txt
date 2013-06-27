@@ -26,7 +26,6 @@ keyword = {shift} or {mix} or {table} or {table/disp} or {tabinner} or {tabinner
     cutoff = inner cutoff at which to begin table (distance units)
   {tail} value = {yes} or {no}
   {compute} value = {yes} or {no} :pre
-  {manybody} value = {yes} or {no} :pre
 :ule
 
 [Examples:]
@@ -155,15 +154,6 @@ pairwise contribution.  You can also do this by simply not defining a
 "pair_style"_pair_style.html, but a Kspace-compatible pair_style is
 required if you also want to define a
 "kspace_style"_kspace_style.html.  This keyword gives you that option.
-
-The {manybody} keyword allows to turn off a test that normally stops
-execution, if there are active exclusions when using a manybody potential.
-Manybody potentials do not need bonds, angles or dihedrals to be
-defined and usually will produce incorrect results if those are,
-even if no corresponding style is defined, due to pairs being excluded
-from the neighborlist. Under some circumstances, this may still be
-correct (e.g. when using a hybrid pair style), and thus this keyword
-offers the option to turn the manybody check off.
 
 [Restrictions:] none
 

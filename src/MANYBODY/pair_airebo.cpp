@@ -58,7 +58,6 @@ PairAIREBO::PairAIREBO(LAMMPS *lmp) : Pair(lmp)
   maxpage = 0;
   pages = NULL;
   nC = nH = NULL;
-  manybody_flag = 1;
 }
 
 /* ----------------------------------------------------------------------

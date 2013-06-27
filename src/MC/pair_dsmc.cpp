@@ -209,12 +209,12 @@ void PairDSMC::settings(int narg, char **arg)
   if (narg != 6) error->all(FLERR,"Illegal pair_style command");
 
   cut_global = 0.0;
-  max_cell_size = force->numeric(arg[0]);
-  seed = force->inumeric(arg[1]);
-  weighting = force->numeric(arg[2]);
-  T_ref = force->numeric(arg[3]);
-  recompute_vsigmamax_stride = force->inumeric(arg[4]);
-  vsigmamax_samples = force->inumeric(arg[5]);
+  max_cell_size = force->numeric(FLERR,arg[0]);
+  seed = force->inumeric(FLERR,arg[1]);
+  weighting = force->numeric(FLERR,arg[2]);
+  T_ref = force->numeric(FLERR,arg[3]);
+  recompute_vsigmamax_stride = force->inumeric(FLERR,arg[4]);
+  vsigmamax_samples = force->inumeric(FLERR,arg[5]);
 
   // initialize Marsaglia RNG with processor-unique seed
 
@@ -248,10 +248,10 @@ void PairDSMC::coeff(int narg, char **arg)
   force->bounds(arg[0],atom->ntypes,ilo,ihi);
   force->bounds(arg[1],atom->ntypes,jlo,jhi);
 
-  double sigma_one = force->numeric(arg[2]);
+  double sigma_one = force->numeric(FLERR,arg[2]);
 
   double cut_one = cut_global;
-  if (narg == 4) cut_one = force->numeric(arg[3]);
+  if (narg == 4) cut_one = force->numeric(FLERR,arg[3]);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

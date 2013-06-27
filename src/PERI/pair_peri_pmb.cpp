@@ -315,10 +315,10 @@ void PairPeriPMB::coeff(int narg, char **arg)
   force->bounds(arg[0],atom->ntypes,ilo,ihi);
   force->bounds(arg[1],atom->ntypes,jlo,jhi);
 
-  double kspring_one = force->numeric(arg[2]);
-  double cut_one = force->numeric(arg[3]);
-  double s00_one = force->numeric(arg[4]);
-  double alpha_one = force->numeric(arg[5]);
+  double kspring_one = force->numeric(FLERR,arg[2]);
+  double cut_one = force->numeric(FLERR,arg[3]);
+  double s00_one = force->numeric(FLERR,arg[4]);
+  double alpha_one = force->numeric(FLERR,arg[5]);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

@@ -1391,16 +1391,16 @@ void PairLJLongTIP4PLong::settings(int narg, char **arg)
   if (!((ewald_order^ewald_off)&(1<<1))) 
     error->all(FLERR,
                "Coulomb cut not supported in pair_style lj/long/tip4p/long");
-  typeO = force->inumeric(arg[1]);
-  typeH = force->inumeric(arg[2]);
-  typeB = force->inumeric(arg[3]);
-  typeA = force->inumeric(arg[4]);
-  qdist = force->numeric(arg[5]);
+  typeO = force->inumeric(FLERR,arg[1]);
+  typeH = force->inumeric(FLERR,arg[2]);
+  typeB = force->inumeric(FLERR,arg[3]);
+  typeA = force->inumeric(FLERR,arg[4]);
+  qdist = force->numeric(FLERR,arg[5]);
 
 
-  cut_lj_global = force->numeric(arg[6]);
+  cut_lj_global = force->numeric(FLERR,arg[6]);
   if (narg == 8) cut_coul = cut_lj_global;
-  else cut_coul = force->numeric(arg[7]);
+  else cut_coul = force->numeric(FLERR,arg[7]);
  
   
   // reset cutoffs that have been explicitly set

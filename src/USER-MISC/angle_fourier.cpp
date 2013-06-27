@@ -175,10 +175,10 @@ void AngleFourier::coeff(int narg, char **arg)
   int ilo,ihi;
   force->bounds(arg[0],atom->nangletypes,ilo,ihi);
 
-  double k_one =  force->numeric(arg[1]);
-  double C0_one = force->numeric(arg[2]);
-  double C1_one = force->numeric(arg[3]);
-  double C2_one = force->numeric(arg[4]);
+  double k_one =  force->numeric(FLERR,arg[1]);
+  double C0_one = force->numeric(FLERR,arg[2]);
+  double C1_one = force->numeric(FLERR,arg[3]);
+  double C2_one = force->numeric(FLERR,arg[4]);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

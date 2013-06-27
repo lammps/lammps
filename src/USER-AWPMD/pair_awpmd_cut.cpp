@@ -410,7 +410,7 @@ void PairAWPMDCut::allocate()
 void PairAWPMDCut::settings(int narg, char **arg){
   if (narg < 1) error->all(FLERR,"Illegal pair_style command");
 
-  cut_global = force->numeric(arg[0]);
+  cut_global = force->numeric(FLERR,arg[0]);
 
   ermscale=1.;
   width_pbc=0.;
@@ -430,21 +430,21 @@ void PairAWPMDCut::settings(int narg, char **arg){
       i++;
       if(i>=narg)
         error->all(FLERR,"Setting 'fix' should be followed by a number in awpmd/cut");
-      wpmd->w0=force->numeric(arg[i]);
+      wpmd->w0=force->numeric(FLERR,arg[i]);
     }
     else if(!strcmp(arg[i],"harm")){
       wpmd->constraint=AWPMD::HARM;
       i++;
       if(i>=narg)
         error->all(FLERR,"Setting 'harm' should be followed by a number in awpmd/cut");
-      wpmd->w0=force->numeric(arg[i]);
+      wpmd->w0=force->numeric(FLERR,arg[i]);
       wpmd->set_harm_constr(wpmd->w0);
     }
     else if(!strcmp(arg[i],"pbc")){
       i++;
       if(i>=narg)
         error->all(FLERR,"Setting 'pbc' should be followed by a number in awpmd/cut");
-      width_pbc=force->numeric(arg[i]);
+      width_pbc=force->numeric(FLERR,arg[i]);
     }
     else if(!strcmp(arg[i],"relax"))
       wpmd->constraint=AWPMD::RELAX;
@@ -452,7 +452,7 @@ void PairAWPMDCut::settings(int narg, char **arg){
       i++;
       if(i>=narg)
         error->all(FLERR,"Setting 'ermscale' should be followed by a number in awpmd/cut");
-      ermscale=force->numeric(arg[i]);
+      ermscale=force->numeric(FLERR,arg[i]);
     }
     else if(!strcmp(arg[i],"flex_press"))
       flexible_pressure_flag = 1;

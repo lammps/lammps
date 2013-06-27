@@ -114,7 +114,7 @@ void Balance::command(int narg, char **arg)
         user_xsplit[0] = 0.0;
         iarg++;
         for (int i = 1; i < procgrid[0]; i++)
-          user_xsplit[i] = force->numeric(arg[iarg++]);
+          user_xsplit[i] = force->numeric(FLERR,arg[iarg++]);
         user_xsplit[procgrid[0]] = 1.0;
       }
     } else if (strcmp(arg[iarg],"y") == 0) {
@@ -132,7 +132,7 @@ void Balance::command(int narg, char **arg)
         user_ysplit[0] = 0.0;
         iarg++;
         for (int i = 1; i < procgrid[1]; i++)
-          user_ysplit[i] = force->numeric(arg[iarg++]);
+          user_ysplit[i] = force->numeric(FLERR,arg[iarg++]);
         user_ysplit[procgrid[1]] = 1.0;
       }
     } else if (strcmp(arg[iarg],"z") == 0) {
@@ -150,7 +150,7 @@ void Balance::command(int narg, char **arg)
         user_zsplit[0] = 0.0;
         iarg++;
         for (int i = 1; i < procgrid[2]; i++)
-          user_zsplit[i] = force->numeric(arg[iarg++]);
+          user_zsplit[i] = force->numeric(FLERR,arg[iarg++]);
         user_zsplit[procgrid[2]] = 1.0;
       }
 

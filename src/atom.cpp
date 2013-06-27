@@ -424,8 +424,8 @@ void Atom::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"sort") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal atom_modify command");
-      sortfreq = force->inumeric(arg[iarg+1]);
-      userbinsize = force->numeric(arg[iarg+2]);
+      sortfreq = force->inumeric(FLERR,arg[iarg+1]);
+      userbinsize = force->numeric(FLERR,arg[iarg+2]);
       if (sortfreq < 0 || userbinsize < 0.0)
         error->all(FLERR,"Illegal atom_modify command");
       if (sortfreq >= 0 && firstgroupname)

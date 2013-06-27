@@ -188,8 +188,8 @@ void PairLJGromacs::settings(int narg, char **arg)
 {
   if (narg != 2) error->all(FLERR,"Illegal pair_style command");
 
-  cut_inner_global = force->numeric(arg[0]);
-  cut_global = force->numeric(arg[1]);
+  cut_inner_global = force->numeric(FLERR,arg[0]);
+  cut_global = force->numeric(FLERR,arg[1]);
 
   if (cut_inner_global <= 0.0 || cut_inner_global > cut_global)
     error->all(FLERR,"Illegal pair_style command");
@@ -221,14 +221,14 @@ void PairLJGromacs::coeff(int narg, char **arg)
   force->bounds(arg[0],atom->ntypes,ilo,ihi);
   force->bounds(arg[1],atom->ntypes,jlo,jhi);
 
-  double epsilon_one = force->numeric(arg[2]);
-  double sigma_one = force->numeric(arg[3]);
+  double epsilon_one = force->numeric(FLERR,arg[2]);
+  double sigma_one = force->numeric(FLERR,arg[3]);
 
   double cut_inner_one = cut_inner_global;
   double cut_one = cut_global;
   if (narg == 6) {
-    cut_inner_one = force->numeric(arg[4]);
-    cut_one = force->numeric(arg[5]);
+    cut_inner_one = force->numeric(FLERR,arg[4]);
+    cut_one = force->numeric(FLERR,arg[5]);
   }
 
   if (cut_inner_one <= 0.0 || cut_inner_one > cut_one)

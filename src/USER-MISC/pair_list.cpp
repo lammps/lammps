@@ -212,7 +212,7 @@ void PairList::settings(int narg, char **arg)
   if (narg < 2)
     error->all(FLERR,"Illegal pair_style command");
 
-  cut_global = force->numeric(arg[1]);
+  cut_global = force->numeric(FLERR,arg[1]);
   if (narg > 2) {
     if (strcmp(arg[2],"nocheck") == 0) check_flag = 0;
     if (strcmp(arg[2],"check") == 0) check_flag = 1;
@@ -267,12 +267,12 @@ void PairList::settings(int narg, char **arg)
       ptr = strtok(NULL," \t\n\r\f");
       if ((ptr == NULL) || (*ptr == '#'))
 	error->all(FLERR,"Incorrectly formatted harmonic pair parameters");
-      par.parm.harm.k = force->numeric(ptr);
+      par.parm.harm.k = force->numeric(FLERR,ptr);
 
       ptr = strtok(NULL," \t\n\r\f");
       if ((ptr == NULL) || (*ptr == '#'))
 	error->all(FLERR,"Incorrectly formatted harmonic pair parameters");
-      par.parm.harm.r0 = force->numeric(ptr);
+      par.parm.harm.r0 = force->numeric(FLERR,ptr);
 
       ++nharm;
 
@@ -283,17 +283,17 @@ void PairList::settings(int narg, char **arg)
       ptr = strtok(NULL," \t\n\r\f");
       if (!ptr)
 	error->all(FLERR,"Incorrectly formatted morse pair parameters");
-      par.parm.morse.d0 = force->numeric(ptr);
+      par.parm.morse.d0 = force->numeric(FLERR,ptr);
 
       ptr = strtok(NULL," \t\n\r\f");
       if (!ptr)
 	error->all(FLERR,"Incorrectly formatted morse pair parameters");
-      par.parm.morse.alpha = force->numeric(ptr);
+      par.parm.morse.alpha = force->numeric(FLERR,ptr);
 
       ptr = strtok(NULL," \t\n\r\f");
       if (!ptr)
 	error->all(FLERR,"Incorrectly formatted morse pair parameters");
-      par.parm.morse.r0 = force->numeric(ptr);
+      par.parm.morse.r0 = force->numeric(FLERR,ptr);
 
       ++nmorse;
 
@@ -304,12 +304,12 @@ void PairList::settings(int narg, char **arg)
       ptr = strtok(NULL," \t\n\r\f");
       if (!ptr)
 	error->all(FLERR,"Incorrectly formatted 12-6 LJ pair parameters");
-      par.parm.lj126.epsilon = force->numeric(ptr);
+      par.parm.lj126.epsilon = force->numeric(FLERR,ptr);
 
       ptr = strtok(NULL," \t\n\r\f");
       if (!ptr)
 	error->all(FLERR,"Incorrectly formatted 12-6 LJ pair parameters");
-      par.parm.lj126.sigma = force->numeric(ptr);
+      par.parm.lj126.sigma = force->numeric(FLERR,ptr);
 
       ++nlj126;
 
@@ -320,7 +320,7 @@ void PairList::settings(int narg, char **arg)
     // optional cutoff parameter. if not specified use global value
     ptr = strtok(NULL," \t\n\r\f");
     if ((ptr != NULL) && (*ptr != '#')) {
-      double cut = force->numeric(ptr);
+      double cut = force->numeric(FLERR,ptr);
       par.cutsq = cut*cut;
     } else {
       par.cutsq = cut_global*cut_global;

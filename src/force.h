@@ -95,8 +95,8 @@ class Force : protected Pointers {
 
   void set_special(int, char **);
   void bounds(char *, int, int &, int &);
-  double numeric(char *);
-  int inumeric(char *);
+  double numeric(const char *, int, char *);
+  int inumeric(const char *, int, char *);
   bigint memory_usage();
 };
 

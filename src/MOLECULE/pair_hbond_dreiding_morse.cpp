@@ -230,22 +230,22 @@ void PairHbondDreidingMorse::coeff(int narg, char **arg)
   else if (strcmp(arg[3],"j") == 0) donor_flag = 1;
   else error->all(FLERR,"Incorrect args for pair coefficients");
 
-  double d0_one = force->numeric(arg[4]);
-  double alpha_one = force->numeric(arg[5]);
-  double r0_one = force->numeric(arg[6]);
+  double d0_one = force->numeric(FLERR,arg[4]);
+  double alpha_one = force->numeric(FLERR,arg[5]);
+  double r0_one = force->numeric(FLERR,arg[6]);
 
   int ap_one = ap_global;
-  if (narg > 7) ap_one = force->inumeric(arg[7]);
+  if (narg > 7) ap_one = force->inumeric(FLERR,arg[7]);
   double cut_inner_one = cut_inner_global;
   double cut_outer_one = cut_outer_global;
   if (narg > 9) {
-    cut_inner_one = force->numeric(arg[8]);
-    cut_outer_one = force->numeric(arg[9]);
+    cut_inner_one = force->numeric(FLERR,arg[8]);
+    cut_outer_one = force->numeric(FLERR,arg[9]);
   }
   if (cut_inner_one>cut_outer_one)
     error->all(FLERR,"Pair inner cutoff >= Pair outer cutoff");
   double cut_angle_one = cut_angle_global;
-  if (narg > 10) cut_angle_one = force->numeric(arg[10]) * MY_PI/180.0;
+  if (narg > 10) cut_angle_one = force->numeric(FLERR,arg[10]) * MY_PI/180.0;
 
   // grow params array if necessary
 

@@ -532,12 +532,12 @@ void ImproperClass2::coeff(int narg, char **arg)
   if (strcmp(arg[1],"aa") == 0) {
     if (narg != 8) error->all(FLERR,"Incorrect args for improper coefficients");
 
-    double k1_one = force->numeric(arg[2]);
-    double k2_one = force->numeric(arg[3]);
-    double k3_one = force->numeric(arg[4]);
-    double theta0_1_one = force->numeric(arg[5]);
-    double theta0_2_one = force->numeric(arg[6]);
-    double theta0_3_one = force->numeric(arg[7]);
+    double k1_one = force->numeric(FLERR,arg[2]);
+    double k2_one = force->numeric(FLERR,arg[3]);
+    double k3_one = force->numeric(FLERR,arg[4]);
+    double theta0_1_one = force->numeric(FLERR,arg[5]);
+    double theta0_2_one = force->numeric(FLERR,arg[6]);
+    double theta0_3_one = force->numeric(FLERR,arg[7]);
 
     // convert theta0's from degrees to radians
 
@@ -555,8 +555,8 @@ void ImproperClass2::coeff(int narg, char **arg)
   } else {
     if (narg != 3) error->all(FLERR,"Incorrect args for improper coefficients");
 
-    double k0_one = force->numeric(arg[1]);
-    double chi0_one = force->numeric(arg[2]);
+    double k0_one = force->numeric(FLERR,arg[1]);
+    double chi0_one = force->numeric(FLERR,arg[2]);
 
     // convert chi0 from degrees to radians
 

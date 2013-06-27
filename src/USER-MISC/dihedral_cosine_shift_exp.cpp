@@ -275,9 +275,9 @@ void DihedralCosineShiftExp::coeff(int narg, char **arg)
   int ilo,ihi;
   force->bounds(arg[0],atom->ndihedraltypes,ilo,ihi);
 
-  double umin_   = force->numeric(arg[1]);
-  double theta0_ = force->numeric(arg[2]);
-  double a_      = force->numeric(arg[3]);
+  double umin_   = force->numeric(FLERR,arg[1]);
+  double theta0_ = force->numeric(FLERR,arg[2]);
+  double a_      = force->numeric(FLERR,arg[3]);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

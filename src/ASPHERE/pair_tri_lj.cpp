@@ -419,7 +419,7 @@ void PairTriLJ::settings(int narg, char **arg)
 {
   if (narg != 1) error->all(FLERR,"Illegal pair_style command");
 
-  cut_global = force->numeric(arg[0]);
+  cut_global = force->numeric(FLERR,arg[0]);
 
   // reset cutoffs that have been explicitly set
 
@@ -445,11 +445,11 @@ void PairTriLJ::coeff(int narg, char **arg)
   force->bounds(arg[0],atom->ntypes,ilo,ihi);
   force->bounds(arg[1],atom->ntypes,jlo,jhi);
 
-  double epsilon_one = force->numeric(arg[2]);
-  double sigma_one = force->numeric(arg[3]);
+  double epsilon_one = force->numeric(FLERR,arg[2]);
+  double sigma_one = force->numeric(FLERR,arg[3]);
 
   double cut_one = cut_global;
-  if (narg == 5) cut_one = force->numeric(arg[4]);
+  if (narg == 5) cut_one = force->numeric(FLERR,arg[4]);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

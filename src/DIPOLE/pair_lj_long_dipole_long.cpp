@@ -98,10 +98,10 @@ void PairLJLongDipoleLong::settings(int narg, char **arg)
     error->all(FLERR,PAIR_MISSING);
   if (!((ewald_order^ewald_off)&(1<<3)))
     error->all(FLERR,PAIR_COUL_CUT);
-  cut_lj_global = force->numeric(*(arg++));
+  cut_lj_global = force->numeric(FLERR,*(arg++));
   if (narg == 4 && (ewald_order==74))
     error->all(FLERR,PAIR_CUTOFF);
-  if (narg == 4) cut_coul = force->numeric(*(arg++));
+  if (narg == 4) cut_coul = force->numeric(FLERR,*(arg++));
   else cut_coul = cut_lj_global;
 
   if (allocated) {					// reset explicit cuts
@@ -201,11 +201,11 @@ void PairLJLongDipoleLong::coeff(int narg, char **arg)
   force->bounds(arg[0],atom->ntypes,ilo,ihi);
   force->bounds(arg[1],atom->ntypes,jlo,jhi);
 
-  double epsilon_one = force->numeric(arg[2]);
-  double sigma_one = force->numeric(arg[3]);
+  double epsilon_one = force->numeric(FLERR,arg[2]);
+  double sigma_one = force->numeric(FLERR,arg[3]);
 
   double cut_lj_one = cut_lj_global;
-  if (narg == 5) cut_lj_one = force->numeric(arg[4]);
+  if (narg == 5) cut_lj_one = force->numeric(FLERR,arg[4]);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

@@ -246,7 +246,7 @@ void PairRESquared::settings(int narg, char **arg)
 {
   if (narg != 1) error->all(FLERR,"Illegal pair_style command");
 
-  cut_global = force->numeric(arg[0]);
+  cut_global = force->numeric(FLERR,arg[0]);
 
   // reset cutoffs that have been explicitly set
 
@@ -272,17 +272,17 @@ void PairRESquared::coeff(int narg, char **arg)
   force->bounds(arg[0],atom->ntypes,ilo,ihi);
   force->bounds(arg[1],atom->ntypes,jlo,jhi);
 
-  double epsilon_one = force->numeric(arg[2]);
-  double sigma_one = force->numeric(arg[3]);
-  double eia_one = force->numeric(arg[4]);
-  double eib_one = force->numeric(arg[5]);
-  double eic_one = force->numeric(arg[6]);
-  double eja_one = force->numeric(arg[7]);
-  double ejb_one = force->numeric(arg[8]);
-  double ejc_one = force->numeric(arg[9]);
+  double epsilon_one = force->numeric(FLERR,arg[2]);
+  double sigma_one = force->numeric(FLERR,arg[3]);
+  double eia_one = force->numeric(FLERR,arg[4]);
+  double eib_one = force->numeric(FLERR,arg[5]);
+  double eic_one = force->numeric(FLERR,arg[6]);
+  double eja_one = force->numeric(FLERR,arg[7]);
+  double ejb_one = force->numeric(FLERR,arg[8]);
+  double ejc_one = force->numeric(FLERR,arg[9]);
 
   double cut_one = cut_global;
-  if (narg == 11) cut_one = force->numeric(arg[10]);
+  if (narg == 11) cut_one = force->numeric(FLERR,arg[10]);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

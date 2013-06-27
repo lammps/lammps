@@ -272,7 +272,7 @@ void DihedralNHarmonic::coeff(int narg, char **arg)
 {
   if (narg < 4 ) error->all(FLERR,"Incorrect args for dihedral coefficients");
 
-  int n = force->inumeric(arg[1]);
+  int n = force->inumeric(FLERR,arg[1]);
   if (narg != n + 2 ) error->all(FLERR,"Incorrect args for dihedral coefficients");
 
   if (!allocated) allocate();
@@ -285,7 +285,7 @@ void DihedralNHarmonic::coeff(int narg, char **arg)
     a[i] = new double [n];
     nterms[i] = n;
     for (int j = 0; j < n; j++ ) {
-      a[i][j] = force->numeric(arg[2+j]);
+      a[i][j] = force->numeric(FLERR,arg[2+j]);
       setflag[i] = 1;
     }
     count++;

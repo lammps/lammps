@@ -440,7 +440,7 @@ void PairMIECut::settings(int narg, char **arg)
 {
   if (narg != 1) error->all(FLERR,"Illegal pair_style command");
 
-  cut_global = force->numeric(arg[0]);
+  cut_global = force->numeric(FLERR,arg[0]);
 
   // reset cutoffs that have been explicitly set
 
@@ -466,13 +466,13 @@ void PairMIECut::coeff(int narg, char **arg)
   force->bounds(arg[0],atom->ntypes,ilo,ihi);
   force->bounds(arg[1],atom->ntypes,jlo,jhi);
 
-  double epsilon_one = force->numeric(arg[2]);
-  double sigma_one = force->numeric(arg[3]);
-  double gamR_one = force->numeric(arg[4]);
-  double gamA_one = force->numeric(arg[5]);
+  double epsilon_one = force->numeric(FLERR,arg[2]);
+  double sigma_one = force->numeric(FLERR,arg[3]);
+  double gamR_one = force->numeric(FLERR,arg[4]);
+  double gamA_one = force->numeric(FLERR,arg[5]);
 
   double cut_one = cut_global;
-  if (narg == 7) cut_one = force->numeric(arg[6]);
+  if (narg == 7) cut_one = force->numeric(FLERR,arg[6]);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

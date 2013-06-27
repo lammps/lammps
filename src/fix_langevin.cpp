@@ -102,7 +102,7 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[iarg],"angmom") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix langevin command");
       if (strcmp(arg[iarg+1],"no") == 0) ascale = 0.0;
-      else ascale = force->numeric(arg[iarg+1]);
+      else ascale = force->numeric(FLERR,arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"gjf") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix langevin command");

@@ -200,15 +200,15 @@ void PairBorn::coeff(int narg, char **arg)
   force->bounds(arg[0],atom->ntypes,ilo,ihi);
   force->bounds(arg[1],atom->ntypes,jlo,jhi);
 
-  double a_one = force->numeric(arg[2]);
-  double rho_one = force->numeric(arg[3]);
-  double sigma_one = force->numeric(arg[4]);
+  double a_one = force->numeric(FLERR,arg[2]);
+  double rho_one = force->numeric(FLERR,arg[3]);
+  double sigma_one = force->numeric(FLERR,arg[4]);
   if (rho_one <= 0) error->all(FLERR,"Incorrect args for pair coefficients");
-  double c_one = force->numeric(arg[5]);
-  double d_one = force->numeric(arg[6]);
+  double c_one = force->numeric(FLERR,arg[5]);
+  double d_one = force->numeric(FLERR,arg[6]);
 
   double cut_one = cut_global;
-  if (narg == 8) cut_one = force->numeric(arg[7]);
+  if (narg == 8) cut_one = force->numeric(FLERR,arg[7]);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

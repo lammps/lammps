@@ -140,10 +140,10 @@ void PairDPDTstat::settings(int narg, char **arg)
 {
   if (narg != 4) error->all(FLERR,"Illegal pair_style command");
 
-  t_start = force->numeric(arg[0]);
-  t_stop = force->numeric(arg[1]);
-  cut_global = force->numeric(arg[2]);
-  seed = force->inumeric(arg[3]);
+  t_start = force->numeric(FLERR,arg[0]);
+  t_stop = force->numeric(FLERR,arg[1]);
+  cut_global = force->numeric(FLERR,arg[2]);
+  seed = force->inumeric(FLERR,arg[3]);
 
   temperature = t_start;
 
@@ -178,10 +178,10 @@ void PairDPDTstat::coeff(int narg, char **arg)
   force->bounds(arg[1],atom->ntypes,jlo,jhi);
 
   double a0_one = 0.0;
-  double gamma_one = force->numeric(arg[2]);
+  double gamma_one = force->numeric(FLERR,arg[2]);
 
   double cut_one = cut_global;
-  if (narg == 4) cut_one = force->numeric(arg[3]);
+  if (narg == 4) cut_one = force->numeric(FLERR,arg[3]);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

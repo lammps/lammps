@@ -273,11 +273,11 @@ void DihedralMultiHarmonic::coeff(int narg, char **arg)
   int ilo,ihi;
   force->bounds(arg[0],atom->ndihedraltypes,ilo,ihi);
 
-  double a1_one = force->numeric(arg[1]);
-  double a2_one = force->numeric(arg[2]);
-  double a3_one = force->numeric(arg[3]);
-  double a4_one = force->numeric(arg[4]);
-  double a5_one = force->numeric(arg[5]);
+  double a1_one = force->numeric(FLERR,arg[1]);
+  double a2_one = force->numeric(FLERR,arg[2]);
+  double a3_one = force->numeric(FLERR,arg[3]);
+  double a4_one = force->numeric(FLERR,arg[4]);
+  double a5_one = force->numeric(FLERR,arg[5]);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

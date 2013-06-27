@@ -229,7 +229,7 @@ void PairSPHRhoSum::settings(int narg, char **arg) {
   if (narg != 1)
     error->all(FLERR,
         "Illegal number of setting arguments for pair_style sph/rhosum");
-  nstep = force->inumeric(arg[0]);
+  nstep = force->inumeric(FLERR,arg[0]);
 }
 
 /* ----------------------------------------------------------------------
@@ -246,7 +246,7 @@ void PairSPHRhoSum::coeff(int narg, char **arg) {
   force->bounds(arg[0], atom->ntypes, ilo, ihi);
   force->bounds(arg[1], atom->ntypes, jlo, jhi);
 
-  double cut_one = force->numeric(arg[2]);
+  double cut_one = force->numeric(FLERR,arg[2]);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

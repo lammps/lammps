@@ -50,7 +50,7 @@ ComputeBodyLocal::ComputeBodyLocal(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[iarg],"type") == 0) which[nvalues++] = TYPE;
     else {
       which[nvalues] = INDEX;
-      index[nvalues] = force->inumeric(arg[iarg]) - 1;
+      index[nvalues] = force->inumeric(FLERR,arg[iarg]) - 1;
       nvalues++;
     }
   }

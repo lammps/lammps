@@ -53,7 +53,7 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   if (style == NONE) {
     if (narg != 2) error->all(FLERR,"Illegal lattice command");
-    xlattice = ylattice = zlattice = atof(arg[1]);
+    xlattice = ylattice = zlattice = force->numeric(FLERR,arg[1]);
     if (xlattice <= 0.0) error->all(FLERR,"Illegal lattice command");
     return;
   }
@@ -75,7 +75,7 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   // scale = conversion factor between lattice and box units
 
   if (narg < 2) error->all(FLERR,"Illegal lattice command");
-  scale = atof(arg[1]);
+  scale = force->numeric(FLERR,arg[1]);
   if (scale <= 0.0) error->all(FLERR,"Illegal lattice command");
 
   // set basis atoms for each style
@@ -142,9 +142,9 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"origin") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal lattice command");
-      origin[0] = atof(arg[iarg+1]);
-      origin[1] = atof(arg[iarg+2]);
-      origin[2] = atof(arg[iarg+3]);
+      origin[0] = force->numeric(FLERR,arg[iarg+1]);
+      origin[1] = force->numeric(FLERR,arg[iarg+2]);
+      origin[2] = force->numeric(FLERR,arg[iarg+3]);
       if (origin[0] < 0.0 || origin[0] >= 1.0 ||
           origin[1] < 0.0 || origin[1] >= 1.0 ||
           origin[2] < 0.0 || origin[2] >= 1.0)
@@ -162,17 +162,17 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
       if (dim == 0) orient = orientx;
       else if (dim == 1) orient = orienty;
       else if (dim == 2) orient = orientz;
-      orient[0] = force->inumeric(arg[iarg+2]);
-      orient[1] = force->inumeric(arg[iarg+3]);
-      orient[2] = force->inumeric(arg[iarg+4]);
+      orient[0] = force->inumeric(FLERR,arg[iarg+2]);
+      orient[1] = force->inumeric(FLERR,arg[iarg+3]);
+      orient[2] = force->inumeric(FLERR,arg[iarg+4]);
       iarg += 5;
 
     } else if (strcmp(arg[iarg],"spacing") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal lattice command");
       spaceflag = 1;
-      xlattice = atof(arg[iarg+1]);
-      ylattice = atof(arg[iarg+2]);
-      zlattice = atof(arg[iarg+3]);
+      xlattice = force->numeric(FLERR,arg[iarg+1]);
+      ylattice = force->numeric(FLERR,arg[iarg+2]);
+      zlattice = force->numeric(FLERR,arg[iarg+3]);
       iarg += 4;
 
     } else if (strcmp(arg[iarg],"a1") == 0) {
@@ -180,27 +180,27 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
       if (style != CUSTOM)
         error->all(FLERR,
                    "Invalid option in lattice command for non-custom style");
-      a1[0] = atof(arg[iarg+1]);
-      a1[1] = atof(arg[iarg+2]);
-      a1[2] = atof(arg[iarg+3]);
+      a1[0] = force->numeric(FLERR,arg[iarg+1]);
+      a1[1] = force->numeric(FLERR,arg[iarg+2]);
+      a1[2] = force->numeric(FLERR,arg[iarg+3]);
       iarg += 4;
     } else if (strcmp(arg[iarg],"a2") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal lattice command");
       if (style != CUSTOM)
         error->all(FLERR,
                    "Invalid option in lattice command for non-custom style");
-      a2[0] = atof(arg[iarg+1]);
-      a2[1] = atof(arg[iarg+2]);
-      a2[2] = atof(arg[iarg+3]);
+      a2[0] = force->numeric(FLERR,arg[iarg+1]);
+      a2[1] = force->numeric(FLERR,arg[iarg+2]);
+      a2[2] = force->numeric(FLERR,arg[iarg+3]);
       iarg += 4;
     } else if (strcmp(arg[iarg],"a3") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal lattice command");
       if (style != CUSTOM)
         error->all(FLERR,
                    "Invalid option in lattice command for non-custom style");
-      a3[0] = atof(arg[iarg+1]);
-      a3[1] = atof(arg[iarg+2]);
-      a3[2] = atof(arg[iarg+3]);
+      a3[0] = force->numeric(FLERR,arg[iarg+1]);
+      a3[1] = force->numeric(FLERR,arg[iarg+2]);
+      a3[2] = force->numeric(FLERR,arg[iarg+3]);
       iarg += 4;
 
     } else if (strcmp(arg[iarg],"basis") == 0) {
@@ -208,9 +208,9 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
       if (style != CUSTOM)
         error->all(FLERR,
                    "Invalid option in lattice command for non-custom style");
-      double x = atof(arg[iarg+1]);
-      double y = atof(arg[iarg+2]);
-      double z = atof(arg[iarg+3]);
+      double x = force->numeric(FLERR,arg[iarg+1]);
+      double y = force->numeric(FLERR,arg[iarg+2]);
+      double z = force->numeric(FLERR,arg[iarg+3]);
       if (x < 0.0 || x >= 1.0 || y < 0.0 || y >= 1.0 || z < 0.0 || z >= 1.0)
         error->all(FLERR,"Illegal lattice command");
       add_basis(x,y,z);

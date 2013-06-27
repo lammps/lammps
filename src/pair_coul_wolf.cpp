@@ -177,8 +177,8 @@ void PairCoulWolf::settings(int narg, char **arg)
 {
   if (narg != 2) error->all(FLERR,"Illegal pair_style command");
 
-  alf = force->numeric(arg[0]);
-  cut_coul = force->numeric(arg[1]);
+  alf = force->numeric(FLERR,arg[0]);
+  cut_coul = force->numeric(FLERR,arg[1]);
 }
 
 /* ----------------------------------------------------------------------

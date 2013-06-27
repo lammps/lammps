@@ -71,7 +71,7 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   first_gpu = atoi(arg[4]);
   last_gpu = atoi(arg[5]);
 
-  _particle_split = force->numeric(arg[6]);
+  _particle_split = force->numeric(FLERR,arg[6]);
   if (_particle_split==0 || _particle_split>1)
     error->all(FLERR,"Illegal fix GPU command");
 

@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
   <head>
-    <title>Configuring the LAMMPS-ICMS Snapshot Repository</title>
+    <title>Configuring the LAMMPS-ICMS Repository</title>
     <link rel="shortcut icon" href="ICMS_icon.png" type="image/png">
   </head>
 
@@ -40,7 +40,7 @@
     </ul>
 
     <p align="justify">
-      After clicking on the URL, your webbrowser should ask which
+      After clicking on the URL, your web browser should ask which
       application to run with this file and you need to select 'Package
       Installer'. If you are only offered to download the file, save the
       file and then open a terminal and go to the directory where you
@@ -53,7 +53,7 @@
     </div>
     <p align="justify">This will launch the PackageKit Installer GUI and
     you can complete the installation of the repository by following the
-    instructions in the dialogs.</p>
+    instructions in the dialog windows.</p>
     <hr width="100%">
 
     <h2>Command Line Setup for Fedora, CentOS/RHEL with Yum</h2>
@@ -116,10 +116,10 @@
     <h2>Installing and Updating LAMMPS versions</h2>
     <p align="justify">
       After the repository has been configured, you can use the package
-      manager software to install or update the lammps packages of your
-      choice. You can only have packages belonging to the same snapshot
-      version installed at the same time. The regular update meachnism
-      will notice when a new snapshot is available.
+      manager software to install or update the LAMMPS packages of your
+      choice. You can only have packages belonging to the same daily
+      build version installed at the same time. The regular update meachnism
+      will notice when a new daily build is available.
     </p>
 
     <h2>Uninstalling or Deactivating the Yum Repository with PackageKit</h2>
@@ -127,15 +127,15 @@
       To suspend the yum repository, simply launch the <e>Add/Remove
       Software</e> application in the <e>Administration</e> menu. This
       will launch the PackageKit application GUI and under the menu item
-      <e>System &gt; Software Sources</e> you can select or unselect
+      <e>System &gt; Software Sources</e> you can select or deselect
       the entry for the LAMMPS repository.
     </p>
 
     <p align="justify">
-      To uninstall simply simply uncheck the <e>LAMMPS-ICMS Snapshot Reposity</e>
+      To uninstall simply simply uncheck the <e>LAMMPS-ICMS Repository</e>
       package and click on <b>Apply</b>. This will remove the repository
       information, but not the LAMMPS binaries. Those would need to be
-      deinstalled from the GUI in the same way.
+      uninstalled from the GUI in the same way.
     </p>
     <hr width="100%">
 
@@ -149,7 +149,7 @@
       as well.
     </p>
     <p align="justify">
-      To suspend getting (automatic) updates from newer snapshots run,
+      To suspend getting (automatic) updates, you can
       edit the file <b><code>/etc/yum.repos.d/lammps-*.repo</code></b>
       and change the <b><code>enabled = 1</code></b> entries to
       <b><code>enabled = 0</code></b>. If you want to re-enable the
@@ -193,13 +193,13 @@
     <br>
     <hr>
     <p>
-      Back to <a href="index.html">LAMMPS-ICMS Snapshot RPM Repository Home Page</a>.
+      Back to <a href="index.html">LAMMPS-ICMS RPM Repository Home Page</a>.
     </p>
     <hr>
     <address><a href="http://goo.gl/1wk0" target="_blank">Axel Kohlmeyer</a></address>
 <!-- Created: Fri Jun 14 08:59:35 CEST 2013 -->
 <!-- hhmts start -->
-Last modified: Wed Jun 19 17:57:54 CEST 2013
+Last modified: Thu Jun 27 14:28:16 CEST 2013
 <!-- hhmts end -->
   </body>
 </html>

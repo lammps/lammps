@@ -1,10 +1,12 @@
-# verified on Fedora 18     / x86_64 / 2013-06-15
-# verified on Fedora 18     / i386   / 2013-06-15
-# verified on Fedora 19     / x86_64 / 2013-06-10
-# verified on CentOS 6.4    / x86_64 / 2013-06-15
-# verified on CentOS 6.4    / i386   / 2013-06-15
-# verified on OpenSuSE 12.3 / x86_64 / 2013-06-15
-# verified on OpenSuSE 12.3 / i586   / 2013-06-15
+# verified on Fedora 17     / x86_64 / 2013-06-26
+# verified on Fedora 17     / i386   / 2013-06-26
+# verified on Fedora 18     / x86_64 / 2013-06-26
+# verified on Fedora 18     / i386   / 2013-06-26
+# verified on Fedora 19     / x86_64 / 2013-06-26
+# verified on CentOS 6.4    / x86_64 / 2013-06-26
+# verified on CentOS 6.4    / i386   / 2013-06-26
+# verified on OpenSuSE 12.3 / x86_64 / 2013-06-26
+# verified on OpenSuSE 12.3 / i586   / 2013-06-26
 
 %ifnarch s390 s390x
 %global with_openmpi 1
@@ -179,8 +181,8 @@ LD_LIBRARY_PATH=.:${LD_LIBRARY_PATH} %{__python} -O dummy.py
 cd ../
 
 # now build some tools
-g++ -o serial/restart2data ${RPM_OPT_FLAGS} tools/restart2data.cpp
-g++ -o serial/binary2txt ${RPM_OPT_FLAGS} tools/binary2txt.cpp
+g++ -o serial/restart2data ${RPM_OPT_FLAGS} %{bigintsize} tools/restart2data.cpp
+g++ -o serial/binary2txt ${RPM_OPT_FLAGS} %{bigintsize} tools/binary2txt.cpp
 gfortran -o serial/chain.x ${RPM_OPT_FLAGS} tools/chain.f
 
 # build OpenMPI parallel version, if supported

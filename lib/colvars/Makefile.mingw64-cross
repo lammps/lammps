@@ -1,0 +1,109 @@
+# library build -*- makefile -*- for colvars module
+
+# which file will be copied to Makefile.lammps
+
+EXTRAMAKE = Makefile.lammps.empty
+
+# ------ SETTINGS ------
+
+CXX =		x86_64-w64-mingw32-g++
+CXXFLAGS =	-O2 -march=core2 -mtune=core2 -mpc64 -msse2		\
+		-fno-rtti -fno-exceptions -finline-functions		\
+                -ffast-math -funroll-loops -fstrict-aliasing		\
+                -Wall -W -Wno-uninitialized
+ARCHIVE =	x86_64-w64-mingw32-ar
+ARCHFLAG =	-rscv
+SHELL =		/bin/sh
+
+# ------ DEFINITIONS ------
+
+SRC = colvaratoms.cpp colvarbias_abf.cpp colvarbias.cpp colvarbias_meta.cpp \
+ colvar.cpp colvarcomp_angles.cpp colvarcomp.cpp colvarcomp_coordnums.cpp   \
+ colvarcomp_distances.cpp colvarcomp_protein.cpp colvarcomp_rotations.cpp   \
+ colvargrid.cpp colvarmodule.cpp colvarparse.cpp colvarvalue.cpp
+
+DIR = Obj_mingw64/
+LIB = $(DIR)libcolvars.a
+OBJ = $(SRC:%.cpp=$(DIR)%.o)
+EXE = #colvars_standalone
+
+# ------ MAKE PROCEDURE ------
+
+default: $(DIR) $(LIB) $(EXE) Makefile.lammps
+
+$(DIR):
+	mkdir $(DIR)
+
+Makefile.lammps:
+	@cp $(EXTRAMAKE) Makefile.lammps
+
+$(LIB): $(DIR)	$(OBJ)
+	$(ARCHIVE) $(ARFLAGS) $(LIB) $(OBJ)
+
+$(DIR)colvars_standalone: colvars_main.o colvarproxy_standalone.o $(LIB)
+	$(CXX) -o $@ $(CXXFLAGS) $^
+
+# ------ MAKE FLAGS ------
+
+.SUFFIXES:
+.SUFFIXES: .cpp .o
+
+.PHONY: default clean
+
+# ------ COMPILE RULES ------
+
+$(DIR)%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+# ------ DEPENDENCIES ------
+#
+$(DIR)colvars_main.o: colvars_main.cpp colvarmodule.h colvartypes.h colvarproxy.h \
+ colvarproxy_standalone.h colvaratoms.h colvarparse.h colvarvalue.h
+$(DIR)colvarproxy_standalone.o: colvarproxy_standalone.cpp colvarmodule.h \
+ colvartypes.h colvarproxy.h colvaratoms.h colvarparse.h colvarvalue.h \
+ colvarproxy_standalone.h
+$(DIR)colvaratoms.o: colvaratoms.cpp colvarmodule.h colvartypes.h colvarproxy.h \
+ colvarparse.h colvarvalue.h colvaratoms.h
+$(DIR)colvarbias_abf.o: colvarbias_abf.cpp colvarmodule.h colvartypes.h \
+ colvarproxy.h colvar.h colvarvalue.h colvarparse.h colvarbias_abf.h \
+ colvarbias.h colvargrid.h
+$(DIR)colvarbias.o: colvarbias.cpp colvarmodule.h colvartypes.h colvarproxy.h \
+ colvarvalue.h colvarbias.h colvar.h colvarparse.h
+$(DIR)colvarbias_meta.o: colvarbias_meta.cpp colvar.h colvarmodule.h \
+ colvartypes.h colvarproxy.h colvarvalue.h colvarparse.h \
+ colvarbias_meta.h colvarbias.h colvargrid.h
+$(DIR)colvar.o: colvar.cpp colvarmodule.h colvartypes.h colvarproxy.h \
+ colvarvalue.h colvarparse.h colvar.h colvarcomp.h colvaratoms.h
+$(DIR)colvarcomp_angles.o: colvarcomp_angles.cpp colvarmodule.h colvartypes.h \
+ colvarproxy.h colvar.h colvarvalue.h colvarparse.h colvarcomp.h \
+ colvaratoms.h
+$(DIR)colvarcomp.o: colvarcomp.cpp colvarmodule.h colvartypes.h colvarproxy.h \
+ colvarvalue.h colvar.h colvarparse.h colvarcomp.h colvaratoms.h
+$(DIR)colvarcomp_coordnums.o: colvarcomp_coordnums.cpp colvarmodule.h \
+ colvartypes.h colvarproxy.h colvarparse.h colvarvalue.h colvaratoms.h \
+ colvar.h colvarcomp.h
+$(DIR)colvarcomp_distances.o: colvarcomp_distances.cpp colvarmodule.h \
+ colvartypes.h colvarproxy.h colvarvalue.h colvarparse.h colvar.h \
+ colvarcomp.h colvaratoms.h
+$(DIR)colvarcomp_protein.o: colvarcomp_protein.cpp colvarmodule.h colvartypes.h \
+ colvarproxy.h colvarvalue.h colvarparse.h colvar.h colvarcomp.h \
+ colvaratoms.h
+$(DIR)colvarcomp_rotations.o: colvarcomp_rotations.cpp colvarmodule.h \
+ colvartypes.h colvarproxy.h colvarvalue.h colvarparse.h colvar.h \
+ colvarcomp.h colvaratoms.h
+$(DIR)colvargrid.o: colvargrid.cpp colvarmodule.h colvartypes.h colvarproxy.h \
+ colvarvalue.h colvarparse.h colvar.h colvarcomp.h colvaratoms.h \
+ colvargrid.h
+$(DIR)colvarmodule.o: colvarmodule.cpp colvarmodule.h colvartypes.h colvarproxy.h \
+ colvarparse.h colvarvalue.h colvar.h colvarbias.h colvarbias_meta.h \
+ colvargrid.h colvarbias_abf.h
+$(DIR)colvarparse.o: colvarparse.cpp colvarmodule.h colvartypes.h colvarproxy.h \
+ colvarvalue.h colvarparse.h
+$(DIR)colvarvalue.o: colvarvalue.cpp colvarmodule.h colvartypes.h colvarproxy.h \
+ colvarvalue.h
+
+# ------ CLEAN ------
+
+clean:
+	-rm $(DIR)*.o *~ $(LIB)
+	-rmdir $(DIR)

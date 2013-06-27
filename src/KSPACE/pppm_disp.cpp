@@ -70,7 +70,7 @@ PPPMDisp::PPPMDisp(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
 
   triclinic_support = 0;
   pppmflag = dispersionflag = 1;
-  accuracy_relative = atof(arg[0]);
+  accuracy_relative = fabs(force->numeric(FLERR,arg[0]));
   
   nfactors = 3;
   factors = new int[nfactors];
@@ -1137,7 +1137,7 @@ void PPPMDisp::compute(int eflag, int vflag)
 
   if (slabflag) slabcorr(eflag);
   if (function[0]) energy += energy_1;
-  if (function[1]) energy += energy_6;
+  if (function[1] + function[2]) energy += energy_6;
 
   // convert atoms back from lamda to box coords
   
@@ -2838,12 +2838,15 @@ void PPPMDisp::calc_csum()
   MPI_Allreduce(neach,neach_all,ntypes+1,MPI_INT,MPI_SUM,world);
 
   // copmute csumij and csumi
-
+  double d1, d2;
   if (function[1]){
     for (i=1; i<=ntypes; i++) {
       for (j=1; j<=ntypes; j++) {
         csumi[i] += neach_all[j]*B[i]*B[j];
-        csumij += neach_all[i]*neach_all[j]*B[i]*B[j]; 
+        d1 = neach_all[i]*B[i];
+        d2 = neach_all[j]*B[j];
+        csumij += d1*d2;
+        //csumij += neach_all[i]*neach_all[j]*B[i]*B[j]; 
       }
     }
   } else {
@@ -2851,7 +2854,10 @@ void PPPMDisp::calc_csum()
       for (j=1; j<=ntypes; j++) {
         for (k=0; k<=6; k++) {
           csumi[i] += neach_all[j]*B[7*i + k]*B[7*(j+1)-k-1];
-          csumij += neach_all[i]*neach_all[j]*B[7*i + k]*B[7*(j+1)-k-1];
+          d1 = neach_all[i]*B[7*i + k];
+          d2 = neach_all[j]*B[7*(j+1)-k-1];
+          csumij += d1*d2;
+          //csumij += neach_all[i]*neach_all[j]*B[7*i + k]*B[7*(j+1)-k-1];
         }
       }
     }

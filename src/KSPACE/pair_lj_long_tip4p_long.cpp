@@ -484,6 +484,7 @@ void PairLJLongTIP4PLong::compute_inner()
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
 
+  // atom->nmax > nmax will occur during setup
   if (atom->nmax > nmax) {
     nmax = atom->nmax;
     memory->destroy(hneigh);
@@ -999,6 +1000,19 @@ void PairLJLongTIP4PLong::compute_outer(int eflag, int vflag)
   // initialize hneigh[2] to 0 every step
 
   int nlocal = atom->nlocal;
+  int nall = nlocal + atom->nghost;
+
+  if (atom->nmax > nmax) {
+    nmax = atom->nmax;
+    memory->destroy(hneigh);
+    memory->create(hneigh,nmax,3,"pair:hneigh");
+    memory->destroy(newsite);
+    memory->create(newsite,nmax,3,"pair:newsite");
+  }
+  if (neighbor->ago == 0) {
+    for (i = 0; i < nall; i++) hneigh[i][0] = -1;
+    for (i = 0; i < nall; i++) hneigh[i][2] = 0;
+  }
 
   double **f = atom->f;
   double **x = atom->x;
@@ -1236,7 +1250,6 @@ void PairLJLongTIP4PLong::compute_outer(int eflag, int vflag)
 
           cforce = forcecoul * r2inv;
           fvirial = (forcecoul + respa_coul) * r2inv;
-          double fvcf = fvirial/cforce;
 
           // if i,j are not O atoms, force is applied directly
 	  // if i or j are O atoms, force is on fictitious atom & partitioned
@@ -1291,15 +1304,27 @@ void PairLJLongTIP4PLong::compute_outer(int eflag, int vflag)
             f[iH2][2] += fH[2];
 
 	    if (vflag) {
+              fd[0] = delx*fvirial;
+              fd[1] = dely*fvirial;
+              fd[2] = delz*fvirial;
+
+              fO[0] = fd[0]*(1 - alpha);
+              fO[1] = fd[1]*(1 - alpha);
+              fO[2] = fd[2]*(1 - alpha);
+
+              fH[0] = 0.5 * alpha * fd[0];
+              fH[1] = 0.5 * alpha * fd[1];
+              fH[2] = 0.5 * alpha * fd[2];
+
 	      domain->closest_image(x[i],x[iH1],xH1);
 	      domain->closest_image(x[i],x[iH2],xH2);
 
-	      v[0] = (x[i][0]*fO[0] + xH1[0]*fH[0] + xH2[0]*fH[0])*fvcf;
-	      v[1] = (x[i][1]*fO[1] + xH1[1]*fH[1] + xH2[1]*fH[1])*fvcf;
-	      v[2] = (x[i][2]*fO[2] + xH1[2]*fH[2] + xH2[2]*fH[2])*fvcf;
-	      v[3] = (x[i][0]*fO[1] + xH1[0]*fH[1] + xH2[0]*fH[1])*fvcf;
-	      v[4] = (x[i][0]*fO[2] + xH1[0]*fH[2] + xH2[0]*fH[2])*fvcf;
-	      v[5] = (x[i][1]*fO[2] + xH1[1]*fH[2] + xH2[1]*fH[2])*fvcf;
+	      v[0] = x[i][0]*fO[0] + xH1[0]*fH[0] + xH2[0]*fH[0];
+	      v[1] = x[i][1]*fO[1] + xH1[1]*fH[1] + xH2[1]*fH[1];
+	      v[2] = x[i][2]*fO[2] + xH1[2]*fH[2] + xH2[2]*fH[2];
+	      v[3] = x[i][0]*fO[1] + xH1[0]*fH[1] + xH2[0]*fH[1];
+	      v[4] = x[i][0]*fO[2] + xH1[0]*fH[2] + xH2[0]*fH[2];
+	      v[5] = x[i][1]*fO[2] + xH1[1]*fH[2] + xH2[1]*fH[2];
 	    }
 	    vlist[n++] = i;
 	    vlist[n++] = iH1;
@@ -1349,15 +1374,28 @@ void PairLJLongTIP4PLong::compute_outer(int eflag, int vflag)
 	    f[jH2][2] += fH[2];
 
 	    if (vflag) {
+
+	      fd[0] = -delx*fvirial;
+	      fd[1] = -dely*fvirial;
+	      fd[2] = -delz*fvirial;
+
+              fO[0] = fd[0]*(1 - alpha);
+              fO[1] = fd[1]*(1 - alpha);
+              fO[2] = fd[2]*(1 - alpha);
+
+              fH[0] = 0.5 * alpha * fd[0];
+              fH[1] = 0.5 * alpha * fd[1];
+              fH[2] = 0.5 * alpha * fd[2]; 
+
 	      domain->closest_image(x[j],x[jH1],xH1);
 	      domain->closest_image(x[j],x[jH2],xH2);
 
-	      v[0] += (x[j][0]*fO[0] + xH1[0]*fH[0] + xH2[0]*fH[0])*fvcf;
-	      v[1] += (x[j][1]*fO[1] + xH1[1]*fH[1] + xH2[1]*fH[1])*fvcf;
-	      v[2] += (x[j][2]*fO[2] + xH1[2]*fH[2] + xH2[2]*fH[2])*fvcf;
-	      v[3] += (x[j][0]*fO[1] + xH1[0]*fH[1] + xH2[0]*fH[1])*fvcf;
-	      v[4] += (x[j][0]*fO[2] + xH1[0]*fH[2] + xH2[0]*fH[2])*fvcf;
-	      v[5] += (x[j][1]*fO[2] + xH1[1]*fH[2] + xH2[1]*fH[2])*fvcf;
+	      v[0] += x[j][0]*fO[0] + xH1[0]*fH[0] + xH2[0]*fH[0];
+	      v[1] += x[j][1]*fO[1] + xH1[1]*fH[1] + xH2[1]*fH[1];
+	      v[2] += x[j][2]*fO[2] + xH1[2]*fH[2] + xH2[2]*fH[2];
+	      v[3] += x[j][0]*fO[1] + xH1[0]*fH[1] + xH2[0]*fH[1];
+	      v[4] += x[j][0]*fO[2] + xH1[0]*fH[2] + xH2[0]*fH[2];
+	      v[5] += x[j][1]*fO[2] + xH1[1]*fH[2] + xH2[1]*fH[2];
             }
       	    vlist[n++] = j;
 	    vlist[n++] = jH1;

@@ -425,6 +425,30 @@ void PairLJLongTIP4PLongOMP::compute_outer(int eflag, int vflag)
   const int order6 = ewald_order&(1<<6);
 
   const int nall = atom->nlocal + atom->nghost;
+
+  // reallocate hneigh_thr & newsite_thr if necessary
+  // initialize hneigh_thr[0] to -1 on steps when reneighboring occured
+  // initialize hneigh_thr[2] to 0 every step
+
+  if (atom->nmax > nmax) {
+    nmax = atom->nmax;
+    memory->destroy(hneigh_thr);
+    memory->create(hneigh_thr,nmax,"pair:hneigh_thr");
+    memory->destroy(newsite_thr);
+    memory->create(newsite_thr,nmax,"pair:newsite_thr");
+  }
+
+  int i;
+  // tag entire list as completely invalid after a neighbor
+  // list update, since that can change the order of atoms.
+  if (neighbor->ago == 0) {
+    for (i = 0; i < nall; i++) hneigh_thr[i].a = -1;
+    // indicate that the coordinates for the M point need to
+    // be updated. this needs to be done only if neighbor list
+    // has been updated in compute_outer
+    for (i = 0; i < nall; i++) hneigh_thr[i].t = 0;
+  }
+
   const int nthreads = comm->nthreads;
   const int inum = listouter->inum;
 
@@ -1798,7 +1822,6 @@ void PairLJLongTIP4PLongOMP::eval_outer(int iifrom, int iito, ThrData * const th
 
           cforce = forcecoul * r2inv;
           fvirial = (forcecoul + respa_coul) * r2inv;
-          double fvcf = fvirial/cforce;
 
           // if i,j are not O atoms, force is applied directly
 	  // if i or j are O atoms, force is on fictitious atom & partitioned
@@ -1853,15 +1876,28 @@ void PairLJLongTIP4PLongOMP::eval_outer(int iifrom, int iito, ThrData * const th
             f[iH2][2] += fH[2];
 
 	    if (EVFLAG) {
+
+              fd[0] = delx*fvirial;
+              fd[1] = dely*fvirial;
+              fd[2] = delz*fvirial;
+
+              fO[0] = fd[0]*(1 - alpha);
+              fO[1] = fd[1]*(1 - alpha);
+              fO[2] = fd[2]*(1 - alpha);
+
+              fH[0] = 0.5 * alpha * fd[0];
+              fH[1] = 0.5 * alpha * fd[1];
+              fH[2] = 0.5 * alpha * fd[2];
+
 	      domain->closest_image(&x[i].x,&x[iH1].x,xH1);
 	      domain->closest_image(&x[i].x,&x[iH2].x,xH2);
 
-	      v[0] = (x[i].x*fO[0] + xH1[0]*fH[0] + xH2[0]*fH[0])*fvcf;
-	      v[1] = (x[i].y*fO[1] + xH1[1]*fH[1] + xH2[1]*fH[1])*fvcf;
-	      v[2] = (x[i].z*fO[2] + xH1[2]*fH[2] + xH2[2]*fH[2])*fvcf;
-	      v[3] = (x[i].x*fO[1] + xH1[0]*fH[1] + xH2[0]*fH[1])*fvcf;
-	      v[4] = (x[i].x*fO[2] + xH1[0]*fH[2] + xH2[0]*fH[2])*fvcf;
-	      v[5] = (x[i].y*fO[2] + xH1[1]*fH[2] + xH2[1]*fH[2])*fvcf;
+	      v[0] = x[i].x*fO[0] + xH1[0]*fH[0] + xH2[0]*fH[0];
+	      v[1] = x[i].y*fO[1] + xH1[1]*fH[1] + xH2[1]*fH[1];
+	      v[2] = x[i].z*fO[2] + xH1[2]*fH[2] + xH2[2]*fH[2];
+	      v[3] = x[i].x*fO[1] + xH1[0]*fH[1] + xH2[0]*fH[1];
+	      v[4] = x[i].x*fO[2] + xH1[0]*fH[2] + xH2[0]*fH[2];
+	      v[5] = x[i].y*fO[2] + xH1[1]*fH[2] + xH2[1]*fH[2];
 	    }
 	    vlist[n++] = i;
 	    vlist[n++] = iH1;
@@ -1911,15 +1947,28 @@ void PairLJLongTIP4PLongOMP::eval_outer(int iifrom, int iito, ThrData * const th
 	    f[jH2][2] += fH[2];
 
 	    if (EVFLAG) {
+
+	      fd[0] = -delx*fvirial;
+	      fd[1] = -dely*fvirial;
+	      fd[2] = -delz*fvirial;
+
+              fO[0] = fd[0]*(1 - alpha);
+              fO[1] = fd[1]*(1 - alpha);
+              fO[2] = fd[2]*(1 - alpha);
+
+              fH[0] = 0.5 * alpha * fd[0];
+              fH[1] = 0.5 * alpha * fd[1];
+              fH[2] = 0.5 * alpha * fd[2]; 
+
 	      domain->closest_image(&x[j].x,&x[jH1].x,xH1);
 	      domain->closest_image(&x[j].x,&x[jH2].x,xH2);
 
-	      v[0] += (x[j].x*fO[0] + xH1[0]*fH[0] + xH2[0]*fH[0])*fvcf;
-	      v[1] += (x[j].y*fO[1] + xH1[1]*fH[1] + xH2[1]*fH[1])*fvcf;
-	      v[2] += (x[j].z*fO[2] + xH1[2]*fH[2] + xH2[2]*fH[2])*fvcf;
-	      v[3] += (x[j].x*fO[1] + xH1[0]*fH[1] + xH2[0]*fH[1])*fvcf;
-	      v[4] += (x[j].x*fO[2] + xH1[0]*fH[2] + xH2[0]*fH[2])*fvcf;
-	      v[5] += (x[j].y*fO[2] + xH1[1]*fH[2] + xH2[1]*fH[2])*fvcf;
+	      v[0] += x[j].x*fO[0] + xH1[0]*fH[0] + xH2[0]*fH[0];
+	      v[1] += x[j].y*fO[1] + xH1[1]*fH[1] + xH2[1]*fH[1];
+	      v[2] += x[j].z*fO[2] + xH1[2]*fH[2] + xH2[2]*fH[2];
+	      v[3] += x[j].x*fO[1] + xH1[0]*fH[1] + xH2[0]*fH[1];
+	      v[4] += x[j].x*fO[2] + xH1[0]*fH[2] + xH2[0]*fH[2];
+	      v[5] += x[j].y*fO[2] + xH1[1]*fH[2] + xH2[1]*fH[2];
             }
       	    vlist[n++] = j;
 	    vlist[n++] = jH1;

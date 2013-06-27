@@ -1643,7 +1643,7 @@ static const char *potname(const char *path)
     path += 2;
 #endif
 
-  for (pot = path; path != NULL; ++path) {
+  for (pot = path; *path != NULL; ++path) {
 #if defined(_WIN32)
     if ((*path == '\\') || (*path == '/'))
       pot = path + 1;
@@ -1660,7 +1660,7 @@ static const char *potname(const char *path)
    path, but failing that, it will search in a directory pointed to by
    the environment variable LAMMPS_POTENTIALS */
 
-FILE *open_potential(const char *name)
+FILE *LAMMPS_NS::open_potential(const char *name)
 {
   FILE *fp;
 

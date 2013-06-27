@@ -213,6 +213,8 @@ class Pair : protected Pointers {
   }
 };
 
+// fopen wrapper that also looks in $LAMMPS_POTENTIALS for potential files
+FILE *open_potential(const char *);
 }
 
 #endif

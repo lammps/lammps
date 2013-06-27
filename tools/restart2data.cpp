@@ -36,27 +36,50 @@
 #define MAX_GROUP 32
 #define PI (4.0*atan(1.0))
 
-// these must match settings in src/lmptype.h
-// depending on whether you built LAMMPS with
-// -DLAMMPS_SMALLBIG (the default), -DLAMMPS_BIGBIG, or -DLAMMPS_SMALLSMALL
+// these must match settings in src/lmptype.h which builds LAMMPS with
+//   -DLAMMPS_SMALLBIG (the default), -DLAMMPS_BIGBIG, or -DLAMMPS_SMALLSMALL
+// you can edit the tools/Makefile to enforce the same setting
+//   for the build of restart2data, e.g.
+//   g++ -g -DLAMMPS_BIGBIG restart2data.o -o restart2data
+//   again -DLAMMPS_SMALLBIG is the default
 
 #include "stdint.h"
 #define __STDC_FORMAT_MACROS
 #include "inttypes.h"
 
+#ifndef PRId64
+#define PRId64 "ld"
+#endif
+
+#if !defined(LAMMPS_SMALLSMALL) && !defined(LAMMPS_BIGBIG) && !defined(LAMMPS_SMALLBIG)
+#define LAMMPS_SMALLBIG
+#endif
+
+#if defined(LAMMPS_SMALLBIG)
 typedef int tagint;
 typedef int64_t bigint;
 #define BIGINT_FORMAT "%" PRId64
-
 #define IMGMASK 1023
 #define IMGMAX 512
 #define IMGBITS 10
 #define IMG2BITS 20
-
-//#define IMGMASK 2097151
-//#define IMGMAX 1048576
-//#define IMGBITS 21
-//#define IMG2BITS 42
+#elif defined(LAMMPS_SMALLSMALL)
+typedef int tagint;
+typedef int bigint;
+#define BIGINT_FORMAT "%d"
+#define IMGMASK 1023
+#define IMGMAX 512
+#define IMGBITS 10
+#define IMG2BITS 20
+#else /* LAMMPS_BIGBIG */
+typedef int64_t tagint;
+typedef int64_t bigint;
+#define BIGINT_FORMAT "%" PRId64
+#define IMGMASK 2097151
+#define IMGMAX 1048576
+#define IMGBITS 21
+#define IMG2BITS 42
+#endif
 
 // same as write_restart.cpp
 
@@ -544,7 +567,7 @@ int main (int narg, char **arg)
 
 void header(FILE *fp, Data &data)
 {
-  const char *version = "17 May 2012";
+  const char *version = "27 June 2013";
 
   data.triclinic = 0;
 

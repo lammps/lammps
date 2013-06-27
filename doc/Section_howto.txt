@@ -1348,6 +1348,17 @@ output.  In each case, the compute, fix, or variable must generate
 global values for input to the "thermo_style custom"_dump.html
 command.
 
+Note that thermodynamic output values can be "extensive" or
+"intensive".  The former scale with the number of atoms in the system
+(e.g. total energy), the latter do not (e.g. temperature).  The
+setting for "thermo_modify norm"_thermo_modify.html determines whether
+extensive quantities are normalized or not.  Computes and fixes
+produce either extensive or intensive values; see their individual doc
+pages for details.  "Equal-style variables"_variable.html produce only
+intensive values; you can include a division by "natoms" in the
+formula if desired, to make an extensive calculation produce an
+intensive result.
+
 Dump file output :h5,link(dump)
 
 Dump file output is specified by the "dump"_dump.html and

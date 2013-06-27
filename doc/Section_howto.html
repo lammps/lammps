@@ -1359,6 +1359,17 @@ output.  In each case, the compute, fix, or variable must generate
 global values for input to the <A HREF = "dump.html">thermo_style custom</A>
 command.
 </P>
+<P>Note that thermodynamic output values can be "extensive" or
+"intensive".  The former scale with the number of atoms in the system
+(e.g. total energy), the latter do not (e.g. temperature).  The
+setting for <A HREF = "thermo_modify.html">thermo_modify norm</A> determines whether
+extensive quantities are normalized or not.  Computes and fixes
+produce either extensive or intensive values; see their individual doc
+pages for details.  <A HREF = "variable.html">Equal-style variables</A> produce only
+intensive values; you can include a division by "natoms" in the
+formula if desired, to make an extensive calculation produce an
+intensive result.
+</P>
 <H5><A NAME = "dump"></A>Dump file output 
 </H5>
 <P>Dump file output is specified by the <A HREF = "dump.html">dump</A> and

@@ -12,7 +12,7 @@ Sampling and Restraints. This code consists of two parts:
 
   A copy of this code is located in the directory lib/colvars
   and needs to be compiled first. More info about this code
-  can be found at: http://colvars.github.io/
+  can be found at: http://colvars.github.io
 
   and in the publications:
 
@@ -31,14 +31,17 @@ Sampling and Restraints. This code consists of two parts:
   This interface was written and is maintained by
   Axel Kohlmeyer (akohlmey@gmail.com)
 
-See the doc page of fix colvars for more details
+See the doc page of fix colvars for more details.
+
+There is a reference manual for the package included with the LAMMPS
+doc pages: doc/PDF/colvars-refman-lammps.pdf
 
 There are example scripts for using this package in
-examples/USER/colvars
+examples/USER/colvars.
 
 The person who created this package is Axel Kohlmeyer at Temple U
 (akohlmey at gmail.com).  Contact him directly if you have questions.
- 
+
 ---------------------------------
 
 Version: 2013-06-27

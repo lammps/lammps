@@ -12,7 +12,7 @@ kspace_style command :h3
 
 kspace_style style value :pre
 
-style = {none} or {ewald} or {ewald/disp} or {ewald/omp} or {pppm} or {pppm/cg} or {pppm/disp} or {pppm/tip4p} or {pppm/disp/tip4p} or {pppm/gpu} or {pppm/omp} or {pppm/cg/omp} or {pppm/tip4p/omp} or {msm} or {msm/cg} or {msm/omp} or {msm/cg/omp} :ulb,l
+style = {none} or {ewald} or {ewald/disp} or {ewald/omp} or {pppm} or {pppm/cg} or {pppm/disp} or {pppm/tip4p} or {pppm/stagger} or {pppm/disp/tip4p} or {pppm/gpu} or {pppm/omp} or {pppm/cg/omp} or {pppm/tip4p/omp} or {msm} or {msm/cg} or {msm/omp} or {msm/cg/omp} :ulb,l
   {none} value = none
   {ewald} value = accuracy
     accuracy = desired relative error in forces
@@ -38,6 +38,8 @@ style = {none} or {ewald} or {ewald/disp} or {ewald/omp} or {pppm} or {pppm/cg} 
   {pppm/cg/omp} value = accuracy
     accuracy = desired relative error in forces
   {pppm/tip4p/omp} value = accuracy
+    accuracy = desired relative error in forces
+  {pppm/stagger} value = accuracy
     accuracy = desired relative error in forces
   {msm} value = accuracy
     accuracy = desired relative error in forces
@@ -93,8 +95,9 @@ The {ewald/disp} style adds a long-range dispersion sum option for
 but in a more efficient manner than the {ewald} style.  The 1/r^6
 capability means that Lennard-Jones or Buckingham potentials can be
 used without a cutoff, i.e. they become full long-range potentials.
-The {ewald/disp} style can also be used with point-dipoles "(Toukmaji)"_#Toukmaji
-and is currently the only kspace solver in LAMMPS with this capability.
+The {ewald/disp} style can also be used with point-dipoles
+"(Toukmaji)"_#Toukmaji and is currently the only kspace solver in
+LAMMPS with this capability.
 
 :line
 
@@ -119,6 +122,30 @@ The {pppm/tip4p} style is identical to the {pppm} style except that it
 adds a charge at the massless 4th site in each TIP4P water molecule.
 It should be used with "pair styles"_pair_style.html with a
 {tip4p/long} in their style name.
+
+The {pppm/stagger} style performs calculations using two different
+meshes, one shifted slightly with respect to the other.  This can
+reduce force aliasing errors and increase the accuracy of the method
+for a given mesh size.  Or a coarser mesh can be used for the same
+target accuracy, which saves CPU time.  However, there is a trade-off
+since FFTs on two meshes are now performed which increases the
+compuation required.  See "(Cerutti)"_#Cerutti, "(Neelov)"_#Neelov,
+and "(Hockney)"_#Hockney for details of the method.
+
+For high relative accuracy, using staggered PPPM allows the mesh size
+to be reduced by a factor of 2 in each dimension as compared to
+regular PPPM (for the same target accuracy).  This can give up to a 4x
+speedup in the KSpace time (8x less mesh points, 2x more expensive).
+However, for low relative accuracy, the staggered PPPM mesh size may
+be essentially the same as for regular PPPM, which means the method
+will be up to 2x slower in the KSpace time (simply 2x more expensive).
+For more details and timings, see
+"Section_accelerate"_Section_accelerate.html.
+
+IMPORTANT NOTE: Using {pppm/stagger} may not give the same increase in
+the accuracy of energy and pressure as it does in forces, so some
+caution must be used if energy and/or pressure are quantities of
+interest, such as when using a barostat.
 
 :line
 
@@ -303,6 +330,13 @@ Adam Hilger, NY (1989).
 
 :link(Pollock)
 [(Pollock)] Pollock and Glosli, Comp Phys Comm, 95, 93 (1996).
+
+:link(Cerutti)
+[(Cerutti)] Cerutti, Duke, Darden, Lybrand, Journal of Chemical Theory
+and Computation 5, 2322 (2009)
+
+:link(Neelov)
+[(Neelov)] Neelov, Holm, J Chem Phys 132, 234103 (2010)
 
 :link(Veld)
 [(Veld)] In 't Veld, Ismail, Grest, J Chem Phys, 127, 144711 (2007).

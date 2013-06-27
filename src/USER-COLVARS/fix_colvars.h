@@ -42,16 +42,16 @@ class FixColvars : public Fix {
   virtual int setmask();
   virtual void init();
   virtual void setup(int);
+  virtual void min_setup(int vflag) {setup(vflag);};
   virtual void min_post_force(int);
   virtual void post_force(int);
   virtual void post_force_respa(int, int, int);
-  virtual void post_run();
   virtual void end_of_step();
   virtual double compute_scalar();
   virtual double memory_usage();
 
- protected:
-  void   deallocate();        // free internal buffers
+  virtual void write_restart(FILE *);
+  virtual void restart(char *);
 
  protected:
   class colvarproxy_lammps *proxy; // pointer to the colvars proxy class
@@ -81,6 +81,7 @@ class FixColvars : public Fix {
   int nlevels_respa;   // flag to determine respa levels.
   int store_forces;    // flag to determine whether to store total forces
   int unwrap_flag;     // 1 if atom coords are unwrapped, 0 if not
+  int init_flag;       // 1 if initialized, 0 if not
   static  int instances; // count fix instances, since colvars currently
                          // only supports one instance at a time
 };
@@ -89,4 +90,56 @@ class FixColvars : public Fix {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Cannot use fix colvars for atoms with rmass attribute
+
+The colvars library assigns atom masses per atom type, thus atom styles
+which allow setting individual per atom masses are not supported.
+
+E: Missing argument to keyword
+
+Self-explanatory. A keyword was recognized, but no corresponding value
+found. Check the input script syntax and compare to the documentation
+for the command.
+
+E: Incorrect fix colvars unwrap flag
+
+Self-explanatory. Check the input script syntax.
+
+E: Unknown fix colvars parameter
+
+Self-explanatory. Check your input script syntax.
+
+E: Cannot use fix colvars without atom IDs
+
+Atom IDs are not defined, but fix colvars needs them to identify an atom.
+
+E: Fix colvars requires an atom map
+
+Use the atom_modify command to create an atom map.
+
+W: Using fix colvars with minimization
+
+Some of the functionality supported with the colvars library is not
+meaningful with minimization calculations.
+
+E: Could not find tstat fix ID
+
+Self-explanatory. The thermostat fix ID provided with the tstat keyword
+is not defined (anymore). Check your input file.
+
+E: Run aborted on request from colvars module
+
+Some error condition happened inside the colvars library that prohibits
+it from continuing. Please examine the output for additional information.
+
+*/
 

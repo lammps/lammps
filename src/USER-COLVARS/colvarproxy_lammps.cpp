@@ -56,13 +56,11 @@ static void my_backup_file(const char *filename, const char *extension)
 ////////////////////////////////////////////////////////////////////////
 
 colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp,
-                                       const char *conf_file,
                                        const char *inp_name,
                                        const char *out_name,
                                        const int seed,
-                                       const double temp,
-                                       const int *typemap)
-  : _lmp(lmp), _typemap(typemap)
+                                       const double temp)
+  : _lmp(lmp)
 {
   if (cvm::debug())
     log("Initializing the colvars proxy object.\n");
@@ -87,15 +85,20 @@ colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp,
   restart_prefix_str = std::string("rest");
 
   // try to extract a restart prefix from a potential restart command.
-  if (_lmp->output->restart_every_single > 0) {
-    restart_prefix_str = std::string(_lmp->output->restart1);
-  } else if  (_lmp->output->restart_every_double > 0) {
-    restart_prefix_str = std::string(_lmp->output->restart2a);
+  LAMMPS_NS::Output *outp = _lmp->output;
+  if ((outp->restart_every_single > 0) && (outp->restart1 != 0)) {
+      restart_prefix_str = std::string(outp->restart1);
+  } else if  ((outp->restart_every_double > 0) && (outp->restart2a != 0)) {
+    restart_prefix_str = std::string(outp->restart2a);
   }
   // trim off unwanted stuff from the restart prefix
   if (restart_prefix_str.rfind(".*") != std::string::npos)
     restart_prefix_str.erase(restart_prefix_str.rfind(".*"),2);
+}
 
+
+void colvarproxy_lammps::init(const char *conf_file)
+{
   // create the colvarmodule instance
   colvars = new colvarmodule(conf_file,this);
 
@@ -112,19 +115,22 @@ colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp,
     log(cvm::line_marker);
     log("Info: done initializing the colvars proxy object.\n");
   }
-  // this is only valid through the constructor.
-  _typemap = NULL;
 }
 
 colvarproxy_lammps::~colvarproxy_lammps()
 {
   delete _random;
-
   if (colvars != NULL) {
     colvars->write_output_files();
     delete colvars;
     colvars = NULL;
   }
+}
+
+// re-initialize data where needed
+void colvarproxy_lammps::setup()
+{
+  colvars->setup();
 }
 
 // trigger colvars computation
@@ -149,6 +155,11 @@ double colvarproxy_lammps::compute()
              "Updating internal data.\n");
   }
 
+  // zero the forces on the atoms, so that they can be accumulated by the colvars
+  for (size_t i = 0; i < applied_forces.size(); i++) {
+    applied_forces[i].x = applied_forces[i].y = applied_forces[i].z = 0.0;
+  }
+
   // call the collective variable module
   colvars->calc();
 
@@ -162,6 +173,26 @@ double colvarproxy_lammps::compute()
 #endif
 
   return bias_energy;
+}
+
+void colvarproxy_lammps::serialize_status(std::string &rst)
+{
+  std::ostringstream os;
+  colvars->write_restart(os);
+  rst = os.str();
+}
+
+// set status from string
+bool colvarproxy_lammps::deserialize_status(std::string &rst)
+{
+  std::istringstream is;
+  is.str(rst);
+
+  if (!colvars->read_restart(is)) {
+    return false;
+  } else {
+    return true;
+  }
 }
 
 cvm::rvector colvarproxy_lammps::position_distance(cvm::atom_pos const &pos1,
@@ -308,7 +339,7 @@ void colvarproxy_lammps::backup_file(char const *filename)
 int colvarproxy_lammps::init_lammps_atom(const int &aid, cvm::atom *atom)
 {
   atom->id = aid;
-  atom->mass = _lmp->atom->mass[_typemap[aid]];
+  atom->mass = 0.0;
 
   for (size_t i = 0; i < colvars_atoms.size(); i++) {
     if (colvars_atoms[i] == aid) {
@@ -323,7 +354,7 @@ int colvarproxy_lammps::init_lammps_atom(const int &aid, cvm::atom *atom)
   colvars_atoms.push_back(aid);
   struct commdata c;
   c.tag = aid;
-  c.type = _typemap[aid];
+  c.type = 0;
   c.x = c.y = c.z = 0.0;
   positions.push_back(c);
   total_forces.push_back(c);
@@ -385,11 +416,12 @@ cvm::atom::atom(cvm::atom const &a)
 
 cvm::atom::~atom()
 {
-  colvarproxy_lammps *cp = (colvarproxy_lammps *) cvm::proxy;
-  if (cp->colvars_atoms_ncopies[this->index] > 0)
-    cp->colvars_atoms_ncopies[this->index] -= 1;
+  if (this->index >= 0) {
+    colvarproxy_lammps *cp = (colvarproxy_lammps *) cvm::proxy;
+    if (cp->colvars_atoms_ncopies[this->index] > 0)
+      cp->colvars_atoms_ncopies[this->index] -= 1;
+  }
 }
-
 
 void cvm::atom::read_position()
 {
@@ -397,6 +429,7 @@ void cvm::atom::read_position()
   this->pos.x = cp->positions[this->index].x;
   this->pos.y = cp->positions[this->index].y;
   this->pos.z = cp->positions[this->index].z;
+  this->mass = cp->positions[this->index].m;
 }
 
 void cvm::atom::read_velocity()
@@ -418,7 +451,7 @@ void cvm::atom::read_system_force()
 void cvm::atom::apply_force(cvm::rvector const &new_force)
 {
   colvarproxy_lammps *cp = (colvarproxy_lammps *) cvm::proxy;
-  cp->applied_forces[this->index].x = new_force.x;
-  cp->applied_forces[this->index].y = new_force.y;
-  cp->applied_forces[this->index].z = new_force.z;
+  cp->applied_forces[this->index].x += new_force.x;
+  cp->applied_forces[this->index].y += new_force.y;
+  cp->applied_forces[this->index].z += new_force.z;
 }

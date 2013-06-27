@@ -17,7 +17,7 @@
 /* struct for packed data communication of coordinates and forces. */
 struct commdata {
   int tag,type;
-  double x,y,z;
+  double x,y,z,m;
 };
 
 inline std::ostream & operator<< (std::ostream &out, const commdata &cd)
@@ -37,9 +37,6 @@ class colvarproxy_lammps : public colvarproxy {
   // pointers to LAMMPS class instances
   class LAMMPS_NS::LAMMPS *_lmp;
   class LAMMPS_NS::RanPark *_random;
-
-  // pointers to LAMMPS provided storage
-  const int *_typemap;
 
   // state of LAMMPS properties
   double t_target;
@@ -63,9 +60,11 @@ class colvarproxy_lammps : public colvarproxy {
 
  public:
   friend class cvm::atom;
-  colvarproxy_lammps (LAMMPS_NS::LAMMPS *lmp, const char *, const char *,
-                      const char *, const int, const double, const int *);
+  colvarproxy_lammps (LAMMPS_NS::LAMMPS *lmp, const char *,
+                      const char *, const int, const double);
   virtual ~colvarproxy_lammps();
+  void init(const char*);
+  void setup();
 
  // disable default and copy constructor
  private:
@@ -87,6 +86,12 @@ class colvarproxy_lammps : public colvarproxy {
 
   // perform colvars computation. returns biasing energy
   double compute();
+
+  // dump status to string
+  void serialize_status(std::string &);
+
+  // set status from string
+  bool deserialize_status(std::string &);
 
   // implementation of pure methods from base class
  public:

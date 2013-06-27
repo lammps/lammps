@@ -293,20 +293,15 @@ FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 4)
     error->all(FLERR,"Illegal fix colvars command: too few arguments");
 
-  if (atom->tag_enable == 0)
-    error->all(FLERR,"Cannot use fix colvars without atom IDs defined");
-
-  if (atom->rmass_flag)
-    error->all(FLERR,"Cannot use fix colvars for atoms with rmass attribute");
-
   if (instances > 0)
-    error->all(FLERR,"Only one fix colvars can be active at a time");
+    error->all(FLERR,"Only one colvars fix can be active at a time");
   ++instances;
 
   scalar_flag = 1;
   global_freq = 1;
   nevery = 1;
   extscalar = 1;
+  restart_global = 1;
 
   me = comm->me;
 
@@ -320,13 +315,17 @@ FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
 
   /* parse optional arguments */
   int argsdone = 4;
-  while (argsdone+1 < narg) {
+  while (argsdone < narg) {
+    // we have keyword/value pairs. check if value is missing
+    if (argsdone+1 == narg)
+      error->all(FLERR,"Missing argument to keyword");
+
     if (0 == strcmp(arg[argsdone], "input")) {
       inp_name = strdup(arg[argsdone+1]);
     } else if (0 == strcmp(arg[argsdone], "output")) {
       out_name = strdup(arg[argsdone+1]);
     } else if (0 == strcmp(arg[argsdone], "seed")) {
-      rng_seed = atoi(arg[argsdone+1]);
+      rng_seed = force->inumeric(FLERR,arg[argsdone+1]);
     } else if (0 == strcmp(arg[argsdone], "unwrap")) {
       if (0 == strcmp(arg[argsdone+1], "yes")) {
         unwrap_flag = 1;
@@ -349,6 +348,7 @@ FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
   tstat_id = -1;
   energy = 0.0;
   nlevels_respa = 0;
+  init_flag = 0;
   num_coords = 0;
   coords = forces = oforce = NULL;
   comm_buf = NULL;
@@ -369,15 +369,7 @@ FixColvars::~FixColvars()
   memory->sfree(inp_name);
   memory->sfree(out_name);
   memory->sfree(tmp_name);
-  deallocate();
-  --instances;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixColvars::deallocate()
-{
-  memory->destroy(comm_buf);
+  memory->sfree(comm_buf);
 
   if (proxy) {
     delete proxy;
@@ -386,21 +378,7 @@ void FixColvars::deallocate()
     delete hashtable;
   }
 
-  proxy = NULL;
-  idmap = NULL;
-  coords = NULL;
-  forces = NULL;
-  oforce = NULL;
-  comm_buf = NULL;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixColvars::post_run()
-{
-  deallocate();
-  memory->sfree(inp_name);
-  inp_name = strdup(out_name);
+  --instances;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -412,127 +390,99 @@ int FixColvars::setmask()
   mask |= MIN_POST_FORCE;
   mask |= POST_FORCE;
   mask |= POST_FORCE_RESPA;
-  mask |= POST_RUN;
   mask |= END_OF_STEP;
   return mask;
 }
 
 /* ---------------------------------------------------------------------- */
 
-// initial setup of colvars run.
+// initial checks for colvars run.
 
 void FixColvars::init()
 {
+  if (atom->tag_enable == 0)
+    error->all(FLERR,"Cannot use fix colvars without atom IDs");
+
+  if (atom->map_style == 0)
+    error->all(FLERR,"Fix colvars requires an atom map");
+
+  if ((me == 0) && (update->whichflag == 2))
+    error->warning(FLERR,"Using fix colvars with minimization");
+
   if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
+}
 
+/* ---------------------------------------------------------------------- */
 
-  int i,nme,tmp,ndata;
+void FixColvars::setup(int vflag)
+{
+  const int * const tag  = atom->tag;
+  const int * const type = atom->type;
+  int i,nme,tmp,ndata,nlocal_max,tag_max,max;
+  int nlocal = atom->nlocal;
 
   MPI_Status status;
   MPI_Request request;
 
-  // collect a list of atom type by atom id for the entire system.
-  // the colvar module requires this information to set masses. :-(
+  // one time initialization
+  if (init_flag == 0) {
+    init_flag = 1;
 
-  int *typemap,*type_buf;
-  int nlocal_max,tag_max,max;
-  const int * const tag  = atom->tag;
-  const int * const type = atom->type;
-  int nlocal = atom->nlocal;
+    // now create and initialize the colvars proxy
 
-  max=0;
-  for (i = 0; i < nlocal; i++) max = MAX(max,tag[i]);
-  MPI_Allreduce(&max,&tag_max,1,MPI_INT,MPI_MAX,world);
-  MPI_Allreduce(&nlocal,&nlocal_max,1,MPI_INT,MPI_MAX,world);
+    if (me == 0) {
 
-  if (me == 0) {
-    typemap = new int[tag_max+1];
-    memset(typemap,0,sizeof(int)*tag_max);
-  }
-  type_buf = new int[2*nlocal_max];
+      // input (= restart) name == "NULL" means, no restart.
+      if (inp_name) {
+        if (strcmp(inp_name,"NULL") == 0) {
+          memory->sfree(inp_name);
+          inp_name = NULL;
+        }
+      }
 
-  if (me == 0) {
-    for (i=0; i<nlocal; ++i)
-      typemap[tag[i]] = type[i];
+      // try to determine thermostat target temperature
+      double t_target = 0.0;
+      if (tmp_name) {
+        if (strcmp(tmp_name,"NULL") == 0)
+          tstat_id = -1;
+        else {
+          tstat_id = modify->find_fix(tmp_name);
+          if (tstat_id < 0) error->one(FLERR,"Could not find tstat fix ID");
+          double *tt = (double*)modify->fix[tstat_id]->extract("t_target",tmp);
+          if (tt) t_target = *tt;
+        }
+      }
 
-    // loop over procs to receive and apply remote data
-
-    for (i=1; i < comm->nprocs; ++i) {
-      MPI_Irecv(type_buf, 2*nlocal_max, MPI_INT, i, 0, world, &request);
-      MPI_Send(&tmp, 0, MPI_INT, i, 0, world);
-      MPI_Wait(&request, &status);
-      MPI_Get_count(&status, MPI_INT, &ndata);
-
-      for (int k=0; k<ndata; k+=2)
-        typemap[type_buf[k]] = type_buf[k+1];
+      proxy = new colvarproxy_lammps(lmp,inp_name,out_name,rng_seed,t_target);
+      proxy->init(conf_file);
+      coords = proxy->get_coords();
+      forces = proxy->get_forces();
+      oforce = proxy->get_oforce();
+      num_coords = coords->size();
     }
-  } else { // me != 0
 
-    // copy tag/type data into communication buffer
+    // send the list of all colvar atom IDs to all nodes.
+    // also initialize and build hashtable on master.
 
-    nme = 0;
-    for (i=0; i<nlocal; ++i) {
-      type_buf[nme] = tag[i];
-      type_buf[nme+1] = type[i];
-      nme +=2;
-    }
-    /* blocking receive to wait until it is our turn to send data. */
-    MPI_Recv(&tmp, 0, MPI_INT, 0, 0, world, &status);
-    MPI_Rsend(type_buf, nme, MPI_INT, 0, 0, world);
-  }
+    MPI_Bcast(&num_coords, 1, MPI_INT, 0, world);
+    memory->create(taglist,num_coords,"colvars:taglist");
+    memory->create(force_buf,3*num_coords,"colvars:force_buf");
 
-  // now create and initialize the colvar proxy
+    if (me == 0) {
+      std::vector<int> *tags_list = proxy->get_tags();
+      std::vector<int> &tl = *tags_list;
+      inthash_t *hashtable=new inthash_t;
+      inthash_init(hashtable, num_coords);
+      idmap = (void *)hashtable;
 
-  if (me == 0) {
-
-    if (inp_name) {
-      if (strcmp(inp_name,"NULL") == 0) {
-        memory->sfree(inp_name);
-        inp_name = NULL;
+      for (i=0; i < num_coords; ++i) {
+        taglist[i] = tl[i];
+        inthash_insert(hashtable, tl[i], i);
       }
     }
-
-    double t_target = 0.0;
-    if (tmp_name) {
-      if (strcmp(tmp_name,"NULL") == 0)
-        tstat_id = -1;
-      else {
-        tstat_id = modify->find_fix(tmp_name);
-        if (tstat_id < 0) error->one(FLERR,"Could not find tstat fix ID");
-        double *tt = (double*)modify->fix[tstat_id]->extract("t_target",tmp);
-        if (tt) t_target = *tt;
-      }
-    }
-
-    proxy = new colvarproxy_lammps(lmp,conf_file,inp_name,out_name,
-                                   rng_seed,t_target,typemap);
-    coords = proxy->get_coords();
-    forces = proxy->get_forces();
-    oforce = proxy->get_oforce();
-    num_coords = coords->size();
-  }
-
-  // send the list of all colvar atom IDs to all nodes.
-  // also initialize and build hashtable on master.
-
-  MPI_Bcast(&num_coords, 1, MPI_INT, 0, world);
-  memory->create(taglist,num_coords,"colvars:taglist");
-  memory->create(force_buf,3*num_coords,"colvars:force_buf");
-
-  if (me == 0) {
-    std::vector<int> *tags_list = proxy->get_tags();
-    std::vector<int> &tl = *tags_list;
-    inthash_t *hashtable=new inthash_t;
-    inthash_init(hashtable, num_coords);
-    idmap = (void *)hashtable;
-
-    for (i=0; i < num_coords; ++i) {
-      taglist[i] = tl[i];
-      inthash_insert(hashtable, tl[i], i);
-    }
-  }
-  MPI_Bcast(taglist, num_coords, MPI_INT, 0, world);
+    MPI_Bcast(taglist, num_coords, MPI_INT, 0, world);
+  } // end of one time initialization
 
   // determine size of comm buffer
   nme=0;
@@ -583,6 +533,11 @@ void FixColvars::init()
           cd[i].y = x[k][1];
           cd[i].z = x[k][2];
         }
+        if (atom->rmass_flag) {
+          cd[i].m = atom->rmass[k];
+        } else {
+          cd[i].m = atom->mass[type[k]];
+        }
       }
     }
 
@@ -604,6 +559,7 @@ void FixColvars::init()
           cd[j].x = comm_buf[k].x;
           cd[j].y = comm_buf[k].y;
           cd[j].z = comm_buf[k].z;
+          cd[j].m = comm_buf[k].m;
           of[j].x = of[j].y = of[j].z = 0.0;
         }
       }
@@ -634,6 +590,12 @@ void FixColvars::init()
           comm_buf[nme].z = x[k][2];
         }
 
+        if (atom->rmass_flag) {
+          comm_buf[nme].m = atom->rmass[k];
+        } else {
+          comm_buf[nme].m = atom->mass[type[k]];
+        }
+
         ++nme;
       }
     }
@@ -642,19 +604,17 @@ void FixColvars::init()
     MPI_Rsend(comm_buf, nme*size_one, MPI_BYTE, 0, 0, world);
   }
 
-  // clear temporary storage
-  if (me == 0) delete typemap;
-  delete type_buf;
-}
+  // run pre-run setup in colvarproxy
+  proxy->setup();
 
-/* ---------------------------------------------------------------------- */
-
-void FixColvars::setup(int vflag)
-{
-  if (strstr(update->integrate_style,"verlet"))
+  // initialize forces
+  if (strstr(update->integrate_style,"verlet") || (update->whichflag == 2))
     post_force(vflag);
-  else
-    post_force_respa(vflag,0,0);
+  else {
+    ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
+    post_force_respa(vflag,nlevels_respa-1,0);
+    ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -665,7 +625,7 @@ void FixColvars::post_force(int vflag)
   // some housekeeping: update status of the proxy as needed.
   if (me == 0) {
     if (proxy->want_exit())
-      error->one(FLERR,"Run halted on request from colvars module.\n");
+      error->one(FLERR,"Run aborted on request from colvars module.\n");
 
     if (tstat_id < 0) {
       proxy->set_temperature(0.0);
@@ -916,6 +876,31 @@ void FixColvars::end_of_step()
       MPI_Recv(&tmp, 0, MPI_INT, 0, 0, world, &status);
       MPI_Rsend(comm_buf, nme*size_one, MPI_BYTE, 0, 0, world);
     }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixColvars::write_restart(FILE *fp)
+{
+  if (me == 0) {
+    std::string rest_text("");
+    proxy->serialize_status(rest_text);
+    const char *cvm_state = rest_text.c_str();
+    int len = strlen(cvm_state) + 1; // need to include terminating NULL byte.
+    fwrite(&len,sizeof(int),1,fp);
+    fwrite(cvm_state,1,len,fp);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixColvars::restart(char *buf)
+{
+  init();
+  if (me == 0) {
+    std::string rest_text(buf);
+    proxy->deserialize_status(rest_text);
   }
 }
 

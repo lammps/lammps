@@ -243,7 +243,6 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
   atom->add_callback(1);
 
   maxatom = 0;
-  displaceflag = velocityflag = 0;
   displace = velocity = NULL;
 
   // xoriginal = initial unwrapped positions of atoms

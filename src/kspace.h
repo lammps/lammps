@@ -69,6 +69,8 @@ class KSpace : protected Pointers {
   int compute_flag;               // 0 if skip compute()
   int fftbench;                   // 0 if skip FFT timing
 
+  int stagger_flag;               // 1 if using staggered PPPM grids
+
   KSpace(class LAMMPS *, int, char **);
   virtual ~KSpace();
   void triclinic_check();

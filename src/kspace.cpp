@@ -37,6 +37,7 @@ KSpace::KSpace(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   ewaldflag = pppmflag = msmflag = dispersionflag = tip4pflag = dipoleflag = 0;
   compute_flag = 1;
   group_group_enable = 0;
+  stagger_flag = 0;
 
   order = 5;
   gridflag = 0;

@@ -28,7 +28,7 @@ void colvarvalue::error_rside
   cvm::fatal_error ("Trying to assign a colvar value with type \""+
                     type_desc[this->value_type]+"\" to one with type \""+
                     type_desc[vt]+"\".\n");
-}    
+}
 
 void colvarvalue::error_lside
 (colvarvalue::Type const &vt) const
@@ -36,7 +36,7 @@ void colvarvalue::error_lside
   cvm::fatal_error ("Trying to use a colvar value with type \""+
                     type_desc[vt]+"\" as one of type \""+
                     type_desc[this->value_type]+"\".\n");
-}    
+}
 
 
 
@@ -125,7 +125,7 @@ void colvarvalue::p2leg_opt (colvarvalue const                        &x,
     break;
   case colvarvalue::type_vector:
     while (xvi != xv_end) {
-      cvm::real const cosine = 
+      cvm::real const cosine =
         ((xvi)->rvector_value * x.rvector_value) /
         ((xvi)->rvector_value.norm() * x.rvector_value.norm());
       xvi++;
@@ -167,7 +167,7 @@ void colvarvalue::p2leg_opt (colvarvalue const                        &x,
     break;
   case colvarvalue::type_vector:
     while (xvi != xv_end) {
-      cvm::real const cosine = 
+      cvm::real const cosine =
         ((xvi)->rvector_value * x.rvector_value) /
         ((xvi)->rvector_value.norm() * x.rvector_value.norm());
       xvi++;
@@ -225,11 +225,11 @@ std::istream & operator >> (std::istream &is, colvarvalue &x)
 
   switch (x.type()) {
   case colvarvalue::type_scalar:
-    is >> x.real_value; 
+    is >> x.real_value;
     break;
   case colvarvalue::type_vector:
   case colvarvalue::type_unitvector:
-    is >> x.rvector_value; 
+    is >> x.rvector_value;
     break;
   case colvarvalue::type_quaternion:
     is >> x.quaternion_value;
@@ -242,7 +242,7 @@ std::istream & operator >> (std::istream &is, colvarvalue &x)
 }
 
 
-size_t colvarvalue::output_width (size_t const &real_width)
+size_t colvarvalue::output_width (size_t const &real_width) const
 {
   switch (this->value_type) {
   case colvarvalue::type_scalar:

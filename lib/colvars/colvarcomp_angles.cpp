@@ -77,7 +77,7 @@ void colvar::angle::calc_gradients()
 {
   cvm::real const cos_theta = (r21*r23)/(r21l*r23l);
   cvm::real const dxdcos = -1.0 / std::sqrt (1.0 - cos_theta*cos_theta);
-    
+
   dxdr1 = (180.0/PI) * dxdcos *
     (1.0/r21l) * ( r23/r23l + (-1.0) * cos_theta * r21/r21l );
 
@@ -246,7 +246,7 @@ void colvar::dihedral::calc_gradients()
   cvm::real   rA = A.norm();
   cvm::rvector B = cvm::rvector::outer (r23, r34);
   cvm::real   rB = B.norm();
-  cvm::rvector C = cvm::rvector::outer (r23, A); 
+  cvm::rvector C = cvm::rvector::outer (r23, A);
   cvm::real   rC = C.norm();
 
   cvm::real const cos_phi = (A*B)/(rA*rB);

@@ -41,10 +41,11 @@ colvarbias::colvarbias (std::string const &conf, char const *key)
       add_colvar (colvars_str[i]);
     }
   }
-
   if (!colvars.size()) {
     cvm::fatal_error ("Error: no collective variables specified.\n");
   }
+
+  get_keyval (conf, "outputEnergy", b_output_energy, false);
 }
 
 
@@ -59,7 +60,7 @@ void colvarbias::add_colvar (std::string const &cv_name)
     cvp->enable (colvar::task_gradients);
     if (cvm::debug())
       cvm::log ("Applying this bias to collective variable \""+
-                cvp->name+"\".\n"); 
+                cvp->name+"\".\n");
     colvars.push_back (cvp);
     colvar_forces.push_back (colvarvalue (cvp->type()));
   } else {
@@ -79,13 +80,47 @@ void colvarbias::communicate_forces()
     }
     colvars[i]->add_bias_force (colvar_forces[i]);
   }
-}    
+}
+
+
+void colvarbias::change_configuration(std::string const &conf)
+{
+  cvm::fatal_error ("Error: change_configuration() not implemented.\n");
+}
+
+
+cvm::real colvarbias::energy_difference(std::string const &conf)
+{
+  cvm::fatal_error ("Error: energy_difference() not implemented.\n");
+  return 0.;
+}
+
+
+std::ostream & colvarbias::write_traj_label (std::ostream &os)
+{
+  os << " ";
+  if (b_output_energy)
+    os << " E_"
+       << cvm::wrap_string (this->name, cvm::en_width-2);
+  return os;
+}
+
+
+std::ostream & colvarbias::write_traj (std::ostream &os)
+{
+  os << " ";
+  if (b_output_energy)
+    os << " "
+       << bias_energy;
+  return os;
+}
+
 
 
 
 colvarbias_harmonic::colvarbias_harmonic (std::string const &conf,
                                           char const *key)
-  : colvarbias (conf, key), 
+  : colvarbias (conf, key),
     target_nsteps (0),
     target_nstages (0)
 {
@@ -171,25 +206,22 @@ colvarbias_harmonic::colvarbias_harmonic (std::string const &conf,
     }
   }
 
+  get_keyval (conf, "outputCenters", b_output_centers, false);
+  get_keyval (conf, "outputAccumulatedWork", b_output_acc_work, false);
+  acc_work = 0.0;
+
   if (cvm::debug())
     cvm::log ("Done initializing a new harmonic restraint bias.\n");
 }
 
-
-void colvarbias::change_configuration(std::string const &conf)
+colvarbias_harmonic::~colvarbias_harmonic ()
 {
-  cvm::fatal_error ("Error: change_configuration() not implemented.\n");
+  if (cvm::n_harm_biases > 0)
+    cvm::n_harm_biases -= 1;
 }
 
 
-cvm::real colvarbias::energy_difference(std::string const &conf)
-{
-  cvm::fatal_error ("Error: energy_difference() not implemented.\n");
-  return 0.;
-}
-
-
-void colvarbias_harmonic::change_configuration(std::string const &conf)
+void colvarbias_harmonic::change_configuration (std::string const &conf)
 {
   get_keyval (conf, "forceConstant", force_k, force_k);
   if (get_keyval (conf, "centers", colvar_centers, colvar_centers)) {
@@ -317,7 +349,7 @@ cvm::real colvarbias_harmonic::update()
 
       if (target_equil_steps == 0 || cvm::step_absolute() % target_nsteps >= target_equil_steps) {
         // Start averaging after equilibration period, if requested
-        
+
         // Square distance normalized by square colvar width
         cvm::real dist_sq = 0.0;
         for (size_t i = 0; i < colvars.size(); i++) {
@@ -335,7 +367,7 @@ cvm::real colvarbias_harmonic::update()
 
           cvm::log ("Lambda= " + cvm::to_str (lambda) + " dA/dLambda= "
               + cvm::to_str (restraint_FE / cvm::real(target_nsteps - target_equil_steps)));
-      
+
         //  ...and move on to the next one
         if (stage < target_nstages) {
 
@@ -363,7 +395,7 @@ cvm::real colvarbias_harmonic::update()
 
   if (cvm::debug())
     cvm::log ("Done updating the harmonic bias \""+this->name+"\".\n");
-  
+
   // Force and energy calculation
   for (size_t i = 0; i < colvars.size(); i++) {
     colvar_forces[i] =
@@ -377,6 +409,15 @@ cvm::real colvarbias_harmonic::update()
       cvm::log ("dist_grad["+cvm::to_str (i)+
                 "] = "+cvm::to_str (colvars[i]->dist2_lgrad (colvars[i]->value(),
                                colvar_centers[i]))+"\n");
+  }
+
+  if (b_output_acc_work) {
+    if ((cvm::step_relative() > 0) || (cvm::step_absolute() == 0)) {
+      for (size_t i = 0; i < colvars.size(); i++) {
+        // project forces on the calculated increments at this step
+        acc_work += colvar_forces[i] * centers_incr[i];
+      }
+    }
   }
 
   if (cvm::debug())
@@ -408,7 +449,7 @@ std::istream & colvarbias_harmonic::read_restart (std::istream &is)
     return is;
   }
 
-//   int id = -1; 
+//   int id = -1;
   std::string name = "";
 //   if ( ( (colvarparse::get_keyval (conf, "id", id, -1, colvarparse::parse_silent)) &&
 //          (id != this->id) ) ||
@@ -440,6 +481,11 @@ std::istream & colvarbias_harmonic::read_restart (std::istream &is)
 //    cvm::log ("Reading current stage from the restart.\n");
     if (!get_keyval (conf, "stage", stage))
       cvm::fatal_error ("Error: current stage is missing from the restart.\n");
+  }
+
+  if (b_output_acc_work) {
+    if (!get_keyval (conf, "accumulatedWork", acc_work))
+      cvm::fatal_error ("Error: accumulatedWork is missing from the restart.\n");
   }
 
   is >> brace;
@@ -484,8 +530,60 @@ std::ostream & colvarbias_harmonic::write_restart (std::ostream &os)
        << stage << "\n";
   }
 
+  if (b_output_acc_work) {
+    os << "    accumulatedWork " << acc_work << "\n";
+  }
+
   os << "  }\n"
      << "}\n\n";
+
+  return os;
+}
+
+
+std::ostream & colvarbias_harmonic::write_traj_label (std::ostream &os)
+{
+  os << " ";
+
+  if (b_output_energy)
+    os << " E_"
+       << cvm::wrap_string (this->name, cvm::en_width-2);
+
+  if (b_output_centers)
+    for (size_t i = 0; i < colvars.size(); i++) {
+      size_t const this_cv_width = (colvars[i]->value()).output_width (cvm::cv_width);
+      os << " x0_"
+         << cvm::wrap_string (colvars[i]->name, this_cv_width-3);
+    }
+
+  if (b_output_acc_work)
+    os << " W_"
+       << cvm::wrap_string (this->name, cvm::en_width-2);
+
+  return os;
+}
+
+
+std::ostream & colvarbias_harmonic::write_traj (std::ostream &os)
+{
+  os << " ";
+
+  if (b_output_energy)
+    os << " "
+       << std::setprecision (cvm::en_prec) << std::setw (cvm::en_width)
+       << bias_energy;
+
+  if (b_output_centers)
+    for (size_t i = 0; i < colvars.size(); i++) {
+      os << " "
+         << std::setprecision (cvm::cv_prec) << std::setw (cvm::cv_width)
+         << colvar_centers[i];
+    }
+
+  if (b_output_acc_work)
+    os << " "
+       << std::setprecision (cvm::en_prec) << std::setw (cvm::en_width)
+       << acc_work;
 
   return os;
 }

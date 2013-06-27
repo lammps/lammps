@@ -72,11 +72,14 @@ cvm::real colvar::coordnum::switching_function (cvm::rvector const &r0_vec,
 
 colvar::coordnum::coordnum (std::string const &conf)
   : distance (conf), b_anisotropic (false), b_group2_center_only (false)
-{ 
+{
   function_type = "coordnum";
   x.type (colvarvalue::type_scalar);
 
   // group1 and group2 are already initialized by distance()
+  if (group1.b_dummy)
+    cvm::fatal_error ("Error: only group2 is allowed to be a dummy atom\n");
+
 
   // need to specify this explicitly because the distance() constructor
   // has set it to true
@@ -105,7 +108,7 @@ colvar::coordnum::coordnum (std::string const &conf)
     cvm::fatal_error ("Error: odd exponents provided, can only use even ones.\n");
   }
 
-  get_keyval (conf, "group2CenterOnly", b_group2_center_only, false);
+  get_keyval (conf, "group2CenterOnly", b_group2_center_only, group2.b_dummy);
 }
 
 
@@ -121,18 +124,10 @@ void colvar::coordnum::calc_value()
 {
   x.real_value = 0.0;
 
-  // these are necessary: for each atom, gradients are summed together
-  // by multiple calls to switching_function()
-  group1.reset_atoms_data();
-  group2.reset_atoms_data();
-
-  group1.read_positions();
-  group2.read_positions();
-
   if (b_group2_center_only) {
 
     // create a fake atom to hold the group2 com coordinates
-    cvm::atom group2_com_atom (group2[0]);
+    cvm::atom group2_com_atom;
     group2_com_atom.pos = group2.center_of_mass();
 
     if (b_anisotropic) {
@@ -165,8 +160,9 @@ void colvar::coordnum::calc_gradients()
   if (b_group2_center_only) {
 
     // create a fake atom to hold the group2 com coordinates
-    cvm::atom group2_com_atom (group2[0]);
+    cvm::atom group2_com_atom;
     group2_com_atom.pos = group2.center_of_mass();
+
 
     if (b_anisotropic) {
       for (cvm::atom_iter ai1 = group1.begin(); ai1 != group1.end(); ai1++)
@@ -288,14 +284,6 @@ colvar::h_bond::~h_bond()
 
 void colvar::h_bond::calc_value()
 {
-  // this is necessary, because switching_function() will sum the new
-  // gradient to the current one
-  acceptor.reset_data();
-  donor.reset_data();
-
-  acceptor.read_position();
-  donor.read_position();
-
   x.real_value = colvar::coordnum::switching_function<false> (r0, en, ed, acceptor, donor);
 }
 
@@ -315,40 +303,11 @@ void colvar::h_bond::apply_force (colvarvalue const &force)
 }
 
 
-// Self-coordination number for a group
-
-template<bool calculate_gradients>
-cvm::real colvar::selfcoordnum::switching_function (cvm::real const &r0,
-                                                int const &en,
-                                                int const &ed,
-                                                cvm::atom &A1,
-                                                cvm::atom &A2)
-{
-  cvm::rvector const diff = cvm::position_distance (A1.pos, A2.pos);
-  cvm::real const l2 = diff.norm2()/(r0*r0);
-
-  // Assume en and ed are even integers, and avoid sqrt in the following
-  int const en2 = en/2;
-  int const ed2 = ed/2;
-
-  cvm::real const xn = std::pow (l2, en2);
-  cvm::real const xd = std::pow (l2, ed2);
-  cvm::real const func = (1.0-xn)/(1.0-xd);
-
-  if (calculate_gradients) {
-    cvm::real const dFdl2 = (1.0/(1.0-xd))*(en2*(xn/l2) - func*ed2*(xd/l2))*(-1.0);
-    cvm::rvector const dl2dx = (2.0/(r0*r0))*diff;
-    A1.grad += (-1.0)*dFdl2*dl2dx;
-    A2.grad +=        dFdl2*dl2dx;
-  }
-
-  return func;
-}
 
 
 colvar::selfcoordnum::selfcoordnum (std::string const &conf)
  : distance (conf, false)
-{ 
+{
   function_type = "selfcoordnum";
   x.type (colvarvalue::type_scalar);
 
@@ -379,13 +338,9 @@ void colvar::selfcoordnum::calc_value()
 {
   x.real_value = 0.0;
 
-  // for each atom, gradients are summed by multiple calls to switching_function()
-  group1.reset_atoms_data();
-  group1.read_positions();
-
   for (size_t i = 0; i < group1.size() - 1; i++)
     for (size_t j = i + 1; j < group1.size(); j++)
-      x.real_value += switching_function<false> (r0, en, ed, group1[i], group1[j]);
+      x.real_value += colvar::coordnum::switching_function<false> (r0, en, ed, group1[i], group1[j]);
 }
 
 
@@ -393,7 +348,7 @@ void colvar::selfcoordnum::calc_gradients()
 {
   for (size_t i = 0; i < group1.size() - 1; i++)
     for (size_t j = i + 1; j < group1.size(); j++)
-      switching_function<true> (r0, en, ed, group1[i], group1[j]);
+      colvar::coordnum::switching_function<true> (r0, en, ed, group1[i], group1[j]);
 }
 
 void colvar::selfcoordnum::apply_force (colvarvalue const &force)

@@ -4,8 +4,23 @@ that allows enhanced sampling in molecular dynamics simulations.
 The module is written to maximize performance, portability,
 flexibility of usage for the user, and extensibility for the developer.
 
-The following publication describes the principles of
+The development of the colvars library is now hosted on github at:
+http://colvars.github.io/
+You can use this site to get access to the latest development sources
+and the up-to-date documentation.
+
+Copy of the specific documentation is also in
+ doc/PDF/colvars-refman-lammps.pdf
+
+Please report bugs and request new features at:
+https://github.com/colvars/colvars/issues
+
+The following publications describe the principles of
 the implementation of this library:
+
+  Using collective variables to drive molecular dynamics simulations,
+  Giacomo Fiorin , Michael L. Klein & Jérôme Hénin (2013):
+  Molecular Physics DOI:10.1080/00268976.2013.813594
 
   Exploring Multidimensional Free Energy Landscapes Using 
   Time-Dependent Biases on Collective Variables, 

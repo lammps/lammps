@@ -241,11 +241,11 @@ _get_keyval_vector_ (colvarvalue);
 
 
 
-bool colvarparse::get_keyval (std::string const &conf,        
-                              char const *key,                
-                              bool &value,                    
-                              bool const &def_value,          
-                              Parse_Mode const parse_mode)    
+bool colvarparse::get_keyval (std::string const &conf,
+                              char const *key,
+                              bool &value,
+                              bool const &def_value,
+                              Parse_Mode const parse_mode)
 {
   std::string data;
   bool b_found = false, b_found_any = false;
@@ -277,7 +277,7 @@ bool colvarparse::get_keyval (std::string const &conf,
               (data == std::string ("false")) ) {
       value = false;
     } else
-      cvm::fatal_error ("Error: boolean values only are allowed "  
+      cvm::fatal_error ("Error: boolean values only are allowed "
                         "for \""+std::string (key)+"\".\n");
     if (parse_mode != parse_silent) {
       cvm::log ("# "+std::string (key)+" = "+
@@ -371,8 +371,8 @@ void colvarparse::check_keywords (std::string &conf, char const *key)
     std::string uk;
     std::istringstream line_is (line);
     line_is >> uk;
-    if (cvm::debug())
-      cvm::log ("Checking the validity of \""+uk+"\" from line:\n" + line);
+    // if (cvm::debug())
+    //   cvm::log ("Checking the validity of \""+uk+"\" from line:\n" + line);
     uk = to_lower_cppstr (uk);
 
     bool found_keyword = false;
@@ -426,8 +426,8 @@ bool colvarparse::key_lookup (std::string const &conf,
   colvarparse::dummy_pos = 0;
 
   // start from the first occurrence of key
-  size_t pos = conf_lower.find (key, save_pos); 
-  
+  size_t pos = conf_lower.find (key, save_pos);
+
   // iterate over all instances until it finds the isolated keyword
   while (true) {
 
@@ -442,7 +442,7 @@ bool colvarparse::key_lookup (std::string const &conf,
       if ( std::string ("\n"+white_space+
                         "}").find (conf[pos-1]) ==
            std::string::npos ) {
-        // none of the valid delimiting characters is on the left of key 
+        // none of the valid delimiting characters is on the left of key
         b_isolated_left = false;
       }
     }
@@ -451,7 +451,7 @@ bool colvarparse::key_lookup (std::string const &conf,
       if ( std::string ("\n"+white_space+
                         "{").find (conf[pos+key.size()]) ==
            std::string::npos ) {
-        // none of the valid delimiting characters is on the right of key 
+        // none of the valid delimiting characters is on the right of key
         b_isolated_right = false;
       }
     }
@@ -461,7 +461,7 @@ bool colvarparse::key_lookup (std::string const &conf,
 
     bool const b_isolated = (b_isolated_left && b_isolated_right &&
                              b_not_within_block);
-    
+
     if (b_isolated) {
       // found it
       break;
@@ -490,7 +490,7 @@ bool colvarparse::key_lookup (std::string const &conf,
   size_t line_begin = (pl == std::string::npos) ? 0 : pos;
   size_t nl = conf.find  ("\n", pos);
   size_t line_end = (nl == std::string::npos) ? conf.size() : nl;
-  std::string line (conf, line_begin, (line_end-line_begin)); 
+  std::string line (conf, line_begin, (line_end-line_begin));
 
   size_t data_begin = (to_lower_cppstr (line)).find (key) + key.size();
   data_begin = line.find_first_not_of (white_space, data_begin+1);
@@ -527,9 +527,9 @@ bool colvarparse::key_lookup (std::string const &conf,
 
           line_begin = line_end;
           nl = conf.find ('\n', line_begin+1);
-          if (nl == std::string::npos) 
+          if (nl == std::string::npos)
             line_end = conf.size();
-          else 
+          else
             line_end = nl;
           line.append (conf, line_begin, (line_end-line_begin));
 
@@ -565,7 +565,7 @@ bool colvarparse::key_lookup (std::string const &conf,
       //                 << "\n";
     }
   }
-  
+
   save_pos = line_end;
 
   return true;

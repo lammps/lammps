@@ -8,7 +8,7 @@
 
 /// \brief Stores numeric id, mass and all mutable data for an atom,
 /// mostly used by a \link cvc \endlink
-/// 
+///
 /// This class may be used (although not necessarily) to keep atomic
 /// data (id, mass, position and collective variable derivatives)
 /// altogether.  There may be multiple instances with identical
@@ -23,7 +23,7 @@ protected:
 
   /// \brief Index in the list of atoms involved by the colvars (\b
   /// NOT in the global topology!)
-  size_t        index;
+  int           index;
 
 public:
 
@@ -47,7 +47,7 @@ public:
 
   /// \brief Gradient of a scalar collective variable with respect
   /// to this atom
-  /// 
+  ///
   /// This can only handle a scalar collective variable (i.e. when
   /// the \link colvarvalue::real_value \endlink member is used
   /// from the \link colvarvalue \endlink class), which is also the
@@ -57,8 +57,8 @@ public:
   /// implementation
   cvm::rvector   grad;
 
-  /// \brief Default constructor, setting id to a non-valid value
-  inline atom() {}
+  /// \brief Default constructor, setting id and index to invalid numbers
+  atom() : id (-1), index (-1) { reset_data(); }
 
   /// \brief Initialize an atom for collective variable calculation
   /// and get its internal identifier \param atom_number Atom index in
@@ -121,7 +121,7 @@ class colvarmodule::atom_group
     public colvarparse
 {
 public:
-  // Note: all members here are kept public, to make possible to any
+  // Note: all members here are kept public, to allow any
   // object accessing and manipulating them
 
 
@@ -138,7 +138,7 @@ public:
 
   /// Allocates and populates the sorted list of atom ids
   void create_sorted_ids (void);
-  
+
 
   /// \brief When updating atomic coordinates, translate them to align with the
   /// center of mass of the reference coordinates
@@ -175,7 +175,7 @@ public:
   /// \brief If b_center or b_rotate is true, use this group to
   /// define the transformation (default: this group itself)
   atom_group                *ref_pos_group;
-  
+
   /// Total mass of the atom group
   cvm::real total_mass;
 
@@ -199,8 +199,13 @@ public:
   /// \brief Initialize the group after a temporary vector of atoms
   atom_group (std::vector<cvm::atom> const &atoms);
 
-  /// \brief Add an atom to this group  
+  /// \brief Add an atom to this group
   void add_atom (cvm::atom const &a);
+
+  /// \brief Re-initialize the total mass of a group.
+  /// This is needed in case the hosting MD code has an option to
+  /// change atom masses after their initialization.
+  void reset_mass (std::string &name, int i, int j);
 
   /// \brief Default constructor
   atom_group();
@@ -216,7 +221,7 @@ public:
   void calc_apply_roto_translation();
 
   /// \brief Save center of geometry fo ref positions,
-  /// then subtract it 
+  /// then subtract it
   void center_ref_pos();
 
   /// \brief Move all positions

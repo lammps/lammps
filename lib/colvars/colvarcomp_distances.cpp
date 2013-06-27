@@ -113,7 +113,7 @@ void colvar::distance_vec::calc_value()
 }
 
 void colvar::distance_vec::calc_gradients()
-{ 
+{
   // gradients are not stored: a 3x3 matrix for each atom would be
   // needed to store just the identity matrix
 }
@@ -140,7 +140,7 @@ colvar::distance_z::distance_z (std::string const &conf)
   // TODO detect PBC from MD engine (in simple cases)
   // and then update period in real time
   if (period != 0.0)
-    b_periodic = true;    
+    b_periodic = true;
 
   if ((wrap_center != 0.0) && (period == 0.0)) {
     cvm::fatal_error ("Error: wrapAround was defined in a distanceZ component,"
@@ -153,7 +153,7 @@ colvar::distance_z::distance_z (std::string const &conf)
   atom_groups.push_back (&ref1);
   // this group is optional
   parse_group (conf, "ref2", ref2, true);
- 
+
   if (ref2.size()) {
     atom_groups.push_back (&ref2);
     cvm::log ("Using axis joining the centers of mass of groups \"ref\" and \"ref2\"");
@@ -522,7 +522,7 @@ colvar::gyration::gyration (std::string const &conf)
     cvm::log ("WARNING: explicit fitting parameters were provided for atom group \"atoms\".");
   } else {
     atoms.b_center = true;
-    atoms.ref_pos.assign (1, cvm::rvector (0.0, 0.0, 0.0));
+    atoms.ref_pos.assign (1, cvm::atom_pos (0.0, 0.0, 0.0));
   }
 
   x.type (colvarvalue::type_scalar);
@@ -700,7 +700,7 @@ colvar::rmsd::rmsd (std::string const &conf)
   parse_group (conf, "atoms", atoms);
   atom_groups.push_back (&atoms);
 
-  if (atoms.b_dummy) 
+  if (atoms.b_dummy)
     cvm::fatal_error ("Error: \"atoms\" cannot be a dummy atom.");
 
   if (atoms.ref_pos_group != NULL) {
@@ -732,7 +732,7 @@ colvar::rmsd::rmsd (std::string const &conf)
 
       std::string ref_pos_col;
       double ref_pos_col_value;
-      
+
       if (get_keyval (conf, "refPositionsCol", ref_pos_col, std::string (""))) {
         // if provided, use PDB column to select coordinates
         bool found = get_keyval (conf, "refPositionsColValue", ref_pos_col_value, 0.0);
@@ -771,7 +771,7 @@ colvar::rmsd::rmsd (std::string const &conf)
   }
 }
 
-  
+
 void colvar::rmsd::calc_value()
 {
   // rotational-translational fit is handled by the atom group
@@ -813,9 +813,9 @@ void colvar::rmsd::calc_force_invgrads()
 {
   atoms.read_system_forces();
   ft.real_value = 0.0;
-    
+
   // Note: gradient square norm is 1/N_atoms
-          
+
   for (size_t ia = 0; ia < atoms.size(); ia++) {
     ft.real_value += atoms[ia].grad * atoms[ia].system_force;
   }
@@ -832,7 +832,7 @@ void colvar::rmsd::calc_Jacobian_derivative()
 
     // gradient of the rotation matrix
     cvm::matrix2d <cvm::rvector, 3, 3> grad_rot_mat;
-    // gradients of products of 2 quaternion components 
+    // gradients of products of 2 quaternion components
     cvm::rvector g11, g22, g33, g01, g02, g03, g12, g13, g23;
     for (size_t ia = 0; ia < atoms.size(); ia++) {
 
@@ -850,15 +850,15 @@ void colvar::rmsd::calc_Jacobian_derivative()
       g23 = (atoms.rot.q)[2]*dq[3] + (atoms.rot.q)[3]*dq[2];
 
       // Gradient of the rotation matrix wrt current Cartesian position
-      grad_rot_mat[0][0] = -2.0 * (g22 + g33); 
-      grad_rot_mat[1][0] =  2.0 * (g12 + g03); 
-      grad_rot_mat[2][0] =  2.0 * (g13 - g02); 
-      grad_rot_mat[0][1] =  2.0 * (g12 - g03); 
-      grad_rot_mat[1][1] = -2.0 * (g11 + g33); 
-      grad_rot_mat[2][1] =  2.0 * (g01 + g23); 
-      grad_rot_mat[0][2] =  2.0 * (g02 + g13); 
-      grad_rot_mat[1][2] =  2.0 * (g23 - g01); 
-      grad_rot_mat[2][2] = -2.0 * (g11 + g22); 
+      grad_rot_mat[0][0] = -2.0 * (g22 + g33);
+      grad_rot_mat[1][0] =  2.0 * (g12 + g03);
+      grad_rot_mat[2][0] =  2.0 * (g13 - g02);
+      grad_rot_mat[0][1] =  2.0 * (g12 - g03);
+      grad_rot_mat[1][1] = -2.0 * (g11 + g33);
+      grad_rot_mat[2][1] =  2.0 * (g01 + g23);
+      grad_rot_mat[0][2] =  2.0 * (g02 + g13);
+      grad_rot_mat[1][2] =  2.0 * (g23 - g01);
+      grad_rot_mat[2][2] = -2.0 * (g11 + g22);
 
       cvm::atom_pos &y = ref_pos[ia];
 
@@ -991,7 +991,7 @@ colvar::eigenvector::eigenvector (std::string const &conf)
                       "and eigenvector must be defined.\n");
   }
 
-  cvm::rvector eig_center (0.0, 0.0, 0.0);
+  cvm::atom_pos eig_center (0.0, 0.0, 0.0);
   for (size_t i = 0; i < atoms.size(); i++) {
     eig_center += eigenvec[i];
   }
@@ -1053,7 +1053,7 @@ colvar::eigenvector::eigenvector (std::string const &conf)
   }
 }
 
-  
+
 void colvar::eigenvector::calc_value()
 {
   x.real_value = 0.0;
@@ -1087,7 +1087,7 @@ void colvar::eigenvector::calc_force_invgrads()
 {
   atoms.read_system_forces();
   ft.real_value = 0.0;
-    
+
   for (size_t ia = 0; ia < atoms.size(); ia++) {
     ft.real_value += eigenvec_invnorm2 * atoms[ia].grad *
       atoms[ia].system_force;
@@ -1101,10 +1101,10 @@ void colvar::eigenvector::calc_Jacobian_derivative()
   cvm::matrix2d <cvm::rvector, 3, 3> grad_rot_mat;
   cvm::quaternion &quat0 = atoms.rot.q;
 
-  // gradients of products of 2 quaternion components 
+  // gradients of products of 2 quaternion components
   cvm::rvector g11, g22, g33, g01, g02, g03, g12, g13, g23;
 
-  cvm::atom_pos x_relative; 
+  cvm::atom_pos x_relative;
   cvm::real sum = 0.0;
 
   for (size_t ia = 0; ia < atoms.size(); ia++) {
@@ -1126,15 +1126,15 @@ void colvar::eigenvector::calc_Jacobian_derivative()
 
     // Gradient of the inverse rotation matrix wrt current Cartesian position
     // (transpose of the gradient of the direct rotation)
-    grad_rot_mat[0][0] = -2.0 * (g22 + g33); 
-    grad_rot_mat[0][1] =  2.0 * (g12 + g03); 
-    grad_rot_mat[0][2] =  2.0 * (g13 - g02); 
-    grad_rot_mat[1][0] =  2.0 * (g12 - g03); 
-    grad_rot_mat[1][1] = -2.0 * (g11 + g33); 
-    grad_rot_mat[1][2] =  2.0 * (g01 + g23); 
-    grad_rot_mat[2][0] =  2.0 * (g02 + g13); 
-    grad_rot_mat[2][1] =  2.0 * (g23 - g01); 
-    grad_rot_mat[2][2] = -2.0 * (g11 + g22); 
+    grad_rot_mat[0][0] = -2.0 * (g22 + g33);
+    grad_rot_mat[0][1] =  2.0 * (g12 + g03);
+    grad_rot_mat[0][2] =  2.0 * (g13 - g02);
+    grad_rot_mat[1][0] =  2.0 * (g12 - g03);
+    grad_rot_mat[1][1] = -2.0 * (g11 + g33);
+    grad_rot_mat[1][2] =  2.0 * (g01 + g23);
+    grad_rot_mat[2][0] =  2.0 * (g02 + g13);
+    grad_rot_mat[2][1] =  2.0 * (g23 - g01);
+    grad_rot_mat[2][2] = -2.0 * (g11 + g22);
 
     for (size_t i = 0; i < 3; i++) {
       for (size_t j = 0; j < 3; j++) {
@@ -1143,7 +1143,7 @@ void colvar::eigenvector::calc_Jacobian_derivative()
     }
   }
 
-  jd.real_value = sum * std::sqrt (eigenvec_invnorm2); 
+  jd.real_value = sum * std::sqrt (eigenvec_invnorm2);
 }
 
 

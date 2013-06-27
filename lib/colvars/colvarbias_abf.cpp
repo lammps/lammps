@@ -15,7 +15,7 @@ colvarbias_abf::colvarbias_abf (std::string const &conf, char const *key)
 {
   if (cvm::temperature() == 0.0)
     cvm::log ("WARNING: ABF should not be run without a thermostat or at 0 Kelvin!\n");
-  
+
   // ************* parsing general ABF options ***********************
 
   get_keyval (conf, "applyBias",  apply_bias, true);
@@ -32,7 +32,7 @@ colvarbias_abf::colvarbias_abf (std::string const &conf, char const *key)
   }
 
   get_keyval (conf, "fullSamples", full_samples, 200);
-  if ( full_samples <= 1 ) full_samples = 1; 
+  if ( full_samples <= 1 ) full_samples = 1;
   min_samples = full_samples / 2;
   // full_samples - min_samples >= 1 is guaranteed
 
@@ -79,7 +79,21 @@ colvarbias_abf::colvarbias_abf (std::string const &conf, char const *key)
     }
 
     // Here we could check for orthogonality of the Cartesian coordinates
-    // and make it just a warning if some parameter is set? 
+    // and make it just a warning if some parameter is set?
+  }
+
+  if (get_keyval (conf, "maxForce", max_force)) {
+    if (max_force.size() != colvars.size()) {
+      cvm::fatal_error ("Error: Number of parameters to maxForce does not match number of colvars.");
+    }
+    for (size_t i=0; i<colvars.size(); i++) {
+      if (max_force[i] < 0.0) {
+        cvm::fatal_error ("Error: maxForce should be non-negative.");
+      }
+    }
+    cap_force = true;
+  } else {
+    cap_force = false;
   }
 
   bin.assign (colvars.size(), 0);
@@ -96,7 +110,7 @@ colvarbias_abf::colvarbias_abf (std::string const &conf, char const *key)
   if ( input_prefix.size() > 0 ) {
     read_gradients_samples ();
   }
-  
+
   cvm::log ("Finished ABF setup.\n");
 }
 
@@ -114,6 +128,9 @@ colvarbias_abf::~colvarbias_abf()
   }
 
   delete [] force;
+
+  if (cvm::n_abf_biases > 0)
+    cvm::n_abf_biases -= 1;
 }
 
 
@@ -125,7 +142,7 @@ cvm::real colvarbias_abf::update()
   if (cvm::debug()) cvm::log ("Updating ABF bias " + this->name);
 
   if (cvm::step_relative() == 0) {
-	
+
     // At first timestep, do only:
     // initialization stuff (file operations relying on n_abf_biases
     // compute current value of colvars
@@ -158,7 +175,7 @@ cvm::real colvarbias_abf::update()
   }
 
   // save bin for next timestep
-  force_bin = bin;  
+  force_bin = bin;
 
   // Reset biasing forces from previous timestep
   for (size_t i=0; i<colvars.size(); i++) {
@@ -176,19 +193,25 @@ cvm::real colvarbias_abf::update()
       fact = ( count < min_samples) ? 0.0 :
         (cvm::real (count - min_samples)) / (cvm::real (full_samples - min_samples));
     }
-	
+
     const cvm::real * grad  = &(gradients->value (bin));
 
     if ( fact != 0.0 ) {
-
       if ( (colvars.size() == 1) && colvars[0]->periodic_boundaries() ) {
         // Enforce a zero-mean bias on periodic, 1D coordinates
-        colvar_forces[0].real_value += fact * (grad[0] / cvm::real (count) - gradients->average ());
+        // in other words: boundary condition is that the biasing potential is periodic
+        colvar_forces[0].real_value = fact * (grad[0] / cvm::real (count) - gradients->average ());
       } else {
         for (size_t i=0; i<colvars.size(); i++) {
           // subtracting the mean force (opposite of the FE gradient) means adding the gradient
-          colvar_forces[i].real_value += fact * grad[i] / cvm::real (count);
-          // without .real_value, the above would do (cheap) runtime type checking
+          colvar_forces[i].real_value = fact * grad[i] / cvm::real (count);
+        }
+      }
+      if (cap_force) {
+        for (size_t i=0; i<colvars.size(); i++) {
+          if ( colvar_forces[i].real_value * colvar_forces[i].real_value > max_force[i] * max_force[i] ) {
+            colvar_forces[i].real_value = (colvar_forces[i].real_value > 0 ? max_force[i] : -1.0 * max_force[i]);
+          }
         }
       }
     }
@@ -203,7 +226,7 @@ cvm::real colvarbias_abf::update()
     // otherwise, backup and replace
     write_gradients_samples (output_prefix + ".hist", (cvm::step_absolute() > 0));
   }
-  return 0.0; // TODO compute bias energy whenever possible (i.e. 1D with updateBias off)
+  return 0.0;
 }
 
 
@@ -250,7 +273,7 @@ void colvarbias_abf::read_gradients_samples ()
     samples_in_name = input_prefix[i] + ".count";
     gradients_in_name = input_prefix[i] + ".grad";
     // For user-provided files, the per-bias naming scheme may not apply
-    
+
     std::ifstream is;
 
     cvm::log ("Reading sample count from " + samples_in_name + " and gradients from " + gradients_in_name);
@@ -272,7 +295,7 @@ void colvarbias_abf::read_gradients_samples ()
 std::ostream & colvarbias_abf::write_restart (std::ostream& os)
 {
 
-  std::ios::fmtflags flags (os.flags ()); 
+  std::ios::fmtflags flags (os.flags ());
   os.setf(std::ios::fmtflags (0), std::ios::floatfield); // default floating-point format
 
   os << "abf {\n"
@@ -325,7 +348,7 @@ std::istream & colvarbias_abf::read_restart (std::istream& is)
   if ( name == "" ) {
     cvm::fatal_error ("Error: \"abf\" block in the restart file has no name.\n");
   }
-  
+
   if ( !(is >> key)   || !(key == "samples")) {
     cvm::log ("Error: in reading restart configuration for ABF bias \""+
               this->name+"\" at position "+
@@ -381,7 +404,7 @@ colvarbias_histogram::colvarbias_histogram (std::string const &conf, char const 
   bin.assign (colvars.size(), 0);
 
   out_name = cvm::output_prefix + "." + this->name + ".dat";
-  cvm::log ("Histogram will be written to file " + out_name); 
+  cvm::log ("Histogram will be written to file " + out_name);
 
   cvm::log ("Finished histogram setup.\n");
 }
@@ -395,6 +418,9 @@ colvarbias_histogram::~colvarbias_histogram()
     delete grid;
     grid = NULL;
   }
+
+  if (cvm::n_histo_biases > 0)
+    cvm::n_histo_biases -= 1;
 }
 
 /// Update the grid
@@ -452,7 +478,7 @@ std::istream & colvarbias_histogram::read_restart (std::istream& is)
     cvm::fatal_error ("Error: \"histogram\" block in the restart file "
                       "has no name.\n");
   }
-  
+
   if ( !(is >> key)   || !(key == "grid")) {
     cvm::log ("Error: in reading restart configuration for histogram \""+
               this->name+"\" at position "+

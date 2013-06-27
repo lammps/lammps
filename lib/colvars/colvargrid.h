@@ -266,11 +266,11 @@ public:
       }
 
 
-      { 
+      {
         cvm::real nbins = ( upper_boundaries[i].real_value -
                             lower_boundaries[i].real_value ) / widths[i];
         int nbins_round = (int)(nbins+0.5);
-        
+
         if (std::fabs (nbins - cvm::real (nbins_round)) > 1.0E-10) {
           cvm::log ("Warning: grid interval ("+
                     cvm::to_str (lower_boundaries[i], cvm::cv_width, cvm::cv_prec)+" - "+
@@ -284,7 +284,7 @@ public:
         if (cvm::debug())
           cvm::log ("Number of points is "+cvm::to_str ((int) nbins_round)+
                     " for the colvar no. "+cvm::to_str (i+1)+".\n");
-        
+
         nx_i.push_back (nbins_round);
       }
 
@@ -336,7 +336,7 @@ public:
   {
     return lower_boundaries[i].real_value + widths[i] * (0.5 + i_bin);
   }
-  
+
   /// \brief Same as the standard version, but uses different parameters
   inline colvarvalue bin_to_value_scalar (int const &i_bin,
                                           colvarvalue const &new_offset,
@@ -349,7 +349,7 @@ public:
   inline void set_value (std::vector<int> const &ix,
                          T const &t,
                          size_t const &imult = 0)
-  { 
+  {
     data[this->address (ix)+imult] = t;
     has_data = true;
   }
@@ -367,7 +367,7 @@ public:
   /// \brief Add a constant to all elements (fast loop)
   inline void add_constant (T const &t)
   {
-    for (size_t i = 0; i < nt; i++) 
+    for (size_t i = 0; i < nt; i++)
       data[i] += t;
     has_data = true;
   }
@@ -375,11 +375,11 @@ public:
   /// \brief Multiply all elements by a scalar constant (fast loop)
   inline void multiply_constant (cvm::real const &a)
   {
-    for (size_t i = 0; i < nt; i++) 
+    for (size_t i = 0; i < nt; i++)
       data[i] *= a;
   }
 
- 
+
   /// \brief Get the bin indices corresponding to the provided values of
   /// the colvars
   inline std::vector<int> const get_colvars_index (std::vector<colvarvalue> const &values) const
@@ -432,7 +432,7 @@ public:
 
 
   /// \brief Add data from another grid of the same type
-  /// 
+  ///
   /// Note: this function maps other_grid inside this one regardless
   /// of whether it fits or not.
   void map_grid (colvar_grid<T> const &other_grid)
@@ -482,11 +482,11 @@ public:
     if (other_grid.multiplicity() != this->multiplicity())
       cvm::fatal_error ("Error: trying to sum togetehr two grids with values of "
                         "different multiplicity.\n");
-    if (scale_factor != 1.0) 
+    if (scale_factor != 1.0)
       for (size_t i = 0; i < data.size(); i++) {
         data[i] += scale_factor * other_grid.data[i];
       }
-    else 
+    else
       // skip multiplication if possible
       for (size_t i = 0; i < data.size(); i++) {
         data[i] += other_grid.data[i];
@@ -571,30 +571,30 @@ public:
   std::ostream & write_params (std::ostream &os)
   {
     os << "grid_parameters {\n  n_colvars " << nd << "\n";
-      
+
     os << "  lower_boundaries ";
-    for (size_t i = 0; i < nd; i++) 
+    for (size_t i = 0; i < nd; i++)
       os << " " << lower_boundaries[i];
     os << "\n";
 
     os << "  upper_boundaries ";
-    for (size_t i = 0; i < nd; i++) 
+    for (size_t i = 0; i < nd; i++)
       os << " " << upper_boundaries[i];
     os << "\n";
 
     os << "  widths ";
-    for (size_t i = 0; i < nd; i++) 
+    for (size_t i = 0; i < nd; i++)
       os << " " << widths[i];
     os << "\n";
 
     os << "  sizes ";
-    for (size_t i = 0; i < nd; i++) 
+    for (size_t i = 0; i < nd; i++)
       os << " " << nx[i];
     os << "\n";
 
     os << "}\n";
     return os;
-  } 
+  }
 
 
   bool parse_params (std::string const &conf)
@@ -648,9 +648,9 @@ public:
   {
     for (size_t i = 0; i < nd; i++) {
       if ( (std::sqrt (cv[i]->dist2 (cv[i]->lower_boundary,
-                                     lower_boundaries[i])) > 1.0E-10) || 
+                                     lower_boundaries[i])) > 1.0E-10) ||
            (std::sqrt (cv[i]->dist2 (cv[i]->upper_boundary,
-                                     upper_boundaries[i])) > 1.0E-10) || 
+                                     upper_boundaries[i])) > 1.0E-10) ||
            (std::sqrt (cv[i]->dist2 (cv[i]->width,
                                      widths[i])) > 1.0E-10) ) {
         cvm::fatal_error ("Error: restart information for a grid is "
@@ -669,11 +669,11 @@ public:
       // matter: boundaries should be EXACTLY the same (otherwise,
       // map_grid() should be used)
       if ( (std::fabs (other_grid.lower_boundaries[i] -
-                       lower_boundaries[i]) > 1.0E-10) || 
+                       lower_boundaries[i]) > 1.0E-10) ||
            (std::fabs (other_grid.upper_boundaries[i] -
-                       upper_boundaries[i]) > 1.0E-10) || 
+                       upper_boundaries[i]) > 1.0E-10) ||
            (std::fabs (other_grid.widths[i] -
-                       widths[i]) > 1.0E-10) || 
+                       widths[i]) > 1.0E-10) ||
            (data.size() != other_grid.data.size()) ) {
       cvm::fatal_error ("Error: inconsistency between "
                         "two grids that are supposed to be equal, "
@@ -681,7 +681,7 @@ public:
     }
   }
 }
-  
+
 
 /// \brief Write the grid data without labels, as they are
 /// represented in memory
@@ -714,7 +714,7 @@ public:
 std::istream & read_raw (std::istream &is)
 {
   size_t const start_pos = is.tellg();
-    
+
   for (std::vector<int> ix = new_index(); index_ok (ix); incr (ix)) {
     for (size_t imult = 0; imult < mult; imult++) {
       T new_value;
@@ -845,7 +845,7 @@ std::istream & read_multicol (std::istream &is, bool add = false)
         if ( !(is >> x) ) end_of_file = true;
         bin[i] = value_to_bin_scalar (x, i);
       }
-      if (end_of_file) break;	
+      if (end_of_file) break;
 
       for (size_t imult = 0; imult < mult; imult++) {
         is >> new_value[imult];
@@ -904,7 +904,7 @@ public:
     ++(data[this->address (ix)]);
   }
 
-  /// \brief Get the binned count indexed by ix from the newly read data 
+  /// \brief Get the binned count indexed by ix from the newly read data
   inline size_t const & new_count (std::vector<int> const &ix,
                                    size_t const &imult = 0)
   {
@@ -993,7 +993,7 @@ public:
       A0 += data[address (ix)];
       grad[n] = 0.5 * (A1 - A0) / widths[n];
     }
-    return grad; 
+    return grad;
   }
 
   /// \brief Return the value of the function at ix divided by its

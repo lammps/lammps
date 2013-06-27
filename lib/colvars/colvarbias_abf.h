@@ -46,6 +46,10 @@ private:
   bool      b_history_files;
   size_t    history_freq;
 
+  /// Cap applied biasing force?
+  bool                    cap_force;
+  std::vector<cvm::real>  max_force;
+
   // Internal data and methods
 
   std::vector<int>  bin, force_bin;
@@ -84,7 +88,7 @@ private:
   std::vector<int>  bin;
   std::string	  out_name;
 
-  int		  output_freq;  
+  int		  output_freq;
   void		  write_grid ();
   std::ofstream	  grid_os;  /// Stream for writing grid to disk
 

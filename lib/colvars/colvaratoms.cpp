@@ -26,8 +26,8 @@ cvm::atom_group::atom_group (std::string const &conf,
 
 
 cvm::atom_group::atom_group (std::vector<cvm::atom> const &atoms)
-  : b_dummy (false), b_center (false), b_rotate (false), 
-    ref_pos_group (NULL), b_fit_gradients (false), 
+  : b_dummy (false), b_center (false), b_rotate (false),
+    ref_pos_group (NULL), b_fit_gradients (false),
     noforce (false)
 {
   this->reserve (atoms.size());
@@ -43,8 +43,8 @@ cvm::atom_group::atom_group (std::vector<cvm::atom> const &atoms)
 
 
 cvm::atom_group::atom_group()
-  : b_dummy (false), b_center (false), b_rotate (false), 
-    ref_pos_group (NULL), b_fit_gradients (false), 
+  : b_dummy (false), b_center (false), b_rotate (false),
+    ref_pos_group (NULL), b_fit_gradients (false),
     noforce (false)
 {
   total_mass = 0.0;
@@ -70,6 +70,18 @@ void cvm::atom_group::add_atom (cvm::atom const &a)
   }
 }
 
+
+void cvm::atom_group::reset_mass(std::string &name, int i, int j)
+{
+  total_mass = 0.0;
+  for (cvm::atom_iter ai = this->begin();
+       ai != this->end(); ai++) {
+    total_mass += ai->mass;
+  }
+  cvm::log ("Re-initialized atom group "+name+":"+cvm::to_str (i)+"/"+
+            cvm::to_str (j)+". "+ cvm::to_str (this->size())+
+            " atoms: total mass = "+cvm::to_str (this->total_mass)+".\n");
+}
 
 void cvm::atom_group::parse (std::string const &conf,
                              char const        *key)
@@ -128,6 +140,25 @@ void cvm::atom_group::parse (std::string const &conf,
                           "atomNumbers\".\n");
 
       atom_indexes.clear();
+    }
+
+    std::string index_group_name;
+    if (get_keyval (group_conf, "indexGroup", index_group_name)) {
+      // use an index group from the index file read globally
+      std::list<std::string>::iterator names_i = cvm::index_group_names.begin();
+      std::list<std::vector<int> >::iterator index_groups_i = cvm::index_groups.begin();
+      for ( ; names_i != cvm::index_group_names.end() ; names_i++, index_groups_i++) {
+        if (*names_i == index_group_name)
+          break;
+      }
+      if (names_i == cvm::index_group_names.end()) {
+        cvm::fatal_error ("Error: could not find index group "+
+                          index_group_name+" among those provided by the index file.\n");
+      }
+      this->reserve (index_groups_i->size());
+      for (size_t i = 0; i < index_groups_i->size(); i++) {
+        this->push_back (cvm::atom ((*index_groups_i)[i]));
+      }
     }
   }
 
@@ -234,7 +265,7 @@ void cvm::atom_group::parse (std::string const &conf,
     }
   }
 
-  for (std::vector<cvm::atom>::iterator a1 = this->begin(); 
+  for (std::vector<cvm::atom>::iterator a1 = this->begin();
        a1 != this->end(); a1++) {
     std::vector<cvm::atom>::iterator a2 = a1;
     ++a2;
@@ -253,10 +284,10 @@ void cvm::atom_group::parse (std::string const &conf,
   if (get_keyval (group_conf, "dummyAtom", dummy_atom_pos, cvm::atom_pos(), mode)) {
     b_dummy = true;
     this->total_mass = 1.0;
-  } else 
+  } else
     b_dummy = false;
 
-  if (b_dummy && (this->size())) 
+  if (b_dummy && (this->size()))
     cvm::fatal_error ("Error: cannot set up group \""+
                       std::string (key)+"\" as a dummy atom "
                       "and provide it with atom definitions.\n");
@@ -328,7 +359,7 @@ void cvm::atom_group::parse (std::string const &conf,
 
       std::string ref_pos_col;
       double ref_pos_col_value;
-      
+
       if (get_keyval (group_conf, "refPositionsCol", ref_pos_col, std::string (""), mode)) {
         // if provided, use PDB column to select coordinates
         bool found = get_keyval (group_conf, "refPositionsColValue", ref_pos_col_value, 0.0, mode);
@@ -486,7 +517,7 @@ void cvm::atom_group::calc_apply_roto_translation()
   }
 }
 
-void cvm::atom_group::apply_translation (cvm::rvector const &t) 
+void cvm::atom_group::apply_translation (cvm::rvector const &t)
 {
   if (b_dummy) return;
 
@@ -496,7 +527,7 @@ void cvm::atom_group::apply_translation (cvm::rvector const &t)
   }
 }
 
-void cvm::atom_group::apply_rotation (cvm::rotation const &rot) 
+void cvm::atom_group::apply_rotation (cvm::rotation const &rot)
 {
   if (b_dummy) return;
 
@@ -617,11 +648,11 @@ void cvm::atom_group::calc_fit_gradients()
   }
 
   if (b_rotate) {
-    
+
     // add the rotation matrix contribution to the gradients
     cvm::rotation const rot_inv = rot.inverse();
     cvm::atom_pos const cog = this->center_of_geometry();
-    
+
     for (size_t i = 0; i < this->size(); i++) {
 
       cvm::atom_pos const pos_orig = rot_inv.rotate ((b_center ? ((*this)[i].pos - cog) : ((*this)[i].pos)));
@@ -785,7 +816,7 @@ void cvm::atom_group::apply_force (cvm::rvector const &force)
     for (cvm::atom_iter ai = this->begin();
          ai != this->end(); ai++) {
       ai->apply_force ((ai->mass/this->total_mass) * force);
-    } 
+    }
   }
 }
 

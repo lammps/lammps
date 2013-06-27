@@ -19,7 +19,7 @@ class colvarmodule::rvector {
 public:
 
   cvm::real x, y, z;
-     
+
   inline rvector()
     : x (0.0), y (0.0), z (0.0)
   {}
@@ -55,7 +55,7 @@ public:
   }
 
 
-  inline cvm::rvector & operator = (cvm::real const &v) 
+  inline cvm::rvector & operator = (cvm::real const &v)
   {
     x = v;
     y = v;
@@ -63,28 +63,28 @@ public:
     return *this;
   }
 
-  inline void operator += (cvm::rvector const &v) 
+  inline void operator += (cvm::rvector const &v)
   {
     x += v.x;
     y += v.y;
     z += v.z;
   }
 
-  inline void operator -= (cvm::rvector const &v) 
+  inline void operator -= (cvm::rvector const &v)
   {
     x -= v.x;
     y -= v.y;
     z -= v.z;
   }
 
-  inline void operator *= (cvm::real const &v) 
+  inline void operator *= (cvm::real const &v)
   {
     x *= v;
     y *= v;
     z *= v;
   }
 
-  inline void operator /= (cvm::real const& v) 
+  inline void operator /= (cvm::real const& v)
   {
     x /= v;
     y /= v;
@@ -113,57 +113,57 @@ public:
   }
 
 
-  static inline cvm::rvector outer (cvm::rvector const &v1, cvm::rvector const &v2) 
+  static inline cvm::rvector outer (cvm::rvector const &v1, cvm::rvector const &v2)
   {
     return cvm::rvector ( v1.y*v2.z - v2.y*v1.z,
                          -v1.x*v2.z + v2.x*v1.z,
                           v1.x*v2.y - v2.x*v1.y);
   }
 
-  friend inline cvm::rvector operator - (cvm::rvector const &v) 
+  friend inline cvm::rvector operator - (cvm::rvector const &v)
   {
     return cvm::rvector (-v.x, -v.y, -v.z);
   }
 
-  friend inline int operator == (cvm::rvector const &v1, cvm::rvector const &v2) 
+  friend inline int operator == (cvm::rvector const &v1, cvm::rvector const &v2)
   {
     return (v1.x == v2.x) && (v1.y == v2.y) && (v1.z == v2.z);
   }
 
-  friend inline int operator != (cvm::rvector const &v1, cvm::rvector const &v2) 
+  friend inline int operator != (cvm::rvector const &v1, cvm::rvector const &v2)
   {
     return (v1.x != v2.x) || (v1.y != v2.y) || (v1.z != v2.z);
   }
 
-  friend inline cvm::rvector operator + (cvm::rvector const &v1, cvm::rvector const &v2) 
+  friend inline cvm::rvector operator + (cvm::rvector const &v1, cvm::rvector const &v2)
   {
     return cvm::rvector (v1.x + v2.x, v1.y + v2.y, v1.z + v2.z);
   }
-  friend inline cvm::rvector operator - (cvm::rvector const &v1, cvm::rvector const &v2) 
+  friend inline cvm::rvector operator - (cvm::rvector const &v1, cvm::rvector const &v2)
   {
     return cvm::rvector (v1.x - v2.x, v1.y - v2.y, v1.z - v2.z);
   }
 
-  friend inline cvm::real operator * (cvm::rvector const &v1, cvm::rvector const &v2) 
+  friend inline cvm::real operator * (cvm::rvector const &v1, cvm::rvector const &v2)
   {
     return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
   }
 
-  friend inline cvm::rvector operator * (cvm::real const &a, cvm::rvector const &v) 
+  friend inline cvm::rvector operator * (cvm::real const &a, cvm::rvector const &v)
   {
     return cvm::rvector (a*v.x, a*v.y, a*v.z);
   }
 
-  friend inline cvm::rvector operator * (cvm::rvector const &v, cvm::real const &a) 
+  friend inline cvm::rvector operator * (cvm::rvector const &v, cvm::real const &a)
   {
     return cvm::rvector (a*v.x, a*v.y, a*v.z);
   }
 
-  friend inline cvm::rvector operator / (cvm::rvector const &v, cvm::real const &a) 
+  friend inline cvm::rvector operator / (cvm::rvector const &v, cvm::real const &a)
   {
     return cvm::rvector (v.x/a, v.y/a, v.z/a);
   }
-     
+
 
 };
 
@@ -186,7 +186,7 @@ public:
   {
     return length;
   }
- 
+
   /// Default constructor
   inline vector1d (T const &t = T())
   {
@@ -251,7 +251,7 @@ public:
     return prod;
   }
 
-  /// Formatted output 
+  /// Formatted output
   friend std::ostream & operator << (std::ostream &os,
                                      vector1d<T, length> const &v)
   {
@@ -310,7 +310,7 @@ public:
     this->alloc();
     reset();
   }
- 
+
   /// Constructor from a 2-d C array
   inline matrix2d (T const **m)
   {
@@ -380,7 +380,7 @@ public:
 //     }
 //   }
 
-  /// Formatted output 
+  /// Formatted output
   friend std::ostream & operator << (std::ostream &os,
                                      matrix2d<T, outer_length, inner_length> const &m)
   {
@@ -454,16 +454,16 @@ public:
   inline cvm::real zz() const { return array[2][2]; }
 
   /// Constructor from a 2-d C array
-  inline rmatrix (cvm::real const **m) 
-    : cvm::matrix2d<cvm::real, 3, 3> (m) 
+  inline rmatrix (cvm::real const **m)
+    : cvm::matrix2d<cvm::real, 3, 3> (m)
   {}
 
   /// Default constructor
-  inline rmatrix() 
+  inline rmatrix()
     : cvm::matrix2d<cvm::real, 3, 3>()
   {}
 
-  /// Constructor component by component 
+  /// Constructor component by component
   inline rmatrix (cvm::real const &xxi,
                   cvm::real const &xyi,
                   cvm::real const &xzi,
@@ -472,7 +472,7 @@ public:
                   cvm::real const &yzi,
                   cvm::real const &zxi,
                   cvm::real const &zyi,
-                  cvm::real const &zzi) 
+                  cvm::real const &zzi)
     : cvm::matrix2d<cvm::real, 3, 3>()
   {
     this->xx() = xxi;
@@ -488,7 +488,7 @@ public:
 
   /// Destructor
   inline ~rmatrix()
-  {}    
+  {}
 
   /// Return the determinant
   inline cvm::real determinant() const
@@ -528,7 +528,7 @@ public:
 
 };
 
-                    
+
 inline cvm::rvector operator * (cvm::rmatrix const &m,
                                 cvm::rvector const &r)
 {
@@ -680,7 +680,7 @@ public:
     return std::sqrt (this->norm2());
   }
 
-  /// Return the conjugate quaternion 
+  /// Return the conjugate quaternion
   inline cvm::quaternion conjugate() const
   {
     return cvm::quaternion (q0, -q1, -q2, -q3);
@@ -720,7 +720,7 @@ public:
     return cvm::quaternion (0.0, v.x, v.y, v.z);
   }
   /// Return the vector component
-  inline cvm::rvector get_vector() const 
+  inline cvm::rvector get_vector() const
   {
     return cvm::rvector (q1, q2, q3);
   }
@@ -1002,11 +1002,11 @@ public:
     if (q.q0 != 0.0) {
 
       // cvm::real const x = iprod/q.q0;
-      
+
       cvm::real const dspindx = (180.0/PI) * 2.0 * (1.0 / (1.0 + (iprod*iprod)/(q.q0*q.q0)));
 
-      return 
-        cvm::quaternion ( dspindx * (iprod * (-1.0) / (q.q0*q.q0)), 
+      return
+        cvm::quaternion ( dspindx * (iprod * (-1.0) / (q.q0*q.q0)),
                           dspindx * ((1.0/q.q0) * axis.x),
                           dspindx * ((1.0/q.q0) * axis.y),
                           dspindx * ((1.0/q.q0) * axis.z));
@@ -1023,11 +1023,11 @@ public:
   inline cvm::real cos_theta (cvm::rvector const &axis) const
   {
     cvm::rvector const q_vec = q.get_vector();
-    cvm::real const alpha = 
+    cvm::real const alpha =
       (180.0/PI) * 2.0 * std::atan2 (axis * q_vec, q.q0);
 
     cvm::real const cos_spin_2 = std::cos (alpha * (PI/180.0) * 0.5);
-    cvm::real const cos_theta_2 = ( (cos_spin_2 != 0.0) ? 
+    cvm::real const cos_theta_2 = ( (cos_spin_2 != 0.0) ?
                                     (q.q0 / cos_spin_2) :
                                     (0.0) );
     // cos(2t) = 2*cos(t)^2 - 1
@@ -1044,7 +1044,7 @@ public:
 
     if (q.q0 != 0.0)  {
 
-      cvm::real const d_cos_theta_dq0 = 
+      cvm::real const d_cos_theta_dq0 =
         (4.0 * q.q0 / (cos_spin_2*cos_spin_2)) *
         (1.0 - (iprod*iprod)/(q.q0*q.q0) / (1.0 + (iprod*iprod)/(q.q0*q.q0)));
 
@@ -1052,7 +1052,7 @@ public:
         (4.0 * q.q0 / (cos_spin_2*cos_spin_2) *
          (iprod/q.q0) / (1.0 + (iprod*iprod)/(q.q0*q.q0)));
 
-      return cvm::quaternion (d_cos_theta_dq0, 
+      return cvm::quaternion (d_cos_theta_dq0,
                               d_cos_theta_dqn * axis.x,
                               d_cos_theta_dqn * axis.y,
                               d_cos_theta_dqn * axis.z);

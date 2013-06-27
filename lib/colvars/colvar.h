@@ -215,7 +215,7 @@ protected:
   cvm::real ext_gamma;
   /// Amplitude of Gaussian white noise for Langevin extended dynamics
   cvm::real ext_sigma;
-  
+
   /// \brief Harmonic restraint force
   colvarvalue fr;
 
@@ -287,6 +287,9 @@ public:
 
   /// Disable the specified task
   void disable (colvar::task const &t);
+
+  /// Get ready for a run and possibly re-initialize internal data
+  void setup();
 
   /// Destructor
   ~colvar();
@@ -380,7 +383,7 @@ protected:
   colvarvalue            x_old;
 
   /// Time series of values and velocities used in correlation
-  /// functions 
+  /// functions
   std::list< std::list<colvarvalue> > acf_x_history, acf_v_history;
   /// Time series of values and velocities used in correlation
   /// functions (pointers)x

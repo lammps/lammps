@@ -37,7 +37,7 @@
 /// the problem, because \link colvarvalue \endlink objects are first
 /// initialized in the configuration, and the stream operation will be
 /// performed only when reading restart files.
-/// 
+///
 /// No problem of course with the output streams: \code os << x;
 /// \endcode will print a different output according to the value of
 /// colvarvalue::value_type, and the width of such output is returned
@@ -92,7 +92,7 @@ public:
   cvm::quaternion quaternion_value;
 
   /// Current type of this colvarvalue object
-  Type  value_type; 
+  Type  value_type;
 
   static inline bool type_checking()
   {
@@ -146,7 +146,7 @@ public:
     case type_scalar:
       real_value = x.real_value;
       break;
-    case type_vector: 
+    case type_vector:
     case type_unitvector:
       rvector_value = x.rvector_value;
       break;
@@ -254,7 +254,7 @@ public:
   /// Ensure that the two types are the same within a binary operator
   void static check_types (colvarvalue const &x1, colvarvalue const &x2);
 
-  /// Undefined operation 
+  /// Undefined operation
   void undef_op() const;
 
   /// Trying to assign this \link colvarvalue \endlink object to
@@ -265,10 +265,10 @@ public:
   /// with a different type to this object
   void error_rside (Type const &vt) const;
 
-  ///�Give the number of characters required to output this
+  /// Give the number of characters required to output this
   /// colvarvalue, given the current type assigned and the number of
   /// characters for a real number
-  size_t output_width (size_t const &real_width);
+  size_t output_width (size_t const &real_width) const;
 
 
   // optimized routines for operations with an array; xv and inner as
@@ -324,7 +324,7 @@ inline void colvarvalue::reset()
   case colvarvalue::type_notset:
   default:
     break;
-  }  
+  }
 }
 
 
@@ -344,7 +344,7 @@ inline void colvarvalue::apply_constraints()
   case colvarvalue::type_notset:
   default:
     break;
-  }  
+  }
 }
 
 
@@ -362,7 +362,7 @@ inline cvm::real colvarvalue::norm2() const
   case colvarvalue::type_notset:
   default:
     return 0.0;
-  }  
+  }
 }
 
 
@@ -383,7 +383,7 @@ inline colvarvalue colvarvalue::inverse() const
   case colvarvalue::type_notset:
   default:
     undef_op();
-  }  
+  }
   return colvarvalue();
 }
 
@@ -391,11 +391,11 @@ inline colvarvalue colvarvalue::inverse() const
 inline colvarvalue & colvarvalue::operator = (colvarvalue const &x)
 {
   if (this->value_type != type_notset)
-    if (this->value_type != x.value_type) 
+    if (this->value_type != x.value_type)
       error_lside (x.value_type);
 
   this->value_type = x.value_type;
-  
+
   switch (this->value_type) {
   case colvarvalue::type_scalar:
     this->real_value = x.real_value;

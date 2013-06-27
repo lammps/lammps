@@ -306,6 +306,8 @@ void FixMove::init()
 
   // set indices and style of all variables
 
+  displaceflag = velocityflag = 0;
+
   if (mstyle == VARIABLE) {
     if (xvarstr) {
       xvar = input->variable->find(xvarstr);
@@ -356,7 +358,6 @@ void FixMove::init()
       else error->all(FLERR,"Variable for fix move is invalid style");
     }
 
-    displaceflag = velocityflag = 0;
     if (xvarstr && xvarstyle == ATOM) displaceflag = 1;
     if (yvarstr && yvarstyle == ATOM) displaceflag = 1;
     if (zvarstr && zvarstyle == ATOM) displaceflag = 1;

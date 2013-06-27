@@ -113,10 +113,7 @@ Image::Image(LAMMPS *lmp) : Pointers(lmp)
   backLightColor[1] = 0.9;
   backLightColor[2] = 0.9;
 
-  // RNG for SSAO depth shading
-
-  if (ssao) random = new RanMars(lmp,seed+me);
-  else random = NULL;
+  random = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -135,7 +132,7 @@ Image::~Image()
   memory->destroy(surfacecopy);
   memory->destroy(rgbcopy);
 
-  delete random;
+  if (random) delete random;
 }
 
 /* ----------------------------------------------------------------------
@@ -251,6 +248,7 @@ void Image::view_params(double boxxlo, double boxxhi, double boxylo,
   // adjust strength of the SSAO
 
   if (ssao) {
+    if (!random) random = new RanMars(lmp,seed+me);
     SSAORadius = maxdel * 0.05 * ssaoint;
     SSAOSamples = static_cast<int> (8.0 + 32.0*ssaoint);
     SSAOJitter = MY_PI / 12;

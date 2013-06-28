@@ -91,15 +91,15 @@ x86_64-w64-mingw32-gfortran -o 64bit/chain.exe -O2 -march=core2 -mtune=core2 \
 datestr=$(date +%Y%m%d)
 cp lammps-current/tools/mingw-cross/win??-*.nsis .
 cp lammps-current/tools/mingw-cross/EnvVarUpdate.nsh .
-cp lammps-current/tools/mingw-cross/OpenCL/lib/libOpenCL.dll 32bit
-cp lammps-current/tools/mingw-cross/OpenCL/lib64/libOpenCL.dll 64bit
+cp lammps-current/tools/mingw-cross/Obj_mingw32/libOpenCL.dll 32bit
+cp lammps-current/tools/mingw-cross/Obj_mingw64/libOpenCL.dll 64bit
 cp lammps-current/lib/gpu/Obj_mingw32/ocl_get_devices 32bit/ocl_get_devices.exe
 cp lammps-current/lib/gpu/Obj_mingw64/ocl_get_devices 64bit/ocl_get_devices.exe
 sed -i -e "s/@VERSION@/${datestr}/g" win??-*.nsis
 
 # determine os vendor and release for installer tweaks.
 vendor=$(grep  release /etc/issue | cut -d \  -f 1)
-release=$(grep  release /etc/issue | cut -d \  -f 1)
+release=$(grep  release /etc/issue | cut -d \  -f 3)
 
 # Fedora 19 ships with GCC-4.8.x which has different exception handling in libgcc
 if [ "$vendor" = "Fedora" ] && [ $release -ge 19 ]

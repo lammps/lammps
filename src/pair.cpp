@@ -1615,7 +1615,7 @@ void Pair::init_bitmap(double inner, double outer, int ntablebits,
 }
 
 /* ----------------------------------------------------------------------
-   open a potential file as specified
+   open a potential file as specified by name
    failing that, search in dir specified by env variable LAMMPS_POTENTIALS
 ------------------------------------------------------------------------- */
   

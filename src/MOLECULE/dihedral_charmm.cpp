@@ -38,7 +38,10 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-DihedralCharmm::DihedralCharmm(LAMMPS *lmp) : Dihedral(lmp) {}
+DihedralCharmm::DihedralCharmm(LAMMPS *lmp) : Dihedral(lmp)
+{
+  weightflag = 0;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -340,6 +343,7 @@ void DihedralCharmm::coeff(int narg, char **arg)
     error->all(FLERR,"Incorrect multiplicity arg for dihedral coefficients");
   if (weight_one < 0.0 || weight_one > 1.0)
     error->all(FLERR,"Incorrect weight arg for dihedral coefficients");
+  if (weight_one > 0.0) weightflag=1;
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -364,10 +368,6 @@ void DihedralCharmm::init_style()
 {
   // insure use of CHARMM pair_style if any weight factors are non-zero
   // set local ptrs to LJ 14 arrays setup by Pair
-
-  weightflag = 0;
-  for (int i = 1; i <= atom->ndihedraltypes; i++)
-    if (weight[i] > 0.0) weightflag = 1;
 
   if (weightflag) {
     int itmp;

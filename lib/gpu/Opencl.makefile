@@ -73,7 +73,10 @@ KERS = $(OBJ_DIR)/device_cl.h $(OBJ_DIR)/atom_cl.h \
 
 OCL_EXECS = $(BIN_DIR)/ocl_get_devices
 
-all: $(OCL_LIB) $(EXECS)
+all: $(OBJ_DIR) $(OCL_LIB) $(EXECS)
+
+$(OBJ_DIR):
+	mkdir -p $@
 
 $(OBJ_DIR)/atom_cl.h: lal_atom.cu lal_preprocessor.h
 	$(BSH) ./geryon/file_to_cstr.sh atom lal_preprocessor.h lal_atom.cu $(OBJ_DIR)/atom_cl.h

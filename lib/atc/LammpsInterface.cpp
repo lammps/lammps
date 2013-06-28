@@ -3,6 +3,7 @@
 
 // LAMMPS includes
 #include "lammps.h"
+#include "lmptype.h"
 #include "atom.h" // x, v, f
 #include "domain.h" // for basing locations on regions
 #include "region.h" // region bounding box and style
@@ -609,7 +610,7 @@ void LammpsInterface::atomPE_init(void)
   }
 }
 
-void LammpsInterface::atomPE_addstep(int step)
+void LammpsInterface::atomPE_addstep(LAMMPS_NS::bigint step)
 {
   atomPE_->addstep(step);
 }

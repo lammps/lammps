@@ -101,7 +101,10 @@ CBNS = $(OBJ_DIR)/device.cubin $(OBJ_DIR)/device_cubin.h \
        $(OBJ_DIR)/lj_coul_debye.cubin $(OBJ_DIR)/lj_coul_debye_cubin.h \
        $(OBJ_DIR)/coul_dsf.cubin $(OBJ_DIR)/coul_dsf_cubin.h
 
-all: $(GPU_LIB) $(EXECS)
+all: $(OBJ_DIR) $(GPU_LIB) $(EXECS)
+
+$(OBJ_DIR):
+	mkdir -p $@
 
 $(OBJ_DIR)/cudpp.o: cudpp_mini/cudpp.cpp
 	$(CUDR) -o $@ -c cudpp_mini/cudpp.cpp -Icudpp_mini

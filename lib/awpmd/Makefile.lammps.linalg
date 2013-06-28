@@ -2,4 +2,4 @@
 
 user-awpmd_SYSINC =
 user-awpmd_SYSLIB = -llinalg -lgfortran
-user-awpmd_SYSPATH = -L../../lib/linalg
+user-awpmd_SYSPATH = -L../../lib/linalg$(LIBOBJDIR)

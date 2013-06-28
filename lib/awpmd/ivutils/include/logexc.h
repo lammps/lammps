@@ -7,9 +7,9 @@
 #include <stdexcept>
 #include <string>
 
-# ifndef _WIN32
+#if !defined(_WIN32) || defined(__MINGW32__)
 # include <typeinfo>
-# endif
+#endif
 
 
 /// this specifies whether to put file/line info in error messages

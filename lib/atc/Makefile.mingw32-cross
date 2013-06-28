@@ -1,8 +1,5 @@
+# library build -*- makefile -*-
 SHELL = /bin/sh
-
-# which file will be copied to Makefile.lammps
-
-EXTRAMAKE = Makefile.lammps.installed
 
 # ------ FILES ------
 
@@ -92,36 +89,51 @@ Vector.h \
 XT_Function.h
 
 # ------ DEFINITIONS ------
+# which file will be copied to Makefile.lammps
 
-LIB = libatc.a
-OBJ =   $(SRC:.cpp=.o)
+EXTRAMAKE = Makefile.lammps.linalg
+
+DIR = Obj_mingw32/
+LIB = $(DIR)libatc.a
+OBJ = $(SRC:%.cpp=$(DIR)%.o)
 
 # ------ SETTINGS ------
 
 # include any MPI settings needed for the ATC library to build with
-# must be the same MPI library that LAMMPS is built with
+# the same MPI library that LAMMPS is built with
 
-CC =	        g++
-CCFLAGS =       -O -g -fPIC -I../../src -DMPICH_IGNORE_CXX_SEEK
-ARCHIVE =	ar
-ARCHFLAG =	-rc
+CC =		i686-w64-mingw32-g++
+CCFLAGS =	-I../../src -I../../src/STUBS -DMPICH_IGNORE_CXX_SEEK	\
+		-O3 -march=i686 -mtune=generic -mfpmath=387 -mpc64	\
+                -ffast-math -funroll-loops -fstrict-aliasing 	\
+		-DLAMMPS_SMALLSMALL -Wno-uninitialized
+ARCHIVE =	i686-w64-mingw32-ar
+ARCHFLAG =	-rcs
 DEPFLAGS =      -M
-LINK =         	g++
+LINK =         	i686-w64-mingw32-g++
 LINKFLAGS =	-O
 USRLIB =
 SYSLIB =
 
 # ------ MAKE PROCEDURE ------
 
-lib: 	$(OBJ)
+default: $(DIR) $(LIB) Makefile.lammps
+
+$(DIR):
+	mkdir $(DIR)
+
+Makefile.lammps:
+	@cp $(EXTRAMAKE) Makefile.lammps
+
+$(LIB): $(OBJ)
 	$(ARCHIVE) $(ARFLAGS) $(LIB) $(OBJ)
 	@cp $(EXTRAMAKE) Makefile.lammps
 
 # ------ COMPILE RULES ------
 
-%.o:%.cpp
-	$(CC) $(CCFLAGS) -c $<
-%.d:%.cpp
+$(DIR)%.o:%.cpp
+	$(CC) $(CCFLAGS) -c $< -o $@
+$(DIR)%.d:%.cpp
 	$(CC) $(CCFLAGS) $(DEPFLAGS) $< > $@		
 
 # ------ DEPENDENCIES ------
@@ -131,4 +143,7 @@ DEPENDS = $(OBJ:.o=.d)
 # ------ CLEAN ------
 
 clean:
-	-rm *.o *.d *~ $(LIB)
+	rm $(DIR)*.o $(DIR)*.d *~ $(LIB)
+
+$(DEPENDS) : $(DIR)
+sinclude $(DEPENDS)

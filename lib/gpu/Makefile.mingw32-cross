@@ -1,0 +1,17 @@
+CUDA_HOME = ../../tools/mingw-cross/OpenCL
+
+OCL_CPP = i686-w64-mingw32-g++ -O2 -march=i686 -mtune=generic -mfpmath=387 \
+        -mpc64 -DMPI_GERYON -DUCL_NO_EXIT -I../../src/STUBS \
+        -I$(CUDA_HOME)/include
+OCL_LINK = -Wl,--enable-stdcall-fixup -L$(CUDA_HOME)/../Obj_mingw32 -lOpenCL -L../../src/STUBS -lmpi_mingw32
+OCL_PREC = -D_SINGLE_DOUBLE
+OCL_TUNE = -DFERMI_OCL
+EXTRAMAKE = Makefile.lammps.mingw-cross
+
+BIN_DIR = Obj_mingw32
+OBJ_DIR = Obj_mingw32
+LIB_DIR = Obj_mingw32
+AR = i686-w64-mingw32-ar
+BSH = /bin/sh
+
+include Opencl.makefile

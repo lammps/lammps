@@ -1,0 +1,80 @@
+# library build -*- makefile -*-
+SHELL = /bin/sh
+
+# which file will be copied to Makefile.lammps
+
+EXTRAMAKE = Makefile.lammps.linalg
+
+# ------ FILES ------
+
+SRC = logexc.cpp wpmd.cpp wpmd_split.cpp
+vpath %.cpp ivutils/src
+vpath %.cpp systems/interact/TCP
+
+INC = \
+    cerf.h \
+    cerf2.h \
+    cerf_octave.h \
+    cvector_3.h \
+    lapack_inter.h \
+    logexc.h \
+    pairhash.h \
+    refobj.h \
+    tcpdefs.h \
+    vector_3.h \
+    wavepacket.h \
+    wpmd.h \
+    wpmd_split.h
+
+# ------ DEFINITIONS ------
+DIR = Obj_mingw32/
+LIB = $(DIR)libawpmd.a
+OBJ =  $(SRC:%.cpp=$(DIR)%.o)
+
+# ------ SETTINGS ------
+
+# include any MPI settings needed for the ATC library to build with
+# the same MPI library that LAMMPS is built with
+
+CC =	  i686-w64-mingw32-g++
+CCFLAGS = 	-O2 -march=i686 -mtune=generic -mfpmath=387 -mpc64	\
+		-finline-functions		\
+                -ffast-math -funroll-loops -fstrict-aliasing		\
+                -Wall -W -Wno-uninitialized -Isystems/interact/TCP/ -Isystems/interact -Iivutils/include
+ARCHIVE =	i686-w64-mingw32-ar
+ARCHFLAG =	-rscv
+DEPFLAGS =  -M
+#LINK =         
+#LINKFLAGS =	
+USRLIB =
+SYSLIB =
+
+# ------ MAKE PROCEDURE ------
+
+default: $(DIR) $(LIB) Makefile.lammps
+
+$(DIR):
+	mkdir $(DIR)
+
+Makefile.lammps:
+	@cp $(EXTRAMAKE) Makefile.lammps
+
+$(LIB): 	$(OBJ)
+	$(ARCHIVE) $(ARFLAGS) $(LIB) $(OBJ)
+	@cp $(EXTRAMAKE) Makefile.lammps
+
+# ------ COMPILE RULES ------
+
+$(DIR)%.o:%.cpp
+	$(CC) $(CCFLAGS) -c $< -o $@
+$(DIR)%.d:%.cpp
+	$(CC) $(CCFLAGS) $(DEPFLAGS) $< > $@		
+
+# ------ DEPENDENCIES ------
+
+DEPENDS = $(OBJ:.o=.d)
+
+# ------ CLEAN ------
+
+clean:
+	rm *.d *~ $(OBJ) $(LIB)

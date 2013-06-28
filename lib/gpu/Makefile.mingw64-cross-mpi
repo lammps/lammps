@@ -1,0 +1,20 @@
+CUDA_HOME = ../../tools/mingw-cross/OpenCL
+
+OCL_CPP = x86_64-w64-mingw32-g++ -O3 -march=core2 -mtune=core2 -mpc64 \
+	-msse2 -DMPI_GERYON -DUCL_NO_EXIT -I$(CUDA_HOME)/include \
+	-I../../tools/mingw-cross/mpich2-win64/include/ \
+        -DMPICH_IGNORE_CXX_SEEK
+ 
+OCL_LINK = -Wl,--enable-stdcall-fixup -L$(CUDA_HOME)/../Obj_mingw64 -lOpenCL \
+	-L../../tools/mingw-cross/mpich2-win64/lib -lmpi
+OCL_PREC = -D_SINGLE_DOUBLE
+OCL_TUNE = -DFERMI_OCL
+EXTRAMAKE = Makefile.lammps.mingw-cross
+
+BIN_DIR = Obj_mingw64-mpi
+OBJ_DIR = Obj_mingw64-mpi
+LIB_DIR = Obj_mingw64-mpi
+AR = x86_64-w64-mingw32-ar
+BSH = /bin/sh
+
+include Opencl.makefile

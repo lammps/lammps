@@ -1,0 +1,13 @@
+# -*- makefile -*- wrapper for non-MPI libraries
+
+SHELL=/bin/sh
+
+all:
+	$(MAKE) $(MFLAGS) mingw64-cross
+	rm -f Obj_mingw64-mpi
+	ln -s Obj_mingw64 Obj_mingw64-mpi
+
+clean:
+	$(MAKE) $(MFLAGS) clean-mingw64-cross
+	rm -f Obj_mingw64-mpi
+

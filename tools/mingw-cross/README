@@ -45,5 +45,5 @@ Cross compiling an OpenCL installable driver library:
           -DCMAKE_C_FLAGS=-DIGNORE_DIRECTX ..
   make OpenCL
 
-the resulting library and .dll files are copied to ${LAMMPS_PATH}/tools/mingw-cross/OpenCL/{lib,lib64}
+the resulting libOpenCL.dll files are copied to ${LAMMPS_PATH}/tools/mingw-cross/OpenCL/{lib,lib64}
 

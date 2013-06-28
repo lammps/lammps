@@ -15,7 +15,7 @@
 </P>
 <PRE>kspace_style style value 
 </PRE>
-<UL><LI>style = <I>none</I> or <I>ewald</I> or <I>ewald/disp</I> or <I>ewald/omp</I> or <I>pppm</I> or <I>pppm/cg</I> or <I>pppm/disp</I> or <I>pppm/tip4p</I> or <I>pppm/disp/tip4p</I> or <I>pppm/gpu</I> or <I>pppm/omp</I> or <I>pppm/cg/omp</I> or <I>pppm/tip4p/omp</I> or <I>msm</I> or <I>msm/cg</I> or <I>msm/omp</I> or <I>msm/cg/omp</I> 
+<UL><LI>style = <I>none</I> or <I>ewald</I> or <I>ewald/disp</I> or <I>ewald/omp</I> or <I>pppm</I> or <I>pppm/cg</I> or <I>pppm/disp</I> or <I>pppm/tip4p</I> or <I>pppm/stagger</I> or <I>pppm/disp/tip4p</I> or <I>pppm/gpu</I> or <I>pppm/omp</I> or <I>pppm/cg/omp</I> or <I>pppm/tip4p/omp</I> or <I>msm</I> or <I>msm/cg</I> or <I>msm/omp</I> or <I>msm/cg/omp</I> 
 
 <PRE>  <I>none</I> value = none
   <I>ewald</I> value = accuracy
@@ -42,6 +42,8 @@
   <I>pppm/cg/omp</I> value = accuracy
     accuracy = desired relative error in forces
   <I>pppm/tip4p/omp</I> value = accuracy
+    accuracy = desired relative error in forces
+  <I>pppm/stagger</I> value = accuracy
     accuracy = desired relative error in forces
   <I>msm</I> value = accuracy
     accuracy = desired relative error in forces
@@ -100,8 +102,9 @@ any solid-state physics text.
 but in a more efficient manner than the <I>ewald</I> style.  The 1/r^6
 capability means that Lennard-Jones or Buckingham potentials can be
 used without a cutoff, i.e. they become full long-range potentials.
-The <I>ewald/disp</I> style can also be used with point-dipoles <A HREF = "#Toukmaji">(Toukmaji)</A>
-and is currently the only kspace solver in LAMMPS with this capability.
+The <I>ewald/disp</I> style can also be used with point-dipoles
+<A HREF = "#Toukmaji">(Toukmaji)</A> and is currently the only kspace solver in
+LAMMPS with this capability.
 </P>
 <HR>
 
@@ -126,6 +129,30 @@ or not.  Its default value is 1.0e-5.
 adds a charge at the massless 4th site in each TIP4P water molecule.
 It should be used with <A HREF = "pair_style.html">pair styles</A> with a
 <I>tip4p/long</I> in their style name.
+</P>
+<P>The <I>pppm/stagger</I> style performs calculations using two different
+meshes, one shifted slightly with respect to the other.  This can
+reduce force aliasing errors and increase the accuracy of the method
+for a given mesh size.  Or a coarser mesh can be used for the same
+target accuracy, which saves CPU time.  However, there is a trade-off
+since FFTs on two meshes are now performed which increases the
+compuation required.  See <A HREF = "#Cerutti">(Cerutti)</A>, <A HREF = "#Neelov">(Neelov)</A>,
+and <A HREF = "#Hockney">(Hockney)</A> for details of the method.
+</P>
+<P>For high relative accuracy, using staggered PPPM allows the mesh size
+to be reduced by a factor of 2 in each dimension as compared to
+regular PPPM (for the same target accuracy).  This can give up to a 4x
+speedup in the KSpace time (8x less mesh points, 2x more expensive).
+However, for low relative accuracy, the staggered PPPM mesh size may
+be essentially the same as for regular PPPM, which means the method
+will be up to 2x slower in the KSpace time (simply 2x more expensive).
+For more details and timings, see
+<A HREF = "Section_accelerate.html">Section_accelerate</A>.
+</P>
+<P>IMPORTANT NOTE: Using <I>pppm/stagger</I> may not give the same increase in
+the accuracy of energy and pressure as it does in forces, so some
+caution must be used if energy and/or pressure are quantities of
+interest, such as when using a barostat.
 </P>
 <HR>
 
@@ -317,6 +344,15 @@ Adam Hilger, NY (1989).
 <A NAME = "Pollock"></A>
 
 <P><B>(Pollock)</B> Pollock and Glosli, Comp Phys Comm, 95, 93 (1996).
+</P>
+<A NAME = "Cerutti"></A>
+
+<P><B>(Cerutti)</B> Cerutti, Duke, Darden, Lybrand, Journal of Chemical Theory
+and Computation 5, 2322 (2009)
+</P>
+<A NAME = "Neelov"></A>
+
+<P><B>(Neelov)</B> Neelov, Holm, J Chem Phys 132, 234103 (2010)
 </P>
 <A NAME = "Veld"></A>
 

@@ -71,7 +71,7 @@ void AtomVecElectron::grow(int n)
   type = memory->grow(atom->type,nmax,"atom:type");
   mask = memory->grow(atom->mask,nmax,"atom:mask");
   image = memory->grow(atom->image,nmax,"atom:image");
-  x = memory->grow(atom->x,nmax+1,3,"atom:x");
+  x = memory->grow(atom->x,nmax,3,"atom:x");
   v = memory->grow(atom->v,nmax,3,"atom:v");
   f = memory->grow(atom->f,nmax*comm->nthreads,3,"atom:f");
 
@@ -577,7 +577,7 @@ int AtomVecElectron::pack_exchange(int i, double *buf)
   buf[m++] = tag[i];
   buf[m++] = type[i];
   buf[m++] = mask[i];
-  buf[m] = 0.0;
+  buf[m] = 0.0;      // for valgrind
   *((tagint *) &buf[m++]) = image[i];
   buf[m++] = q[i];
   buf[m++] = spin[i];
@@ -659,7 +659,7 @@ int AtomVecElectron::pack_restart(int i, double *buf)
   buf[m++] = tag[i];
   buf[m++] = type[i];
   buf[m++] = mask[i];
-  buf[m] = 0.0;
+  buf[m] = 0.0;      // for valgrind
   *((tagint *) &buf[m++]) = image[i];
   buf[m++] = v[i][0];
   buf[m++] = v[i][1];

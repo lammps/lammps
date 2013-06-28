@@ -22,7 +22,12 @@
 #include "stdio.h"
 #include "string.h"
 
-// this should match setting in src/lmptype.h
+// these must match settings in src/lmptype.h which builds LAMMPS with
+//   -DLAMMPS_SMALLBIG (the default), -DLAMMPS_BIGBIG, or -DLAMMPS_SMALLSMALL
+// you can edit the tools/Makefile to enforce the same setting
+//   for the build of binary2txt, e.g.
+//   g++ -g -DLAMMPS_BIGBIG binarytxt.o -o binary2txt
+//   again -DLAMMPS_SMALLBIG is the default
 
 #include "stdint.h"
 #define __STDC_FORMAT_MACROS

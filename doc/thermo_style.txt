@@ -302,10 +302,10 @@ equal-style variables can be referenced.  See the
 or they can invoke other computes, fixes, or variables when evaluated,
 so this is a very general means of creating thermodynamic output.
 
-See "Section_modify"_Section_modify.html for information on how to add
-new compute and fix styles to LAMMPS to calculate quantities that can
-then be referenced with these keywords to generate thermodynamic
-output.
+Note that equal-style variables are assumed to be "intensive" global
+quantities, which are thus printed as-is, without normalization by
+thermo_style custom.  You can include a division by "natoms" in the
+variable formula if this is not the case.
 
 :line
 

@@ -297,6 +297,7 @@ void PPPM::init()
       error->warning(FLERR,"Reducing PPPM order b/c stencil extends "
                      "beyond nearest neighbor processor");
 
+    if (stagger_flag && !differentiation_flag) compute_gf_denom();
     set_grid_global();
     set_grid_local();
     if (overlap_allowed) break;
@@ -780,7 +781,7 @@ void PPPM::allocate()
 
   // summation coeffs
 
-  memory->create(gf_b,order,"pppm:gf_b");
+  if (!stagger_flag) memory->create(gf_b,order,"pppm:gf_b");
   memory->create2d_offset(rho1d,3,-order/2,order/2,"pppm:rho1d");
   memory->create2d_offset(drho1d,3,-order/2,order/2,"pppm:drho1d");
   memory->create2d_offset(rho_coeff,order,(1-order)/2,order/2,"pppm:rho_coeff");
@@ -866,6 +867,7 @@ void PPPM::deallocate()
   }
 
   memory->destroy(gf_b);
+  if (stagger_flag) gf_b = NULL;
   memory->destroy2d_offset(rho1d,-order/2);
   memory->destroy2d_offset(drho1d,-order/2);
   memory->destroy2d_offset(rho_coeff,(1-order)/2);
@@ -982,7 +984,7 @@ void PPPM::set_grid_global()
 
   if (!gridflag) {
 
-    if (differentiation_flag == 1) {
+    if (differentiation_flag == 1 || stagger_flag) {
 
       h = h_x = h_y = h_z = 4.0/g_ewald;
       int count = 0;
@@ -1131,7 +1133,7 @@ double PPPM::compute_df_kspace()
   double zprd_slab = zprd*slab_volfactor;
   bigint natoms = atom->natoms;
   double df_kspace = 0.0;
-  if (differentiation_flag == 1) {
+  if (differentiation_flag == 1 || stagger_flag) {
     double qopt = compute_qopt();
     df_kspace = sqrt(qopt/natoms)*q2/(xprd*yprd*zprd_slab);
   } else {
@@ -1419,6 +1421,12 @@ void PPPM::set_grid_local()
                             nz_pppm/zprd_slab + shift) - OFFSET;
   nzlo_out = nlo + nlower;
   nzhi_out = nhi + nupper;
+
+  if (stagger_flag) {
+    nxhi_out++;
+    nyhi_out++;
+    nzhi_out++;
+  }
 
   // for slab PPPM, change the grid boundary for processors at +z end
   //   to include the empty volume between periodically repeating slabs

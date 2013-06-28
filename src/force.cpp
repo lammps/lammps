@@ -591,21 +591,21 @@ void Force::set_special(int narg, char **arg)
       iarg += 1;
     } else if (strcmp(arg[iarg],"lj/coul") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal special_bonds command");
-      special_lj[1] = special_coul[1] = numeric(FLERR,arg[iarg+1]);
-      special_lj[2] = special_coul[2] = numeric(FLERR,arg[iarg+2]);
-      special_lj[3] = special_coul[3] = numeric(FLERR,arg[iarg+3]);
+      special_lj[1] = special_coul[1] = atof(arg[iarg+1]);
+      special_lj[2] = special_coul[2] = atof(arg[iarg+2]);
+      special_lj[3] = special_coul[3] = atof(arg[iarg+3]);
       iarg += 4;
     } else if (strcmp(arg[iarg],"lj") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal special_bonds command");
-      special_lj[1] = numeric(FLERR,arg[iarg+1]);
-      special_lj[2] = numeric(FLERR,arg[iarg+2]);
-      special_lj[3] = numeric(FLERR,arg[iarg+3]);
+      special_lj[1] = atof(arg[iarg+1]);
+      special_lj[2] = atof(arg[iarg+2]);
+      special_lj[3] = atof(arg[iarg+3]);
       iarg += 4;
     } else if (strcmp(arg[iarg],"coul") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal special_bonds command");
-      special_coul[1] = numeric(FLERR,arg[iarg+1]);
-      special_coul[2] = numeric(FLERR,arg[iarg+2]);
-      special_coul[3] = numeric(FLERR,arg[iarg+3]);
+      special_coul[1] = atof(arg[iarg+1]);
+      special_coul[2] = atof(arg[iarg+2]);
+      special_coul[3] = atof(arg[iarg+3]);
       iarg += 4;
     } else if (strcmp(arg[iarg],"angle") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal special_bonds command");
@@ -621,7 +621,7 @@ void Force::set_special(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"extra") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal special_bonds command");
-      special_extra = inumeric(FLERR,arg[iarg+1]);
+      special_extra = atoi(arg[iarg+1]);
       iarg += 2;
     } else error->all(FLERR,"Illegal special_bonds command");
   }
@@ -669,6 +669,7 @@ void Force::bounds(char *str, int nmax, int &nlo, int &nhi)
 /* ----------------------------------------------------------------------
    read a floating point value from a string
    generate an error if not a legitimate floating point value
+   called by various commands to check validity of their arguments
 ------------------------------------------------------------------------- */
 
 double Force::numeric(const char *file, int line, char *str)
@@ -678,8 +679,8 @@ double Force::numeric(const char *file, int line, char *str)
     if (isdigit(str[i])) continue;
     if (str[i] == '-' || str[i] == '+' || str[i] == '.') continue;
     if (str[i] == 'e' || str[i] == 'E') continue;
-    error->all(file,line,"Expected floating point parameter in "
-               "input script or data file");
+    error->all(file,line,"Expected floating point parameter "
+               "in input script or data file");
   }
 
   return atof(str);
@@ -688,6 +689,7 @@ double Force::numeric(const char *file, int line, char *str)
 /* ----------------------------------------------------------------------
    read an integer value from a string
    generate an error if not a legitimate integer value
+   called by various commands to check validity of their arguments
 ------------------------------------------------------------------------- */
 
 int Force::inumeric(const char *file, int line, char *str)
@@ -695,7 +697,8 @@ int Force::inumeric(const char *file, int line, char *str)
   int n = strlen(str);
   for (int i = 0; i < n; i++) {
     if (isdigit(str[i]) || str[i] == '-' || str[i] == '+') continue;
-    error->all(file,line,"Expected integer parameter in input script or data file");
+    error->all(file,line,
+               "Expected integer parameter in input script or data file");
   }
 
   return atoi(str);

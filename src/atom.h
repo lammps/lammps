@@ -185,11 +185,12 @@ class Atom : protected Pointers {
 
   // functions for global to local ID mapping
   // map lookup function inlined for efficiency
+  // return -1 if no map defined
 
   inline int map(int global) {
     if (map_style == 1) return map_array[global];
     else if (map_style == 2) return map_find_hash(global);
-    else return -1; // no map => atom not found.
+    else return -1;
   };
 
   void map_init();

@@ -38,16 +38,17 @@ to use for maximum simulation speed. The kspace parameters may
 include the style, cutoff, grid points in each direction, order, 
 Ewald parameter, MSM parallelization cut-point, MPI tasks to use, etc.
 </P>
-<P>The rationale for this fix is to provide the user with as-fast-as-possible
-simulations that include long-range electrostatics (kspace) while meeting
-the user-prescribed accuracy requirement. A simple heuristic could never 
-capture the optimal combination of parameters for every possible run-time
-scenario. But by performing short tests of various kspace parameter sets, 
-this fix allows parameters to be tailored specifically to the user’s 
-machine, MPI ranks, use of threading or accelerators, the simulated system, 
-and the simulation details. In addition, it is possible that parameters 
-could be evolved with the simulation on-the-fly, which is useful for 
-systems that are dynamically evolving (e.g. changes in box size/shape or
+<P>The rationale for this fix is to provide the user with
+as-fast-as-possible simulations that include long-range electrostatics
+(kspace) while meeting the user-prescribed accuracy requirement. A
+simple heuristic could never capture the optimal combination of
+parameters for every possible run-time scenario. But by performing
+short tests of various kspace parameter sets, this fix allows
+parameters to be tailored specifically to the user's machine, MPI
+ranks, use of threading or accelerators, the simulated system, and the
+simulation details. In addition, it is possible that parameters could
+be evolved with the simulation on-the-fly, which is useful for systems
+that are dynamically evolving (e.g. changes in box size/shape or
 number of particles).
 </P>
 <P>When this fix is invoked, LAMMPS will perform short timed tests of 

@@ -50,6 +50,7 @@ PairComb::PairComb(LAMMPS *lmp) : Pair(lmp)
   single_enable = 0;
   restartinfo = 0;
   one_coeff = 1;
+  manybody_flag = 1;
 
   nmax = 0;
   NCo = NULL;

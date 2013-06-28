@@ -48,6 +48,4 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 "group"_group.html, "dump"_dump.html, "fix colvars"_fix_colvars.html
 
-[Default:]
-
-none
+[Default:] none

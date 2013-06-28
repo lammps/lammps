@@ -71,9 +71,6 @@ enum{SPHERE_SPHERE,SPHERE_ELLIPSE,ELLIPSE_SPHERE,ELLIPSE_ELLIPSE};
 PairGayBerneGPU::PairGayBerneGPU(LAMMPS *lmp) : PairGayBerne(lmp),
                                                 gpu_mode(GPU_FORCE)
 {
-  avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-  if (!avec)
-    error->all(FLERR,"Pair gayberne/gpu requires atom style ellipsoid");
   quat_nmax = 0;
   quat = NULL;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
@@ -152,6 +149,9 @@ void PairGayBerneGPU::compute(int eflag, int vflag)
 
 void PairGayBerneGPU::init_style()
 {
+  avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
+  if (!avec)
+    error->all(FLERR,"Pair gayberne/gpu requires atom style ellipsoid");
   if (force->newton_pair)
     error->all(FLERR,"Cannot use newton pair with gayberne/gpu pair style");
   if (!atom->ellipsoid_flag)

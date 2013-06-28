@@ -151,6 +151,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
       bodyown[i] = nlocal_body++;
     } else bodyown[i] = -1;
 
+
   // bodysize = sizeof(Body) in doubles
 
   bodysize = sizeof(Body)/sizeof(double);
@@ -217,6 +218,11 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   random = NULL;
   if (langflag) random = new RanMars(lmp,seed + comm->me);
 
+  // mass vector for granular pair styles
+
+  mass_body = NULL;
+  nmax_mass = 0;
+
   // firstflag = 1 triggers one-time initialization of rigid body attributes
 
   firstflag = 1;
@@ -244,6 +250,7 @@ FixRigidSmall::~FixRigidSmall()
 
   delete random;
   memory->destroy(langextra);
+  memory->destroy(mass_body);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1289,10 +1296,7 @@ void FixRigidSmall::create_bodies()
   n = 0;
   for (i = 0; i < nlocal; i++) {
     if (!(mask[i] & groupbit)) continue;
-    if (hash->find(molecule[i]) == hash->end()) {
-      hash->insert(std::pair<int,int> (molecule[i],n));
-      n++;
-    }
+    if (hash->find(molecule[i]) == hash->end()) (*hash)[molecule[i]] = n++;
   }
 
   // bbox = bounding box of each rigid body my atoms are part of
@@ -1552,7 +1556,7 @@ void FixRigidSmall::setup_bodies()
       atom->tri_flag || atom->mu_flag) {
     int flag = 0;
     for (i = 0; i < nlocal; i++) {
-      if (atom2body[i] < 0) continue;
+      if (bodytag[i] == 0) continue;
       if (radius && radius[i] > 0.0) flag = 1;
       if (ellipsoid && ellipsoid[i] >= 0) flag = 1;
       if (line && line[i] >= 0) flag = 1;
@@ -1577,7 +1581,7 @@ void FixRigidSmall::setup_bodies()
 
     for (i = 0; i < nlocal; i++) {
       eflags[i] = 0;
-      if (atom2body[i] < 0) continue;
+      if (bodytag[i] == 0) continue;
 
       // set to POINT or SPHERE or ELLIPSOID or LINE
 
@@ -2516,6 +2520,37 @@ void FixRigidSmall::reset_dt()
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
   dtq = 0.5 * update->dt;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void *FixRigidSmall::extract(const char *str, int &dim)
+{
+  if (strcmp(str,"body") == 0) {
+    dim = 1;
+    return atom2body;
+  }
+
+  // return vector of rigid body masses, for owned+ghost bodies
+  // used by granular pair styles, indexed by atom2body
+
+  if (strcmp(str,"masstotal") == 0) {
+    dim = 1;
+
+    if (nmax_mass < nmax_body) {
+      memory->destroy(mass_body);
+      nmax_mass = nmax_body;
+      memory->create(mass_body,nmax_mass,"rigid:mass_body");
+    }
+
+    int n = nlocal_body + nghost_body;
+    for (int i = 0; i < n; i++)
+      mass_body[i] = body[i].mass;
+
+    return mass_body;
+  }
+
+  return NULL;
 }
 
 /* ----------------------------------------------------------------------

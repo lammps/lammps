@@ -45,6 +45,7 @@ class PairGranHookeHistory : public Pair {
   int pack_comm(int, int *, double *, int, int *);
   void unpack_comm(int, int, double *);
   void *extract(const char *, int &);
+  double memory_usage();
 
  protected:
   double kn,kt,gamman,gammat,xmu;
@@ -59,9 +60,12 @@ class PairGranHookeHistory : public Pair {
   double *maxrad_dynamic,*maxrad_frozen;
 
   class FixShearHistory *fix_history;
-  class Fix *fix_rigid;
-  int *body;
-  double *mass_rigid;
+
+  // storage of rigid body masses for use in granular interactions
+
+  class Fix *fix_rigid;    // ptr to rigid body fix, NULL if none
+  double *mass_rigid;      // rigid mass for owned+ghost atoms
+  int nmax;                // allocated size of mass_rigid
 
   void allocate();
 };

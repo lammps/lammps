@@ -77,6 +77,30 @@ from the I,I and J,J settings by mixing rules; see the
 this option as it pertains to individual potentials are described on
 the doc page for the potential.
 </P>
+<P>Many pair styles, typically for many-body potentials, use tabulated
+potential files as input, when specifying the pair_coeff command.
+Potential files provided with LAMMPS are in the potentials directory
+of the distribution.  For some potentials, such as EAM, other archives
+of suitable files can be found on the Web.  They can be used with
+LAMMPS so long as they are in the format LAMMPS expects, as discussed
+on the individual doc pages.
+</P>
+<P>When a pair_coeff command using a potential file is specified, LAMMPS
+looks for the potential file in 2 places.  First it looks in the
+location specified.  E.g. if the file is specified as "niu3.eam", it
+is looked for in the current working directory.  If it is specified as
+"../potentials/niu3.eam", then it is looked for in the potentials
+directory, assuming it is a sister directory of the current working
+directory.  If the file is not found, it is then looked for in the
+directory specified by the LAMMPS_POTENTIALS environment variable.
+Thus if this is set to the potentials directory in the LAMMPS distro,
+then you can use those files from anywhere on your system, without
+copying them into your working directory.  Environment variables are
+set in different ways for different shells.  For example, in tcsh, you
+could type the following or put it in your .cshrc file:
+</P>
+<PRE>% setenv LAMMPS_POTENTIALS /home/users/plimpton/lammps/potentials 
+</PRE>
 <HR>
 
 <P>Here is an alphabetic list of pair styles defined in LAMMPS.  Click on

@@ -46,7 +46,7 @@ FixHeat::FixHeat(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   global_freq = 1;
   extscalar = 0;
 
-  nevery = atoi(arg[3]);
+  nevery = force->inumeric(FLERR,arg[3]);
   if (nevery <= 0) error->all(FLERR,"Illegal fix heat command");
 
   hstr = NULL;
@@ -56,7 +56,7 @@ FixHeat::FixHeat(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
     hstr = new char[n];
     strcpy(hstr,&arg[4][2]);
   } else {
-    heat_input = atof(arg[4]);
+    heat_input = force->numeric(FLERR,arg[4]);
     hstyle = CONSTANT;
   }
 

@@ -228,7 +228,7 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
 
   // read args
 
-  double cut = atof(arg[1]);
+  double cut = force->numeric(FLERR,arg[1]);
   double cutsq = cut*cut;
 
   int igroup1 = group->find(arg[2]);
@@ -375,8 +375,8 @@ void DeleteAtoms::delete_porosity(int narg, char **arg)
   int iregion = domain->find_region(arg[1]);
   if (iregion == -1) error->all(FLERR,"Could not find delete_atoms region ID");
 
-  double porosity_fraction = atof(arg[2]);
-  int seed = atoi(arg[3]);
+  double porosity_fraction = force->numeric(FLERR,arg[2]);
+  int seed = force->inumeric(FLERR,arg[3]);
   options(narg-4,&arg[4]);
 
   RanMars *random = new RanMars(lmp,seed + comm->me);

@@ -19,6 +19,7 @@
 #include "update.h"
 #include "memory.h"
 #include "error.h"
+#include "force.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -35,14 +36,14 @@ FixExternal::FixExternal(LAMMPS *lmp, int narg, char **arg) :
   if (strcmp(arg[3],"pf/callback") == 0) {
     if (narg != 6) error->all(FLERR,"Illegal fix external command");
     mode = PF_CALLBACK;
-    ncall = atoi(arg[4]);
-    napply = atoi(arg[5]);
+    ncall = force->inumeric(FLERR,arg[4]);
+    napply = force->inumeric(FLERR,arg[5]);
     if (ncall <= 0 || napply <= 0) 
       error->all(FLERR,"Illegal fix external command");
   } else if (strcmp(arg[3],"pf/array") == 0) {
     if (narg != 5) error->all(FLERR,"Illegal fix external command");
     mode = PF_ARRAY;
-    napply = atoi(arg[4]);
+    napply = force->inumeric(FLERR,arg[4]);
     if (napply <= 0) error->all(FLERR,"Illegal fix external command");
   } else error->all(FLERR,"Illegal fix external command");
 

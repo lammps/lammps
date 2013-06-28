@@ -50,9 +50,9 @@ void Replicate::command(int narg, char **arg)
 
   // nrep = total # of replications
 
-  int nx = atoi(arg[0]);
-  int ny = atoi(arg[1]);
-  int nz = atoi(arg[2]);
+  int nx = force->inumeric(FLERR,arg[0]);
+  int ny = force->inumeric(FLERR,arg[1]);
+  int nz = force->inumeric(FLERR,arg[2]);
   int nrep = nx*ny*nz;
 
   // error and warning checks

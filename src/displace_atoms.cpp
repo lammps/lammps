@@ -26,6 +26,7 @@
 #include "math_const.h"
 #include "random_park.h"
 #include "error.h"
+#include "force.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -89,9 +90,9 @@ void DisplaceAtoms::command(int narg, char **arg)
 
   if (style == MOVE) {
 
-    double delx = xscale*atof(arg[2]);
-    double dely = yscale*atof(arg[3]);
-    double delz = zscale*atof(arg[4]);
+    double delx = xscale*force->numeric(FLERR,arg[2]);
+    double dely = yscale*force->numeric(FLERR,arg[3]);
+    double delz = zscale*force->numeric(FLERR,arg[4]);
 
     double **x = atom->x;
     int *mask = atom->mask;
@@ -118,14 +119,14 @@ void DisplaceAtoms::command(int narg, char **arg)
 
     double d_lo,d_hi;
     if (d_dim == 0) {
-      d_lo = xscale*atof(arg[3]);
-      d_hi = xscale*atof(arg[4]);
+      d_lo = xscale*force->numeric(FLERR,arg[3]);
+      d_hi = xscale*force->numeric(FLERR,arg[4]);
     } else if (d_dim == 1) {
-      d_lo = yscale*atof(arg[3]);
-      d_hi = yscale*atof(arg[4]);
+      d_lo = yscale*force->numeric(FLERR,arg[3]);
+      d_hi = yscale*force->numeric(FLERR,arg[4]);
     } else if (d_dim == 2) {
-      d_lo = zscale*atof(arg[3]);
-      d_hi = zscale*atof(arg[4]);
+      d_lo = zscale*force->numeric(FLERR,arg[3]);
+      d_hi = zscale*force->numeric(FLERR,arg[4]);
     }
 
     int coord_dim;
@@ -136,14 +137,14 @@ void DisplaceAtoms::command(int narg, char **arg)
 
     double coord_lo,coord_hi;
     if (coord_dim == 0) {
-      coord_lo = xscale*atof(arg[6]);
-      coord_hi = xscale*atof(arg[7]);
+      coord_lo = xscale*force->numeric(FLERR,arg[6]);
+      coord_hi = xscale*force->numeric(FLERR,arg[7]);
     } else if (coord_dim == 1) {
-      coord_lo = yscale*atof(arg[6]);
-      coord_hi = yscale*atof(arg[7]);
+      coord_lo = yscale*force->numeric(FLERR,arg[6]);
+      coord_hi = yscale*force->numeric(FLERR,arg[7]);
     } else if (coord_dim == 2) {
-      coord_lo = zscale*atof(arg[6]);
-      coord_hi = zscale*atof(arg[7]);
+      coord_lo = zscale*force->numeric(FLERR,arg[6]);
+      coord_hi = zscale*force->numeric(FLERR,arg[7]);
     }
 
     double **x = atom->x;
@@ -169,10 +170,10 @@ void DisplaceAtoms::command(int narg, char **arg)
   if (style == RANDOM) {
     RanPark *random = new RanPark(lmp,1);
 
-    double dx = xscale*atof(arg[2]);
-    double dy = yscale*atof(arg[3]);
-    double dz = zscale*atof(arg[4]);
-    int seed = atoi(arg[5]);
+    double dx = xscale*force->numeric(FLERR,arg[2]);
+    double dy = yscale*force->numeric(FLERR,arg[3]);
+    double dz = zscale*force->numeric(FLERR,arg[4]);
+    int seed = force->inumeric(FLERR,arg[5]);
     if (seed <= 0) error->all(FLERR,"Illegal displace_atoms random command");
 
     double **x = atom->x;
@@ -207,13 +208,13 @@ void DisplaceAtoms::command(int narg, char **arg)
     double a[3],b[3],c[3],d[3],disp[3],runit[3];
     
     int dim = domain->dimension;
-    point[0] = xscale*atof(arg[2]);
-    point[1] = yscale*atof(arg[3]);
-    point[2] = zscale*atof(arg[4]);
-    axis[0] = atof(arg[5]);
-    axis[1] = atof(arg[6]);
-    axis[2] = atof(arg[7]);
-    double theta = atof(arg[8]);
+    point[0] = xscale*force->numeric(FLERR,arg[2]);
+    point[1] = yscale*force->numeric(FLERR,arg[3]);
+    point[2] = zscale*force->numeric(FLERR,arg[4]);
+    axis[0] = force->numeric(FLERR,arg[5]);
+    axis[1] = force->numeric(FLERR,arg[6]);
+    axis[2] = force->numeric(FLERR,arg[7]);
+    double theta = force->numeric(FLERR,arg[8]);
     if (dim == 2 and (axis[0] != 0.0 || axis[1] != 0.0))
       error->all(FLERR,"Invalid displace_atoms rotate axis for 2d");
 

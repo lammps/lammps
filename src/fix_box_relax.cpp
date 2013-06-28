@@ -89,7 +89,7 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[iarg],"iso") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix box/relax command");
       pcouple = XYZ;
-      p_target[0] = p_target[1] = p_target[2] = atof(arg[iarg+1]);
+      p_target[0] = p_target[1] = p_target[2] = force->numeric(FLERR,arg[iarg+1]);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
       if (dimension == 2) {
         p_target[2] = 0.0;
@@ -99,7 +99,7 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"aniso") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix box/relax command");
       pcouple = NONE;
-      p_target[0] = p_target[1] = p_target[2] = atof(arg[iarg+1]);
+      p_target[0] = p_target[1] = p_target[2] = force->numeric(FLERR,arg[iarg+1]);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
       if (dimension == 2) {
         p_target[2] = 0.0;
@@ -110,7 +110,7 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix box/relax command");
       pcouple = NONE;
       scalexy = scalexz = scaleyz = 0;
-      p_target[0] = p_target[1] = p_target[2] = atof(arg[iarg+1]);
+      p_target[0] = p_target[1] = p_target[2] = force->numeric(FLERR,arg[iarg+1]);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
       p_target[3] = p_target[4] = p_target[5] = 0.0;
       p_flag[3] = p_flag[4] = p_flag[5] = 1;
@@ -122,19 +122,19 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (strcmp(arg[iarg],"x") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix box/relax command");
-      p_target[0] = atof(arg[iarg+1]);
+      p_target[0] = force->numeric(FLERR,arg[iarg+1]);
       p_flag[0] = 1;
       deviatoric_flag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"y") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix box/relax command");
-      p_target[1] = atof(arg[iarg+1]);
+      p_target[1] = force->numeric(FLERR,arg[iarg+1]);
       p_flag[1] = 1;
       deviatoric_flag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"z") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix box/relax command");
-      p_target[2] = atof(arg[iarg+1]);
+      p_target[2] = force->numeric(FLERR,arg[iarg+1]);
       p_flag[2] = 1;
       deviatoric_flag = 1;
       iarg += 2;
@@ -143,7 +143,7 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (strcmp(arg[iarg],"yz") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix box/relax command");
-      p_target[3] = atof(arg[iarg+1]);
+      p_target[3] = force->numeric(FLERR,arg[iarg+1]);
       p_flag[3] = 1;
       deviatoric_flag = 1;
       scaleyz = 0;
@@ -152,7 +152,7 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Invalid fix box/relax command for a 2d simulation");
     } else if (strcmp(arg[iarg],"xz") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix box/relax command");
-      p_target[4] = atof(arg[iarg+1]);
+      p_target[4] = force->numeric(FLERR,arg[iarg+1]);
       p_flag[4] = 1;
       deviatoric_flag = 1;
       scalexz = 0;
@@ -161,7 +161,7 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Invalid fix box/relax command for a 2d simulation");
     } else if (strcmp(arg[iarg],"xy") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix box/relax command");
-      p_target[5] = atof(arg[iarg+1]);
+      p_target[5] = force->numeric(FLERR,arg[iarg+1]);
       p_flag[5] = 1;
       deviatoric_flag = 1;
       scalexy = 0;
@@ -185,11 +185,11 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"vmax") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix box/relax command");
-      vmax = atof(arg[iarg+1]);
+      vmax = force->numeric(FLERR,arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"nreset") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix box/relax command");
-      nreset_h0 = atoi(arg[iarg+1]);
+      nreset_h0 = force->inumeric(FLERR,arg[iarg+1]);
       if (nreset_h0 < 0) error->all(FLERR,"Illegal fix box/relax command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"scalexy") == 0) {
@@ -212,9 +212,9 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"fixedpoint") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix box/relax command");
-      fixedpoint[0] = atof(arg[iarg+1]);
-      fixedpoint[1] = atof(arg[iarg+2]);
-      fixedpoint[2] = atof(arg[iarg+3]);
+      fixedpoint[0] = force->numeric(FLERR,arg[iarg+1]);
+      fixedpoint[1] = force->numeric(FLERR,arg[iarg+2]);
+      fixedpoint[2] = force->numeric(FLERR,arg[iarg+3]);
       iarg += 4;
     } else error->all(FLERR,"Illegal fix box/relax command");
   }

@@ -24,12 +24,13 @@
 #include "modify.h"
 #include "respa.h"
 #include "error.h"
+#include "force.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum{XLO,XHI,YLO,YHI,ZLO,ZHI};
-enum{EDGE,CONSTANT,VARIABLE};
+enum{XLO=0,XHI=1,YLO=2,YHI=3,ZLO=4,ZHI=5};
+enum{NONE=0,EDGE,CONSTANT,VARIABLE};
 
 /* ---------------------------------------------------------------------- */
 
@@ -84,7 +85,7 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
         strcpy(xstr[nwall],&arg[iarg+1][2]);
       } else {
         xstyle[nwall] = CONSTANT;
-        coord0[nwall] = atof(arg[iarg+1]);
+        coord0[nwall] = force->numeric(FLERR,arg[iarg+1]);
       }
 
       if (strstr(arg[iarg+2],"v_") == arg[iarg+2]) {
@@ -93,7 +94,7 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
         strcpy(estr[nwall],&arg[iarg+2][2]);
         estyle[nwall] = VARIABLE;
       } else {
-        epsilon[nwall] = atof(arg[iarg+2]);
+        epsilon[nwall] = force->numeric(FLERR,arg[iarg+2]);
         estyle[nwall] = CONSTANT;
       }
 
@@ -103,11 +104,11 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
         strcpy(sstr[nwall],&arg[iarg+3][2]);
         sstyle[nwall] = VARIABLE;
       } else {
-        sigma[nwall] = atof(arg[iarg+3]);
+        sigma[nwall] = force->numeric(FLERR,arg[iarg+3]);
         sstyle[nwall] = CONSTANT;
       }
 
-      cutoff[nwall] = atof(arg[iarg+4]);
+      cutoff[nwall] = force->numeric(FLERR,arg[iarg+4]);
       nwall++;
       iarg += 5;
 

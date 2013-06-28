@@ -33,6 +33,7 @@
 #include "atom_masks.h"
 #include "memory.h"
 #include "error.h"
+#include "force.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -166,7 +167,7 @@ void Variable::set(int narg, char **arg)
     int nfirst,nlast;
     if (narg == 3 || (narg == 4 && strcmp(arg[3],"pad") == 0)) {
       nfirst = 1;
-      nlast = atoi(arg[2]);
+      nlast = force->inumeric(FLERR,arg[2]);
       if (nlast <= 0) error->all(FLERR,"Illegal variable command");
       if (narg == 4 && strcmp(arg[3],"pad") == 0) {
         char digits[12];
@@ -174,8 +175,8 @@ void Variable::set(int narg, char **arg)
         pad[nvar] = strlen(digits);
       } else pad[nvar] = 0;
     } else if (narg == 4 || (narg == 5 && strcmp(arg[4],"pad") == 0)) {
-      nfirst = atoi(arg[2]);
-      nlast = atoi(arg[3]);
+      nfirst = force->inumeric(FLERR,arg[2]);
+      nlast = force->inumeric(FLERR,arg[3]);
       if (nfirst > nlast || nlast < 0)
         error->all(FLERR,"Illegal variable command");
       if (narg == 5 && strcmp(arg[4],"pad") == 0) {
@@ -229,7 +230,7 @@ void Variable::set(int narg, char **arg)
       if (find(arg[0]) >= 0) return;
       if (nvar == maxvar) grow();
       style[nvar] = ULOOP;
-      num[nvar] = atoi(arg[2]);
+      num[nvar] = force->inumeric(FLERR,arg[2]);
       data[nvar] = new char*[1];
       data[nvar][0] = NULL;
       if (narg == 4) {

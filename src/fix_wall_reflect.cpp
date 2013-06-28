@@ -23,12 +23,13 @@
 #include "input.h"
 #include "variable.h"
 #include "error.h"
+#include "force.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum{XLO,XHI,YLO,YHI,ZLO,ZHI};
-enum{EDGE,CONSTANT,VARIABLE};
+enum{XLO=0,XHI=1,YLO=2,YHI=3,ZLO=4,ZHI=5};
+enum{NONE=0,EDGE,CONSTANT,VARIABLE};
 
 /* ---------------------------------------------------------------------- */
 
@@ -75,7 +76,7 @@ FixWallReflect::FixWallReflect(LAMMPS *lmp, int narg, char **arg) :
         strcpy(varstr[nwall],&arg[iarg+1][2]);
       } else {
         wallstyle[nwall] = CONSTANT;
-        coord0[nwall] = atof(arg[iarg+1]);
+        coord0[nwall] = force->numeric(FLERR,arg[iarg+1]);
       }
 
       nwall++;

@@ -38,46 +38,46 @@ RegPrism::RegPrism(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg)
       error->all(FLERR,"Cannot use region INF or EDGE when box does not exist");
     if (strcmp(arg[2],"INF") == 0) xlo = -BIG;
     else xlo = domain->boxlo[0];
-  } else xlo = xscale*atof(arg[2]);
+  } else xlo = xscale*force->numeric(FLERR,arg[2]);
 
   if (strcmp(arg[3],"INF") == 0 || strcmp(arg[3],"EDGE") == 0) {
     if (domain->box_exist == 0)
       error->all(FLERR,"Cannot use region INF or EDGE when box does not exist");
     if (strcmp(arg[3],"INF") == 0) xhi = BIG;
     else xhi = domain->boxhi[0];
-  } else xhi = xscale*atof(arg[3]);
+  } else xhi = xscale*force->numeric(FLERR,arg[3]);
 
   if (strcmp(arg[4],"INF") == 0 || strcmp(arg[4],"EDGE") == 0) {
     if (domain->box_exist == 0)
       error->all(FLERR,"Cannot use region INF or EDGE when box does not exist");
     if (strcmp(arg[4],"INF") == 0) ylo = -BIG;
     else ylo = domain->boxlo[1];
-  } else ylo = yscale*atof(arg[4]);
+  } else ylo = yscale*force->numeric(FLERR,arg[4]);
 
   if (strcmp(arg[5],"INF") == 0 || strcmp(arg[5],"EDGE") == 0) {
     if (domain->box_exist == 0)
       error->all(FLERR,"Cannot use region INF or EDGE when box does not exist");
     if (strcmp(arg[5],"INF") == 0) yhi = BIG;
     else yhi = domain->boxhi[1];
-  } else yhi = yscale*atof(arg[5]);
+  } else yhi = yscale*force->numeric(FLERR,arg[5]);
 
   if (strcmp(arg[6],"INF") == 0 || strcmp(arg[6],"EDGE") == 0) {
     if (domain->box_exist == 0)
       error->all(FLERR,"Cannot use region INF or EDGE when box does not exist");
     if (strcmp(arg[6],"INF") == 0) zlo = -BIG;
     else zlo = domain->boxlo[2];
-  } else zlo = zscale*atof(arg[6]);
+  } else zlo = zscale*force->numeric(FLERR,arg[6]);
 
   if (strcmp(arg[7],"INF") == 0 || strcmp(arg[7],"EDGE") == 0) {
     if (domain->box_exist == 0)
       error->all(FLERR,"Cannot use region INF or EDGE when box does not exist");
     if (strcmp(arg[7],"INF") == 0) zhi = BIG;
     else zhi = domain->boxhi[2];
-  } else zhi = zscale*atof(arg[7]);
+  } else zhi = zscale*force->numeric(FLERR,arg[7]);
 
-  xy = xscale*atof(arg[8]);
-  xz = xscale*atof(arg[9]);
-  yz = yscale*atof(arg[10]);
+  xy = xscale*force->numeric(FLERR,arg[8]);
+  xz = xscale*force->numeric(FLERR,arg[9]);
+  yz = yscale*force->numeric(FLERR,arg[10]);
 
   // error check
   // prism cannot be 0 thickness in any dim, else inverse blows up

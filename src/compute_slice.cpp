@@ -20,6 +20,7 @@
 #include "group.h"
 #include "memory.h"
 #include "error.h"
+#include "force.h"
 
 using namespace LAMMPS_NS;
 
@@ -37,9 +38,9 @@ ComputeSlice::ComputeSlice(LAMMPS *lmp, int narg, char **arg) :
 
   MPI_Comm_rank(world,&me);
 
-  nstart = atoi(arg[3]);
-  nstop = atoi(arg[4]);
-  nskip = atoi(arg[5]);
+  nstart = force->inumeric(FLERR,arg[3]);
+  nstop = force->inumeric(FLERR,arg[4]);
+  nskip = force->inumeric(FLERR,arg[5]);
 
   if (nstart < 1 || nstop < nstart || nskip < 1)
     error->all(FLERR,"Illegal compute slice command");

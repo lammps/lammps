@@ -16,6 +16,7 @@
 #include "atom.h"
 #include "memory.h"
 #include "error.h"
+#include "force.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -27,7 +28,7 @@ FixRespa::FixRespa(LAMMPS *lmp, int narg, char **arg) :
 {
   // nlevels = # of rRESPA levels
 
-  nlevels = atoi(arg[3]);
+  nlevels = force->inumeric(FLERR,arg[3]);
 
   // perform initial allocation of atom-based arrays
   // register with Atom class

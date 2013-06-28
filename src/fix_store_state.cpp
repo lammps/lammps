@@ -25,6 +25,7 @@
 #include "variable.h"
 #include "memory.h"
 #include "error.h"
+#include "force.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -43,7 +44,7 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
   restart_peratom = 1;
   peratom_freq = 1;
 
-  nevery = atoi(arg[3]);
+  nevery = force->inumeric(FLERR,arg[3]);
   if (nevery < 0) error->all(FLERR,"Illegal fix store/state command");
 
   // parse values until one isn't recognized

@@ -113,7 +113,7 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[iarg],"adiam") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump image command");
       adiam = NUMERIC;
-      adiamvalue = atof(arg[iarg+1]);
+      adiamvalue = force->numeric(FLERR,arg[iarg+1]);
       if (adiamvalue <= 0.0) error->all(FLERR,"Illegal dump image command");
       iarg += 2;
 
@@ -135,7 +135,7 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
       else error->all(FLERR,"Illegal dump image command");
       if (!islower(arg[iarg+2][0])) {
           bdiam = NUMERIC;
-          bdiamvalue = atof(arg[iarg+2]);
+          bdiamvalue = force->numeric(FLERR,arg[iarg+2]);
           if (bdiamvalue <= 0.0) error->all(FLERR,"Illegal dump image command");
       } else if (strcmp(arg[iarg+2],"atom") == 0) bdiam = ATOM;
       else if (strcmp(arg[iarg+2],"type") == 0) bdiam = TYPE;
@@ -145,8 +145,8 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (strcmp(arg[iarg],"size") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal dump image command");
-      int width = atoi(arg[iarg+1]);
-      int height = atoi(arg[iarg+2]);
+      int width = force->inumeric(FLERR,arg[iarg+1]);
+      int height = force->inumeric(FLERR,arg[iarg+2]);
       if (width <= 0 || height <= 0)
         error->all(FLERR,"Illegal dump image command");
       image->width = width;
@@ -160,7 +160,7 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
         thetastr = new char[n];
         strcpy(thetastr,&arg[iarg+1][2]);
       } else {
-        double theta = atof(arg[iarg+1]);
+        double theta = force->numeric(FLERR,arg[iarg+1]);
         if (theta < 0.0 || theta > 180.0)
           error->all(FLERR,"Invalid dump image theta value");
         theta *= MY_PI/180.0;
@@ -171,7 +171,7 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
         phistr = new char[n];
         strcpy(phistr,&arg[iarg+2][2]);
       } else {
-        double phi = atof(arg[iarg+2]);
+        double phi = force->numeric(FLERR,arg[iarg+2]);
         phi *= MY_PI/180.0;
         image->phi = phi;
       }
@@ -187,19 +187,19 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
         cxstr = new char[n];
         strcpy(cxstr,&arg[iarg+2][2]);
         cflag = DYNAMIC;
-      } else cx = atof(arg[iarg+2]);
+      } else cx = force->numeric(FLERR,arg[iarg+2]);
       if (strstr(arg[iarg+3],"v_") == arg[iarg+3]) {
         int n = strlen(&arg[iarg+3][2]) + 1;
         cystr = new char[n];
         strcpy(cystr,&arg[iarg+3][2]);
         cflag = DYNAMIC;
-      } else cy = atof(arg[iarg+3]);
+      } else cy = force->numeric(FLERR,arg[iarg+3]);
       if (strstr(arg[iarg+4],"v_") == arg[iarg+4]) {
         int n = strlen(&arg[iarg+4][2]) + 1;
         czstr = new char[n];
         strcpy(czstr,&arg[iarg+4][2]);
         cflag = DYNAMIC;
-      } else cz = atof(arg[iarg+4]);
+      } else cz = force->numeric(FLERR,arg[iarg+4]);
       iarg += 5;
 
     } else if (strcmp(arg[iarg],"up") == 0) {
@@ -208,17 +208,17 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
         int n = strlen(&arg[iarg+1][2]) + 1;
         upxstr = new char[n];
         strcpy(upxstr,&arg[iarg+1][2]);
-      } else image->up[0] = atof(arg[iarg+1]);
+      } else image->up[0] = force->numeric(FLERR,arg[iarg+1]);
       if (strstr(arg[iarg+2],"v_") == arg[iarg+2]) {
         int n = strlen(&arg[iarg+2][2]) + 1;
         upystr = new char[n];
         strcpy(upystr,&arg[iarg+2][2]);
-      } else image->up[1] = atof(arg[iarg+2]);
+      } else image->up[1] = force->numeric(FLERR,arg[iarg+2]);
       if (strstr(arg[iarg+3],"v_") == arg[iarg+3]) {
         int n = strlen(&arg[iarg+3][2]) + 1;
         upzstr = new char[n];
         strcpy(upzstr,&arg[iarg+3][2]);
-      } else image->up[2] = atof(arg[iarg+3]);
+      } else image->up[2] = force->numeric(FLERR,arg[iarg+3]);
       iarg += 4;
 
     } else if (strcmp(arg[iarg],"zoom") == 0) {
@@ -228,7 +228,7 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
         zoomstr = new char[n];
         strcpy(zoomstr,&arg[iarg+1][2]);
       } else {
-        double zoom = atof(arg[iarg+1]);
+        double zoom = force->numeric(FLERR,arg[iarg+1]);
         if (zoom <= 0.0) error->all(FLERR,"Illegal dump image command");
         image->zoom = zoom;
       }
@@ -242,7 +242,7 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
         perspstr = new char[n];
         strcpy(perspstr,&arg[iarg+1][2]);
       } else {
-        double persp = atof(arg[iarg+1]);
+        double persp = force->numeric(FLERR,arg[iarg+1]);
         if (persp < 0.0) error->all(FLERR,"Illegal dump image command");
         image->persp = persp;
       }
@@ -253,7 +253,7 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
       if (strcmp(arg[iarg+1],"yes") == 0) boxflag = YES;
       else if (strcmp(arg[iarg+1],"no") == 0) boxflag = NO;
       else error->all(FLERR,"Illegal dump image command");
-      boxdiam = atof(arg[iarg+2]);
+      boxdiam = force->numeric(FLERR,arg[iarg+2]);
       if (boxdiam < 0.0) error->all(FLERR,"Illegal dump image command");
       iarg += 3;
 
@@ -262,15 +262,15 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
       if (strcmp(arg[iarg+1],"yes") == 0) axesflag = YES;
       else if (strcmp(arg[iarg+1],"no") == 0) axesflag = NO;
       else error->all(FLERR,"Illegal dump image command");
-      axeslen = atof(arg[iarg+2]);
-      axesdiam = atof(arg[iarg+3]);
+      axeslen = force->numeric(FLERR,arg[iarg+2]);
+      axesdiam = force->numeric(FLERR,arg[iarg+3]);
       if (axeslen < 0.0 || axesdiam < 0.0)
         error->all(FLERR,"Illegal dump image command");
       iarg += 4;
 
     } else if (strcmp(arg[iarg],"shiny") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump image command");
-      double shiny = atof(arg[iarg+1]);
+      double shiny = force->numeric(FLERR,arg[iarg+1]);
       if (shiny < 0.0 || shiny > 1.0)
         error->all(FLERR,"Illegal dump image command");
       image->shiny = shiny;
@@ -281,10 +281,10 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
       if (strcmp(arg[iarg+1],"yes") == 0) image->ssao = YES;
       else if (strcmp(arg[iarg+1],"no") == 0) image->ssao = NO;
       else error->all(FLERR,"Illegal dump image command");
-      int seed = atoi(arg[iarg+2]);
+      int seed = force->inumeric(FLERR,arg[iarg+2]);
       if (seed <= 0) error->all(FLERR,"Illegal dump image command");
       image->seed = seed;
-      double ssaoint = atof(arg[iarg+3]);
+      double ssaoint = force->numeric(FLERR,arg[iarg+3]);
       if (ssaoint < 0.0 || ssaoint > 1.0)
         error->all(FLERR,"Illegal dump image command");
       image->ssaoint = ssaoint;
@@ -929,7 +929,7 @@ int DumpImage::modify_param(int narg, char **arg)
     if (narg < 3) error->all(FLERR,"Illegal dump_modify command");
     int nlo,nhi;
     force->bounds(arg[1],atom->ntypes,nlo,nhi);
-    double diam = atof(arg[2]);
+    double diam = force->numeric(FLERR,arg[2]);
     if (diam <= 0.0) error->all(FLERR,"Illegal dump_modify command");
     for (int i = nlo; i <= nhi; i++) diamtype[i] = diam;
     return 3;
@@ -940,7 +940,7 @@ int DumpImage::modify_param(int narg, char **arg)
     if (strlen(arg[3]) != 2) error->all(FLERR,"Illegal dump_modify command");
     int factor = 2;
     if (arg[3][0] == 's') factor = 1;
-    int nentry = atoi(arg[5]);
+    int nentry = force->inumeric(FLERR,arg[5]);
     if (nentry < 1) error->all(FLERR,"Illegal dump_modify command");
     int n = 6 + factor*nentry;
     if (narg < n) error->all(FLERR,"Illegal dump_modify command");
@@ -991,7 +991,7 @@ int DumpImage::modify_param(int narg, char **arg)
       error->all(FLERR,"Dump modify bdiam not allowed with no bond types");
     int nlo,nhi;
     force->bounds(arg[1],atom->ntypes,nlo,nhi);
-    double diam = atof(arg[2]);
+    double diam = force->numeric(FLERR,arg[2]);
     if (diam <= 0.0) error->all(FLERR,"Illegal dump_modify command");
     for (int i = nlo; i <= nhi; i++) bdiamtype[i] = diam;
     return 3;
@@ -1017,7 +1017,7 @@ int DumpImage::modify_param(int narg, char **arg)
 
   if (strcmp(arg[0],"color") == 0) {
     if (narg < 5) error->all(FLERR,"Illegal dump_modify command");
-    int flag = image->addcolor(arg[1],atof(arg[2]),atof(arg[3]),atof(arg[4]));
+    int flag = image->addcolor(arg[1],force->numeric(FLERR,arg[2]),force->numeric(FLERR,arg[3]),force->numeric(FLERR,arg[4]));
     if (flag) error->all(FLERR,"Illegal dump_modify command");
     return 5;
   }

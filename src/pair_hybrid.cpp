@@ -346,7 +346,7 @@ void PairHybrid::coeff(int narg, char **arg)
         if (narg < 4) error->all(FLERR,"Incorrect args for pair coefficients");
         if (!isdigit(arg[3][0]))
           error->all(FLERR,"Incorrect args for pair coefficients");
-        int index = atoi(arg[3]);
+        int index = force->inumeric(FLERR,arg[3]);
         if (index == multiple[m]) break;
         else continue;
       } else break;

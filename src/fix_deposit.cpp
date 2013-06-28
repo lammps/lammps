@@ -44,10 +44,10 @@ FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
 
   // required args
 
-  ninsert = atoi(arg[3]);
-  ntype = atoi(arg[4]);
-  nfreq = atoi(arg[5]);
-  seed = atoi(arg[6]);
+  ninsert = force->inumeric(FLERR,arg[3]);
+  ntype = force->inumeric(FLERR,arg[4]);
+  nfreq = force->inumeric(FLERR,arg[5]);
+  seed = force->inumeric(FLERR,arg[6]);
 
   if (seed <= 0) error->all(FLERR,"Illegal fix deposit command");
 
@@ -414,44 +414,44 @@ void FixDeposit::options(int narg, char **arg)
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix deposit command");
       globalflag = 1;
       localflag = 0;
-      lo = atof(arg[iarg+1]);
-      hi = atof(arg[iarg+2]);
+      lo = force->numeric(FLERR,arg[iarg+1]);
+      hi = force->numeric(FLERR,arg[iarg+2]);
       iarg += 3;
     } else if (strcmp(arg[iarg],"local") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix deposit command");
       localflag = 1;
       globalflag = 0;
-      lo = atof(arg[iarg+1]);
-      hi = atof(arg[iarg+2]);
-      deltasq = atof(arg[iarg+3])*atof(arg[iarg+3]);
+      lo = force->numeric(FLERR,arg[iarg+1]);
+      hi = force->numeric(FLERR,arg[iarg+2]);
+      deltasq = force->numeric(FLERR,arg[iarg+3])*force->numeric(FLERR,arg[iarg+3]);
       iarg += 4;
     } else if (strcmp(arg[iarg],"near") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix deposit command");
-      nearsq = atof(arg[iarg+1])*atof(arg[iarg+1]);
+      nearsq = force->numeric(FLERR,arg[iarg+1])*force->numeric(FLERR,arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"attempt") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix deposit command");
-      maxattempt = atoi(arg[iarg+1]);
+      maxattempt = force->inumeric(FLERR,arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"rate") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix deposit command");
       rateflag = 1;
-      rate = atof(arg[iarg+1]);
+      rate = force->numeric(FLERR,arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"vx") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix deposit command");
-      vxlo = atof(arg[iarg+1]);
-      vxhi = atof(arg[iarg+2]);
+      vxlo = force->numeric(FLERR,arg[iarg+1]);
+      vxhi = force->numeric(FLERR,arg[iarg+2]);
       iarg += 3;
     } else if (strcmp(arg[iarg],"vy") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix deposit command");
-      vylo = atof(arg[iarg+1]);
-      vyhi = atof(arg[iarg+2]);
+      vylo = force->numeric(FLERR,arg[iarg+1]);
+      vyhi = force->numeric(FLERR,arg[iarg+2]);
       iarg += 3;
     } else if (strcmp(arg[iarg],"vz") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix deposit command");
-      vzlo = atof(arg[iarg+1]);
-      vzhi = atof(arg[iarg+2]);
+      vzlo = force->numeric(FLERR,arg[iarg+1]);
+      vzhi = force->numeric(FLERR,arg[iarg+2]);
       iarg += 3;
     } else if (strcmp(arg[iarg],"units") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix deposit command");
@@ -461,9 +461,9 @@ void FixDeposit::options(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"target") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix deposit command");
-      tx = atof(arg[iarg+1]);
-      ty = atof(arg[iarg+2]);
-      tz = atof(arg[iarg+3]);
+      tx = force->numeric(FLERR,arg[iarg+1]);
+      ty = force->numeric(FLERR,arg[iarg+2]);
+      tz = force->numeric(FLERR,arg[iarg+3]);
       targetflag = 1;
       iarg += 4;
     } else error->all(FLERR,"Illegal fix deposit command");

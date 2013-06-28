@@ -25,6 +25,7 @@
 #include "random_mars.h"
 #include "math_const.h"
 #include "error.h"
+#include "force.h"
 #include "memory.h"
 
 #ifdef LAMMPS_JPEG
@@ -132,7 +133,7 @@ Image::~Image()
   memory->destroy(surfacecopy);
   memory->destroy(rgbcopy);
 
-  delete random;
+  if (random) delete random;
 }
 
 /* ----------------------------------------------------------------------
@@ -1098,13 +1099,13 @@ int Image::colormap(int narg, char **arg)
 {
   if (!islower(arg[0][0])) {
     mlo = NUMERIC;
-    mlovalue = atof(arg[0]);
+    mlovalue = force->numeric(FLERR,arg[0]);
   } else if (strcmp(arg[0],"min") == 0) mlo = MINVALUE;
   else return 1;
 
   if (!islower(arg[1][0])) {
     mhi = NUMERIC;
-    mhivalue = atof(arg[1]);
+    mhivalue = force->numeric(FLERR,arg[1]);
   } else if (strcmp(arg[1],"max") == 0) mhi = MAXVALUE;
   else return 1;
 
@@ -1120,12 +1121,12 @@ int Image::colormap(int narg, char **arg)
   else return 1;
 
   if (mstyle == SEQUENTIAL) {
-    mbinsize = atof(arg[3]);
+    mbinsize = force->numeric(FLERR,arg[3]);
     if (mbinsize <= 0.0) return 1;
     mbinsizeinv = 1.0/mbinsize;
   }
 
-  nentry = atoi(arg[4]);
+  nentry = force->inumeric(FLERR,arg[4]);
   if (nentry < 1) return 1;
   mentry = new MapEntry[nentry];
 
@@ -1135,7 +1136,7 @@ int Image::colormap(int narg, char **arg)
       if (n+2 > narg) return 1;
       if (!islower(arg[n][0])) {
         mentry[i].single = NUMERIC;
-        mentry[i].svalue = atof(arg[n]);
+        mentry[i].svalue = force->numeric(FLERR,arg[n]);
       } else if (strcmp(arg[n],"min") == 0) mentry[i].single = MINVALUE;
       else if (strcmp(arg[n],"max") == 0) mentry[i].single = MAXVALUE;
       else return 1;
@@ -1145,13 +1146,13 @@ int Image::colormap(int narg, char **arg)
       if (n+3 > narg) return 1;
       if (!islower(arg[n][0])) {
         mentry[i].lo = NUMERIC;
-        mentry[i].lvalue = atof(arg[n]);
+        mentry[i].lvalue = force->numeric(FLERR,arg[n]);
       } else if (strcmp(arg[n],"min") == 0) mentry[i].single = MINVALUE;
       else if (strcmp(arg[n],"max") == 0) mentry[i].single = MAXVALUE;
       else return 1;
       if (!islower(arg[n+1][0])) {
         mentry[i].hi = NUMERIC;
-        mentry[i].hvalue = atof(arg[n+1]);
+        mentry[i].hvalue = force->numeric(FLERR,arg[n+1]);
       } else if (strcmp(arg[n+1],"min") == 0) mentry[i].single = MINVALUE;
       else if (strcmp(arg[n+1],"max") == 0) mentry[i].single = MAXVALUE;
       else return 1;

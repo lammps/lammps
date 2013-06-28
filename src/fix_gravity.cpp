@@ -25,6 +25,7 @@
 #include "variable.h"
 #include "math_const.h"
 #include "error.h"
+#include "force.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -53,7 +54,7 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
     strcpy(mstr,&arg[3][2]);
     mstyle = EQUAL;
   } else {
-    magnitude = atof(arg[3]);
+    magnitude = force->numeric(FLERR,arg[3]);
     mstyle = CONSTANT;
   }
 
@@ -66,7 +67,7 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
       strcpy(vstr,&arg[5][2]);
       vstyle = EQUAL;
     } else {
-      vert = atof(arg[5]);
+      vert = force->numeric(FLERR,arg[5]);
       vstyle = CONSTANT;
     }
 
@@ -79,7 +80,7 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
       strcpy(pstr,&arg[5][2]);
       pstyle = EQUAL;
     } else {
-      phi = atof(arg[5]);
+      phi = force->numeric(FLERR,arg[5]);
       pstyle = CONSTANT;
     }
     if (strstr(arg[6],"v_") == arg[6]) {
@@ -88,7 +89,7 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
       strcpy(tstr,&arg[6][2]);
       tstyle = EQUAL;
     } else {
-      theta = atof(arg[6]);
+      theta = force->numeric(FLERR,arg[6]);
       tstyle = CONSTANT;
     }
 
@@ -101,7 +102,7 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
       strcpy(xstr,&arg[5][2]);
       xstyle = EQUAL;
     } else {
-      xdir = atof(arg[5]);
+      xdir = force->numeric(FLERR,arg[5]);
       xstyle = CONSTANT;
     }
     if (strstr(arg[6],"v_") == arg[6]) {
@@ -110,7 +111,7 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
       strcpy(ystr,&arg[6][2]);
       ystyle = EQUAL;
     } else {
-      ydir = atof(arg[6]);
+      ydir = force->numeric(FLERR,arg[6]);
       ystyle = CONSTANT;
     }
     if (strstr(arg[7],"v_") == arg[7]) {
@@ -119,7 +120,7 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
       strcpy(zstr,&arg[7][2]);
       zstyle = EQUAL;
     } else {
-      zdir = atof(arg[7]);
+      zdir = force->numeric(FLERR,arg[7]);
       zstyle = CONSTANT;
     }
 

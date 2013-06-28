@@ -57,7 +57,7 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
 
   clearstep = 1;
 
-  nevery = atoi(arg[3]);
+  nevery = force->inumeric(FLERR,arg[3]);
 
   // size_one may be shrunk below if additional optional args exist
 
@@ -1565,7 +1565,7 @@ int DumpCustom::modify_param(int narg, char **arg)
 
     // set threshhold value
 
-    thresh_value[nthresh] = atof(arg[3]);
+    thresh_value[nthresh] = force->numeric(FLERR,arg[3]);
 
     nthresh++;
     return 4;

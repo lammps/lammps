@@ -16,6 +16,7 @@
 #include "string.h"
 #include "region_plane.h"
 #include "error.h"
+#include "force.h"
 
 using namespace LAMMPS_NS;
 
@@ -26,12 +27,12 @@ RegPlane::RegPlane(LAMMPS *lmp, int narg, char **arg) :
 {
   options(narg-8,&arg[8]);
 
-  xp = xscale*atof(arg[2]);
-  yp = yscale*atof(arg[3]);
-  zp = zscale*atof(arg[4]);
-  normal[0] = xscale*atof(arg[5]);
-  normal[1] = yscale*atof(arg[6]);
-  normal[2] = zscale*atof(arg[7]);
+  xp = xscale*force->numeric(FLERR,arg[2]);
+  yp = yscale*force->numeric(FLERR,arg[3]);
+  zp = zscale*force->numeric(FLERR,arg[4]);
+  normal[0] = xscale*force->numeric(FLERR,arg[5]);
+  normal[1] = yscale*force->numeric(FLERR,arg[6]);
+  normal[2] = zscale*force->numeric(FLERR,arg[7]);
 
   // enforce unit normal
 

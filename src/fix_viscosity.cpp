@@ -25,6 +25,7 @@
 #include "domain.h"
 #include "modify.h"
 #include "error.h"
+#include "force.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -42,7 +43,7 @@ FixViscosity::FixViscosity(LAMMPS *lmp, int narg, char **arg) :
 
   MPI_Comm_rank(world,&me);
 
-  nevery = atoi(arg[3]);
+  nevery = force->inumeric(FLERR,arg[3]);
   if (nevery <= 0) error->all(FLERR,"Illegal fix viscosity command");
 
   scalar_flag = 1;
@@ -59,7 +60,7 @@ FixViscosity::FixViscosity(LAMMPS *lmp, int narg, char **arg) :
   else if (strcmp(arg[5],"z") == 0) pdim = 2;
   else error->all(FLERR,"Illegal fix viscosity command");
 
-  nbin = atoi(arg[6]);
+  nbin = force->inumeric(FLERR,arg[6]);
   if (nbin % 2 || nbin <= 2) error->all(FLERR,"Illegal fix viscosity command");
 
   // optional keywords
@@ -71,13 +72,13 @@ FixViscosity::FixViscosity(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"swap") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix viscosity command");
-      nswap = atoi(arg[iarg+1]);
+      nswap = force->inumeric(FLERR,arg[iarg+1]);
       if (nswap <= 0) error->all(FLERR,"Fix viscosity swap value must be positive");
       iarg += 2;
     } else if (strcmp(arg[iarg],"vtarget") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix viscosity command");
       if (strcmp(arg[iarg+1],"INF") == 0) vtarget = BIG;
-      else vtarget = atof(arg[iarg+1]);
+      else vtarget = force->numeric(FLERR,arg[iarg+1]);
       if (vtarget <= 0.0)
         error->all(FLERR,"Fix viscosity vtarget value must be positive");
       iarg += 2;

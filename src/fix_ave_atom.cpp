@@ -23,6 +23,7 @@
 #include "variable.h"
 #include "memory.h"
 #include "error.h"
+#include "force.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -38,9 +39,9 @@ FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 7) error->all(FLERR,"Illegal fix ave/atom command");
 
-  nevery = atoi(arg[3]);
-  nrepeat = atoi(arg[4]);
-  peratom_freq = atoi(arg[5]);
+  nevery = force->inumeric(FLERR,arg[3]);
+  nrepeat = force->inumeric(FLERR,arg[4]);
+  peratom_freq = force->inumeric(FLERR,arg[5]);
 
   // parse remaining values
 

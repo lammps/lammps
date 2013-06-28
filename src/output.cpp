@@ -449,6 +449,7 @@ void Output::write_restart(bigint ntimestep)
 
 void Output::reset_timestep(bigint ntimestep)
 {
+  next_dump_any = MAXBIGINT;
   for (int idump = 0; idump < ndump; idump++) {
     if (every_dump[idump]) {
       next_dump[idump] = (ntimestep/every_dump[idump])*every_dump[idump];
@@ -464,8 +465,7 @@ void Output::reset_timestep(bigint ntimestep)
       next_dump[idump] = nextdump;
       modify->addstep_compute(next_dump[idump]);
     }
-    if (idump) next_dump_any = MIN(next_dump_any,next_dump[idump]);
-    else next_dump_any = next_dump[0];
+    next_dump_any = MIN(next_dump_any,next_dump[idump]);
   }
 
   if (restart_flag_single) {
@@ -543,7 +543,7 @@ void Output::add_dump(int narg, char **arg)
       error->all(FLERR,"Reuse of dump ID");
   int igroup = group->find(arg[1]);
   if (igroup == -1) error->all(FLERR,"Could not find dump group ID");
-  if (atoi(arg[3]) <= 0) error->all(FLERR,"Invalid dump frequency");
+  if (force->inumeric(FLERR,arg[3]) <= 0) error->all(FLERR,"Invalid dump frequency");
 
   // extend Dump list if necessary
 
@@ -571,7 +571,7 @@ void Output::add_dump(int narg, char **arg)
 
   else error->all(FLERR,"Invalid dump style");
 
-  every_dump[ndump] = atoi(arg[3]);
+  every_dump[ndump] = force->inumeric(FLERR,arg[3]);
   if (every_dump[ndump] <= 0) error->all(FLERR,"Illegal dump command");
   last_dump[ndump] = -1;
   var_dump[ndump] = NULL;
@@ -639,7 +639,7 @@ void Output::set_thermo(int narg, char **arg)
     var_thermo = new char[n];
     strcpy(var_thermo,&arg[0][2]);
   } else {
-    thermo_every = atoi(arg[0]);
+    thermo_every = force->inumeric(FLERR,arg[0]);
     if (thermo_every < 0) error->all(FLERR,"Illegal thermo command");
   }
 }
@@ -683,7 +683,7 @@ void Output::create_restart(int narg, char **arg)
   int varflag = 0;
 
   if (strstr(arg[0],"v_") == arg[0]) varflag = 1;
-  else every = atoi(arg[0]);
+  else every = force->inumeric(FLERR,arg[0]);
 
   if (!varflag && every == 0) {
     if (narg != 1) error->all(FLERR,"Illegal restart command");

@@ -29,6 +29,7 @@
 #include "output.h"
 #include "respa.h"
 #include "error.h"
+#include "force.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -50,7 +51,7 @@ FixIndent::FixIndent(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 1;
   extvector = 1;
 
-  k = atof(arg[3]);
+  k = force->numeric(FLERR,arg[3]);
   k3 = k/3.0;
 
   // read options from end of input line
@@ -416,22 +417,22 @@ void FixIndent::options(int narg, char **arg)
         int n = strlen(&arg[iarg+1][2]) + 1;
         xstr = new char[n];
         strcpy(xstr,&arg[iarg+1][2]);
-      } else xvalue = atof(arg[iarg+1]);
+      } else xvalue = force->numeric(FLERR,arg[iarg+1]);
       if (strstr(arg[iarg+2],"v_") == arg[iarg+2]) {
         int n = strlen(&arg[iarg+2][2]) + 1;
         ystr = new char[n];
         strcpy(ystr,&arg[iarg+2][2]);
-      } else yvalue = atof(arg[iarg+2]);
+      } else yvalue = force->numeric(FLERR,arg[iarg+2]);
       if (strstr(arg[iarg+3],"v_") == arg[iarg+3]) {
         int n = strlen(&arg[iarg+3][2]) + 1;
         zstr = new char[n];
         strcpy(zstr,&arg[iarg+3][2]);
-      } else zvalue = atof(arg[iarg+3]);
+      } else zvalue = force->numeric(FLERR,arg[iarg+3]);
       if (strstr(arg[iarg+4],"v_") == arg[iarg+4]) {
         int n = strlen(&arg[iarg+4][2]) + 1;
         rstr = new char[n];
         strcpy(rstr,&arg[iarg+4][2]);
-      } else rvalue = atof(arg[iarg+4]);
+      } else rvalue = force->numeric(FLERR,arg[iarg+4]);
 
       istyle = SPHERE;
       iarg += 5;
@@ -445,43 +446,43 @@ void FixIndent::options(int narg, char **arg)
           int n = strlen(&arg[iarg+2][2]) + 1;
           ystr = new char[n];
           strcpy(ystr,&arg[iarg+2][2]);
-        } else yvalue = atof(arg[iarg+2]);
+        } else yvalue = force->numeric(FLERR,arg[iarg+2]);
         if (strstr(arg[iarg+3],"v_") == arg[iarg+3]) {
           int n = strlen(&arg[iarg+3][2]) + 1;
           zstr = new char[n];
           strcpy(zstr,&arg[iarg+3][2]);
-        } else zvalue = atof(arg[iarg+3]);
+        } else zvalue = force->numeric(FLERR,arg[iarg+3]);
       } else if (strcmp(arg[iarg+1],"y") == 0) {
         cdim = 1;
         if (strstr(arg[iarg+2],"v_") == arg[iarg+2]) {
           int n = strlen(&arg[iarg+2][2]) + 1;
           xstr = new char[n];
           strcpy(xstr,&arg[iarg+2][2]);
-        } else xvalue = atof(arg[iarg+2]);
+        } else xvalue = force->numeric(FLERR,arg[iarg+2]);
         if (strstr(arg[iarg+3],"v_") == arg[iarg+3]) {
           int n = strlen(&arg[iarg+3][2]) + 1;
           zstr = new char[n];
           strcpy(zstr,&arg[iarg+3][2]);
-        } else zvalue = atof(arg[iarg+3]);
+        } else zvalue = force->numeric(FLERR,arg[iarg+3]);
       } else if (strcmp(arg[iarg+1],"z") == 0) {
         cdim = 2;
         if (strstr(arg[iarg+2],"v_") == arg[iarg+2]) {
           int n = strlen(&arg[iarg+2][2]) + 1;
           xstr = new char[n];
           strcpy(xstr,&arg[iarg+2][2]);
-        } else xvalue = atof(arg[iarg+2]);
+        } else xvalue = force->numeric(FLERR,arg[iarg+2]);
         if (strstr(arg[iarg+3],"v_") == arg[iarg+3]) {
           int n = strlen(&arg[iarg+3][2]) + 1;
           ystr = new char[n];
           strcpy(ystr,&arg[iarg+3][2]);
-        } else yvalue = atof(arg[iarg+3]);
+        } else yvalue = force->numeric(FLERR,arg[iarg+3]);
       } else error->all(FLERR,"Illegal fix indent command");
 
       if (strstr(arg[iarg+4],"v_") == arg[iarg+4]) {
         int n = strlen(&arg[iarg+4][2]) + 1;
         rstr = new char[n];
         strcpy(rstr,&arg[iarg+4][2]);
-      } else rvalue = atof(arg[iarg+4]);
+      } else rvalue = force->numeric(FLERR,arg[iarg+4]);
 
       istyle = CYLINDER;
       iarg += 5;
@@ -497,7 +498,7 @@ void FixIndent::options(int narg, char **arg)
         int n = strlen(&arg[iarg+2][2]) + 1;
         pstr = new char[n];
         strcpy(pstr,&arg[iarg+2][2]);
-      } else pvalue = atof(arg[iarg+2]);
+      } else pvalue = force->numeric(FLERR,arg[iarg+2]);
 
       if (strcmp(arg[iarg+3],"lo") == 0) planeside = -1;
       else if (strcmp(arg[iarg+3],"hi") == 0) planeside = 1;

@@ -26,6 +26,7 @@
 #include "respa.h"
 #include "domain.h"
 #include "error.h"
+#include "force.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -37,10 +38,10 @@ FixSpringRG::FixSpringRG(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg != 5) error->all(FLERR,"Illegal fix spring/rg command");
 
-  k = atof(arg[3]);
+  k = force->numeric(FLERR,arg[3]);
   rg0_flag = 0;
   if (strcmp(arg[4],"NULL") == 0) rg0_flag = 1;
-  else rg0 = atof(arg[4]);
+  else rg0 = force->numeric(FLERR,arg[4]);
 }
 
 /* ---------------------------------------------------------------------- */

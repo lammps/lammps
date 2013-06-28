@@ -31,6 +31,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "force.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -55,12 +56,12 @@ FixOrientFCC::FixOrientFCC(LAMMPS *lmp, int narg, char **arg) :
   size_peratom_cols = 2;
   peratom_freq = 1;
 
-  nstats = atoi(arg[3]);
-  direction_of_motion = atoi(arg[4]);
-  a = atof(arg[5]);
-  Vxi = atof(arg[6]);
-  uxif_low = atof(arg[7]);
-  uxif_high = atof(arg[8]);
+  nstats = force->inumeric(FLERR,arg[3]);
+  direction_of_motion = force->inumeric(FLERR,arg[4]);
+  a = force->numeric(FLERR,arg[5]);
+  Vxi = force->numeric(FLERR,arg[6]);
+  uxif_low = force->numeric(FLERR,arg[7]);
+  uxif_high = force->numeric(FLERR,arg[8]);
 
   if (direction_of_motion == 0) {
     int n = strlen(arg[9]) + 1;

@@ -1699,7 +1699,7 @@ void Comm::set(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"cutoff") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal communicate command");
-      cutghostuser = atof(arg[iarg+1]);
+      cutghostuser = force->numeric(FLERR,arg[iarg+1]);
       if (cutghostuser < 0.0)
         error->all(FLERR,"Invalid cutoff in communicate command");
       iarg += 2;
@@ -1723,11 +1723,11 @@ void Comm::set_processors(int narg, char **arg)
   if (narg < 3) error->all(FLERR,"Illegal processors command");
 
   if (strcmp(arg[0],"*") == 0) user_procgrid[0] = 0;
-  else user_procgrid[0] = atoi(arg[0]);
+  else user_procgrid[0] = force->inumeric(FLERR,arg[0]);
   if (strcmp(arg[1],"*") == 0) user_procgrid[1] = 0;
-  else user_procgrid[1] = atoi(arg[1]);
+  else user_procgrid[1] = force->inumeric(FLERR,arg[1]);
   if (strcmp(arg[2],"*") == 0) user_procgrid[2] = 0;
-  else user_procgrid[2] = atoi(arg[2]);
+  else user_procgrid[2] = force->inumeric(FLERR,arg[2]);
 
   if (user_procgrid[0] < 0 || user_procgrid[1] < 0 || user_procgrid[2] < 0)
     error->all(FLERR,"Illegal processors command");
@@ -1748,13 +1748,13 @@ void Comm::set_processors(int narg, char **arg)
         if (iarg+6 > narg) error->all(FLERR,"Illegal processors command");
         gridflag = TWOLEVEL;
 
-        ncores = atoi(arg[iarg+2]);
+        ncores = force->inumeric(FLERR,arg[iarg+2]);
         if (strcmp(arg[iarg+3],"*") == 0) user_coregrid[0] = 0;
-        else user_coregrid[0] = atoi(arg[iarg+3]);
+        else user_coregrid[0] = force->inumeric(FLERR,arg[iarg+3]);
         if (strcmp(arg[iarg+4],"*") == 0) user_coregrid[1] = 0;
-        else user_coregrid[1] = atoi(arg[iarg+4]);
+        else user_coregrid[1] = force->inumeric(FLERR,arg[iarg+4]);
         if (strcmp(arg[iarg+5],"*") == 0) user_coregrid[2] = 0;
-        else user_coregrid[2] = atoi(arg[iarg+5]);
+        else user_coregrid[2] = force->inumeric(FLERR,arg[iarg+5]);
 
         if (ncores <= 0 || user_coregrid[0] < 0 ||
             user_coregrid[1] < 0 || user_coregrid[2] < 0)
@@ -1797,8 +1797,8 @@ void Comm::set_processors(int narg, char **arg)
         error->all(FLERR,
                    "Cannot use processors part command "
                    "without using partitions");
-      int isend = atoi(arg[iarg+1]);
-      int irecv = atoi(arg[iarg+2]);
+      int isend = force->inumeric(FLERR,arg[iarg+1]);
+      int irecv = force->inumeric(FLERR,arg[iarg+2]);
       if (isend < 1 || isend > universe->nworlds ||
           irecv < 1 || irecv > universe->nworlds || isend == irecv)
         error->all(FLERR,"Invalid partitions in processors part command");

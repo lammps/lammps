@@ -44,6 +44,9 @@ where N is the number of LAMMPS atom types:
 filename
 N element names = mapping of EDIP elements to atom types :ul
 
+See the "pair_coeff"_pair_coeff.html doc page for alternate ways
+to specify the path for the potential file.
+
 As an example, imagine a file Si.edip has EDIP values for Si.
 
 EDIP files in the {potentials} directory of the LAMMPS

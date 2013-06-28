@@ -69,6 +69,9 @@ Elem1, Elem2, ...
 MEAM parameter file
 N element names = mapping of MEAM elements to atom types :ul
 
+See the "pair_coeff"_pair_coeff.html doc page for alternate ways
+to specify the path for the potential files.
+
 As an example, the potentials/library.meam file has generic MEAM
 settings for a variety of elements.  The potentials/sic.meam file has
 specific parameter settings for a Si and C alloy system.  If your

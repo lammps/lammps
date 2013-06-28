@@ -140,12 +140,14 @@ single argument:
 </PRE>
 <P>will read the cuu3 potential file and use the tabulated Cu values for
 F, phi, rho that it contains for type pairs 1,1 and 2,2 (type pairs
-1,2 and 2,1 are ignored).  In effect, this makes atom types 1 and 2 in
-LAMMPS be Cu atoms.  Different single-element files can be assigned to
-different atom types to model an alloy system.  The mixing to create
-alloy potentials for type pairs with I != J is done automatically the
-same way that the serial DYNAMO code originally did it; you do not
-need to specify coefficients for these type pairs.
+1,2 and 2,1 are ignored).  See the <A HREF = "pair_coeff.html">pair_coeff</A> doc
+page for alternate ways to specify the path for the potential file.
+In effect, this makes atom types 1 and 2 in LAMMPS be Cu atoms.
+Different single-element files can be assigned to different atom types
+to model an alloy system.  The mixing to create alloy potentials for
+type pairs with I != J is done automatically the same way that the
+serial DYNAMO code originally did it; you do not need to specify
+coefficients for these type pairs.
 </P>
 <P><I>Funcfl</I> files in the <I>potentials</I> directory of the LAMMPS
 distribution have an ".eam" suffix.  A DYNAMO single-element <I>funcfl</I>
@@ -215,9 +217,11 @@ where N is the number of LAMMPS atom types:
 </UL>
 <P>As an example, the potentials/NiAlH_jea.eam.alloy file is a <I>setfl</I>
 file which has tabulated EAM values for 3 elements and their alloy
-interactions: Ni, Al, and H.  If your LAMMPS simulation has 4 atoms
-types and you want the 1st 3 to be Ni, and the 4th to be Al, you would
-use the following pair_coeff command:
+interactions: Ni, Al, and H.  See the <A HREF = "pair_coeff.html">pair_coeff</A> doc
+page for alternate ways to specify the path for the potential file.
+If your LAMMPS simulation has 4 atoms types and you want the 1st 3 to
+be Ni, and the 4th to be Al, you would use the following pair_coeff
+command:
 </P>
 <PRE>pair_coeff * * NiAlH_jea.eam.alloy Ni Ni Ni Al 
 </PRE>
@@ -334,13 +338,14 @@ same as for style <I>eam/alloy</I>, e.g.
 <PRE>pair_coeff * * NiAlH_jea.eam.fs Ni Ni Ni Al 
 </PRE>
 <P>where there are N additional arguments after the filename, where N is
-the number of LAMMPS atom types.  The N values determine the mapping
-of LAMMPS atom types to EAM elements in the file, as described above
-for style <I>eam/alloy</I>.  As with <I>eam/alloy</I>, if a mapping value is
-NULL, the mapping is not performed.  This can be used when an <I>eam/fs</I>
-potential is used as part of the <I>hybrid</I> pair style.  The NULL values
-are used as placeholders for atom types that will be used with other
-potentials.
+the number of LAMMPS atom types.  See the <A HREF = "pair_coeff.html">pair_coeff</A>
+doc page for alternate ways to specify the path for the potential
+file.  The N values determine the mapping of LAMMPS atom types to EAM
+elements in the file, as described above for style <I>eam/alloy</I>.  As
+with <I>eam/alloy</I>, if a mapping value is NULL, the mapping is not
+performed.  This can be used when an <I>eam/fs</I> potential is used as
+part of the <I>hybrid</I> pair style.  The NULL values are used as
+placeholders for atom types that will be used with other potentials.
 </P>
 <P>FS EAM files include more information than the DYNAMO <I>setfl</I> format
 files read by <I>eam/alloy</I>, in that i,j density functionals for all

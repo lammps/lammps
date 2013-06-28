@@ -130,6 +130,9 @@ where N is the number of LAMMPS atom types:
 filename
 N element names = mapping of BOP elements to atom types :ul
 
+See the "pair_coeff"_pair_coeff.html doc page for alternate ways
+to specify the path for the potential file.
+
 As an example, imagine the CdTe.bop file has BOP values for Cd
 and Te.  If your LAMMPS simulation has 4 atoms types and you want the
 1st 3 to be Cd, and the 4th to be Te, you would use the following

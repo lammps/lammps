@@ -38,10 +38,16 @@ popd
 
 pushd ${MINGW_BUILD_DIR}/lammps-current
 
+# need to build parallel wrapper libs first
+pushd src/STUBS
+make -f Makefile.mingw32-cross
+make -f Makefile.mingw64-cross
+popd
+
 # start by building libraries
 pushd lib
 
-for d in atc awpmd colvars linalg meam poems voronoi
+for d in atc awpmd colvars gpu linalg meam poems voronoi
 do \
     pushd $d
     make mingw32-cross mingw64-cross mingw32-cross-mpi mingw64-cross-mpi || exit 3
@@ -50,15 +56,11 @@ done
 
 popd
 
-# now to the main source dir and build MPI stub libraries
+# now to the main source dir
 pushd src
-pushd STUBS
-make -f Makefile.mingw32-cross
-make -f Makefile.mingw64-cross
-popd
 
 # configure installed packages
-make yes-all no-kim no-gpu no-user-cuda no-reax
+make yes-all no-kim no-user-cuda no-reax
 make mingw32-cross mingw64-cross mingw32-cross-mpi mingw64-cross-mpi || exit 4
 cp lmp_mingw32-cross ${MINGW_BUILD_DIR}/32bit/lmp_serial.exe
 cp lmp_mingw64-cross ${MINGW_BUILD_DIR}/64bit/lmp_serial.exe

@@ -49,13 +49,13 @@ FixBondSwap::FixBondSwap(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extvector = 0;
 
-  fraction = atof(arg[3]);
-  double cutoff = atof(arg[4]);
+  fraction = force->numeric(FLERR,arg[3]);
+  double cutoff = force->numeric(FLERR,arg[4]);
   cutsq = cutoff*cutoff;
 
   // initialize Marsaglia RNG with processor-unique seed
 
-  int seed = atoi(arg[5]);
+  int seed = force->inumeric(FLERR,arg[5]);
   random = new RanMars(lmp,seed + comm->me);
 
   // create a new compute temp style

@@ -39,7 +39,7 @@ FixBondBreak::FixBondBreak(LAMMPS *lmp, int narg, char **arg) :
 
   MPI_Comm_rank(world,&me);
 
-  nevery = atoi(arg[3]);
+  nevery = force->inumeric(FLERR,arg[3]);
   if (nevery <= 0) error->all(FLERR,"Illegal fix bond/break command");
 
   force_reneighbor = 1;
@@ -49,8 +49,8 @@ FixBondBreak::FixBondBreak(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extvector = 0;
 
-  btype = atoi(arg[4]);
-  double cutoff = atof(arg[5]);
+  btype = force->inumeric(FLERR,arg[4]);
+  double cutoff = force->numeric(FLERR,arg[5]);
 
   if (btype < 1 || btype > atom->nbondtypes)
     error->all(FLERR,"Invalid bond type in fix bond/break command");
@@ -67,8 +67,8 @@ FixBondBreak::FixBondBreak(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"prob") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix bond/break command");
-      fraction = atof(arg[iarg+1]);
-      seed = atoi(arg[iarg+2]);
+      fraction = force->numeric(FLERR,arg[iarg+1]);
+      seed = force->inumeric(FLERR,arg[iarg+2]);
       if (fraction < 0.0 || fraction > 1.0)
         error->all(FLERR,"Illegal fix bond/break command");
       if (seed <= 0) error->all(FLERR,"Illegal fix bond/break command");

@@ -26,6 +26,7 @@
 #include "respa.h"
 #include "domain.h"
 #include "error.h"
+#include "force.h"
 #include "group.h"
 
 using namespace LAMMPS_NS;
@@ -60,13 +61,13 @@ FixSMD::FixSMD(LAMMPS *lmp, int narg, char **arg) :
   if (strcmp(arg[argoffs],"cvel") == 0) {
     if (narg < argoffs+3) error->all(FLERR,"Illegal fix smd command");
     styleflag |= SMD_CVEL;
-    k_smd = atof(arg[argoffs+1]);
-    v_smd = atof(arg[argoffs+2]); // to be multiplied by update->dt when used.
+    k_smd = force->numeric(FLERR,arg[argoffs+1]);
+    v_smd = force->numeric(FLERR,arg[argoffs+2]); // to be multiplied by update->dt when used.
     argoffs += 3;
   } else if (strcmp(arg[argoffs],"cfor") == 0) {
     if (narg < argoffs+2) error->all(FLERR,"Illegal fix smd command");
     styleflag |= SMD_CFOR;
-    f_smd = atof(arg[argoffs+1]);
+    f_smd = force->numeric(FLERR,arg[argoffs+1]);
     argoffs += 2;
   } else error->all(FLERR,"Illegal fix smd command");
 
@@ -74,12 +75,12 @@ FixSMD::FixSMD(LAMMPS *lmp, int narg, char **arg) :
     if (narg < argoffs+5) error->all(FLERR,"Illegal fix smd command");
     styleflag |= SMD_TETHER;
     if (strcmp(arg[argoffs+1],"NULL") == 0) xflag = 0;
-    else xc = atof(arg[argoffs+1]);
+    else xc = force->numeric(FLERR,arg[argoffs+1]);
     if (strcmp(arg[argoffs+2],"NULL") == 0) yflag = 0;
-    else yc = atof(arg[argoffs+2]);
+    else yc = force->numeric(FLERR,arg[argoffs+2]);
     if (strcmp(arg[argoffs+3],"NULL") == 0) zflag = 0;
-    else zc = atof(arg[argoffs+3]);
-    r0 = atof(arg[argoffs+4]);
+    else zc = force->numeric(FLERR,arg[argoffs+3]);
+    r0 = force->numeric(FLERR,arg[argoffs+4]);
     if (r0 < 0) error->all(FLERR,"R0 < 0 for fix smd command");
     argoffs += 5;
   } else if (strcmp(arg[argoffs],"couple") == 0) {
@@ -94,15 +95,15 @@ FixSMD::FixSMD(LAMMPS *lmp, int narg, char **arg) :
 
     if (strcmp(arg[argoffs+2],"NULL") == 0) xflag = 0;
     else if (strcmp(arg[argoffs+2],"auto") == 0) styleflag |= SMD_AUTOX;
-    else xc = atof(arg[argoffs+2]);
+    else xc = force->numeric(FLERR,arg[argoffs+2]);
     if (strcmp(arg[argoffs+3],"NULL") == 0) yflag = 0;
     else if (strcmp(arg[argoffs+3],"auto") == 0) styleflag |= SMD_AUTOY;
-    else yc = atof(arg[argoffs+3]);
+    else yc = force->numeric(FLERR,arg[argoffs+3]);
     if (strcmp(arg[argoffs+4],"NULL") == 0) zflag = 0;
     else if (strcmp(arg[argoffs+4],"auto") == 0) styleflag |= SMD_AUTOZ;
-    else zc = atof(arg[argoffs+4]);
+    else zc = force->numeric(FLERR,arg[argoffs+4]);
 
-    r0 = atof(arg[argoffs+5]);
+    r0 = force->numeric(FLERR,arg[argoffs+5]);
     if (r0 < 0) error->all(FLERR,"R0 < 0 for fix smd command");
     argoffs +=6;
   } else error->all(FLERR,"Illegal fix smd command");

@@ -127,7 +127,7 @@ class FixRigid : public Fix {
   int POINT,SPHERE,ELLIPSOID,LINE,TRIANGLE,DIPOLE;   // bitmasks for eflags
   int OMEGA,ANGMOM,TORQUE;
 
-  void no_squish_rotate(int, double *, double *, double *, double);
+  void no_squish_rotate(int, double *, double *, double *, double) const;
   void set_xv();
   void set_v();
   void setup_bodies();

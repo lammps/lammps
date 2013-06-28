@@ -260,8 +260,8 @@ void ImproperUmbrella::coeff(int narg, char **arg)
   int ilo,ihi;
   force->bounds(arg[0],atom->nimpropertypes,ilo,ihi);
 
-  double k_one = atof(arg[1]);
-  double w_one = atof(arg[2]);
+  double k_one = force->numeric(FLERR,arg[1]);
+  double w_one = force->numeric(FLERR,arg[2]);
 
   // convert w0 from degrees to radians
 

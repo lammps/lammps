@@ -80,7 +80,7 @@ FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg)
 #pragma omp parallel default(none) shared(nthreads)
       nthreads = omp_get_num_threads();
     else
-      nthreads = atoi(arg[3]);
+      nthreads = force->inumeric(FLERR,arg[3]);
 #endif
   }
 

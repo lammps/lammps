@@ -442,17 +442,17 @@ int FixNPHugOMP::modify_param(int narg, char **arg)
 {
   if (strcmp(arg[0],"e0") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal fix nphug/omp command");
-    e0 = atof(arg[1]);
+    e0 = force->numeric(FLERR,arg[1]);
     e0_set = 1;
     return 2;
   } else if (strcmp(arg[0],"v0") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal fix nphug/omp command");
-    v0 = atof(arg[1]);
+    v0 = force->numeric(FLERR,arg[1]);
     v0_set = 1;
     return 2;
   } else if (strcmp(arg[0],"p0") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal fix nphug/omp command");
-    p0 = atof(arg[1]);
+    p0 = force->numeric(FLERR,arg[1]);
     p0_set = 1;
     return 2;
   }

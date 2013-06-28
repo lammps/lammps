@@ -51,10 +51,10 @@ FixPhonon::FixPhonon(LAMMPS *lmp,  int narg, char **arg) : Fix(lmp, narg, arg)
   
   if (narg < 8) error->all(FLERR,"Illegal fix phonon command: number of arguments < 8");
 
-  nevery = atoi(arg[3]);   // Calculate this fix every n steps!
+  nevery = force->inumeric(FLERR,arg[3]);   // Calculate this fix every n steps!
   if (nevery < 1) error->all(FLERR,"Illegal fix phonon command");
 
-  nfreq  = atoi(arg[4]);   // frequency to output result
+  nfreq  = force->inumeric(FLERR,arg[4]);   // frequency to output result
   if (nfreq < 1) error->all(FLERR,"Illegal fix phonon command");
 
   waitsteps = ATOBIGINT(arg[5]); // Wait this many timesteps before actually measuring
@@ -78,11 +78,11 @@ FixPhonon::FixPhonon(LAMMPS *lmp,  int narg, char **arg) : Fix(lmp, narg, arg)
   while (iarg < narg){
     if (strcmp(arg[iarg],"sysdim") == 0){
       if (++iarg >= narg) error->all(FLERR,"Illegal fix phonon command: incomplete command line options.");
-      sdim = atoi(arg[iarg]);
+      sdim = force->inumeric(FLERR,arg[iarg]);
 
     } else if (strcmp(arg[iarg],"nasr") == 0){
       if (++iarg >= narg) error->all(FLERR,"Illegal fix phonon command: incomplete command line options.");
-      nasr = atoi(arg[iarg]);
+      nasr = force->inumeric(FLERR,arg[iarg]);
 
     } else {
       error->all(FLERR,"Illegal fix phonon command: unknown option read!");

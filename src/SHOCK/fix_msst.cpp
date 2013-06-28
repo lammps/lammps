@@ -80,31 +80,31 @@ FixMSST::FixMSST(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Illegal fix msst command");
   }
 
-  velocity = atof(arg[4]);
+  velocity = force->numeric(FLERR,arg[4]);
   if ( velocity < 0 )
     error->all(FLERR,"Illegal fix msst command");
 
   for ( int iarg = 5; iarg < narg; iarg++ ) {
     if ( strcmp(arg[iarg],"q") == 0 ) {
-      qmass = atof(arg[iarg+1]);
+      qmass = force->numeric(FLERR,arg[iarg+1]);
       iarg++;
     } else if ( strcmp(arg[iarg],"mu") == 0 ) {
-      mu = atof(arg[iarg+1]);
+      mu = force->numeric(FLERR,arg[iarg+1]);
       iarg++;
     } else if ( strcmp(arg[iarg],"p0") == 0 ) {
-      p0 = atof(arg[iarg+1]);
+      p0 = force->numeric(FLERR,arg[iarg+1]);
       iarg++;
       p0_set = 1;
     } else if ( strcmp(arg[iarg],"v0") == 0 ) {
-      v0 = atof(arg[iarg+1]);
+      v0 = force->numeric(FLERR,arg[iarg+1]);
       v0_set = 1;
       iarg++;
     } else if ( strcmp(arg[iarg],"e0") == 0 ) {
-      e0 = atof(arg[iarg+1]);
+      e0 = force->numeric(FLERR,arg[iarg+1]);
       e0_set = 1;
       iarg++;
     } else if ( strcmp(arg[iarg],"tscale") == 0 ) {
-      tscale = atof(arg[iarg+1]);
+      tscale = force->numeric(FLERR,arg[iarg+1]);
       if (tscale < 0.0 || tscale > 1.0)
         error->all(FLERR,"Fix msst tscale must satisfy 0 <= tscale < 1");
       iarg++;

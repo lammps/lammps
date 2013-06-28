@@ -501,7 +501,7 @@ void PairAWPMDCut::coeff(int narg, char **arg)
   force->bounds(arg[1],atom->ntypes,jlo,jhi);
 
   double cut_one = cut_global;
-  if (narg == 3) cut_one = atof(arg[2]);
+  if (narg == 3) cut_one = force->numeric(FLERR,arg[2]);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

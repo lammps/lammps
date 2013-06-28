@@ -486,16 +486,16 @@ void PairLubricate::settings(int narg, char **arg)
 {
   if (narg != 5 && narg != 7) error->all(FLERR,"Illegal pair_style command");
 
-  mu = atof(arg[0]);
-  flaglog = atoi(arg[1]);
-  flagfld = atoi(arg[2]);
-  cut_inner_global = atof(arg[3]);
-  cut_global = atof(arg[4]);
+  mu = force->numeric(FLERR,arg[0]);
+  flaglog = force->inumeric(FLERR,arg[1]);
+  flagfld = force->inumeric(FLERR,arg[2]);
+  cut_inner_global = force->numeric(FLERR,arg[3]);
+  cut_global = force->numeric(FLERR,arg[4]);
 
   flagHI = flagVF = 1;
   if (narg == 7) {
-    flagHI = atoi(arg[5]);
-    flagVF = atoi(arg[6]);
+    flagHI = force->inumeric(FLERR,arg[5]);
+    flagVF = force->inumeric(FLERR,arg[6]);
   }
 
   if (flaglog == 1 && flagHI == 0) {
@@ -534,8 +534,8 @@ void PairLubricate::coeff(int narg, char **arg)
   double cut_inner_one = cut_inner_global;
   double cut_one = cut_global;
   if (narg == 4) {
-    cut_inner_one = atof(arg[2]);
-    cut_one = atof(arg[3]);
+    cut_inner_one = force->numeric(FLERR,arg[2]);
+    cut_one = force->numeric(FLERR,arg[3]);
   }
 
   int count = 0;

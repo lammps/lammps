@@ -53,7 +53,7 @@ FixReaxCBonds::FixReaxCBonds(LAMMPS *lmp, int narg, char **arg) :
   ntypes = atom->ntypes;
   nmax = atom->nmax;
 
-  nevery = atoi(arg[3]);
+  nevery = force->inumeric(FLERR,arg[3]);
 
   if (nevery <= 0 )
     error->all(FLERR,"Illegal fix reax/c/bonds command");
@@ -158,6 +158,7 @@ void FixReaxCBonds::Output_ReaxC_Bonds(bigint ntimestep, FILE *fp)
   // allocate a temporary buffer for the snapshot info
   MPI_Allreduce(&numbonds,&numbonds_max,1,MPI_INT,MPI_MAX,world);
   MPI_Allreduce(&nlocal,&nlocal_max,1,MPI_INT,MPI_MAX,world);
+
   nbuf = 1+(numbonds_max*2+10)*nlocal_max;
   memory->create(buf,nbuf,"reax/c/bonds:buf");
   for (i = 0; i < nbuf; i ++) buf[i] = 0.0;

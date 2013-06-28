@@ -42,7 +42,7 @@ negotiate an appropriate license for such distribution."
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author:  Axel Kohlmeyer (TempleU)
+   Contributing author:  Axel Kohlmeyer (Temple U)
    IMD API, hash, and socket code written by: John E. Stone,
    Justin Gullingsrud, and James Phillips, (TCBG, Beckman Institute, UIUC)
 ------------------------------------------------------------------------- */
@@ -53,6 +53,7 @@ negotiate an appropriate license for such distribution."
 #include "update.h"
 #include "respa.h"
 #include "domain.h"
+#include "force.h"
 #include "error.h"
 #include "group.h"
 #include "memory.h"
@@ -62,7 +63,7 @@ negotiate an appropriate license for such distribution."
 #include <stdlib.h>
 #include <string.h>
 
-#if defined(_MSC_VER) || defined(__MINGW32_VERSION)
+#if defined(_MSC_VER) || defined(__MINGW32__)
 #include <winsock2.h>
 #else
 #include <arpa/inet.h>
@@ -447,7 +448,7 @@ FixIMD::FixIMD(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 4)
     error->all(FLERR,"Illegal fix imd command");
 
-  imd_port = atoi(arg[3]);
+  imd_port = force->inumeric(FLERR,arg[3]);
   if (imd_port < 1024)
     error->all(FLERR,"Illegal fix imd parameter: port < 1024");
 
@@ -474,9 +475,9 @@ FixIMD::FixIMD(LAMMPS *lmp, int narg, char **arg) :
         nowait_flag = 0;
       }
     } else if (0 == strcmp(arg[argsdone], "fscale")) {
-      imd_fscale = atof(arg[argsdone+1]);
+      imd_fscale = force->numeric(FLERR,arg[argsdone+1]);
     } else if (0 == strcmp(arg[argsdone], "trate")) {
-      imd_trate = atoi(arg[argsdone+1]);
+      imd_trate = force->inumeric(FLERR,arg[argsdone+1]);
     } else {
       error->all(FLERR,"Unknown fix imd parameter");
     }
@@ -1179,7 +1180,7 @@ double FixIMD::memory_usage(void)
  ***************************************************************************/
 
 int imdsock_init(void) {
-#if defined(_MSC_VER) || defined(__MINGW32_VERSION)
+#if defined(_MSC_VER) || defined(__MINGW32__)
   int rc = 0;
   static int initialized=0;
 
@@ -1258,7 +1259,7 @@ void *imdsock_accept(void * v) {
 
 int  imdsock_write(void * v, const void *buf, int len) {
   imdsocket *s = (imdsocket *) v;
-#if defined(_MSC_VER) || defined(__MINGW32_VERSION)
+#if defined(_MSC_VER) || defined(__MINGW32__)
   return send(s->sd, (const char*) buf, len, 0);  /* windows lacks the write() call */
 #else
   return write(s->sd, buf, len);
@@ -1267,7 +1268,7 @@ int  imdsock_write(void * v, const void *buf, int len) {
 
 int  imdsock_read(void * v, void *buf, int len) {
   imdsocket *s = (imdsocket *) v;
-#if defined(_MSC_VER) || defined(__MINGW32_VERSION)
+#if defined(_MSC_VER) || defined(__MINGW32__)
   return recv(s->sd, (char*) buf, len, 0); /* windows lacks the read() call */
 #else
   return read(s->sd, buf, len);
@@ -1280,7 +1281,7 @@ void imdsock_shutdown(void *v) {
   if (s == NULL)
     return;
 
-#if defined(_MSC_VER) || defined(__MINGW32_VERSION)
+#if defined(_MSC_VER) || defined(__MINGW32__)
   shutdown(s->sd, SD_SEND);
 #else
   shutdown(s->sd, 1);  /* complete sends and send FIN */
@@ -1292,7 +1293,7 @@ void imdsock_destroy(void * v) {
   if (s == NULL)
     return;
 
-#if defined(_MSC_VER) || defined(__MINGW32_VERSION)
+#if defined(_MSC_VER) || defined(__MINGW32__)
   closesocket(s->sd);
 #else
   close(s->sd);

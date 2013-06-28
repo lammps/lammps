@@ -107,7 +107,7 @@ FixAppendAtoms::FixAppendAtoms(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Append boundary must be shrink/minimum");
     } else if (strcmp(arg[iarg],"freq") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix append/atoms command");
-      freq = atoi(arg[iarg+1]);
+      freq = force->inumeric(FLERR,arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"spatial") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix append/atoms command");
@@ -116,7 +116,7 @@ FixAppendAtoms::FixAppendAtoms(LAMMPS *lmp, int narg, char **arg) :
                    "Bad fix ID in fix append/atoms command");
       spatflag = 1;
       int n = strlen(arg[iarg+1]);
-      spatlead = atof(arg[iarg+2]);
+      spatlead = force->numeric(FLERR,arg[iarg+2]);
       char *suffix = new char[n];
       strcpy(suffix,&arg[iarg+1][2]);
       n = strlen(suffix) + 1;
@@ -126,15 +126,15 @@ FixAppendAtoms::FixAppendAtoms(LAMMPS *lmp, int narg, char **arg) :
       iarg += 3;
     } else if (strcmp(arg[iarg],"basis") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix append/atoms command");
-      int ibasis = atoi(arg[iarg+1]);
-      int itype = atoi(arg[iarg+2]);
+      int ibasis = force->inumeric(FLERR,arg[iarg+1]);
+      int itype = force->inumeric(FLERR,arg[iarg+2]);
       if (ibasis <= 0 || ibasis > nbasis || itype <= 0 || itype > atom->ntypes)
         error->all(FLERR,"Invalid basis setting in fix append/atoms command");
       basistype[ibasis-1] = itype;
       iarg += 3;
     } else if (strcmp(arg[iarg],"size") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix append/atoms command");
-      size = atof(arg[iarg+1]);
+      size = force->numeric(FLERR,arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"units") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix append/atoms command");
@@ -145,20 +145,20 @@ FixAppendAtoms::FixAppendAtoms(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"random") == 0) {
       if (iarg+5 > narg) error->all(FLERR,"Illegal fix append/atoms command");
       ranflag = 1;
-      ranx = atof(arg[iarg+1]);
-      rany = atof(arg[iarg+2]);
-      ranz = atof(arg[iarg+3]);
-      xseed = atoi(arg[iarg+4]);
+      ranx = force->numeric(FLERR,arg[iarg+1]);
+      rany = force->numeric(FLERR,arg[iarg+2]);
+      ranz = force->numeric(FLERR,arg[iarg+3]);
+      xseed = force->inumeric(FLERR,arg[iarg+4]);
       if (xseed <= 0) error->all(FLERR,"Illegal fix append/atoms command");
       randomx = new RanMars(lmp,xseed + comm->me);
       iarg += 5;
     } else if (strcmp(arg[iarg],"temp") == 0) {
       if (iarg+5 > narg) error->all(FLERR,"Illegal fix append/atoms command");
       tempflag = 1;
-      t_target = atof(arg[iarg+1]);
-      t_period = atof(arg[iarg+2]);
-      tseed    = atoi(arg[iarg+3]);
-      t_extent = atof(arg[iarg+4]);
+      t_target = force->numeric(FLERR,arg[iarg+1]);
+      t_period = force->numeric(FLERR,arg[iarg+2]);
+      tseed    = force->inumeric(FLERR,arg[iarg+3]);
+      t_extent = force->numeric(FLERR,arg[iarg+4]);
       if (t_target <= 0) error->all(FLERR,"Illegal fix append/atoms command");
       if (t_period <= 0) error->all(FLERR,"Illegal fix append/atoms command");
       if (t_extent <= 0) error->all(FLERR,"Illegal fix append/atoms command");

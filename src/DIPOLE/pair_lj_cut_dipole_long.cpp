@@ -352,9 +352,9 @@ void PairLJCutDipoleLong::settings(int narg, char **arg)
   if (narg < 1 || narg > 2) 
     error->all(FLERR,"Incorrect args in pair_style command");
 
-  cut_lj_global = atof(arg[0]);
+  cut_lj_global = force->numeric(FLERR,arg[0]);
   if (narg == 1) cut_coul = cut_lj_global;
-  else cut_coul = atof(arg[1]);
+  else cut_coul = force->numeric(FLERR,arg[1]);
 
   // reset cutoffs that have been explicitly set
 
@@ -380,11 +380,11 @@ void PairLJCutDipoleLong::coeff(int narg, char **arg)
   force->bounds(arg[0],atom->ntypes,ilo,ihi);
   force->bounds(arg[1],atom->ntypes,jlo,jhi);
 
-  double epsilon_one = atof(arg[2]);
-  double sigma_one = atof(arg[3]);
+  double epsilon_one = force->numeric(FLERR,arg[2]);
+  double sigma_one = force->numeric(FLERR,arg[3]);
 
   double cut_lj_one = cut_lj_global;
-  if (narg == 5) cut_lj_one = atof(arg[4]);
+  if (narg == 5) cut_lj_one = force->numeric(FLERR,arg[4]);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

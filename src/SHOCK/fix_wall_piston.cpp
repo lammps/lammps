@@ -73,23 +73,23 @@ FixWallPiston::FixWallPiston(LAMMPS *lmp, int narg, char **arg) :
       error->all(FLERR,"Fix wall/piston command only available at zlo");
     else if (strcmp(arg[iarg],"vel") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix wall/piston command");
-      vx = atof(arg[iarg+1]);
-      vy = atof(arg[iarg+2]);
-      vz = atof(arg[iarg+3]);
+      vx = force->numeric(FLERR,arg[iarg+1]);
+      vy = force->numeric(FLERR,arg[iarg+2]);
+      vz = force->numeric(FLERR,arg[iarg+3]);
       iarg += 4;
     } else if (strcmp(arg[iarg],"pos") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix wall/piston command");
-      x0 = atof(arg[iarg+1]);
-      y0 = atof(arg[iarg+2]);
-      z0 = atof(arg[iarg+3]);
+      x0 = force->numeric(FLERR,arg[iarg+1]);
+      y0 = force->numeric(FLERR,arg[iarg+2]);
+      z0 = force->numeric(FLERR,arg[iarg+3]);
       iarg += 4;
     } else if (strcmp(arg[iarg],"temp") == 0) {
       if (iarg+5 > narg) error->all(FLERR,"Illegal fix wall/piston command");
       tempflag = 1;
-      t_target = atof(arg[iarg+1]);
-      t_period = atof(arg[iarg+2]);
-      tseed    = atoi(arg[iarg+3]);
-      t_extent = atof(arg[iarg+4]);
+      t_target = force->numeric(FLERR,arg[iarg+1]);
+      t_period = force->numeric(FLERR,arg[iarg+2]);
+      tseed    = force->inumeric(FLERR,arg[iarg+3]);
+      t_extent = force->numeric(FLERR,arg[iarg+4]);
       if (t_target <= 0) error->all(FLERR,"Illegal fix wall/piston command");
       if (t_period <= 0) error->all(FLERR,"Illegal fix wall/piston command");
       if (t_extent <= 0) error->all(FLERR,"Illegal fix wall/piston command");
@@ -100,7 +100,7 @@ FixWallPiston::FixWallPiston(LAMMPS *lmp, int narg, char **arg) :
       iarg += 5;
     } else if (strcmp(arg[iarg],"rough") == 0) {
       roughflag = 1;
-      roughdist = atof(arg[iarg+1]);
+      roughdist = force->numeric(FLERR,arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"ramp") == 0) {
       rampflag = 1;

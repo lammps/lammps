@@ -51,7 +51,7 @@ MSM::MSM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
 
   msmflag = 1;
 
-  accuracy_relative = atof(arg[0]);
+  accuracy_relative = fabs(force->numeric(FLERR,arg[0]));
 
   nfactors = 1;
   factors = new int[nfactors];
@@ -298,7 +298,7 @@ double MSM::estimate_cutoff(double h, double prd)
   a = C_p*pow(h,(p-1))/accuracy;
 
   // include dependency of error on other terms
-  a *= q2/(prd*sqrt(atom->natoms));
+  a *= q2/(prd*sqrt(double(atom->natoms)));
 
   a = pow(a,1.0/double(p));
 
@@ -349,7 +349,7 @@ double MSM::estimate_1d_error(double h, double prd)
   double error_1d = C_p*pow(h,(p-1))/pow(a,(p+1));
 
   // include dependency of error on other terms
-  error_1d *= q2*a/(prd*sqrt(atom->natoms));
+  error_1d *= q2*a/(prd*sqrt(double(atom->natoms)));
 
   return error_1d;
 }

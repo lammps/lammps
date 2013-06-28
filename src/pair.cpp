@@ -16,6 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "mpi.h"
+#include "ctype.h"
 #include "float.h"
 #include "limits.h"
 #include "math.h"
@@ -1613,6 +1614,71 @@ void Pair::init_bitmap(double inner, double outer, int ntablebits,
   masklo = rsq_lookup.i & ~(nmask);
 }
 
+/* ----------------------------------------------------------------------
+   open a potential file as specified
+   failing that, search in dir specified by env variable LAMMPS_POTENTIALS
+------------------------------------------------------------------------- */
+  
+FILE *Pair::open_potential(const char *name)
+{
+  FILE *fp;
+
+  // attempt to open file directly
+  // if successful, return ptr
+
+  fp = fopen(name,"r");
+  if (fp) return fp;
+
+  // try the environment variable directory
+
+  const char *path = getenv("LAMMPS_POTENTIALS");
+  if (path == NULL) return NULL;
+
+  const char *pot = potname(name);
+  size_t len1 = strlen(path);
+  size_t len2 = strlen(pot);
+
+  char *newpath = new char[len1+len2];
+  strcpy(newpath,path);
+#if defined(_WIN32)
+  newpath[len1] = '\\';
+  newpath[len1+1] = 0;
+#else
+  newpath[len1] = '/';
+  newpath[len1+1] = 0;
+#endif
+  strcat(newpath,pot);
+  
+  fp = fopen(newpath,"r");
+  delete[] newpath;
+  return fp;
+}
+
+/* ----------------------------------------------------------------------
+   strip off leading part of path, return just the filename
+------------------------------------------------------------------------- */
+
+const char *Pair::potname(const char *path)
+{
+  const char *pot;
+
+#if defined(_WIN32)
+  // skip over the disk drive part of windows pathnames
+  if (isalpha(path[0]) && path[1] == ':') 
+    path += 2;
+#endif
+
+  for (pot = path; *path != '\0'; ++path) {
+#if defined(_WIN32)
+    if ((*path == '\\') || (*path == '/')) pot = path + 1;
+#else
+    if (*path == '/') pot = path + 1;
+#endif
+  }
+
+  return pot;
+}
+
 /* ---------------------------------------------------------------------- */
 
 double Pair::memory_usage()
@@ -1620,4 +1686,69 @@ double Pair::memory_usage()
   double bytes = comm->nthreads*maxeatom * sizeof(double);
   bytes += comm->nthreads*maxvatom*6 * sizeof(double);
   return bytes;
+}
+
+/* ---------------------------------------------------------------------- */
+
+// helper function to strip off leading part of the path
+#include <ctype.h>
+
+static const char *potname(const char *path)
+{
+  const char *pot;
+
+#if defined(_WIN32)
+  /* Skip over the disk drive part in windows pathnames */
+  if (isalpha(path[0]) && path[1] == ':') 
+    path += 2;
+#endif
+
+  for (pot = path; *path != NULL; ++path) {
+#if defined(_WIN32)
+    if ((*path == '\\') || (*path == '/'))
+      pot = path + 1;
+#else
+    if (*path == '/')
+      pot = path + 1;
+#endif
+  }
+
+  return pot;
+}
+  
+/* this subroutine will try to fopen(3) a potential file in the provided
+   path, but failing that, it will search in a directory pointed to by
+   the environment variable LAMMPS_POTENTIALS */
+
+FILE *LAMMPS_NS::open_potential(const char *name)
+{
+  FILE *fp;
+
+  // try to open file directly and return pointer, if successful.
+  fp = fopen(name,"r");
+  if (fp) return fp;
+
+  // direct open failed, now try the directory from the environment.
+  const char *path = getenv("LAMMPS_POTENTIALS");
+  if (path == NULL) return NULL;
+
+  const char *pot = potname(name);
+  size_t len1 = strlen(path);
+  size_t len2 = strlen(pot);
+
+  char *newpath = new char[len1+len2];
+  strcpy(newpath,path);
+#if defined(_WIN32)
+  newpath[len1] = '\\';
+  newpath[len1+1] = 0;
+#else
+  newpath[len1] = '/';
+  newpath[len1+1] = 0;
+#endif
+  strcat(newpath,pot);
+  
+  // now try new path.
+  fp = fopen(newpath,"r");
+  delete[] newpath;
+  return fp;
 }

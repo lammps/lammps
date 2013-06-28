@@ -612,7 +612,7 @@ void FixRigidNH::final_integrate()
   
   // sum over atoms to get force and torque on rigid body
   
-  int *image = atom->image;
+  tagint *image = atom->image;
   double **x = atom->x;
   double **f = atom->f;
   int nlocal = atom->nlocal;

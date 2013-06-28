@@ -37,7 +37,6 @@ style () {
       rm -f Obj_*/$5.d
     fi
     rm -f Obj_*/lammps.d
-    rm -f Obj_*/pair_hybrid.d
   elif (test "`diff --brief style_$3.h style_$3.tmp`" != "") then
     mv style_$3.tmp style_$3.h
     rm -f Obj_*/$4.d

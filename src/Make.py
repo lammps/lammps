@@ -1,4 +1,4 @@
-#!/usr/local/env python
+#!/usr/bin/env python
 # if necessary, edit preceding line to point to your Python
 # or launch as "python Make.py ..."
 

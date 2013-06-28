@@ -801,6 +801,7 @@ package"_Section_start.html#start_3.
 "lj/sf"_pair_lj_sf.html,
 "meam/spline"_pair_meam_spline.html,
 "meam/sw/spline"_pair_meam_sw_spline.html,
+"nb3b/harmonic"_pair_nb3b_harmonic.html,
 "reax/c"_pair_reax_c.html,
 "sph/heatconduction"_pair_sph_heatconduction.html,
 "sph/idealgas"_pair_sph_idealgas.html,

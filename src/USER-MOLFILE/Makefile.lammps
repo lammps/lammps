@@ -25,5 +25,13 @@
 # Settings that the LAMMPS build will import when this package is installed
 
 molfile_SYSINC =
+ifneq ($(LIBOBJDIR),/Obj_mingw32)
+ifneq ($(LIBOBJDIR),/Obj_mingw64)
+ifneq ($(LIBOBJDIR),/Obj_mingw32-mpi)
+ifneq ($(LIBOBJDIR),/Obj_mingw64-mpi)
 molfile_SYSLIB = -ldl
+endif
+endif
+endif
+endif
 molfile_SYSPATH =

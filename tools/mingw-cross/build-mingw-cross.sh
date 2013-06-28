@@ -72,27 +72,24 @@ popd
 # now build some utilities
 pushd ${MINGW_BUILD_DIR}
 
-i686-w64-mingw32-g++ -o 32bit/restart2data.exe -DLAMMPS_SMALLSMALL -O2 -march=i686 \
-    -mtune=generic -mfpmath=387 -mpc64 lammps-current/tools/restart2data.cpp
-x86_64-w64-mingw32-g++ -o 64bit/restart2data.exe -DLAMMPS_SMALLBIG -O2 -march=core2 \
-    -mtune=core2 -mpc64 -msse2 lammps-current/tools/restart2data.cpp
+TOOLDIR=lammps-current/tools
+MINGW32FLAGS="-DLAMMPS_SMALLSMALL -O2 -march=i686  -mtune=generic -mfpmath=387 -mpc64"
+MINGW64FLAGS="-DLAMMPS_SMALLBIG   -O2 -march=core2 -mtune=core2   -mpc64 -msse2"
 
-i686-w64-mingw32-g++ -o 32bit/binary2txt.exe -DLAMMPS_SMALLSMALL -O2 -march=i686 \
-    -mtune=generic -mfpmath=387 -mpc64 lammps-current/tools/binary2txt.cpp
-x86_64-w64-mingw32-g++ -o 64bit/binary2txt.exe -DLAMMPS_SMALLBIG -O2 -march=core2 \
-    -mtune=core2 -mpc64 -msse2 lammps-current/tools/binary2txt.cpp
+i686-w64-mingw32-g++   ${MINGW32FLAGS} -o 32bit/restart2data.exe ${TOOLDIR}/restart2data.cpp
+x86_64-w64-mingw32-g++ ${MINGW64FLAGS} -o 64bit/restart2data.exe ${TOOLDIR}/restart2data.cpp
 
-i686-w64-mingw32-gfortran -o 32bit/chain.exe -O2 -march=i686 -mtune=generic \
-    -mfpmath=387 -mpc64 lammps-current/tools/chain.f
-x86_64-w64-mingw32-gfortran -o 64bit/chain.exe -O2 -march=core2 -mtune=core2 \
-    -mpc64 -msse2 lammps-current/tools/chain.f
+i686-w64-mingw32-g++   ${MINGW32FLAGS} -o 32bit/binary2txt.exe ${TOOLDIR}/binary2txt.cpp
+x86_64-w64-mingw32-g++ ${MINGW64FLAGS} -o 64bit/binary2txt.exe ${TOOLDIR}/binary2txt.cpp
+
+i686-w64-mingw32-gfortran   ${MINGW32FLAGS} -o 32bit/chain.exe ${TOOLDIR}/chain.f
+x86_64-w64-mingw32-gfortran ${MINGW64FLAGS} -o 64bit/chain.exe ${TOOLDIR}/chain.f
 
 # assemble and customize installer scripts 
 datestr=$(date +%Y%m%d)
-cp lammps-current/tools/mingw-cross/win??-*.nsis .
-cp lammps-current/tools/mingw-cross/EnvVarUpdate.nsh .
-cp lammps-current/tools/mingw-cross/Obj_mingw32/libOpenCL.dll 32bit
-cp lammps-current/tools/mingw-cross/Obj_mingw64/libOpenCL.dll 64bit
+cp ${TOOLDIR}/mingw-cross/win??-*.nsis ${TOOLDIR}/mingw-cross/EnvVarUpdate.nsh .
+cp ${TOOLDIR}/mingw-cross/Obj_mingw32/libOpenCL.dll 32bit
+cp ${TOOLDIR}/mingw-cross/Obj_mingw64/libOpenCL.dll 64bit
 cp lammps-current/lib/gpu/Obj_mingw32/ocl_get_devices 32bit/ocl_get_devices.exe
 cp lammps-current/lib/gpu/Obj_mingw64/ocl_get_devices 64bit/ocl_get_devices.exe
 sed -i -e "s/@VERSION@/${datestr}/g" win??-*.nsis
@@ -106,6 +103,10 @@ if [ "$vendor" = "Fedora" ] && [ $release -ge 19 ]
 then
     sed -i -e "s/libgcc_s_sjlj-1.dll/libgcc_s_seh-1.dll/g" win64-*.nsis
 fi
+
+# convert text files into CR/LF format. first individual files, then subdir trees
+unix2dos lammps-current/LICENSE lammps-current/README
+find lammps-current/{bench,examples,potentials} -type f -print | xargs unix2dos
 
 # build installers
 makensis win32-serial.nsis

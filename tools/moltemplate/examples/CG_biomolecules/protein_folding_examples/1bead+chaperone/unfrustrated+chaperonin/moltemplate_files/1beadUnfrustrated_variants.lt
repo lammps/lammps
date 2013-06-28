@@ -1,0 +1,45 @@
+import "1beadUnfrustrated.lt"
+
+
+# Alternate starting conformation (same molecule):
+
+
+1beadUnfolded inherits 1beadUnfrustrated {
+
+  # This molecule "inherits" all of its features from "1beadUnfrustrated"
+  # Here we override the atomic positions with new coordinates:
+
+  #  AtomID MoleculeID AtomType Charge   X        Y         Z
+
+  write("Data Atoms") {
+    $atom:a1   $mol   @atom:L    0.0    -2.4      1.7      -0.0
+    $atom:a2   $mol   @atom:B    0.0    -1.8      1.7       0.8
+    $atom:a3   $mol   @atom:L    0.0    -1.2      2.5       0.8
+    $atom:a4   $mol   @atom:B    0.0    -0.6      2.5      -0.0
+    $atom:a5   $mol   @atom:L    0.0     0.0      1.7      -0.0
+    $atom:a6   $mol   @atom:B    0.0     0.6      1.7       0.8
+    $atom:a7   $mol   @atom:N    0.0     1.2      2.5       0.8
+    $atom:a8   $mol   @atom:N    0.0     1.8      2.5      -0.0
+    $atom:a9   $mol   @atom:B    0.0     2.4      1.7      -0.0
+    $atom:a10  $mol   @atom:L    0.0     3.0      1.7      -0.8
+    $atom:a11  $mol   @atom:B    0.0     3.0      0.7      -0.8
+    $atom:a12  $mol   @atom:L    0.0     3.0      0.1      -0.0
+    $atom:a13  $mol   @atom:B    0.0     3.8     -0.5      -0.0
+    $atom:a14  $mol   @atom:L    0.0     3.8     -1.1      -0.8
+    $atom:a15  $mol   @atom:N    0.0     3.0     -1.7      -0.8
+    $atom:a16  $mol   @atom:N    0.0     3.0     -1.7       0.2
+    $atom:a17  $mol   @atom:N    0.0     2.4     -2.5       0.2
+    $atom:a18  $mol   @atom:B    0.0     1.8     -2.5      -0.6
+    $atom:a19  $mol   @atom:B    0.0     1.2     -1.7      -0.6
+    $atom:a20  $mol   @atom:L    0.0     0.6     -1.7       0.2
+    $atom:a21  $mol   @atom:L    0.0    -0.0     -2.5       0.2
+    $atom:a22  $mol   @atom:B    0.0    -0.6     -2.5      -0.6
+    $atom:a23  $mol   @atom:B    0.0    -1.2     -1.7      -0.6
+    $atom:a24  $mol   @atom:L    0.0    -1.8     -1.7       0.2
+    $atom:a25  $mol   @atom:L    0.0    -2.4     -2.5       0.2
+    $atom:a26  $mol   @atom:B    0.0    -3.0     -2.5      -0.6
+    $atom:a27  $mol   @atom:L    0.0    -3.6     -1.7      -0.6
+  }
+
+} # 1beadUnfolded
+

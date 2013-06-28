@@ -69,7 +69,7 @@ Lennard-Jones 12/6) given by
 :c,image(Eqs/pair_buck.jpg)
 
 where rho is an ionic-pair dependent length parameter, and Rc is the
-cutoff.
+cutoff on both terms.
 
 The styles with {coul/cut} or {coul/long} or {coul/msm} add a
 Coulombic term as described for the "lj/cut"_pair_lj.html pair styles.
@@ -88,6 +88,13 @@ the Coulombic term.
 
 Note that these potentials are related to the "Born-Mayer-Huggins
 potential"_pair_born.html.
+
+IMPORTANT NOTE: For all these pair styles, the terms with A and C are
+always cutoff.  The additional Coulombic term can be cutoff or
+long-range (no cutoff) depending on whether the style name includes
+coul/cut or coul/long or coul/msm.  If you wish the C/r^6 term to be
+long-range (no cutoff), then see the "pair_style
+buck/long/coul/long"_pair_buck_long.html command.
 
 The following coefficients must be defined for each pair of atoms
 types via the "pair_coeff"_pair_coeff.html command as in the examples

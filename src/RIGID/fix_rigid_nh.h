@@ -1,4 +1,4 @@
-/* -*- c++ -*- ----------------------------------------------------------
+/* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -72,7 +72,7 @@ class FixRigidNH : public FixRigid {
   int tcomputeflag,pcomputeflag;
 
   void couple();
-  virtual void remap();  
+  void remap();  
   void nhc_temp_integrate();
   void nhc_press_integrate();
 

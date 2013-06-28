@@ -60,7 +60,7 @@ extern "C" {
 
 typedef int bool_t;
 
-#if defined(__MINGW32__)
+#if defined(__MINGW32_VERSION)
 typedef char * caddr_t;
 typedef unsigned int u_int;
 #endif

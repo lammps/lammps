@@ -482,6 +482,28 @@ periodic boundaries, since that is consistent with maintaining the
 velocity profile already created by fix nvt/sllod.  LAMMPS will warn
 you if the {remap} setting is not consistent with fix nvt/sllod.
 
+IMPORTANT NOTE: For non-equilibrium MD (NEMD) simulations using "remap
+v" it is usually desirable that the fluid (or flowing material,
+e.g. granular particles) stream with a velocity profile consistent
+with the deforming box.  As mentioned above, using a thermostat such
+as "fix nvt/sllod"_fix_nvt_sllod.html or "fix
+lavgevin"_doc/fix_langevin.html (with a bias provided by "compute
+temp/deform"_compute_temp_deform.html), will typically accomplish
+that.  If you do not use a thermostat, then there is no driving force
+pushing the atoms to flow in a manner consistent with the deforming
+box.  E.g. for a shearing system the box deformation velocity may vary
+from 0 at the bottom to 10 at the top of the box.  But the stream
+velocity profile of the atoms may vary from -5 at the bottom to +5 at
+the top.  You can monitor these effects using the "fix
+ave/spatial"_fix_ave_spatial.html, "compute
+temp/deform"_compute_temp_deform.html, and "compute
+temp/profile"_compute_temp_profile.html commands.  One way to induce
+atoms to stream consistent with the box deformation is to give them an
+initial velocity profile, via the "velocity ramp"_velocity.html
+command, that matches the box deformation rate.  This also typically
+helps the system come to equilibrium more quickly, even if a
+thermostat is used.
+
 IMPORTANT NOTE: If a "fix rigid"_fix_rigid.html is defined for rigid
 bodies, and {remap} is set to {x}, then the center-of-mass coordinates
 of rigid bodies will be remapped to the changing simulation box.  This

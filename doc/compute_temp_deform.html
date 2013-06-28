@@ -85,6 +85,21 @@ temp/rescale</A>, <A HREF = "fix_temp_berendsen.html">fix
 temp/berendsen</A>, and <A HREF = "fix_langevin.html">fix
 langevin</A>.
 </P>
+<P>IMPORTANT NOTE: The temperature calculated by this compute is only
+accurate if the atoms are indeed moving with a stream velocity profile
+that matches the box deformation.  If not, then the compute will
+subtract off an incorrect stream velocity, yielding a bogus thermal
+temperature.  You should NOT assume that your atoms are streaming at
+the same rate the box is deforming.  Rather, you should monitor their
+velocity profile, e.g. via the <A HREF = "fix_ave_spatial.html">fix ave/spatial</A>
+command.  And you can compare the results of this compute to <A HREF = "compute_temp_profile.html">compute
+temp/profile</A>, which actually calculates the
+stream profile before subtracting it.  If the two computes do not give
+roughly the same temperature, then your atoms are not streaming
+consistent with the box deformation.  See the <A HREF = "fix_deform.html">fix
+deform</A> command for more details on ways to get atoms
+to stream consistently with the box deformation.
+</P>
 <P>This compute subtracts out degrees-of-freedom due to fixes that
 constrain molecular motion, such as <A HREF = "fix_shake.html">fix shake</A> and
 <A HREF = "fix_rigid.html">fix rigid</A>.  This means the temperature of groups of

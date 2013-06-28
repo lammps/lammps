@@ -155,9 +155,9 @@ int main(int narg, char **arg)
     while ((style = next_paragraph(in,raw))) {
 
       if (style == 2) {
-	int n = index_of_first_char_of_last_word(raw);
-	commands = raw.substr(n+1);
-	process_commands(0,commands,pre,post);
+        int n = index_of_first_char_of_last_word(raw);
+        commands = raw.substr(n+1);
+        process_commands(0,commands,pre,post);
       }
 
       raw.erase();
@@ -183,8 +183,8 @@ int main(int narg, char **arg)
 
       n = raw.find("\\\n");
       while (n < string::npos) {
-	raw.erase(n,2);
-	n = raw.find("\\\n");
+        raw.erase(n,2);
+        n = raw.find("\\\n");
       }
 
       ifirst = raw.find_first_not_of(" \t\n");
@@ -194,18 +194,18 @@ int main(int narg, char **arg)
       post.erase();
 
       if (raw[ifirst] == '<' && raw[ilast] == '>') {
-	body = raw;
+        body = raw;
       } else if (style == 1) {
-	body = raw;
-	commands = "p\n";
-	process_commands(1,commands,pre,post);
-	substitute(body);
+        body = raw;
+        commands = "p\n";
+        process_commands(1,commands,pre,post);
+        substitute(body);
       } else {
-	int n = index_of_first_char_of_last_word(raw);
-	body = raw.substr(0,n) + "\n";
-	commands = raw.substr(n+1);
-	process_commands(1,commands,pre,post);
-	substitute(body);
+        int n = index_of_first_char_of_last_word(raw);
+        body = raw.substr(0,n) + "\n";
+        commands = raw.substr(n+1);
+        process_commands(1,commands,pre,post);
+        substitute(body);
       }
 
       final = pre + body + post;
@@ -298,6 +298,7 @@ void process_commands(int flag, string &s, string &pre, string &post)
 
   start = 0;
   last = s.find_last_not_of(" \t\n");
+  if (last == string::npos) return;
 
   while (start <= last) {
 
@@ -312,19 +313,19 @@ void process_commands(int flag, string &s, string &pre, string &post)
       start = stop+1;
       narg = 0;
       while (1) {
-	stop = s.find_first_of(",)",start);
-	if (stop == string::npos) {
-	  fprintf(stderr,"ERROR: No trailing parenthesis in %s\n",s.c_str());
-	  exit(1);
-	}
-	arg.resize(narg+1);
-	arg[narg] = s.substr(start,stop-start);
-	narg++;
-	start = stop+1;
-	if (s[stop] == ')') {
-	  start++;
-	  break;
-	}
+        stop = s.find_first_of(",)",start);
+        if (stop == string::npos) {
+          fprintf(stderr,"ERROR: No trailing parenthesis in %s\n",s.c_str());
+          exit(1);
+        }
+        arg.resize(narg+1);
+        arg[narg] = s.substr(start,stop-start);
+        narg++;
+        start = stop+1;
+        if (s[stop] == ')') {
+          start++;
+          break;
+        }
       }
     } else {
       command = s.substr(start,stop-start);
@@ -336,18 +337,18 @@ void process_commands(int flag, string &s, string &pre, string &post)
 
     if (flag == 0) {
       if (command == "link" && narg == 2) {
-	//	s.erase(s.length()-1,1);
-	for (int i = 0; i < nlink; i++)
-	  if (alias1[i] == arg[0]) {
-	    fprintf(stderr,"ERROR: Link %s appears more than once\n",
-		    arg[0].c_str());
-	    exit(1);
-	  }
-	alias1.resize(nlink+1);
-	alias2.resize(nlink+1);
-	alias1[nlink] = arg[0];
-	alias2[nlink] = arg[1];
-	nlink++;
+        //      s.erase(s.length()-1,1);
+        for (int i = 0; i < nlink; i++)
+          if (alias1[i] == arg[0]) {
+            fprintf(stderr,"ERROR: Link %s appears more than once\n",
+                    arg[0].c_str());
+            exit(1);
+          }
+        alias1.resize(nlink+1);
+        alias2.resize(nlink+1);
+        alias1[nlink] = arg[0];
+        alias2[nlink] = arg[1];
+        nlink++;
       } else continue;
     }
 
@@ -416,17 +417,17 @@ void process_commands(int flag, string &s, string &pre, string &post)
       post.insert(0,"</DL>");
     } else if (command == "link") {
       if (narg == 1) {
-	string aname = "<A NAME = \"" + arg[0] + "\"></A>";
-	pre.append(aname);
+        string aname = "<A NAME = \"" + arg[0] + "\"></A>";
+        pre.append(aname);
       }
     } else if (command == "image") {
       if (narg == 1) {
-	string img = "<IMG SRC = \"" + arg[0] + "\">";
-	pre.append(img);
+        string img = "<IMG SRC = \"" + arg[0] + "\">";
+        pre.append(img);
       } else if (narg == 2) {
-	string img = "<A HREF = \"" + arg[1] + "\">" +
-	  "<IMG SRC = \"" + arg[0] + "\">" + "</A>";
-	pre.append(img);
+        string img = "<A HREF = \"" + arg[1] + "\">" +
+          "<IMG SRC = \"" + arg[0] + "\">" + "</A>";
+        pre.append(img);
       }
     }else if (command == "tb") {   // read the table command and set settings
       tableflag = 1;
@@ -454,62 +455,62 @@ void process_commands(int flag, string &s, string &pre, string &post)
       dwidth = "0";
 
       for (int i = 0; i < narg; i++) {     // loop through each tb() arg
-	int tbstop;
-	string tbcommand;
-	tbstop = 0;
-	tbstop = arg[i].find("=");
-	tbcommand = arg[i].substr(0,tbstop);
-	int n = arg[i].length();
-	if (tbstop == -1) {
-	  continue;
-	} else if (tbcommand == "c") {
-	  string collumn= arg[i].substr (tbstop+1,n-(tbstop+1));
-	  rowquit = atoi(collumn.c_str());
-	} else if (tbcommand == "s") {
-	  tabledelim= arg[i].substr (tbstop+1,n-(tbstop+1));
-	} else if (tbcommand == "b") {
-	  tableborder= arg[i].substr (tbstop+1,n-(tbstop+1));
-	} else if (tbcommand == "w") {
-	  string width = "0";       
-	  if (arg[i].substr (n-1,1) == "%") {
-	    string width = arg[i].substr (tbstop+1,n-(tbstop+1));
-	    tw = " WIDTH=\"" + width + "\"";
-	  } else
-	    dwidth = arg[i].substr (tbstop+1,n-(tbstop+1));
-	} else if (tbcommand == "ea") {
-	  dataalign= arg[i].substr (tbstop+1,n-(tbstop+1));
-	} else if (tbcommand == "eva") {
-	  rowvalign= arg[i].substr (tbstop+1,n-(tbstop+1));
-	} else if (tbcommand == "a") {
-	  tablealign= arg[i].substr (tbstop+1,n-(tbstop+1));
-	} else if (tbcommand.substr(0,2) == "cw") {
-	  string cwnum= tbcommand.substr(2,tbstop-1);
-	  cnum.resize(ncnum+1);
-	  cnum[ncnum] = atoi(cwnum.c_str());
-	  cwidth.resize(ncnum+1);
-	  cwidth[ncnum]= arg[i].substr(tbstop+1,n-(tbstop+1));
-	  ncnum++;
-	} else if (tbcommand.substr(0,2) ==  "ca") {
-	  string canum= tbcommand.substr(2,tbstop-1);
-	  acolnum.resize(ncalign+1);
-	  acolnum[ncalign] = atoi(canum.c_str());
-	  colalign.resize(ncalign+1);
-	  colalign[ncalign]= arg[i].substr(tbstop+1,n-(tbstop+1));
-	  ncalign++;
-	} else if (tbcommand.substr(0,3) ==  "cva") {
-	  string cvanum= tbcommand.substr(2,tbstop-1);
-	  vacolnum.resize(ncvalign+1);
-	  vacolnum[ncvalign] = atoi(cvanum.c_str());
-	  colvalign.resize(ncvalign+1);
-	  colvalign[ncvalign]= arg[i].substr(tbstop+1,n-(tbstop+1));
-	  ncvalign++;
-	} else {
-	  fprintf(stderr,
-		  "ERROR: Unrecognized table command %s\n",tbcommand.c_str());
-	  exit(1);
-	}
-	
-	tbstop = s.find("=");
+        int tbstop;
+        string tbcommand;
+        tbstop = 0;
+        tbstop = arg[i].find("=");
+        tbcommand = arg[i].substr(0,tbstop);
+        int n = arg[i].length();
+        if (tbstop == -1) {
+          continue;
+        } else if (tbcommand == "c") {
+          string collumn= arg[i].substr (tbstop+1,n-(tbstop+1));
+          rowquit = atoi(collumn.c_str());
+        } else if (tbcommand == "s") {
+          tabledelim= arg[i].substr (tbstop+1,n-(tbstop+1));
+        } else if (tbcommand == "b") {
+          tableborder= arg[i].substr (tbstop+1,n-(tbstop+1));
+        } else if (tbcommand == "w") {
+          string width = "0";       
+          if (arg[i].substr (n-1,1) == "%") {
+            string width = arg[i].substr (tbstop+1,n-(tbstop+1));
+            tw = " WIDTH=\"" + width + "\"";
+          } else
+            dwidth = arg[i].substr (tbstop+1,n-(tbstop+1));
+        } else if (tbcommand == "ea") {
+          dataalign= arg[i].substr (tbstop+1,n-(tbstop+1));
+        } else if (tbcommand == "eva") {
+          rowvalign= arg[i].substr (tbstop+1,n-(tbstop+1));
+        } else if (tbcommand == "a") {
+          tablealign= arg[i].substr (tbstop+1,n-(tbstop+1));
+        } else if (tbcommand.substr(0,2) == "cw") {
+          string cwnum= tbcommand.substr(2,tbstop-1);
+          cnum.resize(ncnum+1);
+          cnum[ncnum] = atoi(cwnum.c_str());
+          cwidth.resize(ncnum+1);
+          cwidth[ncnum]= arg[i].substr(tbstop+1,n-(tbstop+1));
+          ncnum++;
+        } else if (tbcommand.substr(0,2) ==  "ca") {
+          string canum= tbcommand.substr(2,tbstop-1);
+          acolnum.resize(ncalign+1);
+          acolnum[ncalign] = atoi(canum.c_str());
+          colalign.resize(ncalign+1);
+          colalign[ncalign]= arg[i].substr(tbstop+1,n-(tbstop+1));
+          ncalign++;
+        } else if (tbcommand.substr(0,3) ==  "cva") {
+          string cvanum= tbcommand.substr(2,tbstop-1);
+          vacolnum.resize(ncvalign+1);
+          vacolnum[ncvalign] = atoi(cvanum.c_str());
+          colvalign.resize(ncvalign+1);
+          colvalign[ncvalign]= arg[i].substr(tbstop+1,n-(tbstop+1));
+          ncvalign++;
+        } else {
+          fprintf(stderr,
+                  "ERROR: Unrecognized table command %s\n",tbcommand.c_str());
+          exit(1);
+        }
+        
+        tbstop = s.find("=");
       }
       
       string align;
@@ -568,7 +569,7 @@ void substitute(string &s)
     m = s.rfind("\"",n-1);
     if (m == string::npos) {
       fprintf(stderr,"ERROR: Could not find matching \" for \"_ in %s\n",
-	      s.c_str());
+              s.c_str());
       exit(1);
     }
 
@@ -583,8 +584,8 @@ void substitute(string &s)
     link = s.substr(n+2,p-n-1);
     for (int i = 0; i < nlink; i++)
       if (alias1[i] == link) {
-	link = alias2[i];
-	break;
+        link = alias2[i];
+        break;
       }
 
     s.erase(m,p-m+1);
@@ -610,10 +611,10 @@ void substitute(string &s)
       else if (dataalign=="r") align="\"right\"";
       else if (dataalign=="l") align="\"left\"";
       else {
-	fprintf(stderr,
-		"ERROR: Unrecognized table alignment argument %s for ea=X\n",
-		dataalign.c_str());
-	exit(1);
+        fprintf(stderr,
+                "ERROR: Unrecognized table alignment argument %s for ea=X\n",
+                dataalign.c_str());
+        exit(1);
       }
       tbalign = " ALIGN=" + align;
     } else tbalign="";
@@ -628,10 +629,10 @@ void substitute(string &s)
       else if (rowvalign == "ba") valign= "baseline";
       else if (rowvalign == "bo") valign= "bottom";
       else {
-	fprintf(stderr,
-		"ERROR: Unrecognized table alignment argument %s for eva=X\n",
-		rowvalign.c_str());
-	exit(1);
+        fprintf(stderr,
+                "ERROR: Unrecognized table alignment argument %s for eva=X\n",
+                rowvalign.c_str());
+        exit(1);
       }
       va = " VALIGN =\"" + valign + "\"";
     } else va="";
@@ -664,71 +665,71 @@ void substitute(string &s)
       
       // current column is 0, (very first loop), insert first <TR>
       if (currentc == 0){    
-	currentc++;
-	DT=td_tag(currentc);
-	s.insert(0,tr_tag);
-	s.insert(tr_tag.length(),DT);
-	nend=nend+tr_tag.length()+DT.length();
-	n = find_n(s,nend,n1);
-	if (n==n1) currentc++;  
-	else { 
-	  // currentc will remain one if rowquit==0
-	  if (rowquit>0){
-	    s.erase(n,1);
-	    n = find_n(s,nend,n1);
-	    currentc++;
-	  }
-	}
+        currentc++;
+        DT=td_tag(currentc);
+        s.insert(0,tr_tag);
+        s.insert(tr_tag.length(),DT);
+        nend=nend+tr_tag.length()+DT.length();
+        n = find_n(s,nend,n1);
+        if (n==n1) currentc++;  
+        else { 
+          // currentc will remain one if rowquit==0
+          if (rowquit>0){
+            s.erase(n,1);
+            n = find_n(s,nend,n1);
+            currentc++;
+          }
+        }
       } else {
       
-	// if n is separator
-	if (n == n1){
-	  s.erase(n,tabledelim.length());
-	  if(currentc==(rowquit+1)&& rowquit!=0){
-	    s.insert(nend,"</TD></TR>\n");
-	    nend=nend+11;
-	    // set current column back to one to start new line
-	    currentc=1;
-	  }else{
-	    DT= td_tag(currentc);
-    	    s.insert (nend,"</TD>");
-	    nend=nend+5;
-	    s.insert (nend,DT);
-	    nend=nend+DT.length();
-	    // add one so current column is updated
-	    currentc++;   
-	    n = find_n(s,nend,n1);
-	  }
+        // if n is separator
+        if (n == n1){
+          s.erase(n,tabledelim.length());
+          if(currentc==(rowquit+1)&& rowquit!=0){
+            s.insert(nend,"</TD></TR>\n");
+            nend=nend+11;
+            // set current column back to one to start new line
+            currentc=1;
+          }else{
+            DT= td_tag(currentc);
+            s.insert (nend,"</TD>");
+            nend=nend+5;
+            s.insert (nend,DT);
+            nend=nend+DT.length();
+            // add one so current column is updated
+            currentc++;   
+            n = find_n(s,nend,n1);
+          }
 
-	}
-	//if n is newline character
-	else{
-	  s.erase(n,1);
-	  // if columns == 0 means ARE searching for newlines
-	  // else erase and ignore insert <tr> later and
-	  // search for next separator
+        }
+        //if n is newline character
+        else{
+          s.erase(n,1);
+          // if columns == 0 means ARE searching for newlines
+          // else erase and ignore insert <tr> later and
+          // search for next separator
 
-	  if (rowquit==0){
-	    s.insert(nend,"</TD></TR>\n");
-	    nend=nend+11;
-	    // set current column back to one to start new line
-	    currentc=1;
-	  }else{
-	    ignore=0;
-	    n = find_n(s,nend,n1);
-	  }
-	}
+          if (rowquit==0){
+            s.insert(nend,"</TD></TR>\n");
+            nend=nend+11;
+            // set current column back to one to start new line
+            currentc=1;
+          }else{
+            ignore=0;
+            n = find_n(s,nend,n1);
+          }
+        }
 
-	// if we are at the beginning of the row then insert <TR>
+        // if we are at the beginning of the row then insert <TR>
 
-	if (currentc==1&&ignore) {
-	  DT = td_tag(currentc); // find DT for currentc=1
-	  s.insert(nend,tr_tag);
-	  nend=nend+tr_tag.length();
-	  s.insert(nend,DT);
-	  n = find_n(s,nend,n1); // search for next separator
-	  currentc++;
-	}
+        if (currentc==1&&ignore) {
+          DT = td_tag(currentc); // find DT for currentc=1
+          s.insert(nend,tr_tag);
+          nend=nend+tr_tag.length();
+          s.insert(nend,DT);
+          n = find_n(s,nend,n1); // search for next separator
+          currentc++;
+        }
       } // end to else statement
     } // end to while loop
   } // end to if tableflag
@@ -804,7 +805,7 @@ void file_open(int npair, string &infile, FILE **in, FILE **out)
     *in = fopen(infile.c_str(),"r");
     if (*in == NULL) {
       fprintf(stderr,"ERROR: Could not open %s or %s\n",
-	      root.c_str(),infile.c_str());
+              root.c_str(),infile.c_str());
       exit(1);
     }
   }
@@ -847,10 +848,10 @@ string td_tag(int currentc) {
       else if (colalign[counter] == "r") align= "right";
       else if (colalign[counter] == "c") align= "center";
       else {
-	fprintf(stderr,
-		"ERROR: Unrecognized table alignment argument %s for caM=X\n",
-		colalign[counter].c_str());
-	exit(1);
+        fprintf(stderr,
+                "ERROR: Unrecognized table alignment argument %s for caM=X\n",
+                colalign[counter].c_str());
+        exit(1);
       }
       eacolumn= " ALIGN =\"" + align +"\"";
     }else eacolumn= "";
@@ -866,10 +867,10 @@ string td_tag(int currentc) {
       else if (colvalign[counter] == "ba") valign= "baseline";
       else if (colvalign[counter] == "bo") valign= "bottom";
       else {
-	fprintf(stderr,
-		"ERROR: Unrecognized table alignment argument %s for cvaM=X\n",
-		colvalign[counter].c_str());
-	exit(1);
+        fprintf(stderr,
+                "ERROR: Unrecognized table alignment argument %s for cvaM=X\n",
+                colvalign[counter].c_str());
+        exit(1);
       }
       va = " VALIGN =\"" + valign + "\"";
     } else va = " ";

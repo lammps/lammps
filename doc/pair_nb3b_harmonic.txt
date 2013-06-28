@@ -41,12 +41,12 @@ N element names = mapping of elements to atom types :ul
 See the "pair_coeff"_pair_coeff.html doc page for alternate ways
 to specify the path for the potential file.
 
-As an example, imagine a file SiC.nb3bharmonic has potential values
+As an example, imagine a file SiC.nb3b.harmonic has potential values
 for Si and C.  If your LAMMPS simulation has 4 atoms types and you
 want the 1st 3 to be Si, and the 4th to be C, you would use the
 following pair_coeff command:
 
-pair_coeff * * SiC.nb3bharmonic Si Si Si C :pre
+pair_coeff * * SiC.nb3b.harmonic Si Si Si C :pre
 
 The 1st 2 arguments must be * * so as to span all LAMMPS atom types.
 The first three Si arguments map LAMMPS atom types 1,2,3 to the Si
@@ -58,11 +58,11 @@ NULL values are placeholders for atom types that will be used with
 other potentials. An example of a pair_coeff command for use with the
 {hybrid} pair style is:
 
-pair_coeff * * 3bnbharm MgOH.3bnbharm Mg O H
+pair_coeff * * nb3b/harmonic MgOH.nb3b.harmonic Mg O H
 
 Three-body nonbonded harmonic files in the {potentials} directory of
-the LAMMPS distribution have a ".nb3bharmonic" suffix.  Lines that are
-not blank or comments (starting with #) define parameters for a
+the LAMMPS distribution have a ".nb3b.harmonic" suffix.  Lines that
+are not blank or comments (starting with #) define parameters for a
 triplet of elements.
 
 Each entry has six arguments. The first three are atom types as

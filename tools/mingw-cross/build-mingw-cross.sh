@@ -32,7 +32,7 @@ pushd "${LAMMPS_PATH}"
 git archive -v --format=tar --prefix=lammps-current/ HEAD \
     README LICENSE doc/Manual.pdf doc/PDF src lib python  \
     examples/{README,dipole,peri,hugoniostat,colloid,crack,friction,msst,obstacle,body,sputter,pour,ELASTIC,neb,ellipse,flow,meam,min,indent,micelle,shear,srd,dreiding,eim,prd,rigid,COUPLE,peptide,melt,comb,tad,reax,USER/{awpmd,misc,phonon,cg-cmm}} \
-    bench potentials tools/*.cpp tools/*.f tools/mingw-cross \
+    bench potentials tools/*.cpp tools/*.f tools/mingw-cross tools/msi2lmp \
     | tar -C ${MINGW_BUILD_DIR} -xvf -
 popd
 
@@ -85,9 +85,14 @@ x86_64-w64-mingw32-g++ ${MINGW64FLAGS} -o 64bit/binary2txt.exe ${TOOLDIR}/binary
 i686-w64-mingw32-gfortran   ${MINGW32FLAGS} -o 32bit/chain.exe ${TOOLDIR}/chain.f
 x86_64-w64-mingw32-gfortran ${MINGW64FLAGS} -o 64bit/chain.exe ${TOOLDIR}/chain.f
 
+make -C ${TOOLDIR}/msi2lmp/src TARGET=${PWD}/32bit/msi2lmp.exe \
+	CC=i686-w64-mingw32-g++ CFLAGS=${MINGW32FLAGS}
+make -C ${TOOLDIR}/msi2lmp/src TARGET=${PWD}/64bit/msi2lmp.exe \
+	CC=x86_64-w64-mingw32-g++ CFLAGS=${MINGW64FLAGS}
+
 # assemble and customize installer scripts 
 datestr=$(date +%Y%m%d)
-cp ${TOOLDIR}/mingw-cross/win??-*.nsis ${TOOLDIR}/mingw-cross/EnvVarUpdate.nsh .
+cp ${TOOLDIR}/mingw-cross/win-installer.nsis ${TOOLDIR}/mingw-cross/EnvVarUpdate.nsh .
 cp ${TOOLDIR}/mingw-cross/Obj_mingw32/libOpenCL.dll 32bit
 cp ${TOOLDIR}/mingw-cross/Obj_mingw64/libOpenCL.dll 64bit
 cp lammps-current/lib/gpu/Obj_mingw32/ocl_get_devices 32bit/ocl_get_devices.exe
@@ -108,6 +113,7 @@ fi
 # convert text files into CR/LF format.
 unix2dos lammps-current/LICENSE lammps-current/README
 find lammps-current/{bench,examples,potentials} -type f -print | xargs unix2dos
+find lammps-current/tools/msi2lmp/biosym_frc_files -type f -print | xargs unix2dos
 
 # build installers
 makensis -DMINGW=/usr/i686-w64-mingw32/sys-root/mingw/bin/   \

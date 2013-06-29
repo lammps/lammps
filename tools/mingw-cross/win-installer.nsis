@@ -11,11 +11,11 @@
 !include "EnvVarUpdate.nsh"
 !include "x64.nsh"
 
-!ifndef ${LIBGCC}
+!ifndef LIBGCC
 !define LIBGCC libgcc_s_sjlj-1.dll
 !endif
 
-!ifdef ${MPI}
+!if ${MPI} == 1
 !define LAMMPS "LAMMPS ${BIT}-bit MPI ${VERSION}"
 OutFile "lammps-${BIT}bit-mpich2-${VERSION}.exe"
 !else
@@ -48,6 +48,7 @@ Section "${LAMMPS}"
   CreateDirectory "$INSTDIR\Benchmarks"
   CreateDirectory "$INSTDIR\Examples"
   CreateDirectory "$INSTDIR\Potentials"
+  CreateDirectory "$INSTDIR\biosym_frc_files"
   CreateDirectory "$SMPROGRAMS\${LAMMPS}"
 
   File ${MINGW}/${LIBGCC}
@@ -58,8 +59,8 @@ Section "${LAMMPS}"
   File ${MINGW}/libstdc++-6.dll
   File ${MINGW}/pthreadGC2.dll
 
-!ifdef ${MPI}
-  File ${BIT}-mpi/lmp_mpi.exe
+!if ${MPI} == 1
+  File ${BIT}bit-mpi/lmp_mpi.exe
   File /x lmp_serial.exe ${BIT}bit/*.exe
 !else
   File ${BIT}bit/*.exe
@@ -78,6 +79,10 @@ Section "${LAMMPS}"
   SetOutPath "$INSTDIR\Examples"
   File /r lammps-current/examples/*
 
+  SetOutPath "$INSTDIR\biosym_frc_files"
+  File /oname=README.txt lammps-current/tools/msi2lmp/README
+  File /r lammps-current/tools/msi2lmp/biosym_frc_files/*
+
   SetOutPath "$INSTDIR\Benchmarks"
   File /r lammps-current/bench/*
 
@@ -86,15 +91,17 @@ Section "${LAMMPS}"
   CreateShortCut "$SMPROGRAMS\${LAMMPS}\LAMMPS Manual.lnk"  "$INSTDIR\doc\LAMMPS-Manual.pdf"  "" "$INSTDIR\doc\LAMMPS-Manual.pdf"  0
   CreateShortCut "$SMPROGRAMS\${LAMMPS}\Colvars Manual.lnk" "$INSTDIR\doc\Colvars-Manual.pdf" "" "$INSTDIR\doc\Colvars-Manual.pdf" 0
 
-  ${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$INSTDIR"
+  ${EnvVarUpdate} $0 "PATH"              "A" "HKLM" "$INSTDIR"
   ${EnvVarUpdate} $0 "LAMMPS_POTENTIALS" "A" "HKLM" "$INSTDIR\Potentials"
+  ${EnvVarUpdate} $0 "BIOSYM_LIBRARY"    "A" "HKLM" "$INSTDIR\biosym_frc_files"
 SectionEnd
 
 Section "Uninstall"
   SetRegView ${BIT}
 
-  ${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR"
+  ${un.EnvVarUpdate} $0 "PATH"              "R" "HKLM" "$INSTDIR"
   ${un.EnvVarUpdate} $0 "LAMMPS_POTENTIALS" "R" "HKLM" "$INSTDIR\Potentials"
+  ${un.EnvVarUpdate} $0 "BIOSYM_LIBRARY" "   R" "HKLM" "$INSTDIR\biosym_frc_files"
 
   Delete /REBOOTOK "$SMPROGRAMS\${LAMMPS}\*.lnk"
   RMDir  /REBOOTOK "$SMPROGRAMS\${LAMMPS}"

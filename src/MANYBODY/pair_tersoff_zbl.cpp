@@ -68,7 +68,7 @@ void PairTersoffZBL::read_file(char *file)
 
   memory->sfree(params);
   params = NULL;
-  nparams = 0;
+  nparams = maxparam = 0;
 
   // open file on proc 0
 

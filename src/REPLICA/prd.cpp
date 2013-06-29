@@ -73,15 +73,15 @@ void PRD::command(int narg, char **arg)
 
   if (narg < 7) error->universe_all(FLERR,"Illegal prd command");
 
-  nsteps = atoi(arg[0]);
-  t_event = atoi(arg[1]);
-  n_dephase = atoi(arg[2]);
-  t_dephase = atoi(arg[3]);
-  t_corr = atoi(arg[4]);
+  nsteps = force->inumeric(FLERR,arg[0]);
+  t_event = force->inumeric(FLERR,arg[1]);
+  n_dephase = force->inumeric(FLERR,arg[2]);
+  t_dephase = force->inumeric(FLERR,arg[3]);
+  t_corr = force->inumeric(FLERR,arg[4]);
 
   char *id_compute = new char[strlen(arg[5])+1];
   strcpy(id_compute,arg[5]);
-  int seed = atoi(arg[6]);
+  int seed = force->inumeric(FLERR,arg[6]);
 
   options(narg-7,&arg[7]);
 

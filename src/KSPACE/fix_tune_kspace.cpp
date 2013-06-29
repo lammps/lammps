@@ -63,7 +63,7 @@ FixTuneKspace::FixTuneKspace(LAMMPS *lmp, int narg, char **arg) :
 
   // parse arguments
 
-  nevery = atoi(arg[3]);
+  nevery = force->inumeric(FLERR,arg[3]);
 
   // set up reneighboring
 

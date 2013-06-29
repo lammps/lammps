@@ -70,20 +70,20 @@ void Temper::command(int narg, char **arg)
   if (narg != 6 && narg != 7)
     error->universe_all(FLERR,"Illegal temper command");
 
-  int nsteps = atoi(arg[0]);
-  nevery = atoi(arg[1]);
-  double temp = atof(arg[2]);
+  int nsteps = force->inumeric(FLERR,arg[0]);
+  nevery = force->inumeric(FLERR,arg[1]);
+  double temp = force->numeric(FLERR,arg[2]);
 
   for (whichfix = 0; whichfix < modify->nfix; whichfix++)
     if (strcmp(arg[3],modify->fix[whichfix]->id) == 0) break;
   if (whichfix == modify->nfix)
     error->universe_all(FLERR,"Tempering fix ID is not defined");
 
-  seed_swap = atoi(arg[4]);
-  seed_boltz = atoi(arg[5]);
+  seed_swap = force->inumeric(FLERR,arg[4]);
+  seed_boltz = force->inumeric(FLERR,arg[5]);
 
   my_set_temp = universe->iworld;
-  if (narg == 7) my_set_temp = atoi(arg[6]);
+  if (narg == 7) my_set_temp = force->inumeric(FLERR,arg[6]);
 
   // swap frequency must evenly divide total # of timesteps
 

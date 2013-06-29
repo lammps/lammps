@@ -46,13 +46,13 @@ Respa::Respa(LAMMPS *lmp, int narg, char **arg) : Integrate(lmp, narg, arg)
 {
   if (narg < 1) error->all(FLERR,"Illegal run_style respa command");
 
-  nlevels = atoi(arg[0]);
+  nlevels = force->inumeric(FLERR,arg[0]);
   if (nlevels < 1) error->all(FLERR,"Respa levels must be >= 1");
 
   if (narg < nlevels) error->all(FLERR,"Illegal run_style respa command");
   loop = new int[nlevels];
   for (int iarg = 1; iarg < nlevels; iarg++) {
-    loop[iarg-1] = atoi(arg[iarg]);
+    loop[iarg-1] = force->inumeric(FLERR,arg[iarg]);
     if (loop[iarg-1] <= 0) error->all(FLERR,"Illegal run_style respa command");
   }
   loop[nlevels-1] = 1;
@@ -68,43 +68,43 @@ Respa::Respa(LAMMPS *lmp, int narg, char **arg) : Integrate(lmp, narg, arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"bond") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal run_style respa command");
-      level_bond = atoi(arg[iarg+1]) - 1;
+      level_bond = force->inumeric(FLERR,arg[iarg+1]) - 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"angle") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal run_style respa command");
-      level_angle = atoi(arg[iarg+1]) - 1;
+      level_angle = force->inumeric(FLERR,arg[iarg+1]) - 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"dihedral") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal run_style respa command");
-      level_dihedral = atoi(arg[iarg+1]) - 1;
+      level_dihedral = force->inumeric(FLERR,arg[iarg+1]) - 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"improper") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal run_style respa command");
-      level_improper = atoi(arg[iarg+1]) - 1;
+      level_improper = force->inumeric(FLERR,arg[iarg+1]) - 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"pair") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal run_style respa command");
-      level_pair = atoi(arg[iarg+1]) - 1;
+      level_pair = force->inumeric(FLERR,arg[iarg+1]) - 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"inner") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal run_style respa command");
-      level_inner = atoi(arg[iarg+1]) - 1;
-      cutoff[0] = atof(arg[iarg+2]);
-      cutoff[1] = atof(arg[iarg+3]);
+      level_inner = force->inumeric(FLERR,arg[iarg+1]) - 1;
+      cutoff[0] = force->numeric(FLERR,arg[iarg+2]);
+      cutoff[1] = force->numeric(FLERR,arg[iarg+3]);
       iarg += 4;
     } else if (strcmp(arg[iarg],"middle") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal run_style respa command");
-      level_middle = atoi(arg[iarg+1]) - 1;
-      cutoff[2] = atof(arg[iarg+2]);
-      cutoff[3] = atof(arg[iarg+3]);
+      level_middle = force->inumeric(FLERR,arg[iarg+1]) - 1;
+      cutoff[2] = force->numeric(FLERR,arg[iarg+2]);
+      cutoff[3] = force->numeric(FLERR,arg[iarg+3]);
       iarg += 4;
     } else if (strcmp(arg[iarg],"outer") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal run_style respa command");
-      level_outer = atoi(arg[iarg+1]) - 1;
+      level_outer = force->inumeric(FLERR,arg[iarg+1]) - 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"kspace") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal run_style respa command");
-      level_kspace = atoi(arg[iarg+1]) - 1;
+      level_kspace = force->inumeric(FLERR,arg[iarg+1]) - 1;
       iarg += 2;
     } else error->all(FLERR,"Illegal run_style respa command");
   }

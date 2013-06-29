@@ -91,12 +91,12 @@ void TAD::command(int narg, char **arg)
 
   if (narg < 7) error->universe_all(FLERR,"Illegal tad command");
 
-  nsteps = atoi(arg[0]);
-  t_event = atoi(arg[1]);
-  templo = atof(arg[2]);
-  temphi = atof(arg[3]);
-  delta_conf = atof(arg[4]);
-  tmax = atof(arg[5]);
+  nsteps = force->inumeric(FLERR,arg[0]);
+  t_event = force->inumeric(FLERR,arg[1]);
+  templo = force->numeric(FLERR,arg[2]);
+  temphi = force->numeric(FLERR,arg[3]);
+  delta_conf = force->numeric(FLERR,arg[4]);
+  tmax = force->numeric(FLERR,arg[5]);
 
   char *id_compute = new char[strlen(arg[6])+1];
   strcpy(id_compute,arg[6]);

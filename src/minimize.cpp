@@ -19,6 +19,7 @@
 #include "finish.h"
 #include "timer.h"
 #include "error.h"
+#include "force.h"
 
 using namespace LAMMPS_NS;
 
@@ -35,10 +36,10 @@ void Minimize::command(int narg, char **arg)
   if (domain->box_exist == 0)
     error->all(FLERR,"Minimize command before simulation box is defined");
 
-  update->etol = atof(arg[0]);
-  update->ftol = atof(arg[1]);
-  update->nsteps = atoi(arg[2]);
-  update->max_eval = atoi(arg[3]);
+  update->etol = force->numeric(FLERR,arg[0]);
+  update->ftol = force->numeric(FLERR,arg[1]);
+  update->nsteps = force->inumeric(FLERR,arg[2]);
+  update->max_eval = force->inumeric(FLERR,arg[3]);
 
   if (update->etol < 0.0 || update->ftol < 0.0)
     error->all(FLERR,"Illegal minimize command");

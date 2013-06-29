@@ -24,6 +24,7 @@
 #include "finish.h"
 #include "timer.h"
 #include "error.h"
+#include "force.h"
 
 using namespace LAMMPS_NS;
 
@@ -80,12 +81,12 @@ void Rerun::command(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"every") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal rerun command");
-      nevery = atoi(arg[iarg+1]);
+      nevery = force->inumeric(FLERR,arg[iarg+1]);
       if (nevery < 0) error->all(FLERR,"Illegal rerun command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"skip") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal rerun command");
-      nskip = atoi(arg[iarg+1]);
+      nskip = force->inumeric(FLERR,arg[iarg+1]);
       if (nskip <= 0) error->all(FLERR,"Illegal rerun command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"start") == 0) {

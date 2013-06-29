@@ -23,6 +23,7 @@
 #include "input.h"
 #include "timer.h"
 #include "error.h"
+#include "force.h"
 
 using namespace LAMMPS_NS;
 
@@ -90,7 +91,7 @@ void Run::command(int narg, char **arg)
 
     } else if (strcmp(arg[iarg],"every") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal run command");
-      nevery = atoi(arg[iarg+1]);
+      nevery = force->inumeric(FLERR,arg[iarg+1]);
       if (nevery <= 0) error->all(FLERR,"Illegal run command");
       first = iarg+2;
       last = narg-1;

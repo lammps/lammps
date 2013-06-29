@@ -40,7 +40,7 @@ enum{DIAMETER,CHARGE};
 FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 {
   if (narg < 5) error->all(FLERR,"Illegal fix adapt command");
-  nevery = atoi(arg[3]);
+  nevery = force->inumeric(FLERR,arg[3]);
   if (nevery < 0) error->all(FLERR,"Illegal fix adapt command");
 
   // count # of adaptations

@@ -53,3 +53,23 @@ class WriteData : protected Pointers {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Write_data command before simulation box is defined
+
+UNDOCUMENTED
+
+E: Illegal ... command
+
+UNDOCUMENTED
+
+E: Atom count is inconsistent, cannot write data file
+
+UNDOCUMENTED
+
+E: Cannot open data file %s
+
+UNDOCUMENTED
+
+*/

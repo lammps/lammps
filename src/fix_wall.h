@@ -86,11 +86,6 @@ E: Cannot use fix wall in periodic dimension
 
 Self-explanatory.
 
-E: Use of fix wall with undefined lattice
-
-Must use lattice command with fix wall command if units option is set
-to lattice.
-
 E: Variable name for fix wall does not exist
 
 Self-explanatory.
@@ -102,5 +97,10 @@ Only equal-style variables can be used.
 E: Variable evaluation in fix wall gave bad value
 
 The returned value for epsilon or sigma < 0.0.
+
+U: Use of fix wall with undefined lattice
+
+Must use lattice command with fix wall command if units option is set
+to lattice.
 
 */

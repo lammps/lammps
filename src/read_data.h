@@ -184,6 +184,10 @@ E: Must define pair_style before Pair Coeffs
 Must use a pair_style command before reading a data file that defines
 Pair Coeffs.
 
+E: Must define pair_style before PairIJ Coeffs
+
+UNDOCUMENTED
+
 E: Invalid data file section: Bond Coeffs
 
 Atom style does not allow bonds.

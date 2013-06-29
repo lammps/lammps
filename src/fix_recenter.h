@@ -55,11 +55,6 @@ E: Could not find fix recenter group ID
 
 A group ID used in the fix recenter command does not exist.
 
-E: Use of fix recenter with undefined lattice
-
-Must use lattice command with fix recenter command if units option is
-set to lattice.
-
 E: Fix recenter group has no atoms
 
 Self-explanatory.
@@ -68,5 +63,10 @@ W: Fix recenter should come after all other integration fixes
 
 Other fixes may change the position of the center-of-mass, so
 fix recenter should come last.
+
+U: Use of fix recenter with undefined lattice
+
+Must use lattice command with fix recenter command if units option is
+set to lattice.
 
 */

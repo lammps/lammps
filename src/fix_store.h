@@ -52,3 +52,11 @@ class FixStore : public Fix {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+UNDOCUMENTED
+
+*/

@@ -80,11 +80,6 @@ E: Deposition region extends outside simulation box
 
 Self-explanatory.
 
-E: Use of fix deposit with undefined lattice
-
-Must use lattice command with compute fix deposit command if units
-option is set to lattice.
-
 E: Region ID for fix deposit does not exist
 
 Self-explanatory.
@@ -94,5 +89,10 @@ W: Particle deposition was unsuccessful
 The fix deposit command was not able to insert as many atoms as
 needed.  The requested volume fraction may be too high, or other atoms
 may be in the insertion region.
+
+U: Use of fix deposit with undefined lattice
+
+Must use lattice command with compute fix deposit command if units
+option is set to lattice.
 
 */

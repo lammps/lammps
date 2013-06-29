@@ -63,7 +63,7 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Use of compute temp/ramp with undefined lattice
+U: Use of compute temp/ramp with undefined lattice
 
 Must use lattice command with compute temp/ramp command if units
 option is set to lattice.

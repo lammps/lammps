@@ -141,6 +141,10 @@ E: File variable could not read value
 
 Check the file assigned to the variable.
 
+E: Afile variable could not read values
+
+UNDOCUMENTED
+
 E: Variable name must be alphanumeric or underscore characters
 
 Self-explanatory.

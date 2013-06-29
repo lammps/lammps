@@ -76,6 +76,10 @@ E: Create_atoms region ID does not exist
 
 A region ID used in the create_atoms command does not exist.
 
+E: Invalid basis setting in create_atoms command
+
+UNDOCUMENTED
+
 E: Cannot create atoms with undefined lattice
 
 Must use the lattice command before using the create_atoms

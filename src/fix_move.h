@@ -107,11 +107,6 @@ W: Fix move does not update quaternions
 
 Atoms store this quantity, but fix move does not (yet) update it.
 
-E: Use of fix move with undefined lattice
-
-Must use lattice command with fix move command if units option is
-set to lattice.
-
 E: Zero length rotation vector with fix move
 
 Self-explanatory.
@@ -131,5 +126,10 @@ Atoms can not be added afterwards to this fix option.
 E: Resetting timestep is not allowed with fix move
 
 This is because fix move is moving atoms based on elapsed time.
+
+U: Use of fix move with undefined lattice
+
+Must use lattice command with fix move command if units option is
+set to lattice.
 
 */

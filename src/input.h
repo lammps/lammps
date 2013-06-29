@@ -135,10 +135,9 @@ E: Unknown command: %s
 
 The command is not known to LAMMPS.  Check the input script.
 
-E: Another input script is already being processed
+E: Invalid use of library file() function
 
-Cannot attempt to open a 2nd input script, when the original file is
-still being processed.
+UNDOCUMENTED
 
 E: Cannot open input script %s
 
@@ -171,6 +170,10 @@ E: Illegal ... command
 Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
+
+E: Cannot use include command within an if command
+
+UNDOCUMENTED
 
 E: Cannot open logfile %s
 
@@ -329,5 +332,10 @@ E: Units command after simulation box is defined
 
 The units command cannot be used after a read_data, read_restart, or
 create_box command.
+
+U: Another input script is already being processed
+
+Cannot attempt to open a 2nd input script, when the original file is
+still being processed.
 
 */

@@ -78,11 +78,6 @@ E: Cannot use fix wall/srd zlo/zhi for a 2d simulation
 
 Self-explanatory.
 
-E: Use of fix wall with undefined lattice
-
-Must use lattice command with fix wall command if units option is set
-to lattice.
-
 E: Cannot use fix wall/srd without fix srd
 
 Self-explanatory.
@@ -94,5 +89,10 @@ Self-explanatory.
 E: Variable for fix wall/srd is invalid style
 
 Only equal-style variables can be used.
+
+U: Use of fix wall with undefined lattice
+
+Must use lattice command with fix wall command if units option is set
+to lattice.
 
 */

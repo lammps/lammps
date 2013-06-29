@@ -348,10 +348,6 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Cannot (yet) use PPPMDisp with triclinic box
-
-UNDOCUMENTED
-
 E: Cannot use PPPMDisp with 2d simulation
 
 UNDOCUMENTED
@@ -371,7 +367,7 @@ UNDOCUMENTED
 E: KSpace style is incompatible with Pair style
 
 Setting a kspace style requires that a pair style with a long-range
-Coulombic and Dispersion component be selected.
+Coulombic or dispersion component be used.
 
 E: Unsupported mixing rule in kspace_style pppm/disp for pair_style %s
 
@@ -398,7 +394,7 @@ options of the kspace solver/pair style.
 W: System is not charge neutral, net charge = %g
 
 The total charge on all atoms on the system is not 0.0, which
-is not valid for Ewald or PPPM coulombic solvers.
+is not valid for the long-range Coulombic solvers.
 
 E: Bond and angle potentials must be defined for TIP4P
 
@@ -413,7 +409,7 @@ E: Bad TIP4P bond type for PPPMDisp/TIP4P
 
 UNDOCUMENTED
 
-W: Reducing PPPMDisp Coulomb order b/c stencil extends beyond neighbor processor.
+W: Reducing PPPMDisp Coulomb order b/c stencil extends beyond neighbor processor
 
 UNDOCUMENTED
 
@@ -425,7 +421,7 @@ E: Coulomb PPPMDisp order has been reduced below minorder
 
 UNDOCUMENTED
 
-W: Reducing PPPMDisp Dispersion order b/c stencil extends beyond neighbor processor
+W: Reducing PPPMDisp dispersion order b/c stencil extends beyond neighbor processor
 
 UNDOCUMENTED
 
@@ -439,7 +435,7 @@ UNDOCUMENTED
 
 E: PPPM grid stencil extends beyond nearest neighbor processor
 
-UNDOCUMENTED
+This is not allowed if the kspace_modify overlap setting is no.
 
 E: epsilon or sigma reference not set by pair style in PPPMDisp
 
@@ -447,7 +443,8 @@ UNDOCUMENTED
 
 E: KSpace accuracy too large to estimate G vector
 
-UNDOCUMENTED
+Reduce the accuracy request or specify gwald explicitly
+via the kspace_modify command.
 
 E: Could not compute grid size for Coulomb interaction!
 
@@ -455,7 +452,9 @@ UNDOCUMENTED
 
 E: Could not compute g_ewald
 
-UNDOCUMENTED
+The Newton-Raphson solver failed to converge to a good value for
+g_ewald.  This error should not occur for typical problems.  Please
+send an email to the developers.
 
 E: Could not adjust g_ewald_6
 
@@ -472,6 +471,27 @@ E: Could not compute grid size for Dispersion!
 UNDOCUMENTED
 
 E: Out of range atoms - cannot compute PPPMDisp
+
+UNDOCUMENTED
+
+U: Cannot (yet) use PPPMDisp with triclinic box
+
+UNDOCUMENTED
+
+U: Reducing PPPMDisp Coulomb order b/c stencil extends beyond neighbor processor.
+
+UNDOCUMENTED
+
+U: Reducing PPPMDisp dispersion order b/c stencil extends beyond
+neighbor processor
+
+UNDOCUMENTED
+
+U: PPPMDisp dispersion grid is too large
+
+UNDOCUMENTED
+
+U: Could not compute grid size for dispersion
 
 UNDOCUMENTED
 
@@ -529,42 +549,42 @@ U: Reducing PPPM_disp Coulomb order b/c stencil extends beyond neighbor processo
 LAMMPS is attempting this in order to allow the simulation
 to run.  It should not effect the PPPM_disp accuracy.
 
-U: Reducing PPPM_disp Dispersion order b/c stencil extends beyond neighbor processor
+U: Reducing PPPM_disp dispersion order b/c stencil extends beyond neighbor processor
 
 LAMMPS is attempting this in order to allow the simulation
 to run.  It should not effect the PPPM_disp accuracy.
 
 U: PPPM_disp Coulomb grid is too large
 
-The global PPPM_disp grid for Coulomb interactions is larger than OFFSET in one or more dimensions.
-OFFSET is currently set to 16384.  You likely need to decrease the
-requested precision.
+The global PPPM_disp grid for Coulomb interactions is larger than
+OFFSET in one or more dimensions.  OFFSET is currently set to 16384.
+You likely need to decrease the requested precision.
 
-U: PPPM_grid Dispersion grid is too large
+U: PPPM_grid dispersion grid is too large
 
-One of the PPPM_disp grids for Dispersion interactions is larger than OFFSET in one or more dimensions.
-OFFSET is currently set to 16384.  You likely need to decrease the
-requested precision.
+One of the PPPM_disp grids for dispersion interactions is larger than
+OFFSET in one or more dimensions.  OFFSET is currently set to 16384.
+You likely need to decrease the requested precision.
 
 U: Coulomb PPPM_disp order has been reduced to 0
 
-LAMMPS has attempted to reduce the PPPM_disp coulomb order to enable the simulation
-to run, but can reduce the order no further.  Try increasing the
-accuracy of PPPM_disp coulomb by reducing the tolerance size, thus inducing a 
-larger PPPM_disp coulomb grid.
+LAMMPS has attempted to reduce the PPPM_disp coulomb order to enable
+the simulation to run, but can reduce the order no further.  Try
+increasing the accuracy of PPPM_disp coulomb by reducing the tolerance
+size, thus inducing a larger PPPM_disp coulomb grid.
 
 U: Dispersion PPPM_disp order has been reduced to 0
 
-LAMMPS has attempted to reduce the PPPM_disp dispersion order to enable the simulation
-to run, but can reduce the order no further.  Try increasing the
-accuracy of PPPM_disp dispersion by reducing the tolerance size, thus inducing a 
-larger PPPM_disp dispersion grid.
+LAMMPS has attempted to reduce the PPPM_disp dispersion order to
+enable the simulation to run, but can reduce the order no further.
+Try increasing the accuracy of PPPM_disp dispersion by reducing the
+tolerance size, thus inducing a larger PPPM_disp dispersion grid.
 
 U: Cannot compute PPPM_disp g_ewald
 
-LAMMPS failed to compute a valid approximation for the PPPM_disp g_ewald
-factor that partitions the computation between real space and k-space
-for Coulomb interactions.
+LAMMPS failed to compute a valid approximation for the PPPM_disp
+g_ewald factor that partitions the computation between real space and
+k-space for Coulomb interactions.
 
 U: Cannot compute final g_ewald_disp
 

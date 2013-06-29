@@ -90,6 +90,10 @@ E: Fix pour region ID does not exist
 
 Self-explanatory.
 
+E: Fix pour polydisperse fractions do not sum to 1.0
+
+UNDOCUMENTED
+
 E: Must specify a region in fix pour
 
 The region keyword must be specified with this fix.

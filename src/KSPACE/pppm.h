@@ -209,7 +209,7 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Cannot (yet) use PPPM with triclinic box and 'kspace_modify diff ad'
+E: Cannot (yet) use PPPM with triclinic box and kspace_modify diff ad
 
 This feature is not yet supported.
 
@@ -328,7 +328,7 @@ E: Cannot (yet) use K-space slab correction with compute group/group
 
 This option is not yet supported.
 
-E: Cannot (yet) use 'kspace_modify diff ad' with compute group/group
+E: Cannot (yet) use kspace_modify diff ad with compute group/group
 
 This option is not yet supported.
 

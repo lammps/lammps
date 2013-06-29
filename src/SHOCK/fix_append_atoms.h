@@ -82,6 +82,10 @@ E: Bad fix ID in fix append/atoms command
 The value of the fix_id for keyword spatial must start with the suffix
 f_.
 
+E: Invalid basis setting in fix append/atoms command
+
+UNDOCUMENTED
+
 E: Cannot use append/atoms in periodic dimension
 
 The boundary style of the face where atoms are added can not be of
@@ -92,12 +96,12 @@ E: Cannot append atoms to a triclinic box
 The simulation box must be defined with edges alligned with the
 Cartesian axes.
 
-E: Use of fix append/atoms with undefined lattice
-
-A lattice must be defined before using this fix.
-
 E: Fix ID for fix ave/spatial does not exist
 
 Self-explanatory.
+
+U: Use of fix append/atoms with undefined lattice
+
+A lattice must be defined before using this fix.
 
 */

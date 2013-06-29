@@ -192,6 +192,11 @@ E: KSpace accuracy must be > 0
 
 The kspace accuracy designated in the input must be greater than zero.
 
+W: Adjusting Coulombic cutoff for MSM, new cutoff = %g
+
+The adjust/cutoff command is turned on and the Coulombic cutoff has been
+adjusted to match the user-specified accuracy.
+
 W: Number of MSM mesh points increased to be a multiple of 2
 
 MSM requires that the number of grid points in each direction be a multiple
@@ -205,11 +210,6 @@ The max number of MSM grid levels is hardwired to 10.
 W: MSM mesh too small, increasing to 2 points in each direction
 
 Self-explanatory.
-
-W: Adjusting Coulombic cutoff for MSM, new cutoff = %g
-
-The adjust/cutoff command is turned on and the Coulombic cutoff has been
-adjusted to match the user-specified accuracy.
 
 E: MSM grid is too large
 

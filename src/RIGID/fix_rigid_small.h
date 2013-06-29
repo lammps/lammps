@@ -204,6 +204,10 @@ NPT/NPH fix must be defined in input script after all rigid fixes,
 else the rigid fix contribution to the pressure virial is
 incorrect.
 
+W: Cannot count rigid body degrees-of-freedom before bodies are fully initialized
+
+UNDOCUMENTED
+
 W: Computing temperature of portions of rigid bodies
 
 The group defined by the temperature compute does not encompass all

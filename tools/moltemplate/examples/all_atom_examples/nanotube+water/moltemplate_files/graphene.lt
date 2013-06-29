@@ -10,7 +10,7 @@
 #    d = length of each hexagon's side  = 1.42 Angstroms
 #    L = length of each hexagon = 2*d   = 2.84 Angstroms
 #    W =  width of each hexagon = 2*d*sqrt(3)/2 = 2.4595121467478056 Angstroms
-#    w =  width of hexagon rows = 1.5*l = 2.13 Angstroms
+#    w =  width of hexagon rows = 1.5*d = 2.13 Angstroms
 #
 # Consequently, the Lattice-cell vectors for singe-layer graphene are:
 #   (2.4595121467478,    0,     0)      (aligned with X axis)

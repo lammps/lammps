@@ -7,16 +7,11 @@
 # All rights reserved.
 
 G_PROGRAM_NAME="moltemplate.sh"
-G_VERSION="1.02"
-G_DATE="2013-2-15"
+G_VERSION="1.05"
+G_DATE="2013-6-24"
 
 echo "${G_PROGRAM_NAME} v${G_VERSION} ${G_DATE}" >&2
 echo "" >&2
-
-
-# First, determine the directory in which this shell script is located.
-# (The python script files should also be located here as well.)
-SCRIPT_DIR=$(dirname $0)
 
 
 # Check for python:
@@ -30,24 +25,73 @@ else
     echo "Error:  $G_PROGRAM_NAME requires python or python3" >&2
     exit 1
 fi
+  
+
+# First, determine the directory in which this shell script is located.
+# (The python script files should also be located here as well.)
+SCRIPT_DIR=$(dirname $0)
 
 
-MSG_BAD_PATH=$(cat <<EOF
+MSG_BAD_INSTALL=$(cat <<EOF
 
-ERROR: Did you remember to set your PATH environment variable?
-       If not, follow the instructions in the "Installation" section of the
-       moltemplate manual. (You may need to log out before changes take effect.)
+INSTALLATION ERROR:
+Follow the instructions in the "Installation" chapter of the moltemplate manual.
+(Note: You may need to log out and log in again before the changes take effect.)
 
-       (Note: Do not move the "moltemplate.sh" file out of its "src" directory.)
 EOF
 )
 
 
-ERR_BAD_PATH()
+ERR_BAD_INSTALL()
 {
-  echo "$MSG_BAD_PATH" >&2
+  echo "$MSG_BAD_INSTALL" >&2
   exit 1
 }
+
+
+ERR_INTERNAL()
+{
+  echo "  --- Possible internal error. ---" >&2
+  echo "This could be a bug in moltemplate." >&2
+  echo "Please report this error." >&2
+  echo "(And please include the last few lines of moltemplate output preceeding this.)" >&2
+  echo "  Thank you." >&2
+  exit 100
+}
+
+
+MOLTEMPLATE_FILES_NEEDED=$(cat <<EOF
+ttree.py
+lttree.py
+lttree_check.py
+lttree_postprocess.py
+nbody_by_type.py
+nbody_fix_ttree_assignments.py
+nbody_reorder_atoms.py
+pdbsort.py
+postprocess_input_script.py
+remove_duplicate_atoms.py
+remove_duplicates_nbody.py
+renumber_DATA_first_column.py
+ttree_render.py
+EOF
+)
+
+
+
+OIFS=$IFS
+#IFS=$'\n'
+IFS="
+"
+    
+for f in $MOLTEMPLATE_FILES_NEEDED; do
+    if [ ! -s "${SCRIPT_DIR}/$f" ]; then
+	echo "Error: Missing file \"${SCRIPT_DIR}/$f\"" >&2
+	ERR_BAD_INSTALL
+    fi
+done
+IFS=$OIFS
+
 
 
 IMOLPATH=""
@@ -56,22 +100,22 @@ if [ -n "${MOLTEMPLATE_PATH}" ]; then
 fi
 
 # command that invokes lttree.py
-LTTREE_COMMAND="$PYTHON_COMMAND ${SCRIPT_DIR}/lttree.py ${IMOLPATH}"
+LTTREE_COMMAND="$PYTHON_COMMAND \"${SCRIPT_DIR}/lttree.py\" ${IMOLPATH}"
 
 # command that invokes lttree_check.py
-LTTREE_CHECK_COMMAND="$PYTHON_COMMAND ${SCRIPT_DIR}/lttree_check.py ${IMOLPATH}"
+LTTREE_CHECK_COMMAND="$PYTHON_COMMAND \"${SCRIPT_DIR}/lttree_check.py\" ${IMOLPATH}"
 
 # command that invokes lttree_postprocess.py
-LTTREE_POSTPROCESS_COMMAND="$PYTHON_COMMAND ${SCRIPT_DIR}/lttree_postprocess.py ${IMOLPATH}"
+LTTREE_POSTPROCESS_COMMAND="$PYTHON_COMMAND \"${SCRIPT_DIR}/lttree_postprocess.py\" ${IMOLPATH}"
 
 # command that invokes nbody_by_type.py
-NBODY_COMMAND="$PYTHON_COMMAND ${SCRIPT_DIR}/nbody_by_type.py"
+NBODY_COMMAND="$PYTHON_COMMAND \"${SCRIPT_DIR}/nbody_by_type.py\""
 
 # command that invokes nbody_fix_ttree_assignments.py
-NBODY_FIX_COMMAND="$PYTHON_COMMAND ${SCRIPT_DIR}/nbody_fix_ttree_assignments.py"
+NBODY_FIX_COMMAND="$PYTHON_COMMAND \"${SCRIPT_DIR}/nbody_fix_ttree_assignments.py\""
 
 # command that invokes ttree_render.py
-TTREE_RENDER="$PYTHON_COMMAND ${SCRIPT_DIR}/ttree_render.py"
+TTREE_RENDER="$PYTHON_COMMAND \"${SCRIPT_DIR}/ttree_render.py\""
 
 
 # What is the name of the .LT file we are reading?
@@ -328,6 +372,7 @@ rm -f "$tmp_atom_coords"
 # Optional files containing atom coordinates:
 PDB_FILE=""
 XYZ_FILE=""
+RAW_FILE=""
 # REMOVE_DUPLICATE variables:
 # ...If true (default), then any duplicate entries in the lists of bonds
 # bonds, angles, dihedrals, or impropers in the LAMMPS DATA file
@@ -367,10 +412,33 @@ while [ "$i" -lt "$ARGC" ]; do
     elif [ "$A" = "-overlay-impropers" ]; then
 	# In that case, do not remove duplicate improper interactions
 	unset REMOVE_DUPLICATE_IMPROPERS
+
+    elif [ "$A" = "-raw" ]; then
+        if [ "$i" -eq "$ARGC" ]; then
+            echo "$SYNTAX_MSG" >&2
+            exit 7
+        fi
+	# "isnum(x)" returns 1 or 0 depending upon whether or not
+	# a string is numeric.
+	#http://rosettacode.org/wiki/Determine_if_a_string_is_numeric#AWK
+        i=$((i+1))
+        eval A=\${ARGV${i}}
+	RAW_FILE=$A
+        if [ ! -s "$RAW_FILE" ]; then
+            echo "$SYNTAX_MSG" >&2
+            echo "-----------------------" >&2
+            echo "" >&2
+            echo "Error: Unable to open RAW-file \"$RAW_FILE\"." >&2
+            echo "       (File is empty or does not exist.)" >&2
+            exit 8
+        fi
+	#echo "  (extracting coordinates from \"$RAW_FILE\")" >&2
+	awk '{if (NF==3) {print $0}}' < "$RAW_FILE" > "$tmp_atom_coords"
+
     elif [ "$A" = "-xyz" ]; then
         if [ "$i" -eq "$ARGC" ]; then
             echo "$SYNTAX_MSG" >&2
-            exit 2
+            exit 7
         fi
 	# "isnum(x)" returns 1 or 0 depending upon whether or not
 	# a string is numeric.
@@ -384,7 +452,7 @@ while [ "$i" -lt "$ARGC" ]; do
             echo "" >&2
             echo "Error: Unable to open XYZ-file \"$XYZ_FILE\"." >&2
             echo "       (File is empty or does not exist.)" >&2
-            exit 3
+            exit 8
         fi
 	#echo "  (extracting coordinates from \"$XYZ_FILE\")" >&2
 	awk 'function isnum(x){return(x==x+0)} BEGIN{targetframe=1;framecount=0} {if (isnum($0)) {framecount++} else{if (framecount==targetframe){  if (NF>0) { if ((NF==3) && isnum($1)) {print $1" "$2" "$3} else if ((NF==4) && isnum($2)) {print $2" "$3" "$4} }}}}' < "$XYZ_FILE" > "$tmp_atom_coords"
@@ -392,7 +460,7 @@ while [ "$i" -lt "$ARGC" ]; do
     elif [ "$A" = "-pdb" ]; then 
         if [ "$i" -eq "$ARGC" ]; then
             echo "$SYNTAX_MSG" >&2
-            exit 2
+            exit 9
         fi
         i=$((i+1))
         eval A=\${ARGV${i}}
@@ -403,18 +471,21 @@ while [ "$i" -lt "$ARGC" ]; do
             echo "" >&2
             echo "Error: Unable to open PDB-file \"$PDB_FILE\"." >&2
             echo "       (File is empty or does not exist.)" >&2
-            exit 3
+            exit 10
         fi
 	#echo "  (extracting coordinates from \"$PDB_FILE\")" >&2
 	if grep -q '^ATOM  \|^HETATM' "$PDB_FILE"; then
             # Extract the coords from the "ATOM" records in the PDB file
-            pdbsort.py < "$PDB_FILE" | awk '/^ATOM  |^HETATM/{print substr($0,31,8)" "substr($0,39,8)" "substr($0,47,8)}' > "$tmp_atom_coords"
+	    if ! $PYTHON_COMMAND "${SCRIPT_DIR}/pdbsort.py" < "$PDB_FILE" \
+		| awk '/^ATOM  |^HETATM/{print substr($0,31,8)" "substr($0,39,8)" "substr($0,47,8)}' > "$tmp_atom_coords"; then
+		ERR_INTERNAL
+	    fi
         else
             echo "$SYNTAX_MSG" >&2
             echo "-----------------------" >&2
             echo "" >&2
             echo "Error: File \"$PDB_FILE\" is not a valid PDB file." >&2
-            exit 4
+            exit 11
         fi
         # Now extract the periodic bounding-box informatio from the PDB file
         # The CRYST1 records are described at:
@@ -496,7 +567,7 @@ done
 
 if [ -n "$LTTREE_CHECK_COMMAND" ]; then
     if ! eval $LTTREE_CHECK_COMMAND $TTREE_ARGS; then
-        ERR_BAD_PATH
+	exit 1
     fi
 fi
 
@@ -506,7 +577,7 @@ fi
 # 3, 2, 1, ...
 
 if ! eval $LTTREE_COMMAND $TTREE_ARGS; then
-    ERR_BAD_PATH
+    exit 2
 fi
 
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -523,23 +594,23 @@ fi
 echo "" >&2
 
 if [ -s "${data_atoms}" ]; then
-    if ! $PYTHON_COMMAND ${SCRIPT_DIR}/remove_duplicate_atoms.py \
+    if ! $PYTHON_COMMAND "${SCRIPT_DIR}/remove_duplicate_atoms.py" \
                                    < "${data_atoms}" \
                                    > "${data_atoms}.tmp"; then
-        ERR_BAD_PATH
+	ERR_INTERNAL
     fi
     mv -f "${data_atoms}.tmp" "${data_atoms}"
-    if ! $PYTHON_COMMAND ${SCRIPT_DIR}/remove_duplicate_atoms.py \
+    if ! $PYTHON_COMMAND "${SCRIPT_DIR}/remove_duplicate_atoms.py" \
                                    < "${data_atoms}.template" \
                                    > "${data_atoms}.tmp"; then
-        ERR_BAD_PATH
+	ERR_INTERNAL
     fi
     mv -f "${data_atoms}.tmp" "${data_atoms}.template"
 
-    if ! $PYTHON_COMMAND ${SCRIPT_DIR}/renumber_DATA_first_column.py \
+    if ! $PYTHON_COMMAND "${SCRIPT_DIR}/renumber_DATA_first_column.py" \
                                        < "${data_atoms}" \
                                        > "${data_atoms}.tmp"; then
-        ERR_BAD_PATH
+	ERR_INTERNAL
     fi
     mv -f "${data_atoms}.tmp" "${data_atoms}"
 else
@@ -554,7 +625,7 @@ else
     echo "        only a namespace, a force-field name or category" >&2
     echo "        containing the definitions of other molecules.)" >&2
     echo "" >&2
-    exit 1
+    exit 200
 fi
 
 
@@ -574,7 +645,7 @@ if [ -s "$data_angles_by_type" ]; then
         -bonds "${data_bonds}.template" \
         -nbodybytype "${data_angles_by_type}.template" \
 	-prefix '$/angle:bytype' > gen_Angles.template.tmp; then
-        ERR_BAD_PATH
+        exit 4
     fi
 
     # ---- cleanup: ----
@@ -599,7 +670,7 @@ if [ -s "$data_angles_by_type" ]; then
     if ! $NBODY_FIX_COMMAND '/angle' gen_Angles.template.tmp \
           < ttree_assignments.txt \
           > ttree_assignments.tmp; then
-        ERR_BAD_PATH
+        exit 5
     fi
 
     echo "(Rendering ttree_assignments.tmp file after angles added.)" >&2
@@ -611,7 +682,7 @@ if [ -s "$data_angles_by_type" ]; then
     if ! $TTREE_RENDER  ttree_assignments.tmp \
            < "${data_angles}.template" \
            > "$data_angles"; then
-        ERR_BAD_PATH
+        exit 6
     fi
 
     mv -f ttree_assignments.tmp ttree_assignments.txt
@@ -628,7 +699,7 @@ if [ -s "$data_dihedrals_by_type" ]; then
         -bonds "${data_bonds}.template" \
         -nbodybytype "${data_dihedrals_by_type}.template" \
 	-prefix '$/dihedral:bytype' > gen_Dihedrals.template.tmp; then
-        ERR_BAD_PATH
+        exit 4
     fi
     # ---- cleanup: ----
     # ---- Re-build the "${data_dihedrals}.template" file ----
@@ -652,7 +723,7 @@ if [ -s "$data_dihedrals_by_type" ]; then
     if ! $NBODY_FIX_COMMAND '/dihedral' gen_Dihedrals.template.tmp \
           < ttree_assignments.txt \
           > ttree_assignments.tmp; then
-        ERR_BAD_PATH
+        exit 5
     fi
 
     echo "(Rendering ttree_assignments.tmp file after dihedral added.)" >&2
@@ -664,7 +735,7 @@ if [ -s "$data_dihedrals_by_type" ]; then
     if ! $TTREE_RENDER  ttree_assignments.tmp \
            < "${data_dihedrals}.template" \
            > "$data_dihedrals"; then
-        ERR_BAD_PATH
+        exit 6
     fi
 
     mv -f ttree_assignments.tmp ttree_assignments.txt
@@ -681,7 +752,7 @@ if [ -s "$data_impropers_by_type" ]; then
         -bonds "${data_bonds}.template" \
         -nbodybytype "${data_impropers_by_type}.template" \
 	-prefix '$/improper:bytype' > gen_Impropers.template.tmp; then
-        ERR_BAD_PATH
+	exit 4
     fi
     # ---- cleanup: ----
     # ---- Re-build the "${data_impropers}.template" file ----
@@ -705,7 +776,7 @@ if [ -s "$data_impropers_by_type" ]; then
     if ! $NBODY_FIX_COMMAND '/improper' gen_Impropers.template.tmp \
           < ttree_assignments.txt \
           > ttree_assignments.tmp; then
-        ERR_BAD_PATH
+        exit 5
     fi
 
     echo "(Rendering ttree_assignments.tmp file after impropers added.)" >&2
@@ -717,7 +788,7 @@ if [ -s "$data_impropers_by_type" ]; then
     if ! $TTREE_RENDER  ttree_assignments.tmp \
            < "${data_impropers}.template" \
            > "$data_impropers"; then
-        ERR_BAD_PATH
+        exit 6
     fi
 
     mv -f ttree_assignments.tmp ttree_assignments.txt
@@ -729,7 +800,7 @@ fi
 if [ -n "$LTTREE_POSTPROCESS_COMMAND" ]; then
     echo "" >&2
     if ! eval $LTTREE_POSTPROCESS_COMMAND $TTREE_ARGS; then
-        ERR_BAD_PATH
+        exit 3
     fi
     echo "" >&2
 fi
@@ -742,66 +813,134 @@ fi
 
 
 if [ -s "${data_masses}" ]; then
-    remove_duplicate_atoms.py < "${data_masses}" > "${data_masses}.tmp"
+    if ! $PYTHON_COMMAND "${SCRIPT_DIR}/remove_duplicate_atoms.py" \
+                                   < "${data_masses}" \
+                                   > "${data_masses}.tmp"; then
+	ERR_INTERNAL
+    fi
     mv -f "${data_masses}.tmp" "${data_masses}" 
 fi
 
 
-
 if [ -s "${data_bonds}" ]; then
     if [ ! -z $REMOVE_DUPLICATE_BONDS ]; then
-        nbody_reorder_atoms.py Bonds < "${data_bonds}" > "${data_bonds}.tmp"
+	if ! $PYTHON_COMMAND "${SCRIPT_DIR}/nbody_reorder_atoms.py" Bonds \
+                             < "${data_bonds}" \
+                             > "${data_bonds}.tmp"; then
+	    ERR_INTERNAL
+	fi
 	cp -f "${data_bonds}.tmp" "${data_bonds}"
-        remove_duplicates_nbody.py 2 < "${data_bonds}" > "${data_bonds}.tmp"
+        if ! $PYTHON_COMMAND "${SCRIPT_DIR}/remove_duplicates_nbody.py" 2 \
+                             < "${data_bonds}" \
+                             > "${data_bonds}.tmp"; then
+	    ERR_INTERNAL
+	fi
         mv "${data_bonds}.tmp" "${data_bonds}"
-        remove_duplicates_nbody.py 2 < "${data_bonds}".template > "${data_bonds}.tmp"
-        mv "${data_bonds}.tmp" "${data_bonds}".template
+        if ! $PYTHON_COMMAND "${SCRIPT_DIR}/remove_duplicates_nbody.py" 2 \
+                             < "${data_bonds}.template" \
+                             > "${data_bonds}.tmp"; then
+	    ERR_INTERNAL
+	fi
+        mv "${data_bonds}.tmp" "${data_bonds}.template"
     fi
-    renumber_DATA_first_column.py < ${data_bonds} > "${data_bonds}.tmp"
+    if ! $PYTHON_COMMAND "${SCRIPT_DIR}/renumber_DATA_first_column.py" \
+                         < "${data_bonds}" \
+                         > "${data_bonds}.tmp"; then
+	ERR_INTERNAL
+    fi
     mv -f "${data_bonds}.tmp" "${data_bonds}"
 fi
 
 
 if [ -s "${data_angles}" ]; then
     if [ ! -z $REMOVE_DUPLICATE_ANGLES ]; then
-        nbody_reorder_atoms.py Angles < "${data_angles}" > "${data_angles}.tmp"
+	if ! $PYTHON_COMMAND "${SCRIPT_DIR}/nbody_reorder_atoms.py" Angles \
+                             < "${data_angles}" \
+                             > "${data_angles}.tmp"; then
+	    ERR_INTERNAL
+	fi
 	cp -f "${data_angles}.tmp" "${data_angles}"
-        remove_duplicates_nbody.py 3 < "${data_angles}" > "${data_angles}.tmp"
+        if ! $PYTHON_COMMAND "${SCRIPT_DIR}/remove_duplicates_nbody.py" 3 \
+                             < "${data_angles}" \
+                             > "${data_angles}.tmp"; then
+	    ERR_INTERNAL
+	fi
         mv "${data_angles}.tmp" "${data_angles}"
-        remove_duplicates_nbody.py 3 < "${data_angles}".template > "${data_angles}.tmp"
+        if ! $PYTHON_COMMAND "${SCRIPT_DIR}/remove_duplicates_nbody.py" 3 \
+                             < "${data_angles}.template" \
+                             > "${data_angles}.tmp"; then
+	    ERR_INTERNAL
+	fi
         mv "${data_angles}.tmp" "${data_angles}".template
     fi
-    renumber_DATA_first_column.py < ${data_angles} > "${data_angles}.tmp"
+    if ! $PYTHON_COMMAND "${SCRIPT_DIR}/renumber_DATA_first_column.py" \
+                         < "${data_angles}" \
+                         > "${data_angles}.tmp"; then
+	ERR_INTERNAL
+    fi
     mv -f "${data_angles}.tmp" "${data_angles}"
 fi
 
 
 if [ -s "${data_dihedrals}" ]; then
     if [ ! -z $REMOVE_DUPLICATE_DIHEDRALS ]; then
-        nbody_reorder_atoms.py Dihedrals < "${data_dihedrals}" > "${data_dihedrals}.tmp"
+	if ! $PYTHON_COMMAND "${SCRIPT_DIR}/nbody_reorder_atoms.py" Dihedrals \
+                             < "${data_dihedrals}" \
+                             > "${data_dihedrals}.tmp"; then
+	    ERR_INTERNAL
+	fi
 	cp -f "${data_dihedrals}.tmp" "${data_dihedrals}"
-        remove_duplicates_nbody.py 4 < "${data_dihedrals}" > "${data_dihedrals}.tmp"
+        if ! $PYTHON_COMMAND "${SCRIPT_DIR}/remove_duplicates_nbody.py" 4 \
+                             < "${data_dihedrals}" \
+                             > "${data_dihedrals}.tmp"; then
+	    ERR_INTERNAL
+	fi
         mv "${data_dihedrals}.tmp" "${data_dihedrals}"
-        remove_duplicates_nbody.py 4 < "${data_dihedrals}".template > "${data_dihedrals}.tmp"
-        mv "${data_dihedrals}.tmp" "${data_dihedrals}".template
+        if ! $PYTHON_COMMAND "${SCRIPT_DIR}/remove_duplicates_nbody.py" 4 \
+                             < "${data_dihedrals}.template" \
+                             > "${data_dihedrals}.tmp"; then
+	    ERR_INTERNAL
+	fi
+        mv "${data_dihedrals}.tmp" "${data_dihedrals}.template"
     fi
-    renumber_DATA_first_column.py < ${data_dihedrals} > "${data_dihedrals}.tmp"
+    if ! $PYTHON_COMMAND "${SCRIPT_DIR}/renumber_DATA_first_column.py" \
+                         < "${data_dihedrals}" \
+                         > "${data_dihedrals}.tmp"; then
+	ERR_INTERNAL
+    fi
     mv -f "${data_dihedrals}.tmp" "${data_dihedrals}"
 fi
 
 
 if [ -s "${data_impropers}" ]; then
     if [ ! -z $REMOVE_DUPLICATE_IMPROPERS ]; then
-        nbody_reorder_atoms.py Impropers < "${data_impropers}" > "${data_impropers}.tmp"
+	if ! $PYTHON_COMMAND "${SCRIPT_DIR}/nbody_reorder_atoms.py" Impropers \
+                             < "${data_impropers}" \
+                             > "${data_impropers}.tmp"; then
+	    ERR_INTERNAL
+	fi
 	cp -f "${data_impropers}.tmp" "${data_impropers}"
-        remove_duplicates_nbody.py 4 < "${data_impropers}" > "${data_impropers}.tmp"
+        if ! $PYTHON_COMMAND "${SCRIPT_DIR}/remove_duplicates_nbody.py" 4 \
+                             < "${data_impropers}" \
+                             > "${data_impropers}.tmp"; then
+	    ERR_INTERNAL
+	fi
         mv "${data_impropers}.tmp" "${data_impropers}"
-        remove_duplicates_nbody.py 4 < "${data_impropers}".template > "${data_impropers}.tmp"
-        mv "${data_impropers}.tmp" "${data_impropers}".template
+        if ! $PYTHON_COMMAND "${SCRIPT_DIR}/remove_duplicates_nbody.py" 4 \
+                             < "${data_impropers}.template" \
+                             > "${data_impropers}.tmp"; then
+	    ERR_INTERNAL
+	fi
+        mv "${data_impropers}.tmp" "${data_impropers}.template"
     fi
-    renumber_DATA_first_column.py < ${data_impropers} > "${data_impropers}.tmp"
+    if ! $PYTHON_COMMAND "${SCRIPT_DIR}/renumber_DATA_first_column.py" \
+                         < "${data_impropers}" \
+                         > "${data_impropers}.tmp"; then
+	ERR_INTERNAL
+    fi
     mv -f "${data_impropers}.tmp" "${data_impropers}"
 fi
+
 
 # -------------------------------------------------------
 
@@ -905,15 +1044,15 @@ if [ -s "$data_boundary" ]; then
 
     if [ -z "$BOXSIZE_MINX" ] || [ -z "$BOXSIZE_MAXX" ]; then
 	echo "Error: Problem with box boundary format (\"xlo xhi\") in \"$data_boundary\"" >&2
-	exit 7
+	exit 12
     fi
     if [ -z "$BOXSIZE_MINY" ] || [ -z "$BOXSIZE_MAXY" ]; then
 	echo "Error: Problem with box boundary format (\"ylo yhi\") in \"$data_boundary\"" >&2
-	exit 8
+	exit 12
     fi
     if [ -z "$BOXSIZE_MINZ" ] || [ -z "$BOXSIZE_MAXZ" ]; then
 	echo "Error: Problem with box boundary format (\"zlo zhi\") in \"$data_boundary\"" >&2
-	exit 9
+	exit 12
     fi
 
     BOXSIZE_XY=`awk '{if ($4=="xy") {xy=$1}} END{print xy}' < "$data_boundary"`
@@ -926,7 +1065,7 @@ if [ -s "$data_boundary" ]; then
             TRICLINIC="True"
         else
             echo "Error: Problem with triclinic format (\"xy xz yz\") in \"$data_boundary\"" >&2
-            exit 10
+            exit 13
         fi
     fi
 fi
@@ -1280,7 +1419,7 @@ if [ -s "$tmp_atom_coords" ]; then
     if [ $NATOMS -ne $NATOMCRDS ]; then 
         echo "Error: Number of atoms in coordinate file provided by user ($NATOMCRDS)" >&2
 	echo "does not match the number of atoms generated in ttree file ($NATOMS)" >&2
-        exit 6
+        exit 14
     fi
 else
     rm -f "$OUT_FILE_COORDS"
@@ -1393,7 +1532,7 @@ echo "" > input_scripts_so_far.tmp
 for file_name in "$OUT_FILE_INIT" "$OUT_FILE_INPUT_SCRIPT" "$OUT_FILE_SETTINGS"; do
     if [ -s "$file_name" ]; then
         echo "postprocessing file \"$file_name\"" >&2
-	postprocess_input_script.py input_scripts_so_far.tmp < "$file_name" > "$file_name".tmp
+	$PYTHON_COMMAND "${SCRIPT_DIR}/postprocess_input_script.py" input_scripts_so_far.tmp < "$file_name" > "$file_name".tmp
 	echo "" >&2
 	mv "$file_name".tmp "$file_name"
 	cat "$file_name" >> input_scripts_so_far.tmp
@@ -1403,7 +1542,7 @@ done
 
 ls "${in_prefix}"* 2> /dev/null | while read file_name; do
     echo "postprocessing file \"$file_name\"" >&2
-    postprocess_input_script.py input_scripts_so_far.tmp < "$file_name" > "$file_name".tmp
+    $PYTHON_COMMAND "${SCRIPT_DIR}/postprocess_input_script.py" input_scripts_so_far.tmp < "$file_name" > "$file_name".tmp
     echo "" >&2
     mv "$file_name".tmp "$file_name"
     cat "$file_name" >> input_scripts_so_far.tmp

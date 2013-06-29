@@ -48,4 +48,5 @@ pair_style list, Axel Kohlmeyer (Temple U), akohlmey at gmail.com, 1 Jun 13
 pair_style lj/sf, Laurent Joly (U Lyon), ljoly.ulyon at gmail.com, 8 Aug 11
 pair_style meam/spline, Alexander Stukowski (LLNL), alex at stukowski.com, 1 Feb 12
 pair_style meam/sw/spline, Robert Rudd (LLNL), robert.rudd at llnl.gov, 1 Oct 12
+pair_style nb3b/harmonic, Todd R. Zeitler, todd.zeitler at gmail.com, 6 Apr 13
 pair_style tersoff/table, Luca Ferraro, luca.ferraro@caspur.it, 1 Dec 11

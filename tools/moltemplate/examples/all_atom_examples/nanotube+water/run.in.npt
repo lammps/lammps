@@ -46,7 +46,7 @@ unfix fxnve
 
 print "--------- beginning simulation (using fix nvt) ---------"
 
-timestep        0.5
+timestep        0.25
 dump            1 all custom 1000 traj_npt.lammpstrj id mol type x y z ix iy iz
 
 thermo_style    custom step temp pe etotal press vol epair ebond eangle edihed
@@ -62,7 +62,7 @@ thermo          1000  # time interval for printing out "thermo" data
 
 fix fxMoveStuff mobile npt temp 300 300 100 z 100 100 1000.0 dilate mobile
 
-#  ------ CONTROVERSIAL (see below): ------
+#  ------ QUESTIONABLE (see below): ------
 
 fix Ffreezestuff Cgraphene rigid/npt single temp 300 300 100 z 100 100 1000.0 force * off off off torque * off off off dilate mobile
 

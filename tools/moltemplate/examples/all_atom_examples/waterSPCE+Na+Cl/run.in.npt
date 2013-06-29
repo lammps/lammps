@@ -26,13 +26,19 @@ include       system.in.settings
 # -- simulation protocol --
 
 
-timestep        2.0
+timestep        1.0
 dump            1 all custom 100 traj_npt.lammpstrj id mol type x y z ix iy iz
 fix             fxnpt all npt temp 300.0 300.0 100.0 iso 1.0 1.0 1000.0 drag 1.0
 
 thermo          100
 #thermo_modify  flush yes
 
-run             20000
+run             10000
+
+# Now that the system's temperature has become more equilibrated,
+# we can increase the timestep:
+
+timestep        2.0
+run		50000
 
 write_restart   system_after_npt.rst

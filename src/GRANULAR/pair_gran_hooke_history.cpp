@@ -53,6 +53,13 @@ PairGranHookeHistory::PairGranHookeHistory(LAMMPS *lmp) : Pair(lmp)
 
   computeflag = 0;
   neighprev = 0;
+
+  nmax = 0;
+  mass_rigid = NULL;
+
+  // set comm size needed by this Pair if used with fix rigid
+
+  comm_forward = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -72,6 +79,8 @@ PairGranHookeHistory::~PairGranHookeHistory()
     delete [] maxrad_dynamic;
     delete [] maxrad_frozen;
   }
+
+  memory->destroy(mass_rigid);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -98,12 +107,23 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
   int shearupdate = 1;
   if (update->setupflag) shearupdate = 0;
 
-  // update rigid body ptrs and values for ghost atoms if using FixRigid masses
+  // update rigid body info for owned & ghost atoms if using FixRigid masses
+  // body[i] = which body atom I is in, -1 if none
+  // mass_body = mass of each rigid body
 
   if (fix_rigid && neighbor->ago == 0) {
     int tmp;
-    body = (int *) fix_rigid->extract("body",tmp);
-    mass_rigid = (double *) fix_rigid->extract("masstotal",tmp);
+    int *body = (int *) fix_rigid->extract("body",tmp);
+    double *mass_body = (double *) fix_rigid->extract("masstotal",tmp);
+    if (atom->nmax > nmax) {
+      memory->destroy(mass_rigid);
+      nmax = atom->nmax;
+      memory->create(mass_rigid,nmax,"pair:mass_rigid");
+    }
+    int nlocal = atom->nlocal;
+    for (i = 0; i < nlocal; i++)
+      if (body[i] >= 0) mass_rigid[i] = mass_body[body[i]];
+      else mass_rigid[i] = 0.0;
     comm->forward_comm_pair(this);
   }
 
@@ -202,8 +222,8 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
           mj = mass[type[j]];
         }
         if (fix_rigid) {
-          if (body[i] >= 0) mi = mass_rigid[body[i]];
-          if (body[j] >= 0) mj = mass_rigid[body[j]];
+          if (mass_rigid[i] > 0.0) mi = mass_rigid[i];
+          if (mass_rigid[j] > 0.0) mj = mass_rigid[j];
         }
 
         meff = mi*mj / (mi+mj);
@@ -653,13 +673,9 @@ double PairGranHookeHistory::single(int i, int j, int itype, int jtype,
     mj = mass[type[j]];
   }
   if (fix_rigid) {
-    // NOTE: need to make sure ghost atoms have updated body?
-    // depends on where single() is called from
-    int tmp;
-    body = (int *) fix_rigid->extract("body",tmp);
-    mass_rigid = (double *) fix_rigid->extract("masstotal",tmp);
-    if (body[i] >= 0) mi = mass_rigid[body[i]];
-    if (body[j] >= 0) mj = mass_rigid[body[j]];
+    // NOTE: insure mass_rigid is current for owned+ghost atoms?
+    if (mass_rigid[i] > 0.0) mi = mass_rigid[i];
+    if (mass_rigid[j] > 0.0) mj = mass_rigid[j];
   }
 
   meff = mi*mj / (mi+mj);
@@ -745,7 +761,7 @@ int PairGranHookeHistory::pack_comm(int n, int *list,
   m = 0;
   for (i = 0; i < n; i++) {
     j = list[i];
-    buf[m++] = body[j];
+    buf[m++] = mass_rigid[j];
   }
   return 1;
 }
@@ -759,7 +775,7 @@ void PairGranHookeHistory::unpack_comm(int n, int first, double *buf)
   m = 0;
   last = first + n;
   for (i = first; i < last; i++)
-    body[i] = static_cast<int> (buf[m++]);
+    mass_rigid[i] = buf[m++];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -769,4 +785,14 @@ void *PairGranHookeHistory::extract(const char *str, int &dim)
   dim = 0;
   if (strcmp(str,"computeflag") == 0) return (void *) &computeflag;
   return NULL;
+}
+
+/* ----------------------------------------------------------------------
+   memory usage of local atom-based arrays
+------------------------------------------------------------------------- */
+
+double PairGranHookeHistory::memory_usage()
+{
+  double bytes = nmax * sizeof(double);
+  return bytes;
 }

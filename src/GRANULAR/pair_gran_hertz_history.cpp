@@ -27,6 +27,7 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "comm.h"
+#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -60,12 +61,23 @@ void PairGranHertzHistory::compute(int eflag, int vflag)
   int shearupdate = 1;
   if (update->setupflag) shearupdate = 0;
 
-  // update rigid body ptrs and values for ghost atoms if using FixRigid masses
+  // update rigid body info for owned & ghost atoms if using FixRigid masses
+  // body[i] = which body atom I is in, -1 if none
+  // mass_body = mass of each rigid body
 
   if (fix_rigid && neighbor->ago == 0) {
     int tmp;
-    body = (int *) fix_rigid->extract("body",tmp);
-    mass_rigid = (double *) fix_rigid->extract("masstotal",tmp);
+    int *body = (int *) fix_rigid->extract("body",tmp);
+    double *mass_body = (double *) fix_rigid->extract("masstotal",tmp);
+    if (atom->nmax > nmax) {
+      memory->destroy(mass_rigid);
+      nmax = atom->nmax;
+      memory->create(mass_rigid,nmax,"pair:mass_rigid");
+    }
+    int nlocal = atom->nlocal;
+    for (i = 0; i < nlocal; i++)
+      if (body[i] >= 0) mass_rigid[i] = mass_body[body[i]];
+      else mass_rigid[i] = 0.0;
     comm->forward_comm_pair(this);
   }
 
@@ -164,8 +176,8 @@ void PairGranHertzHistory::compute(int eflag, int vflag)
           mj = mass[type[j]];
         }
         if (fix_rigid) {
-          if (body[i] >= 0) mi = mass_rigid[body[i]];
-          if (body[j] >= 0) mj = mass_rigid[body[j]];
+          if (mass_rigid[i] > 0.0) mi = mass_rigid[i];
+          if (mass_rigid[j] > 0.0) mj = mass_rigid[j];
         }
 
         meff = mi*mj / (mi+mj);
@@ -374,13 +386,9 @@ double PairGranHertzHistory::single(int i, int j, int itype, int jtype,
     mj = mass[type[j]];
   }
   if (fix_rigid) {
-    // NOTE: need to make sure ghost atoms have updated body?
-    // depends on where single() is called from
-    int tmp;
-    body = (int *) fix_rigid->extract("body",tmp);
-    mass_rigid = (double *) fix_rigid->extract("masstotal",tmp);
-    if (body[i] >= 0) mi = mass_rigid[body[i]];
-    if (body[j] >= 0) mj = mass_rigid[body[j]];
+    // NOTE: insure mass_rigid is current for owned+ghost atoms?
+    if (mass_rigid[i] > 0.0) mi = mass_rigid[i];
+    if (mass_rigid[j] > 0.0) mj = mass_rigid[j];
   }
 
   meff = mi*mj / (mi+mj);

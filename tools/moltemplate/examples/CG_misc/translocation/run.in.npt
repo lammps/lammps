@@ -34,7 +34,7 @@ group mobile subtract all groupB
 
 fix fMoveStuff mobile npt temp 300 300 100 z 500 500 1000.0 dilate mobile
 
-#  ------ CONTROVERSIAL (see below): ------
+#  ------ QUESTIONABLE (see below): ------
 
 fix Ffreezestuff groupB rigid/npt single temp 300 300 100 z 500 500 1000.0 force * off off off torque * off off off dilate mobile
 

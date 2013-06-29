@@ -90,10 +90,11 @@ This can be used when a {comb} potential is used as part of the
 that will be used with other potentials.
 
 The {ffield.comb} potential file is in the {potentials} directory of
-the LAMMPS distribution.  Lines that are not blank or comments
-(starting with #) define parameters for a triplet of elements.  The 49
-parameters in a single entry correspond to coefficients in the formula
-above:
+the LAMMPS distribution.  See the "pair_coeff"_pair_coeff.html doc page
+for alternate ways to specify the path for the potential file.  Lines
+that are not blank or comments (starting with #) define parameters for
+a triplet of elements.  The 49 parameters in a single entry correspond
+to coefficients in the formula above:
 
 element 1 (the center atom in a 3-body interaction)
 element 2 (the atom bonded to the center atom)

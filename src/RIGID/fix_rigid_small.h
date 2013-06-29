@@ -59,6 +59,7 @@ class FixRigidSmall : public Fix {
   int dof(int);
   void deform(int);
   void reset_dt();
+  void *extract(const char*,int &);
   double compute_scalar();
   double memory_usage();
 
@@ -127,6 +128,11 @@ class FixRigidSmall : public Fix {
 
   int **counts;            // counts of atom types in bodies
   double **itensor;        // 6 space-frame components of inertia tensor
+
+  // mass per body, accessed by granular pair styles
+
+  double *mass_body;
+  int nmax_mass;
 
   // Langevin thermostatting
 

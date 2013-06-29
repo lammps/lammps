@@ -84,6 +84,9 @@ Elem1, Elem2, ...
 EIM potential file
 N element names = mapping of EIM elements to atom types :ul
 
+See the "pair_coeff"_pair_coeff.html doc page for alternate ways
+to specify the path for the potential file.
+
 As an example like one of those above, suppose you want to model a
 system with Na and Cl atoms.  If your LAMMPS simulation has 4 atoms
 types and you want the 1st 3 to be Na, and the 4th to be Cl, you would

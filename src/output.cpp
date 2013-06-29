@@ -441,7 +441,7 @@ void Output::write_restart(bigint ntimestep)
    timestep is being changed, called by update->reset_timestep()
    reset next timestep values for dumps, restart, thermo output
    reset to smallest value >= new timestep
-   if next timestep set by varaible evaluation,
+   if next timestep set by variable evaluation,
      eval for ntimestep-1, so current ntimestep can be returned if needed
      no guarantee that variable can be evaluated for ntimestep-1
        if it depends on computes, but live with that rare case for now

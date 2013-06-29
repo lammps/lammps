@@ -57,6 +57,9 @@ where N is the number of LAMMPS atom types:
 filename
 N element names = mapping of Tersoff/ZBL elements to atom types :ul
 
+See the "pair_coeff"_pair_coeff.html doc page for alternate ways
+to specify the path for the potential file.
+
 As an example, imagine the SiC.tersoff.zbl file has Tersoff/ZBL values
 for Si and C.  If your LAMMPS simulation has 4 atoms types and you
 want the 1st 3 to be Si, and the 4th to be C, you would use the

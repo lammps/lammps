@@ -38,7 +38,10 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-DihedralCharmm::DihedralCharmm(LAMMPS *lmp) : Dihedral(lmp) { weightflag=0; }
+DihedralCharmm::DihedralCharmm(LAMMPS *lmp) : Dihedral(lmp)
+{
+  weightflag = 0;
+}
 
 /* ---------------------------------------------------------------------- */
 

@@ -156,8 +156,8 @@ def BelongsToSel(i, sel):
 try:
 
     g_program_name = __file__.split('/')[-1]  # = 'lemplify.py'
-    g_version_str  = '0.3'
-    g_date_str     = '2012-12-11'
+    g_version_str  = '0.31'
+    g_date_str     = '2013-6-17'
     sys.stderr.write(g_program_name+' v'+g_version_str+' '+g_date_str+'\n')
 
     non_empty_output = False
@@ -210,6 +210,8 @@ try:
     max_needed_angletype = None
     min_needed_dihedraltype = None
     max_needed_dihedraltype = None
+    min_needed_impropertype = None
+    max_needed_impropertype = None
 
 
     # To process the selections, we need to know the atom style:

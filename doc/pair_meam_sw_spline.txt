@@ -60,6 +60,9 @@ where N is the number of LAMMPS atom types:
 filename
 N element names = mapping of spline-based MEAM+SW elements to atom types :ul
 
+See the "pair_coeff"_pair_coeff.html doc page for alternate ways
+to specify the path for the potential file.
+
 As an example, imagine the Ti.meam.sw.spline file has values for Ti.
 If your LAMMPS simulation has 3 atoms types and they are all to be
 treated with this potential, you would use the following pair_coeff

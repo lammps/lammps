@@ -64,6 +64,9 @@ where N is the number of LAMMPS atom types:
 filename
 N element names = mapping of extended {setfl} elements to atom types :ul
 
+See the "pair_coeff"_pair_coeff.html doc page for alternate ways to
+specify the path for the potential file.
+
 As an example, the potentials/AlCu.adp file, included in the
 potentials directory of the LAMMPS distrbution, is an extended {setfl}
 file which has tabulated ADP values for w elements and their alloy

@@ -24,6 +24,7 @@ eam.alloy     EAM multi-element alloy, DYNAMO setfl format
 eam.fs	      Finnis-Sinclair EAM format (single element or alloy)
 meam	      modified EAM (MEAM) library and individual elements/alloys
 meam.spline   modified EAM (MEAM) spline potential
+nb3b.harmonic nonbonded 3-body harmonic potential
 reax	      ReaxFF potential (see README.reax for more info)
 sw	      Stillinger-Weber potential
 tersoff	      Tersoff potential

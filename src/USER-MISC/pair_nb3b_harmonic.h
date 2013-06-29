@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* --*- c++ -*- ---------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -27,14 +27,14 @@ namespace LAMMPS_NS {
 class PairNb3bHarmonic : public Pair {
  public:
   PairNb3bHarmonic(class LAMMPS *);
-  ~PairNb3bHarmonic();
-  void compute(int, int);
+  virtual ~PairNb3bHarmonic();
+  virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
   double init_one(int, int);
   void init_style();
 
- private:
+ protected:
   struct Param {
     double k_theta, theta0, cutoff;
     double cut,cutsq;

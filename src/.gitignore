@@ -879,6 +879,10 @@ pair_morse_omp.cpp
 pair_morse_omp.h
 pair_morse_opt.cpp
 pair_morse_opt.h
+pair_nb3b_harmonic.cpp
+pair_nb3b_harmonic.h
+pair_nb3b_harmonic_omp.cpp
+pair_nb3b_harmonic_omp.h
 pair_omp.cpp
 pair_omp.h
 pair_omp_gpu.cpp
@@ -976,6 +980,8 @@ pppm_omp.cpp
 pppm_omp.h
 pppm_proxy.cpp
 pppm_proxy.h
+pppm_stagger.cpp
+pppm_stagger.h
 pppm_tip4p.cpp
 pppm_tip4p.h
 pppm_tip4p_omp.cpp

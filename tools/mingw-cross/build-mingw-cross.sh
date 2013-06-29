@@ -86,9 +86,9 @@ i686-w64-mingw32-gfortran   ${MINGW32FLAGS} -o 32bit/chain.exe ${TOOLDIR}/chain.
 x86_64-w64-mingw32-gfortran ${MINGW64FLAGS} -o 64bit/chain.exe ${TOOLDIR}/chain.f
 
 make -C ${TOOLDIR}/msi2lmp/src TARGET=${PWD}/32bit/msi2lmp.exe \
-	CC=i686-w64-mingw32-g++ CFLAGS=${MINGW32FLAGS}
+	CC=i686-w64-mingw32-g++ CFLAGS="${MINGW32FLAGS}"
 make -C ${TOOLDIR}/msi2lmp/src TARGET=${PWD}/64bit/msi2lmp.exe \
-	CC=x86_64-w64-mingw32-g++ CFLAGS=${MINGW64FLAGS}
+	CC=x86_64-w64-mingw32-g++ CFLAGS="${MINGW64FLAGS}"
 
 # assemble and customize installer scripts 
 datestr=$(date +%Y%m%d)

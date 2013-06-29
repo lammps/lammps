@@ -92,27 +92,36 @@ cp ${TOOLDIR}/mingw-cross/Obj_mingw32/libOpenCL.dll 32bit
 cp ${TOOLDIR}/mingw-cross/Obj_mingw64/libOpenCL.dll 64bit
 cp lammps-current/lib/gpu/Obj_mingw32/ocl_get_devices 32bit/ocl_get_devices.exe
 cp lammps-current/lib/gpu/Obj_mingw64/ocl_get_devices 64bit/ocl_get_devices.exe
-sed -i -e "s/@VERSION@/${datestr}/g" win??-*.nsis
 
 # determine os vendor and release for installer tweaks.
 vendor=$(grep  release /etc/issue | cut -d \  -f 1)
 release=$(grep  release /etc/issue | cut -d \  -f 3)
 
-# Fedora 19 ships with GCC-4.8.x which has different exception handling in libgcc
+# Fedora 19 ships with GCC-4.8.x which has different
+# exception handling and thus uses a different name for libgcc
+LIBGCC=libgcc_s_sjlj-1.dll
 if [ "$vendor" = "Fedora" ] && [ $release -ge 19 ]
 then
-    sed -i -e "s/libgcc_s_sjlj-1.dll/libgcc_s_seh-1.dll/g" win64-*.nsis
+    LIBGCC=libgcc_s_seh-1.dll
 fi
 
-# convert text files into CR/LF format. first individual files, then subdir trees
+# convert text files into CR/LF format.
 unix2dos lammps-current/LICENSE lammps-current/README
 find lammps-current/{bench,examples,potentials} -type f -print | xargs unix2dos
 
 # build installers
-makensis win32-serial.nsis
-makensis win32-mpi.nsis
-makensis win64-serial.nsis
-makensis win64-mpi.nsis
+makensis -DMINGW=/usr/i686-w64-mingw32/sys-root/mingw/bin/   \
+    -DVERSION=${datestr} -DBIT=32 -DLIBGCC=${LIBGCC}         \
+    win-installer.nsis
+makensis -DMINGW=/usr/i686-w64-mingw32/sys-root/mingw/bin/   \
+    -DVERSION=${datestr} -DBIT=32 -DLIBGCC=${LIBGCC} -DMPI=1 \
+    win-installer.nsis
+makensis -DMINGW=/usr/x86_64-w64-mingw32/sys-root/mingw/bin/ \
+    -DVERSION=${datestr} -DBIT=64 -DLIBGCC=${LIBGCC}         \
+    win-installer.nsis
+makensis -DMINGW=/usr/x86_64-w64-mingw32/sys-root/mingw/bin/ \
+    -DVERSION=${datestr} -DBIT=64 -DLIBGCC=${LIBGCC} -DMPI=1 \
+    win-installer.nsis
 
 popd
 

@@ -92,7 +92,7 @@ make -C ${TOOLDIR}/msi2lmp/src TARGET=${PWD}/64bit/msi2lmp.exe \
 
 # assemble and customize installer scripts 
 datestr=$(date +%Y%m%d)
-cp ${TOOLDIR}/mingw-cross/win-installer.nsis ${TOOLDIR}/mingw-cross/EnvVarUpdate.nsh .
+cp ${TOOLDIR}/mingw-cross/lammps.nsis ${TOOLDIR}/mingw-cross/EnvVarUpdate.nsh .
 cp ${TOOLDIR}/mingw-cross/Obj_mingw32/libOpenCL.dll 32bit
 cp ${TOOLDIR}/mingw-cross/Obj_mingw64/libOpenCL.dll 64bit
 cp lammps-current/lib/gpu/Obj_mingw32/ocl_get_devices 32bit/ocl_get_devices.exe
@@ -117,17 +117,16 @@ find lammps-current/tools/msi2lmp/biosym_frc_files -type f -print | xargs unix2d
 
 # build installers
 makensis -DMINGW=/usr/i686-w64-mingw32/sys-root/mingw/bin/   \
-    -DVERSION=${datestr} -DBIT=32 -DLIBGCC=${LIBGCC}         \
-    win-installer.nsis
+    -DVERSION=${datestr} -DBIT=32 -DLIBGCC=${LIBGCC} lammps.nsis
 makensis -DMINGW=/usr/i686-w64-mingw32/sys-root/mingw/bin/   \
     -DVERSION=${datestr} -DBIT=32 -DLIBGCC=${LIBGCC} -DMPI=1 \
-    win-installer.nsis
+    lammps.nsis
+
 makensis -DMINGW=/usr/x86_64-w64-mingw32/sys-root/mingw/bin/ \
-    -DVERSION=${datestr} -DBIT=64 -DLIBGCC=${LIBGCC}         \
-    win-installer.nsis
+    -DVERSION=${datestr} -DBIT=64 -DLIBGCC=${LIBGCC} lammps.nsis
 makensis -DMINGW=/usr/x86_64-w64-mingw32/sys-root/mingw/bin/ \
     -DVERSION=${datestr} -DBIT=64 -DLIBGCC=${LIBGCC} -DMPI=1 \
-    win-installer.nsis
+    lammps.nsis
 
 popd
 

@@ -1623,6 +1623,8 @@ FILE *Pair::open_potential(const char *name)
 {
   FILE *fp;
 
+  if (name == NULL) return NULL;
+
   // attempt to open file directly
   // if successful, return ptr
 
@@ -1635,10 +1637,12 @@ FILE *Pair::open_potential(const char *name)
   if (path == NULL) return NULL;
 
   const char *pot = potname(name);
+  if (pot == NULL) return NULL;
+
   size_t len1 = strlen(path);
   size_t len2 = strlen(pot);
+  char *newpath = new char[len1+len2+2];
 
-  char *newpath = new char[len1+len2];
   strcpy(newpath,path);
 #if defined(_WIN32)
   newpath[len1] = '\\';
@@ -1661,6 +1665,8 @@ FILE *Pair::open_potential(const char *name)
 const char *Pair::potname(const char *path)
 {
   const char *pot;
+
+  if (path == NULL) return NULL;
 
 #if defined(_WIN32)
   // skip over the disk drive part of windows pathnames

@@ -103,14 +103,6 @@ vendor=$(grep  release /etc/issue | cut -d \  -f 1)
 release=$(grep  release /etc/issue | cut -d \  -f 3)
 arch=$(uname -m)
 
-# Fedora 19 ships with GCC-4.8.x which has different
-# exception handling and thus uses a different name for libgcc
-LIBGCC=libgcc_s_sjlj-1.dll
-if [ "$vendor" = "Fedora" ] && [ $release -ge 19 ] && [ $uname == "x86_64" ]
-then
-    LIBGCC=libgcc_s_seh-1.dll
-fi
-
 # convert text files into CR/LF format.
 unix2dos lammps-current/LICENSE lammps-current/README
 find lammps-current/{bench,examples,potentials} -type f -print | xargs unix2dos
@@ -120,12 +112,19 @@ for f in $(find lammps-current/{bench,examples,potentials} -name README -print)
 do  mv -v $f $f.txt; done
 
 # build installers
+LIBGCC=libgcc_s_sjlj-1.dll
 makensis -DMINGW=/usr/i686-w64-mingw32/sys-root/mingw/bin/   \
     -DVERSION=${datestr} -DBIT=32 -DLIBGCC=${LIBGCC} lammps.nsis
 makensis -DMINGW=/usr/i686-w64-mingw32/sys-root/mingw/bin/   \
     -DVERSION=${datestr} -DBIT=32 -DLIBGCC=${LIBGCC} -DMPI=1 \
     lammps.nsis
 
+# Fedora 19 ships with GCC-4.8.x which has different exception handling
+# on 64-bit windows and thus uses a different name for libgcc
+if [ "$vendor" = "Fedora" ] && [ $release -ge 19 ]
+then
+    LIBGCC=libgcc_s_seh-1.dll
+fi
 makensis -DMINGW=/usr/x86_64-w64-mingw32/sys-root/mingw/bin/ \
     -DVERSION=${datestr} -DBIT=64 -DLIBGCC=${LIBGCC} lammps.nsis
 makensis -DMINGW=/usr/x86_64-w64-mingw32/sys-root/mingw/bin/ \

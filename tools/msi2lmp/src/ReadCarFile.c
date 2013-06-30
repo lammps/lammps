@@ -181,14 +181,14 @@ void ReadCarFile(void)
       }
     } else {
       sq_c = pbc[2]*pbc[2];
-      cos_alpha = cos(pbc[3]*3.14159265358979323846/180.0);
-      cos_gamma = cos(pbc[5]*3.14159265358979323846/180.0);
-      sin_gamma = sin(pbc[5]*3.14159265358979323846/180.0);
-      cos_beta =  cos(pbc[4]*3.14159265358979323846/180.0);
-      sin_beta =  sin(pbc[4]*3.14159265358979323846/180.0);
+      cos_alpha = cos(pbc[3]*PI_180);
+      cos_gamma = cos(pbc[5]*PI_180);
+      sin_gamma = sin(pbc[5]*PI_180);
+      cos_beta =  cos(pbc[4]*PI_180);
+      sin_beta =  sin(pbc[4]*PI_180);
       if (pflag > 1) {
-        printf("pbc[3] %lf pbc[4] %lf pbc[5] %lf\n", pbc[3] ,pbc[4] ,pbc[5]);
-        printf("cos_alpha %lf cos_beta %lf cos_gamma %lf\n", cos_alpha ,cos_beta ,cos_gamma);
+        printf("pbc[3] %f pbc[4] %f pbc[5] %f\n", pbc[3] ,pbc[4] ,pbc[5]);
+        printf("cos_alpha %f cos_beta %f cos_gamma %f\n", cos_alpha ,cos_beta ,cos_gamma);
       }
       A = pbc[0];
       B = pbc[1];

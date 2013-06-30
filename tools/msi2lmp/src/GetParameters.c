@@ -18,6 +18,11 @@ static int quo_cp();
 static void get_equivs(int,char [][5],char[][5]);
 static int find_equiv_type(char[]);
 
+static void condexit(int val)
+{
+    if (iflag == 0) exit(val);
+}
+
 /**********************************************************************/
 /*                                                                    */
 /*  GetParameters is a long routine for searching the forcefield      */
@@ -48,7 +53,7 @@ void GetParameters(int Forcefield)
     k = find_match(1,potential_types,ff_atomtypes,&backwards);
     if (k < 0) {
       printf(" Unable to find mass for %s\n",atomtypes[i].potential);
-      exit(10);
+      condexit(10);
     } else {
       atomtypes[i].mass = ff_atomtypes.data[k].ff_param[0];
     }
@@ -75,7 +80,7 @@ void GetParameters(int Forcefield)
     }
     if (k < 0) {
       printf(" Unable to find vdw data for %s\n",atomtypes[i].potential);
-      exit(11);
+      condexit(11);
     } else {
       if (Forcefield == 1) {
         if((ff_vdw.data[k].ff_param[0] != 0.0 ) && 
@@ -128,7 +133,7 @@ void GetParameters(int Forcefield)
     if (k < 0) {
       printf(" Unable to find bond data for %s %s\n",
              potential_types[0],potential_types[1]);
-      exit(12);
+      condexit(12);
     } else {
       if (Forcefield == 1) {
         bondtypes[i].params[0] = ff_bond.data[k].ff_param[1];
@@ -183,7 +188,7 @@ void GetParameters(int Forcefield)
     if (k < 0) {
       printf(" Unable to find angle data for %s %s %s\n",
              potential_types[0],potential_types[1],potential_types[2]);
-      exit(13);
+      condexit(13);
     } else {
       if (Forcefield == 1) {
         angletypes[i].params[0] = ff_ang.data[k].ff_param[1];
@@ -218,7 +223,7 @@ void GetParameters(int Forcefield)
       if (k < 0) {
         printf(" Unable to find bondbond data for %s %s %s\n",
                potential_types[0],potential_types[1],potential_types[2]);
-        exit(14);
+        condexit(14);
       } else {
         angletypes[i].bondbond_cross_term[0] = ff_bonbon.data[k].ff_param[0];
       }
@@ -229,7 +234,7 @@ void GetParameters(int Forcefield)
       if (k < 0) {
         printf(" Unable to find bondangle data for %s %s %s\n",
                potential_types[0],potential_types[1],potential_types[2]);
-        exit(15);
+        condexit(15);
       } else {
         if (backwards) {
           angletypes[i].bondangle_cross_term[0] = ff_bonang.data[k].ff_param[1];
@@ -311,7 +316,7 @@ void GetParameters(int Forcefield)
              potential_types[1],
              potential_types[2],
              potential_types[3]);
-      exit(16);
+      condexit(16);
     } else {
       if (Forcefield == 1) {
         multiplicity = 1;
@@ -392,7 +397,7 @@ void GetParameters(int Forcefield)
         printf(" Unable to find endbonddihedral data for %s %s %s %s\n",
                potential_types[0],potential_types[1],
                potential_types[2],potential_types[3]);
-        exit(17);
+        condexit(17);
       } else {
         if (backwards) {
           dihedraltypes[i].endbonddihedral_cross_term[0] =
@@ -432,7 +437,7 @@ void GetParameters(int Forcefield)
         printf(" Unable to find midbonddihedral data for %s %s %s %s\n",
                potential_types[0],potential_types[1],
                potential_types[2],potential_types[3]);
-        exit(18);
+        condexit(18);
       } else {
         dihedraltypes[i].midbonddihedral_cross_term[0] =
           ff_midbontor.data[k].ff_param[0];
@@ -451,7 +456,7 @@ void GetParameters(int Forcefield)
         printf(" Unable to find angledihedral data for %s %s %s %s\n",
                potential_types[0],potential_types[1],
                potential_types[2],potential_types[3]);
-        exit(19);
+        condexit(19);
       } else {
         if (backwards) {
           dihedraltypes[i].angledihedral_cross_term[0] =
@@ -491,7 +496,7 @@ void GetParameters(int Forcefield)
         printf(" Unable to find angleangledihedral data for %s %s %s %s\n",
                potential_types[0],potential_types[1],
                potential_types[2],potential_types[3]);
-        exit(20);
+        condexit(20);
       } else {
         dihedraltypes[i].angleangledihedral_cross_term[0] =
           ff_angangtor.data[k].ff_param[0];
@@ -511,7 +516,7 @@ void GetParameters(int Forcefield)
           printf(" Unable to find bond13 data for %s %s %s %s\n",
                  potential_types[0],potential_types[1],
                  potential_types[2],potential_types[3]);
-          exit(21);
+          condexit(21);
         } else {
           dihedraltypes[i].bond13_cross_term[0] =
             ff_bonbon13.data[k].ff_param[0];
@@ -625,7 +630,7 @@ void GetParameters(int Forcefield)
         printf(" Unable to find oop data for %s %s %s %s\n",
                potential_types[0],
                potential_types[1],potential_types[2],potential_types[3]);
-        exit(22);
+        condexit(22);
       } else {
         ooptypes[i].params[0] = ff_oop.data[k].ff_param[0];
         if (ff_oop.data[k].ff_param[2] == 0.0)
@@ -665,7 +670,7 @@ void GetParameters(int Forcefield)
         printf(" Unable to find oop data for %s %s %s %s\n",
                potential_types[0],
                potential_types[1],potential_types[2],potential_types[3]);
-        exit(23);
+        condexit(23);
       } else {
         for (j=0; j < 2; j++)
           ooptypes[i].params[j] = ff_oop.data[k].ff_param[j];
@@ -740,7 +745,7 @@ void GetParameters(int Forcefield)
         printf(" Unable to find angleangle data for %s %s %s %s\n",
                potential_types[0],	
                potential_types[1],potential_types[2],potential_types[3]);
-        exit(24);
+        condexit(24);
       } else {
         for (j=0; j < 3; j++) {
           if (kloc[j] > -1)
@@ -785,7 +790,7 @@ void GetParameters(int Forcefield)
         printf(" Unable to find angleangle data for %s %s %s %s\n",
                potential_types[0],
                potential_types[1],potential_types[2],potential_types[3]);
-        exit(25);
+        condexit(25);
       } else {
         for (j=0; j < 3; j++) {
           if (kloc[j] > -1)

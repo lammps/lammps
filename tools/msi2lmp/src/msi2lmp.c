@@ -121,6 +121,7 @@ int    TriclinicFlag = 0;
 int    forcefield = 0;
 
 int    pflag;
+int    iflag;
 int   *no_atoms;
 int    no_molecules;
 int    replicate[3];
@@ -180,12 +181,13 @@ int main (int argc, char *argv[])
 
    outv = 2005;
    pflag = 1;
+   iflag = 0; 
    forcefield = 1;
 
    frc_dir_name = getenv("BIOSYM_LIBRARY");
 
    if (argc < 2) {
-     printf("The rootname of the .car and .mdf files must be entered\n");
+     printf("usage: %s <rootname> [-class <I|1|II|2>] [-frc <path to frc file>] [-p #] [-i]\n",argv[0]);
      return 1;
    } else { /* rootname was supplied as first argument, copy to rootname */
      int len = strlen(argv[1]) + 1;
@@ -195,7 +197,7 @@ int main (int argc, char *argv[])
 
    n = 2;
    while (n < argc) {
-     if (strcmp(argv[n],"-class") == 0) {
+     if (strncmp(argv[n],"-c",2) == 0) {
        n++;
        if (check_arg(argv,"-class",n,argc))
          return 2;
@@ -211,12 +213,14 @@ int main (int argc, char *argv[])
        outv = 2001;
      } else if (strcmp(argv[n],"-2005") == 0) {
        outv = 2005;
-     } else if (strcmp(argv[n],"-frc") == 0) {
+     } else if (strncmp(argv[n],"-f",2) == 0) {
        n++;
        if (check_arg(argv,"-frc",n,argc))
          return 4;
        frc_file_name = argv[n];
-     } else if (strstr(argv[n],"-p") != NULL) {
+     } else if (strncmp(argv[n],"-i",2) == 0 ) {
+       iflag = 1;
+     } else if (strncmp(argv[n],"-p",2) == 0) {
        n++;
        if (check_arg(argv,"-print",n,argc))
          return 5;

@@ -156,8 +156,9 @@ extern char  *FrcFileName;
 extern double pbc[9];
 extern int    periodic;      /* 0= nonperiodic 1= 3-D periodic */
 extern int    TriclinicFlag; /* 0= Orthogonal  1= Triclinic */
-extern int    forcefield;    /* 0= ClassI      1= ClassII */
-extern int    pflag;
+extern int    forcefield;    /* 1= ClassI      2= ClassII */
+extern int    pflag;         /* print level: 0, 1, 2, 3 */
+extern int    iflag;         /* 0 stop at errors   1 = ignore errors */
 extern int    *no_atoms;
 extern int    no_molecules;
 extern int    replicate[3];

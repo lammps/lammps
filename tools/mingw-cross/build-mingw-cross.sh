@@ -101,11 +101,12 @@ cp lammps-current/lib/gpu/Obj_mingw64/ocl_get_devices 64bit/ocl_get_devices.exe
 # determine os vendor and release for installer tweaks.
 vendor=$(grep  release /etc/issue | cut -d \  -f 1)
 release=$(grep  release /etc/issue | cut -d \  -f 3)
+arch=$(uname -m)
 
 # Fedora 19 ships with GCC-4.8.x which has different
 # exception handling and thus uses a different name for libgcc
 LIBGCC=libgcc_s_sjlj-1.dll
-if [ "$vendor" = "Fedora" ] && [ $release -ge 19 ]
+if [ "$vendor" = "Fedora" ] && [ $release -ge 19 ] && [ $uname == "x86_64" ]
 then
     LIBGCC=libgcc_s_seh-1.dll
 fi

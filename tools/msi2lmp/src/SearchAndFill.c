@@ -6,10 +6,23 @@
 *
 */
 
+#include "msi2lmp.h"
 #include "Forcefield.h"
-#include "Msi2LMP2.h"
 
-unsigned char string_match(char *,char *);
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+
+static int blank_line(char *line)
+{
+  while (*line != '\0') {
+    if (isalnum((int) *line)) return 0;
+    ++line;
+  }
+  return 1;
+}
+
+static unsigned char string_match(char *,char *);
 
 void SearchAndFill(struct FrcFieldItem *item)
 {
@@ -17,10 +30,8 @@ void SearchAndFill(struct FrcFieldItem *item)
    int got_it = 0;
    int ctr = 0;
    long file_pos;
-   char line[MAX_LINE] = "empty";
+   char line[MAX_LINE_LENGTH] = "empty";
    char *charptr,*status;
-   extern FILE *FrcF;
-
 
    /***********************ALLOCATE MEMORY FOR STRUCTURE ********************/
 
@@ -28,7 +39,7 @@ void SearchAndFill(struct FrcFieldItem *item)
 
    rewind(FrcF);
    while ((got_it == 0)) {
-     status = fgets( line, MAX_LINE, FrcF );
+     status = fgets( line, MAX_LINE_LENGTH, FrcF );
      if (status == NULL) {
        fprintf(stderr," Unable to find forcefield keyword %s\n",item->keyword);
        fprintf(stderr," Check consistency of forcefield name and class \n");
@@ -45,12 +56,12 @@ void SearchAndFill(struct FrcFieldItem *item)
 
    /* Count the number of lines until next item is found */
 
-   while( strncmp(fgets(line,MAX_LINE,FrcF), "#", 1) != 0 )
+   while( strncmp(fgets(line,MAX_LINE_LENGTH,FrcF), "#", 1) != 0 )
      ctr++;
 
    /* Allocate the memory using calloc */
 
-   item->data = calloc(ctr, sizeof(struct FrcFieldData));
+   item->data = (struct FrcFieldData *)calloc(ctr, sizeof(struct FrcFieldData));
 
    if (item->data == NULL) {
      fprintf(stderr,"Could not allocate memory to %s\n", item->keyword);
@@ -68,14 +79,14 @@ void SearchAndFill(struct FrcFieldItem *item)
 
    ctr = 0;
    while ( strncmp(line,"!---", 4) != 0 ) {
-      fgets(line, MAX_LINE, FrcF);
+      fgets(line, MAX_LINE_LENGTH, FrcF);
    }
 
    /* Get first line of data that isn't commented out */
 
-   fgets(line, MAX_LINE, FrcF); 
+   fgets(line, MAX_LINE_LENGTH, FrcF); 
    while (strncmp(line,"!",1) == 0) {
-     fgets( line, MAX_LINE, FrcF);
+     fgets( line, MAX_LINE_LENGTH, FrcF);
    }
 
    /* Read data into structure */
@@ -153,8 +164,7 @@ void SearchAndFill(struct FrcFieldItem *item)
 	 for (i=0; i < item->number_of_parameters; i++) {
 	   item->data[replace].ff_param[i] = parameters[i];
 	 }
-       }
-       else {
+       } else {
 	 if (pflag > 1) {
 	   fprintf(stderr," Using higher version of parameters for");
 	   fprintf(stderr," %s  ",item->keyword);
@@ -163,8 +173,7 @@ void SearchAndFill(struct FrcFieldItem *item)
 	   fprintf(stderr," version %3.2f\n",item->data[replace].ver);
 	 }
        }
-     }
-     else {
+     } else {
        item->data[ctr].ver = version;
        item->data[ctr].ref = reference;
        for (i=0; i < item->number_of_members; i++) {
@@ -175,11 +184,12 @@ void SearchAndFill(struct FrcFieldItem *item)
        }
        ctr++;
      }
-     fgets( line, MAX_LINE, FrcF);
+     fgets( line, MAX_LINE_LENGTH, FrcF);
      /*if blank line encountered, get next */
      while((blank_line(line)) ||
 	   (strncmp(line,"!",1) == 0)) {
-       fgets( line, MAX_LINE, FrcF);
+       status = fgets( line, MAX_LINE_LENGTH, FrcF);
+       if (status == NULL) break;
      }
    }
    item->entries = ctr; 

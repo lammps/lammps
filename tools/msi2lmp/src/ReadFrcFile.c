@@ -5,20 +5,21 @@
 *
 */
 
-#define FF_MAIN
-
+#include "msi2lmp.h"
 #include "Forcefield.h"
-#include "Msi2LMP2.h"
+
+#include <stdlib.h>
+
+struct FrcFieldItem ff_atomtypes, equivalence, ff_vdw,ff_bond, ff_ang, ff_tor, ff_oop,
+  ff_bonbon, ff_bonang, ff_angtor, ff_angangtor, ff_endbontor, ff_midbontor, ff_angang, ff_bonbon13;
+
 
 void ReadFrcFile(void)
 {
-   extern void InitializeItems(void);
-   extern void SearchAndFill(struct FrcFieldItem *item);
-
   /* Open Forcefield File */
    if ( (FrcF = fopen(FrcFileName,"r")) == NULL ) {
       fprintf(stderr,"Cannot open %s\n", FrcFileName);
-      exit(2);
+      exit(72);
    }
    InitializeItems(); /* sets keywords, number of members and number of
 			 parameters for each structure */

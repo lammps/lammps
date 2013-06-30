@@ -1,8 +1,6 @@
 /********************************
 *
-* Header file for Msi2LMP2 conversion program.
-*
-* Msi2lmp3
+* Header file for msi2lmp conversion program.
 *
 * This is the header file for the third version of a program
 * that generates a LAMMPS data file based on the information
@@ -31,42 +29,30 @@
 *
 * November 2000
 *
+*
 */
 
-# include <string.h>
-# include <stddef.h>
 # include <stdio.h>
-# include <stdlib.h>
-# include <math.h>
 
-#ifdef   MAIN
-#define  _EX
-#define  _ARG(arg)    = (arg)
-#else
-#define  _EX extern
-#define  _ARG(arg)
-#endif
+#define PI_180  0.01745329251994329576
 
-#define MAX_ATOM_TYPES 100
-#define MAX_BOND_TYPES 200
-#define MAX_ANGLE_TYPES 300
-#define MAX_DIHEDRAL_TYPES 400
-#define MAX_OOP_TYPES 400
-#define MAX_ANGLEANGLE_TYPES 400
-#define MAX_TYPES 12000
-#define MAX_MEMBERS  5
-#define MAX_LINE_LENGTH   200
-#define MAX_PARAMS        8
-#define PI_180  0.01745329252
-#define MAX_CONNECTIONS 6
-#define MAX_STRING 50
+#define MAX_LINE_LENGTH  256
+#define MAX_CONNECTIONS    8
+#define MAX_STRING        64
+#define MAX_NAME          16
 
-
+#define MAX_ATOM_TYPES         100
+#define MAX_BOND_TYPES         200
+#define MAX_ANGLE_TYPES        300
+#define MAX_DIHEDRAL_TYPES     400
+#define MAX_OOP_TYPES          400
+#define MAX_ANGLEANGLE_TYPES   400
+#define MAX_TYPES            12000
 
 struct ResidueList {
   int start;
   int end;
-  char name[16];
+  char name[MAX_NAME];
 };
 
 struct MoleculeList {
@@ -150,64 +136,68 @@ struct AngleAngleTypeList {
 /* ---------------------------------------------- */
 
 struct Atom {
-  int   molecule;      /* molecule id */
-  int   no;            /* atom id */
-  char  name[10];      /* atom name */
-  double x[3];         /* position vector */
-  char  potential[5];  /* atom potential type */
-  char  element[2];    /* atom element */
-  float q;             /* charge */
-  char  residue_string[16]; /* residue string */
+  int   molecule;        /* molecule id */
+  int   no;              /* atom id */
+  char  name[MAX_NAME];  /* atom name */
+  double x[3];           /* position vector */
+  char  potential[6];    /* atom potential type */
+  char  element[4];      /* atom element */
+  float q;               /* charge */
+  char  residue_string[MAX_NAME]; /* residue string */
   int  no_connect;	/* number of connections to atom */
   char connections[MAX_CONNECTIONS][MAX_STRING];  /* long form, connection name*/
-  double bond_order[6];
-  int conn_no[6];	/* Atom number to which atom is connected */
+  double bond_order[MAX_CONNECTIONS];
+  int conn_no[MAX_CONNECTIONS];	 /* Atom number to which atom is connected */
   int type;
 };
 
+extern char  *rootname;
+extern char  *FrcFileName;
+extern double pbc[9];
+extern int    periodic;      /* 0= nonperiodic 1= 3-D periodic */
+extern int    TriclinicFlag; /* 0= Orthogonal  1= Triclinic */
+extern int    forcefield;    /* 0= ClassI      1= ClassII */
+extern int    pflag;
+extern int    *no_atoms;
+extern int    no_molecules;
+extern int    replicate[3];
+extern int    total_no_atoms;
+extern int    total_no_bonds;
+extern int    total_no_angles;
+extern int    total_no_dihedrals;
+extern int    total_no_angle_angles;
+extern int    total_no_oops;
+extern int    no_atom_types;
+extern int    no_bond_types;
+extern int    no_angle_types;
+extern int    no_dihedral_types;
+extern int    no_oop_types;
+extern int    no_angleangle_types;
+extern FILE   *CarF;
+extern FILE   *FrcF;
+extern FILE   *PrmF;
+extern FILE   *MdfF;
+extern FILE   *RptF;
+extern struct Atom *atoms;
+extern struct MoleculeList *molecule;
+extern struct BondList *bonds;
+extern struct AngleList *angles;
+extern struct DihedralList *dihedrals;
+extern struct OOPList *oops;
+extern struct AngleAngleList *angleangles;
+extern struct AtomTypeList *atomtypes;
+extern struct BondTypeList *bondtypes;
+extern struct AngleTypeList *angletypes;
+extern struct DihedralTypeList *dihedraltypes;
+extern struct OOPTypeList *ooptypes;
+extern struct AngleAngleTypeList *angleangletypes;
 
-_EX  char   rootname[20];
-_EX  char   path[20];
-_EX  double pbc[9];
-_EX  int    periodic   _ARG( 1 ); /* 0= nonperiodic 1= 3-D periodic */
-// Added triclinic flag for non-orthogonal boxes Oct 5, 2010 SLTM
-_EX  int TriclinicFlag; // 1 for non-orthoganal boxes, 0 for orthogonal boxes
-_EX  int    forcefield _ARG( 0 ); /* 0= ClassI      1= ClassII */
-_EX  int    pflag;
-_EX  int    *no_atoms;
-_EX  int    no_molecules;
-_EX  int    replicate[3];
-_EX  int    total_no_atoms;
-_EX  int    total_no_bonds;
-_EX  int    total_no_angles;
-_EX  int    total_no_dihedrals;
-_EX  int    total_no_angle_angles;
-_EX  int    total_no_oops;
-_EX  int    no_atom_types;
-_EX  int    no_bond_types;
-_EX  int    no_angle_types;
-_EX  int    no_dihedral_types;
-_EX  int    no_oop_types;
-_EX  int    no_angleangle_types;
-_EX  char   FrcFileName[MAX_LINE_LENGTH];
-_EX  FILE   *CarF;
-_EX  FILE   *FrcF;
-_EX  FILE   *PrmF;
-_EX  FILE   *MdfF;
-_EX  FILE   *RptF;
-_EX  struct Atom *atoms;
-_EX  struct MoleculeList *molecule;
-_EX  struct BondList *bonds;
-_EX  struct AngleList *angles;
-_EX  struct DihedralList *dihedrals;
-_EX  struct OOPList *oops;
-_EX  struct AngleAngleList *angleangles;
-_EX  struct AtomTypeList *atomtypes;
-_EX  struct BondTypeList *bondtypes;
-_EX  struct AngleTypeList *angletypes;
-_EX  struct DihedralTypeList *dihedraltypes;
-_EX  struct OOPTypeList *ooptypes;
-_EX  struct AngleAngleTypeList *angleangletypes;
-#undef _EX
-#undef _ARG
-
+extern void FrcMenu();
+extern void ReadCarFile();
+extern void ReadMdfFile();
+extern void ReadFrcFile();
+extern void MakeLists();
+extern void GetParameters(int);
+extern void CheckLists();
+extern void WriteDataFile01(char *,int);
+extern void WriteDataFile05(char *,int);

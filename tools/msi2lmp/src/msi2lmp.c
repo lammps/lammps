@@ -129,7 +129,8 @@ int main (int argc, char *argv[])
    extern void MakeLists();
    extern void GetParameters(int);
    extern void CheckLists();
-   extern void WriteDataFile(FILE *,char *,int);
+   extern void WriteDataFile01(char *,int);
+   extern void WriteDataFile05(char *,int);
 
     
    outv = 2005;

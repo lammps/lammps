@@ -160,10 +160,6 @@ E: Fix ave/spatial for triclinic boxes requires units reduced
 
 Self-explanatory.
 
-E: Use of fix ave/spatial with undefined lattice
-
-A lattice must be defined to use fix ave/spatial with units = lattice.
-
 E: Fix ave/spatial settings invalid with changing box
 
 If the ave setting is "running" or "window" and the box size/shape
@@ -179,5 +175,9 @@ E: Fix ave/spatial missed timestep
 
 You cannot reset the timestep to a value beyond where the fix
 expects to next perform averaging.
+
+U: Use of fix ave/spatial with undefined lattice
+
+A lattice must be defined to use fix ave/spatial with units = lattice.
 
 */

@@ -22,7 +22,7 @@ pair_coeff * * MgOH.nb3bharmonic Mg O H :pre
 This pair style computes a nonbonded 3-body harmonic potential for the
 energy E of a system of atoms as
 
-:c,image(Eqs/pair_3bnbharm.jpg)
+:c,image(Eqs/pair_nb3b_harmonic.jpg)
 
 where {theta_0} is the equilibrium value of the angle and {K} is a
 prefactor. Note that the usual 1/2 factor is included in {K}. The form

@@ -278,10 +278,6 @@ E: Thermo_modify int format does not contain d character
 
 Self-explanatory.
 
-E: Thermo keyword requires lattice be defined
-
-The xlat, ylat, zlat keywords refer to lattice properties.
-
 E: Could not find thermo custom compute ID
 
 The compute ID needed by thermo style custom to compute a requested
@@ -386,7 +382,11 @@ You are using a thermo keyword that requires potentials to
 have tallied energy, but they didn't on this timestep.  See the
 variable doc page for ideas on how to make this work.
 
-E: Thermo keyword in variable requires lattice be defined
+U: Thermo keyword requires lattice be defined
+
+The xlat, ylat, zlat keywords refer to lattice properties.
+
+U: Thermo keyword in variable requires lattice be defined
 
 The xlat, ylat, zlat keywords refer to lattice properties.
 

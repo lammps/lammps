@@ -62,11 +62,6 @@ E: Could not find displace_atoms group ID
 
 Group ID used in the displace_atoms command does not exist.
 
-E: Use of displace_atoms with undefined lattice
-
-Must use lattice command with displace_atoms command if units option
-is set to lattice.
-
 E: Invalid displace_atoms rotate axis for 2d
 
 Axis must be in z direction.
@@ -78,5 +73,10 @@ Self-explanatory.
 W: Lost atoms via displace_atoms: original %ld current %ld
 
 The command options you have used caused atoms to be lost.
+
+U: Use of displace_atoms with undefined lattice
+
+Must use lattice command with displace_atoms command if units option
+is set to lattice.
 
 */

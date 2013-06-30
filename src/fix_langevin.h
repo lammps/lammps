@@ -126,14 +126,14 @@ E: Fix langevin angmom requires extended particles
 
 This fix option cannot be used with point paritlces.
 
-E: Fix langevin variable returned negative temperature
-
-Self-explanatory.
-
 E: Cannot zero Langevin force of 0 atoms
 
 The group has zero atoms, so you cannot request its force
 be zeroed.
+
+E: Fix langevin variable returned negative temperature
+
+Self-explanatory.
 
 E: Could not find fix_modify temperature ID
 

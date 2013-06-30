@@ -74,21 +74,21 @@ W: Geometric mixing assumed for 1/r^6 coefficients
 
 Self-explanatory.
 
-W: Using largest cutoff for lj/long/dipole/long
+W: Using largest cut-off for lj/long/dipole/long long long
 
-Self-exlanatory.
+UNDOCUMENTED
 
-E: Cutoffs missing in pair_style lj/long/dipole/long
+E: Cut-offs missing in pair_style lj/long/dipole/long
 
-Self-exlanatory.
+UNDOCUMENTED
 
 E: Coulombic cut not supported in pair_style lj/long/dipole/long
 
 Must use long-range Coulombic interactions.
 
-E: Only one cutoff allowed when requesting all long
+E: Only one cut-off allowed when requesting all long
 
-Self-explanatory.
+UNDOCUMENTED
 
 E: Incorrect args for pair coefficients
 
@@ -108,10 +108,27 @@ The atom style defined does not have these attributes.
 
 E: Pair style is incompatible with KSpace style
 
-Self-explanatory.
+If a pair style with a long-range Coulombic component is selected,
+then a kspace style must also be used.
 
 E: Pair style lj/long/dipole/long does not currently support respa
 
 This feature is not yet supported.
+
+E: Pair cutoff < Respa interior cutoff
+
+UNDOCUMENTED
+
+U: Using largest cutoff for lj/long/dipole/long
+
+Self-exlanatory.
+
+U: Cutoffs missing in pair_style lj/long/dipole/long
+
+Self-exlanatory.
+
+U: Only one cutoff allowed when requesting all long
+
+Self-explanatory.
 
 */

@@ -93,11 +93,6 @@ E: Cannot change_box in xz or yz for 2d simulation
 
 Self-explanatory.
 
-E: Use of change_box with undefined lattice
-
-Must use lattice command with displace_box command if units option is
-set to lattice.
-
 E: Cannot change box tilt factors for orthogonal box
 
 Cannot use tilt factors unless the simulation box is non-orthogonal.
@@ -125,5 +120,10 @@ fix.
 W: Lost atoms via change_box: original %ld current %ld
 
 The command options you have used caused atoms to be lost.
+
+U: Use of change_box with undefined lattice
+
+Must use lattice command with displace_box command if units option is
+set to lattice.
 
 */

@@ -103,13 +103,13 @@ E: Region union or intersect cannot be dynamic
 
 The sub-regions can be dynamic, but not the combined region.
 
-E: Use of region with undefined lattice
-
-If units = lattice (the default) for the region command, then a
-lattice must first be defined via the lattice command.
-
 E: Region cannot have 0 length rotation vector
 
 Self-explanatory.
+
+U: Use of region with undefined lattice
+
+If units = lattice (the default) for the region command, then a
+lattice must first be defined via the lattice command.
 
 */

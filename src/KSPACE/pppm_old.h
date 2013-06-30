@@ -167,4 +167,80 @@ class PPPMOld : public KSpace {
 
 /* ERROR/WARNING messages:
 
+E: Illegal ... command
+
+UNDOCUMENTED
+
+E: Cannot use PPPM with 2d simulation
+
+UNDOCUMENTED
+
+E: Kspace style requires atom attribute q
+
+UNDOCUMENTED
+
+E: Cannot use nonperiodic boundaries with PPPM
+
+UNDOCUMENTED
+
+E: Incorrect boundaries with slab PPPM
+
+UNDOCUMENTED
+
+E: PPPM order cannot be < 2 or > than %d
+
+UNDOCUMENTED
+
+E: KSpace style is incompatible with Pair style
+
+UNDOCUMENTED
+
+E: Bond and angle potentials must be defined for TIP4P
+
+UNDOCUMENTED
+
+E: Bad TIP4P angle type for PPPM/TIP4P
+
+UNDOCUMENTED
+
+E: Bad TIP4P bond type for PPPM/TIP4P
+
+UNDOCUMENTED
+
+E: Cannot use kspace solver on system with no charge
+
+UNDOCUMENTED
+
+W: System is not charge neutral, net charge = %g
+
+UNDOCUMENTED
+
+W: Reducing PPPM order b/c stencil extends beyond neighbor processor
+
+UNDOCUMENTED
+
+E: PPPM grid is too large
+
+UNDOCUMENTED
+
+E: PPPM order has been reduced to 0
+
+UNDOCUMENTED
+
+E: KSpace accuracy must be > 0
+
+UNDOCUMENTED
+
+E: Cannot compute PPPM G
+
+UNDOCUMENTED
+
+E: Out of range atoms - cannot compute PPPM
+
+UNDOCUMENTED
+
+E: Cannot (yet) use K-space slab correction with compute group/group
+
+UNDOCUMENTED
+
 */

@@ -59,22 +59,15 @@ PairLJLongDipoleLong::PairLJLongDipoleLong(LAMMPS *lmp) : Pair(lmp)
 // global settings
 // ----------------------------------------------------------------------
 
-#define PAIR_ILLEGAL	"Illegal pair_style lj/long/dipole/long command"
-#define PAIR_CUTOFF	"Only one cut-off allowed when requesting all long"
-#define PAIR_MISSING	"Cut-offs missing in pair_style lj/long/dipole/long"
-#define PAIR_COUL_CUT	"Coulombic cut not supported in pair_style lj/long/dipole/long"
-#define PAIR_LARGEST	"Using largest cut-off for lj/long/dipole/long long long"
-#define PAIR_MIX	"Geometric mixing assumed for 1/r^6 coefficients"
-
 void PairLJLongDipoleLong::options(char **arg, int order)
 {
   const char *option[] = {"long", "cut", "off", NULL};
   int i;
 
-  if (!*arg) error->all(FLERR,PAIR_ILLEGAL);
+  if (!*arg) error->all(FLERR,"Illegal pair_style lj/long/dipole/long command");
   for (i=0; option[i]&&strcmp(arg[0], option[i]); ++i);
   switch (i) {
-    default: error->all(FLERR,PAIR_ILLEGAL);
+    default: error->all(FLERR,"Illegal pair_style lj/long/dipole/long command");
     case 0: ewald_order |= 1<<order; break;		// set kspace r^-order
     case 2: ewald_off |= 1<<order;			// turn r^-order off
     case 1: break;
@@ -91,16 +84,18 @@ void PairLJLongDipoleLong::settings(int narg, char **arg)
   options(++arg, 3);
   options(arg, 1);
   if (!comm->me && ewald_order&(1<<6))
-    error->warning(FLERR,PAIR_MIX);
+    error->warning(FLERR,"Geometric mixing assumed for 1/r^6 coefficients");
   if (!comm->me && ewald_order==((1<<3)|(1<<6)))
-    error->warning(FLERR,PAIR_LARGEST);
+    error->warning(FLERR,
+                   "Using largest cut-off for lj/long/dipole/long long long");
   if (!*(++arg))
-    error->all(FLERR,PAIR_MISSING);
+    error->all(FLERR,"Cut-offs missing in pair_style lj/long/dipole/long");
   if (!((ewald_order^ewald_off)&(1<<3)))
-    error->all(FLERR,PAIR_COUL_CUT);
+    error->all(FLERR,
+               "Coulombic cut not supported in pair_style lj/long/dipole/long");
   cut_lj_global = force->numeric(FLERR,*(arg++));
   if (narg == 4 && (ewald_order==74))
-    error->all(FLERR,PAIR_CUTOFF);
+    error->all(FLERR,"Only one cut-off allowed when requesting all long");
   if (narg == 4) cut_coul = force->numeric(FLERR,*(arg++));
   else cut_coul = cut_lj_global;
 
@@ -194,7 +189,8 @@ void *PairLJLongDipoleLong::extract(const char *id, int &dim)
 
 void PairLJLongDipoleLong::coeff(int narg, char **arg)
 {
-  if (narg < 4 || narg > 5) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg < 4 || narg > 5) 
+    error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;

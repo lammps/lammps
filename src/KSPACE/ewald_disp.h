@@ -145,11 +145,6 @@ W: System is not charge neutral, net charge = %g
 The total charge on all atoms on the system is not 0.0, which
 is not valid for the long-range Coulombic solvers.
 
-E: KSpace accuracy too large to estimate G vector
-
-Reduce the accuracy request or specify gwald explicitly
-via the kspace_modify command.
-
 W: Ewald/disp Newton solver failed, using old method to estimate g_ewald
 
 Self-explanatory. Choosing a different cutoff value may help.
@@ -161,5 +156,10 @@ Requested accuracy must be less than 1.0.
 E: Epsilon or sigma reference not set by pair style in ewald/n
 
 The pair style is not providing the needed epsilon or sigma values.
+
+U: KSpace accuracy too large to estimate G vector
+
+Reduce the accuracy request or specify gwald explicitly
+via the kspace_modify command.
 
 */

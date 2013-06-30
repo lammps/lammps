@@ -168,6 +168,10 @@ class KSpace : protected Pointers {
 
 /* ERROR/WARNING messages:
 
+E: KSpace style does not yet support triclinic geometries
+
+UNDOCUMENTED
+
 E: KSpace solver requires a pair style
 
 No pair style is defined.

@@ -93,11 +93,6 @@ E: Atom IDs must be consecutive for velocity create loop all
 
 Self-explanatory.
 
-E: Use of velocity with undefined lattice
-
-If units = lattice (the default) for the velocity set or velocity ramp
-command, then a lattice must first be defined via the lattice command.
-
 E: Variable name for velocity set does not exist
 
 Self-explanatory.
@@ -136,5 +131,10 @@ E: Velocity temperature ID does not compute temperature
 
 The compute ID given to the velocity command must compute
 temperature.
+
+U: Use of velocity with undefined lattice
+
+If units = lattice (the default) for the velocity set or velocity ramp
+command, then a lattice must first be defined via the lattice command.
 
 */

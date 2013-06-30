@@ -177,7 +177,7 @@ void PPPM::init()
   triclinic_check();
   if (domain->triclinic && differentiation_flag == 1)
     error->all(FLERR,"Cannot (yet) use PPPM with triclinic box "
-               "and kspace_modify diff a'");
+               "and kspace_modify diff ad");
   if (domain->triclinic && slabflag)
     error->all(FLERR,"Cannot (yet) use PPPM with triclinic box and "
                "slab correction");
@@ -3061,8 +3061,8 @@ void PPPM::compute_group_group(int groupbit_A, int groupbit_B, int BA_flag)
                "correction with compute group/group");
 
   if (differentiation_flag)
-    error->all(FLERR,"Cannot (yet) use 'kspace_modify "
-               "diff ad' with compute group/group");
+    error->all(FLERR,"Cannot (yet) use kspace_modify "
+               "diff ad with compute group/group");
 
   if (!group_allocate_flag) allocate_groups();
 

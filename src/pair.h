@@ -247,10 +247,18 @@ This is probably a bogus thing to do, since tail corrections are
 computed by integrating the density of a periodic system out to
 infinity.
 
+W: Using a manybody potential with bonds/angles/dihedrals and special_bond exclusions
+
+UNDOCUMENTED
+
 E: All pair coeffs are not set
 
 All pair coefficients must be set in the data file or by the
 pair_coeff command before running a simulation.
+
+E: Pair style requres a KSpace style
+
+UNDOCUMENTED
 
 E: Pair style does not support pair_write
 

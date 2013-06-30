@@ -67,11 +67,6 @@ E: Cannot use fix wall/reflect zlo/zhi for a 2d simulation
 
 Self-explanatory.
 
-E: Use of fix wall with undefined lattice
-
-Must use lattice command with fix wall command if units option is set
-to lattice.
-
 E: Variable name for fix wall/reflect does not exist
 
 Self-explanatory.
@@ -83,5 +78,10 @@ Only equal-style variables can be used.
 W: Should not allow rigid bodies to bounce off relecting walls
 
 LAMMPS allows this, but their dynamics are not computed correctly.
+
+U: Use of fix wall with undefined lattice
+
+Must use lattice command with fix wall command if units option is set
+to lattice.
 
 */

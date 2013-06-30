@@ -3,6 +3,19 @@
   <head>
     <title>LAMMPS-ICMS Windows Installer Repository</title>
     <link rel="shortcut icon" href="ICMS_icon.png" type="image/png">
+
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-12573382-3']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+
   </head>
 
   <body style="font-family: Helvetica,Arial,Verdana, sans-serif; margin-bottom: 2%; margin-top: 2%; margin-left: 5%; margin-right: 5%;">
@@ -40,28 +53,36 @@
       and <a href="http://www.nvidia.com/opencl/" target="_blank">Nvidia</a>.
       The GPU package has been compiled for mixed precision computation, and
       is currently somewhat tuned for Nvidia (Fermi generation) GPUs.
-      It <u>does not work</u> with CPU OpenCL drivers (like those included in
-      the Intel and AMD OpenCL SDKs). Work is under way to improve and expand
+      It <u>does not yet work</u> with CPU OpenCL drivers (like those included
+      in the Intel and AMD OpenCL SDKs). Work is under way to improve and expand
       OpenCL support in LAMMPS, and particularly provide means so that the 
       individual kernels are optimized for specific platforms are runtime.
       Please watch <a href="http://users.nccs.gov/~wb8/gpu/" target="_blank">
-        Mike Brown's LAMMPS accelerator library web page</a> for status updates.
+        Mike Brown's LAMMPS accelerator library web page</a> for status updates.<br>
+      <br>
+      When reporting problems, please always include the exact
+      <u>version of the installer</u> and the output of the
+      <strong><code>ocl_get_devices</code></strong> tool.
     </div>
     <div style="clear:both;"></div>
     <hr>
     <div style="background-color: #e8e8f0;">
-      <p align="justify">
-        Looking for pre-compiled Linux binaries?
-        They are just a <a href="index.html">mouse click away</a>.
-      </p>
+      <br>
+      Looking for pre-compiled Linux binary RPMs?
+      They are just a <a href="index.html">mouse click away</a>.<br>
+      <br>
     </div>
     <hr width="100%">
     <p align="justify">
-      There are currently four kinds of Windows installer packages offered:
+      There are currently four kinds of Windows installer packages offered. All packages contain
+      the main LAMMPS manual and the colvars manual in PDF format, the bundled potential files,
+      most of the example and benchmark input and reference outputs, the tools
+      <strong><code>restart2data, binary2txt, chain, msi2lmp, &amp; ocl_get_devices</code></strong>.
+      The individual variants are:
     </p>
     
     <div style="display: inline; margin-left: 10px; border: 5px; border-style: groove; float: right;">
-      <img src="win-installer-screenshot.png" border="0" style="" width="428" height="293">
+      <img src="win-installer-screenshot.png" border="0" style="" width="286" height="196">
     </div>
     <div style="background-color: #e8e8f0;">
       <dl>
@@ -95,19 +116,32 @@
     <hr width="100%">
 
     <h2>Running LAMMPS on Windows</h2>
+    <h3>General Comments</h3>
+    <p align="justify">
+      LAMMPS is a text mode program, so you have to click on the
+      <i>Command Prompt</i> entry in the windows start menu, launch the
+      <i>Windows Power Shell</i>, or simply execute the command
+      <strong><code>cmd</code></strong> from <i>Start -&gt; Run</i>.
+      The LAMMPS manual and the colvars reference manual in PDF format
+      are linked from the start men, also references to open the 
+      file system browser to view the <i>Benchmarks</i> and <i>Examples</i>
+      directory tree. The <b>PATH</b> environment variable is automatically
+      set by the installer, so that the bundled executables from everywhere
+      in the system. Also the <b>LAMMPS_POTENTIALS</b> environment variable
+      is preset to the folder with the bundled manybody potential files,
+      so they do not need to be copied into the respective working directory.
+    </p>
+    
     <h3>Serial Execution</h3>
     <div style="display: inline; margin-left: 10px; border: 5px; border-style: groove; float: right;">
       <a imageanchor="1" href="lammps-icms-on-win7.png" style=""><img src="lammps-icms-on-win7.png" border="0" style="" width="400" height="300"></a>
     </div>
     <p align="justify">
-      LAMMPS is a text mode program, so you have to click on the
-      <i>Command Prompt</i> entry in the windows start menu, or simply
-      execute the command <strong><code>cmd</code></strong> from <i>Start -&gt; Run</i>.
-      Inside the terminal window, you change to the directory with your input
-      script and then run either <strong><code>lmp_serial</code></strong> or
-      <strong><code>lmp_mpi</code></strong>. On windows you <strong>have</strong>
-      to use the <code>-in</code> flag to tell LAMMPS which input file to read.
-      For more details and additional command line flags, please check out the 
+      To run a LAMMPS simulations open a terminal window as outlined above
+      and change to the directory with your input script and then run either
+      <strong><code>lmp_serial</code></strong> or <strong><code>lmp_mpi</code></strong>
+      As described in the LAMMPS manual. For more details and additional command
+      line flags, please check out the
       <a href="http://lammps.sandia.gov/doc/Section_start.html#start_6" target="_blank">
         LAMMPS Manual</a>.
     </p>
@@ -117,7 +151,7 @@
       however by default only one thread is enabled. To enable more threads, e.g. four,
       you need to either set it at the command line prompt via
       <strong><code>set OMP_NUM_THREADS=4</code></strong> or use the 
-      <a href="http://lammps.sandia.gov/doc/package.html" target="_blank">package</a>
+      <a href="http://lammps.sandia.gov/doc/package.html" target="_blank">package omp</a>
       command in your input script.</p>
 
     <p align="justify">
@@ -152,7 +186,7 @@
     <address><a href="http://goo.gl/1wk0" target="_blank">Axel Kohlmeyer</a></address>
 <!-- Created: Fri Jun 14 08:59:35 CEST 2013 -->
 <!-- hhmts start -->
-Last modified: Thu Jun 27 14:27:55 CEST 2013
+Last modified: Sun Jun 30 15:34:05 CEST 2013
 <!-- hhmts end -->
   </body>
 </html>

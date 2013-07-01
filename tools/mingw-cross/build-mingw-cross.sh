@@ -30,7 +30,7 @@ done
 pushd "${LAMMPS_PATH}"
 
 git archive -v --format=tar --prefix=lammps-current/ HEAD \
-    README LICENSE doc/Manual.pdf doc/PDF src lib python  \
+    README LICENSE doc src lib python txt2html \
     examples/{README,dipole,peri,hugoniostat,colloid,crack,friction,msst,obstacle,body,sputter,pour,ELASTIC,neb,ellipse,flow,meam,min,indent,micelle,shear,srd,dreiding,eim,prd,rigid,COUPLE,peptide,melt,comb,tad,reax,USER/{awpmd,misc,phonon,cg-cmm}} \
     bench potentials tools/*.cpp tools/*.f tools/mingw-cross tools/msi2lmp \
     | tar -C ${MINGW_BUILD_DIR} -xvf -
@@ -110,6 +110,14 @@ find lammps-current/tools/msi2lmp/biosym_frc_files -type f -print | xargs unix2d
 # bulk rename README to README.txt
 for f in $(find lammps-current/{bench,examples,potentials} -name README -print)
 do  mv -v $f $f.txt; done
+
+# create up-to-date version of the manual
+pushd lammps-current
+make -C txt2html
+./txt2html/txt2html -b doc/*.txt
+htmldoc --batch lammps.book
+mv lammps.pdf doc/Manual.pdf || exit 5
+popd
 
 # build installers
 LIBGCC=libgcc_s_sjlj-1.dll

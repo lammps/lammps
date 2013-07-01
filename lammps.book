@@ -326,6 +326,7 @@ doc/pair_lj_smooth.html
 doc/pair_lj_smooth_linear.html
 doc/pair_lubricate.html
 doc/pair_lubricateU.html
+doc/pair_nb3b_harmonic.html
 doc/pair_meam.html
 doc/pair_meam_spline.html
 doc/pair_meam_sw_spline.html

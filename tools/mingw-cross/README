@@ -2,7 +2,7 @@ Notes for cross-compiling LAMMPS in multiple variants from Fedora Linux
 to 32-bit and 64-bit Windows using the provided MinGW64/gcc toolchain.
 
 Set up a suitable (virtual) machine and install the following packages:
-make git vim-enhanced cmake dos2unix
+make git vim-enhanced cmake dos2unix htmldoc
 mingw32-nsis
 mingw32-gcc-c++ mingw32-gcc-gfortran mingw32-libjpeg-static mingw32-pthreads-static mingw32-libgomp
 mingw64-gcc-c++ mingw64-gcc-gfortran mingw64-libjpeg-static mingw64-pthreads-static mingw64-libgomp

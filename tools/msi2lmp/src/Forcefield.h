@@ -12,7 +12,7 @@
 struct FrcFieldData {
   float  ver;                /* Version number of forcefield entry */
   int    ref;                /* Reference within forcefield */
-  char   ff_types[MAX_NO_MEMS][5];
+  char   ff_types[MAX_NO_MEMS][6]; /* XXX: was 5, but GetParameters requires 6*/
   double ff_param[MAX_NO_PARAMS];
 };
 

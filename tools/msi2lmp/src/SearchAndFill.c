@@ -38,7 +38,7 @@ void SearchAndFill(struct FrcFieldItem *item)
   /* Read and discard lines until keyword is found */
 
   rewind(FrcF);
-  while ((got_it == 0)) {
+  while (got_it == 0) {
     status = fgets( line, MAX_LINE_LENGTH, FrcF );
     if (status == NULL) {
       fprintf(stderr," Unable to find forcefield keyword %s\n",item->keyword);

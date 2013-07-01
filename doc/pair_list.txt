@@ -101,8 +101,11 @@ Note that the usual 1/2 factor is included in K.
 This pair style does not support mixing since all parameters are
 explicit for each pair.
 
-The "pair_modify"_pair_modify.html {shift} option is supported by this
-pair style; the {table} and {tail} options are not relevant for this pair style.
+The "pair_modify"_pair_modify.html shift option is supported by this
+pair style.
+
+The "pair_modify"_pair_modify.html table and tail options are not
+relevant for this pair style.
 
 This pair style does not write its information to "binary restart
 files"_restart.html, so pair_style and pair_coeff commands need
@@ -138,6 +141,4 @@ LAMMPS"_Section_start.html#3 section for more info.
 "pair_style morse"_pair_morse.html,
 "bond_style harmonic"_bond_harmonic.html
 
-[Default:]
-
-The {check} option is on by default.
+[Default:] none

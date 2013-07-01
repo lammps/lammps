@@ -135,20 +135,15 @@ void WriteDataFile05(char *nameroot,int forcefield)
   }
   if (forcefield == 1) {
     if (no_oop_types > 0) {
+      /* harmonic impropers coeffs are: type K0 angle */
       fprintf(DatF,"Improper Coeffs\n\n");
       for (i=0; i < no_oop_types; i++) {
-        fprintf(DatF, "%3i ", i+1);
-        for ( j = 0; j < 3; j++)
-          // Modified on 10/05/2010 by STLM to match with lammps reading in integers for the all but the first coefficients
-          if (j == 0)
-            fprintf(DatF, "%10.4f ", ooptypes[i].params[j]);
-          else fprintf(DatF, "%10.0f ", ooptypes[i].params[j]);
-        fprintf(DatF, "\n");
+        fprintf(DatF,"%5i %10.4f %10.4f\n",i+1,
+                ooptypes[i].params[0], ooptypes[i].params[1]);
       }
       fprintf(DatF, "\n");
     }
-  }
-  else if (forcefield == 2) {
+  } else if (forcefield == 2) {
     if ((no_oop_types + no_angleangle_types) > 0) {
       fprintf(DatF,"Improper Coeffs\n\n");
       for (i=0; i < no_oop_types; i++) {

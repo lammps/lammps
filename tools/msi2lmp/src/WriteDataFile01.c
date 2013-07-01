@@ -42,7 +42,7 @@ void WriteDataFile01(char *nameroot,int forcefield)
                                        no_dihedral_types);
   if (forcefield > 1) {
     if ((no_oop_types + no_angleangle_types) > 0)
-      fprintf  (DatF, " %3d improper types\n", 
+      fprintf  (DatF, " %3d improper types\n",
                 no_oop_types + no_angleangle_types);
   }
   else {
@@ -98,7 +98,7 @@ void WriteDataFile01(char *nameroot,int forcefield)
     for (i=0; i < no_angle_types; i++) {
       fprintf(DatF, "%3i ", i+1);
       for ( j = 0; j < m; j++)
-        
+
         fprintf(DatF, "%10.4f ", angletypes[i].params[j]);
       fprintf(DatF,"\n");
     }
@@ -193,7 +193,7 @@ void WriteDataFile01(char *nameroot,int forcefield)
       for (i=0; i < no_dihedral_types; i++) {
         fprintf(DatF, "%3i ", i+1);
         for ( j = 0; j < 3; j++)
-          fprintf(DatF,"%10.4f ", 
+          fprintf(DatF,"%10.4f ",
                   dihedraltypes[i].angleangledihedral_cross_term[j]);
         fprintf(DatF, "\n");
       }
@@ -203,7 +203,7 @@ void WriteDataFile01(char *nameroot,int forcefield)
       for (i=0; i < no_dihedral_types; i++) {
         fprintf(DatF, "%i ", i+1);
         for ( j = 0; j < 8; j++)
-          fprintf(DatF, "%10.4f ", 
+          fprintf(DatF, "%10.4f ",
                   dihedraltypes[i].endbonddihedral_cross_term[j]);
         fprintf(DatF, "\n");
       }
@@ -213,7 +213,7 @@ void WriteDataFile01(char *nameroot,int forcefield)
       for (i=0; i < no_dihedral_types; i++) {
         fprintf(DatF, "%3i ", i+1);
         for ( j = 0; j < 4; j++)
-          fprintf(DatF,"%10.4f ", 
+          fprintf(DatF,"%10.4f ",
                   dihedraltypes[i].midbonddihedral_cross_term[j]);
         fprintf(DatF, "\n");
       }

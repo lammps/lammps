@@ -184,7 +184,7 @@ void MakeLists()
                 atomtypes[angletypes[i].types[1]].potential,
                 atomtypes[angletypes[i].types[2]].potential);
       }
-    
+
       fprintf(stderr,"Angles\n N  Type  I  J  K\n");
       for (i=0; i < total_no_angles; i++) {
         fprintf(stderr," %d %d %d %d %d\n",i,angles[i].type,
@@ -311,7 +311,7 @@ void build_bonds_list()
   return;
 }
 
-int count_angles() 
+int count_angles()
 {
   int i,j,k,n;
 

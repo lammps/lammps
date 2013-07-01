@@ -144,10 +144,10 @@ struct Atom {
   char  element[4];      /* atom element */
   float q;               /* charge */
   char  residue_string[MAX_NAME]; /* residue string */
-  int  no_connect;	/* number of connections to atom */
+  int  no_connect;        /* number of connections to atom */
   char connections[MAX_CONNECTIONS][MAX_STRING];  /* long form, connection name*/
   double bond_order[MAX_CONNECTIONS];
-  int conn_no[MAX_CONNECTIONS];	 /* Atom number to which atom is connected */
+  int conn_no[MAX_CONNECTIONS];         /* Atom number to which atom is connected */
   int type;
 };
 

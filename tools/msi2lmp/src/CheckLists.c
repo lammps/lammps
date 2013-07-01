@@ -5,7 +5,7 @@ void CheckLists() {
 
   for (i=0; i < total_no_bonds; i++) {
     if ((atoms[bonds[i].members[0]].type != bondtypes[bonds[i].type].types[0])
-	|| (atoms[bonds[i].members[1]].type != bondtypes[bonds[i].type].types[1])) {
+        || (atoms[bonds[i].members[1]].type != bondtypes[bonds[i].type].types[1])) {
       fprintf(stderr,"Warning atom types in bond %d are inconsistent with bond type %d\n",i,bonds[i].type);
     }
   }

@@ -12,9 +12,9 @@
 void ReadCarFile(void)
 {
   char line[MAX_LINE_LENGTH];  /* Stores lines as they are read in */
-  int k,m,n;			/* counters */	
-  int skip;			/* lines to skip at beginning of file */
-  double  lowest, highest;	/* temp coordinate finding variables */
+  int k,m,n;                        /* counters */
+  int skip;                        /* lines to skip at beginning of file */
+  double  lowest, highest;        /* temp coordinate finding variables */
   double total_q;
   double sq_c;
   double cos_alpha;  // Added by SLTM Sept 13, 2010
@@ -50,8 +50,8 @@ void ReadCarFile(void)
     fgets(line,MAX_LINE_LENGTH,CarF); /* Date stamp */
     fscanf(CarF,"%*s %lf %lf %lf %lf %lf %lf %*s",
            &pbc[0],&pbc[1],&pbc[2],&pbc[3],&pbc[4],&pbc[5]);
-      
-    // Added triclinic flag for non-orthogonal boxes Oct 5, 2010 SLTM 
+
+    // Added triclinic flag for non-orthogonal boxes Oct 5, 2010 SLTM
     if(pbc[3] != 90.0 || pbc[4] != 90.0 || pbc[5] != 90.0) {
       TriclinicFlag = 1;
     } else TriclinicFlag = 0;
@@ -85,7 +85,7 @@ void ReadCarFile(void)
   rewind(CarF);
   for(n=0; n < skip; n++)               /* Skip beginning lines */
     fgets(line,MAX_LINE_LENGTH,CarF);
-   
+
   for(n=0; n < no_molecules; n++)
     while( strncmp(fgets(line,MAX_LINE_LENGTH,CarF),"end",3) )
       no_atoms[n]++;
@@ -113,7 +113,7 @@ void ReadCarFile(void)
     printf("Could not allocate memory for AtomList\n");
     exit(32);
   }
-   
+
   /* Third pass through file -- Read+Parse Car File */
 
   rewind(CarF);
@@ -193,8 +193,8 @@ void ReadCarFile(void)
       A = pbc[0];
       B = pbc[1];
       C = pbc[2];
-           
-           
+
+
       pbc[0] = A;
       pbc[1] = B*sin_gamma;
       pbc[2] = sqrt(sq_c * sin_beta*sin_beta - C*(cos_alpha-cos_gamma*cos_beta)/sin_gamma);
@@ -205,7 +205,7 @@ void ReadCarFile(void)
   }
 
   /* Close .car file */
-   
+
   if (fclose(CarF) !=0) {
     printf("Error closing %s.car\n", rootname);
     exit(31);

@@ -10,18 +10,18 @@
 #define MAX_NO_PARAMS 8
 
 struct FrcFieldData {
-  float 	ver;		/* Version number of forcefield entry */
-  int		ref;		/* Reference within forcefield */
-  char	        ff_types[MAX_NO_MEMS][5];
-  double        ff_param[MAX_NO_PARAMS];
+  float  ver;                /* Version number of forcefield entry */
+  int    ref;                /* Reference within forcefield */
+  char   ff_types[MAX_NO_MEMS][5];
+  double ff_param[MAX_NO_PARAMS];
 };
 
 struct FrcFieldItem {
-  char		keyword[25];
-  int		number_of_members;	/* number of members of item */
-  int		number_of_parameters;	/* number of parameters of item */
-  int 		entries;		/* number of entries in item list */
-  struct FrcFieldData *data;		/* contains all eqiuv and param data */
+  char keyword[25];
+  int  number_of_members;    /* number of members of item */
+  int  number_of_parameters; /* number of parameters of item */
+  int  entries;              /* number of entries in item list */
+  struct FrcFieldData *data; /* contains all eqiuv and param data */
 };
 
 extern struct FrcFieldItem ff_atomtypes, equivalence, ff_vdw,ff_bond, ff_ang, ff_tor, ff_oop,

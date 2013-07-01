@@ -83,18 +83,18 @@ void GetParameters(int Forcefield)
       condexit(11);
     } else {
       if (Forcefield == 1) {
-        if((ff_vdw.data[k].ff_param[0] != 0.0 ) && 
+        if((ff_vdw.data[k].ff_param[0] != 0.0 ) &&
            (ff_vdw.data[k].ff_param[1] != 0.0)) {
-          atomtypes[i].params[0] = 
+          atomtypes[i].params[0] =
             (ff_vdw.data[k].ff_param[1]*
              ff_vdw.data[k].ff_param[1])/(4.0*ff_vdw.data[k].ff_param[0]);
-	  atomtypes[i].params[1] = pow((ff_vdw.data[k].ff_param[0]/
-					ff_vdw.data[k].ff_param[1]),
-				       (1.0/6.0));
-	}
+          atomtypes[i].params[1] = pow((ff_vdw.data[k].ff_param[0]/
+                                        ff_vdw.data[k].ff_param[1]),
+                                       (1.0/6.0));
+        }
       } else {
-	atomtypes[i].params[0] = ff_vdw.data[k].ff_param[1];
-	atomtypes[i].params[1] = ff_vdw.data[k].ff_param[0];
+        atomtypes[i].params[0] = ff_vdw.data[k].ff_param[1];
+        atomtypes[i].params[1] = ff_vdw.data[k].ff_param[0];
       }
     }
   }
@@ -116,7 +116,7 @@ void GetParameters(int Forcefield)
   for (i=0; i < no_bond_types; i++) {
     backwards = 0;
     for (j=0; j < 4; j++) bondtypes[i].params[j] = 0.0;
-    for (j=0; j < 2; j++) 
+    for (j=0; j < 2; j++)
       strncpy(potential_types[j],
               atomtypes[bondtypes[i].types[j]].potential,5);
     k = find_match(2,potential_types,ff_bond,&backwards);
@@ -148,7 +148,7 @@ void GetParameters(int Forcefield)
   if (pflag > 2) {
     printf("\n Bond Types and  Parameters\n");
     for (i=0; i < no_bond_types; i++) {
-      for (j=0; j < 2; j++) 
+      for (j=0; j < 2; j++)
         printf("%-3s",atomtypes[bondtypes[i].types[j]].potential);
       for (j=0; j < 4; j++)
         printf(" %8.4f",bondtypes[i].params[j]);
@@ -250,7 +250,7 @@ void GetParameters(int Forcefield)
   if (pflag > 2) {
     printf("\n Angle Types and Parameters\n");
     for (i=0; i < no_angle_types; i++) {
-      for (j=0; j < 3; j++) 
+      for (j=0; j < 3; j++)
         printf(" %-3s", atomtypes[angletypes[i].types[j]].potential);
       for (j=0; j < 4; j++) printf(" %8.4f",angletypes[i].params[j]);
       printf("\n");
@@ -259,17 +259,17 @@ void GetParameters(int Forcefield)
     if (forcefield > 1) {
       printf("\n BondBond Types and  Parameters\n");
       for (i=0; i < no_angle_types; i++) {
-        for (j=0; j < 3; j++) 
+        for (j=0; j < 3; j++)
           printf("%-3s",atomtypes[angletypes[i].types[j]].potential);
-        for (j=0; j < 3; j++) 
+        for (j=0; j < 3; j++)
           printf(" %8.4f",angletypes[i].bondbond_cross_term[j]);
         printf("\n");
       }
       printf("\n BondAngle Types and  Parameters\n");
       for (i=0; i < no_angle_types; i++) {
-        for (j=0; j < 3; j++) 
+        for (j=0; j < 3; j++)
           printf("%-3s",atomtypes[angletypes[i].types[j]].potential);
-        for (j=0; j < 4; j++) 
+        for (j=0; j < 4; j++)
           printf(" %8.4f",angletypes[i].bondangle_cross_term[j]);
         printf("\n");
       }
@@ -320,7 +320,7 @@ void GetParameters(int Forcefield)
     } else {
       if (Forcefield == 1) {
         multiplicity = 1;
-        if (ff_tor.data[k].ff_types[0][0] == '*') 
+        if (ff_tor.data[k].ff_types[0][0] == '*')
           multiplicity =
             atomtypes[dihedraltypes[i].types[1]].no_connect-1;
         if (ff_tor.data[k].ff_types[3][0] == '*')
@@ -357,14 +357,14 @@ void GetParameters(int Forcefield)
       }
 
       for (j=0; j < 8; j++)
-        dihedraltypes[i].endbonddihedral_cross_term[j] = 0.0;     
-      for (j=0; j < 4; j++) 
+        dihedraltypes[i].endbonddihedral_cross_term[j] = 0.0;
+      for (j=0; j < 4; j++)
         dihedraltypes[i].midbonddihedral_cross_term[j] = 0.0;
-      for (j=0; j < 8; j++) 
+      for (j=0; j < 8; j++)
         dihedraltypes[i].angledihedral_cross_term[j] = 0.0;
-      for (j=0; j < 3; j++) 
+      for (j=0; j < 3; j++)
         dihedraltypes[i].angleangledihedral_cross_term[j] = 0.0;
-      for (j=0; j < 3; j++) 
+      for (j=0; j < 3; j++)
         dihedraltypes[i].bond13_cross_term[j] = 0.0;
 
       rab = get_r0(dihedraltypes[i].types[0],dihedraltypes[i].types[1]);
@@ -443,7 +443,7 @@ void GetParameters(int Forcefield)
           ff_midbontor.data[k].ff_param[0];
         dihedraltypes[i].midbonddihedral_cross_term[1] =
           ff_midbontor.data[k].ff_param[1];
-        dihedraltypes[i].midbonddihedral_cross_term[2] = 
+        dihedraltypes[i].midbonddihedral_cross_term[2] =
           ff_midbontor.data[k].ff_param[2];
       }
 
@@ -528,9 +528,9 @@ void GetParameters(int Forcefield)
   if (pflag > 2) {
     printf("\n Dihedral Types and  Parameters\n");
     for (i=0; i < no_dihedral_types; i++) {
-      for (j=0; j < 4; j++) 
+      for (j=0; j < 4; j++)
         printf("%-3s",atomtypes[dihedraltypes[i].types[j]].potential);
-      for (j=0; j < 6; j++) 
+      for (j=0; j < 6; j++)
         printf(" %8.4f",dihedraltypes[i].params[j]);
       printf("\n");
     }
@@ -539,35 +539,35 @@ void GetParameters(int Forcefield)
 
       printf("\n EndBondDihedral Types and Parameters\n");
       for (i=0; i < no_dihedral_types; i++) {
-        for (j=0; j < 4; j++) 
+        for (j=0; j < 4; j++)
           printf("%-3s",atomtypes[dihedraltypes[i].types[j]].potential);
-        for (j=0; j < 8; j++) 
+        for (j=0; j < 8; j++)
           printf(" %8.4f",dihedraltypes[i].endbonddihedral_cross_term[j]);
         printf("\n");
       }
       printf("\n MidBondDihedral Types and Parameters\n");
       for (i=0; i < no_dihedral_types; i++) {
-        for (j=0; j < 4; j++) 
+        for (j=0; j < 4; j++)
           printf(" %-3s",atomtypes[dihedraltypes[i].types[j]].potential);
-        for (j=0; j < 4; j++) 
+        for (j=0; j < 4; j++)
           printf(" %8.4f",dihedraltypes[i].midbonddihedral_cross_term[j]);
         printf("\n");
       }
 
       printf("\n AngleDihedral Types and Parameters\n");
       for (i=0; i < no_dihedral_types; i++) {
-        for (j=0; j < 4; j++) 
+        for (j=0; j < 4; j++)
           printf("%-3s",atomtypes[dihedraltypes[i].types[j]].potential);
-        for (j=0; j < 8; j++) 
+        for (j=0; j < 8; j++)
           printf(" %8.4f",dihedraltypes[i].angledihedral_cross_term[j]);
         printf("\n");
       }
 
       printf("\n AngleAngleDihedral Types and Parameters\n");
       for (i=0; i < no_dihedral_types; i++) {
-        for (j=0; j < 4; j++) 
+        for (j=0; j < 4; j++)
           printf(" %-3s",atomtypes[dihedraltypes[i].types[j]].potential);
-        for (j=0; j < 3; j++) 
+        for (j=0; j < 3; j++)
           printf("%8.4f",dihedraltypes[i].angleangledihedral_cross_term[j]);
         printf("\n");
       }
@@ -577,7 +577,7 @@ void GetParameters(int Forcefield)
       for (i=0; i < no_dihedral_types; i++) {
         for (j=0; j < 4; j++)
           printf(" %-3s",atomtypes[dihedraltypes[i].types[j]].potential);
-        for (j=0; j < 3; j++) 
+        for (j=0; j < 3; j++)
           printf(" %8.4f",dihedraltypes[i].bond13_cross_term[j]);
         printf("\n");
       }
@@ -681,7 +681,7 @@ void GetParameters(int Forcefield)
   if (pflag > 2) {
     printf("\n OOP Types and  Parameters\n");
     for (i=0; i < no_oop_types; i++) {
-      for (j=0; j < 4; j++) 
+      for (j=0; j < 4; j++)
         printf("%-3s",atomtypes[ooptypes[i].types[j]].potential);
       for (j=0; j < 3; j++)
         printf(" %8.4f",ooptypes[i].params[j]);
@@ -722,7 +722,7 @@ void GetParameters(int Forcefield)
                     ooptypes[i].types[3]);
       tcbd = get_t0(ooptypes[i].types[2],
                     ooptypes[i].types[1],
-		
+
                     ooptypes[i].types[3]);
 
       ooptypes[i].angleangle_params[3] = tabc;
@@ -743,7 +743,7 @@ void GetParameters(int Forcefield)
       }
       if (k < 0) {
         printf(" Unable to find angleangle data for %s %s %s %s\n",
-               potential_types[0],	
+               potential_types[0],
                potential_types[1],potential_types[2],potential_types[3]);
         condexit(24);
       } else {
@@ -802,7 +802,7 @@ void GetParameters(int Forcefield)
     if (pflag > 2) {
       printf("\n AngleAngle Types and  Parameters\n");
       for (i=0; i < no_oop_types; i++) {
-        for (j=0; j < 4; j++) 
+        for (j=0; j < 4; j++)
           printf("%-3s",atomtypes[ooptypes[i].types[j]].potential);
         for (j=0; j < 6; j++)
           printf(" %8.4f",ooptypes[i].angleangle_params[j]);
@@ -819,7 +819,7 @@ void GetParameters(int Forcefield)
 }
 
 int find_improper_body_data(char types1[][5],struct FrcFieldItem item,
-			    int *rearrange_ptr)
+                            int *rearrange_ptr)
 {
   int k,backwards;
   char mirror_types[4][5];
@@ -890,9 +890,9 @@ void rearrange_improper(int ooptype,int rearrange)
     ooptypes[ooptype].types[3] = temp[2];
     for (i=0; i < total_no_oops; i++) {
       if (oops[i].type == ooptype) {
-	for (j=0; j < 4; j++) temp[j] = oops[i].members[j];
-	oops[i].members[2] = temp[3];
-	oops[i].members[3] = temp[2];
+        for (j=0; j < 4; j++) temp[j] = oops[i].members[j];
+        oops[i].members[2] = temp[3];
+        oops[i].members[3] = temp[2];
       }
     }
     break;
@@ -902,10 +902,10 @@ void rearrange_improper(int ooptype,int rearrange)
     ooptypes[ooptype].types[3] = temp[2];
     for (i=0; i < total_no_oops; i++) {
       if (oops[i].type == ooptype) {
-	for (j=0; j < 4; j++) temp[j] = oops[i].members[j];
-	oops[i].members[0] = temp[3];
-	oops[i].members[2] = temp[0];
-	oops[i].members[3] = temp[2];
+        for (j=0; j < 4; j++) temp[j] = oops[i].members[j];
+        oops[i].members[0] = temp[3];
+        oops[i].members[2] = temp[0];
+        oops[i].members[3] = temp[2];
       }
     }
     break;
@@ -915,10 +915,10 @@ void rearrange_improper(int ooptype,int rearrange)
     ooptypes[ooptype].types[3] = temp[0];
     for (i=0; i < total_no_oops; i++) {
       if (oops[i].type == ooptype) {
-	for (j=0; j < 4; j++) temp[j] = oops[i].members[j];
-	oops[i].members[0] = temp[3];
-	oops[i].members[2] = temp[2];
-	oops[i].members[3] = temp[0];
+        for (j=0; j < 4; j++) temp[j] = oops[i].members[j];
+        oops[i].members[0] = temp[3];
+        oops[i].members[2] = temp[2];
+        oops[i].members[3] = temp[0];
       }
     }
     break;
@@ -928,10 +928,10 @@ void rearrange_improper(int ooptype,int rearrange)
     ooptypes[ooptype].types[3] = temp[3];
     for (i=0; i < total_no_oops; i++) {
       if (oops[i].type == ooptype) {
-	for (j=0; j < 4; j++) temp[j] = oops[i].members[j];
-	oops[i].members[0] = temp[2];
-	oops[i].members[2] = temp[0];
-	oops[i].members[3] = temp[3];
+        for (j=0; j < 4; j++) temp[j] = oops[i].members[j];
+        oops[i].members[0] = temp[2];
+        oops[i].members[2] = temp[0];
+        oops[i].members[3] = temp[3];
       }
     }
     break;
@@ -941,10 +941,10 @@ void rearrange_improper(int ooptype,int rearrange)
     ooptypes[ooptype].types[3] = temp[0];
     for (i=0; i < total_no_oops; i++) {
       if (oops[i].type == ooptype) {
-	for (j=0; j < 4; j++) temp[j] = oops[i].members[j];
-	oops[i].members[0] = temp[2];
-	oops[i].members[2] = temp[3];
-	oops[i].members[3] = temp[0];
+        for (j=0; j < 4; j++) temp[j] = oops[i].members[j];
+        oops[i].members[0] = temp[2];
+        oops[i].members[2] = temp[3];
+        oops[i].members[3] = temp[0];
       }
     }
     break;
@@ -1053,7 +1053,7 @@ int find_angleangle_data(char types1[][5],struct FrcFieldItem item,int kloc[3])
 }
 
 int find_match(int n, char types1[][5],struct FrcFieldItem item,int
-	       *backwards_ptr)
+               *backwards_ptr)
 {
   int k,match;
 
@@ -1075,9 +1075,9 @@ int find_match(int n, char types1[][5],struct FrcFieldItem item,int
     k=0;
     while (!match && (k < item.entries)) {
       if (match_types(n,1,types1,item.data[k].ff_types,backwards_ptr) == 1)
-	match = 1;
+        match = 1;
       else
-	k++;
+        k++;
     }
   }
   if (match) return k;
@@ -1085,18 +1085,18 @@ int find_match(int n, char types1[][5],struct FrcFieldItem item,int
 }
 
 int match_types(int n,int wildcard,char types1[][5],char types2[][5],
-		int *backwards_ptr)
+                int *backwards_ptr)
 {
   int k,match;
 
   /* Routine to match short arrays of characters strings which contain
      atom potential types. The arrays range from 1 to 4 (VDW or equivalences,
      bond, angle, dihedrals or oops). There are potentially four ways the
-     arrays can match: exact match (forwards), exact match when one array is 
+     arrays can match: exact match (forwards), exact match when one array is
      run backwards (backwards), forwards with wildcard character match allowed
-     (forwards *) and finally backwards with wildcard character match 
-     (backwards *). If the variable, backwards (pointed by backwards_ptr) 
-     is -1, then the backwards options are not to be used (such when 
+     (forwards *) and finally backwards with wildcard character match
+     (backwards *). If the variable, backwards (pointed by backwards_ptr)
+     is -1, then the backwards options are not to be used (such when
      matching oop types)
   */
 
@@ -1109,9 +1109,9 @@ int match_types(int n,int wildcard,char types1[][5],char types2[][5],
     match = 1;
     while (match && (k < n)) {
       if (strncmp(types1[k],types2[k],5) == 0)
-	k++;
+        k++;
       else
-	match = 0;
+        match = 0;
     }
   }
   else {
@@ -1123,10 +1123,10 @@ int match_types(int n,int wildcard,char types1[][5],char types2[][5],
     match = 1;
     while (match && (k < n)) {
       if ((strncmp(types1[k],types2[k],5) == 0) ||
-	  (types2[k][0] == '*'))
-	k++;
+          (types2[k][0] == '*'))
+        k++;
       else
-	match = 0;
+        match = 0;
     }
   }
 
@@ -1144,9 +1144,9 @@ int match_types(int n,int wildcard,char types1[][5],char types2[][5],
     match = 1;
     while (match && (k < n)) {
       if (strncmp(types1[n-k-1],types2[k],5) == 0)
-	k++;
+        k++;
       else
-	match = 0;
+        match = 0;
     }
   }
   else {
@@ -1156,11 +1156,11 @@ int match_types(int n,int wildcard,char types1[][5],char types2[][5],
     k=0;
     match = 1;
     while (match && (k < n)) {
-      if ((strncmp(types1[n-k-1],types2[k],5) == 0) || 
-	  (types2[k][0] == '*')                   )
-	k++;
+      if ((strncmp(types1[n-k-1],types2[k],5) == 0) ||
+          (types2[k][0] == '*')                   )
+        k++;
       else
-	match = 0;
+        match = 0;
     }
   }
 
@@ -1182,9 +1182,9 @@ double get_r0(int typei,int typej)
 
   while (!match && (k < no_bond_types)) {
     if (((typei == bondtypes[k].types[0]) &&
-	 (typej == bondtypes[k].types[1])) ||
-	((typej == bondtypes[k].types[0]) &&
-	 (typei == bondtypes[k].types[1]))   ) {
+         (typej == bondtypes[k].types[1])) ||
+        ((typej == bondtypes[k].types[0]) &&
+         (typei == bondtypes[k].types[1]))   ) {
       r = bondtypes[k].params[0];
       match = 1;
     }
@@ -1208,11 +1208,11 @@ double get_t0(int typei,int typej,int typek)
 
   while (!match && (k < no_angle_types)) {
     if (((typei == angletypes[k].types[0]) &&
-	 (typej == angletypes[k].types[1]) &&
-	 (typek == angletypes[k].types[2])) ||
-	((typek == angletypes[k].types[0]) &&
-	 (typej == angletypes[k].types[1]) && 
-	 (typei == angletypes[k].types[2]))   ) {
+         (typej == angletypes[k].types[1]) &&
+         (typek == angletypes[k].types[2])) ||
+        ((typek == angletypes[k].types[0]) &&
+         (typej == angletypes[k].types[1]) &&
+         (typei == angletypes[k].types[2]))   ) {
       theta = angletypes[k].params[0];
       match = 1;
     }
@@ -1222,7 +1222,7 @@ double get_t0(int typei,int typej,int typek)
 
   if (match == 0)
     printf(" Unable to find t0 for types %d %d %d\n",
-	   typei,typej,typek);
+           typei,typej,typek);
   return theta;
 }
 
@@ -1279,7 +1279,7 @@ void get_equivs(int ic,char potential_types[][5],char equiv_types[][5])
     for (i=0; i < 4; i++) {
       k = find_equiv_type(potential_types[i]);
       if (k > -1)
-	strncpy(equiv_types[i],equivalence.data[k].ff_types[5],5);
+        strncpy(equiv_types[i],equivalence.data[k].ff_types[5],5);
     }
     break;
   default:
@@ -1298,7 +1298,7 @@ int find_equiv_type(char potential_type[5])
 
   while (!match && (k < equivalence.entries)) {
     if (strncmp(potential_type,
-		equivalence.data[k].ff_types[0],5) == 0) {
+                equivalence.data[k].ff_types[0],5) == 0) {
       match = 1;
       j = k;
     } else {

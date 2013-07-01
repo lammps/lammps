@@ -38,11 +38,11 @@ static int blank_line(char *line)
 
 void ReadMdfFile(void)
 {
-  char line[MAX_LINE_LENGTH];	/* Temporary storage for reading lines */
-  char *col_no;		/* Pointer to column number stored as char */
-  char *col_name;		/* Pointer to column name */
-  int connect_col_no = 0;	/* Column number where connection info begins */
-  int q_col_no = 0;		/* Column number containg charge information */
+  char line[MAX_LINE_LENGTH];        /* Temporary storage for reading lines */
+  char *col_no;                /* Pointer to column number stored as char */
+  char *col_name;                /* Pointer to column name */
+  int connect_col_no = 0;        /* Column number where connection info begins */
+  int q_col_no = 0;                /* Column number containg charge information */
   int atom_counter=0;          /* Keeps track of current atom number */
 
   int i,j,k,kk,l,n,match,match2,status;
@@ -125,7 +125,7 @@ void ReadMdfFile(void)
       }
     }
 
-    molecule[n].residue = (struct ResidueList *) 
+    molecule[n].residue = (struct ResidueList *)
       calloc(molecule[n].no_residues, sizeof(struct ResidueList));
 
     if (molecule[n].residue == NULL) {
@@ -142,7 +142,7 @@ void ReadMdfFile(void)
     for (i=molecule[n].start+1; i < molecule[n].end; i++) {
       if (strncmp(molecule[n].residue[j].name,
                   atoms[i].residue_string,16) != 0) {
-        
+
         molecule[n].residue[j].end = i;
         molecule[n].residue[++j].start = i;
         strncpy(molecule[n].residue[j].name,atoms[i].residue_string,16);
@@ -233,7 +233,7 @@ void ReadMdfFile(void)
           } /* end if */
         } /* l - loop over connections on atom i */
       } /* i - loop on atoms in residue j molecule n */
-    } /* j - loop on residues in molecule n */   
+    } /* j - loop on residues in molecule n */
   } /* n - loop over molecules */
 
   free(temp_string);
@@ -261,51 +261,51 @@ void ReadMdfFile(void)
     printf("Error closing %s.car\n", rootname);
     exit(1);
   }
-   
+
 } /* End ReadMdfFile function */
 
 /*--------------------- get_molecule Function-----------------------*/
 
 int get_molecule(char *line, int connect_col_no, int q_col_no,
-		 int *counter)
+                 int *counter)
 {
-  char *cur_field;	/* For storing current string token */
-  int i; 		/* Used in loop counters */
+  char *cur_field;        /* For storing current string token */
+  int i;                 /* Used in loop counters */
   int connect_no;      /* Connection number within atom */
-  int r_val = 1;	/* Return value.  1 = successful
-					  0 = EOF encountered */
- /* Loop over atoms */
+  int r_val = 1;        /* Return value.  1 = successful
+                           0 = EOF encountered */
+  /* Loop over atoms */
 
   /* blank line signals end of molecule*/
   while(!blank_line(fgets(line,MAX_LINE_LENGTH,MdfF))) {
     /*  while(strlen(fgets(line,MAX_LINE_LENGTH,MdfF)) > 2) { */
 
-      clean_string(line);
+    clean_string(line);
 
     /* Get atom name */
     cur_field = strtok(line,":");
     sscanf(cur_field, "%s", atoms[*counter].residue_string);
-    cur_field = strtok(NULL," "); 
+    cur_field = strtok(NULL," ");
     /* Compare atom name with that in .car file */
     if (strcmp(atoms[*counter].name, cur_field)) {
       printf("Names %s from .car file and %s from .mdf file do not match\n",
-	      atoms[*counter].name, cur_field);
+             atoms[*counter].name, cur_field);
       printf("counter = %d\n",*counter);
       printf("Program Terminating\n");
       exit(4);
     }
 
-  /* Skip unwanted fields until charge column, then update charge */
-    
+    /* Skip unwanted fields until charge column, then update charge */
+
     for (i=1; i < q_col_no; i++) strtok(NULL," ");
     cur_field = strtok(NULL, " ");
     atoms[*counter].q = atof(cur_field);
 
-  /* Continue skipping unwanted fields until connectivity records begin */
+    /* Continue skipping unwanted fields until connectivity records begin */
 
     for ( i = (q_col_no + 1); i < connect_col_no; i++) strtok(NULL," ");
 
-   /* Process connections */
+    /* Process connections */
 
     connect_no = 0; /* reset connections counter */
     while ((cur_field = strtok(NULL," ")) && (connect_no < MAX_CONNECTIONS)) {
@@ -315,9 +315,9 @@ int get_molecule(char *line, int connect_col_no, int q_col_no,
     MakeConnectFullForm(counter);
     (*counter)++;
 
-   } /* End atom processing loop */
+  } /* End atom processing loop */
 
-   return r_val;
+  return r_val;
 
 } /* End get_molecule function */
 
@@ -328,74 +328,74 @@ int get_molecule(char *line, int connect_col_no, int q_col_no,
 void MakeConnectFullForm(int *counter) {
 
   /* This function processes the connection names after all connections
-   for an atom have been read in.
-   It replaces any short forms that use implied default values
-   with the full form connectivity record */
+     for an atom have been read in.
+     It replaces any short forms that use implied default values
+     with the full form connectivity record */
 
-   int i;		/* Counter for character array */
-   int j;		/* loop counter */
-   char tempname[MAX_STRING];   /* name of connection */
-   char tempcell[10];   /* Values from connectivity record */
-   char tempsym[5];              /* " " */
-   char tempbo[6];               /* " " */
-   char *charptr;
+  int i;                /* Counter for character array */
+  int j;                /* loop counter */
+  char tempname[MAX_STRING];   /* name of connection */
+  char tempcell[10];   /* Values from connectivity record */
+  char tempsym[5];              /* " " */
+  char tempbo[6];               /* " " */
+  char *charptr;
 
-   for ( j = 0; j < atoms[*counter].no_connect; j++) {
-  /* If not full name, make name full */
-     if (strchr(atoms[*counter].connections[j],':') == NULL) {
-         strcpy(tempname,atoms[*counter].residue_string);
-	 strcat(tempname,":");
-         strcat(tempname,
-		atoms[*counter].connections[j]);
-         sscanf(tempname, "%s",
-		atoms[*counter].connections[j]);
-     }
-     else
-       sscanf(atoms[*counter].connections[j], "%s", tempname);
-     /* Set cell variables */
-     
-     i=0;
-     charptr = (strchr(tempname,'%'));
-     if (charptr != NULL) {
-       while ( *charptr!='#' && *charptr!='/' && *charptr!='\000')
-         tempcell[i++] = *(charptr++);
-       tempcell[i] = '\000';
-     }
-     else
-       strcpy(tempcell, "%000");
+  for ( j = 0; j < atoms[*counter].no_connect; j++) {
+    /* If not full name, make name full */
+    if (strchr(atoms[*counter].connections[j],':') == NULL) {
+      strcpy(tempname,atoms[*counter].residue_string);
+      strcat(tempname,":");
+      strcat(tempname,
+             atoms[*counter].connections[j]);
+      sscanf(tempname, "%s",
+             atoms[*counter].connections[j]);
+    }
+    else
+      sscanf(atoms[*counter].connections[j], "%s", tempname);
+    /* Set cell variables */
 
-  /* Set symmetry variables
-	-- If not 1, cannot handle at this time */
+    i=0;
+    charptr = (strchr(tempname,'%'));
+    if (charptr != NULL) {
+      while ( *charptr!='#' && *charptr!='/' && *charptr!='\000')
+        tempcell[i++] = *(charptr++);
+      tempcell[i] = '\000';
+    }
+    else
+      strcpy(tempcell, "%000");
 
-   i = 0;
-   charptr = (strchr(tempname,'#'));
-   if (charptr != NULL)  {
-     while (*charptr != '/' && *charptr !='\000') {
-       tempsym[i++] = *(charptr++);
-          if ((i==2) && (tempsym[1] != '1')) {
-	    printf("Msi2LMP is not equipped to handle symmetry operations\n");
-	    exit(5);
-          }
-       }
-     tempsym[i] = '\000';
-   }
-   else
-     strcpy(tempsym, "#1");
+    /* Set symmetry variables
+       -- If not 1, cannot handle at this time */
 
-  /* Set bond order and record in data structure */
+    i = 0;
+    charptr = (strchr(tempname,'#'));
+    if (charptr != NULL)  {
+      while (*charptr != '/' && *charptr !='\000') {
+        tempsym[i++] = *(charptr++);
+        if ((i==2) && (tempsym[1] != '1')) {
+          printf("Msi2LMP is not equipped to handle symmetry operations\n");
+          exit(5);
+        }
+      }
+      tempsym[i] = '\000';
+    }
+    else
+      strcpy(tempsym, "#1");
 
-   i = 0;
-   charptr = strchr(tempname,'/');
-   if (charptr != NULL) {
+    /* Set bond order and record in data structure */
+
+    i = 0;
+    charptr = strchr(tempname,'/');
+    if (charptr != NULL) {
       charptr++;
       while (*charptr != '\000')
-	tempbo[i++] = *(charptr++);
+        tempbo[i++] = *(charptr++);
       tempbo[i] = '\000';
-   } else strcpy(tempbo, "1.0");
+    } else strcpy(tempbo, "1.0");
 
-   atoms[*counter].bond_order[j] = atof(tempbo);
+    atoms[*counter].bond_order[j] = atof(tempbo);
 
-/* Build connection name and store in atoms data structure */
+    /* Build connection name and store in atoms data structure */
 
     strtok( tempname, "%#/");
     strcat( tempname, tempcell);
@@ -404,9 +404,9 @@ void MakeConnectFullForm(int *counter) {
     strcat( tempname, tempbo);
     if (strlen(tempname) > 25) printf("tempname overrun %s\n",tempname);
     sscanf( tempname, "%s", atoms[*counter].connections[j]);
-   }/*End for loop*/
+  }/*End for loop*/
 }/* End function MakeNameLong
-*/
+  */
 
 void clean_string(char *string) {
   int i,n;

@@ -48,15 +48,16 @@
       These Windows binaries include GPU acceleration via the <u>GPU</u> package.
       This is achieved through compiling the GPU package in OpenCL mode and linking
       to an <a href="http://www.khronos.org/opencl/" target="_blank">OpenCL v1.2</a>
-      compatible ICD loader. This means the executables are compatible with GPUs from both 
+      compatible ICD loader. This means the executables do not contain any vendor
+      provided code and should be compatible with GPUs from both 
       <a href="http://developer.amd.com/resources/heterogeneous-computing/opencl-zone/" target="_blank">AMD</a>
       and <a href="http://www.nvidia.com/opencl/" target="_blank">Nvidia</a>.
-      The GPU package has been compiled for mixed precision computation, and
+      The GPU package has been compiled for mixed precision computation and
       is currently somewhat tuned for Nvidia (Fermi generation) GPUs.
-      It <u>does not yet work</u> with CPU OpenCL drivers (like those included
+      It <u>does not yet</u> work with OpenCL drivers for CPUs (like those included
       in the Intel and AMD OpenCL SDKs). Work is under way to improve and expand
-      OpenCL support in LAMMPS, and particularly provide means so that the 
-      individual kernels are optimized for specific platforms are runtime.
+      OpenCL support in LAMMPS and particularly provide means so that the 
+      individual kernels are optimized for specific platforms at runtime.
       Please watch <a href="http://users.nccs.gov/~wb8/gpu/" target="_blank">
         Mike Brown's LAMMPS accelerator library web page</a> for status updates.<br>
       <br>
@@ -160,7 +161,7 @@
       by the <i>/omp</i> suffix. Those can be selected explicitly and selectively,
       or with the 
       <a href="http://lammps.sandia.gov/doc/package.html" target="_blank">suffix</a>
-      command or - most conveniently - via using the <strong><code>-sf omp</code></strong>
+      command or - most conveniently - via using the <strong><code>-sfs&nbsp;omp</code></strong>
       command line flag to the LAMMPS executable.
     </p>
 

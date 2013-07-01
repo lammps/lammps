@@ -1253,25 +1253,25 @@ void get_equivs(int ic,char potential_types[][5],char equiv_types[][5])
   switch (ic) {
   case 1:
     k = find_equiv_type(potential_types[0]);
-    if (k > -1) strncpy(equiv_types[0],equivalence.data[k].ff_types[0],5);
+    if (k > -1) strncpy(equiv_types[0],equivalence.data[k].ff_types[1],5);
     break;
 
   case 2:
     for (i=0; i < 2; i++) {
       k = find_equiv_type(potential_types[i]);
-      if (k > -1) strncpy(equiv_types[i],equivalence.data[k].ff_types[1],5);
+      if (k > -1) strncpy(equiv_types[i],equivalence.data[k].ff_types[2],5);
     }
     break;
   case 3:
     for (i=0; i < 3; i++) {
       k = find_equiv_type(potential_types[i]);
-      if (k > -1) strncpy(equiv_types[i],equivalence.data[k].ff_types[2],5);
+      if (k > -1) strncpy(equiv_types[i],equivalence.data[k].ff_types[3],5);
     }
     break;
   case 4:
     for (i=0; i < 4; i++) {
       k = find_equiv_type(potential_types[i]);
-      if (k > -1) strncpy(equiv_types[i],equivalence.data[k].ff_types[3],5);
+      if (k > -1) strncpy(equiv_types[i],equivalence.data[k].ff_types[4],5);
     }
     break;
 
@@ -1279,6 +1279,9 @@ void get_equivs(int ic,char potential_types[][5],char equiv_types[][5])
     for (i=0; i < 4; i++) {
       k = find_equiv_type(potential_types[i]);
       if (k > -1)
+        /* XXX: this leads to an out-of-bounds access.
+           the change below does not seem to make a difference.
+           strncpy(equiv_types[i],equivalence.data[k].ff_types[5],5); */
         strncpy(equiv_types[i],equivalence.data[k].ff_types[4],5);
     }
     break;

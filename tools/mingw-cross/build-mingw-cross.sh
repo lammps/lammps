@@ -30,7 +30,7 @@ done
 pushd "${LAMMPS_PATH}"
 
 git archive -v --format=tar --prefix=lammps-current/ HEAD \
-    README LICENSE doc src lib python txt2html \
+    README LICENSE doc src lib python txt2html lammps.book \
     examples/{README,dipole,peri,hugoniostat,colloid,crack,friction,msst,obstacle,body,sputter,pour,ELASTIC,neb,ellipse,flow,meam,min,indent,micelle,shear,srd,dreiding,eim,prd,rigid,COUPLE,peptide,melt,comb,tad,reax,USER/{awpmd,misc,phonon,cg-cmm}} \
     bench potentials tools/*.cpp tools/*.f tools/mingw-cross tools/msi2lmp \
     | tar -C ${MINGW_BUILD_DIR} -xvf -

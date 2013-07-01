@@ -946,6 +946,7 @@ package"_Section_accelerate.html.
 "morse/gpu"_pair_morse.html,
 "morse/omp"_pair_morse.html,
 "morse/opt"_pair_morse.html,
+"nb3b/harmonic/omp"_pair_nb3b_harmonic.html,
 "peri/lps/omp"_pair_peri.html,
 "peri/pmb/omp"_pair_peri.html,
 "rebo/omp"_pair_airebo.html,

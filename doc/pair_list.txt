@@ -44,8 +44,8 @@ The format of the list file is as follows:
 
 one line per pair of atoms :ulb,l
 empty lines will be ignored :l
-comment text starts with a '#' character 
-line syntax: ID1 ID2 style coeffs cutoff :l
+comment text starts with a '#' character :l
+line syntax: {ID1 ID2 style coeffs cutoff} :l
   ID1 = atom ID of first atom
   ID2 = atom ID of second atom
   style = style of interaction

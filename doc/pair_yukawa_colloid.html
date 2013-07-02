@@ -39,9 +39,10 @@ cutoff.
 </P>
 <P>In contrast to <A HREF = "pair_yukawa.html">pair_style yukawa</A>, this functional
 form arises from the Coulombic interaction between two colloid
-particles, screened due to the presence of an electrolyte.
-<A HREF = "pair_yukawa.html">Pair_style yukawa</A> is a screened Coulombic potential
-between two point-charges and uses no such approximation.
+particles, screened due to the presence of an electrolyte, see the
+book by <A HREF = "#Safran">Safran</A> for a derivation in the context of DVLO
+theory.  <A HREF = "pair_yukawa.html">Pair_style yukawa</A> is a screened Coulombic
+potential between two point-charges and uses no such approximation.
 </P>
 <P>This potential applies to nearby particle pairs for which the Derjagin
 approximation holds, meaning h << Ri + Rj, where h is the
@@ -150,5 +151,10 @@ diameter.
 <P><A HREF = "pair_coeff.html">pair_coeff</A>
 </P>
 <P><B>Default:</B> none
+</P>
+<A NAME = "Safran"></A>
+
+<P><B>(Safran)</B> Safran, Statistical Thermodynamics of Surfaces, Interfaces,
+And Membranes, Westview Press, ISBN: 978-0813340791 (2003).
 </P>
 </HTML>

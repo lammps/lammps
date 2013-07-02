@@ -40,6 +40,7 @@
 #include "update.h"
 #include "universe.h"
 #include "fix.h"
+#include "citeme.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -100,6 +101,7 @@ PPPMGPU::PPPMGPU(LAMMPS *lmp, int narg, char **arg) : PPPM(lmp, narg, arg)
   im_real_space = false;
 
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
+  citeme->add(CiteMe::BROWN_2012);
 }
 
 /* ----------------------------------------------------------------------

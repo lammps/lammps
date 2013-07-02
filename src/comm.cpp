@@ -39,6 +39,7 @@
 #include "math_extra.h"
 #include "error.h"
 #include "memory.h"
+#include "citeme.h"
 
 #ifdef _OPENMP
 #include "omp.h"
@@ -1685,6 +1686,8 @@ void Comm::set(int narg, char **arg)
   if (strcmp(arg[0],"single") == 0) style = SINGLE;
   else if (strcmp(arg[0],"multi") == 0) style = MULTI;
   else error->all(FLERR,"Illegal communicate command");
+
+  if (style == MULTI) citeme->add(CiteMe::INTVELD_2008);
 
   int iarg = 1;
   while (iarg < narg) {

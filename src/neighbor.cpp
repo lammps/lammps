@@ -38,6 +38,7 @@
 #include "output.h"
 #include "memory.h"
 #include "error.h"
+#include "citeme.h"
 
 using namespace LAMMPS_NS;
 
@@ -1642,6 +1643,8 @@ void Neighbor::set(int narg, char **arg)
   else if (strcmp(arg[1],"bin") == 0) style = BIN;
   else if (strcmp(arg[1],"multi") == 0) style = MULTI;
   else error->all(FLERR,"Illegal neighbor command");
+
+  if (style == MULTI) citeme->add(CiteMe::INTVELD_2008);
 }
 
 /* ----------------------------------------------------------------------

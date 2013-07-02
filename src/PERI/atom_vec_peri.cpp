@@ -25,6 +25,7 @@
 #include "fix.h"
 #include "memory.h"
 #include "error.h"
+#include "citeme.h"
 
 using namespace LAMMPS_NS;
 
@@ -48,6 +49,8 @@ AtomVecPeri::AtomVecPeri(LAMMPS *lmp) : AtomVec(lmp)
 
   atom->peri_flag = 1;
   atom->vfrac_flag = atom->rmass_flag = 1;
+
+  citeme->add(CiteMe::PARKS_2008);
 }
 
 /* ----------------------------------------------------------------------

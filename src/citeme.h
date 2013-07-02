@@ -28,11 +28,27 @@ class CiteMe : protected Pointers {
 
   // constants for references
   enum {
-    PLIMPTON_1995
+    PLIMPTON_1995=0,
+    PLIMPTON_1997,
+    AUHL_2003,
+    JANSSENS_2006,
+    INTVELD_2008,
+    PARKS_2008,
+    MUKHERJEE_2008,
+    BROWN_2009,
+    THOMPSON_2009,
+    PETERSEN_2010,
+    BROWN_2012,
+    JARAMILLO_BOTERO_2011,
+    KONG_2011,
+    AKTULGA_2012,
+    PLIMPTON_2012,
+    SIRK_2013,
+    LAST_ENTRY
   };
 
  private:
-  void *list;
+  void *pubs;
 };
 
 }

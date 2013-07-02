@@ -30,6 +30,7 @@
 #include "integrate.h"
 #include "memory.h"
 #include "error.h"
+#include "citeme.h"
 
 using namespace LAMMPS_NS;
 
@@ -45,6 +46,7 @@ PairRESquared::PairRESquared(LAMMPS *lmp) : Pair(lmp),
   b_alpha = 45.0/56.0;
   solv_f_a = 3.0/(16.0*atan(1.0)*-36.0);
   solv_f_r = 3.0/(16.0*atan(1.0)*2025.0);
+  citeme->add(CiteMe::BROWN_2009);
 }
 
 /* ----------------------------------------------------------------------

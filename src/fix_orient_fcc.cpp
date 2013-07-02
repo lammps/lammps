@@ -32,6 +32,7 @@
 #include "memory.h"
 #include "error.h"
 #include "force.h"
+#include "citeme.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -166,6 +167,7 @@ FixOrientFCC::FixOrientFCC(LAMMPS *lmp, int narg, char **arg) :
 
   int nlocal = atom->nlocal;
   for (int i = 0; i < nlocal; i++) order[i][0] = order[i][1] = 0.0;
+  citeme->add(CiteMe::JANSSENS_2006);
 }
 
 /* ---------------------------------------------------------------------- */

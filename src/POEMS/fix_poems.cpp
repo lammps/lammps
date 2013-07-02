@@ -35,6 +35,7 @@
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
+#include "citeme.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -255,6 +256,7 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
       fprintf(logfile,"%d clusters, %d bodies, %d joints, %d atoms\n",
               ncluster,nbody,njoint,nsum);
   }
+  citeme->add(CiteMe::MUKHERJEE_2008);
 }
 
 /* ----------------------------------------------------------------------

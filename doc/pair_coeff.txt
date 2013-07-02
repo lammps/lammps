@@ -93,10 +93,17 @@ directory specified by the LAMMPS_POTENTIALS environment variable.
 Thus if this is set to the potentials directory in the LAMMPS distro,
 then you can use those files from anywhere on your system, without
 copying them into your working directory.  Environment variables are
-set in different ways for different shells.  For example, in tcsh, you
-could type the following or put it in your .cshrc file:
+set in different ways for different shells.  Here are example settings
+for
 
-% setenv LAMMPS_POTENTIALS /home/users/plimpton/lammps/potentials :pre
+csh, tcsh:
+% setenv LAMMPS_POTENTIALS /path/to/lammps/potentials :pre
+
+bash:
+% export LAMMPS_POTENTIALS=/path/to/lammps/potentials :pre
+
+Windows:
+% set LAMMPS_POTENTIALS="C:\Path to LAMMPS\Potentials :pre
 
 :line
 

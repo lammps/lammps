@@ -38,6 +38,7 @@ class CiteMe : protected Pointers {
     BROWN_2009,
     THOMPSON_2009,
     PETERSEN_2010,
+    BROWN_2011,
     BROWN_2012,
     JARAMILLO_BOTERO_2011,
     KONG_2011,

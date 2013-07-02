@@ -40,7 +40,7 @@ static const char * const publication[] = {
   " Nature Materials, 5, 124-127 (2006).\n\n",
   /* INTVELD_2008 */
   "P.J. in 't Veld, S.J. Plimpton, G.S. Grest,\n"
-  " Accurate and Efficient Methods for Modeling Colloidal Mixtures in an"
+  " Accurate and Efficient Methods for Modeling Colloidal Mixtures in an\n"
   " Explicit Solvent using Molecular Dynamics,\n"
   " Comp. Phys. Comm., 179, 320-329 (2008).\n\n",
   /* PARKS_2008 */
@@ -57,25 +57,27 @@ static const char * const publication[] = {
   " J. Chem. Phys., 130, 044901 (2009)\n\n",
   /* THOMPSON_2009 */
   "A.P. Thompson, S.J. Plimpton, W. Mattson,\n"
-  " General formulation of pressure and stress tensor for arbitrary many-body"
+  " General formulation of pressure and stress tensor for arbitrary many-body\n"
   " interaction potentials under periodic boundary conditions,\n"
   " J. Chem. Phys., 131, 154107 (2009)\n\n",
   /* PETERSEN_2010 */
   "M.K. Petersen, J.B. Lechman, S.J. Plimpton, G.S. Grest, P.J. in't Veld, P.R. Schunk,\n"
-  " Mesoscale Hydrodynamics via Stochastic Rotation Dynamics: Comparison with Lennard-Jones Fluid,\n"
+  " Mesoscale Hydrodynamics via Stochastic Rotation Dynamics:\n"
+  "  Comparison with Lennard-Jones Fluid,\n"
   " J. Chem. Phys., 132, 174106 (2010)\n\n",
   /* BROWN_2011 */
   "W.M. Brown, P. Wang, S.J. Plimpton, A.N. Tharrington,\n"
-  " Implementing Molecular Dynamics on Hybrid High Performance Computers - Short Range Forces,\n"
+  " Implementing Molecular Dynamics on Hybrid High Performance Computers\n"
+  " - Short Range Forces,\n"
   " Comp. Phys. Comm., 182, 898-911, (2011)\n\n",
   /* BROWN_2012 */
-  "W.M. Brown, A. Kohlmeyer, S.J. Plimpton, A.N. Tharrington,"
-  " Implementing Molecular Dynamics on Hybrid High Performance"
-  " Computers - Particle-Particle Particle-Mesh,\n"
+  "W.M. Brown, A. Kohlmeyer, S.J. Plimpton, A.N. Tharrington,\n"
+  " Implementing Molecular Dynamics on Hybrid High Performance Computers\n"
+  " - Particle-Particle Particle-Mesh,\n"
   " Comp. Phys. Comm., 183, 449-459 (2012)\n\n",
   /* JARAMILLO_BOTERO_2011 */
   "A. Jaramillo-Botero, J. Su, A. Qi, W.A. Goddard III,\n"
-  " Large-Scale, Long-Term Nonadiabatic Electron Molecular Dynamics"
+  " Large-Scale, Long-Term Nonadiabatic Electron Molecular Dynamics\n"
   " for Describing Material Properties and Phenomena in Extreme Environments,\n"
   " J. Comp. Chem., 32, 497-512 (2011)\n\n",
   /* KONG_2011 */

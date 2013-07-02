@@ -1,11 +1,10 @@
 # chama - Intel sandybridge with dual socket/eight core nodes, mpic++, openmpi, no FFTW
-# 
-# need to load the following modules:
-#       1) intel/12.1          2) openmpi-intel/1.4
 
+# need to load the following modules:
+# 1) intel/12.1
+# 2) openmpi-intel/1.4
 
 SHELL = /bin/sh
-
 
 # ---------------------------------------------------------------------
 # compiler/linker settings
@@ -74,6 +73,11 @@ include Makefile.package
 EXTRA_INC = $(LMP_INC) $(PKG_INC) $(MPI_INC) $(FFT_INC) $(JPG_INC) $(PKG_SYSINC)
 EXTRA_PATH = $(PKG_PATH) $(MPI_PATH) $(FFT_PATH) $(JPG_PATH) $(PKG_SYSPATH)
 EXTRA_LIB = $(PKG_LIB) $(MPI_LIB) $(FFT_LIB) $(JPG_LIB) $(PKG_SYSLIB)
+
+# Path to src files
+
+vpath %.cpp ..
+vpath %.h ..
 
 # Link target
 

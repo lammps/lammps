@@ -115,8 +115,8 @@ CiteMe::CiteMe(LAMMPS *lmp) : Pointers(lmp) {
 void CiteMe::add(int ref)
 {
   intset *c = (intset *) pubs;
-  if ((ref >= 0 ) && (ref < LAST_ENTRY))
-    c->insert(ref);
+  if ((ref > FIRST_ENTRY ) && (ref < LAST_ENTRY))
+    c->insert(ref); // only add known entries
 }
 
 /* ---------------------------------------------------------------------- */
@@ -127,7 +127,6 @@ static const char cite_header[] = "\n"
   "in the following references:\n\n"
   "The LAMMPS Molecular Dynamics Simulator, Version " LAMMPS_VERSION "\n"
   "    http://lammps.sandia.gov\n\n";
-
 
 CiteMe::~CiteMe(){
   intset *c = (intset *)(pubs);
@@ -147,5 +146,3 @@ CiteMe::~CiteMe(){
 
   delete c;
 }
-
-

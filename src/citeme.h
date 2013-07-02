@@ -28,6 +28,7 @@ class CiteMe : protected Pointers {
 
   // constants for references
   enum {
+    FIRST_ENTRY=-1,
     PLIMPTON_1995=0,
     PLIMPTON_1997,
     AUHL_2003,

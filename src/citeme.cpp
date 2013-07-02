@@ -22,8 +22,8 @@ using namespace LAMMPS_NS;
 // the list of publications is below
 static const char * const publication[] = {
   /* PLIMPTON_1995 */  "S. Plimpton,"
-    " Fast Parallel Algorithms for Short-Range Molecular Dynamics,\n"
-    "  J Comp Phys, 117, 1-19 (1995)\n\n",
+  " Fast Parallel Algorithms for Short-Range Molecular Dynamics,\n"
+  "  J Comp Phys, 117, 1-19 (1995)\n\n",
   NULL 
 };
 
@@ -33,8 +33,20 @@ CiteMe::CiteMe(LAMMPS *lmp) : Pointers(lmp) {
   list = static_cast<std::set<int> *>(new std::set<int>);
 }
 
-static const char cite_header[] = "This simulation made used of algorithms "
-  "and methodologies described in the following references:\n\n"
+/* ---------------------------------------------------------------------- */
+
+void CiteMe::add(int ref)
+{
+  std::set<int> *c = static_cast< std::set<int> *>(list);
+  c->insert(ref);
+}
+
+/* ---------------------------------------------------------------------- */
+
+static const char cite_header[] = "\n"
+  "------------------------------------------------------------------------\n"
+  "This simulation made use of algorithms and methodologies described\n"
+  "in the following references:\n\n"
   "The LAMMPS Molecular Dynamics Simulator, Version " LAMMPS_VERSION "\n"
   "    http://lammps.sandia.gov\n\n";
 

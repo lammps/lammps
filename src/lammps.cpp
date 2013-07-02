@@ -480,6 +480,7 @@ void LAMMPS::create()
   update = new Update(this);  // must be after output, force, neighbor
   timer = new Timer(this);
   citeme = new CiteMe(this);
+  citeme->add(CiteMe::PLIMPTON_1995); // always reference this one
 }
 
 /* ----------------------------------------------------------------------

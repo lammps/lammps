@@ -37,6 +37,8 @@ class LAMMPS {
   class Output *output;          // thermo/dump/restart
   class Timer *timer;            // CPU timing info
 
+  class CiteMe *citeme;          // Relevant publications info
+
   MPI_Comm world;                // MPI communicator
   FILE *infile;                  // infile
   FILE *screen;                  // screen output

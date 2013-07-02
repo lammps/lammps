@@ -42,6 +42,7 @@
 #include "accelerator_cuda.h"
 #include "accelerator_omp.h"
 #include "timer.h"
+#include "citeme.h"
 #include "memory.h"
 #include "error.h"
 
@@ -478,6 +479,7 @@ void LAMMPS::create()
                               // must be after modify so can create Computes
   update = new Update(this);  // must be after output, force, neighbor
   timer = new Timer(this);
+  citeme = new CiteMe(this);
 }
 
 /* ----------------------------------------------------------------------
@@ -537,6 +539,7 @@ void LAMMPS::destroy()
   delete atom;            // atom must come after modify, neighbor
                           //   since fixes delete callbacks in atom
   delete timer;
+  delete citeme;
 }
 
 /* ----------------------------------------------------------------------

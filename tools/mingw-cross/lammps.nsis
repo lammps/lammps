@@ -72,9 +72,9 @@ Section "${LAMMPS}"
                                                              '/e,"$INSTDIR\Examples"'    ""
   CreateShortCut  "$SMPROGRAMS\${LAMMPS}\LICENSE.lnk"        "$INSTDIR\LICENSE.txt"            "" ""
 
-!insertmacro CreateInternetShortcut "$SMPROGRAMS\${LAMMPS}/LAMMPS WWW Site" \
+!insertmacro CreateInternetShortcut "$SMPROGRAMS\${LAMMPS}\LAMMPS WWW Site" \
   "http://lammps.sandia.gov" "" "0"
-!insertmacro CreateInternetShortcut "$SMPROGRAMS\${LAMMPS}/LAMMPS Commands" \
+!insertmacro CreateInternetShortcut "$SMPROGRAMS\${LAMMPS}\LAMMPS Commands" \
   "http://lammps.sandia.gov/doc/Section_commands.html#cmd_5" "" "0"
 
   SetOutPath "$INSTDIR"

@@ -32,12 +32,9 @@ class Timer : protected Pointers {
   void barrier_stop(enum ttype);
   double elapsed(enum ttype);
   double cpu(enum ttype);
-  double sys(enum ttype);
 
   double get_cpu(enum ttype which) const {
     return cpu_array[which]; };
-  double get_sys(enum ttype which) const {
-    return sys_array[which]; };
   double get_wall(enum ttype which) const {
     return wall_array[which]; };
 
@@ -45,10 +42,8 @@ class Timer : protected Pointers {
 
  private:
   double *cpu_array;
-  double *sys_array;
   double *wall_array;
   double previous_cpu;
-  double previous_sys;
   double previous_wall;
 };
 

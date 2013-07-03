@@ -28,10 +28,11 @@ enum{NSQ,BIN,MULTI};     // also in neighbor.cpp
 
 /* ---------------------------------------------------------------------- */
 
-NeighList::NeighList(LAMMPS *lmp, int size) : Pointers(lmp)
+NeighList::NeighList(LAMMPS *lmp, int size, int onesize) : Pointers(lmp)
 {
   maxatoms = 0;
   pgsize = size;
+  oneatom = onesize;
 
   inum = gnum = 0;
   ilist = NULL;

@@ -863,7 +863,8 @@ void Modify::modify_compute(int narg, char **arg)
   int icompute;
   for (icompute = 0; icompute < ncompute; icompute++)
     if (strcmp(arg[0],compute[icompute]->id) == 0) break;
-  if (icompute == ncompute) error->all(FLERR,"Could not find compute_modify ID");
+  if (icompute == ncompute) 
+    error->all(FLERR,"Could not find compute_modify ID");
 
   compute[icompute]->modify_params(narg-1,&arg[1]);
 }

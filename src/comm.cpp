@@ -1024,8 +1024,7 @@ void Comm::borders()
 
       // pack up list of border atoms
 
-      if (nsend*size_border > maxsend)
-        grow_send(nsend*size_border,0);
+      if (nsend*size_border > maxsend) grow_send(nsend*size_border,0);
       if (ghost_velocity)
         n = avec->pack_border_vel(nsend,sendlist[iswap],buf_send,
                                   pbc_flag[iswap],pbc[iswap]);
@@ -1466,10 +1465,7 @@ void Comm::forward_comm_array(int n, double **array)
   MPI_Request request;
   MPI_Status status;
 
-  // check that buf_send and buf_recv are big enough
-
-
-
+  // NOTE: check that buf_send and buf_recv are big enough
 
   for (iswap = 0; iswap < nswap; iswap++) {
 

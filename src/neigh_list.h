@@ -15,6 +15,7 @@
 #define LMP_NEIGH_LIST_H
 
 #include "pointers.h"
+#include "my_page.h"
 
 namespace LAMMPS_NS {
 
@@ -39,10 +40,13 @@ class NeighList : protected Pointers {
   double **firstdouble;            // ptr to 1st J double value of each I atom
 
   int pgsize;                      // size of each page
+  int oneatom;                     // max size for one atom
   int maxpage;                     // # of pages currently allocated
   int **pages;                     // neighbor list pages for ints
   double **dpages;                 // neighbor list pages for doubles
   int dnum;                        // # of doubles for each pair (0 if none)
+
+  MyPage<int> *page;
 
   // atom types to skip when building list
   // iskip,ijskip are just ptrs to corresponding request
@@ -76,7 +80,7 @@ class NeighList : protected Pointers {
 
   class CudaNeighList *cuda_list;  // CUDA neighbor list
 
-  NeighList(class LAMMPS *, int);
+  NeighList(class LAMMPS *, int, int);
   ~NeighList();
   void grow(int);                       // grow maxlocal
   void stencil_allocate(int, int);      // allocate stencil arrays

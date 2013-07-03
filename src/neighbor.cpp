@@ -119,6 +119,8 @@ Neighbor::Neighbor(LAMMPS *lmp) : Pointers(lmp)
 
   old_style = BIN;
   old_triclinic = 0;
+  old_pgsize = pgsize;
+  old_oneatom = oneatom;
   old_nrequest = 0;
   old_requests = NULL;
 
@@ -416,12 +418,14 @@ void Neighbor::init()
 
   // test if pairwise lists need to be re-created
   // no need to re-create if:
-  //   neigh style and triclinic has not changed and
+  //   neigh style, triclinic, pgsize, oneatom have not changed
   //   current requests = old requests
 
   int same = 1;
   if (style != old_style) same = 0;
   if (triclinic != old_triclinic) same = 0;
+  if (pgsize != old_pgsize) same = 0;
+  if (oneatom != old_oneatom) same = 0;
   if (nrequest != old_nrequest) same = 0;
   else
     for (i = 0; i < nrequest; i++)
@@ -452,7 +456,7 @@ void Neighbor::init()
     // pass list ptr back to requestor (except for Command class)
 
     for (i = 0; i < nlist; i++) {
-      lists[i] = new NeighList(lmp,pgsize);
+      lists[i] = new NeighList(lmp,pgsize,oneatom);
       lists[i]->index = i;
       lists[i]->dnum = requests[i]->dnum;
 
@@ -1676,10 +1680,12 @@ void Neighbor::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"page") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal neigh_modify command");
+      old_pgsize = pgsize;
       pgsize = force->inumeric(FLERR,arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"one") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal neigh_modify command");
+      old_oneatom = oneatom;
       oneatom = force->inumeric(FLERR,arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"binsize") == 0) {

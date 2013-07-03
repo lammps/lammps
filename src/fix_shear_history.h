@@ -21,13 +21,13 @@ FixStyle(SHEAR_HISTORY,FixShearHistory)
 #define LMP_FIX_SHEAR_HISTORY_H
 
 #include "fix.h"
+#include "my_page.h"
 
 namespace LAMMPS_NS {
 
 class FixShearHistory : public Fix {
   friend class Neighbor;
   friend class PairGranHookeHistory;
-  friend class FixPour;
 
  public:
   FixShearHistory(class LAMMPS *, int, char **);
@@ -53,10 +53,15 @@ class FixShearHistory : public Fix {
  protected:
   int *npartner;                // # of touching partners of each atom
   int **partner;                // tags for the partners
-  double ***shearpartner;       // 3 shear values with the partner
+  double (**shearpartner)[3];   // 3 shear values with the partner
+  int maxtouch;                 // max # of touching partners for my atoms
 
   class Pair *pair;
   int *computeflag;             // computeflag in PairGranHookeHistory
+
+  int pgsize,oneatom;           // copy of settings in Neighbor
+  MyPage<int> *ipage;           // pages of partner atom IDs
+  MyPage<double[3]> *dpage;     // pages of shear history with partners
 };
 
 }

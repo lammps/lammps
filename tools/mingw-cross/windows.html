@@ -74,38 +74,55 @@
       <br>
     </div>
     <hr width="100%">
+    <h2>Installing LAMMPS on Windows</h2>
     <div style="display: inline; margin-left: 10px; border: 5px; border-style: groove; float: right;">
       <img src="win-installer-screenshot.png" border="0" style="" width="286" height="196">
     </div>
     <div style="background-color: #e8e8f0;">
       <div align="justify">
-        There are currently two kinds of installer packages offered;<br>
-        - <a href="windows/32bit/">packages for 32-bit Windows</a><br>
-        - <a href="windows/64bit/">packages for 64-bit Windows</a><br>
-        The respective download directory will contain installer packages that are labeled
-        with the date they were compiled on and one package labeled as <i>latest</i>.
-        It is usually recommended to download and install the latest package, but the
-        others are provided in case there is a problem with the latest package.<br><br></div>
-      
-        Both kinds of packages contain:
+        There are installer packages for 32-bit and 64-bit 
+        versions of Windows available.
+        <ul>
+          <li><a href="windows/32bit/">32-bit Windows download area</a></li>
+          <li><a href="windows/64bit/">64-bit Windows download area</a></li>
+        </ul>
+        The respective download directory will contain installer
+        packages that are labeled with the date they were compiled on
+        and one package labeled as <i>latest</i>.  It is usually
+        recommended to download and install the latest package, but the
+        others are provided in case there is a problem with it.
+        Download the installer executable suitable for your machine,
+        execute it, and follow the instructions in the dialogs.
+        Each version will install into a different directory, so it
+        is possible to have multiple versions installed at the same
+        time. Both kinds of packages contain:
+      </div>
       <ul>
         <li>A regular multi-threaded LAMMPS executable called <strong><code>lmp_serial</code></strong>.
           This should <u>always</u> work.</li>
-        <li>A multi-threaded LAMMPS executable that also supports parallel execution via MPI message passing,
-          the parallelism that allows LAMMPS to scale to a very large number of processors. This executable
-          also <u>requires</u> to have as suitable MPICH2 package to be installed.
-          The name of this executable is <strong><code>lmp_mpi</code></strong>.</li>
+
+        <li>A multi-threaded LAMMPS executable that also supports
+          parallel execution via MPI message passing. This 
+          executable is called  <strong><code>lmp_mpi</code></strong>
+          and requires installation of a suitable MPICH2 package to work.</li>
+
         <li>the LAMMPS manual in PDF format</li>
+
         <li>the <a href="http://colvars.github.io/" target="_blank">colvars</a>
           reference manual in PDF format</li>
+
         <li>the potential files bundled with the LAMMPS source code</li>
+
         <li>most of the example inputs, reference outputs and related files</li>
+
         <li>the benchmark inputs and reference outputs</li>
-        <li>the tools <strong><code>restart2data, binary2txt, chain, msi2lmp, ocl_get_devices</code></strong></li>
+
+        <li>the tools <strong><code>restart2data, binary2txt, chain, msi2lmp,
+              ocl_get_devices</code></strong></li>
       </ul>
       
-      <p align="justify">Both executables with run in serial, when run by themselves. 
-        Please see below for instructions on how to execute parallel runs.
+      <p align="justify">Both executables will run in serial when executed directly.
+        Please see below for instructions on how to perform parallel runs.
         To use the MPI based parallelism, you also need to install
           <a href="http://www.mpich.org/" target="_blank">MPICH2 from Argonne lab</a>.
         For 32-bit Windows you have to download and install
@@ -189,7 +206,7 @@
     <address><a href="http://goo.gl/1wk0" target="_blank">Axel Kohlmeyer</a></address>
 <!-- Created: Fri Jun 14 08:59:35 CEST 2013 -->
 <!-- hhmts start -->
-Last modified: Wed Jul  3 19:45:06 CEST 2013
+Last modified: Wed Jul  3 20:20:05 CEST 2013
 <!-- hhmts end -->
   </body>
 </html>

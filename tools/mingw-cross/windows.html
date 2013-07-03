@@ -74,45 +74,47 @@
       <br>
     </div>
     <hr width="100%">
-    <p align="justify">
-      There are currently four kinds of Windows installer packages offered. All packages contain
-      the main LAMMPS manual and the colvars manual in PDF format, the bundled potential files,
-      most of the example and benchmark input and reference outputs, the tools
-      <strong><code>restart2data, binary2txt, chain, msi2lmp, &amp; ocl_get_devices</code></strong>.
-      The individual variants are:
-    </p>
-
     <div style="display: inline; margin-left: 10px; border: 5px; border-style: groove; float: right;">
       <img src="win-installer-screenshot.png" border="0" style="" width="286" height="196">
     </div>
     <div style="background-color: #e8e8f0;">
-      <dl>
-        <dt><b><a href="windows/32bit/">32-bit, no MPI</a></b></dt>
-        <dd>Serial LAMMPS executable compiled multi-threading support via OpenMP.
-          The name of the executable is: <strong><code>lmp_serial</code></strong>.</dd>
-
-        <dt><b><a href="windows/32bit-mpi/">32-bit, MPICH2</a></b></dt>
-        <dd>MPI parallel LAMMPS executable compiled multi-threading support via OpenMP.
-          The executable is linked against the windows version of
+      <div align="justify">
+        There are currently two kinds of installer packages offered;<br>
+        - <a href="windows/32bit/">packages for 32-bit Windows</a><br>
+        - <a href="windows/64bit/">packages for 64-bit Windows</a><br>
+        The respective download directory will contain installer packages that are labeled
+        with the date they were compiled on and one package labeled as <i>latest</i>.
+        It is usually recommended to download and install the latest package, but the
+        others are provided in case there is a problem with the latest package.<br><br></div>
+      
+        Both kinds of packages contain:
+      <ul>
+        <li>A regular multi-threaded LAMMPS executable called <strong><code>lmp_serial</code></strong>.
+          This should <u>always</u> work.</li>
+        <li>A multi-threaded LAMMPS executable that also supports parallel execution via MPI message passing,
+          the parallelism that allows LAMMPS to scale to a very large number of processors. This executable
+          also <u>requires</u> to have as suitable MPICH2 package to be installed.
+          The name of this executable is <strong><code>lmp_mpi</code></strong>.</li>
+        <li>the LAMMPS manual in PDF format</li>
+        <li>the <a href="http://colvars.github.io/" target="_blank">colvars</a>
+          reference manual in PDF format</li>
+        <li>the potential files bundled with the LAMMPS source code</li>
+        <li>most of the example inputs, reference outputs and related files</li>
+        <li>the benchmark inputs and reference outputs</li>
+        <li>the tools <strong><code>restart2data, binary2txt, chain, msi2lmp, ocl_get_devices</code></strong></li>
+      </ul>
+      
+      <p align="justify">Both executables with run in serial, when run by themselves. 
+        Please see below for instructions on how to execute parallel runs.
+        To use the MPI based parallelism, you also need to install
           <a href="http://www.mpich.org/" target="_blank">MPICH2 from Argonne lab</a>.
-          You have to download and install
+        For 32-bit Windows you have to download and install
           <a href="http://www.mpich.org/static/tarballs/1.4.1p1/mpich2-1.4.1p1-win-ia32.msi">
             mpich2-1.4.1p1-win-ia32.msi</a> or any compatible version.
-          The name of the executable is: <strong><code>lmp_mpi</code></strong>.</dd>
-
-        <dt><b><a href="windows/64bit/">64-bit, no MPI</a></b></dt>
-        <dd>Non-MPI LAMMPS executable compiled multi-threading support via OpenMP.
-          The name of the executable is: <strong><code>lmp_serial</code></strong>.</dd>
-
-        <dt><b><a href="windows/64bit-mpi/">64-bit, MPICH2</a></b></dt>
-        <dd>MPI parallel LAMMPS executable compiled multi-threading support via OpenMP.
-          The executable is linked against the windows version of
-          <a href="http://www.mpich.org/" target="_blank">MPICH2 from Argonne lab</a>.
-          You have to download and install
+        Correspondingly, for 64-bit Windows you have to download and install
           <a href="http://www.mpich.org/static/tarballs/1.4.1p1/mpich2-1.4.1p1-win-x86-64.msi">
           mpich2-1.4.1p1-win-x86-64.msi</a> or any compatible version.
-          The name of the executable is: <strong><code>lmp_mpi</code></strong>.</dd>
-      </dl>
+      </p>
     </div>
     <hr width="100%">
 
@@ -146,7 +148,7 @@
       <a href="http://lammps.sandia.gov/doc/Section_start.html#start_6" target="_blank">
         LAMMPS Manual</a>.
     </p>
-    <h3>Multi-threaded Parallel Execution</h3>
+    <h3 name="openmp">Multi-threaded Parallel Execution</h3>
     <p align="justify">
       All LAMMPS binaries from this repository support multi-threading via OpenMP,
       however by default only one thread is enabled. To enable more threads, e.g. four,
@@ -165,7 +167,7 @@
       command line flag to the LAMMPS executable.
     </p>
 
-    <h3>Message Passing (MPI) Parallel Execution</h3>
+    <h3 name="mpi">Message Passing (MPI) Parallel Execution</h3>
     <p align="justify">
       Only the MPI-enabled binaries from the repository support parallel execution
       via MPI (which can be combined with OpenMPI multi-threading). For that you also
@@ -187,7 +189,7 @@
     <address><a href="http://goo.gl/1wk0" target="_blank">Axel Kohlmeyer</a></address>
 <!-- Created: Fri Jun 14 08:59:35 CEST 2013 -->
 <!-- hhmts start -->
-Last modified: Sun Jun 30 15:34:05 CEST 2013
+Last modified: Wed Jul  3 19:45:06 CEST 2013
 <!-- hhmts end -->
   </body>
 </html>

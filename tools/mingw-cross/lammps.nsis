@@ -5,7 +5,6 @@
 # ${BIT}     = 32 or 64
 # ${LIBGCC}  = name of libgcc dll file to use
 # ${MINGW}   = <path to mingw windows dlls>
-# ${MPI}     = 1 when MPI is compiled in
 
 !include "LogicLib.nsh"
 !include "EnvVarUpdate.nsh"
@@ -33,13 +32,8 @@ WriteINIStr "${FILENAME}.url" "InternetShortcut" "IconIndex" "${ICONINDEX}"
 !define LIBGCC libgcc_s_sjlj-1.dll
 !endif
 
-!if ${MPI} == 1
-!define LAMMPS "LAMMPS ${BIT}-bit MPI ${VERSION}"
-OutFile "lammps-${BIT}bit-mpich2-${VERSION}.exe"
-!else
 !define LAMMPS "LAMMPS ${BIT}-bit ${VERSION}"
 OutFile "lammps-${BIT}bit-${VERSION}.exe"
-!endif
 
 Name "${LAMMPS}"
 !if ${BIT} == 64
@@ -77,8 +71,11 @@ Section "${LAMMPS}"
   CreateShortCut  "$SMPROGRAMS\${LAMMPS}\Examples.lnk"       "$WINDIR\explorer.exe"    \
                                                              '/e,"$INSTDIR\Examples"'    ""
   CreateShortCut  "$SMPROGRAMS\${LAMMPS}\LICENSE.lnk"        "$INSTDIR\LICENSE.txt"            "" ""
-!insertmacro CreateInternetShortcut "$SMPROGRAMS\LAMMPS homepage" \
+
+!insertmacro CreateInternetShortcut "$SMPROGRAMS\${LAMMPS}/LAMMPS WWW Site" \
   "http://lammps.sandia.gov" "" "0"
+!insertmacro CreateInternetShortcut "$SMPROGRAMS\${LAMMPS}/LAMMPS Commands" \
+  "http://lammps.sandia.gov/doc/Section_commands.html#cmd_5" "" "0"
 
   SetOutPath "$INSTDIR"
   CreateDirectory "$INSTDIR\bin"
@@ -100,12 +97,7 @@ Section "${LAMMPS}"
   File ${MINGW}/libstdc++-6.dll
   File ${MINGW}/pthreadGC2.dll
 
-!if ${MPI} == 1
-  File ${BIT}bit-mpi/lmp_mpi.exe
-  File /x lmp_serial.exe ${BIT}bit/*.exe
-!else
   File ${BIT}bit/*.exe
-!endif
   File ${BIT}bit/*.dll
 
   SetOutPath "$INSTDIR\Doc"

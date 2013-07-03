@@ -20,7 +20,7 @@ then
 fi
 
 # clean up leftovers from an old build and rebuild directories
-for d in 32bit 32bit-mpi 64bit 64bit-mpi lammps-current
+for d in 32bit 64bit lammps-current
 do \
   dir="${MINGW_BUILD_DIR}/${d}"
   rm -rf ${dir}
@@ -63,9 +63,9 @@ pushd src
 make yes-all no-kim no-user-cuda no-reax
 make mingw32-cross mingw64-cross mingw32-cross-mpi mingw64-cross-mpi || exit 4
 cp lmp_mingw32-cross ${MINGW_BUILD_DIR}/32bit/lmp_serial.exe
+cp lmp_mingw32-cross-mpi ${MINGW_BUILD_DIR}/32bit/lmp_mpi.exe
 cp lmp_mingw64-cross ${MINGW_BUILD_DIR}/64bit/lmp_serial.exe
-cp lmp_mingw32-cross-mpi ${MINGW_BUILD_DIR}/32bit-mpi/lmp_mpi.exe
-cp lmp_mingw64-cross-mpi ${MINGW_BUILD_DIR}/64bit-mpi/lmp_mpi.exe
+cp lmp_mingw64-cross-mpi ${MINGW_BUILD_DIR}/64bit/lmp_mpi.exe
 
 popd
 
@@ -123,9 +123,6 @@ popd
 LIBGCC=libgcc_s_sjlj-1.dll
 makensis -DMINGW=/usr/i686-w64-mingw32/sys-root/mingw/bin/   \
     -DVERSION=${datestr} -DBIT=32 -DLIBGCC=${LIBGCC} lammps.nsis
-makensis -DMINGW=/usr/i686-w64-mingw32/sys-root/mingw/bin/   \
-    -DVERSION=${datestr} -DBIT=32 -DLIBGCC=${LIBGCC} -DMPI=1 \
-    lammps.nsis
 
 # Fedora 19 ships with GCC-4.8.x which has different exception handling
 # on 64-bit windows and thus uses a different name for libgcc
@@ -135,16 +132,13 @@ then
 fi
 makensis -DMINGW=/usr/x86_64-w64-mingw32/sys-root/mingw/bin/ \
     -DVERSION=${datestr} -DBIT=64 -DLIBGCC=${LIBGCC} lammps.nsis
-makensis -DMINGW=/usr/x86_64-w64-mingw32/sys-root/mingw/bin/ \
-    -DVERSION=${datestr} -DBIT=64 -DLIBGCC=${LIBGCC} -DMPI=1 \
-    lammps.nsis
 
 popd
 
 exit 0
 
 # clean up build and temporary directories (not yet)
-for d in 32bit 32bit-mpi 64bit 64bit-mpi lammps-current
+for d in 32bit 64bit lammps-current
 do \
   dir="${MINGW_BUILD_DIR}/${d}"
   rm -rf ${dir}

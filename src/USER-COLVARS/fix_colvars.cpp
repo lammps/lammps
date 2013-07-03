@@ -605,7 +605,8 @@ void FixColvars::setup(int vflag)
   }
 
   // run pre-run setup in colvarproxy
-  proxy->setup();
+  if (me == 0)
+    proxy->setup();
 
   // initialize forces
   if (strstr(update->integrate_style,"verlet") || (update->whichflag == 2))

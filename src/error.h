@@ -24,6 +24,7 @@ class Error : protected Pointers {
 
   void universe_all(const char *, int, const char *);
   void universe_one(const char *, int, const char *);
+  void universe_warn(const char *, int, const char *);
 
   void all(const char *, int, const char *);
   void one(const char *, int, const char *);

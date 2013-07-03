@@ -65,6 +65,18 @@ void Error::universe_one(const char *file, int line, const char *str)
 }
 
 /* ----------------------------------------------------------------------
+   called by one proc in universe
+   prints a warning message to the screen
+------------------------------------------------------------------------- */
+
+void Error::universe_warn(const char *file, int line, const char *str)
+{
+  if (universe->uscreen)
+    fprintf(universe->uscreen,"WARNING on proc %d: %s (%s:%d)\n",
+            universe->me,str,file,line);
+}
+
+/* ----------------------------------------------------------------------
    called by all procs in one world
    close all output, screen, and log files in world
    insure all procs in world call, else will hang

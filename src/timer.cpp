@@ -15,12 +15,14 @@
 #include "timer.h"
 #include "memory.h"
 
-// #define LMP_CLOCK_GETTIME 1
+#ifdef _WIN32
+#include <windows.h>
+#else
 
 #ifdef LMP_CLOCK_GETTIME
 #include <time.h>
 #endif
-#ifndef _WIN32
+
 #include <sys/time.h>
 #include <sys/resource.h>
 #endif
@@ -49,11 +51,11 @@ static double get_cpu_time()
   FILETIME ct,et,kt,ut;
   double rv = 0.0;
   if (GetProcessTimes(GetCurrentProcess(),&ct,&et,&kt,&ut)) {
-    rv = (double) dwLowDateTime * 0.0000001;
-    rv += (double) dwHighDateTime *429.4967296;
+    uint64_t ct = &ut;
+    rv = ct * 0.0000001;
   }
   return rv;
-);
+};
 #endif /* _WIN32 */
 #endif
 }

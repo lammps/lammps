@@ -33,7 +33,7 @@
 
 Name:           lammps
 Version:        20130615
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        LAMMPS Molecular Dynamics Simulator
 Group:          Applications/Engineering
 
@@ -156,12 +156,12 @@ make yes-all no-kim no-gpu no-user-cuda no-reax
 
 make -C STUBS
 
-make g++ CC=g++ CCFLAGS="${RPM_OPT_FLAGS} -fopenmp -fPIC" LINK=g++ LINKFLAGS="${RPM_LD_FLAGS} -fopenmp" LMP_INC="-DLAMMPS_GZIP -DLAMMPS_JPEG %{bigintsize}" MPI_INC="-I../STUBS" MPI_PATH="-L../STUBS" MPI_LIB=-lmpi_stubs FFT_INC=-DFFT_FFTW3 FFT_LIB=-lfftw3 JPG_LIB=-ljpeg
+make g++ CC=g++ CCFLAGS="${RPM_OPT_FLAGS} -fopenmp -fPIC" LINK=g++ LINKFLAGS="${RPM_LD_FLAGS} -fopenmp" LMP_INC="-DLAMMPS_GZIP -DLAMMPS_JPEG %{bigintsize} -DLMP_CLOCK_GETTIME" MPI_INC="-I../STUBS" MPI_PATH="-L../STUBS" MPI_LIB="-lmpi_stubs -lrt" FFT_INC=-DFFT_FFTW3 FFT_LIB=-lfftw3 JPG_LIB=-ljpeg
 
 # build shared library for python bindings
 mv Obj_g++ Obj_shlib_g++
 make makeshlib
-make -f Makefile.shlib g++ CC=g++ CCFLAGS="${RPM_OPT_FLAGS} -fopenmp" LINK=g++ LINKFLAGS="${RPM_LD_FLAGS} -fopenmp" LMP_INC="-DLAMMPS_GZIP -DLAMMPS_JPEG %{bigintsize}" MPI_INC="-I../STUBS" MPI_PATH="-L../STUBS" MPI_LIB=-lmpi_stubs FFT_INC=-DFFT_FFTW3 FFT_LIB=-lfftw3 JPG_LIB=-ljpeg
+make -f Makefile.shlib g++ CC=g++ CCFLAGS="${RPM_OPT_FLAGS} -fopenmp" LINK=g++ LINKFLAGS="${RPM_LD_FLAGS} -fopenmp " LMP_INC="-DLAMMPS_GZIP -DLAMMPS_JPEG %{bigintsize} -DLMP_CLOCK_GETTIME" MPI_INC="-I../STUBS" MPI_PATH="-L../STUBS" MPI_LIB="-lmpi_stubs -lrt" FFT_INC=-DFFT_FFTW3 FFT_LIB=-lfftw3 JPG_LIB=-ljpeg
 mv Obj_shlib_g++ Obj_g++
 
 # stash executable and shared lib away
@@ -197,7 +197,7 @@ make -f Makefile.g++ CC=mpicxx CCFLAGS="-fPIC -I../../src -DMPICH_IGNORE_CXX_SEE
 cd ../../src
 make clean-g++
 
-make g++ CC=mpicxx CCFLAGS="${RPM_OPT_FLAGS} -fopenmp" LINK=mpicxx LINKFLAGS="${RPM_LD_FLAGS} -fopenmp" LMP_INC="-DLAMMPS_GZIP -DLAMMPS_JPEG %{bigintsize}" MPI_INC="" MPI_PATH="" MPI_LIB="" FFT_INC=-DFFT_FFTW3 FFT_LIB=-lfftw3 JPG_LIB=-ljpeg
+make g++ CC=mpicxx CCFLAGS="${RPM_OPT_FLAGS} -fopenmp" LINK=mpicxx LINKFLAGS="${RPM_LD_FLAGS} -fopenmp" LMP_INC="-DLAMMPS_GZIP -DLAMMPS_JPEG %{bigintsize} -DLMP_CLOCK_GETTIME" MPI_INC="" MPI_PATH="" MPI_LIB=-lrt FFT_INC=-DFFT_FFTW3 FFT_LIB=-lfftw3 JPG_LIB=-ljpeg
 
 # and save the executable
 cd ../
@@ -220,7 +220,7 @@ make -f Makefile.g++ CC=mpicxx CCFLAGS="-fPIC -I../../src -DMPICH_IGNORE_CXX_SEE
 cd ../../src
 make clean-g++
 
-make g++ CC=mpicxx CCFLAGS="${RPM_OPT_FLAGS} -fopenmp" LINK=mpicxx LINKFLAGS="${RPM_LD_FLAGS} -fopenmp" LMP_INC="-DLAMMPS_GZIP -DLAMMPS_JPEG %{bigintsize}" MPI_INC="" MPI_PATH="" MPI_LIB="" FFT_INC=-DFFT_FFTW3 FFT_LIB=-lfftw3 JPG_LIB=-ljpeg
+make g++ CC=mpicxx CCFLAGS="${RPM_OPT_FLAGS} -fopenmp" LINK=mpicxx LINKFLAGS="${RPM_LD_FLAGS} -fopenmp" LMP_INC="-DLAMMPS_GZIP -DLAMMPS_JPEG %{bigintsize} -DLMP_CLOCK_GETTIME" MPI_INC="" MPI_PATH="" MPI_LIB="-lrt" FFT_INC=-DFFT_FFTW3 FFT_LIB=-lfftw3 JPG_LIB=-ljpeg
 
 # and save the executable
 cd ../
@@ -317,6 +317,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Jul  4 2013 Axel Kohlmeyer <akohlmey@gmail.com> - 20130615-2
+- Added flags to compile with high resolution timers
+
 * Sat Jun 15 2013 Axel Kohlmeyer <akohlmey@gmail.com> - 20130615-1
 - added proper installation directory for SuSE OpenMPI version
 

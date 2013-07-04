@@ -39,6 +39,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "citeme.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -268,6 +269,8 @@ FixSRD::FixSRD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   if (collidestyle == SLIP) comm_reverse = 3;
   else comm_reverse = 6;
   force_reneighbor = 1;
+
+  citeme->add(CiteMe::PETERSEN_2010);
 }
 
 /* ---------------------------------------------------------------------- */

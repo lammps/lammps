@@ -26,6 +26,7 @@
 #include "fix.h"
 #include "memory.h"
 #include "error.h"
+#include "citeme.h"
 
 using namespace LAMMPS_NS;
 
@@ -53,6 +54,8 @@ AtomVecElectron::AtomVecElectron(LAMMPS *lmp) : AtomVec(lmp)
   atom->electron_flag = 1;
   atom->q_flag = atom->spin_flag = atom->eradius_flag =
     atom->ervel_flag = atom->erforce_flag = 1;
+
+  citeme->add(CiteMe::JARAMILLO_BOTERO_2011);
 }
 
 /* ----------------------------------------------------------------------

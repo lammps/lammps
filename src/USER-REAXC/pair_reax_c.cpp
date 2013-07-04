@@ -37,6 +37,7 @@
 #include "fix_reax_c.h"
 #include "memory.h"
 #include "error.h"
+#include "citeme.h"
 
 #include "reaxc_types.h"
 #include "reaxc_allocate.h"
@@ -106,6 +107,8 @@ PairReaxC::PairReaxC(LAMMPS *lmp) : Pair(lmp)
   setup_flag = 0;
 
   nmax = 0;
+
+  citeme->add(CiteMe::AKTULGA_2012);
 }
 
 /* ---------------------------------------------------------------------- */

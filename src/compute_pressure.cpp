@@ -28,6 +28,7 @@
 #include "improper.h"
 #include "kspace.h"
 #include "error.h"
+#include "citeme.h"
 
 using namespace LAMMPS_NS;
 
@@ -109,6 +110,8 @@ ComputePressure::~ComputePressure()
 
 void ComputePressure::init()
 {
+  citeme->add(CiteMe::THOMPSON_2009);
+
   boltz = force->boltz;
   nktv2p = force->nktv2p;
   dimension = domain->dimension;

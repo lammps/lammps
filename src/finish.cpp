@@ -466,32 +466,35 @@ void Finish::end(int flag)
   const int nthreads = comm->nthreads;
   if ((ifix >= 0) && (nthreads > 1) && me == 0) {
     FixOMP *fixomp = static_cast<FixOMP *>(lmp->modify->fix[ifix]);
-    if (screen)  fputs(thr_header,screen);
-    if (logfile) fputs(thr_header,logfile);
+    ThrData *td = fixomp->get_thr(0);
+    if (td->get_time(ThrData::TIME_TOTAL) > 0.0) {
+      if (screen)  fputs(thr_header,screen);
+      if (logfile) fputs(thr_header,logfile);
 
-    for (i = 0; i < nthreads; ++i) {
-      ThrData *td = fixomp->get_thr(i);
-      double tall = 100.0/td->get_time(ThrData::TIME_TOTAL);
-      if (screen)
-        fprintf(screen, thr_format,i,100.0/tall,
-                td->get_time(ThrData::TIME_REDUCE),
-                td->get_time(ThrData::TIME_REDUCE)*tall,
-                td->get_time(ThrData::TIME_PAIR),
-                td->get_time(ThrData::TIME_PAIR)*tall,
-                td->get_time(ThrData::TIME_BOND),
-                td->get_time(ThrData::TIME_BOND)*tall,
-                td->get_time(ThrData::TIME_KSPACE),
-                td->get_time(ThrData::TIME_KSPACE)*tall);
-      if (logfile)
-        fprintf(logfile, thr_format,i,100.0/tall,
-                td->get_time(ThrData::TIME_REDUCE),
-                td->get_time(ThrData::TIME_REDUCE)*tall,
-                td->get_time(ThrData::TIME_PAIR),
-                td->get_time(ThrData::TIME_PAIR)*tall,
-                td->get_time(ThrData::TIME_BOND),
-                td->get_time(ThrData::TIME_BOND)*tall,
-                td->get_time(ThrData::TIME_KSPACE),
-                td->get_time(ThrData::TIME_KSPACE)*tall);
+      for (i = 0; i < nthreads; ++i) {
+        td = fixomp->get_thr(i);
+        double tall = 100.0/td->get_time(ThrData::TIME_TOTAL);
+        if (screen)
+          fprintf(screen, thr_format,i,100.0/tall,
+                  td->get_time(ThrData::TIME_REDUCE),
+                  td->get_time(ThrData::TIME_REDUCE)*tall,
+                  td->get_time(ThrData::TIME_PAIR),
+                  td->get_time(ThrData::TIME_PAIR)*tall,
+                  td->get_time(ThrData::TIME_BOND),
+                  td->get_time(ThrData::TIME_BOND)*tall,
+                  td->get_time(ThrData::TIME_KSPACE),
+                  td->get_time(ThrData::TIME_KSPACE)*tall);
+        if (logfile)
+          fprintf(logfile, thr_format,i,100.0/tall,
+                  td->get_time(ThrData::TIME_REDUCE),
+                  td->get_time(ThrData::TIME_REDUCE)*tall,
+                  td->get_time(ThrData::TIME_PAIR),
+                  td->get_time(ThrData::TIME_PAIR)*tall,
+                  td->get_time(ThrData::TIME_BOND),
+                  td->get_time(ThrData::TIME_BOND)*tall,
+                  td->get_time(ThrData::TIME_KSPACE),
+                  td->get_time(ThrData::TIME_KSPACE)*tall);
+      }
     }
   }
 #endif

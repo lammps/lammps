@@ -35,7 +35,7 @@ using namespace FixConst;
 
 /* ----------------------------------------------------------------------
    copy shear partner info from neighbor lists to atom arrays
-   so can be exchanged with atoms
+   so can be migrated or stored with atoms
 ------------------------------------------------------------------------- */
 
 void FixShearHistoryOMP::pre_exchange()

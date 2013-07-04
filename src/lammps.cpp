@@ -231,6 +231,9 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
     world = universe->uworld;
     infile = NULL;
 
+    // make sure that screen output is line buffered
+    if (screen) setvbuf(screen, NULL, _IOLBF,0);
+
     if (universe->me == 0) {
       if (inflag == 0) infile = stdin;
       else infile = fopen(arg[inflag],"r");

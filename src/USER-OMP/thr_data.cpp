@@ -21,16 +21,37 @@
 #include <string.h>
 #include <stdio.h>
 
+#ifdef LMP_CLOCK_GETTIME
+#include <time.h>
+#endif
+
 #include "memory.h"
 
 using namespace LAMMPS_NS;
 
+/* ---------------------------------------------------------------------- */
+
+static double get_wall_time()
+{
+#ifdef LMP_CLOCK_GETTIME
+  struct timespec tp;
+  clock_gettime(CLOCK_REALTIME,&tp);
+  double rv = (double) tp.tv_sec;
+  rv += (double) tp.tv_nsec * 0.0000000001;
+  return rv;
+#else
+  return MPI_Wtime();
+#endif
+}
+
+/* ---------------------------------------------------------------------- */
 
 ThrData::ThrData(int tid)
   : _f(0),_torque(0),_erforce(0),_de(0),_drho(0),_mu(0),_lambda(0),_rhoB(0),
-    _D_values(0),_rho(0),_fp(0),_rho1d(0),_drho1d(0),_tid(tid)
+    _D_values(0),_rho(0),_fp(0),_rho1d(0),_drho1d(0),_tid(tid), _timer_active(0)
 {
-  // nothing else to do here.
+  for (int i=0; i < NUM_TIMERS; ++i)
+    _timer[i] = 0.0;
 }
 
 
@@ -40,6 +61,48 @@ void ThrData::check_tid(int tid)
 {
   if (tid != _tid)
     fprintf(stderr,"WARNING: external and internal tid mismatch %d != %d\n",tid,_tid);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ThrData::timer(const int flag)
+{
+  double tmp;
+
+  if (flag == TIME_RESET) {
+    _timer_active = 0;
+    for (int i=0; i < NUM_TIMERS; ++i)
+      _timer[i] = 0.0;
+    return;
+  }
+
+  if (flag == TIME_STOP) {
+    _timer_active = 0;
+    return;
+  }
+
+  tmp = get_wall_time();
+
+  if (flag == TIME_START) {
+    _timer_active = 1;
+    _timer[TIME_START] = tmp;
+    return;
+  }
+  
+  if (_timer_active && (flag > TIME_START) && (flag < NUM_TIMERS)) {
+    const double diff = tmp - _timer[TIME_START];
+    _timer[TIME_START]  = tmp;
+    _timer[TIME_TOTAL] += diff;
+    _timer[flag]       += diff;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+double ThrData::get_time(const int flag)
+{
+  if ((flag > TIME_START) && (flag < NUM_TIMERS))
+    return _timer[flag];
 }
 
 /* ---------------------------------------------------------------------- */

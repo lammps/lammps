@@ -38,6 +38,11 @@ class ThrData {
   void check_tid(int);    // thread id consistency check
   int get_tid() const { return _tid; }; // our thread id.
 
+  enum {TIME_RESET=-2, TIME_STOP=-1, TIME_START=0, TIME_TOTAL, TIME_REDUCE,
+        TIME_PAIR, TIME_BOND, TIME_KSPACE, TIME_FIX, NUM_TIMERS};
+  void timer(const int flag);
+  double get_time(const int flag);
+
   // erase accumulator contents and hook up force arrays
   void init_force(int, double **, double **, double *, double *, double *);
 
@@ -118,6 +123,9 @@ class ThrData {
   void *_drho1d_6;
   // my thread id
   const int _tid;
+  // timer info
+  int _timer_active;
+  double _timer[NUM_TIMERS];
 
  public:
   // compute global per thread virial contribution from global forces and positions

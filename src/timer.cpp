@@ -31,33 +31,34 @@ using namespace LAMMPS_NS;
 
 static double get_cpu_time()
 {
+  double rv = 0.0;
+
+#ifdef _WIN32
+  // from MSD docs.
+  FILETIME ct,et,kt,ut;
+  union { FILETIME ft; uint64_t ui; } cpu;
+  if (GetProcessTimes(GetCurrentProcess(),&ct,&et,&kt,&ut)) {
+    cpu.ft = ut;
+    rv = cpu.ui * 0.0000001;
+  }
+#else /* ! _WIN32 */
+
 #ifdef LMP_CLOCK_GETTIME
   struct timespec tp;
   clock_gettime(CLOCK_PROCESS_CPUTIME_ID,&tp);
-  double rv = (double) tp.tv_sec;
+  rv = (double) tp.tv_sec;
   rv += (double) tp.tv_nsec * 0.0000000001;
-  return rv;
 #else
-#ifndef _WIN32
   struct rusage ru;
-  double rv = 0.0;
   if (getrusage(RUSAGE_SELF, &ru) == 0) {
     rv = (double) ru.ru_utime.tv_sec;
     rv += (double) ru.ru_utime.tv_usec * 0.000001;
   }
-  return rv;
-#else  /* _WIN32 */
-  // from MSD docs.
-  FILETIME ct,et,kt,ut;
-  double rv = 0.0;
-  if (GetProcessTimes(GetCurrentProcess(),&ct,&et,&kt,&ut)) {
-    uint64_t ct = &ut;
-    rv = ct * 0.0000001;
-  }
-  return rv;
-};
-#endif /* _WIN32 */
 #endif
+
+#endif /* ! _WIN32 */
+
+  return rv;
 }
 
 /* ---------------------------------------------------------------------- */

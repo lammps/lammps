@@ -49,6 +49,8 @@ class Neighbor : protected Pointers {
   int old_style;                   // previous run info to avoid
   int old_nrequest;                // re-creation of pairwise neighbor lists
   int old_triclinic;
+  int old_pgsize;
+  int old_oneatom;
   class NeighRequest **old_requests;
 
   int nlist;                       // pairwise neighbor lists

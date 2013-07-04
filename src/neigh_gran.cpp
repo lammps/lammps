@@ -38,7 +38,7 @@ void Neighbor::granular_nsq_no_newton(NeighList *list)
 
   NeighList *listgranhistory;
   int *npartner,**partner;
-  double ***shearpartner;
+  double (**shearpartner)[3];
   int **firsttouch;
   double **firstshear;
   int **pages_touch;
@@ -280,7 +280,7 @@ void Neighbor::granular_bin_no_newton(NeighList *list)
 
   NeighList *listgranhistory;
   int *npartner,**partner;
-  double ***shearpartner;
+  double (**shearpartner)[3];
   int **firsttouch;
   double **firstshear;
   int **pages_touch;

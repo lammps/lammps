@@ -12,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 // Marsaglia random number generator
+// see RANMAR in F James, Comp Phys Comm, 60, 329 (1990)
 
 #include "math.h"
 #include "random_mars.h"

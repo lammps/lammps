@@ -3726,4 +3726,5 @@ int VarReader::read(char *str)
 
 int VarReader::read(double *)
 {
+  return 0;
 }

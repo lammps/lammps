@@ -11,6 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "mpi.h"
 #include "string.h"
 #include "stdio.h"
 #include "fix_shear_history.h"
@@ -26,8 +27,6 @@
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
-
-#define MAXTOUCH 15
 
 /* ---------------------------------------------------------------------- */
 
@@ -47,10 +46,15 @@ FixShearHistory::FixShearHistory(LAMMPS *lmp, int narg, char **arg) :
   atom->add_callback(0);
   atom->add_callback(1);
 
+  ipage = NULL;
+  dpage = NULL;
+  pgsize = oneatom = 0;
+
   // initialize npartner to 0 so neighbor list creation is OK the 1st time
 
   int nlocal = atom->nlocal;
   for (int i = 0; i < nlocal; i++) npartner[i] = 0;
+  maxtouch = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -65,8 +69,10 @@ FixShearHistory::~FixShearHistory()
   // delete locally stored arrays
 
   memory->destroy(npartner);
-  memory->destroy(partner);
-  memory->destroy(shearpartner);
+  memory->sfree(partner);
+  memory->sfree(shearpartner);
+  delete ipage;
+  delete dpage;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -89,6 +95,21 @@ void FixShearHistory::init()
 
   int dim;
   computeflag = (int *) pair->extract("computeflag",dim);
+
+  // create pages if first time or if neighbor pgsize/oneatom has changed
+  // note that latter could cause shear history info to be discarded
+
+  int create = 0;
+  if (ipage == NULL) create = 1;
+  if (pgsize != neighbor->pgsize) create = 1;
+  if (oneatom != neighbor->oneatom) create = 1;
+
+  if (create) {
+    pgsize = neighbor->pgsize;
+    oneatom = neighbor->oneatom;
+    ipage = new MyPage<int>(oneatom,pgsize);
+    dpage = new MyPage<double[3]>(oneatom,pgsize);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -119,17 +140,22 @@ void FixShearHistory::setup_pre_exchange()
 
 void FixShearHistory::pre_exchange()
 {
-  int i,j,ii,jj,m,inum,jnum;
+  int i,j,ii,jj,m,n,inum,jnum;
   int *ilist,*jlist,*numneigh,**firstneigh;
   int *touch,**firsttouch;
   double *shear,*allshear,**firstshear;
 
   // zero npartner for all current atoms
+  // clear 2 page data structures
 
   int nlocal = atom->nlocal;
   for (i = 0; i < nlocal; i++) npartner[i] = 0;
 
-  // copy shear info from neighbor list atoms to atom arrays
+  ipage->reset();
+  dpage->reset();
+
+  // 1st loop over neighbor list
+  // calculate npartner for each owned atom
 
   int *tag = atom->tag;
   NeighList *list = pair->list;
@@ -143,6 +169,39 @@ void FixShearHistory::pre_exchange()
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     jlist = firstneigh[i];
+    jnum = numneigh[i];
+    touch = firsttouch[i];
+
+    for (jj = 0; jj < jnum; jj++) {
+      if (touch[jj]) {
+        npartner[i]++;
+        j = jlist[jj];
+        j &= NEIGHMASK;
+        if (j < nlocal) npartner[j]++;
+      }
+    }
+  }
+
+  // get page chunks to store atom IDs and shear history for my atoms
+
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
+    n = npartner[i];
+    partner[i] = ipage->get(n);
+    shearpartner[i] = dpage->get(n);
+    if (partner[i] == NULL || shearpartner[i] == NULL)
+      error->one(FLERR,"Shear history overflow, boost neigh_modify one");
+  }
+
+  // 2nd loop over neighbor list
+  // store atom IDs and shear history for my atoms
+  // re-zero npartner to use as counter for all my atoms
+
+  for (i = 0; i < nlocal; i++) npartner[i] = 0;
+
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
+    jlist = firstneigh[i];
     allshear = firstshear[i];
     jnum = numneigh[i];
     touch = firsttouch[i];
@@ -152,37 +211,28 @@ void FixShearHistory::pre_exchange()
         shear = &allshear[3*jj];
         j = jlist[jj];
         j &= NEIGHMASK;
-        if (npartner[i] < MAXTOUCH) {
-          m = npartner[i];
-          partner[i][m] = tag[j];
-          shearpartner[i][m][0] = shear[0];
-          shearpartner[i][m][1] = shear[1];
-          shearpartner[i][m][2] = shear[2];
-        }
+        m = npartner[i];
+        partner[i][m] = tag[j];
+        shearpartner[i][m][0] = shear[0];
+        shearpartner[i][m][1] = shear[1];
+        shearpartner[i][m][2] = shear[2];
         npartner[i]++;
         if (j < nlocal) {
-          if (npartner[j] < MAXTOUCH) {
-            m = npartner[j];
-            partner[j][m] = tag[i];
-            shearpartner[j][m][0] = -shear[0];
-            shearpartner[j][m][1] = -shear[1];
-            shearpartner[j][m][2] = -shear[2];
-          }
+          m = npartner[j];
+          partner[j][m] = tag[i];
+          shearpartner[j][m][0] = -shear[0];
+          shearpartner[j][m][1] = -shear[1];
+          shearpartner[j][m][2] = -shear[2];
           npartner[j]++;
         }
       }
     }
   }
 
-  // test for too many touching neighbors
+  // set maxtouch = max # of partners of any owned atom
 
-  int flag = 0;
-  for (i = 0; i < nlocal; i++)
-    if (npartner[i] >= MAXTOUCH) flag = 1;
-  int flag_all;
-  MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
-  if (flag_all)
-    error->all(FLERR,"Too many touching neighbors - boost MAXTOUCH");
+  maxtouch = 0;
+  for (i = 0; i < nlocal; i++) maxtouch = MAX(maxtouch,npartner[i]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -208,8 +258,10 @@ double FixShearHistory::memory_usage()
 {
   int nmax = atom->nmax;
   double bytes = nmax * sizeof(int);
-  bytes += nmax*MAXTOUCH * sizeof(int);
-  bytes += nmax*MAXTOUCH*3 * sizeof(double);
+  bytes = nmax * sizeof(int *);
+  bytes = nmax * sizeof(double *);
+  bytes += ipage->ndatum * sizeof(int);
+  bytes += dpage->ndatum * sizeof(double[3]);
   return bytes;
 }
 
@@ -220,8 +272,12 @@ double FixShearHistory::memory_usage()
 void FixShearHistory::grow_arrays(int nmax)
 {
   memory->grow(npartner,nmax,"shear_history:npartner");
-  memory->grow(partner,nmax,MAXTOUCH,"shear_history:partner");
-  memory->grow(shearpartner,nmax,MAXTOUCH,3,"shear_history:shearpartner");
+  partner = (int **) memory->srealloc(partner,nmax*sizeof(int *),
+                                      "shear_history:partner");
+  typedef double (*sptype)[3];
+  shearpartner = (sptype *) 
+    memory->srealloc(shearpartner,nmax*sizeof(sptype),
+                     "shear_history:shearpartner");
 }
 
 /* ----------------------------------------------------------------------
@@ -230,13 +286,15 @@ void FixShearHistory::grow_arrays(int nmax)
 
 void FixShearHistory::copy_arrays(int i, int j, int delflag)
 {
+  // just copy pointers for partner and shearpartner
+  // b/c can't overwrite chunk allocation inside ipage,dpage
+  // incoming atoms in unpack_exchange just grab new chunks
+  // so are orphaning chunks for migrating atoms
+  // OK, b/c will reset ipage,dpage on next reneighboring
+
   npartner[j] = npartner[i];
-  for (int m = 0; m < npartner[j]; m++) {
-    partner[j][m] = partner[i][m];
-    shearpartner[j][m][0] = shearpartner[i][m][0];
-    shearpartner[j][m][1] = shearpartner[i][m][1];
-    shearpartner[j][m][2] = shearpartner[i][m][2];
-  }
+  partner[j] = partner[i];
+  shearpartner[j] = shearpartner[i];
 }
 
 /* ----------------------------------------------------------------------
@@ -254,6 +312,9 @@ void FixShearHistory::set_arrays(int i)
 
 int FixShearHistory::pack_exchange(int i, double *buf)
 {
+  // NOTE: how do I know comm buf is big enough if extreme # of touching neighs
+  // Comm::BUFEXTRA may need to be increased
+
   int m = 0;
   buf[m++] = npartner[i];
   for (int n = 0; n < npartner[i]; n++) {
@@ -271,8 +332,13 @@ int FixShearHistory::pack_exchange(int i, double *buf)
 
 int FixShearHistory::unpack_exchange(int nlocal, double *buf)
 {
+  // allocate new chunks from ipage,dpage for incoming values
+
   int m = 0;
   npartner[nlocal] = static_cast<int> (buf[m++]);
+  maxtouch = MAX(maxtouch,npartner[nlocal]);
+  partner[nlocal] = ipage->get(npartner[nlocal]);
+  shearpartner[nlocal] = dpage->get(npartner[nlocal]);
   for (int n = 0; n < npartner[nlocal]; n++) {
     partner[nlocal][n] = static_cast<int> (buf[m++]);
     shearpartner[nlocal][n][0] = buf[m++];
@@ -314,7 +380,12 @@ void FixShearHistory::unpack_restart(int nlocal, int nth)
   for (int i = 0; i < nth; i++) m += static_cast<int> (extra[nlocal][m]);
   m++;
 
+  // allocate new chunks from ipage,dpage for incoming values
+
   npartner[nlocal] = static_cast<int> (extra[nlocal][m++]);
+  maxtouch = MAX(maxtouch,npartner[nlocal]);
+  partner[nlocal] = ipage->get(npartner[nlocal]);
+  shearpartner[nlocal] = dpage->get(npartner[nlocal]);
   for (int n = 0; n < npartner[nlocal]; n++) {
     partner[nlocal][n] = static_cast<int> (extra[nlocal][m++]);
     shearpartner[nlocal][n][0] = extra[nlocal][m++];
@@ -329,7 +400,11 @@ void FixShearHistory::unpack_restart(int nlocal, int nth)
 
 int FixShearHistory::maxsize_restart()
 {
-  return 4*MAXTOUCH + 2;
+  // maxtouch_all = max touching partners across all procs
+
+  int maxtouch_all;
+  MPI_Allreduce(&maxtouch,&maxtouch_all,1,MPI_INT,MPI_MAX,world);
+  return 4*maxtouch_all + 2;
 }
 
 /* ----------------------------------------------------------------------

@@ -23,8 +23,7 @@ using namespace LAMMPS_NS;
    sx,sy,sz = bin bounds = furthest the stencil could possibly extend
    3d creates xyz stencil, 2d creates xy stencil
    for half list with newton off:
-     stencil is all surrounding bins
-     stencil includes self
+     stencil is all surrounding bins including self
      regardless of triclinic
    for half list with newton on:
      stencil is bins to the "upper right" of central bin

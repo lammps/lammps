@@ -45,7 +45,8 @@
     </div>
     <strong>Some Notes on GPU Support</strong>
     <div align="justify">
-      These Windows binaries include GPU acceleration via the <u>GPU</u> package.
+      These Windows binaries include (experimental on Windows) GPU acceleration
+      via the <u>GPU</u> package.
       This is achieved through compiling the GPU package in OpenCL mode and linking
       to an <a href="http://www.khronos.org/opencl/" target="_blank">OpenCL v1.2</a>
       compatible ICD loader. This means the executables do not contain any vendor
@@ -186,27 +187,44 @@
 
     <h3 name="mpi">Message Passing (MPI) Parallel Execution</h3>
     <p align="justify">
-      Only the MPI-enabled binaries from the repository support parallel execution
+      Only the <strong><code>lmp_mpi</code></strong> executable supports parallel execution
       via MPI (which can be combined with OpenMPI multi-threading). For that you also
       need to install <a href="http://www.mpich.org/" target="_blank">MPICH2 from Argonne lab</a>.
       The installer does not contain it and does not check for it.
     </p>
 
     <p align="justify">
-      MPI parallel executables have to be launched with
-      <strong><code>mpiexec -np # lmp_mpi ...</code></strong>
-      with "#" being then number of parallel processes to start. You may be asked by a process
-      called <i>smpd.exe</i> for a password, which usually can be any word, unless you are
-      trying to run across multiple separate Windows machines. For more details, please refer
-      to the <a href="http://www.mpich.org/documentation/guides/" target="_blank">
-        MPICH2 Documentation</a>.
+      After the installation of the MPICH software, it needs to be integrated into the system.
+      For this you need to start a <i>Command Prompt</i> and <i>Administrator Mode</i> (right
+      click on the icon and select it). Change into the MPICH2 installation directory, then 
+      into the subdirectory <code>bin</code> and execute 
+      <strong><code>smpd.exe -install</code></strong>. 
     </p>
 
+    <p align="justify">
+      MPI parallel executables have to be launched with <strong><code>mpiexec -localonly # lmp_mpi ...</code></strong>
+      or <strong><code>mpiexec -np # lmp_mpi ...</code></strong> with "#" being then number
+      of parallel processes to start. For the latter you may be asked for your password.
+    </p>
+    <p align="justify">
+
+      <u><i>Known Issues:</i></u> while running in MPI parallel mode any
+      output to the screen is block buffered and not line buffered as
+      usual. That is, output will not show up immediately, but only
+      after a certain amount of output has accumulated. This is done for
+      efficiency reasons.  Multi-threaded parallel or serial runs are
+      not affected.  Also when running under mpiexec, you should not use
+      multi-threading since MPICH restricts processes to a single
+      physical CPU thus it will run less efficient. </p>
+      
+      For more details, please refer
+      to the <a href="http://www.mpich.org/documentation/guides/" target="_blank">
+        MPICH2 Documentation</a>.
     <hr>
     <address><a href="http://goo.gl/1wk0" target="_blank">Axel Kohlmeyer</a></address>
 <!-- Created: Fri Jun 14 08:59:35 CEST 2013 -->
 <!-- hhmts start -->
-Last modified: Wed Jul  3 20:20:05 CEST 2013
+Last modified: Thu Jul  4 21:07:39 CEST 2013
 <!-- hhmts end -->
   </body>
 </html>

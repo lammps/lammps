@@ -20,7 +20,7 @@ then
 fi
 
 # clean up leftovers from an old build and rebuild directories
-for d in mingw32 mingw64 32bit 64bit lammps-current
+for d in mingw32 mingw64 lammps-current
 do \
   dir="${MINGW_BUILD_DIR}/${d}"
   rm -rf ${dir}

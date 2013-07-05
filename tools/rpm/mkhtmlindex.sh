@@ -10,7 +10,7 @@ for d in $(find "$@" -type d -print)
 do \
     dir=$(basename $d)
     uplink=index.html
-    [$dir == windows] && uplink=windows.html
+    [ $dir == windows ] && uplink=windows.html
     # index file header
     cat > "$d/index.html" <<EOF
 <html>

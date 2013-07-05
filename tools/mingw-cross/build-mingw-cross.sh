@@ -20,7 +20,7 @@ then
 fi
 
 # clean up leftovers from an old build and rebuild directories
-for d in 32bit 64bit lammps-current
+for d in mingw32 mingw64 32bit 64bit lammps-current
 do \
   dir="${MINGW_BUILD_DIR}/${d}"
   rm -rf ${dir}
@@ -62,10 +62,10 @@ pushd src
 # configure installed packages
 make yes-all no-kim no-user-cuda no-reax
 make mingw32-cross mingw64-cross mingw32-cross-mpi mingw64-cross-mpi || exit 4
-cp lmp_mingw32-cross ${MINGW_BUILD_DIR}/32bit/lmp_serial.exe
-cp lmp_mingw32-cross-mpi ${MINGW_BUILD_DIR}/32bit/lmp_mpi.exe
-cp lmp_mingw64-cross ${MINGW_BUILD_DIR}/64bit/lmp_serial.exe
-cp lmp_mingw64-cross-mpi ${MINGW_BUILD_DIR}/64bit/lmp_mpi.exe
+cp lmp_mingw32-cross ${MINGW_BUILD_DIR}/mingw32/lmp_serial.exe
+cp lmp_mingw32-cross-mpi ${MINGW_BUILD_DIR}/mingw32/lmp_mpi.exe
+cp lmp_mingw64-cross ${MINGW_BUILD_DIR}/mingw64/lmp_serial.exe
+cp lmp_mingw64-cross-mpi ${MINGW_BUILD_DIR}/mingw64/lmp_mpi.exe
 
 popd
 
@@ -76,27 +76,27 @@ TOOLDIR=lammps-current/tools
 MINGW32FLAGS="-DLAMMPS_SMALLSMALL -O2 -march=i686  -mtune=generic -mfpmath=387 -mpc64"
 MINGW64FLAGS="-DLAMMPS_SMALLBIG   -O2 -march=core2 -mtune=core2   -mpc64 -msse2"
 
-i686-w64-mingw32-g++   ${MINGW32FLAGS} -o 32bit/restart2data.exe ${TOOLDIR}/restart2data.cpp
-x86_64-w64-mingw32-g++ ${MINGW64FLAGS} -o 64bit/restart2data.exe ${TOOLDIR}/restart2data.cpp
+i686-w64-mingw32-g++   ${MINGW32FLAGS} -o mingw32/restart2data.exe ${TOOLDIR}/restart2data.cpp
+x86_64-w64-mingw32-g++ ${MINGW64FLAGS} -o mingw64/restart2data.exe ${TOOLDIR}/restart2data.cpp
 
-i686-w64-mingw32-g++   ${MINGW32FLAGS} -o 32bit/binary2txt.exe ${TOOLDIR}/binary2txt.cpp
-x86_64-w64-mingw32-g++ ${MINGW64FLAGS} -o 64bit/binary2txt.exe ${TOOLDIR}/binary2txt.cpp
+i686-w64-mingw32-g++   ${MINGW32FLAGS} -o mingw32/binary2txt.exe ${TOOLDIR}/binary2txt.cpp
+x86_64-w64-mingw32-g++ ${MINGW64FLAGS} -o mingw64/binary2txt.exe ${TOOLDIR}/binary2txt.cpp
 
-i686-w64-mingw32-gfortran   ${MINGW32FLAGS} -o 32bit/chain.exe ${TOOLDIR}/chain.f
-x86_64-w64-mingw32-gfortran ${MINGW64FLAGS} -o 64bit/chain.exe ${TOOLDIR}/chain.f
+i686-w64-mingw32-gfortran   ${MINGW32FLAGS} -o mingw32/chain.exe ${TOOLDIR}/chain.f
+x86_64-w64-mingw32-gfortran ${MINGW64FLAGS} -o mingw64/chain.exe ${TOOLDIR}/chain.f
 
-make -C ${TOOLDIR}/msi2lmp/src TARGET=${PWD}/32bit/msi2lmp.exe \
+make -C ${TOOLDIR}/msi2lmp/src TARGET=${PWD}/mingw32/msi2lmp.exe \
 	CC=i686-w64-mingw32-gcc CFLAGS="${MINGW32FLAGS}"
-make -C ${TOOLDIR}/msi2lmp/src TARGET=${PWD}/64bit/msi2lmp.exe \
+make -C ${TOOLDIR}/msi2lmp/src TARGET=${PWD}/mingw64/msi2lmp.exe \
 	CC=x86_64-w64-mingw32-gcc CFLAGS="${MINGW64FLAGS}"
 
 # assemble and customize installer scripts 
 datestr=$(date +%Y%m%d)
 cp ${TOOLDIR}/mingw-cross/lammps.nsis ${TOOLDIR}/mingw-cross/EnvVarUpdate.nsh .
-cp ${TOOLDIR}/mingw-cross/Obj_mingw32/libOpenCL.dll 32bit
-cp ${TOOLDIR}/mingw-cross/Obj_mingw64/libOpenCL.dll 64bit
-cp lammps-current/lib/gpu/Obj_mingw32/ocl_get_devices 32bit/ocl_get_devices.exe
-cp lammps-current/lib/gpu/Obj_mingw64/ocl_get_devices 64bit/ocl_get_devices.exe
+cp ${TOOLDIR}/mingw-cross/Obj_mingw32/libOpenCL.dll mingw32
+cp ${TOOLDIR}/mingw-cross/Obj_mingw64/libOpenCL.dll mingw64
+cp lammps-current/lib/gpu/Obj_mingw32/ocl_get_devices mingw32/ocl_get_devices.exe
+cp lammps-current/lib/gpu/Obj_mingw64/ocl_get_devices mingw64/ocl_get_devices.exe
 
 # determine os vendor and release for installer tweaks.
 vendor=$(grep  release /etc/issue | cut -d \  -f 1)
@@ -138,7 +138,7 @@ popd
 exit 0
 
 # clean up build and temporary directories (not yet)
-for d in 32bit 64bit lammps-current
+for d in mingw32 mingw64 lammps-current
 do \
   dir="${MINGW_BUILD_DIR}/${d}"
   rm -rf ${dir}

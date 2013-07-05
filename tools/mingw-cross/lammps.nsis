@@ -33,7 +33,7 @@ WriteINIStr "${FILENAME}.url" "InternetShortcut" "IconIndex" "${ICONINDEX}"
 !endif
 
 !define LAMMPS "LAMMPS ${BIT}-bit ${VERSION}"
-OutFile "lammps-${BIT}bit-${VERSION}.exe"
+OutFile ${BIT}bit/"lammps-${BIT}bit-${VERSION}.exe"
 
 Name "${LAMMPS}"
 !if ${BIT} == 64
@@ -97,8 +97,8 @@ Section "${LAMMPS}"
   File ${MINGW}/libstdc++-6.dll
   File ${MINGW}/pthreadGC2.dll
 
-  File ${BIT}bit/*.exe
-  File ${BIT}bit/*.dll
+  File mingw${BIT}/*.exe
+  File mingw${BIT}/*.dll
 
   SetOutPath "$INSTDIR\Doc"
   File /oname=LAMMPS-Manual.pdf  lammps-current/doc/Manual.pdf

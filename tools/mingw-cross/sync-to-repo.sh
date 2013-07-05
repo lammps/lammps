@@ -4,12 +4,11 @@
 # function to selectively remove older packages
 # and make a symlink to the latest version
 prune_exe () {
-  dir=$1
-  sub=$2
+  bit=$1
   ref=$(date +%s)
   old=999999999
 
-  for exe in ${dir}/lammps${sub}-20[0-9][0-9]*.exe
+  for exe in ${bit}/lammps-${bit}-20[0-9][0-9]*.exe
   do \
       [ -f ${exe} ] || continue
       # re-set symbolic link to latest entry
@@ -80,6 +79,9 @@ if [ -n "${MINGW_REPO_USER}" ] \
 && [ -n "${MINGW_REPO_DIR}" ]
 then
     pushd ${HOME}/mingw-cross
+
+    prune_exe 32bit
+    prune_exe 64bit
 
     rsync -arpv --delete 32bit 64bit \
         ${MINGW_REPO_USER}@${MINGW_REPO_HOST}:${MINGW_REPO_DIR}/

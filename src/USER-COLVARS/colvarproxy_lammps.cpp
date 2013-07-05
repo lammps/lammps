@@ -155,6 +155,10 @@ double colvarproxy_lammps::compute()
              "Updating internal data.\n");
   }
 
+  // backup applied forces if necessary to calculate system forces
+  if (system_force_requested)
+    previous_applied_forces = applied_forces;
+
   // zero the forces on the atoms, so that they can be accumulated by the colvars
   for (size_t i = 0; i < applied_forces.size(); i++) {
     applied_forces[i].x = applied_forces[i].y = applied_forces[i].z = 0.0;
@@ -441,11 +445,11 @@ void cvm::atom::read_system_force()
 {
   colvarproxy_lammps const * const cp = (colvarproxy_lammps *) cvm::proxy;
   this->system_force.x = cp->total_forces[this->index].x
-    - cp->applied_forces[this->index].x;
+    - cp->previous_applied_forces[this->index].x;
   this->system_force.y = cp->total_forces[this->index].y
-    - cp->applied_forces[this->index].y;
+    - cp->previous_applied_forces[this->index].y;
   this->system_force.z = cp->total_forces[this->index].z
-    - cp->applied_forces[this->index].z;
+    - cp->previous_applied_forces[this->index].z;
 }
 
 void cvm::atom::apply_force(cvm::rvector const &new_force)

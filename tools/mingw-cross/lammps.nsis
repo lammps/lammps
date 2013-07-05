@@ -33,7 +33,7 @@ WriteINIStr "${FILENAME}.url" "InternetShortcut" "IconIndex" "${ICONINDEX}"
 !endif
 
 !define LAMMPS "LAMMPS ${BIT}-bit ${VERSION}"
-OutFile ${BIT}bit/"lammps-${BIT}bit-${VERSION}.exe"
+OutFile "${BIT}bit/lammps-${BIT}bit-${VERSION}.exe"
 
 Name "${LAMMPS}"
 !if ${BIT} == 64

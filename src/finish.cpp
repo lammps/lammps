@@ -43,8 +43,8 @@ static void print_timings(const char *label, Timer *t, enum Timer::ttype tt,
 {
   double tmp, time_max, time_min, time_wall;
   double time = t->get_wall(tt);
-
-#if defined(_OPENMP)
+  
+#ifdef LMP_USER_OMP
   double time_cpu = t->get_cpu(tt);
   if (time/time_loop < 0.001)  // insufficient timer resolution!
     time_cpu = 1.0;
@@ -58,29 +58,67 @@ static void print_timings(const char *label, Timer *t, enum Timer::ttype tt,
   MPI_Allreduce(&time,&time_max,1,MPI_DOUBLE,MPI_MAX,world);
   time = tmp/nprocs;
 
-#if defined(_OPENMP)
+#ifdef LMP_USER_OMP
   MPI_Allreduce(&time_cpu,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
-  time_cpu = tmp/nprocs;
+  time_cpu = tmp/nprocs*100.0;
 
   if (me == 0) {
+    time_loop = 100.0/time_loop;
+    const char fmt[] = "%-8s|%- 12.5g|%- 12.5g|%- 12.5g|%6.2f | %6.1f\n";
     if (scr)
-      fprintf(scr,"%-8s|%- 12.5g|%- 12.5g|%- 12.5g|%6.2f | %4.1fx\n",
-              label,time_min,time,time_max,time/time_loop*100.0,time_cpu);
+      fprintf(scr,fmt,label,time_min,time,time_max,time*time_loop,time_cpu);
     if (log)
-      fprintf(log,"%-8s|%- 12.5g|%- 12.5g|%- 12.5g|%6.2f | %4.1fx\n",
-              label,time_min,time,time_max,time/time_loop*100.0,time_cpu);
+      fprintf(log,fmt,label,time_min,time,time_max,time*time_loop,time_cpu);
   }
 #else
   if (me == 0) {
-    if (scr)
-      fprintf(scr,"%5s time (%%) = %g (%g)\n",
-              label,time,time/time_loop*100.0);
-    if (log)
-      fprintf(log,"%5s time (%%) = %g (%g)\n",
-              label,time,time/time_loop*100.0);
+    time_loop = 100.0/time_loop;
+    const char fmt[] = "%5s time (%%) = %g (%g)\n";
+    if (scr) fprintf(scr,fmt,label,time,time*time_loop);
+    if (log) fprintf(log,fmt,label,time,time*time_loop);
   }
 #endif
 }
+
+/* ---------------------------------------------------------------------- */
+
+#ifdef LMP_USER_OMP
+static void omp_times(FixOMP *fix, const char *label, const int ttype,
+                      const int nthreads, FILE *scr, FILE *log)
+{
+  const char fmt[] = "%-8s|%- 12.5g|%- 12.5g|%- 12.5g|%6.2f | %6.1f%%\n";
+  double time_min, time_max, time_total, time_avg, time_std;
+
+  time_min=1.0e100;
+  time_max=-1.0e100;
+  time_total=time_avg=time_std=0.0;
+
+  for (int i=0; i < nthreads; ++i) {
+    ThrData *thr = fix->get_thr(i);
+    double tmp=thr->get_time(ttype);
+    time_min = MIN(time_min,tmp);
+    time_max = MAX(time_max,tmp);
+    time_avg += tmp;
+    time_std += tmp*tmp;
+    time_total += thr->get_time(ThrData::TIME_TOTAL);
+  }
+
+  time_avg /= nthreads;
+  time_std /= nthreads;
+  time_total = 100.0*nthreads/time_total;
+
+  if (time_avg > 1.0e-10)
+    time_std = sqrt(time_std/time_avg - time_avg)*100.0;
+  else
+    time_std = 0.0;
+
+  if (scr) fprintf(scr,fmt,label,time_min,time_avg,time_max,
+                   time_avg*time_total,time_std);
+  if (log) fprintf(log,fmt,label,time_min,time_avg,time_max,
+                   time_avg*time_total,time_std);
+}
+#endif
+
 
 /* ---------------------------------------------------------------------- */
 
@@ -144,19 +182,15 @@ void Finish::end(int flag)
 
     // overall loop time
 
-#if defined(_OPENMP)
+#ifdef LMP_USER_OMP
     if (me == 0) {
       int ntasks = nprocs * comm->nthreads;
-      if (screen) fprintf(screen,
-                          "Loop time of %g on %d procs (%d MPI x %d OpenMP) "
-                          "for %d steps with " BIGINT_FORMAT " atoms\n",
-                          time_loop,ntasks,nprocs,comm->nthreads,
-                          update->nsteps,atom->natoms);
-      if (logfile) fprintf(logfile,
-                           "Loop time of %g on %d procs (%d MPI x %d OpenMP) "
-                           "for %d steps with " BIGINT_FORMAT " atoms\n",
-                           time_loop,ntasks,nprocs,comm->nthreads,
-                           update->nsteps,atom->natoms);
+      const char fmt[] = "Loop time of %g on %d procs "
+        "(%d MPI x %d OpenMP) for %d steps with " BIGINT_FORMAT " atoms\n";
+      if (screen) fprintf(screen,fmt,time_loop,ntasks,nprocs,
+                          comm->nthreads,update->nsteps,atom->natoms);
+      if (logfile) fprintf(logfile,fmt,time_loop,ntasks,nprocs,
+                           comm->nthreads,update->nsteps,atom->natoms);
 
       if ( timeflag && !minflag && !prdflag && !tadflag &&
            (update->nsteps > 0) &&
@@ -171,12 +205,10 @@ void Finish::end(int flag)
         hrs_ns = t_step / update->dt * 1000000.0 * one_fs / 60.0 / 60.0;
         ns_day = 24.0 * 60.0 * 60.0 / t_step * update->dt / one_fs / 1000000.0;
 
-        if (screen) 
-          fprintf(screen, "Performance: %.3f ns/day  %.3f hours/ns  %.3f timesteps/s\n",
-                  ns_day, hrs_ns, tps);
-        if (logfile) 
-          fprintf(logfile, "Performance: %.3f ns/day  %.3f hours/ns  %.3f timesteps/s\n",
-                  ns_day, hrs_ns, tps);
+        const char perf[] = 
+          "Performance: %.3f ns/day  %.3f hours/ns  %.3f timesteps/s\n";
+        if (screen) fprintf(screen,perf,ns_day, hrs_ns, tps);
+        if (logfile) fprintf(logfile, perf, ns_day, hrs_ns, tps);
       }
     }
 #else
@@ -401,16 +433,13 @@ void Finish::end(int flag)
       if (screen) fputs("\n",screen);
       if (logfile) fputs("\n",logfile);
 
-#if defined(_OPENMP)
-      if (screen)
-        fputs("Section |  min time  |  avg time  |  max time  "
-              "|%total |  #Thr\n------------------------------"
-              "--------------------------------\n",screen);
-
-      if (logfile)
-        fputs("Section |  min time  |  avg time  |  max time  "
-              "|%total |  #Thr\n------------------------------"
-              "--------------------------------\n",logfile);
+#ifdef LMP_USER_OMP
+      const char hdr[] = 
+        "MPI task walltime distribution\n"
+        "Section |  min time  |  avg time  |  max time  |%total |  %CPU \n"
+        "---------------------------------------------------------------\n";
+      if (screen)  fputs(hdr,screen);
+      if (logfile) fputs(hdr,logfile);
 #endif
     }
 
@@ -437,7 +466,7 @@ void Finish::end(int flag)
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
     if (me == 0) {
-#if defined(_OPENMP)
+#ifdef LMP_USER_OMP
       if (screen)
         fprintf(screen,"Other   |            |%- 12.4g|            |"
                 "%6.2f |\n",time,time/time_loop*100.0);
@@ -456,14 +485,13 @@ void Finish::end(int flag)
   }
 
 #ifdef LMP_USER_OMP
-  const char thr_header[] = "\nPer Thread times for MPI rank 0\n"
-    "Thr#    Total       Reduce              Pair         "
-    "Bond           Kspace\n";
-  const char thr_format[] = "% 3d % 10.4g %8.3g %5.1f%% "
-    "%8.3g %5.1f%% %8.3g %5.1f%% %8.3g %5.1f%%\n";
+  const char thr_header[] = "\nThread walltime distribution for MPI rank 0\n"
+    "Section |  min time  |  avg time  |  max time  |%total | var/avg\n"
+    "----------------------------------------------------------------\n";
 
   int ifix = modify->find_fix("package_omp");
   const int nthreads = comm->nthreads;
+
   if ((ifix >= 0) && (nthreads > 1) && me == 0) {
     FixOMP *fixomp = static_cast<FixOMP *>(lmp->modify->fix[ifix]);
     ThrData *td = fixomp->get_thr(0);
@@ -471,30 +499,14 @@ void Finish::end(int flag)
       if (screen)  fputs(thr_header,screen);
       if (logfile) fputs(thr_header,logfile);
 
-      for (i = 0; i < nthreads; ++i) {
-        td = fixomp->get_thr(i);
-        double tall = 100.0/td->get_time(ThrData::TIME_TOTAL);
-        if (screen)
-          fprintf(screen, thr_format,i,100.0/tall,
-                  td->get_time(ThrData::TIME_REDUCE),
-                  td->get_time(ThrData::TIME_REDUCE)*tall,
-                  td->get_time(ThrData::TIME_PAIR),
-                  td->get_time(ThrData::TIME_PAIR)*tall,
-                  td->get_time(ThrData::TIME_BOND),
-                  td->get_time(ThrData::TIME_BOND)*tall,
-                  td->get_time(ThrData::TIME_KSPACE),
-                  td->get_time(ThrData::TIME_KSPACE)*tall);
-        if (logfile)
-          fprintf(logfile, thr_format,i,100.0/tall,
-                  td->get_time(ThrData::TIME_REDUCE),
-                  td->get_time(ThrData::TIME_REDUCE)*tall,
-                  td->get_time(ThrData::TIME_PAIR),
-                  td->get_time(ThrData::TIME_PAIR)*tall,
-                  td->get_time(ThrData::TIME_BOND),
-                  td->get_time(ThrData::TIME_BOND)*tall,
-                  td->get_time(ThrData::TIME_KSPACE),
-                  td->get_time(ThrData::TIME_KSPACE)*tall);
-      }
+      omp_times(fixomp,"Reduce",ThrData::TIME_REDUCE,nthreads,screen,logfile);
+      omp_times(fixomp,"Neigh",ThrData::TIME_NEIGH,nthreads,screen,logfile);
+      omp_times(fixomp,"Pair",ThrData::TIME_PAIR,nthreads,screen,logfile);
+      if (atom->molecular) omp_times(fixomp,"Bond",ThrData::TIME_BOND,
+                                     nthreads,screen,logfile);
+      if (force->kspace) omp_times(fixomp,"Kspace",ThrData::TIME_KSPACE,
+                                   nthreads,screen,logfile);
+      omp_times(fixomp,"Modify",ThrData::TIME_MODIFY,nthreads,screen,logfile);
     }
   }
 #endif

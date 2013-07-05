@@ -38,8 +38,8 @@ class ThrData {
   void check_tid(int);    // thread id consistency check
   int get_tid() const { return _tid; }; // our thread id.
 
-  enum {TIME_RESET=-2, TIME_STOP=-1, TIME_START=0, TIME_TOTAL, TIME_REDUCE,
-        TIME_NEIGH, TIME_PAIR, TIME_BOND, TIME_KSPACE, TIME_FIX, NUM_TIMERS};
+  enum {TIME_RESET=-2,TIME_STOP=-1,TIME_START=0,TIME_TOTAL,TIME_REDUCE,
+        TIME_NEIGH,TIME_PAIR,TIME_BOND,TIME_KSPACE,TIME_MODIFY,NUM_TIMERS};
   void timer(const int flag);
   double get_time(const int flag);
 

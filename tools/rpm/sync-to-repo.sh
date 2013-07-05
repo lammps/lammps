@@ -1,8 +1,8 @@
 #!/bin/sh
 # sync data from build directory to repository
 
-# function to selectively purge
-purge_rpms () {
+# function to selectively remove older rpms and make a symlink to the latest version
+prune_rpm () {
   dir=$1
   sub=$2
   ref=$(date +%s)
@@ -40,7 +40,7 @@ purge_rpms () {
           eval tmp=\$week${w}
           if [ -n "$tmp" ]
           then
-              echo "rm -f ${rpm}"
+              rm -vf ${rpm}
           fi
           eval week${w}=1
       fi
@@ -53,7 +53,7 @@ purge_rpms () {
           eval tmp=\$month${m}
           if [ -n "$tmp" ]
           then
-              echo "rm -f ${rpm}"
+              rm -vf ${rpm}
           fi
           eval month${m}=1
       fi
@@ -66,13 +66,13 @@ purge_rpms () {
           eval tmp=\$year${y}
           if [ -n "$tmp" ]
           then
-              echo "rm -f ${rpm}"
+              rm -vf ${rpm}
           fi
           eval year${y}=1
       fi
   done
-  echo "rm -f ${sto}"
-  echo "ln -s ${sym} ${sto}"
+  rm -f ${sto}
+  ln -s ${sym} ${sto}
 }
 
 if ! which rpmbuild > /dev/null 2>&1
@@ -88,29 +88,28 @@ if [ -n "${MYRPM_REPO_USER}" ] \
 && [ -n "${MYRPM_REPO_HOST}" ] \
 && [ -n "${MYRPM_REPO_DIR}" ]
 then
-    pushd ${MYRPM_BUILD_DIR}/RPMS
+    pushd ${MYRPM_BUILD_DIR}
     # move debuginfo rpms, if present
-    for f in *-debuginfo-*.rpm
+    for f in RPMS/*-debuginfo-*.rpm
     do \
-        test -f $f && mv -v $f debug/
+        test -f $f && mv -v $f RPMS/debug/
     done
 
-    prune_rpm debug -debuginfo
-    prune_rpm .
-    prune_rpm . -common
-    prune_rpm . -doc
-    prune_rpm . -openmpi
-    prune_rpm . -mpich2
-    prune_rpm . -python
+    prune_rpm RPMS/debug -debuginfo
+    prune_rpm RPMS
+    prune_rpm RPMS -common
+    prune_rpm RPMS -doc
+    prune_rpm RPMS -openmpi
+    prune_rpm RPMS -mpich2
+    prune_rpm RPMS -python
 
-    exit 0
-
-    createrepo -v --deltas --num-deltas 2 --max-delta-rpm-size 30000000 .
-    rsync -arpv --exclude cache --delete ./ \
+    createrepo -v RPMS
+    rsync -arpv --exclude cache --delete RPMS/ \
         ${MYRPM_REPO_USER}@${MYRPM_REPO_HOST}:${MYRPM_REPO_DIR}
     # we use the source rpm on suse, since they do not have a "dist" tag.
     if grep -q -i suse /etc/issue && test $(uname -i) = i386
     then
+        prune_rpm SRPMS
         rsync -arpv SRPMS/ \
             ${MYRPM_REPO_USER}@${MYRPM_REPO_HOST}:${MYRPM_REPO_DIR}/../../../source
     fi

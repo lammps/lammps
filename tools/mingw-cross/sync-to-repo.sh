@@ -31,17 +31,23 @@ prune_exe () {
           sto="${p}${r}latest${e}"
       fi
 
-      # after one weeks we keep only one per week.
+      # NOTE: to simplify the math, for the following we
+      # define one month to have 28 days and a year of 
+      # 12 months to have correspondingly only 336 days.
+
+      # after about one year we keep only one per year
       unset tmp
-      if [ $age -gt 7 ]
+      if [ $age -gt 336 ]
       then
-          w=$(expr $age / 7)
-          eval tmp=\$week${w}
+          y=$(expr $age / 336)
+          eval tmp=\$year${y}
           if [ -n "$tmp" ]
           then
               rm -vf ${exe}
+          else
+              echo "first in year $y $exe"
           fi
-          eval week${w}=1
+          eval year${y}=1
       fi
 
       # after about three months we keep only one per month
@@ -53,22 +59,27 @@ prune_exe () {
           if [ -n "$tmp" ]
           then
               rm -vf ${exe}
+          else
+              echo "first in month $m $exe"
           fi
           eval month${m}=1
       fi
-      unset tmp
 
-      # after about one year we keep only one per year
-      if [ $age -gt 336 ]
+      # after one week we keep only one per week.
+      unset tmp
+      if [ $age -gt 7 ]
       then
-          y=$(expr $age / 336)
-          eval tmp=\$year${y}
+          w=$(expr $age / 7)
+          eval tmp=\$week${w}
           if [ -n "$tmp" ]
           then
               rm -vf ${exe}
+          else
+              echo "first in week $w $exe"
           fi
-          eval year${y}=1
+          eval week${w}=1
       fi
+
   done
   rm -f ${sto}
   ln -s ${sym} ${sto}

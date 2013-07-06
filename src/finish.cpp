@@ -41,7 +41,7 @@ static void print_timings(const char *label, Timer *t, enum Timer::ttype tt,
                           MPI_Comm world, const int nprocs, const int nthreads,
                           const int me, double time_loop, FILE *scr, FILE *log)
 {
-  double tmp, time_max, time_min, time_wall;
+  double tmp, time_max, time_min;
   double time = t->get_wall(tt);
   
 #ifdef LMP_USER_OMP

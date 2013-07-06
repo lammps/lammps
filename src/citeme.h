@@ -24,6 +24,9 @@ class CiteMe : protected Pointers {
   CiteMe(class LAMMPS *);
   virtual ~CiteMe();
 
+  void on();                    // turn citing on
+  void off();                   // turn citing off
+
   void add(int);         // add a paper to the list of citations
 
   // constants for references
@@ -50,7 +53,8 @@ class CiteMe : protected Pointers {
   };
 
  private:
-  void *pubs;
+  void *_pubs;
+  bool _active;
 };
 
 }

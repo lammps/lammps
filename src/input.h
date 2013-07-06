@@ -54,7 +54,8 @@ class Input : protected Pointers {
   void reallocate(char *&, int &, int);  // reallocate a char string
   int execute_command();                 // execute a single command
 
-  void clear();                // input script commands
+  void citeme();                // input script commands
+  void clear();
   void echo();
   void ifthenelse();
   void include();

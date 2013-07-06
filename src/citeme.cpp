@@ -13,6 +13,7 @@
 
 #include "citeme.h"
 #include "version.h"
+#include "comm.h"
 
 #include <stdio.h>
 #include <set>
@@ -107,16 +108,35 @@ typedef std::set<int> intset;
 CiteMe::CiteMe(LAMMPS *lmp) : Pointers(lmp) {
 
   intset *c = new intset;
-  pubs = (void *)c;
+  _pubs = (void *)c;
+  if (comm->me == 0)
+    _active = true;
+  else
+    _active = false;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void CiteMe::add(int ref)
 {
-  intset *c = (intset *) pubs;
+  intset *c = (intset *) _pubs;
   if ((ref > FIRST_ENTRY ) && (ref < LAST_ENTRY))
     c->insert(ref); // only add known entries
+}
+
+/* ---------------------------------------------------------------------- */
+
+void CiteMe::on()
+{
+  if (comm->me == 0)
+    _active = true;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void CiteMe::off()
+{
+  _active = false;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -129,19 +149,21 @@ static const char cite_header[] = "\n"
   "    http://lammps.sandia.gov\n\n";
 
 CiteMe::~CiteMe(){
-  intset *c = (intset *)(pubs);
+  intset *c = (intset *)(_pubs);
 
-  if (screen)
-    fputs(cite_header,screen);
-
-  if (logfile)
-    fputs(cite_header,logfile);
-
-  for (intset::const_iterator i = c->begin(); i != c->end(); ++i) {
+  if (_active) {
     if (screen)
-      fputs(publication[*i],screen);
+      fputs(cite_header,screen);
+
     if (logfile)
-      fputs(publication[*i],logfile);
+      fputs(cite_header,logfile);
+
+    for (intset::const_iterator i = c->begin(); i != c->end(); ++i) {
+      if (screen)
+        fputs(publication[*i],screen);
+      if (logfile)
+        fputs(publication[*i],logfile);
+    }
   }
 
   delete c;

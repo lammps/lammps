@@ -45,6 +45,7 @@
 #include "accelerator_cuda.h"
 #include "error.h"
 #include "memory.h"
+#include "citeme.h"
 
 #ifdef _OPENMP
 #include "omp.h"
@@ -509,7 +510,8 @@ int Input::execute_command()
 {
   int flag = 1;
 
-  if (!strcmp(command,"clear")) clear();
+  if (!strcmp(command,"citeme")) citeme();
+  else if (!strcmp(command,"clear")) clear();
   else if (!strcmp(command,"echo")) echo();
   else if (!strcmp(command,"if")) ifthenelse();
   else if (!strcmp(command,"include")) include();
@@ -603,6 +605,22 @@ int Input::execute_command()
 /* ---------------------------------------------------------------------- */
 /* ---------------------------------------------------------------------- */
 /* ---------------------------------------------------------------------- */
+
+/* ---------------------------------------------------------------------- */
+
+void Input::citeme()
+{
+  if (narg != 1) error->all(FLERR,"Illegal citeme command");
+  if (strcmp(arg[0],"yes") == 0)
+    lmp->citeme->on();
+  else if (strcmp(arg[0],"on") == 0)
+    lmp->citeme->on();
+  else if (strcmp(arg[0],"no") == 0)
+    lmp->citeme->off();
+  else if (strcmp(arg[0],"off") == 0)
+    lmp->citeme->off();
+  else error->all(FLERR,"Illegal citeme command");
+}
 
 /* ---------------------------------------------------------------------- */
 

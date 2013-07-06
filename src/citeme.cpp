@@ -97,6 +97,10 @@ static const char * const publication[] = {
   "T.W. Sirk, S. Moore, E.F. Brown,\n"
   " Characteristics of thermal conductivity in classical water models,\n"
   " J. Chem. Phys., 138, 064505 (2013)\n\n",
+  /* FIORIN_2013 */
+  "G. Fiorin, M.L. Klein and J. Henin,\n"
+  " Using collective variables to drive molecular dynamics simulations,\n"
+  " Mol. Phys. http://dx.doi.org/10.1080/00268976.2013.813594 (2013)\n\n",
   NULL 
 };
 

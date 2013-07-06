@@ -49,6 +49,7 @@ class CiteMe : protected Pointers {
     AKTULGA_2012,
     PLIMPTON_2012,
     SIRK_2013,
+    FIORIN_2013,
     LAST_ENTRY
   };
 

@@ -31,6 +31,7 @@
 #include "neigh_request.h"
 #include "group.h"
 #include "update.h"
+#include "my_page.h"
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
@@ -73,8 +74,9 @@ PairComb::PairComb(LAMMPS *lmp) : Pair(lmp)
 
   sht_num = NULL;
   sht_first = NULL;
-  maxpage = 0;
-  pages = NULL;
+
+  ipage = NULL;
+  pgsize = oneatom = 0;
 
   // set comm size needed by this Pair
 
@@ -541,9 +543,19 @@ void PairComb::init_style()
   neighbor->requests[irequest]->half = 0;
   neighbor->requests[irequest]->full = 1;
 
-  pgsize = neighbor->pgsize;
-  oneatom = neighbor->oneatom;
-  if (maxpage == 0) add_pages();
+  // local Comb neighbor list
+  // create pages if first time or if neighbor pgsize/oneatom has changed
+
+  int create = 0;
+  if (ipage == NULL) create = 1;
+  if (pgsize != neighbor->pgsize) create = 1;
+  if (oneatom != neighbor->oneatom) create = 1;
+
+  if (create) {
+    pgsize = neighbor->pgsize;
+    oneatom = neighbor->oneatom;
+    ipage = new MyPage<int>(oneatom,pgsize);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1364,8 +1376,7 @@ void PairComb::sm_table()
   memory->create(NCo,nmax,"pair:NCo");
   memory->create(bbij,nmax,MAXNEIGH,"pair:bbij");
   memory->create(sht_num,nmax,"pair:sht_num");
-  sht_first = (int **) memory->smalloc(nmax*sizeof(int *),
-            "pair:sht_first");
+  sht_first = (int **) memory->smalloc(nmax*sizeof(int *),"pair:sht_first");
 
   // set interaction number: 0-0=0, 1-1=1, 0-1=1-0=2
 
@@ -2023,18 +2034,6 @@ void PairComb::unpack_reverse_comm(int n, int *list, double *buf)
   }
 }
 
-/* ----------------------------------------------------------------------
-   memory usage of local atom-based arrays
-------------------------------------------------------------------------- */
-
-double PairComb::memory_usage()
-{
-  double bytes = maxeatom * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);
-  bytes += nmax * sizeof(int);
-  bytes += MAXNEIGH * nmax * sizeof(int);
-  return bytes;
-}
 /* ---------------------------------------------------------------------- */
 
 void PairComb::Short_neigh()
@@ -2064,21 +2063,17 @@ void PairComb::Short_neigh()
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  int npntj = 0;
-  int npage = 0;
+
+  // create Comb neighbor list
+
+  ipage->reset();
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     itype = type[i];
 
-    if (pgsize - npntj < oneatom) {
-      npntj = 0;
-      npage++;
-      if (npage == maxpage) add_pages();
-    }
-
     nj = 0;
-    neighptrj = &pages[npage][npntj];
+    neighptrj = ipage->vget();
 
     xtmp = x[i][0];
     ytmp = x[i][1];
@@ -2103,19 +2098,24 @@ void PairComb::Short_neigh()
 
     sht_first[i] = neighptrj;
     sht_num[i] = nj;
-    npntj += nj;
+    ipage->vgot(nj);
+    if (ipage->errorflag)
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   memory usage of local atom-based arrays
+------------------------------------------------------------------------- */
 
-void PairComb::add_pages(int howmany)
+double PairComb::memory_usage()
 {
-  int toppage = maxpage;
-  maxpage += howmany*PGDELTA;
-
-  pages = (int **)
-    memory->srealloc(pages,maxpage*sizeof(int *),"pair:pages");
-  for (int i = toppage; i < maxpage; i++)
-    memory->create(pages[i],pgsize,"pair:pages[i]");
+  double bytes = maxeatom * sizeof(double);
+  bytes += maxvatom*6 * sizeof(double);
+  bytes += nmax * sizeof(int);
+  bytes += nmax * sizeof(int *);
+  bytes += ipage->size();
+  bytes += nmax * sizeof(int);
+  bytes += MAXNEIGH*nmax * sizeof(double);
+  return bytes;
 }

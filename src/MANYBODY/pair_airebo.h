@@ -21,6 +21,7 @@ PairStyle(airebo,PairAIREBO)
 #define LMP_PAIR_AIREBO_H
 
 #include "pair.h"
+#include "my_page.h"
 #include "math.h"
 #include "math_const.h"
 
@@ -38,15 +39,10 @@ class PairAIREBO : public Pair {
   double memory_usage();
 
  protected:
-  int **pages;                     // neighbor list pages
   int *map;                        // 0 (C), 1 (H), or -1 (NULL) for each type
 
   int me;
   int ljflag,torflag;              // 0/1 if LJ,torsion terms included
-  int maxlocal;                    // size of numneigh, firstneigh arrays
-  int maxpage;                     // # of pages currently allocated
-  int pgsize;                      // size of neighbor page
-  int oneatom;                     // max # of neighbors for one atom
 
   double cutlj;                    // user-specified LJ cutoff
   double cutljrebosq;              // cut for when to compute
@@ -56,8 +52,13 @@ class PairAIREBO : public Pair {
   double **lj1,**lj2,**lj3,**lj4;  // pre-computed LJ coeffs for C,H types
   double cut3rebo;                 // maximum distance for 3rd REBO neigh
 
+  int maxlocal;                    // size of numneigh, firstneigh arrays
+  int pgsize;                      // size of neighbor page
+  int oneatom;                     // max # of neighbors for one atom
+  MyPage<int> *ipage;              // neighbor list pages
   int *REBO_numneigh;              // # of pair neighbors for each atom
   int **REBO_firstneigh;           // ptr to 1st neighbor of each atom
+
   double *closestdistsq;           // closest owned atom dist to each ghost
   double *nC,*nH;                  // sum of weighting fns with REBO neighs
 
@@ -101,7 +102,6 @@ class PairAIREBO : public Pair {
   double piRCSpline(double, double, double, int, int, double *);
   double TijSpline(double, double, double, double *);
 
-  void add_pages(int howmany = 1);
   void read_file(char *);
 
   double Sp5th(double, double *, double *);

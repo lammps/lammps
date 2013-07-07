@@ -554,11 +554,15 @@ void PairComb::init_style()
   if (oneatom != neighbor->oneatom) create = 1;
 
   if (create) {
+    delete[] ipage;
+
     pgsize = neighbor->pgsize;
     oneatom = neighbor->oneatom;
-    delete[] ipage;
-    ipage = new MyPage<int>[comm->nthreads];
-    ipage->init(oneatom,pgsize);
+
+    int nmypage= comm->nthreads;
+    ipage = new MyPage<int>[nmypage];
+    for (int i=0; i < nmypage; ++i)
+      ipage[i].init(oneatom,pgsize);
   }
 }
 

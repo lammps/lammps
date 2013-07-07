@@ -106,10 +106,12 @@ void FixShearHistory::init()
   if (oneatom != neighbor->oneatom) create = 1;
 
   if (create) {
+    delete[] ipage;
+    delete[] dpage;
+
     pgsize = neighbor->pgsize;
     oneatom = neighbor->oneatom;
     int nmypage = comm->nthreads;
-
     ipage = new MyPage<int>[nmypage];
     dpage = new MyPage<double[3]>[nmypage];
     for (int i=0; i < nmypage; ++i) {

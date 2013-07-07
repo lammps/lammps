@@ -233,8 +233,11 @@ void PairAIREBO::init_style()
   if (create) {
     pgsize = neighbor->pgsize;
     oneatom = neighbor->oneatom;
-    ipage = new MyPage<int>[comm->nthreads];
-    ipage->init(oneatom,pgsize,PGDELTA);
+
+    int nmypage= comm->nthreads;
+    ipage = new MyPage<int>[nmypage];
+    for (int i=0; i < nmypage; ++i)
+      ipage[i].init(oneatom,pgsize,PGDELTA);
   }
 }
 

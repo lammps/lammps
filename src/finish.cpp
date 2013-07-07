@@ -29,6 +29,7 @@
 #include "neigh_request.h"
 #include "output.h"
 #include "memory.h"
+#include "accelerator_omp.h"
 #ifdef LMP_USER_OMP
 #include "modify.h"
 #include "fix_omp.h"

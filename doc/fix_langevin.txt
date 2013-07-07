@@ -294,4 +294,4 @@ types, tally = no, zero = no, gjf = no.
 [(Schneider)] Schneider and Stoll, Phys Rev B, 17, 1302 (1978).
 
 :link(Gronbech-Jensen)
-[(Gronbech-Jensen)] Gronbech-Jensen, Hayre, and Farago, arXiv:1303.7011.v2; Gronbech-Jensen and Farago, Mol. Phys. 111 (2013); 
+[(Gronbech-Jensen)] Gronbech-Jensen and Farago, Mol Phys, 111, 983 (2013); Gronbech-Jensen, Hayre, and Farago, arXiv:1303.7011.v2 (2013)

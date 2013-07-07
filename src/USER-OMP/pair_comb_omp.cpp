@@ -557,7 +557,7 @@ void PairCombOMP::Short_neigh_thr()
                                          "pair:sht_first");
     memory->grow(sht_num,nmax,"pair:sht_num");
     memory->grow(NCo,nmax,"pair:NCo");
-    memory->grow(bbij,nmax,nmax,"pair:bbij");
+    memory->grow(bbij,nmax,MAXNEIGH,"pair:bbij");
   }
 
   const int nthreads = comm->nthreads;

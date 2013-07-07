@@ -1,12 +1,13 @@
-# verified on Fedora 17     / x86_64 / 2013-06-26
-# verified on Fedora 17     / i386   / 2013-06-26
-# verified on Fedora 18     / x86_64 / 2013-06-26
-# verified on Fedora 18     / i386   / 2013-06-26
-# verified on Fedora 19     / x86_64 / 2013-06-26
-# verified on CentOS 6.4    / x86_64 / 2013-06-26
-# verified on CentOS 6.4    / i386   / 2013-06-26
-# verified on OpenSuSE 12.3 / x86_64 / 2013-06-26
-# verified on OpenSuSE 12.3 / i586   / 2013-06-26
+# verified on Fedora 17     / x86_64 / 2013-07-07
+# verified on Fedora 17     / i386   / 2013-07-07
+# verified on Fedora 18     / x86_64 / 2013-07-07
+# verified on Fedora 18     / i386   / 2013-07-07
+# verified on Fedora 19     / x86_64 / 2013-07-07
+# verified on Fedora 19     / i386   / 2013-07-07
+# verified on CentOS 6.4    / x86_64 / 2013-07-07
+# verified on CentOS 6.4    / i386   / 2013-07-07
+# verified on OpenSuSE 12.3 / x86_64 / 2013-07-07
+# verified on OpenSuSE 12.3 / i586   / 2013-07-07
 
 %ifnarch s390 s390x
 %global with_openmpi 1
@@ -32,14 +33,16 @@
 %{!?python_sitearch: %global python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
 
 Name:           lammps
-Version:        20130615
-Release:        2%{?dist}
+Version:        20130707
+Release:        3%{?dist}
 Summary:        LAMMPS Molecular Dynamics Simulator
 Group:          Applications/Engineering
 
 License:        GPLv2
 URL:            http://lammps.sandia.gov
 Source0:        lammps-current.tar.gz
+Source1:        lammps.sh
+Source2:        lammps.csh
 
 BuildRequires:  gcc-c++
 BuildRequires:  fftw-devel
@@ -185,6 +188,9 @@ g++ -o serial/restart2data ${RPM_OPT_FLAGS} %{bigintsize} tools/restart2data.cpp
 g++ -o serial/binary2txt ${RPM_OPT_FLAGS} %{bigintsize} tools/binary2txt.cpp
 gfortran -o serial/chain.x ${RPM_OPT_FLAGS} tools/chain.f
 
+make -C tools/msi2lmp/src CC=gcc CCFLAGS="${RPM_OPT_FLAGS} %{bigintsize}"
+mv tools/msi2lmp/src/msi2lmp.exe serial/msi2lmp
+
 # build OpenMPI parallel version, if supported
 %if %{with_openmpi}
 %{_openmpi_load}
@@ -238,6 +244,7 @@ install -p -m 755 serial/lmp_g++ %{buildroot}%{_bindir}
 install -p -m 755 serial/restart2data %{buildroot}%{_bindir}
 install -p -m 755 serial/binary2txt %{buildroot}%{_bindir}
 install -p -m 755 serial/chain.x %{buildroot}%{_bindir}
+install -p -m 755 serial/msi2lmp %{buildroot}%{_bindir}
 
 %if %{with_openmpi}
 %if %{with_suse}
@@ -263,9 +270,13 @@ install -p -m 755 mpich2/lmp_g++ $RPM_BUILD_ROOT/%{_libdir}/mpich2/bin/
 mkdir -p $RPM_BUILD_ROOT/%{python_sitearch}
 mkdir -p $RPM_BUILD_ROOT/%{_libdir}
 mkdir -p $RPM_BUILD_ROOT/%{_datadir}/lammps
+mkdir -p $RPM_BUILD_ROOT/%{_sysconfdir}/profile.d/
 cp python/lammps.py* $RPM_BUILD_ROOT/%{python_sitearch}
 cp serial/liblammps.so $RPM_BUILD_ROOT/%{_libdir}
+sed -e s,@DATADIR@,%{_datadir}/lammps, < %{SOURCE1} > $RPM_BUILD_ROOT/%{_sysconfdir}/profile.d/lammps.sh
+sed -e s,@DATADIR@,%{_datadir}/lammps, < %{SOURCE2} > $RPM_BUILD_ROOT/%{_sysconfdir}/profile.d/lammps.csh
 cp -arp potentials $RPM_BUILD_ROOT/%{_datadir}/lammps/
+cp -arp biosym_frc_files $RPM_BUILD_ROOT/%{_datadir}/lammps/
 cp -arp bench $RPM_BUILD_ROOT/%{_datadir}/lammps/
 cp -arp examples $RPM_BUILD_ROOT/%{_datadir}/lammps/
 
@@ -281,7 +292,10 @@ rm -rf %{buildroot}
 %{_bindir}/restart2data
 %{_bindir}/binary2txt
 %{_bindir}/chain.x
+%{_bindir}/msi2lmp
+%{_sysconfdir}/profile.d/lammps.*sh
 %{_datadir}/lammps/potentials
+%{_datadir}/lammps/biosym_frc_files
 %doc README LICENSE
 
 %files doc
@@ -317,6 +331,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Sun Jul  7 2013 Axel Kohlmeyer <akohlmey@gmail.com> - 20130707-3
+- included support for compiling and distributing msi2lmp and included support for setting LAMMPS_POTENTIALS and BIOSYM_LIBRARY environment variables
+
 * Thu Jul  4 2013 Axel Kohlmeyer <akohlmey@gmail.com> - 20130615-2
 - Added flags to compile with high resolution timers
 

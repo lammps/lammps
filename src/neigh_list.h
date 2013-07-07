@@ -42,7 +42,6 @@ class NeighList : protected Pointers {
   int pgsize;                      // size of each page
   int oneatom;                     // max size for one atom
   int dnum;                        // # of doubles per neighbor, 0 if none
-  int nmypage;                     // number of concurrent page allocators
   MyPage<int> *ipage;              // pages of neighbor indices
   MyPage<double> *dpage;           // pages of neighbor doubles, if dnum > 0
 

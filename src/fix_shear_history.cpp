@@ -16,6 +16,7 @@
 #include "stdio.h"
 #include "fix_shear_history.h"
 #include "atom.h"
+#include "comm.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "force.h"
@@ -71,8 +72,8 @@ FixShearHistory::~FixShearHistory()
   memory->destroy(npartner);
   memory->sfree(partner);
   memory->sfree(shearpartner);
-  delete ipage;
-  delete dpage;
+  delete[] ipage;
+  delete[] dpage;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -107,8 +108,14 @@ void FixShearHistory::init()
   if (create) {
     pgsize = neighbor->pgsize;
     oneatom = neighbor->oneatom;
-    ipage = new MyPage<int>(oneatom,pgsize);
-    dpage = new MyPage<double[3]>(oneatom,pgsize);
+    int nmypage = comm->nthreads;
+
+    ipage = new MyPage<int>[nmypage];
+    dpage = new MyPage<double[3]>[nmypage];
+    for (int i=0; i < nmypage; ++i) {
+      ipage[i].init(oneatom,pgsize);
+      dpage[i].init(oneatom,pgsize);
+    }
   }
 }
 
@@ -260,8 +267,13 @@ double FixShearHistory::memory_usage()
   double bytes = nmax * sizeof(int);
   bytes = nmax * sizeof(int *);
   bytes = nmax * sizeof(double *);
-  bytes += ipage->ndatum * sizeof(int);
-  bytes += dpage->ndatum * sizeof(double[3]);
+
+  int nmypage = comm->nthreads;
+  for (int i=0; i < nmypage; ++i) {
+    bytes += ipage[i].size();
+    bytes += dpage[i].size();
+  }
+
   return bytes;
 }
 

@@ -62,7 +62,6 @@ NeighList::NeighList(LAMMPS *lmp) :
   stencil_multi = NULL;
   distsq_multi = NULL;
 
-  nmypage = 0;
   ipage = NULL;
   dpage = NULL;
 }
@@ -108,7 +107,7 @@ void NeighList::setup_pages(int pgsize_caller, int oneatom_caller,
   oneatom = oneatom_caller;
   dnum = dnum_caller;
 
-  nmypage = comm->nthreads;
+  int nmypage = comm->nthreads;
   ipage = new MyPage<int>[nmypage];
   for (int i=0; i < nmypage; ++i)
     ipage[i].init(oneatom,pgsize,PGDELTA);
@@ -266,6 +265,8 @@ bigint NeighList::memory_usage()
   bytes += memory->usage(ilist,maxatoms);
   bytes += memory->usage(numneigh,maxatoms);
   bytes += maxatoms * sizeof(int *);
+
+  int nmypage = comm->nthreads;
   for (int i=0; i < nmypage; ++i)
     bytes += ipage[i].size();
 

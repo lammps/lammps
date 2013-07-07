@@ -25,9 +25,7 @@ namespace LAMMPS_NS {
 
 // make sure we have at least one page for each thread
 #define NEIGH_OMP_INIT                          \
-  const int nthreads = comm->nthreads;          \
-  if (nthreads > list->maxpage)                 \
-    list->add_pages(nthreads - list->maxpage)
+  const int nthreads = comm->nthreads;
 
 // get thread id and then assign each thread a fixed chunk of atoms
 #define NEIGH_OMP_SETUP(num)                    \

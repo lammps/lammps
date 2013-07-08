@@ -9,13 +9,13 @@ SHELL = /bin/sh
 OPENMP= -fopenmp
 
 CC =		mpic++ $(OPENMP)
-CCFLAGS =	-O2 -fomit-frame-pointer -fno-rtti -fno-exceptions \
+CCFLAGS =	-O2 -fomit-frame-pointer -fno-rtti -fno-exceptions -ftree-vectorize \
 			-march=native -ffast-math -mpc64 -g -finline-functions \
 			-funroll-loops -fstrict-aliasing -Wall -W -Wno-uninitialized
 DEPFLAGS =	-MM
 LINK =		mpic++ $(OPENMP)
 LINKFLAGS =	-O -g -fno-rtti -fno-exceptions -mpc64
-LIB =           -lrt
+LIB =
 ARCHIVE =	ar
 ARFLAGS =	-rcsv
 SIZE =		size
@@ -28,8 +28,8 @@ SIZE =		size
 # LAMMPS ifdef settings, OPTIONAL
 # see possible settings in doc/Section_start.html#2_2 (step 4)
 
-LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_MEMALIGN=16 \
-	-DLAMMPS_JPEG -DLMP_CLOCK_GETTIME
+LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_MEMALIGN=32 \
+	-DLAMMPS_JPEG
 
 # MPI library, REQUIRED
 # see discussion in doc/Section_start.html#2_2 (step 5)

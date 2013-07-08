@@ -21,28 +21,9 @@
 #include <string.h>
 #include <stdio.h>
 
-#ifdef LMP_CLOCK_GETTIME
-#include <time.h>
-#endif
-
 #include "memory.h"
 
 using namespace LAMMPS_NS;
-
-/* ---------------------------------------------------------------------- */
-
-static double get_wall_time()
-{
-#ifdef LMP_CLOCK_GETTIME
-  struct timespec tp;
-  clock_gettime(CLOCK_REALTIME,&tp);
-  double rv = (double) tp.tv_sec;
-  rv += (double) tp.tv_nsec * 0.0000000001;
-  return rv;
-#else
-  return MPI_Wtime();
-#endif
-}
 
 /* ---------------------------------------------------------------------- */
 
@@ -81,7 +62,7 @@ void ThrData::timer(const int flag)
     return;
   }
 
-  tmp = get_wall_time();
+  tmp = MPI_Wtime();
 
   if (flag == TIME_START) {
     _timer_active = 1;

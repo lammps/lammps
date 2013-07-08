@@ -18,22 +18,18 @@
 #ifdef _WIN32
 #include <windows.h>
 #else
-
-#ifdef LMP_CLOCK_GETTIME
-#include <time.h>
-#endif
-
 #include <sys/time.h>
 #include <sys/resource.h>
 #endif
 
 using namespace LAMMPS_NS;
 
-static double get_cpu_time()
+static double CPU_Time()
 {
   double rv = 0.0;
 
 #ifdef _WIN32
+
   // from MSD docs.
   FILETIME ct,et,kt,ut;
   union { FILETIME ft; uint64_t ui; } cpu;
@@ -41,38 +37,18 @@ static double get_cpu_time()
     cpu.ft = ut;
     rv = cpu.ui * 0.0000001;
   }
+
 #else /* ! _WIN32 */
 
-#ifdef LMP_CLOCK_GETTIME
-  struct timespec tp;
-  clock_gettime(CLOCK_PROCESS_CPUTIME_ID,&tp);
-  rv = (double) tp.tv_sec;
-  rv += (double) tp.tv_nsec * 0.0000000001;
-#else
   struct rusage ru;
   if (getrusage(RUSAGE_SELF, &ru) == 0) {
     rv = (double) ru.ru_utime.tv_sec;
     rv += (double) ru.ru_utime.tv_usec * 0.000001;
   }
-#endif
 
 #endif /* ! _WIN32 */
 
   return rv;
-}
-
-/* ---------------------------------------------------------------------- */
-static double get_wall_time()
-{
-#ifdef LMP_CLOCK_GETTIME
-  struct timespec tp;
-  clock_gettime(CLOCK_REALTIME,&tp);
-  double rv = (double) tp.tv_sec;
-  rv += (double) tp.tv_nsec * 0.0000000001;
-  return rv;
-#else
-  return MPI_Wtime();
-#endif
 }
 
 /* ---------------------------------------------------------------------- */
@@ -105,8 +81,8 @@ void Timer::stamp()
 {
   // uncomment if want synchronized timing
   // MPI_Barrier(world);
-  previous_cpu  = get_cpu_time();
-  previous_wall = get_wall_time();
+  previous_cpu  = CPU_Time();
+  previous_wall = MPI_Wtime();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -115,8 +91,8 @@ void Timer::stamp(enum ttype which)
 {
   // uncomment if want synchronized timing
   // MPI_Barrier(world);
-  double current_cpu  = get_cpu_time();
-  double current_wall = get_wall_time();
+  double current_cpu  = CPU_Time();
+  double current_wall = MPI_Wtime();
   cpu_array[which] += current_cpu - previous_cpu;
   wall_array[which] += current_wall - previous_wall;
   previous_cpu = current_cpu;
@@ -128,8 +104,8 @@ void Timer::stamp(enum ttype which)
 void Timer::barrier_start(enum ttype which)
 {
   MPI_Barrier(world);
-  cpu_array[which] = get_cpu_time();
-  wall_array[which] = get_wall_time();
+  cpu_array[which] = CPU_Time();
+  wall_array[which] = MPI_Wtime();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -137,8 +113,8 @@ void Timer::barrier_start(enum ttype which)
 void Timer::barrier_stop(enum ttype which)
 {
   MPI_Barrier(world);
-  double current_cpu = get_cpu_time();
-  double current_wall = get_wall_time();
+  double current_cpu = CPU_Time();
+  double current_wall = MPI_Wtime();
   cpu_array[which] = current_cpu - cpu_array[which];
   wall_array[which] = current_wall - wall_array[which];
 }
@@ -147,7 +123,7 @@ void Timer::barrier_stop(enum ttype which)
 
 double Timer::cpu(enum ttype which)
 {
-  double current_cpu = get_cpu_time();
+  double current_cpu = CPU_Time();
   return (current_cpu - cpu_array[which]);
 }
 
@@ -155,7 +131,7 @@ double Timer::cpu(enum ttype which)
 
 double Timer::elapsed(enum ttype which)
 {
-  double current_wall = get_wall_time();
+  double current_wall = MPI_Wtime();
   return (current_wall - wall_array[which]);
 }
 

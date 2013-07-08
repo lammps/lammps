@@ -30,6 +30,7 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
+#include "my_page.h"
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
@@ -52,8 +53,9 @@ PairLCBOP::PairLCBOP(LAMMPS *lmp) : Pair(lmp) {
   maxlocal = 0;
   SR_numneigh = NULL;
   SR_firstneigh = NULL;
-  maxpage = 0;
-  pages = NULL;
+  ipage = NULL;
+  pgsize = oneatom = 0;
+
   N = NULL;
   M = NULL;
 }
@@ -62,11 +64,11 @@ PairLCBOP::PairLCBOP(LAMMPS *lmp) : Pair(lmp) {
    check if allocated, since class can be destructed when incomplete
 ------------------------------------------------------------------------- */
 
-PairLCBOP::~PairLCBOP() {
+PairLCBOP::~PairLCBOP()
+{
   memory->destroy(SR_numneigh);
   memory->sfree(SR_firstneigh);
-  for (int i = 0; i < maxpage; i++) memory->destroy(pages[i]);
-  memory->sfree(pages);
+  delete [] ipage;
   memory->destroy(N);
   memory->destroy(M);
 
@@ -191,11 +193,24 @@ void PairLCBOP::init_style()
   neighbor->requests[irequest]->full = 1;
   neighbor->requests[irequest]->ghost = 1;
 
-  // local SR neighbor list memory
+  // local SR neighbor list
+  // create pages if first time or if neighbor pgsize/oneatom has changed
 
-  pgsize = neighbor->pgsize;
-  oneatom = neighbor->oneatom;
-  if (maxpage == 0) add_pages();
+  int create = 0;
+  if (ipage == NULL) create = 1;
+  if (pgsize != neighbor->pgsize) create = 1;
+  if (oneatom != neighbor->oneatom) create = 1;
+
+  if (create) {
+    delete [] ipage;
+    pgsize = neighbor->pgsize;
+    oneatom = neighbor->oneatom;
+
+    int nmypage = comm->nthreads;
+    ipage = new MyPage<int>[nmypage];
+    for (int i = 0; i < nmypage; i++)
+      ipage[i].init(oneatom,pgsize,PGDELTA);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -238,9 +253,7 @@ double PairLCBOP::init_one(int i, int j)
 
 void PairLCBOP::SR_neigh()
 {
-  int i,j,ii,jj,n,
-    allnum,           // number of atoms(both local and ghost) neighbors are stored for
-    jnum;
+  int i,j,ii,jj,n,allnum,jnum;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq,dS;
   int *ilist,*jlist,*numneigh,**firstneigh;
   int *neighptr;
@@ -270,19 +283,13 @@ void PairLCBOP::SR_neigh()
   // store all SR neighs of owned and ghost atoms
   // scan full neighbor list of I
 
-  int npage = 0;
-  int npnt = 0; // position in current page
+  ipage->reset();
 
   for (ii = 0; ii < allnum; ii++) {
     i = ilist[ii];
 
-    if (pgsize - npnt < oneatom) { // ensure at least oneatom space free at current page
-      npnt = 0;
-      npage++;
-      if (npage == maxpage) add_pages();
-    }
-    neighptr = &pages[npage][npnt];
     n = 0;
+    neighptr = ipage->vget();
 
     xtmp = x[i][0];
     ytmp = x[i][1];
@@ -307,14 +314,13 @@ void PairLCBOP::SR_neigh()
 
     SR_firstneigh[i] = neighptr;
     SR_numneigh[i] = n;
-    npnt += n;
-    if( npnt >= pgsize )
-      error->one(FLERR,
-                 "Neighbor list overflow, boost neigh_modify one or page");
+    ipage->vgot(n);
+    if (ipage->status())
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
 
-
   // calculate M_i
+
   for (ii = 0; ii < allnum; ii++) {
     i = ilist[ii];
 
@@ -862,21 +868,6 @@ double PairLCBOP::b(int i, int j, double rij[3],
 }
 
 /* ----------------------------------------------------------------------
-   add pages to SR neighbor list
-------------------------------------------------------------------------- */
-
-void PairLCBOP::add_pages(int howmany)
-{
-  int toppage = maxpage;
-  maxpage += howmany*PGDELTA;
-
-  pages = (int **)
-    memory->srealloc(pages,maxpage*sizeof(int *),"LCBOP:pages");
-  for (int i = toppage; i < maxpage; i++)
-    memory->create(pages[i],pgsize,"LCBOP:pages[i]");
-}
-
-/* ----------------------------------------------------------------------
    spline interpolation for G
 ------------------------------------------------------------------------- */
 
@@ -1287,11 +1278,15 @@ void PairLCBOP::spline_init() {
    memory usage of local atom-based arrays
 ------------------------------------------------------------------------- */
 
-double PairLCBOP::memory_usage() {
+double PairLCBOP::memory_usage()
+{
   double bytes = 0.0;
   bytes += maxlocal * sizeof(int);
   bytes += maxlocal * sizeof(int *);
-  bytes += maxpage * neighbor->pgsize * sizeof(int);
-  bytes += 3 * maxlocal * sizeof(double);
+
+  for (int i = 0; i < comm->nthreads; i++)
+    bytes += ipage[i].size();
+
+  bytes += 3*maxlocal * sizeof(double);
   return bytes;
 }

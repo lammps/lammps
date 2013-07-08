@@ -18,6 +18,7 @@
 #include "comm.h"
 #include "domain.h"
 #include "group.h"
+#include "my_page.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -57,24 +58,16 @@ void Neighbor::full_nsq_omp(NeighList *list)
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
 
-  int npage = tid;
-  int npnt = 0;
+  // each thread has its own page allocator
+  MyPage<int> &ipage = list->ipage[tid];
+  ipage.reset();
 
   // loop over owned atoms, storing neighbors
 
   for (i = ifrom; i < ito; i++) {
 
-#if defined(_OPENMP)
-#pragma omp critical
-#endif
-    if (pgsize - npnt < oneatom) {
-      npnt = 0;
-      npage += nthreads;
-      if (npage >= list->maxpage) list->add_pages(nthreads);
-    }
-
-    neighptr = &(list->pages[npage][npnt]);
     n = 0;
+    neighptr = ipage.vget();
 
     itype = type[i];
     xtmp = x[i][0];
@@ -108,8 +101,8 @@ void Neighbor::full_nsq_omp(NeighList *list)
     ilist[i] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
-    npnt += n;
-    if (n > oneatom)
+    ipage.vgot(n);
+    if (ipage.status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
   NEIGH_OMP_CLOSE;
@@ -152,24 +145,16 @@ void Neighbor::full_nsq_ghost_omp(NeighList *list)
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
 
-  int npage = tid;
-  int npnt = 0;
+  // each thread has its own page allocator
+  MyPage<int> &ipage = list->ipage[tid];
+  ipage.reset();
 
   // loop over owned & ghost atoms, storing neighbors
 
   for (i = ifrom; i < ito; i++) {
 
-#if defined(_OPENMP)
-#pragma omp critical
-#endif
-    if (pgsize - npnt < oneatom) {
-      npnt = 0;
-      npage += nthreads;
-      if (npage >= list->maxpage) list->add_pages(nthreads);
-    }
-
-    neighptr = &(list->pages[npage][npnt]);
     n = 0;
+    neighptr = ipage.vget();
 
     itype = type[i];
     xtmp = x[i][0];
@@ -218,8 +203,8 @@ void Neighbor::full_nsq_ghost_omp(NeighList *list)
     ilist[i] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
-    npnt += n;
-    if (n > oneatom)
+    ipage.vgot(n);
+    if (ipage.status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
   NEIGH_OMP_CLOSE;
@@ -266,24 +251,16 @@ void Neighbor::full_bin_omp(NeighList *list)
   int nstencil = list->nstencil;
   int *stencil = list->stencil;
 
-  int npage = tid;
-  int npnt = 0;
+  // each thread has its own page allocator
+  MyPage<int> &ipage = list->ipage[tid];
+  ipage.reset();
 
   // loop over owned atoms, storing neighbors
 
   for (i = ifrom; i < ito; i++) {
 
-#if defined(_OPENMP)
-#pragma omp critical
-#endif
-    if (pgsize - npnt < oneatom) {
-      npnt = 0;
-      npage += nthreads;
-      if (npage >= list->maxpage) list->add_pages(nthreads);
-    }
-
-    neighptr = &(list->pages[npage][npnt]);
     n = 0;
+    neighptr = ipage.vget();
 
     itype = type[i];
     xtmp = x[i][0];
@@ -322,8 +299,8 @@ void Neighbor::full_bin_omp(NeighList *list)
     ilist[i] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
-    npnt += n;
-    if (n > oneatom)
+    ipage.vgot(n);
+    if (ipage.status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
   NEIGH_OMP_CLOSE;
@@ -374,24 +351,16 @@ void Neighbor::full_bin_ghost_omp(NeighList *list)
   int *stencil = list->stencil;
   int **stencilxyz = list->stencilxyz;
 
-  int npage = tid;
-  int npnt = 0;
+  // each thread has its own page allocator
+  MyPage<int> &ipage = list->ipage[tid];
+  ipage.reset();
 
   // loop over owned & ghost atoms, storing neighbors
 
   for (i = ifrom; i < ito; i++) {
 
-#if defined(_OPENMP)
-#pragma omp critical
-#endif
-    if (pgsize - npnt < oneatom) {
-      npnt = 0;
-      npage += nthreads;
-      if (npage >= list->maxpage) list->add_pages(nthreads);
-    }
-
-    neighptr = &(list->pages[npage][npnt]);
     n = 0;
+    neighptr = ipage.vget();
 
     itype = type[i];
     xtmp = x[i][0];
@@ -457,8 +426,8 @@ void Neighbor::full_bin_ghost_omp(NeighList *list)
     ilist[i] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
-    npnt += n;
-    if (n > oneatom)
+    ipage.vgot(n);
+    if (ipage.status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
   NEIGH_OMP_CLOSE;
@@ -510,22 +479,14 @@ void Neighbor::full_multi_omp(NeighList *list)
   int **stencil_multi = list->stencil_multi;
   double **distsq_multi = list->distsq_multi;
 
-  int npage = tid;
-  int npnt = 0;
+  // each thread has its own page allocator
+  MyPage<int> &ipage = list->ipage[tid];
+  ipage.reset();
 
   for (i = ifrom; i < ito; i++) {
 
-#if defined(_OPENMP)
-#pragma omp critical
-#endif
-    if (pgsize - npnt < oneatom) {
-      npnt = 0;
-      npage += nthreads;
-      if (npage >= list->maxpage) list->add_pages(nthreads);
-    }
-
-    neighptr = &(list->pages[npage][npnt]);
     n = 0;
+    neighptr = ipage.vget();
 
     itype = type[i];
     xtmp = x[i][0];
@@ -569,8 +530,8 @@ void Neighbor::full_multi_omp(NeighList *list)
     ilist[i] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
-    npnt += n;
-    if (n > oneatom)
+    ipage.vgot(n);
+    if (ipage.status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
   NEIGH_OMP_CLOSE;

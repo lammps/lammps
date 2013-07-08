@@ -16,6 +16,7 @@
 #include "atom.h"
 #include "domain.h"
 #include "group.h"
+#include "my_page.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -54,64 +55,40 @@ void Neighbor::respa_nsq_no_newton(NeighList *list)
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
-  int **pages = list->pages;
+  MyPage<int> *ipage = list->ipage;
 
   NeighList *listinner = list->listinner;
   int *ilist_inner = listinner->ilist;
   int *numneigh_inner = listinner->numneigh;
   int **firstneigh_inner = listinner->firstneigh;
-  int **pages_inner = listinner->pages;
+  MyPage<int> *ipage_inner = listinner->ipage;
 
   NeighList *listmiddle;
-  int *ilist_middle,*numneigh_middle,**firstneigh_middle,**pages_middle;
+  int *ilist_middle,*numneigh_middle,**firstneigh_middle;
+  MyPage<int> *ipage_middle;
   int respamiddle = list->respamiddle;
   if (respamiddle) {
     listmiddle = list->listmiddle;
     ilist_middle = listmiddle->ilist;
     numneigh_middle = listmiddle->numneigh;
     firstneigh_middle = listmiddle->firstneigh;
-    pages_middle = listmiddle->pages;
+    ipage_middle = listmiddle->ipage;
   }
 
   int inum = 0;
-  int npage = 0;
-  int npnt = 0;
-  int npage_inner = 0;
-  int npnt_inner = 0;
-  int npage_middle = 0;
-  int npnt_middle = 0;
-
   int which = 0;
   int minchange = 0;
+  ipage->reset();
+  ipage_inner->reset();
+  if (respamiddle) ipage_middle->reset();
 
   for (i = 0; i < nlocal; i++) {
-
-    if (pgsize - npnt < oneatom) {
-      npnt = 0;
-      npage++;
-      if (npage == list->maxpage) pages = list->add_pages();
-    }
-    neighptr = &pages[npage][npnt];
-    n = 0;
-
-    if (pgsize - npnt_inner < oneatom) {
-      npnt_inner = 0;
-      npage_inner++;
-      if (npage_inner == listinner->maxpage)
-        pages_inner = listinner->add_pages();
-    }
-    neighptr_inner = &pages_inner[npage_inner][npnt_inner];
-    n_inner = 0;
-
+    n = n_inner = 0;
+    neighptr = ipage->vget();
+    neighptr_inner = ipage_inner->vget();
     if (respamiddle) {
-      if (pgsize - npnt_middle < oneatom) {
-        npnt_middle = 0;
-        npage_middle++;
-        if (npage_middle == listmiddle->maxpage)
-          pages_middle = listmiddle->add_pages();
-      }
-      neighptr_middle = &pages_middle[npage_middle][npnt_middle];
       n_middle = 0;
+      neighptr_middle = ipage_middle->vget();
     }
 
     itype = type[i];
@@ -158,23 +135,23 @@ void Neighbor::respa_nsq_no_newton(NeighList *list)
     ilist[inum] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
-    npnt += n;
-    if (n > oneatom)
+    ipage->vgot(n);
+    if (ipage->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
 
     ilist_inner[inum] = i;
     firstneigh_inner[i] = neighptr_inner;
     numneigh_inner[i] = n_inner;
-    npnt_inner += n_inner;
-    if (n_inner > oneatom)
+    ipage_inner->vgot(n_inner);
+    if (ipage_inner->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
 
     if (respamiddle) {
       ilist_middle[inum] = i;
       firstneigh_middle[i] = neighptr_middle;
       numneigh_middle[i] = n_middle;
-      npnt_middle += n_middle;
-      if (n_middle > oneatom)
+      ipage_middle->vgot(n_middle);
+      if (ipage_middle->status())
         error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
     }
 
@@ -221,64 +198,40 @@ void Neighbor::respa_nsq_newton(NeighList *list)
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
-  int **pages = list->pages;
+  MyPage<int> *ipage = list->ipage;
 
   NeighList *listinner = list->listinner;
   int *ilist_inner = listinner->ilist;
   int *numneigh_inner = listinner->numneigh;
   int **firstneigh_inner = listinner->firstneigh;
-  int **pages_inner = listinner->pages;
+  MyPage<int> *ipage_inner = listinner->ipage;
 
   NeighList *listmiddle;
-  int *ilist_middle,*numneigh_middle,**firstneigh_middle,**pages_middle;
+  int *ilist_middle,*numneigh_middle,**firstneigh_middle;
+  MyPage<int> *ipage_middle;
   int respamiddle = list->respamiddle;
   if (respamiddle) {
     listmiddle = list->listmiddle;
     ilist_middle = listmiddle->ilist;
     numneigh_middle = listmiddle->numneigh;
     firstneigh_middle = listmiddle->firstneigh;
-    pages_middle = listmiddle->pages;
+    ipage_middle = listmiddle->ipage;
   }
 
   int inum = 0;
-  int npage = 0;
-  int npnt = 0;
-  int npage_inner = 0;
-  int npnt_inner = 0;
-  int npage_middle = 0;
-  int npnt_middle = 0;
-
   int which = 0;
   int minchange = 0;
+  ipage->reset();
+  ipage_inner->reset();
+  if (respamiddle) ipage_middle->reset();
 
   for (i = 0; i < nlocal; i++) {
-
-    if (pgsize - npnt < oneatom) {
-      npnt = 0;
-      npage++;
-      if (npage == list->maxpage) pages = list->add_pages();
-    }
-    neighptr = &pages[npage][npnt];
-    n = 0;
-
-    if (pgsize - npnt_inner < oneatom) {
-      npnt_inner = 0;
-      npage_inner++;
-      if (npage_inner == listinner->maxpage)
-        pages_inner = listinner->add_pages();
-    }
-    neighptr_inner = &pages_inner[npage_inner][npnt_inner];
-    n_inner = 0;
-
+    n = n_inner = 0;
+    neighptr = ipage->vget();
+    neighptr_inner = ipage_inner->vget();
     if (respamiddle) {
-      if (pgsize - npnt_middle < oneatom) {
-        npnt_middle = 0;
-        npage_middle++;
-        if (npage_middle == listmiddle->maxpage)
-          pages_middle = listmiddle->add_pages();
-      }
-      neighptr_middle = &pages_middle[npage_middle][npnt_middle];
       n_middle = 0;
+      neighptr_middle = ipage_middle->vget();
     }
 
     itag = tag[i];
@@ -343,23 +296,23 @@ void Neighbor::respa_nsq_newton(NeighList *list)
     ilist[inum] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
-    npnt += n;
-    if (n > oneatom)
+    ipage->vgot(n);
+    if (ipage->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
 
     ilist_inner[inum] = i;
     firstneigh_inner[i] = neighptr_inner;
     numneigh_inner[i] = n_inner;
-    npnt_inner += n_inner;
-    if (n_inner > oneatom)
+    ipage_inner->vgot(n_inner);
+    if (ipage_inner->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
 
     if (respamiddle) {
       ilist_middle[inum] = i;
       firstneigh_middle[i] = neighptr_middle;
       numneigh_middle[i] = n_middle;
-      npnt_middle += n_middle;
-      if (n_middle > oneatom)
+      ipage_middle->vgot(n_middle);
+      if (ipage_middle->status())
         error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
     }
 
@@ -406,66 +359,42 @@ void Neighbor::respa_bin_no_newton(NeighList *list)
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
-  int **pages = list->pages;
   int nstencil = list->nstencil;
   int *stencil = list->stencil;
+  MyPage<int> *ipage = list->ipage;
 
   NeighList *listinner = list->listinner;
   int *ilist_inner = listinner->ilist;
   int *numneigh_inner = listinner->numneigh;
   int **firstneigh_inner = listinner->firstneigh;
-  int **pages_inner = listinner->pages;
+  MyPage<int> *ipage_inner = listinner->ipage;
 
   NeighList *listmiddle;
-  int *ilist_middle,*numneigh_middle,**firstneigh_middle,**pages_middle;
+  int *ilist_middle,*numneigh_middle,**firstneigh_middle;
+  MyPage<int> *ipage_middle;
   int respamiddle = list->respamiddle;
   if (respamiddle) {
     listmiddle = list->listmiddle;
     ilist_middle = listmiddle->ilist;
     numneigh_middle = listmiddle->numneigh;
     firstneigh_middle = listmiddle->firstneigh;
-    pages_middle = listmiddle->pages;
+    ipage_middle = listmiddle->ipage;
   }
 
   int inum = 0;
-  int npage = 0;
-  int npnt = 0;
-  int npage_inner = 0;
-  int npnt_inner = 0;
-  int npage_middle = 0;
-  int npnt_middle = 0;
-
   int which = 0;
   int minchange = 0;
+  ipage->reset();
+  ipage_inner->reset();
+  if (respamiddle) ipage_middle->reset();
 
   for (i = 0; i < nlocal; i++) {
-
-    if (pgsize - npnt < oneatom) {
-      npnt = 0;
-      npage++;
-      if (npage == list->maxpage) pages = list->add_pages();
-    }
-    neighptr = &pages[npage][npnt];
-    n = 0;
-
-    if (pgsize - npnt_inner < oneatom) {
-      npnt_inner = 0;
-      npage_inner++;
-      if (npage_inner == listinner->maxpage)
-        pages_inner = listinner->add_pages();
-    }
-    neighptr_inner = &pages_inner[npage_inner][npnt_inner];
-    n_inner = 0;
-
+    n = n_inner = 0;
+    neighptr = ipage->vget();
+    neighptr_inner = ipage_inner->vget();
     if (respamiddle) {
-      if (pgsize - npnt_middle < oneatom) {
-        npnt_middle = 0;
-        npage_middle++;
-        if (npage_middle == listmiddle->maxpage)
-          pages_middle = listmiddle->add_pages();
-      }
-      neighptr_middle = &pages_middle[npage_middle][npnt_middle];
       n_middle = 0;
+      neighptr_middle = ipage_middle->vget();
     }
 
     itype = type[i];
@@ -521,23 +450,23 @@ void Neighbor::respa_bin_no_newton(NeighList *list)
     ilist[inum] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
-    npnt += n;
-    if (n > oneatom)
+    ipage->vgot(n);
+    if (ipage->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
 
     ilist_inner[inum] = i;
     firstneigh_inner[i] = neighptr_inner;
     numneigh_inner[i] = n_inner;
-    npnt_inner += n_inner;
-    if (n_inner > oneatom)
+    ipage_inner->vgot(n_inner);
+    if (ipage_inner->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
 
     if (respamiddle) {
       ilist_middle[inum] = i;
       firstneigh_middle[i] = neighptr_middle;
       numneigh_middle[i] = n_middle;
-      npnt_middle += n_middle;
-      if (n_middle > oneatom)
+      ipage_middle->vgot(n_middle);
+      if (ipage_middle->status())
         error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
     }
 
@@ -583,66 +512,42 @@ void Neighbor::respa_bin_newton(NeighList *list)
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
-  int **pages = list->pages;
   int nstencil = list->nstencil;
   int *stencil = list->stencil;
+  MyPage<int> *ipage = list->ipage;
 
   NeighList *listinner = list->listinner;
   int *ilist_inner = listinner->ilist;
   int *numneigh_inner = listinner->numneigh;
   int **firstneigh_inner = listinner->firstneigh;
-  int **pages_inner = listinner->pages;
+  MyPage<int> *ipage_inner = listinner->ipage;
 
   NeighList *listmiddle;
-  int *ilist_middle,*numneigh_middle,**firstneigh_middle,**pages_middle;
+  int *ilist_middle,*numneigh_middle,**firstneigh_middle;
+  MyPage<int> *ipage_middle;
   int respamiddle = list->respamiddle;
   if (respamiddle) {
     listmiddle = list->listmiddle;
     ilist_middle = listmiddle->ilist;
     numneigh_middle = listmiddle->numneigh;
     firstneigh_middle = listmiddle->firstneigh;
-    pages_middle = listmiddle->pages;
+    ipage_middle = listmiddle->ipage;
   }
 
   int inum = 0;
-  int npage = 0;
-  int npnt = 0;
-  int npage_inner = 0;
-  int npnt_inner = 0;
-  int npage_middle = 0;
-  int npnt_middle = 0;
-
   int which = 0;
   int minchange = 0;
+  ipage->reset();
+  ipage_inner->reset();
+  if (respamiddle) ipage_middle->reset();
 
   for (i = 0; i < nlocal; i++) {
-
-    if (pgsize - npnt < oneatom) {
-      npnt = 0;
-      npage++;
-      if (npage == list->maxpage) pages = list->add_pages();
-    }
-    neighptr = &pages[npage][npnt];
-    n = 0;
-
-    if (pgsize - npnt_inner < oneatom) {
-      npnt_inner = 0;
-      npage_inner++;
-      if (npage_inner == listinner->maxpage)
-        pages_inner = listinner->add_pages();
-    }
-    neighptr_inner = &pages_inner[npage_inner][npnt_inner];
-    n_inner = 0;
-
+    n = n_inner = 0;
+    neighptr = ipage->vget();
+    neighptr_inner = ipage_inner->vget();
     if (respamiddle) {
-      if (pgsize - npnt_middle < oneatom) {
-        npnt_middle = 0;
-        npage_middle++;
-        if (npage_middle == listmiddle->maxpage)
-          pages_middle = listmiddle->add_pages();
-      }
-      neighptr_middle = &pages_middle[npage_middle][npnt_middle];
       n_middle = 0;
+      neighptr_middle = ipage_middle->vget();
     }
 
     itype = type[i];
@@ -739,23 +644,23 @@ void Neighbor::respa_bin_newton(NeighList *list)
     ilist[inum] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
-    npnt += n;
-    if (n > oneatom)
+    ipage->vgot(n);
+    if (ipage->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
 
     ilist_inner[inum] = i;
     firstneigh_inner[i] = neighptr_inner;
     numneigh_inner[i] = n_inner;
-    npnt_inner += n_inner;
-    if (n_inner > oneatom)
+    ipage_inner->vgot(n_inner);
+    if (ipage_inner->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
 
     if (respamiddle) {
       ilist_middle[inum] = i;
       firstneigh_middle[i] = neighptr_middle;
       numneigh_middle[i] = n_middle;
-      npnt_middle += n_middle;
-      if (n_middle > oneatom)
+      ipage_middle->vgot(n_middle);
+      if (ipage_middle->status())
         error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
     }
 
@@ -801,66 +706,42 @@ void Neighbor::respa_bin_newton_tri(NeighList *list)
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
-  int **pages = list->pages;
   int nstencil = list->nstencil;
   int *stencil = list->stencil;
+  MyPage<int> *ipage = list->ipage;
 
   NeighList *listinner = list->listinner;
   int *ilist_inner = listinner->ilist;
   int *numneigh_inner = listinner->numneigh;
   int **firstneigh_inner = listinner->firstneigh;
-  int **pages_inner = listinner->pages;
+  MyPage<int> *ipage_inner = listinner->ipage;
 
   NeighList *listmiddle;
-  int *ilist_middle,*numneigh_middle,**firstneigh_middle,**pages_middle;
+  int *ilist_middle,*numneigh_middle,**firstneigh_middle;
+  MyPage<int> *ipage_middle;
   int respamiddle = list->respamiddle;
   if (respamiddle) {
     listmiddle = list->listmiddle;
     ilist_middle = listmiddle->ilist;
     numneigh_middle = listmiddle->numneigh;
     firstneigh_middle = listmiddle->firstneigh;
-    pages_middle = listmiddle->pages;
+    ipage_middle = listmiddle->ipage;
   }
 
   int inum = 0;
-  int npage = 0;
-  int npnt = 0;
-  int npage_inner = 0;
-  int npnt_inner = 0;
-  int npage_middle = 0;
-  int npnt_middle = 0;
-
   int which = 0;
   int minchange = 0;
+  ipage->reset();
+  ipage_inner->reset();
+  if (respamiddle) ipage_middle->reset();
 
   for (i = 0; i < nlocal; i++) {
-
-    if (pgsize - npnt < oneatom) {
-      npnt = 0;
-      npage++;
-      if (npage == list->maxpage) pages = list->add_pages();
-    }
-    neighptr = &pages[npage][npnt];
-    n = 0;
-
-    if (pgsize - npnt_inner < oneatom) {
-      npnt_inner = 0;
-      npage_inner++;
-      if (npage_inner == listinner->maxpage)
-        pages_inner = listinner->add_pages();
-    }
-    neighptr_inner = &pages_inner[npage_inner][npnt_inner];
-    n_inner = 0;
-
+    n = n_inner = 0;
+    neighptr = ipage->vget();
+    neighptr_inner = ipage_inner->vget();
     if (respamiddle) {
-      if (pgsize - npnt_middle < oneatom) {
-        npnt_middle = 0;
-        npage_middle++;
-        if (npage_middle == listmiddle->maxpage)
-          pages_middle = listmiddle->add_pages();
-      }
-      neighptr_middle = &pages_middle[npage_middle][npnt_middle];
       n_middle = 0;
+      neighptr_middle = ipage_middle->vget();
     }
 
     itype = type[i];
@@ -924,23 +805,23 @@ void Neighbor::respa_bin_newton_tri(NeighList *list)
     ilist[inum] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
-    npnt += n;
-    if (n > oneatom)
+    ipage->vgot(n);
+    if (ipage->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
 
     ilist_inner[inum] = i;
     firstneigh_inner[i] = neighptr_inner;
     numneigh_inner[i] = n_inner;
-    npnt_inner += n_inner;
-    if (n_inner > oneatom)
+    ipage_inner->vgot(n_inner);
+    if (ipage_inner->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
 
     if (respamiddle) {
       ilist_middle[inum] = i;
       firstneigh_middle[i] = neighptr_middle;
       numneigh_middle[i] = n_middle;
-      npnt_middle += n_middle;
-      if (n_middle > oneatom)
+      ipage_middle->vgot(n_middle);
+      if (ipage_middle->status())
         error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
     }
 

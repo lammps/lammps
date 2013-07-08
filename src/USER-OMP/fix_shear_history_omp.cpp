@@ -31,8 +31,6 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-#define MAXTOUCH 15
-
 /* ----------------------------------------------------------------------
    copy shear partner info from neighbor lists to atom arrays
    so can be exchanged with atoms
@@ -45,10 +43,10 @@ void FixShearHistoryOMP::pre_exchange()
   const int nghost = atom->nghost;
   const int nall = nlocal + nghost;
   const int nthreads = comm->nthreads;
-
-  int flag = 0;
+  maxtouch = 0;
+  
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(flag)
+#pragma omp parallel default(none)
 #endif
   {
 
@@ -64,22 +62,23 @@ void FixShearHistoryOMP::pre_exchange()
     const int lmax = lfrom +ldelta;
     const int lto = (lmax > nlocal) ? nlocal : lmax;
 
-    const int gdelta = 1 + nghost/nthreads;
-    const int gfrom = nlocal + tid*gdelta;
-    const int gmax = gfrom + gdelta;
-    const int gto = (gmax > nall) ? nall : gmax;
-
-
-    int i,j,ii,jj,m,inum,jnum;
+    int i,j,ii,jj,m,n,inum,jnum;
     int *ilist,*jlist,*numneigh,**firstneigh;
     int *touch,**firsttouch;
     double *shear,*allshear,**firstshear;
 
-    // zero npartners for all current atoms
+    // zero npartners for all current atoms and
+    // clear page data structures for this thread
 
     for (i = lfrom; i < lto; i++) npartner[i] = 0;
 
-    // copy shear info from neighbor list atoms to atom arrays
+    MyPage <int> &ipg = ipage[tid];
+    MyPage <double[3]> &dpg = dpage[tid];
+    ipg.reset();
+    dpg.reset();
+
+    // 1st loop over neighbor list
+    // calculate nparter for each owned atom
 
     int *tag = atom->tag;
 
@@ -94,59 +93,81 @@ void FixShearHistoryOMP::pre_exchange()
     for (ii = 0; ii < inum; ii++) {
       i = ilist[ii];
       jlist = firstneigh[i];
+      jnum = numneigh[i];
+      touch = firsttouch[i];
+
+      for (jj = 0; jj < jnum; jj++) {
+        if (touch[jj]) {
+          if ((i >= lfrom) && (i < lto))
+            npartner[i]++;
+
+          j = jlist[jj];
+          j &= NEIGHMASK;
+          if ((j >= lfrom) && (j < lto))
+            npartner[j]++;
+        }
+      }
+    }
+
+    // get page chunks to store atom IDs and shear history for my atoms
+
+    for (ii = lfrom; ii < lto; ii++) {
+      i = ilist[ii];
+      n = npartner[i];
+      partner[i] = ipg.get(n);
+      shearpartner[i] = dpg.get(n);
+      if (partner[i] == NULL || shearpartner[i] == NULL)
+        error->one(FLERR,"Shear history overflow, boost neigh_modify one");
+    }
+
+    // 2nd loop over neighbor list
+    // store atom IDs and shear history for my atoms
+    // re-zero npartner to use as counter for all my atoms
+
+    for (i = lfrom; i < lto; i++) npartner[i] = 0;
+
+    for (ii = 0; ii < inum; ii++) {
+      i = ilist[ii];
+      jlist = firstneigh[i];
       allshear = firstshear[i];
       jnum = numneigh[i];
       touch = firsttouch[i];
 
       for (jj = 0; jj < jnum; jj++) {
         if (touch[jj]) {
+          shear = &allshear[3*jj];
           j = jlist[jj];
           j &= NEIGHMASK;
-          shear = &allshear[3*jj];
 
           if ((i >= lfrom) && (i < lto)) {
-            if (npartner[i] < MAXTOUCH) {
-              m = npartner[i];
-              partner[i][m] = tag[j];
-              shearpartner[i][m][0] = shear[0];
-              shearpartner[i][m][1] = shear[1];
-              shearpartner[i][m][2] = shear[2];
-            }
+            m = npartner[i];
+            partner[i][m] = tag[j];
+            shearpartner[i][m][0] = shear[0];
+            shearpartner[i][m][1] = shear[1];
+            shearpartner[i][m][2] = shear[2];
             npartner[i]++;
           }
 
           if ((j >= lfrom) && (j < lto)) {
-            if (npartner[j] < MAXTOUCH) {
-              m = npartner[j];
-              partner[j][m] = tag[i];
-              shearpartner[j][m][0] = -shear[0];
-              shearpartner[j][m][1] = -shear[1];
-              shearpartner[j][m][2] = -shear[2];
-            }
-            npartner[j]++;
-          }
-
-          if ((j >= gfrom) && (j < gto)) {
+            m = npartner[j];
+            partner[j][m] = tag[i];
+            shearpartner[j][m][0] = -shear[0];
+            shearpartner[j][m][1] = -shear[1];
+            shearpartner[j][m][2] = -shear[2];
             npartner[j]++;
           }
         }
       }
     }
 
-    // test for too many touching neighbors
-    int myflag = 0;
+    // set maxtouch = max # of partners of any owned atom
+    m = 0;
     for (i = lfrom; i < lto; i++)
-      if (npartner[i] >= MAXTOUCH) myflag = 1;
+      m = MAX(m,npartner[i]);
 
-    if (myflag)
 #if defined(_OPENMP)
-#pragma omp atomic
+#pragma omp critical
 #endif
-      ++flag;
+    maxtouch = MAX(m,maxtouch);
   }
-
-  int flag_all;
-  MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
-  if (flag_all)
-    error->all(FLERR,"Too many touching neighbors - boost MAXTOUCH");
 }

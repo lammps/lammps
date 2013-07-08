@@ -456,9 +456,9 @@ void Neighbor::init()
     // pass list ptr back to requestor (except for Command class)
 
     for (i = 0; i < nlist; i++) {
-      lists[i] = new NeighList(lmp,pgsize,oneatom);
+      lists[i] = new NeighList(lmp);
+      lists[i]->setup_pages(pgsize,oneatom,requests[i]->dnum);
       lists[i]->index = i;
-      lists[i]->dnum = requests[i]->dnum;
 
       if (requests[i]->pair) {
         Pair *pair = (Pair *) requests[i]->requestor;
@@ -620,14 +620,11 @@ void Neighbor::init()
     for (i = 0; i < nlist; i++) lists[i]->print_attributes();
 #endif
 
-    // allocate atom arrays and 1st pages of lists that store them
+    // allocate atom arrays for neighbor lists that store them
 
     maxatom = atom->nmax;
     for (i = 0; i < nlist; i++)
-      if (lists[i]->growflag) {
-        lists[i]->grow(maxatom);
-        lists[i]->add_pages();
-      }
+      if (lists[i]->growflag) lists[i]->grow(maxatom);
 
     // setup 3 vectors of pairwise neighbor lists
     // blist = lists whose pair_build() is invoked every reneighbor

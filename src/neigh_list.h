@@ -41,12 +41,9 @@ class NeighList : protected Pointers {
 
   int pgsize;                      // size of each page
   int oneatom;                     // max size for one atom
-  int maxpage;                     // # of pages currently allocated
-  int **pages;                     // neighbor list pages for ints
-  double **dpages;                 // neighbor list pages for doubles
-  int dnum;                        // # of doubles for each pair (0 if none)
-
-  MyPage<int> *page;
+  int dnum;                        // # of doubles per neighbor, 0 if none
+  MyPage<int> *ipage;              // pages of neighbor indices
+  MyPage<double> *dpage;           // pages of neighbor doubles, if dnum > 0
 
   // atom types to skip when building list
   // iskip,ijskip are just ptrs to corresponding request
@@ -80,11 +77,11 @@ class NeighList : protected Pointers {
 
   class CudaNeighList *cuda_list;  // CUDA neighbor list
 
-  NeighList(class LAMMPS *, int, int);
+  NeighList(class LAMMPS *);
   ~NeighList();
+  void setup_pages(int, int, int);      // setup page data structures
   void grow(int);                       // grow maxlocal
   void stencil_allocate(int, int);      // allocate stencil arrays
-  int **add_pages(int howmany=1);       // add pages to neigh list
   void copy_skip_info(int *, int **);   // copy skip info from a neigh request
   void print_attributes();              // debug routine
   int get_maxlocal() {return maxatoms;}

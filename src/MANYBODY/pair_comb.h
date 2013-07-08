@@ -21,6 +21,7 @@ PairStyle(comb,PairComb)
 #define LMP_PAIR_COMB_H
 
 #include "pair.h"
+#include "my_page.h"
 
 namespace LAMMPS_NS {
 
@@ -76,6 +77,12 @@ class PairComb : public Pair {
   int **intype, *typeno;
   int *NCo, cor_flag, cuo_flag, cuo_flag1, cuo_flag2;
   double **bbij;
+
+  int pgsize;                      // size of neighbor page
+  int oneatom;                     // max # of neighbors for one atom
+  int *sht_num,**sht_first;        // short-range neighbor list
+  MyPage<int> *ipage;              // neighbor list pages
+  double cutmin;
 
   void allocate();
   virtual void read_file(char *);
@@ -145,13 +152,7 @@ class PairComb : public Pair {
   int pack_comm(int , int *, double *, int, int *);
   void unpack_comm(int , int , double *);
 
-  // short range neighbor list
-
-  void add_pages(int howmany = 1);
   void Short_neigh();
-  int maxpage, pgsize, oneatom, **pages;
-  int *sht_num, **sht_first;        // short-range neighbor list
-  double cutmin;
 
   // vector functions, inline for efficiency
 

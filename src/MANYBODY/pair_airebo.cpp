@@ -31,6 +31,7 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
+#include "my_page.h"
 #include "math_const.h"
 #include "math_special.h"
 #include "memory.h"
@@ -55,8 +56,9 @@ PairAIREBO::PairAIREBO(LAMMPS *lmp) : Pair(lmp)
   maxlocal = 0;
   REBO_numneigh = NULL;
   REBO_firstneigh = NULL;
-  maxpage = 0;
-  pages = NULL;
+  ipage = NULL;
+  pgsize = oneatom = 0;
+
   nC = nH = NULL;
   manybody_flag = 1;
 }
@@ -69,8 +71,7 @@ PairAIREBO::~PairAIREBO()
 {
   memory->destroy(REBO_numneigh);
   memory->sfree(REBO_firstneigh);
-  for (int i = 0; i < maxpage; i++) memory->destroy(pages[i]);
-  memory->sfree(pages);
+  delete [] ipage;
   memory->destroy(nC);
   memory->destroy(nH);
 
@@ -221,11 +222,24 @@ void PairAIREBO::init_style()
   neighbor->requests[irequest]->full = 1;
   neighbor->requests[irequest]->ghost = 1;
 
-  // local REBO neighbor list memory
+  // local REBO neighbor list
+  // create pages if first time or if neighbor pgsize/oneatom has changed
 
-  pgsize = neighbor->pgsize;
-  oneatom = neighbor->oneatom;
-  if (maxpage == 0) add_pages();
+  int create = 0;
+  if (ipage == NULL) create = 1;
+  if (pgsize != neighbor->pgsize) create = 1;
+  if (oneatom != neighbor->oneatom) create = 1;
+
+  if (create) {
+    delete [] ipage;
+    pgsize = neighbor->pgsize;
+    oneatom = neighbor->oneatom;
+
+    int nmypage= comm->nthreads;
+    ipage = new MyPage<int>[nmypage];
+    for (int i = 0; i < nmypage; i++)
+      ipage[i].init(oneatom,pgsize,PGDELTA);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -329,19 +343,13 @@ void PairAIREBO::REBO_neigh()
   // store all REBO neighs of owned and ghost atoms
   // scan full neighbor list of I
 
-  int npage = 0;
-  int npnt = 0;
+  ipage->reset();
 
   for (ii = 0; ii < allnum; ii++) {
     i = ilist[ii];
 
-    if (pgsize - npnt < oneatom) {
-      npnt = 0;
-      npage++;
-      if (npage == maxpage) add_pages();
-    }
-    neighptr = &pages[npage][npnt];
     n = 0;
+    neighptr = ipage->vget();
 
     xtmp = x[i][0];
     ytmp = x[i][1];
@@ -371,10 +379,9 @@ void PairAIREBO::REBO_neigh()
 
     REBO_firstneigh[i] = neighptr;
     REBO_numneigh[i] = n;
-    npnt += n;
-    if (npnt >= pgsize)
-      error->one(FLERR,
-                 "Neighbor list overflow, boost neigh_modify one or page");
+    ipage->vgot(n);
+    if (ipage->status())
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
 }
 
@@ -3286,21 +3293,6 @@ double PairAIREBO::TijSpline(double Nij, double Nji,
 }
 
 /* ----------------------------------------------------------------------
-   add pages to REBO neighbor list
-------------------------------------------------------------------------- */
-
-void PairAIREBO::add_pages(int howmany)
-{
-  int toppage = maxpage;
-  maxpage += howmany*PGDELTA;
-
-  pages = (int **)
-    memory->srealloc(pages,maxpage*sizeof(int *),"AIREBO:pages");
-  for (int i = toppage; i < maxpage; i++)
-    memory->create(pages[i],pgsize,"AIREBO:pages[i]");
-}
-
-/* ----------------------------------------------------------------------
    read AIREBO potential file
 ------------------------------------------------------------------------- */
 
@@ -4199,7 +4191,10 @@ double PairAIREBO::memory_usage()
   double bytes = 0.0;
   bytes += maxlocal * sizeof(int);
   bytes += maxlocal * sizeof(int *);
-  bytes += maxpage * neighbor->pgsize * sizeof(int);
-  bytes += 3 * maxlocal * sizeof(double);
+
+  for (int i = 0; i < comm->nthreads; i++)
+    bytes += ipage[i].size();
+  
+  bytes += 2*maxlocal * sizeof(double);
   return bytes;
 }

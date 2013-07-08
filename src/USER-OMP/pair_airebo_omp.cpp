@@ -19,6 +19,7 @@
 #include "error.h"
 #include "force.h"
 #include "memory.h"
+#include "my_page.h"
 #include "math_special.h"
 #include "neighbor.h"
 #include "neigh_list.h"
@@ -2671,9 +2672,6 @@ void PairAIREBOOMP::REBO_neigh_thr()
     memory->create(nH,maxlocal,"AIREBO:nH");
   }
 
-  if (nthreads > maxpage)
-    add_pages(nthreads - maxpage);
-
 #if defined(_OPENMP)
 #pragma omp parallel default(none)
 #endif
@@ -2704,22 +2702,15 @@ void PairAIREBOOMP::REBO_neigh_thr()
     // store all REBO neighs of owned and ghost atoms
     // scan full neighbor list of I
 
-    int npage = tid;
-    int npnt = 0;
+    // each thread has its own page allocator
+    MyPage<int> &ipg = ipage[tid];
+    ipg.reset();
 
     for (ii = iifrom; ii < iito; ii++) {
       i = ilist[ii];
 
-#if defined(_OPENMP)
-#pragma omp critical
-#endif
-      if (pgsize - npnt < oneatom) {
-        npnt = 0;
-        npage += nthreads;
-        if (npage >= maxpage) add_pages(nthreads);
-      }
-      neighptr = &(pages[npage][npnt]);
       n = 0;
+      neighptr = ipg.vget();
 
       xtmp = x[i][0];
       ytmp = x[i][1];
@@ -2749,10 +2740,9 @@ void PairAIREBOOMP::REBO_neigh_thr()
 
       REBO_firstneigh[i] = neighptr;
       REBO_numneigh[i] = n;
-      npnt += n;
-
-      if (npnt >= pgsize)
-        error->one(FLERR,"REBO list overflow, boost neigh_modify one or page");
+      ipg.vgot(n);
+      if (ipg.status())
+        error->one(FLERR,"REBO list overflow, boost neigh_modify one");
     }
   }
 }

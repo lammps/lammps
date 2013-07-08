@@ -19,6 +19,7 @@
 #include "group.h"
 #include "force.h"
 #include "memory.h"
+#include "my_page.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 
@@ -553,15 +554,13 @@ void PairCombOMP::Short_neigh_thr()
     nmax = atom->nmax;
     memory->sfree(sht_first);
     sht_first = (int **) memory->smalloc(nmax*sizeof(int *),
-            "pair:sht_first");
+                                         "pair:sht_first");
     memory->grow(sht_num,nmax,"pair:sht_num");
     memory->grow(NCo,nmax,"pair:NCo");
-    memory->grow(bbij,nmax,nmax,"pair:bbij");
+    memory->grow(bbij,nmax,MAXNEIGH,"pair:bbij");
   }
 
   const int nthreads = comm->nthreads;
-  if (nthreads > maxpage)
-    add_pages(nthreads - maxpage);
 
 #if defined(_OPENMP)
 #pragma omp parallel default(none)
@@ -588,51 +587,44 @@ void PairCombOMP::Short_neigh_thr()
 
     const int iidelta = 1 + inum/nthreads;
     const int iifrom = tid*iidelta;
-    int iito   = iifrom + iidelta;
-    if (iito > inum) iito = inum;
+    const int iito   = ((iifrom + iidelta) > inum) ? inum : (iifrom+iidelta);
 
-    int npage = tid;
-    npntj = 0;
+    // each thread has its own page allocator
+    MyPage<int> &ipg = ipage[tid];
+    ipg.reset();
 
-    if (iifrom < inum) {
-      for (ii = iifrom; ii < iito; ii++) {
-        i = ilist[ii];
+    // create Comb neighbor list
 
-#if defined(_OPENMP)
-#pragma omp critical
-#endif
-        if(pgsize - npntj < oneatom) {
-          npntj = 0;
-          npage += nthreads;
-          if (npage >= maxpage) add_pages(nthreads);
-        }
+    for (ii = iifrom; ii < iito; ii++) {
+      i = ilist[ii];
 
-        neighptrj = &pages[npage][npntj];
-        nj = 0;
+      nj = 0;
+      neighptrj = ipg.vget();
 
-        xtmp = x[i][0];
-        ytmp = x[i][1];
-        ztmp = x[i][2];
+      xtmp = x[i][0];
+      ytmp = x[i][1];
+      ztmp = x[i][2];
 
-        jlist = firstneigh[i];
-        jnum = numneigh[i];
+      jlist = firstneigh[i];
+      jnum = numneigh[i];
 
-        for (jj = 0; jj < jnum; jj++) {
-          j = jlist[jj];
-          j &= NEIGHMASK;
+      for (jj = 0; jj < jnum; jj++) {
+        j = jlist[jj];
+        j &= NEIGHMASK;
 
-          delrj[0] = xtmp - x[j][0];
-          delrj[1] = ytmp - x[j][1];
-          delrj[2] = ztmp - x[j][2];
-          rsq = vec3_dot(delrj,delrj);
+        delrj[0] = xtmp - x[j][0];
+        delrj[1] = ytmp - x[j][1];
+        delrj[2] = ztmp - x[j][2];
+        rsq = vec3_dot(delrj,delrj);
 
-          if (rsq > cutmin) continue;
-          neighptrj[nj++] = j;
-        }
-        sht_first[i] = neighptrj;
-        sht_num[i] = nj;
-        npntj += nj;
+        if (rsq > cutmin) continue;
+        neighptrj[nj++] = j;
       }
+      sht_first[i] = neighptrj;
+      sht_num[i] = nj;
+      ipg.vgot(nj);
+      if (ipg.status())
+        error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
     }
   }
 }

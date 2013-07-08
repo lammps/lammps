@@ -56,7 +56,7 @@ void Neighbor::granular_nsq_no_newton_omp(NeighList *list)
   double *shearptr;
 
   int *npartner,**partner;
-  double ***shearpartner;
+  double (**shearpartner)[3];
   int **firsttouch;
   double **firstshear;
 
@@ -311,7 +311,7 @@ void Neighbor::granular_bin_no_newton_omp(NeighList *list)
   double *shearptr;
 
   int *npartner,**partner;
-  double ***shearpartner;
+  double (**shearpartner)[3];
   int **firsttouch;
   double **firstshear;
 

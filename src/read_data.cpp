@@ -81,6 +81,14 @@ ReadData::~ReadData()
   delete [] keyword;
   delete [] buffer;
   memory->sfree(arg);
+
+  for (int i = 0; i < nfix; i++) {
+    delete [] fix_header[i];
+    delete [] fix_section[i];
+  }
+  memory->destroy(fix_index);
+  memory->sfree(fix_header);
+  memory->sfree(fix_section);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -447,12 +455,13 @@ void ReadData::header(int flag)
 
     // search line for header keyword and set corresponding variable
 
-    if (strstr(line,"atoms")) sscanf(line,BIGINT_FORMAT,&atom->natoms);
+    if (strstr(line,"atoms")) {
+      sscanf(line,BIGINT_FORMAT,&atom->natoms);
 
     // check for these first
     // otherwise "triangles" will be matched as "angles"
 
-    else if (strstr(line,"ellipsoids")) {
+    } else if (strstr(line,"ellipsoids")) {
       if (!avec_ellipsoid && me == 0)
         error->one(FLERR,"No ellipsoids allowed with this atom style");
       sscanf(line,BIGINT_FORMAT,&nellipsoids);

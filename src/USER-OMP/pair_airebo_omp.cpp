@@ -2741,7 +2741,7 @@ void PairAIREBOOMP::REBO_neigh_thr()
       REBO_firstneigh[i] = neighptr;
       REBO_numneigh[i] = n;
       ipg.vgot(n);
-      if (ipg.errorflag)
+      if (ipg.status())
         error->one(FLERR,"REBO list overflow, boost neigh_modify one");
     }
   }

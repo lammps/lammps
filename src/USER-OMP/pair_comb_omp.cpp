@@ -623,7 +623,7 @@ void PairCombOMP::Short_neigh_thr()
       sht_first[i] = neighptrj;
       sht_num[i] = nj;
       ipg.vgot(nj);
-      if (ipg.errorflag)
+      if (ipg.status())
         error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
     }
   }

@@ -379,7 +379,7 @@ void PairAIREBO::REBO_neigh()
     REBO_firstneigh[i] = neighptr;
     REBO_numneigh[i] = n;
     ipage->vgot(n);
-    if (ipage->errorflag)
+    if (ipage->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
 }

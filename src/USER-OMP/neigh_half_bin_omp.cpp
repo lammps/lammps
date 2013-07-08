@@ -114,7 +114,7 @@ void Neighbor::half_bin_no_newton_omp(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     ipage.vgot(n);
-    if (ipage.errorflag)
+    if (ipage.status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
   NEIGH_OMP_CLOSE;
@@ -247,7 +247,7 @@ void Neighbor::half_bin_no_newton_ghost_omp(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     ipage.vgot(n);
-    if (ipage.errorflag)
+    if (ipage.status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
   NEIGH_OMP_CLOSE;
@@ -374,7 +374,7 @@ void Neighbor::half_bin_newton_omp(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     ipage.vgot(n);
-    if (ipage.errorflag)
+    if (ipage.status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
   NEIGH_OMP_CLOSE;
@@ -479,7 +479,7 @@ void Neighbor::half_bin_newton_tri_omp(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     ipage.vgot(n);
-    if (ipage.errorflag)
+    if (ipage.status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
   NEIGH_OMP_CLOSE;

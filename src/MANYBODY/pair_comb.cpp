@@ -2107,7 +2107,7 @@ void PairComb::Short_neigh()
     sht_first[i] = neighptrj;
     sht_num[i] = nj;
     ipage->vgot(nj);
-    if (ipage->errorflag)
+    if (ipage->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
 }

@@ -95,7 +95,7 @@ void Neighbor::full_nsq(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     ipage->vgot(n);
-    if (ipage->errorflag)
+    if (ipage->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
 
@@ -189,7 +189,7 @@ void Neighbor::full_nsq_ghost(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     ipage->vgot(n);
-    if (ipage->errorflag)
+    if (ipage->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
 
@@ -278,7 +278,7 @@ void Neighbor::full_bin(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     ipage->vgot(n);
-    if (ipage->errorflag)
+    if (ipage->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
 
@@ -397,7 +397,7 @@ void Neighbor::full_bin_ghost(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     ipage->vgot(n);
-    if (ipage->errorflag)
+    if (ipage->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
 
@@ -494,7 +494,7 @@ void Neighbor::full_multi(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     ipage->vgot(n);
-    if (ipage->errorflag)
+    if (ipage->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
 

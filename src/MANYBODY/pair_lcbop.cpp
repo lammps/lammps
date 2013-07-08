@@ -68,7 +68,7 @@ PairLCBOP::~PairLCBOP()
 {
   memory->destroy(SR_numneigh);
   memory->sfree(SR_firstneigh);
-  delete ipage;
+  delete[] ipage;
   memory->destroy(N);
   memory->destroy(M);
 
@@ -204,7 +204,12 @@ void PairLCBOP::init_style()
   if (create) {
     pgsize = neighbor->pgsize;
     oneatom = neighbor->oneatom;
-    ipage = new MyPage<int>(oneatom,pgsize,PGDELTA);
+
+    delete[] ipage;
+    int nmypage = comm->nthreads;
+    ipage = new MyPage<int>[nmypage];
+    for (int i=0; i < nmypage; ++i)
+      ipage[i].init(oneatom,pgsize,PGDELTA);
   }
 }
 
@@ -310,7 +315,7 @@ void PairLCBOP::SR_neigh()
     SR_firstneigh[i] = neighptr;
     SR_numneigh[i] = n;
     ipage->vgot(n);
-    if (ipage->errorflag)
+    if (ipage->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
 

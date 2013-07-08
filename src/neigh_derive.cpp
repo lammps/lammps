@@ -66,7 +66,7 @@ void Neighbor::half_from_full_no_newton(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     ipage->vgot(n);
-    if (ipage->errorflag)
+    if (ipage->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
 
@@ -137,7 +137,7 @@ void Neighbor::half_from_full_newton(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     ipage->vgot(n);
-    if (ipage->errorflag)
+    if (ipage->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
 
@@ -204,7 +204,7 @@ void Neighbor::skip_from(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     ipage->vgot(n);
-    if (ipage->errorflag)
+    if (ipage->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
 
@@ -295,7 +295,7 @@ void Neighbor::skip_from_granular(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     ipage->vgot(n);
-    if (ipage->errorflag)
+    if (ipage->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
 
     firsttouch[i] = touchptr;
@@ -419,20 +419,20 @@ void Neighbor::skip_from_respa(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     ipage->vgot(n);
-    if (ipage->errorflag)
+    if (ipage->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
 
     firstneigh_inner[i] = neighptr_inner;
     numneigh_inner[i] = n_inner;
     ipage_inner->vgot(n);
-    if (ipage_inner->errorflag)
+    if (ipage_inner->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
 
     if (respamiddle) {
       firstneigh_middle[i] = neighptr_middle;
       numneigh_middle[i] = n_middle;
       ipage_middle->vgot(n);
-      if (ipage_middle->errorflag)
+      if (ipage_middle->status())
         error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
     }
   }

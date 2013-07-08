@@ -18,16 +18,21 @@
 #include <omp.h>
 #endif
 
+#include "modify.h"
+#include "fix_omp.h"
+#include "thr_data.h"
+
 namespace LAMMPS_NS {
 
 // these macros hide some ugly and redundant OpenMP related stuff
 #if defined(_OPENMP)
 
 // make sure we have at least one page for each thread
-#define NEIGH_OMP_INIT                          \
-  const int nthreads = comm->nthreads;          \
-  if (nthreads > list->maxpage)                 \
-    list->add_pages(nthreads - list->maxpage)
+#define NEIGH_OMP_INIT                             \
+  const int nthreads = comm->nthreads;             \
+  if (nthreads > list->maxpage)                    \
+    list->add_pages(nthreads - list->maxpage);     \
+  const int ifix = modify->find_fix("package_omp")
 
 // get thread id and then assign each thread a fixed chunk of atoms
 #define NEIGH_OMP_SETUP(num)                    \
@@ -36,9 +41,14 @@ namespace LAMMPS_NS {
     const int idelta = 1 + num/nthreads;        \
     const int ifrom = tid*idelta;               \
     const int ito   = ((ifrom + idelta) > num)  \
-      ? num : (ifrom+idelta);
+      ? num : (ifrom+idelta);                   \
+    FixOMP *fix = static_cast<FixOMP *>(modify->fix[ifix]); \
+    ThrData *thr = fix->get_thr(tid);           \
+    thr->timer(ThrData::TIME_START);
 
-#define NEIGH_OMP_CLOSE }
+#define NEIGH_OMP_CLOSE                         \
+      thr->timer(ThrData::TIME_NEIGH);          \
+    }
 
 #else /* !defined(_OPENMP) */
 

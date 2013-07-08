@@ -500,13 +500,13 @@ void Finish::end(int flag)
       if (screen)  fputs(thr_header,screen);
       if (logfile) fputs(thr_header,logfile);
 
-      omp_times(fixomp,"Reduce",ThrData::TIME_REDUCE,nthreads,screen,logfile);
-      omp_times(fixomp,"Neigh",ThrData::TIME_NEIGH,nthreads,screen,logfile);
       omp_times(fixomp,"Pair",ThrData::TIME_PAIR,nthreads,screen,logfile);
       if (atom->molecular) omp_times(fixomp,"Bond",ThrData::TIME_BOND,
                                      nthreads,screen,logfile);
       if (force->kspace) omp_times(fixomp,"Kspace",ThrData::TIME_KSPACE,
                                    nthreads,screen,logfile);
+      omp_times(fixomp,"Neigh",ThrData::TIME_NEIGH,nthreads,screen,logfile);
+      omp_times(fixomp,"Reduce",ThrData::TIME_REDUCE,nthreads,screen,logfile);
       omp_times(fixomp,"Modify",ThrData::TIME_MODIFY,nthreads,screen,logfile);
     }
   }

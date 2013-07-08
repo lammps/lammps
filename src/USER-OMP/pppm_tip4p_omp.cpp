@@ -136,6 +136,8 @@ void PPPMTIP4POMP::compute_gf_ik()
     int k,l,m,nx,ny,nz,kper,lper,mper,n,nfrom,nto,tid;
 
     loop_setup_thr(nfrom, nto, tid, nfft, comm->nthreads);
+    ThrData *thr = fix->get_thr(tid);
+    thr->timer(ThrData::TIME_START);
 
     for (n = nfrom; n < nto; ++n) {
       m = n / (numl*numk);
@@ -188,6 +190,7 @@ void PPPMTIP4POMP::compute_gf_ik()
         greensfn[n] = numerator*sum1/denominator;
       } else greensfn[n] = 0.0;
     }
+    thr->timer(ThrData::TIME_KSPACE);
   } // end of parallel region
 }
 
@@ -224,6 +227,8 @@ void PPPMTIP4POMP::compute_gf_ad()
     int k,l,m,kper,lper,mper,n,nfrom,nto,tid;
 
     loop_setup_thr(nfrom, nto, tid, nfft, comm->nthreads);
+    ThrData *thr = fix->get_thr(tid);
+    thr->timer(ThrData::TIME_START);
 
     for (n = nfrom; n < nto; ++n) {
 
@@ -277,6 +282,7 @@ void PPPMTIP4POMP::compute_gf_ad()
         sf5 += sf_precoeff6[n]*greensfn[n];
       }
     }
+    thr->timer(ThrData::TIME_KSPACE);
   } // end of paralle region
   
   // compute the coefficients for the self-force correction
@@ -319,6 +325,7 @@ void PPPMTIP4POMP::compute(int eflag, int vflag)
     const int tid = 0;
 #endif
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(ThrData::TIME_START);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 }
@@ -425,6 +432,7 @@ void PPPMTIP4POMP::make_rho()
 
     // get per thread data
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(ThrData::TIME_START);
     FFT_SCALAR * const * const r1d = static_cast<FFT_SCALAR **>(thr->get_rho1d());
 
     // loop over my charges, add their contribution to nearby grid points
@@ -476,6 +484,7 @@ void PPPMTIP4POMP::make_rho()
         }
       }
     }
+    thr->timer(ThrData::TIME_KSPACE);
   }
 }
 
@@ -520,6 +529,7 @@ void PPPMTIP4POMP::fieldforce_ik()
 
     // get per thread data
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(ThrData::TIME_START);
     dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
     FFT_SCALAR * const * const r1d = static_cast<FFT_SCALAR **>(thr->get_rho1d());
 
@@ -580,6 +590,7 @@ void PPPMTIP4POMP::fieldforce_ik()
         if (slabflag != 2) f[iH2].z += 0.5*alpha*fz;
       }
     }
+    thr->timer(ThrData::TIME_KSPACE);
   } // end of parallel region
 }
 
@@ -630,6 +641,7 @@ void PPPMTIP4POMP::fieldforce_ad()
 
     // get per thread data
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(ThrData::TIME_START);
     dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
     FFT_SCALAR * const * const r1d = static_cast<FFT_SCALAR **>(thr->get_rho1d());
     FFT_SCALAR * const * const d1d = static_cast<FFT_SCALAR **>(thr->get_drho1d());
@@ -708,6 +720,7 @@ void PPPMTIP4POMP::fieldforce_ad()
         if (slabflag != 2) f[iH2].z += 0.5*alpha*fz;
       }
     }
+    thr->timer(ThrData::TIME_KSPACE);
   } // end of parallel region
 }
 

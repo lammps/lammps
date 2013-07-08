@@ -145,6 +145,8 @@ void PPPMDispOMP::compute_gf()
     const int nny = nyhi_fft-nylo_fft+1;
 
     loop_setup_thr(nnfrom, nnto, tid, nfft, comm->nthreads);
+    ThrData *thr = fix->get_thr(tid);
+    thr->timer(ThrData::TIME_START);
 
     for (m = nzlo_fft; m <= nzhi_fft; m++) {
       mper = m - nz_pppm*(2*m/nz_pppm);
@@ -194,7 +196,8 @@ void PPPMDispOMP::compute_gf()
         }
       }
     }
-  }
+    thr->timer(ThrData::TIME_KSPACE);
+  } // end of parallel region
 }
 
 /* ----------------------------------------------------------------------
@@ -244,6 +247,8 @@ void PPPMDispOMP::compute_gf_6()
     const int nny = nyhi_fft_6-nylo_fft_6+1;
 
     loop_setup_thr(nnfrom, nnto, tid, nfft_6, comm->nthreads);
+    ThrData *thr = fix->get_thr(tid);
+    thr->timer(ThrData::TIME_START);
 
     for (m = nzlo_fft_6; m <= nzhi_fft_6; m++) {
       mper = m - nz_pppm_6*(2*m/nz_pppm_6);
@@ -295,7 +300,8 @@ void PPPMDispOMP::compute_gf_6()
         }
       }
     }
-  }
+    thr->timer(ThrData::TIME_KSPACE);
+  } // end of parallel region
 }
 /* ----------------------------------------------------------------------
    run the regular toplevel compute method from plain PPPPM
@@ -318,6 +324,7 @@ void PPPMDispOMP::compute(int eflag, int vflag)
 #endif
 
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(ThrData::TIME_START);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 }
@@ -430,6 +437,7 @@ void PPPMDispOMP::make_rho_c()
 
     // get per thread data
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(ThrData::TIME_START);
     FFT_SCALAR * const * const r1d = static_cast<FFT_SCALAR **>(thr->get_rho1d());
 
     // loop over my charges, add their contribution to nearby grid points
@@ -476,7 +484,8 @@ void PPPMDispOMP::make_rho_c()
         }
       }
     }
-  }
+    thr->timer(ThrData::TIME_KSPACE);
+  } // end of parallel region
 }
 
 
@@ -517,6 +526,7 @@ void PPPMDispOMP::make_rho_g()
 
     // get per thread data
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(ThrData::TIME_START);
     FFT_SCALAR * const * const r1d = static_cast<FFT_SCALAR **>(thr->get_rho1d_6());
 
     // loop over my charges, add their contribution to nearby grid points
@@ -565,7 +575,8 @@ void PPPMDispOMP::make_rho_g()
         }
       }
     }
-  }
+    thr->timer(ThrData::TIME_KSPACE);
+  } // end of parallel region
 }
 
 
@@ -619,6 +630,7 @@ void PPPMDispOMP::make_rho_a()
 
     // get per thread data
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(ThrData::TIME_START);
     FFT_SCALAR * const * const r1d = static_cast<FFT_SCALAR **>(thr->get_rho1d_6());
 
     // loop over my charges, add their contribution to nearby grid points
@@ -682,7 +694,8 @@ void PPPMDispOMP::make_rho_a()
         }
       }
     }
-  }
+    thr->timer(ThrData::TIME_KSPACE);
+  } // end of parallel region
 }
 
 
@@ -727,6 +740,7 @@ void PPPMDispOMP::fieldforce_c_ik()
     const int tid = 0;
 #endif
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(ThrData::TIME_START);
     double * const * const f = thr->get_f();
     FFT_SCALAR * const * const r1d =  static_cast<FFT_SCALAR **>(thr->get_rho1d());
 
@@ -771,7 +785,8 @@ void PPPMDispOMP::fieldforce_c_ik()
         f[i][2] += qfactor*ekz;
       }
     }
-  }
+    thr->timer(ThrData::TIME_KSPACE);
+  } // end of parallel region
 }
 
 /* ----------------------------------------------------------------------
@@ -830,6 +845,7 @@ void PPPMDispOMP::fieldforce_c_ad()
     const int tid = 0;
 #endif
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(ThrData::TIME_START);
     double * const * const f = thr->get_f();
     FFT_SCALAR * const * const r1d =  static_cast<FFT_SCALAR **>(thr->get_rho1d());
     FFT_SCALAR * const * const dr1d = static_cast<FFT_SCALAR **>(thr->get_drho1d());
@@ -894,7 +910,8 @@ void PPPMDispOMP::fieldforce_c_ad()
         if (slabflag != 2) f[i][2] += qfactor*(ekz*q[i] - sf);
       }
     }
-  }
+    thr->timer(ThrData::TIME_KSPACE);
+  } // end of parallel region
 }
 
 /* ----------------------------------------------------------------------
@@ -935,6 +952,7 @@ void PPPMDispOMP::fieldforce_c_peratom()
     const int tid = 0;
 #endif
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(ThrData::TIME_START);
     FFT_SCALAR * const * const r1d =  static_cast<FFT_SCALAR **>(thr->get_rho1d());
 
     int i,l,m,n,nx,ny,nz,mx,my,mz;
@@ -990,7 +1008,8 @@ void PPPMDispOMP::fieldforce_c_peratom()
         }
       }
     }
-  }
+    thr->timer(ThrData::TIME_KSPACE);
+  } // end of parallel region
 }
 
 /* ----------------------------------------------------------------------
@@ -1033,7 +1052,8 @@ void PPPMDispOMP::fieldforce_g_ik()
     const int tid = 0;
 #endif
     ThrData *thr = fix->get_thr(tid);
-    double * const * const f = thr->get_f();
+    thr->timer(ThrData::TIME_START);
+ double * const * const f = thr->get_f();
     FFT_SCALAR * const * const r1d =  static_cast<FFT_SCALAR **>(thr->get_rho1d_6());
 
     int l,m,n,nx,ny,nz,mx,my,mz;
@@ -1080,7 +1100,8 @@ void PPPMDispOMP::fieldforce_g_ik()
         f[i][2] += lj*ekz;
       }
     }
-  }
+    thr->timer(ThrData::TIME_KSPACE);
+  } // end of parallel region
 }
 
 /* ----------------------------------------------------------------------
@@ -1135,6 +1156,7 @@ void PPPMDispOMP::fieldforce_g_ad()
     const int tid = 0;
 #endif
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(ThrData::TIME_START);
     double * const * const f = thr->get_f();
     FFT_SCALAR * const * const r1d =  static_cast<FFT_SCALAR **>(thr->get_rho1d_6());
     FFT_SCALAR * const * const dr1d = static_cast<FFT_SCALAR **>(thr->get_drho1d_6());
@@ -1202,7 +1224,8 @@ void PPPMDispOMP::fieldforce_g_ad()
         if (slabflag != 2) f[i][2] += ekz*lj - sf;
       }
     }
-  }
+    thr->timer(ThrData::TIME_KSPACE);
+  } // end of parallel region
 }
 
 /* ----------------------------------------------------------------------
@@ -1243,6 +1266,7 @@ void PPPMDispOMP::fieldforce_g_peratom()
     const int tid = 0;
 #endif
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(ThrData::TIME_START);
     FFT_SCALAR * const * const r1d =  static_cast<FFT_SCALAR **>(thr->get_rho1d_6());
 
     int i,l,m,n,nx,ny,nz,mx,my,mz;
@@ -1301,7 +1325,8 @@ void PPPMDispOMP::fieldforce_g_peratom()
         }
       }
     }
-  }
+    thr->timer(ThrData::TIME_KSPACE);
+  } // end of parallel region
 }
 
 /* ----------------------------------------------------------------------
@@ -1344,6 +1369,7 @@ void PPPMDispOMP::fieldforce_a_ik()
     const int tid = 0;
 #endif
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(ThrData::TIME_START);
     double * const * const f = thr->get_f();
     FFT_SCALAR * const * const r1d =  static_cast<FFT_SCALAR **>(thr->get_rho1d_6());
 
@@ -1423,7 +1449,8 @@ void PPPMDispOMP::fieldforce_a_ik()
         f[i][2] += lj0*ekz0 + lj1*ekz1 + lj2*ekz2 + lj3*ekz3 + lj4*ekz4 + lj5*ekz5 + lj6*ekz6;
       }
     }
-  }
+    thr->timer(ThrData::TIME_KSPACE);
+  } // end of parallel region
 }
 
 /* ----------------------------------------------------------------------
@@ -1478,6 +1505,7 @@ void PPPMDispOMP::fieldforce_a_ad()
     const int tid = 0;
 #endif
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(ThrData::TIME_START);
     double * const * const f = thr->get_f();
     FFT_SCALAR * const * const r1d =  static_cast<FFT_SCALAR **>(thr->get_rho1d_6());
     FFT_SCALAR * const * const dr1d = static_cast<FFT_SCALAR **>(thr->get_drho1d_6());
@@ -1612,7 +1640,8 @@ void PPPMDispOMP::fieldforce_a_ad()
         if (slabflag != 2) f[i][2] += lj0*ekz0 + lj1*ekz1 + lj2*ekz2 + lj3*ekz3 + lj4*ekz4 + lj5*ekz5 + lj6*ekz6 - sf;
       }
     }
-  }
+    thr->timer(ThrData::TIME_KSPACE);
+  } // end of parallel region
 }
 
 /* ----------------------------------------------------------------------
@@ -1653,6 +1682,7 @@ void PPPMDispOMP::fieldforce_a_peratom()
     const int tid = 0;
 #endif
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(ThrData::TIME_START);
     FFT_SCALAR * const * const r1d =  static_cast<FFT_SCALAR **>(thr->get_rho1d_6());
 
     int i,l,m,n,nx,ny,nz,mx,my,mz;
@@ -1782,7 +1812,8 @@ void PPPMDispOMP::fieldforce_a_peratom()
         }
       }
     }
-  }
+    thr->timer(ThrData::TIME_KSPACE);
+  } // end of parallel region
 }
 
 /* ----------------------------------------------------------------------

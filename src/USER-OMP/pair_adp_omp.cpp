@@ -71,6 +71,7 @@ void PairADPOMP::compute(int eflag, int vflag)
 
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(ThrData::TIME_START);
     ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
 
     if (force->newton_pair)
@@ -91,6 +92,7 @@ void PairADPOMP::compute(int eflag, int vflag)
       else eval<0,0,0>(ifrom, ito, thr);
     }
 
+    thr->timer(ThrData::TIME_PAIR);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 }
@@ -200,6 +202,7 @@ void PairADPOMP::eval(int iifrom, int iito, ThrData * const thr)
 
   if (NEWTON_PAIR) {
     // reduce per thread density
+    thr->timer(ThrData::TIME_PAIR);
     data_reduce_thr(&(rho_t[0]), nall, comm->nthreads, 1, tid);
     data_reduce_thr(&(mu_t[0].x), nall, comm->nthreads, 3, tid);
     data_reduce_thr(&(lambda_t[0][0]), nall, comm->nthreads, 6, tid);
@@ -217,6 +220,7 @@ void PairADPOMP::eval(int iifrom, int iito, ThrData * const thr)
 
   } else {
     // reduce per thread density
+    thr->timer(ThrData::TIME_PAIR);
     data_reduce_thr(&(rho_t[0]), nlocal, comm->nthreads, 1, tid);
     data_reduce_thr(&(mu_t[0].x), nlocal, comm->nthreads, 3, tid);
     data_reduce_thr(&(lambda_t[0][0]), nlocal, comm->nthreads, 6, tid);

@@ -70,7 +70,6 @@ void PairLJCutOMP::compute(int eflag, int vflag)
     }
     thr->timer(ThrData::TIME_PAIR);
     reduce_thr(this, eflag, vflag, thr);
-    thr->timer(ThrData::TIME_STOP);
   } // end of omp parallel region
 }
 

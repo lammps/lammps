@@ -90,7 +90,8 @@ void ThrData::timer(const int flag)
   }
   
   if (_timer_active && (flag > TIME_START) && (flag < NUM_TIMERS)) {
-    const double diff = tmp - _timer[TIME_START];
+    double diff = tmp - _timer[TIME_START];
+    diff = (diff > 0.0) ? diff : 0.0;
     _timer[TIME_START]  = tmp;
     _timer[TIME_TOTAL] += diff;
     _timer[flag]       += diff;
@@ -103,6 +104,8 @@ double ThrData::get_time(const int flag)
 {
   if ((flag > TIME_START) && (flag < NUM_TIMERS))
     return _timer[flag];
+  else
+    return 0.0;
 }
 
 /* ---------------------------------------------------------------------- */

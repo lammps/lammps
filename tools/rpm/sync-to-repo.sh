@@ -68,7 +68,7 @@ prune_rpm () {
 
       # after one week we keep only one per week.
       unset tmp
-      if [ $age -gt 7 ] && [ $arg -lt 84 ]
+      if [ $age -gt 7 ] && [ $age -lt 84 ]
       then
           w=$(expr $age / 7)
           eval tmp=\$week${w}

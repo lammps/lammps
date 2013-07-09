@@ -41,14 +41,14 @@ prune_rpm () {
       if [ $age -gt 336 ]
       then
           y=$(expr $age / 336)
-          eval tmp=\$year${sub}${y}
+          eval tmp=\$year${sub#-}${y}
           if [ -n "$tmp" ]
           then
               rm -vf ${rpm}
           else
               echo "first in year $y $rpm"
           fi
-          export year${sub}${y}=1
+          export year${sub#-}${y}=1
       fi
 
       # after about three months we keep only one per month
@@ -56,14 +56,14 @@ prune_rpm () {
       if [ $age -gt 84 ] && [ $age -lt 336 ]
       then
           m=$(expr $age / 28)
-          eval tmp=\$month${sub}${m}
+          eval tmp=\$month${sub#-}${m}
           if [ -n "$tmp" ]
           then
               rm -vf ${rpm}
           else
               echo "first in month $m $rpm"
           fi
-          export month${sub}${m}=1
+          export month${sub#-}${m}=1
       fi
 
       # after one week we keep only one per week.
@@ -71,14 +71,14 @@ prune_rpm () {
       if [ $age -gt 7 ] && [ $age -lt 84 ]
       then
           w=$(expr $age / 7)
-          eval tmp=\$week${sub}${w}
+          eval tmp=\$week${sub#-}${w}
           if [ -n "$tmp" ]
           then
               rm -vf ${rpm}
           else
               echo "first in week $w $rpm"
           fi
-          export week${sub}${w}=1
+          export week${sub#-}${w}=1
       fi
 
   done

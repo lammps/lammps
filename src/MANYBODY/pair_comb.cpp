@@ -110,7 +110,7 @@ PairComb::~PairComb()
   memory->destroy(sht_num);
   memory->destroy(sht_first);
 
-  delete[] ipage;
+  delete [] ipage;
 
   if (allocated) {
     memory->destroy(setflag);
@@ -554,14 +554,13 @@ void PairComb::init_style()
   if (oneatom != neighbor->oneatom) create = 1;
 
   if (create) {
-    delete[] ipage;
-
+    delete [] ipage;
     pgsize = neighbor->pgsize;
     oneatom = neighbor->oneatom;
 
-    int nmypage= comm->nthreads;
+    int nmypage = comm->nthreads;
     ipage = new MyPage<int>[nmypage];
-    for (int i=0; i < nmypage; ++i)
+    for (int i = 0; i < nmypage; i++)
       ipage[i].init(oneatom,pgsize);
   }
 }
@@ -2123,7 +2122,7 @@ double PairComb::memory_usage()
   bytes += nmax * sizeof(int);
   bytes += nmax * sizeof(int *);
 
-  for (int i=0; i < comm->nthreads; ++i)
+  for (int i = 0; i < comm->nthreads; i++)
     bytes += ipage[i].size();
 
   bytes += nmax * sizeof(int);

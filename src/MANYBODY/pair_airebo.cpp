@@ -71,7 +71,7 @@ PairAIREBO::~PairAIREBO()
 {
   memory->destroy(REBO_numneigh);
   memory->sfree(REBO_firstneigh);
-  delete[] ipage;
+  delete [] ipage;
   memory->destroy(nC);
   memory->destroy(nH);
 
@@ -231,12 +231,13 @@ void PairAIREBO::init_style()
   if (oneatom != neighbor->oneatom) create = 1;
 
   if (create) {
+    delete [] ipage;
     pgsize = neighbor->pgsize;
     oneatom = neighbor->oneatom;
 
     int nmypage= comm->nthreads;
     ipage = new MyPage<int>[nmypage];
-    for (int i=0; i < nmypage; ++i)
+    for (int i = 0; i < nmypage; i++)
       ipage[i].init(oneatom,pgsize,PGDELTA);
   }
 }
@@ -4191,9 +4192,9 @@ double PairAIREBO::memory_usage()
   bytes += maxlocal * sizeof(int);
   bytes += maxlocal * sizeof(int *);
 
-  for (int i = 0; i < comm->nthreads; ++i)
+  for (int i = 0; i < comm->nthreads; i++)
     bytes += ipage[i].size();
-
+  
   bytes += 2*maxlocal * sizeof(double);
   return bytes;
 }

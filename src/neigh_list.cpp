@@ -76,9 +76,8 @@ NeighList::~NeighList()
     memory->sfree(firstneigh);
     memory->sfree(firstdouble);
 
-    delete[] ipage;
-    if (dnum) 
-      delete[] dpage;
+    delete [] ipage;
+    if (dnum) delete [] dpage;
   }
 
   delete [] iskip;
@@ -109,12 +108,12 @@ void NeighList::setup_pages(int pgsize_caller, int oneatom_caller,
 
   int nmypage = comm->nthreads;
   ipage = new MyPage<int>[nmypage];
-  for (int i=0; i < nmypage; ++i)
+  for (int i = 0; i < nmypage; i++)
     ipage[i].init(oneatom,pgsize,PGDELTA);
 
   if (dnum) {
     dpage = new MyPage<double>[nmypage];
-    for (int i=0; i < nmypage; ++i)
+    for (int i = 0; i < nmypage; i++)
       dpage[i].init(dnum*oneatom,dnum*pgsize,PGDELTA);
   }
   else dpage = NULL;
@@ -267,11 +266,11 @@ bigint NeighList::memory_usage()
   bytes += maxatoms * sizeof(int *);
 
   int nmypage = comm->nthreads;
-  for (int i=0; i < nmypage; ++i)
+  for (int i = 0; i < nmypage; i++)
     bytes += ipage[i].size();
-
+  
   if (dnum) {
-    for (int i=0; i < nmypage; ++i) {
+    for (int i = 0; i < nmypage; i++) {
       bytes += maxatoms * sizeof(double *);
       bytes += dpage[i].size();
     }

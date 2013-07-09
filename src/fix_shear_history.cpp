@@ -72,8 +72,8 @@ FixShearHistory::~FixShearHistory()
   memory->destroy(npartner);
   memory->sfree(partner);
   memory->sfree(shearpartner);
-  delete[] ipage;
-  delete[] dpage;
+  delete [] ipage;
+  delete [] dpage;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -106,15 +106,15 @@ void FixShearHistory::init()
   if (oneatom != neighbor->oneatom) create = 1;
 
   if (create) {
-    delete[] ipage;
-    delete[] dpage;
+    delete [] ipage;
+    delete [] dpage;
 
     pgsize = neighbor->pgsize;
     oneatom = neighbor->oneatom;
     int nmypage = comm->nthreads;
     ipage = new MyPage<int>[nmypage];
     dpage = new MyPage<double[3]>[nmypage];
-    for (int i=0; i < nmypage; ++i) {
+    for (int i = 0; i < nmypage; i++) {
       ipage[i].init(oneatom,pgsize);
       dpage[i].init(oneatom,pgsize);
     }
@@ -271,7 +271,7 @@ double FixShearHistory::memory_usage()
   bytes = nmax * sizeof(double *);
 
   int nmypage = comm->nthreads;
-  for (int i=0; i < nmypage; ++i) {
+  for (int i = 0; i < nmypage; i++) {
     bytes += ipage[i].size();
     bytes += dpage[i].size();
   }

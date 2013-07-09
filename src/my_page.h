@@ -30,15 +30,19 @@ methods:
    T *vget() = return ptr to maxchunk datums, use as needed, then call vgot()
      all gets return NULL if error encountered
    vgot(N) = used N datums of previous vget(), N < maxchunk required
-   void init(maxchunk, pagesize, pagedelta) (re-)initializes allocator. call right after "new".
+   void init(maxchunk, pagesize, pagedelta)
+     define allocation params and allocate first page(s)
+     call right after constructor
+       can call again to reset allocation params and free previous pages
      maxchunk = max # of datums in one chunk, default = 1
      pagesize = # of datums in one page, default = 1024
-               should be insure big enough to store multiple chunks
+       should be big enough to store multiple chunks
      pagedelta = # of pages to allocate at a time, default = 1
+     return 1 if bad params
    void reset() = clear pages w/out freeing
    int size() = return total size of allocated pages in bytes
-   int status() = return error status (0 = ok, 1 = invalid input,
-                   2 = allocation error, 3 = chunksize > maxchunk)
+   int status() = return error status
+     0 = ok, 1 = chunksize > maxchunk, 2 = allocation error
 ------------------------------------------------------------------------- */
 
 #ifndef LAMMPS_MY_PAGE_H
@@ -49,6 +53,9 @@ namespace LAMMPS_NS {
 
 template<class T>
 class MyPage {
+  int ndatum;      // total # of stored datums
+  int nchunk;      // total # of stored chunks
+
  public:
   MyPage() {
     ndatum = nchunk = 0;
@@ -57,16 +64,19 @@ class MyPage {
     errorflag = 0;
   }
 
-  void init(int user_maxchunk = 1, int user_pagesize = 1024, 
-            int user_pagedelta = 1) {
+  // (re)initialize allocation params
+  // also allocate first page(s)
+
+  int init(int user_maxchunk = 1, int user_pagesize = 1024, 
+           int user_pagedelta = 1) {
     maxchunk = user_maxchunk;
     pagesize = user_pagesize;
     pagedelta = user_pagedelta;
 
-    errorflag = 0;
-    if (maxchunk <= 0 || pagesize <= 0 || pagedelta <= 0) errorflag = 1;
-    if (maxchunk > pagesize) errorflag = 1;
-    if (errorflag) return;
+    if (maxchunk <= 0 || pagesize <= 0 || pagedelta <= 0) return 1;
+    if (maxchunk > pagesize) return 1;
+
+    // free any previously allocated pages
 
     for (int i = 0; i < npage; i++) free(pages[i]);
     free(pages);
@@ -77,12 +87,13 @@ class MyPage {
     pages = NULL;
     npage = 0;
     allocate();
-    if (errorflag) return;
+    if (errorflag) return 2;
     ipage = index = 0;
     page = pages[ipage];
+    return 0;
   }
 
-  // free all pages of allocated memory
+  // free all allocated pages
 
   ~MyPage() {
     for (int i = 0; i < npage; i++) free(pages[i]);
@@ -112,7 +123,7 @@ class MyPage {
 
   T *get(int n) {
     if (n > maxchunk) {
-      errorflag = 3;
+      errorflag = 1;
       return NULL;
     }
     ndatum += n;
@@ -153,14 +164,13 @@ class MyPage {
   // error if N > maxchunk
 
   void vgot(int n) {
-    if (n > maxchunk) errorflag = 3;
+    if (n > maxchunk) errorflag = 1;
     ndatum += n;
     nchunk++;
     index += n;
   }
 
-  // reset index to beginning of first page
-  // effectively clears all pages, without freeing any memory
+  // clear all pages, without freeing any memory
 
   void reset() {
     ndatum = nchunk = 0;
@@ -168,7 +178,7 @@ class MyPage {
     page = pages[ipage];
   }
 
-  // return total size of all allocated pages
+  // return total size of allocated pages
 
   int size() const {
     return npage*pagesize*sizeof(T);
@@ -187,16 +197,13 @@ class MyPage {
   int ipage;      // index of current page
   int index;      // current index on current page
   
-  int ndatum;      // total # of stored datums
-  int nchunk;      // total # of stored chunks
-  int errorflag;   // flag > 1 if error has occurred
-                   // 1 = invalid inputs
-                   // 2 = memory allocation error
-                   // 3 = chunk size exceeded maxchunk
-
   int maxchunk;   // max # of datums in one requested chunk
   int pagesize;   // # of datums in one page, default = 1024
   int pagedelta;  // # of pages to allocate at once, default = 1
+
+  int errorflag;  // flag > 0 if error has occurred
+                  // 1 = chunk size exceeded maxchunk
+                  // 2 = memory allocation error
 
   void allocate() {
     npage += pagedelta;

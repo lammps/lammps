@@ -12,7 +12,7 @@ fix gravity/omp command :h3
 
 [Syntax:]
 
-fix ID group gravity style magnitude args :pre
+fix ID group gravity magnitude style args :pre
 
 ID, group are documented in "fix"_fix.html command :ulb,l
 gravity = style name of this fix command :l

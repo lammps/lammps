@@ -68,7 +68,7 @@ PairLCBOP::~PairLCBOP()
 {
   memory->destroy(SR_numneigh);
   memory->sfree(SR_firstneigh);
-  delete[] ipage;
+  delete [] ipage;
   memory->destroy(N);
   memory->destroy(M);
 
@@ -202,13 +202,13 @@ void PairLCBOP::init_style()
   if (oneatom != neighbor->oneatom) create = 1;
 
   if (create) {
+    delete [] ipage;
     pgsize = neighbor->pgsize;
     oneatom = neighbor->oneatom;
 
-    delete[] ipage;
     int nmypage = comm->nthreads;
     ipage = new MyPage<int>[nmypage];
-    for (int i=0; i < nmypage; ++i)
+    for (int i = 0; i < nmypage; i++)
       ipage[i].init(oneatom,pgsize,PGDELTA);
   }
 }
@@ -1283,7 +1283,10 @@ double PairLCBOP::memory_usage()
   double bytes = 0.0;
   bytes += maxlocal * sizeof(int);
   bytes += maxlocal * sizeof(int *);
-  bytes += ipage->size();
+
+  for (int i = 0; i < comm->nthreads; i++)
+    bytes += ipage[i].size();
+
   bytes += 3*maxlocal * sizeof(double);
   return bytes;
 }

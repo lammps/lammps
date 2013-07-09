@@ -15,6 +15,7 @@
 #include "neigh_list.h"
 #include "atom.h"
 #include "domain.h"
+#include "my_page.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -55,25 +56,17 @@ void Neighbor::half_multi_no_newton(NeighList *list)
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
-  int **pages = list->pages;
   int *nstencil_multi = list->nstencil_multi;
   int **stencil_multi = list->stencil_multi;
   double **distsq_multi = list->distsq_multi;
+  MyPage<int> *ipage = list->ipage;
 
   int inum = 0;
-  int npage = 0;
-  int npnt = 0;
+  ipage->reset();
 
   for (i = 0; i < nlocal; i++) {
-
-    if (pgsize - npnt < oneatom) {
-      npnt = 0;
-      npage++;
-      if (npage == list->maxpage) pages = list->add_pages();
-    }
-
-    neighptr = &pages[npage][npnt];
     n = 0;
+    neighptr = ipage->vget();
 
     itype = type[i];
     xtmp = x[i][0];
@@ -119,8 +112,8 @@ void Neighbor::half_multi_no_newton(NeighList *list)
     ilist[inum++] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
-    npnt += n;
-    if (n > oneatom)
+    ipage->vgot(n);
+    if (ipage->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
 
@@ -162,25 +155,17 @@ void Neighbor::half_multi_newton(NeighList *list)
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
-  int **pages = list->pages;
   int *nstencil_multi = list->nstencil_multi;
   int **stencil_multi = list->stencil_multi;
   double **distsq_multi = list->distsq_multi;
+  MyPage<int> *ipage = list->ipage;
 
   int inum = 0;
-  int npage = 0;
-  int npnt = 0;
+  ipage->reset();
 
   for (i = 0; i < nlocal; i++) {
-
-    if (pgsize - npnt < oneatom) {
-      npnt = 0;
-      npage++;
-      if (npage == list->maxpage) pages = list->add_pages();
-    }
-
-    neighptr = &pages[npage][npnt];
     n = 0;
+    neighptr = ipage->vget();
 
     itype = type[i];
     xtmp = x[i][0];
@@ -254,8 +239,8 @@ void Neighbor::half_multi_newton(NeighList *list)
     ilist[inum++] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
-    npnt += n;
-    if (n > oneatom)
+    ipage->vgot(n);
+    if (ipage->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
 
@@ -297,25 +282,17 @@ void Neighbor::half_multi_newton_tri(NeighList *list)
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
-  int **pages = list->pages;
   int *nstencil_multi = list->nstencil_multi;
   int **stencil_multi = list->stencil_multi;
   double **distsq_multi = list->distsq_multi;
+  MyPage<int> *ipage = list->ipage;
 
   int inum = 0;
-  int npage = 0;
-  int npnt = 0;
+  ipage->reset();
 
   for (i = 0; i < nlocal; i++) {
-
-    if (pgsize - npnt < oneatom) {
-      npnt = 0;
-      npage++;
-      if (npage == list->maxpage) pages = list->add_pages();
-    }
-
-    neighptr = &pages[npage][npnt];
     n = 0;
+    neighptr = ipage->vget();
 
     itype = type[i];
     xtmp = x[i][0];
@@ -370,8 +347,8 @@ void Neighbor::half_multi_newton_tri(NeighList *list)
     ilist[inum++] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
-    npnt += n;
-    if (n > oneatom)
+    ipage->vgot(n);
+    if (ipage->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
 

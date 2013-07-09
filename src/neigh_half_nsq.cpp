@@ -51,24 +51,16 @@ void Neighbor::half_nsq_no_newton(NeighList *list)
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
-  int **pages = list->pages;
+  MyPage<int> *ipage = list->ipage;
 
   int inum = 0;
-  int npage = 0;
-  int npnt = 0;
+  ipage->reset();
 
   // loop over owned atoms, storing neighbors
 
   for (i = 0; i < nlocal; i++) {
-
-    if (pgsize - npnt < oneatom) {
-      npnt = 0;
-      npage++;
-      if (npage == list->maxpage) pages = list->add_pages();
-    }
-
-    neighptr = &pages[npage][npnt];
     n = 0;
+    neighptr = ipage->vget();
 
     itype = type[i];
     xtmp = x[i][0];
@@ -102,8 +94,8 @@ void Neighbor::half_nsq_no_newton(NeighList *list)
     ilist[inum++] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
-    npnt += n;
-    if (n > oneatom)
+    ipage->vgot(n);
+    if (ipage->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
 
@@ -143,24 +135,16 @@ void Neighbor::half_nsq_no_newton_ghost(NeighList *list)
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
-  int **pages = list->pages;
+  MyPage<int> *ipage = list->ipage;
 
   int inum = 0;
-  int npage = 0;
-  int npnt = 0;
+  ipage->reset();
 
   // loop over owned & ghost atoms, storing neighbors
 
   for (i = 0; i < nall; i++) {
-
-    if (pgsize - npnt < oneatom) {
-      npnt = 0;
-      npage++;
-      if (npage == list->maxpage) pages = list->add_pages();
-    }
-
-    neighptr = &pages[npage][npnt];
     n = 0;
+    neighptr = ipage->vget();
 
     itype = type[i];
     xtmp = x[i][0];
@@ -214,8 +198,8 @@ void Neighbor::half_nsq_no_newton_ghost(NeighList *list)
     ilist[inum++] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
-    npnt += n;
-    if (n > oneatom)
+    ipage->vgot(n);
+    if (ipage->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
 
@@ -256,22 +240,14 @@ void Neighbor::half_nsq_newton(NeighList *list)
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
-  int **pages = list->pages;
+  MyPage<int> *ipage = list->ipage;
 
   int inum = 0;
-  int npage = 0;
-  int npnt = 0;
+  ipage->reset();
 
   for (i = 0; i < nlocal; i++) {
-
-    if (pgsize - npnt < oneatom) {
-      npnt = 0;
-      npage++;
-      if (npage == list->maxpage) pages = list->add_pages();
-    }
-
-    neighptr = &pages[npage][npnt];
     n = 0;
+    neighptr = ipage->vget();
 
     itag = tag[i];
     itype = type[i];
@@ -322,8 +298,8 @@ void Neighbor::half_nsq_newton(NeighList *list)
     ilist[inum++] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
-    npnt += n;
-    if (n > oneatom)
+    ipage->vgot(n);
+    if (ipage->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
 

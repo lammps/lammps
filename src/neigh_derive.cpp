@@ -14,6 +14,7 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "atom.h"
+#include "my_page.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -33,28 +34,21 @@ void Neighbor::half_from_full_no_newton(NeighList *list)
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
-  int **pages = list->pages;
+  MyPage<int> *ipage = list->ipage;
+
   int *ilist_full = list->listfull->ilist;
   int *numneigh_full = list->listfull->numneigh;
   int **firstneigh_full = list->listfull->firstneigh;
   int inum_full = list->listfull->inum;
 
   int inum = 0;
-  int npage = 0;
-  int npnt = 0;
+  ipage->reset();
 
   // loop over atoms in full list
 
   for (ii = 0; ii < inum_full; ii++) {
-
-    if (pgsize - npnt < oneatom) {
-      npnt = 0;
-      npage++;
-      if (npage == list->maxpage) pages = list->add_pages();
-    }
-
-    neighptr = &pages[npage][npnt];
     n = 0;
+    neighptr = ipage->vget();
 
     // loop over parent full list
 
@@ -71,8 +65,8 @@ void Neighbor::half_from_full_no_newton(NeighList *list)
     ilist[inum++] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
-    npnt += n;
-    if (n > oneatom)
+    ipage->vgot(n);
+    if (ipage->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
 
@@ -98,28 +92,21 @@ void Neighbor::half_from_full_newton(NeighList *list)
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
-  int **pages = list->pages;
+  MyPage<int> *ipage = list->ipage;
+
   int *ilist_full = list->listfull->ilist;
   int *numneigh_full = list->listfull->numneigh;
   int **firstneigh_full = list->listfull->firstneigh;
   int inum_full = list->listfull->inum;
 
   int inum = 0;
-  int npage = 0;
-  int npnt = 0;
+  ipage->reset();
 
   // loop over parent full list
 
   for (ii = 0; ii < inum_full; ii++) {
-
-    if (pgsize - npnt < oneatom) {
-      npnt = 0;
-      npage++;
-      if (npage == list->maxpage) pages = list->add_pages();
-    }
-
-    neighptr = &pages[npage][npnt];
     n = 0;
+    neighptr = ipage->vget();
 
     i = ilist_full[ii];
     xtmp = x[i][0];
@@ -149,8 +136,8 @@ void Neighbor::half_from_full_newton(NeighList *list)
     ilist[inum++] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
-    npnt += n;
-    if (n > oneatom)
+    ipage->vgot(n);
+    if (ipage->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
 
@@ -175,7 +162,8 @@ void Neighbor::skip_from(NeighList *list)
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
-  int **pages = list->pages;
+  MyPage<int> *ipage = list->ipage;
+
   int *ilist_skip = list->listskip->ilist;
   int *numneigh_skip = list->listskip->numneigh;
   int **firstneigh_skip = list->listskip->firstneigh;
@@ -186,8 +174,7 @@ void Neighbor::skip_from(NeighList *list)
   int **ijskip = list->ijskip;
 
   int inum = 0;
-  int npage = 0;
-  int npnt = 0;
+  ipage->reset();
 
   // loop over atoms in other list
   // skip I atom entirely if iskip is set for type[I]
@@ -198,14 +185,8 @@ void Neighbor::skip_from(NeighList *list)
     itype = type[i];
     if (iskip[itype]) continue;
 
-    if (pgsize - npnt < oneatom) {
-      npnt = 0;
-      npage++;
-      if (npage == list->maxpage) pages = list->add_pages();
-    }
-
-    neighptr = &pages[npage][npnt];
     n = 0;
+    neighptr = ipage->vget();
 
     // loop over parent non-skip list
 
@@ -222,8 +203,8 @@ void Neighbor::skip_from(NeighList *list)
     ilist[inum++] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
-    npnt += n;
-    if (n > oneatom)
+    ipage->vgot(n);
+    if (ipage->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
 
@@ -255,7 +236,8 @@ void Neighbor::skip_from_granular(NeighList *list)
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
-  int **pages = list->pages;
+  MyPage<int> *ipage = list->ipage;
+
   int *ilist_skip = list->listskip->ilist;
   int *numneigh_skip = list->listskip->numneigh;
   int **firstneigh_skip = list->listskip->firstneigh;
@@ -269,12 +251,13 @@ void Neighbor::skip_from_granular(NeighList *list)
   NeighList *listgranhistory = list->listgranhistory;
   int **firsttouch = listgranhistory->firstneigh;
   double **firstshear = listgranhistory->firstdouble;
-  int **pages_touch = listgranhistory->pages;
-  double **pages_shear = listgranhistory->dpages;
+  MyPage<int> *ipage_touch = listgranhistory->ipage;
+  MyPage<double> *dpage_shear = listgranhistory->dpage;
 
   int inum = 0;
-  int npage = 0;
-  int npnt = 0;
+  ipage->reset();
+  ipage_touch->reset();
+  dpage_shear->reset();
 
   // loop over atoms in other list
   // skip I atom entirely if iskip is set for type[I]
@@ -285,21 +268,10 @@ void Neighbor::skip_from_granular(NeighList *list)
     itype = type[i];
     if (iskip[itype]) continue;
 
-    if (pgsize - npnt < oneatom) {
-      npnt = 0;
-      npage++;
-      if (npage == list->maxpage) {
-        pages = list->add_pages();
-        pages_touch = listgranhistory->add_pages();
-        pages_shear = listgranhistory->dpages;
-      }
-    }
-
-    n = 0;
-    neighptr = &pages[npage][npnt];
-    nn = 0;
-    touchptr = &pages_touch[npage][npnt];
-    shearptr = &pages_shear[npage][3*npnt];
+    n = nn = 0;
+    neighptr = ipage->vget();
+    touchptr = ipage_touch->vget();
+    shearptr = dpage_shear->vget();
 
     // loop over parent non-skip granular list and its history info
 
@@ -322,11 +294,14 @@ void Neighbor::skip_from_granular(NeighList *list)
     ilist[inum++] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
+    ipage->vgot(n);
+    if (ipage->status())
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
+
     firsttouch[i] = touchptr;
     firstshear[i] = shearptr;
-    npnt += n;
-    if (n > oneatom)
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
+    ipage_touch->vgot(n);
+    dpage_shear->vgot(nn);
   }
 
   list->inum = inum;
@@ -348,7 +323,8 @@ void Neighbor::skip_from_respa(NeighList *list)
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
-  int **pages = list->pages;
+  MyPage<int> *ipage = list->ipage;
+
   int *ilist_skip = list->listskip->ilist;
   int *numneigh_skip = list->listskip->numneigh;
   int **firstneigh_skip = list->listskip->firstneigh;
@@ -360,30 +336,29 @@ void Neighbor::skip_from_respa(NeighList *list)
   NeighList *listinner = list->listinner;
   int *numneigh_inner = listinner->numneigh;
   int **firstneigh_inner = listinner->firstneigh;
-  int **pages_inner = listinner->pages;
+  MyPage<int> *ipage_inner = listinner->ipage;
+
   int *numneigh_inner_skip = list->listskip->listinner->numneigh;
   int **firstneigh_inner_skip = list->listskip->listinner->firstneigh;
 
   NeighList *listmiddle;
-  int *numneigh_middle,**firstneigh_middle,**pages_middle;
+  int *ilist_middle,*numneigh_middle,**firstneigh_middle;
+  MyPage<int> *ipage_middle;
   int *numneigh_middle_skip,**firstneigh_middle_skip;
   int respamiddle = list->respamiddle;
   if (respamiddle) {
     listmiddle = list->listmiddle;
     numneigh_middle = listmiddle->numneigh;
     firstneigh_middle = listmiddle->firstneigh;
-    pages_middle = listmiddle->pages;
+    ipage_middle = listmiddle->ipage;
     numneigh_middle_skip = list->listskip->listmiddle->numneigh;
     firstneigh_middle_skip = list->listskip->listmiddle->firstneigh;
   }
 
   int inum = 0;
-  int npage = 0;
-  int npnt = 0;
-  int npage_inner = 0;
-  int npnt_inner = 0;
-  int npage_middle = 0;
-  int npnt_middle = 0;
+  ipage->reset();
+  ipage_inner->reset();
+  if (respamiddle) ipage_middle->reset();
 
   // loop over atoms in other list
   // skip I atom entirely if iskip is set for type[I]
@@ -394,32 +369,12 @@ void Neighbor::skip_from_respa(NeighList *list)
     itype = type[i];
     if (iskip[itype]) continue;
 
-    if (pgsize - npnt < oneatom) {
-      npnt = 0;
-      npage++;
-      if (npage == list->maxpage) pages = list->add_pages();
-    }
-    neighptr = &pages[npage][npnt];
-    n = 0;
-
-    if (pgsize - npnt_inner < oneatom) {
-      npnt_inner = 0;
-      npage_inner++;
-      if (npage_inner == listinner->maxpage)
-        pages_inner = listinner->add_pages();
-    }
-    neighptr_inner = &pages_inner[npage_inner][npnt_inner];
-    n_inner = 0;
-
+    n = n_inner = 0;
+    neighptr = ipage->vget();
+    neighptr_inner = ipage_inner->vget();
     if (respamiddle) {
-      if (pgsize - npnt_middle < oneatom) {
-        npnt_middle = 0;
-        npage_middle++;
-        if (npage_middle == listmiddle->maxpage)
-          pages_middle = listmiddle->add_pages();
-      }
-      neighptr_middle = &pages_middle[npage_middle][npnt_middle];
       n_middle = 0;
+      neighptr_middle = ipage_middle->vget();
     }
 
     // loop over parent outer rRESPA list
@@ -460,24 +415,24 @@ void Neighbor::skip_from_respa(NeighList *list)
       }
     }
 
-    ilist[inum++] = i;
+    ilist[inum] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
-    npnt += n;
-    if (n > oneatom)
+    ipage->vgot(n);
+    if (ipage->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
 
     firstneigh_inner[i] = neighptr_inner;
     numneigh_inner[i] = n_inner;
-    npnt_inner += n_inner;
-    if (n_inner > oneatom)
+    ipage_inner->vgot(n);
+    if (ipage_inner->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
 
     if (respamiddle) {
       firstneigh_middle[i] = neighptr_middle;
       numneigh_middle[i] = n_middle;
-      npnt_middle += n_middle;
-      if (n_middle > oneatom)
+      ipage_middle->vgot(n);
+      if (ipage_middle->status())
         error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
     }
   }
@@ -499,6 +454,6 @@ void Neighbor::copy_from(NeighList *list)
   list->numneigh = listcopy->numneigh;
   list->firstneigh = listcopy->firstneigh;
   list->firstdouble = listcopy->firstdouble;
-  list->pages = listcopy->pages;
-  list->dpages = listcopy->dpages;
+  list->ipage = listcopy->ipage;
+  list->dpage = listcopy->dpage;
 }

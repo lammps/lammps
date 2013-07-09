@@ -18,6 +18,7 @@
 #include "comm.h"
 #include "domain.h"
 #include "group.h"
+#include "my_page.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -58,25 +59,16 @@ void Neighbor::half_nsq_no_newton_omp(NeighList *list)
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
 
-  // each thread works on its own page
-  int npage = tid;
-  int npnt = 0;
+  // each thread has its own page allocator
+  MyPage<int> &ipage = list->ipage[tid];
+  ipage.reset();
 
   // loop over owned atoms, storing neighbors
 
   for (i = ifrom; i < ito; i++) {
 
-#if defined(_OPENMP)
-#pragma omp critical
-#endif
-    if (pgsize - npnt < oneatom) {
-      npnt = 0;
-      npage += nthreads;
-      if (npage >= list->maxpage) list->add_pages(nthreads);
-    }
-
-    neighptr = &(list->pages[npage][npnt]);
     n = 0;
+    neighptr = ipage.vget();
 
     itype = type[i];
     xtmp = x[i][0];
@@ -110,8 +102,8 @@ void Neighbor::half_nsq_no_newton_omp(NeighList *list)
     ilist[i] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
-    npnt += n;
-    if (n > oneatom)
+    ipage.vgot(n);
+    if (ipage.status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
   NEIGH_OMP_CLOSE;
@@ -156,25 +148,16 @@ void Neighbor::half_nsq_no_newton_ghost_omp(NeighList *list)
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
 
-  // each thread works on its own page
-  int npage = tid;
-  int npnt = 0;
+  // each thread has its own page allocator
+  MyPage<int> &ipage = list->ipage[tid];
+  ipage.reset();
 
   // loop over owned & ghost atoms, storing neighbors
 
   for (i = ifrom; i < ito; i++) {
 
-#if defined(_OPENMP)
-#pragma omp critical
-#endif
-    if (pgsize - npnt < oneatom) {
-      npnt = 0;
-      npage += nthreads;
-      if (npage >= list->maxpage) list->add_pages(nthreads);
-    }
-
-    neighptr = &(list->pages[npage][npnt]);
     n = 0;
+    neighptr = ipage.vget();
 
     itype = type[i];
     xtmp = x[i][0];
@@ -228,8 +211,8 @@ void Neighbor::half_nsq_no_newton_ghost_omp(NeighList *list)
     ilist[i] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
-    npnt += n;
-    if (n > oneatom)
+    ipage.vgot(n);
+    if (ipage.status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
   NEIGH_OMP_CLOSE;
@@ -275,22 +258,14 @@ void Neighbor::half_nsq_newton_omp(NeighList *list)
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
 
-  int npage = tid;
-  int npnt = 0;
+  // each thread has its own page allocator
+  MyPage<int> &ipage = list->ipage[tid];
+  ipage.reset();
 
   for (i = ifrom; i < ito; i++) {
 
-#if defined(_OPENMP)
-#pragma omp critical
-#endif
-    if (pgsize - npnt < oneatom) {
-      npnt = 0;
-      npage += nthreads;
-      if (npage >= list->maxpage) list->add_pages(nthreads);
-    }
-
-    neighptr = &(list->pages[npage][npnt]);
     n = 0;
+    neighptr = ipage.vget();
 
     itag = tag[i];
     itype = type[i];
@@ -341,8 +316,8 @@ void Neighbor::half_nsq_newton_omp(NeighList *list)
     ilist[i] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
-    npnt += n;
-    if (n > oneatom)
+    ipage.vgot(n);
+    if (ipage.status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
   NEIGH_OMP_CLOSE;

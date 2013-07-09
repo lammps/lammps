@@ -17,6 +17,7 @@
 #include "update.h"
 #include "neighbor.h"
 #include "neigh_request.h"
+#include "my_page.h"
 #include "memory.h"
 #include "error.h"
 
@@ -28,21 +29,16 @@ enum{NSQ,BIN,MULTI};     // also in neighbor.cpp
 
 /* ---------------------------------------------------------------------- */
 
-NeighList::NeighList(LAMMPS *lmp, int size) : Pointers(lmp)
+NeighList::NeighList(LAMMPS *lmp) :
+  Pointers(lmp)
 {
   maxatoms = 0;
-  pgsize = size;
 
   inum = gnum = 0;
   ilist = NULL;
   numneigh = NULL;
   firstneigh = NULL;
   firstdouble = NULL;
-
-  maxpage = 0;
-  pages = NULL;
-  dpages = NULL;
-  dnum = 0;
 
   iskip = NULL;
   ijskip = NULL;
@@ -65,6 +61,9 @@ NeighList::NeighList(LAMMPS *lmp, int size) : Pointers(lmp)
   nstencil_multi = NULL;
   stencil_multi = NULL;
   distsq_multi = NULL;
+
+  ipage = NULL;
+  dpage = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -77,12 +76,9 @@ NeighList::~NeighList()
     memory->sfree(firstneigh);
     memory->sfree(firstdouble);
 
-    for (int i = 0; i < maxpage; i++) memory->destroy(pages[i]);
-    memory->sfree(pages);
-    if (dnum) {
-      for (int i = 0; i < maxpage; i++) memory->destroy(dpages[i]);
-      memory->sfree(dpages);
-    }
+    delete[] ipage;
+    if (dnum) 
+      delete[] dpage;
   }
 
   delete [] iskip;
@@ -100,6 +96,28 @@ NeighList::~NeighList()
     delete [] stencil_multi;
     delete [] distsq_multi;
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void NeighList::setup_pages(int pgsize_caller, int oneatom_caller, 
+                            int dnum_caller)
+{
+  pgsize = pgsize_caller;
+  oneatom = oneatom_caller;
+  dnum = dnum_caller;
+
+  int nmypage = comm->nthreads;
+  ipage = new MyPage<int>[nmypage];
+  for (int i=0; i < nmypage; ++i)
+    ipage[i].init(oneatom,pgsize,PGDELTA);
+
+  if (dnum) {
+    dpage = new MyPage<double>[nmypage];
+    for (int i=0; i < nmypage; ++i)
+      dpage[i].init(dnum*oneatom,dnum*pgsize,PGDELTA);
+  }
+  else dpage = NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -177,30 +195,6 @@ void NeighList::stencil_allocate(int smax, int style)
 }
 
 /* ----------------------------------------------------------------------
-   add PGDELTA pages to neighbor list
-------------------------------------------------------------------------- */
-
-int **NeighList::add_pages(int howmany)
-{
-  int toppage = maxpage;
-  maxpage += howmany*PGDELTA;
-
-  pages = (int **)
-    memory->srealloc(pages,maxpage*sizeof(int *),"neighlist:pages");
-  for (int i = toppage; i < maxpage; i++)
-    memory->create(pages[i],pgsize,"neighlist:pages[i]");
-
-  if (dnum) {
-    dpages = (double **)
-      memory->srealloc(dpages,maxpage*sizeof(double *),"neighlist:dpages");
-    for (int i = toppage; i < maxpage; i++)
-      memory->create(dpages[i],dnum*pgsize,"neighlist:dpages[i]");
-  }
-
-  return pages;
-}
-
-/* ----------------------------------------------------------------------
    copy skip info from request rq into list's iskip,ijskip
 ------------------------------------------------------------------------- */
 
@@ -271,11 +265,16 @@ bigint NeighList::memory_usage()
   bytes += memory->usage(ilist,maxatoms);
   bytes += memory->usage(numneigh,maxatoms);
   bytes += maxatoms * sizeof(int *);
-  bytes += memory->usage(pages,maxpage,pgsize);
+
+  int nmypage = comm->nthreads;
+  for (int i=0; i < nmypage; ++i)
+    bytes += ipage[i].size();
 
   if (dnum) {
-    bytes += maxatoms * sizeof(double *);
-    bytes += memory->usage(dpages,maxpage,dnum*pgsize);
+    for (int i=0; i < nmypage; ++i) {
+      bytes += maxatoms * sizeof(double *);
+      bytes += dpage[i].size();
+    }
   }
 
   if (maxstencil) bytes += memory->usage(stencil,maxstencil);

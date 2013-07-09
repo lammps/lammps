@@ -48,7 +48,7 @@ prune_rpm () {
           else
               echo "first in year $y $rpm"
           fi
-          eval year${sub}${y}=1
+          export year${sub}${y}=1
       fi
 
       # after about three months we keep only one per month
@@ -63,7 +63,7 @@ prune_rpm () {
           else
               echo "first in month $m $rpm"
           fi
-          eval month${sub}${m}=1
+          export month${sub}${m}=1
       fi
 
       # after one week we keep only one per week.
@@ -78,7 +78,7 @@ prune_rpm () {
           else
               echo "first in week $w $rpm"
           fi
-          eval week${sub}${w}=1
+          export week${sub}${w}=1
       fi
 
   done

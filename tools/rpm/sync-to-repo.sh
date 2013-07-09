@@ -114,7 +114,7 @@ then
     prune_rpm RPMS -mpich2
     prune_rpm RPMS -python
 
-    createrepo -v RPMS
+    createrepo -x \*latest\* -v RPMS
     rsync -arpv --exclude cache --delete RPMS/ \
         ${MYRPM_REPO_USER}@${MYRPM_REPO_HOST}:${MYRPM_REPO_DIR}
     # we use the source rpm on suse, since they do not have a "dist" tag.

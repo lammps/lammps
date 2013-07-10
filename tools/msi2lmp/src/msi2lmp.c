@@ -1,6 +1,6 @@
 /*
 *
-*  msi2lmp.exe  V3.6
+*  msi2lmp.exe  V3.8
 *
 *   v3.6 KLA - Changes to output to either lammps 2001 (F90 version) or to
 *              lammps 2005 (C++ version)
@@ -33,7 +33,7 @@
 *  The program is started by supplying information at the command prompt
 * according to the usage described below.
 *
-*  USAGE: msi2lmp3 ROOTNAME {-print #} {-class #} {-frc FRC_FILE} -2001
+*  USAGE: msi2lmp3 ROOTNAME {-print #} {-class #} {-frc FRC_FILE}
 *
 *  -- msi2lmp3 is the name of the executable
 *  -- ROOTNAME is the base name of the .car and .mdf files
@@ -70,10 +70,7 @@
 *
 *     By default, the program uses $BIOSYM_LIBRARY/cvff.frc
 *
-*  -- -2001 will output a data file for the FORTRAN 90 version of LAMMPS (2001)
-*     By default, the program will output for the C++ version of LAMMPS.
-*
-*  -- output is written to a file called ROOTNAME.lammps{01/05}
+*  -- output is written to a file called ROOTNAME.data
 *
 *
 ****************************************************************
@@ -175,12 +172,10 @@ static int check_arg(char **arg, const char *flag, int num, int argc)
 
 int main (int argc, char *argv[])
 {
-  int n,i,found_sep;           /* Counter */
-  int outv;
+  int n,i,found_sep;
   const char *frc_dir_name = NULL;
   const char *frc_file_name = NULL;
 
-  outv = 2005;
   pflag = 1;
   iflag = 0;
   forcefield = 1;
@@ -210,10 +205,6 @@ int main (int argc, char *argv[])
         printf("Unrecognized Forcefield class: %s\n",argv[n]);
         return 3;
       }
-    } else if (strcmp(argv[n],"-2001") == 0) {
-      outv = 2001;
-    } else if (strcmp(argv[n],"-2005") == 0) {
-      outv = 2005;
     } else if (strncmp(argv[n],"-f",2) == 0) {
       n++;
       if (check_arg(argv,"-frc",n,argc))
@@ -333,12 +324,8 @@ int main (int argc, char *argv[])
     printf("\n Check parameters for internal consistency\n");
   CheckLists();
 
-  if (outv == 2001) {
-    WriteDataFile01(rootname,forcefield);
-
-  } else if (outv == 2005) {
-    WriteDataFile05(rootname,forcefield);
-  }
+  /* Write out the final data */
+  WriteDataFile(rootname,forcefield);
 
   free(rootname);
   if (pflag > 0)

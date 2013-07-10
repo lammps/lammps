@@ -7,7 +7,7 @@
 
 #include <stdlib.h>
 
-void WriteDataFile01(char *nameroot,int forcefield)
+void WriteDataFile(char *nameroot,int forcefield)
 {
   int i,j,k,m;
   char line[MAX_LINE_LENGTH];
@@ -15,16 +15,18 @@ void WriteDataFile01(char *nameroot,int forcefield)
 
   /* Open data file */
 
-  sprintf(line,"%s.lammps01",rootname);
-  if (pflag > 0) printf(" Writing LAMMPS 2001 data file: %s\n",line);
+  sprintf(line,"%s.data",rootname);
+  if (pflag > 0) 
+    printf(" Writing LAMMPS data file %s.data for class %d FF.\n",
+           rootname,forcefield);
   if( (DatF = fopen(line,"w")) == NULL ) {
     printf("Cannot open %s\n",line);
-    exit(52);
+    exit(62);
   }
 
   if (forcefield == 1) total_no_angle_angles = 0;
 
-  fprintf(DatF, "LAMMPS data file for %s\n\n", nameroot);
+  fprintf(DatF, "LAMMPS data file from msi2lmp v3.8 for %s\n\n", nameroot);
   fprintf(DatF, " %6d atoms\n", total_no_atoms);
   fprintf(DatF, " %6d bonds\n", total_no_bonds);
   fprintf(DatF, " %6d angles\n",total_no_angles);
@@ -50,10 +52,23 @@ void WriteDataFile01(char *nameroot,int forcefield)
       fprintf  (DatF, " %3d improper types\n", no_oop_types);
   }
 
-  fprintf(DatF, "\n");
-  fprintf(DatF, " %15.9f %15.9f xlo xhi\n", pbc[0], pbc[3]);
-  fprintf(DatF, " %15.9f %15.9f ylo yhi\n", pbc[1], pbc[4]);
-  fprintf(DatF, " %15.9f %15.9f zlo zhi\n", pbc[2], pbc[5]);
+
+  // Modified by SLTM to print out triclinic box types 10/05/10 - lines 56-68
+
+  if (TriclinicFlag == 0) {
+    fprintf(DatF, "\n");
+    fprintf(DatF, " %15.9f %15.9f xlo xhi\n", pbc[0], pbc[3]);
+    fprintf(DatF, " %15.9f %15.9f ylo yhi\n", pbc[1], pbc[4]);
+    fprintf(DatF, " %15.9f %15.9f zlo zhi\n", pbc[2], pbc[5]);
+  }
+  else {
+    fprintf(DatF, "\n");
+    fprintf(DatF, " %15.9f %15.9f xlo xhi\n", 0.0, pbc[0]);
+    fprintf(DatF, " %15.9f %15.9f ylo yhi\n", 0.0, pbc[1]);
+    fprintf(DatF, " %15.9f %15.9f zlo zhi\n", 0.0, pbc[2]);
+    fprintf(DatF, " %15.9f %15.9f %15.9f xy xz yz\n", pbc[3], pbc[4], pbc[5]);
+  }
+
 
   /* MASSES */
 
@@ -66,7 +81,7 @@ void WriteDataFile01(char *nameroot,int forcefield)
 
   /* COEFFICIENTS */
 
-  fprintf(DatF,"Nonbond Coeffs\n\n");
+  fprintf(DatF,"Pair Coeffs\n\n");
   for (i=0; i < no_atom_types; i++) {
     fprintf(DatF, " %3i ", i+1);
     for ( j = 0; j < 2; j++)
@@ -90,7 +105,6 @@ void WriteDataFile01(char *nameroot,int forcefield)
   }
 
   if (no_angle_types > 0) {
-
     m = 2; /* forcefield == 1 */
     if (forcefield == 2) m = 4;
 
@@ -113,24 +127,25 @@ void WriteDataFile01(char *nameroot,int forcefield)
     for (i=0; i < no_dihedral_types; i++) {
       fprintf(DatF, "%3i ", i+1);
       for ( j = 0; j < m; j++)
-        fprintf(DatF, "%10.4f ", dihedraltypes[i].params[j]);
+        // Modified on 10/05/2010 by STLM to match with lammps reading in integers for the all but the first coefficients
+        if (j == 0)
+          fprintf(DatF, "%10.4f ", dihedraltypes[i].params[j]);
+        else fprintf(DatF, "%10.0f ", dihedraltypes[i].params[j]);
       fprintf(DatF,"\n");
     }
     fprintf(DatF, "\n");
   }
   if (forcefield == 1) {
     if (no_oop_types > 0) {
+      /* harmonic impropers coeffs are: type K0 angle */
       fprintf(DatF,"Improper Coeffs\n\n");
       for (i=0; i < no_oop_types; i++) {
-        fprintf(DatF, "%3i ", i+1);
-        for ( j = 0; j < 3; j++)
-          fprintf(DatF, "%10.4f ", ooptypes[i].params[j]);
-        fprintf(DatF, "\n");
+        fprintf(DatF,"%5i %10.4f %10.4f\n",i+1,
+                ooptypes[i].params[0], ooptypes[i].params[1]);
       }
       fprintf(DatF, "\n");
     }
-  }
-  else if (forcefield == 2) {
+  } else if (forcefield == 2) {
     if ((no_oop_types + no_angleangle_types) > 0) {
       fprintf(DatF,"Improper Coeffs\n\n");
       for (i=0; i < no_oop_types; i++) {
@@ -325,7 +340,8 @@ void WriteDataFile01(char *nameroot,int forcefield)
   /* Close data file */
 
   if (fclose(DatF) !=0) {
-    printf("Error closing %s.lammps01\n", rootname);
-    exit(51);
+    printf("Error closing %s.lammps05\n", rootname);
+    exit(61);
   }
 }
+

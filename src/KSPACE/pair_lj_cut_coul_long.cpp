@@ -51,6 +51,7 @@ PairLJCutCoulLong::PairLJCutCoulLong(LAMMPS *lmp) : Pair(lmp)
 {
   ewaldflag = pppmflag = 1;
   respa_enable = 1;
+  writedata = 1;
   ftable = NULL;
   qdist = 0.0;
 }

@@ -42,6 +42,7 @@ using namespace MathConst;
 PairLJClass2CoulLong::PairLJClass2CoulLong(LAMMPS *lmp) : Pair(lmp)
 {
   ewaldflag = pppmflag = 1;
+  writedata = 1;
   ftable = NULL;
 }
 

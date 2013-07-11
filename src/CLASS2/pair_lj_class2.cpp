@@ -28,7 +28,10 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJClass2::PairLJClass2(LAMMPS *lmp) : Pair(lmp) {}
+PairLJClass2::PairLJClass2(LAMMPS *lmp) : Pair(lmp)
+{
+  writedata = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 

@@ -1,9 +1,9 @@
 log log.h2-h2o-class2b
 units real
 atom_style full
-pair_style lj/class2b/coul/cut 15.0
-bond_style class2b
-angle_style class2b
+pair_style lj/class2/coul/cut 15.0
+bond_style class2
+angle_style class2
 
 read_data h2-h2o-class2b.data
 

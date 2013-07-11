@@ -8,27 +8,50 @@ CHECKDATA=./data-compare.pl
 counter=0
 
 # Class1 tests
-${MSI2LMP} hydrogen-class1 -c 1 -p 2 	\
-	|| counter=$(expr $counter + 1)
-${LAMMPS} -log none -in in.hydrogen-class1	\
-	|| counter=$(expr $counter + 1)
-${CHECKDATA} hydrogen-class1.data reference/hydrogen-class1.data	\
-	|| counter=$(expr $counter + 1)
-${CHECKDATA} hydrogen-class1.data2 reference/hydrogen-class1.data2	\
-	|| counter=$(expr $counter + 1)
+for m in hydrogen water
+do \
+    before=$counter
+    ${MSI2LMP} ${m}-class1 -c 1 -p 2 	\
+        || counter=$(expr $counter + 1)
+    ${LAMMPS} -log none -in in.${m}-class1	\
+        || counter=$(expr $counter + 1)
+    ${CHECKDATA} ${m}-class1.data reference/${m}-class1.data	\
+        || counter=$(expr $counter + 1)
+    ${CHECKDATA} ${m}-class1.data2 reference/${m}-class1.data2	\
+        || counter=$(expr $counter + 1)
+    [ $before -eq $counter ] && rm ${m}-class1.data ${m}-class1.data2 log.${m}-class1
+done
 
-# Class2 tests
-${MSI2LMP} hydrogen-class2 -c 2 -p 2 -f compass_published	\
-	|| counter=$(expr $counter + 1)
-${LAMMPS} -log none -in in.hydrogen-class2	\
-	|| counter=$(expr $counter + 1)
-${CHECKDATA} hydrogen-class2.data reference/hydrogen-class2.data	\
-	|| counter=$(expr $counter + 1)
-${CHECKDATA} hydrogen-class2.data2 reference/hydrogen-class2.data2	\
-	|| counter=$(expr $counter + 1)
+# Class2 tests with compass
+for m in hydrogen
+do \
+    before=$counter
+    ${MSI2LMP} ${m}-class2 -c 2 -p 2 -f compass_published	\
+        || counter=$(expr $counter + 1)
+    ${LAMMPS} -log none -in in.${m}-class2	\
+        || counter=$(expr $counter + 1)
+    ${CHECKDATA} ${m}-class2.data reference/${m}-class2.data	\
+        || counter=$(expr $counter + 1)
+    ${CHECKDATA} ${m}-class2.data2 reference/${m}-class2.data2	\
+        || counter=$(expr $counter + 1)
+    [ $before -eq $counter ] && rm ${m}-class2.data ${m}-class2.data2 log.${m}-class2
+done
+
+# Class2 tests with cff91
+for m in water
+do \
+    before=$counter
+    ${MSI2LMP} ${m}-class2 -c 2 -p 2 -f cff91	\
+        || counter=$(expr $counter + 1)
+    ${LAMMPS} -log none -in in.${m}-class2	\
+        || counter=$(expr $counter + 1)
+    ${CHECKDATA} ${m}-class2.data reference/${m}-class2.data	\
+        || counter=$(expr $counter + 1)
+    ${CHECKDATA} ${m}-class2.data2 reference/${m}-class2.data2	\
+        || counter=$(expr $counter + 1)
+    [ $before -eq $counter ] && rm ${m}-class2.data ${m}-class2.data2 log.${m}-class2
+done
 
 echo "Total error count: $counter"
 echo
 
-# cleaning up.
-rm log.* *.data *.data2

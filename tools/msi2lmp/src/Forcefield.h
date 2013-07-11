@@ -6,7 +6,7 @@
 *   It defines the data structures used to store the force field in memory
 */
 
-#define MAX_NO_MEMS 5
+#define MAX_NO_MEMS 6
 #define MAX_NO_PARAMS 8
 
 struct FrcFieldData {

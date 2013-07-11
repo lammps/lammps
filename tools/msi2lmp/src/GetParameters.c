@@ -73,7 +73,7 @@ void GetParameters(int Forcefield)
     if (k < 0) {
       get_equivs(1,potential_types,equiv_types);
 
-      if (pflag > 2) printf("Using equivalences for VDW %s -> %s\n",
+      if (pflag > 2) printf(" Using equivalences for VDW %s -> %s\n",
                             potential_types[0],equiv_types[0]);
 
       k = find_match(1,equiv_types,ff_vdw,&backwards);
@@ -124,7 +124,7 @@ void GetParameters(int Forcefield)
       get_equivs(2,potential_types,equiv_types);
 
       if (pflag > 2) {
-        printf("Using equivalences for bond %s %s -> %s %s\n",
+        printf(" Using equivalences for bond %s %s -> %s %s\n",
                potential_types[0],potential_types[1],
                equiv_types[0],equiv_types[1]);
       }
@@ -149,7 +149,7 @@ void GetParameters(int Forcefield)
     printf("\n Bond Types and  Parameters\n");
     for (i=0; i < no_bond_types; i++) {
       for (j=0; j < 2; j++)
-        printf("%-3s",atomtypes[bondtypes[i].types[j]].potential);
+        printf(" %-3s",atomtypes[bondtypes[i].types[j]].potential);
       for (j=0; j < 4; j++)
         printf(" %8.4f",bondtypes[i].params[j]);
       printf("\n");
@@ -177,7 +177,7 @@ void GetParameters(int Forcefield)
     if (k < 0) {
       get_equivs(3,potential_types,equiv_types);
       if (pflag > 2) {
-        printf("Using equivalences for angle %s %s %s -> %s %s %s\n",
+        printf(" Using equivalences for angle %s %s %s -> %s %s %s\n",
                potential_types[0],potential_types[1],
                potential_types[2],
                equiv_types[0],equiv_types[1],
@@ -201,7 +201,7 @@ void GetParameters(int Forcefield)
     if (Forcefield > 1) {
       get_equivs(3,potential_types,equiv_types);
       if (pflag > 2) {
-        printf("Using equivalences for 3 body cross terms %s %s %s -> %s %s %s\n",
+        printf(" Using equivalences for 3 body cross terms %s %s %s -> %s %s %s\n",
                potential_types[0],potential_types[1],potential_types[2],
                equiv_types[0],equiv_types[1],equiv_types[2]);
       }
@@ -260,7 +260,7 @@ void GetParameters(int Forcefield)
       printf("\n BondBond Types and  Parameters\n");
       for (i=0; i < no_angle_types; i++) {
         for (j=0; j < 3; j++)
-          printf("%-3s",atomtypes[angletypes[i].types[j]].potential);
+          printf(" %-3s",atomtypes[angletypes[i].types[j]].potential);
         for (j=0; j < 3; j++)
           printf(" %8.4f",angletypes[i].bondbond_cross_term[j]);
         printf("\n");
@@ -268,7 +268,7 @@ void GetParameters(int Forcefield)
       printf("\n BondAngle Types and  Parameters\n");
       for (i=0; i < no_angle_types; i++) {
         for (j=0; j < 3; j++)
-          printf("%-3s",atomtypes[angletypes[i].types[j]].potential);
+          printf(" %-3s",atomtypes[angletypes[i].types[j]].potential);
         for (j=0; j < 4; j++)
           printf(" %8.4f",angletypes[i].bondangle_cross_term[j]);
         printf("\n");
@@ -302,7 +302,7 @@ void GetParameters(int Forcefield)
       get_equivs(4,potential_types,equiv_types);
 
       if (pflag > 2) {
-        printf("Using equivalences for dihedral %s %s %s %s -> %s %s %s %s\n",
+        printf(" Using equivalences for dihedral %s %s %s %s -> %s %s %s %s\n",
                potential_types[0],potential_types[1],
                potential_types[2],potential_types[3],
                equiv_types[0],equiv_types[1],
@@ -333,7 +333,7 @@ void GetParameters(int Forcefield)
         else if (ff_tor.data[k].ff_param[2] == 180.0)
           dihedraltypes[i].params[1] = -1.0;
         else {
-          printf("Non planar phi0 for %s %s %s %s\n",
+          printf(" Non planar phi0 for %s %s %s %s\n",
                  potential_types[0],potential_types[1],
                  potential_types[2],potential_types[3]);
           dihedraltypes[i].params[1] = 0.0;
@@ -349,7 +349,7 @@ void GetParameters(int Forcefield)
     if (Forcefield > 1) {
       get_equivs(4,potential_types,equiv_types);
       if (pflag > 2) {
-        printf("Using equivalences for linear 4 body cross terms  %s %s %s %s -> %s %s %s %s\n",
+        printf(" Using equivalences for linear 4 body cross terms  %s %s %s %s -> %s %s %s %s\n",
                potential_types[0],potential_types[1],
                potential_types[2],potential_types[3],
                equiv_types[0],equiv_types[1],
@@ -529,7 +529,7 @@ void GetParameters(int Forcefield)
     printf("\n Dihedral Types and  Parameters\n");
     for (i=0; i < no_dihedral_types; i++) {
       for (j=0; j < 4; j++)
-        printf("%-3s",atomtypes[dihedraltypes[i].types[j]].potential);
+        printf(" %-3s",atomtypes[dihedraltypes[i].types[j]].potential);
       for (j=0; j < 6; j++)
         printf(" %8.4f",dihedraltypes[i].params[j]);
       printf("\n");
@@ -540,7 +540,7 @@ void GetParameters(int Forcefield)
       printf("\n EndBondDihedral Types and Parameters\n");
       for (i=0; i < no_dihedral_types; i++) {
         for (j=0; j < 4; j++)
-          printf("%-3s",atomtypes[dihedraltypes[i].types[j]].potential);
+          printf(" %-3s",atomtypes[dihedraltypes[i].types[j]].potential);
         for (j=0; j < 8; j++)
           printf(" %8.4f",dihedraltypes[i].endbonddihedral_cross_term[j]);
         printf("\n");
@@ -557,7 +557,7 @@ void GetParameters(int Forcefield)
       printf("\n AngleDihedral Types and Parameters\n");
       for (i=0; i < no_dihedral_types; i++) {
         for (j=0; j < 4; j++)
-          printf("%-3s",atomtypes[dihedraltypes[i].types[j]].potential);
+          printf(" %-3s",atomtypes[dihedraltypes[i].types[j]].potential);
         for (j=0; j < 8; j++)
           printf(" %8.4f",dihedraltypes[i].angledihedral_cross_term[j]);
         printf("\n");
@@ -568,7 +568,7 @@ void GetParameters(int Forcefield)
         for (j=0; j < 4; j++)
           printf(" %-3s",atomtypes[dihedraltypes[i].types[j]].potential);
         for (j=0; j < 3; j++)
-          printf("%8.4f",dihedraltypes[i].angleangledihedral_cross_term[j]);
+          printf(" %8.4f",dihedraltypes[i].angleangledihedral_cross_term[j]);
         printf("\n");
       }
 
@@ -618,7 +618,7 @@ void GetParameters(int Forcefield)
         get_equivs(5,potential_types,equiv_types);
 
         if (pflag > 2) {
-          printf("Using equivalences for oop %s %s %s %s -> %s %s %s %s\n",
+          printf(" Using equivalences for oop %s %s %s %s -> %s %s %s %s\n",
                  potential_types[0],potential_types[1],
                  potential_types[2],potential_types[3],
                  equiv_types[0],equiv_types[1],
@@ -638,7 +638,7 @@ void GetParameters(int Forcefield)
         else if (ff_oop.data[k].ff_param[2] == 180.0)
           ooptypes[i].params[1] = -1.0;
         else {
-          printf("Non planar phi0 for %s %s %s %s\n",
+          printf(" Non planar phi0 for %s %s %s %s\n",
                  potential_types[0],potential_types[1],
                  potential_types[2],potential_types[3]);
           ooptypes[i].params[1] = 0.0;
@@ -658,7 +658,7 @@ void GetParameters(int Forcefield)
       if (k < 0) {
         get_equivs(5,potential_types,equiv_types);
         if (pflag > 2) {
-          printf("Using equivalences for oop %s %s %s %s -> %s %s %s %s\n",
+          printf(" Using equivalences for oop %s %s %s %s -> %s %s %s %s\n",
                  potential_types[0],potential_types[1],
                  potential_types[2],potential_types[3],
                  equiv_types[0],equiv_types[1],
@@ -682,7 +682,7 @@ void GetParameters(int Forcefield)
     printf("\n OOP Types and  Parameters\n");
     for (i=0; i < no_oop_types; i++) {
       for (j=0; j < 4; j++)
-        printf("%-3s",atomtypes[ooptypes[i].types[j]].potential);
+        printf(" %-3s",atomtypes[ooptypes[i].types[j]].potential);
       for (j=0; j < 3; j++)
         printf(" %8.4f",ooptypes[i].params[j]);
       printf("\n");
@@ -733,7 +733,7 @@ void GetParameters(int Forcefield)
       if (k < 0) {
         get_equivs(5,potential_types,equiv_types);
         if (pflag > 2) {
-          printf("Using equivalences for angleangle %s %s %s %s -> %s %s %s %s\n",
+          printf(" Using equivalences for angleangle %s %s %s %s -> %s %s %s %s\n",
                  potential_types[0],potential_types[1],
                  potential_types[2],potential_types[3],
                  equiv_types[0],equiv_types[1],
@@ -803,7 +803,7 @@ void GetParameters(int Forcefield)
       printf("\n AngleAngle Types and  Parameters\n");
       for (i=0; i < no_oop_types; i++) {
         for (j=0; j < 4; j++)
-          printf("%-3s",atomtypes[ooptypes[i].types[j]].potential);
+          printf(" %-3s",atomtypes[ooptypes[i].types[j]].potential);
         for (j=0; j < 6; j++)
           printf(" %8.4f",ooptypes[i].angleangle_params[j]);
         printf("\n");
@@ -1193,7 +1193,7 @@ double get_r0(int typei,int typej)
   }
 
   if (match == 0)
-    printf("Unable to find r0 for types %d %d\n",typei,typej);
+    printf(" Unable to find r0 for types %d %d\n",typei,typej);
   return r;
 }
 
@@ -1279,13 +1279,12 @@ void get_equivs(int ic,char potential_types[][5],char equiv_types[][5])
     for (i=0; i < 4; i++) {
       k = find_equiv_type(potential_types[i]);
       if (k > -1)
-        /* XXX: this leads to an out-of-bounds access.
-           the change below does not seem to make a difference.
-           strncpy(equiv_types[i],equivalence.data[k].ff_types[5],5); */
-        strncpy(equiv_types[i],equivalence.data[k].ff_types[4],5);
+        strncpy(equiv_types[i],equivalence.data[k].ff_types[5],5);
     }
     break;
   default:
+    printf(" Requesting equivalences of unsupported type: %d\n",ic);
+    condexit(26);
     break;
   }
   return;

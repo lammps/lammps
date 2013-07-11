@@ -155,7 +155,8 @@ struct Atom {
 
 extern char  *rootname;
 extern char  *FrcFileName;
-extern double pbc[9];
+extern double pbc[6];        /* A, B, C, alpha, beta, gamma */
+extern double box[3][3];     /* hi/lo for x/y/z and xy, xz, yz for triclinic */
 extern int    periodic;      /* 0= nonperiodic 1= 3-D periodic */
 extern int    TriclinicFlag; /* 0= Orthogonal  1= Triclinic */
 extern int    forcefield;    /* 1= ClassI      2= ClassII */

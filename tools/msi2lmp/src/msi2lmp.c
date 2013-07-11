@@ -113,7 +113,8 @@
 /* global variables */
 
 char  *rootname;
-double pbc[9];
+double pbc[6];
+double box[3][3];
 int    periodic = 1;
 int    TriclinicFlag = 0;
 int    forcefield = 0;

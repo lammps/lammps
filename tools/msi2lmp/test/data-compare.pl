@@ -219,6 +219,56 @@ sub read_data {
 
           last;
         }
+      } elsif ($1 eq "BondBond Coeffs") {
+        $data->{bondbondcoeff} = [];
+        $i = 0;
+        section_check($fh,$data,"BondBond Coeffs");
+
+        while (get_next($fh)) {
+
+          if (/^\s*([0-9]+)\s+([-+.eE0-9 ]+)\s*$/) {
+            $j = $1 - 1;
+            die "Angle type $1 is out of range" 
+              if (($1 < 1) || ($1 > $data->{nangletypes}));
+            ++$i;
+            $data->{bondbondcoeff}[$j] = $2;
+            next;
+          }
+
+          die "Too many entries in BondBond Coeffs section"
+            if ($i > $data->{nangletypes});
+          die "Too few entries in BondBond Coeffs section"
+            if ($i < $data->{nangletypes});
+          die "Multiple angle coefficient assignments to the same angle type"
+            if (scalar @{$data->{bondbondcoeff}} != $data->{nangletypes});
+
+          last;
+        }
+      } elsif ($1 eq "BondAngle Coeffs") {
+        $data->{bondanglecoeff} = [];
+        $i = 0;
+        section_check($fh,$data,"BondAngle Coeffs");
+
+        while (get_next($fh)) {
+
+          if (/^\s*([0-9]+)\s+([-+.eE0-9 ]+)\s*$/) {
+            $j = $1 - 1;
+            die "Angle type $1 is out of range" 
+              if (($1 < 1) || ($1 > $data->{nangletypes}));
+            ++$i;
+            $data->{bondanglecoeff}[$j] = $2;
+            next;
+          }
+
+          die "Too many entries in BondAngle Coeffs section"
+            if ($i > $data->{nangletypes});
+          die "Too few entries in BondAngle Coeffs section"
+            if ($i < $data->{nangletypes});
+          die "Multiple angle coefficient assignments to the same angle type"
+            if (scalar @{$data->{bondanglecoeff}} != $data->{nangletypes});
+
+          last;
+        }
       } elsif ($1 eq "Dihedral Coeffs") {
         $data->{dihedralcoeff} = [];
         $i = 0;
@@ -387,6 +437,48 @@ sub read_data {
             if ($i < $data->{nbonds});
           die "Multiple bonds assigned to the same bond ID"
             if (scalar @{$data->{bondt}} != $data->{nbonds});
+
+          last;
+        }
+      } elsif ($1 eq "Angles") {
+        $data->{anglet} = [];
+        $data->{angle1} = [];
+        $data->{angle2} = [];
+        $data->{angle3} = [];
+        $i = 0;
+        section_check($fh,$data,"Angles");
+
+        while (get_next($fh)) {
+          if (/^\s*([0-9]+)\s+([0-9]+)\s+([0-9]+)\s+([0-9]+)\s+([0-9]+)\s*$/) {
+
+            $k = $1 - 1;
+            die "Angle id $1 is out of range"
+              if (($1 < 1) || ($1 > $data->{nangles}));
+
+            die "Angle type $2 is out of range"
+              if (($2 == 0) || ($2 > $data->{nangletypes}));
+
+            die "Angle atom 1 ID $3 is out of range"
+              if (($3 < 1) || ($3 > $data->{natoms}));
+            die "Angle atom 2 ID $4 is out of range"
+              if (($4 < 1) || ($4 > $data->{natoms}));
+            die "Angle atom 3 ID $5 is out of range"
+              if (($5 < 1) || ($5 > $data->{natoms}));
+
+            ++$i;
+            $data->{anglet}[$k] = $2;
+            $data->{angle1}[$k] = $3;
+            $data->{angle2}[$k] = $4;
+            $data->{angle3}[$k] = $5;
+            next;
+          }
+
+          die "Too many entries in Angles section"
+            if ($i > $data->{nangles});
+          die "Too few entries in Angles section"
+            if ($i < $data->{nangles});
+          die "Multiple angles assigned to the same angle ID"
+            if (scalar @{$data->{anglet}} != $data->{nangles});
 
           last;
         }

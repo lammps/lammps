@@ -1,12 +1,16 @@
 #!/usr/bin/perl -w
+# Tool to validate and compare two LAMMPS data files
+# with "inexact" floating point comparisons
+# July 2013 by Axel Kohlmeyer <akohlmey@gmail.com>
 
 use strict;
 use warnings;
 
+my $version = 'v0.2';
+
 # delta for floating point comparisons.
 my $small = 1.0e-5;
-my $invalid = -9.8765321e100;
-# hashes for system information
+# two hashes for storing system information
 my %data1;
 my %data2;
 
@@ -907,7 +911,7 @@ if ($#ARGV < 1) {
   die "usage $0 <file 1> <file 2>";
 }
 
-print "\nLAMMPS data file validation tool. v0.1\n\n";
+print "\nLAMMPS data file validation tool. $version\n\n";
 
 data_defaults(\%data1);
 data_defaults(\%data2);

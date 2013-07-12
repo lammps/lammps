@@ -10,7 +10,7 @@ counter=0
 errors=0
 
 # Class1 tests
-for m in hydrogen water h2-h2o ethane benzene
+for m in hydrogen water h2-h2o ethane benzene naphthalene
 do \
     before=$errors
     ${MSI2LMP} ${m}-class1 -c 1 -p ${verbose} 	\
@@ -26,7 +26,7 @@ do \
 done
 
 # Class2 tests with compass
-for m in hydrogen ethane benzene
+for m in hydrogen ethane benzene naphthalene
 do \
     before=$errors
     ${MSI2LMP} ${m}-class2a -c 2 -p ${verbose} -f compass_published	\
@@ -42,7 +42,7 @@ do \
 done
 
 # Class2 tests with pcff
-for m in water h2-h2o ethane benzene
+for m in water h2-h2o ethane benzene naphthalene
 do \
     before=$errors
     ${MSI2LMP} ${m}-class2b -c 2 -p ${verbose} -f pcff	\

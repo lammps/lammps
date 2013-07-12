@@ -53,7 +53,7 @@ void WriteDataFile(char *nameroot,int forcefield)
   }
 
 
-  // Modified by SLTM to print out triclinic box types 10/05/10 - lines 56-68
+  /* Modified by SLTM to print out triclinic box types 10/05/10 - lines 56-68 */
 
   if (TriclinicFlag == 0) {
     fputs("\n",DatF);

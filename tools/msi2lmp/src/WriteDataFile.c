@@ -137,11 +137,12 @@ void WriteDataFile(char *nameroot,int forcefield)
   }
   if (forcefield == 1) {
     if (no_oop_types > 0) {
-      /* harmonic impropers coeffs are: type K0 angle */
+      /* cvff improper coeffs are: type K0 d n */
       fprintf(DatF,"Improper Coeffs\n\n");
       for (i=0; i < no_oop_types; i++) {
-        fprintf(DatF,"%5i %10.4f %10.4f\n",i+1,
-                ooptypes[i].params[0], ooptypes[i].params[1]);
+        fprintf(DatF,"%5i %10.4f %3i %3i\n",i+1,
+                ooptypes[i].params[0], (int) ooptypes[i].params[1],
+                (int) ooptypes[i].params[2]);
       }
       fprintf(DatF, "\n");
     }

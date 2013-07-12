@@ -37,7 +37,10 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-DihedralClass2::DihedralClass2(LAMMPS *lmp) : Dihedral(lmp) {}
+DihedralClass2::DihedralClass2(LAMMPS *lmp) : Dihedral(lmp)
+{
+  writedata = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -913,3 +916,42 @@ void DihedralClass2::read_restart(FILE *fp)
 
   for (int i = 1; i <= atom->ndihedraltypes; i++) setflag[i] = 1;
 }
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void DihedralClass2::write_data(FILE *fp)
+{
+  for (int i = 1; i <= atom->ndihedraltypes; i++)
+    fprintf(fp,"%d %g %g %g %g %g %g\n",
+            i,k1[i],phi1[i],k2[i],phi2[i],k3[i],phi3[i]);
+
+  fprintf(fp,"\nAngleAngleTorsion Coeffs\n\n");
+  for (int i = 1; i <= atom->ndihedraltypes; i++)
+    fprintf(fp,"%d %g %g %g\n",i,aat_k[i],
+            aat_theta0_1[i]*180.0/MY_PI,aat_theta0_2[i]*180.0/MY_PI);
+
+  fprintf(fp,"\nEndBondTorsion Coeffs\n\n");
+  for (int i = 1; i <= atom->ndihedraltypes; i++)
+    fprintf(fp,"%d %g %g %g %g %g %g %g %g\n",i,
+            ebt_f1_1[i],ebt_f2_1[i],ebt_f3_1[i],
+            ebt_f1_2[i],ebt_f2_2[i],ebt_f3_2[i],
+            ebt_r0_1[i],ebt_r0_2[i]);
+
+  fprintf(fp,"\nMiddleBondTorsion Coeffs\n\n");
+  for (int i = 1; i <= atom->ndihedraltypes; i++)
+    fprintf(fp,"%d %g %g %g %g\n",i,mbt_f1[i],mbt_f2[i],mbt_f3[i],mbt_r0[i]);
+
+  fprintf(fp,"\nBondBond13 Coeffs\n\n");
+  for (int i = 1; i <= atom->ndihedraltypes; i++)
+    fprintf(fp,"%d %g %g %g\n",i,bb13t_k[i],bb13t_r10[i],bb13t_r30[i]);
+
+  fprintf(fp,"\nAngleTorsion Coeffs\n\n");
+  for (int i = 1; i <= atom->ndihedraltypes; i++)
+    fprintf(fp,"%d %g %g %g %g %g %g %g %g\n",i,
+            at_f1_1[i],at_f2_1[i],at_f3_1[i],
+            at_f1_2[i],at_f2_2[i],at_f3_2[i],
+            at_theta0_1[i]*180.0/MY_PI,at_theta0_2[i]*180.0/MY_PI);
+}
+

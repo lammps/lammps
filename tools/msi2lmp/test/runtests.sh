@@ -25,7 +25,7 @@ do \
 done
 
 # Class2 tests with compass
-for m in hydrogen
+for m in hydrogen ethane
 do \
     before=$errors
     ${MSI2LMP} ${m}-class2a -c 2 -p 2 -f compass_published	\

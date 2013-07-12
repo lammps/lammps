@@ -10,7 +10,7 @@ counter=0
 errors=0
 
 # Class1 tests
-for m in hydrogen water h2-h2o ethane benzene naphthalene
+for m in hydrogen water h2-h2o ethane benzene naphthalene crambin nylon
 do \
     before=$errors
     ${MSI2LMP} ${m}-class1 -c 1 -p ${verbose} 	\

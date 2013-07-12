@@ -36,7 +36,10 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-ImproperClass2::ImproperClass2(LAMMPS *lmp) : Improper(lmp) {}
+ImproperClass2::ImproperClass2(LAMMPS *lmp) : Improper(lmp)
+{
+  writedata = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -834,4 +837,20 @@ void ImproperClass2::cross(double *a, double *b, double *c)
 double ImproperClass2::dot(double *a, double *b)
 {
   return (a[0]*b[0] + a[1]*b[1] + a[2]*b[2]);
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void ImproperClass2::write_data(FILE *fp)
+{
+  for (int i = 1; i <= atom->nimpropertypes; i++)
+    fprintf(fp,"%d %g %g\n",i,k0[i],chi0[i]);
+
+  fprintf(fp,"\nAngleAngle Coeffs\n\n");
+  for (int i = 1; i <= atom->nimpropertypes; i++)
+    fprintf(fp,"%d %g %g %g %g %g %g\n",i,aa_k1[i],aa_k2[i],aa_k3[i],
+            aa_theta0_1[i]*180.0/MY_PI,aa_theta0_2[i]*180.0/MY_PI,
+            aa_theta0_3[i]*180.0/MY_PI);  
 }

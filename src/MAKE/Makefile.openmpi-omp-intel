@@ -9,13 +9,13 @@ SHELL = /bin/sh
 OPENMP= -openmp 
 
 CC =		env OMPI_CC=icc OMPI_CXX=icpc mpic++ $(OPENMP)
-CCFLAGS =	-O2 -xHOST -fno-rtti -fno-exceptions -finline-functions \
+CCFLAGS =	-O3 -axSSE2,SSE4.1,AVX -fno-rtti -fno-exceptions -finline-functions \
 			-no-prec-div -pc64 -fast-transcendentals -rcd \
 			-funroll-loops -fstrict-aliasing -Wall -no-prec-sqrt
 SHFLAGS =       -fPIC
 DEPFLAGS =	-MM
 LINK =		env OMPI_CC=icc OMPI_CXX=icpc mpic++ $(OPENMP)
-LINKFLAGS =	-O -xHOST -fno-rtti -fno-exceptions -pc64 -static-intel
+LINKFLAGS =	-O -axSSE2,SSE4.1,AVX -fno-rtti -fno-exceptions -pc64 -static-intel
 LIB =           -lstdc++
 ARCHIVE =	ar
 ARFLAGS =	-rcsv
@@ -29,7 +29,7 @@ SIZE =		size
 # LAMMPS ifdef settings, OPTIONAL
 # see possible settings in doc/Section_start.html#2_2 (step 4)
 
-LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_MEMALIGN=16 -DLAMMPS_JPEG
+LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_MEMALIGN=32 -DLAMMPS_JPEG
 
 # MPI library, REQUIRED
 # see discussion in doc/Section_start.html#2_2 (step 5)
@@ -49,9 +49,9 @@ MPI_LIB =
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-FFT_INC =
-FFT_PATH =
-FFT_LIB =
+FFT_INC = -DFFT_MKL -I/opt/intel/composer_xe_2013.1.117/mkl/include
+FFT_PATH = -L/opt/intel/composer_xe_2013.1.117/mkl/lib/intel64
+FFT_LIB = -Wl,-Bstatic,--start-group,-lmkl_intel_lp64,-lmkl_intel_thread,-lmkl_core,--end-group,-Bdynamic
 
 # JPEG library, OPTIONAL
 # see discussion in doc/Section_start.html#2_2 (step 7)

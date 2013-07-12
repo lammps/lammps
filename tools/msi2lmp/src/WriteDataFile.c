@@ -120,21 +120,32 @@ void WriteDataFile(char *nameroot,int forcefield)
   }
 
   if (no_dihedral_types > 0) {
-    m = 3; /* forcefield == 1 */
-    if (forcefield == 2) m = 6;
 
-    fprintf(DatF,"Dihedral Coeffs\n\n");
-    for (i=0; i < no_dihedral_types; i++) {
-      fprintf(DatF, "%3i ", i+1);
-      for ( j = 0; j < m; j++)
-        // Modified on 10/05/2010 by STLM to match with lammps reading in integers for the all but the first coefficients
-        if (j == 0)
-          fprintf(DatF, "%10.4f ", dihedraltypes[i].params[j]);
-        else fprintf(DatF, "%10.0f ", dihedraltypes[i].params[j]);
-      fprintf(DatF,"\n");
+    if (forcefield == 1) {
+
+      fprintf(DatF,"Dihedral Coeffs\n\n");
+
+      for (i=0; i < no_dihedral_types; i++)
+        fprintf(DatF, "%3i %10.4f %3i %3i\n", i+1,
+                dihedraltypes[i].params[0],
+                (int) dihedraltypes[i].params[1],
+                (int) dihedraltypes[i].params[2]);
+
+    } else if (forcefield == 2) { 
+
+      fprintf(DatF,"Dihedral Coeffs\n\n");
+
+      for (i=0; i < no_dihedral_types; i++) {
+        fprintf(DatF, "%3i ",i+1);
+        for ( j = 0; j < 6; j++)
+          fprintf(DatF, "%10.4f",dihedraltypes[i].params[j]);
+
+        fprintf(DatF,"\n");
+      }
     }
-    fprintf(DatF, "\n");
+    fprintf(DatF,"\n");
   }
+
   if (forcefield == 1) {
     if (no_oop_types > 0) {
       /* cvff improper coeffs are: type K0 d n */

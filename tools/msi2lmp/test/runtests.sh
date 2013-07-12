@@ -5,6 +5,7 @@ MSI2LMP=../src/msi2lmp.exe
 LAMMPS=../../../src/lmp_serial
 CHECKDATA=./data-compare.pl
 
+verbose=1
 counter=0
 errors=0
 
@@ -12,9 +13,9 @@ errors=0
 for m in hydrogen water h2-h2o ethane benzene
 do \
     before=$errors
-    ${MSI2LMP} ${m}-class1 -c 1 -p 2 	\
+    ${MSI2LMP} ${m}-class1 -c 1 -p ${verbose} 	\
         || errors=$(expr $errors + 1)
-    ${LAMMPS} -log none -in in.${m}-class1	\
+    ${LAMMPS} -log none -screen none -in in.${m}-class1	\
         || errors=$(expr $errors + 1)
     ${CHECKDATA} ${m}-class1.data reference/${m}-class1.data	\
         || errors=$(expr $errors + 1)
@@ -28,9 +29,9 @@ done
 for m in hydrogen ethane benzene
 do \
     before=$errors
-    ${MSI2LMP} ${m}-class2a -c 2 -p 2 -f compass_published	\
+    ${MSI2LMP} ${m}-class2a -c 2 -p ${verbose} -f compass_published	\
         || errors=$(expr $errors + 1)
-    ${LAMMPS} -log none -in in.${m}-class2a	\
+    ${LAMMPS} -log none -screen none -in in.${m}-class2a	\
         || errors=$(expr $errors + 1)
     ${CHECKDATA} ${m}-class2a.data reference/${m}-class2a.data	\
         || errors=$(expr $errors + 1)
@@ -41,12 +42,12 @@ do \
 done
 
 # Class2 tests with pcff
-for m in water h2-h2o ethane
+for m in water h2-h2o ethane benzene
 do \
     before=$errors
-    ${MSI2LMP} ${m}-class2b -c 2 -p 2 -f pcff	\
+    ${MSI2LMP} ${m}-class2b -c 2 -p ${verbose} -f pcff	\
         || errors=$(expr $errors + 1)
-    ${LAMMPS} -log none -in in.${m}-class2b	\
+    ${LAMMPS} -log none -screen none -in in.${m}-class2b	\
         || errors=$(expr $errors + 1)
     ${CHECKDATA} ${m}-class2b.data reference/${m}-class2b.data	\
         || errors=$(expr $errors + 1)

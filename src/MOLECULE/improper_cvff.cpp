@@ -32,7 +32,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ImproperCvff::ImproperCvff(LAMMPS *lmp) : Improper(lmp) {}
+ImproperCvff::ImproperCvff(LAMMPS *lmp) : Improper(lmp)
+{
+  writedata = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -342,4 +345,14 @@ void ImproperCvff::read_restart(FILE *fp)
   MPI_Bcast(&multiplicity[1],atom->nimpropertypes,MPI_INT,0,world);
 
   for (int i = 1; i <= atom->nimpropertypes; i++) setflag[i] = 1;
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void ImproperCvff::write_data(FILE *fp)
+{
+  for (int i = 1; i <= atom->nimpropertypes; i++)
+    fprintf(fp,"%d %g %d %d\n",i,k[i],sign[i],multiplicity[i]);
 }

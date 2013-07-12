@@ -1,6 +1,14 @@
 Stephanie Teich-McGoldrick (Sandai) is the current maintainer
 of the msi2lmp tool.  She can be contacted at steichm at sandia.gov
 
+12 Jul 2013
+
+Fixed the bug that caused improper coefficients to be wrong
+Cleaned up the handling of box parameters and center the box
+by default around the system/molecule. Added a flag to make
+this step optional and center the box around the origin instead.
+Added a regression test script with examples.
+
 1 Jul 2013
 
 Cleanup and improved port to windows.

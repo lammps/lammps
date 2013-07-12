@@ -136,9 +136,9 @@ void WriteDataFile(char *nameroot,int forcefield)
       fprintf(DatF,"Dihedral Coeffs\n\n");
 
       for (i=0; i < no_dihedral_types; i++) {
-        fprintf(DatF, "%3i ",i+1);
+        fprintf(DatF, "%3i",i+1);
         for ( j = 0; j < 6; j++)
-          fprintf(DatF, "%10.4f",dihedraltypes[i].params[j]);
+          fprintf(DatF, " %10.4f",dihedraltypes[i].params[j]);
 
         fputs("\n",DatF);
       }

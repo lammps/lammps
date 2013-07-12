@@ -422,7 +422,7 @@ void FixColvars::setup(int vflag)
 {
   const int * const tag  = atom->tag;
   const int * const type = atom->type;
-  int i,nme,tmp,ndata,nlocal_max,tag_max,max;
+  int i,nme,tmp,ndata;
   int nlocal = atom->nlocal;
 
   MPI_Status status;

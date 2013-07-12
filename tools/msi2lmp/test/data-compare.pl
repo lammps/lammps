@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 # delta for floating point comparisons.
-my $small = 1.0e-10;
+my $small = 1.0e-5;
 my $invalid = -9.8765321e100;
 # hashes for system information
 my %data1;
@@ -269,31 +269,6 @@ sub read_data {
 
           last;
         }
-      } elsif ($1 eq "AngleAngle Coeffs") {
-        $data->{angleanglecoeff} = [];
-        $i = 0;
-        section_check($fh,$data,"AngleAngle Coeffs");
-
-        while (get_next($fh)) {
-
-          if (/^\s*([0-9]+)\s+([-+.eE0-9 ]+)\s*$/) {
-            $j = $1 - 1;
-            die "AngleAngle type $1 is out of range" 
-              if (($1 < 1) || ($1 > $data->{nangletypes}));
-            ++$i;
-            $data->{angleanglecoeff}[$j] = $2;
-            next;
-          }
-
-          die "Too many entries in AngleAngle Coeffs section"
-            if ($i > $data->{nangletypes});
-          die "Too few entries in AngleAngle Coeffs section"
-            if ($i < $data->{nangletypes});
-          die "Multiple angleangle coefficient assignments to the same angle type"
-            if (scalar @{$data->{angleanglecoeff}} != $data->{nangletypes});
-
-          last;
-        }
       } elsif ($1 eq "Dihedral Coeffs") {
         $data->{dihedralcoeff} = [];
         $i = 0;
@@ -466,6 +441,31 @@ sub read_data {
             if ($i < $data->{nimpropertypes});
           die "Multiple improper coefficient assignments to the same improper type"
             if (scalar @{$data->{impropercoeff}} != $data->{nimpropertypes});
+
+          last;
+        }
+      } elsif ($1 eq "AngleAngle Coeffs") {
+        $data->{angleanglecoeff} = [];
+        $i = 0;
+        section_check($fh,$data,"AngleAngle Coeffs");
+
+        while (get_next($fh)) {
+
+          if (/^\s*([0-9]+)\s+([-+.eE0-9 ]+)\s*$/) {
+            $j = $1 - 1;
+            die "AngleAngle type $1 is out of range" 
+              if (($1 < 1) || ($1 > $data->{nimpropertypes}));
+            ++$i;
+            $data->{angleanglecoeff}[$j] = $2;
+            next;
+          }
+
+          die "Too many entries in AngleAngle Coeffs section"
+            if ($i > $data->{nimpropertypes});
+          die "Too few entries in AngleAngle Coeffs section"
+            if ($i < $data->{nimpropertypes});
+          die "Multiple angleangle coefficient assignments to the same angle type"
+            if (scalar @{$data->{angleanglecoeff}} != $data->{nimpropertypes});
 
           last;
         }
@@ -736,13 +736,64 @@ sub read_data {
 }
 
 sub floatdiff {
-  my ($n1,$n2) = @_;
+  my ($n1,$n2,$rel) = @_;
 
   my $diff = abs($n1-$n2);
-  my $avg = (abs($n1)+abs($n2))/2.0;
+  my $avg = (abs($n1)+abs($n2))*0.5;
   return 0 if ($avg == 0.0);
-  return 0 if ($diff < $small);
+  if ($rel) {
+#    print "relative difference: ",$diff/$avg," vs. $small\n";
+    return 0 if ($diff/$avg < $small);
+  } else {
+#    print "absolute difference: ",$diff," vs. $small\n";
+    return 0 if ($diff < $small);
+  }
   return 1;
+}
+
+sub coeffcompare {
+  my ($d1,$d2,$coeff,$type) = @_;
+  my (@c1,@c2,$a,$b);
+  my ($field,$count,$i,$j,$t) = ($coeff . 'coeff', 'n' . $type . 'types', 0,0,0);
+
+  if (exists $d1->{$field} && exists $d2->{$field}) {
+    for ($i=0; $i < $d1->{$count}; ++$i) {
+      $t = $i+1;
+      @c1 = split /\s+/, ${$$d1{$field}}[$i];
+      @c2 = split /\s+/, ${$$d2{$field}}[$i];
+      die "Inconsistent number of $coeff coefficients for $type type $t: $#c1 vs $#c2\n"
+        if ($#c1 != $#c2);
+
+      for ($j = 0; $j <= $#c1; ++$j) {
+        $a = $c1[$j]; $b = $c2[$j];
+        die "Inconsistent $coeff coefficient ", $j+1,
+          " for $type type $t: $a vs. $b" if (floatdiff($a,$b,1));
+      }
+    }
+  } else {
+    die "Field $field only exists in data file 1" if (exists $d1->{$field});
+    die "Field $field only exists in data file 2" if (exists $d2->{$field});
+  }
+}
+
+sub topocompare {
+  my ($d1,$d2,$type,$count) = @_;
+  my ($num,$a,$b,$field,$i,$j,$t);
+
+  $field = 'n' . $type . 's';
+  $num = $d1->{$field};
+
+  for ($i=0; $i < $num; ++$i) {
+    $t = $i+1;
+    $field = $type . 't';
+    $a = $d1->{$field}[$i]; $b = $d2->{$field}[$i];
+    die "Inconsistent $type types for $type $t: $a vs. $b" if ($a != $b);
+    for ($j=1; $j <= $count; ++$j) {
+      $field = $type . $j;
+      $a = $d1->{$field}[$i]; $b = $d2->{$field}[$i];
+      die "Inconsistent $type atom $j for $type $t: $a vs. $b" if ($a != $b);
+    }
+  }
 }
 
 sub syscompare {
@@ -777,7 +828,7 @@ sub syscompare {
   for $i (@l) {
     $a = $d1->{$i};
     $b = $d2->{$i};
-    die "Box data for $i does not match: $a $b" if (floatdiff($a,$b));
+    die "Box data for $i does not match: $a $b" if (floatdiff($a,$b,0));
   }
 
   for ($i=0; $i < $d1->{natoms}; ++$i) {
@@ -825,81 +876,24 @@ sub syscompare {
     }
   }
 
-  my (@c1,@c2);
-  if (exists $d1->{paircoeff} && exists $d2->{paircoeff}) {
-    for ($i=0; $i < $d1->{natomtypes}; ++$i) {
-      $t = $i+1;
-      @c1 = split /\s+/, ${$$d1{paircoeff}}[$i];
-      @c2 = split /\s+/, ${$$d2{paircoeff}}[$i];
-      die "Inconsistent number of pair coefficients for atom type $t: @c1 vs @c2\n"
-        if ($#c1 != $#c2);
+  topocompare($d1,$d2,'bond',2);
+  topocompare($d1,$d2,'angle',3);
+  topocompare($d1,$d2,'dihedral',4);
+  topocompare($d1,$d2,'improper',4);
 
-      for ($j = 0; $j <= $#c1; ++$j) {
-        die "Inconsistent pair coefficient ", $j+1, " for atom type $t"
-          if (floatdiff($c1[$j],$c2[$j]));
-      }
-    }
-  }
+  coeffcompare($d1,$d2,'pair','atom');
+  coeffcompare($d1,$d2,'bond','bond');
+  coeffcompare($d1,$d2,'angle','angle');
+  coeffcompare($d1,$d2,'bondbond','angle');
+  coeffcompare($d1,$d2,'bondangle','angle');
+  coeffcompare($d1,$d2,'dihedral','dihedral');
+  coeffcompare($d1,$d2,'angleangletorsion','dihedral');
+  coeffcompare($d1,$d2,'bondbond13','dihedral');
+  coeffcompare($d1,$d2,'endbondtorsion','dihedral');
+  coeffcompare($d1,$d2,'middlebondtorsion','dihedral');
+  coeffcompare($d1,$d2,'improper','improper');
+  coeffcompare($d1,$d2,'angleangle','improper');
 
-  if (exists $d1->{bondcoeff} && exists $d2->{bondcoeff}) {
-    for ($i=0; $i < $d1->{nbondtypes}; ++$i) {
-      $t = $i+1;
-      @c1 = split /\s+/, ${$$d1{bondcoeff}}[$i];
-      @c2 = split /\s+/, ${$$d2{bondcoeff}}[$i];
-      die "Inconsistent number of bond coefficients for bond type $t: @c1 vs @c2\n"
-        if ($#c1 != $#c2);
-
-      for ($j = 0; $j <= $#c1; ++$j) {
-        die "Inconsistent bond coefficient ", $j+1, " for bond type $t"
-          if (floatdiff($c1[$j],$c2[$j]));
-      }
-    }
-  }
-
-  if (exists $d1->{anglecoeff} && exists $d2->{anglecoeff}) {
-    for ($i=0; $i < $d1->{nangletypes}; ++$i) {
-      $t = $i+1;
-      @c1 = split /\s+/, ${$$d1{anglecoeff}}[$i];
-      @c2 = split /\s+/, ${$$d2{anglecoeff}}[$i];
-      die "Inconsistent number of angle coefficients for angle type $t: @c1 vs @c2\n"
-        if ($#c1 != $#c2);
-
-      for ($j = 0; $j <= $#c1; ++$j) {
-        die "Inconsistent angle coefficient ", $j+1, " for angle type $t"
-          if (floatdiff($c1[$j],$c2[$j]));
-      }
-    }
-  }
-
-  if (exists $d1->{dihedralcoeff} && exists $d2->{dihedralcoeff}) {
-    for ($i=0; $i < $d1->{ndihedraltypes}; ++$i) {
-      $t = $i+1;
-      @c1 = split /\s+/, ${$$d1{dihedralcoeff}}[$i];
-      @c2 = split /\s+/, ${$$d2{dihedralcoeff}}[$i];
-      die "Inconsistent number of dihedral coefficients for dihedral type $t: @c1 vs @c2\n"
-        if ($#c1 != $#c2);
-
-      for ($j = 0; $j <= $#c1; ++$j) {
-        die "Inconsistent dihedral coefficient ", $j+1, " for dihedral type $t"
-          if (floatdiff($c1[$j],$c2[$j]));
-      }
-    }
-  }
-
-  if (exists $d1->{impropercoeff} && exists $d2->{impropercoeff}) {
-    for ($i=0; $i < $d1->{nimpropertypes}; ++$i) {
-      $t = $i+1;
-      @c1 = split /\s+/, ${$$d1{impropercoeff}}[$i];
-      @c2 = split /\s+/, ${$$d2{impropercoeff}}[$i];
-      die "Inconsistent number of improper coefficients for improper type $t: @c1 vs @c2\n"
-        if ($#c1 != $#c2);
-
-      for ($j = 0; $j <= $#c1; ++$j) {
-        die "Inconsistent improper coefficient ", $j+1, " for improper type $t"
-          if (floatdiff($c1[$j],$c2[$j]));
-      }
-    }
-  }
 }
 
 ########################################################################

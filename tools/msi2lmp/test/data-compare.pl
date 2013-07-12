@@ -264,8 +264,33 @@ sub read_data {
             if ($i > $data->{nangletypes});
           die "Too few entries in BondAngle Coeffs section"
             if ($i < $data->{nangletypes});
-          die "Multiple angle coefficient assignments to the same angle type"
+          die "Multiple bondangle coefficient assignments to the same angle type"
             if (scalar @{$data->{bondanglecoeff}} != $data->{nangletypes});
+
+          last;
+        }
+      } elsif ($1 eq "AngleAngle Coeffs") {
+        $data->{angleanglecoeff} = [];
+        $i = 0;
+        section_check($fh,$data,"AngleAngle Coeffs");
+
+        while (get_next($fh)) {
+
+          if (/^\s*([0-9]+)\s+([-+.eE0-9 ]+)\s*$/) {
+            $j = $1 - 1;
+            die "AngleAngle type $1 is out of range" 
+              if (($1 < 1) || ($1 > $data->{nangletypes}));
+            ++$i;
+            $data->{angleanglecoeff}[$j] = $2;
+            next;
+          }
+
+          die "Too many entries in AngleAngle Coeffs section"
+            if ($i > $data->{nangletypes});
+          die "Too few entries in AngleAngle Coeffs section"
+            if ($i < $data->{nangletypes});
+          die "Multiple angleangle coefficient assignments to the same angle type"
+            if (scalar @{$data->{angleanglecoeff}} != $data->{nangletypes});
 
           last;
         }
@@ -291,6 +316,131 @@ sub read_data {
             if ($i < $data->{ndihedraltypes});
           die "Multiple dihedral coefficient assignments to the same dihedral type"
             if (scalar @{$data->{dihedralcoeff}} != $data->{ndihedraltypes});
+
+          last;
+        }
+      } elsif ($1 eq "AngleAngleTorsion Coeffs") {
+        $data->{angleangletorsioncoeff} = [];
+        $i = 0;
+        section_check($fh,$data,"AngleAngleTorsion Coeffs");
+
+        while (get_next($fh)) {
+
+          if (/^\s*([0-9]+)\s+([-+.eE0-9 ]+)\s*$/) {
+            $j = $1 - 1;
+            die "AngleAngleTorsion type $1 is out of range" 
+              if (($1 < 1) || ($1 > $data->{ndihedraltypes}));
+            ++$i;
+            $data->{angleangletorsioncoeff}[$j] = $2;
+            next;
+          }
+
+          die "Too many entries in AngleAngleTorsion Coeffs section"
+            if ($i > $data->{ndihedraltypes});
+          die "Too few entries in AngleAngleTorsion Coeffs section"
+            if ($i < $data->{ndihedraltypes});
+          die "Multiple dihedral coefficient assignments to the same dihedral type"
+            if (scalar @{$data->{angleangletorsioncoeff}} != $data->{ndihedraltypes});
+
+          last;
+        }
+      } elsif ($1 eq "EndBondTorsion Coeffs") {
+        $data->{endbondtorsioncoeff} = [];
+        $i = 0;
+        section_check($fh,$data,"EndBondTorsion Coeffs");
+
+        while (get_next($fh)) {
+
+          if (/^\s*([0-9]+)\s+([-+.eE0-9 ]+)\s*$/) {
+            $j = $1 - 1;
+            die "EndBondTorsion type $1 is out of range" 
+              if (($1 < 1) || ($1 > $data->{ndihedraltypes}));
+            ++$i;
+            $data->{endbondtorsioncoeff}[$j] = $2;
+            next;
+          }
+
+          die "Too many entries in EndBondTorsion Coeffs section"
+            if ($i > $data->{ndihedraltypes});
+          die "Too few entries in EndBondTorsion Coeffs section"
+            if ($i < $data->{ndihedraltypes});
+          die "Multiple dihedral coefficient assignments to the same dihedral type"
+            if (scalar @{$data->{endbondtorsioncoeff}} != $data->{ndihedraltypes});
+
+          last;
+        }
+      } elsif ($1 eq "MiddleBondTorsion Coeffs") {
+        $data->{middlebondtorsioncoeff} = [];
+        $i = 0;
+        section_check($fh,$data,"MiddleBondTorsion Coeffs");
+
+        while (get_next($fh)) {
+
+          if (/^\s*([0-9]+)\s+([-+.eE0-9 ]+)\s*$/) {
+            $j = $1 - 1;
+            die "MiddleBondTorsion type $1 is out of range" 
+              if (($1 < 1) || ($1 > $data->{ndihedraltypes}));
+            ++$i;
+            $data->{middlebondtorsioncoeff}[$j] = $2;
+            next;
+          }
+
+          die "Too many entries in MiddleBondTorsion Coeffs section"
+            if ($i > $data->{ndihedraltypes});
+          die "Too few entries in MiddleBondTorsion Coeffs section"
+            if ($i < $data->{ndihedraltypes});
+          die "Multiple dihedral coefficient assignments to the same dihedral type"
+            if (scalar @{$data->{middlebondtorsioncoeff}} != $data->{ndihedraltypes});
+
+          last;
+        }
+      } elsif ($1 eq "BondBond13 Coeffs") {
+        $data->{bondbond13coeff} = [];
+        $i = 0;
+        section_check($fh,$data,"BondBond13 Coeffs");
+
+        while (get_next($fh)) {
+
+          if (/^\s*([0-9]+)\s+([-+.eE0-9 ]+)\s*$/) {
+            $j = $1 - 1;
+            die "BondBond13 type $1 is out of range" 
+              if (($1 < 1) || ($1 > $data->{ndihedraltypes}));
+            ++$i;
+            $data->{bondbond13coeff}[$j] = $2;
+            next;
+          }
+
+          die "Too many entries in BondBond13 Coeffs section"
+            if ($i > $data->{ndihedraltypes});
+          die "Too few entries in BondBond13 Coeffs section"
+            if ($i < $data->{ndihedraltypes});
+          die "Multiple dihedral coefficient assignments to the same dihedral type"
+            if (scalar @{$data->{bondbond13coeff}} != $data->{ndihedraltypes});
+
+          last;
+        }
+      } elsif ($1 eq "AngleTorsion Coeffs") {
+        $data->{angletorsioncoeff} = [];
+        $i = 0;
+        section_check($fh,$data,"AngleTorsion Coeffs");
+
+        while (get_next($fh)) {
+
+          if (/^\s*([0-9]+)\s+([-+.eE0-9 ]+)\s*$/) {
+            $j = $1 - 1;
+            die "AngleTorsion type $1 is out of range" 
+              if (($1 < 1) || ($1 > $data->{ndihedraltypes}));
+            ++$i;
+            $data->{angletorsioncoeff}[$j] = $2;
+            next;
+          }
+
+          die "Too many entries in AngleTorsion Coeffs section"
+            if ($i > $data->{ndihedraltypes});
+          die "Too few entries in AngleTorsion Coeffs section"
+            if ($i < $data->{ndihedraltypes});
+          die "Multiple dihedral coefficient assignments to the same dihedral type"
+            if (scalar @{$data->{angletorsioncoeff}} != $data->{ndihedraltypes});
 
           last;
         }
@@ -479,6 +629,98 @@ sub read_data {
             if ($i < $data->{nangles});
           die "Multiple angles assigned to the same angle ID"
             if (scalar @{$data->{anglet}} != $data->{nangles});
+
+          last;
+        }
+      } elsif ($1 eq "Dihedrals") {
+        $data->{dihedralt} = [];
+        $data->{dihedral1} = [];
+        $data->{dihedral2} = [];
+        $data->{dihedral3} = [];
+        $data->{dihedral4} = [];
+        $i = 0;
+        section_check($fh,$data,"Dihedrals");
+
+        while (get_next($fh)) {
+          if (/^\s*([0-9]+)\s+([0-9]+)\s+([0-9]+)\s+([0-9]+)\s+([0-9]+)\s+([0-9]+)\s*$/) {
+
+            $k = $1 - 1;
+            die "Dihedral id $1 is out of range"
+              if (($1 < 1) || ($1 > $data->{ndihedrals}));
+
+            die "Dihedral type $2 is out of range"
+              if (($2 == 0) || ($2 > $data->{ndihedraltypes}));
+
+            die "Dihedral atom 1 ID $3 is out of range"
+              if (($3 < 1) || ($3 > $data->{natoms}));
+            die "Dihedral atom 2 ID $4 is out of range"
+              if (($4 < 1) || ($4 > $data->{natoms}));
+            die "Dihedral atom 3 ID $5 is out of range"
+              if (($5 < 1) || ($5 > $data->{natoms}));
+            die "Dihedral atom 4 ID $6 is out of range"
+              if (($6 < 1) || ($6 > $data->{natoms}));
+
+            ++$i;
+            $data->{dihedralt}[$k] = $2;
+            $data->{dihedral1}[$k] = $3;
+            $data->{dihedral2}[$k] = $4;
+            $data->{dihedral3}[$k] = $5;
+            $data->{dihedral4}[$k] = $6;
+            next;
+          }
+
+          die "Too many entries in Dihedrals section"
+            if ($i > $data->{ndihedrals});
+          die "Too few entries in Dihedrals section"
+            if ($i < $data->{ndihedrals});
+          die "Multiple dihedrals assigned to the same dihedral ID"
+            if (scalar @{$data->{dihedralt}} != $data->{ndihedrals});
+
+          last;
+        }
+      } elsif ($1 eq "Impropers") {
+        $data->{impropert} = [];
+        $data->{improper1} = [];
+        $data->{improper2} = [];
+        $data->{improper3} = [];
+        $data->{improper4} = [];
+        $i = 0;
+        section_check($fh,$data,"Impropers");
+
+        while (get_next($fh)) {
+          if (/^\s*([0-9]+)\s+([0-9]+)\s+([0-9]+)\s+([0-9]+)\s+([0-9]+)\s+([0-9]+)\s*$/) {
+
+            $k = $1 - 1;
+            die "Improper id $1 is out of range"
+              if (($1 < 1) || ($1 > $data->{nimpropers}));
+
+            die "Improper type $2 is out of range"
+              if (($2 == 0) || ($2 > $data->{nimpropertypes}));
+
+            die "Improper atom 1 ID $3 is out of range"
+              if (($3 < 1) || ($3 > $data->{natoms}));
+            die "Improper atom 2 ID $4 is out of range"
+              if (($4 < 1) || ($4 > $data->{natoms}));
+            die "Improper atom 3 ID $5 is out of range"
+              if (($5 < 1) || ($5 > $data->{natoms}));
+            die "Improper atom 4 ID $6 is out of range"
+              if (($6 < 1) || ($6 > $data->{natoms}));
+
+            ++$i;
+            $data->{impropert}[$k] = $2;
+            $data->{improper1}[$k] = $3;
+            $data->{improper2}[$k] = $4;
+            $data->{improper3}[$k] = $5;
+            $data->{improper4}[$k] = $6;
+            next;
+          }
+
+          die "Too many entries in Impropers section"
+            if ($i > $data->{nimpropers});
+          die "Too few entries in Impropers section"
+            if ($i < $data->{nimpropers});
+          die "Multiple impropers assigned to the same improper ID"
+            if (scalar @{$data->{impropert}} != $data->{nimpropers});
 
           last;
         }

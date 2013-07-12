@@ -32,7 +32,7 @@ void WriteDataFile(char *nameroot,int forcefield)
   fprintf(DatF, " %6d angles\n",total_no_angles);
   fprintf(DatF, " %6d dihedrals\n", total_no_dihedrals);
   fprintf(DatF, " %6d impropers\n", total_no_oops+total_no_angle_angles);
-  fprintf(DatF, "\n");
+  fputs("\n",DatF);
 
 
   fprintf(DatF, " %3d atom types\n", no_atom_types);
@@ -56,13 +56,13 @@ void WriteDataFile(char *nameroot,int forcefield)
   // Modified by SLTM to print out triclinic box types 10/05/10 - lines 56-68
 
   if (TriclinicFlag == 0) {
-    fprintf(DatF, "\n");
+    fputs("\n",DatF);
     fprintf(DatF, " %15.9f %15.9f xlo xhi\n", box[0][0], box[1][0]);
     fprintf(DatF, " %15.9f %15.9f ylo yhi\n", box[0][1], box[1][1]);
     fprintf(DatF, " %15.9f %15.9f zlo zhi\n", box[0][2], box[1][2]);
   }
   else {
-    fprintf(DatF, "\n");
+    fputs("\n",DatF);
     fprintf(DatF, " %15.9f %15.9f xlo xhi\n", box[0][0], box[1][0]);
     fprintf(DatF, " %15.9f %15.9f ylo yhi\n", box[0][1], box[1][1]);
     fprintf(DatF, " %15.9f %15.9f zlo zhi\n", box[0][2], box[1][2]);
@@ -76,7 +76,7 @@ void WriteDataFile(char *nameroot,int forcefield)
   fprintf(DatF, "\nMasses\n\n");
   for(k=0; k < no_atom_types; k++)
     fprintf(DatF, " %3d %10.6f\n",k+1,atomtypes[k].mass);
-  fprintf(DatF, "\n");
+  fputs("\n",DatF);
 
 
   /* COEFFICIENTS */
@@ -86,9 +86,9 @@ void WriteDataFile(char *nameroot,int forcefield)
     fprintf(DatF, " %3i ", i+1);
     for ( j = 0; j < 2; j++)
       fprintf(DatF, "%14.10f ", atomtypes[i].params[j]);
-    fprintf(DatF, "\n");
+    fputs("\n",DatF);
   }
-  fprintf(DatF, "\n");
+  fputs("\n",DatF);
 
   if (no_bond_types > 0) {
     if (forcefield == 1) m = 2;
@@ -99,9 +99,9 @@ void WriteDataFile(char *nameroot,int forcefield)
       fprintf(DatF, "%3i ", i+1);
       for ( j = 0; j < m; j++)
         fprintf(DatF, "%10.4f ", bondtypes[i].params[j]);
-      fprintf(DatF,"\n");
+      fputs("\n",DatF);
     }
-    fprintf(DatF, "\n");
+    fputs("\n",DatF);
   }
 
   if (no_angle_types > 0) {
@@ -114,9 +114,9 @@ void WriteDataFile(char *nameroot,int forcefield)
       for ( j = 0; j < m; j++)
 
         fprintf(DatF, "%10.4f ", angletypes[i].params[j]);
-      fprintf(DatF,"\n");
+      fputs("\n",DatF);
     }
-    fprintf(DatF, "\n");
+    fputs("\n",DatF);
   }
 
   if (no_dihedral_types > 0) {
@@ -140,10 +140,10 @@ void WriteDataFile(char *nameroot,int forcefield)
         for ( j = 0; j < 6; j++)
           fprintf(DatF, "%10.4f",dihedraltypes[i].params[j]);
 
-        fprintf(DatF,"\n");
+        fputs("\n",DatF);
       }
     }
-    fprintf(DatF,"\n");
+    fputs("\n",DatF);
   }
 
   if (forcefield == 1) {
@@ -155,7 +155,7 @@ void WriteDataFile(char *nameroot,int forcefield)
                 ooptypes[i].params[0], (int) ooptypes[i].params[1],
                 (int) ooptypes[i].params[2]);
       }
-      fprintf(DatF, "\n");
+      fputs("\n",DatF);
     }
   } else if (forcefield == 2) {
     if ((no_oop_types + no_angleangle_types) > 0) {
@@ -164,15 +164,15 @@ void WriteDataFile(char *nameroot,int forcefield)
         fprintf(DatF, "%3i ", i+1);
         for ( j = 0; j < 2; j++)
           fprintf(DatF, "%10.4f ", ooptypes[i].params[j]);
-        fprintf(DatF, "\n");
+        fputs("\n",DatF);
       }
       for (i=0; i < no_angleangle_types; i++) {
         fprintf(DatF, "%3i ", i+no_oop_types+1);
         for ( j = 0; j < 2; j++)
           fprintf(DatF, "%10.4f ", 0.0);
-        fprintf(DatF, "\n");
+        fputs("\n",DatF);
       }
-      fprintf(DatF, "\n");
+      fputs("\n",DatF);
     }
   }
   if (forcefield == 2) {
@@ -183,9 +183,9 @@ void WriteDataFile(char *nameroot,int forcefield)
         fprintf(DatF, "%3i ", i+1);
         for ( j = 0; j < 3; j++)
           fprintf(DatF, "%10.4f ", angletypes[i].bondbond_cross_term[j]);
-        fprintf(DatF, "\n");
+        fputs("\n",DatF);
       }
-      fprintf(DatF, "\n");
+      fputs("\n",DatF);
 
       fprintf(DatF,"BondAngle Coeffs\n\n");
 
@@ -193,9 +193,9 @@ void WriteDataFile(char *nameroot,int forcefield)
         fprintf(DatF, "%3i ", i+1);
         for ( j = 0; j < 4; j++)
           fprintf(DatF, "%10.4f ",angletypes[i].bondangle_cross_term[j]);
-        fprintf(DatF, "\n");
+        fputs("\n",DatF);
       }
-      fprintf(DatF, "\n");
+      fputs("\n",DatF);
     }
 
     if ((no_oop_types+no_angleangle_types) > 0) {
@@ -204,15 +204,15 @@ void WriteDataFile(char *nameroot,int forcefield)
         fprintf(DatF, "%3i ", i+1);
         for ( j = 0; j < 6; j++)
           fprintf(DatF, "%10.4f ", ooptypes[i].angleangle_params[j]);
-        fprintf(DatF, "\n");
+        fputs("\n",DatF);
       }
       for (i=0; i < no_angleangle_types; i++) {
         fprintf(DatF, "%3i ", i+no_oop_types+1);
         for ( j = 0; j < 6; j++)
           fprintf(DatF, "%10.4f ", angleangletypes[i].params[j]);
-        fprintf(DatF, "\n");
+        fputs("\n",DatF);
       }
-      fprintf(DatF, "\n");
+      fputs("\n",DatF);
     }
 
     if (no_dihedral_types > 0) {
@@ -222,9 +222,9 @@ void WriteDataFile(char *nameroot,int forcefield)
         for ( j = 0; j < 3; j++)
           fprintf(DatF,"%10.4f ",
                   dihedraltypes[i].angleangledihedral_cross_term[j]);
-        fprintf(DatF, "\n");
+        fputs("\n",DatF);
       }
-      fprintf(DatF, "\n");
+      fputs("\n",DatF);
 
       fprintf(DatF,"EndBondTorsion Coeffs\n\n");
       for (i=0; i < no_dihedral_types; i++) {
@@ -232,9 +232,9 @@ void WriteDataFile(char *nameroot,int forcefield)
         for ( j = 0; j < 8; j++)
           fprintf(DatF, "%10.4f ",
                   dihedraltypes[i].endbonddihedral_cross_term[j]);
-        fprintf(DatF, "\n");
+        fputs("\n",DatF);
       }
-      fprintf(DatF, "\n");
+      fputs("\n",DatF);
 
       fprintf(DatF,"MiddleBondTorsion Coeffs\n\n");
       for (i=0; i < no_dihedral_types; i++) {
@@ -242,9 +242,9 @@ void WriteDataFile(char *nameroot,int forcefield)
         for ( j = 0; j < 4; j++)
           fprintf(DatF,"%10.4f ",
                   dihedraltypes[i].midbonddihedral_cross_term[j]);
-        fprintf(DatF, "\n");
+        fputs("\n",DatF);
       }
-      fprintf(DatF, "\n");
+      fputs("\n",DatF);
 
 
       fprintf(DatF,"BondBond13 Coeffs\n\n");
@@ -253,9 +253,9 @@ void WriteDataFile(char *nameroot,int forcefield)
         for ( j = 0; j < 3; j++)
           fprintf(DatF, "%10.4f ",
                   dihedraltypes[i].bond13_cross_term[j]);
-        fprintf(DatF, "\n");
+        fputs("\n",DatF);
       }
-      fprintf(DatF, "\n");
+      fputs("\n",DatF);
 
       fprintf(DatF,"AngleTorsion Coeffs\n\n");
       for (i=0; i < no_dihedral_types; i++) {
@@ -263,9 +263,9 @@ void WriteDataFile(char *nameroot,int forcefield)
         for ( j = 0; j < 8; j++)
           fprintf(DatF, "%10.4f ",
                   dihedraltypes[i].angledihedral_cross_term[j]);
-        fprintf(DatF, "\n");
+        fputs("\n",DatF);
       }
-      fprintf(DatF, "\n");
+      fputs("\n",DatF);
     }
   }
 
@@ -284,7 +284,7 @@ void WriteDataFile(char *nameroot,int forcefield)
             atoms[k].x[1],
             atoms[k].x[2]);
   }
-  fprintf(DatF, "\n");
+  fputs("\n",DatF);
 
   /***** BONDS *****/
 
@@ -295,7 +295,7 @@ void WriteDataFile(char *nameroot,int forcefield)
               bonds[k].type+1,
               bonds[k].members[0]+1,
               bonds[k].members[1]+1);
-    fprintf(DatF,"\n");
+    fputs("\n",DatF);
   }
 
   /***** ANGLES *****/
@@ -308,7 +308,7 @@ void WriteDataFile(char *nameroot,int forcefield)
               angles[k].members[0]+1,
               angles[k].members[1]+1,
               angles[k].members[2]+1);
-    fprintf(DatF, "\n");
+    fputs("\n",DatF);
   }
 
 
@@ -323,7 +323,7 @@ void WriteDataFile(char *nameroot,int forcefield)
               dihedrals[k].members[1]+1,
               dihedrals[k].members[2]+1,
               dihedrals[k].members[3]+1);
-    fprintf(DatF, "\n");
+    fputs("\n",DatF);
   }
 
   /***** OUT-OF-PLANES *****/
@@ -346,7 +346,7 @@ void WriteDataFile(char *nameroot,int forcefield)
                 angleangles[k].members[2]+1,
                 angleangles[k].members[3]+1);
     }
-    fprintf(DatF, "\n");
+    fputs("\n",DatF);
   }
 
   /* Close data file */

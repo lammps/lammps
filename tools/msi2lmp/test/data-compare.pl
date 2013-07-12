@@ -484,20 +484,20 @@ sub read_data {
         section_check($fh,$data,"Atoms");
 
         while (get_next($fh)) {
-          if (/^\s*([0-9]+)\s+([0-9]+)\s+([0-9]+)\s+([-+.eE0-9]+)\s+([-+.eE0-9]+)\s+([-+.eE0-9]+)\s+([-+.eE0-9]+)(|\s+([0-9]+)\s+([0-9]+)\s+([0-9]+))\s*$/) {
+          if (/^\s*([0-9]+)\s+([0-9]+)\s+([0-9]+)\s+([-+.eE0-9]+)\s+([-+.eE0-9]+)\s+([-+.eE0-9]+)\s+([-+.eE0-9]+)(|\s+(-?[0-9]+)\s+(-?[0-9]+)\s+(-?[0-9]+))\s*$/) {
 
             $k = $1 - 1;
             die "Atom id $1 is out of range"
               if (($1 < 1) || ($1 > $data->{natoms}));
 
-            $j = $2 - 1;
+            $j = $3 - 1;
             die "Atom type $2 is out of range"
-              if (($2 < 1) || ($2 > $data->{natomtypes}));
+              if (($3 < 1) || ($3 > $data->{natomtypes}));
 
             ++$i;
             $data->{tag}[$k] = $1;
-            $data->{type}[$k] = $2;
-            $data->{molid}[$k] = $3;
+            $data->{molid}[$k] = $2;
+            $data->{type}[$k] = $3;
             $data->{charge}[$k] = $4;
             $data->{posx}[$k] = $5;
             $data->{posy}[$k] = $6;
@@ -511,11 +511,13 @@ sub read_data {
               $data->{imgz}[$k] = $11;
             }
             next;
+#          } else {
+#            print "Atoms: $_\n";
           }
 
-          die "Too many entries in Atoms section"
+          die "Too many entries in Atoms section: $i vs. $data->{natoms}"
             if ($i > $data->{natoms});
-          die "Too few entries in Atoms section"
+          die "Too few entries in Atoms section: $i vs. $data->{natoms}"
             if ($i < $data->{natoms});
           die "Multiple atoms assigned to the same atom ID"
             if (scalar @{$data->{tag}} != $data->{natoms});
@@ -560,7 +562,7 @@ sub read_data {
         section_check($fh,$data,"Bonds");
 
         while (get_next($fh)) {
-          if (/^\s*([0-9]+)\s+([0-9]+)\s+([0-9]+)\s+([0-9]+)\s*$/) {
+          if (/^\s*([0-9]+)\s+(-?[0-9]+)\s+([0-9]+)\s+([0-9]+)\s*$/) {
 
             $k = $1 - 1;
             die "Bond id $1 is out of range"
@@ -599,7 +601,7 @@ sub read_data {
         section_check($fh,$data,"Angles");
 
         while (get_next($fh)) {
-          if (/^\s*([0-9]+)\s+([0-9]+)\s+([0-9]+)\s+([0-9]+)\s+([0-9]+)\s*$/) {
+          if (/^\s*([0-9]+)\s+(-?[0-9]+)\s+([0-9]+)\s+([0-9]+)\s+([0-9]+)\s*$/) {
 
             $k = $1 - 1;
             die "Angle id $1 is out of range"
@@ -642,7 +644,7 @@ sub read_data {
         section_check($fh,$data,"Dihedrals");
 
         while (get_next($fh)) {
-          if (/^\s*([0-9]+)\s+([0-9]+)\s+([0-9]+)\s+([0-9]+)\s+([0-9]+)\s+([0-9]+)\s*$/) {
+          if (/^\s*([0-9]+)\s+(-?[0-9]+)\s+([0-9]+)\s+([0-9]+)\s+([0-9]+)\s+([0-9]+)\s*$/) {
 
             $k = $1 - 1;
             die "Dihedral id $1 is out of range"
@@ -688,7 +690,7 @@ sub read_data {
         section_check($fh,$data,"Impropers");
 
         while (get_next($fh)) {
-          if (/^\s*([0-9]+)\s+([0-9]+)\s+([0-9]+)\s+([0-9]+)\s+([0-9]+)\s+([0-9]+)\s*$/) {
+          if (/^\s*([0-9]+)\s+(-?[0-9]+)\s+([0-9]+)\s+([0-9]+)\s+([0-9]+)\s+([0-9]+)\s*$/) {
 
             $k = $1 - 1;
             die "Improper id $1 is out of range"

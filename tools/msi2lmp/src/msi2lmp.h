@@ -160,6 +160,7 @@ extern double box[3][3];     /* hi/lo for x/y/z and xy, xz, yz for triclinic */
 extern int    periodic;      /* 0= nonperiodic 1= 3-D periodic */
 extern int    TriclinicFlag; /* 0= Orthogonal  1= Triclinic */
 extern int    forcefield;    /* 1= ClassI      2= ClassII */
+extern int    centerflag;    /* 1= center box  0= keep box */
 extern int    pflag;         /* print level: 0, 1, 2, 3 */
 extern int    iflag;         /* 0 stop at errors   1 = ignore errors */
 extern int    *no_atoms;

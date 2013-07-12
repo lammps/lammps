@@ -33,10 +33,11 @@
 *  The program is started by supplying information at the command prompt
 * according to the usage described below.
 *
-*  USAGE: msi2lmp3 ROOTNAME {-print #} {-class #} {-frc FRC_FILE}
+*  USAGE: msi2lmp3 ROOTNAME {-print #} {-class #} {-frc FRC_FILE} {-ignore} {-nocenter}
 *
 *  -- msi2lmp3 is the name of the executable
 *  -- ROOTNAME is the base name of the .car and .mdf files
+*  -- all opther flags are optional and can be abbreviated (e.g. -p instead of -print)
 *
 *  -- -print
 *        # is the print level:  0  - silent except for errors
@@ -48,7 +49,12 @@
 *                                            (II = Class II e.g., CFFx )
 *     default is -class I
 *
-*  -- -frc   - specifies name of the forcefield file (e.g., cff91)
+*  -- -ignore   - tells msi2lmp to ignore warnings and errors and keep going
+*
+*  -- -nocenter - tells msi2lmp to not center the box around the (geometrical)
+*                 center of the atoms, but around the origin
+*
+*  -- -frc      - specifies name of the forcefield file (e.g., cff91)
 *
 *     If the name includes a hard wired directory (i.e., if the name
 *     starts with . or /), then the name is used alone. Otherwise,
@@ -118,6 +124,7 @@ double box[3][3];
 int    periodic = 1;
 int    TriclinicFlag = 0;
 int    forcefield = 0;
+int    centerflag = 1;
 
 int    pflag;
 int    iflag;
@@ -184,7 +191,7 @@ int main (int argc, char *argv[])
   frc_dir_name = getenv("BIOSYM_LIBRARY");
 
   if (argc < 2) {
-    printf("usage: %s <rootname> [-class <I|1|II|2>] [-frc <path to frc file>] [-p #] [-i]\n",argv[0]);
+    printf("usage: %s <rootname> [-class <I|1|II|2>] [-frc <path to frc file>] [-print #] [-ignore] [-nocenter]\n",argv[0]);
     return 1;
   } else { /* rootname was supplied as first argument, copy to rootname */
     int len = strlen(argv[1]) + 1;
@@ -213,6 +220,8 @@ int main (int argc, char *argv[])
       frc_file_name = argv[n];
     } else if (strncmp(argv[n],"-i",2) == 0 ) {
       iflag = 1;
+    } else if (strncmp(argv[n],"-n",2) == 0 ) {
+      centerflag = 0;
     } else if (strncmp(argv[n],"-p",2) == 0) {
       n++;
       if (check_arg(argv,"-print",n,argc))

@@ -137,9 +137,11 @@ void ReadCarFile(void)
              atoms[k].potential,
              atoms[k].element,
              &(atoms[k].q));
-      center[0] += atoms[k].x[0];
-      center[1] += atoms[k].x[1];
-      center[2] += atoms[k].x[2];
+      if (centerflag) {
+        center[0] += atoms[k].x[0];
+        center[1] += atoms[k].x[1];
+        center[2] += atoms[k].x[2];
+      }
     }
     fgets(line,MAX_LINE_LENGTH,CarF);
     fgets(line,MAX_LINE_LENGTH,CarF);

@@ -10,9 +10,9 @@ LAMMPS data file from msi2lmp v3.8 for h2-h2o-class2b
    2 bond types
    1 angle types
 
-     0.000000000    10.000000000 xlo xhi
-     0.000000000    10.000000000 ylo yhi
-     0.000000000    10.000000000 zlo zhi
+    -0.200000000     9.800000000 xlo xhi
+    -0.200000000     9.800000000 ylo yhi
+    -0.500000000     9.500000000 zlo zhi
 
 Masses
 

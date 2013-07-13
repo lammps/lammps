@@ -22,20 +22,18 @@
     </div>
     <ul>
       <li>
-        <div style="background-color: #e8e8f0;">
+        <div style="background-color: #e8e8f0; padding: 10px; margin-bottom: 5px;">
           &nbsp;&nbsp;Enabling the repository for
         <a href="http://git.icms.temple.edu/rpm/fedora/lammps-fedora-repo-1-2.noarch.rpm">
           Fedora 17 and later</a><br>
         </div>
-        <br>
       </li>
       <li>
-        <div style="background-color: #e8e8f0;">
+        <div style="background-color: #e8e8f0; padding: 10px; margin-top: 5px;">
           &nbsp;&nbsp;Enabling the repository for
         <a href="http://git.icms.temple.edu/rpm/centos/lammps-centos-rhel-repo-1-2.noarch.rpm">
             CentOS or RedHat Enterprise Linux 6.4 and later</a><br>
         </div>
-        <br>
       </li>
     </ul>
 
@@ -45,11 +43,10 @@
       Installer'. If you are only offered to download the file, save the
       file and then open a terminal and go to the directory where you
       saved the rpm file and then run the command:</p>
-    <div style="background-color: #e8e8f0;">
-      <br>&nbsp;&nbsp;<code>
+    <div style="background-color: #e8e8f0; padding: 10px;">
+      &nbsp;<code>
         gpk-install-local-file $PWD/lammps-centos-rhel-repo-1-2.noarch.rpm
       </code><br>
-      <br>
     </div>
     <p align="justify">This will launch the PackageKit Installer GUI and
     you can complete the installation of the repository by following the
@@ -63,23 +60,18 @@
     </p>
     <ul>
       <li>Enabling the repository for Fedora 17 and later:<br>
-        <div style="background-color: #e8e8f0;">
-          <br>&nbsp;&nbsp;<code>
+        <div style="background-color: #e8e8f0; padding: 5px; margin: 5px;">
+          &nbsp;<code>
             su -c 'yum localinstall --nogpgcheck http://git.icms.temple.edu/rpm/fedora/lammps-fedora-repo-1-2.noarch.rpm'
           </code><br>
-          <br>
         </div>
-        </br>
         </li>
       <li>Enabling the repository for CentOS or RedHat Enterprise Linux 6.4 and later:<br>
-        <div style="background-color: #e8e8f0;">
-          <br>&nbsp;&nbsp;<code>
+        <div style="background-color: #e8e8f0; padding: 5px; margin: 5px;">
+          &nbsp;<code>
             su -c 'yum localinstall --nogpgcheck http://git.icms.temple.edu/rpm/centos/lammps-centos-rhel-repo-1-2.noarch.rpm'
           </code>
-          <br>
-          <br>
         </div>
-        <br>
       </li>
     </ul>
     <hr width="100%">
@@ -91,21 +83,17 @@
     </p>
     <ul>
       <li>Enabling the repository on openSuSE 12.3 for 32-bit x86:<br>
-        <div style="background-color: #e8e8f0;">
-          <br>&nbsp;&nbsp;<code>
+        <div style="background-color: #e8e8f0; padding: 5px; margin: 5px;">
+          &nbsp;<code>
             su -c 'zypper ar -t rpm-md -G -f -c http://git.icms.temple.edu/rpm/suse/12.3/i586 lammps-icms'
           </code><br>
-          <br>
         </div>
-        <br>
       <li>Enabling the repository on openSuSE 12.3 for 64-bit x86:<br>
-        <div style="background-color: #e8e8f0;">
-          <br>&nbsp;&nbsp;<code>
+        <div style="background-color: #e8e8f0; padding: 5px; margin: 5px;">
+          &nbsp;<code>
             su -c 'zypper ar -t rpm-md -G -f -c http://git.icms.temple.edu/rpm/suse/12.3/x86_64 lammps-icms'
           </code><br>
-          <br>
         </div>
-        <br>
         </li>
     </ul>
     <hr width="100%">
@@ -162,35 +150,28 @@
       To temporarily deactivate the openSuSE repository, simply run the command:
       <br>
     </div>
-    <div style="background-color: #e8e8f0;">
-      <br>&nbsp;&nbsp;<code>
+    <div style="background-color: #e8e8f0; padding: 5px; margin: 5px;">
+      &nbsp;<code>
         su -c 'zypper mr -d lammps-icms'
       </code><br>
-      <br>
     </div>
-    <br>
     <div>
       To reactivate the deactivated the openSuSE repository, simply run the command:
       <br>
     </div>
-    <div style="background-color: #e8e8f0;">
-      <br>&nbsp;&nbsp;<code>
+    <div style="background-color: #e8e8f0; padding: 5px; margin: 5px;">
+      &nbsp;<code>
         su -c 'zypper mr -e lammps-icms'
       </code><br>
-      <br>
     </div>
-    <br>
     <div>
       To completely uninstall the openSuSE repository, simply run the command:
-      <br>
     </div>
-    <div style="background-color: #e8e8f0;">
-      <br>&nbsp;&nbsp;<code>
+    <div style="background-color: #e8e8f0; padding: 5px; margin: 5px;">
+      &nbsp;<code>
         su -c 'zypper rr lammps-icms'
       </code><br>
-      <br>
     </div>
-    <br>
     <hr>
     <p>
       Back to <a href="index.html">LAMMPS-ICMS RPM Repository Home Page</a>.

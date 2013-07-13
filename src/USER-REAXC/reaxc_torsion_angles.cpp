@@ -227,8 +227,6 @@ void Torsion_Angles( reax_system *system, control_params *control,
          trying to form a 4-body interaction out of this neighborhood */
       if( system->my_atoms[j].orig_id < system->my_atoms[k].orig_id &&
           bo_jk->BO > control->thb_cut/*0*/ && Num_Entries(pk, thb_intrs) ) {
-        start_k = Start_Index(k, bonds);
-        end_k = End_Index(k, bonds);
         pj = pbond_jk->sym_index; // pj points to j on k's list
 
         /* do the same check as above:

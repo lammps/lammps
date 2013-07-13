@@ -104,6 +104,7 @@ void PairLJCharmmCoulCharmm::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
+      jtype = type[j];
       factor_lj = special_lj[sbmask(j)];
       factor_coul = special_coul[sbmask(j)];
       j &= NEIGHMASK;
@@ -129,7 +130,6 @@ void PairLJCharmmCoulCharmm::compute(int eflag, int vflag)
 
         if (rsq < cut_ljsq) {
           r6inv = r2inv*r2inv*r2inv;
-          jtype = type[j];
           forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
           if (rsq > cut_lj_innersq) {
             switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *

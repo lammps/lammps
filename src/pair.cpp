@@ -234,13 +234,11 @@ void Pair::init()
 void Pair::reinit()
 {
   int i,j;
-  double tmp;
 
   etail = ptail = 0.0;
 
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      tmp = init_one(i,j);
       if (tail_flag) {
         etail += etail_ij;
         ptail += ptail_ij;
@@ -531,7 +529,6 @@ void Pair::init_tables_disp(double cut_lj_global)
       rsq_lookup.i = i << ndispshiftbits;
       rsq_lookup.i |= maskhi;
     }
-    r = sqrtf(rsq_lookup.f);
     rsq = rsq_lookup.f;
     register double x2 = g2*rsq, a2 = 1.0/x2;
     x2 = a2*exp(-x2);
@@ -578,7 +575,6 @@ void Pair::init_tables_disp(double cut_lj_global)
   
   if (rsq_lookup.f < (cut_lj_globalsq = cut_lj_global * cut_lj_global)) {
     rsq_lookup.f = cut_lj_globalsq;
-    r = sqrtf(rsq_lookup.f);
     
     register double x2 = g2*rsq, a2 = 1.0/x2;
     x2 = a2*exp(-x2);
@@ -1152,7 +1148,7 @@ void Pair::ev_tally4(int i, int j, int k, int m, double evdwl,
 void Pair::ev_tally_tip4p(int key, int *list, double *v,
                           double ecoul, double alpha)
 {
-  int i,j;
+  int i;
 
   if (eflag_either) {
     if (eflag_global) eng_coul += ecoul;

@@ -40,14 +40,14 @@ prune_exe () {
       if [ $age -gt 336 ]
       then
           y=$(expr $age / 336)
-          eval tmp=\$year${y}
+          eval tmp=\$year${bit}${y}
           if [ -n "$tmp" ]
           then
               rm -vf ${exe}
           else
               echo "first in year $y $exe"
           fi
-          eval year${y}=1
+          export year${bit}${y}=1
       fi
 
       # after about three months we keep only one per month
@@ -55,14 +55,14 @@ prune_exe () {
       if [ $age -gt 84 ] && [ $age -lt 336 ]
       then
           m=$(expr $age / 28)
-          eval tmp=\$month${m}
+          eval tmp=\$month${bit}${m}
           if [ -n "$tmp" ]
           then
               rm -vf ${exe}
           else
               echo "first in month $m $exe"
           fi
-          eval month${m}=1
+          export month${bit}${m}=1
       fi
 
       # after one week we keep only one per week.
@@ -70,14 +70,14 @@ prune_exe () {
       if [ $age -gt 7 ] && [ $age -lt 84 ]
       then
           w=$(expr $age / 7)
-          eval tmp=\$week${w}
+          eval tmp=\$week${bit}${w}
           if [ -n "$tmp" ]
           then
               rm -vf ${exe}
           else
               echo "first in week $w $exe"
           fi
-          eval week${w}=1
+          export week${bit}${w}=1
       fi
 
   done

@@ -9,7 +9,7 @@ use warnings;
 my $version = 'v0.2';
 
 # delta for floating point comparisons.
-my $small = 1.0e-5;
+my $small = 1.0e-4;
 # two hashes for storing system information
 my %data1;
 my %data2;
@@ -864,7 +864,7 @@ sub syscompare {
       } else {
         $b = 0;
       }
-      die "Inconsistent data for $t, atom $j: $a vs. $b" if ($a != $b);
+      die "Inconsistent data for $t, atom $j: $a vs. $b" if (floatdiff($a,$b,0));
     }
   }
 

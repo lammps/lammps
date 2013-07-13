@@ -82,8 +82,12 @@ prune_rpm () {
       fi
 
   done
-  rm -f ${sto}
-  ln -s ${sym} ${sto}
+
+  if [ -n "${sto}" ]
+  then
+      rm -f ${sto}
+      ln -s ${sym} ${sto}
+  fi
 }
 
 if ! which rpmbuild > /dev/null 2>&1

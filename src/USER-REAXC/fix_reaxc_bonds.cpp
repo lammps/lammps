@@ -119,8 +119,6 @@ void FixReaxCBonds::init()
 
 void FixReaxCBonds::end_of_step()
 {
-  bigint ntimestep = update->ntimestep;
-
   Output_ReaxC_Bonds(update->ntimestep,fp);
   if (me == 0) fflush(fp);
 }
@@ -130,8 +128,8 @@ void FixReaxCBonds::end_of_step()
 void FixReaxCBonds::Output_ReaxC_Bonds(bigint ntimestep, FILE *fp)
 
 {
-  int i, j, k, itype, jtype, iatom, itag, jtag;
-  int b, nbuf, nbuf_local, inode;
+  int i, j;
+  int nbuf, nbuf_local;
   int nlocal_max, numbonds, numbonds_max;
   double *buf;
 
@@ -178,7 +176,7 @@ void FixReaxCBonds::Output_ReaxC_Bonds(bigint ntimestep, FILE *fp)
 void FixReaxCBonds::FindBond(struct _reax_list *lists, int &numbonds)
 {
   int *ilist, i, ii, inum;
-  int j, pj, nj, jtag, jtype;
+  int j, pj, nj, jtag;
   double bo_tmp,bo_cut;
 
   inum = reaxc->list->inum;
@@ -211,7 +209,7 @@ void FixReaxCBonds::FindBond(struct _reax_list *lists, int &numbonds)
 
 void FixReaxCBonds::PassBuffer(double *buf, int &nbuf_local)
 {
-  int i, j, k, jtag, numbonds;
+  int i, j, k, numbonds;
   int nlocal = atom->nlocal;
 
   j = 2;
@@ -247,8 +245,8 @@ void FixReaxCBonds::PassBuffer(double *buf, int &nbuf_local)
 void FixReaxCBonds::RecvBuffer(double *buf, int nbuf, int nbuf_local, 
 		int natoms, int maxnum)
 {
-  int i, j, k, l, itype, jtype, itag, jtag;
-  int inode, nlocal_tmp, numbonds, molid;
+  int i, j, k, itype, itag, jtag;
+  int inode, nlocal_tmp, numbonds;
   int nlocal = atom->nlocal;
   bigint ntimestep = update->ntimestep;
   double sbotmp, nlptmp, avqtmp, abotmp;

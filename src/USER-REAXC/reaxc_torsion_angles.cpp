@@ -160,7 +160,7 @@ void Torsion_Angles( reax_system *system, control_params *control,
 {
   int i, j, k, l, pi, pj, pk, pl, pij, plk, natoms;
   int type_i, type_j, type_k, type_l;
-  int start_j, end_j, start_k, end_k;
+  int start_j, end_j;
   int start_pj, end_pj, start_pk, end_pk;
   int num_frb_intrs = 0;
 
@@ -203,7 +203,7 @@ void Torsion_Angles( reax_system *system, control_params *control,
 
   // Virial tallying variables
   real delil[3], deljl[3], delkl[3];
-  real eng_tmp, f_scaler, fi_tmp[3], fj_tmp[3], fk_tmp[3];
+  real eng_tmp, fi_tmp[3], fj_tmp[3], fk_tmp[3];
 
   // sprintf( fname, "tor%d.out", system->my_rank );
   // ftor = fopen( fname, "w" );

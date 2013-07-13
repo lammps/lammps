@@ -315,7 +315,8 @@ int FixAppendAtoms::get_spatial()
 
     if (domain->boxhi[2] - shockfront_loc < spatlead) advance = 1;
 
-    delete [] pos,val;
+    delete [] pos;
+    delete [] val;
   }
 
   advance_sum = 0;

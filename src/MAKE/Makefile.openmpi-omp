@@ -9,9 +9,9 @@ SHELL = /bin/sh
 OPENMP= -fopenmp
 
 CC =		mpic++ $(OPENMP)
-CCFLAGS =	-O2 -fomit-frame-pointer -fno-rtti -fno-exceptions -ftree-vectorize \
-			-march=native -ffast-math -mpc64 -g -finline-functions \
-			-funroll-loops -fstrict-aliasing -Wall -W -Wno-uninitialized
+CCFLAGS =	-O3 -fomit-frame-pointer -fno-rtti -fno-exceptions            \
+			-march=native -ffast-math -mpc64 -g -fstrict-aliasing \
+			-Wall -W -Wno-unused-parameter -Wno-maybe-uninitialized
 DEPFLAGS =	-MM
 LINK =		mpic++ $(OPENMP)
 LINKFLAGS =	-O -g -fno-rtti -fno-exceptions -mpc64

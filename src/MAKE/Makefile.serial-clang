@@ -6,14 +6,14 @@ SHELL = /bin/sh
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-CC =		clang
-CCFLAGS =	-O3  -fno-exceptions
+CC =		clang++
+CCFLAGS =	-O3  -fno-exceptions -Wall
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
-LINK =		clang
+LINK =		clang++
 LINKFLAGS =	-O3  -fno-exceptions
-LIB =           -lstdc++
+LIB =          
 SIZE =		size
 
 ARCHIVE =	ar
@@ -28,7 +28,7 @@ SHLIBFLAGS =	-shared
 # LAMMPS ifdef settings, OPTIONAL
 # see possible settings in doc/Section_start.html#2_2 (step 4)
 
-LMP_INC =	#-DLAMMPS_GZIP -DMALLOC_MEMALIGN=64
+LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_MEMALIGN=32
 
 # MPI library, REQUIRED
 # see discussion in doc/Section_start.html#2_2 (step 5)

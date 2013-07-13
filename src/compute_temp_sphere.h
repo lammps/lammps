@@ -41,7 +41,6 @@ class ComputeTempSphere : public Compute {
  private:
   int fix_dof,mode;
   double tfactor;
-  double *inertia;
   char *id_bias;
   Compute *tbias;     // ptr to additional bias compute
 

@@ -26,7 +26,7 @@ class RanMars : protected Pointers {
   double gaussian();
 
  private:
-  int seed,save;
+  int save;
   double second;
   double *u;
   int i97,j97;

@@ -50,8 +50,7 @@ namespace LAMMPS_NS {
 
 #else /* !defined(_OPENMP) */
 
-#define NEIGH_OMP_INIT                          \
-  const int nthreads = comm->nthreads;
+#define NEIGH_OMP_INIT
 
 #define NEIGH_OMP_SETUP(num)                    \
   const int tid = 0;                            \

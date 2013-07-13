@@ -277,7 +277,7 @@ void FixReaxCSpecies::post_integrate()
 
 void FixReaxCSpecies::Output_ReaxC_Bonds(bigint ntimestep, FILE *fp)
 {
-  int i, j, ii,jj;
+  int i, j;
   int Nmole, Nspec;
 
   MPI_Barrier(world);
@@ -379,7 +379,7 @@ void FixReaxCSpecies::GatherBondOrder(struct _reax_list *lists)
 
 void FixReaxCSpecies::FindMolecule()
 {
-  int i,j,ii,jj,inum,jnum,n,itype,jtype;
+  int i,j,ii,jj,inum,jnum,itype,jtype;
   int change, done, anychange, loop, looptot;
   int *mask = atom->mask;
   int *ilist, *jlist, *numneigh, **firstneigh;
@@ -448,7 +448,7 @@ void FixReaxCSpecies::SortMolecule(int &Nmole)
   memory->destroy(molmap);
   molmap = NULL;
 
-  int m, n, idlo, idhi;
+  int n, idlo, idhi;
   int *mask =atom->mask;
   int lo = ntotal;
   int hi = -ntotal;
@@ -515,8 +515,7 @@ void FixReaxCSpecies::SortMolecule(int &Nmole)
 
 void FixReaxCSpecies::FindSpecies(int Nmole, int &Nspec)
 {
-  int inum, *ilist;
-  int i, j, k, l, m, n, itype, cid;
+  int k, l, m, n, itype, cid;
   int flag_identity, flag_mol, flag_spec;
   int flag_tmp;
   int *mask =atom->mask;
@@ -671,7 +670,6 @@ void FixReaxCSpecies::WritePos(int Nmole, int Nspec)
 {
   int i,itype,cid;
   int count, count_tmp, m, n, k;
-  int *ilist, *jlist, *numneigh, **firstneigh;
   double avq, avq_tmp, avx[3], avx_tmp, box[3];
   int *mask =atom->mask;
   int *Nameall;

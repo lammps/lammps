@@ -37,7 +37,6 @@ void WriteDump::command(int narg, char **arg)
   char **larg;
 
   if (narg < 3) error->all(FLERR,"Illegal write_dump command");
-  int igroup = group->find(arg[0]);
 
   if (atom->tag_enable == 0)
       error->all(FLERR,"Must have atom IDs for write_dump command");

@@ -400,7 +400,7 @@ class Memory : protected Pointers {
       array = (TYPE ****) smalloc(nbytes,name);
 
       int i,j,k;
-      bigint m1,m2,m3;
+      bigint m1,m2;
       bigint n = 0;
       for (i = 0; i < n1; i++) {
         m2 = ((bigint) i) * n2;
@@ -458,7 +458,7 @@ class Memory : protected Pointers {
       array = (TYPE *****) smalloc(nbytes,name);
 
       int i,j,k,l;
-      bigint m1,m2,m3,m4,m5;
+      bigint m1,m2;
       bigint n = 0;
       for (i = 0; i < n1; i++) {
         m2 = ((bigint) i) * n2;

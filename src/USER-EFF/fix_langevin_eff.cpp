@@ -132,11 +132,6 @@ void FixLangevinEff::post_force_no_tally()
   double fran[4],fsum[4],fsumall[4];
   fsum[0] = fsum[1] = fsum[2] = fsum[3] = 0.0;
 
-  double boltz = force->boltz;
-  double dt = update->dt;
-  double mvv2e = force->mvv2e;
-  double ftm2v = force->ftm2v;
-
   int particles = group->count(igroup);
   if (zeroflag) {
     if (particles == 0)
@@ -305,11 +300,6 @@ void FixLangevinEff::post_force_tally()
   //   computed on current nlocal atoms to remove bias
   //   test v = 0 since some computes mask non-participating atoms via v = 0
   //   and added force has extra term not multiplied by v = 0
-
-  double boltz = force->boltz;
-  double dt = update->dt;
-  double mvv2e = force->mvv2e;
-  double ftm2v = force->ftm2v;
 
   int particles = group->count(igroup);
   if (zeroflag) {

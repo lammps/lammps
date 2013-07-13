@@ -73,7 +73,6 @@ void FixNVEAsphereNoforce::initial_integrate(int vflag)
   double **angmom = atom->angmom;
   double *rmass = atom->rmass;
   int *ellipsoid = atom->ellipsoid;
-  int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;

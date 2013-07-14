@@ -554,7 +554,6 @@ void Add_dBond_to_Forces( reax_system *system, int i, int pj,
   int pk, k, j;
 
   /* Virial Tallying variables */
-  real f_scaler;
   rvec fi_tmp, fj_tmp, fk_tmp, delij, delji, delki, delkj, temp;
 
   /* Initializations */

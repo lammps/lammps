@@ -193,7 +193,6 @@ int Irregular::migrate_check()
   // this check needs to observe PBC
   // cannot check via comm->procneigh since it ignores PBC
 
-  AtomVec *avec = atom->avec;
   double **x = atom->x;
   int nlocal = atom->nlocal;
 

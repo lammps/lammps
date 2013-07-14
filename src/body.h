@@ -35,10 +35,10 @@ class Body : protected Pointers {
 
   // methods implemented by child classes
 
-  virtual int pack_comm_body(class AtomVecBody::Bonus *, double *) {return 0;}
-  virtual int unpack_comm_body(class AtomVecBody::Bonus *, double *) {return 0;}
-  virtual int pack_border_body(class AtomVecBody::Bonus *, double *) {return 0;}
-  virtual int unpack_border_body(class AtomVecBody::Bonus *, 
+  virtual int pack_comm_body(struct AtomVecBody::Bonus *, double *) {return 0;}
+  virtual int unpack_comm_body(struct AtomVecBody::Bonus *, double *) {return 0;}
+  virtual int pack_border_body(struct AtomVecBody::Bonus *, double *) {return 0;}
+  virtual int unpack_border_body(struct AtomVecBody::Bonus *, 
                                  double *) {return 0;}
 
   virtual void data_body(int, int, int, char **, char **) = 0;

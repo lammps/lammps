@@ -298,11 +298,12 @@ double PairCoulDSF::single(int i, int j, int itype, int jtype, double rsq,
                            double factor_coul, double factor_lj,
                            double &fforce)
 {
-  double r2inv,r6inv,r,erfcc,erfcd,prefactor,t;
-  double forcecoul,phicoul,philj;
+  double r2inv,r,erfcc,erfcd,prefactor,t;
+  double forcecoul,phicoul;
   
   r2inv = 1.0/rsq;
 
+  double eng = 0.0;
   if (rsq < cut_coulsq) {
     r = sqrt(rsq);
     prefactor = factor_coul * force->qqrd2e * atom->q[i]*atom->q[j]/r;
@@ -312,16 +313,13 @@ double PairCoulDSF::single(int i, int j, int itype, int jtype, double rsq,
 	
     forcecoul = prefactor * (erfcc/r + 2.0*alpha/MY_PIS*erfcd + 
       r*f_shift) * r;
+
+    phicoul = prefactor * (erfcc - r*e_shift - rsq*f_shift);
+    eng += phicoul;
   } else forcecoul = 0.0;
   
   fforce = forcecoul * r2inv;
       
-  double eng = 0.0;
-  if (r < cut_coulsq) { 
-    phicoul = prefactor * (erfcc - r*e_shift - rsq*f_shift);
-    eng += phicoul;
-  } 
-  
   return eng;
 }
 

@@ -100,7 +100,7 @@ void FixNVTSllodEff::nh_v_temp()
   //   calculate temperature since some computes require temp
   //   computed on current nlocal atoms to remove bias
 
-  if (nondeformbias) double tmp = temperature->compute_scalar();
+  if (nondeformbias) temperature->compute_scalar();
 
   double **v = atom->v;
   double *ervel = atom->ervel;

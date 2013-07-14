@@ -303,7 +303,6 @@ double AngleCosineShiftExp::single(int type, int i1, int i2, int i3)
   double s=sqrt(1.0-c*c);
 
   double cccpsss=c*cost[type]+s*sint[type];
-  double cssmscc=c*sint[type]-s*cost[type];
 
   if (doExpansion[type])
        {

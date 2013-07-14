@@ -1316,7 +1316,6 @@ double PPPM::final_accuracy()
   double xprd = domain->xprd;
   double yprd = domain->yprd;
   double zprd = domain->zprd;
-  double zprd_slab = zprd*slab_volfactor;
   bigint natoms = atom->natoms;
 
   double df_kspace = compute_df_kspace();
@@ -3361,7 +3360,7 @@ void PPPM::poisson_groups(int BA_flag)
 
 void PPPM::poisson_groups_triclinic()
 {
-  int i,j,k,n;
+  int i,n;
 
   // reuse memory (already declared)
 

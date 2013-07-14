@@ -34,7 +34,7 @@ class ComputePairLocal : public Compute {
   double memory_usage();
 
  private:
-  int nvalues,dflag,eflag,fflag;
+  int nvalues;
   int ncount;
 
   int *pstyle;              // style of each requested output

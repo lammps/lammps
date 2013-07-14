@@ -613,11 +613,9 @@ int FixShake::dof(int igroup)
 void FixShake::find_clusters()
 {
   int i,j,m,n;
-  int flag,flag_all,messtag,loop,nbuf,nbufmax,size;
+  int flag,flag_all,messtag,nbuf,nbufmax,size;
   double massone;
-  int *buf,*bufcopy;
-  MPI_Request request;
-  MPI_Status status;
+  int *buf;
 
   if (me == 0 && screen) fprintf(screen,"Finding SHAKE clusters ...\n");
 

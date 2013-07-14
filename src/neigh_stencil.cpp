@@ -63,7 +63,7 @@ void Neighbor::stencil_half_bin_2d_no_newton(NeighList *list,
 void Neighbor::stencil_half_ghost_bin_2d_no_newton(NeighList *list,
                                                    int sx, int sy, int sz)
 {
-  int i,j,k;
+  int i,j;
   int *stencil = list->stencil;
   int **stencilxyz = list->stencilxyz;
   int nstencil = 0;

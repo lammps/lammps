@@ -52,7 +52,7 @@ void AngleDipole::compute(int eflag, int vflag)
   int iRef,iDip,iDummy,n,type;
   double delx,dely,delz;
   double eangle,tangle,f1[3],f3[3];
-  double r,dr,cosGamma,deltaGamma,kdg,rmu;
+  double r,cosGamma,deltaGamma,kdg,rmu;
 
   eangle = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);

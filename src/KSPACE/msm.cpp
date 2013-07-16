@@ -2265,13 +2265,13 @@ void MSM::restriction(int n)
 {
   //fprintf(screen,"Restricting from level %i to %i\n\n",n,n+1);
 
-  int p = order-1;
+  const int p = order-1;
 
   double ***qgrid1 = qgrid[n];
   double ***qgrid2 = qgrid[n+1];
 
   int k = 0;
-  int index[p+2];
+  int *index = new int[p+2];
   for (int nu=-p; nu<=p; nu++) {
     if (nu%2 == 0 && nu != 0) continue;
     phi1d[0][k] = compute_phi(nu*delxinv[n+1]/delxinv[n]);
@@ -2327,6 +2327,7 @@ void MSM::restriction(int n)
         qgrid2[kp][jp][ip] += q2sum;
       }
 
+  delete [] index;
 }
 
 /* ----------------------------------------------------------------------
@@ -2338,7 +2339,7 @@ void MSM::prolongation(int n)
 {
   //fprintf(screen,"Prolongating from level %i to %i\n\n",n+1,n);
 
-  int p = order-1;
+  const int p = order-1;
 
   double ***egrid1 = egrid[n];
   double ***egrid2 = egrid[n+1];
@@ -2357,7 +2358,7 @@ void MSM::prolongation(int n)
   double ***v5grid2 = v5grid[n+1];
 
   int k = 0;
-  int index[p+2];
+  int *index = new int[p+2];
   for (int nu=-p; nu<=p; nu++) {
     if (nu%2 == 0 && nu != 0) continue;
     phi1d[0][k] = compute_phi(nu*delxinv[n+1]/delxinv[n]);
@@ -2430,6 +2431,7 @@ void MSM::prolongation(int n)
 
       }
 
+  delete [] index;
 }
 
 /* ----------------------------------------------------------------------

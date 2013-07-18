@@ -102,7 +102,7 @@ struct AngleAngleList {
 struct AtomTypeList
 {
   char potential[5];
-  float mass;
+  double mass;
   double params[2];
   int no_connect;
 };
@@ -150,7 +150,7 @@ struct Atom {
   int   image[3];        /* image flag */
   char  potential[6];    /* atom potential type */
   char  element[4];      /* atom element */
-  float q;               /* charge */
+  double q;              /* charge */
   char  residue_string[MAX_NAME]; /* residue string */
   int  no_connect;        /* number of connections to atom */
   char connections[MAX_CONNECTIONS][MAX_STRING];  /* long form, connection name*/

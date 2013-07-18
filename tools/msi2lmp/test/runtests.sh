@@ -9,13 +9,13 @@ verbose=1
 counter=0
 errors=0
 
-# Class1 tests
+# Class1 tests with cvff
 for m in hydrogen water h2-h2o ethane benzene naphthalene crambin nylon phen3_cff97
 do \
     before=$errors
-    ${MSI2LMP} ${m}-class1 -c 1 -p ${verbose} 	\
+    ${MSI2LMP} ${m}-class1 -c 1 -p ${verbose}			\
         || errors=$(expr $errors + 1)
-    ${LAMMPS} -log none -screen none -in in.${m}-class1	\
+    ${LAMMPS} -log none -screen none -in in.${m}-class1		\
         || errors=$(expr $errors + 1)
     ${CHECKDATA} ${m}-class1.data reference/${m}-class1.data	\
         || errors=$(expr $errors + 1)
@@ -25,15 +25,31 @@ do \
     counter=$(expr $counter + 4)
 done
 
+# Class1 tests with clayff
+for m in PyAC_bulk
+do \
+    before=$errors
+    ${MSI2LMP} ${m}-clayff -c 1 -p ${verbose} -f clayff	-n	\
+        || errors=$(expr $errors + 1)
+    ${LAMMPS} -log none -screen none -in in.${m}-clayff		\
+        || errors=$(expr $errors + 1)
+    ${CHECKDATA} ${m}-clayff.data reference/${m}-clayff.data	\
+        || errors=$(expr $errors + 1)
+    ${CHECKDATA} ${m}-clayff.data2 reference/${m}-clayff.data2	\
+        || errors=$(expr $errors + 1)
+    [ $before -eq $errors ] && rm ${m}-clayff.data ${m}-clayff.data2 log.${m}-clayff
+    counter=$(expr $counter + 4)
+done
+
 # Class2 tests with compass
 for m in hydrogen ethane benzene naphthalene
 do \
     before=$errors
     ${MSI2LMP} ${m}-class2a -c 2 -p ${verbose} -f compass_published	\
         || errors=$(expr $errors + 1)
-    ${LAMMPS} -log none -screen none -in in.${m}-class2a	\
+    ${LAMMPS} -log none -screen none -in in.${m}-class2a		\
         || errors=$(expr $errors + 1)
-    ${CHECKDATA} ${m}-class2a.data reference/${m}-class2a.data	\
+    ${CHECKDATA} ${m}-class2a.data reference/${m}-class2a.data		\
         || errors=$(expr $errors + 1)
     ${CHECKDATA} ${m}-class2a.data2 reference/${m}-class2a.data2	\
         || errors=$(expr $errors + 1)
@@ -45,11 +61,11 @@ done
 for m in water h2-h2o ethane benzene naphthalene
 do \
     before=$errors
-    ${MSI2LMP} ${m}-class2b -c 2 -p ${verbose} -f pcff	\
+    ${MSI2LMP} ${m}-class2b -c 2 -p ${verbose} -f pcff			\
         || errors=$(expr $errors + 1)
-    ${LAMMPS} -log none -screen none -in in.${m}-class2b	\
+    ${LAMMPS} -log none -screen none -in in.${m}-class2b		\
         || errors=$(expr $errors + 1)
-    ${CHECKDATA} ${m}-class2b.data reference/${m}-class2b.data	\
+    ${CHECKDATA} ${m}-class2b.data reference/${m}-class2b.data		\
         || errors=$(expr $errors + 1)
     ${CHECKDATA} ${m}-class2b.data2 reference/${m}-class2b.data2	\
         || errors=$(expr $errors + 1)

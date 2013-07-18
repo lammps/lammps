@@ -1,6 +1,14 @@
 Stephanie Teich-McGoldrick (Sandai) is the current maintainer
 of the msi2lmp tool.  She can be contacted at steichm at sandia.gov
 
+18 Jul 2013 Axel Kohlmeyer <akohlmey@gmail.com>
+
+Added support for writing out image flags
+Improved accuracy of atom masses
+Added flag for shifting the entire system
+Fixed some minor logic bugs and prepared
+for supporting other force fields and morse style bonds.
+
 12 Jul 2013 Axel Kohlmeyer <akohlmey@gmail.com>
 
 Fixed the bug that caused improper coefficients to be wrong

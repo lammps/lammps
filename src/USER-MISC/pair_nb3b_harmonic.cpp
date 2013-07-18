@@ -79,7 +79,7 @@ void PairNb3bHarmonic::compute(int eflag, int vflag)
 {
   int i,j,k,ii,jj,kk,inum,jnum,jnumm1,itag,jtag;
   int itype,jtype,ktype,ijparam,ikparam,ijkparam;
-  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
+  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl;
   double rsq,rsq1,rsq2;
   double delr1[3],delr2[3],fj[3],fk[3];
   int *ilist,*jlist,*numneigh,**firstneigh;
@@ -92,8 +92,6 @@ void PairNb3bHarmonic::compute(int eflag, int vflag)
   double **f = atom->f;
   int *tag = atom->tag;
   int *type = atom->type;
-  int nlocal = atom->nlocal;
-  int newton_pair = force->newton_pair;
 
   inum = list->inum;
   ilist = list->ilist;
@@ -326,7 +324,7 @@ void PairNb3bHarmonic::read_file(char *file)
 
   // open file on proc 0
 
-  FILE *fp;
+  FILE *fp = NULL;
   if (comm->me == 0) {
     FILE *fp = open_potential(file);
     if (fp == NULL) {
@@ -359,7 +357,7 @@ void PairNb3bHarmonic::read_file(char *file)
 
     // strip comment, skip line if blank
 
-    if (ptr = strchr(line,'#')) *ptr = '\0';
+    if ((ptr = strchr(line,'#'))) *ptr = '\0';
     nwords = atom->count_words(line);
     if (nwords == 0) continue;
 
@@ -378,7 +376,7 @@ void PairNb3bHarmonic::read_file(char *file)
       if (eof) break;
       MPI_Bcast(&n,1,MPI_INT,0,world);
       MPI_Bcast(line,n,MPI_CHAR,0,world);
-      if (ptr = strchr(line,'#')) *ptr = '\0';
+      if ((ptr = strchr(line,'#'))) *ptr = '\0';
       nwords = atom->count_words(line);
     }
 
@@ -389,7 +387,7 @@ void PairNb3bHarmonic::read_file(char *file)
 
     nwords = 0;
     words[nwords++] = strtok(line," \t\n\r\f");
-    while (words[nwords++] = strtok(NULL," \t\n\r\f")) continue;
+    while ((words[nwords++] = strtok(NULL," \t\n\r\f"))) continue;
 
     // ielement,jelement,kelement = 1st args
     // if all 3 args are in element list, then parse this line

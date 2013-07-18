@@ -2658,7 +2658,6 @@ void PairAIREBOOMP::TORSION_thr(int ifrom, int ito,
 
 void PairAIREBOOMP::REBO_neigh_thr()
 {
-  const int nlocal = atom->nlocal;
   const int nthreads = comm->nthreads;
 
   if (atom->nmax > maxlocal) {

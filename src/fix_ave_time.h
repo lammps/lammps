@@ -47,7 +47,7 @@ class FixAveTime : public Fix {
   FILE *fp;
   int nrows;
 
-  int ave,nwindow,nsum,startstep,mode;
+  int ave,nwindow,startstep,mode;
   int noff,overwrite;
   int *offlist;
   char *title1,*title2,*title3;

@@ -17,7 +17,7 @@ set		group all dipole/random 98934 0.75
 
 velocity	all create 0.0 87287 mom no
 
-pair_style	dipole/cut 2.5
+pair_style	lj/cut/dipole/cut 2.5
 pair_coeff	* * 1.0 1.0
 
 neighbor	0.3 bin

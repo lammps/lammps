@@ -7,7 +7,7 @@
 
 #include <stdlib.h>
 
-void WriteDataFile(char *nameroot,int forcefield)
+void WriteDataFile(char *nameroot)
 {
   int i,j,k,m;
   char line[MAX_LINE_LENGTH];
@@ -16,15 +16,19 @@ void WriteDataFile(char *nameroot,int forcefield)
   /* Open data file */
 
   sprintf(line,"%s.data",rootname);
-  if (pflag > 0) 
-    printf(" Writing LAMMPS data file %s.data for class %d FF.\n",
-           rootname,forcefield);
-  if( (DatF = fopen(line,"w")) == NULL ) {
+  if (pflag > 0) {
+    printf(" Writing LAMMPS data file %s.data",rootname);
+    if (forcefield & FF_TYPE_CLASS1) puts(" for Class I force field");
+    if (forcefield & FF_TYPE_CLASS2) puts(" for Class II force field");
+    if (forcefield & FF_TYPE_OPLSAA) puts(" for OPLS-AA force field");
+  }
+
+  if ((DatF = fopen(line,"w")) == NULL ) {
     printf("Cannot open %s\n",line);
     exit(62);
   }
 
-  if (forcefield == 1) total_no_angle_angles = 0;
+  if (forcefield & (FF_TYPE_CLASS1|FF_TYPE_OPLSAA)) total_no_angle_angles = 0;
 
   fprintf(DatF, "LAMMPS data file from msi2lmp v3.8 for %s\n\n", nameroot);
   fprintf(DatF, " %6d atoms\n", total_no_atoms);
@@ -42,16 +46,16 @@ void WriteDataFile(char *nameroot,int forcefield)
     fprintf(DatF, " %3d angle types\n", no_angle_types);
   if (no_dihedral_types > 0) fprintf  (DatF," %3d dihedral types\n",
                                        no_dihedral_types);
-  if (forcefield > 1) {
-    if ((no_oop_types + no_angleangle_types) > 0)
-      fprintf  (DatF, " %3d improper types\n",
-                no_oop_types + no_angleangle_types);
-  }
-  else {
+  if (forcefield & FF_TYPE_CLASS1) {
     if (no_oop_types > 0)
       fprintf  (DatF, " %3d improper types\n", no_oop_types);
   }
 
+  if (forcefield & FF_TYPE_CLASS2) {
+    if ((no_oop_types + no_angleangle_types) > 0)
+      fprintf  (DatF, " %3d improper types\n",
+                no_oop_types + no_angleangle_types);
+  }
 
   /* Modified by SLTM to print out triclinic box types 10/05/10 - lines 56-68 */
 
@@ -60,8 +64,7 @@ void WriteDataFile(char *nameroot,int forcefield)
     fprintf(DatF, " %15.9f %15.9f xlo xhi\n", box[0][0], box[1][0]);
     fprintf(DatF, " %15.9f %15.9f ylo yhi\n", box[0][1], box[1][1]);
     fprintf(DatF, " %15.9f %15.9f zlo zhi\n", box[0][2], box[1][2]);
-  }
-  else {
+  } else {
     fputs("\n",DatF);
     fprintf(DatF, " %15.9f %15.9f xlo xhi\n", box[0][0], box[1][0]);
     fprintf(DatF, " %15.9f %15.9f ylo yhi\n", box[0][1], box[1][1]);
@@ -69,9 +72,7 @@ void WriteDataFile(char *nameroot,int forcefield)
     fprintf(DatF, " %15.9f %15.9f %15.9f xy xz yz\n",box[2][0], box[2][1], box[2][2]);
   }
 
-
   /* MASSES */
-
 
   fprintf(DatF, "\nMasses\n\n");
   for(k=0; k < no_atom_types; k++)
@@ -91,8 +92,9 @@ void WriteDataFile(char *nameroot,int forcefield)
   fputs("\n",DatF);
 
   if (no_bond_types > 0) {
-    if (forcefield == 1) m = 2;
-    if (forcefield == 2) m = 4;
+    m = 0;
+    if (forcefield & FF_TYPE_CLASS1) m = 2;
+    if (forcefield & FF_TYPE_CLASS2) m = 4;
 
     fprintf(DatF,"Bond Coeffs\n\n");
     for (i=0; i < no_bond_types; i++) {
@@ -105,8 +107,9 @@ void WriteDataFile(char *nameroot,int forcefield)
   }
 
   if (no_angle_types > 0) {
-    m = 2; /* forcefield == 1 */
-    if (forcefield == 2) m = 4;
+    m = 0;
+    if (forcefield & FF_TYPE_CLASS1) m = 2;
+    if (forcefield & FF_TYPE_CLASS2) m = 4;
 
     fprintf(DatF,"Angle Coeffs\n\n");
     for (i=0; i < no_angle_types; i++) {
@@ -121,7 +124,7 @@ void WriteDataFile(char *nameroot,int forcefield)
 
   if (no_dihedral_types > 0) {
 
-    if (forcefield == 1) {
+    if (forcefield & FF_TYPE_CLASS1) {
 
       fprintf(DatF,"Dihedral Coeffs\n\n");
 
@@ -131,7 +134,7 @@ void WriteDataFile(char *nameroot,int forcefield)
                 (int) dihedraltypes[i].params[1],
                 (int) dihedraltypes[i].params[2]);
 
-    } else if (forcefield == 2) { 
+    } else if (forcefield & FF_TYPE_CLASS2) { 
 
       fprintf(DatF,"Dihedral Coeffs\n\n");
 
@@ -146,7 +149,7 @@ void WriteDataFile(char *nameroot,int forcefield)
     fputs("\n",DatF);
   }
 
-  if (forcefield == 1) {
+  if (forcefield & FF_TYPE_CLASS1) {
     if (no_oop_types > 0) {
       /* cvff improper coeffs are: type K0 d n */
       fprintf(DatF,"Improper Coeffs\n\n");
@@ -157,7 +160,7 @@ void WriteDataFile(char *nameroot,int forcefield)
       }
       fputs("\n",DatF);
     }
-  } else if (forcefield == 2) {
+  } else if (forcefield & FF_TYPE_CLASS2) {
     if ((no_oop_types + no_angleangle_types) > 0) {
       fprintf(DatF,"Improper Coeffs\n\n");
       for (i=0; i < no_oop_types; i++) {
@@ -175,7 +178,8 @@ void WriteDataFile(char *nameroot,int forcefield)
       fputs("\n",DatF);
     }
   }
-  if (forcefield == 2) {
+
+  if (forcefield & FF_TYPE_CLASS2) {
 
     if (no_angle_types > 0) {
       fprintf(DatF,"BondBond Coeffs\n\n");
@@ -275,14 +279,17 @@ void WriteDataFile(char *nameroot,int forcefield)
 
   fprintf(DatF, "Atoms\n\n");
   for(k=0; k < total_no_atoms; k++) {
-    fprintf(DatF, " %6i %6i %3i %9.6f %15.9f %15.9f %15.9f\n",
+    fprintf(DatF, " %6i %6i %3i %9.6f %15.9f %15.9f %15.9f %3i %3i %3i\n",
             k+1,
             atoms[k].molecule,
             atoms[k].type+1,
             atoms[k].q,
             atoms[k].x[0],
             atoms[k].x[1],
-            atoms[k].x[2]);
+            atoms[k].x[2],
+            atoms[k].image[0],
+            atoms[k].image[1],
+            atoms[k].image[2]);
   }
   fputs("\n",DatF);
 
@@ -337,7 +344,7 @@ void WriteDataFile(char *nameroot,int forcefield)
               oops[k].members[1]+1,
               oops[k].members[2]+1,
               oops[k].members[3]+1);
-    if (forcefield == 2) {
+    if (forcefield & FF_TYPE_CLASS2) {
       for (k=0; k < total_no_angle_angles; k++)
         fprintf(DatF, "%6i %3i %6i %6i %6i %6i \n",k+total_no_oops+1,
                 angleangles[k].type+no_oop_types+1,

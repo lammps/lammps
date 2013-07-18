@@ -24,7 +24,7 @@ struct FrcFieldItem {
   struct FrcFieldData *data; /* contains all eqiuv and param data */
 };
 
-extern struct FrcFieldItem ff_atomtypes, equivalence, ff_vdw,ff_bond, ff_ang, ff_tor, ff_oop,
+extern struct FrcFieldItem ff_atomtypes, equivalence, ff_vdw, ff_bond, ff_morse, ff_ang, ff_tor, ff_oop,
   ff_bonbon, ff_bonang, ff_angtor, ff_angangtor, ff_endbontor, ff_midbontor, ff_angang, ff_bonbon13;
 
 /* prototypes */

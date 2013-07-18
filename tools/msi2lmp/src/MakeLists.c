@@ -124,10 +124,11 @@ void MakeLists()
     build_ooptypes_list();
   }
 
-  if ((forcefield > 1) & (total_no_angle_angles > 0)) {
+  if ((forcefield & FF_TYPE_CLASS2) && (total_no_angle_angles > 0)) {
 
     angleangles = (struct AngleAngleList *)calloc(total_no_angle_angles,
                                                   sizeof(struct AngleAngleList));
+
     if (angleangles == NULL) {
       fprintf(stderr,"Trouble allocating memory for angleangles list - Exiting\n");
       exit(1);
@@ -242,7 +243,7 @@ void MakeLists()
       }
     }
 
-    if ((forcefield > 1) & (total_no_angle_angles > 0)) {
+    if ((forcefield & FF_TYPE_CLASS2) & (total_no_angle_angles > 0)) {
 
       fprintf(stderr,"Angleangle Types\n");
       for (i=0; i < no_angleangle_types; i++) {
@@ -277,7 +278,7 @@ void MakeLists()
             total_no_dihedrals, no_dihedral_types);
     fprintf(stderr," Number of out-of-planes, types = %7d %3d\n",
             total_no_oops, no_oop_types);
-    if (forcefield ==2)
+    if (forcefield & FF_TYPE_CLASS2)
       fprintf(stderr," Number of Angle Angle Terms, types =   %7d %3d\n",
               total_no_angle_angles, no_angleangle_types);
   }
@@ -491,9 +492,7 @@ void build_atomtypes_list()
           if (pflag > 0) fprintf(stderr," WARNING inconsistent # of connects on atom %d type %s\n",j,
                                  atomtypes[k].potential);
         }
-      }
-      else
-        k++;
+      } else k++;
     }
     if (match == 0) {
       atom_type = n;
@@ -529,9 +528,7 @@ void build_bondtypes_list() {
           (typej == bondtypes[k].types[1])) {
         match = 1;
         bond_type = k;
-      }
-      else
-        k++;
+      } else k++;
     }
     if (match == 0) {
       bond_type = n;
@@ -571,9 +568,7 @@ void build_angletypes_list()
           (typek == angletypes[k].types[2])) {
         match = 1;
         angle_type = k;
-      }
-      else
-        k++;
+      } else k++;
     }
     if (match == 0) {
       angle_type = n;
@@ -617,9 +612,7 @@ void build_dihedraltypes_list()
           (typel == dihedraltypes[k].types[3])) {
         match = 1;
         dihedral_type = k;
-      }
-      else
-        k++;
+      } else k++;
     }
     if (match == 0) {
       dihedral_type = n;
@@ -674,9 +667,7 @@ void build_ooptypes_list()
           (typel == ooptypes[k].types[3])) {
         match = 1;
         oop_type = k;
-      }
-      else
-        k++;
+      } else k++;
     }
     if (match == 0) {
 
@@ -736,9 +727,7 @@ void build_angleangletypes_list()
           (typel == angleangletypes[k].types[3])) {
         match = 1;
         angleangle_type = k;
-      }
-      else
-        k++;
+      } else k++;
     }
     if (match == 0) {
       angleangle_type = n;

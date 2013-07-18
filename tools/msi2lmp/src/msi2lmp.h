@@ -51,6 +51,11 @@
 #define MAX_ANGLEANGLE_TYPES   400
 #define MAX_TYPES            12000
 
+#define FF_TYPE_COMMON       1<<0
+#define FF_TYPE_CLASS1       1<<1
+#define FF_TYPE_CLASS2       1<<2
+#define FF_TYPE_OPLSAA       1<<3
+
 struct ResidueList {
   int start;
   int end;
@@ -142,6 +147,7 @@ struct Atom {
   int   no;              /* atom id */
   char  name[MAX_NAME];  /* atom name */
   double x[3];           /* position vector */
+  int   image[3];        /* image flag */
   char  potential[6];    /* atom potential type */
   char  element[4];      /* atom element */
   float q;               /* charge */
@@ -157,9 +163,11 @@ extern char  *rootname;
 extern char  *FrcFileName;
 extern double pbc[6];        /* A, B, C, alpha, beta, gamma */
 extern double box[3][3];     /* hi/lo for x/y/z and xy, xz, yz for triclinic */
+extern double shift[3];      /* shift vector for all coordinates and box positions */
 extern int    periodic;      /* 0= nonperiodic 1= 3-D periodic */
 extern int    TriclinicFlag; /* 0= Orthogonal  1= Triclinic */
-extern int    forcefield;    /* 1= ClassI      2= ClassII */
+extern int    forcefield;    /* BitMask: the value FF_TYPE_COMMON is set for common components of the options below,
+                              * FF_TYPE_CLASS1 = ClassI,  FF_TYPE_CLASS2 = ClassII, FF_TYPE_OPLSAA = OPLS-AA*/
 extern int    centerflag;    /* 1= center box  0= keep box */
 extern int    pflag;         /* print level: 0, 1, 2, 3 */
 extern int    iflag;         /* 0 stop at errors   1 = ignore errors */
@@ -202,6 +210,12 @@ extern void ReadCarFile();
 extern void ReadMdfFile();
 extern void ReadFrcFile();
 extern void MakeLists();
-extern void GetParameters(int);
+extern void GetParameters();
 extern void CheckLists();
-extern void WriteDataFile(char *,int);
+extern void WriteDataFile(char *);
+
+extern void set_box(double box[3][3], double *h, double *h_inv);
+extern void lamda2x(double *lamda, double *x, double *h, double *boxlo);
+extern void x2lamda(double *x, double *lamda, double *h_inv, double *boxlo);
+
+extern void condexit(int);

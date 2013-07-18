@@ -45,14 +45,18 @@
 *                               2  - more verbose
 *                               3  - even more verbose
 *  -- -class
-*        # is the class of forcefield to use (I  = Class I e.g., CVFF)
-*                                            (II = Class II e.g., CFFx )
+*        # is the class of forcefield to use (I  or 1 = Class I e.g., CVFF, clayff)
+*                                            (II or 2 = Class II e.g., CFFx, COMPASS)
+*                                            (O  or 0 = OPLS-AA)
 *     default is -class I
 *
 *  -- -ignore   - tells msi2lmp to ignore warnings and errors and keep going
 *
 *  -- -nocenter - tells msi2lmp to not center the box around the (geometrical)
 *                 center of the atoms, but around the origin
+*
+*  -- -shift    - tells msi2lmp to shift the entire system (box and coordinates)
+*                 by a vector (default: 0.0 0.0 0.0)
 *
 *  -- -frc      - specifies name of the forcefield file (e.g., cff91)
 *
@@ -121,6 +125,7 @@
 char  *rootname;
 double pbc[6];
 double box[3][3];
+double shift[3];
 int    periodic = 1;
 int    TriclinicFlag = 0;
 int    forcefield = 0;
@@ -164,6 +169,10 @@ struct DihedralTypeList *dihedraltypes;
 struct OOPTypeList *ooptypes;
 struct AngleAngleTypeList *angleangletypes;
 
+void condexit(int val)
+{
+    if (iflag == 0) exit(val);
+}
 
 static int check_arg(char **arg, const char *flag, int num, int argc)
 {
@@ -186,7 +195,8 @@ int main (int argc, char *argv[])
 
   pflag = 1;
   iflag = 0;
-  forcefield = 1;
+  forcefield = FF_TYPE_CLASS1 | FF_TYPE_COMMON;
+  shift[0] = shift[1] = shift[2] = 0.0;
 
   frc_dir_name = getenv("BIOSYM_LIBRARY");
 
@@ -206,9 +216,11 @@ int main (int argc, char *argv[])
       if (check_arg(argv,"-class",n,argc))
         return 2;
       if ((strcmp(argv[n],"I") == 0) || (strcmp(argv[n],"1") == 0)) {
-        forcefield = 1;
+        forcefield = FF_TYPE_CLASS1 | FF_TYPE_COMMON;
       } else if ((strcmp(argv[n],"II") == 0) || (strcmp(argv[n],"2") == 0)) {
-        forcefield = 2;
+        forcefield = FF_TYPE_CLASS2 | FF_TYPE_COMMON;
+      } else if ((strcmp(argv[n],"O") == 0) || (strcmp(argv[n],"0") == 0)) {
+        forcefield = FF_TYPE_OPLSAA | FF_TYPE_COMMON;
       } else {
         printf("Unrecognized Forcefield class: %s\n",argv[n]);
         return 3;
@@ -218,6 +230,14 @@ int main (int argc, char *argv[])
       if (check_arg(argv,"-frc",n,argc))
         return 4;
       frc_file_name = argv[n];
+    } else if (strncmp(argv[n],"-s",2) == 0) {
+      if (n+3 > argc) {
+        printf("Missing argument(s) to \"-shift\" flag\n");
+        return 1;
+      }
+      shift[0] = atof(argv[++n]);
+      shift[1] = atof(argv[++n]);
+      shift[2] = atof(argv[++n]);
     } else if (strncmp(argv[n],"-i",2) == 0 ) {
       iflag = 1;
     } else if (strncmp(argv[n],"-n",2) == 0 ) {
@@ -290,18 +310,23 @@ int main (int argc, char *argv[])
 
 
   if (pflag > 0) {
-    printf("\nRunning msi2lmp.....\n\n");
+    puts("\nRunning msi2lmp.....\n");
+    if (forcefield & FF_TYPE_CLASS1) puts(" Forcefield: Class I");
+    if (forcefield & FF_TYPE_CLASS2) puts(" Forcefield: Class II");
+    if (forcefield & FF_TYPE_OPLSAA) puts(" Forcefield: OPLS-AA");
     printf(" Forcefield file name: %s\n",FrcFileName);
-    printf(" Forcefield class: %d\n\n",forcefield);
   }
 
-  if (((forcefield == 1) && (strstr(FrcFileName,"cff") != NULL)) ||
-      ((forcefield == 2) &&
+  if (((forcefield & FF_TYPE_CLASS1) && (strstr(FrcFileName,"cff") != NULL)) ||
+      ((forcefield & FF_TYPE_CLASS2) &&
        ! ((strstr(FrcFileName,"cvff") == NULL)
           || (strstr(FrcFileName,"clayff") == NULL)
-          || (strstr(FrcFileName,"compass") == NULL)))) {
+          || (strstr(FrcFileName,"compass") == NULL))) ||
+      ((forcefield & FF_TYPE_OPLSAA) &&
+       ! (strstr(FrcFileName,"opls") == NULL))) {
     fprintf(stderr," WARNING - forcefield name and class appear to\n");
     fprintf(stderr,"           be inconsistent - Errors may result\n\n");
+    if (iflag == 0) return 7;
   }
 
   /* Read in .car file */
@@ -327,7 +352,7 @@ int main (int argc, char *argv[])
 
   if (pflag > 0)
     printf("\n Get force field parameters for this system\n");
-  GetParameters(forcefield);
+  GetParameters();
 
   /* Do internal check of internal coordinate lists */
   if (pflag > 0)
@@ -335,7 +360,7 @@ int main (int argc, char *argv[])
   CheckLists();
 
   /* Write out the final data */
-  WriteDataFile(rootname,forcefield);
+  WriteDataFile(rootname);
 
   free(rootname);
   if (pflag > 0)

@@ -349,9 +349,7 @@ void MakeConnectFullForm(int *counter) {
              atoms[*counter].connections[j]);
       sscanf(tempname, "%s",
              atoms[*counter].connections[j]);
-    }
-    else
-      sscanf(atoms[*counter].connections[j], "%s", tempname);
+    } else sscanf(atoms[*counter].connections[j], "%s", tempname);
     /* Set cell variables */
 
     i=0;
@@ -360,9 +358,7 @@ void MakeConnectFullForm(int *counter) {
       while ( *charptr!='#' && *charptr!='/' && *charptr!='\000')
         tempcell[i++] = *(charptr++);
       tempcell[i] = '\000';
-    }
-    else
-      strcpy(tempcell, "%000");
+    } else strcpy(tempcell, "%000");
 
     /* Set symmetry variables
        -- If not 1, cannot handle at this time */
@@ -378,9 +374,7 @@ void MakeConnectFullForm(int *counter) {
         }
       }
       tempsym[i] = '\000';
-    }
-    else
-      strcpy(tempsym, "#1");
+    } else strcpy(tempsym, "#1");
 
     /* Set bond order and record in data structure */
 

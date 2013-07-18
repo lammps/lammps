@@ -9,6 +9,63 @@
 #include <string.h>
 #include <math.h>
 
+
+/* ----------------------------------------------------------------------
+   set global box params
+   assumes boxlo/hi and triclinic tilts are already set
+------------------------------------------------------------------------- */
+
+void set_box(double box[3][3], double *h, double *h_inv)
+{
+  h[0] = box[1][0] - box[0][0];
+  h[1] = box[1][1] - box[0][1];
+  h[2] = box[1][2] - box[0][2];
+
+  h_inv[0] = 1.0/h[0];
+  h_inv[1] = 1.0/h[1];
+  h_inv[2] = 1.0/h[2];
+
+  h[3] = box[2][0];
+  h[4] = box[2][1];
+  h[5] = box[2][2];
+  h_inv[3] = -h[3] / (h[1]*h[2]);
+  h_inv[4] = (h[3]*h[5] - h[1]*h[4]) / (h[0]*h[1]*h[2]);
+  h_inv[5] = -h[5] / (h[0]*h[1]);
+}
+
+
+/* ----------------------------------------------------------------------
+   convert triclinic 0-1 lamda coords to box coords for one atom
+   x = H lamda + x0;
+   lamda and x can point to same 3-vector
+------------------------------------------------------------------------- */
+
+void lamda2x(double *lamda, double *x, double *h, double *boxlo)
+{
+  x[0] = h[0]*lamda[0] + h[5]*lamda[1] + h[4]*lamda[2] + boxlo[0];
+  x[1] = h[1]*lamda[1] + h[3]*lamda[2] + boxlo[1];
+  x[2] = h[2]*lamda[2] + boxlo[2];
+}
+
+/* ----------------------------------------------------------------------
+   convert box coords to triclinic 0-1 lamda coords for one atom
+   lamda = H^-1 (x - x0)
+   x and lamda can point to same 3-vector
+------------------------------------------------------------------------- */
+
+void x2lamda(double *x, double *lamda, double *h_inv, double *boxlo)
+{
+  double delta[3];
+  delta[0] = x[0] - boxlo[0];
+  delta[1] = x[1] - boxlo[1];
+  delta[2] = x[2] - boxlo[2];
+
+  lamda[0] = h_inv[0]*delta[0] + h_inv[5]*delta[1] + h_inv[4]*delta[2];
+  lamda[1] = h_inv[1]*delta[1] + h_inv[3]*delta[2];
+  lamda[2] = h_inv[2]*delta[2];
+}
+
+
 void ReadCarFile(void)
 {
   char line[MAX_LINE_LENGTH];  /* Stores lines as they are read in */
@@ -24,6 +81,9 @@ void ReadCarFile(void)
   double sin_beta;
   double A, B, C;
   double center[3];
+  double hmat[6];
+  double hinv[6];
+  double lamda[3];
 
   /* Open .car file for reading */
 
@@ -137,6 +197,11 @@ void ReadCarFile(void)
              atoms[k].potential,
              atoms[k].element,
              &(atoms[k].q));
+
+      atoms[k].x[0] += shift[0];
+      atoms[k].x[1] += shift[1];
+      atoms[k].x[2] += shift[2];
+
       if (centerflag) {
         center[0] += atoms[k].x[0];
         center[1] += atoms[k].x[1];
@@ -158,7 +223,7 @@ void ReadCarFile(void)
   if (pflag > 1) {
     printf("   There are %d atoms in %d molecules in this file\n",
            total_no_atoms,no_molecules);
-    printf("   The total charge in the system is %7.3f.\n\n",total_q);
+    printf("   The total charge in the system is %7.3f.\n",total_q);
   }
 
   /* Search coordinates to find lowest and highest for x, y, and z */
@@ -186,11 +251,11 @@ void ReadCarFile(void)
     }
 
   } else {
-    /* Modified lines 176 - 201 Oct 5th 2010 */
+
     if (TriclinicFlag == 0) {
       for (k=0; k < 3; k++) {
-        box[0][k] = -0.5*pbc[k] + center[k];
-        box[1][k] =  0.5*pbc[k] + center[k];
+        box[0][k] = -0.5*pbc[k] + center[k] + shift[k];
+        box[1][k] =  0.5*pbc[k] + center[k] + shift[k];
         box[2][k] =  0.0;
       }
     } else {
@@ -209,15 +274,48 @@ void ReadCarFile(void)
       C = pbc[2];
 
 
-      box[0][0] = -0.5*A + center[0];
-      box[1][0] =  0.5*A + center[0];
-      box[0][1] = -0.5*B*sin_gamma + center[1];
-      box[1][1] =  0.5*B*sin_gamma + center[1];
-      box[0][2] = -0.5*sqrt(sq_c * sin_beta*sin_beta - C*(cos_alpha-cos_gamma*cos_beta)/sin_gamma) + center[2];
-      box[1][2] =  0.5*sqrt(sq_c * sin_beta*sin_beta - C*(cos_alpha-cos_gamma*cos_beta)/sin_gamma) + center[2];
+      box[0][0] = -0.5*A + center[0] + shift[0];
+      box[1][0] =  0.5*A + center[0] + shift[0];
+      box[0][1] = -0.5*B*sin_gamma + center[1] + shift[1];
+      box[1][1] =  0.5*B*sin_gamma + center[1] + shift[1];
+      box[0][2] = -0.5*sqrt(sq_c * sin_beta*sin_beta - C*(cos_alpha-cos_gamma*cos_beta)/sin_gamma) + center[2] + shift[2];
+      box[1][2] =  0.5*sqrt(sq_c * sin_beta*sin_beta - C*(cos_alpha-cos_gamma*cos_beta)/sin_gamma) + center[2] + shift[2];
       box[2][0] =  B * cos_gamma; /* This is xy SLTM */
       box[2][1] =  C * cos_beta;  /* This is xz SLTM */
       box[2][2] =  C*(cos_alpha-cos_gamma*cos_beta)/sin_gamma; /* This is yz SLTM */
+    }
+  }
+
+  /* compute image flags */
+
+  set_box(box,hmat,hinv);
+
+  n = 0;
+  for (m = 0; m < total_no_atoms; m++) {
+    double tmp;
+    int w=0;
+
+    x2lamda(atoms[m].x,lamda,hinv,box[0]);
+    for (k = 0; k < 3; ++k) {
+      tmp = floor(lamda[k]);
+      atoms[m].image[k] = tmp;
+      lamda[k] -= tmp;
+      if (tmp != 0.0) ++w;
+    }
+    lamda2x(lamda, atoms[m].x,hmat,box[0]);
+    if (w > 0) ++n;
+  }
+
+  /* warn if atoms are outside the box */
+  if (n > 0) {
+    if (periodic) {
+      if (pflag > 1)
+        printf("   %d of %d atoms with nonzero image flags\n\n",n,total_no_atoms);
+    } else {
+      if (iflag == 0 || (pflag > 1))
+        printf("   %d of %d atoms outside the box\n\n",n,total_no_atoms);
+
+      condexit(32);
     }
   }
 

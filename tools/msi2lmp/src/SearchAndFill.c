@@ -118,8 +118,7 @@ void SearchAndFill(struct FrcFieldItem *item)
         for ( j = i; j < item->number_of_parameters; j++ )
           parameters[j] = parameters[j-i];
         break;
-      }
-      else {
+      } else {
         parameters[i] = atof(charptr);
       }
     }
@@ -216,12 +215,10 @@ unsigned char string_match(char *string1,char *string2)
 
   if (len1 != len2) {
     return 0;
-  }
-  else {
+  } else {
     if (strncmp(string1,string2,len1) == 0) {
       return 1;
-    }
-    else {
+    } else {
       return 0;
     }
   }

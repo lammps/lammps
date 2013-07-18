@@ -78,12 +78,6 @@ namespace LAMMPS_NS {
     double cut_coul_global, cut_coulsq_global, kappa, g_ewald;
     double **cut_coul, **cut_coulsq;
 
-    // tables
-    double tabinnersq;
-    double *rtable,*drtable,*ftable,*dftable,*ctable,*dctable;
-    double *etable,*detable,*ptable,*dptable,*vtable,*dvtable;
-    int ncoulshiftbits,ncoulmask;
-
     // r-RESPA parameters
     double *cut_respa;
 

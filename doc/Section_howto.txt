@@ -1420,7 +1420,7 @@ to a file of histogrammed quantities, which can be global or per-atom
 or local quantities.  The histogram output of this fix can also be
 used as input to other output commands.
 
-The "fix ave/correlate"_fix_ave_histo.html command enables direct
+The "fix ave/correlate"_fix_ave_correlate.html command enables direct
 output to a file of time-correlated quantities, which can be global
 scalars.  The correlation matrix output of this fix can also be used
 as input to other output commands.

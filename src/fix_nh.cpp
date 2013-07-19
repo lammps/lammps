@@ -1536,19 +1536,18 @@ double FixNH::compute_vector(int n)
     } else if (pstyle == ANISO) {
       ilen = 3;
       if (n < ilen)
-        if (p_flag[n])
+        if (p_flag[n]) {
           return p_hydro*(volume-vol0) / (pdim*nktv2p);
-        else
-          return 0.0;
+        } else return 0.0;
       n -= ilen;
     } else {
       ilen = 6;
       if (n < ilen)
-        if (n > 2) return 0.0;
-        else if (p_flag[n])
-          return p_hydro*(volume-vol0) / (pdim*nktv2p);
-        else
+        if (n > 2) {
           return 0.0;
+        } else if (p_flag[n]) {
+          return p_hydro*(volume-vol0) / (pdim*nktv2p);
+        } else return 0.0;
       n -= ilen;
     }
 
@@ -1560,16 +1559,16 @@ double FixNH::compute_vector(int n)
     } else if (pstyle == ANISO) {
       ilen = 3;
       if (n < ilen)
-        if (p_flag[n])
+        if (p_flag[n]) {
           return 0.5*omega_dot[n]*omega_dot[n]*omega_mass[n];
-        else return 0.0;
+        } else return 0.0;
       n -= ilen;
     } else {
       ilen = 6;
       if (n < ilen)
-        if (p_flag[n])
+        if (p_flag[n]) {
           return 0.5*omega_dot[n]*omega_dot[n]*omega_mass[n];
-        else return 0.0;
+        } else return 0.0;
       n -= ilen;
     }
 
@@ -1577,17 +1576,19 @@ double FixNH::compute_vector(int n)
       ilen = mpchain;
       if (n < ilen) {
         ich = n;
-        if (ich == 0) return lkt_press * etap[0];
-        else return kt * etap[ich];
+        if (ich == 0) {
+          return lkt_press * etap[0];
+        } else return kt * etap[ich];
       }
       n -= ilen;
       ilen = mpchain;
       if (n < ilen) {
         ich = n;
-        if (ich == 0)
+        if (ich == 0) {
           return 0.5*etap_mass[0]*etap_dot[0]*etap_dot[0];
-        else
+        } else {
           return 0.5*etap_mass[ich]*etap_dot[ich]*etap_dot[ich];
+        }
       }
       n -= ilen;
     }

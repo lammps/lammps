@@ -47,8 +47,6 @@
 int PreAllocate_Space( reax_system *system, control_params *control,
                        storage *workspace, MPI_Comm comm )
 {
-  int  i;
-
   int mincap = system->mincap;
   double safezone = system->safezone;
 
@@ -759,15 +757,11 @@ void ReAllocate( reax_system *system, control_params *control,
                  simulation_data *data, storage *workspace, reax_list **lists,
                  mpi_datatypes *mpi_data )
 {
-  int i, j, k, p;
-  int num_bonds, est_3body, nflag, Nflag, Hflag, mpi_flag, ret, total_send;
+  int num_bonds, est_3body, nflag, Nflag, Hflag, ret;
   int renbr, newsize;
   reallocate_data *realloc;
   reax_list *far_nbrs;
-  sparse_matrix *H;
   grid *g;
-  neighbor_proc *nbr_pr;
-  mpi_out_data *nbr_data;
   MPI_Comm comm;
   char msg[200];
 

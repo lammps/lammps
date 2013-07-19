@@ -67,8 +67,8 @@ int   Allocate_Tokenizer_Space( char**, char**, char*** );
 int   Tokenize( char*, char*** );
 
 /* from lammps */
-void *smalloc( long, char*, MPI_Comm );
-void *scalloc( int, int, char*, MPI_Comm );
-void sfree( void*, char* );
+void *smalloc( long, const char*, MPI_Comm );
+void *scalloc( int, int, const char*, MPI_Comm );
+void sfree( void*, const char* );
 
 #endif

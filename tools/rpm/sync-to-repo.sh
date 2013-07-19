@@ -90,6 +90,40 @@ prune_rpm () {
   fi
 }
 
+
+# function to build delta rpms
+make_drpms () {
+  dir=$1
+  sub=$2
+  prv=
+
+  test -d "${p}drpms" || mkdir -p "${p}drpms"
+
+  # remove all previous delta rpms of this group. we will recreate all
+  # of them and do not want to have to prune here, too.
+  for f in ${p}drpms/${r}*.drpm
+    do rm -vf $f
+  done
+
+  for rpm in ${dir}/lammps${sub}-20[0-9][0-9]*.rpm
+  do \
+      [ -f ${rpm} ] || continue
+      # re-set symbolic link to latest entry
+      p=$(echo ${rpm} | sed -e 's@^\(.*/\)\(lammps-.*\)\(20[0-9][0-9]\+\)\(-[-a-z0-9]*\)\(\..*\.rpm\)$@\1@')
+      r=$(echo ${rpm} | sed -e 's@^\(.*/\)\(lammps-.*\)\(20[0-9][0-9]\+\)\(-[-a-z0-9]*\)\(\..*\.rpm\)$@\2@')
+      t=$(echo ${rpm} | sed -e 's@^\(.*/\)\(lammps-.*\)\(20[0-9][0-9]\+\)\(-[-a-z0-9]*\)\(\..*\.rpm\)$@\3@')
+      v=$(echo ${rpm} | sed -e 's@^\(.*/\)\(lammps-.*\)\(20[0-9][0-9]\+\)\(-[-a-z0-9]*\)\(\..*\.rpm\)$@\4@')
+      e=$(echo ${rpm} | sed -e 's@^\(.*/\)\(lammps-.*\)\(20[0-9][0-9]\+\)\(-[-a-z0-9]*\)\(\..*\)\.rpm$@\5.drpm@')
+
+      [ -n "$prv" ] && makedeltarpm -v ${prv} ${rpm} "${p}drpms/${r}${tp}${vp}_${t}${v}${e}"
+
+      prv=${rpm}
+      tp=${t}
+      vp=${v}
+  done
+}
+
+
 if ! which rpmbuild > /dev/null 2>&1
 then
     echo "Cannot build rpms without 'rpmbuild' installed"
@@ -117,6 +151,13 @@ then
     prune_rpm RPMS -openmpi
     prune_rpm RPMS -mpich2
     prune_rpm RPMS -python
+
+    #make_drpms RPMS/debug -debuginfo
+    make_drpms RPMS -common
+    make_drpms RPMS -doc
+    make_drpms RPMS -openmpi
+    make_drpms RPMS -mpich2
+    make_drpms RPMS -python
 
     createrepo -x \*latest\* -v RPMS
     rsync -arpv --exclude cache --delete RPMS/ \

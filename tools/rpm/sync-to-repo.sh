@@ -99,12 +99,6 @@ make_drpms () {
 
   test -d "${p}drpms" || mkdir -p "${p}drpms"
 
-  # remove all previous delta rpms of this group. we will recreate all
-  # of them and do not want to have to prune here, too.
-  for f in ${p}drpms/${r}*.drpm
-    do rm -vf $f
-  done
-
   for rpm in ${dir}/lammps${sub}-20[0-9][0-9]*.rpm
   do \
       [ -f ${rpm} ] || continue
@@ -151,6 +145,10 @@ then
     prune_rpm RPMS -openmpi
     prune_rpm RPMS -mpich2
     prune_rpm RPMS -python
+
+    # remove all previous delta rpms of this group. we will recreate all
+    # of them and do not want to have to prune here, too.
+    rm -vf RPMS/drpms/*.drpm
 
     #make_drpms RPMS/debug -debuginfo
     make_drpms RPMS -common

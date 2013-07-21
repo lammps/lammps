@@ -84,6 +84,7 @@ class FixColvars : public Fix {
   int init_flag;       // 1 if initialized, 0 if not
   static  int instances; // count fix instances, since colvars currently
                          // only supports one instance at a time
+  void one_time_init(); // one time initialization
 };
 
 }

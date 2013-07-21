@@ -416,6 +416,69 @@ void FixColvars::init()
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 }
 
+
+/* ---------------------------------------------------------------------- */
+
+void FixColvars::one_time_init()
+{
+  int i,tmp;
+
+   // create and initialize the colvars proxy
+
+  if (me == 0) {
+    if (screen) fputs("Creating colvars proxy instance\n",screen);
+    if (logfile) fputs("Creating colvars proxy instance\n",logfile);
+
+    if (inp_name) {
+      if (strcmp(inp_name,"NULL") == 0) {
+        memory->sfree(inp_name);
+        inp_name = NULL;
+      }
+    }
+
+    // try to determine thermostat target temperature
+    double t_target = 0.0;
+    if (tmp_name) {
+      if (strcmp(tmp_name,"NULL") == 0) {
+        tstat_id = -1;
+      } else {
+        tstat_id = modify->find_fix(tmp_name);
+        if (tstat_id < 0) error->one(FLERR,"Could not find tstat fix ID");
+        double *tt = (double*)modify->fix[tstat_id]->extract("t_target",tmp);
+        if (tt) t_target = *tt;
+      }
+    }
+
+    proxy = new colvarproxy_lammps(lmp,inp_name,out_name,rng_seed,t_target);
+    proxy->init(conf_file);
+    coords = proxy->get_coords();
+    forces = proxy->get_forces();
+    oforce = proxy->get_oforce();
+    num_coords = coords->size();
+  }
+
+  // send the list of all colvar atom IDs to all nodes.
+  // also initialize and build hashtable on master.
+
+  MPI_Bcast(&num_coords, 1, MPI_INT, 0, world);
+  memory->create(taglist,num_coords,"colvars:taglist");
+  memory->create(force_buf,3*num_coords,"colvars:force_buf");
+
+  if (me == 0) {
+    std::vector<int> *tags_list = proxy->get_tags();
+    std::vector<int> &tl = *tags_list;
+    inthash_t *hashtable=new inthash_t;
+    inthash_init(hashtable, num_coords);
+    idmap = (void *)hashtable;
+
+    for (i=0; i < num_coords; ++i) {
+      taglist[i] = tl[i];
+      inthash_insert(hashtable, tl[i], i);
+    }
+  }
+  MPI_Bcast(taglist, num_coords, MPI_INT, 0, world);
+}
+
 /* ---------------------------------------------------------------------- */
 
 void FixColvars::setup(int vflag)
@@ -431,61 +494,8 @@ void FixColvars::setup(int vflag)
   // one time initialization
   if (init_flag == 0) {
     init_flag = 1;
-
-    // now create and initialize the colvars proxy
-
-    if (me == 0) {
-
-      // input (= restart) name == "NULL" means, no restart.
-      if (inp_name) {
-        if (strcmp(inp_name,"NULL") == 0) {
-          memory->sfree(inp_name);
-          inp_name = NULL;
-        }
-      }
-
-      // try to determine thermostat target temperature
-      double t_target = 0.0;
-      if (tmp_name) {
-        if (strcmp(tmp_name,"NULL") == 0)
-          tstat_id = -1;
-        else {
-          tstat_id = modify->find_fix(tmp_name);
-          if (tstat_id < 0) error->one(FLERR,"Could not find tstat fix ID");
-          double *tt = (double*)modify->fix[tstat_id]->extract("t_target",tmp);
-          if (tt) t_target = *tt;
-        }
-      }
-
-      proxy = new colvarproxy_lammps(lmp,inp_name,out_name,rng_seed,t_target);
-      proxy->init(conf_file);
-      coords = proxy->get_coords();
-      forces = proxy->get_forces();
-      oforce = proxy->get_oforce();
-      num_coords = coords->size();
-    }
-
-    // send the list of all colvar atom IDs to all nodes.
-    // also initialize and build hashtable on master.
-
-    MPI_Bcast(&num_coords, 1, MPI_INT, 0, world);
-    memory->create(taglist,num_coords,"colvars:taglist");
-    memory->create(force_buf,3*num_coords,"colvars:force_buf");
-
-    if (me == 0) {
-      std::vector<int> *tags_list = proxy->get_tags();
-      std::vector<int> &tl = *tags_list;
-      inthash_t *hashtable=new inthash_t;
-      inthash_init(hashtable, num_coords);
-      idmap = (void *)hashtable;
-
-      for (i=0; i < num_coords; ++i) {
-        taglist[i] = tl[i];
-        inthash_insert(hashtable, tl[i], i);
-      }
-    }
-    MPI_Bcast(taglist, num_coords, MPI_INT, 0, world);
-  } // end of one time initialization
+    one_time_init();
+  }
 
   // determine size of comm buffer
   nme=0;
@@ -902,6 +912,11 @@ void FixColvars::write_restart(FILE *fp)
 void FixColvars::restart(char *buf)
 {
   init();
+  if (init_flag == 0) {
+    init_flag = 1;
+    one_time_init();
+  }
+
   if (me == 0) {
     std::string rest_text(buf);
     proxy->deserialize_status(rest_text);

@@ -157,7 +157,7 @@ then
     make_drpms RPMS -mpich2
     make_drpms RPMS -python
 
-    createrepo -x \*latest\* -v RPMS
+    createrepo --deltas -x \*latest\* -v RPMS
     rsync -arpv --exclude cache --delete RPMS/ \
         ${MYRPM_REPO_USER}@${MYRPM_REPO_HOST}:${MYRPM_REPO_DIR}
     # we use the source rpm on suse, since they do not have a "dist" tag.

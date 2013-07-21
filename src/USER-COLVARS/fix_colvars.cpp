@@ -423,6 +423,9 @@ void FixColvars::one_time_init()
 {
   int i,tmp;
 
+  if (init_flag) return;
+  init_flag = 1;
+
    // create and initialize the colvars proxy
 
   if (me == 0) {
@@ -491,11 +494,7 @@ void FixColvars::setup(int vflag)
   MPI_Status status;
   MPI_Request request;
 
-  // one time initialization
-  if (init_flag == 0) {
-    init_flag = 1;
-    one_time_init();
-  }
+  one_time_init();
 
   // determine size of comm buffer
   nme=0;
@@ -911,11 +910,7 @@ void FixColvars::write_restart(FILE *fp)
 
 void FixColvars::restart(char *buf)
 {
-  init();
-  if (init_flag == 0) {
-    init_flag = 1;
-    one_time_init();
-  }
+  one_time_init();
 
   if (me == 0) {
     std::string rest_text(buf);

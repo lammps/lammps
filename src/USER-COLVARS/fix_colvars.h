@@ -135,7 +135,7 @@ meaningful with minimization calculations.
 E: Could not find tstat fix ID
 
 Self-explanatory. The thermostat fix ID provided with the tstat keyword
-is not defined (anymore). Check your input file.
+is not defined (yet or anymore). Check your input file.
 
 E: Run aborted on request from colvars module
 

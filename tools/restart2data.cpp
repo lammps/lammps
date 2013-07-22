@@ -2948,6 +2948,7 @@ void dihedral(FILE *fp, Data &data)
   if (strcmp(data.dihedral_style,"none") == 0) {
 
   } else if (strcmp(data.dihedral_style,"charmm") == 0) {
+    int dummy;
 
     data.dihedral_charmm_k = new double[data.ndihedraltypes+1];
     data.dihedral_charmm_multiplicity = new int[data.ndihedraltypes+1];
@@ -2957,6 +2958,7 @@ void dihedral(FILE *fp, Data &data)
     nread_int(&data.dihedral_charmm_multiplicity[1],data.ndihedraltypes,fp);
     nread_int(&data.dihedral_charmm_sign[1],data.ndihedraltypes,fp);
     nread_double(&data.dihedral_charmm_weight[1],data.ndihedraltypes,fp);
+    nread_int(&dummy,1,fp);
 
   } else if (strcmp(data.dihedral_style,"class2") == 0) {
 

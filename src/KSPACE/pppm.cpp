@@ -781,6 +781,7 @@ void PPPM::allocate()
 
   // summation coeffs
 
+  order_allocated = order;
   if (!stagger_flag) memory->create(gf_b,order,"pppm:gf_b");
   memory->create2d_offset(rho1d,3,-order/2,order/2,"pppm:rho1d");
   memory->create2d_offset(drho1d,3,-order/2,order/2,"pppm:drho1d");
@@ -868,10 +869,10 @@ void PPPM::deallocate()
 
   memory->destroy(gf_b);
   if (stagger_flag) gf_b = NULL;
-  memory->destroy2d_offset(rho1d,-order/2);
-  memory->destroy2d_offset(drho1d,-order/2);
-  memory->destroy2d_offset(rho_coeff,(1-order)/2);
-  memory->destroy2d_offset(drho_coeff,(1-order)/2);
+  memory->destroy2d_offset(rho1d,-order_allocated/2);
+  memory->destroy2d_offset(drho1d,-order_allocated/2);
+  memory->destroy2d_offset(rho_coeff,(1-order_allocated)/2);
+  memory->destroy2d_offset(drho_coeff,(1-order_allocated)/2);
 
   delete fft1;
   delete fft2;

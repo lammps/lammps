@@ -46,6 +46,7 @@ class MSM : public KSpace {
   double volume;
   double *delxinv,*delyinv,*delzinv;
   double h_x,h_y,h_z;
+  double C_p;
 
   int *nx_msm,*ny_msm,*nz_msm;
   int *nxlo_in,*nylo_in,*nzlo_in;
@@ -97,7 +98,6 @@ class MSM : public KSpace {
   void set_proc_grid(int);
   void set_grid_local();
   void setup_grid();
-  double estimate_cutoff(double,double);
   double estimate_1d_error(double,double);
   double estimate_3d_error();
   double estimate_total_error();

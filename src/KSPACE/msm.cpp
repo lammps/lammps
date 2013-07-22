@@ -101,7 +101,7 @@ MSM::MSM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
 
   peratom_allocate_flag = 0;
 
-  order = 8;
+  order = 10;
 }
 
 /* ----------------------------------------------------------------------
@@ -255,57 +255,6 @@ void MSM::init()
 }
 
 /* ----------------------------------------------------------------------
-   estimate cutoff for a given grid spacing and error
-------------------------------------------------------------------------- */
-
-double MSM::estimate_cutoff(double h, double prd)
-{
-  double a;
-  int p = order - 1;
-
-  double Mp,cprime,error_scaling;
-  Mp = cprime = error_scaling = 1;
-  // Mp values from Table 5.1 of Hardy's thesis
-  // cprime values from equation 4.17 of Hardy's thesis
-  // error scaling from empirical fitting to convert to rms force errors
-  if (p == 3) {
-    Mp = 9;
-    cprime = 1.0/6.0;
-    error_scaling = 0.39189561;
-  } else if (p == 5) {
-    Mp = 825;
-    cprime = 1.0/30.0;
-    error_scaling = 0.150829428;
-  } else if (p == 7) {
-    Mp = 130095;
-    cprime = 1.0/140.0;
-    error_scaling = 0.049632967;
-  } else if (p == 9) {
-    Mp = 34096545;
-    cprime = 1.0/630.0;
-    error_scaling = 0.013520855;
-  } else {
-    error->all(FLERR,"MSM order must be 4, 6, 8, or 10");
-  }
-
-  // equation 4.1 from Hardy's thesis
-  double C_p = 4.0*cprime*Mp/3.0;
-
-  // use empirical parameters to convert to rms force errors
-  C_p *= error_scaling;
-
-  // equation 3.200 from Hardy's thesis
-  a = C_p*pow(h,(p-1))/accuracy;
-
-  // include dependency of error on other terms
-  a *= q2/(prd*sqrt(double(atom->natoms)));
-
-  a = pow(a,1.0/double(p));
-
-  return a;
-}
-
-/* ----------------------------------------------------------------------
    estimate 1d grid RMS force error for MSM
 ------------------------------------------------------------------------- */
 
@@ -340,7 +289,7 @@ double MSM::estimate_1d_error(double h, double prd)
   }
 
   // equation 4.1 from Hardy's thesis
-  double C_p = 4.0*cprime*Mp/3.0;
+  C_p = 4.0*cprime*Mp/3.0;
 
   // use empirical parameters to convert to rms force errors
   C_p *= error_scaling;
@@ -676,6 +625,7 @@ void MSM::allocate()
 {
   // interpolation coeffs
 
+  order_allocated = order;
   memory->create2d_offset(phi1d,3,-order,order,"msm:phi1d");
   memory->create2d_offset(dphi1d,3,-order,order,"msm:dphi1d");
 
@@ -719,8 +669,8 @@ void MSM::allocate()
 
 void MSM::deallocate()
 {
-  memory->destroy2d_offset(phi1d,-order);
-  memory->destroy2d_offset(dphi1d,-order);
+  memory->destroy2d_offset(phi1d,-order_allocated);
+  memory->destroy2d_offset(dphi1d,-order_allocated);
 
   if (cg_all) delete cg_all;
 
@@ -1012,28 +962,6 @@ void MSM::set_grid_global()
     nz_max = nz_msm_max;
   }
 
-  // adjust Coulombic cutoff to give desired error (if requested)
-
-  if (adjust_cutoff_flag) {
-    hx = xprd/nx_max;
-    hy = yprd/ny_max;
-    hz = zprd/nz_max;
-
-    double ax,ay,az;
-    ax = estimate_cutoff(hx,xprd);
-    ay = estimate_cutoff(hy,yprd);
-    az = estimate_cutoff(hz,zprd);
-
-    cutoff = sqrt(ax*ax + ay*ay + az*az)/sqrt(3.0);
-    int itmp;
-    double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
-    *p_cutoff = cutoff;
-
-    char str[128];
-    sprintf(str,"Adjusting Coulombic cutoff for MSM, new cutoff = %g",cutoff);
-    if (me == 0) error->warning(FLERR,str);
-  }
-
   // scale grid for triclinic skew
 
   if (triclinic && !gridflag) {
@@ -1048,16 +976,61 @@ void MSM::set_grid_global()
   }
 
   // boost grid size until it is factorable by 2
+  // round up or down, depending on which is closer
 
   int flag = 0;
   int xlevels,ylevels,zlevels;
+  double k,r;
 
-  while (!factorable(nx_max,flag,xlevels)) nx_max++;
-  while (!factorable(ny_max,flag,ylevels)) ny_max++;
-  while (!factorable(nz_max,flag,zlevels)) nz_max++;
+  while (!factorable(nx_max,flag,xlevels)) {
+    double k = log(nx_max)/log(2.0);
+    double r = k - floor(k);
+    if (r > 0.5) nx_max++;
+    else nx_max--;
+  }
+  while (!factorable(ny_max,flag,ylevels)) {
+    double k = log(ny_max)/log(2.0);
+    double r = k - floor(k);
+    if (r > 0.5) ny_max++;
+    else ny_max--;
+  }
+  while (!factorable(nz_max,flag,zlevels)) {
+    double k = log(nz_max)/log(2.0);
+    double r = k - floor(k);
+    if (r > 0.5) nz_max++;
+    else nz_max--;
+  }
 
   if (flag && gridflag && me == 0)
-    error->warning(FLERR,"Number of MSM mesh points increased to be a multiple of 2");
+    error->warning(FLERR,"Number of MSM mesh points changed to be a multiple of 2");
+
+  // adjust Coulombic cutoff to give desired error (if requested)
+
+  if (adjust_cutoff_flag) {
+    hx = xprd/nx_max;
+    hy = yprd/ny_max;
+    hz = zprd/nz_max;
+
+    int p = order - 1;
+    double Lx2 = xprd*xprd;
+    double Ly2 = yprd*yprd;
+    double Lz2 = zprd*zprd;
+    double hx2pm2 = pow(hx,2.0*p-2.0);
+    double hy2pm2 = pow(hy,2.0*p-2.0);
+    double hz2pm2 = pow(hz,2.0*p-2.0);
+    estimate_1d_error(1.0,1.0); // make sure that C_p is defined
+    double k = q2*C_p/accuracy/sqrt(double(atom->natoms));
+    double sum = hx2pm2/Lx2 + hy2pm2/Ly2 + hz2pm2/Lz2;
+
+    cutoff = pow(k*k*sum/3.0,1.0/(2.0*p));
+    int itmp;
+    double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
+    *p_cutoff = cutoff;
+
+    char str[128];
+    sprintf(str,"Adjusting Coulombic cutoff for MSM, new cutoff = %g",cutoff);
+    if (me == 0) error->warning(FLERR,str);
+  }
 
   if (triclinic == 0) {
     h_x = xprd/nx_max;
@@ -2265,7 +2238,7 @@ void MSM::restriction(int n)
 {
   //fprintf(screen,"Restricting from level %i to %i\n\n",n,n+1);
 
-  const int p = order-1;
+  int p = order-1;
 
   double ***qgrid1 = qgrid[n];
   double ***qgrid2 = qgrid[n+1];
@@ -2287,8 +2260,7 @@ void MSM::restriction(int n)
 
   // zero out charge on coarser grid
 
-  memset(&(qgrid2[nzlo_out[n+1]][nylo_out[n+1]][nxlo_out[n+1]]),0,
-         ngrid[n+1]*sizeof(double));
+  memset(&(qgrid2[nzlo_out[n+1]][nylo_out[n+1]][nxlo_out[n+1]]),0,ngrid[n+1]*sizeof(double));
 
   for (kp = nzlo_in[n+1]; kp <= nzhi_in[n+1]; kp++)
     for (jp = nylo_in[n+1]; jp <= nyhi_in[n+1]; jp++)
@@ -2339,7 +2311,7 @@ void MSM::prolongation(int n)
 {
   //fprintf(screen,"Prolongating from level %i to %i\n\n",n+1,n);
 
-  const int p = order-1;
+  int p = order-1;
 
   double ***egrid1 = egrid[n];
   double ***egrid2 = egrid[n+1];

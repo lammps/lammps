@@ -215,7 +215,7 @@ void DisplaceAtoms::command(int narg, char **arg)
     axis[1] = force->numeric(FLERR,arg[6]);
     axis[2] = force->numeric(FLERR,arg[7]);
     double theta = force->numeric(FLERR,arg[8]);
-    if (dim == 2 and (axis[0] != 0.0 || axis[1] != 0.0))
+    if (dim == 2 && (axis[0] != 0.0 || axis[1] != 0.0))
       error->all(FLERR,"Invalid displace_atoms rotate axis for 2d");
 
     double len = sqrt(axis[0]*axis[0] + axis[1]*axis[1] + axis[2]*axis[2]);

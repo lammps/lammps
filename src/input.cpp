@@ -200,7 +200,7 @@ void Input::file()
     // execute the command
 
     if (execute_command()) {
-      char str[maxline+32];
+      char *str = new char[maxline+32];
       sprintf(str,"Unknown command: %s",line);
       error->all(FLERR,str);
     }
@@ -266,7 +266,7 @@ char *Input::one(const char *single)
   // execute the command and return its name
 
   if (execute_command()) {
-    char str[maxline+32];
+    char *str = new char[maxline+32];
     sprintf(str,"Unknown command: %s",line);
     error->all(FLERR,str);
   }

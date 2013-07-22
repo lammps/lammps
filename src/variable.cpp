@@ -3618,7 +3618,7 @@ unsigned int Variable::data_mask(char *str)
     // compute
     // ----------------
 
-    if ((strncmp(word,"c_",2) == 0) && (i>0) && (not isalnum(str[i-1]))){
+    if ((strncmp(word,"c_",2) == 0) && (i>0) && (!isalnum(str[i-1]))) {
       if (domain->box_exist == 0)
         error->all(FLERR,
                    "Variable evaluation before simulation box is defined");
@@ -3636,7 +3636,7 @@ unsigned int Variable::data_mask(char *str)
       delete [] id;
     }
 
-    if ((strncmp(word,"f_",2) == 0) && (i>0) && (not isalnum(str[i-1]))) {
+    if ((strncmp(word,"f_",2) == 0) && (i>0) && (!isalnum(str[i-1]))) {
         if (domain->box_exist == 0)
           error->all(FLERR,
                      "Variable evaluation before simulation box is defined");
@@ -3652,7 +3652,7 @@ unsigned int Variable::data_mask(char *str)
         delete [] id;
     }
 
-    if ((strncmp(word,"v_",2) == 0) && (i>0) && (not isalnum(str[i-1]))) {
+    if ((strncmp(word,"v_",2) == 0) && (i>0) && (!isalnum(str[i-1]))) {
       int ivar = find(word);
       datamask &= data_mask(ivar);
     }

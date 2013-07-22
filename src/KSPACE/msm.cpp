@@ -2265,7 +2265,7 @@ void MSM::restriction(int n)
 {
   //fprintf(screen,"Restricting from level %i to %i\n\n",n,n+1);
 
-  int p = order-1;
+  const int p = order-1;
 
   double ***qgrid1 = qgrid[n];
   double ***qgrid2 = qgrid[n+1];
@@ -2287,7 +2287,8 @@ void MSM::restriction(int n)
 
   // zero out charge on coarser grid
 
-  memset(&(qgrid2[nzlo_out[n+1]][nylo_out[n+1]][nxlo_out[n+1]]),0,ngrid[n+1]*sizeof(double));
+  memset(&(qgrid2[nzlo_out[n+1]][nylo_out[n+1]][nxlo_out[n+1]]),0,
+         ngrid[n+1]*sizeof(double));
 
   for (kp = nzlo_in[n+1]; kp <= nzhi_in[n+1]; kp++)
     for (jp = nylo_in[n+1]; jp <= nyhi_in[n+1]; jp++)
@@ -2338,7 +2339,7 @@ void MSM::prolongation(int n)
 {
   //fprintf(screen,"Prolongating from level %i to %i\n\n",n+1,n);
 
-  int p = order-1;
+  const int p = order-1;
 
   double ***egrid1 = egrid[n];
   double ***egrid2 = egrid[n+1];

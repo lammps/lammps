@@ -83,15 +83,15 @@ E: Incorrect args for pair coefficients
 
 UNDOCUMENTED
 
-E: Pair style lj/cut/coul/cut/tip4p requires atom IDs
+E: Pair style lj/cut/tip4p/cut requires atom IDs
 
 UNDOCUMENTED
 
-E: Pair style lj/cut/coul/cut/tip4p requires newton pair on
+E: Pair style lj/cut/tip4p/cut requires newton pair on
 
 UNDOCUMENTED
 
-E: Pair style lj/cut/coul/cut/tip4p requires atom attribute q
+E: Pair style lj/cut/tip4p/cut requires atom attribute q
 
 UNDOCUMENTED
 

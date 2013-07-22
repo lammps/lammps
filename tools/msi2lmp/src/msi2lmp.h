@@ -24,12 +24,14 @@
 * and to make the program fully dynamic. The second version used
 * fixed dimension arrays for the internal coordinates.
 *
-* John Carpenter can be contacted by sending email to
-* jec374@earthlink.net
+* The thrid version was revised in Fall 2011 by 
+* Stephanie Teich-McGoldrick to add support non-orthogonal cells.
 *
-* November 2000
-*
-*
+* The next revision was done in Summer 2013 by
+* Axel Kohlmeyer to improve portability to Windows compilers,
+* clean up command line parsing and improve compatibility with
+* the then current LAMMPS versions. This revision removes 
+* compatibility with the obsolete LAMMPS version written in Fortran 90.
 */
 
 # include <stdio.h>
@@ -153,10 +155,12 @@ struct Atom {
 
 extern char  *rootname;
 extern char  *FrcFileName;
-extern double pbc[9];
+extern double pbc[6];        /* A, B, C, alpha, beta, gamma */
+extern double box[3][3];     /* hi/lo for x/y/z and xy, xz, yz for triclinic */
 extern int    periodic;      /* 0= nonperiodic 1= 3-D periodic */
 extern int    TriclinicFlag; /* 0= Orthogonal  1= Triclinic */
 extern int    forcefield;    /* 1= ClassI      2= ClassII */
+extern int    centerflag;    /* 1= center box  0= keep box */
 extern int    pflag;         /* print level: 0, 1, 2, 3 */
 extern int    iflag;         /* 0 stop at errors   1 = ignore errors */
 extern int    *no_atoms;
@@ -200,5 +204,4 @@ extern void ReadFrcFile();
 extern void MakeLists();
 extern void GetParameters(int);
 extern void CheckLists();
-extern void WriteDataFile01(char *,int);
-extern void WriteDataFile05(char *,int);
+extern void WriteDataFile(char *,int);

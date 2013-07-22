@@ -10,8 +10,7 @@ SRCS     = msi2lmp.c \
 	   SearchAndFill.c \
            GetParameters.c \
 	   CheckLists.c \
-           WriteDataFile05.c \
-           WriteDataFile01.c
+           WriteDataFile.c
 
 OBJS     = $(SRCS:.c=.o)
 
@@ -42,5 +41,4 @@ ReadCarFile.o: ReadCarFile.c msi2lmp.h
 ReadFrcFile.o: ReadFrcFile.c msi2lmp.h Forcefield.h
 ReadMdfFile.o: ReadMdfFile.c msi2lmp.h
 SearchAndFill.o: SearchAndFill.c msi2lmp.h Forcefield.h
-WriteDataFile01.o: WriteDataFile01.c msi2lmp.h Forcefield.h
-WriteDataFile05.o: WriteDataFile05.c msi2lmp.h Forcefield.h
+WriteDataFile.o: WriteDataFile.c msi2lmp.h Forcefield.h

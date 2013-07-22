@@ -1,6 +1,6 @@
 /*
 *
-*  msi2lmp.exe  V3.6
+*  msi2lmp.exe  V3.8
 *
 *   v3.6 KLA - Changes to output to either lammps 2001 (F90 version) or to
 *              lammps 2005 (C++ version)
@@ -33,10 +33,11 @@
 *  The program is started by supplying information at the command prompt
 * according to the usage described below.
 *
-*  USAGE: msi2lmp3 ROOTNAME {-print #} {-class #} {-frc FRC_FILE} -2001
+*  USAGE: msi2lmp3 ROOTNAME {-print #} {-class #} {-frc FRC_FILE} {-ignore} {-nocenter}
 *
 *  -- msi2lmp3 is the name of the executable
 *  -- ROOTNAME is the base name of the .car and .mdf files
+*  -- all opther flags are optional and can be abbreviated (e.g. -p instead of -print)
 *
 *  -- -print
 *        # is the print level:  0  - silent except for errors
@@ -48,7 +49,12 @@
 *                                            (II = Class II e.g., CFFx )
 *     default is -class I
 *
-*  -- -frc   - specifies name of the forcefield file (e.g., cff91)
+*  -- -ignore   - tells msi2lmp to ignore warnings and errors and keep going
+*
+*  -- -nocenter - tells msi2lmp to not center the box around the (geometrical)
+*                 center of the atoms, but around the origin
+*
+*  -- -frc      - specifies name of the forcefield file (e.g., cff91)
 *
 *     If the name includes a hard wired directory (i.e., if the name
 *     starts with . or /), then the name is used alone. Otherwise,
@@ -70,10 +76,7 @@
 *
 *     By default, the program uses $BIOSYM_LIBRARY/cvff.frc
 *
-*  -- -2001 will output a data file for the FORTRAN 90 version of LAMMPS (2001)
-*     By default, the program will output for the C++ version of LAMMPS.
-*
-*  -- output is written to a file called ROOTNAME.lammps{01/05}
+*  -- output is written to a file called ROOTNAME.data
 *
 *
 ****************************************************************
@@ -116,10 +119,12 @@
 /* global variables */
 
 char  *rootname;
-double pbc[9];
+double pbc[6];
+double box[3][3];
 int    periodic = 1;
 int    TriclinicFlag = 0;
 int    forcefield = 0;
+int    centerflag = 1;
 
 int    pflag;
 int    iflag;
@@ -175,12 +180,10 @@ static int check_arg(char **arg, const char *flag, int num, int argc)
 
 int main (int argc, char *argv[])
 {
-  int n,i,found_sep;           /* Counter */
-  int outv;
+  int n,i,found_sep;
   const char *frc_dir_name = NULL;
   const char *frc_file_name = NULL;
 
-  outv = 2005;
   pflag = 1;
   iflag = 0;
   forcefield = 1;
@@ -188,7 +191,7 @@ int main (int argc, char *argv[])
   frc_dir_name = getenv("BIOSYM_LIBRARY");
 
   if (argc < 2) {
-    printf("usage: %s <rootname> [-class <I|1|II|2>] [-frc <path to frc file>] [-p #] [-i]\n",argv[0]);
+    printf("usage: %s <rootname> [-class <I|1|II|2>] [-frc <path to frc file>] [-print #] [-ignore] [-nocenter]\n",argv[0]);
     return 1;
   } else { /* rootname was supplied as first argument, copy to rootname */
     int len = strlen(argv[1]) + 1;
@@ -210,10 +213,6 @@ int main (int argc, char *argv[])
         printf("Unrecognized Forcefield class: %s\n",argv[n]);
         return 3;
       }
-    } else if (strcmp(argv[n],"-2001") == 0) {
-      outv = 2001;
-    } else if (strcmp(argv[n],"-2005") == 0) {
-      outv = 2005;
     } else if (strncmp(argv[n],"-f",2) == 0) {
       n++;
       if (check_arg(argv,"-frc",n,argc))
@@ -221,6 +220,8 @@ int main (int argc, char *argv[])
       frc_file_name = argv[n];
     } else if (strncmp(argv[n],"-i",2) == 0 ) {
       iflag = 1;
+    } else if (strncmp(argv[n],"-n",2) == 0 ) {
+      centerflag = 0;
     } else if (strncmp(argv[n],"-p",2) == 0) {
       n++;
       if (check_arg(argv,"-print",n,argc))
@@ -333,12 +334,8 @@ int main (int argc, char *argv[])
     printf("\n Check parameters for internal consistency\n");
   CheckLists();
 
-  if (outv == 2001) {
-    WriteDataFile01(rootname,forcefield);
-
-  } else if (outv == 2005) {
-    WriteDataFile05(rootname,forcefield);
-  }
+  /* Write out the final data */
+  WriteDataFile(rootname,forcefield);
 
   free(rootname);
   if (pflag > 0)

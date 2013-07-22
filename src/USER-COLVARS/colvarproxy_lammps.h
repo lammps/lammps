@@ -57,6 +57,7 @@ class colvarproxy_lammps : public colvarproxy {
   std::vector<struct commdata> positions;
   std::vector<struct commdata> total_forces;
   std::vector<struct commdata> applied_forces;
+  std::vector<struct commdata> previous_applied_forces;
 
  public:
   friend class cvm::atom;

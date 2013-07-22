@@ -419,7 +419,7 @@ void FixColvars::setup(int vflag)
 {
   const int * const tag  = atom->tag;
   const int * const type = atom->type;
-  int i,nme,tmp,ndata,nlocal_max,tag_max,max;
+  int i,nme,tmp,ndata;
   int nlocal = atom->nlocal;
 
   MPI_Status status;
@@ -605,7 +605,8 @@ void FixColvars::setup(int vflag)
   }
 
   // run pre-run setup in colvarproxy
-  proxy->setup();
+  if (me == 0)
+    proxy->setup();
 
   // initialize forces
   if (strstr(update->integrate_style,"verlet") || (update->whichflag == 2))

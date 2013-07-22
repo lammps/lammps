@@ -429,8 +429,8 @@ void FixColvars::one_time_init()
    // create and initialize the colvars proxy
 
   if (me == 0) {
-    if (screen) fputs("Creating colvars proxy instance\n",screen);
-    if (logfile) fputs("Creating colvars proxy instance\n",logfile);
+    if (screen) fputs("colvars: Creating proxy instance\n",screen);
+    if (logfile) fputs("colvars: Creating proxy instance\n",logfile);
 
     if (inp_name) {
       if (strcmp(inp_name,"NULL") == 0) {

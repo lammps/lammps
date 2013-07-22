@@ -41,6 +41,7 @@ using namespace MathConst;
 DihedralCharmm::DihedralCharmm(LAMMPS *lmp) : Dihedral(lmp)
 {
   weightflag = 0;
+  writedata = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -424,3 +425,14 @@ void DihedralCharmm::read_restart(FILE *fp)
     sin_shift[i] = sin(MY_PI*shift[i]/180.0);
   }
 }
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void DihedralCharmm::write_data(FILE *fp)
+{
+  for (int i = 1; i <= atom->ndihedraltypes; i++)
+    fprintf(fp,"%d %g %d %d %g\n",i,k[i],multiplicity[i],shift[i],weight[i]);
+}
+

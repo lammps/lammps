@@ -419,7 +419,7 @@ void AngleClass2::write_data(FILE *fp)
 
   fprintf(fp,"\nBondAngle Coeffs\n\n");
   for (int i = 1; i <= atom->nangletypes; i++)
-    fprintf(fp,"%d %g %g %g %gx\n",i,ba_k1[i],ba_k2[i],ba_r1[i],ba_r2[i]);
+    fprintf(fp,"%d %g %g %g %g\n",i,ba_k1[i],ba_k2[i],ba_r1[i],ba_r2[i]);
 }
 
 /* ---------------------------------------------------------------------- */

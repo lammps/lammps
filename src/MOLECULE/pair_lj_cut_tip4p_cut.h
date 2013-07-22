@@ -103,7 +103,7 @@ E: Must use an angle style with TIP4P potential
 
 UNDOCUMENTED
 
-E: Water H epsilon must be 0.0 for pair style lj/cut/coul/long/tip4p
+E: Water H epsilon must be 0.0 for pair style lj/cut/tip4p/cut
 
 UNDOCUMENTED
 

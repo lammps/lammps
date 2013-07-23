@@ -36,12 +36,9 @@
 #define MAX_GROUP 32
 #define PI (4.0*atan(1.0))
 
-// these must match settings in src/lmptype.h which builds LAMMPS with
-//   -DLAMMPS_SMALLBIG (the default), -DLAMMPS_BIGBIG, or -DLAMMPS_SMALLSMALL
-// you can edit the tools/Makefile to enforce the same setting
-//   for the build of restart2data, e.g.
-//   g++ -g -DLAMMPS_BIGBIG restart2data.o -o restart2data
-//   again -DLAMMPS_SMALLBIG is the default
+// these must match settings in src/lmptype.h
+// depending on whether you built LAMMPS with
+// -DLAMMPS_SMALLBIG (the default), -DLAMMPS_BIGBIG, or -DLAMMPS_SMALLSMALL
 
 #include "stdint.h"
 #define __STDC_FORMAT_MACROS
@@ -567,7 +564,7 @@ int main (int narg, char **arg)
 
 void header(FILE *fp, Data &data)
 {
-  const char *version = "27 June 2013";
+  const char *version = "23 July 2013";
 
   data.triclinic = 0;
 
@@ -2951,6 +2948,7 @@ void dihedral(FILE *fp, Data &data)
   if (strcmp(data.dihedral_style,"none") == 0) {
 
   } else if (strcmp(data.dihedral_style,"charmm") == 0) {
+    int dummy;
 
     data.dihedral_charmm_k = new double[data.ndihedraltypes+1];
     data.dihedral_charmm_multiplicity = new int[data.ndihedraltypes+1];
@@ -2960,6 +2958,7 @@ void dihedral(FILE *fp, Data &data)
     nread_int(&data.dihedral_charmm_multiplicity[1],data.ndihedraltypes,fp);
     nread_int(&data.dihedral_charmm_sign[1],data.ndihedraltypes,fp);
     nread_double(&data.dihedral_charmm_weight[1],data.ndihedraltypes,fp);
+    nread_int(&dummy,1,fp);
 
   } else if (strcmp(data.dihedral_style,"class2") == 0) {
 

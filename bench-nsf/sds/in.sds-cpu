@@ -8,7 +8,7 @@ processors  * * 1
 read_data       DATA.FILE
 include         PARM.FILE
 
-replicate 8 8 1
+replicate 4 4 1
 
 kspace_style    pppm/cg 0.00001
 kspace_modify   order 3 
@@ -21,8 +21,8 @@ timestep        10.0
 fix             1 all nvt temp 310.0 310.0 100.0 drag 0.1
 
 thermo_style    custom step pe temp evdwl ecoul spcpu
-thermo          500
+thermo          100
 
 velocity all create 325.0 63443 
 
-run              10000
+run              1000

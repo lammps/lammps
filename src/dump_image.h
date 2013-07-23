@@ -58,6 +58,7 @@ class DumpImage : public DumpCustom {
 
   class Image *image;              // class that renders each image
 
+  int *chooseghost;                // extended choose array for comm
   double **bufcopy;                // buffer for communicating bond/atom info
   int maxbufcopy;
 

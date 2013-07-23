@@ -351,6 +351,7 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
   // local data
 
   maxbufcopy = 0;
+  chooseghost = NULL;
   bufcopy = NULL;
 }
 
@@ -366,6 +367,8 @@ DumpImage::~DumpImage()
   delete [] colorelement;
   delete [] bdiamtype;
   delete [] bcolortype;
+  memory->destroy(chooseghost);
+  memory->destroy(bufcopy);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -669,13 +672,19 @@ void DumpImage::create_image()
     // communicate choose flag for ghost atoms to know if they are selected
     // if bcolor/bdiam = ATOM, setup bufcopy to comm atom color/diam attributes
 
-    if (comm_forward == 3) {
-      if (nall > maxbufcopy) {
-        maxbufcopy = atom->nmax;
+    if (nall > maxbufcopy) {
+      maxbufcopy = atom->nmax;
+      memory->destroy(chooseghost);
+      memory->create(chooseghost,maxbufcopy,"dump:chooseghost");
+      if (comm_forward == 3) {
         memory->destroy(bufcopy);
         memory->create(bufcopy,maxbufcopy,2,"dump:bufcopy");
       }
+    }
 
+    for (i = 0; i < nlocal; i++) chooseghost[i] = choose[i];
+
+    if (comm_forward == 3) {
       for (i = 0; i < nlocal; i++) bufcopy[i][0] = bufcopy[i][1] = 0.0;
       m = 0;
       for (i = 0; i < nchoose; i++) {
@@ -692,7 +701,7 @@ void DumpImage::create_image()
       atom1 = clist[i];
       for (m = 0; m < num_bond[atom1]; m++) {
         atom2 = atom->map(bond_atom[atom1][m]);
-        if (atom2 < 0 || !choose[atom2]) continue;
+        if (atom2 < 0 || !chooseghost[atom2]) continue;
         if (newton_bond == 0 && tag[atom1] > tag[atom2]) continue;
         if (bond_type[atom1][m] == 0) continue;
 
@@ -850,12 +859,12 @@ int DumpImage::pack_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
   if (comm_forward == 1) {
     for (i = 0; i < n; i++) {
       j = list[i];
-      buf[m++] = choose[j];
+      buf[m++] = chooseghost[j];
     }
   } else {
     for (i = 0; i < n; i++) {
       j = list[i];
-      buf[m++] = choose[j];
+      buf[m++] = chooseghost[j];
       buf[m++] = bufcopy[j][0];
       buf[m++] = bufcopy[j][1];
     }
@@ -874,10 +883,10 @@ void DumpImage::unpack_comm(int n, int first, double *buf)
   last = first + n;
 
   if (comm_forward == 1)
-    for (i = first; i < last; i++) choose[i] = static_cast<int> (buf[m++]);
+    for (i = first; i < last; i++) chooseghost[i] = static_cast<int> (buf[m++]);
   else {
     for (i = first; i < last; i++) {
-      choose[i] = static_cast<int> (buf[m++]);
+      chooseghost[i] = static_cast<int> (buf[m++]);
       bufcopy[i][0] = buf[m++];
       bufcopy[i][1] = buf[m++];
     }

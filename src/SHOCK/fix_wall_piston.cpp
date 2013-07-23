@@ -37,7 +37,6 @@ FixWallPiston::FixWallPiston(LAMMPS *lmp, int narg, char **arg) :
 {
   force_reneighbor = 1;
   next_reneighbor = -1;
-  box_change = 1;
 
   if (narg < 4) error->all(FLERR,"Illegal fix wall/piston command");
 

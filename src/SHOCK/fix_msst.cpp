@@ -45,7 +45,7 @@ FixMSST::FixMSST(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 4) error->all(FLERR,"Illegal fix msst command");
 
   restart_global = 1;
-  box_change = 1;
+  box_change_size = 1;
   time_integrate = 1;
   scalar_flag = 1;
   vector_flag = 1;

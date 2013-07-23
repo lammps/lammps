@@ -36,6 +36,7 @@ PairLJCharmmCoulCharmm::PairLJCharmmCoulCharmm(LAMMPS *lmp) : Pair(lmp)
 {
   implicit = 0;
   mix_flag = ARITHMETIC;
+  writedata = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -104,6 +105,7 @@ void PairLJCharmmCoulCharmm::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
+      jtype = type[j];
       factor_lj = special_lj[sbmask(j)];
       factor_coul = special_coul[sbmask(j)];
       j &= NEIGHMASK;
@@ -129,7 +131,6 @@ void PairLJCharmmCoulCharmm::compute(int eflag, int vflag)
 
         if (rsq < cut_ljsq) {
           r6inv = r2inv*r2inv*r2inv;
-          jtype = type[j];
           forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
           if (rsq > cut_lj_innersq) {
             switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
@@ -390,6 +391,29 @@ void PairLJCharmmCoulCharmm::read_restart(FILE *fp)
         MPI_Bcast(&sigma14[i][j],1,MPI_DOUBLE,0,world);
       }
     }
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void PairLJCharmmCoulCharmm::write_data(FILE *fp)
+{
+  for (int i = 1; i <= atom->ntypes; i++)
+    fprintf(fp,"%d %g %g %g %g\n",
+            i,epsilon[i][i],sigma[i][i],eps14[i][i],sigma14[i][i]);
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes all pairs to data file
+------------------------------------------------------------------------- */
+
+void PairLJCharmmCoulCharmm::write_data_all(FILE *fp)
+{
+  for (int i = 1; i <= atom->ntypes; i++)
+    for (int j = i; j <= atom->ntypes; j++)
+      fprintf(fp,"%d %d %g %g %g %g\n",i,j,
+              epsilon[i][j],sigma[i][j],eps14[i][j],sigma14[i][j]);
 }
 
 /* ----------------------------------------------------------------------

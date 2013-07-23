@@ -41,6 +41,7 @@ using namespace MathConst;
 DihedralCharmm::DihedralCharmm(LAMMPS *lmp) : Dihedral(lmp)
 {
   weightflag = 0;
+  writedata = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -394,6 +395,7 @@ void DihedralCharmm::write_restart(FILE *fp)
   fwrite(&multiplicity[1],sizeof(int),atom->ndihedraltypes,fp);
   fwrite(&shift[1],sizeof(int),atom->ndihedraltypes,fp);
   fwrite(&weight[1],sizeof(double),atom->ndihedraltypes,fp);
+  fwrite(&weightflag,sizeof(int),1,fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -409,11 +411,13 @@ void DihedralCharmm::read_restart(FILE *fp)
     fread(&multiplicity[1],sizeof(int),atom->ndihedraltypes,fp);
     fread(&shift[1],sizeof(int),atom->ndihedraltypes,fp);
     fread(&weight[1],sizeof(double),atom->ndihedraltypes,fp);
+    fread(&weightflag,sizeof(int),1,fp);
   }
   MPI_Bcast(&k[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&multiplicity[1],atom->ndihedraltypes,MPI_INT,0,world);
   MPI_Bcast(&shift[1],atom->ndihedraltypes,MPI_INT,0,world);
   MPI_Bcast(&weight[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);
+  MPI_Bcast(&weightflag,1,MPI_INT,0,world);
 
   for (int i = 1; i <= atom->ndihedraltypes; i++) {
     setflag[i] = 1;
@@ -421,3 +425,14 @@ void DihedralCharmm::read_restart(FILE *fp)
     sin_shift[i] = sin(MY_PI*shift[i]/180.0);
   }
 }
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void DihedralCharmm::write_data(FILE *fp)
+{
+  for (int i = 1; i <= atom->ndihedraltypes; i++)
+    fprintf(fp,"%d %g %d %d %g\n",i,k[i],multiplicity[i],shift[i],weight[i]);
+}
+

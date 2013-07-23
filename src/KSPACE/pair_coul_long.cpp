@@ -48,6 +48,7 @@ PairCoulLong::PairCoulLong(LAMMPS *lmp) : Pair(lmp)
 {
   ewaldflag = pppmflag = 1;
   ftable = NULL;
+  qdist = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -258,8 +259,7 @@ void PairCoulLong::init_style()
 double PairCoulLong::init_one(int i, int j)
 {
   scale[j][i] = scale[i][j];
-
-  return cut_coul;
+  return cut_coul+2.0*qdist;
 }
 
 /* ----------------------------------------------------------------------

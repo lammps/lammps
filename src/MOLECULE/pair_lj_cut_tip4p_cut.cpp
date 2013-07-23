@@ -474,13 +474,13 @@ void PairLJCutTIP4PCut::coeff(int narg, char **arg)
 void PairLJCutTIP4PCut::init_style()
 {
   if (atom->tag_enable == 0)
-    error->all(FLERR,"Pair style lj/cut/coul/cut/tip4p requires atom IDs");
+    error->all(FLERR,"Pair style lj/cut/tip4p/cut requires atom IDs");
   if (!force->newton_pair)
     error->all(FLERR,
-               "Pair style lj/cut/coul/cut/tip4p requires newton pair on");
+               "Pair style lj/cut/tip4p/cut requires newton pair on");
   if (!atom->q_flag)
     error->all(FLERR,
-               "Pair style lj/cut/coul/cut/tip4p requires atom attribute q");
+               "Pair style lj/cut/tip4p/cut requires atom attribute q");
   if (force->bond == NULL)
     error->all(FLERR,"Must use a bond style with TIP4P potential");
   if (force->angle == NULL)
@@ -563,7 +563,7 @@ double PairLJCutTIP4PCut::init_one(int i, int j)
   if ((i == typeH && epsilon[i][i] != 0.0) ||
       (j == typeH && epsilon[j][j] != 0.0))
     error->all(FLERR,"Water H epsilon must be 0.0 for "
-               "pair style lj/cut/coul/long/tip4p");
+               "pair style lj/cut/tip4p/cut");
   
   if (i == typeH || j == typeH)
     cut_ljsq[j][i] = cut_ljsq[i][j] = 0.0;

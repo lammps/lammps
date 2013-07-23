@@ -73,17 +73,17 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Pair style lj/cut/coul/long/tip4p requires atom IDs
+E: Pair style lj/cut/tip4p/long requires atom IDs
 
 There are no atom IDs defined in the system and the TIP4P potential
 requires them to find O,H atoms with a water molecule.
 
-E: Pair style lj/cut/coul/long/tip4p requires newton pair on
+E: Pair style lj/cut/tip4p/long requires newton pair on
 
 This is because the computation of constraint forces within a water
 molecule adds forces to atoms owned by other processors.
 
-E: Pair style lj/cut/coul/long/tip4p requires atom attribute q
+E: Pair style lj/cut/tip4p/long requires atom attribute q
 
 The atom style defined does not have these attributes.
 
@@ -97,7 +97,7 @@ E: Must use an angle style with TIP4P potential
 TIP4P potentials assume angles in water are constrained by a fix shake
 command.
 
-E: Water H epsilon must be 0.0 for pair style lj/cut/coul/long/tip4p
+E: Water H epsilon must be 0.0 for pair style lj/cut/tip4p/long
 
 This is because LAMMPS does not compute the Lennard-Jones interactions
 with these particles for efficiency reasons.

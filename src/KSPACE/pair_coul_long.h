@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -41,7 +41,7 @@ class PairCoulLong : public Pair {
   virtual void *extract(const char *, int &);
 
  protected:
-  double cut_coul,cut_coulsq;
+  double cut_coul,cut_coulsq,qdist;
   double *cut_respa;
   double g_ewald;
   double **scale;

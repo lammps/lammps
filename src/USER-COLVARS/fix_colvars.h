@@ -84,6 +84,7 @@ class FixColvars : public Fix {
   int init_flag;       // 1 if initialized, 0 if not
   static  int instances; // count fix instances, since colvars currently
                          // only supports one instance at a time
+  void one_time_init(); // one time initialization
 };
 
 }
@@ -134,7 +135,7 @@ meaningful with minimization calculations.
 E: Could not find tstat fix ID
 
 Self-explanatory. The thermostat fix ID provided with the tstat keyword
-is not defined (anymore). Check your input file.
+is not defined (yet or anymore). Check your input file.
 
 E: Run aborted on request from colvars module
 

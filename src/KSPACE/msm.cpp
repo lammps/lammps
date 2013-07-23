@@ -378,7 +378,8 @@ void MSM::setup()
   double ay = a;
   double az = a;
 
-  // transform the interaction sphere in box coords to an ellipsoid in lamda (0-1) coords to
+  // transform the interaction sphere in box coords to an 
+  // ellipsoid in lamda (0-1) coords to
   // get the direct sum interaction limits for a triclinic system
 
   if (triclinic) {
@@ -426,7 +427,8 @@ void MSM::setup()
   else
     boxlo = domain->boxlo_lamda;
 
-  // ghost grid points depend on direct sum interaction limits, so need to recompute local grid
+  // ghost grid points depend on direct sum interaction limits, 
+  // so need to recompute local grid
 
   set_grid_local();
 
@@ -493,8 +495,9 @@ void MSM::compute(int eflag, int vflag)
   particle_map();
   make_rho();
 
-  // all procs reverse communicate charge density values from their ghost grid points
-  //   to fully sum contribution in their 3d grid
+  // all procs reverse communicate charge density values from 
+  // their ghost grid points
+  // to fully sum contribution in their 3d grid
 
   current_level = 0;
   cg_all->reverse_comm(this,REVERSE_RHO);
@@ -2460,6 +2463,7 @@ void MSM::grid_swap_forward(int n, double*** &gridn)
    grids this may be cheaper than using nearest-neighbor communication
    (commgrid), right now only works for periodic boundary conditions
 ------------------------------------------------------------------------- */
+
 void MSM::grid_swap_reverse(int n, double*** &gridn)
 {
   double ***gridn_tmp;
@@ -3158,6 +3162,7 @@ void MSM::get_g_direct()
 /* ----------------------------------------------------------------------
    Compute direct interaction (virial) weights for intermediate grid levels
 ------------------------------------------------------------------------- */
+
 void MSM::get_virial_direct()
 {
   if (v0_direct) memory->destroy(v0_direct);
@@ -3246,6 +3251,7 @@ void MSM::get_virial_direct()
    Compute direct interaction (energy) weights for top grid level
    (nonperiodic systems only)
 ------------------------------------------------------------------------- */
+
 void MSM::get_g_direct_top(int n)
 {
   int nx_top = betax[n] - alpha[n];
@@ -3307,6 +3313,7 @@ void MSM::get_g_direct_top(int n)
    Compute direct interaction (virial) weights for top grid level
    (nonperiodic systems only)
 ------------------------------------------------------------------------- */
+
 void MSM::get_virial_direct_top(int n)
 {
   int nx_top = betax[n] - alpha[n];

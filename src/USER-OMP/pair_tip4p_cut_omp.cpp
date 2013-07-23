@@ -1,0 +1,443 @@
+/* ----------------------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
+
+   This software is distributed under the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   Contributing author: Axel Kohlmeyer (Temple U)
+------------------------------------------------------------------------- */
+
+#include "math.h"
+#include "pair_tip4p_cut_omp.h"
+#include "atom.h"
+#include "domain.h"
+#include "comm.h"
+#include "force.h"
+#include "neighbor.h"
+#include "error.h"
+#include "memory.h"
+#include "neigh_list.h"
+
+#include "suffix.h"
+using namespace LAMMPS_NS;
+
+#define EWALD_F   1.12837917
+#define EWALD_P   0.3275911
+#define A1        0.254829592
+#define A2       -0.284496736
+#define A3        1.421413741
+#define A4       -1.453152027
+#define A5        1.061405429
+
+/* ---------------------------------------------------------------------- */
+
+PairTIP4PCutOMP::PairTIP4PCutOMP(LAMMPS *lmp) :
+  PairTIP4PCut(lmp), ThrOMP(lmp, THR_PAIR)
+{
+  suffix_flag |= Suffix::OMP;
+  respa_enable = 0;
+  newsite_thr = NULL;
+  hneigh_thr = NULL;
+
+  // TIP4P cannot compute virial as F dot r
+  // due to finding bonded H atoms which are not near O atom
+
+  no_virial_fdotr_compute = 1;
+}
+
+/* ---------------------------------------------------------------------- */
+
+PairTIP4PCutOMP::~PairTIP4PCutOMP() 
+{
+  memory->destroy(hneigh_thr);
+  memory->destroy(newsite_thr);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairTIP4PCutOMP::compute(int eflag, int vflag)
+{
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = vflag_fdotr = 0;
+
+  const int nlocal = atom->nlocal;
+  const int nall = nlocal + atom->nghost;
+
+  // reallocate hneigh_thr & newsite_thr if necessary
+  // initialize hneigh_thr[0] to -1 on steps when reneighboring occurred
+  // initialize hneigh_thr[2] to 0 every step
+
+  if (atom->nmax > nmax) {
+    nmax = atom->nmax;
+    memory->destroy(hneigh_thr);
+    memory->create(hneigh_thr,nmax,"pair:hneigh_thr");
+    memory->destroy(newsite_thr);
+    memory->create(newsite_thr,nmax,"pair:newsite_thr");
+  }
+
+  int i;
+  // tag entire list as completely invalid after a neighbor
+  // list update, since that can change the order of atoms.
+  if (neighbor->ago == 0)
+    for (i = 0; i < nall; i++) hneigh_thr[i].a = -1;
+
+  // indicate that the coordinates for the M point need to
+  // be updated. this needs to be done in every step.
+  for (i = 0; i < nall; i++) hneigh_thr[i].t = 0;
+
+  const int nthreads = comm->nthreads;
+  const int inum = list->inum;
+
+#if defined(_OPENMP)
+#pragma omp parallel default(none) shared(eflag,vflag)
+#endif
+  {
+    int ifrom, ito, tid;
+
+    loop_setup_thr(ifrom, ito, tid, inum, nthreads);
+    ThrData *thr = fix->get_thr(tid);
+    thr->timer(ThrData::TIME_START);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
+
+    if (evflag) {
+      if (eflag) {
+        if (vflag) eval<1,1,1>(ifrom, ito, thr);
+        else eval<1,1,0>(ifrom, ito, thr);
+      } else {
+        if (vflag) eval<1,0,1>(ifrom, ito, thr);
+        else eval<1,0,0>(ifrom, ito, thr);
+      }
+    } else eval<0,0,0>(ifrom, ito, thr);
+
+    thr->timer(ThrData::TIME_PAIR);
+    reduce_thr(this, eflag, vflag, thr);
+  } // end of omp parallel region
+}
+
+/* ---------------------------------------------------------------------- */
+
+template <int EVFLAG, int EFLAG, int VFLAG>
+void PairTIP4PCutOMP::eval(int iifrom, int iito, ThrData * const thr)
+{
+  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,ecoul;
+  double r,rsq,r2inv,forcecoul,cforce;
+  double factor_coul;
+  double v[6],xH1[3],xH2[3];
+  double fdx,fdy,fdz,fOx,fOy,fOz,fHx,fHy,fHz;
+  dbl3_t x1,x2;
+
+  int *ilist,*jlist,*numneigh,**firstneigh;
+  int i,j,ii,jj,jnum,itype,jtype,key;
+  int n,vlist[6];
+  int iH1,iH2,jH1,jH2;
+
+  ecoul = 0.0;
+
+  const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
+  dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
+  const double * _noalias const q = atom->q;
+  const int * _noalias const type = atom->type;
+  const int nlocal = atom->nlocal;
+  const double * _noalias const special_coul = force->special_coul;
+  const double * _noalias const special_lj = force->special_lj;
+  const double qqrd2e = force->qqrd2e;
+  const double cut_coulsqplus = (cut_coul+2.0*qdist) * (cut_coul+2.0*qdist);
+
+  double fxtmp,fytmp,fztmp;
+
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
+
+  // loop over neighbors of my atoms
+
+  for (ii = iifrom; ii < iito; ++ii) {
+    i = ilist[ii];
+    qtmp = q[i];
+    xtmp = x[i].x;
+    ytmp = x[i].y;
+    ztmp = x[i].z;
+    itype = type[i];
+
+    // if atom I = water O, set x1 = offset charge site
+    // else x1 = x of atom I
+    // NOTE: to make this part thread safe, we need to
+    // make sure that the hneigh_thr[][] entries only get
+    // updated, when all data is in place. worst case,
+    // some calculation is repeated, but since the results
+    // will be the same, there is no race condition.
+    if (itype == typeO) {
+      if (hneigh_thr[i].a < 0) {
+        iH1 = atom->map(atom->tag[i] + 1);
+        iH2 = atom->map(atom->tag[i] + 2);
+        if (iH1 == -1 || iH2 == -1)
+          error->one(FLERR,"TIP4P hydrogen is missing");
+        if (atom->type[iH1] != typeH || atom->type[iH2] != typeH)
+          error->one(FLERR,"TIP4P hydrogen has incorrect atom type");
+        compute_newsite_thr(x[i],x[iH1],x[iH2],newsite_thr[i]);
+        hneigh_thr[i].t = 1;
+        hneigh_thr[i].b = iH2;
+        hneigh_thr[i].a = iH1;
+      } else {
+        iH1 = hneigh_thr[i].a;
+        iH2 = hneigh_thr[i].b;
+        if (hneigh_thr[i].t == 0) {
+          compute_newsite_thr(x[i],x[iH1],x[iH2],newsite_thr[i]);
+          hneigh_thr[i].t = 1;
+        }
+      }
+      x1 = newsite_thr[i];
+    } else x1 = x[i];
+
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
+    fxtmp=fytmp=fztmp=0.0;
+
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
+      factor_coul = special_coul[sbmask(j)];
+      j &= NEIGHMASK;
+
+      delx = xtmp - x[j].x;
+      dely = ytmp - x[j].y;
+      delz = ztmp - x[j].z;
+      rsq = delx*delx + dely*dely + delz*delz;
+      jtype = type[j];
+
+      // adjust rsq and delxyz for off-site O charge(s) if necessary
+      // but only if they are within reach
+      // NOTE: to make this part thread safe, we need to
+      // make sure that the hneigh_thr[][] entries only get
+      // updated, when all data is in place. worst case,
+      // some calculation is repeated, but since the results
+      // will be the same, there is no race condition.
+      if (rsq < cut_coulsqplus) {
+        if (itype == typeO || jtype == typeO) {
+
+          // if atom J = water O, set x2 = offset charge site
+          // else x2 = x of atom J
+
+          if (jtype == typeO) {
+            if (hneigh_thr[j].a < 0) {
+              jH1 = atom->map(atom->tag[j] + 1);
+              jH2 = atom->map(atom->tag[j] + 2);
+              if (jH1 == -1 || jH2 == -1)
+                error->one(FLERR,"TIP4P hydrogen is missing");
+              if (atom->type[jH1] != typeH || atom->type[jH2] != typeH)
+                error->one(FLERR,"TIP4P hydrogen has incorrect atom type");
+              compute_newsite_thr(x[j],x[jH1],x[jH2],newsite_thr[j]);
+              hneigh_thr[j].t = 1;
+              hneigh_thr[j].b = jH2;
+              hneigh_thr[j].a = jH1;
+            } else {
+              jH1 = hneigh_thr[j].a;
+              jH2 = hneigh_thr[j].b;
+              if (hneigh_thr[j].t == 0) {
+                compute_newsite_thr(x[j],x[jH1],x[jH2],newsite_thr[j]);
+                hneigh_thr[j].t = 1;
+              }
+            }
+            x2 = newsite_thr[j];
+          } else x2 = x[j];
+
+          delx = x1.x - x2.x;
+          dely = x1.y - x2.y;
+          delz = x1.z - x2.z;
+          rsq = delx*delx + dely*dely + delz*delz;
+        }
+
+        // Coulombic interaction based on modified rsq
+
+        if (rsq < cut_coulsq) {
+          r = sqrt(rsq);
+          r2inv = 1.0 / rsq;
+          forcecoul = qqrd2e * qtmp * q[j] / r;
+          cforce = factor_coul * forcecoul * r2inv;
+
+          // if i,j are not O atoms, force is applied directly
+          // if i or j are O atoms, force is on fictitious atom & partitioned
+          // force partitioning due to Feenstra, J Comp Chem, 20, 786 (1999)
+          // f_f = fictitious force, fO = f_f (1 - 2 alpha), fH = alpha f_f
+          // preserves total force and torque on water molecule
+          // virial = sum(r x F) where each water's atoms are near xi and xj
+          // vlist stores 2,4,6 atoms whose forces contribute to virial
+
+          if (EVFLAG) {
+            n = 0;
+            key = 0;
+          }
+
+          if (itype != typeO) {
+            fxtmp += delx * cforce;
+            fytmp += dely * cforce;
+            fztmp += delz * cforce;
+
+            if (VFLAG) {
+              v[0] = x[i].x * delx * cforce;
+              v[1] = x[i].y * dely * cforce;
+              v[2] = x[i].z * delz * cforce;
+              v[3] = x[i].x * dely * cforce;
+              v[4] = x[i].x * delz * cforce;
+              v[5] = x[i].y * delz * cforce;
+            }
+            if (EVFLAG) vlist[n++] = i;
+
+          } else {
+            if (EVFLAG) key++;
+
+            fdx = delx*cforce;
+            fdy = dely*cforce;
+            fdz = delz*cforce;
+
+            fOx = fdx*(1 - alpha);
+            fOy = fdy*(1 - alpha);
+            fOz = fdz*(1 - alpha);
+
+            fHx = 0.5*alpha * fdx;
+            fHy = 0.5*alpha * fdy;
+            fHz = 0.5*alpha * fdz;
+
+            fxtmp += fOx;
+            fytmp += fOy;
+            fztmp += fOz;
+
+            f[iH1].x += fHx;
+            f[iH1].y += fHy;
+            f[iH1].z += fHz;
+
+            f[iH2].x += fHx;
+            f[iH2].y += fHy;
+            f[iH2].z += fHz;
+
+            if (VFLAG) {
+              domain->closest_image(&x[i].x,&x[iH1].x,xH1);
+              domain->closest_image(&x[i].x,&x[iH2].x,xH2);
+
+              v[0] = x[i].x*fOx + xH1[0]*fHx + xH2[0]*fHx;
+              v[1] = x[i].y*fOy + xH1[1]*fHy + xH2[1]*fHy;
+              v[2] = x[i].z*fOz + xH1[2]*fHz + xH2[2]*fHz;
+              v[3] = x[i].x*fOy + xH1[0]*fHy + xH2[0]*fHy;
+              v[4] = x[i].x*fOz + xH1[0]*fHz + xH2[0]*fHz;
+              v[5] = x[i].y*fOz + xH1[1]*fHz + xH2[1]*fHz;
+            }
+            if (EVFLAG) {
+              vlist[n++] = i;
+              vlist[n++] = iH1;
+              vlist[n++] = iH2;
+            }
+          }
+
+          if (jtype != typeO) {
+            f[j].x -= delx * cforce;
+            f[j].y -= dely * cforce;
+            f[j].z -= delz * cforce;
+
+            if (VFLAG) {
+              v[0] -= x[j].x * delx * cforce;
+              v[1] -= x[j].y * dely * cforce;
+              v[2] -= x[j].z * delz * cforce;
+              v[3] -= x[j].x * dely * cforce;
+              v[4] -= x[j].x * delz * cforce;
+              v[5] -= x[j].y * delz * cforce;
+            }
+            if (EVFLAG) vlist[n++] = j;
+
+          } else {
+            if (EVFLAG) key += 2;
+
+            fdx = -delx*cforce;
+            fdy = -dely*cforce;
+            fdz = -delz*cforce;
+
+            fOx = fdx*(1 - alpha);
+            fOy = fdy*(1 - alpha);
+            fOz = fdz*(1 - alpha);
+
+            fHx = 0.5*alpha * fdx;
+            fHy = 0.5*alpha * fdy;
+            fHz = 0.5*alpha * fdz;
+
+            f[j].x += fOx;
+            f[j].y += fOy;
+            f[j].z += fOz;
+
+            f[jH1].x += fHx;
+            f[jH1].y += fHy;
+            f[jH1].z += fHz;
+
+            f[jH2].x += fHx;
+            f[jH2].y += fHy;
+            f[jH2].z += fHz;
+
+            if (VFLAG) {
+              domain->closest_image(&x[j].x,&x[jH1].x,xH1);
+              domain->closest_image(&x[j].x,&x[jH2].x,xH2);
+
+              v[0] += x[j].x*fOx + xH1[0]*fHx + xH2[0]*fHx;
+              v[1] += x[j].y*fOy + xH1[1]*fHy + xH2[1]*fHy;
+              v[2] += x[j].z*fOz + xH1[2]*fHz + xH2[2]*fHz;
+              v[3] += x[j].x*fOy + xH1[0]*fHy + xH2[0]*fHy;
+              v[4] += x[j].x*fOz + xH1[0]*fHz + xH2[0]*fHz;
+              v[5] += x[j].y*fOz + xH1[1]*fHz + xH2[1]*fHz;
+            }
+            if (EVFLAG) {
+              vlist[n++] = j;
+              vlist[n++] = jH1;
+              vlist[n++] = jH2;
+            }
+          }
+
+          if (EFLAG) {
+        	ecoul = qqrd2e * qtmp * q[j] / r;
+            ecoul *= factor_coul;
+          } else ecoul = 0.0;
+
+          if (EVFLAG) ev_tally_list_thr(this,key,vlist,v,ecoul,alpha,thr);
+        }
+      }
+    }
+    f[i].x += fxtmp;
+    f[i].y += fytmp;
+    f[i].z += fztmp;
+  }
+}
+
+/* ----------------------------------------------------------------------
+  compute position xM of fictitious charge site for O atom and 2 H atoms
+  return it as xM
+------------------------------------------------------------------------- */
+
+void PairTIP4PCutOMP::compute_newsite_thr(const dbl3_t &xO,
+                                                const dbl3_t &xH1,
+                                                const dbl3_t &xH2,
+                                                dbl3_t &xM) const
+{
+  double delx1 = xH1.x - xO.x;
+  double dely1 = xH1.y - xO.y;
+  double delz1 = xH1.z - xO.z;
+  domain->minimum_image(delx1,dely1,delz1);
+
+  double delx2 = xH2.x - xO.x;
+  double dely2 = xH2.y - xO.y;
+  double delz2 = xH2.z - xO.z;
+  domain->minimum_image(delx2,dely2,delz2);
+
+  const double prefac = alpha * 0.5;
+  xM.x = xO.x + prefac * (delx1 + delx2);
+  xM.y = xO.y + prefac * (dely1 + dely2);
+  xM.z = xO.z + prefac * (delz1 + delz2);
+}
+
+/* ---------------------------------------------------------------------- */
+
+double PairTIP4PCutOMP::memory_usage()
+{
+  double bytes = memory_usage_thr();
+  bytes += PairTIP4PCut::memory_usage();
+  return bytes;
+}

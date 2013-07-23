@@ -1,0 +1,16 @@
+log log.crambin-class1
+units real
+boundary m m m
+atom_style full
+pair_style lj/cut/coul/cut 15.0
+bond_style harmonic
+angle_style harmonic
+dihedral_style harmonic
+improper_style cvff
+
+read_data crambin-class1.data
+
+thermo_style multi
+minimize 0.0 0.0 100 1000
+
+write_data crambin-class1.data2

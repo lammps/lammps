@@ -1,0 +1,168 @@
+Stephanie Teich-McGoldrick (Sandai) is the current maintainer
+of the msi2lmp tool.  She can be contacted at steichm at sandia.gov
+
+18 Jul 2013 Axel Kohlmeyer <akohlmey@gmail.com>
+
+Added support for writing out image flags
+Improved accuracy of atom masses
+Added flag for shifting the entire system
+Fixed some minor logic bugs and prepared
+for supporting other force fields and morse style bonds.
+
+12 Jul 2013 Axel Kohlmeyer <akohlmey@gmail.com>
+
+Fixed the bug that caused improper coefficients to be wrong
+Cleaned up the handling of box parameters and center the box
+by default around the system/molecule. Added a flag to make
+this step optional and center the box around the origin instead.
+Added a regression test script with examples.
+
+1 Jul 2013 Axel Kohlmeyer <akohlmey@gmail.com>
+
+Cleanup and improved port to windows.
+Removed some more static string limits.
+Added print level 3 for additional output.
+Make code stop at missing force field parameters
+and added -i flag to override this.
+Safer argument checking.
+Provide short versions for all flags.
+
+23 Sep 2011
+
+added support for triclinic boxes
+see msi2lmp/TriclinicModification.pdf doc for details
+
+-----------------------------
+
+ msi2lmp V3.6 4/10/2005
+
+ This program uses the .car and .mdf files from MSI/Biosyms's INSIGHT
+ program to produce a LAMMPS data file.
+
+ 1. Building msi2lmp3
+
+    Use the Makefile in the src directory. It is
+    currently set up for gcc. One will have to modify
+    it to use a different compiler.
+
+ 2. Testing the program
+
+    There are three pairs (.car and .mdf) files in the
+    test directory: crambin, nylon and phen3_cff97. The
+    atom types in crambin and nylon are cvff (Class I) atom
+    types and those in phen3_cff97 are cff9x (Class II) atom types.
+    Two forcefield files, cvff.frc and cff91.frc, are needed
+    generate lammps data files for these three test files. To
+    run it you would:
+
+   % setenv BIOSYM_LIBRARY ../biosym_frc_files
+   % ../src/msi2lmp.exe nylon -class I -frc cvff > data.nylon
+   % ../src/msi2lmp.exe crambin -class I -frc cvff > data.crambin
+   % ../src/msi2lmp.exe phen3_cff97 -class II -frc cff91 > data.phen3_cff97
+
+   Three files should be generated: data.nylon, data.crambin
+   and data.phen3_cff97. These can be compared against 
+   data.x in the directory correct. If there are differences, 
+   first recompile the program with no optimization and try again.
+   If there are still differences, send email to jec@mayo.edu
+
+   Note: you will see many "Unable to find..." parameters messages
+         in the phen3_cff97 test case. Most of those parameters 
+         exist in cff95.frc, but not in cff91.frc
+
+ 3. To run the program
+
+   The program is started by supplying information at the command prompt
+   according to the usage described below.  
+
+   USAGE: msi2lmp.exe ROOTNAME {-2001} {-print #} {-class #} {-frc FRC_FILE} 
+
+   -- msi2lmp.exe is the name of the executable
+   -- ROOTNAME is the base name of the .car and .mdf files
+   -- -2001
+         Output lammps files for LAMMPS version 2001 (F90 version)
+         Default is to write output for the C++ version of LAMMPS
+
+   -- -print (or -p)
+	 # is the print level  0 - silent except for error messages
+	                       1 - minimal (default)
+                               2 - verbose (usual for developing and
+                                   checking new data files for consistency)
+                               3 - even more verbose (additional debug info)
+
+   -- -ignore (or -i)   ignore errors about missing force field parameters
+                        and treat them as warnings instead.
+
+   -- -class  (or -c)
+        # is the class of forcefield to use (I  or 1 = Class I e.g., CVFF)
+                                             (II or 2 = Class II e.g., CFFx)
+        default is -class I
+
+   -- -frc    (or -f) specifies name of the forcefield file (e.g., cff91)
+ 
+     If the file name includes a directory component (or drive letter on Windows),
+     then the name is used as is. Otherwise, the program looks for the forcefield
+     file in $BIOSYM_LIBRARY (or %BIOSYM_LIBRARY% on Windows).
+     If $BIOSYM_LIBRARY is not set, ../biosym_frc_files is used (for testing).
+     If the file name does not end in .frc, then .frc is appended to the name.
+
+     For example,  -frc cvff (assumes cvff.frc is in $BIOSYM_LIBRARY
+                              or ../biosym_frc_files)
+
+                   -frc cff/cff91 (assumes cff91.frc is in cff)
+
+                   -frc /usr/local/biosym/forcefields/cff95
+                       (assumes cff95.frc is in /usr/local/biosym/forcefields/)
+
+     By default, the program uses $BIOSYM_LIBRARY/cvff.frc or ../biosym_frc_files/cvff.frc
+
+  -- the LAMMPS data file is written to ROOTNAME.lammps{01/05},
+     protocol and error information is written to the screen.
+
+****************************************************************
+*
+* Msi2lmp3
+*
+* This is the third version of a program that generates a LAMMPS
+* data file based on the information in MSI .car (atom
+* coordinates), .mdf (molecular topology) and .frc (forcefield) 
+* files. The .car and .mdf files are specific to a molecular
+* system while the .frc file is specific to a forcefield version.
+* The only coherency needed between .frc and .car/.mdf files are
+* the atom types. 
+*
+* The first version was written by Steve Lustig at Dupont, but
+* required using Discover to derive internal coordinates and
+* forcefield parameters
+*
+* The second version was written by Michael Peachey while an
+* intern in the Cray Chemistry Applications Group managed
+* by John Carpenter. This version derived internal coordinates
+* from the mdf file and looked up parameters in the frc file
+* thus eliminating the need for Discover.
+*
+* The third version was written by John Carpenter to optimize
+* the performance of the program for large molecular systems
+* (the original  code for deriving atom numbers was quadratic in time)
+* and to make the program fully dynamic. The second version used
+* fixed dimension arrays for the internal coordinates.
+*
+* The current maintainer is only reluctantly doing so because John Mayo no longer
+* needs this code.
+*
+* V3.2 corresponds to adding code to MakeLists.c to gracefully deal with
+* systems that may only be molecules of 1 to 3 atoms. In V3.1, the values
+* for number_of_dihedrals, etc. could be unpredictable in these systems.
+*
+* V3.3 was generated in response to a strange error reading a MDF file generated by
+* Accelys' Materials Studio GUI. Simply rewriting the input part of ReadMdfFile.c 
+* seems to have fixed the problem.
+*
+* V3.4 and V3.5 are minor upgrades to fix bugs associated mostly with .car and .mdf files
+* written by Accelys' Materials Studio GUI.
+*
+* V3.6 outputs to LAMMPS 2005 (C++ version).
+*
+* Contact: Kelly L. Anderson, kelly.anderson@cantab.net
+* 
+* April 2005

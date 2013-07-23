@@ -177,7 +177,7 @@ void PairLJSDKCoulLongGPU::init_style()
 
   // setup force tables
 
-  if (ncoultablebits) init_tables();
+  if (ncoultablebits) init_tables(cut_coul,NULL);
 
   int maxspecial=0;
   if (atom->molecular)

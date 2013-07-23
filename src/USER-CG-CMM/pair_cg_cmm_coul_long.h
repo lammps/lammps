@@ -47,8 +47,6 @@ namespace LAMMPS_NS {
 
     protected:
     void allocate();
-    void init_tables();
-    void free_tables();
   };
 }
 

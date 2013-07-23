@@ -219,12 +219,10 @@ void TAD::command(int narg, char **arg)
   if (me_universe == 0) {
     if (universe->uscreen)
       fprintf(universe->uscreen,
-              "Step CPU N M Status Barrier Margin t_lo delt_lo\n"
-              );
+              "Step CPU N M Status Barrier Margin t_lo delt_lo\n");
     if (universe->ulogfile)
       fprintf(universe->ulogfile,
-              "Step CPU N M Status Barrier Margin t_lo delt_lo\n"
-              );
+              "Step CPU N M Status Barrier Margin t_lo delt_lo\n");
   }
 
   ulogfile_lammps = universe->ulogfile;
@@ -285,13 +283,8 @@ void TAD::command(int narg, char **arg)
         while (update->ntimestep < update->endstep) {
 
           dynamics();
-
-
           fix_event->store_state();
-
-
           quench();
-
 
           event_flag = check_event();
           MPI_Bcast(&event_flag,1,MPI_INT,0,universe->uworld);

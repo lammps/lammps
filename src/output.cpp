@@ -85,6 +85,7 @@ Output::Output(LAMMPS *lmp) : Pointers(lmp)
   dump = NULL;
 
   restart_flag = restart_flag_single = restart_flag_double = 0;
+  restart_every_single = restart_every_double = 0;
   last_restart = -1;
   restart1 = restart2a = restart2b = NULL;
   var_restart_single = var_restart_double = NULL;

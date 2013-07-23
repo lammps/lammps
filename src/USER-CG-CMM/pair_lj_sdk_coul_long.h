@@ -64,14 +64,7 @@ class PairLJSDKCoulLong : public Pair {
   double cut_lj_global;
   double g_ewald;
 
-  double tabinnersq;
-  double *rtable,*drtable,*ftable,*dftable,*ctable,*dctable;
-  double *etable,*detable;
-  int ncoulshiftbits,ncoulmask;
-
   void allocate();
-  void init_tables();
-  void free_tables();
 
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_PAIR> void eval();

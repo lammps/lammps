@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -77,12 +77,6 @@ namespace LAMMPS_NS {
     int allocated_coul; // 0/1 = whether coulomb arrays are allocated
     double cut_coul_global, cut_coulsq_global, kappa, g_ewald;
     double **cut_coul, **cut_coulsq;
-
-    // tables
-    double tabinnersq;
-    double *rtable,*drtable,*ftable,*dftable,*ctable,*dctable;
-    double *etable,*detable,*ptable,*dptable,*vtable,*dvtable;
-    int ncoulshiftbits,ncoulmask;
 
     // r-RESPA parameters
     double *cut_respa;

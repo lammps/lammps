@@ -301,7 +301,7 @@ non-periodic.
 "kspace_modify"_kspace_modify.html, "pair_style
 lj/cut/coul/long"_pair_lj.html, "pair_style
 lj/charmm/coul/long"_pair_charmm.html, "pair_style
-lj/coul"_pair_lj_coul.html, "pair_style buck/coul/long"_pair_buck.html
+lj/long/coul/long"_pair_lj_long.html, "pair_style buck/coul/long"_pair_buck.html
 
 [Default:]
 

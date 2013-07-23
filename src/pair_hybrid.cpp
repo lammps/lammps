@@ -16,7 +16,6 @@
 #include "string.h"
 #include "ctype.h"
 #include "pair_hybrid.h"
-#include "style_pair.h"
 #include "atom.h"
 #include "force.h"
 #include "pair.h"
@@ -211,10 +210,6 @@ void PairHybrid::settings(int narg, char **arg)
   }
   allocated = 0;
 
-  // build list of all known pair styles
-
-  build_styles();
-
   // allocate list of sub-styles as big as possibly needed if no extra args
 
   styles = new Pair*[narg];
@@ -223,7 +218,7 @@ void PairHybrid::settings(int narg, char **arg)
 
   // allocate each sub-style
   // call settings() with set of args that are not pair style names
-  // use known_style() to determine which args these are
+  // use force->pair_map to determine which args these are
 
   int iarg,jarg,dummy;
 
@@ -239,16 +234,11 @@ void PairHybrid::settings(int narg, char **arg)
     keywords[nstyles] = new char[n];
     strcpy(keywords[nstyles],arg[iarg]);
     jarg = iarg + 1;
-    while (jarg < narg && !known_style(arg[jarg])) jarg++;
+    while (jarg < narg && !force->pair_map->count(arg[jarg])) jarg++;
     styles[nstyles]->settings(jarg-iarg-1,&arg[iarg+1]);
     iarg = jarg;
     nstyles++;
   }
-
-  // free allstyles created by build_styles()
-
-  for (int i = 0; i < nallstyles; i++) delete [] allstyles[i];
-  delete [] allstyles;
 
   // multiple[i] = 1 to M if sub-style used multiple times, else 0
 
@@ -759,45 +749,6 @@ int PairHybrid::check_ijtype(int itype, int jtype, char *substyle)
 {
   for (int m = 0; m < nmap[itype][jtype]; m++)
     if (strcmp(keywords[map[itype][jtype][m]],substyle) == 0) return 1;
-  return 0;
-}
-
-/* ----------------------------------------------------------------------
-   allstyles = list of all pair styles in this LAMMPS executable
-------------------------------------------------------------------------- */
-
-void PairHybrid::build_styles()
-{
-  nallstyles = 0;
-#define PAIR_CLASS
-#define PairStyle(key,Class) nallstyles++;
-#include "style_pair.h"
-#undef PairStyle
-#undef PAIR_CLASS
-
-  allstyles = new char*[nallstyles];
-
-  int n;
-  nallstyles = 0;
-#define PAIR_CLASS
-#define PairStyle(key,Class)                \
-  n = strlen(#key) + 1;                     \
-  allstyles[nallstyles] = new char[n];      \
-  strcpy(allstyles[nallstyles],#key);       \
-  nallstyles++;
-#include "style_pair.h"
-#undef PairStyle
-#undef PAIR_CLASS
-}
-
-/* ----------------------------------------------------------------------
-   allstyles = list of all known pair styles
-------------------------------------------------------------------------- */
-
-int PairHybrid::known_style(char *str)
-{
-  for (int i = 0; i < nallstyles; i++)
-    if (strcmp(str,allstyles[i]) == 0) return 1;
   return 0;
 }
 

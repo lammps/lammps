@@ -16,6 +16,8 @@
 
 #include "stdio.h"
 #include "pointers.h"
+#include <map>
+#include <string>
 
 namespace LAMMPS_NS {
 
@@ -48,6 +50,11 @@ class Input : protected Pointers {
   int ifthenelse_flag;         // 1 if executing commands inside an if-then-else
 
   FILE **infiles;              // list of open input files
+
+  typedef void (*CommandCreator)(LAMMPS *, int, char **);
+  std::map<std::string,CommandCreator> *command_map;
+
+  template <typename T> static void command_creator(LAMMPS *, int, char **);
 
   void parse();                          // parse an input text line
   char *nextword(char *, char **);       // find next word in string with quotes

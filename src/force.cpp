@@ -73,6 +73,17 @@ Force::Force(LAMMPS *lmp) : Pointers(lmp)
   strcpy(improper_style,str);
   kspace_style = new char[n];
   strcpy(kspace_style,str);
+
+  // fill pair map with fixes listed in style_pair.h
+
+  pair_map = new std::map<std::string,PairCreator>();
+
+#define PAIR_CLASS
+#define PairStyle(key,Class) \
+  (*pair_map)[#key] = &pair_creator<Class>;
+#include "style_pair.h"
+#undef PairStyle
+#undef PAIR_CLASS
 }
 
 /* ---------------------------------------------------------------------- */
@@ -134,7 +145,8 @@ void Force::create_pair(const char *style, const char *suffix)
 }
 
 /* ----------------------------------------------------------------------
-   generate a pair class, first with suffix appended
+   generate a pair class
+   try first with suffix appended
 ------------------------------------------------------------------------- */
 
 Pair *Force::new_pair(const char *style, const char *suffix, int &sflag)
@@ -144,29 +156,32 @@ Pair *Force::new_pair(const char *style, const char *suffix, int &sflag)
     char estyle[256];
     sprintf(estyle,"%s/%s",style,suffix);
 
-    if (0) return NULL;
-
-#define PAIR_CLASS
-#define PairStyle(key,Class) \
-    else if (strcmp(estyle,#key) == 0) return new Class(lmp);
-#include "style_pair.h"
-#undef PairStyle
-#undef PAIR_CLASS
-
+    if (pair_map->find(estyle) != pair_map->end()) {
+      PairCreator pair_creator = (*pair_map)[estyle];
+      return pair_creator(lmp);
+    }
   }
 
   sflag = 0;
 
   if (strcmp(style,"none") == 0) return NULL;
+  if (pair_map->find(style) != pair_map->end()) {
+    PairCreator pair_creator = (*pair_map)[style];
+    return pair_creator(lmp);
+  }
 
-#define PAIR_CLASS
-#define PairStyle(key,Class) \
-  else if (strcmp(style,#key) == 0) return new Class(lmp);
-#include "style_pair.h"
-#undef PAIR_CLASS
-
-  else error->all(FLERR,"Invalid pair style");
+  error->all(FLERR,"Invalid pair style");
   return NULL;
+}
+
+/* ----------------------------------------------------------------------
+   one instance per pair style in style_pair.h
+------------------------------------------------------------------------- */
+
+template <typename T>
+Pair *Force::pair_creator(LAMMPS *lmp)
+{
+  return new T(lmp);
 }
 
 /* ----------------------------------------------------------------------

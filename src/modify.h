@@ -16,6 +16,8 @@
 
 #include "stdio.h"
 #include "pointers.h"
+#include <map>
+#include <string>
 
 namespace LAMMPS_NS {
 
@@ -135,6 +137,16 @@ class Modify : protected Pointers {
   void list_init_end_of_step(int, int &, int *&);
   void list_init_thermo_energy(int, int &, int *&);
   void list_init_compute();
+
+ private:
+  typedef Compute *(*ComputeCreator)(LAMMPS *, int, char **);
+  std::map<std::string,ComputeCreator> *compute_map;
+
+  typedef Fix *(*FixCreator)(LAMMPS *, int, char **);
+  std::map<std::string,FixCreator> *fix_map;
+
+  template <typename T> static Compute *compute_creator(LAMMPS *, int, char **);
+  template <typename T> static Fix *fix_creator(LAMMPS *, int, char **);
 };
 
 }

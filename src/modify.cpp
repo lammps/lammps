@@ -72,6 +72,28 @@ Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
 
   ncompute = maxcompute = 0;
   compute = NULL;
+
+  // fill map with fixes listed in style_fix.h
+
+  fix_map = new std::map<std::string,FixCreator>();
+
+#define FIX_CLASS
+#define FixStyle(key,Class) \
+  (*fix_map)[#key] = &fix_creator<Class>;
+#include "style_fix.h"
+#undef FixStyle
+#undef FIX_CLASS
+
+  // fill map with computes listed in style_compute.h
+
+  compute_map = new std::map<std::string,ComputeCreator>();
+
+#define COMPUTE_CLASS
+#define ComputeStyle(key,Class) \
+  (*compute_map)[#key] = &compute_creator<Class>;
+#include "style_compute.h"
+#undef ComputeStyle
+#undef COMPUTE_CLASS
 }
 
 /* ---------------------------------------------------------------------- */
@@ -666,39 +688,26 @@ void Modify::add_fix(int narg, char **arg, char *suffix)
     }
   }
 
-  // create the Fix, first with suffix appended
+  // create the Fix
+  // try first with suffix appended
 
-  int success = 0;
+  fix[ifix] = NULL;
 
   if (suffix && lmp->suffix_enable) {
     char estyle[256];
     sprintf(estyle,"%s/%s",arg[2],suffix);
-    success = 1;
-
-    if (0) return;
-
-#define FIX_CLASS
-#define FixStyle(key,Class) \
-    else if (strcmp(estyle,#key) == 0) fix[ifix] = new Class(lmp,narg,arg);
-#include "style_fix.h"
-#undef FixStyle
-#undef FIX_CLASS
-
-    else success = 0;
+    if (fix_map->find(estyle) != fix_map->end()) {
+      FixCreator fix_creator = (*fix_map)[estyle];
+      fix[ifix] = fix_creator(lmp,narg,arg);
+    }
   }
 
-  if (!success) {
-    if (0) return;
-
-#define FIX_CLASS
-#define FixStyle(key,Class) \
-    else if (strcmp(arg[2],#key) == 0) fix[ifix] = new Class(lmp,narg,arg);
-#include "style_fix.h"
-#undef FixStyle
-#undef FIX_CLASS
-
-    else error->all(FLERR,"Invalid fix style");
+  if (fix[ifix] == NULL && fix_map->find(arg[2]) != fix_map->end()) {
+    FixCreator fix_creator = (*fix_map)[arg[2]];
+    fix[ifix] = fix_creator(lmp,narg,arg);
   }
+
+  if (fix[ifix] == NULL) error->all(FLERR,"Invalid fix style");
 
   // set fix mask values and increment nfix (if new)
 
@@ -736,6 +745,16 @@ void Modify::add_fix(int narg, char **arg, char *suffix)
         if (logfile) fprintf(logfile,str,fix[ifix]->id,fix[ifix]->style);
       }
     }
+}
+
+/* ----------------------------------------------------------------------
+   one instance per fix in style_fix.h
+------------------------------------------------------------------------- */
+
+template <typename T>
+Fix *Modify::fix_creator(LAMMPS *lmp, int narg, char **arg)
+{
+  return new T(lmp,narg,arg);
 }
 
 /* ----------------------------------------------------------------------
@@ -811,43 +830,39 @@ void Modify::add_compute(int narg, char **arg, char *suffix)
       memory->srealloc(compute,maxcompute*sizeof(Compute *),"modify:compute");
   }
 
-  // create the Compute, first with suffix appended
+  // create the Compute
+  // try first with suffix appended
 
-  int success = 0;
+  compute[ncompute] = NULL;
 
   if (suffix && lmp->suffix_enable) {
     char estyle[256];
     sprintf(estyle,"%s/%s",arg[2],suffix);
-    success = 1;
-
-    if (0) return;
-
-#define COMPUTE_CLASS
-#define ComputeStyle(key,Class) \
-    else if (strcmp(estyle,#key) == 0) \
-      compute[ncompute] = new Class(lmp,narg,arg);
-#include "style_compute.h"
-#undef ComputeStyle
-#undef COMPUTE_CLASS
-
-    else success = 0;
+    if (compute_map->find(estyle) != compute_map->end()) {
+      ComputeCreator compute_creator = (*compute_map)[estyle];
+      compute[ncompute] = compute_creator(lmp,narg,arg);
+    }
   }
 
-  if (!success) {
-    if (0) return;
-
-#define COMPUTE_CLASS
-#define ComputeStyle(key,Class) \
-    else if (strcmp(arg[2],#key) == 0) \
-      compute[ncompute] = new Class(lmp,narg,arg);
-#include "style_compute.h"
-#undef ComputeStyle
-#undef COMPUTE_CLASS
-
-    else error->all(FLERR,"Invalid compute style");
+  if (compute[ncompute] == NULL && 
+      compute_map->find(arg[2]) != compute_map->end()) {
+    ComputeCreator compute_creator = (*compute_map)[arg[2]];
+    compute[ncompute] = compute_creator(lmp,narg,arg);
   }
+
+  if (compute[ncompute] == NULL) error->all(FLERR,"Invalid compute style");
 
   ncompute++;
+}
+
+/* ----------------------------------------------------------------------
+   one instance per compute in style_compute.h
+------------------------------------------------------------------------- */
+
+template <typename T>
+Compute *Modify::compute_creator(LAMMPS *lmp, int narg, char **arg)
+{
+  return new T(lmp,narg,arg);
 }
 
 /* ----------------------------------------------------------------------

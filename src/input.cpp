@@ -130,6 +130,8 @@ Input::~Input()
   memory->sfree(arg);
   memory->sfree(infiles);
   delete variable;
+
+  delete command_map;
 }
 
 /* ----------------------------------------------------------------------

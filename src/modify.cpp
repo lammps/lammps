@@ -136,6 +136,9 @@ Modify::~Modify()
   delete [] list_timeflag;
 
   restart_deallocate();
+
+  delete compute_map;
+  delete fix_map;
 }
 
 /* ----------------------------------------------------------------------

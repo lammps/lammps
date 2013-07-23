@@ -74,7 +74,7 @@ Force::Force(LAMMPS *lmp) : Pointers(lmp)
   kspace_style = new char[n];
   strcpy(kspace_style,str);
 
-  // fill pair map with fixes listed in style_pair.h
+  // fill pair map with pair styles listed in style_pair.h
 
   pair_map = new std::map<std::string,PairCreator>();
 
@@ -103,6 +103,8 @@ Force::~Force()
   if (dihedral) delete dihedral;
   if (improper) delete improper;
   if (kspace) delete kspace;
+
+  delete pair_map;
 }
 
 /* ---------------------------------------------------------------------- */

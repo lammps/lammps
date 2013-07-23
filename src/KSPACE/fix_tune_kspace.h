@@ -28,7 +28,7 @@ namespace LAMMPS_NS {
 class FixTuneKspace : public Fix {
  public:
   FixTuneKspace(class LAMMPS *, int, char **);
-  ~FixTuneKspace();
+  ~FixTuneKspace() {}
   int setmask();
   void init();
   void pre_exchange();

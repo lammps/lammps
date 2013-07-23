@@ -35,6 +35,14 @@
 </H3>
 <H3>pair_style coul/wolf/omp command 
 </H3>
+<H3>pair_style tip4p/cut command 
+</H3>
+<H3>pair_style tip4p/long command 
+</H3>
+<H3>pair_style tip4p/cut/omp command 
+</H3>
+<H3>pair_style tip4p/long/omp command 
+</H3>
 <P><B>Syntax:</B>
 </P>
 <PRE>pair_style coul/cut cutoff
@@ -42,7 +50,9 @@ pair_style coul/debye kappa cutoff
 pair_style coul/dsf alpha cutoff
 pair_style coul/long cutoff
 pair_style coul/long/gpu cutoff 
-pair_style coul/wolf alpha cutoff 
+pair_style coul/wolf alpha cutoff
+pair_style tip4p/cut otype htype btype atype qdist cutoff
+pair_style tip4p/long otype htype btype atype qdist cutoff 
 </PRE>
 <UL><LI>cutoff = global cutoff for Coulombic interactions
 <LI>kappa = Debye length (inverse distance units) 
@@ -68,6 +78,12 @@ pair_coeff * *
 pair_coeff * * 
 </PRE>
 <PRE>pair_style coul/wolf 0.2 9.0
+pair_coeff * * 
+</PRE>
+<PRE>pair_style tip4p/cut 1 2 7 8 0.15 12.0
+pair_coeff * * 
+</PRE>
+<PRE>pair_style tip4p/long 1 2 7 8 0.15 10.0
 pair_coeff * * 
 </PRE>
 <P><B>Description:</B>
@@ -126,6 +142,33 @@ factor is applied so it can be used in conjunction with the
 option.  The Coulombic cutoff specified for this style means that
 pairwise interactions within this distance are computed directly;
 interactions outside that distance are computed in reciprocal space.
+</P>
+<P>Styles <I>tip4p/cut</I> and <I>tip4p/long</I> implement the coulomb part of
+the TIP4P water model of <A HREF = "#Jorgensen">(Jorgensen)</A>, which introduces
+a massless site located a short distance away from the oxygen atom
+along the bisector of the HOH angle.  The atomic types of the oxygen and
+hydrogen atoms, the bond and angle types for OH and HOH interactions,
+and the distance to the massless charge site are specified as
+pair_style arguments.  Style <I>tip4p/cut</I> uses a global cutoff for
+Coulomb interactions; style <I>tip4p/long</I> is for use with a long-range
+Coulombic solver (Ewald or PPPM).
+</P>
+<P>IMPORTANT NOTE: For each TIP4P water molecule in your system, the atom
+IDs for the O and 2 H atoms must be consecutive, with the O atom
+first.  This is to enable LAMMPS to "find" the 2 H atoms associated
+with each O atom.  For example, if the atom ID of an O atom in a TIP4P
+water molecule is 500, then its 2 H atoms must have IDs 501 and 502.
+</P>
+<P>See the <A HREF = "Section_howto.html#howto_8">howto section</A> for more
+information on how to use the TIP4P pair styles and lists of
+parameters to set.  Note that the neighobr list cutoff for Coulomb
+interactions is effectively extended by a distance 2*qdist when using
+the TIP4P pair style, to account for the offset distance of the
+fictitious charges on O atoms in water molecules.  Thus it is
+typically best in an efficiency sense to use a LJ cutoff >= Coulomb
+cutoff + 2*qdist, to shrink the size of the neighbor list.  This leads
+to slightly larger cost for the long-range calculation, so you can
+test the trade-off for your model.
 </P>
 <P>These potentials are designed to be combined with other pair
 potentials via the <A HREF = "pair_hybrid.html">pair_style hybrid/overlay</A>
@@ -203,15 +246,17 @@ to be specified in an input script that reads a restart file.
 
 <P><B>Restrictions:</B>
 </P>
-<P>The <I>coul/long</I> style is part of the KSPACE package.  It is only
-enabled if LAMMPS was built with that package (which it is by
-default).  See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A> section
+<P>The <I>coul/long</I>, <I>coul/msm</I> and <I>tip4p/long</I> styles are part of the
+KSPACE package.  They are only enabled if LAMMPS was built with that
+package (which it is by default).
+ See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A> section
 for more info.
 </P>
 <P><B>Related commands:</B>
 </P>
 <P><A HREF = "pair_coeff.html">pair_coeff</A>, <A HREF = "pair_hybrid.html">pair_style
 hybrid/overlay</A>
+<A HREF = "kspace_style.html">kspace_style</A>
 </P>
 <P><B>Default:</B> none
 </P>

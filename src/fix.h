@@ -26,9 +26,11 @@ class Fix : protected Pointers {
   int restart_global;            // 1 if Fix saves global state, 0 if not
   int restart_peratom;           // 1 if Fix saves peratom state, 0 if not
   int force_reneighbor;          // 1 if Fix forces reneighboring, 0 if not
-  int box_change;                // 1 if Fix changes box, 0 if not
+
   int box_change_size;           // 1 if Fix changes box size, 0 if not
   int box_change_shape;          // 1 if Fix changes box shape, 0 if not
+  int box_change_domain;         // 1 if Fix changes proc sub-domains, 0 if not
+
   bigint next_reneighbor;        // next timestep to force a reneighboring
   int thermo_energy;             // 1 if fix_modify enabled ThEng, 0 if not
   int nevery;                    // how often to call an end_of_step fix

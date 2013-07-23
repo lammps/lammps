@@ -48,7 +48,6 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
   scalar_flag = 1;
   extscalar = 1;
   global_freq = 1;
-  box_change = 1;
   no_change_box = 1;
 
   // default values

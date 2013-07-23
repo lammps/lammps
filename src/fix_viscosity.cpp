@@ -73,7 +73,8 @@ FixViscosity::FixViscosity(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[iarg],"swap") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix viscosity command");
       nswap = force->inumeric(FLERR,arg[iarg+1]);
-      if (nswap <= 0) error->all(FLERR,"Fix viscosity swap value must be positive");
+      if (nswap <= 0) 
+        error->all(FLERR,"Fix viscosity swap value must be positive");
       iarg += 2;
     } else if (strcmp(arg[iarg],"vtarget") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix viscosity command");

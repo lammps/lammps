@@ -108,13 +108,20 @@ Domain::~Domain()
 
 void Domain::init()
 {
-  // set box_change if box dimensions/shape ever changes
-  // due to shrink-wrapping, fixes that change volume (npt, vol/rescale, etc)
+  // set box_change flags if box size/shape/sub-domains ever change
+  // due to shrink-wrapping or fixes that change box size/shape/sub-domains
+
+  box_change_size = box_change_shape = box_change_domain = 0;
+
+  if (nonperiodic == 2) box_change_size = 1;
+  for (int i = 0; i < modify->nfix; i++) {
+    if (modify->fix[i]->box_change_size) box_change_size = 1;
+    if (modify->fix[i]->box_change_shape) box_change_shape = 1;
+    if (modify->fix[i]->box_change_domain) box_change_domain = 1;
+  }
 
   box_change = 0;
-  if (nonperiodic == 2) box_change = 1;
-  for (int i = 0; i < modify->nfix; i++)
-    if (modify->fix[i]->box_change) box_change = 1;
+  if (box_change_size || box_change_shape || box_change_domain) box_change = 1;
 
   // check for fix deform
 

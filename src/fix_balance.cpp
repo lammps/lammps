@@ -34,7 +34,7 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 7) error->all(FLERR,"Illegal fix balance command");
 
-  box_change = 1;
+  box_change_domain = 1;
   scalar_flag = 1;
   extscalar = 0;
   vector_flag = 1;

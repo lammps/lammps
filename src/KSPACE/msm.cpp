@@ -2287,7 +2287,8 @@ void MSM::restriction(int n)
 
   // zero out charge on coarser grid
 
-  memset(&(qgrid2[nzlo_out[n+1]][nylo_out[n+1]][nxlo_out[n+1]]),0,ngrid[n+1]*sizeof(double));
+  memset(&(qgrid2[nzlo_out[n+1]][nylo_out[n+1]][nxlo_out[n+1]]),0,
+         ngrid[n+1]*sizeof(double));
 
   for (kp = nzlo_in[n+1]; kp <= nzhi_in[n+1]; kp++)
     for (jp = nylo_in[n+1]; jp <= nyhi_in[n+1]; jp++)

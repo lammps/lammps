@@ -3618,7 +3618,7 @@ unsigned int Variable::data_mask(char *str)
     // compute
     // ----------------
 
-    if ((strncmp(word,"c_",2) == 0) && (i>0) && (!isalnum(str[i-1]))){
+    if ((strncmp(word,"c_",2) == 0) && (i>0) && (!isalnum(str[i-1]))) {
       if (domain->box_exist == 0)
         error->all(FLERR,
                    "Variable evaluation before simulation box is defined");

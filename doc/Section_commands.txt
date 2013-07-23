@@ -779,6 +779,8 @@ potentials.  Click on the style itself for a full description:
 "table"_pair_table.html,
 "tersoff"_pair_tersoff.html,
 "tersoff/zbl"_pair_tersoff_zbl.html,
+"tip4p/cut"_pair_coul.html,
+"tip4p/long"_pair_coul.html,
 "tri/lj"_pair_tri_lj.html,
 "yukawa"_pair_yukawa.html,
 "yukawa/colloid"_pair_yukawa_colloid.html :tb(c=4,ea=c)
@@ -961,6 +963,8 @@ package"_Section_accelerate.html.
 "tersoff/omp"_pair_tersoff.html,
 "tersoff/table/omp"_pair_tersoff.html,
 "tersoff/zbl/omp"_pair_tersoff_zbl.html,
+"tip4p/cut/omp"_pair_coul.html,
+"tip4p/long/omp"_pair_coul.html,
 "tri/lj/omp"_pair_tri_lj.html,
 "yukawa/gpu"_pair_yukawa.html,
 "yukawa/omp"_pair_yukawa.html,

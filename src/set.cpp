@@ -67,6 +67,7 @@ void Set::command(int narg, char **arg)
   id = new char[n];
   strcpy(id,arg[1]);
   select = NULL;
+  selection(atom->nlocal);
 
   // loop over keyword/value pairs
   // call appropriate routine to reset attributes
@@ -374,8 +375,7 @@ void Set::selection(int n)
   } else if (style == MOL_SELECT) {
     if (atom->molecule_flag == 0)
       error->all(FLERR,"Cannot use set mol with no molecule IDs defined");
-    if (strcmp(id,"0") == 0) nlo = nhi = 0;
-    else force->bounds(id,BIG,nlo,nhi);
+    else force->bounds(id,BIG,nlo,nhi,0);
 
     int *molecule = atom->molecule;
     for (int i = 0; i < n; i++)
@@ -422,8 +422,6 @@ void Set::set(int keyword)
     (AtomVecEllipsoid *) atom->style_match("ellipsoid");
   AtomVecLine *avec_line = (AtomVecLine *) atom->style_match("line");
   AtomVecTri *avec_tri = (AtomVecTri *) atom->style_match("tri");
-
-  selection(atom->nlocal);
 
   int nlocal = atom->nlocal;
   for (int i = 0; i < nlocal; i++) {
@@ -563,7 +561,6 @@ void Set::setrandom(int keyword)
   AtomVecLine *avec_line = (AtomVecLine *) atom->style_match("line");
   AtomVecTri *avec_tri = (AtomVecTri *) atom->style_match("tri");
 
-  selection(atom->nlocal);
   RanPark *random = new RanPark(lmp,1);
   double **x = atom->x;
   int seed = ivalue;

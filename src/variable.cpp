@@ -3234,7 +3234,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
     newtree->left = newtree->middle = newtree->right = NULL;
     treestack[ntreestack++] = newtree;
 
-  // special function for file-style or atomfile-stlye variables
+  // special function for file-style or atomfile-style variables
 
   } else if (strcmp(word,"next") == 0) {
     if (narg != 1) 
@@ -3260,15 +3260,13 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
         treestack[ntreestack++] = newtree;
       } else argstack[nargstack++] = value;
 
-    // ATOMFILE has one value per atom, only valid for
-    // save values in tree
+    // ATOMFILE has per-atom values, save values in tree
+    // copy current per-atom values into result so can read next ones
+    // set selfalloc = 1 so result will be deleted by free_tree() after eval
 
     } else if (style[ivar] == ATOMFILE) {
       if (tree == NULL) 
         error->all(FLERR,"Atomfile variable in equal-style variable formula");
-
-      // copy current per-atom values into result so can read next ones
-      // set selfalloc = 1 so will be deleted by free_tree() after eval
 
       double *result;
       memory->create(result,atom->nlocal,"variable:result");

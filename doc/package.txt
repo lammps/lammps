@@ -247,6 +247,8 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 The gpu style of this command can only be invoked if LAMMPS was built
 with the GPU package.  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info.
+When using the "r-RESPA run style"_run_style.html, GPU accelerated
+styles can only be used on the outermost RESPA level.
 
 The omp style of this command can only be invoked if LAMMPS was built
 with the USER-OMP package.  See the "Making

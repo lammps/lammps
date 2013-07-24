@@ -274,9 +274,12 @@ runs for the current system and on the current machine.
 
 [Restrictions:]
 
-None of the pair styles in the USER-OMP package support the "inner",
-"middle", "outer" options for r-RESPA integration, only the "pair"
-option is supported.
+Only a few of the pair styles in the USER-OMP package support the "inner",
+"middle", "outer" options for r-RESPA integration, even if the regular
+version does. For those only the "pair" option is supported.
+
+When using styles from the GPU package, they can only be used on the
+outermost RESPA level.
 
 [Parallel efficiency and performance tips:]
 

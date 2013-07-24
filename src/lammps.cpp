@@ -537,6 +537,9 @@ void LAMMPS::destroy()
   delete atom;            // atom must come after modify, neighbor
                           //   since fixes delete callbacks in atom
   delete timer;
+
+  modify = NULL;          // necessary since input->variable->varreader
+                          // will be destructed later
 }
 
 /* ----------------------------------------------------------------------

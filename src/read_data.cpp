@@ -941,7 +941,7 @@ void ReadData::mass()
     next = strchr(buf,'\n');
     *next = '\0';
     atom->set_mass(buf);
-    buf += strlen(buf) + 1;
+    buf = next + 1;
   }
   delete [] original;
 }
@@ -950,7 +950,6 @@ void ReadData::mass()
 
 void ReadData::paircoeffs()
 {
-  int i,m;
   char *next;
   char *buf = new char[atom->ntypes*MAXLINE];
 
@@ -958,13 +957,12 @@ void ReadData::paircoeffs()
   if (eof) error->all(FLERR,"Unexpected end of data file");
 
   char *original = buf;
-  for (i = 0; i < atom->ntypes; i++) {
+  for (int i = 0; i < atom->ntypes; i++) {
     next = strchr(buf,'\n');
     *next = '\0';
-    m = strlen(buf) + 1;
     parse_coeffs(buf,NULL,1);
     force->pair->coeff(narg,arg);
-    buf += m;
+    buf = next + 1;
   }
   delete [] original;
 }
@@ -973,7 +971,7 @@ void ReadData::paircoeffs()
 
 void ReadData::pairIJcoeffs()
 {
-  int i,j,m;
+  int i,j;
   char *next;
   
   int nsq = atom->ntypes* (atom->ntypes+1) / 2;
@@ -987,10 +985,9 @@ void ReadData::pairIJcoeffs()
     for (j = i; j < atom->ntypes; j++) {
       next = strchr(buf,'\n');
       *next = '\0';
-      m = strlen(buf) + 1;
       parse_coeffs(buf,NULL,0);
       force->pair->coeff(narg,arg);
-      buf += m;
+      buf = next + 1;
     }
   delete [] original;
 }
@@ -999,7 +996,6 @@ void ReadData::pairIJcoeffs()
 
 void ReadData::bondcoeffs()
 {
-  int i,m;
   char *next;
   char *buf = new char[atom->nbondtypes*MAXLINE];
 
@@ -1007,13 +1003,12 @@ void ReadData::bondcoeffs()
   if (eof) error->all(FLERR,"Unexpected end of data file");
 
   char *original = buf;
-  for (i = 0; i < atom->nbondtypes; i++) {
+  for (int i = 0; i < atom->nbondtypes; i++) {
     next = strchr(buf,'\n');
     *next = '\0';
-    m = strlen(buf) + 1;
     parse_coeffs(buf,NULL,0);
     force->bond->coeff(narg,arg);
-    buf += m;
+    buf = next + 1;
   }
   delete [] original;
 }
@@ -1022,7 +1017,6 @@ void ReadData::bondcoeffs()
 
 void ReadData::anglecoeffs(int which)
 {
-  int i,m;
   char *next;
   char *buf = new char[atom->nangletypes*MAXLINE];
 
@@ -1030,15 +1024,14 @@ void ReadData::anglecoeffs(int which)
   if (eof) error->all(FLERR,"Unexpected end of data file");
 
   char *original = buf;
-  for (i = 0; i < atom->nangletypes; i++) {
+  for (int i = 0; i < atom->nangletypes; i++) {
     next = strchr(buf,'\n');
     *next = '\0';
-    m = strlen(buf) + 1;
     if (which == 0) parse_coeffs(buf,NULL,0);
     else if (which == 1) parse_coeffs(buf,"bb",0);
     else if (which == 2) parse_coeffs(buf,"ba",0);
     force->angle->coeff(narg,arg);
-    buf += m;
+    buf = next + 1;
   }
   delete [] original;
 }
@@ -1047,7 +1040,6 @@ void ReadData::anglecoeffs(int which)
 
 void ReadData::dihedralcoeffs(int which)
 {
-  int i,m;
   char *next;
   char *buf = new char[atom->ndihedraltypes*MAXLINE];
 
@@ -1055,10 +1047,9 @@ void ReadData::dihedralcoeffs(int which)
   if (eof) error->all(FLERR,"Unexpected end of data file");
 
   char *original = buf;
-  for (i = 0; i < atom->ndihedraltypes; i++) {
+  for (int i = 0; i < atom->ndihedraltypes; i++) {
     next = strchr(buf,'\n');
     *next = '\0';
-    m = strlen(buf) + 1;
     if (which == 0) parse_coeffs(buf,NULL,0);
     else if (which == 1) parse_coeffs(buf,"mbt",0);
     else if (which == 2) parse_coeffs(buf,"ebt",0);
@@ -1066,7 +1057,7 @@ void ReadData::dihedralcoeffs(int which)
     else if (which == 4) parse_coeffs(buf,"aat",0);
     else if (which == 5) parse_coeffs(buf,"bb13",0);
     force->dihedral->coeff(narg,arg);
-    buf += m;
+    buf = next + 1;
   }
   delete [] original;
 }
@@ -1075,7 +1066,6 @@ void ReadData::dihedralcoeffs(int which)
 
 void ReadData::impropercoeffs(int which)
 {
-  int i,m;
   char *next;
   char *buf = new char[atom->nimpropertypes*MAXLINE];
 
@@ -1083,14 +1073,13 @@ void ReadData::impropercoeffs(int which)
   if (eof) error->all(FLERR,"Unexpected end of data file");
 
   char *original = buf;
-  for (i = 0; i < atom->nimpropertypes; i++) {
+  for (int i = 0; i < atom->nimpropertypes; i++) {
     next = strchr(buf,'\n');
     *next = '\0';
-    m = strlen(buf) + 1;
     if (which == 0) parse_coeffs(buf,NULL,0);
     else if (which == 1) parse_coeffs(buf,"aa",0);
     force->improper->coeff(narg,arg);
-    buf += m;
+    buf = next + 1;
   }
   delete [] original;
 }
@@ -1102,7 +1091,7 @@ void ReadData::impropercoeffs(int which)
 
 void ReadData::fix(int ifix, char *line, bigint nlines)
 {
-  int i,m,nchunk,eof;
+  int nchunk,eof;
 
   bigint nread = 0;
   while (nread < nlines) {

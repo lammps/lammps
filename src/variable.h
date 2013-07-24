@@ -41,7 +41,7 @@ class Variable : protected Pointers {
 
  private:
   int nvar;                // # of defined variables
-  int maxvar;              // max # of variables arrays can hold
+  int maxvar;              // max # of variables following lists can hold
   char **names;            // name of each variable
   int *style;              // style of each variable
   int *num;                // # of values for each variable
@@ -60,13 +60,14 @@ class Variable : protected Pointers {
   int me;
 
   struct Tree {            // parse tree for atom-style variables
-    double value;
-    double *array;
-    int *iarray;
-    int type;
-    int nstride;
-    int ivalue1,ivalue2;
-    Tree *left,*middle,*right;
+    double value;          // single scalar  
+    double *array;         // per-atom or per-type list of doubles
+    int *iarray;           // per-atom list of ints
+    int type;              // operation, see enum{} in variable.cpp
+    int nstride;           // stride between atoms if array is a 2d array
+    int selfalloc;         // 1 if array is allocated here, else 0
+    int ivalue1,ivalue2;   // extra values for needed for gmask,rmask,grmask
+    Tree *left,*middle,*right;    // ptrs further down tree
   };
 
   void remove(int);
@@ -96,14 +97,18 @@ class Variable : protected Pointers {
 
 class VarReader : protected Pointers {
  public:
-    VarReader(class LAMMPS *, char *, int);
+  class FixStore *fix;
+  char *id_fix;
+
+  VarReader(class LAMMPS *, char *, char *, int);
   ~VarReader();
-  int read(char *);
-  int read(double *);
+  int read_scalar(char *);
+  int read_peratom();
 
  private:
   int me,style;
   FILE *fp;
+  char *buffer;
 };
 
 }

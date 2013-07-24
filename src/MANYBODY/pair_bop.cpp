@@ -165,7 +165,6 @@ PairBOP::PairBOP(LAMMPS *lmp) : Pair(lmp)
 
 PairBOP::~PairBOP()
 {
-  int i;
   if(allocated) {
     memory_theta_destroy();
     if (otfly==0) memory->destroy(cos_index);
@@ -871,12 +870,12 @@ void PairBOP::sigmaBo()
   int itype,jtype,ktype,kptype;
   int bt_i,bt_j,bt_ij;
   int kp_index,same_ikp,same_jkp;
-  int same_kkp,same_jkpj;
+  int same_kkp;
   double AA,BB,CC,DD,EE,EE1,FF;
   double AAC,BBC,CCC,DDC,EEC,FFC,GGC;
   double AACFF,UT,bndtmp,UTcom;
   double amean,gmean0,gmean1,gmean2,ps;
-  double gfactor1,gprime1,gsqprime,factorsq;
+  double gfactor1,gprime1,gsqprime;
   double gfactorsq,gfactor2,gprime2;
   double gfactorsq2,gsqprime2;
   double gfactor3,gprime3,gfactor,rfactor;
@@ -896,7 +895,6 @@ void PairBOP::sigmaBo()
   int *type = atom->type;
 
   nlocal = atom->nlocal;
-  int nall = nlocal+atom->nghost;
   firstneigh = list->firstneigh;
   numneigh = list->numneigh;
   inum = list->inum;
@@ -2150,6 +2148,7 @@ void PairBOP::sigmaBo()
 //EEC is a modified form of (a) Eq. 33
 
             EEC=(DDC-CCC)/(AAC+2.0*small1);
+            AACFF=1.0/(AAC+2.0*small1);
             for(m=0;m<nb_t;m++) {
               if((bt_sg[m].i>-1)&&(bt_sg[m].j>-1)) {
                 bt_i=bt_sg[m].i;
@@ -2421,18 +2420,17 @@ void PairBOP::sigmaBo_noa()
   int itype,jtype,ktype,kptype;
   int bt_i,bt_j,bt_ij;
   int kp_index,same_ikp,same_jkp;
-  double AA,BB,CC,DD,EE,EE1,FF;
-  double AAC,BBC,CCC,DDC,EEC,FFC,GGC;
-  double AACFF,UT,bndtmp,UTcom;
+  double AA,BB,CC,DD,EE1,FF;
+  double AAC,BBC,CCC,DDC,EEC;
+  double UT,bndtmp,UTcom;
   double amean,gmean0,gmean1,gmean2,ps;
-  double gfactor1,gprime1,gsqprime,factorsq;
+  double gfactor1,gprime1,gsqprime;
   double gfactorsq,gfactor2,gprime2;
   double gfactorsq2,gsqprime2;
   double gfactor3,gprime3,gfactor,rfactor;
-  double drfactor,gfactor4,gprime4,agpdpr3;
-  double rfactor0,rfactorrt,rfactor1rt,rfactor1;
+  double rfactorrt,rfactor1rt,rfactor1;
   double rcm1,rcm2,gcm1,gcm2,gcm3;
-  double agpdpr1,agpdpr2,app1,app2,app3,app4;
+  double agpdpr1,app1;
   double dsigB1,dsigB2;
   double part0,part1,part2,part3,part4;
   double psign,bndtmp0,pp1,bndtmp1,bndtmp2;
@@ -2444,7 +2442,6 @@ void PairBOP::sigmaBo_noa()
   int *type = atom->type;
 
   nlocal = atom->nlocal;
-  int nall = nlocal+atom->nghost;
   firstneigh = list->firstneigh;
   numneigh = list->numneigh;
   inum = list->inum;
@@ -3407,7 +3404,7 @@ void PairBOP::sigmaBo_otf()
   double AAC,BBC,CCC,DDC,EEC,FFC,GGC;
   double AACFF,UT,bndtmp,UTcom;
   double amean,gmean0,gmean1,gmean2,ps;
-  double gfactor1,gprime1,gsqprime,factorsq;
+  double gfactor1,gprime1,gsqprime;
   double gfactorsq,gfactor2,gprime2;
   double gfactorsq2,gsqprime2;
   double gfactor3,gprime3,gfactor,rfactor;
@@ -3456,7 +3453,6 @@ void PairBOP::sigmaBo_otf()
   int *type = atom->type;
 
   nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
@@ -5318,26 +5314,24 @@ void PairBOP::sigmaBo_noa_otf()
   int **firstneigh,*numneigh;
   int temp_ij,temp_ik,temp_jkp,temp_kk,temp_jk;
   int temp_ji,temp_kkp;
-  int temp_kpk;
-  int nb_ij,nb_ik,nb_ikp;
+  int nb_ij,nb_ik;
   int nb_jk,nb_jkp,nb_kkp;
-  int kp_nsearch,nsearch;
+  int nsearch;
   int sig_flag,setting,ncmp,ks;
   int itype,jtype,ktype,kptype;
   int bt_i,bt_j,bt_ij;
-  int kp_index,same_ikp,same_jkp,same_kpk;
+  int same_ikp,same_jkp,same_kpk;
   double AA,BB,CC,DD,EE,EE1,FF;
   double AAC,BBC,CCC,DDC,EEC,FFC,GGC;
-  double AACFF,UT,bndtmp,UTcom;
+  double UT,bndtmp,UTcom;
   double amean,gmean0,gmean1,gmean2,ps;
-  double gfactor1,gprime1,gsqprime,factorsq;
+  double gfactor1,gprime1,gsqprime;
   double gfactorsq,gfactor2,gprime2;
   double gfactorsq2,gsqprime2;
   double gfactor3,gprime3,gfactor,rfactor;
-  double drfactor,gfactor4,gprime4,agpdpr3;
-  double rfactor0,rfactorrt,rfactor1rt,rfactor1;
+  double rfactorrt,rfactor1rt,rfactor1;
   double rcm1,rcm2,gcm1,gcm2,gcm3;
-  double agpdpr1,agpdpr2,app1,app2,app3,app4;
+  double agpdpr1,app1;
   double dsigB1,dsigB2;
   double part0,part1,part2,part3,part4;
   double psign,bndtmp0,pp1;
@@ -5361,15 +5355,14 @@ void PairBOP::sigmaBo_noa_otf()
   double betaS_kkp,dBetaS_kkp;
   double betaP_kkp,dBetaP_kkp;
   double cosAng_jik,dcA_jik[3][2];
-  double cosAng_jikp,dcA_jikp[3][2];
-  double cosAng_kikp,dcA_kikp[3][2];
+  double cosAng_jikp;
+  double cosAng_kikp;
   double cosAng_ijk,dcA_ijk[3][2];
   double cosAng_ijkp,dcA_ijkp[3][2];
   double cosAng_kjkp,dcA_kjkp[3][2];
   double cosAng_ikj,dcA_ikj[3][2];
-  double cosAng_ikkp,dcA_ikkp[3][2];
+  double cosAng_ikkp;
   double cosAng_jkkp,dcA_jkkp[3][2];
-  double cosAng_jkpk,dcA_jkpk[3][2];
 
 
   double ftmp[3],xtmp[3];
@@ -5380,7 +5373,6 @@ void PairBOP::sigmaBo_noa_otf()
   int *type = atom->type;
 
   nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;

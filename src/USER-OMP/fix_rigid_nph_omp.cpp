@@ -34,7 +34,7 @@ FixRigidNPHOMP::FixRigidNPHOMP(LAMMPS *lmp, int narg, char **arg) :
 
   scalar_flag = 1;
   restart_global = 1;
-  box_change = 1;
+  box_change_size = 1;
   extscalar = 1;
     
   // error checks

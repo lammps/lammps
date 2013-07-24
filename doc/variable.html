@@ -107,9 +107,9 @@ a formula which when evaluated produces one numeric value per atom
 which can be output to a dump file (see the <A HREF = "dump.html">dump custom</A>
 command) or used as input to an averaging fix (see the <A HREF = "fix_ave_spatial.html">fix
 ave/spatial</A> and <A HREF = "fix_ave_atom.html">fix ave/atom</A>
-commands).  Variables of style <I>atomfile</I> can be used similar to
-atom-style variables, except they get their per-atom values from a
-file rather than from a formula.
+commands).  Variables of style <I>atomfile</I> can be used anywhere in an
+input script that atom-style variables are used; they get their
+per-atom values from a file rather than from a formula.
 </P>
 <P>In the discussion that follows, the "name" of the variable is the
 arbitrary string that is the 1st argument in the variable command.

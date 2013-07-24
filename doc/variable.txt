@@ -101,9 +101,9 @@ a formula which when evaluated produces one numeric value per atom
 which can be output to a dump file (see the "dump custom"_dump.html
 command) or used as input to an averaging fix (see the "fix
 ave/spatial"_fix_ave_spatial.html and "fix ave/atom"_fix_ave_atom.html
-commands).  Variables of style {atomfile} can be used similar to
-atom-style variables, except they get their per-atom values from a
-file rather than from a formula.
+commands).  Variables of style {atomfile} can be used anywhere in an
+input script that atom-style variables are used; they get their
+per-atom values from a file rather than from a formula.
 
 In the discussion that follows, the "name" of the variable is the
 arbitrary string that is the 1st argument in the variable command.

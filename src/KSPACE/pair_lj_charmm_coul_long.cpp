@@ -941,7 +941,7 @@ void PairLJCharmmCoulLong::write_data_all(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++)
-      fprintf(fp,"%d %d %g %g %g %g %g\n",i,j,
+      fprintf(fp,"%d %d %g %g %g %g\n",i,j,
               epsilon[i][j],sigma[i][j],eps14[i][j],sigma14[i][j]);
 }
 

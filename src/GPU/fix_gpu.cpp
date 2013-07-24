@@ -150,10 +150,14 @@ void FixGPU::init()
   if (strstr(update->integrate_style,"respa")) {
     _nlevels_respa = ((Respa *) update->integrate)->nlevels;
 
-  // need to check that both pair and kspace are at the outmost levels
+  // need to check that gpu accelerated styles are at the outmost levels
     if ((force->pair_match("/gpu",0) != NULL) &&
         (((Respa *) update->integrate)->level_pair != _nlevels_respa-1))
-      error->all(FLERR,"GPU styles must be on the outmost r-RESPA level"); 
+      error->all(FLERR,"GPU styles must be on the outmost r-RESPA level");
+
+    if ((force->kspace_match("/gpu",0) != NULL) &&
+        (((Respa *) update->integrate)->level_kspace != _nlevels_respa-1))
+      error->all(FLERR,"GPU styles must be on the outmost r-RESPA level");
   }
 }
 

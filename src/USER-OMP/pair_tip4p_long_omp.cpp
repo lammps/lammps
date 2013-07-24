@@ -156,9 +156,7 @@ void PairTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
   dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
   const double * _noalias const q = atom->q;
   const int * _noalias const type = atom->type;
-  const int nlocal = atom->nlocal;
   const double * _noalias const special_coul = force->special_coul;
-  const double * _noalias const special_lj = force->special_lj;
   const double qqrd2e = force->qqrd2e;
   const double cut_coulsqplus = (cut_coul+2.0*qdist) * (cut_coul+2.0*qdist);
 

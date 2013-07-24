@@ -391,14 +391,13 @@ void PairLubricateU::intermediates(int nall, double **xl)
 
 void PairLubricateU::stage_two(double **x)
 {
-  int i,j,ii,inum,jnum,itype;
+  int i,j,ii,inum,itype;
   double **v = atom->v;
   double **f = atom->f;
   double **omega = atom->omega;
   double **torque = atom->torque;
   double *radius = atom->radius;
   int *type = atom->type;
-  int nlocal = atom->nlocal;
 
   int newton_pair = force->newton_pair;
   int *ilist;
@@ -589,7 +588,7 @@ void PairLubricateU::compute_Fh(double **x)
 
   double vxmu2f = force->vxmu2f;
   int overlaps = 0;
-  double vi[3],vj[3],wi[3],wj[3],xl[3],a_sq,a_sh,a_pu,del;
+  double vi[3],vj[3],wi[3],wj[3],xl[3],a_sq,a_sh;
 
   inum = list->inum;
   ilist = list->ilist;
@@ -1088,7 +1087,6 @@ void PairLubricateU::compute_RU(double **x)
   double rsq,r,h_sep,radi;
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3;
   double vt1,vt2,vt3,wdotn,wt1,wt2,wt3;
-  double inv_inertia;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   double **v = atom->v;
@@ -1365,14 +1363,13 @@ void PairLubricateU::compute_RE()
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,fx,fy,fz,tx,ty,tz;
-  double rsq,r,h_sep,radi,tfmag;
+  double rsq,r,h_sep,radi;
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3;
   double vt1,vt2,vt3;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   double **x = atom->x;
   double **f = atom->f;
-  double **omega = atom->omega;
   double **torque = atom->torque;
   double *radius = atom->radius;
   int *type = atom->type;
@@ -1381,7 +1378,7 @@ void PairLubricateU::compute_RE()
 
   double vxmu2f = force->vxmu2f;
   int overlaps = 0;
-  double wi[3],wj[3],xl[3],a_sq,a_sh,a_pu;
+  double xl[3],a_sq,a_sh,a_pu;
 
   inum = list->inum;
   ilist = list->ilist;
@@ -1547,7 +1544,6 @@ void PairLubricateU::compute_RE(double **x)
   double rsq,r,h_sep,radi;
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3;
   double vt1,vt2,vt3;
-  double inv_inertia;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   double **f = atom->f;
@@ -1829,7 +1825,7 @@ void PairLubricateU::init_style()
   if (comm->ghost_velocity == 0)
     error->all(FLERR,"Pair lubricateU requires ghost atoms store velocity");
 
-  int irequest = neighbor->request(this);
+  neighbor->request(this);
 
   // require that atom radii are identical within each type
   // require monodisperse system with same radii for all types

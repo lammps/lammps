@@ -58,9 +58,8 @@ void PPPMDispOMP::allocate()
 {
   PPPMDisp::allocate();
 
-  const int nthreads = comm->nthreads;
-
 #if defined(_OPENMP)
+  const int nthreads = comm->nthreads;
 #pragma omp parallel default(none)
 #endif
   {
@@ -704,7 +703,6 @@ void PPPMDispOMP::make_rho_a()
 
 void PPPMDispOMP::fieldforce_c_ik()
 {
-  const int nthreads = comm->nthreads;
   const int nlocal = atom->nlocal;
 
   // no local atoms => nothing to do
@@ -722,6 +720,7 @@ void PPPMDispOMP::fieldforce_c_ik()
   const double qqrd2e = force->qqrd2e;
 
 #if defined(_OPENMP)
+  const int nthreads = comm->nthreads;
 #pragma omp parallel default(none)
 #endif
   {
@@ -794,7 +793,6 @@ void PPPMDispOMP::fieldforce_c_ik()
 
 void PPPMDispOMP::fieldforce_c_ad()
 {
-  const int nthreads = comm->nthreads;
   const int nlocal = atom->nlocal;
 
   // no local atoms => nothing to do
@@ -827,6 +825,7 @@ void PPPMDispOMP::fieldforce_c_ad()
   const double hz_inv = nz_pppm/zprd_slab;
 
 #if defined(_OPENMP)
+  const int nthreads = comm->nthreads;
 #pragma omp parallel default(none)
 #endif
   {
@@ -918,7 +917,6 @@ void PPPMDispOMP::fieldforce_c_ad()
 
 void PPPMDispOMP::fieldforce_c_peratom()
 {
-  const int nthreads = comm->nthreads;
   const int nlocal = atom->nlocal;
 
   // no local atoms => nothing to do
@@ -934,6 +932,7 @@ void PPPMDispOMP::fieldforce_c_peratom()
   const double * const * const x = atom->x;
 
 #if defined(_OPENMP)
+  const int nthreads = comm->nthreads;
 #pragma omp parallel default(none)
 #endif
   {
@@ -1017,7 +1016,6 @@ void PPPMDispOMP::fieldforce_c_peratom()
 
 void PPPMDispOMP::fieldforce_g_ik()
 {
-  const int nthreads = comm->nthreads;
   const int nlocal = atom->nlocal;
 
   // no local atoms => nothing to do
@@ -1033,6 +1031,7 @@ void PPPMDispOMP::fieldforce_g_ik()
   const double * const * const x = atom->x;
 
 #if defined(_OPENMP)
+  const int nthreads = comm->nthreads;
 #pragma omp parallel default(none)
 #endif
   {
@@ -1108,7 +1107,6 @@ void PPPMDispOMP::fieldforce_g_ik()
 
 void PPPMDispOMP::fieldforce_g_ad()
 {
-  const int nthreads = comm->nthreads;
   const int nlocal = atom->nlocal;
 
   // no local atoms => nothing to do
@@ -1137,6 +1135,7 @@ void PPPMDispOMP::fieldforce_g_ad()
   const double hz_inv = nz_pppm_6/zprd_slab;
 
 #if defined(_OPENMP)
+  const int nthreads = comm->nthreads;
 #pragma omp parallel default(none)
 #endif
   {
@@ -1232,7 +1231,6 @@ void PPPMDispOMP::fieldforce_g_ad()
 
 void PPPMDispOMP::fieldforce_g_peratom()
 {
-  const int nthreads = comm->nthreads;
   const int nlocal = atom->nlocal;
 
   // no local atoms => nothing to do
@@ -1247,6 +1245,7 @@ void PPPMDispOMP::fieldforce_g_peratom()
   const double * const * const x = atom->x;
 
 #if defined(_OPENMP)
+  const int nthreads = comm->nthreads;
 #pragma omp parallel default(none)
 #endif
   {
@@ -1333,7 +1332,6 @@ void PPPMDispOMP::fieldforce_g_peratom()
 
 void PPPMDispOMP::fieldforce_a_ik()
 {
-  const int nthreads = comm->nthreads;
   const int nlocal = atom->nlocal;
 
   // no local atoms => nothing to do
@@ -1349,6 +1347,7 @@ void PPPMDispOMP::fieldforce_a_ik()
   const double * const * const x = atom->x;
 
 #if defined(_OPENMP)
+  const int nthreads = comm->nthreads;
 #pragma omp parallel default(none)
 #endif
   {
@@ -1456,7 +1455,6 @@ void PPPMDispOMP::fieldforce_a_ik()
 
 void PPPMDispOMP::fieldforce_a_ad()
 {
-  const int nthreads = comm->nthreads;
   const int nlocal = atom->nlocal;
 
   // no local atoms => nothing to do
@@ -1485,6 +1483,7 @@ void PPPMDispOMP::fieldforce_a_ad()
   const double hz_inv = nz_pppm_6/zprd_slab;
 
 #if defined(_OPENMP)
+  const int nthreads = comm->nthreads;
 #pragma omp parallel default(none)
 #endif
   {
@@ -1647,7 +1646,6 @@ void PPPMDispOMP::fieldforce_a_ad()
 
 void PPPMDispOMP::fieldforce_a_peratom()
 {
-  const int nthreads = comm->nthreads;
   const int nlocal = atom->nlocal;
 
   // no local atoms => nothing to do
@@ -1662,6 +1660,7 @@ void PPPMDispOMP::fieldforce_a_peratom()
   const double * const * const x = atom->x;
 
 #if defined(_OPENMP)
+  const int nthreads = comm->nthreads;
 #pragma omp parallel default(none)
 #endif
   {

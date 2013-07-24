@@ -393,7 +393,7 @@ void FixTMD::readfile(char *file)
   int nlocal = atom->nlocal;
 
   char *buffer = new char[CHUNK*MAXLINE];
-  char *ptr,*next,*bufptr;
+  char *next,*bufptr;
   int i,m,nlines,tag,imageflag,ix,iy,iz;
   double x,y,z,xprd,yprd,zprd;
 

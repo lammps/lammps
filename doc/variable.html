@@ -17,7 +17,7 @@
 </PRE>
 <UL><LI>name = name of variable to define 
 
-<LI>style = <I>delete</I> or <I>index</I> or <I>loop</I> or <I>world</I> or <I>universe</I> or <I>uloop</I> or <I>string</I> or <I>file</I> or <I>equal</I> or <I>atom</I> 
+<LI>style = <I>delete</I> or <I>index</I> or <I>loop</I> or <I>world</I> or <I>universe</I> or <I>uloop</I> or <I>string</I> or <I>file</I> or <I>atomfile</I> or <I>equal</I> or <I>atom</I> 
 
 <PRE>  <I>delete</I> = no args
   <I>index</I> args = one or more strings
@@ -40,6 +40,7 @@
     pad = all values will be same length, e.g. 001, 002, ..., 100
   <I>string</I> arg = one string
   <I>file</I> arg = filename
+  <I>atomfile</I> arg = filename
   <I>equal</I> or <I>atom</I> args = one formula containing numbers, thermo keywords, math operations, group functions, atom values and vectors, compute/fix/variable references
     numbers = 0.0, 100, -5.4, 2.8e-4, etc
     constants = PI
@@ -106,7 +107,9 @@ a formula which when evaluated produces one numeric value per atom
 which can be output to a dump file (see the <A HREF = "dump.html">dump custom</A>
 command) or used as input to an averaging fix (see the <A HREF = "fix_ave_spatial.html">fix
 ave/spatial</A> and <A HREF = "fix_ave_atom.html">fix ave/atom</A>
-commands).
+commands).  Variables of style <I>atomfile</I> can be used similar to
+atom-style variables, except they get their per-atom values from a
+file rather than from a formula.
 </P>
 <P>In the discussion that follows, the "name" of the variable is the
 arbitrary string that is the 1st argument in the variable command.
@@ -245,7 +248,7 @@ read again in a loop.
 </P>
 <P>For the <I>file</I> style, a filename is provided which contains a list of
 strings to assign to the variable, one per line.  The strings can be
-numeric values if desired; see the discussion of the next() function
+numeric values if desired.  See the discussion of the next() function
 below for equal-style variables, which will convert the string of a
 file-style variable into a numeric value in a formula.
 </P>
@@ -262,6 +265,36 @@ below.
 character is stripped.  Blank lines are skipped.  The first "word" of
 a non-blank line, delimited by white space, is the "string" assigned
 to the variable.
+</P>
+<P>For the <I>atomfile</I> style, a filename is provided which contains one or
+more sets of values, to assign on a per-atom basis to the variable.
+The format of the file is described below.
+</P>
+<P>When an atomfile-style variable is defined, the file is opened and the
+first set of per-atom values are read and stored with the variable.
+This means the variable can then be evaluated as many times as desired
+and will return those values.  There are two ways to cause the next
+set of per-atom values from the file to be read: use the
+<A HREF = "next.html">next</A> command or the next() function in an atom-style
+variable, as discussed below.
+</P>
+<P>The rules for formatting the file are as follows.  Each time a set of
+per-atom values is read, a non-blank line is searched for in the file.
+A comment character "#" can be used anywhere on a line; text starting
+with the comment character is stripped.  Blank lines are skipped.  The
+first "word" of a non-blank line, delimited by white space, is read as
+the count N of per-atom lines to immediately follow.  N can be be the
+total number of atoms in the system, or only a subset.  The next N
+lines have the following format
+</P>
+<PRE>ID value 
+</PRE>
+<P>where ID is an atom ID and value is the per-atom numeric value that
+will be assigned to that atom.  IDs can be listed in any order.
+</P>
+<P>IMPORTANT NOTE: Every time a set of per-atom lines is read, the value
+for all atoms is first set to 0.0.  Thus values for atoms whose ID
+does not appear in the set, will remain 0.0.
 </P>
 <HR>
 
@@ -589,18 +622,29 @@ variables.  It returns a 1 for atoms that are in both the group and
 region, and a 0 for atoms that are not in both.
 </P>
 <P>The next(x) function takes 1 argument which is a variable ID (not
-"v_foo", just "foo").  It must be for a file-style variable.  Each
-time the next() function is invoked (i.e. each time the equal-style or
-atom-style variable is evaluated), the current string value stored by
-the file-style variable is converted to a numeric value returned by
-the function, and the next value from the file is read and stored.
-Note that if the line previously read from the file was not a numeric
-string, then it will typically evaluate to 0.0, which is likely not
-what you want.  Since the file-style variable reads and stores the
-first line of the file when it is defined in the input script, this is
-the value that will be returned the first time the next() function is
-invoked.  If next() is invoked more times than there are lines in the
-file, the value for the last line is repeatedly returned.
+"v_foo", just "foo").  It must be for a file-style or atomfile-style
+variable.  Each time the next() function is invoked (i.e. each time
+the equal-style or atom-style variable is evaluated), the following
+steps occur.
+</P>
+<P>For file-style variables, the current string value stored by the
+file-style variable is converted to a numeric value and returned by
+the function.  And the next string value in the file is read and
+stored.  Note that if the line previously read from the file was not a
+numeric string, then it will typically evaluate to 0.0, which is
+likely not what you want.
+</P>
+<P>For atomfile-style variables, the current per-atom values stored by
+the atomfile-style variable are returned by the function.  And the
+next set of per-atom values in the file is read and stored.
+</P>
+<P>Since file-style and atomfile-style variables read and store the first
+line of the file or first set of per-atoms values when they are
+defined in the input script, these are the value(s) that will be
+returned the first time the next() function is invoked.  If next() is
+invoked more times than there are lines or sets of lines in the file,
+the variable is deleted, similar to how the <A HREF = "next.html">next</A> command
+operates.
 </P>
 <HR>
 
@@ -698,16 +742,16 @@ in the reference should be replaced by the name of a variable defined
 elsewhere in the input script. 
 </P>
 <P>As discussed on this doc page, equal-style variables generate a global
-scalar numeric value; atom-style variables generate a per-atom vector
-of numeric values; all other variables store a string.  The formula
-for an equal-style variable can use any style of variable except an
-atom-style (unless only a single value from the atom-style variable is
-accessed via a subscript).  If a string-storing variable is used,
-the string is converted to a numeric value.  Note that this
-will typically produce a 0.0 if the string is not a numeric string,
-which is likely not what you want.  The formula for an atom-style
-variable can use any style of variable, including other atom-style
-variables.
+scalar numeric value; atom-style and atomfile-style variables generate
+a per-atom vector of numeric values; all other variables store a
+string.  The formula for an equal-style variable can use any style of
+variable except an atom-style or atomfile-style (unless only a single
+value from the variable is accessed via a subscript).  If a
+string-storing variable is used, the string is converted to a numeric
+value.  Note that this will typically produce a 0.0 if the string is
+not a numeric string, which is likely not what you want.  The formula
+for an atom-style variable can use any style of variable, including
+other atom-style or atomfile-style variables.
 </P>
 <P>Examples of different kinds of variable references are as follows.
 There is no ambiguity as to what a reference means, since variables

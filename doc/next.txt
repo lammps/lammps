@@ -40,10 +40,12 @@ then all must be of the same variable style: {index}, {loop}, {file},
 {uloop}-style variables can be mixed in the same {next} command.
 
 All the variables specified with the next command are incremented by
-one value from their respective list of values.  A {file}-style variable
-reads the next line from its associated file.  {String-} or {atom}- or
-{equal}- or {world}-style variables cannot be used with the the next
-command, since they only store a single value.
+one value from their respective list of values.  A {file}-style
+variable reads the next line from its associated file.  An
+{atomfile}-style variable reads the next set of lines (one per atom)
+from its associated file.  {String-} or {atom}- or {equal}- or
+{world}-style variables cannot be used with the the next command,
+since they only store a single value.
 
 When any of the variables in the next command has no more values, a
 flag is set that causes the input script to skip the next
@@ -51,19 +53,24 @@ flag is set that causes the input script to skip the next
 a next command to exit.  As explained in the "variable"_variable.html
 command, the variable that has exhausted its values is also deleted.
 This allows it to be used and re-defined later in the input script.
-{File}-style variables are exhausted when the end-of-file is reached.
+{File}-style and {atomfile}-style variables are exhausted when the
+end-of-file is reached.
 
-When the next command is used with {index}- or {loop}-style or
-{file}-style variables, the next value is assigned to the variable for
-all processors.  When the next command is used with {universe}- or
-{uloop}-style variables, the next value is assigned to whichever
-processor partition executes the command first.  All processors in the
-partition are assigned the same value.  Running LAMMPS on multiple
-partitions of processors via the "-partition" command-line switch is
-described in "this section"_Section_start.html#start_7 of the manual.
-{Universe}- and {uloop}-style variables are incremented using the
-files "tmp.lammps.variable" and "tmp.lammps.variable.lock" which you
-will see in your directory during such a LAMMPS run.
+When the next command is used with {index}- or {loop}-style variables,
+the next value is assigned to the variable for all processors.  When
+the next command is used with {file}-style variables, the next line is
+read from its file and the string assigned to the variable.  When the
+next command is used with {atomfile}-style variables, the next set of
+per-atom values is read from its file and assigned to the variable.
+When the next command is used with {universe}- or {uloop}-style
+variables, the next value is assigned to whichever processor partition
+executes the command first.  All processors in the partition are
+assigned the same value.  Running LAMMPS on multiple partitions of
+processors via the "-partition" command-line switch is described in
+"this section"_Section_start.html#start_7 of the manual.  {Universe}-
+and {uloop}-style variables are incremented using the files
+"tmp.lammps.variable" and "tmp.lammps.variable.lock" which you will
+see in your directory during such a LAMMPS run.
 
 Here is an example of running a series of simulations using the next
 command with an {index}-style variable.  If this input script is named

@@ -84,7 +84,7 @@ help:
 	  then cp Makefile.package.settings.empty Makefile.package.settings; fi
 	@cp Makefile.package Makefile.package.settings Obj_$@
 	@cd Obj_$@; \
-	$(MAKE) $(MFLAGS) "OBJ = $(OBJ)" "INC = $(INC)" "SHFLAGS =" \
+	$(MAKE) $(MFLAGS) CC=$(CC) CXX=$(CXX) "OBJ = $(OBJ)" "INC = $(INC)" "SHFLAGS =" \
 	  "EXE = ../$(EXE)" ../$(EXE)
 
 # Remove machine-specific object files
@@ -108,18 +108,18 @@ purge: Purge.list
 # Create a tarball of src dir and packages
 
 tar:
-	@cd STUBS; make clean
+	@cd STUBS; $(MAKE) clean
 	@cd ..; tar cvzf src/$(ROOT)_src.tar.gz \
 	  src/Make* src/Package.sh src/MAKE src/*.cpp src/*.h src/STUBS \
 	  $(patsubst %,src/%,$(PACKAGEUC)) $(patsubst %,src/%,$(PACKUSERUC)) \
           --exclude=*/.svn
-	@cd STUBS; make
+	@cd STUBS; $(MAKE)
 	@echo "Created $(ROOT)_src.tar.gz"
 
 # Make MPI STUBS library
 
 stubs:
-	@cd STUBS; make clean; make
+	@cd STUBS; $(MAKE) clean; $(MAKE)
 
 # Create Makefile.lib, Makefile.shlib, and Makefile.list
 

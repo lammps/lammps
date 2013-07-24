@@ -88,4 +88,9 @@ E: Cannot use neigh_modify exclude with GPU neighbor builds
 This is a current limitation of the GPU implementation
 in LAMMPS.
 
+E: GPU styles must be on the outmost r-RESPA level
+
+Self-explanatory.
+
+
 */

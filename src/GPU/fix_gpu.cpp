@@ -22,6 +22,7 @@
 #include "error.h"
 #include "timer.h"
 #include "modify.h"
+#include "update.h"
 #include "domain.h"
 #include "universe.h"
 #include "gpu_extra.h"

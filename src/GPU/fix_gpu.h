@@ -34,7 +34,7 @@ class FixGPU : public Fix {
   void min_setup(int);
   void post_force(int);
   void min_post_force(int);
-  void post_force_respa(int);
+  void post_force_respa(int, int, int);
   double memory_usage();
 
  private:

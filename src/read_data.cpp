@@ -164,7 +164,7 @@ void ReadData::command(int narg, char **arg)
   if (me == 0) {
     if (screen) fprintf(screen,"Reading data file ...\n");
     open(arg[0]);
-  }
+  } else fp = NULL;
   header(1);
   domain->box_exist = 1;
 
@@ -561,28 +561,15 @@ void ReadData::header(int flag)
 
 void ReadData::atoms()
 {
-  int i,m,nchunk;
+  int i,m,nchunk,eof;
 
   bigint nread = 0;
   bigint natoms = atom->natoms;
 
   while (nread < natoms) {
-    if (natoms-nread > CHUNK) nchunk = CHUNK;
-    else nchunk = natoms-nread;
-    if (me == 0) {
-      char *eof;
-      m = 0;
-      for (i = 0; i < nchunk; i++) {
-        eof = fgets(&buffer[m],MAXLINE,fp);
-        if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
-        m += strlen(&buffer[m]);
-      }
-      if (buffer[m-1] != '\n') strcpy(&buffer[m++],"\n");
-      m++;
-    }
-    MPI_Bcast(&m,1,MPI_INT,0,world);
-    MPI_Bcast(buffer,m,MPI_CHAR,0,world);
-
+    nchunk = MIN(natoms-nread,CHUNK);
+    eof = comm->read_lines_from_file(fp,nchunk,MAXLINE,buffer);
+    if (eof) error->all(FLERR,"Unexpected end of data file");
     atom->data_atoms(nchunk,buffer);
     nread += nchunk;
   }
@@ -646,7 +633,7 @@ void ReadData::atoms()
 
 void ReadData::velocities()
 {
-  int i,m,nchunk;
+  int i,m,nchunk,eof;
 
   int mapflag = 0;
   if (atom->map_style == 0) {
@@ -660,22 +647,9 @@ void ReadData::velocities()
   bigint natoms = atom->natoms;
 
   while (nread < natoms) {
-    if (natoms-nread > CHUNK) nchunk = CHUNK;
-    else nchunk = natoms-nread;
-    if (me == 0) {
-      char *eof;
-      m = 0;
-      for (i = 0; i < nchunk; i++) {
-        eof = fgets(&buffer[m],MAXLINE,fp);
-        if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
-        m += strlen(&buffer[m]);
-      }
-      if (buffer[m-1] != '\n') strcpy(&buffer[m++],"\n");
-      m++;
-    }
-    MPI_Bcast(&m,1,MPI_INT,0,world);
-    MPI_Bcast(buffer,m,MPI_CHAR,0,world);
-
+    nchunk = MIN(natoms-nread,CHUNK);
+    eof = comm->read_lines_from_file(fp,nchunk,MAXLINE,buffer);
+    if (eof) error->all(FLERR,"Unexpected end of data file");
     atom->data_vels(nchunk,buffer);
     nread += nchunk;
   }
@@ -698,7 +672,7 @@ void ReadData::velocities()
 
 void ReadData::bonus(bigint nbonus, AtomVec *ptr, const char *type)
 {
-  int i,m,nchunk;
+  int i,m,nchunk,eof;
 
   int mapflag = 0;
   if (atom->map_style == 0) {
@@ -712,22 +686,9 @@ void ReadData::bonus(bigint nbonus, AtomVec *ptr, const char *type)
   bigint natoms = nbonus;
 
   while (nread < natoms) {
-    if (natoms-nread > CHUNK) nchunk = CHUNK;
-    else nchunk = natoms-nread;
-    if (me == 0) {
-      char *eof;
-      m = 0;
-      for (i = 0; i < nchunk; i++) {
-        eof = fgets(&buffer[m],MAXLINE,fp);
-        if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
-        m += strlen(&buffer[m]);
-      }
-      if (buffer[m-1] != '\n') strcpy(&buffer[m++],"\n");
-      m++;
-    }
-    MPI_Bcast(&m,1,MPI_INT,0,world);
-    MPI_Bcast(buffer,m,MPI_CHAR,0,world);
-
+    nchunk = MIN(natoms-nread,CHUNK);
+    eof = comm->read_lines_from_file(fp,nchunk,MAXLINE,buffer);
+    if (eof) error->all(FLERR,"Unexpected end of data file");
     atom->data_bonus(nchunk,buffer,ptr);
     nread += nchunk;
   }
@@ -763,14 +724,13 @@ void ReadData::bodies()
   }
 
   // nmax = max # of bodies to read in this chunk
-  // nchunk = actual # readr
+  // nchunk = actual # read
 
   bigint nread = 0;
   bigint natoms = nbodies;
 
   while (nread < natoms) {
-    if (natoms-nread > CHUNK) nmax = CHUNK;
-    else nmax = natoms-nread;
+    nchunk = MIN(natoms-nread,CHUNK);
 
     if (me == 0) {
       nchunk = 0;
@@ -827,27 +787,17 @@ void ReadData::bodies()
 
 void ReadData::bonds()
 {
-  int i,m,nchunk;
+  int i,m,nchunk,eof;
 
   bigint nread = 0;
   bigint nbonds = atom->nbonds;
 
+  bigint natoms = atom->natoms;
+
   while (nread < nbonds) {
     nchunk = MIN(nbonds-nread,CHUNK);
-    if (me == 0) {
-      char *eof;
-      m = 0;
-      for (i = 0; i < nchunk; i++) {
-        eof = fgets(&buffer[m],MAXLINE,fp);
-        if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
-        m += strlen(&buffer[m]);
-      }
-      if (buffer[m-1] != '\n') strcpy(&buffer[m++],"\n");
-      m++;
-    }
-    MPI_Bcast(&m,1,MPI_INT,0,world);
-    MPI_Bcast(buffer,m,MPI_CHAR,0,world);
-
+    eof = comm->read_lines_from_file(fp,nchunk,MAXLINE,buffer);
+    if (eof) error->all(FLERR,"Unexpected end of data file");
     atom->data_bonds(nchunk,buffer);
     nread += nchunk;
   }
@@ -874,27 +824,15 @@ void ReadData::bonds()
 
 void ReadData::angles()
 {
-  int i,m,nchunk;
+  int i,m,nchunk,eof;
 
   bigint nread = 0;
   bigint nangles = atom->nangles;
 
   while (nread < nangles) {
     nchunk = MIN(nangles-nread,CHUNK);
-    if (me == 0) {
-      char *eof;
-      m = 0;
-      for (i = 0; i < nchunk; i++) {
-        eof = fgets(&buffer[m],MAXLINE,fp);
-        if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
-        m += strlen(&buffer[m]);
-      }
-      if (buffer[m-1] != '\n') strcpy(&buffer[m++],"\n");
-      m++;
-    }
-    MPI_Bcast(&m,1,MPI_INT,0,world);
-    MPI_Bcast(buffer,m,MPI_CHAR,0,world);
-
+    eof = comm->read_lines_from_file(fp,nchunk,MAXLINE,buffer);
+    if (eof) error->all(FLERR,"Unexpected end of data file");
     atom->data_angles(nchunk,buffer);
     nread += nchunk;
   }
@@ -921,27 +859,15 @@ void ReadData::angles()
 
 void ReadData::dihedrals()
 {
-  int i,m,nchunk;
+  int i,m,nchunk,eof;
 
   bigint nread = 0;
   bigint ndihedrals = atom->ndihedrals;
 
   while (nread < ndihedrals) {
     nchunk = MIN(ndihedrals-nread,CHUNK);
-    if (me == 0) {
-      char *eof;
-      m = 0;
-      for (i = 0; i < nchunk; i++) {
-        eof = fgets(&buffer[m],MAXLINE,fp);
-        if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
-        m += strlen(&buffer[m]);
-      }
-      if (buffer[m-1] != '\n') strcpy(&buffer[m++],"\n");
-      m++;
-    }
-    MPI_Bcast(&m,1,MPI_INT,0,world);
-    MPI_Bcast(buffer,m,MPI_CHAR,0,world);
-
+    eof = comm->read_lines_from_file(fp,nchunk,MAXLINE,buffer);
+    if (eof) error->all(FLERR,"Unexpected end of data file");
     atom->data_dihedrals(nchunk,buffer);
     nread += nchunk;
   }
@@ -968,27 +894,15 @@ void ReadData::dihedrals()
 
 void ReadData::impropers()
 {
-  int i,m,nchunk;
+  int i,m,nchunk,eof;
 
   bigint nread = 0;
   bigint nimpropers = atom->nimpropers;
 
   while (nread < nimpropers) {
     nchunk = MIN(nimpropers-nread,CHUNK);
-    if (me == 0) {
-      char *eof;
-      m = 0;
-      for (i = 0; i < nchunk; i++) {
-        eof = fgets(&buffer[m],MAXLINE,fp);
-        if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
-        m += strlen(&buffer[m]);
-      }
-      if (buffer[m-1] != '\n') strcpy(&buffer[m++],"\n");
-      m++;
-    }
-    MPI_Bcast(&m,1,MPI_INT,0,world);
-    MPI_Bcast(buffer,m,MPI_CHAR,0,world);
-
+    eof = comm->read_lines_from_file(fp,nchunk,MAXLINE,buffer);
+    if (eof) error->all(FLERR,"Unexpected end of data file");
     atom->data_impropers(nchunk,buffer);
     nread += nchunk;
   }
@@ -1016,25 +930,16 @@ void ReadData::impropers()
 void ReadData::mass()
 {
   int i,m;
+  char *next;
   char *buf = new char[atom->ntypes*MAXLINE];
+
+  int eof = comm->read_lines_from_file(fp,atom->ntypes,MAXLINE,buf);
+  if (eof) error->all(FLERR,"Unexpected end of data file");
+
   char *original = buf;
-
-  if (me == 0) {
-    char *eof;
-    m = 0;
-    for (i = 0; i < atom->ntypes; i++) {
-      eof = fgets(&buf[m],MAXLINE,fp);
-      if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
-      m += strlen(&buf[m]);
-      if (buf[m-1] != '\n') strcpy(&buf[m++],"\n");
-      buf[m-1] = '\0';
-    }
-  }
-
-  MPI_Bcast(&m,1,MPI_INT,0,world);
-  MPI_Bcast(buf,m,MPI_CHAR,0,world);
-
   for (i = 0; i < atom->ntypes; i++) {
+    next = strchr(buf,'\n');
+    *next = '\0';
     atom->set_mass(buf);
     buf += strlen(buf) + 1;
   }
@@ -1046,25 +951,16 @@ void ReadData::mass()
 void ReadData::paircoeffs()
 {
   int i,m;
+  char *next;
   char *buf = new char[atom->ntypes*MAXLINE];
+
+  int eof = comm->read_lines_from_file(fp,atom->ntypes,MAXLINE,buf);
+  if (eof) error->all(FLERR,"Unexpected end of data file");
+
   char *original = buf;
-
-  if (me == 0) {
-    char *eof;
-    m = 0;
-    for (i = 0; i < atom->ntypes; i++) {
-      eof = fgets(&buf[m],MAXLINE,fp);
-      if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
-      m += strlen(&buf[m]);
-      if (buf[m-1] != '\n') strcpy(&buf[m++],"\n");
-      buf[m-1] = '\0';
-    }
-  }
-
-  MPI_Bcast(&m,1,MPI_INT,0,world);
-  MPI_Bcast(buf,m,MPI_CHAR,0,world);
-
   for (i = 0; i < atom->ntypes; i++) {
+    next = strchr(buf,'\n');
+    *next = '\0';
     m = strlen(buf) + 1;
     parse_coeffs(buf,NULL,1);
     force->pair->coeff(narg,arg);
@@ -1078,27 +974,19 @@ void ReadData::paircoeffs()
 void ReadData::pairIJcoeffs()
 {
   int i,j,m;
-  char *buf = new char[atom->ntypes*(atom->ntypes+1)/2 * MAXLINE];
+  char *next;
+  
+  int nsq = atom->ntypes* (atom->ntypes+1) / 2;
+  char *buf = new char[nsq * MAXLINE];
+
+  int eof = comm->read_lines_from_file(fp,nsq,MAXLINE,buf);
+  if (eof) error->all(FLERR,"Unexpected end of data file");
+
   char *original = buf;
-
-  if (me == 0) {
-    char *eof;
-    m = 0;
-    for (i = 0; i < atom->ntypes; i++)
-      for (j = i; j < atom->ntypes; j++) {
-        eof = fgets(&buf[m],MAXLINE,fp);
-        if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
-        m += strlen(&buf[m]);
-        if (buf[m-1] != '\n') strcpy(&buf[m++],"\n");
-        buf[m-1] = '\0';
-      }
-  }
-
-  MPI_Bcast(&m,1,MPI_INT,0,world);
-  MPI_Bcast(buf,m,MPI_CHAR,0,world);
-
   for (i = 0; i < atom->ntypes; i++)
     for (j = i; j < atom->ntypes; j++) {
+      next = strchr(buf,'\n');
+      *next = '\0';
       m = strlen(buf) + 1;
       parse_coeffs(buf,NULL,0);
       force->pair->coeff(narg,arg);
@@ -1112,25 +1000,16 @@ void ReadData::pairIJcoeffs()
 void ReadData::bondcoeffs()
 {
   int i,m;
+  char *next;
   char *buf = new char[atom->nbondtypes*MAXLINE];
+
+  int eof = comm->read_lines_from_file(fp,atom->nbondtypes,MAXLINE,buf);
+  if (eof) error->all(FLERR,"Unexpected end of data file");
+
   char *original = buf;
-
-  if (me == 0) {
-    char *eof;
-    m = 0;
-    for (i = 0; i < atom->nbondtypes; i++) {
-      eof = fgets(&buf[m],MAXLINE,fp);
-      if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
-      m += strlen(&buf[m]);
-      if (buf[m-1] != '\n') strcpy(&buf[m++],"\n");
-      buf[m-1] = '\0';
-    }
-  }
-
-  MPI_Bcast(&m,1,MPI_INT,0,world);
-  MPI_Bcast(buf,m,MPI_CHAR,0,world);
-
   for (i = 0; i < atom->nbondtypes; i++) {
+    next = strchr(buf,'\n');
+    *next = '\0';
     m = strlen(buf) + 1;
     parse_coeffs(buf,NULL,0);
     force->bond->coeff(narg,arg);
@@ -1144,25 +1023,16 @@ void ReadData::bondcoeffs()
 void ReadData::anglecoeffs(int which)
 {
   int i,m;
+  char *next;
   char *buf = new char[atom->nangletypes*MAXLINE];
+
+  int eof = comm->read_lines_from_file(fp,atom->nangletypes,MAXLINE,buf);
+  if (eof) error->all(FLERR,"Unexpected end of data file");
+
   char *original = buf;
-
-  if (me == 0) {
-    char *eof;
-    m = 0;
-    for (i = 0; i < atom->nangletypes; i++) {
-      eof = fgets(&buf[m],MAXLINE,fp);
-      if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
-      m += strlen(&buf[m]);
-      if (buf[m-1] != '\n') strcpy(&buf[m++],"\n");
-      buf[m-1] = '\0';
-    }
-  }
-
-  MPI_Bcast(&m,1,MPI_INT,0,world);
-  MPI_Bcast(buf,m,MPI_CHAR,0,world);
-
   for (i = 0; i < atom->nangletypes; i++) {
+    next = strchr(buf,'\n');
+    *next = '\0';
     m = strlen(buf) + 1;
     if (which == 0) parse_coeffs(buf,NULL,0);
     else if (which == 1) parse_coeffs(buf,"bb",0);
@@ -1178,25 +1048,16 @@ void ReadData::anglecoeffs(int which)
 void ReadData::dihedralcoeffs(int which)
 {
   int i,m;
+  char *next;
   char *buf = new char[atom->ndihedraltypes*MAXLINE];
+
+  int eof = comm->read_lines_from_file(fp,atom->ndihedraltypes,MAXLINE,buf);
+  if (eof) error->all(FLERR,"Unexpected end of data file");
+
   char *original = buf;
-
-  if (me == 0) {
-    char *eof;
-    m = 0;
-    for (i = 0; i < atom->ndihedraltypes; i++) {
-      eof = fgets(&buf[m],MAXLINE,fp);
-      if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
-      m += strlen(&buf[m]);
-      if (buf[m-1] != '\n') strcpy(&buf[m++],"\n");
-      buf[m-1] = '\0';
-    }
-  }
-
-  MPI_Bcast(&m,1,MPI_INT,0,world);
-  MPI_Bcast(buf,m,MPI_CHAR,0,world);
-
   for (i = 0; i < atom->ndihedraltypes; i++) {
+    next = strchr(buf,'\n');
+    *next = '\0';
     m = strlen(buf) + 1;
     if (which == 0) parse_coeffs(buf,NULL,0);
     else if (which == 1) parse_coeffs(buf,"mbt",0);
@@ -1215,25 +1076,16 @@ void ReadData::dihedralcoeffs(int which)
 void ReadData::impropercoeffs(int which)
 {
   int i,m;
+  char *next;
   char *buf = new char[atom->nimpropertypes*MAXLINE];
+
+  int eof = comm->read_lines_from_file(fp,atom->nimpropertypes,MAXLINE,buf);
+  if (eof) error->all(FLERR,"Unexpected end of data file");
+
   char *original = buf;
-
-  if (me == 0) {
-    char *eof;
-    m = 0;
-    for (i = 0; i < atom->nimpropertypes; i++) {
-      eof = fgets(&buf[m],MAXLINE,fp);
-      if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
-      m += strlen(&buf[m]);
-      if (buf[m-1] != '\n') strcpy(&buf[m++],"\n");
-      buf[m-1] = '\0';
-    }
-  }
-
-  MPI_Bcast(&m,1,MPI_INT,0,world);
-  MPI_Bcast(buf,m,MPI_CHAR,0,world);
-
   for (i = 0; i < atom->nimpropertypes; i++) {
+    next = strchr(buf,'\n');
+    *next = '\0';
     m = strlen(buf) + 1;
     if (which == 0) parse_coeffs(buf,NULL,0);
     else if (which == 1) parse_coeffs(buf,"aa",0);
@@ -1250,27 +1102,13 @@ void ReadData::impropercoeffs(int which)
 
 void ReadData::fix(int ifix, char *line, bigint nlines)
 {
-  int i,m,nchunk;
+  int i,m,nchunk,eof;
 
   bigint nread = 0;
-
   while (nread < nlines) {
-    if (nlines-nread > CHUNK) nchunk = CHUNK;
-    else nchunk = nlines-nread;
-    if (me == 0) {
-      char *eof;
-      m = 0;
-      for (i = 0; i < nchunk; i++) {
-        eof = fgets(&buffer[m],MAXLINE,fp);
-        if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
-        m += strlen(&buffer[m]);
-      }
-      if (buffer[m-1] != '\n') strcpy(&buffer[m++],"\n");
-      m++;
-    }
-    MPI_Bcast(&m,1,MPI_INT,0,world);
-    MPI_Bcast(buffer,m,MPI_CHAR,0,world);
-
+    nchunk = MIN(nlines-nread,CHUNK);
+    eof = comm->read_lines_from_file(fp,nchunk,MAXLINE,buffer);
+    if (eof) error->all(FLERR,"Unexpected end of data file");
     modify->fix[ifix]->read_data_section(line,nchunk,buffer);
     nread += nchunk;
   }

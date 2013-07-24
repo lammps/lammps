@@ -1549,6 +1549,38 @@ void Comm::ring(int n, int nper, void *inbuf, int messtag,
 }
 
 /* ----------------------------------------------------------------------
+   proc 0 reads Nlines from file into buf and bcasts buf to all procs
+   caller allocates buf to max size needed
+   each line is terminated by newline, even if last line in file is not
+   return 0 if successful, 1 if get EOF error before read is complete
+------------------------------------------------------------------------- */
+
+int Comm::read_lines_from_file(FILE *fp, int nlines, int maxline, char *buf)
+{
+  int m;
+
+  if (me == 0) {
+    m = 0;
+    for (int i = 0; i < nlines; i++) {
+      if (!fgets(&buf[m],maxline,fp)) {
+	m = 0;
+	break;
+      }
+      m += strlen(&buf[m]);
+    }
+    if (m) {
+      if (buf[m-1] != '\n') strcpy(&buf[m++],"\n");
+      m++;
+    }
+  }
+
+  MPI_Bcast(&m,1,MPI_INT,0,world);
+  if (m == 0) return 1;
+  MPI_Bcast(buf,m,MPI_CHAR,0,world);
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
    realloc the size of the send buffer as needed with BUFFACTOR & BUFEXTRA
    if flag = 1, realloc
    if flag = 0, don't need to realloc with copy, just free/malloc

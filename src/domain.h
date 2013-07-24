@@ -75,7 +75,11 @@ class Domain : protected Pointers {
   double h[6],h_inv[6];                  // shape matrix in Voigt notation
   double h_rate[6],h_ratelo[3];          // rate of box size/shape change
 
-  int box_change;                 // 1 if box bounds ever change, 0 if fixed
+  int box_change;                // 1 if any of next 3 flags are set, else 0
+  int box_change_size;           // 1 if box size changes, 0 if not
+  int box_change_shape;          // 1 if box shape changes, 0 if not
+  int box_change_domain;         // 1 if proc sub-domains change, 0 if not
+
   int deform_flag;                // 1 if fix deform exist, else 0
   int deform_vremap;              // 1 if fix deform remaps v, else 0
   int deform_groupbit;            // atom group to perform v remap for

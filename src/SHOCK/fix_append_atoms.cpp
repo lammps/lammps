@@ -39,7 +39,7 @@ FixAppendAtoms::FixAppendAtoms(LAMMPS *lmp, int narg, char **arg) :
 {
   force_reneighbor = 1;
   next_reneighbor = -1;
-  box_change = 1;
+  box_change_size = 1;
   time_depend = 1;
 
   if (narg < 4) error->all(FLERR,"Illegal fix append/atoms command");

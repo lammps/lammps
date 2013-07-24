@@ -564,7 +564,7 @@ int main (int narg, char **arg)
 
 void header(FILE *fp, Data &data)
 {
-  const char *version = "27 June 2013-ICMS";
+  const char *version = "23 July 2013-ICMS";
 
   data.triclinic = 0;
 

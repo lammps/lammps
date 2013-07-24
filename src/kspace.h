@@ -48,7 +48,7 @@ class KSpace : protected Pointers {
   int slabflag;
   double slab_volfactor;
 
-  int order,order_6;
+  int order,order_6,order_allocated;
   double accuracy;                  // accuracy of KSpace solver (force units)
   double accuracy_absolute;         // user-specifed accuracy in force units
   double accuracy_relative;         // user-specified dimensionless accuracy

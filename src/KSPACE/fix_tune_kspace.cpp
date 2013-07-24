@@ -49,7 +49,6 @@ FixTuneKspace::FixTuneKspace(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 3) error->all(FLERR,"Illegal fix tune/kspace command");
 
-  box_change = 1;
   global_freq = 1;
   firststep = 0;
   niter = 0;
@@ -73,12 +72,6 @@ FixTuneKspace::FixTuneKspace(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-FixTuneKspace::~FixTuneKspace()
-{
-}
-
-/* ---------------------------------------------------------------------- */
-
 int FixTuneKspace::setmask()
 {
   int mask = 0;
@@ -91,8 +84,10 @@ int FixTuneKspace::setmask()
 
 void FixTuneKspace::init()
 {
-  if (!force->kspace) error->all(FLERR,"Cannot use fix tune/kspace without kspace");
-  if (!force->pair) error->all(FLERR,"Cannot use fix tune/kspace without a pair style");
+  if (!force->kspace) 
+    error->all(FLERR,"Cannot use fix tune/kspace without a kspace style");
+  if (!force->pair) 
+    error->all(FLERR,"Cannot use fix tune/kspace without a pair style");
 
   double old_acc = force->kspace->accuracy/force->kspace->two_charge_force;
   char old_acc_str[12];
@@ -260,6 +255,7 @@ void FixTuneKspace::update_pair_style(char *new_pair_style, double pair_cut_coul
 void FixTuneKspace::update_kspace_style(char *new_kspace_style, char *new_acc_str)
 {
   // create kspace style char string
+
   int narg = 2;
   char **arg;
   arg = NULL;
@@ -272,6 +268,7 @@ void FixTuneKspace::update_kspace_style(char *new_kspace_style, char *new_acc_st
   strcpy(arg[1],new_acc_str);
 
   // delete old kspace style and create new one
+
   force->create_kspace(narg,arg,lmp->suffix);
 
   force->kspace->differentiation_flag = old_differentiation_flag;
@@ -279,15 +276,18 @@ void FixTuneKspace::update_kspace_style(char *new_kspace_style, char *new_acc_st
   force->kspace->slab_volfactor = old_slab_volfactor;
 
   // initialize new kspace style, pair style, molecular styles
+
   force->init();
 
   // set up grid
   force->kspace->setup_grid();
 
   // Re-init neighbor list. Probably only needed when redefining the pair style. Should happen after pair->init() to get pair style neighbor list request registered
+
   neighbor->init();
 
   // Re-init computes to update pointers to virials, etc.
+
   for (int i = 0; i < modify->ncompute; i++) modify->compute[i]->init();
 
   memory->sfree(arg);

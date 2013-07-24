@@ -59,14 +59,9 @@ class PairHybrid : public Pair {
   int **nmap;                   // # of sub-styles itype,jtype points to
   int ***map;                   // list of sub-styles itype,jtype points to
 
-  char **allstyles;
-  int nallstyles;
-
   void allocate();
   void flags();
   virtual void modify_requests();
-  void build_styles();
-  int known_style(char *);
 };
 
 }

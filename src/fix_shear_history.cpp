@@ -154,10 +154,13 @@ void FixShearHistory::pre_exchange()
   int *touch,**firsttouch;
   double *shear,*allshear,**firstshear;
 
+  // nlocal may include atoms added since last neigh build
+
+  int nlocal = atom->nlocal;
+
   // zero npartner for all current atoms
   // clear 2 page data structures
 
-  int nlocal = atom->nlocal;
   for (i = 0; i < nlocal; i++) npartner[i] = 0;
 
   ipage->reset();
@@ -165,6 +168,7 @@ void FixShearHistory::pre_exchange()
 
   // 1st loop over neighbor list
   // calculate npartner for each owned atom
+  // nlocal_neigh = nlocal when neigh list was built, may be smaller than nlocal
 
   int *tag = atom->tag;
   NeighList *list = pair->list;
@@ -174,6 +178,9 @@ void FixShearHistory::pre_exchange()
   firstneigh = list->firstneigh;
   firsttouch = list->listgranhistory->firstneigh;
   firstshear = list->listgranhistory->firstdouble;
+
+  int nlocal_neigh = 0;
+  if (inum) nlocal_neigh = ilist[inum-1] + 1;
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
@@ -186,7 +193,7 @@ void FixShearHistory::pre_exchange()
         npartner[i]++;
         j = jlist[jj];
         j &= NEIGHMASK;
-        if (j < nlocal) npartner[j]++;
+        if (j < nlocal_neigh) npartner[j]++;
       }
     }
   }
@@ -226,7 +233,7 @@ void FixShearHistory::pre_exchange()
         shearpartner[i][m][1] = shear[1];
         shearpartner[i][m][2] = shear[2];
         npartner[i]++;
-        if (j < nlocal) {
+        if (j < nlocal_neigh) {
           m = npartner[j];
           partner[j][m] = tag[i];
           shearpartner[j][m][0] = -shear[0];

@@ -60,6 +60,7 @@ class PPPMStagger : public PPPM {
     double xl = x;
     double yl = y;
     double zl = z;
+    sx = sy = sz = 0.0;
     for (int l = 0; l < order; l++) {
       sx += gf_b2[order][l]*xl;
       sy += gf_b2[order][l]*yl;

@@ -39,7 +39,7 @@ class FixIndent : public Fix {
   double compute_vector(int);
 
  private:
-  int istyle,scaleflag,thermo_flag,eflag_enable,side;
+  int istyle,scaleflag,side;
   double k,k3;
   char *xstr,*ystr,*zstr,*rstr,*pstr;
   int xvar,yvar,zvar,rvar,pvar;

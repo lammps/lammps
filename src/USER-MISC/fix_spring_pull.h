@@ -45,7 +45,6 @@ class FixSpringPull : public Fix {
   double masstotal;
   int nlevels_respa;
   double espring,ftotal[8];
-  int force_flag;
 };
 
 }

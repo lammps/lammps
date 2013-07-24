@@ -622,12 +622,13 @@ int FixIMD::reconnect()
 
   if (me == 0) {
     if (clientsock) return 1;
-    if (screen && connect_msg)
-      if (nowait_flag)
+    if (screen && connect_msg) {
+      if (nowait_flag) {
         fprintf(screen,"Listening for IMD connection on port %d. Transfer rate %d.\n",imd_port, imd_trate);
-      else
+      } else {
         fprintf(screen,"Waiting for IMD connection on port %d. Transfer rate %d.\n",imd_port, imd_trate);
-
+      }
+    }
     connect_msg = 0;
     clientsock = NULL;
     if (nowait_flag) {

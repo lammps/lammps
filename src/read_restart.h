@@ -33,7 +33,6 @@ class ReadRestart : protected Pointers {
  private:
   int me,nprocs,nprocs_file;
   FILE *fp;
-  int nfix_restart_global,nfix_restart_peratom;
   int swapflag;
 
   void file_search(char *, char *);

@@ -7,7 +7,7 @@ SHELL = /bin/sh
 # specify flags and libraries needed for your compiler
 
 CC =		clang++
-CCFLAGS =	-O3  -fno-exceptions -Wall -Wno-sometimes-uninitialized
+CCFLAGS =	-O3  -fno-exceptions -Wall -Wno-sometimes-uninitialized -Wno-unused-variable
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 

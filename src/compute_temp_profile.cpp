@@ -52,6 +52,7 @@ ComputeTempProfile::ComputeTempProfile(LAMMPS *lmp, int narg, char **arg) :
   if (xflag) ivx = ncount++;
   if (yflag) ivy = ncount++;
   if (zflag) ivz = ncount++;
+  ncount += 2;
 
   nbinx = nbiny = nbinz = 1;
   int lastarg;
@@ -120,8 +121,8 @@ ComputeTempProfile::ComputeTempProfile(LAMMPS *lmp, int narg, char **arg) :
   nbins = nbinx*nbiny*nbinz;
   if (nbins <= 0) error->all(FLERR,"Illegal compute temp/profile command");
 
-  memory->create(vbin,nbins,ncount+1,"temp/profile:vbin");
-  memory->create(binave,nbins,ncount+1,"temp/profile:binave");
+  memory->create(vbin,nbins,ncount,"temp/profile:vbin");
+  memory->create(binave,nbins,ncount,"temp/profile:binave");
 
   if (outflag == TENSOR) {
     vector_flag = 1;
@@ -337,7 +338,7 @@ void ComputeTempProfile::compute_array()
 
   int nper = domain->dimension;
   for (i = 0; i < nbins; i++) {
-    array[i][0] = binave[i][ncount];
+    array[i][0] = binave[i][ncount-1];
     if (array[i][0] > 0.0) {
       dof = nper*array[i][0] - extra_dof;
       if (dof > 0) tfactor = force->mvv2e / (dof * force->boltz);
@@ -414,7 +415,7 @@ void ComputeTempProfile::restore_bias_all()
 }
 
 /* ----------------------------------------------------------------------
-   compute average velocity in each bin
+   compute average COM velocity in each bin
 ------------------------------------------------------------------------- */
 
 void ComputeTempProfile::bin_average()
@@ -424,37 +425,58 @@ void ComputeTempProfile::bin_average()
   if (box_change) bin_setup();
   bin_assign();
 
-  // clear bins, including particle count
+  // clear bins, including particle mass and count
 
   for (i = 0; i < nbins; i++)
-    for (j = 0; j <= ncount; j++)
+    for (j = 0; j < ncount; j++)
       vbin[i][j] = 0.0;
 
-  // sum each particle's velocity to appropriate bin
+  // sum each particle's mass-weighted velocity, mass, count to appropriate bin
 
   double **v = atom->v;
+  double *mass = atom->mass;
+  double *rmass = atom->rmass;
   int *mask = atom->mask;
+  int *type = atom->type;
   int nlocal = atom->nlocal;
 
-  for (i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
-      ibin = bin[i];
-      if (xflag) vbin[ibin][ivx] += v[i][0];
-      if (yflag) vbin[ibin][ivy] += v[i][1];
-      if (zflag) vbin[ibin][ivz] += v[i][2];
-      vbin[ibin][ncount] += 1.0;
-    }
+  int nc2 = ncount-2;
+  int nc1 = ncount-1;
+
+  if (rmass) {
+    for (i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
+        ibin = bin[i];
+        if (xflag) vbin[ibin][ivx] += rmass[i]*v[i][0];
+        if (yflag) vbin[ibin][ivy] += rmass[i]*v[i][1];
+        if (zflag) vbin[ibin][ivz] += rmass[i]*v[i][2];
+        vbin[ibin][nc2] += rmass[i];
+        vbin[ibin][nc1] += 1.0;
+      }
+  } else {
+    double onemass;
+    for (i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
+        ibin = bin[i];
+        onemass = mass[type[i]];
+        if (xflag) vbin[ibin][ivx] += onemass*v[i][0];
+        if (yflag) vbin[ibin][ivy] += onemass*v[i][1];
+        if (zflag) vbin[ibin][ivz] += onemass*v[i][2];
+        vbin[ibin][nc2] += onemass;
+        vbin[ibin][nc1] += 1.0;
+      }
+  }
 
   // sum bins across processors
 
-  MPI_Allreduce(vbin[0],binave[0],nbins*(ncount+1),MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(vbin[0],binave[0],nbins*ncount,MPI_DOUBLE,MPI_SUM,world);
 
-  // compute ave velocity in each bin, checking for no particles
+  // compute ave COM velocity in each bin, checking for no particles
 
   for (i = 0; i < nbins; i++)
-    if (binave[i][ncount] > 0.0)
-      for (j = 0; j < ncount; j++)
-        binave[i][j] /= binave[i][ncount];
+    if (binave[i][nc1] > 0.0)
+      for (j = 0; j < nc2; j++)
+        binave[i][j] /= binave[i][nc2];
 }
 
 /* ----------------------------------------------------------------------
@@ -540,6 +562,6 @@ void ComputeTempProfile::bin_assign()
 double ComputeTempProfile::memory_usage()
 {
   double bytes = maxatom * sizeof(int);
-  bytes += nbins*(ncount+1) * sizeof(double);
+  bytes += nbins*ncount * sizeof(double);
   return bytes;
 }

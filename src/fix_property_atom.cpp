@@ -18,6 +18,8 @@
 #include "memory.h"
 #include "error.h"
 
+#include "update.h"
+
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
@@ -69,13 +71,16 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
 
   border = 0;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"border") == 0) {
+    if (strcmp(arg[iarg],"ghost") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix property/atom command");
       if (strcmp(arg[iarg+1],"no") == 0) border = 0;
       else if (strcmp(arg[iarg+1],"yes") == 0) border = 1;
       else error->all(FLERR,"Illegal fix property/atom command");
+      iarg += 2;
     } else error->all(FLERR,"Illegal fix property/atom command");
   }
+
+  if (border) comm_border = nvalue;
 
   // perform initial allocation of atom-based array
   // register with Atom class
@@ -257,6 +262,54 @@ void FixPropertyAtom::copy_arrays(int i, int j, int delflag)
     else if (style[m] == DOUBLE)
       atom->molecule[j] = atom->molecule[i];
   }
+}
+
+/* ----------------------------------------------------------------------
+   pack values for border communication at re-neighboring
+------------------------------------------------------------------------- */
+
+int FixPropertyAtom::pack_border(int n, int *list, double *buf)
+{
+  int i,j,k;
+
+  int m = 0;
+  for (k = 0; k < nvalue; k++) {
+    if (style[k] == MOLECULE) {
+      int *molecule = atom->molecule;
+      for (i = 0; i < n; i++) {
+        j = list[i];
+        buf[m++] = molecule[j];
+      }
+    } else if (style[j] == INTEGER) {
+    } else if (style[j] == DOUBLE) {
+    }
+  }
+
+  printf("PBORDER %ld %d\n",update->ntimestep,m);
+  return m;
+}
+
+/* ----------------------------------------------------------------------
+   unpack values for border communication at re-neighboring
+------------------------------------------------------------------------- */
+
+int FixPropertyAtom::unpack_border(int n, int first, double *buf)
+{
+  int i,k,last;
+
+  int m = 0;
+  for (k = 0; k < nvalue; k++) {
+    if (style[k] == MOLECULE) {
+      int *molecule = atom->molecule;
+      last = first + n;
+      for (i = first; i < last; i++)
+        molecule[i] = static_cast<int> (buf[m++]);
+      } else if (style[k] == INTEGER) {
+      } else if (style[k] == DOUBLE) {
+      }
+  }
+
+  return m;
 }
 
 /* ----------------------------------------------------------------------

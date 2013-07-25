@@ -323,7 +323,7 @@ void Comm::init()
   if (ghost_velocity) comm_x_only = 0;
 
   // set per-atom sizes for forward/reverse/border comm
-  // augment by velocity quantities if needed
+  // augment by velocity and fix quantities if needed
 
   size_forward = atom->avec->size_forward;
   size_reverse = atom->avec->size_reverse;
@@ -331,6 +331,9 @@ void Comm::init()
 
   if (ghost_velocity) size_forward += atom->avec->size_velocity;
   if (ghost_velocity) size_border += atom->avec->size_velocity;
+
+  for (int i = 0; i < modify->nfix; i++)
+    size_border += modify->fix[i]->comm_border;
 
   // maxforward = # of datums in largest forward communication
   // maxreverse = # of datums in largest reverse communication

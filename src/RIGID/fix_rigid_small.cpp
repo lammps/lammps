@@ -125,6 +125,8 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
 
   if (atom->molecule_flag == 0)
     error->all(FLERR,"Fix rigid/small requires atom attribute molecule");
+  if (atom->map_style == 0)
+    error->all(FLERR,"Fix rigid/small requires an atom map, see atom_modify");
 
   create_bodies();
 

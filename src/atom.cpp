@@ -126,9 +126,9 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
 
   // callback lists & extra restart info
 
-  nextra_grow = nextra_restart = 0;
-  extra_grow = extra_restart = NULL;
-  nextra_grow_max = nextra_restart_max = 0;
+  nextra_grow = nextra_restart = nextra_border = 0;
+  extra_grow = extra_restart = extra_border = NULL;
+  nextra_grow_max = nextra_restart_max = nextra_border_max = 0;
   nextra_store = 0;
   extra = NULL;
 
@@ -232,6 +232,7 @@ Atom::~Atom()
 
   memory->destroy(extra_grow);
   memory->destroy(extra_restart);
+  memory->destroy(extra_border);
   memory->destroy(extra);
 
   // delete mapping data structures
@@ -1340,7 +1341,7 @@ void Atom::setup_sort_bins()
 /* ----------------------------------------------------------------------
    register a callback to a fix so it can manage atom-based arrays
    happens when fix is created
-   flag = 0 for grow, 1 for restart
+   flag = 0 for grow, 1 for restart, 2 for border comm
 ------------------------------------------------------------------------- */
 
 void Atom::add_callback(int flag)
@@ -1373,6 +1374,13 @@ void Atom::add_callback(int flag)
     }
     extra_restart[nextra_restart] = ifix;
     nextra_restart++;
+  } else if (flag == 2) {
+    if (nextra_border == nextra_border_max) {
+      nextra_border_max += DELTA;
+      memory->grow(extra_border,nextra_border_max,"atom:extra_border");
+    }
+    extra_border[nextra_border] = ifix;
+    nextra_border++;
   }
 }
 
@@ -1400,11 +1408,19 @@ void Atom::delete_callback(const char *id, int flag)
 
   } else if (flag == 1) {
     int match;
-    for (match = 0; match < nextra_grow; match++)
+    for (match = 0; match < nextra_restart; match++)
       if (extra_restart[match] == ifix) break;
     for (int i = ifix; i < nextra_restart-1; i++)
       extra_restart[i] = extra_restart[i+1];
     nextra_restart--;
+
+  } else if (flag == 2) {
+    int match;
+    for (match = 0; match < nextra_border; match++)
+      if (extra_border[match] == ifix) break;
+    for (int i = ifix; i < nextra_border-1; i++)
+      extra_border[i] = extra_border[i+1];
+    nextra_border--;
   }
 }
 
@@ -1419,6 +1435,8 @@ void Atom::update_callback(int ifix)
     if (extra_grow[i] > ifix) extra_grow[i]--;
   for (int i = 0; i < nextra_restart; i++)
     if (extra_restart[i] > ifix) extra_restart[i]--;
+  for (int i = 0; i < nextra_border; i++)
+    if (extra_border[i] > ifix) extra_border[i]--;
 }
 
 /* ----------------------------------------------------------------------

@@ -106,6 +106,13 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   improper_type = improper_atom1 = improper_atom2 = NULL;
   improper_atom3 = improper_atom4 = NULL;
 
+  // custom atom arrays
+
+  nivector = ndvector = 0;
+  ivector = NULL;
+  dvector = NULL;
+  iname = dname = NULL;
+
   // initialize atom style and array existence flags
   // customize by adding new flag
 
@@ -222,6 +229,17 @@ Atom::~Atom()
   memory->destroy(improper_atom2);
   memory->destroy(improper_atom3);
   memory->destroy(improper_atom4);
+
+  // delete custom atom arrays
+
+  for (int i = 0; i < nivector; i++) {
+    memory->destroy(ivector[i]);
+    delete [] iname[i];
+  }
+  for (int i = 0; i < ndvector; i++) {
+    memory->destroy(dvector[i]);
+    delete [] dname[i];
+  }
 
   // delete per-type arrays
 
@@ -1437,6 +1455,87 @@ void Atom::update_callback(int ifix)
     if (extra_restart[i] > ifix) extra_restart[i]--;
   for (int i = 0; i < nextra_border; i++)
     if (extra_border[i] > ifix) extra_border[i]--;
+}
+
+/* ----------------------------------------------------------------------
+   find custom per-atom vector with name
+   return index if found, and flag = 0/1 for int/double
+   return -1 if not found
+------------------------------------------------------------------------- */
+
+int Atom::find_custom(char *name, int &flag)
+{
+  for (int i = 0; i < nivector; i++)
+    if (iname[i] && strcmp(iname[i],name) == 0) {
+      flag = 0;
+      return i;
+    }
+
+  for (int i = 0; i < ndvector; i++)
+    if (dname[i] && strcmp(dname[i],name) == 0) {
+      flag = 1;
+      return i;
+    }
+
+  return -1;
+}
+
+/* ----------------------------------------------------------------------
+   add a custom variable with name of type flag = 0/1 for int/double
+   assumes name does not already exist
+   return index in ivector or dvector of its location
+------------------------------------------------------------------------- */
+
+int Atom::add_custom(char *name, int flag)
+{
+  int index;
+
+  if (flag == 0) {
+    index = nivector;
+    nivector++;
+    iname = (char **) memory->srealloc(iname,nivector*sizeof(char *),
+                                       "atom:iname");
+    int n = strlen(name) + 1;
+    iname[index] = new char[n];
+    strcpy(iname[index],name);
+    ivector = (int **) memory->srealloc(ivector,nivector*sizeof(int *),
+                                        "atom:ivector");
+    memory->create(ivector[index],nmax,"atom:ivector");
+  } else {
+    index = ndvector;
+    ndvector++;
+    dname = (char **) memory->srealloc(dname,ndvector*sizeof(char *),
+                                       "atom:dname");
+    int n = strlen(name) + 1;
+    dname[index] = new char[n];
+    strcpy(dname[index],name);
+    dvector = (double **) memory->srealloc(dvector,ndvector*sizeof(double *),
+                                           "atom:dvector");
+    memory->create(dvector[index],nmax,"atom:dvector");
+  }
+
+  return index;
+}
+
+/* ----------------------------------------------------------------------
+   remove a custom variable of type flag = 0/1 for int/double at index
+   free memory for vector and name and set ptrs to NULL
+   ivector/dvector and iname/dname lists never shrink
+------------------------------------------------------------------------- */
+
+void Atom::remove_custom(int flag, int index)
+{
+  if (flag == 0) {
+    memory->destroy(ivector[index]);
+    ivector[index] = NULL;
+    delete [] iname[index];
+    iname[index] = NULL;
+  } else {
+    memory->destroy(dvector[index]);
+    dvector[index] = NULL;
+    delete [] dname[index];
+    dname[index] = NULL;
+  }
 }
 
 /* ----------------------------------------------------------------------

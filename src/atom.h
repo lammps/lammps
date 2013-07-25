@@ -83,6 +83,15 @@ class Atom : protected Pointers {
   int **improper_type;
   int **improper_atom1,**improper_atom2,**improper_atom3,**improper_atom4;
 
+  // custom arrays used by fix property/atom
+
+  int **ivector;
+  double **dvector;
+  char **iname,**dname;
+  int nivector,ndvector;
+
+  // used by USER-CUDA to flag used per-atom arrays
+
   unsigned int datamask;
   unsigned int datamask_ext;
 
@@ -175,6 +184,10 @@ class Atom : protected Pointers {
   void add_callback(int);
   void delete_callback(const char *, int);
   void update_callback(int);
+
+  int find_custom(char *, int &);
+  int add_custom(char *, int);
+  void remove_custom(int, int);
 
   void *extract(char *);
 

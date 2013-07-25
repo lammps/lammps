@@ -466,6 +466,7 @@ of each style or click on the style itself for a full description:
 "external"_fix_external.html,
 "freeze"_fix_freeze.html,
 "gcmc"_fix_gcmc.html,
+"gld"_fix_gld.html,
 "gravity"_fix_gravity.html,
 "heat"_fix_heat.html,
 "indent"_fix_indent.html,

@@ -1,0 +1,122 @@
+# This file contains the definition of "2-bead", a simple molecule 
+# containing two atoms:
+#
+#                @R 
+#                 | 
+#                @CA
+#
+#
+#   Later on, we may connect them together to form a polymer:
+#                                     
+#
+#                @R           @R       
+#                 |           |        
+#               _@CA_       _@CA_      
+#   ...  -.@CA-'     `-@CA-'     `  ... 
+#           |          |               
+#          @R          @R              
+#
+# THERE ARE TWO VERSIONS OF THIS FILE:
+# In the simple version, shown here, there is only one type of side-chain "R".
+# More complex examples have multiple types of molecules
+# each with different side-chain properties.
+
+2bead {
+
+  # atom-id  mol-id  atom-type charge  x     y        z
+
+  write("Data Atoms") {
+    $atom:CA $mol:... @atom:CA    0.0  0.000  0.0000   0.0000000
+    $atom:R  $mol:... @atom:R     0.0  0.000  3.4000   0.0000000
+  }
+
+  write_once("Data Masses") {
+    @atom:C  14.0
+    @atom:R  50.0
+  }
+
+  write("Data Bonds") {
+    $bond:CR  @bond:sidechain  $atom:CA $atom:R
+  }
+
+  write_once("Data Angles By Type") {
+    @angle:backbone  @atom:CA @atom:CA  @atom:CA  @bond:*  @bond:*
+    @angle:sidechain @atom:CA @atom:CA  @atom:R   @bond:*  @bond:*
+  }
+
+  write_once("Data Dihedrals By Type") {
+    @dihedral:CCCC  @atom:CA @atom:CA @atom:CA @atom:CA  @bond:* @bond:* @bond:*
+    @dihedral:RCCR  @atom:R  @atom:CA @atom:CA @atom:R   @bond:* @bond:* @bond:*
+  }
+
+
+  write_once("In Settings") {
+    # 2-body (bonded) interaction parameters are listed by bondType:
+    #
+    # Ubond(r) = (k/2)*(r-0)^2
+    #
+    # The corresponding command is:
+    #
+    # bond_coeff     bondType      harmonic    k     r0
+    #
+    bond_coeff     @bond:sidechain harmonic   30.0   3.4
+    bond_coeff     @bond:backbone  harmonic   30.0   3.7
+
+    # 3-body interactions in this example are listed by atomType and bondType
+    # The atomIDs involved are determined automatically.  The forumula used is:
+    #
+    # Uangle(theta) = (k/2)*(theta-theta0)^2
+    #
+    # The corresponding command is:
+    #
+    # angle_coeff  angleType     harmonic    k   theta0
+    #    (The theta0 parameter is in degrees, k is in kcal/mol/rad^2)
+
+    angle_coeff @angle:backbone   harmonic   30.0  104
+    angle_coeff @angle:sidechain  harmonic   30.0  127
+
+
+    # 4-body interactions in this example are listed by atomType and bondType
+    # The atomIDs involved are determined automatically.  The forumula used is:
+    #
+    # Udihedral(phi) = K * (1 + cos(n*phi - d))
+    #
+    # The corresponding command is 
+    # dihedral_coeff dihedralType  charmm  K  d  w
+    #
+    #     The d parameter is in degrees, K is in kcal/mol/rad^2.
+    #     "w" is the weight for 1-4 pair interactions, which we set to 0.0.
+    #     This should turn off pairwise interactions between 1-4 bonded atoms
+    #     which are also involved in any of the dihedral interactions below:
+    #
+    dihedral_coeff @dihedral:CCCC  charmm -0.5 1 180 0.0
+    dihedral_coeff @dihedral:RCCR  charmm -1.5 1 -90 0.0
+
+
+    # 2-body (non-bonded) interactions are listed by atom type:
+
+    # interaction between atoms of the same type:
+    #                                                   epsilon signma
+    pair_coeff @atom:CA @atom:CA  lj/charmm/coul/charmm 0.010 2.0
+    pair_coeff @atom:R  @atom:R   lj/charmm/coul/charmm 2.50 3.6
+    #
+    # interactions between different atom types use arithmetic mixing rules
+
+  } # write_once("In Settings") 
+
+
+  write_once("In Init") {
+    # -- Default styles for "2bead" --
+    units           real
+    atom_style      full
+    # (Hybrid force field styles were used for portability.)
+    bond_style      hybrid harmonic
+    angle_style     hybrid harmonic
+    dihedral_style  hybrid opls
+    improper_style  none
+    pair_style      hybrid lj/charmm/coul/charmm 9.0 11.0 
+    pair_modify     mix arithmetic
+    special_bonds   lj 0.0 0.0 0.0
+  }
+} # 2bead
+

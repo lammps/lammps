@@ -1,0 +1,106 @@
+# This file contains a unit cell for building graphene and nanotubes
+#
+#
+#  The 2AtomCellAlignX "molecule" defined below is a minimal unit cell for any
+# hexagonal tesselation in 2-dimensions.  (See "graphene_unit_cell.jpg")
+# Surfaces constructed with this unit cell can be flat or curved into tubes.
+# The distance between nearest-neighbor carbon atoms (ie the length of a 
+# carbon-carbon bond) is equal to "d" which I set to 1.420 Angstroms.
+#
+#    d = length of each hexagon's side = 1.42 Angstroms
+#    L = length of each hexagon = 2*d  = 2.84 Angstroms
+#    W = width of each hexagon = 2*d*sqrt(3)/2 = 2.4595121467478056 Angstroms
+#
+# Consequently, the Lattice-cell vectors for singe-layer graphene are:
+#   (2.4595121467478,    0,     0)      (aligned with X axis)
+#   (1.2297560733739,  2.13,    0)      (2.13 = 1.5*d)
+# So, to build a sheet of graphite, you could use:
+#   sheet = new Graphene/2AtomCellAlignX [10].move(2.4595121467478,0,0)
+#                                        [10].move(1.2297560733739,2.13,0)
+
+
+
+
+Graphene {
+
+  2AtomCellAlignX
+  {
+    # atomID   molID     atomType charge       x               y       z
+    write("Data Atoms") {
+      $atom:C1  $mol:...  @atom:../C   0.0  -0.61487803668695 -0.355  0.0
+      $atom:C2  $mol:...  @atom:../C   0.0   0.61487803668695  0.355  0.0
+    }
+  }
+
+  # Now define properties of the Carbon graphene atom
+
+  write_once("In Init") {
+    pair_style hybrid  lj/charmm/coul/charmm  9.0 10.0
+  }
+
+  write_once("Data Masses") {
+    @atom:C  12.0
+  }
+
+  write_once("In Settings") {
+    #              i       j                              epsilon     sigma 
+    pair_coeff  @atom:C @atom:C  lj/charmm/coul/charmm   0.068443     3.407
+
+    # These Lennard-Jones parameters come from
+    #  R. Saito, R. Matsuo, T. Kimura, G. Dresselhaus, M.S. Dresselhaus,
+    #  Chem Phys Lett, 348:187 (2001)
+
+    # Define a group consisting of only carbon atoms in graphene molecules
+    group Cgraphene type @atom:C
+  }
+
+  # Notice that the two atoms in the unit-cell above lie in the XY plane.
+  # (Their z-coordinate is zero).  It's also useful to have a version of 
+  # this object which lies in the XZ plan.  So we define this below:
+
+  2AtomCellAlignXZ = 2AtomCellAlignX.rot(90,1,0,0)
+
+} # Graphene
+
+
+
+
+
+
+
+
+
+
+# ------------   Graphite  -----------
+#
+# Note: For graphite: sheets stacked in the Z direction are separated by a
+#       distance of 3.35 Angstroms, and shifted in an alternating +/-Y direction
+#       by a distance of d (1.42 Angstroms).  To add additional graphene layers
+#       you could use:
+#   sheet2 = new Graphene/2AtomCellAlignX [10].move(2.4595121467478,0,0)
+#                                         [10].move(1.2297560733739,2.13,0)
+#   sheet2[*][*].move(0,  1.42, 3.35)
+#   sheet3 = new Graphene/2AtomCellAlignX [10].move(2.4595121467478,0,0)
+#                                         [10].move(1.2297560733739,2.13,0)
+#   sheet3[*][*].move(0, -1.42, 6.70)
+#   etc...
+#       However, to build a thick sheet of graphite, it would 
+#       be more efficient to use a 4-atom unit cell:
+#
+#Graphene {
+#  GraphiteCell {
+#    # atomID   molID     atomType charge       x               y       z
+#    write("Data Atoms") {
+#      $atom:C1  $mol:...  @atom:../C   0.0  -0.61487803668695 -0.355  0.0
+#      $atom:C2  $mol:...  @atom:../C   0.0   0.61487803668695  0.355  0.0
+#      $atom:C3  $mol:...  @atom:../C   0.0  -0.61487803668695  1.065  3.35
+#      $atom:C4  $mol:...  @atom:../C   0.0   0.61487803668695  1.775  3.35
+#    }
+#  } # GraphiteCell
+#}
+#
+# Then you could create a thick sheet of graphite this way:
+#
+#   graphite = new Graphene/GraphiteCell [10].move(2.4595121467478,0,0)
+#                                        [10].move(1.2297560733739,2.13,0)
+#                                        [5].move(0,0,6.70)

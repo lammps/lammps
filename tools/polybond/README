@@ -1,8 +1,8 @@
 25 July 2013
 
 This directory contains a Python-based tool for performing
-"programmable polymer bonding".  The Python file lmpsdata.py provides a
-"Lmpsdata" class with various methods which can be invoked by a
+"programmable polymer bonding".  The Python file lmpsdata.py provides
+a "Lmpsdata" class with various methods which can be invoked by a
 user-written Python script to create data files with complex bonding
 topologies.
 

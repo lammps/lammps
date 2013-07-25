@@ -32,7 +32,7 @@ class Set : protected Pointers {
  private:
   char *id;
   int *select;
-  int style,ivalue,newtype,count;
+  int style,ivalue,newtype,count,index_custom;
   int ximage,yimage,zimage,ximageflag,yimageflag,zimageflag;
   double dvalue,xvalue,yvalue,zvalue,wvalue,fraction;
 

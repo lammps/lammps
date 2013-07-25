@@ -43,7 +43,7 @@ enum{ATOM_SELECT,MOL_SELECT,TYPE_SELECT,GROUP_SELECT,REGION_SELECT};
 enum{TYPE,TYPE_FRACTION,MOLECULE,X,Y,Z,CHARGE,MASS,SHAPE,LENGTH,TRI,
      DIPOLE,DIPOLE_RANDOM,QUAT,QUAT_RANDOM,THETA,ANGMOM,
      DIAMETER,DENSITY,VOLUME,IMAGE,BOND,ANGLE,DIHEDRAL,IMPROPER,
-     MESO_E,MESO_CV,MESO_RHO};
+     MESO_E,MESO_CV,MESO_RHO,INAME,DNAME};
 
 #define BIG INT_MAX
 
@@ -384,6 +384,28 @@ void Set::command(int narg, char **arg)
       set(MESO_RHO);
       iarg += 2;
 
+    } else if (strstr(arg[iarg],"i_") == arg[iarg]) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
+      if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) varparse(arg[iarg+1],1);
+      else ivalue = force->numeric(FLERR,arg[iarg+1]);
+      int flag;
+      index_custom = atom->find_custom(&arg[iarg][2],flag);
+      if (index_custom < 0 || flag != 0)
+        error->all(FLERR,"Set command integer vector does not exist");
+      set(INAME);
+      iarg += 2;
+
+    } else if (strstr(arg[iarg],"i_") == arg[iarg]) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
+      if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) varparse(arg[iarg+1],1);
+      else dvalue = force->numeric(FLERR,arg[iarg+1]);
+      int flag;
+      index_custom = atom->find_custom(&arg[iarg][2],flag);
+      if (index_custom < 0 || flag != 1)
+        error->all(FLERR,"Set command floating point vector does not exist");
+      set(DNAME);
+      iarg += 2;
+
     } else error->all(FLERR,"Illegal set command");
 
     // statistics
@@ -650,6 +672,16 @@ void Set::set(int keyword)
       atom->angmom[i][0] = xvalue;
       atom->angmom[i][1] = yvalue;
       atom->angmom[i][2] = zvalue;
+    }
+
+    // set value for custom integer or double vector
+
+    else if (keyword == INAME) {
+      atom->ivector[index_custom][i] = ivalue;
+    }
+
+    else if (keyword == DNAME) {
+      atom->dvector[index_custom][i] = dvalue;
     }
 
     count++;

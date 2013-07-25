@@ -35,6 +35,7 @@ class ComputePropertyAtom : public Compute {
  private:
   int nvalues;
   int nmax;
+  int *index;
   double *vector;
   double **array;
   double *buf;
@@ -119,6 +120,9 @@ class ComputePropertyAtom : public Compute {
   void pack_corner3x(int);
   void pack_corner3y(int);
   void pack_corner3z(int);
+
+  void pack_iname(int);
+  void pack_dname(int);
 };
 
 }

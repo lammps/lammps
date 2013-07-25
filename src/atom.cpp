@@ -233,13 +233,18 @@ Atom::~Atom()
   // delete custom atom arrays
 
   for (int i = 0; i < nivector; i++) {
-    memory->destroy(ivector[i]);
     delete [] iname[i];
+    memory->destroy(ivector[i]);
   }
   for (int i = 0; i < ndvector; i++) {
-    memory->destroy(dvector[i]);
     delete [] dname[i];
+    memory->destroy(dvector[i]);
   }
+
+  memory->sfree(iname);
+  memory->sfree(dname);
+  memory->sfree(ivector);
+  memory->sfree(dvector);
 
   // delete per-type arrays
 

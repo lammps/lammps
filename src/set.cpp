@@ -395,7 +395,7 @@ void Set::command(int narg, char **arg)
       set(INAME);
       iarg += 2;
 
-    } else if (strstr(arg[iarg],"i_") == arg[iarg]) {
+    } else if (strstr(arg[iarg],"d_") == arg[iarg]) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
       if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) varparse(arg[iarg+1],1);
       else dvalue = force->numeric(FLERR,arg[iarg+1]);

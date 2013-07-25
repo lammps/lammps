@@ -36,10 +36,17 @@ class Set : protected Pointers {
   int ximage,yimage,zimage,ximageflag,yimageflag,zimageflag;
   double dvalue,xvalue,yvalue,zvalue,wvalue,fraction;
 
+  int varflag,varflag1,varflag2,varflag3,varflag4;
+  int ivar1,ivar2,ivar3,ivar4;
+  double *vec1,*vec2,*vec3,*vec4;
+
   void selection(int);
   void set(int);
+  void set_scalar(int);
+  void set_peratom(int);
   void setrandom(int);
   void topology(int);
+  void varparse(char *, int);
 };
 
 }

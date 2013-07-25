@@ -23,37 +23,51 @@ keyword = {type} or {type/fraction} or {mol} or {x} or {y} or {z} or \
 	  {bond} or {angle} or {dihedral} or {improper} or
 	  {meso_e} or {meso_cv} or {meso_rho} :l
   {type} value = atom type
+    value can be an atom-style variable (see below)
   {type/fraction} values = type fraction seed
     type = new atom type
     fraction = fraction of selected atoms to set to new atom type
     seed = random # seed (positive integer)
   {mol} value = molecule ID
+    value can be an atom-style variable (see below)
   {x},{y},{z} value = atom coordinate (distance units)
+    value can be an atom-style variable (see below)
   {charge} value = atomic charge (charge units)
+    value can be an atom-style variable (see below)
   {dipole} values = x y z
     x,y,z = orientation of dipole moment vector
+    any of x,y,z can be an atom-style variable (see below)
   {dipole/random} value = seed Dlen
     seed = random # seed (positive integer) for dipole moment orientations
     Dlen = magnitude of dipole moment (dipole units)
   {quat} values = a b c theta
     a,b,c = unit vector to rotate particle around via right-hand rule
     theta = rotation angle (degrees)
+    any of a,b,c,theta can be an atom-style variable (see below)
   {quat/random} value = seed
     seed = random # seed (positive integer) for quaternion orientations
   {diameter} value = diameter of spherical particle (distance units)
+    value can be an atom-style variable (see below)
   {shape} value = Sx Sy Sz
     Sx,Sy,Sz = 3 diameters of ellipsoid (distance units)
   {length} value = len
     len = length of line segment (distance units)
+    len can be an atom-style variable (see below)
   {tri} value = side
     side = side length of equilateral triangle (distance units)
+    side can be an atom-style variable (see below)
   {theta} value = angle (degrees)
     angle = orientation of line segment with respect to x-axis
+    angle can be an atom-style variable (see below)
   {angmom} values = Lx Ly Lz
     Lx,Ly,Lz = components of angular momentum vector (distance-mass-velocity units)
+    any of Lx,Ly,Lz can be an atom-style variable (see below)
   {mass} value = per-atom mass (mass units)
+    value can be an atom-style variable (see below)
   {density} value = particle density for sphere or ellipsoid (mass/distance^3 or mass/distance^2 or mass/distance units, depending on dimensionality of particle)
+    value can be an atom-style variable (see below)
   {volume} value = particle volume for Peridynamic particle (distance^3 units)
+    value can be an atom-style variable (see below)
   {image} nx ny nz
     nx,ny,nz = which periodic image of the simulation box the atom is in
   {bond} value = bond type for all bonds between selected atoms
@@ -61,8 +75,11 @@ keyword = {type} or {type/fraction} or {mol} or {x} or {y} or {z} or \
   {dihedral} value = dihedral type for all dihedrals between selected atoms
   {improper} value = improper type for all impropers between selected atoms
   {meso_e} value = energy of SPH particles (need units)
+    value can be an atom-style variable (see below)
   {meso_cv} value = heat capacity of SPH particles (need units)
-  {meso_rho} value = density of SPH particles (need units) :pre
+    value can be an atom-style variable (see below)
+  {meso_rho} value = density of SPH particles (need units)
+    value can be an atom-style variable (see below) :pre
 :ule
 
 [Examples:]
@@ -87,24 +104,33 @@ for overriding the default values assigned by the
 be useful for altering pairwise and molecular force interactions,
 since force-field coefficients are defined in terms of types.  It can
 be used to change the labeling of atoms by atom type or molecule ID
-when they are output in "dump"_dump.html files.  It can be useful for
-debugging purposes; i.e. positioning an atom at a precise location to
-compute subsequent forces or energy.
+when they are output in "dump"_dump.html files.  It can also be useful
+for debugging purposes; i.e. positioning an atom at a precise location
+to compute subsequent forces or energy.
+
+Note that the {style} and {ID} arguments determine which atoms have
+their properties reset.  The remaining keywords specify which
+properties to reset and what the new values are.  Some strings like
+{type} or {mol} can be used as a style and/or a keyword.
+
+:line
+
+This section describes how to select which atoms to change
+the properties of, via the {style} and {ID} arguments.
 
 The style {atom} selects all the atoms in a range of atom IDs.  The
 style {type} selects all the atoms in a range of types.  The style
 {mol} selects all the atoms in a range of molecule IDs.
 
-In each of the range cases, a single value can be specified, or a
-wildcard asterisk can be used to specify a range of values.  This
-takes the form "*" or "*n" or "n*" or "m*n".  For example, for the
-style {type}, if N = the number of atom types, then an asterisk with
-no numeric values means all types from 1 to N.  A leading asterisk
-means all types from 1 to n (inclusive).  A trailing asterisk means
-all types from n to N (inclusive).  A middle asterisk means all types
-from m to n (inclusive).  Note that the loweest value for the wildcard
-is 1, not 0, so you cannot not use this form to select atoms
-with molecule ID = 0, for example.
+In each of the range cases, the range can be specified as a single
+numeric value, or a wildcard asterisk can be used to specify a range
+of values.  This takes the form "*" or "*n" or "n*" or "m*n".  For
+example, for the style {type}, if N = the number of atom types, then
+an asterisk with no numeric values means all types from 1 to N.  A
+leading asterisk means all types from 1 to n (inclusive).  A trailing
+asterisk means all types from n to N (inclusive).  A middle asterisk
+means all types from m to n (inclusive).  For all the styles except
+{mol}, the lowest value for the wildcard is 1; for {mol} it is 0.
 
 The style {group} selects all the atoms in the specified group.  The
 style {region} selects all the atoms in the specified geometric
@@ -112,6 +138,33 @@ region.  See the "group"_group.html and "region"_region.html commands
 for details of how to specify a group or region.
 
 :line
+
+This section describes the keyword options for which properties to
+change, for the selected atoms.
+
+Note that except where explicitly prohibited below, all of the
+keywords allow an "atom-style variable"_variable.html to be used as
+the specified value(s).  If the value is a variable, it should be
+specified as v_name, where name is the variable name.  In this case,
+the variable will be evaluated, and its resulting per-atom value used
+to determine the value assigned to each selected atom.
+
+Atom-style variables can specify formulas with various mathematical
+functions, and include "thermo_style"_thermo_style.html command
+keywords for the simulation box parameters and timestep and elapsed
+time.  They can also include per-atom values, such as atom
+coordinates.  Thus it is easy to specify a time-dependent or
+spatially-dependent set of per-atom values.  As explained on the
+"variable"_variable.html doc page, atomfile-style variables can be
+used in place of atom-style variables, and thus as arguments to the
+set command.  Atomfile-style variables read their per-atoms values
+from a file.
+
+IMPORTANT NOTE: Atom-style and atomfile-style variables return
+floating point per-atom values.  If the values are assigned to an
+integer variable, such as the molecule ID, then the floating point
+value is truncated to its integer portion, e.g. a value of 2.6 would
+become 2.
 
 Keyword {type} sets the atom type for all selected atoms.  The
 specified value must be from 1 to ntypes, where ntypes was set by the
@@ -124,7 +177,7 @@ selected atoms.  The actual number of atoms changed is not guaranteed
 to be exactly the requested fraction, but should be statistically
 close.  Random numbers are used in such a way that a particular atom
 is changed or not changed, regardless of how many processors are being
-used.
+used.  This keyword does not allow use of an atom-style variable.
 
 Keyword {mol} sets the molecule ID for all selected atoms.  The "atom
 style"_atom_style.html being used must support the use of molecule
@@ -144,7 +197,8 @@ moment vectors of the selected atoms and sets the magnitude of each to
 the specified {Dlen} value.  For 2d systems, the z component of the
 orientation is set to 0.0.  Random numbers are used in such a way that
 the orientation of a particular atom is the same, regardless of how
-many processors are being used.
+many processors are being used.  This keyword does not allow use of an
+atom-style variable.
 
 Keyword {quat} uses the specified values to create a quaternion
 (4-vector) that represents the orientation of the selected atoms.  The
@@ -172,7 +226,8 @@ numbers are used in such a way that the orientation of a particular
 atom is the same, regardless of how many processors are being used.
 For 2d systems, only orientations in the xy plane are generated.  As
 with keyword {quat}, for ellipsoidal particles, the 3 shape values
-must be non-zero for each particle set by this command.
+must be non-zero for each particle set by this command.  This keyword
+does not allow use of an atom-style variable.
 
 Keyword {diameter} sets the size of the selected atoms.  The particles
 must be finite-size spheres as defined by the "atom_style
@@ -261,7 +316,7 @@ the simulation.  The flags can be output with atom snapshots via the
 "dump"_dump.html command.  If a value of NULL is specified for any of
 nx,ny,nz, then the current image value for that dimension is
 unchanged.  For non-periodic dimensions only a value of 0 can be
-specified.
+specified.  This keyword does not allow use of atom-style variables.
 
 This command can be useful after a system has been equilibrated and
 atoms have diffused one or more box lengths in various directions.
@@ -283,7 +338,7 @@ atoms in a particular bond (angle, etc) must be selected atoms in
 order for the change to be made.  The value of nbondtype (nangletypes,
 etc) was set by the {bond types} ({angle types}, etc) field in the
 header of the data file read by the "read_data"_read_data.html
-command.
+command.  These keywords do not allow use of an atom-style variable.
 
 Keywords {meso_e}, {meso_cv}, and {meso_rho} set the energy, heat
 capacity, and density of smmothed particle hydrodynamics (SPH)

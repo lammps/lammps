@@ -2057,7 +2057,7 @@ void FixRigid::setup_bodies()
 
 void FixRigid::readfile(int which, double *vec, double **array, int *inbody)
 {
-  int i,j,m,nchunk,id;
+  int i,j,m,nchunk,id,eofflag;
   int nlines;
   FILE *fp;
   char *eof,*start,*next,*buf;
@@ -2088,21 +2088,9 @@ void FixRigid::readfile(int which, double *vec, double **array, int *inbody)
 
   int nread = 0;
   while (nread < nlines) {
-    if (nlines-nread > CHUNK) nchunk = CHUNK;
-    else nchunk = nlines-nread;
-    if (me == 0) {
-      char *eof;
-      m = 0;
-      for (i = 0; i < nchunk; i++) {
-        eof = fgets(&buffer[m],MAXLINE,fp);
-        if (eof == NULL) error->one(FLERR,"Unexpected end of fix rigid file");
-        m += strlen(&buffer[m]);
-      }
-      if (buffer[m-1] != '\n') strcpy(&buffer[m++],"\n");
-      m++;
-    }
-    MPI_Bcast(&m,1,MPI_INT,0,world);
-    MPI_Bcast(buffer,m,MPI_CHAR,0,world);
+    nchunk = MIN(nlines-nread,CHUNK);
+    eofflag = comm->read_lines_from_file(fp,nchunk,MAXLINE,buffer);
+    if (eofflag) error->all(FLERR,"Unexpected end of data file");
 
     buf = buffer;
     next = strchr(buf,'\n');

@@ -99,7 +99,7 @@ class Force : protected Pointers {
   class KSpace *kspace_match(const char *, int);
 
   void set_special(int, char **);
-  void bounds(char *, int, int &, int &);
+  void bounds(char *, int, int &, int &, int nmin=1);
   double numeric(const char *, int, char *);
   int inumeric(const char *, int, char *);
   bigint memory_usage();

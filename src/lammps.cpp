@@ -541,6 +541,9 @@ void LAMMPS::destroy()
                           //   since fixes delete callbacks in atom
   delete timer;
   delete citeme;
+
+  modify = NULL;          // necessary since input->variable->varreader
+                          // will be destructed later
 }
 
 /* ----------------------------------------------------------------------

@@ -655,22 +655,22 @@ void Force::set_special(int narg, char **arg)
    compute bounds implied by numeric str with a possible wildcard asterik
    1 = lower bound, nmax = upper bound
    5 possibilities:
-     (1) i = i to i, (2) * = 1 to nmax,
-     (3) i* = i to nmax, (4) *j = 1 to j, (5) i*j = i to j
+     (1) i = i to i, (2) * = nmin to nmax,
+     (3) i* = i to nmax, (4) *j = nmin to j, (5) i*j = i to j
    return nlo,nhi
 ------------------------------------------------------------------------- */
 
-void Force::bounds(char *str, int nmax, int &nlo, int &nhi)
+void Force::bounds(char *str, int nmax, int &nlo, int &nhi, int nmin)
 {
   char *ptr = strchr(str,'*');
 
   if (ptr == NULL) {
     nlo = nhi = atoi(str);
   } else if (strlen(str) == 1) {
-    nlo = 1;
+    nlo = nmin;
     nhi = nmax;
   } else if (ptr == str) {
-    nlo = 1;
+    nlo = nmin;
     nhi = atoi(ptr+1);
   } else if (strlen(ptr+1) == 0) {
     nlo = atoi(str);
@@ -680,7 +680,8 @@ void Force::bounds(char *str, int nmax, int &nlo, int &nhi)
     nhi = atoi(ptr+1);
   }
 
-  if (nlo < 1 || nhi > nmax) error->all(FLERR,"Numeric index is out of bounds");
+  if (nlo < nmin || nhi > nmax) 
+    error->all(FLERR,"Numeric index is out of bounds");
 }
 
 /* ----------------------------------------------------------------------

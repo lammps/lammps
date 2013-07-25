@@ -92,13 +92,13 @@ variable x delete
 <P>This command assigns one or more strings to a variable name for
 evaluation later in the input script or during a simulation.
 </P>
-<P>Variables can be used in several ways in LAMMPS.  A variable can be
-referenced elsewhere in an input script to become part of a new input
-command.  For variable styles that store multiple strings, the
-<A HREF = "next.html">next</A> command can be used to increment which string is
-assigned to the variable.  Variables of style <I>equal</I> store a formula
-which when evaluated produces a single numeric value which can be
-output either directly (see the <A HREF = "print.html">print</A>, <A HREF = "fix_print.html">fix
+<P>Variables can thus be useful in several contexts.  A variable can be
+defined and then referenced elsewhere in an input script to become
+part of a new input command.  For variable styles that store multiple
+strings, the <A HREF = "next.html">next</A> command can be used to increment which
+string is assigned to the variable.  Variables of style <I>equal</I> store
+a formula which when evaluated produces a single numeric value which
+can be output either directly (see the <A HREF = "print.html">print</A>, <A HREF = "fix_print.html">fix
 print</A>, and <A HREF = "run.html">run every</A> commands) or as part
 of thermodynamic output (see the <A HREF = "thermo_style.html">thermo_style</A>
 command), or used as input to an averaging fix (see the <A HREF = "fix_ave_time.html">fix

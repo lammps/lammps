@@ -86,13 +86,13 @@ variable x delete :pre
 This command assigns one or more strings to a variable name for
 evaluation later in the input script or during a simulation.
 
-Variables can be used in several ways in LAMMPS.  A variable can be
-referenced elsewhere in an input script to become part of a new input
-command.  For variable styles that store multiple strings, the
-"next"_next.html command can be used to increment which string is
-assigned to the variable.  Variables of style {equal} store a formula
-which when evaluated produces a single numeric value which can be
-output either directly (see the "print"_print.html, "fix
+Variables can thus be useful in several contexts.  A variable can be
+defined and then referenced elsewhere in an input script to become
+part of a new input command.  For variable styles that store multiple
+strings, the "next"_next.html command can be used to increment which
+string is assigned to the variable.  Variables of style {equal} store
+a formula which when evaluated produces a single numeric value which
+can be output either directly (see the "print"_print.html, "fix
 print"_fix_print.html, and "run every"_run.html commands) or as part
 of thermodynamic output (see the "thermo_style"_thermo_style.html
 command), or used as input to an averaging fix (see the "fix

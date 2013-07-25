@@ -73,7 +73,16 @@ quantities.
 {tri} | corner points, angular momentum | rigid bodies |
 {wavepacket} | charge, spin, eradius, etag, cs_re, cs_im | AWPMD :tb(c=3,s=|)
 
-All of the styles define point particles, except the {sphere},
+IMPORTANT NOTE: It is possible to add some attributes, such as a
+molecule ID, to atom styles that do not have them via the "fix
+property/atom"_fix_property_atom.html command.  This command also
+allows new custom attributes consisting of extra integer or
+floating-point values to be added to atoms.  See the "fix
+property/atom"_fix_property_atom.html doc page for examples of cases
+where this is useful and details on how to initialize, access, and
+output the custom values.
+
+All of the above styles define point particles, except the {sphere},
 {ellipsoid}, {electron}, {peri}, {wavepacket}, {line}, {tri}, and
 {body} styles, which define finite-size particles.  See "Section_howto
 14"_Section_howto.html#howto_14 for an overview of using finite-size

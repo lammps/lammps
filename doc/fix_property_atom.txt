@@ -39,7 +39,8 @@ The atom style used for a simulation defines a set of per-atom
 properties, as explained on the "atom_style"_atom_style.html and
 "read_data"_read_data.html doc pages.  The latter command allows these
 properties to be defined for each atom in the system when a data file
-is read.  This fix will augment the set of properties with new ones.
+is read.  This fix will augment the set of properties with new custom
+ones.
 
 This can be useful in at least two scenarios.
 
@@ -60,12 +61,12 @@ atom styles, so they can be used by atom styles that don't define
 them.
 
 More generally, the {i_name} and {d_name} vectors allow one or more
-new per-atom properties to be defined.  Each name must be unique and
-can use alphanumeric or underscore characters.  These vectors can
-store whatever values you decide are useful in your simulation.  As
-explained below there are several ways to initialize and access and
-output these values, both via input script commands and in new code
-that you add to LAMMPS.
+new custom per-atom properties to be defined.  Each name must be
+unique and can use alphanumeric or underscore characters.  These
+vectors can store whatever values you decide are useful in your
+simulation.  As explained below there are several ways to initialize
+and access and output these values, both via input script commands and
+in new code that you add to LAMMPS.
 
 This is effectively a simple way to add per-atom properties to a model
 without needing to write code for a new "atom style"_atom_style.html
@@ -167,11 +168,11 @@ dump 1 all custom 100 tmp.dump id x y z c_1[1] c_1[2] :pre
 
 :line
 
-This section is for users who wish to write new pair styles,
-fixes, or computes that use the per-atom properties defined
-by this fix.
-
-Need to add some details here.
+If you wish to add new "pair styles"_pair_style.html,
+"fixes"_fix.html, or "computes"_compute.html that use the per-atom
+properties defined by this fix, see "Section
+modify"_Section_modify.html#mod_1 of the manual which has some details
+on how the properties can be accessed from added classes.
 
 :line
 
@@ -201,4 +202,3 @@ property/atom"_compute_property_atom.html
 [Default:]
 
 The default keyword values are ghost = no.
-

@@ -501,6 +501,7 @@ of each style or click on the style itself for a full description:
 "pour"_fix_pour.html,
 "press/berendsen"_fix_press_berendsen.html,
 "print"_fix_print.html,
+"property/atom"_fix_property/atom.html,
 "qeq/comb"_fix_qeq_comb.html,
 "reax/bonds"_fix_reax_bonds.html,
 "recenter"_fix_recenter.html,

@@ -13,7 +13,10 @@
 
 #include "mpi.h"
 #include "timer.h"
+#include "error.h"
 #include "memory.h"
+
+#include <string.h>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -55,32 +58,25 @@ static double CPU_Time()
 
 Timer::Timer(LAMMPS *lmp) : Pointers(lmp)
 {
-  memory->create(cpu_array,TIME_N,"timer:cpu_array");
-  memory->create(wall_array,TIME_N,"timer:wall_array");
-}
-
-/* ---------------------------------------------------------------------- */
-
-Timer::~Timer()
-{
-  memory->destroy(cpu_array);
-  memory->destroy(wall_array);
+  _level = NORMAL;
+  _sync  = OFF;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void Timer::init()
 {
-  for (int i = 0; i < TIME_N; i++) cpu_array[i] = 0.0;
-  for (int i = 0; i < TIME_N; i++) wall_array[i] = 0.0;
+  for (int i = 0; i < NUM_TIMER; i++) {
+    cpu_array[i] = 0.0;
+    wall_array[i] = 0.0;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
 void Timer::stamp()
 {
-  // uncomment if want synchronized timing
-  // MPI_Barrier(world);
+  if (_sync) MPI_Barrier(world);
   previous_cpu  = CPU_Time();
   previous_wall = MPI_Wtime();
 }
@@ -89,8 +85,7 @@ void Timer::stamp()
 
 void Timer::stamp(enum ttype which)
 {
-  // uncomment if want synchronized timing
-  // MPI_Barrier(world);
+  if (_sync) MPI_Barrier(world);
   double current_cpu  = CPU_Time();
   double current_wall = MPI_Wtime();
   cpu_array[which] += current_cpu - previous_cpu;
@@ -142,3 +137,26 @@ void Timer::set_wall(enum ttype which, double newtime)
   wall_array[which] = newtime;
 }
 
+/* ----------------------------------------------------------------------
+   modify parameters of the Timer class
+------------------------------------------------------------------------- */
+
+void Timer::modify_params(int narg, char **arg)
+{
+  int iarg = 0;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"off") == 0) {
+      _level = OFF;
+    } else if (strcmp(arg[iarg],"normal") == 0) {
+      _level = NORMAL;
+    } else if (strcmp(arg[iarg],"full") == 0) {
+      _level = FULL;
+    } else if (strcmp(arg[iarg],"nosync") == 0) {
+      _sync = OFF;
+    } else if (strcmp(arg[iarg],"sync") == 0) {
+      _sync = NORMAL;
+    } else error->all(FLERR,"Illegal timers command");
+
+    ++iarg;  
+  }
+}

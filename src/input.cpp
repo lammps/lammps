@@ -46,6 +46,7 @@
 #include "error.h"
 #include "memory.h"
 #include "citeme.h"
+#include "timer.h"
 
 #ifdef _OPENMP
 #include "omp.h"
@@ -585,6 +586,7 @@ int Input::execute_command()
   else if (!strcmp(command,"thermo_modify")) thermo_modify();
   else if (!strcmp(command,"thermo_style")) thermo_style();
   else if (!strcmp(command,"timestep")) timestep();
+  else if (!strcmp(command,"timers")) timers();
   else if (!strcmp(command,"uncompute")) uncompute();
   else if (!strcmp(command,"undump")) undump();
   else if (!strcmp(command,"unfix")) unfix();
@@ -1519,6 +1521,14 @@ void Input::timestep()
 {
   if (narg != 1) error->all(FLERR,"Illegal timestep command");
   update->dt = force->numeric(FLERR,arg[0]);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::timers()
+{
+  if (narg != 1) error->all(FLERR,"Illegal timers command");
+  timer->modify_params(narg,arg);
 }
 
 /* ---------------------------------------------------------------------- */

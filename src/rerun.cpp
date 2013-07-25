@@ -143,7 +143,7 @@ void Rerun::command(int narg, char **arg)
   lmp->init();
 
   timer->init();
-  timer->barrier_start(Timer::LOOP);
+  timer->barrier_start(Timer::TOTAL);
 
   bigint ntimestep = rd->seek(first,0);
   if (ntimestep < 0)
@@ -171,7 +171,7 @@ void Rerun::command(int narg, char **arg)
   output->next_thermo = update->ntimestep;
   output->write(update->ntimestep);
 
-  timer->barrier_stop(Timer::LOOP);
+  timer->barrier_stop(Timer::TOTAL);
 
   update->integrate->cleanup();
 

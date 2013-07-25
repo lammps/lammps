@@ -123,6 +123,7 @@ class Input : protected Pointers {
   void thermo_modify();
   void thermo_style();
   void timestep();
+  void timers();
   void uncompute();
   void undump();
   void unfix();

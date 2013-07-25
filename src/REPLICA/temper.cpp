@@ -205,7 +205,7 @@ void Temper::command(int narg, char **arg)
   }
 
   timer->init();
-  timer->barrier_start(Timer::LOOP);
+  timer->barrier_start(Timer::TOTAL);
 
   for (int iswap = 0; iswap < nswaps; iswap++) {
 
@@ -310,7 +310,7 @@ void Temper::command(int narg, char **arg)
     if (me_universe == 0) print_status();
   }
 
-  timer->barrier_stop(Timer::LOOP);
+  timer->barrier_stop(Timer::TOTAL);
 
   update->integrate->cleanup();
 

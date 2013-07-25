@@ -268,7 +268,7 @@ void VerletSplit::run(int n)
 
   MPI_Barrier(universe->uworld);
   timer->init();
-  timer->barrier_start(Timer::LOOP);
+  timer->barrier_start(Timer::TOTAL);
 
   // setup initial Rspace <-> Kspace comm params
 

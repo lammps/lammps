@@ -328,7 +328,7 @@ void Thermo::compute(int flag)
   int loc = 0;
   if (lineflag == MULTILINE) {
     double cpu;
-    if (flag) cpu = timer->elapsed(Timer::LOOP);
+    if (flag) cpu = timer->elapsed(Timer::TOTAL);
     else cpu = 0.0;
     loc = sprintf(&line[loc],format_multi,ntimestep,cpu);
   }
@@ -1452,7 +1452,7 @@ void Thermo::compute_time()
 void Thermo::compute_cpu()
 {
   if (firststep == 0) dvalue = 0.0;
-  else dvalue = timer->elapsed(Timer::LOOP);
+  else dvalue = timer->elapsed(Timer::TOTAL);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1466,7 +1466,7 @@ void Thermo::compute_tpcpu()
     new_cpu = 0.0;
     dvalue = 0.0;
   } else {
-    new_cpu = timer->elapsed(Timer::LOOP);
+    new_cpu = timer->elapsed(Timer::TOTAL);
     double cpu_diff = new_cpu - last_tpcpu;
     double time_diff = new_time - last_time;
     if (time_diff > 0.0 && cpu_diff > 0.0) dvalue = time_diff/cpu_diff;
@@ -1488,7 +1488,7 @@ void Thermo::compute_spcpu()
     new_cpu = 0.0;
     dvalue = 0.0;
   } else {
-    new_cpu = timer->elapsed(Timer::LOOP);
+    new_cpu = timer->elapsed(Timer::TOTAL);
     double cpu_diff = new_cpu - last_spcpu;
     int step_diff = new_step - last_step;
     if (cpu_diff > 0.0) dvalue = step_diff/cpu_diff;

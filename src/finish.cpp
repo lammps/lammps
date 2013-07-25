@@ -161,13 +161,13 @@ void Finish::end(int flag)
   // loop stats
 
   if (loopflag) {
-    time_other = timer->get_wall(Timer::LOOP) -
+    time_other = timer->get_wall(Timer::TOTAL) -
       (timer->get_wall(Timer::PAIR) + timer->get_wall(Timer::BOND) + 
        timer->get_wall(Timer::KSPACE) + timer->get_wall(Timer::NEIGHBOR) +
        timer->get_wall(Timer::COMM) + timer->get_wall(Timer::OUTPUT) +
        timer->get_wall(Timer::MODIFY));
     
-    time_loop = timer->get_wall(Timer::LOOP);
+    time_loop = timer->get_wall(Timer::TOTAL);
     MPI_Allreduce(&time_loop,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time_loop = tmp/nprocs;
 

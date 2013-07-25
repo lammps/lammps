@@ -84,7 +84,7 @@ help:
 	  then cp Makefile.package.settings.empty Makefile.package.settings; fi
 	@cp Makefile.package Makefile.package.settings Obj_$@
 	@cd Obj_$@; \
-	$(MAKE) $(MFLAGS) CC=$(CC) CXX=$(CXX) "OBJ = $(OBJ)" "INC = $(INC)" "SHFLAGS =" \
+	$(MAKE) $(MFLAGS) "OBJ = $(OBJ)" "INC = $(INC)" "SHFLAGS =" \
 	  "EXE = ../$(EXE)" ../$(EXE)
 
 # Remove machine-specific object files

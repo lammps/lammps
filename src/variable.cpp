@@ -3845,6 +3845,8 @@ int VarReader::read_scalar(char *str)
   int n;
   char *ptr;
 
+  // read one string from file
+
   if (me == 0) {
     while (1) {
       if (fgets(str,MAXLINE,fp) == NULL) n = 0;
@@ -3872,8 +3874,8 @@ int VarReader::read_scalar(char *str)
 
 int VarReader::read_peratom()
 {
-  int i,m,tagdata,nchunk,eof;
-  char *next;
+  int i,m,n,tagdata,nchunk,eof;
+  char *ptr,*next;
   double value;
 
   // set all per-atom values to 0.0
@@ -3884,10 +3886,28 @@ int VarReader::read_peratom()
   int nlocal = atom->nlocal;
   for (i = 0; i < nlocal; i++) vstore[i] = 0.0;
 
-  int map_tag_max = atom->map_tag_max;
+  // read one string from file, convert to Nlines
 
-  // NOTE: read this value from file
-  bigint nlines = atom->natoms;
+  char str[MAXLINE];
+  if (me == 0) {
+    while (1) {
+      if (fgets(str,MAXLINE,fp) == NULL) n = 0;
+      else n = strlen(str);
+      if (n == 0) break;                                 // end of file
+      str[n-1] = '\0';                                   // strip newline
+      if (ptr = strchr(str,'#')) *ptr = '\0';            // strip comment
+      if (strtok(str," \t\n\r\f") == NULL) continue;     // skip if blank
+      n = strlen(str) + 1;
+      break;
+    }
+  }
+
+  MPI_Bcast(&n,1,MPI_INT,0,world);
+  if (n == 0) return 1;
+
+  MPI_Bcast(str,n,MPI_CHAR,0,world);
+  bigint nlines = ATOBIGINT(str);
+  int map_tag_max = atom->map_tag_max;
 
   bigint nread = 0;
   while (nread < nlines) {

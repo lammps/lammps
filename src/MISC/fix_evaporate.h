@@ -11,24 +11,39 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef COMPUTE_CLASS
+#ifdef FIX_CLASS
 
-ComputeStyle(msd/nongauss,ComputeMSDNonGauss)
+FixStyle(evaporate,FixEvaporate)
 
 #else
 
-#ifndef LMP_COMPUTE_MSD_NONGAUSS_H
-#define LMP_COMPUTE_MSD_NONGAUSS_H
+#ifndef LMP_FIX_EVAPORATE_H
+#define LMP_FIX_EVAPORATE_H
 
-#include "compute_msd.h"
+#include "fix.h"
 
 namespace LAMMPS_NS {
 
-class ComputeMSDNonGauss : public ComputeMSD {
+class FixEvaporate : public Fix {
  public:
-  ComputeMSDNonGauss(class LAMMPS *, int, char **);
-  ~ComputeMSDNonGauss() {}
-  void compute_vector();
+  FixEvaporate(class LAMMPS *, int, char **);
+  ~FixEvaporate();
+  int setmask();
+  void init();
+  void pre_exchange();
+  double compute_scalar();
+  double memory_usage();
+
+ private:
+  int nevery,nflux,iregion;
+  int molflag;
+  int ndeleted;
+  char *idregion;
+
+  int nmax;
+  int *list,*mark;
+
+  class RanPark *random;
 };
 
 }
@@ -44,8 +59,22 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Could not find compute msd fix ID
+E: Region ID for fix evaporate does not exist
 
 Self-explanatory.
+
+E: Cannot evaporate atoms in atom_modify first group
+
+This is a restriction due to the way atoms are organized in
+a list to enable the atom_modify first command.
+
+W: Fix evaporate may delete atom with non-zero molecule ID
+
+This is probably an error, since you should not delete only one atom
+of a molecule.
+
+E: Fix evaporate molecule requires atom attribute molecule
+
+The atom style being used does not define a molecule ID.
 
 */

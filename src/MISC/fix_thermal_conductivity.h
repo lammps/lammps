@@ -11,34 +11,39 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef COMPUTE_CLASS
+#ifdef FIX_CLASS
 
-ComputeStyle(ti,ComputeTI)
+FixStyle(thermal/conductivity,FixThermalConductivity)
 
 #else
 
-#ifndef COMPUTE_TI_H
-#define COMPUTE_TI_H
+#ifndef LMP_FIX_THERMAL_CONDUCTIVITY_H
+#define LMP_FIX_THERMAL_CONDUCTIVITY_H
 
-#include "compute.h"
+#include "fix.h"
 
 namespace LAMMPS_NS {
 
-class ComputeTI : public Compute {
+class FixThermalConductivity : public Fix {
  public:
-  ComputeTI(class LAMMPS *, int, char **);
-  ~ComputeTI();
+  FixThermalConductivity(class LAMMPS *, int, char **);
+  ~FixThermalConductivity();
+  int setmask();
   void init();
+  void end_of_step();
   double compute_scalar();
 
  private:
-  int nterms;
-  int *which;
-  int *ivar1,*ivar2;
-  int *ilo, *ihi; 
-  char **var1,**var2;
-  class Pair **pptr;
-  char **pstyle;
+  int me;
+  int edim,nbin,periodicity;
+  int nswap;
+  double prd,boxlo,boxhi;
+  double slablo_lo,slablo_hi,slabhi_lo,slabhi_hi;
+  double e_exchange;
+
+  int nlo,nhi;
+  int *index_lo,*index_hi;
+  double *ke_lo,*ke_hi;
 };
 
 }
@@ -54,30 +59,17 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Variable name for compute ti does not exist
+E: Fix thermal/conductivity swap value must be positive
 
 Self-explanatory.
 
-E: Variable for compute ti is invalid style
+W: Fix thermal/conductivity comes before fix ave/spatial
 
-Self-explanatory.
-
-E: Compute ti pair style does not exist
-
-Self-explanatory.
-
-E: Compute ti tail when pair style does not compute tail corrections
-
-Self-explanatory.
-
-E: Compute ti kspace style does not exist
-
-Self-explanatory.
-
-E: Energy was not tallied on needed timestep
-
-You are using a thermo keyword that requires potentials to
-have tallied energy, but they didn't on this timestep.  See the
-variable doc page for ideas on how to make this work.
+The order of these 2 fixes in your input script is such that fix
+thermal/conductivity comes first.  If you are using fix ave/spatial to
+measure the temperature profile induced by fix viscosity, then this
+may cause a glitch in the profile since you are averaging immediately
+after swaps have occurred.  Flipping the order of the 2 fixes
+typically helps.
 
 */

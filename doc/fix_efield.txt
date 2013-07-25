@@ -137,7 +137,11 @@ with the added forces to be included in the total potential energy of
 the system (the quantity being minimized), you MUST enable the
 "fix_modify"_fix_modify.html {energy} option for this fix.
 
-[Restrictions:] none
+[Restrictions:]
+
+This fix is part of the MISC package.  It is only enabled if LAMMPS
+was built with that package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
 
 [Related commands:]
 

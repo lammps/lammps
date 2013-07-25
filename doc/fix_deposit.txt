@@ -162,6 +162,10 @@ minimization"_minimize.html.
 
 [Restrictions:]
 
+This fix is part of the MISC package.  It is only enabled if LAMMPS
+was built with that package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
+
 The specified insertion region cannot be a "dynamic" region, as
 defined by the "region"_region.html command.
 

@@ -134,7 +134,7 @@ This fix can ramp its target temperature over multiple runs, using the
 
 This fix is not invoked during "energy minimization"_minimize.html.
 
-[Restrictions:] none
+[Restrictions:]
 
 This fix is part of the MISC package.  It is only enabled if LAMMPS
 was built with that package.  See the "Making

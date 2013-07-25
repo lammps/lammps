@@ -42,8 +42,6 @@ class Set : protected Pointers {
 
   void selection(int);
   void set(int);
-  void set_scalar(int);
-  void set_peratom(int);
   void setrandom(int);
   void topology(int);
   void varparse(char *, int);

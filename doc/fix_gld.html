@@ -21,8 +21,9 @@
 
 <LI>Tstart,Tstop = desired temperature at start/end of run (temperature units) 
 
-<LI>N_k = number of terms in the Prony series representation of the memory kernel
-seed = random number seed to use for white noise (positive integer) 
+<LI>N_k = number of terms in the Prony series representation of the memory kernel 
+
+<LI>seed = random number seed to use for white noise (positive integer) 
 
 <LI>series = <I>pprony</I> is presently the only available option 
 
@@ -35,9 +36,8 @@ seed = random number seed to use for white noise (positive integer)
 <PRE>keyword = <I>frozen</I> or <I>zero</I>
   <I>frozen</I> value = <I>no</I> or <I>yes</I>
     <I>no</I> = initialize extended variables using values drawn from equilibrium distribution at Tstart
-    <I>yes</I> = initialize extended variables to zero (i.e., from equilibrium distribution at zero temperature) 
-</PRE>
-<PRE>  <I>zero</I> value = <I>no</I> or <I>yes</I>
+    <I>yes</I> = initialize extended variables to zero (i.e., from equilibrium distribution at zero temperature)
+  <I>zero</I> value = <I>no</I> or <I>yes</I>
     <I>no</I> = do not set total random force to zero
     <I>yes</I> = set total random force to zero 
 </PRE>
@@ -57,6 +57,13 @@ force and a colored Gaussian random force, consistent with the
 Fluctuation-Dissipation Theorem.  The functional form of the memory
 kernel associated with the temporally non-local force is constrained
 to be a Prony series.
+</P>
+<P>IMPORTANT NOTE: While this fix bears many similarities to <A HREF = "fix_langevin.html">fix
+langevin</A>, it has one significant
+difference. Namely, <A HREF = "fix_gld.html">fix gld</A> performs time integration,
+whereas <A HREF = "fix_langevin.html">fix langevin</A> does NOT. To this end, the
+specification of another fix to perform time integration, such as <A HREF = "fix_nve.html">fix
+nve</A>, is NOT necessary.
 </P>
 <P>With this fix active, the force on the <I>j</I>th atom is given as
 </P>
@@ -89,13 +96,6 @@ the Newtonian and Langevin limits. Details of these limits, and the
 associated numerical concerns are discussed in
 <A HREF = "#Baczewski">(Baczewski)</A>.
 </P>
-<P>While this fix bears many similarities to <A HREF = "fix_langevin.html">fix
-langevin</A>, it has one significant
-difference. Namely, <A HREF = "fix_gld.html">fix gld</A> performs time integration,
-whereas <A HREF = "fix_langevin.html">fix langevin</A> does NOT. To this end, the
-specification of another fix to perform time integration, such as <A HREF = "fix_nve.html">fix
-nve</A>, is NOT necessary.
-</P>
 <P>The desired temperature at each timestep is ramped from <I>Tstart</I> to
 <I>Tstop</I> over the course of the next run.
 </P>
@@ -126,6 +126,8 @@ to zero by subtracting off an equal part of it from each atom in the
 group. As a result, the center-of-mass of a system with zero initial
 momentum will not drift over time.
 </P>
+<HR>
+
 <P><B>Restart, run start/stop, minimize info:</B>
 </P>
 <P>The instantaneous values of the extended variables are written to
@@ -135,6 +137,10 @@ do "exact" restarts with this fix, where the simulation continues on
 the same as if no restart had taken place. However, in a statistical
 sense, a restarted simulation should produce the same behavior.
 </P>
+<P>None of the <A HREF = "fix_modify.html">fix_modify</A> options are relevant to this
+fix.  No global or per-atom quantities are stored by this fix for
+access by various <A HREF = "Section_howto.html#howto_15">output commands</A>.  
+</P>
 <P>This fix can ramp its target temperature over multiple runs, using the
 <I>start</I> and <I>stop</I> keywords of the <A HREF = "run.html">run</A> command.  See the
 <A HREF = "run.html">run</A> command for details of how to do this.
@@ -142,6 +148,10 @@ sense, a restarted simulation should produce the same behavior.
 <P>This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
 </P>
 <P><B>Restrictions:</B> none
+</P>
+<P>This fix is part of the MISC package.  It is only enabled if LAMMPS
+was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
 </P>
 <P><B>Related commands:</B>
 </P>

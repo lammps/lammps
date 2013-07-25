@@ -15,7 +15,7 @@ fix ID group-ID gld Tstart Tstop N_k seed series c_1 tau_1 ... c_N_k tau_N_k key
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 gld = style name of this fix command :l
 Tstart,Tstop = desired temperature at start/end of run (temperature units) :l
-N_k = number of terms in the Prony series representation of the memory kernel
+N_k = number of terms in the Prony series representation of the memory kernel :l
 seed = random number seed to use for white noise (positive integer) :l
 series = {pprony} is presently the only available option :l
 c_k = the weight of the kth term in the Prony series (mass per time units) :l
@@ -24,7 +24,7 @@ zero or more keyword/value pairs may be appended :l
 keyword = {frozen} or {zero}
   {frozen} value = {no} or {yes}
     {no} = initialize extended variables using values drawn from equilibrium distribution at Tstart
-    {yes} = initialize extended variables to zero (i.e., from equilibrium distribution at zero temperature) :pre
+    {yes} = initialize extended variables to zero (i.e., from equilibrium distribution at zero temperature)
   {zero} value = {no} or {yes}
     {no} = do not set total random force to zero
     {yes} = set total random force to zero :pre
@@ -44,6 +44,13 @@ force and a colored Gaussian random force, consistent with the
 Fluctuation-Dissipation Theorem.  The functional form of the memory
 kernel associated with the temporally non-local force is constrained
 to be a Prony series.
+
+IMPORTANT NOTE: While this fix bears many similarities to "fix
+langevin"_fix_langevin.html, it has one significant
+difference. Namely, "fix gld"_fix_gld.html performs time integration,
+whereas "fix langevin"_fix_langevin.html does NOT. To this end, the
+specification of another fix to perform time integration, such as "fix
+nve"_fix_nve.html, is NOT necessary.
 
 With this fix active, the force on the {j}th atom is given as
 
@@ -76,13 +83,6 @@ the Newtonian and Langevin limits. Details of these limits, and the
 associated numerical concerns are discussed in
 "(Baczewski)"_#Baczewski.
 
-While this fix bears many similarities to "fix
-langevin"_fix_langevin.html, it has one significant
-difference. Namely, "fix gld"_fix_gld.html performs time integration,
-whereas "fix langevin"_fix_langevin.html does NOT. To this end, the
-specification of another fix to perform time integration, such as "fix
-nve"_fix_nve.html, is NOT necessary.
-
 The desired temperature at each timestep is ramped from {Tstart} to
 {Tstop} over the course of the next run.
 
@@ -113,6 +113,8 @@ to zero by subtracting off an equal part of it from each atom in the
 group. As a result, the center-of-mass of a system with zero initial
 momentum will not drift over time.
 
+:line
+
 [Restart, run start/stop, minimize info:]
 
 The instantaneous values of the extended variables are written to
@@ -122,6 +124,10 @@ do "exact" restarts with this fix, where the simulation continues on
 the same as if no restart had taken place. However, in a statistical
 sense, a restarted simulation should produce the same behavior.
 
+None of the "fix_modify"_fix_modify.html options are relevant to this
+fix.  No global or per-atom quantities are stored by this fix for
+access by various "output commands"_Section_howto.html#howto_15.  
+
 This fix can ramp its target temperature over multiple runs, using the
 {start} and {stop} keywords of the "run"_run.html command.  See the
 "run"_run.html command for details of how to do this.
@@ -129,6 +135,10 @@ This fix can ramp its target temperature over multiple runs, using the
 This fix is not invoked during "energy minimization"_minimize.html.
 
 [Restrictions:] none
+
+This fix is part of the MISC package.  It is only enabled if LAMMPS
+was built with that package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
 
 [Related commands:]
 

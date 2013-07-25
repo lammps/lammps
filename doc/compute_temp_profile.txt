@@ -39,10 +39,10 @@ compute myTemp flow temp/profile 0 1 1 xyz 20 20 20 :pre
 [Description:]
 
 Define a computation that calculates the temperature of a group of
-atoms, after subtracting out a spatially-averaged velocity field,
-before computing the kinetic energy.  This can be useful for
-thermostatting a collection of atoms undergoing a complex flow,
-e.g. via a profile-unbiased thermostat (PUT) as described in
+atoms, after subtracting out a spatially-averaged center-of-mass
+velocity field, before computing the kinetic energy.  This can be
+useful for thermostatting a collection of atoms undergoing a complex
+flow, e.g. via a profile-unbiased thermostat (PUT) as described in
 "(Evans)"_#Evans.  A compute of this style can be used by any command
 that computes a temperature, e.g. "thermo_modify"_thermo_modify.html,
 "fix temp/rescale"_fix_temp_rescale.html, "fix npt"_fix_nh.html, etc.
@@ -61,12 +61,12 @@ the bins are "tilted" slabs or pencils or bricks that are parallel to
 the tilted faces of the box.  See the "region prism"_region.html
 command for a discussion of the geometry of tilted boxes in LAMMPS.
 
-When a temperature is computed, the velocity for the set of atoms that
-are both in the compute group and in the same spatial bin is summed to
-compute an average velocity for the bin.  This bias velocity is then
-subtracted from the velocities of individual atoms in the bin to yield
-a thermal velocity for each atom.  Note that if there is only one
-atom in the bin, it's thermal velocity will thus be 0.0.
+When a temperature is computed, the center-of-mass velocity for the
+set of atoms that are both in the compute group and in the same
+spatial bin is calculated.  This bias velocity is then subtracted from
+the velocities of individual atoms in the bin to yield a thermal
+velocity for each atom.  Note that if there is only one atom in the
+bin, its thermal velocity will thus be 0.0.
 
 After the spatially-averaged velocity field has been subtracted from
 each atom, the temperature is calculated by the formula KE = dim/2 N k

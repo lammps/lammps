@@ -29,6 +29,7 @@ FixStore::FixStore(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   if (narg != 5) error->all(FLERR,"Illegal fix store command");
 
   // syntax: id group style 0/1 nvalue
+  // 0/1 flag = not-store or store values in restart file
 
   restart_peratom = force->inumeric(FLERR,arg[3]);
   nvalues = force->inumeric(FLERR,arg[4]);
@@ -46,7 +47,7 @@ FixStore::FixStore(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   if (restart_peratom) atom->add_callback(1);
 
   // zero the storage
-  // since may be exchanged before filled by caller, e.g. fix store/force
+  // since may be exchanged before filled by caller
 
   int nlocal = atom->nlocal;
   if (vecflag)

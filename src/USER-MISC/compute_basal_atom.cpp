@@ -412,20 +412,17 @@ void ComputeBasalAtom::compute_peratom()
           }
       }
       //if there are less than two ~180 degree bond angles, the algorithm returns null
-      else {
-          BPV[i][0] = 0.0;
-          BPV[i][1] = 0.0;
-          BPV[i][2] = 0.0;
-      }
+      else BPV[i][0] = BPV[i][1] = BPV[i][2] = 0.0;
+
       //normalize BPV:
       double Mag = sqrt(BPV[i][0]*BPV[i][0] + 
                         BPV[i][1]*BPV[i][1] + BPV[i][2]*BPV[i][2]);
       if (Mag > 0){
-         BPV[i][0] = BPV[i][0]/Mag;
-         BPV[i][1] = BPV[i][1]/Mag;
-         BPV[i][2] = BPV[i][2]/Mag;
+        BPV[i][0] = BPV[i][0]/Mag;
+        BPV[i][1] = BPV[i][1]/Mag;
+        BPV[i][2] = BPV[i][2]/Mag;
       }
-    }      
+    } else BPV[i][0] = BPV[i][1] = BPV[i][2] = 0.0;
   }
 }
 /* ----------------------------------------------------------------------

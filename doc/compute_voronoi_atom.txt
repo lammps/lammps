@@ -10,12 +10,13 @@ compute voronoi/atom command :h3
 
 [Syntax:]
 
-compute ID group-ID voronoi/atom keyword arg :pre
+compute ID group-ID voronoi/atom keyword arg ... :pre
 
 ID, group-ID are documented in "compute"_compute.html command :ulb,l
 voronoi/atom = style name of this compute command :l
+zero or more keyword/value pairs may be appended :l
 keyword = {only_group} or {surface} or {radius} or {edge_histo} or {edge_threshold} or {face_threshold} :l
-  {only_group} = no args
+  {only_group} = no arg
   {surface} arg = sgroup-ID
     sgroup-ID = compute the dividing surface between group-ID and sgroup-ID
       this keyword adds a third column to the compute output

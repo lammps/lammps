@@ -13,15 +13,17 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>compute ID group-ID voronoi/atom keyword arg 
+<PRE>compute ID group-ID voronoi/atom keyword arg ... 
 </PRE>
 <UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command 
 
 <LI>voronoi/atom = style name of this compute command 
 
+<LI>zero or more keyword/value pairs may be appended 
+
 <LI>keyword = <I>only_group</I> or <I>surface</I> or <I>radius</I> or <I>edge_histo</I> or <I>edge_threshold</I> or <I>face_threshold</I> 
 
-<PRE>  <I>only_group</I> = no args
+<PRE>  <I>only_group</I> = no arg
   <I>surface</I> arg = sgroup-ID
     sgroup-ID = compute the dividing surface between group-ID and sgroup-ID
       this keyword adds a third column to the compute output

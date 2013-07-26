@@ -40,7 +40,6 @@ class PairPeriLPS : public Pair {
   void read_restart(FILE *);
   void write_restart_settings(FILE *) {}
   void read_restart_settings(FILE *) {}
-  double single(int, int, int, int, double, double, double, double &);
   double memory_usage();
   double influence_function(double, double, double);
   void compute_dilatation();

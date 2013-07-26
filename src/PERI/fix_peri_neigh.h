@@ -28,6 +28,7 @@ class FixPeriNeigh : public Fix {
   friend class PairPeriPMB;
   friend class PairPeriPMBOMP;
   friend class PairPeriLPS;
+  friend class PairPeriVES;   //NEW
   friend class PairPeriLPSOMP;
   friend class ComputeDamageAtom;
 
@@ -42,7 +43,7 @@ class FixPeriNeigh : public Fix {
 
   double memory_usage();
   void grow_arrays(int);
-  void copy_arrays(int, int, int);
+  void copy_arrays(int, int);
   int pack_exchange(int, double *);
   int unpack_exchange(int, double *);
   void write_restart(FILE *);
@@ -60,9 +61,16 @@ class FixPeriNeigh : public Fix {
   int maxpartner;            // max # of peridynamic neighs for any atom
   int *npartner;             // # of neighbors for each atom
   int **partner;             // neighs for each atom, stored as global IDs
+  double **deviatorextention; // Deviatoric extention     
+  double **deviatorBackextention; // Deviatoric back extention 
   double **r0;               // initial distance to partners
+  double **r1;               // Instanteneous distance to partners *** NEW ***
+  double *thetaOld;          // Dilatation Old one
   double *vinter;            // sum of vfrac for bonded neighbors
   double *wvolume;           // weighted volume of particle
+  int isPMB;
+  int isLPS;
+  int isVES;
 
   class NeighList *list;
 };

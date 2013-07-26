@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Mike Parks (SNL)
+   Contributing authors: Mike Parks (SNL), Ezwanur Rahman, J.T. Foster (UTSA)
 ------------------------------------------------------------------------- */
 
 #include "math.h"
 #include "fix_peri_neigh.h"
 #include "pair_peri_pmb.h"
 #include "pair_peri_lps.h"
+#include "pair_peri_ves.h"
 #include "atom.h"
 #include "domain.h"
 #include "force.h"
@@ -40,6 +41,11 @@ using namespace FixConst;
 FixPeriNeigh::FixPeriNeigh(LAMMPS *lmp,int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
+  isPMB = isLPS = isVES = 0;
+  if (force->pair_match("peri/pmb",1)) isPMB = 1;
+  if (force->pair_match("peri/lps",1)) isLPS = 1;
+  if (force->pair_match("peri/ves",1)) isVES = 1;
+  
   restart_global = 1;
   restart_peratom = 1;
   first = 1;
@@ -51,6 +57,8 @@ FixPeriNeigh::FixPeriNeigh(LAMMPS *lmp,int narg, char **arg) :
   maxpartner = 1;
   npartner = NULL;
   partner = NULL;
+  deviatorextention = NULL;
+  deviatorBackextention = NULL;
   r0 = NULL;
   vinter = NULL;
   wvolume = NULL;
@@ -82,6 +90,8 @@ FixPeriNeigh::~FixPeriNeigh()
 
   memory->destroy(npartner);
   memory->destroy(partner);
+  memory->destroy(deviatorextention);
+  memory->destroy(deviatorBackextention);
   memory->destroy(r0);
   memory->destroy(vinter);
   memory->destroy(wvolume);
@@ -195,12 +205,16 @@ void FixPeriNeigh::setup(int vflag)
   // realloc arrays with correct value for maxpartner
 
   memory->destroy(partner);
+  memory->destroy(deviatorextention);
+  memory->destroy(deviatorBackextention);
   memory->destroy(r0);
   memory->destroy(npartner);
 
   npartner = NULL;
   partner = NULL;
-  r0 = NULL;
+  deviatorextention = NULL;
+  deviatorBackextention = NULL;
+  r0 = NULL;   
   grow_arrays(atom->nmax);
 
   // create partner list and r0 values from neighbor list
@@ -233,7 +247,10 @@ void FixPeriNeigh::setup(int vflag)
 
       if (rsq <= cutsq[itype][jtype]) {
         partner[i][npartner[i]] = tag[j];
-        r0[i][npartner[i]] = sqrt(rsq);
+        if (isVES)
+          deviatorextention[i][npartner[i]] = 
+            deviatorBackextention[i][npartner[i]] = 0.0;
+        r0[i][npartner[i]] = sqrt(rsq);   
         npartner[i]++;
         vinter[i] += vfrac[j];
       }
@@ -263,6 +280,8 @@ void FixPeriNeigh::setup(int vflag)
   double vfrac_scale;
   PairPeriLPS *pairlps = static_cast<PairPeriLPS*>(anypair);
   PairPeriPMB *pairpmb = static_cast<PairPeriPMB*>(anypair);
+  PairPeriVES *pairves = static_cast<PairPeriVES*>(anypair);
+
   for (i = 0; i < nlocal; i++) {
     double xtmp0 = x0[i][0];
     double ytmp0 = x0[i][1];
@@ -301,12 +320,16 @@ void FixPeriNeigh::setup(int vflag)
           (1.0 + ((delta - half_lc)/(2*half_lc) ) );
       else vfrac_scale = 1.0;
 
-      if (pairpmb != NULL) // define influence function to be 1.0
-        wvolume[i] += 1.0 * rsq0 * vfrac[j] * vfrac_scale;
-      else if (pairlps != NULL) // call the PairPeriLPS influence function
+      // for PMB, influence = 1.0, otherwise invoke influence function
+
+      if (isPMB) 
+        wvolume[i] += 1.0 * rsq0 * vfrac[j] * vfrac_scale; 
+      else if (isLPS)
         wvolume[i] += pairlps->influence_function(delx0,dely0,delz0) *
           rsq0 * vfrac[j] * vfrac_scale;
-
+      else if (isVES)
+        wvolume[i] += pairves->influence_function(delx0,dely0,delz0) *
+          rsq0 * vfrac[j] * vfrac_scale;
     }
   }
 
@@ -340,14 +363,18 @@ void FixPeriNeigh::setup(int vflag)
 ------------------------------------------------------------------------- */
 
 double FixPeriNeigh::memory_usage()
-{
+{ 
   int nmax = atom->nmax;
   int bytes = nmax * sizeof(int);
   bytes += nmax*maxpartner * sizeof(int);
   bytes += nmax*maxpartner * sizeof(double);
+  if (isVES) {
+    bytes += nmax*maxpartner * sizeof(double);
+    bytes += nmax*maxpartner * sizeof(double);
+  }  
   bytes += nmax * sizeof(double);
   bytes += nmax * sizeof(double);
-  return bytes;
+  return bytes; 
 }
 
 /* ----------------------------------------------------------------------
@@ -356,22 +383,32 @@ double FixPeriNeigh::memory_usage()
 
 void FixPeriNeigh::grow_arrays(int nmax)
 {
-  memory->grow(npartner,nmax,"peri_neigh:npartner");
-  memory->grow(partner,nmax,maxpartner,"peri_neigh:partner");
-  memory->grow(r0,nmax,maxpartner,"peri_neigh:r0");
-  memory->grow(vinter,nmax,"peri_neigh:vinter");
-  memory->grow(wvolume,nmax,"peri_neigh:wvolume");
+   memory->grow(npartner,nmax,"peri_neigh:npartner");
+   memory->grow(partner,nmax,maxpartner,"peri_neigh:partner");
+   if (isVES) {
+     memory->grow(deviatorextention,nmax,maxpartner,
+                  "peri_neigh:deviatorextention");
+     memory->grow(deviatorBackextention,nmax,maxpartner,
+                  "peri_neigh:deviatorBackextention");
+   }
+   memory->grow(r0,nmax,maxpartner,"peri_neigh:r0");
+   memory->grow(vinter,nmax,"peri_neigh:vinter");
+   memory->grow(wvolume,nmax,"peri_neigh:wvolume");
 }
 
 /* ----------------------------------------------------------------------
    copy values within local atom-based arrays
 ------------------------------------------------------------------------- */
 
-void FixPeriNeigh::copy_arrays(int i, int j, int delflag)
+void FixPeriNeigh::copy_arrays(int i, int j)
 {
   npartner[j] = npartner[i];
   for (int m = 0; m < npartner[j]; m++) {
     partner[j][m] = partner[i][m];
+    if (isVES) {
+      deviatorextention[j][m] = deviatorextention[i][m];
+      deviatorBackextention[j][m] = deviatorBackextention[i][m];
+    }  
     r0[j][m] = r0[i][m];
   }
   vinter[j] = vinter[i];
@@ -391,10 +428,14 @@ int FixPeriNeigh::pack_exchange(int i, double *buf)
   for (int n = 0; n < npartner[i]; n++) {
     if (partner[i][n] == 0) continue;
     buf[m++] = partner[i][n];
+    if (isVES) {
+      buf[m++] = deviatorextention[i][n];
+      buf[m++] = deviatorBackextention[i][n];
+    } 
     buf[m++] = r0[i][n];
   }
-
-  buf[0] = m/2;
+  if (isVES) buf[0] = m/4;
+  else buf[0] = m/2;  
   buf[m++] = vinter[i];
   buf[m++] = wvolume[i];
   return m;
@@ -410,7 +451,11 @@ int FixPeriNeigh::unpack_exchange(int nlocal, double *buf)
   npartner[nlocal] = static_cast<int> (buf[m++]);
   for (int n = 0; n < npartner[nlocal]; n++) {
     partner[nlocal][n] = static_cast<int> (buf[m++]);
-    r0[nlocal][n] = buf[m++];
+    if (isVES) {   
+      deviatorextention[nlocal][n] = buf[m++];
+      deviatorBackextention[nlocal][n] = buf[m++];
+    }
+    r0[nlocal][n] = buf[m++];     
   }
   vinter[nlocal] = buf[m++];
   wvolume[nlocal] = buf[m++];
@@ -486,15 +531,21 @@ void FixPeriNeigh::restart(char *buf)
 int FixPeriNeigh::pack_restart(int i, double *buf)
 {
   int m = 0;
-  buf[m++] = 2*npartner[i] + 4;
+  if (isVES) buf[m++] = 4*npartner[i] + 4;
+  else buf[m++] = 2*npartner[i] + 4;
+
   buf[m++] = npartner[i];
   for (int n = 0; n < npartner[i]; n++) {
     buf[m++] = partner[i][n];
+    if (isVES) { 
+      buf[m++] = deviatorextention[i][n];
+      buf[m++] = deviatorBackextention[i][n];
+    }  
     buf[m++] = r0[i][n];
   }
   buf[m++] = vinter[i];
   buf[m++] = wvolume[i];
-  return m;
+  return m;  
 }
 
 /* ----------------------------------------------------------------------
@@ -503,6 +554,7 @@ int FixPeriNeigh::pack_restart(int i, double *buf)
 
 void FixPeriNeigh::unpack_restart(int nlocal, int nth)
 {
+
   double **extra = atom->extra;
 
   // skip to Nth set of extra values
@@ -514,10 +566,14 @@ void FixPeriNeigh::unpack_restart(int nlocal, int nth)
   npartner[nlocal] = static_cast<int> (extra[nlocal][m++]);
   for (int n = 0; n < npartner[nlocal]; n++) {
     partner[nlocal][n] = static_cast<int> (extra[nlocal][m++]);
+    if (isVES) { 
+      deviatorextention[nlocal][n] = extra[nlocal][m++];
+      deviatorBackextention[nlocal][n] = extra[nlocal][m++];
+    }  
     r0[nlocal][n] = extra[nlocal][m++];
   }
   vinter[nlocal] = extra[nlocal][m++];
-  wvolume[nlocal] = extra[nlocal][m++];
+  wvolume[nlocal] = extra[nlocal][m++];  
 }
 
 /* ----------------------------------------------------------------------
@@ -526,7 +582,8 @@ void FixPeriNeigh::unpack_restart(int nlocal, int nth)
 
 int FixPeriNeigh::maxsize_restart()
 {
-  return 2*maxpartner + 4;
+  if (isVES) return 4*maxpartner + 4;
+  return 2*maxpartner + 4;  
 }
 
 /* ----------------------------------------------------------------------
@@ -535,5 +592,6 @@ int FixPeriNeigh::maxsize_restart()
 
 int FixPeriNeigh::size_restart(int nlocal)
 {
-  return 2*npartner[nlocal] + 4;
+  if (isVES) return 4*npartner[nlocal] + 4;
+  return 2*npartner[nlocal] + 4; 
 }

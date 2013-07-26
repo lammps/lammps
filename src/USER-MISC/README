@@ -27,6 +27,7 @@ angle_style quartic, Loukas Peristeras, loukas.peristeras at scienomics.com, 27 
 bond_style harmonic/shift, Carsten Svaneborg, science at zqex.dk, 8 Aug 11
 bond_style harmonic/shift/cut, Carsten Svaneborg, science at zqex.dk, 8 Aug 11
 compute ackland/atom, Gerolf Ziegenhain, gerolf at ziegenhain.com, 4 Oct 2007
+compute basal/atom, Christopher Barrett, cdb333 at cavs.msstate.edu, 3 Mar 2013
 compute temp/rotate, Laurent Joly (U Lyon), ljoly.ulyon at gmail.com, 8 Aug 11
 dihedral_style cosine/shift/exp, Carsten Svaneborg, science at zqex.dk, 8 Aug 11
 dihedral_style fourier, Loukas Peristeras, loukas.peristeras at scienomics.com, 27 Oct 12

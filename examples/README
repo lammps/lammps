@@ -83,6 +83,7 @@ shear:    sideways shear applied to 2d solid, with and without a void
 srd:      stochastic rotation dynamics (SRD) particles as solvent
 tad:      temperature-accelerated dynamics of vacancy diffusion in bulk Si
 tri:      triangular particles in rigid bodies
+voronoi:  test of Voronoi tesselation in compute voronoi/atom
 
 Here is how you might run and visualize one of the sample problems:
 

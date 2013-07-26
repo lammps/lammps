@@ -14,11 +14,11 @@
 /* ----------------------------------------------------------------------
    Contributing authors: Ryan S. Elliott,
                          Valeriu Smirichinski,
-                         Ellad Tadmor (U Minn)
+                         Ellad Tadmor
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Designed for use with the openkim-api-v1.1.0 (and newer) package
+   Designed for use with the openkim-api-v1.2.0 (and newer) package
 ------------------------------------------------------------------------- */
 
 #include <cstring>
@@ -160,9 +160,9 @@ void PairKIM::compute(int eflag , int vflag)
       ielement = lmps_map_types_to_unique[type[i]];
       ielement = MAX(ielement,0);
       // @@ this (above line) provides bogus info 
-      // (when lmps_map_types_to_unique[type[i]]==-1) to KIM, but I guess
+      // @@ (when lmps_map_types_to_unique[type[i]]==-1) to KIM, but I guess
       // @@ this only happens when lmps_hybrid==true, 
-      // and we are sure that iterator mode will
+      // @@ and we are sure that iterator mode will
       // @@ not use these atoms.... (?)
       kim_particleTypes[i] = kim_particle_codes[ielement];
    }
@@ -172,11 +172,11 @@ void PairKIM::compute(int eflag , int vflag)
 
    pkim->setm_compute_by_index(&kimerror,3*3,
                                kim_ind_particleEnergy, eflag_atom,
-                               (int) kim_model_has_particleEnergy,
+                                (int) kim_model_has_particleEnergy,
                                kim_ind_particleVirial, vflag_atom,
-                               (int) kim_model_has_particleVirial,
+                                (int) kim_model_has_particleVirial,
                                kim_ind_virial, vflag_global!=0, 
-                               no_virial_fdotr_compute);
+                                no_virial_fdotr_compute);
    kim_error(__LINE__,"setm_compute_by_index",kimerror);
 
    // compute via KIM model
@@ -600,7 +600,12 @@ int PairKIM::get_neigh(void **kimmdl,int *mode,int *request,
    int kimerror;
    PairKIM *self = (PairKIM *) pkim->get_test_buffer(&kimerror);
 
-   *pRij = &(self->Rij[0]);
+   if (self->kim_model_using_Rij) {
+      *pRij = &(self->Rij[0]);
+   } else {
+      *pRij = 0;
+   }
+   
 
    // subvert KIM api by using direct access to self->list
    //
@@ -782,24 +787,28 @@ void PairKIM::kim_init()
    // check for CLUSTER mode
    kim_model_using_cluster = (strcmp(NBC_method,"CLUSTER")==0);
    // check if Rij needed for get_neigh
-   kim_model_using_Rij = (strcmp(NBC_method,"NEIGH_RVEC_F")==0);
+   kim_model_using_Rij = ((strcmp(NBC_method,"NEIGH_RVEC_H")==0) ||
+                          (strcmp(NBC_method,"NEIGH_RVEC_F")==0));
    free((void*)NBC_method);
 
    // get correct index of each variable in kim_api object
    pkim->getm_index(&kimerror, 3*13,
-                    "coordinates",                 &kim_ind_coordinates,                 1,
-                    "cutoff",                      &kim_ind_cutoff,                      1,
-                    "numberOfParticles",           &kim_ind_numberOfParticles,           1,
-                    "numberParticleTypes",         &kim_ind_numberParticleTypes,         1,
-                    "particleTypes",               &kim_ind_particleTypes,               1,
-                    "numberContributingParticles", &kim_ind_numberContributingParticles, kim_model_using_half,
-                    "particleEnergy",              &kim_ind_particleEnergy,              (int) kim_model_has_particleEnergy,
-                    "energy",                      &kim_ind_energy,                      (int) kim_model_has_energy,
-                    "forces",                      &kim_ind_forces,                      (int) kim_model_has_forces,
-                    "neighObject",                 &kim_ind_neighObject,                 (int) !kim_model_using_cluster,
-                    "get_neigh",                   &kim_ind_get_neigh,                   (int) !kim_model_using_cluster,
-                    "particleVirial",              &kim_ind_particleVirial,              (int) kim_model_has_particleVirial,
-                    "virial",                      &kim_ind_virial,                      no_virial_fdotr_compute);
+    "coordinates", &kim_ind_coordinates, 1,
+    "cutoff", &kim_ind_cutoff, 1,
+    "numberOfParticles", &kim_ind_numberOfParticles, 1,
+    "numberParticleTypes", &kim_ind_numberParticleTypes, 1,
+    "particleTypes", &kim_ind_particleTypes, 1,
+    "numberContributingParticles", &kim_ind_numberContributingParticles,
+                                   kim_model_using_half,
+    "particleEnergy", &kim_ind_particleEnergy,
+                      (int) kim_model_has_particleEnergy,
+    "energy", &kim_ind_energy, (int) kim_model_has_energy,
+    "forces", &kim_ind_forces, (int) kim_model_has_forces,
+    "neighObject", &kim_ind_neighObject, (int) !kim_model_using_cluster,
+    "get_neigh", &kim_ind_get_neigh, (int) !kim_model_using_cluster,
+    "particleVirial", &kim_ind_particleVirial,
+                      (int) kim_model_has_particleVirial,
+    "virial", &kim_ind_virial, no_virial_fdotr_compute);
    kim_error(__LINE__,"getm_index",kimerror);
 
    // setup mapping between LAMMPS unique elements and KIM particle type codes
@@ -807,8 +816,10 @@ void PairKIM::kim_init()
    kim_particle_codes_ok = true;
    for(int i = 0; i < lmps_num_unique_elements; i++){
       int kimerror;
-      kim_particle_codes[i] = pkim->get_partcl_type_code(lmps_unique_elements[i], &kimerror);
-      kim_error(__LINE__, "create_kim_particle_codes: symbol not found ", kimerror);
+      kim_particle_codes[i]
+         = pkim->get_partcl_type_code(lmps_unique_elements[i], &kimerror);
+      kim_error(__LINE__, "create_kim_particle_codes: symbol not found ",
+                kimerror);
    }
 
    // set pointer values in KIM API object that will not change during run
@@ -825,15 +836,21 @@ void PairKIM::set_statics()
    lmps_local_tot_num_atoms = (int) (atom->nghost + atom->nlocal);
 
    int kimerror;
-   pkim->setm_data_by_index(&kimerror, 4*7,
-                            kim_ind_numberParticleTypes,         1, (void *) &(atom->ntypes),            1,
-                            kim_ind_cutoff,                      1, (void *) &(kim_global_cutoff),       1,
-                            kim_ind_numberOfParticles,           1, (void *) &lmps_local_tot_num_atoms,  1,
-                            kim_ind_numberContributingParticles, 1, (void *) &(atom->nlocal),            (int) kim_model_using_half,
-                            kim_ind_energy,                      1, (void *) &(eng_vdwl),                (int) kim_model_has_energy,
-                            kim_ind_get_neigh,                   1, (void *) &get_neigh,                 (int) !kim_model_using_cluster,
-                            kim_ind_virial,                      1, (void *) &(virial[0]),               no_virial_fdotr_compute);
+   pkim->setm_data_by_index(&kimerror, 4*6,
+    kim_ind_numberParticleTypes, 1, (void *) &(atom->ntypes), 1,
+    kim_ind_cutoff, 1, (void *) &(kim_global_cutoff), 1,
+    kim_ind_numberOfParticles, 1, (void *) &lmps_local_tot_num_atoms,  1,
+    kim_ind_numberContributingParticles, 1, (void *) &(atom->nlocal),
+                                         (int) kim_model_using_half,
+    kim_ind_energy, 1, (void *) &(eng_vdwl), (int) kim_model_has_energy,
+    kim_ind_virial, 1, (void *) &(virial[0]), no_virial_fdotr_compute);
    kim_error(__LINE__, "setm_data_by_index", kimerror);
+   if (!kim_model_using_cluster)
+   {
+      kimerror = pkim->set_method_by_index(kim_ind_get_neigh, 1,
+                                           (func_ptr) &get_neigh);
+      kim_error(__LINE__, "set_method_by_index", kimerror);
+   }
 
    pkim->set_test_buffer((void *)this, &kimerror);
    kim_error(__LINE__, "set_test_buffer", kimerror);
@@ -850,50 +867,57 @@ void PairKIM::set_volatiles()
    intptr_t nall = (intptr_t) lmps_local_tot_num_atoms;
 
    pkim->setm_data_by_index(&kimerror, 4*2,
-                            kim_ind_coordinates,    3*nall, (void*) &(atom->x[0][0]),  1,
-                            kim_ind_particleTypes,  nall,   (void*) kim_particleTypes, 1);
+    kim_ind_coordinates, 3*nall, (void*) &(atom->x[0][0]), 1,
+    kim_ind_particleTypes, nall, (void*) kim_particleTypes, 1);
    kim_error(__LINE__, "setm_data_by_index", kimerror);
 
    if (kim_model_has_particleEnergy && (eflag_atom == 1))
    {
-      kimerror = pkim->set_data_by_index(kim_ind_particleEnergy, nall, (void*) eatom);
+      kimerror = pkim->set_data_by_index(kim_ind_particleEnergy, nall,
+                                         (void*) eatom);
       kim_error(__LINE__, "set_data_by_index", kimerror);
    }
 
    if (kim_model_has_particleVirial && (vflag_atom == 1))
    {
-      kimerror = pkim->set_data_by_index(kim_ind_particleVirial, 6*nall, (void*) &(vatom[0][0]));
+      kimerror = pkim->set_data_by_index(kim_ind_particleVirial, 6*nall,
+                                         (void*) &(vatom[0][0]));
       kim_error(__LINE__, "set_data_by_index", kimerror);
    }
 
    if (kim_model_has_forces)
    {
       if (lmps_hybrid)
-         kimerror = pkim->set_data_by_index(kim_ind_forces, nall*3, (void*) &(lmps_force_tmp[0][0]));
+         kimerror = pkim->set_data_by_index(kim_ind_forces, nall*3,
+                                            (void*) &(lmps_force_tmp[0][0]));
       else
-         kimerror = pkim->set_data_by_index(kim_ind_forces, nall*3, (void*) &(atom->f[0][0]));
+         kimerror = pkim->set_data_by_index(kim_ind_forces, nall*3,
+                                            (void*) &(atom->f[0][0]));
       kim_error(__LINE__, "setm_data_by_index", kimerror);
    }
 
    // subvert the KIM api by direct access to this->list in get_neigh
    //
    //if (!kim_model_using_cluster)
-   //   kimerror = pkim->set_data_by_index(kim_ind_neighObject, 1, (void*) this->list);
+   //   kimerror = pkim->set_data_by_index(kim_ind_neighObject, 1,
+   //                                      (void*) this->list);
 
    if (kim_model_has_particleVirial)
    {
       if(vflag_atom != 1) {
-         pkim->set_compute_by_index(kim_ind_particleVirial, KIM_COMPUTE_FALSE, &kimerror);
+         pkim->set_compute_by_index(kim_ind_particleVirial, KIM_COMPUTE_FALSE,
+                                    &kimerror);
       } else {
-         pkim->set_compute_by_index(kim_ind_particleVirial, KIM_COMPUTE_TRUE, &kimerror);
+         pkim->set_compute_by_index(kim_ind_particleVirial, KIM_COMPUTE_TRUE,
+                                    &kimerror);
       }
    }
 
    if (no_virial_fdotr_compute == 1)
    {
       pkim->set_compute_by_index(kim_ind_virial,
-                                 ((vflag_global != 1) ? KIM_COMPUTE_FALSE : KIM_COMPUTE_TRUE),
-                                 &kimerror);
+       ((vflag_global != 1) ? KIM_COMPUTE_FALSE : KIM_COMPUTE_TRUE),
+       &kimerror);
    }
 
    return;
@@ -1001,7 +1025,7 @@ void PairKIM::write_descriptor(char** test_descriptor_string)
 {
    // allocate memory
    if (*test_descriptor_string != 0) 
-     error->all(FLERR, "Test_descriptor_string already allocated");
+     error->all(FLERR, "test_descriptor_string already allocated.");
    // assuming 75 lines at 100 characters each (should be plenty)
    *test_descriptor_string = new char[100*75]; 
    // initialize
@@ -1009,8 +1033,8 @@ void PairKIM::write_descriptor(char** test_descriptor_string)
 
    // Write Test name and units
    strcat(*test_descriptor_string,
-      "# This file is automatically generated from LAMMPS pair_style PairKIM command\n"
-      "TEST_NAME        := test_LAMMPS\n\n"
+      "# This file is automatically generated from LAMMPS pair_style "
+      "PairKIM command\n"
       "\n"
       "# Base units\n");
    switch (lmps_units)
@@ -1091,6 +1115,7 @@ void PairKIM::write_descriptor(char** test_descriptor_string)
    strcat(*test_descriptor_string,
       "NEIGH_PURE_H            flag\n"
       "NEIGH_PURE_F            flag\n"
+      "NEIGH_RVEC_H            flag\n"
       "NEIGH_RVEC_F            flag\n");
    // @@ add code for MI_OPBC_? support ????
    if (lmps_support_cluster)
@@ -1111,8 +1136,10 @@ void PairKIM::write_descriptor(char** test_descriptor_string)
       "numberOfParticles              integer      none    []\n\n"
       "numberContributingParticles    integer      none    []\n\n"
       "numberParticleTypes            integer      none    []\n\n"
-      "particleTypes                  integer      none    [numberOfParticles]\n\n"
-      "coordinates                    real*8       length  [numberOfParticles,3]\n\n"
+      "particleTypes                  integer      none    "
+       "[numberOfParticles]\n\n"
+      "coordinates                    double       length  "
+       "[numberOfParticles,3]\n\n"
       "neighObject                    pointer      none    []\n\n"
       "get_neigh                      method       none    []\n\n");
 
@@ -1123,17 +1150,20 @@ void PairKIM::write_descriptor(char** test_descriptor_string)
       "# Name                         Type         Unit    Shape\n\n"
       "compute                        method       none    []\n\n"
       "destroy                        method       none    []\n\n"
-      "cutoff                         real*8       length  []\n\n");
+      "cutoff                         double       length  []\n\n");
    if (kim_model_has_energy) strcat(*test_descriptor_string,
-      "energy                         real*8       energy  []\n\n");
+      "energy                         double       energy  []\n\n");
    if (kim_model_has_forces) strcat(*test_descriptor_string,
-      "forces                         real*8       force   [numberOfParticles,3]\n\n");
+      "forces                         double       force   "
+       "[numberOfParticles,3]\n\n");
    if (kim_model_has_particleEnergy) strcat(*test_descriptor_string,
-      "particleEnergy                 real*8       energy  [numberOfParticles]\n\n");
+      "particleEnergy                 double       energy  "
+       "[numberOfParticles]\n\n");
    if (no_virial_fdotr_compute == 1) strcat(*test_descriptor_string,
-      "virial                         real*8       energy  [6] \n\n");
+      "virial                         double       energy  [6] \n\n");
    if (kim_model_has_particleVirial) strcat(*test_descriptor_string,
-      "particleVirial                 real*8       energy  [numberOfParticles,6] \n\n");
+      "particleVirial                 double       energy  "
+       "[numberOfParticles,6] \n\n");
 
    return;
 }

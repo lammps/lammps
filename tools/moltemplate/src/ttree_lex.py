@@ -495,6 +495,7 @@ class SrcLoc(object):
     of a file (str) and a particular line number inside that file (an integer).
 
     """
+    __slots__=["infile","lineno"]
     def __init__(self, infile='', lineno=-1):
         self.infile = infile
         self.lineno = lineno
@@ -930,6 +931,8 @@ class OSrcLoc(object):
 
     """
 
+    __slots__=["infile","lineno","order"]
+
     count = 0
 
     def __init__(self, infile='', lineno=-1):
@@ -949,6 +952,9 @@ class OSrcLoc(object):
 class TextBlock(object):
     """TextBlock is just a 3-tuple consisting of a string, and an OSrcLoc
        to help locate it in the original file from which it was read."""
+
+    __slots__=["text","srcloc"]
+
     def __init__(self, text, srcloc): #srcloc_end):
         self.text = text
         if srcloc == None:
@@ -968,6 +974,9 @@ class TextBlock(object):
 class VarRef(object):
     """VarRef stores variable names, and paths, and other attribute information,
     as well as a "OSrcLoc" to keep track of the file it was defined in."""
+
+    __slots__=["prefix","descr_str","suffix","srcloc","binding","nptr"]
+
     def __init__(self, 
                  prefix    = '',  # '$' or '${'
                  descr_str = '',  # <- descriptor string: "cpath/category:lpath"
@@ -1028,6 +1037,9 @@ class VarNPtr(object):
     keeps these 3 pieces of data together.
 
     """
+
+    __slots__=["cat_name","cat_node","leaf_node"]
+
     def __init__(self, cat_name='', cat_node=None, leaf_node=None):
         self.cat_name  = cat_name
         self.cat_node  = cat_node
@@ -1052,6 +1064,9 @@ class VarBinding(object):
     from the various places inside various templates in the tree.
 
     """
+
+    __slots__=["full_name","nptr","value","refs","order","category"]
+
     def __init__(self,
                  full_name = '',
                  nptr      = None,

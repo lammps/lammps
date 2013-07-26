@@ -77,7 +77,16 @@ quantities.
 <TR><TD ><I>wavepacket</I> </TD><TD > charge, spin, eradius, etag, cs_re, cs_im </TD><TD > AWPMD 
 </TD></TR></TABLE></DIV>
 
-<P>All of the styles define point particles, except the <I>sphere</I>,
+<P>IMPORTANT NOTE: It is possible to add some attributes, such as a
+molecule ID, to atom styles that do not have them via the <A HREF = "fix_property_atom.html">fix
+property/atom</A> command.  This command also
+allows new custom attributes consisting of extra integer or
+floating-point values to be added to atoms.  See the <A HREF = "fix_property_atom.html">fix
+property/atom</A> doc page for examples of cases
+where this is useful and details on how to initialize, access, and
+output the custom values.
+</P>
+<P>All of the above styles define point particles, except the <I>sphere</I>,
 <I>ellipsoid</I>, <I>electron</I>, <I>peri</I>, <I>wavepacket</I>, <I>line</I>, <I>tri</I>, and
 <I>body</I> styles, which define finite-size particles.  See <A HREF = "Section_howto.html#howto_14">Section_howto
 14</A> for an overview of using finite-size

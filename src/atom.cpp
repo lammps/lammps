@@ -106,6 +106,13 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   improper_type = improper_atom1 = improper_atom2 = NULL;
   improper_atom3 = improper_atom4 = NULL;
 
+  // custom atom arrays
+
+  nivector = ndvector = 0;
+  ivector = NULL;
+  dvector = NULL;
+  iname = dname = NULL;
+
   // initialize atom style and array existence flags
   // customize by adding new flag
 
@@ -126,9 +133,9 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
 
   // callback lists & extra restart info
 
-  nextra_grow = nextra_restart = 0;
-  extra_grow = extra_restart = NULL;
-  nextra_grow_max = nextra_restart_max = 0;
+  nextra_grow = nextra_restart = nextra_border = 0;
+  extra_grow = extra_restart = extra_border = NULL;
+  nextra_grow_max = nextra_restart_max = nextra_border_max = 0;
   nextra_store = 0;
   extra = NULL;
 
@@ -223,6 +230,22 @@ Atom::~Atom()
   memory->destroy(improper_atom3);
   memory->destroy(improper_atom4);
 
+  // delete custom atom arrays
+
+  for (int i = 0; i < nivector; i++) {
+    delete [] iname[i];
+    memory->destroy(ivector[i]);
+  }
+  for (int i = 0; i < ndvector; i++) {
+    delete [] dname[i];
+    memory->destroy(dvector[i]);
+  }
+
+  memory->sfree(iname);
+  memory->sfree(dname);
+  memory->sfree(ivector);
+  memory->sfree(dvector);
+
   // delete per-type arrays
 
   delete [] mass;
@@ -232,6 +255,7 @@ Atom::~Atom()
 
   memory->destroy(extra_grow);
   memory->destroy(extra_restart);
+  memory->destroy(extra_border);
   memory->destroy(extra);
 
   // delete mapping data structures
@@ -1340,7 +1364,7 @@ void Atom::setup_sort_bins()
 /* ----------------------------------------------------------------------
    register a callback to a fix so it can manage atom-based arrays
    happens when fix is created
-   flag = 0 for grow, 1 for restart
+   flag = 0 for grow, 1 for restart, 2 for border comm
 ------------------------------------------------------------------------- */
 
 void Atom::add_callback(int flag)
@@ -1373,6 +1397,13 @@ void Atom::add_callback(int flag)
     }
     extra_restart[nextra_restart] = ifix;
     nextra_restart++;
+  } else if (flag == 2) {
+    if (nextra_border == nextra_border_max) {
+      nextra_border_max += DELTA;
+      memory->grow(extra_border,nextra_border_max,"atom:extra_border");
+    }
+    extra_border[nextra_border] = ifix;
+    nextra_border++;
   }
 }
 
@@ -1400,11 +1431,19 @@ void Atom::delete_callback(const char *id, int flag)
 
   } else if (flag == 1) {
     int match;
-    for (match = 0; match < nextra_grow; match++)
+    for (match = 0; match < nextra_restart; match++)
       if (extra_restart[match] == ifix) break;
     for (int i = ifix; i < nextra_restart-1; i++)
       extra_restart[i] = extra_restart[i+1];
     nextra_restart--;
+
+  } else if (flag == 2) {
+    int match;
+    for (match = 0; match < nextra_border; match++)
+      if (extra_border[match] == ifix) break;
+    for (int i = ifix; i < nextra_border-1; i++)
+      extra_border[i] = extra_border[i+1];
+    nextra_border--;
   }
 }
 
@@ -1419,6 +1458,89 @@ void Atom::update_callback(int ifix)
     if (extra_grow[i] > ifix) extra_grow[i]--;
   for (int i = 0; i < nextra_restart; i++)
     if (extra_restart[i] > ifix) extra_restart[i]--;
+  for (int i = 0; i < nextra_border; i++)
+    if (extra_border[i] > ifix) extra_border[i]--;
+}
+
+/* ----------------------------------------------------------------------
+   find custom per-atom vector with name
+   return index if found, and flag = 0/1 for int/double
+   return -1 if not found
+------------------------------------------------------------------------- */
+
+int Atom::find_custom(char *name, int &flag)
+{
+  for (int i = 0; i < nivector; i++)
+    if (iname[i] && strcmp(iname[i],name) == 0) {
+      flag = 0;
+      return i;
+    }
+
+  for (int i = 0; i < ndvector; i++)
+    if (dname[i] && strcmp(dname[i],name) == 0) {
+      flag = 1;
+      return i;
+    }
+
+  return -1;
+}
+
+/* ----------------------------------------------------------------------
+   add a custom variable with name of type flag = 0/1 for int/double
+   assumes name does not already exist
+   return index in ivector or dvector of its location
+------------------------------------------------------------------------- */
+
+int Atom::add_custom(char *name, int flag)
+{
+  int index;
+
+  if (flag == 0) {
+    index = nivector;
+    nivector++;
+    iname = (char **) memory->srealloc(iname,nivector*sizeof(char *),
+                                       "atom:iname");
+    int n = strlen(name) + 1;
+    iname[index] = new char[n];
+    strcpy(iname[index],name);
+    ivector = (int **) memory->srealloc(ivector,nivector*sizeof(int *),
+                                        "atom:ivector");
+    memory->create(ivector[index],nmax,"atom:ivector");
+  } else {
+    index = ndvector;
+    ndvector++;
+    dname = (char **) memory->srealloc(dname,ndvector*sizeof(char *),
+                                       "atom:dname");
+    int n = strlen(name) + 1;
+    dname[index] = new char[n];
+    strcpy(dname[index],name);
+    dvector = (double **) memory->srealloc(dvector,ndvector*sizeof(double *),
+                                           "atom:dvector");
+    memory->create(dvector[index],nmax,"atom:dvector");
+  }
+
+  return index;
+}
+
+/* ----------------------------------------------------------------------
+   remove a custom variable of type flag = 0/1 for int/double at index
+   free memory for vector and name and set ptrs to NULL
+   ivector/dvector and iname/dname lists never shrink
+------------------------------------------------------------------------- */
+
+void Atom::remove_custom(int flag, int index)
+{
+  if (flag == 0) {
+    memory->destroy(ivector[index]);
+    ivector[index] = NULL;
+    delete [] iname[index];
+    iname[index] = NULL;
+  } else {
+    memory->destroy(dvector[index]);
+    dvector[index] = NULL;
+    delete [] dname[index];
+    dname[index] = NULL;
+  }
 }
 
 /* ----------------------------------------------------------------------

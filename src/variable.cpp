@@ -3300,7 +3300,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
    id = positive global ID of atom, converted to local index
    push result onto tree or arg stack
    customize by adding an atom vector:
-     mass,type,x,y,z,vx,vy,vz,fx,fy,fz
+     id,mass,type,x,y,z,vx,vy,vz,fx,fy,fz
 ------------------------------------------------------------------------- */
 
 void Variable::peratom2global(int flag, char *word,
@@ -3318,7 +3318,8 @@ void Variable::peratom2global(int flag, char *word,
   if (index >= 0 && index < atom->nlocal) {
 
     if (flag == 0) {
-      if (strcmp(word,"mass") == 0) {
+      if (strcmp(word,"id") == 0) mine = atom->tag[index];
+      else if (strcmp(word,"mass") == 0) {
         if (atom->rmass) mine = atom->rmass[index];
         else mine = atom->mass[atom->type[index]];
       }
@@ -3355,11 +3356,12 @@ void Variable::peratom2global(int flag, char *word,
    check if word matches an atom vector
    return 1 if yes, else 0
    customize by adding an atom vector:
-     mass,type,x,y,z,vx,vy,vz,fx,fy,fz
+     id,mass,type,x,y,z,vx,vy,vz,fx,fy,fz
 ------------------------------------------------------------------------- */
 
 int Variable::is_atom_vector(char *word)
 {
+  if (strcmp(word,"id") == 0) return 1;
   if (strcmp(word,"mass") == 0) return 1;
   if (strcmp(word,"type") == 0) return 1;
   if (strcmp(word,"x") == 0) return 1;
@@ -3379,7 +3381,7 @@ int Variable::is_atom_vector(char *word)
    push result onto tree
    word = atom vector
    customize by adding an atom vector:
-     mass,type,x,y,z,vx,vy,vz,fx,fy,fz
+     id,mass,type,x,y,z,vx,vy,vz,fx,fy,fz
 ------------------------------------------------------------------------- */
 
 void Variable::atom_vector(char *word, Tree **tree,
@@ -3395,7 +3397,11 @@ void Variable::atom_vector(char *word, Tree **tree,
   newtree->left = newtree->middle = newtree->right = NULL;
   treestack[ntreestack++] = newtree;
 
-  if (strcmp(word,"mass") == 0) {
+  if (strcmp(word,"id") == 0) {
+    newtree->type = INTARRAY;
+    newtree->nstride = 1;
+    newtree->iarray = atom->tag;
+  } else if (strcmp(word,"mass") == 0) {
     if (atom->rmass) {
       newtree->nstride = 1;
       newtree->array = atom->rmass;

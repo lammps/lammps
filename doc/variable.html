@@ -62,8 +62,8 @@
 		      angmom(group,dim,region), torque(group,dim,region), 
 		      inertia(group,dimdim,region), omega(group,dim,region)
     special functions = sum(x), min(x), max(x), ave(x), trap(x), gmask(x), rmask(x), grmask(x,y), next(x)
-    atom value = mass[i], type[i], x[i], y[i], z[i], vx[i], vy[i], vz[i], fx[i], fy[i], fz[i]
-    atom vector = mass, type, x, y, z, vx, vy, vz, fx, fy, fz
+    atom value = id[i], mass[i], type[i], x[i], y[i], z[i], vx[i], vy[i], vz[i], fx[i], fy[i], fz[i]
+    atom vector = id, mass, type, x, y, z, vx, vy, vz, fx, fy, fz
     compute references = c_ID, c_ID[i], c_ID[i][j]
     fix references = f_ID, f_ID[i], f_ID[i][j]
     variable references = v_name, v_name[i] 
@@ -341,8 +341,8 @@ references to other variables.
 <TR><TD >Group functions</TD><TD > count(ID), mass(ID), charge(ID), xcm(ID,dim),                  vcm(ID,dim), fcm(ID,dim), bound(ID,dir), 		 gyration(ID), ke(ID), angmom(ID,dim), torque(ID,dim), 		 inertia(ID,dimdim), omega(ID,dim)</TD></TR>
 <TR><TD >Region functions</TD><TD > count(ID,IDR), mass(ID,IDR), charge(ID,IDR), 		  xcm(ID,dim,IDR), vcm(ID,dim,IDR), fcm(ID,dim,IDR), 		  bound(ID,dir,IDR), gyration(ID,IDR), ke(ID,IDR), 		  angmom(ID,dim,IDR), torque(ID,dim,IDR),                   inertia(ID,dimdim,IDR), omega(ID,dim,IDR)</TD></TR>
 <TR><TD >Special functions</TD><TD > sum(x), min(x), max(x), ave(x), trap(x), gmask(x), rmask(x), grmask(x,y), next(x)</TD></TR>
-<TR><TD >Atom values</TD><TD > mass[i], type[i], x[i], y[i], z[i],              vx[i], vy[i], vz[i], fx[i], fy[i], fz[i]</TD></TR>
-<TR><TD >Atom vectors</TD><TD > mass, type, x, y, z, vx, vy, vz, fx, fy, fz</TD></TR>
+<TR><TD >Atom values</TD><TD > id[i], mass[i], type[i], x[i], y[i], z[i],              vx[i], vy[i], vz[i], fx[i], fy[i], fz[i]</TD></TR>
+<TR><TD >Atom vectors</TD><TD > id, mass, type, x, y, z, vx, vy, vz, fx, fy, fz</TD></TR>
 <TR><TD >Compute references</TD><TD > c_ID, c_ID[i], c_ID[i][j]</TD></TR>
 <TR><TD >Fix references</TD><TD > f_ID, f_ID[i], f_ID[i][j]</TD></TR>
 <TR><TD >Other variables</TD><TD > v_name, v_name[i] 

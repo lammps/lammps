@@ -659,8 +659,8 @@ if __name__ == "__main__":
 
     """
     g_program_name = __file__.split('/')[-1]  # ='lttree.py'
-    g_date_str     = '2013-2-15'
-    g_version_str  = '0.71'
+    g_date_str     = '2013-7-15'
+    g_version_str  = '0.72'
 
     #######  Main Code Below: #######
     sys.stderr.write(g_program_name+' v'+g_version_str+' '+g_date_str+' ')

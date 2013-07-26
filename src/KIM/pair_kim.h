@@ -18,7 +18,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Designed for use with the openkim-api-v1.1.0 (and newer) package
+   Designed for use with the openkim-api-v1.2.0 (and newer) package
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
@@ -31,9 +31,9 @@ PairStyle(kim,PairKIM)
 #define LMP_PAIR_KIM_H
 
 // includes from KIM & LAMMPS
-
 class KIM_API_model;
 #include "pair.h"
+
 
 namespace LAMMPS_NS {
 
@@ -67,14 +67,16 @@ namespace LAMMPS_NS {
       int* lmps_map_types_to_unique;
 
       // values set in coeff(), after calling allocate()
-      char** lmps_unique_elements;  // names of unique elements given in pair_coeff command
+      char** lmps_unique_elements;  // names of unique elements given
+                                    // in pair_coeff command
       int lmps_num_unique_elements;
 
       // values set in set_lmps_flags(), called from init_style()
       bool lmps_using_newton;
       bool lmps_using_molecular;
       bool lmps_hybrid;             // true if running with pair hybrid
-      bool lmps_support_cluster;    // true if running in mode compat. with CLUSTER
+      bool lmps_support_cluster;    // true if running in mode compat.
+                                    // with CLUSTER
       enum unit_sys {REAL, METAL, SI, CGS, ELECTRON};
       unit_sys lmps_units;
 
@@ -117,10 +119,11 @@ namespace LAMMPS_NS {
       // values set in compute()
       int lmps_maxalloc;            // max allocated memory value
       int* kim_particleTypes;       // array of KIM particle types
-      double** lmps_force_tmp;      // temp storage for f, when running in hybrid mode
-                                    // needed to avoid reseting f to zero in each object
-      int* lmps_stripped_neigh_list;// neighbors of one atom, used when LAMMPS is in
-                                    // molecular mode
+      double** lmps_force_tmp;      // temp storage for f, when running in
+                                    // hybrid mode needed to avoid reseting
+                                    // f to zero in each object
+      int* lmps_stripped_neigh_list;// neighbors of one atom, used when LAMMPS
+                                    // is in molecular mode
 
       // values used in get_neigh()
       int kim_iterator_position;    //get_neigh iterator current position
@@ -137,7 +140,8 @@ namespace LAMMPS_NS {
       void write_descriptor(char** test_descriptor_string);
       // static methods used as callbacks from KIM
       static int get_neigh(void** kimmdl, int* mode, int* request,
-                           int* atom, int* numnei, int** nei1atom, double** pRij);
+                           int* atom, int* numnei, int** nei1atom,
+                           double** pRij);
    };
 }
 
@@ -164,14 +168,18 @@ E: Invalid args for non-hybrid pair coefficients
 
 "NULL" is only supported in pair_coeff calls when using pair hybrid
 
-E: PairKIM only works with 3D problems.
+E: PairKIM only works with 3D problems
 
-This is a current restriction of this pair style.
+The KIM API does not explicitly support anything other than 3D problems
 
 E: All pair coeffs are not set
 
 All pair coefficients must be set in the data file or by the
 pair_coeff command before running a simulation.
+
+E: Internal KIM error
+
+Self-explanatory. Check the output and kim.log file for more details.
 
 E: KIM neighbor iterator exceeded range
 
@@ -203,8 +211,9 @@ W: KIM Model does not provide `particleVirial'; virial per atom will be zero
 
 Self-explanatory.
 
-E: Test_descriptor_string already allocated
+E: test_descriptor_string already allocated
 
-This should not happen. It likely indicates a bug in the pair_kim implementation.
+This should not happen. It likely indicates a bug in the pair_kim
+implementation.
 
 */

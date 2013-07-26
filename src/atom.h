@@ -83,6 +83,15 @@ class Atom : protected Pointers {
   int **improper_type;
   int **improper_atom1,**improper_atom2,**improper_atom3,**improper_atom4;
 
+  // custom arrays used by fix property/atom
+
+  int **ivector;
+  double **dvector;
+  char **iname,**dname;
+  int nivector,ndvector;
+
+  // used by USER-CUDA to flag used per-atom arrays
+
   unsigned int datamask;
   unsigned int datamask_ext;
 
@@ -111,9 +120,10 @@ class Atom : protected Pointers {
 
   // callback ptrs for atom arrays managed by fix classes
 
-  int nextra_grow,nextra_restart;             // # of callbacks of each type
-  int *extra_grow,*extra_restart;             // index of fix to callback to
-  int nextra_grow_max,nextra_restart_max;     // size of callback lists
+  int nextra_grow,nextra_restart,nextra_border;  // # of callbacks of each type
+  int *extra_grow,*extra_restart,*extra_border;  // index of fix to callback to
+  int nextra_grow_max,nextra_restart_max;        // size of callback lists
+  int nextra_border_max;
   int nextra_store;
 
   int map_style;                  // default or user-specified style of map
@@ -174,6 +184,10 @@ class Atom : protected Pointers {
   void add_callback(int);
   void delete_callback(const char *, int);
   void update_callback(int);
+
+  int find_custom(char *, int &);
+  int add_custom(char *, int);
+  void remove_custom(int, int);
 
   void *extract(char *);
 

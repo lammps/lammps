@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Author: Andrew Jewett (jewett.aij at g mail)
 #         http://www.chem.ucsb.edu/~sheagroup
@@ -7,8 +7,8 @@
 # All rights reserved.
 
 G_PROGRAM_NAME="moltemplate.sh"
-G_VERSION="1.05"
-G_DATE="2013-6-24"
+G_VERSION="1.1"
+G_DATE="2013-7-15"
 
 echo "${G_PROGRAM_NAME} v${G_VERSION} ${G_DATE}" >&2
 echo "" >&2
@@ -29,7 +29,8 @@ fi
 
 # First, determine the directory in which this shell script is located.
 # (The python script files should also be located here as well.)
-SCRIPT_DIR=$(dirname $0)
+#SCRIPT_DIR=$(dirname $0)
+SCRIPT_DIR=`dirname "$0"`
 
 
 MSG_BAD_INSTALL=$(cat <<EOF
@@ -96,7 +97,7 @@ IFS=$OIFS
 
 IMOLPATH=""
 if [ -n "${MOLTEMPLATE_PATH}" ]; then
-  IMOLPATH="-importpath ${MOLTEMPLATE_PATH}"
+  IMOLPATH="-importpath \"${MOLTEMPLATE_PATH}\""
 fi
 
 # command that invokes lttree.py
@@ -107,15 +108,6 @@ LTTREE_CHECK_COMMAND="$PYTHON_COMMAND \"${SCRIPT_DIR}/lttree_check.py\" ${IMOLPA
 
 # command that invokes lttree_postprocess.py
 LTTREE_POSTPROCESS_COMMAND="$PYTHON_COMMAND \"${SCRIPT_DIR}/lttree_postprocess.py\" ${IMOLPATH}"
-
-# command that invokes nbody_by_type.py
-NBODY_COMMAND="$PYTHON_COMMAND \"${SCRIPT_DIR}/nbody_by_type.py\""
-
-# command that invokes nbody_fix_ttree_assignments.py
-NBODY_FIX_COMMAND="$PYTHON_COMMAND \"${SCRIPT_DIR}/nbody_fix_ttree_assignments.py\""
-
-# command that invokes ttree_render.py
-TTREE_RENDER="$PYTHON_COMMAND \"${SCRIPT_DIR}/ttree_render.py\""
 
 
 # What is the name of the .LT file we are reading?
@@ -631,6 +623,7 @@ fi
 
 
 
+
 # ---------------- Interactions By Type -----------------
 # At the time of writing, bonded-interactions-by-atom-type were not
 # understood by LAMMPS.  These features require auxilliary python scripts.
@@ -638,14 +631,17 @@ fi
 # they effect the other data sections, and the ttree_assignments.txt file.)
 # -------------------------------------------------------
 if [ -s "$data_angles_by_type" ]; then
-    echo "\nGenerating 3-body angle interactions by atom/bond type" >&2
+    echo "Generating 3-body angle interactions by atom/bond type" >&2
     #-- Generate a file containing the list of interactions on separate lines --
-    if ! $NBODY_COMMAND Angles \
-        -atoms "${data_atoms}.template" \
-        -bonds "${data_bonds}.template" \
-        -nbodybytype "${data_angles_by_type}.template" \
-	-prefix '$/angle:bytype' > gen_Angles.template.tmp; then
+    if ! $PYTHON_COMMAND "${SCRIPT_DIR}/nbody_by_type.py" \
+            Angles \
+            -atoms "${data_atoms}.template" \
+            -bonds "${data_bonds}.template" \
+            -nbodybytype "${data_angles_by_type}.template" \
+            -prefix '$/angle:bytype' > gen_Angles.template.tmp; then
         exit 4
+    #WARNING: DO NOT REPLACE THIS WITH
+    #if ! $NBODY_COMMAND ...<-this sometimes causes a shell quotes-related error
     fi
 
     # ---- cleanup: ----
@@ -667,7 +663,8 @@ if [ -s "$data_angles_by_type" ]; then
     # The next 2 lines extract the variable names from data_new.template.tmp
     # and instert them into the appropriate place in ttree_assignments.txt 
     # (renumbering the relevant variable-assignments to avoid clashes).
-    if ! $NBODY_FIX_COMMAND '/angle' gen_Angles.template.tmp \
+    if ! $PYTHON_COMMAND "${SCRIPT_DIR}/nbody_fix_ttree_assignments.py" \
+          '/angle' gen_Angles.template.tmp \
           < ttree_assignments.txt \
           > ttree_assignments.tmp; then
         exit 5
@@ -679,7 +676,9 @@ if [ -s "$data_angles_by_type" ]; then
     # Now substitute these variable values (assignments) into the variable 
     # names present in the .template file.  (We want to convert the file from 
     # a .template format into an ordinary (numeric) LAMMPS data-section format.)
-    if ! $TTREE_RENDER  ttree_assignments.tmp \
+
+    if ! $PYTHON_COMMAND "${SCRIPT_DIR}/ttree_render.py" \
+           ttree_assignments.tmp \
            < "${data_angles}.template" \
            > "$data_angles"; then
         exit 6
@@ -691,22 +690,27 @@ fi
 
 
 
+
 if [ -s "$data_dihedrals_by_type" ]; then
-    echo "\nGenerating 4-body dihedral interactions by atom/bond type" >&2 
+    echo "Generating 4-body dihedral interactions by atom/bond type" >&2
     #-- Generate a file containing the list of interactions on separate lines --
-    if ! $NBODY_COMMAND Dihedrals \
-        -atoms "${data_atoms}.template" \
-        -bonds "${data_bonds}.template" \
-        -nbodybytype "${data_dihedrals_by_type}.template" \
-	-prefix '$/dihedral:bytype' > gen_Dihedrals.template.tmp; then
+    if ! $PYTHON_COMMAND "${SCRIPT_DIR}/nbody_by_type.py" \
+            Dihedrals \
+            -atoms "${data_atoms}.template" \
+            -bonds "${data_bonds}.template" \
+            -nbodybytype "${data_dihedrals_by_type}.template" \
+            -prefix '$/dihedral:bytype' > gen_Dihedrals.template.tmp; then
         exit 4
+    #WARNING: DO NOT REPLACE THIS WITH
+    #if ! $NBODY_COMMAND ...<-this sometimes causes a shell quotes-related error
     fi
+
     # ---- cleanup: ----
     # ---- Re-build the "${data_dihedrals}.template" file ----
     # Instert these lines into the "${data_dihedrals}.template" file which includes
     # the newly generated interactions. (Note: these are in .template format)
 
-    cp -f gen_Dihedrals.template.tmp new_Dihedrals.template.tmp
+    cp gen_Dihedrals.template.tmp new_Dihedrals.template.tmp
     if [ -s "${data_dihedrals}.template" ]; then
 	# Then append existing "Dihedrals" to the end of the generated interactions
 	# (Hopefully this way they will override those interactions.)
@@ -720,19 +724,21 @@ if [ -s "$data_dihedrals_by_type" ]; then
     # The next 2 lines extract the variable names from data_new.template.tmp
     # and instert them into the appropriate place in ttree_assignments.txt 
     # (renumbering the relevant variable-assignments to avoid clashes).
-    if ! $NBODY_FIX_COMMAND '/dihedral' gen_Dihedrals.template.tmp \
+    if ! $PYTHON_COMMAND "${SCRIPT_DIR}/nbody_fix_ttree_assignments.py" \
+          '/dihedral' gen_Dihedrals.template.tmp \
           < ttree_assignments.txt \
           > ttree_assignments.tmp; then
         exit 5
     fi
 
-    echo "(Rendering ttree_assignments.tmp file after dihedral added.)" >&2
+    echo "(Rendering ttree_assignments.tmp file after dihedrals added.)" >&2
 
     # ---- Re-build (render) the "$data_dihedrals" file ----
     # Now substitute these variable values (assignments) into the variable 
     # names present in the .template file.  (We want to convert the file from 
     # a .template format into an ordinary (numeric) LAMMPS data-section format.)
-    if ! $TTREE_RENDER  ttree_assignments.tmp \
+    if ! $PYTHON_COMMAND "${SCRIPT_DIR}/ttree_render.py" \
+           ttree_assignments.tmp \
            < "${data_dihedrals}.template" \
            > "$data_dihedrals"; then
         exit 6
@@ -744,16 +750,21 @@ fi
 
 
 
+
 if [ -s "$data_impropers_by_type" ]; then
-    echo "Generating 4-body impropers interactions by atom/bond type" >&2
+    echo "Generating 4-body improper interactions by atom/bond type" >&2
     #-- Generate a file containing the list of interactions on separate lines --
-    if ! $NBODY_COMMAND Impropers \
-        -atoms "${data_atoms}.template" \
-        -bonds "${data_bonds}.template" \
-        -nbodybytype "${data_impropers_by_type}.template" \
-	-prefix '$/improper:bytype' > gen_Impropers.template.tmp; then
-	exit 4
+    if ! $PYTHON_COMMAND "${SCRIPT_DIR}/nbody_by_type.py" \
+            Impropers \
+            -atoms "${data_atoms}.template" \
+            -bonds "${data_bonds}.template" \
+            -nbodybytype "${data_impropers_by_type}.template" \
+            -prefix '$/improper:bytype' > gen_Impropers.template.tmp; then
+        exit 4
+    #WARNING: DO NOT REPLACE THIS WITH
+    #if ! $NBODY_COMMAND ...<-this sometimes causes a shell quotes-related error
     fi
+
     # ---- cleanup: ----
     # ---- Re-build the "${data_impropers}.template" file ----
     # Instert these lines into the "${data_impropers}.template" file which includes
@@ -773,7 +784,8 @@ if [ -s "$data_impropers_by_type" ]; then
     # The next 2 lines extract the variable names from data_new.template.tmp
     # and instert them into the appropriate place in ttree_assignments.txt 
     # (renumbering the relevant variable-assignments to avoid clashes).
-    if ! $NBODY_FIX_COMMAND '/improper' gen_Impropers.template.tmp \
+    if ! $PYTHON_COMMAND "${SCRIPT_DIR}/nbody_fix_ttree_assignments.py" \
+          '/improper' gen_Impropers.template.tmp \
           < ttree_assignments.txt \
           > ttree_assignments.tmp; then
         exit 5
@@ -785,7 +797,8 @@ if [ -s "$data_impropers_by_type" ]; then
     # Now substitute these variable values (assignments) into the variable 
     # names present in the .template file.  (We want to convert the file from 
     # a .template format into an ordinary (numeric) LAMMPS data-section format.)
-    if ! $TTREE_RENDER  ttree_assignments.tmp \
+    if ! $PYTHON_COMMAND "${SCRIPT_DIR}/ttree_render.py" \
+           ttree_assignments.tmp \
            < "${data_impropers}.template" \
            > "$data_impropers"; then
         exit 6
@@ -794,6 +807,7 @@ if [ -s "$data_impropers_by_type" ]; then
     mv -f ttree_assignments.tmp ttree_assignments.txt
     rm -f gen_Impropers.template.tmp new_Impropers.template.tmp 
 fi
+
 
 
 
@@ -824,7 +838,8 @@ fi
 
 if [ -s "${data_bonds}" ]; then
     if [ ! -z $REMOVE_DUPLICATE_BONDS ]; then
-	if ! $PYTHON_COMMAND "${SCRIPT_DIR}/nbody_reorder_atoms.py" Bonds \
+	if ! $PYTHON_COMMAND "${SCRIPT_DIR}/nbody_reorder_atoms.py" \
+                             Bonds \
                              < "${data_bonds}" \
                              > "${data_bonds}.tmp"; then
 	    ERR_INTERNAL
@@ -852,9 +867,12 @@ if [ -s "${data_bonds}" ]; then
 fi
 
 
+
+
 if [ -s "${data_angles}" ]; then
     if [ ! -z $REMOVE_DUPLICATE_ANGLES ]; then
-	if ! $PYTHON_COMMAND "${SCRIPT_DIR}/nbody_reorder_atoms.py" Angles \
+	if ! $PYTHON_COMMAND "${SCRIPT_DIR}/nbody_reorder_atoms.py" \
+                             Angles \
                              < "${data_angles}" \
                              > "${data_angles}.tmp"; then
 	    ERR_INTERNAL
@@ -884,7 +902,8 @@ fi
 
 if [ -s "${data_dihedrals}" ]; then
     if [ ! -z $REMOVE_DUPLICATE_DIHEDRALS ]; then
-	if ! $PYTHON_COMMAND "${SCRIPT_DIR}/nbody_reorder_atoms.py" Dihedrals \
+	if ! $PYTHON_COMMAND "${SCRIPT_DIR}/nbody_reorder_atoms.py" \
+                             Dihedrals \
                              < "${data_dihedrals}" \
                              > "${data_dihedrals}.tmp"; then
 	    ERR_INTERNAL
@@ -914,7 +933,8 @@ fi
 
 if [ -s "${data_impropers}" ]; then
     if [ ! -z $REMOVE_DUPLICATE_IMPROPERS ]; then
-	if ! $PYTHON_COMMAND "${SCRIPT_DIR}/nbody_reorder_atoms.py" Impropers \
+	if ! $PYTHON_COMMAND "${SCRIPT_DIR}/nbody_reorder_atoms.py" \
+                             Impropers \
                              < "${data_impropers}" \
                              > "${data_impropers}.tmp"; then
 	    ERR_INTERNAL
@@ -964,20 +984,21 @@ NDIHEDRALS="0"
 NIMPROPERS="0"
 
 if [ -s "${data_atoms}" ]; then 
-  NATOMS=`awk 'END{print NR}' < ${data_atoms}`
+  NATOMS=`awk 'END{print NR}' < "${data_atoms}"`
 fi
 if [ -s "${data_bonds}" ]; then 
-  NBONDS=`awk 'END{print NR}' < ${data_bonds}`
+  NBONDS=`awk 'END{print NR}' < "${data_bonds}"`
 fi
 if [ -s "${data_angles}" ]; then 
-  NANGLES=`awk 'END{print NR}' < ${data_angles}`
+  NANGLES=`awk 'END{print NR}' < "${data_angles}"`
 fi
 if [ -s "${data_dihedrals}" ]; then 
-  NDIHEDRALS=`awk 'END{print NR}' < ${data_dihedrals}`
+  NDIHEDRALS=`awk 'END{print NR}' < "${data_dihedrals}"`
 fi
 if [ -s "${data_impropers}" ]; then 
-  NIMPROPERS=`awk 'END{print NR}' < ${data_impropers}`
+  NIMPROPERS=`awk 'END{print NR}' < "${data_impropers}"`
 fi
+
 
 
 rm -f "$OUT_FILE_DATA"
@@ -1432,7 +1453,6 @@ fi
 
 
 
-
 # ############## CLEAN UP ################
 
 # A lot of files have been created along the way. 
@@ -1461,6 +1481,7 @@ for file in $MOLTEMPLATE_TEMP_FILES; do
     mv "$file" output_ttree/ >/dev/null 2>&1 || true
 done
 IFS=$OIFS
+
 
 
 
@@ -1549,6 +1570,7 @@ ls "${in_prefix}"* 2> /dev/null | while read file_name; do
 done
 
 rm -f input_scripts_so_far.tmp
+
 
 
 # ############ Optional: Add a fake run section as an example ############

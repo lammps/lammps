@@ -124,10 +124,13 @@ void ReadData::command(int narg, char **arg)
       fix_index[nfix] = modify->find_fix(arg[iarg+1]);
       if (fix_index[nfix] < 0)
         error->all(FLERR,"Fix ID for read_data does not exist");
-      int n = strlen(arg[iarg+2]) + 1;
-      fix_header[nfix] = new char[n];
-      strcpy(fix_header[nfix],arg[iarg+2]);
-      n = strlen(arg[iarg+3]) + 1;
+      if (strcmp(arg[iarg+2],"NULL") == 0) fix_header[nfix] = NULL;
+      else {
+        int n = strlen(arg[iarg+2]) + 1;
+        fix_header[nfix] = new char[n];
+        strcpy(fix_header[nfix],arg[iarg+2]);
+      }
+      int n = strlen(arg[iarg+3]) + 1;
       fix_section[nfix] = new char[n];
       strcpy(fix_section[nfix],arg[iarg+3]);
       nfix++;
@@ -198,10 +201,8 @@ void ReadData::command(int narg, char **arg)
 
     if (nfix) {
       for (n = 0; n < nfix; n++)
-        if (strstr(line,fix_section[n])) {
-          bigint nlines =
-            modify->fix[fix_index[n]]->read_data_skip_lines(keyword);
-          fix(n,keyword,nlines);
+        if (strcmp(keyword,fix_section[n]) == 0) {
+          fix(n,keyword);
           parse_keyword(0,1);
           break;
         }
@@ -445,11 +446,13 @@ void ReadData::header(int flag)
     // if fix matches, continue to next header line
 
     if (nfix) {
-      for (n = 0; n < nfix; n++)
+      for (n = 0; n < nfix; n++) {
+        if (!fix_header[n]) continue;
         if (strstr(line,fix_header[n])) {
           modify->fix[fix_index[n]]->read_data_header(line);
           break;
         }
+      }
       if (n < nfix) continue;
     }
 
@@ -1089,16 +1092,18 @@ void ReadData::impropercoeffs(int which)
    n = index of fix
 ------------------------------------------------------------------------- */
 
-void ReadData::fix(int ifix, char *line, bigint nlines)
+void ReadData::fix(int ifix, char *keyword)
 {
   int nchunk,eof;
+
+  bigint nlines = modify->fix[ifix]->read_data_skip_lines(keyword);
 
   bigint nread = 0;
   while (nread < nlines) {
     nchunk = MIN(nlines-nread,CHUNK);
     eof = comm->read_lines_from_file(fp,nchunk,MAXLINE,buffer);
     if (eof) error->all(FLERR,"Unexpected end of data file");
-    modify->fix[ifix]->read_data_section(line,nchunk,buffer);
+    modify->fix[ifix]->read_data_section(keyword,nchunk,buffer);
     nread += nchunk;
   }
 }
@@ -1141,10 +1146,8 @@ void ReadData::scan(int &bond_per_atom, int &angle_per_atom,
 
     if (nfix) {
       for (i = 0; i < nfix; i++) {
-        printf("LINE SECTION %s %s\n",line,fix_section[i]);
-        if (strstr(line,fix_section[i])) {
+        if (strcmp(keyword,fix_section[i]) == 0) {
           int n = modify->fix[fix_index[i]]->read_data_skip_lines(keyword);
-          printf("NLINES SKIP %d\n",n);
           skip_lines(n);
           parse_keyword(0,0);
           break;
@@ -1512,6 +1515,8 @@ void ReadData::parse_keyword(int first, int flag)
 
 /* ----------------------------------------------------------------------
    proc 0 reads N lines from file
+   NOTE: needs to be called with bigint in some cases
+         if called with int, will it be promoted to bigint?
 ------------------------------------------------------------------------- */
 
 void ReadData::skip_lines(int n)

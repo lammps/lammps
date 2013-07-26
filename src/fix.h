@@ -74,6 +74,7 @@ class Fix : protected Pointers {
 
   int comm_forward;              // size of forward communication (0 if none)
   int comm_reverse;              // size of reverse communication (0 if none)
+  int comm_border;               // size of border communication (0 if none)
 
   double virial[6];              // accumlated virial
   double **vatom;                // accumulated per-atom virial
@@ -111,6 +112,8 @@ class Fix : protected Pointers {
   virtual void copy_arrays(int, int, int) {}
   virtual void set_arrays(int) {}
   virtual void update_arrays(int, int) {}
+  virtual int pack_border(int, int *, double *) {return 0;}
+  virtual int unpack_border(int, int, double *) {return 0;}
   virtual int pack_exchange(int, double *) {return 0;}
   virtual int unpack_exchange(int, double *) {return 0;}
   virtual int pack_restart(int, double *) {return 0;}

@@ -137,11 +137,12 @@ details on this at the bottom of this page. :l,ule
 
 10.1 Atom styles :link(mod_1),h4
 
-Classes that define an atom style are derived from the AtomVec class
-and managed by the Atom class.  The atom style determines what
-quantities are associated with an atom. A new atom style can be
-created if one of the existing atom styles does not define all
-the arrays you need to store and communicate with atoms.
+Classes that define an "atom style"_atom_style.html are derived from
+the AtomVec class and managed by the Atom class.  The atom style
+determines what attributes are associated with an atom.  A new atom
+style can be created if one of the existing atom styles does not
+define all the attributes you need to store and communicate with
+atoms.
 
 Atom_vec_atomic.cpp is a simple example of an atom style.
 
@@ -185,6 +186,36 @@ that you must set when defining a new atom style, which are documented
 in atom_vec.h.  New atom arrays are defined in atom.cpp.  Search for
 the word "customize" and you will find locations you will need to
 modify.
+
+IMPORTANT NOTE: It is possible to add some attributes, such as a
+molecule ID, to atom styles that do not have them via the "fix
+property/atom"_fix_property_atom.html command.  This command also
+allows new custom attributes consisting of extra integer or
+floating-point values to be added to atoms.  See the "fix
+property/atom"_fix_property_atom.html doc page for examples of cases
+where this is useful and details on how to initialize, access, and
+output the custom values.
+
+New "pair styles"_pair_style.html, "fixes"_fix.html, or
+"computes"_compute.html can be added to LAMMPS, as discussed below.
+The code for these classes can use the per-atom properties defined by
+fix property/atom.  The Atom class has a find_custom() method that is
+useful in this context:
+
+int index = find_custom(char *name, int &flag);
+
+The "name" of a custom attribute, as specified in the "fix
+property/atom"_fix_property_atom.html command, is checked to verify
+that it exists and its index is returned.  The method also sets flag =
+0/1 depending on whether it is an integer or floating-point attribute.
+The vector of values associated with the attribute can then be
+accessed using the returned index as
+
+int *ivector = atom->ivector[index];
+double *dvector = atom->dvector[index];
+
+Ivector or dvector are vectors of length Nlocal = # of owned atoms,
+which store the attributes of individual atoms.
 
 :line
 

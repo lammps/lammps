@@ -482,6 +482,10 @@ int AtomVecHybrid::pack_border(int n, int *list, double *buf,
   for (k = 0; k < nstyles; k++)
     m += styles[k]->pack_border_hybrid(n,list,&buf[m]);
 
+  if (atom->nextra_border)
+    for (int iextra = 0; iextra < atom->nextra_border; iextra++)
+      m += modify->fix[atom->extra_border[iextra]]->pack_border(n,list,&buf[m]);
+
   return m;
 }
 
@@ -592,6 +596,10 @@ int AtomVecHybrid::pack_border_vel(int n, int *list, double *buf,
   for (k = 0; k < nstyles; k++)
     m += styles[k]->pack_border_hybrid(n,list,&buf[m]);
 
+  if (atom->nextra_border)
+    for (int iextra = 0; iextra < atom->nextra_border; iextra++)
+      m += modify->fix[atom->extra_border[iextra]]->pack_border(n,list,&buf[m]);
+
   return m;
 }
 
@@ -617,6 +625,11 @@ void AtomVecHybrid::unpack_border(int n, int first, double *buf)
 
   for (k = 0; k < nstyles; k++)
     m += styles[k]->unpack_border_hybrid(n,first,&buf[m]);
+
+  if (atom->nextra_border)
+    for (int iextra = 0; iextra < atom->nextra_border; iextra++)
+      m += modify->fix[atom->extra_border[iextra]]->
+        unpack_border(n,first,&buf[m]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -656,6 +669,11 @@ void AtomVecHybrid::unpack_border_vel(int n, int first, double *buf)
 
   for (k = 0; k < nstyles; k++)
     m += styles[k]->unpack_border_hybrid(n,first,&buf[m]);
+
+  if (atom->nextra_border)
+    for (int iextra = 0; iextra < atom->nextra_border; iextra++)
+      m += modify->fix[atom->extra_border[iextra]]->
+        unpack_border(n,first,&buf[m]);
 }
 
 /* ----------------------------------------------------------------------

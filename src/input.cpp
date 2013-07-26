@@ -1527,7 +1527,6 @@ void Input::timestep()
 
 void Input::timers()
 {
-  if (narg != 1) error->all(FLERR,"Illegal timers command");
   timer->modify_params(narg,arg);
 }
 

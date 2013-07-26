@@ -13,6 +13,7 @@
 
 #include "mpi.h"
 #include "timer.h"
+#include "comm.h"
 #include "error.h"
 #include "memory.h"
 
@@ -140,23 +141,34 @@ void Timer::set_wall(enum ttype which, double newtime)
 /* ----------------------------------------------------------------------
    modify parameters of the Timer class
 ------------------------------------------------------------------------- */
+static const char *timer_style[] = { "off", "loop", "normal", "full" };
+static const char *timer_mode[]  = { "nosync", "(dummy)", "sync" };
+static const char  timer_fmt[]   = "New timer settings: style=%s  mode=%s\n";
 
 void Timer::modify_params(int narg, char **arg)
 {
   int iarg = 0;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"off") == 0) {
+    if (strcmp(arg[iarg],timer_style[OFF])           == 0) {
       _level = OFF;
-    } else if (strcmp(arg[iarg],"normal") == 0) {
+    } else if (strcmp(arg[iarg],timer_style[LOOP]) == 0) {
+      _level = LOOP;
+    } else if (strcmp(arg[iarg],timer_style[NORMAL]) == 0) {
       _level = NORMAL;
-    } else if (strcmp(arg[iarg],"full") == 0) {
+    } else if (strcmp(arg[iarg],timer_style[FULL])   == 0) {
       _level = FULL;
-    } else if (strcmp(arg[iarg],"nosync") == 0) {
-      _sync = OFF;
-    } else if (strcmp(arg[iarg],"sync") == 0) {
-      _sync = NORMAL;
+    } else if (strcmp(arg[iarg],timer_mode[OFF])     == 0) {
+      _sync  = OFF;
+    } else if (strcmp(arg[iarg],timer_mode[NORMAL])  == 0) {
+      _sync  = NORMAL;
     } else error->all(FLERR,"Illegal timers command");
-
     ++iarg;  
+  }
+
+  if (comm->me == 0) {
+    if (screen)
+      fprintf(screen,timer_fmt,timer_style[_level],timer_mode[_sync]);
+    if (logfile)
+      fprintf(logfile,timer_fmt,timer_style[_level],timer_mode[_sync]);
   }
 }

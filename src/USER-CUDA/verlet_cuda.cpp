@@ -845,7 +845,7 @@ void VerletCuda::run(int n)
       //rebuild neighbor list
       test_atom(testatom, "Pre Neighbor");
       neighbor->build(0);
-      timer->stamp(Timer::NEIGHBOR);
+      timer->stamp(Timer::NEIGH);
       MYDBG(printf("# CUDA VerletCuda::iterate: neighbor done\n");)
       //if bonded interactions are used (in this case collect_forces_later is true), transfer data which only changes upon exchange/border routines from GPU to CPU
       if(cuda->shared_data.pair.collect_forces_later) {
@@ -946,7 +946,7 @@ void VerletCuda::run(int n)
 
       if(neighbor->lastcall == update->ntimestep) {
         neighbor->build_topology();
-        timer->stamp(Timer::NEIGHBOR);
+        timer->stamp(Timer::NEIGH);
       }
 
       test_atom(testatom, "pre bond force");

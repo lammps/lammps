@@ -76,7 +76,11 @@ No parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.  This fix is not invoked during "energy
 minimization"_minimize.html.
 
-[Restrictions:] none
+[Restrictions:]
+
+This fix is part of the MISC package.  It is only enabled if LAMMPS
+was built with that package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
 
 [Related commands:]
 

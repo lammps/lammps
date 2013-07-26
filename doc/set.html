@@ -23,7 +23,7 @@
 
 <LI>keyword = <I>type</I> or <I>type/fraction</I> or <I>mol</I> or <I>x</I> or <I>y</I> or <I>z</I> or           <I>charge</I> or <I>dipole</I> or <I>dipole/random</I> or <I>quat</I> or 	  <I>quat/random</I> or <I>diameter</I> or <I>shape</I> or 	  <I>length</I> or <I>tri</I> or <I>theta</I> or <I>angmom</I> or 	  <I>mass</I> or <I>density</I> or <I>volume</I> or <I>image</I> or
 	  <I>bond</I> or <I>angle</I> or <I>dihedral</I> or <I>improper</I> or
-	  <I>meso_e</I> or <I>meso_cv</I> or <I>meso_rho</I> 
+	  <I>meso_e</I> or <I>meso_cv</I> or <I>meso_rho</I> or <I>i_name</I> or <I>d_name</I> 
 
 <PRE>  <I>type</I> value = atom type
     value can be an atom-style variable (see below)
@@ -82,7 +82,9 @@
   <I>meso_cv</I> value = heat capacity of SPH particles (need units)
     value can be an atom-style variable (see below)
   <I>meso_rho</I> value = density of SPH particles (need units)
-    value can be an atom-style variable (see below) 
+    value can be an atom-style variable (see below)
+  <I>i_name</I> value = value for custom integer vector with name
+  <I>d_name</I> value = value for custom floating-point vector with name 
 </PRE>
 
 </UL>
@@ -348,6 +350,12 @@ command.  These keywords do not allow use of an atom-style variable.
 capacity, and density of smmothed particle hydrodynamics (SPH)
 particles.  See <A HREF = "USER/sph/SPH_LAMMPS_userguide.pdf">this PDF guide</A> to
 using SPH in LAMMPS.
+</P>
+<P>Keywords <I>i_name</I> and <I>d_name</I> refer to custom integer and
+floating-point properties that have been added to each atom via the
+<A HREF = "fix_property_atom.html">fix property/atom</A> command.  When that command
+is used specific names are given to each attribute which are what is
+specified as the "name" portion of <I>i_name</I> or <I>d_name</I>.
 </P>
 <P><B>Restrictions:</B>
 </P>

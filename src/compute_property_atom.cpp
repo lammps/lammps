@@ -43,6 +43,7 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
   // customize a new keyword by adding to if statement
 
   pack_choice = new FnPtrPack[nvalues];
+  index = new int[nvalues];
 
   int i;
   for (int iarg = 3; iarg < narg; iarg++) {
@@ -336,6 +337,21 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
                                  "atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_corner3z;
 
+    } else if (strstr(arg[iarg],"i_") == arg[iarg]) {
+      int flag;
+      index[i] = atom->find_custom(&arg[iarg][2],flag);
+      if (index[i] < 0 || flag != 0)
+        error->all(FLERR,"Compute property/atom floating point "
+                   "vector does not exist");
+      pack_choice[i] = &ComputePropertyAtom::pack_iname;
+    } else if (strstr(arg[iarg],"d_") == arg[iarg]) {
+      int flag;
+      index[i] = atom->find_custom(&arg[iarg][2],flag);
+      if (index[i] < 0 || flag != 1)
+        error->all(FLERR,"Compute property/atom integer "
+                   "vector does not exist");
+      pack_choice[i] = &ComputePropertyAtom::pack_dname;
+
     } else error->all(FLERR,"Invalid keyword in compute property/atom command");
   }
 
@@ -349,6 +365,7 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
 ComputePropertyAtom::~ComputePropertyAtom()
 {
   delete [] pack_choice;
+  delete [] index;
   memory->destroy(vector);
   memory->destroy(array);
 }
@@ -1664,6 +1681,36 @@ void ComputePropertyAtom::pack_corner3z(int n)
       MathExtra::matvec(p,bonus[tri[i]].c3,c);
       buf[n] = x[i][2] + c[2];
     } else buf[n] = 0.0;
+    n += nvalues;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputePropertyAtom::pack_iname(int n)
+{
+  int *ivector = atom->ivector[index[n]];
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) buf[n] = ivector[i];
+    else buf[n] = 0.0;
+    n += nvalues;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputePropertyAtom::pack_dname(int n)
+{
+  double *dvector = atom->dvector[index[n]];
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) buf[n] = dvector[i];
+    else buf[n] = 0.0;
     n += nvalues;
   }
 }

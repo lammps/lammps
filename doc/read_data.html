@@ -62,13 +62,17 @@ depends on the section keyword as described below.  Zero or more blank
 lines can be used between sections.  Sections can appear in any order,
 with a few exceptions as noted below.
 </P>
-<P>If the keyword <I>fix</I> is used, it specifies a fix that will be used to
-process portions of the data file.  Any header line containing
-<I>header-string</I> and any section with a name containing
-<I>section-string</I> will be passed to the fix.  See the <A HREF = "fix_cmap.html">fix
-cmap</A> command for an example of a fix that operates in
-this manner.  The doc page for the fix defines the syntax of the
-header line(s) and section(s) that it reads from the data file.
+<P>The keyword <I>fix</I> can be used one or more times.  Each usage specifies
+a fix that will be used to process a specific portion of the data
+file.  Any header line containing <I>header-string</I> and any section with
+a name containing <I>section-string</I> will be passed to the specified
+fix.  See the <A HREF = "fix_property_atom.html">fix property/atom</A> command for
+an example of a fix that operates in this manner.  The doc page for
+the fix defines the syntax of the header line(s) and section(s) that
+it reads from the data file.  Note that the <I>header-string</I> can be
+specified as NULL, in which case no header lines are passed to the
+fix.  This means that it can infer the length of its Section from
+standard header settings, such as the number of atoms.
 </P>
 <P>The formatting of individual lines in the data file (indentation,
 spacing between words and numbers) is not important except that header

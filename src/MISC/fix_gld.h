@@ -13,37 +13,56 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(evaporate,FixEvaporate)
+FixStyle(gld,FixGLD)
 
 #else
 
-#ifndef LMP_FIX_EVAPORATE_H
-#define LMP_FIX_EVAPORATE_H
+#ifndef LMP_FIX_GLD_H
+#define LMP_FIX_GLD_H
 
 #include "fix.h"
 
 namespace LAMMPS_NS {
 
-class FixEvaporate : public Fix {
+class FixGLD : public Fix {
  public:
-  FixEvaporate(class LAMMPS *, int, char **);
-  ~FixEvaporate();
+  FixGLD(class LAMMPS *, int, char **);
+  virtual ~FixGLD();
   int setmask();
-  void init();
-  void pre_exchange();
-  double compute_scalar();
+  virtual void init();
+  virtual void initial_integrate(int);
+  virtual void final_integrate();
+  virtual void initial_integrate_respa(int, int, int);
+  virtual void final_integrate_respa(int, int);
+  void reset_target(double);
+  virtual void reset_dt();
+
   double memory_usage();
+  void grow_arrays(int);
+  void copy_arrays(int, int, int);
+  int pack_exchange(int, double *);
+  int unpack_exchange(int, double *);
+  int pack_restart(int, double *);
+  void unpack_restart(int, int);
+  int size_restart(int);
+  int maxsize_restart();
+  void init_s_gld();
+  
+ protected:
+  double dtv,dtf;
+  double *step_respa;
+  int mass_require;
+  int freezeflag, zeroflag;
+  double t_start, t_stop, t_target;
 
- private:
-  int nevery,nflux,iregion;
-  int molflag;
-  int ndeleted;
-  char *idregion;
+  int prony_terms;
+  int series_type;
+  double *prony_c;
+  double *prony_tau;
 
-  int nmax;
-  int *list,*mark;
+  double **s_gld;
 
-  class RanPark *random;
+  class RanMars *random;
 };
 
 }
@@ -58,23 +77,5 @@ E: Illegal ... command
 Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
-
-E: Region ID for fix evaporate does not exist
-
-Self-explanatory.
-
-E: Cannot evaporate atoms in atom_modify first group
-
-This is a restriction due to the way atoms are organized in
-a list to enable the atom_modify first command.
-
-W: Fix evaporate may delete atom with non-zero molecule ID
-
-This is probably an error, since you should not delete only one atom
-of a molecule.
-
-E: Fix evaporate molecule requires atom attribute molecule
-
-The atom style being used does not define a molecule ID.
 
 */

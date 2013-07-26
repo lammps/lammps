@@ -13,33 +13,103 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>compute ID group-ID voronoi/atom 
+<PRE>compute ID group-ID voronoi/atom keyword arg 
 </PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command 
+
 <LI>voronoi/atom = style name of this compute command 
+
+<LI>keyword = <I>only_group</I> or <I>surface</I> or <I>radius</I> or <I>edge_histo</I> or <I>edge_threshold</I> or <I>face_threshold</I> 
+
+<PRE>  <I>only_group</I> = no args
+  <I>surface</I> arg = sgroup-ID
+    sgroup-ID = compute the dividing surface between group-ID and sgroup-ID
+      this keyword adds a third column to the compute output
+  <I>radius</I> arg = v_r
+    v_r = radius atom style variable for a poly-disperse voronoi tessellation
+  <I>edge_histo</I> arg = maxedge
+    maxedge = maximum number of voronoi cell edges to be accounted in the histogram 
+  <I>edge_threshold</I> arg = minlength
+    minlength = minimum length for an edge to be counted
+  <I>face_threshold</I> arg = minarea
+    minarea = minimum area for a face to be counted 
+</PRE>
+
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>compute 1 all voronoi/atom 
+<PRE>compute 1 all voronoi/atom
+compute 2 precipitate voronoi/atom surface matrix
+compute 3b precipitate voronoi/atom radius v_r 
+compute 4 solute voronoi/atom only_group 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Define a computation that calculates the Voronoi tesselation of the
-atoms in the simulation box.  The tesselation is calculated using
-all atoms in the simulation, but non-zero values are only stored
-for atoms in the group.
+<P>Define a computation that calculates the Voronoi tessellation of the
+atoms in the simulation box.  The tessellation is calculated using all
+atoms in the simulation, but non-zero values are only stored for atoms
+in the group.
 </P>
-<P>Two quantites per atom are calculated by this compute.  The first is
-the volume of the Voronoi cell around each atom.  Any point in an
-atom's Voronoi cell is closer to that atom than any other.  The second
-is the number of faces of the Voronoi cell, which is also the number
-of nearest neighbors of the atom in the middle of the cell.
+<P>By default two quantities per atom are calculated by this compute.
+The first is the volume of the Voronoi cell around each atom.  Any
+point in an atom's Voronoi cell is closer to that atom than any other.
+The second is the number of faces of the Voronoi cell, which is also
+the number of nearest neighbors of the atom in the middle of the cell.
 </P>
+<HR>
+
+<P>If the <I>only_group</I> keyword is specified the tessellation is performed
+only with respect to the atoms contained in the compute group. This is
+equivalent to deleting all atoms not contained in the group prior to
+evaluating the tessellation.
+</P>
+<P>If the <I>surface</I> keyword is specified a third quantity per atom is
+computed: the voronoi cell surface of the given atom. <I>surface</I> takes
+a group ID as an argument. If a group other than <I>all</I> is specified,
+only the voronoi cell facets facing a neighbor atom from the specified
+group are counted towards the surface area.
+</P>
+<P>In the example above, a precipitate embedded in a matrix, only atoms
+at the surface of the precipitate will have non-zero surface area, and
+only the outward facing facets of the voronoi cells are counted (the
+hull of the precipitate). The total surface area of the precipitate
+can be obtained by running a "reduce sum" compute on c_2[3]
+</P>
+<P>If the <I>radius</I> keyword is specified with an atom style variable as
+the argument, a poly-disperse voronoi tessellation is
+performed. Examples for radius variables are
+</P>
+<PRE>variable r1 atom (type==1)*0.1+(type==2)*0.4
+compute radius all property/atom radius
+variable r2 atom c_radius 
+</PRE>
+<P>Here v_r1 specifies a per-type radius of 0.1 units for type 1 atoms
+and 0.4 units for type 2 atoms, and v_r2 accesses the radius property
+present in atom_style sphere for granular models.
+</P>
+<P>The <I>edge_histo</I> keyword activates the compilation of a histogram of
+number of edges on the faces of the voronoi cells in the compute
+group. The argument maxedge of the this keyword is the largest number
+of edges on a single voronoi cell face expected to occur in the
+sample. This keyword adds the generation of a global vector with
+maxedge+1 entries. The last entry in the vector contains the number of
+faces with with more than maxedge edges. Since the polygon with the
+smallest amount of edges is a triangle, entries 1 and 2 of the vector
+will always be zero.
+</P>
+<P>The <I>edge_threshold</I> and <I>face_threshold</I> keywords allow the
+suppression of edges below a given minimum length and faces below a
+given minimum area. Ultra short edges and ultra small faces can occur
+as artifacts of the voronoi tessellation. These keywords will affect
+the neighbor count and edge histogram outputs.
+</P>
+<HR>
+
 <P>The Voronoi calculation is performed by the freely available <A HREF = "http://math.lbl.gov/voro++">Voro++
 package</A>, written by Chris Rycroft at UC Berkeley and LBL,
 which must be installed on your system when building LAMMPS for use
-with this compute.  See instructions on obtaining and installing
-the Voro++ software in the src/VORONOI/README file.
+with this compute.  See instructions on obtaining and installing the
+Voro++ software in the src/VORONOI/README file.
 </P>
 
 
@@ -56,7 +126,7 @@ explicitly via the <A HREF = "communicate.html">communicate cutoff</A> command.
 </P>
 <P>IMPORTANT NOTE: The Voro++ package performs its calculation in 3d.
 This should still work for a 2d LAMMPS simulation, to effectively
-compute Vornoi "areas", so long as the z-dimension of the box is
+compute Voronoi "areas", so long as the z-dimension of the box is
 roughly the same (or smaller) compared to the separation of the atoms.
 Typical values for the z box dimensions in a 2d LAMMPS model are -0.5
 to 0.5, which satisfies the criterion for most <A HREF = "units.html">units</A>

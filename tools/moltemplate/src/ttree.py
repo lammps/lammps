@@ -94,8 +94,8 @@ g_filename    = __file__.split('/')[-1]
 g_module_name  = g_filename
 if g_filename.rfind('.py') != -1:
     g_module_name = g_filename[:g_filename.rfind('.py')]
-g_date_str     = '2013-4-16'
-g_version_str  = '0.74'
+g_date_str     = '2013-7-15'
+g_version_str  = '0.75'
 
 
 
@@ -126,6 +126,8 @@ class ClassReference(object):
     (stored in self.statobj_str), in addition to the location 
     in the file where that string occurs (stored in self.srcloc)."""
 
+    __slots__=["statobj_str","srcloc","statobj"]
+
     def __init__(self, 
                  statobj_str=None, 
                  srcloc=None, 
@@ -151,6 +153,8 @@ class ClassReference(object):
 #  have similar syntax to member functions in C++, JAVA, Python.)
 
 class Command(object):
+    __slots__=["srcloc"]
+
     def __init__(self, srcloc=None):
         self.srcloc = srcloc
 
@@ -181,6 +185,7 @@ class WriteFileCommand(Command):
                identify where they occur in in the original user's files).
                
     """
+    __slots__=["filename", "tmpl_list"]
 
     def __init__(self, 
                  filename = None,
@@ -211,6 +216,9 @@ class InstantiateCommand(Command):
     additional instructions how to instantiate the object.
 
     """
+
+    __slots__=["name", "class_ref"]
+
     def __init__(self,
                  name = None,
                  class_ref = None,
@@ -258,6 +266,8 @@ class StackableCommand(Command):
 
     """
 
+    __slots__=["context_node"]
+
     def __init__(self,
                  srcloc,
                  context_node=None):
@@ -267,6 +277,9 @@ class StackableCommand(Command):
                              # the command to modify
 
 class PushCommand(StackableCommand):
+
+    __slots__=["contents"]
+
     def __init__(self,
                  contents,
                  srcloc,
@@ -281,6 +294,7 @@ class PushCommand(StackableCommand):
         return 'PushCommand('+str(self.contents)+')'
 
 class PushRightCommand(PushCommand):
+    __slots__=[]
     def __init__(self,
                  contents,
                  srcloc,
@@ -294,6 +308,7 @@ class PushRightCommand(PushCommand):
         return 'PushRightCommand('+str(self.contents)+')'
 
 class PushLeftCommand(PushCommand):
+    __slots__=[]
     def __init__(self,
                  contents,
                  srcloc,
@@ -307,6 +322,7 @@ class PushLeftCommand(PushCommand):
         return 'PushLeftCommand('+str(self.contents)+')'
 
 class PopCommand(StackableCommand):
+    __slots__=["partner"]
     def __init__(self,
                  partner,
                  srcloc,
@@ -321,6 +337,7 @@ class PopCommand(StackableCommand):
         return 'PopCommand('+str(self.partner.contents)+')'
 
 class PopRightCommand(PopCommand):
+    __slots__=[]
     def __init__(self,
                  partner,
                  srcloc,
@@ -335,6 +352,7 @@ class PopRightCommand(PopCommand):
         return 'PopRightCommand('+str(self.partner.contents)+')'
 
 class PopLeftCommand(PopCommand):
+    __slots__=[]
     def __init__(self,
                  partner,
                  srcloc,
@@ -357,14 +375,18 @@ class PopLeftCommand(PopCommand):
 # (This is useful later on, when a linear list of commands has been created.)
 # They are simply markers an do not do anything.  These classes can be ignored.
 class ScopeCommand(Command):
+    __slots__=["node"]
+
     def __init__(self,
                  node,
                  srcloc):
         Command.__init__(self, srcloc)
         self.node = node
-        self.srcloc = srcloc
+        #self.srcloc = srcloc
+
     def __copy__(self):
         return ScopeCommand(self.node, self.srcloc)
+
     def __str__(self):
         if self.node:
             return 'ScopeCommand('+self.node.name+')'
@@ -372,6 +394,7 @@ class ScopeCommand(Command):
             return 'ScopeCommand(None)'
 
 class ScopeBegin(ScopeCommand):
+    __slots__=[]
     def __init__(self, node, srcloc):
         ScopeCommand.__init__(self, node, srcloc)
     def __copy__(self):
@@ -383,6 +406,7 @@ class ScopeBegin(ScopeCommand):
             return 'ScopeBegin(None)'
 
 class ScopeEnd(ScopeCommand):
+    __slots__=[]
     def __init__(self, node, srcloc):
         ScopeCommand.__init__(self, node, srcloc)
     def __copy__(self):
@@ -416,9 +440,10 @@ class ScopeEnd(ScopeCommand):
 #               identify where they occur in in the original user's files).
 #               
 #    """
+#    __slots__=["var_ref","text_tmpl"]
 #
 #    def __init__(self,
-#                 command_name = '=',
+#                 #command_name = '=',  <-- ?!?
 #                 var_ref = None,
 #                 text_tmpl=None):
 #        Command.__init__(self, srcloc)
@@ -428,6 +453,7 @@ class ScopeEnd(ScopeCommand):
 
 
 class ModCommand(object):
+    __slots__=["command","multi_descr_str"]
     def __init__(self,
                  command,
                  multi_descr_str):
@@ -1636,6 +1662,8 @@ def LookupNode(obj_name, starting_node, dbg_loc):
 
 
 class SimpleCounter(object):
+    __slots__=["n","nincr"]
+
     def __init__(self, n0 = 1, nincr = 1):
         self.n = n0 - nincr
         self.nincr = nincr
@@ -1672,13 +1700,14 @@ class Category(object):
 
     """
 
+    __slots__=["name","bindings","counter","manual_assignments","reserved_values"]
+
     def __init__(self, 
                  name = '', 
                  bindings = None, 
                  counter = None,
                  manual_assignments = None,
-                 reserved_values = None,
-                 num_user_vars = 0):
+                 reserved_values = None):
 
         self.name = name
 
@@ -1701,17 +1730,6 @@ class Category(object):
             self.reserved_values = OrderedDict()
         else:
             self.reserved_values = reserved_values
-
-        # The next member is for a feature ("query()") which
-        # has not yet been implemented.  Commenting it out:
-        #
-        # num_user_vars    This variable keeps track of: how many variables 
-        #              belonging to a particular category have been created
-        #             and assigned to values.  We restrict this to variables
-        #             which are not automatically generated (like query()
-        #             variables).
-        # self.num_user_vars = num_user_vars
-
 
 
 
@@ -1825,12 +1843,25 @@ class StaticObj(object):
     4)  Parent: 
         A link to the parent StaticObj is stored in self.parent.
 
-    5)  var_bindings
-        A list of variable bindings which point to it.
-        This is useful to keep track of in case this object gets modified
-        or deleted
-
     """
+
+    # sigh
+
+    __slots__=["name",
+               "parent",
+               "children",
+               "categories",
+               "commands",
+               "srcloc_begin",
+               "srcloc_end",
+               "deleted",
+               "class_parents",
+               "namespaces",
+               "instname_refs",
+               "instance_categories",
+               "instance_commands_push",
+               "instance_commands",
+               "instance_commands_pop"]
 
     def __init__(self, 
                  name='',
@@ -2991,6 +3022,8 @@ class InstanceObjBasic(object):
 
     """
 
+    __slots__=["name","parent"]
+
     def __init__(self, 
                  name = '', 
                  parent = None):
@@ -3065,6 +3098,16 @@ class InstanceObj(InstanceObjBasic):
     and can be represented as a tree.
     "InstanceObjs" are the data type used to store the nodes in that tree."""
 
+    __slots__=["statobj",
+               "children",
+               "categories",
+               "commands",
+               "commands_push",
+               "commands_pop",
+               "srcloc_begin",
+               "srcloc_end"]
+
+
     def __init__(self, 
                  name = '', 
                  parent = None):
@@ -3101,11 +3144,11 @@ class InstanceObj(InstanceObjBasic):
                                      # which can traverse through either 
                                      # type of tree.
 
-        self.commands = []           # An ordered list of commands that should be carried out 
+        self.commands = []           # An ordered list of commands to carry out
                                      # during instantiation
 
-        self.commands_push = []      # Stackable commands to carry out during instantiation
-        self.commands_pop = []      # Stackable commands to carry out during instantiation
+        self.commands_push = []      # Stackable commands to carry out (first, before children)
+        self.commands_pop = []       # Stackable commands to carry out (last, after children)
 
 
         self.srcloc_begin = None     # Keep track of location in user files
@@ -4266,6 +4309,7 @@ def BasicUIReadBindingsText(bindings_so_far, text, source_name=''):
 
 
 class ValLocPair(object):
+    __slots__=["val","loc"]
     def __init__(self,
                  val = None,
                  loc = None):

@@ -139,11 +139,12 @@ details on this at the bottom of this page.
 
 <A NAME = "mod_1"></A><H4>10.1 Atom styles 
 </H4>
-<P>Classes that define an atom style are derived from the AtomVec class
-and managed by the Atom class.  The atom style determines what
-quantities are associated with an atom. A new atom style can be
-created if one of the existing atom styles does not define all
-the arrays you need to store and communicate with atoms.
+<P>Classes that define an <A HREF = "atom_style.html">atom style</A> are derived from
+the AtomVec class and managed by the Atom class.  The atom style
+determines what attributes are associated with an atom.  A new atom
+style can be created if one of the existing atom styles does not
+define all the attributes you need to store and communicate with
+atoms.
 </P>
 <P>Atom_vec_atomic.cpp is a simple example of an atom style.
 </P>
@@ -189,6 +190,36 @@ that you must set when defining a new atom style, which are documented
 in atom_vec.h.  New atom arrays are defined in atom.cpp.  Search for
 the word "customize" and you will find locations you will need to
 modify.
+</P>
+<P>IMPORTANT NOTE: It is possible to add some attributes, such as a
+molecule ID, to atom styles that do not have them via the <A HREF = "fix_property_atom.html">fix
+property/atom</A> command.  This command also
+allows new custom attributes consisting of extra integer or
+floating-point values to be added to atoms.  See the <A HREF = "fix_property_atom.html">fix
+property/atom</A> doc page for examples of cases
+where this is useful and details on how to initialize, access, and
+output the custom values.
+</P>
+<P>New <A HREF = "pair_style.html">pair styles</A>, <A HREF = "fix.html">fixes</A>, or
+<A HREF = "compute.html">computes</A> can be added to LAMMPS, as discussed below.
+The code for these classes can use the per-atom properties defined by
+fix property/atom.  The Atom class has a find_custom() method that is
+useful in this context:
+</P>
+<P>int index = find_custom(char *name, int &flag);
+</P>
+<P>The "name" of a custom attribute, as specified in the <A HREF = "fix_property_atom.html">fix
+property/atom</A> command, is checked to verify
+that it exists and its index is returned.  The method also sets flag =
+0/1 depending on whether it is an integer or floating-point attribute.
+The vector of values associated with the attribute can then be
+accessed using the returned index as
+</P>
+<P>int *ivector = atom->ivector<B>index</B>;
+double *dvector = atom->dvector<B>index</B>;
+</P>
+<P>Ivector or dvector are vectors of length Nlocal = # of owned atoms,
+which store the attributes of individual atoms.
 </P>
 <HR>
 

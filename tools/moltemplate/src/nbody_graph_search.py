@@ -56,6 +56,7 @@ class NotUndirected(GraphError):
 
 
 class Edge(object):
+    __slots__=["start","stop","attr"]
     def __init__(self, 
                  iv_start, # edge starts here (index into vertex list)
                  iv_stop,   # edge ends here (index into vertex list)
@@ -70,6 +71,7 @@ class Edge(object):
 
 
 class Vertex(object):
+    __slots__=["attr"]
     def __init__(self, attr=None):
         self.attr = attr
 

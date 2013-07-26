@@ -21,6 +21,7 @@ ComputeStyle(voronoi/atom,ComputeVoronoi)
 #define LMP_COMPUTE_VORONOI_H
 
 #include "compute.h"
+#include "voro++.hh"
 
 namespace LAMMPS_NS {
 
@@ -30,11 +31,22 @@ class ComputeVoronoi : public Compute {
   ~ComputeVoronoi();
   void init();
   void compute_peratom();
+  void compute_vector();
   double memory_usage();
 
+  int pack_comm(int, int *, double *, int, int *);
+  void unpack_comm(int, int, double *);
+
  private:
-  int nmax;
+  void processCell(voro::voronoicell_neighbor&, int);
+
+  int nmax, rmax, maxedge, sgroupbit;
+  char *radstr;
+  double fthresh, ethresh;
   double **voro;
+  double *edge, *sendvector, *rfield;
+  enum { VOROSURF_NONE, VOROSURF_ALL, VOROSURF_GROUP } surface;
+  bool onlyGroup;
 };
 
 }

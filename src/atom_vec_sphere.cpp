@@ -574,6 +574,11 @@ int AtomVecSphere::pack_border(int n, int *list, double *buf,
       buf[m++] = rmass[j];
     }
   }
+
+  if (atom->nextra_border)
+    for (int iextra = 0; iextra < atom->nextra_border; iextra++)
+      m += modify->fix[atom->extra_border[iextra]]->pack_border(n,list,&buf[m]);
+
   return m;
 }
 
@@ -661,6 +666,11 @@ int AtomVecSphere::pack_border_vel(int n, int *list, double *buf,
       }
     }
   }
+
+  if (atom->nextra_border)
+    for (int iextra = 0; iextra < atom->nextra_border; iextra++)
+      m += modify->fix[atom->extra_border[iextra]]->pack_border(n,list,&buf[m]);
+
   return m;
 }
 
@@ -698,6 +708,11 @@ void AtomVecSphere::unpack_border(int n, int first, double *buf)
     radius[i] = buf[m++];
     rmass[i] = buf[m++];
   }
+
+  if (atom->nextra_border)
+    for (int iextra = 0; iextra < atom->nextra_border; iextra++)
+      m += modify->fix[atom->extra_border[iextra]]->
+        unpack_border(n,first,&buf[m]);
 }
 
 
@@ -726,6 +741,11 @@ void AtomVecSphere::unpack_border_vel(int n, int first, double *buf)
     omega[i][1] = buf[m++];
     omega[i][2] = buf[m++];
   }
+
+  if (atom->nextra_border)
+    for (int iextra = 0; iextra < atom->nextra_border; iextra++)
+      m += modify->fix[atom->extra_border[iextra]]->
+        unpack_border(n,first,&buf[m]);
 }
 
 /* ---------------------------------------------------------------------- */

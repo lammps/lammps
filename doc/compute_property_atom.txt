@@ -27,7 +27,8 @@ input = one or more atom attributes :l
 			end1x, end1y, end1z, end2x, end2y, end2z,
 			corner1x, corner1y, corner1z,
 			corner2x, corner2y, corner2z,
-			corner3x, corner3y, corner3z :pre
+			corner3x, corner3y, corner3z,
+                        i_name, d_name :pre
       id = atom ID
       mol = molecule ID
       type = atom type
@@ -52,7 +53,9 @@ input = one or more atom attributes :l
       ervel = electron radial velocity
       erforce = electron radial force
       end12x, end12y, end12z = end points of line segment
-      coner123x, corner123y, corner123z = corner points of triangle :pre
+      coner123x, corner123y, corner123z = corner points of triangle
+      i_name = custom integer vector with name
+      d_name = custom integer vector with name :pre
 :ule
 
 [Examples:]
@@ -100,6 +103,12 @@ line segment particles and define the end points of each line segment.
 {corner2z}, {corner3x}, {corner3y}, {corner3z}, are defined for
 triangular particles and define the corner points of each triangle.
 
+The {i_name} and {d_name} attributes refer to custom integer and
+floating-point properties that have been added to each atom via the
+"fix property/atom"_fix_property_atom.html command.  When that command
+is used specific names are given to each attribute which are what is
+specified as the "name" portion of {i_name} or {d_name}.
+
 [Output info:]
 
 This compute calculates a per-atom vector or per-atom array depending
@@ -120,6 +129,7 @@ units for q, etc.
 [Related commands:]
 
 "dump custom"_dump.html, "compute reduce"_compute_reduce.html, "fix
-ave/atom"_fix_ave_atom.html, "fix ave/spatial"_fix_ave_spatial.html
+ave/atom"_fix_ave_atom.html, "fix ave/spatial"_fix_ave_spatial.html,
+"fix property/atom"_fix_property_atom.html
 
 [Default:] none

@@ -21,7 +21,7 @@ keyword = {type} or {type/fraction} or {mol} or {x} or {y} or {z} or \
 	  {length} or {tri} or {theta} or {angmom} or \
 	  {mass} or {density} or {volume} or {image} or
 	  {bond} or {angle} or {dihedral} or {improper} or
-	  {meso_e} or {meso_cv} or {meso_rho} :l
+	  {meso_e} or {meso_cv} or {meso_rho} or {i_name} or {d_name} :l
   {type} value = atom type
     value can be an atom-style variable (see below)
   {type/fraction} values = type fraction seed
@@ -79,7 +79,9 @@ keyword = {type} or {type/fraction} or {mol} or {x} or {y} or {z} or \
   {meso_cv} value = heat capacity of SPH particles (need units)
     value can be an atom-style variable (see below)
   {meso_rho} value = density of SPH particles (need units)
-    value can be an atom-style variable (see below) :pre
+    value can be an atom-style variable (see below)
+  {i_name} value = value for custom integer vector with name
+  {d_name} value = value for custom floating-point vector with name :pre
 :ule
 
 [Examples:]
@@ -344,6 +346,12 @@ Keywords {meso_e}, {meso_cv}, and {meso_rho} set the energy, heat
 capacity, and density of smmothed particle hydrodynamics (SPH)
 particles.  See "this PDF guide"_USER/sph/SPH_LAMMPS_userguide.pdf to
 using SPH in LAMMPS.
+
+Keywords {i_name} and {d_name} refer to custom integer and
+floating-point properties that have been added to each atom via the
+"fix property/atom"_fix_property_atom.html command.  When that command
+is used specific names are given to each attribute which are what is
+specified as the "name" portion of {i_name} or {d_name}.
 
 [Restrictions:]
 

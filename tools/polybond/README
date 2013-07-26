@@ -1,0 +1,12 @@
+25 July 2013
+
+This directory contains a Python-based tool for performing
+"programmable polymer bonding".  The Python file lmpsdata.py provides
+a "Lmpsdata" class with various methods which can be invoked by a
+user-written Python script to create data files with complex bonding
+topologies.
+
+See the Manual.pdf for details and example scripts.
+
+This tool and the manual was written by Zachary Kraus at Georgia Tech.
+He can be contacted at this email address: zachkraus at gatech.edu.

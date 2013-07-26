@@ -375,6 +375,11 @@ int AtomVecPeri::pack_border(int n, int *list, double *buf,
       buf[m++] = x0[j][2];
     }
   }
+
+  if (atom->nextra_border)
+    for (int iextra = 0; iextra < atom->nextra_border; iextra++)
+      m += modify->fix[atom->extra_border[iextra]]->pack_border(n,list,&buf[m]);
+
   return m;
 }
 
@@ -462,6 +467,11 @@ int AtomVecPeri::pack_border_vel(int n, int *list, double *buf,
       }
     }
   }
+
+  if (atom->nextra_border)
+    for (int iextra = 0; iextra < atom->nextra_border; iextra++)
+      m += modify->fix[atom->extra_border[iextra]]->pack_border(n,list,&buf[m]);
+
   return m;
 }
 
@@ -505,6 +515,11 @@ void AtomVecPeri::unpack_border(int n, int first, double *buf)
     x0[i][1] = buf[m++];
     x0[i][2] = buf[m++];
   }
+
+  if (atom->nextra_border)
+    for (int iextra = 0; iextra < atom->nextra_border; iextra++)
+      m += modify->fix[atom->extra_border[iextra]]->
+        unpack_border(n,first,&buf[m]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -532,6 +547,11 @@ void AtomVecPeri::unpack_border_vel(int n, int first, double *buf)
     v[i][1] = buf[m++];
     v[i][2] = buf[m++];
   }
+
+  if (atom->nextra_border)
+    for (int iextra = 0; iextra < atom->nextra_border; iextra++)
+      m += modify->fix[atom->extra_border[iextra]]->
+        unpack_border(n,first,&buf[m]);
 }
 
 /* ---------------------------------------------------------------------- */

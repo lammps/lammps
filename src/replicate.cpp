@@ -82,7 +82,7 @@ void Replicate::command(int narg, char **arg)
   // maxmol = largest molecule tag across all existing atoms
 
   int maxmol = 0;
-  if (atom->molecular) {
+  if (atom->molecule_flag) {
     for (i = 0; i < atom->nlocal; i++) maxmol = MAX(atom->molecule[i],maxmol);
     int maxmol_all;
     MPI_Allreduce(&maxmol,&maxmol_all,1,MPI_INT,MPI_MAX,world);
@@ -127,7 +127,7 @@ void Replicate::command(int narg, char **arg)
   // if molecular and N > MAXTAGINT, error
   // if atomic and new N > MAXTAGINT, turn off tags for existing and new atoms
   // new system cannot exceed MAXBIGINT
-  // change these 2 to MAXTAGINT when allow tagint = bigint
+  // NOTE: change these 2 to MAXTAGINT when allow tagint = bigint
 
   if (atom->molecular && 
       (nrep*old->natoms < 0 || nrep*old->natoms > MAXSMALLINT))
@@ -315,7 +315,7 @@ void Replicate::command(int narg, char **arg)
               atom->tag[i] += atom_offset;
               atom->image[i] = image;
 
-              if (atom->molecular) {
+              if (atom->molecule_flag) {
                 if (atom->molecule[i] > 0)
                   atom->molecule[i] += mol_offset;
                 if (atom->avec->bonds_allow)

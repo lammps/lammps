@@ -91,81 +91,141 @@ namely http://openkim.org.  The tarball you download is
 </P>
 <PRE>tar xvfz openkim*tgz 
 </PRE>
-<P>The openkim/DOCs directory has further documentation.  For more
-information on installing KIM and troubleshooting refer to
+<P>The openkim-api-vX.X.X/DOCS directory has further documentation.  For
+more information on installing KIM and troubleshooting refer to
 openkim/INSTALL.
 </P>
 <P>Here is a brief summary of how to build KIM:
 </P>
-<OL><LI>Set the following environment variables.  It is recommended to place
-the above environment variables definitions in your shell setup file
-which is located in your home directory (e.g. ~/.bashrc). 
+<OL><LI>If you have previously used the openkim-api package (versions 1.1.1 or
+below), it is recommended that you remove all associated environment
+variables from your environment.  (These include, KIM_DIR, KIM_INTEL,
+KIM_SYSTEM32, KIM_DYNAMIC, KIM_API_DIR, KIM_TESTS_DIR,
+KIM_MODEL_DRIVERS_DIR, and KIM_MODELS_DIR.)  All setting are now
+specified in the Makefile.KIM_Config file.  
 
-<PRE>   (a) Define the location of the openKIM API root directory.  For example, 
-       if you untarred the `openkim-api-vX.X.X.tgz' tarball in your home 
-       directory, you would do: 
-</PRE>
-<PRE>       bash:
-       % export KIM_DIR=~/openkim-api-vX.X.X 
-</PRE>
-<PRE>       tcsh:
-       % setenv KIM_DIR ~/openkim-api-vX.X.X 
-</PRE>
-<PRE>       The `%' symbol represents the bash sell prompt and should not be
-       typed. 
-</PRE>
-<PRE>   (b) By default, all makefiles use the GNU compilers for 64 bit Linux.  
-       In order to use the Intel compiler, define the environment variable
-       KIM_INTEL 
-</PRE>
-<PRE>       bash: 
-       % export KIM_INTEL="yes" 
-</PRE>
-<PRE>       tcsh:
-       % setenv KIM_INTEL "yes" 
-</PRE>
-<PRE>   (c) For a 32 bit machine, define the environment variable KIM_SYSTEM32 
-</PRE>
-<PRE>       bash: 
-       % export KIM_SYSTEM32="yes" 
-</PRE>
-<PRE>       tchs:
-       % setenv KIM_SYSTEM32 "yes" 
-</PRE>
-<PRE>   (d) Define variable for dynamic linking (recommended) 
-</PRE>
-<PRE>       bash:
-       export KIM_DYNAMIC=yes 
-</PRE>
-<PRE>       tcsh:
-       setenv KIM_DYNAMIC=yes 
-</PRE>
-<PRE>       If this environment variable is not set the default will be static
-       linking.  In that case all KIM models will be linked, producing
-       potentially a very large executable file.  It is also possible to build
-       KIM with only a subset of models or a single model you wish to use with
-       LAMMPS.  Consult the KIM documentation for details. 
-</PRE>
-<LI>To compile the package, go to the $KIM_DIR directory and execute
-make. 
+<LI>Set up the Makefile.KIM_Config file 
 
-<PRE>   % cd $KIM_DIR
+<PRE>   (a) Copy the file Makefile.KIM_Config.example to Makefile.KIM_Config
+       For example, if you untarred the `openkim-api-vX.X.X.tgz' tarball in
+       your home directory, you would do: 
+</PRE>
+<PRE>       % cd $HOME/openkim-api-vX.X.X
+       % cp Makefile.KIM_Config.example Makefile.KIM_Config 
+</PRE>
+<PRE>       The `%' symbol represents the bash sell prompt and should not be typed.
+       
+</PRE>
+<PRE>       (Above `vX.X.X' represents the current release number.) 
+</PRE>
+<PRE>   (b) Edit the file Makefile.KIM_Config and set the appropriate value for the
+       KIM_DIR variable.  This must expand to an absolute path.  Using the same
+       assumptions as above, this would be 
+</PRE>
+<PRE>       KIM_DIR = $(HOME)/openkim-api-vX.X.X 
+</PRE>
+<PRE>   (c) If appropriate, set explicit values for the remaining three 
+       directories 
+</PRE>
+<PRE>       KIM_MODEL_DRIVERS_DIR =
+       KIM_MODELS_DIR =
+       KIM_TESTS_DIR = 
+</PRE>
+<PRE>       If these lines are commented out, defaults will be provided by the
+       openkim-api make system. 
+</PRE>
+<PRE>   (d) Set the value of KIM_COMPILERSUITE.  Possible values are `GCC' and
+       `INTEL'. 
+</PRE>
+<PRE>       KIM_COMPILERSUITE = GCC 
+</PRE>
+<PRE>   (e) Set the value of KIM_SYSTEMLINKER. Possible values are `linux',
+       `freebsd', and `darwin'. 
+</PRE>
+<PRE>       KIM_SYSTEMLINKER = linux 
+</PRE>
+<PRE>   (f) Set the value of KIM_SYSTEMARCH.  Possible values are `32bit' and
+       `64bit'. 
+</PRE>
+<PRE>       KIM_SYSTEMARCH = 64bit 
+</PRE>
+<PRE>   (g) Set the value of KIM_LINK.  Possible values are `dynamic-load',
+       `dynamic-link', and `static-link'. 
+</PRE>
+<PRE>       KIM_LINK = dynamic-load 
+</PRE>
+<PRE>       `dynamic-load' is the preferred option. (Unless performance or
+       other issues require it, you should use dynamic-load.)
+       `dynamic-link' is like `dynamic-load' but does not use the dl.h
+       library.  This option requires a more complicated Makefile
+       process, but may improve computation time in some instances.
+       `static-link' only works with ONE Model and AT MOST ONE Model
+       Driver (in order to avoid the possibility of symbol
+       clashes). 
+</PRE>
+<PRE>   (h) Set override values for other variables, if necessary, by
+       adding the desired variable name (after the "# overwrite
+       default variable values here" line) and filling in appropriate
+       values. 
+</PRE>
+<PRE>       # overwrite default variable values here 
+</PRE>
+<PRE>       # overwrite default compiler options 
+</PRE>
+<PRE>       CC =
+       CXX =
+       FC = 
+</PRE>
+<PRE>       # overwrite default compiler option flag lists
+       FFLAGS   =
+       CCFLAGS  =
+       CXXFLAGS =
+       LDFLAGS  = 
+</PRE>
+<PRE>       # overwrite default linker options
+       LDSHAREDFLAG =
+       LINKSONAME =
+       LDWHOLEARCHIVESTARTFLAG =
+       LDWHOLEARCHIVEENDFLAG = 
+</PRE>
+<PRE>       # overwrite default install directories
+       package_name =
+       prefix =
+       libdir = 
+</PRE>
+<LI>In the remainder of the documentation we will use the string $KD to
+represent the location of the openkim-api source package (the value of
+the KIM_DIR variable discussed above).  If you wish to, type the below
+commands exactly as written to set the shell variable KD to the
+appropriate value: 
+
+<PRE>   bash:
+   % export KD=$HOME/openkim-api-vX.X.X 
+</PRE>
+<LI>To compile the package, including the provided examples, change to the
+$KD directory and execute `make examples' and then `make': 
+
+<PRE>   % cd $KD
    % make examples
    % make 
 </PRE>
-<PRE>   This builds all Models, Tests, and the openKIM API service routine
-   library. The targets defined by the Makefile in this directory include: 
+<PRE>     This builds all Model Drivers, Models, Tests, and the openkim-api service
+     routine library.  The targets defined by the Makefile in this directory
+     include: 
 </PRE>
-<PRE>   make                -- compiles the API and all Models and Tests
-   make all            -- same as `make'
-   make examples       -- copy examples into the appropriate directories
-                          (no overwrite)
-   make examples-force -- copy examples into the appropriate directories
-                          (overwrite)
-   make openkim-api    -- compiles only the API
-   make clean          -- will remove .o, .mod, .a, .so and executable files
-   make examples-clean -- remove all examples from the MODEL_DRIVERs,
-                          MODELs, and TESTs directories. 
+<PRE>       `make'                -- compiles the API and all Models and Tests
+       `make all'            -- same as `make'
+       `make clean'          -- will remove appropriate .o, .mod, .a, .so and
+                                executable files
+       `make install'        -- install files to `/usr/local/lib' by default
+       `make uninstall'      -- delete files installed by `make install'
+       `make openkim-api'    -- compiles only the API
+       `make examples'       -- copies examples into the appropriate
+                                directories (no overwrite)
+       `make examples-force' -- copies examples into the appropriate
+                                directories (overwrite)
+       `make examples-clean' -- remove all examples from the MODEL_DRIVERS,
+                                MODELS, and TESTS directories. 
 </PRE>
 <LI>Verify that the compilation was successful by running a Test. 
 
@@ -174,24 +234,16 @@ make.
    name of the Model can be piped in using an `echo' command.  For
    example, the following Fortran 90 Test reads in one Model: 
 </PRE>
-<PRE>   % cd $KIM_DIR/TESTs/test_Ar_free_cluster_CLUSTER_F90
+<PRE>   % cd $KD/TESTs/test_Ar_free_cluster_CLUSTER_F90
    % echo "model_Ar_P_MLJ_CLUSTER_C" | ./test_Ar_free_cluster_CLUSTER_F90 
 </PRE>
-<PRE>  (See the README files in the Test directories for an explanation of what 
+<PRE>  (See the README files in the Test directories for an explanation of what
    the Tests do.) 
 </PRE>
 <LI>Each Test (and Model) has its own make file for compiling and linking.
-If changes are made to the code, re-compile (from the $KIM_DIR directory). 
-
-<LI>In case of using a non-standard location for any of the directories KIM_API,
-TESTs, MODEL_DRIVERS, or MODELs one or more of the following environment
-variables must be set: 
+If changes are made to the code, re-compile (from the $KD
+directory). 
 </OL>
-<PRE>   KIM_API_DIR
-   KIM_TESTS_DIR
-   KIM_MODEL_DRIVERS_DIR
-   KIM_MODELS_DIR 
-</PRE>
 <HR>
 
 <P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
@@ -217,7 +269,7 @@ LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start
 LAMMPS</A> section for more info.
 </P>
 <P>This current version of pair_style kim is compatible with the
-openkim-api package version 1.1.0 and higher.
+openkim-api package version 1.2.0 and higher.
 </P>
 <P><B>Related commands:</B>
 </P>

@@ -33,7 +33,8 @@
 			end1x, end1y, end1z, end2x, end2y, end2z,
 			corner1x, corner1y, corner1z,
 			corner2x, corner2y, corner2z,
-			corner3x, corner3y, corner3z 
+			corner3x, corner3y, corner3z,
+                        i_name, d_name 
 </PRE>
 <PRE>      id = atom ID
       mol = molecule ID
@@ -59,7 +60,9 @@
       ervel = electron radial velocity
       erforce = electron radial force
       end12x, end12y, end12z = end points of line segment
-      coner123x, corner123y, corner123z = corner points of triangle 
+      coner123x, corner123y, corner123z = corner points of triangle
+      i_name = custom integer vector with name
+      d_name = custom integer vector with name 
 </PRE>
 
 </UL>
@@ -108,6 +111,12 @@ line segment particles and define the end points of each line segment.
 <I>corner2z</I>, <I>corner3x</I>, <I>corner3y</I>, <I>corner3z</I>, are defined for
 triangular particles and define the corner points of each triangle.
 </P>
+<P>The <I>i_name</I> and <I>d_name</I> attributes refer to custom integer and
+floating-point properties that have been added to each atom via the
+<A HREF = "fix_property_atom.html">fix property/atom</A> command.  When that command
+is used specific names are given to each attribute which are what is
+specified as the "name" portion of <I>i_name</I> or <I>d_name</I>.
+</P>
 <P><B>Output info:</B>
 </P>
 <P>This compute calculates a per-atom vector or per-atom array depending
@@ -128,7 +137,8 @@ units for q, etc.
 <P><B>Related commands:</B>
 </P>
 <P><A HREF = "dump.html">dump custom</A>, <A HREF = "compute_reduce.html">compute reduce</A>, <A HREF = "fix_ave_atom.html">fix
-ave/atom</A>, <A HREF = "fix_ave_spatial.html">fix ave/spatial</A>
+ave/atom</A>, <A HREF = "fix_ave_spatial.html">fix ave/spatial</A>,
+<A HREF = "fix_property_atom.html">fix property/atom</A>
 </P>
 <P><B>Default:</B> none
 </P>

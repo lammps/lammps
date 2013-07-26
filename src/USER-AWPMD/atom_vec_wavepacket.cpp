@@ -472,6 +472,11 @@ int AtomVecWavepacket::pack_border(int n, int *list, double *buf,
       buf[m++] = etag[j];
     }
   }
+
+  if (atom->nextra_border)
+    for (int iextra = 0; iextra < atom->nextra_border; iextra++)
+      m += modify->fix[atom->extra_border[iextra]]->pack_border(n,list,&buf[m]);
+
   return m;
 }
 
@@ -573,6 +578,11 @@ int AtomVecWavepacket::pack_border_vel(int n, int *list, double *buf,
       }
     }
   }
+
+  if (atom->nextra_border)
+    for (int iextra = 0; iextra < atom->nextra_border; iextra++)
+      m += modify->fix[atom->extra_border[iextra]]->pack_border(n,list,&buf[m]);
+
   return m;
 }
 
@@ -618,6 +628,11 @@ void AtomVecWavepacket::unpack_border(int n, int first, double *buf)
     eradius[i] = buf[m++];
     etag[i] = (int)buf[m++];
   }
+
+  if (atom->nextra_border)
+    for (int iextra = 0; iextra < atom->nextra_border; iextra++)
+      m += modify->fix[atom->extra_border[iextra]]->
+        unpack_border(n,first,&buf[m]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -640,16 +655,18 @@ void AtomVecWavepacket::unpack_border_vel(int n, int first, double *buf)
     spin[i] = static_cast<int> (buf[m++]);
     eradius[i] = buf[m++];
     etag[i] = (int)buf[m++];
-
     v[i][0] = buf[m++];
     v[i][1] = buf[m++];
     v[i][2] = buf[m++];
-
-
     ervel[i] = buf[m++];
     cs[2*i] = buf[m++];
     cs[2*i+1] = buf[m++];
   }
+
+  if (atom->nextra_border)
+    for (int iextra = 0; iextra < atom->nextra_border; iextra++)
+      m += modify->fix[atom->extra_border[iextra]]->
+        unpack_border(n,first,&buf[m]);
 }
 
 /* ---------------------------------------------------------------------- */

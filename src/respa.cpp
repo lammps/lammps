@@ -565,7 +565,7 @@ void Respa::recurse(int ilevel)
           timer->stamp(Timer::MODIFY);
         }
         neighbor->build();
-        timer->stamp(Timer::NEIGHBOR);
+        timer->stamp(Timer::NEIGH);
       } else if (ilevel == 0) {
         timer->stamp();
         comm->forward_comm();

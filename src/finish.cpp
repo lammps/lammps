@@ -163,7 +163,7 @@ void Finish::end(int flag)
   if (loopflag) {
     time_other = timer->get_wall(Timer::TOTAL) -
       (timer->get_wall(Timer::PAIR) + timer->get_wall(Timer::BOND) + 
-       timer->get_wall(Timer::KSPACE) + timer->get_wall(Timer::NEIGHBOR) +
+       timer->get_wall(Timer::KSPACE) + timer->get_wall(Timer::NEIGH) +
        timer->get_wall(Timer::COMM) + timer->get_wall(Timer::OUTPUT) +
        timer->get_wall(Timer::MODIFY));
     
@@ -426,7 +426,7 @@ void Finish::end(int flag)
       print_timings("Kspace",timer,Timer::KSPACE,world,nprocs,
                     nthreads,me,time_loop,screen,logfile);
 
-    print_timings("Neigh",timer,Timer::NEIGHBOR,world,nprocs,
+    print_timings("Neigh",timer,Timer::NEIGH,world,nprocs,
                   nthreads,me,time_loop,screen,logfile);
     print_timings("Comm",timer,Timer::COMM,world,nprocs,
                   nthreads,me,time_loop,screen,logfile);

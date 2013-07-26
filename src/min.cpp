@@ -481,7 +481,7 @@ double Min::energy_force(int resetflag)
     if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
     timer->stamp(Timer::COMM);
     neighbor->build();
-    timer->stamp(Timer::NEIGHBOR);
+    timer->stamp(Timer::NEIGH);
   }
 
   ev_set(update->ntimestep);

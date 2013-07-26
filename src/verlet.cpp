@@ -268,7 +268,7 @@ void Verlet::run(int n)
         timer->stamp(Timer::MODIFY);
       }
       neighbor->build();
-      timer->stamp(Timer::NEIGHBOR);
+      timer->stamp(Timer::NEIGH);
     }
 
     // force computations

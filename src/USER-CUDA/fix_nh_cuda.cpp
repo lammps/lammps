@@ -335,7 +335,6 @@ FixNHCuda::FixNHCuda(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
     if (p_flag[i]) pstat_flag = 1;
 
   if (pstat_flag) {
-    box_change = 1;
     if (p_flag[0] || p_flag[1] || p_flag[2]) box_change_size = 1;
     if (p_flag[3] || p_flag[4] || p_flag[5]) box_change_shape = 1;
     no_change_box = 1;

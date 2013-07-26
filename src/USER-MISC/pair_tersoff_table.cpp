@@ -307,10 +307,6 @@ void PairTersoffTable::compute(int eflag, int vflag)
 
         invR_ik = 1.0 / r_ik;
 
-        directorCos_ik_x = invR_ik * r_ik_x;
-        directorCos_ik_y = invR_ik * r_ik_y;
-        directorCos_ik_z = invR_ik * r_ik_z;
-
         gtetaFunctionIJK = preGtetaFunction[neighbor_j][neighbor_k];
 
         cutoffFunctionIK = preCutoffFunction[neighbor_k];

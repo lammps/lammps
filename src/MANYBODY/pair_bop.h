@@ -45,17 +45,12 @@ class PairBOP : public Pair {
   int me;
   int maxneigh;                    // maximum size of neighbor list on this processor
   int update_list;                 // check for changing maximum size of neighbor list
-  int maxbopn;                     // maximum size of bop neighbor list for allocation
   int maxnall;                     // maximum size of bop neighbor list for allocation
   int *map;                        // mapping from atom types to elements
-  int nelements;                   // # of unique elments
   int nr;                     // increments for the BOP potential
   int nBOt;                   // second BO increments
   int bop_types;                   // number of elments in potential
   int npairs;                      // number of element pairs
-  char **elements;                   // names of unique elements
-  int ***elem2param;
-  int nparams;
   int bop_step;
   int allocate_pi;
   int allocate_sigma;
@@ -103,7 +98,7 @@ class PairBOP : public Pair {
 
 /*Triple variables */
 
-  double *cosAng,***dcosAng,***dcAng;
+  double *cosAng,***dcAng;
 
 /*Double variables */
 

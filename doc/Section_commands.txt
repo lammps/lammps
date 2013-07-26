@@ -774,6 +774,7 @@ potentials.  Click on the style itself for a full description:
 "morse"_pair_morse.html,
 "peri/lps"_pair_peri.html,
 "peri/pmb"_pair_peri.html,
+"peri/ves"_pair_peri.html,
 "reax"_pair_reax.html,
 "rebo"_pair_airebo.html,
 "resquared"_pair_resquared.html,

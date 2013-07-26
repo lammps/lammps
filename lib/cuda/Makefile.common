@@ -14,7 +14,8 @@ SHELL = /bin/sh
 
 # System-specific settings
 
-CUDA_INSTALL_PATH = $(HOME)/cuda
+#CUDA_INSTALL_PATH = $(HOME)/cuda
+CUDA_INSTALL_PATH = $(CUDA_DIR)
 # e.g. in Gentoo
 # CUDA_INSTALL_PATH = /opt/cuda
 
@@ -32,7 +33,7 @@ else
 include ../../lib/cuda/Makefile.defaults
 endif
 
-#shell echo "Compiling with precision = " ${precision} ", arch = " ${arch} ", cufft = " ${cufft} ", dbg = " ${dbg} ", prec_timer = " ${prec_timer}
+shell echo "Compiling with precision = " ${precision} ", arch = " ${arch} ", cufft = " ${cufft} ", dbg = " ${dbg} ", prec_timer = " ${prec_timer}
 
 CUDA_FLAGS := -I${CUDA_INSTALL_PATH}/include -DUNIX 
 CUDA_USRLIB_CONDITIONAL := -L${CUDA_INSTALL_PATH}/lib -L${CUDA_INSTALL_PATH}/lib64

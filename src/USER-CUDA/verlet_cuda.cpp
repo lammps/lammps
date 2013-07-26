@@ -694,7 +694,7 @@ void VerletCuda::run(int n)
         clock_gettime(CLOCK_REALTIME, &starttime);
         timer->stamp();
         comm->forward_comm(1);
-        timer->stamp(TIME_COMM);
+        timer->stamp(Timer::COMM);
         clock_gettime(CLOCK_REALTIME, &endtime);
         cuda->shared_data.cuda_timings.comm_forward_total +=
           endtime.tv_sec - starttime.tv_sec + 1.0 * (endtime.tv_nsec - starttime.tv_nsec) / 1000000000;
@@ -714,7 +714,7 @@ void VerletCuda::run(int n)
         //start force calculation asynchronus
         cuda->shared_data.comm.comm_phase = 1;
         force->pair->compute(eflag, vflag);
-        timer->stamp(TIME_PAIR);
+        timer->stamp(Timer::PAIR);
         //CudaWrapper_Sync();
 
         //download comm buffers from GPU, perform MPI communication and upload buffers again
@@ -723,11 +723,11 @@ void VerletCuda::run(int n)
         clock_gettime(CLOCK_REALTIME, &endtime);
         cuda->shared_data.cuda_timings.comm_forward_total +=
           endtime.tv_sec - starttime.tv_sec + 1.0 * (endtime.tv_nsec - starttime.tv_nsec) / 1000000000;
-        timer->stamp(TIME_COMM);
+        timer->stamp(Timer::COMM);
 
         //wait for force calculation
         CudaWrapper_Sync();
-        timer->stamp(TIME_PAIR);
+        timer->stamp(Timer::PAIR);
 
         //unpack communication buffers
         clock_gettime(CLOCK_REALTIME, &starttime);
@@ -736,7 +736,7 @@ void VerletCuda::run(int n)
         cuda->shared_data.cuda_timings.comm_forward_total +=
           endtime.tv_sec - starttime.tv_sec + 1.0 * (endtime.tv_nsec - starttime.tv_nsec) / 1000000000;
 
-        timer->stamp(TIME_COMM);
+        timer->stamp(Timer::COMM);
         MYDBG(printf("# CUDA VerletCuda::iterate: communicate done\n");)
         cuda->shared_data.cuda_timings.test1 +=
           endtotal.tv_sec - starttotal.tv_sec + 1.0 * (endtotal.tv_nsec - starttotal.tv_nsec) / 1000000000;
@@ -747,7 +747,7 @@ void VerletCuda::run(int n)
         clock_gettime(CLOCK_REALTIME, &endtime);
         cuda->shared_data.cuda_timings.comm_forward_total +=
           endtime.tv_sec - starttime.tv_sec + 1.0 * (endtime.tv_nsec - starttime.tv_nsec) / 1000000000;
-        timer->stamp(TIME_COMM);
+        timer->stamp(Timer::COMM);
         MYDBG(printf("# CUDA VerletCuda::iterate: communicate done\n");)
       }
     } else {
@@ -837,7 +837,7 @@ void VerletCuda::run(int n)
       cuda->shared_data.buffer_new = 2;
 
       MYDBG(printf("# CUDA VerletCuda::iterate: neighbor build\n");)
-      timer->stamp(TIME_COMM);
+      timer->stamp(Timer::COMM);
       clock_gettime(CLOCK_REALTIME, &endtime);
       cuda->shared_data.cuda_timings.test2 +=
         endtime.tv_sec - starttime.tv_sec + 1.0 * (endtime.tv_nsec - starttime.tv_nsec) / 1000000000;
@@ -845,7 +845,7 @@ void VerletCuda::run(int n)
       //rebuild neighbor list
       test_atom(testatom, "Pre Neighbor");
       neighbor->build(0);
-      timer->stamp(TIME_NEIGHBOR);
+      timer->stamp(Timer::NEIGHBOR);
       MYDBG(printf("# CUDA VerletCuda::iterate: neighbor done\n");)
       //if bonded interactions are used (in this case collect_forces_later is true), transfer data which only changes upon exchange/border routines from GPU to CPU
       if(cuda->shared_data.pair.collect_forces_later) {
@@ -932,7 +932,7 @@ void VerletCuda::run(int n)
       if(not cuda->shared_data.pair.collect_forces_later)
         CudaWrapper_Sync();
 
-      timer->stamp(TIME_PAIR);
+      timer->stamp(Timer::PAIR);
     }
 
     //calculate bonded interactions
@@ -942,11 +942,11 @@ void VerletCuda::run(int n)
       if(n_pre_force == 0) Verlet::force_clear();
       else  cuda->cu_f->downloadAsync(2);
 
-      timer->stamp(TIME_PAIR);
+      timer->stamp(Timer::PAIR);
 
       if(neighbor->lastcall == update->ntimestep) {
         neighbor->build_topology();
-        timer->stamp(TIME_NEIGHBOR);
+        timer->stamp(Timer::NEIGHBOR);
       }
 
       test_atom(testatom, "pre bond force");
@@ -959,7 +959,7 @@ void VerletCuda::run(int n)
 
       if(force->improper) force->improper->compute(eflag, vflag);
 
-      timer->stamp(TIME_BOND);
+      timer->stamp(Timer::BOND);
     }
 
     //collect forces in case pair force and bonded interactions were overlapped, and either no KSPACE or a GPU KSPACE style is used
@@ -984,7 +984,7 @@ void VerletCuda::run(int n)
 
       if(vflag) cuda->cu_virial->download();
 
-      timer->stamp(TIME_PAIR);
+      timer->stamp(Timer::PAIR);
 
       clock_gettime(CLOCK_REALTIME, &endtime);
       cuda->shared_data.cuda_timings.pair_force_collection +=
@@ -1002,7 +1002,7 @@ void VerletCuda::run(int n)
         if(n_pre_force == 0) Verlet::force_clear();
         else  cuda->cu_f->downloadAsync(2);
 
-        timer->stamp(TIME_PAIR);
+        timer->stamp(Timer::PAIR);
       }
 
       force->kspace->compute(eflag, vflag);
@@ -1010,7 +1010,7 @@ void VerletCuda::run(int n)
       if((not cuda->shared_data.pppm.cudable_force) && (not cuda->shared_data.pair.collect_forces_later))
         cuda->uploadAll();
 
-      timer->stamp(TIME_KSPACE);
+      timer->stamp(Timer::KSPACE);
     }
 
     //collect forces in case pair forces and kspace was overlaped
@@ -1033,7 +1033,7 @@ void VerletCuda::run(int n)
 
       if(vflag) cuda->cu_virial->download();
 
-      timer->stamp(TIME_PAIR);
+      timer->stamp(Timer::PAIR);
 
       clock_gettime(CLOCK_REALTIME, &endtime);
       cuda->shared_data.cuda_timings.pair_force_collection +=
@@ -1043,7 +1043,7 @@ void VerletCuda::run(int n)
     //send forces on ghost atoms back to other GPU: THIS SHOULD NEVER HAPPEN
     if(force->newton) {
       comm->reverse_comm();
-      timer->stamp(TIME_COMM);
+      timer->stamp(Timer::COMM);
     }
 
     test_atom(testatom, "post force");
@@ -1069,7 +1069,7 @@ void VerletCuda::run(int n)
 
       timer->stamp();
       output->write(ntimestep);
-      timer->stamp(TIME_OUTPUT);
+      timer->stamp(Timer::OUTPUT);
     }
 
 

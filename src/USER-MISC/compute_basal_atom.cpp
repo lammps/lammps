@@ -16,7 +16,6 @@
                         Copyright (C) 2013
 ------------------------------------------------------------------------- */
 
-
 #include "string.h"
 #include "compute_basal_atom.h"
 #include "atom.h"

@@ -217,7 +217,7 @@ void NEB::run()
   // damped dynamic min styles insure all replicas converge together
 
   timer->init();
-  timer->barrier_start(Timer::TOTAL);
+  timer->barrier_start();
 
   while (update->minimize->niter < n1steps) {
     update->minimize->run(nevery);
@@ -225,7 +225,7 @@ void NEB::run()
     if (update->minimize->stop_condition) break;
   }
 
-  timer->barrier_stop(Timer::TOTAL);
+  timer->barrier_stop();
 
   update->minimize->cleanup();
 
@@ -287,7 +287,7 @@ void NEB::run()
   // damped dynamic min styles insure all replicas converge together
 
   timer->init();
-  timer->barrier_start(Timer::TOTAL);
+  timer->barrier_start();
 
   while (update->minimize->niter < n2steps) {
     update->minimize->run(nevery);
@@ -295,7 +295,7 @@ void NEB::run()
     if (update->minimize->stop_condition) break;
   }
 
-  timer->barrier_stop(Timer::TOTAL);
+  timer->barrier_stop();
 
   update->minimize->cleanup();
 

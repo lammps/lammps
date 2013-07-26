@@ -244,7 +244,7 @@ void TAD::command(int narg, char **arg)
   quench();
 
   timer->init();
-  timer->barrier_start(Timer::TOTAL);
+  timer->barrier_start();
   time_start = timer->get_wall(Timer::TOTAL);
   fix_event->store_event_tad(update->ntimestep);
   log_event(0);
@@ -265,7 +265,7 @@ void TAD::command(int narg, char **arg)
   nbuild = ndanger = 0;
   time_neb = time_dynamics = time_quench = time_comm = time_output = 0.0;
 
-  timer->barrier_start(Timer::TOTAL);
+  timer->barrier_start();
   time_start = timer->get_wall(Timer::TOTAL);
 
   int confident_flag, event_flag;
@@ -337,9 +337,9 @@ void TAD::command(int narg, char **arg)
     // write restart file of hot coords
 
       if (restart_flag) {
-        timer->barrier_start(Timer::TOTAL);
+        timer->barrier_start();
         output->write_restart(update->ntimestep);
-        timer->barrier_stop(Timer::TOTAL);
+        timer->barrier_stop();
         time_output += timer->get_wall(Timer::TOTAL);
       }
     }
@@ -372,7 +372,7 @@ void TAD::command(int narg, char **arg)
   // set total timers and counters so Finish() will process them
 
   timer->set_wall(Timer::TOTAL, time_start);
-  timer->barrier_stop(Timer::TOTAL);
+  timer->barrier_stop();
 
   timer->set_wall(Timer::PAIR, time_neb);
   timer->set_wall(Timer::BOND, time_dynamics);
@@ -436,9 +436,9 @@ void TAD::dynamics()
   //modify->addstep_compute_all(update->ntimestep);
   int ncalls = neighbor->ncalls;
 
-  timer->barrier_start(Timer::TOTAL);
+  timer->barrier_start();
   update->integrate->run(t_event);
-  timer->barrier_stop(Timer::TOTAL);
+  timer->barrier_stop();
   time_dynamics += timer->get_wall(Timer::TOTAL);
 
   nbuild += neighbor->ncalls - ncalls;
@@ -478,9 +478,9 @@ void TAD::quench()
 
   int ncalls = neighbor->ncalls;
 
-  timer->barrier_start(Timer::TOTAL);
+  timer->barrier_start();
   update->minimize->run(maxiter);
-  timer->barrier_stop(Timer::TOTAL);
+  timer->barrier_stop();
   time_quench += timer->get_wall(Timer::TOTAL);
 
   if (neighbor->ncalls == ncalls) quench_reneighbor = 0;
@@ -548,11 +548,11 @@ void TAD::log_event(int ievent)
   // addstep_compute_all insures eng/virial are calculated if needed
 
   if (output->ndump && universe->iworld == 0) {
-    timer->barrier_start(Timer::TOTAL);
+    timer->barrier_start();
     modify->addstep_compute_all(update->ntimestep);
     update->integrate->setup_minimal(1);
     output->write_dump(update->ntimestep);
-    timer->barrier_stop(Timer::TOTAL);
+    timer->barrier_stop();
     time_output += timer->get_wall(Timer::TOTAL);
   }
 
@@ -741,9 +741,9 @@ void TAD::perform_neb(int ievent)
   // because timer->array is reset
   // inside neb->run()
 
-//    timer->barrier_start(Timer::TOTAL);
+//    timer->barrier_start();
 //    neb->run();
-//    timer->barrier_stop(Timer::TOTAL);
+//    timer->barrier_stop();
 //    time_neb += timer->get_wall(Timer::TOTAL);
 
   MPI_Barrier(world);

@@ -22,17 +22,22 @@ namespace LAMMPS_NS {
 class Timer : protected Pointers {
  public:
 
-  enum ttype  {RESET=-2,STOP=-1,TOTAL=0,PAIR,BOND,KSPACE,
-               NEIGH,COMM,MODIFY,OUTPUT,NUM_TIMER};
+  enum ttype  {RESET=-3,START=-2,STOP=-1,TOTAL=0,PAIR,BOND,KSPACE,
+               NEIGH,COMM,MODIFY,OUTPUT,SYNC,NUM_TIMER};
   enum tlevel {OFF=0,LOOP,NORMAL,FULL};
 
   Timer(class LAMMPS *);
   ~Timer() {};
   void init();
-  void stamp();
-  void stamp(enum ttype);
-  void barrier_start(enum ttype);
-  void barrier_stop(enum ttype);
+
+  // inline function to reduce overhead if we do not want detail timings
+  void stamp(enum ttype which=START) {
+    if (_level > LOOP) _stamp(which);
+  }
+  
+  void barrier_start();
+  void barrier_stop();
+
   double elapsed(enum ttype);
   double cpu(enum ttype);
 
@@ -53,6 +58,9 @@ class Timer : protected Pointers {
   double previous_wall;
   int _level;  // level of detail: off=0,loop=1,normal=2,full=3
   int _sync;   // if nonzero, synchronize tasks before setting the timer
+
+  // update requested timer array
+  void _stamp(enum ttype);
 };
 
 }

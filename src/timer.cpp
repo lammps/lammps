@@ -28,6 +28,9 @@
 
 using namespace LAMMPS_NS;
 
+// Return the CPU time for the current process in seconds very
+// much in the same way as MPI_Wtime() returns the wall time.
+
 static double CPU_Time()
 {
   double rv = 0.0;
@@ -75,44 +78,63 @@ void Timer::init()
 
 /* ---------------------------------------------------------------------- */
 
-void Timer::stamp()
+void Timer::_stamp(enum ttype which)
 {
-  if (_sync) MPI_Barrier(world);
-  previous_cpu  = CPU_Time();
-  previous_wall = MPI_Wtime();
+  double current_cpu=0.0, current_wall=0.0;
+
+  if (_level > NORMAL) current_cpu = CPU_Time();
+  current_wall = MPI_Wtime();
+
+  if ((which > TOTAL) && (which < NUM_TIMER)) {
+    cpu_array[which]  += current_cpu - previous_cpu;
+    wall_array[which] += current_wall - previous_wall;
+  }
+
+  previous_cpu  = current_cpu;
+  previous_wall = current_wall;
+
+  if (_sync) {
+    MPI_Barrier(world);
+    if (_level > NORMAL) current_cpu = CPU_Time();
+    current_wall = MPI_Wtime();
+
+    cpu_array[SYNC]  += current_cpu - previous_cpu;
+    wall_array[SYNC] += current_wall - previous_wall;
+    previous_cpu  = current_cpu;
+    previous_wall = current_wall;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void Timer::stamp(enum ttype which)
+void Timer::barrier_start()
 {
-  if (_sync) MPI_Barrier(world);
-  double current_cpu  = CPU_Time();
-  double current_wall = MPI_Wtime();
-  cpu_array[which] += current_cpu - previous_cpu;
-  wall_array[which] += current_wall - previous_wall;
-  previous_cpu = current_cpu;
+  double current_cpu=0.0, current_wall=0.0;
+
+  MPI_Barrier(world);
+
+  if (_level > NORMAL) current_cpu = CPU_Time();
+  current_wall = MPI_Wtime();
+
+  cpu_array[TOTAL]  = current_cpu;
+  wall_array[TOTAL] = current_wall;
+  previous_cpu  = current_cpu;
   previous_wall = current_wall;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void Timer::barrier_start(enum ttype which)
+void Timer::barrier_stop()
 {
-  MPI_Barrier(world);
-  cpu_array[which] = CPU_Time();
-  wall_array[which] = MPI_Wtime();
-}
+  double current_cpu=0.0, current_wall=0.0;
 
-/* ---------------------------------------------------------------------- */
-
-void Timer::barrier_stop(enum ttype which)
-{
   MPI_Barrier(world);
-  double current_cpu = CPU_Time();
-  double current_wall = MPI_Wtime();
-  cpu_array[which] = current_cpu - cpu_array[which];
-  wall_array[which] = current_wall - wall_array[which];
+
+  if (_level > NORMAL) current_cpu = CPU_Time();
+  current_wall = MPI_Wtime();
+
+  cpu_array[TOTAL]  = current_cpu - cpu_array[TOTAL];
+  wall_array[TOTAL] = current_wall - wall_array[TOTAL];
 }
 
 /* ---------------------------------------------------------------------- */

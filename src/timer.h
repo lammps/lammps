@@ -38,6 +38,12 @@ class Timer : protected Pointers {
   void barrier_start();
   void barrier_stop();
 
+  // getter methods about supported level of detail
+  bool has_loop()   const { return (_level >= LOOP); }
+  bool has_normal() const { return (_level >= NORMAL); }
+  bool has_full()   const { return (_level >= FULL); }
+  bool has_sync()   const { return (_sync  != OFF); }
+
   double elapsed(enum ttype);
   double cpu(enum ttype);
 

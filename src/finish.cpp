@@ -63,11 +63,11 @@ static void print_timings(const char *label, Timer *t, enum Timer::ttype tt,
 
   if (me == 0) {
     time_loop = 100.0/time_loop;
-    const char fmt[] = "%-8s|%- 12.5g|%- 12.5g|%- 12.5g|%6.2f | %6.1f\n";
+    const char fmt[] = "%-8s|%- 12.5g|%- 12.5g|%- 12.5g|%6.1f | %6.2f\n";
     if (scr)
-      fprintf(scr,fmt,label,time_min,time,time_max,time*time_loop,time_cpu);
+      fprintf(scr,fmt,label,time_min,time,time_max,time_cpu,time*time_loop);
     if (log)
-      fprintf(log,fmt,label,time_min,time,time_max,time*time_loop,time_cpu);
+      fprintf(log,fmt,label,time_min,time,time_max,time_cpu,time*time_loop);
   }
 }
 
@@ -77,7 +77,7 @@ static void print_timings(const char *label, Timer *t, enum Timer::ttype tt,
 static void omp_times(FixOMP *fix, const char *label, const int ttype,
                       const int nthreads, FILE *scr, FILE *log)
 {
-  const char fmt[] = "%-8s|%- 12.5g|%- 12.5g|%- 12.5g|%6.2f |%6.1f%%\n";
+  const char fmt[] = "%-8s|%- 12.5g|%- 12.5g|%- 12.5g|%6.1f |%6.2f%%\n";
   double time_min, time_max, time_total, time_avg, time_std;
 
   time_min=1.0e100;
@@ -103,10 +103,10 @@ static void omp_times(FixOMP *fix, const char *label, const int ttype,
   else
     time_std = 0.0;
 
-  if (scr) fprintf(scr,fmt,label,time_min,time_avg,time_max,
-                   time_avg*time_total,time_std);
-  if (log) fprintf(log,fmt,label,time_min,time_avg,time_max,
-                   time_avg*time_total,time_std);
+  if (scr) fprintf(scr,fmt,label,time_min,time_avg,time_max,time_std,
+                   time_avg*time_total);
+  if (log) fprintf(log,fmt,label,time_min,time_avg,time_max,time_std,
+                   time_avg*time_total);
 }
 #endif
 
@@ -121,7 +121,7 @@ void Finish::end(int flag)
 {
   int i,m,nneigh,nneighfull;
   int histo[10];
-  int loopflag,minflag,prdflag,tadflag,timeflag,fftflag,histoflag,neighflag;
+  int minflag,prdflag,tadflag,timeflag,fftflag,histoflag,neighflag;
   double time,tmp,ave,max,min;
   double time_loop,time_other;
 
@@ -142,7 +142,6 @@ void Finish::end(int flag)
   // flag = 3 = TAD
   // turn off neighflag for Kspace partition of verlet/split integrator
 
-  loopflag = 1;
   minflag = prdflag = tadflag = timeflag = fftflag = histoflag = neighflag = 0;
 
   if (flag == 1) {
@@ -160,12 +159,12 @@ void Finish::end(int flag)
 
   // loop stats
 
-  if (loopflag) {
+  if (timer->has_loop()) {
     time_other = timer->get_wall(Timer::TOTAL) -
       (timer->get_wall(Timer::PAIR) + timer->get_wall(Timer::BOND) + 
        timer->get_wall(Timer::KSPACE) + timer->get_wall(Timer::NEIGH) +
        timer->get_wall(Timer::COMM) + timer->get_wall(Timer::OUTPUT) +
-       timer->get_wall(Timer::MODIFY));
+       timer->get_wall(Timer::MODIFY) + timer->get_wall(Timer::SYNC));
     
     time_loop = timer->get_wall(Timer::TOTAL);
     MPI_Allreduce(&time_loop,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
@@ -405,11 +404,11 @@ void Finish::end(int flag)
 
   // timing breakdowns
 
-  if (timeflag) {
+  if (timeflag && timer->has_normal()) {
     const int nthreads = comm->nthreads;
     if (me == 0) {
       const char hdr[] = "\nMPI task wallclock breakdown\n"
-        "Section |  min time  |  avg time  |  max time  |%total |  %CPU \n"
+        "Section |  min time  |  avg time  |  max time  |  %CPU |  total\n"
         "---------------------------------------------------------------\n";
       if (screen)  fputs(hdr,screen);
       if (logfile) fputs(hdr,logfile);
@@ -434,6 +433,10 @@ void Finish::end(int flag)
                   nthreads,me,time_loop,screen,logfile);
     print_timings("Modify",timer,Timer::MODIFY,world,nprocs,
                   nthreads,me,time_loop,screen,logfile);
+    if (timer->has_sync())
+      print_timings("Sync",timer,Timer::SYNC,world,nprocs,
+                    nthreads,me,time_loop,screen,logfile);
+
     time = time_other;
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
@@ -451,7 +454,7 @@ void Finish::end(int flag)
   const char thr_hdr_fmt[] = 
     "\nThread activity (MPI rank %d only): Total time%- 11.4g/%5.1f%%\n";
   const char thr_header[] =
-    "Section |  min time  |  avg time  |  max time  |%total |var/avg\n"
+    "Section |  min time  |  avg time  |  max time  |var/avg|  total\n"
     "---------------------------------------------------------------\n";
 
   int ifix = modify->find_fix("package_omp");

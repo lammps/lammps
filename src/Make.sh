@@ -63,7 +63,7 @@ if (test $1 = "style") then
   style BODY_CLASS      body_       body       atom_vec_body
   style BOND_CLASS      bond_       bond       force
   style COMMAND_CLASS   ""          command    input
-  style COMPUTE_CLASS   compute_    compute    modify
+  style COMPUTE_CLASS   compute_    compute    modify    modify_cuda
   style DIHEDRAL_CLASS  dihedral_   dihedral   force
   style DUMP_CLASS      dump_       dump       output
   style FIX_CLASS       fix_        fix        modify

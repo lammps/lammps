@@ -11,8 +11,6 @@
 
 <H3>pair_style tersoff/mod command 
 </H3>
-<H3>pair_style tersoff/mod/omp 
-</H3>
 <P><B>Syntax:</B>
 </P>
 <PRE>pair_style tersoff/mod 
@@ -20,30 +18,32 @@
 <P><B>Examples:</B>
 </P>
 <PRE>pair_style tersoff/mod
-pair_coeff * * Si.tersoff_mod Si Si 
+pair_coeff * * Si.tersoff.mod Si Si 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>The <I>tersoff/mod</I> style computes a bond-order type interatomic potential
-<A HREF = "#Kumagai">(Kumagai)</A> based on a 3-body Tersoff potential <A HREF = "#Tersoff_1">(Tersoff_1)</A>,
-<A HREF = "#Tersoff_2">(Tersoff_2)</A> with modified cutoff function and angular-dependent
-term, giving the energy E of a system of atoms as
+<P>The <I>tersoff/mod</I> style computes a bond-order type interatomic
+potential <A HREF = "#Kumagai">(Kumagai)</A> based on a 3-body Tersoff potential
+<A HREF = "#Tersoff_1">(Tersoff_1)</A>, <A HREF = "#Tersoff_2">(Tersoff_2)</A> with modified
+cutoff function and angular-dependent term, giving the energy E of a
+system of atoms as
 </P>
 <CENTER><IMG SRC = "Eqs/pair_tersoff_mod.jpg">
 </CENTER>
 <P>where f_R is a two-body term and f_A includes three-body interactions.
 The summations in the formula are over all neighbors J and K of atom I
-within a cutoff distance = R + D. 
+within a cutoff distance = R + D.
 </P>
-<P>The modified cutoff function f_C proposed by <A HREF = "#Murty">(Murty)</A> and having a
-continuous second-order differential is employed. The angular-dependent
-term g(theta) was modified to increase the flexibility of the potential.
+<P>The modified cutoff function f_C proposed by <A HREF = "#Murty">(Murty)</A> and
+having a continuous second-order differential is employed. The
+angular-dependent term g(theta) was modified to increase the
+flexibility of the potential.
 </P>
-<P>The <I>tersoff/mod</I> potential is fitted to both the elastic constants and
-melting point by employing the modified Tersoff potential function form
-in which the angular-dependent term is improved. The model performs extremely
-well in describing the crystalline, liquid, and amorphous phases
-<A HREF = "#Schelling">(Schelling)</A>.
+<P>The <I>tersoff/mod</I> potential is fitted to both the elastic constants
+and melting point by employing the modified Tersoff potential function
+form in which the angular-dependent term is improved. The model
+performs extremely well in describing the crystalline, liquid, and
+amorphous phases <A HREF = "#Schelling">(Schelling)</A>.
 </P>
 <P>Only a single pair_coeff command is used with the <I>tersoff/mod</I> style
 which specifies a Tersoff/MOD potential file with parameters for all
@@ -63,15 +63,16 @@ pair_coeff command:
 <P>The 1st 2 arguments must be * * so as to span all LAMMPS atom types.
 The three Si arguments map LAMMPS atom types 1,2,3 to the Si element
 in the Tersoff/MOD file. If a mapping value is specified as NULL, the
-mapping is not performed.  This can be used when a <I>tersoff/mod</I> potential
-is used as part of the <I>hybrid</I> pair style. The NULL values are
-placeholders for atom types that will be used with other potentials.
+mapping is not performed.  This can be used when a <I>tersoff/mod</I>
+potential is used as part of the <I>hybrid</I> pair style. The NULL values
+are placeholders for atom types that will be used with other
+potentials.
 </P>
-<P>Tersoff/MOD file in the <I>potentials</I> directory of the LAMMPS distribution
-have a ".tersoff_mod" suffix.  Lines that are not blank or comments
-(starting with #) define parameters for a triplet of elements.  The
-parameters in a single entry correspond to coefficients in the formula
-above:
+<P>Tersoff/MOD file in the <I>potentials</I> directory of the LAMMPS
+distribution have a ".tersoff.mod" suffix.  Lines that are not blank
+or comments (starting with #) define parameters for a triplet of
+elements.  The parameters in a single entry correspond to coefficients
+in the formula above:
 </P>
 <UL><LI>element 1 (the center atom in a 3-body interaction)
 <LI>element 2 (the atom bonded to the center atom)
@@ -110,28 +111,6 @@ ignores those entries.
 the center atom in a three-body interaction and it is bonded to the 
 2nd atom and the bond is influenced by the 3rd atom.  Thus an entry 
 for SiSiSi means Si bonded to a Si with another Si atom influencing the bond.
-</P>
-<HR>
-
-<P>Styles with a <I>cuda</I>, <I>gpu</I>, <I>omp</I>, or <I>opt</I> suffix are functionally
-the same as the corresponding style without the suffix.  They have
-been optimized to run faster, depending on your available hardware, as
-discussed in <A HREF = "Section_accelerate.html">Section_accelerate</A> of the
-manual.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-</P>
-<P>These accelerated styles are part of the USER-CUDA, GPU, USER-OMP and OPT
-packages, respectively.  They are only enabled if LAMMPS was built with
-those packages.  See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A>
-section for more info.
-</P>
-<P>You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the <A HREF = "Section_start.html#start_7">-suffix command-line
-switch</A> when you invoke LAMMPS, or you can
-use the <A HREF = "suffix.html">suffix</A> command in your input script.
-</P>
-<P>See <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual for
-more instructions on how to use the accelerated styles effectively.
 </P>
 <HR>
 
@@ -176,7 +155,8 @@ appropriate units if your simulation doesn't use "metal" units.
 
 <A NAME = "Kumagai"></A>
 
-<P><B>(Kumagai)</B> T. Kumagai, S. Izumi, S. Hara, S. Sakai, Comp. Mat. Science, 39, 457 (2007).
+<P><B>(Kumagai)</B> T. Kumagai, S. Izumi, S. Hara, S. Sakai,
+Comp. Mat. Science, 39, 457 (2007).
 </P>
 <A NAME = "Tersoff_1"></A>
 

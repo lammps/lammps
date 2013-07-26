@@ -781,6 +781,7 @@ potentials.  Click on the style itself for a full description:
 "sw"_pair_sw.html,
 "table"_pair_table.html,
 "tersoff"_pair_tersoff.html,
+"tersoff/mod"_pair_tersoff_mod.html,
 "tersoff/zbl"_pair_tersoff_zbl.html,
 "tip4p/cut"_pair_coul.html,
 "tip4p/long"_pair_coul.html,

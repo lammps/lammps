@@ -10,12 +10,13 @@ pair_style peri/pmb command :h3
 pair_style peri/pmb/omp command :h3
 pair_style peri/lps command :h3
 pair_style peri/lps/omp command :h3
+pair_style peri/ves command :h3
 
 [Syntax:]
 
 pair_style style :pre 
 
-style = {peri/pmb} or {peri/lps} :ul
+style = {peri/pmb} or {peri/lps} or {peri/ves} :ul
 
 [Examples:]
 
@@ -24,6 +25,9 @@ pair_coeff * * 1.6863e22 0.0015001 0.0005 0.25 :pre
 
 pair_style peri/lps
 pair_coeff * * 14.9e9 14.9e9 0.0015001 0.0005 0.25 :pre
+
+pair_style peri/ves
+pair_coeff * * 14.9e9 14.9e9 0.0015001 0.0005 0.25 0.5 0.001 :pre
 
 [Description:]
 
@@ -36,11 +40,20 @@ microelastic brittle (PMB) model.
 Style {peri/lps} implements the Peridynamic state-based linear
 peridynamic solid (LPS) model.
 
+Style {peri/ves} implements the Peridynamic state-based linear
+peridynamic viscoelastic solid (VES) model.
+
 The canonical papers on Peridynamics are "(Silling 2000)"_#Silling2000
 and "(Silling 2007)"_#Silling2007.  The implementation of Peridynamics
 in LAMMPS is described in "(Parks)"_#Parks.  Also see the "PDLAMMPS
 user guide"_http://www.sandia.gov/~mlparks/papers/PDLAMMPS.pdf for
 more details about the implementation of peridynamics in LAMMPS.
+
+The peridynamic VES model in PDLAMMPS is implemented by R. Rahman and
+J.T Foster at University of Texas at San Antonio. The VES formulation
+is described in "(Mtchell2011)". For question regarding VES
+implementation in LAMMPS please contact R.Rahman:
+rezwanur.rahman@utsa.edu
 
 The following coefficients must be defined for each pair of atom types
 via the "pair_coeff"_pair_coeff.html command as in the examples above,
@@ -74,6 +87,25 @@ K is the bulk modulus and G is the shear modulus.  The horizon is a
 cutoff distance for truncating interactions, and s00 and alpha are
 used as a bond breaking criteria. See the users guide for more
 details.
+
+For the {peri/ves} style:
+
+K (force/area units)
+G (force/area units)
+horizon (distance units)
+s00 (unitless)
+alpha (unitless) 
+m_lambdai (unitless)
+m_taubi (unitless) :ul
+
+The same as for {peri/lps}, K is the bulk modulus and G is the shear
+modulus. The horizon is a cutoff distance for truncating interactions,
+and s00 and alpha are used as a bond breaking criteria. m_lambdai and
+m_taubi are the viscoelastic relaxation parameter and time constant,
+respectively. m_lambdai varies within zero to one. For very small
+values of m_lambdai the viscoelsatic model responds very similar to a
+linear elastic model. For details see the description in
+"(Mitchell)"_#Mitchell.
 
 :line
 
@@ -122,7 +154,7 @@ These pair styles can only be used via the {pair} keyword of the
 
 [Restrictions:]
 
-The {peri/pmb} and {peri/lps} styles are part of the PERI
+The {peri/pmb}, {peri/lps} and {peri/ves} styles are part of the PERI
 package. They are only enabled if LAMMPS was built with that package.
 See the "Making LAMMPS"_Section_start.html#start_3 section for more
 info.
@@ -136,10 +168,17 @@ info.
 :line
 
 :link(Parks)
-[(Parks)] Parks, Lehoucq, Plimpton, Silling, Comp Phys Comm, 179(11), 777-783 (2008).
+[(Parks)] Parks, Lehoucq, Plimpton, Silling, Comp Phys Comm, 179(11),
+777-783 (2008).
 
 :link(Silling2000)
 [(Silling 2000)] Silling, J Mech Phys Solids, 48, 175-209 (2000).
 
 :link(Silling2007)
-[(Silling 2007)] Silling, Epton, Weckner, Xu, Askari, J Elasticity, 88, 151-184 (2007).
+[(Silling 2007)] Silling, Epton, Weckner, Xu, Askari, J Elasticity,
+88, 151-184 (2007).
+
+:link(Mitchell)
+[(Mitchell)] Mitchell, "A non-local, ordinary-state-based
+viscoelasticity model for peridynamics", Sandia National Lab Report,
+8064:1-28 (2011).

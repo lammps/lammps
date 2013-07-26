@@ -17,11 +17,13 @@
 </H3>
 <H3>pair_style peri/lps/omp command 
 </H3>
+<H3>pair_style peri/ves command 
+</H3>
 <P><B>Syntax:</B>
 </P>
 <PRE>pair_style style 
 </PRE>
-<UL><LI>style = <I>peri/pmb</I> or <I>peri/lps</I> 
+<UL><LI>style = <I>peri/pmb</I> or <I>peri/lps</I> or <I>peri/ves</I> 
 </UL>
 <P><B>Examples:</B>
 </P>
@@ -30,6 +32,9 @@ pair_coeff * * 1.6863e22 0.0015001 0.0005 0.25
 </PRE>
 <PRE>pair_style peri/lps
 pair_coeff * * 14.9e9 14.9e9 0.0015001 0.0005 0.25 
+</PRE>
+<PRE>pair_style peri/ves
+pair_coeff * * 14.9e9 14.9e9 0.0015001 0.0005 0.25 0.5 0.001 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -42,11 +47,20 @@ microelastic brittle (PMB) model.
 <P>Style <I>peri/lps</I> implements the Peridynamic state-based linear
 peridynamic solid (LPS) model.
 </P>
+<P>Style <I>peri/ves</I> implements the Peridynamic state-based linear
+peridynamic viscoelastic solid (VES) model.
+</P>
 <P>The canonical papers on Peridynamics are <A HREF = "#Silling2000">(Silling 2000)</A>
 and <A HREF = "#Silling2007">(Silling 2007)</A>.  The implementation of Peridynamics
 in LAMMPS is described in <A HREF = "#Parks">(Parks)</A>.  Also see the <A HREF = "http://www.sandia.gov/~mlparks/papers/PDLAMMPS.pdf">PDLAMMPS
 user guide</A> for
 more details about the implementation of peridynamics in LAMMPS.
+</P>
+<P>The peridynamic VES model in PDLAMMPS is implemented by R. Rahman and
+J.T Foster at University of Texas at San Antonio. The VES formulation
+is described in "(Mtchell2011)". For question regarding VES
+implementation in LAMMPS please contact R.Rahman:
+rezwanur.rahman@utsa.edu
 </P>
 <P>The following coefficients must be defined for each pair of atom types
 via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples above,
@@ -80,6 +94,25 @@ more details.
 cutoff distance for truncating interactions, and s00 and alpha are
 used as a bond breaking criteria. See the users guide for more
 details.
+</P>
+<P>For the <I>peri/ves</I> style:
+</P>
+<UL><LI>K (force/area units)
+<LI>G (force/area units)
+<LI>horizon (distance units)
+<LI>s00 (unitless)
+<LI>alpha (unitless) 
+<LI>m_lambdai (unitless)
+<LI>m_taubi (unitless) 
+</UL>
+<P>The same as for <I>peri/lps</I>, K is the bulk modulus and G is the shear
+modulus. The horizon is a cutoff distance for truncating interactions,
+and s00 and alpha are used as a bond breaking criteria. m_lambdai and
+m_taubi are the viscoelastic relaxation parameter and time constant,
+respectively. m_lambdai varies within zero to one. For very small
+values of m_lambdai the viscoelsatic model responds very similar to a
+linear elastic model. For details see the description in
+<A HREF = "#Mitchell">(Mitchell)</A>.
 </P>
 <HR>
 
@@ -128,7 +161,7 @@ to be specified in an input script that reads a restart file.
 
 <P><B>Restrictions:</B>
 </P>
-<P>The <I>peri/pmb</I> and <I>peri/lps</I> styles are part of the PERI
+<P>The <I>peri/pmb</I>, <I>peri/lps</I> and <I>peri/ves</I> styles are part of the PERI
 package. They are only enabled if LAMMPS was built with that package.
 See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A> section for more
 info.
@@ -143,7 +176,8 @@ info.
 
 <A NAME = "Parks"></A>
 
-<P><B>(Parks)</B> Parks, Lehoucq, Plimpton, Silling, Comp Phys Comm, 179(11), 777-783 (2008).
+<P><B>(Parks)</B> Parks, Lehoucq, Plimpton, Silling, Comp Phys Comm, 179(11),
+777-783 (2008).
 </P>
 <A NAME = "Silling2000"></A>
 
@@ -151,6 +185,13 @@ info.
 </P>
 <A NAME = "Silling2007"></A>
 
-<P><B>(Silling 2007)</B> Silling, Epton, Weckner, Xu, Askari, J Elasticity, 88, 151-184 (2007).
+<P><B>(Silling 2007)</B> Silling, Epton, Weckner, Xu, Askari, J Elasticity,
+88, 151-184 (2007).
+</P>
+<A NAME = "Mitchell"></A>
+
+<P><B>(Mitchell)</B> Mitchell, "A non-local, ordinary-state-based
+viscoelasticity model for peridynamics", Sandia National Lab Report,
+8064:1-28 (2011).
 </P>
 </HTML>

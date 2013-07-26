@@ -45,8 +45,10 @@ class PairTersoff : public Pair {
     double c1,c2,c3,c4;
     int ielement,jelement,kelement;
     int powermint;
-    double Z_i,Z_j;
+    double Z_i,Z_j;              // added for TersoffZBL
     double ZBLcut,ZBLexpscale;
+    double c5,ca1,ca4;           // added for TersoffMOD
+    double powern_del;
   };
 
   Param *params;                // parameter set for an I-J-K interaction
@@ -60,22 +62,22 @@ class PairTersoff : public Pair {
 
   void allocate();
   virtual void read_file(char *);
-  void setup();
+  virtual void setup();
   virtual void repulsive(Param *, double, double &, int, double &);
-  double zeta(Param *, double, double, double *, double *);
+  virtual double zeta(Param *, double, double, double *, double *);
   virtual void force_zeta(Param *, double, double, double &,
                           double &, int, double &);
   void attractive(Param *, double, double, double, double *, double *,
                   double *, double *, double *);
 
-  double ters_fc(double, Param *);
-  double ters_fc_d(double, Param *);
+  virtual double ters_fc(double, Param *);
+  virtual double ters_fc_d(double, Param *);
   virtual double ters_fa(double, Param *);
   virtual double ters_fa_d(double, Param *);
-  double ters_bij(double, Param *);
-  double ters_bij_d(double, Param *);
+  virtual double ters_bij(double, Param *);
+  virtual double ters_bij_d(double, Param *);
 
-  void ters_zetaterm_d(double, double *, double, double *, double,
+  virtual void ters_zetaterm_d(double, double *, double, double *, double,
                                double *, double *, double *, Param *);
   void costheta_d(double *, double, double *, double,
                   double *, double *, double *);

@@ -1,0 +1,78 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>compute basal/atom command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>compute ID group-ID basal/atom 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
+<LI>basal/atom = style name of this compute command 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>compute 1 all basal/atom 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Defines a computation that calculates the hexagonal close-packed "c"
+lattice vector for each atom in the group.  It does this by
+calculating the normal unit vector to the basal plane for each atom.
+The results enable efficient identification and characterization of
+twins and grains in hexagonal close-packed structures.
+</P>
+<P>Details of the calculation are given in <A HREF = "#Barrett">(Barrett)</A>.
+</P>
+<P>The neighbor list needed to compute this quantity is constructed each
+time the calculation is performed (i.e. each time a snapshot of atoms
+is dumped).  Thus it can be inefficient to compute/dump this quantity
+too frequently or to have multiple compute/dump commands, each of
+which computes this quantity.
+</P>
+<P>An example input script that uses this compute is provided
+in examples/USER/misc/basal.
+</P>
+<P><B>Output info:</B>
+</P>
+<P>This compute calculates a per-atom array with 3 columns, which can be
+accessed by indices 1-3 by any command that uses per-atom values from
+a compute as input.  See <A HREF = "Section_howto.html#howto_15">Section_howto
+15</A> for an overview of LAMMPS output
+options.
+</P>
+<P>The per-atom vector values are unitless since the 3 columns represent
+components of a unit vector.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This compute is part of the USER-MISC package.  It is only enabled if
+LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>The output of this compute will be meaningless unless the atoms are on
+(or near) hcp lattice sites, since the calculation assumes a
+well-defined basal plane.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "compute_centro_atom.html">compute centro/atom</A>, <A HREF = "compute_ackland_atom.html">compute
+ackland/atom</A>
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "Barrett"></A>
+
+<P><B>(Barrett)</B> Barrett, Tschopp, El Kadiri, Scripta Mat. 66, p.666 (2012).
+</P>
+</HTML>

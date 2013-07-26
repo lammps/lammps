@@ -668,6 +668,7 @@ These are compute styles contributed by users, which can be used if
 package"_Section_start.html#start_3.
 
 "ackland/atom"_compute_ackland_atom.html,
+"basal/atom"_compute_basal_atom.html,
 "ke/eff"_compute_ke_eff.html,
 "ke/atom/eff"_compute_ke_atom_eff.html,
 "meso_e/atom"_compute_meso_e_atom.html,

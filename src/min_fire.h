@@ -34,7 +34,9 @@ class MinFire : public Min {
   int iterate(int);
 
  private:
-  double dt;
+  double dt,dtmax;
+  double alpha;
+  bigint last_negative;
 };
 
 }

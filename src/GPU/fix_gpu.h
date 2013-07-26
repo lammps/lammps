@@ -34,10 +34,12 @@ class FixGPU : public Fix {
   void min_setup(int);
   void post_force(int);
   void min_post_force(int);
+  void post_force_respa(int, int, int);
   double memory_usage();
 
  private:
   int _gpu_mode;
+  int _nlevels_respa;
   double _particle_split;
 };
 
@@ -85,5 +87,10 @@ E: Cannot use neigh_modify exclude with GPU neighbor builds
 
 This is a current limitation of the GPU implementation
 in LAMMPS.
+
+E: GPU styles must be on the outmost r-RESPA level
+
+Self-explanatory.
+
 
 */

@@ -334,6 +334,7 @@ void Neighbor::skip_from_respa(NeighList *list)
   int **ijskip = list->ijskip;
 
   NeighList *listinner = list->listinner;
+  int *ilist_inner = listinner->ilist;
   int *numneigh_inner = listinner->numneigh;
   int **firstneigh_inner = listinner->firstneigh;
   MyPage<int> *ipage_inner = listinner->ipage;
@@ -348,6 +349,7 @@ void Neighbor::skip_from_respa(NeighList *list)
   int respamiddle = list->respamiddle;
   if (respamiddle) {
     listmiddle = list->listmiddle;
+    ilist_middle = listmiddle->ilist;
     numneigh_middle = listmiddle->numneigh;
     firstneigh_middle = listmiddle->firstneigh;
     ipage_middle = listmiddle->ipage;
@@ -422,6 +424,7 @@ void Neighbor::skip_from_respa(NeighList *list)
     if (ipage->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
 
+    ilist_inner[inum] = i;
     firstneigh_inner[i] = neighptr_inner;
     numneigh_inner[i] = n_inner;
     ipage_inner->vgot(n);
@@ -429,6 +432,7 @@ void Neighbor::skip_from_respa(NeighList *list)
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
 
     if (respamiddle) {
+      ilist_middle[inum] = i;
       firstneigh_middle[i] = neighptr_middle;
       numneigh_middle[i] = n_middle;
       ipage_middle->vgot(n);

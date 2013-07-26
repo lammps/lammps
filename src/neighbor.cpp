@@ -327,6 +327,7 @@ void Neighbor::init()
     cut_inner_sq = (cut_respa[1] + skin) * (cut_respa[1] + skin);
     cut_middle_sq = (cut_respa[3] + skin) * (cut_respa[3] + skin);
     cut_middle_inside_sq = (cut_respa[0] - skin) * (cut_respa[0] - skin);
+    if (cut_respa[0]-skin < 0) cut_middle_inside_sq = 0.0;
   }
 
   // ------------------------------------------------------------------

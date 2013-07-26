@@ -51,9 +51,10 @@ more details about the implementation of peridynamics in LAMMPS.
 
 The peridynamic VES model in PDLAMMPS is implemented by R. Rahman and
 J.T Foster at University of Texas at San Antonio. The VES formulation
-is described in "(Mtchell2011)". For question regarding VES
-implementation in LAMMPS please contact R.Rahman:
-rezwanur.rahman@utsa.edu
+is described in "(Mitchell)"_#Mitchell.  An additional PDF doc with
+details is in "doc/PDF/PDLammps_VES.pdf"_PDF/PDLammps_VES.pdf.  For
+questions regarding VES implementation in LAMMPS please contact Rezwan
+Rahman: rezwanur.rahman at utsa.edu.
 
 The following coefficients must be defined for each pair of atom types
 via the "pair_coeff"_pair_coeff.html command as in the examples above,

@@ -52,6 +52,18 @@ using namespace LAMMPS_NS;
 
 enum{NSQ,BIN,MULTI};     // also in neigh_list.cpp
 
+static const char neigh_multi_pub[] =
+  "@Article{intveld08,\n"
+  " author =       {P.{\,}J.~in{\,}'t~Veld and S.{\,}J.~Plimpton"
+  " and G.{\,}S.~Grest},\n"
+  " title =        {Accurate and Efficient Methods for Modeling"
+  " Colloidal Mixtures in an Explicit Solvent using Molecular Dynamics},\n"
+  " journal =      {Comp.~Phys.~Comm.},\n"
+  " year =         2008,\n"
+  " volume =       179,\n"
+  " pages =        {320--329}\n"
+  "}\n\n";
+
 //#define NEIGH_LIST_DEBUG 1
 
 /* ---------------------------------------------------------------------- */
@@ -1645,7 +1657,7 @@ void Neighbor::set(int narg, char **arg)
   else if (strcmp(arg[1],"multi") == 0) style = MULTI;
   else error->all(FLERR,"Illegal neighbor command");
 
-  if (style == MULTI) citeme->add(CiteMe::INTVELD_2008);
+  if (style == MULTI) citeme->add(neigh_multi_pub);
 }
 
 /* ----------------------------------------------------------------------

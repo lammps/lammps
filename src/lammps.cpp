@@ -48,6 +48,16 @@
 
 using namespace LAMMPS_NS;
 
+static const char lammps_pub[] =
+  "@Article{plimpton95,\n"
+  " author =  {S.{\,}J.~Plimpton},\n"
+  " title =   {Fast Parallel Algorithms for Short-Range Molecular Dynamics},\n"
+  " journal = {J.{\,}Comp.{\,}Phys.},\n"
+  " year =    1995,\n"
+  " volume =  117,\n"
+  " pages =   {1--19}\n"
+  "}\n\n";
+
 /* ----------------------------------------------------------------------
    start up LAMMPS
    allocate fundamental classes (memory, error, universe, input)
@@ -480,7 +490,7 @@ void LAMMPS::create()
   update = new Update(this);  // must be after output, force, neighbor
   timer = new Timer(this);
   citeme = new CiteMe(this);
-  citeme->add(CiteMe::PLIMPTON_1995); // always reference this one
+  citeme->add(lammps_pub);    // always reference this one
 }
 
 /* ----------------------------------------------------------------------

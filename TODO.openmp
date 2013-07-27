@@ -1,6 +1,0 @@
-
-- rewrite and port the remaining "complicated" pair style to threading
-- fourier transforms (may need extra flag to restrict fft-threads)
-- thread fixes like integrators and shake
-
-

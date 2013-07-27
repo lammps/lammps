@@ -1,5 +1,0 @@
-- test building the rpm version from svn/git
-- add script for automatic building
-- provide weekly(?) automatic builds ?
-- build on RHEL-6
-- host rpm builds on cms web server

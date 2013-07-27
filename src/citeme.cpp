@@ -93,7 +93,7 @@ CiteMe::~CiteMe()
   } 
 
   FILE *fp = (FILE *)_fp;
-  if (fp) fclose(fp)
+  if (fp) fclose(fp);
 
   citeset *c = (citeset *) _pubs;
   delete c;

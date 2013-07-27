@@ -36,7 +36,6 @@
 #include "memory.h"
 #include "modify.h"
 #include "update.h"
-#include "citeme.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -205,8 +204,6 @@ FixPhonon::FixPhonon(LAMMPS *lmp,  int narg, char **arg) : Fix(lmp, narg, arg)
   int icompute = modify->find_compute(id_temp);
   temperature = modify->compute[icompute];
   inv_nTemp = 1.0/group->count(temperature->igroup);
-
-  citeme->add(CiteMe::KONG_2011);
 
 } // end of constructor
 

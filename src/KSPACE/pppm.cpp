@@ -38,7 +38,6 @@
 #include "remap_wrap.h"
 #include "memory.h"
 #include "error.h"
-#include "citeme.h"
 
 #include "math_const.h"
 #include "math_special.h"
@@ -146,8 +145,6 @@ PPPM::PPPM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
   acons[7][4] = 25091609.0 / 1560084480.0;
   acons[7][5] = 1755948832039.0 / 36229939200000.0;
   acons[7][6] = 4887769399.0 / 37838389248.0;
-
-  citeme->add(CiteMe::PLIMPTON_1997);
 }
 
 /* ----------------------------------------------------------------------

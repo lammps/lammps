@@ -30,7 +30,6 @@
 #include "integrate.h"
 #include "memory.h"
 #include "error.h"
-#include "citeme.h"
 
 using namespace LAMMPS_NS;
 
@@ -39,7 +38,6 @@ using namespace LAMMPS_NS;
 PairGayBerne::PairGayBerne(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
-  citeme->add(CiteMe::BROWN_2009);
 }
 
 /* ----------------------------------------------------------------------

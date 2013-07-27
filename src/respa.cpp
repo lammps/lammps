@@ -37,7 +37,6 @@
 #include "timer.h"
 #include "memory.h"
 #include "error.h"
-#include "citeme.h"
 
 using namespace LAMMPS_NS;
 
@@ -227,8 +226,6 @@ Respa::Respa(LAMMPS *lmp, int narg, char **arg) : Integrate(lmp, narg, arg)
 
   newton = new int[nlevels];
   step = new double[nlevels];
-
-  citeme->add(CiteMe::PLIMPTON_1997);
 }
 
 /* ---------------------------------------------------------------------- */

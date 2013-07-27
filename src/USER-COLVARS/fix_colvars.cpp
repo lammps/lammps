@@ -31,7 +31,6 @@
 #include "modify.h"
 #include "respa.h"
 #include "update.h"
-#include "citeme.h"
 
 #include "colvarproxy_lammps.h"
 
@@ -359,8 +358,6 @@ FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
 
   /* storage required to communicate a single coordinate or force. */
   size_one = sizeof(struct commdata);
-
-  citeme->add(CiteMe::FIORIN_2013);
 }
 
 /*********************************

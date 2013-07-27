@@ -27,7 +27,6 @@
 #include "universe.h"
 #include "gpu_extra.h"
 #include "neighbor.h"
-#include "citeme.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -109,8 +108,6 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
                                  _gpu_mode, _particle_split, nthreads,
                                  threads_per_atom, cell_size);
   GPU_EXTRA::check_flag(gpu_flag,error,world);
-
-  citeme->add(CiteMe::BROWN_2011);
 }
 
 /* ---------------------------------------------------------------------- */

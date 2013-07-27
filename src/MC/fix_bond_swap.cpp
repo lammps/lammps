@@ -31,7 +31,6 @@
 #include "random_mars.h"
 #include "memory.h"
 #include "error.h"
-#include "citeme.h"
 
 #include "update.h"
 
@@ -81,7 +80,6 @@ FixBondSwap::FixBondSwap(LAMMPS *lmp, int narg, char **arg) :
   alist = NULL;
 
   naccept = foursome = 0;
-  citeme->add(CiteMe::AUHL_2003);
 }
 
 /* ---------------------------------------------------------------------- */

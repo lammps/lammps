@@ -30,7 +30,6 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
-#include "citeme.h"
 
 using namespace LAMMPS_NS;
 
@@ -51,8 +50,6 @@ PairSW::PairSW(LAMMPS *lmp) : Pair(lmp)
   nparams = maxparam = 0;
   params = NULL;
   elem2param = NULL;
-
-  citeme->add(CiteMe::PLIMPTON_2012);
 }
 
 /* ----------------------------------------------------------------------

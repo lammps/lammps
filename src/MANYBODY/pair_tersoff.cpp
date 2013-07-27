@@ -28,7 +28,6 @@
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
-#include "citeme.h"
 
 #include "math_const.h"
 
@@ -52,8 +51,6 @@ PairTersoff::PairTersoff(LAMMPS *lmp) : Pair(lmp)
   nparams = maxparam = 0;
   params = NULL;
   elem2param = NULL;
-
-  citeme->add(CiteMe::PLIMPTON_2012);
 }
 
 /* ----------------------------------------------------------------------

@@ -123,7 +123,7 @@ void Finish::end(int flag)
   int histo[10];
   int minflag,prdflag,tadflag,timeflag,fftflag,histoflag,neighflag;
   double time,tmp,ave,max,min;
-  double time_loop,time_other;
+  double time_loop,time_other,cpu_loop;
 
   int me,nprocs;
   MPI_Comm_rank(world,&me);
@@ -143,6 +143,7 @@ void Finish::end(int flag)
   // turn off neighflag for Kspace partition of verlet/split integrator
 
   minflag = prdflag = tadflag = timeflag = fftflag = histoflag = neighflag = 0;
+  time_loop = cpu_loop = time_other = 0.0;
 
   if (flag == 1) {
     if (update->whichflag == 2) minflag = 1;
@@ -160,26 +161,39 @@ void Finish::end(int flag)
   // loop stats
 
   if (timer->has_loop()) {
-    time_other = timer->get_wall(Timer::TOTAL) -
-      (timer->get_wall(Timer::PAIR) + timer->get_wall(Timer::BOND) + 
-       timer->get_wall(Timer::KSPACE) + timer->get_wall(Timer::NEIGH) +
-       timer->get_wall(Timer::COMM) + timer->get_wall(Timer::OUTPUT) +
-       timer->get_wall(Timer::MODIFY) + timer->get_wall(Timer::SYNC));
     
-    time_loop = timer->get_wall(Timer::TOTAL);
-    MPI_Allreduce(&time_loop,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
-    time_loop = tmp/nprocs;
-
     // overall loop time
 
+    time_loop = timer->get_wall(Timer::TOTAL);
+    cpu_loop = timer->get_cpu(Timer::TOTAL);
+    MPI_Allreduce(&time_loop,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
+    time_loop = tmp/nprocs;
+    MPI_Allreduce(&cpu_loop,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
+    cpu_loop = tmp/nprocs;
+    if (time_loop > 0.0) cpu_loop = cpu_loop/time_loop*100.0;
+ 
     if (me == 0) {
       int ntasks = nprocs * comm->nthreads;
+
+#ifdef LMP_USER_OMP
       const char fmt[] = "Loop time of %g on %d procs "
-        "(%d MPI x %d OpenMP) for %d steps with " BIGINT_FORMAT " atoms\n";
-      if (screen) fprintf(screen,fmt,time_loop,ntasks,nprocs,
-                          comm->nthreads,update->nsteps,atom->natoms);
-      if (logfile) fprintf(logfile,fmt,time_loop,ntasks,nprocs,
-                           comm->nthreads,update->nsteps,atom->natoms);
+        "for %d steps with " BIGINT_FORMAT " atoms\n"
+        "%6.1f%% CPU use with %d MPI tasks x %d OpenMP threads\n";
+      if (screen) fprintf(screen,fmt,time_loop,ntasks,update->nsteps,
+                          atom->natoms,cpu_loop,nprocs,comm->nthreads);
+      if (logfile) fprintf(logfile,fmt,time_loop,ntasks,update->nsteps,
+                           atom->natoms,cpu_loop,nprocs,comm->nthreads);
+#else
+      const char fmt[] = "Loop time of %g on %d procs "
+        "for %d steps with " BIGINT_FORMAT " atoms\n"
+        "%6.1f%% CPU use with %d MPI tasks\n";
+      if (screen) fprintf(screen,fmt,time_loop,ntasks,update->nsteps,
+                          atom->natoms,cpu_loop,nprocs);
+      if (logfile) fprintf(logfile,fmt,time_loop,ntasks,update->nsteps,
+                           atom->natoms,cpu_loop,nprocs);
+#endif
+
+      // Gromacs/NAMD-like performance metric for MD with suitable units
 
       if ( timeflag && !minflag && !prdflag && !tadflag &&
            (update->nsteps > 0) &&
@@ -187,7 +201,8 @@ void Finish::end(int flag)
             (strcmp(update->unit_style,"real") == 0)) ) {
         float t_step, ns_day, hrs_ns, tps, one_fs = 1.0;
 
-        // conversion factor to femtoseconds
+        // conversion factor to femtoseconds for suitable units
+
         if (strcmp(update->unit_style,"metal") == 0) one_fs = 0.001;
         t_step = (float)time_loop / ((float) update->nsteps);
         tps = 1.0/t_step;
@@ -200,10 +215,23 @@ void Finish::end(int flag)
         if (logfile) fprintf(logfile, perf, ns_day, hrs_ns, tps);
       }
     }
-
-    if (time_loop == 0.0) time_loop = 1.0;
   }
 
+  // avoid division by zero for very short runs
+
+  if (time_loop == 0.0) time_loop = 1.0;
+  if (cpu_loop == 0.0) cpu_loop = 100.0;
+
+  // get "Other" wall time for later use
+
+  if (timer->has_normal()) {
+    time_other = timer->get_wall(Timer::TOTAL) -
+      (timer->get_wall(Timer::PAIR) + timer->get_wall(Timer::BOND) + 
+       timer->get_wall(Timer::KSPACE) + timer->get_wall(Timer::NEIGH) +
+       timer->get_wall(Timer::COMM) + timer->get_wall(Timer::OUTPUT) +
+       timer->get_wall(Timer::MODIFY) + timer->get_wall(Timer::SYNC));
+  }
+   
   // minimization stats
 
   if (minflag) {

@@ -114,7 +114,8 @@ void Timer::barrier_start()
   MPI_Barrier(world);
 
   if (_level < LOOP) return;
-  if (_level > NORMAL) current_cpu = CPU_Time();
+
+  current_cpu = CPU_Time();
   current_wall = MPI_Wtime();
 
   cpu_array[TOTAL]  = current_cpu;
@@ -132,7 +133,8 @@ void Timer::barrier_stop()
   MPI_Barrier(world);
 
   if (_level < LOOP) return;
-  if (_level > NORMAL) current_cpu = CPU_Time();
+
+  current_cpu = CPU_Time();
   current_wall = MPI_Wtime();
 
   cpu_array[TOTAL]  = current_cpu - cpu_array[TOTAL];

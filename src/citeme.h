@@ -14,7 +14,6 @@
 #ifndef LMP_CITEME_H
 #define LMP_CITEME_H
 
-#include "lmptype.h"
 #include "pointers.h"
 
 namespace LAMMPS_NS {
@@ -24,38 +23,11 @@ class CiteMe : protected Pointers {
   CiteMe(class LAMMPS *);
   virtual ~CiteMe();
 
-  void on();                    // turn citing on
-  void off();                   // turn citing off
-
-  void add(int);         // add a paper to the list of citations
-
-  // constants for references
-  enum {
-    FIRST_ENTRY=-1,
-    PLIMPTON_1995=0,
-    PLIMPTON_1997,
-    AUHL_2003,
-    JANSSENS_2006,
-    INTVELD_2008,
-    PARKS_2008,
-    MUKHERJEE_2008,
-    BROWN_2009,
-    THOMPSON_2009,
-    PETERSEN_2010,
-    BROWN_2011,
-    BROWN_2012,
-    JARAMILLO_BOTERO_2011,
-    KONG_2011,
-    AKTULGA_2012,
-    PLIMPTON_2012,
-    SIRK_2013,
-    FIORIN_2013,
-    LAST_ENTRY
-  };
+  void add(const char *);       // print out and register publication
 
  private:
-  void *_pubs;
-  bool _active;
+  void *_pubs;                  // opaque pointer to set of publications
+  void *_fp;                    // opaque pointer to log.cite file object
 };
 
 }

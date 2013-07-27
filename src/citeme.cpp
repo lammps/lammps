@@ -13,6 +13,7 @@
 
 #include "citeme.h"
 #include "version.h"
+#include "universe.h"
 #include "comm.h"
 
 #include <stdio.h>
@@ -20,6 +21,7 @@
 
 using namespace LAMMPS_NS;
 
+#if 0
 // the list of publications is below
 static const char * const publication[] = {
   /* PLIMPTON_1995 */
@@ -103,72 +105,83 @@ static const char * const publication[] = {
   " Mol. Phys. http://dx.doi.org/10.1080/00268976.2013.813594 (2013)\n\n",
   NULL 
 };
+#endif
+
 
 // to simplify the code below
-typedef std::set<int> intset;
+typedef std::set<const char *> citeset;
+
+static const char nagline[] = "\n"
+  "------------------------------------------------------------------------\n"
+  "This simulation made use of algorithms and methodologies described\n"
+  "in the references listed in the file 'log.cite'\n"
+  "------------------------------------------------------------------------\n";
+
+static const char cite_header[] = "\n"
+  "------------------------------------------------------------------------\n"
+  "This simulation made use of algorithms and methodologies described\n"
+  "in the following references:\n\n";
+
+static const char lammps_version[] =
+  "The LAMMPS Molecular Dynamics Simulator, Version " LAMMPS_VERSION "\n"
+  "    http://lammps.sandia.gov\n\n";
 
 /* ---------------------------------------------------------------------- */
 
 CiteMe::CiteMe(LAMMPS *lmp) : Pointers(lmp) {
 
-  intset *c = new intset;
+  FILE *fp;
+  citeset *c = new citeset;
+
   _pubs = (void *)c;
-  if (comm->me == 0)
-    _active = true;
-  else
-    _active = false;
+
+  if ((universe->me == 0) && ((fp = fopen("log.cite","w")))) {
+    fputs(cite_header,fp);
+    fputs(lammps_version,fp);
+    fflush(fp);
+  } else {
+    fp = NULL;
+  }
+  _fp = (void *) fp;
+
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   Write out and register a citation so it will be written only once
+------------------------------------------------------------------------- */
 
-void CiteMe::add(int ref)
+void CiteMe::add(const char *ref)
 {
-  intset *c = (intset *) _pubs;
-  if ((ref > FIRST_ENTRY ) && (ref < LAST_ENTRY))
-    c->insert(ref); // only add known entries
+  citeset *c = (citeset *) _pubs;
+
+  if (c->find(ref) == c->end()) {
+
+    FILE *fp = (FILE *)_fp;
+    fputs(ref,fp);
+    fflush(fp);
+
+    c->insert(ref);
+  }
 }
 
-/* ---------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- 
+   Write out nag-line at the end of the regular output and clean up.
+------------------------------------------------------------------------- */
 
-void CiteMe::on()
+CiteMe::~CiteMe()
 {
-  if (comm->me == 0)
-    _active = true;
-}
 
-/* ---------------------------------------------------------------------- */
-
-void CiteMe::off()
-{
-  _active = false;
-}
-
-/* ---------------------------------------------------------------------- */
-
-static const char cite_header[] = "\n"
-  "------------------------------------------------------------------------\n"
-  "This simulation made use of algorithms and methodologies described\n"
-  "in the following references:\n\n"
-  "The LAMMPS Molecular Dynamics Simulator, Version " LAMMPS_VERSION "\n"
-  "    http://lammps.sandia.gov\n\n";
-
-CiteMe::~CiteMe(){
-  intset *c = (intset *)(_pubs);
-
-  if (_active) {
+  if (comm->me == 0) {
     if (screen)
-      fputs(cite_header,screen);
+      fputs(nagline,screen);
 
     if (logfile)
-      fputs(cite_header,logfile);
+      fputs(nagline,logfile);
+  } 
 
-    for (intset::const_iterator i = c->begin(); i != c->end(); ++i) {
-      if (screen)
-        fputs(publication[*i],screen);
-      if (logfile)
-        fputs(publication[*i],logfile);
-    }
-  }
+  FILE *fp = (FILE *)_fp;
+  if (fp) fclose(fp)
 
+  citeset *c = (citeset *) _pubs;
   delete c;
 }

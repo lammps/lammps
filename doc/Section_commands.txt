@@ -668,6 +668,7 @@ These are compute styles contributed by users, which can be used if
 package"_Section_start.html#start_3.
 
 "ackland/atom"_compute_ackland_atom.html,
+"basal/atom"_compute_basal_atom.html,
 "ke/eff"_compute_ke_eff.html,
 "ke/atom/eff"_compute_ke_atom_eff.html,
 "meso_e/atom"_compute_meso_e_atom.html,
@@ -773,6 +774,7 @@ potentials.  Click on the style itself for a full description:
 "morse"_pair_morse.html,
 "peri/lps"_pair_peri.html,
 "peri/pmb"_pair_peri.html,
+"peri/ves"_pair_peri.html,
 "reax"_pair_reax.html,
 "rebo"_pair_airebo.html,
 "resquared"_pair_resquared.html,
@@ -780,6 +782,7 @@ potentials.  Click on the style itself for a full description:
 "sw"_pair_sw.html,
 "table"_pair_table.html,
 "tersoff"_pair_tersoff.html,
+"tersoff/mod"_pair_tersoff_mod.html,
 "tersoff/zbl"_pair_tersoff_zbl.html,
 "tip4p/cut"_pair_coul.html,
 "tip4p/long"_pair_coul.html,

@@ -220,6 +220,11 @@ void VerletSplit::init()
   if (force->kspace_match("tip4p",0)) tip4p_flag = 1;
   else tip4p_flag = 0;
 
+  // currently TIP4P does not work with verlet/split, so generate error
+  // see Axel email on this, also other TIP4P notes below
+
+  if (tip4p_flag) error->all(FLERR,"Verlet/split does not yet support TIP4P");
+
   Verlet::init();
 }
 

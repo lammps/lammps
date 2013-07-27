@@ -1,4 +1,4 @@
-/* -*- c++ -*- ----------------------------------------------------------
+/* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -11,32 +11,37 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef MINIMIZE_CLASS
+#ifdef COMPUTE_CLASS
 
-MinimizeStyle(fire,MinFire)
+ComputeStyle(basal/atom,ComputeBasalAtom)
 
 #else
 
-#ifndef LMP_MIN_FIRE_H
-#define LMP_MIN_FIRE_H
+#ifndef LMP_COMPUTE_BASAL_ATOM_H
+#define LMP_COMPUTE_BASAL_ATOM_H
 
-#include "min.h"
+#include "compute.h"
 
 namespace LAMMPS_NS {
 
-class MinFire : public Min {
+class ComputeBasalAtom : public Compute {
  public:
-  MinFire(class LAMMPS *);
-  ~MinFire() {}
+  ComputeBasalAtom(class LAMMPS *, int, char **);
+  ~ComputeBasalAtom();
   void init();
-  void setup_style();
-  void reset_vectors();
-  int iterate(int);
+  void init_list(int, class NeighList *);
+  void compute_peratom();
+  double memory_usage();
 
  private:
-  double dt,dtmax;
-  double alpha;
-  bigint last_negative;
+  int nmax,maxneigh;
+  double *distsq;
+  int *nearest, *nearest_n0, *nearest_n1;
+  double **BPV;
+  class NeighList *list;
+
+  void select(int, int, double *);
+  void select2(int, int, double *, int *);
 };
 
 }

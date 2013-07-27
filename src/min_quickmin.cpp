@@ -46,6 +46,7 @@ void MinQuickMin::init()
   Min::init();
 
   dt = update->dt;
+  last_negative = update->ntimestep;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -85,7 +86,6 @@ int MinQuickMin::iterate(int maxiter)
   int flag,flagall;
 
   alpha_final = 0.0;
-  bigint last_negative = update->ntimestep;
 
   for (int iter = 0; iter < maxiter; iter++) {
     ntimestep = ++update->ntimestep;

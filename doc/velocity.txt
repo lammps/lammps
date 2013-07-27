@@ -10,7 +10,7 @@ velocity command :h3
 
 [Syntax:]
 
-velocity group-ID style args keyword value ... :pre
+velocity group-ID style args keyword args ... :pre
 
 group-ID = ID of group of atoms whose velocity will be changed :ulb,l
 style = {create} or {set} or {scale} or {ramp} or {zero} :l

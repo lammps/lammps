@@ -144,17 +144,19 @@ void FixGPU::init()
       error->all(FLERR,"GPU 'split' must be positive for hybrid pair styles");
 
   // r-RESPA support
+
   if (strstr(update->integrate_style,"respa")) {
     _nlevels_respa = ((Respa *) update->integrate)->nlevels;
 
-  // need to check that gpu accelerated styles are at the outmost levels
+    // need to check that gpu accelerated styles are at the outmost levels
+    
     if ((force->pair_match("/gpu",0) != NULL) &&
         (((Respa *) update->integrate)->level_pair != _nlevels_respa-1))
-      error->all(FLERR,"GPU styles must be on the outmost r-RESPA level");
+      error->all(FLERR,"GPU pair style must be at outermost respa level");
 
     if ((force->kspace_match("/gpu",0) != NULL) &&
         (((Respa *) update->integrate)->level_kspace != _nlevels_respa-1))
-      error->all(FLERR,"GPU styles must be on the outmost r-RESPA level");
+      error->all(FLERR,"GPU Kspace style must be at outermost respa level");
   }
 }
 
@@ -187,7 +189,7 @@ void FixGPU::min_setup(int vflag)
 
 void FixGPU::post_force(int vflag)
 {
-  timer->stamp(Timer::MODIFY);
+  timer->stamp();
   double lvirial[6];
   for (int i = 0; i < 6; i++) lvirial[i] = 0.0;
   double my_eng = lmp_gpu_forces(atom->f, atom->torque, force->pair->eatom,
@@ -203,7 +205,7 @@ void FixGPU::post_force(int vflag)
   force->pair->virial[5] += lvirial[5];
 
   if (force->pair->vflag_fdotr) force->pair->virial_fdotr_compute();
-  timer->stamp(Timer::PAIR);
+  timer->stamp(TIME_PAIR);
 }
 
 /* ---------------------------------------------------------------------- */

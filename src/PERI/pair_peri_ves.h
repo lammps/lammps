@@ -1,4 +1,4 @@
-/* -*- c++ -*- ----------------------------------------------------------
+/* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -13,21 +13,21 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(peri/lps,PairPeriLPS)
+PairStyle(peri/ves,PairPeriVES)
 
 #else
 
-#ifndef LMP_PAIR_PERI_LPS_H
-#define LMP_PAIR_PERI_LPS_H
+#ifndef LMP_PAIR_PERI_VES_H
+#define LMP_PAIR_PERI_VES_H
 
 #include "pair.h"
 
 namespace LAMMPS_NS {
 
-class PairPeriLPS : public Pair {
+class PairPeriVES : public Pair {
  public:
-  PairPeriLPS(class LAMMPS *);
-  virtual ~PairPeriLPS();
+  PairPeriVES(class LAMMPS *);
+  virtual ~PairPeriVES();
   int pack_comm(int, int *, double *, int, int *);
   void unpack_comm(int, int, double *);
 
@@ -49,7 +49,7 @@ class PairPeriLPS : public Pair {
   double **bulkmodulus;
   double **shearmodulus;
   double **s00, **alpha;
-  double **cut;
+  double **cut, **m_lambdai, **m_taubi;   //NEW: **m_lambdai,**m_taubi
 
   double *s0_new;
   double *theta;
@@ -89,6 +89,10 @@ E: Pair peri requires an atom map, see atom_modify
 Even for atomic systems, an atom map is required to find Peridynamic
 bonds.  Use the atom_modify command to define one.
 
+E: Pair peri requires a lattice be defined
+
+Use the lattice command for this purpose.
+
 E: Pair peri lattice is not identical in x, y, and z
 
 The lattice defined by the lattice command must be cubic.
@@ -101,9 +105,5 @@ E: Divide by 0 in influence function of pair peri/lps
 
 This should not normally occur.  It is likely a problem with your
 model.
-
-U: Pair peri requires a lattice be defined
-
-Use the lattice command for this purpose.
 
 */

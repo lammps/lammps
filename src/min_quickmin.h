@@ -35,6 +35,7 @@ class MinQuickMin : public Min {
 
  private:
   double dt;
+  bigint last_negative;
 };
 
 }

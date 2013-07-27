@@ -49,6 +49,9 @@ void MinFire::init()
   Min::init();
 
   dt = update->dt;
+  dtmax = TMAX * dt;
+  alpha = ALPHA0;
+  last_negative = update->ntimestep;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -87,9 +90,6 @@ int MinFire::iterate(int maxiter)
   int flag,flagall;
 
   alpha_final = 0.0;
-  double alpha = ALPHA0;
-  double dtmax = TMAX * dt;
-  bigint last_negative = update->ntimestep;
 
   for (int iter = 0; iter < maxiter; iter++) {
     ntimestep = ++update->ntimestep;

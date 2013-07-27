@@ -1,0 +1,163 @@
+############################################################################
+# Input file for investigating twinning nucleation under uniaxial loading with basal plane vector analysis
+# Christopher Barrett, March 2013
+# This script requires a Mg pair potential file to be in the same directory.
+
+# fname is the file name.  It is necessary for loops to work correctly. (See jump command)
+variable fname index Mg_SC_BPV.in
+
+######################################
+# POTENTIAL VARIABLES
+# lattice parameters and the minimum energy per atom which should be obtained with the current pair potential and homogeneous lattice
+variable lx equal 3.181269601 
+variable b equal sqrt(3)
+variable c equal sqrt(8/3)
+variable ly equal ${b}*${lx}
+variable lz equal ${c}*${lx}
+variable pairlocation index almg.liu
+variable pairstyle index eam/alloy/opt
+
+######################################
+# EQUILIBRATION/DEFORMATION VARIABLES
+# eqpress = 10 bar = 1 MPa
+# tstep (the timestep) is set to a default value of 0.001 (1 fs) 
+# seed randomizes the velocity
+# srate is the rate of strain in 1/s
+# Ndump is the number of timesteps in between each dump of the atom coordinates
+variable tstep equal 0.001
+variable seed equal 95812384
+variable srate equal 1e9
+
+######################################
+# INITIALIZATION
+units 		metal
+dimension		3
+boundary		s	s	s
+atom_style		atomic
+
+######################################
+# ATOM BUILD
+atom_modify map array
+
+# lattice custom scale a1 "coordinates of a1" a2 "coordinates of a2" a3 "coordinates of a3" basis "atom1 coordinates" basis "atom2 coordinates" basis "atom3 coordinates" basis "atom4 coordinates" orient x "crystallagraphic orientation of x axis" orient y "crystallagraphic orientation of y axis" z "crystallagraphic orientation of z axis"
+lattice custom 3.181269601 a1 1 0 0 a2 0 1.732050808 0 a3 0 0 1.632993162 basis 0.0 0.0 0.0 basis 0.5 0.5 0 basis 0 0.3333333 0.5 basis 0.5 0.833333 0.5 orient x 0 1 1 orient y 1 0 0 orient z 0 1 -1
+variable multiple equal 20
+variable mx equal "v_lx*v_multiple"
+variable my equal "v_ly*v_multiple"
+variable mz equal "v_lz*v_multiple"
+
+# the simulation region should be from 0 to a multiple of the periodic boundary in x, y and z.
+region		whole block 0 ${mz} 0 ${mx} 0 ${my} units box 
+create_box		2 whole
+create_atoms 1 box basis 1 1 basis 2 1 basis 3 1 basis 4 1 
+
+region fixed1 block -INF INF -INF INF -INF 10 units box
+region fixed2 block -INF INF -INF INF  100 INF units box
+group lower region fixed1
+group upper region fixed2
+group boundary union upper lower
+group mobile subtract all boundary
+
+variable natoms equal "count(all)"
+print "# of atoms are: ${natoms}"
+
+######################################
+# INTERATOMIC POTENTIAL
+pair_style	${pairstyle}
+pair_coeff	* * ${pairlocation} Mg Mg
+
+######################################
+# COMPUTES REQUIRED
+compute csym all centro/atom 12
+compute eng all pe/atom
+compute eatoms all reduce sum c_eng
+compute basal all basal/atom
+
+######################################
+# MINIMIZATION
+# Primarily adjusts the c/a ratio to value predicted by EAM potential
+reset_timestep	0
+thermo 1
+thermo_style custom step pe c_eatoms
+min_style cg
+minimize	1e-15 1e-15 1000 2000
+variable eminimum equal "c_eatoms / count(all)"
+print "%%e(it,1)=${eminimum}"
+
+######################################
+# EQUILIBRATION
+reset_timestep	0
+timestep ${tstep}
+# atoms are given a random velocity based on a temperature of 100K.
+velocity all create 100 ${seed} mom yes rot no
+
+# temperature and pressure are set to 100 and 0
+fix 1 all nve
+
+# Set thermo output
+thermo 100
+thermo_style custom step lx ly lz press pxx pyy pzz pe temp
+
+# Run for at least 2 picosecond (assuming 1 fs timestep)
+run 2000
+
+# Loop to run until pressure is below the variable eqpress (defined at beginning of file)
+label loopeq 
+variable eq loop 100 
+run 250
+variable converge equal press
+if "${converge} <= 0" then "variable converge equal -press" else "variable converge equal press" 
+if "${converge} <= 50" then "jump ${fname} breakeq" 
+next eq 
+jump ${fname} loopeq 
+label breakeq 
+
+# Store length for strain rate calculations
+variable tmp equal "lx"
+variable L0 equal ${tmp}
+print "Initial Length, L0: ${L0}"
+unfix 1
+
+######################################
+# DEFORMATION
+reset_timestep	0
+timestep ${tstep}
+
+# Impose constant strain rate 
+variable srate1 equal "v_srate / 1.0e10"
+velocity	upper set 0.0 NULL 0.0 units box
+velocity        lower set 0.0 NULL 0.0 units box
+
+fix 2 upper setforce 0.0 NULL 0.0
+fix 3 lower setforce 0.0 NULL 0.0
+fix 1 all nve
+
+# Output strain and stress info to file
+# for units metal, pressure is in [bars] = 100 [kPa] = 1/10000 [GPa]
+# p2 is in GPa
+variable strain equal "(lx - v_L0)/v_L0"
+variable p1 equal "v_strain"
+variable p2 equal "-pxz/10000"
+variable p3 equal "lx"
+variable p4 equal "temp"
+variable p5 equal "pe"
+variable p6 equal "ke"
+fix def1 all print 100 "${p1} ${p2} ${p3} ${p4} ${p5} ${p6}" file output.def1.txt screen no
+# Dump coordinates to file (for void size calculations)
+dump 		1 all custom 1000 output.dump.* id x y z c_basal[1] c_basal[2] c_basal[3]
+
+# Display thermo
+thermo_style	custom step v_strain pxz lx temp pe ke
+restart 50000 output.restart
+
+# run deformation for 100000 timesteps (10% strain assuming 1 fs timestep and 1e9/s strainrate)
+variable runtime equal 0
+label loop
+displace_atoms	all ramp x 0.0 ${srate1} z 10 100 units box
+run		100
+variable runtime equal ${runtime}+100
+if "${runtime} < 100000" then "jump ${fname} loop"
+
+######################################
+# SIMULATION DONE
+print "All done"

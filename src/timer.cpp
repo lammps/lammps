@@ -93,6 +93,12 @@ void Timer::_stamp(enum ttype which)
   previous_cpu  = current_cpu;
   previous_wall = current_wall;
 
+  if (which == RESET) {
+    this->init();
+    cpu_array[TOTAL] = current_cpu;
+    wall_array[TOTAL] = current_wall;
+  }
+
   if (_sync) {
     MPI_Barrier(world);
     if (_level > NORMAL) current_cpu = CPU_Time();

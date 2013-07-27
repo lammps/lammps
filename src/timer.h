@@ -30,7 +30,8 @@ class Timer : protected Pointers {
   ~Timer() {};
   void init();
 
-  // inline function to reduce overhead if we do not want detail timings
+  // inline function to reduce overhead if we want no detailed timings
+
   void stamp(enum ttype which=START) {
     if (_level > LOOP) _stamp(which);
   }
@@ -38,7 +39,8 @@ class Timer : protected Pointers {
   void barrier_start();
   void barrier_stop();
 
-  // getter methods about supported level of detail
+  // accessor methods for supported level of detail
+
   bool has_loop()   const { return (_level >= LOOP); }
   bool has_normal() const { return (_level >= NORMAL); }
   bool has_full()   const { return (_level >= FULL); }

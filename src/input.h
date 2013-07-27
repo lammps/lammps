@@ -61,8 +61,7 @@ class Input : protected Pointers {
   void reallocate(char *&, int &, int);  // reallocate a char string
   int execute_command();                 // execute a single command
 
-  void citeme();                // input script commands
-  void clear();
+  void clear();                 // input script commands
   void echo();
   void ifthenelse();
   void include();
@@ -76,7 +75,7 @@ class Input : protected Pointers {
   void shell();
   void variable_command();
 
-  void angle_coeff();          // LAMMPS commands
+  void angle_coeff();           // LAMMPS commands
   void angle_style();
   void atom_modify();
   void atom_style();

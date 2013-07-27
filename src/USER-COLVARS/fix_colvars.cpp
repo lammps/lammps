@@ -31,8 +31,19 @@
 #include "modify.h"
 #include "respa.h"
 #include "update.h"
+#include "citeme.h"
 
 #include "colvarproxy_lammps.h"
+
+static const char colvars_pub[] =
+  "@Article{fiorin13,\n"
+  " author =  {G.~Fiorin and M.{\\,}L.~Klein and J.~H{\\'e}nin},\n"
+  " title =   {Using collective variables to drive molecular"
+  " dynamics simulations},\n"
+  " journal = {Mol.~Phys.},\n"
+  " year =    2013,\n"
+  " note =    {doi: 10.1080/00268976.2013.813594}\n"
+  "}\n\n";
 
 /* re-usable integer hash table code with static linkage. */
 
@@ -358,6 +369,8 @@ FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
 
   /* storage required to communicate a single coordinate or force. */
   size_one = sizeof(struct commdata);
+
+  citeme->add(colvars_pub);
 }
 
 /*********************************

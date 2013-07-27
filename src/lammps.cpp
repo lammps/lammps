@@ -50,9 +50,9 @@ using namespace LAMMPS_NS;
 
 static const char lammps_pub[] =
   "@Article{plimpton95,\n"
-  " author =  {S.{\,}J.~Plimpton},\n"
+  " author =  {S.{\\,}J.~Plimpton},\n"
   " title =   {Fast Parallel Algorithms for Short-Range Molecular Dynamics},\n"
-  " journal = {J.{\,}Comp.{\,}Phys.},\n"
+  " journal = {J.{\\,}Comp.{\\,}Phys.},\n"
   " year =    1995,\n"
   " volume =  117,\n"
   " pages =   {1--19}\n"

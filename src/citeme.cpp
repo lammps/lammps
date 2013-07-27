@@ -21,42 +21,43 @@
 
 using namespace LAMMPS_NS;
 
-// to simplify the code below
 typedef std::set<const char *> citeset;
 
-static const char nagline[] = "\n"
-  "------------------------------------------------------------------------\n"
-  "This simulation made use of algorithms and methodologies described\n"
-  "in the references listed in the file 'log.cite'\n"
-  "------------------------------------------------------------------------\n";
+static const char dashline[] =   "----------------------------------"
+  "----------------------------------------------\n";
 
-static const char cite_header[] = "\n"
-  "------------------------------------------------------------------------\n"
-  "This simulation made use of algorithms and methodologies described\n"
-  "in the following references:\n\n";
+static const char nagline[] = "\nPlease see the file 'log.cite'"
+  " for references relevant to this simulation\n\n";
+
+static const char cite_header[] = "\nThis simulation made use of "
+  "methodologies described in the following references:\n\n";
 
 static const char lammps_version[] =
-  "The LAMMPS Molecular Dynamics Simulator, Version " LAMMPS_VERSION "\n"
-  "    http://lammps.sandia.gov\n\n";
+  "The LAMMPS Molecular Dynamics Simulator, Version " LAMMPS_VERSION
+  ", lammps.sandia.gov\n";
 
 /* ---------------------------------------------------------------------- */
 
 CiteMe::CiteMe(LAMMPS *lmp) : Pointers(lmp) {
 
   FILE *fp;
-  citeset *c = new citeset;
+  citeset *c;
 
   _pubs = (void *)c;
 
   if ((universe->me == 0) && ((fp = fopen("log.cite","w")))) {
-    fputs(cite_header,fp);
+    fputs(dashline,fp);
     fputs(lammps_version,fp);
+    fputs(dashline,fp);
+    fputs(cite_header,fp);
     fflush(fp);
+    c = new citeset;
   } else {
     fp = NULL;
+    c  = NULL;
   }
   _fp = (void *) fp;
-
+  _pubs = (void *) c;
 }
 
 /* ----------------------------------------------------------------------
@@ -65,8 +66,9 @@ CiteMe::CiteMe(LAMMPS *lmp) : Pointers(lmp) {
 
 void CiteMe::add(const char *ref)
 {
-  citeset *c = (citeset *) _pubs;
+  if (_fp == NULL) return;
 
+  citeset *c = (citeset *) _pubs;
   if (c->find(ref) == c->end()) {
 
     FILE *fp = (FILE *)_fp;
@@ -92,9 +94,13 @@ CiteMe::~CiteMe()
       fputs(nagline,logfile);
   } 
 
-  FILE *fp = (FILE *)_fp;
-  if (fp) fclose(fp);
+  if (_fp != NULL) {
+    
+    FILE *fp = (FILE *)_fp;
+    fputs(dashline,fp);
+    fclose(fp);
 
-  citeset *c = (citeset *) _pubs;
-  delete c;
+    citeset *c = (citeset *) _pubs;
+    delete c;
+  }
 }

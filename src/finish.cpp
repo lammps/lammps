@@ -39,9 +39,9 @@
 
 using namespace LAMMPS_NS;
 
-static void print_timings(const char *label, Timer *t, enum Timer::ttype tt,
-                          MPI_Comm world, const int nprocs, const int nthreads,
-                          const int me, double time_loop, FILE *scr, FILE *log)
+static void mpi_timings(const char *label, Timer *t, enum Timer::ttype tt,
+                        MPI_Comm world, const int nprocs, const int nthreads,
+                        const int me, double time_loop, FILE *scr, FILE *log)
 {
   double tmp, time_max, time_min;
   double time = t->get_wall(tt);
@@ -176,7 +176,7 @@ void Finish::end(int flag)
       int ntasks = nprocs * comm->nthreads;
 
 #ifdef LMP_USER_OMP
-      const char fmt[] = "Loop time of %g on %d procs "
+      const char fmt[] = "\nLoop time of %g on %d procs "
         "for %d steps with " BIGINT_FORMAT " atoms\n"
         "%6.1f%% CPU use with %d MPI tasks x %d OpenMP threads\n";
       if (screen) fprintf(screen,fmt,time_loop,ntasks,update->nsteps,
@@ -184,9 +184,9 @@ void Finish::end(int flag)
       if (logfile) fprintf(logfile,fmt,time_loop,ntasks,update->nsteps,
                            atom->natoms,cpu_loop,nprocs,comm->nthreads);
 #else
-      const char fmt[] = "Loop time of %g on %d procs "
+      const char fmt[] = "\nLoop time of %g on %d procs "
         "for %d steps with " BIGINT_FORMAT " atoms\n"
-        "%6.1f%% CPU use with %d MPI tasks\n";
+        "%6.1f%% CPU use with %d MPI tasks x no OpenMP threads\n";
       if (screen) fprintf(screen,fmt,time_loop,ntasks,update->nsteps,
                           atom->natoms,cpu_loop,nprocs);
       if (logfile) fprintf(logfile,fmt,time_loop,ntasks,update->nsteps,
@@ -430,51 +430,65 @@ void Finish::end(int flag)
     }
   }
 
-  // timing breakdowns
+  // section timing breakdowns
 
   if (timeflag && timer->has_normal()) {
     const int nthreads = comm->nthreads;
-    if (me == 0) {
-      const char hdr[] = "\nMPI task wallclock breakdown\n"
-        "Section |  min time  |  avg time  |  max time  |  %CPU |  total\n"
+
+    if (timer->has_full()) {
+      const char hdr[] = "\nMPI task timings breakdown\n"
+        "Section |  min time  |  avg time  |  max time  |var/avg|  %CPU | %total\n"
+        "-----------------------------------------------------------------------\n";
+      if (me == 0) {
+        if (screen)  fputs(hdr,screen);
+        if (logfile) fputs(hdr,logfile);
+      }
+    } else {
+      const char hdr[] = "\nMPI task timings breakdown\n"
+        "Section |  min time  |  avg time  |  max time  |var/avg| %total\n"
         "---------------------------------------------------------------\n";
-      if (screen)  fputs(hdr,screen);
-      if (logfile) fputs(hdr,logfile);
+      if (me == 0) {
+        if (screen)  fputs(hdr,screen);
+        if (logfile) fputs(hdr,logfile);
+      }
     }
 
-    print_timings("Pair",timer,Timer::PAIR, world,nprocs,
-                  nthreads,me,time_loop,screen,logfile);
+    mpi_timings("Pair",timer,Timer::PAIR, world,nprocs,
+                nthreads,me,time_loop,screen,logfile);
 
     if (atom->molecular)
-      print_timings("Bond",timer,Timer::BOND,world,nprocs,
-                    nthreads,me,time_loop,screen,logfile);
+      mpi_timings("Bond",timer,Timer::BOND,world,nprocs,
+                  nthreads,me,time_loop,screen,logfile);
     
     if (force->kspace)
-      print_timings("Kspace",timer,Timer::KSPACE,world,nprocs,
-                    nthreads,me,time_loop,screen,logfile);
+      mpi_timings("Kspace",timer,Timer::KSPACE,world,nprocs,
+                  nthreads,me,time_loop,screen,logfile);
 
-    print_timings("Neigh",timer,Timer::NEIGH,world,nprocs,
-                  nthreads,me,time_loop,screen,logfile);
-    print_timings("Comm",timer,Timer::COMM,world,nprocs,
-                  nthreads,me,time_loop,screen,logfile);
-    print_timings("Output",timer,Timer::OUTPUT,world,nprocs,
-                  nthreads,me,time_loop,screen,logfile);
-    print_timings("Modify",timer,Timer::MODIFY,world,nprocs,
-                  nthreads,me,time_loop,screen,logfile);
+    mpi_timings("Neigh",timer,Timer::NEIGH,world,nprocs,
+                nthreads,me,time_loop,screen,logfile);
+    mpi_timings("Comm",timer,Timer::COMM,world,nprocs,
+                nthreads,me,time_loop,screen,logfile);
+    mpi_timings("Output",timer,Timer::OUTPUT,world,nprocs,
+                nthreads,me,time_loop,screen,logfile);
+    mpi_timings("Modify",timer,Timer::MODIFY,world,nprocs,
+                nthreads,me,time_loop,screen,logfile);
     if (timer->has_sync())
-      print_timings("Sync",timer,Timer::SYNC,world,nprocs,
-                    nthreads,me,time_loop,screen,logfile);
+      mpi_timings("Sync",timer,Timer::SYNC,world,nprocs,
+                  nthreads,me,time_loop,screen,logfile);
 
     time = time_other;
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
+
+    const char *fmt;
+    if (timer->has_full())
+      fmt = "Other   |            |%- 12.4g|            |       |       | %6.2f\n";
+    else
+      fmt = "Other   |            |%- 12.4g|            |       | %6.2f\n";
+
     if (me == 0) {
-      if (screen)
-        fprintf(screen,"Other   |            |%- 12.4g|            |"
-                "%6.2f |\n",time,time/time_loop*100.0);
-      if (logfile)
-        fprintf(logfile,"Other   |            |%- 12.4g|            |"
-                "%6.2f |\n",time,time/time_loop*100.0);
+      if (screen) fprintf(screen,fmt,time,time/time_loop*100.0);
+      if (logfile) fprintf(logfile,fmt,time,time/time_loop*100.0);
     }
   }
 
@@ -488,7 +502,7 @@ void Finish::end(int flag)
   int ifix = modify->find_fix("package_omp");
   const int nthreads = comm->nthreads;
 
-  if ((ifix >= 0) && (nthreads > 1) && me == 0) {
+  if ((ifix >= 0) && timer->has_full() && me == 0) {
     FixOMP *fixomp = static_cast<FixOMP *>(lmp->modify->fix[ifix]);
     ThrData *td = fixomp->get_thr(0);
     double thr_total = td->get_time(ThrData::TIME_TOTAL);
@@ -665,7 +679,7 @@ void Finish::end(int flag)
 
     nneighfull = 0;
     if (m < neighbor->old_nrequest) {
-      if ((neighbor->lists[m]->numneigh) > 0) {
+      if (neighbor->lists[m]->numneigh) {
         int inum = neighbor->lists[m]->inum;
         int *ilist = neighbor->lists[m]->ilist;
         int *numneigh = neighbor->lists[m]->numneigh;

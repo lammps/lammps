@@ -979,6 +979,7 @@ letter abbreviation can be used:
 -i or -in
 -h or -help
 -l or -log
+-nc or -nocite
 -p or -partition
 -pl or -plog
 -ps or -pscreen
@@ -1045,6 +1046,12 @@ file.N.  For both one-partition and multi-partition mode, if the
 specified file is "none", then no log files are created.  Using a
 "log"_log.html command in the input script will override this setting.
 Option -plog will override the name of the partition log files file.N.
+
+-nocite :pre
+
+Disable writing the log.cite file which is normally written to record
+a list of references for methodologies that were used during the 
+current LAMMPS run.
 
 -partition 8x2 4 5 ... :pre
 

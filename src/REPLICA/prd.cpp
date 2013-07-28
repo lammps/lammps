@@ -380,11 +380,11 @@ void PRD::command(int narg, char **arg)
   timer->set_wall(Timer::TOTAL, time_start);
   timer->barrier_stop();
 
-  timer->set_wall(Timer::PAIR, time_dephase);
-  timer->set_wall(Timer::BOND, time_dynamics);
-  timer->set_wall(Timer::KSPACE, time_quench);
-  timer->set_wall(Timer::COMM, time_comm);
-  timer->set_wall(Timer::OUTPUT, time_output);
+  timer->set_wall(Timer::DEPHASE, time_dephase);
+  timer->set_wall(Timer::DYNAMICS, time_dynamics);
+  timer->set_wall(Timer::QUENCH, time_quench);
+  timer->set_wall(Timer::REPCOMM, time_comm);
+  timer->set_wall(Timer::REPOUT, time_output);
 
   neighbor->ncalls = nbuild;
   neighbor->ndanger = ndanger;

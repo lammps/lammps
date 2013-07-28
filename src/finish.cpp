@@ -310,7 +310,7 @@ void Finish::end(int flag)
     if (screen) fprintf(screen,"PRD stats:\n");
     if (logfile) fprintf(logfile,"PRD stats:\n");
 
-    time = timer->get_wall(Timer::PAIR);
+    time = timer->get_wall(Timer::DEPHASE);
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
     if (me == 0) {
@@ -322,7 +322,7 @@ void Finish::end(int flag)
                 time,time/time_loop*100.0);
     }
 
-    time = timer->get_wall(Timer::BOND);
+    time = timer->get_wall(Timer::DYNAMICS);
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
     if (me == 0) {
@@ -334,7 +334,7 @@ void Finish::end(int flag)
                 time,time/time_loop*100.0);
     }
 
-    time = timer->get_wall(Timer::KSPACE);
+    time = timer->get_wall(Timer::QUENCH);
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
     if (me == 0) {
@@ -346,10 +346,35 @@ void Finish::end(int flag)
                 time,time/time_loop*100.0);
     }
 
-    time = time_other;
+      time = timer->get_wall(Timer::REPCOMM);
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
     if (me == 0) {
+      if (screen)
+        fprintf(screen,"  Comm     time (%%) = %g (%g)\n",
+                time,time/time_loop*100.0);
+      if (logfile)
+        fprintf(logfile,"  Comm     time (%%) = %g (%g)\n",
+                time,time/time_loop*100.0);
+    }
+
+
+    time = timer->get_wall(Timer::REPOUT);
+    MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
+    time = tmp/nprocs;
+    if (me == 0) {
+      if (screen)
+        fprintf(screen,"  Output   time (%%) = %g (%g)\n",
+                time,time/time_loop*100.0);
+      if (logfile)
+        fprintf(logfile,"  Output   time (%%) = %g (%g)\n",
+                time,time/time_loop*100.0);
+    }
+
+    time = time_other;
+    MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
+    time = tmp/nprocs;
+    if (me == 0) { // XXXX: replica comm, replica output
       if (screen)
         fprintf(screen,"  Other    time (%%) = %g (%g)\n",
                 time,time/time_loop*100.0);
@@ -370,7 +395,7 @@ void Finish::end(int flag)
     if (screen) fprintf(screen,"TAD stats:\n");
     if (logfile) fprintf(logfile,"TAD stats:\n");
 
-    time = timer->get_wall(Timer::PAIR);
+    time = timer->get_wall(Timer::NEB);
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
     if (me == 0) {
@@ -382,7 +407,7 @@ void Finish::end(int flag)
                 time,time/time_loop*100.0);
     }
 
-    time = timer->get_wall(Timer::BOND);
+    time = timer->get_wall(Timer::DYNAMICS);
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
     if (me == 0) {
@@ -394,7 +419,7 @@ void Finish::end(int flag)
                 time,time/time_loop*100.0);
     }
 
-    time = timer->get_wall(Timer::KSPACE);
+    time = timer->get_wall(Timer::QUENCH);
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
     if (me == 0) {
@@ -407,7 +432,7 @@ void Finish::end(int flag)
     }
 
 
-    time = timer->get_wall(Timer::COMM);
+    time = timer->get_wall(Timer::REPCOMM);
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
     if (me == 0) {
@@ -420,7 +445,7 @@ void Finish::end(int flag)
     }
 
 
-    time = timer->get_wall(Timer::OUTPUT);
+    time = timer->get_wall(Timer::REPOUT);
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
     if (me == 0) {

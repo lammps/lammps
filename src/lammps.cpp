@@ -87,6 +87,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   int helpflag = 0;
   suffix = NULL;
   suffix_enable = 0;
+  cite_enable = 1;
 
   int iarg = 1;
   while (iarg < narg) {
@@ -167,6 +168,10 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
         error->universe_all(FLERR,"Cannot use -reorder after -partition");
       universe->reorder(arg[iarg+1],arg[iarg+2]);
       iarg += 3;
+    } else if (strcmp(arg[iarg],"-nocite") == 0 ||
+               strcmp(arg[iarg],"-nc") == 0) {
+      cite_enable = 0;
+      ++iarg;
     } else if (strcmp(arg[iarg],"-help") == 0 ||
                strcmp(arg[iarg],"-h") == 0) {
       if (iarg+1 > narg)

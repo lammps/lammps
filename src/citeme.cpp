@@ -45,7 +45,7 @@ CiteMe::CiteMe(LAMMPS *lmp) : Pointers(lmp) {
 
   _pubs = (void *)c;
 
-  if ((universe->me == 0) && ((fp = fopen("log.cite","w")))) {
+  if (lmp->cite_enable && (universe->me == 0) && ((fp = fopen("log.cite","w")))) {
     fputs(dashline,fp);
     fputs(lammps_version,fp);
     fputs(dashline,fp);
@@ -86,7 +86,7 @@ void CiteMe::add(const char *ref)
 CiteMe::~CiteMe()
 {
 
-  if (comm->me == 0) {
+  if (lmp->cite_enable && (comm->me == 0)) {
     if (screen)
       fputs(nagline,screen);
 

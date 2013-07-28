@@ -43,7 +43,7 @@ static void mpi_timings(const char *label, Timer *t, enum Timer::ttype tt,
                         MPI_Comm world, const int nprocs, const int nthreads,
                         const int me, double time_loop, FILE *scr, FILE *log)
 {
-  double tmp, time_max, time_min;
+  double tmp, time_max, time_min, time_sq;
   double time = t->get_wall(tt);
   
   double time_cpu = t->get_cpu(tt);
@@ -53,21 +53,39 @@ static void mpi_timings(const char *label, Timer *t, enum Timer::ttype tt,
     time_cpu = time_cpu / time;
   if (time_cpu > nthreads) time_cpu = nthreads;
 
-  MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(&time,&time_min,1,MPI_DOUBLE,MPI_MIN,world);
   MPI_Allreduce(&time,&time_max,1,MPI_DOUBLE,MPI_MAX,world);
+  time_sq = time*time;
+  MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
   time = tmp/nprocs;
-
+  MPI_Allreduce(&time_sq,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
+  time_sq = tmp/nprocs;
   MPI_Allreduce(&time_cpu,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
   time_cpu = tmp/nprocs*100.0;
 
+  // % variance from the average as measure of load imbalance
+  if (time > 1.0e-10)
+    time_sq = sqrt(time_sq/time - time)*100.0;
+  else
+    time_sq = 0.0;
+
+
   if (me == 0) {
-    time_loop = 100.0/time_loop;
-    const char fmt[] = "%-8s|%- 12.5g|%- 12.5g|%- 12.5g|%6.1f | %6.2f\n";
-    if (scr)
-      fprintf(scr,fmt,label,time_min,time,time_max,time_cpu,time*time_loop);
-    if (log)
-      fprintf(log,fmt,label,time_min,time,time_max,time_cpu,time*time_loop);
+    tmp = time/time_loop*100.0;
+    if (t->has_full()) {
+      const char fmt[] = "%-8s|%- 12.5g|%- 12.5g|%- 12.5g|%6.1f |%6.1f |%6.2f\n";
+      if (scr)
+        fprintf(scr,fmt,label,time_min,time,time_max,time_sq,time_cpu,tmp);
+      if (log)
+        fprintf(log,fmt,label,time_min,time,time_max,time_sq,time_cpu,tmp);
+      time_loop = 100.0/time_loop;
+    } else {
+      const char fmt[] = "%-8s|%- 12.5g|%- 12.5g|%- 12.5g|%6.1f |%6.2f\n";
+      if (scr)
+        fprintf(scr,fmt,label,time_min,time,time_max,time_sq,tmp);
+      if (log)
+        fprintf(log,fmt,label,time_min,time,time_max,time_sq,tmp);
+    }
   }
 }
 
@@ -437,7 +455,7 @@ void Finish::end(int flag)
 
     if (timer->has_full()) {
       const char hdr[] = "\nMPI task timings breakdown\n"
-        "Section |  min time  |  avg time  |  max time  |var/avg|  %CPU | %total\n"
+        "Section |  min time  |  avg time  |  max time  |%varavg|  %CPU | %total\n"
         "-----------------------------------------------------------------------\n";
       if (me == 0) {
         if (screen)  fputs(hdr,screen);
@@ -445,7 +463,7 @@ void Finish::end(int flag)
       }
     } else {
       const char hdr[] = "\nMPI task timings breakdown\n"
-        "Section |  min time  |  avg time  |  max time  |var/avg| %total\n"
+        "Section |  min time  |  avg time  |  max time  |%varavg| %total\n"
         "---------------------------------------------------------------\n";
       if (me == 0) {
         if (screen)  fputs(hdr,screen);
@@ -482,9 +500,9 @@ void Finish::end(int flag)
 
     const char *fmt;
     if (timer->has_full())
-      fmt = "Other   |            |%- 12.4g|            |       |       | %6.2f\n";
+      fmt = "Other   |            |%- 12.4g|            |       |       |%6.2f\n";
     else
-      fmt = "Other   |            |%- 12.4g|            |       | %6.2f\n";
+      fmt = "Other   |            |%- 12.4g|            |       |%6.2f\n";
 
     if (me == 0) {
       if (screen) fprintf(screen,fmt,time,time/time_loop*100.0);

@@ -188,7 +188,7 @@ void PairHybrid::allocate()
 
 void PairHybrid::settings(int narg, char **arg)
 {
-  int i,m,istyle;
+  int m;
 
   if (narg < 1) error->all(FLERR,"Illegal pair_style command");
 

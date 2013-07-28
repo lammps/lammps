@@ -86,7 +86,7 @@ void PairCDEAMOMP::compute(int eflag, int vflag)
 
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
-    thr->timer(ThrData::TIME_START);
+    thr->timer(Timer::START);
     ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
 
     if (force->newton_pair)
@@ -135,7 +135,7 @@ void PairCDEAMOMP::compute(int eflag, int vflag)
     error->all(FLERR,"unsupported eam/cd pair style variant");
     }
 
-    thr->timer(ThrData::TIME_PAIR);
+    thr->timer(Timer::PAIR);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 }
@@ -229,7 +229,7 @@ void PairCDEAMOMP::eval(int iifrom, int iito, ThrData * const thr)
 
   if (NEWTON_PAIR) {
     // reduce per thread density
-    thr->timer(ThrData::TIME_PAIR);
+    thr->timer(Timer::PAIR);
     data_reduce_thr(rho, nall, nthreads, 1, tid);
     data_reduce_thr(rhoB, nall, nthreads, 1, tid);
     if (CDEAMVERSION==1)
@@ -249,7 +249,7 @@ void PairCDEAMOMP::eval(int iifrom, int iito, ThrData * const thr)
 
   } else {
     // reduce per thread density
-    thr->timer(ThrData::TIME_PAIR);
+    thr->timer(Timer::PAIR);
     data_reduce_thr(rho, nlocal, nthreads, 1, tid);
     data_reduce_thr(rhoB, nlocal, nthreads, 1, tid);
     if (CDEAMVERSION==1)
@@ -350,7 +350,7 @@ void PairCDEAMOMP::eval(int iifrom, int iito, ThrData * const thr)
     }
 
     if (NEWTON_PAIR) {
-    thr->timer(ThrData::TIME_PAIR);
+    thr->timer(Timer::PAIR);
       data_reduce_thr(D_values, nall, nthreads, 1, tid);
 
       // wait until reduction is complete
@@ -366,7 +366,7 @@ void PairCDEAMOMP::eval(int iifrom, int iito, ThrData * const thr)
       sync_threads();
 
   } else {
-    thr->timer(ThrData::TIME_PAIR);
+    thr->timer(Timer::PAIR);
       data_reduce_thr(D_values, nlocal, nthreads, 1, tid);
 
     // wait until reduction is complete

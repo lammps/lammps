@@ -63,7 +63,7 @@ void MSMOMP::compute(int eflag, int vflag)
     const int tid = 0;
 #endif
     ThrData *thr = fix->get_thr(tid);
-    thr->timer(ThrData::TIME_START);
+    thr->timer(Timer::START);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 }
@@ -168,7 +168,7 @@ void MSMOMP::direct_eval(const int nn)
 
     loop_setup_thr(ifrom, ito, tid, inum, comm->nthreads);
     ThrData *thr = fix->get_thr(tid);
-    thr->timer(ThrData::TIME_START);
+    thr->timer(Timer::START);
 
     for (i = ifrom; i < ito; ++i) {
 
@@ -300,7 +300,7 @@ void MSMOMP::direct_eval(const int nn)
         }
       }
     }
-    thr->timer(ThrData::TIME_KSPACE);
+    thr->timer(Timer::KSPACE);
   } // end of omp parallel region
 
   if (EFLAG_GLOBAL || VFLAG_GLOBAL) {

@@ -66,7 +66,7 @@ void PairEAMOMP::compute(int eflag, int vflag)
 
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
-    thr->timer(ThrData::TIME_START);
+    thr->timer(Timer::START);
     ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
 
     if (force->newton_pair)
@@ -87,7 +87,7 @@ void PairEAMOMP::compute(int eflag, int vflag)
       else eval<0,0,0>(ifrom, ito, thr);
     }
 
-    thr->timer(ThrData::TIME_PAIR);
+    thr->timer(Timer::PAIR);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 }
@@ -164,7 +164,7 @@ void PairEAMOMP::eval(int iifrom, int iito, ThrData * const thr)
 
   if (NEWTON_PAIR) {
     // reduce per thread density
-    thr->timer(ThrData::TIME_PAIR);
+    thr->timer(Timer::PAIR);
     data_reduce_thr(rho, nall, nthreads, 1, tid);
 
     // wait until reduction is complete
@@ -179,7 +179,7 @@ void PairEAMOMP::eval(int iifrom, int iito, ThrData * const thr)
     sync_threads();
 
   } else {
-    thr->timer(ThrData::TIME_PAIR);
+    thr->timer(Timer::PAIR);
     data_reduce_thr(rho, nlocal, nthreads, 1, tid);
 
     // wait until reduction is complete

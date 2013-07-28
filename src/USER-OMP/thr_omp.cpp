@@ -23,6 +23,7 @@
 #include "memory.h"
 #include "modify.h"
 #include "neighbor.h"
+#include "timer.h"
 
 #include "thr_omp.h"
 
@@ -402,7 +403,7 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
     if (lmp->atom->torque)
       data_reduce_thr(&(lmp->atom->torque[0][0]), nall, nthreads, 3, tid);
   }
-  thr->timer(ThrData::TIME_REDUCE);
+  thr->timer(Timer::COMM);
 }
 
 /* ----------------------------------------------------------------------

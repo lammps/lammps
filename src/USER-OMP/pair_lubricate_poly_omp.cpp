@@ -120,7 +120,7 @@ void PairLubricatePolyOMP::compute(int eflag, int vflag)
 
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
-    thr->timer(ThrData::TIME_START);
+    thr->timer(Timer::START);
     ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
 
     if (flaglog) {
@@ -145,7 +145,7 @@ void PairLubricatePolyOMP::compute(int eflag, int vflag)
       }
     }
 
-    thr->timer(ThrData::TIME_PAIR);
+    thr->timer(Timer::PAIR);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 }

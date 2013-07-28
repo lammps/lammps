@@ -19,6 +19,7 @@
 #endif
 
 #include "modify.h"
+#include "timer.h"
 #include "fix_omp.h"
 #include "thr_data.h"
 
@@ -42,10 +43,10 @@ namespace LAMMPS_NS {
       ? num : (ifrom+idelta);                   \
     FixOMP *fix = static_cast<FixOMP *>(modify->fix[ifix]); \
     ThrData *thr = fix->get_thr(tid);           \
-    thr->timer(ThrData::TIME_START);
+    thr->timer(Timer::START);
 
 #define NEIGH_OMP_CLOSE                         \
-      thr->timer(ThrData::TIME_NEIGH);          \
+      thr->timer(Timer::NEIGH);                 \
     }
 
 #else /* !defined(_OPENMP) */

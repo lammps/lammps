@@ -26,6 +26,7 @@
 #include "update.h"
 #include "integrate.h"
 #include "min.h"
+#include "timer.h"
 
 #include "fix_omp.h"
 #include "thr_data.h"
@@ -137,11 +138,12 @@ FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg)
   thr = new ThrData *[nthreads];
   _nthr = nthreads;
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel default(none) shared(lmp)
 #endif
   {
     const int tid = get_tid();
-    thr[tid] = new ThrData(tid);
+    Timer *t = new Timer(lmp);
+    thr[tid] = new ThrData(tid,t);
   }
 }
 
@@ -186,6 +188,13 @@ int FixOMP::setmask()
 
 void FixOMP::init()
 {
+  // reset per thread timer
+  for (int i=0; i < comm->nthreads; ++i) {
+    thr[i]->_timer_active=1;
+    thr[i]->timer(Timer::RESET);
+    thr[i]->_timer_active=-1;
+  }
+
   if ((strstr(update->integrate_style,"respa") != NULL)
       && (strstr(update->integrate_style,"respa/omp") == NULL))
     error->all(FLERR,"Need to use respa/omp for r-RESPA with /omp styles");
@@ -305,6 +314,14 @@ void FixOMP::set_neighbor_omp()
 
   for (int i = 0; i < nrequest; ++i)
     neighbor->requests[i]->omp = neigh_omp;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixOMP::setup()
+{
+  for (int i=0; i < comm->nthreads; ++i)
+    thr[i]->_timer_active=0;
 }
 
 /* ---------------------------------------------------------------------- */

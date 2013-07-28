@@ -92,7 +92,7 @@ static void mpi_timings(const char *label, Timer *t, enum Timer::ttype tt,
 /* ---------------------------------------------------------------------- */
 
 #ifdef LMP_USER_OMP
-static void omp_times(FixOMP *fix, const char *label, const int ttype,
+static void omp_times(FixOMP *fix, const char *label, enum Timer::ttype which,
                       const int nthreads, FILE *scr, FILE *log)
 {
   const char fmt[] = "%-8s|%- 12.5g|%- 12.5g|%- 12.5g|%6.1f |%6.2f%%\n";
@@ -104,12 +104,12 @@ static void omp_times(FixOMP *fix, const char *label, const int ttype,
 
   for (int i=0; i < nthreads; ++i) {
     ThrData *thr = fix->get_thr(i);
-    double tmp=thr->get_time(ttype);
+    double tmp=thr->get_time(which);
     time_min = MIN(time_min,tmp);
     time_max = MAX(time_max,tmp);
     time_avg += tmp;
     time_std += tmp*tmp;
-    time_total += thr->get_time(ThrData::TIME_TOTAL);
+    time_total += thr->get_time(Timer::TOTAL);
   }
 
   time_avg /= nthreads;
@@ -523,7 +523,7 @@ void Finish::end(int flag)
   if ((ifix >= 0) && timer->has_full() && me == 0) {
     FixOMP *fixomp = static_cast<FixOMP *>(lmp->modify->fix[ifix]);
     ThrData *td = fixomp->get_thr(0);
-    double thr_total = td->get_time(ThrData::TIME_TOTAL);
+    double thr_total = td->get_time(Timer::TOTAL);
     if (thr_total > 0.0) {
       if (screen) {
         fprintf(screen,thr_hdr_fmt,me,thr_total,thr_total/time_loop*100.0);
@@ -534,14 +534,14 @@ void Finish::end(int flag)
         fputs(thr_header,logfile);
       }
 
-      omp_times(fixomp,"Pair",ThrData::TIME_PAIR,nthreads,screen,logfile);
-      if (atom->molecular) omp_times(fixomp,"Bond",ThrData::TIME_BOND,
+      omp_times(fixomp,"Pair",Timer::PAIR,nthreads,screen,logfile);
+      if (atom->molecular) omp_times(fixomp,"Bond",Timer::BOND,
                                      nthreads,screen,logfile);
-      if (force->kspace) omp_times(fixomp,"Kspace",ThrData::TIME_KSPACE,
+      if (force->kspace) omp_times(fixomp,"Kspace",Timer::KSPACE,
                                    nthreads,screen,logfile);
-      omp_times(fixomp,"Neigh",ThrData::TIME_NEIGH,nthreads,screen,logfile);
-      omp_times(fixomp,"Reduce",ThrData::TIME_REDUCE,nthreads,screen,logfile);
-      omp_times(fixomp,"Modify",ThrData::TIME_MODIFY,nthreads,screen,logfile);
+      omp_times(fixomp,"Neigh",Timer::NEIGH,nthreads,screen,logfile);
+      omp_times(fixomp,"Reduce",Timer::COMM,nthreads,screen,logfile);
+      omp_times(fixomp,"Modify",Timer::MODIFY,nthreads,screen,logfile);
     }
   }
 #endif

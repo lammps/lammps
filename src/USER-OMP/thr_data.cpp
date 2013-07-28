@@ -22,17 +22,17 @@
 #include <stdio.h>
 
 #include "memory.h"
+#include "timer.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ThrData::ThrData(int tid)
+ThrData::ThrData(int tid, Timer *t)
   : _f(0),_torque(0),_erforce(0),_de(0),_drho(0),_mu(0),_lambda(0),_rhoB(0),
-    _D_values(0),_rho(0),_fp(0),_rho1d(0),_drho1d(0),_tid(tid), _timer_active(0)
+    _D_values(0),_rho(0),_fp(0),_rho1d(0),_drho1d(0),_tid(tid), _timer(t)
 {
-  for (int i=0; i < NUM_TIMERS; ++i)
-    _timer[i] = 0.0;
+  _timer_active = 0;
 }
 
 
@@ -46,45 +46,31 @@ void ThrData::check_tid(int tid)
 
 /* ---------------------------------------------------------------------- */
 
-void ThrData::timer(const int flag)
+void ThrData::_stamp(enum Timer::ttype flag)
 {
   double tmp;
 
-  if (flag == TIME_RESET) {
-    _timer_active = 0;
-    for (int i=0; i < NUM_TIMERS; ++i)
-      _timer[i] = 0.0;
-    return;
-  }
+  // do nothing until it gets set to 0 in ::setup()
+  if (_timer_active < 0) return;
 
-  if (flag == TIME_STOP) {
+  if (flag == Timer::STOP) {
     _timer_active = 0;
     return;
   }
 
-  tmp = MPI_Wtime();
-
-  if (flag == TIME_START) {
+  if (flag == Timer::START) {
     _timer_active = 1;
-    _timer[TIME_START] = tmp;
-    return;
   }
   
-  if (_timer_active && (flag > TIME_START) && (flag < NUM_TIMERS)) {
-    double diff = tmp - _timer[TIME_START];
-    diff = (diff > 0.0) ? diff : 0.0;
-    _timer[TIME_START]  = tmp;
-    _timer[TIME_TOTAL] += diff;
-    _timer[flag]       += diff;
-  }
+  if (_timer_active) _timer->stamp(flag);
 }
 
 /* ---------------------------------------------------------------------- */
 
-double ThrData::get_time(const int flag)
+double ThrData::get_time(enum Timer::ttype flag)
 {
-  if ((flag > TIME_START) && (flag < NUM_TIMERS))
-    return _timer[flag];
+  if (_timer)
+    return _timer->get_wall(flag);
   else
     return 0.0;
 }

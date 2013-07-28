@@ -64,7 +64,7 @@ void PairBuckLongCoulLongOMP::compute(int eflag, int vflag)
 
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
-    thr->timer(ThrData::TIME_START);
+    thr->timer(Timer::START);
     ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
 
     if (order6) {
@@ -305,7 +305,7 @@ void PairBuckLongCoulLongOMP::compute(int eflag, int vflag)
       }
     } 
 
-    thr->timer(ThrData::TIME_PAIR);
+    thr->timer(Timer::PAIR);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 }
@@ -328,10 +328,10 @@ void PairBuckLongCoulLongOMP::compute_inner()
 
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
-    thr->timer(ThrData::TIME_START);
+    thr->timer(Timer::START);
     ev_setup_thr(0, 0, nall, 0, 0, thr);
     eval_inner(ifrom, ito, thr);
-    thr->timer(ThrData::TIME_PAIR);
+    thr->timer(Timer::PAIR);
 
   }  // end of omp parallel region
 }
@@ -353,10 +353,10 @@ void PairBuckLongCoulLongOMP::compute_middle()
 
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
-    thr->timer(ThrData::TIME_START);
+    thr->timer(Timer::START);
     ev_setup_thr(0, 0, nall, 0, 0, thr);
     eval_middle(ifrom, ito, thr);
-    thr->timer(ThrData::TIME_PAIR);
+    thr->timer(Timer::PAIR);
 
   }  // end of omp parallel region
 }
@@ -383,7 +383,7 @@ void PairBuckLongCoulLongOMP::compute_outer(int eflag, int vflag)
 
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
-    thr->timer(ThrData::TIME_START);
+    thr->timer(Timer::START);
     ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
 
     if (order6) {
@@ -624,7 +624,7 @@ void PairBuckLongCoulLongOMP::compute_outer(int eflag, int vflag)
       }
     } 
 
-    thr->timer(ThrData::TIME_PAIR);
+    thr->timer(Timer::PAIR);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 }

@@ -110,7 +110,7 @@ void EwaldOMP::compute(int eflag, int vflag)
 
     loop_setup_thr(ifrom, ito, tid, nlocal, nthreads);
     ThrData *thr = fix->get_thr(tid);
-    thr->timer(ThrData::TIME_START);
+    thr->timer(Timer::START);
     ev_setup_thr(eflag, vflag, 0, NULL, NULL, thr);
 
     for (i = ifrom; i < ito; i++) {
@@ -198,7 +198,7 @@ void EwaldOMP::compute(int eflag, int vflag)
           for (j = 0; j < 6; j++) vatom[i][j] *= q[i]*qscale;
     }
 
-    thr->timer(ThrData::TIME_KSPACE);
+    thr->timer(Timer::KSPACE);
     reduce_thr(this, eflag,vflag,thr);
   } // end of omp parallel region
 

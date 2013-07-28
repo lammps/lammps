@@ -175,8 +175,8 @@ void Finish::end(int flag)
     if (force->kspace && force->kspace_match("pppm",0)
         && force->kspace->fftbench) fftflag = 1;
   }
-  if (flag == 2) prdflag = histoflag = neighflag = 1;
-  if (flag == 3) tadflag = histoflag = neighflag = 1;
+  if (flag == 2) prdflag = timeflag = histoflag = neighflag = 1;
+  if (flag == 3) tadflag = timeflag = histoflag = neighflag = 1;
 
   // loop stats
 

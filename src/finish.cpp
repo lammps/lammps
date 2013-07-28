@@ -176,7 +176,7 @@ void Finish::end(int flag)
         && force->kspace->fftbench) fftflag = 1;
   }
   if (flag == 2) prdflag = timeflag = histoflag = neighflag = 1;
-  if (flag == 3) tadflag = timeflag = histoflag = neighflag = 1;
+  if (flag == 3) tadflag = histoflag = neighflag = 1;
 
   // loop stats
 

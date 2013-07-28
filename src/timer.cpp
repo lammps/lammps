@@ -86,8 +86,13 @@ void Timer::_stamp(enum ttype which)
   current_wall = MPI_Wtime();
 
   if ((which > TOTAL) && (which < NUM_TIMER)) {
-    cpu_array[which]  += current_cpu - previous_cpu;
-    wall_array[which] += current_wall - previous_wall;
+    const double delta_cpu = current_cpu - previous_cpu;
+    const double delta_wall = current_wall - previous_wall;
+    
+    cpu_array[which]  += delta_cpu;
+    wall_array[which] += delta_wall;
+    cpu_array[ALL]    += delta_cpu;
+    wall_array[ALL]   += delta_wall;
   }
 
   previous_cpu  = current_cpu;

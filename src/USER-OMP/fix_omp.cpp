@@ -318,8 +318,9 @@ void FixOMP::set_neighbor_omp()
 
 /* ---------------------------------------------------------------------- */
 
-void FixOMP::setup()
+void FixOMP::setup(int)
 {
+  // we are post the force compute in setup. turn on timers
   for (int i=0; i < comm->nthreads; ++i)
     thr[i]->_timer_active=0;
 }

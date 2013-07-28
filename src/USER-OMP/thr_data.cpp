@@ -48,15 +48,8 @@ void ThrData::check_tid(int tid)
 
 void ThrData::_stamp(enum Timer::ttype flag)
 {
-  double tmp;
-
   // do nothing until it gets set to 0 in ::setup()
   if (_timer_active < 0) return;
-
-  if (flag == Timer::STOP) {
-    _timer_active = 0;
-    return;
-  }
 
   if (flag == Timer::START) {
     _timer_active = 1;

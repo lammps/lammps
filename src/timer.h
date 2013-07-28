@@ -22,8 +22,8 @@ namespace LAMMPS_NS {
 class Timer : protected Pointers {
  public:
 
-  enum ttype  {RESET=-3,START=-2,STOP=-1,TOTAL=0,PAIR,BOND,KSPACE,NEIGH,COMM,
-               MODIFY,OUTPUT,SYNC,DEPHASE,DYNAMICS,QUENCH,NEB,NUM_TIMER};
+  enum ttype  {RESET=-2,START=-1,TOTAL=0,PAIR,BOND,KSPACE,NEIGH,COMM,
+               MODIFY,OUTPUT,SYNC,DEPHASE,DYNAMICS,QUENCH,NEB,ALL,NUM_TIMER};
   enum tlevel {OFF=0,LOOP,NORMAL,FULL};
 
   Timer(class LAMMPS *);

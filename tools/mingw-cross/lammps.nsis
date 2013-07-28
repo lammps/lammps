@@ -38,8 +38,10 @@ OutFile "${BIT}bit/lammps-${BIT}bit-${VERSION}.exe"
 Name "${LAMMPS}"
 !if ${BIT} == 64
 InstallDir "$ProgramFiles64\${LAMMPS}"
+!define MPICHDIR "$ProgramFiles64\MPICH2\bin"
 !else
 InstallDir "$ProgramFiles\${LAMMPS}"
+!define MPICHDIR "$ProgramFiles\MPICH2\bin"
 !endif
 
 XPStyle on
@@ -117,6 +119,7 @@ Section "${LAMMPS}"
   SetOutPath "$INSTDIR\Benchmarks"
   File /r /x log.*.4 lammps-current/bench/*
 
+  ${EnvVarUpdate} $0 "PATH"              "A" "HKLM" "${MPICHDIR}"
   ${EnvVarUpdate} $0 "PATH"              "A" "HKLM" "$INSTDIR\bin"
   ${EnvVarUpdate} $0 "LAMMPS_POTENTIALS" "A" "HKLM" "$INSTDIR\Potentials"
   ${EnvVarUpdate} $0 "BIOSYM_LIBRARY"    "A" "HKLM" "$INSTDIR\biosym_frc_files"
@@ -130,6 +133,7 @@ functionEnd
 Section "Uninstall"
   SetRegView ${BIT}
 
+  ${un.EnvVarUpdate} $0 "PATH"              "R" "HKLM" "${MPICHDIR}"
   ${un.EnvVarUpdate} $0 "PATH"              "R" "HKLM" "$INSTDIR\bin"
   ${un.EnvVarUpdate} $0 "LAMMPS_POTENTIALS" "R" "HKLM" "$INSTDIR\Potentials"
   ${un.EnvVarUpdate} $0 "BIOSYM_LIBRARY"    "R" "HKLM" "$INSTDIR\biosym_frc_files"

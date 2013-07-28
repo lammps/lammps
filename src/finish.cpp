@@ -178,7 +178,7 @@ void Finish::end(int flag)
 #ifdef LMP_USER_OMP
       const char fmt[] = "\nLoop time of %g on %d procs "
         "for %d steps with " BIGINT_FORMAT " atoms\n"
-        "%6.1f%% CPU use with %d MPI tasks x %d OpenMP threads\n";
+        "%.1f%% CPU use with %d MPI tasks x %d OpenMP threads\n";
       if (screen) fprintf(screen,fmt,time_loop,ntasks,update->nsteps,
                           atom->natoms,cpu_loop,nprocs,comm->nthreads);
       if (logfile) fprintf(logfile,fmt,time_loop,ntasks,update->nsteps,
@@ -186,7 +186,7 @@ void Finish::end(int flag)
 #else
       const char fmt[] = "\nLoop time of %g on %d procs "
         "for %d steps with " BIGINT_FORMAT " atoms\n"
-        "%6.1f%% CPU use with %d MPI tasks x no OpenMP threads\n";
+        "%.1f%% CPU use with %d MPI tasks x no OpenMP threads\n";
       if (screen) fprintf(screen,fmt,time_loop,ntasks,update->nsteps,
                           atom->natoms,cpu_loop,nprocs);
       if (logfile) fprintf(logfile,fmt,time_loop,ntasks,update->nsteps,

@@ -48,6 +48,9 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
   if (binary || multiproc) error->all(FLERR,"Invalid dump image filename");
 
   // set filetype based on filename suffix
+  // _and_ turn on the binary flag so we don't get corrupted
+  // output on windows.
+  binary = 1;
 
   int n = strlen(filename);
   if (strlen(filename) > 4 && strcmp(&filename[n-4],".jpg") == 0)

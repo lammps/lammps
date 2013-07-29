@@ -92,7 +92,7 @@ undump    d1
 #
 # TEST 4: Edge histogram tests
 #
-compute v1 type2 voronoi/atom edge_histo 6
+compute v1 type2 voronoi/atom edge_histo 8
 thermo_style custom c_v1[1] c_v1[2] c_v1[3] c_v1[4] c_v1[5] c_v1[6] c_v1[7]
 run  1
 variable t4a equal (abs(c_v1[4]-12000)+c_v1[1]+c_v1[2]+c_v1[3]+c_v1[5]+c_v1[6]+c_v1[7])/120
@@ -149,7 +149,6 @@ print "TEST_5  $(round((v_t5-1000)/10))% Error.  Sum of all voronoi cells is the
 uncompute v1
 uncompute r0
 undump    d1
-
 
 # All tests done
 print TEST_DONE

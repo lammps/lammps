@@ -51,10 +51,10 @@ packages, more details are provided.
 <TR ALIGN="center"><TD >FLD</TD><TD > Fast Lubrication Dynamics</TD><TD > Kumar & Bybee & Higdon (1)</TD><TD > <A HREF = "pair_lubricateU.html">pair_style lubricateU</A></TD><TD > -</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >GPU</TD><TD > GPU-enabled potentials</TD><TD > Mike Brown (ORNL)</TD><TD > <A HREF = "Section_accelerate.html#acc_6">Section accelerate</A></TD><TD > gpu</TD><TD > lib/gpu</TD></TR>
 <TR ALIGN="center"><TD >GRANULAR</TD><TD > granular systems</TD><TD > -</TD><TD > <A HREF = "Section_howto.html#howto_6">Section_howto</A></TD><TD > pour</TD><TD > -</TD></TR>
-<TR ALIGN="center"><TD >KIM</TD><TD > openKIM potentials</TD><TD > Smirichinski & Elliot & Tadmor (3)</TD><TD > <A HREF = "pair_kim.html">pair_style kim</A></TD><TD > kim</TD><TD > lib/kim</TD></TR>
+<TR ALIGN="center"><TD >KIM</TD><TD > openKIM potentials</TD><TD > Smirichinski & Elliot & Tadmor (3)</TD><TD > <A HREF = "pair_kim.html">pair_style kim</A></TD><TD > kim</TD><TD > KIM</TD></TR>
 <TR ALIGN="center"><TD >KSPACE</TD><TD > long-range Coulombic solvers</TD><TD > -</TD><TD > <A HREF = "kspace_style.html">kspace_style</A></TD><TD > peptide</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >MANYBODY</TD><TD > many-body potentials</TD><TD > -</TD><TD > <A HREF = "pair_tersoff.html">pair_style tersoff</A></TD><TD > shear</TD><TD > -</TD></TR>
-<TR ALIGN="center"><TD >MEAM</TD><TD > modified EAM potential</TD><TD > Greg Wagner (Sandia)</TD><TD > <A HREF = "pair_meam.html">pair_style meam</A></TD><TD > meam</TD><TD > KIM</TD></TR>
+<TR ALIGN="center"><TD >MEAM</TD><TD > modified EAM potential</TD><TD > Greg Wagner (Sandia)</TD><TD > <A HREF = "pair_meam.html">pair_style meam</A></TD><TD > meam</TD><TD > lib/meam</TD></TR>
 <TR ALIGN="center"><TD >MC</TD><TD > Monte Carlo options</TD><TD > -</TD><TD > <A HREF = "fix_gcmc.html">fix gcmc</A></TD><TD > -</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >MOLECULE</TD><TD > molecular system force fields</TD><TD > -</TD><TD > <A HREF = "Section_howto.html#howto_3">Section_howto</A></TD><TD > peptide</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >OPT</TD><TD > optimized pair potentials</TD><TD > Fischer & Richie & Natoli (2)</TD><TD > <A HREF = "Section_accelerate.html#acc_4">Section accelerate</A></TD><TD > -</TD><TD > -</TD></TR>
@@ -97,10 +97,10 @@ lib/package, then the code for the library is under the lib directory
 of the LAMMPS distribution.  See the lib/package/README file for info
 on how to build the library.  If it is not listed as lib/package, then
 it is a third-party library not included in the LAMMPS distribution.
-See the src/package/Makefile.lammps file for info on where to download
-the library.  <A HREF = "Section_start.html#start_3_3">Section start</A> of the
-manual also gives details on how to build LAMMPS with both kinds of
-auxiliary libraries.
+See the src/package/README or src/package/Makefile.lammps file for
+info on where to download the library.  <A HREF = "Section_start.html#start_3_3">Section
+start</A> of the manual also gives details
+on how to build LAMMPS with both kinds of auxiliary libraries.
 </P>
 <HR>
 

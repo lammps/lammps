@@ -46,10 +46,10 @@ DIPOLE, point dipole particles, -, "pair_style dipole/cut"_pair_dipole.html, dip
 FLD, Fast Lubrication Dynamics, Kumar & Bybee & Higdon (1), "pair_style lubricateU"_pair_lubricateU.html, -, -
 GPU, GPU-enabled potentials, Mike Brown (ORNL), "Section accelerate"_Section_accelerate.html#acc_6, gpu, lib/gpu
 GRANULAR, granular systems, -, "Section_howto"_Section_howto.html#howto_6, pour, -
-KIM, openKIM potentials, Smirichinski & Elliot & Tadmor (3), "pair_style kim"_pair_kim.html, kim, lib/kim
+KIM, openKIM potentials, Smirichinski & Elliot & Tadmor (3), "pair_style kim"_pair_kim.html, kim, KIM
 KSPACE, long-range Coulombic solvers, -, "kspace_style"_kspace_style.html, peptide, -
 MANYBODY, many-body potentials, -, "pair_style tersoff"_pair_tersoff.html, shear, -
-MEAM, modified EAM potential, Greg Wagner (Sandia), "pair_style meam"_pair_meam.html, meam, KIM
+MEAM, modified EAM potential, Greg Wagner (Sandia), "pair_style meam"_pair_meam.html, meam, lib/meam
 MC, Monte Carlo options, -, "fix gcmc"_fix_gcmc.html, -, -
 MOLECULE, molecular system force fields, -, "Section_howto"_Section_howto.html#howto_3, peptide, -
 OPT, optimized pair potentials, Fischer & Richie & Natoli (2), "Section accelerate"_Section_accelerate.html#acc_4, -, -
@@ -91,10 +91,10 @@ lib/package, then the code for the library is under the lib directory
 of the LAMMPS distribution.  See the lib/package/README file for info
 on how to build the library.  If it is not listed as lib/package, then
 it is a third-party library not included in the LAMMPS distribution.
-See the src/package/Makefile.lammps file for info on where to download
-the library.  "Section start"_Section_start.html#start_3_3 of the
-manual also gives details on how to build LAMMPS with both kinds of
-auxiliary libraries.
+See the src/package/README or src/package/Makefile.lammps file for
+info on where to download the library.  "Section
+start"_Section_start.html#start_3_3 of the manual also gives details
+on how to build LAMMPS with both kinds of auxiliary libraries.
 
 :line
 :line

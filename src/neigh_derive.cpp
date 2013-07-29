@@ -439,9 +439,13 @@ void Neighbor::skip_from_respa(NeighList *list)
       if (ipage_middle->status())
         error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
     }
+
+    inum++;
   }
 
   list->inum = inum;
+  listinner->inum = inum;
+  if (respamiddle) listmiddle->inum = inum;
 }
 
 /* ----------------------------------------------------------------------

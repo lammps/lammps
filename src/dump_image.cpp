@@ -47,6 +47,10 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
 {
   if (binary || multiproc) error->all(FLERR,"Invalid dump image filename");
 
+  // force binary flag on to avoid corrupted output on Windows
+
+  binary = 1;
+
   // set filetype based on filename suffix
 
   int n = strlen(filename);

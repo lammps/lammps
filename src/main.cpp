@@ -31,5 +31,6 @@ int main(int argc, char **argv)
   lammps->input->file();
   delete lammps;
 
+  MPI_Barrier(MPI_COMM_WORLD);
   MPI_Finalize();
 }

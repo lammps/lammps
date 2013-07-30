@@ -97,9 +97,16 @@ void FixShearHistory::init()
   int dim;
   computeflag = (int *) pair->extract("computeflag",dim);
 
-  // create pages if first time or if neighbor pgsize/oneatom has changed
-  // note that latter could cause shear history info to be discarded
+  allocate_pages();
+}
 
+/* ----------------------------------------------------------------------
+  create pages if first time or if neighbor pgsize/oneatom has changed
+  note that latter could cause shear history info to be discarded
+------------------------------------------------------------------------- */
+
+void FixShearHistory::allocate_pages()
+{
   int create = 0;
   if (ipage == NULL) create = 1;
   if (pgsize != neighbor->pgsize) create = 1;
@@ -395,9 +402,13 @@ int FixShearHistory::pack_restart(int i, double *buf)
 
 void FixShearHistory::unpack_restart(int nlocal, int nth)
 {
-  double **extra = atom->extra;
+  // ipage = NULL if being called from granular pair style init()
+
+  if (ipage == NULL) allocate_pages();
 
   // skip to Nth set of extra values
+
+  double **extra = atom->extra;
 
   int m = 0;
   for (int i = 0; i < nth; i++) m += static_cast<int> (extra[nlocal][m]);

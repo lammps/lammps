@@ -62,6 +62,8 @@ class FixShearHistory : public Fix {
   int pgsize,oneatom;           // copy of settings in Neighbor
   MyPage<int> *ipage;           // pages of partner atom IDs
   MyPage<double[3]> *dpage;     // pages of shear history with partners
+
+  void allocate_pages();
 };
 
 }

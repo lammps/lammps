@@ -496,20 +496,38 @@ IMPORTANT NOTE: The periodic image flags of atoms in rigid bodies are
 altered so that the rigid body can be reconstructed correctly when it
 straddles periodic boundaries.  The atom image flags are not
 incremented/decremented as they would be for non-rigid atoms as the
-rigid body crosses periodic boundaries.  This means you cannot
-interpret them as you normally would.  For example, the image flag
-values written to a "dump file"_dump.html will be different than they
-would be if the atoms were not in a rigid body.  Likewise the "compute
+rigid body crosses periodic boundaries.  Specifically, they are set so
+that the center-of-mass (COM) of the rigid body always remains inside
+the simulation box.
+
+This means that if you output per-atom image flags you cannot
+interpret them as you normally would.  I.e. the image flag values
+written to a "dump file"_dump.html will be different than they would
+be if the atoms were not in a rigid body.  Likewise the "compute
 msd"_compute_msd.html will not compute the expected mean-squared
 displacement for such atoms if the body moves across periodic
 boundaries.  It also means that if you have bonds between a pair of
 rigid bodies and the bond straddles a periodic boundary, you cannot
 use the "replicate"_replicate.html command to increase the system
-size.  Note that this fix does define image flags for each rigid body,
-which are incremented when the rigid body crosses a periodic boundary
-in the usual way.  These image flags have the same meaning as atom
-images (see the "dump" command) and can be accessed and output as
-described below.
+size.
+
+Here are details on how, you can post-process a dump file to calculate
+a diffusion coefficient for rigid bodies, using the altered per-atom
+image flags written to a dump file.  The image flags for atoms in the
+same rigid body can be used to unwrap the body and calculate its
+center-of-mass (COM).  As mentioned above, this COM will always be
+inside the simulation box.  Thus it will "jump" from one side of the
+box to the other when the COM crosses a periodic boundary.  If you
+keep track of the jumps, you can effectively "unwrap" the COM and use
+that value to track the displacement of each rigid body, and thus the
+mean-squared displacement (MSD) of an ensemble of bodies, and thus a
+diffusion coefficient.
+
+Note that fix rigid does define image flags for each rigid body, which
+are incremented when the center-of-mass of the rigid body crosses a
+periodic boundary in the usual way.  These image flags have the same
+meaning as atom images (see the "dump" command) and can be accessed
+and output as described below.
 
 :line
 

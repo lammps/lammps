@@ -26,6 +26,8 @@ namespace LAMMPS_NS {
 
 class FixExternal : public Fix {
  public:
+  double **fexternal;
+
   FixExternal(class LAMMPS *, int, char **);
   ~FixExternal();
   int setmask();
@@ -34,6 +36,9 @@ class FixExternal : public Fix {
   void min_setup(int);
   void post_force(int);
   void min_post_force(int);
+  double compute_scalar();
+
+  void set_energy(double eng);
 
   double memory_usage();
   void grow_arrays(int);
@@ -48,7 +53,7 @@ class FixExternal : public Fix {
   int mode,ncall,napply;
   FnPtr callback;
   void *ptr_caller;
-  double **fexternal;
+  double user_energy;
 };
 
 }

@@ -33,6 +33,10 @@ FixExternal::FixExternal(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 4) error->all(FLERR,"Illegal fix external command");
 
+  scalar_flag = 1;
+  global_freq = 1;
+  extscalar = 1;
+
   if (strcmp(arg[3],"pf/callback") == 0) {
     if (narg != 6) error->all(FLERR,"Illegal fix external command");
     mode = PF_CALLBACK;
@@ -55,6 +59,8 @@ FixExternal::FixExternal(LAMMPS *lmp, int narg, char **arg) :
   fexternal = NULL;
   grow_arrays(atom->nmax);
   atom->add_callback(0);
+
+  user_energy = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -75,6 +81,7 @@ int FixExternal::setmask()
   int mask = 0;
   if (mode == PF_CALLBACK || mode == PF_ARRAY) {
     mask |= POST_FORCE;
+    mask |= THERMO_ENERGY;
     mask |= MIN_POST_FORCE;
   }
   return mask;
@@ -136,6 +143,23 @@ void FixExternal::post_force(int vflag)
 void FixExternal::min_post_force(int vflag)
 {
   post_force(vflag);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixExternal::set_energy(double eng)
+{
+  user_energy = eng;
+}
+
+/* ----------------------------------------------------------------------
+   potential energy of added force
+   up to user to set it via set_energy()
+------------------------------------------------------------------------- */
+
+double FixExternal::compute_scalar()
+{
+  return user_energy;
 }
 
 /* ----------------------------------------------------------------------

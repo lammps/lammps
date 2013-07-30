@@ -534,15 +534,12 @@ void FixLangevin::post_force_untemplated
 
       if (Tp_BIAS) {
 	temperature->remove_bias(i,v[i]);
+	fdrag[0] = gamma1*v[i][0];
 	fdrag[1] = gamma1*v[i][1];
 	fdrag[2] = gamma1*v[i][2];
-	fdrag[0] = gamma1*v[i][0];
-	if (v[i][0] != 0.0) f[i][0] += fdrag[0] + fran[0];
-	else fran[0] = 0.0;
-	if (v[i][1] != 0.0) f[i][1] += fdrag[1] + fran[1];
-	else fran[1] = 0.0;
-	if (v[i][2] != 0.0) f[i][2] += fdrag[2] + fran[2];
-	else fran[2] = 0.0;
+	if (v[i][0] == 0.0) fran[0] = 0.0;
+	if (v[i][1] == 0.0) fran[1] = 0.0;
+	if (v[i][2] == 0.0) fran[2] = 0.0;
 	temperature->restore_bias(i,v[i]);
       } else {
 	fdrag[0] = gamma1*v[i][0];

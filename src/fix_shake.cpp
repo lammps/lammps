@@ -413,9 +413,15 @@ void FixShake::setup(int vflag)
     dtv = step_respa[0];
     dtf_innerhalf = 0.5 * step_respa[0] * force->ftm2v;
     dtf_inner = dtf_innerhalf;
-    ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
-    post_force_respa(vflag,nlevels_respa-1,0);
-    ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
+
+    // apply correction to all rRESPA levels
+
+    for (int ilevel = 0; ilevel < nlevels_respa; ilevel++) {
+      ((Respa *) update->integrate)->copy_flevel_f(ilevel);
+      post_force_respa(vflag,ilevel,loop_respa[ilevel]-1);
+      ((Respa *) update->integrate)->copy_f_flevel(ilevel);
+    }
+
     dtf_inner = step_respa[0] * force->ftm2v;
   }
 }
@@ -543,10 +549,12 @@ void FixShake::post_force_respa(int vflag, int ilevel, int iloop)
 
   if (ilevel == nlevels_respa-1 && update->ntimestep == next_output) stats();
 
-  // enforce SHAKE constraints on every loop iteration of every rRESPA level
-  // except last loop iteration of inner levels
+  // might be OK to skip enforcing SHAKE constraings
+  // on last iteration of inner levels if pressure not requested
+  // however, leads to slightly different trajectories
 
-  if (ilevel < nlevels_respa-1 && iloop == loop_respa[ilevel]-1) return;
+  //if (ilevel < nlevels_respa-1 && iloop == loop_respa[ilevel]-1 && !vflag)
+  //  return;
 
   // xshake = unconstrained move with current v,f as function of level
   // communicate results if necessary
@@ -554,9 +562,12 @@ void FixShake::post_force_respa(int vflag, int ilevel, int iloop)
   unconstrained_update_respa(ilevel);
   if (nprocs > 1) comm->forward_comm_fix(this);
 
-  // virial setup, only need to compute on outermost level
+  // virial setup only needed on last iteration of innermost level
+  //   and if pressure is requested
+  // virial accumulation happens at outermost level
 
-  if (ilevel == nlevels_respa-1 && vflag) v_setup(vflag);
+  if (ilevel == 0 && iloop == loop_respa[ilevel] - 1 && vflag) v_setup(vflag);
+  if (iloop == loop_respa[ilevel]-1) evflag = 1;
   else evflag = 0;
 
   // loop over clusters to add constraint forces

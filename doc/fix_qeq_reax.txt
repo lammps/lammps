@@ -94,5 +94,5 @@ be used for periodic cell dimensions less than 10 angstroms.
 [(Nakano)] Nakano, Computer Physics Communications, 104, 59-69 (1997).
 
 :link(Aktulga)
-[(Aktulga)] Aktulga, Fogarty, Pandit, Grama, Parallel Computing, to
-appear (2011).
+(Aktulga) Aktulga, Fogarty, Pandit, Grama, Parallel Computing, 38,
+245-259 (2012).

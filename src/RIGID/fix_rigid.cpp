@@ -1094,6 +1094,8 @@ void FixRigid::pre_neighbor()
   }
 
   // adjust image flags of any atom in a rigid body whose xcm was remapped
+  // subtracting remapflag = new-old keeps ix,iy,iz near 0
+  //   so body is always in central simulation box
 
   tagint *image = atom->image;
   int nlocal = atom->nlocal;

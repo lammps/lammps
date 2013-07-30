@@ -378,11 +378,14 @@ int FixPropertyAtom::unpack_exchange(int nlocal, double *buf)
 int FixPropertyAtom::pack_restart(int i, double *buf)
 {
   buf[0] = nvalue+1;
-  for (int m = 1; m <= nvalue; m++) {
-    if (style[m] == MOLECULE) buf[m] = atom->molecule[i];
-    else if (style[m] == INTEGER) buf[m] = atom->ivector[index[m]][i];
-    else if (style[m] == DOUBLE) buf[m] = atom->dvector[index[m]][i];
+
+  int m = 1;
+  for (int j = 0; j < nvalue; j++) {
+    if (style[j] == MOLECULE) buf[m++] = atom->molecule[i];
+    else if (style[j] == INTEGER) buf[m++] = atom->ivector[index[m]][i];
+    else if (style[j] == DOUBLE) buf[m++] = atom->dvector[index[m]][i];
   }
+
   return nvalue+1;
 }
 
@@ -403,9 +406,9 @@ void FixPropertyAtom::unpack_restart(int nlocal, int nth)
   for (int i = 0; i < nvalue; i++) {
     if (style[i] == MOLECULE) 
       atom->molecule[nlocal] = static_cast<int> (extra[nlocal][m++]);
-    else if (style[m] == INTEGER) 
+    else if (style[i] == INTEGER) 
       atom->ivector[index[m]][nlocal] = static_cast<int> (extra[nlocal][m++]);
-    else if (style[m] == DOUBLE)
+    else if (style[i] == DOUBLE)
       atom->dvector[index[m]][nlocal] = extra[nlocal][m++];
   }
 }

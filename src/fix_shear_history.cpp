@@ -246,9 +246,11 @@ void FixShearHistory::pre_exchange()
   }
 
   // set maxtouch = max # of partners of any owned atom
+  // bump up comm->maxexchange_fix if necessary
 
   maxtouch = 0;
   for (i = 0; i < nlocal; i++) maxtouch = MAX(maxtouch,npartner[i]);
+  comm->maxexchange_fix = MAX(comm->maxexchange_fix,4*maxtouch+1);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -421,7 +423,7 @@ void FixShearHistory::unpack_restart(int nlocal, int nth)
 
 int FixShearHistory::maxsize_restart()
 {
-  // maxtouch_all = max touching partners across all procs
+  // maxtouch_all = max # of touching partners across all procs
 
   int maxtouch_all;
   MPI_Allreduce(&maxtouch,&maxtouch_all,1,MPI_INT,MPI_MAX,world);

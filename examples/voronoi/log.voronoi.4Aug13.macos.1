@@ -1,0 +1,368 @@
+LAMMPS (17 Jun 2013)
+# Test of Kawasaki Dynamics on LJ test system
+
+units		metal
+#newton off
+boundary	p p p
+
+lattice         fcc 1 origin 0.25 0.25 0.25
+Lattice spacing in x,y,z = 1 1 1
+atom_style	atomic
+
+atom_modify     sort 0 0.0
+
+region          box block 0 10  0 10 0 10
+create_box      2 box
+Created orthogonal box = (0 0 0) to (10 10 10)
+  1 by 1 by 1 MPI processor grid
+create_atoms    1 box basis 1 2
+Created 4000 atoms
+
+mass 1 50
+mass 2 50
+
+pair_style      lj/cut 2.0
+pair_coeff      1 1 0.0 1.0
+pair_coeff      1 2 0.0 1.0
+pair_coeff      2 2 0.0 1.0
+
+neighbor	0.3 bin
+neigh_modify	delay 10
+
+# set the cut-off to 2.5x the cutoff from the potential
+communicate     single cutoff 5.0
+
+# atom radii per type
+variable r atom (type==1)*0.1+(type==2)*0.3
+
+# groups
+group type1 type 1
+3000 atoms in group type1
+group type2 type 2
+1000 atoms in group type2
+
+thermo 1
+# reduce computes
+#compute r1 type1 reduce sum c_v1[1]
+#compute r2 type2 reduce sum c_v1[1]
+
+#compute v1 all voronoi/atom radius v_r
+
+
+#
+# TEST 1: Sum of all voronoi cells is the simulation cell volume
+#
+compute v1 all voronoi/atom
+dump    d1 all custom 1 dump.voro id type x y z c_v1[1] c_v1[2]
+compute r0 all   reduce sum c_v1[1]
+thermo_style custom c_r0
+variable t1 equal c_r0
+run  0
+WARNING: No fixes defined, atoms won't move (../verlet.cpp:54)
+Memory usage per processor = 9.50465 Mbytes
+r0 
+        1000 
+Loop time of 1.19209e-06 on 1 procs for 0 steps with 4000 atoms
+
+Pair  time (%) = 0 (0)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0 (0)
+Outpt time (%) = 0 (0)
+Other time (%) = 1.19209e-06 (100)
+
+Nlocal:    4000 ave 4000 max 4000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    28000 ave 28000 max 28000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    400000 ave 400000 max 400000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 400000
+Ave neighs/atom = 100
+Neighbor list builds = 0
+Dangerous builds = 0
+print "TEST_1  $(round(abs(v_t1-1000)/10))% Error.  Sum of all voronoi cells is the simulation cell volume"
+TEST_1  0% Error.  Sum of all voronoi cells is the simulation cell volume
+uncompute v1
+uncompute r0
+undump    d1
+
+#
+# TEST 2: Sum of all only_group voronoi cells is the simulation cell volume
+#
+compute v1 type2 voronoi/atom only_group
+dump    d1 all custom 1 dump.voro id type x y z c_v1[1] c_v1[2]
+compute r0 type2   reduce sum c_v1[1]
+compute r1 type1   reduce sum c_v1[1]
+thermo_style custom c_r0 c_r1
+variable t2a equal c_r0
+variable t2b equal c_r1
+run  0
+WARNING: No fixes defined, atoms won't move (../verlet.cpp:54)
+Memory usage per processor = 9.50465 Mbytes
+r0 r1 
+        1000            0 
+Loop time of 0 on 1 procs for 0 steps with 4000 atoms
+
+Pair  time (%) = 0 (0)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0 (0)
+Outpt time (%) = 0 (0)
+Other time (%) = 0 (0)
+
+Nlocal:    4000 ave 4000 max 4000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    28000 ave 28000 max 28000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    400000 ave 400000 max 400000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 400000
+Ave neighs/atom = 100
+Neighbor list builds = 0
+Dangerous builds = 0
+print "TEST_2a $(round(abs(v_t2a-1000)/10))% Error.  Sum of all only_group voronoi cells is the simulation cell volume"
+TEST_2a 0% Error.  Sum of all only_group voronoi cells is the simulation cell volume
+print "TEST_2b $(round(v_t2b/10))% Error.  Sum of all only_group not included voronoi cells is zero"
+TEST_2b 0% Error.  Sum of all only_group not included voronoi cells is zero
+uncompute v1
+uncompute r0
+uncompute r1
+undump    d1
+
+#
+# TEST 3: Sum of all radius voronoi cells is the simulation cell volume
+#
+compute v1 all voronoi/atom radius v_r
+dump    d1 all custom 1 dump.voro id type x y z c_v1[1] c_v1[2]
+compute r0 all   reduce sum c_v1[1]
+thermo_style custom c_r0
+variable t3 equal c_r0
+run  0
+WARNING: No fixes defined, atoms won't move (../verlet.cpp:54)
+Memory usage per processor = 9.50465 Mbytes
+r0 
+        1000 
+Loop time of 9.53674e-07 on 1 procs for 0 steps with 4000 atoms
+
+Pair  time (%) = 0 (0)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0 (0)
+Outpt time (%) = 0 (0)
+Other time (%) = 9.53674e-07 (100)
+
+Nlocal:    4000 ave 4000 max 4000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    28000 ave 28000 max 28000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    400000 ave 400000 max 400000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 400000
+Ave neighs/atom = 100
+Neighbor list builds = 0
+Dangerous builds = 0
+print "TEST_3  $(round(abs(v_t3-1000)/10))% Error.  Sum of all radius voronoi cells is the simulation cell volume"
+TEST_3  0% Error.  Sum of all radius voronoi cells is the simulation cell volume
+uncompute v1
+uncompute r0
+undump    d1
+
+
+#
+# TEST 4: Edge histogram tests
+#
+compute v1 type2 voronoi/atom edge_histo 8
+thermo_style custom c_v1[1] c_v1[2] c_v1[3] c_v1[4] c_v1[5] c_v1[6] c_v1[7]
+run  1
+WARNING: No fixes defined, atoms won't move (../verlet.cpp:54)
+Memory usage per processor = 8.07029 Mbytes
+v1[1] v1[2] v1[3] v1[4] v1[5] v1[6] v1[7] 
+           0            0            0        12000            0            0            0 
+           0            0            0        12000            0            0            0 
+Loop time of 0.781288 on 1 procs for 1 steps with 4000 atoms
+
+Pair  time (%) = 0.00799012 (1.02269)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.000320911 (0.0410747)
+Outpt time (%) = 0.772875 (98.9232)
+Other time (%) = 0.000101805 (0.0130304)
+
+Nlocal:    4000 ave 4000 max 4000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    28000 ave 28000 max 28000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    400000 ave 400000 max 400000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 400000
+Ave neighs/atom = 100
+Neighbor list builds = 0
+Dangerous builds = 0
+variable t4a equal (abs(c_v1[4]-12000)+c_v1[1]+c_v1[2]+c_v1[3]+c_v1[5]+c_v1[6]+c_v1[7])/120
+print "TEST_4a $(round(v_t4a))% Error.  Edge histogram of a simple cubic lattice (6 sides. 4 edges per side)"
+TEST_4a 0% Error.  Edge histogram of a simple cubic lattice (6 sides. 4 edges per side)
+uncompute v1
+compute v1 all voronoi/atom edge_histo 8
+thermo_style custom c_v1[1] c_v1[2] c_v1[3] c_v1[4] c_v1[5] c_v1[6] c_v1[7]
+run  1
+WARNING: No fixes defined, atoms won't move (../verlet.cpp:54)
+Memory usage per processor = 8.07029 Mbytes
+v1[1] v1[2] v1[3] v1[4] v1[5] v1[6] v1[7] 
+           0            0            0        48000            0            0            0 
+           0            0            0        48000            0            0            0 
+Loop time of 0.80266 on 1 procs for 1 steps with 4000 atoms
+
+Pair  time (%) = 0.00799513 (0.996079)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.000322819 (0.0402186)
+Outpt time (%) = 0.794241 (98.9511)
+Other time (%) = 0.000101089 (0.0125943)
+
+Nlocal:    4000 ave 4000 max 4000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    28000 ave 28000 max 28000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    400000 ave 400000 max 400000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 400000
+Ave neighs/atom = 100
+Neighbor list builds = 0
+Dangerous builds = 0
+variable t4b equal (abs(c_v1[4]-48000)+c_v1[1]+c_v1[2]+c_v1[3]+c_v1[5]+c_v1[6]+c_v1[7])/480
+print "TEST_4b $(round(v_t4b))% Error.  Edge histogram of a face centered cubic lattice (12 sides. 4 edges per side)"
+TEST_4b 0% Error.  Edge histogram of a face centered cubic lattice (12 sides. 4 edges per side)
+uncompute v1
+
+# perturbed fcc lattice
+displace_atoms all random 0.01 0.01 0.01 31423
+compute v1 all voronoi/atom edge_histo 8 edge_threshold 0.1
+thermo_style custom c_v1[1] c_v1[2] c_v1[3] c_v1[4] c_v1[5] c_v1[6] c_v1[7]
+run  1
+WARNING: No fixes defined, atoms won't move (../verlet.cpp:54)
+Memory usage per processor = 8.07029 Mbytes
+v1[1] v1[2] v1[3] v1[4] v1[5] v1[6] v1[7] 
+           0            0            0        48000            0            0            0 
+           0            0            0        48000            0            0            0 
+Loop time of 0.845146 on 1 procs for 1 steps with 4000 atoms
+
+Pair  time (%) = 0.00830793 (0.983018)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.000324011 (0.0383379)
+Outpt time (%) = 0.836411 (98.9665)
+Other time (%) = 0.000102997 (0.0121869)
+
+Nlocal:    4000 ave 4000 max 4000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    28000 ave 28000 max 28000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    400000 ave 400000 max 400000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 400000
+Ave neighs/atom = 100
+Neighbor list builds = 0
+Dangerous builds = 0
+variable t4c equal (abs(c_v1[4]-48000)+c_v1[1]+c_v1[2]+c_v1[3]+c_v1[5]+c_v1[6]+c_v1[7])/480
+print "TEST_4c $(round(v_t4c))% Error.  Edge histogram of a perturbed face centered cubic lattice with edge_threshold"
+TEST_4c 0% Error.  Edge histogram of a perturbed face centered cubic lattice with edge_threshold
+uncompute v1
+
+# bcc lattice
+delete_atoms group all
+Deleted 4000 atoms, new total = 0
+lattice         bcc 1 origin 0.25 0.25 0.25
+Lattice spacing in x,y,z = 1 1 1
+create_atoms    1 box
+Created 2000 atoms
+compute v1 all voronoi/atom edge_histo 8
+thermo_style custom c_v1[1] c_v1[2] c_v1[3] c_v1[4] c_v1[5] c_v1[6] c_v1[7]
+run  1
+WARNING: No fixes defined, atoms won't move (../verlet.cpp:54)
+Memory usage per processor = 8.07029 Mbytes
+v1[1] v1[2] v1[3] v1[4] v1[5] v1[6] v1[7] 
+           0            0            0        12000            0        16000            0 
+           0            0            0        12000            0        16000            0 
+Loop time of 0.359532 on 1 procs for 1 steps with 2000 atoms
+
+Pair  time (%) = 0.00208998 (0.581305)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.000163794 (0.0455574)
+Outpt time (%) = 0.357227 (99.3589)
+Other time (%) = 5.126e-05 (0.0142574)
+
+Nlocal:    2000 ave 2000 max 2000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    14000 ave 14000 max 14000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    112000 ave 112000 max 112000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 112000
+Ave neighs/atom = 56
+Neighbor list builds = 0
+Dangerous builds = 0
+variable t4d equal (abs(c_v1[4]-12000)+abs(c_v1[6]-16000)+c_v1[1]+c_v1[2]+c_v1[3]+c_v1[5]+c_v1[7])/280
+print "TEST_4d $(round(v_t4d))% Error.  Edge histogram of a body centered cubic lattice (truncated octahedron, 6 sides with 4 edges, 8 sides with 6 edges)"
+TEST_4d 0% Error.  Edge histogram of a body centered cubic lattice (truncated octahedron, 6 sides with 4 edges, 8 sides with 6 edges)
+uncompute v1
+
+# restore fcc lattice
+delete_atoms group all
+Deleted 2000 atoms, new total = 0
+lattice         fcc 1 origin 0.25 0.25 0.25
+Lattice spacing in x,y,z = 1 1 1
+create_atoms    1 box basis 1 2
+Created 4000 atoms
+
+
+#
+# TEST 5: Sum of all voronoi cells is the triclinic simulation cell volume
+#
+
+# switch to triclinic box
+change_box all triclinic
+  triclinic box = (0 0 0) to (10 10 10) with tilt (0 0 0)
+change_box all xy final 5.0 remap units box
+  triclinic box = (0 0 0) to (10 10 10) with tilt (5 0 0)
+
+compute v1 all voronoi/atom
+dump    d1 all custom 1 dump.voro id type x y z c_v1[1] c_v1[2]
+compute r0 all   reduce sum c_v1[1]
+thermo_style custom c_r0
+variable t5 equal c_r0
+run  0
+WARNING: No fixes defined, atoms won't move (../verlet.cpp:54)
+Memory usage per processor = 9.9792 Mbytes
+r0 
+        1000 
+Loop time of 9.53674e-07 on 1 procs for 0 steps with 4000 atoms
+
+Pair  time (%) = 0 (0)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0 (0)
+Outpt time (%) = 0 (0)
+Other time (%) = 9.53674e-07 (100)
+
+Nlocal:    4000 ave 4000 max 4000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    29600 ave 29600 max 29600 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    432000 ave 432000 max 432000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 432000
+Ave neighs/atom = 108
+Neighbor list builds = 0
+Dangerous builds = 0
+print "TEST_5  $(round((v_t5-1000)/10))% Error.  Sum of all voronoi cells is the triclinic simulation cell volume"
+TEST_5  0% Error.  Sum of all voronoi cells is the triclinic simulation cell volume
+uncompute v1
+uncompute r0
+undump    d1
+
+
+# All tests done
+print TEST_DONE
+TEST_DONE

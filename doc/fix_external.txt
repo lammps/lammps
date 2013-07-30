@@ -40,7 +40,7 @@ script"_Section_python.html.
 :line
 
 If mode is {pf/callback} then the fix will make a callback every
-{Ncall} timesteps or minimization iteration to the external program.
+{Ncall} timesteps or minimization iterations to the external program.
 The external program computes forces on atoms by setting values in an
 array owned by the fix.  The fix then adds these forces to each atom
 in the group, once every {Napply} steps, similar to the way the "fix
@@ -82,29 +82,70 @@ array.  The fix adds these forces to each atom in the group, once
 every {Napply} steps, similar to the way the "fix
 addforce"_fix_addforce.html command works.
 
+The name of the public force array provided by the FixExternal
+class is
+
+double **fexternal; :pre
+
+It is allocated by the FixExternal class as an (N,3) array where N is
+the number of atoms owned by a processor.  The 3 corresponds to the
+fx, fy, fz components of force.
+
 It is up to the external program to set the values in this array to
 the desired quantities, as often as desired.  For example, the driver
 program might perform an MD run in stages of 1000 timesteps each.  In
 between calls to the LAMMPS "run"_run.html command, it could retrieve
-atom coordinates from LAMMPS, compute forces, set values in the fix
-external array, etc.
+atom coordinates from LAMMPS, compute forces, set values in fexternal,
+etc.
+
+:line
+
+To use this fix during energy minimization, the energy corresponding
+to the added forces must also be set so as to be consistent with the
+added forces.  Otherwise the minimization will not converge correctly.
+
+This can be done from the external driver by calling this public
+method of the FixExternal class:
+
+void set_energy(double eng); :pre
+
+where eng is the potential energy.  Eng is an extensive quantity,
+meaning it should be the sum over per-atom energies of all affected
+atoms.  It should also be provided in "energy units"_units.html
+consistent with the simulation.  See the details below for how to
+insure this energy setting is used appropriately in a minimization.
 
 :line
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
 No information about this fix is written to "binary restart
-files"_restart.html.  None of the "fix_modify"_fix_modify.html options
-are relevant to this fix.  No global or per-atom quantities are stored
-by this fix for access by various "output
-commands"_Section_howto.html#howto_15.  No parameter of this fix can
-be used with the {start/stop} keywords of the "run"_run.html command.
+files"_restart.html.  
+
+The "fix_modify"_fix_modify.html {energy} option is supported by this
+fix to add the potential "energy" set by the external driver to the
+system's potential energy as part of "thermodynamic
+output"_thermo_style.html.  This is a fictitious quantity but is
+needed so that the "minimize"_minimize.html command can include the
+forces added by this fix in a consistent manner.  I.e. there is a
+decrease in potential energy when atoms move in the direction of the
+added force.
+
+This fix computes a global scalar which can be accessed by various
+"output commands"_Section_howto.html#howto_15.  The scalar is the
+potential energy discussed above.  The scalar stored by this fix
+is "extensive".
+
+No parameter of this fix can be used with the {start/stop} keywords of
+the "run"_run.html command.
 
 The forces due to this fix are imposed during an energy minimization,
-invoked by the "minimize"_minimize.html command.  However, LAMMPS
-knows nothing about the energy associated with these forces.  So you
-should perform the minimization based on a force tolerance, not an
-energy tolerance.
+invoked by the "minimize"_minimize.html command. 
+
+IMPORTANT NOTE: If you want the fictitious potential energy associated
+with the added forces to be included in the total potential energy of
+the system (the quantity being minimized), you MUST enable the
+"fix_modify"_fix_modify.html {energy} option for this fix.
 
 [Restrictions:] none
 

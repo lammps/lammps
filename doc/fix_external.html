@@ -47,7 +47,7 @@ script</A>.
 <HR>
 
 <P>If mode is <I>pf/callback</I> then the fix will make a callback every
-<I>Ncall</I> timesteps or minimization iteration to the external program.
+<I>Ncall</I> timesteps or minimization iterations to the external program.
 The external program computes forces on atoms by setting values in an
 array owned by the fix.  The fix then adds these forces to each atom
 in the group, once every <I>Napply</I> steps, similar to the way the <A HREF = "fix_addforce.html">fix
@@ -89,29 +89,70 @@ array.  The fix adds these forces to each atom in the group, once
 every <I>Napply</I> steps, similar to the way the <A HREF = "fix_addforce.html">fix
 addforce</A> command works.
 </P>
+<P>The name of the public force array provided by the FixExternal
+class is
+</P>
+<PRE>double **fexternal; 
+</PRE>
+<P>It is allocated by the FixExternal class as an (N,3) array where N is
+the number of atoms owned by a processor.  The 3 corresponds to the
+fx, fy, fz components of force.
+</P>
 <P>It is up to the external program to set the values in this array to
 the desired quantities, as often as desired.  For example, the driver
 program might perform an MD run in stages of 1000 timesteps each.  In
 between calls to the LAMMPS <A HREF = "run.html">run</A> command, it could retrieve
-atom coordinates from LAMMPS, compute forces, set values in the fix
-external array, etc.
+atom coordinates from LAMMPS, compute forces, set values in fexternal,
+etc.
+</P>
+<HR>
+
+<P>To use this fix during energy minimization, the energy corresponding
+to the added forces must also be set so as to be consistent with the
+added forces.  Otherwise the minimization will not converge correctly.
+</P>
+<P>This can be done from the external driver by calling this public
+method of the FixExternal class:
+</P>
+<PRE>void set_energy(double eng); 
+</PRE>
+<P>where eng is the potential energy.  Eng is an extensive quantity,
+meaning it should be the sum over per-atom energies of all affected
+atoms.  It should also be provided in <A HREF = "units.html">energy units</A>
+consistent with the simulation.  See the details below for how to
+insure this energy setting is used appropriately in a minimization.
 </P>
 <HR>
 
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>
 <P>No information about this fix is written to <A HREF = "restart.html">binary restart
-files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
-are relevant to this fix.  No global or per-atom quantities are stored
-by this fix for access by various <A HREF = "Section_howto.html#howto_15">output
-commands</A>.  No parameter of this fix can
-be used with the <I>start/stop</I> keywords of the <A HREF = "run.html">run</A> command.
+files</A>.  
+</P>
+<P>The <A HREF = "fix_modify.html">fix_modify</A> <I>energy</I> option is supported by this
+fix to add the potential "energy" set by the external driver to the
+system's potential energy as part of <A HREF = "thermo_style.html">thermodynamic
+output</A>.  This is a fictitious quantity but is
+needed so that the <A HREF = "minimize.html">minimize</A> command can include the
+forces added by this fix in a consistent manner.  I.e. there is a
+decrease in potential energy when atoms move in the direction of the
+added force.
+</P>
+<P>This fix computes a global scalar which can be accessed by various
+<A HREF = "Section_howto.html#howto_15">output commands</A>.  The scalar is the
+potential energy discussed above.  The scalar stored by this fix
+is "extensive".
+</P>
+<P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
+the <A HREF = "run.html">run</A> command.
 </P>
 <P>The forces due to this fix are imposed during an energy minimization,
-invoked by the <A HREF = "minimize.html">minimize</A> command.  However, LAMMPS
-knows nothing about the energy associated with these forces.  So you
-should perform the minimization based on a force tolerance, not an
-energy tolerance.
+invoked by the <A HREF = "minimize.html">minimize</A> command. 
+</P>
+<P>IMPORTANT NOTE: If you want the fictitious potential energy associated
+with the added forces to be included in the total potential energy of
+the system (the quantity being minimized), you MUST enable the
+<A HREF = "fix_modify.html">fix_modify</A> <I>energy</I> option for this fix.
 </P>
 <P><B>Restrictions:</B> none
 </P>

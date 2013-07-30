@@ -39,6 +39,7 @@
 #include "modify.h"
 #include "group.h"
 #include "output.h"
+#include "citeme.h"
 #include "accelerator_cuda.h"
 #include "accelerator_omp.h"
 #include "timer.h"
@@ -73,7 +74,9 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   int partscreenflag = 0;
   int partlogflag = 0;
   int cudaflag = -1;
+  int citeflag = 1;
   int helpflag = 0;
+
   suffix = NULL;
   suffix_enable = 0;
 
@@ -156,6 +159,10 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
         error->universe_all(FLERR,"Cannot use -reorder after -partition");
       universe->reorder(arg[iarg+1],arg[iarg+2]);
       iarg += 3;
+    } else if (strcmp(arg[iarg],"-nocite") == 0 ||
+               strcmp(arg[iarg],"-nc") == 0) {
+      citeflag = 0;
+      iarg++;
     } else if (strcmp(arg[iarg],"-help") == 0 ||
                strcmp(arg[iarg],"-h") == 0) {
       if (iarg+1 > narg)
@@ -393,6 +400,11 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   MPI_Comm_rank(world,&me);
   if (cuda && me == 0) error->message(FLERR,"USER-CUDA mode is enabled");
 
+  // allocate CiteMe class if enabled
+
+  if (citeflag) citeme = new CiteMe(this);
+  else citeme = NULL;
+
   // allocate input class now that MPI is fully setup
 
   input = new Input(this,narg,arg);
@@ -421,6 +433,8 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
 LAMMPS::~LAMMPS()
 {
   destroy();
+
+  delete citeme;
 
   if (universe->nworlds == 1) {
     if (logfile) fclose(logfile);

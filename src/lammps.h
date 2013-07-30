@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -44,7 +44,10 @@ class LAMMPS {
 
   char *suffix;                  // suffix to add to input script style names
   int suffix_enable;             // 1 if suffix enabled, 0 if disabled
+  int cite_enable;               // 1 if generating log.cite, 0 if disabled
   class Cuda *cuda;              // CUDA accelerator class
+
+  class CiteMe *citeme;          // citation info
 
   LAMMPS(int, char **, MPI_Comm);
   ~LAMMPS();

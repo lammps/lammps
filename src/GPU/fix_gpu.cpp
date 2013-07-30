@@ -19,7 +19,6 @@
 #include "pair.h"
 #include "respa.h"
 #include "input.h"
-#include "error.h"
 #include "timer.h"
 #include "modify.h"
 #include "update.h"
@@ -27,6 +26,8 @@
 #include "universe.h"
 #include "gpu_extra.h"
 #include "neighbor.h"
+#include "citeme.h"
+#include "error.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -42,11 +43,32 @@ extern void lmp_clear_device();
 extern double lmp_gpu_forces(double **f, double **tor, double *eatom,
                              double **vatom, double *virial, double &ecoul);
 
+static const char cite_gpu_package[] =
+  "GPU package (short-range and long-range):\n\n"
+  "@Article{Brown11,\n"
+  " author = {W. M. Brown, P. Wang, S. J. Plimpton, A. N. Tharrington},\n"
+  " title = {Implementing Molecular Dynamics on Hybrid High Performance Computers - Short Range Forces},\n"
+  " journal = {Comp.~Phys.~Comm.},\n"
+  " year =    2011,\n"
+  " volume =  182,\n"
+  " pages =   {898--911}\n"
+  "}\n\n"
+  "@Article{Brown12,\n"
+  " author = {W. M. Brown, A. Kohlmeyer, S. J. Plimpton, A. N. Tharrington},\n"
+  " title = {Implementing Molecular Dynamics on Hybrid High Performance Computers - Particle-Particle Particle-Mesh},\n"
+  " journal = {Comp.~Phys.~Comm.},\n"
+  " year =    2012,\n"
+  " volume =  183,\n"
+  " pages =   {449--459}\n"
+  "}\n\n"
+
 /* ---------------------------------------------------------------------- */
 
 FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
+  if (lmp->citeme) lmp->citeme->add(cite_gpu_package);
+
   if (lmp->cuda)
     error->all(FLERR,"Cannot use fix GPU with USER-CUDA mode enabled");
 

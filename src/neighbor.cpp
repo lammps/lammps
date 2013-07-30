@@ -54,7 +54,7 @@ enum{NSQ,BIN,MULTI};     // also in neigh_list.cpp
 
 static const char cite_neigh_multi[] =
   "neighbor multi command:\n\n"
-  "@Article{intveld08,\n"
+  "@Article{Intveld08,\n"
   " author =  {P.{\\,}J.~in{\\,}'t~Veld and S.{\\,}J.~Plimpton"
   " and G.{\\,}S.~Grest},\n"
   " title =   {Accurate and Efficient Methods for Modeling Colloidal\n"

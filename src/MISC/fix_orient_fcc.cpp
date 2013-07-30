@@ -28,10 +28,11 @@
 #include "neigh_request.h"
 #include "comm.h"
 #include "output.h"
+#include "force.h"
 #include "math_const.h"
+#include "citeme.h"
 #include "memory.h"
 #include "error.h"
-#include "force.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -39,11 +40,24 @@ using namespace MathConst;
 
 #define BIG 1000000000
 
+static const char cite_fix_orient_fcc[] =
+  "fix orient/fcc command:\n\n"
+  "@Article{Janssens06,\n"
+  " author = {K. G. F. Janssens, D. Olmsted, E.A. Holm, S. M. Foiles, S. J. Plimpton, and P. M. Derlet},\n"
+  " title = {Computing the Mobility of Grain Boundaries},\n"
+  " journal = {Nature Materials},\n"
+  " year =    2006,\n"
+  " volume =  5,\n"
+  " pages =   {124--127}\n"
+  "}\n\n";
+
 /* ---------------------------------------------------------------------- */
 
 FixOrientFCC::FixOrientFCC(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
+  if (lmp->citeme) lmp->citeme->add(cite_fix_orient_fcc);
+
   MPI_Comm_rank(world,&me);
 
   if (narg != 11) error->all(FLERR,"Illegal fix orient/fcc command");

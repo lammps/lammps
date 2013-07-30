@@ -14,11 +14,6 @@
 /* ----------------------------------------------------------------------
    Contributing author: Hasan Metin Aktulga, Purdue University
    (now at Lawrence Berkeley National Laboratory, hmaktulga@lbl.gov)
-
-   Please cite the related publication:
-   H. M. Aktulga, J. C. Fogarty, S. A. Pandit, A. Y. Grama,
-   "Parallel Reactive Molecular Dynamics: Numerical Methods and
-   Algorithmic Techniques", Parallel Computing, in press.
 ------------------------------------------------------------------------- */
 
 #include "math.h"
@@ -38,6 +33,7 @@
 #include "pair.h"
 #include "respa.h"
 #include "memory.h"
+#include "citeme.h"
 #include "error.h"
 #include "reaxc_defs.h"
 
@@ -51,11 +47,24 @@ using namespace FixConst;
 #define CUBE(x) ((x)*(x)*(x))
 #define MIN_NBRS 100
 
+static const char cite_fix_qeq_reax[] =
+  "fix qeq/reax command:\n\n"
+  "@Article{Aktulga12,\n"
+  " author = {H. M. Aktulga, J. C. Fogarty, S. A. Pandit, A. Y. Grama},\n"
+  " title = {Parallel reactive molecular dynamics: Numerical methods and algorithmic techniques},\n"
+  " journal = {Parallel Computing},\n"
+  " year =    2012,\n"
+  " volume =  38,\n"
+  " pages =   {245--259}\n"
+  "}\n\n";
+
 /* ---------------------------------------------------------------------- */
 
 FixQEqReax::FixQEqReax(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
+  if (lmp->citeme) lmp->citeme->add(cite_fix_qeq_reax);
+
   if (narg != 8) error->all(FLERR,"Illegal fix qeq/reax command");
 
   nevery = force->inumeric(FLERR,arg[3]);

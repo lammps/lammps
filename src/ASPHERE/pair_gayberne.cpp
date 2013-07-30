@@ -28,15 +28,29 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "integrate.h"
+#include "citeme.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
 
+static const char cite_pair_gayberne[] =
+  "pair gayberne command:\n\n"
+  "@Article{Brown09,\n"
+  " author =  {W. M. Brown, M. K. Petersen, S. J. Plimpton, and G. S. Grest},\n"
+  " title =   {Liquid crystal nanodroplets in solution},\n"
+  " journal = {J.~Chem.~Phys.},\n"
+  " year =    2009,\n"
+  " volume =  130,\n"
+  " pages =   {044901}\n"
+  "}\n\n";
+
 /* ---------------------------------------------------------------------- */
 
 PairGayBerne::PairGayBerne(LAMMPS *lmp) : Pair(lmp)
 {
+  if (lmp->citeme) lmp->citeme->add(cite_pair_gayberne);
+
   single_enable = 0;
 }
 

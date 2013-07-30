@@ -344,7 +344,7 @@ void PPPM::init()
 #endif
 
     if (screen) {
-      fprintf(screen,"  G vector (1/distance)= %g\n",g_ewald);
+      fprintf(screen,"  G vector (1/distance) = %g\n",g_ewald);
       fprintf(screen,"  grid = %d %d %d\n",nx_pppm,ny_pppm,nz_pppm);
       fprintf(screen,"  stencil order = %d\n",order);
       fprintf(screen,"  estimated absolute RMS force accuracy = %g\n",

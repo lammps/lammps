@@ -14,11 +14,6 @@
 /* ----------------------------------------------------------------------
    Contributing author: Hasan Metin Aktulga, Purdue University
    (now at Lawrence Berkeley National Laboratory, hmaktulga@lbl.gov)
-   Please cite the related publication:
-   H. M. Aktulga, J. C. Fogarty, S. A. Pandit, A. Y. Grama,
-   "Parallel Reactive Molecular Dynamics: Numerical Methods and
-   Algorithmic Techniques", Parallel Computing, in press.
-   ---
    Per-atom energy/virial added by Ray Shan (Sandia)
    Fix reax/c/bonds and fix reax/c/species for pair_style reax/c added by 
    	Ray Shan (Sandia)
@@ -35,6 +30,7 @@
 #include "modify.h"
 #include "fix.h"
 #include "fix_reax_c.h"
+#include "citeme.h"
 #include "memory.h"
 #include "error.h"
 
@@ -54,10 +50,23 @@
 
 using namespace LAMMPS_NS;
 
+static const char cite_pair_reax_c[] =
+  "pair reax/c command:\n\n"
+  "@Article{Aktulga12,\n"
+  " author = {H. M. Aktulga, J. C. Fogarty, S. A. Pandit, A. Y. Grama},\n"
+  " title = {Parallel reactive molecular dynamics: Numerical methods and algorithmic techniques},\n"
+  " journal = {Parallel Computing},\n"
+  " year =    2012,\n"
+  " volume =  38,\n"
+  " pages =   {245--259}\n"
+  "}\n\n";
+
 /* ---------------------------------------------------------------------- */
 
 PairReaxC::PairReaxC(LAMMPS *lmp) : Pair(lmp)
 {
+  if (lmp->citeme) lmp->citeme->add(cite_pair_reax_c);
+
   single_enable = 0;
   restartinfo = 0;
   one_coeff = 1;

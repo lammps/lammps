@@ -49,6 +49,8 @@ class LAMMPS {
   int cite_enable;               // 1 if generating log.cite, 0 if disabled
   class Cuda *cuda;              // CUDA accelerator class
 
+  class CiteMe *citeme;          // citation info
+
   LAMMPS(int, char **, MPI_Comm);
   ~LAMMPS();
   void create();

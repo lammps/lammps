@@ -28,14 +28,15 @@
 #include "atom.h"
 #include "compute.h"
 #include "domain.h"
-#include "error.h"
 #include "fft3d_wrap.h"
 #include "force.h"
 #include "group.h"
 #include "lattice.h"
-#include "memory.h"
 #include "modify.h"
 #include "update.h"
+#include "citeme.h"
+#include "memory.h"
+#include "error.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -44,8 +45,23 @@ using namespace FixConst;
 #define INVOKED_VECTOR 2
 #define MAXLINE 256
 
+static const char cite_fix_phonon[] =
+  "fix phonon command:\n\n"
+  "@Article{Kong11,\n"
+  " author = {L. T. Kong},\n"
+  " title = {Phonon dispersion measured directly from molecular dynamics simulations},\n"
+  " journal = {Comp.~Phys.~Comm.},\n"
+  " year =    2011,\n"
+  " volume =  182,\n"
+  " pages =   {2201--2207}\n"
+  "}\n\n";
+
+/* ---------------------------------------------------------------------- */
+
 FixPhonon::FixPhonon(LAMMPS *lmp,  int narg, char **arg) : Fix(lmp, narg, arg)
 {
+  if (lmp->citeme) lmp->citeme->add(cite_fix_phonon);
+
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
   

@@ -36,9 +36,9 @@
 #include "update.h"
 #include "respa.h"
 #include "output.h"
+#include "citeme.h"
 #include "memory.h"
 #include "error.h"
-#include "citeme.h"
 
 using namespace LAMMPS_NS;
 
@@ -52,8 +52,9 @@ using namespace LAMMPS_NS;
 
 enum{NSQ,BIN,MULTI};     // also in neigh_list.cpp
 
-static const char neigh_multi_pub[] =
-  "@Article{intveld08,\n"
+static const char cite_neigh_multi[] =
+  "neighbor multi command:\n\n"
+  "@Article{Intveld08,\n"
   " author =  {P.{\\,}J.~in{\\,}'t~Veld and S.{\\,}J.~Plimpton"
   " and G.{\\,}S.~Grest},\n"
   " title =   {Accurate and Efficient Methods for Modeling Colloidal\n"
@@ -1658,7 +1659,7 @@ void Neighbor::set(int narg, char **arg)
   else if (strcmp(arg[1],"multi") == 0) style = MULTI;
   else error->all(FLERR,"Illegal neighbor command");
 
-  if (style == MULTI) citeme->add(neigh_multi_pub);
+  if (style == MULTI && lmp->citeme) lmp->citeme->add(cite_neigh_multi);
 }
 
 /* ----------------------------------------------------------------------

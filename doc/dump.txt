@@ -438,10 +438,13 @@ except that the unwrapped coordinates are scaled by the box size. Atoms
 that have passed through a periodic boundary will have the corresponding
 cooordinate increased or decreased by 1.0.
 
-The image flags can be printed directly using the {ix},
-{iy}, {iz} attributes. The "dump_modify"_dump_modify.html command
-describes in more detail what is meant by scaled vs unscaled
-coordinates and the image flags.
+The image flags can be printed directly using the {ix}, {iy}, {iz}
+attributes.  For periodic dimensions, they specify which image of the
+simulation box the atom is considered to be in.  An image of 0 means
+it is inside the box as defined.  A value of 2 means add 2 box lengths
+to get the true value.  A value of -1 means subtract 1 box length to
+get the true value.  LAMMPS updates these flags as atoms cross
+periodic boundaries during the simulation.
 
 The {mux}, {muy}, {muz} attributes are specific to dipolar systems
 defined with an atom style of {dipole}.  They give the orientation of

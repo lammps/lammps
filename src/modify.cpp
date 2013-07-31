@@ -995,6 +995,7 @@ void Modify::write_restart(FILE *fp)
 
   for (int i = 0; i < nfix; i++)
     if (fix[i]->restart_peratom) {
+      int maxsize_restart = fix[i]->maxsize_restart();
       if (me == 0) {
         n = strlen(fix[i]->id) + 1;
         fwrite(&n,sizeof(int),1,fp);
@@ -1002,8 +1003,7 @@ void Modify::write_restart(FILE *fp)
         n = strlen(fix[i]->style) + 1;
         fwrite(&n,sizeof(int),1,fp);
         fwrite(fix[i]->style,sizeof(char),n,fp);
-        n = fix[i]->maxsize_restart();
-        fwrite(&n,sizeof(int),1,fp);
+        fwrite(&maxsize_restart,sizeof(int),1,fp);
       }
     }
 }

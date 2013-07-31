@@ -33,6 +33,7 @@
 #include "output.h"
 #include "group.h"
 #include "comm.h"
+#include "citeme.h"
 #include "memory.h"
 #include "error.h"
 
@@ -45,6 +46,17 @@ using namespace FixConst;
 #define EPSILON 1.0e-7
 #define MAXJACOBI 50
 
+static const char cite_fix_poems[] =
+  "fix poems command:\n\n"
+  "@Article{Mukherjee08,\n"
+  " author = {R. M. Mukherjee, P. S. Crozier, S. J. Plimpton, K. S. Anderson},\n"
+  " title = {Substructured molecular dynamics using multibody dynamics algorithms},\n"
+  " journal = {Intl.~J.~Non-linear Mechanics},\n"
+  " year =    2008,\n"
+  " volume =  43,\n"
+  " pages =   {1045--1055}\n"
+  "}\n\n";
+
 /* ----------------------------------------------------------------------
    define rigid bodies and joints, initiate POEMS
 ------------------------------------------------------------------------- */
@@ -52,6 +64,8 @@ using namespace FixConst;
 FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
+  if (lmp->citeme) lmp->citeme->add(cite_fix_poems);
+
   int i,j,ibody;
 
   time_integrate = 1;

@@ -29,6 +29,7 @@
 #include "modify.h"
 #include "compute.h"
 #include "random_mars.h"
+#include "citeme.h"
 #include "memory.h"
 #include "error.h"
 
@@ -37,11 +38,24 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
+static const char cite_fix_bond_swap[] =
+  "neighbor multi command:\n\n"
+  "@Article{Auhl03,\n"
+  " author = {R. Auhl, R. Everaers, G. S. Grest, K. Kremer, S. J. Plimpton},\n"
+  " title = {Equilibration of long chain polymer melts in computer simulations},\n"
+  " journal = {J.~Chem.~Phys.},\n"
+  " year =    2003,\n"
+  " volume =  119,\n"
+  " pages =   {12718--12728}\n"
+  "}\n\n";
+
 /* ---------------------------------------------------------------------- */
 
 FixBondSwap::FixBondSwap(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
+  if (lmp->citeme) lmp->citeme->add(cite_fix_bond_swap);
+
   if (narg != 6) error->all(FLERR,"Illegal fix bond/swap command");
 
   vector_flag = 1;

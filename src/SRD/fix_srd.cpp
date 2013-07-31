@@ -37,6 +37,7 @@
 #include "random_mars.h"
 #include "random_park.h"
 #include "math_const.h"
+#include "citeme.h"
 #include "memory.h"
 #include "error.h"
 
@@ -61,6 +62,17 @@ enum{NO_REMAP,X_REMAP,V_REMAP};                   // same as fix_deform.cpp
 #define TOLERANCE 0.00001
 #define MAXITER 20
 
+static const char cite_fix_srd[] =
+  "fix srd command:\n\n"
+  "@Article{Petersen10,\n"
+  " author = {M. K. Petersen, J. B. Lechman, S. J. Plimpton, G. S. Grest, P. J. in 't Veld, P. R. Schunk},\n"
+  " title =   {Mesoscale Hydrodynamics via Stochastic Rotation Dynamics: Comparison with Lennard-Jones Fluid},"
+  " journal = {J.~Chem.~Phys.},\n"
+  " year =    2010,\n"
+  " volume =  132,\n"
+  " pages =   {174106}\n"
+  "}\n\n";
+
 //#define SRD_DEBUG 1
 //#define SRD_DEBUG_ATOMID 58
 //#define SRD_DEBUG_TIMESTEP 449
@@ -69,6 +81,8 @@ enum{NO_REMAP,X_REMAP,V_REMAP};                   // same as fix_deform.cpp
 
 FixSRD::FixSRD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 {
+  if (lmp->citeme) lmp->citeme->add(cite_fix_srd);
+
   if (narg < 8) error->all(FLERR,"Illegal fix srd command");
 
   restart_pbc = 1;

@@ -1,4 +1,4 @@
-LAMMPS (10 Jan 2012)
+LAMMPS (14 Aug 2013)
 # LAMMPS benchmark of granular flow
 # chute flow of 32000 atoms with frozen base at 26 degrees
 
@@ -20,8 +20,8 @@ read_data	data.chute
 replicate	$x $y 1
 replicate	2 $y 1
 replicate	2 2 1
-  orthogonal box = (0 0 0) to (80 40 37.2887)
-  4 by 1 by 1 MPI processor grid
+  orthogonal box = (0 0 0) to (80 40 37.2923)
+  2 by 2 by 1 MPI processor grid
   128000 atoms
 
 pair_style	gran/hooke/history 200000.0 NULL 50.0 NULL 0.5 0
@@ -48,26 +48,26 @@ thermo_modify	norm no
 thermo		100
 
 run		100
-Memory usage per processor = 37.0464 Mbytes
+Memory usage per processor = 21.8161 Mbytes
 Step Atoms KinEng 1 Volume 
-       0   128000    3136556.5    6404.5051    119323.52 
-     100   128000      3137160    6284.0549    119327.22 
-Loop time of 0.893496 on 4 procs for 100 steps with 128000 atoms
+       0   128000    3136556.5    6404.5051    119335.13 
+     100   128000    3137168.3    6284.3873    119338.83 
+Loop time of 1.01235 on 4 procs for 100 steps with 128000 atoms
 
-Pair  time (%) = 0.524706 (58.7251)
-Neigh time (%) = 0.0462004 (5.17075)
-Comm  time (%) = 0.0590464 (6.60847)
-Outpt time (%) = 0.00043273 (0.0484311)
-Other time (%) = 0.26311 (29.4473)
+Pair  time (%) = 0.508497 (50.2295)
+Neigh time (%) = 0.0454835 (4.49288)
+Comm  time (%) = 0.0667624 (6.59481)
+Outpt time (%) = 0.00123399 (0.121894)
+Other time (%) = 0.390371 (38.5609)
 
 Nlocal:    32000 ave 32000 max 32000 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
-Nghost:    5456 ave 5456 max 5456 min
+Nghost:    5463 ave 5463 max 5463 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
-Neighs:    115135 ave 115135 max 115135 min
+Neighs:    115133 ave 115133 max 115133 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
 
-Total # of neighbors = 460540
-Ave neighs/atom = 3.59797
+Total # of neighbors = 460532
+Ave neighs/atom = 3.59791
 Neighbor list builds = 2
 Dangerous builds = 0

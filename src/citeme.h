@@ -15,6 +15,8 @@
 #define LMP_CITEME_H
 
 #include "pointers.h"
+#include "stdio.h"
+#include <set>
 
 namespace LAMMPS_NS {
 
@@ -22,12 +24,12 @@ class CiteMe : protected Pointers {
  public:
   CiteMe(class LAMMPS *);
   virtual ~CiteMe();
-
   void add(const char *);       // print out and register publication
 
  private:
-  void *_pubs;                  // opaque pointer to set of publications
-  void *_fp;                    // opaque pointer to log.cite file object
+  FILE *fp;                    // opaque pointer to log.cite file object
+  typedef std::set<const char *> citeset;
+  citeset *cs;                // registered set of publications
 };
 
 }

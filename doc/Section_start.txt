@@ -1049,9 +1049,10 @@ Option -plog will override the name of the partition log files file.N.
 
 -nocite :pre
 
-Disable writing the log.cite file which is normally written to record
-a list of references for methodologies that were used during the 
-current LAMMPS run.
+Disable writing the log.cite file which is normally written to list
+references for specific cite-able features used during a LAMMPS run.
+See the "citation page"_http://lammps.sandia.gov/cite.html for more
+details.
 
 -partition 8x2 4 5 ... :pre
 

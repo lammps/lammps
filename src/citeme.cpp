@@ -14,93 +14,59 @@
 #include "citeme.h"
 #include "version.h"
 #include "universe.h"
-#include "comm.h"
-
-#include <stdio.h>
-#include <set>
+#include "error.h"
 
 using namespace LAMMPS_NS;
 
-typedef std::set<const char *> citeset;
+static const char cite_header[] = 
+  "This LAMMPS simulation made specific use of work described in the\n"
+  "following references.  See http://lammps.sandia.gov/cite.html\n"
+  "for details.\n\n";
 
-static const char dashline[] =   "----------------------------------"
-  "----------------------------------------------\n";
-
-static const char nagline[] = "\nPlease see the file 'log.cite'"
-  " for references relevant to this simulation\n\n";
-
-static const char cite_header[] = "\nThis simulation made use of "
-  "methodologies described in the following references:\n\n";
-
-static const char lammps_version[] =
-  "The LAMMPS Molecular Dynamics Simulator, Version " LAMMPS_VERSION
-  ", lammps.sandia.gov\n";
+static const char cite_nagline[] = "\nPlease see the log.cite file "
+  "for references relevant to this simulation\n\n";
 
 /* ---------------------------------------------------------------------- */
 
-CiteMe::CiteMe(LAMMPS *lmp) : Pointers(lmp) {
-
-  FILE *fp;
-  citeset *c;
-
-  _pubs = (void *)c;
-
-  if (lmp->cite_enable && (universe->me == 0) && ((fp = fopen("log.cite","w")))) {
-    fputs(dashline,fp);
-    fputs(lammps_version,fp);
-    fputs(dashline,fp);
-    fputs(cite_header,fp);
-    fflush(fp);
-    c = new citeset;
-  } else {
-    fp = NULL;
-    c  = NULL;
-  }
-  _fp = (void *) fp;
-  _pubs = (void *) c;
-}
-
-/* ----------------------------------------------------------------------
-   Write out and register a citation so it will be written only once
-------------------------------------------------------------------------- */
-
-void CiteMe::add(const char *ref)
+CiteMe::CiteMe(LAMMPS *lmp) : Pointers(lmp)
 {
-  if (_fp == NULL) return;
-
-  citeset *c = (citeset *) _pubs;
-  if (c->find(ref) == c->end()) {
-
-    FILE *fp = (FILE *)_fp;
-    fputs(ref,fp);
-    fflush(fp);
-
-    c->insert(ref);
-  }
+  fp = NULL;
+  cs = new citeset();
 }
 
 /* ---------------------------------------------------------------------- 
-   Write out nag-line at the end of the regular output and clean up.
+   write out nag-line at the end of the regular output and clean up
 ------------------------------------------------------------------------- */
 
 CiteMe::~CiteMe()
 {
+  if (universe->me) return;
+  if (cs->size() == 0) return;
 
-  if (lmp->cite_enable && (comm->me == 0)) {
-    if (screen)
-      fputs(nagline,screen);
+  if (screen) fprintf(screen,cite_nagline);
+  if (logfile) fprintf(logfile,cite_nagline);
 
-    if (logfile)
-      fputs(nagline,logfile);
-  } 
+  delete cs;
+  if (fp) fclose(fp);
+}
 
-  if (_fp != NULL) {
-    
-    FILE *fp = (FILE *)_fp;
-    fputs(dashline,fp);
-    fclose(fp);
+/* ----------------------------------------------------------------------
+   write out and register a citation so it will be written only once
+------------------------------------------------------------------------- */
 
-    citeset *c = (citeset *) _pubs;
-    delete c;
+void CiteMe::add(const char *ref)
+{
+  if (universe->me) return;
+  if (cs->find(ref) != cs->end()) return;
+  cs->insert(ref);
+
+  if (!fp) {
+    fp = fopen("log.cite","w");
+    if (!fp) error->universe_one(FLERR,"Could not open log.cite file");
+    fprintf(fp,cite_header);
+    fflush(fp);
   }
+
+  fprintf(fp,ref);
+  fflush(fp);
 }

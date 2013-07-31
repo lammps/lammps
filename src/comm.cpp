@@ -116,9 +116,14 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
 #endif
 
   // initialize comm buffers & exchange memory
+  // NOTE: allow for AtomVec to set maxexchange_atom, e.g. for atom_style body
+
+  maxexchange_atom = maxexchange_fix = 0;
+  maxexchange = maxexchange_atom + maxexchange_fix;
+  bufextra = maxexchange + BUFEXTRA;
 
   maxsend = BUFMIN;
-  memory->create(buf_send,maxsend+BUFEXTRA,"comm:buf_send");
+  memory->create(buf_send,maxsend+bufextra,"comm:buf_send");
   maxrecv = BUFMIN;
   memory->create(buf_recv,maxrecv,"comm:buf_recv");
 
@@ -334,12 +339,14 @@ void Comm::init()
 
   for (int i = 0; i < modify->nfix; i++)
     size_border += modify->fix[i]->comm_border;
-
+  
+  // maxexchange = max # of datums/atom in exchange communication
   // maxforward = # of datums in largest forward communication
   // maxreverse = # of datums in largest reverse communication
   // query pair,fix,compute,dump for their requirements
   // pair style can force reverse comm even if newton off
 
+  maxexchange = BUFMIN + maxexchange_fix;
   maxforward = MAX(size_forward,size_border);
   maxreverse = size_reverse;
 
@@ -537,8 +544,6 @@ void Comm::setup()
     maxneed[0] = MAX(all[0],all[1]);
     maxneed[1] = MAX(all[2],all[3]);
     maxneed[2] = MAX(all[4],all[5]);
-    //if (me == 0) 
-    //printf("MAXNEED %d %d %d\n",maxneed[0],maxneed[1],maxneed[2]);
   }
 
   // allocate comm memory
@@ -825,6 +830,15 @@ void Comm::exchange()
   if (map_style) atom->map_clear();
   atom->nghost = 0;
   atom->avec->clear_bonus();
+
+  // insure send buf is large enough for single atom
+  // fixes can change per-atom size requirement on-the-fly
+
+  int bufextra_old = bufextra;
+  maxexchange = maxexchange_atom + maxexchange_fix;
+  bufextra = maxexchange + BUFEXTRA;
+  if (bufextra > bufextra_old)
+    memory->grow(buf_send,maxsend+bufextra,"comm:buf_send");
 
   // subbox bounds for orthogonal or triclinic
 
@@ -1584,7 +1598,7 @@ int Comm::read_lines_from_file(FILE *fp, int nlines, int maxline, char *buf)
 }
 
 /* ----------------------------------------------------------------------
-   realloc the size of the send buffer as needed with BUFFACTOR & BUFEXTRA
+   realloc the size of the send buffer as needed with BUFFACTOR and bufextra
    if flag = 1, realloc
    if flag = 0, don't need to realloc with copy, just free/malloc
 ------------------------------------------------------------------------- */
@@ -1593,10 +1607,10 @@ void Comm::grow_send(int n, int flag)
 {
   maxsend = static_cast<int> (BUFFACTOR * n);
   if (flag)
-    memory->grow(buf_send,(maxsend+BUFEXTRA),"comm:buf_send");
+    memory->grow(buf_send,maxsend+bufextra,"comm:buf_send");
   else {
     memory->destroy(buf_send);
-    memory->create(buf_send,maxsend+BUFEXTRA,"comm:buf_send");
+    memory->create(buf_send,maxsend+bufextra,"comm:buf_send");
   }
 }
 
@@ -1888,7 +1902,7 @@ bigint Comm::memory_usage()
   bytes += nprocs * sizeof(int);    // grid2proc
   for (int i = 0; i < nswap; i++)
     bytes += memory->usage(sendlist[i],maxsendlist[i]);
-  bytes += memory->usage(buf_send,maxsend+BUFEXTRA);
+  bytes += memory->usage(buf_send,maxsend+bufextra);
   bytes += memory->usage(buf_recv,maxrecv);
   return bytes;
 }

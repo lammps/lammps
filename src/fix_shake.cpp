@@ -564,9 +564,9 @@ void FixShake::post_force_respa(int vflag, int ilevel, int iloop)
 
   // virial setup only needed on last iteration of innermost level
   //   and if pressure is requested
-  // virial accumulation happens at outermost level
+  // virial accumulation happens via evflag at last iteration of each level
 
-  if (ilevel == 0 && iloop == loop_respa[ilevel] - 1 && vflag) v_setup(vflag);
+  if (ilevel == 0 && iloop == loop_respa[ilevel]-1 && vflag) v_setup(vflag);
   if (iloop == loop_respa[ilevel]-1) evflag = 1;
   else evflag = 0;
 

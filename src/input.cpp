@@ -223,7 +223,7 @@ void Input::file()
 /* ----------------------------------------------------------------------
    process all input from filename
    called from library interface
-   ------------------------------------------------------------------------- */
+------------------------------------------------------------------------- */
 
 void Input::file(const char *filename)
 {
@@ -251,7 +251,7 @@ void Input::file(const char *filename)
 /* ----------------------------------------------------------------------
    copy command in single to line, parse and execute it
    return command name to caller
-   ------------------------------------------------------------------------- */
+------------------------------------------------------------------------- */
 
 char *Input::one(const char *single)
 {
@@ -295,7 +295,7 @@ char *Input::one(const char *single)
    narg = # of args
    arg[] = individual args
    treat text between single/double quotes as one arg
-   ------------------------------------------------------------------------- */
+------------------------------------------------------------------------- */
 
 void Input::parse()
 {
@@ -359,7 +359,7 @@ void Input::parse()
    return ptr to start of word
    return next = ptr after word or NULL if word ended with 0
    return NULL if no word in string
-   ------------------------------------------------------------------------- */
+------------------------------------------------------------------------- */
 
 char *Input::nextword(char *str, char **next)
 {
@@ -387,7 +387,7 @@ char *Input::nextword(char *str, char **next)
    reallocate str/str2 to hold expanded version if necessary & reset max/max2
    print updated string if flag is set and not searching for label
    label_active will be 0 if called from external class
-   ------------------------------------------------------------------------- */
+------------------------------------------------------------------------- */
 
 void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
 {
@@ -502,7 +502,7 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
    rellocate a string
    if n > 0: set max >= n in increments of DELTALINE
    if n = 0: just increment max by DELTALINE
-   ------------------------------------------------------------------------- */
+------------------------------------------------------------------------- */
 
 void Input::reallocate(char *&str, int &max, int n)
 {
@@ -516,7 +516,7 @@ void Input::reallocate(char *&str, int &max, int n)
 /* ----------------------------------------------------------------------
    process a single parsed command
    return 0 if successful, -1 if did not recognize command
-   ------------------------------------------------------------------------- */
+------------------------------------------------------------------------- */
 
 int Input::execute_command()
 {

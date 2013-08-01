@@ -88,8 +88,8 @@ void fft_3d_cuda(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan
 {
 #ifdef FFT_CUFFT
   plan->iterate++;
-  timespec starttime,starttime2;
-  timespec endtime,endtime2;
+  my_times starttime,starttime2;
+  my_times endtime,endtime2;
 
   int i,total,length,offset,num;
   double norm;
@@ -103,7 +103,7 @@ void fft_3d_cuda(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan
 if(nprocs>1)
 {
   if(plan->init)
-  clock_gettime(CLOCK_REALTIME,&starttime);
+  my_gettime(CLOCK_REALTIME,&starttime);
   if (plan->pre_plan) {
     if (plan->pre_target == 0) copy = out;
     else copy = plan->copy;

@@ -175,10 +175,10 @@ void CudaWrapper_UploadCudaData(void* host_data, void* dev_data, unsigned nbytes
 {
   MYDBG(printf("# CUDA: uploading %u bytes to device at dev%p from %p\n", nbytes, dev_data, host_data);)
   cudaThreadSynchronize();
-  timespec time1, time2;
-  clock_gettime(CLOCK_REALTIME, &time1);
+  my_times time1, time2;
+  my_gettime(CLOCK_REALTIME, &time1);
   CUDA_SAFE_CALL(cudaMemcpy(dev_data, host_data, nbytes, cudaMemcpyHostToDevice));
-  clock_gettime(CLOCK_REALTIME, &time2);
+  my_gettime(CLOCK_REALTIME, &time2);
   CudaWrapper_total_upload_time +=
     time2.tv_sec - time1.tv_sec + 1.0 * (time2.tv_nsec - time1.tv_nsec) / 1000000000;
 }
@@ -193,10 +193,10 @@ void CudaWrapper_DownloadCudaData(void* host_data, void* dev_data, unsigned nbyt
 {
   MYDBG(printf("# CUDA: downloading %u bytes from device at dev%p\n", nbytes, dev_data);)
   cudaThreadSynchronize();
-  timespec time1, time2;
-  clock_gettime(CLOCK_REALTIME, &time1);
+  my_times time1, time2;
+  my_gettime(CLOCK_REALTIME, &time1);
   CUDA_SAFE_CALL(cudaMemcpy(host_data, dev_data, nbytes, cudaMemcpyDeviceToHost));
-  clock_gettime(CLOCK_REALTIME, &time2);
+  my_gettime(CLOCK_REALTIME, &time2);
   CudaWrapper_total_download_time +=
     time2.tv_sec - time1.tv_sec + 1.0 * (time2.tv_nsec - time1.tv_nsec) / 1000000000;
 }

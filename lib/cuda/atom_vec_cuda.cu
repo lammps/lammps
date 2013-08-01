@@ -134,7 +134,7 @@ template <const unsigned int data_mask>
 int Cuda_AtomVecCuda_PackComm(cuda_shared_data* sdata, int n, int iswap, void* buf_send, int* pbc, int pbc_flag)
 {
 
-  timespec time1, time2;
+  my_times time1, time2;
 
   if(sdata->atom.update_nmax)
     Cuda_AtomVecCuda_UpdateNmax<data_mask>(sdata);
@@ -171,14 +171,14 @@ int Cuda_AtomVecCuda_PackComm(cuda_shared_data* sdata, int n, int iswap, void* b
   if(sdata->atom.nlocal > 0) {
     cudaMemset(sdata->flag, 0, sizeof(int));
 
-    clock_gettime(CLOCK_REALTIME, &time1);
+    my_gettime(CLOCK_REALTIME, &time1);
 
     void* buf = sdata->overlap_comm ? sdata->comm.buf_send_dev[iswap] : sdata->buffer;
     Cuda_AtomVecCuda_PackComm_Kernel<data_mask> <<< grid, threads, 0>>>((int*) sdata->comm.sendlist.dev_data, n
         , sdata->comm.maxlistlength, iswap, dx, dy, dz, buf);
     cudaThreadSynchronize();
 
-    clock_gettime(CLOCK_REALTIME, &time2);
+    my_gettime(CLOCK_REALTIME, &time2);
     sdata->cuda_timings.comm_forward_kernel_pack +=
       time2.tv_sec - time1.tv_sec + 1.0 * (time2.tv_nsec - time1.tv_nsec) / 1000000000;
 
@@ -188,7 +188,7 @@ int Cuda_AtomVecCuda_PackComm(cuda_shared_data* sdata, int n, int iswap, void* b
       cudaMemcpy(buf_send, sdata->buffer, n* n_data_items* sizeof(X_FLOAT), cudaMemcpyDeviceToHost);
     //cudaMemcpy(buf_send, sdata->comm.buf_send_dev[iswap], n*3*sizeof(X_FLOAT), cudaMemcpyDeviceToHost);
 
-    clock_gettime(CLOCK_REALTIME, &time1);
+    my_gettime(CLOCK_REALTIME, &time1);
     sdata->cuda_timings.comm_forward_download +=
       time1.tv_sec - time2.tv_sec + 1.0 * (time1.tv_nsec - time2.tv_nsec) / 1000000000;
 
@@ -207,7 +207,7 @@ template <const unsigned int data_mask>
 int Cuda_AtomVecCuda_PackComm_Self(cuda_shared_data* sdata, int n, int iswap, int first, int* pbc, int pbc_flag)
 {
   MYDBG(printf(" # CUDA: AtomVecCuda_PackComm_Self\n");)
-  timespec time1, time2;
+  my_times time1, time2;
 
   if(sdata->atom.update_nmax)
     Cuda_AtomVecCuda_UpdateNmax<data_mask>(sdata);
@@ -247,13 +247,13 @@ int Cuda_AtomVecCuda_PackComm_Self(cuda_shared_data* sdata, int n, int iswap, in
 
   if(sdata->atom.nlocal > 0) {
 
-    clock_gettime(CLOCK_REALTIME, &time1);
+    my_gettime(CLOCK_REALTIME, &time1);
     CUT_CHECK_ERROR("Cuda_AtomVecCuda_PackComm_Self:Pre Kernel execution failed");
 
     Cuda_AtomVecCuda_PackComm_Self_Kernel<data_mask> <<< grid, threads, 0>>>((int*) sdata->comm.sendlist.dev_data, n, sdata->comm.maxlistlength, iswap, dx, dy, dz, first);
     cudaThreadSynchronize();
 
-    clock_gettime(CLOCK_REALTIME, &time2);
+    my_gettime(CLOCK_REALTIME, &time2);
     sdata->cuda_timings.comm_forward_kernel_self +=
       time2.tv_sec - time1.tv_sec + 1.0 * (time2.tv_nsec - time1.tv_nsec) / 1000000000;
 
@@ -267,7 +267,7 @@ int Cuda_AtomVecCuda_PackComm_Self(cuda_shared_data* sdata, int n, int iswap, in
 template <const unsigned int data_mask>
 void Cuda_AtomVecCuda_UnpackComm(cuda_shared_data* sdata, int n, int first, void* buf_recv, int iswap)
 {
-  timespec time1, time2;
+  my_times time1, time2;
 
   if(sdata->atom.update_nmax)
     Cuda_AtomVecCuda_UpdateNmax<data_mask>(sdata);
@@ -286,19 +286,19 @@ void Cuda_AtomVecCuda_UnpackComm(cuda_shared_data* sdata, int n, int first, void
   dim3 grid(layout.x, layout.y, 1);
 
   if(sdata->atom.nlocal > 0) {
-    clock_gettime(CLOCK_REALTIME, &time1);
+    my_gettime(CLOCK_REALTIME, &time1);
 
     if(not sdata->overlap_comm || iswap < 0)
       cudaMemcpy(sdata->buffer, (void*)buf_recv, n_data_items * n * sizeof(X_FLOAT), cudaMemcpyHostToDevice);
 
-    clock_gettime(CLOCK_REALTIME, &time2);
+    my_gettime(CLOCK_REALTIME, &time2);
     sdata->cuda_timings.comm_forward_upload +=
       time2.tv_sec - time1.tv_sec + 1.0 * (time2.tv_nsec - time1.tv_nsec) / 1000000000;
     void* buf = (sdata->overlap_comm && iswap >= 0) ? sdata->comm.buf_recv_dev[iswap] : sdata->buffer;
     Cuda_AtomVecCuda_UnpackComm_Kernel<data_mask> <<< grid, threads, 0>>>(n, first, buf);
     cudaThreadSynchronize();
 
-    clock_gettime(CLOCK_REALTIME, &time1);
+    my_gettime(CLOCK_REALTIME, &time1);
     sdata->cuda_timings.comm_forward_kernel_unpack +=
       time1.tv_sec - time2.tv_sec + 1.0 * (time1.tv_nsec - time2.tv_nsec) / 1000000000;
 
@@ -325,14 +325,14 @@ int Cuda_AtomVecCuda_PackExchangeList(cuda_shared_data* sdata, int n, int dim, v
   dim3 threads(layout.z, 1, 1);
   dim3 grid(layout.x, layout.y, 1);
 
-  timespec time1, time2;
-  clock_gettime(CLOCK_REALTIME, &time1);
+  my_times time1, time2;
+  my_gettime(CLOCK_REALTIME, &time1);
 
   Cuda_AtomVecCuda_PackExchangeList_Kernel <<< grid, threads, (threads.x + 1)*sizeof(int) >>> (n - 1, dim);
   cudaThreadSynchronize();
   CUT_CHECK_ERROR("Cuda_AtomVecCuda_PackExchangeList: Kernel execution failed");
 
-  clock_gettime(CLOCK_REALTIME, &time2);
+  my_gettime(CLOCK_REALTIME, &time2);
   sdata->cuda_timings.comm_exchange_kernel_pack +=
     time2.tv_sec - time1.tv_sec + 1.0 * (time2.tv_nsec - time1.tv_nsec) / 1000000000;
 
@@ -344,7 +344,7 @@ int Cuda_AtomVecCuda_PackExchangeList(cuda_shared_data* sdata, int n, int dim, v
 
   CUT_CHECK_ERROR("Cuda_AtomVecCuda_PackExchangeList: return copy failed");
 
-  clock_gettime(CLOCK_REALTIME, &time1);
+  my_gettime(CLOCK_REALTIME, &time1);
   sdata->cuda_timings.comm_exchange_download +=
     time1.tv_sec - time2.tv_sec + 1.0 * (time1.tv_nsec - time2.tv_nsec) / 1000000000;
 
@@ -375,20 +375,20 @@ int Cuda_AtomVecCuda_PackExchange(cuda_shared_data* sdata, int nsend, void* buf_
   dim3 threads(layout.z, 1, 1);
   dim3 grid(layout.x, layout.y, 1);
 
-  timespec time1, time2;
-  clock_gettime(CLOCK_REALTIME, &time1);
+  my_times time1, time2;
+  my_gettime(CLOCK_REALTIME, &time1);
 
   Cuda_AtomVecCuda_PackExchange_Kernel<data_mask> <<< grid, threads, 0>>>(nsend, (int*) copylist);
   cudaThreadSynchronize();
   CUT_CHECK_ERROR("Cuda_AtomVecCuda_PackExchange: Kernel execution failed");
 
-  clock_gettime(CLOCK_REALTIME, &time2);
+  my_gettime(CLOCK_REALTIME, &time2);
   sdata->cuda_timings.comm_exchange_kernel_pack +=
     time2.tv_sec - time1.tv_sec + 1.0 * (time2.tv_nsec - time1.tv_nsec) / 1000000000;
 
   cudaMemcpy(buf_send, sdata->buffer, size, cudaMemcpyDeviceToHost);
 
-  clock_gettime(CLOCK_REALTIME, &time1);
+  my_gettime(CLOCK_REALTIME, &time1);
   sdata->cuda_timings.comm_exchange_download +=
     time1.tv_sec - time2.tv_sec + 1.0 * (time1.tv_nsec - time2.tv_nsec) / 1000000000;
 
@@ -419,19 +419,19 @@ int Cuda_AtomVecCuda_UnpackExchange(cuda_shared_data* sdata, int nsend, void* bu
     dim3 grid(layout.x, layout.y, 1);
 
     if(sdata->atom.nlocal > 0) {
-      timespec time1, time2;
-      clock_gettime(CLOCK_REALTIME, &time1);
+      my_times time1, time2;
+      my_gettime(CLOCK_REALTIME, &time1);
 
       cudaMemcpy(sdata->buffer, buf_send , size, cudaMemcpyHostToDevice);
 
-      clock_gettime(CLOCK_REALTIME, &time2);
+      my_gettime(CLOCK_REALTIME, &time2);
       sdata->cuda_timings.comm_exchange_upload +=
         time2.tv_sec - time1.tv_sec + 1.0 * (time2.tv_nsec - time1.tv_nsec) / 1000000000;
 
       Cuda_AtomVecCuda_UnpackExchange_Kernel<data_mask> <<< grid, threads, 0>>>(sdata->exchange_dim, nsend, (int*) copylist);
       cudaThreadSynchronize();
 
-      clock_gettime(CLOCK_REALTIME, &time1);
+      my_gettime(CLOCK_REALTIME, &time1);
       sdata->cuda_timings.comm_exchange_kernel_unpack +=
         time1.tv_sec - time2.tv_sec + 1.0 * (time1.tv_nsec - time2.tv_nsec) / 1000000000;
 
@@ -448,8 +448,8 @@ int Cuda_AtomVecCuda_UnpackExchange(cuda_shared_data* sdata, int nsend, void* bu
 template <const unsigned int data_mask>
 int Cuda_AtomVecCuda_PackBorder(cuda_shared_data* sdata, int nsend, int iswap, void* buf_send, int* pbc, int pbc_flag)
 {
-  timespec atime1, atime2;
-  clock_gettime(CLOCK_REALTIME, &atime1);
+  my_times atime1, atime2;
+  my_gettime(CLOCK_REALTIME, &atime1);
 
   if(sdata->atom.update_nmax)
     Cuda_AtomVecCuda_UpdateNmax<data_mask>(sdata);
@@ -457,7 +457,7 @@ int Cuda_AtomVecCuda_PackBorder(cuda_shared_data* sdata, int nsend, int iswap, v
   if(sdata->atom.update_nlocal)
     cudaMemcpyToSymbol(MY_AP(nlocal)  , & sdata->atom.nlocal        , sizeof(int));
 
-  clock_gettime(CLOCK_REALTIME, &atime2);
+  my_gettime(CLOCK_REALTIME, &atime2);
   sdata->cuda_timings.test1 +=
     atime2.tv_sec - atime1.tv_sec + 1.0 * (atime2.tv_nsec - atime1.tv_nsec) / 1000000000;
 
@@ -489,20 +489,20 @@ int Cuda_AtomVecCuda_PackBorder(cuda_shared_data* sdata, int nsend, int iswap, v
   dim3 grid(layout.x, layout.y, 1);
 
   if(sdata->atom.nlocal > 0) {
-    timespec time1, time2;
-    clock_gettime(CLOCK_REALTIME, &time1);
+    my_times time1, time2;
+    my_gettime(CLOCK_REALTIME, &time1);
 
     Cuda_AtomVecCuda_PackBorder_Kernel<data_mask> <<< grid, threads, 0>>>((int*) sdata->comm.sendlist.dev_data, nsend, sdata->comm.maxlistlength, iswap, dx, dy, dz);
     cudaThreadSynchronize();
 
-    clock_gettime(CLOCK_REALTIME, &time2);
+    my_gettime(CLOCK_REALTIME, &time2);
     sdata->cuda_timings.comm_border_kernel_pack +=
       time2.tv_sec - time1.tv_sec + 1.0 * (time2.tv_nsec - time1.tv_nsec) / 1000000000;
 
     cudaMemcpy(buf_send, sdata->buffer, size, cudaMemcpyDeviceToHost);
     CUT_CHECK_ERROR("Cuda_AtomVecCuda_PackBorder: Kernel execution failed");
 
-    clock_gettime(CLOCK_REALTIME, &time1);
+    my_gettime(CLOCK_REALTIME, &time1);
     sdata->cuda_timings.comm_border_download +=
       time1.tv_sec - time2.tv_sec + 1.0 * (time1.tv_nsec - time2.tv_nsec) / 1000000000;
 
@@ -548,13 +548,13 @@ int Cuda_AtomVecCuda_PackBorder_Self(cuda_shared_data* sdata, int n, int iswap, 
   dim3 grid(layout.x, layout.y, 1);
 
   if(sdata->atom.nlocal > 0) {
-    timespec time1, time2;
-    clock_gettime(CLOCK_REALTIME, &time1);
+    my_times time1, time2;
+    my_gettime(CLOCK_REALTIME, &time1);
 
     Cuda_AtomVecCuda_PackBorder_Self_Kernel<data_mask> <<< grid, threads, 0>>>((int*) sdata->comm.sendlist.dev_data, n, sdata->comm.maxlistlength, iswap, dx, dy, dz, first);
     cudaThreadSynchronize();
 
-    clock_gettime(CLOCK_REALTIME, &time2);
+    my_gettime(CLOCK_REALTIME, &time2);
     sdata->cuda_timings.comm_border_kernel_self +=
       time2.tv_sec - time1.tv_sec + 1.0 * (time2.tv_nsec - time1.tv_nsec) / 1000000000;
 
@@ -569,8 +569,8 @@ int Cuda_AtomVecCuda_PackBorder_Self(cuda_shared_data* sdata, int n, int iswap, 
 template <const unsigned int data_mask>
 int Cuda_AtomVecCuda_UnpackBorder(cuda_shared_data* sdata, int n, int first, void* buf_recv)
 {
-  timespec atime1, atime2;
-  clock_gettime(CLOCK_REALTIME, &atime1);
+  my_times atime1, atime2;
+  my_gettime(CLOCK_REALTIME, &atime1);
 
   if(sdata->atom.update_nmax)
     Cuda_AtomVecCuda_UpdateNmax<data_mask>(sdata);
@@ -578,7 +578,7 @@ int Cuda_AtomVecCuda_UnpackBorder(cuda_shared_data* sdata, int n, int first, voi
   if(sdata->atom.update_nlocal)
     cudaMemcpyToSymbol(MY_AP(nlocal)  , & sdata->atom.nlocal        , sizeof(int));
 
-  clock_gettime(CLOCK_REALTIME, &atime2);
+  my_gettime(CLOCK_REALTIME, &atime2);
   sdata->cuda_timings.test1 +=
     atime2.tv_sec - atime1.tv_sec + 1.0 * (atime2.tv_nsec - atime1.tv_nsec) / 1000000000;
 
@@ -594,20 +594,20 @@ int Cuda_AtomVecCuda_UnpackBorder(cuda_shared_data* sdata, int n, int first, voi
   dim3 grid(layout.x, layout.y, 1);
 
   if(sdata->atom.nlocal > 0) {
-    timespec time1, time2;
-    clock_gettime(CLOCK_REALTIME, &time1);
+    my_times time1, time2;
+    my_gettime(CLOCK_REALTIME, &time1);
 
     cudaMemset((int*)(sdata->flag), 0, sizeof(int));
     cudaMemcpy(sdata->buffer, (void*)buf_recv, size, cudaMemcpyHostToDevice);
 
-    clock_gettime(CLOCK_REALTIME, &time2);
+    my_gettime(CLOCK_REALTIME, &time2);
     sdata->cuda_timings.comm_border_upload +=
       time2.tv_sec - time1.tv_sec + 1.0 * (time2.tv_nsec - time1.tv_nsec) / 1000000000;
 
     Cuda_AtomVecCuda_UnpackBorder_Kernel<data_mask> <<< grid, threads, 0>>>(n, first);
     cudaThreadSynchronize();
 
-    clock_gettime(CLOCK_REALTIME, &time1);
+    my_gettime(CLOCK_REALTIME, &time1);
     sdata->cuda_timings.comm_border_kernel_unpack +=
       time1.tv_sec - time2.tv_sec + 1.0 * (time1.tv_nsec - time2.tv_nsec) / 1000000000;
 

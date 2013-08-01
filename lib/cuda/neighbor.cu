@@ -98,15 +98,15 @@ int Cuda_BinAtoms(cuda_shared_data* sdata, cuda_shared_neighlist* sneighlist)
   dim3 threads(layout.z, 1, 1);
   dim3 grid(layout.x, layout.y, 1);
 
-  timespec starttime, endtime;
-  clock_gettime(CLOCK_REALTIME, &starttime);
+  my_times starttime, endtime;
+  my_gettime(CLOCK_REALTIME, &starttime);
 
   cudaMemset((int*)(sdata->buffer), 0, sizeof(int) * (20 + (sneighlist->bin_dim[0]) * (sneighlist->bin_dim[1]) * (sneighlist->bin_dim[2])) + 3 * sizeof(CUDA_FLOAT) * (sneighlist->bin_dim[0]) * (sneighlist->bin_dim[1]) * (sneighlist->bin_dim[2]) * (sneighlist->bin_nmax));
 
   Binning_Kernel <<< grid, threads>>> (sneighlist->binned_id, sneighlist->bin_nmax, sneighlist->bin_dim[0], sneighlist->bin_dim[1], sneighlist->bin_dim[2], rez_bin_size[0], rez_bin_size[1], rez_bin_size[2]);
   cudaThreadSynchronize();
 
-  clock_gettime(CLOCK_REALTIME, &endtime);
+  my_gettime(CLOCK_REALTIME, &endtime);
   sdata->cuda_timings.neigh_bin +=
     endtime.tv_sec - starttime.tv_sec + 1.0 * (endtime.tv_nsec - starttime.tv_nsec) / 1000000000;
 
@@ -228,8 +228,8 @@ int Cuda_NeighborBuildFullBin(cuda_shared_data* sdata, cuda_shared_neighlist* sn
   unsigned int shared_size = (sizeof(int) + 3 * sizeof(CUDA_FLOAT)) * threads.x;
   MYDBG(printf("Configuration: %i %i %i %u %i\n", grid.x, grid.y, threads.x, shared_size, sneighlist->bin_nmax);)
   //shared_size=2056;
-  timespec starttime, endtime;
-  clock_gettime(CLOCK_REALTIME, &starttime);
+  my_times starttime, endtime;
+  my_gettime(CLOCK_REALTIME, &starttime);
   //for(int i=0;i<100;i++)
   {
     if(sdata->overlap_comm)
@@ -250,7 +250,7 @@ int Cuda_NeighborBuildFullBin(cuda_shared_data* sdata, cuda_shared_neighlist* sn
 
     cudaThreadSynchronize();
     CUT_CHECK_ERROR("Cuda_NeighborBuild: neighbor build kernel execution failed");
-    clock_gettime(CLOCK_REALTIME, &endtime);
+    my_gettime(CLOCK_REALTIME, &endtime);
     sdata->cuda_timings.neigh_build +=
       endtime.tv_sec - starttime.tv_sec + 1.0 * (endtime.tv_nsec - starttime.tv_nsec) / 1000000000;
     //dim3 threads,grid;
@@ -258,7 +258,7 @@ int Cuda_NeighborBuildFullBin(cuda_shared_data* sdata, cuda_shared_neighlist* sn
 
     if(buffer[0] >= 0 && true && sdata->atom.molecular) {
       //printf("Find Special: %i %i\n",sneighlist->inum,sdata->atom.nall);
-      clock_gettime(CLOCK_REALTIME, &starttime);
+      my_gettime(CLOCK_REALTIME, &starttime);
       int3 layout = getgrid(sdata->atom.nlocal, 0, 512);
       threads.x = layout.z;
       threads.y = 1;
@@ -269,7 +269,7 @@ int Cuda_NeighborBuildFullBin(cuda_shared_data* sdata, cuda_shared_neighlist* sn
       FindSpecial <<< grid, threads>>>(sdata->pair.use_block_per_atom);
       cudaThreadSynchronize();
       CUT_CHECK_ERROR("Cuda_NeighborBuild: FindSpecial kernel execution failed");
-      clock_gettime(CLOCK_REALTIME, &endtime);
+      my_gettime(CLOCK_REALTIME, &endtime);
       sdata->cuda_timings.neigh_special +=
         endtime.tv_sec - starttime.tv_sec + 1.0 * (endtime.tv_nsec - starttime.tv_nsec) / 1000000000;
     }

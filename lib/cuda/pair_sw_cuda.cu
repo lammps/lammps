@@ -100,16 +100,16 @@ void Cuda_PairSWCuda(cuda_shared_data* sdata, cuda_shared_neighlist* sneighlist,
   threads2.y = 1;
   threads2.z = 1;
 
-  timespec time1, time2;
+  my_times time1, time2;
 
   //pre-calculate all neighbordistances and zeta_ij
-  clock_gettime(CLOCK_REALTIME, &time1);
+  my_gettime(CLOCK_REALTIME, &time1);
   Pair_SW_Kernel_TpA_RIJ <<< grid2, threads2, 0, streams[1]>>>();
   cudaThreadSynchronize();
-  clock_gettime(CLOCK_REALTIME, &time2);
+  my_gettime(CLOCK_REALTIME, &time2);
   sdata->cuda_timings.test1 +=
     time2.tv_sec - time1.tv_sec + 1.0 * (time2.tv_nsec - time1.tv_nsec) / 1000000000;
-  clock_gettime(CLOCK_REALTIME, &time1);
+  my_gettime(CLOCK_REALTIME, &time1);
 
   //actual force calculation
   unsigned int sharedsize = (sharedperproc * sizeof(ENERGY_FLOAT) + 4 * sizeof(F_FLOAT)) * threads.x; //extra 4 floats per thread used to reduce register pressure
@@ -130,7 +130,7 @@ void Cuda_PairSWCuda(cuda_shared_data* sdata, cuda_shared_neighlist* sneighlist,
       (eflag_atom, vflag_atom);
   }
   cudaThreadSynchronize();
-  clock_gettime(CLOCK_REALTIME, &time2);
+  my_gettime(CLOCK_REALTIME, &time2);
   sdata->cuda_timings.test2 +=
     time2.tv_sec - time1.tv_sec + 1.0 * (time2.tv_nsec - time1.tv_nsec) / 1000000000;
 

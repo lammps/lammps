@@ -670,8 +670,8 @@ void FixShakeCuda::pre_neighbor()
 
 void FixShakeCuda::post_force(int vflag)
 {
-  timespec starttime;
-  timespec endtime;
+  my_times starttime;
+  my_times endtime;
 
 
   if(cuda->finished_setup && neighbor_step) {
@@ -715,7 +715,7 @@ void FixShakeCuda::post_force(int vflag)
 
   // loop over clusters
 
-  clock_gettime(CLOCK_REALTIME, &starttime);
+  my_gettime(CLOCK_REALTIME, &starttime);
 
   if(cuda->finished_setup) {
     cu_virial->upload();
@@ -739,7 +739,7 @@ void FixShakeCuda::post_force(int vflag)
 
   if((not cuda->finished_setup))  cuda->cu_f->upload();
 
-  clock_gettime(CLOCK_REALTIME, &endtime);
+  my_gettime(CLOCK_REALTIME, &endtime);
 
   if(cuda->finished_setup)
     time_postforce += (endtime.tv_sec - starttime.tv_sec + 1.0 * (endtime.tv_nsec - starttime.tv_nsec) / 1000000000);

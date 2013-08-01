@@ -330,8 +330,8 @@ int AtomVecAngleCuda::pack_exchange(int dim, double *buf)
 
   int m = Cuda_AtomVecAngleCuda_PackExchange(&cuda->shared_data,nsend_atoms,*buf_pointer,cu_copylist->dev_data());
 
-  timespec time1,time2;
-  clock_gettime(CLOCK_REALTIME,&time1);
+  my_times time1,time2;
+  my_gettime(CLOCK_REALTIME,&time1);
 
   double* buf_p=*buf_pointer;
   for(int j=0;j<nsend_atoms;j++)
@@ -378,7 +378,7 @@ int AtomVecAngleCuda::pack_exchange(int dim, double *buf)
     (*buf_pointer)[j+1] = nextra;
   }
 
-          clock_gettime(CLOCK_REALTIME,&time2);
+          my_gettime(CLOCK_REALTIME,&time2);
           cuda->shared_data.cuda_timings.comm_exchange_cpu_pack+=
         time2.tv_sec-time1.tv_sec+1.0*(time2.tv_nsec-time1.tv_nsec)/1000000000;
 
@@ -423,8 +423,8 @@ int AtomVecAngleCuda::unpack_exchange(double *buf)
   int m = nsend_atoms*NCUDAEXCHANGE + 1;
   nlocal+=naccept;
 
-  timespec time1,time2;
-  clock_gettime(CLOCK_REALTIME,&time1);
+  my_times time1,time2;
+  my_gettime(CLOCK_REALTIME,&time1);
 
   for(int j=0;j<nsend_atoms;j++)
   {
@@ -462,7 +462,7 @@ int AtomVecAngleCuda::unpack_exchange(double *buf)
     m+=static_cast <int> (buf[j+1]);
   }
 
-          clock_gettime(CLOCK_REALTIME,&time2);
+          my_gettime(CLOCK_REALTIME,&time2);
           cuda->shared_data.cuda_timings.comm_exchange_cpu_pack+=
         time2.tv_sec-time1.tv_sec+1.0*(time2.tv_nsec-time1.tv_nsec)/1000000000;
 

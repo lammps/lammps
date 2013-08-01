@@ -263,12 +263,15 @@ struct V_FLOAT4 {
 #endif
 
 #ifdef NO_PREC_TIMING
-struct timespec_2 {
+struct my_times {
   unsigned int tv_sec;
   unsigned int tv_nsec;
 };
 
-#define timespec timespec_2
-#define clock_gettime(a,b)
+#define my_gettime(a,b)
+#else
+#define my_times timespec
+#define my_gettime(a,b) clock_gettime(a,b)
 #endif
+
 #endif /*CUDA_PRECISION_H_*/

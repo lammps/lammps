@@ -170,8 +170,8 @@ void VerletCuda::setup()
   if(elist_atom || vlist_atom) cuda->checkResize();
 
   int test_BpA_vs_TpA = true;
-  timespec starttime;
-  timespec endtime;
+  my_times starttime;
+  my_times endtime;
 #ifdef NO_PREC_TIMING
   double startsec, endsec;
 #endif
@@ -198,7 +198,7 @@ void VerletCuda::setup()
 #ifdef NO_PREC_TIMING
     startsec = 1.0 * clock() / CLOCKS_PER_SEC;
 #endif
-    clock_gettime(CLOCK_REALTIME, &starttime);
+    my_gettime(CLOCK_REALTIME, &starttime);
 
     for(int i = 0; i < StyleLoops; i++) {
       Cuda_Pair_GenerateXType(&cuda->shared_data);
@@ -213,7 +213,7 @@ void VerletCuda::setup()
       CudaWrapper_Sync();
     }
 
-    clock_gettime(CLOCK_REALTIME, &endtime);
+    my_gettime(CLOCK_REALTIME, &endtime);
 
     double TpAtime = endtime.tv_sec - starttime.tv_sec + 1.0 * (endtime.tv_nsec - starttime.tv_nsec) / 1000000000;
 #ifdef NO_PREC_TIMING
@@ -237,7 +237,7 @@ void VerletCuda::setup()
     force->pair->compute(eflag, vflag);
     CudaWrapper_Sync();
 
-    clock_gettime(CLOCK_REALTIME, &starttime);
+    my_gettime(CLOCK_REALTIME, &starttime);
 #ifdef NO_PREC_TIMING
     startsec = 1.0 * clock() / CLOCKS_PER_SEC;
 #endif
@@ -255,7 +255,7 @@ void VerletCuda::setup()
       CudaWrapper_Sync();
     }
 
-    clock_gettime(CLOCK_REALTIME, &endtime);
+    my_gettime(CLOCK_REALTIME, &endtime);
     double BpAtime = endtime.tv_sec - starttime.tv_sec + 1.0 * (endtime.tv_nsec - starttime.tv_nsec) / 1000000000;
 #ifdef NO_PREC_TIMING
     endsec = 1.0 * clock() / CLOCKS_PER_SEC;
@@ -583,16 +583,16 @@ void VerletCuda::run(int n)
   int testatom = cuda->testatom; //48267;
 
 
-  timespec starttime;
-  timespec endtime;
-  timespec starttotal;
-  timespec endtotal;
+  my_times starttime;
+  my_times endtime;
+  my_times starttotal;
+  my_times endtotal;
 
   cuda->setTimingsZero();
 
   static double testtime = 0.0;
-  //                                clock_gettime(CLOCK_REALTIME,&starttime);
-  //                                  clock_gettime(CLOCK_REALTIME,&endtime);
+  //                                my_gettime(CLOCK_REALTIME,&starttime);
+  //                                  my_gettime(CLOCK_REALTIME,&endtime);
   //                                testtime+=endtime.tv_sec-starttime.tv_sec+1.0*(endtime.tv_nsec-starttime.tv_nsec)/1000000000;
   //                                 printf("Time: %lf\n",testtime);*/
 
@@ -689,13 +689,13 @@ void VerletCuda::run(int n)
         //overlap forward communication of ghost atom positions with inner force calculation (interactions between local atoms)
         //build communication buffers
         //      printf("Pre forward_comm(1)\n");
-        clock_gettime(CLOCK_REALTIME, &starttotal);
+        my_gettime(CLOCK_REALTIME, &starttotal);
         cuda->shared_data.atom.reneigh_flag = 0;
-        clock_gettime(CLOCK_REALTIME, &starttime);
+        my_gettime(CLOCK_REALTIME, &starttime);
         timer->stamp();
         comm->forward_comm(1);
         timer->stamp(Timer::COMM);
-        clock_gettime(CLOCK_REALTIME, &endtime);
+        my_gettime(CLOCK_REALTIME, &endtime);
         cuda->shared_data.cuda_timings.comm_forward_total +=
           endtime.tv_sec - starttime.tv_sec + 1.0 * (endtime.tv_nsec - starttime.tv_nsec) / 1000000000;
 
@@ -718,9 +718,9 @@ void VerletCuda::run(int n)
         //CudaWrapper_Sync();
 
         //download comm buffers from GPU, perform MPI communication and upload buffers again
-        clock_gettime(CLOCK_REALTIME, &starttime);
+        my_gettime(CLOCK_REALTIME, &starttime);
         comm->forward_comm(2);
-        clock_gettime(CLOCK_REALTIME, &endtime);
+        my_gettime(CLOCK_REALTIME, &endtime);
         cuda->shared_data.cuda_timings.comm_forward_total +=
           endtime.tv_sec - starttime.tv_sec + 1.0 * (endtime.tv_nsec - starttime.tv_nsec) / 1000000000;
         timer->stamp(Timer::COMM);
@@ -730,9 +730,9 @@ void VerletCuda::run(int n)
         timer->stamp(Timer::PAIR);
 
         //unpack communication buffers
-        clock_gettime(CLOCK_REALTIME, &starttime);
+        my_gettime(CLOCK_REALTIME, &starttime);
         comm->forward_comm(3);
-        clock_gettime(CLOCK_REALTIME, &endtime);
+        my_gettime(CLOCK_REALTIME, &endtime);
         cuda->shared_data.cuda_timings.comm_forward_total +=
           endtime.tv_sec - starttime.tv_sec + 1.0 * (endtime.tv_nsec - starttime.tv_nsec) / 1000000000;
 
@@ -742,9 +742,9 @@ void VerletCuda::run(int n)
           endtotal.tv_sec - starttotal.tv_sec + 1.0 * (endtotal.tv_nsec - starttotal.tv_nsec) / 1000000000;
       } else {
         //perform standard forward communication
-        clock_gettime(CLOCK_REALTIME, &starttime);
+        my_gettime(CLOCK_REALTIME, &starttime);
         comm->forward_comm();
-        clock_gettime(CLOCK_REALTIME, &endtime);
+        my_gettime(CLOCK_REALTIME, &endtime);
         cuda->shared_data.cuda_timings.comm_forward_total +=
           endtime.tv_sec - starttime.tv_sec + 1.0 * (endtime.tv_nsec - starttime.tv_nsec) / 1000000000;
         timer->stamp(Timer::COMM);
@@ -788,13 +788,13 @@ void VerletCuda::run(int n)
       MYDBG(printf("# CUDA VerletCuda::iterate: neighbor exchange\n");)
 
       //perform exchange of local atoms
-      clock_gettime(CLOCK_REALTIME, &starttime);
+      my_gettime(CLOCK_REALTIME, &starttime);
       comm->exchange();
-      clock_gettime(CLOCK_REALTIME, &endtime);
+      my_gettime(CLOCK_REALTIME, &endtime);
 
       //special and nspecial fields of the atom data are not currently transfered via the GPU buffer might be changed in the future
       if(comm->nprocs > 1) {
-        clock_gettime(CLOCK_REALTIME, &starttime);
+        my_gettime(CLOCK_REALTIME, &starttime);
 
         if(atom->special)
           cuda->cu_special->upload();
@@ -802,7 +802,7 @@ void VerletCuda::run(int n)
         if(atom->nspecial)
           cuda->cu_nspecial->upload();
 
-        clock_gettime(CLOCK_REALTIME, &endtime);
+        my_gettime(CLOCK_REALTIME, &endtime);
         cuda->shared_data.cuda_timings.test1 +=
           endtime.tv_sec - starttime.tv_sec + 1.0 * (endtime.tv_nsec - starttime.tv_nsec) / 1000000000;
       }
@@ -818,13 +818,13 @@ void VerletCuda::run(int n)
       MYDBG(printf("# CUDA VerletCuda::iterate: neighbor borders\n");)
 
       //generate ghost atom lists, and transfer ghost atom data
-      clock_gettime(CLOCK_REALTIME, &starttime);
+      my_gettime(CLOCK_REALTIME, &starttime);
       comm->borders();
-      clock_gettime(CLOCK_REALTIME, &endtime);
+      my_gettime(CLOCK_REALTIME, &endtime);
       cuda->shared_data.cuda_timings.comm_border_total +=
         endtime.tv_sec - starttime.tv_sec + 1.0 * (endtime.tv_nsec - starttime.tv_nsec) / 1000000000;
 
-      clock_gettime(CLOCK_REALTIME, &starttime);
+      my_gettime(CLOCK_REALTIME, &starttime);
       //atom index maps are generated on CPU, and need to be transfered to GPU if they are used
       if(cuda->cu_map_array)
         cuda->cu_map_array->upload();
@@ -838,7 +838,7 @@ void VerletCuda::run(int n)
 
       MYDBG(printf("# CUDA VerletCuda::iterate: neighbor build\n");)
       timer->stamp(Timer::COMM);
-      clock_gettime(CLOCK_REALTIME, &endtime);
+      my_gettime(CLOCK_REALTIME, &endtime);
       cuda->shared_data.cuda_timings.test2 +=
         endtime.tv_sec - starttime.tv_sec + 1.0 * (endtime.tv_nsec - starttime.tv_nsec) / 1000000000;
 
@@ -885,8 +885,8 @@ void VerletCuda::run(int n)
         //regenerate data layout for force computations, its actually only needed for the ghost atoms
         cuda->shared_data.comm.comm_phase = 2;
 
-        timespec atime1, atime2;
-        clock_gettime(CLOCK_REALTIME, &atime1);
+        my_times atime1, atime2;
+        my_gettime(CLOCK_REALTIME, &atime1);
 
         Cuda_Pair_GenerateXType(&cuda->shared_data);
 
@@ -896,7 +896,7 @@ void VerletCuda::run(int n)
         if(cuda->cu_omega_rmass)
           Cuda_Pair_GenerateOmegaRmass(&cuda->shared_data);
 
-        clock_gettime(CLOCK_REALTIME, &atime2);
+        my_gettime(CLOCK_REALTIME, &atime2);
         cuda->shared_data.cuda_timings.pair_xtype_conversion +=
           atime2.tv_sec - atime1.tv_sec + 1.0 * (atime2.tv_nsec - atime1.tv_nsec) / 1000000000;
         force->pair->compute(eflag, vflag);
@@ -906,8 +906,8 @@ void VerletCuda::run(int n)
         if(not cuda->shared_data.pair.cudable_force) cuda->downloadAll();
         else {
           //regenerate data layout for force computations, its actually only needed for the ghost atoms
-          timespec atime1, atime2;
-          clock_gettime(CLOCK_REALTIME, &atime1);
+          my_times atime1, atime2;
+          my_gettime(CLOCK_REALTIME, &atime1);
 
           Cuda_Pair_GenerateXType(&cuda->shared_data);
 
@@ -917,7 +917,7 @@ void VerletCuda::run(int n)
           if(cuda->cu_omega_rmass)
             Cuda_Pair_GenerateOmegaRmass(&cuda->shared_data);
 
-          clock_gettime(CLOCK_REALTIME, &atime2);
+          my_gettime(CLOCK_REALTIME, &atime2);
           cuda->shared_data.cuda_timings.pair_xtype_conversion +=
             atime2.tv_sec - atime1.tv_sec + 1.0 * (atime2.tv_nsec - atime1.tv_nsec) / 1000000000;
         }
@@ -964,7 +964,7 @@ void VerletCuda::run(int n)
 
     //collect forces in case pair force and bonded interactions were overlapped, and either no KSPACE or a GPU KSPACE style is used
     if(cuda->shared_data.pair.collect_forces_later && cuda->shared_data.pair.cudable_force && (not(force->kspace && (not cuda->shared_data.pppm.cudable_force)))) {
-      clock_gettime(CLOCK_REALTIME, &starttime);
+      my_gettime(CLOCK_REALTIME, &starttime);
       cuda->cu_f->uploadAsync(2);
 
       test_atom(testatom, "post molecular force");
@@ -986,7 +986,7 @@ void VerletCuda::run(int n)
 
       timer->stamp(Timer::PAIR);
 
-      clock_gettime(CLOCK_REALTIME, &endtime);
+      my_gettime(CLOCK_REALTIME, &endtime);
       cuda->shared_data.cuda_timings.pair_force_collection +=
         endtime.tv_sec - starttime.tv_sec + 1.0 * (endtime.tv_nsec - starttime.tv_nsec) / 1000000000;
     }
@@ -1017,7 +1017,7 @@ void VerletCuda::run(int n)
     if(cuda->shared_data.pair.collect_forces_later && cuda->shared_data.pair.cudable_force && ((force->kspace && (not cuda->shared_data.pppm.cudable_force)))) {
       cuda->cu_f->uploadAsync(2);
 
-      clock_gettime(CLOCK_REALTIME, &starttime);
+      my_gettime(CLOCK_REALTIME, &starttime);
 
       if(eflag) cuda->cu_eng_vdwl->upload();
 
@@ -1035,7 +1035,7 @@ void VerletCuda::run(int n)
 
       timer->stamp(Timer::PAIR);
 
-      clock_gettime(CLOCK_REALTIME, &endtime);
+      my_gettime(CLOCK_REALTIME, &endtime);
       cuda->shared_data.cuda_timings.pair_force_collection +=
         endtime.tv_sec - starttime.tv_sec + 1.0 * (endtime.tv_nsec - starttime.tv_nsec) / 1000000000;
     }

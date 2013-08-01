@@ -17,22 +17,29 @@ driver in addition requires a wrapper library that interfaces the C
 interface of the LAMMPS library to Fortran and also translates the MPI
 communicator from Fortran to C.
 
-You can then build either driver code with a compile line something
-like this, which includes paths to the LAMMPS library interface, MPI,
-and FFTW (assuming you built LAMMPS as a library with its PPPM
-solver).
+First, you must build LAMMPS as a library, either static or shared.
+See http://lammps.sandia.gov/doc/Section_start.html#start_5 for
+details.  To build it as a static library type this from
+the src directory:
+
+make makelib
+make -f Makefile.lib g++
+
+You can then build either driver code with a compile lines like these,
+which include paths to the LAMMPS library interface, MPI, and FFTW
+(assuming you built LAMMPS as a library with its PPPM solver).
 
 This builds the C++ driver with the LAMMPS library using a C++ compiler:
 
 g++ -I/home/sjplimp/lammps/src -c simple.cpp
 g++ -L/home/sjplimp/lammps/src simple.o \
-    -llmp_g++ -lfftw -lmpich -lmpl -lpthread -o simpleCC
+    -llammps_g++ -lfftw -lmpich -lmpl -lpthread -o simpleCC
 
 This builds the C driver with the LAMMPS library using a C compiler:
 
 gcc -I/home/sjplimp/lammps/src -c simple.c
 gcc -L/home/sjplimp/lammps/src simple.o \
-    -llmp_g++ -lfftw -lmpich -lmpl -lpthread -lstdc++ -o simpleC
+    -llammps_g++ -lfftw -lmpich -lmpl -lpthread -lstdc++ -o simpleC
 
 This builds the Fortran wrapper and driver with the LAMMPS library
 using a Fortran and C compiler, using the wrapper in the fortran
@@ -42,7 +49,7 @@ cp ../fortran/libfwrapper.c .
 gcc -I/home/sjplimp/lammps/src -c libfwrapper.c
 gfortran -I/home/sjplimp/lammps/src -c simple.f90
 gfortran -L/home/sjplimp/lammps/src simple.o libfwrapper.o \
-    -llmp_g++ -lfftw -lfmpich -lmpich -lpthread -lstdc++ -o simpleF
+    -llammps_g++ -lfftw -lfmpich -lmpich -lpthread -lstdc++ -o simpleF
 
 You then run simpleCC, simpleC, or simpleF on a parallel machine
 on some number of processors Q with 2 arguments:

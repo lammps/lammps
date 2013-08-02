@@ -175,7 +175,7 @@ void CommCuda::forward_comm_cuda()
   static int count=0;
   static double kerneltime=0.0;
   static double copytime=0.0;
-  timespec time1,time2,time3;
+  my_times time1,time2,time3;
 
   int n;
   MPI_Request request;
@@ -214,13 +214,13 @@ void CommCuda::forward_comm_cuda()
           size_forward_recv_now=(size_forward_recv[iswap]+1)*sizeof(X_FLOAT)/sizeof(double);
         else
           size_forward_recv_now=size_forward_recv[iswap];
-clock_gettime(CLOCK_REALTIME,&time1);
+my_gettime(CLOCK_REALTIME,&time1);
 
         MPI_Irecv(buf_recv,size_forward_recv_now,MPI_DOUBLE,
                  recvproc[iswap],0,world,&request);
         n = Cuda_CommCuda_PackComm(&cuda->shared_data,sendnum[iswap],iswap,(void*) buf_send,pbc[iswap],pbc_flag[iswap]);
 
-clock_gettime(CLOCK_REALTIME,&time2);
+my_gettime(CLOCK_REALTIME,&time2);
 
         if((sizeof(X_FLOAT)!=sizeof(double)) && n) //some complicated way to safe some transfer size if single precision is used
           n=(n+1)*sizeof(X_FLOAT)/sizeof(double);
@@ -229,7 +229,7 @@ clock_gettime(CLOCK_REALTIME,&time2);
             MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
             MPI_Wait(&request,&status);
 
-clock_gettime(CLOCK_REALTIME,&time3);
+my_gettime(CLOCK_REALTIME,&time3);
 cuda->shared_data.cuda_timings.comm_forward_mpi_upper+=
       time3.tv_sec-time1.tv_sec+1.0*(time3.tv_nsec-time1.tv_nsec)/1000000000;
 cuda->shared_data.cuda_timings.comm_forward_mpi_lower+=
@@ -307,7 +307,7 @@ void CommCuda::forward_comm_pack_cuda()
         static int count=0;
         static double kerneltime=0.0;
         static double copytime=0.0;
-    timespec time1,time2,time3;
+    my_times time1,time2,time3;
   int n;  // initialize comm buffers & exchange memory
 
   MPI_Request request;
@@ -335,12 +335,12 @@ void CommCuda::forward_comm_pack_cuda()
       {
 
 
-clock_gettime(CLOCK_REALTIME,&time1);
+my_gettime(CLOCK_REALTIME,&time1);
 
       //  n = Cuda_CommCuda_PackComm(&cuda->shared_data,sendnum[iswap],iswap,(void*) cuda->shared_data.comm.buf_send[iswap],pbc[iswap],pbc_flag[iswap]);
                   n = Cuda_CommCuda_PackComm(&cuda->shared_data,sendnum[iswap],iswap,(void*)buf_send,pbc[iswap],pbc_flag[iswap]);
 
-clock_gettime(CLOCK_REALTIME,&time2);
+my_gettime(CLOCK_REALTIME,&time2);
 
         if((sizeof(X_FLOAT)!=sizeof(double)) && n) //some complicated way to safe some transfer size if single precision is used
           n=(n+1)*sizeof(X_FLOAT)/sizeof(double);
@@ -348,11 +348,11 @@ clock_gettime(CLOCK_REALTIME,&time2);
       }
       else if (ghost_velocity)
       {
-clock_gettime(CLOCK_REALTIME,&time1);
+my_gettime(CLOCK_REALTIME,&time1);
 
        // n = Cuda_CommCuda_PackComm_Vel(&cuda->shared_data,sendnum[iswap],iswap,(void*) &buf_send[iswap*maxsend],pbc[iswap],pbc_flag[iswap]);
 
-clock_gettime(CLOCK_REALTIME,&time2);
+my_gettime(CLOCK_REALTIME,&time2);
 
         if((sizeof(X_FLOAT)!=sizeof(double)) && n) //some complicated way to safe some transfer size if single precision is used
           n=(n+1)*sizeof(X_FLOAT)/sizeof(double);
@@ -410,7 +410,7 @@ void CommCuda::forward_comm_transfer_cuda()
         static int count=0;
         static double kerneltime=0.0;
         static double copytime=0.0;
-    timespec time1,time2,time3;
+    my_times time1,time2,time3;
   int n;
   MPI_Request request;
   MPI_Status status;
@@ -453,27 +453,27 @@ void CommCuda::forward_comm_transfer_cuda()
         //printf("B: %i \n",cuda->shared_data.comm.send_size[iswap]/1024*4);
                 CudaWrapper_DownloadCudaDataAsync((void*) buf_send, cuda->shared_data.comm.buf_send_dev[iswap], cuda->shared_data.comm.send_size[iswap]*sizeof(double),2);
             //MPI_Send(cuda->shared_data.comm.buf_send[iswap],cuda->shared_data.comm.send_size[iswap],MPI_DOUBLE,sendproc[iswap],0,world);
-clock_gettime(CLOCK_REALTIME,&time1);
+my_gettime(CLOCK_REALTIME,&time1);
         CudaWrapper_SyncStream(2);
         //printf("C: %i \n",cuda->shared_data.comm.send_size[iswap]/1024*4);
-clock_gettime(CLOCK_REALTIME,&time2);
+my_gettime(CLOCK_REALTIME,&time2);
 cuda->shared_data.cuda_timings.comm_forward_download+=
       time2.tv_sec-time1.tv_sec+1.0*(time2.tv_nsec-time1.tv_nsec)/1000000000;
             MPI_Send(buf_send,cuda->shared_data.comm.send_size[iswap],MPI_DOUBLE,sendproc[iswap],0,world);
             MPI_Wait(&request,&status);
         //printf("D: %i \n",cuda->shared_data.comm.send_size[iswap]/1024*4);
                 CudaWrapper_UploadCudaDataAsync((void*) buf_recv,cuda->shared_data.comm.buf_recv_dev[iswap], size_forward_recv_now*sizeof(double),2);
-clock_gettime(CLOCK_REALTIME,&time1);
+my_gettime(CLOCK_REALTIME,&time1);
         CudaWrapper_SyncStream(2);
         //printf("E: %i \n",cuda->shared_data.comm.send_size[iswap]/1024*4);
         //memcpy(cuda->shared_data.comm.buf_recv[iswap],buf_recv,size_forward_recv_now*sizeof(double));
                  //printf("RecvSize: %i SendSize: %i\n",size_forward_recv_now*sizeof(double),cuda->shared_data.comm.send_size[iswap]*sizeof(double));
-clock_gettime(CLOCK_REALTIME,&time3);
+my_gettime(CLOCK_REALTIME,&time3);
 cuda->shared_data.cuda_timings.comm_forward_upload+=
       time3.tv_sec-time1.tv_sec+1.0*(time3.tv_nsec-time1.tv_nsec)/1000000000;
 cuda->shared_data.cuda_timings.comm_forward_mpi_lower+=
       time3.tv_sec-time2.tv_sec+1.0*(time3.tv_nsec-time2.tv_nsec)/1000000000;
-clock_gettime(CLOCK_REALTIME,&time3);
+my_gettime(CLOCK_REALTIME,&time3);
 cuda->shared_data.cuda_timings.comm_forward_mpi_upper+=
       time3.tv_sec-time1.tv_sec+1.0*(time3.tv_nsec-time1.tv_nsec)/1000000000;
       }
@@ -486,17 +486,17 @@ cuda->shared_data.cuda_timings.comm_forward_mpi_upper+=
         else
           size_forward_recv_now=size_forward_recv[iswap];
 
-clock_gettime(CLOCK_REALTIME,&time1);
+my_gettime(CLOCK_REALTIME,&time1);
 
         MPI_Irecv(cuda->shared_data.comm.buf_recv[iswap],size_forward_recv_now,MPI_DOUBLE,
                  recvproc[iswap],0,world,&request);
 
-clock_gettime(CLOCK_REALTIME,&time2);
+my_gettime(CLOCK_REALTIME,&time2);
 
             MPI_Send(cuda->shared_data.comm.buf_send[iswap],cuda->shared_data.comm.send_size[iswap],MPI_DOUBLE,sendproc[iswap],0,world);
             MPI_Wait(&request,&status);
 
-clock_gettime(CLOCK_REALTIME,&time3);
+my_gettime(CLOCK_REALTIME,&time3);
 cuda->shared_data.cuda_timings.comm_forward_mpi_upper+=
       time3.tv_sec-time1.tv_sec+1.0*(time3.tv_nsec-time1.tv_nsec)/1000000000;
 cuda->shared_data.cuda_timings.comm_forward_mpi_lower+=
@@ -548,7 +548,7 @@ void CommCuda::forward_comm_unpack_cuda()
         static int count=0;
         static double kerneltime=0.0;
         static double copytime=0.0;
-    timespec time1,time2,time3;
+    my_times time1,time2,time3;
   int n;
   MPI_Request request;
   MPI_Status status;
@@ -762,7 +762,7 @@ void CommCuda::exchange_cuda()
   MPI_Request request;
   MPI_Status status;
   AtomVec *avec = atom->avec;
-    timespec time1,time2,time3;
+    my_times time1,time2,time3;
 
   // clear global->local map for owned and ghost atoms
   // b/c atoms migrate to new procs in exchange() and
@@ -805,7 +805,7 @@ void CommCuda::exchange_cuda()
     // if 2 procs in dimension, single send/recv
     // if more than 2 procs in dimension, send/recv to both neighbors
 
- clock_gettime(CLOCK_REALTIME,&time1);
+ my_gettime(CLOCK_REALTIME,&time1);
 
     if (procgrid[dim] == 1) {
       nrecv = nsend;
@@ -841,7 +841,7 @@ void CommCuda::exchange_cuda()
         //printf("nsend: %i nrecv: %i\n",nsend,nrecv);
     // check incoming atoms to see if they are in my box
     // if so, add to my list
-clock_gettime(CLOCK_REALTIME,&time2);
+my_gettime(CLOCK_REALTIME,&time2);
 cuda->shared_data.cuda_timings.comm_exchange_mpi+=
       time2.tv_sec-time1.tv_sec+1.0*(time2.tv_nsec-time1.tv_nsec)/1000000000;
 
@@ -902,7 +902,7 @@ void CommCuda::borders_cuda()
   MPI_Request request;
   MPI_Status status;
   AtomVec *avec = atom->avec;
-    timespec time1,time2,time3;
+    my_times time1,time2,time3;
 
   // clear old ghosts
 
@@ -966,7 +966,7 @@ void CommCuda::borders_cuda()
       // put incoming ghosts at end of my atom arrays
       // if swapping with self, simply copy, no messages
 
-clock_gettime(CLOCK_REALTIME,&time1);
+my_gettime(CLOCK_REALTIME,&time1);
       if (sendproc[iswap] != me) {
         MPI_Sendrecv(&nsend,1,MPI_INT,sendproc[iswap],0,
                      &nrecv,1,MPI_INT,recvproc[iswap],0,world,&status);
@@ -982,7 +982,7 @@ clock_gettime(CLOCK_REALTIME,&time1);
         buf = buf_send;
       }
 
-clock_gettime(CLOCK_REALTIME,&time2);
+my_gettime(CLOCK_REALTIME,&time2);
 cuda->shared_data.cuda_timings.comm_border_mpi+=
       time2.tv_sec-time1.tv_sec+1.0*(time2.tv_nsec-time1.tv_nsec)/1000000000;
 
@@ -1037,7 +1037,7 @@ void CommCuda::borders_cuda_overlap_forward_comm()
   MPI_Request request;
   MPI_Status status;
   AtomVec *avec = atom->avec;
-    timespec time1,time2,time3;
+    my_times time1,time2,time3;
 
   // clear old ghosts
 
@@ -1102,7 +1102,7 @@ void CommCuda::borders_cuda_overlap_forward_comm()
       // put incoming ghosts at end of my atom arrays
       // if swapping with self, simply copy, no messages
 
-clock_gettime(CLOCK_REALTIME,&time1);
+my_gettime(CLOCK_REALTIME,&time1);
       if (sendproc[iswap] != me) {
         MPI_Sendrecv(&nsend,1,MPI_INT,sendproc[iswap],0,
                      &nrecv,1,MPI_INT,recvproc[iswap],0,world,&status);
@@ -1118,7 +1118,7 @@ clock_gettime(CLOCK_REALTIME,&time1);
         buf = buf_send;
       }
 
-clock_gettime(CLOCK_REALTIME,&time2);
+my_gettime(CLOCK_REALTIME,&time2);
 cuda->shared_data.cuda_timings.comm_border_mpi+=
       time2.tv_sec-time1.tv_sec+1.0*(time2.tv_nsec-time1.tv_nsec)/1000000000;
 

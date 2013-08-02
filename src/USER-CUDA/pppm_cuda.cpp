@@ -691,10 +691,10 @@ void PPPMCuda::compute(int eflag, int vflag)
   cuda_shared_atom*   cu_atom   = & cuda->shared_data.atom;
 
   int i;
-  timespec starttime;
-  timespec endtime;
-  timespec starttotal;
-  timespec endtotal;
+  my_times starttime;
+  my_times endtime;
+  my_times starttotal;
+  my_times endtotal;
   // convert atoms from box to lamda coords
 
   if (triclinic == 0) boxlo = domain->boxlo;
@@ -726,23 +726,23 @@ void PPPMCuda::compute(int eflag, int vflag)
           cu_virial->memset_device(0);
   }
   if(eflag) cu_energy->memset_device(0);
-  clock_gettime(CLOCK_REALTIME,&starttotal);
+  my_gettime(CLOCK_REALTIME,&starttotal);
 
   // find grid points for all my particles
   // map my particle charge onto my local 3d density grid
 
 
-  clock_gettime(CLOCK_REALTIME,&starttime);
+  my_gettime(CLOCK_REALTIME,&starttime);
 
   particle_map();
 
-  clock_gettime(CLOCK_REALTIME,&endtime);
+  my_gettime(CLOCK_REALTIME,&endtime);
   cuda->shared_data.cuda_timings.pppm_particle_map+=(endtime.tv_sec-starttime.tv_sec+1.0*(endtime.tv_nsec-starttime.tv_nsec)/1000000000);
 
   //cu_part2grid->download();
-  clock_gettime(CLOCK_REALTIME,&starttime);
+  my_gettime(CLOCK_REALTIME,&starttime);
   make_rho();
-  clock_gettime(CLOCK_REALTIME,&endtime);
+  my_gettime(CLOCK_REALTIME,&endtime);
   cuda->shared_data.cuda_timings.pppm_make_rho+=(endtime.tv_sec-starttime.tv_sec+1.0*(endtime.tv_nsec-starttime.tv_nsec)/1000000000);
 
   // all procs communicate density values from their ghost cells
@@ -751,7 +751,7 @@ void PPPMCuda::compute(int eflag, int vflag)
 
   int nprocs=comm->nprocs;
 
-  clock_gettime(CLOCK_REALTIME,&starttime);
+  my_gettime(CLOCK_REALTIME,&starttime);
 
   if(nprocs>1)
   {
@@ -765,16 +765,16 @@ void PPPMCuda::compute(int eflag, int vflag)
      #endif
   }
 
-  clock_gettime(CLOCK_REALTIME,&endtime);
+  my_gettime(CLOCK_REALTIME,&endtime);
   cuda->shared_data.cuda_timings.pppm_brick2fft+=(endtime.tv_sec-starttime.tv_sec+1.0*(endtime.tv_nsec-starttime.tv_nsec)/1000000000);
 
   // compute potential gradient on my FFT grid and
   //   portion of e_long on this proc's FFT grid
   // return gradients (electric fields) in 3d brick decomposition
 
-  clock_gettime(CLOCK_REALTIME,&starttime);
+  my_gettime(CLOCK_REALTIME,&starttime);
   poisson(eflag,vflag);
-  clock_gettime(CLOCK_REALTIME,&endtime);
+  my_gettime(CLOCK_REALTIME,&endtime);
   cuda->shared_data.cuda_timings.pppm_poisson+=(endtime.tv_sec-starttime.tv_sec+1.0*(endtime.tv_nsec-starttime.tv_nsec)/1000000000);
 
   // all procs communicate E-field values to fill ghost cells
@@ -785,14 +785,14 @@ void PPPMCuda::compute(int eflag, int vflag)
   // calculate the force on my particles
 
 
-  clock_gettime(CLOCK_REALTIME,&starttime);
+  my_gettime(CLOCK_REALTIME,&starttime);
   fieldforce();
-  clock_gettime(CLOCK_REALTIME,&endtime);
+  my_gettime(CLOCK_REALTIME,&endtime);
   cuda->shared_data.cuda_timings.pppm_fieldforce+=(endtime.tv_sec-starttime.tv_sec+1.0*(endtime.tv_nsec-starttime.tv_nsec)/1000000000);
 
   // sum energy across procs and add in volume-dependent term
 
-  clock_gettime(CLOCK_REALTIME,&endtotal);
+  my_gettime(CLOCK_REALTIME,&endtotal);
   cuda->shared_data.cuda_timings.pppm_compute+=(endtotal.tv_sec-starttotal.tv_sec+1.0*(endtotal.tv_nsec-starttotal.tv_nsec)/1000000000);
 
   if (eflag) {
@@ -1303,14 +1303,14 @@ void PPPMCuda::poisson(int eflag, int vflag)
     return;
 #endif
 #ifdef FFT_CUFFT
-  timespec starttime;
-  timespec endtime;
+  my_times starttime;
+  my_times endtime;
 
 
-  clock_gettime(CLOCK_REALTIME,&starttime);
+  my_gettime(CLOCK_REALTIME,&starttime);
   fft1c->compute(density_fft,work1,1);
 
-  clock_gettime(CLOCK_REALTIME,&endtime);
+  my_gettime(CLOCK_REALTIME,&endtime);
   poissontime+=(endtime.tv_sec-starttime.tv_sec+1.0*(endtime.tv_nsec-starttime.tv_nsec)/1000000000);
 
 
@@ -1341,9 +1341,9 @@ void PPPMCuda::poisson(int eflag, int vflag)
   poisson_xgrad(nx_pppm,ny_pppm,nz_pppm);
 
 
-  clock_gettime(CLOCK_REALTIME,&starttime);
+  my_gettime(CLOCK_REALTIME,&starttime);
   fft2c->compute(work2,work2,-1);
-  clock_gettime(CLOCK_REALTIME,&endtime);
+  my_gettime(CLOCK_REALTIME,&endtime);
   poissontime+=(endtime.tv_sec-starttime.tv_sec+1.0*(endtime.tv_nsec-starttime.tv_nsec)/1000000000);
 
   poisson_vdx_brick(nxhi_out,nxlo_out,nyhi_out,nylo_out,nzhi_out,nzlo_out,nx_pppm,ny_pppm,nz_pppm);
@@ -1353,9 +1353,9 @@ void PPPMCuda::poisson(int eflag, int vflag)
 
   poisson_ygrad(nx_pppm,ny_pppm,nz_pppm);
 
-  clock_gettime(CLOCK_REALTIME,&starttime);
+  my_gettime(CLOCK_REALTIME,&starttime);
   fft2c->compute(work2,work2,-1);
-  clock_gettime(CLOCK_REALTIME,&endtime);
+  my_gettime(CLOCK_REALTIME,&endtime);
   poissontime+=(endtime.tv_sec-starttime.tv_sec+1.0*(endtime.tv_nsec-starttime.tv_nsec)/1000000000);
 
   poisson_vdy_brick(nxhi_out,nxlo_out,nyhi_out,nylo_out,nzhi_out,nzlo_out,nx_pppm,ny_pppm,nz_pppm);
@@ -1364,9 +1364,9 @@ void PPPMCuda::poisson(int eflag, int vflag)
 
   poisson_zgrad(nx_pppm,ny_pppm,nz_pppm);
 
-  clock_gettime(CLOCK_REALTIME,&starttime);
+  my_gettime(CLOCK_REALTIME,&starttime);
   fft2c->compute(work2,work2,-1);
-  clock_gettime(CLOCK_REALTIME,&endtime);
+  my_gettime(CLOCK_REALTIME,&endtime);
   poissontime+=(endtime.tv_sec-starttime.tv_sec+1.0*(endtime.tv_nsec-starttime.tv_nsec)/1000000000);
 
   poisson_vdz_brick(nxhi_out,nxlo_out,nyhi_out,nylo_out,nzhi_out,nzlo_out,nx_pppm,ny_pppm,nz_pppm);

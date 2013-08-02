@@ -629,12 +629,12 @@ void Cuda::evsetup_eatom_vatom(int eflag_atom, int vflag_atom)
 void Cuda::uploadAll()
 {
   MYDBG(printf("# CUDA: Cuda::uploadAll() ... start\n");)
-  timespec starttime;
-  timespec endtime;
+  my_times starttime;
+  my_times endtime;
 
   if(atom->nmax != shared_data.atom.nmax) checkResize();
 
-  clock_gettime(CLOCK_REALTIME, &starttime);
+  my_gettime(CLOCK_REALTIME, &starttime);
   cu_x   ->upload();
   cu_v   ->upload();
   cu_f   ->upload();
@@ -663,7 +663,7 @@ void Cuda::uploadAll()
 
   if(cu_vatom) cu_vatom->upload();
 
-  clock_gettime(CLOCK_REALTIME, &endtime);
+  my_gettime(CLOCK_REALTIME, &endtime);
   uploadtime += (endtime.tv_sec - starttime.tv_sec + 1.0 * (endtime.tv_nsec - starttime.tv_nsec) / 1000000000);
   CUDA_IF_BINNING(Cuda_PreBinning(& shared_data);)
   CUDA_IF_BINNING(Cuda_Binning(& shared_data);)
@@ -675,13 +675,13 @@ void Cuda::uploadAll()
 void Cuda::downloadAll()
 {
   MYDBG(printf("# CUDA: Cuda::downloadAll() ... start\n");)
-  timespec starttime;
-  timespec endtime;
+  my_times starttime;
+  my_times endtime;
 
   if(atom->nmax != shared_data.atom.nmax) checkResize();
 
   CUDA_IF_BINNING(Cuda_ReverseBinning(& shared_data);)
-  clock_gettime(CLOCK_REALTIME, &starttime);
+  my_gettime(CLOCK_REALTIME, &starttime);
   cu_x   ->download();
   cu_v   ->download();
   cu_f   ->download();
@@ -713,7 +713,7 @@ void Cuda::downloadAll()
 
   if(cu_vatom) cu_vatom->download();
 
-  clock_gettime(CLOCK_REALTIME, &endtime);
+  my_gettime(CLOCK_REALTIME, &endtime);
   downloadtime += (endtime.tv_sec - starttime.tv_sec + 1.0 * (endtime.tv_nsec - starttime.tv_nsec) / 1000000000);
   MYDBG(printf("# CUDA: Cuda::downloadAll() ... end\n");)
 }
@@ -721,12 +721,12 @@ void Cuda::downloadAll()
 void Cuda::upload(int datamask)
 {
   MYDBG(printf("# CUDA: Cuda::upload() ... start\n");)
-  timespec starttime;
-  timespec endtime;
+  my_times starttime;
+  my_times endtime;
 
   if(atom->nmax != shared_data.atom.nmax) checkResize();
 
-  clock_gettime(CLOCK_REALTIME, &starttime);
+  my_gettime(CLOCK_REALTIME, &starttime);
   if(X_MASK & datamask) cu_x   ->upload();
   if(V_MASK & datamask) cu_v   ->upload();
   if(F_MASK & datamask) cu_f   ->upload();
@@ -766,7 +766,7 @@ void Cuda::upload(int datamask)
 
   if(cu_vatom) cu_vatom->upload();
 
-  clock_gettime(CLOCK_REALTIME, &endtime);
+  my_gettime(CLOCK_REALTIME, &endtime);
   uploadtime += (endtime.tv_sec - starttime.tv_sec + 1.0 * (endtime.tv_nsec - starttime.tv_nsec) / 1000000000);
   MYDBG(printf("# CUDA: Cuda::upload() ... end\n");)
 }
@@ -774,13 +774,13 @@ void Cuda::upload(int datamask)
 void Cuda::download(int datamask)
 {
   MYDBG(printf("# CUDA: Cuda::download() ... start\n");)
-  timespec starttime;
-  timespec endtime;
+  my_times starttime;
+  my_times endtime;
 
   if(atom->nmax != shared_data.atom.nmax) checkResize();
 
   CUDA_IF_BINNING(Cuda_ReverseBinning(& shared_data);)
-  clock_gettime(CLOCK_REALTIME, &starttime);
+  my_gettime(CLOCK_REALTIME, &starttime);
   if(X_MASK & datamask) cu_x   ->download();
   if(V_MASK & datamask) cu_v   ->download();
   if(F_MASK & datamask) cu_f   ->download();
@@ -820,7 +820,7 @@ void Cuda::download(int datamask)
 
   if(cu_vatom) cu_vatom->download();
 
-  clock_gettime(CLOCK_REALTIME, &endtime);
+  my_gettime(CLOCK_REALTIME, &endtime);
   downloadtime += (endtime.tv_sec - starttime.tv_sec + 1.0 * (endtime.tv_nsec - starttime.tv_nsec) / 1000000000);
   MYDBG(printf("# CUDA: Cuda::download() ... end\n");)
 }

@@ -281,9 +281,9 @@ void cCudaData<host_type, dev_type, mode>
                         else
                         {
     timespec time1,time2;
-    clock_gettime(CLOCK_REALTIME,&time1);
+    my_gettime(CLOCK_REALTIME,&time1);
                           for(unsigned i=0; i<dev_data_array->dim[0]; ++i) temp_data[i] = static_cast<dev_type>(host_data[i]);
-        clock_gettime(CLOCK_REALTIME,&time2);
+        my_gettime(CLOCK_REALTIME,&time2);
         CudaWrapper_AddCPUBufUploadTime(
         time2.tv_sec-time1.tv_sec+1.0*(time2.tv_nsec-time1.tv_nsec)/1000000000);
                           CudaWrapper_UploadCudaData(temp_data, dev_data_array->dev_data, nbytes);
@@ -298,9 +298,9 @@ void cCudaData<host_type, dev_type, mode>
                         else
                         {
     timespec time1,time2;
-    clock_gettime(CLOCK_REALTIME,&time1);
+    my_gettime(CLOCK_REALTIME,&time1);
                                 for(unsigned i=0; i<dev_data_array->dim[0]; ++i) temp_data[i] = static_cast<dev_type>(host_data[i]);
-        clock_gettime(CLOCK_REALTIME,&time2);
+        my_gettime(CLOCK_REALTIME,&time2);
         CudaWrapper_AddCPUBufUploadTime(
         time2.tv_sec-time1.tv_sec+1.0*(time2.tv_nsec-time1.tv_nsec)/1000000000);
                                 CudaWrapper_UploadCudaData(temp_data, dev_data_array->dev_data, nbytes);
@@ -311,7 +311,7 @@ void cCudaData<host_type, dev_type, mode>
                 case xy:
                 {
     timespec time1,time2;
-    clock_gettime(CLOCK_REALTIME,&time1);
+    my_gettime(CLOCK_REALTIME,&time1);
                         for(unsigned i=0; i<dev_data_array->dim[0]; ++i)
                         {
                                 dev_type* temp = &temp_data[i * dev_data_array->dim[1]];
@@ -320,7 +320,7 @@ void cCudaData<host_type, dev_type, mode>
                                         temp[j] = static_cast<dev_type>((reinterpret_cast<host_type**>(host_data))[i][j]);
                                 }
                         }
-        clock_gettime(CLOCK_REALTIME,&time2);
+        my_gettime(CLOCK_REALTIME,&time2);
         CudaWrapper_AddCPUBufUploadTime(
         time2.tv_sec-time1.tv_sec+1.0*(time2.tv_nsec-time1.tv_nsec)/1000000000);
                         CudaWrapper_UploadCudaData(temp_data, dev_data_array->dev_data, nbytes);
@@ -330,7 +330,7 @@ void cCudaData<host_type, dev_type, mode>
                 case yx:
                 {
     timespec time1,time2;
-    clock_gettime(CLOCK_REALTIME,&time1);
+    my_gettime(CLOCK_REALTIME,&time1);
                         for(unsigned j=0; j<dev_data_array->dim[1]; ++j)
                         {
                                 dev_type* temp = &temp_data[j*dev_data_array->dim[0]];
@@ -339,7 +339,7 @@ void cCudaData<host_type, dev_type, mode>
                                         temp[i] = static_cast<dev_type>(reinterpret_cast<host_type**>(host_data)[i][j]);
                                 }
                         }
-        clock_gettime(CLOCK_REALTIME,&time2);
+        my_gettime(CLOCK_REALTIME,&time2);
         CudaWrapper_AddCPUBufUploadTime(
         time2.tv_sec-time1.tv_sec+1.0*(time2.tv_nsec-time1.tv_nsec)/1000000000);
                         CudaWrapper_UploadCudaData(temp_data, dev_data_array->dev_data, nbytes);
@@ -348,7 +348,7 @@ void cCudaData<host_type, dev_type, mode>
                 case xyz:
                 {
     timespec time1,time2;
-    clock_gettime(CLOCK_REALTIME,&time1);
+    my_gettime(CLOCK_REALTIME,&time1);
                         for(unsigned i=0; i<dev_data_array->dim[0]; ++i)
                         for(unsigned j=0; j<dev_data_array->dim[1]; ++j)
                         {
@@ -358,7 +358,7 @@ void cCudaData<host_type, dev_type, mode>
                                         temp[k] = static_cast<dev_type>(reinterpret_cast<host_type***>(host_data)[i][j][k]);
                                 }
                         }
-        clock_gettime(CLOCK_REALTIME,&time2);
+        my_gettime(CLOCK_REALTIME,&time2);
         CudaWrapper_AddCPUBufUploadTime(
         time2.tv_sec-time1.tv_sec+1.0*(time2.tv_nsec-time1.tv_nsec)/1000000000);
                         CudaWrapper_UploadCudaData(temp_data, dev_data_array->dev_data, nbytes);
@@ -368,7 +368,7 @@ void cCudaData<host_type, dev_type, mode>
                 case xzy:
                 {
     timespec time1,time2;
-    clock_gettime(CLOCK_REALTIME,&time1);
+    my_gettime(CLOCK_REALTIME,&time1);
                         for(unsigned i=0; i<dev_data_array->dim[0]; ++i)
                         for(unsigned k=0; k<dev_data_array->dim[2]; ++k)
                         {
@@ -378,7 +378,7 @@ void cCudaData<host_type, dev_type, mode>
                                         temp[j] = static_cast<dev_type>(reinterpret_cast<host_type***>(host_data)[i][j][k]);
                                 }
                         }
-        clock_gettime(CLOCK_REALTIME,&time2);
+        my_gettime(CLOCK_REALTIME,&time2);
         CudaWrapper_AddCPUBufUploadTime(
         time2.tv_sec-time1.tv_sec+1.0*(time2.tv_nsec-time1.tv_nsec)/1000000000);
                         CudaWrapper_UploadCudaData(temp_data, dev_data_array->dev_data, nbytes);
@@ -459,9 +459,9 @@ void cCudaData<host_type, dev_type, mode>
                         else
                         {
     timespec time1,time2;
-    clock_gettime(CLOCK_REALTIME,&time1);
+    my_gettime(CLOCK_REALTIME,&time1);
                           for(unsigned i=0; i<dev_data_array->dim[0]; ++i) temp_data[i] = static_cast<dev_type>(host_data[i]);
-        clock_gettime(CLOCK_REALTIME,&time2);
+        my_gettime(CLOCK_REALTIME,&time2);
         CudaWrapper_AddCPUBufUploadTime(
         time2.tv_sec-time1.tv_sec+1.0*(time2.tv_nsec-time1.tv_nsec)/1000000000);
                           CudaWrapper_UploadCudaDataAsync(temp_data, dev_data_array->dev_data, nbytes,stream);
@@ -476,9 +476,9 @@ void cCudaData<host_type, dev_type, mode>
                         else
                         {
     timespec time1,time2;
-    clock_gettime(CLOCK_REALTIME,&time1);
+    my_gettime(CLOCK_REALTIME,&time1);
                                 for(unsigned i=0; i<dev_data_array->dim[0]; ++i) temp_data[i] = static_cast<dev_type>(host_data[i]);
-        clock_gettime(CLOCK_REALTIME,&time2);
+        my_gettime(CLOCK_REALTIME,&time2);
         CudaWrapper_AddCPUBufUploadTime(
         time2.tv_sec-time1.tv_sec+1.0*(time2.tv_nsec-time1.tv_nsec)/1000000000);
                                 CudaWrapper_UploadCudaDataAsync(temp_data, dev_data_array->dev_data, nbytes,stream);
@@ -489,7 +489,7 @@ void cCudaData<host_type, dev_type, mode>
                 case xy:
                 {
     timespec time1,time2;
-    clock_gettime(CLOCK_REALTIME,&time1);
+    my_gettime(CLOCK_REALTIME,&time1);
                         for(unsigned i=0; i<dev_data_array->dim[0]; ++i)
                         {
                                 dev_type* temp = &temp_data[i * dev_data_array->dim[1]];
@@ -498,7 +498,7 @@ void cCudaData<host_type, dev_type, mode>
                                         temp[j] = static_cast<dev_type>((reinterpret_cast<host_type**>(host_data))[i][j]);
                                 }
                         }
-        clock_gettime(CLOCK_REALTIME,&time2);
+        my_gettime(CLOCK_REALTIME,&time2);
         CudaWrapper_AddCPUBufUploadTime(
         time2.tv_sec-time1.tv_sec+1.0*(time2.tv_nsec-time1.tv_nsec)/1000000000);
                         CudaWrapper_UploadCudaDataAsync(temp_data, dev_data_array->dev_data, nbytes,stream);
@@ -508,7 +508,7 @@ void cCudaData<host_type, dev_type, mode>
                 case yx:
                 {
     timespec time1,time2;
-    clock_gettime(CLOCK_REALTIME,&time1);
+    my_gettime(CLOCK_REALTIME,&time1);
                         for(unsigned j=0; j<dev_data_array->dim[1]; ++j)
                         {
                                 dev_type* temp = &temp_data[j*dev_data_array->dim[0]];
@@ -517,7 +517,7 @@ void cCudaData<host_type, dev_type, mode>
                                         temp[i] = static_cast<dev_type>(reinterpret_cast<host_type**>(host_data)[i][j]);
                                 }
                         }
-        clock_gettime(CLOCK_REALTIME,&time2);
+        my_gettime(CLOCK_REALTIME,&time2);
         CudaWrapper_AddCPUBufUploadTime(
         time2.tv_sec-time1.tv_sec+1.0*(time2.tv_nsec-time1.tv_nsec)/1000000000);
                         CudaWrapper_UploadCudaDataAsync(temp_data, dev_data_array->dev_data, nbytes,stream);
@@ -526,7 +526,7 @@ void cCudaData<host_type, dev_type, mode>
                 case xyz:
                 {
     timespec time1,time2;
-    clock_gettime(CLOCK_REALTIME,&time1);
+    my_gettime(CLOCK_REALTIME,&time1);
                         for(unsigned i=0; i<dev_data_array->dim[0]; ++i)
                         for(unsigned j=0; j<dev_data_array->dim[1]; ++j)
                         {
@@ -536,7 +536,7 @@ void cCudaData<host_type, dev_type, mode>
                                         temp[k] = static_cast<dev_type>(reinterpret_cast<host_type***>(host_data)[i][j][k]);
                                 }
                         }
-        clock_gettime(CLOCK_REALTIME,&time2);
+        my_gettime(CLOCK_REALTIME,&time2);
         CudaWrapper_AddCPUBufUploadTime(
         time2.tv_sec-time1.tv_sec+1.0*(time2.tv_nsec-time1.tv_nsec)/1000000000);
                         CudaWrapper_UploadCudaDataAsync(temp_data, dev_data_array->dev_data, nbytes,stream);
@@ -546,7 +546,7 @@ void cCudaData<host_type, dev_type, mode>
                 case xzy:
                 {
     timespec time1,time2;
-    clock_gettime(CLOCK_REALTIME,&time1);
+    my_gettime(CLOCK_REALTIME,&time1);
                         for(unsigned i=0; i<dev_data_array->dim[0]; ++i)
                         for(unsigned k=0; k<dev_data_array->dim[2]; ++k)
                         {
@@ -556,7 +556,7 @@ void cCudaData<host_type, dev_type, mode>
                                         temp[j] = static_cast<dev_type>(reinterpret_cast<host_type***>(host_data)[i][j][k]);
                                 }
                         }
-        clock_gettime(CLOCK_REALTIME,&time2);
+        my_gettime(CLOCK_REALTIME,&time2);
         CudaWrapper_AddCPUBufUploadTime(
         time2.tv_sec-time1.tv_sec+1.0*(time2.tv_nsec-time1.tv_nsec)/1000000000);
                         CudaWrapper_UploadCudaDataAsync(temp_data, dev_data_array->dev_data, nbytes,stream);
@@ -585,9 +585,9 @@ void cCudaData<host_type, dev_type, mode>
                         {
                                 CudaWrapper_DownloadCudaData(temp_data, dev_data_array->dev_data, nbytes);
     timespec time1,time2;
-    clock_gettime(CLOCK_REALTIME,&time1);
+    my_gettime(CLOCK_REALTIME,&time1);
                                 for(unsigned i=0; i<dev_data_array->dim[0]; ++i) host_data[i] = static_cast<host_type>(temp_data[i]);
-        clock_gettime(CLOCK_REALTIME,&time2);
+        my_gettime(CLOCK_REALTIME,&time2);
         CudaWrapper_AddCPUBufDownloadTime(
         time2.tv_sec-time1.tv_sec+1.0*(time2.tv_nsec-time1.tv_nsec)/1000000000);
                         }
@@ -602,9 +602,9 @@ void cCudaData<host_type, dev_type, mode>
                         {
                                 CudaWrapper_DownloadCudaData(temp_data, dev_data_array->dev_data, nbytes);
     timespec time1,time2;
-    clock_gettime(CLOCK_REALTIME,&time1);
+    my_gettime(CLOCK_REALTIME,&time1);
                                 for(unsigned i=0; i<dev_data_array->dim[0]; ++i) host_data[i] = static_cast<host_type>(temp_data[i]);
-        clock_gettime(CLOCK_REALTIME,&time2);
+        my_gettime(CLOCK_REALTIME,&time2);
         CudaWrapper_AddCPUBufDownloadTime(
         time2.tv_sec-time1.tv_sec+1.0*(time2.tv_nsec-time1.tv_nsec)/1000000000);
                         }
@@ -615,7 +615,7 @@ void cCudaData<host_type, dev_type, mode>
                 {
                         CudaWrapper_DownloadCudaData(temp_data, dev_data_array->dev_data, nbytes);
     timespec time1,time2;
-    clock_gettime(CLOCK_REALTIME,&time1);
+    my_gettime(CLOCK_REALTIME,&time1);
                         for(unsigned i=0; i<dev_data_array->dim[0]; ++i)
                         {
                                 dev_type* temp = &temp_data[i * dev_data_array->dim[1]];
@@ -624,7 +624,7 @@ void cCudaData<host_type, dev_type, mode>
                                         reinterpret_cast<host_type**>(host_data)[i][j] = static_cast<host_type>(temp[j]);
                                 }
                         }
-        clock_gettime(CLOCK_REALTIME,&time2);
+        my_gettime(CLOCK_REALTIME,&time2);
         CudaWrapper_AddCPUBufDownloadTime(
         time2.tv_sec-time1.tv_sec+1.0*(time2.tv_nsec-time1.tv_nsec)/1000000000);
                         break;
@@ -634,7 +634,7 @@ void cCudaData<host_type, dev_type, mode>
                 {
                         CudaWrapper_DownloadCudaData(temp_data, dev_data_array->dev_data, nbytes);
     timespec time1,time2;
-    clock_gettime(CLOCK_REALTIME,&time1);
+    my_gettime(CLOCK_REALTIME,&time1);
                         for(unsigned j=0; j<dev_data_array->dim[1]; ++j)
                         {
                                 dev_type* temp = &temp_data[j*dev_data_array->dim[0]];
@@ -643,7 +643,7 @@ void cCudaData<host_type, dev_type, mode>
                                         reinterpret_cast<host_type**>(host_data)[i][j] = static_cast<host_type>(temp[i]);
                                 }
                         }
-        clock_gettime(CLOCK_REALTIME,&time2);
+        my_gettime(CLOCK_REALTIME,&time2);
         CudaWrapper_AddCPUBufDownloadTime(
         time2.tv_sec-time1.tv_sec+1.0*(time2.tv_nsec-time1.tv_nsec)/1000000000);
                         break;
@@ -653,7 +653,7 @@ void cCudaData<host_type, dev_type, mode>
                 {
                         CudaWrapper_DownloadCudaData(temp_data, dev_data_array->dev_data, nbytes);
     timespec time1,time2;
-    clock_gettime(CLOCK_REALTIME,&time1);
+    my_gettime(CLOCK_REALTIME,&time1);
                         for(unsigned i=0; i<dev_data_array->dim[0]; ++i)
                         for(unsigned j=0; j<dev_data_array->dim[1]; ++j)
                         {
@@ -663,7 +663,7 @@ void cCudaData<host_type, dev_type, mode>
                                         reinterpret_cast<host_type***>(host_data)[i][j][k] = static_cast<host_type>(temp[k]);
                                 }
                         }
-        clock_gettime(CLOCK_REALTIME,&time2);
+        my_gettime(CLOCK_REALTIME,&time2);
         CudaWrapper_AddCPUBufDownloadTime(
         time2.tv_sec-time1.tv_sec+1.0*(time2.tv_nsec-time1.tv_nsec)/1000000000);
                         break;
@@ -673,7 +673,7 @@ void cCudaData<host_type, dev_type, mode>
                 {
                         CudaWrapper_DownloadCudaData(temp_data, dev_data_array->dev_data, nbytes);
     timespec time1,time2;
-    clock_gettime(CLOCK_REALTIME,&time1);
+    my_gettime(CLOCK_REALTIME,&time1);
                         for(unsigned i=0; i<dev_data_array->dim[0]; ++i)
                         for(unsigned k=0; k<dev_data_array->dim[2]; ++k)
                         {
@@ -683,7 +683,7 @@ void cCudaData<host_type, dev_type, mode>
                                         reinterpret_cast<host_type***>(host_data)[i][j][k] = static_cast<host_type>(temp[j]);
                                 }
                         }
-        clock_gettime(CLOCK_REALTIME,&time2);
+        my_gettime(CLOCK_REALTIME,&time2);
         CudaWrapper_AddCPUBufDownloadTime(
         time2.tv_sec-time1.tv_sec+1.0*(time2.tv_nsec-time1.tv_nsec)/1000000000);
                         break;

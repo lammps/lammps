@@ -280,9 +280,9 @@ cp -arp tools/msi2lmp/frc_files $RPM_BUILD_ROOT/%{_datadir}/lammps/
 cp -arp bench $RPM_BUILD_ROOT/%{_datadir}/lammps/
 cp -arp examples $RPM_BUILD_ROOT/%{_datadir}/lammps/
 mkdir -p $RPM_BUILD_ROOT/%{_datadir}/lammps/examples/msi2lmp
-cp -ap tools/msi2lmp/tests/*.{mdf,car} $RPM_BUILD_ROOT/%{_datadir}/lammps/examples/msi2lmp/
-cp -ap tools/msi2lmp/tests/reference/*.data $RPM_BUILD_ROOT/%{_datadir}/lammps/examples/msi2lmp/
-cp -ap tools/msi2lmp/tests/in.* $RPM_BUILD_ROOT/%{_datadir}/lammps/examples/msi2lmp
+cp -ap tools/msi2lmp/test/*.{mdf,car} $RPM_BUILD_ROOT/%{_datadir}/lammps/examples/msi2lmp/
+cp -ap tools/msi2lmp/test/reference/*.data $RPM_BUILD_ROOT/%{_datadir}/lammps/examples/msi2lmp/
+cp -ap tools/msi2lmp/test/in.* $RPM_BUILD_ROOT/%{_datadir}/lammps/examples/msi2lmp
 
 %clean
 rm -rf %{buildroot}

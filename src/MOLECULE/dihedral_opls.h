@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -33,6 +33,7 @@ class DihedralOPLS : public Dihedral {
   void coeff(int, char **);
   void write_restart(FILE *);
   void read_restart(FILE *);
+  void write_data(FILE *);
 
  protected:
   double *k1,*k2,*k3,*k4;

@@ -57,8 +57,9 @@ void ReadFrcFile(void)
             ff_vdw.keyword,ff_vdw.entries);
     fprintf(stderr," Item %s has %d entries\n",
             ff_bond.keyword,ff_bond.entries);
-    fprintf(stderr," Item %s has %d entries\n",
-            ff_morse.keyword,ff_morse.entries);
+    if (forcefield & FF_TYPE_CLASS1)
+        fprintf(stderr," Item %s has %d entries\n",
+                ff_morse.keyword,ff_morse.entries);
     fprintf(stderr," Item %s has %d entries\n",
             ff_ang.keyword,ff_ang.entries);
     if (forcefield & FF_TYPE_CLASS2) {

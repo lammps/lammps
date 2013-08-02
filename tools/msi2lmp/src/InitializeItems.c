@@ -31,7 +31,7 @@ void InitializeItems(void)
   /* BOND */
 
   ff_bond.number_of_members = 2;
-  if (forcefield & FF_TYPE_CLASS1) {
+  if (forcefield & (FF_TYPE_CLASS1|FF_TYPE_OPLSAA)) {
     strcpy(ff_bond.keyword,"#quadratic_bond");
     ff_bond.number_of_parameters = 2;
   }
@@ -52,7 +52,7 @@ void InitializeItems(void)
   /* ANGLE */
 
   ff_ang.number_of_members = 3;
-  if (forcefield & FF_TYPE_CLASS1) {
+  if (forcefield & (FF_TYPE_CLASS1|FF_TYPE_OPLSAA)) {
     strcpy(ff_ang.keyword,"#quadratic_angle");
     ff_ang.number_of_parameters = 2;
   }
@@ -65,7 +65,7 @@ void InitializeItems(void)
   /* TORSION */
 
   ff_tor.number_of_members = 4;
-  if (forcefield & FF_TYPE_CLASS1) {
+  if (forcefield & (FF_TYPE_CLASS1|FF_TYPE_OPLSAA)) {
     strcpy(ff_tor.keyword,"#torsion_1");
     ff_tor.number_of_parameters = 3;
   } 
@@ -78,7 +78,7 @@ void InitializeItems(void)
   /* OOP */
 
   ff_oop.number_of_members = 4;
-  if (forcefield & FF_TYPE_CLASS1) {
+  if (forcefield & (FF_TYPE_CLASS1|FF_TYPE_OPLSAA)) {
     strcpy(ff_oop.keyword,"#out_of_plane");
     ff_oop.number_of_parameters = 3;
   }

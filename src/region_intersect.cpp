@@ -31,13 +31,18 @@ RegIntersect::RegIntersect(LAMMPS *lmp, int narg, char **arg) :
   options(narg-(n+3),&arg[n+3]);
 
   // build list of regions to intersect
+  // store sub-region IDs in idsub
 
+  idsub = new char*[n];
   list = new int[n];
   nregion = 0;
 
   int iregion;
   for (int iarg = 0; iarg < n; iarg++) {
-    iregion = domain->find_region(arg[iarg+3]);
+    n = strlen(arg[iarg+3]) + 1;
+    idsub[nregion] = new char[n];
+    strcpy(idsub[nregion],arg[iarg+3]);
+    iregion = domain->find_region(idsub[nregion]);
     if (iregion == -1) 
       error->all(FLERR,"Region intersect region ID does not exist");
     list[nregion++] = iregion;
@@ -92,6 +97,8 @@ RegIntersect::RegIntersect(LAMMPS *lmp, int narg, char **arg) :
 
 RegIntersect::~RegIntersect()
 {
+  for (int ilist = 0; ilist < nregion; ilist++) delete [] idsub[ilist];
+  delete [] idsub;
   delete [] list;
   delete [] contact;
 }
@@ -101,6 +108,20 @@ RegIntersect::~RegIntersect()
 void RegIntersect::init()
 {
   Region::init();
+
+  // re-build list of sub-regions in case other regions were deleted
+  // error if a sub-region was deleted
+
+  int iregion;
+  for (int ilist = 0; ilist < nregion; ilist++) {
+    iregion = domain->find_region(idsub[ilist]);
+    if (iregion == -1) 
+      error->all(FLERR,"Region union region ID does not exist");
+    list[ilist] = iregion;
+  }
+
+  // init the sub-regions
+
   Region **regions = domain->regions;
   for (int ilist = 0; ilist < nregion; ilist++)
     regions[list[ilist]]->init();

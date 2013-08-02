@@ -1486,8 +1486,11 @@ void Pair::write_file(int narg, char **arg)
 
   // initialize potentials before evaluating pair potential
   // insures all pair coeffs are set and force constants
+  // also initialize neighbor so that neighbor requests are processed
+  // NOTE: might be safest to just do lmp->init()
 
   force->init();
+  neighbor->init();
 
   // if pair style = any of EAM, swap in dummy fp vector
 

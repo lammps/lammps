@@ -5,6 +5,24 @@ MSI2LMP=../src/msi2lmp.exe
 LAMMPS=../../../src/lmp_serial
 CHECKDATA=./data-compare.pl
 
+if [ ! -x $MSI2LMP ]
+then
+   echo "No executable $MSI2LMP"
+   exit 1
+fi
+
+if [ ! -d $BIOSYM_LIBRARY ]
+then
+   echo "No directory $BIOSYM_LIBRARY"
+   exit 1
+fi
+
+if [ ! -x $LAMMPS ]
+then
+   echo "No executable $LAMMPS"
+   exit 1
+fi
+
 verbose=1
 counter=0
 errors=0
@@ -38,6 +56,22 @@ do \
     ${CHECKDATA} ${m}-clayff.data2 reference/${m}-clayff.data2	\
         || errors=$(expr $errors + 1)
     [ $before -eq $errors ] && rm ${m}-clayff.data ${m}-clayff.data2 log.${m}-clayff
+    counter=$(expr $counter + 4)
+done
+
+# OPLS-AA tests 
+for m in ethane
+do \
+    before=$errors
+    ${MSI2LMP} ${m}-oplsaa -c 0 -p ${verbose} -f oplsaa	-n	\
+        || errors=$(expr $errors + 1)
+    ${LAMMPS} -log none -screen none -in in.${m}-oplsaa		\
+        || errors=$(expr $errors + 1)
+    ${CHECKDATA} ${m}-oplsaa.data reference/${m}-oplsaa.data	\
+        || errors=$(expr $errors + 1)
+    ${CHECKDATA} ${m}-oplsaa.data2 reference/${m}-oplsaa.data2	\
+        || errors=$(expr $errors + 1)
+    [ $before -eq $errors ] && rm ${m}-oplsaa.data ${m}-oplsaa.data2 log.${m}-oplsaa
     counter=$(expr $counter + 4)
 done
 

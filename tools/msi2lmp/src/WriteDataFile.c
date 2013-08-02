@@ -94,6 +94,7 @@ void WriteDataFile(char *nameroot)
   if (no_bond_types > 0) {
     m = 0;
     if (forcefield & FF_TYPE_CLASS1) m = 2;
+    if (forcefield & FF_TYPE_OPLSAA) m = 2;
     if (forcefield & FF_TYPE_CLASS2) m = 4;
 
     fprintf(DatF,"Bond Coeffs\n\n");
@@ -109,6 +110,7 @@ void WriteDataFile(char *nameroot)
   if (no_angle_types > 0) {
     m = 0;
     if (forcefield & FF_TYPE_CLASS1) m = 2;
+    if (forcefield & FF_TYPE_OPLSAA) m = 2;
     if (forcefield & FF_TYPE_CLASS2) m = 4;
 
     fprintf(DatF,"Angle Coeffs\n\n");
@@ -134,6 +136,17 @@ void WriteDataFile(char *nameroot)
                 (int) dihedraltypes[i].params[1],
                 (int) dihedraltypes[i].params[2]);
 
+    } else if (forcefield & FF_TYPE_OPLSAA) {
+
+      fprintf(DatF,"Dihedral Coeffs\n\n");
+
+      for (i=0; i < no_dihedral_types; i++) {
+        fprintf(DatF, "%3i",i+1);
+        for ( j = 0; j < 4; j++)
+          fprintf(DatF, " %10.4f",dihedraltypes[i].params[j]);
+
+        fputs("\n",DatF);
+      }
     } else if (forcefield & FF_TYPE_CLASS2) { 
 
       fprintf(DatF,"Dihedral Coeffs\n\n");
@@ -152,6 +165,17 @@ void WriteDataFile(char *nameroot)
   if (forcefield & FF_TYPE_CLASS1) {
     if (no_oop_types > 0) {
       /* cvff improper coeffs are: type K0 d n */
+      fprintf(DatF,"Improper Coeffs\n\n");
+      for (i=0; i < no_oop_types; i++) {
+        fprintf(DatF,"%5i %10.4f %3i %3i\n",i+1,
+                ooptypes[i].params[0], (int) ooptypes[i].params[1],
+                (int) ooptypes[i].params[2]);
+      }
+      fputs("\n",DatF);
+    }
+  } else if (forcefield & FF_TYPE_OPLSAA) {
+    if (no_oop_types > 0) {
+      /* opls improper coeffs are like cvff: type K0 d(=-1) n(=2) */
       fprintf(DatF,"Improper Coeffs\n\n");
       for (i=0; i < no_oop_types; i++) {
         fprintf(DatF,"%5i %10.4f %3i %3i\n",i+1,

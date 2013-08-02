@@ -1,6 +1,11 @@
 Stephanie Teich-McGoldrick (Sandai) is the current maintainer
 of the msi2lmp tool.  She can be contacted at steichm at sandia.gov
 
+02 Aug 2013 Axel Kohlmeyer <akohlmey@gmail.com>
+
+Added rudimentary support for OPLS-AA based on
+input provided by jeff greathouse.
+
 18 Jul 2013 Axel Kohlmeyer <akohlmey@gmail.com>
 
 Added support for writing out image flags

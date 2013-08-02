@@ -1,6 +1,8 @@
 /*
 *
-*  msi2lmp.exe  V3.8
+*  msi2lmp.exe  V3.9
+*
+*   v3.9 AK  - Rudimentary support for OPLS-AA
 *
 *   v3.6 KLA - Changes to output to either lammps 2001 (F90 version) or to
 *              lammps 2005 (C++ version)
@@ -317,15 +319,23 @@ int main (int argc, char *argv[])
     printf(" Forcefield file name: %s\n",FrcFileName);
   }
 
-  if (((forcefield & FF_TYPE_CLASS1) && (strstr(FrcFileName,"cff") != NULL)) ||
-      ((forcefield & FF_TYPE_CLASS2) &&
-       ! ((strstr(FrcFileName,"cvff") == NULL)
-          || (strstr(FrcFileName,"clayff") == NULL)
-          || (strstr(FrcFileName,"compass") == NULL))) ||
-      ((forcefield & FF_TYPE_OPLSAA) &&
-       ! (strstr(FrcFileName,"opls") == NULL))) {
-    fprintf(stderr," WARNING - forcefield name and class appear to\n");
-    fprintf(stderr,"           be inconsistent - Errors may result\n\n");
+  n = 0;
+  if (forcefield & FF_TYPE_CLASS1) {
+    if (strstr(FrcFileName,"cvff") != NULL) ++n;
+    if (strstr(FrcFileName,"clayff") != NULL) ++n;
+  } else if (forcefield & FF_TYPE_OPLSAA) {
+    if (strstr(FrcFileName,"oplsaa") != NULL) ++n;
+  } else if (forcefield & FF_TYPE_CLASS2) {
+    if (strstr(FrcFileName,"pcff") != NULL) ++n;
+    if (strstr(FrcFileName,"cff91") != NULL) ++n;
+    if (strstr(FrcFileName,"compass") != NULL) ++n;
+  }
+
+  if (n == 0) {
+    if (iflag > 0) fputs(" WARNING",stderr);
+    else           fputs(" Error  ",stderr);
+    
+    fputs("- forcefield name and class appear to be inconsistent\n\n",stderr);
     if (iflag == 0) return 7;
   }
 

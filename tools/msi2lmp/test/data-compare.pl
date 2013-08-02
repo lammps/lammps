@@ -826,6 +826,38 @@ sub syscompare {
     die "Number of ",$i," types does not match: $a vs $b" unless ($a == $b);
   }
 
+  topocompare($d1,$d2,'bond',2);
+  topocompare($d1,$d2,'angle',3);
+  topocompare($d1,$d2,'dihedral',4);
+  topocompare($d1,$d2,'improper',4);
+
+  coeffcompare($d1,$d2,'pair','atom');
+  coeffcompare($d1,$d2,'bond','bond');
+  coeffcompare($d1,$d2,'angle','angle');
+  coeffcompare($d1,$d2,'bondbond','angle');
+  coeffcompare($d1,$d2,'bondangle','angle');
+  coeffcompare($d1,$d2,'dihedral','dihedral');
+  coeffcompare($d1,$d2,'angleangletorsion','dihedral');
+  coeffcompare($d1,$d2,'bondbond13','dihedral');
+  coeffcompare($d1,$d2,'endbondtorsion','dihedral');
+  coeffcompare($d1,$d2,'middlebondtorsion','dihedral');
+  coeffcompare($d1,$d2,'improper','improper');
+  coeffcompare($d1,$d2,'angleangle','improper');
+
+  for ($i=0; $i < $d1->{natomtypes}; ++$i) {
+    $j = $i+1;
+    if (exists $d1->{mass}[$i]) {
+      $a = $d1->{mass}[$i];
+    } else {
+      die "No mass for atom type $j in data file 1";
+    }
+    if (exists $d2->{mass}[$i]) {
+      $a = $d2->{mass}[$i];
+    } else {
+      die "No mass for atom type $j in data file 2";
+    }
+  }
+
   # check box information
   die "Inconsistent box shape" if ($d1->{triclinic} != $d2->{triclinic});
 
@@ -867,38 +899,6 @@ sub syscompare {
       die "Inconsistent data for $t, atom $j: $a vs. $b" if (floatdiff($a,$b,0));
     }
   }
-
-  for ($i=0; $i < $d1->{natomtypes}; ++$i) {
-    $j = $i+1;
-    if (exists $d1->{mass}[$i]) {
-      $a = $d1->{mass}[$i];
-    } else {
-      die "No mass for atom type $j in data file 1";
-    }
-    if (exists $d2->{mass}[$i]) {
-      $a = $d2->{mass}[$i];
-    } else {
-      die "No mass for atom type $j in data file 2";
-    }
-  }
-
-  topocompare($d1,$d2,'bond',2);
-  topocompare($d1,$d2,'angle',3);
-  topocompare($d1,$d2,'dihedral',4);
-  topocompare($d1,$d2,'improper',4);
-
-  coeffcompare($d1,$d2,'pair','atom');
-  coeffcompare($d1,$d2,'bond','bond');
-  coeffcompare($d1,$d2,'angle','angle');
-  coeffcompare($d1,$d2,'bondbond','angle');
-  coeffcompare($d1,$d2,'bondangle','angle');
-  coeffcompare($d1,$d2,'dihedral','dihedral');
-  coeffcompare($d1,$d2,'angleangletorsion','dihedral');
-  coeffcompare($d1,$d2,'bondbond13','dihedral');
-  coeffcompare($d1,$d2,'endbondtorsion','dihedral');
-  coeffcompare($d1,$d2,'middlebondtorsion','dihedral');
-  coeffcompare($d1,$d2,'improper','improper');
-  coeffcompare($d1,$d2,'angleangle','improper');
 
 }
 

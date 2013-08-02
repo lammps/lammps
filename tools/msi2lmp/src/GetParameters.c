@@ -77,7 +77,7 @@ void GetParameters()
       printf(" Unable to find vdw data for %s\n",atomtypes[i].potential);
       condexit(11);
     } else {
-      if (forcefield & FF_TYPE_CLASS1) {
+      if (forcefield & (FF_TYPE_CLASS1|FF_TYPE_OPLSAA)) {
         if((ff_vdw.data[k].ff_param[0] != 0.0 ) &&
            (ff_vdw.data[k].ff_param[1] != 0.0)) {
           atomtypes[i].params[0] =
@@ -132,7 +132,7 @@ void GetParameters()
              potential_types[0],potential_types[1]);
       condexit(12);
     } else {
-      if (forcefield & FF_TYPE_CLASS1) {
+      if (forcefield & (FF_TYPE_CLASS1|FF_TYPE_OPLSAA)) {
         bondtypes[i].params[0] = ff_bond.data[k].ff_param[1];
         bondtypes[i].params[1] = ff_bond.data[k].ff_param[0];
       } 
@@ -189,7 +189,7 @@ void GetParameters()
              potential_types[0],potential_types[1],potential_types[2]);
       condexit(13);
     } else {
-      if (forcefield & FF_TYPE_CLASS1) {
+      if (forcefield & (FF_TYPE_CLASS1|FF_TYPE_OPLSAA)) {
         angletypes[i].params[0] = ff_ang.data[k].ff_param[1];
         angletypes[i].params[1] = ff_ang.data[k].ff_param[0];
       }
@@ -340,6 +340,10 @@ void GetParameters()
           dihedraltypes[i].params[1] = 0.0;
         }
         dihedraltypes[i].params[2] = ff_tor.data[k].ff_param[1];
+      }
+      if (forcefield & FF_TYPE_OPLSAA) {
+        for (j=0; j < 4; j++)
+          dihedraltypes[i].params[j] = ff_tor.data[k].ff_param[j];
       }
       if (forcefield & FF_TYPE_CLASS2) {
         for (j=0; j < 6; j++)

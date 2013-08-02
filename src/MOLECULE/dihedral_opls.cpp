@@ -35,7 +35,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-DihedralOPLS::DihedralOPLS(LAMMPS *lmp) : Dihedral(lmp) {}
+DihedralOPLS::DihedralOPLS(LAMMPS *lmp) : Dihedral(lmp)
+{
+  writedata = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -339,3 +342,14 @@ void DihedralOPLS::read_restart(FILE *fp)
 
   for (int i = 1; i <= atom->ndihedraltypes; i++) setflag[i] = 1;
 }
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void DihedralOPLS::write_data(FILE *fp)
+{
+  for (int i = 1; i <= atom->ndihedraltypes; i++)
+    fprintf(fp,"%d %g %g %g %g\n",i,2.0*k1[i],2.0*k2[i],2.0*k3[i],2.0*k4[i]);
+}
+

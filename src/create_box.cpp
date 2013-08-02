@@ -49,6 +49,8 @@ void CreateBox::command(int narg, char **arg)
   if (domain->regions[iregion]->bboxflag == 0)
     error->all(FLERR,"Create_box region does not support a bounding box");
 
+  domain->regions[iregion]->init();
+
   // if region not prism:
   //   setup orthogonal domain
   //   set simulation domain from region extent

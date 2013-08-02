@@ -33,8 +33,8 @@
 %{!?python_sitearch: %global python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
 
 Name:           lammps
-Version:        20130707
-Release:        3%{?dist}
+Version:        20130802
+Release:        4%{?dist}
 Summary:        LAMMPS Molecular Dynamics Simulator
 Group:          Applications/Engineering
 
@@ -276,7 +276,7 @@ cp serial/liblammps.so $RPM_BUILD_ROOT/%{_libdir}
 sed -e s,@DATADIR@,%{_datadir}/lammps, < %{SOURCE1} > $RPM_BUILD_ROOT/%{_sysconfdir}/profile.d/lammps.sh
 sed -e s,@DATADIR@,%{_datadir}/lammps, < %{SOURCE2} > $RPM_BUILD_ROOT/%{_sysconfdir}/profile.d/lammps.csh
 cp -arp potentials $RPM_BUILD_ROOT/%{_datadir}/lammps/
-cp -arp tools/msi2lmp/biosym_frc_files $RPM_BUILD_ROOT/%{_datadir}/lammps/
+cp -arp tools/msi2lmp/frc_files $RPM_BUILD_ROOT/%{_datadir}/lammps/
 cp -arp bench $RPM_BUILD_ROOT/%{_datadir}/lammps/
 cp -arp examples $RPM_BUILD_ROOT/%{_datadir}/lammps/
 mkdir -p $RPM_BUILD_ROOT/%{_datadir}/lammps/examples/msi2lmp
@@ -299,7 +299,7 @@ rm -rf %{buildroot}
 %{_bindir}/msi2lmp
 %{_sysconfdir}/profile.d/lammps.*sh
 %{_datadir}/lammps/potentials
-%{_datadir}/lammps/biosym_frc_files
+%{_datadir}/lammps/frc_files
 %doc README LICENSE
 
 %files doc
@@ -335,6 +335,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Aug  2 2013 Axel Kohlmeyer <akohlmey@gmail.com> - 20130802-4
+- Rename $BIOSYM_LIBRARY to $MSI2LMP_LIBRARY and biosym_frc_files to frc_files
+
 * Sun Jul  7 2013 Axel Kohlmeyer <akohlmey@gmail.com> - 20130707-3
 - included support for compiling and distributing msi2lmp and included support for setting LAMMPS_POTENTIALS and BIOSYM_LIBRARY environment variables
 

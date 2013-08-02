@@ -85,7 +85,7 @@ Section "${LAMMPS}"
   CreateDirectory "$INSTDIR\Benchmarks"
   CreateDirectory "$INSTDIR\Examples"
   CreateDirectory "$INSTDIR\Potentials"
-  CreateDirectory "$INSTDIR\biosym_frc_files"
+  CreateDirectory "$INSTDIR\frc_files"
 
   File /oname=License.txt lammps-current/LICENSE
   File /oname=README.txt  lammps-current/README
@@ -112,9 +112,9 @@ Section "${LAMMPS}"
   SetOutPath "$INSTDIR\Examples"
   File /r /x log.*.4 lammps-current/examples/*
 
-  SetOutPath "$INSTDIR\biosym_frc_files"
+  SetOutPath "$INSTDIR\frc_files"
   File /oname=README.txt lammps-current/tools/msi2lmp/README
-  File /r /x README lammps-current/tools/msi2lmp/biosym_frc_files/*
+  File /r /x README lammps-current/tools/msi2lmp/frc_files/*
 
   SetOutPath "$INSTDIR\Benchmarks"
   File /r /x log.*.4 lammps-current/bench/*
@@ -122,7 +122,7 @@ Section "${LAMMPS}"
   ${EnvVarUpdate} $0 "PATH"              "A" "HKLM" "${MPICHDIR}"
   ${EnvVarUpdate} $0 "PATH"              "A" "HKLM" "$INSTDIR\bin"
   ${EnvVarUpdate} $0 "LAMMPS_POTENTIALS" "A" "HKLM" "$INSTDIR\Potentials"
-  ${EnvVarUpdate} $0 "BIOSYM_LIBRARY"    "A" "HKLM" "$INSTDIR\biosym_frc_files"
+  ${EnvVarUpdate} $0 "MSI2LMP_LIBRARY"    "A" "HKLM" "$INSTDIR\frc_files"
 SectionEnd
 
 function un.onInit
@@ -136,7 +136,7 @@ Section "Uninstall"
   ${un.EnvVarUpdate} $0 "PATH"              "R" "HKLM" "${MPICHDIR}"
   ${un.EnvVarUpdate} $0 "PATH"              "R" "HKLM" "$INSTDIR\bin"
   ${un.EnvVarUpdate} $0 "LAMMPS_POTENTIALS" "R" "HKLM" "$INSTDIR\Potentials"
-  ${un.EnvVarUpdate} $0 "BIOSYM_LIBRARY"    "R" "HKLM" "$INSTDIR\biosym_frc_files"
+  ${un.EnvVarUpdate} $0 "MSI2LMP_LIBRARY"    "R" "HKLM" "$INSTDIR\frc_files"
 
   RMDir /r "$SMPROGRAMS\${LAMMPS}"
 
@@ -147,7 +147,7 @@ Section "Uninstall"
   RMDir /r /REBOOTOK "$INSTDIR\Doc"
   RMDir /r /REBOOTOK "$INSTDIR\Examples"
   RMDir /r /REBOOTOK "$INSTDIR\Potentials"
-  RMDir /r /REBOOTOK "$INSTDIR\biosym_frc_files"
+  RMDir /r /REBOOTOK "$INSTDIR\frc_files"
   RMDir /REBOOTOK "$INSTDIR"
 SectionEnd
 

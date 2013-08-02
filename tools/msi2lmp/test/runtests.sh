@@ -1,6 +1,6 @@
 #!/bin/sh
 
-BIOSYM_LIBRARY=../biosym_frc_files
+MSI2LMP_LIBRARY=../frc_files
 MSI2LMP=../src/msi2lmp.exe
 LAMMPS=../../../src/lmp_serial
 CHECKDATA=./data-compare.pl
@@ -11,9 +11,9 @@ then
    exit 1
 fi
 
-if [ ! -d $BIOSYM_LIBRARY ]
+if [ ! -d $MSI2LMP_LIBRARY ]
 then
-   echo "No directory $BIOSYM_LIBRARY"
+   echo "No directory $MSI2LMP_LIBRARY"
    exit 1
 fi
 

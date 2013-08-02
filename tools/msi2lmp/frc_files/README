@@ -1,0 +1,10 @@
+Set the environment variable MSI2LMP_LIBRARY or copy cvff.frc and cff9*.frc
+or any other *.frc files (which you have license to use) to this directory
+for use with msi2lmp.
+
+Note that LAMMPS does not distribute Accelrys (or old BioSym)
+force field files, since they are proprietary.  All the
+files in this directory that are part of the LAMMPS distribution
+are are openly available files that are in the public domain.
+
+

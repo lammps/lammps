@@ -106,7 +106,7 @@ arch=$(uname -m)
 # convert text files into CR/LF format.
 unix2dos lammps-current/LICENSE lammps-current/README
 find lammps-current/{bench,examples,potentials} -type f -print | xargs unix2dos
-find lammps-current/tools/msi2lmp/biosym_frc_files -type f -print | xargs unix2dos
+find lammps-current/tools/msi2lmp/frc_files -type f -print | xargs unix2dos
 # bulk rename README to README.txt
 for f in $(find lammps-current/{bench,examples,potentials} -name README -print)
 do  mv -v $f $f.txt; done

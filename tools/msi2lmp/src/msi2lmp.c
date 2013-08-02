@@ -64,23 +64,23 @@
 *
 *     If the name includes a hard wired directory (i.e., if the name
 *     starts with . or /), then the name is used alone. Otherwise,
-*     the program looks for the forcefield file in $BIOSYM_LIBRARY.
-*     If $BIOSYM_LIBRARY is not set, then the current directory is
+*     the program looks for the forcefield file in $MSI2LMP_LIBRARY.
+*     If $MSI2LMP_LIBRARY is not set, then the current directory is
 *     used.
 *
 *     If the file name does not include a dot after the first
 *     character, then .frc is appended to the name.
 *
-*     For example,  -frc cvff (assumes cvff.frc is in $BIOSYM_LIBRARY
+*     For example,  -frc cvff (assumes cvff.frc is in $MSI2LMP_LIBRARY
 *                              or .)
 *
 *                   -frc cff/cff91 (assumes cff91.frc is in
-*                                   $BIOSYM_LIBRARY/cff or ./cff)
+*                                   $MSI2LMP_LIBRARY/cff or ./cff)
 *
-*                   -frc /usr/local/biosym/forcefields/cff95 (absolute
+*                   -frc /usr/local/forcefields/cff95 (absolute
 *                                                             location)
 *
-*     By default, the program uses $BIOSYM_LIBRARY/cvff.frc
+*     By default, the program uses $MSI2LMP_LIBRARY/cvff.frc
 *
 *  -- output is written to a file called ROOTNAME.data
 *
@@ -200,7 +200,7 @@ int main (int argc, char *argv[])
   forcefield = FF_TYPE_CLASS1 | FF_TYPE_COMMON;
   shift[0] = shift[1] = shift[2] = 0.0;
 
-  frc_dir_name = getenv("BIOSYM_LIBRARY");
+  frc_dir_name = getenv("MSI2LMP_LIBRARY");
 
   if (argc < 2) {
     printf("usage: %s <rootname> [-class <I|1|II|2>] [-frc <path to frc file>] [-print #] [-ignore] [-nocenter]\n",argv[0]);
@@ -259,9 +259,9 @@ int main (int argc, char *argv[])
   /* set defaults, if nothing else was given */
   if (frc_dir_name == NULL)
 #if (_WIN32)
-    frc_dir_name = "..\\biosym_frc_files";
+    frc_dir_name = "..\\frc_files";
 #else
-  frc_dir_name = "../biosym_frc_files";
+  frc_dir_name = "../frc_files";
 #endif
   if (frc_file_name == NULL)
     frc_file_name = "cvff.frc";

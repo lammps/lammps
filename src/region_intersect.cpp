@@ -37,10 +37,10 @@ RegIntersect::RegIntersect(LAMMPS *lmp, int narg, char **arg) :
   list = new int[n];
   nregion = 0;
 
-  int iregion;
+  int m,iregion;
   for (int iarg = 0; iarg < n; iarg++) {
-    n = strlen(arg[iarg+3]) + 1;
-    idsub[nregion] = new char[n];
+    m = strlen(arg[iarg+3]) + 1;
+    idsub[nregion] = new char[m];
     strcpy(idsub[nregion],arg[iarg+3]);
     iregion = domain->find_region(idsub[nregion]);
     if (iregion == -1) 

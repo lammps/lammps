@@ -720,7 +720,7 @@ void Cuda_Pair_Init_AllStyles(cuda_shared_data* sdata, int ncoeff, bool need_q =
 
   CUT_CHECK_ERROR("Cuda_Pair: init failed");
 }
-timespec startpairtime, endpairtime;
+my_times startpairtime, endpairtime;
 //Function which is called prior to kernel invocation, determins grid, Binds Textures, updates constant memory if necessary
 void Cuda_Pair_PreKernel_AllStyles(cuda_shared_data* sdata, cuda_shared_neighlist* sneighlist, int eflag, int vflag, dim3 &grid, dim3 &threads, int &sharedperproc, bool need_q = false, int maxthreads = 256)
 {
@@ -785,7 +785,7 @@ void Cuda_Pair_PreKernel_AllStyles(cuda_shared_data* sdata, cuda_shared_neighlis
 
   if(sdata->pair.use_block_per_atom) sdata->pair.n_energy_virial -= 3;
 
-  clock_gettime(CLOCK_REALTIME, &startpairtime);
+  my_gettime(CLOCK_REALTIME, &startpairtime);
 
   MYDBG(printf("# CUDA: Cuda_Pair: kernel start eflag: %i vflag: %i config: %i %i %i %i\n", eflag, vflag, grid.x, grid.y, threads.x, sharedperproc * sizeof(ENERGY_FLOAT)*threads.x);)
 }
@@ -795,7 +795,7 @@ void Cuda_Pair_PostKernel_AllStyles(cuda_shared_data* sdata, dim3 &grid, int &sh
 {
   if((not sdata->pair.collect_forces_later) && (eflag || vflag)) { //not sdata->comm.comm_phase==2))
     cudaThreadSynchronize();
-    clock_gettime(CLOCK_REALTIME, &endpairtime);
+    my_gettime(CLOCK_REALTIME, &endpairtime);
     sdata->cuda_timings.pair_kernel +=
       endpairtime.tv_sec - startpairtime.tv_sec + 1.0 * (endpairtime.tv_nsec - startpairtime.tv_nsec) / 1000000000;
     CUT_CHECK_ERROR("Cuda_Pair: Kernel execution failed");
@@ -986,7 +986,7 @@ void Cuda_Pair_BuildXHold(cuda_shared_data* sdata)
 void Cuda_Pair_CollectForces(cuda_shared_data* sdata, int eflag, int vflag)
 {
   cudaThreadSynchronize();
-  clock_gettime(CLOCK_REALTIME, &endpairtime);
+  my_gettime(CLOCK_REALTIME, &endpairtime);
   sdata->cuda_timings.pair_kernel +=
     endpairtime.tv_sec - startpairtime.tv_sec + 1.0 * (endpairtime.tv_nsec - startpairtime.tv_nsec) / 1000000000;
   CUT_CHECK_ERROR("Cuda_Pair: Kernel execution failed");

@@ -81,8 +81,8 @@ void Cuda_FixNHCuda_Init(cuda_shared_data* sdata, X_FLOAT dtv, V_FLOAT dtf)
 
 void Cuda_FixNHCuda_nh_v_press(cuda_shared_data* sdata, int groupbit, double* factor_h, int mynlocal, int p_triclinic) //mynlocal can be nfirst if firstgroup==igroup  see cpp
 {
-  timespec atime1, atime2;
-  clock_gettime(CLOCK_REALTIME, &atime1);
+  my_times atime1, atime2;
+  my_gettime(CLOCK_REALTIME, &atime1);
 
   if(sdata->atom.update_nmax)
     Cuda_FixNHCuda_UpdateNmax(sdata);
@@ -90,7 +90,7 @@ void Cuda_FixNHCuda_nh_v_press(cuda_shared_data* sdata, int groupbit, double* fa
   if(sdata->atom.update_nlocal)
     cudaMemcpyToSymbol(MY_AP(nlocal)  , & sdata->atom.nlocal , sizeof(int));
 
-  clock_gettime(CLOCK_REALTIME, &atime2);
+  my_gettime(CLOCK_REALTIME, &atime2);
   sdata->cuda_timings.test1 +=
     atime2.tv_sec - atime1.tv_sec + 1.0 * (atime2.tv_nsec - atime1.tv_nsec) / 1000000000;
 
@@ -145,8 +145,8 @@ void Cuda_FixNHCuda_nh_v_press_and_nve_v_NoBias(cuda_shared_data* sdata, int gro
 
 void Cuda_FixNHCuda_nh_v_temp(cuda_shared_data* sdata, int groupbit, F_FLOAT factor_eta, int mynlocal) //mynlocal can be nfirst if firstgroup==igroup  see cpp
 {
-  timespec atime1, atime2;
-  clock_gettime(CLOCK_REALTIME, &atime1);
+  my_times atime1, atime2;
+  my_gettime(CLOCK_REALTIME, &atime1);
 
   if(sdata->atom.update_nmax)
     Cuda_FixNHCuda_UpdateNmax(sdata);
@@ -154,7 +154,7 @@ void Cuda_FixNHCuda_nh_v_temp(cuda_shared_data* sdata, int groupbit, F_FLOAT fac
   if(sdata->atom.update_nlocal)
     cudaMemcpyToSymbol(MY_AP(nlocal)  , & sdata->atom.nlocal , sizeof(int));
 
-  clock_gettime(CLOCK_REALTIME, &atime2);
+  my_gettime(CLOCK_REALTIME, &atime2);
   sdata->cuda_timings.test1 +=
     atime2.tv_sec - atime1.tv_sec + 1.0 * (atime2.tv_nsec - atime1.tv_nsec) / 1000000000;
 
@@ -171,8 +171,8 @@ void Cuda_FixNHCuda_nh_v_temp(cuda_shared_data* sdata, int groupbit, F_FLOAT fac
 }
 void Cuda_FixNHCuda_nve_v(cuda_shared_data* sdata, int groupbit, int mynlocal) //mynlocal can be nfirst if firstgroup==igroup  see cpp
 {
-  timespec atime1, atime2;
-  clock_gettime(CLOCK_REALTIME, &atime1);
+  my_times atime1, atime2;
+  my_gettime(CLOCK_REALTIME, &atime1);
 
   if(sdata->atom.update_nmax)
     Cuda_FixNHCuda_UpdateNmax(sdata);
@@ -180,7 +180,7 @@ void Cuda_FixNHCuda_nve_v(cuda_shared_data* sdata, int groupbit, int mynlocal) /
   if(sdata->atom.update_nlocal)
     cudaMemcpyToSymbol(MY_AP(nlocal)  , & sdata->atom.nlocal , sizeof(int));
 
-  clock_gettime(CLOCK_REALTIME, &atime2);
+  my_gettime(CLOCK_REALTIME, &atime2);
   sdata->cuda_timings.test1 +=
     atime2.tv_sec - atime1.tv_sec + 1.0 * (atime2.tv_nsec - atime1.tv_nsec) / 1000000000;
 
@@ -198,8 +198,8 @@ void Cuda_FixNHCuda_nve_v(cuda_shared_data* sdata, int groupbit, int mynlocal) /
 
 void Cuda_FixNHCuda_nve_x(cuda_shared_data* sdata, int groupbit, int mynlocal) //mynlocal can be nfirst if firstgroup==igroup  see cpp
 {
-  timespec atime1, atime2;
-  clock_gettime(CLOCK_REALTIME, &atime1);
+  my_times atime1, atime2;
+  my_gettime(CLOCK_REALTIME, &atime1);
 
   if(sdata->atom.update_nmax)
     Cuda_FixNHCuda_UpdateNmax(sdata);
@@ -207,7 +207,7 @@ void Cuda_FixNHCuda_nve_x(cuda_shared_data* sdata, int groupbit, int mynlocal) /
   if(sdata->atom.update_nlocal)
     cudaMemcpyToSymbol(MY_AP(nlocal)  , & sdata->atom.nlocal , sizeof(int));
 
-  clock_gettime(CLOCK_REALTIME, &atime2);
+  my_gettime(CLOCK_REALTIME, &atime2);
   sdata->cuda_timings.test1 +=
     atime2.tv_sec - atime1.tv_sec + 1.0 * (atime2.tv_nsec - atime1.tv_nsec) / 1000000000;
 

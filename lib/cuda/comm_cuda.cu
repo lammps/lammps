@@ -73,7 +73,7 @@ void Cuda_CommCuda_Init(cuda_shared_data* sdata)
 int Cuda_CommCuda_PackComm(cuda_shared_data* sdata, int n, int iswap, void* buf_send, int* pbc, int pbc_flag)
 {
 
-  timespec time1, time2;
+  my_times time1, time2;
 
   if(sdata->atom.update_nmax)
     Cuda_CommCuda_UpdateNmax(sdata);
@@ -109,14 +109,14 @@ int Cuda_CommCuda_PackComm(cuda_shared_data* sdata, int n, int iswap, void* buf_
   if(sdata->atom.nlocal > 0) {
     cudaMemset(sdata->flag, 0, sizeof(int));
 
-    clock_gettime(CLOCK_REALTIME, &time1);
+    my_gettime(CLOCK_REALTIME, &time1);
 
     void* buf = sdata->overlap_comm ? sdata->comm.buf_send_dev[iswap] : sdata->buffer;
     Cuda_CommCuda_PackComm_Kernel <<< grid, threads, 0>>>((int*) sdata->comm.sendlist.dev_data, n
         , sdata->comm.maxlistlength, iswap, dx, dy, dz, buf);
     cudaThreadSynchronize();
 
-    clock_gettime(CLOCK_REALTIME, &time2);
+    my_gettime(CLOCK_REALTIME, &time2);
     sdata->cuda_timings.comm_forward_kernel_pack +=
       time2.tv_sec - time1.tv_sec + 1.0 * (time2.tv_nsec - time1.tv_nsec) / 1000000000;
 
@@ -126,7 +126,7 @@ int Cuda_CommCuda_PackComm(cuda_shared_data* sdata, int n, int iswap, void* buf_
       cudaMemcpy(buf_send, sdata->buffer, n * 3 * sizeof(X_FLOAT), cudaMemcpyDeviceToHost);
     //cudaMemcpy(buf_send, sdata->comm.buf_send_dev[iswap], n*3*sizeof(X_FLOAT), cudaMemcpyDeviceToHost);
 
-    clock_gettime(CLOCK_REALTIME, &time1);
+    my_gettime(CLOCK_REALTIME, &time1);
     sdata->cuda_timings.comm_forward_download +=
       time1.tv_sec - time2.tv_sec + 1.0 * (time1.tv_nsec - time2.tv_nsec) / 1000000000;
 
@@ -143,7 +143,7 @@ int Cuda_CommCuda_PackComm(cuda_shared_data* sdata, int n, int iswap, void* buf_
 int Cuda_CommCuda_PackCommVel(cuda_shared_data* sdata, int n, int iswap, void* buf_send, int* pbc, int pbc_flag)
 {
 
-  timespec time1, time2;
+  my_times time1, time2;
 
   if(sdata->atom.update_nmax)
     Cuda_CommCuda_UpdateNmax(sdata);
@@ -179,14 +179,14 @@ int Cuda_CommCuda_PackCommVel(cuda_shared_data* sdata, int n, int iswap, void* b
   if(sdata->atom.nlocal > 0) {
     cudaMemset(sdata->flag, 0, sizeof(int));
 
-    clock_gettime(CLOCK_REALTIME, &time1);
+    my_gettime(CLOCK_REALTIME, &time1);
 
     void* buf = sdata->overlap_comm ? sdata->comm.buf_send_dev[iswap] : sdata->buffer;
     Cuda_CommCuda_PackComm_Kernel <<< grid, threads, 0>>>((int*) sdata->comm.sendlist.dev_data, n
         , sdata->comm.maxlistlength, iswap, dx, dy, dz, buf);
     cudaThreadSynchronize();
 
-    clock_gettime(CLOCK_REALTIME, &time2);
+    my_gettime(CLOCK_REALTIME, &time2);
     sdata->cuda_timings.comm_forward_kernel_pack +=
       time2.tv_sec - time1.tv_sec + 1.0 * (time2.tv_nsec - time1.tv_nsec) / 1000000000;
 
@@ -196,7 +196,7 @@ int Cuda_CommCuda_PackCommVel(cuda_shared_data* sdata, int n, int iswap, void* b
       cudaMemcpy(buf_send, sdata->buffer, n * 6 * sizeof(X_FLOAT), cudaMemcpyDeviceToHost);
     //cudaMemcpy(buf_send, sdata->comm.buf_send_dev[iswap], n*3*sizeof(X_FLOAT), cudaMemcpyDeviceToHost);
 
-    clock_gettime(CLOCK_REALTIME, &time1);
+    my_gettime(CLOCK_REALTIME, &time1);
     sdata->cuda_timings.comm_forward_download +=
       time1.tv_sec - time2.tv_sec + 1.0 * (time1.tv_nsec - time2.tv_nsec) / 1000000000;
 
@@ -213,7 +213,7 @@ int Cuda_CommCuda_PackCommVel(cuda_shared_data* sdata, int n, int iswap, void* b
 int Cuda_CommCuda_PackComm_Self(cuda_shared_data* sdata, int n, int iswap, int first, int* pbc, int pbc_flag)
 {
   MYDBG(printf(" # CUDA: CommCuda_PackComm_Self\n");)
-  timespec time1, time2;
+  my_times time1, time2;
 
   if(sdata->atom.update_nmax)
     Cuda_CommCuda_UpdateNmax(sdata);
@@ -252,12 +252,12 @@ int Cuda_CommCuda_PackComm_Self(cuda_shared_data* sdata, int n, int iswap, int f
 
   if(sdata->atom.nlocal > 0) {
 
-    clock_gettime(CLOCK_REALTIME, &time1);
+    my_gettime(CLOCK_REALTIME, &time1);
 
     Cuda_CommCuda_PackComm_Self_Kernel <<< grid, threads, 0>>>((int*) sdata->comm.sendlist.dev_data, n, sdata->comm.maxlistlength, iswap, dx, dy, dz, first);
     cudaThreadSynchronize();
 
-    clock_gettime(CLOCK_REALTIME, &time2);
+    my_gettime(CLOCK_REALTIME, &time2);
     sdata->cuda_timings.comm_forward_kernel_self +=
       time2.tv_sec - time1.tv_sec + 1.0 * (time2.tv_nsec - time1.tv_nsec) / 1000000000;
 
@@ -270,7 +270,7 @@ int Cuda_CommCuda_PackComm_Self(cuda_shared_data* sdata, int n, int iswap, int f
 int Cuda_CommCuda_PackCommVel_Self(cuda_shared_data* sdata, int n, int iswap, int first, int* pbc, int pbc_flag)
 {
   MYDBG(printf(" # CUDA: CommCuda_PackComm_Self\n");)
-  timespec time1, time2;
+  my_times time1, time2;
 
   if(sdata->atom.update_nmax)
     Cuda_CommCuda_UpdateNmax(sdata);
@@ -309,12 +309,12 @@ int Cuda_CommCuda_PackCommVel_Self(cuda_shared_data* sdata, int n, int iswap, in
 
   if(sdata->atom.nlocal > 0) {
 
-    clock_gettime(CLOCK_REALTIME, &time1);
+    my_gettime(CLOCK_REALTIME, &time1);
 
     Cuda_CommCuda_PackComm_Self_Kernel <<< grid, threads, 0>>>((int*) sdata->comm.sendlist.dev_data, n, sdata->comm.maxlistlength, iswap, dx, dy, dz, first);
     cudaThreadSynchronize();
 
-    clock_gettime(CLOCK_REALTIME, &time2);
+    my_gettime(CLOCK_REALTIME, &time2);
     sdata->cuda_timings.comm_forward_kernel_self +=
       time2.tv_sec - time1.tv_sec + 1.0 * (time2.tv_nsec - time1.tv_nsec) / 1000000000;
 
@@ -326,7 +326,7 @@ int Cuda_CommCuda_PackCommVel_Self(cuda_shared_data* sdata, int n, int iswap, in
 
 void Cuda_CommCuda_UnpackComm(cuda_shared_data* sdata, int n, int first, void* buf_recv, int iswap)
 {
-  timespec time1, time2;
+  my_times time1, time2;
 
   if(sdata->atom.update_nmax)
     Cuda_CommCuda_UpdateNmax(sdata);
@@ -344,19 +344,19 @@ void Cuda_CommCuda_UnpackComm(cuda_shared_data* sdata, int n, int first, void* b
   dim3 grid(layout.x, layout.y, 1);
 
   if(sdata->atom.nlocal > 0) {
-    clock_gettime(CLOCK_REALTIME, &time1);
+    my_gettime(CLOCK_REALTIME, &time1);
 
     if(not sdata->overlap_comm || iswap < 0)
       cudaMemcpy(sdata->buffer, (void*)buf_recv, n * 3 * sizeof(X_FLOAT), cudaMemcpyHostToDevice);
 
-    clock_gettime(CLOCK_REALTIME, &time2);
+    my_gettime(CLOCK_REALTIME, &time2);
     sdata->cuda_timings.comm_forward_upload +=
       time2.tv_sec - time1.tv_sec + 1.0 * (time2.tv_nsec - time1.tv_nsec) / 1000000000;
     void* buf = (sdata->overlap_comm && iswap >= 0) ? sdata->comm.buf_recv_dev[iswap] : sdata->buffer;
     Cuda_CommCuda_UnpackComm_Kernel <<< grid, threads, 0>>>(n, first, buf);
     cudaThreadSynchronize();
 
-    clock_gettime(CLOCK_REALTIME, &time1);
+    my_gettime(CLOCK_REALTIME, &time1);
     sdata->cuda_timings.comm_forward_kernel_unpack +=
       time1.tv_sec - time2.tv_sec + 1.0 * (time1.tv_nsec - time2.tv_nsec) / 1000000000;
 
@@ -367,7 +367,7 @@ void Cuda_CommCuda_UnpackComm(cuda_shared_data* sdata, int n, int first, void* b
 
 void Cuda_CommCuda_UnpackCommVel(cuda_shared_data* sdata, int n, int first, void* buf_recv, int iswap)
 {
-  timespec time1, time2;
+  my_times time1, time2;
 
   if(sdata->atom.update_nmax)
     Cuda_CommCuda_UpdateNmax(sdata);
@@ -385,19 +385,19 @@ void Cuda_CommCuda_UnpackCommVel(cuda_shared_data* sdata, int n, int first, void
   dim3 grid(layout.x, layout.y, 1);
 
   if(sdata->atom.nlocal > 0) {
-    clock_gettime(CLOCK_REALTIME, &time1);
+    my_gettime(CLOCK_REALTIME, &time1);
 
     if(not sdata->overlap_comm || iswap < 0)
       cudaMemcpy(sdata->buffer, (void*)buf_recv, n * 6 * sizeof(X_FLOAT), cudaMemcpyHostToDevice);
 
-    clock_gettime(CLOCK_REALTIME, &time2);
+    my_gettime(CLOCK_REALTIME, &time2);
     sdata->cuda_timings.comm_forward_upload +=
       time2.tv_sec - time1.tv_sec + 1.0 * (time2.tv_nsec - time1.tv_nsec) / 1000000000;
     void* buf = (sdata->overlap_comm && iswap >= 0) ? sdata->comm.buf_recv_dev[iswap] : sdata->buffer;
     Cuda_CommCuda_UnpackComm_Kernel <<< grid, threads, 0>>>(n, first, buf);
     cudaThreadSynchronize();
 
-    clock_gettime(CLOCK_REALTIME, &time1);
+    my_gettime(CLOCK_REALTIME, &time1);
     sdata->cuda_timings.comm_forward_kernel_unpack +=
       time1.tv_sec - time2.tv_sec + 1.0 * (time1.tv_nsec - time2.tv_nsec) / 1000000000;
 
@@ -489,7 +489,7 @@ void Cuda_CommCuda_UnpackReverse_Self(cuda_shared_data* sdata, int n, int iswap,
 int Cuda_CommCuda_BuildSendlist(cuda_shared_data* sdata, int bordergroup, int ineed, int style, int atom_nfirst, int nfirst, int nlast, int dim, int iswap)
 {
   MYDBG(printf(" # CUDA: CommCuda_BuildSendlist\n");)
-  timespec time1, time2;
+  my_times time1, time2;
 
   if(sdata->atom.update_nmax)
     Cuda_CommCuda_UpdateNmax(sdata);
@@ -517,7 +517,7 @@ int Cuda_CommCuda_BuildSendlist(cuda_shared_data* sdata, int bordergroup, int in
 
   cudaMemset((int*)(sdata->buffer), 0, sizeof(int));
 
-  clock_gettime(CLOCK_REALTIME, &time1);
+  my_gettime(CLOCK_REALTIME, &time1);
 
   if(style == 1)
     Cuda_CommCuda_BuildSendlist_Single <<< grid, threads, (threads.x + 1)*sizeof(int) >>> (bordergroup, ineed, atom_nfirst, nfirst, nlast, dim, iswap, (X_FLOAT*) sdata->comm.slablo.dev_data, (X_FLOAT*) sdata->comm.slabhi.dev_data, (int*) sdata->comm.sendlist.dev_data, sdata->comm.maxlistlength);
@@ -525,7 +525,7 @@ int Cuda_CommCuda_BuildSendlist(cuda_shared_data* sdata, int bordergroup, int in
     Cuda_CommCuda_BuildSendlist_Multi <<< grid, threads, (threads.x + 1)*sizeof(int) >>> (bordergroup, ineed, atom_nfirst, nfirst, nlast, dim, iswap, (X_FLOAT*) sdata->comm.multilo.dev_data, (X_FLOAT*) sdata->comm.multihi.dev_data, (int*) sdata->comm.sendlist.dev_data, sdata->comm.maxlistlength);
 
   cudaThreadSynchronize();
-  clock_gettime(CLOCK_REALTIME, &time2);
+  my_gettime(CLOCK_REALTIME, &time2);
   sdata->cuda_timings.comm_border_kernel_buildlist +=
     time2.tv_sec - time1.tv_sec + 1.0 * (time2.tv_nsec - time1.tv_nsec) / 1000000000;
 

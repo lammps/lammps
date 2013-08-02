@@ -27,6 +27,8 @@ namespace LAMMPS_NS {
 
 class FixDeposit : public Fix {
  public:
+  int ntype;      // type of deposited atom, visible to PairGran
+
   FixDeposit(class LAMMPS *, int, char **);
   ~FixDeposit();
   int setmask();
@@ -36,7 +38,7 @@ class FixDeposit : public Fix {
   void restart(char *);
 
  private:
-  int ninsert,ntype,nfreq,seed;
+  int ninsert,nfreq,seed;
   int iregion,globalflag,localflag,maxattempt,rateflag,scaleflag,targetflag;
   char *idregion;
   double lo,hi,deltasq,nearsq,rate;

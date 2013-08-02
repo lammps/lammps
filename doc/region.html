@@ -197,6 +197,11 @@ triclinic representations.
 listed regions combined.  The <I>intersect</I> style creates a region
 consisting of the volume that is common to all the listed regions.
 </P>
+<P>IMPORTANT NOTE: The <I>union</I> and <I>intersect</I> regions operate by
+invoking methods from their list of sub-regions.  Thus you cannot
+delete the sub-regions after defining the <I>union</I> or <I>intersection</I>
+region.
+</P>
 <HR>
 
 <P>The <I>side</I> keyword determines whether the region is considered to be

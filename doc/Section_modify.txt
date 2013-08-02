@@ -202,7 +202,7 @@ The code for these classes can use the per-atom properties defined by
 fix property/atom.  The Atom class has a find_custom() method that is
 useful in this context:
 
-int index = find_custom(char *name, int &flag);
+int index = atom->find_custom(char *name, int &flag); :pre
 
 The "name" of a custom attribute, as specified in the "fix
 property/atom"_fix_property_atom.html command, is checked to verify
@@ -211,8 +211,8 @@ that it exists and its index is returned.  The method also sets flag =
 The vector of values associated with the attribute can then be
 accessed using the returned index as
 
-int *ivector = atom->ivector[index];
-double *dvector = atom->dvector[index];
+int *ivector = atom->ivector\[index\];
+double *dvector = atom->dvector\[index\]; :pre
 
 Ivector or dvector are vectors of length Nlocal = # of owned atoms,
 which store the attributes of individual atoms.

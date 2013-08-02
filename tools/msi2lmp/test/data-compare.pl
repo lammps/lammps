@@ -6,7 +6,7 @@
 use strict;
 use warnings;
 
-my $version = 'v0.2';
+my $version = 'v0.3';
 
 # delta for floating point comparisons.
 my $small = 1.0e-4;

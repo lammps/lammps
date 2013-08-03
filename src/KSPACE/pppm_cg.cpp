@@ -26,6 +26,7 @@
 #include "domain.h"
 #include "error.h"
 #include "force.h"
+#include "neighbor.h"
 #include "memory.h"
 #include "pppm_cg.h"
 
@@ -153,12 +154,16 @@ void PPPMCG::compute(int eflag, int vflag)
     }
   }
 
-  num_charged = 0;
-  for (int i = 0; i < atom->nlocal; ++i)
-    if (fabs(atom->q[i]) > smallq) {
-      is_charged[num_charged] = i;
-      ++num_charged;
+  // only need to rebuild this list after a neighbor list update
+  if (neighbor->ago == 0) {
+    num_charged = 0;
+    for (int i = 0; i < atom->nlocal; ++i) {
+      if (fabs(atom->q[i]) > smallq) {
+        is_charged[num_charged] = i;
+        ++num_charged;
+      }
     }
+  }
 
   // find grid points for all my particles
   // map my particle charge onto my local 3d density grid

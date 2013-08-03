@@ -188,6 +188,11 @@ The {union} style creates a region consisting of the volume of all the
 listed regions combined.  The {intersect} style creates a region
 consisting of the volume that is common to all the listed regions.
 
+IMPORTANT NOTE: The {union} and {intersect} regions operate by
+invoking methods from their list of sub-regions.  Thus you cannot
+delete the sub-regions after defining the {union} or {intersection}
+region.
+
 :line
 
 The {side} keyword determines whether the region is considered to be

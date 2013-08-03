@@ -1,4 +1,4 @@
-"Previous Section"_Section_start.html - "LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next Section"_Section_packages.html :c
+<"Previous Section"_Section_start.html - "LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next Section"_Section_packages.html :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
@@ -502,7 +502,7 @@ of each style or click on the style itself for a full description:
 "pour"_fix_pour.html,
 "press/berendsen"_fix_press_berendsen.html,
 "print"_fix_print.html,
-"property/atom"_fix_property/atom.html,
+"property/atom"_fix_property_atom.html,
 "qeq/comb"_fix_qeq_comb.html,
 "reax/bonds"_fix_reax_bonds.html,
 "recenter"_fix_recenter.html,

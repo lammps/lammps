@@ -142,7 +142,6 @@ void Group::assign(int narg, char **arg)
 
   // style = region
   // add to group if atom is in region
-  // init all regions via domain->init() to insure region can perform match()
 
   if (strcmp(arg[1],"region") == 0) {
 
@@ -150,7 +149,7 @@ void Group::assign(int narg, char **arg)
 
     int iregion = domain->find_region(arg[2]);
     if (iregion == -1) error->all(FLERR,"Group region ID does not exist");
-    domain->init();
+    domain->regions[iregion]->init();
 
     for (i = 0; i < nlocal; i++)
       if (domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))

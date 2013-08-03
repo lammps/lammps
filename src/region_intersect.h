@@ -38,6 +38,7 @@ class RegIntersect : public Region {
  private:
   int nregion;
   int *list;
+  char **idsub;
 };
 
 }

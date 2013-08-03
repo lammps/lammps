@@ -38,6 +38,7 @@ class RegUnion : public Region {
  private:
   int nregion;
   int *list;
+  char **idsub;
 };
 
 }

@@ -61,7 +61,10 @@ pushd src
 
 # configure installed packages
 make yes-all no-kim no-user-cuda no-reax
-make mingw32-cross mingw64-cross mingw32-cross-mpi mingw64-cross-mpi || exit 4
+make -j2 mingw32-cross || exit 4
+make -j2 mingw64-cross || exit 4
+make -j2 mingw32-cross-mpi || exit 4
+make -j2 mingw64-cross-mpi || exit 4
 cp lmp_mingw32-cross ${MINGW_BUILD_DIR}/mingw32/lmp_serial.exe
 cp lmp_mingw32-cross-mpi ${MINGW_BUILD_DIR}/mingw32/lmp_mpi.exe
 cp lmp_mingw64-cross ${MINGW_BUILD_DIR}/mingw64/lmp_serial.exe
@@ -104,11 +107,11 @@ release=$(grep  release /etc/issue | cut -d \  -f 3)
 arch=$(uname -m)
 
 # convert text files into CR/LF format.
-unix2dos lammps-current/LICENSE lammps-current/README
+unix2dos lammps-current/LICENSE lammps-current/README lammps-current/tools/msi2lmp/README
 find lammps-current/{bench,examples,potentials} -type f -print | xargs unix2dos
 find lammps-current/tools/msi2lmp/frc_files -type f -print | xargs unix2dos
 # bulk rename README to README.txt
-for f in $(find lammps-current/{bench,examples,potentials} -name README -print)
+for f in $(find lammps-current/{tools,bench,examples,potentials} -name README -print)
 do  mv -v $f $f.txt; done
 
 # create up-to-date version of the manual

@@ -113,8 +113,8 @@ Section "${LAMMPS}"
   File /r /x log.*.4 lammps-current/examples/*
 
   SetOutPath "$INSTDIR\frc_files"
-  File /oname=README.txt lammps-current/tools/msi2lmp/README
-  File /r /x README lammps-current/tools/msi2lmp/frc_files/*
+  File /oname=README-msi2lmp.txt lammps-current/tools/msi2lmp/README.txt
+  File /r lammps-current/tools/msi2lmp/frc_files/*
 
   SetOutPath "$INSTDIR\Benchmarks"
   File /r /x log.*.4 lammps-current/bench/*

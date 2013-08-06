@@ -10,6 +10,7 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
+
 /* ----------------------------------------------------------------------
    Contributing author:  Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
@@ -18,7 +19,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include <errno.h>
 
 #include "fix_colvars.h"
@@ -36,6 +36,7 @@
 #include "colvarproxy_lammps.h"
 
 static const char colvars_pub[] =
+  "fix colvars command:\n\n"
   "@Article{fiorin13,\n"
   " author =  {G.~Fiorin and M.{\\,}L.~Klein and J.~H{\\'e}nin},\n"
   " title =   {Using collective variables to drive molecular"
@@ -370,7 +371,7 @@ FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
   /* storage required to communicate a single coordinate or force. */
   size_one = sizeof(struct commdata);
 
-  citeme->add(colvars_pub);
+  if (lmp->citeme) lmp->citeme->add(colvars_pub);
 }
 
 /*********************************

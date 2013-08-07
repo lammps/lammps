@@ -1,0 +1,138 @@
+# AtC Thermal Coupling
+# This benchmark tests thermostats applied in all atom simulations.  The
+# temperature is intially 20 everywhere and the left boundary BC is fixed at
+# 40.# The result should show heat diffusing through the FEM to the MD and back
+# out # to the FEM on the right.  Insufficient time is captured to reach the
+# linear # steady state, but heat crossing both boundaries should be observed.
+units		real
+atom_style	atomic
+log bar1d_hoover.log
+# create domain
+#lattice	type reduced density rho* = 4*(sigma/a)^3, where N=4 for fcc, s = 3.405 A (Wagner) and a = 5.25 A (Ashcroft & Mermin, p. 70)
+# NOTE following 3 lines added for restart
+boundary        f p p
+pair_style      lj/cut 13.5
+read_data       all_atoms.init
+lattice         fcc 5.405 origin 0.25 0.25 0.25
+region		simRegion block -7 7 -3 3 -3 3
+# create atoms, NOTE commented out for restart
+#boundary	f p p
+#create_box	1 simRegion
+#create_atoms	1 region simRegion
+#mass		1 39.95
+#atom_modify	sort 0 0
+# specify interal/ghost atoms
+region		mdInternal block -6 6 -3 3 -3 3
+group		internal region mdInternal
+group		ghost subtract all internal
+# velocities have Vcm = 0, NOTE next four lines commented out for restart
+#velocity	internal create 40. 87287 mom yes loop geom
+#pair_style	lj/cut 13.5
+##pair_coeff	1 1 0.010323166 3.405 13.5
+#pair_coeff  	1 1 .238 3.405 13.5
+#write_restart	all_atoms.init
+neighbor	5. bin
+neigh_modify	every 10 delay 0 check no
+#               ID  group atc PhysicsType ParameterFile
+fix             AtC internal   atc thermal     Ar_thermal.mat
+#               ID  part keywords    nx ny nz region
+
+# switch depending on application of BCs or coupling
+#variable nEls equal 6 # for boundary conditions
+variable nEls equal 12 # for coupling
+fix_modify	AtC boundary ghost # for coupling
+
+region		atcRegion block -${nEls} ${nEls} -3 3 -3 3
+fix_modify      AtC mesh  create ${nEls} 1  1  atcRegion f p p
+fix_modify      AtC mesh create_faceset obndy box -6.0 6.0 -INF INF -INF INF outward
+fix_modify      AtC mesh create_faceset lbndy box -6.0 16.0 -INF INF -INF INF outward
+fix_modify      AtC mesh create_faceset rbndy box -16.0 6.0 -INF INF -INF INF outward
+variable tol equal 0.1
+variable uBnd equal ${nEls}+${tol}
+variable lBnd equal ${nEls}-${tol}
+fix_modify	AtC mesh create_nodeset lbc -${uBnd}  -${lBnd}   -INF INF   -INF INF
+fix_modify      AtC mesh create_nodeset rbc  ${lBnd}   ${uBnd}   -INF INF   -INF INF
+# fix a temperature
+fix_modify     	AtC  fix temperature all 20.
+#fix_modify	AtC initial temperature all 20.
+#fix_modify	AtC consistent_fe_initialization on
+# turn on thermostat
+fix_modify	AtC  control thermal rescale 10
+fix_modify      AtC  internal_quadrature off
+# equilibrate MD field
+#dump            D1 all atom 100 dump.bar1d_hoover_init
+#fix_modify      AtC  output bar1d_hoover_init 100 text binary
+fix_modify	AtC  time_integration fractional_step
+fix_modify	AtC  temperature_definition total
+timestep	5
+variable xdof equal 3*count(ghost)
+compute_modify thermo_temp extra ${xdof}
+thermo_style custom step cpu etotal pe f_AtC[1] temp f_AtC[2]
+thermo_modify  format 1 %6i format 2 %7.2g
+thermo		100
+run 		400
+
+fix_modify	AtC  unfix temperature all
+
+fix_modify	AtC  filter type exponential
+fix_modify      AtC  filter scale 1000.0
+fix_modify      AtC  filter on
+
+
+# boundary conditions------------------------
+# dirichlet with ramp (unstable when filtered due to instantaneous change in rate)
+#fix_modify	AtC  fix temperature lbc temporal_ramp 20. 40. 25000.
+#fix_modify	AtC  fix temperature rbc 20.
+#fix_modify      AtC  localized_lambda on
+#fix_modify      AtC  control thermal flux no_boundary
+#fix_modify      AtC  output test_rampFE 200 text binary
+#dump            D1 all atom 200 dump.test_ramp
+#reset_timestep  0
+#fix_modify      AtC  reset_time
+#thermo          100
+#run             5000
+#fix_modify      AtC  fix temperature lbc 40.
+
+# dirichlet with rescaling
+#fix_modify	AtC  filter off
+#fix_modify      AtC  fix temperature all 20.
+#fix_modify      AtC  fix temperature lbc 40.
+#fix_modify      AtC  output test_rampFE 200 text binary
+#dump            D1 all atom 200 dump.test_ramp
+#reset_timestep  0
+#fix_modify      AtC  reset_time
+#thermo          100
+#run             1000
+#fix_modify      AtC  unfix temperature all
+#fix_modify      AtC  fix temperature lbc 40.
+#fix_modify      AtC  fix temperature rbc 20.
+#fix_modify      AtC  control thermal flux no_boundary
+#fix_modify      AtC  localized_lambda on
+#fix_modify      AtC  filter on
+
+# neumann
+#fix_modify      AtC  fix_flux temperature lbndy  0.0000000005
+#fix_modify      AtC  fix_flux temperature rbndy -0.0000000005
+#fix_modify      AtC  control thermal flux no_boundary
+#fix_modify      AtC  lumped_lambda_solve on
+
+# coupling------------------------------------
+fix_modify      AtC  fix temperature lbc 40.
+fix_modify      AtC  fix temperature rbc 20.
+
+# flux
+#fix_modify     AtC  control thermal flux interpolate
+#fix_modify     AtC  control thermal flux faceset obndy
+#fix_modify      AtC  lumped_lambda_solve on
+
+# hoover
+fix_modify	AtC  control thermal hoover
+fix_modify      AtC  control localized_lambda on
+
+fix_modify	AtC  control tolerance 1.e-14
+fix_modify      AtC  output bar1d_hooverFE 200 text binary
+#dump            D1 all atom 200 dump.bar1d_hoover
+reset_timestep  0
+fix_modify      AtC  reset_time
+thermo		100
+run             5000

@@ -1,0 +1,107 @@
+# needs description
+#  E = - grad \phi
+#  f = q E 
+echo both
+units		metal
+atom_style	atomic
+
+lattice       diamond  3.6
+pair_style    tersoff
+boundary	s s f
+
+read_data  tube_8_4.data
+
+# PARAMETERS-----------------------------
+variable L equal zhi-zlo
+variable R equal 12.1/2
+variable xhiFE equal 5.0*$R
+variable xloFE equal -${xhiFE}
+variable yhiFE equal $R
+variable yloFE equal -${xhiFE}
+variable zhiFE equal zhi
+variable zloFE equal zlo+10
+print "Length $L [${zloFE}, ${zhiFE}]"
+
+variable E equal 10.0
+print "Electric field $E"
+variable drhodx equal 0.0001
+variable s equal 50
+# END -----------------------------------
+
+#pair_coeff    * * SiC.tersoff  C
+pair_coeff    * * ../../../../potentials/SiC.tersoff  C
+mass          *  12.01
+
+# all atoms simulation
+region		feRegion block ${xloFE} ${xhiFE} ${yloFE} ${yhiFE} ${zloFE} ${zhiFE} units box
+group		internal region feRegion
+
+variable nAll   equal count(all)
+variable nGhost equal count(all)-count(internal)
+print ">>> number of stationary ghosts:  ${nGhost} of ${nAll}"
+
+neighbor	5. bin
+neigh_modify	every 10 delay 0 check no
+timestep        0.0005
+
+# coupling
+fix         AtC internal   atc electrostatic CNT_electrostatic.mat
+fix_modify  AtC  internal_quadrature off
+fix_modify	AtC  omit atomic_charge 
+fix_modify  AtC mesh create 5  1  12  feRegion f p f
+
+# initial & boundary conditions
+fix_modify  AtC  initial displacement x all 0.0
+fix_modify  AtC  initial displacement y all 0.0
+fix_modify  AtC  initial displacement z all 0.0
+fix_modify  AtC  initial velocity x all 0.0
+fix_modify  AtC  initial velocity y all 0.0
+fix_modify  AtC  initial velocity z all 0.0
+fix_modify  AtC  initial electric_potential all 0.0
+
+variable a equal -$R-0.1
+variable b equal  $R+0.1
+fix_modify  AtC mesh create_nodeset tube $a $b $a $b ${zloFE} ${zhiFE} units box
+variable a equal ${zloFE}-0.1
+variable b equal ${zloFE}+0.1
+fix_modify  AtC mesh create_nodeset lbc ${xloFE} ${xhiFE} ${xloFE} ${xhiFE} $a $b units box
+variable a equal ${xhiFE}-0.1
+variable b equal ${xhiFE}+0.1
+fix_modify  AtC mesh create_nodeset top $a $b ${yloFE} ${yhiFE} ${zloFE} ${zhiFE} units box
+variable a equal ${xloFE}-0.1
+variable b equal ${xloFE}+0.1
+fix_modify  AtC mesh create_nodeset bot $a $b ${yloFE} ${yhiFE} ${zloFE} ${zhiFE} units box
+
+fix_modify AtC  fix displacement x lbc 0.
+fix_modify AtC  fix displacement y lbc 0.
+fix_modify AtC  fix displacement z lbc 0.
+fix_modify AtC  fix velocity     x lbc 0.
+fix_modify AtC  fix velocity     y lbc 0.
+fix_modify AtC  fix velocity     z lbc 0.
+fix_modify AtC  fix electron_density all 0.0
+#fix_modify  AtC  fix electron_density tube 0.2
+fix_modify AtC  fix electron_density tube linear 0 0 0 0 0 ${drhodx} 0  
+fix_modify AtC  fix electric_potential all linear 0 0 0 $E 0 0 0 0
+
+fix_modify      AtC control  momentum flux
+
+# run
+thermo_style    custom step cpu etotal ke
+thermo          1#$s
+fix_modify      AtC  output        cnt_electrostaticFE $s full_text
+fix_modify      AtC  output  index step      
+# NOTE not recognized as vector by paraview
+variable uX atom x-f_AtC[1]
+variable uY atom y-f_AtC[2]
+variable uZ atom z-f_AtC[3]
+variable rho atom mass*f_AtC[4]
+dump  CONFIG all custom $s cnt_electrostatic.dmp id type x y z v_uX v_uY v_uZ v_rho
+log cnt_electrostatic.log
+#run   	        1000
+
+# fixed charge, bc on potential
+fix_modify AtC  unfix electric_potential all
+fix_modify AtC  fix electric_potential lbc linear 0 0 0 $E 0 0 0 0
+fix_modify AtC  fix electric_potential top linear 0 0 0 $E 0 0 0 0
+fix_modify AtC  fix electric_potential bot linear 0 0 0 $E 0 0 0 0
+run   	        1000

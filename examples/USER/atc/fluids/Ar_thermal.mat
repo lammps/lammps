@@ -1,0 +1,9 @@
+material Ar real
+ heat_flux linear
+  #conductivity .00000000168
+   conductivity 0.
+ end
+ heat_capacity constant
+  #capacity 0.00000003422
+ end
+end

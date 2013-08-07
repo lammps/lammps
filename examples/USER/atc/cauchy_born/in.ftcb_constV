@@ -1,0 +1,74 @@
+# This test compares Hardy and Cauchy-Born metrics of energy density and stress
+# for an Ar system undergoing dynamics at a finite temperature.
+echo both
+log            ftcb_constV.log  
+units          real
+atom_style     atomic
+variable       lattice_constant equal 5.256227487 
+variable       c equal 6
+variable       L equal (${lattice_constant}*$c)
+variable       V equal $L*$L*$L
+print          "Volume : $V"
+variable       Ti equal 0.0001 
+variable       dT equal 0.2
+variable       n equal 10000
+variable       m equal 200
+variable       dt equal 0.1
+# create system
+lattice        fcc ${lattice_constant} 
+region         box block 0 $c 0 $c 0 $c
+boundary       p p p
+pair_style     lj/cut 13.5  
+read_data      ftcb_constV_setup.data
+mass           1 39.95
+pair_coeff     1 1 0.238 3.405 
+# define region
+neighbor       1.0 bin
+neigh_modify   delay 0 every 2000 check no
+reset_timestep 0
+thermo         $m
+compute_modify thermo_temp extra 0
+variable       nrepeat equal $n/$m 
+variable       sxx equal -pxx
+variable       intenergy equal etotal
+fix            TDAVE all ave/time $m ${nrepeat} $n c_thermo_temp v_sxx v_intenergy ave one file ftcb_constV.profile
+thermo_style   custom step temp press etotal lx ly lz
+timestep       ${dt}
+# filtered
+fix            ATCFILT all atc field Ar_CauchyBorn.mat
+#fix_modify     ATCFILT  reset_atomic_reference_positions ftcb_constV_setup.data
+fix_modify     ATCFILT mesh create 1 1 1 box p p p 
+fix_modify     ATCFILT  fields none
+fix_modify     ATCFILT  fields add internal_energy stress cauchy_born_energy cauchy_born_stress
+fix_modify     ATCFILT  fields add temperature displacement
+fix_modify     ATCFILT  gradients add displacement
+fix_modify     ATCFILT  output ftcb_constV_filteredFE $n text binary tensor_components
+fix_modify     ATCFILT  sample_frequency $m
+variable       scale equal $n*${dt}
+fix_modify     ATCFILT  filter scale ${scale}
+fix_modify     ATCFILT  filter on
+fix_modify     ATCFILT  filter type step
+# not filtered
+fix            ATC all atc field Ar_CauchyBorn.mat
+#fix_modify     ATC  reset_atomic_reference_positions ftcb_constV_setup.data
+fix_modify     ATC mesh create 1 1 1 box p p p 
+fix_modify     ATC  fields none
+fix_modify     ATC  fields add internal_energy stress cauchy_born_energy cauchy_born_stress
+fix_modify     ATC  fields add temperature displacement
+fix_modify     ATC  gradients add displacement
+fix_modify     ATC  output ftcb_constVFE $m text binary tensor_components
+velocity       all create ${Ti} 102486 mom yes rot yes dist gaussian
+# step iu T,V space
+variable i loop 1 
+label loop_i
+  print ">>> step $i, T: ${Ti}, V: $V"
+  variable Tf equal ${Ti}+${dT}
+  fix NVT all nvt temp ${Ti} ${Tf} 20 drag 0.5 tchain 1
+  run  $n
+  unfix NVT
+  fix NVT all nvt temp ${Tf} ${Tf} 20 drag 0.5 tchain 1
+  run  $n
+  unfix NVT
+  variable Ti equal ${Tf} 
+next i
+jump in.ftcb_constV loop_i

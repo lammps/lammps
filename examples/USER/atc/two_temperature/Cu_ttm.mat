@@ -1,0 +1,17 @@
+material Cu metal
+heat_capacity constant
+capacity 0.211977459280654
+end
+heat_flux linear
+conductivity 67.4479848
+end
+electron_heat_flux linear
+conductivity 441.362750535
+end
+electron_heat_capacity constant
+capacity 0.005817388689
+end
+electron_phonon_exchange linear
+coefficient 0.0156575679
+end
+end

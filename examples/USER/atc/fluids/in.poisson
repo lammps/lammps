@@ -1,0 +1,69 @@
+# test poisson solver
+# * seems to have error in fix_flux
+echo both
+units 		metal
+variable E equal 20.0
+variable nx equal 32
+# allow charges
+atom_style full
+dielectric      1.
+dimension	3
+boundary	f p p
+lattice 	fcc   4.08 origin 0.25 0.25 0.25
+region BOX block 0 16 0 3 0 3
+create_box   1 BOX
+create_atoms 1 region BOX
+pair_style      lj/cut 13. 
+pair_coeff * * 0.2381 3.405
+mass 		* 39.948
+group  real region BOX
+set group   real charge 1
+###########################################################################
+#fix EFIELD all efield $E 0.0 0.0
+###########################################################################
+fix         ATC real atc species_electrostatic Ar_species.mat
+fix_modify  ATC add_species ion type 1  ### <<<<<
+#fix_modify  ATC add_species REAL group real
+fix_modify  ATC include atomic_charge
+fix_modify  ATC internal_quadrature off
+fix_modify  ATC extrinsic short_range off
+fix_modify  ATC mesh create ${nx} 1 1 BOX f p p
+fix_modify  ATC atom_element_map eulerian 1
+fix_modify  ATC atom_weight multiscale
+fix_modify  ATC initial mass_density all 0.
+#fix_modify  ATC initial charge_density all 0.
+###########################################################################
+variable n equal count(real)
+print "number of atoms: $n"
+timestep 	0.0
+thermo		1
+compute   Fx real reduce sum fx
+compute   Fy real reduce sum fy
+thermo_style 	custom step etotal temp press pe c_Fx c_Fy
+fix_modify  ATC output poissonFE 1 text binary
+# (1) all fixed
+fix_modify  ATC fix electric_potential all linear 0 0 0 $E 0 0 0 0 
+run 1
+# (2) Dirichlet
+# NOTE with correct density solution is very close
+#fix_modify  ATC  fix charge_density all 0.0588951459091903
+fix_modify  ATC unfix electric_potential all 
+fix_modify  ATC mesh create_nodeset lbc 0.0 0.0    -INF INF -INF INF
+fix_modify  ATC mesh create_faceset lbc 0.0 INF    -INF INF -INF INF
+fix_modify  ATC mesh create_faceset rbc -INF 16.0  -INF INF -INF INF
+fix_modify  ATC fix electric_potential      lbc 100.0
+run 1
+# (3) Neumann
+fix_modify  ATC fix_flux electric_potential rbc 0.5
+run 1
+# (4) Robin eps_1 phi'_1 = eps_2/L_2 (phi_{L_2} - phi)
+fix_modify  ATC unfix_flux electric_potential rbc 
+fix_modify  ATC fix_robin electric_potential rbc 0.5 -0.00001
+run 1
+# (5) Robins on the left and Robins on the right
+fix_modify  ATC unfix electric_potential lbc 
+fix_modify  ATC fix_robin electric_potential rbc 0.01 -0.0001
+fix_modify  ATC fix_robin electric_potential lbc 0.01 -0.0001
+run 1
+#fix_modify  ATC fix charge_density all 0.0
+#run 1

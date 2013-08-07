@@ -1,0 +1,259 @@
+LAMMPS (14 Aug 2013)
+units 		metal
+variable E equal 20.0
+variable nx equal 32
+# allow charges
+atom_style full
+dielectric      1.
+dimension	3
+boundary	f p p
+lattice 	fcc   4.08 origin 0.25 0.25 0.25
+Lattice spacing in x,y,z = 4.08 4.08 4.08
+region BOX block 0 16 0 3 0 3
+create_box   1 BOX
+Created orthogonal box = (0 0 0) to (65.28 12.24 12.24)
+  4 by 1 by 1 MPI processor grid
+create_atoms 1 region BOX
+Created 576 atoms
+pair_style      lj/cut 13.
+pair_coeff * * 0.2381 3.405
+mass 		* 39.948
+group  real region BOX
+576 atoms in group real
+set group   real charge 1
+Setting atom values ...
+  576 settings made for charge
+###########################################################################
+#fix EFIELD all efield $E 0.0 0.0
+###########################################################################
+fix         ATC real atc species_electrostatic Ar_species.mat
+ATC: constructing electrostatic species coupling with parameter file Ar_species.mat
+ ATC: peratom PE compute created with ID: 3
+ ATC: WARNING: material units real do not match lammps
+ ATC: 1 materials defined from Ar_species.mat
+ ATC: creating fem_efield extrinsic model
+ ATC: WARNING: material units real do not match lammps
+ ATC: 1 materials defined from Ar_species.mat
+fix_modify  ATC add_species ion type 1  ### <<<<<
+#fix_modify  ATC add_species REAL group real
+fix_modify  ATC include atomic_charge
+fix_modify  ATC internal_quadrature off
+fix_modify  ATC extrinsic short_range off
+fix_modify  ATC mesh create ${nx} 1 1 BOX f p p
+fix_modify  ATC mesh create 32 1 1 BOX f p p
+ ATC: created uniform mesh with 132 nodes, 33 unique nodes, and 32 elements
+fix_modify  ATC atom_element_map eulerian 1
+fix_modify  ATC atom_weight multiscale
+fix_modify  ATC initial mass_density all 0.
+#fix_modify  ATC initial charge_density all 0.
+###########################################################################
+variable n equal count(real)
+print "number of atoms: $n"
+number of atoms: 576
+timestep 	0.0
+thermo		1
+compute   Fx real reduce sum fx
+compute   Fy real reduce sum fy
+thermo_style 	custom step etotal temp press pe c_Fx c_Fy
+fix_modify  ATC output poissonFE 1 text binary
+ ATC: Warning : text output can create _LARGE_ files
+ ATC: output custom names:
+NodalAtomicSpeciesConcentration : NodalAtomicSpeciesConcentrationion
+species_concentration : species_concentrationion
+
+# (1) all fixed
+fix_modify  ATC fix electric_potential all linear 0 0 0 $E 0 0 0 0
+fix_modify  ATC fix electric_potential all linear 0 0 0 20 0 0 0 0
+ ATC: created function : 0 + 20(x-0)+0(y-0)+0(z-0)
+run 1
+Setting up run ...
+ ATC: WARNING: material: [ar] cannot find mass_density
+ ATC: WARNING: physics model: [species], material: [ar] does not provide all interfaces for <mass_density> physics and will be treated as null 
+ ATC: WARNING: all initial conditions for charge_density have not been defined and the undefined are assumed zero
+ ATC: WARNING: all initial conditions for species_concentration have not been defined and the undefined are assumed zero
+ ATC: WARNING: material: [ar] cannot find mass_density
+ ATC: WARNING: physics model: [species electrostatic], material: [ar] does not provide all interfaces for <mass_density> physics and will be treated as null 
+Memory usage per processor = 48.9866 Mbytes
+Step TotEng Temp Press PotEng Fx Fy 
+       0    13388.811            0     12185513    13388.811       -11520 -5.4091662e-13 
+       1    13388.811            0     12185513    13388.811       -11520 -5.4091662e-13 
+Loop time of 0.260963 on 4 procs for 1 steps with 576 atoms
+
+Pair  time (%) = 0.0105038 (4.025)
+Bond  time (%) = 1.07288e-06 (0.000411124)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.00655341 (2.51124)
+Outpt time (%) = 0.0322342 (12.352)
+Other time (%) = 0.211671 (81.1114)
+
+Nlocal:    144 ave 144 max 144 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    3556 ave 4256 max 2856 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:    58212 ave 63792 max 52524 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+FullNghs:  116424 ave 127584 max 105264 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 465696
+Ave neighs/atom = 808.5
+Ave special neighs/atom = 0
+Neighbor list builds = 0
+Dangerous builds = 0
+# (2) Dirichlet
+# NOTE with correct density solution is very close
+#fix_modify  ATC  fix charge_density all 0.0588951459091903
+fix_modify  ATC unfix electric_potential all
+fix_modify  ATC mesh create_nodeset lbc 0.0 0.0    -INF INF -INF INF
+ ATC: created nodeset lbc with 1 nodes
+fix_modify  ATC mesh create_faceset lbc 0.0 INF    -INF INF -INF INF
+ ATC: created faceset lbc with 1 faces
+fix_modify  ATC mesh create_faceset rbc -INF 16.0  -INF INF -INF INF
+ ATC: created faceset rbc with 1 faces
+fix_modify  ATC fix electric_potential      lbc 100.0
+run 1
+Setting up run ...
+ ATC: WARNING: material: [ar] cannot find mass_density
+ ATC: WARNING: physics model: [species], material: [ar] does not provide all interfaces for <mass_density> physics and will be treated as null 
+ ATC: WARNING: material: [ar] cannot find mass_density
+ ATC: WARNING: physics model: [species electrostatic], material: [ar] does not provide all interfaces for <mass_density> physics and will be treated as null 
+Memory usage per processor = 48.9866 Mbytes
+Step TotEng Temp Press PotEng Fx Fy 
+       1    13388.811            0     12185513    13388.811   -200361.27 6.719863e-13 
+       2    13388.811            0     12185513    13388.811   -200361.27 6.719863e-13 
+Loop time of 0.254081 on 4 procs for 1 steps with 576 atoms
+
+Pair  time (%) = 0.0104072 (4.09602)
+Bond  time (%) = 1.07288e-06 (0.00042226)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.0206404 (8.12356)
+Outpt time (%) = 0.0137355 (5.40596)
+Other time (%) = 0.209297 (82.374)
+
+Nlocal:    144 ave 144 max 144 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    3556 ave 4256 max 2856 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:    58212 ave 63792 max 52524 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+FullNghs:  116424 ave 127584 max 105264 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 465696
+Ave neighs/atom = 808.5
+Ave special neighs/atom = 0
+Neighbor list builds = 0
+Dangerous builds = 0
+# (3) Neumann
+fix_modify  ATC fix_flux electric_potential rbc 0.5
+run 1
+Setting up run ...
+ ATC: WARNING: material: [ar] cannot find mass_density
+ ATC: WARNING: physics model: [species], material: [ar] does not provide all interfaces for <mass_density> physics and will be treated as null 
+ ATC: WARNING: material: [ar] cannot find mass_density
+ ATC: WARNING: physics model: [species electrostatic], material: [ar] does not provide all interfaces for <mass_density> physics and will be treated as null 
+Memory usage per processor = 48.9866 Mbytes
+Step TotEng Temp Press PotEng Fx Fy 
+       2    13388.811            0     12185513    13388.811   -252475.24 1.1650611e-12 
+       3    13388.811            0     12185513    13388.811   -252475.24 1.1650611e-12 
+Loop time of 0.0918587 on 4 procs for 1 steps with 576 atoms
+
+Pair  time (%) = 0.013284 (14.4614)
+Bond  time (%) = 1.01328e-06 (0.00110308)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.000460505 (0.501319)
+Outpt time (%) = 0.017328 (18.8638)
+Other time (%) = 0.0607851 (66.1724)
+
+Nlocal:    144 ave 144 max 144 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    3556 ave 4256 max 2856 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:    58212 ave 63792 max 52524 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+FullNghs:  116424 ave 127584 max 105264 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 465696
+Ave neighs/atom = 808.5
+Ave special neighs/atom = 0
+Neighbor list builds = 0
+Dangerous builds = 0
+# (4) Robin eps_1 phi'_1 = eps_2/L_2 (phi_{L_2} - phi)
+fix_modify  ATC unfix_flux electric_potential rbc
+fix_modify  ATC fix_robin electric_potential rbc 0.5 -0.00001
+ ATC: created function : 0.5 + -1e-05*u
+run 1
+Setting up run ...
+ ATC: WARNING: material: [ar] cannot find mass_density
+ ATC: WARNING: physics model: [species], material: [ar] does not provide all interfaces for <mass_density> physics and will be treated as null 
+ ATC: WARNING: material: [ar] cannot find mass_density
+ ATC: WARNING: physics model: [species electrostatic], material: [ar] does not provide all interfaces for <mass_density> physics and will be treated as null 
+Memory usage per processor = 48.9866 Mbytes
+Step TotEng Temp Press PotEng Fx Fy 
+       3    13388.811            0     12185513    13388.811   -225709.12 9.1181426e-13 
+       4    13388.811            0     12185513    13388.811   -225709.12 9.1181426e-13 
+Loop time of 0.0331933 on 4 procs for 1 steps with 576 atoms
+
+Pair  time (%) = 0.0132439 (39.8992)
+Bond  time (%) = 7.15256e-07 (0.00215482)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.000455439 (1.37208)
+Outpt time (%) = 0.00104851 (3.15879)
+Other time (%) = 0.0184448 (55.5678)
+
+Nlocal:    144 ave 144 max 144 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    3556 ave 4256 max 2856 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:    58212 ave 63792 max 52524 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+FullNghs:  116424 ave 127584 max 105264 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 465696
+Ave neighs/atom = 808.5
+Ave special neighs/atom = 0
+Neighbor list builds = 0
+Dangerous builds = 0
+# (5) Robins on the left and Robins on the right
+fix_modify  ATC unfix electric_potential lbc
+fix_modify  ATC fix_robin electric_potential rbc 0.01 -0.0001
+ ATC: created function : 0.01 + -0.0001*u
+fix_modify  ATC fix_robin electric_potential lbc 0.01 -0.0001
+ ATC: created function : 0.01 + -0.0001*u
+run 1
+Setting up run ...
+ ATC: WARNING: material: [ar] cannot find mass_density
+ ATC: WARNING: physics model: [species], material: [ar] does not provide all interfaces for <mass_density> physics and will be treated as null 
+ ATC: WARNING: material: [ar] cannot find mass_density
+ ATC: WARNING: physics model: [species electrostatic], material: [ar] does not provide all interfaces for <mass_density> physics and will be treated as null 
+Memory usage per processor = 48.9866 Mbytes
+Step TotEng Temp Press PotEng Fx Fy 
+       4    13388.811            0     12185513    13388.811 4.3291948e-09 -1.4571568e-12 
+       5    13388.811            0     12185513    13388.811 4.3364707e-09 -1.4571568e-12 
+Loop time of 0.158969 on 4 procs for 1 steps with 576 atoms
+
+Pair  time (%) = 0.00292653 (1.84094)
+Bond  time (%) = 2.98023e-07 (0.000187472)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.000340283 (0.214056)
+Outpt time (%) = 0.012237 (7.69773)
+Other time (%) = 0.143465 (90.2471)
+
+Nlocal:    144 ave 144 max 144 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    3556 ave 4256 max 2856 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:    58212 ave 63792 max 52524 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+FullNghs:  116424 ave 127584 max 105264 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 465696
+Ave neighs/atom = 808.5
+Ave special neighs/atom = 0
+Neighbor list builds = 0
+Dangerous builds = 0
+#fix_modify  ATC fix charge_density all 0.0
+#run 1

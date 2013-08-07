@@ -1,0 +1,73 @@
+echo both
+### PARAMETERS -----------------------------------------------
+# NOTE: dislocation and stacking fault formation occurs
+#       at frame 21
+variable frame equal 21
+log eam_tension_frame.log  
+variable origLx equal 10 # 10 40
+variable Ly equal 10 # 10 40
+variable Lz equal 3  # 3 4 5
+variable hx equal 10 # 4 10 20
+variable hy equal 10 # 4 10 20
+variable L  equal 2
+variable tol equal 1.e-4
+variable n   equal 25 # 2 25 20
+variable delta equal 0.005*${origLx}
+variable totdelta equal ${delta}*${frame}
+variable Lx equal ${origLx}+${totdelta}
+variable alat equal 4.08
+variable Rc equal (${origLx}/${hx}+${Ly}/${hy})*${alat}
+variable rtol equal 0.5*(1.0+1.0/sqrt(2.0))*${alat}
+### ----------------------------------------------------------
+boundary p p p
+atom_style atomic
+units metal
+dimension 3
+# create system
+lattice  fcc ${alat} origin 0.01 0.01 0.01 orient x 1 1 0 orient y 0 0 1 orient z 1 -1 0
+region    SYSTEM    block -${Lx} ${Lx} -${Ly} ${Ly} 0 ${Lz}
+region    REFSYSTEM block -${origLx} ${origLx} -${Ly} ${Ly} 0 ${Lz}
+read_data eam_tension_${frame}.data
+group    internal region SYSTEM 
+pair_style  eam/alloy
+pair_coeff  * * au2.set Au Au
+
+# define "roller" region
+variable a equal -${Ly}+$L
+region    ROLLER1    block INF INF INF $a INF INF
+variable a equal  ${Ly}-$L
+region    ROLLER2    block INF INF $a INF INF INF
+region   ROLLER union 2 ROLLER1 ROLLER2
+group    ROLLER region ROLLER
+fix	 ROLLER ROLLER setforce NULL 0.0 NULL 
+group    free subtract internal ROLLER
+
+neighbor  1.0 bin
+neigh_modify  delay 1000000
+atom_modify   sort 0 1
+
+thermo    20
+variable pe equal pe/count(all)
+thermo_style  custom step cpu pe press lx v_pe
+timestep  0.0
+fix         PK1 internal atc hardy
+fix_modify  PK1 kernel quartic_cylinder ${Rc} 
+fix_modify  PK1 mesh create ${hx} ${hy} 1 SYSTEM f p p
+fix_modify  PK1 reset_atomic_reference_positions eam_tension_0.data
+fix_modify  PK1 set reference_potential_energy
+fix_modify  PK1 atom_element_map eulerian 1
+fix_modify  PK1 fields add mass_density energy displacement
+fix_modify  PK1 fields add dislocation_density
+fix_modify  PK1 output eam_tension_frameFE 1 text binary tensor_components
+fix_modify  PK1 output index step
+fix_modify  PK1 on_the_fly bond on
+fix_modify  PK1 dxa_exact_mode on
+variable u1 atom x-f_PK1[1]
+variable u2 atom y-f_PK1[2]
+variable u3 atom z-f_PK1[3]
+compute CS all centro/atom fcc
+compute CNA all cna/atom ${rtol}
+dump  CONFIG all custom 1 eam_tension_frame.dump id type x y z v_u1 v_u2 v_u3 c_CS c_CNA
+# fix myDXA all dxa 1 ${rtol} eam_tension_frame${frame}.dxa # NOTE: dxa fix is NOT needed to use within ATC
+
+run   1

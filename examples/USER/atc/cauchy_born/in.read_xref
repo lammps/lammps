@@ -1,0 +1,37 @@
+# This is a test for reading an atomic reference configuration
+echo both
+units       real
+atom_style  atomic
+variable lattice_constant equal 5.256227487 
+variable c equal 4
+variable L equal (${lattice_constant}*$c)
+# create system
+lattice        fcc ${lattice_constant} 
+region         box block 0 $c 0 $c 0 $c
+boundary       p p p
+# the stretched configuration of the atoms
+read_data read_xref_1.data
+mass         1 39.95
+pair_style lj/cut 13.5  
+pair_coeff 1 1 0.238 3.405 
+# define region
+neighbor  1.0 bin
+neigh_modify  delay 1000000
+thermo    1
+thermo_style  custom step vol etotal
+timestep  0
+fix         ATC all atc field Ar_CauchyBorn.mat
+# the original configuration of the atoms
+fix_modify  ATC  reset_atomic_reference_positions read_xref_0.data
+# "box" is the original box
+fix_modify  ATC mesh create 1 1 1 box f f f 
+fix_modify  ATC  fields none
+fix_modify  ATC  fields add mass_density
+fix_modify  ATC  output read_xrefFE 1 text
+fix_modify  ATC  output index step
+variable u1 atom x-f_ATC[1]
+variable u2 atom y-f_ATC[2]
+variable u3 atom z-f_ATC[3]
+variable rho atom mass*f_ATC[4]
+dump  CONFIG all custom 1 read_xref.dmp id type x y z v_u1 v_u2 v_u3 v_rho
+run 1

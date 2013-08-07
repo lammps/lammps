@@ -1,56 +1,45 @@
+# This test compares the thermodynamic consistency of the stress, displacement_gradient
+# and internal energy density as calculated with the Hardy/field method.
+#
 # we should see:
 # * H = Grad u exact except at the free boundaries where we get u at CM != node
 # * \Delta W / \Delta F = P converging with smaller load step / dt
 #   since W and P are consistent via the balance laws thanks to Hard
 echo both
-log		consistency.log
-
 units		metal	
 atom_style	atomic
-atom_modify     sort 0 1
 variable L equal 16
 variable E equal 8
-
 # create domain
 lattice         fcc 3.615 origin 0.25 0.25 0.25
 region		mdRegion block 0 $L -3 3 -3 3
 boundary	p p p
 create_box	1 mdRegion
-
 # create atoms
 create_atoms	1 region mdRegion
 mass		1 63.550 
-
 group		internal region mdRegion
-
 # specify inter-atomic potential
 pair_style	eam
 pair_coeff  	* * ../../../../potentials/Cu_u3.eam
-
 # specify neighbor/re-neighboring parameters
 neighbor	0.3 bin
 #neigh_modify	every 10 delay 0 check no
 neigh_modify	delay 10000 check no
-
 min_modify line quadratic
 minimize  1.e-10 1.e-10 100000 1000000
-
 #               ID  group atc PhysicsType ParameterFile
-fix             AtC all   atc hardy
-fix_modify      AtC transfer internal type internal
-fix_modify      AtC fem  create mesh $E 1 1 mdRegion f p p
-fix_modify      AtC transfer fields none 
-fix_modify      AtC transfer fields add density displacement stress energy eshelby_stress temperature
-fix_modify      AtC transfer gradients add displacement 
-fix_modify      AtC transfer set reference_potential_energy
-#fix_modify      AtC transfer hardy_reset 1
-
+fix             AtC internal   atc field
+fix_modify      AtC mesh  create $E 1 1 mdRegion f p p
+fix_modify      AtC fields none 
+fix_modify      AtC fields add mass_density displacement stress internal_energy eshelby_stress temperature
+fix_modify      AtC gradients add displacement 
+fix_modify      AtC set reference_potential_energy
+#fix_modify      AtC  hardy_reset 1
 # output
 thermo		10
 thermo_style custom step pe ke press lx ly lz
-fix_modify	AtC transfer output        consistencyFE 1 text tensor_components
-fix_modify	AtC transfer atomic_output consistencyMD 1
-
+fix_modify	AtC  output        consistencyFE 1 text tensor_components
 # displace atoms
 # NOTE we need to figure out how to output post minimize w/o a "run"
 #   or try to interface with "dump"
@@ -63,8 +52,6 @@ variable n equal 10
 variable i loop $n
 # NOTE this does not generate KE
 label loop_i
-  #variable s equal 0.02*$i/$n*$L
-  #print ">>> step $i, displacement $s"
   change_box all x scale 1.001 remap
   minimize  1.e-10 1.e-10 100000 1000000
   velocity all set 0 0 0

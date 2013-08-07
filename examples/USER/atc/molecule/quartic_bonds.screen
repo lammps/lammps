@@ -1,0 +1,115 @@
+LAMMPS (14 Aug 2013)
+units           lj
+lattice		sc 1.0
+Lattice spacing in x,y,z = 1 1 1
+boundary        p p p
+neighbor        1.0 bin
+neigh_modify    every 5 delay 0 check yes
+
+atom_style      full
+bond_style      harmonic
+#angle_style	harmonic
+pair_style      lj/cut 2.5
+pair_modify     table 0
+special_bonds   lj 0.0 1.0 1.0
+
+read_data    	quartic_bonds.data
+Scanning data file ...
+  6 = max bonds/atom
+Reading data file ...
+  orthogonal box = (-6.54473 -6.54473 -6.54473) to (6.54473 6.54473 6.54473)
+  1 by 2 by 2 MPI processor grid
+  2100 atoms
+  2600 bonds
+Finding 1-2 1-3 1-4 neighbors ...
+  6 = max # of 1-2 neighbors
+  6 = max # of 1-3 neighbors
+  16 = max # of 1-4 neighbors
+  18 = max # of special neighbors
+
+special_bonds   lj 0.0 1.0 1.0
+
+bond_coeff      1 100.0 1.0
+
+pair_coeff	* * 1.0 1.0  2.5
+
+timestep        0.005
+
+fix             NPT all npt temp 1.0 1.0  1.0  iso 0.1 0.1 10.0
+
+thermo_style    custom step temp etotal evdwl ebond pxx pyy pzz lz
+thermo_modify   flush yes
+thermo          100
+
+########################################################################
+variable        l equal xhi
+region          MESH  block -$l $l -$l $l -$l $l
+region          MESH  block -6.5447300000000003806 $l -$l $l -$l $l
+region          MESH  block -6.5447300000000003806 6.5447300000000003806 -$l $l -$l $l
+region          MESH  block -6.5447300000000003806 6.5447300000000003806 -6.5447300000000003806 $l -$l $l
+region          MESH  block -6.5447300000000003806 6.5447300000000003806 -6.5447300000000003806 6.5447300000000003806 -$l $l
+region          MESH  block -6.5447300000000003806 6.5447300000000003806 -6.5447300000000003806 6.5447300000000003806 -6.5447300000000003806 $l
+region          MESH  block -6.5447300000000003806 6.5447300000000003806 -6.5447300000000003806 6.5447300000000003806 -6.5447300000000003806 6.5447300000000003806
+group           MESH  region MESH
+2100 atoms in group MESH
+#               ID  group atc PhysicsType ParameterFile
+fix             ATC MESH  atc field
+ATC: constructing shape function field estimate
+ ATC: peratom PE compute created with ID: 5
+fix_modify      ATC atom_element_map eulerian 100
+fix_modify      ATC fields add mass_density energy stress
+##               ID  part keywords    nx ny nz region
+fix_modify      ATC mesh  create 4 4 1 MESH p p p
+ ATC: created uniform mesh with 50 nodes, 16 unique nodes, and 16 elements
+fix_modify      ATC bond_interactions on
+fix_modify      ATC pair_interactions on
+fix_modify      ATC output nodeset all average energy
+fix_modify      ATC output nodeset all average stress
+fix_modify      ATC output quartic_bondsFE 100 full_text binary tensor_components
+ ATC: Warning : text output can create _LARGE_ files
+ ATC: output custom names:
+
+#########################################################################
+
+reset_timestep	0
+
+dump            d1 all custom 10000 config.dmp id type mol x y z ix iy iz
+
+run             400
+Setting up run ...
+WARNING: Inconsistent image flags (../domain.cpp:607)
+ ATC: computing bond matrix ..........done
+Memory usage per processor = 24.4426 Mbytes
+Step Temp TotEng E_vdwl E_bond Pxx Pyy Pzz Lz 
+       0            0   -4.2793581   -4.9222297   0.64287162    -0.122936  -0.43455241  -0.37510432     13.08946 
+ ATC: computing bond matrix ..........done
+     100   0.51761758   -4.2411444   -5.3350909   0.31788979   -1.8360748   -1.7957803   -1.6501347    13.061394 
+ ATC: computing bond matrix ..........done
+     200   0.55719016    -4.194575   -5.3921735   0.36221126  -0.83902447   -1.0583266  -0.82924205    12.978287 
+ ATC: computing bond matrix ..........done
+     300   0.60702877    -4.114999   -5.4634339   0.43832539  -0.05969492  -0.37357729    0.1227012    12.887908 
+ ATC: computing bond matrix ..........done
+     400   0.67773634   -4.0068285   -5.5021915   0.47924261    0.5562405   0.24275905    0.4181606    12.828709 
+Loop time of 27.2369 on 4 procs for 400 steps with 2100 atoms
+
+Pair  time (%) = 0.510639 (1.87481)
+Bond  time (%) = 0.0195364 (0.0717276)
+Neigh time (%) = 0.107538 (0.394826)
+Comm  time (%) = 1.0591 (3.88848)
+Outpt time (%) = 0.088418 (0.324626)
+Other time (%) = 25.4517 (93.4455)
+
+Nlocal:    525 ave 528 max 522 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:    3037 ave 3052 max 3022 min
+Histogram: 1 1 0 0 0 0 0 0 0 2
+Neighs:    45578.5 ave 45912 max 45191 min
+Histogram: 1 0 0 1 0 0 0 0 1 1
+FullNghs:  91157 ave 91645 max 90702 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 364628
+Ave neighs/atom = 173.632
+Ave special neighs/atom = 13.3324
+Neighbor list builds = 9
+Dangerous builds = 0

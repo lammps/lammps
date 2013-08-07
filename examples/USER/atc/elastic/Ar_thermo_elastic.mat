@@ -1,0 +1,11 @@
+material Ar real
+  stress  linear
+    modulus  0.00025
+    possions_ratio 0.25
+  end
+  heat_flux linear
+    conductivity .00000000168
+  end
+  mass_density
+  body_force
+end

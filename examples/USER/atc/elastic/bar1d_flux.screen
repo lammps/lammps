@@ -1,0 +1,280 @@
+LAMMPS (14 Aug 2013)
+
+units		real
+atom_style	atomic
+
+# create domain
+#lattice	type reduced density rho* = 4*(sigma/a)^3, where N=4 for fcc, s = 3.405 A (Wagner) and a = 5.25 A (Ashcroft & Mermin, p. 70)
+lattice         fcc 5.2582305 origin 0.25 0.25 0.25
+Lattice spacing in x,y,z = 5.25823 5.25823 5.25823
+
+# create atoms
+region		simRegion block -12 12 -3 3 -3 3
+region		atomRegion block -9 9 -3 3 -3 3
+region		mdRegion block -8 8 -3 3 -3 3
+boundary	f p p
+create_box	1 simRegion
+Created orthogonal box = (-63.0988 -15.7747 -15.7747) to (63.0988 15.7747 15.7747)
+  4 by 1 by 1 MPI processor grid
+create_atoms	1 region mdRegion
+Created 2304 atoms
+mass		1 39.95
+
+# specify interal/ghost atoms
+region		mdInternal block -6 6 -3 3 -3 3
+region		leftghost block -8 -6 -3 3 -3 3
+region		rightghost block 6 8 -3 3 -3 3
+group		internal region mdInternal
+1728 atoms in group internal
+group		Lghost region leftghost
+288 atoms in group Lghost
+group		Rghost region rightghost
+288 atoms in group Rghost
+group		ghosts union Lghost Rghost
+576 atoms in group ghosts
+
+# velocities have Vcm = 0
+#velocity	internal create 40. 87287 mom yes loop geom
+
+pair_style	lj/cut 13.
+#pair_coeff	1 1 0.010323166 3.405 13.
+pair_coeff  	1 1 .2381 3.405 13.
+
+neighbor	5. bin
+neigh_modify	every 10 delay 0 check no
+
+# define  layer
+#               ID  group atc PhysicsType ParameterFile
+fix             AtC internal   atc elastic     Ar_elastic.mat
+ATC: constructing elastic coupling with parameter file Ar_elastic.mat
+ ATC: peratom PE compute created with ID: 3
+ ATC: computed mass density : 1.09915
+ ATC: computed mass density : 1.09915
+ ATC: computed mass density : 1.09915
+ ATC: 3 materials defined from Ar_elastic.mat
+#fix_modify	AtC boundary Lghost
+#fix_modify	AtC boundary Rghost
+fix_modify	AtC boundary ghosts
+
+#               ID  part keywords    nx ny nz region
+fix_modify      AtC mesh create 12  1  1  simRegion f p p
+ ATC: created uniform mesh with 52 nodes, 13 unique nodes, and 12 elements
+fix_modify      AtC mesh create_faceset obndy box -6.0 6.0 -INF INF -INF  INF outward
+ ATC: created faceset obndy with 2 faces
+
+# initial conditions
+fix_modify  AtC  initial displacement x all 0.0
+fix_modify  AtC  initial displacement y all 0.0
+fix_modify  AtC  initial displacement z all 0.0
+fix_modify  AtC  initial velocity x all 0.0
+fix_modify  AtC  initial velocity y all 0.0
+fix_modify  AtC  initial velocity z all 0.0
+
+# set node sets and bcs
+#           ID  mesh create_nodeset tag xmin xmax ymin ymax zmin zmax
+fix_modify  AtC mesh create_nodeset lbc -12.1  -11.9   -INF INF  -INF INF
+ ATC: created nodeset lbc with 1 nodes
+fix_modify  AtC mesh create_nodeset rbc  11.9   12.1   -INF INF  -INF INF
+ ATC: created nodeset rbc with 1 nodes
+fix_modify  AtC  fix velocity x rbc 0.00000004
+#fix_modify  AtC  fix velocity x rbc 0.
+#fix_modify  AtC  fix displacement x rbc 0.
+fix_modify  AtC  fix displacement x lbc 0.
+fix_modify  AtC  fix velocity x lbc 0.
+
+
+#fix_modify      AtC  output follow_ex.fe 50
+fix_modify     AtC  internal_quadrature off
+#fix_modify	AtC  control lumped_lambda_solve on
+#fix_modify	AtC  momentum control glc_velocity
+#fix_modify	AtC  momentum control flux faceset obndy
+fix_modify     AtC control momentum flux interpolate
+#fix_modify      AtC  filter scale 1000.0
+
+# run to extension
+compute		myTemp internal temp
+compute		atomStress internal stress/atom
+compute		avgStress internal reduce sum c_atomStress[1] c_atomStress[2] c_atomStress[3]
+variable	myPres equal -(c_avgStress[1]+c_avgStress[2]+c_avgStress[3])/(3*vol)
+thermo_style	custom step c_myTemp v_myPres pe
+fix_modify      AtC  output bar1d_fluxFE 10 text
+ ATC: Warning : text output can create _LARGE_ files
+ ATC: output custom names:
+
+timestep	5
+thermo		100
+run 		1000
+Setting up run ...
+Memory usage per processor = 93.0953 Mbytes
+Step myTemp myPres PotEng 
+       0            0 -0.00072339042   -4509.8851 
+     100 1.7485737e-12 -0.00065677838   -4509.8851 
+     200 2.1209236e-12 -0.00058835409   -4509.8851 
+     300 3.1757662e-11 -0.00088336321   -4509.8851 
+     400 4.4437682e-10 -0.0022808215   -4509.8852 
+     500 2.1276171e-09 -0.0055205162   -4509.8852 
+     600 5.3746766e-09 -0.010513144   -4509.8852 
+     700 9.3752238e-09 -0.016165157   -4509.8852 
+     800 1.3218953e-08  -0.02139071   -4509.8852 
+     900 1.6753544e-08 -0.026203391   -4509.8852 
+    1000 2.0559423e-08 -0.031228823   -4509.8852 
+Loop time of 77.9631 on 4 procs for 1000 steps with 2304 atoms
+
+Pair  time (%) = 8.02545 (10.2939)
+Neigh time (%) = 4.56744 (5.85847)
+Comm  time (%) = 22.9713 (29.4644)
+Outpt time (%) = 0.286932 (0.368036)
+Other time (%) = 42.1119 (54.0152)
+
+Nlocal:    576 ave 864 max 288 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:    5170 ave 6910 max 3430 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:    178632 ave 288102 max 69229 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+FullNghs:  357264 ave 577008 max 137520 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 1429056
+Ave neighs/atom = 620.25
+Neighbor list builds = 100
+Dangerous builds = 0
+
+# change nodes to fixed
+fix_modify      AtC  fix velocity x rbc 0.
+fix_modify	AtC  fix displacement x rbc 0.0002
+
+fix_modify      AtC  output bar1d_fluxFE 500 text
+ ATC: Warning : text output can create _LARGE_ files
+ ATC: output custom names:
+
+
+# run to equilibrium
+timestep        5
+thermo		100
+run 		10000
+Setting up run ...
+Memory usage per processor = 93.5532 Mbytes
+Step myTemp myPres PotEng 
+    1000 2.0559423e-08 -0.031228823   -4509.8852 
+    1100 2.4448613e-08 -0.036521719   -4509.8852 
+    1200 2.7029986e-08 -0.040978057   -4509.8852 
+    1300 2.7245337e-08 -0.042998684   -4509.8852 
+    1400 2.5759549e-08 -0.041645718   -4509.8852 
+    1500 2.2667557e-08 -0.037303114   -4509.8852 
+    1600 1.8985753e-08 -0.031463351   -4509.8852 
+    1700 1.6073802e-08 -0.025662764   -4509.8852 
+    1800 1.2763714e-08 -0.020737937   -4509.8852 
+    1900 7.2995795e-09  -0.01675253   -4509.8852 
+    2000 2.1755431e-09 -0.013533314   -4509.8853 
+    2100 1.1934319e-09 -0.011450448   -4509.8853 
+    2200 5.1850465e-09 -0.011687818   -4509.8853 
+    2300 1.1883622e-08 -0.015251299   -4509.8852 
+    2400 1.6266667e-08 -0.021397871   -4509.8852 
+    2500 1.9099042e-08  -0.02792249   -4509.8851 
+    2600 2.184558e-08 -0.033185039   -4509.8852 
+    2700 2.4595817e-08 -0.037175923   -4509.8852 
+    2800 2.6643068e-08 -0.040355693   -4509.8852 
+    2900 2.6394943e-08 -0.042183343   -4509.8852 
+    3000 2.3989422e-08 -0.041411974   -4509.8852 
+    3100 2.0979363e-08 -0.037465063   -4509.8851 
+    3200 1.7427127e-08 -0.031310189   -4509.8852 
+    3300 1.3963242e-08 -0.024887233   -4509.8852 
+    3400 1.0069796e-08 -0.019686777   -4509.8852 
+    3500 4.9395633e-09  -0.01603797   -4509.8853 
+    3600 1.5407167e-09 -0.013620537   -4509.8853 
+    3700 2.5284685e-09 -0.012392513   -4509.8853 
+    3800 7.790979e-09 -0.012777012   -4509.8852 
+    3900 1.3465317e-08 -0.015407232   -4509.8852 
+    4000 1.7796468e-08  -0.02062936   -4509.8852 
+    4100 2.137127e-08 -0.027628973   -4509.8852 
+    4200 2.3606809e-08 -0.034315098   -4509.8852 
+    4300 2.5221837e-08 -0.038703928   -4509.8852 
+    4400 2.6247664e-08 -0.040548555   -4509.8852 
+    4500 2.5017987e-08 -0.040839998   -4509.8852 
+    4600 2.1628404e-08 -0.040012148   -4509.8852 
+    4700 1.7878834e-08 -0.037370745   -4509.8851 
+    4800 1.5934582e-08 -0.032277925   -4509.8851 
+    4900 1.2990149e-08 -0.025549108   -4509.8852 
+    5000 7.8316754e-09  -0.01918358   -4509.8853 
+    5100 3.3266953e-09 -0.014887033   -4509.8853 
+    5200 1.805252e-09  -0.01286358   -4509.8853 
+    5300 4.2912871e-09 -0.012392579   -4509.8852 
+    5400 9.9026848e-09 -0.013257092   -4509.8852 
+    5500 1.6165255e-08 -0.015976619   -4509.8852 
+    5600 2.1206295e-08 -0.020907339   -4509.8852 
+    5700 2.4000025e-08 -0.027469529   -4509.8852 
+    5800 2.5521345e-08 -0.034321126   -4509.8852 
+    5900 2.5894586e-08 -0.039670766   -4509.8852 
+    6000 2.5086791e-08 -0.042046228   -4509.8852 
+    6100 2.360407e-08 -0.041352366   -4509.8852 
+    6200 1.9586346e-08 -0.038824048   -4509.8852 
+    6300 1.6684228e-08 -0.035608606   -4509.8852 
+    6400 1.4893508e-08 -0.031584998   -4509.8852 
+    6500 1.1127507e-08 -0.026164353   -4509.8852 
+    6600 5.9884577e-09 -0.019764802   -4509.8853 
+    6700 2.2391294e-09 -0.014210542   -4509.8853 
+    6800 2.7797654e-09 -0.011431487   -4509.8853 
+    6900 6.7664929e-09 -0.011810438   -4509.8852 
+    7000 1.1980057e-08 -0.014206493   -4509.8852 
+    7100 1.7989445e-08 -0.017536849   -4509.8852 
+    7200 2.3218176e-08  -0.02190877   -4509.8852 
+    7300 2.5628573e-08 -0.027653206   -4509.8852 
+    7400 2.610839e-08 -0.034000347   -4509.8852 
+    7500 2.4944322e-08 -0.039281243   -4509.8852 
+    7600 2.2693765e-08 -0.042058723   -4509.8852 
+    7700 1.9767428e-08 -0.041825858   -4509.8851 
+    7800 1.6504232e-08 -0.039030684   -4509.8851 
+    7900 1.4309561e-08  -0.03485307   -4509.8852 
+    8000 1.3055145e-08 -0.030357952   -4509.8852 
+    8100 9.5625542e-09 -0.025706075   -4509.8852 
+    8200 4.6410355e-09  -0.02054295   -4509.8853 
+    8300 3.2795872e-09 -0.015185677   -4509.8853 
+    8400 5.509246e-09 -0.011181309   -4509.8853 
+    8500 9.2654236e-09 -0.010336847   -4509.8852 
+    8600 1.5169111e-08 -0.013152226   -4509.8852 
+    8700 2.1124719e-08 -0.018237266   -4509.8852 
+    8800 2.5607376e-08 -0.023635507   -4509.8852 
+    8900 2.7829768e-08 -0.028664368   -4509.8853 
+    9000 2.7490864e-08 -0.033752079   -4509.8853 
+    9100 2.4629425e-08 -0.038717883   -4509.8852 
+    9200 1.9856317e-08 -0.042074213   -4509.8851 
+    9300 1.5754223e-08 -0.042397751   -4509.8851 
+    9400 1.4158011e-08 -0.039645985   -4509.8851 
+    9500 1.293562e-08 -0.034905375   -4509.8852 
+    9600 1.0925115e-08 -0.029498287   -4509.8852 
+    9700 8.2117111e-09 -0.024274276   -4509.8853 
+    9800 4.2073503e-09 -0.019498803   -4509.8853 
+    9900 3.6200071e-09 -0.015198764   -4509.8853 
+   10000 7.3205984e-09 -0.011878546   -4509.8852 
+   10100 1.2327605e-08 -0.010695702   -4509.8852 
+   10200 1.7930358e-08 -0.012691556   -4509.8852 
+   10300 2.4534101e-08 -0.017839785   -4509.8852 
+   10400 2.8574489e-08 -0.024561434   -4509.8852 
+   10500 2.944535e-08 -0.030655475   -4509.8852 
+   10600 2.7962098e-08 -0.034958095   -4509.8852 
+   10700 2.3119076e-08 -0.037998711   -4509.8852 
+   10800 1.684499e-08 -0.040493081   -4509.8852 
+   10900 1.2305474e-08 -0.041691151   -4509.8851 
+   11000 1.1330272e-08 -0.040137729   -4509.8851 
+Loop time of 371.175 on 4 procs for 10000 steps with 2304 atoms
+
+Pair  time (%) = 66.4286 (17.8968)
+Neigh time (%) = 31.4239 (8.46606)
+Comm  time (%) = 117.354 (31.617)
+Outpt time (%) = 0.685033 (0.184558)
+Other time (%) = 155.283 (41.8355)
+
+Nlocal:    576 ave 864 max 288 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:    5170 ave 6910 max 3430 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:    178632 ave 289296 max 68184 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+FullNghs:  357264 ave 577008 max 137520 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 1429056
+Ave neighs/atom = 620.25
+Neighbor list builds = 1000
+Dangerous builds = 0

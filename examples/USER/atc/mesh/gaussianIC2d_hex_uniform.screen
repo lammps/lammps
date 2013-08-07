@@ -1,0 +1,124 @@
+LAMMPS (14 Aug 2013)
+units    real
+atom_style  atomic
+
+variable L equal 12
+variable l2 equal 6
+variable l equal 4
+variable w equal 2
+
+lattice         fcc 5.405 origin 0.25 0.25 0.25
+Lattice spacing in x,y,z = 5.405 5.405 5.405
+region     mdInternal block -$l $l -$l $l -$w $w
+region     mdInternal block -4 $l -$l $l -$w $w
+region     mdInternal block -4 4 -$l $l -$w $w
+region     mdInternal block -4 4 -4 $l -$w $w
+region     mdInternal block -4 4 -4 4 -$w $w
+region     mdInternal block -4 4 -4 4 -2 $w
+region     mdInternal block -4 4 -4 4 -2 2
+
+boundary  f f f # p
+pair_style  lj/cut 13.5
+read_data temp.init
+Reading data file ...
+  orthogonal box = (-64.86 -64.86 -10.81) to (64.86 64.86 10.81)
+  2 by 2 by 1 MPI processor grid
+  2304 atoms
+  2304 velocities
+fix ZWALLS all wall/reflect zlo EDGE zhi EDGE
+mass    1 39.95
+pair_coeff    1 1 .238 3.405 13.5
+group    internal region mdInternal
+1024 atoms in group internal
+
+fix             AtC internal   atc two_temperature  Ar_ttm.mat
+ATC: constructing two_temperature coupling with parameter file Ar_ttm.mat
+terminate called after throwing an instance of ' ATC: peratom PE compute created with ID: 3
+ ATC: 2 materials defined from Ar_ttm.mat
+ ATC: creating two_temperature extrinsic model
+ ATC: 2 materials defined from Ar_ttm.mat
+#fix_modify      AtC mesh read  gaussianIC2d_hex_uniform.mesh f f p
+fix_modify      AtC mesh read  gaussianIC2d_hex_uniform.exo f f p
+ ATC: P0, ERROR: mesh file is of unknown type.
+ATC::ATC_Error'
+[pharsalus:35393] *** Process received signal ***
+[pharsalus:35393] Signal: Aborted (6)
+[pharsalus:35393] Signal code:  (-6)
+[pharsalus:35393] [ 0] /lib64/libpthread.so.0() [0x3e7ce0f500]
+[pharsalus:35393] [ 1] /lib64/libc.so.6(gsignal+0x35) [0x3e7c2328a5]
+[pharsalus:35393] [ 2] /lib64/libc.so.6(abort+0x175) [0x3e7c234085]
+[pharsalus:35393] [ 3] /usr/lib64/libstdc++.so.6(_ZN9__gnu_cxx27__verbose_terminate_handlerEv+0x12d) [0x3e83ebea5d]
+[pharsalus:35393] [ 4] /usr/lib64/libstdc++.so.6() [0x3e83ebcbe6]
+[pharsalus:35393] [ 5] /usr/lib64/libstdc++.so.6() [0x3e83ebcc13]
+[pharsalus:35393] [ 6] /usr/lib64/libstdc++.so.6(__cxa_rethrow+0x46) [0x3e83ebcc96]
+[pharsalus:35393] [ 7] ../../../lmp_openmpi(_ZN9LAMMPS_NS6FixATC12modify_paramEiPPc+0x70) [0x68b090]
+[pharsalus:35393] [ 8] ../../../lmp_openmpi(_ZN9LAMMPS_NS3Fix13modify_paramsEiPPc+0xb9) [0x6b31d9]
+[pharsalus:35393] [ 9] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input15execute_commandEv+0xcab) [0x792edb]
+[pharsalus:35393] [10] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input4fileEv+0x63c) [0x7949bc]
+[pharsalus:35393] [11] ../../../lmp_openmpi(main+0x49) [0x7a28f9]
+[pharsalus:35393] [12] /lib64/libc.so.6(__libc_start_main+0xfd) [0x3e7c21ecdd]
+[pharsalus:35393] [13] ../../../lmp_openmpi() [0x537209]
+[pharsalus:35393] *** End of error message ***
+ ATC: P1, ERROR: mesh file is of unknown type.
+ ATC: P2, ERROR: mesh file is of unknown type.
+terminate called after throwing an instance of 'ATC::ATC_Error'
+terminate called after throwing an instance of 'ATC::ATC_Error'
+[pharsalus:35404] *** Process received signal ***
+[pharsalus:35404] Signal: Aborted (6)
+[pharsalus:35404] Signal code:  (-6)
+[pharsalus:35396] *** Process received signal ***
+[pharsalus:35396] Signal: Aborted (6)
+[pharsalus:35396] Signal code:  (-6)
+[pharsalus:35404] [ 0] /lib64/libpthread.so.0() [0x3e7ce0f500]
+[pharsalus:35404] [ 1] /lib64/libc.so.6(gsignal+0x35) [0x3e7c2328a5]
+[pharsalus:35404] [ 2] /lib64/libc.so.6(abort+0x175) [0x3e7c234085]
+[pharsalus:35404] [ 3] /usr/lib64/libstdc++.so.6(_ZN9__gnu_cxx27__verbose_terminate_handlerEv+0x12d) [0x3e83ebea5d]
+[pharsalus:35404] [ 4] /usr/lib64/libstdc++.so.6() [0x3e83ebcbe6]
+[pharsalus:35404] [ 5] /usr/lib64/libstdc++.so.6() [0x3e83ebcc13]
+[pharsalus:35404] [ 6] /usr/lib64/libstdc++.so.6(__cxa_rethrow+0x46) [0x3e83ebcc96]
+[pharsalus:35404] [ 7] ../../../lmp_openmpi(_ZN9LAMMPS_NS6FixATC12modify_paramEiPPc+0x70) [0x68b090]
+[pharsalus:35404] [ 8] ../../../lmp_openmpi(_ZN9LAMMPS_NS3Fix13modify_paramsEiPPc+0xb9) [0x6b31d9]
+[pharsalus:35404] [ 9] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input15execute_commandEv+0xcab) [0x792edb]
+[pharsalus:35404] [10] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input4fileEv+0x63c) [0x7949bc]
+[pharsalus:35404] [11] ../../../lmp_openmpi(main+0x49) [0x7a28f9]
+[pharsalus:35404] [12] /lib64/libc.so.6(__libc_start_main+0xfd) [0x3e7c21ecdd]
+[pharsalus:35404] [13] ../../../lmp_openmpi() [0x537209]
+[pharsalus:35404] *** End of error message ***
+[pharsalus:35396] [ 0] /lib64/libpthread.so.0() [0x3e7ce0f500]
+[pharsalus:35396] [ 1] /lib64/libc.so.6(gsignal+0x35) [0x3e7c2328a5]
+[pharsalus:35396] [ 2] /lib64/libc.so.6(abort+0x175) [0x3e7c234085]
+[pharsalus:35396] [ 3] /usr/lib64/libstdc++.so.6(_ZN9__gnu_cxx27__verbose_terminate_handlerEv+0x12d) [0x3e83ebea5d]
+[pharsalus:35396] [ 4] /usr/lib64/libstdc++.so.6() [0x3e83ebcbe6]
+[pharsalus:35396] [ 5] /usr/lib64/libstdc++.so.6() [0x3e83ebcc13]
+[pharsalus:35396] [ 6] /usr/lib64/libstdc++.so.6(__cxa_rethrow+0x46) [0x3e83ebcc96]
+[pharsalus:35396] [ 7] ../../../lmp_openmpi(_ZN9LAMMPS_NS6FixATC12modify_paramEiPPc+0x70) [0x68b090]
+[pharsalus:35396] [ 8] ../../../lmp_openmpi(_ZN9LAMMPS_NS3Fix13modify_paramsEiPPc+0xb9) [0x6b31d9]
+[pharsalus:35396] [ 9] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input15execute_commandEv+0xcab) [0x792edb]
+[pharsalus:35396] [10] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input4fileEv+0x63c) [0x7949bc]
+[pharsalus:35396] [11] ../../../lmp_openmpi(main+0x49) [0x7a28f9]
+[pharsalus:35396] [12] /lib64/libc.so.6(__libc_start_main+0xfd) [0x3e7c21ecdd]
+[pharsalus:35396] [13] ../../../lmp_openmpi() [0x537209]
+[pharsalus:35396] *** End of error message ***
+ ATC: P3, ERROR: mesh file is of unknown type.
+terminate called after throwing an instance of 'ATC::ATC_Error'
+[pharsalus:35408] *** Process received signal ***
+[pharsalus:35408] Signal: Aborted (6)
+[pharsalus:35408] Signal code:  (-6)
+[pharsalus:35408] [ 0] /lib64/libpthread.so.0() [0x3e7ce0f500]
+[pharsalus:35408] [ 1] /lib64/libc.so.6(gsignal+0x35) [0x3e7c2328a5]
+[pharsalus:35408] [ 2] /lib64/libc.so.6(abort+0x175) [0x3e7c234085]
+[pharsalus:35408] [ 3] /usr/lib64/libstdc++.so.6(_ZN9__gnu_cxx27__verbose_terminate_handlerEv+0x12d) [0x3e83ebea5d]
+[pharsalus:35408] [ 4] /usr/lib64/libstdc++.so.6() [0x3e83ebcbe6]
+[pharsalus:35408] [ 5] /usr/lib64/libstdc++.so.6() [0x3e83ebcc13]
+[pharsalus:35408] [ 6] /usr/lib64/libstdc++.so.6(__cxa_rethrow+0x46) [0x3e83ebcc96]
+[pharsalus:35408] [ 7] ../../../lmp_openmpi(_ZN9LAMMPS_NS6FixATC12modify_paramEiPPc+0x70) [0x68b090]
+[pharsalus:35408] [ 8] ../../../lmp_openmpi(_ZN9LAMMPS_NS3Fix13modify_paramsEiPPc+0xb9) [0x6b31d9]
+[pharsalus:35408] [ 9] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input15execute_commandEv+0xcab) [0x792edb]
+[pharsalus:35408] [10] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input4fileEv+0x63c) [0x7949bc]
+[pharsalus:35408] [11] ../../../lmp_openmpi(main+0x49) [0x7a28f9]
+[pharsalus:35408] [12] /lib64/libc.so.6(__libc_start_main+0xfd) [0x3e7c21ecdd]
+[pharsalus:35408] [13] ../../../lmp_openmpi() [0x537209]
+[pharsalus:35408] *** End of error message ***
+--------------------------------------------------------------------------
+mpirun noticed that process rank 2 with PID 35404 on node pharsalus exited on signal 6 (Aborted).
+--------------------------------------------------------------------------

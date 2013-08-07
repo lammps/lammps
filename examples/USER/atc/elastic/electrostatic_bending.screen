@@ -1,0 +1,845 @@
+LAMMPS (14 Aug 2013)
+units		metal
+atom_style charge
+dielectric      1.
+
+variable type string "_charge"
+
+boundary	s s f
+# read in CNT
+read_data  cnt_9_0_100${type}.data
+read_data  cnt_9_0_100_charge.data
+Reading data file ...
+  orthogonal box = (-7.04598 -7.04598 0) to (7.04598 7.04598 100)
+  1 by 1 by 4 MPI processor grid
+  846 atoms
+lattice       diamond  3.6 # NOTE ???
+Lattice spacing in x,y,z = 3.6 3.6 3.6
+pair_style  airebo 3.0
+pair_coeff  * * ./CH.airebo C
+mass          *  12.01
+
+# PARAMETERS-----------------------------
+variable dt equal 0.0005
+variable L equal zhi-zlo
+variable zhi equal zhi
+variable zTip equal ${zhi}-2.0 # 2 4
+variable zTip equal 100-2.0 
+variable zFree equal zhi
+variable R equal 12.1/2
+variable xhiFE equal 5.0*$R
+variable xhiFE equal 5.0*6.0499999999999998224
+variable xloFE equal -${xhiFE}
+variable xloFE equal -30.25
+variable yhiFE equal $R
+variable yhiFE equal 6.0499999999999998224
+variable yloFE equal -${yhiFE}
+variable yloFE equal -6.0499999999999998224
+variable zloFE equal zlo+10 # create fixed ghosts
+variable zhiFE equal zhi+(zhi-${zloFE})/12*2
+variable zhiFE equal zhi+(zhi-10)/12*2
+variable Lfree equal zhi-${zloFE}
+variable Lfree equal zhi-10
+variable nx equal 10 # 5
+variable nz equal 14 # 12
+print "Length $L [${zloFE}, ${zhiFE}] ${zTip}"
+Length 100 [10, 115] 98
+
+#variable E  equal 0.1  # bias 1.0
+variable Vb equal 0.1 # 0.1 #0.5 #0.0 # bias
+variable Vg equal 0.5 # 1.0 # 5.0 0.5 #50.0 # 0.5 # gate/modulation
+print "bias voltage ${Vb}, gate voltage ${Vg}"
+bias voltage 0.10000000000000000555, gate voltage 0.5
+
+variable ng equal 20 # 80 # 10
+variable nb equal 2 # 3
+
+variable n equal 100000
+variable s equal 250
+# END -----------------------------------
+
+region	TIP block INF INF INF INF ${zTip} INF  units box
+region	TIP block INF INF INF INF 98 INF  units box
+group	TIP region TIP
+9 atoms in group TIP
+
+#region  FIXED block INF INF INF INF INF ${zLoFE}  units box
+#group   FIXED region FIXED
+
+#group   FREE subtract all FIXED
+
+region	feRegion block ${xloFE} ${xhiFE} ${yloFE} ${yhiFE} ${zloFE} ${zhiFE} units box
+region	feRegion block -30.25 ${xhiFE} ${yloFE} ${yhiFE} ${zloFE} ${zhiFE} units box
+region	feRegion block -30.25 30.25 ${yloFE} ${yhiFE} ${zloFE} ${zhiFE} units box
+region	feRegion block -30.25 30.25 -6.0499999999999998224 ${yhiFE} ${zloFE} ${zhiFE} units box
+region	feRegion block -30.25 30.25 -6.0499999999999998224 6.0499999999999998224 ${zloFE} ${zhiFE} units box
+region	feRegion block -30.25 30.25 -6.0499999999999998224 6.0499999999999998224 10 ${zhiFE} units box
+region	feRegion block -30.25 30.25 -6.0499999999999998224 6.0499999999999998224 10 115 units box
+group internal region feRegion
+756 atoms in group internal
+group FIXED subtract all internal
+90 atoms in group FIXED
+fix FIX FIXED setforce 0 0 0
+
+variable nAll   equal count(all)
+variable nGhost equal count(all)-count(internal)
+variable nTip   equal count(TIP)
+print ">>> number of stationary ghosts:  ${nGhost} of ${nAll}"
+>>> number of stationary ghosts:  90 of 846
+print ">>> number of tip atoms :  ${nTip}"
+>>> number of tip atoms :  9
+
+neighbor	5. bin
+neigh_modify	every 10 delay 0 check no
+timestep        ${dt}
+timestep        0.00050000000000000001041
+thermo 100
+variable tag string "electrostatic_bending"
+
+# set charge on tip
+variable C equal -0.025
+print "charge $C [e]"
+charge -0.025000000000000001388 [e]
+variable c equal $C/${nTip}
+variable c equal -0.025000000000000001388/${nTip}
+variable c equal -0.025000000000000001388/9
+set group TIP charge $c
+set group TIP charge -0.0027777777777777778838
+Setting atom values ...
+  9 settings made for charge
+
+# coupling
+fix         AtC internal   atc electrostatic CNT_id.mat
+ATC: constructing electrostatic mechanical coupling with parameter file CNT_id.mat
+ ATC: peratom PE compute created with ID: 3
+ ATC: computed mass density : 2.05933
+ ATC: 1 materials defined from CNT_id.mat
+ ATC: creating electrostatic extrinsic model
+ ATC: computed mass density : 2.05933
+ ATC: 1 materials defined from CNT_id.mat
+ ATC: computed mass density : 2.05933
+ ATC: 1 materials defined from CNT_id.mat
+fix_modify  AtC include atomic_charge
+fix_modify  AtC internal_quadrature off
+# note weights don't affect phi or f
+fix_modify  AtC atom_weight constant internal 1.0
+fix_modify  AtC extrinsic short_range off
+#fix_modify  AtC atom_element_map eulerian 1
+fix_modify  AtC control  momentum flux
+
+fix_modify  AtC mesh create ${nx} 1 ${nz} feRegion f p f
+fix_modify  AtC mesh create 10 1 ${nz} feRegion f p f
+fix_modify  AtC mesh create 10 1 14 feRegion f p f
+ ATC: created uniform mesh with 330 nodes, 165 unique nodes, and 140 elements
+
+# initial conditions
+fix_modify  AtC  initial displacement x all 0.0
+fix_modify  AtC  initial displacement y all 0.0
+fix_modify  AtC  initial displacement z all 0.0
+fix_modify  AtC  initial velocity x all 0.0
+fix_modify  AtC  initial velocity y all 0.0
+fix_modify  AtC  initial velocity z all 0.0
+fix_modify  AtC  initial electric_potential all 0.0
+
+# node sets
+variable t equal 1.1*$R
+variable t equal 1.1*6.0499999999999998224
+fix_modify  AtC mesh create_nodeset tube -$t $t -$t $t ${zloFE} ${zFree} units box
+fix_modify  AtC mesh create_nodeset tube -6.6550000000000002487 $t -$t $t ${zloFE} ${zFree} units box
+fix_modify  AtC mesh create_nodeset tube -6.6550000000000002487 6.6550000000000002487 -$t $t ${zloFE} ${zFree} units box
+fix_modify  AtC mesh create_nodeset tube -6.6550000000000002487 6.6550000000000002487 -6.6550000000000002487 $t ${zloFE} ${zFree} units box
+fix_modify  AtC mesh create_nodeset tube -6.6550000000000002487 6.6550000000000002487 -6.6550000000000002487 6.6550000000000002487 ${zloFE} ${zFree} units box
+fix_modify  AtC mesh create_nodeset tube -6.6550000000000002487 6.6550000000000002487 -6.6550000000000002487 6.6550000000000002487 10 ${zFree} units box
+fix_modify  AtC mesh create_nodeset tube -6.6550000000000002487 6.6550000000000002487 -6.6550000000000002487 6.6550000000000002487 10 100 units box
+ ATC: created nodeset tube with 39 nodes
+fix_modify  AtC mesh create_nodeset lefttube -$t $t -$t $t ${zloFE} ${zloFE} units box
+fix_modify  AtC mesh create_nodeset lefttube -6.6550000000000002487 $t -$t $t ${zloFE} ${zloFE} units box
+fix_modify  AtC mesh create_nodeset lefttube -6.6550000000000002487 6.6550000000000002487 -$t $t ${zloFE} ${zloFE} units box
+fix_modify  AtC mesh create_nodeset lefttube -6.6550000000000002487 6.6550000000000002487 -6.6550000000000002487 $t ${zloFE} ${zloFE} units box
+fix_modify  AtC mesh create_nodeset lefttube -6.6550000000000002487 6.6550000000000002487 -6.6550000000000002487 6.6550000000000002487 ${zloFE} ${zloFE} units box
+fix_modify  AtC mesh create_nodeset lefttube -6.6550000000000002487 6.6550000000000002487 -6.6550000000000002487 6.6550000000000002487 10 ${zloFE} units box
+fix_modify  AtC mesh create_nodeset lefttube -6.6550000000000002487 6.6550000000000002487 -6.6550000000000002487 6.6550000000000002487 10 10 units box
+ ATC: created nodeset lefttube with 3 nodes
+fix_modify  AtC mesh create_nodeset rbc INF INF INF INF ${zhiFE} ${zhiFE} units box
+fix_modify  AtC mesh create_nodeset rbc INF INF INF INF 115 ${zhiFE} units box
+fix_modify  AtC mesh create_nodeset rbc INF INF INF INF 115 115 units box
+ ATC: created nodeset rbc with 11 nodes
+fix_modify  AtC mesh create_nodeset lbc INF INF INF INF ${zloFE} ${zloFE} units box
+fix_modify  AtC mesh create_nodeset lbc INF INF INF INF 10 ${zloFE} units box
+fix_modify  AtC mesh create_nodeset lbc INF INF INF INF 10 10 units box
+ ATC: created nodeset lbc with 11 nodes
+fix_modify  AtC mesh create_nodeset top ${xhiFE} ${xhiFE} INF INF INF INF units box
+fix_modify  AtC mesh create_nodeset top 30.25 ${xhiFE} INF INF INF INF units box
+fix_modify  AtC mesh create_nodeset top 30.25 30.25 INF INF INF INF units box
+ ATC: created nodeset top with 15 nodes
+fix_modify  AtC mesh create_nodeset bot ${xloFE} ${xloFE} INF INF INF INF units box
+fix_modify  AtC mesh create_nodeset bot -30.25 ${xloFE} INF INF INF INF units box
+fix_modify  AtC mesh create_nodeset bot -30.25 -30.25 INF INF INF INF units box
+ ATC: created nodeset bot with 15 nodes
+
+# boundary conditions
+fix_modify AtC  fix displacement x lbc 0.
+fix_modify AtC  fix displacement y lbc 0.
+fix_modify AtC  fix displacement z lbc 0.
+fix_modify AtC  fix velocity     x lbc 0.
+fix_modify AtC  fix velocity     y lbc 0.
+fix_modify AtC  fix velocity     z lbc 0.
+# ground
+fix_modify AtC  fix electric_potential lbc 0
+# bias
+fix_modify AtC  fix electric_potential rbc ${Vb}
+fix_modify AtC  fix electric_potential rbc 0.10000000000000000555
+# gate
+fix_modify AtC  fix electric_potential bot ${Vg}
+fix_modify AtC  fix electric_potential bot 0.5
+
+# run
+compute CM TIP com
+compute q all property/atom q
+compute Q  all reduce sum c_q
+compute FSUM all reduce sum fx fy fz
+compute RSUM internal reduce sum fx fy fz
+
+thermo_style    custom step etotal ke c_CM[1] c_CM[2] c_CM[3]    c_Q  f_AtC[4]  f_AtC[5]  f_AtC[6] f_AtC[7] f_FIX[1] f_FIX[2] f_FIX[3] f_AtC c_FSUM[1] c_RSUM[1]
+thermo          $s
+thermo          250
+fix_modify      AtC  output  ${tag}FE 100000000 full_text # $s full_text #binary
+fix_modify      AtC  output  electrostatic_bendingFE 100000000 full_text 
+ ATC: Warning : text output can create _LARGE_ files
+ ATC: output custom names:
+
+fix_modify      AtC  output  index step
+# NOTE not recognized as vector by paraview
+variable uX atom x-f_AtC[1]
+variable uY atom y-f_AtC[2]
+variable uZ atom z-f_AtC[3]
+variable rho atom mass*f_AtC[4]
+dump  CONFIG all custom $s ${tag}.dmp id type x y z v_uX v_uY v_uZ v_rho
+dump  CONFIG all custom 250 ${tag}.dmp id type x y z v_uX v_uY v_uZ v_rho
+dump  CONFIG all custom 250 electrostatic_bending.dmp id type x y z v_uX v_uY v_uZ v_rho
+
+reset_timestep 0
+log ${tag}.log
+log electrostatic_bending.log
+
+# [eV/A * A^2] --> [N m]
+variable eV2J equal 1.60217646e-19
+variable A2m  equal 1.e-10
+thermo 10
+timestep   0.0
+min_modify      line quadratic
+variable Vg equal 0.1
+variable Lx equal 1.0
+variable ng equal 4
+#compute RSUM FREE reduce sum fx fy fz
+#dump  CONFIG all custom 10000 ${tag}.dmp id type x y z c_U[1] c_U[2] c_U[3] fx fy fz
+variable a equal 0
+  variable i loop ${ng}
+  variable i loop 4
+  label loop_i
+    variable b equal ($i-1)*${Vg}/(${ng}-1)/${Lx}
+    variable b equal (1-1)*${Vg}/(${ng}-1)/${Lx}
+    variable b equal (1-1)*0.10000000000000000555/(${ng}-1)/${Lx}
+    variable b equal (1-1)*0.10000000000000000555/(4-1)/${Lx}
+    variable b equal (1-1)*0.10000000000000000555/(4-1)/1
+
+    fix_modify AtC  fix electric_potential all linear 0 0 0 $b 0 $a 0
+    fix_modify AtC  fix electric_potential all linear 0 0 0 0 0 $a 0
+    fix_modify AtC  fix electric_potential all linear 0 0 0 0 0 0 0
+ ATC: created function : 0 + 0(x-0)+0(y-0)+0(z-0)
+    min_style cg
+    min_modify line quadratic
+    #minimize 0 0 100000 100000
+    minimize 0 0 1000 1000
+WARNING: Resetting reneighboring criteria during minimization (../min.cpp:173)
+Setting up minimization ...
+ ATC: WARNING: all initial conditions for electron_density have not been defined and the undefined are assumed zero
+ ATC: WARNING: material: [cnt0] cannot find electron_flux
+ ATC: WARNING: physics model: [electrostatic], material: [cnt0] does not provide all interfaces for <electron_density> physics and will be treated as null 
+Memory usage per processor = 55.2354 Mbytes
+Step TotEng KinEng CM[1] CM[2] CM[3] Q AtC[4] AtC[5] AtC[6] AtC[7] FIX[1] FIX[2] FIX[3] AtC FSUM[1] RSUM[1] 
+       0   -6146.5328            0 -1.2222229e-10 1.1111297e-10        98.69       -0.025            0            0            0            0 9.0465829e-16 -2.9442594e-15    8.5762791            0 6.8998626e-16 6.8998626e-16 
+      10   -6148.8618            0 4.940931e-12 -2.2100035e-10    98.493762       -0.025            0            0            0            0 1.2098779e-09 -1.5844069e-09    8.9290499            0 -1.209881e-09 -1.209881e-09 
+      20   -6149.9222            0 2.3540796e-12 -1.2223531e-10    98.220638       -0.025            0            0            0            0 -1.255241e-10 1.3853794e-11    9.0170496            0 1.2552811e-10 1.2552811e-10 
+      30    -6150.857            0 -5.8780008e-12 -1.5206673e-10    98.082897       -0.025            0            0            0            0 1.1490666e-09 -5.0591806e-10    8.9773205            0 -1.149063e-09 -1.149063e-09 
+      40   -6151.7874            0 6.0788906e-12 -1.2585104e-10    97.911664       -0.025            0            0            0            0 -7.6226226e-12 2.2822122e-10     8.969255            0 7.6276741e-12 7.6276741e-12 
+      50   -6152.7403            0 -8.5868587e-12 -2.1662548e-12    97.725384       -0.025            0            0            0            0 6.8901152e-11 1.9872572e-10    8.9900713            0 -6.8910336e-11 -6.8910336e-11 
+      60   -6153.6909            0 -2.3882229e-11 1.8005686e-10    97.514756       -0.025            0            0            0            0 -2.4792216e-10 5.8505025e-10    8.9790647            0 2.4791056e-10 2.4791056e-10 
+      70   -6154.6186            0 -1.4341604e-11 1.0186267e-10    97.331185       -0.025            0            0            0            0 -2.5377242e-10 7.0580372e-10    8.9849053            0 2.5377634e-10 2.5377634e-10 
+      80   -6155.5294            0 3.317641e-12 -1.0628218e-10    97.148448       -0.025            0            0            0            0 -3.6329208e-10 1.6682668e-10    5.3213166            0   3.6329e-10   3.6329e-10 
+      90   -6155.6958            0 -7.4051845e-13 -1.7958969e-11    97.119481       -0.025            0            0            0            0 -2.6610771e-10 -2.1459841e-10    1.9442496            0 2.6610824e-10 2.6610824e-10 
+     100   -6155.7311            0 -1.7366193e-12 4.0895485e-12    97.108958       -0.025            0            0            0            0 -2.2828441e-12 3.2760579e-10    1.8155088            0 2.2768396e-12 2.2768396e-12 
+     110   -6155.7559            0 -3.7182375e-12 2.7076944e-11    97.099557       -0.025            0            0            0            0 -2.7283076e-10 3.148088e-10    1.6786296            0 2.7283883e-10 2.7283883e-10 
+     120   -6155.7815            0 -1.6001509e-12 7.7718611e-12    97.084625       -0.025            0            0            0            0 -2.3085834e-10 -3.3010689e-10   0.84988485            0 2.3084659e-10 2.3084659e-10 
+     130   -6155.8097            0 6.1918255e-12 -2.2013612e-11    97.037986       -0.025            0            0            0            0 3.8781477e-10 7.8589814e-10  -0.24071684            0 -3.8781011e-10 -3.8781011e-10 
+     140   -6155.8296            0 9.1649429e-13 -5.8772777e-12    96.997528       -0.025            0            0            0            0 -2.9271952e-10 2.8177507e-10   0.21373041            0 2.9272128e-10 2.9272128e-10 
+     150   -6155.8424            0 1.2990133e-12 1.6560103e-12    96.978985       -0.025            0            0            0            0 1.8917465e-10 -6.1365804e-10   0.34484179            0 -1.8917478e-10 -1.8917478e-10 
+     160   -6155.8465            0 -8.7514622e-13 4.204932e-12    96.970352       -0.025            0            0            0            0 5.4505837e-10 -7.430968e-10   0.24626587            0 -5.4506486e-10 -5.4506486e-10 
+     170   -6155.8471            0 -3.1964234e-12 3.3010755e-12    96.967294       -0.025            0            0            0            0 2.2410803e-10 -1.016244e-10   0.23959213            0 -2.2410755e-10 -2.2410755e-10 
+     180   -6155.8485            0 -1.5534979e-11 9.5624334e-12    96.955682       -0.025            0            0            0            0 -2.0043328e-09 2.2585906e-09   0.27363173            0 2.0043342e-09 2.0043342e-09 
+     190   -6155.8492            0 -2.0892941e-11 2.9371598e-11    96.950738       -0.025            0            0            0            0 3.8637701e-10 -5.3578627e-10    0.2536299            0 -3.8637116e-10 -3.8637116e-10 
+     200   -6155.8498            0 -7.8964312e-12 1.3090003e-11    96.947508       -0.025            0            0            0            0 1.5603734e-09 -1.6272208e-09   0.15118948            0 -1.5603738e-09 -1.5603738e-09 
+     210   -6155.8506            0 3.2330911e-11 -5.680355e-11    96.941553       -0.025            0            0            0            0 -5.1954511e-09 5.6107173e-09  0.074902549            0 5.1954505e-09 5.1954505e-09 
+     220   -6155.8508            0 1.291125e-11 -1.4639389e-11    96.940685       -0.025            0            0            0            0 -7.2531212e-10 7.1522033e-10  0.075697866            0 7.253091e-10 7.253091e-10 
+     230   -6155.8508            0 -2.1539062e-11 3.0981675e-11    96.940234       -0.025            0            0            0            0 3.4501174e-09 -3.3448009e-09  0.040836048            0 -3.4501143e-09 -3.4501143e-09 
+     240   -6155.8508            0 -2.6136061e-12 1.0779917e-12    96.939825       -0.025            0            0            0            0 -6.485948e-10 4.904014e-10  0.032769742            0 6.4859596e-10 6.4859596e-10 
+     250   -6155.8509            0 5.4062908e-11 -5.4847092e-11    96.939069       -0.025            0            0            0            0 -6.3245546e-09 5.8679399e-09   0.01865975            0 6.3245566e-09 6.3245566e-09 
+     260   -6155.8509            0 1.9938451e-12 1.3745327e-11    96.938535       -0.025            0            0            0            0 2.8230301e-09 -1.7880768e-09  0.010102843            0 -2.8230281e-09 -2.8230281e-09 
+     270   -6155.8509            0 -1.1673108e-11 7.7225918e-12    96.937968       -0.025            0            0            0            0 4.3671364e-10 -8.0304089e-10   0.01529266            0 -4.3670395e-10 -4.3670395e-10 
+     280    -6155.851            0 3.1090928e-11 -2.3740814e-11     96.93705       -0.025            0            0            0            0 -1.2298254e-09 2.371559e-10 -0.0040591525            0 1.2298302e-09 1.2298302e-09 
+     290    -6155.851            0 6.6834666e-12 -9.0749829e-12    96.936403       -0.025            0            0            0            0 -7.3137352e-10 1.0983283e-09 0.0010075626            0 7.3137798e-10 7.3137798e-10 
+     300    -6155.851            0 9.4443218e-13 5.2069655e-13    96.936293       -0.025            0            0            0            0 4.9924787e-12 3.5018175e-10 0.0057823754            0 -4.9956751e-12 -4.9956751e-12 
+     310    -6155.851            0 4.9457364e-11 -2.183241e-11    96.936135       -0.025            0            0            0            0 5.5646397e-10 -3.1013634e-09 0.0066174421            0 -5.5646838e-10 -5.5646838e-10 
+     320    -6155.851            0 1.1303802e-11 -1.5610116e-11    96.935999       -0.025            0            0            0            0 9.3725597e-11 -2.0834063e-10 0.0066461623            0 -9.3720589e-11 -9.3720589e-11 
+     330    -6155.851            0 -8.7492205e-11 5.0132409e-11    96.935781       -0.025            0            0            0            0 1.5034892e-09 4.8824636e-09 0.0058982085            0 -1.5034817e-09 -1.5034817e-09 
+     340    -6155.851            0 1.4386338e-10 -4.2580912e-11    96.935678       -0.025            0            0            0            0 -4.4942366e-09 -4.8008051e-09 0.0019740498            0 4.4942601e-09 4.4942601e-09 
+     350    -6155.851            0 -1.5770775e-12 -1.5554503e-11    96.935641       -0.025            0            0            0            0 -1.789129e-09 4.3210504e-10 0.0016260173            0 1.7891285e-09 1.7891285e-09 
+     360    -6155.851            0 -1.3297897e-10 5.1630323e-11    96.935622       -0.025            0            0            0            0 9.3219024e-09 5.9535856e-10 0.00082004967            0 -9.3218922e-09 -9.3218922e-09 
+     370    -6155.851            0 5.4333939e-11 -2.6192184e-11    96.935617       -0.025            0            0            0            0 -4.3663676e-10 -5.1620423e-10 0.0012789335            0 4.3664737e-10 4.3664737e-10 
+     380    -6155.851            0 -6.6039258e-12 -7.5609136e-12    96.935612       -0.025            0            0            0            0 -8.3813595e-09 4.7199823e-09 0.0011369214            0 8.3813612e-09 8.3813612e-09 
+     390    -6155.851            0 -1.0040056e-10 8.5325014e-11    96.935587       -0.025            0            0            0            0 1.1171651e-08 -1.0037805e-08 0.00012469127            0 -1.1171646e-08 -1.1171646e-08 
+     400    -6155.851            0 5.0853732e-11 -4.2801835e-11    96.935572       -0.025            0            0            0            0 -1.9340418e-09  1.74979e-09 0.00019466711            0 1.9340627e-09 1.9340627e-09 
+     410    -6155.851            0 1.2049586e-10 -9.9618548e-11    96.935543       -0.025            0            0            0            0 -2.0243059e-08 1.9356236e-08 0.0002523799            0 2.0243046e-08 2.0243046e-08 
+     420    -6155.851            0 1.7899642e-11 3.5995836e-12    96.935531       -0.025            0            0            0            0 3.5620666e-09 -2.7057846e-09 0.00024873544            0 -3.5620556e-09 -3.5620556e-09 
+     430    -6155.851            0 -2.3941392e-11 2.3004815e-11    96.935527       -0.025            0            0            0            0 9.3931782e-09 -8.5349023e-09 0.0001591579            0 -9.3931752e-09 -9.3931752e-09 
+     440    -6155.851            0 1.3054108e-10 -1.2689303e-10    96.935522       -0.025            0            0            0            0 -2.63239e-08 2.3190494e-08 0.00014838156            0 2.6323909e-08 2.6323909e-08 
+     450    -6155.851            0 -3.3583974e-12 2.1841662e-11     96.93552       -0.025            0            0            0            0 7.9211719e-09 -6.7971069e-09 0.00012051248            0 -7.921168e-09 -7.921168e-09 
+     460    -6155.851            0 -6.7930456e-10 6.424851e-10    96.935514       -0.025            0            0            0            0 1.2429227e-07 -1.0630871e-07 0.00014409432            0 -1.2429226e-07 -1.2429226e-07 
+     470    -6155.851            0 5.649524e-10 -5.6453071e-10    96.935512       -0.025            0            0            0            0 -1.0735848e-07 8.9872405e-08 0.00010631061            0 1.0735848e-07 1.0735848e-07 
+     480    -6155.851            0  6.13809e-10 -4.9012022e-10    96.935509       -0.025            0            0            0            0 -5.5839534e-08 4.5710027e-08 8.7271236e-05            0 5.5839543e-08 5.5839543e-08 
+     490    -6155.851            0 -6.1673512e-10 5.8106663e-10    96.935508       -0.025            0            0            0            0 8.9417248e-08 -6.795396e-08 4.2860856e-05            0 -8.941724e-08 -8.941724e-08 
+     500    -6155.851            0 -1.4672717e-11 -1.0669776e-11    96.935508       -0.025            0            0            0            0 -1.9116216e-08 1.6870874e-08 3.2008126e-05            0 1.9116217e-08 1.9116217e-08 
+Loop time of 100.289 on 4 procs for 500 steps with 846 atoms
+
+Minimization stats:
+  Stopping criterion = max force evaluations
+  Energy initial, next-to-last, final = 
+        -6146.53284043     -6155.85100774     -6155.85100774
+  Force two-norm initial, final = 9.08523 6.13752e-06
+  Force max component initial, final = 2.35947 4.97842e-07
+  Final line search alpha, max atom move = 1 4.97842e-07
+  Iterations, force evaluations = 500 1000
+
+Pair  time (%) = 9.67277 (9.6449)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 6.21171 (6.19381)
+Outpt time (%) = 2.68868 (2.68093)
+Other time (%) = 81.7159 (81.4804)
+
+Nlocal:    211.5 ave 216 max 207 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:    191.25 ave 261 max 126 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:    0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:  47313 ave 52056 max 42570 min
+Histogram: 1 0 1 0 0 0 0 1 0 1
+
+Total # of neighbors = 189252
+Ave neighs/atom = 223.702
+Neighbor list builds = 0
+Dangerous builds = 0
+    min_style sd
+    min_modify line backtrack
+    #minimize 0 0 100000 100000
+    minimize 0 0 1000 1000
+WARNING: Resetting reneighboring criteria during minimization (../min.cpp:173)
+Setting up minimization ...
+ ATC: WARNING: material: [cnt0] cannot find electron_flux
+ ATC: WARNING: physics model: [electrostatic], material: [cnt0] does not provide all interfaces for <electron_density> physics and will be treated as null 
+Memory usage per processor = 55.3135 Mbytes
+Step TotEng KinEng CM[1] CM[2] CM[3] Q AtC[4] AtC[5] AtC[6] AtC[7] FIX[1] FIX[2] FIX[3] AtC FSUM[1] RSUM[1] 
+     500    -6155.851            0 -1.4672652e-11 -1.0669743e-11    96.935508       -0.025            0            0            0            0 -1.9116216e-08 1.6870874e-08 3.2008126e-05            0 1.9116216e-08 1.9116216e-08 
+     501    -6155.851            0 -1.4672652e-11 -1.0669743e-11    96.935508       -0.025            0            0            0            0 -1.9116216e-08 1.6870874e-08 3.2008126e-05            0 1.9116216e-08 1.9116216e-08 
+Loop time of 0.124472 on 4 procs for 1 steps with 846 atoms
+
+Minimization stats:
+  Stopping criterion = linesearch alpha is zero
+  Energy initial, next-to-last, final = 
+        -6155.85100774     -6155.85100774     -6155.85100774
+  Force two-norm initial, final = 6.13752e-06 6.13752e-06
+  Force max component initial, final = 4.97842e-07 4.97842e-07
+  Final line search alpha, max atom move = 0.5 2.48921e-07
+  Iterations, force evaluations = 1 2
+
+Pair  time (%) = 0.0223783 (17.9785)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.00169677 (1.36317)
+Outpt time (%) = 0 (0)
+Other time (%) = 0.100397 (80.6583)
+
+Nlocal:    211.5 ave 216 max 198 min
+Histogram: 1 0 0 0 0 0 0 0 0 3
+Nghost:    195.75 ave 261 max 126 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:    0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:  48199.5 ave 53136 max 41085 min
+Histogram: 1 0 0 1 0 0 0 0 0 2
+
+Total # of neighbors = 192798
+Ave neighs/atom = 227.894
+Neighbor list builds = 0
+Dangerous builds = 0
+    fix_modify AtC output now
+
+    # u = F L^3 / 3 EI --> EI = F L^3 / 3 u
+    variable u equal c_CM[1]
+    variable uz equal c_CM[3]
+#   variable F equal f_AtC[5]
+#   variable Fz equal f_AtC[7]
+    variable F equal c_RSUM[1]
+    variable Fz equal c_RSUM[3]
+    variable R equal $F-$C*$b
+    variable R equal 1.9116216109081213915e-08-$C*$b
+    variable R equal 1.9116216109081213915e-08--0.025000000000000001388*$b
+    variable R equal 1.9116216109081213915e-08--0.025000000000000001388*0
+    variable Rz equal ${Fz}-$C*$a
+    variable Rz equal -3.2008125606681979403e-05-$C*$a
+    variable Rz equal -3.2008125606681979403e-05--0.025000000000000001388*$a
+    variable Rz equal -3.2008125606681979403e-05--0.025000000000000001388*0
+    variable EI equal $F*${Lfree}*${Lfree}*${Lfree}/3./$u
+    variable EI equal 1.9116216109081213915e-08*${Lfree}*${Lfree}*${Lfree}/3./$u
+    variable EI equal 1.9116216109081213915e-08*90*${Lfree}*${Lfree}/3./$u
+    variable EI equal 1.9116216109081213915e-08*90*90*${Lfree}/3./$u
+    variable EI equal 1.9116216109081213915e-08*90*90*90/3./$u
+    variable EI equal 1.9116216109081213915e-08*90*90*90/3./-1.4672651617664272549e-11
+    variable EI equal ${EI}*${eV2J}*${A2m}
+    variable EI equal -316591754.20715177059*${eV2J}*${A2m}
+    variable EI equal -316591754.20715177059*1.6021764600000000642e-19*${A2m}
+    variable EI equal -316591754.20715177059*1.6021764600000000642e-19*1.0000000000000000364e-10
+    #print "flexural rigidity ${EI}  [Nm^2]  NOTE z force"
+
+    print ">> V $b $a F $F ${Fz} u $u ${uz} c $c phi 0 EI ${EI} R $R ${Rz}"
+>> V 0 0 F 1.9116216109081213915e-08 -3.2008125606681979403e-05 u -1.4672651617664272549e-11 96.935507997738042718 c -0.0027777777777777778838 phi 0 EI -5.072358560208045613e-21 R 1.9116216109081213915e-08 -3.2008125606681979403e-05
+    next i
+  jump SELF loop_i
+    variable b equal ($i-1)*${Vg}/(${ng}-1)/${Lx}
+    variable b equal (2-1)*${Vg}/(${ng}-1)/${Lx}
+    variable b equal (2-1)*0.10000000000000000555/(${ng}-1)/${Lx}
+    variable b equal (2-1)*0.10000000000000000555/(4-1)/${Lx}
+    variable b equal (2-1)*0.10000000000000000555/(4-1)/1
+
+    fix_modify AtC  fix electric_potential all linear 0 0 0 $b 0 $a 0
+    fix_modify AtC  fix electric_potential all linear 0 0 0 0.033333333333333332871 0 $a 0
+    fix_modify AtC  fix electric_potential all linear 0 0 0 0.033333333333333332871 0 0 0
+ ATC: created function : 0 + 0.0333333(x-0)+0(y-0)+0(z-0)
+    min_style cg
+    min_modify line quadratic
+    #minimize 0 0 100000 100000
+    minimize 0 0 1000 1000
+WARNING: Resetting reneighboring criteria during minimization (../min.cpp:173)
+Setting up minimization ...
+ ATC: WARNING: material: [cnt0] cannot find electron_flux
+ ATC: WARNING: physics model: [electrostatic], material: [cnt0] does not provide all interfaces for <electron_density> physics and will be treated as null 
+Memory usage per processor = 55.3135 Mbytes
+Step TotEng KinEng CM[1] CM[2] CM[3] Q AtC[4] AtC[5] AtC[6] AtC[7] FIX[1] FIX[2] FIX[3] AtC FSUM[1] RSUM[1] 
+     501    -6155.851            0 -1.4672652e-11 -1.0669743e-11    96.935508       -0.025            0            0            0 0.00083333333 -1.9116216e-08 1.6870874e-08 3.2008126e-05 1.222715e-14 0.00083335245 0.00083335245 
+     510    -6155.851            0 7.5244067e-05 -1.3502021e-11    96.935508       -0.025            0            0            0 0.00083333333 3.2438701e-08 -3.0416424e-08 -1.4566602e-05 -6.2703389e-08 0.00083330089 0.00083330089 
+     520    -6155.851            0 0.00023596516 2.4216597e-11    96.935508       -0.025            0            0            0 0.00083333333 -9.6655814e-09 1.7834635e-08 3.5959276e-05 -1.9663763e-07  0.000833343  0.000833343 
+     530    -6155.851            0 0.0004521778 -1.8488146e-10    96.935507       -0.025            0            0            0 0.00083333333 -2.8087999e-08 1.4373107e-08 2.6399328e-05 -3.7681483e-07 0.00083336142 0.00083336142 
+     540    -6155.851            0 0.00068686652 2.2560925e-10    96.935506       -0.025            0            0            0 0.00083333333 5.1280851e-08 -4.944283e-08 -2.3516917e-05 -5.7238876e-07 0.00083328205 0.00083328205 
+     550    -6155.851            0 0.00097528387 -6.0249475e-11    96.935505       -0.025            0            0            0 0.00083333333 -3.0869719e-08 4.6053248e-08 -9.2849468e-06 -8.1273656e-07 0.0008333642 0.0008333642 
+     560    -6155.851            0 0.0012888546 -4.7543618e-10    96.935504       -0.025            0            0            0 0.00083333333 -1.4084137e-08 -6.9499793e-09 3.5765609e-05 -1.0740455e-06 0.00083334742 0.00083334742 
+     570    -6155.851            0 0.0016207689 7.8821517e-10    96.935503       -0.025            0            0            0 0.00083333333 2.0767366e-08 -2.5348885e-08 -4.7729297e-05 -1.3506408e-06 0.00083331257 0.00083331257 
+     580    -6155.851            0   0.00198597 -5.3637299e-10    96.935501       -0.025            0            0            0 0.00083333333 -5.4517718e-06 9.2340557e-09 -4.9488581e-05 -1.654975e-06 0.00083878511 0.00083878511 
+     590    -6155.851            0 0.0023856369 -4.1449046e-10      96.9355       -0.025            0            0            0 0.00083333333 -3.8437452e-05 2.7829132e-08 -6.8439705e-05 -1.9880307e-06 0.00087177079 0.00087177079 
+     600    -6155.851            0 0.0028044617 1.0997501e-09    96.935499       -0.025            0            0            0 0.00083333333 2.0036119e-05 -2.8313041e-08 -0.00038373515 -2.3370514e-06 0.00081329721 0.00081329721 
+     610    -6155.851            0 0.0032615703 -9.438232e-10    96.935498       -0.025            0            0            0 0.00083333333 -6.721699e-05 -1.6094486e-08 0.00026852221 -2.7179752e-06 0.00090055032 0.00090055032 
+     620    -6155.851            0 0.0037228155 -9.8658553e-11    96.935498       -0.025            0            0            0 0.00083333333 -5.0356472e-05 6.6220662e-08 -0.00016057488 -3.1023462e-06 0.00088368981 0.00088368981 
+     630    -6155.851            0 0.0042063596 4.5342852e-10    96.935499       -0.025            0            0            0 0.00083333333 -0.00024149697 -6.6311642e-08 -0.00013128121 -3.5052997e-06 0.0010748303 0.0010748303 
+     640    -6155.851            0 0.0047053923 -4.4915583e-12    96.935498       -0.025            0            0            0 0.00083333333 0.00018476866 8.5931516e-09 -1.0920921e-05 -3.9211602e-06 0.00064856468 0.00064856468 
+     650    -6155.851            0 0.0051780729 -5.9267245e-10      96.9355       -0.025            0            0            0 0.00083333333 0.0012250879 4.6153937e-08 0.00016791897 -4.3150607e-06 -0.00039175458 -0.00039175458 
+     660    -6155.851            0  0.005528704 2.0178848e-10    96.935499       -0.025            0            0            0 0.00083333333 0.0023386089 -4.9920568e-08 -0.00030153107 -4.6072533e-06 -0.0015052756 -0.0015052756 
+     670    -6155.851            0 0.0067930159 2.0337825e-09    96.935504       -0.025            0            0            0 0.00083333333   0.00277847 9.6153354e-08 -0.001427071 -5.6608465e-06 -0.0019451367 -0.0019451367 
+     680    -6155.851            0 0.0091353864 -1.2005671e-09    96.935506       -0.025            0            0            0 0.00083333333 -0.00098634606 -5.6084108e-09 -0.0001949811 -7.612822e-06 0.0018196794 0.0018196794 
+     690    -6155.851            0 0.0092720897 -6.6192949e-11    96.935506       -0.025            0            0            0 0.00083333333 -0.0015552585 -8.6270391e-10 9.3688022e-05 -7.7267414e-06 0.0023885919 0.0023885919 
+     699    -6155.851            0 0.0093583676 1.0464746e-09    96.935509       -0.025            0            0            0 0.00083333333 -0.0017464739 2.5209399e-08 7.7398462e-05 -7.7986397e-06 0.0025798072 0.0025798072 
+Loop time of 14.1081 on 4 procs for 198 steps with 846 atoms
+
+Minimization stats:
+  Stopping criterion = linesearch alpha is zero
+  Energy initial, next-to-last, final = 
+        -6155.85100774     -6155.85101159     -6155.85101159
+  Force two-norm initial, final = 0.000277846 0.0011336
+  Force max component initial, final = 9.26371e-05 0.00012545
+  Final line search alpha, max atom move = 0.0078125 9.80074e-07
+  Iterations, force evaluations = 198 409
+
+Pair  time (%) = 3.19903 (22.6752)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.348575 (2.47075)
+Outpt time (%) = 0.160979 (1.14104)
+Other time (%) = 10.3995 (73.713)
+
+Nlocal:    211.5 ave 216 max 198 min
+Histogram: 1 0 0 0 0 0 0 0 0 3
+Nghost:    195.75 ave 261 max 126 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:    0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:  48199.5 ave 53136 max 41085 min
+Histogram: 1 0 0 1 0 0 0 0 0 2
+
+Total # of neighbors = 192798
+Ave neighs/atom = 227.894
+Neighbor list builds = 0
+Dangerous builds = 0
+    min_style sd
+    min_modify line backtrack
+    #minimize 0 0 100000 100000
+    minimize 0 0 1000 1000
+WARNING: Resetting reneighboring criteria during minimization (../min.cpp:173)
+Setting up minimization ...
+ ATC: WARNING: material: [cnt0] cannot find electron_flux
+ ATC: WARNING: physics model: [electrostatic], material: [cnt0] does not provide all interfaces for <electron_density> physics and will be treated as null 
+Memory usage per processor = 55.3135 Mbytes
+Step TotEng KinEng CM[1] CM[2] CM[3] Q AtC[4] AtC[5] AtC[6] AtC[7] FIX[1] FIX[2] FIX[3] AtC FSUM[1] RSUM[1] 
+     699    -6155.851            0 0.0093583676 1.0464746e-09    96.935509       -0.025            0            0            0 0.00083333333 -0.0017464739 2.5209399e-08 7.7398462e-05 -7.7986397e-06 0.0025798072 0.0025798072 
+     700    -6155.851            0 0.0093585294 1.0053739e-09    96.935509       -0.025            0            0            0 0.00083333333 -0.0017544129 2.4247674e-08 5.1686313e-05 -7.7987745e-06 0.0025877462 0.0025877462 
+     701    -6155.851            0 0.0093585294 1.0053739e-09    96.935509       -0.025            0            0            0 0.00083333333 -0.0017544129 2.4247674e-08 5.1686313e-05 -7.7987745e-06 0.0025877462 0.0025877462 
+Loop time of 0.5394 on 4 procs for 2 steps with 846 atoms
+
+Minimization stats:
+  Stopping criterion = linesearch alpha is zero
+  Energy initial, next-to-last, final = 
+        -6155.85101159      -6155.8510116      -6155.8510116
+  Force two-norm initial, final = 0.0011336 0.000872834
+  Force max component initial, final = 0.00012545 8.10661e-05
+  Final line search alpha, max atom move = 0.015625 1.26666e-06
+  Iterations, force evaluations = 2 14
+
+Pair  time (%) = 0.111926 (20.7502)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.0156116 (2.89425)
+Outpt time (%) = 0.0084697 (1.57021)
+Other time (%) = 0.403392 (74.7853)
+
+Nlocal:    211.5 ave 216 max 198 min
+Histogram: 1 0 0 0 0 0 0 0 0 3
+Nghost:    195.75 ave 261 max 126 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:    0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:  48199.5 ave 53136 max 41085 min
+Histogram: 1 0 0 1 0 0 0 0 0 2
+
+Total # of neighbors = 192798
+Ave neighs/atom = 227.894
+Neighbor list builds = 0
+Dangerous builds = 0
+    fix_modify AtC output now
+
+    # u = F L^3 / 3 EI --> EI = F L^3 / 3 u
+    variable u equal c_CM[1]
+    variable uz equal c_CM[3]
+#   variable F equal f_AtC[5]
+#   variable Fz equal f_AtC[7]
+    variable F equal c_RSUM[1]
+    variable Fz equal c_RSUM[3]
+    variable R equal $F-$C*$b
+    variable R equal 0.0025877461923070671154-$C*$b
+    variable R equal 0.0025877461923070671154--0.025000000000000001388*$b
+    variable R equal 0.0025877461923070671154--0.025000000000000001388*0.033333333333333332871
+    variable Rz equal ${Fz}-$C*$a
+    variable Rz equal -5.16863129458517475e-05-$C*$a
+    variable Rz equal -5.16863129458517475e-05--0.025000000000000001388*$a
+    variable Rz equal -5.16863129458517475e-05--0.025000000000000001388*0
+    variable EI equal $F*${Lfree}*${Lfree}*${Lfree}/3./$u
+    variable EI equal 0.0025877461923070671154*${Lfree}*${Lfree}*${Lfree}/3./$u
+    variable EI equal 0.0025877461923070671154*90*${Lfree}*${Lfree}/3./$u
+    variable EI equal 0.0025877461923070671154*90*90*${Lfree}/3./$u
+    variable EI equal 0.0025877461923070671154*90*90*90/3./$u
+    variable EI equal 0.0025877461923070671154*90*90*90/3./0.0093585293597155689432
+    variable EI equal ${EI}*${eV2J}*${A2m}
+    variable EI equal 67192.429553881200263*${eV2J}*${A2m}
+    variable EI equal 67192.429553881200263*1.6021764600000000642e-19*${A2m}
+    variable EI equal 67192.429553881200263*1.6021764600000000642e-19*1.0000000000000000364e-10
+    #print "flexural rigidity ${EI}  [Nm^2]  NOTE z force"
+
+    print ">> V $b $a F $F ${Fz} u $u ${uz} c $c phi 0 EI ${EI} R $R ${Rz}"
+>> V 0.033333333333333332871 0 F 0.0025877461923070671154 -5.16863129458517475e-05 u 0.0093585293597155689432 96.935509332376838643 c -0.0027777777777777778838 phi 0 EI 1.0765412892143675813e-24 R 0.0034210795256404006107 -5.16863129458517475e-05
+    next i
+  jump SELF loop_i
+    variable b equal ($i-1)*${Vg}/(${ng}-1)/${Lx}
+    variable b equal (3-1)*${Vg}/(${ng}-1)/${Lx}
+    variable b equal (3-1)*0.10000000000000000555/(${ng}-1)/${Lx}
+    variable b equal (3-1)*0.10000000000000000555/(4-1)/${Lx}
+    variable b equal (3-1)*0.10000000000000000555/(4-1)/1
+
+    fix_modify AtC  fix electric_potential all linear 0 0 0 $b 0 $a 0
+    fix_modify AtC  fix electric_potential all linear 0 0 0 0.066666666666666665741 0 $a 0
+    fix_modify AtC  fix electric_potential all linear 0 0 0 0.066666666666666665741 0 0 0
+ ATC: created function : 0 + 0.0666667(x-0)+0(y-0)+0(z-0)
+    min_style cg
+    min_modify line quadratic
+    #minimize 0 0 100000 100000
+    minimize 0 0 1000 1000
+WARNING: Resetting reneighboring criteria during minimization (../min.cpp:173)
+Setting up minimization ...
+ ATC: WARNING: material: [cnt0] cannot find electron_flux
+ ATC: WARNING: physics model: [electrostatic], material: [cnt0] does not provide all interfaces for <electron_density> physics and will be treated as null 
+Memory usage per processor = 55.3135 Mbytes
+Step TotEng KinEng CM[1] CM[2] CM[3] Q AtC[4] AtC[5] AtC[6] AtC[7] FIX[1] FIX[2] FIX[3] AtC FSUM[1] RSUM[1] 
+     701    -6155.851            0 0.0093585294 1.0053739e-09    96.935509       -0.025            0            0            0 0.0016666667 -0.0017544129 2.4247674e-08 5.1686313e-05 -1.5597549e-05 0.0034210795 0.0034210795 
+     710    -6155.851            0 0.0093927498 -5.1805658e-10    96.935509       -0.025            0            0            0 0.0016666667 -0.001496399 -1.5573071e-08 7.0866631e-05 -1.5654583e-05 0.0031630657 0.0031630657 
+     720    -6155.851            0 0.0095888777 -5.6216657e-11    96.935505       -0.025            0            0            0 0.0016666667 -0.0012004213 3.8090266e-08 -0.00014799652 -1.5981463e-05  0.002867088  0.002867088 
+     730    -6155.851            0 0.0099072785 4.4310767e-10    96.935503       -0.025            0            0            0 0.0016666667 -0.0012734816 3.5022383e-09 -0.00014979591 -1.6512131e-05 0.0029401483 0.0029401483 
+     740    -6155.851            0  0.010283518 -1.5173013e-09    96.935504       -0.025            0            0            0 0.0016666667 -0.0010070513 -1.0777316e-07 8.9852513e-05 -1.7139197e-05 0.0026737179 0.0026737179 
+     750    -6155.851            0  0.010683953 1.4747556e-09    96.935501       -0.025            0            0            0 0.0016666667 -0.00089533919 1.3811485e-07 -6.6972671e-05 -1.7806589e-05 0.0025620059 0.0025620059 
+     760    -6155.851            0  0.011131302 -8.2231093e-10      96.9355       -0.025            0            0            0 0.0016666667 -0.00011238797 -3.2303593e-08 -3.3022463e-06 -1.855217e-05 0.0017790546 0.0017790546 
+     770    -6155.851            0  0.011585226 1.1357581e-10      96.9355       -0.025            0            0            0 0.0016666667 -0.0008139296 -1.0279988e-07 7.672706e-05 -1.9308709e-05 0.0024805963 0.0024805963 
+     780    -6155.851            0  0.012015856 -1.7079649e-11    96.935492       -0.025            0            0            0 0.0016666667 -0.00011750039 1.4724756e-07 2.6085857e-05 -2.0026427e-05 0.0017841671 0.0017841671 
+     790    -6155.851            0  0.012432647 -5.7454545e-10    96.935489       -0.025            0            0            0 0.0016666667 -2.6583326e-05 -5.8164597e-08 -0.00024192986 -2.0721078e-05   0.00169325   0.00169325 
+     800    -6155.851            0  0.012864332 1.1612045e-09    96.935494       -0.025            0            0            0 0.0016666667 -0.00013922996 -7.3129958e-08 0.00017322782 -2.1440553e-05 0.0018058966 0.0018058966 
+     810    -6155.851            0  0.013534631 -1.599629e-09    96.935497       -0.025            0            0            0 0.0016666667 0.00021713244 2.0110132e-07 -0.00011691578 -2.2557718e-05 0.0014495342 0.0014495342 
+     820    -6155.851            0  0.014473048 1.4920287e-09    96.935488       -0.025            0            0            0 0.0016666667 0.00072740903 -2.2264896e-07 -0.00025826088 -2.4121746e-05 0.00093925764 0.00093925764 
+     830    -6155.851            0  0.015814165 9.9540852e-10    96.935488       -0.025            0            0            0 0.0016666667 -0.00020150428 -1.4648382e-07 5.1213137e-05 -2.6356941e-05 0.0018681709 0.0018681709 
+     840    -6155.851            0  0.017960316 -3.6691752e-09    96.935483       -0.025            0            0            0 0.0016666667 0.00095321447 6.0691053e-07 0.00078150564 -2.993386e-05 0.0007134522 0.0007134522 
+     850    -6155.851            0  0.020433235 1.5826068e-09    96.935477       -0.025            0            0            0 0.0016666667 0.0035255313 -2.7216094e-07 -0.0011364529 -3.4055392e-05 -0.0018588646 -0.0018588646 
+     860    -6155.851            0  0.023085812 3.1475892e-09    96.935486       -0.025            0            0            0 0.0016666667   0.01015645 -5.3450364e-07 -0.00055909791 -3.8476354e-05 -0.0084897836 -0.0084897836 
+     870    -6155.851            0  0.027552884 -1.0798686e-08    96.935526       -0.025            0            0            0 0.0016666667  0.016481473 2.2189423e-06 0.0016007847 -4.5921473e-05 -0.014814807 -0.014814807 
+     880   -6155.8511            0  0.055457179 -1.535611e-08    96.935606       -0.025            0            0            0 0.0016666667  0.013469024 1.8368724e-06  0.007644777 -9.2428631e-05 -0.011802357 -0.011802357 
+     890   -6155.8511            0  0.070355074 3.8023025e-09     96.93559       -0.025            0            0            0 0.0016666667 0.0045123223 -1.0894883e-06 0.0012650095 -0.00011725846 -0.0028456556 -0.0028456556 
+     900   -6155.8511            0  0.071239511 -9.5003883e-11    96.935566       -0.025            0            0            0 0.0016666667 0.0041482123 5.3052778e-08 0.0013631978 -0.00011873252 -0.0024815456 -0.0024815456 
+     910   -6155.8511            0  0.071770633 1.2925244e-09    96.935508       -0.025            0            0            0 0.0016666667 0.0041066236 3.455464e-07 -4.7637007e-05 -0.00011961772 -0.0024399569 -0.0024399569 
+     920   -6155.8511            0   0.07241886 -3.7163732e-10    96.935444       -0.025            0            0            0 0.0016666667 0.0043614531 -4.0071843e-07 -0.0020847574 -0.0001206981 -0.0026947864 -0.0026947864 
+     930   -6155.8511            0   0.08035653 -8.2019055e-09    96.935169       -0.025            0            0            0 0.0016666667 0.0030840679 -1.6577238e-06 -0.0028722541 -0.00013392755 -0.0014174012 -0.0014174012 
+     940   -6155.8511            0   0.10233759 1.4658533e-09    96.934738       -0.025            0            0            0 0.0016666667 0.0030986023 6.3718151e-07 0.0075147368 -0.00017056265 -0.0014319357 -0.0014319357 
+     950   -6155.8511            0    0.1091589 4.8592844e-10    96.934799       -0.025            0            0            0 0.0016666667 0.0019854702 -1.4318185e-07  0.012415464 -0.00018193149 -0.00031880356 -0.00031880356 
+     960   -6155.8511            0   0.12158268 2.8258211e-09    96.935015       -0.025            0            0            0 0.0016666667 0.0013596908 -1.5767032e-06 0.0030979015 -0.00020263779 0.00030697591 0.00030697591 
+     970   -6155.8511            0   0.12403838 -1.3425882e-09    96.935054       -0.025            0            0            0 0.0016666667 0.0017582125 -2.2550336e-07 -0.0026021546 -0.00020673063 -9.1545869e-05 -9.1545869e-05 
+     972   -6155.8511            0   0.12405405 -2.2177075e-10    96.935054       -0.025            0            0            0 0.0016666667 0.0017724415 -1.7549598e-07 -0.0025842017 -0.00020675674 -0.00010577487 -0.00010577487 
+Loop time of 25.365 on 4 procs for 271 steps with 846 atoms
+
+Minimization stats:
+  Stopping criterion = linesearch alpha is zero
+  Energy initial, next-to-last, final = 
+         -6155.8510194     -6155.85111851     -6155.85111851
+  Force two-norm initial, final = 0.000910877 0.000855978
+  Force max component initial, final = 9.24024e-05 8.83791e-05
+  Final line search alpha, max atom move = 0.015625 1.38092e-06
+  Iterations, force evaluations = 271 553
+
+Pair  time (%) = 4.51795 (17.8118)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 1.02193 (4.0289)
+Outpt time (%) = 0.702078 (2.7679)
+Other time (%) = 19.123 (75.3914)
+
+Nlocal:    211.5 ave 216 max 198 min
+Histogram: 1 0 0 0 0 0 0 0 0 3
+Nghost:    195.75 ave 261 max 126 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:    0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:  48199.5 ave 53136 max 41085 min
+Histogram: 1 0 0 1 0 0 0 0 0 2
+
+Total # of neighbors = 192798
+Ave neighs/atom = 227.894
+Neighbor list builds = 0
+Dangerous builds = 0
+    min_style sd
+    min_modify line backtrack
+    #minimize 0 0 100000 100000
+    minimize 0 0 1000 1000
+WARNING: Resetting reneighboring criteria during minimization (../min.cpp:173)
+Setting up minimization ...
+ ATC: WARNING: material: [cnt0] cannot find electron_flux
+ ATC: WARNING: physics model: [electrostatic], material: [cnt0] does not provide all interfaces for <electron_density> physics and will be treated as null 
+Memory usage per processor = 55.3135 Mbytes
+Step TotEng KinEng CM[1] CM[2] CM[3] Q AtC[4] AtC[5] AtC[6] AtC[7] FIX[1] FIX[2] FIX[3] AtC FSUM[1] RSUM[1] 
+     972   -6155.8511            0   0.12405405 -2.2177075e-10    96.935054       -0.025            0            0            0 0.0016666667 0.0017724415 -1.7549598e-07 -0.0025842017 -0.00020675674 -0.00010577487 -0.00010577487 
+     973   -6155.8511            0   0.12405405 -2.2177075e-10    96.935054       -0.025            0            0            0 0.0016666667 0.0017724415 -1.7549598e-07 -0.0025842017 -0.00020675674 -0.00010577487 -0.00010577487 
+Loop time of 0.277416 on 4 procs for 1 steps with 846 atoms
+
+Minimization stats:
+  Stopping criterion = linesearch alpha is zero
+  Energy initial, next-to-last, final = 
+        -6155.85111851     -6155.85111851     -6155.85111851
+  Force two-norm initial, final = 0.000855978 0.000855978
+  Force max component initial, final = 8.83791e-05 8.83791e-05
+  Final line search alpha, max atom move = 0.015625 1.38092e-06
+  Iterations, force evaluations = 1 7
+
+Pair  time (%) = 0.0593559 (21.396)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.00413132 (1.48921)
+Outpt time (%) = 0 (0)
+Other time (%) = 0.213929 (77.1148)
+
+Nlocal:    211.5 ave 216 max 198 min
+Histogram: 1 0 0 0 0 0 0 0 0 3
+Nghost:    195.75 ave 261 max 126 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:    0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:  48199.5 ave 53136 max 41085 min
+Histogram: 1 0 0 1 0 0 0 0 0 2
+
+Total # of neighbors = 192798
+Ave neighs/atom = 227.894
+Neighbor list builds = 0
+Dangerous builds = 0
+    fix_modify AtC output now
+
+    # u = F L^3 / 3 EI --> EI = F L^3 / 3 u
+    variable u equal c_CM[1]
+    variable uz equal c_CM[3]
+#   variable F equal f_AtC[5]
+#   variable Fz equal f_AtC[7]
+    variable F equal c_RSUM[1]
+    variable Fz equal c_RSUM[3]
+    variable R equal $F-$C*$b
+    variable R equal -0.00010577487498249815213-$C*$b
+    variable R equal -0.00010577487498249815213--0.025000000000000001388*$b
+    variable R equal -0.00010577487498249815213--0.025000000000000001388*0.066666666666666665741
+    variable Rz equal ${Fz}-$C*$a
+    variable Rz equal 0.0025842016931355718881-$C*$a
+    variable Rz equal 0.0025842016931355718881--0.025000000000000001388*$a
+    variable Rz equal 0.0025842016931355718881--0.025000000000000001388*0
+    variable EI equal $F*${Lfree}*${Lfree}*${Lfree}/3./$u
+    variable EI equal -0.00010577487498249815213*${Lfree}*${Lfree}*${Lfree}/3./$u
+    variable EI equal -0.00010577487498249815213*90*${Lfree}*${Lfree}/3./$u
+    variable EI equal -0.00010577487498249815213*90*90*${Lfree}/3./$u
+    variable EI equal -0.00010577487498249815213*90*90*90/3./$u
+    variable EI equal -0.00010577487498249815213*90*90*90/3./0.12405404654784669971
+    variable EI equal ${EI}*${eV2J}*${A2m}
+    variable EI equal -207.1943264731270915*${eV2J}*${A2m}
+    variable EI equal -207.1943264731270915*1.6021764600000000642e-19*${A2m}
+    variable EI equal -207.1943264731270915*1.6021764600000000642e-19*1.0000000000000000364e-10
+    #print "flexural rigidity ${EI}  [Nm^2]  NOTE z force"
+
+    print ">> V $b $a F $F ${Fz} u $u ${uz} c $c phi 0 EI ${EI} R $R ${Rz}"
+>> V 0.066666666666666665741 0 F -0.00010577487498249815213 0.0025842016931355718881 u 0.12405404654784669971 96.935053768033569099 c -0.0027777777777777778838 phi 0 EI -3.3196187252079907596e-27 R 0.0015608917916841685402 0.0025842016931355718881
+    next i
+  jump SELF loop_i
+    variable b equal ($i-1)*${Vg}/(${ng}-1)/${Lx}
+    variable b equal (4-1)*${Vg}/(${ng}-1)/${Lx}
+    variable b equal (4-1)*0.10000000000000000555/(${ng}-1)/${Lx}
+    variable b equal (4-1)*0.10000000000000000555/(4-1)/${Lx}
+    variable b equal (4-1)*0.10000000000000000555/(4-1)/1
+
+    fix_modify AtC  fix electric_potential all linear 0 0 0 $b 0 $a 0
+    fix_modify AtC  fix electric_potential all linear 0 0 0 0.10000000000000001943 0 $a 0
+    fix_modify AtC  fix electric_potential all linear 0 0 0 0.10000000000000001943 0 0 0
+ ATC: created function : 0 + 0.1(x-0)+0(y-0)+0(z-0)
+    min_style cg
+    min_modify line quadratic
+    #minimize 0 0 100000 100000
+    minimize 0 0 1000 1000
+WARNING: Resetting reneighboring criteria during minimization (../min.cpp:173)
+Setting up minimization ...
+ ATC: WARNING: material: [cnt0] cannot find electron_flux
+ ATC: WARNING: physics model: [electrostatic], material: [cnt0] does not provide all interfaces for <electron_density> physics and will be treated as null 
+Memory usage per processor = 55.3135 Mbytes
+Step TotEng KinEng CM[1] CM[2] CM[3] Q AtC[4] AtC[5] AtC[6] AtC[7] FIX[1] FIX[2] FIX[3] AtC FSUM[1] RSUM[1] 
+     973   -6155.8512            0   0.12405405 -2.2177075e-10    96.935054       -0.025            0            0            0       0.0025 0.0017724415 -1.7549598e-07 -0.0025842017 -0.00031013512 0.00072755846 0.00072755846 
+     977   -6155.8512            0   0.12406088 -1.0970139e-09    96.935055       -0.025            0            0            0       0.0025 0.0017262049 -1.3531203e-07 -0.0026622077 -0.0003101522 0.00077379508 0.00077379508 
+Loop time of 1.007 on 4 procs for 4 steps with 846 atoms
+
+Minimization stats:
+  Stopping criterion = linesearch alpha is zero
+  Energy initial, next-to-last, final = 
+        -6155.85122189     -6155.85122188     -6155.85122188
+  Force two-norm initial, final = 0.000891466 0.000702795
+  Force max component initial, final = 0.000104825 6.49275e-05
+  Final line search alpha, max atom move = 0.015625 1.01449e-06
+  Iterations, force evaluations = 4 19
+
+Pair  time (%) = 0.155607 (15.4525)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.0349094 (3.46666)
+Outpt time (%) = 0 (0)
+Other time (%) = 0.816487 (81.0808)
+
+Nlocal:    211.5 ave 216 max 198 min
+Histogram: 1 0 0 0 0 0 0 0 0 3
+Nghost:    195.75 ave 261 max 126 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:    0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:  48199.5 ave 53136 max 41085 min
+Histogram: 1 0 0 1 0 0 0 0 0 2
+
+Total # of neighbors = 192798
+Ave neighs/atom = 227.894
+Neighbor list builds = 0
+Dangerous builds = 0
+    min_style sd
+    min_modify line backtrack
+    #minimize 0 0 100000 100000
+    minimize 0 0 1000 1000
+WARNING: Resetting reneighboring criteria during minimization (../min.cpp:173)
+Setting up minimization ...
+ ATC: WARNING: material: [cnt0] cannot find electron_flux
+ ATC: WARNING: physics model: [electrostatic], material: [cnt0] does not provide all interfaces for <electron_density> physics and will be treated as null 
+Memory usage per processor = 55.3135 Mbytes
+Step TotEng KinEng CM[1] CM[2] CM[3] Q AtC[4] AtC[5] AtC[6] AtC[7] FIX[1] FIX[2] FIX[3] AtC FSUM[1] RSUM[1] 
+     977   -6155.8512            0   0.12406088 -1.0970139e-09    96.935055       -0.025            0            0            0       0.0025 0.0017262049 -1.3531203e-07 -0.0026622077 -0.0003101522 0.00077379508 0.00077379508 
+     978   -6155.8512            0   0.12406088 -1.0970139e-09    96.935055       -0.025            0            0            0       0.0025 0.0017262049 -1.3531203e-07 -0.0026622077 -0.0003101522 0.00077379508 0.00077379508 
+Loop time of 0.277741 on 4 procs for 1 steps with 846 atoms
+
+Minimization stats:
+  Stopping criterion = linesearch alpha is zero
+  Energy initial, next-to-last, final = 
+        -6155.85122188     -6155.85122188     -6155.85122188
+  Force two-norm initial, final = 0.000702795 0.000702795
+  Force max component initial, final = 6.49275e-05 6.49275e-05
+  Final line search alpha, max atom move = 0.015625 1.01449e-06
+  Iterations, force evaluations = 1 7
+
+Pair  time (%) = 0.0594354 (21.3995)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.00418288 (1.50603)
+Outpt time (%) = 0 (0)
+Other time (%) = 0.214123 (77.0944)
+
+Nlocal:    211.5 ave 216 max 198 min
+Histogram: 1 0 0 0 0 0 0 0 0 3
+Nghost:    195.75 ave 261 max 126 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:    0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:  48199.5 ave 53136 max 41085 min
+Histogram: 1 0 0 1 0 0 0 0 0 2
+
+Total # of neighbors = 192798
+Ave neighs/atom = 227.894
+Neighbor list builds = 0
+Dangerous builds = 0
+    fix_modify AtC output now
+
+    # u = F L^3 / 3 EI --> EI = F L^3 / 3 u
+    variable u equal c_CM[1]
+    variable uz equal c_CM[3]
+#   variable F equal f_AtC[5]
+#   variable Fz equal f_AtC[7]
+    variable F equal c_RSUM[1]
+    variable Fz equal c_RSUM[3]
+    variable R equal $F-$C*$b
+    variable R equal 0.00077379508410631867108-$C*$b
+    variable R equal 0.00077379508410631867108--0.025000000000000001388*$b
+    variable R equal 0.00077379508410631867108--0.025000000000000001388*0.10000000000000001943
+    variable Rz equal ${Fz}-$C*$a
+    variable Rz equal 0.0026622076933775122923-$C*$a
+    variable Rz equal 0.0026622076933775122923--0.025000000000000001388*$a
+    variable Rz equal 0.0026622076933775122923--0.025000000000000001388*0
+    variable EI equal $F*${Lfree}*${Lfree}*${Lfree}/3./$u
+    variable EI equal 0.00077379508410631867108*${Lfree}*${Lfree}*${Lfree}/3./$u
+    variable EI equal 0.00077379508410631867108*90*${Lfree}*${Lfree}/3./$u
+    variable EI equal 0.00077379508410631867108*90*90*${Lfree}/3./$u
+    variable EI equal 0.00077379508410631867108*90*90*90/3./$u
+    variable EI equal 0.00077379508410631867108*90*90*90/3./0.12406087903930071437
+    variable EI equal ${EI}*${eV2J}*${A2m}
+    variable EI equal 1515.6446326506320474*${eV2J}*${A2m}
+    variable EI equal 1515.6446326506320474*1.6021764600000000642e-19*${A2m}
+    variable EI equal 1515.6446326506320474*1.6021764600000000642e-19*1.0000000000000000364e-10
+    #print "flexural rigidity ${EI}  [Nm^2]  NOTE z force"
+
+    print ">> V $b $a F $F ${Fz} u $u ${uz} c $c phi 0 EI ${EI} R $R ${Rz}"
+>> V 0.10000000000000001943 0 F 0.00077379508410631867108 0.0026622076933775122923 u 0.12406087903930071437 96.935055022011525239 c -0.0027777777777777778838 phi 0 EI 2.4283301521581904147e-26 R 0.0032737950841063190484 0.0026622076933775122923
+    next i
+  jump SELF loop_i
+

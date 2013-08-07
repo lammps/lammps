@@ -1,0 +1,204 @@
+LAMMPS (14 Aug 2013)
+units    real
+atom_style  atomic
+
+variable l equal 8
+variable g equal 2
+variable lg equal $l+$g
+variable lg equal 8+$g
+variable lg equal 8+2
+variable w equal 2
+
+lattice         fcc 5.405 origin 0.25 0.25 0.25
+Lattice spacing in x,y,z = 5.405 5.405 5.405
+boundary  f f f
+
+# region to create atoms
+region		bigCyl cylinder z 0. 0. ${lg} -$w $w
+region		bigCyl cylinder z 0. 0. 10 -$w $w
+region		bigCyl cylinder z 0. 0. 10 -2 $w
+region		bigCyl cylinder z 0. 0. 10 -2 2
+region		offsetPlane block -${lg} $g -${lg} ${lg} -$w $w
+region		offsetPlane block -10 $g -${lg} ${lg} -$w $w
+region		offsetPlane block -10 2 -${lg} ${lg} -$w $w
+region		offsetPlane block -10 2 -10 ${lg} -$w $w
+region		offsetPlane block -10 2 -10 10 -$w $w
+region		offsetPlane block -10 2 -10 10 -2 $w
+region		offsetPlane block -10 2 -10 10 -2 2
+region		mdRegion intersect 2 bigCyl offsetPlane
+#create_box 1 mdRegion
+pair_style  lj/cut 13.5
+read_data	semicircle_init.atm
+Reading data file ...
+  orthogonal box = (-54.05 -54.05 -10.81) to (10.81 54.05 10.81)
+  2 by 2 by 1 MPI processor grid
+  3168 atoms
+  3168 velocities
+
+# region for internal atoms
+region     mdInternalCyl cylinder z 0. 0. $l -$w $w
+region     mdInternalCyl cylinder z 0. 0. 8 -$w $w
+region     mdInternalCyl cylinder z 0. 0. 8 -2 $w
+region     mdInternalCyl cylinder z 0. 0. 8 -2 2
+region		leftHalfPlane block INF 0. INF INF INF INF
+region		mdInternal intersect 2 mdInternalCyl leftHalfPlane
+
+# region for coupling ghosts
+region		rightHalfPlane block 0. INF INF INF INF INF
+region		mdGhost union 2 rightHalfPlane mdInternal side out
+
+#create_atoms 1 region mdRegion
+#create_atoms 1 region mdInternal
+#create_atoms 2 region mdGhost
+#region	outerGhost intersect 2 rightHalfPlane mdRegion
+#create_atoms 3 region outerGhost
+
+#pair_style  lj/cut 13.5
+fix ZWALLS all wall/reflect zlo EDGE zhi EDGE
+#mass    1 39.95
+#pair_coeff    1 1 .238 3.405 13.5
+group    internal region mdInternal
+1624 atoms in group internal
+group	 ghost region mdGhost
+904 atoms in group ghost
+#velocity internal create 40 102486 mom yes rot yes dist gaussian
+#write_restart semicircle_init.rst
+
+# ATC commands
+fix	AtC internal atc thermal Ar_ttm.mat
+ATC: constructing thermal coupling with parameter file Ar_ttm.mat
+ ATC: peratom PE compute created with ID: 3
+ ATC: 2 materials defined from Ar_ttm.mat
+fix_modify	AtC boundary ghost
+fix_modify	AtC mesh read semicircle.mesh  f f p
+ ATC: P1, writing periodicity corrected mesh: periodic_semicircle.mesh
+ ATC: P2, writing periodicity corrected mesh: periodic_semicircle.mesh
+ ATC: P3, writing periodicity corrected mesh: periodic_semicircle.mesh
+ ATC: read 398 nodes
+ ATC: read 176 HEX8 elements
+ ATC: condensed 199 periodic nodes in the 3 direction
+ ATC: created nodeset 1 with 44 nodes
+ ATC: created nodeset 2 with 4 nodes
+ ATC: WARNING: mesh is not aligned with the coordinate directions atom-to-element mapping will be expensive
+ ATC: P0, writing periodicity corrected mesh: periodic_semicircle.mesh
+fix_modify	AtC mesh nodeset_to_elementset 2 hole min
+fix_modify	AtC internal_quadrature off
+fix_modify	AtC time_integration fractional_step
+
+# initial conditions
+fix_modify	AtC fix temperature all 20.
+fix_modify	AtC control thermal rescale 10
+fix_modify      AtC control tolerance 1.e-14 # tolerance needed to produce consistent parallel and serial results
+
+# initial output
+#fix_modify	AtC mesh output semicircle_mesh
+#fix_modify	AtC output semicircle_init 100 text binary
+#dump		D1 all atom 100 semicircle_init.dmp
+
+# run
+timestep  5.0
+thermo    100
+run       500
+Setting up run ...
+Memory usage per processor = 94.811 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0    20.498895   -5250.6971            0   -5057.1829   -1088.0506 
+     100    10.255763   -5131.7808            0   -5034.9641   -671.92179 
+     200    10.255763   -5194.8934            0   -5098.0766   -664.20614 
+     300    10.255763   -5191.6455            0   -5094.8288   -564.44341 
+     400    10.255763   -5185.5031            0   -5088.6864   -611.34498 
+     500    10.255763   -5185.1021            0   -5088.2853   -686.81479 
+Loop time of 15.2128 on 4 procs for 500 steps with 3168 atoms
+
+Pair  time (%) = 2.78663 (18.3176)
+Neigh time (%) = 0.0548139 (0.360314)
+Comm  time (%) = 3.63319 (23.8824)
+Outpt time (%) = 0.000398099 (0.00261687)
+Other time (%) = 8.73779 (57.437)
+
+Nlocal:    792 ave 944 max 640 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:    860 ave 888 max 832 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:    95743.8 ave 114417 max 76793 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+FullNghs:  191488 ave 228943 max 153856 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 765950
+Ave neighs/atom = 241.777
+Neighbor list builds = 5
+Dangerous builds = 0
+
+# boundary conditions
+fix_modify	AtC unfix temperature all
+fix_modify	AtC fix temperature 1 20.
+fix_modify	AtC control thermal flux
+fix_modify	AtC control localized_lambda on
+
+# NOTE appears to be a problem with the temporal ramp function
+variable delta_t equal 1000*5.
+fix_modify      AtC source temperature hole temporal_ramp 0. 0.0000000001 ${delta_t}
+fix_modify      AtC source temperature hole temporal_ramp 0. 0.0000000001 5000
+
+# equilibrate filter
+fix_modify	AtC filter type exponential
+fix_modify	AtC filter scale 1000.
+fix_modify	AtC filter on
+
+# equilibration output
+fix_modify      AtC output semicircleFE 100 full_text #binary
+ ATC: Warning : text output can create _LARGE_ files
+ ATC: output custom names:
+
+#undump		D1
+#dump            D1 all atom 100 semicircle_equil.dmp
+
+# run
+fix_modify	AtC reset_time 0.
+reset_timestep  0
+thermo 100
+run    1000
+Setting up run ...
+Memory usage per processor = 108.386 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0    10.255763   -5185.1021            0   -5088.2853   -686.81479 
+     100    9.9160769   -5177.6646            0   -5084.0545   -753.44628 
+     200    10.215779   -5182.5539            0   -5086.1147   -721.64916 
+     300    10.609664   -5183.8798            0   -5083.7222   -672.99308 
+     400    10.754797   -5188.6804            0   -5087.1527   -620.77678 
+     500    10.271869   -5184.1487            0     -5087.18   -643.71337 
+     600    10.214975   -5184.0211            0   -5087.5894   -687.47365 
+     700    10.231487    -5182.315            0   -5085.7274   -719.65308 
+     800    10.245262   -5181.8268            0   -5085.1092   -707.19351 
+     900    10.342331   -5183.9012            0   -5086.2673   -667.21622 
+    1000    10.446039   -5184.9612            0   -5086.3482   -647.13367 
+Loop time of 83.0725 on 4 procs for 1000 steps with 3168 atoms
+
+Pair  time (%) = 6.33517 (7.62607)
+Neigh time (%) = 0.152702 (0.183818)
+Comm  time (%) = 8.85507 (10.6595)
+Outpt time (%) = 0.0723367 (0.0870767)
+Other time (%) = 67.6572 (81.4436)
+
+Nlocal:    792 ave 944 max 640 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:    860 ave 888 max 832 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:    95600.8 ave 114809 max 76836 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+FullNghs:  191202 ave 228917 max 153483 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 764806
+Ave neighs/atom = 241.416
+Neighbor list builds = 8
+Dangerous builds = 0
+
+# heat source
+# NOTE second run omitted as it causes diffs in parallel execution after just one timestep, not sure why
+#fix_modify	AtC source temperature hole 0.0000000001
+#fix_modify      AtC output semicircleFE 1 full_text #binary
+#undump          D1
+#dump            D1 all atom 100 semicircle.dmp
+#run    1#000

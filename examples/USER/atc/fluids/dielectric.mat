@@ -1,0 +1,15 @@
+material Fluid real
+electric_field linear
+permittivity  1.
+end
+electron_density null
+end
+end
+
+material Solid real
+electric_field linear
+permittivity 4.
+end
+electron_density null
+end
+end

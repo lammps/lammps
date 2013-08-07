@@ -1,67 +1,45 @@
-#AtC Thermal Coupling
-log		eam_unistrain_step.log
-
+# This test calculates several Hardy fields for a system subjected to
+# unaxial strain using the "step" Hardy localization function.
+echo both
 units		metal	
 atom_style	atomic
-atom_modify     sort 0 1
-
 # create domain
 lattice         fcc 3.615 origin 0.25 0.25 0.25
 region		simRegion block -18 18 -3 3 -3 3
 region		feRegion block -18 18 -3 3 -3 3
 boundary	f p p
 create_box	1 simRegion
-
 # create atoms
 region		mdRegion block -17 17 -3 3 -3 3
 create_atoms	1 region mdRegion
 mass		1 63.550 
-
-# specify interal/ghost atoms
+# specify interal atoms
 region		mdInternal block -16 16 -3 3 -3 3
 group		internal region mdInternal
-#group		ghost subtract all internal
-
 # specify inter-atomic potential
 pair_style	eam
 pair_coeff  	* * ../../../../potentials/Cu_u3.eam
-
 # specify neighbor/re-neighboring parameters
 neighbor	0.3 bin
 neigh_modify	every 10 delay 0 check no
-
 # setup thermal output
 thermo		10
 thermo_style custom step pe ke press lx ly lz
-
 #               ID  group atc PhysicsType ParameterFile
 fix             AtC internal atc hardy
-fix_modify      AtC transfer kernel step 9.0375
+fix_modify      AtC kernel step 9.0375
 # fix_modify      AtC atom_element_map eulerian 1
-fix_modify      AtC transfer fields none 
-fix_modify      AtC transfer fields add density displacement stress energy
-fix_modify      AtC transfer gradients add displacement
-fix_modify      AtC neighbor_reset_frequency 1
-# fix_modify	AtC transfer on_the_fly kernel on
-# fix_modify	AtC transfer on_the_fly bond on
-
+fix_modify      AtC fields none 
+fix_modify      AtC fields add mass_density displacement stress internal_energy
+fix_modify      AtC gradients add displacement
+# fix_modify	AtC  on_the_fly kernel on
+# fix_modify	AtC  on_the_fly bond on
 #               ID  part keywords    nx ny nz region
-fix_modify      AtC fem  create mesh 9 1 1 feRegion f p p
-
-# specify atom types
-fix_modify      AtC transfer internal type internal
-fix_modify      AtC transfer boundary type ghost
-
+fix_modify      AtC mesh create 9 1 1 feRegion f p p
 # equilibrate MD field
-
 timestep 0.001
 reset_timestep	0	
 run 		1
-
 displace_atoms	all ramp x -0.6507 0.6507 x -65.07 65.07
-
-fix_modify	AtC transfer output eam_unistrain_stepFE 1 text 
-fix_modify	AtC transfer atomic_output eam_unistrain_stepMD 1
-
+fix_modify	AtC  output eam_unistrain_stepFE 1 text 
 run		1
-

@@ -1,0 +1,158 @@
+LAMMPS (14 Aug 2013)
+Reading data file ...
+  orthogonal box = (-64.86 -16.215 -16.215) to (64.86 16.215 16.215)
+  4 by 1 by 1 MPI processor grid
+  3456 atoms
+  3456 velocities
+Lattice spacing in x,y,z = 5.405 5.405 5.405
+2880 atoms in group internal
+576 atoms in group ghost
+ATC: constructing two_temperature coupling with parameter file Ar_ttm.mat
+ ATC: peratom PE compute created with ID: 3
+ ATC: 2 materials defined from Ar_ttm.mat
+ ATC: creating two_temperature extrinsic model
+ ATC: 2 materials defined from Ar_ttm.mat
+ ATC: created uniform mesh with 60 nodes, 15 unique nodes, and 14 elements
+Setting up run ...
+Memory usage per processor = 97.9907 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0    16.671491   -6505.7593            0   -6334.0647   -1236.2423 
+     100    16.671491   -6501.3833            0   -6329.6886   -1223.1536 
+     200    16.671491   -6500.6894            0   -6328.9948   -1219.3362 
+     300    16.671491   -6503.1069            0   -6331.4122   -1227.3602 
+     400    16.671491   -6500.6574            0   -6328.9628     -1220.86 
+     500    16.671491   -6502.4882            0   -6330.7935   -1225.3148 
+     600    16.671491   -6505.0003            0   -6333.3057   -1232.9704 
+     700    16.671491   -6501.3022            0   -6329.6075    -1221.089 
+     800    16.671491   -6503.8814            0   -6332.1868   -1228.9533 
+     900    16.671491    -6505.846            0   -6334.1514   -1235.4657 
+    1000    16.671491   -6504.4261            0   -6332.7314   -1231.2716 
+Loop time of 37.7773 on 4 procs for 1000 steps with 3456 atoms
+
+Pair  time (%) = 10.8992 (28.8511)
+Neigh time (%) = 4.99517 (13.2227)
+Comm  time (%) = 6.46988 (17.1264)
+Outpt time (%) = 0.0506067 (0.13396)
+Other time (%) = 15.3625 (40.6659)
+
+Nlocal:    864 ave 864 max 864 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    6741 ave 7924 max 5558 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:    273177 ave 289116 max 257307 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+FullNghs:  546354 ave 576160 max 516664 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 2185418
+Ave neighs/atom = 632.355
+Neighbor list builds = 100
+Dangerous builds = 0
+ ATC: created faceset bndy with 2 faces
+ ATC: created nodeset lbc with 1 nodes
+ ATC: created nodeset rbc with 1 nodes
+Setting up run ...
+Memory usage per processor = 102.974 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0    16.671491   -6504.4261            0   -6332.7314   -1231.2716 
+     100    16.530548   -6502.2979            0   -6332.0547   -1225.9982 
+     200    16.768382   -6503.3792            0   -6330.6867   -1227.3237 
+     300    16.645261   -6500.2867            0   -6328.8622   -1218.8568 
+     400    16.895022   -6499.7419            0   -6325.7451   -1218.3147 
+     500    17.025324   -6497.5028            0   -6322.1641   -1209.3964 
+     600    17.357415   -6496.5551            0   -6317.7963   -1206.7087 
+     700    17.318832   -6491.6971            0   -6313.3357   -1193.3844 
+     800    17.899936    -6492.264            0   -6307.9179   -1191.1732 
+     900    18.450923   -6492.0033            0   -6301.9828   -1190.2234 
+    1000    18.293629   -6484.9144            0   -6296.5138   -1169.3319 
+    1100    18.566253   -6481.8954            0   -6290.6872   -1161.7547 
+    1200    18.884588     -6479.22            0   -6284.7334   -1152.6827 
+    1300    19.428205   -6477.9973            0   -6277.9121   -1147.8183 
+    1400    19.653142   -6473.9811            0   -6271.5793   -1136.5497 
+    1500      19.9352   -6470.4382            0   -6265.1316   -1122.9541 
+    1600    20.587115   -6470.6124            0   -6258.5919   -1122.3456 
+    1700    20.433936    -6462.792            0    -6252.349   -1100.3298 
+    1800    21.314998   -6465.4549            0   -6245.9382   -1104.9574 
+    1900    21.353208   -6458.9075            0   -6238.9973   -1085.5335 
+    2000    21.394021    -6453.327            0   -6232.9964    -1069.954 
+Loop time of 235.783 on 4 procs for 2000 steps with 3456 atoms
+
+Pair  time (%) = 26.6899 (11.3197)
+Neigh time (%) = 13.9674 (5.92386)
+Comm  time (%) = 42.2094 (17.9018)
+Outpt time (%) = 0.572407 (0.242769)
+Other time (%) = 152.344 (64.6118)
+
+Nlocal:    864 ave 864 max 864 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    6741 ave 7924 max 5558 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:    272686 ave 287488 max 257348 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+FullNghs:  545372 ave 575305 max 514897 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 2181486
+Ave neighs/atom = 631.217
+Neighbor list builds = 200
+Dangerous builds = 0
+System init for write_restart ...
+ATC: constructing two_temperature coupling with parameter file Ar_ttm.mat
+ ATC: peratom PE compute created with ID: 3
+ ATC: 2 materials defined from Ar_ttm.mat
+ ATC: creating two_temperature extrinsic model
+ ATC: 2 materials defined from Ar_ttm.mat
+ ATC: created uniform mesh with 60 nodes, 15 unique nodes, and 14 elements
+ ATC: created faceset bndy with 2 faces
+ ATC: created nodeset lbc with 1 nodes
+ ATC: created nodeset rbc with 1 nodes
+ ATC: Warning : text output can create _LARGE_ files
+ ATC: output custom names:
+
+Setting up run ...
+ ATC: P0, found 3456 atoms in reference file
+ ATC: P0, read  3456 reference positions
+Memory usage per processor = 102.974 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0    21.394021    -6453.327            0   -6232.9964    -1069.954 
+     100    21.611528   -6449.5788            0   -6227.0081   -1058.3224 
+     200    21.976031   -6447.3787            0   -6221.0542   -1050.4447 
+     300    22.453535   -6446.5516            0   -6215.3094   -1047.2794 
+     400    23.061538   -6447.4669            0   -6209.9631   -1048.3359 
+     500      23.0435   -6441.8867            0   -6204.5687   -1031.0775 
+     600    23.434674   -6439.8253            0   -6198.4787   -1023.8681 
+     700    23.661242    -6436.051            0    -6192.371   -1012.9536 
+     800    23.855535   -6432.3914            0   -6186.7104   -1002.6094 
+     900     24.57972   -6434.1846            0   -6181.0454   -1005.6096 
+    1000    24.591901   -6427.6437            0   -6174.3791   -986.79755 
+    1100    24.564542   -6420.9496            0   -6167.9668   -967.60512 
+    1200    25.124526   -6420.7193            0   -6161.9694   -965.13516 
+    1300    25.451194   -6418.1572            0    -6156.043   -957.51898 
+    1400    25.392119   -6411.6404            0   -6150.1346   -940.17651 
+    1500    25.941448   -6411.8573            0   -6144.6941   -937.00901 
+    1600    26.068719   -6407.9609            0   -6139.4871   -925.02968 
+    1700    26.556302   -6407.3907            0   -6133.8954   -921.78016 
+    1800    27.343301   -6410.2665            0   -6128.6661   -928.15556 
+    1900    27.586019   -6407.6536            0   -6123.5535   -917.44798 
+    2000    27.450662   -6401.9839            0   -6119.2778   -903.28749 
+Loop time of 65.9952 on 4 procs for 2000 steps with 3456 atoms
+
+Pair  time (%) = 19.756 (29.9355)
+Neigh time (%) = 8.36309 (12.6723)
+Comm  time (%) = 7.43406 (11.2645)
+Outpt time (%) = 0.0658885 (0.0998383)
+Other time (%) = 30.3762 (46.0278)
+
+Nlocal:    864 ave 864 max 864 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    6741 ave 7924 max 5558 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:    272377 ave 288250 max 256633 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+FullNghs:  544754 ave 574451 max 514186 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 2179016
+Ave neighs/atom = 630.502
+Neighbor list builds = 200
+Dangerous builds = 0

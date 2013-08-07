@@ -1,0 +1,36 @@
+material Si metal
+#### drift diffusion #####################
+electron_flux thermopower
+mobility                 360000.0   # L^2/t/V , diffusivity from Einstein rel.
+Seebeck                1.0e-9 # HACK order kB
+end
+end
+electron_recombination linear
+inv_relaxation_time    0.0          # 1/t    HACK
+equilibrium_carrier_density 1.0     # e/L^3  HACK
+end
+electric_field linear
+permittivity           0.06         #  e/V/L scales electric field vs charge
+end
+#donor_concentration    1.0          # e/L^3  HACK must be consistent w/ n0 ?
+#### two temperature  ####################
+heat_capacity constant
+capacity 0.124578126430817        # E / L^3
+end
+electron_heat_capacity  constant, no density #power_law
+#capacity 3.53391324615404e-11
+capacity 3.53391324615404e-8      # E / L^3
+end
+effective_mass constant
+inv_effective_mass 1.
+end
+heat_flux linear
+conductivity 722.65698            # E / t / L / T
+end
+electron_heat_flux thermopower # links to electron_flux
+conductivity 0.0441362750535      # E / t / L / T
+end
+electron_phonon_exchange linear
+coefficient 6.0221415e-09         # E / t / T
+end
+end

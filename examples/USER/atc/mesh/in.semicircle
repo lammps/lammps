@@ -1,0 +1,101 @@
+# this input can be used to generate the benchmark for in.gaussianIC2d_hex_uniform
+echo both
+units    real
+atom_style  atomic
+
+variable l equal 8
+variable g equal 2
+variable lg equal $l+$g
+variable w equal 2
+
+lattice         fcc 5.405 origin 0.25 0.25 0.25
+boundary  f f f
+
+# region to create atoms
+region		bigCyl cylinder z 0. 0. ${lg} -$w $w
+region		offsetPlane block -${lg} $g -${lg} ${lg} -$w $w
+region		mdRegion intersect 2 bigCyl offsetPlane
+#create_box 1 mdRegion
+pair_style  lj/cut 13.5
+read_data	semicircle_init.atm
+
+# region for internal atoms
+region     mdInternalCyl cylinder z 0. 0. $l -$w $w
+region		leftHalfPlane block INF 0. INF INF INF INF
+region		mdInternal intersect 2 mdInternalCyl leftHalfPlane
+
+# region for coupling ghosts
+region		rightHalfPlane block 0. INF INF INF INF INF
+region		mdGhost union 2 rightHalfPlane mdInternal side out
+
+#create_atoms 1 region mdRegion
+#create_atoms 1 region mdInternal
+#create_atoms 2 region mdGhost
+#region	outerGhost intersect 2 rightHalfPlane mdRegion
+#create_atoms 3 region outerGhost
+
+#pair_style  lj/cut 13.5
+fix ZWALLS all wall/reflect zlo EDGE zhi EDGE
+#mass    1 39.95
+#pair_coeff    1 1 .238 3.405 13.5
+group    internal region mdInternal
+group	 ghost region mdGhost
+#velocity internal create 40 102486 mom yes rot yes dist gaussian
+#write_restart semicircle_init.rst
+
+# ATC commands
+fix	AtC internal atc thermal Ar_ttm.mat
+fix_modify	AtC boundary ghost
+fix_modify	AtC mesh read semicircle.mesh  f f p 
+fix_modify	AtC mesh nodeset_to_elementset 2 hole min
+fix_modify	AtC internal_quadrature off
+fix_modify	AtC time_integration fractional_step
+
+# initial conditions
+fix_modify	AtC fix temperature all 20.
+fix_modify	AtC control thermal rescale 10
+fix_modify      AtC control tolerance 1.e-14 # tolerance needed to produce consistent parallel and serial results
+
+# initial output
+#fix_modify	AtC mesh output semicircle_mesh
+#fix_modify	AtC output semicircle_init 100 text binary
+#dump		D1 all atom 100 semicircle_init.dmp
+
+# run
+timestep  5.0
+thermo    100
+run       500
+
+# boundary conditions
+fix_modify	AtC unfix temperature all
+fix_modify	AtC fix temperature 1 20.
+fix_modify	AtC control thermal flux
+fix_modify	AtC control localized_lambda on
+
+# NOTE appears to be a problem with the temporal ramp function
+variable delta_t equal 1000*5.
+fix_modify      AtC source temperature hole temporal_ramp 0. 0.0000000001 ${delta_t}
+
+# equilibrate filter
+fix_modify	AtC filter type exponential
+fix_modify	AtC filter scale 1000.
+fix_modify	AtC filter on
+
+# equilibration output
+fix_modify      AtC output semicircleFE 100 full_text #binary
+#undump		D1
+#dump            D1 all atom 100 semicircle_equil.dmp
+
+# run
+fix_modify	AtC reset_time 0.
+reset_timestep  0
+thermo 100
+run    1000
+
+# heat source
+# NOTE second run omitted as it causes diffs in parallel execution after just one timestep, not sure why
+#fix_modify	AtC source temperature hole 0.0000000001
+#fix_modify      AtC output semicircleFE 1 full_text #binary
+#undump          D1
+#dump            D1 all atom 100 semicircle.dmp
+#run    1#000

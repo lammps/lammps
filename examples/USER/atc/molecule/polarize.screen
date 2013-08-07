@@ -1,0 +1,26 @@
+LAMMPS (14 Aug 2013)
+Scanning data file ...
+  2 = max bonds/atom
+  1 = max angles/atom
+Reading data file ...
+  orthogonal box = (-25 -25 -21.8959) to (25 25 21.8959)
+  2 by 2 by 1 MPI processor grid
+  9474 atoms
+  9474 velocities
+  6316 bonds
+  3158 angles
+Finding 1-2 1-3 1-4 neighbors ...
+  2 = max # of 1-2 neighbors
+  1 = max # of 1-3 neighbors
+  1 = max # of 1-4 neighbors
+  2 = max # of special neighbors
+Lattice spacing in x,y,z = 0.05 0.05 0.05
+9474 atoms in group water
+6316 atoms in group hyd
+3158 atoms in group oxy
+Finding 1-2 1-3 1-4 neighbors ...
+  2 = max # of 1-2 neighbors
+  1 = max # of 1-3 neighbors
+  1 = max # of 1-4 neighbors
+  2 = max # of special neighbors
+ERROR: Invalid fix style (../modify.cpp:714)

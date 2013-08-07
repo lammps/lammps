@@ -1,0 +1,105 @@
+LAMMPS (14 Aug 2013)
+units    metal
+
+variable E equal 0.1
+variable L equal 10.0
+#variable N equal 100
+variable N equal 80
+variable T equal 1000
+variable n0 equal 0.0001
+variable dn equal 2.0*${n0}
+variable dn equal 2.0*0.00010000000000000000479
+variable dt equal 0.0000001
+variable s equal 1
+
+timestep  ${dt}
+timestep  9.9999999999999995475e-08
+
+atom_style  atomic
+lattice         fcc 1.0
+Lattice spacing in x,y,z = 1 1 1
+variable a equal 0.5*$L
+variable a equal 0.5*10
+region    simRegion block -$a $a  0 1 0 1
+region    simRegion block -5 $a  0 1 0 1
+region    simRegion block -5 5  0 1 0 1
+boundary  f p p
+create_box  1 simRegion
+Created orthogonal box = (-5 0 0) to (5 1 1)
+  4 by 1 by 1 MPI processor grid
+mass    1 1.0 # need to keep this
+atom_modify     sort 0 1
+
+#          ID  group atc PhysicsType ParameterFile
+fix        AtC all   atc drift_diffusion-schrodinger  SiGe_ddm_schrodinger.mat
+ATC: constructing drift_diffusion-schrodinger coupling with parameter file SiGe_ddm_schrodinger.mat
+ ATC: peratom PE compute created with ID: 3
+ ATC: 2 materials defined from SiGe_ddm_schrodinger.mat
+ ATC: creating drift_diffusion extrinsic model
+ ATC: 2 materials defined from SiGe_ddm_schrodinger.mat
+ ATC: 2 materials defined from SiGe_ddm_schrodinger.mat
+
+#          ID  part keywords    nx ny nz region
+fix_modify AtC mesh  create $N 1  1  simRegion f p p
+fix_modify AtC mesh  create 80 1  1  simRegion f p p
+ ATC: created uniform mesh with 324 nodes, 81 unique nodes, and 80 elements
+variable a   equal 0.2*$L+0.001
+variable a   equal 0.2*10+0.001
+fix_modify AtC mesh create_elementset well -$a $a -INF INF -INF INF
+fix_modify AtC mesh create_elementset well -2.0009999999999998899 $a -INF INF -INF INF
+fix_modify AtC mesh create_elementset well -2.0009999999999998899 2.0009999999999998899 -INF INF -INF INF
+ ATC: created elementset well with 32 elements
+fix_modify AtC mesh create_nodeset    well -$a $a -INF INF -INF INF
+fix_modify AtC mesh create_nodeset    well -2.0009999999999998899 $a -INF INF -INF INF
+fix_modify AtC mesh create_nodeset    well -2.0009999999999998899 2.0009999999999998899 -INF INF -INF INF
+ ATC: created nodeset well with 33 nodes
+fix_modify AtC material well Ge
+
+variable b   equal $a-0.002
+variable b   equal 2.0009999999999998899-0.002
+fix_modify AtC mesh create_nodeset lbc -$a -$b -INF INF -INF INF
+fix_modify AtC mesh create_nodeset lbc -2.0009999999999998899 -$b -INF INF -INF INF
+fix_modify AtC mesh create_nodeset lbc -2.0009999999999998899 -1.9989999999999998881 -INF INF -INF INF
+ ATC: created nodeset lbc with 1 nodes
+fix_modify AtC mesh create_nodeset rbc  $b  $a -INF INF -INF INF
+fix_modify AtC mesh create_nodeset rbc  1.9989999999999998881  $a -INF INF -INF INF
+fix_modify AtC mesh create_nodeset rbc  1.9989999999999998881  2.0009999999999998899 -INF INF -INF INF
+ ATC: created nodeset rbc with 1 nodes
+
+# ics/bcs
+fix_modify AtC  initial temperature          all 300.0
+fix_modify AtC  fix     temperature          all 300.0
+#
+fix_modify AtC  initial electron_temperature all $T
+fix_modify AtC  initial electron_temperature all 1000
+fix_modify AtC  fix     electron_temperature all $T
+fix_modify AtC  fix     electron_temperature all 1000
+#
+fix_modify AtC  initial electron_density     all 0.0
+#fix_modify AtC  fix electron_density         all -0.001
+#fix_modify AtC  fix electron_density        well  0.002
+#
+fix_modify AtC  initial electric_potential   all 0.0
+#fix_modify AtC  fix     electric_potential   lbc 0.5
+#fix_modify AtC  fix     electric_potential   rbc 0.5
+fix_modify AtC  fix     electric_potential   lbc 0.0
+fix_modify AtC  fix     electric_potential   rbc 0.0
+#
+fix_modify AtC  initial electron_wavefunction all 0.0
+fix_modify AtC  fix electron_wavefunction lbc 0.0
+fix_modify AtC  fix electron_wavefunction rbc 0.0
+
+
+thermo  $s
+thermo  1
+# f_AtC:1 thermal energy, 2 avg T, 3 electron energy, 4 avg Te, 5 total n
+thermo_style custom step cpu f_AtC[1] f_AtC[2] f_AtC[3] f_AtC[4] f_AtC[5]
+thermo_modify  format 1 %5i format 2 %7.2g
+fix_modify      AtC  output   finite_wellFE $s text
+fix_modify      AtC  output   finite_wellFE 1 text
+ ATC: Warning : text output can create _LARGE_ files
+ ATC: output custom names:
+
+fix_modify AtC extrinsic electron_integration implicit 3
+fix_modify AtC extrinsic schrodinger_poisson_solver self_consistency 3 # 30
+ERROR: Illegal fix_modify command (../fix.cpp:104)

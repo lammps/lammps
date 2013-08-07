@@ -1,0 +1,7 @@
+material Ar real
+stress  cauchy-born
+  pair_style lj/cut 13.5   #pair_style lj/cut r_cut
+  pair_coeff 0.238 3.405   #pair_coeff epsilon sigma
+# temperature 0
+  linear
+end

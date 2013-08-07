@@ -1,0 +1,158 @@
+LAMMPS (14 Aug 2013)
+units    metal
+
+variable s equal 100
+variable T equal 20
+variable n equal 0.000004
+variable tol equal 0.1
+variable W   equal 1000
+
+atom_style  atomic
+
+lattice   fcc 5.405 origin 0.25 0.25 0.25
+Lattice spacing in x,y,z = 5.405 5.405 5.405
+region    FE block   -8 8 -6 6 0 3
+region    MD block   -7 7 -6 0 0 3
+region    FREE block -4 4 -6 0 0 3
+
+boundary  f f p
+
+# create atoms
+create_box  1 FE
+Created orthogonal box = (-43.24 -32.43 0) to (43.24 32.43 16.215)
+  2 by 2 by 1 MPI processor grid
+mass    1 39.95
+atom_modify     sort 0 1
+
+timestep  0.002
+thermo  $s
+thermo  100
+
+#          ID  group atc PhysicsType ParameterFile
+fix        AtC all  atc drift_diffusion  Ar_ddm.mat
+ATC: constructing drift_diffusion coupling with parameter file Ar_ddm.mat
+ ATC: peratom PE compute created with ID: 3
+ ATC: WARNING: material units real do not match lammps
+ ATC: WARNING: material units real do not match lammps
+ ATC: 2 materials defined from Ar_ddm.mat
+ ATC: creating drift_diffusion extrinsic model
+ ATC: WARNING: material units real do not match lammps
+ ATC: WARNING: material units real do not match lammps
+ ATC: 2 materials defined from Ar_ddm.mat
+ ATC: WARNING: material units real do not match lammps
+ ATC: WARNING: material units real do not match lammps
+ ATC: 2 materials defined from Ar_ddm.mat
+
+#          ID  part keywords    nx ny nz region
+fix_modify AtC mesh  create 4 4  1  FE f f p
+ ATC: created uniform mesh with 50 nodes, 25 unique nodes, and 16 elements
+
+variable a   equal $W+${tol}
+variable a   equal 1000+${tol}
+variable a   equal 1000+0.10000000000000000555
+fix_modify AtC mesh create_elementset wire  -$a $a -INF ${tol} -INF INF
+fix_modify AtC mesh create_elementset wire  -1000.1000000000000227 $a -INF ${tol} -INF INF
+fix_modify AtC mesh create_elementset wire  -1000.1000000000000227 1000.1000000000000227 -INF ${tol} -INF INF
+fix_modify AtC mesh create_elementset wire  -1000.1000000000000227 1000.1000000000000227 -INF 0.10000000000000000555 -INF INF
+ ATC: created elementset wire with 8 elements
+fix_modify AtC mesh create_elementset gap   -$a $a -${tol} INF -INF INF
+fix_modify AtC mesh create_elementset gap   -1000.1000000000000227 $a -${tol} INF -INF INF
+fix_modify AtC mesh create_elementset gap   -1000.1000000000000227 1000.1000000000000227 -${tol} INF -INF INF
+fix_modify AtC mesh create_elementset gap   -1000.1000000000000227 1000.1000000000000227 -0.10000000000000000555 INF -INF INF
+ ATC: created elementset gap with 8 elements
+# void is the complement of the wire nodeset
+variable a   equal $W-${tol}
+variable a   equal 1000-${tol}
+variable a   equal 1000-0.10000000000000000555
+fix_modify AtC mesh create_nodeset    void -$a $a  ${tol}  INF -INF INF
+fix_modify AtC mesh create_nodeset    void -999.89999999999997726 $a  ${tol}  INF -INF INF
+fix_modify AtC mesh create_nodeset    void -999.89999999999997726 999.89999999999997726  ${tol}  INF -INF INF
+fix_modify AtC mesh create_nodeset    void -999.89999999999997726 999.89999999999997726  0.10000000000000000555  INF -INF INF
+ ATC: created nodeset void with 10 nodes
+fix_modify AtC mesh output   null_material_ddmMESH binary
+
+fix_modify  AtC control thermal none
+
+# fix a temperature
+fix_modify AtC  initial temperature          all $T
+fix_modify AtC  initial temperature          all 20
+fix_modify AtC  initial electron_temperature all $T
+fix_modify AtC  initial electron_temperature all 20
+fix_modify AtC  initial electron_density     all $n
+fix_modify AtC  initial electron_density     all 3.999999999999999819e-06
+fix_modify AtC  initial electric_potential   all 0.0
+fix_modify AtC  initial temperature          void 0.0
+fix_modify AtC  initial electron_density     void 0.0
+fix_modify AtC  initial electric_potential   void 0.0
+
+# create vacuum
+fix_modify AtC material gap Vacuum
+
+thermo_style custom step cpu f_AtC[1] f_AtC[2] f_AtC[3] f_AtC[4]
+fix_modify AtC  output          null_material_ddmFE $s full_text binary
+fix_modify AtC  output          null_material_ddmFE 100 full_text binary
+ ATC: Warning : text output can create _LARGE_ files
+ ATC: output custom names:
+
+fix_modify AtC extrinsic electron_integration implicit
+
+#
+fix_modify AtC mesh create_nodeset lbc -8.1  -7.9 -INF INF -INF INF
+ ATC: created nodeset lbc with 5 nodes
+fix_modify AtC mesh create_nodeset rbc  7.9   8.1 -INF INF -INF INF
+ ATC: created nodeset rbc with 5 nodes
+fix_modify AtC  fix electron_temperature lbc $T
+fix_modify AtC  fix electron_temperature lbc 20
+fix_modify AtC  fix electron_temperature rbc $T
+fix_modify AtC  fix electron_temperature rbc 20
+fix_modify AtC  fix electron_density     lbc $n
+fix_modify AtC  fix electron_density     lbc 3.999999999999999819e-06
+fix_modify AtC  fix electric_potential lbc 0.0
+
+variable m equal $s*10
+variable m equal 100*10
+run    $m
+run    1000
+Setting up run ...
+ ATC: WARNING: material: [vacuum] cannot find heat_flux
+ ATC: WARNING: physics model: [], material: [vacuum] does not provide all interfaces for <temperature> physics and will be treated as null 
+ ATC: WARNING: material: [vacuum] cannot find electron_phonon_exchange
+ ATC: WARNING: physics model: [drift-diffusion], material: [vacuum] does not provide all interfaces for <temperature> physics and will be treated as null 
+ ATC: WARNING: material: [vacuum] cannot find electron_flux
+ ATC: WARNING: physics model: [drift-diffusion], material: [vacuum] does not provide all interfaces for <electron_density> physics and will be treated as null 
+ ATC: WARNING: material: [vacuum] cannot find electron_heat_capacity
+ ATC: WARNING: physics model: [drift-diffusion], material: [vacuum] does not provide all interfaces for <electron_temperature> physics and will be treated as null 
+Memory usage per processor = 0.432121 Mbytes
+Step CPU AtC[1] AtC[2] AtC[3] AtC[4] 
+       0            0    94.264519           12    94.264519           20 
+     100    1.0169871    94.267978    12.000392    94.299245    20.003477 
+     200    1.9957042    94.276498    12.001352    94.329947    20.006513 
+     300    2.9752631    94.289291    12.002784    94.363814    20.009841 
+     400    3.9508462    94.306379    12.004683    94.403041    20.013675 
+     500      4.92396    94.328129    12.007084    94.449527    20.018196 
+     600     5.896678    94.355216    12.010055    94.505534    20.023614 
+     700    7.0118601    94.388659      12.0137    94.573962    20.030199 
+     800    8.0023661    94.429901     12.01817     94.65867     20.03831 
+     900    10.193833    94.480951    12.023673    94.764998    20.048448 
+    1000    11.610713    94.544631    12.030506    94.900724    20.061365 
+Loop time of 11.6118 on 4 procs for 1000 steps with 0 atoms
+
+Pair  time (%) = 0 (0)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.00087744 (0.00755644)
+Outpt time (%) = 0.0343485 (0.295807)
+Other time (%) = 11.5766 (99.6966)
+
+Nlocal:    0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:  0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 0
+Neighbor list builds = 0
+Dangerous builds = 0
+

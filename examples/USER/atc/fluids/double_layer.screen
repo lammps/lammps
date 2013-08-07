@@ -1,0 +1,202 @@
+LAMMPS (14 Aug 2013)
+
+units 		metal
+atom_style 	full
+dimension 	3
+neighbor 	2 bin
+neigh_modify 	every 1 check yes
+boundary 	f f f
+
+timestep	0.0005
+thermo          100
+dielectric      81.
+
+newton off
+
+pair_style lj/cut 13.000000
+pair_modify mix arithmetic
+read_data waternve.atm
+Scanning data file ...
+Reading data file ...
+  orthogonal box = (-19.38 -19.38 -21.88) to (19.38 19.38 23.94)
+  1 by 2 by 2 MPI processor grid
+  1982 atoms
+  1982 velocities
+Finding 1-2 1-3 1-4 neighbors ...
+  0 = max # of 1-2 neighbors
+  0 = max # of 1-3 neighbors
+  0 = max # of 1-4 neighbors
+  1 = max # of special neighbors
+reset_timestep 0
+
+variable nsteps equal 1000
+variable dumpfreq equal ${nsteps}/10
+variable dumpfreq equal 1000/10
+variable nx equal 4
+variable ny equal 4
+variable nz equal 4
+variable x_min equal -19.38
+variable x_max equal 19.38
+variable x_goldmin equal -11.22
+variable x_goldmax equal 11.22
+variable x_fluidmin equal ${x_goldmin}
+variable x_fluidmin equal -11.220000000000000639
+variable x_fluidmax equal ${x_goldmax}
+variable x_fluidmax equal 11.220000000000000639
+variable x_wallmin equal ${x_goldmin}-1.5
+variable x_wallmin equal -11.220000000000000639-1.5
+variable x_wallmax equal ${x_goldmax}+1.5
+variable x_wallmax equal 11.220000000000000639+1.5
+variable y_min equal -19.38
+variable y_max equal 19.38
+variable y_goldmin equal -11.22
+variable y_goldmax equal 11.22
+variable surface_charge equal -0.3125/(4.08*4.08)
+variable y_fluidmin equal ${y_goldmin}
+variable y_fluidmin equal -11.220000000000000639
+variable y_fluidmax equal ${y_goldmax}
+variable y_fluidmax equal 11.220000000000000639
+variable y_wallmin equal ${y_goldmin}-1.5
+variable y_wallmin equal -11.220000000000000639-1.5
+variable y_wallmax equal ${y_goldmax}+1.5
+variable y_wallmax equal 11.220000000000000639+1.5
+variable downshift equal 2.5
+variable zshiftlatt equal 1-${downshift}/4.08
+variable zshiftlatt equal 1-2.5/4.08
+variable z_min equal -20.4-${downshift}+0.25*4.08
+variable z_min equal -20.4-2.5+0.25*4.08
+variable z_max equal 22.44+1.5
+variable z_goldmin equal -12.24-${downshift}+0.25*4.08
+variable z_goldmin equal -12.24-2.5+0.25*4.08
+variable z_goldmax equal -${downshift}+0.25*4.08
+variable z_goldmax equal -2.5+0.25*4.08
+variable z_goldtopmin equal ${z_goldmax}-0.5*4.08
+variable z_goldtopmin equal -1.4799999999999999822-0.5*4.08
+variable z_goldtopmax equal ${z_goldmax}
+variable z_goldtopmax equal -1.4799999999999999822
+variable z_fluidmin equal 0.
+variable z_fluidmax equal 22.44
+variable z_wallmax equal ${z_max}
+variable z_wallmax equal 23.940000000000001279
+
+lattice sc 8.16 origin 0 0 0.75
+Lattice spacing in x,y,z = 8.16 8.16 8.16
+
+group pos type 4
+27 atoms in group pos
+group neg type 5
+0 atoms in group neg
+group allfluid type 3 4 5
+177 atoms in group allfluid
+
+compute fluidT allfluid temp
+thermo_style custom step epair emol etotal press c_fluidT
+
+fix zhiwall allfluid wall/lj93 zhi ${z_wallmax} 0.0195 3.45 10.000000 units box
+fix zhiwall allfluid wall/lj93 zhi 23.940000000000001279 0.0195 3.45 10.000000 units box
+fix xlowall allfluid wall/lj93 xlo ${x_wallmin} 0.0195 3.45 10.000000 units box
+fix xlowall allfluid wall/lj93 xlo -12.720000000000000639 0.0195 3.45 10.000000 units box
+fix xhiwall allfluid wall/lj93 xhi ${x_wallmax} 0.0195 3.45 10.000000 units box
+fix xhiwall allfluid wall/lj93 xhi 12.720000000000000639 0.0195 3.45 10.000000 units box
+fix ylowall allfluid wall/lj93 ylo ${y_wallmin} 0.0195 3.45 10.000000 units box
+fix ylowall allfluid wall/lj93 ylo -12.720000000000000639 0.0195 3.45 10.000000 units box
+fix yhiwall allfluid wall/lj93 yhi ${y_wallmax} 0.0195 3.45 10.000000 units box
+fix yhiwall allfluid wall/lj93 yhi 12.720000000000000639 0.0195 3.45 10.000000 units box
+
+group solvent type 3
+150 atoms in group solvent
+fix fluidnvt solvent nvt temp 300.0 300.0 0.100 drag 0.2
+
+##########################################################################
+region ATC_BOX block ${x_wallmin} ${x_wallmax} ${y_wallmin} ${y_wallmax} ${z_goldtopmin} ${z_wallmax} units box
+region ATC_BOX block -12.720000000000000639 ${x_wallmax} ${y_wallmin} ${y_wallmax} ${z_goldtopmin} ${z_wallmax} units box
+region ATC_BOX block -12.720000000000000639 12.720000000000000639 ${y_wallmin} ${y_wallmax} ${z_goldtopmin} ${z_wallmax} units box
+region ATC_BOX block -12.720000000000000639 12.720000000000000639 -12.720000000000000639 ${y_wallmax} ${z_goldtopmin} ${z_wallmax} units box
+region ATC_BOX block -12.720000000000000639 12.720000000000000639 -12.720000000000000639 12.720000000000000639 ${z_goldtopmin} ${z_wallmax} units box
+region ATC_BOX block -12.720000000000000639 12.720000000000000639 -12.720000000000000639 12.720000000000000639 -3.5200000000000000178 ${z_wallmax} units box
+region ATC_BOX block -12.720000000000000639 12.720000000000000639 -12.720000000000000639 12.720000000000000639 -3.5200000000000000178 23.940000000000001279 units box
+group ATC_ATOMS type 4 5
+27 atoms in group ATC_ATOMS
+fix ATC ATC_ATOMS atc species_electrostatic Ar_species_dl.mat
+ATC: constructing electrostatic species coupling with parameter file Ar_species_dl.mat
+ ATC: peratom PE compute created with ID: 5
+ ATC: 1 materials defined from Ar_species_dl.mat
+ ATC: creating fem_efield extrinsic model
+ ATC: 1 materials defined from Ar_species_dl.mat
+fix_modify ATC add_species P group pos
+fix_modify ATC add_species N group neg
+fix_modify ATC mesh create ${nx} ${ny} ${nz} ATC_BOX f f f
+fix_modify ATC mesh create 4 ${ny} ${nz} ATC_BOX f f f
+fix_modify ATC mesh create 4 4 ${nz} ATC_BOX f f f
+fix_modify ATC mesh create 4 4 4 ATC_BOX f f f
+ ATC: created uniform mesh with 125 nodes, 125 unique nodes, and 64 elements
+fix_modify ATC atom_element_map eulerian 1
+fix_modify ATC internal_quadrature off
+
+fix_modify ATC initial mass_density all 0.
+fix_modify ATC mesh create_faceset BOTTOM_FACE -INF INF -INF INF ${z_goldtopmin} INF
+fix_modify ATC mesh create_faceset BOTTOM_FACE -INF INF -INF INF -3.5200000000000000178 INF
+ ATC: created faceset BOTTOM_FACE with 16 faces
+## OLD
+fix_modify ATC extrinsic fix_charge BOTTOM_FACE ${surface_charge}
+fix_modify ATC extrinsic fix_charge BOTTOM_FACE -0.018772827758554402194
+## NEW
+# ERROR: Poisson solver needs Dirichlet data
+#fix_modify ATC  control charge conductor ${surface_charge}
+#fix_modify ATC  control charge effective_charge ATC_ATOMS BOTTOM_FACE
+## END
+
+fix_modify ATC output double_layerFE ${dumpfreq} text binary
+fix_modify ATC output double_layerFE 100 text binary
+ ATC: Warning : text output can create _LARGE_ files
+ ATC: output custom names:
+NodalAtomicSpeciesConcentration : NodalAtomicSpeciesConcentrationP
+NodalAtomicSpeciesConcentration : NodalAtomicSpeciesConcentrationN
+species_concentration : species_concentrationP
+species_concentration : species_concentrationN
+
+dump chargenve all atom ${dumpfreq} double_layer.dmp
+dump chargenve all atom 100 double_layer.dmp
+
+run ${nsteps}
+run 1000
+Setting up run ...
+ ATC: WARNING: all initial conditions for charge_density have not been defined and the undefined are assumed zero
+ ATC: WARNING: all initial conditions for species_concentration have not been defined and the undefined are assumed zero
+ ATC: WARNING: all initial conditions for electric_potential have not been defined and the undefined are assumed zero
+Memory usage per processor = 54.1045 Mbytes
+Step E_pair E_mol TotEng Press fluidT 
+       0   -9252.0858            0   -9228.1564    -55763.67    293.65526 
+     100   -9252.3247            0   -9228.0784   -55827.581    307.58592 
+     200   -9251.4752            0   -9227.7891   -55737.506    282.95787 
+     300   -9251.4249            0   -9227.5267   -55707.319    292.28243 
+     400    -9251.418            0   -9227.1803    -55676.42    307.20457 
+     500   -9251.2317            0   -9226.4518   -55626.477    331.04006 
+     600   -9251.0816            0   -9226.0561   -55592.086    341.83069 
+     700   -9250.3998            0   -9226.2318   -55560.989    304.13946 
+     800   -9251.0058            0   -9226.6944   -55690.148    310.44444 
+     900   -9251.0001            0   -9227.2599   -55752.304    285.33992 
+    1000   -9250.9076            0   -9227.1099   -55769.609    287.86493 
+Loop time of 110.95 on 4 procs for 1000 steps with 1982 atoms
+
+Pair  time (%) = 10.3921 (9.36645)
+Bond  time (%) = 0.000747621 (0.000673836)
+Neigh time (%) = 0.0807644 (0.0727935)
+Comm  time (%) = 7.50919 (6.76808)
+Outpt time (%) = 0.527695 (0.475615)
+Other time (%) = 92.4396 (83.3164)
+
+Nlocal:    495.5 ave 976 max 63 min
+Histogram: 2 0 0 0 0 0 0 0 1 1
+Nghost:    916.5 ave 1083 max 778 min
+Histogram: 2 0 0 0 0 0 0 0 1 1
+Neighs:    132325 ave 269946 max 8208 min
+Histogram: 2 0 0 0 0 0 0 0 1 1
+FullNghs:  219343 ave 455925 max 9588 min
+Histogram: 2 0 0 0 0 0 0 0 1 1
+
+Total # of neighbors = 877372
+Ave neighs/atom = 442.67
+Ave special neighs/atom = 0
+Neighbor list builds = 4
+Dangerous builds = 0

@@ -1,0 +1,384 @@
+LAMMPS (14 Aug 2013)
+units       metal
+atom_style  atomic
+variable lattice_constant equal 4.08
+variable c equal 6 # minimum size
+variable Ly equal $c*${lattice_constant}
+variable Ly equal 6*${lattice_constant}
+variable Ly equal 6*4.0800000000000000711
+variable d equal 0.005
+variable V0 equal ($c*${lattice_constant})^3
+variable V0 equal (6*${lattice_constant})^3
+variable V0 equal (6*4.0800000000000000711)^3
+# create system
+lattice        fcc ${lattice_constant} origin 0.25 0.25 0.25
+lattice        fcc 4.0800000000000000711 origin 0.25 0.25 0.25
+Lattice spacing in x,y,z = 4.08 4.08 4.08
+# NOTE rect box + lagrangian is necessary to fool ATC's mesh
+region         rectbox block 0 $c 0 $c 0 3
+region         rectbox block 0 6 0 $c 0 3
+region         rectbox block 0 6 0 6 0 3
+region         box prism 0 $c 0 $c 0 3 0 0 0
+region         box prism 0 6 0 $c 0 3 0 0 0
+region         box prism 0 6 0 6 0 3 0 0 0
+boundary       p p p
+create_box   1 box
+Created triclinic box = (0 0 0) to (24.48 24.48 12.24) with tilt (0 0 0)
+  2 by 2 by 1 MPI processor grid
+create_atoms 1 region box
+Created 432 atoms
+mass         1 196.97
+group      all region box
+432 atoms in group all
+pair_style     lj/smooth/linear 5.456108274435118
+pair_coeff     * * 0.7242785984051078 2.598146797350056
+neighbor  1.0 bin
+#neigh_modify  delay 1000000
+log       cb_shear.log
+thermo    100
+variable gamma equal 0.0
+variable step  equal 0
+thermo_style  custom step v_step pxx pyy pzz pxy pxz pyz v_gamma pe xy xz yz
+timestep  1.0
+fix         AtC all   atc field Au_CauchyBorn.mat
+ATC: constructing shape function field estimate with parameter file Au_CauchyBorn.mat
+ ATC: peratom PE compute created with ID: 3
+fix_modify  AtC mesh create $c $c 1 rectbox p p p
+fix_modify  AtC mesh create 6 $c 1 rectbox p p p
+fix_modify  AtC mesh create 6 6 1 rectbox p p p
+ ATC: created uniform mesh with 98 nodes, 36 unique nodes, and 36 elements
+fix_modify  AtC  fields add mass_density internal_energy stress
+fix_modify  AtC  fields add displacement
+fix_modify  AtC  fields add cauchy_born_energy cauchy_born_stress
+fix_modify  AtC  gradients add displacement
+#fix_modify  AtC  fields add elastic_deformation_gradient
+fix_modify  AtC  output cb_shearFE 1 text binary tensor_components
+ ATC: Warning : text output can create _LARGE_ files
+ ATC: output custom names:
+
+min_modify      line quadratic
+variable dgamma equal $d/${Ly}
+variable dgamma equal 0.0050000000000000001041/${Ly}
+variable dgamma equal 0.0050000000000000001041/24.480000000000000426
+print "depsilon_12: ${dgamma}"
+depsilon_12: 0.00020424836601307190163
+timestep 0.0
+variable i loop 4
+label loop_i
+  print ">>> step $i"
+>>> step 1
+  minimize 1.e-20 1.e-20 1000 1000
+WARNING: Resetting reneighboring criteria during minimization (../min.cpp:173)
+Setting up minimization ...
+ ATC: CB stiffness: 28.7742 Einstein freq: 7394.9
+ ATC: computing bond matrix ...........done
+Memory usage per processor = 23.608 Mbytes
+Step step Pxx Pyy Pzz Pxy Pxz Pyz gamma PotEng Xy Xz Yz 
+       0            0 8.2990138e-10 8.090598e-10 1.2401824e-09 -2.047237e-10 -1.675329e-10 -2.052466e-10            0     -1697.76            0            0            0 
+       2            0 1.4564068e-09 1.4626573e-09 1.5311855e-09  1.91865e-11 2.9536813e-11 -6.2429255e-12            0     -1697.76            0            0            0 
+Loop time of 0.00191295 on 4 procs for 2 steps with 432 atoms
+
+Minimization stats:
+  Stopping criterion = energy tolerance
+  Energy initial, next-to-last, final = 
+              -1697.76           -1697.76           -1697.76
+  Force two-norm initial, final = 7.25089e-13 7.69958e-13
+  Force max component initial, final = 6.31162e-14 5.59344e-14
+  Final line search alpha, max atom move = 1 5.59344e-14
+  Iterations, force evaluations = 2 4
+
+Pair  time (%) = 0.00124657 (65.1648)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.000366986 (19.1843)
+Outpt time (%) = 0 (0)
+Other time (%) = 0.000299394 (15.6509)
+
+Nlocal:    108 ave 108 max 108 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    756 ave 756 max 756 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    4212 ave 4212 max 4212 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:  8424 ave 8424 max 8424 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 33696
+Ave neighs/atom = 78
+Neighbor list builds = 0
+Dangerous builds = 0
+  run  1
+Setting up run ...
+ ATC: computing bond matrix ...........done
+Memory usage per processor = 22.9213 Mbytes
+Step step Pxx Pyy Pzz Pxy Pxz Pyz gamma PotEng Xy Xz Yz 
+       2            0 1.1686684e-09 1.1704144e-09 1.1818848e-09 -7.0034742e-11 -2.0734576e-10 -2.246665e-10            0     -1697.76            0            0            0 
+       3            0 1.3913827e-09 1.417767e-09 1.507396e-09 1.3580144e-11 6.6948897e-11 3.137377e-13            0     -1697.76            0            0            0 
+Loop time of 0.0460081 on 4 procs for 1 steps with 432 atoms
+
+Pair  time (%) = 0.00277305 (6.0273)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.012373 (26.893)
+Outpt time (%) = 0.000219166 (0.476364)
+Other time (%) = 0.0306429 (66.6033)
+
+Nlocal:    108 ave 108 max 108 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    756 ave 756 max 756 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    4212 ave 4380 max 4051 min
+Histogram: 1 0 0 1 0 1 0 0 0 1
+FullNghs:  8424 ave 8424 max 8424 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 33696
+Ave neighs/atom = 78
+Neighbor list builds = 0
+Dangerous builds = 0
+  variable step equal ${step}+1
+  variable step equal 0+1
+  change_box all xy delta $d remap
+  change_box all xy delta 0.0050000000000000001041 remap
+Changing box ...
+  triclinic box = (0 0 0) to (24.48 24.48 12.24) with tilt (0.0204 0 0)
+  variable gamma equal $i*${dgamma}
+  variable gamma equal 1*${dgamma}
+  variable gamma equal 1*0.00020424836601307190163
+next i
+jump in.cb_shear loop_i
+  print ">>> step $i"
+>>> step 2
+  minimize 1.e-20 1.e-20 1000 1000
+WARNING: Resetting reneighboring criteria during minimization (../min.cpp:173)
+Setting up minimization ...
+ ATC: computing bond matrix ...........done
+Memory usage per processor = 23.608 Mbytes
+Step step Pxx Pyy Pzz Pxy Pxz Pyz gamma PotEng Xy Xz Yz 
+       3            1     6.886337    10.047566   -1.1516625   -2346.5185 -2.2571381e-10 -2.3527902e-10 0.00020424837   -1697.7555       0.0204            0            0 
+       8            1     6.886337    10.047566   -1.1516625   -2346.5185 -2.9823269e-11 1.6162796e-11 0.00020424837   -1697.7555       0.0204            0            0 
+Loop time of 0.00391698 on 4 procs for 5 steps with 432 atoms
+
+Minimization stats:
+  Stopping criterion = energy tolerance
+  Energy initial, next-to-last, final = 
+        -1697.75552385     -1697.75552385     -1697.75552385
+  Force two-norm initial, final = 1.45516e-12 6.75826e-13
+  Force max component initial, final = 2.43972e-13 6.33382e-14
+  Final line search alpha, max atom move = 1 6.33382e-14
+  Iterations, force evaluations = 5 10
+
+Pair  time (%) = 0.00264663 (67.568)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.000849068 (21.6766)
+Outpt time (%) = 0 (0)
+Other time (%) = 0.000421286 (10.7554)
+
+Nlocal:    108 ave 108 max 108 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    756 ave 756 max 756 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    4212 ave 4380 max 4051 min
+Histogram: 1 0 0 1 0 1 0 0 0 1
+FullNghs:  8424 ave 8424 max 8424 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 33696
+Ave neighs/atom = 78
+Neighbor list builds = 0
+Dangerous builds = 0
+  run  1
+Setting up run ...
+ ATC: computing bond matrix ...........done
+Memory usage per processor = 22.9213 Mbytes
+Step step Pxx Pyy Pzz Pxy Pxz Pyz gamma PotEng Xy Xz Yz 
+       8            1     6.886337    10.047566   -1.1516625   -2346.5185 -1.3329305e-10 -1.817966e-10 0.00020424837   -1697.7555       0.0204            0            0 
+       9            1     6.886337    10.047566   -1.1516625   -2346.5185 -1.153706e-11 6.5233191e-11 0.00020424837   -1697.7555       0.0204            0            0 
+Loop time of 0.02672 on 4 procs for 1 steps with 432 atoms
+
+Pair  time (%) = 0.000268936 (1.0065)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 9.2268e-05 (0.345314)
+Outpt time (%) = 0.00226957 (8.49387)
+Other time (%) = 0.0240893 (90.1543)
+
+Nlocal:    108 ave 108 max 108 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    756 ave 756 max 756 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    4212 ave 4312 max 4085 min
+Histogram: 1 0 0 0 0 1 1 0 0 1
+FullNghs:  8424 ave 8424 max 8424 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 33696
+Ave neighs/atom = 78
+Neighbor list builds = 0
+Dangerous builds = 0
+  variable step equal ${step}+1
+  variable step equal 1+1
+  change_box all xy delta $d remap
+  change_box all xy delta 0.0050000000000000001041 remap
+Changing box ...
+  triclinic box = (0 0 0) to (24.48 24.48 12.24) with tilt (0.0408 0 0)
+  variable gamma equal $i*${dgamma}
+  variable gamma equal 2*${dgamma}
+  variable gamma equal 2*0.00020424836601307190163
+next i
+jump in.cb_shear loop_i
+  print ">>> step $i"
+>>> step 3
+  minimize 1.e-20 1.e-20 1000 1000
+WARNING: Resetting reneighboring criteria during minimization (../min.cpp:173)
+Setting up minimization ...
+ ATC: computing bond matrix ...........done
+Memory usage per processor = 23.608 Mbytes
+Step step Pxx Pyy Pzz Pxy Pxz Pyz gamma PotEng Xy Xz Yz 
+       9            2    27.545381    40.190743   -4.6066242   -4693.1379 -1.3165313e-10 -1.7366821e-10 0.00040849673   -1697.7421       0.0408            0            0 
+      13            2    27.545381    40.190743   -4.6066242   -4693.1379 -2.0177729e-11 5.6927478e-11 0.00040849673   -1697.7421       0.0408            0            0 
+Loop time of 0.00320572 on 4 procs for 4 steps with 432 atoms
+
+Minimization stats:
+  Stopping criterion = energy tolerance
+  Energy initial, next-to-last, final = 
+        -1697.74209519     -1697.74209519     -1697.74209519
+  Force two-norm initial, final = 1.45582e-12 6.63859e-13
+  Force max component initial, final = 2.16244e-13 6.87297e-14
+  Final line search alpha, max atom move = 1 6.87297e-14
+  Iterations, force evaluations = 4 8
+
+Pair  time (%) = 0.00217921 (67.9787)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.000676513 (21.1033)
+Outpt time (%) = 0 (0)
+Other time (%) = 0.000349998 (10.9179)
+
+Nlocal:    108 ave 108 max 108 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    756 ave 756 max 756 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    4212 ave 4312 max 4085 min
+Histogram: 1 0 0 0 0 1 1 0 0 1
+FullNghs:  8424 ave 8424 max 8424 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 33696
+Ave neighs/atom = 78
+Neighbor list builds = 0
+Dangerous builds = 0
+  run  1
+Setting up run ...
+ ATC: computing bond matrix ...........done
+Memory usage per processor = 22.9213 Mbytes
+Step step Pxx Pyy Pzz Pxy Pxz Pyz gamma PotEng Xy Xz Yz 
+      13            2    27.545381    40.190743   -4.6066242   -4693.1379 -1.1765618e-10 -1.586376e-10 0.00040849673   -1697.7421       0.0408            0            0 
+      14            2    27.545381    40.190743   -4.6066242   -4693.1379 -3.767429e-11 6.1228867e-11 0.00040849673   -1697.7421       0.0408            0            0 
+Loop time of 0.0443209 on 4 procs for 1 steps with 432 atoms
+
+Pair  time (%) = 0.000267744 (0.604103)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 9.21488e-05 (0.207913)
+Outpt time (%) = 0.00152749 (3.44643)
+Other time (%) = 0.0424336 (95.7416)
+
+Nlocal:    108 ave 108 max 108 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    756 ave 756 max 756 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    4212 ave 4347 max 4038 min
+Histogram: 1 0 0 0 0 0 2 0 0 1
+FullNghs:  8424 ave 8424 max 8424 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 33696
+Ave neighs/atom = 78
+Neighbor list builds = 0
+Dangerous builds = 0
+  variable step equal ${step}+1
+  variable step equal 2+1
+  change_box all xy delta $d remap
+  change_box all xy delta 0.0050000000000000001041 remap
+Changing box ...
+  triclinic box = (0 0 0) to (24.48 24.48 12.24) with tilt (0.0612 0 0)
+  variable gamma equal $i*${dgamma}
+  variable gamma equal 3*${dgamma}
+  variable gamma equal 3*0.00020424836601307190163
+next i
+jump in.cb_shear loop_i
+  print ">>> step $i"
+>>> step 4
+  minimize 1.e-20 1.e-20 1000 1000
+WARNING: Resetting reneighboring criteria during minimization (../min.cpp:173)
+Setting up minimization ...
+ ATC: computing bond matrix ...........done
+Memory usage per processor = 23.608 Mbytes
+Step step Pxx Pyy Pzz Pxy Pxz Pyz gamma PotEng Xy Xz Yz 
+      14            3    61.977233    90.430962   -10.364808   -7039.9591 -1.4718693e-10 -1.6595966e-10 0.0006127451   -1697.7197       0.0612            0            0 
+      18            3    61.977233    90.430962   -10.364808   -7039.9591 -9.9031986e-12 6.1389525e-11 0.0006127451   -1697.7197       0.0612            0            0 
+Loop time of 0.083416 on 4 procs for 4 steps with 432 atoms
+
+Minimization stats:
+  Stopping criterion = energy tolerance
+  Energy initial, next-to-last, final = 
+        -1697.71971345     -1697.71971345     -1697.71971345
+  Force two-norm initial, final = 1.6934e-12 6.96493e-13
+  Force max component initial, final = 2.55476e-13 6.86812e-14
+  Final line search alpha, max atom move = 1 6.86812e-14
+  Iterations, force evaluations = 4 8
+
+Pair  time (%) = 0.00221682 (2.65754)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.0704444 (84.4495)
+Outpt time (%) = 0 (0)
+Other time (%) = 0.0107548 (12.8929)
+
+Nlocal:    108 ave 108 max 108 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    756 ave 756 max 756 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    4212 ave 4347 max 4038 min
+Histogram: 1 0 0 0 0 0 2 0 0 1
+FullNghs:  8424 ave 8424 max 8424 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 33696
+Ave neighs/atom = 78
+Neighbor list builds = 0
+Dangerous builds = 0
+  run  1
+Setting up run ...
+ ATC: computing bond matrix ...........done
+Memory usage per processor = 22.9213 Mbytes
+Step step Pxx Pyy Pzz Pxy Pxz Pyz gamma PotEng Xy Xz Yz 
+      18            3    61.977233    90.430962   -10.364808   -7039.9591 -5.2551822e-11 -1.5970613e-10 0.0006127451   -1697.7197       0.0612            0            0 
+      19            3    61.977233    90.430962   -10.364808   -7039.9591 -1.697518e-12 6.6900396e-11 0.0006127451   -1697.7197       0.0612            0            0 
+Loop time of 0.178347 on 4 procs for 1 steps with 432 atoms
+
+Pair  time (%) = 0.000270486 (0.151663)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.0174391 (9.77818)
+Outpt time (%) = 0.0102363 (5.73956)
+Other time (%) = 0.150401 (84.3306)
+
+Nlocal:    108 ave 108 max 108 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    756 ave 756 max 756 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    4212 ave 4379 max 4068 min
+Histogram: 1 0 0 1 0 1 0 0 0 1
+FullNghs:  8424 ave 8424 max 8424 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 33696
+Ave neighs/atom = 78
+Neighbor list builds = 0
+Dangerous builds = 0
+  variable step equal ${step}+1
+  variable step equal 3+1
+  change_box all xy delta $d remap
+  change_box all xy delta 0.0050000000000000001041 remap
+Changing box ...
+  triclinic box = (0 0 0) to (24.48 24.48 12.24) with tilt (0.0816 0 0)
+  variable gamma equal $i*${dgamma}
+  variable gamma equal 4*${dgamma}
+  variable gamma equal 4*0.00020424836601307190163
+next i
+jump in.cb_shear loop_i

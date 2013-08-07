@@ -1,0 +1,269 @@
+LAMMPS (14 Aug 2013)
+
+units		real
+atom_style	atomic
+
+# create domain
+#lattice	type reduced density rho* = 4*(sigma/a)^3, where N=4 for fcc, s = 3.405 A (Wagner) and a = 5.25 A (Ashcroft & Mermin, p. 70)
+lattice         fcc 5.405 origin 0.25 0.25 0.25
+Lattice spacing in x,y,z = 5.405 5.405 5.405
+
+# create atoms
+region		simRegion block -12 12 -3 3 -3 3
+region		atomRegion block -9 9 -3 3 -3 3
+region		mdRegion block -8 8 -3 3 -3 3
+boundary	f p p
+create_box	1 simRegion
+Created orthogonal box = (-64.86 -16.215 -16.215) to (64.86 16.215 16.215)
+  4 by 1 by 1 MPI processor grid
+create_atoms	1 region mdRegion
+Created 2304 atoms
+mass		1 39.95
+
+# specify interal/ghost atoms
+region		mdInternal block -6 6 -3 3 -3 3
+region		leftghost block -8 -6 -3 3 -3 3
+region		rightghost block 6 8 -3 3 -3 3
+group		internal region mdInternal
+1728 atoms in group internal
+group		Lghost region leftghost
+288 atoms in group Lghost
+group		Rghost region rightghost
+288 atoms in group Rghost
+group		ghosts union Lghost Rghost
+576 atoms in group ghosts
+
+# velocities have Vcm = 0
+#velocity	internal create 40. 87287 mom yes loop geom
+
+pair_style	lj/cut 13.5
+#pair_coeff	1 1 0.010323166 3.405 13.5
+pair_coeff  	1 1 .238 3.405 13.5
+
+neighbor	5. bin
+neigh_modify	every 10 delay 0 check no
+
+# define  layer
+#               ID  group atc PhysicsType ParameterFile
+fix             AtC internal   atc elastic     Ar_elastic.mat
+ATC: constructing elastic coupling with parameter file Ar_elastic.mat
+ ATC: peratom PE compute created with ID: 3
+ ATC: computed mass density : 1.01202
+ ATC: computed mass density : 1.01202
+ ATC: computed mass density : 1.01202
+ ATC: 3 materials defined from Ar_elastic.mat
+
+#               ID  part keywords    nx ny nz region
+fix_modify      AtC mesh create 12  1  1  simRegion f p p
+ ATC: created uniform mesh with 52 nodes, 13 unique nodes, and 12 elements
+
+# initial conditions
+fix_modify  AtC  initial displacement x all 0.0
+fix_modify  AtC  initial displacement y all 0.0
+fix_modify  AtC  initial displacement z all 0.0
+fix_modify  AtC  initial velocity x all 0.0
+fix_modify  AtC  initial velocity y all 0.0
+fix_modify  AtC  initial velocity z all 0.0
+
+# set node sets and bcs
+#           ID  mesh create_nodeset tag xmin xmax ymin ymax zmin zmax
+fix_modify  AtC mesh create_nodeset lbc -12.1  -11.9   -INF INF  -INF INF
+ ATC: created nodeset lbc with 1 nodes
+fix_modify  AtC mesh create_nodeset rbc  11.9   12.1   -INF INF  -INF INF
+ ATC: created nodeset rbc with 1 nodes
+fix_modify  AtC fix velocity     x rbc 0.00000004
+fix_modify  AtC fix displacement x lbc 0.
+fix_modify  AtC fix velocity     x lbc 0.
+
+# specify atom types
+#fix_modify  AtC boundary Lghost
+#fix_modify  AtC boundary Rghost
+fix_modify  AtC boundary ghosts
+
+#fix_modify      AtC  output follow_ex.fe 50
+fix_modify  AtC internal_quadrature off
+fix_modify  AtC control localized_lambda on
+fix_modify  AtC control  momentum glc_velocity
+fix_modify  AtC filter type exponential
+fix_modify  AtC filter scale 1000.0
+fix_modify  AtC filter on
+
+# run to extension
+#fix_modify      AtC  output bar1dFE 50 text
+timestep	5
+thermo		100
+run 		1000
+Setting up run ...
+Memory usage per processor = 93.2479 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0            0   -4406.6687            0   -4406.6687   -1155.1752 
+     100 3.8434911e-14   -4406.6687            0   -4406.6687   -1155.1752 
+     200 2.634669e-11   -4406.6687            0   -4406.6687   -1155.1754 
+     300 6.909135e-10   -4406.6685            0   -4406.6685   -1155.1763 
+     400 3.9413859e-09   -4406.6682            0   -4406.6682   -1155.1783 
+     500 8.5603227e-09   -4406.6676            0   -4406.6676    -1155.181 
+     600 1.0143684e-08   -4406.6671            0   -4406.6671   -1155.1835 
+     700 9.8473676e-09   -4406.6667            0   -4406.6667   -1155.1854 
+     800 9.9628095e-09   -4406.6663            0   -4406.6663   -1155.1871 
+     900 1.1034555e-08   -4406.6659            0   -4406.6659    -1155.189 
+    1000 1.2796459e-08   -4406.6655            0   -4406.6655    -1155.191 
+Loop time of 71.7602 on 4 procs for 1000 steps with 2304 atoms
+
+Pair  time (%) = 8.28353 (11.5433)
+Neigh time (%) = 4.8737 (6.79165)
+Comm  time (%) = 23.4869 (32.7296)
+Outpt time (%) = 0.14537 (0.202577)
+Other time (%) = 34.9708 (48.7328)
+
+Nlocal:    576 ave 864 max 288 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:    5170 ave 6910 max 3430 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:    178632 ave 288628 max 68417 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+FullNghs:  357264 ave 577008 max 137520 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 1429056
+Ave neighs/atom = 620.25
+Neighbor list builds = 100
+Dangerous builds = 0
+
+# change nodes to fixed
+fix_modify      AtC  fix velocity x rbc 0.
+fix_modify	AtC  fix displacement x rbc 0.0002
+
+fix_modify      AtC  output bar1dFE 500 text
+ ATC: Warning : text output can create _LARGE_ files
+ ATC: output custom names:
+
+
+# run to equilibrium
+timestep        5
+thermo		100
+run 		10000
+Setting up run ...
+Memory usage per processor = 93.2479 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+    1000 1.2796459e-08   -4406.6655            0   -4406.6655    -1155.191 
+    1100 1.3961782e-08    -4406.665            0    -4406.665   -1155.1929 
+    1200 1.4156541e-08   -4406.6646            0   -4406.6646   -1155.1947 
+    1300 1.1743161e-08   -4406.6643            0   -4406.6643   -1155.1961 
+    1400 7.6261191e-09   -4406.6643            0   -4406.6643   -1155.1964 
+    1500 5.4918861e-09   -4406.6644            0   -4406.6644   -1155.1955 
+    1600 3.2067753e-09   -4406.6647            0   -4406.6647   -1155.1942 
+    1700 1.5798693e-09   -4406.6649            0   -4406.6649   -1155.1933 
+    1800 3.4267061e-09   -4406.6649            0   -4406.6649   -1155.1932 
+    1900 5.7984811e-09   -4406.6649            0   -4406.6649   -1155.1934 
+    2000 4.4702416e-09   -4406.6648            0   -4406.6648   -1155.1937 
+    2100 4.110363e-09   -4406.6647            0   -4406.6647   -1155.1943 
+    2200 7.7448231e-09   -4406.6646            0   -4406.6646   -1155.1949 
+    2300 8.9174139e-09   -4406.6645            0   -4406.6645   -1155.1953 
+    2400 4.2475131e-09   -4406.6645            0   -4406.6645   -1155.1951 
+    2500 3.9593952e-09   -4406.6646            0   -4406.6646   -1155.1947 
+    2600 5.0490897e-09   -4406.6646            0   -4406.6646   -1155.1945 
+    2700 3.0091882e-09   -4406.6645            0   -4406.6645    -1155.195 
+    2800 2.8396053e-09   -4406.6644            0   -4406.6644   -1155.1955 
+    2900 3.3590465e-09   -4406.6644            0   -4406.6644   -1155.1957 
+    3000 2.6186659e-09   -4406.6644            0   -4406.6644   -1155.1955 
+    3100 2.8276402e-09   -4406.6645            0   -4406.6645   -1155.1953 
+    3200 3.3651448e-09   -4406.6645            0   -4406.6645    -1155.195 
+    3300 4.8200774e-09   -4406.6647            0   -4406.6647   -1155.1944 
+    3400   2.7178e-09   -4406.6648            0   -4406.6648   -1155.1938 
+    3500 2.8250408e-09   -4406.6648            0   -4406.6648   -1155.1938 
+    3600 4.4426525e-09   -4406.6646            0   -4406.6646   -1155.1946 
+    3700 2.3093452e-09   -4406.6644            0   -4406.6644   -1155.1954 
+    3800 1.0139576e-09   -4406.6644            0   -4406.6644   -1155.1958 
+    3900  3.33486e-09   -4406.6644            0   -4406.6644   -1155.1958 
+    4000 3.6153069e-09   -4406.6644            0   -4406.6644   -1155.1956 
+    4100 4.6993593e-10   -4406.6644            0   -4406.6644   -1155.1954 
+    4200 1.1808552e-09   -4406.6645            0   -4406.6645   -1155.1948 
+    4300 3.1059162e-09   -4406.6647            0   -4406.6647   -1155.1942 
+    4400 2.2356994e-09   -4406.6647            0   -4406.6647   -1155.1942 
+    4500   1.0832e-09   -4406.6646            0   -4406.6646   -1155.1947 
+    4600 3.4691005e-09   -4406.6645            0   -4406.6645   -1155.1954 
+    4700 2.6640925e-09   -4406.6644            0   -4406.6644   -1155.1956 
+    4800 1.8105324e-09   -4406.6644            0   -4406.6644   -1155.1954 
+    4900 3.2865681e-09   -4406.6645            0   -4406.6645   -1155.1951 
+    5000 3.2647654e-09   -4406.6645            0   -4406.6645   -1155.1949 
+    5100 1.9703065e-09   -4406.6646            0   -4406.6646   -1155.1947 
+    5200 1.242015e-09   -4406.6646            0   -4406.6646   -1155.1945 
+    5300 3.0457424e-09   -4406.6646            0   -4406.6646   -1155.1946 
+    5400 1.9560942e-09   -4406.6645            0   -4406.6645   -1155.1951 
+    5500 4.3058633e-10   -4406.6644            0   -4406.6644   -1155.1957 
+    5600 2.3184519e-09   -4406.6644            0   -4406.6644   -1155.1957 
+    5700 3.0207566e-09   -4406.6645            0   -4406.6645   -1155.1953 
+    5800 6.8689369e-10   -4406.6646            0   -4406.6646   -1155.1948 
+    5900 1.5170252e-09   -4406.6646            0   -4406.6646   -1155.1946 
+    6000 3.0629191e-09   -4406.6646            0   -4406.6646   -1155.1946 
+    6100 1.842967e-09   -4406.6646            0   -4406.6646   -1155.1945 
+    6200 6.0033688e-10   -4406.6646            0   -4406.6646   -1155.1946 
+    6300 2.0883931e-09   -4406.6645            0   -4406.6645   -1155.1952 
+    6400 1.8269083e-09   -4406.6644            0   -4406.6644   -1155.1957 
+    6500 5.5810474e-10   -4406.6644            0   -4406.6644   -1155.1957 
+    6600 1.7356452e-09   -4406.6645            0   -4406.6645   -1155.1952 
+    6700 2.6958998e-09   -4406.6646            0   -4406.6646   -1155.1947 
+    6800 8.964107e-10   -4406.6646            0   -4406.6646   -1155.1946 
+    6900 1.1426076e-09   -4406.6646            0   -4406.6646   -1155.1947 
+    7000 2.9188626e-09   -4406.6646            0   -4406.6646   -1155.1947 
+    7100 1.8115562e-09   -4406.6645            0   -4406.6645   -1155.1948 
+    7200 7.4087342e-10   -4406.6645            0   -4406.6645   -1155.1952 
+    7300 1.5779154e-09   -4406.6644            0   -4406.6644   -1155.1956 
+    7400 2.7467977e-09   -4406.6644            0   -4406.6644   -1155.1955 
+    7500 4.2123447e-10   -4406.6645            0   -4406.6645    -1155.195 
+    7600 1.1615418e-09   -4406.6646            0   -4406.6646   -1155.1946 
+    7700 2.5380373e-09   -4406.6646            0   -4406.6646   -1155.1945 
+    7800 1.5068282e-09   -4406.6646            0   -4406.6646   -1155.1948 
+    7900 6.0931799e-10   -4406.6645            0   -4406.6645    -1155.195 
+    8000 2.0802965e-09   -4406.6645            0   -4406.6645   -1155.1951 
+    8100 2.1544428e-09   -4406.6645            0   -4406.6645   -1155.1953 
+    8200 4.4375899e-10   -4406.6644            0   -4406.6644   -1155.1955 
+    8300 1.5879866e-09   -4406.6644            0   -4406.6644   -1155.1954 
+    8400 2.1255967e-09   -4406.6645            0   -4406.6645   -1155.1949 
+    8500 8.5066547e-10   -4406.6646            0   -4406.6646   -1155.1945 
+    8600 4.9764713e-10   -4406.6646            0   -4406.6646   -1155.1945 
+    8700 2.4032931e-09   -4406.6646            0   -4406.6646   -1155.1949 
+    8800 1.5506272e-09   -4406.6645            0   -4406.6645   -1155.1951 
+    8900 2.156996e-10   -4406.6645            0   -4406.6645   -1155.1952 
+    9000 1.5053583e-09   -4406.6645            0   -4406.6645   -1155.1953 
+    9100 2.2313062e-09   -4406.6645            0   -4406.6645   -1155.1954 
+    9200 6.5295769e-10   -4406.6645            0   -4406.6645   -1155.1953 
+    9300 7.1214495e-10   -4406.6646            0   -4406.6646   -1155.1949 
+    9400 2.2525879e-09   -4406.6646            0   -4406.6646   -1155.1945 
+    9500 1.2940878e-09   -4406.6646            0   -4406.6646   -1155.1945 
+    9600 3.7619117e-10   -4406.6645            0   -4406.6645    -1155.195 
+    9700 1.9605412e-09   -4406.6645            0   -4406.6645   -1155.1953 
+    9800 1.7828694e-09   -4406.6645            0   -4406.6645   -1155.1953 
+    9900 5.2324205e-10   -4406.6645            0   -4406.6645   -1155.1952 
+   10000 1.1770899e-09   -4406.6645            0   -4406.6645   -1155.1952 
+   10100 2.0621304e-09   -4406.6645            0   -4406.6645   -1155.1951 
+   10200 9.4046414e-10   -4406.6646            0   -4406.6646   -1155.1948 
+   10300 3.3301061e-10   -4406.6646            0   -4406.6646   -1155.1945 
+   10400 2.2075407e-09   -4406.6646            0   -4406.6646   -1155.1946 
+   10500 1.3556476e-09   -4406.6645            0   -4406.6645   -1155.1951 
+   10600 3.1056944e-10   -4406.6645            0   -4406.6645   -1155.1954 
+   10700 1.2113659e-09   -4406.6645            0   -4406.6645   -1155.1953 
+   10800 2.0914266e-09   -4406.6645            0   -4406.6645   -1155.1951 
+   10900 5.1353017e-10   -4406.6645            0   -4406.6645   -1155.1951 
+   11000 5.4707109e-10   -4406.6645            0   -4406.6645    -1155.195 
+Loop time of 354.654 on 4 procs for 10000 steps with 2304 atoms
+
+Pair  time (%) = 67.9127 (19.149)
+Neigh time (%) = 31.8455 (8.97932)
+Comm  time (%) = 122.402 (34.513)
+Outpt time (%) = 0.360688 (0.101702)
+Other time (%) = 132.133 (37.2569)
+
+Nlocal:    576 ave 864 max 288 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:    5170 ave 6910 max 3430 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:    178632 ave 289342 max 67274 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+FullNghs:  357264 ave 577008 max 137520 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 1429056
+Ave neighs/atom = 620.25
+Neighbor list builds = 1000
+Dangerous builds = 0

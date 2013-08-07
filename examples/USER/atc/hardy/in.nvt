@@ -1,31 +1,36 @@
-units           real
-atom_style      atomic
-echo            both
-dimension       3
-boundary        p p p
-lattice         fcc  5.376 orient x 1 0 0 orient y 0 1 0 orient z 0 0 1
-region          box block 0 5 0 5 0 5
-read_data       nvt.data
-
-pair_style      lj/cut 13.0
+# This test calculates Hardy fields for a system 
+# underdoing dynamics at a finite temperature.
+units   real
+atom_style  atomic
+echo both
+dimension 3
+boundary  p p p
+lattice 	fcc  5.376 orient x 1 0 0 orient y 0 1 0 orient z 0 0 1
+region  	box block 0 5 0 5 0 5
+read_data	nvt.data
+pair_style  lj/cut 13.0
 pair_coeff	1 1 0.2381 3.405
-
 group		internal region box
-
-fix             ATC internal atc hardy
-fix_modify	ATC fem create mesh 1 1 1 box p p p
-fix_modify	ATC atom_element_map eulerian 100
-fix_modify	ATC transfer fields none
-fix_modify	ATC transfer fields add density energy stress temperature
-fix_modify	ATC transfer output nvtFE 100 text
-
+fix         ATC internal atc field
+fix_modify  ATC mesh create 1 1 1 box p p p
+fix_modify  ATC atom_element_map eulerian 100
+fix_modify  ATC fields none
+fix_modify  ATC fields add mass_density energy stress temperature kinetic_temperature
+fix_modify  ATC fields add velocity thermal_energy kinetic_energy
+fix_modify  ATC output nvtFE 100 text
+fix         PP  internal atc field
+fix_modify  PP  filter type step # defaults to running
+fix_modify  PP  filter on
+fix_modify  PP  mesh create 1 1 1 box p p p
+fix_modify  PP  atom_element_map eulerian 100
+fix_modify  PP  fields add mass_density energy stress temperature kinetic_temperature
+fix_modify  PP  fields add velocity thermal_energy kinetic_energy
+fix_modify  PP  output nvtPP 100 text
 thermo		100
 compute_modify	thermo_temp extra 0
-thermo_style 	custom step temp etotal ke pe press
-log		nvt.log
-
+thermo_style 	custom step temp etotal ke pe press vol
 timestep 	4.0
 reset_timestep	0
-fix 		NVT all nvt temp 30 30 10 drag 0.2 tchain 1
+fix 		NVT all nvt temp 30 30 10.0 drag 0.2 tchain 1
+log		nvt.log
 run 		1000
-

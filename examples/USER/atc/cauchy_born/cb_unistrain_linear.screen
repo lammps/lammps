@@ -1,0 +1,161 @@
+LAMMPS (14 Aug 2013)
+units		real
+atom_style	atomic
+# create domain
+lattice         fcc 4.08 origin 0.25 0.25 0.25
+Lattice spacing in x,y,z = 4.08 4.08 4.08
+region		BOX block -8 8 -2 2 -2 2
+boundary	f p p
+create_box	1 BOX
+Created orthogonal box = (-32.64 -8.16 -8.16) to (32.64 8.16 8.16)
+  4 by 1 by 1 MPI processor grid
+# create atoms
+region		MD block -7 7 -2 2 -2 2
+create_atoms	1 region MD
+Created 896 atoms
+#pair_style  eam
+#pair_coeff  * * Au_u3.eam
+#pair_style      lj/cut/smooth 5.456108274435118
+pair_style      lj/smooth/linear 5.456108274435118
+pair_coeff      * * 0.7242785984051078 2.598146797350056
+mass          *  196.97
+# specify interal/ghost atoms
+region    FREE block -6 6 -2 2 -2 2
+group   internal region FREE
+768 atoms in group internal
+# specify inter-atomic potential
+# specify neighbor/re-neighboring parameters
+neighbor	0.3 bin
+neigh_modify	every 10 delay 0 check no
+# setup thermal output
+thermo		10
+thermo_style custom step pe ke press lx ly lz
+#           ID  group atc PhysicsType ParameterFile
+fix         PP1 internal   atc field Au_CauchyBorn_linear.mat
+ATC: constructing shape function field estimate with parameter file Au_CauchyBorn_linear.mat
+ ATC: peratom PE compute created with ID: 3
+fix_modify  PP1 mesh create 8 1 1 BOX f p p
+ ATC: created uniform mesh with 36 nodes, 9 unique nodes, and 8 elements
+fix_modify  PP1  fields add displacement
+fix_modify  PP1  fields add internal_energy stress cauchy_born_energy cauchy_born_stress
+fix_modify  PP1  gradients add displacement
+fix_modify  PP1  set reference_potential_energy 0 # correct cb and messes pe
+#           ID  group atc PhysicsType ParameterFile
+fix         PP2 internal   atc field Au_CauchyBorn.mat
+ATC: constructing shape function field estimate with parameter file Au_CauchyBorn.mat
+ ATC: peratom PE compute created with ID: 3
+fix_modify  PP2 mesh create 8 1 1 BOX f p p
+ ATC: created uniform mesh with 36 nodes, 9 unique nodes, and 8 elements
+fix_modify  PP2  fields add cauchy_born_energy cauchy_born_stress internal_energy
+fix_modify  PP2  set reference_potential_energy
+timestep 0.0
+fix_modify  PP1  output cb_unistrain_linearFE 1 text tensor_components binary
+ ATC: Warning : text output can create _LARGE_ files
+ ATC: output custom names:
+
+fix_modify  PP2  output cb_unistrain_refFE    1 text tensor_components
+ ATC: Warning : text output can create _LARGE_ files
+ ATC: output custom names:
+
+log       cb_unistrain_linear.log
+variable step  equal 0
+thermo_style  custom step v_step pe ke press lx ly lz
+run 	1
+Setting up run ...
+ ATC: created cubic stress function:
+   lammps         ATC units
+   c11=3.10501 0.00129914
+   c12=1.75749 0.000735332
+   c44=1.75749 0.000735332
+ ATC: CB stiffness: 28.7742 Einstein freq: 1.53992
+ ATC: computing bond matrix ...........done
+ ATC: CB stiffness: 28.7742 Einstein freq: 1.53992
+Memory usage per processor = 43.292 Mbytes
+Step step PotEng KinEng Press Lx Ly Lz 
+       0            0   -3435.8868            0    50.003991        65.28        16.32        16.32 
+       1            0   -3435.8868            0    50.003991        65.28        16.32        16.32 
+Loop time of 0.0132832 on 4 procs for 1 steps with 896 atoms
+
+Pair  time (%) = 0.000411749 (3.09977)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.000149429 (1.12495)
+Outpt time (%) = 8.07047e-05 (0.60757)
+Other time (%) = 0.0126413 (95.1677)
+
+Nlocal:    224 ave 256 max 192 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:    903 ave 1116 max 690 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:    4528 ave 5376 max 3648 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+FullNghs:  9056 ave 10752 max 7360 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 36224
+Ave neighs/atom = 40.4286
+Neighbor list builds = 0
+Dangerous builds = 0
+variable step equal ${step}+1
+variable step equal 0+1
+displace_atoms	all ramp x -0.1 0.1 x -100 100
+Displacing atoms ...
+run		1
+Setting up run ...
+ ATC: computing bond matrix ...........done
+Memory usage per processor = 43.292 Mbytes
+Step step PotEng KinEng Press Lx Ly Lz 
+       1            1    -3435.904            0   -77.521908        65.28        16.32        16.32 
+       2            1    -3435.904            0   -77.521908        65.28        16.32        16.32 
+Loop time of 0.0176127 on 4 procs for 1 steps with 896 atoms
+
+Pair  time (%) = 0.000424206 (2.40853)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.000124991 (0.709664)
+Outpt time (%) = 0.000433266 (2.45997)
+Other time (%) = 0.0166302 (94.4218)
+
+Nlocal:    224 ave 256 max 192 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:    903 ave 1116 max 690 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:    4528 ave 5376 max 3648 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+FullNghs:  9056 ave 10752 max 7360 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 36224
+Ave neighs/atom = 40.4286
+Neighbor list builds = 0
+Dangerous builds = 0
+variable step equal ${step}+1
+variable step equal 1+1
+displace_atoms	all ramp x -0.1 0.1 x -100 100
+Displacing atoms ...
+run		1
+Setting up run ...
+ ATC: computing bond matrix ...........done
+Memory usage per processor = 43.292 Mbytes
+Step step PotEng KinEng Press Lx Ly Lz 
+       2            2   -3435.8757            0   -203.99195        65.28        16.32        16.32 
+       3            2   -3435.8757            0   -203.99195        65.28        16.32        16.32 
+Loop time of 0.0175297 on 4 procs for 1 steps with 896 atoms
+
+Pair  time (%) = 0.00041151 (2.3475)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.000131011 (0.747365)
+Outpt time (%) = 0.000337481 (1.9252)
+Other time (%) = 0.0166497 (94.9799)
+
+Nlocal:    224 ave 256 max 192 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:    903 ave 1116 max 690 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:    4528 ave 5376 max 3648 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+FullNghs:  9056 ave 10752 max 7360 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 36224
+Ave neighs/atom = 40.4286
+Neighbor list builds = 0
+Dangerous builds = 0

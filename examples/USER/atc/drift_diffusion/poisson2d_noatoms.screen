@@ -1,0 +1,109 @@
+LAMMPS (14 Aug 2013)
+variable nx equal 80 # 80 # 40
+variable ny equal ${nx}
+variable ny equal 80
+variable nz equal 1
+variable h  equal 1.0
+variable l  equal -$h
+variable l  equal -1
+variable u  equal  $h
+variable u  equal  1
+#variable l  equal -$h*${nx}
+#variable u  equal  $h*${nx}
+variable T  equal 300
+variable n0 equal 0.005
+variable S equal 1
+variable V equal 5.
+# STEP THE GATE VOLTAGE UP
+atom_style      atomic
+timestep  0.0
+boundary      f f f
+lattice       fcc 1.0
+Lattice spacing in x,y,z = 1.5874 1.5874 1.5874
+region        BOX block $l $u $l $u 0 1
+region        BOX block -1 $u $l $u 0 1
+region        BOX block -1 1 $l $u 0 1
+region        BOX block -1 1 -1 $u 0 1
+region        BOX block -1 1 -1 1 0 1
+create_box  1 BOX
+Created orthogonal box = (-1.5874 -1.5874 0) to (1.5874 1.5874 1.5874)
+  2 by 2 by 1 MPI processor grid
+mass          * 12.01
+atom_modify     sort 0 1
+#               ID  group atc PhysicsType ParameterFile
+fix             AtC all   atc drift_diffusion CNT_ddm.mat
+ATC: constructing drift_diffusion coupling with parameter file CNT_ddm.mat
+ ATC: peratom PE compute created with ID: 3
+ ATC: WARNING: must use a unit system where: [Energy/force] = [Length] and [charge] = e
+ ATC: WARNING: material units metal do not match lammps
+ ATC: WARNING: must use a unit system where: [Energy/force] = [Length] and [charge] = e
+ ATC: WARNING: material units metal do not match lammps
+ ATC: 2 materials defined from CNT_ddm.mat
+ ATC: creating drift_diffusion extrinsic model
+ ATC: WARNING: must use a unit system where: [Energy/force] = [Length] and [charge] = e
+ ATC: WARNING: material units metal do not match lammps
+ ATC: WARNING: must use a unit system where: [Energy/force] = [Length] and [charge] = e
+ ATC: WARNING: material units metal do not match lammps
+ ATC: 2 materials defined from CNT_ddm.mat
+ ATC: WARNING: must use a unit system where: [Energy/force] = [Length] and [charge] = e
+ ATC: WARNING: material units metal do not match lammps
+ ATC: WARNING: must use a unit system where: [Energy/force] = [Length] and [charge] = e
+ ATC: WARNING: material units metal do not match lammps
+ ATC: 2 materials defined from CNT_ddm.mat
+#               ID  part keywords    nx ny nz region
+fix_modify      AtC mesh create ${nx} ${ny} ${nz}  BOX f f p
+fix_modify      AtC mesh create 80 ${ny} ${nz}  BOX f f p
+fix_modify      AtC mesh create 80 80 ${nz}  BOX f f p
+fix_modify      AtC mesh create 80 80 1  BOX f f p
+ ATC: created uniform mesh with 13122 nodes, 6561 unique nodes, and 6400 elements
+#fix_modify      AtC extrinsic poisson_solver iterative
+# boundary conditions
+variable a equal $l-0.1
+variable a equal -1-0.1
+variable b equal $l+0.1
+variable b equal -1+0.1
+fix_modify AtC mesh create_nodeset bot -INF INF $a $b -INF INF
+fix_modify AtC mesh create_nodeset bot -INF INF -1.1000000000000000888 $b -INF INF
+fix_modify AtC mesh create_nodeset bot -INF INF -1.1000000000000000888 -0.9000000000000000222 -INF INF
+ ATC: created nodeset bot with 324 nodes
+fix_modify AtC mesh create_nodeset rbc $a $b -INF INF -INF INF
+fix_modify AtC mesh create_nodeset rbc -1.1000000000000000888 $b -INF INF -INF INF
+fix_modify AtC mesh create_nodeset rbc -1.1000000000000000888 -0.9000000000000000222 -INF INF -INF INF
+ ATC: created nodeset rbc with 324 nodes
+variable a equal $u-0.1
+variable a equal 1-0.1
+variable b equal $u+0.1
+variable b equal 1+0.1
+fix_modify AtC mesh create_nodeset top -INF INF $a $b -INF INF
+fix_modify AtC mesh create_nodeset top -INF INF 0.9000000000000000222 $b -INF INF
+fix_modify AtC mesh create_nodeset top -INF INF 0.9000000000000000222 1.1000000000000000888 -INF INF
+ ATC: created nodeset top with 324 nodes
+fix_modify AtC mesh create_nodeset lbc $a $b -INF INF -INF INF
+fix_modify AtC mesh create_nodeset lbc 0.9000000000000000222 $b -INF INF -INF INF
+fix_modify AtC mesh create_nodeset lbc 0.9000000000000000222 1.1000000000000000888 -INF INF -INF INF
+ ATC: created nodeset lbc with 324 nodes
+variable a equal -0.1
+variable b equal 0.1
+fix_modify AtC mesh create_nodeset origin  -INF INF  $a $b  -INF INF
+fix_modify AtC mesh create_nodeset origin  -INF INF  -0.10000000000000000555 $b  -INF INF
+fix_modify AtC mesh create_nodeset origin  -INF INF  -0.10000000000000000555 0.10000000000000000555  -INF INF
+ ATC: created nodeset origin with 648 nodes
+variable a equal -2*$h
+variable a equal -2*1
+variable b equal  2*$h
+variable b equal  2*1
+variable a equal -8*$h
+variable a equal -8*1
+variable b equal  8*$h
+variable b equal  8*1
+fix_modify AtC mesh create_elementset wire -INF INF $a $b  -INF INF
+fix_modify AtC mesh create_elementset wire -INF INF -8 $b  -INF INF
+fix_modify AtC mesh create_elementset wire -INF INF -8 8  -INF INF
+ ATC: created elementset wire with 6400 elements
+fix_modify AtC material wire C
+# simplify
+fix_modify AtC  internal_quadrature off
+fix_modify AtC  control thermal none
+fix_modify AtC extrinsic electron_integration explicit 1
+fix_modify AtC extrinsic poisson_solver iterative
+ERROR: Illegal fix_modify command (../fix.cpp:104)

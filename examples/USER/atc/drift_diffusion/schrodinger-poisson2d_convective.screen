@@ -1,0 +1,219 @@
+LAMMPS (14 Aug 2013)
+#variable iter equal 2 # need two for potential to affect density
+variable iter1 equal 4  # NOTE <<<<
+variable iter2 equal 25 # NOTE <<<<
+variable r    equal 1
+variable nx equal 12 # 30 40 10
+variable mx equal 4  # 4  2
+#variable ny equal ${nx}
+variable ny equal 12 # 30 40
+variable my equal 8 # 12 6
+variable nz equal 1
+variable hx  equal 1.0
+variable hy  equal ${hx}*${nx}/${ny}
+variable hy  equal 1*${nx}/${ny}
+variable hy  equal 1*12/${ny}
+variable hy  equal 1*12/12
+variable l  equal -${hx}*${nx}
+variable l  equal -1*${nx}
+variable l  equal -1*12
+variable u  equal  ${hx}*${nx}
+variable u  equal  1*${nx}
+variable u  equal  1*12
+variable w  equal  ${hy}*${my}
+variable w  equal  1*${my}
+variable w  equal  1*8
+variable q  equal  ${hx}*${mx}
+variable q  equal  1*${mx}
+variable q  equal  1*4
+variable y equal ${nx}+1-${mx}
+variable y equal 12+1-${mx}
+variable y equal 12+1-4
+variable T  equal 300
+variable S equal 1
+variable n0 equal 0.00007
+variable v0 equal 1000.0
+variable J0 equal ${n0}*${v0}
+variable J0 equal 6.9999999999999993868e-05*${v0}
+variable J0 equal 6.9999999999999993868e-05*1000
+print "prescribed flux: ${J0}"
+prescribed flux: 0.069999999999999992784
+variable Vs equal 1.0
+#variable Vg equal 1.0 # 10.0 0.0
+variable tol equal 0.01
+#################################################
+atom_style      atomic
+timestep  0.001
+boundary      f f f
+lattice       fcc 1.0
+Lattice spacing in x,y,z = 1.5874 1.5874 1.5874
+region        BOX block ${l} ${u} ${l} ${u} 0 1
+region        BOX block -12 ${u} ${l} ${u} 0 1
+region        BOX block -12 12 ${l} ${u} 0 1
+region        BOX block -12 12 -12 ${u} 0 1
+region        BOX block -12 12 -12 12 0 1
+create_box  1 BOX
+Created orthogonal box = (-19.0488 -19.0488 0) to (19.0488 19.0488 1.5874)
+  2 by 2 by 1 MPI processor grid
+mass          * 12.01
+atom_modify     sort 0 1
+#    ID  group atc PhysicsType ParameterFile
+fix  AtC all   atc convective_drift_diffusion-schrodinger SiVacuum_cddm_schrodinger.mat
+ATC: constructing convective_drift_diffusion-schrodinger coupling with parameter file SiVacuum_cddm_schrodinger.mat
+ ATC: peratom PE compute created with ID: 3
+ ATC: WARNING: must use a unit system where: [Energy/force] = [Length] and [charge] = e
+ ATC: WARNING: material units metal do not match lammps
+ ATC: WARNING: must use a unit system where: [Energy/force] = [Length] and [charge] = e
+ ATC: WARNING: material units metal do not match lammps
+ ATC: 2 materials defined from SiVacuum_cddm_schrodinger.mat
+ ATC: creating convective_drift_diffusion extrinsic model
+ ATC: WARNING: must use a unit system where: [Energy/force] = [Length] and [charge] = e
+ ATC: WARNING: material units metal do not match lammps
+ ATC: WARNING: must use a unit system where: [Energy/force] = [Length] and [charge] = e
+ ATC: WARNING: material units metal do not match lammps
+ ATC: 2 materials defined from SiVacuum_cddm_schrodinger.mat
+ ATC: WARNING: must use a unit system where: [Energy/force] = [Length] and [charge] = e
+ ATC: WARNING: material units metal do not match lammps
+ ATC: WARNING: must use a unit system where: [Energy/force] = [Length] and [charge] = e
+ ATC: WARNING: material units metal do not match lammps
+ ATC: 2 materials defined from SiVacuum_cddm_schrodinger.mat
+ ATC: WARNING: must use a unit system where: [Energy/force] = [Length] and [charge] = e
+ ATC: WARNING: material units metal do not match lammps
+ ATC: WARNING: must use a unit system where: [Energy/force] = [Length] and [charge] = e
+ ATC: WARNING: material units metal do not match lammps
+ ATC: 2 materials defined from SiVacuum_cddm_schrodinger.mat
+#            ID  part keywords    nx ny nz region
+fix_modify   AtC mesh create ${nx} ${ny} ${nz}  BOX f f p
+fix_modify   AtC mesh create 12 ${ny} ${nz}  BOX f f p
+fix_modify   AtC mesh create 12 12 ${nz}  BOX f f p
+fix_modify   AtC mesh create 12 12 1  BOX f f p
+ ATC: created uniform mesh with 338 nodes, 169 unique nodes, and 144 elements
+# surfaces & regions
+variable a equal $l-${tol}
+variable a equal -12-${tol}
+variable a equal -12-0.010000000000000000208
+variable b equal $l+$q+${tol}
+variable b equal -12+$q+${tol}
+variable b equal -12+4+${tol}
+variable b equal -12+4+0.010000000000000000208
+variable c equal -$w-${tol}
+variable c equal -8-${tol}
+variable c equal -8-0.010000000000000000208
+variable d equal  $w+${tol}
+variable d equal  8+${tol}
+variable d equal  8+0.010000000000000000208
+variable e equal $l+$q-${tol}
+variable e equal -12+$q-${tol}
+variable e equal -12+4-${tol}
+variable e equal -12+4-0.010000000000000000208
+fix_modify AtC mesh create_nodeset bot -INF INF $a $b -INF INF
+fix_modify AtC mesh create_nodeset bot -INF INF -12.009999999999999787 $b -INF INF
+fix_modify AtC mesh create_nodeset bot -INF INF -12.009999999999999787 -7.9900000000000002132 -INF INF
+ ATC: created nodeset bot with 39 nodes
+fix_modify AtC mesh create_nodeset lbc   $a $b -INF INF -INF INF
+fix_modify AtC mesh create_nodeset lbc   -12.009999999999999787 $b -INF INF -INF INF
+fix_modify AtC mesh create_nodeset lbc   -12.009999999999999787 -7.9900000000000002132 -INF INF -INF INF
+ ATC: created nodeset lbc with 39 nodes
+variable a equal $u-$q-${tol}
+variable a equal 12-$q-${tol}
+variable a equal 12-4-${tol}
+variable a equal 12-4-0.010000000000000000208
+variable b equal $u+${tol}
+variable b equal 12+${tol}
+variable b equal 12+0.010000000000000000208
+variable e equal $u-$q+${tol}
+variable e equal 12-$q+${tol}
+variable e equal 12-4+${tol}
+variable e equal 12-4+0.010000000000000000208
+fix_modify AtC mesh create_nodeset top -INF INF $a $b -INF INF
+fix_modify AtC mesh create_nodeset top -INF INF 7.9900000000000002132 $b -INF INF
+fix_modify AtC mesh create_nodeset top -INF INF 7.9900000000000002132 12.009999999999999787 -INF INF
+ ATC: created nodeset top with 39 nodes
+fix_modify AtC mesh create_nodeset rbc   $a $b -INF INF -INF INF
+fix_modify AtC mesh create_nodeset rbc   7.9900000000000002132 $b -INF INF -INF INF
+fix_modify AtC mesh create_nodeset rbc   7.9900000000000002132 12.009999999999999787 -INF INF -INF INF
+ ATC: created nodeset rbc with 39 nodes
+variable a equal -$w-${tol}
+variable a equal -8-${tol}
+variable a equal -8-0.010000000000000000208
+variable b equal  $w+${tol}
+variable b equal  8+${tol}
+variable b equal  8+0.010000000000000000208
+variable c equal  $l+$q-${tol}
+variable c equal  -12+$q-${tol}
+variable c equal  -12+4-${tol}
+variable c equal  -12+4-0.010000000000000000208
+variable d equal  $u-$q+${tol}
+variable d equal  12-$q+${tol}
+variable d equal  12-4+${tol}
+variable d equal  12-4+0.010000000000000000208
+fix_modify AtC mesh create_elementset wire $c $d $a $b  -INF INF
+fix_modify AtC mesh create_elementset wire -8.0099999999999997868 $d $a $b  -INF INF
+fix_modify AtC mesh create_elementset wire -8.0099999999999997868 8.0099999999999997868 $a $b  -INF INF
+fix_modify AtC mesh create_elementset wire -8.0099999999999997868 8.0099999999999997868 -8.0099999999999997868 $b  -INF INF
+fix_modify AtC mesh create_elementset wire -8.0099999999999997868 8.0099999999999997868 -8.0099999999999997868 8.0099999999999997868  -INF INF
+ ATC: created elementset wire with 64 elements
+fix_modify AtC mesh create_nodeset    wire $c $d $a $b  -INF INF
+fix_modify AtC mesh create_nodeset    wire -8.0099999999999997868 $d $a $b  -INF INF
+fix_modify AtC mesh create_nodeset    wire -8.0099999999999997868 8.0099999999999997868 $a $b  -INF INF
+fix_modify AtC mesh create_nodeset    wire -8.0099999999999997868 8.0099999999999997868 -8.0099999999999997868 $b  -INF INF
+fix_modify AtC mesh create_nodeset    wire -8.0099999999999997868 8.0099999999999997868 -8.0099999999999997868 8.0099999999999997868  -INF INF
+ ATC: created nodeset wire with 81 nodes
+variable e equal $c+2*${tol}
+variable e equal -8.0099999999999997868+2*${tol}
+variable e equal -8.0099999999999997868+2*0.010000000000000000208
+variable f equal $c+${tol}
+variable f equal -8.0099999999999997868+${tol}
+variable f equal -8.0099999999999997868+0.010000000000000000208
+fix_modify AtC mesh create_nodeset lwire   $c $e $a $b  -INF INF
+fix_modify AtC mesh create_nodeset lwire   -8.0099999999999997868 $e $a $b  -INF INF
+fix_modify AtC mesh create_nodeset lwire   -8.0099999999999997868 -7.9900000000000002132 $a $b  -INF INF
+fix_modify AtC mesh create_nodeset lwire   -8.0099999999999997868 -7.9900000000000002132 -8.0099999999999997868 $b  -INF INF
+fix_modify AtC mesh create_nodeset lwire   -8.0099999999999997868 -7.9900000000000002132 -8.0099999999999997868 8.0099999999999997868  -INF INF
+ ATC: created nodeset lwire with 9 nodes
+fix_modify AtC mesh create_faceset lwire   $f INF $a $b  -INF INF
+fix_modify AtC mesh create_faceset lwire   -8 INF $a $b  -INF INF
+fix_modify AtC mesh create_faceset lwire   -8 INF -8.0099999999999997868 $b  -INF INF
+fix_modify AtC mesh create_faceset lwire   -8 INF -8.0099999999999997868 8.0099999999999997868  -INF INF
+ ATC: created faceset lwire with 8 faces
+variable e equal $d-2*${tol}
+variable e equal 8.0099999999999997868-2*${tol}
+variable e equal 8.0099999999999997868-2*0.010000000000000000208
+variable f equal $d-${tol}
+variable f equal 8.0099999999999997868-${tol}
+variable f equal 8.0099999999999997868-0.010000000000000000208
+fix_modify AtC mesh create_nodeset rwire   $e $d $a $b  -INF INF
+fix_modify AtC mesh create_nodeset rwire   7.9900000000000002132 $d $a $b  -INF INF
+fix_modify AtC mesh create_nodeset rwire   7.9900000000000002132 8.0099999999999997868 $a $b  -INF INF
+fix_modify AtC mesh create_nodeset rwire   7.9900000000000002132 8.0099999999999997868 -8.0099999999999997868 $b  -INF INF
+fix_modify AtC mesh create_nodeset rwire   7.9900000000000002132 8.0099999999999997868 -8.0099999999999997868 8.0099999999999997868  -INF INF
+ ATC: created nodeset rwire with 9 nodes
+fix_modify AtC mesh create_faceset rwire   -INF $f $a $b  -INF INF
+fix_modify AtC mesh create_faceset rwire   -INF 8 $a $b  -INF INF
+fix_modify AtC mesh create_faceset rwire   -INF 8 -8.0099999999999997868 $b  -INF INF
+fix_modify AtC mesh create_faceset rwire   -INF 8 -8.0099999999999997868 8.0099999999999997868  -INF INF
+ ATC: created faceset rwire with 8 faces
+variable e equal $a+2*${tol}
+variable e equal -8.0099999999999997868+2*${tol}
+variable e equal -8.0099999999999997868+2*0.010000000000000000208
+fix_modify AtC mesh create_nodeset bwire   $c $d $a $e  -INF INF
+fix_modify AtC mesh create_nodeset bwire   -8.0099999999999997868 $d $a $e  -INF INF
+fix_modify AtC mesh create_nodeset bwire   -8.0099999999999997868 8.0099999999999997868 $a $e  -INF INF
+fix_modify AtC mesh create_nodeset bwire   -8.0099999999999997868 8.0099999999999997868 -8.0099999999999997868 $e  -INF INF
+fix_modify AtC mesh create_nodeset bwire   -8.0099999999999997868 8.0099999999999997868 -8.0099999999999997868 -7.9900000000000002132  -INF INF
+ ATC: created nodeset bwire with 9 nodes
+variable e equal $b-2*${tol}
+variable e equal 8.0099999999999997868-2*${tol}
+variable e equal 8.0099999999999997868-2*0.010000000000000000208
+fix_modify AtC mesh create_nodeset twire   $c $d $e $b  -INF INF
+fix_modify AtC mesh create_nodeset twire   -8.0099999999999997868 $d $e $b  -INF INF
+fix_modify AtC mesh create_nodeset twire   -8.0099999999999997868 8.0099999999999997868 $e $b  -INF INF
+fix_modify AtC mesh create_nodeset twire   -8.0099999999999997868 8.0099999999999997868 7.9900000000000002132 $b  -INF INF
+fix_modify AtC mesh create_nodeset twire   -8.0099999999999997868 8.0099999999999997868 7.9900000000000002132 8.0099999999999997868  -INF INF
+ ATC: created nodeset twire with 9 nodes
+# new material
+fix_modify AtC material wire Si
+# simplify
+fix_modify  AtC extrinsic one_dimensional x wire $y
+fix_modify  AtC extrinsic one_dimensional x wire 9
+ERROR: Illegal fix_modify command (../fix.cpp:104)

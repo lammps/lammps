@@ -34,7 +34,7 @@ if (test $1 = 1) then
 
   if (test -e ../Makefile.package) then
     sed -i -e 's/[^ \t]*atc[^ \t]* //' ../Makefile.package
-    sed -i -e 's|^PKG_INC =[ \t]*|&-I../../lib/atc |' ../Makefile.package
+    sed -i -e 's|^PKG_INC =[ \t]*|&-I../../lib/atc -I.. -I../.. |' ../Makefile.package
     sed -i -e 's|^PKG_PATH =[ \t]*|&-L../../lib/atc |' ../Makefile.package
     sed -i -e 's|^PKG_LIB =[ \t]*|&-latc |' ../Makefile.package
     sed -i -e 's|^PKG_SYSINC =[ \t]*|&$(user-atc_SYSINC) |' ../Makefile.package

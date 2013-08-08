@@ -1,4 +1,7 @@
 SHELL = /bin/sh
+
+# which file will be copied to Makefile.lammps
+EXTRAMAKE = Makefile.lammps.installed
 # ------ FILES ------
 SRC = $(wildcard *.cpp)
 INC = $(wildcard *.h)
@@ -11,12 +14,12 @@ CCFLAGS =       -O -g -I../../src -fPIC -DMPICH_IGNORE_CXX_SEEK
 ARCHIVE =	ar
 ARCHFLAG =	-rc
 DEPFLAGS =      -M
-LINK =         	${CC}
+LINK =         	$(CC)
 LINKFLAGS =	-O
 # ------ MAKE PROCEDURE ------
 lib: 	$(OBJ)
 	$(ARCHIVE) $(ARFLAGS) $(LIB) $(OBJ)
-	@cp Makefile.lammps.installed Makefile.lammps
+	@cp $(EXTRAMAKE) Makefile.lammps
 # ------ COMPILE RULES ------
 %.o:%.cpp
 	$(CC) $(CCFLAGS) -c $<

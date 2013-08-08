@@ -15,22 +15,22 @@ using std::string;
 #include <sstream>
 using std::stringstream;
 #include "mpi.h"
-#include "lammps.h"
-#include "modify.h"
-#include "memory.h"
+#include "../../src/lammps.h"
+#include "../../src/lmptype.h"
+#include "../../src/modify.h"
+#include "../../src/memory.h"
 
-#include "random_park.h"
+#include "../../src/random_park.h"
 typedef LAMMPS_NS::RanPark* RNG_POINTER;
 
-#include "lmptype.h"
 using LAMMPS_NS::bigint;
 //using LAMMPS_NS::NEIGHMASK;
 
-#include "compute.h"
+#include "../../src/compute.h"
 typedef const LAMMPS_NS::Compute* COMPUTE_POINTER;
 
-#include "update.h"
-#include "min.h"
+#include "../../src/update.h"
+#include "../../src/min.h"
 
 #include "ATC_Error.h"
 #include "ATC_TypeDefs.h"

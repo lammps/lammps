@@ -26,9 +26,6 @@ ARCHFLAG =	-rc
 DEPFLAGS =      -M
 LINK =         	$(CC)
 LINKFLAGS =	-O
-USRLIB =
-SYSLIB =
-
 # ------ MAKE PROCEDURE ------
 
 lib: 	$(OBJ)
@@ -49,6 +46,6 @@ DEPENDS = $(OBJ:.o=.d)
 # ------ CLEAN ------
 
 clean:
-	rm *.o *.d *~ $(LIB)
+	@rm *.o *.d *~ $(LIB)
 
 sinclude $(DEPENDS)

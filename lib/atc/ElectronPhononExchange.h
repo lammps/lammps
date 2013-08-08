@@ -7,60 +7,110 @@
 using std::map;
 using std::string;
 
-#include "MatrixLibrary.h"
 #include "ATC_TypeDefs.h"
 
 namespace ATC {
+  
+  class Material;
+
+  /**
+   *  @class  ElectronPhononExchange
+   *  @brief  Base class for energy exchange between the electron and phonon temperatures
+   */
+
   class ElectronPhononExchange
   {
     public:
-      ElectronPhononExchange() 	{};
+      ElectronPhononExchange()  {};
       virtual ~ElectronPhononExchange() {};
       /** computes heat capacity */
-      virtual void electron_phonon_exchange(const FIELDS &fields,
-                                     DENS_MAT &flux)=0; 
+      virtual bool electron_phonon_exchange(const FIELD_MATS &fields,
+                                                  DENS_MAT &flux) { return false; }
   };
   //-------------------------------------------------------------------
+
+  /**
+   *  @class  ElectronPhononExchangeLinear
+   *  @brief  Class for electron-phonon energy exchange proportional to the difference between the two temperatures
+   */
+
   class ElectronPhononExchangeLinear : public ElectronPhononExchange
   {
     public:
       ElectronPhononExchangeLinear(fstream &matfile,
                                    map<string,double> & parameters);
       virtual ~ElectronPhononExchangeLinear() {};
-      virtual void electron_phonon_exchange(const FIELDS &fields,
-                                     DENS_MAT &flux)
+      virtual bool electron_phonon_exchange(const FIELD_MATS &fields,
+                                                  DENS_MAT &flux)
       {
-         // flux = g * ( T- Te)
-         const FIELD & T  = (fields.find(TEMPERATURE))->second;
-         const FIELD & Te = (fields.find(ELECTRON_TEMPERATURE))->second;
-         flux = Te;
-         flux -= T;
-         flux *= exchangeCoef_;
-      }; 
+        FIELD_MATS::const_iterator tField = fields.find(TEMPERATURE);
+        FIELD_MATS::const_iterator etField = fields.find(ELECTRON_TEMPERATURE);
+        const DENS_MAT & T  = tField->second;
+        const DENS_MAT & Te = etField->second;
+
+        // flux = g * ( T- Te)
+        flux = Te - T;
+        flux *= exchangeCoef_;
+        return true;
+      };
     protected:
       double exchangeCoef_;
   };
   //-------------------------------------------------------------------
+  
+  /**
+   *  @class  ElectronPhononExchangePowerLaw
+   *  @brief  Class for electron-phonon exchange proportional to the temperature difference raised to a constant power
+   */  
+  
   class ElectronPhononExchangePowerLaw : public ElectronPhononExchange
   {
     public:
       ElectronPhononExchangePowerLaw(fstream &matfile,  
                                      map<string,double> & parameters);
       virtual ~ElectronPhononExchangePowerLaw() {};
-      virtual void electron_phonon_exchange(const FIELDS &fields,
-                                     DENS_MAT &flux)
+      virtual bool electron_phonon_exchange(const FIELD_MATS &fields,
+                                                  DENS_MAT &flux)
       {
-         // flux = g c_e T_e (T_e - T_p)^5 / T_e
-         const FIELD & T  = (fields.find(TEMPERATURE))->second;
-         const FIELD & Te = (fields.find(ELECTRON_TEMPERATURE))->second;
-         flux = Te;
-         flux -= T;
-         flux = flux.pow(exponent_);
-         flux *= exchangeCoef_;
+        FIELD_MATS::const_iterator tField = fields.find(TEMPERATURE);
+        FIELD_MATS::const_iterator etField = fields.find(ELECTRON_TEMPERATURE);
+        const DENS_MAT & T  = tField->second;
+        const DENS_MAT & Te = etField->second;
+
+        // flux = g c_e T_e (T_e - T_p)^5 / T_e
+        flux = (Te - T).pow(exponent_);
+        flux *= exchangeCoef_;
+        return true;
       }; 
     protected:
       double exchangeCoef_;
       int exponent_;
+  };
+  //-------------------------------------------------------------------
+  
+  /**
+   *  @class  ElectronPhononExchangeHertel
+   *  @brief  Class for electron-phonon exchange based on the formulation of Hertel for Cu
+   */  
+  
+  class ElectronPhononExchangeHertel : public ElectronPhononExchange
+  {
+    public:
+      ElectronPhononExchangeHertel(fstream &matfile,  
+                                   map<string,double> & parameters,
+                                   Material * material);
+      virtual ~ElectronPhononExchangeHertel() {};
+      virtual bool electron_phonon_exchange(const FIELD_MATS &fields,
+                                                  DENS_MAT &flux);
+    protected:
+      double exchangeCoef_;
+      double debeyeTemperature_;
+      double massEnhancement_;
+      Material * material_;
+      
+  private:
+      ElectronPhononExchangeHertel() {};
+      DENS_MAT capacityWorkspace_;
   };
 }
 

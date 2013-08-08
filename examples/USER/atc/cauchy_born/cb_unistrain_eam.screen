@@ -1,0 +1,145 @@
+LAMMPS (14 Aug 2013)
+units		metal
+atom_style	atomic
+# create domain
+#lattice         fcc 3.615 origin 0.25 0.25 0.25
+lattice         fcc 3.615 origin 0.01 0.01 0.01
+Lattice spacing in x,y,z = 3.615 3.615 3.615
+region		BOX block -8 8 -2 2 -2 2
+boundary	f p p
+create_box	1 BOX
+Created orthogonal box = (-28.92 -7.23 -7.23) to (28.92 7.23 7.23)
+  4 by 1 by 1 MPI processor grid
+# create atoms
+region		MD block -7 7 -2 2 -2 2
+create_atoms	1 region MD
+Created 896 atoms
+mass		1 63.55
+# specify interal/ghost atoms
+region    FREE block -6 6 -2 2 -2 2
+group   internal region FREE
+768 atoms in group internal
+# specify inter-atomic potential
+pair_style      eam
+pair_coeff      * * ../../../../potentials/Cu_u3.eam
+# specify neighbor/re-neighboring parameters
+neighbor	0.3 bin
+neigh_modify	every 10 delay 0 check no
+# setup thermal output
+thermo		10
+thermo_style custom step pe ke press lx ly lz
+#           ID  group atc PhysicsType ParameterFile
+fix         AtC internal   atc field Cu_CauchyBorn.mat
+ATC: constructing shape function field estimate with parameter file Cu_CauchyBorn.mat
+ ATC: peratom PE compute created with ID: 3
+fix_modify  AtC mesh create 8 1 1 BOX f p p
+ ATC: created uniform mesh with 36 nodes, 9 unique nodes, and 8 elements
+#fix_modify  AtC kernel quartic_cylinder 10.0
+fix_modify  AtC  fields none
+fix_modify  AtC  fields add displacement
+fix_modify  AtC  fields add internal_energy stress
+fix_modify  AtC  fields add cauchy_born_energy
+fix_modify  AtC  fields add cauchy_born_stress
+fix_modify  AtC  gradients add displacement
+#fix_modify  AtC  fields add elastic_deformation_gradient
+timestep 0.0
+fix_modify	AtC  output cb_unistrain_eamFE 1 text tensor_components binary
+ ATC: Warning : text output can create _LARGE_ files
+ ATC: output custom names:
+
+log       cb_unistrain_eam.log
+variable step  equal 0
+thermo_style  custom step v_step pe ke press lx ly lz
+run 	1
+Setting up run ...
+ ATC: CB stiffness: 12.0537 Einstein freq: 2718.63
+ ATC: computing bond matrix ...........done
+Memory usage per processor = 22.7644 Mbytes
+Step step PotEng KinEng Press Lx Ly Lz 
+       0            0    -3138.143            0   -4765.0913        57.84        14.46        14.46 
+       1            0    -3138.143            0   -4765.0913        57.84        14.46        14.46 
+Loop time of 0.0273568 on 4 procs for 1 steps with 896 atoms
+
+Pair  time (%) = 0.000983477 (3.595)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.000149012 (0.544697)
+Outpt time (%) = 0.000116587 (0.426171)
+Other time (%) = 0.0261077 (95.4341)
+
+Nlocal:    224 ave 256 max 192 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:    684.75 ave 843 max 484 min
+Histogram: 1 0 1 0 0 0 0 0 0 2
+Neighs:    5808 ave 6912 max 4672 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+FullNghs:  11616 ave 13824 max 9408 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 46464
+Ave neighs/atom = 51.8571
+Neighbor list builds = 0
+Dangerous builds = 0
+variable step equal ${step}+1
+variable step equal 0+1
+displace_atoms	all ramp x -0.1 0.1 x -100 100
+Displacing atoms ...
+run		1
+Setting up run ...
+ ATC: computing bond matrix ...........done
+Memory usage per processor = 22.7644 Mbytes
+Step step PotEng KinEng Press Lx Ly Lz 
+       1            1   -3138.1235            0   -5936.0512        57.84        14.46        14.46 
+       2            1   -3138.1235            0   -5936.0512        57.84        14.46        14.46 
+Loop time of 0.0527597 on 4 procs for 1 steps with 896 atoms
+
+Pair  time (%) = 0.000959635 (1.81888)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.00559711 (10.6087)
+Outpt time (%) = 0.00891805 (16.9031)
+Other time (%) = 0.0372849 (70.6693)
+
+Nlocal:    224 ave 256 max 192 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:    684.75 ave 843 max 484 min
+Histogram: 1 0 1 0 0 0 0 0 0 2
+Neighs:    5808 ave 6912 max 4672 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+FullNghs:  11616 ave 13824 max 9408 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 46464
+Ave neighs/atom = 51.8571
+Neighbor list builds = 0
+Dangerous builds = 0
+variable step equal ${step}+1
+variable step equal 1+1
+displace_atoms	all ramp x -0.1 0.1 x -100 100
+Displacing atoms ...
+run		1
+Setting up run ...
+ ATC: computing bond matrix ...........done
+Memory usage per processor = 22.7644 Mbytes
+Step step PotEng KinEng Press Lx Ly Lz 
+       2            2   -3138.0934            0   -7103.7691        57.84        14.46        14.46 
+       3            2   -3138.0934            0   -7103.7691        57.84        14.46        14.46 
+Loop time of 0.317459 on 4 procs for 1 steps with 896 atoms
+
+Pair  time (%) = 0.0405899 (12.7859)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.0319443 (10.0625)
+Outpt time (%) = 0.0423202 (13.3309)
+Other time (%) = 0.202604 (63.8207)
+
+Nlocal:    224 ave 256 max 192 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:    684.75 ave 843 max 484 min
+Histogram: 1 0 1 0 0 0 0 0 0 2
+Neighs:    5808 ave 6912 max 4672 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+FullNghs:  11616 ave 13824 max 9408 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 46464
+Ave neighs/atom = 51.8571
+Neighbor list builds = 0
+Dangerous builds = 0

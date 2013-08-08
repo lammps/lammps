@@ -1,0 +1,5 @@
+material Cu real
+stress  cauchy-born
+pair_style eam 
+#linear
+end

@@ -1,0 +1,122 @@
+LAMMPS (14 Aug 2013)
+units           lj
+lattice		sc 1.0
+Lattice spacing in x,y,z = 1 1 1
+boundary        p p p
+neighbor        1.0 bin
+neigh_modify    every 5 delay 0 check yes
+
+atom_style      full
+bond_style      quartic
+#angle_style	harmonic
+pair_style      lj/cut 2.5
+pair_modify     table 0
+special_bonds   lj 1.0 1.0 1.0
+
+read_data    	harmonic_bonds.data
+Scanning data file ...
+  6 = max bonds/atom
+Reading data file ...
+  orthogonal box = (-6.54473 -6.54473 -6.54473) to (6.54473 6.54473 6.54473)
+  1 by 2 by 2 MPI processor grid
+  2100 atoms
+  2600 bonds
+Finding 1-2 1-3 1-4 neighbors ...
+  6 = max # of 1-2 neighbors
+  6 = max # of 1-3 neighbors
+  16 = max # of 1-4 neighbors
+  18 = max # of special neighbors
+
+#                  k      b1     b2   rc  U0
+bond_coeff      1 1434.3 -0.7589 0.00 1.5 67.2234
+pair_coeff	* * 1.0 1.0  2.5
+
+timestep        0.005
+fix             1 all npt temp 0.3 0.3  1.0  iso 0.1 0.1 10.0
+thermo_style    custom step temp etotal evdwl ebond pxx pyy pzz lz
+thermo_modify   flush yes
+thermo          100
+reset_timestep	0
+
+
+########################################################################
+variable        l equal xhi
+#region          MESH  block xlo xhi ylo yhi zlo zhi
+region          MESH  block -$l $l -$l $l -$l $l
+region          MESH  block -6.5447300000000003806 $l -$l $l -$l $l
+region          MESH  block -6.5447300000000003806 6.5447300000000003806 -$l $l -$l $l
+region          MESH  block -6.5447300000000003806 6.5447300000000003806 -6.5447300000000003806 $l -$l $l
+region          MESH  block -6.5447300000000003806 6.5447300000000003806 -6.5447300000000003806 6.5447300000000003806 -$l $l
+region          MESH  block -6.5447300000000003806 6.5447300000000003806 -6.5447300000000003806 6.5447300000000003806 -6.5447300000000003806 $l
+region          MESH  block -6.5447300000000003806 6.5447300000000003806 -6.5447300000000003806 6.5447300000000003806 -6.5447300000000003806 6.5447300000000003806
+group           MESH  region MESH
+2100 atoms in group MESH
+#               ID  group atc PhysicsType ParameterFile
+fix             ATC all  atc field
+ATC: constructing shape function field estimate
+ ATC: peratom PE compute created with ID: 5
+fix_modify      ATC fields add mass_density energy stress heat_flux
+#               ID  part keywords    nx ny nz region
+fix_modify      ATC mesh  create 4 4 1 MESH p p p
+ ATC: created uniform mesh with 50 nodes, 16 unique nodes, and 16 elements
+fix_modify      ATC bond_interactions on
+fix_modify      ATC pair_interactions off
+fix_modify      ATC output nodeset all average energy
+fix_modify      ATC output nodeset all average stress
+fix_modify      ATC output harmonic_bondsFE 100 full_text binary tensor_components
+ ATC: Warning : text output can create _LARGE_ files
+ ATC: output custom names:
+
+########################################################################
+
+dump            d1 all custom 1000 config.dmp id type mol x y z ix iy iz
+run             1000
+Setting up run ...
+WARNING: Inconsistent image flags (../domain.cpp:607)
+ ATC: computing bond matrix ...........done
+Memory usage per processor = 22.5059 Mbytes
+Step Temp TotEng E_vdwl E_bond Pxx Pyy Pzz Lz 
+       0            0    27.418101   -4.9222297    32.340331   -6.4375188   -5.3652966   -8.8338595     13.08946 
+ ATC: computing bond matrix ...........done
+     100    2.2145029    25.770666   -4.6618339    27.112327    1.4701161      2.16737    2.7891188    13.107872 
+ ATC: computing bond matrix ...........done
+     200    1.6441119    24.285276   -4.6100702    26.430353   -0.2111306   0.11829479  -0.34968383     13.21971 
+ ATC: computing bond matrix ...........done
+     300    1.2519109    23.218023   -4.7073226    26.048373  -0.90980473  -0.55453672    -1.175576    13.280803 
+ ATC: computing bond matrix ...........done
+     400    1.0087196    22.413664   -4.8800967    25.781401  -0.94622376  -0.72705532  -0.96132435    13.209446 
+ ATC: computing bond matrix ...........done
+     500   0.85508692    21.781946   -5.1146958    25.614623  -0.25867636   0.45882845   -1.5464988    13.067112 
+ ATC: computing bond matrix ...........done
+     600   0.72896043    21.277404   -5.3122654    25.496749  -0.23318524  -0.79102184  -0.28592714    12.940731 
+ ATC: computing bond matrix ...........done
+     700   0.63573201    20.877991   -5.4819279    25.406775  -0.22930105   0.17264694  -0.13977843    12.838254 
+ ATC: computing bond matrix ...........done
+     800   0.54900117    20.560582   -5.6107452    25.348218  -0.40709766  -0.32952441  -0.39623019    12.765768 
+ ATC: computing bond matrix ...........done
+     900    0.4864295    20.309827   -5.7089607    25.289491   0.18995702   -0.4389685   0.32204857    12.716563 
+ ATC: computing bond matrix ...........done
+    1000   0.43059305    20.104384   -5.8079042    25.266707 -0.0082532778   0.34329484   0.20699648    12.673678 
+Loop time of 3.13147 on 4 procs for 1000 steps with 2100 atoms
+
+Pair  time (%) = 1.25995 (40.2352)
+Bond  time (%) = 0.115811 (3.69829)
+Neigh time (%) = 0.358909 (11.4614)
+Comm  time (%) = 0.819216 (26.1607)
+Outpt time (%) = 0.038662 (1.23463)
+Other time (%) = 0.538919 (17.2098)
+
+Nlocal:    525 ave 530 max 523 min
+Histogram: 2 1 0 0 0 0 0 0 0 1
+Nghost:    3067.75 ave 3080 max 3059 min
+Histogram: 2 0 0 0 0 1 0 0 0 1
+Neighs:    48006.5 ave 48692 max 47634 min
+Histogram: 1 1 1 0 0 0 0 0 0 1
+FullNghs:  96013 ave 97189 max 95320 min
+Histogram: 2 0 0 1 0 0 0 0 0 1
+
+Total # of neighbors = 384052
+Ave neighs/atom = 182.882
+Ave special neighs/atom = 13.3324
+Neighbor list builds = 28
+Dangerous builds = 0

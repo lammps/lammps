@@ -3,6 +3,8 @@
 
 #include "Matrix.h"
 
+namespace ATC_matrix {
+
 ///////////////////////////////////////////////////////////////////////////////
 // forward declarations ///////////////////////////////////////////////////////
 
@@ -14,6 +16,8 @@
 /******************************************************************************
 * abstract class Vector
 ******************************************************************************/
+
+
 template<typename T>
 class Vector : public Matrix<T>
 {
@@ -22,7 +26,7 @@ public:
   Vector(const Vector<T> &c); // do not implement!
   virtual ~Vector() {}
 
-  string tostring() const;
+  string to_string() const;
 
   // pure virtual functions
   virtual T  operator()(INDEX i, INDEX j=0) const=0;
@@ -30,7 +34,7 @@ public:
   virtual T  operator[](INDEX i)            const=0;
   virtual T& operator[](INDEX i)                 =0;
   virtual INDEX nRows()                     const=0;
-  virtual T* get_ptr()                      const=0;
+  virtual T* ptr()                      const=0;
   virtual void resize(INDEX nRows, INDEX nCols=1, bool copy=0)=0;
   virtual void  reset(INDEX nRows, INDEX nCols=1, bool zero=0)=0;
   virtual void copy(const T * ptr, INDEX nRows, INDEX nCols=1)=0;
@@ -41,6 +45,7 @@ public:
   using Matrix<T>::matlab;
   void matlab(ostream &o, const string &s="v") const;
 
+  using Matrix<T>::operator=;
   INDEX nCols()                   const;
   bool in_range(INDEX i)          const;
   bool same_size(const Vector &m) const;
@@ -139,10 +144,12 @@ DenseVector<T> operator-(const Vector<T> &a, const Vector<T> &b)
 ///////////////////////////////////////////////////////////////////////////////
 //* output operator
 template<typename T>
-string Vector<T>::tostring() const
+string Vector<T>::to_string() const
 {
   string s;
-  FORi s += string(i?"\t":"") + ATC_STRING::tostring(VIDX(i),5);
+  int sz = this->size(); 
+  for (INDEX i = 0; i < sz; i++) 
+    s += string(i?"\t":"") + ATC_Utility::to_string((*this)[i],myPrecision);
   return s;
 }
 ///////////////////////////////////////////////////////////////////////////////
@@ -151,7 +158,9 @@ template<typename T>
 void Vector<T>::matlab(ostream &o, const string &s) const
 {
   o << s <<"=zeros(" << this->size() << ",1);\n";
-  FORi o << s << "("<<i+1<<") = " << VIDX(i) << ";\n";
+  int sz = this->size(); 
+  for (INDEX i = 0; i < sz; i++) 
+    o << s << "("<<i+1<<") = " << (*this)[i] << ";\n";
 }
 ///////////////////////////////////////////////////////////////////////////////
 //* writes the vector data to a file
@@ -160,7 +169,7 @@ void Vector<T>::write_restart(FILE *f)                                    const
 {
   INDEX size = this->size();
   fwrite(&size, sizeof(INDEX),1,f);
-  if (size) fwrite(this->get_ptr(), sizeof(T), this->size(), f);
+  if (size) fwrite(this->ptr(), sizeof(T), this->size(), f);
 }
 ///////////////////////////////////////////////////////////////////////////////
 //* returns the number of columns; always 1
@@ -190,6 +199,8 @@ inline bool Vector<T>::same_size(const Vector &a, const Vector &b)
 {
   return a.same_size(b); 
 }
+
+} // end namespace
 
 
 #endif

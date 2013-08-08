@@ -1,0 +1,54 @@
+# This test compares Hardy and Cauchy-Born metrics of energy density and stress
+# for an Ar system subjected to shear deformation.
+#
+# NOTE possible problems with large shear and handling a non-ortho box
+echo both
+units       metal 
+atom_style  atomic
+variable lattice_constant equal 4.08 
+variable c equal 6 # minimum size
+variable Ly equal $c*${lattice_constant}
+variable d equal 0.005
+variable V0 equal ($c*${lattice_constant})^3
+# create system
+lattice        fcc ${lattice_constant} origin 0.25 0.25 0.25
+# NOTE rect box + lagrangian is necessary to fool ATC's mesh
+region         rectbox block 0 $c 0 $c 0 3
+region         box prism 0 $c 0 $c 0 3 0 0 0 
+boundary       p p p
+create_box   1 box 
+create_atoms 1 region box 
+mass         1 196.97 
+group      all region box
+pair_style     lj/smooth/linear 5.456108274435118
+pair_coeff     * * 0.7242785984051078 2.598146797350056
+neighbor  1.0 bin
+#neigh_modify  delay 1000000
+log       cb_shear.log  
+thermo    100
+variable gamma equal 0.0
+variable step  equal 0
+thermo_style  custom step v_step pxx pyy pzz pxy pxz pyz v_gamma pe xy xz yz
+timestep  1.0 
+fix         AtC all   atc field Au_CauchyBorn.mat 
+fix_modify  AtC mesh create $c $c 1 rectbox p p p
+fix_modify  AtC  fields add mass_density internal_energy stress
+fix_modify  AtC  fields add displacement
+fix_modify  AtC  fields add cauchy_born_energy cauchy_born_stress
+fix_modify  AtC  gradients add displacement
+#fix_modify  AtC  fields add elastic_deformation_gradient
+fix_modify  AtC  output cb_shearFE 1 text binary tensor_components
+min_modify      line quadratic
+variable dgamma equal $d/${Ly}
+print "depsilon_12: ${dgamma}"
+timestep 0.0
+variable i loop 4
+label loop_i
+  print ">>> step $i"
+  minimize 1.e-20 1.e-20 1000 1000
+  run  1
+  variable step equal ${step}+1
+  change_box all xy delta $d remap
+  variable gamma equal $i*${dgamma}
+next i
+jump in.cb_shear loop_i

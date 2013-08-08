@@ -5,42 +5,51 @@
 
 #include <string>
 
+// the following two convert __LINE__ to a string
+#define STRING2(x) #x
+#define STRING(x) STRING2(x)
+// prints file and line number for error messages
+#define ERROR(x) __FILE__":"STRING(__LINE__)" "x
+//#define FILELINE __FILE__+to_string(__LINE__)
+#define FILELINE __FILE__
+
+#define ERROR_FOR_BACKTRACE
+#define HACK(l,m)
+
+
+
+
+
 
 namespace ATC {
+  /**
+   *  @class  ATC_Error
+   *  @brief  Base class for throwing run-time errors with descriptions
+   */
 
 class ATC_Error {
 
  public:
-
   // constructor
-  ATC_Error(int procID, std::string errorDescription) {
-    procID_ = procID;
-    errorDescription_ = errorDescription;
+  ATC_Error(std::string errorDescription)
+  {
+    errorDescription_ = "ERROR: " + errorDescription;
+    ERROR_FOR_BACKTRACE
   };
 
-//ATC_Error(std::string errorDescription) {
-//  procID_ = LammpsInterface::instance()->comm_rank(); 
-//  errorDescription_ = errorDescription;
-//};
-
-  // data access
-  virtual int get_id() {
-    return procID_;
+  ATC_Error(std::string location, std::string errorDescription)
+  {
+    errorDescription_ = "ERROR: " + location + ": "+ errorDescription;
+    ERROR_FOR_BACKTRACE
   };
 
-  virtual std::string get_error_description() {
+  std::string error_description() {
     return errorDescription_;
   };
 
-
  private:
-  
-  // id of the processor reporting the error
-  int procID_;
-
   // string describing the type of error
   std::string errorDescription_;
-
 };
 
 }

@@ -1,0 +1,53 @@
+# This test compares Hardy and Cauchy-Born metrics of energy density and stress
+# for an Ar system subjected to biaxial deformation equivalent to shearing.
+echo  both
+units       real
+atom_style  atomic
+variable lattice_constant equal 5.256227487
+variable c equal 6
+variable L equal $c*${lattice_constant}
+variable d equal 0.005
+variable s equal 1.005
+variable is equal 1.0/$s
+variable V0 equal $L*$L*3*${lattice_constant}
+# create system
+lattice        fcc ${lattice_constant} origin 0.25 0.25 0.25
+region          box block 0 $c 0 $c 0 3
+boundary        p p p
+create_box      1 box 
+create_atoms    1 box 
+mass            1 39.95 
+group           all region box
+pair_style lj/cut 13.5  
+pair_coeff 1 1 0.238 3.405 
+#           ID  group atc PhysicsType ParameterFile
+fix         AtC all   atc field Ar_CauchyBorn.mat
+fix_modify  AtC mesh  create $c $c 1 box p p p
+fix_modify  AtC fields none
+fix_modify  AtC fields add displacement
+fix_modify  AtC fields add internal_energy stress cauchy_born_energy cauchy_born_stress
+fix_modify  AtC gradients add displacement
+#fix_modify  AtC fields add elastic_deformation_gradient
+fix_modify  AtC output cb_biaxialFE 1 full_text tensor_components
+log  cb_biaxial.log
+thermo 100
+variable gamma1 equal 0.0
+variable gamma2 equal 0.0
+variable dv equal 1.0
+variable step  equal 0
+thermo_style  custom step v_step pxx pyy pzz pxy pxz pyz v_gamma1 pe v_dv
+timestep 0.0
+min_modify      line quadratic
+timestep 0.0
+variable i loop 4
+label loop_i
+  print ">>> step $i ${gamma1} ${gamma2}"
+  minimize 1.e-20 1.e-20 1000 1000
+  run  1
+  variable step equal ${step}+1
+  change_box all x scale $s y scale ${is} remap
+  variable gamma1 equal lx/$L-1.0
+  variable gamma2 equal ly/$L-1.0
+  variable dv equal vol/${V0}
+next i
+jump in.cb_biaxial loop_i

@@ -1,0 +1,106 @@
+LAMMPS (14 Aug 2013)
+units    real
+atom_style  atomic
+
+variable L equal 12
+variable l2 equal 6
+variable l equal 4
+variable w equal 2
+
+lattice         fcc 5.405 origin 0.25 0.25 0.25
+Lattice spacing in x,y,z = 5.405 5.405 5.405
+region     mdInternal block -$l $l -$l $l -$w $w
+region     mdInternal block -4 $l -$l $l -$w $w
+region     mdInternal block -4 4 -$l $l -$w $w
+region     mdInternal block -4 4 -4 $l -$w $w
+region     mdInternal block -4 4 -4 4 -$w $w
+region     mdInternal block -4 4 -4 4 -2 $w
+region     mdInternal block -4 4 -4 4 -2 2
+
+boundary  f f f # p
+pair_style  lj/cut 13.5
+read_data temp.init
+Reading data file ...
+  orthogonal box = (-64.86 -64.86 -10.81) to (64.86 64.86 10.81)
+  2 by 2 by 1 MPI processor grid
+  2304 atoms
+  2304 velocities
+fix ZWALLS all wall/reflect zlo EDGE zhi EDGE
+mass    1 39.95
+pair_coeff    1 1 .238 3.405 13.5
+group    internal region mdInternal
+1024 atoms in group internal
+
+fix             AtC internal   atc two_temperature  Ar_ttm.mat
+ATC: constructing two_temperature coupling with parameter file Ar_ttm.mat
+ ATC: peratom PE compute created with ID: 3
+ ATC: 2 materials defined from Ar_ttm.mat
+ ATC: creating two_temperature extrinsic model
+ ATC: 2 materials defined from Ar_ttm.mat
+fix_modify      AtC mesh read  gaussianIC2d_hex20_uniform.mesh
+ ATC: read 803 nodes
+ ATC: read 100 HEX20 elements
+ ATC: created nodeset 11 with 53 nodes
+ ATC: created nodeset 12 with 53 nodes
+ ATC: WARNING: mesh is not aligned with the coordinate directions atom-to-element mapping will be expensive
+fix_modify      AtC  output    gaussianIC2d_hex20_uniformFE 10 full_text
+ ATC: Warning : text output can create _LARGE_ files
+ ATC: output custom names:
+
+
+fix_modify AtC initial temperature      all 20.0
+# NOTE this is only gaussian in x
+fix_modify AtC initial electron_temperature all gaussian 0 0 0 1 0 0 5 20 20
+fix_modify AtC fix temperature   11 20.0
+fix_modify AtC fix temperature   12 20.0
+fix_modify AtC control thermal flux
+fix_modify AtC extrinsic exchange on
+fix_modify AtC extrinsic electron_integration explicit 10
+
+thermo_style custom step temp pe f_AtC[2] f_AtC[4]
+timestep  1.0
+thermo    10
+run     100
+Setting up run ...
+DiagonalMatrix::inv(): Warning: Matrix is badly scaled.  RCOND = -0.1875
+DiagonalMatrix::inv(): Warning: Matrix is badly scaled.  RCOND = -0.1875
+DiagonalMatrix::inv(): Warning: Matrix is badly scaled.  RCOND = -0.1875
+DiagonalMatrix::inv(): Warning: Matrix is badly scaled.  RCOND = -0.1875
+DiagonalMatrix::inv(): Warning: Matrix is badly scaled.  RCOND = -0.1875
+DiagonalMatrix::inv(): Warning: Matrix is badly scaled.  RCOND = -0.1875
+DiagonalMatrix::inv(): Warning: Matrix is badly scaled.  RCOND = -0.1875
+DiagonalMatrix::inv(): Warning: Matrix is badly scaled.  RCOND = -0.1875
+Memory usage per processor = 115.483 Mbytes
+Step Temp PotEng AtC[2] AtC[4] 
+       0    9.9496068   -3732.5766           20    21.685336 
+      10    9.9699944   -3732.6743    20.008305    21.694995 
+      20    9.9879237   -3732.7594    20.015777    21.704833 
+      30    10.002475   -3732.8273     20.02158    21.714852 
+      40    10.013007   -3732.8613    20.025464    21.725057 
+      50    10.019238   -3732.8657    20.027325    21.735449 
+      60    10.021286   -3732.8402    20.027223    21.746031 
+      70    10.019648   -3732.7833    20.025372    21.756808 
+      80    10.015134   -3732.7051    20.022115    21.767782 
+      90    10.008795    -3732.612    20.017899    21.778957 
+     100    10.001827   -3732.5177    20.013234    21.790338 
+Loop time of 19.9066 on 4 procs for 100 steps with 2304 atoms
+
+Pair  time (%) = 0.396025 (1.98942)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.421989 (2.11984)
+Outpt time (%) = 0.125925 (0.63258)
+Other time (%) = 18.9627 (95.2582)
+
+Nlocal:    576 ave 576 max 576 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    720 ave 720 max 720 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    67354.5 ave 67632 max 66958 min
+Histogram: 1 0 0 0 0 1 0 0 1 1
+FullNghs:  134709 ave 134859 max 134422 min
+Histogram: 1 0 0 0 0 0 0 1 1 1
+
+Total # of neighbors = 538836
+Ave neighs/atom = 233.87
+Neighbor list builds = 0
+Dangerous builds = 0

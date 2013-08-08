@@ -1,0 +1,51 @@
+# This test compares Hardy and Cauchy-Born metrics of energy density and stress
+# for an EAM system subjected to uniaxial strain deformation.
+# NOTE currently the convergence is distinctly exponential, the LJ version is quadratic
+echo both
+units		metal	
+atom_style	atomic
+# create domain
+#lattice         fcc 3.615 origin 0.25 0.25 0.25
+lattice         fcc 3.615 origin 0.01 0.01 0.01
+region		BOX block -8 8 -2 2 -2 2
+boundary	f p p
+create_box	1 BOX
+# create atoms
+region		MD block -7 7 -2 2 -2 2
+create_atoms	1 region MD
+mass		1 63.55
+# specify interal/ghost atoms
+region    FREE block -6 6 -2 2 -2 2
+group   internal region FREE
+# specify inter-atomic potential
+pair_style      eam
+pair_coeff      * * ../../../../potentials/Cu_u3.eam
+# specify neighbor/re-neighboring parameters
+neighbor	0.3 bin
+neigh_modify	every 10 delay 0 check no
+# setup thermal output
+thermo		10
+thermo_style custom step pe ke press lx ly lz
+#           ID  group atc PhysicsType ParameterFile
+fix         AtC internal   atc field Cu_CauchyBorn.mat
+fix_modify  AtC mesh create 8 1 1 BOX f p p
+#fix_modify  AtC kernel quartic_cylinder 10.0
+fix_modify  AtC  fields none 
+fix_modify  AtC  fields add displacement 
+fix_modify  AtC  fields add internal_energy stress 
+fix_modify  AtC  fields add cauchy_born_energy 
+fix_modify  AtC  fields add cauchy_born_stress
+fix_modify  AtC  gradients add displacement 
+#fix_modify  AtC  fields add elastic_deformation_gradient
+timestep 0.0
+fix_modify	AtC  output cb_unistrain_eamFE 1 text tensor_components binary
+log       cb_unistrain_eam.log
+variable step  equal 0
+thermo_style  custom step v_step pe ke press lx ly lz
+run 	1
+variable step equal ${step}+1
+displace_atoms	all ramp x -0.1 0.1 x -100 100
+run		1
+variable step equal ${step}+1
+displace_atoms	all ramp x -0.1 0.1 x -100 100
+run		1

@@ -12,11 +12,11 @@ namespace ATC {
   PrescribedDataManager::PrescribedDataManager
   (FE_Engine * feEngine, 
    const map<FieldName,int> & fieldSize) :
-    feEngine_(feEngine), fieldSizes_(fieldSize)
+    fieldSizes_(fieldSize), feEngine_(feEngine)
   {
     // construct & initialize internal data
-    nNodes_ =  feEngine_->get_nNodes();
-    nElems_ =  feEngine_->get_nElements();
+    nNodes_ =  feEngine_->num_nodes();
+    nElems_ =  feEngine_->num_elements();
     map<FieldName,int>::const_iterator field;
     for (field = fieldSizes_.begin(); field!=fieldSizes_.end(); field++) {
       FieldName thisField = field->first;
@@ -30,6 +30,8 @@ namespace ATC {
           bcs_[thisField](inode,idof) = NULL;          
         }
       }
+      // compact inode, value lists
+      (bcValues_[thisField]).resize(thisSize);
       // element based sources
       elementSources_[thisField].reset(nElems_,thisSize);
       for (int ielem = 0; ielem < nElems_ ; ++ielem) {
@@ -56,8 +58,8 @@ namespace ATC {
     if (fieldSizes_.find(fieldName) == fieldSizes_.end()) return;
 
     // construct & initialize internal data
-    nNodes_ =  feEngine_->get_nNodes();
-    nElems_ =  feEngine_->get_nElements();
+    nNodes_ =  feEngine_->num_nodes();
+    nElems_ =  feEngine_->num_elements();
   
     // nodal ics & essential bcs
     ics_[fieldName].reset(nNodes_,size);
@@ -104,11 +106,11 @@ namespace ATC {
    const XT_Function * f)
   {
     using std::set;
-    set<int> nodeSet = (feEngine_->get_feMesh())->get_nodeset(nodesetName);
+    set<int> nodeSet = (feEngine_->fe_mesh())->nodeset(nodesetName);
     set<int>::const_iterator iset;
     for (iset = nodeSet.begin(); iset != nodeSet.end(); iset++) {
       int inode = *iset;
-      ics_[thisField](inode,thisIndex) = (XT_Function*) f; // NOTE const cast?
+      ics_[thisField](inode,thisIndex) = (XT_Function*) f; 
     }
   }
 //-------------------------------------------------------------------------
@@ -122,7 +124,7 @@ namespace ATC {
   {
     using std::set;
     // fix fields 
-    set<int> nodeSet = (feEngine_->get_feMesh())->get_nodeset(nodesetName);
+    set<int> nodeSet = (feEngine_->fe_mesh())->nodeset(nodesetName);
     set<int>::const_iterator iset;
     for (iset = nodeSet.begin(); iset != nodeSet.end(); iset++) {
       int inode = *iset;
@@ -138,12 +140,34 @@ namespace ATC {
    const int thisIndex)
   {
     using std::set;
-    set<int> nodeSet = (feEngine_->get_feMesh())->get_nodeset(nodesetName);
+    set<int> nodeSet = (feEngine_->fe_mesh())->nodeset(nodesetName);
     set<int>::const_iterator iset;
     for (iset = nodeSet.begin(); iset != nodeSet.end(); iset++) {
       int inode = *iset;
       bcs_[thisField](inode,thisIndex) = NULL;
     }
+  }
+
+//-------------------------------------------------------------------------
+//  fix_field
+//-------------------------------------------------------------------------
+  void PrescribedDataManager::fix_field
+  (const int nodeId, 
+   const FieldName thisField, 
+   const int thisIndex, 
+   const XT_Function * f)
+  {
+    bcs_[thisField](nodeId,thisIndex) = (XT_Function*) f;
+  }
+//-------------------------------------------------------------------------
+//  unfix_field
+//-------------------------------------------------------------------------
+  void PrescribedDataManager::unfix_field
+  (const int nodeId, 
+   const FieldName thisField, 
+   const int thisIndex)
+  {
+    bcs_[thisField](nodeId,thisIndex) = NULL;
   }
 //-------------------------------------------------------------------------
 //  fix_flux
@@ -155,13 +179,13 @@ namespace ATC {
    const XT_Function * f)
   {
     const set< pair <int,int> > * fset 
-      = & ( (feEngine_->get_feMesh())->get_faceset(facesetName));
+      = & ( (feEngine_->fe_mesh())->faceset(facesetName));
     set< pair<int,int> >::const_iterator iset;
     for (iset = fset->begin(); iset != fset->end(); iset++) {
       pair<int,int>  face = *iset;
       // allocate, if necessary
       Array < XT_Function * > & dof  = faceSources_[thisField][face];
-      if (dof.get_length() == 0) {
+      if (dof.size() == 0) {
         int ndof = (fieldSizes_.find(thisField))->second;
         dof.reset(ndof);
         for(int i = 0; i < ndof; i++)  dof(i) = NULL; 
@@ -178,11 +202,52 @@ namespace ATC {
    const int thisIndex) 
   {
     const set< pair <int,int> > * fset 
-      = & ( (feEngine_->get_feMesh())->get_faceset(facesetName));
+      = & ( (feEngine_->fe_mesh())->faceset(facesetName));
     set< pair<int,int> >::const_iterator iset;
     for (iset = fset->begin(); iset != fset->end(); iset++) {
       pair<int,int>  face = *iset;
       Array < XT_Function * > & dof  = faceSources_[thisField][face];
+      dof(thisIndex) = NULL;
+    }
+  }
+//-------------------------------------------------------------------------
+//  fix_robin
+//-------------------------------------------------------------------------
+  void PrescribedDataManager::fix_robin
+  (const string facesetName, 
+   const FieldName thisField, 
+   const int thisIndex, 
+   const UXT_Function * f)
+  {
+    const set< pair <int,int> > * fset 
+      = & ( (feEngine_->fe_mesh())->faceset(facesetName));
+    set< pair<int,int> >::const_iterator iset;
+    for (iset = fset->begin(); iset != fset->end(); iset++) {
+      pair<int,int>  face = *iset;
+      // allocate, if necessary
+      Array < UXT_Function * > & dof  = faceSourcesRobin_[thisField][face];
+      if (dof.size() == 0) {
+        int ndof = (fieldSizes_.find(thisField))->second;
+        dof.reset(ndof);
+        for(int i = 0; i < ndof; i++)  dof(i) = NULL; 
+      }
+      dof(thisIndex) = (UXT_Function*) f;
+    }
+  }
+//-------------------------------------------------------------------------
+//  unfix_robin
+//-------------------------------------------------------------------------
+  void PrescribedDataManager::unfix_robin
+  (const string facesetName, 
+   const FieldName thisField, 
+   const int thisIndex) 
+  {
+    const set< pair <int,int> > * fset 
+      = & ( (feEngine_->fe_mesh())->faceset(facesetName));
+    set< pair<int,int> >::const_iterator iset;
+    for (iset = fset->begin(); iset != fset->end(); iset++) {
+      pair<int,int>  face = *iset;
+      Array < UXT_Function * > & dof  = faceSourcesRobin_[thisField][face];
       dof(thisIndex) = NULL;
     }
   }
@@ -196,7 +261,7 @@ namespace ATC {
    const XT_Function *f)
   {
     using std::set;
-    set<int> elemSet = (feEngine_->get_feMesh())->get_elementset(elemsetName);
+    set<int> elemSet = (feEngine_->fe_mesh())->elementset(elemsetName);
     set<int>::const_iterator iset;
     for (iset = elemSet.begin(); iset != elemSet.end(); iset++) {
       int ielem = *iset;
@@ -213,7 +278,7 @@ namespace ATC {
    const int thisIndex)
   {
     using std::set;
-    set<int> elemSet = (feEngine_->get_feMesh())->get_elementset(elemsetName);
+    set<int> elemSet = (feEngine_->fe_mesh())->elementset(elemsetName);
     set<int>::const_iterator iset;
     for (iset = elemSet.begin(); iset != elemSet.end(); iset++) {
       int ielem = *iset;
@@ -233,6 +298,11 @@ namespace ATC {
     for (field = fieldSizes_.begin(); field!=fieldSizes_.end(); field++) {
       FieldName thisField = field->first;
       int thisSize = field->second;
+      DENS_MAT & myField(fields[thisField].set_quantity());
+      DENS_MAT & myDotField(dot_fields[thisField].set_quantity());
+      DENS_MAT & myDDotField(ddot_fields[thisField].set_quantity());
+      DENS_MAT & myDDDotField(dddot_fields[thisField].set_quantity());
+      bool warn = false;
       for (int inode = 0; inode < nNodes_ ; ++inode) {
         for (int thisIndex = 0; thisIndex < thisSize ; ++thisIndex) {
           XT_Function *f = ics_[thisField](inode,thisIndex);
@@ -240,15 +310,27 @@ namespace ATC {
           if (f) 
           {
             DENS_VEC coords(3); 
-            coords = (feEngine_->get_feMesh())->nodal_coordinates(inode);
-            double *x = coords.get_ptr();
-            fields      [thisField](inode,thisIndex) = f->f(x,t);
-            dot_fields  [thisField](inode,thisIndex) = f->dfdt(x,t); 
-            ddot_fields [thisField](inode,thisIndex) = f->ddfdt(x,t); 
-            dddot_fields[thisField](inode,thisIndex) = f->dddfdt(x,t); 
+            coords = (feEngine_->fe_mesh())->nodal_coordinates(inode);
+            double *x = coords.ptr();
+            myField(inode,thisIndex) = f->f(x,t);
+            myDotField(inode,thisIndex) = f->dfdt(x,t); 
+            myDDotField(inode,thisIndex) = f->ddfdt(x,t); 
+            myDDDotField(inode,thisIndex) = f->dddfdt(x,t); 
           }
-          else throw ATC_Error(0,"all initial conditions have not been defined");
+          else {
+            myField(inode,thisIndex) = 0;
+            myDotField(inode,thisIndex) =  0;
+            myDDotField(inode,thisIndex) = 0;
+            myDDDotField(inode,thisIndex) = 0;
+            warn = true;
+          }
         }
+      }
+//    if (warn &&  is_dynamic(thisField)) { need access tp physics model or return warn per field
+      if (warn) {
+        stringstream ss;
+        ss << ("WARNING: all initial conditions for " +field_to_string(thisField)+" have not been defined and the undefined are assumed zero");
+        ATC::LammpsInterface::instance()->print_msg_once(ss.str());
       }
     }
   }
@@ -265,18 +347,24 @@ namespace ATC {
     for (field = fieldSizes_.begin(); field!=fieldSizes_.end(); field++) {
       FieldName thisField = field->first;
       int thisSize = field->second;
-      for (int inode = 0; inode < nNodes_ ; ++inode) {
-        for (int thisIndex = 0; thisIndex < thisSize ; ++thisIndex) {
+      for (int thisIndex = 0; thisIndex < thisSize ; ++thisIndex) {
+        BC_SET & bcs =  (bcValues_[thisField])[thisIndex]; 
+        bcs.clear();
+        for (int inode = 0; inode < nNodes_ ; ++inode) {
           XT_Function * f = bcs_[thisField](inode,thisIndex);
           if (f) {
             DENS_VEC coords(3); 
-            coords = (feEngine_->get_feMesh())->nodal_coordinates(inode);
-            double * x = coords.get_ptr();
-            FIELD * myField = & fields[thisField];
-            fields      [thisField](inode,thisIndex) = f->f(x,t);
-            dot_fields  [thisField](inode,thisIndex) = f->dfdt(x,t); 
-            ddot_fields [thisField](inode,thisIndex) = f->ddfdt(x,t); 
-            dddot_fields[thisField](inode,thisIndex) = f->dddfdt(x,t); 
+            coords = (feEngine_->fe_mesh())->nodal_coordinates(inode);
+            double * x = coords.ptr();
+            double val = f->f(x,t);
+            
+            (fields      [thisField].set_quantity())(inode,thisIndex) = val;
+            (dot_fields  [thisField].set_quantity())(inode,thisIndex) = f->dfdt(x,t); 
+            (ddot_fields [thisField].set_quantity())(inode,thisIndex) = f->ddfdt(x,t); 
+            (dddot_fields[thisField].set_quantity())(inode,thisIndex) = f->dddfdt(x,t); 
+            // compact set
+            pair <int, double > bc = make_pair(inode,val);
+            bcs.insert(bc);
           }
         }
       }
@@ -292,7 +380,7 @@ namespace ATC {
   {
     map<FieldName,int>::iterator fieldSizeIter = fieldSizes_.find(fieldName);
     if (fieldSizeIter == fieldSizes_.end()) {
-      throw ATC_Error(0, "Unrecognized FieldName in PrescribedDataManager::set_fixed_field()");
+      throw ATC_Error( "Unrecognized FieldName in PrescribedDataManager::set_fixed_field()");
     }
     int thisSize = fieldSizeIter->second;
     for (int inode = 0; inode < nNodes_ ; ++inode) {
@@ -300,8 +388,8 @@ namespace ATC {
         XT_Function * f = bcs_[fieldName](inode,thisIndex);
         if (f) {
           DENS_VEC coords(3); 
-          coords = (feEngine_->get_feMesh())->nodal_coordinates(inode);
-          fieldMatrix(inode,thisIndex) = f->f(coords.get_ptr(),t);
+          coords = (feEngine_->fe_mesh())->nodal_coordinates(inode);
+          fieldMatrix(inode,thisIndex) = f->f(coords.ptr(),t);
         }
       }
     }
@@ -316,7 +404,7 @@ namespace ATC {
   {
     map<FieldName,int>::iterator fieldSizeIter = fieldSizes_.find(fieldName);
     if (fieldSizeIter == fieldSizes_.end()) {
-      throw ATC_Error(0, "Unrecognized FieldName in PrescribedDataManager::set_fixed_dfield()");
+      throw ATC_Error( "Unrecognized FieldName in PrescribedDataManager::set_fixed_dfield()");
     }
     int thisSize = fieldSizeIter->second;
     for (int inode = 0; inode < nNodes_ ; ++inode) {
@@ -324,8 +412,8 @@ namespace ATC {
         XT_Function * f = bcs_[fieldName](inode,thisIndex);
         if (f) {
           DENS_VEC coords(3); 
-          coords = (feEngine_->get_feMesh())->nodal_coordinates(inode);
-          dfieldMatrix(inode,thisIndex) = f->dfdt(coords.get_ptr(),t);
+          coords = (feEngine_->fe_mesh())->nodal_coordinates(inode);
+          dfieldMatrix(inode,thisIndex) = f->dfdt(coords.ptr(),t);
         }
       }
     }
@@ -361,7 +449,8 @@ namespace ATC {
         for (int thisIndex = 0; thisIndex < thisSize ; ++thisIndex) {
           XT_Function * f = bcs_[thisField](inode,thisIndex);
           if (f) {
-            sources[thisField](inode,thisIndex) = 0.0;
+            
+            (sources[thisField].set_quantity())(inode,thisIndex) = 0.0;
           }
         }
       }
@@ -372,6 +461,7 @@ namespace ATC {
 //-------------------------------------------------------------------------
 //  print
 //-------------------------------------------------------------------------
+
   void PrescribedDataManager::print(void) 
   {
     // print and check consistency
@@ -399,7 +489,7 @@ namespace ATC {
           f = elementSources_[thisField](ielem,thisIndex);
           if (f) { 
             feEngine_->element_connectivity(ielem,conn);
-            for (int i = 0; i < conn.get_length() ; ++i) {
+            for (int i = 0; i < conn.size() ; ++i) {
               int inode = conn(i);
               if (bcTypes(inode,thisIndex) != FIELD) 
               { bcTypes(inode,thisIndex) = SOURCE; }
@@ -417,7 +507,7 @@ namespace ATC {
           f = fs(thisIndex);
           if (f) { 
             feEngine_->face_connectivity(face,conn);
-            for (int i = 0; i < conn.get_length() ; ++i) {
+            for (int i = 0; i < conn.size() ; ++i) {
               int inode = conn(i);
               if (bcTypes(inode,thisIndex) != FIELD) 
               { bcTypes(inode,thisIndex) = SOURCE; }
@@ -435,6 +525,36 @@ namespace ATC {
           else if (bcTypes(inode,thisIndex) == SOURCE) {cout << " SOURCE"; }
           cout << "\n";
         }
+      }
+    }
+  }
+
+//-------------------------------------------------------------------------
+//  get_bcs  of a subset of nodes
+//-------------------------------------------------------------------------
+  void PrescribedDataManager::bcs(const FieldName thisField, const set<int> nodeSet, BCS & bcs, bool local) const
+  {
+    bcs.clear();
+    int thisSize = (fieldSizes_.find(thisField))->second;
+    bcs.resize(thisSize);
+    for (int thisIndex = 0; thisIndex < thisSize ; ++thisIndex) {
+      set<int>::const_iterator iset;
+      int i = 0;
+      for (iset = nodeSet.begin(); iset != nodeSet.end(); iset++) {
+        int inode = *iset;
+        const BC_SET & allBCs 
+          = ((bcValues_.find(thisField))->second)[thisIndex];
+        BC_SET::const_iterator bset;
+        for (bset = allBCs.begin(); bset != allBCs.end(); bset++) {
+          int bnode = (*bset).first;
+          if (inode == bnode) {
+            double val = (*bset).second;
+            if (local) inode = i; // use a local numbering
+            pair <int, double > bc = make_pair(inode,val);
+            (bcs[thisIndex]).insert(bc);
+          }
+        }
+        i++;
       }
     }
   }

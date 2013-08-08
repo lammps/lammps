@@ -1,0 +1,60 @@
+# run019 <016/tolammps.py -> input.lammps
+# T=0.3 harmonic
+# Np=900
+# f=6
+# dens = 0.80
+# rigid wall: none
+
+log             quartic_bonds.log
+echo            both
+units           lj
+lattice		sc 1.0
+boundary        p p p
+neighbor        1.0 bin
+neigh_modify    every 5 delay 0 check yes
+
+atom_style      full
+bond_style      harmonic 
+#angle_style	harmonic
+pair_style      lj/cut 2.5
+pair_modify     table 0
+special_bonds   lj 0.0 1.0 1.0
+
+read_data    	quartic_bonds.data
+
+special_bonds   lj 0.0 1.0 1.0  
+
+bond_coeff      1 100.0 1.0 
+
+pair_coeff	* * 1.0 1.0  2.5
+
+timestep        0.005
+
+fix             NPT all npt temp 1.0 1.0  1.0  iso 0.1 0.1 10.0
+
+thermo_style    custom step temp etotal evdwl ebond pxx pyy pzz lz 
+thermo_modify   flush yes
+thermo          100
+
+########################################################################
+variable        l equal xhi
+region          MESH  block -$l $l -$l $l -$l $l
+group           MESH  region MESH
+#               ID  group atc PhysicsType ParameterFile
+fix             ATC MESH  atc field
+fix_modify      ATC atom_element_map eulerian 100
+fix_modify      ATC fields add mass_density energy stress
+##               ID  part keywords    nx ny nz region
+fix_modify      ATC mesh  create 4 4 1 MESH p p p
+fix_modify      ATC bond_interactions on
+fix_modify      ATC pair_interactions on
+fix_modify      ATC output nodeset all average energy
+fix_modify      ATC output nodeset all average stress
+fix_modify      ATC output quartic_bondsFE 100 full_text binary tensor_components
+#########################################################################
+
+reset_timestep	0
+
+dump            d1 all custom 10000 config.dmp id type mol x y z ix iy iz
+
+run             400

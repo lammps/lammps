@@ -1,0 +1,278 @@
+LAMMPS (14 Aug 2013)
+units    metal
+variable INF equal 1000
+
+variable T equal 20
+
+atom_style  atomic
+
+lattice   fcc 5.405 origin 0.25 0.25 0.25
+Lattice spacing in x,y,z = 5.405 5.405 5.405
+region    FE block -8 8 -6 6 0 3
+region    MD block -7 7 -6 0 0 3
+region    FREE block -4 4 -6 0 0 3
+
+boundary  f f p
+
+# create atoms
+#create_box  1 FE
+#create_atoms 1 region MD
+#group   internal region FREE
+#mass    1 39.95
+#read_data cutout.data
+#pair_coeff * * .238 3.405 13.5
+#velocity  internal create 40 87287 mom yes loop geom
+#fix NVE internal nve
+#thermo 100
+#dump CONFIG all atom 100 cutout.dump
+##run 1000
+#unfix NVE
+#write_restart cutout.rst
+
+pair_style lj/cut 13.5
+read_data cutout.data
+Reading data file ...
+  orthogonal box = (-43.24 -32.43 0) to (43.24 32.43 16.215)
+  2 by 2 by 1 MPI processor grid
+  1008 atoms
+  1008 velocities
+group   internal region FREE
+576 atoms in group internal
+group   ghost subtract all internal
+432 atoms in group ghost
+
+timestep  0.002
+thermo  20
+
+# allow initial state to relax
+fix NVT internal nvt temp $T $T 10 drag 0.2
+fix NVT internal nvt temp 20 $T 10 drag 0.2
+fix NVT internal nvt temp 20 20 10 drag 0.2
+fix RESCALE internal temp/rescale 25 $T $T 0.05 1.0
+fix RESCALE internal temp/rescale 25 20 $T 0.05 1.0
+fix RESCALE internal temp/rescale 25 20 20 0.05 1.0
+run 200
+Setting up run ...
+Memory usage per processor = 2.20651 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0    22.840119   -1789.5949            0   -1786.6219   -15765.333 
+      20    13.566839   -1788.3853            0   -1786.6194    -15277.27 
+      40    33.553913   -1791.7417            0   -1787.3741   -14707.846 
+      60    19.256223   -1794.1032            0   -1791.5967   -14029.132 
+      80    13.368297   -1796.2574            0   -1794.5173   -13523.457 
+     100     11.42006   -1798.2698            0   -1796.7833   -13103.079 
+     120    21.491111    -1799.819            0   -1797.0216    -12688.96 
+     140    16.977999   -1801.1896            0   -1798.9797   -12265.345 
+     160    13.938224   -1802.0525            0   -1800.2382   -11790.033 
+     180     12.23396      -1802.7            0   -1801.1076   -11276.872 
+     200     11.42006   -1803.1286            0   -1801.6421   -10730.804 
+Loop time of 8.50337 on 4 procs for 200 steps with 1008 atoms
+
+Pair  time (%) = 0.668509 (7.86169)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 4.23724 (49.8301)
+Outpt time (%) = 0.237265 (2.79024)
+Other time (%) = 3.36036 (39.518)
+
+Nlocal:    252 ave 504 max 0 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:    1368 ave 1656 max 1080 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:    36492 ave 74116 max 0 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 145968
+Ave neighs/atom = 144.81
+Neighbor list builds = 0
+Dangerous builds = 0
+unfix RESCALE
+run 800
+Setting up run ...
+Memory usage per processor = 2.20651 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+     200     11.42006   -1803.1286            0   -1801.6421   -10730.804 
+     220    12.634668   -1803.4525            0   -1801.8079    -10188.88 
+     240    12.389545   -1803.5125            0   -1801.8998   -9656.8881 
+     260    11.317877   -1803.4182            0    -1801.945   -9236.1616 
+     280    9.7270274   -1803.2416            0   -1801.9754   -8947.2355 
+     300    7.9370805   -1803.0419            0   -1802.0087   -8750.7074 
+     320    6.4067491    -1802.861            0    -1802.027   -8623.9069 
+     340    5.3573492   -1802.7311            0   -1802.0338   -8577.8953 
+     360    4.9188235   -1802.6872            0   -1802.0469   -8637.0036 
+     380    4.8156229   -1802.6667            0   -1802.0399   -8806.2763 
+     400    5.0090105   -1802.6545            0   -1802.0025    -9077.449 
+     420    5.6421616   -1802.6821            0   -1801.9477   -9435.9659 
+     440    6.5180667   -1802.7415            0   -1801.8931   -9843.0718 
+     460    7.8021978   -1802.8463            0   -1801.8307   -10243.525 
+     480    9.1986451   -1802.9578            0   -1801.7604   -10581.685 
+     500    10.560896   -1803.0497            0    -1801.675   -10833.653 
+     520    11.604474   -1803.1302            0   -1801.6197   -11011.347 
+     540    11.844791   -1803.1128            0    -1801.571    -11122.58 
+     560    11.304866   -1803.0402            0   -1801.5687   -11161.742 
+     580    9.8313387   -1802.8722            0   -1801.5925   -11124.258 
+     600    7.7333706   -1802.6641            0   -1801.6575   -11030.299 
+     620    5.3793592    -1802.408            0   -1801.7078    -10901.73 
+     640    3.3272825   -1802.1725            0   -1801.7394   -10761.774 
+     660    2.0314815   -1802.0222            0   -1801.7578   -10622.656 
+     680    2.0077988   -1802.0353            0   -1801.7739   -10487.867 
+     700    3.3843921   -1802.2247            0   -1801.7842   -10372.664 
+     720    5.9780298    -1802.565            0   -1801.7869   -10302.637 
+     740    9.0173322   -1802.9596            0   -1801.7858   -10280.842 
+     760    11.766779   -1803.3181            0   -1801.7865   -10288.676 
+     780    13.733393   -1803.5291            0   -1801.7415    -10302.17 
+     800    14.164962    -1803.566            0   -1801.7222   -10302.618 
+     820    12.863097   -1803.4368            0   -1801.7625   -10272.719 
+     840    10.393884   -1803.1903            0   -1801.8374   -10192.543 
+     860    7.4184997   -1802.8426            0    -1801.877   -10058.512 
+     880    4.3613644   -1802.4882            0   -1801.9205   -9897.1119 
+     900    2.2361845   -1802.2402            0   -1801.9491   -9736.3308 
+     920    1.7719305   -1802.1979            0   -1801.9672   -9590.9833 
+     940    2.9237629   -1802.3563            0   -1801.9757   -9472.0013 
+     960     5.061993   -1802.6395            0   -1801.9806   -9381.0823 
+     980    7.6242849   -1802.9731            0   -1801.9807   -9319.9173 
+    1000     10.04544   -1803.2677            0   -1801.9601   -9298.5324 
+Loop time of 3.52358 on 4 procs for 800 steps with 1008 atoms
+
+Pair  time (%) = 1.13774 (32.2892)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 1.88566 (53.5154)
+Outpt time (%) = 0.00261962 (0.0743455)
+Other time (%) = 0.497567 (14.1211)
+
+Nlocal:    252 ave 504 max 0 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:    1368 ave 1656 max 1080 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:    37230.2 ave 75593 max 0 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 148921
+Ave neighs/atom = 147.739
+Neighbor list builds = 0
+Dangerous builds = 0
+unfix NVT
+
+#          ID  group atc PhysicsType ParameterFile
+fix        AtC internal  atc two_temperature  Ar_ttm.mat
+ATC: constructing two_temperature coupling with parameter file Ar_ttm.mat
+ ATC: peratom PE compute created with ID: 3
+ ATC: WARNING: material units real do not match lammps
+ ATC: WARNING: material units real do not match lammps
+ ATC: 2 materials defined from Ar_ttm.mat
+ ATC: creating two_temperature extrinsic model
+ ATC: WARNING: material units real do not match lammps
+ ATC: WARNING: material units real do not match lammps
+ ATC: 2 materials defined from Ar_ttm.mat
+
+#          ID  part keywords    nx ny nz region
+fix_modify AtC mesh  create 8 6  1  FE f f p
+ ATC: created uniform mesh with 126 nodes, 63 unique nodes, and 48 elements
+
+fix_modify AtC mesh create_elementset wire  -4 4 -INF  0 -INF INF
+ ATC: created elementset wire with 12 elements
+fix_modify AtC mesh create_nodeset    gap   -4 4 -0  INF -INF INF
+ ATC: created nodeset gap with 20 nodes
+fix_modify AtC mesh create_elementset gap   -4 4 -0  INF -INF INF
+ ATC: created elementset gap with 12 elements
+fix_modify AtC mesh delete_elements gap
+
+fix_modify  AtC mesh create_faceset bndy box -4 4 -INF 0 -INF INF
+ ATC: created faceset bndy with 10 faces
+fix_modify  AtC  control thermal flux faceset bndy
+
+# fix a temperature
+fix_modify AtC  initial temperature          all 20.0
+fix_modify AtC  initial electron_temperature all 30.0
+fix_modify AtC  initial temperature          gap  0.0
+
+# relaxation
+thermo_style custom step cpu f_AtC[1] f_AtC[2] f_AtC[3] f_AtC[4]
+fix_modify AtC  output   cutoutFE 10 text
+ ATC: Warning : text output can create _LARGE_ files
+ ATC: output custom names:
+
+fix_modify AtC extrinsic electron_integration implicit
+
+# heating
+fix_modify AtC mesh create_nodeset lbc -8  -8 -INF INF -INF INF
+ ATC: created nodeset lbc with 7 nodes
+fix_modify AtC mesh create_nodeset rbc  8   8 -INF INF -INF INF
+ ATC: created nodeset rbc with 7 nodes
+fix_modify AtC  fix electron_temperature lbc 20.
+fix_modify AtC  fix electron_temperature rbc 20.
+fix_modify AtC  source electron_temperature wire 0.001
+run    200
+Setting up run ...
+Memory usage per processor = 52.1308 Mbytes
+Step CPU AtC[1] AtC[2] AtC[3] AtC[4] 
+    1000            0 7.5905384e-06    13.650794 1.7918648e-05           30 
+    1020   0.42264199 8.0867497e-06    14.386397 0.00011143616    168.06236 
+    1040   0.89445806 8.2236256e-06    14.569133 0.00020569969    308.34605 
+    1060     1.512279 7.9547417e-06    14.139358 0.00029996263    448.62886 
+    1080    2.0000911  7.47106e-06    13.387177 0.00039422497    588.91078 
+    1100     2.334769 6.9291851e-06    12.597525 0.00048848671    729.19182 
+    1120    2.6742702 6.4666101e-06    11.970788 0.00058274785    869.47196 
+    1140    3.0125241 6.1269287e-06    11.536337 0.0006770084    1009.7512 
+    1160    3.3478191 5.9463401e-06    11.304155 0.00077126834    1150.0296 
+    1180      4.02788 5.7757317e-06    11.035914 0.0008655277     1290.307 
+    1200     4.612457 5.6534832e-06    10.819941 0.00095978645    1430.5836 
+Loop time of 4.61523 on 4 procs for 200 steps with 1008 atoms
+
+Pair  time (%) = 0.437437 (9.47811)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.583825 (12.65)
+Outpt time (%) = 0.0544528 (1.17985)
+Other time (%) = 3.53952 (76.6921)
+
+Nlocal:    252 ave 504 max 0 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:    1368 ave 1656 max 1080 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:    37569 ave 75414 max 0 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+FullNghs:  75138 ave 150278 max 0 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 300552
+Ave neighs/atom = 298.167
+Neighbor list builds = 0
+Dangerous builds = 0
+
+# relaxation
+fix_modify AtC  remove_source electron_temperature wire
+run    200
+Setting up run ...
+Memory usage per processor = 52.1308 Mbytes
+Step CPU AtC[1] AtC[2] AtC[3] AtC[4] 
+    1200            0 5.6534832e-06    10.819941 0.00095978645    1430.5836 
+    1220   0.39391184 5.6247016e-06    10.745001 0.0009597804    1430.5746 
+    1240   0.98758292 5.6705058e-06     10.77004 0.00095977436    1430.5656 
+    1260     1.461138 5.9348763e-06    11.132668 0.00095976831    1430.5566 
+    1280     1.794466 6.3878919e-06    11.792006 0.00095976227    1430.5477 
+    1300     2.124989 6.8588119e-06    12.489994 0.00095975623    1430.5387 
+    1320      2.46228 7.3682728e-06    13.289603 0.00095975019    1430.5297 
+    1340    2.8012109 7.8680354e-06    14.125224 0.00095974416    1430.5207 
+    1360    3.1344459 8.1759187e-06    14.694182 0.00095973813    1430.5117 
+    1380      3.47153 8.187909e-06    14.802618 0.0009597321    1430.5028 
+    1400    3.8077469 7.7666161e-06    14.187723 0.00095972607    1430.4938 
+Loop time of 3.81041 on 4 procs for 200 steps with 1008 atoms
+
+Pair  time (%) = 0.410787 (10.7806)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.46719 (12.2609)
+Outpt time (%) = 0.0359789 (0.944226)
+Other time (%) = 2.89646 (76.0143)
+
+Nlocal:    252 ave 504 max 0 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:    1368 ave 1656 max 1080 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:    37178.8 ave 74546 max 0 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+FullNghs:  74357.5 ave 148715 max 0 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 297430
+Ave neighs/atom = 295.069
+Neighbor list builds = 0
+Dangerous builds = 0

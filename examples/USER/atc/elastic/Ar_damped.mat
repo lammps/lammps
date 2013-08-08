@@ -1,0 +1,37 @@
+material Ar metal
+stress  linear
+  modulus  0.00025e6
+  possions_ratio 0.25
+end
+mass_density constant
+  density 1.01202
+end
+body_force
+end
+
+material cubic metal
+stress  cubic
+  c11  0.00030e6
+  c12  0.00010e6
+  c44  0.00010e6
+end
+mass_density constant
+  density 1.01202
+end
+body_force viscous
+  gamma 1e0
+end
+end
+
+material damped metal
+stress  damped_cubic
+  c11  0.00030e6
+  c12  0.00010e6
+  c44  0.00010e6
+  gamma 0.1e3
+end
+mass_density constant
+  density 1.01202
+end
+body_force
+end

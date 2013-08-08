@@ -1,0 +1,141 @@
+LAMMPS (14 Aug 2013)
+units     	real
+atom_style full
+########### BEGIN PARAMETERS ####################################
+variable 	T equal 115.607
+print 	"reference temperature $T [K]"
+reference temperature 115.60699999999999932 [K]
+variable  a equal 5.719025032
+variable  i equal 1
+variable  s equal 100
+variable dt equal 4.0
+##############  END PARAMETERS #################################
+dimension 	3
+boundary  	f p p
+pair_style  	lj/cut 13.0
+lattice   	sc  $a
+lattice   	sc  5.7190250320000002304
+Lattice spacing in x,y,z = 5.71903 5.71903 5.71903
+region    	BOX     block  0 12 0 4 0 4
+read_data	velocities.init
+Scanning data file ...
+Reading data file ...
+  orthogonal box = (0 0 0) to (68.6283 22.8761 22.8761)
+  4 by 1 by 1 MPI processor grid
+  192 atoms
+  192 velocities
+Finding 1-2 1-3 1-4 neighbors ...
+  0 = max # of 1-2 neighbors
+  0 = max # of 1-3 neighbors
+  0 = max # of 1-4 neighbors
+  1 = max # of special neighbors
+mass    	* 39.948
+pair_coeff * * 0.2381 3.405
+set group all charge 0.1
+Setting atom values ...
+  192 settings made for charge
+dielectric 80.0
+timestep  	${dt}
+timestep  	4
+neigh_modify every $i check no
+neigh_modify every 1 check no
+thermo    	$s
+thermo    	100
+# ------------- Equilibration and thermalisation ----------------
+fix WALL all wall/reflect xlo EDGE xhi EDGE
+fix 		NVT all nvt temp $T $T 10 drag 0.2
+fix 		NVT all nvt temp 115.60699999999999932 $T 10 drag 0.2
+fix 		NVT all nvt temp 115.60699999999999932 115.60699999999999932 10 drag 0.2
+thermo_style 	custom step temp press etotal pe
+#run 		400
+unfix 		NVT
+# ------------- Post processing ---------------------------------
+fix        PP  all atc field
+ATC: constructing shape function field estimate
+ ATC: peratom PE compute created with ID: 3
+fix_modify PP  fields add mass_density charge_density electric_potential velocity
+#fix_modify PP  mesh create 50 1 1 BOX f p p
+fix_modify PP  mesh create 25 1 1 BOX f p p
+ ATC: created uniform mesh with 104 nodes, 26 unique nodes, and 25 elements
+#fix_modify PP  mesh create 6 1 1 BOX f p p
+fix_modify PP  atom_element_map eulerian $i
+fix_modify PP  atom_element_map eulerian 1
+# ------------- Coupling ----------------------------------------
+fix        AtC all atc species_electrostatic     Ar_species.mat
+ATC: constructing electrostatic species coupling with parameter file Ar_species.mat
+ ATC: peratom PE compute created with ID: 3
+ ATC: 1 materials defined from Ar_species.mat
+ ATC: creating fem_efield extrinsic model
+ ATC: 1 materials defined from Ar_species.mat
+fix_modify AtC add_species ALL group all
+fix_modify AtC internal_quadrature off
+fix_modify AtC mesh create 6 1 1 BOX f p p
+ ATC: created uniform mesh with 28 nodes, 7 unique nodes, and 6 elements
+fix_modify AtC atom_element_map eulerian $i
+fix_modify AtC atom_element_map eulerian 1
+fix_modify AtC extrinsic short_range off
+fix_modify AtC mesh create_nodeset rbc 12. 12. -INF INF -INF INF
+ ATC: created nodeset rbc with 1 nodes
+fix_modify AtC mesh create_nodeset lbc  0.  0. -INF INF -INF INF
+ ATC: created nodeset lbc with 1 nodes
+# ------------- run ---------------------------------------------
+thermo_style    custom step cpu etotal ke
+fix_modify AtC output liquid_electrostaticFE $s full_text # binary
+fix_modify AtC output liquid_electrostaticFE 100 full_text 
+ ATC: Warning : text output can create _LARGE_ files
+ ATC: output custom names:
+NodalAtomicSpeciesConcentration : NodalAtomicSpeciesConcentrationALL
+species_concentration : species_concentrationALL
+
+fix_modify PP  output liquid_electrostaticPP $s full_text
+fix_modify PP  output liquid_electrostaticPP 100 full_text
+ ATC: Warning : text output can create _LARGE_ files
+ ATC: output custom names:
+
+log liquid_electrostatic.log
+fix_modify AtC  fix electric_potential lbc linear 0 0 0 0 0 0 0
+ ATC: created function : 0 + 0(x-0)+0(y-0)+0(z-0)
+run 800
+Setting up run ...
+ ATC: WARNING: material: [ar] cannot find mass_density
+ ATC: WARNING: physics model: [species], material: [ar] does not provide all interfaces for <mass_density> physics and will be treated as null 
+ ATC: WARNING: all initial conditions for mass_density have not been defined and the undefined are assumed zero
+ ATC: WARNING: all initial conditions for charge_density have not been defined and the undefined are assumed zero
+ ATC: WARNING: all initial conditions for species_concentration have not been defined and the undefined are assumed zero
+ ATC: WARNING: all initial conditions for electric_potential have not been defined and the undefined are assumed zero
+ ATC: WARNING: material: [ar] cannot find mass_density
+ ATC: WARNING: physics model: [species electrostatic], material: [ar] does not provide all interfaces for <mass_density> physics and will be treated as null 
+Memory usage per processor = 63.7188 Mbytes
+Step CPU TotEng KinEng 
+       0            0    35.202587    65.819079 
+     100   0.24399519    36.014336    73.434063 
+     200   0.48565197    40.073896     87.17957 
+     300   0.72934318    47.116113    101.60024 
+     400     1.039428    56.306233    113.20696 
+     500    1.2882581      67.3682    120.18094 
+     600    1.5421622    79.678922    137.95847 
+     700    1.8119881    93.406523    150.38695 
+     800    2.0993671    107.30758    169.35003 
+Loop time of 2.0994 on 4 procs for 800 steps with 192 atoms
+
+Pair  time (%) = 0.0760665 (3.62325)
+Bond  time (%) = 0.000117838 (0.00561295)
+Neigh time (%) = 0.0679175 (3.23509)
+Comm  time (%) = 0.0478712 (2.28023)
+Outpt time (%) = 0.00402987 (0.191953)
+Other time (%) = 1.9034 (90.6639)
+
+Nlocal:    48 ave 76 max 34 min
+Histogram: 2 0 1 0 0 0 0 0 0 1
+Nghost:    515 ave 660 max 337 min
+Histogram: 1 0 0 0 0 1 1 0 0 1
+Neighs:    1680.25 ave 3128 max 827 min
+Histogram: 1 0 2 0 0 0 0 0 0 1
+FullNghs:  3360.5 ave 6244 max 1660 min
+Histogram: 1 0 2 0 0 0 0 0 0 1
+
+Total # of neighbors = 13442
+Ave neighs/atom = 70.0104
+Ave special neighs/atom = 0
+Neighbor list builds = 80
+Dangerous builds = 0

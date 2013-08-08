@@ -1,0 +1,77 @@
+LAMMPS (14 Aug 2013)
+Lattice spacing in x,y,z = 5.25623 5.25623 5.25623
+Created orthogonal box = (0 0 0) to (525.623 52.5623 52.5623)
+  4 by 1 by 1 MPI processor grid
+ATC: constructing elastic coupling with parameter file Ar_CauchyBorn.mat
+ ATC: peratom PE compute created with ID: 3
+ ATC: computed mass density : 1.10041
+ ATC: 1 materials defined from Ar_CauchyBorn.mat
+using face quad!
+using face quad!
+using face quad!
+ ATC: created uniform mesh with 104 nodes, 26 unique nodes, and 25 elements
+using face quad!
+ ATC: created nodeset lbc with 1 nodes
+ ATC: created nodeset rbc1 with 1 nodes
+ ATC: created nodeset rbc2 with 1 nodes
+ ATC: created nodeset rbc3 with 1 nodes
+ ATC: created nodeset rbc4 with 1 nodes
+ ATC: created nodeset rbc5 with 1 nodes
+ ATC: Warning : text output can create _LARGE_ files
+ ATC: output custom names:
+
+Setting up run ...
+ ATC: CB stiffness: 7.56711 Einstein freq: 0.355647
+Memory usage per processor = 0.432442 Mbytes
+Step CPU 
+       0            0 
+     100     5.373224 
+     200    13.156875 
+     300    17.393315 
+     400    23.759932 
+     500    28.611823 
+     600    36.396029 
+     700    40.553676 
+     800    47.000228 
+     900    51.579739 
+    1000    57.538064 
+    1100    64.053463 
+    1200    71.077067 
+    1300    76.430127 
+    1400    84.956777 
+    1500    88.559395 
+    1600    90.649106 
+    1700    93.449754 
+    1800    95.849976 
+    1900    98.488277 
+    2000    100.78877 
+    2100    102.80799 
+    2200    104.88818 
+    2300    106.89208 
+    2400    108.89542 
+    2500    110.89934 
+    2600     114.3289 
+    2700     116.6514 
+    2800    118.66646 
+    2900    120.66124 
+    3000    122.65321 
+Loop time of 122.653 on 4 procs for 3000 steps with 0 atoms
+
+Pair  time (%) = 0 (0)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.0159223 (0.0129816)
+Outpt time (%) = 0.0753418 (0.0614267)
+Other time (%) = 122.562 (99.9256)
+
+Nlocal:    0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:  0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 0
+Neighbor list builds = 0
+Dangerous builds = 0

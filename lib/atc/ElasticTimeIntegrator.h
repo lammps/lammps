@@ -1,201 +1,215 @@
-/** ElasticTimeIntegrator : a class to implement various elasticity integrators for FE quantities */
-
 #ifndef ELASTIC_TIME_INTEGRATOR_H
 #define ELASTIC_TIME_INTEGRATOR_H
 
-// ATC_Transfer headers
+/** MomentumTimeIntegrator : a class to implement various elasticity integrators for FE quantities */
+
+// ATC headers
 #include "TimeIntegrator.h"
 
 using namespace std;
 namespace ATC {
 
     // forward declarations
-    class ElasticIntegrationMethod;
+    class MomentumIntegrationMethod;
 
     /**
-     *  @class  ElasticTimeIntegrator
-     *  @brief  Base class fo various time integrators for elasticity FE quantities
+     *  @class  MomentumTimeIntegrator
+     *  @brief  Base class for various time integrators for elasticity FE quantities which handles parsing and stores basic data structures
      */
 
-    //--------------------------------------------------------
-    //--------------------------------------------------------
-    //  Class ElasticTimeIntegrator
-    //     Base class for elastic integrators which handles
-    //     parsing and stores basic data structures
-    //--------------------------------------------------------
-    //--------------------------------------------------------
-
-    class ElasticTimeIntegrator : public TimeIntegrator {
+    class MomentumTimeIntegrator : public TimeIntegrator {
   
     public:
   
         // constructor
-        ElasticTimeIntegrator(ATC_Transfer * atcTransfer,
-                              TimeIntegrationType timeIntegrationType);
+        MomentumTimeIntegrator(ATC_Coupling * atc,
+                               TimeIntegrationType timeIntegrationType);
         
         // destructor
-        virtual ~ElasticTimeIntegrator(){};
+        virtual ~MomentumTimeIntegrator(){};
 
         /** parser/modifier */
         virtual bool modify(int narg, char **arg);
         
-        /** pre time integration */
-        virtual void initialize();
+        /** create objects to implement requested numerical method */
+        virtual void construct_methods();
+
+        /** pack persistent fields */
+        virtual void pack_fields(RESTART_LIST & data);
+
+        // Member data access
+        /** access for filtered atomic force */
+        DENS_MAN & nodal_atomic_force_filtered(){return nodalAtomicForceFiltered_;};
+
+        /** access for filtered atomic momentum */
+        // note:  nodalAtomicMomentum_ should always be reset as it tracks the original momentum + MD evolution
+        DENS_MAN & nodal_atomic_momentum_filtered(){return nodalAtomicMomentumFiltered_;};
+
+
+    protected:
+
+        /** filtered atomic force */
+        
+        DENS_MAN nodalAtomicForceFiltered_;
+
+        /** filtered atomic momentum due initial conditions and MD updates */
+        DENS_MAN nodalAtomicMomentumFiltered_;
+
 
     private:
 
         // DO NOT define this
-        ElasticTimeIntegrator();
+        MomentumTimeIntegrator();
   
     };
 
     /**
-     *  @class  ElasticIntegrationMethod
-     *  @brief  Base class fo various time integration methods for elasticity FE quantities
+     *  @class  MomentumIntegrationMethod
+     *  @brief  Base class for various time integration methods for the momentum equation
      */
 
-    //--------------------------------------------------------
-    //--------------------------------------------------------
-    //  Class ElasticIntegrationMethod
-    //     Base class for elastic integration methods which
-    //     update the FE quantities in time
-    //--------------------------------------------------------
-    //--------------------------------------------------------
-
-    class ElasticIntegrationMethod : public TimeIntegrationMethod {
+    class MomentumIntegrationMethod : public TimeIntegrationMethod {
   
     public:
   
         // constructor
-        ElasticIntegrationMethod(ElasticTimeIntegrator * elasticTimeIntegrator);
+        MomentumIntegrationMethod(MomentumTimeIntegrator * momentumTimeIntegrator);
         
         // destructor
-        virtual ~ElasticIntegrationMethod(){};
+        virtual ~MomentumIntegrationMethod(){};
+
+        /** create and get necessary transfer operators */
+        virtual void construct_transfers();
+
+        /** checks to see if first RHS computation is needed */
+        virtual bool has_final_predictor() {return true;};
         
     protected:
  
-        /** time filtering application object */
+        /** time filtering object */
         TimeFilter * timeFilter_;
-
-        /** finite element displacement field */
-        DENS_MAT & displacement_;
+        
         /** finite element velocity field */
-        DENS_MAT & velocity_;
+        DENS_MAN & velocity_;
         /** finite element acceleration field */
-        DENS_MAT & acceleration_;
-
-        /** atomic nodal displacement field */
-        DENS_MAT & nodalAtomicDisplacement_;
+        DENS_MAN & acceleration_;
+        
         /** atomic nodal velocity field */
-        DENS_MAT & nodalAtomicVelocity_;
-
+        DENS_MAN & nodalAtomicVelocityOut_;
         /** right-hand side of velocity equation */
-        DENS_MAT & velocityRhs_;
-
+        DENS_MAN & velocityRhs_;
         /** force at nodes from atomic quantities */
-        DENS_MAT & nodalAtomicForce_;
+        DENS_MAN & nodalAtomicForceOut_;
 
-        /** filtered power for computation during equilibration */
-        DENS_MAT & forceFilteringData_;
+        /** transfer for computing nodal atomic velocity */
+        DENS_MAN * nodalAtomicVelocity_;
 
     private:
 
         // DO NOT define this
-        ElasticIntegrationMethod();
+        MomentumIntegrationMethod();
   
     };
 
     /**
      *  @class  ElasticTimeIntegratorVerlet
-     *  @brief  Verlet integration for FE elastic quantities
+     *  @brief  Verlet integration for FE elastic quantities.  Uses the second order Verlet integration to update the finite element velocity and displacement fields, i.e. the same integration used for the atomic velocities and positions.
      */
 
-    //--------------------------------------------------------
-    //--------------------------------------------------------
-    //  Class ElasticTimeIntegratorVerlet
-    //     Uses the second order Verlet integration to update
-    //     the finite element velocity and displacement
-    //     fields, i.e. the same integration used for the
-    //     atomic velocities and positions.
-    //--------------------------------------------------------
-    //--------------------------------------------------------
-
-    class ElasticTimeIntegratorVerlet : public ElasticIntegrationMethod {
+    class ElasticTimeIntegratorVerlet : public MomentumIntegrationMethod {
   
     public:
   
-        // constructor
-        ElasticTimeIntegratorVerlet(ElasticTimeIntegrator * elasticTimeIntegrator);
+      // constructor
+      ElasticTimeIntegratorVerlet(MomentumTimeIntegrator * momentumTimeIntegrator);
         
-        // destructor
-        virtual ~ElasticTimeIntegratorVerlet(){};
-        
-        // time step methods, corresponding to ATC_Transfer
-        
-        /** first part of mid_initial_integrate */
-        virtual void mid_initial_integrate1(double dt);
-        
-        /** first part of post_initial_integrate */
-        virtual void post_initial_integrate1(double dt);
-        
-        /** first part of pre_final_integrate */
-        virtual void pre_final_integrate1(double dt);
+      // destructor
+      virtual ~ElasticTimeIntegratorVerlet(){};
 
-        /** first part of post_final_integrate */
-        virtual void post_final_integrate1(double dt);
-
-        /** post processing step before output */
-        virtual void post_process(double dt); 
+      /** create and get necessary transfer operators */
+      virtual void construct_transfers();
+      
+      /** pre time integration initialization of data */
+      virtual void initialize();
+      
+      // time step methods, corresponding to ATC_Transfer
+      /** first part of mid_initial_integrate */
+      virtual void mid_initial_integrate1(double dt);
+      /** first part of post_initial_integrate */
+      virtual void post_initial_integrate1(double dt);
+      /** first part of pre_final_integrate */
+      virtual void pre_final_integrate1(double dt);
+      /** second part of post_final_integrate */
+      virtual void post_final_integrate2(double dt);
+      /** adds any contributions from time integrator to RHS */
+      virtual void add_to_rhs();
+      /** post processing step before output */
+      virtual void post_process();
         
+      /** add output data */
+      virtual void output(OUTPUT_LIST & outputData);
+      
+      /** operations at end of a run */
+      virtual void finish();
+      
+    protected:
+      
+      /** finite element displacement field */
+      DENS_MAN & displacement_;
+      
+      /** atomic nodal displacement field */
+      DENS_MAN & nodalAtomicDisplacementOut_;
+      
+      /** filtered atomic force */
+      DENS_MAN & nodalAtomicForceFiltered_;
+      
+      /** transfer for computing atomic displacement */
+      DENS_MAN * nodalAtomicDisplacement_;
+
+      /** transfer for computing nodal atomic force */
+      DENS_MAN * nodalAtomicForce_;
+      
     private:
-  
-        // DO NOT define this
-        ElasticTimeIntegratorVerlet();
-  
+      
+      // DO NOT define this
+      ElasticTimeIntegratorVerlet();
+      
     };
-
+    
     /**
      *  @class  ElasticTimeIntegratorVerlet
      *  @brief  Verlet integration for FE elastic quantities with time filtering
      */
-
-    //--------------------------------------------------------
-    //--------------------------------------------------------
-    //  Class ElasticTimeIntegratorVerletFiltered
-    //--------------------------------------------------------
-    //--------------------------------------------------------
 
     class ElasticTimeIntegratorVerletFiltered : public ElasticTimeIntegratorVerlet {
   
     public:
   
         // constructor
-        ElasticTimeIntegratorVerletFiltered(ElasticTimeIntegrator * elasticTimeIntegrator);
+        ElasticTimeIntegratorVerletFiltered(MomentumTimeIntegrator * momentumTimeIntegrator);
         
         // destructor
         virtual ~ElasticTimeIntegratorVerletFiltered(){};
         
         // time step methods, corresponding to ATC_Transfer
-        
         /** first part of mid_initial_integrate */
         virtual void mid_initial_integrate1(double dt);
-        
         /** first part of post_initial_integrate */
         virtual void post_initial_integrate1(double dt);
-        
-        /** first part of pre_final_integrate */
-        virtual void pre_final_integrate1(double dt);
-        
-        /** first part of post_final_integrate */
-        virtual void post_final_integrate1(double dt);
-
+        /** second part of post_final_integrate */
+        virtual void post_final_integrate2(double dt);
+        /** adds any contributions from time integrator to RHS */
+        virtual void add_to_rhs();
         /** post processing step before output */
-        virtual void post_process(double dt){};
+        virtual void post_process(){};
+
+        /** add output data */
+        virtual void output(OUTPUT_LIST & outputData);
         
     protected:
 
         /** atomic nodal acceleration field */
-        DENS_MAT & nodalAtomicAcceleration_;
+        DENS_MAN & nodalAtomicAcceleration_;
 
     private:
 
@@ -204,6 +218,195 @@ namespace ATC {
   
     };
 
+  /**
+   *  @class  ElasticTimeIntegratorFractionalStep 
+   *  @brief  Class for using 2nd order Verlet integration to update FE contributions to momentum field
+   *          (Uses same update for the atomic contributions to the finite 
+   *           elements as are used by the LAMMPS integration scheme 
+   *           for the atomic velocities and positions, i.e. Verlet.)
+   */ 
+
+  class ElasticTimeIntegratorFractionalStep : public MomentumIntegrationMethod {
+
+  public:
+
+    // constructor
+    ElasticTimeIntegratorFractionalStep(MomentumTimeIntegrator * momentumTimeIntegrator);
+        
+    // destructor
+    virtual ~ElasticTimeIntegratorFractionalStep() {};
+    
+    /** create and get necessary transfer operators */
+    virtual void construct_transfers();
+
+    /** pre time integration initialization of data */
+    virtual void initialize();
+        
+    // time step methods, corresponding to ATC_Transfer
+    /** first part of pre_initial_integrate */
+    virtual void pre_initial_integrate1(double dt);
+    /** second part of mid_initial_integrate */
+    virtual void pre_initial_integrate2(double dt);
+    /** first part of mid_initial_integrate */
+    virtual void mid_initial_integrate1(double dt);
+    /** first part of post_initial_integrate */
+    virtual void post_initial_integrate1(double dt);
+    /** second part of post_final_integrate */
+    virtual void post_final_integrate2(double dt);
+    /** post processing step before output */
+    virtual void post_process();
+
+    /** finalize state of some unfiltered variables */
+    virtual void finish();
+
+    /** add output data */
+    virtual void output(OUTPUT_LIST & outputData);
+
+  protected:
+
+    // methods
+    /** compute old energy and temperature for use in time integrators */
+    virtual void compute_old_time_data();
+
+    /** computes temperature change associated with atomic energy change */
+    virtual void compute_velocity_delta(const DENS_MAT & atomicMomentumDelta,
+                                        double dt);
+
+    // data
+    /** finite element displacement field */
+    DENS_MAN & displacement_;
+      
+    /** atomic nodal displacement field */
+    DENS_MAN & nodalAtomicDisplacementOut_;
+
+    /** equivalent nodal force due to atomic momentum change */
+    DENS_MAT nodalAtomicForce_;
+      
+    /** filtered atomic force */
+    DENS_MAN & nodalAtomicForceFiltered_;
+
+    /** transfer for computing atomic momentum */
+    DENS_MAN * nodalAtomicMomentum_;
+
+    /** filtered atomic momentum */
+    DENS_MAN & nodalAtomicMomentumFiltered_;
+      
+    /** transfer for computing atomic displacement */
+    DENS_MAN * nodalAtomicDisplacement_;
+
+    /** change in FE velocity due to atomic motions */
+    DENS_MAN atomicVelocityDelta_;
+
+    /** restricted atomic momentum from previous time step */
+    DENS_MAT nodalAtomicMomentumOld_;
+
+    /** FE atomic velocity contribution from previous time step */
+    DENS_MAT nodalAtomicVelocityOld_;
+
+
+  private:
+
+    // DO NOT define this
+    ElasticTimeIntegratorFractionalStep();
+
+  };
+
+  /**
+   *  @class  FluidsTimeIntegratorGear
+   *  @brief  Class for using 3rd order Gear integration to update FE contributions to momentum field
+   *          and fractional step method for atomic contributions
+   */ 
+
+  class FluidsTimeIntegratorGear : public MomentumIntegrationMethod {
+
+  public:
+
+    // constructor
+    FluidsTimeIntegratorGear(MomentumTimeIntegrator * MomentumTimeIntegrator);
+        
+    // destructor
+    virtual ~FluidsTimeIntegratorGear() {};
+    
+    /** create and get necessary transfer operators */
+    virtual void construct_transfers();
+
+    /** pre time integration initialization of data */
+    virtual void initialize();
+        
+    // time step methods, corresponding to ATC_Transfer
+    /** first part of pre_initial_integrate */
+    virtual void pre_initial_integrate1(double dt);
+    /** second part of pre_initial_integrate */
+    virtual void pre_initial_integrate2(double dt);
+    /** first part of pre_final_integrate */
+    virtual void pre_final_integrate1(double dt);
+    /** first part of post_final_integrate */
+    virtual void post_final_integrate1(double dt);
+    /** second part of post_final_integrate */
+    virtual void post_final_integrate2(double dt);
+
+    /** post processing step before output */
+    virtual void post_process();
+
+    /** finalize state of some unfiltered variables */
+    virtual void finish();
+
+    /** add output data */
+    virtual void output(OUTPUT_LIST & outputData);
+
+  protected:
+
+    // methods
+    /** applies Gear predictor */
+    virtual void apply_gear_predictor(double dt);
+
+    /** applies Gear corrector */
+    virtual void apply_gear_corrector(const DENS_MAT & R_theta,
+                                      double dt);
+
+    /** compute old energy and temperature for use in time integrators */
+    virtual void compute_old_time_data();
+
+    /** computes temperature change associated with atomic energy change */
+    virtual void compute_velocity_delta(const DENS_MAT & atomicMomentumDelta,
+                                        double dt);
+
+    // data
+    /** equivalent nodal force due to atomic momentum change */
+    DENS_MAT nodalAtomicForce_;
+      
+    /** filtered atomic force */
+    DENS_MAN & nodalAtomicForceFiltered_;
+
+    /** transfer for computing atomic momentum */
+    DENS_MAN * nodalAtomicMomentum_;
+
+    /** filtered atomic momentum */
+    DENS_MAN & nodalAtomicMomentumFiltered_;
+
+    /** change in FE velocity due to atomic motions */
+    DENS_MAN atomicVelocityDelta_;
+
+    /** restricted atomic momentum from previous time step */
+    DENS_MAT nodalAtomicMomentumOld_;
+
+    /** FE atomic velocity contribution from previous time step */
+    DENS_MAT nodalAtomicVelocityOld_;
+
+    /** finite element velocity 2nd time derivative */
+    DENS_MAN & velocity2Roc_;
+
+    // workspace for gear integration
+    DENS_MAT _velocityResidual_;
+
+  private:
+
+    // DO NOT define this
+    FluidsTimeIntegratorGear();
+
+    };
+
 };
 
 #endif
+

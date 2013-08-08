@@ -1,0 +1,6 @@
+material Ar real
+viscous_stress constant
+  viscosity  1000.
+end
+mass_density
+body_force null

@@ -1,0 +1,64 @@
+LAMMPS (14 Aug 2013)
+Reading data file ...
+  orthogonal box = (-37.835 -16.215 -16.215) to (37.835 16.215 16.215)
+  4 by 1 by 1 MPI processor grid
+  1288 atoms
+  1288 velocities
+Lattice spacing in x,y,z = 5.405 5.405 5.405
+1000 atoms in group internal
+288 atoms in group ghost
+Lattice spacing in x,y,z = 5.405 5.405 5.405
+ATC: constructing viscous/shear coupling with parameter file Ar_viscosity.mat
+ ATC: peratom PE compute created with ID: 3
+ ATC: 1 materials defined from Ar_viscosity.mat
+ ATC: created uniform mesh with 28 nodes, 7 unique nodes, and 6 elements
+ ATC: created elementset rbc with 1 elements
+ ATC: Warning : text output can create _LARGE_ files
+ ATC: output custom names:
+
+Setting up run ...
+ ATC: WARNING: all initial conditions for velocity have not been defined and the undefined are assumed zero
+Memory usage per processor = 52.4731 Mbytes
+Step CPU TotEng PotEng Temp 
+     0       0   -1119.8507   -1407.9617    96.655262 
+   100     3.7   -1119.8301   -1407.8272    96.617051 
+   200      11   -1119.8009   -1400.4751    94.160366 
+   300      16   -1119.7239   -1410.8865    97.679021 
+   400      24   -1119.6576   -1408.2534    96.817907 
+   500      28   -1119.6516   -1408.5682    96.925527 
+   600      38   -1119.6329   -1408.6306     96.95274 
+   700      39   -1119.5365   -1418.9199    100.43692 
+   800      41   -1119.4382   -1415.3432    99.270023 
+   900      51   -1119.2739   -1417.3965    100.01394 
+  1000      58   -1119.1165   -1413.6775      98.8191 
+  1100      62   -1118.9778   -1411.4417    98.115594 
+  1200      64   -1118.8576   -1421.8226    101.63848 
+  1300      68   -1118.7582   -1420.5024    101.22893 
+  1400      75   -1118.6322   -1425.0437     102.7947 
+  1500      77   -1118.5021   -1425.0965    102.85606 
+  1600      86   -1118.4008   -1423.1023    102.22105 
+  1700      88   -1118.2811   -1423.5625    102.41555 
+  1800      98   -1118.1439   -1423.4533    102.42497 
+  1900      99   -1118.0284   -1426.7201    103.55967 
+  2000 1.1e+02   -1117.8763    -1428.701    104.27524 
+Loop time of 107.637 on 4 procs for 2000 steps with 1288 atoms
+
+Pair  time (%) = 6.68767 (6.21315)
+Neigh time (%) = 4.49477 (4.17585)
+Comm  time (%) = 24.6344 (22.8864)
+Outpt time (%) = 0.123942 (0.115148)
+Other time (%) = 71.6966 (66.6094)
+
+Nlocal:    322 ave 346 max 306 min
+Histogram: 1 0 1 0 1 0 0 0 0 1
+Nghost:    3368.25 ave 4149 max 2571 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:    60300.2 ave 74700 max 48490 min
+Histogram: 2 0 0 0 0 0 0 1 0 1
+FullNghs:  120600 ave 149448 max 96908 min
+Histogram: 2 0 0 0 0 0 0 1 0 1
+
+Total # of neighbors = 482402
+Ave neighs/atom = 374.536
+Neighbor list builds = 200
+Dangerous builds = 0

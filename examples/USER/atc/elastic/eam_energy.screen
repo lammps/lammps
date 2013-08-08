@@ -1,0 +1,333 @@
+LAMMPS (14 Aug 2013)
+units		metal
+atom_style      atomic
+atom_modify map hash
+boundary	p p p
+
+variable l equal 3
+variable l2 equal 0.5*$l
+variable l2 equal 0.5*3
+variable L equal 10
+variable L2 equal 0.5*$L
+variable L2 equal 0.5*10
+variable h equal $L
+variable h equal 10
+
+lattice fcc 4.08 origin 0.25 0.25 0.25
+Lattice spacing in x,y,z = 4.08 4.08 4.08
+region	BOX  block -${l2} ${l2} -${L2} ${L2} -${l2} ${l2}
+region	BOX  block -1.5 ${l2} -${L2} ${L2} -${l2} ${l2}
+region	BOX  block -1.5 1.5 -${L2} ${L2} -${l2} ${l2}
+region	BOX  block -1.5 1.5 -5 ${L2} -${l2} ${l2}
+region	BOX  block -1.5 1.5 -5 5 -${l2} ${l2}
+region	BOX  block -1.5 1.5 -5 5 -1.5 ${l2}
+region	BOX  block -1.5 1.5 -5 5 -1.5 1.5
+create_box 1 BOX
+Created orthogonal box = (-6.12 -20.4 -6.12) to (6.12 20.4 6.12)
+  1 by 4 by 1 MPI processor grid
+create_atoms 1 region BOX
+Created 360 atoms
+
+pair_style  eam
+pair_coeff  * * Au_u3.eam
+mass          *  196.97
+
+
+### NOTE change to CB -linear
+fix         PP  all   atc field   Au_elastic.mat
+ATC: constructing shape function field estimate with parameter file Au_elastic.mat
+ ATC: peratom PE compute created with ID: 3
+fix_modify  PP  mesh  create 1 $h 1 BOX p f p
+fix_modify  PP  mesh  create 1 10 1 BOX p f p
+ ATC: created uniform mesh with 44 nodes, 11 unique nodes, and 10 elements
+fix_modify  PP  fields add displacement velocity potential_energy cauchy_born_energy #  kinetic_energy
+fix_modify  PP  gradients add displacement
+fix_modify  PP  set reference_potential_energy
+fix_modify  PP  output counter step
+fix_modify  PP  output eam_energyPP 1 text
+ ATC: Warning : text output can create _LARGE_ files
+ ATC: output custom names:
+
+
+fix         ATC all   atc elastic Au_elastic.mat
+ATC: constructing elastic coupling with parameter file Au_elastic.mat
+ ATC: peratom PE compute created with ID: 3
+ ATC: computed mass density : 11.6006
+ ATC: computed mass density : 11.6006
+ ATC: 2 materials defined from Au_elastic.mat
+fix_modify  ATC mesh  create 1 $h 1 BOX p f p
+fix_modify  ATC mesh  create 1 10 1 BOX p f p
+ ATC: created uniform mesh with 44 nodes, 11 unique nodes, and 10 elements
+fix_modify  ATC internal_quadrature off
+fix_modify  ATC control momentum none
+#fix_modify  ATC consistent_fe_initialization on
+fix_modify  ATC output counter step
+fix_modify  ATC output eam_energyFE 1 text binary
+ ATC: Warning : text output can create _LARGE_ files
+ ATC: output custom names:
+
+fix_modify  ATC material all Au_cubic
+
+
+dump  CONFIG all custom 1 eam_energy.dmp id type x y z
+thermo 1
+
+timestep 0 # 1.e-20 # 0
+
+variable e0 equal pe
+variable L0 equal ly
+run 0
+Setting up run ...
+ ATC: CB stiffness: 11.5362 Einstein freq: 4682.34
+ ATC: CB stiffness: 11.5362 Einstein freq: 4682.34
+ ATC: WARNING: all initial conditions for displacement have not been defined and the undefined are assumed zero
+ ATC: WARNING: all initial conditions for velocity have not been defined and the undefined are assumed zero
+Memory usage per processor = 70.4928 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0            0      -1414.8            0      -1414.8  0.022463201 
+Loop time of 5.76973e-05 on 4 procs for 0 steps with 360 atoms
+
+Pair  time (%) = 0 (0)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0 (0)
+Outpt time (%) = 0 (0)
+Other time (%) = 5.76973e-05 (100)
+
+Nlocal:    90 ave 90 max 90 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    1184 ave 1184 max 1184 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    3870 ave 3870 max 3870 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:  7740 ave 7740 max 7740 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 30960
+Ave neighs/atom = 86
+Neighbor list builds = 0
+Dangerous builds = 0
+variable pe equal pe-${e0}
+variable pe equal pe--1414.8000000636002369
+variable dL equal ly-${L0}
+variable dL equal ly-40.799999999999997158
+variable strain equal v_dL/${L0}
+variable strain equal v_dL/40.799999999999997158
+
+variable x equal y[1]
+variable x2 equal y[2]
+variable v equal vy[1]
+thermo_style custom step etotal v_pe ke f_ATC[1] f_ATC[2] v_x v_v v_x2 ly v_dL v_strain
+thermo_modify format 2 %15.8g
+
+###############################################################################
+log  eam_energy.log
+run 1
+Setting up run ...
+Memory usage per processor = 70.4928 Mbytes
+Step TotEng pe KinEng ATC[1] ATC[2] x v x2 Ly dL strain 
+       0         -1414.8            0            0            0            0       -19.38            0       -19.38         40.8            0            0 
+       1         -1414.8            0            0            0            0       -19.38            0       -19.38         40.8            0            0 
+Loop time of 0.220009 on 4 procs for 1 steps with 360 atoms
+
+Pair  time (%) = 0.010402 (4.72801)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.0269095 (12.2311)
+Outpt time (%) = 0.0771807 (35.0808)
+Other time (%) = 0.105516 (47.9601)
+
+Nlocal:    90 ave 90 max 90 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    1184 ave 1184 max 1184 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    3870 ave 3870 max 3870 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:  7740 ave 7740 max 7740 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 30960
+Ave neighs/atom = 86
+Neighbor list builds = 0
+Dangerous builds = 0
+velocity all set 0 0.1 0 units box
+fix_modify ATC fix velocity y all 0.1
+run 1
+Setting up run ...
+Memory usage per processor = 70.4928 Mbytes
+Step TotEng pe KinEng ATC[1] ATC[2] x v x2 Ly dL strain 
+       1      -1414.7633            0  0.036746101            0            0       -19.38          0.1       -19.38         40.8            0            0 
+       2      -1414.7633            0  0.036746101  0.036746101            0       -19.38          0.1       -19.38         40.8            0            0 
+Loop time of 0.305193 on 4 procs for 1 steps with 360 atoms
+
+Pair  time (%) = 0.0104025 (3.4085)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.0294241 (9.64114)
+Outpt time (%) = 0.132358 (43.3686)
+Other time (%) = 0.133008 (43.5818)
+
+Nlocal:    90 ave 90 max 90 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    1184 ave 1184 max 1184 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    3870 ave 3870 max 3870 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:  7740 ave 7740 max 7740 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 30960
+Ave neighs/atom = 86
+Neighbor list builds = 0
+Dangerous builds = 0
+velocity all set 0 0.2 0 units box
+fix_modify ATC fix velocity y all 0.2
+run 1
+Setting up run ...
+Memory usage per processor = 70.4928 Mbytes
+Step TotEng pe KinEng ATC[1] ATC[2] x v x2 Ly dL strain 
+       2       -1414.653            0    0.1469844  0.036746101            0       -19.38          0.2       -19.38         40.8            0            0 
+       3       -1414.653            0    0.1469844    0.1469844            0       -19.38          0.2       -19.38         40.8            0            0 
+Loop time of 0.49256 on 4 procs for 1 steps with 360 atoms
+
+Pair  time (%) = 0.0226828 (4.60508)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.0572202 (11.6169)
+Outpt time (%) = 0.15985 (32.4529)
+Other time (%) = 0.252807 (51.3251)
+
+Nlocal:    90 ave 90 max 90 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    1184 ave 1184 max 1184 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    3870 ave 3870 max 3870 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:  7740 ave 7740 max 7740 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 30960
+Ave neighs/atom = 86
+Neighbor list builds = 0
+Dangerous builds = 0
+velocity all set 0 0.3 0 units box
+fix_modify ATC fix velocity y all 0.3
+run 1
+Setting up run ...
+Memory usage per processor = 70.4928 Mbytes
+Step TotEng pe KinEng ATC[1] ATC[2] x v x2 Ly dL strain 
+       3      -1414.4693            0   0.33071491    0.1469844            0       -19.38          0.3       -19.38         40.8            0            0 
+       4      -1414.4693            0   0.33071491   0.33071491            0       -19.38          0.3       -19.38         40.8            0            0 
+Loop time of 0.4925 on 4 procs for 1 steps with 360 atoms
+
+Pair  time (%) = 0.0401872 (8.15985)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.0840666 (17.0694)
+Outpt time (%) = 0.122344 (24.8415)
+Other time (%) = 0.245902 (49.9293)
+
+Nlocal:    90 ave 90 max 90 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    1184 ave 1184 max 1184 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    3870 ave 3870 max 3870 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:  7740 ave 7740 max 7740 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 30960
+Ave neighs/atom = 86
+Neighbor list builds = 0
+Dangerous builds = 0
+change_box all y scale 1.01 remap
+Changing box ...
+  orthogonal box = (-6.12 -20.604 -6.12) to (6.12 20.604 6.12)
+fix_modify ATC fix displacement y all linear 0 0 0 0 0.01 0 0
+ ATC: created function : 0 + 0(x-0)+0.01(y-0)+0(z-0)
+run 1
+Setting up run ...
+Memory usage per processor = 70.4928 Mbytes
+Step TotEng pe KinEng ATC[1] ATC[2] x v x2 Ly dL strain 
+       4      -1414.1262   0.34311553   0.33071491   0.33071491            0     -19.5738          0.3     -19.5738       41.208        0.408         0.01 
+       5      -1414.1262   0.34311553   0.33071491   0.33071491   0.34908704     -19.5738          0.3     -19.5738       41.208        0.408         0.01 
+Loop time of 0.406034 on 4 procs for 1 steps with 360 atoms
+
+Pair  time (%) = 0.0312375 (7.69333)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.0279282 (6.87828)
+Outpt time (%) = 0.107298 (26.4259)
+Other time (%) = 0.23957 (59.0025)
+
+Nlocal:    90 ave 90 max 90 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    1184 ave 1184 max 1184 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    3870 ave 3870 max 3870 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:  7740 ave 7740 max 7740 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 30960
+Ave neighs/atom = 86
+Neighbor list builds = 0
+Dangerous builds = 0
+change_box all y scale 1.01 remap
+Changing box ...
+  orthogonal box = (-6.12 -20.81 -6.12) to (6.12 20.81 6.12)
+fix_modify ATC fix displacement y all linear 0 0 0 0 0.0201 0 0
+ ATC: created function : 0 + 0(x-0)+0.0201(y-0)+0(z-0)
+run 1
+Setting up run ...
+Memory usage per processor = 70.4928 Mbytes
+Step TotEng pe KinEng ATC[1] ATC[2] x v x2 Ly dL strain 
+       5      -1413.1082    1.3610604   0.33071491   0.33071491            0   -19.769538          0.3   -19.769538     41.62008      0.82008       0.0201 
+       6      -1413.1082    1.3610604   0.33071491   0.33071491    1.0612595   -19.769538          0.3   -19.769538     41.62008      0.82008       0.0201 
+Loop time of 0.0288442 on 4 procs for 1 steps with 360 atoms
+
+Pair  time (%) = 0.000436962 (1.5149)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.00012219 (0.423618)
+Outpt time (%) = 0.0219155 (75.9788)
+Other time (%) = 0.00636959 (22.0827)
+
+Nlocal:    90 ave 90 max 90 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    1184 ave 1184 max 1184 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    3870 ave 3870 max 3870 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:  7740 ave 7740 max 7740 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 30960
+Ave neighs/atom = 86
+Neighbor list builds = 0
+Dangerous builds = 0
+change_box all y scale 1.01 remap
+Changing box ...
+  orthogonal box = (-6.12 -21.0181 -6.12) to (6.12 21.0181 6.12)
+fix_modify ATC fix displacement y all linear 0 0 0 0 0.030301 0 0
+ ATC: created function : 0 + 0(x-0)+0.030301(y-0)+0(z-0)
+run 1
+Setting up run ...
+Memory usage per processor = 70.4928 Mbytes
+Step TotEng pe KinEng ATC[1] ATC[2] x v x2 Ly dL strain 
+       6      -1411.4328    3.0364818   0.33071491   0.33071491            0   -19.967233          0.3   -19.967233    42.036281    1.2362808     0.030301 
+       7      -1411.4328    3.0364818   0.33071491   0.33071491    1.7947982   -19.967233          0.3   -19.967233    42.036281    1.2362808     0.030301 
+Loop time of 0.0317271 on 4 procs for 1 steps with 360 atoms
+
+Pair  time (%) = 0.00369978 (11.6613)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.00984788 (31.0394)
+Outpt time (%) = 0.00181496 (5.72054)
+Other time (%) = 0.0163645 (51.5788)
+
+Nlocal:    90 ave 90 max 90 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    1184 ave 1184 max 1184 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    3870 ave 3870 max 3870 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:  7740 ave 7740 max 7740 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 30960
+Ave neighs/atom = 86
+Neighbor list builds = 0
+Dangerous builds = 0

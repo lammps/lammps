@@ -1,0 +1,112 @@
+LAMMPS (14 Aug 2013)
+
+units		real
+atom_style	atomic
+
+# create domain
+#lattice	type reduced density rho* = 4*(sigma/a)^3, where N=4 for fcc, s = 3.405 A (Wagner) and a = 5.25 A (Ashcroft & Mermin, p. 70)
+lattice         fcc 5.2582305 origin 0.25 0.25 0.25
+Lattice spacing in x,y,z = 5.25823 5.25823 5.25823
+
+# NOTE following 3 lines added for restart
+boundary        f p p
+pair_style      lj/cut 13.
+read_data       temp.init
+Reading data file ...
+  orthogonal box = (-47.3241 -15.7747 -15.7747) to (47.3241 15.7747 15.7747)
+  4 by 1 by 1 MPI processor grid
+  2304 atoms
+  2304 velocities
+region		simRegion block -12 12 -3 3 -3 3
+# create atoms, NOTE commented out for restart
+#region		mdRegion block -8 8 -3 3 -3 3
+#boundary	f p p
+#region		mdBox block -9 9 -3 3 -3 3
+#create_box	1 mdBox
+#create_atoms	1 region mdRegion
+#mass		1 39.95
+
+# specify interal/ghost atoms
+region		mdInternal block -6 6 -3 3 -3 3
+region		leftghost block -8 -6 -3 3 -3 3
+region		rightghost block 6 8 -3 3 -3 3
+group		internal region mdInternal
+1728 atoms in group internal
+group		Lghost region leftghost
+288 atoms in group Lghost
+group		Rghost region rightghost
+288 atoms in group Rghost
+group		ghosts union Lghost Rghost
+576 atoms in group ghosts
+
+# velocities have Vcm = 0, NOTE next for lines commented out for restart
+#velocity	internal create 40. 87287 mom yes loop geom
+#pair_style	lj/cut 13.
+##pair_coeff	1 1 0.010323166 3.405 13.
+#pair_coeff  	1 1 .2381 3.405 13.
+
+neighbor	5. bin
+neigh_modify	every 10 delay 0 check no
+#write_restart  tinit.dat
+
+# zero initial momentum
+fix             AtC internal   atc elastic     Ar_thermo_elastic.mat
+ATC: constructing elastic coupling with parameter file Ar_thermo_elastic.mat
+ ATC: peratom PE compute created with ID: 3
+ ATC: computed mass density : 1.09915
+ ATC: 1 materials defined from Ar_thermo_elastic.mat
+#               ID  part keywords    nx ny nz region
+fix_modify      AtC mesh create 12  1  1  simRegion f p p
+ ATC: created uniform mesh with 52 nodes, 13 unique nodes, and 12 elements
+fix_modify      AtC mesh create_faceset obndy box -6.0 6.0 -INF INF -INF  INF outward
+ ATC: created faceset obndy with 2 faces
+fix_modify      AtC internal_quadrature off
+fix_modify	AtC fix displacement x all 0.
+fix_modify      AtC fix displacement y all 0.
+fix_modify      AtC fix displacement z all 0.
+fix_modify      AtC fix velocity x all 0.
+fix_modify      AtC fix velocity y all 0.
+fix_modify      AtC fix velocity z all 0.
+fix_modify      AtC control momentum glc_velocity
+#fix_modify      AtC  output bar1d_thermo_elastic_initializeFE 1 text #binary
+timestep        0
+thermo          1
+run             1
+Setting up run ...
+Memory usage per processor = 56.6533 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0    29.995658   -4509.8851            0   -4303.9707    135.84496 
+       1    29.920966   -4509.8851            0   -4304.4835    135.59617 
+Loop time of 0.161032 on 4 procs for 1 steps with 2304 atoms
+
+Pair  time (%) = 0.013374 (8.3052)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.00626355 (3.88963)
+Outpt time (%) = 0.027244 (16.9184)
+Other time (%) = 0.11415 (70.8868)
+
+Nlocal:    576 ave 648 max 504 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:    5677 ave 7126 max 4228 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:    178632 ave 218376 max 138456 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+FullNghs:  357264 ave 436752 max 277776 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 1429056
+Ave neighs/atom = 620.25
+Neighbor list builds = 0
+Dangerous builds = 0
+unfix AtC
+
+# define  layer
+#               ID  group atc PhysicsType ParameterFile
+fix             AtC internal   atc thermo_elastic     Ar_thermo_elastic.mat
+ATC: constructing thermo-mechanical coupling with parameter file Ar_thermo_elastic.mat
+ ATC: peratom PE compute created with ID: 3
+ ATC: computed mass density : 1.09915
+ ATC: 1 materials defined from Ar_thermo_elastic.mat
+ ATC: peratom PE compute created with ID: 3
+fix_modify	AtC boundary ghosts
+ERROR: Illegal fix_modify command (../fix.cpp:104)

@@ -1,9 +1,11 @@
-// ATC_Transfer Headers
+// ATC Headers
 #include "ExtrinsicModel.h"
 #include "ExtrinsicModelTwoTemperature.h"
+#include "ExtrinsicModelDriftDiffusion.h"
+#include "ExtrinsicModelElectrostatic.h"
 #include "ATC_Error.h"
 #include "TimeIntegrator.h"
-#include "ATC_Transfer.h"
+#include "ATC_Coupling.h"
 #include "LammpsInterface.h"
 #include "PrescribedDataManager.h"
 #include "PhysicsModel.h"
@@ -19,8 +21,8 @@ namespace ATC {
   //--------------------------------------------------------
   //  Constructor
   //--------------------------------------------------------
-  ExtrinsicModelManager::ExtrinsicModelManager(ATC_Transfer * atcTransfer) :
-    atcTransfer_(atcTransfer)
+  ExtrinsicModelManager::ExtrinsicModelManager(ATC_Coupling * atc) :
+    atc_(atc)
   {
     // do nothing
   }
@@ -40,10 +42,6 @@ namespace ATC {
   //--------------------------------------------------------
   bool ExtrinsicModelManager::modify(int narg, char **arg)
   {
-    FieldName thisField;
-    int thisIndex;
-    int argIndx = 0;
-
     bool foundMatch = false; 
         
     // loop over models with command
@@ -66,21 +64,70 @@ namespace ATC {
     string typeName;
     bool validModel = model_to_string(modelType,typeName);
     if (!validModel) {
-      throw ATC_Error(0,"Could not create extrinsic model");
+      throw ATC_Error("Could not create extrinsic model");
       return;
     }
     ExtrinsicModel * myModel;
     if      (modelType==TWO_TEMPERATURE) {
-      cout << "ATC: creating two_temperature extrinsic model \n";
+      stringstream ss;
+      ss << "creating two_temperature extrinsic model";
+      ATC::LammpsInterface::instance()->print_msg_once(ss.str());
       myModel = new ExtrinsicModelTwoTemperature
-	(this,modelType,matFileName);
+        (this,modelType,matFileName);
+    }
+    else if (modelType==DRIFT_DIFFUSION 
+         ||  modelType==DRIFT_DIFFUSION_EQUILIBRIUM
+         ||  modelType==DRIFT_DIFFUSION_SCHRODINGER
+         || modelType==DRIFT_DIFFUSION_SCHRODINGER_SLICE) 
+    {
+      stringstream ss;
+      ss << "creating drift_diffusion extrinsic model";
+      ATC::LammpsInterface::instance()->print_msg_once(ss.str());
+      myModel = new ExtrinsicModelDriftDiffusion
+        (this,modelType,matFileName);
+    }
+    else if (modelType==CONVECTIVE_DRIFT_DIFFUSION 
+         ||  modelType==CONVECTIVE_DRIFT_DIFFUSION_EQUILIBRIUM
+         ||  modelType==CONVECTIVE_DRIFT_DIFFUSION_SCHRODINGER) {
+      stringstream ss;
+      ss << "creating convective_drift_diffusion extrinsic model";
+      ATC::LammpsInterface::instance()->print_msg_once(ss.str());
+      myModel = new ExtrinsicModelDriftDiffusionConvection
+        (this,modelType,matFileName);
+    }
+    else if (modelType==ELECTROSTATIC || modelType==ELECTROSTATIC_EQUILIBRIUM) {
+      stringstream ss;
+      ss << "creating electrostatic extrinsic model";
+      ATC::LammpsInterface::instance()->print_msg_once(ss.str());
+      myModel = new ExtrinsicModelElectrostaticMomentum
+        (this,modelType,matFileName);
+    }
+    else if (modelType==FEM_EFIELD) {
+      stringstream ss;
+      ss << "creating fem_efield extrinsic model";
+      ATC::LammpsInterface::instance()->print_msg_once(ss.str());
+      myModel = new ExtrinsicModelElectrostatic
+        (this,modelType,matFileName);
     }
     extrinsicModels_.push_back(myModel);
 
      // add new fields to fields data
      map<FieldName,int> fieldSizes;
-     myModel->get_num_fields(fieldSizes);
-     atcTransfer_->add_fields(fieldSizes);
+     myModel->num_fields(fieldSizes);
+     atc_->add_fields(fieldSizes);
+  }
+
+  //--------------------------------------------------------
+  //  initialize
+  //--------------------------------------------------------
+  void ExtrinsicModelManager::construct_transfers()
+  {
+    vector<ExtrinsicModel *>::iterator imodel;
+    for(imodel=extrinsicModels_.begin(); 
+        imodel!=extrinsicModels_.end(); imodel++) {
+      // initialize models
+      (*imodel)->construct_transfers();
+    }
   }
 
   //--------------------------------------------------------
@@ -97,6 +144,18 @@ namespace ATC {
   }
 
   //--------------------------------------------------------
+  //  get_model : access to a particular type of model
+  //--------------------------------------------------------
+  const ExtrinsicModel * ExtrinsicModelManager::model(const ExtrinsicModelType type) const {
+      vector<ExtrinsicModel *>::const_iterator imodel;
+      for(imodel=extrinsicModels_.begin(); imodel!=extrinsicModels_.end(); imodel++) {
+        if ((*imodel)->model_type()==type) return *imodel;
+      }
+      return NULL;
+    }
+
+
+  //--------------------------------------------------------
   //  size_vector
   //--------------------------------------------------------
   int ExtrinsicModelManager::size_vector(int intrinsicSize)
@@ -111,6 +170,20 @@ namespace ATC {
     }
     
     return extrinsicSize;
+  }
+
+  //--------------------------------------------------------
+  //  compute_scalar
+  //--------------------------------------------------------
+  double ExtrinsicModelManager::compute_scalar(void)
+  {
+    double value = 0.;
+    vector<ExtrinsicModel *>::iterator imodel;
+    for(imodel=extrinsicModels_.begin(); 
+        imodel!=extrinsicModels_.end(); imodel++) {
+      value += (*imodel)->compute_scalar(); // sum
+    }
+    return value;
   }
 
   //--------------------------------------------------------
@@ -149,7 +222,7 @@ namespace ATC {
     }
     else { // execute only requested type of model
       for(imodel=extrinsicModels_.begin(); imodel!=extrinsicModels_.end(); imodel++)
-        if ((*imodel)->get_model_type() == modelType)
+        if ((*imodel)->model_type() == modelType)
           (*imodel)->pre_init_integrate();
     }
   }
@@ -166,7 +239,7 @@ namespace ATC {
     }
     else { // execute only requested type of model
       for(imodel=extrinsicModels_.begin(); imodel!=extrinsicModels_.end(); imodel++)
-        if ((*imodel)->get_model_type() == modelType)
+        if ((*imodel)->model_type() == modelType)
           (*imodel)->mid_init_integrate();
     }
   }
@@ -183,8 +256,25 @@ namespace ATC {
     }
     else { // execute only requested type of model
       for(imodel=extrinsicModels_.begin(); imodel!=extrinsicModels_.end(); imodel++)
-        if ((*imodel)->get_model_type() == modelType)
+        if ((*imodel)->model_type() == modelType)
           (*imodel)->post_init_integrate();
+    }
+  }
+
+  //--------------------------------------------------------
+  //  post_force
+  //--------------------------------------------------------
+  void ExtrinsicModelManager::post_force(ExtrinsicModelType modelType)
+  {
+    vector<ExtrinsicModel *>::iterator imodel;
+    if (modelType == NUM_MODELS) {// execute all the models
+      for(imodel=extrinsicModels_.begin(); imodel!=extrinsicModels_.end(); imodel++)
+        (*imodel)->post_force();
+    }
+    else { // execute only requested type of model
+      for(imodel=extrinsicModels_.begin(); imodel!=extrinsicModels_.end(); imodel++)
+        if ((*imodel)->model_type() == modelType)
+          (*imodel)->post_force();
     }
   }
 
@@ -200,7 +290,7 @@ namespace ATC {
     }
     else { // execute only requested type of model
       for(imodel=extrinsicModels_.begin(); imodel!=extrinsicModels_.end(); imodel++)
-        if ((*imodel)->get_model_type() == modelType)
+        if ((*imodel)->model_type() == modelType)
           (*imodel)->pre_final_integrate();
     }
   }
@@ -217,7 +307,7 @@ namespace ATC {
     }
     else { // execute only requested type of model
       for(imodel=extrinsicModels_.begin(); imodel!=extrinsicModels_.end(); imodel++)
-        if ((*imodel)->get_model_type() == modelType)
+        if ((*imodel)->model_type() == modelType)
           (*imodel)->post_final_integrate();
     }
   }
@@ -234,7 +324,7 @@ namespace ATC {
     }
     else { // execute only requested type of model
       for(imodel=extrinsicModels_.begin(); imodel!=extrinsicModels_.end(); imodel++)
-        if ((*imodel)->get_model_type() == modelType)
+        if ((*imodel)->model_type() == modelType)
           (*imodel)->set_sources(fields,sources);
     }
   }
@@ -242,11 +332,11 @@ namespace ATC {
   //--------------------------------------------------------
   //  output
   //--------------------------------------------------------
-  void ExtrinsicModelManager::output(double dt,OUTPUT_LIST & outputData)
+  void ExtrinsicModelManager::output(OUTPUT_LIST & outputData)
   {
     vector<ExtrinsicModel *>::iterator imodel;
     for(imodel=extrinsicModels_.begin(); imodel!=extrinsicModels_.end(); imodel++)
-      (*imodel)->output(dt,outputData);
+      (*imodel)->output(outputData);
   }
 
   //--------------------------------------------------------
@@ -261,9 +351,9 @@ namespace ATC {
   ExtrinsicModel::ExtrinsicModel(ExtrinsicModelManager * modelManager,
                                  ExtrinsicModelType modelType,
                                  string matFileName) :
+    atc_(modelManager->atc()),
     modelManager_(modelManager),
     modelType_(modelType),
-    atc_(modelManager->get_atc_transfer()),
     physicsModel_(NULL)
   {
     rhsMaskIntrinsic_.reset(NUM_FIELDS,NUM_FLUX);
@@ -279,12 +369,20 @@ namespace ATC {
   }
 
   //--------------------------------------------------------
+  // initialize
+  //--------------------------------------------------------
+  void ExtrinsicModel::initialize(void)
+  {
+    physicsModel_->initialize();
+  }
+
+  //--------------------------------------------------------
   //  get_num_fields
   //  - sets dict of fields
   //--------------------------------------------------------
-  void ExtrinsicModel::get_num_fields(map<FieldName,int> & fieldSizes)
+  void ExtrinsicModel::num_fields(map<FieldName,int> & fieldSizes)
   {
-    physicsModel_->get_num_fields(fieldSizes,atc_->fieldMask_); // NOTE clunky
+    physicsModel_->num_fields(fieldSizes,atc_->fieldMask_); 
   }
 
 };

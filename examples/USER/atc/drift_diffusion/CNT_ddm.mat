@@ -1,0 +1,41 @@
+#######################################################################
+material Vacuum metal
+electric_field linear
+permittivity           1.0  # e/V/L scales electric field vs charge
+end
+electron_density null
+end
+
+#######################################################################
+material C metal
+#### two temperature  ####################
+heat_capacity constant
+capacity 0.0566081301             # E / L^3
+end
+electron_heat_capacity  linear
+capacity 9.03321225e-08           # E / L^3
+end
+heat_flux linear
+conductivity 602.21415            # E / t / L / T
+end
+electron_heat_flux linear
+conductivity 0.4413627505355      # E / t / L / T
+end
+electron_phonon_exchange power_law
+coefficient 2.247e-15  # E / t / T 2.247e-15
+exponent 4
+end
+#### drift diffusion #####################
+electron_flux linear
+mobility                 360000.0   # L^2/t/V
+diffusivity            14000000.0   # L^2/t
+end
+electron_recombination linear
+inv_relaxation_time    0.0          # 1/t    HACK
+equilibrium_carrier_density 0.0     # e/L^3  HACK
+end
+electric_field linear
+permittivity           0.06         #  e/V/L scales electric field vs charge
+end
+end
+end

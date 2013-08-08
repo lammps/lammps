@@ -1,11 +1,9 @@
-// Header file for this class
 #include "FieldEulerIntegrator.h"
-
-// Other ATC includes
-#include "ATC_Transfer.h"
+#include "ATC_Coupling.h"
 #include "FE_Engine.h"
 #include "PhysicsModel.h"
 #include "GMRES.h"
+#include "CG.h"
 #include "ImplicitSolveOperator.h"
 
 namespace ATC {
@@ -17,16 +15,16 @@ FieldEulerIntegrator::FieldEulerIntegrator(
   const FieldName fieldName,
   const PhysicsModel * physicsModel, 
   /*const*/ FE_Engine * feEngine,
-  /*const*/ ATC_Transfer * atcTransfer,
+  /*const*/ ATC_Coupling * atc,
   const Array2D< bool > & rhsMask  // copy 
 )
-  : atc_(atcTransfer),
+  : atc_(atc),
     feEngine_(feEngine),
     physicsModel_(physicsModel),
     fieldName_(fieldName),
     rhsMask_(rhsMask)
 {
-  nNodes_ = feEngine->get_nNodes();
+  nNodes_ = feEngine->num_nodes();
 }
 
 // ====================================================================
@@ -36,9 +34,9 @@ FieldExplicitEulerIntegrator::FieldExplicitEulerIntegrator(
   const FieldName fieldName,
   const PhysicsModel * physicsModel, 
   /*const*/ FE_Engine * feEngine,
-  /*const*/ ATC_Transfer * atcTransfer,
+  /*const*/ ATC_Coupling * atc,
   const Array2D< bool > & rhsMask  // copy 
-) : FieldEulerIntegrator(fieldName,physicsModel,feEngine,atcTransfer,rhsMask)
+) : FieldEulerIntegrator(fieldName,physicsModel,feEngine,atc,rhsMask)
 {
 }
 
@@ -47,11 +45,14 @@ FieldExplicitEulerIntegrator::FieldExplicitEulerIntegrator(
 // --------------------------------------------------------------------
 void FieldExplicitEulerIntegrator::update(const double dt, double time,
   FIELDS & fields, FIELDS & rhs)
-{ // NOTE time is not used
+{ 
+  // write and add update mass matrix to handled time variation
+  // update mass matrix to be consistent/lumped, and handle this in apply_inverse_mass_matrix
   atc_->compute_rhs_vector(rhsMask_, fields, rhs,
-    atc_->FULL_DOMAIN, physicsModel_);
-  atc_->apply_inverse_mass_matrix(rhs[fieldName_],fieldName_);
-  fields[fieldName_] += dt*rhs[fieldName_];
+    FULL_DOMAIN, physicsModel_);
+  DENS_MAT & myRhs(rhs[fieldName_].set_quantity());
+  atc_->apply_inverse_mass_matrix(myRhs,fieldName_);
+  fields[fieldName_] += dt*myRhs;
 }
 
 // ====================================================================
@@ -61,14 +62,14 @@ FieldImplicitEulerIntegrator::FieldImplicitEulerIntegrator(
   const FieldName fieldName,
   const PhysicsModel * physicsModel, 
   /*const*/ FE_Engine * feEngine,
-  /*const*/ ATC_Transfer * atcTransfer,
+  /*const*/ ATC_Coupling * atc,
   const Array2D< bool > & rhsMask,  // copy 
   const double alpha
-) : FieldEulerIntegrator(fieldName,physicsModel,feEngine,atcTransfer,rhsMask),
+) : FieldEulerIntegrator(fieldName,physicsModel,feEngine,atc,rhsMask),
   alpha_(alpha),
   dT_(1.0e-6), 
   maxRestarts_(50),
-  maxIterations_(200),
+  maxIterations_(1000),
   tol_(1.0e-8)
 {
 }
@@ -79,11 +80,11 @@ FieldImplicitEulerIntegrator::FieldImplicitEulerIntegrator(
 void FieldImplicitEulerIntegrator::update(const double dt, double time,
   FIELDS & fields, FIELDS & rhs) 
 { // solver handles bcs
-  FieldImplicitSolveOperator solver(atc_, feEngine_, // NOTE make persistent
+  FieldImplicitSolveOperator solver(atc_, feEngine_, 
     fields, fieldName_, rhsMask_, physicsModel_,
     time, dt, alpha_);
-  DiagonalMatrix<double> preconditioner = solver.get_preconditioner(fields);
-  DENS_VEC myRhs = solver.get_rhs();
+  DiagonalMatrix<double> preconditioner = solver.preconditioner(fields);
+  DENS_VEC myRhs = solver.rhs();
   DENS_VEC dT(nNodes_); dT = dT_; 
   DENS_MAT H(maxRestarts_+1, maxRestarts_);
   double tol = tol_; // tol returns the residual
@@ -92,7 +93,7 @@ void FieldImplicitEulerIntegrator::update(const double dt, double time,
   int convergence = GMRES(solver,
     dT, myRhs, preconditioner, H, restarts, iterations, tol);
   if (convergence != 0) {
-    throw ATC_Error(0,field_to_string(fieldName_) + " evolution did not converge");
+    throw ATC_Error(field_to_string(fieldName_) + " evolution did not converge");
   }
   fields[fieldName_] += dT;
   rhs[fieldName_] = myRhs;

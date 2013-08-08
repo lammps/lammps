@@ -1,0 +1,124 @@
+# needs description
+# MOVE/COPY this to .._noatoms for bmark
+# STEP THE GATE VOLTAGE UP
+# NEED TO TURN OFF T EQNS FOR VACUUM
+# HACK need to define well and open bcs
+echo both
+#variable iter equal 2 # need two for potential to affect density
+variable iter equal 1  # NOTE <<<<
+variable r    equal 1
+variable nx equal 30 # 30 # 40 10
+variable mx equal 4  # 4  2
+#variable ny equal ${nx}
+variable ny equal 30 # 40
+variable my equal 12  # 6
+variable nz equal 1
+variable hx  equal 1.0
+variable hy  equal ${hx}*${nx}/${ny}
+variable l  equal -${hx}*${nx}
+variable u  equal  ${hx}*${nx}
+variable w  equal  ${hy}*${my}
+variable q  equal  ${hx}*${mx}
+variable y equal ${nx}+1-${mx}
+variable T  equal 300
+variable E equal 0.1
+variable S equal 1
+variable n0 equal 0.01
+variable V equal 5.
+variable tol equal 0.01
+#################################################
+atom_style      atomic
+timestep  0.001
+boundary      f f f
+lattice       fcc 1.0
+region        BOX block ${l} ${u} ${l} ${u} 0 1
+create_box  1 BOX
+mass          * 12.01
+atom_modify     sort 0 1
+#    ID  group atc PhysicsType ParameterFile
+fix  AtC all   atc drift_diffusion-schrodinger-slice SiVacuum_ddm_schrodinger.mat
+#            ID  part keywords    nx ny nz region
+fix_modify   AtC mesh create ${nx} ${ny} ${nz}  BOX f f p
+# surfaces & regions
+variable a equal $l-${tol}
+variable b equal $l+$q+${tol}
+variable c equal -$w-${tol}
+variable d equal  $w+${tol}
+variable e equal $l+$q-${tol}
+fix_modify AtC mesh create_nodeset bot -INF INF $a $b -INF INF
+fix_modify AtC mesh create_nodeset lbc   $a $b -INF INF -INF INF
+variable a equal $u-$q-${tol}
+variable b equal $u+${tol}
+variable e equal $u-$q+${tol}
+fix_modify AtC mesh create_nodeset top -INF INF $a $b -INF INF 
+fix_modify AtC mesh create_nodeset rbc   $a $b -INF INF -INF INF
+variable a equal -$w-${tol}
+variable b equal  $w+${tol}
+variable c equal  $l+$q-${tol}
+variable d equal  $u-$q+${tol}
+fix_modify AtC mesh create_elementset wire $c $d $a $b  -INF INF
+fix_modify AtC mesh create_nodeset    wire $c $d $a $b  -INF INF
+variable e equal $c+2*${tol}
+fix_modify AtC mesh create_nodeset lwire   $c $e $a $b  -INF INF
+variable e equal $d-2*${tol}
+fix_modify AtC mesh create_nodeset rwire   $e $d $a $b  -INF INF
+variable e equal $a+2*${tol}
+fix_modify AtC mesh create_nodeset bwire   $c $d $a $e  -INF INF
+variable e equal $b-2*${tol}
+fix_modify AtC mesh create_nodeset twire   $c $d $e $b  -INF INF
+# new material
+fix_modify AtC material wire Si
+# simplify
+fix_modify  AtC extrinsic one_dimensional x wire $y
+#fix_modify  AtC extrinsic poisson_solver iterative 
+fix_modify AtC  internal_quadrature off 
+fix_modify AtC  control thermal none
+fix_modify AtC extrinsic electron_integration implicit 1
+fix_modify AtC extrinsic schrodinger_poisson_solver self_consistency ${iter}
+fix_modify AtC extrinsic schrodinger_poisson_solver conserve density 10
+fix_modify AtC extrinsic schrodinger_poisson_solver initial_fermi_level 0.1
+fix_modify AtC extrinsic schrodinger_poisson_solver safe_fermi_increment 0.1
+# isolate system: 
+# diffusion: dn/dx = 0
+# drift    : n = 0
+# fix temperature
+fix_modify AtC  fix temperature          all $T
+fix_modify AtC  initial electron_temperature all $T
+#fix_modify AtC  fix electron_temperature all $T
+#fix_modify AtC  unfix electron_temperature wire
+fix_modify AtC  fix electron_temperature lbc $T
+fix_modify AtC  fix electron_temperature rbc $T
+### NOTE there seems to be leakage into the vacuum
+# electric potential ic
+fix_modify AtC  initial electric_potential   all 0.0
+fix_modify AtC  fix electric_potential lbc 0
+fix_modify AtC  fix electric_potential rbc 1
+# electron density ic
+fix_modify AtC  initial electron_density all 0
+fix_modify AtC  fix electron_density all 0 
+fix_modify AtC  unfix electron_density wire
+fix_modify AtC  initial electron_density wire ${n0}
+fix_modify AtC  fix electron_density lwire ${n0}
+fix_modify AtC  fix electron_density rwire ${n0}
+fix_modify AtC  fix electron_density twire 0.0
+fix_modify AtC  fix electron_density bwire 0.0
+# HACK
+#fix_modify AtC  fix electron_density all 0 
+# electron wavefunction ic/bcs
+fix_modify AtC  initial electron_wavefunction all 0.0
+fix_modify AtC  fix electron_wavefunction top 0.0
+fix_modify AtC  fix electron_wavefunction bot 0.0
+fix_modify AtC  fix electron_wavefunction all 0 
+fix_modify AtC  unfix electron_wavefunction wire
+fix_modify AtC  fix electron_wavefunction lwire 0.0 # dummy value
+fix_modify AtC  fix electron_wavefunction rwire 0.0 # dummy value
+fix_modify AtC  fix electron_wavefunction twire 0.0
+fix_modify AtC  fix electron_wavefunction bwire 0.0
+thermo  1
+# f_AtC:1 thermal energy, 2 avg T, 3 electron energy, 4 avg Te, 5 total n
+thermo_style custom step cpu f_AtC[1] f_AtC[2] f_AtC[3] f_AtC[4] f_AtC[5]
+thermo_modify  format 1 %5i format 2 %7.2g
+fix_modify AtC  output schrodinger-poisson2d_noatomsFE $r full_text binary tensor_components
+fix_modify AtC mesh output schrodinger-poisson2dMESH
+run     $r
+# NOW BIAS

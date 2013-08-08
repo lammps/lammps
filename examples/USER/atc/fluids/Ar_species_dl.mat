@@ -1,0 +1,8 @@
+material Ar metal
+ mass_density constant
+  density 0.
+ end
+ electric_field linear
+  permittivity
+ end
+end

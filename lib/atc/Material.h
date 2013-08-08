@@ -11,36 +11,52 @@
 
 namespace ATC 
 {
-  class ATC_Transfer;
+  class BodyForce;
   class Stress;
+  class ViscousStress;
+  class ElectronChargeDensity;
   class ElectronHeatCapacity;
   class ElectronHeatFlux;
   class ElectronFlux;
   class ElectronPhononExchange;
+  class ElectronDragPower;
+
+/**
+ *  @class Material 
+ *  @brief Base class for computing and storing properties and fields for a material
+ */
 
   class Material
   {
   public:
     Material();
-    virtual ~Material() {};
+    virtual ~Material();
     /** this constructor parses material file */
     Material(string & tag, fstream & fileId);
 
+    /** initialize */
+    virtual void initialize();
+
     /** return label */
-    string label(void) {return tag_;}
+    string label(void) const {return tag_;}
 
     /** check material has required interfaces */
     bool check_registry(const set<string> functionList) const
     { 
       set<string>::const_iterator itr;
       for (itr=functionList.begin(); itr!=functionList.end(); itr++) {
+        if (registry_.find(*itr) == registry_.end()) {
+          stringstream ss;
+          ss << "WARNING: material: [" << tag_ << "] cannot find " << *itr ;
+          ATC::LammpsInterface::instance()->print_msg_once(ss.str());
+        } 
         if (registry_.find(*itr) == registry_.end()) return false;
       }
       return true;
     }
 
     /** access to material parameters */
-    bool get_parameter(const string name, double & value) const
+    bool parameter(const string name, double & value) const
     { 
       map<string,double>::const_iterator iter = parameters_.find(name);
       if ( iter == parameters_.end()) {
@@ -51,17 +67,17 @@ namespace ATC
       return true;
     } 
     /** true if rhs flux is linear (per field) */
-    bool linear_flux(FieldName name) { 
+    bool linear_flux(FieldName name) const { 
      return linearFlux_(name);
     };
 
     /** true if rhs source is linear (per field) */
-    bool linear_source(FieldName name) { 
+    bool linear_source(FieldName name) const { 
      return linearSource_(name);
     };
 
     /** true if lhs density is constant (per field) */
-    bool constant_density(FieldName name) { 
+    bool constant_density(FieldName name) const { 
       return constantDensity_(name);
     };
 
@@ -69,71 +85,114 @@ namespace ATC
     /** if there is only one function it is in the base class 
      ** otherwise, a subsidary class is setup */
     /* -----------------------------------------------------------------*/
-    /** densitities */
+    /** densities */
     /* -----------------------------------------------------------------*/
     /** thermal energy */
-    void thermal_energy(const FIELDS & fields, 
-                FIELD & energy); 
+    void thermal_energy(const FIELD_MATS & fields,
+                        DENS_MAT & energy) const; 
     /** heat capacity */
-    void heat_capacity(const FIELDS & fields, 
-                       FIELD & capacity);
+    void heat_capacity(const FIELD_MATS & fields, 
+                       DENS_MAT & capacity) const;
     /** thermal energy */
-    void electron_thermal_energy(const FIELDS & fields, 
-                FIELD & energy); 
-    /** electron heat capacity */
-    void electron_heat_capacity(const FIELDS &fields,
-                                FIELD &capacity);
+    void electron_thermal_energy(const FIELD_MATS & fields, 
+                                 DENS_MAT & energy) const; 
+    /** electron capacities */
+    void electron_mass_density(const FIELD_MATS &fields,
+                               DENS_MAT &density) const;
+    void electron_heat_capacity(const FIELD_MATS &fields,
+                                DENS_MAT &capacity) const;
+    /** derivative of electron heat capacity */
+    void D_electron_heat_capacity(const FIELD_MATS &fields,
+                                  const GRAD_FIELD_MATS &gradFields,
+                                  DENS_MAT_VEC &Dcapacity) const;
     /** kinetic energy */
-    void kinetic_energy(const FIELDS & fields, 
-                FIELD & energy); 
+    void kinetic_energy(const FIELD_MATS & fields, 
+                        DENS_MAT & energy) const; 
     /** mass density */
-    void mass_density(const FIELDS &fields,
-                      FIELD &density);
+    void mass_density(const FIELD_MATS &fields,
+                      DENS_MAT &density) const;
     /** elastic energy */
-    void elastic_energy(const FIELDS & fields, 
-                const GRAD_FIELDS & gradFields,
-                FIELD & energy); 
+    void elastic_energy(const FIELD_MATS & fields, 
+                        const GRAD_FIELD_MATS & gradFields,
+                        DENS_MAT & energy) const; 
+    /** permitivity */
+    void permittivity(const FIELD_MATS & fields, 
+                      DENS_MAT & energy) const; 
+    /** inverse effective mass */
+    void inv_effective_mass(const FIELD_MATS & fields, 
+                            DENS_MAT & energy) const; 
+    /** band-edge potential */
+    void band_edge_potential(const FIELD_MATS & fields, 
+                             DENS_MAT & energy) const; 
+    /** viscosity */
+    void viscosity(const FIELD_MATS & fields, 
+                   DENS_MAT & energy) const; 
     /* -----------------------------------------------------------------*/
     /** fluxes */
     /* -----------------------------------------------------------------*/
     /** heat_flux */
-    void heat_flux(const FIELDS & fields,
-                   const GRAD_FIELDS & gradFields,
-                   GRAD_FIELD  & heatFlux);
+    void heat_flux(const FIELD_MATS & fields,
+                   const GRAD_FIELD_MATS & gradFields,
+                   DENS_MAT_VEC  & heatFlux) const;
     /** electron conduction flux */
-    void electron_heat_flux(const FIELDS &fields,
-                            const GRAD_FIELDS &gradFields,
-                            GRAD_FIELD &flux);
+    void electron_heat_flux(const FIELD_MATS &fields,
+                            const GRAD_FIELD_MATS &gradFields,
+                            DENS_MAT_VEC &flux) const;
+    /** electron heat convection */
+    void electron_heat_convection(const FIELD_MATS &fields,
+                                  DENS_MAT_VEC &flux) const;
+    /** electron momentum convection */
+    void electron_momentum_convection(const FIELD_MATS &fields,
+                                      DENS_MAT_VEC &flux) const;
     /** stress */
-    void stress(const FIELDS &fields,
-                const GRAD_FIELDS &gradFields,
-                GRAD_FIELD &stress);
+    void stress(const FIELD_MATS &fields,
+                const GRAD_FIELD_MATS &gradFields,
+                DENS_MAT_VEC &stress) const;
+
+    /** viscous stress */
+    void viscous_stress(const FIELD_MATS &fields,
+                        const GRAD_FIELD_MATS &gradFields,
+                        DENS_MAT_VEC &viscousStress) const;
+
     /** computes electron flux */
-    void electron_flux(const FIELDS &fields,
-                       const GRAD_FIELDS &gradFields,
-                       GRAD_FIELD &flux);
+    void electron_flux(const FIELD_MATS &fields,
+                       const GRAD_FIELD_MATS &gradFields,
+                       DENS_MAT_VEC &flux) const;
+    void electron_thermal_stress(const FIELD_MATS &fields,
+                                 const GRAD_FIELD_MATS &gradFields,
+                                 DENS_MAT_VEC &stress) const;
     /** computes electric displacement */
-    void electric_displacement(const FIELDS &fields,
-                        const GRAD_FIELDS &gradFields,
-                        GRAD_FIELD &flux);
+    void electric_displacement(const FIELD_MATS &fields,
+                               const GRAD_FIELD_MATS &gradFields,
+                               DENS_MAT_VEC &flux) const;
     /** computes electric field */
-    void electric_field(const FIELDS &fields,
-                        const GRAD_FIELDS &gradFields,
-                        GRAD_FIELD &flux);
+    void electric_field(const FIELD_MATS &fields,
+                        const GRAD_FIELD_MATS &gradFields,
+                        DENS_MAT_VEC &flux) const;
     /* -----------------------------------------------------------------*/
     /** sources */
     /* -----------------------------------------------------------------*/
     /** electron-phonon exchange flux */
-    void electron_phonon_exchange(const FIELDS &fields,
-                                  FIELD &flux);
+    bool electron_phonon_exchange(const FIELD_MATS &fields,
+                                  DENS_MAT &flux) const;
+    bool electron_drag_power(const FIELD_MATS &fields,
+                             const GRAD_FIELD_MATS &gradFields,
+                             DENS_MAT &power) const;
+    void electron_drag_velocity_coefficient(const FIELD_MATS &fields,
+                                            DENS_MAT &dragCoef) const;
     /** computes net generation */
-    virtual void electron_recombination(const FIELDS &fields,
-                                  const GRAD_FIELDS &gradFields,
-                                  FIELD &flux);
-    /** computes drift diffusion charge density */
-    virtual void charge_density(const FIELDS &fields,
-                                const GRAD_FIELDS &gradFields,
-                                FIELD &flux);
+    virtual bool electron_recombination(const FIELD_MATS &fields,
+                                        const GRAD_FIELD_MATS &gradFields,
+                                        DENS_MAT &recombination) const;
+    /** computes drift diffusion charge density */ 
+    virtual bool electron_charge_density(const FIELD_MATS &fields,
+                                         DENS_MAT &density) const;
+    virtual void D_electron_charge_density(const FieldName fieldName, 
+                                           const FIELD_MATS &fields,
+                                           DENS_MAT &D_density) const;
+    /** computes momentum source */ 
+    virtual bool body_force(const FIELD_MATS &fields,
+                                  DENS_MAT &density) const;
 
 
   protected:
@@ -149,34 +208,38 @@ namespace ATC
     Array<bool> linearFlux_, linearSource_;
     /** default heat capacity */
     double rhoCp_;
-    /** default mass density */
-    double rho_;
     /** heat capacity */
     double heatCapacity_;
     /** electron heat capacity */
     ElectronHeatCapacity * electronHeatCapacity_;
     /** mass density */
     double massDensity_;
-    /** charge density */
-    double chargeDensity_;
     /** thermal conductivity */
     double heatConductivity_;
     /** electron heat flux */
     ElectronHeatFlux * electronHeatFlux_;
     /** stress */
     Stress * stress_;
+    /** viscous stress */
+    ViscousStress * viscousStress_;
+    /** body force */
+    BodyForce * bodyForce_;
     /** electron-phonon exchange */
     ElectronPhononExchange * electronPhononExchange_;
-    /** electron heat flux */
+    /** electron drag power */
+    ElectronDragPower * electronDragPower_;
+    /** electron flux */
     ElectronFlux * electronFlux_;
     /** electric permittivity */
     double permittivity_;
+    /** inverse effective mass */
+    double invEffectiveMass_;
     /** equilibrium carrier density */
     double electronEquilibriumDensity_;
     /** relaxation time */
     double electronRecombinationInvTau_;
-    /** uniform donor concentration */
-    double donorConcentration_; // NOTE only for uniform
+    /** electron charge density model */
+    ElectronChargeDensity * electronChargeDensity_;
   };
 
 }

@@ -3,6 +3,15 @@
 
 #include "Matrix.h"
 
+#include <iostream>
+
+namespace ATC_matrix {
+
+  /**
+   *  @class  DenseMatrix 
+   *  @brief  Class for storing data in a "dense" matrix form 
+   */
+
 template <typename T>
 class DenseMatrix : public Matrix<T>
 {
@@ -22,25 +31,32 @@ public:
   DenseMatrix<T> transMat(const DenseMatrix<T>& B) const;
   /** returns by element multiply A_ij = this_ij * B_ij */
   DenseMatrix<T> mult_by_element(const DenseMatrix<T>& B) const;
+  /** returns by element multiply A_ij = this_ij / B_ij */
+  DenseMatrix<T> div_by_element(const DenseMatrix<T>& B) const;
   
   /** overloaded virtual functions */
+  //T& operator()(INDEX i, INDEX j)       { MICK(i,j) return DATA(i,j); }
   T& operator()(INDEX i, INDEX j)       { MICK(i,j) return DATA(i,j); }
   T  operator()(INDEX i, INDEX j) const { MICK(i,j) return DATA(i,j); }
   T  operator[](INDEX i)          const { VICK(i) return _data[i]; }
   T& operator[](INDEX i)                { VICK(i) return _data[i]; }
   INDEX nRows()                   const { return _nRows; }
   INDEX nCols()                   const { return _nCols; }
-  T * get_ptr()                   const { return _data;  }
+  T * ptr()                   const { return _data;  }
   void write_restart(FILE *f)     const;
+  void from_file(string & name);
   void set_all_elements_to(const T &v);
-  DiagonalMatrix<T> get_diag()    const;
+  DiagonalMatrix<T> diag()    const;
  
   DenseMatrix<T>& operator=(const T &v);
   DenseMatrix<T>& operator=(const Matrix<T> &c);
   DenseMatrix<T>& operator=(const DenseMatrix<T> &c);
   DenseMatrix<T>& operator=(const SparseMatrix<T> &c);
 
-private:
+  //* checks if all values are within the prescribed range
+  virtual bool check_range(T min, T max) const;
+
+protected:
   void _delete();
   void _create(INDEX rows, INDEX cols, bool zero=false);
   void _copy(const Matrix<T> &c);
@@ -99,7 +115,11 @@ void DenseMatrix<T>::resize(INDEX rows, INDEX cols, bool copy)
   DenseMatrix<T> temp(*this);
   _delete();
   _create(rows, cols);
-  FORij MIDX(i,j) = temp.in_range(i,j) ? temp(i,j) : T(0);
+  int szi = this->nRows();
+  int szj = this->nCols(); 
+  for (INDEX i = 0; i < szi; i++) 
+    for (INDEX j = 0; j < szj; j++)
+      (*this)(i,j) = temp.in_range(i,j) ? temp(i,j) : T(0);
 }
 //----------------------------------------------------------------------------
 // resizes the matrix and copies data
@@ -128,7 +148,52 @@ DenseMatrix<T> DenseMatrix<T>::mult_by_element(const DenseMatrix<T>& B)   const
 {
   DenseMatrix C;
   C.reset(_nRows,_nCols);
-  FORij C(i,j) = (*this)(i,j)*B(i,j);
+  if (B.nCols() == _nCols) {
+    int szi = this->nRows(); 
+    int szj = this->nCols(); 
+    for (INDEX i = 0; i < szi; i++) 
+      for (INDEX j = 0; j < szj; j++) 
+        C(i,j) = (*this)(i,j)*B(i,j);
+  }
+  else if (B.nCols() == 1) {
+    cout << "MULTIPLYING\n";
+    int szi = this->nRows(); 
+    int szj = this->nCols(); 
+    for (INDEX i = 0; i < szi; i++) 
+      for (INDEX j = 0; j < szj; j++) 
+        C(i,j) = (*this)(i,j)*B(i,0);
+  }
+  else { 
+    SSCK(B, *this, "DenseMatrix::mult_by_element"); 
+  }
+  return C;
+}
+//----------------------------------------------------------------------------
+// returns this_ij / B_ij
+//----------------------------------------------------------------------------
+template <typename T>
+DenseMatrix<T> DenseMatrix<T>::div_by_element(const DenseMatrix<T>& B)   const
+{
+  DenseMatrix C;
+  C.reset(_nRows,_nCols);
+
+  if (B.nCols() == _nCols) {
+    int szi = this->nRows(); 
+    int szj = this->nCols(); 
+    for (INDEX i = 0; i < szi; i++) 
+      for (INDEX j = 0; j < szj; j++) 
+        C(i,j) = (*this)(i,j)/B(i,j);
+  }
+  else if (B.nCols() == 1) {
+    int szi = this->nRows(); 
+    int szj = this->nCols(); 
+    for (INDEX i = 0; i < szi; i++) 
+      for (INDEX j = 0; j < szj; j++) 
+        C(i,j) = (*this)(i,j)/B(i,0);
+  }
+  else { 
+    SSCK(B, *this, "DenseMatrix::div_by_element"); 
+  }
   return C;
 }
 //----------------------------------------------------------------------------
@@ -142,18 +207,38 @@ void DenseMatrix<T>::write_restart(FILE *f)                               const
   if (this->size()) fwrite(_data, sizeof(T), this->size(), f);
 }
 //----------------------------------------------------------------------------
+// reads matrix from text file (matrix needs to be sized)
+//----------------------------------------------------------------------------
+template <typename T>
+void DenseMatrix<T>::from_file(string & name)       
+{
+  GCHK(_nRows == 0,"from_file needs nRows > 0");
+  GCHK(_nCols == 0,"from_file needs nCols > 0");
+  std::ifstream in(name.c_str(),std::ifstream::in);
+  const int lineSize = 256;
+  char line[lineSize];
+  if (! in.good()) gerror(name+" is not available");
+  in.getline(line,lineSize); // header
+  int szi = this->nRows(); 
+  int szj = this->nCols(); 
+  for (INDEX i = 0; i < szi; i++) 
+    for (INDEX j = 0; j < szj; j++) 
+      in >> (*this)(i,j);
+}
+//----------------------------------------------------------------------------
 // sets all elements to a value (optimized)
 //----------------------------------------------------------------------------
 template <typename T>
 inline void DenseMatrix<T>::set_all_elements_to(const T &v)
 {
-  FORi _data[i] = v;
+  int sz = this->size();
+  for (INDEX i = 0; i < sz; i++) _data[i] = v;
 }
 //-----------------------------------------------------------------------------
 // Return a diagonal matrix containing the diagonal entries of this matrix 
 //-----------------------------------------------------------------------------
 template<typename T>
-DiagonalMatrix<T> DenseMatrix<T>::get_diag() const 
+DiagonalMatrix<T> DenseMatrix<T>::diag() const 
 {
   DiagonalMatrix<T> D(nRows(), true); // initialized to zero
   INDEX i;
@@ -170,7 +255,9 @@ template <typename T>
 void DenseMatrix<T>::_delete()
 {
   _nRows = _nCols = 0;
-  if (_data) delete [] _data;
+  if (_data){ 
+    delete [] _data;
+  }
 }
 //----------------------------------------------------------------------------
 // allocates memory for an rows by cols DenseMatrix
@@ -178,6 +265,7 @@ void DenseMatrix<T>::_delete()
 template <typename T>
 void DenseMatrix<T>::_create(INDEX rows, INDEX cols, bool zero)
 {
+
   _nRows=rows; 
   _nCols=cols;
   _data = (this->size() ? new T [_nCols*_nRows] : NULL);
@@ -199,7 +287,7 @@ void DenseMatrix<T>::_copy(const Matrix<T> &c)
     _nRows = c.nRows();
     _nCols = c.nCols();
   }
-  memcpy(_data, c.get_ptr(), c.size()*sizeof(T));
+  memcpy(_data, c.ptr(), c.size()*sizeof(T));
 }
 //----------------------------------------------------------------------------
 // sets all elements to a constant 
@@ -239,9 +327,9 @@ DenseMatrix<T>& DenseMatrix<T>::operator=(const SparseMatrix<T> &c)
   SparseMatrix<T>::compress(c);
   for (INDEX i=0; i<c.size(); i++)
   {
-    TRIPLET<T> x = c.get_triplet(i);
+    TRIPLET<T> x = c.triplet(i);
     cout << "x.i: "<< x.i << "\nx.j: "<< x.j << "\nv.j: "<< x.v << std::endl << std::endl;
-    MIDX(x.i, x.j) =  x.v;
+    (*this)(x.i, x.j) =  x.v;
   }
   return *this;
 }
@@ -273,14 +361,14 @@ DenseMatrix<T> adjugate(const Matrix<T> &A, bool symmetric)
       C(2,2) = A(0,0)*A(1,1)-A(0,1)*A(1,0);
       break;
     default:  
-      // NOTE: - det() is only defined for type double
+      
       // this feature is neither tested nor optimal - use at your own risk!!!
       DenseMatrix<T> m(A.nRows()-1, A.nRows()-1);
       double sign[] = {1.0, -1.0};
-      for (unsigned j=0; j<A.nCols(); j++) {
-        for (unsigned i=0; i<A.nRows(); i++) {
-          for (unsigned mj=0; mj<m.nCols(); mj++) {
-            for (unsigned mi=0; mi<m.nRows(); mi++) { 
+      for (INDEX j=0; j<A.nCols(); j++) {
+        for (INDEX i=0; i<A.nRows(); i++) {
+          for (INDEX mj=0; mj<m.nCols(); mj++) {
+            for (INDEX mi=0; mi<m.nRows(); mi++) { 
               m(mi, mj) = A(mi+(mi>=i), mj+(mj>=j));  // skip row i and col j
             }
           }
@@ -296,22 +384,34 @@ DenseMatrix<T> adjugate(const Matrix<T> &A, bool symmetric)
 template<typename T>
 DenseMatrix<T> tensor_product(const Vector<T> &a, const Vector<T> &b)
 {
-  DenseMatrix<T> ab(a.size(), b.size());
-  for (unsigned j=0; j<b.size(); j++)
-    for (unsigned i=0; i<a.size(); i++)
-      ab(i,j) = a(i)*b(j);
+  DenseMatrix<T> ab(a.size(), b.size(),false);
+  for (INDEX j=0; j<b.size(); j++)
+    for (INDEX i=0; i<a.size(); i++)
+      ab(i,j) = a[i]*b[j];
   return ab;
 }
 
 //* Returns a DenseMatrix with random values (like matlab rand(m,n)
 template<typename T>
-DenseMatrix<T> rand(unsigned rows, unsigned cols, int seed=1234)
+DenseMatrix<T> rand(INDEX rows, INDEX cols, int seed=1234)
 {
   srand(seed);
   const double rand_max_inv = 1.0 / double(RAND_MAX);
   DenseMatrix<T> R(rows, cols, false);
-  for (unsigned i=0; i<R.size(); i++) R[i]=double(::rand())*rand_max_inv;
+  for (INDEX i=0; i<R.size(); i++) R[i]=double(::rand())*rand_max_inv;
   return R;
 }
+
+//-----------------------------------------------------------------------------
+//* returns true if no value is outside of the range
+template<typename T>
+inline bool DenseMatrix<T>::check_range(T min, T max) const
+{
+  for (INDEX i = 0; i < this->size(); i++)
+    if ( (_data[i] > max) || (_data[i] < min) ) return false;
+  return true;
+}
+
+} // end namespace
 #endif
 

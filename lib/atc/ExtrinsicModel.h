@@ -1,22 +1,32 @@
 #ifndef EXTRINSIC_MODEL
 #define EXTRINSIC_MODEL
 
-// ATC_Transfer headers
-#include "MatrixLibrary.h"
+// ATC headers
 #include "ATC_TypeDefs.h"
+#include "MatrixLibrary.h"
 
 using namespace std;
 namespace ATC {
 
   // forward declarations
-  class ATC_Transfer;
+  class ATC_Coupling;
   class ExtrinsicModel;
   class PhysicsModel;
 
-  /** enumeration for the model types avaiable */
+  /** enumeration for the model types available */
   enum ExtrinsicModelType {
     NO_MODEL=0,
     TWO_TEMPERATURE,
+    DRIFT_DIFFUSION,
+    DRIFT_DIFFUSION_EQUILIBRIUM,
+    DRIFT_DIFFUSION_SCHRODINGER,
+    DRIFT_DIFFUSION_SCHRODINGER_SLICE,
+    CONVECTIVE_DRIFT_DIFFUSION,
+    CONVECTIVE_DRIFT_DIFFUSION_EQUILIBRIUM,
+    CONVECTIVE_DRIFT_DIFFUSION_SCHRODINGER,
+    ELECTROSTATIC,
+    ELECTROSTATIC_EQUILIBRIUM,
+    FEM_EFIELD,
     NUM_MODELS
   };
 
@@ -36,7 +46,7 @@ namespace ATC {
   public:
 
     // constructor
-    ExtrinsicModelManager(ATC_Transfer * atcTransfer);
+    ExtrinsicModelManager(ATC_Coupling * atcTransfer);
 
     // destructor
     ~ExtrinsicModelManager();
@@ -47,6 +57,9 @@ namespace ATC {
     /** create_model */
     void create_model(ExtrinsicModelType modelType, string matFileName);
 
+    /** construct the transfers needed by the model */
+    void construct_transfers();
+
     /** pre time integration */
     void initialize();
 
@@ -54,6 +67,7 @@ namespace ATC {
     int size_vector(int intrinsicSize);
 
     /** get LAMMPS display variables */
+    double compute_scalar(void);
     double compute_vector(int n);
 
     /** post integration run */
@@ -67,6 +81,10 @@ namespace ATC {
     void mid_init_integrate(ExtrinsicModelType modelType = NUM_MODELS);
     /** Predictor phase, executed after Verlet */
     void post_init_integrate(ExtrinsicModelType modelType = NUM_MODELS);
+
+    /** Make changes to the forces lammps calculates */
+    void post_force(ExtrinsicModelType modelType = NUM_MODELS);
+
     /** Corrector phase, executed before Verlet */
     void pre_final_integrate(ExtrinsicModelType modelType = NUM_MODELS);
     /** Corrector phase, executed after Verlet*/
@@ -77,7 +95,8 @@ namespace ATC {
                      ExtrinsicModelType modelType = NUM_MODELS);
 
     /** return output data to main AtC */
-    void output(double dt,OUTPUT_LIST & outputData);
+    void output(OUTPUT_LIST & outputData);
+
 
     /** model name enum to string */
     static bool model_to_string(const ExtrinsicModelType index, string & name) 
@@ -88,6 +107,36 @@ namespace ATC {
           break;
         case TWO_TEMPERATURE:
           name = "two_temperature";
+          break;
+        case DRIFT_DIFFUSION:
+          name = "drift_diffusion";
+          break;
+        case DRIFT_DIFFUSION_EQUILIBRIUM:
+          name = "drift_diffusion-equilibrium";
+          break;
+        case DRIFT_DIFFUSION_SCHRODINGER:
+          name = "drift_diffusion-schrodinger";
+          break;
+        case DRIFT_DIFFUSION_SCHRODINGER_SLICE:
+          name = "drift_diffusion-schrodinger-slice";
+          break;
+        case CONVECTIVE_DRIFT_DIFFUSION:
+          name = "convective_drift_diffusion";
+          break;
+        case CONVECTIVE_DRIFT_DIFFUSION_EQUILIBRIUM:
+          name = "convective_drift_diffusion-equilibrium";
+          break;
+        case CONVECTIVE_DRIFT_DIFFUSION_SCHRODINGER:
+          name = "convective_drift_diffusion-schrodinger";
+          break;
+        case ELECTROSTATIC:
+          name = "electrostatic";
+          break;
+        case ELECTROSTATIC_EQUILIBRIUM:
+          name = "electrostatic-equilibrium";
+          break;
+        case FEM_EFIELD:
+          name = "fem_efield";
           break;
         default:
           return false;
@@ -103,6 +152,27 @@ namespace ATC {
         index = NO_MODEL;
       else if (name=="two_temperature")
         index = TWO_TEMPERATURE;
+      else if (name=="drift_diffusion")
+        index = DRIFT_DIFFUSION;
+      else if (name=="drift_diffusion-equilibrium")
+        index = DRIFT_DIFFUSION_EQUILIBRIUM;
+      else if (name=="drift_diffusion-schrodinger")
+        index = DRIFT_DIFFUSION_SCHRODINGER;
+      else if (name=="drift_diffusion-schrodinger-slice")
+        index = DRIFT_DIFFUSION_SCHRODINGER_SLICE;
+      else if (name=="convective_drift_diffusion")
+        index = CONVECTIVE_DRIFT_DIFFUSION;
+      else if (name=="convective_drift_diffusion-equilibrium")
+        index = CONVECTIVE_DRIFT_DIFFUSION_EQUILIBRIUM;
+      else if (name=="convective_drift_diffusion-schrodinger")
+        index = CONVECTIVE_DRIFT_DIFFUSION_SCHRODINGER;
+      else if (name=="electrostatic")
+        index = ELECTROSTATIC;
+      else if (name=="electrostatic-equilibrium")
+        index = ELECTROSTATIC_EQUILIBRIUM;
+      else if (name=="fem_efield")
+        index = FEM_EFIELD;
+
       else
         return false;
       
@@ -110,15 +180,17 @@ namespace ATC {
     };
 
     /** access to ATC transfer object */
-    ATC_Transfer * get_atc_transfer() {return atcTransfer_;};
+    ATC_Coupling * atc() {return atc_;};
+
+    /** access to model of a specific type */
+    const ExtrinsicModel * model(const ExtrinsicModelType type) const;
 
   protected:
 
+    /** associated ATC_Coupling object */
+    ATC_Coupling * atc_;
 
-    /** associated ATC_Transfer object */
-    ATC_Transfer * atcTransfer_;
-
-    /** equation hanlder */
+    /** equation handler */
     vector<ExtrinsicModel *> extrinsicModels_;
 
   private:
@@ -152,13 +224,17 @@ namespace ATC {
     /** parser/modifier */
     virtual bool modify(int narg, char **arg) {return false;};
 
+    /** construct transfers needed by the model */
+    virtual void construct_transfers(){};
+
     /** pre time integration */
-    virtual void initialize(){};
+    virtual void initialize();
 
     /** set up LAMMPS display variables */
     virtual int size_vector(int externalSize) {return 0;};
 
     /** get LAMMPS display variables */
+    virtual double compute_scalar(void) { return 0.0; }
     virtual bool compute_vector(int n, double & value) {return false;};
 
     /** post integration run */
@@ -174,6 +250,9 @@ namespace ATC {
     /** Predictor phase, executed after Verlet */
     virtual void post_init_integrate(){};
 
+    /** changes to lammps forces */
+    virtual void post_force(){};
+
     /** Corrector phase, executed before Verlet */
     virtual void pre_final_integrate(){};
 
@@ -187,20 +266,20 @@ namespace ATC {
     virtual void set_sources(FIELDS & fields, FIELDS & sources){};
 
     /** Add model-specific output data */
-    virtual void output(double dt, OUTPUT_LIST & outputData){};
+    virtual void output(OUTPUT_LIST & outputData){};
 
     /** get the fields and their sizes */
-    void get_num_fields(map<FieldName,int> & fieldSizes);
+    void num_fields(map<FieldName,int> & fieldSizes);
 
     /** return the type of model being used */
-    ExtrinsicModelType get_model_type() {return modelType_;};
+    ExtrinsicModelType model_type() const {return modelType_;};
 
   protected:
 
     ExtrinsicModel(){};
 
     /** ATC transfer object */
-    ATC_Transfer * atc_;
+    ATC_Coupling * atc_;
 
     /** model manager object */
     ExtrinsicModelManager * modelManager_;
@@ -220,7 +299,15 @@ namespace ATC {
     /** rhs mask for coupling with MD */
     Array2D<bool> rhsMaskIntrinsic_;
 
-    GRAD_FIELDS fluxes_;
+    
+    
+    GRAD_FIELD_MATS fluxes_;
+
+    /** number of nodes */
+    int nNodes_;
+
+    /** number of spatial dimensions */
+    int nsd_;
 
   };
 

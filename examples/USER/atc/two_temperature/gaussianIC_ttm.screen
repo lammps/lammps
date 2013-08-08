@@ -1,0 +1,168 @@
+LAMMPS (14 Aug 2013)
+units    real
+atom_style  atomic
+
+# create domain
+#lattice  type reduced density rho* = 4*(sigma/a)^3,
+#   where N = 4 for fcc,
+#         s = 3.405 A (Wagner)
+#         a = 5.25 A (Ashcroft & Mermin, p. 70)
+# to create restart :
+# write_restart temp.bin
+# then : restart2data temp.bin temp.init
+#if {restart}
+boundary        f p p
+pair_style      lj/cut 13.5
+read_data       temp.init
+Reading data file ...
+  orthogonal box = (-64.86 -16.215 -16.215) to (64.86 16.215 16.215)
+  4 by 1 by 1 MPI processor grid
+  3456 atoms
+  3456 velocities
+#endif
+
+lattice         fcc 5.405 origin 0.25 0.25 0.25
+Lattice spacing in x,y,z = 5.405 5.405 5.405
+region     feRegion   block -10 10 -3 3 -3 3
+region     mdRegion   block -12 12 -3 3 -3 3
+region     mdInternal block -10 10 -3 3 -3 3
+
+
+# create atoms, NOTE commented out for restart
+#if !{restart}
+#boundary  f p p
+#create_box  1 mdRegion
+#create_atoms  1 region mdRegion
+#mass    1 39.95
+#pair_style  lj/cut 13.5
+#pair_coeff    1 1 .238 3.405 13.5
+#velocity  internal create 40 87287 mom yes loop geom
+#endif
+
+# specify interal/ghost atoms
+group    internal region mdInternal
+2880 atoms in group internal
+# do not define ghosts if outside fe region
+#group    ghost subtract all internal
+
+neighbor  5. bin
+neigh_modify  every 10 delay 0 check no
+
+#               ID  group atc PhysicsType ParameterFile
+fix             AtC internal   atc two_temperature  Ar_ttm.mat
+ATC: constructing two_temperature coupling with parameter file Ar_ttm.mat
+ ATC: peratom PE compute created with ID: 3
+ ATC: 2 materials defined from Ar_ttm.mat
+ ATC: creating two_temperature extrinsic model
+ ATC: 2 materials defined from Ar_ttm.mat
+
+#               ID  part keywords    nx ny nz region
+fix_modify      AtC mesh create 10 1  1  feRegion f p p
+ ATC: created uniform mesh with 44 nodes, 11 unique nodes, and 10 elements
+
+# fix a temperature
+fix_modify AtC  fix temperature          all 20.0
+fix_modify AtC  initial temperature      all 20.0
+fix_modify AtC  initial electron_temperature all gaussian 0 0 0 1 0 0 5 20 20
+fix_modify AtC  fix electron_temperature     all gaussian 0 0 0 1 0 0 5 20 20
+
+
+# turn on thermostat
+fix_modify AtC extrinsic exchange off
+fix_modify AtC  control thermal rescale 10
+
+# equilibrate MD field
+timestep  5.0
+#timestep  0.1
+thermo    10
+#if !{restart}
+#run     1000
+#endif
+
+# write restart file (for atoms)
+#if !{restart}
+#write_restart  gaussianT0.dat
+#endif
+
+#output
+fix_modify      AtC  output        gaussianIC_ttmFE 10 text
+ ATC: Warning : text output can create _LARGE_ files
+ ATC: output custom names:
+
+
+# change thermostat
+fix_modify AtC  unfix          temperature all
+fix_modify AtC  unfix electron_temperature all
+fix_modify AtC  control thermal flux
+fix_modify AtC extrinsic exchange on
+fix_modify AtC extrinsic electron_integration explicit 10
+
+# run with FE
+thermo_style custom step temp pe f_AtC[2] f_AtC[4]
+reset_timestep 0
+run     400
+Setting up run ...
+Memory usage per processor = 57.2223 Mbytes
+Step Temp PotEng AtC[2] AtC[4] 
+       0    16.671491   -6505.7593           20    21.852118 
+      10    16.677473   -6505.5427    20.002889    21.837729 
+      20    16.576343   -6504.1927    19.867968    21.822852 
+      30    16.542988   -6503.5347    19.830499    21.807341 
+      40    16.606289   -6503.9099    19.949187    21.792289 
+      50    16.657212   -6504.1497    20.064794    21.778216 
+      60    16.632306   -6503.6285     20.04415    21.764548 
+      70    16.575792   -6502.7759    19.922657    21.750393 
+      80    16.582942   -6502.5564     19.85354    21.735697 
+      90    16.619478   -6502.6712    19.841821    21.721009 
+     100     16.61417   -6502.3556    19.821932    21.706419 
+     110    16.630014   -6502.2516    19.867656    21.692093 
+     120    16.693128   -6502.6546    19.982069    21.678641 
+     130    16.690728   -6502.3949    19.998086    21.665838 
+     140    16.614054   -6501.3545    19.912572    21.652659 
+     150    16.610384   -6501.0503     19.92245     21.63913 
+     160    16.722801   -6501.9756    20.080186    21.626412 
+     170    16.770605   -6502.2507    20.171452    21.614843 
+     180    16.650901   -6500.7763    20.054669    21.603093 
+     190    16.541463   -6499.3809    19.906639    21.590191 
+     200    16.645253   -6500.2037    19.963942    21.577114 
+     210    16.869564      -6502.3     20.16097    21.565481 
+     220    16.964432   -6503.0598    20.255544     21.55519 
+     230    16.911666   -6502.3323    20.237187    21.545107 
+     240    16.817088    -6501.156    20.182306    21.534699 
+     250    16.768753   -6500.4538    20.137553    21.523975 
+     260    16.815333   -6500.7346    20.155564     21.51332 
+     270    16.910106   -6501.5013    20.223111    21.503193 
+     280    16.977575   -6502.0376    20.291942     21.49369 
+     290    16.956748    -6501.627    20.290033    21.484478 
+     300    16.835354   -6500.2122    20.163353    21.474677 
+     310    16.719943   -6498.8256    20.003858    21.463706 
+     320    16.691075   -6498.3204    19.931873    21.451971 
+     330    16.761802   -6498.8518    20.011315    21.440557 
+     340    16.869104   -6499.7468    20.168181    21.430357 
+     350    16.984625   -6500.7698    20.339225    21.421572 
+     360    17.123663   -6502.0535    20.526715    21.414273 
+     370     17.19682   -6502.6982    20.622354    21.408133 
+     380    17.078663   -6501.3555    20.478377    21.401648 
+     390    16.828211   -6498.6205    20.179895    21.393129 
+     400    16.644766   -6496.5243    19.968603      21.3825 
+Loop time of 18.4436 on 4 procs for 400 steps with 3456 atoms
+
+Pair  time (%) = 3.74164 (20.2869)
+Neigh time (%) = 1.71663 (9.30746)
+Comm  time (%) = 2.39567 (12.9891)
+Outpt time (%) = 0.0720797 (0.390811)
+Other time (%) = 10.5176 (57.0257)
+
+Nlocal:    864 ave 864 max 864 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    6741 ave 7924 max 5558 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:    272943 ave 288483 max 257454 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+FullNghs:  545886 ave 575873 max 515774 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 2183544
+Ave neighs/atom = 631.812
+Neighbor list builds = 40
+Dangerous builds = 0

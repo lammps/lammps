@@ -1,0 +1,87 @@
+# needs description
+#AtC Two temperature Coupling
+# DESCRIPTION:
+# delete elements from the mesh
+# heating and then relaxation
+
+echo both
+units    metal
+variable INF equal 1000
+
+variable T equal 20
+
+atom_style  atomic
+
+lattice   fcc 5.405 origin 0.25 0.25 0.25
+region    FE block -8 8 -6 6 0 3
+region    MD block -7 7 -6 0 0 3
+region    FREE block -4 4 -6 0 0 3
+
+boundary  f f p
+
+# create atoms
+#create_box  1 FE
+#create_atoms 1 region MD
+#group   internal region FREE
+#mass    1 39.95 
+#read_data cutout.data
+#pair_coeff * * .238 3.405 13.5
+#velocity  internal create 40 87287 mom yes loop geom
+#fix NVE internal nve
+#thermo 100
+#dump CONFIG all atom 100 cutout.dump
+##run 1000
+#unfix NVE 
+#write_restart cutout.rst
+
+pair_style lj/cut 13.5
+read_data cutout.data
+group   internal region FREE
+group   ghost subtract all internal
+
+timestep  0.002
+thermo  20
+
+# allow initial state to relax
+fix NVT internal nvt temp $T $T 10 drag 0.2
+fix RESCALE internal temp/rescale 25 $T $T 0.05 1.0
+run 200
+unfix RESCALE
+run 800
+unfix NVT
+
+#          ID  group atc PhysicsType ParameterFile
+fix        AtC internal  atc two_temperature  Ar_ttm.mat
+
+#          ID  part keywords    nx ny nz region
+fix_modify AtC mesh  create 8 6  1  FE f f p
+
+fix_modify AtC mesh create_elementset wire  -4 4 -INF  0 -INF INF
+fix_modify AtC mesh create_nodeset    gap   -4 4 -0  INF -INF INF
+fix_modify AtC mesh create_elementset gap   -4 4 -0  INF -INF INF
+fix_modify AtC mesh delete_elements gap
+
+fix_modify  AtC mesh create_faceset bndy box -4 4 -INF 0 -INF INF
+fix_modify  AtC  control thermal flux faceset bndy
+
+# fix a temperature
+fix_modify AtC  initial temperature          all 20.0
+fix_modify AtC  initial electron_temperature all 30.0
+fix_modify AtC  initial temperature          gap  0.0
+
+# relaxation
+thermo_style custom step cpu f_AtC[1] f_AtC[2] f_AtC[3] f_AtC[4]
+fix_modify AtC  output   cutoutFE 10 text
+fix_modify AtC extrinsic electron_integration implicit
+
+# heating
+fix_modify AtC mesh create_nodeset lbc -8  -8 -INF INF -INF INF
+fix_modify AtC mesh create_nodeset rbc  8   8 -INF INF -INF INF
+fix_modify AtC  fix electron_temperature lbc 20. 
+fix_modify AtC  fix electron_temperature rbc 20.
+fix_modify AtC  source electron_temperature wire 0.001
+run    200
+
+# relaxation
+fix_modify AtC  remove_source electron_temperature wire
+run    200

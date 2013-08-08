@@ -1,0 +1,100 @@
+# AtC electric field module and BCs
+# This benchmark using fix_charge to set up a charged surface
+# and computes the resulting double layer dynamics
+log double_layer.log
+echo both
+
+units 		metal
+atom_style 	full
+dimension 	3
+neighbor 	2 bin
+neigh_modify 	every 1 check yes 
+boundary 	f f f
+
+timestep	0.0005
+thermo          100
+dielectric      81.
+
+newton off
+
+pair_style lj/cut 13.000000
+pair_modify mix arithmetic
+read_data waternve.atm
+reset_timestep 0
+
+variable nsteps equal 1000
+variable dumpfreq equal ${nsteps}/10
+variable nx equal 4
+variable ny equal 4
+variable nz equal 4
+variable x_min equal -19.38
+variable x_max equal 19.38
+variable x_goldmin equal -11.22
+variable x_goldmax equal 11.22
+variable x_fluidmin equal ${x_goldmin}
+variable x_fluidmax equal ${x_goldmax}
+variable x_wallmin equal ${x_goldmin}-1.5
+variable x_wallmax equal ${x_goldmax}+1.5
+variable y_min equal -19.38
+variable y_max equal 19.38
+variable y_goldmin equal -11.22
+variable y_goldmax equal 11.22
+variable surface_charge equal -0.3125/(4.08*4.08)
+variable y_fluidmin equal ${y_goldmin}
+variable y_fluidmax equal ${y_goldmax}
+variable y_wallmin equal ${y_goldmin}-1.5
+variable y_wallmax equal ${y_goldmax}+1.5
+variable downshift equal 2.5
+variable zshiftlatt equal 1-${downshift}/4.08
+variable z_min equal -20.4-${downshift}+0.25*4.08
+variable z_max equal 22.44+1.5
+variable z_goldmin equal -12.24-${downshift}+0.25*4.08
+variable z_goldmax equal -${downshift}+0.25*4.08
+variable z_goldtopmin equal ${z_goldmax}-0.5*4.08
+variable z_goldtopmax equal ${z_goldmax}
+variable z_fluidmin equal 0.
+variable z_fluidmax equal 22.44
+variable z_wallmax equal ${z_max}
+
+lattice sc 8.16 origin 0 0 0.75
+
+group pos type 4
+group neg type 5
+group allfluid type 3 4 5
+
+compute fluidT allfluid temp
+thermo_style custom step epair emol etotal press c_fluidT
+
+fix zhiwall allfluid wall/lj93 zhi ${z_wallmax} 0.0195 3.45 10.000000 units box
+fix xlowall allfluid wall/lj93 xlo ${x_wallmin} 0.0195 3.45 10.000000 units box
+fix xhiwall allfluid wall/lj93 xhi ${x_wallmax} 0.0195 3.45 10.000000 units box
+fix ylowall allfluid wall/lj93 ylo ${y_wallmin} 0.0195 3.45 10.000000 units box
+fix yhiwall allfluid wall/lj93 yhi ${y_wallmax} 0.0195 3.45 10.000000 units box
+
+group solvent type 3
+fix fluidnvt solvent nvt temp 300.0 300.0 0.100 drag 0.2
+
+##########################################################################
+region ATC_BOX block ${x_wallmin} ${x_wallmax} ${y_wallmin} ${y_wallmax} ${z_goldtopmin} ${z_wallmax} units box
+group ATC_ATOMS type 4 5
+fix ATC ATC_ATOMS atc species_electrostatic Ar_species_dl.mat
+fix_modify ATC add_species P group pos
+fix_modify ATC add_species N group neg
+fix_modify ATC mesh create ${nx} ${ny} ${nz} ATC_BOX f f f
+fix_modify ATC atom_element_map eulerian 1
+fix_modify ATC internal_quadrature off
+
+fix_modify ATC initial mass_density all 0.
+fix_modify ATC mesh create_faceset BOTTOM_FACE -INF INF -INF INF ${z_goldtopmin} INF
+## OLD
+fix_modify ATC extrinsic fix_charge BOTTOM_FACE ${surface_charge}
+## NEW
+# ERROR: Poisson solver needs Dirichlet data
+#fix_modify ATC  control charge conductor ${surface_charge}
+#fix_modify ATC  control charge effective_charge ATC_ATOMS BOTTOM_FACE
+## END
+
+fix_modify ATC output double_layerFE ${dumpfreq} text binary
+dump chargenve all atom ${dumpfreq} double_layer.dmp 
+
+run ${nsteps}

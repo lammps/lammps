@@ -13,7 +13,7 @@
 namespace ATC {
 
 // Forward class declarations
-class ATC_Transfer;
+class ATC_Coupling;
 class FE_Engine;
 
 /**
@@ -25,7 +25,7 @@ class ImplicitSolveOperator {
  public:
 
   /** Constructor */
-  ImplicitSolveOperator(ATC_Transfer * atcTransfer,
+  ImplicitSolveOperator(ATC_Coupling * atc,
                         /*const*/ FE_Engine * feEngine,
                         const PhysicsModel * physicsModel);
 
@@ -36,15 +36,15 @@ class ImplicitSolveOperator {
   virtual DENS_VEC operator * (DENS_VEC x) const = 0;
 
   /** pure virtual method to return the rhs vector b */
-  virtual DENS_VEC get_rhs() = 0;
+  virtual DENS_VEC rhs() = 0;
 
   /** pure virtual method to return preconditioner */
-  virtual DiagonalMatrix<double> get_preconditioner(FIELDS & fields) = 0;
+  virtual DiagonalMatrix<double> preconditioner(FIELDS & fields) = 0;
 
  protected:
 
-  /** Pointer to ATC_Tranfer */
-  ATC_Transfer * atcTransfer_;
+  /** Pointer to atc */
+  ATC_Coupling * atc_;
 
   /** Pointer to FE_Engine */
   /*const*/ FE_Engine * feEngine_;
@@ -63,7 +63,7 @@ class FieldImplicitSolveOperator : public ImplicitSolveOperator {
  public:
 
   /** Constructor */
-  FieldImplicitSolveOperator(ATC_Transfer * atc_Transfer,
+  FieldImplicitSolveOperator(ATC_Coupling * atc,
                              /*const*/ FE_Engine * fe_Engine,
                              FIELDS & fields,
                              const FieldName electronField,
@@ -80,10 +80,10 @@ class FieldImplicitSolveOperator : public ImplicitSolveOperator {
   virtual DENS_VEC operator * (DENS_VEC x) const;
 
   /** method to return the rhs vector b */
-  virtual DENS_VEC get_rhs();
+  virtual DENS_VEC rhs();
 
   /** method to return preconditioner (identity matrix) */
-  virtual DIAG_MAT get_preconditioner(FIELDS & fields);
+  virtual DIAG_MAT preconditioner(FIELDS & fields);
 
  protected:
   // field name of ODE to solve
@@ -111,7 +111,7 @@ class FieldImplicitSolveOperator : public ImplicitSolveOperator {
   Array<FieldName> massMask_;
 
   // simulation time
-  double simTime_;
+  double time_;
 
   // timestep
   double dt_;

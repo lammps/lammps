@@ -1,0 +1,172 @@
+echo both
+units     	real
+atom_style full # charge
+### NOTE p p p is required for both lammps & atc since periodic images are employed in ExtrinsicModelElectrostatic::correct_electrostatic_forces
+########### BEGIN PARAMETERS ####################################
+variable T equal 300 
+variable a equal 1.0 # 5.719025032  
+variable i equal 10 # thermo
+variable f equal 50 # neighbor & conc interval
+variable s equal 100 # 10 # 100 # output
+variable n equal 800 # 20 # 200 # 300 # duration
+variable x equal 4 # 40 #  2 # 4 # exchanges
+variable e equal 100. # 1. # 100. # 10. # energy
+variable h equal 5 # nelems
+variable dt equal 4. #1. # 0 # 4.0 
+##############  END PARAMETERS #################################
+dimension 	3
+boundary  	p p p
+pair_style  	lj/cut/coul/cut 13.0
+lattice   	sc  $a 
+read_data concentration_init.data
+atom_modify sort 0 1
+mass       * 39.948
+pair_coeff * * 0.2381 3.405
+pair_coeff 1 * 0.4    3.405
+dielectric 80.0 
+variable xlo equal xlo
+variable xhi equal xhi
+variable xmid equal 0.5*(${xhi}+${xlo})
+print "reservior x ${xmid}:${xhi}"
+variable ylo equal ylo
+variable yhi equal yhi
+variable zlo equal zlo
+variable zhi equal zhi
+region BOX   block ${xlo} ${xhi} ${ylo} ${yhi} ${zlo} ${zhi} units box
+region FLUID block ${xlo} ${xhi} ${ylo} ${yhi} ${zlo} ${zhi} units box
+region R     block ${xmid} ${xhi} ${ylo} ${yhi} ${zlo} ${zhi} units box
+group SOLID type 1
+variable xdof equal 3*count(SOLID)
+compute_modify thermo_temp extra ${xdof}
+#set group SOLID charge 0 
+group NEUTRAL type 2 
+group FLUID type 2 3 4
+group NION type 3
+group PION type 4
+#group tPION type 5 # not dynamic
+#group tNION type 6 # not dynamic
+#variable typeP atom type[]==5
+set group PION charge  1
+set group NION charge -1
+variable O equal count(NEUTRAL)
+variable S equal count(SOLID)
+variable F equal count(FLUID)
+variable P equal count(PION)
+variable N equal count(NION)
+variable Pr equal count(PION,R)
+variable Nr equal count(NION,R)
+#variable tP equal count(tPION)
+#variable tN equal count(tNION)
+variable V equal vol
+variable cO equal v_O/v_V
+variable cS equal v_S/v_V
+variable cN equal v_N/v_V
+variable cP equal v_P/v_V
+compute q all property/atom q
+compute m all property/atom mass
+compute Q all reduce sum c_q
+compute M all reduce sum c_m
+compute Qf FLUID reduce sum c_q
+compute Mf FLUID reduce sum c_m
+compute PMIN PION reduce min x
+compute PMAX PION reduce max x
+compute NMIN NION reduce min x
+compute NMAX NION reduce max x
+timestep  	${dt}
+#neighbor 13 bin
+neigh_modify every $i check no
+# coulombic interactions
+fix         ATC FLUID   atc species_electrostatic  Ar_electrostatic.mat 
+#fix_modify  ATC parallel_consistency off
+fix_modify  ATC extrinsic short_range off
+#fix_modify  ATC boundary SOLID
+fix_modify  ATC atom_element_map eulerian $i
+fix_modify  ATC internal_quadrature off 
+fix_modify  ATC consistent_fe_initialization on
+fix_modify  ATC filter type exponential
+fix_modify  ATC filter scale $i
+fix_modify  ATC filter equilibrate
+# mesh
+print "x = ${xlo}:${xhi}"
+fix_modify ATC mesh create $h 1 1 BOX p p p  # f p p  ExtrinsicModelElectrostatic::correct_electrostatic_forces iterates through ghosts
+fix_modify ATC mesh create_nodeset LBC ${xlo} ${xlo}  -INF INF -INF INF
+fix_modify ATC mesh create_elementset FLUID FLUID
+fix_modify ATC mesh create_elementset R R
+fix_modify ATC mesh create_elementset BOX BOX
+## NOTE tag instead of type, what about transition tyme
+fix_modify ATC mass_matrix fe
+fix_modify ATC include atomic_charge
+fix_modify ATC add_species N type 3
+fix_modify ATC add_species P type 4 
+fix_modify ATC add_species Nt type 5
+fix_modify ATC add_species Pt type 6 
+## CC
+fix_modify ATC control concentration N R 0.001 Nt  # deletions R
+fix_modify ATC control concentration N frequency $f 
+fix_modify ATC control concentration N max_energy $e 
+fix_modify ATC control concentration N max_attempts 100
+fix_modify ATC control concentration N max_exchanges $x
+#-
+fix_modify ATC control concentration P R 0.002 Pt # addtions R
+fix_modify ATC control concentration P frequency $f 
+fix_modify ATC control concentration P max_energy $e
+fix_modify ATC control concentration P max_attempts 100 
+fix_modify ATC control concentration P max_exchanges $x
+fix_modify ATC output volume_integral all mass_density
+fix_modify ATC output volume_integral all charge_density
+# data reduction
+fix        PP all   atc field
+#fix_modify PP add_species ions type 3 4 
+#fix_modify PP add_species IONS type 3 4 1 2
+fix_modify PP add_species n type 3 
+fix_modify PP add_species p type 4 
+fix_modify PP add_species s type 1 
+fix_modify PP add_species o type 2 
+fix_modify PP fields add species_concentration mass_density charge_density temperature
+fix_modify PP fields add charge_flux species_flux
+fix_modify  PP output volume_integral all mass_density
+fix_modify  PP output volume_integral all charge_density
+fix_modify PP mesh  create $h 1 1 BOX f p p
+fix_modify PP atom_element_map eulerian $i
+# output
+thermo    $i	
+variable dN equal f_ATC[1]
+variable dP equal f_ATC[2]
+variable Nc equal f_ATC[3]
+variable Pc equal f_ATC[4]
+variable Nt equal f_ATC[5]
+variable Pt equal f_ATC[6]
+#
+variable Nu equal f_ATC[7]
+variable Pu equal f_ATC[8]
+variable Ng equal f_ATC[9]
+variable Pg equal f_ATC[10]
+thermo_style 	custom step temp etotal &
+atoms v_F v_P v_N v_dP v_dN v_Pc v_Nc v_Pr v_Nr v_Pt v_Nt &
+c_PMIN c_NMIN c_PMAX c_NMAX c_Q c_M c_Qf c_Mf v_Pu v_Nu v_Pg v_Ng
+# NOTE this doesn't seem to work 
+#thermo_modify format 4 %5d format 5 %5d format 6 %5d format 7 %5d format 8 %5d 
+#thermo_modify format 4 %5d 
+#thermo_modify format 5 %5d 
+#thermo_modify format 6 %5d 
+#thermo_modify format 7 %5d 
+#thermo_modify format 8 %5d 
+#thermo_modify format 9 %5d 
+#thermo_modify format 10 %5d 
+#thermo_modify format 11 %5d 
+log concentration.log
+fix_modify  ATC output concentrationFE $s text binary
+fix_modify   PP output concentrationPP $s text
+dump D all custom $s concentration.dmp id type x y z q vx vy vz fx fy fz
+#fix_modify ATC  fix     temperature all $T
+fix_modify ATC  fix     electric_potential LBC 0.
+thermo_modify lost ignore # HACK, look at fix_gcmc or ask Paul C.
+run $n
+#print "average concentration S:${cS} O:${sO} N:${cN} P:${cP}"
+print "average_concentration_S: ${cS}"
+print "average_concentration_O: ${cO}"
+print "average_concentration_N: ${cN}"
+print "average_concentration_P: ${cP}"
+print "volume: $V"
+#write_restart concentration.rst
+#shell "restart2data concentration.rst concentration.data"

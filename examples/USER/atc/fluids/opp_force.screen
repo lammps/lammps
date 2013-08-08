@@ -1,0 +1,145 @@
+LAMMPS (14 Aug 2013)
+units 		metal
+variable E equal 20.0
+variable nx equal 16
+# allow charges
+atom_style full
+dielectric      1.
+dimension	3
+boundary	p p p
+lattice 	fcc   4.08 origin 0.25 0.25 0.25
+Lattice spacing in x,y,z = 4.08 4.08 4.08
+region BOX block -8 8 0 3 0 3
+create_box   3 BOX
+Created orthogonal box = (-32.64 0 0) to (32.64 12.24 12.24)
+  4 by 1 by 1 MPI processor grid
+create_atoms 1 region BOX
+Created 576 atoms
+pair_style     lj/cut 10.
+#pair_style	lj/cut/coul/long 10.
+#kspace_style	pppm 1.e-4
+#kspace_style	ewald 1.e-4
+pair_coeff * * 0.2381 3.405
+mass 		* 39.948
+group  real region BOX
+576 atoms in group real
+region LEFT block -5 -2 INF INF INF INF
+region RIGHT block 2 5 INF INF INF INF
+set             region LEFT type 2
+Setting atom values ...
+  108 settings made for type
+set             region RIGHT type 3
+Setting atom values ...
+  108 settings made for type
+set             region LEFT charge -1.
+Setting atom values ...
+  108 settings made for charge
+set             region RIGHT charge 1.
+Setting atom values ...
+  108 settings made for charge
+group		NION region LEFT
+108 atoms in group NION
+group		PION region RIGHT
+108 atoms in group PION
+neighbor        2. bin
+###########################################################################
+#fix EFIELD all efield $E 0.0 0.0
+###########################################################################
+fix         ATC real atc species_electrostatic Ar_species.mat
+ATC: constructing electrostatic species coupling with parameter file Ar_species.mat
+ ATC: peratom PE compute created with ID: 3
+ ATC: WARNING: material units real do not match lammps
+ ATC: 1 materials defined from Ar_species.mat
+ ATC: creating fem_efield extrinsic model
+ ATC: WARNING: material units real do not match lammps
+ ATC: 1 materials defined from Ar_species.mat
+fix_modify  ATC add_species N group NION
+fix_modify  ATC add_species P group PION
+fix_modify  ATC  include atomic_charge
+fix_modify  ATC  internal_quadrature off
+fix_modify  ATC extrinsic short_range off
+fix_modify  ATC mesh create ${nx} 1 1 BOX p p p
+fix_modify  ATC mesh create 16 1 1 BOX p p p
+ ATC: created uniform mesh with 68 nodes, 16 unique nodes, and 16 elements
+fix_modify  ATC atom_element_map eulerian 1
+fix_modify  ATC  atom_weight multiscale
+fix_modify  ATC  initial mass_density all 0.
+#fix_modify  ATC  initial charge_density all 0.
+fix_modify  ATC  initial electric_potential all 0.
+fix_modify  ATC mesh create_nodeset left_end -8.01 -7.99 -.1 .1 -.1 .1
+ ATC: created nodeset left_end with 1 nodes
+fix_modify  ATC  fix electric_potential left_end 0.
+#fix_modify  ATC mesh create_nodeset right_end 7.99 8.01 -.1 .1 -.1 .1
+#fix_modify  ATC  fix electric_potential right_end 0.
+# quick test for charged surfaces
+#fix_modify  ATC mesh create_faceset left_end box -8 10 -10 10 -10 10 outward
+#fix_modify  ATC extrinsic fix_charge left_end 0.
+fix_modify  ATC  add_species NION type 2
+fix_modify  ATC  add_species PION type 3
+###########################################################################
+variable n equal count(real)
+print "number of atoms: $n"
+number of atoms: 576
+timestep 	0.0005
+thermo		100
+compute   Fn NION reduce sum fx
+compute   Fp PION reduce sum fx
+thermo_style 	custom step etotal temp press pe c_Fn c_Fp
+# initial thermo line should be:
+#0    13699.992            0     12453927    13699.992    880.49388   -880.49388
+fix_modify  ATC  output opp_forceFE 100 text binary
+ ATC: Warning : text output can create _LARGE_ files
+ ATC: output custom names:
+NodalAtomicSpeciesConcentration : NodalAtomicSpeciesConcentrationNION
+NodalAtomicSpeciesConcentration : NodalAtomicSpeciesConcentrationPION
+NodalAtomicSpeciesConcentration : NodalAtomicSpeciesConcentrationN
+NodalAtomicSpeciesConcentration : NodalAtomicSpeciesConcentrationP
+species_concentration : species_concentrationNION
+species_concentration : species_concentrationPION
+species_concentration : species_concentrationN
+species_concentration : species_concentrationP
+
+run 1000
+Setting up run ...
+ ATC: WARNING: material: [ar] cannot find mass_density
+ ATC: WARNING: physics model: [species], material: [ar] does not provide all interfaces for <mass_density> physics and will be treated as null 
+ ATC: WARNING: all initial conditions for charge_density have not been defined and the undefined are assumed zero
+ ATC: WARNING: all initial conditions for species_concentration have not been defined and the undefined are assumed zero
+ ATC: WARNING: material: [ar] cannot find mass_density
+ ATC: WARNING: physics model: [species electrostatic], material: [ar] does not provide all interfaces for <mass_density> physics and will be treated as null 
+Memory usage per processor = 50.4595 Mbytes
+Step TotEng Temp Press PotEng Fn Fp 
+       0    13699.992            0     12453927    13699.992    880.49388   -880.49388 
+     100    20040.817    16252.426     16202859    18832.862    423.97919   -423.97919 
+     200    20169.984    13829.994     16359769    19142.076   -1134.6292    1134.6292 
+     300     15287.67    9016.4656     13166399    14617.525    468.63207   -468.63207 
+     400    20617.507    12729.152     16757508    19671.418    -1247.489     1247.489 
+     500    17500.547     14981.89     14448672    16387.025   -214.58965    214.58965 
+     600    16365.011    13836.901     13712389    15336.589    933.06997   -933.06997 
+     700    21830.838    6644.0674     17834210    21337.021   -591.66886    591.66886 
+     800    16617.582    10242.991     14041573    15856.276    203.78451   -203.78451 
+     900    17427.331    10454.594     14592379    16650.298   -1704.6656    1704.6656 
+    1000    19974.392    10682.026     16367773    19180.455   -1384.2794    1384.2794 
+Loop time of 34.9835 on 4 procs for 1000 steps with 576 atoms
+
+Pair  time (%) = 2.17131 (6.20667)
+Bond  time (%) = 0.0027945 (0.00798806)
+Neigh time (%) = 0.0782308 (0.223622)
+Comm  time (%) = 3.05527 (8.73344)
+Outpt time (%) = 0.0930898 (0.266096)
+Other time (%) = 29.5828 (84.5622)
+
+Nlocal:    144 ave 144 max 144 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    3177 ave 3258 max 3096 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:    30681 ave 31973 max 29028 min
+Histogram: 1 0 0 1 0 0 0 0 0 2
+FullNghs:  61362 ave 63684 max 59040 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 245448
+Ave neighs/atom = 426.125
+Ave special neighs/atom = 0
+Neighbor list builds = 12
+Dangerous builds = 0

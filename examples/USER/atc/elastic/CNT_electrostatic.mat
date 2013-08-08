@@ -1,0 +1,18 @@
+material CNT metal
+stress  linear
+  modulus  0.00025
+  possions_ratio 0.25
+end
+electric_field linear
+permittivity 1.0
+end
+##electron_density identity
+##end
+mass_density
+#electron_density exponential
+# intrinsic_concentration 0.0001
+# intrinsic_energy 1.0
+# reference_temperature 300
+#end
+body_force
+end

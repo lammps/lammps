@@ -1,136 +1,75 @@
+#ifndef PHYSICS_MODEL_H
+#define PHYSICS_MODEL_H
+
+#include <map>
+#include "Array2D.h"
+#include "MatrixLibrary.h"
+#include "ATC_Error.h"
+#include "Material.h"
+#include "WeakEquation.h"
+#include "NonLinearSolver.h"
+#include "ATC_TypeDefs.h"
+#include "Utility.h"
+
+using namespace std;
+using namespace ATC_Utility;
+
+namespace ATC 
+{
+  class ATC_Coupling;
+  //-------------------------------------------------------------------
+  // @class PhysicsModel
+  //-------------------------------------------------------------------
 /**
- *  @class  PhysicsModel
  *  @brief  An adaptor for the FE_Engine of the specific weak form of 
  *  the continuum PDE for the FE_Engine.
  *  It is assumed that the PDE fits this template:
  *  DENSITY(FIELDS) FIELD_RATE 
  *    = DIV FLUX(FIELDS, GRAD_FIELDS) + SOURCE(FIELDS,GRAD_FIELDS)
  *    + PRESCRIBED_SOURCE(X,t) + EXTRINSIC_SOURCE(FIELDS,GRAD_FIELDS)
+ *  Also it is important to understand that the physics model only handles
+ *  extrinsic fields or surrogates of intrinsic fields
  */
-
-
-#ifndef PHYSICS_MODEL_H
-#define PHYSICS_MODEL_H
-
-
-// included headers
-#include <map>
-#include "Array2D.h"
-#include "MatrixLibrary.h"
-#include "ATC_Error.h"
-#include "Material.h"
-#include "ATC_TypeDefs.h"
-#include "StringManip.h"
-
-using namespace std;
-using namespace ATC_STRING;
-
-namespace ATC 
-{
-
-  // Forward declarations
-  class ATC_Transfer;
-
   class PhysicsModel 
   {
 
   public:
 
     // constructor 
-    PhysicsModel(string fileName,
-                 ATC_Transfer * atcTransfer) 
-    : atcTransfer_(atcTransfer) 
-    { 
-      parse_material_file(fileName); 
-    }
+    PhysicsModel(string fileName);
 
     // destructor
-    virtual ~PhysicsModel()
-    {
-      vector< Material* >::iterator iter;
-      for (iter = materials_.begin(); iter != materials_.end(); iter++) {
-        Material * mat = *iter;
-        if (mat) delete mat;
-      }
-    }
+    virtual ~PhysicsModel();
 
     /** parse material file */
-    void parse_material_file(string fileName)
-    {
-      vector< Material* >::iterator iter;
-      for (iter = materials_.begin(); iter != materials_.end(); iter++) {
-        Material * mat = *iter;
-          if (mat) delete mat;
-      }
-      fstream  fileId(fileName.c_str(), std::ios::in);
-      if (!fileId.is_open()) throw ATC_Error(0,"cannot open material file");
-      vector<string> line;
-      int index = 0;
-      while(fileId.good()) {      
-        get_command_line(fileId, line);
-        if (line.size() == 0 || line[0] == "#") continue;
-        if (line[0] == "material") {
-          string tag = line[1];
-          Material * mat = new Material(tag,fileId);
-          materials_.push_back(mat);
-          materialNameToIndexMap_[tag] = index++;
-        }
-      }
-      if (int(materials_.size()) == 0) {
-        throw ATC_Error(0,"No materials were defined"); }
-      cout << " ATC:: " << int(materials_.size()) << " materials defined\n";
-      fileId.close();
-    }
+    void parse_material_file(string fileName);
 
     /** initialize */
-    virtual void initialize(void) = 0; 
+    void initialize(void); 
 
     // set timescale parameters based on a given lengthscale
     virtual void set_timescales(const double lengthscale) {};
 
     /** access number of materials */
-    int get_nMaterials(void) const
-    {
-      return materials_.size();
-    }
+    int nMaterials(void) const { return materials_.size(); }
 
     /** access material index from name */
-    int material_index(const string & name) const
-    {
-      string tag = name;
-      to_lower(tag); // this is an artifact of StringManip parsing
-      map<string,int>::const_iterator iter;
-      iter = materialNameToIndexMap_.find(tag);
-      if (iter ==  materialNameToIndexMap_.end()) {
-        throw ATC_Error(0,"No material named "+name+" found");
-      }
-      int index = iter->second;
-      return index;
-    }
+    int material_index(const string & name) const;
+
+    /** access material from index */
+    const Material * material(const int index) const {return materials_[index];}
 
     /** access to parameter values */
     bool parameter_value(const string& name, double& value, 
-                         const int imat = 0) const 
-    {
-      // search owned parameters
-      value = 0.0;
-      map<string,double>::const_iterator it = parameterValues_.find(name);
-      if (it != parameterValues_.end()) {
-          value = it->second;
-          return true;
-      }
-      // interogate material models
-      bool found = materials_[imat]->get_parameter(name,value);
-      return found;
-    }
+                         const int imat = 0) const ;
 
     /** return fields ids and length */
-    virtual void get_num_fields(map<FieldName,int> & fieldSizes, 
-                                Array2D<bool> & fieldMask) const = 0;
+    void num_fields(map<FieldName,int> & fieldSizes, 
+                        Array2D<bool> & rhsMask) const;
 
     /** is the material model linear */
-    virtual bool is_linear(FieldName name) { 
-      vector< Material* >::iterator iter;
+    bool is_linear(FieldName name) const { 
+      vector< Material* >::const_iterator iter;
       for (iter = materials_.begin(); iter != materials_.end(); iter++) {
         Material * mat = *iter;
         bool linear = mat->linear_flux(name) 
@@ -142,8 +81,8 @@ namespace ATC
     }
 
     /** is rhs linear */
-    virtual bool has_linear_rhs(FieldName name) { 
-      vector< Material* >::iterator iter;
+    bool has_linear_rhs(FieldName name) const { 
+      vector< Material* >::const_iterator iter;
       for (iter = materials_.begin(); iter != materials_.end(); iter++) {
         Material * mat = *iter;
         bool constant = mat->linear_flux(name) && mat->linear_source(name);
@@ -153,8 +92,8 @@ namespace ATC
     }
 
     /** is mass matrix constant */
-    virtual bool has_constant_mass(FieldName name) { 
-      vector< Material* >::iterator iter;
+    bool has_constant_mass(FieldName name) const { 
+      vector< Material* >::const_iterator iter;
       for (iter = materials_.begin(); iter != materials_.end(); iter++) {
         Material * mat = *iter;
         bool constant = mat->constant_density(name);
@@ -163,61 +102,220 @@ namespace ATC
       return true;
     }
 
-    /** energy or other preserved quantity */
-    virtual void E_integrand(const Array<FieldName> &mask, 
-                             const FIELDS &fields, 
-                             const GRAD_FIELDS &grad_fields,
-                             FIELDS &capacity,
-                             const int matIndex = 0)  const
-    {
-      throw ATC_Error(0,"E_integrand not implemented for this PhysicsModel");
+    /** access to weak equations */
+    const WeakEquation * weak_equation(FieldName field) const
+    { 
+      map<FieldName,WeakEquation *>::const_iterator itr = weakEqns_.find(field);
+      if (itr == weakEqns_.end()) return NULL;
+      return (weakEqns_.find(field))->second;
     }
 
-    /** heat/momentum/energy/mass capacity used in the LHS mass matrix */
-    virtual void M_integrand(const Array<FieldName> &mask, 
-                             const FIELDS &fields, 
-                             FIELDS &capacity,
-                             const int matIndex = 0)  const
+    /** requires ics */
+    bool is_dynamic(FieldName field) const 
     {
-      throw ATC_Error(0,"M_integrand not implemented for this PhysicsModel");
-    }
-    // flux that is integrated with N as its weight 
-    virtual void N_integrand(const Array2D<bool> &mask, 
-                             const FIELDS &fields, 
-                             const GRAD_FIELDS &grad_fields,
-                             FIELDS &flux,
-                             const int matIndex = 0)  const
-    {
-      throw ATC_Error(0,"N_integrand not implemented for this PhysicsModel");
+      return (weak_equation(field)->type() == WeakEquation::DYNAMIC_PDE);
     }
 
-    /** flux that is integrated with Grad N as its weight */
-    virtual void B_integrand(const Array2D<bool> & mask, 
-                             const FIELDS &fields,
-                             const GRAD_FIELDS &grad_fields,
-                             GRAD_FIELDS &flux,
-                             const int matIndex = 0) const
-    {
-      throw ATC_Error(0,"B_integrand not implemented for this PhysicsModel");
+    /** query null weak equations per material */
+    bool null(FieldName field, int matID) const
+    { 
+      return null_(field,matID);
     }
-
-    /** has a integrand for the N weighted integral */
-    virtual bool has_N_integrand() const { return false; }
-
-    /** has a integrand for the B=grad_x N weighted integral */
-    virtual bool has_B_integrand() const { return false; }
 
   protected:
-
-    /** associated ATC Transfer object */
-    ATC_Transfer * atcTransfer_;
-
-    // parameter values
+    /** parameter values */
     map<string, double> parameterValues_;
 
-    // material models
-    vector<Material *> materials_;
-    map<string,int> materialNameToIndexMap_;
+    /** material models */
+    vector<Material *> materials_; 
+    map<string,int> materialNameToIndexMap_;// maps tag to index
+
+    /** weak equations */
+    map<FieldName,WeakEquation *> weakEqns_;
+
+    /** null weak equations per material */
+    Array2D<int> null_;
+
+    /** type tag */
+    string type_;
+  };
+
+
+  // note that these classes do not use inheritance other than from the
+  // generic base class above. Inheritance is meant to come from the
+  // weak equations that they contain
+
+  //-------------------------------------------------------------------
+  // @class   PhysicsModelThermal
+  //-------------------------------------------------------------------
+  class PhysicsModelThermal : public PhysicsModel
+  {
+  public: 
+    PhysicsModelThermal(string filename);
+  };
+  //-------------------------------------------------------------------
+  // @class   PhysicsModelElastic
+  //-------------------------------------------------------------------
+  class PhysicsModelElastic : public PhysicsModel
+  {
+  public: 
+    PhysicsModelElastic(string filename);
+  };
+  //-------------------------------------------------------------------
+  // @class   PhysicsModelThemoMechanical
+  //-------------------------------------------------------------------
+  class PhysicsModelThermoElastic : public PhysicsModel
+  {
+  public: 
+    PhysicsModelThermoElastic(string filename);
+  };
+  
+  //-------------------------------------------------------------------
+  // @class   PhysicsModelShear
+  //-------------------------------------------------------------------
+  class PhysicsModelShear : public PhysicsModel
+  {
+  public: 
+    PhysicsModelShear(string filename);
+  };
+  //-------------------------------------------------------------------
+  // @class   PhysicsModelThemoShear
+  //-------------------------------------------------------------------
+  class PhysicsModelThermoShear : public PhysicsModel
+  {
+  public: 
+    PhysicsModelThermoShear(string filename);
+  };
+  //-------------------------------------------------------------------
+  // @class   PhysicsModelSpecies
+  //-------------------------------------------------------------------
+  class PhysicsModelSpecies : public PhysicsModel
+  {
+  public: 
+    PhysicsModelSpecies(string filename);
+  };
+  //-------------------------------------------------------------------
+  // @class   PhysicsModelTwoTemperature
+  //-------------------------------------------------------------------
+  class PhysicsModelTwoTemperature : public PhysicsModel
+  {
+  public: 
+    PhysicsModelTwoTemperature(string filename);
+  };
+  //-------------------------------------------------------------------
+  // @class   PhysicsModelDriftDiffusion
+  //-------------------------------------------------------------------
+  class PhysicsModelDriftDiffusion : public PhysicsModel
+  {
+  public: 
+    PhysicsModelDriftDiffusion(string filename);
+  };
+  //-------------------------------------------------------------------
+  // @class   PhysicsModelDriftDiffusionEquilibrium
+  //-------------------------------------------------------------------
+  class PhysicsModelDriftDiffusionEquilibrium : public PhysicsModel
+  {
+  public: 
+    PhysicsModelDriftDiffusionEquilibrium(string filename);
+  };
+  //-------------------------------------------------------------------
+  // @class   PhysicsModelDriftDiffusionSchrodinger
+  //-------------------------------------------------------------------
+  class PhysicsModelDriftDiffusionSchrodinger : public PhysicsModel
+  {
+  public: 
+    PhysicsModelDriftDiffusionSchrodinger(string filename);
+  };
+  //-------------------------------------------------------------------
+  // @class   PhysicsModelDriftDiffusionConvection
+  //-------------------------------------------------------------------
+  class PhysicsModelDriftDiffusionConvection : public PhysicsModel
+  {
+  public: 
+    PhysicsModelDriftDiffusionConvection(string filename);
+  };
+  //-------------------------------------------------------------------
+  // @class   PhysicsModelDriftDiffusionEquilibrium
+  //-------------------------------------------------------------------
+  class PhysicsModelDriftDiffusionConvectionEquilibrium : public PhysicsModel
+  {
+  public: 
+    PhysicsModelDriftDiffusionConvectionEquilibrium(string filename);
+  };
+  //-------------------------------------------------------------------
+  // @class   PhysicsModelDriftDiffusionSchrodinger
+  //-------------------------------------------------------------------
+  class PhysicsModelDriftDiffusionConvectionSchrodinger : public PhysicsModel
+  {
+  public: 
+    PhysicsModelDriftDiffusionConvectionSchrodinger(string filename);
+  };
+  //-------------------------------------------------------------------
+  // @class   PhysicsModelDriftDiffusionSchrodingerSlice
+  //-------------------------------------------------------------------
+  class PhysicsModelDriftDiffusionSchrodingerSlice : public PhysicsModel
+  {
+  public: 
+    PhysicsModelDriftDiffusionSchrodingerSlice(string filename);
+  };
+  //-------------------------------------------------------------------
+  // @class   PhysicsModelElectrostatic
+  //-------------------------------------------------------------------
+  class PhysicsModelElectrostatic : public PhysicsModel
+  {
+  public: 
+    PhysicsModelElectrostatic(string filename);
+  };
+  //-------------------------------------------------------------------
+  // @class   PhysicsModelElectrostaticEquilibrium
+  //-------------------------------------------------------------------
+  class PhysicsModelElectrostaticEquilibrium : public PhysicsModel
+  {
+  public: 
+    PhysicsModelElectrostaticEquilibrium(string filename);
+  };
+  //-------------------------------------------------------------------
+  // @class   PhysicsModelElectrostatic
+  //-------------------------------------------------------------------
+  class PhysicsModelSpeciesElectrostatic : public PhysicsModel
+  {
+  public: 
+    PhysicsModelSpeciesElectrostatic(string filename);
+  };
+  //-------------------------------------------------------------------
+  // @class PhysicsModelTangentOperator
+  // @brief adaptor to NonLinearSolver to solve rhs(x,y) = 0 for x
+  //-------------------------------------------------------------------
+  class PhysicsModelTangentOperator :  public TangentOperator
+  {
+    public:
+      PhysicsModelTangentOperator(ATC_Coupling * atc,
+                               const PhysicsModel * physicsModel,
+                               Array2D<bool> & rhsMask,
+                               IntegrationDomainType integrationType,
+                               FIELDS & rhs,
+                               FIELDS & fields,
+                               FieldName fieldName,
+                               const int dof=0);
+      PhysicsModelTangentOperator(ATC_Coupling * atc,
+                               const PhysicsModel * physicsModel,
+                               Array2D<bool> & rhsMask,
+                               IntegrationDomainType integrationType,
+                               FieldName fieldName,
+                               const int dof=0);
+      ~PhysicsModelTangentOperator(){};
+      void function(const VECTOR & x, DENS_VEC & r);
+      void tangent(const VECTOR & x, DENS_VEC & r, MATRIX & K);
+    private:
+      ATC_Coupling * atc_;
+      const PhysicsModel * physicsModel_;
+      Array2D<bool> rhsMask_;
+      IntegrationDomainType integrationType_;
+      FIELDS & rhs_;
+      FIELDS & fields_;
+      FieldName fieldName_;
+      int dof_;
+      SPAR_MAT stiffness_; 
   };
 
 };

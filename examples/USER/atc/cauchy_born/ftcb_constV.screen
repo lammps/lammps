@@ -1,0 +1,300 @@
+LAMMPS (14 Aug 2013)
+log            ftcb_constV.log
+units          real
+atom_style     atomic
+variable       lattice_constant equal 5.256227487
+variable       c equal 6
+variable       L equal (${lattice_constant}*$c)
+variable       L equal (5.2562274870000003091*$c)
+variable       L equal (5.2562274870000003091*6)
+variable       V equal $L*$L*$L
+variable       V equal 31.537364922000001854*$L*$L
+variable       V equal 31.537364922000001854*31.537364922000001854*$L
+variable       V equal 31.537364922000001854*31.537364922000001854*31.537364922000001854
+print          "Volume : $V"
+Volume : 31367.233018713999627
+variable       Ti equal 0.0001
+variable       dT equal 0.2
+variable       n equal 10000
+variable       m equal 200
+variable       dt equal 0.1
+# create system
+lattice        fcc ${lattice_constant}
+lattice        fcc 5.2562274870000003091
+Lattice spacing in x,y,z = 5.25623 5.25623 5.25623
+region         box block 0 $c 0 $c 0 $c
+region         box block 0 6 0 $c 0 $c
+region         box block 0 6 0 6 0 $c
+region         box block 0 6 0 6 0 6
+boundary       p p p
+pair_style     lj/cut 13.5
+read_data      ftcb_constV_setup.data
+Reading data file ...
+  orthogonal box = (0 0 0) to (31.5374 31.5374 31.5374)
+  1 by 2 by 2 MPI processor grid
+  864 atoms
+  864 velocities
+mass           1 39.95
+pair_coeff     1 1 0.238 3.405
+# define region
+neighbor       1.0 bin
+neigh_modify   delay 0 every 2000 check no
+reset_timestep 0
+thermo         $m
+thermo         200
+compute_modify thermo_temp extra 0
+variable       nrepeat equal $n/$m
+variable       nrepeat equal 10000/$m
+variable       nrepeat equal 10000/200
+variable       sxx equal -pxx
+variable       intenergy equal etotal
+fix            TDAVE all ave/time $m ${nrepeat} $n c_thermo_temp v_sxx v_intenergy ave one file ftcb_constV.profile
+fix            TDAVE all ave/time 200 ${nrepeat} $n c_thermo_temp v_sxx v_intenergy ave one file ftcb_constV.profile
+fix            TDAVE all ave/time 200 50 $n c_thermo_temp v_sxx v_intenergy ave one file ftcb_constV.profile
+fix            TDAVE all ave/time 200 50 10000 c_thermo_temp v_sxx v_intenergy ave one file ftcb_constV.profile
+thermo_style   custom step temp press etotal lx ly lz
+timestep       ${dt}
+timestep       0.10000000000000000555
+# filtered
+fix            ATCFILT all atc field Ar_CauchyBorn.mat
+ATC: constructing shape function field estimate with parameter file Ar_CauchyBorn.mat
+ ATC: peratom PE compute created with ID: 3
+#fix_modify     ATCFILT  reset_atomic_reference_positions ftcb_constV_setup.data
+fix_modify     ATCFILT mesh create 1 1 1 box p p p
+ ATC: created uniform mesh with 8 nodes, 1 unique nodes, and 1 elements
+fix_modify     ATCFILT  fields none
+fix_modify     ATCFILT  fields add internal_energy stress cauchy_born_energy cauchy_born_stress
+fix_modify     ATCFILT  fields add temperature displacement
+fix_modify     ATCFILT  gradients add displacement
+fix_modify     ATCFILT  output ftcb_constV_filteredFE $n text binary tensor_components
+fix_modify     ATCFILT  output ftcb_constV_filteredFE 10000 text binary tensor_components
+ ATC: Warning : text output can create _LARGE_ files
+ ATC: output custom names:
+
+fix_modify     ATCFILT  sample_frequency $m
+fix_modify     ATCFILT  sample_frequency 200
+variable       scale equal $n*${dt}
+variable       scale equal 10000*${dt}
+variable       scale equal 10000*0.10000000000000000555
+fix_modify     ATCFILT  filter scale ${scale}
+fix_modify     ATCFILT  filter scale 1000
+fix_modify     ATCFILT  filter on
+fix_modify     ATCFILT  filter type step
+# not filtered
+fix            ATC all atc field Ar_CauchyBorn.mat
+ATC: constructing shape function field estimate with parameter file Ar_CauchyBorn.mat
+ ATC: peratom PE compute created with ID: 3
+#fix_modify     ATC  reset_atomic_reference_positions ftcb_constV_setup.data
+fix_modify     ATC mesh create 1 1 1 box p p p
+ ATC: created uniform mesh with 8 nodes, 1 unique nodes, and 1 elements
+fix_modify     ATC  fields none
+fix_modify     ATC  fields add internal_energy stress cauchy_born_energy cauchy_born_stress
+fix_modify     ATC  fields add temperature displacement
+fix_modify     ATC  gradients add displacement
+fix_modify     ATC  output ftcb_constVFE $m text binary tensor_components
+fix_modify     ATC  output ftcb_constVFE 200 text binary tensor_components
+ ATC: Warning : text output can create _LARGE_ files
+ ATC: output custom names:
+
+velocity       all create ${Ti} 102486 mom yes rot yes dist gaussian
+velocity       all create 0.00010000000000000000479 102486 mom yes rot yes dist gaussian
+# step iu T,V space
+variable i loop 1
+label loop_i
+  print ">>> step $i, T: ${Ti}, V: $V"
+>>> step 1, T: 0.00010000000000000000479, V: 31367.233018713999627
+  variable Tf equal ${Ti}+${dT}
+  variable Tf equal 0.00010000000000000000479+${dT}
+  variable Tf equal 0.00010000000000000000479+0.2000000000000000111
+  fix NVT all nvt temp ${Ti} ${Tf} 20 drag 0.5 tchain 1
+  fix NVT all nvt temp 0.00010000000000000000479 ${Tf} 20 drag 0.5 tchain 1
+  fix NVT all nvt temp 0.00010000000000000000479 0.20010000000000000009 20 drag 0.5 tchain 1
+  run  $n
+  run  10000
+Setting up run ...
+ ATC: CB stiffness: 7.56717 Einstein freq: 0.355649
+ ATC: computing bond matrix ...........done
+ ATC: CB stiffness: 7.56717 Einstein freq: 0.355649
+ ATC: computing bond matrix ...........done
+Memory usage per processor = 43.8852 Mbytes
+Step Temp Press TotEng Lx Ly Lz 
+       0 9.9884259e-05 0.00037439907   -1743.9894    31.537365    31.537365    31.537365 
+     200 0.00018395916 0.0008038753   -1743.9892    31.537365    31.537365    31.537365 
+     400 0.00072207452 0.0035412421   -1743.9877    31.537365    31.537365    31.537365 
+     600 0.0035009087   0.01765789   -1743.9803    31.537365    31.537365    31.537365 
+     800  0.013509969  0.072367846    -1743.953    31.537365    31.537365    31.537365 
+    1000  0.024404761   0.16748542   -1743.9203    31.537365    31.537365    31.537365 
+    1200   0.02269474   0.25683396   -1743.9165    31.537365    31.537365    31.537365 
+    1400  0.020977736   0.37083837   -1743.9105    31.537365    31.537365    31.537365 
+    1600  0.023822771   0.52655981   -1743.8907    31.537365    31.537365    31.537365 
+    1800  0.029504552     0.724909   -1743.8607    31.537365    31.537365    31.537365 
+ ATC: computing bond matrix ..........done
+ ATC: computing bond matrix ..........done
+    2000  0.034895124   0.95292512   -1743.8286    31.537365    31.537365    31.537365 
+    2200  0.038474547    1.1919487   -1743.7994    31.537365    31.537365    31.537365 
+    2400  0.041549289    1.4317242   -1743.7711    31.537365    31.537365    31.537365 
+    2600  0.045486492    1.6680358    -1743.741    31.537365    31.537365    31.537365 
+    2800  0.050155213    1.8970903   -1743.7096    31.537365    31.537365    31.537365 
+    3000  0.054672553    2.1168131   -1743.6792    31.537365    31.537365    31.537365 
+    3200  0.058605281    2.3306834   -1743.6507    31.537365    31.537365    31.537365 
+    3400  0.062199376    2.5471875   -1743.6227    31.537365    31.537365    31.537365 
+    3600  0.065809649    2.7748986    -1743.594    31.537365    31.537365    31.537365 
+    3800  0.069568751    3.0179585    -1743.564    31.537365    31.537365    31.537365 
+ ATC: computing bond matrix ...........done
+ ATC: computing bond matrix ...........done
+    4000  0.073508373    3.2739196   -1743.5326    31.537365    31.537365    31.537365 
+    4200  0.077717909    3.5333376   -1743.5006    31.537365    31.537365    31.537365 
+    4400  0.082309308    3.7807471    -1743.469    31.537365    31.537365    31.537365 
+    4600  0.087284711    3.9974133   -1743.4392    31.537365    31.537365    31.537365 
+    4800  0.092475466     4.166069    -1743.413    31.537365    31.537365    31.537365 
+    5000  0.097607659    4.2765824   -1743.3918    31.537365    31.537365    31.537365 
+    5200   0.10242915    4.3301667   -1743.3761    31.537365    31.537365    31.537365 
+    5400   0.10679915    4.3398975   -1743.3649    31.537365    31.537365    31.537365 
+    5600   0.11070065    4.3272641   -1743.3567    31.537365    31.537365    31.537365 
+    5800   0.11420842    4.3165087   -1743.3493    31.537365    31.537365    31.537365 
+ ATC: computing bond matrix ...........done
+ ATC: computing bond matrix ...........done
+    6000   0.11745522    4.3289911   -1743.3405    31.537365    31.537365    31.537365 
+    6200   0.12060841    4.3789965   -1743.3288    31.537365    31.537365    31.537365 
+    6400    0.1238495    4.4714313   -1743.3135    31.537365    31.537365    31.537365 
+    6600   0.12734883    4.6013368   -1743.2946    31.537365    31.537365    31.537365 
+    6800   0.13123277    4.7550795   -1743.2728    31.537365    31.537365    31.537365 
+    7000    0.1355461    4.9131529   -1743.2497    31.537365    31.537365    31.537365 
+    7200   0.14022279    5.0544601   -1743.2271    31.537365    31.537365    31.537365 
+    7400   0.14508669     5.161526   -1743.2068    31.537365    31.537365    31.537365 
+    7600   0.14989701    5.2254132     -1743.19    31.537365    31.537365    31.537365 
+    7800   0.15442502    5.2486878   -1743.1772    31.537365    31.537365    31.537365 
+ ATC: computing bond matrix ...........done
+ ATC: computing bond matrix ...........done
+    8000    0.1585231     5.245194   -1743.1674    31.537365    31.537365    31.537365 
+    8200   0.16215368    5.2366567    -1743.159    31.537365    31.537365    31.537365 
+    8400   0.16537863    5.2473985   -1743.1498    31.537365    31.537365    31.537365 
+    8600   0.16833152    5.2988909   -1743.1379    31.537365    31.537365    31.537365 
+    8800   0.17119053    5.4054221   -1743.1217    31.537365    31.537365    31.537365 
+    9000   0.17415442    5.5714574   -1743.1004    31.537365    31.537365    31.537365 
+    9200   0.17741609    5.7907947    -1743.074    31.537365    31.537365    31.537365 
+    9400   0.18112875    6.0474639   -1743.0437    31.537365    31.537365    31.537365 
+    9600   0.18536621    6.3183401    -1743.011    31.537365    31.537365    31.537365 
+    9800   0.19008819    6.5773705   -1742.9782    31.537365    31.537365    31.537365 
+ ATC: computing bond matrix ...........done
+ ATC: computing bond matrix ...........done
+   10000   0.19513095     6.800965   -1742.9477    31.537365    31.537365    31.537365 
+Loop time of 217.59 on 4 procs for 10000 steps with 864 atoms
+
+Pair  time (%) = 22.0583 (10.1375)
+Neigh time (%) = 0.106731 (0.0490514)
+Comm  time (%) = 92.9321 (42.7096)
+Outpt time (%) = 0.514863 (0.23662)
+Other time (%) = 101.978 (46.8672)
+
+Nlocal:    216 ave 223 max 212 min
+Histogram: 2 0 0 0 1 0 0 0 0 1
+Nghost:    3107 ave 3111 max 3100 min
+Histogram: 1 0 0 0 0 1 0 0 0 2
+Neighs:    39744 ave 41133 max 38895 min
+Histogram: 1 1 0 0 1 0 0 0 0 1
+FullNghs:  79488 ave 82064 max 78016 min
+Histogram: 2 0 0 0 1 0 0 0 0 1
+
+Total # of neighbors = 317952
+Ave neighs/atom = 368
+Neighbor list builds = 5
+Dangerous builds = 0
+  unfix NVT
+  fix NVT all nvt temp ${Tf} ${Tf} 20 drag 0.5 tchain 1
+  fix NVT all nvt temp 0.20010000000000000009 ${Tf} 20 drag 0.5 tchain 1
+  fix NVT all nvt temp 0.20010000000000000009 0.20010000000000000009 20 drag 0.5 tchain 1
+  run  $n
+  run  10000
+Setting up run ...
+ ATC: computing bond matrix ...........done
+ ATC: computing bond matrix ...........done
+Memory usage per processor = 44.3449 Mbytes
+Step Temp Press TotEng Lx Ly Lz 
+   10000   0.19513095     6.800965   -1742.9477    31.537365    31.537365    31.537365 
+   10200    0.1942722    6.9478502    -1742.937    31.537365    31.537365    31.537365 
+   10400   0.19883577    7.0539144   -1742.9173    31.537365    31.537365    31.537365 
+   10600   0.20139901    7.1014941    -1742.907    31.537365    31.537365    31.537365 
+   10800   0.20081668    7.1047619   -1742.9075    31.537365    31.537365    31.537365 
+   11000   0.19970238     7.094286   -1742.9103    31.537365    31.537365    31.537365 
+   11200    0.1992728    7.0940423   -1742.9108    31.537365    31.537365    31.537365 
+   11400   0.19903616    7.1168902   -1742.9091    31.537365    31.537365    31.537365 
+   11600    0.1985796    7.1677194   -1742.9056    31.537365    31.537365    31.537365 
+   11800    0.1981405    7.2439973      -1742.9    31.537365    31.537365    31.537365 
+ ATC: computing bond matrix ..........done
+ ATC: computing bond matrix ..........done
+   12000   0.19807517    7.3351555   -1742.8924    31.537365    31.537365    31.537365 
+   12200   0.19846191    7.4244524    -1742.884    31.537365    31.537365    31.537365 
+   12400   0.19916212    7.4934365   -1742.8766    31.537365    31.537365    31.537365 
+   12600   0.19999074    7.5270309   -1742.8719    31.537365    31.537365    31.537365 
+   12800   0.20077516    7.5175279   -1742.8707    31.537365    31.537365    31.537365 
+   13000   0.20135496    7.4665953   -1742.8734    31.537365    31.537365    31.537365 
+   13200   0.20160734      7.38492   -1742.8792    31.537365    31.537365    31.537365 
+   13400   0.20148742    7.2895976    -1742.887    31.537365    31.537365    31.537365 
+   13600    0.2010393    7.2000327    -1742.895    31.537365    31.537365    31.537365 
+   13800   0.20037365    7.1335653   -1742.9015    31.537365    31.537365    31.537365 
+ ATC: computing bond matrix ...........done
+ ATC: computing bond matrix ...........done
+   14000   0.19963599    7.1019254   -1742.9054    31.537365    31.537365    31.537365 
+   14200    0.1989806    7.1091181   -1742.9058    31.537365    31.537365    31.537365 
+   14400   0.19854825    7.1508728   -1742.9031    31.537365    31.537365    31.537365 
+   14600    0.1984433    7.2155437   -1742.8978    31.537365    31.537365    31.537365 
+   14800   0.19871156    7.2862513   -1742.8914    31.537365    31.537365    31.537365 
+   15000   0.19932573    7.3439691   -1742.8855    31.537365    31.537365    31.537365 
+   15200   0.20018644     7.371098   -1742.8818    31.537365    31.537365    31.537365 
+   15400   0.20114408    7.3548507   -1742.8818    31.537365    31.537365    31.537365 
+   15600     0.202037    7.2896442   -1742.8862    31.537365    31.537365    31.537365 
+   15800    0.2027327    7.1778389   -1742.8951    31.537365    31.537365    31.537365 
+ ATC: computing bond matrix ...........done
+ ATC: computing bond matrix ...........done
+   16000   0.20315567    7.0286376   -1742.9079    31.537365    31.537365    31.537365 
+   16200   0.20329394    6.8555641   -1742.9235    31.537365    31.537365    31.537365 
+   16400   0.20318777     6.673354   -1742.9405    31.537365    31.537365    31.537365 
+   16600   0.20290989    6.4951258   -1742.9576    31.537365    31.537365    31.537365 
+   16800   0.20254493    6.3304266   -1742.9738    31.537365    31.537365    31.537365 
+   17000   0.20217197    6.1843778   -1742.9884    31.537365    31.537365    31.537365 
+   17200   0.20185124    6.0578536   -1743.0013    31.537365    31.537365    31.537365 
+   17400   0.20161576      5.94845   -1743.0124    31.537365    31.537365    31.537365 
+   17600   0.20146835    5.8519278   -1743.0222    31.537365    31.537365    31.537365 
+   17800   0.20138485    5.7637939   -1743.0311    31.537365    31.537365    31.537365 
+ ATC: computing bond matrix ...........done
+ ATC: computing bond matrix ...........done
+   18000   0.20132247    5.6807023   -1743.0393    31.537365    31.537365    31.537365 
+   18200   0.20123183    5.6014137    -1743.047    31.537365    31.537365    31.537365 
+   18400   0.20106914    5.5271637   -1743.0542    31.537365    31.537365    31.537365 
+   18600   0.20080571    5.4614233   -1743.0607    31.537365    31.537365    31.537365 
+   18800   0.20043268    5.4091822   -1743.0661    31.537365    31.537365    31.537365 
+   19000   0.19996085    5.3759725   -1743.0697    31.537365    31.537365    31.537365 
+   19200    0.1994168    5.3668762   -1743.0712    31.537365    31.537365    31.537365 
+   19400     0.198837    5.3857152   -1743.0701    31.537365    31.537365    31.537365 
+   19600   0.19826151     5.434538   -1743.0662    31.537365    31.537365    31.537365 
+   19800   0.19772836    5.5134332   -1743.0595    31.537365    31.537365    31.537365 
+ ATC: computing bond matrix ...........done
+ ATC: computing bond matrix ...........done
+   20000   0.19726939    5.6206257   -1743.0501    31.537365    31.537365    31.537365 
+Loop time of 100.792 on 4 procs for 10000 steps with 864 atoms
+
+Pair  time (%) = 15.7625 (15.6386)
+Neigh time (%) = 0.0767966 (0.0761931)
+Comm  time (%) = 22.8833 (22.7034)
+Outpt time (%) = 0.135321 (0.134258)
+Other time (%) = 61.9342 (61.4475)
+
+Nlocal:    216 ave 231 max 208 min
+Histogram: 1 1 1 0 0 0 0 0 0 1
+Nghost:    3107 ave 3115 max 3092 min
+Histogram: 1 0 0 0 0 0 0 1 1 1
+Neighs:    39744 ave 42595 max 38315 min
+Histogram: 1 2 0 0 0 0 0 0 0 1
+FullNghs:  79488 ave 85008 max 76544 min
+Histogram: 1 1 1 0 0 0 0 0 0 1
+
+Total # of neighbors = 317952
+Ave neighs/atom = 368
+Neighbor list builds = 5
+Dangerous builds = 0
+  unfix NVT
+  variable Ti equal ${Tf}
+  variable Ti equal 0.20010000000000000009
+next i
+jump in.ftcb_constV loop_i

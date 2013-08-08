@@ -1,0 +1,124 @@
+LAMMPS (14 Aug 2013)
+units     	real
+atom_style full
+########### BEGIN PARAMETERS ####################################
+variable a equal 5.719025032
+variable i equal 1
+variable s equal 100
+variable n equal 1000 # 500 2000
+variable dt equal 4.0
+variable W equal 4
+variable L equal 20
+variable Ls equal 4 # surface
+variable h equal 10
+variable phiInf equal -1. # 0. 10 -10.0
+variable R equal 2*$a
+variable R equal 2*5.7190250320000002304
+##############  END PARAMETERS #################################
+dimension 	3
+boundary  	f p p
+pair_style  	lj/cut 13.0
+lattice   	fcc  $a
+lattice   	fcc  5.7190250320000002304
+Lattice spacing in x,y,z = 5.71903 5.71903 5.71903
+read_data interface_init.data
+Scanning data file ...
+Reading data file ...
+  orthogonal box = (0 0 0) to (114.381 22.8761 22.8761)
+  4 by 1 by 1 MPI processor grid
+  544 atoms
+  544 velocities
+Finding 1-2 1-3 1-4 neighbors ...
+  0 = max # of 1-2 neighbors
+  0 = max # of 1-3 neighbors
+  0 = max # of 1-4 neighbors
+  1 = max # of special neighbors
+atom_modify sort 0 1
+mass       * 39.948
+pair_coeff * * 0.2381 3.405
+dielectric 1.0
+region BOX block 0 $L 0 $W 0 $W
+region BOX block 0 20 0 $W 0 $W
+region BOX block 0 20 0 4 0 $W
+region BOX block 0 20 0 4 0 4
+group SOLID type 1
+288 atoms in group SOLID
+group FLUID type 2 3 4
+256 atoms in group FLUID
+group P type 3
+66 atoms in group P
+group N type 4
+76 atoms in group N
+set group SOLID charge 0 # use ATC to provide charge to the surface
+Setting atom values ...
+  288 settings made for charge
+# charged layer -- NOTE on an element boundary
+variable b equal ${Ls}-0.1
+variable b equal 4-0.1
+variable c equal ${Ls}+0.1
+variable c equal 4+0.1
+region LAYER block $b $c INF INF INF INF
+region LAYER block 3.8999999999999999112 $c INF INF INF INF
+region LAYER block 3.8999999999999999112 4.0999999999999996447 INF INF INF INF
+group LAYER region LAYER
+32 atoms in group LAYER
+timestep  	${dt}
+timestep  	4
+neigh_modify every $i check no
+neigh_modify every 1 check no
+fix WALLS all wall/reflect xlo EDGE xhi EDGE
+fix         PP  all   atc field
+ATC: constructing shape function field estimate
+ ATC: peratom PE compute created with ID: 3
+fix_modify  PP  add_species IONS type 1 2 3 4
+fix_modify  PP  fields add species_concentration mass_density charge_density # temperature
+fix_modify  PP output volume_integral all mass_density
+fix_modify  PP output volume_integral all charge_density
+fix_modify  PP  atom_element_map eulerian $s
+fix_modify  PP  atom_element_map eulerian 100
+fix_modify  PP  mesh create $h 1 1 BOX f p p
+fix_modify  PP  mesh create 10 1 1 BOX f p p
+ ATC: created uniform mesh with 44 nodes, 11 unique nodes, and 10 elements
+fix         ATC FLUID  atc species_electrostatic  Ar_electrostatic.mat
+ATC: constructing electrostatic species coupling with parameter file Ar_electrostatic.mat
+ ATC: peratom PE compute created with ID: 3
+ ATC: 1 materials defined from Ar_electrostatic.mat
+ ATC: creating fem_efield extrinsic model
+ ATC: 1 materials defined from Ar_electrostatic.mat
+fix_modify  ATC add_species P type 3
+fix_modify  ATC add_species N type 4
+fix_modify  ATC boundary SOLID
+#fix_modify  ATC kernel cell $R $R $W
+fix_modify  ATC atom_element_map eulerian $i
+fix_modify  ATC atom_element_map eulerian 1
+fix_modify  ATC internal_quadrature off # on creates a nasty error (NOTE trap error)
+fix_modify  ATC mass_matrix fe
+fix_modify  ATC include atomic_charge
+# mesh : 2x2 tosses an atom to infinity and beyond
+#fix_modify ATC mesh create $h 4 1 BOX f p p dx piecewise_linear 0 0 0 1 0 0 0.0 1.0 1.0 1.0
+#fix_modify ATC mesh create $h 1 1 BOX f p p dx piecewise_linear 0 0 0 1 0 0  #    0.0 1.0 0.2 1.0 0.207812 0.1 1.0 1.0
+### >>> node h vs list reepat and scale to box
+fix_modify ATC mesh create $h 4 1 BOX f p p dx 2 2 0.5 0.5 0.5 0.5 2 3 4 5
+fix_modify ATC mesh create 10 4 1 BOX f p p dx 2 2 0.5 0.5 0.5 0.5 2 3 4 5
+ ATC: created structured mesh with 110 nodes, 44 unique nodes, and 40 elements
+fix_modify ATC mesh create_nodeset lbc 0  0  -INF INF -INF INF
+ ATC: created nodeset lbc with 4 nodes
+fix_modify ATC mesh create_nodeset rbc $L $L -INF INF -INF INF
+fix_modify ATC mesh create_nodeset rbc 20 $L -INF INF -INF INF
+fix_modify ATC mesh create_nodeset rbc 20 20 -INF INF -INF INF
+ ATC: created nodeset rbc with 4 nodes
+fix_modify ATC mesh create_nodeset    wall 0 ${Ls} 0 4 0 4
+fix_modify ATC mesh create_nodeset    wall 0 4 0 4 0 4
+ ATC: created nodeset wall with 12 nodes
+fix_modify ATC mesh create_elementset wall 0 ${Ls} 0 4 0 4
+fix_modify ATC mesh create_elementset wall 0 4 0 4 0 4
+ ATC: created elementset wall with 8 elements
+#fix_modify ATC mesh create_faceset lbc plane x 0
+fix_modify ATC mesh create_faceset surface -INF ${Ls}  -INF INF -INF INF
+fix_modify ATC mesh create_faceset surface -INF 4  -INF INF -INF INF
+ ATC: created faceset surface with 4 faces
+fix_modify ATC mesh create_elementset fluidElts ${Ls} INF -INF INF -INF INF
+fix_modify ATC mesh create_elementset fluidElts 4 INF -INF INF -INF INF
+ ATC: created elementset fluidElts with 32 elements
+fix_modify ATC internal_element_set fluidElts
+ERROR: Illegal fix_modify command (../fix.cpp:104)

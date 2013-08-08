@@ -1,0 +1,97 @@
+# needs description
+#AtC Elastic Coupling
+echo both
+
+units		real
+atom_style	atomic
+
+# create domain
+#lattice	type reduced density rho* = 4*(sigma/a)^3, where N=4 for fcc, s = 3.405 A (Wagner) and a = 5.25 A (Ashcroft & Mermin, p. 70)
+lattice         fcc 5.2582305 origin 0.25 0.25 0.25
+
+# create atoms
+region		simRegion block -12 12 -3 3 -3 3
+region		atomRegion block -8 8 -3 3 -3 3
+region		mdRegion block -6 6 -3 3 -3 3
+boundary	f p p
+create_box	1 simRegion
+create_atoms	1 region atomRegion
+mass		1 39.95
+
+# specify interal/ghost atoms
+region		mdInternal block -6 6 -3 3 -3 3
+region		leftghost block -8 -6 -3 3 -3 3
+region		rightghost block 6 8 -3 3 -3 3
+group		internal region mdInternal
+group		Lghost region leftghost
+group		Rghost region rightghost
+group		ghosts union Lghost Rghost
+
+pair_style	lj/cut 13.
+#pair_coeff	1 1 0.010323166 3.405 13.5
+pair_coeff  	1 1 .2381 3.405 13.
+
+neighbor	5. bin
+neigh_modify	every 10 delay 0 check no
+
+# define  layer
+#               ID  group atc PhysicsType ParameterFile
+fix             AtC internal   atc elastic     Ar_elastic.mat
+
+#               ID  part keywords    nx ny nz region
+fix_modify      AtC mesh create 12  1  1  simRegion f p p
+
+# initial conditions 
+fix_modify  AtC  initial displacement x all 0.0
+fix_modify  AtC  initial displacement y all 0.0
+fix_modify  AtC  initial displacement z all 0.0
+fix_modify  AtC  initial velocity x all 0.0
+fix_modify  AtC  initial velocity y all 0.0
+fix_modify  AtC  initial velocity z all 0.0
+fix_modify  AtC  time_integration fractional_step
+
+# set node sets and bcs
+#           ID  mesh create_nodeset tag xmin xmax ymin ymax zmin zmax
+fix_modify  AtC mesh create_nodeset lbc -12.1  -11.9   -INF INF  -INF INF
+fix_modify  AtC mesh create_nodeset rbc  11.9   12.1   -INF INF  -INF INF
+fix_modify  AtC fix velocity     x rbc 0.00000004
+fix_modify  AtC fix displacement x lbc 0.
+fix_modify  AtC fix velocity     x lbc 0.
+
+# specify atom types
+#fix_modify  AtC boundary Lghost
+#fix_modify  AtC boundary Rghost
+fix_modify  AtC boundary ghosts
+
+fix_modify  AtC internal_quadrature off
+fix_modify  AtC control localized_lambda on
+fix_modify  AtC control  momentum flux interpolate
+#fix_modify  AtC control  momentum hoover # tested in this mode
+#fix_modify  AtC filter type exponential
+#fix_modify  AtC filter scale 1000.0
+#fix_modify  AtC filter on
+
+# run to extension
+#fix_modify      AtC  output bar1d_frac_step_initFE 50 text binary
+#dump            D1 all atom 50 bar1d_frac_step_init.dmp
+timestep	5
+thermo		100
+run 		1000
+
+# reset time
+fix_modify      AtC reset_time 0.
+reset_timestep  0
+
+# change nodes to fixed
+fix_modify      AtC  fix velocity x rbc 0.
+fix_modify	AtC  fix displacement x rbc 0.0002
+
+fix_modify      AtC  output bar1d_frac_stepFE 500 text #binary
+#fix_modify	AtC  output index step
+#undump		D1
+#dump            D1 all atom 500 bar1d_frac_step.dmp
+
+# run to equilibrium
+timestep        5
+thermo		100
+run 		5000

@@ -1,12 +1,8 @@
-LAMMPS (12 Jan 2013)
-log		consistency.log
-
+LAMMPS (14 Aug 2013)
 units		metal
 atom_style	atomic
-atom_modify     sort 0 1
 variable L equal 16
 variable E equal 8
-
 # create domain
 lattice         fcc 3.615 origin 0.25 0.25 0.25
 Lattice spacing in x,y,z = 3.615 3.615 3.615
@@ -15,82 +11,74 @@ region		mdRegion block 0 16 -3 3 -3 3
 boundary	p p p
 create_box	1 mdRegion
 Created orthogonal box = (0 -10.845 -10.845) to (57.84 10.845 10.845)
-  1 by 1 by 1 MPI processor grid
-
+  4 by 1 by 1 MPI processor grid
 # create atoms
 create_atoms	1 region mdRegion
 Created 2304 atoms
 mass		1 63.550
-
 group		internal region mdRegion
 2304 atoms in group internal
-
 # specify inter-atomic potential
 pair_style	eam
 pair_coeff  	* * ../../../../potentials/Cu_u3.eam
-
 # specify neighbor/re-neighboring parameters
 neighbor	0.3 bin
 #neigh_modify	every 10 delay 0 check no
 neigh_modify	delay 10000 check no
-
 min_modify line quadratic
 minimize  1.e-10 1.e-10 100000 1000000
-WARNING: Resetting reneighboring criteria during minimization (min.cpp:173)
+WARNING: Resetting reneighboring criteria during minimization (../min.cpp:173)
 Setting up minimization ...
-Memory usage per processor = 2.9579 Mbytes
+Memory usage per processor = 2.95316 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0            0     -8156.16            0     -8156.16 -0.027860375 
        1            0     -8156.16            0     -8156.16 -0.027860375 
-Loop time of 0.0263638 on 1 procs for 1 steps with 2304 atoms
+Loop time of 0.0612388 on 4 procs for 1 steps with 2304 atoms
 
 Minimization stats:
   Stopping criterion = energy tolerance
   Energy initial, next-to-last, final = 
-        -8156.16000525     -8156.16000525     -8156.16000525
-  Force two-norm initial, final = 8.49262e-13 8.39871e-13
-  Force max component initial, final = 3.22242e-14 3.00038e-14
-  Final line search alpha, max atom move = 1 3.00038e-14
+        -8156.16000524     -8156.16000524     -8156.16000524
+  Force two-norm initial, final = 8.48911e-13 8.39584e-13
+  Force max component initial, final = 3.2252e-14 3.01703e-14
+  Final line search alpha, max atom move = 1 3.01703e-14
   Iterations, force evaluations = 1 2
 
-Pair  time (%) = 0.0255749 (97.0075)
+Pair  time (%) = 0.0362611 (59.2127)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000288963 (1.09606)
+Comm  time (%) = 0.00659382 (10.7674)
 Outpt time (%) = 0 (0)
-Other time (%) = 0.000499964 (1.8964)
+Other time (%) = 0.0183838 (30.0199)
 
-Nlocal:    2304 ave 2304 max 2304 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    3852 ave 3852 max 3852 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    62208 ave 62208 max 62208 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:    576 ave 576 max 576 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    1692 ave 1692 max 1692 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    15552 ave 15600 max 15504 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
 
 Total # of neighbors = 62208
 Ave neighs/atom = 27
 Neighbor list builds = 0
 Dangerous builds = 0
-
 #               ID  group atc PhysicsType ParameterFile
-fix             AtC all   atc hardy
-Constructing ATC transfer (hardy)
-atomPE compute created with ID: 3
-fix_modify      AtC transfer internal type internal
-fix_modify      AtC fem  create mesh $E 1 1 mdRegion f p p
-fix_modify      AtC fem  create mesh 8 1 1 mdRegion f p p
- ATC:: created FEM Mesh with 36 Global Nodes, 9 Unique Nodes, and 8 Elements
-fix_modify      AtC transfer fields none
-fix_modify      AtC transfer fields add density displacement stress energy eshelby_stress temperature
-fix_modify      AtC transfer gradients add displacement
-fix_modify      AtC transfer set reference_potential_energy
-#fix_modify      AtC transfer hardy_reset 1
-
+fix             AtC internal   atc field
+ATC: constructing shape function field estimate
+ ATC: peratom PE compute created with ID: 3
+fix_modify      AtC mesh  create $E 1 1 mdRegion f p p
+fix_modify      AtC mesh  create 8 1 1 mdRegion f p p
+ ATC: created uniform mesh with 36 nodes, 9 unique nodes, and 8 elements
+fix_modify      AtC fields none
+fix_modify      AtC fields add mass_density displacement stress internal_energy eshelby_stress temperature
+fix_modify      AtC gradients add displacement
+fix_modify      AtC set reference_potential_energy
+#fix_modify      AtC  hardy_reset 1
 # output
 thermo		10
 thermo_style custom step pe ke press lx ly lz
-fix_modify	AtC transfer output        consistencyFE 1 text tensor_components
- ATC:: Warning : text output can create _LARGE_ files
-fix_modify	AtC transfer atomic_output consistencyMD 1
+fix_modify	AtC  output        consistencyFE 1 text tensor_components
+ ATC: Warning : text output can create _LARGE_ files
+ ATC: output custom names:
 
 # displace atoms
 # NOTE we need to figure out how to output post minimize w/o a "run"
@@ -100,29 +88,27 @@ timestep 0.0
 # initial before minimization?
 run 	1
 Setting up run ...
- ATC:: computing bond matrix ...........done
- ATC:: conversion factor for energy/vol -> stress 1.60218e+06
- ATC:: cutoff radius 4.95
-Memory usage per processor = 4.78897 Mbytes
+ ATC: computing bond matrix ...........done
+Memory usage per processor = 22.7915 Mbytes
 Step PotEng KinEng Press Lx Ly Lz 
        1     -8156.16            0 -0.027860375        57.84        21.69        21.69 
        2     -8156.16            0 -0.027860375        57.84        21.69        21.69 
-Loop time of 0.197476 on 1 procs for 1 steps with 2304 atoms
+Loop time of 0.036861 on 4 procs for 1 steps with 2304 atoms
 
-Pair  time (%) = 0.0089829 (4.54886)
+Pair  time (%) = 0.00230974 (6.26608)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.00012517 (0.0633848)
-Outpt time (%) = 4.29153e-05 (0.0217319)
-Other time (%) = 0.188325 (95.366)
+Comm  time (%) = 0.000133157 (0.36124)
+Outpt time (%) = 0.000100911 (0.27376)
+Other time (%) = 0.0343172 (93.0989)
 
-Nlocal:    2304 ave 2304 max 2304 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    3852 ave 3852 max 3852 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    62208 ave 62208 max 62208 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-FullNghs:  124416 ave 124416 max 124416 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:    576 ave 576 max 576 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    1692 ave 1692 max 1692 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    15552 ave 15678 max 15411 min
+Histogram: 1 0 0 0 0 2 0 0 0 1
+FullNghs:  31104 ave 31104 max 31104 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 124416
 Ave neighs/atom = 54
@@ -134,43 +120,42 @@ variable i loop $n
 variable i loop 10
 # NOTE this does not generate KE
 label loop_i
-  #variable s equal 0.02*$i/$n*$L
-  #print ">>> step $i, displacement $s"
   change_box all x scale 1.001 remap
 Changing box ...
   orthogonal box = (-0.02892 -10.845 -10.845) to (57.8689 10.845 10.845)
   minimize  1.e-10 1.e-10 100000 1000000
-WARNING: Resetting reneighboring criteria during minimization (min.cpp:173)
+WARNING: Resetting reneighboring criteria during minimization (../min.cpp:173)
 Setting up minimization ...
-Memory usage per processor = 5.85709 Mbytes
+ ATC: computing bond matrix ...........done
+Memory usage per processor = 23.7835 Mbytes
 Step PotEng KinEng Press Lx Ly Lz 
        2   -8156.1458            0   -1381.2949     57.89784        21.69        21.69 
        3   -8156.1458            0   -1381.2949     57.89784        21.69        21.69 
-Loop time of 0.02723 on 1 procs for 1 steps with 2304 atoms
+Loop time of 0.587526 on 4 procs for 1 steps with 2304 atoms
 
 Minimization stats:
   Stopping criterion = energy tolerance
   Energy initial, next-to-last, final = 
-        -8156.14582166     -8156.14582166     -8156.14582166
-  Force two-norm initial, final = 1.20102e-12 8.09841e-13
-  Force max component initial, final = 5.46594e-14 3.00922e-14
-  Final line search alpha, max atom move = 1 3.00922e-14
+        -8156.14582163     -8156.14582163     -8156.14582163
+  Force two-norm initial, final = 1.20171e-12 7.98441e-13
+  Force max component initial, final = 5.47843e-14 2.98234e-14
+  Final line search alpha, max atom move = 1 2.98234e-14
   Iterations, force evaluations = 1 2
 
-Pair  time (%) = 0.0264421 (97.1062)
+Pair  time (%) = 0.113327 (19.2888)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000286102 (1.05069)
+Comm  time (%) = 0.244407 (41.5993)
 Outpt time (%) = 0 (0)
-Other time (%) = 0.000501871 (1.84308)
+Other time (%) = 0.229793 (39.1119)
 
-Nlocal:    2304 ave 2304 max 2304 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    3852 ave 3852 max 3852 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    62208 ave 62208 max 62208 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-FullNghs:  124416 ave 124416 max 124416 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:    576 ave 576 max 576 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    1692 ave 1692 max 1692 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    15552 ave 15597 max 15508 min
+Histogram: 1 0 0 0 1 1 0 0 0 1
+FullNghs:  31104 ave 31104 max 31104 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 124416
 Ave neighs/atom = 54
@@ -179,28 +164,27 @@ Dangerous builds = 0
   velocity all set 0 0 0
   run 1
 Setting up run ...
- ATC:: conversion factor for energy/vol -> stress 1.60218e+06
- ATC:: cutoff radius 4.95
-Memory usage per processor = 4.86526 Mbytes
+ ATC: computing bond matrix ...........done
+Memory usage per processor = 22.7915 Mbytes
 Step PotEng KinEng Press Lx Ly Lz 
        3   -8156.1458            0   -1381.2949     57.89784        21.69        21.69 
        4   -8156.1458            0   -1381.2949     57.89784        21.69        21.69 
-Loop time of 0.112819 on 1 procs for 1 steps with 2304 atoms
+Loop time of 0.500844 on 4 procs for 1 steps with 2304 atoms
 
-Pair  time (%) = 0.00889111 (7.88086)
+Pair  time (%) = 0.0300949 (6.00884)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000100136 (0.088758)
-Outpt time (%) = 4.22001e-05 (0.0374051)
-Other time (%) = 0.103786 (91.993)
+Comm  time (%) = 0.0840541 (16.7825)
+Outpt time (%) = 0.06286 (12.5508)
+Other time (%) = 0.323835 (64.6579)
 
-Nlocal:    2304 ave 2304 max 2304 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    3852 ave 3852 max 3852 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    62208 ave 62208 max 62208 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-FullNghs:  124416 ave 124416 max 124416 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:    576 ave 576 max 576 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    1692 ave 1692 max 1692 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    15552 ave 15623 max 15488 min
+Histogram: 1 1 0 0 0 0 0 1 0 1
+FullNghs:  31104 ave 31104 max 31104 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 124416
 Ave neighs/atom = 54
@@ -208,43 +192,42 @@ Neighbor list builds = 0
 Dangerous builds = 0
 next i
 jump in.consistency loop_i
-  #variable s equal 0.02*$i/$n*$L
-  #print ">>> step $i, displacement $s"
   change_box all x scale 1.001 remap
 Changing box ...
   orthogonal box = (-0.0578689 -10.845 -10.845) to (57.8979 10.845 10.845)
   minimize  1.e-10 1.e-10 100000 1000000
-WARNING: Resetting reneighboring criteria during minimization (min.cpp:173)
+WARNING: Resetting reneighboring criteria during minimization (../min.cpp:173)
 Setting up minimization ...
-Memory usage per processor = 5.85709 Mbytes
+ ATC: computing bond matrix ...........done
+Memory usage per processor = 23.7835 Mbytes
 Step PotEng KinEng Press Lx Ly Lz 
        4   -8156.1033            0   -2755.9958    57.955738        21.69        21.69 
        5   -8156.1033            0   -2755.9958    57.955738        21.69        21.69 
-Loop time of 0.027204 on 1 procs for 1 steps with 2304 atoms
+Loop time of 0.402513 on 4 procs for 1 steps with 2304 atoms
 
 Minimization stats:
   Stopping criterion = energy tolerance
   Energy initial, next-to-last, final = 
-        -8156.10329877     -8156.10329877     -8156.10329877
-  Force two-norm initial, final = 1.40241e-12 8.94576e-13
-  Force max component initial, final = 1.06387e-13 5.59414e-14
-  Final line search alpha, max atom move = 1 5.59414e-14
+        -8156.10329875     -8156.10329875     -8156.10329875
+  Force two-norm initial, final = 1.39476e-12 8.93933e-13
+  Force max component initial, final = 1.06757e-13 5.59136e-14
+  Final line search alpha, max atom move = 1 5.59136e-14
   Iterations, force evaluations = 1 2
 
-Pair  time (%) = 0.0264099 (97.0807)
+Pair  time (%) = 0.0815714 (20.2655)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000291824 (1.07272)
+Comm  time (%) = 0.140636 (34.9394)
 Outpt time (%) = 0 (0)
-Other time (%) = 0.000502348 (1.84659)
+Other time (%) = 0.180306 (44.7951)
 
-Nlocal:    2304 ave 2304 max 2304 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    3852 ave 3852 max 3852 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    62208 ave 62208 max 62208 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-FullNghs:  124416 ave 124416 max 124416 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:    576 ave 576 max 576 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    1692 ave 1692 max 1692 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    15552 ave 15563 max 15540 min
+Histogram: 1 1 0 0 0 0 0 0 0 2
+FullNghs:  31104 ave 31104 max 31104 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 124416
 Ave neighs/atom = 54
@@ -253,28 +236,27 @@ Dangerous builds = 0
   velocity all set 0 0 0
   run 1
 Setting up run ...
- ATC:: conversion factor for energy/vol -> stress 1.60218e+06
- ATC:: cutoff radius 4.95
-Memory usage per processor = 4.86526 Mbytes
+ ATC: computing bond matrix ...........done
+Memory usage per processor = 22.7915 Mbytes
 Step PotEng KinEng Press Lx Ly Lz 
        5   -8156.1033            0   -2755.9958    57.955738        21.69        21.69 
        6   -8156.1033            0   -2755.9958    57.955738        21.69        21.69 
-Loop time of 0.112333 on 1 procs for 1 steps with 2304 atoms
+Loop time of 0.375042 on 4 procs for 1 steps with 2304 atoms
 
-Pair  time (%) = 0.00886989 (7.89608)
+Pair  time (%) = 0.0312517 (8.33286)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000102043 (0.09084)
-Outpt time (%) = 4.19617e-05 (0.0373548)
-Other time (%) = 0.103319 (91.9757)
+Comm  time (%) = 0.0539653 (14.3892)
+Outpt time (%) = 0.0545159 (14.536)
+Other time (%) = 0.235309 (62.742)
 
-Nlocal:    2304 ave 2304 max 2304 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    3852 ave 3852 max 3852 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    62208 ave 62208 max 62208 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-FullNghs:  124416 ave 124416 max 124416 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:    576 ave 576 max 576 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    1692 ave 1692 max 1692 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    15552 ave 15650 max 15466 min
+Histogram: 1 0 0 0 2 0 0 0 0 1
+FullNghs:  31104 ave 31104 max 31104 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 124416
 Ave neighs/atom = 54
@@ -282,43 +264,42 @@ Neighbor list builds = 0
 Dangerous builds = 0
 next i
 jump in.consistency loop_i
-  #variable s equal 0.02*$i/$n*$L
-  #print ">>> step $i, displacement $s"
   change_box all x scale 1.001 remap
 Changing box ...
   orthogonal box = (-0.0868468 -10.845 -10.845) to (57.9268 10.845 10.845)
   minimize  1.e-10 1.e-10 100000 1000000
-WARNING: Resetting reneighboring criteria during minimization (min.cpp:173)
+WARNING: Resetting reneighboring criteria during minimization (../min.cpp:173)
 Setting up minimization ...
-Memory usage per processor = 5.85709 Mbytes
+ ATC: computing bond matrix ...........done
+Memory usage per processor = 23.7835 Mbytes
 Step PotEng KinEng Press Lx Ly Lz 
        6   -8156.0325            0   -4124.1199    58.013694        21.69        21.69 
        7   -8156.0325            0   -4124.1199    58.013694        21.69        21.69 
-Loop time of 0.027216 on 1 procs for 1 steps with 2304 atoms
+Loop time of 0.017836 on 4 procs for 1 steps with 2304 atoms
 
 Minimization stats:
   Stopping criterion = energy tolerance
   Energy initial, next-to-last, final = 
-        -8156.03247786     -8156.03247786     -8156.03247786
-  Force two-norm initial, final = 2.13063e-12 8.13549e-13
-  Force max component initial, final = 1.57216e-13 5.40783e-14
-  Final line search alpha, max atom move = 1 5.40783e-14
+        -8156.03247785     -8156.03247785     -8156.03247785
+  Force two-norm initial, final = 2.13199e-12 8.14844e-13
+  Force max component initial, final = 1.57712e-13 5.37209e-14
+  Final line search alpha, max atom move = 1 5.37209e-14
   Iterations, force evaluations = 1 2
 
-Pair  time (%) = 0.0264249 (97.0933)
+Pair  time (%) = 0.0168754 (94.614)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000289202 (1.06262)
+Comm  time (%) = 0.000489414 (2.74396)
 Outpt time (%) = 0 (0)
-Other time (%) = 0.000501871 (1.84403)
+Other time (%) = 0.000471234 (2.64204)
 
-Nlocal:    2304 ave 2304 max 2304 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    3852 ave 3852 max 3852 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    62208 ave 62208 max 62208 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-FullNghs:  124416 ave 124416 max 124416 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:    576 ave 576 max 576 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    1692 ave 1692 max 1692 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    15552 ave 15567 max 15532 min
+Histogram: 1 0 0 0 0 0 2 0 0 1
+FullNghs:  31104 ave 31104 max 31104 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 124416
 Ave neighs/atom = 54
@@ -327,28 +308,27 @@ Dangerous builds = 0
   velocity all set 0 0 0
   run 1
 Setting up run ...
- ATC:: conversion factor for energy/vol -> stress 1.60218e+06
- ATC:: cutoff radius 4.95
-Memory usage per processor = 4.86526 Mbytes
+ ATC: computing bond matrix ...........done
+Memory usage per processor = 22.7915 Mbytes
 Step PotEng KinEng Press Lx Ly Lz 
        7   -8156.0325            0   -4124.1199    58.013694        21.69        21.69 
        8   -8156.0325            0   -4124.1199    58.013694        21.69        21.69 
-Loop time of 0.112513 on 1 procs for 1 steps with 2304 atoms
+Loop time of 0.359948 on 4 procs for 1 steps with 2304 atoms
 
-Pair  time (%) = 0.00891304 (7.9218)
+Pair  time (%) = 0.023981 (6.66237)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 9.799e-05 (0.0870923)
-Outpt time (%) = 4.19617e-05 (0.037295)
-Other time (%) = 0.10346 (91.9538)
+Comm  time (%) = 0.0458988 (12.7515)
+Outpt time (%) = 0.0396805 (11.024)
+Other time (%) = 0.250387 (69.5621)
 
-Nlocal:    2304 ave 2304 max 2304 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    3852 ave 3852 max 3852 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    62208 ave 62208 max 62208 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-FullNghs:  124416 ave 124416 max 124416 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:    576 ave 576 max 576 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    1692 ave 1692 max 1692 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    15552 ave 15659 max 15491 min
+Histogram: 2 0 0 1 0 0 0 0 0 1
+FullNghs:  31104 ave 31104 max 31104 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 124416
 Ave neighs/atom = 54
@@ -356,43 +336,42 @@ Neighbor list builds = 0
 Dangerous builds = 0
 next i
 jump in.consistency loop_i
-  #variable s equal 0.02*$i/$n*$L
-  #print ">>> step $i, displacement $s"
   change_box all x scale 1.001 remap
 Changing box ...
   orthogonal box = (-0.115854 -10.845 -10.845) to (57.9559 10.845 10.845)
   minimize  1.e-10 1.e-10 100000 1000000
-WARNING: Resetting reneighboring criteria during minimization (min.cpp:173)
+WARNING: Resetting reneighboring criteria during minimization (../min.cpp:173)
 Setting up minimization ...
-Memory usage per processor = 5.85709 Mbytes
+ ATC: computing bond matrix ...........done
+Memory usage per processor = 23.7835 Mbytes
 Step PotEng KinEng Press Lx Ly Lz 
        8   -8155.9334            0   -5485.7179    58.071707        21.69        21.69 
        9   -8155.9334            0   -5485.7179    58.071707        21.69        21.69 
-Loop time of 0.0272419 on 1 procs for 1 steps with 2304 atoms
+Loop time of 0.0175145 on 4 procs for 1 steps with 2304 atoms
 
 Minimization stats:
   Stopping criterion = energy tolerance
   Energy initial, next-to-last, final = 
-        -8155.93340043     -8155.93340043     -8155.93340043
-  Force two-norm initial, final = 1.09237e-12 6.34198e-13
-  Force max component initial, final = 5.6663e-14 3.73182e-14
-  Final line search alpha, max atom move = 1 3.73182e-14
+        -8155.93340042     -8155.93340042     -8155.93340042
+  Force two-norm initial, final = 1.09341e-12 6.35419e-13
+  Force max component initial, final = 5.68295e-14 3.66235e-14
+  Final line search alpha, max atom move = 1 3.66235e-14
   Iterations, force evaluations = 1 2
 
-Pair  time (%) = 0.0264537 (97.1066)
+Pair  time (%) = 0.0141963 (81.0543)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000288963 (1.06073)
+Comm  time (%) = 0.000411749 (2.3509)
 Outpt time (%) = 0 (0)
-Other time (%) = 0.000499249 (1.83265)
+Other time (%) = 0.0029065 (16.5948)
 
-Nlocal:    2304 ave 2304 max 2304 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    3852 ave 3852 max 3852 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    62208 ave 62208 max 62208 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-FullNghs:  124416 ave 124416 max 124416 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:    576 ave 576 max 576 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    1692 ave 1692 max 1692 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    15552 ave 15569 max 15539 min
+Histogram: 1 0 0 1 1 0 0 0 0 1
+FullNghs:  31104 ave 31104 max 31104 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 124416
 Ave neighs/atom = 54
@@ -401,28 +380,27 @@ Dangerous builds = 0
   velocity all set 0 0 0
   run 1
 Setting up run ...
- ATC:: conversion factor for energy/vol -> stress 1.60218e+06
- ATC:: cutoff radius 4.95
-Memory usage per processor = 4.86526 Mbytes
+ ATC: computing bond matrix ...........done
+Memory usage per processor = 22.7915 Mbytes
 Step PotEng KinEng Press Lx Ly Lz 
        9   -8155.9334            0   -5485.7179    58.071707        21.69        21.69 
       10   -8155.9334            0   -5485.7179    58.071707        21.69        21.69 
-Loop time of 0.11246 on 1 procs for 1 steps with 2304 atoms
+Loop time of 0.450115 on 4 procs for 1 steps with 2304 atoms
 
-Pair  time (%) = 0.00886917 (7.8865)
+Pair  time (%) = 0.0389773 (8.65942)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 9.799e-05 (0.0871331)
-Outpt time (%) = 4.31538e-05 (0.0383725)
-Other time (%) = 0.10345 (91.988)
+Comm  time (%) = 0.0733666 (16.2995)
+Outpt time (%) = 0.057173 (12.7019)
+Other time (%) = 0.280598 (62.3392)
 
-Nlocal:    2304 ave 2304 max 2304 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    3852 ave 3852 max 3852 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    62208 ave 62208 max 62208 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-FullNghs:  124416 ave 124416 max 124416 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:    576 ave 576 max 576 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    1692 ave 1692 max 1692 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    15552 ave 15643 max 15487 min
+Histogram: 1 0 0 2 0 0 0 0 0 1
+FullNghs:  31104 ave 31104 max 31104 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 124416
 Ave neighs/atom = 54
@@ -430,43 +408,42 @@ Neighbor list builds = 0
 Dangerous builds = 0
 next i
 jump in.consistency loop_i
-  #variable s equal 0.02*$i/$n*$L
-  #print ">>> step $i, displacement $s"
   change_box all x scale 1.001 remap
 Changing box ...
   orthogonal box = (-0.144889 -10.845 -10.845) to (57.9849 10.845 10.845)
   minimize  1.e-10 1.e-10 100000 1000000
-WARNING: Resetting reneighboring criteria during minimization (min.cpp:173)
+WARNING: Resetting reneighboring criteria during minimization (../min.cpp:173)
 Setting up minimization ...
-Memory usage per processor = 5.85709 Mbytes
+ ATC: computing bond matrix ...........done
+Memory usage per processor = 23.7835 Mbytes
 Step PotEng KinEng Press Lx Ly Lz 
       10   -8155.8061            0   -6840.8461    58.129779        21.69        21.69 
       11   -8155.8061            0   -6840.8461    58.129779        21.69        21.69 
-Loop time of 0.027277 on 1 procs for 1 steps with 2304 atoms
+Loop time of 0.449937 on 4 procs for 1 steps with 2304 atoms
 
 Minimization stats:
   Stopping criterion = energy tolerance
   Energy initial, next-to-last, final = 
-        -8155.80610649     -8155.80610649     -8155.80610649
-  Force two-norm initial, final = 1.05419e-12 6.87292e-13
-  Force max component initial, final = 5.43445e-14 3.41394e-14
-  Final line search alpha, max atom move = 1 3.41394e-14
+        -8155.80610648     -8155.80610648     -8155.80610648
+  Force two-norm initial, final = 1.05408e-12 6.84939e-13
+  Force max component initial, final = 5.43732e-14 3.31436e-14
+  Final line search alpha, max atom move = 1 3.31436e-14
   Iterations, force evaluations = 1 2
 
-Pair  time (%) = 0.0264866 (97.1025)
+Pair  time (%) = 0.104361 (23.1945)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000291109 (1.06723)
+Comm  time (%) = 0.188499 (41.8945)
 Outpt time (%) = 0 (0)
-Other time (%) = 0.000499249 (1.83029)
+Other time (%) = 0.157078 (34.911)
 
-Nlocal:    2304 ave 2304 max 2304 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    3852 ave 3852 max 3852 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    62208 ave 62208 max 62208 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-FullNghs:  124416 ave 124416 max 124416 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:    576 ave 576 max 576 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    1692 ave 1692 max 1692 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    15552 ave 15561 max 15539 min
+Histogram: 1 0 0 0 0 1 0 1 0 1
+FullNghs:  31104 ave 31104 max 31104 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 124416
 Ave neighs/atom = 54
@@ -475,28 +452,27 @@ Dangerous builds = 0
   velocity all set 0 0 0
   run 1
 Setting up run ...
- ATC:: conversion factor for energy/vol -> stress 1.60218e+06
- ATC:: cutoff radius 4.95
-Memory usage per processor = 4.86526 Mbytes
+ ATC: computing bond matrix ...........done
+Memory usage per processor = 22.7915 Mbytes
 Step PotEng KinEng Press Lx Ly Lz 
       11   -8155.8061            0   -6840.8461    58.129779        21.69        21.69 
       12   -8155.8061            0   -6840.8461    58.129779        21.69        21.69 
-Loop time of 0.112385 on 1 procs for 1 steps with 2304 atoms
+Loop time of 0.307091 on 4 procs for 1 steps with 2304 atoms
 
-Pair  time (%) = 0.00889611 (7.91574)
+Pair  time (%) = 0.0184542 (6.00937)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 9.70364e-05 (0.0863428)
-Outpt time (%) = 4.31538e-05 (0.0383981)
-Other time (%) = 0.103349 (91.9595)
+Comm  time (%) = 0.0285818 (9.30729)
+Outpt time (%) = 0.039631 (12.9053)
+Other time (%) = 0.220424 (71.778)
 
-Nlocal:    2304 ave 2304 max 2304 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    3852 ave 3852 max 3852 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    62208 ave 62208 max 62208 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-FullNghs:  124416 ave 124416 max 124416 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:    576 ave 576 max 576 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    1692 ave 1692 max 1692 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    15552 ave 15606 max 15482 min
+Histogram: 1 0 1 0 0 0 0 0 0 2
+FullNghs:  31104 ave 31104 max 31104 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 124416
 Ave neighs/atom = 54
@@ -504,43 +480,42 @@ Neighbor list builds = 0
 Dangerous builds = 0
 next i
 jump in.consistency loop_i
-  #variable s equal 0.02*$i/$n*$L
-  #print ">>> step $i, displacement $s"
   change_box all x scale 1.001 remap
 Changing box ...
   orthogonal box = (-0.173954 -10.845 -10.845) to (58.014 10.845 10.845)
   minimize  1.e-10 1.e-10 100000 1000000
-WARNING: Resetting reneighboring criteria during minimization (min.cpp:173)
+WARNING: Resetting reneighboring criteria during minimization (../min.cpp:173)
 Setting up minimization ...
-Memory usage per processor = 5.85709 Mbytes
+ ATC: computing bond matrix ...........done
+Memory usage per processor = 23.7835 Mbytes
 Step PotEng KinEng Press Lx Ly Lz 
       12   -8155.6506            0   -8189.4905    58.187909        21.69        21.69 
       13   -8155.6506            0   -8189.4905    58.187909        21.69        21.69 
-Loop time of 0.0274398 on 1 procs for 1 steps with 2304 atoms
+Loop time of 0.00754917 on 4 procs for 1 steps with 2304 atoms
 
 Minimization stats:
   Stopping criterion = energy tolerance
   Energy initial, next-to-last, final = 
-        -8155.65063643     -8155.65063643     -8155.65063643
-  Force two-norm initial, final = 1.14301e-12 6.31459e-13
-  Force max component initial, final = 7.85908e-14 4.51722e-14
-  Final line search alpha, max atom move = 1 4.51722e-14
+        -8155.65063641     -8155.65063641     -8155.65063641
+  Force two-norm initial, final = 1.14329e-12 6.31554e-13
+  Force max component initial, final = 7.85249e-14 4.52208e-14
+  Final line search alpha, max atom move = 1 4.52208e-14
   Iterations, force evaluations = 1 2
 
-Pair  time (%) = 0.026654 (97.1362)
+Pair  time (%) = 0.00676924 (89.6687)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000284195 (1.0357)
+Comm  time (%) = 0.00040102 (5.31211)
 Outpt time (%) = 0 (0)
-Other time (%) = 0.000501633 (1.82812)
+Other time (%) = 0.000378907 (5.01919)
 
-Nlocal:    2304 ave 2304 max 2304 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    3852 ave 3852 max 3852 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    62208 ave 62208 max 62208 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-FullNghs:  124416 ave 124416 max 124416 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:    576 ave 576 max 576 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    1692 ave 1692 max 1692 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    15552 ave 15560 max 15537 min
+Histogram: 1 0 0 0 0 0 1 0 0 2
+FullNghs:  31104 ave 31104 max 31104 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 124416
 Ave neighs/atom = 54
@@ -549,28 +524,27 @@ Dangerous builds = 0
   velocity all set 0 0 0
   run 1
 Setting up run ...
- ATC:: conversion factor for energy/vol -> stress 1.60218e+06
- ATC:: cutoff radius 4.95
-Memory usage per processor = 4.86526 Mbytes
+ ATC: computing bond matrix ...........done
+Memory usage per processor = 22.7915 Mbytes
 Step PotEng KinEng Press Lx Ly Lz 
       13   -8155.6506            0   -8189.4905    58.187909        21.69        21.69 
       14   -8155.6506            0   -8189.4905    58.187909        21.69        21.69 
-Loop time of 0.112741 on 1 procs for 1 steps with 2304 atoms
+Loop time of 0.280009 on 4 procs for 1 steps with 2304 atoms
 
-Pair  time (%) = 0.00890708 (7.90048)
+Pair  time (%) = 0.0315212 (11.2572)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 9.60827e-05 (0.0852243)
-Outpt time (%) = 4.19617e-05 (0.0372195)
-Other time (%) = 0.103696 (91.9771)
+Comm  time (%) = 0.0258814 (9.24305)
+Outpt time (%) = 0.0120553 (4.30532)
+Other time (%) = 0.210551 (75.1944)
 
-Nlocal:    2304 ave 2304 max 2304 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    3852 ave 3852 max 3852 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    62208 ave 62208 max 62208 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-FullNghs:  124416 ave 124416 max 124416 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:    576 ave 576 max 576 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    1692 ave 1692 max 1692 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    15552 ave 15642 max 15467 min
+Histogram: 1 0 1 0 0 0 0 1 0 1
+FullNghs:  31104 ave 31104 max 31104 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 124416
 Ave neighs/atom = 54
@@ -578,43 +552,42 @@ Neighbor list builds = 0
 Dangerous builds = 0
 next i
 jump in.consistency loop_i
-  #variable s equal 0.02*$i/$n*$L
-  #print ">>> step $i, displacement $s"
   change_box all x scale 1.001 remap
 Changing box ...
   orthogonal box = (-0.203048 -10.845 -10.845) to (58.043 10.845 10.845)
   minimize  1.e-10 1.e-10 100000 1000000
-WARNING: Resetting reneighboring criteria during minimization (min.cpp:173)
+WARNING: Resetting reneighboring criteria during minimization (../min.cpp:173)
 Setting up minimization ...
-Memory usage per processor = 5.85709 Mbytes
+ ATC: computing bond matrix ...........done
+Memory usage per processor = 23.7835 Mbytes
 Step PotEng KinEng Press Lx Ly Lz 
       14    -8155.467            0   -9531.6689    58.246097        21.69        21.69 
       15    -8155.467            0   -9531.6689    58.246097        21.69        21.69 
-Loop time of 0.0274611 on 1 procs for 1 steps with 2304 atoms
+Loop time of 0.20262 on 4 procs for 1 steps with 2304 atoms
 
 Minimization stats:
   Stopping criterion = energy tolerance
   Energy initial, next-to-last, final = 
         -8155.46703122     -8155.46703122     -8155.46703122
-  Force two-norm initial, final = 1.00962e-12 7.12727e-13
-  Force max component initial, final = 5.63612e-14 4.59164e-14
-  Final line search alpha, max atom move = 1 4.59164e-14
+  Force two-norm initial, final = 1.009e-12 7.09731e-13
+  Force max component initial, final = 5.45874e-14 4.54584e-14
+  Final line search alpha, max atom move = 1 4.54584e-14
   Iterations, force evaluations = 1 2
 
-Pair  time (%) = 0.02668 (97.1558)
+Pair  time (%) = 0.0793063 (39.1404)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000283003 (1.03056)
+Comm  time (%) = 0.062916 (31.0512)
 Outpt time (%) = 0 (0)
-Other time (%) = 0.000498056 (1.81368)
+Other time (%) = 0.0603979 (29.8084)
 
-Nlocal:    2304 ave 2304 max 2304 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    3852 ave 3852 max 3852 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    62208 ave 62208 max 62208 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-FullNghs:  124416 ave 124416 max 124416 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:    576 ave 576 max 576 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    1692 ave 1692 max 1692 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    15552 ave 15572 max 15532 min
+Histogram: 1 0 1 0 0 0 0 1 0 1
+FullNghs:  31104 ave 31104 max 31104 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 124416
 Ave neighs/atom = 54
@@ -623,28 +596,27 @@ Dangerous builds = 0
   velocity all set 0 0 0
   run 1
 Setting up run ...
- ATC:: conversion factor for energy/vol -> stress 1.60218e+06
- ATC:: cutoff radius 4.95
-Memory usage per processor = 4.86526 Mbytes
+ ATC: computing bond matrix ...........done
+Memory usage per processor = 22.7915 Mbytes
 Step PotEng KinEng Press Lx Ly Lz 
       15    -8155.467            0   -9531.6689    58.246097        21.69        21.69 
       16    -8155.467            0   -9531.6689    58.246097        21.69        21.69 
-Loop time of 0.112602 on 1 procs for 1 steps with 2304 atoms
+Loop time of 0.163192 on 4 procs for 1 steps with 2304 atoms
 
-Pair  time (%) = 0.00888014 (7.88631)
+Pair  time (%) = 0.0239644 (14.6848)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 9.67979e-05 (0.0859647)
-Outpt time (%) = 4.19617e-05 (0.0372655)
-Other time (%) = 0.103583 (91.9905)
+Comm  time (%) = 0.0332344 (20.3652)
+Outpt time (%) = 0.000598073 (0.366484)
+Other time (%) = 0.105395 (64.5835)
 
-Nlocal:    2304 ave 2304 max 2304 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    3852 ave 3852 max 3852 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    62208 ave 62208 max 62208 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-FullNghs:  124416 ave 124416 max 124416 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:    576 ave 576 max 576 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    1692 ave 1692 max 1692 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    15552 ave 15669 max 15428 min
+Histogram: 1 0 0 1 0 0 0 1 0 1
+FullNghs:  31104 ave 31104 max 31104 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 124416
 Ave neighs/atom = 54
@@ -652,43 +624,42 @@ Neighbor list builds = 0
 Dangerous builds = 0
 next i
 jump in.consistency loop_i
-  #variable s equal 0.02*$i/$n*$L
-  #print ">>> step $i, displacement $s"
   change_box all x scale 1.001 remap
 Changing box ...
   orthogonal box = (-0.232171 -10.845 -10.845) to (58.0722 10.845 10.845)
   minimize  1.e-10 1.e-10 100000 1000000
-WARNING: Resetting reneighboring criteria during minimization (min.cpp:173)
+WARNING: Resetting reneighboring criteria during minimization (../min.cpp:173)
 Setting up minimization ...
-Memory usage per processor = 5.85709 Mbytes
+ ATC: computing bond matrix ...........done
+Memory usage per processor = 23.7835 Mbytes
 Step PotEng KinEng Press Lx Ly Lz 
       16   -8155.2553            0   -10867.404    58.304343        21.69        21.69 
       17   -8155.2553            0   -10867.404    58.304343        21.69        21.69 
-Loop time of 0.0274651 on 1 procs for 1 steps with 2304 atoms
+Loop time of 0.250275 on 4 procs for 1 steps with 2304 atoms
 
 Minimization stats:
   Stopping criterion = energy tolerance
   Energy initial, next-to-last, final = 
         -8155.25533188     -8155.25533188     -8155.25533188
-  Force two-norm initial, final = 1.43478e-12 7.938e-13
-  Force max component initial, final = 8.71334e-14 3.40752e-14
-  Final line search alpha, max atom move = 1 3.40752e-14
+  Force two-norm initial, final = 1.43358e-12 7.91452e-13
+  Force max component initial, final = 8.69461e-14 3.39728e-14
+  Final line search alpha, max atom move = 1 3.39728e-14
   Iterations, force evaluations = 1 2
 
-Pair  time (%) = 0.0266731 (97.1162)
+Pair  time (%) = 0.089587 (35.7955)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000295162 (1.07468)
+Comm  time (%) = 0.111741 (44.6472)
 Outpt time (%) = 0 (0)
-Other time (%) = 0.000496864 (1.80907)
+Other time (%) = 0.0489472 (19.5574)
 
-Nlocal:    2304 ave 2304 max 2304 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    3852 ave 3852 max 3852 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    62208 ave 62208 max 62208 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-FullNghs:  124416 ave 124416 max 124416 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:    576 ave 576 max 576 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    1692 ave 1692 max 1692 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    15552 ave 15577 max 15529 min
+Histogram: 2 0 0 0 0 0 0 0 1 1
+FullNghs:  31104 ave 31104 max 31104 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 124416
 Ave neighs/atom = 54
@@ -697,28 +668,27 @@ Dangerous builds = 0
   velocity all set 0 0 0
   run 1
 Setting up run ...
- ATC:: conversion factor for energy/vol -> stress 1.60218e+06
- ATC:: cutoff radius 4.95
-Memory usage per processor = 4.86526 Mbytes
+ ATC: computing bond matrix ...........done
+Memory usage per processor = 22.7915 Mbytes
 Step PotEng KinEng Press Lx Ly Lz 
       17   -8155.2553            0   -10867.404    58.304343        21.69        21.69 
       18   -8155.2553            0   -10867.404    58.304343        21.69        21.69 
-Loop time of 0.112447 on 1 procs for 1 steps with 2304 atoms
+Loop time of 0.283027 on 4 procs for 1 steps with 2304 atoms
 
-Pair  time (%) = 0.00889087 (7.90672)
+Pair  time (%) = 0.0023123 (0.816991)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000101805 (0.0905357)
-Outpt time (%) = 4.19617e-05 (0.0373168)
-Other time (%) = 0.103412 (91.9654)
+Comm  time (%) = 0.000139952 (0.0494482)
+Outpt time (%) = 0.039601 (13.992)
+Other time (%) = 0.240974 (85.1416)
 
-Nlocal:    2304 ave 2304 max 2304 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    3852 ave 3852 max 3852 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    62208 ave 62208 max 62208 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-FullNghs:  124416 ave 124416 max 124416 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:    576 ave 576 max 576 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    1692 ave 1692 max 1692 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    15552 ave 15638 max 15446 min
+Histogram: 1 0 0 0 1 0 0 1 0 1
+FullNghs:  31104 ave 31104 max 31104 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 124416
 Ave neighs/atom = 54
@@ -726,43 +696,42 @@ Neighbor list builds = 0
 Dangerous builds = 0
 next i
 jump in.consistency loop_i
-  #variable s equal 0.02*$i/$n*$L
-  #print ">>> step $i, displacement $s"
   change_box all x scale 1.001 remap
 Changing box ...
   orthogonal box = (-0.261324 -10.845 -10.845) to (58.1013 10.845 10.845)
   minimize  1.e-10 1.e-10 100000 1000000
-WARNING: Resetting reneighboring criteria during minimization (min.cpp:173)
+WARNING: Resetting reneighboring criteria during minimization (../min.cpp:173)
 Setting up minimization ...
-Memory usage per processor = 5.85709 Mbytes
+ ATC: computing bond matrix ...........done
+Memory usage per processor = 23.7835 Mbytes
 Step PotEng KinEng Press Lx Ly Lz 
       18   -8155.0156            0   -12196.682    58.362647        21.69        21.69 
       19   -8155.0156            0   -12196.682    58.362647        21.69        21.69 
-Loop time of 0.027447 on 1 procs for 1 steps with 2304 atoms
+Loop time of 0.437147 on 4 procs for 1 steps with 2304 atoms
 
 Minimization stats:
   Stopping criterion = energy tolerance
   Energy initial, next-to-last, final = 
         -8155.01558008     -8155.01558008     -8155.01558008
-  Force two-norm initial, final = 1.28885e-12 5.67844e-13
-  Force max component initial, final = 7.82412e-14 4.01363e-14
-  Final line search alpha, max atom move = 1 4.01363e-14
+  Force two-norm initial, final = 1.28582e-12 5.73333e-13
+  Force max component initial, final = 7.8125e-14 4.13116e-14
+  Final line search alpha, max atom move = 1 4.13116e-14
   Iterations, force evaluations = 1 2
 
-Pair  time (%) = 0.0266609 (97.1361)
+Pair  time (%) = 0.0894799 (20.4691)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000284195 (1.03543)
+Comm  time (%) = 0.162141 (37.0906)
 Outpt time (%) = 0 (0)
-Other time (%) = 0.000501871 (1.82851)
+Other time (%) = 0.185526 (42.4403)
 
-Nlocal:    2304 ave 2304 max 2304 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    3852 ave 3852 max 3852 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    62208 ave 62208 max 62208 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-FullNghs:  124416 ave 124416 max 124416 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:    576 ave 576 max 576 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    1692 ave 1692 max 1692 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    15552 ave 15592 max 15514 min
+Histogram: 1 0 1 0 0 0 0 1 0 1
+FullNghs:  31104 ave 31104 max 31104 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 124416
 Ave neighs/atom = 54
@@ -771,28 +740,27 @@ Dangerous builds = 0
   velocity all set 0 0 0
   run 1
 Setting up run ...
- ATC:: conversion factor for energy/vol -> stress 1.60218e+06
- ATC:: cutoff radius 4.95
-Memory usage per processor = 4.86526 Mbytes
+ ATC: computing bond matrix ...........done
+Memory usage per processor = 22.7915 Mbytes
 Step PotEng KinEng Press Lx Ly Lz 
       19   -8155.0156            0   -12196.682    58.362647        21.69        21.69 
       20   -8155.0156            0   -12196.682    58.362647        21.69        21.69 
-Loop time of 0.112461 on 1 procs for 1 steps with 2304 atoms
+Loop time of 0.0860269 on 4 procs for 1 steps with 2304 atoms
 
-Pair  time (%) = 0.00890493 (7.91825)
+Pair  time (%) = 0.00462395 (5.375)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 9.799e-05 (0.0871326)
-Outpt time (%) = 4.00543e-05 (0.0356162)
-Other time (%) = 0.103418 (91.959)
+Comm  time (%) = 0.0131851 (15.3268)
+Outpt time (%) = 0.0006001 (0.697572)
+Other time (%) = 0.0676177 (78.6007)
 
-Nlocal:    2304 ave 2304 max 2304 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    3852 ave 3852 max 3852 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    62208 ave 62208 max 62208 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-FullNghs:  124416 ave 124416 max 124416 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:    576 ave 576 max 576 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    1692 ave 1692 max 1692 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    15552 ave 15677 max 15419 min
+Histogram: 1 0 0 1 0 0 1 0 0 1
+FullNghs:  31104 ave 31104 max 31104 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 124416
 Ave neighs/atom = 54
@@ -800,43 +768,42 @@ Neighbor list builds = 0
 Dangerous builds = 0
 next i
 jump in.consistency loop_i
-  #variable s equal 0.02*$i/$n*$L
-  #print ">>> step $i, displacement $s"
   change_box all x scale 1.001 remap
 Changing box ...
   orthogonal box = (-0.290505 -10.845 -10.845) to (58.1305 10.845 10.845)
   minimize  1.e-10 1.e-10 100000 1000000
-WARNING: Resetting reneighboring criteria during minimization (min.cpp:173)
+WARNING: Resetting reneighboring criteria during minimization (../min.cpp:173)
 Setting up minimization ...
-Memory usage per processor = 5.85709 Mbytes
+ ATC: computing bond matrix ...........done
+Memory usage per processor = 23.7835 Mbytes
 Step PotEng KinEng Press Lx Ly Lz 
       20   -8154.7478            0   -13519.498     58.42101        21.69        21.69 
       21   -8154.7478            0   -13519.498     58.42101        21.69        21.69 
-Loop time of 0.0275021 on 1 procs for 1 steps with 2304 atoms
+Loop time of 0.00747728 on 4 procs for 1 steps with 2304 atoms
 
 Minimization stats:
   Stopping criterion = energy tolerance
   Energy initial, next-to-last, final = 
-         -8154.7478183      -8154.7478183      -8154.7478183
-  Force two-norm initial, final = 1.24003e-12 7.60434e-13
-  Force max component initial, final = 5.33219e-14 4.33395e-14
-  Final line search alpha, max atom move = 1 4.33395e-14
+        -8154.74781829     -8154.74781829     -8154.74781829
+  Force two-norm initial, final = 1.23916e-12 7.54091e-13
+  Force max component initial, final = 6.14256e-14 4.77318e-14
+  Final line search alpha, max atom move = 1 4.77318e-14
   Iterations, force evaluations = 1 2
 
-Pair  time (%) = 0.02672 (97.1565)
+Pair  time (%) = 0.00672746 (89.9719)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000285149 (1.03683)
+Comm  time (%) = 0.000367939 (4.92076)
 Outpt time (%) = 0 (0)
-Other time (%) = 0.000496864 (1.80664)
+Other time (%) = 0.000381887 (5.1073)
 
-Nlocal:    2304 ave 2304 max 2304 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    3852 ave 3852 max 3852 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    62208 ave 62208 max 62208 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-FullNghs:  124416 ave 124416 max 124416 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:    576 ave 576 max 576 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    1692 ave 1692 max 1692 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    15552 ave 15601 max 15502 min
+Histogram: 1 0 1 0 0 0 0 1 0 1
+FullNghs:  31104 ave 31104 max 31104 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 124416
 Ave neighs/atom = 54
@@ -845,28 +812,27 @@ Dangerous builds = 0
   velocity all set 0 0 0
   run 1
 Setting up run ...
- ATC:: conversion factor for energy/vol -> stress 1.60218e+06
- ATC:: cutoff radius 4.95
-Memory usage per processor = 4.86526 Mbytes
+ ATC: computing bond matrix ...........done
+Memory usage per processor = 22.7915 Mbytes
 Step PotEng KinEng Press Lx Ly Lz 
       21   -8154.7478            0   -13519.498     58.42101        21.69        21.69 
       22   -8154.7478            0   -13519.498     58.42101        21.69        21.69 
-Loop time of 0.11249 on 1 procs for 1 steps with 2304 atoms
+Loop time of 0.407448 on 4 procs for 1 steps with 2304 atoms
 
-Pair  time (%) = 0.00891304 (7.92341)
+Pair  time (%) = 0.0466059 (11.4385)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 9.799e-05 (0.08711)
-Outpt time (%) = 4.19617e-05 (0.0373026)
-Other time (%) = 0.103437 (91.9522)
+Comm  time (%) = 0.0559623 (13.7348)
+Outpt time (%) = 0.0544453 (13.3625)
+Other time (%) = 0.250434 (61.4641)
 
-Nlocal:    2304 ave 2304 max 2304 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    3852 ave 3852 max 3852 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    62208 ave 62208 max 62208 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-FullNghs:  124416 ave 124416 max 124416 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:    576 ave 576 max 576 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    1692 ave 1692 max 1692 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    15552 ave 15703 max 15408 min
+Histogram: 1 0 1 0 0 0 1 0 0 1
+FullNghs:  31104 ave 31104 max 31104 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 124416
 Ave neighs/atom = 54

@@ -1,88 +1,88 @@
-LAMMPS (12 Jan 2013)
-dimension       3
-boundary        p p p
-lattice         fcc  5.376 orient x 1 0 0 orient y 0 1 0 orient z 0 0 1
+LAMMPS (14 Aug 2013)
+dimension 3
+boundary  p p p
+lattice 	fcc  5.376 orient x 1 0 0 orient y 0 1 0 orient z 0 0 1
 Lattice spacing in x,y,z = 5.376 5.376 5.376
-region          box block 0 5 0 5 0 5
-read_data       nvt.data
+region  	box block 0 5 0 5 0 5
+read_data	nvt.data
 Reading data file ...
   orthogonal box = (0 0 0) to (26.88 26.88 26.88)
-  1 by 1 by 1 MPI processor grid
+  1 by 2 by 2 MPI processor grid
   500 atoms
   500 velocities
-
-pair_style      lj/cut 13.0
+pair_style  lj/cut 13.0
 pair_coeff	1 1 0.2381 3.405
-
 group		internal region box
 500 atoms in group internal
+fix         ATC internal atc field
+ATC: constructing shape function field estimate
+ ATC: peratom PE compute created with ID: 3
+fix_modify  ATC mesh create 1 1 1 box p p p
+ ATC: created uniform mesh with 8 nodes, 1 unique nodes, and 1 elements
+fix_modify  ATC atom_element_map eulerian 100
+fix_modify  ATC fields none
+fix_modify  ATC fields add mass_density energy stress temperature kinetic_temperature
+fix_modify  ATC fields add velocity thermal_energy kinetic_energy
+fix_modify  ATC output nvtFE 100 text
+ ATC: Warning : text output can create _LARGE_ files
+ ATC: output custom names:
 
-fix             ATC internal atc hardy
-Constructing ATC transfer (hardy)
-atomPE compute created with ID: 3
-fix_modify	ATC fem create mesh 1 1 1 box p p p
- ATC:: created FEM Mesh with 8 Global Nodes, 1 Unique Nodes, and 1 Elements
-fix_modify	ATC atom_element_map eulerian 100
-fix_modify	ATC transfer fields none
-fix_modify	ATC transfer fields add density energy stress temperature
-fix_modify	ATC transfer output nvtFE 100 text
- ATC:: Warning : text output can create _LARGE_ files
+fix         PP  internal atc field
+ATC: constructing shape function field estimate
+ ATC: peratom PE compute created with ID: 3
+fix_modify  PP  filter type step # defaults to running
+fix_modify  PP  filter on
+fix_modify  PP  mesh create 1 1 1 box p p p
+ ATC: created uniform mesh with 8 nodes, 1 unique nodes, and 1 elements
+fix_modify  PP  atom_element_map eulerian 100
+fix_modify  PP  fields add mass_density energy stress temperature kinetic_temperature
+fix_modify  PP  fields add velocity thermal_energy kinetic_energy
+fix_modify  PP  output nvtPP 100 text
+ ATC: Warning : text output can create _LARGE_ files
+ ATC: output custom names:
 
 thermo		100
 compute_modify	thermo_temp extra 0
-thermo_style 	custom step temp etotal ke pe press
-log		nvt.log
-
+thermo_style 	custom step temp etotal ke pe press vol
 timestep 	4.0
 reset_timestep	0
-fix 		NVT all nvt temp 30 30 10 drag 0.2 tchain 1
+fix 		NVT all nvt temp 30 30 10.0 drag 0.2 tchain 1
+log		nvt.log
 run 		1000
 Setting up run ...
- ATC:: computing bond matrix ...........done
- ATC:: conversion factor for energy/vol -> stress 68568.4
- ATC:: cutoff radius 13
-Memory usage per processor = 4.5546 Mbytes
-Step Temp TotEng KinEng PotEng Press 
-       0    31.104176   -898.55796     46.35782   -944.91578   -584.20571 
- ATC:: computing bond matrix ...........done
-     100    29.954062   -903.43223    44.643685   -948.07591   -646.45662 
- ATC:: computing bond matrix ...........done
-     200    29.952147   -900.39726    44.640831   -945.03809   -583.44492 
- ATC:: computing bond matrix ...........done
-     300     29.91148   -902.38105     44.58022   -946.96127    -626.6874 
- ATC:: computing bond matrix ...........done
-     400    29.936718   -900.07678    44.617835   -944.69461   -580.74144 
- ATC:: computing bond matrix ...........done
-     500    29.952289   -899.58418    44.641042   -944.22522    -570.0108 
- ATC:: computing bond matrix ...........done
-     600    29.980195   -901.64307    44.682633    -946.3257   -614.13849 
- ATC:: computing bond matrix ...........done
-     700     29.88447   -901.31686    44.539965   -945.85683   -604.74508 
- ATC:: computing bond matrix ...........done
-     800    29.876839   -900.32866    44.528592   -944.85725   -587.67852 
- ATC:: computing bond matrix ...........done
-     900    29.966977   -899.86769    44.662933   -944.53062   -581.80498 
- ATC:: computing bond matrix ...........done
-    1000    29.907621   -901.57887    44.574469   -946.15334   -613.00908 
-Loop time of 65.0846 on 1 procs for 1000 steps with 500 atoms
+ ATC: computing bond matrix ...........done
+ ATC: computing bond matrix ...........done
+Memory usage per processor = 40.9608 Mbytes
+Step Temp TotEng KinEng PotEng Press Volume 
+       0    31.104176   -898.55796     46.35782   -944.91578   -584.20571    19421.725 
+     100    29.954062   -903.43223    44.643685   -948.07591   -646.45662    19421.725 
+     200    29.952147   -900.39726    44.640831   -945.03809   -583.44492    19421.725 
+     300     29.91148   -902.38105     44.58022   -946.96127    -626.6874    19421.725 
+     400    29.936718   -900.07678    44.617835   -944.69461   -580.74144    19421.725 
+     500    29.952289   -899.58418    44.641042   -944.22522    -570.0108    19421.725 
+     600    29.980195   -901.64307    44.682633    -946.3257   -614.13849    19421.725 
+     700     29.88447   -901.31686    44.539965   -945.85683   -604.74508    19421.725 
+     800    29.876839   -900.32866    44.528592   -944.85725   -587.67852    19421.725 
+     900    29.966977   -899.86769    44.662933   -944.53062   -581.80498    19421.725 
+    1000    29.907621   -901.57887    44.574469   -946.15334   -613.00908    19421.725 
+Loop time of 6.81743 on 4 procs for 1000 steps with 500 atoms
 
-Pair  time (%) = 4.38716 (6.7407)
+Pair  time (%) = 0.99375 (14.5766)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.0962148 (0.14783)
-Outpt time (%) = 0.000242472 (0.000372548)
-Other time (%) = 60.601 (93.1111)
+Comm  time (%) = 2.8781 (42.2167)
+Outpt time (%) = 0.115153 (1.6891)
+Other time (%) = 2.83043 (41.5175)
 
-Nlocal:    500 ave 500 max 500 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    4130 ave 4130 max 4130 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    91149 ave 91149 max 91149 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-FullNghs:  182298 ave 182298 max 182298 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:    125 ave 129 max 121 min
+Histogram: 1 0 0 0 0 2 0 0 0 1
+Nghost:    2563 ave 2567 max 2559 min
+Histogram: 1 0 0 0 0 2 0 0 0 1
+Neighs:    22787.2 ave 23476 max 22083 min
+Histogram: 1 0 0 0 0 2 0 0 0 1
+FullNghs:  45574.5 ave 47047 max 44066 min
+Histogram: 1 0 0 0 0 2 0 0 0 1
 
 Total # of neighbors = 182298
 Ave neighs/atom = 364.596
 Neighbor list builds = 0
 Dangerous builds = 0
-

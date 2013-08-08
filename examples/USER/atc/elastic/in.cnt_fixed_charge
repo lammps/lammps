@@ -1,0 +1,145 @@
+echo both
+units		metal
+atom_style charge
+dielectric      1.
+
+variable type string "_charge"
+boundary	s s f
+# read in CNT
+read_data  cnt_9_0_100${type}.data
+lattice       diamond  3.6 # NOTE ???
+pair_style  airebo 3.0
+pair_coeff  * * ./CH.airebo C
+mass          *  12.01
+
+# PARAMETERS-----------------------------
+variable dt equal 0.0005
+variable L equal zhi-zlo
+variable zhi equal zhi
+variable zTip equal ${zhi}-2.0
+variable zFree equal zhi
+variable R equal 12.1/2
+variable xhiFE equal 5.0*$R
+variable xloFE equal -${xhiFE}
+variable yhiFE equal $R
+variable yloFE equal -${yhiFE}
+variable zloFE equal zlo+10 # create fixed ghosts
+variable zhiFE equal zhi+(zhi-${zloFE})/12*2
+variable Lfree equal zhi-${zloFE}
+variable nx equal 10 # 5
+variable nz equal 14 # 12
+print "Length $L [${zloFE}, ${zhiFE}] ${zTip}"
+
+#variable E  equal 0.1  # bias 1.0
+variable Vb equal 0.0 # bias
+variable Vg equal 0.5 # gate/modulation
+print "bias voltage ${Vb}, gate voltage ${Vg}"
+
+variable n equal 100000
+variable s equal 250
+# END -----------------------------------
+
+# all atoms simulation
+region		feRegion block ${xloFE} ${xhiFE} ${yloFE} ${yhiFE} ${zloFE} ${zhiFE} units box
+group		internal region feRegion
+group		fixed subtract all internal
+fix FIX fixed setforce 0 0 0
+thermo 100
+#minimize 0 0 1000 1000
+#write_restart cnt_in_box0.rst
+
+region		TIP block INF INF INF INF ${zTip} INF  units box
+group		TIP region TIP
+
+variable nAll   equal count(all)
+variable nGhost equal count(all)-count(internal)
+variable nTip   equal count(TIP)
+print ">>> number of stationary ghosts:  ${nGhost} of ${nAll}"
+print ">>> number of tip atoms :  ${nTip}"
+
+neighbor	5. bin
+neigh_modify	every 10 delay 0 check no
+timestep        ${dt} 
+variable tag string "cnt_fixed_charge"
+
+# set charge on tip
+variable C equal -0.1 # -0.01 -0.0001102
+print "charge $C [e]"
+variable c equal $C/${nTip}
+set group TIP charge $c
+
+# coupling
+fix         AtC internal   atc electrostatic CNT_id.mat
+fix_modify  AtC include atomic_charge
+fix_modify  AtC internal_quadrature off
+# note weights don't affect phi or f
+fix_modify  AtC atom_weight constant internal 1.0
+fix_modify  AtC extrinsic short_range off
+#fix_modify  AtC atom_element_map eulerian 1
+fix_modify  AtC control  momentum flux
+
+
+fix_modify  AtC mesh create ${nx} 1 ${nz} feRegion f p f
+
+# initial conditions
+fix_modify  AtC  initial displacement x all 0.0
+fix_modify  AtC  initial displacement y all 0.0
+fix_modify  AtC  initial displacement z all 0.0
+fix_modify  AtC  initial velocity x all 0.0
+fix_modify  AtC  initial velocity y all 0.0
+fix_modify  AtC  initial velocity z all 0.0
+fix_modify  AtC  initial electric_potential all 0.0
+
+# node sets
+variable t equal 1.1*$R
+fix_modify  AtC mesh create_nodeset tube -$t $t -$t $t ${zloFE} ${zFree} units box
+fix_modify  AtC mesh create_nodeset lefttube -$t $t -$t $t ${zloFE} ${zloFE} units box
+fix_modify  AtC mesh create_nodeset rbc INF INF INF INF ${zhiFE} ${zhiFE} units box
+fix_modify  AtC mesh create_nodeset lbc INF INF INF INF ${zloFE} ${zloFE} units box
+fix_modify  AtC mesh create_nodeset top ${xhiFE} ${xhiFE} INF INF INF INF units box
+fix_modify  AtC mesh create_nodeset bot ${xloFE} ${xloFE} INF INF INF INF units box
+
+# boundary conditions
+fix_modify AtC  fix displacement x lbc 0.
+fix_modify AtC  fix displacement y lbc 0.
+fix_modify AtC  fix displacement z lbc 0.
+fix_modify AtC  fix velocity     x lbc 0.
+fix_modify AtC  fix velocity     y lbc 0.
+fix_modify AtC  fix velocity     z lbc 0.
+# ground
+fix_modify AtC  fix electric_potential lbc 0
+# bias
+fix_modify AtC  fix electric_potential rbc ${Vb}
+# gate
+fix_modify AtC  fix electric_potential bot ${Vg} 
+
+# run
+compute CM TIP com
+compute q all property/atom q
+compute Q  all reduce sum c_q
+compute FSUM all reduce sum fx fy fz
+thermo_style    custom step etotal ke c_CM[1] c_CM[2] c_CM[3]  &
+  c_Q  f_AtC[4]  f_AtC[5]  f_AtC[6] f_AtC[7] f_FIX[1] f_FIX[2] f_FIX[3] f_AtC c_FSUM[1]
+thermo          $s
+log ${tag}.log
+#run   $n 
+#run   $n
+thermo 10
+timestep   0.0
+min_modify      line quadratic
+minimize 0 0 1000 1000
+
+# u = F L^3 / 3 EI --> EI = F L^3 / 3 u
+variable u equal c_CM[1]
+variable F equal f_AtC[5]
+# [eV/A * A^2] --> [N m]
+variable eV2J equal 1.60217646e-19
+variable A2m  equal 1.e-10
+variable EI equal $F*${Lfree}*${Lfree}*${Lfree}/3./$u
+variable EI equal ${EI}*${eV2J}*${A2m}
+print "flexural rigidity ${EI}  [Nm^2]  NOTE z force"
+# flexural rigidity 6.716732985e-25  [Nm^2]
+
+fix_modify      AtC  output  ${tag}FE 1 full_text 
+fix_modify      AtC  output  index step      
+run 1

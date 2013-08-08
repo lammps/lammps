@@ -1,9 +1,6 @@
-LAMMPS (12 Jan 2013)
-
+LAMMPS (14 Aug 2013)
 units		metal
 atom_style	atomic
-atom_modify     sort 0 1
-
 # create domain
 lattice         fcc 3.615 origin 0.25 0.25 0.25
 Lattice spacing in x,y,z = 3.615 3.615 3.615
@@ -14,123 +11,103 @@ region		mdInternal block -3 3 -3 3 -3 3
 boundary	p p p
 create_box	1 simRegion
 Created orthogonal box = (-10.845 -10.845 -10.845) to (10.845 10.845 10.845)
-  1 by 1 by 1 MPI processor grid
-
+  1 by 2 by 2 MPI processor grid
 # create atoms
 create_atoms	1 region mdRegion
 Created 864 atoms
 mass		1 63.550
-
-# specify interal/ghost atoms
+# specify interal atoms
 group		internal region mdInternal
 864 atoms in group internal
-#group		ghost subtract all internal
-
 # specify inter-atomic potential
 pair_style	eam
 pair_coeff  	* * ../../../../potentials/Cu_u3.eam
-
 # specify neighbor/re-neighboring parameters
 neighbor	0.3 bin
 neigh_modify	every 10 delay 0 check no
-
 # setup thermal output
 thermo		10
 thermo_style custom step pe ke press lx ly lz
-
-
 # time integrator
-fix		NVE all nve
-
+# fix		NVE all nve
 #               ID  group atc PhysicsType ParameterFile
-fix             AtC internal   atc hardy
-Constructing ATC transfer (hardy)
-atomPE compute created with ID: 3
-fix_modify      AtC transfer fields none
-fix_modify      AtC transfer fields add density
-fix_modify      AtC transfer fields add energy
-fix_modify      AtC transfer fields add stress
-fix_modify      AtC neighbor_reset_frequency 100000
-
+fix             AtC internal   atc field
+ATC: constructing shape function field estimate
+ ATC: peratom PE compute created with ID: 3
+fix_modify      AtC  fields none
+fix_modify      AtC  fields add mass_density
+fix_modify      AtC  fields add internal_energy
+fix_modify      AtC  fields add stress
 #               ID  part keywords    nx ny nz region
-fix_modify      AtC fem  create mesh 2 2 2 feRegion p p p
- ATC:: created FEM Mesh with 27 Global Nodes, 8 Unique Nodes, and 8 Elements
-
+fix_modify      AtC mesh create 2 2 2 feRegion p p p
+ ATC: created uniform mesh with 27 nodes, 8 unique nodes, and 8 elements
 log		eam_volume_stretch.log
-
 # equilibrate MD field
-
-timestep 0.001
+timestep 0.0 # 0.001
 reset_timestep	0
 run 		1
 Setting up run ...
- ATC:: computing bond matrix ...........done
- ATC:: conversion factor for energy/vol -> stress 1.60218e+06
- ATC:: cutoff radius 4.95
-Memory usage per processor = 4.34254 Mbytes
+ ATC: computing bond matrix ...........done
+Memory usage per processor = 20.2625 Mbytes
 Step PotEng KinEng Press Lx Ly Lz 
        0     -3058.56            0 -0.027860375        21.69        21.69        21.69 
-       1     -3058.56 1.8391755e-30 -0.027860375        21.69        21.69        21.69 
-Loop time of 0.0108039 on 1 procs for 1 steps with 864 atoms
+       1     -3058.56            0 -0.027860375        21.69        21.69        21.69 
+Loop time of 0.0294803 on 4 procs for 1 steps with 864 atoms
 
-Pair  time (%) = 0.00339484 (31.4223)
+Pair  time (%) = 0.0104292 (35.3769)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 5.6982e-05 (0.527419)
-Outpt time (%) = 2.88486e-05 (0.26702)
-Other time (%) = 0.00732327 (67.7833)
+Comm  time (%) = 0.0189348 (64.2289)
+Outpt time (%) = 6.9201e-05 (0.234737)
+Other time (%) = 4.70281e-05 (0.159524)
 
-Nlocal:    864 ave 864 max 864 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    2052 ave 2052 max 2052 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    23328 ave 23328 max 23328 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-FullNghs:  46656 ave 46656 max 46656 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:    216 ave 216 max 216 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    1080 ave 1080 max 1080 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    5832 ave 5832 max 5832 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:  11664 ave 11664 max 11664 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 46656
 Ave neighs/atom = 54
 Neighbor list builds = 0
 Dangerous builds = 0
-
 # stretch system
 change_box	all x scale 1.001 y scale 1.001 z scale 1.001 remap
 Changing box ...
   orthogonal box = (-10.8558 -10.845 -10.845) to (10.8558 10.845 10.845)
   orthogonal box = (-10.8558 -10.8558 -10.845) to (10.8558 10.8558 10.845)
   orthogonal box = (-10.8558 -10.8558 -10.8558) to (10.8558 10.8558 10.8558)
-
-fix_modify	AtC transfer output eam_volume_stretchFE 1 text tensor_components
- ATC:: Warning : text output can create _LARGE_ files
-# fix_modify	AtC transfer atomic_output eam_volume_stretchMD 1 text
+fix_modify	AtC  output eam_volume_stretchFE 1 text tensor_components
+ ATC: Warning : text output can create _LARGE_ files
+ ATC: output custom names:
 
 run		1
 Setting up run ...
- ATC:: conversion factor for energy/vol -> stress 1.60218e+06
- ATC:: cutoff radius 4.95
-Memory usage per processor = 4.34254 Mbytes
+ ATC: computing bond matrix ...........done
+Memory usage per processor = 20.2625 Mbytes
 Step PotEng KinEng Press Lx Ly Lz 
-       1   -3058.5204 1.8391755e-30   -4126.8763     21.71169     21.71169     21.71169 
-       2   -3058.5204 2.3402676e-29   -4126.8763     21.71169     21.71169     21.71169 
-Loop time of 0.0757251 on 1 procs for 1 steps with 864 atoms
+       1   -3058.5204            0   -4126.8763     21.71169     21.71169     21.71169 
+       2   -3058.5204            0   -4126.8763     21.71169     21.71169     21.71169 
+Loop time of 0.0434771 on 4 procs for 1 steps with 864 atoms
 
-Pair  time (%) = 0.00336003 (4.43715)
+Pair  time (%) = 0.000937521 (2.15636)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 4.91142e-05 (0.0648586)
-Outpt time (%) = 2.88486e-05 (0.0380966)
-Other time (%) = 0.0722871 (95.4599)
+Comm  time (%) = 0.000136197 (0.313261)
+Outpt time (%) = 0.000539005 (1.23975)
+Other time (%) = 0.0418643 (96.2906)
 
-Nlocal:    864 ave 864 max 864 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    2052 ave 2052 max 2052 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    23328 ave 23328 max 23328 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-FullNghs:  46656 ave 46656 max 46656 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:    216 ave 216 max 216 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    1080 ave 1080 max 1080 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    5832 ave 5832 max 5832 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:  11664 ave 11664 max 11664 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 46656
 Ave neighs/atom = 54
 Neighbor list builds = 0
 Dangerous builds = 0
-

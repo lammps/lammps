@@ -2,7 +2,7 @@
 #include "ImplicitSolveOperator.h"
 
 // Other ATC includes
-#include "ATC_Transfer.h"
+#include "ATC_Coupling.h"
 #include "FE_Engine.h"
 #include "PhysicsModel.h"
 #include "PrescribedDataManager.h"
@@ -15,10 +15,10 @@ namespace ATC {
 // --------------------------------------------------------------------
 // --------------------------------------------------------------------
 ImplicitSolveOperator::
-ImplicitSolveOperator(ATC_Transfer * atcTransfer,
+ImplicitSolveOperator(ATC_Coupling * atc,
                       /*const*/ FE_Engine * feEngine,
                       const PhysicsModel * physicsModel)
-  : atcTransfer_(atcTransfer),
+  : atc_(atc),
     feEngine_(feEngine),
     physicsModel_(physicsModel)
 {
@@ -31,7 +31,7 @@ ImplicitSolveOperator(ATC_Transfer * atcTransfer,
 // --------------------------------------------------------------------
 // --------------------------------------------------------------------
 FieldImplicitSolveOperator::
-FieldImplicitSolveOperator(ATC_Transfer * atcTransfer,
+FieldImplicitSolveOperator(ATC_Coupling * atc,
                            /*const*/ FE_Engine * feEngine,
                            FIELDS & fields,
                            const FieldName fieldName,
@@ -40,10 +40,10 @@ FieldImplicitSolveOperator(ATC_Transfer * atcTransfer,
                            double simTime,
                            double dt,
                            double alpha)
-  : ImplicitSolveOperator(atcTransfer, feEngine, physicsModel),
-    fields_(fields), // ref to fields
+  : ImplicitSolveOperator(atc, feEngine, physicsModel),
     fieldName_(fieldName),
-    simTime_(simTime),
+    fields_(fields), // ref to fields
+    time_(simTime),
     dt_(dt),
     alpha_(alpha),
     epsilon0_(1.0e-8)
@@ -58,25 +58,25 @@ FieldImplicitSolveOperator(ATC_Transfer * atcTransfer,
   massMask_(0) = fieldName_;
 
   // Save off current field
-  TnVect_ = column(fields_[fieldName_],0); // NOTE assuming 1 dof ?
+  TnVect_ = column(fields_[fieldName_].quantity(),0); 
 
   // Allocate vectors for fields and rhs
-  int nNodes = atcTransfer_->get_nNodes();
+  int nNodes = atc_->num_nodes();
   // copy fields
   fieldsNp1_ = fields_;
   // size rhs
   int dof = fields_[fieldName_].nCols();
   RnMap_ [fieldName_].reset(nNodes,dof);
   RnpMap_[fieldName_].reset(nNodes,dof);
-  
+ 
   // Compute the RHS vector R(T^n) 
   // Set BCs on Rn, multiply by inverse mass and then extract its vector
-  atcTransfer_->compute_rhs_vector(rhsMask_, fields_, RnMap_,
-                                   atcTransfer_->FULL_DOMAIN, physicsModel_);
-  DENS_MAT & Rn = RnMap_[fieldName_];
-  atcTransfer_->get_prescribed_data_manager()
-    ->set_fixed_dfield(simTime_, fieldName_, Rn);
-  atcTransfer_->apply_inverse_mass_matrix(Rn,fieldName_);
+  atc_->compute_rhs_vector(rhsMask_, fields_, RnMap_,
+                                   FULL_DOMAIN, physicsModel_);
+  DENS_MAT & Rn = RnMap_[fieldName_].set_quantity();
+  atc_->prescribed_data_manager()
+    ->set_fixed_dfield(time_, fieldName_, Rn);
+  atc_->apply_inverse_mass_matrix(Rn,fieldName_);
   RnVect_ = column(Rn,0);
 }
 
@@ -120,12 +120,12 @@ FieldImplicitSolveOperator::operator * (DENS_VEC x) const
   fieldsNp1_[fieldName_] = TnVect_ + epsilon * x;
 
   // Evaluate R(b)
-  atcTransfer_->compute_rhs_vector(rhsMask_, fieldsNp1_, RnpMap_,
-                                   atcTransfer_->FULL_DOMAIN, physicsModel_);
-  DENS_MAT & Rnp = RnpMap_[fieldName_];
-  atcTransfer_->get_prescribed_data_manager()
-    ->set_fixed_dfield(simTime_, fieldName_, Rnp);
-  atcTransfer_->apply_inverse_mass_matrix(Rnp,fieldName_);
+  atc_->compute_rhs_vector(rhsMask_, fieldsNp1_, RnpMap_,
+                                   FULL_DOMAIN, physicsModel_);
+  DENS_MAT & Rnp = RnpMap_[fieldName_].set_quantity();
+  atc_->prescribed_data_manager()
+    ->set_fixed_dfield(time_, fieldName_, Rnp);
+  atc_->apply_inverse_mass_matrix(Rnp,fieldName_);
   RnpVect_ = column(Rnp,0);
 
   // Compute full left hand side and return it
@@ -134,23 +134,23 @@ FieldImplicitSolveOperator::operator * (DENS_VEC x) const
 }
 
 // --------------------------------------------------------------------
-//  get_rhs
+//  rhs
 // --------------------------------------------------------------------
 DENS_VEC
-FieldImplicitSolveOperator::get_rhs()
+FieldImplicitSolveOperator::rhs()
 {
   // Return dt * R(T^n)
   return dt_ * RnVect_;
 }
 
 // --------------------------------------------------------------------
-//  get_preconditioner
+//  preconditioner
 // --------------------------------------------------------------------
 DIAG_MAT
-FieldImplicitSolveOperator::get_preconditioner(FIELDS & fields)
+FieldImplicitSolveOperator::preconditioner(FIELDS & fields)
 {
   // Just create and return identity matrix
-  int nNodes = atcTransfer_->get_nNodes();
+  int nNodes = atc_->num_nodes();
   DENS_VEC ones(nNodes);
   ones = 1.0;
   DIAG_MAT identity(ones);

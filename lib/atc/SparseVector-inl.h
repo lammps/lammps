@@ -1,14 +1,17 @@
 // SparseVector-inl.h: provides templated functions for SparseVector in
 // separate header
 
+
+namespace ATC_matrix {
+
 template<class T>
-SparseVector<T> sparse_rand(unsigned n, unsigned fill, int seed=1234)
+SparseVector<T> sparse_rand(INDEX n, INDEX fill, int seed=1234)
 {
   srand(seed);
   const double rmax_inv = 1.0/double(RAND_MAX);
   SparseVector<T> r(n);
   while (r.size()<fill) 
-    r(rand()%r.nRows())=double(::rand()*rmax_inv);
+    r(std::rand()%r.nRows())=double(std::rand()*rmax_inv);
   return r;
 }
 
@@ -19,9 +22,9 @@ DenseVector<T> operator*(const Matrix<T> &M, const SparseVector<T> &v)
   DenseVector<T> y(M.nRows());
   STORE::const_iterator it=v.data_.begin();
   for (; it!=v.data_.end(); it++) {
-    const unsigned j  = it->first;
+    const INDEX j  = it->first;
     const T& vj = it->second;
-     for (unsigned i=0; i<M.nRows(); i++) y(i)+=M(i,j)*vj;
+     for (INDEX i=0; i<M.nRows(); i++) y(i)+=M(i,j)*vj;
   }
   return y;
 }
@@ -33,9 +36,9 @@ DenseVector<T> operator*(const SparseVector<T> &v, const Matrix<T> &M)
   DenseVector<T> y(M.nCols());
   STORE::const_iterator it=v.data_.begin();
   for (; it!=v.data_.end(); it++) {
-    const unsigned i  = it->first;
+    const INDEX i  = it->first;
     const T& vi = it->second;
-     for (unsigned j=0; j<M.nCols(); j++) y(j)+=vi*M(i,j);
+     for (INDEX j=0; j<M.nCols(); j++) y(j)+=vi*M(i,j);
   }
   return y;
 }
@@ -44,7 +47,7 @@ DenseVector<T> operator*(const SparseVector<T> &v, const Matrix<T> &M)
 template<class T>
 T dot(const SparseVector<T> &a, const SparseVector<T> &b)
 {
-  double v = 0.0;
+  T v = 0.0;
   for (STORE::const_iterator ai=a.data_.begin(); ai!=a.data_.end(); ai++) {
     STORE::const_iterator bi=b.data_.find(ai->first);
     if (bi == b.data_.end()) continue;
@@ -57,10 +60,10 @@ template<class T>
 SparseVector<T> operator*(const SparseMatrix<T> &M, const SparseVector<T> &v)
 {
   SparseVector<T> y(M.nRows());
-  for (unsigned i=0; i<M.nRows(); i++) {
+  for (INDEX i=0; i<M.nRows(); i++) {
     double yi=0.0;
-    for (unsigned ij=M._ia[i]; ij<M._ia[i+1]; ij++) {
-      const unsigned j = M._ja[ij];
+    for (INDEX ij=M._ia[i]; ij<M._ia[i+1]; ij++) {
+      const INDEX j = M._ja[ij];
       STORE::const_iterator it = v._data.find(j);
       if (it == v._data.end()) continue;
       yi += M._v[ij] * it->second;
@@ -75,10 +78,10 @@ template<class T>
 SparseVector<T> operator*(const SparseVector<T> &v, const SparseMatrix<T> &M)
 {
   SparseVector<T> y(M.nCols());
-  for (unsigned i=0; i<M.nRows(); i++) {
+  for (INDEX i=0; i<M.nRows(); i++) {
     STORE::const_iterator it = v._data.find(i);
     if (it == v._data.end()) continue;
-    for (unsigned ij=M._ia[i]; ij<M._ia[i+1]; ij++) 
+    for (INDEX ij=M._ia[i]; ij<M._ia[i+1]; ij++) 
       y(M._ja[ij]) += it->second * M._v[ij];
   }
   return y;
@@ -86,24 +89,24 @@ SparseVector<T> operator*(const SparseVector<T> &v, const SparseMatrix<T> &M)
 
 // General constructor - sets the vector length.
 template<class T>
-SparseVector<T>::SparseVector(unsigned n) : length_(n){}
+SparseVector<T>::SparseVector(INDEX n) : length_(n){}
 
 // Outputs the vector to string
 template<class T>
-std::string SparseVector<T>::tostring() const
+std::string SparseVector<T>::to_string() const
 {
-  if (size() > nRows()/2) return Vector<T>::tostring();
+  if (size() > nRows()/2) return Vector<T>::to_string();
   STORE::const_iterator it=data_.begin();
   std::string str;
-  using ATC_STRING::tostring;
+  using ATC_Utility::to_string;
   for (; it!=data_.end(); it++)
-    str += tostring(it->first)+": "+tostring(it->second)+'\n';
+    str += to_string(it->first)+": "+to_string(it->second)+'\n';
   return str;
 }
 
 // Indexes the ith component of the vector or returns zero if not found. 
 template<class T>
-T SparseVector<T>::operator()(unsigned i, unsigned j) const
+T SparseVector<T>::operator()(INDEX i, INDEX j) const
 {
   STORE::const_iterator it = data_.find(i);
   if (it == data_.end()) return 0.0;
@@ -112,34 +115,69 @@ T SparseVector<T>::operator()(unsigned i, unsigned j) const
 
 // Indexes the ith component of the vector or returns zero if not found. 
 template<class T>
-T& SparseVector<T>::operator()(unsigned i, unsigned j)
+T& SparseVector<T>::operator()(INDEX i, INDEX j)
 {
   return data_[i]; 
 }
 
 // Indexes the ith component of the vector or returns zero if not found. 
-template<class T> T SparseVector<T>::operator[](unsigned i) const
+template<class T> T SparseVector<T>::operator[](INDEX i) const
 {
   return (*this)(i);
 }
 
 // Indexes the ith component of the vector or returns zero if not found. 
-template<class T> T& SparseVector<T>::operator[](unsigned i)
+template<class T> T& SparseVector<T>::operator[](INDEX i)
 {
   return (*this)[i];
 }
 
+// Returns a pair (index, value) for a nonzero in the vector.
+template<class T> 
+std::pair<INDEX, T> SparseVector<T>::pair(INDEX i) const
+{
+  STORE::const_iterator it=data_.begin() + i;
+  return std::pair<INDEX, T>(it->first, it->second);
+}
+
+//* Adds SparseVector x, scaled by s to this one.  Can be different sparcity.
+template<class T> 
+void SparseVector<T>::add_scaled(SparseVector<T>& x, const T& s)
+{
+  STORE::const_iterator it;
+  for (it=x.data_.begin(); it!=x.data_.end(); it++)  {
+   data_[it->first] += it->second * s;
+  }
+}
+
 // Returns the number of nonzeros in the sparse vector.
-template<class T> inline unsigned SparseVector<T>::size() const
+template<class T> inline INDEX SparseVector<T>::size() const
 { return data_.size(); }
 
 // Returns the number of nonzeros in the sparse vector.
-template<class T> inline unsigned SparseVector<T>::nRows() const
+template<class T> inline INDEX SparseVector<T>::nRows() const
 { return length_; }
+
+// Copy constructor for sparse vector.
+template<typename T>
+SparseVector<T>::SparseVector(const SparseVector<T> &c)
+{
+  length_ = c.length_;
+  data_ = c.data_;
+}
+
+// operator equal for sparse vector.
+template<class T>
+SparseVector<T>& SparseVector<T>::operator=(const SparseVector<T> &c)
+{
+  length_ = c.length_;
+  data_ = c.data_;
+  return *this;
+}
 
 // Changes the size of the SparseVector
 template<class T>
-void SparseVector<T>::resize(unsigned nRows, unsigned nCols, bool copy)
+void SparseVector<T>::resize(INDEX nRows, INDEX nCols, bool copy)
 {
   length_ = nRows;
   STORE::iterator it;
@@ -150,7 +188,7 @@ void SparseVector<T>::resize(unsigned nRows, unsigned nCols, bool copy)
 }
 // same as resize, but zero rather than copy
 template<class T>
-void SparseVector<T>::reset(unsigned nRows, unsigned nCols, bool zero)
+void SparseVector<T>::reset(INDEX nRows, INDEX nCols, bool zero)
 {
   resize(nRows, nCols, !zero);
 }
@@ -162,14 +200,14 @@ void SparseVector<T>::zero()
   for (it=data_.begin(); it!=data_.end(); it++) it->second=T(0);
 }
 
-// TODO
+
 template<class T>
-void SparseVector<T>::copy(const T* ptr, unsigned nRows, unsigned nCols)
+void SparseVector<T>::copy(const T* ptr, INDEX nRows, INDEX nCols)
 {
 
 }
 
-// TODO
+
 template<class T>
 void SparseVector<T>::write_restart(FILE *F) const
 {
@@ -186,3 +224,5 @@ void SparseVector<T>::matlab(ostream &o, const string &s) const
   for (it=data_.begin(); it!=data_.end(); it++)
     o << s << "(" << it->first+1 << ") = " << it->second << ";\n";
 }
+
+} // end namespace

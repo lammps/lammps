@@ -19,12 +19,17 @@
 //  
 //*****************************************************************
 
+  /**
+   *  @class  CG 
+   *  @brief  Base class for solving the linear system Ax=b using the Conjugate Gradient method 
+   */
+
 template < class Matrix, class Vector, class DataVector, class Preconditioner, class Real >
 int 
 CG(const Matrix &A, Vector &x, const DataVector &b, const Preconditioner &M, int &max_iter, Real &tol) {
   Real resid;
   DenseVector<Real> p, z, q;
-  Real alpha, beta, rho, rho_1;
+  Real alpha, beta, rho, rho_1(0);
   DenseVector<Real> tmp;
   tmp.reset(b.size());
 

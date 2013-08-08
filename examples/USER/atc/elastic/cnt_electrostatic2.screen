@@ -1,0 +1,214 @@
+LAMMPS (14 Aug 2013)
+units		metal
+atom_style	atomic
+
+lattice       diamond  3.6
+Lattice spacing in x,y,z = 3.6 3.6 3.6
+boundary      f f f
+
+#region  box block -4.3458792459312239 4.3458792459312328 -4.3458792459312168 4.3458792459312203 0.0 104.29551668 units box
+#region  box block 0 10 0 10 0 10
+#create_box 1 box
+#group   box region box
+#atom_modify  sort 0 1
+
+pair_style    tersoff
+read_data  tube_8_4.data
+Reading data file ...
+  orthogonal box = (-4.34588 -4.34588 0) to (4.34588 4.34588 104.296)
+  1 by 1 by 4 MPI processor grid
+  1008 atoms
+  1008 velocities
+pair_coeff    * * ../../../../potentials/SiC.tersoff  C
+mass          *  12.01
+
+# PARAMETERS-----------------------------
+variable L equal zhi-zlo
+variable R equal 12.1/2
+variable xhiFE equal 5.0*$R
+variable xhiFE equal 5.0*6.0499999999999998224
+variable xloFE equal -${xhiFE}
+variable xloFE equal -30.25
+variable yhiFE equal $R
+variable yhiFE equal 6.0499999999999998224
+variable yloFE equal -${xhiFE}
+variable yloFE equal -30.25
+variable zhiFE equal zhi
+variable zloFE equal zlo+10
+print "Length $L [${zloFE}, ${zhiFE}]"
+Length 104.29551668000000575 [10, 104.29551668000000575]
+
+variable E equal  0.01  # 1.0 10.0 0.01
+variable V equal  $E*${zloFE}
+variable V equal  0.010000000000000000208*${zloFE}
+variable V equal  0.010000000000000000208*10
+variable V equal  2
+print "Electric field $E ref.voltage $V"
+Electric field 0.010000000000000000208 ref.voltage 2
+variable s equal  20
+# END -----------------------------------
+
+# all atoms simulation
+region		feRegion block ${xloFE} ${xhiFE} ${yloFE} ${yhiFE} ${zloFE} ${zhiFE} units box
+region		feRegion block -30.25 ${xhiFE} ${yloFE} ${yhiFE} ${zloFE} ${zhiFE} units box
+region		feRegion block -30.25 30.25 ${yloFE} ${yhiFE} ${zloFE} ${zhiFE} units box
+region		feRegion block -30.25 30.25 -30.25 ${yhiFE} ${zloFE} ${zhiFE} units box
+region		feRegion block -30.25 30.25 -30.25 6.0499999999999998224 ${zloFE} ${zhiFE} units box
+region		feRegion block -30.25 30.25 -30.25 6.0499999999999998224 10 ${zhiFE} units box
+region		feRegion block -30.25 30.25 -30.25 6.0499999999999998224 10 104.29551668000000575 units box
+group		internal region feRegion
+908 atoms in group internal
+
+variable nAll   equal count(all)
+variable nGhost equal count(all)-count(internal)
+print ">>> number of stationary ghosts:  ${nGhost} of ${nAll}"
+>>> number of stationary ghosts:  100 of 1008
+
+#neighbor	5. bin
+#neigh_modify	every 10 delay 0 check no
+timestep        0.0005
+
+# coupling
+fix         AtC internal   atc electrostatic-equilibrium CNT_electrostatic2.mat
+ATC: constructing equilibrium electrostatic coupling with parameter file CNT_electrostatic2.mat
+ ATC: peratom PE compute created with ID: 3
+ ATC: computed mass density : 2.05933
+ ATC: 1 materials defined from CNT_electrostatic2.mat
+ ATC: creating electrostatic extrinsic model
+ ATC: computed mass density : 2.05933
+ ATC: 1 materials defined from CNT_electrostatic2.mat
+ ATC: computed mass density : 2.05933
+ ATC: 1 materials defined from CNT_electrostatic2.mat
+fix_modify  AtC omit atomic_charge
+#fix_modify  AtC internal_quadrature off <<<< ???
+variable alat equal 1.42
+variable w equal ${alat}*${alat}*3.*sqrt(3.)/4.0
+variable w equal 1.4199999999999999289*${alat}*3.*sqrt(3.)/4.0
+variable w equal 1.4199999999999999289*1.4199999999999999289*3.*sqrt(3.)/4.0
+#variable w equal 10
+fix_modify  AtC atom_weight constant internal $w
+fix_modify  AtC atom_weight constant internal 2.6193804362864128166
+fix_modify  AtC source_integration atom
+fix_modify  AtC atom_element_map eulerian 1
+fix_modify  AtC mesh create 5  1  12  feRegion f p f
+ ATC: created uniform mesh with 156 nodes, 78 unique nodes, and 60 elements
+fix_modify  AtC control  momentum flux
+#fix_modify  AtC extrinsic poisson_solver max_iterations 5
+
+# initial conditions
+fix_modify  AtC  initial displacement x all 0.0
+fix_modify  AtC  initial displacement y all 0.0
+fix_modify  AtC  initial displacement z all 0.0
+fix_modify  AtC  initial velocity x all 0.0
+fix_modify  AtC  initial velocity y all 0.0
+fix_modify  AtC  initial velocity z all 0.0
+
+#variable a equal -$R-0.1
+#variable b equal  $R+0.1
+#fix_modify  AtC mesh create_nodeset tube $a $b $a $b ${zloFE} ${zhiFE} units box
+fix_modify  AtC mesh create_nodeset lbc ${xloFE} ${xhiFE} ${xloFE} ${xhiFE} ${zloFE} ${zloFE} units box
+fix_modify  AtC mesh create_nodeset lbc -30.25 ${xhiFE} ${xloFE} ${xhiFE} ${zloFE} ${zloFE} units box
+fix_modify  AtC mesh create_nodeset lbc -30.25 30.25 ${xloFE} ${xhiFE} ${zloFE} ${zloFE} units box
+fix_modify  AtC mesh create_nodeset lbc -30.25 30.25 -30.25 ${xhiFE} ${zloFE} ${zloFE} units box
+fix_modify  AtC mesh create_nodeset lbc -30.25 30.25 -30.25 30.25 ${zloFE} ${zloFE} units box
+fix_modify  AtC mesh create_nodeset lbc -30.25 30.25 -30.25 30.25 10 ${zloFE} units box
+fix_modify  AtC mesh create_nodeset lbc -30.25 30.25 -30.25 30.25 10 10 units box
+ ATC: created nodeset lbc with 6 nodes
+fix_modify  AtC mesh create_nodeset rbc ${xloFE} ${xhiFE} ${xloFE} ${xhiFE} ${zhiFE} ${zhiFE} units box
+fix_modify  AtC mesh create_nodeset rbc -30.25 ${xhiFE} ${xloFE} ${xhiFE} ${zhiFE} ${zhiFE} units box
+fix_modify  AtC mesh create_nodeset rbc -30.25 30.25 ${xloFE} ${xhiFE} ${zhiFE} ${zhiFE} units box
+fix_modify  AtC mesh create_nodeset rbc -30.25 30.25 -30.25 ${xhiFE} ${zhiFE} ${zhiFE} units box
+fix_modify  AtC mesh create_nodeset rbc -30.25 30.25 -30.25 30.25 ${zhiFE} ${zhiFE} units box
+fix_modify  AtC mesh create_nodeset rbc -30.25 30.25 -30.25 30.25 104.29551668000000575 ${zhiFE} units box
+fix_modify  AtC mesh create_nodeset rbc -30.25 30.25 -30.25 30.25 104.29551668000000575 104.29551668000000575 units box
+ ATC: created nodeset rbc with 6 nodes
+fix_modify  AtC mesh create_nodeset bot ${xloFE} ${xloFE} ${yloFE} ${yhiFE} ${zloFE} ${zhiFE} units box
+fix_modify  AtC mesh create_nodeset bot -30.25 ${xloFE} ${yloFE} ${yhiFE} ${zloFE} ${zhiFE} units box
+fix_modify  AtC mesh create_nodeset bot -30.25 -30.25 ${yloFE} ${yhiFE} ${zloFE} ${zhiFE} units box
+fix_modify  AtC mesh create_nodeset bot -30.25 -30.25 -30.25 ${yhiFE} ${zloFE} ${zhiFE} units box
+fix_modify  AtC mesh create_nodeset bot -30.25 -30.25 -30.25 6.0499999999999998224 ${zloFE} ${zhiFE} units box
+fix_modify  AtC mesh create_nodeset bot -30.25 -30.25 -30.25 6.0499999999999998224 10 ${zhiFE} units box
+fix_modify  AtC mesh create_nodeset bot -30.25 -30.25 -30.25 6.0499999999999998224 10 104.29551668000000575 units box
+ ATC: created nodeset bot with 13 nodes
+fix_modify  AtC mesh create_nodeset top ${xhiFE} ${xhiFE} ${yloFE} ${yhiFE} ${zloFE} ${zhiFE} units box
+fix_modify  AtC mesh create_nodeset top 30.25 ${xhiFE} ${yloFE} ${yhiFE} ${zloFE} ${zhiFE} units box
+fix_modify  AtC mesh create_nodeset top 30.25 30.25 ${yloFE} ${yhiFE} ${zloFE} ${zhiFE} units box
+fix_modify  AtC mesh create_nodeset top 30.25 30.25 -30.25 ${yhiFE} ${zloFE} ${zhiFE} units box
+fix_modify  AtC mesh create_nodeset top 30.25 30.25 -30.25 6.0499999999999998224 ${zloFE} ${zhiFE} units box
+fix_modify  AtC mesh create_nodeset top 30.25 30.25 -30.25 6.0499999999999998224 10 ${zhiFE} units box
+fix_modify  AtC mesh create_nodeset top 30.25 30.25 -30.25 6.0499999999999998224 10 104.29551668000000575 units box
+ ATC: created nodeset top with 13 nodes
+
+# boundary conditions
+fix_modify AtC  fix displacement x lbc 0.
+fix_modify AtC  fix displacement y lbc 0.
+fix_modify AtC  fix displacement z lbc 0.
+fix_modify AtC  fix velocity     x lbc 0.
+fix_modify AtC  fix velocity     y lbc 0.
+fix_modify AtC  fix velocity     z lbc 0.
+fix_modify AtC  fix electric_potential lbc linear 0 0 0 $E 0 0 $V
+fix_modify AtC  fix electric_potential lbc linear 0 0 0 0.010000000000000000208 0 0 $V
+fix_modify AtC  fix electric_potential lbc linear 0 0 0 0.010000000000000000208 0 0 2
+ ATC: created function : 2 + 0.01(x-0)+0(y-0)+0(z-0)
+#fix_modify AtC  fix electric_potential rbc linear 0 0 0 $E 0 0 $V
+##fix_modify AtC  fix electric_potential top linear 0 0 0 $E 0 0 $V
+fix_modify AtC  fix electric_potential bot linear 0 0 0 $E 0 0 $V
+fix_modify AtC  fix electric_potential bot linear 0 0 0 0.010000000000000000208 0 0 $V
+fix_modify AtC  fix electric_potential bot linear 0 0 0 0.010000000000000000208 0 0 2
+ ATC: created function : 2 + 0.01(x-0)+0(y-0)+0(z-0)
+
+# run
+thermo_style    custom step cpu etotal ke
+thermo          $s
+thermo          20
+fix_modify      AtC  output cnt_electrostatic2FE $s full_text # binary
+fix_modify      AtC  output cnt_electrostatic2FE 20 full_text 
+ ATC: Warning : text output can create _LARGE_ files
+ ATC: output custom names:
+
+fix_modify      AtC  output index step
+# NOTE not recognized as vector by paraview
+variable uX atom x-f_AtC[1]
+variable uY atom y-f_AtC[2]
+variable uZ atom z-f_AtC[3]
+variable rho atom mass*f_AtC[4]
+dump  CONFIG all custom $s cnt_electrostatic2.dmp id type x y z v_uX v_uY v_uZ v_rho
+dump  CONFIG all custom 20 cnt_electrostatic2.dmp id type x y z v_uX v_uY v_uZ v_rho
+log cnt_electrostatic2.log
+
+#run   	        $s
+run   	        100
+Setting up run ...
+ ATC: WARNING: all initial conditions for electron_density have not been defined and the undefined are assumed zero
+ ATC: WARNING: all initial conditions for electric_potential have not been defined and the undefined are assumed zero
+Memory usage per processor = 53.9593 Mbytes
+Step CPU TotEng KinEng 
+       0            0   -7315.3918 4.2386027e-06 
+      20    7.0248148   -7315.3918 0.0003453277 
+      40    8.5434699   -7315.3918 0.0012274403 
+      60    14.682407   -7315.3918 0.0026370119 
+      80    21.289801   -7315.3918  0.004552872 
+     100    29.208281   -7315.3918 0.0069472253 
+Loop time of 29.2009 on 4 procs for 100 steps with 1008 atoms
+
+Pair  time (%) = 0.305472 (1.04611)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.435163 (1.49024)
+Outpt time (%) = 0.202401 (0.693134)
+Other time (%) = 28.2578 (96.7705)
+
+Nlocal:    252 ave 256 max 248 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:    59 ave 80 max 40 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:    0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:  4456 ave 4608 max 4304 min
+Histogram: 1 0 0 0 1 1 0 0 0 1
+
+Total # of neighbors = 17824
+Ave neighs/atom = 17.6825
+Neighbor list builds = 0
+Dangerous builds = 0
+
+# NOTE try fix charge on tip

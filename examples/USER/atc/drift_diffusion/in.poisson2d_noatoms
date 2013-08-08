@@ -1,0 +1,73 @@
+# needs description
+echo both
+variable nx equal 80 # 80 # 40
+variable ny equal ${nx}
+variable nz equal 1
+variable h  equal 1.0
+variable l  equal -$h
+variable u  equal  $h
+#variable l  equal -$h*${nx}
+#variable u  equal  $h*${nx}
+variable T  equal 300
+variable n0 equal 0.005
+variable S equal 1
+variable V equal 5.
+# STEP THE GATE VOLTAGE UP
+atom_style      atomic
+timestep  0.0
+boundary      f f f
+lattice       fcc 1.0
+region        BOX block $l $u $l $u 0 1
+create_box  1 BOX
+mass          * 12.01
+atom_modify     sort 0 1
+#               ID  group atc PhysicsType ParameterFile
+fix             AtC all   atc drift_diffusion CNT_ddm.mat
+#               ID  part keywords    nx ny nz region
+fix_modify      AtC mesh create ${nx} ${ny} ${nz}  BOX f f p
+#fix_modify      AtC extrinsic poisson_solver iterative 
+# boundary conditions
+variable a equal $l-0.1
+variable b equal $l+0.1
+fix_modify AtC mesh create_nodeset bot -INF INF $a $b -INF INF
+fix_modify AtC mesh create_nodeset rbc $a $b -INF INF -INF INF
+variable a equal $u-0.1
+variable b equal $u+0.1
+fix_modify AtC mesh create_nodeset top -INF INF $a $b -INF INF 
+fix_modify AtC mesh create_nodeset lbc $a $b -INF INF -INF INF
+variable a equal -0.1
+variable b equal 0.1
+fix_modify AtC mesh create_nodeset origin  -INF INF  $a $b  -INF INF 
+variable a equal -2*$h
+variable b equal  2*$h
+variable a equal -8*$h
+variable b equal  8*$h
+fix_modify AtC mesh create_elementset wire -INF INF $a $b  -INF INF
+fix_modify AtC material wire C
+# simplify
+fix_modify AtC  internal_quadrature off
+fix_modify AtC  control thermal none
+fix_modify AtC extrinsic electron_integration explicit 1
+fix_modify AtC extrinsic poisson_solver iterative
+# isolate system: 
+# diffusion: dn/dx = 0
+# drift    : n = 0
+# fix temperature
+fix_modify AtC  fix temperature          all $T
+fix_modify AtC  fix electron_temperature all $T
+# fix electron density
+fix_modify AtC  fix electron_density all 0
+# NEED TO BE ABLE TO TURN OFF electron integration and just do Poisson solve
+fix_modify AtC  fix electron_density origin ${n0}
+# bcs for electric potential
+fix_modify AtC  unfix electric_potential all
+fix_modify AtC  initial electric_potential all 0
+fix_modify AtC  fix electric_potential  lbc 0
+fix_modify AtC  fix electric_potential  rbc $V
+thermo  1
+# f_AtC:1 thermal energy, 2 avg T, 3 electron energy, 4 avg Te, 5 total n
+thermo_style custom step cpu f_AtC[1] f_AtC[2] f_AtC[3] f_AtC[4] f_AtC[5]
+thermo_modify  format 1 %5i format 2 %7.2g
+fix_modify AtC  output   poisson2d_noatomsFE 1 full_text
+#fix_modify AtC mesh output poisson2dMESH
+run     1

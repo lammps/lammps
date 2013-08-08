@@ -1,0 +1,18 @@
+material Au metal
+  stress  cauchy-born
+    pair_style eam
+    #linear
+  end
+  mass_density
+  body_force
+end
+
+material Au_cubic metal
+  stress  cubic
+    c11 11020.5189657531
+    c12 9575.20500303137
+    c44 2709.96368010322
+  end
+  mass_density
+  body_force
+end

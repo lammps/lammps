@@ -1,0 +1,70 @@
+# Tests Poisson solver, charge density restriction
+# and electric field force prolongation
+# Two groups of charged particles interact electrically
+# using the long range electric field only, so they will 
+# move towards each other
+echo both
+units 		metal
+variable E equal 20.0
+variable nx equal 16
+# allow charges
+atom_style full
+dielectric      1.
+dimension	3
+boundary	p p p
+lattice 	fcc   4.08 origin 0.25 0.25 0.25
+region BOX block -8 8 0 3 0 3
+create_box   3 BOX
+create_atoms 1 region BOX
+pair_style     lj/cut 10.
+#pair_style	lj/cut/coul/long 10.
+#kspace_style	pppm 1.e-4
+#kspace_style	ewald 1.e-4
+pair_coeff * * 0.2381 3.405
+mass 		* 39.948
+group  real region BOX
+region LEFT block -5 -2 INF INF INF INF
+region RIGHT block 2 5 INF INF INF INF
+set             region LEFT type 2
+set             region RIGHT type 3
+set             region LEFT charge -1.
+set             region RIGHT charge 1.
+group		NION region LEFT
+group		PION region RIGHT
+neighbor        2. bin
+###########################################################################
+#fix EFIELD all efield $E 0.0 0.0
+###########################################################################
+fix         ATC real atc species_electrostatic Ar_species.mat
+fix_modify  ATC add_species N group NION
+fix_modify  ATC add_species P group PION
+fix_modify  ATC  include atomic_charge
+fix_modify  ATC  internal_quadrature off
+fix_modify  ATC extrinsic short_range off
+fix_modify  ATC mesh create ${nx} 1 1 BOX p p p
+fix_modify  ATC atom_element_map eulerian 1
+fix_modify  ATC  atom_weight multiscale
+fix_modify  ATC  initial mass_density all 0.
+#fix_modify  ATC  initial charge_density all 0.
+fix_modify  ATC  initial electric_potential all 0. 
+fix_modify  ATC mesh create_nodeset left_end -8.01 -7.99 -.1 .1 -.1 .1
+fix_modify  ATC  fix electric_potential left_end 0.
+#fix_modify  ATC mesh create_nodeset right_end 7.99 8.01 -.1 .1 -.1 .1
+#fix_modify  ATC  fix electric_potential right_end 0.
+# quick test for charged surfaces
+#fix_modify  ATC mesh create_faceset left_end box -8 10 -10 10 -10 10 outward
+#fix_modify  ATC extrinsic fix_charge left_end 0.
+fix_modify  ATC  add_species NION type 2
+fix_modify  ATC  add_species PION type 3
+###########################################################################
+variable n equal count(real)
+print "number of atoms: $n"
+timestep 	0.0005
+thermo		100
+compute   Fn NION reduce sum fx
+compute   Fp PION reduce sum fx
+thermo_style 	custom step etotal temp press pe c_Fn c_Fp
+# initial thermo line should be:
+#0    13699.992            0     12453927    13699.992    880.49388   -880.49388
+fix_modify  ATC  output opp_forceFE 100 text binary
+run 1000

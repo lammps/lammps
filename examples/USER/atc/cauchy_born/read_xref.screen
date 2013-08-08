@@ -1,0 +1,83 @@
+LAMMPS (14 Aug 2013)
+units       real
+atom_style  atomic
+variable lattice_constant equal 5.256227487
+variable c equal 4
+variable L equal (${lattice_constant}*$c)
+variable L equal (5.2562274870000003091*$c)
+variable L equal (5.2562274870000003091*4)
+# create system
+lattice        fcc ${lattice_constant}
+lattice        fcc 5.2562274870000003091
+Lattice spacing in x,y,z = 5.25623 5.25623 5.25623
+region         box block 0 $c 0 $c 0 $c
+region         box block 0 4 0 $c 0 $c
+region         box block 0 4 0 4 0 $c
+region         box block 0 4 0 4 0 4
+boundary       p p p
+# the stretched configuration of the atoms
+read_data read_xref_1.data
+Reading data file ...
+  orthogonal box = (-1.05125 -1.05125 -1.05125) to (22.0762 22.0762 22.0762)
+  1 by 2 by 2 MPI processor grid
+  256 atoms
+  256 velocities
+mass         1 39.95
+pair_style lj/cut 13.5
+pair_coeff 1 1 0.238 3.405
+# define region
+neighbor  1.0 bin
+neigh_modify  delay 1000000
+thermo    1
+thermo_style  custom step vol etotal
+timestep  0
+fix         ATC all atc field Ar_CauchyBorn.mat
+ATC: constructing shape function field estimate with parameter file Ar_CauchyBorn.mat
+ ATC: peratom PE compute created with ID: 3
+# the original configuration of the atoms
+fix_modify  ATC  reset_atomic_reference_positions read_xref_0.data
+# "box" is the original box
+fix_modify  ATC mesh create 1 1 1 box f f f
+ ATC: created uniform mesh with 8 nodes, 8 unique nodes, and 1 elements
+fix_modify  ATC  fields none
+fix_modify  ATC  fields add mass_density
+fix_modify  ATC  output read_xrefFE 1 text
+ ATC: Warning : text output can create _LARGE_ files
+ ATC: output custom names:
+
+fix_modify  ATC  output index step
+variable u1 atom x-f_ATC[1]
+variable u2 atom y-f_ATC[2]
+variable u3 atom z-f_ATC[3]
+variable rho atom mass*f_ATC[4]
+dump  CONFIG all custom 1 read_xref.dmp id type x y z v_u1 v_u2 v_u3 v_rho
+run 1
+Setting up run ...
+ ATC: P0, found 256 atoms in reference file
+ ATC: P0, read  256 reference positions
+ ATC: CB stiffness: 7.56717 Einstein freq: 0.355649
+Memory usage per processor = 16.0674 Mbytes
+Step Volume TotEng 
+       0    12370.307   -416.09102 
+       1    12370.307   -416.09102 
+Loop time of 0.00229579 on 4 procs for 1 steps with 256 atoms
+
+Pair  time (%) = 0.00048399 (21.0816)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.000252604 (11.0029)
+Outpt time (%) = 0.00147229 (64.1301)
+Other time (%) = 8.69036e-05 (3.78534)
+
+Nlocal:    64 ave 64 max 64 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    1700 ave 1700 max 1700 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    7936 ave 7936 max 7936 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:  15872 ave 15872 max 15872 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 63488
+Ave neighs/atom = 248
+Neighbor list builds = 0
+Dangerous builds = 0

@@ -1,0 +1,90 @@
+LAMMPS (14 Aug 2013)
+Lattice spacing in x,y,z = 1.5874 1.5874 1.5874
+Created orthogonal box = (-79.3701 0 0) to (79.3701 1.5874 1.5874)
+  4 by 1 by 1 MPI processor grid
+Lattice spacing in x,y,z = 0.904527 0.904527 0.904527
+ATC: constructing viscous/shear coupling with parameter file Ar_visc_no_atoms.mat
+ ATC: peratom PE compute created with ID: 3
+ ATC: computed mass density : 215.93
+ ATC: WARNING: material units real do not match lammps
+ ATC: 1 materials defined from Ar_visc_no_atoms.mat
+ ATC: created uniform mesh with 52 nodes, 13 unique nodes, and 12 elements
+ ATC: created nodeset rbc with 1 nodes
+ ATC: created nodeset lbc with 1 nodes
+ ATC: Warning : text output can create _LARGE_ files
+ ATC: output custom names:
+
+Setting up run ...
+Memory usage per processor = 0.432259 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0            0            0            0            0            0 
+     100            0            0            0            0            0 
+     200            0            0            0            0            0 
+     300            0            0            0            0            0 
+     400            0            0            0            0            0 
+     500            0            0            0            0            0 
+     600            0            0            0            0            0 
+     700            0            0            0            0            0 
+     800            0            0            0            0            0 
+     900            0            0            0            0            0 
+    1000            0            0            0            0            0 
+    1100            0            0            0            0            0 
+    1200            0            0            0            0            0 
+    1300            0            0            0            0            0 
+    1400            0            0            0            0            0 
+    1500            0            0            0            0            0 
+    1600            0            0            0            0            0 
+    1700            0            0            0            0            0 
+    1800            0            0            0            0            0 
+    1900            0            0            0            0            0 
+    2000            0            0            0            0            0 
+    2100            0            0            0            0            0 
+    2200            0            0            0            0            0 
+    2300            0            0            0            0            0 
+    2400            0            0            0            0            0 
+    2500            0            0            0            0            0 
+    2600            0            0            0            0            0 
+    2700            0            0            0            0            0 
+    2800            0            0            0            0            0 
+    2900            0            0            0            0            0 
+    3000            0            0            0            0            0 
+    3100            0            0            0            0            0 
+    3200            0            0            0            0            0 
+    3300            0            0            0            0            0 
+    3400            0            0            0            0            0 
+    3500            0            0            0            0            0 
+    3600            0            0            0            0            0 
+    3700            0            0            0            0            0 
+    3800            0            0            0            0            0 
+    3900            0            0            0            0            0 
+    4000            0            0            0            0            0 
+    4100            0            0            0            0            0 
+    4200            0            0            0            0            0 
+    4300            0            0            0            0            0 
+    4400            0            0            0            0            0 
+    4500            0            0            0            0            0 
+    4600            0            0            0            0            0 
+    4700            0            0            0            0            0 
+    4800            0            0            0            0            0 
+    4900            0            0            0            0            0 
+    5000            0            0            0            0            0 
+Loop time of 37.3637 on 4 procs for 5000 steps with 0 atoms
+
+Pair  time (%) = 0 (0)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.0146993 (0.039341)
+Outpt time (%) = 0.24752 (0.662459)
+Other time (%) = 37.1015 (99.2982)
+
+Nlocal:    0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:  0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 0
+Neighbor list builds = 0
+Dangerous builds = 0

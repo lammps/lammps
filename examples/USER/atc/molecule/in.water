@@ -1,0 +1,96 @@
+log water.log
+
+variable nstepsequil equal 500000
+variable nsteps equal 1000#2500000
+variable temp equal 300.0
+variable tdamp equal 0.100
+variable x_dim equal 20
+variable y_dim equal 20
+variable z_fluid equal 30
+variable efieldz equal -5
+variable seed equal 868026
+variable x_max equal ${x_dim}/2
+variable y_max equal ${y_dim}/2
+variable fluid_half_thickness equal ${z_fluid}/2
+#variable zmaxatc equal ${fluid_half_thickness}
+#variable zmaxsub equal ${zmaxatc}-0.1
+#variable zmaxsup equal ${zmaxatc}+0.1
+
+units metal
+atom_style full
+dimension 3
+newton off
+neighbor 2 bin
+neigh_modify every 1 delay 3 check yes 
+boundary p p p
+kspace_style pppm 1e-4
+pair_style lj/cut/coul/long 13.0 9.0 
+bond_style harmonic
+angle_style harmonic
+#read_data waterbox.dat # for equilibration
+read_data water.init
+
+lattice sc 0.05
+
+region ATC block EDGE EDGE EDGE EDGE EDGE EDGE units box
+#variable nelem equal round(2*${zmaxatc}/0.05)
+variable nelem equal 1
+
+group water type 1 2
+group hyd type 1
+group oxy type 2
+
+timestep 0.0005
+thermo 100
+
+thermo_style custom step temp epair emol etotal press
+
+dielectric 1.0
+
+pair_coeff 1 * 0.0 0.0
+pair_coeff 2 2 0.006596 3.1507
+bond_coeff 1 19.513855 0.957200
+
+angle_coeff 1 2.385027 104.519997
+
+special_bonds amber
+
+# assign SHAKE fixes
+##fix 1 water shake  0.01 3 0 b 1 a 1
+
+#velocity all create 0.0 1 rot yes dist uniform # for equilibration
+
+variable dumpfreq equal 100
+
+dump 1 all atom 500 waterequil.dump
+dump_modify 1 image yes scale no flush yes
+
+fix 2 all nvt temp ${temp} ${temp} ${tdamp}
+
+
+fix press_avetime all ave/time 10 1 10 c_thermo_press ave running file pressdata.log
+
+#run ${nstepsequil}
+
+fix efield all efield 0. 0. v_efieldz
+
+#run ${nstepsequil}
+
+unfix 2
+#fix 3 all nve
+
+fix AtC all atc species_electrostatic water.mat
+fix_modify AtC mesh create 1 1 ${nelem} ATC p p p
+fix_modify AtC atom_element_map eulerian ${dumpfreq}
+fix_modify AtC internal_quadrature off
+fix_modify AtC atom_weight multiscale
+fix_modify AtC add_species Hyd type 1
+fix_modify AtC add_species Oxy type 2
+fix_modify AtC add_molecule small Water water
+fix_modify AtC fix electric_potential all 0.
+fix_modify AtC extrinsic short_range off
+fix_modify AtC output waterFE ${dumpfreq} text binary
+
+run ${nsteps}
+
+#write_restart water.restart # for equilibration

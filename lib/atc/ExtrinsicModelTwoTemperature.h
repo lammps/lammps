@@ -1,9 +1,9 @@
 #ifndef EXTRINSIC_MODEL_TWO_TEMPERATURE
 #define EXTRINSIC_MODEL_TWO_TEMPERATURE
 
-// ATC_Transfer headers
-#include "MatrixLibrary.h"
-#include "ATC_TypeDefs.h"
+/** owned fields: ELECTRON_TEMPERATURE */
+
+// ATC headers
 #include "ExtrinsicModel.h"
 #include "FieldEulerIntegrator.h"
 
@@ -11,7 +11,7 @@ using namespace std;
 namespace ATC {
 
   // forward declarations
-  class ATC_Transfer;
+  class ATC_Coupling;
   class PrescribedDataManager;
   class ExtrinsicModel;
   class PhysicsModel;
@@ -58,7 +58,7 @@ namespace ATC {
     virtual void set_sources(FIELDS & fields, FIELDS & sources);
 
     /** Add model-specific output data */
-    virtual void output(double dt, OUTPUT_LIST & outputData);
+    virtual void output(OUTPUT_LIST & outputData);
   
   protected:
     /** electron time integration flag */

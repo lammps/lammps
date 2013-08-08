@@ -1,0 +1,63 @@
+# simulation of liquid argon with an electrostatic potential
+#
+# p | free | free |  fixed | p
+# real units:
+# distance = Angstroms
+# time = femtoseconds
+# mass = grams/mole
+# energy = Kcal/mole
+# 1 kilocalorie = 4184 Joules
+# mvv2e = 2390.057361533490 [g/mol A^2/fs^2] -> [kcal/mol]
+echo both
+units     	real
+atom_style full
+########### BEGIN PARAMETERS ####################################
+variable 	T equal 115.607
+print 	"reference temperature $T [K]"
+variable  a equal 5.719025032  
+variable  i equal 1
+variable  s equal 100
+variable dt equal 4.0 
+##############  END PARAMETERS #################################
+dimension 	3
+boundary  	f p p
+pair_style  	lj/cut 13.0
+lattice   	sc  $a 
+region    	BOX     block  0 12 0 4 0 4
+read_data	velocities.init
+mass    	* 39.948
+pair_coeff * * 0.2381 3.405
+set group all charge 0.1
+dielectric 80.0
+timestep  	${dt}
+neigh_modify every $i check no
+thermo    	$s
+# ------------- Equilibration and thermalisation ----------------
+fix WALL all wall/reflect xlo EDGE xhi EDGE 
+fix 		NVT all nvt temp $T $T 10 drag 0.2  
+thermo_style 	custom step temp press etotal pe
+#run 		400
+unfix 		NVT
+# ------------- Post processing ---------------------------------
+fix        PP  all atc field
+fix_modify PP  fields add mass_density charge_density electric_potential velocity
+#fix_modify PP  mesh create 50 1 1 BOX f p p
+fix_modify PP  mesh create 25 1 1 BOX f p p
+#fix_modify PP  mesh create 6 1 1 BOX f p p
+fix_modify PP  atom_element_map eulerian $i
+# ------------- Coupling ----------------------------------------
+fix        AtC all atc species_electrostatic     Ar_species.mat
+fix_modify AtC add_species ALL group all 
+fix_modify AtC internal_quadrature off
+fix_modify AtC mesh create 6 1 1 BOX f p p
+fix_modify AtC atom_element_map eulerian $i
+fix_modify AtC extrinsic short_range off
+fix_modify AtC mesh create_nodeset rbc 12. 12. -INF INF -INF INF
+fix_modify AtC mesh create_nodeset lbc  0.  0. -INF INF -INF INF
+# ------------- run ---------------------------------------------
+thermo_style    custom step cpu etotal ke
+fix_modify AtC output liquid_electrostaticFE $s full_text # binary
+fix_modify PP  output liquid_electrostaticPP $s full_text
+log liquid_electrostatic.log
+fix_modify AtC  fix electric_potential lbc linear 0 0 0 0 0 0 0 
+run 800

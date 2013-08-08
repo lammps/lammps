@@ -1,0 +1,8 @@
+material Ar real
+ heat_flux linear
+  conductivity 0.00000000154 # computed using bar1d_fluids
+ end
+ #heat_capacity constant
+  #capacity 0.00000003422
+ #end
+end

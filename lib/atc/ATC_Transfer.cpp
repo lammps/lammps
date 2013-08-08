@@ -1,1305 +1,2064 @@
 // ATC_Transfer headers
 #include "ATC_Transfer.h"
-#include "FE_Engine.h"
-#include "Array.h"
-#include "Array2D.h"
 #include "ATC_Error.h"
-#include "CG.h"
-#include "XT_Function.h"
-#include "PrescribedDataManager.h"
-#include "TimeIntegrator.h"
-#include "PhysicsModel.h"
-#include "PhysicsModelThermal.h"
-#include "PhysicsModelTwoTemperature.h"
+#include "FE_Engine.h"
+#include "LammpsInterface.h"
+#include "Quadrature.h"
+#include "VoigtOperations.h"
+#include "TransferLibrary.h"
+#include "Stress.h"
+#include "KernelFunction.h"
+#include "PerPairQuantity.h"
+#include "FieldManager.h"
+#define ESHELBY_VIRIAL
+#include "LinearSolver.h"
+
+
+// Other Headers
+#include <vector>
+#include <map>
+#include <set>
+#include <utility>
+#include <fstream>
+#include <sstream>
+#include <exception>
+
+
+
+// PLAN:
+//* energies
+//* filters - make filterFields class
+//* output directly
+//* enum, tagged, computes, mat(field to field) functions
+//* grads & rates
+//* on-the-fly
+// * remove derived classes
+
+using namespace std;
+using namespace ATC_Utility;
+using namespace voigt3;
+//using ATC_Utility::to_string;
+//using voigt3::vector_to_matrix;
+//using voigt3::vector_to_symm_matrix;
+//using voigt3::matrix_to_vector;
+//using voigt3::symm_matrix_to_vector;
 
 namespace ATC {
 
-  ATC_Transfer::ATC_Transfer(void) :
-    lammpsInterface_(LammpsInterface::instance()),
-    physicsModel_(NULL),
-    feEngine_(NULL),
-    prescribedDataMgr_(NULL),
-    simTime_(0.0),
-    stepCounter_(0),
-    sampleCounter_(0),
-    outputFrequency_(0),
-    sampleFrequency_(1),
-    outputFrequencyAtom_(0),
-    nLocal_(0),
-    nLocalTotal_(0),
-    nLocalGhost_(0),
-    nLocalMask_(0),
-    nInternal_(0),
-    nGhost_(0),
-    nLocalLambda_(0),
-    equilibriumStart_(false),
-    mdOutputManager_(), 
-    bndyIntType_(NO_QUADRATURE), 
-    bndyFaceSet_(NULL),
-    globalSwitch_(0),
-    resetSwitch_(false),
-    atomToElementMapType_(LAGRANGIAN),
-    atomToElementMapFrequency_(0),
-    neighborResetFrequency_(0),
-    scalarFlag_(0),
-    vectorFlag_(0),
-    sizeVector_(0),
-    globalFreq_(0),
-    extScalar_(0),
-    extVector_(0),
-    extList_(NULL),
-    timeFilterManager_(this),
-    groupbit_(0),
-    groupbitGhost_(0),
-    atomSwitch_(false),
-    initialized_(false),
-    atomQuadForInternal_(true),
-    useLocalizedLambda_(false),
-    useLumpedLambda_(false),
-    regionID_(-1),
-    atomWeightType_(LATTICE),
-    xref_(NULL),
-    readXref_(false),
-    timeIntegrator_(NULL),
-    extrinsicModelManager_(this),
-    useRestart_(false),
-    trackCharge_(false)
+  const int numFields_ = 16;
+  FieldName indices_[numFields_] = {
+    CHARGE_DENSITY,
+    MASS_DENSITY,
+    SPECIES_CONCENTRATION,
+    NUMBER_DENSITY,
+    MOMENTUM,
+    VELOCITY,
+    PROJECTED_VELOCITY,
+    DISPLACEMENT,
+    POTENTIAL_ENERGY,
+    KINETIC_ENERGY,
+    KINETIC_TEMPERATURE,
+    TEMPERATURE,
+    CHARGE_FLUX,
+    SPECIES_FLUX,
+    THERMAL_ENERGY};
+    //ELECTRIC_POTENTIAL};
+
+  ATC_Transfer::ATC_Transfer(string groupName,
+                             double ** & perAtomArray,
+                             LAMMPS_NS::Fix * thisFix,
+                             string matParamFile)
+    : ATC_Method(groupName,perAtomArray,thisFix),
+      xPointer_(NULL), 
+      outputStepZero_(true),
+      neighborReset_(false),
+      pairMap_(NULL),
+      bondMatrix_(NULL),
+      pairVirial_(NULL),
+      pairHeatFlux_(NULL),
+      nComputes_(0),
+      hasPairs_(true),
+      hasBonds_(false),
+      resetKernelFunction_(false),
+      dxaExactMode_(true),
+      cauchyBornStress_(NULL)
   {
+    nTypes_ = lammpsInterface_->ntypes();
+
+    peScale_=1.;
+    keScale_= lammpsInterface_->mvv2e();
+    // if surrogate model of md (no physics model created)
+    if (matParamFile != "none") {
+      fstream  fileId(matParamFile.c_str(), std::ios::in);
+      if (!fileId.is_open()) throw ATC_Error("cannot open material file");
+      CbData cb;
+      LammpsInterface *lmp = LammpsInterface::instance();
+      lmp->lattice(cb.cell_vectors, cb.basis_vectors);
+      cb.inv_atom_volume = 1.0 / lmp->volume_per_atom();
+      cb.e2mvv           = 1.0 / lmp->mvv2e();
+      cb.atom_mass       = lmp->atom_mass(1); 
+      cb.boltzmann       = lmp->boltz();
+      cb.hbar            = lmp->hbar();
+      cauchyBornStress_ = new StressCauchyBorn(fileId, cb);
+    }
+
     // Defaults
-    grow_arrays(lammpsInterface_->nmax());
-    fieldMask_.reset(NUM_FIELDS,NUM_FLUX);
-    fieldMask_ = false;
+    set_time();
+ 
+    outputFlags_.reset(NUM_TOTAL_FIELDS);
+    outputFlags_ = false;
+    fieldFlags_.reset(NUM_TOTAL_FIELDS);
+    fieldFlags_ = false;
+    gradFlags_.reset(NUM_TOTAL_FIELDS);
+    gradFlags_ = false;
+    rateFlags_.reset(NUM_TOTAL_FIELDS);
+    rateFlags_ = false;
 
-    // fe_engine
-    feEngine_ = new FE_Engine(this);
+    outputFields_.resize(NUM_TOTAL_FIELDS);
+    for (int i = 0; i < NUM_TOTAL_FIELDS; i++) { outputFields_[i] = NULL; }
 
-    // check to see if lammps has any charges
-    double * atomicCharge = lammpsInterface_->atom_charge();
-    if (atomicCharge)
-      trackCharge_ = true;
+    // Hardy requires ref positions for processor ghosts for bond list
+    
+    //needXrefProcessorGhosts_ = true;
   }
 
+  //-------------------------------------------------------------------
   ATC_Transfer::~ATC_Transfer()
   {
-    lammpsInterface_->destroy_2d_double_array(xref_);
-    if (feEngine_) delete feEngine_;
-    if (physicsModel_) delete physicsModel_;
-    if (prescribedDataMgr_) delete prescribedDataMgr_;
+    interscaleManager_.clear(); 
+    if (cauchyBornStress_) delete cauchyBornStress_; 
   }
 
-  //--------------------------------------------------
-  // pack_fields
-  //   bundle all allocated field matrices into a list
-  //   for output needs
-  //--------------------------------------------------
-  void ATC_Transfer::pack_fields(OUTPUT_LIST & data)
+  //-------------------------------------------------------------------
+  // called before the beginning of a "run"
+  void ATC_Transfer::initialize() 
   {
-    map<FieldName,int>::const_iterator field;
-    for (field = fieldSizes_.begin(); field!=fieldSizes_.end(); field++) {
-        FieldName thisField = field->first;
-        string fieldName = field_to_string(thisField);
-        string matrixName;
+    ATC_Method::initialize();
+
+    if (!initialized_) { 
+      if (cauchyBornStress_) cauchyBornStress_->initialize();
+    }
+
+    if (!initialized_ || ATC::LammpsInterface::instance()->atoms_sorted() || resetKernelFunction_) {
+      // initialize kernel funciton matrix N_Ia
+      if (! kernelOnTheFly_) {
+        try{
+          if (!moleculeIds_.empty()) compute_kernel_matrix_molecule(); //KKM add
+        }
+        catch(bad_alloc&) {
+          ATC::LammpsInterface::instance()->print_msg("kernel will be computed on-the-fly");
+          kernelOnTheFly_ = true;
+        }
+      }
+      resetKernelFunction_ = false;
+    }
+
+    // initialize bond matrix B_Iab
+    if ((! bondOnTheFly_) 
+       && ( ( fieldFlags_(STRESS) 
+           || fieldFlags_(ESHELBY_STRESS) 
+           || fieldFlags_(HEAT_FLUX) ) ) ) {
+      try {
+        compute_bond_matrix(); 
+      } 
+      catch(bad_alloc&) { 
+        ATC::LammpsInterface::instance()->print_msg("stress/heat_flux will be computed on-the-fly");
         
-        // copy all fields from ATC_Transfer.h
-        matrixName = "fields_" + fieldName;
-        data[matrixName] = & fields_[thisField];
-        matrixName = "dot_fields_" + fieldName;
-        data[matrixName] = & dot_fields_[thisField];
-        matrixName = "ddot_fields_" + fieldName;
-        data[matrixName] = &ddot_fields_[thisField];
-        matrixName = "dddot_fields_" + fieldName;
-        data[matrixName] = & dddot_fields_[thisField];
-        matrixName = "dot_fieldsMD_" + fieldName;
-        data[matrixName] = & dot_fieldsMD_[thisField];
-        matrixName = "ddot_fieldsMD_" + fieldName;
-        data[matrixName] = & ddot_fieldsMD_[thisField];
-        matrixName = "dot_dot_fieldsMD_";
-        data[matrixName] = & dot_dot_fieldsMD_[thisField];
-  
-        matrixName = "fieldNdOld_" + fieldName;
-        data[matrixName] = & fieldNdOld_[thisField];
-        matrixName = "fieldNdFiltered_" + fieldName;
-        data[matrixName] = & fieldNdFiltered_[thisField];
-        matrixName = "fieldRateNdOld_";
-        data[matrixName] = & fieldRateNdOld_[thisField];
-        matrixName = "fieldRateNdFiltered_" + fieldName;
-        data[matrixName] = & fieldRateNdFiltered_[thisField];
-        matrixName = "dot_fieldRateNdOld_" + fieldName;
-        data[matrixName] = & dot_fieldRateNdOld_[thisField];
-        matrixName = "dot_fieldRateNdFiltered_" + fieldName;
-        data[matrixName] = & dot_fieldRateNdFiltered_[thisField];
-
-        matrixName = "auxStorage_" + fieldName;
-        data[matrixName] = & auxStorage_[thisField];
-    }
-  }
-  
-  //--------------------------------------------------
-  // write_restart_file
-  //   bundle matrices that need to be saved and call
-  //   fe_engine to write the file
-  //--------------------------------------------------
-  void ATC_Transfer::write_restart_data(string fileName, OUTPUT_LIST & data)
-  {
-    pack_fields(data);
-    feEngine_->write_restart_file(fileName,&data);
-  }
-
-  //--------------------------------------------------
-  // read_restart_file
-  //   bundle matrices that need to be saved and call
-  //   fe_engine to write the file
-  //--------------------------------------------------
-  void ATC_Transfer::read_restart_data(string fileName, OUTPUT_LIST & data)
-  {
-    pack_fields(data);
-    feEngine_->read_restart_file(fileName,&data);
-  }
-
-  //--------------------------------------------------
-  // Interactions with LAMMPS fix commands
-  // parse input command and pass on to finite element engine 
-  //   or physics specific transfers if necessary
-  //   revert to physics-specific transfer if no command matches input
-  // first keyword is unique to particular class
-  // base class keyword matching must apply to ALL physics
-  // order:  derived, base, owned objects
-  //--------------------------------------------------
-  bool ATC_Transfer::modify(int narg, char **arg)
-  {
-    FieldName thisField;
-    int thisIndex;
-    int argIdx;
-
-    bool match = false; 
-    
-    if (strcmp(arg[0],"transfer")==0) {
-      /*! \page man_transfer_output fix_modify AtC transfer output
-        \section syntax
-        fix_modify AtC transfer output <filename_prefix> <frequency>
-        [text | vector_components | tensor_components ]
-        - filename_prefix (string) = prefix for data files 
-        - frequency (integer) = frequency of output in time-steps 
-        - options (keyword/s): \n
-        text = creates text output as well as binary Ensight output \n
-        vector_components = outputs vectors as scalar components \n
-        tensor_components = outputs tensor as scalar components 
-        (use this for Paraview)\n
-        \section examples
-        <TT> fix_modify AtC transfer output heatFE 100 </TT> \n
-        <TT> fix_modify AtC transfer output hardyFE 1 text tensor_components </TT> \n
-        \section description
-        Creates (binary, "gold" format) Ensight output of nodal/mesh data 
-        which is transfer/physics specific.
-        \section restrictions
-        \section related 
-        see \ref man_fix_atc
-        \section default 
-        none
-      */
-      if (strcmp(arg[1],"output")==0) {
-        if (strcmp(arg[2],"nodeset")==0) {
-          string nset = arg[3];
-          if (strcmp(arg[4],"sum")==0) {
-            string field = arg[5];
-            pair < string, FieldName >  id(nset,string_to_field(field));
-            nsetCompute_[id] = 0.0;
-            match = true;
-          }
-        }
-        else {
-          outputPrefix_ = arg[2];
-          outputFrequency_ = atoi(arg[3]);
-          bool text_output = false, vect_comp = false, tensor_comp = false;
-          int rank = lammpsInterface_->comm_rank();
-          for (int i = 4; i<narg; ++i) {
-            if      (strcmp(arg[i],"text")==0) text_output = true;
-            else if (strcmp(arg[i],"vector_components")==0) vect_comp = true;
-            else if (strcmp(arg[i],"tensor_components")==0) tensor_comp = true;
-          }
-          if (outputFrequency_>0) {
-            if (text_output) {
-              feEngine_->initialize_output(rank,outputPrefix_,GNUPLOT);
-              if (rank == 0) 
-                cout << " ATC:: Warning : text output can create _LARGE_ files\n";
-            } 
-            else feEngine_->initialize_output(rank,outputPrefix_);
-            if (vect_comp) 
-              feEngine_->output_manager()
-                ->set_option(OUTPUT_VECTOR_COMPONENTS,true);
-            if (tensor_comp) 
-              feEngine_->output_manager()
-                ->set_option(OUTPUT_TENSOR_COMPONENTS,true);
-          }
-          match = true;
-        }
-      }
-          
-
-      /*! \page man_transfer_atomic_output fix_modify AtC transfer atomic_output
-        \section syntax
-        fix_modify AtC transfer atomic_output <filename_prefix> <frequency> 
-        [text]
-        - filename_prefix (string) = prefix for data files
-        - frequency (integer) = frequency of output in time-steps
-        - option "text" = creates a text version of the output as well as
-        the binary Ensight output
-        \section examples
-        <TT> fix_modify AtC transfer atomic_output heatMD 100 </TT> \n
-        <TT> fix_modify AtC transfer atomic_output nanoMD 1 text </TT> \n
-        \section description
-        Creates (binary, "gold" format) Ensight output of atom (point) data 
-        which is transfer/physics specific.
-        \section restrictions
-        \section related 
-        \section default 
-        none
-      */
-      else if (strcmp(arg[1],"atomic_output")==0) {
-        outputPrefixAtom_ = arg[2];
-        outputFrequencyAtom_ = atoi(arg[3]);
-        if (outputFrequencyAtom_>0) {
-          if (narg == 5 && strcmp(arg[4],"text")==0) {
-            mdOutputManager_.initialize(outputPrefixAtom_,GNUPLOT);
-            cout << " ATC:: Warning : text output can create _LARGE_ files\n";
-          } 
-          else mdOutputManager_.initialize(outputPrefixAtom_);
-        }
-        match = true;
-      }
-
-      /*! \page man_transfer_internal fix_modify AtC transfer internal 
-        \section syntax
-        fix_modify AtC transfer internal type <atom-type-id>
-        - <atom-type-id> = type id for non-fixed atoms internal to the FE mesh
-        \section examples
-        <TT> fix_modify AtC transfer internal type internal_atoms </TT>
-        \section description
-        Command to define the atoms to couple to finite elements. 
-        This definition is required for a AtC simulation.
-        \section restrictions
-        \section related 
-        see \ref man_transfer_boundary
-        \section default 
-        none
-      */
-      else if ((strcmp(arg[1],"internal")==0) && (strcmp(arg[2],"type")==0)) {
-        int igroup = lammpsInterface_->find_group(arg[3]);
-        groupbit_ |= lammpsInterface_->group_bit(igroup);
-        igroups_.insert(igroup);
-        match = true;
-      }
-
-      /*! \page man_transfer_boundary fix_modify AtC transfer boundary 
-        \section syntax
-        fix_modify AtC transfer boundary type <atom-type-id>
-        - <atom-type-id> = type id for atoms that represent a ficticious
-        boundary internal to the FE mesh
-        \section examples
-        <TT> fix_modify AtC transfer boundary type ghost_atoms </TT>
-        \section description
-        Command to define the atoms that represent the ficticious 
-        boundary internal to the FE mesh. For fully overlapped MD/FE 
-        domains with periodic boundary conditions no boundary atoms should
-        be defined.
-        \section restrictions
-        \section related 
-        see \ref man_transfer_internal
-        \section default 
-        none
-      */
-      else if ((strcmp(arg[1],"boundary")==0) && (strcmp(arg[2],"type")==0)) {
-        int igroup = lammpsInterface_->find_group(arg[3]);
-        groupbitGhost_ |= lammpsInterface_->group_bit(igroup);
-        igroupsGhost_.insert(igroup);
-        match = true;
-      }
-
-      /*! \page man_internal_quadrature fix_modify AtC transfer internal_quadrature 
-        \section syntax
-        fix_modify atc transfer internal_quadrature < on | off >
-        \section examples
-        <TT> fix_modify atc transfer internal_quadrature off </TT>
-        \section description
-        Command use or not use atomic quadrature on internal elements
-        fully filled with atoms. By turning the internal quadrature off
-        these elements do not contribute to the governing PDE and the fields
-        at the internal nodes follow the weighted averages of the atomic data.
-        \section restrictions
-        \section related 
-        \section default 
-        on
-      */
-      else if (strcmp(arg[1],"internal_quadrature")==0) {
-        if (strcmp(arg[2],"on")==0) {
-          atomQuadForInternal_ = true;
-          match = true;
-        }
-        else if (strcmp(arg[2],"off")==0) {
-          atomQuadForInternal_ = false;
-          regionID_ = -1;
-          match = true;
-        }
-        else if (strcmp(arg[3],"off")==0) {
-          for (regionID_ = 0; regionID_ < lammpsInterface_->nregion(); regionID_++) 
-            if (strcmp(arg[2],lammpsInterface_->region_name(regionID_)) == 0) break;
-          if (regionID_ < lammpsInterface_->nregion()) {
-            atomQuadForInternal_ = false;
-            match = true;
-          }
-          else
-            regionID_ = -1;
-        }
-      }
-
-
-      /*! \page man_initial fix_modify AtC transfer initial 
-        \section syntax
-        fix_modify AtC transfer initial <field> <nodeset> <constant | function>
-        - <field> = field name valid for type of physics, temperature | electron_temperature
-        - <nodeset> = name of set of nodes to apply boundary condition
-        - <constant | function> = value or name of function followed by its
-          parameters
-        \section examples
-        <TT> fix_modify atc transfer initial temperature groupNAME 10. </TT>
-        \section description
-        Sets the initial values for the specified field at the specified nodes.
-        \section restrictions
-        keyword 'all' reserved in nodeset name
-        \section related 
-        see \ref man_transfer_internal
-        \section default 
-        none
-      */
-      // set initial conditions
-      else if (strcmp(arg[1],"initial")==0) {
-        argIdx = 2;
-        get_field(arg,argIdx,thisField,thisIndex);
-        string nsetName(arg[argIdx++]);
-        XT_Function * f = NULL;
-        // parse constant
-        if (narg == argIdx+1) {
-          f = XT_Function_Mgr::instance()->get_constant_function(atof(arg[argIdx]));
-        }
-        // parse function
-        else {
-          f = XT_Function_Mgr::instance()->get_function(&(arg[argIdx]),narg-argIdx);
-        }
-        prescribedDataMgr_->fix_initial_field(nsetName,thisField,thisIndex,f);
-        match = true;
-      }
-
-      /*! \page man_fix_nodes fix_modify AtC transfer fix 
-        \section syntax
-        fix_modify AtC transfer fix <field> <nodeset> <constant | function>
-        - <field> = field name valid for type of physics
-        - <nodeset> = name of set of nodes to apply boundary condition
-        - <constant | function> = value or name of function followed by its
-          parameters
-        \section examples
-        <TT> fix_modify AtC transfer fix temperature groupNAME 10. </TT> \n
-        <TT> fix_modify AtC transfer fix temperature groupNAME 0 0 0 10.0 0 0 1.0 </TT> \n
-        \section description
-        Creates a constraint on the values of the specified field at specified nodes.
-        \section restrictions
-        keyword 'all' reserved in nodeset name
-        \section related 
-        see \ref man_unfix_nodes
-        \section default 
-        none
-      */
-      // fix and unfix nodes
-      else if (strcmp(arg[1],"fix")==0) {
-        argIdx = 2;
-        get_field(arg,argIdx,thisField,thisIndex);
-        string nsetName(arg[argIdx++]);
-        XT_Function * f = NULL;
-        // parse constant
-        if (narg == argIdx+1) {
-          f = XT_Function_Mgr::instance()->get_constant_function(atof(arg[argIdx]));
-        }
-        // parse function
-        else {
-          f = XT_Function_Mgr::instance()->get_function(&(arg[argIdx]),narg-argIdx);
-        }
-        prescribedDataMgr_->fix_field(nsetName,thisField,thisIndex,f);
-        match = true;
-      }
-
-      /*! \page man_unfix_nodes fix_modify AtC transfer unfix 
-        \section syntax
-        fix_modify AtC transfer unfix <field> <nodeset> 
-        - <field> = field name valid for type of physics
-        - <nodeset> = name of set of nodes 
-        \section examples
-        <TT> fix_modify AtC transfer unfix temperature groupNAME </TT>
-        \section description
-        Removes constraint on field values for specified nodes.
-        \section restrictions
-        keyword 'all' reserved in nodeset name
-        \section related 
-        see \ref man_fix_nodes
-        \section default 
-        none
-      */
-      else if (strcmp(arg[1],"unfix")==0) {
-        argIdx = 2;
-        get_field(arg,argIdx,thisField,thisIndex);
-        string nsetName(arg[argIdx++]);
-        prescribedDataMgr_->unfix_field(nsetName,thisField,thisIndex);
-        match = true;
-      }
-
-    /*! \page man_source fix_modify AtC transfer source
-      \section syntax
-       fix_modify AtC transfer source <field> <element_set> <value | function>
-        - <field> = field name valid for type of physics
-        - <element_set> = name of set of elements 
-      \section examples
-      <TT> fix_modify atc transfer source temperature middle temporal_ramp 10. 0. </TT>
-      \section description
-      Add domain sources to the mesh. The units are consistent with LAMMPS's 
-      units for mass, length and time and are defined by the PDE being solved,
-      e.g. for thermal transfer the balance equation is for energy and source
-      is energy per time.
-      \section restrictions 
-      keyword 'all' reserved in element_set name
-      \section related
-      see \ref man_remove_source
-      \section default
-      none
-    */
-      else if (strcmp(arg[1],"source")==0) {
-        argIdx = 2;
-        get_field(arg,argIdx,thisField,thisIndex);
-        string esetName(arg[argIdx++]);
-        XT_Function * f = NULL;
-        // parse constant
-        if (narg == argIdx+1) {
-          f = XT_Function_Mgr::instance()->get_constant_function(atof(arg[argIdx]));
-        }
-        // parse function
-        else {
-          f = XT_Function_Mgr::instance()->get_function(&(arg[argIdx]),narg-argIdx);
-        }
-        prescribedDataMgr_->fix_source(esetName,thisField,thisIndex,f);
-        fieldMask_(thisField,PRESCRIBED_SOURCE) = true;
-        match = true;
-      }
-
-    /*! \page man_remove_source fix_modify AtC transfer remove_source
-      \section syntax
-      fix_modify AtC transfer remove_source <field> <element_set>
-        - <field> = field name valid for type of physics
-        - <element_set> = name of set of elements 
-      \section examples
-      <TT> fix_modify atc transfer remove_source temperature groupNAME </TT>
-      \section description
-      Remove a domain source.
-      \section restrictions
-      keyword 'all' reserved in element_set name
-      \section related
-      see \ref man_source
-      \section default
-    */
-      else if (strcmp(arg[1],"remove_source")==0) {
-        argIdx = 2;
-        get_field(arg,argIdx,thisField,thisIndex);
-        string esetName(arg[argIdx++]);
-        prescribedDataMgr_->unfix_source(esetName,thisField,thisIndex);
-        fieldMask_(thisField,PRESCRIBED_SOURCE) = false;
-        match = true;
-      }
-  
-    /*! \page man_fix_flux fix_modify AtC transfer fix_flux
-      \section syntax
-       fix_modify AtC transfer fix_flux <field> <face_set> <value | function>
-        - <field> = field name valid for type of physics, temperature | electron_temperature
-        - <face_set> = name of set of element faces
-      \section examples
-       <TT> fix_modify atc transfer fix_flux temperature faceSet 10.0 </TT> \n
-       
-      \section description
-       Command for fixing normal fluxes e.g. heat_flux. 
-       This command only prescribes the normal component of the physical flux, e.g. heat (energy) flux.
-       The units are in AtC units, i.e. derived from the LAMMPS length, time, and mass scales.
-      \section restrictions 
-      Only normal fluxes (Neumann data) can be prescribed.
-      \section related
-      see \ref man_unfix_flux
-      \section default
-    */
-      else if (strcmp(arg[1],"fix_flux")==0) {
-        argIdx = 2;
-        get_field(arg,argIdx,thisField,thisIndex);
-        string fsetName(arg[argIdx++]);
-        XT_Function * f = NULL;
-        // parse constant
-        if (narg == argIdx+1) {
-          f = XT_Function_Mgr::instance()->get_constant_function(atof(arg[argIdx]));
-        }
-        // parse function
-        else {
-          f = XT_Function_Mgr::instance()->get_function(&(arg[argIdx]),narg-argIdx);
-        }
-        prescribedDataMgr_->fix_flux(fsetName,thisField,thisIndex,f);
-        fieldMask_(thisField,PRESCRIBED_SOURCE) = true;
-        match = true;
-      }
-
-    /*! \page man_unfix_flux fix_modify AtC transfer unfix_flux
-      \section syntax
-      fix_modify AtC transfer fix_flux <field> <face_set> <value | function>
-        - <field> = field name valid for type of physics, temperature | electron_temperature
-        - <face_set> = name of set of element faces
-      \section examples
-       <TT> fix_modify atc transfer unfix_flux temperature faceSet  </TT> \n
-       
-      \section description
-       Command for removing prescribed normal fluxes e.g. heat_flux, stress. 
-      \section restrictions 
-      \section related
-      see \ref man_unfix_flux
-      \section default
-    */
-      else if (strcmp(arg[1],"unfix_flux")==0) {
-        argIdx = 2;
-        get_field(arg,argIdx,thisField,thisIndex);
-        string fsetName(arg[argIdx++]);
-        prescribedDataMgr_->unfix_flux(fsetName,thisField,thisIndex);
-        fieldMask_(thisField,PRESCRIBED_SOURCE) = false;
-        match = true;
-      }
-
-      // pass off to time filter
-      else if (strcmp(arg[1],"filter")==0) {
-        match = timeFilterManager_.modify(narg-2,&arg[2]);
-        if (match && timeIntegrator_) timeIntegrator_->force_reset();
-      }
-
-    }
-
-    // pass off to extrinsic model
-    else if (strcmp(arg[0],"extrinsic")==0) {
-      match = extrinsicModelManager_.modify(narg-1,&arg[1]);
-    }
-
-    /*! \page man_atom_element_map fix_modify AtC transfer atom_element_map
-      \section syntax
-      fix_modify AtC transfer atom_element_map  <eulerian|lagrangian> <frequency> \n
-      - frequency (int) : frequency of updating atom-to-continuum maps based on the
-      current configuration - only for eulerian 
-      \section examples
-      <TT> fix_modify atc transfer atom_element_map eulerian 100 </TT>
-      \section description
-      Changes frame of reference from eulerian to lagrangian and sets the
-      frequency for which the map from atoms to elements is reformed and 
-      all the attendant data is recalculated.
-      \section restrictions 
-      Cannot change map type after initialization.
-      \section related
-      \section default
-      lagrangian
-    */
-    else if (strcmp(arg[0],"atom_element_map")==0) {
-      if (strcmp(arg[1],"eulerian")==0) {
-        atomToElementMapType_ = EULERIAN;
-        atomToElementMapFrequency_ = atoi(arg[2]);
-      } 
-      else {
-        atomToElementMapType_ = LAGRANGIAN;
-        atomToElementMapFrequency_ = 0;
-      } 
-      match = true;
-    }
-
-    /*! \page man_neighbor_reset_frequency fix_modify AtC transfer neighbor_reset_frequency
-        \section syntax
-        fix_modify AtC transfer neighbor_reset_frequency <frequency>
-        - frequency (int) : reset neighbor map for AtC analysis every "frequency"  steps
-        \section examples
-        <TT> fix_modify AtC transfer neighbor_reset_frequency 1000 </TT>
-        \section description
-        This command allows the control of how often the lists 
-        of which atoms pairs are in the support of a node
-        are reformed
-        \section restrictions
-        Only currently relevant to Hardy post-processing see \ref man_fix_atc
-        \section related
-        This command is different from \ref man_atom_element_map 
-        in that it only concerns neighbor lists internal to ATC not
-        the map of atom locations to elements which define the shape function
-        values at atoms.
-        \section default
-        The default is for the internal neighbor lists to be recalculated on
-        the next output step (or sample step if time filtering is used).
-      */
-    else if (strcmp(arg[0],"neighbor_reset_frequency")==0) {
-      neighborResetFrequency_ = atoi(arg[1]);
-      match = true;
-    }
-
-    /*! \page man_read_restart fix_modify AtC transfer read_restart
-      \section syntax
-      fix_modify AtC transfer read_restart [file_name]  \n
-      \section examples
-      <TT> fix_modify AtC transfer read_restart ATC_state </TT> \n
-      \section description
-      Reads the current state of the fields from a named text-based restart 
-      file.
-      \section restrictions 
-      The restart file only contains fields and their time derivatives.
-      The reference positions of the atoms and the commands that initialize
-      the fix are not saved e.g. an identical mesh containing the same atoms 
-      will have to be recreated. 
-      \section related
-      see write_restart \ref man_write_restart
-      \section default
-      none
-    */
-    else if (strcmp(arg[0],"read_restart")==0) {
-      restartFileName_  = arg[1];
-      useRestart_ = true;
-      match = true;
-    }
-    /*! \page man_write_restart fix_modify AtC transfer write_restart
-      \section syntax
-      fix_modify AtC transfer write_restart [file_name]  \n
-      \section examples
-      <TT> fix_modify AtC transfer write_restart restart.mydata </TT> \n
-      \section description
-      Dumps the current state of the fields to a named text-based restart file.
-      This done when the command is invoked and not repeated, unlike the 
-      similar lammps command.
-      \section restrictions 
-      The restart file only contains fields and their time derivatives.
-      The reference positions of the atoms and the commands that initialize
-      the fix are not saved e.g. an identical mesh containing the same atoms 
-      will have to be recreated. 
-      \section related
-      see read_restart \ref man_read_restart
-      \section default
-      none
-    */
-    else if (strcmp(arg[0],"write_restart")==0) {
-      string restartFileName(arg[1]);
-      OUTPUT_LIST data;
-      write_restart_data(restartFileName,data);
-      match = true;
-    }
-
-
-    // pass off to fe engine
-    if (!match) {
-      match = feEngine_->modify(narg, arg);
-    }
-  
-    return match;
-  
-  }
-
-  //--------------------------------------------------
-  // parse_boundary_integration
-  //   parses the boundary integration to determine
-  //   the type of boundary integration being used
-  //--------------------------------------------------
-  ATC::ATC_Transfer::BoundaryIntegrationType ATC_Transfer::parse_boundary_integration(int narg,
-                                                                                      char **arg,
-                                                                                      const set< pair<int,int> > * boundaryFaceSet)
-  {
-    int argIndex = 0;
-    BoundaryIntegrationType myBoundaryIntegrationType;
-    if (narg > 0) {
-      if(strcmp(arg[argIndex],"faceset")==0) {
-        argIndex++;
-        myBoundaryIntegrationType = FE_QUADRATURE;
-        string name(arg[argIndex]);
-        boundaryFaceSet = & ( (feEngine_->get_feMesh())->get_faceset(name));
-        set_boundary_face_set(boundaryFaceSet);
-      } 
-      else if (strcmp(arg[argIndex],"interpolate")==0) {
-        myBoundaryIntegrationType = FE_INTERPOLATION;
-      }
-      else if (strcmp(arg[argIndex],"no_boundary")==0) {
-        myBoundaryIntegrationType = NO_QUADRATURE;
-      }
-      else {
-        throw ATC_Error(0,"Bad boundary integration type");
+        bondOnTheFly_ = true;
       }
     }
-    else { // default is interpolation
-      myBoundaryIntegrationType = FE_INTERPOLATION;
-    }
-    
-    set_boundary_integration_type(myBoundaryIntegrationType);
-    return myBoundaryIntegrationType;
-  }
 
-  //--------------------------------------------------
-  // helper function for parser
-  // handles : "displacement x"  and "temperature" by indexing argIdx
-  // for fluxes : only normal fluxes can be prescribed
-  //--------------------------------------------------
-  void ATC_Transfer::get_field(/*const*/ char ** args, int & argIdx,
-                               FieldName & thisField, int & thisIndex)
-  {
-    string thisName = args[argIdx++];
-    thisField = string_to_field(thisName);
-    map<FieldName,int>::const_iterator iter = fieldSizes_.find(thisField);
-    if (iter == fieldSizes_.end()) {
-      throw ATC_Error(0,"Bad field name: "+thisName);
-    }
-    string thisDim = args[argIdx];
-    thisIndex = 0;
-    if (string_to_index(thisDim,thisIndex)) {
-      if ( !( thisIndex < fieldSizes_[thisField]) ) {
-        throw ATC_Error(0,"Bad field dimension "+thisDim);
-      }
-      argIdx++;
-    }
-  }
+    // set sample frequency to output if sample has not be specified
+    if (sampleFrequency_ == 0) sampleFrequency_ = outputFrequency_;
 
-  void ATC_Transfer::init_filter()
-  {
-    if (timeFilterManager_.need_reset()) {
-      map<FieldName,int>::const_iterator field;
-      for (field = fieldSizes_.begin(); field!=fieldSizes_.end(); field++) {
-        FieldName thisField = field->first;
-        int thisSize = field->second;
-        
-        // Allocate restricted fields
-        fieldRateNdFiltered_[thisField].reset(nNodes_,thisSize);
-        fieldRateNdOld_[thisField].reset(nNodes_,thisSize);
-        dot_fieldRateNdFiltered_[thisField].reset(nNodes_,thisSize);
-        dot_fieldRateNdOld_[thisField].reset(nNodes_,thisSize);
-      }
-    }
-  }
-
-  void ATC_Transfer::set_xref()
-  {
-    double **x = lammpsInterface_->xatom();
-    for (int i = 0; i < lammpsInterface_->nmax(); i++) {
-      for (int j = 0; j < nsd_; j++) {
-        xref_[i][j] = x[i][j];
-      }
-    }
-    Xprd_ = lammpsInterface_->domain_xprd();
-    Yprd_ = lammpsInterface_->domain_yprd();
-    Zprd_ = lammpsInterface_->domain_zprd();
-    XY_ = lammpsInterface_->domain_xy();
-    XZ_ = lammpsInterface_->domain_xz();
-    YZ_ = lammpsInterface_->domain_yz();
-
-  }
-
-  void ATC_Transfer::initialize()
-  { 
-    // initialized_ is set to true by derived class initialize()
-    int i, j;
+    // output for step 0 
     if (!initialized_) {
-      if (!trackCharge_) {
-        fieldSizes_.erase(CHARGE_DENSITY);
-        prescribedDataMgr_->remove_field(CHARGE_DENSITY);
-        for (i = 0; i < NUM_FLUX; i++)
-          fieldMask_(CHARGE_DENSITY,i) = false;
+      if (outputFrequency_ > 0) {
+        // initialize filtered data
+        compute_fields();
+        for(int index=0; index < NUM_TOTAL_FIELDS; ++index) {
+          if(fieldFlags_(index)) {
+            string name = field_to_string((FieldName) index);
+            filteredData_[name] = hardyData_[name];
+            timeFilters_(index)->initialize(filteredData_[name].quantity());
+          }
+          if (rateFlags_(index)) {
+            string name = field_to_string((FieldName) index);
+            string rate_field = name + "_rate";
+            filteredData_[rate_field] = hardyData_[rate_field];
+          }
+          if (gradFlags_(index)) {
+            string name = field_to_string((FieldName) index);
+            string grad_field = name + "_gradient";
+            filteredData_[grad_field] = hardyData_[grad_field];
+          }
+        }
+        int index = NUM_TOTAL_FIELDS;
+        map <string,int>::const_iterator iter;
+        for (iter = computes_.begin(); iter != computes_.end(); iter++) {
+          string tag = iter->first;
+          filteredData_[tag] = hardyData_[tag];
+          timeFilters_(index)->initialize(filteredData_[tag].quantity());
+#ifdef ESHELBY_VIRIAL
+          if (tag == "virial" && fieldFlags_(ESHELBY_STRESS)) {
+            filteredData_["eshelby_virial"] = hardyData_["eshelby_virial"];
+          }
+#endif
+          index++;
+        }
+        output();
+      }
+    }
+
+    initialized_ = true;
+
+    lammpsInterface_->computes_addstep(lammpsInterface_->ntimestep()+sampleFrequency_);
+
+    
+    //remap_ghost_ref_positions();
+    update_peratom_output(); 
+  }
+
+  //-------------------------------------------------------------------
+  void ATC_Transfer::set_continuum_data()
+  {
+    ATC_Method::set_continuum_data();
+    if (!initialized_) {
+      nNodesGlobal_ = feEngine_->fe_mesh()->num_nodes();
+    }
+  }
+
+  //-------------------------------------------------------------------
+  void ATC_Transfer::construct_time_integration_data()
+  {
+    if (!initialized_) {
+      // ground state for PE
+      nodalRefPotentialEnergy_.reset(nNodes_,1);
+      
+      // size arrays for requested/required  fields
+      for(int index=0; index < NUM_TOTAL_FIELDS; ++index) {
+        if (fieldFlags_(index)) {
+
+          int size = FieldSizes[index];
+          if (atomToElementMapType_ == EULERIAN) {
+            if (index == STRESS) size=6;
+            if (index == CAUCHY_BORN_STRESS) size=6;
+          }
+          if (size == 0) {
+            if (index == SPECIES_CONCENTRATION) size=typeList_.size()+groupList_.size();
+          }
+          string name = field_to_string((FieldName) index);
+          hardyData_   [name].reset(nNodes_,size);
+          filteredData_[name].reset(nNodes_,size);
+        }
       }
 
-      // Initialize finite elements shape function, mapping variables
-      feEngine_->initialize();
-      
-      nNodes_ = feEngine_->get_nNodes(); 
-      nsd_ = feEngine_->get_nsd();
-      if (nsd_!=lammpsInterface_->dimension()) 
-        throw ATC_Error(0,"Spatial dimensions inconsistent between LAMMPS and ATC");
-    
-      // set reference position of atoms
-      set_xref();    
+      // size arrays for projected compute fields
+      map <string,int>::const_iterator iter;
+      for (iter = computes_.begin(); iter != computes_.end(); iter++) {
+        string tag = iter->first;
+        COMPUTE_POINTER cmpt = lammpsInterface_->compute_pointer(tag);
+        int ncols = lammpsInterface_->compute_ncols_peratom(cmpt);
+        hardyData_        [tag].reset(nNodes_,ncols);
+        filteredData_[tag].reset(nNodes_,ncols);
+#ifdef ESHELBY_VIRIAL
+        if (tag == "virial" && fieldFlags_(ESHELBY_STRESS)) {
+          string esh = "eshelby_virial";
+          int size = FieldSizes[ESHELBY_STRESS];
+          hardyData_   [esh].reset(nNodes_,size);
+          filteredData_[esh].reset(nNodes_,size);
+        }
+#endif
+      }
+    }
+  }
+  //--------------------------------------------------------
+  //  set_computational_geometry
+  //    constructs needed transfer operators which define
+  //    hybrid atom/FE computational geometry
+  //--------------------------------------------------------
+  void ATC_Transfer::set_computational_geometry()
+  {
+    ATC_Method::set_computational_geometry();
+  }
 
-    } 
- 
-    // determine which elements are strictly in the MD region and mask out for intrinsic fields
-    // start by finding local atom counts
-    reset_nlocal();
-    int nelts = feEngine_->get_feMesh()->get_nElements();
-    elementMask_.reset(nelts);
-    if (atomQuadForInternal_) {
-      elementMask_ = true;
+  //-------------------------------------------------------------------
+  // constructs quantities
+  void ATC_Transfer::construct_transfers()
+  {
+
+    // set pointer to positions
+    // REFACTOR use method's handling of xref/xpointer
+    set_xPointer(); 
+
+    ATC_Method::construct_transfers();
+
+    if (!(kernelOnTheFly_)) {
+      // finite element shape functions for interpolants 
+      PerAtomShapeFunction * atomShapeFunctions = new PerAtomShapeFunction(this);
+      interscaleManager_.add_per_atom_sparse_matrix(atomShapeFunctions,"Interpolant");
+      shpFcn_ = atomShapeFunctions;
+    }
+
+    
+    this->create_atom_volume();
+
+    // accumulants
+    if (kernelFunction_) {
+      // kernel-based accumulants
+      if (kernelOnTheFly_) {
+        ConstantQuantity<double> * atomCount = new ConstantQuantity<double>(this,1.);
+        interscaleManager_.add_per_atom_quantity(atomCount,"AtomCount");
+        OnTheFlyKernelAccumulation * myWeights 
+           = new OnTheFlyKernelAccumulation(this,
+             atomCount, kernelFunction_, atomCoarseGrainingPositions_);
+        interscaleManager_.add_dense_matrix(myWeights,
+                                            "KernelInverseWeights");
+        accumulantWeights_ = new OnTheFlyKernelWeights(myWeights);
+      }
+      else {
+        PerAtomKernelFunction * atomKernelFunctions = new PerAtomKernelFunction(this);
+        interscaleManager_.add_per_atom_sparse_matrix(atomKernelFunctions,
+                                                      "Accumulant");
+        accumulant_ = atomKernelFunctions;
+        accumulantWeights_ = new AccumulantWeights(accumulant_);
+      }
+      accumulantInverseVolumes_ = new KernelInverseVolumes(this,kernelFunction_);
+      interscaleManager_.add_diagonal_matrix(accumulantInverseVolumes_,
+                                            "AccumulantInverseVolumes");
+      interscaleManager_.add_diagonal_matrix(accumulantWeights_,
+                                             "AccumulantWeights");
     }
     else {
-      // determine which elements contain internal atoms
-      Array<int> hasInternal(nelts);
-      Array<int> hasInternal_local(nelts);
-      hasInternal_local = 0;
-      for (int i = 0; i < nLocal_; ++i) {
-        DENS_VEC coords(3);
-        coords(0) = atomicCoords_(0,i);
-        coords(1) = atomicCoords_(1,i);
-        coords(2) = atomicCoords_(2,i);
-        int eltID = feEngine_->get_feMesh()->map_to_element(coords);
-        hasInternal_local(eltID) = 1;
+      // mesh-based accumulants
+      if (kernelOnTheFly_) {
+        ConstantQuantity<double> * atomCount = new ConstantQuantity<double>(this,1.);
+        interscaleManager_.add_per_atom_quantity(atomCount,"AtomCount");
+        OnTheFlyMeshAccumulation * myWeights 
+           = new OnTheFlyMeshAccumulation(this,
+             atomCount, atomCoarseGrainingPositions_);
+        interscaleManager_.add_dense_matrix(myWeights,
+                                            "KernelInverseWeights");
+        accumulantWeights_ = new OnTheFlyKernelWeights(myWeights);
+      } else {
+        accumulant_ = shpFcn_;
+        accumulantWeights_ = new AccumulantWeights(accumulant_);
+        interscaleManager_.add_diagonal_matrix(accumulantWeights_,
+                                              "AccumulantWeights");
       }
-      // swap contributions
-      lammpsInterface_->logical_or(hasInternal_local.get_ptr(),
-                                   hasInternal.get_ptr(),hasInternal.size());
-      // determine which elements contain ghost atoms
-      Array<int> hasGhost(nelts);
-      Array<int> hasGhost_local(nelts);
-      hasGhost_local = 0;
-      for (int i = 0; i < nLocalGhost_; ++i) {
-        DENS_VEC coords(3);
-        coords(0) = ghostAtomCoords_(0,i);
-        coords(1) = ghostAtomCoords_(1,i);
-        coords(2) = ghostAtomCoords_(2,i);
-        int eltID = feEngine_->get_feMesh()->map_to_element(coords);
-        hasGhost_local(eltID) = 1;
-      }
-      //swap contributions
-      lammpsInterface_->logical_or(hasGhost_local.get_ptr(),
-                                   hasGhost.get_ptr(),hasGhost.size());
-      for (int i = 0; i < nelts; ++i)
-        elementMask_(i) = !hasInternal(i) || hasGhost(i);
     }
-    set<int> & nullElements = feEngine_->null_elements();
-    set<int>::const_iterator iset;
-    for (iset = nullElements.begin(); iset != nullElements.end(); iset++) {
-      int ielem = *iset;
-      elementMask_(ielem) = false;
-    }
-  
-    // set atomic weights
-    reset_shape_functions(); // creates atom->element map
-    set_atomic_weights();
 
-    // group atoms by material
-    int nMatls = physicsModel_->get_nMaterials();
-    atomMaterialGroups_.reset(nMatls);
-    for (int i = 0; i < nLocal_; i++) {
-      int matId = elementToMaterialMap_(atomToElementMap_(i));
-      atomMaterialGroups_(matId).insert(i);// not internalToAtom_
-    }
-    if (atomToElementMapType_ == EULERIAN && nMatls >1 ) {
-      throw ATC_Error(0," multiple materials & eulerian map not supported");
-    }
     
-    // compute necessary restructuring matrices
-    maskMat_.reset(nNodes_,nNodes_);
-    if (!useLocalizedLambda_) {
-      for (i = 0; i < nNodes_; ++i)
-        if (shpWeight_(i,i) > 0.)
-          maskMat_(i,i) = 1.;
+    bool needsBondMatrix =  (! bondOnTheFly_ ) &&
+             (fieldFlags_(STRESS)
+           || fieldFlags_(ESHELBY_STRESS)
+           || fieldFlags_(HEAT_FLUX));
+    if (needsBondMatrix) {
+      if (hasPairs_ && hasBonds_) {
+        pairMap_ = new PairMapBoth(lammpsInterface_,groupbit_);
+      }
+      else if (hasBonds_) {
+        pairMap_ = new PairMapBond(lammpsInterface_,groupbit_);
+      }
+      else if (hasPairs_) {
+        pairMap_ = new PairMapNeighbor(lammpsInterface_,groupbit_);
+      }
     }
-    else { // select nodes for thermostat
-      // 1) their shape functions have both mask and ghost atoms in their support
-      DENS_VEC hasInternalLocal(nNodes_);
-      DENS_VEC hasInternal(nNodes_);
-      if (nLocal_>0) hasInternalLocal = shpFcn_.col_sum();    
-      lammpsInterface_->allsum(hasInternalLocal.get_ptr(),hasInternal.get_ptr(),nNodes_);
-     
-      DENS_VEC hasGhostLocal(nNodes_);
-      DENS_VEC hasGhost(nNodes_);
-      if (nLocalGhost_>0) hasGhostLocal = shpFcnGhost_.col_sum();
-      lammpsInterface_->allsum(hasGhostLocal.get_ptr(),hasGhost.get_ptr(),nNodes_);
+    if (pairMap_) interscaleManager_.add_pair_map(pairMap_,"PairMap");
+    //if (pairMap_ && !initialized_) interscaleManager_.add_pair_map(pairMap_,"PairMap");
+
+
+    //const  PerAtomQuantity<double> *  x0= interscaleManager_.per_atom_quantity("AtomicReferencePositions");
+    //const  PerAtomQuantity<double> *  x0= interscaleManager_.per_atom_quantity("AtomicCoarseGrainingPositions");
+    //const  PerAtomQuantity<double> *  x0= interscaleManager_.per_atom_quantity("AtomicReferencePositions");
       
-      for (i = 0; i < nNodes_; ++i) {
-        if (hasInternal(i) > 0. && hasGhost(i) > 0.) {
-          maskMat_(i,i) = 1.;
-        }
-      }
+    if ( fieldFlags_(STRESS) || fieldFlags_(ESHELBY_STRESS) || fieldFlags_(HEAT_FLUX) ) {
 
-      // 2) they are in a specified boundary faceset
-      set<string>::const_iterator iter;
-      for (iter = boundaryFaceNames_.begin(); iter != boundaryFaceNames_.end(); iter++) {
-        set<int> nodeSet;
-        feEngine_->get_feMesh()->faceset_to_nodeset(*iter,nodeSet);
-        set<int>::const_iterator nodeIter;
-        for (nodeIter = nodeSet.begin(); nodeIter != nodeSet.end(); nodeIter++) {
-          maskMat_(*nodeIter,*nodeIter) = 1.;
-        }
-      }
-    }
-    
-    // determine non-zero values and row-column indices
-    // also used in creating overlap map and mapping from atoms to elements
-    // note we assume the overlap map is time-independent
-    nodeToOverlapMap_.reset(nNodes_);
-    nNodeOverlap_ = 0;
-    for (i = 0; i < nNodes_; i++) {
-      if (maskMat_(i,i) > 0.) {
-        nodeToOverlapMap_(i) = nNodeOverlap_;
-        nNodeOverlap_++;
+      const FE_Mesh * fe_mesh = feEngine_->fe_mesh();
+      if (!kernelBased_) {
+        bondMatrix_ = new BondMatrixPartitionOfUnity(lammpsInterface_,*pairMap_,xPointer_,fe_mesh,accumulantInverseVolumes_); 
       }
       else {
-        nodeToOverlapMap_(i) = -1;
+        bondMatrix_ = new BondMatrixKernel(lammpsInterface_,*pairMap_,xPointer_,fe_mesh,kernelFunction_);
+      }
+    }
+    if (bondMatrix_) interscaleManager_.add_sparse_matrix(bondMatrix_,"BondMatrix");
+
+    if ( fieldFlags_(STRESS) || fieldFlags_(ESHELBY_STRESS) ) {
+      if (atomToElementMapType_ == LAGRANGIAN) {
+//      pairVirial_ = new PairVirialLagrangian(lammpsInterface_,*pairMap_,x0);
+        pairVirial_ = new PairVirialLagrangian(lammpsInterface_,*pairMap_,xref_);
+      }
+      else if (atomToElementMapType_ == EULERIAN) {
+        pairVirial_ = new PairVirialEulerian(lammpsInterface_,*pairMap_);
+      }
+      else {
+        throw ATC_Error("no atom to element map specified");
+      }
+    }
+    if (pairVirial_) interscaleManager_.add_dense_matrix(pairVirial_,"PairVirial");
+
+    if ( fieldFlags_(HEAT_FLUX) ) {
+      if (atomToElementMapType_ == LAGRANGIAN) {
+        pairHeatFlux_ = new PairPotentialHeatFluxLagrangian(lammpsInterface_,*pairMap_,xref_);
+      }
+      else if (atomToElementMapType_ == EULERIAN) {
+        pairHeatFlux_ = new PairPotentialHeatFluxEulerian(lammpsInterface_,*pairMap_);
+      }
+      else {
+        throw ATC_Error("no atom to element map specified");
+      }
+    }
+    if (pairHeatFlux_) interscaleManager_.add_dense_matrix(pairHeatFlux_,"PairHeatFlux");
+
+    // gradient matrix
+    if (gradFlags_.has_member(true)) {
+      NativeShapeFunctionGradient * gradientMatrix = new NativeShapeFunctionGradient(this);
+      interscaleManager_.add_vector_sparse_matrix(gradientMatrix,"GradientMatrix");
+      gradientMatrix_ = gradientMatrix;
+    }
+
+    // molecule centroid, molecule charge, dipole moment and quadrupole moment calculations KKM add
+    if (!moleculeIds_.empty()) {
+      map<string,pair<MolSize,int> >::const_iterator molecule;
+      InterscaleManager & interscaleManager = this->interscale_manager(); // KKM add, may be we do not need this as interscaleManager_ already exists.  
+      PerAtomQuantity<double> * atomProcGhostCoarseGrainingPositions_ = interscaleManager.per_atom_quantity("AtomicProcGhostCoarseGrainingPositions");
+      FundamentalAtomQuantity * mass = interscaleManager_.fundamental_atom_quantity(LammpsInterface::ATOM_MASS,PROC_GHOST);
+      molecule = moleculeIds_.begin();
+      int groupbit = (molecule->second).second;
+      smallMoleculeSet_ = new SmallMoleculeSet(this,groupbit);
+      smallMoleculeSet_->initialize(); // KKM add, why should we? 
+      interscaleManager_.add_small_molecule_set(smallMoleculeSet_,"MoleculeSet");
+      moleculeCentroid_ = new SmallMoleculeCentroid(this,mass,smallMoleculeSet_,atomProcGhostCoarseGrainingPositions_);
+      interscaleManager_.add_dense_matrix(moleculeCentroid_,"MoleculeCentroid");
+      AtomToSmallMoleculeTransfer<double> * moleculeMass =
+        new AtomToSmallMoleculeTransfer<double>(this,mass,smallMoleculeSet_);
+      interscaleManager_.add_dense_matrix(moleculeMass,"MoleculeMass");
+      FundamentalAtomQuantity * atomicCharge = interscaleManager_.fundamental_atom_quantity(LammpsInterface::ATOM_CHARGE,PROC_GHOST);
+      AtomToSmallMoleculeTransfer<double> * moleculeCharge =
+        new AtomToSmallMoleculeTransfer<double>(this,atomicCharge,smallMoleculeSet_);
+      interscaleManager_.add_dense_matrix(moleculeCharge,"MoleculeCharge");
+      dipoleMoment_ = new SmallMoleculeDipoleMoment(this,atomicCharge,smallMoleculeSet_,atomProcGhostCoarseGrainingPositions_,moleculeCentroid_);
+      interscaleManager_.add_dense_matrix(dipoleMoment_,"DipoleMoment");
+      quadrupoleMoment_ = new SmallMoleculeQuadrupoleMoment(this,atomicCharge,smallMoleculeSet_,atomProcGhostCoarseGrainingPositions_,moleculeCentroid_);
+      interscaleManager_.add_dense_matrix(quadrupoleMoment_,"QuadrupoleMoment");
+    }
+
+    FieldManager fmgr(this);
+
+//  for(int index=0; index < NUM_TOTAL_FIELDS; ++index) 
+    for(int i=0; i < numFields_; ++i) {
+      FieldName index = indices_[i];
+      if (fieldFlags_(index)) {
+        outputFields_[index] = fmgr.nodal_atomic_field(index);
+      }
+    }
+
+// WIP REJ
+    if (fieldFlags_(ELECTRIC_POTENTIAL)) {
+      restrictedCharge_ = fmgr.restricted_atom_quantity(CHARGE_DENSITY);
+    }
+
+    // computes
+    map <string,int>::const_iterator iter;
+    for (iter = computes_.begin(); iter != computes_.end(); iter++) {
+      string tag = iter->first;
+      ComputedAtomQuantity * c = new ComputedAtomQuantity(this, tag);
+      interscaleManager_.add_per_atom_quantity(c,tag);
+      int projection = iter->second;
+      DIAG_MAN * w = NULL;
+      if      (projection == VOLUME_NORMALIZATION ) 
+         { w = accumulantInverseVolumes_; }
+      else if (projection == NUMBER_NORMALIZATION ) 
+         { w = accumulantWeights_; }
+      if (kernelFunction_ && kernelOnTheFly_) {
+        OnTheFlyKernelAccumulationNormalized * C = new OnTheFlyKernelAccumulationNormalized(this, c, kernelFunction_, atomCoarseGrainingPositions_, w);
+        interscaleManager_.add_dense_matrix(C,tag);
+        outputFieldsTagged_[tag] = C;
+      }
+      else {
+        AtfProjection * C =  new AtfProjection(this, c, accumulant_, w);
+        interscaleManager_.add_dense_matrix(C,tag);
+        outputFieldsTagged_[tag] = C;
       }
     }
   
-    overlapToNodeMap_.reset(nNodeOverlap_);
-    int counter = 0;
-    for (i = 0; i < nNodes_; i++) {
-      if (nodeToOverlapMap_(i)!=-1) {
-        overlapToNodeMap_(counter) = i;
-        counter++;
-      }
-    }
-    
-    // reset local overlap shape function storage
-    reset_NhatOverlap();
-    
-    // Shape sparse matrix used in Hoover-type  thermostats
-    // first get local pattern sized nNodeOverlap X nNodeOverlap
-    //compute_consistent_md_mass_matrix(NhatOverlap_,tmp);
-    DENS_MAT tmpLocal(nNodeOverlap_,nNodeOverlap_);
-    DENS_MAT tmp(nNodeOverlap_,nNodeOverlap_);
-    if (nLocalLambda_>0) {
-      DENS_VEC T(nLocalLambda_);
-      T = 1.0;
-      for (i = 0; i < nNodeOverlap_; i++) {
-        for (j = 0; j < nNodeOverlap_; j++) {
-          for (int iatom = 0; iatom < nLocalLambda_; iatom++) {
-            tmpLocal(i,j) += NhatOverlap_(iatom,i)*T(iatom)*NhatOverlap_(iatom,j);
-          }
-        }
-      }
-    }
-    // second accumulate total pattern
-    lammpsInterface_->allsum(tmpLocal.get_ptr(), tmp.get_ptr(), tmp.size());
-    // third extract non-zero entries & construct
-    M_T_Template.reset(nNodeOverlap_,nNodeOverlap_);
-    for (i = 0; i < nNodeOverlap_; i++) {
-      for (j = 0; j < nNodeOverlap_; j++) {
-        if (abs(tmp(i,j))>0) {
-          M_T_Template.add(i,j,0.);
-        }  
-      }
-    }
-    M_T_Template.compress();
-    
-    // \int_\Omega N_I dV
-    NodeVolumes_.reset(nNodes_,nNodes_);
-    invNodeVolumes_.reset(nNodes_,nNodes_);
-    feEngine_->compute_lumped_mass_matrix(NodeVolumes_);
-    invNodeVolumes_ = NodeVolumes_.inv();
-
-    // this is exact only for uniform meshes and certain types of atomic weights
-    // \int_{\Omega_MD} N_I dV = \sum_\alpha N_I\alpha V_\alpha
-    //     DENS_VEC atom_weights_vec(atomicWeights_.size(), 
-    //                                     atomicWeights_.get_ptr()); 
-    DENS_VEC subsetNodeVolume(NodeVolumes_.size());
-    DENS_VEC unitVec(atomicWeights_.size());
-    unitVec = 1.0;
-    restrict_unscaled(unitVec, subsetNodeVolume);
-    fluxMask_.reset(invNodeVolumes_* subsetNodeVolume);
-    DIAG_MAT id(fluxMask_.nRows(),fluxMask_.nCols()); 
-    id = 1.0;
-    fluxMaskComplement_ = id + -1.0*fluxMask_;
-
-    // set flux masks for nodes we can tell by geometry
-    DENS_VEC hasInternalLocal(nNodes_);
-    DENS_VEC hasInternal(nNodes_);
-    if (nLocal_>0) hasInternalLocal = shpFcn_.col_sum();    
-    lammpsInterface_->allsum(hasInternalLocal.get_ptr(),hasInternal.get_ptr(),nNodes_);
-    
-    DENS_VEC hasGhostLocal(nNodes_);
-    DENS_VEC hasGhost(nNodes_);
-    if (nLocalGhost_>0) hasGhostLocal = shpFcnGhost_.col_sum();
-    lammpsInterface_->allsum(hasGhostLocal.get_ptr(),hasGhost.get_ptr(),nNodes_);
-    
-    for (i = 0; i < nNodes_; ++i) {
-      if (hasInternal(i) > 0.) {
-        if (hasGhost(i) == 0.) {
-          fluxMask_(i,i) = 1.;
-          fluxMaskComplement_(i,i) = 0.;
-        }
-      }
-      else {
-        fluxMask_(i,i) = 0.;
-        fluxMaskComplement_(i,i) = 1.;
-      }
-    }
-
-    // Initialize fields and set initial conditions
-    if (!initialized_) {
-      nodeType_.reset(nNodes_);
-      for (int iNode = 0; iNode < nNodes_; ++iNode)
-        nodeType_(iNode) = check_shape_function_type(iNode);
-      
-      map<FieldName,int>::const_iterator field;
-      for (field = fieldSizes_.begin(); field!=fieldSizes_.end(); field++) {
-        FieldName thisField = field->first;
-        int thisSize = field->second;
-      
-        // Allocate fields, initialize to default values, set up initial schedule
-        fields_[thisField].reset(nNodes_,thisSize);
-        dot_fields_[thisField].reset(nNodes_,thisSize);
-        ddot_fields_[thisField].reset(nNodes_,thisSize);
-        dddot_fields_[thisField].reset(nNodes_,thisSize);
-          
-        dot_fieldsMD_[thisField].reset(nNodes_,thisSize);
-        ddot_fieldsMD_[thisField].reset(nNodes_,thisSize);
-        dot_dot_fieldsMD_[thisField].reset(nNodes_,thisSize);
-
-        // Allocate restricted fields
-        fieldRateNdFiltered_[thisField].reset(nNodes_,thisSize);
-        fieldRateNdOld_[thisField].reset(nNodes_,thisSize);
-        dot_fieldRateNdFiltered_[thisField].reset(nNodes_,thisSize);
-        dot_fieldRateNdOld_[thisField].reset(nNodes_,thisSize);
-    
-        fieldNdFiltered_[thisField].reset(nNodes_,thisSize);
-        fieldNdOld_[thisField].reset(nNodes_,thisSize);
-
-        // Allocate auxilliary storage
-        auxStorage_[thisField].reset(nNodes_,thisSize);
-      
-        // Dimension finite element rhs matrix
-        rhs_[thisField].reset(nNodes_,thisSize);
-        rhsAtomDomain_[thisField].reset(nNodes_,thisSize);
-        sources_[thisField].reset(nNodes_,thisSize);
-        extrinsicSources_[thisField].reset(nNodes_,thisSize);
-        boundaryFlux_[thisField].reset(nNodes_,thisSize);
-
-        if (is_intrinsic(thisField)) {
-          // compute FE mass matrix in full domain
-          massMatInv_[thisField].reset(nNodes_,nNodes_);
-          Array<FieldName> massMask(1);
-          massMask(0) = thisField;
-          feEngine_->compute_lumped_mass_matrix(massMask,fields_,physicsModel_,
-                                                elementToMaterialMap_,massMats_,
-                                                &elementMask_);
-
-          // atomic quadrature for FE mass matrix in atomic domain
-          map<FieldName,DIAG_MAT> massMatAq;
-          feEngine_->compute_lumped_mass_matrix(massMask,fields_,physicsModel_,
-                                                atomMaterialGroups_,atomicWeightsMask_,
-                                                shpFcnMasked_,massMatAq);
-          // remove contributions from overlap by approximate quadrature
-          // and fully remove contributions from internal
-          massMats_[thisField] -= massMatAq[thisField];
-          for (int iNode = 0; iNode < nNodes_; iNode++)
-            if (nodeType_(iNode)==MD_ONLY)
-              massMats_[thisField](iNode,iNode) = 0.;
-          
-          // set up mass MD matrices
-          massMatMDInv_[thisField].reset(nNodes_,nNodes_);
-          compute_md_mass_matrix(thisField,massMatsMD_);
-          massMats_[thisField] += massMatsMD_[thisField];
-          
-          // compute inverse mass matrices since we're using lumped masses
-          for (int iNode = 0; iNode < nNodes_; iNode++) {
-            if (fabs(massMatsMD_[thisField](iNode,iNode))>0) { 
-              massMatMDInv_[thisField](iNode,iNode) = 1./massMatsMD_[thisField](iNode,iNode);
-            }
-            if (fabs(massMats_[thisField](iNode,iNode))>0) {
-              massMatInv_[thisField](iNode,iNode) = 1./massMats_[thisField](iNode,iNode);
-            }
-          }
-        }
-        else {
-          // no MD mass matrices needed, regular matrices computed in extrinsic model
-          massMats_[thisField].reset(nNodes_,nNodes_);
-          massMatInv_[thisField].reset(nNodes_,nNodes_);
-        }
-      }
-
-      // compute inverse consistent mass for the continuity equation
-      SPAR_MAT consistentMass;
-      feEngine_->compute_mass_matrix(consistentMass);
-      consistentMass.compress();
-      consistentMassInverse_ = inv(consistentMass.dense_copy());
-
-      
-      // Apply integration masking and new ICs
-      // initialize schedule derivatives
-      try {
-        set_initial_conditions();
-      }
-      catch (ATC::ATC_Error& atcError) {
-        if (!useRestart_)
-          throw;
-      }
-    }
-
-    // set lists of fixed nodes per field
-    map<FieldName,int>::const_iterator field;
-    for (field = fieldSizes_.begin(); field!=fieldSizes_.end(); field++) {
-      FieldName thisField = field->first;
-      int thisSize = field->second;
-      isFixedNode_[thisField].reset(nNodes_,thisSize);
-      for (int i = 0; i < nNodes_; i++)
-        for (int j = 0; j < thisSize; j++)
-          isFixedNode_[thisField](i,j) = prescribedDataMgr_->is_fixed(i,thisField,j);
-    }
-
-    return;
   }
 
+  //-------------------------------------------------------------------
+  // sets initial values of filtered quantities
+  void ATC_Transfer::construct_methods()
+  {
+    if ((!initialized_) || timeFilterManager_.need_reset()) {
+      timeFilters_.reset(NUM_TOTAL_FIELDS+nComputes_);
+      sampleCounter_ = 0;
+      
+      // for filtered  fields
+      for(int index=0; index < NUM_TOTAL_FIELDS; ++index) {
+        if (fieldFlags_(index)) {
+          string name = field_to_string((FieldName) index);
+          filteredData_[name]  = 0.0;
+          timeFilters_(index) = timeFilterManager_.construct(); 
+        }
+      }
+      
+      // for filtered projected computes
+      
+      //       lists/accessing of fields ( & computes)
+      map <string,int>::const_iterator iter;
+      int index = NUM_TOTAL_FIELDS;
+      for (iter = computes_.begin(); iter != computes_.end(); iter++) {
+        string tag = iter->first;
+        filteredData_[tag] = 0.0;
+        timeFilters_(index) = timeFilterManager_.construct();
+        index++;
+      }
+    }
+  }
+
+
+  //-------------------------------------------------------------------
+  // called after the end of a "run"
+  void ATC_Transfer::finish() 
+  {
+    // base class
+    ATC_Method::finish();
+  }
+
+  //-------------------------------------------------------------------
+  // this is the parser
+  bool ATC_Transfer::modify(int narg, char **arg)
+  {
+    bool match = false;
+
+    int argIdx = 0;
+    // check to see if it is a transfer class command
+      /*! \page man_hardy_fields fix_modify AtC fields 
+        \section syntax
+        fix_modify AtC fields <all | none> \n
+        fix_modify AtC fields <add | delete> <list_of_fields> \n
+        - all | none (keyword) = output all or no fields  \n
+        - add | delete (keyword) = add or delete the listed output fields \n
+        - fields (keyword) =  \n
+        density : mass per unit volume \n
+        displacement : displacement vector \n
+        momentum : momentum per unit volume \n
+        velocity : defined by momentum divided by density \n
+        projected_velocity : simple kernel estimation of atomic velocities \n
+        temperature :  temperature derived from the relative atomic kinetic energy (as done by ) \n
+        kinetic_temperature : temperature derived from the full kinetic energy  \n
+        number_density : simple kernel estimation of number of atoms per unit volume \n
+        stress : 
+        Cauchy stress tensor for eulerian analysis (atom_element_map), or
+        1st Piola-Kirchhoff stress tensor for lagrangian analysis    \n
+        transformed_stress : 
+        1st Piola-Kirchhoff stress tensor for eulerian analysis (atom_element_map), or 
+                             Cauchy stress tensor for lagrangian analysis    \n
+        heat_flux : spatial heat flux vector for eulerian, 
+        or referential heat flux vector for lagrangian \n
+        potential_energy : potential energy per unit volume \n
+        kinetic_energy : kinetic energy per unit volume \n
+        thermal_energy : thermal energy (kinetic energy - continuum kinetic energy) per unit volume \n
+        internal_energy : total internal energy (potential + thermal) per unit volume \n
+        energy : total energy (potential + kinetic) per unit volume \n
+        number_density : number of atoms per unit volume \n
+        eshelby_stress: configurational stress (energy-momentum) tensor defined by Eshelby
+          [References: Philos. Trans. Royal Soc. London A, Math. Phys. Sci., Vol. 244, 
+          No. 877 (1951) pp. 87-112; J. Elasticity, Vol. 5, Nos. 3-4 (1975) pp. 321-335] \n
+        vacancy_concentration: volume fraction of vacancy content \n
+        type_concentration: volume fraction of a specific atom type \n
+        \section examples
+        <TT> fix_modify AtC fields add velocity temperature </TT>
+        \section description
+        Allows modification of the fields calculated and output by the 
+        transfer class. The commands are cumulative, e.g.\n
+        <TT> fix_modify AtC fields none </TT> \n 
+        followed by \n 
+        <TT> fix_modify AtC fields add velocity temperature </TT> \n
+        will only output the velocity and temperature fields.
+        \section restrictions
+        Must be used with the hardy/field type of AtC fix, see \ref man_fix_atc.
+        Currently, the stress and heat flux formulas are only correct for 
+        central force potentials, e.g. Lennard-Jones and EAM 
+        but not Stillinger-Weber.
+        \section related
+        See \ref man_hardy_gradients , \ref man_hardy_rates  and \ref man_hardy_computes
+        \section default
+        By default, no fields are output
+      */
+      if (strcmp(arg[argIdx],"fields")==0) {
+        argIdx++;
+        if (strcmp(arg[argIdx],"all")==0) { 
+          outputFlags_ = true;
+          match = true;
+        } 
+        else if (strcmp(arg[argIdx],"none")==0) { 
+          outputFlags_ = false;
+          match = true;
+        } 
+        else if (strcmp(arg[argIdx],"add")==0) { 
+          argIdx++;
+          for (int i = argIdx; i < narg; ++i) {
+            FieldName field_name = string_to_field(arg[i]);
+            outputFlags_(field_name) = true; 
+          }
+          match = true;
+        } 
+        else if (strcmp(arg[argIdx],"delete")==0) { 
+          argIdx++;
+          for (int i = argIdx; i < narg; ++i) {
+            FieldName field_name = string_to_field(arg[i]);
+            outputFlags_(field_name) = false; 
+          }
+          match = true;
+        } 
+        check_field_dependencies();
+        if (fieldFlags_(DISPLACEMENT)) { trackDisplacement_ = true; }
+      }
+
+      /*! \page man_hardy_gradients fix_modify AtC gradients
+        \section syntax
+        fix_modify AtC gradients <add | delete> <list_of_fields> \n
+        - add | delete (keyword) = add or delete the calculation of gradients for the listed output fields \n
+        - fields (keyword) =  \n
+        gradients can be calculated for all fields listed in \ref man_hardy_fields
+ 
+        \section examples
+        <TT> fix_modify AtC gradients add temperature velocity stress </TT> \n
+        <TT> fix_modify AtC gradients delete velocity </TT> \n
+        \section description
+        Requests calculation and ouput of gradients of the fields from the 
+        transfer class. These gradients will be with regard to spatial or material
+        coordinate for eulerian or lagrangian analysis, respectively, as specified by 
+        atom_element_map (see \ref man_atom_element_map )
+        \section restrictions
+        Must be used with the hardy/field type of AtC fix 
+        ( see \ref man_fix_atc )
+        \section related
+        \section default
+        No gradients are calculated by default
+      */
+      else if (strcmp(arg[argIdx],"gradients")==0) {
+        argIdx++;
+        if (strcmp(arg[argIdx],"add")==0) { 
+          argIdx++;
+          FieldName field_name;
+          for (int i = argIdx; i < narg; ++i) {
+            field_name = string_to_field(arg[i]);
+            gradFlags_(field_name) = true; 
+          }
+          match = true;
+        } 
+        else if (strcmp(arg[argIdx],"delete")==0) { 
+          argIdx++;
+          FieldName field_name;
+          for (int i = argIdx; i < narg; ++i) {
+            field_name = string_to_field(arg[i]);
+            gradFlags_(field_name) = false; 
+          }
+          match = true;
+        } 
+      }
+
+      /*! \page man_hardy_rates fix_modify AtC rates 
+        \section syntax
+        fix_modify AtC rates <add | delete> <list_of_fields> \n
+        - add | delete (keyword) = add or delete the calculation of rates (time derivatives) for the listed output fields \n
+        - fields (keyword) =  \n
+        rates can be calculated for all fields listed in \ref man_hardy_fields
+ 
+        \section examples
+        <TT> fix_modify AtC rates add temperature velocity stress </TT> \n
+        <TT> fix_modify AtC rates delete stress </TT> \n
+        \section description
+        Requests calculation and ouput of rates (time derivatives) of the fields from the 
+        transfer class. For eulerian analysis (see \ref man_atom_element_map ), these rates
+        are the partial time derivatives of the nodal fields, not the full (material) time
+        derivatives. \n
+        \section restrictions
+        Must be used with the hardy/field type of AtC fix 
+        ( see \ref man_fix_atc )
+        \section related
+        \section default
+        No rates are calculated by default
+      */
+      else if (strcmp(arg[argIdx],"rates")==0) {
+        argIdx++;
+        if (strcmp(arg[argIdx],"add")==0) { 
+          argIdx++;
+          FieldName field_name;
+          for (int i = argIdx; i < narg; ++i) {
+            field_name = string_to_field(arg[i]);
+            rateFlags_(field_name) = true; 
+          }
+          match = true;
+        } 
+        else if (strcmp(arg[argIdx],"delete")==0) { 
+          argIdx++;
+          FieldName field_name;
+          for (int i = argIdx; i < narg; ++i) {
+            field_name = string_to_field(arg[i]);
+            rateFlags_(field_name) = false;
+          }
+          match = true;
+        } 
+      }
+
+
+      /*! \page man_pair_interactions fix_modify AtC pair_interactions on|off 
+        \section syntax
+        fix_modify AtC pair_interactions on|off \n
+        fix_modify AtC bond_interactions on|off \n
+      
+        \section examples
+        <TT> fix_modify AtC bond_interactions on </TT> \n
+        \section description
+        include bonds and/or pairs in the stress and heat flux computations
+        \section restrictions
+        \section related
+        \section default
+         pair interactions: on, bond interactions: off
+      */
+      if (strcmp(arg[argIdx],"pair_interactions")==0) {    // default true
+        argIdx++;
+        if (strcmp(arg[argIdx],"on")==0) { hasPairs_ = true; }      
+        else                             { hasPairs_ = false;}
+        match = true;
+      }  
+      if (strcmp(arg[argIdx],"bond_interactions")==0) {    // default false
+        argIdx++;
+        if (strcmp(arg[argIdx],"on")==0) { hasBonds_ = true; }      
+        else                             { hasBonds_ = false;}
+        match = true;
+      }  
+ 
+      /*! \page man_hardy_computes fix_modify AtC computes 
+        \section syntax
+        fix_modify AtC computes <add | delete> [per-atom compute id] <volume | number> \n
+        - add | delete (keyword) = add or delete the calculation of an equivalent continuum field
+        for the specified per-atom compute as volume or number density quantity \n
+        - per-atom compute id =  name/id for per-atom compute, 
+        fields can be calculated for all per-atom computes available from LAMMPS \n
+        - volume | number (keyword) = field created is a per-unit-volume quantity
+        or a per-atom quantity as weighted by kernel functions \n 
+ 
+        \section examples
+        <TT> compute virial all stress/atom </TT> \n
+        <TT> fix_modify AtC computes add virial volume </TT> \n
+        <TT> fix_modify AtC computes delete virial </TT> \n
+        \n
+        <TT> compute centrosymmetry all centro/atom </TT> \n
+        <TT> fix_modify AtC computes add centrosymmetry number </TT> \n
+        \section description
+        Calculates continuum fields corresponding to specified per-atom computes created by LAMMPS \n
+        \section restrictions
+        Must be used with the hardy/field type of AtC fix ( see \ref man_fix_atc ) \n
+        Per-atom compute must be specified before corresponding continuum field can be requested \n
+        \section related
+        See manual page for compute 
+        \section default
+        No defaults exist for this command
+      */
+      else if (strcmp(arg[argIdx],"computes")==0) {
+        argIdx++;
+        if (strcmp(arg[argIdx],"add")==0) { 
+          argIdx++;
+          string tag(arg[argIdx++]);
+          int normalization = NO_NORMALIZATION;
+          if (narg > argIdx) {
+            if      (strcmp(arg[argIdx],"volume")==0) { 
+              normalization = VOLUME_NORMALIZATION;
+            }
+            else if (strcmp(arg[argIdx],"number")==0) { 
+              normalization = NUMBER_NORMALIZATION;
+            }
+            else if (strcmp(arg[argIdx],"mass")==0) { 
+              normalization = MASS_NORMALIZATION;
+              throw ATC_Error("mass normalized not implemented");
+            }
+          }
+          computes_[tag] = normalization;
+          nComputes_++;
+          match = true;
+        } 
+        else if (strcmp(arg[argIdx],"delete")==0) { 
+          argIdx++;
+          string tag(arg[argIdx]);
+          if (computes_.find(tag) != computes_.end()) {
+            computes_.erase(tag);
+            nComputes_--;
+          }
+          else {
+            throw ATC_Error(tag+" compute is not in list"); 
+          }
+          match = true;
+        } 
+      }
+
+
+      /*! \page man_hardy_dxa_exact_mode fix_modify AtC dxa_exact_mode 
+        \section syntax
+        fix_modify AtC dxa_exact_mode <optional on | off> \n
+        - on | off (keyword) =  use "exact"/serial mode for DXA-based
+             calculation of dislocation density, or not \n
+
+        \section examples
+        <TT> fix_modify AtC dxa_exact_mode </TT> \n
+        <TT> fix_modify AtC dxa_exact_mode on</TT> \n
+        <TT> fix_modify AtC dxa_exact_mode off</TT> \n
+        \section description
+        Overrides normal "exact"/serial mode for DXA code to extract dislocation segments,
+        as opposed to an "inexact" mode that's more efficient for parallel computation of
+        large systems. \n 
+        \section restrictions
+        Must be used with the hardy/field type of AtC fix
+        ( see \ref man_fix_atc )
+        \section related
+        \section default
+        By default, the DXA "exact"/serial mode is used (i.e. on). \n
+      */
+      else if (strcmp(arg[argIdx],"dxa_exact_mode")==0) {
+        argIdx++;
+        dxaExactMode_ = true;
+        if (narg > argIdx && strcmp(arg[argIdx],"off")==0) dxaExactMode_ = false;
+        match = true; 
+      }
+
+      /*! \page man_sample_frequency fix_modify AtC sample_frequency
+        \section syntax
+        fix_modify AtC sample_frequency [freq]
+        - freq (int) : frequency to sample field in number of steps
+        \section examples
+        <TT> fix_modify AtC sample_frequency 10
+        \section description
+        Calculates a surface integral of the given field dotted with the
+        outward normal of the faces and puts output in the "GLOBALS" file
+        \section restrictions
+        Must be used with the hardy/field AtC fix ( see \ref man_fix_atc ) 
+        and is only relevant when time filters are being used.
+        \section related
+        \section default
+        none
+      */
+      else if (strcmp(arg[argIdx],"sample_frequency")==0) {
+        argIdx++;
+        int value = outputFrequency_; // default to output frequency
+        if (narg > 1) {
+          if (atoi(arg[argIdx]) > 0) value = atoi(arg[argIdx]);
+        }
+        sampleFrequency_ = value;
+        match = true;
+      } // end "sample_frequency"
+
+    // no match, call base class parser
+    if (!match) {
+      match = ATC_Method::modify(narg, arg);
+    }
+
+    return match;
+  }
+
+  //-------------------------------------------------------------------
+  // called at the beginning of a timestep
+  void ATC_Transfer::pre_init_integrate()
+  {
+    ATC_Method::pre_init_integrate();
+  }
+
+  //-------------------------------------------------------------------
+  // called at the begining of second half timestep
+  // REFACTOR move this to post_neighbor
   void ATC_Transfer::pre_final_integrate()
   {
-    // atomSwtich is triggered by a lammps call to pre_exchange 
-    // (see ATC_Transfer.h)
-    int localSwitch = 0;
-    if (atomSwitch_ || resetSwitch_) localSwitch = 1;
-    lammpsInterface_->int_allmax(&localSwitch,&globalSwitch_);  
-    if (globalSwitch_>0) {
-      reset_nlocal();
-      reset_shape_functions();
-      set_atomic_weights();
-      reset_NhatOverlap();
-      atomSwitch_ = false;
-      globalSwitch_ = 0;
+    // update time 
+    update_time(); // time uses step if dt = 0
+
+
+    
+    if ( neighborReset_ && sample_now() ) {
+      if (! kernelOnTheFly_ ) {
+        if (!moleculeIds_.empty()) compute_kernel_matrix_molecule(); //KKM add
+      }
+      neighborReset_ = false;
     }
-    else if (atomToElementMapType_ == EULERIAN
-             && stepCounter_ % atomToElementMapFrequency_ == 0 ) {
-      reset_coordinates();
-      reset_shape_functions();
-      set_atomic_weights();
-      reset_NhatOverlap();
+  }
+
+  //-------------------------------------------------------------------
+  // called at the end of second half timestep
+  void ATC_Transfer::post_final_integrate()
+  {
+    // compute spatially smoothed quantities
+    double dt = lammpsInterface_->dt();
+    if ( sample_now() ) {
+      
+      bool needsBond =  (! bondOnTheFly_ ) &&
+             (fieldFlags_(STRESS)
+           || fieldFlags_(ESHELBY_STRESS)
+           || fieldFlags_(HEAT_FLUX));
+
+      if ( needsBond ) {
+        if (pairMap_->need_reset()) {
+//        ATC::LammpsInterface::instance()->print_msg("Recomputing bond matrix due to atomReset_ value");
+          compute_bond_matrix(); 
+        }
+      }
+      time_filter_pre (dt);
+      compute_fields();
+      time_filter_post(dt);
+      lammpsInterface_->computes_addstep(lammpsInterface_->ntimestep()+sampleFrequency_);
+    }
+
+    // output
+    if ( output_now() && !outputStepZero_ ) output();
+    outputStepZero_ = false;
+
+  }
+
+  //-------------------------------------------------------------------
+  void ATC_Transfer::compute_bond_matrix(void)
+  {
+     bondMatrix_->reset();
+  }
+  //-------------------------------------------------------------------
+  void ATC_Transfer::compute_fields(void)
+  {
+    
+    // keep per-atom computes fresh. JAZ and REJ not sure why; 
+    // need to confer with JAT. (JAZ, 4/5/12)
+    interscaleManager_.lammps_force_reset();
+
+    // (1) direct quantities
+    for(int i=0; i < numFields_; ++i) {
+      FieldName index = indices_[i];
+      if (fieldFlags_(index)) {
+        hardyData_[field_to_string(index)].set_quantity() 
+          = (outputFields_[index])->quantity();
+      }
+    }
+    if (fieldFlags_(INTERNAL_ENERGY)) 
+      compute_internal_energy(hardyData_["internal_energy"].set_quantity());
+    if (fieldFlags_(ENERGY))
+      compute_energy(hardyData_["energy"].set_quantity());
+    if (fieldFlags_(STRESS)) 
+      compute_stress(hardyData_["stress"].set_quantity());
+    if (fieldFlags_(HEAT_FLUX)) 
+      compute_heatflux(hardyData_["heat_flux"].set_quantity());
+// molecule data
+    if (fieldFlags_(DIPOLE_MOMENT))
+      compute_dipole_moment(hardyData_["dipole_moment"].set_quantity()); 
+    if (fieldFlags_(QUADRUPOLE_MOMENT))
+      compute_quadrupole_moment(hardyData_["quadrupole_moment"].set_quantity());
+    if (fieldFlags_(DISLOCATION_DENSITY)) 
+      compute_dislocation_density(hardyData_["dislocation_density"].set_quantity());
+
+    // (2) derived quantities
+    // compute: gradients
+    if (gradFlags_.has_member(true)) {
+      for(int index=0; index < NUM_TOTAL_FIELDS; ++index) {
+        if (gradFlags_(index)) {
+          string field= field_to_string((FieldName) index);
+          string grad_field = field + "_gradient";
+          if (hardyData_.find(field) == hardyData_.end() ) {
+            throw ATC_Error("field " + field + " needs to be defined for gradient");
+          }
+          gradient_compute(hardyData_[field].quantity(), hardyData_[grad_field].set_quantity());
+        }
+      }
+    }
+    // compute: eshelby stress 
+    if (fieldFlags_(ESHELBY_STRESS)) {
+      {
+      compute_eshelby_stress(hardyData_["eshelby_stress"].set_quantity(),
+                             hardyData_["internal_energy"].quantity(),
+                             hardyData_["stress"].quantity(),
+                             hardyData_["displacement_gradient"].quantity());
+      }
+    }
+    if (fieldFlags_(CAUCHY_BORN_ESHELBY_STRESS)) {
+      DENS_MAT & H = hardyData_["displacement_gradient"].set_quantity();
+      DENS_MAT E(H.nRows(),1);
+      ATOMIC_DATA::const_iterator tfield = hardyData_.find("temperature");
+      const DENS_MAT *temp = tfield==hardyData_.end() ? NULL : &((tfield->second).quantity());
+      //DENS_MAT & T = hardyData_["temperature"];
+      //cauchy_born_entropic_energy(H,E,T); E += hardyData_["internal_energy"];
+      cauchy_born_energy(H, E, temp);
+      E -= nodalRefPotentialEnergy_;
+
+      compute_eshelby_stress(hardyData_["cauchy_born_eshelby_stress"].set_quantity(),
+                             E,hardyData_["stress"].quantity(),
+                             hardyData_["displacement_gradient"].quantity());
+    }
+    // compute: cauchy born stress 
+    if (fieldFlags_(CAUCHY_BORN_STRESS)) {
+      ATOMIC_DATA::const_iterator tfield = hardyData_.find("temperature");
+      const DENS_MAT *temp = tfield==hardyData_.end() ? NULL : &((tfield->second).quantity());
+      cauchy_born_stress(hardyData_["displacement_gradient"].quantity(),
+                         hardyData_["cauchy_born_stress"].set_quantity(), temp);
+    }
+    // compute: cauchy born energy 
+    if (fieldFlags_(CAUCHY_BORN_ENERGY)) {
+      ATOMIC_DATA::const_iterator tfield = hardyData_.find("temperature");
+      const DENS_MAT *temp = tfield==hardyData_.end() ? NULL : &((tfield->second).quantity());
+      cauchy_born_energy(hardyData_["displacement_gradient"].quantity(), 
+                         hardyData_["cauchy_born_energy"].set_quantity(), temp);
+    }
+    // 1st PK transformed to cauchy (lag) or cauchy transformed to 1st PK (eul)
+    if (fieldFlags_(TRANSFORMED_STRESS)) {
+      compute_transformed_stress(hardyData_["transformed_stress"].set_quantity(),
+                                 hardyData_["stress"].quantity(),
+                                 hardyData_["displacement_gradient"].quantity());
+    }
+    if (fieldFlags_(VACANCY_CONCENTRATION)) {
+      compute_vacancy_concentration(hardyData_["vacancy_concentration"].set_quantity(),
+                                    hardyData_["displacement_gradient"].quantity(),
+                                    hardyData_["number_density"].quantity());
+    }
+    if (fieldFlags_(ELECTRIC_POTENTIAL)) {
+      compute_electric_potential(
+        hardyData_[field_to_string(ELECTRIC_POTENTIAL)].set_quantity());
+    }
+    // compute: rotation and/or stretch from deformation gradient 
+    if (fieldFlags_(ROTATION) || fieldFlags_(STRETCH)) {
+      compute_polar_decomposition(hardyData_["rotation"].set_quantity(),
+                                  hardyData_["stretch"].set_quantity(),
+                                  hardyData_["displacement_gradient"].quantity());
+    }
+    // compute: rotation and/or stretch from deformation gradient 
+    if (fieldFlags_(CAUCHY_BORN_ELASTIC_DEFORMATION_GRADIENT)) {
+      compute_elastic_deformation_gradient2(hardyData_["elastic_deformation_gradient"].set_quantity(),
+                                           hardyData_["stress"].quantity(),
+                                           hardyData_["displacement_gradient"].quantity());
+    }
+
+    // (3) computes
+    lammpsInterface_->computes_clearstep();
+    map <string,int>::const_iterator iter;
+    for (iter = computes_.begin(); iter != computes_.end(); iter++) {
+      string tag = iter->first;
+      COMPUTE_POINTER cmpt = lammpsInterface_->compute_pointer(tag);
+      int projection = iter->second;
+      int ncols = lammpsInterface_->compute_ncols_peratom(cmpt);;
+      DENS_MAT atomicData(nLocal_,ncols);
+      if (ncols == 1) {
+        double * atomData = lammpsInterface_->compute_vector_peratom(cmpt);
+        for (int i = 0; i < nLocal_; i++) {
+          int atomIdx = internalToAtom_(i);
+          atomicData(i,0) = atomData[atomIdx];
+        }
+      }
+      else {
+        double ** atomData = lammpsInterface_->compute_array_peratom(cmpt);
+        for (int i = 0; i < nLocal_; i++) {
+          int atomIdx = internalToAtom_(i);
+          for (int k = 0; k < ncols; k++) {
+            atomicData(i,k) = atomData[atomIdx][k];
+          }
+        }
+      }
+      // REFACTOR -- make dep manage
+      if      (projection == NO_NORMALIZATION) {
+        project(atomicData,hardyData_[tag].set_quantity());
+      }
+      else if (projection == VOLUME_NORMALIZATION) {
+        project_volume_normalized(atomicData,hardyData_[tag].set_quantity());
+      }
+      else if (projection == NUMBER_NORMALIZATION) {
+        project_count_normalized(atomicData,hardyData_[tag].set_quantity());
+      }
+      else if (projection == MASS_NORMALIZATION) {
+        throw ATC_Error("unimplemented normalization");
+      }
+      else {
+        throw ATC_Error("unimplemented normalization");
+      }
+#ifdef ESHELBY_VIRIAL
+      if (tag == "virial" && fieldFlags_(ESHELBY_STRESS)) {
+        if (atomToElementMapType_ == LAGRANGIAN) {
+          DENS_MAT tmp = hardyData_[tag].quantity();
+          DENS_MAT & myData(hardyData_[tag].set_quantity());
+          myData.reset(nNodes_,FieldSizes[STRESS]);
+          DENS_MAT F(3,3),FT(3,3),FTINV(3,3),CAUCHY(3,3),PK1(3,3);
+          const DENS_MAT& H(hardyData_["displacement_gradient"].quantity());
+          for (int k = 0; k < nNodes_; k++ ) {
+            vector_to_symm_matrix(k,tmp,CAUCHY);
+            vector_to_matrix(k,H,F);
+            F(0,0) += 1.0; F(1,1) += 1.0; F(2,2) += 1.0;
+            FT = F.transpose();
+            FTINV = inv(FT);
+            
+            //       volumes are already reference volumes.
+            PK1 = CAUCHY*FTINV; 
+            matrix_to_vector(k,PK1,myData);
+          }
+        }
+        compute_eshelby_stress(hardyData_["eshelby_virial"].set_quantity(),
+           hardyData_["internal_energy"].quantity(),hardyData_[tag].quantity(),
+           hardyData_["displacement_gradient"].quantity());
+      }
+#endif
     }
     
+  }// end of compute_fields routine
+
+  //-------------------------------------------------------------------
+  void ATC_Transfer::time_filter_pre(double dt)
+  {
+    sampleCounter_++;
+    string name;
+    double delta_t = dt*sampleFrequency_;
+    for(int index=0; index < NUM_TOTAL_FIELDS; ++index) {
+      if (fieldFlags_(index)) {
+        name = field_to_string((FieldName) index);
+        timeFilters_(index)->apply_pre_step1(filteredData_[name].set_quantity(),
+                                             hardyData_[name].quantity(), delta_t);
+      }
+    }
+    map <string,int>::const_iterator iter;
+    int index = NUM_TOTAL_FIELDS;
+    for (iter = computes_.begin(); iter != computes_.end(); iter++) {
+      string tag = iter->first;
+      timeFilters_(index)->apply_pre_step1(filteredData_[tag].set_quantity(),
+                                           hardyData_[tag].quantity(), delta_t);
+      index++;
+    }
   }
 
-  void ATC_Transfer::init_integrate_velocity() 
+  //-------------------------------------------------------------------
+  void ATC_Transfer::time_filter_post(double dt)
   {
-    int nlocal = lammpsInterface_->nlocal();
-    int *type = lammpsInterface_->atom_type();
-    int *mask = lammpsInterface_->atom_mask();
-    double *mass = lammpsInterface_->atom_mass();
-    double **v = lammpsInterface_->vatom();
-    double **f = lammpsInterface_->fatom();
-    double dtf = 0.5 * lammpsInterface_->dt() * lammpsInterface_->ftm2v();
-
-    if (mass) {
-      for (int i = 0; i < nlocal; i++) {
-        if (mask[i] & groupbit_) {
-          double dtfm = dtf / mass[type[i]];
-          v[i][0] += dtfm * f[i][0];
-          v[i][1] += dtfm * f[i][1];
-          v[i][2] += dtfm * f[i][2];
+    sampleCounter_++;
+    string name;
+    double delta_t = dt*sampleFrequency_;
+    for(int index=0; index < NUM_TOTAL_FIELDS; ++index) {
+      if (fieldFlags_(index)) {
+        name = field_to_string((FieldName) index);
+        timeFilters_(index)->apply_post_step2(filteredData_[name].set_quantity(),
+                                              hardyData_[name].quantity(), delta_t);
+      }
+    }
+    if (rateFlags_.has_member(true)) {
+      for(int index=0; index < NUM_TOTAL_FIELDS; ++index) {
+        if (rateFlags_(index)) {
+          string field= field_to_string((FieldName) index);
+          string rate_field = field + "_rate";
+          timeFilters_(index)->rate(hardyData_[rate_field].set_quantity(),
+                                    filteredData_[field].quantity(),
+                                    hardyData_[field].quantity(), delta_t);
         }
       }
+    }
+    for(int index=0; index < NUM_TOTAL_FIELDS; ++index) {
+      if (rateFlags_(index)) {
+        name = field_to_string((FieldName) index);
+        string rate_field = name + "_rate";
+        filteredData_[rate_field] = hardyData_[rate_field];
+      }
+      if (gradFlags_(index)) {
+        name = field_to_string((FieldName) index);
+        string grad_field = name + "_gradient";
+        filteredData_[grad_field] = hardyData_[grad_field];
+      }
+    }
+    
+    //       lists/accessing of fields ( & computes)
+    map <string,int>::const_iterator iter;
+    int index = NUM_TOTAL_FIELDS;
+    for (iter = computes_.begin(); iter != computes_.end(); iter++) {
+      string tag = iter->first;
+      timeFilters_(index)->apply_post_step2(filteredData_[tag].set_quantity(),
+                                            hardyData_[tag].quantity(), delta_t);
+#ifdef ESHELBY_VIRIAL
+      if (tag == "virial" && fieldFlags_(ESHELBY_STRESS)) {
+        filteredData_["eshelby_virial"] = hardyData_["eshelby_virial"];
+      }
+#endif
+      index++;
+    }
+  }
+
+  //-------------------------------------------------------------------
+  void ATC_Transfer::output()
+  {
+    feEngine_->departition_mesh();
+    
+    for(int index=0; index < NUM_TOTAL_FIELDS; ++index) {
+      if (outputFlags_(index)) {
+        FieldName fName = (FieldName) index;
+        string name= field_to_string(fName);
+        fields_[fName] = filteredData_[name];
+      }
+    }
+    
+    ATC_Method::output();
+    if (lammpsInterface_->comm_rank() == 0) {
+      // data
+      OUTPUT_LIST output_data;
+#ifdef REFERENCE_PE_OUTPUT
+      output_data["reference_potential_energy"] = & nodalRefPotentialEnergy_;
+#endif
+      for(int index=0; index < NUM_TOTAL_FIELDS; ++index) {
+        if (outputFlags_(index)) {
+          string name= field_to_string((FieldName) index);
+          output_data[name]       = & ( filteredData_[name].set_quantity());
+        }
+        if (rateFlags_(index)) {
+          string name= field_to_string((FieldName) index);
+          string rate_name = name + "_rate";
+          output_data[rate_name] = & ( filteredData_[rate_name].set_quantity());
+        }
+        if (gradFlags_(index)) {
+          string name= field_to_string((FieldName) index);
+          string grad_name = name + "_gradient";
+          output_data[grad_name] = & ( filteredData_[grad_name].set_quantity());
+        }
+      }
+      
+      //       lists/accessing of fields ( & computes)
+      map <string,int>::const_iterator iter;
+      for (iter = computes_.begin(); iter != computes_.end(); iter++) {
+        string tag = iter->first;
+        output_data[tag]       = & ( filteredData_[tag].set_quantity());
+#ifdef ESHELBY_VIRIAL
+        if (tag == "virial" && fieldFlags_(ESHELBY_STRESS)) {
+          output_data["eshelby_virial"] = & ( filteredData_["eshelby_virial"].set_quantity() );
+        }
+#endif
+      }
+
+      // output
+      feEngine_->write_data(output_index(), & output_data); 
+    }
+    feEngine_->partition_mesh();
+  }
+
+/////// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+/////// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  //-------------------------------------------------------------------
+  // computes nodeData = N*atomData 
+  void ATC_Transfer::project(const DENS_MAT & atomData,
+                                  DENS_MAT & nodeData)
+  {
+    if (! kernelOnTheFly_ ) {
+      nodeData.reset(nNodes_,atomData.nCols(),true);
+      DENS_MAT workNodeArray(nodeData.nRows(),nodeData.nCols());
+      if (nLocal_>0) workNodeArray = (accumulant_->quantity()).transMat(atomData);
+      int count = nodeData.nRows()*nodeData.nCols();
+      lammpsInterface_->allsum(workNodeArray.ptr(),nodeData.ptr(),count);
+    }
+    else {
+      compute_projection(atomData,nodeData);
+    }
+  }
+
+  //-------------------------------------------------------------------
+  // computes nodeData = N*molData specially for molecules
+  void ATC_Transfer::project_molecule(const DENS_MAT & molData,
+                                  DENS_MAT & nodeData)
+  {
+    if (! kernelOnTheFly_ ) {
+      nodeData.reset(nNodes_,molData.nCols(),true);
+      DENS_MAT workNodeArray(nodeData.nRows(),nodeData.nCols());
+      if (nLocal_>0) workNodeArray = (accumulantMol_->quantity()).transMat(molData);
+      int count = nodeData.nRows()*nodeData.nCols();
+      lammpsInterface_->allsum(workNodeArray.ptr(),nodeData.ptr(),count);
+    }
+    else {
+      compute_projection(molData,nodeData);
+    }
+  }
+
+  //-------------------------------------------------------------------
+  // computes nodeData = gradient of N*molData specially for molecules
+  void ATC_Transfer::project_molecule_gradient(const DENS_MAT & molData,
+                                  DENS_MAT & nodeData)
+  {
+    if (! kernelOnTheFly_ ) {
+      nodeData.reset(nNodes_,molData.nCols(),true);
+      DENS_MAT workNodeArray(nodeData.nRows(),nodeData.nCols());
+      if (nLocal_>0) workNodeArray = (accumulantMolGrad_->quantity()).transMat(molData);
+      int count = nodeData.nRows()*nodeData.nCols();
+      lammpsInterface_->allsum(workNodeArray.ptr(),nodeData.ptr(),count);
+    }
+    else {
+      compute_projection(molData,nodeData);
+    }
+  }
+
+  //-------------------------------------------------------------------
+  // count normalized
+  void ATC_Transfer::project_count_normalized(const DENS_MAT & atomData,
+                                  DENS_MAT & nodeData)
+  {
+    DENS_MAT tmp; 
+    project(atomData,tmp); 
+    nodeData = (accumulantWeights_->quantity())*tmp;
+  }
+
+  //-------------------------------------------------------------------
+  // volume normalized
+  void ATC_Transfer::project_volume_normalized(const DENS_MAT & atomData,
+                                        DENS_MAT & nodeData)
+  {
+    DENS_MAT tmp;
+    project(atomData,tmp); 
+    nodeData = (accumulantInverseVolumes_->quantity())*tmp;
+  }
+
+  //-------------------------------------------------------------------
+  // volume normalized molecule
+  void ATC_Transfer::project_volume_normalized_molecule(const DENS_MAT & molData,
+                                        DENS_MAT & nodeData)
+  {
+    DENS_MAT tmp; 
+    project_molecule(molData,tmp); 
+    nodeData = (accumulantInverseVolumes_->quantity())*tmp;
+  }
+
+  //-------------------------------------------------------------------
+  // volume normalized molecule_gradient
+  void ATC_Transfer::project_volume_normalized_molecule_gradient(const DENS_MAT & molData,
+                                        DENS_MAT & nodeData)
+  {
+    DENS_MAT tmp; 
+    project_molecule_gradient(molData,tmp); 
+    nodeData = (accumulantInverseVolumes_->quantity())*tmp;
+  }
+
+
+  //-------------------------------------------------------------------
+  void ATC_Transfer::gradient_compute(const DENS_MAT & inNodeData,
+                                           DENS_MAT & outNodeData)
+  {
+    int nrows = inNodeData.nRows();
+    int ncols = inNodeData.nCols();
+    outNodeData.reset(nrows,ncols*nsd_);
+    int index = 0;
+    for (int n = 0; n < ncols; n++) { //output v1,1 v1,2 v1,3 ...
+      for (int m = 0; m < nsd_; m++) {
+        CLON_VEC inData(inNodeData,CLONE_COL,n);
+        CLON_VEC outData(outNodeData,CLONE_COL,index);
+        outData = (*((gradientMatrix_->quantity())[m]))*inData;
+        ++index;
+      }
+    }
+  }
+
+
+
+  //-------------------------------------------------------------------
+  void ATC_Transfer::compute_force_matrix()
+  {
+    atomicForceMatrix_ = pairVirial_->quantity();
+  }
+
+  //-------------------------------------------------------------------
+  // computes "virial" part of heat flux
+  // This is correct ONLY for pair potentials. 
+  void ATC_Transfer::compute_heat_matrix()
+  {
+    atomicHeatMatrix_ = pairHeatFlux_->quantity();
+  }
+
+  //-------------------------------------------------------------------
+  // set xPointer_ to xref or xatom depending on Lagrangian/Eulerian analysis 
+  void ATC_Transfer::set_xPointer()
+  {
+    xPointer_ = xref_;
+    if (atomToElementMapType_ == EULERIAN) {
+      xPointer_ = lammpsInterface_->xatom();
+    }
+  }
+
+  //-------------------------------------------------------------------
+// SOON TO BE OBSOLETE
+  // check consistency of fieldFlags_
+  void ATC_Transfer::check_field_dependencies()
+  {
+    fieldFlags_ = outputFlags_;
+    if (fieldFlags_(TRANSFORMED_STRESS))  {
+      fieldFlags_(STRESS) = true;
+      fieldFlags_(DISPLACEMENT) = true;
+    }
+    if (fieldFlags_(ESHELBY_STRESS))  {
+      fieldFlags_(STRESS) = true;
+      fieldFlags_(INTERNAL_ENERGY) = true;
+      fieldFlags_(DISPLACEMENT) = true;
+    }
+    if (fieldFlags_(CAUCHY_BORN_STRESS)
+        || fieldFlags_(CAUCHY_BORN_ENERGY) 
+        || fieldFlags_(CAUCHY_BORN_ESHELBY_STRESS)
+        || fieldFlags_(CAUCHY_BORN_ELASTIC_DEFORMATION_GRADIENT))  {
+      if (! (cauchyBornStress_) ) {
+        throw ATC_Error("can't compute cauchy-born stress w/o cauchy born model");
+      }
+    }
+    if (fieldFlags_(CAUCHY_BORN_ELASTIC_DEFORMATION_GRADIENT))  {
+      fieldFlags_(STRESS) = true;
+    }
+    if (fieldFlags_(CAUCHY_BORN_STRESS)
+        || fieldFlags_(CAUCHY_BORN_ENERGY)) {
+      fieldFlags_(TEMPERATURE)  = true;
+      fieldFlags_(DISPLACEMENT) = true;
+    }
+    if (fieldFlags_(CAUCHY_BORN_ESHELBY_STRESS))  {
+      fieldFlags_(TEMPERATURE)  = true;
+      fieldFlags_(DISPLACEMENT) = true;
+      fieldFlags_(STRESS) = true;
+    }
+    if (fieldFlags_(VACANCY_CONCENTRATION)) {
+      fieldFlags_(DISPLACEMENT) = true;
+      fieldFlags_(NUMBER_DENSITY) = true;
+    }
+    if (fieldFlags_(INTERNAL_ENERGY)) {
+      fieldFlags_(POTENTIAL_ENERGY) = true;
+      fieldFlags_(THERMAL_ENERGY) = true;
+    }
+    if (fieldFlags_(ENERGY)) {
+      fieldFlags_(POTENTIAL_ENERGY) = true;
+      fieldFlags_(KINETIC_ENERGY) = true;
+    }
+    if (fieldFlags_(TEMPERATURE) || fieldFlags_(HEAT_FLUX) ||
+        fieldFlags_(KINETIC_ENERGY) || fieldFlags_(THERMAL_ENERGY) || 
+        fieldFlags_(ENERGY) || fieldFlags_(INTERNAL_ENERGY) ||
+        fieldFlags_(KINETIC_ENERGY) || (fieldFlags_(STRESS) &&
+        atomToElementMapType_ == EULERIAN) ) {
+      fieldFlags_(VELOCITY) = true;
+      fieldFlags_(MASS_DENSITY) = true;
+    }
+
+    if (fieldFlags_(VELOCITY)) {
+      fieldFlags_(MASS_DENSITY) = true;
+      fieldFlags_(MOMENTUM) = true;
+    }
+    if (fieldFlags_(DISPLACEMENT)) {
+      fieldFlags_(MASS_DENSITY) = true;
+    }
+    if (fieldFlags_(TEMPERATURE) ) {
+      fieldFlags_(NUMBER_DENSITY) = true;
+    }
+
+    if (fieldFlags_(ROTATION) || 
+        fieldFlags_(STRETCH)) {
+      fieldFlags_(DISPLACEMENT) = true;
+    }
+    if (fieldFlags_(ESHELBY_STRESS)
+       || fieldFlags_(CAUCHY_BORN_STRESS) 
+       || fieldFlags_(CAUCHY_BORN_ENERGY) 
+       || fieldFlags_(CAUCHY_BORN_ESHELBY_STRESS) 
+       || fieldFlags_(CAUCHY_BORN_ELASTIC_DEFORMATION_GRADIENT) 
+       || fieldFlags_(VACANCY_CONCENTRATION)
+       || fieldFlags_(ROTATION)
+       || fieldFlags_(STRETCH) ) {
+        gradFlags_(DISPLACEMENT) = true;
+    }
+
+    // check whether single_enable==0 for stress/heat flux calculation
+    if (fieldFlags_(STRESS) || fieldFlags_(HEAT_FLUX)) {
+      if (lammpsInterface_->single_enable()==0) {
+        throw ATC_Error("Calculation of  stress field not possible with selected pair type.");
+      }
+    }
+    
+  } 
+
+//============== THIN WRAPPERS ====================================
+// OBSOLETE
+// HARDY COMPUTES
+// ***************UNCONVERTED**************************
+
+  //-------------------------------------------------------------------
+  // total energy
   
-    } else {
-      double *rmass = lammpsInterface_->atom_rmass();
-      for (int i = 0; i < nlocal; i++) {
-        if (mask[i] & groupbit_) {
-          double dtfm = dtf / rmass[i];
-          v[i][0] += dtfm * f[i][0];
-          v[i][1] += dtfm * f[i][1];
-          v[i][2] += dtfm * f[i][2];
-        }
+  void ATC_Transfer::compute_energy(DENS_MAT & energy)
+  {
+    PerAtomQuantity<double> * atomicPotentialEnergy = interscaleManager_.per_atom_quantity("AtomicPotentialEnergy");
+    atomicScalar_=atomicPotentialEnergy->quantity();
+    double mvv2e = lammpsInterface_->mvv2e();
+    int * type     = lammpsInterface_->atom_type();
+    double * mass  = lammpsInterface_->atom_mass();
+    double * rmass = lammpsInterface_->atom_rmass();
+    double ** vatom = lammpsInterface_->vatom();
+    for (int i = 0; i < nLocal_; i++) {
+      int atomIdx = internalToAtom_(i);
+      double ma =  mass ? mass[type[atomIdx]]: rmass[atomIdx];
+      ma *= mvv2e; // convert mass to appropriate units
+      // compute kinetic energy per atom
+      double* v = vatom[atomIdx];
+      double atomKE = 0.0;
+      for (int k = 0; k < nsd_; k++) { atomKE += v[k]*v[k]; }
+      atomKE *= 0.5*ma;
+      // add up total energy per atom
+      atomicScalar_(i,0) += atomKE;
+    }
+    project_volume_normalized(atomicScalar_, energy);
+  }
+  // internal energy
+  
+  void ATC_Transfer::compute_internal_energy(DENS_MAT & energy)
+  {
+    PerAtomQuantity<double> * atomicPotentialEnergy = interscaleManager_.per_atom_quantity("AtomicPotentialEnergy");
+    PerAtomQuantity<double> * atomicProlongedVelocity = interscaleManager_.per_atom_quantity("ProlongedVelocity");
+    atomicScalar_=atomicPotentialEnergy->quantity();
+    atomicVector_=atomicProlongedVelocity->quantity();
+    double mvv2e = lammpsInterface_->mvv2e();
+    int * type     = lammpsInterface_->atom_type();
+    double * mass  = lammpsInterface_->atom_mass();
+    double * rmass = lammpsInterface_->atom_rmass();
+    double ** vatom = lammpsInterface_->vatom();
+    for (int i = 0; i < nLocal_; i++) {
+      int atomIdx = internalToAtom_(i);
+      double ma =  mass ? mass[type[atomIdx]]: rmass[atomIdx];
+      ma *= mvv2e; // convert mass to appropriate units
+      // compute kinetic energy per atom
+      double* v = vatom[atomIdx];
+      double atomKE = 0.0;
+      for (int k = 0; k < nsd_; k++) { 
+        atomKE += (v[k]-atomicVector_(i,k))*(v[k]-atomicVector_(i,k)); 
       }
+      atomKE *= 0.5*ma;
+      // add up total energy per atom
+      atomicScalar_(i,0) += atomKE;
+    }
+    project_volume_normalized(atomicScalar_, energy);
+  }
+  //-------------------------------------------------------------------
+  // MOLECULE
+  //-------------------------------------------------------------------
+  void ATC_Transfer::compute_dipole_moment(DENS_MAT & dipole_moment)
+  {
+    const DENS_MAT & molecularVector(dipoleMoment_->quantity());
+    project_volume_normalized_molecule(molecularVector,dipole_moment); // KKM add
+   //
+  }
+  //-------------------------------------------------------------------
+  void ATC_Transfer::compute_quadrupole_moment(DENS_MAT & quadrupole_moment)
+  {
+    const DENS_MAT & molecularVector(quadrupoleMoment_->quantity());
+    project_volume_normalized_molecule_gradient(molecularVector,quadrupole_moment); // KKM add
+   //
+  }
+  //-------------------------------------------------------------------
+  void ATC_Transfer::compute_stress(DENS_MAT & stress)
+  {
+    // table of bond functions already calculated in initialize function
+    // get conversion factor for nktV to p units
+    double nktv2p = lammpsInterface_->nktv2p();
+
+    // calculate kinetic energy tensor part of stress for Eulerian analysis
+    if (atomToElementMapType_ == EULERIAN && nLocal_>0) {
+      compute_kinetic_stress(stress); 
+    }
+    else {
+      // zero stress table for Lagrangian analysis or if nLocal_ = 0
+      stress.zero();
+    }
+    // add-in potential part of stress tensor
+    int nrows = stress.nRows();
+    int ncols = stress.nCols();
+    DENS_MAT local_potential_hardy_stress(nrows,ncols);
+    if (nLocal_>0) {
+      if (bondOnTheFly_) {
+        compute_potential_stress(local_potential_hardy_stress);
+      }
+      else {
+        // compute table of force & position dyad
+        compute_force_matrix();
+        // calculate force part of stress tensor
+        local_potential_hardy_stress = atomicBondMatrix_*atomicForceMatrix_;
+        local_potential_hardy_stress *= 0.5; 
+      }
+    }
+    // global summation of potential part of stress tensor
+    DENS_MAT potential_hardy_stress(nrows,ncols);
+    int count = nrows*ncols;
+    lammpsInterface_->allsum(local_potential_hardy_stress.ptr(),
+                             potential_hardy_stress.ptr(), count);
+    stress += potential_hardy_stress;
+    stress = nktv2p*stress;
+  }
+
+  //-------------------------------------------------------------------
+  // kinetic energy portion of stress
+  void ATC_Transfer::compute_kinetic_stress(DENS_MAT& stress)
+  {
+    const DENS_MAT& density = hardyData_["mass_density"].quantity();
+    const DENS_MAT& velocity = hardyData_["velocity"].quantity();
+
+    int * type     = lammpsInterface_->atom_type();
+    double * mass  = lammpsInterface_->atom_mass();
+    double * rmass = lammpsInterface_->atom_rmass();
+    double ** vatom    = lammpsInterface_->vatom();
+    double mvv2e = lammpsInterface_->mvv2e(); // [MV^2]-->[Energy]
+
+    atomicTensor_.reset(nLocal_,6);
+    for (int i = 0; i < nLocal_; i++) {
+      int atomIdx = internalToAtom_(i);
+      double ma =  mass ? mass[type[atomIdx]]: rmass[atomIdx];
+      ma *= mvv2e; // convert mass to appropriate units
+      double* v = vatom[atomIdx];
+      atomicTensor_(i,0) -= ma*v[0]*v[0];
+      atomicTensor_(i,1) -= ma*v[1]*v[1];
+      atomicTensor_(i,2) -= ma*v[2]*v[2];
+      atomicTensor_(i,3) -= ma*v[0]*v[1];
+      atomicTensor_(i,4) -= ma*v[0]*v[2];
+      atomicTensor_(i,5) -= ma*v[1]*v[2];
+    }
+    project_volume_normalized(atomicTensor_, stress);
+
+    for (int i = 0; i < nNodes_; i++) {
+      double rho_i = mvv2e*density(i,0);
+      stress(i,0) += rho_i*velocity(i,0)*velocity(i,0);
+      stress(i,1) += rho_i*velocity(i,1)*velocity(i,1);
+      stress(i,2) += rho_i*velocity(i,2)*velocity(i,2);
+      stress(i,3) += rho_i*velocity(i,0)*velocity(i,1);
+      stress(i,4) += rho_i*velocity(i,0)*velocity(i,2);
+      stress(i,5) += rho_i*velocity(i,1)*velocity(i,2);
     }
   }
 
-  void ATC_Transfer::init_integrate_position() 
+  //-------------------------------------------------------------------
+  void ATC_Transfer::compute_heatflux(DENS_MAT & flux)
   {
-    int nlocal = lammpsInterface_->nlocal();
-    double **x = lammpsInterface_->xatom();
-    double **v = lammpsInterface_->vatom();
-    double dtv = lammpsInterface_->dt();
-    int *mask  = lammpsInterface_->atom_mask();
-
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit_) {
-        x[i][0] += dtv * v[i][0];
-        x[i][1] += dtv * v[i][1];
-        x[i][2] += dtv * v[i][2];
+    // calculate kinetic part of heat flux
+    if (atomToElementMapType_ == EULERIAN && nLocal_>0) {
+      compute_kinetic_heatflux(flux);
+    }
+    else {
+      flux.zero(); // zero stress table for Lagrangian analysis 
+    }
+    // add potential part of heat flux vector
+    int nrows = flux.nRows();
+    int ncols = flux.nCols();
+    DENS_MAT local_hardy_heat(nrows,ncols);
+    if (nLocal_>0) {
+      if (bondOnTheFly_) {
+        compute_potential_heatflux(local_hardy_heat);
       }
+      else {
+        // calculate force/potential-derivative part of heat flux
+        compute_heat_matrix();
+        local_hardy_heat = atomicBondMatrix_*atomicHeatMatrix_;
+      }
+    }
+    // global summation of potential part of heat flux vector
+    DENS_MAT hardy_heat(nrows,ncols);
+    int count = nrows*ncols;
+    lammpsInterface_->allsum(local_hardy_heat.ptr(),
+                             hardy_heat.ptr(), count);
+    flux += hardy_heat;
+  }
+
+  //-------------------------------------------------------------------
+  // compute kinetic part of heat flux
+  void ATC_Transfer::compute_kinetic_heatflux(DENS_MAT& flux)
+  {
+    const DENS_MAT& velocity = hardyData_["velocity"].quantity();
+    const DENS_MAT& energy = hardyData_["mass_density"].quantity();
+    const DENS_MAT& stress = hardyData_["stress"].quantity();
+
+    int * type     = lammpsInterface_->atom_type();
+    double * mass  = lammpsInterface_->atom_mass();
+    double * rmass = lammpsInterface_->atom_rmass();
+    double ** vatom    = lammpsInterface_->vatom();
+    double mvv2e = lammpsInterface_->mvv2e();
+    double * atomPE = lammpsInterface_->compute_pe_peratom();
+    double atomKE, atomEnergy;
+    atomicVector_.reset(nLocal_,3);
+    for (int i = 0; i < nLocal_; i++) {
+      int atomIdx = internalToAtom_(i);
+      double ma = mass ? mass[type[atomIdx]]: rmass[atomIdx];
+      ma *= mvv2e; // convert mass to appropriate units
+      double* v = vatom[atomIdx];
+      atomKE = 0.0;
+      for (int k = 0; k < nsd_; k++) { atomKE += v[k]*v[k]; }
+      atomKE *= 0.5*ma;
+      atomEnergy = atomKE + atomPE[atomIdx];
+      for (int j = 0; j < nsd_; j++) {
+        atomicVector_(i,j) += atomEnergy*v[j];
+      }
+    }
+    project_volume_normalized(atomicVector_,flux);
+
+    // - e^0_I v_I + \sigma^T_I v_I
+    for (int i = 0; i < nNodes_; i++) {
+      double e_i = energy(i,0);
+      flux(i,0) += (e_i + stress(i,0))*velocity(i,0) 
+                 + stress(i,3)*velocity(i,1)+ stress(i,4)*velocity(i,2);
+      flux(i,1) += (e_i + stress(i,1))*velocity(i,1) 
+                 + stress(i,3)*velocity(i,0)+ stress(i,5)*velocity(i,2);
+      flux(i,2) += (e_i + stress(i,2))*velocity(i,2) 
+                 + stress(i,4)*velocity(i,0)+ stress(i,5)*velocity(i,1);
+    }
+  }
+  //--------------------------------------------------------------------
+  void ATC_Transfer::compute_electric_potential(DENS_MAT & phi)
+  {
+    // Poisson solve with insulating bcs
+    const DENS_MAT & rho = (restrictedCharge_->quantity());
+    SPAR_MAT K;
+    feEngine_->stiffness_matrix(K);
+    double permittivity = lammpsInterface_->dielectric(); 
+    permittivity *= LammpsInterface::instance()->epsilon0();
+    K *= permittivity;
+    BC_SET bcs;
+    bcs.insert(pair<int,int>(0,0));
+    LinearSolver solver(K,bcs);
+    CLON_VEC x = column(phi,0);
+    CLON_VEC b = column(rho,0);
+    solver.solve(x,b);
+//x.print("x:phi");
+//b.print("b:rho");
+    //LinearSolver solver(K,AUTO_SOLVE,true);
+  }
+  //--------------------------------------------------------------------
+  void ATC_Transfer::compute_vacancy_concentration(DENS_MAT & Cv,
+    const DENS_MAT & H, const DENS_MAT & rhoN)
+  {
+    int * type = lammpsInterface_->atom_type();
+    DENS_MAT new_rho(nNodes_,1);
+    DENS_MAT atomCnt(nLocal_,1);
+    double atomic_weight_sum = 0.0;
+    double site_weight_sum = 0.0;
+    int number_atoms = 0;
+    const DIAG_MAT & myAtomicWeights(atomVolume_->quantity());
+
+    for (int i = 0; i < nLocal_; i++) {
+      int atomIdx = internalToAtom_(i);
+      if (type[atomIdx] != 13) { 
+        atomCnt(i,0) = myAtomicWeights(i,i);
+        atomic_weight_sum += myAtomicWeights(i,i);
+        number_atoms++;
+      }
+      site_weight_sum += myAtomicWeights(i,i);
+    }
+    project_volume_normalized(atomCnt, new_rho);
+    DENS_MAT F(3,3);
+    for (int i = 0; i < nNodes_; i++) {
+      if (atomToElementMapType_ == EULERIAN) {
+        // for Eulerian analysis: F = (1-H)^{-1}
+        DENS_MAT G(3,3);
+        vector_to_matrix(i,H,G);
+        G *= -1.;
+        G(0,0) += 1.0; G(1,1) += 1.0; G(2,2) += 1.0;
+        F = inv(G);
+      }
+      else if (atomToElementMapType_ == LAGRANGIAN) {
+        // for Lagrangian analysis: F = (1+H)
+        vector_to_matrix(i,H,F);
+        F(0,0) += 1.0; F(1,1) += 1.0; F(2,2) += 1.0;
+      }
+      double J = det(F);
+      Cv(i,0) = 1.0 - J*new_rho(i,0);
     }
   }
 
-  void ATC_Transfer::final_integrate() 
+  //--------------------------------------------------------------------
+  void ATC_Transfer::compute_eshelby_stress(DENS_MAT & M,
+    const DENS_MAT & E, const DENS_MAT & S, const DENS_MAT & H)
   {
-    int nlocal = lammpsInterface_->nlocal();
-    int *type = lammpsInterface_->atom_type();
-    int *mask = lammpsInterface_->atom_mask();
-    double *mass = lammpsInterface_->atom_mass();
-    double **v = lammpsInterface_->vatom();
-    double **f = lammpsInterface_->fatom();
-    double dtf = 0.5 * lammpsInterface_->dt() * lammpsInterface_->ftm2v();
+    // eshelby stress:M, energy:E, stress:S, displacement gradient: H
+    // eshelby stress = W I - F^T.P = W I - C.S  [energy]
+    // symmetric if isotropic S = a_0 I + a_1 C + a_2 C^2
+    M.reset(nNodes_,FieldSizes[ESHELBY_STRESS]);
+    double nktv2p = lammpsInterface_->nktv2p();
+    DENS_MAT P(3,3),F(3,3),FT(3,3),FTP(3,3),ESH(3,3);
+    for (int i = 0; i < nNodes_; i++) {
+      double W = E(i,0);
+      ESH.identity();
+      ESH *= W;
 
-    if (mass) {
-      for (int i = 0; i < nlocal; i++) {
-        if (mask[i] & groupbit_) {
-          double dtfm = dtf / mass[type[i]];
-          v[i][0] += dtfm * f[i][0];
-          v[i][1] += dtfm * f[i][1];
-          v[i][2] += dtfm * f[i][2];
-        }
+      // copy to local
+      if (atomToElementMapType_ == LAGRANGIAN) {
+        // Stress notation convention:: 0:11 1:12 2:13  3:21 4:22 5:23  6:31 7:32 8:33
+        vector_to_matrix(i,S,P);
+
+
+        vector_to_matrix(i,H,F);
+#ifndef H_BASED
+        F(0,0) += 1.0; F(1,1) += 1.0; F(2,2) += 1.0;
+#endif
+        FT = F.transpose(); 
+      }
+      else if (atomToElementMapType_ == EULERIAN) {
+        vector_to_symm_matrix(i,S,P);
+        vector_to_matrix(i,H,F);
+        FT = F.transpose();
+      }
+      FTP = (1.0/nktv2p)*FT*P;
+      ESH -= FTP;
+      if (atomToElementMapType_ == EULERIAN) {
+        // For Eulerian analysis, M = F^T*(w-H^T.CauchyStress)
+        DENS_MAT Q(3,3);
+        Q.identity();
+        // Q stores (1-H)
+        Q -= FT.transpose();
+        DENS_MAT F(3,3);
+        F = inv(Q); 
+        FT = F.transpose();
+        ESH = FT*ESH; 
+      }
+      // copy to global
+      matrix_to_vector(i,ESH,M);
+    }
+  }
+  //---------------------------------------------------------------------------
+  // Computes the Cauchy Born stress tensor, T given displacement gradient, H
+  // and optional temperature argument (passed by pointer), TEMP
+  //---------------------------------------------------------------------------
+  void ATC_Transfer::cauchy_born_stress(const DENS_MAT &H, DENS_MAT &T, const DENS_MAT *temp)
+  {
+    FIELD_MATS uField;      // uField should contain temperature.
+    DENS_MAT_VEC tField;
+    GRAD_FIELD_MATS hField;
+    DENS_MAT_VEC &h = hField[DISPLACEMENT];
+    h.assign(nsd_, DENS_MAT(nNodes_,nsd_));
+    tField.assign(nsd_, DENS_MAT(nNodes_,nsd_));
+    // each row is the CB stress at a node stored in voigt form 
+    T.reset(nNodes_,FieldSizes[CAUCHY_BORN_STRESS]);
+    const double nktv2p = lammpsInterface_->nktv2p();
+    const double fact = -lammpsInterface_->mvv2e()*nktv2p;
+
+    // reshape H (#nodes,9) into h [3](#nodes,3) displacement gradient
+    vector_to_dens_mat_vec(H,h);
+
+    // if temperature is provided, then set it
+    if (temp) uField[TEMPERATURE] = *temp;
+
+    // Computes the stress at each node.
+    cauchyBornStress_->stress(uField, hField, tField);
+
+    // reshapes the stress, T to a (#node,6) DenseMatrix.
+    DENS_MAT S(nNodes_,6);
+    symm_dens_mat_vec_to_vector(tField,S);
+    S *= fact;
+    
+    // tField/S holds the 2nd P-K stress tensor. Transform to
+    // Cauchy for EULERIAN analysis, transform to 1st P-K
+    // for LAGRANGIAN analysis.
+    DENS_MAT PK2(3,3),G(3,3),F(3,3),FT(3,3),STRESS(3,3);
+    for (int i = 0; i < nNodes_; i++) {
+
+      vector_to_symm_matrix(i,S,PK2);
+
+      if (atomToElementMapType_ == EULERIAN) {
+
+        // for Eulerian analysis: F = (1-H)^{-1}
+        vector_to_matrix(i,H,G);
+        G *= -1.;
+
+        G(0,0) += 1.0; G(1,1) += 1.0; G(2,2) += 1.0;
+        F = inv(G);
+        FT  = transpose(F);
+        double J = det(F);
+        STRESS = F*PK2*FT;
+        STRESS *= 1/J; 
+        symm_matrix_to_vector(i,STRESS,T);
+      }
+      else{
+        // for Lagrangian analysis: F = 1 + H
+        vector_to_matrix(i,H,F);
+
+        F(0,0) += 1.0; F(1,1) += 1.0; F(2,2) += 1.0;
+        STRESS = F*PK2;
+        matrix_to_vector(i,STRESS,T);
       }
  
-    } else {
-      double *rmass = lammpsInterface_->atom_rmass();
-      for (int i = 0; i < nlocal; i++) {
-        if (mask[i] & groupbit_) {
-          double dtfm = dtf / rmass[i];
-          v[i][0] += dtfm * f[i][0];
-          v[i][1] += dtfm * f[i][1];
-          v[i][2] += dtfm * f[i][2];
+    }
+  }
+  //---------------------------------------------------------------------------
+  // Computes the Cauchy Born energy density, E given displacement gradient, H
+  // and optional temperature argument (passed by pointer), TEMP
+  //---------------------------------------------------------------------------
+  void ATC_Transfer::cauchy_born_energy(const DENS_MAT &H, DENS_MAT &E, const DENS_MAT *temp)
+  {
+    FIELD_MATS uField;      // uField should contain temperature.
+    GRAD_FIELD_MATS hField;
+    DENS_MAT_VEC &h = hField[DISPLACEMENT];
+    h.assign(nsd_, DENS_MAT(nNodes_,nsd_));
+
+    // reshape H (#nodes,9) into h [3](#nodes,3) displacement gradient
+    vector_to_dens_mat_vec(H,h);
+
+    // if temperature is provided, then set it
+    if (temp) uField[TEMPERATURE] = *temp;
+
+    // Computes the free/potential energy at each node.
+    cauchyBornStress_->elastic_energy(uField, hField, E);
+
+    // convert back to energy units for  ( ATC coupling uses MLT units)
+    double mvv2e = lammpsInterface_->mvv2e(); // [MV^2]-->[Energy]
+    E *= mvv2e;
+
+    // for Eulerian analysis, convert energy density to per-unit deformed volume
+    if (atomToElementMapType_ == EULERIAN) {
+      DENS_MAT G(3,3),F(3,3);
+      for (int i = 0; i < nNodes_; i++) {
+        // for Eulerian analysis: F = (1-H)^{-1}
+        vector_to_matrix(i,H,G);
+        G *= -1.;
+
+        G(0,0) += 1.0; G(1,1) += 1.0; G(2,2) += 1.0;
+        F = inv(G);
+        double J = det(F);
+        E(i,0) *= 1/J;
+      }
+    }
+
+    // subtract zero point energy
+    E -= nodalRefPotentialEnergy_;
+  }
+  //---------------------------------------------------------------------------
+  // Computes the M/LH entropic energy density
+  //---------------------------------------------------------------------------
+  void ATC_Transfer::cauchy_born_entropic_energy(const DENS_MAT &H, DENS_MAT &E, const DENS_MAT &T)
+  {
+    FIELD_MATS uField;      // uField should contain temperature.
+    uField[TEMPERATURE] = T; 
+    GRAD_FIELD_MATS hField;
+    DENS_MAT_VEC &h = hField[DISPLACEMENT];
+    h.assign(nsd_, DENS_MAT(nNodes_,nsd_));
+
+    // reshape H (#nodes,9) into h [3](#nodes,3) displacement gradient
+    vector_to_dens_mat_vec(H,h);
+
+    // Computes the free/potential energy at each node.
+    cauchyBornStress_->entropic_energy(uField, hField, E);
+
+    // convert back to energy units for  ( ATC coupling uses MLT units)
+    double mvv2e = lammpsInterface_->mvv2e(); // [MV^2]-->[Energy]
+    E *= mvv2e;
+
+    // for Eulerian analysis, convert energy density to per-unit deformed volume
+    if (atomToElementMapType_ == EULERIAN) {
+      DENS_MAT G(3,3),F(3,3);
+      for (int i = 0; i < nNodes_; i++) {
+        // for Eulerian analysis: F = (1-H)^{-1}
+        vector_to_matrix(i,H,G);
+        G *= -1.;
+
+        G(0,0) += 1.0; G(1,1) += 1.0; G(2,2) += 1.0;
+        F = inv(G);
+        double J = det(F);
+        E(i,0) *= 1/J;
+      }
+    }
+
+  }
+  //--------------------------------------------------------------------
+  void ATC_Transfer::compute_transformed_stress(DENS_MAT & stress,
+    const DENS_MAT & T, const DENS_MAT & H)
+  {
+      stress.reset(nNodes_,FieldSizes[TRANSFORMED_STRESS]);
+      DENS_MAT S(3,3),FT(3,3),P(3,3);
+      for (int i = 0; i < nNodes_; i++) {
+        if (atomToElementMapType_ == EULERIAN) {
+          vector_to_symm_matrix(i,T,P);
+          // for Eulerian analysis: F^T = (1-H)^{-T}
+          DENS_MAT G(3,3);
+          vector_to_matrix(i,H,G);
+          G *= -1.;
+
+          G(0,0) += 1.0; G(1,1) += 1.0; G(2,2) += 1.0;
+          FT = inv(G.transpose());
         }
+        else{
+          vector_to_matrix(i,T,P);
+          // for Lagrangian analysis: F^T = (1+H)^T
+          DENS_MAT F(3,3);
+          vector_to_matrix(i,H,F);
+
+          F(0,0) += 1.0; F(1,1) += 1.0; F(2,2) += 1.0;
+          FT = F.transpose(); 
+        }
+        //
+        double J = det(FT);
+        FT *= 1/J;
+        if (atomToElementMapType_ == EULERIAN) {
+          FT = inv(FT); 
+        }
+        S = P*FT;
+        matrix_to_vector(i,S,stress);
+      }
+  }
+  //--------------------------------------------------------------------
+  void ATC_Transfer::compute_polar_decomposition(DENS_MAT & rotation,
+    DENS_MAT & stretch, const DENS_MAT & H)
+  {
+    DENS_MAT F(3,3),R(3,3),U(3,3);
+    for (int i = 0; i < nNodes_; i++) { 
+      vector_to_matrix(i,H,F);
+      F(0,0) += 1.0; F(1,1) += 1.0; F(2,2) += 1.0;
+      if (atomToElementMapType_ == EULERIAN) { 
+        polar_decomposition(F,R,U,false); } // F = V R
+      else  {
+        polar_decomposition(F,R,U); } // F = R U
+      // copy to local
+      if ( fieldFlags_(ROTATION) ) {
+
+        matrix_to_vector(i,R,rotation);
+      }
+      if ( fieldFlags_(STRETCH) ) {
+        matrix_to_vector(i,U,stretch);
       }
     }
   }
-
-
-  void ATC_Transfer::finish()
-  {
-    // possibly resetting flags and deallocating corresponding memory
-
-    // FE Engine
-    feEngine_->finish();
-
-    return;
-  }
-
-  //--------------------------------------------------------------
-  // create_physics_model
-  // - method to create physics model 
-  //--------------------------------------------------------------
-  void ATC_Transfer::create_physics_model(const PhysicsType & physicsType,
-                                          string matFileName)
-  {
-    if (physicsModel_) {
-      throw ATC_Error(0,"Attempted to create PhysicsModel multiple times in ATC_Transfer");
-    }
-    // Create PhysicsModel based on physicsType
-    switch (physicsType) {
-    case NO_PHYSICS :
-      break;
-    case THERMAL :
-      physicsModel_ = new PhysicsModelThermal(matFileName, this);
-      break;
-    default:
-      throw ATC_Error(0,"Unknown physics type in ATC_Transfer::create_physics_model");
-    }
-
-  }
-
-  //--------------------------------------------------------------
-  /** method to trigger construction of mesh data after mesh construction */
-  //--------------------------------------------------------------
-  void ATC_Transfer::initialize_mesh_data(void)
-  {
-    int nelts = feEngine_->get_feMesh()->get_nElements();
-    elementToMaterialMap_.reset(nelts);
-    elementToMaterialMap_ = 0;
-
-    construct_prescribed_data_manager();
-  }
-
-  //--------------------------------------------------------------
-  /** method to add new fields to the included list */
-  //--------------------------------------------------------------
-  void ATC_Transfer::add_fields(map<FieldName,int> & newFieldSizes)
-  {
-    map<FieldName,int>::const_iterator field;
-    for (field = newFieldSizes.begin(); field!=newFieldSizes.end(); field++) {
-      FieldName thisField = field->first;
-      int thisSize = field->second;
-      if (fieldSizes_.find(thisField)==fieldSizes_.end()) {
-          fieldSizes_[thisField] = thisSize;
-      }
-    }
-  }
+  //--------------------------------------------------------------------
+  void ATC_Transfer::compute_elastic_deformation_gradient(DENS_MAT & Fe,
+    const DENS_MAT & P, const DENS_MAT & H)
   
-}; // namespace ATC
+  {
+    // calculate Fe for every node
+    const double nktv2p = lammpsInterface_->nktv2p();
+    const double fact = 1.0/ ( lammpsInterface_->mvv2e()*nktv2p );
+    for (int i = 0; i < nNodes_; i++) { 
+      DENS_VEC Pv = global_vector_to_vector(i,P);
+      Pv *= fact;
+      CBElasticTangentOperator tangent(cauchyBornStress_, Pv);
+      NonLinearSolver solver(&tangent);
+      DENS_VEC Fv = global_vector_to_vector(i,H);  // pass in initial guess
+      add_identity_voigt_unsymmetric(Fv);
+      solver.solve(Fv);
+      vector_to_global_vector(i,Fv,Fe);
+    }
+  }
+  //--------------------------------------------------------------------
+  void ATC_Transfer::compute_elastic_deformation_gradient2(DENS_MAT & Fe,
+    const DENS_MAT & P, const DENS_MAT & H)
+  {
+    // calculate Fe for every node
+    const double nktv2p = lammpsInterface_->nktv2p();
+    const double fact = 1.0/ ( lammpsInterface_->mvv2e()*nktv2p );
+    DENS_MAT F(3,3),R(3,3),U(3,3),PP(3,3),S(3,3);
+    for (int i = 0; i < nNodes_; i++) { 
+      // get F = RU
+      vector_to_matrix(i,H,F);
+      F(0,0) += 1.0; F(1,1) += 1.0; F(2,2) += 1.0;
+      if (atomToElementMapType_ == EULERIAN) { 
+        polar_decomposition(F,R,U,false); } // F = V R
+      else  {
+        polar_decomposition(F,R,U); } // F = R U
+      // get S
+      vector_to_matrix(i,P,PP);
+      //S = PP*transpose(F);
+      S = inv(F)*PP;
+      
+      S += S.transpose(); S *= 0.5; // symmetrize
+      DENS_VEC Sv = to_voigt(S);
+      Sv *= fact;
+      // solve min_U || S - S_CB(U) ||
+      CB2ndElasticTangentOperator tangent(cauchyBornStress_, Sv);
+      NonLinearSolver solver(&tangent);
+      //DENS_VEC Uv = to_voigt_unsymmetric(U);  // pass in initial guess
+      DENS_VEC Uv = to_voigt(U);  // pass in initial guess
+      //DENS_VEC Uv(6); Uv(0)=1;Uv(1)=1;Uv(2)=1;Uv(3)=0;Uv(4)=0;Uv(5)=0;
+      solver.solve(Uv);
+      DENS_MAT Ue = from_voigt(Uv);
+      DENS_MAT FFe = R*Ue;
+      matrix_to_vector(i,FFe,Fe);
+    }
+  }
+// ===========   Analytical solutions ==========================
+} // end namespace ATC
+
+

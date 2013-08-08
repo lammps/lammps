@@ -1,0 +1,43 @@
+# needs description
+#AtC thermal Coupling
+# DESCRIPTION: no atoms, FE region with full periodic boundary conditions.
+units       real
+atom_style  atomic
+# create domain
+lattice         fcc 5.25623 origin 0.25 0.25 0.25
+region          feRegion block 0 100 0 10 0 10 
+boundary        f p p
+create_box      1 feRegion
+atom_modify     sort 0 1
+mass            1 39.95 # need to keep this
+#               ID  group atc PhysicsType ParameterFile
+fix             AtC all   atc elastic     Ar_CauchyBorn.mat
+#               ID  part  keywords    nx ny nz region
+fix_modify      AtC mesh  create 25  1  1 feRegion f p p
+fix_modify      AtC mesh  quadrature face
+# initial conditions 
+fix_modify  AtC  initial displacement x all 0.0
+fix_modify  AtC  initial displacement y all 0.0
+fix_modify  AtC  initial displacement z all 0.0
+fix_modify  AtC  initial velocity x all 0.0
+fix_modify  AtC  initial velocity y all 0.0
+fix_modify  AtC  initial velocity z all 0.0
+# set node sets and bcs
+#           ID  mesh create_nodeset tag xmin xmax ymin ymax zmin zmax
+fix_modify  AtC mesh create_nodeset lbc   -1    1   -1   11   -1   11
+fix_modify  AtC mesh create_nodeset rbc1  83   85   -1   11   -1   11
+fix_modify  AtC mesh create_nodeset rbc2  88   89   -1   11   -1   11
+fix_modify  AtC mesh create_nodeset rbc3  92   93   -1   11   -1   11
+fix_modify  AtC mesh create_nodeset rbc4  95   97   -1   11   -1   11
+fix_modify  AtC mesh create_nodeset rbc5  99  101   -1   11   -1   11
+fix_modify  AtC  fix displacement x lbc 0.0
+fix_modify  AtC  initial displacement x rbc1 0.0004
+fix_modify  AtC  initial displacement x rbc2 0.0014
+fix_modify  AtC  initial displacement x rbc3 0.0026
+fix_modify  AtC  initial displacement x rbc4 0.0036
+fix_modify  AtC  initial displacement x rbc5 0.004
+thermo_style  custom step cpu
+fix_modify    AtC  output no_atoms_cbFE 500 text
+timestep   20
+thermo		100
+run 	   3000

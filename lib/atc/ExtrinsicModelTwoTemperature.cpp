@@ -1,12 +1,11 @@
-// ATC_Transfer Headers
+// ATC Headers
 #include "ExtrinsicModelTwoTemperature.h"
 #include "ATC_Error.h"
 #include "FieldEulerIntegrator.h"
-#include "ATC_Transfer.h"
+#include "ATC_Coupling.h"
 #include "LammpsInterface.h"
 #include "PrescribedDataManager.h"
-#include "PhysicsModelTwoTemperature.h"
-#include "ImplicitSolveOperator.h"
+#include "PhysicsModel.h"
 
 namespace ATC {
 
@@ -24,14 +23,13 @@ namespace ATC {
                                  ExtrinsicModelType modelType,
                                  string matFileName) :
     ExtrinsicModel(modelManager,modelType,matFileName),
-    nsubcycle_(1),
     electronTimeIntegration_(TimeIntegrator::IMPLICIT),
     temperatureIntegrator_(NULL),
+    nsubcycle_(1),
     exchangeFlag_(true), 
     baseSize_(0)
   {
-     physicsModel_ = new PhysicsModelTwoTemperature(matFileName, 
-                                 modelManager->get_atc_transfer());
+     physicsModel_ = new PhysicsModelTwoTemperature(matFileName);
 
      // set up correct masks for coupling
      rhsMaskIntrinsic_.reset(NUM_FIELDS,NUM_FLUX);
@@ -45,6 +43,7 @@ namespace ATC {
   //--------------------------------------------------------
   ExtrinsicModelTwoTemperature::~ExtrinsicModelTwoTemperature()
   {
+    if (temperatureIntegrator_) delete temperatureIntegrator_;
   }
 
   //--------------------------------------------------------
@@ -97,7 +96,7 @@ namespace ATC {
       \section syntax
       fix_modify AtC extrinsic electron_integration <integration_type> <num_subcyle_steps(optional)> \n
         - integration_type (string) = explicit | implicit | steady  \n
-	- num_subcycle_steps (int), optional = number of subcycle steps for the electron time integration
+        - num_subcycle_steps (int), optional = number of subcycle steps for the electron time integration
 
       \section examples
       <TT> fix_modify AtC extrinsic electron_integration implicit </TT> \n
@@ -142,7 +141,9 @@ namespace ATC {
   //--------------------------------------------------------
   void ExtrinsicModelTwoTemperature::initialize()
   {
-    int nNodes = atc_->get_fe_engine()->get_nNodes();
+    ExtrinsicModel::initialize();
+
+    int nNodes = atc_->num_nodes();
     rhs_[TEMPERATURE].reset(nNodes,1);
     rhs_[ELECTRON_TEMPERATURE].reset(nNodes,1);
 
@@ -154,25 +155,26 @@ namespace ATC {
     }
     if (temperatureIntegrator_) delete temperatureIntegrator_;
     if (electronTimeIntegration_ == TimeIntegrator::STEADY) {
-      throw ATC_Error(0,"not implemented");
+      throw ATC_Error("not implemented");
     }
     else if (electronTimeIntegration_ == TimeIntegrator::IMPLICIT) {
       double alpha = 1; // backwards Euler
       temperatureIntegrator_ = new FieldImplicitEulerIntegrator(
-        ELECTRON_TEMPERATURE, physicsModel_, atc_->get_fe_engine(), atc_, 
+        ELECTRON_TEMPERATURE, physicsModel_, atc_->feEngine_, atc_, 
         rhsMask, alpha);
     }
     else {
       temperatureIntegrator_ = new FieldExplicitEulerIntegrator(
-        ELECTRON_TEMPERATURE, physicsModel_, atc_->get_fe_engine(), atc_, 
+        ELECTRON_TEMPERATURE, physicsModel_, atc_->feEngine_, atc_, 
         rhsMask);
     }
+
 
     // set up mass matrix
     Array<FieldName> massMask(1);
     massMask = ELECTRON_TEMPERATURE;
     (atc_->feEngine_)->compute_lumped_mass_matrix(massMask,atc_->fields_,physicsModel_,atc_->elementToMaterialMap_,atc_->massMats_);
-    atc_->massMatInv_[ELECTRON_TEMPERATURE] = inv(atc_->massMats_[ELECTRON_TEMPERATURE]);
+    atc_->massMatsInv_[ELECTRON_TEMPERATURE] = inv(atc_->massMats_[ELECTRON_TEMPERATURE].quantity());
   }
 
   //--------------------------------------------------------
@@ -181,7 +183,7 @@ namespace ATC {
   void ExtrinsicModelTwoTemperature::pre_init_integrate()
   {
     double dt = atc_->lammpsInterface_->dt();
-    double time = atc_->simTime_;
+    double time = atc_->time();
 
     // integrate fast electron variable/s
     // note: atc calls set_sources in pre_final_integrate
@@ -201,22 +203,22 @@ namespace ATC {
     // compute source term with appropriate masking and physics model
     atc_->evaluate_rhs_integral(rhsMaskIntrinsic_, fields,
                             sources,
-                            atc_->FULL_DOMAIN, physicsModel_);
+                            atc_->source_integration(), physicsModel_);
   }
 
   //--------------------------------------------------------
   //  output
   //--------------------------------------------------------
-  void ExtrinsicModelTwoTemperature::output(double dt, OUTPUT_LIST & outputData)
+  void ExtrinsicModelTwoTemperature::output(OUTPUT_LIST & outputData)
   {
     // nodal data
-    outputData["dot_electron_temperature"] 
-      = & rhs_[ELECTRON_TEMPERATURE];
+    outputData["dot_electron_temperature"] = & rhs_[ELECTRON_TEMPERATURE].set_quantity();
+
     // global data
-    if (atc_->lammpsInterface_->comm_rank() == 0) {
-      double T_mean   = atc_->fields_[ELECTRON_TEMPERATURE].col_sum(0)/atc_->nNodes_;
+    if (atc_->lammpsInterface_->rank_zero()) {
+      double T_mean   = ((atc_->field(ELECTRON_TEMPERATURE)).quantity()).col_sum(0)/atc_->nNodes_;
       atc_->feEngine_->add_global("electron_temperature_mean",  T_mean);
-      double T_stddev = atc_->fields_[ELECTRON_TEMPERATURE].col_stdev(0);
+      double T_stddev = ((atc_->field(ELECTRON_TEMPERATURE)).quantity()).col_stdev(0);
       atc_->feEngine_->add_global("electron_temperature_std_dev",  T_stddev);
     }
   }
@@ -240,21 +242,22 @@ namespace ATC {
 
     if (n == baseSize_) { 
       Array<FieldName> mask(1);
-      FIELDS energy;
+      FIELD_MATS energy;
       mask(0) = ELECTRON_TEMPERATURE;
+      
       (atc_->feEngine_)->compute_energy(mask, 
-                                        atc_->fields_,
-                                        physicsModel_,
-                                        atc_->elementToMaterialMap_,
-                                        energy);
+                                          atc_->fields(),
+                                          physicsModel_,
+                                          atc_->elementToMaterialMap_,
+                                          energy);
       // convert to lammps energy units
-      double mvv2e = (atc_->lammpsInterface_)->mvv2e(); 
+      double mvv2e = (atc_->lammps_interface())->mvv2e(); 
       double electronEnergy = mvv2e * energy[ELECTRON_TEMPERATURE].col_sum();
       value = electronEnergy;
       return true;
     }
     else if (n == baseSize_+1) {
-      double electronTemperature = (atc_->fields_[ELECTRON_TEMPERATURE]).col_sum()/(atc_->nNodes_);
+      double electronTemperature = ((atc_->field(ELECTRON_TEMPERATURE)).quantity()).col_sum()/(atc_->nNodes_);
       value = electronTemperature;
       return true;
     }

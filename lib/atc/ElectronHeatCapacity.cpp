@@ -1,22 +1,23 @@
 #include "ElectronHeatCapacity.h"
-#include "StringManip.h"
 #include "ATC_Error.h"
 
 #include <iostream>
 #include <fstream>
 
+using ATC_Utility::command_line;
+using ATC_Utility::str2dbl;
+
 namespace ATC {
-using namespace ATC_STRING;
 
 ElectronHeatCapacityConstant::ElectronHeatCapacityConstant(
   fstream &fileId, map<string,double> & parameters) 
   : ElectronHeatCapacity(),
   electronHeatCapacity_(0)
 {
-  if (!fileId.is_open()) throw ATC_Error(0,"cannot open material file");
+  if (!fileId.is_open()) throw ATC_Error("cannot open material file");
   vector<string> line;
   while(fileId.good()) {
-    get_command_line(fileId, line);
+    command_line(fileId, line);
     if (line.size() == 0) continue;
     if (line[0] == "end") return;
     else if (line[0] == "capacity") {
@@ -24,7 +25,7 @@ ElectronHeatCapacityConstant::ElectronHeatCapacityConstant(
       parameters["electron_heat_capacity"] = electronHeatCapacity_;
     }
     else {
-      throw ATC_Error(0, "unrecognized material function:" + line[0]);
+      throw ATC_Error( "unrecognized material function:" + line[0]);
     }
   }
 }
@@ -34,10 +35,10 @@ ElectronHeatCapacityLinear::ElectronHeatCapacityLinear(
   : ElectronHeatCapacity(),
   electronHeatCapacity_(0)
 {
-  if (!fileId.is_open()) throw ATC_Error(0,"cannot open material file");
+  if (!fileId.is_open()) throw ATC_Error("cannot open material file");
   vector<string> line;
   while(fileId.good()) {
-    get_command_line(fileId, line);
+    command_line(fileId, line);
     if (line.size() == 0) continue;
     if (line[0] == "end") return;
     else if (line[0] == "capacity") {
@@ -45,9 +46,27 @@ ElectronHeatCapacityLinear::ElectronHeatCapacityLinear(
       parameters["electron_heat_capacity"] = electronHeatCapacity_;
     }
     else {
-      throw ATC_Error(0, "unrecognized material function: " + line[0]);
+      throw ATC_Error( "unrecognized material function: " + line[0]);
     }
   }
+}
+
+ElectronHeatCapacityConstantAddDensity::ElectronHeatCapacityConstantAddDensity(fstream &fileId,
+                                                                               map<string,double> & parameters,
+                                                                               Material * material) 
+  : ElectronHeatCapacityConstant(fileId, parameters),
+    material_(material)
+{
+  // do nothing
+}
+
+ElectronHeatCapacityLinearAddDensity::ElectronHeatCapacityLinearAddDensity(fstream &fileId,
+                                                                           map<string,double> & parameters,
+                                                                           Material * material) 
+  : ElectronHeatCapacityLinear(fileId, parameters),
+    material_(material)
+{
+  // do nothing
 }
 
 }

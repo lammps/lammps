@@ -1,0 +1,94 @@
+LAMMPS (14 Aug 2013)
+Scanning data file ...
+  2 = max bonds/atom
+  1 = max angles/atom
+Reading data file ...
+  orthogonal box = (-15 -15 -15) to (15 15 15)
+  1 by 2 by 2 MPI processor grid
+  2709 atoms
+  2709 velocities
+  1806 bonds
+  903 angles
+Finding 1-2 1-3 1-4 neighbors ...
+  2 = max # of 1-2 neighbors
+  1 = max # of 1-3 neighbors
+  1 = max # of 1-4 neighbors
+  2 = max # of special neighbors
+Lattice spacing in x,y,z = 0.05 0.05 0.05
+2709 atoms in group water
+1806 atoms in group hyd
+903 atoms in group oxy
+Finding 1-2 1-3 1-4 neighbors ...
+  2 = max # of 1-2 neighbors
+  1 = max # of 1-3 neighbors
+  1 = max # of 1-4 neighbors
+  2 = max # of special neighbors
+ATC: constructing electrostatic species coupling with parameter file water.mat
+ ATC: peratom PE compute created with ID: 3
+ ATC: 1 materials defined from water.mat
+ ATC: creating fem_efield extrinsic model
+ ATC: 1 materials defined from water.mat
+ ATC: created uniform mesh with 8 nodes, 1 unique nodes, and 1 elements
+ ATC: Warning : text output can create _LARGE_ files
+ ATC: output custom names:
+NodalAtomicSpeciesConcentration : NodalAtomicSpeciesConcentrationHyd
+NodalAtomicSpeciesConcentration : NodalAtomicSpeciesConcentrationOxy
+species_concentration : species_concentrationHyd
+species_concentration : species_concentrationOxy
+
+PPPM initialization ...
+  G vector (1/distance) = 0.297171
+  grid = 18 18 18
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.00115732
+  estimated relative force accuracy = 8.03715e-05
+  using double precision FFTs
+  3d grid and FFT values/proc = 6400 1620
+Setting up run ...
+ ATC: WARNING: material: [water] cannot find mass_density
+ ATC: WARNING: physics model: [species], material: [water] does not provide all interfaces for <mass_density> physics and will be treated as null 
+ ATC: WARNING: all initial conditions for mass_density have not been defined and the undefined are assumed zero
+ ATC: WARNING: all initial conditions for charge_density have not been defined and the undefined are assumed zero
+ ATC: WARNING: all initial conditions for species_concentration have not been defined and the undefined are assumed zero
+ ATC: WARNING: material: [water] cannot find mass_density
+ ATC: WARNING: physics model: [species electrostatic], material: [water] does not provide all interfaces for <mass_density> physics and will be treated as null 
+Memory usage per processor = 109.05 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0    197.00275   -442.89515   0.59348399   -373.34352    21627.063 
+     100     829.3047   -532.01992    298.21091    56.477887    47888.516 
+     200    742.78324   -696.73237    968.19413    531.46299   -41757.145 
+     300    1194.0466   -640.77501    416.31161    193.49647   -47297.597 
+     400    722.14402   -655.95913     486.9587    83.776312   -117009.94 
+     500    856.93093   -774.82666    955.23125    480.36167   -144380.28 
+     600    614.34783   -818.49346    1205.9216    602.47228    -170076.9 
+     700    738.19704   -704.05013    689.90234     244.2481   -138086.85 
+     800    899.87085    -671.8463    565.65986    208.80118      -105587 
+     900    906.34219    -708.2316      826.832    435.85322   -84326.935 
+    1000    920.33455   -635.04398    592.63924    279.74592   -40120.926 
+Loop time of 77.471 on 4 procs for 1000 steps with 2709 atoms
+
+Pair  time (%) = 55.1982 (71.2501)
+Bond  time (%) = 0.153222 (0.197779)
+Kspce time (%) = 15.7133 (20.2828)
+Neigh time (%) = 1.59633 (2.06054)
+Comm  time (%) = 1.12795 (1.45597)
+Outpt time (%) = 0.117281 (0.151386)
+Other time (%) = 3.56472 (4.60136)
+
+FFT time (% of Kspce) = 2.53183 (16.1127)
+FFT Gflps 3d (1d only) = 0.399473 3.27799
+
+Nlocal:    677.25 ave 694 max 650 min
+Histogram: 1 0 0 0 0 1 0 0 1 1
+Nghost:    11513.2 ave 11662 max 11354 min
+Histogram: 1 0 0 1 0 0 1 0 0 1
+Neighs:    821091 ave 848197 max 781864 min
+Histogram: 1 0 0 0 1 0 0 0 0 2
+FullNghs:  963818 ave 999880 max 913538 min
+Histogram: 1 0 0 0 1 0 0 0 1 1
+
+Total # of neighbors = 3855272
+Ave neighs/atom = 1423.13
+Ave special neighs/atom = 2
+Neighbor list builds = 23
+Dangerous builds = 0

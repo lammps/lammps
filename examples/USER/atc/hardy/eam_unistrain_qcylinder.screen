@@ -1,67 +1,67 @@
-LAMMPS (12 Jan 2013)
+LAMMPS (14 Aug 2013)
 Lattice spacing in x,y,z = 3.615 3.615 3.615
 Created orthogonal box = (-65.07 -10.845 -10.845) to (65.07 10.845 10.845)
-  1 by 1 by 1 MPI processor grid
+  4 by 1 by 1 MPI processor grid
 Created 4896 atoms
 4608 atoms in group internal
-Constructing ATC transfer (hardy)
-atomPE compute created with ID: 3
- ATC:: created FEM Mesh with 40 Global Nodes, 10 Unique Nodes, and 9 Elements
+ATC: constructing kernel field estimate
+ ATC: peratom PE compute created with ID: 3
+ ATC: created uniform mesh with 40 nodes, 10 unique nodes, and 9 elements
 Setting up run ...
- ATC:: computing bond matrix ..........done
-ATC:: computing kernel matrix ..........done
- ATC:: conversion factor for energy/vol -> stress 1.60218e+06
- ATC:: cutoff radius 4.95
-Memory usage per processor = 8.83292 Mbytes
+ ATC: computing bond matrix ..........done
+Memory usage per processor = 34.3603 Mbytes
 Step PotEng KinEng Press Lx Ly Lz 
        0   -17256.022            0   -2117.8338       130.14        21.69        21.69 
        1   -17256.022            0   -2117.8338       130.14        21.69        21.69 
-Loop time of 0.0626462 on 1 procs for 1 steps with 4896 atoms
+Loop time of 0.22 on 4 procs for 1 steps with 4896 atoms
 
-Pair  time (%) = 0.020498 (32.7203)
+Pair  time (%) = 0.0452225 (20.5557)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000189066 (0.3018)
-Outpt time (%) = 8.41618e-05 (0.134345)
-Other time (%) = 0.0418749 (66.8435)
+Comm  time (%) = 0.107069 (48.6676)
+Outpt time (%) = 0.0576439 (26.2018)
+Other time (%) = 0.0100647 (4.57488)
 
-Nlocal:    4896 ave 4896 max 4896 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    6120 ave 6120 max 6120 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    130032 ave 130032 max 130032 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-FullNghs:  260064 ave 260064 max 260064 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:    1224 ave 1296 max 1152 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:    2259 ave 2592 max 1926 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:    32508 ave 34992 max 29952 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+FullNghs:  65016 ave 69984 max 60048 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
 
 Total # of neighbors = 260064
 Ave neighs/atom = 53.1176
 Neighbor list builds = 0
 Dangerous builds = 0
 Displacing atoms ...
- ATC:: Warning : text output can create _LARGE_ files
+ ATC: Warning : text output can create _LARGE_ files
+ ATC: output custom names:
+
 Setting up run ...
- ATC:: conversion factor for energy/vol -> stress 1.60218e+06
- ATC:: cutoff radius 4.95
-Memory usage per processor = 9.13809 Mbytes
+ ATC: kernel matrix bandwidth 1005
+ ATC: computing bond matrix ..........done
+Memory usage per processor = 34.3603 Mbytes
 Step PotEng KinEng Press Lx Ly Lz 
        1   -17252.771            0   -14787.592       130.14        21.69        21.69 
+ ATC: kernel matrix bandwidth 1005
        2   -17252.771            0   -14787.592       130.14        21.69        21.69 
-Loop time of 0.195493 on 1 procs for 1 steps with 4896 atoms
+Loop time of 0.224722 on 4 procs for 1 steps with 4896 atoms
 
-Pair  time (%) = 0.020318 (10.3932)
+Pair  time (%) = 0.00557947 (2.48283)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.00015378 (0.0786626)
-Outpt time (%) = 6.48499e-05 (0.0331724)
-Other time (%) = 0.174957 (89.4949)
+Comm  time (%) = 0.00455528 (2.02708)
+Outpt time (%) = 0.000734568 (0.326878)
+Other time (%) = 0.213853 (95.1632)
 
-Nlocal:    4896 ave 4896 max 4896 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    6120 ave 6120 max 6120 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    130032 ave 130032 max 130032 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-FullNghs:  260064 ave 260064 max 260064 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:    1224 ave 1296 max 1152 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:    2259 ave 2592 max 1926 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:    32508 ave 34992 max 29952 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+FullNghs:  65016 ave 69984 max 60048 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
 
 Total # of neighbors = 260064
 Ave neighs/atom = 53.1176

@@ -1,0 +1,78 @@
+LAMMPS (14 Aug 2013)
+Lattice spacing in x,y,z = 5.25623 5.25623 5.25623
+Created orthogonal box = (0 0 0) to (525.623 52.5623 52.5623)
+  4 by 1 by 1 MPI processor grid
+ATC: constructing elastic coupling with parameter file Ar_CauchyBornLinear.mat
+ ATC: peratom PE compute created with ID: 3
+ ATC: computed mass density : 1.10041
+ ATC: 1 materials defined from Ar_CauchyBornLinear.mat
+ ATC: created uniform mesh with 104 nodes, 26 unique nodes, and 25 elements
+ ATC: created nodeset lbc with 1 nodes
+ ATC: created nodeset rbc1 with 1 nodes
+ ATC: created nodeset rbc2 with 1 nodes
+ ATC: created nodeset rbc3 with 1 nodes
+ ATC: created nodeset rbc4 with 1 nodes
+ ATC: created nodeset rbc5 with 1 nodes
+ ATC: Warning : text output can create _LARGE_ files
+ ATC: output custom names:
+
+Setting up run ...
+ ATC: created cubic stress function:
+   lammps         ATC units
+   c11=0.623221 0.000260756
+   c12=0.355572 0.000148771
+   c44=0.355572 0.000148771
+ ATC: CB stiffness: 7.56711 Einstein freq: 0.355647
+Memory usage per processor = 0.432442 Mbytes
+Step CPU 
+       0            0 
+     100    5.2610211 
+     200     8.207129 
+     300     8.399112 
+     400     8.590606 
+     500    8.7906051 
+     600    8.9944639 
+     700    9.2591641 
+     800    9.4823501 
+     900    9.9786441 
+    1000    10.218563 
+    1100    10.442493 
+    1200     10.63588 
+    1300    12.651145 
+    1400       17.621 
+    1500    21.060829 
+    1600    21.253883 
+    1700     21.44572 
+    1800    24.531154 
+    1900    25.631172 
+    2000    26.061068 
+    2100    27.272422 
+    2200    27.740018 
+    2300    28.139088 
+    2400    28.539013 
+    2500    30.439943 
+    2600    30.839081 
+    2700    31.207394 
+    2800    31.400084 
+    2900    31.592798 
+    3000     31.78627 
+Loop time of 31.7863 on 4 procs for 3000 steps with 0 atoms
+
+Pair  time (%) = 0 (0)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.0208905 (0.0657218)
+Outpt time (%) = 0.0490193 (0.154215)
+Other time (%) = 31.7164 (99.7801)
+
+Nlocal:    0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:  0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 0
+Neighbor list builds = 0
+Dangerous builds = 0

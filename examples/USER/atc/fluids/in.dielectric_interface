@@ -1,0 +1,106 @@
+# simulation of negatively charge liquid argon-positively charged solid/frozen argon
+# MAKE this dielectric_interface then interface (major difference: non-uniform grid)
+# START with extrinsic charges on both and then use an instrinsic charge density for frozen
+echo both
+units     	real
+atom_style full
+########### BEGIN PARAMETERS ####################################
+variable a equal 5.719025032  
+variable i equal 1
+variable s equal 100
+variable n equal 1000 # 500 2000
+variable dt equal 4.0 
+variable W equal 4
+variable L equal 20
+variable Ls equal 4 # surface
+variable h equal 10 
+variable phiInf equal -1. # 0. 10 -10.0
+variable perm2 equal 2.
+variable depth equal 17.1571
+#  1 1 0.1 0.1 1 1
+variable w1  equal 4/$L # relative wall width
+variable w2  equal ${w1}+2/$L # relative wall width
+variable w3  equal ${w2}+2/$L 
+variable w4  equal ${w3}+2/$L 
+##############  END PARAMETERS #################################
+dimension 	3
+boundary  	f p p
+pair_style  	lj/cut 13.0
+lattice   	fcc  $a 
+read_data interface_init.data
+atom_modify sort 0 1
+mass       * 39.948
+pair_coeff * * 0.2381 3.405
+dielectric 1.0 
+region BOX block 0 $L 0 $W 0 $W
+group SOLID type 1
+group FLUID type 2 3 4
+group P type 3
+group N type 4
+set group SOLID charge 0 # use ATC to provide charge to the surface
+timestep  	${dt}
+neigh_modify every $i check no
+fix WALLS all wall/reflect xlo EDGE xhi EDGE 
+fix         PP  all   atc field
+fix_modify  PP  add_species IONS type 1 2 3 4
+fix_modify  PP  fields add species_concentration mass_density charge_density
+fix_modify  PP  atom_element_map eulerian $s
+fix_modify  PP  mesh create $h 1 1 BOX f p p
+fix_modify  PP output volume_integral all mass_density
+fix_modify  PP output volume_integral all charge_density
+fix         ATC FLUID   atc species_electrostatic  Ar_electrostatic.mat 
+fix_modify  ATC add_species P type 3
+fix_modify  ATC add_species N type 4
+fix_modify  ATC boundary SOLID
+fix_modify  ATC atom_element_map eulerian $i
+fix_modify  ATC internal_quadrature off # on creates a nasty error (NOTE trap error)
+fix_modify  ATC mass_matrix fe
+fix_modify  ATC include atomic_charge
+# mesh
+fix_modify ATC mesh create $h 2 2 BOX f p p dx piecewise_linear 0 0 0 1 0 0 0.0 1.0 1.0 1.0
+fix_modify ATC output volume_integral all mass_density
+fix_modify ATC output volume_integral all charge_density
+fix_modify ATC mesh create_nodeset lbc 0  0  -INF INF -INF INF
+fix_modify ATC mesh create_nodeset rbc $L $L -INF INF -INF INF
+fix_modify ATC mesh create_nodeset    wall 0 ${Ls} 0 4 0 4
+fix_modify ATC mesh create_elementset wall 0 ${Ls} 0 4 0 4
+#fix_modify ATC mesh create_faceset lbc plane x 0  
+fix_modify ATC mesh create_faceset surface -INF ${Ls}  -INF INF -INF INF
+fix_modify ATC mesh output dielectric_interfaceMESH text binary
+# ic/bcs
+#fix_modify ATC initial charge_density     all 0.
+fix_modify ATC initial mass_density       all 0.
+fix_modify ATC initial electric_potential all 0.
+# output
+thermo    	$s
+variable cFLUID   equal count(FLUID)
+compute PAVE P reduce ave x 
+compute PMIN P reduce min x
+compute PMAX P reduce max x
+compute NAVE N reduce ave x 
+compute NMIN N reduce min x
+compute NMAX N reduce max x
+compute q all property/atom q
+compute Q all reduce sum c_q
+compute m all property/atom mass
+compute M all reduce sum c_m
+compute Qf FLUID reduce sum c_q
+compute Mf FLUID reduce sum c_m
+compute F FLUID reduce sum fx fy fz
+thermo_style 	custom step temp press etotal pe c_Q c_M c_Qf c_Mf c_PMIN c_PAVE c_PMAX c_NMIN c_NAVE c_NMAX c_F[1] c_F[2] c_F[3]
+compute T FLUID temp
+thermo_modify  temp T
+thermo_modify  flush yes
+log dielectric_interface.log
+fix_modify ATC output dielectric_interfaceFE $s full_text binary
+fix_modify  PP output dielectric_interfacePP $s full_text binary
+dump   X all custom $s dielectric_interface.dmp id type x y z q vx vy vz fx fy fz
+fix_modify ATC  fix     electric_potential rbc 0.
+# stage 1 : active source controlling far-field shielding
+fix_modify ATC  control charge FLUID dielectric ${phiInf} ${perm2} ${depth}
+fix_modify ATC  control charge FLUID image_charge surface
+run $n
+# stage 2 : static source - i.e. above the mean like JCTC / "effective_charge"
+fix_modify ATC  source electric_potential wall 0.001 
+fix_modify ATC  fix     electric_potential lbc ${phiInf}
+#run $n

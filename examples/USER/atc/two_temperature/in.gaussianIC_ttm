@@ -1,0 +1,94 @@
+#AtC Two temperature Coupling
+# DESCRIPTION:
+# full overlap of MD and FE regions w/ free ends & lateral periodic bcs
+# initial gaussian electron temperature profile and uniform phonon temperature 
+# results in fast exchange followed by slower diffusion and finally relaxation
+# to equilibrium
+#
+echo both
+units    real
+atom_style  atomic
+
+# create domain
+#lattice  type reduced density rho* = 4*(sigma/a)^3, 
+#   where N = 4 for fcc, 
+#         s = 3.405 A (Wagner) 
+#         a = 5.25 A (Ashcroft & Mermin, p. 70)
+# to create restart :
+# write_restart temp.bin
+# then : restart2data temp.bin temp.init
+#if {restart} 
+boundary        f p p
+pair_style      lj/cut 13.5
+read_data       temp.init
+#endif
+
+lattice         fcc 5.405 origin 0.25 0.25 0.25
+region     feRegion   block -10 10 -3 3 -3 3
+region     mdRegion   block -12 12 -3 3 -3 3
+region     mdInternal block -10 10 -3 3 -3 3
+
+
+# create atoms, NOTE commented out for restart
+#if !{restart}
+#boundary  f p p
+#create_box  1 mdRegion
+#create_atoms  1 region mdRegion
+#mass    1 39.95
+#pair_style  lj/cut 13.5
+#pair_coeff    1 1 .238 3.405 13.5
+#velocity  internal create 40 87287 mom yes loop geom
+#endif
+
+# specify interal/ghost atoms
+group    internal region mdInternal
+# do not define ghosts if outside fe region
+#group    ghost subtract all internal
+
+neighbor  5. bin
+neigh_modify  every 10 delay 0 check no
+
+#               ID  group atc PhysicsType ParameterFile
+fix             AtC internal   atc two_temperature  Ar_ttm.mat
+
+#               ID  part keywords    nx ny nz region
+fix_modify      AtC mesh create 10 1  1  feRegion f p p
+
+# fix a temperature
+fix_modify AtC  fix temperature          all 20.0
+fix_modify AtC  initial temperature      all 20.0
+fix_modify AtC  initial electron_temperature all gaussian 0 0 0 1 0 0 5 20 20
+fix_modify AtC  fix electron_temperature     all gaussian 0 0 0 1 0 0 5 20 20
+
+
+# turn on thermostat
+fix_modify AtC extrinsic exchange off
+fix_modify AtC  control thermal rescale 10
+
+# equilibrate MD field
+timestep  5.0
+#timestep  0.1
+thermo    10
+#if !{restart}
+#run     1000
+#endif
+
+# write restart file (for atoms)
+#if !{restart}
+#write_restart  gaussianT0.dat
+#endif
+
+#output
+fix_modify      AtC  output        gaussianIC_ttmFE 10 text
+
+# change thermostat
+fix_modify AtC  unfix          temperature all
+fix_modify AtC  unfix electron_temperature all
+fix_modify AtC  control thermal flux
+fix_modify AtC extrinsic exchange on
+fix_modify AtC extrinsic electron_integration explicit 10
+
+# run with FE
+thermo_style custom step temp pe f_AtC[2] f_AtC[4]
+reset_timestep 0
+run     400

@@ -1,0 +1,81 @@
+LAMMPS (14 Aug 2013)
+units    real
+atom_style  atomic
+
+# correct mass density = 1.0120
+# NOTE the mesh is not currently periodic, so the density estimate is off by a factor of 2
+
+variable L equal 6
+variable w equal 2
+
+lattice         fcc 5.405 origin 0.25 0.25 0.25
+Lattice spacing in x,y,z = 5.405 5.405 5.405
+region     BOX   block -$L $L -$L $L -$w $w
+region     BOX   block -6 $L -$L $L -$w $w
+region     BOX   block -6 6 -$L $L -$w $w
+region     BOX   block -6 6 -6 $L -$w $w
+region     BOX   block -6 6 -6 6 -$w $w
+region     BOX   block -6 6 -6 6 -2 $w
+region     BOX   block -6 6 -6 6 -2 2
+
+boundary  f f p
+create_box  1 BOX
+Created orthogonal box = (-32.43 -32.43 -10.81) to (32.43 32.43 10.81)
+  2 by 2 by 1 MPI processor grid
+create_atoms  1 region BOX
+Created 2304 atoms
+mass    1 39.95
+pair_style  lj/cut 13.5
+pair_coeff    1 1 .238 3.405 13.5
+group    internal region BOX
+2304 atoms in group internal
+
+fix            AtC internal atc hardy
+ATC: constructing kernel field estimate
+ ATC: peratom PE compute created with ID: 3
+fix_modify     AtC kernel quartic_cylinder 5.0
+fix_modify     AtC mesh read gaussianIC2d_hex.mesh
+ ATC: read 388 nodes
+ ATC: read 173 HEX8 elements
+ ATC: created nodeset 11 with 22 nodes
+ ATC: created nodeset 12 with 22 nodes
+ ATC: WARNING: mesh is not aligned with the coordinate directions atom-to-element mapping will be expensive
+fix_modify     AtC fields add mass_density
+fix_modify     AtC output kernel2d_hexFE 1 full_text binary
+ ATC: Warning : text output can create _LARGE_ files
+ ATC: output custom names:
+
+#dump  CONFIG all custom 1 kernel2d_hexMD.dmp id type x y z
+
+thermo_style custom step cpu temp
+timestep  0.0
+thermo    1
+run     2
+Setting up run ...
+ ATC: kernel matrix bandwidth 535
+Memory usage per processor = 490.313 Mbytes
+Step CPU Temp 
+       0            0            0 
+       1  0.015694857            0 
+       2   0.02523303            0 
+Loop time of 0.025247 on 4 procs for 2 steps with 2304 atoms
+
+Pair  time (%) = 0.00923944 (36.5961)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.000781298 (3.09461)
+Outpt time (%) = 0.00327528 (12.9729)
+Other time (%) = 0.011951 (47.3364)
+
+Nlocal:    576 ave 576 max 576 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    2664 ave 2664 max 2664 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    91072 ave 92484 max 89660 min
+Histogram: 1 1 0 0 0 0 0 0 1 1
+FullNghs:  182144 ave 182144 max 182144 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 728576
+Ave neighs/atom = 316.222
+Neighbor list builds = 0
+Dangerous builds = 0

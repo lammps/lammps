@@ -1,4 +1,6 @@
 #include "DenseVector.h"
+
+namespace ATC_matrix {
 ///////////////////////////////////////////////////////////////////////////////
 //* performs a matrix-vector multiply with optional transposes BLAS version
 void MultMv(const Matrix<double> &A, const Vector<double> &v, DenseVector<double> &c,
@@ -20,7 +22,7 @@ void MultMv(const Matrix<double> &A, const Vector<double> &v, DenseVector<double
   int *N = sV+1;   // # of cols in op[B]
   int *K = sA+!At; // # of cols in op[A] or # of rows in op[B]
 
-  double *pa=A.get_ptr(), *pv=v.get_ptr(), *pc=c.get_ptr();
+  double *pa=A.ptr(), *pv=v.ptr(), *pc=c.ptr();
 
 #ifdef COL_STORAGE
   dgemm_(ta, t, M, N, K, &a, pa, sA, pv, sV, &b, pc, M); 
@@ -28,3 +30,5 @@ void MultMv(const Matrix<double> &A, const Vector<double> &v, DenseVector<double
   dgemm_(t, ta, N, M, K, &a, pv, sV+1, pa, sA+1, &b, pc, N); 
 #endif
 }
+
+} // end namespace

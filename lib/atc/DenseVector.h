@@ -2,13 +2,23 @@
 #define DENSEVECTOR_H
 
 #include "Vector.h"
+
+namespace ATC_matrix {
+
 template<typename T>
+
+  /**
+   *  @class  DenseVector
+   *  @brief  Class for storing data in a "dense" vector form         
+   */
+
 class DenseVector : public Vector<T>
 {
 public:
   explicit DenseVector(INDEX n=0, bool z=1)          { _create(n,z); }
   DenseVector(const DenseVector<T> &c) : _data(NULL) { _copy(c); } 
   DenseVector(const Vector<T> &c)      : _data(NULL) { _copy(c); } 
+  DenseVector(const T * ptr, INDEX nrows) : _data(NULL) { copy(ptr,nrows); } 
   virtual ~DenseVector()               { _delete();    }
   
   //* resizes the Vector, ignores nCols, optionally copys what fits
@@ -23,10 +33,13 @@ public:
   T& operator[](INDEX i)       { VICK(i) return _data[i]; }
   T  operator()(INDEX i, INDEX j=0) const { VICK(i) return _data[i]; }
   T& operator()(INDEX i, INDEX j=0)       { VICK(i) return _data[i]; }
-  void set_all_elements_to(const T &v)    { FORi _data[i] = v; }
+  void set_all_elements_to(const T &v)    { 
+                                            int sz = this->size();
+                                            for (INDEX i = 0; i < sz; i++) _data[i] = v;
+                                          }
   INDEX nRows()    const { return _size; }
 
-  T* get_ptr() const     { return _data; }
+  T* ptr() const     { return _data; }
 
   DenseVector<T>& operator=(const T &v);
   DenseVector<T>& operator=(const Vector<T> &c);
@@ -61,7 +74,9 @@ void DenseVector<T>::resize(INDEX rows, INDEX cols, bool copy)
   DenseVector<T> temp(*this);
   _delete();
   _create(rows);
-  FORi _data[i] = i<temp.size() ? temp[i] : T(0.0);
+  int sz = this->size();
+  for (INDEX i = 0; i < sz; i++)
+    _data[i] = i<temp.size() ? temp[i] : T(0.0);
   return;
 }
 ///////////////////////////////////////////////////////////////////////////////
@@ -120,14 +135,15 @@ inline void DenseVector<T>::_copy(const Vector<T> &c)
     _create(c.size(), false);
   }
   else _size = c.size();
-  memcpy(_data, c.get_ptr(), _size*sizeof(T));
+  memcpy(_data, c.ptr(), _size*sizeof(T));
 }
 ///////////////////////////////////////////////////////////////////////////////
 //* assigns v to all values in the vector
 template <typename T>
 DenseVector<T>& DenseVector<T>::operator=(const T &v)
 {
-  FORi VIDX(i) = v;
+  int sz = this->size();
+  for (INDEX i = 0; i < sz; i++) (*this)[i] = v;
   return *this;
 }
 ///////////////////////////////////////////////////////////////////////////////
@@ -146,5 +162,7 @@ DenseVector<T>& DenseVector<T>::operator=(const DenseVector<T> &c)
   _copy(c);
   return *this;
 }
+
+} // end namespace
 
 #endif

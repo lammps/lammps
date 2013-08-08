@@ -1,0 +1,107 @@
+LAMMPS (14 Aug 2013)
+units    real
+atom_style  atomic
+
+lattice         fcc 5.405 origin 0.25 0.25 0.25
+Lattice spacing in x,y,z = 5.405 5.405 5.405
+region     mdRegion   block -12 12 -3 3 -3 3
+region     mdInternal block -10 10 -3 3 -3 3
+
+# create atoms
+boundary  f p p
+create_box  1 mdRegion
+Created orthogonal box = (-64.86 -16.215 -16.215) to (64.86 16.215 16.215)
+  4 by 1 by 1 MPI processor grid
+create_atoms  1 region mdRegion
+Created 3456 atoms
+mass    1 39.95
+pair_style  lj/cut 13.5
+pair_coeff    1 1 .238 3.405 13.5
+
+# specify interal/ghost atoms
+group    internal region mdInternal
+2880 atoms in group internal
+velocity  internal create 40 87287 mom yes loop geom # <<< NOTE
+
+neighbor  5. bin
+neigh_modify  every 10 delay 0 check no
+
+#               ID  group atc PhysicsType ParameterFile
+fix             AtC internal   atc two_temperature  Ar_ttm.mat
+ATC: constructing two_temperature coupling with parameter file Ar_ttm.mat
+ ATC: peratom PE compute created with ID: 3
+ ATC: 2 materials defined from Ar_ttm.mat
+ ATC: creating two_temperature extrinsic model
+ ATC: 2 materials defined from Ar_ttm.mat
+
+fix_modify      AtC mesh read gaussianIC1d_hex.mesh
+ ATC: read 44 nodes
+ ATC: read 10 HEX8 elements
+ ATC: WARNING: mesh is not aligned with the coordinate directions atom-to-element mapping will be expensive
+
+# fix a temperature
+fix_modify AtC  fix temperature          all 20.0
+fix_modify AtC  initial temperature      all 20.0
+fix_modify AtC  initial electron_temperature all gaussian 0 0 0 1 0 0 5 20 20
+fix_modify AtC  fix electron_temperature     all gaussian 0 0 0 1 0 0 5 20 20
+
+# turn on thermostat
+fix_modify AtC extrinsic exchange off
+fix_modify AtC  control thermal rescale 10
+
+# equilibrate MD field
+timestep  5.0
+thermo    10
+
+#output
+fix_modify      AtC  output        gaussianIC1d_hexFE 10 text
+ ATC: Warning : text output can create _LARGE_ files
+ ATC: output custom names:
+
+
+# change thermostat
+fix_modify AtC  unfix          temperature all
+fix_modify AtC  unfix electron_temperature all
+fix_modify AtC  control thermal flux
+fix_modify AtC extrinsic exchange on
+fix_modify AtC extrinsic electron_integration explicit 10
+
+# run with FE
+thermo_style custom step temp pe f_AtC[2] f_AtC[4]
+reset_timestep 0
+run     100 # 400
+Setting up run ...
+Memory usage per processor = 52.9302 Mbytes
+Step Temp PotEng AtC[2] AtC[4] 
+       0    33.331404   -6667.7177           20    21.852118 
+      10    29.605914   -6628.8617    15.526061    21.823928 
+      20    20.144352   -6529.8249    4.1452637    21.728037 
+      30    10.661516   -6429.3908   -7.2917185    21.537517 
+      40    7.6716875   -6394.7484   -10.961235     21.28913 
+      50    11.012891   -6425.2214   -7.0020953    21.050343 
+      60    15.276591   -6465.7767   -1.8390571     20.85387 
+      70     17.15209   -6482.1581   0.55215503    20.688207 
+      80    17.028137   -6478.0796   0.55504167    20.530699 
+      90    16.865355   -6473.5664   0.41999569    20.372106 
+     100    17.920474    -6481.673    1.6267665    20.219157 
+Loop time of 5.05638 on 4 procs for 100 steps with 3456 atoms
+
+Pair  time (%) = 0.947014 (18.7291)
+Neigh time (%) = 0.418835 (8.2833)
+Comm  time (%) = 0.338576 (6.69601)
+Outpt time (%) = 0.024951 (0.493455)
+Other time (%) = 3.327 (65.7981)
+
+Nlocal:    864 ave 864 max 864 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    6741 ave 7924 max 5558 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:    272828 ave 288265 max 257696 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+FullNghs:  545657 ave 575527 max 515800 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 2182628
+Ave neighs/atom = 631.547
+Neighbor list builds = 10
+Dangerous builds = 0

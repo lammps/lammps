@@ -1,0 +1,266 @@
+LAMMPS (14 Aug 2013)
+units		metal
+# PARAMETERS-----------------------------
+variable s equal 1
+variable L equal 10
+variable e equal 4
+variable E equal 0.0001
+variable V equal $E*$L
+variable V equal 0.00010000000000000000479*$L
+variable V equal 0.00010000000000000000479*10
+# END -----------------------------------
+
+atom_style atomic
+lattice    diamond  1.0
+Lattice spacing in x,y,z = 1 1 1
+boundary   f p p
+region	box block -$L $L 0 1 0 1
+region	box block -10 $L 0 1 0 1
+region	box block -10 10 0 1 0 1
+create_box 1 box
+Created orthogonal box = (-10 0 0) to (10 1 1)
+  4 by 1 by 1 MPI processor grid
+group	box region box
+0 atoms in group box
+atom_modify  sort 0 1
+timestep     0.0
+mass         *  12.01
+
+# coupling
+### NOTE ATC:  material cnt does not provide all interfaces for charge_density physics and will be treated as null
+fix         AtC box  atc electrostatic-equilibrium CNT.mat
+ATC: constructing equilibrium electrostatic coupling with parameter file CNT.mat
+ ATC: peratom PE compute created with ID: 3
+ ATC: computed mass density : 96.08
+ ATC: computed mass density : 96.08
+ ATC: computed mass density : 96.08
+ ATC: computed mass density : 96.08
+ ATC: computed mass density : 96.08
+ ATC: computed mass density : 96.08
+ ATC: computed mass density : 96.08
+ ATC: 7 materials defined from CNT.mat
+ ATC: creating electrostatic extrinsic model
+ ATC: computed mass density : 96.08
+ ATC: computed mass density : 96.08
+ ATC: computed mass density : 96.08
+ ATC: computed mass density : 96.08
+ ATC: computed mass density : 96.08
+ ATC: computed mass density : 96.08
+ ATC: computed mass density : 96.08
+ ATC: 7 materials defined from CNT.mat
+ ATC: computed mass density : 96.08
+ ATC: computed mass density : 96.08
+ ATC: computed mass density : 96.08
+ ATC: computed mass density : 96.08
+ ATC: computed mass density : 96.08
+ ATC: computed mass density : 96.08
+ ATC: computed mass density : 96.08
+ ATC: 7 materials defined from CNT.mat
+fix_modify  AtC internal_quadrature off
+#fix_modify  AtC atom_weight constant internal 1.0 NOTE penultimate is a group
+fix_modify  AtC atom_weight constant box 1.0
+fix_modify  AtC omit atomic_charge
+fix_modify  AtC mesh create $e  1  1  box f p p
+fix_modify  AtC mesh create 4  1  1  box f p p
+ ATC: created uniform mesh with 20 nodes, 5 unique nodes, and 4 elements
+#fix_modify  AtC control  momentum flux
+fix_modify AtC mesh create_elementset all -INF INF -INF INF -INF INF
+ ATC: created elementset all with 4 elements
+
+# bcs/ics conditions
+fix_modify AtC  fix displacement x all 0.0
+fix_modify AtC  fix displacement y all 0.0
+fix_modify AtC  fix displacement z all 0.0
+fix_modify AtC  fix velocity x all 0.0
+fix_modify AtC  fix velocity y all 0.0
+fix_modify AtC  fix velocity z all 0.0
+
+fix_modify AtC mesh create_nodeset lbc -10 -10 INF INF INF INF
+ ATC: created nodeset lbc with 1 nodes
+fix_modify AtC mesh create_nodeset rbc  10  10 INF INF INF INF
+ ATC: created nodeset rbc with 1 nodes
+fix_modify AtC  fix electric_potential lbc linear 0 0 0 $E 0 0 $V
+fix_modify AtC  fix electric_potential lbc linear 0 0 0 0.00010000000000000000479 0 0 $V
+fix_modify AtC  fix electric_potential lbc linear 0 0 0 0.00010000000000000000479 0 0 0.0010000000000000000208
+ ATC: created function : 0.001 + 0.0001(x-0)+0(y-0)+0(z-0)
+fix_modify AtC  fix electric_potential rbc linear 0 0 0 $E 0 0 $V
+fix_modify AtC  fix electric_potential rbc linear 0 0 0 0.00010000000000000000479 0 0 $V
+fix_modify AtC  fix electric_potential rbc linear 0 0 0 0.00010000000000000000479 0 0 0.0010000000000000000208
+ ATC: created function : 0.001 + 0.0001(x-0)+0(y-0)+0(z-0)
+
+# run
+thermo_style    custom step cpu etotal ke
+thermo          $s
+thermo          1
+fix_modify      AtC  output electron_densityFE $s text
+fix_modify      AtC  output electron_densityFE 1 text
+ ATC: Warning : text output can create _LARGE_ files
+ ATC: output custom names:
+
+fix_modify      AtC  output index step
+log electron_density.log
+
+# run default material
+print "default material - table linear"
+default material - table linear
+run   	        $s
+run   	        1
+Setting up run ...
+ ATC: WARNING: material: [cnt-exp] cannot find body_force
+ ATC: WARNING: physics model: [], material: [cnt-exp] does not provide all interfaces for <velocity> physics and will be treated as null 
+ ATC: WARNING: material: [cnt] cannot find body_force
+ ATC: WARNING: physics model: [], material: [cnt] does not provide all interfaces for <velocity> physics and will be treated as null 
+ ATC: WARNING: all initial conditions for electron_density have not been defined and the undefined are assumed zero
+ ATC: WARNING: all initial conditions for electric_potential have not been defined and the undefined are assumed zero
+ ATC: WARNING: material: [cnt-exp] cannot find body_force
+ ATC: WARNING: physics model: [equilibrium electrostatic], material: [cnt-exp] does not provide all interfaces for <velocity> physics and will be treated as null 
+ ATC: WARNING: material: [cnt] cannot find body_force
+ ATC: WARNING: physics model: [equilibrium electrostatic], material: [cnt] does not provide all interfaces for <velocity> physics and will be treated as null 
+Memory usage per processor = 0.432442 Mbytes
+Step CPU TotEng KinEng 
+       0            0            0           -0 
+       1   0.01880908            0           -0 
+Loop time of 0.018833 on 4 procs for 1 steps with 0 atoms
+
+Pair  time (%) = 0 (0)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 2.5034e-06 (0.0132926)
+Outpt time (%) = 0.017292 (91.8175)
+Other time (%) = 0.00153852 (8.16923)
+
+Nlocal:    0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:  0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 0
+Neighbor list builds = 0
+Dangerous builds = 0
+
+# run CNT1 material
+print "CNT1 material - analytical linear"
+CNT1 material - analytical linear
+fix_modify AtC material all CNT1
+run   	        $s
+run   	        1
+Setting up run ...
+ ATC: WARNING: material: [cnt-exp] cannot find body_force
+ ATC: WARNING: physics model: [], material: [cnt-exp] does not provide all interfaces for <velocity> physics and will be treated as null 
+ ATC: WARNING: material: [cnt] cannot find body_force
+ ATC: WARNING: physics model: [], material: [cnt] does not provide all interfaces for <velocity> physics and will be treated as null 
+ ATC: WARNING: material: [cnt-exp] cannot find body_force
+ ATC: WARNING: physics model: [equilibrium electrostatic], material: [cnt-exp] does not provide all interfaces for <velocity> physics and will be treated as null 
+ ATC: WARNING: material: [cnt] cannot find body_force
+ ATC: WARNING: physics model: [equilibrium electrostatic], material: [cnt] does not provide all interfaces for <velocity> physics and will be treated as null 
+Memory usage per processor = 0.432442 Mbytes
+Step CPU TotEng KinEng 
+       1            0            0           -0 
+       2   0.11045408            0           -0 
+Loop time of 0.110485 on 4 procs for 1 steps with 0 atoms
+
+Pair  time (%) = 0 (0)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 1.54972e-06 (0.00140265)
+Outpt time (%) = 0.00781226 (7.07087)
+Other time (%) = 0.102671 (92.9277)
+
+Nlocal:    0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:  0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 0
+Neighbor list builds = 0
+Dangerous builds = 0
+
+# run CNT2 material
+print "CNT2 material - analytical exponetial"
+CNT2 material - analytical exponetial
+fix_modify AtC material all CNT2
+run   	        $s
+run   	        1
+Setting up run ...
+ ATC: WARNING: material: [cnt-exp] cannot find body_force
+ ATC: WARNING: physics model: [], material: [cnt-exp] does not provide all interfaces for <velocity> physics and will be treated as null 
+ ATC: WARNING: material: [cnt] cannot find body_force
+ ATC: WARNING: physics model: [], material: [cnt] does not provide all interfaces for <velocity> physics and will be treated as null 
+ ATC: WARNING: material: [cnt-exp] cannot find body_force
+ ATC: WARNING: physics model: [equilibrium electrostatic], material: [cnt-exp] does not provide all interfaces for <velocity> physics and will be treated as null 
+ ATC: WARNING: material: [cnt] cannot find body_force
+ ATC: WARNING: physics model: [equilibrium electrostatic], material: [cnt] does not provide all interfaces for <velocity> physics and will be treated as null 
+Memory usage per processor = 0.432442 Mbytes
+Step CPU TotEng KinEng 
+       2            0            0           -0 
+       3   0.10601687            0           -0 
+Loop time of 0.123864 on 4 procs for 1 steps with 0 atoms
+
+Pair  time (%) = 0 (0)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 2.02656e-06 (0.00163611)
+Outpt time (%) = 0.0475852 (38.4172)
+Other time (%) = 0.0762771 (61.5812)
+
+Nlocal:    0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:  0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 0
+Neighbor list builds = 0
+Dangerous builds = 0
+
+# run CNT material
+print "CNT material - table DOS"
+CNT material - table DOS
+fix_modify AtC material all CNT
+#variable E equal 10*$E
+#fix_modify AtC  fix electric_potential lbc linear 0 0 0 $E 0 0 $V
+#fix_modify AtC  fix electric_potential rbc linear 0 0 0 $E 0 0 $V
+run   	        $s
+run   	        1
+Setting up run ...
+ ATC: WARNING: material: [cnt-exp] cannot find body_force
+ ATC: WARNING: physics model: [], material: [cnt-exp] does not provide all interfaces for <velocity> physics and will be treated as null 
+ ATC: WARNING: material: [cnt] cannot find body_force
+ ATC: WARNING: physics model: [], material: [cnt] does not provide all interfaces for <velocity> physics and will be treated as null 
+ ATC: WARNING: material: [cnt-exp] cannot find body_force
+ ATC: WARNING: physics model: [equilibrium electrostatic], material: [cnt-exp] does not provide all interfaces for <velocity> physics and will be treated as null 
+ ATC: WARNING: material: [cnt] cannot find body_force
+ ATC: WARNING: physics model: [equilibrium electrostatic], material: [cnt] does not provide all interfaces for <velocity> physics and will be treated as null 
+Memory usage per processor = 0.432442 Mbytes
+Step CPU TotEng KinEng 
+       3            0            0           -0 
+       4 0.0015778542            0           -0 
+Loop time of 0.00159025 on 4 procs for 1 steps with 0 atoms
+
+Pair  time (%) = 0 (0)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 7.15256e-07 (0.0449775)
+Outpt time (%) = 0.00022918 (14.4115)
+Other time (%) = 0.00136036 (85.5435)
+
+Nlocal:    0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:  0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 0
+Neighbor list builds = 0
+Dangerous builds = 0
+

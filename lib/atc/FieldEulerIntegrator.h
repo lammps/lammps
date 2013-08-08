@@ -15,14 +15,14 @@
 namespace ATC {
 
 // Forward class declarations
-class ATC_Transfer;
+class ATC_Coupling;
 class FE_Engine;
 
 /**
  *  @class FieldEulerIntegrator
  *  @brief method for integrating fast fields
  */
-//class FieldEulerIntegrator : public TimeIntegrator { // NOTE need to construct
+
 class FieldEulerIntegrator {
 
  public:
@@ -32,7 +32,7 @@ class FieldEulerIntegrator {
     const FieldName fieldName,
     const PhysicsModel * physicsModel,
     /*const*/ FE_Engine * feEngine,
-    /*const*/ ATC_Transfer * atcTransfer,
+    /*const*/ ATC_Coupling * atc,
     const Array2D< bool > & rhsMask  // copy
   );
 
@@ -47,7 +47,7 @@ class FieldEulerIntegrator {
  protected:
 
   /** Pointer to ATC_Tranfer */
-  ATC_Transfer * atc_;
+  ATC_Coupling * atc_;
 
   /** Pointer to FE_Engine */
   /*const*/ FE_Engine * feEngine_;
@@ -78,7 +78,7 @@ class FieldExplicitEulerIntegrator : public FieldEulerIntegrator {
     const FieldName fieldName,
     const PhysicsModel * physicsModel,
     /*const*/ FE_Engine * feEngine,
-    /*const*/ ATC_Transfer * atcTransfer,
+    /*const*/ ATC_Coupling * atc,
     const Array2D< bool > & rhsMask  // copy
   );
 
@@ -104,7 +104,7 @@ class FieldImplicitEulerIntegrator : public FieldEulerIntegrator {
     const FieldName fieldName,
     const PhysicsModel * physicsModel,
     /*const*/ FE_Engine * feEngine,
-    /*const*/ ATC_Transfer * atcTransfer,
+    /*const*/ ATC_Coupling * atc,
     const Array2D< bool > & rhsMask, // copy
     const double alpha = 0.5 // default to trap/midpt
   );

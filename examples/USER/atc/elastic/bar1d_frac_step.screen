@@ -1,0 +1,225 @@
+LAMMPS (14 Aug 2013)
+
+units		real
+atom_style	atomic
+
+# create domain
+#lattice	type reduced density rho* = 4*(sigma/a)^3, where N=4 for fcc, s = 3.405 A (Wagner) and a = 5.25 A (Ashcroft & Mermin, p. 70)
+lattice         fcc 5.2582305 origin 0.25 0.25 0.25
+Lattice spacing in x,y,z = 5.25823 5.25823 5.25823
+
+# create atoms
+region		simRegion block -12 12 -3 3 -3 3
+region		atomRegion block -8 8 -3 3 -3 3
+region		mdRegion block -6 6 -3 3 -3 3
+boundary	f p p
+create_box	1 simRegion
+Created orthogonal box = (-63.0988 -15.7747 -15.7747) to (63.0988 15.7747 15.7747)
+  4 by 1 by 1 MPI processor grid
+create_atoms	1 region atomRegion
+Created 2304 atoms
+mass		1 39.95
+
+# specify interal/ghost atoms
+region		mdInternal block -6 6 -3 3 -3 3
+region		leftghost block -8 -6 -3 3 -3 3
+region		rightghost block 6 8 -3 3 -3 3
+group		internal region mdInternal
+1728 atoms in group internal
+group		Lghost region leftghost
+288 atoms in group Lghost
+group		Rghost region rightghost
+288 atoms in group Rghost
+group		ghosts union Lghost Rghost
+576 atoms in group ghosts
+
+pair_style	lj/cut 13.
+#pair_coeff	1 1 0.010323166 3.405 13.5
+pair_coeff  	1 1 .2381 3.405 13.
+
+neighbor	5. bin
+neigh_modify	every 10 delay 0 check no
+
+# define  layer
+#               ID  group atc PhysicsType ParameterFile
+fix             AtC internal   atc elastic     Ar_elastic.mat
+ATC: constructing elastic coupling with parameter file Ar_elastic.mat
+ ATC: peratom PE compute created with ID: 3
+ ATC: computed mass density : 1.09915
+ ATC: computed mass density : 1.09915
+ ATC: computed mass density : 1.09915
+ ATC: 3 materials defined from Ar_elastic.mat
+
+#               ID  part keywords    nx ny nz region
+fix_modify      AtC mesh create 12  1  1  simRegion f p p
+ ATC: created uniform mesh with 52 nodes, 13 unique nodes, and 12 elements
+
+# initial conditions
+fix_modify  AtC  initial displacement x all 0.0
+fix_modify  AtC  initial displacement y all 0.0
+fix_modify  AtC  initial displacement z all 0.0
+fix_modify  AtC  initial velocity x all 0.0
+fix_modify  AtC  initial velocity y all 0.0
+fix_modify  AtC  initial velocity z all 0.0
+fix_modify  AtC  time_integration fractional_step
+
+# set node sets and bcs
+#           ID  mesh create_nodeset tag xmin xmax ymin ymax zmin zmax
+fix_modify  AtC mesh create_nodeset lbc -12.1  -11.9   -INF INF  -INF INF
+ ATC: created nodeset lbc with 1 nodes
+fix_modify  AtC mesh create_nodeset rbc  11.9   12.1   -INF INF  -INF INF
+ ATC: created nodeset rbc with 1 nodes
+fix_modify  AtC fix velocity     x rbc 0.00000004
+fix_modify  AtC fix displacement x lbc 0.
+fix_modify  AtC fix velocity     x lbc 0.
+
+# specify atom types
+#fix_modify  AtC boundary Lghost
+#fix_modify  AtC boundary Rghost
+fix_modify  AtC boundary ghosts
+
+fix_modify  AtC internal_quadrature off
+fix_modify  AtC control localized_lambda on
+fix_modify  AtC control  momentum flux interpolate
+#fix_modify  AtC control  momentum hoover # tested in this mode
+#fix_modify  AtC filter type exponential
+#fix_modify  AtC filter scale 1000.0
+#fix_modify  AtC filter on
+
+# run to extension
+#fix_modify      AtC  output bar1d_frac_step_initFE 50 text binary
+#dump            D1 all atom 50 bar1d_frac_step_init.dmp
+timestep	5
+thermo		100
+run 		1000
+Setting up run ...
+Memory usage per processor = 92.6375 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0            0   -4509.8851            0   -4509.8851    26.948349 
+     100 4.7374019e-13   -4509.8851            0   -4509.8851     26.94834 
+     200 9.7683427e-13   -4509.8851            0   -4509.8851     26.94803 
+     300 1.9565172e-11   -4509.8851            0   -4509.8851    26.946439 
+     400 2.6411547e-10   -4509.8852            0   -4509.8852    26.942798 
+     500 1.351766e-09   -4509.8852            0   -4509.8852     26.93773 
+     600 3.6802148e-09   -4509.8852            0   -4509.8852    26.932648 
+     700 6.6530697e-09   -4509.8852            0   -4509.8852    26.928033 
+     800 9.5474556e-09   -4509.8852            0   -4509.8852    26.923147 
+     900 1.2412323e-08   -4509.8852            0   -4509.8852    26.917542 
+    1000 1.5423223e-08   -4509.8852            0   -4509.8852    26.911973 
+Loop time of 69.3748 on 4 procs for 1000 steps with 2304 atoms
+
+Pair  time (%) = 8.07954 (11.6462)
+Neigh time (%) = 4.407 (6.35245)
+Comm  time (%) = 22.0263 (31.7496)
+Outpt time (%) = 0.19482 (0.280822)
+Other time (%) = 34.6672 (49.9709)
+
+Nlocal:    576 ave 864 max 288 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:    5170 ave 6910 max 3430 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:    178632 ave 288910 max 68513 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+FullNghs:  357264 ave 577008 max 137520 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 1429056
+Ave neighs/atom = 620.25
+Neighbor list builds = 100
+Dangerous builds = 0
+
+# reset time
+fix_modify      AtC reset_time 0.
+reset_timestep  0
+
+# change nodes to fixed
+fix_modify      AtC  fix velocity x rbc 0.
+fix_modify	AtC  fix displacement x rbc 0.0002
+
+fix_modify      AtC  output bar1d_frac_stepFE 500 text #binary
+ ATC: Warning : text output can create _LARGE_ files
+ ATC: output custom names:
+
+#fix_modify	AtC  output index step
+#undump		D1
+#dump            D1 all atom 500 bar1d_frac_step.dmp
+
+# run to equilibrium
+timestep        5
+thermo		100
+run 		5000
+Setting up run ...
+Memory usage per processor = 92.6375 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0 1.5423223e-08   -4509.8852            0   -4509.8852    26.911973 
+     100 1.809994e-08   -4509.8852            0   -4509.8852    26.907429 
+     200 1.9777109e-08   -4509.8852            0   -4509.8852    26.904241 
+     300 2.0275205e-08   -4509.8852            0   -4509.8852    26.902912 
+     400 1.9266773e-08   -4509.8852            0   -4509.8852    26.904281 
+     500 1.6821974e-08   -4509.8851            0   -4509.8851    26.908126 
+     600 1.370661e-08   -4509.8852            0   -4509.8852    26.912761 
+     700 1.0292223e-08   -4509.8852            0   -4509.8852    26.916838 
+     800 6.5498338e-09   -4509.8853            0   -4509.8853    26.920715 
+     900 3.1643856e-09   -4509.8853            0   -4509.8853    26.925094 
+    1000 1.0112513e-09   -4509.8852            0   -4509.8852    26.928958 
+    1100 4.4564547e-10   -4509.8852            0   -4509.8852    26.930177 
+    1200 2.264627e-09   -4509.8852            0   -4509.8852     26.92803 
+    1300 6.3325706e-09   -4509.8853            0   -4509.8853    26.923952 
+    1400 1.1281983e-08   -4509.8853            0   -4509.8853    26.919616 
+    1500 1.5582979e-08   -4509.8852            0   -4509.8852    26.915411 
+    1600 1.8378446e-08   -4509.8852            0   -4509.8852    26.911278 
+    1700 1.9544417e-08   -4509.8852            0   -4509.8852    26.907886 
+    1800 1.993739e-08   -4509.8851            0   -4509.8851    26.905965 
+    1900 1.9956722e-08   -4509.8851            0   -4509.8851    26.905229 
+    2000 1.9225238e-08   -4509.8852            0   -4509.8852    26.905144 
+    2100 1.6580757e-08   -4509.8853            0   -4509.8853    26.906419 
+    2200 1.2058028e-08   -4509.8853            0   -4509.8853    26.910376 
+    2300 7.4549951e-09   -4509.8852            0   -4509.8852    26.916716 
+    2400 4.0264612e-09   -4509.8852            0   -4509.8852    26.923054 
+    2500 1.8321195e-09   -4509.8852            0   -4509.8852     26.92718 
+    2600 5.8894583e-10   -4509.8852            0   -4509.8852     26.92887 
+    2700 1.1822868e-09   -4509.8853            0   -4509.8853    26.928935 
+    2800 4.1199827e-09   -4509.8853            0   -4509.8853    26.927485 
+    2900 8.3401571e-09   -4509.8853            0   -4509.8853    26.924202 
+    3000 1.2795486e-08   -4509.8852            0   -4509.8852     26.91968 
+    3100 1.656454e-08   -4509.8852            0   -4509.8852    26.915184 
+    3200 1.8809835e-08   -4509.8852            0   -4509.8852    26.911167 
+    3300 1.9524689e-08   -4509.8852            0   -4509.8852    26.907277 
+    3400 1.9239653e-08   -4509.8852            0   -4509.8852    26.904028 
+    3500 1.8306513e-08   -4509.8852            0   -4509.8852    26.903155 
+    3600 1.6715381e-08   -4509.8852            0   -4509.8852    26.905573 
+    3700 1.4633381e-08   -4509.8851            0   -4509.8851    26.909896 
+    3800 1.1933216e-08   -4509.8851            0   -4509.8851    26.913983 
+    3900 8.1608505e-09   -4509.8852            0   -4509.8852    26.917338 
+    4000 4.081711e-09   -4509.8853            0   -4509.8853    26.920926 
+    4100 1.5631282e-09   -4509.8853            0   -4509.8853    26.924958 
+    4200 1.2262219e-09   -4509.8853            0   -4509.8853    26.928167 
+    4300 2.985009e-09   -4509.8852            0   -4509.8852    26.929352 
+    4400 6.8933386e-09   -4509.8852            0   -4509.8852    26.928435 
+    4500 1.1278724e-08   -4509.8852            0   -4509.8852    26.925624 
+    4600 1.4438096e-08   -4509.8852            0   -4509.8852    26.920742 
+    4700 1.6779441e-08   -4509.8852            0   -4509.8852    26.914294 
+    4800 1.8690218e-08   -4509.8853            0   -4509.8853    26.908349 
+    4900 1.9317873e-08   -4509.8852            0   -4509.8852    26.905059 
+    5000 1.8273072e-08   -4509.8851            0   -4509.8851    26.904542 
+Loop time of 207.618 on 4 procs for 5000 steps with 2304 atoms
+
+Pair  time (%) = 33.494 (16.1325)
+Neigh time (%) = 16.7803 (8.08228)
+Comm  time (%) = 59.1908 (28.5094)
+Outpt time (%) = 0.143787 (0.0692554)
+Other time (%) = 98.0096 (47.2066)
+
+Nlocal:    576 ave 864 max 288 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:    5170 ave 6910 max 3430 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:    178632 ave 288845 max 67924 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+FullNghs:  357264 ave 577008 max 137520 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 1429056
+Ave neighs/atom = 620.25
+Neighbor list builds = 500
+Dangerous builds = 0

@@ -1,9 +1,23 @@
 #ifndef ARRAY2D_H
 #define ARRAY2D_H
 
+#include <cstdlib>
 #include <string>
 #include <iostream>
-#include <cstdio>
+#include <cstdlib>
+#include <stdio.h>
+
+#include "Array.h"
+
+// for macros
+#include "MatrixDef.h"
+
+namespace ATC_matrix {
+
+  /**
+   *  @class  Array2D
+   *  @brief  Base class for creating, sizing and operating on 2-D arrays of data
+   */
 
 template<typename T>
 class Array2D {
@@ -17,6 +31,8 @@ public:
    void reset(int nrows, int ncols);
    // Access method to get the (i,j) element:
    T& operator() (int i, int j);       
+   // Access method to get the i-th col 
+   AliasArray<T> column(int i) const;       
    // Access method to get the (i,j) element:
    const T& operator() (int i, int j) const;       
    // Copy operator
@@ -98,6 +114,12 @@ const T& Array2D<T>::operator() (int row, int col) const {
 }
 
 template<typename T>
+AliasArray<T> Array2D<T>::column(int col) const {
+   // Array bounds checking
+   return AliasArray<T>(nrows_,&(data_[col*nrows_]));
+}
+
+template<typename T>
 Array2D<T>& Array2D<T>::operator= (const Array2D<T>& other) {
    if (data_ == NULL) {  // initialize my internal storage to match LHS
       nrows_ = other.nrows_;
@@ -168,5 +190,5 @@ void Array2D<T>::print(std::string name) const {
 
 }
 
-
+} // end namespace
 #endif // Array2D.h

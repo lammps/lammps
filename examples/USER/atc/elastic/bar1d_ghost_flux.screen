@@ -1,0 +1,208 @@
+LAMMPS (14 Aug 2013)
+
+units		real
+atom_style	atomic
+
+# create domain
+#lattice	type reduced density rho* = 4*(sigma/a)^3, where N=4 for fcc, s = 3.405 A (Wagner) and a = 5.25 A (Ashcroft & Mermin, p. 70)
+lattice         fcc 5.2582305 origin 0.25 0.25 0.25
+Lattice spacing in x,y,z = 5.25823 5.25823 5.25823
+
+region		simRegion block -12 12 -3 3 -3 3
+region		mdRegion block -8 8 -3 3 -3 3
+boundary	f p p
+create_box	1 simRegion
+Created orthogonal box = (-63.0988 -15.7747 -15.7747) to (63.0988 15.7747 15.7747)
+  4 by 1 by 1 MPI processor grid
+create_atoms	1 region mdRegion
+Created 2304 atoms
+mass		1 39.95
+
+# specify interal/ghost atoms
+region		mdInternal block -6 6 -3 3 -3 3
+region		leftghost block -8 -6 -3 3 -3 3
+region		rightghost block 6 8 -3 3 -3 3
+group		internal region mdInternal
+1728 atoms in group internal
+group		Lghost region leftghost
+288 atoms in group Lghost
+group		Rghost region rightghost
+288 atoms in group Rghost
+group		ghosts union Lghost Rghost
+576 atoms in group ghosts
+
+# velocities have Vcm = 0, NOTE next for lines commented out for restart
+pair_style	lj/cut 13.
+#pair_coeff	1 1 0.010323166 3.405 13.
+pair_coeff  	1 1 .2381 3.405 13.
+
+neighbor	5. bin
+neigh_modify	every 10 delay 0 check no
+
+# define  layer
+#               ID  group atc PhysicsType ParameterFile
+fix             AtC internal   atc elastic     Ar_elastic.mat
+ATC: constructing elastic coupling with parameter file Ar_elastic.mat
+ ATC: peratom PE compute created with ID: 3
+ ATC: computed mass density : 1.09915
+ ATC: computed mass density : 1.09915
+ ATC: computed mass density : 1.09915
+ ATC: 3 materials defined from Ar_elastic.mat
+fix_modify	AtC boundary ghosts
+
+#               ID  part keywords    nx ny nz region
+fix_modify      AtC mesh create 12  1  1  simRegion f p p
+ ATC: created uniform mesh with 52 nodes, 13 unique nodes, and 12 elements
+fix_modify      AtC mesh create_faceset obndy box -6.0 6.0 -INF INF -INF  INF outward
+ ATC: created faceset obndy with 2 faces
+fix_modify      AtC internal_quadrature off
+
+# initial conditions
+fix_modify  AtC  initial displacement x all 0.0
+fix_modify  AtC  fix displacement y all 0.0
+fix_modify  AtC  fix displacement z all 0.0
+fix_modify  AtC  initial velocity x all 0.0
+fix_modify  AtC  fix velocity y all 0.0
+fix_modify  AtC  fix velocity z all 0.0
+
+# set node sets and bcs
+#           ID  mesh create_nodeset tag xmin xmax ymin ymax zmin zmax
+fix_modify  AtC mesh create_nodeset lbc -12.1  -11.9   -INF INF  -INF INF
+ ATC: created nodeset lbc with 1 nodes
+fix_modify  AtC mesh create_nodeset rbc  11.9   12.1   -INF INF  -INF INF
+ ATC: created nodeset rbc with 1 nodes
+#fix_modify  AtC  fix velocity x rbc 0.
+#fix_modify  AtC  fix displacement x rbc 0.
+fix_modify  AtC  fix displacement x lbc 0.
+fix_modify  AtC  fix velocity x lbc 0.
+
+# turn on multiscale
+fix_modify      AtC control momentum ghost_flux
+
+# new boundary conditions
+fix_modify  AtC  fix velocity x rbc 0.00000004
+
+
+#fix_modify      AtC  output follow_ex.fe 50
+#fix_modify	AtC  localized_lambda on
+#fix_modify	AtC  momentum control glc_velocity
+#fix_modify	AtC  momentum control flux faceset obndy
+#fix_modify     AtC control momentum flux
+#fix_modify	AtC control momentum ghost_flux
+#fix_modify      AtC  filter scale 1000.0
+
+# run to extension
+compute		myTemp internal temp
+compute		atomStress internal stress/atom
+compute		avgStress internal reduce sum c_atomStress[1] c_atomStress[2] c_atomStress[3]
+variable	myPres equal -(c_avgStress[1]+c_avgStress[2]+c_avgStress[3])/(3*vol)
+thermo_style	custom step c_myTemp v_myPres pe
+fix_modify      AtC  output bar1d_ghost_fluxFE 500 text
+ ATC: Warning : text output can create _LARGE_ files
+ ATC: output custom names:
+
+#dump            D1 all atom 100 bar1d_ghost_flux.dmp
+timestep	5
+thermo		100
+run 		1000
+Setting up run ...
+Memory usage per processor = 93.0953 Mbytes
+Step myTemp myPres PotEng 
+       0            0 -0.00072339042   -4509.8851 
+     100 7.1225566e-14 -0.00069609188   -4509.8851 
+     200 3.7853133e-13 -0.00065829543   -4509.8851 
+     300 1.6363911e-11 -0.00093014878   -4509.8851 
+     400 2.6679578e-10 -0.0022162027   -4509.8852 
+     500 1.616056e-09 -0.0053039586   -4509.8852 
+     600 5.0333459e-09 -0.010270696   -4509.8852 
+     700 9.7370581e-09 -0.016093983   -4509.8852 
+     800 1.3809125e-08 -0.021486202   -4509.8852 
+     900 1.6783957e-08 -0.026147268   -4509.8852 
+    1000 1.9615527e-08 -0.030744945   -4509.8852 
+Loop time of 61.3722 on 4 procs for 1000 steps with 2304 atoms
+
+Pair  time (%) = 8.47621 (13.8112)
+Neigh time (%) = 4.57113 (7.44821)
+Comm  time (%) = 21.3849 (34.8445)
+Outpt time (%) = 0.0678592 (0.11057)
+Other time (%) = 26.8721 (43.7855)
+
+Nlocal:    576 ave 864 max 288 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:    5170 ave 6910 max 3430 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:    178632 ave 288581 max 68542 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+FullNghs:  357264 ave 577008 max 137520 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 1429056
+Ave neighs/atom = 620.25
+Neighbor list builds = 100
+Dangerous builds = 0
+
+# change nodes to fixed
+fix_modify      AtC  unfix velocity x rbc
+#fix_modify	AtC  fix displacement x rbc 0.0002
+
+#fix_modify      AtC  output bar1d_fluxFE 500 text binary
+
+# run to equilibrium
+timestep        5
+thermo		100
+run 		3000
+Setting up run ...
+Memory usage per processor = 93.5532 Mbytes
+Step myTemp myPres PotEng 
+    1000 1.9615527e-08 -0.030744945   -4509.8852 
+    1100 2.3080841e-08 -0.035570103   -4509.8852 
+    1200 2.6803382e-08 -0.039749355   -4509.8852 
+    1300 2.8836885e-08 -0.041881649   -4509.8852 
+    1400 2.7038886e-08  -0.04118176   -4509.8852 
+    1500 2.247439e-08 -0.037776265   -4509.8852 
+    1600 1.8021787e-08 -0.032491325   -4509.8852 
+    1700 1.4774855e-08 -0.026754505   -4509.8852 
+    1800 1.2061023e-08 -0.022034601   -4509.8852 
+    1900 8.5768539e-09 -0.018709001   -4509.8852 
+    2000 3.6373058e-09 -0.016114748   -4509.8852 
+    2100 5.3669536e-10 -0.014163462   -4509.8853 
+    2200 3.2454928e-09 -0.014205399   -4509.8853 
+    2300 1.030702e-08 -0.017492992   -4509.8853 
+    2400 1.6038797e-08 -0.023210717   -4509.8852 
+    2500 1.7061988e-08 -0.029013462   -4509.8851 
+    2600 1.9296258e-08  -0.03339452   -4509.8852 
+    2700 2.2816944e-08 -0.036626152   -4509.8852 
+    2800 2.6944075e-08 -0.039307649   -4509.8852 
+    2900 2.8170813e-08 -0.040972921   -4509.8852 
+    3000 2.7256286e-08 -0.040327211   -4509.8852 
+    3100 2.445985e-08 -0.036617618   -4509.8852 
+    3200 1.8787648e-08  -0.03049195   -4509.8852 
+    3300 1.4750104e-08 -0.023629006   -4509.8852 
+    3400 1.3515772e-08 -0.017473229   -4509.8852 
+    3500 1.157919e-08 -0.012114855   -4509.8851 
+    3600 9.6213234e-09 -0.0064144434   -4509.8851 
+    3700 9.1781574e-09 0.00062376196   -4509.8851 
+    3800 9.0938842e-09 0.0087100206    -4509.885 
+    3900 7.7454581e-09  0.016669158    -4509.885 
+    4000 9.3314606e-09  0.023405906    -4509.885 
+Loop time of 109.051 on 4 procs for 3000 steps with 2304 atoms
+
+Pair  time (%) = 20.2492 (18.5685)
+Neigh time (%) = 9.8419 (9.02501)
+Comm  time (%) = 37.2858 (34.191)
+Outpt time (%) = 0.421606 (0.386612)
+Other time (%) = 41.2529 (37.8289)
+
+Nlocal:    576 ave 864 max 288 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:    5170 ave 6910 max 3430 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:    178632 ave 288933 max 68141 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+FullNghs:  357264 ave 577008 max 137520 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 1429056
+Ave neighs/atom = 620.25
+Neighbor list builds = 300
+Dangerous builds = 0

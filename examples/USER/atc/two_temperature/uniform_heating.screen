@@ -1,0 +1,133 @@
+LAMMPS (14 Aug 2013)
+units		real
+atom_style	atomic
+boundary	f p p
+# create domain
+#lattice	type reduced density rho* = 4*(sigma/a)^3, where N=4 for fcc, s = 3.405 A (Wagner) and a = 5.25 A (Ashcroft & Mermin, p. 70)
+pair_style	lj/cut 13.5
+read_data	uniform_heating_init.data
+Reading data file ...
+  orthogonal box = (-43.24 -16.215 -16.215) to (43.24 16.215 16.215)
+  4 by 1 by 1 MPI processor grid
+  2304 atoms
+  2304 velocities
+lattice         fcc 5.405 origin 0.25 0.25 0.25
+Lattice spacing in x,y,z = 5.405 5.405 5.405
+region		mdRegion block   -8 8 -3 3 -3 3
+region		mdInternal block -6 6 -3 3 -3 3
+group		internal region mdInternal
+1728 atoms in group internal
+neighbor	5. bin
+neigh_modify	every 10 delay 0 check no
+#               ID  group atc PhysicsType ParameterFile
+fix             AtC internal   atc two_temperature Ar_ttm.mat
+ATC: constructing two_temperature coupling with parameter file Ar_ttm.mat
+ ATC: peratom PE compute created with ID: 3
+ ATC: 2 materials defined from Ar_ttm.mat
+ ATC: creating two_temperature extrinsic model
+ ATC: 2 materials defined from Ar_ttm.mat
+#               ID  part keywords    nx ny nz region
+fix_modify      AtC mesh create 6 1  1  mdInternal f p p
+ ATC: created uniform mesh with 28 nodes, 7 unique nodes, and 6 elements
+fix_modify AtC  internal_quadrature on
+# fix a temperature
+fix_modify     	AtC  initial temperature all 20.
+fix_modify     	AtC  fix     temperature all 20.
+fix_modify     	AtC  initial electron_temperature all 20.
+fix_modify     	AtC  fix     electron_temperature all 20.
+# turn on thermostat
+fix_modify	AtC  control thermal rescale 10
+# output
+thermo_style custom step cpu pe etotal temp f_AtC[1] f_AtC[2]
+thermo		100
+log uniform_heating.log
+# make thermo output the correct temperature by removing ghost dof
+# variable xdof equal 3*count(ghost)
+# compute_modify thermo_temp extra ${xdof}
+# equilibrate MD field
+timestep	5
+run 		400
+Setting up run ...
+Memory usage per processor = 52.5067 Mbytes
+Step CPU PotEng TotEng Temp AtC[1] AtC[2] 
+       0            0   -4406.6687   -4200.7544    29.995658    206.60693           20 
+     100    7.4800179   -4258.7421   -4155.7253    15.006513    206.60693           20 
+     200     10.47899   -4317.7651   -4214.7483    15.006513    206.60693           20 
+     300    12.109694   -4308.7092   -4205.6924    15.006513    206.60693           20 
+     400    13.610023   -4305.0489   -4202.0322    15.006513    206.60693           20 
+Loop time of 13.6154 on 4 procs for 400 steps with 2304 atoms
+
+Pair  time (%) = 2.90979 (21.3713)
+Neigh time (%) = 1.344 (9.87119)
+Comm  time (%) = 2.62009 (19.2435)
+Outpt time (%) = 0.0412001 (0.302599)
+Other time (%) = 6.70033 (49.2114)
+
+Nlocal:    576 ave 576 max 576 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    5677 ave 6860 max 4494 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:    177099 ave 193893 max 161681 min
+Histogram: 2 0 0 0 0 0 0 0 1 1
+FullNghs:  354198 ave 384150 max 324339 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 1416792
+Ave neighs/atom = 614.927
+Neighbor list builds = 40
+Dangerous builds = 0
+# change thermostat
+fix_modify  AtC  output uniform_heatingFE 100 text
+ ATC: Warning : text output can create _LARGE_ files
+ ATC: output custom names:
+
+fix_modify  AtC  unfix temperature all
+fix_modify  AtC  control thermal flux
+# fix boundary
+fix_modify AtC mesh create_nodeset lbc -6.1 -5.9 -INF INF -INF INF
+ ATC: created nodeset lbc with 1 nodes
+fix_modify AtC  fix temperature lbc 20.
+fix_modify AtC mesh create_nodeset rbc  5.9  6.1 -INF INF -INF INF
+ ATC: created nodeset rbc with 1 nodes
+fix_modify AtC  fix temperature rbc 20.
+# add source
+#fix_modify AtC  source temperature  all 0.01
+fix_modify AtC  source temperature  all 6.3363e-10
+# run with FE
+reset_timestep 0
+run 		1000
+Setting up run ...
+Memory usage per processor = 54.7588 Mbytes
+Step CPU PotEng TotEng Temp AtC[1] AtC[2] 
+       0            0   -4305.0489   -4202.0322    15.006513    206.60693           20 
+     100     1.581583   -4284.0298    -4161.843    17.799025     245.0222    23.187441 
+     200     3.199868   -4271.7421   -4126.3033    21.186144    291.62707    27.054401 
+     300     4.951031   -4252.1549   -4092.7431    23.221609     319.6337    29.378203 
+     400    6.5261829   -4243.1541   -4066.5034    25.732803    354.18694    32.245198 
+     500    8.1686139   -4220.6621   -4038.0194    26.605675    366.20291    33.242203 
+     600    9.6777399   -4216.5541   -4017.5256    28.992598    399.04557    35.967267 
+     700      12.2501   -4214.2511   -3996.8158    31.673922     435.9421    39.028693 
+     800    14.206697   -4198.8979   -3978.4057    32.119215    442.05328    39.535758 
+     900        15.72   -4186.3755   -3963.2872      32.4974    447.23922    39.966052 
+    1000    24.377633   -4182.9374   -3949.4046    34.018855    468.17471    41.703139 
+Loop time of 24.3779 on 4 procs for 1000 steps with 2304 atoms
+
+Pair  time (%) = 6.42443 (26.3535)
+Neigh time (%) = 2.68509 (11.0145)
+Comm  time (%) = 2.88995 (11.8548)
+Outpt time (%) = 0.00563473 (0.0231141)
+Other time (%) = 12.3728 (50.7541)
+
+Nlocal:    576 ave 576 max 576 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    5677 ave 6860 max 4494 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:    175875 ave 189472 max 162330 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+FullNghs:  351750 ave 379061 max 324517 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 1407002
+Ave neighs/atom = 610.678
+Neighbor list builds = 100
+Dangerous builds = 0

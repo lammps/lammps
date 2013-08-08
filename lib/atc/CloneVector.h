@@ -3,6 +3,12 @@
 
 #include "Vector.h"
 
+namespace ATC_matrix {
+
+  /**
+   *  @class  CloneVector 
+   *  @brief  Class for creating objects that wrap matrix data for manipulation through vector operations
+   */
 
 template<typename T>
 class CloneVector : public Vector<T>
@@ -25,7 +31,7 @@ public:
   CloneVector<T>& operator=(const Matrix<T> &C);
 
   virtual bool memory_contiguous()    const;
-  T* get_ptr()             const;
+  T* ptr()             const;
   void resize(INDEX nRows, INDEX nCols=0, bool copy=false);
   void  reset(INDEX nRows, INDEX nCols=0, bool zero=true);
   void copy(const T * ptr, INDEX nRows, INDEX nCols=0);
@@ -35,7 +41,7 @@ private:
  
   Vector<T> * const _baseV; // ptr to a base vector
   Matrix<T> * const _baseM; // ptr to a base matrix
-  int _clone_type;          // what to clown (see enum CLONE_TYPE)
+  int _clone_type;          // what to clone (see enum CLONE_TYPE)
   INDEX _idx;               // index of matrix dimension to clone
 };
 ///////////////////////////////////////////////////////////////////////////////
@@ -128,7 +134,7 @@ INDEX CloneVector<T>::nRows()                                             const
 template<typename T>
 CloneVector<T>& CloneVector<T>::operator=(const T &v)
 {
-  this->set_all_elements_to(v);   // NOTE: DO NOT do _baseX->set_elements_to()
+  this->set_all_elements_to(v);   
   return *this;
 }
 //-----------------------------------------------------------------------------
@@ -138,7 +144,8 @@ template<typename T>
 CloneVector<T>& CloneVector<T>::operator=(const CloneVector<T> &C)
 {
   GCK(*this, C, this->size()!=C.size(), "Error in CloneVector:operator=");
-  FORi VIDX(i) = C[i];
+  int sz = this->size(); 
+  for (INDEX i = 0; i < sz; i++) (*this)[i] = C[i];
   return *this;
 }
 //-----------------------------------------------------------------------------
@@ -148,7 +155,8 @@ template<typename T>
 CloneVector<T>& CloneVector<T>::operator=(const Matrix<T> &C)
 {
   GCK(*this, C, this->size()!=C.size(), "Error in CloneVector:operator=");
-  FORi VIDX(i) = C[i];
+  int sz = this->size(); 
+  for (INDEX i = 0; i < sz; i++) (*this)[i] = C[i];
   return *this;
 }
 //-----------------------------------------------------------------------------
@@ -171,17 +179,17 @@ bool CloneVector<T>::memory_contiguous()  const
 // Returns a pointer to the data unless the data is a column of a matrix
 //-----------------------------------------------------------------------------
 template<typename T>
-T* CloneVector<T>::get_ptr()                                              const
+T* CloneVector<T>::ptr()                                              const
 {
-  if (_baseV) return _baseV->get_ptr();
+  if (_baseV) return _baseV->ptr();
 #ifdef ROW_STORAGE
-  if (_clone_type == CLONE_ROW)  return  _baseM->get_ptr() + this->size()*_idx;
-  if (_clone_type == CLONE_COL)  return _baseM->get_ptr() + this->size();
-  if (_clone_type == CLONE_DIAG) return _baseM->get_ptr();
+  if (_clone_type == CLONE_ROW)  return  _baseM->ptr() + this->size()*_idx;
+  if (_clone_type == CLONE_COL)  return _baseM->ptr() + this->size();
+  if (_clone_type == CLONE_DIAG) return _baseM->ptr();
 #else
-  if (_clone_type == CLONE_COL)  return _baseM->get_ptr() + this->size()*_idx;
-  if (_clone_type == CLONE_ROW)  return _baseM->get_ptr() + this->size();
-  if (_clone_type == CLONE_DIAG) return _baseM->get_ptr();
+  if (_clone_type == CLONE_COL)  return _baseM->ptr() + this->size()*_idx;
+  if (_clone_type == CLONE_ROW)  return _baseM->ptr() + this->size();
+  if (_clone_type == CLONE_DIAG) return _baseM->ptr();
 #endif
   return 0;
 }
@@ -205,7 +213,7 @@ void CloneVector<T>::_resize(INDEX nRows, INDEX nCols, bool copy, bool zero)
       break;
     case CLONE_COL:  // now the leading dimension is columns
       nCols = nCols ? nCols : _baseM->nRows();
-      Utility::Swap(nRows, nCols);
+      ATC_Utility::swap(nRows, nCols);
       break;
     case CLONE_DIAG: // lets just hope you knew what you were doing
       break;
@@ -238,6 +246,8 @@ template<typename T>
 void CloneVector<T>::copy(const T * ptr, INDEX nRows, INDEX nCols)
 {
   _resize(nRows, nCols, false, false);
-  memcpy(this->get_ptr(), ptr, this->size()*sizeof(T));
+  memcpy(this->ptr(), ptr, this->size()*sizeof(T));
 }
+
+} // end namespace
 #endif

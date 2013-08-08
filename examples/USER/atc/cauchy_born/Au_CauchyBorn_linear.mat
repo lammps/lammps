@@ -1,0 +1,6 @@
+material Au real
+stress  cauchy-born
+  pair_style lj/smooth/linear 5.456108274435118      #pair_style lj/smooth/linear r_cut
+  pair_coeff 0.7242785984051078 2.598146797350056 #pair_coeff epsilon sigma
+  linear
+end

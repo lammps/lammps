@@ -10,6 +10,7 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
+
 /* ----------------------------------------------------------------------
    Contributing author:  Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
@@ -18,7 +19,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include <errno.h>
 
 #include "fix_colvars.h"

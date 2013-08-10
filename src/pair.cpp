@@ -239,6 +239,7 @@ void Pair::reinit()
 
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
+      init_one(i,j);
       if (tail_flag) {
         etail += etail_ij;
         ptail += ptail_ij;

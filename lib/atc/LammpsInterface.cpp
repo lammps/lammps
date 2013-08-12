@@ -22,7 +22,7 @@
 #include "update.h" // timestepping information
 #include "pair.h" // pair potentials
 
-#include "pair_eam.h" // pair potentials
+#include "MANYBODY/pair_eam.h" // pair potentials
 #include "lattice.h" // lattice parameters
 #include "bond.h" // bond potentials
 #include "comm.h" //

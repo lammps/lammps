@@ -22,7 +22,7 @@ OBJ = $(SRC:%.cpp=$(DIR)%.o)
 
 CC =		  x86_64-w64-mingw32-g++
 CCFLAGS =	-I../../tools/mingw-cross/mpich2-win64/include/		\
-		-I../../src -I../../src/STUBS -DMPICH_IGNORE_CXX_SEEK	\
+		-I../../src -DMPICH_IGNORE_CXX_SEEK	\
 		-O3 -march=core2 -mtune=core2 -mpc64 -msse2    \
                 -ffast-math -funroll-loops -fstrict-aliasing		\
 		-DLAMMPS_SMALLBIG -Wno-uninitialized

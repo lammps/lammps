@@ -28,6 +28,7 @@
 #include "domain.h"
 #include "error.h"
 #include "force.h"
+#include "neighbor.h"
 #include "memory.h"
 #include "msm_cg_omp.h"
 

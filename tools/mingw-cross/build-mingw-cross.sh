@@ -2,7 +2,8 @@
 # automated build script to build windows installers from the lammps sources
 
 MINGW_BUILD_DIR=${HOME}/mingw-cross
-echo X-compiling LAMMPS for Windows in ${MINGW_BUILD_DIR}
+NUMCPU=2
+echo X-compiling LAMMPS for Windows in ${MINGW_BUILD_DIR} with ${NUMCPU} procs
 
 for d in "${PWD}" "${PWD%/src}" "${PWD%/tools/mingw-cross}" "$1"
 do \
@@ -31,7 +32,7 @@ pushd "${LAMMPS_PATH}"
 
 git archive -v --format=tar --prefix=lammps-current/ HEAD \
     README LICENSE doc src lib python txt2html lammps.book \
-    examples/{README,dipole,peri,hugoniostat,colloid,crack,friction,msst,obstacle,body,sputter,pour,ELASTIC,neb,ellipse,flow,meam,min,indent,micelle,shear,srd,dreiding,eim,prd,rigid,COUPLE,peptide,melt,comb,tad,reax,USER/{awpmd,misc,phonon,cg-cmm}} \
+    examples/{README,dipole,peri,hugoniostat,colloid,crack,friction,msst,obstacle,body,sputter,pour,ELASTIC,neb,ellipse,flow,meam,min,indent,micelle,shear,srd,dreiding,eim,prd,rigid,COUPLE,peptide,melt,comb,tad,reax,USER/{atc,awpmd,misc,phonon,cg-cmm}} \
     bench potentials tools/*.cpp tools/*.f tools/mingw-cross tools/msi2lmp \
     | tar -C ${MINGW_BUILD_DIR} -xvf -
 popd
@@ -50,7 +51,7 @@ pushd lib
 for d in atc awpmd colvars gpu linalg meam poems voronoi
 do \
     pushd $d
-    make mingw32-cross mingw64-cross mingw32-cross-mpi mingw64-cross-mpi || exit 3
+    make -j${NUMCPU} mingw32-cross mingw64-cross mingw32-cross-mpi mingw64-cross-mpi || exit 3
     popd
 done
 
@@ -61,10 +62,10 @@ pushd src
 
 # configure installed packages
 make yes-all no-kim no-user-cuda no-reax
-make -j2 mingw32-cross || exit 4
-make -j2 mingw64-cross || exit 4
-make -j2 mingw32-cross-mpi || exit 4
-make -j2 mingw64-cross-mpi || exit 4
+make -j${NUMCPU} mingw32-cross || exit 4
+make -j${NUMCPU} mingw64-cross || exit 4
+make -j${NUMCPU} mingw32-cross-mpi || exit 4
+make -j${NUMCPU} mingw64-cross-mpi || exit 4
 cp lmp_mingw32-cross ${MINGW_BUILD_DIR}/mingw32/lmp_serial.exe
 cp lmp_mingw32-cross-mpi ${MINGW_BUILD_DIR}/mingw32/lmp_mpi.exe
 cp lmp_mingw64-cross ${MINGW_BUILD_DIR}/mingw64/lmp_serial.exe

@@ -17,7 +17,7 @@ efield = style name of this fix command :l
 ex,ey,ez = E-field component values (electric field units) :l
 any of ex,ey,ez can be a variable (see below) :l
 zero or more keyword/value pairs may be appended to args :l
-keyword = {{energy} :l
+keyword = {energy} :l
   {energy} value = v_name
     v_name = variable with name that calculates the potential energy of each atom in the added E-field :pre
 :ule

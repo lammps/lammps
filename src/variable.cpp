@@ -3233,7 +3233,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
     int iregion = region_function(arg2);
 
     Tree *newtree = new Tree();
-    newtree->type = RMASK;
+    newtree->type = GRMASK;
     newtree->ivalue1 = group->bitmask[igroup];
     newtree->ivalue2 = iregion;
     newtree->left = newtree->middle = newtree->right = NULL;

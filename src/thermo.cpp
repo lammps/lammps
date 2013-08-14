@@ -52,6 +52,7 @@ using namespace MathConst;
 // pxx, pyy, pzz, pxy, pxz, pyz
 // fmax, fnorm
 // cella, cellb, cellc, cellalpha, cellbeta, cellgamma
+// density
 
 // customize a new thermo style by adding a DEFINE to this list
 // also insure allocation of line string is correct in constructor
@@ -784,6 +785,9 @@ void Thermo::parse_fields(char *str)
     } else if (strcmp(word,"cellgamma") == 0) {
       addfield("CellGamma",&Thermo::compute_cellgamma,FLOAT);
 
+    } else if (strcmp(word,"density") == 0) {
+      addfield("Density",&Thermo::compute_density,FLOAT);
+
     // compute value = c_ID, fix value = f_ID, variable value = v_ID
     // count trailing [] and store int arguments
     // copy = at most 8 chars of ID to pass to addfield
@@ -1338,6 +1342,7 @@ int Thermo::evaluate_keyword(char *word, double *answer)
   else if (strcmp(word,"cellalpha") == 0) compute_cellalpha();
   else if (strcmp(word,"cellbeta") == 0) compute_cellbeta();
   else if (strcmp(word,"cellgamma") == 0) compute_cellgamma();
+  else if (strcmp(word,"density") == 0) compute_density();
 
   else return 1;
 
@@ -1955,3 +1960,32 @@ void Thermo::compute_cellgamma()
     dvalue = acos(cosgamma)*180.0/MY_PI;
   }
 }
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_density()
+{
+  double *mass = atom->mass;
+  double *rmass = atom->rmass;
+  int *type = atom->type;
+  int nlocal = atom->nlocal;
+  double mv2d = force->mv2d;
+
+  double one = 0.0;
+
+  if (rmass) {
+    for (int i = 0; i < nlocal; i++)
+      one += rmass[i];
+  } else {
+    for (int i = 0; i < nlocal; i++)
+      one += mass[type[i]];
+  }
+
+  double all;
+  MPI_Allreduce(&one,&all,1,MPI_DOUBLE,MPI_SUM,world);
+
+  compute_vol();
+  double density = mv2d*all/dvalue;
+  dvalue = density;
+}
+

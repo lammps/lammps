@@ -64,6 +64,7 @@ args = list of arguments for a particular style :l
       fnorm = length of force vector for all atoms
       cella,cellb,cellc = periodic cell lattice constants a,b,c 
       cellalpha, cellbeta, cellgamma = periodic cell angles alpha,beta,gamma
+      density = mass density of system
       c_ID = global scalar value calculated by a compute with ID
       c_ID\[I\] = Ith component of global vector calculated by a compute with ID
       c_ID\[I\]\[J\] = I,J component of global array calculated by a compute with ID
@@ -243,7 +244,10 @@ define the periodic unit cell of a crystal.  See "this
 section"_Section_howto.html#howto_12 of the doc pages for a geometric
 description of triclinic periodic cells, including a precise defintion
 of these quantities in terms of the internal LAMMPS cell dimensions
-{lx}, {ly}, {lz}, {yz}, {xz}, {xy},
+{lx}, {ly}, {lz}, {yz}, {xz}, {xy}.
+
+The keyword {density} gives the mass density of the system in density
+"units"_units.html.
 
 :line
 

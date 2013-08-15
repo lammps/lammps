@@ -906,7 +906,7 @@ void Input::partition()
 
 void Input::print()
 {
-  if (narg != 1) error->all(FLERR,"Illegal print command");
+  if (narg < 1) error->all(FLERR,"Illegal print command");
 
   // copy 1st arg back into line (copy is being used)
   // check maxline since arg[0] could have been exanded by variables
@@ -917,9 +917,41 @@ void Input::print()
   strcpy(line,arg[0]);
   substitute(line,work,maxline,maxwork,0);
 
+  // parse optional args
+
+  FILE *fp = NULL;
+  int screenflag = 1;
+
+  int iarg = 1;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"file") == 0 || strcmp(arg[iarg],"append") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal print command");
+      if (me == 0) {
+        if (strcmp(arg[iarg],"file") == 0) fp = fopen(arg[iarg+1],"w");
+        else fp = fopen(arg[iarg+1],"a");
+        if (fp == NULL) {
+          char str[128];
+          sprintf(str,"Cannot open print file %s",arg[iarg+1]);
+          error->one(FLERR,str);
+        }
+      }
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"screen") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal print command");
+      if (strcmp(arg[iarg+1],"yes") == 0) screenflag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) screenflag = 0;
+      else error->all(FLERR,"Illegal print command");
+      iarg += 2;
+    } else error->all(FLERR,"Illegal print command");
+  }
+
   if (me == 0) {
-    if (screen) fprintf(screen,"%s\n",line);
-    if (logfile) fprintf(logfile,"%s\n",line);
+    if (screenflag && screen) fprintf(screen,"%s\n",line);
+    if (screenflag && logfile) fprintf(logfile,"%s\n",line);
+    if (fp) {
+      fprintf(fp,"%s\n",line);
+      fclose(fp);
+    }
   }
 }
 

@@ -90,7 +90,7 @@ void PairLJCharmmCoulCharmmImplicit::compute(int eflag, int vflag)
               (cut_coulsq + 2.0*rsq - 3.0*cut_coul_innersq) / denom_coul;
             switch2 = 12.0*rsq * (cut_coulsq-rsq) *
               (rsq-cut_coul_innersq) / denom_coul;
-            forcecoul *= switch1 + switch2;
+             forcecoul *= switch1 + 0.5*switch2;
           }
         } else forcecoul = 0.0;
 
@@ -169,7 +169,7 @@ double PairLJCharmmCoulCharmmImplicit::single(int i, int j,
         (cut_coulsq + 2.0*rsq - 3.0*cut_coul_innersq) / denom_coul;
       switch2 = 12.0*rsq * (cut_coulsq-rsq) *
         (rsq-cut_coul_innersq) / denom_coul;
-      forcecoul *= switch1 + switch2;
+       forcecoul *= switch1 + 0.5*switch2;
     }
   } else forcecoul = 0.0;
   if (rsq < cut_ljsq) {

@@ -10,24 +10,39 @@ print command :h3
 
 [Syntax:]
 
-print str :pre
+print string keyword value:pre
 
-str = text string to print, which may contain variables :ul
+string = text string to print, which may contain variables :l
+zero or more keyword/value pairs may be appended :l
+keyword = {file} or {append} or {screen} :l
+  {file} value = filename
+  {append} value = filename
+  {screen} value = {yes} or {no} :pre
+:ule
 
 [Examples:]
 
-print "Done with equilibration"
-print Vol=$v
-print "The system volume is now $v"
+print "Done with equilibration" file info.dat
+print Vol=$v append info.dat screen no
+print "The system volume is now $v" 
 print 'The system volume is now $v' :pre
 
 [Description:]
 
 Print a text string to the screen and logfile.  One line of output is
-generated.  If the string has white space in it (spaces, tabs, etc),
-then you must enclose it in quotes so that it is treated as a single
-argument.  If variables are included in the string, they will be
-evaluated and their current values printed.
+generated.  The text string must be a single argument, so
+it should be enclosed in double quotes if it is more than one word.
+If it contains variables, they will be evaluated and 
+their current values printed.
+
+If the {file} or {append} keyword is used, a filename is specified to
+which the output will be written.  If {file} is
+used, then the filename is overwritten if it already exists.  If
+{append} is used, then the filename is appended to if it already
+exists, or created if it does not exist.
+
+If the {screen} keyword is used, output to the screen and
+logfile can be turned on or off as desired.
 
 If you want the print command to be executed multiple times (with
 changing variable values), there are 3 options.  First, consider using
@@ -52,4 +67,7 @@ thermodynamic properties, global values calculated by a
 
 "fix print"_fix_print.html, "variable"_variable.html
 
-[Default:] none
+[Default:]
+
+The option defaults are no file output, and screen = yes.
+

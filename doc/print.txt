@@ -12,7 +12,7 @@ print command :h3
 
 print string keyword value:pre
 
-string = text string to print, which may contain variables :l
+string = text string to print, which may contain variables :ulb,l
 zero or more keyword/value pairs may be appended :l
 keyword = {file} or {append} or {screen} :l
   {file} value = filename
@@ -30,19 +30,18 @@ print 'The system volume is now $v' :pre
 [Description:]
 
 Print a text string to the screen and logfile.  One line of output is
-generated.  The text string must be a single argument, so
-it should be enclosed in double quotes if it is more than one word.
-If it contains variables, they will be evaluated and 
-their current values printed.
+generated.  The text string must be a single argument, so it should be
+enclosed in double quotes if it is more than one word.  If it contains
+variables, they will be evaluated and their current values printed.
 
 If the {file} or {append} keyword is used, a filename is specified to
-which the output will be written.  If {file} is
-used, then the filename is overwritten if it already exists.  If
-{append} is used, then the filename is appended to if it already
-exists, or created if it does not exist.
+which the output will be written.  If {file} is used, then the
+filename is overwritten if it already exists.  If {append} is used,
+then the filename is appended to if it already exists, or created if
+it does not exist.
 
-If the {screen} keyword is used, output to the screen and
-logfile can be turned on or off as desired.
+If the {screen} keyword is used, output to the screen and logfile can
+be turned on or off as desired.
 
 If you want the print command to be executed multiple times (with
 changing variable values), there are 3 options.  First, consider using
@@ -69,5 +68,5 @@ thermodynamic properties, global values calculated by a
 
 [Default:]
 
-The option defaults are no file output, and screen = yes.
+The option defaults are no file output and screen = yes.
 

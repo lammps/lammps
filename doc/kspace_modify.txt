@@ -161,14 +161,16 @@ value is inefficient; a smaller value introduces unwanted slab-slab
 interactions.  The use of fixed boundaries in z means that the user
 must prevent particle migration beyond the initial z-bounds, typically
 by providing a wall-style fix.  The methodology behind the {slab}
-option is explained in the paper by "(Yeh)"_#Yeh.  An alternative slab
-option can be invoked with the {nozforce} keyword in lieu of the
-volfactor. This turns off all kspace forces in the z direction. 
-The {nozforce} option is not supported by MSM. For MSM, any combination
-of periodic, non-periodic, or shrink-wrapped boundaries can be set 
-using "boundary"_boundary.html (the slab approximation in not needed).
-The {slab} keyword is not currently supported by Ewald or PPPM when
-using a triclinic simulation cell.
+option is explained in the paper by "(Yeh)"_#Yeh.  The {slab} option
+is also extended to non-neutral systems
+"(Ballenegger)"_#Ballenegger. An alternative slab option can be
+invoked with the {nozforce} keyword in lieu of the volfactor. This
+turns off all kspace forces in the z direction.  The {nozforce} option
+is not supported by MSM. For MSM, any combination of periodic,
+non-periodic, or shrink-wrapped boundaries can be set using
+"boundary"_boundary.html (the slab approximation in not needed).  The
+{slab} keyword is not currently supported by Ewald or PPPM when using
+a triclinic simulation cell.
 
 The {compute} keyword allows Kspace computations to be turned off,
 even though a "kspace_style"_kspace_style.html is defined.  This is
@@ -235,6 +237,10 @@ Adam Hilger, NY (1989).
 
 :link(Yeh)
 [(Yeh)] Yeh and Berkowitz, J Chem Phys, 111, 3155 (1999).
+
+:link(Ballenegger)
+[(Ballenegger)] Ballenegger, Arnold, Cerda, J Chem Phys, 131, 094107
+(2009).
 
 :link(Hardy)
 [(Hardy)] David Hardy thesis: Multilevel Summation for the Fast

@@ -18,7 +18,7 @@ Sampling and Restraints. This code consists of two parts:
 
   Using collective variables to drive molecular dynamics
   simulations,
-   Giacomo Fiorin , Michael L. Klein & Jérôme Hénin (2013):
+   Giacomo Fiorin, Michael L. Klein & Jérôme Hénin (2013):
    Molecular Physics DOI:10.1080/00268976.2013.813594
 
   Exploring Multidimensional Free Energy Landscapes Using

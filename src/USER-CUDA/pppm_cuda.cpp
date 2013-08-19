@@ -1425,7 +1425,10 @@ void PPPMCuda::slabcorr(int eflag)
 
   double e_slabcorr = 2.0*MY_PI*dipole_all*dipole_all/volume;
 
-  if (eflag) energy += qqrd2e*scale * e_slabcorr;
+  //if (eflag) energy += qqrd2e*scale * e_slabcorr;
+  // need to add a correction to make non-neutral systems and per-atom energy translationally invariant
+  if (eflag || fabs(qsum) > SMALL)
+    error->all(FLERR,"Cannot (yet) use slab correction with kspace_style pppm/cuda for non-neutral systems or to get per-atom energy. Aborting.");
 
   double ffact = -4.0*MY_PI*dipole_all/volume;
 

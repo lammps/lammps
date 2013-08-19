@@ -22,6 +22,7 @@
 #include "comm.h"
 #include "domain.h"
 #include "lattice.h"
+#include "group.h"
 #include "modify.h"
 #include "fix.h"
 #include "compute.h"
@@ -48,11 +49,11 @@ using namespace MathConst;
 // step, elapsed, elaplong, dt, time, cpu, tpcpu, spcpu
 // atoms, temp, press, pe, ke, etotal, enthalpy
 // evdwl, ecoul, epair, ebond, eangle, edihed, eimp, emol, elong, etail
-// vol, lx, ly, lz, xlo, xhi, ylo, yhi, zlo, zhi, xy, xz, yz, xlat, ylat, zlat
+// vol, density, lx, ly, lz, xlo, xhi, ylo, yhi, zlo, zhi, xy, xz, yz,
+// xlat, ylat, zlat
 // pxx, pyy, pzz, pxy, pxz, pyz
 // fmax, fnorm
 // cella, cellb, cellc, cellalpha, cellbeta, cellgamma
-// density
 
 // customize a new thermo style by adding a DEFINE to this list
 // also insure allocation of line string is correct in constructor
@@ -714,6 +715,8 @@ void Thermo::parse_fields(char *str)
 
     } else if (strcmp(word,"vol") == 0) {
       addfield("Volume",&Thermo::compute_vol,FLOAT);
+    } else if (strcmp(word,"density") == 0) {
+      addfield("Density",&Thermo::compute_density,FLOAT);
     } else if (strcmp(word,"lx") == 0) {
       addfield("Lx",&Thermo::compute_lx,FLOAT);
     } else if (strcmp(word,"ly") == 0) {
@@ -784,9 +787,6 @@ void Thermo::parse_fields(char *str)
       addfield("CellBeta",&Thermo::compute_cellbeta,FLOAT);
     } else if (strcmp(word,"cellgamma") == 0) {
       addfield("CellGamma",&Thermo::compute_cellgamma,FLOAT);
-
-    } else if (strcmp(word,"density") == 0) {
-      addfield("Density",&Thermo::compute_density,FLOAT);
 
     // compute value = c_ID, fix value = f_ID, variable value = v_ID
     // count trailing [] and store int arguments
@@ -1227,6 +1227,7 @@ int Thermo::evaluate_keyword(char *word, double *answer)
     compute_etail();
 
   } else if (strcmp(word,"vol") == 0) compute_vol();
+  else if (strcmp(word,"density") == 0) compute_density();
   else if (strcmp(word,"lx") == 0) compute_lx();
   else if (strcmp(word,"ly") == 0) compute_ly();
   else if (strcmp(word,"lz") == 0) compute_lz();
@@ -1342,7 +1343,6 @@ int Thermo::evaluate_keyword(char *word, double *answer)
   else if (strcmp(word,"cellalpha") == 0) compute_cellalpha();
   else if (strcmp(word,"cellbeta") == 0) compute_cellbeta();
   else if (strcmp(word,"cellgamma") == 0) compute_cellgamma();
-  else if (strcmp(word,"density") == 0) compute_density();
 
   else return 1;
 
@@ -1703,6 +1703,15 @@ void Thermo::compute_vol()
 
 /* ---------------------------------------------------------------------- */
 
+void Thermo::compute_density()
+{
+  double mass = group->mass(0);
+  compute_vol();
+  dvalue = force->mv2d * mass/dvalue;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void Thermo::compute_lx()
 {
   dvalue = domain->xprd;
@@ -1960,32 +1969,3 @@ void Thermo::compute_cellgamma()
     dvalue = acos(cosgamma)*180.0/MY_PI;
   }
 }
-
-/* ---------------------------------------------------------------------- */
-
-void Thermo::compute_density()
-{
-  double *mass = atom->mass;
-  double *rmass = atom->rmass;
-  int *type = atom->type;
-  int nlocal = atom->nlocal;
-  double mv2d = force->mv2d;
-
-  double one = 0.0;
-
-  if (rmass) {
-    for (int i = 0; i < nlocal; i++)
-      one += rmass[i];
-  } else {
-    for (int i = 0; i < nlocal; i++)
-      one += mass[type[i]];
-  }
-
-  double all;
-  MPI_Allreduce(&one,&all,1,MPI_DOUBLE,MPI_SUM,world);
-
-  compute_vol();
-  double density = mv2d*all/dvalue;
-  dvalue = density;
-}
-

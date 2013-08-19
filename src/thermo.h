@@ -147,6 +147,7 @@ class Thermo : protected Pointers {
   void compute_etail();
 
   void compute_vol();
+  void compute_density();
   void compute_lx();
   void compute_ly();
   void compute_lz();
@@ -182,8 +183,6 @@ class Thermo : protected Pointers {
   void compute_cellalpha();
   void compute_cellbeta();
   void compute_cellgamma();
-
-  void compute_density();
 };
 
 }

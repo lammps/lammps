@@ -1136,9 +1136,10 @@ void Ewald::deallocate()
 
 /* ----------------------------------------------------------------------
    Slab-geometry correction term to dampen inter-slab interactions between
-   periodically repeating slabs.  Yields good approximation to 2-D Ewald if
+   periodically repeating slabs.  Yields good approximation to 2D Ewald if
    adequate empty space is left between repeating slabs (J. Chem. Phys.
-   111, 3155).  Slabs defined here to be parallel to the xy plane.
+   111, 3155).  Slabs defined here to be parallel to the xy plane. Also
+   extended to non-neutral systems (J. Chem. Phys. 131, 094107).
 ------------------------------------------------------------------------- */
 
 void Ewald::slabcorr()
@@ -1147,6 +1148,7 @@ void Ewald::slabcorr()
 
   double *q = atom->q;
   double **x = atom->x;
+  double zprd = domain->zprd;
   int nlocal = atom->nlocal;
 
   double dipole = 0.0;
@@ -1157,9 +1159,25 @@ void Ewald::slabcorr()
   double dipole_all;
   MPI_Allreduce(&dipole,&dipole_all,1,MPI_DOUBLE,MPI_SUM,world);
 
+  // need to make non-neutral systems and/or
+  //  per-atom energy translationally invariant
+
+  double dipole_r2 = 0.0;
+  if (eflag_atom || fabs(qsum) > SMALL) {
+    for (int i = 0; i < nlocal; i++)
+      dipole_r2 += q[i]*x[i][2]*x[i][2];
+
+    // sum local contributions
+
+    double tmp;
+    MPI_Allreduce(&dipole_r2,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
+    dipole_r2 = tmp;
+  }
+
   // compute corrections
 
-  const double e_slabcorr = 2.0*MY_PI*dipole_all*dipole_all/volume;
+  const double e_slabcorr = MY_2PI*(dipole_all*dipole_all -
+    qsum*dipole_r2 - qsum*qsum*zprd*zprd/12.0)/volume;
   const double qscale = force->qqrd2e * scale;
 
   if (eflag_global) energy += qscale * e_slabcorr;
@@ -1167,16 +1185,18 @@ void Ewald::slabcorr()
   // per-atom energy
 
   if (eflag_atom) {
-    double efact = 2.0*MY_PI*dipole_all/volume;
-    for (int i = 0; i < nlocal; i++) eatom[i] += qscale * q[i]*x[i][2]*efact;
+    double efact = qscale * MY_2PI/volume;
+    for (int i = 0; i < nlocal; i++)
+      eatom[i] += efact * q[i]*(x[i][2]*dipole_all - 0.5*(dipole_r2 +
+        qsum*x[i][2]*x[i][2]) - qsum*zprd*zprd/12.0);
   }
 
   // add on force corrections
 
-  double ffact = -4.0*MY_PI*dipole_all/volume;
+  double ffact = qscale * (-4.0*MY_PI/volume);
   double **f = atom->f;
 
-  for (int i = 0; i < nlocal; i++) f[i][2] += qscale * q[i]*ffact;
+  for (int i = 0; i < nlocal; i++) f[i][2] += ffact * q[i]*(dipole_all - qsum*x[i][2]);
 }
 
 /* ----------------------------------------------------------------------
@@ -1201,11 +1221,11 @@ double Ewald::memory_usage()
    compute the Ewald total long-range force and energy for groups A and B
  ------------------------------------------------------------------------- */
 
-void Ewald::compute_group_group(int groupbit_A, int groupbit_B, int BA_flag)
+void Ewald::compute_group_group(int groupbit_A, int groupbit_B, int AA_flag)
 {
-  if (slabflag)
-    error->all(FLERR,"Cannot (yet) use Kspace slab correction "
-               "with compute group/group");
+  if (slabflag && triclinic)
+    error->all(FLERR,"Cannot (yet) use K-space slab "
+               "correction with compute group/group for triclinic systems");
 
   int i,k;
 
@@ -1214,10 +1234,10 @@ void Ewald::compute_group_group(int groupbit_A, int groupbit_B, int BA_flag)
     group_allocate_flag = 1;
   }
 
-  e2group = 0; //energy
-  f2group[0] = 0; //force in x-direction
-  f2group[1] = 0; //force in y-direction
-  f2group[2] = 0; //force in z-direction
+  e2group = 0.0; //energy
+  f2group[0] = 0.0; //force in x-direction
+  f2group[1] = 0.0; //force in y-direction
+  f2group[2] = 0.0; //force in z-direction
 
   // partial and total structure factors for groups A and B
 
@@ -1225,17 +1245,17 @@ void Ewald::compute_group_group(int groupbit_A, int groupbit_B, int BA_flag)
 
     // group A
 
-    sfacrl_A[k] = 0;
-    sfacim_A[k] = 0;
-    sfacrl_A_all[k] = 0;
+    sfacrl_A[k] = 0.0;
+    sfacim_A[k] = 0.0;
+    sfacrl_A_all[k] = 0.0;
     sfacim_A_all[k] = 0;
 
     // group B
 
-    sfacrl_B[k] = 0;
-    sfacim_B[k] = 0;
-    sfacrl_B_all[k] = 0;
-    sfacim_B_all[k] = 0;
+    sfacrl_B[k] = 0.0;
+    sfacim_B[k] = 0.0;
+    sfacrl_B_all[k] = 0.0;
+    sfacim_B_all[k] = 0.0;
   }
 
   double *q = atom->q;
@@ -1254,8 +1274,8 @@ void Ewald::compute_group_group(int groupbit_A, int groupbit_B, int BA_flag)
 
     for (i = 0; i < nlocal; i++) {
 
-      if ((mask[i] & groupbit_A) && (mask[i] & groupbit_B))
-        if (BA_flag) continue;
+      if (!((mask[i] & groupbit_A) && (mask[i] & groupbit_B)))
+        if (AA_flag) continue;
 
       if ((mask[i] & groupbit_A) || (mask[i] & groupbit_B)) {
 
@@ -1310,12 +1330,95 @@ void Ewald::compute_group_group(int groupbit_A, int groupbit_B, int BA_flag)
       sfacrl_A_all[k]*sfacim_B_all[k];
     f2group[0] += eg[k][0]*partial_group;
     f2group[1] += eg[k][1]*partial_group;
-    f2group[2] += eg[k][2]*partial_group;
+    if (slabflag != 2) f2group[2] += eg[k][2]*partial_group;
   }
 
   f2group[0] *= qscale;
   f2group[1] *= qscale;
   f2group[2] *= qscale;
+
+  // 2d slab correction
+
+  if (slabflag == 1)
+    slabcorr_groups(groupbit_A, groupbit_B, AA_flag);
+}
+
+/* ----------------------------------------------------------------------
+   Slab-geometry correction term to dampen inter-slab interactions between
+   periodically repeating slabs.  Yields good approximation to 2D Ewald if
+   adequate empty space is left between repeating slabs (J. Chem. Phys.
+   111, 3155).  Slabs defined here to be parallel to the xy plane. Also
+   extended to non-neutral systems (J. Chem. Phys. 131, 094107).
+------------------------------------------------------------------------- */
+
+void Ewald::slabcorr_groups(int groupbit_A, int groupbit_B, int AA_flag)
+{
+  // compute local contribution to global dipole moment
+
+  double *q = atom->q;
+  double **x = atom->x;
+  double zprd = domain->zprd;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  double qsum_A = 0.0;
+  double qsum_B = 0.0;
+  double dipole_A = 0.0;
+  double dipole_B = 0.0;
+  double dipole_r2_A = 0.0;
+  double dipole_r2_B = 0.0;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (!((mask[i] & groupbit_A) && (mask[i] & groupbit_B)))
+      if (AA_flag) continue;
+
+    if (mask[i] & groupbit_A) { 
+      qsum_A += q[i];
+      dipole_A += q[i]*x[i][2];
+      dipole_r2_A += q[i]*x[i][2]*x[i][2];
+    }
+
+    if (mask[i] & groupbit_B) {
+      qsum_B += q[i];
+      dipole_B += q[i]*x[i][2];
+      dipole_r2_B += q[i]*x[i][2]*x[i][2];
+    }
+  }
+
+  // sum local contributions to get total charge and global dipole moment
+  //  for each group
+
+  double tmp;
+  MPI_Allreduce(&qsum_A,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
+  qsum_A = tmp;
+
+  MPI_Allreduce(&qsum_B,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
+  qsum_B = tmp;
+
+  MPI_Allreduce(&dipole_A,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
+  dipole_A = tmp;
+
+  MPI_Allreduce(&dipole_B,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
+  dipole_B = tmp;
+
+  MPI_Allreduce(&dipole_r2_A,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
+  dipole_r2_A = tmp;
+
+  MPI_Allreduce(&dipole_r2_B,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
+  dipole_r2_B = tmp;
+
+  // compute corrections
+
+  const double qscale = force->qqrd2e * scale;
+  const double efact = qscale * MY_2PI/volume;
+
+  e2group += efact * (dipole_A*dipole_B - 0.5*(qsum_A*dipole_r2_B +
+    qsum_B*dipole_r2_A) - qsum_A*qsum_B*zprd*zprd/12.0);
+
+  // add on force corrections
+
+  const double ffact = qscale * (-4.0*MY_PI/volume);
+  f2group[2] += ffact * (qsum_A*dipole_B - qsum_B*dipole_A);
 }
 
 /* ----------------------------------------------------------------------

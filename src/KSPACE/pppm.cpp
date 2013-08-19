@@ -1437,7 +1437,7 @@ void PPPM::set_grid_local()
   // this is accomplished by nzhi_in = nzhi_out on +z end (no ghost cells)
   // also insure no other procs use ghost cells beyond +z limit
 
-  if (slabflag) {
+  if (slabflag == 1) {
     if (comm->myloc[2] == comm->procgrid[2]-1)
       nzhi_in = nzhi_out = nz_pppm - 1;
     nzhi_out = MIN(nzhi_out,nz_pppm-1);
@@ -2914,7 +2914,8 @@ void PPPM::compute_rho_coeff()
    Slab-geometry correction term to dampen inter-slab interactions between
    periodically repeating slabs.  Yields good approximation to 2D Ewald if
    adequate empty space is left between repeating slabs (J. Chem. Phys.
-   111, 3155).  Slabs defined here to be parallel to the xy plane.
+   111, 3155).  Slabs defined here to be parallel to the xy plane. Also
+   extended to non-neutral systems (J. Chem. Phys. 131, 094107).
 ------------------------------------------------------------------------- */
 
 void PPPM::slabcorr()
@@ -2923,6 +2924,7 @@ void PPPM::slabcorr()
 
   double *q = atom->q;
   double **x = atom->x;
+  double zprd = domain->zprd;
   int nlocal = atom->nlocal;
 
   double dipole = 0.0;
@@ -2933,9 +2935,25 @@ void PPPM::slabcorr()
   double dipole_all;
   MPI_Allreduce(&dipole,&dipole_all,1,MPI_DOUBLE,MPI_SUM,world);
 
+  // need to make non-neutral systems and/or
+  //  per-atom energy translationally invariant
+
+  double dipole_r2 = 0.0;
+  if (eflag_atom || fabs(qsum) > SMALL) {
+    for (int i = 0; i < nlocal; i++)
+      dipole_r2 += q[i]*x[i][2]*x[i][2];
+
+    // sum local contributions
+
+    double tmp;
+    MPI_Allreduce(&dipole_r2,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
+    dipole_r2 = tmp;
+  }
+
   // compute corrections
 
-  const double e_slabcorr = MY_2PI*dipole_all*dipole_all/volume;
+  const double e_slabcorr = MY_2PI*(dipole_all*dipole_all -
+    qsum*dipole_r2 - qsum*qsum*zprd*zprd/12.0)/volume;
   const double qscale = force->qqrd2e * scale;
 
   if (eflag_global) energy += qscale * e_slabcorr;
@@ -2943,16 +2961,18 @@ void PPPM::slabcorr()
   // per-atom energy
 
   if (eflag_atom) {
-    double efact = MY_2PI*dipole_all/volume;
-    for (int i = 0; i < nlocal; i++) eatom[i] += qscale * q[i]*x[i][2]*efact;
+    double efact = qscale * MY_2PI/volume;
+    for (int i = 0; i < nlocal; i++)
+      eatom[i] += efact * q[i]*(x[i][2]*dipole_all - 0.5*(dipole_r2 +
+        qsum*x[i][2]*x[i][2]) - qsum*zprd*zprd/12.0);
   }
 
   // add on force corrections
 
-  double ffact = -4.0*MY_PI*dipole_all/volume;
+  double ffact = qscale * (-4.0*MY_PI/volume);
   double **f = atom->f;
 
-  for (int i = 0; i < nlocal; i++) f[i][2] += qscale * q[i]*ffact;
+  for (int i = 0; i < nlocal; i++) f[i][2] += ffact * q[i]*(dipole_all - qsum*x[i][2]);
 }
 
 /* ----------------------------------------------------------------------
@@ -3055,11 +3075,11 @@ double PPPM::memory_usage()
    compute the PPPM total long-range force and energy for groups A and B
  ------------------------------------------------------------------------- */
 
-void PPPM::compute_group_group(int groupbit_A, int groupbit_B, int BA_flag)
+void PPPM::compute_group_group(int groupbit_A, int groupbit_B, int AA_flag)
 {
-  if (slabflag)
+  if (slabflag && triclinic)
     error->all(FLERR,"Cannot (yet) use K-space slab "
-               "correction with compute group/group");
+               "correction with compute group/group for triclinic systems");
 
   if (differentiation_flag)
     error->all(FLERR,"Cannot (yet) use kspace_modify "
@@ -3075,14 +3095,14 @@ void PPPM::compute_group_group(int groupbit_A, int groupbit_B, int BA_flag)
     domain->x2lamda(atom->nlocal);
   }
 
-  e2group = 0; //energy
-  f2group[0] = 0; //force in x-direction
-  f2group[1] = 0; //force in y-direction
-  f2group[2] = 0; //force in z-direction
+  e2group = 0.0; //energy
+  f2group[0] = 0.0; //force in x-direction
+  f2group[1] = 0.0; //force in y-direction
+  f2group[2] = 0.0; //force in z-direction
 
   // map my particle charge onto my local 3d density grid
 
-  make_rho_groups(groupbit_A,groupbit_B,BA_flag);
+  make_rho_groups(groupbit_A,groupbit_B,AA_flag);
 
   // all procs communicate density values from their ghost cells
   //   to fully sum contribution in their 3d bricks
@@ -3119,7 +3139,7 @@ void PPPM::compute_group_group(int groupbit_A, int groupbit_B, int BA_flag)
   // compute potential gradient on my FFT grid and
   //   portion of group-group energy/force on this proc's FFT grid
 
-  poisson_groups(BA_flag);
+  poisson_groups(AA_flag);
 
   const double qscale = force->qqrd2e * scale;
 
@@ -3137,11 +3157,16 @@ void PPPM::compute_group_group(int groupbit_A, int groupbit_B, int BA_flag)
   double f2group_all[3];
   MPI_Allreduce(f2group,f2group_all,3,MPI_DOUBLE,MPI_SUM,world);
 
-  for (int i = 0; i < 3; i++) f2group[i] = qscale*volume*f2group_all[i];
+  f2group[0] = qscale*volume*f2group_all[0];
+  f2group[1] = qscale*volume*f2group_all[1];
+  if (slabflag != 2) f2group[2] = qscale*volume*f2group_all[2];
 
   // convert atoms back from lamda to box coords
 
   if (triclinic) domain->lamda2x(atom->nlocal);
+
+  if (slabflag == 1)
+    slabcorr_groups(groupbit_A, groupbit_B, AA_flag);
 }
 
 /* ----------------------------------------------------------------------
@@ -3181,7 +3206,7 @@ void PPPM::deallocate_groups()
  in global grid for group-group interactions
  ------------------------------------------------------------------------- */
 
-void PPPM::make_rho_groups(int groupbit_A, int groupbit_B, int BA_flag)
+void PPPM::make_rho_groups(int groupbit_A, int groupbit_B, int AA_flag)
 {
   int l,m,n,nx,ny,nz,mx,my,mz;
   FFT_SCALAR dx,dy,dz,x0,y0,z0;
@@ -3206,8 +3231,8 @@ void PPPM::make_rho_groups(int groupbit_A, int groupbit_B, int BA_flag)
 
   for (int i = 0; i < nlocal; i++) {
 
-    if ((mask[i] & groupbit_A) && (mask[i] & groupbit_B))
-      if (BA_flag) continue;
+    if (!((mask[i] & groupbit_A) && (mask[i] & groupbit_B)))
+      if (AA_flag) continue;
 
     if ((mask[i] & groupbit_A) || (mask[i] & groupbit_B)) {
 
@@ -3250,7 +3275,7 @@ void PPPM::make_rho_groups(int groupbit_A, int groupbit_B, int BA_flag)
    FFT-based Poisson solver for group-group interactions
  ------------------------------------------------------------------------- */
 
-void PPPM::poisson_groups(int BA_flag)
+void PPPM::poisson_groups(int AA_flag)
 {
   int i,j,k,n;
 
@@ -3297,7 +3322,7 @@ void PPPM::poisson_groups(int BA_flag)
     n += 2;
   }
 
-  if (BA_flag) return;
+  if (AA_flag) return;
 
 
   // multiply by Green's function and s2
@@ -3394,4 +3419,82 @@ void PPPM::poisson_groups_triclinic()
     f2group[2] += fkz[i] * partial_group;
     n += 2;
   }
+}
+
+/* ----------------------------------------------------------------------
+   Slab-geometry correction term to dampen inter-slab interactions between
+   periodically repeating slabs.  Yields good approximation to 2D Ewald if
+   adequate empty space is left between repeating slabs (J. Chem. Phys.
+   111, 3155).  Slabs defined here to be parallel to the xy plane. Also
+   extended to non-neutral systems (J. Chem. Phys. 131, 094107).
+------------------------------------------------------------------------- */
+
+void PPPM::slabcorr_groups(int groupbit_A, int groupbit_B, int AA_flag)
+{
+  // compute local contribution to global dipole moment
+
+  double *q = atom->q;
+  double **x = atom->x;
+  double zprd = domain->zprd;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  double qsum_A = 0.0;
+  double qsum_B = 0.0;
+  double dipole_A = 0.0;
+  double dipole_B = 0.0;
+  double dipole_r2_A = 0.0;
+  double dipole_r2_B = 0.0;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (!((mask[i] & groupbit_A) && (mask[i] & groupbit_B)))
+      if (AA_flag) continue;
+
+    if (mask[i] & groupbit_A) { 
+      qsum_A += q[i];
+      dipole_A += q[i]*x[i][2];
+      dipole_r2_A += q[i]*x[i][2]*x[i][2];
+    }
+
+    if (mask[i] & groupbit_B) {
+      qsum_B += q[i];
+      dipole_B += q[i]*x[i][2];
+      dipole_r2_B += q[i]*x[i][2]*x[i][2];
+    }
+  }
+
+  // sum local contributions to get total charge and global dipole moment
+  //  for each group
+
+  double tmp;
+  MPI_Allreduce(&qsum_A,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
+  qsum_A = tmp;
+
+  MPI_Allreduce(&qsum_B,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
+  qsum_B = tmp;
+
+  MPI_Allreduce(&dipole_A,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
+  dipole_A = tmp;
+
+  MPI_Allreduce(&dipole_B,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
+  dipole_B = tmp;
+
+  MPI_Allreduce(&dipole_r2_A,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
+  dipole_r2_A = tmp;
+
+  MPI_Allreduce(&dipole_r2_B,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
+  dipole_r2_B = tmp;
+
+  // compute corrections
+
+  const double qscale = force->qqrd2e * scale;
+  const double efact = qscale * MY_2PI/volume;
+
+  e2group += efact * (dipole_A*dipole_B - 0.5*(qsum_A*dipole_r2_B +
+    qsum_B*dipole_r2_A) - qsum_A*qsum_B*zprd*zprd/12.0);
+
+  // add on force corrections
+
+  const double ffact = qscale * (-4.0*MY_PI/volume);
+  f2group[2] += ffact * (qsum_A*dipole_B - qsum_B*dipole_A);
 }

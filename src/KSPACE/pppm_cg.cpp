@@ -566,7 +566,8 @@ void PPPMCG::fieldforce_peratom()
    Slab-geometry correction term to dampen inter-slab interactions between
    periodically repeating slabs.  Yields good approximation to 2D Ewald if
    adequate empty space is left between repeating slabs (J. Chem. Phys.
-   111, 3155).  Slabs defined here to be parallel to the xy plane.
+   111, 3155).  Slabs defined here to be parallel to the xy plane. Also
+   extended to non-neutral systems (J. Chem. Phys. 131, 094107).
 ------------------------------------------------------------------------- */
 
 void PPPMCG::slabcorr()
@@ -577,6 +578,7 @@ void PPPMCG::slabcorr()
 
   const double * const q = atom->q;
   const double * const * const x = atom->x;
+  const double zprd = domain->zprd;
   double dipole = 0.0;
 
 
@@ -590,9 +592,27 @@ void PPPMCG::slabcorr()
   double dipole_all;
   MPI_Allreduce(&dipole,&dipole_all,1,MPI_DOUBLE,MPI_SUM,world);
 
+  // need to make non-neutral systems and/or
+  //  per-atom energy translationally invariant
+
+  double dipole_r2 = 0.0;
+  if (eflag_atom || fabs(qsum) > SMALLQ) {
+    for (j = 0; j < num_charged; j++) {
+      i = is_charged[j];
+      dipole_r2 += q[i]*x[i][2]*x[i][2];
+    }
+
+    // sum local contributions
+
+    double tmp;
+    MPI_Allreduce(&dipole_r2,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
+    dipole_r2 = tmp;
+  }
+
   // compute corrections
 
-  const double e_slabcorr = MY_2PI*dipole_all*dipole_all/volume;
+  const double e_slabcorr = MY_2PI*(dipole_all*dipole_all -
+    qsum*dipole_r2 - qsum*qsum*zprd*zprd/12.0)/volume;
   const double qscale = force->qqrd2e * scale;
 
   if (eflag_global) energy += qscale * e_slabcorr;
@@ -600,21 +620,22 @@ void PPPMCG::slabcorr()
   // per-atom energy
 
   if (eflag_atom) {
-    const double efact = MY_2PI*dipole_all/volume;
+    const double efact = qscale * MY_2PI/volume;
     for (j = 0; j < num_charged; j++) {
       i = is_charged[j];
-      eatom[i] += qscale * q[i]*x[i][2]*efact;
+      eatom[i] += efact * q[i]*(x[i][2]*dipole_all - 0.5*(dipole_r2 +
+        qsum*x[i][2]*x[i][2]) - qsum*zprd*zprd/12.0);
     }
   }
 
   // add on force corrections
 
-  const double ffact = -MY_4PI*dipole_all/volume;
+  const double ffact = qscale * (-MY_4PI/volume);
   double * const * const f = atom->f;
 
   for (j = 0; j < num_charged; j++) {
     i = is_charged[j];
-    f[i][2] += qscale * q[i]*ffact;
+    f[i][2] += ffact * q[i]*(dipole_all - qsum*x[i][2]);
   }
 }
 

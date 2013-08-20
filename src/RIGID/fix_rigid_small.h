@@ -70,9 +70,11 @@ class FixRigidSmall : public Fix {
   int triclinic;
   double MINUSPI,TWOPI;
 
+  char *infile;             // file to read rigid body attributes from
   int firstflag;            // 1 for first-time setup of rigid bodies
   int commflag;             // various modes of forward/reverse comm
   int nbody;                // total # of rigid bodies
+  int maxmol;               // max mol-ID
   double maxextent;         // furthest distance from body owner to body atom
 
   struct Body {
@@ -155,6 +157,7 @@ class FixRigidSmall : public Fix {
   void set_v();
   void create_bodies();
   void setup_bodies();
+  void readfile(int, double **, int *);
   void grow_body();
   void reset_atom2body();
 

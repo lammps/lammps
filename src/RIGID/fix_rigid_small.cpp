@@ -34,6 +34,8 @@
 #include "memory.h"
 #include "error.h"
 
+#include <map>
+
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
@@ -96,11 +98,26 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   if (strcmp(arg[3],"molecule") != 0) 
     error->all(FLERR,"Illegal fix rigid/small command");
 
+  // maxmol = largest molecule #
+
+  int *mask = atom->mask;
+  int *molecule = atom->molecule;
+  int nlocal = atom->nlocal;
+
+  maxmol = -1;
+  for (i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit) maxmol = MAX(maxmol,molecule[i]);
+
+  int itmp;
+  MPI_Allreduce(&maxmol,&itmp,1,MPI_INT,MPI_MAX,world);
+  maxmol = itmp;
+
   // parse optional args
 
   int seed;
   langflag = 0;
-  
+  infile = NULL;
+
   int iarg = 4;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"langevin") == 0) {
@@ -116,6 +133,15 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Fix rigid/small langevin period must be > 0.0");
       if (seed <= 0) error->all(FLERR,"Illegal fix rigid/small command");
       iarg += 5;
+
+    } else if (strcmp(arg[iarg],"infile") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid/small command");
+      delete [] infile;
+      int n = strlen(arg[iarg+1]) + 1;
+      infile = new char[n];
+      strcpy(infile,arg[iarg+1]);
+      iarg += 2;
+
     } else error->all(FLERR,"Illegal fix rigid/small command");
   }
 
@@ -133,7 +159,6 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   // set nlocal_body and allocate bodies I own
 
   int *tag = atom->tag;
-  int nlocal = atom->nlocal;
 
   nlocal_body = nghost_body = 0;
   for (i = 0; i < nlocal; i++)
@@ -251,6 +276,8 @@ FixRigidSmall::~FixRigidSmall()
   memory->destroy(dorient);
 
   delete random;
+  delete [] infile;
+
   memory->destroy(langextra);
   memory->destroy(mass_body);
 }
@@ -1527,6 +1554,7 @@ void FixRigidSmall::ring_farthest(int n, char *cbuf)
    one-time initialization of rigid body attributes
    extended flags, mass, center-of-mass
    Cartesian and diagonalized inertia tensor
+   read per-body attributes from infile if specified
 ------------------------------------------------------------------------- */
 
 void FixRigidSmall::setup_bodies()
@@ -1664,6 +1692,16 @@ void FixRigidSmall::setup_bodies()
     xcm[2] /= body[ibody].mass;
   }
 
+  // overwrite masstotal and center-of-mass with file values
+  // inbody[i] = 0/1 if Ith rigid body is initialized by file
+
+  int *inbody;
+  if (infile) {
+    memory->create(inbody,nlocal_body,"rigid/small:inbody");
+    for (ibody = 0; ibody < nlocal_body; ibody++) inbody[ibody] = 0;
+    readfile(0,NULL,inbody);
+  }
+
   // set image flags for each rigid body to default values
   // then remap the xcm of each body back into simulation box if needed
 
@@ -1762,6 +1800,10 @@ void FixRigidSmall::setup_bodies()
 
   commflag = ITENSOR;
   comm->reverse_comm_variable_fix(this);
+
+  // overwrite Cartesian inertia tensor with file values
+
+  if (infile) readfile(1,itensor,inbody);
 
   // diagonalize inertia tensor for each body via Jacobi rotations
   // inertia = 3 eigenvalues = principal moments of inertia
@@ -1960,11 +2002,13 @@ void FixRigidSmall::setup_bodies()
   comm->reverse_comm_variable_fix(this);
 
   // error check that re-computed momemts of inertia match diagonalized ones
+  // do not do test for bodies with params read from infile
 
   double *inew;
 
   double norm;
   for (ibody = 0; ibody < nlocal_body; ibody++) {
+    if (infile && inbody[ibody]) continue;
     inertia = body[ibody].inertia;
 
     if (inertia[0] == 0.0) {
@@ -1998,6 +2042,124 @@ void FixRigidSmall::setup_bodies()
   // clean up
 
   memory->destroy(itensor);
+  if (infile) memory->destroy(inbody);
+}
+
+/* ----------------------------------------------------------------------
+   read per rigid body info from user-provided file
+   which = 0 to read total mass and center-of-mass
+   which = 1 to read 6 moments of inertia, store in array
+   flag inbody = 0 for local bodies whose info is read from file
+   nlines = # of lines of rigid body info
+   one line = rigid-ID mass xcm ycm zcm ixx iyy izz ixy ixz iyz
+   and rigid-ID = mol-ID for fix rigid/small
+------------------------------------------------------------------------- */
+
+void FixRigidSmall::readfile(int which, double **array, int *inbody)
+{
+  int i,j,m,nchunk,id,eofflag;
+  int nlines;
+  FILE *fp;
+  char *eof,*start,*next,*buf;
+  char line[MAXLINE];
+  
+  // create local hash with key/value pairs
+  // key = mol ID of bodies my atoms own
+  // value = index into local body array
+
+  int *molecule = atom->molecule;
+  int nlocal = atom->nlocal;
+
+  hash = new std::map<int,int>();
+  for (int i = 0; i < nlocal; i++)
+    if (bodyown[i] >= 0) (*hash)[molecule[i]] = bodyown[i];
+
+  // open file and read header
+
+  if (me == 0) {
+    fp = fopen(infile,"r");
+    if (fp == NULL) {
+      char str[128];
+      sprintf(str,"Cannot open fix rigid/small infile %s",infile);
+      error->one(FLERR,str);
+    }
+
+    while (1) {
+      eof = fgets(line,MAXLINE,fp);
+      if (eof == NULL) 
+        error->one(FLERR,"Unexpected end of fix rigid/small file");
+      start = &line[strspn(line," \t\n\v\f\r")];
+      if (*start != '\0' && *start != '#') break;
+    }
+
+    sscanf(line,"%d",&nlines);
+  }
+
+  MPI_Bcast(&nlines,1,MPI_INT,0,world);
+
+  char *buffer = new char[CHUNK*MAXLINE];
+  char **values = new char*[ATTRIBUTE_PERBODY];
+
+  int nread = 0;
+  while (nread < nlines) {
+    nchunk = MIN(nlines-nread,CHUNK);
+    eofflag = comm->read_lines_from_file(fp,nchunk,MAXLINE,buffer);
+    if (eofflag) error->all(FLERR,"Unexpected end of fix rigid/small file");
+
+    buf = buffer;
+    next = strchr(buf,'\n');
+    *next = '\0';
+    int nwords = atom->count_words(buf);
+    *next = '\n';
+
+    if (nwords != ATTRIBUTE_PERBODY)
+      error->all(FLERR,"Incorrect rigid body format in fix rigid/small file");
+    
+    // loop over lines of rigid body attributes
+    // tokenize the line into values
+    // id = rigid body ID = mol-ID
+    // for which = 0, store mass/com in vec/array
+    // for which = 1, store interia tensor array, invert 3,4,5 values to Voigt
+
+    for (int i = 0; i < nchunk; i++) {
+      next = strchr(buf,'\n');
+      
+      values[0] = strtok(buf," \t\n\r\f");
+      for (j = 1; j < nwords; j++)
+        values[j] = strtok(NULL," \t\n\r\f");
+      
+      id = atoi(values[0]);
+      if (id <= 0 || id > maxmol) 
+        error->all(FLERR,"Invalid rigid body ID in fix rigid/small file");
+      if (hash->find(id) == hash->end()) continue;
+      id = (*hash)[id];
+      inbody[id] = 1;
+
+      if (which == 0) {
+        body[id].mass = atof(values[1]);
+        body[id].xcm[0] = atof(values[2]);
+        body[id].xcm[1] = atof(values[3]);
+        body[id].xcm[2] = atof(values[4]);
+      } else {
+        array[id][0] = atof(values[5]);
+        array[id][1] = atof(values[6]);
+        array[id][2] = atof(values[7]);
+        array[id][3] = atof(values[10]);
+        array[id][4] = atof(values[9]);
+        array[id][5] = atof(values[8]);
+      }
+
+      buf = next + 1;
+    }
+    
+    nread += nchunk;
+  }
+
+  if (me == 0) fclose(fp);
+
+  delete [] buffer;
+  delete [] values;
+  delete hash;
 }
 
 /* ----------------------------------------------------------------------

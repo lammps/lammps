@@ -45,8 +45,6 @@ FixDtReset::FixDtReset(LAMMPS *lmp, int narg, char **arg) :
 
   time_depend = 1;
   scalar_flag = 1;
-  vector_flag = 1;
-  size_vector = 1;
   global_freq = 1;
   extscalar = 0;
   extvector = 0;
@@ -190,13 +188,6 @@ void FixDtReset::end_of_step()
 /* ---------------------------------------------------------------------- */
 
 double FixDtReset::compute_scalar()
-{
-  return update->dt;
-}
-
-/* ---------------------------------------------------------------------- */
-
-double FixDtReset::compute_vector(int n)
 {
   return (double) laststep;
 }

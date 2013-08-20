@@ -63,24 +63,21 @@ not applied.
 outer loop (largest) timestep, which is the same timestep that the
 <A HREF = "timestep.html">timestep</A> command sets.
 </P>
+<P>Note that the cumulative simulation time (in time units), which
+accounts for changes in the timestep size as a simulation proceeds,
+can be accessed by the <A HREF = "thermo_style.html">thermo_style time</A> keyword.
+</P>
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>
 <P>No information about this fix is written to <A HREF = "restart.html">binary restart
 files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
 are relevant to this fix.
 </P>
-<P>This fix computes a global scalar and a global vector of length 2,
-which can be accessed by various <A HREF = "Section_howto.html#howto_15">output
-commands</A>.  The scalar is the current
-timestep size.
+<P>This fix computes a global scalar which can be accessed by various
+<A HREF = "Section_howto.html#howto_15">output commands</A>.  The scalar stores
+the last timestep on which the timestep was reset to a new value.
 </P>
-<P>The first element of the vector stores the cumulative simulation time
-(in time units).  The cumulative time is zeroed when the fix is
-created and continuously accrues thereafter.
-</P>
-<P>The second element of the vector stores the last timestep on which the
-timestep was reset to a new value.  The scalar and vector values
-calculated by this fix are "intensive".
+<P>The scalar value calculated by this fix is "intensive".
 </P>
 <P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
 the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy

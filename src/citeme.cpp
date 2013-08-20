@@ -40,13 +40,16 @@ CiteMe::CiteMe(LAMMPS *lmp) : Pointers(lmp)
 
 CiteMe::~CiteMe()
 {
-  if (universe->me) return;
-  if (cs->size() == 0) return;
+  if (universe->me || cs->size() == 0) {
+    delete cs;
+    return;
+  }
+
+  delete cs;
 
   if (screen) fprintf(screen,cite_nagline);
   if (logfile) fprintf(logfile,cite_nagline);
 
-  delete cs;
   if (fp) fclose(fp);
 }
 

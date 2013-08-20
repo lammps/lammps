@@ -33,6 +33,10 @@ class FixPropertyAtom : public Fix {
 
   void read_data_section(char *, int, char *);
   bigint read_data_skip_lines(char *);
+  void write_data_section_size(int, int &, int &);
+  void write_data_section_pack(int, double **);
+  void write_data_section_keyword(int, FILE *);
+  void write_data_section(int, FILE *, int, double **, int);
 
   void grow_arrays(int);
   void copy_arrays(int, int, int);

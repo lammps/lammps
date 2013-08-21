@@ -2127,11 +2127,14 @@ void FixRigidSmall::readfile(int which, double **array, int *inbody)
       values[0] = strtok(buf," \t\n\r\f");
       for (j = 1; j < nwords; j++)
         values[j] = strtok(NULL," \t\n\r\f");
-      
+
       id = atoi(values[0]);
       if (id <= 0 || id > maxmol) 
         error->all(FLERR,"Invalid rigid body ID in fix rigid/small file");
-      if (hash->find(id) == hash->end()) continue;
+      if (hash->find(id) == hash->end()) {
+        buf = next + 1;
+        continue;
+      }
       id = (*hash)[id];
       inbody[id] = 1;
 

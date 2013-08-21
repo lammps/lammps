@@ -10,9 +10,6 @@ FixStyle(atc,FixATC)
 #include "fix.h"
 #include "pointers.h" // access to lammps pointers
 
-#include <string>
-using std::string;
-
 namespace ATC {
   class ATC_Method;
 }
@@ -41,7 +38,6 @@ namespace LAMMPS_NS {
 
     /** initial_integrate */
     void initial_integrate(int vflag);
-
     /** final_integrate */
     void final_integrate();
 

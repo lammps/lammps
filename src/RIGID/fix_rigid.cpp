@@ -2171,11 +2171,12 @@ void FixRigid::readfile(int which, double *vec, double **array, int *inbody)
    only proc 0 writes list of global bodies to file
 ------------------------------------------------------------------------- */
 
-void FixRigid::write_restart_file()
+void FixRigid::write_restart_file(char *file)
 {
   if (me) return;
 
-  const char *outfile = "tmp.restart.inertia";
+  char outfile[128];
+  sprintf(outfile,"%s.rigid",file);
   FILE *fp = fopen(outfile,"w");
   if (fp == NULL) {
     char str[128];
@@ -2184,7 +2185,7 @@ void FixRigid::write_restart_file()
   }
 
   fprintf(fp,"fix rigid mass, COM, inertia tensor info for "
-          "%d bodies on timestep " TAGINT_FORMAT "\n\n",
+          "%d bodies on timestep " BIGINT_FORMAT "\n\n",
           nbody,update->ntimestep);
   fprintf(fp,"%d\n",nbody);
 

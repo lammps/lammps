@@ -2172,7 +2172,7 @@ void FixRigidSmall::readfile(int which, double **array, int *inbody)
    each proc contributes info for rigid bodies it owns
 ------------------------------------------------------------------------- */
 
-void FixRigidSmall::write_restart_file()
+void FixRigidSmall::write_restart_file(char *file)
 {
   FILE *fp;
 
@@ -2183,7 +2183,8 @@ void FixRigidSmall::write_restart_file()
   // proc 0 opens file and writes header
 
   if (me == 0) {
-    const char *outfile = "tmp.restart.inertia";
+    char outfile[128];
+    sprintf(outfile,"%s.rigid",file);
     fp = fopen(outfile,"w");
     if (fp == NULL) {
       char str[128];
@@ -2192,7 +2193,7 @@ void FixRigidSmall::write_restart_file()
     }
 
     fprintf(fp,"fix rigid mass, COM, inertia tensor info for "
-            "%d bodies on timestep " TAGINT_FORMAT "\n\n",
+            "%d bodies on timestep " BIGINT_FORMAT "\n\n",
             nbody,update->ntimestep);
     fprintf(fp,"%d\n",nbody);
   }

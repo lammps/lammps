@@ -36,7 +36,7 @@ class FixRigid : public Fix {
   virtual void final_integrate();
   void initial_integrate_respa(int, int, int);
   void final_integrate_respa(int, int);
-  void write_restart_file();
+  void write_restart_file(char *);
   virtual double compute_scalar();
   virtual int modify_param(int, char **) {return 0;}
   

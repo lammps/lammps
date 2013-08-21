@@ -298,7 +298,7 @@ void WriteRestart::write(char *file)
 
   for (int ifix = 0; ifix < modify->nfix; ifix++)
     if (modify->fix[ifix]->restart_file)
-      modify->fix[ifix]->write_restart_file();
+      modify->fix[ifix]->write_restart_file(file);
 }
 
 /* ----------------------------------------------------------------------

@@ -1,6 +1,9 @@
 #ifndef WEAK_EQUATION_MOMENTUM_H
 #define WEAK_EQUATION_MOMENTUM_H
 
+#include <set>
+#include <string>
+
 #include "WeakEquation.h"
 
 namespace ATC{
@@ -52,10 +55,10 @@ class WeakEquationMomentum : public WeakEquation {
                            DENS_MAT_VEC &flux) const ;
 
   /** necessary interfaces */
-  virtual set<string> needs_material_functions(void) const
+  virtual std::set<std::string> needs_material_functions(void) const
   {
-    string list[4] = {"mass_density","stress","elastic_energy","body_force"};
-    set<string> needs(list,list+4);
+    std::string list[4] = {"mass_density","stress","elastic_energy","body_force"};
+    std::set<std::string> needs(list,list+4);
     return needs;
   }
 
@@ -101,9 +104,9 @@ class WeakEquationMomentumElectrostatic : public WeakEquationMomentum {
                            DENS_MAT &flux) const ; 
 
   /** necessary interfaces */
-  virtual set<string> needs_material_functions(void) const
+  virtual std::set<std::string> needs_material_functions(void) const
   {
-    set<string> needs
+    std::set<std::string> needs
       = WeakEquationMomentum::needs_material_functions();
     needs.insert("electric_field");
     return needs;
@@ -159,10 +162,10 @@ class WeakEquationMomentumDiffusion : public WeakEquation {
                                        DENS_MAT &coefs) const;
 
   /** necessary interfaces */
-  virtual set<string> needs_material_functions(void) const
+  virtual std::set<std::string> needs_material_functions(void) const
   {
-    string list[4] = {"mass_density","viscous_stress","body_force"};
-    set<string> needs(list,list+3);
+    std::string list[4] = {"mass_density","viscous_stress","body_force"};
+    std::set<std::string> needs(list,list+3);
     return needs;
   }
 

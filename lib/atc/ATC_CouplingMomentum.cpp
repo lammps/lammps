@@ -11,6 +11,9 @@
 #include <map>
 #include <set>
 #include <utility>
+#include <iostream>
+
+using std::string;
 
 namespace ATC {
 
@@ -32,8 +35,6 @@ namespace ATC {
     : ATC_Coupling(groupName,perAtomArray,thisFix),
       nodalAtomicMass_(NULL),
       nodalAtomicCount_(NULL),
-      boundaryDynamics_(PRESCRIBED),
-      gamma_(0),mu_(1),kappa_(1),
       refPE_(0)
   {
     // Allocate PhysicsModel 
@@ -60,11 +61,13 @@ namespace ATC {
       trackDisplacement_ = true;
       fieldSizes_[DISPLACEMENT] = fieldSizes_[VELOCITY];
       timeIntegrators_[VELOCITY] = new MomentumTimeIntegrator(this,TimeIntegrator::VERLET);
+      ghostManager_.set_boundary_dynamics(GhostManager::PRESCRIBED);
     }
     else if (intrinsicModel == SHEAR) {
       atomToElementMapType_ = EULERIAN;
       atomToElementMapFrequency_ = 1;
       timeIntegrators_[VELOCITY] = new MomentumTimeIntegrator(this,TimeIntegrator::GEAR);
+      ghostManager_.set_boundary_dynamics(GhostManager::NO_BOUNDARY_DYNAMICS);
     }
 
     // output variable vector info:
@@ -119,7 +122,9 @@ namespace ATC {
     if (timeFilterManager_.need_reset()) { // reset kinetostat power
       init_filter();
     }
-    timeFilterManager_.initialize(); // clears need for reset
+    // clears need for reset
+    timeFilterManager_.initialize();
+    ghostManager_.initialize();
     
     if (!initialized_) {
       // initialize sources based on initial FE temperature
@@ -356,9 +361,11 @@ namespace ATC {
     }
 
     // switch for if displacement is tracked or not
-    /*! \page man_disp_control fix_modify AtC transfer track_displacement
+    /*! \page man_track_displacement fix_modify AtC track_displacement
       \section syntax
-      fix_modify AtC transfer track_displacement <on/off> \n
+      fix_modify AtC track_displacement <on/off> \n
+      \section examples
+      <TT> fix_modify atc track_displacement on </TT> \n
       \section description
       Determines whether displacement is tracked or not.  For solids problems this is a useful quantity, but for fluids it is not relevant.
       \section restrictions
@@ -380,39 +387,10 @@ namespace ATC {
         needReset_ = true;
       }
     }
-    /*! \page man_boundary_dynamics fix_modify AtC transfer boundary_dynamics
-      \section syntax
-      fix_modify AtC transfer boundary_dynamics <type> \n
-      \section description
-      \section restrictions
-      \section default
-      on
-    */
+
     else if (strcmp(arg[argIndex],"boundary_dynamics")==0) {
       argIndex++;
-      gamma_ = 0;
-      kappa_ = 0;
-      mu_    = 0;
-      if (strcmp(arg[argIndex],"damped_harmonic")==0) {
-        argIndex++;
-        gamma_ = atof(arg[argIndex++]);
-        kappa_ = atof(arg[argIndex++]);
-        mu_    = atof(arg[argIndex++]);
-        boundaryDynamics_ = DAMPED_HARMONIC;
-        foundMatch = true;
-      }
-      else if (strcmp(arg[argIndex],"prescribed")==0) {
-        boundaryDynamics_ = PRESCRIBED;
-        foundMatch = true;
-      }
-      else if (strcmp(arg[argIndex],"coupled")==0) {
-        boundaryDynamics_ = COUPLED;
-        foundMatch = true;
-      }
-      else if (strcmp(arg[argIndex],"none")==0) {
-        boundaryDynamics_ = NO_BOUNDARY_DYNAMICS;
-        foundMatch = true;
-      }
+      foundMatch = ghostManager_.modify(narg-argIndex,&arg[argIndex]);
     }
 
     // no match, call base class parser
@@ -474,31 +452,7 @@ namespace ATC {
                                            atomElement_);
   }
 
-  //--------------------------------------------------------
-  //  pre_init_integrate
-  //    time integration before the lammps atomic
-  //    integration of the Verlet step 1
-  //--------------------------------------------------------
-  void ATC_CouplingMomentum::pre_init_integrate()
-  {
-    ATC_Coupling::pre_init_integrate();
-    double dt = lammpsInterface_->dt();
-
-    // get any initial data before its modified
-    for (_tiIt_ = timeIntegrators_.begin(); _tiIt_ != timeIntegrators_.end(); ++_tiIt_) {
-      (_tiIt_->second)->pre_initial_integrate1(dt);
-    }
-
-    // apply kinetostat force, if needed
-    atomicRegulator_->apply_pre_predictor(dt,lammpsInterface_->ntimestep());
-
-    // predict nodal velocities
-    for (_tiIt_ = timeIntegrators_.begin(); _tiIt_ != timeIntegrators_.end(); ++_tiIt_) {
-      (_tiIt_->second)->pre_initial_integrate2(dt);
-    }
-    extrinsicModelManager_.pre_init_integrate();
-  }
-
+#ifdef OBSOLETE
   //--------------------------------------------------------
   //  mid_init_integrate
   //    time integration between the velocity update and
@@ -545,19 +499,13 @@ namespace ATC {
 
     // fixed values, non-group bcs handled through FE
     set_fixed_nodes();
- 
-    
-    // enforce atomic boundary conditions
-    if      (boundaryDynamics_==PRESCRIBED) set_ghost_atoms();
-    else if (boundaryDynamics_==DAMPED_HARMONIC) initial_integrate_ghost();
-    else if (boundaryDynamics_==COUPLED)         initial_integrate_ghost();
         
     // update time by a half dt
     update_time(0.5);
 
     ATC_Coupling::post_init_integrate();
   }
-
+#endif
   //--------------------------------------------------------
   //  pre_final_integrate
   //    integration before the second stage lammps atomic 
@@ -566,15 +514,6 @@ namespace ATC {
   void ATC_CouplingMomentum::pre_final_integrate()
   {
     ATC_Coupling::pre_final_integrate();
-
-    if      (boundaryDynamics_==DAMPED_HARMONIC) {
-      apply_ghost_forces();
-      final_integrate_ghost();
-    }
-    else if (boundaryDynamics_==COUPLED) {
-      add_ghost_forces();
-      final_integrate_ghost();
-    }
   }
 
   //--------------------------------------------------------
@@ -747,134 +686,6 @@ namespace ATC {
       }
 
       feEngine_->partition_mesh();
-    }
-  }
-
-  //--------------------------------------------------------
-  //  set_ghost_atoms
-  //    sets ghost atom positions to finite element
-  //    displacements based on shape functions
-  //--------------------------------------------------------
-  void ATC_CouplingMomentum::set_ghost_atoms()
-  {
-    // set atomic displacements based on FE displacements
-    double ** x = lammpsInterface_->xatom();
-    // prolong
-    DenseMatrix<double> ghostAtomData(nLocalGhost_,nsd_);
-    if (nLocalGhost_>0)
-      ghostAtomData = (shpFcnGhost_->quantity())*(fields_[DISPLACEMENT].quantity());
-
-    for (int i = 0; i < nLocalGhost_; ++i)
-      for (int j = 0; j < nsd_; ++j)
-        x[ghostToAtom_(i)][j] = ghostAtomData(i,j)+xref_[ghostToAtom_(i)][j];
-
-    
-  }
-
-  //--------------------------------------------------------
-  //  add_ghost_forces
-  //    add forces to dynamic ghosts
-  //--------------------------------------------------------
-  void ATC_CouplingMomentum::add_ghost_forces()
-  {
-    double **x = lammpsInterface_->xatom();
-    double **v = lammpsInterface_->vatom();
-    double **f = lammpsInterface_->fatom();
-
-    // add forces
-    DENS_MAT coarseDisp(nLocalGhost_,nsd_);
-    DENS_MAT coarseVel(nLocalGhost_,nsd_);
-    if (nLocalGhost_>0) {
-      coarseDisp = (shpFcnGhost_->quantity())*(fields_[DISPLACEMENT].quantity());
-      coarseVel  = (shpFcnGhost_->quantity())*(fields_[VELOCITY].quantity());
-    }
-    // dynamics one-way coupled to real atoms in a well tied to coarse scale
-    for (int i = 0; i < nLocalGhost_; ++i) {
-      for (int j = 0; j < nsd_; ++j) {
-        double du = coarseDisp(i,j)+xref_[ghostToAtom_(i)][j]-x[ghostToAtom_(i)][j];
-        double dv = coarseVel(i,j)-v[ghostToAtom_(i)][j];
-        f[ghostToAtom_(i)][j] += mu_*du + gamma_*dv;
-          
-      }
-    }
-  }
-
-  void ATC_CouplingMomentum::apply_ghost_forces()
-  {
-    double **x = lammpsInterface_->xatom();
-    double **v = lammpsInterface_->vatom();
-    double **f = lammpsInterface_->fatom();
-
-    // add forces
-    DENS_MAT coarseDisp(nLocalGhost_,nsd_);
-    DENS_MAT coarseVel(nLocalGhost_,nsd_);
-    if (nLocalGhost_>0) {
-      coarseDisp = (shpFcnGhost_->quantity())*(fields_[DISPLACEMENT].quantity());
-      coarseVel  = (shpFcnGhost_->quantity())*(fields_[VELOCITY].quantity());
-    }
-    // dynamics one-way coupled to real atoms in a well tied to coarse scale
-    for (int i = 0; i < nLocalGhost_; ++i) {
-      for (int j = 0; j < nsd_; ++j) {
-        double du = coarseDisp(i,j)+xref_[ghostToAtom_(i)][j]-x[ghostToAtom_(i)][j];
-        double dv = coarseVel(i,j)-v[ghostToAtom_(i)][j];
-        f[ghostToAtom_(i)][j] = mu_*du + gamma_*dv;
-          
-      }
-    }
-  }
-
-  //--------------------------------------------------------
-  //  initial_integrate_ghost
-  //    does the first step of the Verlet integration for
-  //    ghost atoms, to be used with non-reflecting BCs
-  //--------------------------------------------------------
-  void ATC_CouplingMomentum::initial_integrate_ghost()
-  {
-    double dtfm;
-
-    double **x = lammpsInterface_->xatom();
-    double **v = lammpsInterface_->vatom();
-    double **f = lammpsInterface_->fatom();
-    const int *mask =  lammpsInterface_->atom_mask();
-    int nlocal = lammpsInterface_->nlocal();
-    double dtv = lammpsInterface_->dt();
-    double dtf = 0.5 * lammpsInterface_->dt() * lammpsInterface_->ftm2v();
-
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbitGhost_) {
-        dtfm = dtf / mu_;
-        v[i][0] += dtfm * f[i][0];
-        v[i][1] += dtfm * f[i][1];
-        v[i][2] += dtfm * f[i][2];
-        x[i][0] += dtv * v[i][0];
-        x[i][1] += dtv * v[i][1];
-        x[i][2] += dtv * v[i][2];
-      }
-    }
-  }
-
-  //--------------------------------------------------------
-  //  final_integrate_ghost
-  //    does the second step of the Verlet integration for
-  //    ghost atoms, to be used with non-reflecting BCs
-  //--------------------------------------------------------
-  void ATC_CouplingMomentum::final_integrate_ghost()
-  {
-    double dtfm;
-
-    double **v = lammpsInterface_->vatom();
-    double **f = lammpsInterface_->fatom();
-    const int *mask =  lammpsInterface_->atom_mask();
-    int nlocal = lammpsInterface_->nlocal();
-    double dtf = 0.5 * lammpsInterface_->dt() * lammpsInterface_->ftm2v();
-
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbitGhost_) {
-        dtfm = dtf / mu_;
-        v[i][0] += dtfm * f[i][0];
-        v[i][1] += dtfm * f[i][1];
-        v[i][2] += dtfm * f[i][2];
-      }
     }
   }
 

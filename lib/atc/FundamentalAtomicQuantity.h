@@ -3,10 +3,9 @@
 #ifndef FUNDAMENTAL_ATOM_QUANTITY_H
 #define FUNDAMENTAL_ATOM_QUANTITY_H
 
-// ATC_Method headers
-#include "PerAtomQuantity.h"
+#include <string>
 
-using namespace std;
+#include "PerAtomQuantity.h"
 
 namespace ATC {
 
@@ -161,7 +160,7 @@ namespace ATC {
 
     // constructor
     ComputedAtomQuantity(ATC_Method * atc,
-                         const string & tag,
+                         const std::string & tag,
                          double unitsConversion = 1.,
                          AtomType atomType=INTERNAL);
 
@@ -224,7 +223,7 @@ namespace ATC {
     COMPUTE_POINTER computePointer_;  
 
     /** tag for Lammps compute */
-    string computeTag_;
+    std::string computeTag_;
 
     /** units conversion from LAMMPS to ATC units */
     double unitsConversion_;

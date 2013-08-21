@@ -1,6 +1,9 @@
 #ifndef WEAK_EQUATION_CHARGE_DIFFUSION_H
 #define WEAK_EQUATION_CHARGE_DIFFUSION_H
 
+#include <set>
+#include <string>
+
 #include "WeakEquation.h"
 
 namespace ATC{
@@ -27,9 +30,9 @@ class WeakEquationChargeDiffusion : public WeakEquation {
                            const Material * material,
                            DENS_MAT &density ) const ;
   /** necessary interfaces */
-  virtual set<string> needs_material_functions(void)  const
+  virtual std::set<std::string> needs_material_functions(void)  const
   {
-    set<string> needs;
+    std::set<std::string> needs;
     return needs;
   } 
 };

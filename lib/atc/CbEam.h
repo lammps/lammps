@@ -5,13 +5,13 @@
 #include <cstdlib>
 #include "CbPotential.h"
 #include "LammpsInterface.h"
-#include "pair_eam.h"
-
-//#define MIN(a,b) ((a) < (b) ? (a) : (b))
-//#define MAX(a,b) ((a) > (b) ? (a) : (b))
+#include "MANYBODY/pair_eam.h"
 
 namespace ATC
 {
+
+  // forward declares
+  class LAMMPS_NS::PairEAM;
 
   /**
    *  @class  CbEam 

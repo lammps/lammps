@@ -1,11 +1,10 @@
 #ifndef FE_QUADRATURE_H
 #define FE_QUADRATURE_H
 
-// ATC_Transfer headers
+#include <vector>
+
 #include "MatrixLibrary.h"
 #include "ATC_TypeDefs.h"
-
-using namespace std;
 
 namespace ATC {
 
@@ -17,7 +16,7 @@ namespace ATC {
     int numIPs;
     int numFaceIPs;
     DENS_MAT ipCoords;
-    vector<DENS_MAT> ipFaceCoords;
+    std::vector<DENS_MAT> ipFaceCoords;
     DENS_MAT ipFace2DCoords;
     DENS_VEC ipWeights;
     DENS_VEC ipFaceWeights;

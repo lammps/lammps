@@ -21,15 +21,6 @@
 #include <iomanip>
 #include <cmath>
 #include "Utility.h"
-using std::cout;
-using std::ostream;
-using std::fstream;
-using std::map;
-using std::vector;
-using std::set;
-using std::string;
-using std::scientific;
-using std::showbase;
 
 namespace ATC_matrix {
 
@@ -183,8 +174,8 @@ typedef ParDiagonalMatrix<double> PAR_DIAG_MAT; // diagonal matrix of double typ
 typedef SparseMatrix<double>   SPAR_MAT;        // sparse matrix of double type
 typedef ParSparseMatrix<double> PAR_SPAR_MAT;   // parallel sparse matrix of doubles
 typedef SparseVector<double>   SPAR_VEC;        // sparse matrix of double type
-typedef vector<DenseMatrix<double> > DENS_MAT_VEC;
-typedef vector<SparseMatrix<double> * > SPAR_MAT_VEC;
+typedef std::vector<DenseMatrix<double> > DENS_MAT_VEC;
+typedef std::vector<SparseMatrix<double> * > SPAR_MAT_VEC;
 
 // int containers
 typedef DenseMatrix<int>       INT_ARRAY; // to become vector<int> or Array2D
@@ -193,9 +184,9 @@ typedef DenseVector<int>       INT_VECTOR; // to become vector<int> or Array
 
 // forward declaration of error messages
 template<typename T> void ierror(const Matrix<T> &a, const char *FILE, int LINE, INDEX i, INDEX j=0);
-template<typename T> void ierror(const Matrix<T> &a, INDEX i, INDEX j, const string m);
-template<typename T> void merror(const Matrix<T> &a, const Matrix<T> &b, const string m);
-inline void gerror(const string m) { cout<<"Error: "<<m<<"\n"; ERROR_FOR_BACKTRACE ; exit(EXIT_FAILURE); }
+template<typename T> void ierror(const Matrix<T> &a, INDEX i, INDEX j, const std::string m);
+template<typename T> void merror(const Matrix<T> &a, const Matrix<T> &b, const std::string m);
+inline void gerror(const std::string m) { std::cout<<"Error: "<<m<<"\n"; ERROR_FOR_BACKTRACE ; exit(EXIT_FAILURE); }
 
 } // end namespace
 #endif

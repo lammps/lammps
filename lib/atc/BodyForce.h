@@ -3,10 +3,6 @@
 
 #include <map>
 #include <string>
-
-using std::map;
-using std::string;
-
 #include "ATC_TypeDefs.h"
 #include "Function.h"
 
@@ -33,7 +29,7 @@ namespace ATC {
   class BodyForceViscous : public BodyForce
   {
     public:
-      BodyForceViscous(fstream &matfile,map<string,double> & parameters);
+      BodyForceViscous(std::fstream &matfile,std::map<std::string,double> & parameters);
       virtual ~BodyForceViscous() {};
       virtual bool body_force(const FIELD_MATS &fields,
                                     DENS_MAT &flux) const 
@@ -53,7 +49,7 @@ namespace ATC {
   class BodyForceElectricField : public BodyForce
   {
     public:
-      BodyForceElectricField(fstream &matfile,map<string,double> & parameters) 
+      BodyForceElectricField(std::fstream &matfile,std::map<std::string,double> & parameters) 
         { throw ATC_Error("unimplemented due to issues with accessing electric field"); }
       virtual ~BodyForceElectricField() {};
       virtual bool body_force(const FIELD_MATS &fields,

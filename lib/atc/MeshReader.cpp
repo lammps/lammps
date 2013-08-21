@@ -7,8 +7,16 @@
 #include "exodusII.h"
 #endif
 
+using ATC_Utility::to_string;
+using std::ifstream;
+using std::istringstream;
+using std::stringstream;
+using std::map;
+using std::pair;
+using std::set;
+using std::string;
+
 namespace ATC {
-  using ATC_Utility::to_string;
   /** constructor, takes a filename */
   MeshReader::MeshReader(string filename, 
                          Array<bool> periodicity, 
@@ -21,7 +29,7 @@ namespace ATC {
   {
     conn_ = new Array2D<int>();
     nodeCoords_ = new DENS_MAT;
-    nodeSets_ = new Array< pair< string,set<int> > >();
+    nodeSets_ = new Array< std::pair< string,set<int> > >();
 
     size_t idx = filename.rfind('.');
     if (idx == string::npos) {
@@ -48,6 +56,23 @@ namespace ATC {
                          periodicity_,
                          nodeSets_);
   }
+
+  int MeshReader::number_of_vertices(string str)
+  {
+    string temp;
+    int number=0;
+    for (unsigned int i=0; i < str.size(); i++) {
+      if (isdigit(str[i])) {
+        for (unsigned int a=i; a<str.size(); a++) {
+          temp += str[a];               
+        }
+        break;
+      }
+    }
+    istringstream(temp) >> number;
+    return number;
+  }
+
 
   /** reads .mesh format file */
   void MeshReader::read_mesh_file() {
@@ -76,7 +101,7 @@ namespace ATC {
       else if (section == "Elements") {
         words >> nElements_;
         words >> elementType_;
-        int nVerts = int_from_str(elementType_);
+        int nVerts = number_of_vertices(elementType_);
         conn_->reset(nVerts, nElements_);
         string line;
         for (int i = 0; i < nElements_; ++i) {
@@ -162,7 +187,7 @@ namespace ATC {
         { throw ATC_Error(meshfile_+" is composed of multiple types"); }
       lastType = etype;
     }
-    int nVerts = int_from_str(elementType_);
+    int nVerts = number_of_vertices(elementType_);
     conn_->reset(nVerts, nElements_);
     int n = 0;
     for (int i=0; i<nelemblk; i++) { 
@@ -195,23 +220,4 @@ namespace ATC {
     if (error > 0) { throw ATC_Error("problem with closing "+meshfile_); }
 #endif
   }
-
-  int MeshReader::int_from_str(string str)
-  {
-    string temp;
-    int number=0;
-
-    for (unsigned int i=0; i < str.size(); i++) {
-      if (isdigit(str[i])) {
-        for (unsigned int a=i; a<str.size(); a++) {
-          temp += str[a];               
-        }
-        break;
-      }
-    }
-
-    istringstream(temp) >> number;
-    return number;
-  }
-
 }; // end namespace ATC

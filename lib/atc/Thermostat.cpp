@@ -40,17 +40,17 @@ namespace ATC {
       argIndex++;
     
       // thermostat type
-      /*! \page man_control_thermal fix_modify AtC control thermal
+      /*! \page man_control_thermal fix_modify AtC control thermal 
         \section syntax
-        fix_modify AtC control thermal <control_type> <optional args>\n
+        fix_modify AtC control thermal <control_type> <optional_args>
         - control_type (string) = none | rescale | hoover | flux\n
       
-        fix_modify AtC control thermal rescale <frequency>\n
+        fix_modify AtC control thermal rescale <frequency> \n
         - frequency (int) = time step frequency for applying velocity rescaling \n
 
         fix_modify AtC control thermal hoover \n
 
-        fix_modify AtC control thermal flux <boundary_integration_type> <face_set_id(optional)>\n
+        fix_modify AtC control thermal flux <boundary_integration_type(optional)> <face_set_id(optional)>\n
         - boundary_integration_type (string) = faceset | interpolate\n
         - face_set_id (string), optional = id of boundary face set, if not specified
         (or not possible when the atomic domain does not line up with 
@@ -60,7 +60,8 @@ namespace ATC {
         <TT> fix_modify AtC control thermal none </TT> \n
         <TT> fix_modify AtC control thermal rescale 10 </TT> \n
         <TT> fix_modify AtC control thermal hoover </TT> \n
-        <TT> fix_modify AtC control thermal flux bndy_faces </TT> \n
+        <TT> fix_modify AtC control thermal flux </TT> \n
+        <TT> fix_modify AtC control thermal flux faceset bndy_faces </TT> \n
         \section description
         Sets the energy exchange mechansim from the finite elements to the atoms, managed through a control algorithm.  Rescale computes a scale factor for each atom to match the finite element temperature.  Hoover is a Gaussian least-constraint isokinetic thermostat enforces that the nodal restricted atomic temperature matches the finite element temperature.  Flux is a similar mode, but rather adds energy to the atoms based on conservation of energy.  Hoover and flux allows the prescription of sources or fixed temperatures on the atoms. 
         \section restrictions
@@ -112,7 +113,7 @@ namespace ATC {
       // set parameters for numerical matrix solutions unique to this thermostat
       /*! \page man_control_thermal_correction_max_iterations fix_modify AtC control thermal correction_max_iterations
         \section syntax
-        fix_modify AtC control thermal correction_max_iterations <value>\n
+        fix_modify AtC control thermal correction_max_iterations <max_iterations>
         - max_iterations (int) = maximum number of iterations that will be used by iterative matrix solvers\n
 
         \section examples

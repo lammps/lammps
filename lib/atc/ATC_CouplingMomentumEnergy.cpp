@@ -10,6 +10,9 @@
 #include <set>
 #include <utility>
 #include <typeinfo>
+#include <iostream>
+
+using std::string;
 
 namespace ATC {
 
@@ -33,8 +36,6 @@ namespace ATC {
       nodalAtomicHeatCapacity_(NULL),
       nodalAtomicKineticTemperature_(NULL),
       nodalAtomicConfigurationalTemperature_(NULL),
-      boundaryDynamics_(PRESCRIBED),
-      gamma_(0),mu_(1),kappa_(1),
       refPE_(0)
   {
     // Allocate PhysicsModel 
@@ -45,24 +46,23 @@ namespace ATC {
       extrinsicModelManager_.create_model(extrinsicModel,matParamFile);  
     }
 
+    // set up field data based on physicsModel
+    physicsModel_->num_fields(fieldSizes_,fieldMask_);
+
     // Defaults
     set_time();
     bndyIntType_ = FE_INTERPOLATION;
-    trackDisplacement_ = true;
-  
-    // set up field data based on physicsModel
-    physicsModel_->num_fields(fieldSizes_,fieldMask_);
-    fieldSizes_[DISPLACEMENT] = fieldSizes_[VELOCITY];
+    trackCharge_ = false;
 
     // set up atomic regulator
     atomicRegulator_ = new KinetoThermostat(this);
 
-    // default to not track charge
-    trackCharge_ = false;
-
     // set up physics specific time integrator and thermostat
+    trackDisplacement_ = true;
+    fieldSizes_[DISPLACEMENT] = fieldSizes_[VELOCITY];
     timeIntegrators_[VELOCITY] = new MomentumTimeIntegrator(this,TimeIntegrator::FRACTIONAL_STEP);
     timeIntegrators_[TEMPERATURE] = new ThermalTimeIntegrator(this,TimeIntegrator::FRACTIONAL_STEP);
+    ghostManager_.set_boundary_dynamics(GhostManager::PRESCRIBED);
 
     // default physics
     temperatureDef_ = KINETIC;
@@ -115,15 +115,6 @@ namespace ATC {
     // init_filter uses fieldRateNdFiltered which comes from the time integrator,
     // which is why the time integrator is initialized first
 
-    // set the reference potential, if necessary, because the nodal energy is needed to initialize the time integrator
-    if (!initialized_) {
-      if (temperatureDef_==TOTAL) {
-        PerAtomQuantity<double> * atomicReferencePotential = interscaleManager_.per_atom_quantity("AtomicReferencePotential");
-        PerAtomQuantity<double> * atomicPotentialEnergy = interscaleManager_.per_atom_quantity("AtomicPotentialEnergy");
-        atomicReferencePotential->set_quantity() = atomicPotentialEnergy->quantity();
-      }
-    }
-
     // other initializations
     
     if (reset_methods()) {
@@ -139,9 +130,12 @@ namespace ATC {
       atomicRegulator_->initialize();
       extrinsicModelManager_.initialize();
     }
-    if (timeFilterManager_.need_reset()) // reset thermostat power
+    if (timeFilterManager_.need_reset()) {// reset thermostat power
       init_filter();
-    timeFilterManager_.initialize(); // clears need for reset
+    }
+    // clears need for reset
+    timeFilterManager_.initialize();
+    ghostManager_.initialize();
 
     if (!initialized_) {
       // initialize sources based on initial FE temperature
@@ -326,11 +320,11 @@ namespace ATC {
       else {
         atomicReferencePotential = static_cast<AtcAtomQuantity<double> * >(interscaleManager_.per_atom_quantity("AtomicReferencePotential"));
       }
-      AtfShapeFunctionRestriction * nodalAtomicReferencePotential = new AtfShapeFunctionRestriction(this,
-                                                                                                    atomicReferencePotential,
-                                                                                                    shpFcn_);
-      interscaleManager_.add_dense_matrix(nodalAtomicReferencePotential,
-                                               "NodalAtomicReferencePotential");
+      nodalRefPotentialEnergy_ = new AtfShapeFunctionRestriction(this,
+                                                                 atomicReferencePotential,
+                                                                 shpFcn_);
+      interscaleManager_.add_dense_matrix(nodalRefPotentialEnergy_,
+                                          "NodalAtomicReferencePotential");
 
       // fluctuating potential energy
       AtomicEnergyForTemperature * atomicFluctuatingPotentialEnergy = new FluctuatingPotentialEnergy(this,
@@ -545,28 +539,7 @@ namespace ATC {
                                            atomElement_);
   }
 
-  //--------------------------------------------------
-  void ATC_CouplingMomentumEnergy::pre_init_integrate()
-  {
-    ATC_Coupling::pre_init_integrate();
-    double dt = lammpsInterface_->dt();
-
-    // Perform any initialization, no actual integration
-    for (_tiIt_ = timeIntegrators_.begin(); _tiIt_ != timeIntegrators_.end(); ++_tiIt_) {
-      (_tiIt_->second)->pre_initial_integrate1(dt);
-    }
-    
-    // Apply controllers to atom velocities, if needed
-    atomicRegulator_->apply_pre_predictor(dt,lammpsInterface_->ntimestep());
-
-    // Predict nodal temperatures and time derivatives based on FE data
-    // predict nodal velocities
-    for (_tiIt_ = timeIntegrators_.begin(); _tiIt_ != timeIntegrators_.end(); ++_tiIt_) {
-      (_tiIt_->second)->pre_initial_integrate2(dt);
-    }
-    extrinsicModelManager_.pre_init_integrate();
-  }
-
+#ifdef OBSOLETE
   //--------------------------------------------------------
   //  mid_init_integrate
   //    time integration between the velocity update and
@@ -612,19 +585,13 @@ namespace ATC {
 
     // fixed values, non-group bcs handled through FE
     set_fixed_nodes();
- 
-    
-    // enforce atomic boundary conditions
-    if      (boundaryDynamics_==PRESCRIBED) set_ghost_atoms();
-    else if (boundaryDynamics_==DAMPED_HARMONIC) initial_integrate_ghost();
-    else if (boundaryDynamics_==COUPLED)         initial_integrate_ghost();
         
     // update time by a half dt
     update_time(0.5);
 
     ATC_Coupling::post_init_integrate();
   }
-
+#endif
   //--------------------------------------------------------
   //  pre_final_integrate
   //    integration before the second stage lammps atomic 
@@ -633,15 +600,6 @@ namespace ATC {
   void ATC_CouplingMomentumEnergy::pre_final_integrate()
   {
     ATC_Coupling::pre_final_integrate();
-
-    if      (boundaryDynamics_==DAMPED_HARMONIC) {
-      apply_ghost_forces();
-      final_integrate_ghost();
-    }
-    else if (boundaryDynamics_==COUPLED) {
-      add_ghost_forces();
-      final_integrate_ghost();
-    }
   }
 
   //--------------------------------------------------
@@ -896,166 +854,4 @@ namespace ATC {
     }
   }
 
-    //--------------------------------------------------------
-  //  set_ghost_atoms
-  //    sets ghost atom positions to finite element
-  //    displacements based on shape functions
-  //--------------------------------------------------------
-  void ATC_CouplingMomentumEnergy::set_ghost_atoms()
-  {
-    // set atomic displacements based on FE displacements
-    double ** x = lammpsInterface_->xatom();
-    // prolong
-    DenseMatrix<double> ghostAtomData(nLocalGhost_,nsd_);
-    if (nLocalGhost_>0)
-      ghostAtomData = (shpFcnGhost_->quantity())*(fields_[DISPLACEMENT].quantity());
-
-    for (int i = 0; i < nLocalGhost_; ++i)
-      for (int j = 0; j < nsd_; ++j)
-        x[ghostToAtom_(i)][j] = ghostAtomData(i,j)+xref_[ghostToAtom_(i)][j];
-
-    
-  }
-
-  //--------------------------------------------------------
-  //  add_ghost_forces
-  //    add forces to dynamic ghosts
-  //--------------------------------------------------------
-  void ATC_CouplingMomentumEnergy::add_ghost_forces()
-  {
-    double **x = lammpsInterface_->xatom();
-    double **v = lammpsInterface_->vatom();
-    double **f = lammpsInterface_->fatom();
-
-    // add forces
-    DENS_MAT coarseDisp(nLocalGhost_,nsd_);
-    DENS_MAT coarseVel(nLocalGhost_,nsd_);
-    if (nLocalGhost_>0) {
-      coarseDisp = (shpFcnGhost_->quantity())*(fields_[DISPLACEMENT].quantity());
-      coarseVel  = (shpFcnGhost_->quantity())*(fields_[VELOCITY].quantity());
-    }
-    // dynamics one-way coupled to real atoms in a well tied to coarse scale
-    for (int i = 0; i < nLocalGhost_; ++i) {
-      for (int j = 0; j < nsd_; ++j) {
-        double du = coarseDisp(i,j)+xref_[ghostToAtom_(i)][j]-x[ghostToAtom_(i)][j];
-        double dv = coarseVel(i,j)-v[ghostToAtom_(i)][j];
-        f[ghostToAtom_(i)][j] += mu_*du + gamma_*dv;
-          
-      }
-    }
-  }
-
-  void ATC_CouplingMomentumEnergy::apply_ghost_forces()
-  {
-    double **x = lammpsInterface_->xatom();
-    double **v = lammpsInterface_->vatom();
-    double **f = lammpsInterface_->fatom();
-
-    // add forces
-    DENS_MAT coarseDisp(nLocalGhost_,nsd_);
-    DENS_MAT coarseVel(nLocalGhost_,nsd_);
-    if (nLocalGhost_>0) {
-      coarseDisp = (shpFcnGhost_->quantity())*(fields_[DISPLACEMENT].quantity());
-      coarseVel  = (shpFcnGhost_->quantity())*(fields_[VELOCITY].quantity());
-    }
-    // dynamics one-way coupled to real atoms in a well tied to coarse scale
-    for (int i = 0; i < nLocalGhost_; ++i) {
-      for (int j = 0; j < nsd_; ++j) {
-        double du = coarseDisp(i,j)+xref_[ghostToAtom_(i)][j]-x[ghostToAtom_(i)][j];
-        double dv = coarseVel(i,j)-v[ghostToAtom_(i)][j];
-        f[ghostToAtom_(i)][j] = mu_*du + gamma_*dv;
-          
-      }
-    }
-  }
-
-  //--------------------------------------------------------
-  //  initial_integrate_ghost
-  //    does the first step of the Verlet integration for
-  //    ghost atoms, to be used with non-reflecting BCs
-  //--------------------------------------------------------
-  void ATC_CouplingMomentumEnergy::initial_integrate_ghost()
-  {
-    double dtfm;
-
-    double **x = lammpsInterface_->xatom();
-    double **v = lammpsInterface_->vatom();
-    double **f = lammpsInterface_->fatom();
-    int *type =  lammpsInterface_->atom_type();
-    const int *mask =  lammpsInterface_->atom_mask();
-    int nlocal = lammpsInterface_->nlocal();
-    double dtv = lammpsInterface_->dt();
-    double dtf = 0.5 * lammpsInterface_->dt() * lammpsInterface_->ftm2v();
-    double *mass = lammpsInterface_->atom_mass();
-
-    if (mass) {
-      for (int i = 0; i < nlocal; i++) {
-        if (mask[i] & groupbitGhost_) {
-          dtfm = dtf / mass[type[i]];
-          v[i][0] += dtfm * f[i][0];
-          v[i][1] += dtfm * f[i][1];
-          v[i][2] += dtfm * f[i][2];
-          x[i][0] += dtv * v[i][0];
-          x[i][1] += dtv * v[i][1];
-          x[i][2] += dtv * v[i][2];
-        }
-      }
-
-    } else {
-      double *rmass = lammpsInterface_->atom_rmass();
-      for (int i = 0; i < nlocal; i++) {
-        if (mask[i] & groupbitGhost_) {
-          dtfm = dtf / rmass[i];
-          v[i][0] += dtfm * f[i][0];
-          v[i][1] += dtfm * f[i][1];
-          v[i][2] += dtfm * f[i][2];
-          x[i][0] += dtv * v[i][0];
-          x[i][1] += dtv * v[i][1];
-          x[i][2] += dtv * v[i][2];
-        }
-      }
-    }
-
-  }
-
-  //--------------------------------------------------------
-  //  final_integrate_ghost
-  //    does the second step of the Verlet integration for
-  //    ghost atoms, to be used with non-reflecting BCs
-  //--------------------------------------------------------
-  void ATC_CouplingMomentumEnergy::final_integrate_ghost()
-  {
-    double dtfm;
-
-    double **v = lammpsInterface_->vatom();
-    double **f = lammpsInterface_->fatom();
-    int *type =  lammpsInterface_->atom_type();
-    const int *mask =  lammpsInterface_->atom_mask();
-    int nlocal = lammpsInterface_->nlocal();
-    double dtf = 0.5 * lammpsInterface_->dt() * lammpsInterface_->ftm2v();
-
-    double *mass = lammpsInterface_->atom_mass();
-    if (mass) {
-      for (int i = 0; i < nlocal; i++) {
-        if (mask[i] & groupbitGhost_) {
-          dtfm = dtf / mass[type[i]];
-          v[i][0] += dtfm * f[i][0];
-          v[i][1] += dtfm * f[i][1];
-          v[i][2] += dtfm * f[i][2];
-        }
-      }
-
-    } else {
-      double *rmass = lammpsInterface_->atom_rmass();
-      for (int i = 0; i < nlocal; i++) {
-        if (mask[i] & groupbitGhost_) {
-          dtfm = dtf / rmass[i];
-          v[i][0] += dtfm * f[i][0];
-          v[i][1] += dtfm * f[i][1];
-          v[i][2] += dtfm * f[i][2];
-        }
-      }
-    }
-
-  }
 };

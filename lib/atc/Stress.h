@@ -4,17 +4,11 @@
 #include <map>
 #include <string>
 #include <vector>
-
-using std::map;
-using std::string;
-
+#include <fstream>
 #include "MatrixLibrary.h"
 #include "ATC_TypeDefs.h"
 #include "ATC_TypeDefs.h"
 #include "NonLinearSolver.h"
-
-using ATC_Utility::command_line;
-using ATC_Utility::str2dbl;
 
 namespace ATC {
   enum ElasticityTensorType {FIRST_ELASTICITY_TENSOR=0, SECOND_ELASTICITY_TENSOR};
@@ -30,7 +24,7 @@ namespace ATC {
       virtual ~Stress() {};
       virtual void initialize(void){};
       //* Returns parameter values, (Nothing uses this).
-      virtual void parameters(map<string,double> &parameters) {}
+      virtual void parameters(std::map<std::string,double> &parameters) {}
       //* Computes stress given a displacement gradient.
       //* Units: mvv/L^3 (i.e. for units Real: g/(mol ps^2 A^2) )
       virtual void stress(const FIELD_MATS &fields,
@@ -56,7 +50,7 @@ namespace ATC {
   {
     public:
       StressCubicElastic():c11_(0),c12_(0),c44_(0){};
-      StressCubicElastic(fstream &matfile);
+      StressCubicElastic(std::fstream &matfile);
       StressCubicElastic(double c11, double c12, double c44)
         : c11_(c11), c12_(c12), c44_(c44) { }
       void stress(const FIELD_MATS &fields,
@@ -80,7 +74,7 @@ namespace ATC {
   class StressCubicElasticDamped : public StressCubicElastic
   {
     public:
-      StressCubicElasticDamped(fstream &matfile);
+      StressCubicElasticDamped(std::fstream &matfile);
       StressCubicElasticDamped(double c11, double c12, double c44, double gamma)
         : StressCubicElastic(c11,c12,c44), gamma_(gamma) { }
       void stress(const FIELD_MATS &fields,
@@ -98,7 +92,7 @@ namespace ATC {
   class StressLinearElastic : public StressCubicElastic
   {
     public:
-      StressLinearElastic(fstream &matfile);
+      StressLinearElastic(std::fstream &matfile);
       void stress(const FIELD_MATS &fields,
                   const GRAD_FIELD_MATS &gradFields,
                   DENS_MAT_VEC &flux);
@@ -134,7 +128,7 @@ namespace ATC {
   class StressCauchyBorn : public Stress
   {
     public:
-      StressCauchyBorn(fstream &matfile, CbData &cb);
+      StressCauchyBorn(std::fstream &matfile, CbData &cb);
       virtual ~StressCauchyBorn(); 
       virtual void initialize(void);
       //* Returns the stress computed from a 0K Cauchy-Born approxmation.

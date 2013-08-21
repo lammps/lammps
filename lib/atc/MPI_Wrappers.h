@@ -3,11 +3,7 @@
 
 #include <iostream>
 #include <string>
-using std::string;
 #include "mpi.h"
-#include "ATC_Error.h"
-using ATC::ATC_Error;
-//using ATC_matrix::SparseMatrix;
 
 namespace MPI_Wrappers {
 
@@ -36,13 +32,13 @@ namespace MPI_Wrappers {
   void gather(MPI_Comm comm, double send, double * recv);
   void logical_or(MPI_Comm comm, void *send_buf, int *rec_buf, int count = 1);
   void barrier(MPI_Comm comm);
-  void stop(MPI_Comm comm, string msg="");
+  void stop(MPI_Comm comm, std::string msg="");
   void int_scatter(MPI_Comm comm, int *send_buf, int *rec_buf, int count = 1);
 
 //  void sparse_allsum(MPI_Comm comm, SparseMatrix<double> &toShare);
 
-  void print_msg(MPI_Comm comm, string msg);
-  void print_msg_once(MPI_Comm comm,string msg,bool prefix=true,bool endline=true);
+  void print_msg(MPI_Comm comm, std::string msg);
+  void print_msg_once(MPI_Comm comm,std::string msg,bool prefix=true,bool endline=true);
 
 }
 

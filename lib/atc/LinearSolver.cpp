@@ -2,7 +2,7 @@
 #include "LinearSolver.h"
 #include <sstream>
 using std::stringstream;
-
+using std::set;
 
 
 

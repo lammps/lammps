@@ -4,12 +4,16 @@
 #include "LammpsInterface.h"
 
 #include <iostream>
-#include <fstream>
+#include <vector>
 #include <math.h>
 
 using ATC_Utility::command_line;
 using ATC_Utility::str2dbl;
 using ATC_Utility::str2int;
+using std::fstream;
+using std::map;
+using std::string;
+using std::vector;
 
 namespace ATC {
 

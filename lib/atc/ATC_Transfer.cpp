@@ -37,15 +37,10 @@
 using namespace std;
 using namespace ATC_Utility;
 using namespace voigt3;
-//using ATC_Utility::to_string;
-//using voigt3::vector_to_matrix;
-//using voigt3::vector_to_symm_matrix;
-//using voigt3::matrix_to_vector;
-//using voigt3::symm_matrix_to_vector;
 
 namespace ATC {
 
-  const int numFields_ = 16;
+  const int numFields_ = 17;
   FieldName indices_[numFields_] = {
     CHARGE_DENSITY,
     MASS_DENSITY,
@@ -61,7 +56,11 @@ namespace ATC {
     TEMPERATURE,
     CHARGE_FLUX,
     SPECIES_FLUX,
-    THERMAL_ENERGY};
+    THERMAL_ENERGY,
+    ENERGY,
+    INTERNAL_ENERGY
+  };
+    //KINETIC_STRESS;
     //ELECTRIC_POTENTIAL};
 
   ATC_Transfer::ATC_Transfer(string groupName,
@@ -133,6 +132,15 @@ namespace ATC {
   // called before the beginning of a "run"
   void ATC_Transfer::initialize() 
   {
+    if (kernelOnTheFly_ && !readRefPE_ && !setRefPEvalue_) {
+      if (setRefPE_) {
+        stringstream ss;
+        ss << "WARNING:  Reference PE requested from atoms, but not yet implemented for on-the-fly, ignoring";
+        lammpsInterface_->print_msg_once(ss.str());
+        setRefPE_ = false;
+      }
+    }
+
     ATC_Method::initialize();
 
     if (!initialized_) { 
@@ -152,6 +160,8 @@ namespace ATC {
       }
       resetKernelFunction_ = false;
     }
+    // clears need for reset
+    ghostManager_.initialize();
 
     // initialize bond matrix B_Iab
     if ((! bondOnTheFly_) 
@@ -232,8 +242,6 @@ namespace ATC {
   void ATC_Transfer::construct_time_integration_data()
   {
     if (!initialized_) {
-      // ground state for PE
-      nodalRefPotentialEnergy_.reset(nNodes_,1);
       
       // size arrays for requested/required  fields
       for(int index=0; index < NUM_TOTAL_FIELDS; ++index) {
@@ -283,26 +291,21 @@ namespace ATC {
   }
 
   //-------------------------------------------------------------------
-  // constructs quantities
-  void ATC_Transfer::construct_transfers()
+  //  construct_interpolant
+  //    constructs: interpolatn, accumulant, weights, and spatial derivatives
+  //--------------------------------------------------------
+  void ATC_Transfer::construct_interpolant()
   {
-
-    // set pointer to positions
-    // REFACTOR use method's handling of xref/xpointer
-    set_xPointer(); 
-
-    ATC_Method::construct_transfers();
-
+    // interpolant
     if (!(kernelOnTheFly_)) {
       // finite element shape functions for interpolants 
       PerAtomShapeFunction * atomShapeFunctions = new PerAtomShapeFunction(this);
       interscaleManager_.add_per_atom_sparse_matrix(atomShapeFunctions,"Interpolant");
       shpFcn_ = atomShapeFunctions;
     }
-
+    // accummulant and weights
     
     this->create_atom_volume();
-
     // accumulants
     if (kernelFunction_) {
       // kernel-based accumulants
@@ -347,77 +350,16 @@ namespace ATC {
                                               "AccumulantWeights");
       }
     }
-
-    
-    bool needsBondMatrix =  (! bondOnTheFly_ ) &&
-             (fieldFlags_(STRESS)
-           || fieldFlags_(ESHELBY_STRESS)
-           || fieldFlags_(HEAT_FLUX));
-    if (needsBondMatrix) {
-      if (hasPairs_ && hasBonds_) {
-        pairMap_ = new PairMapBoth(lammpsInterface_,groupbit_);
-      }
-      else if (hasBonds_) {
-        pairMap_ = new PairMapBond(lammpsInterface_,groupbit_);
-      }
-      else if (hasPairs_) {
-        pairMap_ = new PairMapNeighbor(lammpsInterface_,groupbit_);
-      }
-    }
-    if (pairMap_) interscaleManager_.add_pair_map(pairMap_,"PairMap");
-    //if (pairMap_ && !initialized_) interscaleManager_.add_pair_map(pairMap_,"PairMap");
-
-
-    //const  PerAtomQuantity<double> *  x0= interscaleManager_.per_atom_quantity("AtomicReferencePositions");
-    //const  PerAtomQuantity<double> *  x0= interscaleManager_.per_atom_quantity("AtomicCoarseGrainingPositions");
-    //const  PerAtomQuantity<double> *  x0= interscaleManager_.per_atom_quantity("AtomicReferencePositions");
-      
-    if ( fieldFlags_(STRESS) || fieldFlags_(ESHELBY_STRESS) || fieldFlags_(HEAT_FLUX) ) {
-
-      const FE_Mesh * fe_mesh = feEngine_->fe_mesh();
-      if (!kernelBased_) {
-        bondMatrix_ = new BondMatrixPartitionOfUnity(lammpsInterface_,*pairMap_,xPointer_,fe_mesh,accumulantInverseVolumes_); 
-      }
-      else {
-        bondMatrix_ = new BondMatrixKernel(lammpsInterface_,*pairMap_,xPointer_,fe_mesh,kernelFunction_);
-      }
-    }
-    if (bondMatrix_) interscaleManager_.add_sparse_matrix(bondMatrix_,"BondMatrix");
-
-    if ( fieldFlags_(STRESS) || fieldFlags_(ESHELBY_STRESS) ) {
-      if (atomToElementMapType_ == LAGRANGIAN) {
-//      pairVirial_ = new PairVirialLagrangian(lammpsInterface_,*pairMap_,x0);
-        pairVirial_ = new PairVirialLagrangian(lammpsInterface_,*pairMap_,xref_);
-      }
-      else if (atomToElementMapType_ == EULERIAN) {
-        pairVirial_ = new PairVirialEulerian(lammpsInterface_,*pairMap_);
-      }
-      else {
-        throw ATC_Error("no atom to element map specified");
-      }
-    }
-    if (pairVirial_) interscaleManager_.add_dense_matrix(pairVirial_,"PairVirial");
-
-    if ( fieldFlags_(HEAT_FLUX) ) {
-      if (atomToElementMapType_ == LAGRANGIAN) {
-        pairHeatFlux_ = new PairPotentialHeatFluxLagrangian(lammpsInterface_,*pairMap_,xref_);
-      }
-      else if (atomToElementMapType_ == EULERIAN) {
-        pairHeatFlux_ = new PairPotentialHeatFluxEulerian(lammpsInterface_,*pairMap_);
-      }
-      else {
-        throw ATC_Error("no atom to element map specified");
-      }
-    }
-    if (pairHeatFlux_) interscaleManager_.add_dense_matrix(pairHeatFlux_,"PairHeatFlux");
-
     // gradient matrix
     if (gradFlags_.has_member(true)) {
       NativeShapeFunctionGradient * gradientMatrix = new NativeShapeFunctionGradient(this);
       interscaleManager_.add_vector_sparse_matrix(gradientMatrix,"GradientMatrix");
       gradientMatrix_ = gradientMatrix;
     }
-
+  }
+  //-------------------------------------------------------------------
+  void ATC_Transfer::construct_molecule_transfers()
+  {
     // molecule centroid, molecule charge, dipole moment and quadrupole moment calculations KKM add
     if (!moleculeIds_.empty()) {
       map<string,pair<MolSize,int> >::const_iterator molecule;
@@ -443,6 +385,88 @@ namespace ATC {
       quadrupoleMoment_ = new SmallMoleculeQuadrupoleMoment(this,atomicCharge,smallMoleculeSet_,atomProcGhostCoarseGrainingPositions_,moleculeCentroid_);
       interscaleManager_.add_dense_matrix(quadrupoleMoment_,"QuadrupoleMoment");
     }
+  }
+  //----------------------------------------------------------------------
+  // constructs quantities
+  void ATC_Transfer::construct_transfers()
+  {
+
+    // set pointer to positions
+    // REFACTOR use method's handling of xref/xpointer
+    set_xPointer(); 
+
+    ATC_Method::construct_transfers();
+
+    // reference potential energy
+    if (setRefPE_) {
+      if (!setRefPEvalue_ && !readRefPE_) {
+        FieldManager fmgr(this);
+        nodalRefPotentialEnergy_ = fmgr.nodal_atomic_field(REFERENCE_POTENTIAL_ENERGY);
+      }
+      else {
+        nodalRefPotentialEnergy_ = new DENS_MAN(nNodes_,1);
+        nodalRefPotentialEnergy_->set_memory_type(PERSISTENT);
+        interscaleManager_.add_dense_matrix(nodalRefPotentialEnergy_,
+                                            field_to_string(REFERENCE_POTENTIAL_ENERGY));
+      }
+    }
+
+    // for hardy-based fluxes
+    
+    bool needsBondMatrix =  (! bondOnTheFly_ ) &&
+             (fieldFlags_(STRESS)
+           || fieldFlags_(ESHELBY_STRESS)
+           || fieldFlags_(HEAT_FLUX));
+    if (needsBondMatrix) {
+      if (hasPairs_ && hasBonds_) {
+        pairMap_ = new PairMapBoth(lammpsInterface_,groupbit_);
+      }
+      else if (hasBonds_) {
+        pairMap_ = new PairMapBond(lammpsInterface_,groupbit_);
+      }
+      else if (hasPairs_) {
+        pairMap_ = new PairMapNeighbor(lammpsInterface_,groupbit_);
+      }
+    }
+    if (pairMap_) interscaleManager_.add_pair_map(pairMap_,"PairMap");
+
+    if ( fieldFlags_(STRESS) || fieldFlags_(ESHELBY_STRESS) || fieldFlags_(HEAT_FLUX) ) {
+
+      const FE_Mesh * fe_mesh = feEngine_->fe_mesh();
+      if (!kernelBased_) {
+        bondMatrix_ = new BondMatrixPartitionOfUnity(lammpsInterface_,*pairMap_,xPointer_,fe_mesh,accumulantInverseVolumes_); 
+      }
+      else {
+        bondMatrix_ = new BondMatrixKernel(lammpsInterface_,*pairMap_,xPointer_,fe_mesh,kernelFunction_);
+      }
+    }
+    if (bondMatrix_) interscaleManager_.add_sparse_matrix(bondMatrix_,"BondMatrix");
+
+    if ( fieldFlags_(STRESS) || fieldFlags_(ESHELBY_STRESS) ) {
+      if (atomToElementMapType_ == LAGRANGIAN) {
+        pairVirial_ = new PairVirialLagrangian(lammpsInterface_,*pairMap_,xref_);
+      }
+      else if (atomToElementMapType_ == EULERIAN) {
+        pairVirial_ = new PairVirialEulerian(lammpsInterface_,*pairMap_);
+      }
+      else {
+        throw ATC_Error("no atom to element map specified");
+      }
+    }
+    if (pairVirial_) interscaleManager_.add_dense_matrix(pairVirial_,"PairVirial");
+
+    if ( fieldFlags_(HEAT_FLUX) ) {
+      if (atomToElementMapType_ == LAGRANGIAN) {
+        pairHeatFlux_ = new PairPotentialHeatFluxLagrangian(lammpsInterface_,*pairMap_,xref_);
+      }
+      else if (atomToElementMapType_ == EULERIAN) {
+        pairHeatFlux_ = new PairPotentialHeatFluxEulerian(lammpsInterface_,*pairMap_);
+      }
+      else {
+        throw ATC_Error("no atom to element map specified");
+      }
+    }
+    if (pairHeatFlux_) interscaleManager_.add_dense_matrix(pairHeatFlux_,"PairHeatFlux");
 
     FieldManager fmgr(this);
 
@@ -454,9 +478,10 @@ namespace ATC {
       }
     }
 
-// WIP REJ
+// WIP REJ - move to fmgr
     if (fieldFlags_(ELECTRIC_POTENTIAL)) {
-      restrictedCharge_ = fmgr.restricted_atom_quantity(CHARGE_DENSITY);
+      PerAtomQuantity<double> * atomCharge = interscaleManager_.fundamental_atom_quantity(LammpsInterface::ATOM_CHARGE);
+      restrictedCharge_ = fmgr.restricted_atom_quantity(CHARGE_DENSITY,"default",atomCharge);
     }
 
     // computes
@@ -489,6 +514,8 @@ namespace ATC {
   // sets initial values of filtered quantities
   void ATC_Transfer::construct_methods()
   {
+    ATC_Method::construct_methods();
+
     if ((!initialized_) || timeFilterManager_.need_reset()) {
       timeFilters_.reset(NUM_TOTAL_FIELDS+nComputes_);
       sampleCounter_ = 0;
@@ -705,10 +732,10 @@ namespace ATC {
       }
 
 
-      /*! \page man_pair_interactions fix_modify AtC pair_interactions on|off 
+      /*! \page man_pair_interactions fix_modify AtC pair_interactions/bond_interactions
         \section syntax
-        fix_modify AtC pair_interactions on|off \n
-        fix_modify AtC bond_interactions on|off \n
+        fix_modify AtC pair_interactions <on|off> \n
+        fix_modify AtC bond_interactions <on|off> \n
       
         \section examples
         <TT> fix_modify AtC bond_interactions on </TT> \n
@@ -796,34 +823,6 @@ namespace ATC {
       }
 
 
-      /*! \page man_hardy_dxa_exact_mode fix_modify AtC dxa_exact_mode 
-        \section syntax
-        fix_modify AtC dxa_exact_mode <optional on | off> \n
-        - on | off (keyword) =  use "exact"/serial mode for DXA-based
-             calculation of dislocation density, or not \n
-
-        \section examples
-        <TT> fix_modify AtC dxa_exact_mode </TT> \n
-        <TT> fix_modify AtC dxa_exact_mode on</TT> \n
-        <TT> fix_modify AtC dxa_exact_mode off</TT> \n
-        \section description
-        Overrides normal "exact"/serial mode for DXA code to extract dislocation segments,
-        as opposed to an "inexact" mode that's more efficient for parallel computation of
-        large systems. \n 
-        \section restrictions
-        Must be used with the hardy/field type of AtC fix
-        ( see \ref man_fix_atc )
-        \section related
-        \section default
-        By default, the DXA "exact"/serial mode is used (i.e. on). \n
-      */
-      else if (strcmp(arg[argIdx],"dxa_exact_mode")==0) {
-        argIdx++;
-        dxaExactMode_ = true;
-        if (narg > argIdx && strcmp(arg[argIdx],"off")==0) dxaExactMode_ = false;
-        match = true; 
-      }
-
       /*! \page man_sample_frequency fix_modify AtC sample_frequency
         \section syntax
         fix_modify AtC sample_frequency [freq]
@@ -831,8 +830,8 @@ namespace ATC {
         \section examples
         <TT> fix_modify AtC sample_frequency 10
         \section description
-        Calculates a surface integral of the given field dotted with the
-        outward normal of the faces and puts output in the "GLOBALS" file
+        Specifies a frequency at which fields are computed for the case
+        where time filters are being applied.
         \section restrictions
         Must be used with the hardy/field AtC fix ( see \ref man_fix_atc ) 
         and is only relevant when time filters are being used.
@@ -931,14 +930,11 @@ namespace ATC {
     for(int i=0; i < numFields_; ++i) {
       FieldName index = indices_[i];
       if (fieldFlags_(index)) {
-        hardyData_[field_to_string(index)].set_quantity() 
-          = (outputFields_[index])->quantity();
+        DENS_MAT & data(hardyData_[field_to_string(index)].set_quantity());
+        data = (outputFields_[index])->quantity();
       }
     }
-    if (fieldFlags_(INTERNAL_ENERGY)) 
-      compute_internal_energy(hardyData_["internal_energy"].set_quantity());
-    if (fieldFlags_(ENERGY))
-      compute_energy(hardyData_["energy"].set_quantity());
+
     if (fieldFlags_(STRESS)) 
       compute_stress(hardyData_["stress"].set_quantity());
     if (fieldFlags_(HEAT_FLUX)) 
@@ -982,7 +978,6 @@ namespace ATC {
       //DENS_MAT & T = hardyData_["temperature"];
       //cauchy_born_entropic_energy(H,E,T); E += hardyData_["internal_energy"];
       cauchy_born_energy(H, E, temp);
-      E -= nodalRefPotentialEnergy_;
 
       compute_eshelby_stress(hardyData_["cauchy_born_eshelby_stress"].set_quantity(),
                              E,hardyData_["stress"].quantity(),
@@ -1194,7 +1189,7 @@ namespace ATC {
       // data
       OUTPUT_LIST output_data;
 #ifdef REFERENCE_PE_OUTPUT
-      output_data["reference_potential_energy"] = & nodalRefPotentialEnergy_;
+      output_data["reference_potential_energy"] = nodalRefPotentialEnergy_->quantity();
 #endif
       for(int index=0; index < NUM_TOTAL_FIELDS; ++index) {
         if (outputFlags_(index)) {
@@ -1224,6 +1219,9 @@ namespace ATC {
         }
 #endif
       }
+
+      DENS_MAT nodalInverseVolumes = CLON_VEC(accumulantInverseVolumes_->quantity());
+      output_data["NodalInverseVolumes"] = &nodalInverseVolumes;
 
       // output
       feEngine_->write_data(output_index(), & output_data); 
@@ -1468,61 +1466,6 @@ namespace ATC {
 // ***************UNCONVERTED**************************
 
   //-------------------------------------------------------------------
-  // total energy
-  
-  void ATC_Transfer::compute_energy(DENS_MAT & energy)
-  {
-    PerAtomQuantity<double> * atomicPotentialEnergy = interscaleManager_.per_atom_quantity("AtomicPotentialEnergy");
-    atomicScalar_=atomicPotentialEnergy->quantity();
-    double mvv2e = lammpsInterface_->mvv2e();
-    int * type     = lammpsInterface_->atom_type();
-    double * mass  = lammpsInterface_->atom_mass();
-    double * rmass = lammpsInterface_->atom_rmass();
-    double ** vatom = lammpsInterface_->vatom();
-    for (int i = 0; i < nLocal_; i++) {
-      int atomIdx = internalToAtom_(i);
-      double ma =  mass ? mass[type[atomIdx]]: rmass[atomIdx];
-      ma *= mvv2e; // convert mass to appropriate units
-      // compute kinetic energy per atom
-      double* v = vatom[atomIdx];
-      double atomKE = 0.0;
-      for (int k = 0; k < nsd_; k++) { atomKE += v[k]*v[k]; }
-      atomKE *= 0.5*ma;
-      // add up total energy per atom
-      atomicScalar_(i,0) += atomKE;
-    }
-    project_volume_normalized(atomicScalar_, energy);
-  }
-  // internal energy
-  
-  void ATC_Transfer::compute_internal_energy(DENS_MAT & energy)
-  {
-    PerAtomQuantity<double> * atomicPotentialEnergy = interscaleManager_.per_atom_quantity("AtomicPotentialEnergy");
-    PerAtomQuantity<double> * atomicProlongedVelocity = interscaleManager_.per_atom_quantity("ProlongedVelocity");
-    atomicScalar_=atomicPotentialEnergy->quantity();
-    atomicVector_=atomicProlongedVelocity->quantity();
-    double mvv2e = lammpsInterface_->mvv2e();
-    int * type     = lammpsInterface_->atom_type();
-    double * mass  = lammpsInterface_->atom_mass();
-    double * rmass = lammpsInterface_->atom_rmass();
-    double ** vatom = lammpsInterface_->vatom();
-    for (int i = 0; i < nLocal_; i++) {
-      int atomIdx = internalToAtom_(i);
-      double ma =  mass ? mass[type[atomIdx]]: rmass[atomIdx];
-      ma *= mvv2e; // convert mass to appropriate units
-      // compute kinetic energy per atom
-      double* v = vatom[atomIdx];
-      double atomKE = 0.0;
-      for (int k = 0; k < nsd_; k++) { 
-        atomKE += (v[k]-atomicVector_(i,k))*(v[k]-atomicVector_(i,k)); 
-      }
-      atomKE *= 0.5*ma;
-      // add up total energy per atom
-      atomicScalar_(i,0) += atomKE;
-    }
-    project_volume_normalized(atomicScalar_, energy);
-  }
-  //-------------------------------------------------------------------
   // MOLECULE
   //-------------------------------------------------------------------
   void ATC_Transfer::compute_dipole_moment(DENS_MAT & dipole_moment)
@@ -1749,6 +1692,8 @@ namespace ATC {
         F(0,0) += 1.0; F(1,1) += 1.0; F(2,2) += 1.0;
       }
       double J = det(F);
+      double volume_per_atom = lammpsInterface_->volume_per_atom();
+      J *= volume_per_atom;
       Cv(i,0) = 1.0 - J*new_rho(i,0);
     }
   }
@@ -1904,9 +1849,9 @@ namespace ATC {
         E(i,0) *= 1/J;
       }
     }
-
     // subtract zero point energy
-    E -= nodalRefPotentialEnergy_;
+    if (nodalRefPotentialEnergy_)
+      E -= nodalRefPotentialEnergy_->quantity();
   }
   //---------------------------------------------------------------------------
   // Computes the M/LH entropic energy density

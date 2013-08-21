@@ -8,6 +8,17 @@
 #include "MoleculeSet.h"
 
 //#include <typeinfo>
+#include <set>
+#include <sstream>
+#include <utility>
+#include <vector>
+
+using std::set;
+using std::map;
+using std::string;
+using std::stringstream;
+using std::pair;
+using std::vector;
 
 namespace ATC {
 
@@ -354,6 +365,51 @@ namespace ATC {
 
   //--------------------------------------------------------
   //--------------------------------------------------------
+  //  Class AtomElementMask
+  //--------------------------------------------------------
+  //--------------------------------------------------------
+
+  //--------------------------------------------------------
+  //  Constructor
+  //--------------------------------------------------------
+  AtomElementMask::AtomElementMask(ATC_Coupling * atc,
+                                   MatrixDependencyManager<DenseMatrix, int> * hasAtoms) :
+    hasAtoms_(hasAtoms),
+    feEngine_(atc->fe_engine())
+  {
+    if (!hasAtoms_) {
+      hasAtoms_ = (atc->interscale_manager()).dense_matrix_int("ElementHasInternal");
+    }
+    if (!hasAtoms_) {
+      throw ATC_Error("AtomElementMask::AtomElementMask - no element has atoms transfer provided");
+    }
+    hasAtoms_->register_dependence(this);
+  }
+
+  //--------------------------------------------------------
+  //  reset_quantity
+  //--------------------------------------------------------
+  void AtomElementMask::reset_quantity() const
+  {
+    const INT_ARRAY & hasAtoms(hasAtoms_->quantity());
+    int nElts = hasAtoms.size();
+    quantity_.resize(nElts,1);
+
+    for (int i = 0; i < nElts; ++i) {
+      quantity_(i,0) = hasAtoms(i,0);
+    }
+
+    // this seems to cause problems because many materials end up being null
+    const set<int> & nullElements = feEngine_->null_elements();
+    set<int>::const_iterator iset;
+    for (iset = nullElements.begin(); iset != nullElements.end(); iset++) {
+      int ielem = *iset;
+      quantity_(ielem,0) = false;
+    }
+  }
+
+  //--------------------------------------------------------
+  //--------------------------------------------------------
   //  Class ElementMaskNodeSet
   //--------------------------------------------------------
   //--------------------------------------------------------
@@ -475,6 +531,84 @@ namespace ATC {
       // sum up partial result arrays
       lammpsInterface_->logical_or(MPI_IN_PLACE, _nodesInternal_.ptr(), _nodesInternal_.size());
     }
+
+    quantity_.resize(nNodes_,1);
+    for (int i = 0; i < nNodes_; i++) {
+      if (_nodesInternal_(i) && _nodesGhost_(i)) {
+        quantity_(i,0) = BOUNDARY;
+      }
+      else if (_nodesInternal_(i)) {
+        quantity_(i,0) = MD_ONLY;
+      }
+      else {
+        quantity_(i,0) = FE_ONLY;
+      }
+    }
+  }
+
+  //--------------------------------------------------------
+  //--------------------------------------------------------
+  //  Class NodalGeometryTypeElementSet
+  //--------------------------------------------------------
+  //--------------------------------------------------------
+
+  //--------------------------------------------------------
+  //  Constructor
+  //--------------------------------------------------------
+  NodalGeometryTypeElementSet::NodalGeometryTypeElementSet(ATC_Coupling * atc,
+                                                           MatrixDependencyManager<DenseMatrix, int> * hasInternal) :
+    hasInternal_(hasInternal),
+    feEngine_(atc->fe_engine()),
+    nNodes_(atc->num_nodes()),
+    nElts_((atc->fe_engine())->num_elements())
+  {
+    if (!hasInternal_) {
+      hasInternal_ = (atc->interscale_manager()).dense_matrix_int("ElementHasInternal");
+    }
+    if (!hasInternal_) {
+      throw ATC_Error("NodalGeometryTypeElementSet:  No ElementHasInternal object provided or exists");
+    }
+    hasInternal_->register_dependence(this);
+  }
+
+  //--------------------------------------------------------
+  //  reset_quantity
+  //--------------------------------------------------------
+  void NodalGeometryTypeElementSet::reset_quantity() const
+  {
+    const INT_ARRAY & hasInternal(hasInternal_->quantity());
+    _nodesInternal_.resize(nNodes_);
+    _nodesInternal_ = 0;
+    _nodesGhost_.reset(nNodes_);
+    _nodesGhost_ = 0;
+    Array<int> nodes;
+    
+    
+    
+    vector<int> myElems = feEngine_->fe_mesh()->owned_elts();
+    // iterate through all elements owned by this processor
+    for (vector<int>::iterator elemsIter = myElems.begin();
+         elemsIter != myElems.end();
+         ++elemsIter)
+      {
+        int ielem = *elemsIter;
+        if (hasInternal(ielem,0)) {
+          feEngine_->element_connectivity(ielem,nodes);
+          for (int j = 0; j < nodes.size(); j++) {
+            _nodesInternal_(nodes(j)) = 1;
+          }
+        }
+        else {
+          feEngine_->element_connectivity(ielem,nodes);
+          for (int j = 0; j < nodes.size(); j++) {
+            _nodesGhost_(nodes(j)) = 1;
+          }
+        }
+      }
+    
+    // sum up partial result arrays
+    lammpsInterface_->logical_or(MPI_IN_PLACE, _nodesInternal_.ptr(), _nodesInternal_.size());
+    lammpsInterface_->logical_or(MPI_IN_PLACE, _nodesGhost_.ptr(), _nodesGhost_.size());
 
     quantity_.resize(nNodes_,1);
     for (int i = 0; i < nNodes_; i++) {
@@ -1487,10 +1621,11 @@ namespace ATC {
                 KernelFunction* kernelFunction,
                 DENS_MAN* atomCoarseGrainingPositions,
                 DIAG_MAN* weights,
-                const DENS_MAT * reference):
+                DENS_MAN * reference):
     OnTheFlyKernelAccumulationNormalized(atc,source,kernelFunction,atomCoarseGrainingPositions,weights),
     reference_(reference)
   {
+    reference_->register_dependence(this);
   }
 
   //--------------------------------------------------------
@@ -1499,7 +1634,7 @@ namespace ATC {
   void OnTheFlyKernelAccumulationNormalizedReferenced::reset_quantity() const
   {
     OnTheFlyKernelAccumulationNormalized::reset_quantity();
-    quantity_ -= *reference_;
+    quantity_ -= reference_->quantity();
   }
 
   //--------------------------------------------------------
@@ -1734,10 +1869,11 @@ namespace ATC {
                 PerAtomQuantity<double> * source,
                 DENS_MAN* atomCoarseGrainingPositions,
                 DIAG_MAN* weights,
-                const DENS_MAT * reference):
+                DENS_MAN * reference):
     OnTheFlyMeshAccumulationNormalized(atc,source,atomCoarseGrainingPositions,weights),
     reference_(reference)
   {
+    reference_->register_dependence(this);
   }
 
   //--------------------------------------------------------
@@ -1746,7 +1882,7 @@ namespace ATC {
   void OnTheFlyMeshAccumulationNormalizedReferenced::reset_quantity() const
   {
     OnTheFlyMeshAccumulationNormalized::reset_quantity();
-    quantity_ -= *reference_;
+    quantity_ -= reference_->quantity();
   }
 
   //--------------------------------------------------------

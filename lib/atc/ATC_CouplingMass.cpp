@@ -16,9 +16,13 @@
 
 // Other Headers
 #include <vector>
-#include <map>
 #include <set>
 #include <utility>
+
+using ATC_Utility::to_string;
+using std::map;
+using std::string;
+using std::pair;
 
 namespace ATC {
 
@@ -114,7 +118,7 @@ namespace ATC {
   void ATC_CouplingMass::initialize()
   {
     
-    fieldSizes_[SPECIES_CONCENTRATION] = speciesIds_.size();
+    fieldSizes_[SPECIES_CONCENTRATION] = ntracked();
 
     // Base class initalizations
     ATC_Coupling::initialize();
@@ -128,10 +132,9 @@ namespace ATC {
       if (consistentInitialization_) {
         
         DENS_MAT & massDensity(fields_[MASS_DENSITY].set_quantity());
-        const DENS_MAT & atomicMassDensity(nodalAtomicFields_[MASS_DENSITY].quantity());
+        const DENS_MAT & atomicMassDensity(atomicFields_[MASS_DENSITY]->quantity());
         
         DENS_MAT & speciesConcentration(fields_[SPECIES_CONCENTRATION].set_quantity());
-        //const DENS_MAT & atomicSpeciesConcentration(nodalAtomicFields_[SPECIES_CONCENTRATION].quantity());
         const DENS_MAT & atomicSpeciesConcentration(atomicFields_[SPECIES_CONCENTRATION]->quantity());
 
         const INT_ARRAY & nodeType(nodalGeometryType_->quantity());
@@ -146,6 +149,8 @@ namespace ATC {
         }
       }
     }
+
+
     // other initializatifields_[SPECIES_CONCENTRATION].quantity()ons
     if (reset_methods()) { 
       for (_tiIt_ = timeIntegrators_.begin(); _tiIt_ != timeIntegrators_.end(); ++_tiIt_) {
@@ -153,9 +158,13 @@ namespace ATC {
       }
     }
     extrinsicModelManager_.initialize();  // always needed to construct new Poisson solver
-    if (timeFilterManager_.need_reset()) { init_filter(); }
-    timeFilterManager_.initialize(); // clears need for reset
+    if (timeFilterManager_.need_reset()) {
+      init_filter();
+    }
+    // clears need for reset
+    timeFilterManager_.initialize();
     atomicRegulator_->initialize();
+    ghostManager_.initialize();
     
     if (!initialized_) {
       // initialize sources based on initial FE temperature
@@ -262,23 +271,12 @@ namespace ATC {
   }
 
   //--------------------------------------------------
-  // pack_fields
-  //   bundle all allocated field matrices into a list
-  //   for output needs
-  //--------------------------------------------------
-
-  void ATC_CouplingMass::pack_species_fields(RESTART_LIST & data)
-  {
-  }
-  
-  //--------------------------------------------------
   // write_restart_file
   //   bundle matrices that need to be saved and call
   //   fe_engine to write the file
   //--------------------------------------------------
   void ATC_CouplingMass::write_restart_data(string fileName, RESTART_LIST & data)
   {
-    pack_species_fields(data);
     ATC_Method::write_restart_data(fileName,data);
   }
     
@@ -289,8 +287,6 @@ namespace ATC {
   //--------------------------------------------------
   void ATC_CouplingMass::read_restart_data(string fileName, RESTART_LIST & data)
   {
-
-    pack_species_fields(data);
     ATC_Method::read_restart_data(fileName,data);
   }
 
@@ -322,29 +318,7 @@ namespace ATC {
     }
   }
 
-  //--------------------------------------------------------
-  //  pre_init_integrate
-  //    time integration before the lammps atomic
-  //    integration of the Verlet step 1
-  //--------------------------------------------------------
-  void ATC_CouplingMass::pre_init_integrate()
-  {
-    ATC_Coupling::pre_init_integrate();
-    double dt = lammpsInterface_->dt();
-    for (_tiIt_ = timeIntegrators_.begin(); _tiIt_ != timeIntegrators_.end(); ++_tiIt_) {
-      (_tiIt_->second)->pre_initial_integrate1(dt);
-    }
-
-    // Apply thermostat force to atom velocities
-    atomicRegulator_->apply_pre_predictor(dt,lammpsInterface_->ntimestep());
-
-    // Predict nodal temperatures and time derivatives based on FE data
-    for (_tiIt_ = timeIntegrators_.begin(); _tiIt_ != timeIntegrators_.end(); ++_tiIt_) {
-      (_tiIt_->second)->pre_initial_integrate2(dt);
-    }
-    extrinsicModelManager_.pre_init_integrate();
-  }
-
+#ifdef OBSOLETE
   //--------------------------------------------------------
   //  mid_init_integrate
   //    time integration between the velocity update and
@@ -385,7 +359,7 @@ namespace ATC {
     update_time(0.5); // half step
     ATC_Coupling::post_init_integrate();
   }
-
+#endif
   //--------------------------------------------------------
   //  post_final_integrate
   //    integration after the second stage lammps atomic 
@@ -516,8 +490,7 @@ namespace ATC {
          }
       }
       if (lammpsInterface_->rank_zero()) {
-        // tagged data
-
+        // tagged data --only for molecule
         map<string,DENS_MAN>::iterator densMan;
         for (densMan = taggedDensMan_.begin(); densMan != taggedDensMan_.end(); densMan++) {
           outputData[densMan->first] = & (densMan->second).set_quantity();

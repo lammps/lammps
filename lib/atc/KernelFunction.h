@@ -1,4 +1,3 @@
-/** KernelFunction: Hardy smoothing  */
 #ifndef KERNEL_FUNCTION_H
 #define KERNEL_FUNCTION_H
 
@@ -22,7 +21,7 @@ namespace ATC {
    ~KernelFunctionMgr();
   private:
     static KernelFunctionMgr * myInstance_;
-    set<KernelFunction*> pointerSet_;
+    std::set<KernelFunction*> pointerSet_;
   };
 
   /**

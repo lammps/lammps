@@ -9,6 +9,12 @@
 #include "LammpsInterface.h"
 #include "PrescribedDataManager.h"
 #include "PhysicsModel.h"
+#include <sstream>
+
+using std::stringstream;
+using std::vector;
+using std::map;
+using std::string;
 
 namespace ATC {
 

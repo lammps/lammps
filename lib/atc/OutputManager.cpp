@@ -6,6 +6,15 @@
 #include "ATC_Error.h"
 #include "LammpsInterface.h"
 
+using std::ofstream;
+using std::stringstream;
+using std::ios_base;
+using std::setw;
+using std::string;
+using std::map;
+using std::vector;
+using std::set;
+
 namespace ATC {
 
 static const int kFieldPrecison = 12;

@@ -1,14 +1,12 @@
 #ifndef CHARGE_REGULATOR_H
 #define CHARGE_REGULATOR_H
 
-// ATC headers
 #include "AtomicRegulator.h"
-
-//class PoissonSolver;
 #include "PoissonSolver.h"
-
-// other headers
 #include <map>
+#include <utility>
+#include <string>
+#include <vector>
 
 namespace ATC {
 
@@ -47,7 +45,7 @@ namespace ATC {
       ChargeRegulatorType method;
       double value; 
       int groupBit;
-      string groupTag;
+      std::string groupTag;
       double depth;
       double permittivity; 
       ChargedSurfaceType surfaceType;
@@ -79,8 +77,8 @@ namespace ATC {
 
 
     /** registry charge regulators */
-    map<string,ChargeRegulatorMethod *> regulators_;
-    map<string,ChargeRegulatorParameters> parameters_;
+    std::map<std::string,ChargeRegulatorMethod *> regulators_;
+    std::map<std::string,ChargeRegulatorParameters> parameters_;
 
   private:
     ChargeRegulator(); // DO NOT define this
@@ -116,7 +114,7 @@ namespace ATC {
     /** poisson solver */
     PoissonSolver * poissonSolver_;
     /** (subset) of Green's functions */
-    vector<SparseVector<double> > greensFunctions_;
+    std::vector<SparseVector<double> > greensFunctions_;
     /** cutoff radius */
     double rC_,rCsq_;
     /** conversion constants */
@@ -158,6 +156,9 @@ namespace ATC {
         
     /** destructor */
     ~ChargeRegulatorMethodFeedback(){};
+
+    /** instantiate all needed data */
+    virtual void construct_transfers();
 
     /** initialize */
     virtual void initialize(void); 
@@ -242,7 +243,7 @@ namespace ATC {
 
   class ChargeRegulatorMethodEffectiveCharge : public ChargeRegulatorMethod {
 
-  typedef map<int,pair<DENS_VEC,double> > NODE_TO_XF_MAP;
+  typedef std::map<int,std::pair<DENS_VEC,double> > NODE_TO_XF_MAP;
   
   public:
   
@@ -265,7 +266,7 @@ namespace ATC {
 
     // member data
     double chargeDensity_;
-    map<int,double> nodalChargePotential_;
+    std::map<int,double> nodalChargePotential_;
 
     NODE_TO_XF_MAP nodeXFMap_;  
 

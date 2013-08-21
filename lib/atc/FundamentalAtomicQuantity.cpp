@@ -1,5 +1,7 @@
 #include "FundamentalAtomicQuantity.h"
 
+using std::string;
+
 namespace ATC {
 
   //--------------------------------------------------------

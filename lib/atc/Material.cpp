@@ -10,6 +10,18 @@
 #include "ViscousStress.h"
 #include "BodyForce.h"
 #include "ElectronFlux.h"
+#include <sstream>
+#include <fstream>
+#include <vector>
+
+using ATC_Utility::command_line;
+using ATC_Utility::str2dbl;
+using ATC_Utility::str2int;
+using std::stringstream;
+using std::set;
+using std::fstream;
+using std::string;
+using std::vector;
 
 namespace ATC {
 

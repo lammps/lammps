@@ -8,9 +8,8 @@
 #include "DependencyManager.h"
 #include "PaqAtcUtility.h"
 #include <set>
+#include <string>
 #include <vector>
-
-using namespace std;
 
 namespace ATC {
 
@@ -98,7 +97,7 @@ namespace ATC {
     virtual int size_comm() const {return nCols_;};
 
     /** changes size of temperary lammps storage data if transfer is being used */
-    virtual void grow_lammps_array(int nmax, const string & tag);
+    virtual void grow_lammps_array(int nmax, const std::string & tag);
 
     /** rearrange memory of temporary lammps storage data, called from copy_array */
     virtual void copy_lammps_array(int i, int j);
@@ -291,7 +290,7 @@ namespace ATC {
     virtual int size_comm() {return 0;};
 
     /** changes size of temperary lammps storage data if transfer is being used */
-    virtual void grow_lammps_array(int nmax, const string & tag) {};
+    virtual void grow_lammps_array(int nmax, const std::string & tag) {};
 
     /** rearrange memory of temporary lammps storage data, called from copy_array */
     virtual void copy_lammps_array(int i, int j) {};
@@ -741,7 +740,7 @@ namespace ATC {
     virtual int unpack_exchange(int i, double *buffer) {return 0;};
 
     /** changes size of temperary lammps storage data if transfer is being used */
-    virtual void grow_lammps_array(int nmax, const string & tag) {};
+    virtual void grow_lammps_array(int nmax, const std::string & tag) {};
 
     /** rearrange memory of temporary lammps storage data, called from copy_array */
     virtual void copy_lammps_array(int i, int j) {};
@@ -798,7 +797,7 @@ namespace ATC {
     virtual int unpack_exchange(int i, double *buffer) {return 0;};
 
     /** changes size of temperary lammps storage data if transfer is being used */
-    virtual void grow_lammps_array(int nmax, const string & tag) {};
+    virtual void grow_lammps_array(int nmax, const std::string & tag) {};
 
     /** rearrange memory of temporary lammps storage data, called from copy_array */
     virtual void copy_lammps_array(int i, int j) {};
@@ -957,7 +956,7 @@ namespace ATC {
     virtual int size_comm() const {return 1;};
 
     /** changes size of temperary lammps storage data if transfer is being used */
-    virtual void grow_lammps_array(int nmax, const string & tag);
+    virtual void grow_lammps_array(int nmax, const std::string & tag);
 
     /** rearrange memory of temporary lammps storage data, called from copy_array */
     virtual void copy_lammps_array(int i, int j);
@@ -1201,7 +1200,7 @@ namespace ATC {
     virtual int size_comm() const {return 2*maxEntriesPerRow_;};
 
     /** changes size of temperary lammps storage data if transfer is being used */
-    virtual void grow_lammps_array(int nmax, const string & tag);
+    virtual void grow_lammps_array(int nmax, const std::string & tag);
 
     /** rearrange memory of temporary lammps storage data, called from copy_array */
     virtual void copy_lammps_array(int i, int j);
@@ -1213,8 +1212,7 @@ namespace ATC {
     virtual void lammps_force_reset() {};
 
     /** resets local storage */
-    //WIP_JAT revert this to force_reset when reset_nlocal is functioning correctly (see comment by ATC_Method::reset_nlocal - interscaleManager_.reset_nlocal())
-    virtual void reset_nlocal() { this->set_reset();}
+    virtual void reset_nlocal() { this->set_reset();};
 
   protected:
     
@@ -1439,7 +1437,7 @@ namespace ATC {
     virtual int size_comm() const {return 0;};
 
     /** changes size of temperary lammps storage data if transfer is being used */
-    virtual void grow_lammps_array(int nmax, const string & tag) {};
+    virtual void grow_lammps_array(int nmax, const std::string & tag) {};
 
     /** rearrange memory of temporary lammps storage data, called from copy_array */
     virtual void copy_lammps_array(int i, int j) {};

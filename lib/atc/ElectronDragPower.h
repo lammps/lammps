@@ -3,9 +3,7 @@
 
 #include <map>
 #include <string>
-
-using std::map;
-using std::string;
+#include <fstream>
 
 #include "Material.h"
 #include "ATC_TypeDefs.h"
@@ -46,8 +44,8 @@ namespace ATC {
   class ElectronDragPowerLinear : public ElectronDragPower
   {
     public:
-      ElectronDragPowerLinear(fstream &matfile,
-                              map<string,double> & parameters,
+      ElectronDragPowerLinear(std::fstream &matfile,
+                              std::map<std::string,double> & parameters,
                               Material * material_);
       virtual ~ElectronDragPowerLinear() {};
       virtual bool electron_drag_power(const FIELD_MATS &fields,

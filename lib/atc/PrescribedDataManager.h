@@ -3,7 +3,9 @@
 
 #include <vector>
 #include <map>
+#include <set>
 #include <string>
+#include <utility>
 
 #include "ATC_TypeDefs.h"
 #include "Function.h"
@@ -15,9 +17,6 @@
 
 
 namespace ATC {
-  using std::vector;
-  using std::pair;
-  using std::map;
 
   /**
    *  @class  PrescribedDataManager 
@@ -31,7 +30,7 @@ namespace ATC {
     //enum Bc_Type {FREE=0,FIELD,SOURCE};
 
     PrescribedDataManager(FE_Engine * feEngine, 
-                          const map<FieldName,int> & fieldSize);
+                          const std::map<FieldName,int> & fieldSize);
     ~PrescribedDataManager();
 
     /** add/remove a field */
@@ -39,13 +38,13 @@ namespace ATC {
     void remove_field(FieldName fieldName);
 
     /** direct access to ics */
-    map < FieldName, Array2D < XT_Function * > > *  
+    std::map < FieldName, Array2D < XT_Function * > > *  
       ics(void) { return & ics_; }
     const Array2D < XT_Function * > *  
       ics(FieldName fieldName) { return & ics_[fieldName]; }
     /** direct access to bcs */
 
-    const map < FieldName, BCS > &  bcs(void) const   
+    const std::map < FieldName, BCS > &  bcs(void) const   
     { 
       return bcValues_; 
     }
@@ -56,10 +55,10 @@ namespace ATC {
     }
     /** */
     void bcs
-      (const FieldName fieldName, const set<int> nodes, BCS & bcs, 
+      (const FieldName fieldName, const std::set<int> nodes, BCS & bcs, 
       bool local = false) const;
     /** */
-    map < FieldName, Array2D < XT_Function * > > *  
+    std::map < FieldName, Array2D < XT_Function * > > *  
       bc_functions(void) { return & bcs_; }
     /** */
     const Array2D < XT_Function * > *  
@@ -70,7 +69,7 @@ namespace ATC {
        return ((faceSourcesRobin_.find(fieldName)->second).size() > 0) ;
     }
     /** */
-    const map<PAIR, Array<UXT_Function*> > *
+    const std::map<PAIR, Array<UXT_Function*> > *
       robin_functions(FieldName fieldName) { return & faceSourcesRobin_[fieldName]; }
     
     /** query initial state */
@@ -89,11 +88,11 @@ namespace ATC {
     }
 
     /** */
-    set<int> fixed_nodes(
+    std::set<int> fixed_nodes(
                   const FieldName thisField,
                   const int thisIndex=0)  const
     { 
-      set<int> fixed;
+      std::set<int> fixed;
       const Array2D < XT_Function *> & bcs = bcs_.find(thisField)->second;
       for (int node = 0; node < bcs.nRows() ; node++) {
         if (bcs(node,thisIndex)) fixed.insert(node);
@@ -103,7 +102,7 @@ namespace ATC {
     /** */
     void fixed_nodes(
                      const FieldName thisField,
-                     set<int> & fixed,
+                     std::set<int> & fixed,
                      const int thisIndex=0)  const
     {
       const Array2D < XT_Function *> & bcs = bcs_.find(thisField)->second;
@@ -139,18 +138,18 @@ namespace ATC {
     }
 
     /** */
-    set<int> flux_face_nodes(
+    std::set<int> flux_face_nodes(
                   const FieldName thisField,
                   const int thisIndex=0)  const
     { 
-      set<int> fluxes;
+      std::set<int> fluxes;
       //list of nodes to insert. 
       //1 for nodes to insert, 0 for nodes not to insert.
       int toInsert[nNodes_];
       for (int i = 0; i < nNodes_; ++i) toInsert[i] = 0;
 
-      const map < pair <int, int>, Array < XT_Function * > > & sources = faceSources_.find(thisField)->second;
-      map < pair <int, int>, Array < XT_Function * > >::const_iterator fset_iter;
+      const std::map < std::pair <int, int>, Array < XT_Function * > > & sources = faceSources_.find(thisField)->second;
+      std::map < std::pair <int, int>, Array < XT_Function * > >::const_iterator fset_iter;
       for (fset_iter = sources.begin(); fset_iter != sources.end(); fset_iter++) {
         int ielem = fset_iter->first.first;
         // if this is not our element, do not do calculations
@@ -176,7 +175,7 @@ namespace ATC {
     /** */
     void flux_face_nodes(
                   const FieldName thisField,
-                  set<int> fluxes,
+                  std::set<int> fluxes,
                   const int thisIndex=0)  const
     {
       //list of nodes to insert. 
@@ -184,8 +183,8 @@ namespace ATC {
       int toInsert[nNodes_];
       for (int i = 0; i < nNodes_; ++i) toInsert[i] = 0;
 
-      const map < pair <int, int>, Array < XT_Function * > > & sources = faceSources_.find(thisField)->second;
-      map < pair <int, int>, Array < XT_Function * > >::const_iterator fset_iter;
+      const std::map < std::pair <int, int>, Array < XT_Function * > > & sources = faceSources_.find(thisField)->second;
+      std::map < std::pair <int, int>, Array < XT_Function * > >::const_iterator fset_iter;
       for (fset_iter = sources.begin(); fset_iter != sources.end(); fset_iter++) {
         int ielem = fset_iter->first.first;
         // if this is not our element, do not do calculations
@@ -208,11 +207,11 @@ namespace ATC {
     }
 
     /** */
-    set<int> flux_element_nodes(
+    std::set<int> flux_element_nodes(
                   const FieldName thisField,
                   const int thisIndex=0)  const
     { 
-      set<int> fluxes;
+      std::set<int> fluxes;
       //list of nodes to insert. 
       //1 for nodes to insert, 0 for nodes not to insert.
       int toInsert[nNodes_];
@@ -242,7 +241,7 @@ namespace ATC {
     /** */
     void flux_element_nodes(
                   const FieldName thisField,
-                  set<int> fluxes,
+                  std::set<int> fluxes,
                   const int thisIndex=0)  const
     {
       //list of nodes to insert. 
@@ -280,16 +279,21 @@ namespace ATC {
     }
   
     /** set initial field values */
-    void fix_initial_field (const string nodesetName, 
+    void fix_initial_field (const std::string nodesetName, 
                             const FieldName thisField, 
                             const int thisIndex, 
                             const XT_Function * f);
     /** un/set field values at fixed nodesets */
-    void fix_field (const string nodesetName, 
+    void fix_field (const std::set<int> nodeset, 
                     const FieldName thisField, 
                     const int thisIndex, 
                     const XT_Function * f);
-    void unfix_field (const string nodesetName, 
+    /** un/set field values at fixed nodesets */
+    void fix_field (const std::string nodesetName, 
+                    const FieldName thisField, 
+                    const int thisIndex, 
+                    const XT_Function * f);
+    void unfix_field (const std::string nodesetName, 
                       const FieldName thisField, 
                       const int thisIndex); 
     /** un/set field values at fixed nodes */
@@ -301,26 +305,26 @@ namespace ATC {
                       const FieldName thisField, 
                       const int thisIndex); 
     /** un/set fluxes */
-    void fix_flux  (const string facesetName,
+    void fix_flux  (const std::string facesetName,
                     const FieldName thisField, 
                     const int thisIndex, 
                     const XT_Function * f);
-    void unfix_flux(const string facesetName,
+    void unfix_flux(const std::string facesetName,
                     const FieldName thisField, 
                     const int thisIndex);
-    void fix_robin (const string facesetName,
+    void fix_robin (const std::string facesetName,
                     const FieldName thisField, 
                     const int thisIndex, 
                     const UXT_Function * f);
-    void unfix_robin(const string facesetName,
+    void unfix_robin(const std::string facesetName,
                     const FieldName thisField, 
                     const int thisIndex);
     /** un/set sources */
-    void fix_source(const string nodesetName,
+    void fix_source(const std::string nodesetName,
                     const FieldName thisField, 
                     const int thisIndex, 
                     const XT_Function * f);
-    void unfix_source(const string nodesetName,
+    void unfix_source(const std::string nodesetName,
                       const FieldName thisField, 
                       const int thisIndex);
     /** get initial conditions  */
@@ -358,7 +362,7 @@ namespace ATC {
     int nElems_;
 
     /** names and sizes of fields */
-    map<FieldName,int> fieldSizes_;
+    std::map<FieldName,int> fieldSizes_;
 
     /** access to all the FE computations */
     FE_Engine * feEngine_;
@@ -366,22 +370,22 @@ namespace ATC {
     // node numbering & dof numbering : contiguous
     // fieldname & bc_type : types/enums
     /** ics : XT_Function * f = ics_[field](inode,idof) */
-    map < FieldName, Array2D < XT_Function * > > ics_;
+    std::map < FieldName, Array2D < XT_Function * > > ics_;
 
     /** bcs: essential bcs XT_Function * f = bcs_[field][face](idof) */
-    map < FieldName, Array2D < XT_Function * > > bcs_;
+    std::map < FieldName, Array2D < XT_Function * > > bcs_;
 
     /** sources :  XT_Function * f = faceSources_[field][face](idof) */
-    map < FieldName, map < pair <int, int>, Array < XT_Function * > > > 
+    std::map < FieldName, std::map < std::pair <int, int>, Array < XT_Function * > > > 
       faceSources_;
     /** sources :  UXT_Function * f = faceSourcesRobin_[field][face](idof) */
-    map < FieldName, map < pair <int, int>, Array < UXT_Function * > > > 
+    std::map < FieldName, std::map < std::pair <int, int>, Array < UXT_Function * > > > 
       faceSourcesRobin_;
     /** sources :  XT_Function * f = elementSources_[field](ielem,idof) */
-    map < FieldName, Array2D < XT_Function * > > elementSources_;
+    std::map < FieldName, Array2D < XT_Function * > > elementSources_;
 
     /** values of bcs in a compact set */
-    map < FieldName, BCS > bcValues_;
+    std::map < FieldName, BCS > bcValues_;
   };
 
 }

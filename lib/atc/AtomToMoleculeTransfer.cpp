@@ -2,6 +2,8 @@
 #include "AtomToMoleculeTransfer.h"
 #include "ATC_Method.h"
 
+using std::set;
+
 namespace ATC {
 
   //--------------------------------------------------------

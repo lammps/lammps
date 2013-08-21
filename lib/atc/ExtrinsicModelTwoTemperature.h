@@ -1,16 +1,12 @@
 #ifndef EXTRINSIC_MODEL_TWO_TEMPERATURE
 #define EXTRINSIC_MODEL_TWO_TEMPERATURE
 
-/** owned fields: ELECTRON_TEMPERATURE */
+#include <string>
 
-// ATC headers
 #include "ExtrinsicModel.h"
 #include "FieldEulerIntegrator.h"
 
-using namespace std;
 namespace ATC {
-
-  // forward declarations
   class ATC_Coupling;
   class PrescribedDataManager;
   class ExtrinsicModel;
@@ -19,6 +15,7 @@ namespace ATC {
   /**
    *  @class  ExtrinsicModelTwoTemperature
    *  @brief  add electron temperature physics to phonon physics
+   *          owned field: ELECTRON_TEMPERATURE
    */
 
   //--------------------------------------------------------
@@ -34,7 +31,7 @@ namespace ATC {
     // constructor
     ExtrinsicModelTwoTemperature(ExtrinsicModelManager * modelManager,
                    ExtrinsicModelType modelType,
-                   string matFileName);
+                   std::string matFileName);
 
     // destructor
     virtual ~ExtrinsicModelTwoTemperature();

@@ -12,6 +12,7 @@
 
 using ATC_Utility::dbl_geq;
 using ATC_Utility::det3;
+using std::vector;
 
 namespace ATC {
 

@@ -21,8 +21,7 @@
 #include "neigh_list.h" // neighbor list
 #include "update.h" // timestepping information
 #include "pair.h" // pair potentials
-
-#include "pair_eam.h" // pair potentials
+#include "MANYBODY/pair_eam.h" // pair potentials
 #include "lattice.h" // lattice parameters
 #include "bond.h" // bond potentials
 #include "comm.h" //
@@ -39,6 +38,15 @@ using ATC_Utility::to_string;
 #include <cstring>
 #include <map>
 #include <typeinfo>
+
+using std::max;
+using std::stringstream;
+using std::copy;
+using std::map;
+using std::pair;
+using std::string;
+using std::set;
+using LAMMPS_NS::bigint;
 
 namespace ATC {
 
@@ -264,6 +272,8 @@ double ** LammpsInterface::vatom() const { return lammps_->atom->v; }
 double ** LammpsInterface::fatom() const { return lammps_->atom->f; }
 
 const int * LammpsInterface::atom_mask() const { return (const int*)lammps_->atom->mask; }
+
+int * LammpsInterface::atom_mask() { return lammps_->atom->mask; }
 
 int * LammpsInterface::atom_type() const { return lammps_->atom->type; }
 
@@ -761,7 +771,7 @@ double LammpsInterface::pair_force(int n, double rsq,
   return lammps_->force->bond->single(type,rsq,i,j,fmag_over_rmag);
 }
 double LammpsInterface::pair_force(
-  map< pair< int,int >,int >::const_iterator itr, double rsq, 
+                                   map< std::pair< int,int >,int >::const_iterator itr, double rsq, 
   double & fmag_over_rmag, int nbonds) const
 { 
   int n = itr->second;
@@ -769,14 +779,14 @@ double LammpsInterface::pair_force(
     return pair_force(n, rsq,fmag_over_rmag);
   }
   else {
-    pair <int,int>  ij = itr->first;
+    std::pair <int,int>  ij = itr->first;
     int i = ij.first;
     int j = ij.second;
     return pair_force(i,j, rsq,fmag_over_rmag);
   }
 }
 double LammpsInterface::pair_force(
-  pair< pair< int,int >,int > apair, double rsq, 
+                                   std::pair< std::pair< int,int >,int > apair, double rsq, 
   double & fmag_over_rmag, int nbonds) const
 { 
   int n = apair.second;
@@ -784,7 +794,7 @@ double LammpsInterface::pair_force(
     return pair_force(n, rsq,fmag_over_rmag);
   }
   else {
-    pair <int,int>  ij = apair.first;
+    std::pair <int,int>  ij = apair.first;
     int i = ij.first;
     int j = ij.second;
     return pair_force(i,j, rsq,fmag_over_rmag);
@@ -1257,6 +1267,8 @@ int * LammpsInterface::neighbor_list_ilist() const { return list_->ilist; }
 int ** LammpsInterface::neighbor_list_firstneigh() const { return list_->firstneigh; }
 
 int   LammpsInterface::neighbor_ago() const { return lammps_->neighbor->ago; }
+
+int   LammpsInterface::reneighbor_frequency() const {return lammps_->neighbor->every; }
 
 // -----------------------------------------------------------------
 //  bond list interface methods

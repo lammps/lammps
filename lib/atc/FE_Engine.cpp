@@ -6,6 +6,7 @@
 #include "PhysicsModel.h"
 #include "KernelFunction.h"
 #include "Utility.h"
+#include "MPI_Wrappers.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <map>
@@ -16,6 +17,13 @@
 
 
 using namespace std;
+using ATC_Utility::is_numeric;
+using ATC_Utility::to_string;;
+using MPI_Wrappers::allsum;
+using MPI_Wrappers::int_allsum;
+using MPI_Wrappers::rank_zero;
+using MPI_Wrappers::print_msg;
+using MPI_Wrappers::print_msg_once;
 
 namespace ATC{
 
@@ -132,26 +140,24 @@ namespace ATC{
   bool FE_Engine::modify(int narg, char **arg)
   {
     bool match = false;
-    /*! \page man_mesh fix_modify AtC mesh create
+    /*! \page man_mesh_create fix_modify AtC mesh create
       \section syntax
       fix_modify AtC mesh create <nx> <ny> <nz> <region-id> 
-      <f|p> <f|p> <f|p>
+      <f|p> <f|p> <f|p> \n
       - nx ny nz = number of elements in x, y, z
       - region-id = id of region that is to be meshed
-      - f p p = perioidicity flags for x, y, z
-      fix_modify AtC mesh quadrature <quad> where
-      - quad = one of <nodal|gauss1|gauss2|gauss3|face>
-      - when a mesh is created it defaults to gauss2, use this call
-        to change it after the fact
+      - f p p = periodicity flags for x, y, z
       \section examples
-      <TT> fix_modify AtC create mesh 10 1  1  feRegion p p p </TT>
+      <TT> fix_modify AtC mesh create 10 1  1  feRegion p p p </TT> \n
       \section description
       Creates a uniform mesh in a rectangular region
       \section restrictions
-      creates only uniform rectangular grids in a rectangular region
+      Creates only uniform rectangular grids in a rectangular region
       \section related
+      \ref man_mesh_quadrature
       \section default
-      none
+      When created, mesh defaults to gauss2 (2-point Gaussian) quadrature. 
+      Use "mesh quadrature" command to change quadrature style.
     */
     int argIdx = 0;
     if (strcmp(arg[argIdx],"mesh")==0) { 
@@ -214,6 +220,20 @@ namespace ATC{
         quadrature_ = GAUSS2;
         match = true;
       }
+    /*! \page man_mesh_quadrature fix_modify AtC mesh quadrature
+      \section syntax
+      fix_modify AtC mesh quadrature <quad>
+      - quad = one of <nodal|gauss1|gauss2|gauss3|face> --- when a mesh is created it defaults to gauss2, use this call to change it after the fact
+      \section examples
+      <TT> fix_modify AtC mesh quadrature face </TT>
+      \section description
+      (Re-)assigns the quadrature style for the existing mesh.
+      \section restrictions
+      \section related
+      \ref man_mesh_create
+      \section default
+      none 
+    */
       else if (strcmp(arg[argIdx],"quadrature")==0) {
         argIdx++;
         string quadStr = arg[argIdx];
@@ -221,9 +241,22 @@ namespace ATC{
         set_quadrature(quadEnum);
         match = true;
       }
-      /** Example command for reading a mesh from a file:
-          fix_modify atc mesh read fileName */
-      // read mesh 
+    /*! \page man_mesh_read fix_modify AtC mesh read 
+      \section syntax
+      fix_modify AtC mesh read <filename> <f|p> <f|p> <f|p> 
+      - filename = name of file containing mesh to be read 
+      - f p p = periodicity flags for x, y, z
+      \section examples
+      <TT> fix_modify AtC mesh read myComponent.mesh p p p </TT> \n
+      <TT> fix_modify AtC mesh read myOtherComponent.exo </TT>
+      \section description
+      Reads a mesh from a text or exodus file, and assigns periodic
+      boundary conditions if needed. 
+      \section restrictions
+      \section related
+      \section default
+      periodicity flags are false by default 
+    */
       else if (strcmp(arg[argIdx],"read")==0) {
         argIdx++;
         string meshFile = arg[argIdx++];
@@ -247,9 +280,18 @@ namespace ATC{
         }
         match = true;
       }
-      /** Example command for reading a mesh from a file:
-          fix_modify atc mesh write fileName */
-      // write mesh
+    /*! \page man_mesh_write fix_modify AtC mesh write 
+      \section syntax
+      fix_modify AtC mesh write <filename> 
+      - filename = name of file to write mesh
+      \section examples
+      <TT> fix_modify AtC mesh write myMesh.mesh </TT> \n
+      \section description
+      Writes a mesh to a text file. 
+      \section restrictions
+      \section related
+      \section default
+    */
       else if (strcmp(arg[argIdx],"write")==0) {
         argIdx++;
         string meshFile = arg[argIdx];
@@ -936,6 +978,7 @@ namespace ATC{
       DIAG_MAT & M = massMatrices[_fieldName_].set_quantity();
       allsum(communicator_,MPI_IN_PLACE, M.ptr(), M.size());
     }
+
     // fix zero diagonal entries due to null material elements
     for (int inode = 0; inode < nNodesUnique_; ++inode) {
       for (int j = 0; j < nfields; ++j) {
@@ -2534,8 +2577,10 @@ namespace ATC{
     const MATRIX & ptCoords,
     SPAR_MAT & N ) const
   {
+#ifdef EXTENDED_ERROR_CHECKING
 
    print_msg_once(communicator_,"kernel matrix bandwidth " +to_string(kernel_matrix_bandwidth(ptCoords)));
+#endif
 
     if (! kernelFunction_) throw ATC_Error("no kernel function specified");
     int npts = ptCoords.nRows();

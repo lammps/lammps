@@ -4,7 +4,6 @@
 // ATC headers
 #include "TimeIntegrator.h"
 
-using namespace std;
 namespace ATC {
 
   // forward declarations

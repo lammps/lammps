@@ -2,9 +2,10 @@
 #define OUTPUT_MANAGER_H
 
 #include "ATC_TypeDefs.h"
-
 #include <map>
+#include <vector>
 #include <string>
+#include <set>
 
 
 // 1 -> scalar
@@ -12,8 +13,6 @@
 // NOT 6 -> tensor  xx,xy,xz,yy,yz,zz
 // 6 -> tensor  xx,yy,zz,xy,zx,yz
 // 9 -> tensor  xx,xy,xz,yx,yy,yz,zx,zy,zz
-
-using namespace std;
 
 namespace ATC {
 
@@ -32,20 +31,20 @@ namespace ATC {
 
   public:
     OutputManager(void);
-    OutputManager(string outputPrefix, set<int> &otypes);
+    OutputManager(std::string outputPrefix, std::set<int> &otypes);
     ~OutputManager(void);
 
     /** initialize output */
-    void initialize(string outputPrefix, set<int> &otypes);
+    void initialize(std::string outputPrefix, std::set<int> &otypes);
 
     /** set output options */
     void set_option(OutputOption option, bool value); 
 
     // Dump text-based field info to disk for later restart
-    void write_restart_file(string fileName, RESTART_LIST *data);
+    void write_restart_file(std::string fileName, RESTART_LIST *data);
 
     // Read text-based field file written from write_restart_file
-    void read_restart_file(string fileName, RESTART_LIST *data);
+    void read_restart_file(std::string fileName, RESTART_LIST *data);
 
     /** write initial/reference geometry
         default is to write point data, 
@@ -62,14 +61,14 @@ namespace ATC {
       const int *node_map=NULL);
 
     /** add custom names for any field */
-    void add_field_names(const string& name, const vector<string>& list) {
+    void add_field_names(const std::string& name, const std::vector<std::string>& list) {
       fieldNames_[name] = list; }
     /** add a scalar to a text output file */
-    void add_global(const string& name, const double& value) {
+    void add_global(const std::string& name, const double& value) {
       globalData_[name] = value; }
 
     /** delete a scalar from the output */
-    void delete_global(const string& name) { globalData_.erase(name); }
+    void delete_global(const std::string& name) { globalData_.erase(name); }
 
     /** reset the stored output scalars */
     void reset_globals() { globalData_.clear(); writeGlobalsHeader_=true; }
@@ -93,10 +92,10 @@ namespace ATC {
       else 
         return false;
     }
-    bool custom_name(const string field, const int index, string & name) const {
-      map<string,vector<string> >::const_iterator itr = fieldNames_.find(field);
+    bool custom_name(const std::string field, const int index, std::string & name) const {
+      std::map<std::string,std::vector<std::string> >::const_iterator itr = fieldNames_.find(field);
       if (itr == fieldNames_.end()) return false;
-      vector<string>  names = itr->second;
+      std::vector<std::string>  names = itr->second;
       name = names[index];
       return true;
     }
@@ -106,8 +105,8 @@ namespace ATC {
 
     void write_geometry_ensight(void);
     void write_geometry_text(void);
-    void write_data_ensight(string name, const MATRIX *data, const int *node_map);
-    void write_text_data_header(OUTPUT_LIST *data, ofstream & text, int k);
+    void write_data_ensight(std::string name, const MATRIX *data, const int *node_map);
+    void write_text_data_header(OUTPUT_LIST *data, std::ofstream & text, int k);
     void write_data_text(OUTPUT_LIST *data);
     void write_data_text(OUTPUT_LIST *data, const int *node_map);
     void write_data_vtk(OUTPUT_LIST *data);
@@ -118,7 +117,7 @@ namespace ATC {
     bool initialized_, firstStep_, firstGlobalsWrite_, writeGlobalsHeader_;
 
     /** custom field names */
-    map<string,vector<string> > fieldNames_;
+    std::map<std::string,std::vector<std::string> > fieldNames_;
 
     /**  pointers to mesh data */
     const MATRIX * coordinates_;
@@ -130,9 +129,9 @@ namespace ATC {
     /** data type */
     int dataType_;
     /** base name for output files */
-    string outputPrefix_;
+    std::string outputPrefix_;
     /** list of output timesteps */
-    vector<double> outputTimes_;
+    std::vector<double> outputTimes_;
     /** output type flags */
     bool ensightOutput_,textOutput_,fullTextOutput_,vtkOutput_;
     /** output tensor as its components */
@@ -140,7 +139,7 @@ namespace ATC {
     /** output vector as its components */
     bool vectorToComponents_;
     /** global variables */
-    map<string,double> globalData_;
+    std::map<std::string,double> globalData_;
   };
 }
 #endif

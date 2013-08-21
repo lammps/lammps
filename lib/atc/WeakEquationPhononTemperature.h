@@ -1,6 +1,9 @@
 #ifndef WEAK_EQUATION_PHONON_TEMPERATURE_H
 #define WEAK_EQUATION_PHONON_TEMPERATURE_H
 
+#include <set>
+#include <string>
+
 #include "WeakEquation.h"
 
 namespace ATC{
@@ -43,10 +46,10 @@ class WeakEquationPhononTemperature : public WeakEquation {
                            DENS_MAT_VEC &flux) const ;
 
    /** necessary interfaces */
-  virtual set<string> needs_material_functions(void) const
+  virtual std::set<std::string> needs_material_functions(void) const
   {
-    string list[3] = {"thermal_energy","heat_capacity","heat_flux"};
-    set<string> needs(list,list+3);
+    std::string list[3] = {"thermal_energy","heat_capacity","heat_flux"};
+    std::set<std::string> needs(list,list+3);
     return needs;
 
   }
@@ -99,9 +102,9 @@ class WeakEquationPhononTemperatureExchange :
                            DENS_MAT &flux) const;
 
   /** necessary interfaces */
-  virtual set<string> needs_material_functions(void) const
+  virtual std::set<std::string> needs_material_functions(void) const
   {
-    set<string> needs
+    std::set<std::string> needs
       = WeakEquationPhononTemperature::needs_material_functions();
     needs.insert("electron_phonon_exchange");
     return needs;

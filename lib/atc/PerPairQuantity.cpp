@@ -6,6 +6,8 @@
 #include "Quadrature.h"
 
 using ATC::HeartBeat;
+using std::pair;
+using std::map;
 
 namespace ATC {
 
@@ -24,37 +26,7 @@ PairMapNeighbor::PairMapNeighbor(LammpsInterface * lammpsInterface, int groupbit
   PairMap(lammpsInterface,groupbit)
 {
 };
-bool PairMapNeighbor::need_reset(void) const
-{
-  int inum = lammpsInterface_->neighbor_list_inum();
-  int *ilist = lammpsInterface_->neighbor_list_ilist();
-  int *numneigh = lammpsInterface_->neighbor_list_numneigh();
-  int **firstneigh = lammpsInterface_->neighbor_list_firstneigh();
-  const int * mask = lammpsInterface_->atom_mask();
 
-  pair< int,int > pair_ij;
-  map< pair< int,int >,int >::iterator pairMapIterator;
-
-  int npairs = 0; 
-  for (int i = 0; i < inum; i++) { 
-    int lammps_i = ilist[i];
-    if (mask[lammps_i] & groupbit_) {
-      for (int j = 0; j < numneigh[lammps_i]; j++) {
-        int lammps_j = firstneigh[lammps_i][j];
-        pair_ij.first = lammps_i;
-        pair_ij.second = lammps_j;
-        pairMapIterator = pairMap_.find(pair_ij);
-        if (pairMapIterator == pairMap_.end()) {
-          return true;
-        }
-        npairs++;
-      }
-    }
-  }
-  if (npairs != (int) pairMap_.size()) return true;
-  nPairs_ = npairs;
-  return false;
-}
 void PairMapNeighbor::reset(void) const 
 {
   int inum = lammpsInterface_->neighbor_list_inum();
@@ -65,7 +37,7 @@ void PairMapNeighbor::reset(void) const
 
   pairMap_.clear(); 
   int pairIndex = nBonds_;
-  pair< int,int > pair_ij;
+  std::pair< int,int > pair_ij;
   for (int i = 0; i < inum; i++) { 
     int lammps_i = ilist[i];
     if (mask[lammps_i] & groupbit_) {
@@ -80,6 +52,7 @@ void PairMapNeighbor::reset(void) const
     }
   }
   nPairs_ = pairIndex;
+  needReset_ = false;
 }
 
 //==========================================================
@@ -306,7 +279,7 @@ void BondMatrixKernel::reset(void) const
   int nNodes = feMesh_->num_nodes_unique(); 
   quantity_.reset(nNodes,nPairs);
   double lam1,lam2;
-  pair< int,int > pair_jk;
+  std::pair< int,int > pair_jk;
   int heartbeatFreq = (nNodes <= 10 ? 1 : (int) nNodes / 10);
   HeartBeat beat("computing bond matrix ",heartbeatFreq);
   beat.start();
@@ -362,7 +335,7 @@ void BondMatrixPartitionOfUnity::reset(void) const
   int nodes_per_element = feMesh_->num_nodes_per_element(); 
   Array<int> node_list(nodes_per_element); 
   DENS_VEC shp(nodes_per_element);
-  pair< int,int > pair_jk;
+  std::pair< int,int > pair_jk;
   int heartbeatFreq = (int) nPairs / 10;
   HeartBeat beat("computing bond matrix ",heartbeatFreq);
   beat.start();

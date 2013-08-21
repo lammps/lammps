@@ -1,10 +1,11 @@
 #ifndef FE_ENGINE_H
 #define FE_ENGINE_H
-// Other headers
+
 #include <vector>
 #include <map>
-
-// ATC headers
+#include <set>
+#include <utility>
+#include <string>
 #include "ATC_TypeDefs.h"
 #include "Array.h"
 #include "Array2D.h"
@@ -14,11 +15,7 @@
 #include "MeshReader.h"
 #include "mpi.h"
 
-using namespace std;
-
 namespace ATC {
-  
-  // Forward declarations
   
   class ATC_Method;
   class FE_Element;
@@ -86,7 +83,7 @@ namespace ATC {
     //----------------------------------------------------------------
     /*@{*/
     /** these assume the caller is handling the parallel collection */
-    void initialize_output(int rank, string outputPrefix, set<int> otypes);
+    void initialize_output(int rank, std::string outputPrefix, std::set<int> otypes);
   
     /** write geometry */
     void write_geometry(void);
@@ -96,19 +93,19 @@ namespace ATC {
     void write_data(double time, FIELDS &soln, OUTPUT_LIST *data=NULL);
     void write_data(double time, OUTPUT_LIST *data);
 
-    void write_restart_file(string fileName, RESTART_LIST *data)
+    void write_restart_file(std::string fileName, RESTART_LIST *data)
     { outputManager_.write_restart_file(fileName,data); }
 
-    void read_restart_file(string fileName, RESTART_LIST *data)
+    void read_restart_file(std::string fileName, RESTART_LIST *data)
     { outputManager_.read_restart_file(fileName,data); }
 
-    void delete_elements(const set<int> &elementList);
-    void cut_mesh(const set<PAIR> &cutFaces, const set<int> &edgeNodes);
+    void delete_elements(const std::set<int> &elementList);
+    void cut_mesh(const std::set<PAIR> &cutFaces, const std::set<int> &edgeNodes);
 
-    void add_global(const string name, const double value) 
+    void add_global(const std::string name, const double value) 
     { outputManager_.add_global(name,value); }
 
-    void add_field_names(const string field, const vector<string> & names)
+    void add_field_names(const std::string field, const std::vector<std::string> & names)
     { outputManager_.add_field_names(field,names); }
 
     void reset_globals() { outputManager_.reset_globals(); }
@@ -129,7 +126,7 @@ namespace ATC {
                             AliasArray<int>         &conn,
                             DENS_MAT                &N,
                             DIAG_MAT                &weights,
-                            map<FieldName,DENS_MAT> &fieldsAtIPs) const;
+                            std::map<FieldName,DENS_MAT> &fieldsAtIPs) const;
 
     /** interpolate fields & gradients */
     void interpolate_fields(const int       ielem,
@@ -148,7 +145,7 @@ namespace ATC {
     /** compute tangent matrix for a pair of fields - native quadrature */
     void compute_tangent_matrix(
                 const RHS_MASK          &rhsMask,
-                const pair<FieldName,FieldName> row_col,
+                const std::pair<FieldName,FieldName> row_col,
                 const FIELDS            &fields,
                 const PhysicsModel      *physicsModel,
                 const Array<int>        &elementMaterials,
@@ -157,10 +154,10 @@ namespace ATC {
 
     /** compute tangent matrix for a pair of fields - given quadrature */
     void compute_tangent_matrix(const RHS_MASK &rhsMask,
-                const pair<FieldName,FieldName> row_col,
+                const std::pair<FieldName,FieldName> row_col,
                 const FIELDS            &fields,
                 const PhysicsModel      *physicsModel,
-                const Array<set<int> >  &pointMaterialGroups,
+                const Array<std::set<int> >  &pointMaterialGroups,
                 const DIAG_MAT          &weights,
                 const SPAR_MAT          &N,
                 const SPAR_MAT_VEC      &dN,
@@ -201,7 +198,7 @@ namespace ATC {
                        const Array<FieldName> &mask, 
                        const FIELDS           &fields,
                        const PhysicsModel     *physicsModel,
-                       const Array<set<int> > &pointMaterialGroups,
+                       const Array<std::set<int> > &pointMaterialGroups,
                        const DIAG_MAT         &weights,
                        const SPAR_MAT         &N,
                        MASS_MATS              &mass_matrix) const;
@@ -231,7 +228,7 @@ namespace ATC {
     void compute_rhs_vector(const RHS_MASK         &rhsMask,
                             const FIELDS           &fields,
                             const PhysicsModel     *physicsModel,
-                            const Array<set<int> > &pointMaterialGroups,
+                            const Array<std::set<int> > &pointMaterialGroups,
                             const DIAG_MAT         &weights,
                             const SPAR_MAT         &N,
                             const SPAR_MAT_VEC     &dN,
@@ -241,7 +238,7 @@ namespace ATC {
     void compute_source(const Array2D<bool>    &rhsMask,
                         const FIELDS           &fields,
                         const PhysicsModel     *physicsModel,
-                        const Array<set<int> > &pointMaterialGroups,
+                        const Array<std::set<int> > &pointMaterialGroups,
                         const DIAG_MAT         &weights,
                         const SPAR_MAT         &N,
                         const SPAR_MAT_VEC     &dN,
@@ -260,7 +257,7 @@ namespace ATC {
                                const FIELDS       &fields,
                                const PhysicsModel *physicsModel,
                                const Array<int>   &elementMaterials,
-                               const set<PAIR>    &faceSet, 
+                               const std::set<PAIR>    &faceSet, 
                                FIELDS             &rhs) const;
 
     /** compute the flux on using an L2 interpolation of the flux */
@@ -268,14 +265,14 @@ namespace ATC {
                                const FIELDS           &fields,
                                const PhysicsModel     *physicsModel,
                                const Array<int>       &elementMaterials,
-                               const Array<set<int> > &pointMaterialGroups,
+                               const Array<std::set<int> > &pointMaterialGroups,
                                const DIAG_MAT         &weights,
                                const SPAR_MAT         &N,
                                const SPAR_MAT_VEC     &dN,
                                const DIAG_MAT         &flux_mask,
                                FIELDS                 &rhs,
                                const DenseMatrix<bool> *elementMask=NULL,
-                               const set<int>          *nodeSet=NULL) const;
+                               const std::set<int>          *nodeSet=NULL) const;
 
     /** compute prescribed flux given an array of functions of x & t */
     void add_fluxes(const Array<bool>    &fieldMask,  
@@ -319,7 +316,7 @@ namespace ATC {
 
     /** compute surface flux of a nodal field */
     void field_surface_flux(const DENS_MAT  &field,
-                            const set<PAIR> &faceSet,
+                            const std::set<PAIR> &faceSet,
                             DENS_MAT        &values,
                             const bool      contour=false,
                             const int       axis=2) const;
@@ -409,7 +406,7 @@ namespace ATC {
     /** \name nodeset */
     //----------------------------------------------------------------
     /** pass through */
-    void create_nodeset(const string &name, const set<int> &nodeset) 
+    void create_nodeset(const std::string &name, const std::set<int> &nodeset) 
     { feMesh_->create_nodeset(name,nodeset); }
 
     //----------------------------------------------------------------
@@ -461,7 +458,7 @@ namespace ATC {
     { feMesh_->element_field(eltIdx, field, local_field); }
 
     /** access list of elements to be deleted */
-    const set<int> &null_elements(void) const
+    const std::set<int> &null_elements(void) const
     { return nullElements_; } 
 
     /** access to the amended nodal coordinate values */
@@ -511,15 +508,15 @@ namespace ATC {
                      Array<bool> periodic);
 
     /** read an unstructured mesh from a file */
-    void read_mesh(string meshFile, Array<bool> & periodicity);
+    void read_mesh(std::string meshFile, Array<bool> & periodicity);
     /*@}*/
 
     /** data that can be used for a subset of original mesh */
-    set<int> nullElements_;
+    std::set<int> nullElements_;
     
     /** faces upon which nodes are duplicated */
-    set<PAIR> cutFaces_;
-    set<int> cutEdge_;
+    std::set<PAIR> cutFaces_;
+    std::set<int> cutEdge_;
   
     /** workspace */
     int nNodesPerElement_;

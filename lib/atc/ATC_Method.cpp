@@ -13,11 +13,24 @@
 #include "TransferLibrary.h"
 #include "KernelFunction.h"
 #include "Utility.h"
+#include "FieldManager.h"
 
 #include <fstream>
 #include <sstream>
+#include <iostream>
 
 using ATC_Utility::sgn;
+using ATC_Utility::to_string;
+using ATC_Utility::is_dbl;
+
+using std::stringstream;
+using std::ifstream;
+using std::ofstream;
+using std::string;
+using std::map;
+using std::set;
+using std::vector;
+using std::pair;
 
 namespace ATC {
 
@@ -27,6 +40,9 @@ namespace ATC {
     lammpsInterface_(LammpsInterface::instance()),
     interscaleManager_(this),
     timeFilterManager_(this),
+    integrateInternalAtoms_(false),
+    atomTimeIntegrator_(NULL),
+    ghostManager_(this),
     feEngine_(NULL),
     initialized_(false),
     meshDataInitialized_(false),
@@ -37,9 +53,6 @@ namespace ATC {
     atomProcGhostCoarseGrainingPositions_(NULL),
     atomReferencePositions_(NULL),
     nsd_(lammpsInterface_->dimension()),
-#ifdef EXTENDED_ERROR_CHECKING
-    atomSwitch_(false),
-#endif
     xref_(NULL),
     readXref_(false),
     needXrefProcessorGhosts_(false),
@@ -47,6 +60,7 @@ namespace ATC {
     needsAtomToElementMap_(true),
     atomElement_(NULL),
     atomGhostElement_(NULL),
+    internalElementSet_(""),
     atomMasses_(NULL),
     atomPositions_(NULL),
     atomVelocities_(NULL),
@@ -82,8 +96,6 @@ namespace ATC {
     nLocal_(0),
     nLocalTotal_(0),
     nLocalGhost_(0),
-    nInternal_(0),
-    nGhost_(0),
     atomToElementMapType_(LAGRANGIAN),
     atomToElementMapFrequency_(0),
     regionID_(-1),
@@ -97,15 +109,18 @@ namespace ATC {
     accumulantMolGrad_(NULL),
     accumulantWeights_(NULL),
     accumulantInverseVolumes_(&invNodeVolumes_),
+    accumulantBandwidth_(0),
     useRestart_(false),
     hasRefPE_(false),
     setRefPE_(false),
     setRefPEvalue_(false),
     refPEvalue_(0.),
     readRefPE_(false),
+    nodalRefPotentialEnergy_(NULL),
     simTime_(0.0),
     stepCounter_(0)
   {
+    lammpsInterface_->print_msg_once("version "+version());    
     lammpsInterface_->set_fix_pointer(thisFix);
     interscaleManager_.set_lammps_data_prefix();
     grow_arrays(lammpsInterface_->nmax());
@@ -119,6 +134,7 @@ namespace ATC {
   {
     lammpsInterface_->destroy_2d_double_array(xref_);
     lammpsInterface_->destroy_2d_double_array(perAtomOutput_);
+    if (atomTimeIntegrator_) delete atomTimeIntegrator_;
     if (feEngine_) delete feEngine_;
   }
 
@@ -214,6 +230,11 @@ namespace ATC {
       accumulantMol_=&kernelAccumulantMol_; // KKM add
       accumulantMolGrad_=&kernelAccumulantMolGrad_; // KKM add
     }
+    // pass off to ghost manager
+    else if (strcmp(arg[argIdx],"boundary_dynamics")==0) {
+      argIdx++;
+      match = ghostManager_.modify(narg-argIdx,&arg[argIdx]);
+    }
 
     // parsing handled here
     else {
@@ -246,10 +267,7 @@ pecified
         ( see \ref man_fix_atc )
         \section related
         \section default
-        By default, on-the-fly calculation is not active (i.e. off). However, co
-de does a memory allocation
-        check to determine if it can store all needed bond and kernel matrix ele
-ments. If this allocation        fails, on-the-fly is activated. \n
+        By default, on-the-fly calculation is not active (i.e. off). However, code does a memory allocation check to determine if it can store all needed bond and kernel matrix ele ments. If this allocation fails, on-the-fly is activated. \n
       */
 
       else if (strcmp(arg[argIdx],"on_the_fly")==0) {
@@ -296,11 +314,12 @@ ments. If this allocation        fails, on-the-fly is activated. \n
         \section related 
         see \ref man_fix_atc
         \section default 
+        no default format
         output indexed by time
       */
       else if (strcmp(arg[argIdx],"output")==0) {
         argIdx++;
-      /*! \page man_output_nodeset fix_modify AtC output
+      /*! \page man_output_nodeset fix_modify AtC output nodeset
         \section syntax
         fix_modify AtC output nodeset <nodeset_name> <operation>
         - nodeset_name (string) = name of nodeset to be operated on
@@ -337,13 +356,13 @@ ments. If this allocation        fails, on-the-fly is activated. \n
         }
 
 
-      /*! \page man_boundary_integral fix_modify AtC boundary_integral 
+      /*! \page man_boundary_integral fix_modify AtC output boundary_integral 
         \section syntax
-        fix_modify AtC boundary_integral [field] faceset [name]
+        fix_modify AtC output boundary_integral [field] faceset [name]
         - field (string) : name of hardy field
         - name (string)  : name of faceset
         \section examples
-        <TT> fix_modify AtC boundary_integral stress faceset loop1 </TT> \n
+        <TT> fix_modify AtC output boundary_integral stress faceset loop1 </TT> \n
         \section description
         Calculates a surface integral of the given field dotted with the
         outward normal of the faces and puts output in the "GLOBALS" file
@@ -355,7 +374,7 @@ ments. If this allocation        fails, on-the-fly is activated. \n
         none
       */
 
-      /*! \page man_contour_integral fix_modify AtC contour_integral 
+      /*! \page man_contour_integral fix_modify AtC output contour_integral
         \section syntax
         fix_modify AtC output contour_integral [field] faceset [name] <axis [x | y | z
 ]>
@@ -363,7 +382,7 @@ ments. If this allocation        fails, on-the-fly is activated. \n
         - name (string)  : name of faceset
         - axis (string)  : x or y or z
         \section examples
-        <TT> fix_modify AtC contour_integral stress faceset loop1 </TT> \n
+        <TT> fix_modify AtC output contour_integral stress faceset loop1 </TT> \n
         \section description
         Calculates a surface integral of the given field dotted with the
         outward normal of the faces and puts output in the "GLOBALS" file
@@ -391,7 +410,7 @@ ments. If this allocation        fails, on-the-fly is activated. \n
           }
         } // end "boundary_integral" || "contour_integral"
 
-      /*! \page man_output_elementset fix_modify AtC output
+      /*! \page man_output_elementset fix_modify AtC output elementset
         \section syntax
         fix_modify AtC output volume_integral <eset_name> <field> {`
         - set_name (string) = name of elementset to be integrated over
@@ -490,12 +509,12 @@ ments. If this allocation        fails, on-the-fly is activated. \n
         }
       }
     // add a species for tracking
-    /*! \page man_mass_control fix_modify AtC add_species <TAG> group|type <ID>
+    /*! \page man_add_species fix_modify AtC add_species
       \section syntax
-      fix_modify_AtC add_species <TAG> group|type <ID> \n
-      
+      fix_modify_AtC add_species <TAG> <group|type> <ID> \n
       - <TAG> = tag for tracking a species \n
       - group|type = LAMMPS defined group or type of atoms \n
+      - <ID> = name of group or type number \n
       \section examples
       <TT> fix_modify AtC add_species gold type 1 </TT> \n
       <TT> group GOLDGROUP type 1 </TT> \n
@@ -512,16 +531,12 @@ ments. If this allocation        fails, on-the-fly is activated. \n
       string speciesTag = arg[argIdx];
       string tag = arg[argIdx];
       argIdx++;
-      IdType idType;
       if (strcmp(arg[argIdx],"group")==0) {
-        idType = ATOM_GROUP;
         if (narg-argIdx == 2) {
           string name = arg[++argIdx];
           int id = lammpsInterface_->group_bit(name);
           groupList_.push_back(id); 
           groupNames_.push_back(tag); 
-
-          speciesIds_[speciesTag] = pair<IdType,int>(idType,id); // OBSOLETE
         } 
         else {
           while (++argIdx < narg) {
@@ -530,17 +545,14 @@ ments. If this allocation        fails, on-the-fly is activated. \n
             string tag = speciesTag+"-"+name;
             groupList_.push_back(id); 
             groupNames_.push_back(tag); 
-            speciesIds_[speciesTag] = pair<IdType,int>(idType,id); // OBSOLETE
           }
         }
       }
       else if (strcmp(arg[argIdx],"type")==0) {
-        idType = ATOM_TYPE;
         if (narg-argIdx == 2) {
           int id = atoi(arg[++argIdx]);
           typeList_.push_back(id); 
           typeNames_.push_back(tag); 
-          speciesIds_[speciesTag] = pair<IdType,int>(idType,id); // OBSOLETE
         } 
         else {
           while (++argIdx < narg) {
@@ -548,20 +560,19 @@ ments. If this allocation        fails, on-the-fly is activated. \n
             string tag = speciesTag+"_"+to_string(id);
             typeList_.push_back(id); 
             typeNames_.push_back(tag); 
-            speciesIds_[speciesTag] = pair<IdType,int>(idType,id); // OBSOLETE
           }
         }
       }
       else {
-        throw ATC_Error("ATC_Method: only groups or types for add_species"); }
+        throw ATC_Error("ATC_Method: add_species only handles groups or types"); }
       match = true;
     }
 
     // remove species from tracking
     
-    /*! \page man_disp_control fix_modify AtC remove_species <TAG>
+    /*! \page man_remove_species fix_modify AtC remove_species
       \section syntax
-      fix_modify_AtC remove_species <TAG> \n
+      fix_modify_AtC delete_species <TAG> \n
       
       - <TAG> = tag for tracking a species \n
       \section examples
@@ -573,22 +584,41 @@ ments. If this allocation        fails, on-the-fly is activated. \n
       \section default
       No defaults for this command. 
     */
-    else if (strcmp(arg[argIdx],"remove_species")==0) {
+    else if (strcmp(arg[argIdx],"delete_species")==0) {
       argIdx++;
-      string speciesTag = arg[argIdx];
-      speciesIds_.erase(speciesTag);
-      taggedDensMan_.erase(speciesTag);
-      
+      string tag = arg[argIdx++];
+      if (strcmp(arg[argIdx],"group")==0) {
+        for (unsigned int j = 0; j < groupList_.size(); j++) {
+          if (tag == groupNames_[j]) {
+            groupList_.erase(groupList_.begin()+j); 
+            groupNames_.erase(groupNames_.begin()+j); 
+            break;
+          }
+        }
+      }
+      else if (strcmp(arg[argIdx],"type")==0) {
+        for (unsigned int j = 0; j < typeList_.size(); j++) {
+          if (tag == typeNames_[j]) {
+            typeList_.erase(typeList_.begin()+j); 
+            typeNames_.erase(typeNames_.begin()+j); 
+            break;
+          }
+        }
+      }
+      else {
+        throw ATC_Error("ATC_Method: delete_species only handles groups or types"); }
+      match = true;
       
     }
 
     // add a molecule for tracking
-    /*! \page man_mass_control fix_modify AtC add_molecule small|large <TAG> <GROUP_NAME>
+    /*! \page man_add_molecule fix_modify AtC add_molecule
       \section syntax
-      fix_modify_AtC add_molecule small|large <TAG> <GROUP_NAME> \n
+      fix_modify_AtC add_molecule <small|large> <TAG> <GROUP_NAME> \n
       
-      - <TAG> = tag for tracking a species \n
       - small|large = can be small if molecule size < cutoff radius, must be large otherwise \n
+      - <TAG> = tag for tracking a species \n
+      - <GROUP_NAME> = name of group that tracking will be applied to \n   
       \section examples
       <TT> group WATERGROUP type 1 2 </TT> \n
       <TT> fix_modify AtC add_molecule small water WATERGROUP </TT> \n
@@ -619,7 +649,7 @@ ments. If this allocation        fails, on-the-fly is activated. \n
     }
 
     // remove molecule from tracking
-    /*! \page man_disp_control fix_modify AtC remove_molecule <TAG>
+    /*! \page man_remove_molecule fix_modify AtC remove_molecule
       \section syntax
       fix_modify_AtC remove_molecule <TAG> \n
       
@@ -654,8 +684,6 @@ ments. If this allocation        fails, on-the-fly is activated. \n
         domains with periodic boundary conditions no boundary atoms should
         be defined.
         \section restrictions
-        \section related 
-        see \ref man_internal
         \section default 
         none
       */
@@ -665,6 +693,64 @@ ments. If this allocation        fails, on-the-fly is activated. \n
         match = true;
       }
 
+      /*! \page man_internal_atom_integrate fix_modify AtC internal_atom_integrate
+        \section syntax
+        fix_modify AtC internal_atom_integrate <on | off>
+        <TT> fix_modify AtC internal_atom_integrate on </TT>
+        \section description
+        Has AtC perform time integration for the atoms in the group on which it operates.  This does not include boundary atoms.
+        \section default
+        on for coupling methods, off for post-processors
+        off
+       */
+      else if (strcmp(arg[argIdx],"internal_atom_integrate")==0) {
+        argIdx++;
+        if (strcmp(arg[argIdx],"off")==0) {
+          integrateInternalAtoms_ = false;
+          match = true;
+        }
+        else {
+          integrateInternalAtoms_ = true;
+          match = true;
+        }
+      }
+
+      /*! \page man_internal_element_set fix_modify AtC internal_element_set
+        \section syntax
+        fix_modify AtC internal_element_set <element-set-name>
+        - <element-set-name> = name of element set defining internal region, or off
+        \section examples
+        <TT> fix_modify AtC internal_element_set myElementSet </TT>
+        <TT> fix_modify AtC internal_element_set off </TT>
+        \section description
+        Enables AtC to base the region for internal atoms to be an element set.
+        If no ghost atoms are used, all the AtC atoms must be constrained to remain
+        in this element set by the user, e.g., with walls.  If boundary atoms are 
+        used in conjunction with Eulerian atom maps
+        AtC will partition all atoms of a boundary or internal type to be of type internal
+        if they are in the internal region or to be of type boundary otherwise.
+        \section restrictions
+        If boundary atoms are used in conjunction with Eulerian atom maps, the Eulerian
+        reset frequency must be an integer multiple of the Lammps reneighbor frequency
+        \section related
+        see \ref atom_element_map_type and \ref boundary
+        \section default
+        off
+       */
+      else if (strcmp(arg[argIdx],"internal_element_set")==0) {
+        argIdx++;
+        if (strcmp(arg[argIdx],"off")==0) {
+          internalElementSet_ = "";
+          match = true;
+        }
+        else {
+          internalElementSet_ = string(arg[argIdx]);
+          const set<int> & elementSet((feEngine_->fe_mesh())->elementset(internalElementSet_)); // check it exists and is not trivial
+          if (elementSet.size()==0) throw ATC_Error("internal_element_set - element set " + internalElementSet_ + " has no elements");
+          match = true;
+        }
+      }
+
     /*! \page man_atom_weight fix_modify AtC atom_weight 
       \section syntax
       fix_modify AtC atom_weight <method> <arguments>
@@ -672,8 +758,8 @@ ments. If this allocation        fails, on-the-fly is activated. \n
           value: atoms in specified group assigned constant value given \n 
           lattice: volume per atom for specified lattice type (e.g. fcc) and parameter \n
           element: element volume divided among atoms within element \n
-          region: \n
-          group: \n
+          region: volume per atom determined based on the atom count in the MD regions and their volumes. Note: meaningful only if atoms completely fill all the regions. \n
+          group: volume per atom determined based on the atom count in a group and its volume\n
           read_in: list of values for atoms are read-in from specified file \n
       \section examples
        <TT> fix_modify atc atom_weight constant myatoms 11.8 </TT> \n
@@ -794,52 +880,6 @@ ments. If this allocation        fails, on-the-fly is activated. \n
       }
 
 
-    /*! \page man_initial_atomic fix_modify AtC initial_atomic 
-      \section syntax
-      \section examples
-      \section description
-      \section restrictions 
-      \section related
-      \section default
-    */
-      // set initial atomic displacements/velocities
-      /** Example commmand for initial atomic displacements/velocities
-          fix_modify atc initial_atomic displacement x all function gaussian  */
-      else if (strcmp(arg[argIdx],"initial_atomic")==0) {
-        XT_Function* function = NULL;
-        argIdx = 3;
-        if (strcmp(arg[argIdx],"all")==0) {
-
-          if (strcmp(arg[argIdx+1],"function")==0)  {
-            string fName = arg[argIdx+2];
-            int nargs = narg - 3 - argIdx;
-            double argF[nargs];
-            for (int i = 0; i < nargs; ++i) argF[i] = atof(arg[3+argIdx+i]);
-            function = XT_Function_Mgr::instance()->function(fName,nargs,argF);
-          }
-        }
-        if (function) {
-          argIdx--;
-          string sdim = arg[argIdx--];
-          int idim = 0;
-          double **x = lammpsInterface_->xatom();
-          double **v = lammpsInterface_->vatom();
-          if (string_to_index(sdim,idim)) {
-            if (strcmp(arg[argIdx],"displacement")==0) {
-              for (int i = 0; i < lammpsInterface_->nlocal(); ++i) {
-                x[i][idim] += function->f(x[i],0);
-              }
-            }
-            else if (strcmp(arg[argIdx],"velocity")==0) {
-              for (int i = 0; i < lammpsInterface_->nlocal(); ++i) {
-                v[i][idim] = function->f(x[i],0);
-              }
-            }
-          }
-          match = true;
-        }
-      }
-
       /*! \page man_reset_time fix_modify AtC reset_time 
       \section syntax
       fix_modify AtC reset_time <value> 
@@ -858,6 +898,25 @@ ments. If this allocation        fails, on-the-fly is activated. \n
           double time = atof(arg[argIdx]);
           set_time(time);
         }
+        match = true;
+      }
+
+      /*! \page man_reset_time fix_modify AtC kernel_bandwidth
+      \section syntax
+      fix_modify AtC kernel_bandwidth <value> 
+      \section examples
+       <TT> fix_modify atc reset_time 8 </TT> \n
+      \section description
+      Sets a maximum parallel bandwidth for the kernel functions during parallel communication.  If the command is not issued, the default will be to assume the bandwidth of the kernel matrix corresponds to the number of sampling locations.
+      \section restrictions
+      Only is used if kernel functions are being used.
+      \section related
+      \section default
+      Number of sample locations.
+      */
+      else if (strcmp(arg[argIdx],"kernel_bandwidth")==0) {
+        argIdx++;
+        accumulantBandwidth_ = atoi(arg[argIdx]);
         match = true;
       }
 
@@ -884,17 +943,19 @@ ments. If this allocation        fails, on-the-fly is activated. \n
 
       /*! \page man_set fix_modify AtC set 
         \section syntax
-        fix_modify AtC set reference_potential_energy <value>
-        - value (double) : optional user specified zero point for PE in native LAMMPS energy units
+        fix_modify AtC set reference_potential_energy <value_or_filename(optional)>
+        - value (double) : optional user specified zero point for PE in native LAMMPS energy units \n
+        - filename (string) : optional user specified string for file of nodal PE values to be read-in 
         \section examples
         <TT> fix_modify AtC set reference_potential_energy </TT> \n
         <TT> fix_modify AtC set reference_potential_energy -0.05 </TT> \n
+        <TT> fix_modify AtC set reference_potential_energy myPEvalues </TT> \n
         \section description
         Used to set various quantities for the post-processing algorithms.
-        Currently it only 
-        sets the zero point for the potential energy density using 
+        It sets the zero point for the potential energy density using 
         the value provided for all nodes, or from the current 
-        configuration of the lattice if no value is provided
+        configuration of the lattice if no value is provided, or 
+        values provided within the specified filename.
         \section restrictions
         Must be used with the hardy/field type of AtC fix 
         ( see \ref man_fix_atc )
@@ -1252,10 +1313,10 @@ ments. If this allocation        fails, on-the-fly is activated. \n
     }
     atomVolume_->set_reset();
 
-    // 
+    // 6d) reference values
     this->set_reference_potential_energy();
 
-    // 6d) atomic output for 0th step
+    // 6e) atomic output for 0th step
     update_peratom_output();
 
     // clear need for resets
@@ -1348,22 +1409,39 @@ ments. If this allocation        fails, on-the-fly is activated. \n
   }
 
   //-------------------------------------------------------------------
-  void ATC_Method::construct_transfers()
+  void ATC_Method::construct_methods()
   {
     
-    // per-atom quantities from lammps
-    atomMasses_ = interscaleManager_.fundamental_atom_quantity(LammpsInterface::ATOM_MASS);
-    atomPositions_ = interscaleManager_.fundamental_atom_quantity(LammpsInterface::ATOM_POSITION);
-    atomVelocities_ = interscaleManager_.fundamental_atom_quantity(LammpsInterface::ATOM_VELOCITY);
-    atomForces_ = interscaleManager_.fundamental_atom_quantity(LammpsInterface::ATOM_FORCE);
-    ComputedAtomQuantity * atomicPotentialEnergy = new ComputedAtomQuantity(this,lammpsInterface_->compute_pe_name(), peScale_);
-    interscaleManager_.add_per_atom_quantity(atomicPotentialEnergy,
-                                             "AtomicPotentialEnergy");
+    if (this->reset_methods()) {
+      if (atomTimeIntegrator_) delete atomTimeIntegrator_;
+      if (integrateInternalAtoms_) {
+        atomTimeIntegrator_ = new AtomTimeIntegratorType(this,INTERNAL);
+      }
+      else {
+        atomTimeIntegrator_ = new AtomTimeIntegrator();
+      }
+
+      // set up integration schemes for ghosts
+      ghostManager_.construct_methods();
+    }
+  }
+
+  //-------------------------------------------------------------------
+  void ATC_Method::construct_transfers()
+  {
+    this->construct_interpolant();
+
+    this->construct_molecule_transfers();
+
+    atomTimeIntegrator_->construct_transfers();
+    ghostManager_.construct_transfers();
+
+
+
   }
   //-------------------------------------------------------------------
   PerAtomDiagonalMatrix<double> * ATC_Method::create_atom_volume()
   {
-    // WIP_JAT have check for reset to see if we should freshen atomVolume_
     if (atomVolume_) {
       return atomVolume_;
     }
@@ -1424,12 +1502,34 @@ ments. If this allocation        fails, on-the-fly is activated. \n
       return atomVolume_;
     }
   }
+  //--------------------------------------------------------
+  void ATC_Method::init_integrate_velocity()
+  {
+    atomTimeIntegrator_->init_integrate_velocity(dt());
+    ghostManager_.init_integrate_velocity(dt());
+  }
+  //--------------------------------------------------------
+  void ATC_Method::init_integrate_position()
+  {
+    atomTimeIntegrator_->init_integrate_position(dt());
+    ghostManager_.init_integrate_position(dt());
+  }
+  //-------------------------------------------------------------------
+  void ATC_Method::post_init_integrate()
+  {
+    ghostManager_.post_init_integrate();
+  }
   //-------------------------------------------------------------------
   void ATC_Method::pre_exchange()
   {
     adjust_xref_pbc();
     // call interscale manager to sync atc per-atom data with lammps array ahead of parallel communication
     interscaleManager_.prepare_exchange();
+
+    // change types based on moving from internal region to ghost region
+    if ((atomToElementMapType_ == EULERIAN) && (step() % atomToElementMapFrequency_ == 0)) {
+      ghostManager_.pre_exchange();
+    }
   }
   //-------------------------------------------------------------------
   void ATC_Method::setup_pre_exchange()
@@ -1441,12 +1541,6 @@ ments. If this allocation        fails, on-the-fly is activated. \n
   //-------------------------------------------------------------------
   void ATC_Method::pre_neighbor()
   {
-#ifdef EXTENDED_ERROR_CHECKING
-    if (atomSwitch_) {
-      lammpsInterface_->print_msg("Atoms left this processor");
-      atomSwitch_ = false;
-    }
-#endif
     // reset quantities arising from atom exchange
     reset_nlocal();
 
@@ -1464,9 +1558,12 @@ ments. If this allocation        fails, on-the-fly is activated. \n
   {
     // this resets allow for the possibility of other fixes modifying positions and velocities, e.g. walls, but reduces efficiency
     interscaleManager_.lammps_force_reset();
-    if ((atomToElementMapType_ == EULERIAN) && (step() % atomToElementMapFrequency_ == 0)) {
-      reset_coordinates();
-    }
+  }
+  //--------------------------------------------------------
+  void ATC_Method::final_integrate()
+  {
+    atomTimeIntegrator_->final_integrate(dt());
+    ghostManager_.final_integrate(dt());
   }
   //-------------------------------------------------------------------
   void ATC_Method::post_final_integrate()
@@ -1507,10 +1604,9 @@ ments. If this allocation        fails, on-the-fly is activated. \n
 //-------------------------------------------------------------------
   void ATC_Method::set_reference_potential_energy(void)
   {
-    // set the reference value for nodal PE
     if (setRefPE_) {
       if (setRefPEvalue_) {
-        nodalRefPotentialEnergy_ = refPEvalue_;
+        nodalRefPotentialEnergy_->set_quantity() = refPEvalue_;
         setRefPEvalue_ = false;
       }
       else if (readRefPE_) {
@@ -1519,21 +1615,29 @@ ments. If this allocation        fails, on-the-fly is activated. \n
           ss << "reading reference potential energy from " << nodalRefPEfile_;
           LammpsInterface::instance()->print_msg(ss.str());
         }
-        nodalRefPotentialEnergy_.from_file(nodalRefPEfile_);
+        (nodalRefPotentialEnergy_->set_quantity()).from_file(nodalRefPEfile_);
         readRefPE_ = false;
       }
       else {
-        /* NOTE const */ PerAtomQuantity<double> * atomicPotentialEnergy
-
-
-
-
-
-          =interscaleManager_.per_atom_quantity("AtomicPotentialEnergy");
-        AtfProjection * pe = new AtfProjection(this, atomicPotentialEnergy,
-                            accumulant_, accumulantInverseVolumes_);
-        nodalRefPotentialEnergy_ = pe->quantity();
-        delete pe;
+        hasRefPE_ = false;
+        SPAR_MAN * referenceAccumulant = interscaleManager_.sparse_matrix("ReferenceAccumulant");
+        if (referenceAccumulant) {
+          referenceAccumulant->set_quantity() = accumulant_->quantity();
+        }
+        DIAG_MAN * referenceAccumulantInverseVolumes = interscaleManager_.diagonal_matrix("ReferenceAccumulantInverseVolumes");
+        if (referenceAccumulantInverseVolumes) {
+          referenceAccumulantInverseVolumes->set_quantity() = accumulantInverseVolumes_->quantity();
+        }
+        PAQ * atomicRefPe = interscaleManager_.per_atom_quantity("AtomicReferencePotential");
+        if (!atomicRefPe) {
+          throw ATC_Error("ATC_Method::set_reference_potential_energy - atomic reference PE object was not created during construct_transfers");
+        }
+        PAQ* pe = interscaleManager_.per_atom_quantity("AtomicPotentialEnergy");
+        if (!pe) {
+          throw ATC_Error("ATC_Method::set_reference_potential_energy - atomic PE object was not created during construct_transfers");
+        }
+        atomicRefPe->set_quantity() = pe->quantity();
+        atomicRefPe->fix_quantity();
       }
       setRefPE_ = false;
       hasRefPE_ = true;
@@ -1546,14 +1650,24 @@ ments. If this allocation        fails, on-the-fly is activated. \n
   // memory management and processor information exchange
   //=================================================================
 
+
+  //-----------------------------------------------------------------
+  // number of doubles 
+  //-----------------------------------------------------------------
+  int ATC_Method::doubles_per_atom() const
+  {
+    
+    int doubles = 4;
+    doubles += interscaleManager_.memory_usage();
+    return doubles;
+  }
+
   //-----------------------------------------------------------------
   // memory usage of local atom-based arrays 
   //-----------------------------------------------------------------
   int ATC_Method::memory_usage()
   {
-    
-    int bytes = 4;
-    bytes += interscaleManager_.memory_usage();
+    int bytes = doubles_per_atom();
     bytes *= lammpsInterface_->nmax() * sizeof(double);
     return bytes;
   }
@@ -1591,9 +1705,6 @@ ments. If this allocation        fails, on-the-fly is activated. \n
   //-----------------------------------------------------------------
   int ATC_Method::pack_exchange(int i, double *buf)
   {
-#ifdef EXTENDED_ERROR_CHECKING
-    atomSwitch_ = true;
-#endif
     buf[0] = xref_[i][0]; 
     buf[1] = xref_[i][1]; 
     buf[2] = xref_[i][2]; 
@@ -1719,28 +1830,29 @@ ments. If this allocation        fails, on-the-fly is activated. \n
     nLocalTotal_ = lammpsInterface_->nlocal();
     const int * mask = lammpsInterface_->atom_mask();
     nLocal_ = 0;
-    nLocalGhost_ = 0;
+    nLocalGhost_ = 0;   
+
     for (int i = 0; i < nLocalTotal_; ++i) {
       if (mask[i] & groupbit_) nLocal_++;
       if (mask[i] & groupbitGhost_) nLocalGhost_++;
     }
-    int local_data[2] = {nLocal_, nLocalGhost_};
-    int data[2] = {0, 0};
-    lammpsInterface_->int_allsum(local_data,data,2);
-    nInternal_ = data[0];
-    nGhost_    = data[1];
 
-    // set up internal & ghost maps & coordinates
+    // set up internal & ghost maps
     
     if (nLocal_>0) {
       // set map
-      internalToAtom_.reset(nLocal_);
+      internalToAtom_.resize(nLocal_);
       int j = 0;
       // construct internalToAtom map 
       //  : internal index -> local lammps atom index
       for (int i = 0; i < nLocalTotal_; ++i) {
         if (mask[i] & groupbit_) internalToAtom_(j++) = i;
       }
+#ifdef EXTENDED_ERROR_CHECKING
+      stringstream ss;
+      ss << "Nlocal = " << nLocal_ << " but only found " << j << "atoms";
+      if (j!=nLocal_) throw ATC_Error(ss.str());
+#endif
       // construct reverse map
       atomToInternal_.clear();
       for (int i = 0; i < nLocal_; ++i) {
@@ -1749,7 +1861,7 @@ ments. If this allocation        fails, on-the-fly is activated. \n
     }
     if (nLocalGhost_>0) {
       // set map
-      ghostToAtom_.reset(nLocalGhost_);
+      ghostToAtom_.resize(nLocalGhost_);
       int j = 0;
       for (int i = 0; i < nLocalTotal_; ++i) {
         if (mask[i] & groupbitGhost_) ghostToAtom_(j++) = i;
@@ -1904,7 +2016,7 @@ ments. If this allocation        fails, on-the-fly is activated. \n
     }
     // relies on shape functions
     if (ghost) {
-    restrict_volumetric_quantity(atomInfluence,influence,shpFcnGhost_->quantity());
+      restrict_volumetric_quantity(atomInfluence,influence,(interscaleManager_.per_atom_sparse_matrix("InterpolantGhost"))->quantity());
     }
     else {
     restrict_volumetric_quantity(atomInfluence,influence); 

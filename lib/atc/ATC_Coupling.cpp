@@ -10,6 +10,12 @@
 #include "PhysicsModel.h"
 #include "AtomToMoleculeTransfer.h"
 #include "MoleculeSet.h"
+#include "FieldManager.h"
+
+using std::string;
+using std::map;
+using std::pair;
+using std::set;
 
 namespace ATC {
   //--------------------------------------------------
@@ -26,6 +32,8 @@ namespace ATC {
     atomicRegulator_(NULL),
     atomQuadForInternal_(true),
     elementMask_(NULL),
+    elementMaskMass_(NULL),
+    elementMaskMassMd_(NULL),
     internalToMask_(NULL),
     internalElement_(NULL),
     ghostElement_(NULL),
@@ -46,6 +54,8 @@ namespace ATC {
     mdMassNormalization_ = true;
     // check to see if lammps has any charges
     if (lammpsInterface_->atom_charge()) trackCharge_ = true;
+    // default: perform velocity verlet
+    integrateInternalAtoms_ = true;
   }
   //--------------------------------------------------
   ATC_Coupling::~ATC_Coupling()
@@ -93,7 +103,7 @@ namespace ATC {
         \section syntax
         fix_modify AtC initial <field> <nodeset> <constant | function>
         - <field> = field name valid for type of physics, temperature | electron_temperature
-        - <nodeset> = name of set of nodes to apply boundary condition
+        - <nodeset> = name of set of nodes to apply initial condition
         - <constant | function> = value or name of function followed by its
           parameters
         \section examples
@@ -102,8 +112,6 @@ namespace ATC {
         Sets the initial values for the specified field at the specified nodes.
         \section restrictions
         keyword 'all' reserved in nodeset name
-        \section related 
-        see \ref man_internal
         \section default 
         none
       */
@@ -150,15 +158,29 @@ namespace ATC {
         parse_field(arg,argIdx,thisField,thisIndex);
         string nsetName(arg[argIdx++]);
         XT_Function * f = NULL;
+        // fix current value 
+        if (narg == argIdx) {
+          set<int> nodeSet = (feEngine_->fe_mesh())->nodeset(nsetName);
+          set<int>::const_iterator iset;
+          const DENS_MAT & field =(fields_.find(thisField)->second).quantity(); 
+          for (iset = nodeSet.begin(); iset != nodeSet.end(); iset++) {
+            int inode = *iset;
+            double v = field(inode,thisIndex);
+            f = XT_Function_Mgr::instance()->constant_function(v);
+            set<int> one; one.insert(inode);
+            prescribedDataMgr_->fix_field(one,thisField,thisIndex,f);
+          }
+         }
         // parse constant
-        if (narg == argIdx+1) {
+        else if (narg == argIdx+1) {
           f = XT_Function_Mgr::instance()->constant_function(atof(arg[argIdx]));
+          prescribedDataMgr_->fix_field(nsetName,thisField,thisIndex,f);
         }
         // parse function
         else {
           f = XT_Function_Mgr::instance()->function(&(arg[argIdx]),narg-argIdx);
+          prescribedDataMgr_->fix_field(nsetName,thisField,thisIndex,f);
         }
-        prescribedDataMgr_->fix_field(nsetName,thisField,thisIndex,f);
         match = true;
       }
 
@@ -314,9 +336,13 @@ namespace ATC {
       \section examples
        <TT> fix_modify atc fe_md_boundary interpolate </TT> \n
       \section description
+      Specifies different methods for computing fluxes between between the MD and FE integration regions.  Faceset defines a faceset separating the MD and FE regions and uses finite element face quadrature to compute the flux.  Interpolate uses a reconstruction scheme to approximate the flux, which is more robust but less accurate if the MD/FE boundary does correspond to a faceset.  No boundary results in no fluxes between the systems being computed.
       \section restrictions 
+      If faceset is used, all the AtC non-boundary atoms must lie within and completely fill the domain enclosed by the faceset.
       \section related
+      see \man_boundary_faceset for how to specify the faceset name.
       \section default
+      Interpolate.
     */
       else if (strcmp(arg[argIdx],"fe_md_boundary")==0) {
         bndyIntType_ = FE_INTERPOLATION;// default
@@ -346,8 +372,11 @@ namespace ATC {
       \section examples
       fix_modify AtC boundary_faceset is obndy
       \section description
-      \section restrictions 
+      This command species the faceset name when using a faceset to compute the MD/FE boundary fluxes.  The faceset must already exist.
+      \section restrictions
+      This is only valid when fe_md_boundary is set to faceset.
       \section related
+      \man_fe_md_boundary
       \section default
     */
       else if (strcmp(arg[argIdx],"boundary_faceset")==0) {
@@ -373,7 +402,7 @@ namespace ATC {
         \section examples
         <TT> fix_modify atc internal_quadrature off </TT>
         \section description
-        Command use or not use atomic quadrature on internal elements
+        Command to use or not use atomic quadrature on internal elements
         fully filled with atoms. By turning the internal quadrature off
         these elements do not contribute to the governing PDE and the fields
         at the internal nodes follow the weighted averages of the atomic data.
@@ -446,7 +475,9 @@ namespace ATC {
         match = true;
       }
 
-      /*! \page man_atomic_charge fix_modify AtC <include | omit> atomic_charge
+      /*! \page man_atomic_charge fix_modify AtC atomic_charge
+      \section syntax
+      fix_modify AtC <include | omit> atomic_charge
         - <include | omit> = switch to activiate/deactiviate inclusion of intrinsic atomic charge in ATC
       \section examples
        <TT> fix_modify atc compute include atomic_charge </TT>
@@ -475,7 +506,9 @@ namespace ATC {
         }
       }
 
-      /*! \page man_source_integration fix_modify AtC source_integration < fe | atom>
+      /*! \page man_source_integration fix_modify AtC source_integration
+      \section syntax
+      fix_modify AtC source_integration < fe | atom>
       \section examples
        <TT> fix_modify atc source_integration atom </TT>
       \section description
@@ -495,16 +528,17 @@ namespace ATC {
         match = true;
       }
 
-      /*! \page man_consistent_fe_initialization fix_modify AtC consistent_fe_initialization <on | off>
-        - <include | omit> = switch to activiate/deactiviate the intial setting of FE intrinsic field to match the projected MD field
+      /*! \page man_consistent_fe_initialization fix_modify AtC consistent_fe_initialization
+      \section syntax
+       fix_modify AtC consistent_fe_initialization <on | off>
+        - <on|off> = switch to activiate/deactiviate the intial setting of FE intrinsic field to match the projected MD field
       \section examples
-       <TT> fix_modify atc compute include atomic_charge </TT>
+       <TT> fix_modify atc consistent_fe_initialization on </TT>
       \section description
       Determines whether AtC initializes FE intrinsic fields (e.g., temperature) to match the projected MD values.  This is particularly useful for fully overlapping simulations.
       \section restrictions
-      Can be used with:  thermal, two_temperature
-      Cannot be used with time filtering on
-      Does not include boundary nodes
+      Can be used with:  thermal, two_temperature.
+      Cannot be used with time filtering on. Does not include boundary nodes.
       \section related
       \section default
       Default is off
@@ -555,15 +589,16 @@ namespace ATC {
         }
       }
 
-      /*! \page man_mass_matrix fix_modify AtC mass_matrix <fe | md_fe>
+      /*! \page man_mass_matrix fix_modify AtC mass_matrix
+        \section syntax 
+        fix_modify AtC mass_matrix <fe | md_fe>
         - <fe | md_fe> = activiate/deactiviate using the FE mass matrix in the MD region
         \section examples
         <TT> fix_modify atc mass_matrix fe </TT>
         \section description
         Determines whether AtC uses the FE mass matrix based on Gaussian quadrature or based on atomic quadrature in the MD region.  This is useful for fully overlapping simulations to improve efficiency.
         \section restrictions
-        Should not be used unless the FE region is contained within the MD region,
-        otherwise the method will be unstable and inaccurate
+        Should not be used unless the FE region is contained within the MD region, otherwise the method will be unstable and inaccurate
         \section related
         \section default
         Default is off
@@ -590,9 +625,12 @@ namespace ATC {
       \section examples
       <TT> fix_modify AtC material gap_region 2</TT>
       \section description
+      Sets the material model in elementset_name to be of type material_id.
       \section restrictions 
+      The element set must already be created and the material must be specified in the material file given the the atc fix on construction
       \section related
       \section default
+      All elements default to the first material in the material file.
     */
     else if (strcmp(arg[argIdx],"material")==0) {
       argIdx++;
@@ -693,43 +731,12 @@ namespace ATC {
       throw ATC_Error("Unknown physics type in ATC_Coupling::create_physics_model");
     }
   }
-  //--------------------------------------------------------
-  void ATC_Coupling::init_integrate_velocity()
-  {
-    const DENS_MAT & m(atomMasses_->quantity());
-    double dt = 0.5 * lammpsInterface_->dt();
-    
-    _deltaQuantity_ = atomForces_->quantity();
-    for (int i = 0; i < nLocal_; i++)
-      for (int j = 0; j < nsd_; j ++)
-        _deltaQuantity_(i,j) *= dt/m(i,0);
 
-    (*atomVelocities_) += _deltaQuantity_;
-  }
-  //--------------------------------------------------------
-  void ATC_Coupling::init_integrate_position()
-  {
-    double dt = lammpsInterface_->dt();
-    _deltaQuantity_ = atomVelocities_->quantity();
-    _deltaQuantity_ *= dt;
-    (*atomPositions_) += _deltaQuantity_;
-  }
-  //--------------------------------------------------------
-  void ATC_Coupling::final_integrate()
-  {
-    const DENS_MAT & m(atomMasses_->quantity());
-    double dt = 0.5 * lammpsInterface_->dt();
-
-    _deltaQuantity_ = atomForces_->quantity();
-    for (int i = 0; i < nLocal_; i++)
-      for (int j = 0; j < nsd_; j ++)
-        _deltaQuantity_(i,j) *= dt/m(i,0);
-
-    (*atomVelocities_) += _deltaQuantity_;
-  }
   //--------------------------------------------------------
   void ATC_Coupling::construct_methods()
   {
+    ATC_Method::construct_methods();
+
     // construct needed time filters for mass matrices
     if (timeFilterManager_.need_reset()) {
       init_filter();
@@ -807,10 +814,11 @@ namespace ATC {
   //-----------------------------------------------------------------
   // this is w_a source_a
   void ATC_Coupling::compute_sources_at_atoms(const RHS_MASK & rhsMask,
-                                            const FIELDS & fields,
-                                            const PhysicsModel * physicsModel,
-                                            FIELD_MATS & atomicSources)
+                                              const FIELDS & fields,
+                                              const PhysicsModel * physicsModel,
+                                              FIELD_MATS & atomicSources)
   {
+    if (shpFcnMask_) {
       feEngine_->compute_source(rhsMask,
                                 fields,
                                 physicsModel,
@@ -819,7 +827,16 @@ namespace ATC {
                                 shpFcnMask_->quantity(),
                                 shpFcnDerivsMask_->quantity(),
                                 atomicSources);
-      
+    }
+    else {
+      for (FIELDS::const_iterator field = fields.begin(); 
+           field != fields.end(); field++) {
+        FieldName thisFieldName = field->first;
+        FIELDS::const_iterator fieldItr = fields.find(thisFieldName);
+        const DENS_MAT & field = (fieldItr->second).quantity();
+        atomicSources[thisFieldName].reset(field.nRows(),field.nCols());
+      }
+    }
   }
   //-----------------------------------------------------------------
   
@@ -849,6 +866,24 @@ namespace ATC {
     }
   }
   //-----------------------------------------------------------------
+  void ATC_Coupling::masked_atom_domain_rhs_tangent(
+    const pair<FieldName,FieldName> row_col,
+    const RHS_MASK & rhsMask,
+    const FIELDS & fields, 
+    SPAR_MAT & stiffness,
+    const PhysicsModel * physicsModel)
+  {
+    if (shpFcnMask_) {
+      feEngine_->compute_tangent_matrix(rhsMask, row_col,
+                                        fields, physicsModel, atomMaterialGroupsMask_,
+                                        atomicWeightsMask_->quantity(), shpFcnMask_->quantity(),
+                                        shpFcnDerivsMask_->quantity(),stiffness);
+    }
+    else {
+      stiffness.reset(nNodes_,nNodes_);
+    }
+  }
+  //-----------------------------------------------------------------
   void ATC_Coupling::compute_rhs_tangent(
     const pair<FieldName,FieldName> row_col,
     const RHS_MASK & rhsMask,
@@ -871,10 +906,11 @@ namespace ATC {
       }
       feEngine_->compute_tangent_matrix(rhsMaskFE, row_col,
         fields , physicsModel, elementToMaterialMap_, stiffness);
-      feEngine_->compute_tangent_matrix(rhsMaskMD, row_col,
-                                        fields, physicsModel, atomMaterialGroupsMask_,
-                                        atomicWeightsMask_->quantity(), shpFcnMask_->quantity(),
-                                        shpFcnDerivsMask_->quantity(),stiffnessAtomDomain_);
+      masked_atom_domain_rhs_tangent(row_col,
+                                     rhsMaskMD,
+                                     fields,
+                                     stiffnessAtomDomain_,
+                                     physicsModel);
       stiffness += stiffnessAtomDomain_; 
 
     }
@@ -925,6 +961,32 @@ namespace ATC {
     feEngine_->add_robin_fluxes(rhsMask, fields, time(), robinFcn, rhs);
   }
   //-----------------------------------------------------------------
+  void ATC_Coupling::masked_atom_domain_rhs_integral(
+    const Array2D<bool> & rhsMask,
+    const FIELDS & fields, FIELDS & rhs,
+    const PhysicsModel * physicsModel)
+  {
+    if (shpFcnMask_) {
+      feEngine_->compute_rhs_vector(rhsMask,
+                                    fields,
+                                    physicsModel,
+                                    atomMaterialGroupsMask_,
+                                    atomicWeightsMask_->quantity(),
+                                    shpFcnMask_->quantity(),
+                                    shpFcnDerivsMask_->quantity(),
+                                    rhs);
+    }
+    else {
+      for (FIELDS::const_iterator field = fields.begin(); 
+           field != fields.end(); field++) {
+        FieldName thisFieldName = field->first;
+        FIELDS::const_iterator fieldItr = fields.find(thisFieldName);
+        const DENS_MAT & field = (fieldItr->second).quantity();
+        (rhs[thisFieldName].set_quantity()).reset(field.nRows(),field.nCols());
+      }
+    }
+  }
+  //-----------------------------------------------------------------
   void ATC_Coupling::evaluate_rhs_integral(
     const Array2D<bool> & rhsMask,
     const FIELDS & fields, FIELDS & rhs,
@@ -942,14 +1004,10 @@ namespace ATC {
                                     elementToMaterialMap_,
                                     rhs, 
                                     &(elementMask_->quantity()));
-      feEngine_->compute_rhs_vector(rhsMask,
-                                    fields,
-                                    physicsModel,
-                                    atomMaterialGroupsMask_,
-                                    atomicWeightsMask_->quantity(),
-                                    shpFcnMask_->quantity(),
-                                    shpFcnDerivsMask_->quantity(),
-                                    rhsAtomDomain_);
+      masked_atom_domain_rhs_integral(rhsMask,
+                                      fields,
+                                      rhsAtomDomain_,
+                                      physicsModel);
       for (FIELDS::const_iterator field = fields.begin(); 
            field != fields.end(); field++) {
         FieldName thisFieldName = field->first;
@@ -958,14 +1016,10 @@ namespace ATC {
     }
     else if (integrationType == ATOM_DOMAIN) {
       
-      feEngine_->compute_rhs_vector(rhsMask,
-                                    fields,
-                                    physicsModel,
-                                    atomMaterialGroupsMask_,
-                                    atomicWeightsMask_->quantity(),
-                                    shpFcnMask_->quantity(),
-                                    shpFcnDerivsMask_->quantity(),
-                                    rhs);
+      masked_atom_domain_rhs_integral(rhsMask,
+                                      fields,
+                                      rhs,
+                                      physicsModel);
     }
     else if (integrationType  == FULL_DOMAIN_ATOMIC_QUADRATURE_SOURCE) {
       RHS_MASK rhsMaskFE = rhsMask;
@@ -983,14 +1037,10 @@ namespace ATC {
                                     physicsModel,
                                     elementToMaterialMap_,
                                     rhs);
-      feEngine_->compute_rhs_vector(rhsMaskMD,
-                                    fields,
-                                    physicsModel,
-                                    atomMaterialGroupsMask_,
-                                    atomicWeightsMask_->quantity(),
-                                    shpFcnMask_->quantity(),
-                                    shpFcnDerivsMask_->quantity(),
-                                    rhsAtomDomain_);
+      masked_atom_domain_rhs_integral(rhsMaskMD,
+                                      fields,
+                                      rhsAtomDomain_,
+                                      physicsModel);
       for (FIELDS::const_iterator field = fields.begin(); 
            field != fields.end(); field++) {
         FieldName thisFieldName = field->first;
@@ -1123,6 +1173,52 @@ namespace ATC {
     }
   }
   //--------------------------------------------------------
+  //  create_full_element_mask
+  //    constructs element mask which only masks out 
+  //    null elements
+  //--------------------------------------------------------
+  MatrixDependencyManager<DenseMatrix, bool> * ATC_Coupling::create_full_element_mask()
+  {
+    MatrixDependencyManager<DenseMatrix, bool> * elementMaskMan = new MatrixDependencyManager<DenseMatrix, bool>(feEngine_->num_elements(),1);
+    DenseMatrix<bool> & elementMask(elementMaskMan->set_quantity());
+    elementMask = true;
+      
+    const set<int> & nullElements = feEngine_->null_elements();
+    set<int>::const_iterator iset;
+    for (iset = nullElements.begin(); iset != nullElements.end(); iset++) {
+      int ielem = *iset;
+      elementMask(ielem,0) = false;
+    }
+
+    return elementMaskMan;
+  }
+  //--------------------------------------------------------
+  //  create_element_set_mask
+  //    constructs element mask based on an element set,
+  //    uses ints for MPI communication later
+  //--------------------------------------------------------
+  MatrixDependencyManager<DenseMatrix, int> * ATC_Coupling::create_element_set_mask(const string & elementSetName)
+  {
+    MatrixDependencyManager<DenseMatrix, int> * elementMaskMan = new MatrixDependencyManager<DenseMatrix, int>(feEngine_->num_elements(),1);
+    DenseMatrix<int> & elementMask(elementMaskMan->set_quantity());
+    elementMask = false;
+
+    const set<int> & elementSet((feEngine_->fe_mesh())->elementset(elementSetName));
+    set<int>::const_iterator iset;
+    for (iset = elementSet.begin(); iset != elementSet.end(); ++iset) {
+      int ielem = *iset;
+      elementMask(ielem,0) = true;
+    }
+      
+    const set<int> & nullElements = feEngine_->null_elements();
+    for (iset = nullElements.begin(); iset != nullElements.end(); iset++) {
+      int ielem = *iset;
+      elementMask(ielem,0) = false;
+    }
+
+    return elementMaskMan;
+  }
+  //--------------------------------------------------------
   //  set_computational_geometry
   //    constructs needed transfer operators which define
   //    hybrid atom/FE computational geometry
@@ -1131,70 +1227,85 @@ namespace ATC {
   {
     ATC_Method::set_computational_geometry();
 
+    // does element contain internal atoms
+    if (internalElementSet_.size()) {
+      // set up elements and maps based on prescribed element sets
+      internalElement_ = create_element_set_mask(internalElementSet_);
+    }
+    else {
+      internalElement_ = new AtomTypeElement(this,atomElement_);
+    }
+    interscaleManager_.add_dense_matrix_int(internalElement_,
+                                            "ElementHasInternal");
+
     if (groupbitGhost_) {
       atomGhostElement_ = new AtomToElementMap(this,
                                                atomGhostCoarseGrainingPositions_,
                                                GHOST);
       interscaleManager_.add_per_atom_int_quantity(atomGhostElement_,
                                                    "AtomGhostElement");
-    }
-
-    // does element contain internal atoms
-    internalElement_ = new AtomTypeElement(this,atomElement_);
-    interscaleManager_.add_dense_matrix_int(internalElement_,
-                                            "ElementHasInternal");
-    // does element contain ghost atoms
-    if (atomGhostElement_) {
+      
+      // does element contain ghost atoms
       ghostElement_ = new AtomTypeElement(this,atomGhostElement_);
       interscaleManager_.add_dense_matrix_int(ghostElement_,
                                               "ElementHasGhost");
     }
-    // element masking for FE quadrature
+    
+    // element masking for approximate right-hand side FE atomic quadrature
     if (atomQuadForInternal_) {
-      elementMask_ = new MatrixDependencyManager<DenseMatrix, bool>(feEngine_->num_elements(),1);
-      DenseMatrix<bool> & elementMask(elementMask_->set_quantity());
-      elementMask = true;
-      
-      const set<int> & nullElements = feEngine_->null_elements();
-      set<int>::const_iterator iset;
-      for (iset = nullElements.begin(); iset != nullElements.end(); iset++) {
-        int ielem = *iset;
-        elementMask(ielem,0) = false;
-      }
+      elementMask_ = create_full_element_mask();
     }
     else {
-      elementMask_ = new ElementMask(this);
+      if (internalElementSet_.size()) {
+        // when geometry is based on elements, there are no mixed elements
+        elementMask_ = new MatrixDependencyManager<DenseMatrix, bool>;
+        (elementMask_->set_quantity()).reset(feEngine_->num_elements(),1,false);
+      }
+      else {
+        elementMask_ = new ElementMask(this);
+      }
       internalToMask_ = new AtomToElementset(this,elementMask_);
       interscaleManager_.add_per_atom_int_quantity(internalToMask_,
                                                    "InternalToMaskMap");
     }
     interscaleManager_.add_dense_matrix_bool(elementMask_,
-                                                  "ElementMask");
-    // node type
-    nodalGeometryType_ = new NodalGeometryType(this);
+                                             "ElementMask");
+
+    if (useFeMdMassMatrix_) {
+      if (atomQuadForInternal_) {
+        elementMaskMass_ = elementMask_;
+      }
+      else {
+        elementMaskMass_ = create_full_element_mask();
+        interscaleManager_.add_dense_matrix_bool(elementMaskMass_,
+                                                 "NonNullElementMask");
+      }
+
+      elementMaskMassMd_ = new AtomElementMask(this);
+      interscaleManager_.add_dense_matrix_bool(elementMaskMassMd_,
+                                               "InternalElementMask");
+    }
+
+    // assign element and node types for computational geometry
+    if (internalElementSet_.size()) {
+      nodalGeometryType_ = new NodalGeometryTypeElementSet(this);
+    }
+    else {
+      nodalGeometryType_ = new NodalGeometryType(this);
+    }
     interscaleManager_.add_dense_matrix_int(nodalGeometryType_,
-                                                 "NodalGeometryType");
+                                            "NodalGeometryType");
   }
   //--------------------------------------------------------
-  //  construct_transfers
-  //    constructs needed transfer operators
+  //  construct_interpolant
+  //    constructs: interpolatn, accumulant, weights, and spatial derivatives
   //--------------------------------------------------------
-  void ATC_Coupling::construct_transfers()
+  void ATC_Coupling::construct_interpolant()
   {
-    ATC_Method::construct_transfers();
-
     // finite element shape functions for interpolants
     PerAtomShapeFunction * atomShapeFunctions = new PerAtomShapeFunction(this);
     interscaleManager_.add_per_atom_sparse_matrix(atomShapeFunctions,"Interpolant");
     shpFcn_ = atomShapeFunctions;
-    if (groupbitGhost_) {
-      atomShapeFunctions = new PerAtomShapeFunction(this,
-                                                    atomGhostCoarseGrainingPositions_,
-                                                    atomGhostElement_,
-                                                    GHOST);
-      interscaleManager_.add_per_atom_sparse_matrix(atomShapeFunctions,"InterpolantGhost");
-      shpFcnGhost_ = atomShapeFunctions;
-    }
 
     // use shape functions for accumulants if no kernel function is provided
     if (!kernelFunction_) {
@@ -1209,30 +1320,64 @@ namespace ATC {
       accumulantWeights_ = new AccumulantWeights(accumulant_);
       mdMassNormalization_ = false;
     }
-
-    // add species transfer operators
     
-    map<string,pair<IdType,int> >::const_iterator specid;
-    for (specid = speciesIds_.begin(); specid != speciesIds_.end(); specid++) {
-      const string specie = specid->first;
-      LargeToSmallAtomMap * specieMap;
-      if ((specid->second).first == ATOM_TYPE) {
-        specieMap = new AtomToType(this,(specid->second).second);
-        interscaleManager_.add_per_atom_int_quantity(specieMap,
-                                                     "AtomMap"+specie);
-      }
-      else { // if ((specie->second).first == ATOM_GROUP)
-        specieMap = new AtomToGroup(this,(specid->second).second);
-        interscaleManager_.add_per_atom_int_quantity(specieMap,
-                                                     "AtomMap"+specie);
-      }
-      ReducedSparseMatrix * accumulantSpecie = new ReducedSparseMatrix(this,
-                                                                       accumulant_,
-                                                                       specieMap);
-      interscaleManager_.add_sparse_matrix(accumulantSpecie,"Accumulant"+specie);
-    }
+    this->create_atom_volume();
 
-    // add molecule transfer operators
+    // masked atom weights
+    if (atomQuadForInternal_) {
+      atomicWeightsMask_ = atomVolume_;
+    }
+    else {
+      atomicWeightsMask_ = new MappedDiagonalMatrix(this,
+                                                    atomVolume_,
+                                                    internalToMask_);
+      interscaleManager_.add_diagonal_matrix(atomicWeightsMask_,
+                                             "AtomWeightsMask");
+    }
+    // nodal volumes for mass matrix, relies on atomVolumes constructed in base class construct_transfers
+    nodalAtomicVolume_ = new AdmtfShapeFunctionRestriction(this,atomVolume_,shpFcn_);
+    interscaleManager_.add_dense_matrix(nodalAtomicVolume_,"NodalAtomicVolume");
+
+    // shape function derivatives, masked shape function and derivatives if needed for FE quadrature in atomic domain
+    if (atomQuadForInternal_) {
+      shpFcnDerivs_ = new PerAtomShapeFunctionGradient(this);
+      interscaleManager_.add_vector_sparse_matrix(shpFcnDerivs_,
+                                                  "InterpolantGradient");
+
+      shpFcnMask_ = shpFcn_;
+      shpFcnDerivsMask_ = shpFcnDerivs_;
+    }
+    else {
+      bool hasMaskedElt = false;
+      const DenseMatrix<bool> & elementMask(elementMask_->quantity());
+      for (int i = 0; i < elementMask.size(); ++i) {
+        if (elementMask(i,0)) {
+          hasMaskedElt = true;
+          break;
+        }
+      }
+      if (hasMaskedElt) {
+        shpFcnDerivs_ = new PerAtomShapeFunctionGradient(this);
+        interscaleManager_.add_vector_sparse_matrix(shpFcnDerivs_,
+                                                    "InterpolantGradient");
+
+        shpFcnMask_ = new RowMappedSparseMatrix(this,
+                                                shpFcn_,
+                                                internalToMask_);
+        interscaleManager_.add_sparse_matrix(shpFcnMask_,
+                                             "ShapeFunctionMask");
+        shpFcnDerivsMask_ = new RowMappedSparseMatrixVector(this,
+                                                            shpFcnDerivs_,
+                                                            internalToMask_);
+        interscaleManager_.add_vector_sparse_matrix(shpFcnDerivsMask_,"ShapeFunctionGradientMask");
+      }
+    }
+  }
+  //--------------------------------------------------------
+  //  construct_molecule_transfers
+  //--------------------------------------------------------
+  void ATC_Coupling::construct_molecule_transfers()
+  {
     
     map<string,pair<MolSize,int> >::const_iterator molecule;
     PerAtomQuantity<double> * atomProcGhostCoarseGrainingPositions = interscaleManager_.per_atom_quantity("AtomicProcGhostCoarseGrainingPositions");
@@ -1258,58 +1403,16 @@ namespace ATC {
       interscaleManager_.add_sparse_matrix(shpFcnMol,
                                            "ShapeFunction"+moleculeName);
     }
-
+  }
+  //--------------------------------------------------------
+  //  construct_transfers
+  //    constructs needed transfer operators
+  //--------------------------------------------------------
+  void ATC_Coupling::construct_transfers()
+  {
+    ATC_Method::construct_transfers();
     
-    this->create_atom_volume();
 
-    // masked atom weights
-    if (atomQuadForInternal_) {
-      atomicWeightsMask_ = atomVolume_;
-    }
-    else {
-      atomicWeightsMask_ = new MappedDiagonalMatrix(this,
-                                                    atomVolume_,
-                                                    internalToMask_);
-      interscaleManager_.add_diagonal_matrix(atomicWeightsMask_,
-                                             "AtomWeightsMask");
-    }
-    
-    // shape function derivatives
-    PerAtomShapeFunctionGradient * atomShapeFunctionGradients = new PerAtomShapeFunctionGradient(this);
-    interscaleManager_.add_vector_sparse_matrix(atomShapeFunctionGradients,
-                                                "InterpolantGradient");
-    shpFcnDerivs_ = atomShapeFunctionGradients;
-    if (groupbitGhost_) {
-      atomShapeFunctionGradients = new PerAtomShapeFunctionGradient(this,
-                                                                    atomGhostElement_,
-                                                                    atomGhostCoarseGrainingPositions_,
-                                                                    "InterpolantGradientGhost",
-                                                                    GHOST);
-      interscaleManager_.add_vector_sparse_matrix(atomShapeFunctionGradients,
-                                                  "InterpolantGradientGhost");
-      shpFcnDerivsGhost_ = atomShapeFunctionGradients;
-    }
-
-    // masked shape function and derivatives
-    if (atomQuadForInternal_) {
-      shpFcnMask_ = shpFcn_;
-      shpFcnDerivsMask_ = shpFcnDerivs_;
-    }
-    else {
-      shpFcnMask_ = new RowMappedSparseMatrix(this,
-                                              shpFcn_,
-                                              internalToMask_);
-      interscaleManager_.add_sparse_matrix(shpFcnMask_,
-                                           "ShapeFunctionMask");
-      shpFcnDerivsMask_ = new RowMappedSparseMatrixVector(this,
-                                                          shpFcnDerivs_,
-                                                          internalToMask_);
-      interscaleManager_.add_vector_sparse_matrix(shpFcnDerivsMask_,"ShapeFunctionGradientMask");
-    }
-
-    // nodal volumes for mass matrix, relies on atomVolumes constructed in base class construct_transfers
-    nodalAtomicVolume_ = new AdmtfShapeFunctionRestriction(this,atomVolume_,shpFcn_);
-    interscaleManager_.add_dense_matrix(nodalAtomicVolume_,"NodalAtomicVolume");
 
     extrinsicModelManager_.construct_transfers();
   }
@@ -1387,11 +1490,15 @@ namespace ATC {
       if (useFeMdMassMatrix_) {
         feEngine_->compute_lumped_mass_matrix(massMask,fields_,physicsModel,
                                               elementToMaterialMap_,massMats_,
-                                              &(elementMask_->quantity()));
+                                              &(elementMaskMass_->quantity()));
         const DIAG_MAT & myMassMat(massMats_[thisField].quantity());
         DIAG_MAT & myMassMatInv(massMatsInv_[thisField].set_quantity());
-        DIAG_MAT & myMassMatMDInv(massMatsMdInv_[thisField].set_quantity());
-        (massMatsMd_[thisField].set_quantity()) = myMassMat;
+        DIAG_MAT & myMassMatMdInv(massMatsMdInv_[thisField].set_quantity());
+
+        feEngine_->compute_lumped_mass_matrix(massMask,fields_,physicsModel,
+                                              elementToMaterialMap_,massMatsMd_,
+                                              &(elementMaskMassMd_->quantity()));
+        const DIAG_MAT & myMassMatMd(massMatsMd_[thisField].quantity());
         // compute inverse mass matrices since we're using lumped masses
         for (int iNode = 0; iNode < nNodes_; iNode++) {
           
@@ -1399,7 +1506,11 @@ namespace ATC {
             myMassMatInv(iNode,iNode) = 1./myMassMat(iNode,iNode);
           else
             myMassMatInv(iNode,iNode) = 0.;
-          myMassMatMDInv = myMassMatInv;
+
+          if (fabs(myMassMatMd(iNode,iNode))>0)
+            myMassMatMdInv(iNode,iNode) = 1./myMassMatMd(iNode,iNode);
+          else
+            myMassMatMdInv(iNode,iNode) = 0.;
         }
       }
       else {
@@ -1418,10 +1529,14 @@ namespace ATC {
         }
         
         // atomic quadrature for FE mass matrix in atomic domain
-        
-        feEngine_->compute_lumped_mass_matrix(massMask,fields_,physicsModel,atomMaterialGroupsMask_,
-                                              atomicWeightsMask_->quantity(),shpFcnMask_->quantity(),
-                                              massMatsAqInstantaneous_);
+        if (shpFcnMask_) {
+          feEngine_->compute_lumped_mass_matrix(massMask,fields_,physicsModel,atomMaterialGroupsMask_,
+                                                atomicWeightsMask_->quantity(),shpFcnMask_->quantity(),
+                                                massMatsAqInstantaneous_);
+        }
+        else {
+          (massMatsAqInstantaneous_[thisField].set_quantity()).reset(nNodes_,nNodes_);
+        }
         
         // set up mass MD matrices
         compute_md_mass_matrix(thisField,massMatsMdInstantaneous_[thisField].set_quantity());
@@ -1489,12 +1604,81 @@ namespace ATC {
       }
     }
   }
-//--------------------------------------------------------
+
+  //--------------------------------------------------------
+  //  pre_init_integrate
+  //    time integration before the lammps atomic
+  //    integration of the Verlet step 1
+  //--------------------------------------------------------
+  void ATC_Coupling::pre_init_integrate()
+  {
+    ATC_Method::pre_init_integrate();
+    double dt = lammpsInterface_->dt();
+
+    // Perform any initialization, no actual integration
+    for (_tiIt_ = timeIntegrators_.begin(); _tiIt_ != timeIntegrators_.end(); ++_tiIt_) {
+      (_tiIt_->second)->pre_initial_integrate1(dt);
+    }
+
+    // Apply controllers to atom velocities, if needed
+    atomicRegulator_->apply_pre_predictor(dt,lammpsInterface_->ntimestep());
+
+    // predict nodal fields and time derivatives
+    for (_tiIt_ = timeIntegrators_.begin(); _tiIt_ != timeIntegrators_.end(); ++_tiIt_) {
+      (_tiIt_->second)->pre_initial_integrate2(dt);
+    }
+    extrinsicModelManager_.pre_init_integrate();
+  }
+
+  //--------------------------------------------------------
+  //  mid_init_integrate
+  //    time integration between the velocity update and
+  //    the position lammps update of Verlet step 1
+  //--------------------------------------------------------
+  void ATC_Coupling::mid_init_integrate()
+  {
+    double dt = lammpsInterface_->dt();
+
+    // Compute nodal velocity at n+1/2, if needed
+    for (_tiIt_ = timeIntegrators_.begin(); _tiIt_ != timeIntegrators_.end(); ++_tiIt_) {
+      (_tiIt_->second)->mid_initial_integrate1(dt);
+    }
+
+    atomicRegulator_->apply_mid_predictor(dt,lammpsInterface_->ntimestep());
+
+    extrinsicModelManager_.mid_init_integrate();
+  }
+
+  ///--------------------------------------------------------
+  //  post_init_integrate
+  //    time integration after the lammps atomic updates of
+  //    Verlet step 1
+  //--------------------------------------------------------
   void ATC_Coupling::post_init_integrate()
   {
+    double dt = lammpsInterface_->dt();
+  
+    // Compute nodal velocity at n+1
+    for (_tiIt_ = timeIntegrators_.begin(); _tiIt_ != timeIntegrators_.end(); ++_tiIt_) {
+      (_tiIt_->second)->post_initial_integrate1(dt);
+    }
+
+    // Update kinetostat quantities if displacement is being regulated
+    atomicRegulator_->apply_post_predictor(dt,lammpsInterface_->ntimestep());
+
+    // Update extrisic model
+    extrinsicModelManager_.post_init_integrate();
+
+    // fixed values, non-group bcs handled through FE
+    set_fixed_nodes();
+      
+    update_time(0.5);
+
+    // ghost update, if needed
+    ATC_Method::post_init_integrate();
+
     // Apply time filtering to mass matrices, if needed
     if (timeFilterManager_.filter_dynamics() && !useFeMdMassMatrix_) {
-      double dt = lammpsInterface_->dt();
       map<FieldName,int>::const_iterator field;
       for (field = fieldSizes_.begin(); field!=fieldSizes_.end(); field++) {
         FieldName thisField = field->first;

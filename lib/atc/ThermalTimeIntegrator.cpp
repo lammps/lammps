@@ -34,26 +34,23 @@ namespace ATC {
     int argIndex = 0;
 
     // time integration scheme
-    /*! \page man_time_integration fix_modify AtC time_integration
+    /*! \page man_thermal_time_integration fix_modify AtC time_integration (thermal)
       \section syntax
       fix_modify AtC time_integration <descriptor> \n
       - descriptor (string) = time integration type  \n
       
       various time integration methods for the finite elements\n
       \section description
-      GEAR - atomic velocity update with 2nd order Verlet \n
-      nodal temperature update with 3rd or 4th order Gear \n
-      thermostats based on controlling power \n
-      FRACTIONAL_STEP - atomic velocity update with 2nd order Verlet \n
-      mixed nodal temperature update, 3/4 Gear for continuum and 2 Verlet for atomic contributions\n
-      thermostats based on controlling discrete energy changes\n
+      gear - atomic velocity update with 2nd order Verlet, nodal temperature update with 3rd or 4th order Gear, thermostats based on controlling power \n
+      fractional_step - atomic velocity update with 2nd order Verlet, mixed nodal temperature update, 3/4 Gear for continuum and 2 Verlet for atomic contributions, thermostats based on controlling discrete energy changes\n
       \section examples
       <TT> fix_modify atc time_integration gear </TT> \n
       <TT> fix_modify atc time_integration fractional_step </TT> \n
       \section description
       \section related
+      see \ref man_fix_atc
       \section default
-      Gear
+      none 
     */
     if (strcmp(arg[argIndex],"gear")==0) {
       timeIntegrationType_ = GEAR;

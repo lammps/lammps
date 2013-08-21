@@ -8,6 +8,7 @@
 
 // Other headers
 #include <map>
+#include <string>
 
 namespace ATC {
 
@@ -53,12 +54,13 @@ namespace ATC {
     /** prior to exchange */
     virtual void pre_exchange();
     virtual void reset_atoms() { resetNlocal_=true;}
-    /** first time, before atomic integration */
-    virtual void pre_init_integrate();
+#ifdef OBSOLETE
+
     /** first time, after atomic velocity but before position integration */
     virtual void mid_init_integrate();
     /** first time, after atomic integration */
     virtual void post_init_integrate();
+#endif
     /** second time, after atomic integration */
     virtual void post_final_integrate();
 
@@ -95,9 +97,8 @@ namespace ATC {
     Array2D<bool> speciesMask_;
 
     // Add in fields for restarting
-    virtual void  read_restart_data(string fileName_, RESTART_LIST & data);
-    virtual void write_restart_data(string fileName_, RESTART_LIST & data);
-    void pack_species_fields(RESTART_LIST & data);
+    virtual void  read_restart_data(std::string fileName_, RESTART_LIST & data);
+    virtual void write_restart_data(std::string fileName_, RESTART_LIST & data);
 
     // DATA structures for tracking individual species and molecules
     FIELD_POINTERS atomicFields_;

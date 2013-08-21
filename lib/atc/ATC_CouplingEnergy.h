@@ -9,6 +9,7 @@
 
 // Other headers
 #include <map>
+#include <string>
 
 namespace ATC {
 
@@ -52,14 +53,13 @@ namespace ATC {
 
     /** post time integration */
     virtual void finish();
+#ifdef OBSOLETE
 
-    /** first time substep routines */
-    virtual void pre_init_integrate();
     /** first time, after atomic velocity but before position integration */
     virtual void mid_init_integrate();
     /** first time, after atomic integration */
     virtual void post_init_integrate();
-
+#endif
     /** second time substep routine */
     virtual void post_final_integrate();
 
@@ -117,8 +117,8 @@ namespace ATC {
     DENS_MAT _keTemp_, _peTemp_;
 
     // Add in fields for restarting
-    virtual void  read_restart_data(string fileName_, RESTART_LIST & data);
-    virtual void write_restart_data(string fileName_, RESTART_LIST & data);
+    virtual void  read_restart_data(std::string fileName_, RESTART_LIST & data);
+    virtual void write_restart_data(std::string fileName_, RESTART_LIST & data);
     void pack_thermal_fields(RESTART_LIST & data);
 
   };

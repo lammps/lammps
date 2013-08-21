@@ -13,6 +13,14 @@
 // timer
 #include "Utility.h"
 
+#include <utility>
+
+using ATC_Utility::to_string;
+using std::string;
+using std::set;
+using std::pair;
+using std::vector;
+
 const double tol = 1.e-8; 
 const double zero_tol = 1.e-12; 
 const double f_tol = 1.e-8; 

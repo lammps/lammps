@@ -1,6 +1,8 @@
 #ifndef PER_ATOM_QUANTITY_INL_H
 #define PER_ATOM_QUANTITY_INL_H
 
+#include <string>
+
 namespace ATC {
 
   //--------------------------------------------------------
@@ -66,17 +68,18 @@ namespace ATC {
       // map quantities
       else {
         int atomIndex;
+        const Array<int> & quantityToLammps = atc_.atc_to_lammps_map();
         if (nCols_==1) { // scalar
           T * lammpsQuantity = this->lammps_scalar();
           for (int i = 0; i < myQuantity.nRows(); i++) {
-            atomIndex = quantityToLammps_(i);
+            atomIndex = quantityToLammps(i);
             lammpsQuantity[atomIndex] = myQuantity(i,0);
           }
         }
         else{ // vector
           T ** lammpsQuantity = this->lammps_vector();
           for (int i = 0; i < myQuantity.nRows(); i++) {
-            atomIndex = quantityToLammps_(i);
+            atomIndex = quantityToLammps(i);
             for (int j = 0; j < nCols_; j++) {
               lammpsQuantity[atomIndex][j] = myQuantity(i,j);
             }
@@ -114,19 +117,20 @@ namespace ATC {
       }
       // map quantities
       else {
+        const Array<int> & quantityToLammps = atc_.atc_to_lammps_map();
         int atomIndex;
-      
+        
         if (nCols_==1) { // scalar
           const T * lammpsQuantity = this->lammps_scalar();
           for (int i = 0; i < myQuantity.nRows(); i++) {
-            atomIndex = quantityToLammps_(i);
+            atomIndex = quantityToLammps(i);
             myQuantity(i,0) = lammpsQuantity[atomIndex];
           }
         }
         else {
           const T * const * lammpsQuantity = this->lammps_vector();
           for (int i = 0; i < myQuantity.nRows(); i++) {
-            atomIndex = quantityToLammps_(i);
+            atomIndex = quantityToLammps(i);
             for (int j = 0; j < nCols_; j++) {
               myQuantity(i,j) = lammpsQuantity[atomIndex][j];
             }
@@ -201,7 +205,7 @@ namespace ATC {
   // allocate local atom-based arrays 
   //-----------------------------------------------------------------
   template <typename T>
-  void PerAtomQuantity<T>::grow_lammps_array(int nmax, const string & tag)
+  void PerAtomQuantity<T>::grow_lammps_array(int nmax, const std::string & tag)
   {
     
     if (nCols_ == 1)
@@ -341,12 +345,13 @@ namespace ATC {
       // map quantities
       else {
         int atomIndex;
+        const Array<int> & quantityToLammps = (PerAtomQuantity<T>::atc_).atc_to_lammps_map();
         if (nCols==1) { // scalar
           T * lammpsQuantity = ProtectedAtomQuantity<T>::lammps_scalar();
           for (int i = 0; i < atomMap.nRows(); i++) {
             int idx = atomMap(i,0);
             if (idx > -1) {
-              atomIndex = ProtectedAtomQuantity<T>::quantityToLammps_(i);
+              atomIndex = quantityToLammps(i);
               lammpsQuantity[atomIndex] = myQuantity(idx,0);
             }
           }
@@ -356,7 +361,7 @@ namespace ATC {
           for (int i = 0; i < atomMap.nRows(); i++) {
             int idx = atomMap(i,0);
             if (idx > -1) {
-              atomIndex = ProtectedAtomQuantity<T>::quantityToLammps_(i);
+              atomIndex = quantityToLammps(i);
               for (int j = 0; j < nCols; j++) {
                 lammpsQuantity[atomIndex][j] = myQuantity(idx,j);
               }
@@ -403,13 +408,13 @@ namespace ATC {
       // map quantities
       else {
         int atomIndex;
-      
+        const Array<int> & quantityToLammps = (PerAtomQuantity<T>::atc_).atc_to_lammps_map();
         if (nCols==1) { // scalar
           const T * lammpsQuantity = ProtectedAtomQuantity<T>::lammps_scalar();
           for (int i = 0; i < atomMap.nRows(); i++) {
             int idx = atomMap(i,0);
             if (idx > -1) {
-              atomIndex = ProtectedAtomQuantity<T>::quantityToLammps_(i);
+              atomIndex = quantityToLammps(i);
               myQuantity(idx,0) = lammpsQuantity[atomIndex];
             }
           }
@@ -419,7 +424,7 @@ namespace ATC {
           for (int i = 0; i < atomMap.nRows(); i++) {
             int idx = atomMap(i,0);
             if (idx > -1) {
-              atomIndex = ProtectedAtomQuantity<T>::quantityToLammps_(i);
+              atomIndex = quantityToLammps(i);
               for (int j = 0; j < nCols; j++) {
                 myQuantity(idx,j) = lammpsQuantity[atomIndex][j];
               }
@@ -481,9 +486,10 @@ namespace ATC {
       // map quantities
       else {
         int atomIndex;
+        const Array<int> & quantityToLammps = atc_.atc_to_lammps_map();
         T * lammpsQuantity = this->lammps_scalar();
         for (int i = 0; i < myQuantity.nRows(); i++) {
-          atomIndex = quantityToLammps_(i);
+          atomIndex = quantityToLammps(i);
           lammpsQuantity[atomIndex] = myQuantity(i,i);
         }
       }
@@ -509,9 +515,10 @@ namespace ATC {
       // map quantities
       else {
         int atomIndex;
+        const Array<int> & quantityToLammps = atc_.atc_to_lammps_map();
         const T * lammpsQuantity = this->lammps_scalar();
         for (int i = 0; i < myQuantity.nRows(); i++) {
-          atomIndex = quantityToLammps_(i);
+          atomIndex = quantityToLammps(i);
           myQuantity(i,i) = lammpsQuantity[atomIndex];
         }
       }
@@ -567,7 +574,7 @@ namespace ATC {
   // allocate local atom-based arrays 
   //-----------------------------------------------------------------
   template <typename T>
-  void PerAtomDiagonalMatrix<T>::grow_lammps_array(int nmax, const string & tag)
+  void PerAtomDiagonalMatrix<T>::grow_lammps_array(int nmax, const std::string & tag)
   {
     this->lammpsScalar_ = lammpsInterface_->grow_array(this->lammpsScalar_,nmax,tag.c_str());
   }
@@ -647,16 +654,18 @@ namespace ATC {
       // map quantities
       else {
         int atomIndex;
+        const Array<int> & quantityToLammps = atc_.atc_to_lammps_map();
         T ** lammpsQuantity = this->lammps_vector();
         int ** lammpsColIndices = this->lammps_column_indices();
         for (int i = 0; i < myQuantity.nRows(); i++) {
           myQuantity.row(i,_values_,_colIndices_);
-          atomIndex = quantityToLammps_(i);
+          atomIndex = quantityToLammps(i);
           for (int j = 0; j < _values_.size(); j++) {
             lammpsQuantity[atomIndex][j] = _values_(j);
             lammpsColIndices[atomIndex][j] = _colIndices_(j);
           }
           for (int j = _values_.size(); j < maxEntriesPerRow_; j++) {
+            lammpsQuantity[atomIndex][j] = 0;
             lammpsColIndices[atomIndex][j] = -1;
           }
         }
@@ -689,10 +698,11 @@ namespace ATC {
       // map quantities
       else {
         int atomIndex;
+        const Array<int> & quantityToLammps = atc_.atc_to_lammps_map();
         const T * const * lammpsQuantity = this->lammps_vector();
         const int * const * lammpsColIndices = this->lammps_column_indices();
         for (int i = 0; i < myQuantity.nRows(); i++) {
-          atomIndex = quantityToLammps_(i);
+          atomIndex = quantityToLammps(i);
           for (int j = 0; j < maxEntriesPerRow_; j++) {
             if (lammpsColIndices[atomIndex][j] < 0) {
               break;
@@ -713,12 +723,12 @@ namespace ATC {
   int PerAtomSparseMatrix<T>::pack_exchange(int i, double *buffer)
   {
     int idx = 0;
+    T ** lammpsVector = this->lammps_vector();
     for (int j = 0; j < maxEntriesPerRow_; j++) {
-      T ** lammpsVector = this->lammps_vector();
       buffer[idx++] = static_cast<double>(lammpsVector[i][j]);
     }
+    int ** lammpsColIndices = this->lammps_column_indices();
     for (int j = 0; j < maxEntriesPerRow_; j++) {
-      int ** lammpsColIndices = this->lammps_column_indices();
       buffer[idx++] = static_cast<double>(lammpsColIndices[i][j]);
     }
     return 2*maxEntriesPerRow_;
@@ -731,12 +741,12 @@ namespace ATC {
   int PerAtomSparseMatrix<T>::unpack_exchange(int i, double *buffer)
   {
     int idx = 0;
+    T ** lammpsVector = this->lammps_vector();
     for (int j = 0; j < maxEntriesPerRow_; j++) {
-      T ** lammpsVector = this->lammps_vector();
       lammpsVector[i][j] = static_cast<T>(buffer[idx++]);
     }
+    int ** lammpsColIndices = this->lammps_column_indices();
     for (int j = 0; j < maxEntriesPerRow_; j++) {
-      int ** lammpsColIndices = this->lammps_column_indices();
       lammpsColIndices[i][j] = static_cast<int>(buffer[idx++]);
     }
     return 2*maxEntriesPerRow_;
@@ -749,7 +759,7 @@ namespace ATC {
   int PerAtomSparseMatrix<T>::pack_comm(int index, double *buf, 
                                         int pbc_flag, int *pbc)
   {
-    return maxEntriesPerRow_;
+    return 0;
   }
 
   //-----------------------------------------------------------------
@@ -758,18 +768,18 @@ namespace ATC {
   template <typename T>
   int PerAtomSparseMatrix<T>::unpack_comm(int index, double *buf)
   {
-    return maxEntriesPerRow_;
+    return 0;
   }
 
   //-----------------------------------------------------------------
   // allocate local atom-based arrays 
   //-----------------------------------------------------------------
   template <typename T>
-  void PerAtomSparseMatrix<T>::grow_lammps_array(int nmax, const string & tag)
+  void PerAtomSparseMatrix<T>::grow_lammps_array(int nmax, const std::string & tag)
   {
     
     this->lammpsVector_ = lammpsInterface_->grow_array(this->lammpsVector_,nmax,maxEntriesPerRow_,tag.c_str());
-    string myString(tag+string("Columns"));
+    std::string myString(tag+std::string("Columns"));
     this->lammpsColIndices_ = lammpsInterface_->grow_array(this->lammpsColIndices_,nmax,maxEntriesPerRow_,myString.c_str());
   }
 

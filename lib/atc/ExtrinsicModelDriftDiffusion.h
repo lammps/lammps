@@ -1,16 +1,15 @@
 #ifndef EXTRINSIC_MODEL_DRIFT_DIFFUSION
 #define EXTRINSIC_MODEL_DRIFT_DIFFUSION
 
-/** owned fields: ELECTRON_DENSITY, ... */
+#include <set>
+#include <string>
+#include <vector>
 
-// ATC headers
 #include "ExtrinsicModelTwoTemperature.h"
 #include "SchrodingerSolver.h"
 
-using namespace std;
 namespace ATC {
 
-  // forward declarations
   class ATC_Coupling;
   class PrescribedDataManager;
   class ExtrinsicModel;
@@ -23,6 +22,7 @@ namespace ATC {
   /**
    *  @class  ExtrinsicModelDriftDiffusion
    *  @brief  add electron temperature physics to phonon physics
+   *          owned fields ELECTRON_DENSITY
    */
 
   //--------------------------------------------------------
@@ -38,7 +38,7 @@ namespace ATC {
     // constructor
     ExtrinsicModelDriftDiffusion(ExtrinsicModelManager * modelManager,
                    ExtrinsicModelType modelType,
-                   string matFileName);
+                   std::string matFileName);
 
     // destructor
     virtual ~ExtrinsicModelDriftDiffusion();
@@ -114,9 +114,9 @@ namespace ATC {
     bool oneD_;
     int oneDcoor_;
     int oneDstride_;
-    string oneDnodesetName_;
-    set<int> oneDnodeset_;
-    Array< set<int> > oneDslices_;
+    std::string oneDnodesetName_;
+    std::set<int> oneDnodeset_;
+    Array< std::set<int> > oneDslices_;
     int oneDconserve_;
 
     DENS_MAT JE_;
@@ -141,7 +141,7 @@ namespace ATC {
     // constructor
     ExtrinsicModelDriftDiffusionConvection(ExtrinsicModelManager * modelManager,
                    ExtrinsicModelType modelType,
-                   string matFileName);
+                   std::string matFileName);
 
     // destructor
     virtual ~ExtrinsicModelDriftDiffusionConvection();
@@ -170,7 +170,7 @@ namespace ATC {
     void compute_nodal_kinetic_energy(DENS_MAT & kineticEnergy);
 
     /** Linear solver for velocity */
-    vector<LinearSolver * > velocitySolvers_;
+    std::vector<LinearSolver * > velocitySolvers_;
 
     
     /** Linear solver for solving the poisson equations */

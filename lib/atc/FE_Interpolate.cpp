@@ -7,6 +7,9 @@
 // Other headers
 #include "math.h"
 
+using std::map;
+using std::vector;
+
 namespace ATC {
 
   FE_Interpolate::FE_Interpolate(FE_Element *feElement)

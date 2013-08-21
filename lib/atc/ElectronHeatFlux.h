@@ -3,10 +3,6 @@
 
 #include <map>
 #include <string>
-
-using std::map;
-using std::string;
-
 #include "ATC_TypeDefs.h"
 #include "ElectronFlux.h"
 #include "ElectronHeatCapacity.h"
@@ -71,7 +67,7 @@ namespace ATC {
   class ElectronHeatFluxLinear : public ElectronHeatFlux
   {
     public:
-    ElectronHeatFluxLinear(fstream &matfile,map<string,double> & parameters,
+    ElectronHeatFluxLinear(std::fstream &matfile,std::map<std::string,double> & parameters,
                            /*const*/ ElectronHeatCapacity * electronHeatCapacity = NULL);
       virtual ~ElectronHeatFluxLinear() {};
       virtual void electron_heat_flux(const FIELD_MATS &fields,
@@ -98,7 +94,7 @@ namespace ATC {
   class ElectronHeatFluxPowerLaw : public ElectronHeatFlux
   {
     public:
-    ElectronHeatFluxPowerLaw(fstream &matfile,map<string,double> &parameters,
+    ElectronHeatFluxPowerLaw(std::fstream &matfile,std::map<std::string,double> &parameters,
                              /*const*/ ElectronHeatCapacity * electronHeatCapacity = NULL);
       virtual ~ElectronHeatFluxPowerLaw() {};
       virtual void electron_heat_flux(const FIELD_MATS &fields,
@@ -136,8 +132,8 @@ ctivity proportional to the ratio of the electron and phonon temperatures with t
   class ElectronHeatFluxThermopower : public ElectronHeatFlux
   {
     public:
-      ElectronHeatFluxThermopower(fstream &matfile, 
-                                  map<string,double> & parameters,
+      ElectronHeatFluxThermopower(std::fstream &matfile, 
+                                  std::map<std::string,double> & parameters,
                                   /*const*/ ElectronFlux * electronFlux = NULL,
                                   /*const*/ ElectronHeatCapacity * electronHeatCapacity = NULL);
       virtual ~ElectronHeatFluxThermopower() {};

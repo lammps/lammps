@@ -4,6 +4,17 @@
 #include "FE_Engine.h"
 #include "LammpsInterface.h"
 #include <typeinfo>
+#include <sstream>
+#include <iostream>
+
+using std::map;
+using std::ifstream;
+using std::stringstream;
+using std::set;
+using std::string;
+using std::vector;
+
+using ATC_Utility::to_string;
 
 namespace ATC {
 
@@ -96,10 +107,11 @@ namespace ATC {
       INT_ARRAY map = map_->quantity();
       int * type = ATC::LammpsInterface::instance()->atom_type(); 
       ESET::const_iterator itr;
+      const Array<int> & quantityToLammps = atc_.atc_to_lammps_map();
       for (int i = 0; i < map.size(); i++) {
         for (itr=eset_.begin(); itr != eset_.end(); itr++) {
           if (map(i,0) == *itr) {
-            int a = quantityToLammps_(i);
+            int a = quantityToLammps(i);
             if (type[a] == type_) {
               list_.push_back(ID_PAIR(i,a)); 
               break;
@@ -577,10 +589,11 @@ namespace ATC {
       //PerAtomQuantity<double>::reset();
       int nlocal = atc_->nlocal();
       quantity_.reset(nlocal,typeList_.size()+groupList_.size());
+      const Array<int> & quantityToLammps = (PerAtomQuantity<double>::atc_).atc_to_lammps_map();
       if (typeList_.size()) { 
         int * type = ATC::LammpsInterface::instance()->atom_type(); 
         for (int i = 0; i < nlocal; i++) {
-          int a = quantityToLammps_(i); 
+          int a = quantityToLammps(i); 
           int index = index_[type[a]-1];
           if (index > -1) quantity_(i,index) = 1;
         }
@@ -591,7 +604,7 @@ namespace ATC {
         for (unsigned int j = 0; j < groupList_.size(); j++) {
           int group = groupList_[j];
           for (int i = 0; i < nlocal; i++) {
-            int a = quantityToLammps_(i);
+            int a = quantityToLammps(i);
             if (mask[a] & group) quantity_(i,index) = 1;
           }
           index++;
@@ -1539,8 +1552,9 @@ namespace ATC {
       size_ = 0;
       const int * type = lammpsInterface_->atom_type();
 
+      const Array<int> & quantityToLammps = atc_.atc_to_lammps_map();
       for (int i = 0; i < quantity_.nRows(); ++i) {
-        int atomIdx = quantityToLammps_(i);
+        int atomIdx = quantityToLammps(i);
         if (type[atomIdx] == type_) {
           quantity_(i,0) = size_;
           ++size_;
@@ -1579,8 +1593,9 @@ namespace ATC {
       size_ = 0;
       const int * mask = lammpsInterface_->atom_mask();
 
+      const Array<int> & quantityToLammps = atc_.atc_to_lammps_map();
       for (int i = 0; i < quantity_.nRows(); ++i) {
-        int atomIdx = quantityToLammps_(i);
+        int atomIdx = quantityToLammps(i);
         if (mask[atomIdx] & group_) {
           quantity_(i,0) = size_;
           ++size_;
@@ -2117,7 +2132,7 @@ namespace ATC {
   PerAtomKernelFunction::PerAtomKernelFunction(ATC_Method * atc,
                                                PerAtomQuantity<double> * atomPositions,
                                                AtomType atomType) :
-    ProtectedAtomSparseMatrix<double>(atc,(atc->fe_engine())->num_nodes(),(atc->fe_engine())->num_nodes(),atomType),
+    ProtectedAtomSparseMatrix<double>(atc,(atc->fe_engine())->num_nodes(),atc->accumulant_bandwidth(),atomType),
     atomPositions_(atomPositions),
     feEngine_(atc->fe_engine())
   {

@@ -1,12 +1,13 @@
 #ifndef FE_ELEMENT_H
 #define FE_ELEMENT_H
 
+#include <vector>
+#include <string>
+
 // ATC_Transfer headers
 #include "MatrixLibrary.h"
 #include "Array2D.h"
 #include "ATC_TypeDefs.h"
-
-using namespace std;
 
 namespace ATC {
 
@@ -91,7 +92,7 @@ namespace ATC {
     virtual void set_quadrature(FeIntQuadrature type) = 0; 
 
     /** return the set of 1d nodes that correspond to this node in 3d space */
-    void mapping(const int inode, vector<int> &mapping) const;
+    void mapping(const int inode, std::vector<int> &mapping) const;
 
     /** extract face coordinates from element coordinates */
     void face_coordinates(const DENS_MAT &eltCoords, 
@@ -140,7 +141,7 @@ namespace ATC {
      */
     virtual void shape_function(const DENS_MAT eltCoords,
                                 DENS_MAT &N,
-                                vector<DENS_MAT> &dN, 
+                                std::vector<DENS_MAT> &dN, 
                                 DIAG_MAT &weights);
 
     /** 
@@ -195,8 +196,8 @@ namespace ATC {
     virtual void face_shape_function(const DENS_MAT &eltCoords,
                                      const int faceID,
                                      DENS_MAT &N,
-                                     vector<DENS_MAT> &dN,
-                                     vector<DENS_MAT> &Nn,
+                                     std::vector<DENS_MAT> &dN,
+                                     std::vector<DENS_MAT> &Nn,
                                      DIAG_MAT &weights);
 
     /** 
@@ -214,7 +215,7 @@ namespace ATC {
      */
     virtual void tangents(const DENS_MAT &eltCoords,
                           const DENS_VEC &x,
-                          vector<DENS_VEC> & tangents,
+                          std::vector<DENS_VEC> & tangents,
                           const bool normalize=false) const; 
 
   protected:
@@ -226,7 +227,7 @@ namespace ATC {
     /** 
      *  generate the appropriate interpolation class 
      */
-    FE_Interpolate *interpolate_factory(string interpolateType);
+    FE_Interpolate *interpolate_factory(std::string interpolateType);
 
     /** initial guess for local coordinates */
     virtual void initial_local_coordinates(const DENS_MAT &eltCoords,

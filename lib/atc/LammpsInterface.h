@@ -2,41 +2,26 @@
 #define LAMMPS_INTERFACE_H
 
 #include <iostream>
-using std::flush;
 #include <stdlib.h>
-using std::copy;
-using std::max;
 #include <map>
-using std::map;
 #include <iostream>
-using std::cout;
 #include <string>
-using std::string;
 #include <sstream>
-using std::stringstream;
+#include <utility>
 #include "mpi.h"
 #include "lammps.h"
 #include "modify.h"
 #include "memory.h"
-
 #include "random_park.h"
 typedef LAMMPS_NS::RanPark* RNG_POINTER;
-
 #include "lmptype.h"
-using LAMMPS_NS::bigint;
-//using LAMMPS_NS::NEIGHMASK;
-
 #include "compute.h"
 typedef const LAMMPS_NS::Compute* COMPUTE_POINTER;
-
 #include "update.h"
 #include "min.h"
-
 #include "ATC_Error.h"
 #include "ATC_TypeDefs.h"
 #include "MatrixDef.h"
-using namespace ATC_matrix;
-// must scope ATC_matrix
 #include "MPI_Wrappers.h"
 
 typedef LAMMPS_NS::Pair* POTENTIAL;
@@ -60,7 +45,7 @@ namespace LAMMPS_NS {
 
 namespace ATC {
 
-static const string atomPeNameBase_ = "atcPE";
+static const std::string atomPeNameBase_ = "atcPE";
 static const double big_ = 1.e20;
 
 /**
@@ -244,15 +229,15 @@ class LammpsInterface {
   {
     MPI_Wrappers::barrier(lammps_->world);
   }
-  void stop(string msg="") const
+  void stop(std::string msg="") const
   {
     MPI_Wrappers::stop(lammps_->world, msg);
   }
 // end MPI --------------------------------------------------------------------
 
-  void print_debug(string msg="") const
+  void print_debug(std::string msg="") const
   {
-    cout << "rank " << comm_rank() << " " << msg << "\n" << std::flush; 
+    std::cout << "rank " << comm_rank() << " " << msg << "\n" << std::flush; 
     barrier();
   }
 
@@ -264,43 +249,43 @@ class LammpsInterface {
     return (size==1);
   }
 
-  void print_msg(string msg) const
+  void print_msg(std::string msg) const
   {
     int me;
     MPI_Comm_rank(lammps_->world,&me);
-    stringstream full_msg;
+    std::stringstream full_msg;
     if (serial()) {
       full_msg << " ATC: " << msg << "\n";
     } 
     else {
       full_msg << " ATC: P" << me << ", " << msg << "\n";
     }
-    string mesg = full_msg.str();
+    std::string mesg = full_msg.str();
     
     if (lammps_->screen)  fprintf(lammps_->screen, "%s",mesg.c_str());
     if (lammps_->logfile) fprintf(lammps_->logfile,"%s",mesg.c_str());
   }
 
-  void print_msg_once(string msg,bool prefix=true, bool endline=true) const
+  void print_msg_once(std::string msg,bool prefix=true, bool endline=true) const
   {
     int me;
     MPI_Comm_rank(lammps_->world,&me);
     if (me==0) {
-      stringstream full_msg;
+      std::stringstream full_msg;
       if (prefix) full_msg << " ATC: ";
       full_msg << msg;
       if (endline) full_msg << "\n";
-      string mesg = full_msg.str();
+      std::string mesg = full_msg.str();
       if (lammps_->screen)  fprintf(lammps_->screen, "%s",mesg.c_str());
       if (lammps_->logfile) fprintf(lammps_->logfile,"%s",mesg.c_str());
     }
   }
 
-  void all_print(double data, string tag ="") const
+  void all_print(double data, std::string tag ="") const
   {
     int me;
     MPI_Comm_rank(lammps_->world,&me);
-    stringstream full_msg;
+    std::stringstream full_msg;
     if (serial()) {
       full_msg << " ATC: " << tag << data << "\n";
     } 
@@ -317,21 +302,21 @@ class LammpsInterface {
       }
     }
     if (rank_zero()) {
-      string mesg = full_msg.str();
+      std::string mesg = full_msg.str();
       if (lammps_->screen)  fprintf(lammps_->screen, "%s",mesg.c_str());
       if (lammps_->logfile) fprintf(lammps_->logfile,"%s",mesg.c_str());
     }
   }
 
-  void stream_msg_once(string msg,bool prefix=true, bool endline=true) const
+  void stream_msg_once(std::string msg,bool prefix=true, bool endline=true) const
   {
     int me;
     MPI_Comm_rank(lammps_->world,&me);
     if (me==0) {
-      if (prefix) cout << " ATC: ";
-      cout << msg;
-      if (endline) cout << "\n";
-      cout << flush;
+      if (prefix) std::cout << " ATC: ";
+      std::cout << msg;
+      if (endline) std::cout << "\n";
+      std::cout << std::flush;
     }
   }
 
@@ -343,9 +328,9 @@ class LammpsInterface {
   /** \name Methods that interface with Atom class */
   /*@{*/
   void set_fix_pointer(LAMMPS_NS::Fix * thisFix);
-  string fix_id() const;
+  std::string fix_id() const;
   bool atoms_sorted() const;
-  bigint natoms() const;
+  LAMMPS_NS::bigint natoms() const;
   int nlocal() const;
   int nghost() const;
   int nmax() const;
@@ -354,6 +339,7 @@ class LammpsInterface {
   double ** vatom() const; 
   double ** fatom() const; 
   const int * atom_mask() const; 
+  int * atom_mask();
   int * atom_type() const; 
   int * atom_tag() const; 
   int * atom_to_molecule() const;
@@ -476,8 +462,8 @@ class LammpsInterface {
   // interface to "single"
   double pair_force(int i, int j, double rsq, double& fmag_over_rmag) const; // pair class
   double pair_force(int n, double rsq, double& fmag_over_rmag) const; // bond class
-  double pair_force(map< pair< int,int >,int >::const_iterator itr, double rsq, double& fmag_over_rmag, int nbonds = 0) const; 
-  double pair_force(pair< pair< int,int >,int > apair, double rsq, double& fmag_over_rmag, int nbonds = 0) const; 
+  double pair_force(std::map< std::pair< int,int >,int >::const_iterator itr, double rsq, double& fmag_over_rmag, int nbonds = 0) const; 
+  double pair_force(std::pair< std::pair< int,int >,int > apair, double rsq, double& fmag_over_rmag, int nbonds = 0) const; 
   double pair_cutoff() const;
   void pair_reinit() const;
   int single_enable() const;
@@ -543,9 +529,9 @@ class LammpsInterface {
   /** \name Methods that interface with Group class */
   /*@{*/
   int ngroup() const;
-  int group_bit(string name) const;
+  int group_bit(std::string name) const;
   int group_bit(int iGroup) const;
-  int group_index(string name) const;
+  int group_index(std::string name) const;
   int group_inverse_mask(int iGroup) const;
   char * group_name(int iGroup) const;
   void group_bounds(int iGroup, double * b) const;
@@ -578,9 +564,9 @@ class LammpsInterface {
   /** \name Methods that interface with Update class */
   /*@{*/
   double dt() const;
-  bigint ntimestep() const;
+  LAMMPS_NS::bigint ntimestep() const;
   int    nsteps() const;
-  bool now(bigint f) { return (ntimestep() % f == 0); }
+  bool now(LAMMPS_NS::bigint f) { return (ntimestep() % f == 0); }
   /*@}*/
 
   /** \name Methods that interface with neighbor list */
@@ -593,6 +579,7 @@ class LammpsInterface {
   int * neighbor_list_ilist() const;
   int ** neighbor_list_firstneigh() const;
   int   neighbor_ago() const;
+  int reneighbor_frequency() const;
   LAMMPS_NS::NeighList * neighbor_list(void) const { return list_;}
   /*@}*/
 
@@ -634,7 +621,7 @@ class LammpsInterface {
     KE_ATOM,
     NUM_PER_ATOM_COMPUTES};
   // computes owned by LAMMPS
-  COMPUTE_POINTER compute_pointer(string tag) const;
+  COMPUTE_POINTER compute_pointer(std::string tag) const;
   int      compute_ncols_peratom(COMPUTE_POINTER computePointer) const;
   double*  compute_vector_peratom(COMPUTE_POINTER computePointer) const;
   double** compute_array_peratom(COMPUTE_POINTER computePointer) const;
@@ -646,7 +633,7 @@ class LammpsInterface {
   // computes owned by ATC
   int      create_compute_pe_peratom(void) const;
   double * compute_pe_peratom(void) const;
-  string compute_pe_name(void) const {return atomPeNameBase_;};//  +fix_id();}; enables unique names, if desired
+  std::string compute_pe_name(void) const {return atomPeNameBase_;};//  +fix_id();}; enables unique names, if desired
   void     computes_clearstep(void) const {lammps_->modify->clearstep_compute();};
   /*@}*/
  
@@ -683,7 +670,7 @@ class LammpsInterface {
   mutable double upper_[3],lower_[3],length_[3];
 
   /** registry of computer pointers */
-  mutable set<LAMMPS_NS::Compute * > computePointers_;
+  mutable std::set<LAMMPS_NS::Compute * > computePointers_;
 
   /** a random number generator from lammps */
   mutable LAMMPS_NS::RanPark * random_;
@@ -698,7 +685,7 @@ class LammpsInterface {
   class HeartBeat
   {
     public:
-      HeartBeat(string name, int freq) :
+      HeartBeat(std::string name, int freq) :
         name_(name), freq_(freq), counter_(0) {};
       ~HeartBeat(){};
       void start() const
@@ -708,7 +695,7 @@ class LammpsInterface {
       void finish() const
         { ATC::LammpsInterface::instance()->stream_msg_once("done",false,true);}
     protected:
-      string name_;
+      std::string name_;
       int freq_;
       mutable int counter_;
     private:

@@ -59,8 +59,8 @@ using ATC_Utility::to_string;
       quartic_cylinder = radius (double) \n
       quartic_sphere = radius (double) \n
       \section examples
-      fix_modify AtC kernel cell 1.0 1.0 1.0
-      fix_modify AtC kernel quartic_sphere 10.0
+      <TT> fix_modify AtC kernel cell 1.0 1.0 1.0 </TT> \n
+      <TT> fix_modify AtC kernel quartic_sphere 10.0 </TT>
       \section description
       
       \section restrictions
@@ -140,6 +140,7 @@ using ATC_Utility::to_string;
     nodeData.zero();
 
     if (nLocal_>0) {
+      set_xPointer();
       DENS_VEC xI(nsd_),xa(nsd_),xaI(nsd_);
       double val;
       for (int i = 0; i < nNodes_; i++) {

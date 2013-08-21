@@ -9,6 +9,11 @@
 #include "PoissonSolver.h"
 
 
+#include <utility>
+
+using std::pair;
+using std::set;
+
 const double tol = 1.e-8; 
 const double zero_tol = 1.e-12; 
 const double f_tol = 1.e-8; 
@@ -114,7 +119,8 @@ double fermi_dirac(const double E, const double T)
     const int solverType,
     bool parallel
 )
-    : SchrodingerSolver(fieldName, physicsModel, feEngine, prescribedDataMgr, atc, solverType, parallel),
+    : SchrodingerSolver(fieldName, physicsModel, feEngine, prescribedDataMgr, 
+        atc, solverType, parallel),
     oneDslices_(oneDslices)
   {
   }
@@ -272,11 +278,13 @@ double fermi_dirac(const double E, const double T)
   {
     SchrodingerPoissonSolver * ptr;
     if (oneD_) {
-      ptr = new SliceSchrodingerPoissonSolver(atc,schrodingerSolver,poissonSolver,physicsModel,maxConsistencyIter_,
-                                              maxConstraintIter_, oneDconserve_, Ef_shift_, safe_dEf_);
+      ptr = new SliceSchrodingerPoissonSolver(atc,
+        schrodingerSolver,poissonSolver,physicsModel,maxConsistencyIter_,
+        maxConstraintIter_, oneDconserve_, Ef_shift_, safe_dEf_);
     }
     else {
-      ptr = new SchrodingerPoissonSolver(atc,schrodingerSolver,poissonSolver,physicsModel,maxConsistencyIter_);
+      ptr = new SchrodingerPoissonSolver(atc,
+        schrodingerSolver,poissonSolver,physicsModel,maxConsistencyIter_);
     }
     return ptr;
   }
@@ -305,6 +313,10 @@ double fermi_dirac(const double E, const double T)
 
   void SchrodingerPoissonSolver::solve(FIELDS & rhs, GRAD_FIELD_MATS & fluxes)
   {
+    if ((atc_->prescribed_data_manager()->all_fixed(ELECTRON_WAVEFUNCTION))
+     && (atc_->prescribed_data_manager()->all_fixed(ELECTRIC_POTENTIAL)))  {
+      return;
+    }
     double norm = 1.0, norm0 = 1.0; // normPrev = 1.0;
     DENS_MAT nPrev,psiPrev,phiPrev;
 

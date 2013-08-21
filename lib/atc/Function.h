@@ -10,9 +10,6 @@
 #include "Array.h"
 #include "ATC_TypeDefs.h"
 
-using namespace std;
-using ATC_matrix::Array;
-
 namespace ATC {
 
   /**
@@ -20,14 +17,13 @@ namespace ATC {
    *  @brief Base class for functions of fields, space and time
    */
 
-
   class Function {
   public:
     Function(int nargs, char** args);
     virtual ~Function(void) {};
 
     /** name */
-    const string & tag() { return tag_;}
+    const std::string & tag() { return tag_;}
 
     /** depdendencies */
     virtual inline ARG_NAMES args(void) {ARG_NAMES names; return names;};
@@ -44,7 +40,7 @@ namespace ATC {
 
   protected:
     /** tag : name of function */
-    string tag_;
+    std::string tag_;
   };
 
   /**
@@ -64,7 +60,7 @@ namespace ATC {
    private:
     static Function_Mgr * myInstance_;
     /** set to store all generated objects for later deletion */
-    set<Function * > pointerSet_;
+    std::set<Function * > pointerSet_;
   };
 
 
@@ -95,7 +91,7 @@ namespace ATC {
     UXT_Function(int nargs, double* args);
     virtual ~UXT_Function(void) {};
 
-    const string & tag() { return tag_;}
+    const std::string & tag() { return tag_;}
 
     /** function value */
     virtual inline double f(double * u, double* x, double t) {return 0.0;};
@@ -104,7 +100,7 @@ namespace ATC {
 
   protected:
     /** tag : name of function */
-    string tag_;
+    std::string tag_;
   };
 
   /**
@@ -118,7 +114,7 @@ namespace ATC {
     /** Static instance of this class */
     static UXT_Function_Mgr * instance();
 
-    UXT_Function* function(string & type, int nargs, double * arg);
+    UXT_Function* function(std::string & type, int nargs, double * arg);
     UXT_Function* function(char ** arg, int nargs);
     UXT_Function* linear_function(double c0, double c1);
     UXT_Function* copy_UXT_function(UXT_Function* other);
@@ -128,7 +124,7 @@ namespace ATC {
    private:
     static UXT_Function_Mgr * myInstance_;
     /** set to store all generated objects for later deletion */
-    set<UXT_Function * > pointerSet_;
+    std::set<UXT_Function * > pointerSet_;
   };
 
 
@@ -161,7 +157,7 @@ namespace ATC {
     XT_Function(int nargs, double* args);
     virtual ~XT_Function(void) {};
 
-    const string & tag() { return tag_;}
+    const std::string & tag() { return tag_;}
 
     /** function value */
     virtual inline double f(double* x, double t) {return 0.0;};
@@ -176,7 +172,7 @@ namespace ATC {
     /** mask : masks x,y,z dependence, x0 : origin */
     double mask[3], x0[3];
     /** tag : name of function */
-    string tag_;
+    std::string tag_;
   };
 
   /**
@@ -189,7 +185,7 @@ namespace ATC {
     /** Static instance of this class */
     static XT_Function_Mgr * instance();
 
-    XT_Function* function(string & type, int nargs, double * arg);
+    XT_Function* function(std::string & type, int nargs, double * arg);
     XT_Function* function(char ** arg, int nargs);
     XT_Function* constant_function(double c);
     XT_Function* copy_XT_function(XT_Function* other);
@@ -199,7 +195,7 @@ namespace ATC {
    private:
     static XT_Function_Mgr * myInstance_;
     /** set to store all generated objects for later deletion */
-    set<XT_Function * > pointerSet_;
+    std::set<XT_Function * > pointerSet_;
 
   };
 
@@ -412,7 +408,7 @@ namespace ATC {
     virtual ~InterpolationFunction(void) {};
 
     /** populate data */
-    void initialize(int npts,fstream &fileId, double coef = 1.);
+    void initialize(int npts,std::fstream &fileId, double coef = 1.);
 
     /** function value */
     double f(const double t) const;

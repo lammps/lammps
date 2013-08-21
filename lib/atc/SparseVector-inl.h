@@ -216,10 +216,10 @@ void SparseVector<T>::write_restart(FILE *F) const
 
 // writes a stream to a matlab script to recreate this variable 
 template<class T>
-void SparseVector<T>::matlab(ostream &o, const string &s) const
+void SparseVector<T>::matlab(std::ostream &o, const std::string &s) const
 {
   o << s << "=sparse(" << nRows() << ",1);\n";
-  o << showbase << scientific;
+  o << std::showbase << std::scientific;
   STORE::const_iterator it;
   for (it=data_.begin(); it!=data_.end(); it++)
     o << s << "(" << it->first+1 << ") = " << it->second << ";\n";

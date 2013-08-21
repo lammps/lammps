@@ -9,6 +9,10 @@
 #include "AtomToMoleculeTransfer.h"
 #include "MoleculeSet.h"
 
+using std::pair;
+using std::map;
+using std::string;
+
 namespace ATC {
 
   //--------------------------------------------------------
@@ -24,7 +28,6 @@ namespace ATC {
   SpeciesTimeIntegrator::SpeciesTimeIntegrator(ATC_CouplingMass * atc,
                                                TimeIntegrationType timeIntegrationType) :
     TimeIntegrator(atc, timeIntegrationType),
-    speciesIds_(atc->species_ids()),
     moleculeIds_(atc->molecule_ids())
   {
     // do nothing
@@ -65,14 +68,16 @@ namespace ATC {
       if (timeFilterManager_->filter_dynamics()) {
         switch (timeIntegrationType_) {
           case FRACTIONAL_STEP: {
-            timeIntegrationMethod_ = new SpeciesTimeIntegratorFractionalStepFiltered(this,speciesIds_,moleculeIds_);
+            timeIntegrationMethod_ = new SpeciesTimeIntegratorFractionalStepFiltered(this,
+                                                                                     moleculeIds_);
            }
           default:
             throw ATC_Error("Unknown time integration type in SpeciesTimeIntegrator::Initialize()");
         }
       }
       else {
-        timeIntegrationMethod_ = new SpeciesTimeIntegratorFractionalStep(this,speciesIds_,moleculeIds_);
+        timeIntegrationMethod_ = new SpeciesTimeIntegratorFractionalStep(this,
+                                                                         moleculeIds_);
       }
     }
   }
@@ -98,7 +103,6 @@ namespace ATC {
   //        Grab data from ATC
   //-------------------------------------------------------- 
   SpeciesIntegrationMethod::SpeciesIntegrationMethod(SpeciesTimeIntegrator * speciesTimeIntegrator,
-    const map<string,pair<IdType,int> > & speciesIds,
     const map<string,pair<MolSize,int> > & moleculeIds) :
     TimeIntegrationMethod(speciesTimeIntegrator),
     timeFilter_(speciesTimeIntegrator->time_filter()),
@@ -108,7 +112,6 @@ namespace ATC {
     speciesConcentration_(atc_->field(SPECIES_CONCENTRATION)),
     nodalAtomicSpeciesConcentration_(NULL),
     nodalAtomicSpeciesConcentrationFiltered_(speciesTimeIntegrator->nodal_atomic_species_concentration_filtered()),
-    speciesIds_(speciesIds),
     moleculeIds_(moleculeIds)
   {
     // do nothing
@@ -138,9 +141,8 @@ namespace ATC {
   //  Constructor
   //-------------------------------------------------------- 
   SpeciesTimeIntegratorFractionalStep::SpeciesTimeIntegratorFractionalStep(SpeciesTimeIntegrator * speciesTimeIntegrator,
-    const map<string,pair<IdType,int> > & speciesIds,
     const map<string,pair<MolSize,int> > & moleculeIds) :
-    SpeciesIntegrationMethod(speciesTimeIntegrator,speciesIds,moleculeIds)
+    SpeciesIntegrationMethod(speciesTimeIntegrator,moleculeIds)
   {
     // do nothing
   }
@@ -233,9 +235,8 @@ namespace ATC {
 
   SpeciesTimeIntegratorFractionalStepFiltered::SpeciesTimeIntegratorFractionalStepFiltered(
     SpeciesTimeIntegrator * speciesTimeIntegrator,
-    const map<string,pair<IdType,int> > & speciesIds,
     const map<string,pair<MolSize,int> > & moleculeIds) :
-    SpeciesTimeIntegratorFractionalStep(speciesTimeIntegrator,speciesIds,moleculeIds)
+    SpeciesTimeIntegratorFractionalStep(speciesTimeIntegrator,moleculeIds)
   {
     throw ATC_Error("SpeciesTimeIntegratorFractionalStepFiltered work in progress");
     // do nothing

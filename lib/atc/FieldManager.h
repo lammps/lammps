@@ -1,6 +1,8 @@
 #ifndef FIELD_MANAGER_H
 #define FIELD_MANAGER_H
 
+#include <string>
+
 #include "ATC_TypeDefs.h"
 #include "ATC_Error.h"
 #include "PerAtomQuantity.h"
@@ -23,8 +25,9 @@ namespace ATC {
   public:
     FieldManager(ATC_Method * atc);
     virtual ~FieldManager(void){};
+    /** this function returns a (density) field derived from atomic data */
     DENS_MAN * nodal_atomic_field(FieldName fieldName, 
-                                  string name = "default") {
+                                  std::string name = "default") {
       switch (fieldName) {
       case CHARGE_DENSITY:        return charge_density(name);
       case MASS_DENSITY:          return mass_density(name);
@@ -42,10 +45,12 @@ namespace ATC {
       case KINETIC_TEMPERATURE:   return kinetic_temperature(name);
       case CHARGE_FLUX:           return charge_flux(name);
       case SPECIES_FLUX:          return species_flux(name);
+      case INTERNAL_ENERGY:       return internal_energy(name);
+      case ENERGY:                return energy(name);
       default: throw ATC_Error("FieldManager:: unknown field"); return NULL;
       }
     }
-    CanonicalName string_to_canonical_name(string name){
+    CanonicalName string_to_canonical_name(std::string name){
        if      (name == "AtomicTwiceFluctuatingKineticEnergy") 
          return ATOMIC_TWICE_FLUCTUATING_KINETIC_ENERGY;
        else if (name == "AtomicTwiceKineticEnergy") 
@@ -63,7 +68,7 @@ namespace ATC {
        else
          throw ATC_Error("unknown canonical name "+name);
     }
-    PAQ * per_atom_quantity(string name) {
+    PAQ * per_atom_quantity(std::string name) {
       switch (string_to_canonical_name(name)) {
       case ATOMIC_TWICE_FLUCTUATING_KINETIC_ENERGY: 
         return atomic_twice_fluctuating_kinetic_energy();
@@ -81,27 +86,30 @@ namespace ATC {
         throw ATC_Error("FieldManager:: unknown PAQ"); return NULL;
       }
     }
-    DENS_MAN * restricted_atom_quantity(FieldName field, string name = "default", PAQ * atomi = NULL);
+    /** this function returns a restriction of atomic data */
+    DENS_MAN * restricted_atom_quantity(FieldName field, std::string name = "default", PAQ * atomi = NULL);
   protected:
     ATC_Method * atc_;
     InterscaleManager & interscaleManager_;
     // nodal atomic fields
-    DENS_MAN * charge_density(string name);
-    DENS_MAN * mass_density(string name);
-    DENS_MAN * species_concentration(string name);
-    DENS_MAN * number_density(string name);
-    DENS_MAN * momentum(string name);
-    DENS_MAN * velocity(string name);
-    DENS_MAN * projected_velocity(string name);
-    DENS_MAN * displacement(string name);
-    DENS_MAN * reference_potential_energy(string name);
-    DENS_MAN * potential_energy(string name);
-    DENS_MAN * thermal_energy(string name);
-    DENS_MAN * kinetic_energy(string name);
-    DENS_MAN * temperature(string name);
-    DENS_MAN * kinetic_temperature(string name);
-    DENS_MAN * charge_flux(string name);
-    DENS_MAN * species_flux(string name);
+    DENS_MAN * charge_density(std::string name);
+    DENS_MAN * mass_density(std::string name);
+    DENS_MAN * species_concentration(std::string name);
+    DENS_MAN * number_density(std::string name);
+    DENS_MAN * momentum(std::string name);
+    DENS_MAN * velocity(std::string name);
+    DENS_MAN * projected_velocity(std::string name);
+    DENS_MAN * displacement(std::string name);
+    DENS_MAN * reference_potential_energy(std::string name);
+    DENS_MAN * potential_energy(std::string name);
+    DENS_MAN * thermal_energy(std::string name);
+    DENS_MAN * kinetic_energy(std::string name);
+    DENS_MAN * temperature(std::string name);
+    DENS_MAN * kinetic_temperature(std::string name);
+    DENS_MAN * charge_flux(std::string name);
+    DENS_MAN * species_flux(std::string name);
+    DENS_MAN * internal_energy(std::string name);
+    DENS_MAN * energy(std::string name);
 
     // non intrinsic per atom quantities (intrinsic are handled elsewhere)
     PAQ * atomic_twice_kinetic_energy();
@@ -112,10 +120,10 @@ namespace ATC {
     PAQ * atomic_species_vector();
 
     // internal functions
-    DENS_MAN * projected_atom_quantity(FieldName field,string name, PAQ * atomic, FieldName massMat, DIAG_MAN * normalization = NULL);
-    DENS_MAN * scaled_projected_atom_quantity(FieldName field,string name, PAQ * atomic, double scale, FieldName massMat, DIAG_MAN * normalization = NULL);
-    DENS_MAN * referenced_projected_atom_quantity(FieldName field, string name, PAQ * atomic, const DENS_MAT * reference, FieldName massMat, DIAG_MAN * normalization = NULL);
-    DENS_MAN * inferred_atom_quantity(FieldName field, string name, PAQ * atomic, FieldName massMat){return NULL;};
+    DENS_MAN * projected_atom_quantity(FieldName field,std::string name, PAQ * atomic,  DIAG_MAN * normalization = NULL);
+    DENS_MAN * scaled_projected_atom_quantity(FieldName field,std::string name, PAQ * atomic, double scale, DIAG_MAN * normalization = NULL);
+    DENS_MAN * referenced_projected_atom_quantity(FieldName field, std::string name, PAQ * atomic, DENS_MAN * reference, DIAG_MAN * normalization = NULL);
+    DENS_MAN * inferred_atom_quantity(FieldName field, std::string name, PAQ * atomic){return NULL;};
     PAQ * prolonged_field(FieldName field);
   private:
     FieldManager(void);

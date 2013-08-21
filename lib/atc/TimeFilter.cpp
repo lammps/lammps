@@ -1,6 +1,8 @@
 #include "ATC_Transfer.h"
 #include "TimeFilter.h"
 
+using std::set;
+
 namespace ATC {
 
   //--------------------------------------------------------
@@ -128,7 +130,7 @@ namespace ATC {
     // filter type 
     /*! \page man_filter_type fix_modify AtC filter type 
       \section syntax
-      fix_modify AtC filter type <exponential | no_filter> \n
+      fix_modify AtC filter type <exponential | step | no_filter> \n
 
       \section examples
       <TT> fix_modify AtC filter type exponential </TT> \n

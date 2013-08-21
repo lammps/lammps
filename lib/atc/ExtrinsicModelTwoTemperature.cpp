@@ -7,6 +7,8 @@
 #include "PrescribedDataManager.h"
 #include "PhysicsModel.h"
 
+using std::string;
+
 namespace ATC {
 
   //--------------------------------------------------------

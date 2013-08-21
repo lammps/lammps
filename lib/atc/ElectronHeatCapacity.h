@@ -3,10 +3,6 @@
 
 #include <map>
 #include <string>
-
-using std::map;
-using std::string;
-
 #include "ATC_TypeDefs.h"
 #include "Material.h"
 
@@ -43,8 +39,8 @@ namespace ATC {
   class ElectronHeatCapacityConstant : public ElectronHeatCapacity
   {
     public:
-      ElectronHeatCapacityConstant(fstream &matfile, 
-                                   map<string,double> & parameters);
+      ElectronHeatCapacityConstant(std::fstream &matfile, 
+                                   std::map<std::string,double> & parameters);
       virtual ~ElectronHeatCapacityConstant() {};
       virtual void electron_heat_capacity(const FIELD_MATS &fields,
                                                 DENS_MAT &capacity)
@@ -85,8 +81,8 @@ namespace ATC {
   class ElectronHeatCapacityLinear : public ElectronHeatCapacity
   {
     public:
-      ElectronHeatCapacityLinear(fstream &matfile,
-                                 map<string,double> & parameters);
+      ElectronHeatCapacityLinear(std::fstream &matfile,
+                                 std::map<std::string,double> & parameters);
       virtual ~ElectronHeatCapacityLinear() {};
       virtual void electron_heat_capacity(const FIELD_MATS &fields,
                                                 DENS_MAT &capacity)
@@ -126,8 +122,8 @@ namespace ATC {
   class ElectronHeatCapacityConstantAddDensity : public ElectronHeatCapacityConstant
   {
     public:
-      ElectronHeatCapacityConstantAddDensity(fstream &matfile, 
-                                             map<string,double> & parameters,
+      ElectronHeatCapacityConstantAddDensity(std::fstream &matfile, 
+                                             std::map<std::string,double> & parameters,
                                              Material * material);
       virtual ~ElectronHeatCapacityConstantAddDensity() {};
       virtual void electron_heat_capacity(const FIELD_MATS &fields,
@@ -178,8 +174,8 @@ namespace ATC {
   class ElectronHeatCapacityLinearAddDensity : public ElectronHeatCapacityLinear
   {
     public:
-      ElectronHeatCapacityLinearAddDensity(fstream &matfile,
-                                           map<string,double> & parameters,
+      ElectronHeatCapacityLinearAddDensity(std::fstream &matfile,
+                                           std::map<std::string,double> & parameters,
                                            Material * material);
       virtual ~ElectronHeatCapacityLinearAddDensity() {};
       virtual void electron_heat_capacity(const FIELD_MATS &fields,

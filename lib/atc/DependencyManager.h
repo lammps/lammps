@@ -8,8 +8,6 @@
 #include "ATC_Error.h"
 #include "MPI_Wrappers.h"
 
-using namespace MPI_Wrappers;
-
 namespace ATC {
 
   class InterscaleManager;
@@ -54,7 +52,7 @@ namespace ATC {
     void propagate_reset()
     {
       if (!isFixed_) {
-        set<DependencyManager *>::iterator it;
+        std::set<DependencyManager *>::iterator it;
         for (it = dependentQuantities_.begin(); it != dependentQuantities_.end(); it++)
           (*it)->force_reset();
       }
@@ -95,7 +93,7 @@ namespace ATC {
   protected:
     
     /** list of dependent atomic quantities */
-    set<DependencyManager * > dependentQuantities_;
+    std::set<DependencyManager * > dependentQuantities_;
     
     /** flag for needing a recent */
     // mutable is applied because there can be internal updates because we update when needed rather than when pushed
@@ -187,7 +185,7 @@ namespace ATC {
     virtual void operator/=(const MatrixDependencyManager<T,U> & divisor) {get_quantity()/=divisor.quantity(); propagate_reset();};
 
     /** execute the matrix print command */
-    virtual void const print(const string &name) {get_quantity().print(name);};
+    virtual void const print(const std::string &name) {get_quantity().print(name);};
 
   protected:
 
@@ -274,10 +272,10 @@ namespace ATC {
     virtual ~SetDependencyManager() {};
 
     /** returns a non-const version for manipulations and changes, resets dependent quantities */
-    virtual set<T> & set_quantity() {propagate_reset(); return quantity_;};
+    virtual std::set<T> & set_quantity() {propagate_reset(); return quantity_;};
     
     /** access to a constant dense matrix of the quantity, indexed by AtC atom counts */
-    virtual const set<T> & quantity() const {return quantity_;};
+    virtual const std::set<T> & quantity() const {return quantity_;};
 
     /** size of the set */
     virtual int size() const {return (this->quantity()).size();};
@@ -286,7 +284,7 @@ namespace ATC {
 
     /** underlying set */
     // mutable is applied because there can be internal updates because we update when needed rather than when pushed
-    mutable set<T> quantity_;
+    mutable std::set<T> quantity_;
 
   };
 
@@ -307,10 +305,10 @@ namespace ATC {
     virtual ~VectorDependencyManager() {};
 
     /** returns a non-const version for manipulations and changes, resets dependent quantities */
-    virtual vector<T> & set_quantity() {propagate_reset(); return quantity_;};
+    virtual std::vector<T> & set_quantity() {propagate_reset(); return quantity_;};
     
     /** access to a constant dense matrix of the quantity, indexed by AtC atom counts */
-    virtual const vector<T> & quantity() const {return quantity_;};
+    virtual const std::vector<T> & quantity() const {return quantity_;};
 
     /** size of the set */
     virtual int size() const {return (this->quantity()).size();};
@@ -319,7 +317,7 @@ namespace ATC {
 
     /** underlying set */
     // mutable is applied because there can be internal updates because we update when needed rather than when pushed
-    mutable vector<T> quantity_;
+    mutable std::vector<T> quantity_;
 
   };
 

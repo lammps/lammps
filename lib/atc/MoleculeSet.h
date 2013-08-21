@@ -10,8 +10,6 @@
 #include <set>
 #include <vector>
 
-using namespace std;
-
 namespace ATC {
 
   // forward declarations
@@ -35,7 +33,7 @@ namespace ATC {
     virtual void clear();
 
     /** initialize global data */
-    virtual void initialize(map<int, double> * globalAtomsPerMolecule = NULL);
+    virtual void initialize(std::map<int, double> * globalAtomsPerMolecule = NULL);
 
     /** reset the number of atoms/molecules on this processor */
     void reset_nlocal() {this->set_reset();};
@@ -50,10 +48,10 @@ namespace ATC {
     int local_molecule_count() const {if (need_reset()) reset(); return moleculeToAtoms_.size();};
 
     /** access molecule atoms by lammps id */
-    set<int> atoms_by_global_molecule(int id) const;
+    std::set<int> atoms_by_global_molecule(int id) const;
 
     /** access molecules by local indexing */
-    const set<int> & atoms_by_local_molecule(int id) const;
+    const std::set<int> & atoms_by_local_molecule(int id) const;
 
     /** access fraction of a locally indexed molecule on this processor */
     virtual double local_fraction(int id) const = 0;
@@ -81,10 +79,10 @@ namespace ATC {
 
     /** multimap from lammps molecule id to ids of consituent atoms, all atoms are real */
     // multiple map to account for periodic images
-    mutable multimap<int, set<int> > moleculeToAtoms_;
+    mutable std::multimap<int, std::set<int> > moleculeToAtoms_;
 
     /** vector in processor-local molecule order to constituent atom sets, atoms include ghosts */
-    mutable vector< map<int, set<int> >::const_iterator > localMoleculeToAtoms_;
+    mutable std::vector< std::map<int, std::set<int> >::const_iterator > localMoleculeToAtoms_;
 
     /** resets the quantity based on the latest data */
     virtual void reset() const = 0;
@@ -122,7 +120,7 @@ namespace ATC {
     virtual void initialize();
 
     /** access molecule atoms by lammps id */
-    set<int> atoms_by_global_molecule(int id) const;
+    std::set<int> atoms_by_global_molecule(int id) const;
 
     /** access fraction of a locally indexed molecule on this processor */
     virtual double local_fraction(int id) const;
@@ -130,7 +128,7 @@ namespace ATC {
   protected:
 
     /** store the number of atoms in a molecule on this processor */
-    //map<int, int> localAtomsPerMolecule_;
+    //std::map<int, int> localAtomsPerMolecule_;
 
     /** resets the quantity based on the latest data */
     virtual void reset() const;
@@ -142,7 +140,7 @@ namespace ATC {
     PerAtomQuantity<int> * numBond_;
 
     /** removes processor ghosts from a set of atom ids */
-    void remove_proc_ghosts(set<int> & atomSet) const;
+    void remove_proc_ghosts(std::set<int> & atomSet) const;
 
     // workspace variable for determining if we've hit an internal atom already
     mutable Array<bool> _atomFound_;

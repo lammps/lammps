@@ -9,7 +9,6 @@
 // other includes
 #include <set>
 #include <map>
-using std::pair;
 
 #include "LammpsInterface.h"
 #include "CG.h"
@@ -152,8 +151,8 @@ class LinearSolver {
   DENS_MAT matrixFreeFree_, matrixFreeFixed_;
 
   /** maps for free and fixed variables for partitioned matrix - condense */
-  set<int> freeSet_, fixedSet_; 
-  map<int,int> freeGlobalToCondensedMap_;
+  std::set<int> freeSet_, fixedSet_; 
+  std::map<int,int> freeGlobalToCondensedMap_;
 
   /** inverse matrix matrix - direct solve */
 

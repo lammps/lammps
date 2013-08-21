@@ -7,6 +7,80 @@ namespace ATC {
 
   //--------------------------------------------------------
   //--------------------------------------------------------
+  //  Class AtomTimeIntegratorType
+  //--------------------------------------------------------
+  //--------------------------------------------------------
+  
+  //--------------------------------------------------------
+  //  Constructor
+  //--------------------------------------------------------
+  AtomTimeIntegratorType::AtomTimeIntegratorType(ATC_Method * atc, AtomType atomType) :
+    atc_(atc),
+    atomType_(atomType),
+    mass_(NULL),
+    position_(NULL),
+    velocity_(NULL),
+    force_(NULL)
+  {
+    // do nothing
+  }
+
+  //--------------------------------------------------------
+  //  construct_transfers
+  //    sets/constructs all required dependency managed data
+  //--------------------------------------------------------
+  void AtomTimeIntegratorType::construct_transfers()
+  {
+    InterscaleManager & interscaleManager(atc_->interscale_manager());
+    mass_ = interscaleManager.fundamental_atom_quantity(LammpsInterface::ATOM_MASS,atomType_);
+    position_ = interscaleManager.fundamental_atom_quantity(LammpsInterface::ATOM_POSITION,atomType_);
+    velocity_ = interscaleManager.fundamental_atom_quantity(LammpsInterface::ATOM_VELOCITY,atomType_);
+    force_ = interscaleManager.fundamental_atom_quantity(LammpsInterface::ATOM_FORCE,atomType_);
+  }
+
+  //--------------------------------------------------------
+  //  initial_integrate_velocity
+  //    velocity update in first part of velocity-verlet
+  //--------------------------------------------------------
+  void AtomTimeIntegratorType::init_integrate_velocity(double dt)
+  {
+    const DENS_MAT & m(mass_->quantity());
+    
+    _deltaQuantity_ = force_->quantity();
+    _deltaQuantity_ /= m;
+    _deltaQuantity_ *= 0.5*dt;
+
+    (*velocity_) += _deltaQuantity_;
+  }
+      
+  //--------------------------------------------------------
+  //  initial_integrate_position
+  //    position update in first part of velocity-verlet
+  //--------------------------------------------------------
+  void AtomTimeIntegratorType::init_integrate_position(double dt)
+  {
+    _deltaQuantity_ = velocity_->quantity();
+    _deltaQuantity_ *= dt;
+    (*position_) += _deltaQuantity_;
+  }
+
+  //--------------------------------------------------------
+  //  final_integrate
+  //    velocity update in second part of velocity-verlet
+  //--------------------------------------------------------
+  void AtomTimeIntegratorType::final_integrate(double dt)
+  {
+    const DENS_MAT & m(mass_->quantity());
+
+    _deltaQuantity_ = force_->quantity();
+    _deltaQuantity_ /= m;
+    _deltaQuantity_ *= 0.5*dt;
+
+    (*velocity_) += _deltaQuantity_;
+  }
+
+  //--------------------------------------------------------
+  //--------------------------------------------------------
   //  Class TimeIntegrator
   //--------------------------------------------------------
   //--------------------------------------------------------

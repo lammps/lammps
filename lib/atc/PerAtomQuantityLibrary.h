@@ -3,14 +3,12 @@
 #ifndef PER_ATOM_QUANTITY_LIBRARY_H
 #define PER_ATOM_QUANTITY_LIBRARY_H
 
-// ATC_Method headers
 #include "PerAtomQuantity.h"
 #include "FundamentalAtomicQuantity.h"
 #include <set>
+#include <map>
 #include <vector>
-
-using namespace std;
-
+#include <string>
 
 namespace ATC {
 
@@ -60,9 +58,9 @@ namespace ATC {
   public:
 
     // constructor
-    AtomTypeVector(ATC_Method * atc, vector<int> typeList,
+    AtomTypeVector(ATC_Method * atc, std::vector<int> typeList,
       AtomType atomType = INTERNAL);
-    AtomTypeVector(ATC_Method * atc, vector<int> typeList, vector<int> grpList,
+    AtomTypeVector(ATC_Method * atc, std::vector<int> typeList, std::vector<int> grpList,
       AtomType atomType = INTERNAL);
 
     // destructor
@@ -74,8 +72,8 @@ namespace ATC {
   protected:
     ATC_Method * atc_;
     int ntypes_;
-    vector<int> typeList_,index_; // lammps->atc & atc->lammps
-    vector<int> groupList_; 
+    std::vector<int> typeList_,index_; // lammps->atc & atc->lammps
+    std::vector<int> groupList_; 
 
   private:
     AtomTypeVector(); // do not define
@@ -202,7 +200,7 @@ namespace ATC {
 
     // constructor
     AtomVolumeUser(ATC_Method * atc,
-                   map<int,double> & atomGroupVolume,
+                   std::map<int,double> & atomGroupVolume,
                    AtomType atomType = INTERNAL);
 
     // destructor
@@ -214,7 +212,7 @@ namespace ATC {
     virtual void reset() const;
 
     /** reference to the map of atom group ids to atom volumes */
-    map<int,double> & atomGroupVolume_;
+    std::map<int,double> & atomGroupVolume_;
 
     /** pointer to lammps interface */
     const LammpsInterface * lammpsInterface_;
@@ -231,7 +229,7 @@ namespace ATC {
 
   /**
    *  @class  AtomVolumeGroup
-   *  @brief  Class for defining the volume per atom based on the atom count in a group and it's volume
+   *  @brief  Class for defining the volume per atom based on the atom count in a group and its volume
    */
 
   class AtomVolumeGroup : public AtomVolumeUser {
@@ -240,7 +238,7 @@ namespace ATC {
 
     // constructor
     AtomVolumeGroup(ATC_Method * atc,
-                    map<int,double> & atomGroupVolume,
+                    std::map<int,double> & atomGroupVolume,
                     AtomType atomType = INTERNAL);
 
     // destructor
@@ -249,7 +247,7 @@ namespace ATC {
   protected:
 
     /** map from group to group atom volume */
-    map<int,double> atomGroupVolume_;
+    std::map<int,double> atomGroupVolume_;
 
     /** pointer to lammps interface */
     const LammpsInterface * lammpsInterface_;
@@ -389,7 +387,7 @@ namespace ATC {
 
     // constructor
     AtomVolumeFile(ATC_Method * atc,
-                   const string & atomVolumeFile,
+                   const std::string & atomVolumeFile,
                    AtomType atomType = INTERNAL);
 
     // destructor
@@ -401,7 +399,7 @@ namespace ATC {
     virtual void reset() const;
 
     /** file name containing the atomic information */
-    const string & atomVolumeFile_;
+    const std::string & atomVolumeFile_;
 
     /** pointer to lammps interface */
     const LammpsInterface * lammpsInterface_;
@@ -1063,7 +1061,7 @@ namespace ATC {
     virtual int size_comm() {return 0;};
 
     /** changes size of temperary lammps storage data if transfer is being used */
-    virtual void grow_lammps_array(int nmax, const string & tag) {};
+    virtual void grow_lammps_array(int nmax, const std::string & tag) {};
 
     /** rearrange memory of temporary lammps storage data, called from copy_array */
     virtual void copy_lammps_array(int i, int j) {};
@@ -1606,9 +1604,6 @@ namespace ATC {
     
     // do not define
     PerAtomShapeFunction();
-
-    mutable DENS_MAT OLDPOS;
-    mutable INT_ARRAY OLDELS;
 
   };
 

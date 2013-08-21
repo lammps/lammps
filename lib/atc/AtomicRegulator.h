@@ -3,13 +3,12 @@
 #ifndef ATOMICREGULATOR_H
 #define ATOMICREGULATOR_H
 
-// ATC headers
 #include "ATC_TypeDefs.h"
-
-// other headers
 #include <map>
 #include <set>
 #include <vector>
+#include <utility>
+#include <string>
 
 namespace ATC {
 
@@ -72,7 +71,7 @@ namespace ATC {
   
     // constructor
     AtomicRegulator(ATC_Coupling * atc,
-                    const string & regulatorPrefix = "");
+                    const std::string & regulatorPrefix = "");
         
     // destructor
     virtual ~AtomicRegulator();
@@ -139,11 +138,11 @@ namespace ATC {
         
     // data access, intended for method objects
     /** returns a pointer to the DENS_MAN associated with the tag, creates a new data member if necessary */
-    DENS_MAN * regulator_data(const string tag, int nCols);
+    DENS_MAN * regulator_data(const std::string tag, int nCols);
     /** can externally set regulator dynamic contributions */
     virtual void reset_lambda_contribution(const DENS_MAT & target, const FieldName field=NUM_TOTAL_FIELDS) {};
     /** returns a const pointer to the DENS_MAN associated with the tag, or NULL */
-    const DENS_MAN * regulator_data(const string tag) const;
+    const DENS_MAN * regulator_data(const std::string tag) const;
     /** return the maximum number of iterations */
     int max_iterations() {return maxIterations_;};
     /** return the solver tolerance */
@@ -162,7 +161,7 @@ namespace ATC {
     BoundaryIntegrationType boundary_integration_type()
       {return boundaryIntegrationType_;};
     /** access for boundary face sets */
-    const set< pair<int,int> > * face_sets()
+    const std::set< std::pair<int,int> > * face_sets()
       { return boundaryFaceSet_;};
     /** access for needing a reset */
     bool need_reset() const {return needReset_;};
@@ -183,7 +182,7 @@ namespace ATC {
     bool md_flux_nodes(FieldName fieldName = NUM_TOTAL_FIELDS) const;
 
     /** returns prefix tag for regulator */
-    const string & regulator_prefix() const {return regulatorPrefix_;};
+    const std::string & regulator_prefix() const {return regulatorPrefix_;};
         
   protected:
 
@@ -215,7 +214,8 @@ namespace ATC {
 
     // regulator data
     /** container for all data, string is tag, bool is false if currently in use */
-    map<string, pair<bool,DENS_MAN * > > regulatorData_;
+    std::map<std::string, std::pair<bool,DENS_MAN * > > regulatorData_;
+
     /** maximum number of iterations used in solving for lambda */
     int maxIterations_;
     /** tolerance used in solving for lambda */
@@ -238,7 +238,7 @@ namespace ATC {
     bool useLumpedLambda_;
 
     /** restrict application in certain directions */
-    vector<bool> applyInDirection_;
+    std::vector<bool> applyInDirection_;
         
     // method pointers
     /** time filtering object */
@@ -248,10 +248,10 @@ namespace ATC {
 
     // boundary flux information
     BoundaryIntegrationType boundaryIntegrationType_;
-    const set< pair<int,int> > * boundaryFaceSet_;
+    const std::set< std::pair<int,int> > * boundaryFaceSet_;
 
     /** prefix string for registering data */
-    const string regulatorPrefix_;
+    const std::string regulatorPrefix_;
 
   private:
     
@@ -276,7 +276,7 @@ namespace ATC {
   public:
   
     RegulatorMethod(AtomicRegulator * atomicRegulator,
-                    const string & regulatorPrefix = "");
+                    const std::string & regulatorPrefix = "");
         
     virtual ~RegulatorMethod(){};
 
@@ -358,10 +358,10 @@ namespace ATC {
     int nNodes_;
 
     /** prefix string for registering data */
-    const string regulatorPrefix_;
+    const std::string regulatorPrefix_;
 
     /** mapping for atom materials for atomic FE quadrature */
-    Array<set<int> > atomMaterialGroups_;
+    Array<std::set<int> > atomMaterialGroups_;
 
     /** shape function derivative matrices for boundary atoms */
     VectorDependencyManager<SPAR_MAT * > * shpFcnDerivs_;
@@ -393,7 +393,7 @@ namespace ATC {
   public:
   
     RegulatorShapeFunction(AtomicRegulator * atomicRegulator,
-                           const string & regulatorPrefix = "");
+                           const std::string & regulatorPrefix = "");
         
     virtual ~RegulatorShapeFunction();
 

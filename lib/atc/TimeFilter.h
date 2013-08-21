@@ -5,11 +5,12 @@
 #ifndef TIME_FILTER_H
 #define TIME_FILTER_H
 
+#include <set>
+
 #include "ATC_TypeDefs.h"
 #include "MatrixLibrary.h"
 #include "ATC_Error.h"
 
-using namespace std;
 namespace ATC {
 
   // forward declarations
@@ -111,7 +112,7 @@ namespace ATC {
     bool endEquilibrate_;
 
     /** set to store all time filters for later deletion */
-    set<TimeFilter * > timeFilterSet_;
+    std::set<TimeFilter * > timeFilterSet_;
   
   };
 

@@ -1,6 +1,9 @@
 #ifndef WEAK_EQUATION_SCHRODINGER_H
 #define WEAK_EQUATION_SCHRODINGER_H 
 
+#include <set>
+#include <string>
+
 #include "WeakEquation.h"
 
 namespace ATC{
@@ -35,9 +38,9 @@ class WeakEquationSchrodinger : public WeakEquation {
                                        DENS_MAT &coefs) const;
 
   /** necessary interfaces */
-  virtual set<string> needs_material_functions(void) const
+  virtual std::set<std::string> needs_material_functions(void) const
   {
-    set<string> needs;
+    std::set<std::string> needs;
     needs.insert("inv_effective_mass");
     needs.insert("band_edge_potential");
     return needs;

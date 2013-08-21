@@ -32,21 +32,21 @@ namespace ATC
     Material();
     virtual ~Material();
     /** this constructor parses material file */
-    Material(string & tag, fstream & fileId);
+    Material(std::string & tag, std::fstream & fileId);
 
     /** initialize */
     virtual void initialize();
 
     /** return label */
-    string label(void) const {return tag_;}
+    std::string label(void) const {return tag_;}
 
     /** check material has required interfaces */
-    bool check_registry(const set<string> functionList) const
+    bool check_registry(const std::set<std::string> functionList) const
     { 
-      set<string>::const_iterator itr;
+      std::set<std::string>::const_iterator itr;
       for (itr=functionList.begin(); itr!=functionList.end(); itr++) {
         if (registry_.find(*itr) == registry_.end()) {
-          stringstream ss;
+          std::stringstream ss;
           ss << "WARNING: material: [" << tag_ << "] cannot find " << *itr ;
           ATC::LammpsInterface::instance()->print_msg_once(ss.str());
         } 
@@ -56,9 +56,9 @@ namespace ATC
     }
 
     /** access to material parameters */
-    bool parameter(const string name, double & value) const
+    bool parameter(const std::string name, double & value) const
     { 
-      map<string,double>::const_iterator iter = parameters_.find(name);
+      std::map<std::string,double>::const_iterator iter = parameters_.find(name);
       if ( iter == parameters_.end()) {
         value = 0.0;
         return false;
@@ -197,11 +197,11 @@ namespace ATC
 
   protected:
     /** material's label  */
-    string tag_;
+    std::string tag_;
     /** dictionary of material parameters */
-    map<string,double> parameters_;
+    std::map<std::string,double> parameters_;
     /** dictionary of instantiated functions */
-    set<string> registry_;
+    std::set<std::string> registry_;
     /** per eqn flag of constant density */
     Array<bool> constantDensity_;
     /** per eqn flag of linearity/nonlinearity */

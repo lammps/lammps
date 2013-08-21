@@ -1,8 +1,16 @@
 #include "PrescribedDataManager.h"
 #include "FE_Engine.h"
 #include "ATC_Error.h"
+#include <sstream>
+#include <iostream>
 
-#include <set>
+using std::stringstream;
+using std::make_pair;
+using std::map;
+using std::set;
+using std::pair;
+using std::string;
+using std::cout;
 
 namespace ATC {
 
@@ -117,19 +125,28 @@ namespace ATC {
 //  fix_field
 //-------------------------------------------------------------------------
   void PrescribedDataManager::fix_field
-  (const string nodesetName, 
+  (const std::set<int>  nodeSet, 
    const FieldName thisField, 
    const int thisIndex, 
    const XT_Function * f)
   {
     using std::set;
     // fix fields 
-    set<int> nodeSet = (feEngine_->fe_mesh())->nodeset(nodesetName);
     set<int>::const_iterator iset;
     for (iset = nodeSet.begin(); iset != nodeSet.end(); iset++) {
       int inode = *iset;
       bcs_[thisField](inode,thisIndex) = (XT_Function*) f;
     }
+  }
+  void PrescribedDataManager::fix_field
+  (const string nodesetName, 
+   const FieldName thisField, 
+   const int thisIndex, 
+   const XT_Function * f)
+  {
+    using std::set;
+    set<int> nodeSet = (feEngine_->fe_mesh())->nodeset(nodesetName);
+    fix_field(nodeSet,thisField,thisIndex,f);
   }
 //-------------------------------------------------------------------------
 //  unfix_field

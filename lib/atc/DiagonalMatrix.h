@@ -47,10 +47,10 @@ class DiagonalMatrix : public Matrix<T>
   void write_restart(FILE *f)     const;
 
   // Dump matrix contents to screen (not defined for all datatypes)
-  string to_string() const { return _data->to_string(); }
+  std::string to_string() const { return _data->to_string(); }
 
   using Matrix<T>::matlab;
-  void matlab(ostream &o, const string &s="D") const;
+  void matlab(std::ostream &o, const std::string &s="D") const;
 
   // overloaded operators
   DiagonalMatrix<T>& operator=(const T s);
@@ -399,7 +399,7 @@ DiagonalMatrix<T>& DiagonalMatrix<T>::operator=(const DiagonalMatrix<T>& C)
 // writes a matlab command to duplicate this sparse matrix
 //-----------------------------------------------------------------------------
 template<typename T>
-void DiagonalMatrix<T>::matlab(ostream &o, const string &s)               const 
+void DiagonalMatrix<T>::matlab(std::ostream &o, const std::string &s)               const 
 {
   _data->matlab(o, s);
   o << s <<"=diag("<<s<<",0);\n";
@@ -415,7 +415,7 @@ DiagonalMatrix<T>& DiagonalMatrix<T>::inv_this()
      if ((*this)[i]!=T(0)) (*this)[i] = 1.0/(*this)[i];
      else 
      {
-        cout<<"DiagonalMatrix::inv(): ("<<i<<","<<i<<")=0\n";
+        std::cout<<"DiagonalMatrix::inv(): ("<<i<<","<<i<<")=0\n";
         ERROR_FOR_BACKTRACE
         exit(EXIT_FAILURE);
      }
@@ -423,8 +423,8 @@ DiagonalMatrix<T>& DiagonalMatrix<T>::inv_this()
   // Error check info
   const double min_max = _data->minabs() / _data->maxabs();
   if (min_max > 1e-14)   return *this;
-  cout << "DiagonalMatrix::inv_this(): Warning: Matrix is badly scaled.";
-  cout << "  RCOND = "<<min_max<<"\n";
+  std::cout << "DiagonalMatrix::inv_this(): Warning: Matrix is badly scaled.";
+  std::cout << "  RCOND = "<<min_max<<"\n";
   return *this;
 }
 //-----------------------------------------------------------------------------
@@ -440,7 +440,7 @@ DiagonalMatrix<T> DiagonalMatrix<T>::inv() const
      if ((*this)[i]!=T(0)) invA[i]=1.0/(*this)[i];
      else 
      {
-        cout<<"DiagonalMatrix::inv(): ("<<i<<","<<i<<")=0\n";
+        std::cout<<"DiagonalMatrix::inv(): ("<<i<<","<<i<<")=0\n";
         ERROR_FOR_BACKTRACE
         exit(EXIT_FAILURE);
      }
@@ -448,8 +448,8 @@ DiagonalMatrix<T> DiagonalMatrix<T>::inv() const
   // Error check info
   const double min_max = _data->minabs() / _data->maxabs();
   if (min_max > 1e-14)   return invA;
-  cout << "DiagonalMatrix::inv(): Warning: Matrix is badly scaled.";
-  cout << "  RCOND = "<<min_max<<"\n";
+  std::cout << "DiagonalMatrix::inv(): Warning: Matrix is badly scaled.";
+  std::cout << "  RCOND = "<<min_max<<"\n";
   return invA;
 }
 //-----------------------------------------------------------------------------
@@ -477,7 +477,7 @@ void DiagonalMatrix<T>::_set_equal(const Matrix<T> &r)
   else if (pv)  this->reset(*pv);
   else
   {
-    cout <<"Error in general sparse matrix assignment\n";
+    std::cout <<"Error in general sparse matrix assignment\n";
     exit(1);
   }
 }

@@ -12,8 +12,6 @@ using ATC::ATC_Error;
 #include <algorithm>
 #include <sstream>
 
-using namespace MPI_Wrappers;
-
 namespace ATC_matrix {
 
   /**
@@ -129,7 +127,7 @@ namespace ATC_matrix {
       DenseVector<double> c_local = A_local * v_local;
 
       // Sum all vectors onto each processor
-      allsum(_comm, c_local.ptr(), c.ptr(), c_local.size());
+      MPI_Wrappers::allsum(_comm, c_local.ptr(), c.ptr(), c_local.size());
 
 #else // Row-major storage
 

@@ -7,6 +7,19 @@
 #include "Function.h"
 #include "PrescribedDataManager.h"
 
+#include <sstream>
+#include <string>
+#include <vector>
+#include <utility>
+#include <set>
+
+using ATC_Utility::to_string;
+using std::stringstream;
+using std::map;
+using std::vector;
+using std::set;
+using std::pair;
+using std::string;
    
 
 namespace ATC {
@@ -267,6 +280,23 @@ namespace ATC {
     set_influence();  
     set_influence_matrix(); 
     initialized_ = true;
+  }
+  //--------------------------------------------------------
+  //  Initialize
+  //--------------------------------------------------------
+  void ChargeRegulatorMethodFeedback::construct_transfers(void)
+  {
+    ChargeRegulatorMethod::construct_transfers();
+
+    InterscaleManager & interscaleManager((atomicRegulator_->atc_transfer())->interscale_manager());
+    PerAtomSparseMatrix<double> * atomShapeFunctions = interscaleManager.per_atom_sparse_matrix("InterpolantGhost");
+    if (!atomShapeFunctions) {
+      atomShapeFunctions = new PerAtomShapeFunction(atomicRegulator_->atc_transfer(),
+                                                    interscaleManager.per_atom_quantity("AtomicGhostCoarseGrainingPositions"),
+                                                    interscaleManager.per_atom_int_quantity("AtomGhostElement"),
+                                                    GHOST);
+      interscaleManager.add_per_atom_sparse_matrix(atomShapeFunctions,"InterpolantGhost");
+    }
   }
   //--------------------------------------------------------
   //  find measurement atoms and nodes 

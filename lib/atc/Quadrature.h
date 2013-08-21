@@ -23,5 +23,4 @@ class Quadrature {
     static Quadrature * myInstance_;
 };
 }
-
 #endif

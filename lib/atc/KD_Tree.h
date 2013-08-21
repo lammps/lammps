@@ -5,8 +5,8 @@
 #include "MatrixDef.h"
 #include "MatrixLibrary.h"
 #include <math.h>
-
-using namespace ATC_matrix;
+#include <vector>
+#include <utility>
 
 class Node {
   public:
@@ -54,7 +54,7 @@ class Node {
 
 };
 
-typedef std::pair<int,vector<Node> > Elem;
+typedef std::pair<int,std::vector<Node> > Elem;
 
 class KD_Tree {
   public:
@@ -62,25 +62,25 @@ class KD_Tree {
                                    const DENS_MAT *points, const int nElems, 
                                    const Array2D<int> &conn);
 
-    KD_Tree(vector<Node> *points, vector<Elem> *elems,
+    KD_Tree(std::vector<Node> *points, std::vector<Elem> *elems,
             int dimension=0);
 
     ~KD_Tree();
 
-    vector<int> find_nearest(DENS_VEC query) { 
+    std::vector<int> find_nearest(DENS_VEC query) { 
       // Create a fake Node and find the nearest Node in the tree to it.
       return find_nearest_elements(Node(-1, query(0), query(1), query(2)));
     }
     
-    vector<int> find_nearest_elements(Node query, int dimension=0);
+    std::vector<int> find_nearest_elements(Node query, int dimension=0);
     
-    vector<vector<int> > getElemIDs(int depth);
+    std::vector<std::vector<int> > getElemIDs(int depth);
 
   private:
     Node value_;
 
-    vector<Node> *sortedPts_;
-    vector<Elem> *candElems_;
+    std::vector<Node> *sortedPts_;
+    std::vector<Elem> *candElems_;
     KD_Tree *leftChild_;
     KD_Tree *rightChild_;
 

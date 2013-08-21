@@ -2,6 +2,7 @@
 #define CLONEVECTOR_H
 
 #include "Vector.h"
+#include <algorithm>
 
 namespace ATC_matrix {
 
@@ -121,11 +122,10 @@ T& CloneVector<T>::operator[](INDEX i)
 template<typename T>
 INDEX CloneVector<T>::nRows()                                             const
 {
-  using std::min;
   if (_baseV)                    return _baseV->size();
   if (_clone_type == CLONE_ROW)  return _baseM->nCols();
   if (_clone_type == CLONE_COL)  return _baseM->nRows();
-  if (_clone_type == CLONE_DIAG) return min(_baseM->nRows(), _baseM->nCols());
+  if (_clone_type == CLONE_DIAG) return std::min(_baseM->nRows(), _baseM->nCols());
   return 0;
 }
 //-----------------------------------------------------------------------------

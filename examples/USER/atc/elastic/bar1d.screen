@@ -1,4 +1,4 @@
-LAMMPS (14 Aug 2013)
+LAMMPS (24 Aug 2013)
 
 units		real
 atom_style	atomic
@@ -47,6 +47,7 @@ neigh_modify	every 10 delay 0 check no
 #               ID  group atc PhysicsType ParameterFile
 fix             AtC internal   atc elastic     Ar_elastic.mat
 ATC: constructing elastic coupling with parameter file Ar_elastic.mat
+ ATC: version 2.0
  ATC: peratom PE compute created with ID: 3
  ATC: computed mass density : 1.01202
  ATC: computed mass density : 1.01202
@@ -94,7 +95,7 @@ timestep	5
 thermo		100
 run 		1000
 Setting up run ...
-Memory usage per processor = 93.2479 Mbytes
+Memory usage per processor = 65.7794 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0            0   -4406.6687            0   -4406.6687   -1155.1752 
      100 3.8434911e-14   -4406.6687            0   -4406.6687   -1155.1752 
@@ -107,13 +108,13 @@ Step Temp E_pair E_mol TotEng Press
      800 9.9628095e-09   -4406.6663            0   -4406.6663   -1155.1871 
      900 1.1034555e-08   -4406.6659            0   -4406.6659    -1155.189 
     1000 1.2796459e-08   -4406.6655            0   -4406.6655    -1155.191 
-Loop time of 71.7602 on 4 procs for 1000 steps with 2304 atoms
+Loop time of 19.6955 on 4 procs for 1000 steps with 2304 atoms
 
-Pair  time (%) = 8.28353 (11.5433)
-Neigh time (%) = 4.8737 (6.79165)
-Comm  time (%) = 23.4869 (32.7296)
-Outpt time (%) = 0.14537 (0.202577)
-Other time (%) = 34.9708 (48.7328)
+Pair  time (%) = 5.91161 (30.015)
+Neigh time (%) = 2.56621 (13.0294)
+Comm  time (%) = 6.10149 (30.9791)
+Outpt time (%) = 0.00123084 (0.00624931)
+Other time (%) = 5.115 (25.9703)
 
 Nlocal:    576 ave 864 max 288 min
 Histogram: 2 0 0 0 0 0 0 0 0 2
@@ -143,7 +144,7 @@ timestep        5
 thermo		100
 run 		10000
 Setting up run ...
-Memory usage per processor = 93.2479 Mbytes
+Memory usage per processor = 65.7794 Mbytes
 Step Temp E_pair E_mol TotEng Press 
     1000 1.2796459e-08   -4406.6655            0   -4406.6655    -1155.191 
     1100 1.3961782e-08    -4406.665            0    -4406.665   -1155.1929 
@@ -245,20 +246,20 @@ Step Temp E_pair E_mol TotEng Press
    10700 1.2113659e-09   -4406.6645            0   -4406.6645   -1155.1953 
    10800 2.0914266e-09   -4406.6645            0   -4406.6645   -1155.1951 
    10900 5.1353017e-10   -4406.6645            0   -4406.6645   -1155.1951 
-   11000 5.4707109e-10   -4406.6645            0   -4406.6645    -1155.195 
-Loop time of 354.654 on 4 procs for 10000 steps with 2304 atoms
+   11000 5.470711e-10   -4406.6645            0   -4406.6645    -1155.195 
+Loop time of 189.978 on 4 procs for 10000 steps with 2304 atoms
 
-Pair  time (%) = 67.9127 (19.149)
-Neigh time (%) = 31.8455 (8.97932)
-Comm  time (%) = 122.402 (34.513)
-Outpt time (%) = 0.360688 (0.101702)
-Other time (%) = 132.133 (37.2569)
+Pair  time (%) = 58.7997 (30.9507)
+Neigh time (%) = 25.3649 (13.3514)
+Comm  time (%) = 59.8944 (31.5269)
+Outpt time (%) = 0.0364809 (0.0192026)
+Other time (%) = 45.8831 (24.1517)
 
 Nlocal:    576 ave 864 max 288 min
 Histogram: 2 0 0 0 0 0 0 0 0 2
 Nghost:    5170 ave 6910 max 3430 min
 Histogram: 2 0 0 0 0 0 0 0 0 2
-Neighs:    178632 ave 289342 max 67274 min
+Neighs:    178632 ave 289022 max 67462 min
 Histogram: 2 0 0 0 0 0 0 0 0 2
 FullNghs:  357264 ave 577008 max 137520 min
 Histogram: 2 0 0 0 0 0 0 0 0 2

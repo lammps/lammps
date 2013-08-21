@@ -1,4 +1,4 @@
-LAMMPS (14 Aug 2013)
+LAMMPS (24 Aug 2013)
 log    eshelby_static.log
 units    metal
 dimension  3
@@ -83,7 +83,7 @@ Step KinEng PotEng Press fxsum fysum fzsum
  200   0   -18804.05511297479   -129.61922 -5.3396542e-11 3.7182177e-11 1.0315588e-13 
  210   0   -18804.05511297483   -129.61922 -7.4321343e-12 3.6389846e-12 1.5270715e-13 
  217   0   -18804.05511297483   -129.61922 -8.7495582e-13 -9.0918848e-13 -1.5813771e-13 
-Loop time of 10.6219 on 4 procs for 217 steps with 4800 atoms
+Loop time of 1.19797 on 4 procs for 217 steps with 4800 atoms
 
 Minimization stats:
   Stopping criterion = force tolerance
@@ -94,11 +94,11 @@ Minimization stats:
   Final line search alpha, max atom move = 1 4.98176e-13
   Iterations, force evaluations = 217 434
 
-Pair  time (%) = 1.4734 (13.8714)
+Pair  time (%) = 1.05274 (87.8775)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 6.48505 (61.0536)
-Outpt time (%) = 0.137212 (1.29179)
-Other time (%) = 2.52624 (23.7833)
+Comm  time (%) = 0.0988494 (8.25143)
+Outpt time (%) = 0.00248981 (0.207836)
+Other time (%) = 0.0438839 (3.6632)
 
 Nlocal:    1200 ave 1200 max 1200 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -117,6 +117,7 @@ System init for write_restart ...
 reset_timestep  0
 fix             PK1 internal atc field
 ATC: constructing shape function field estimate
+ ATC: version 2.0
  ATC: peratom PE compute created with ID: 6
 # NOTE tune this relative to lattice size
 fix_modify      PK1 mesh create 10 10 1 SYSTEM p f p
@@ -176,17 +177,17 @@ fix_modify      PK1 output boundary_integral         internal_energy faceset loo
 run   1
 Setting up run ...
  ATC: computing bond matrix ...........done
-Memory usage per processor = 23.0387 Mbytes
+Memory usage per processor = 23.6491 Mbytes
 Step KinEng PotEng Press fxsum fysum fzsum 
    0   0   -18804.05511297483   -129.61922 -8.7410388e-13 -9.0953256e-13 -1.5920078e-13 
    1   0   -18804.05511297483   -129.61922 -8.7410388e-13 -9.0953256e-13 -1.5920078e-13 
-Loop time of 0.317934 on 4 procs for 1 steps with 4800 atoms
+Loop time of 0.109823 on 4 procs for 1 steps with 4800 atoms
 
-Pair  time (%) = 0.00576746 (1.81405)
+Pair  time (%) = 0.00266957 (2.43081)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.00962543 (3.0275)
-Outpt time (%) = 0.000138164 (0.0434567)
-Other time (%) = 0.302403 (95.115)
+Comm  time (%) = 0.000210464 (0.19164)
+Outpt time (%) = 0.000165522 (0.150718)
+Other time (%) = 0.106777 (97.2268)
 
 Nlocal:    1200 ave 1200 max 1200 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -226,7 +227,7 @@ Changing box ...
 WARNING: Resetting reneighboring criteria during minimization (../min.cpp:173)
 Setting up minimization ...
  ATC: computing bond matrix ...........done
-Memory usage per processor = 23.7254 Mbytes
+Memory usage per processor = 24.3358 Mbytes
 Step KinEng PotEng Press fxsum fysum fzsum 
    1   0   -18796.24699487574   -27029.118 0.0043960333 -0.0014055346 -2.1929333e-13 
   10   0   -18796.59340724873   -25837.901  0.003228698 -0.0079514347 2.0472166e-13 
@@ -254,7 +255,7 @@ Step KinEng PotEng Press fxsum fysum fzsum
  230   0    -18796.6849059705   -25528.746 -9.2570447e-12 -6.5234379e-11 -5.6801785e-14 
  240   0   -18796.68490597055   -25528.746 -1.9896646e-11 3.3817194e-11 9.6343072e-14 
  249   0   -18796.68490597057   -25528.746 3.4677051e-13 6.539951e-12 -8.5036145e-15 
-Loop time of 8.79155 on 4 procs for 248 steps with 4800 atoms
+Loop time of 1.42848 on 4 procs for 248 steps with 4800 atoms
 
 Minimization stats:
   Stopping criterion = force tolerance
@@ -265,11 +266,11 @@ Minimization stats:
   Final line search alpha, max atom move = 1 4.01235e-13
   Iterations, force evaluations = 248 496
 
-Pair  time (%) = 2.0681 (23.5237)
+Pair  time (%) = 1.17573 (82.3066)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 4.54814 (51.7331)
-Outpt time (%) = 0.220124 (2.50382)
-Other time (%) = 1.95519 (22.2394)
+Comm  time (%) = 0.188164 (13.1723)
+Outpt time (%) = 0.0027706 (0.193954)
+Other time (%) = 0.0618128 (4.32717)
 
 Nlocal:    1200 ave 1200 max 1200 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -288,17 +289,17 @@ Dangerous builds = 0
   run 1
 Setting up run ...
  ATC: computing bond matrix ...........done
-Memory usage per processor = 23.0387 Mbytes
+Memory usage per processor = 23.6491 Mbytes
 Step KinEng PotEng Press fxsum fysum fzsum 
  249   0   -18796.68490597057   -25528.746 3.4668762e-13 6.5399934e-12 -9.027501e-15 
  250   0   -18796.68490597057   -25528.746 3.4668762e-13 6.5399934e-12 -9.027501e-15 
-Loop time of 0.807379 on 4 procs for 1 steps with 4800 atoms
+Loop time of 0.161141 on 4 procs for 1 steps with 4800 atoms
 
-Pair  time (%) = 0.00261557 (0.323958)
+Pair  time (%) = 0.00257647 (1.59889)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.0248603 (3.07913)
-Outpt time (%) = 0.0667176 (8.26348)
-Other time (%) = 0.713185 (88.3334)
+Comm  time (%) = 0.000294924 (0.183022)
+Outpt time (%) = 0.00557476 (3.45956)
+Other time (%) = 0.152695 (94.7585)
 
 Nlocal:    1200 ave 1200 max 1200 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -329,7 +330,7 @@ Changing box ...
 WARNING: Resetting reneighboring criteria during minimization (../min.cpp:173)
 Setting up minimization ...
  ATC: computing bond matrix ...........done
-Memory usage per processor = 23.7254 Mbytes
+Memory usage per processor = 24.3358 Mbytes
 Step KinEng PotEng Press fxsum fysum fzsum 
  250   0    -18774.7608425896    -50163.01  0.022793727 -0.0011966205 -6.9763639e-14 
  260   0   -18775.11815298796   -48920.946 -0.0020464819  0.054982281 -1.2962201e-13 
@@ -358,7 +359,7 @@ Step KinEng PotEng Press fxsum fysum fzsum
  490   0   -18775.19753261282   -48655.305 -2.1050048e-11 2.8067392e-11 6.9531186e-14 
  500   0   -18775.19753261291   -48655.305 -1.3303657e-12 1.0812714e-11 -3.0850322e-14 
  502   0   -18775.19753261292   -48655.305 -2.2029077e-12 8.0001559e-12 7.7080703e-14 
-Loop time of 7.09933 on 4 procs for 252 steps with 4800 atoms
+Loop time of 1.36623 on 4 procs for 252 steps with 4800 atoms
 
 Minimization stats:
   Stopping criterion = force tolerance
@@ -369,11 +370,11 @@ Minimization stats:
   Final line search alpha, max atom move = 1 3.90715e-13
   Iterations, force evaluations = 252 504
 
-Pair  time (%) = 1.53346 (21.6001)
+Pair  time (%) = 1.1633 (85.1468)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 2.79308 (39.3428)
-Outpt time (%) = 0.210507 (2.96517)
-Other time (%) = 2.56228 (36.0919)
+Comm  time (%) = 0.141472 (10.355)
+Outpt time (%) = 0.00307858 (0.225334)
+Other time (%) = 0.0583773 (4.27288)
 
 Nlocal:    1200 ave 1200 max 1200 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -392,17 +393,17 @@ Dangerous builds = 0
   run 1
 Setting up run ...
  ATC: computing bond matrix ...........done
-Memory usage per processor = 23.0387 Mbytes
+Memory usage per processor = 23.6491 Mbytes
 Step KinEng PotEng Press fxsum fysum fzsum 
  502   0   -18775.19753261291   -48655.305 -2.2034903e-12 7.9996871e-12 7.6945395e-14 
  503   0   -18775.19753261291   -48655.305 -2.2034903e-12 7.9996871e-12 7.6945395e-14 
-Loop time of 0.487686 on 4 procs for 1 steps with 4800 atoms
+Loop time of 0.12795 on 4 procs for 1 steps with 4800 atoms
 
-Pair  time (%) = 0.00259829 (0.532778)
+Pair  time (%) = 0.00258303 (2.01878)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.0105814 (2.16971)
-Outpt time (%) = 0.00929224 (1.90537)
-Other time (%) = 0.465214 (95.3921)
+Comm  time (%) = 0.000294745 (0.23036)
+Outpt time (%) = 0.00651443 (5.0914)
+Other time (%) = 0.118558 (92.6595)
 
 Nlocal:    1200 ave 1200 max 1200 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -433,7 +434,7 @@ Changing box ...
 WARNING: Resetting reneighboring criteria during minimization (../min.cpp:173)
 Setting up minimization ...
  ATC: computing bond matrix ...........done
-Memory usage per processor = 23.7254 Mbytes
+Memory usage per processor = 24.3358 Mbytes
 Step KinEng PotEng Press fxsum fysum fzsum 
  503   0   -18740.22094539338   -71179.578  0.042436929 -0.00058766122 5.4461644e-14 
  510   0   -18740.52574537834   -70113.846  0.019892443 -0.0066976455 -1.2749177e-13 
@@ -464,7 +465,7 @@ Step KinEng PotEng Press fxsum fysum fzsum
  760   0   -18740.66696866212   -69632.296 -9.0617494e-12 1.2776108e-11 1.2775718e-13 
  770   0   -18740.66696866213   -69632.296 -2.5180353e-12 -1.8959756e-12 2.3569688e-14 
  772   0   -18740.66696866214   -69632.296 -5.2109265e-12 -1.9328798e-12 -1.1258355e-14 
-Loop time of 10.4509 on 4 procs for 269 steps with 4800 atoms
+Loop time of 3.06456 on 4 procs for 269 steps with 4800 atoms
 
 Minimization stats:
   Stopping criterion = force tolerance
@@ -475,11 +476,11 @@ Minimization stats:
   Final line search alpha, max atom move = 1 3.96302e-13
   Iterations, force evaluations = 269 538
 
-Pair  time (%) = 1.78253 (17.0562)
+Pair  time (%) = 1.28877 (42.0539)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 6.04586 (57.8501)
-Outpt time (%) = 0.103009 (0.985649)
-Other time (%) = 2.51951 (24.1081)
+Comm  time (%) = 1.11343 (36.3324)
+Outpt time (%) = 0.00289124 (0.0943444)
+Other time (%) = 0.659471 (21.5193)
 
 Nlocal:    1200 ave 1200 max 1200 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -498,17 +499,17 @@ Dangerous builds = 0
   run 1
 Setting up run ...
  ATC: computing bond matrix ...........done
-Memory usage per processor = 23.0387 Mbytes
+Memory usage per processor = 23.6491 Mbytes
 Step KinEng PotEng Press fxsum fysum fzsum 
  772   0   -18740.66696866215   -69632.296 -5.2107068e-12 -1.9333735e-12 -1.0859369e-14 
  773   0   -18740.66696866215   -69632.296 -5.2107068e-12 -1.9333735e-12 -1.0859369e-14 
-Loop time of 1.37249 on 4 procs for 1 steps with 4800 atoms
+Loop time of 0.117819 on 4 procs for 1 steps with 4800 atoms
 
-Pair  time (%) = 0.0025475 (0.185612)
+Pair  time (%) = 0.00253028 (2.1476)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.160218 (11.6735)
-Outpt time (%) = 0.0743265 (5.41545)
-Other time (%) = 1.1354 (82.7255)
+Comm  time (%) = 0.00026232 (0.222647)
+Outpt time (%) = 0.00626147 (5.31449)
+Other time (%) = 0.108765 (92.3153)
 
 Nlocal:    1200 ave 1200 max 1200 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -539,7 +540,7 @@ Changing box ...
 WARNING: Resetting reneighboring criteria during minimization (../min.cpp:173)
 Setting up minimization ...
  ATC: computing bond matrix ...........done
-Memory usage per processor = 23.7254 Mbytes
+Memory usage per processor = 24.3358 Mbytes
 Step KinEng PotEng Press fxsum fysum fzsum 
  773   0   -18693.66587952461   -90194.671  0.063702858 0.00034764707 3.1089714e-14 
  780   0   -18693.97673971806   -89108.484  0.031180803 -0.0072593906 -1.0696131e-13 
@@ -569,7 +570,7 @@ Step KinEng PotEng Press fxsum fysum fzsum
 1020   0   -18694.13500038753   -88564.203 -3.0206456e-11 -1.5138533e-11 -1.6674162e-14 
 1030   0   -18694.13500038753   -88564.203 1.507389e-12 1.1376859e-11 -6.9095771e-14 
 1032   0   -18694.13500038751   -88564.203 1.2597073e-12 1.0879965e-11 3.8890766e-14 
-Loop time of 8.72546 on 4 procs for 259 steps with 4800 atoms
+Loop time of 1.36008 on 4 procs for 259 steps with 4800 atoms
 
 Minimization stats:
   Stopping criterion = force tolerance
@@ -580,11 +581,11 @@ Minimization stats:
   Final line search alpha, max atom move = 1 4.11711e-13
   Iterations, force evaluations = 259 518
 
-Pair  time (%) = 1.68795 (19.3452)
+Pair  time (%) = 1.18049 (86.7952)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 4.65341 (53.3315)
-Outpt time (%) = 0.0229532 (0.26306)
-Other time (%) = 2.36114 (27.0603)
+Comm  time (%) = 0.127926 (9.40573)
+Outpt time (%) = 0.00285125 (0.209638)
+Other time (%) = 0.0488199 (3.58948)
 
 Nlocal:    1200 ave 1200 max 1200 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -603,17 +604,17 @@ Dangerous builds = 0
   run 1
 Setting up run ...
  ATC: computing bond matrix ...........done
-Memory usage per processor = 23.0387 Mbytes
+Memory usage per processor = 23.6491 Mbytes
 Step KinEng PotEng Press fxsum fysum fzsum 
 1032   0   -18694.13500038751   -88564.203 1.2597022e-12 1.0880291e-11 3.8668721e-14 
 1033   0   -18694.13500038751   -88564.203 1.2597022e-12 1.0880291e-11 3.8668721e-14 
-Loop time of 1.2401 on 4 procs for 1 steps with 4800 atoms
+Loop time of 0.115126 on 4 procs for 1 steps with 4800 atoms
 
-Pair  time (%) = 0.00509548 (0.410893)
+Pair  time (%) = 0.00251698 (2.18628)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.0248823 (2.00648)
-Outpt time (%) = 0.0769173 (6.20251)
-Other time (%) = 1.1332 (91.3801)
+Comm  time (%) = 0.000267208 (0.2321)
+Outpt time (%) = 0.00656021 (5.69828)
+Other time (%) = 0.105782 (91.8833)
 
 Nlocal:    1200 ave 1200 max 1200 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -644,7 +645,7 @@ Changing box ...
 WARNING: Resetting reneighboring criteria during minimization (../min.cpp:173)
 Setting up minimization ...
  ATC: computing bond matrix ...........done
-Memory usage per processor = 23.7254 Mbytes
+Memory usage per processor = 24.3358 Mbytes
 Step KinEng PotEng Press fxsum fysum fzsum 
 1033   0   -18636.11013032917   -107306.84  0.087179197 0.0015874207 5.9226929e-14 
 1040   0   -18636.43103673087   -106192.36  0.044337741 -0.0066832041 -2.711581e-13 
@@ -675,7 +676,7 @@ Step KinEng PotEng Press fxsum fysum fzsum
 1290   0   -18636.61338120518   -105565.49 -2.2122047e-11 -7.9136919e-12 -9.8118562e-14 
 1300   0   -18636.61338120521   -105565.49 1.081791e-11 1.3057743e-11 1.0332013e-14 
 1305   0   -18636.61338120521   -105565.49 5.0637371e-12 8.1071121e-12 -3.3531337e-14 
-Loop time of 6.73875 on 4 procs for 272 steps with 4800 atoms
+Loop time of 2.36427 on 4 procs for 272 steps with 4800 atoms
 
 Minimization stats:
   Stopping criterion = force tolerance
@@ -686,11 +687,11 @@ Minimization stats:
   Final line search alpha, max atom move = 1 3.94851e-13
   Iterations, force evaluations = 272 544
 
-Pair  time (%) = 2.0734 (30.7683)
+Pair  time (%) = 1.61708 (68.3966)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 3.07345 (45.6086)
-Outpt time (%) = 0.112664 (1.67188)
-Other time (%) = 1.47924 (21.9513)
+Comm  time (%) = 0.678047 (28.6789)
+Outpt time (%) = 0.00262564 (0.111055)
+Other time (%) = 0.0665182 (2.81347)
 
 Nlocal:    1200 ave 1200 max 1200 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -709,17 +710,17 @@ Dangerous builds = 0
   run 1
 Setting up run ...
  ATC: computing bond matrix ...........done
-Memory usage per processor = 23.0387 Mbytes
+Memory usage per processor = 23.6491 Mbytes
 Step KinEng PotEng Press fxsum fysum fzsum 
 1305   0   -18636.61338120522   -105565.49 5.0642547e-12 8.1072881e-12 -3.333011e-14 
 1306   0   -18636.61338120522   -105565.49 5.0642547e-12 8.1072881e-12 -3.333011e-14 
-Loop time of 0.64154 on 4 procs for 1 steps with 4800 atoms
+Loop time of 0.114227 on 4 procs for 1 steps with 4800 atoms
 
-Pair  time (%) = 0.002563 (0.399507)
+Pair  time (%) = 0.00250477 (2.1928)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.0348787 (5.43672)
-Outpt time (%) = 0.014325 (2.23291)
-Other time (%) = 0.589773 (91.9309)
+Comm  time (%) = 0.000273049 (0.239041)
+Outpt time (%) = 0.00675231 (5.91131)
+Other time (%) = 0.104697 (91.6568)
 
 Nlocal:    1200 ave 1200 max 1200 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -750,7 +751,7 @@ Changing box ...
 WARNING: Resetting reneighboring criteria during minimization (../min.cpp:173)
 Setting up minimization ...
  ATC: computing bond matrix ...........done
-Memory usage per processor = 23.7254 Mbytes
+Memory usage per processor = 24.3358 Mbytes
 Step KinEng PotEng Press fxsum fysum fzsum 
 1306   0   -18568.52876784999   -122625.13   0.11327516 0.0031492485 -6.8263971e-14 
 1310   0   -18568.74882073336   -121901.81  0.095186133 -0.0011416444 -8.7660781e-14 
@@ -781,7 +782,7 @@ Step KinEng PotEng Press fxsum fysum fzsum
 1560   0   -18569.08790547055    -120696.2 -3.19902e-11 9.1507895e-12 1.8244087e-14 
 1570   0   -18569.08790547052    -120696.2 -1.7156297e-11 4.6740893e-12 3.5214887e-16 
 1575   0   -18569.08790547054    -120696.2 -5.0504343e-12 -3.9081775e-13 6.7177167e-14 
-Loop time of 9.25103 on 4 procs for 269 steps with 4800 atoms
+Loop time of 1.33504 on 4 procs for 269 steps with 4800 atoms
 
 Minimization stats:
   Stopping criterion = force tolerance
@@ -792,11 +793,11 @@ Minimization stats:
   Final line search alpha, max atom move = 1 5.2689e-13
   Iterations, force evaluations = 269 538
 
-Pair  time (%) = 1.47668 (15.9624)
+Pair  time (%) = 1.20514 (90.2699)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 3.84872 (41.6032)
-Outpt time (%) = 0.228203 (2.46679)
-Other time (%) = 3.69742 (39.9677)
+Comm  time (%) = 0.0785329 (5.88243)
+Outpt time (%) = 0.00285375 (0.213757)
+Other time (%) = 0.0485137 (3.63387)
 
 Nlocal:    1200 ave 1200 max 1200 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -815,17 +816,17 @@ Dangerous builds = 0
   run 1
 Setting up run ...
  ATC: computing bond matrix ...........done
-Memory usage per processor = 23.0387 Mbytes
+Memory usage per processor = 23.6491 Mbytes
 Step KinEng PotEng Press fxsum fysum fzsum 
 1575   0   -18569.08790547054    -120696.2 -5.0503339e-12 -3.9139805e-13 6.7683706e-14 
 1576   0   -18569.08790547054    -120696.2 -5.0503339e-12 -3.9139805e-13 6.7683706e-14 
-Loop time of 0.539415 on 4 procs for 1 steps with 4800 atoms
+Loop time of 0.116344 on 4 procs for 1 steps with 4800 atoms
 
-Pair  time (%) = 0.00513172 (0.951349)
+Pair  time (%) = 0.00250775 (2.15546)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.0307288 (5.69668)
-Outpt time (%) = 0.0395864 (7.33877)
-Other time (%) = 0.463968 (86.0132)
+Comm  time (%) = 0.000256002 (0.220039)
+Outpt time (%) = 0.00654799 (5.62812)
+Other time (%) = 0.107032 (91.9964)
 
 Nlocal:    1200 ave 1200 max 1200 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -856,7 +857,7 @@ Changing box ...
 WARNING: Resetting reneighboring criteria during minimization (../min.cpp:173)
 Setting up minimization ...
  ATC: computing bond matrix ...........done
-Memory usage per processor = 23.7254 Mbytes
+Memory usage per processor = 24.3358 Mbytes
 Step KinEng PotEng Press fxsum fysum fzsum 
 1576   0   -18491.90169921529   -136205.45   0.14307644 0.0051325969 1.0172852e-13 
 1580   0    -18492.1310576982   -135456.73   0.12095202 0.0011746767 1.4052995e-13 
@@ -889,7 +890,7 @@ Step KinEng PotEng Press fxsum fysum fzsum
 1850   0   -18492.54791413184   -133967.22 -5.6782406e-12 1.2649759e-13 -1.0939426e-13 
 1860   0   -18492.54791413187   -133967.22 -1.9471408e-12 3.263459e-12 1.1285244e-14 
 1867   0   -18492.54791413186   -133967.22 6.9845188e-13 6.5521008e-12 -1.1701317e-13 
-Loop time of 9.30006 on 4 procs for 291 steps with 4800 atoms
+Loop time of 3.02464 on 4 procs for 291 steps with 4800 atoms
 
 Minimization stats:
   Stopping criterion = force tolerance
@@ -900,11 +901,11 @@ Minimization stats:
   Final line search alpha, max atom move = 1 4.5029e-13
   Iterations, force evaluations = 291 582
 
-Pair  time (%) = 1.95602 (21.0323)
+Pair  time (%) = 1.37771 (45.5497)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 4.05937 (43.6488)
-Outpt time (%) = 0.0457499 (0.491931)
-Other time (%) = 3.23893 (34.8269)
+Comm  time (%) = 0.7547 (24.9517)
+Outpt time (%) = 0.0729546 (2.41201)
+Other time (%) = 0.819273 (27.0866)
 
 Nlocal:    1200 ave 1200 max 1200 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -923,17 +924,17 @@ Dangerous builds = 0
   run 1
 Setting up run ...
  ATC: computing bond matrix ...........done
-Memory usage per processor = 23.0387 Mbytes
+Memory usage per processor = 23.6491 Mbytes
 Step KinEng PotEng Press fxsum fysum fzsum 
 1867   0   -18492.54791413186   -133967.22 6.9777732e-13 6.551863e-12 -1.1686745e-13 
 1868   0   -18492.54791413186   -133967.22 6.9777732e-13 6.551863e-12 -1.1686745e-13 
-Loop time of 0.296894 on 4 procs for 1 steps with 4800 atoms
+Loop time of 0.125086 on 4 procs for 1 steps with 4800 atoms
 
-Pair  time (%) = 0.00758874 (2.55605)
+Pair  time (%) = 0.00307155 (2.45555)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.00534135 (1.79908)
-Outpt time (%) = 0.00306052 (1.03085)
-Other time (%) = 0.280903 (94.614)
+Comm  time (%) = 0.00186831 (1.49362)
+Outpt time (%) = 0.00662947 (5.29993)
+Other time (%) = 0.113517 (90.7509)
 
 Nlocal:    1200 ave 1200 max 1200 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -964,7 +965,7 @@ Changing box ...
 WARNING: Resetting reneighboring criteria during minimization (../min.cpp:173)
 Setting up minimization ...
  ATC: computing bond matrix ...........done
-Memory usage per processor = 23.7254 Mbytes
+Memory usage per processor = 24.3358 Mbytes
 Step KinEng PotEng Press fxsum fysum fzsum 
 1868   0   -18407.23836455257   -148059.35   0.17824806 0.0077631243 -1.6145679e-13 
 1870   0   -18407.35825930425   -147753.08   0.17162524 0.0068226839 5.1991397e-14 
@@ -1025,7 +1026,7 @@ Step KinEng PotEng Press fxsum fysum fzsum
 2420   0   -18544.58502109054   -1016.0246 2.8651381e-12 8.1466436e-12 1.5645645e-13 
 2430   0   -18544.58502109047   -1016.0246 9.2212618e-13 -1.7898741e-13 9.6594607e-14 
 2432   0   -18544.58502109047   -1016.0246 -2.5384753e-13 1.381581e-12 7.1834899e-15 
-Loop time of 5.84244 on 4 procs for 564 steps with 4800 atoms
+Loop time of 3.10784 on 4 procs for 564 steps with 4800 atoms
 
 Minimization stats:
   Stopping criterion = force tolerance
@@ -1036,11 +1037,11 @@ Minimization stats:
   Final line search alpha, max atom move = 1 4.51583e-13
   Iterations, force evaluations = 564 1082
 
-Pair  time (%) = 2.87584 (49.2232)
-Neigh time (%) = 0.265235 (4.53979)
-Comm  time (%) = 1.7622 (30.162)
-Outpt time (%) = 0.027319 (0.467596)
-Other time (%) = 0.911857 (15.6075)
+Pair  time (%) = 2.44265 (78.5963)
+Neigh time (%) = 0.251019 (8.07696)
+Comm  time (%) = 0.192791 (6.20338)
+Outpt time (%) = 0.00628573 (0.202254)
+Other time (%) = 0.215096 (6.92107)
 
 Nlocal:    1200 ave 1200 max 1200 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1059,17 +1060,17 @@ Dangerous builds = 0
   run 1
 Setting up run ...
  ATC: computing bond matrix ..........done
-Memory usage per processor = 23.0387 Mbytes
+Memory usage per processor = 23.6491 Mbytes
 Step KinEng PotEng Press fxsum fysum fzsum 
 2432   0   -18544.58502109047   -1016.0246 -2.5329791e-13 1.381277e-12 7.3534928e-15 
 2433   0   -18544.58502109047   -1016.0246 -2.5329791e-13 1.381277e-12 7.3534928e-15 
-Loop time of 0.1929 on 4 procs for 1 steps with 4800 atoms
+Loop time of 0.14654 on 4 procs for 1 steps with 4800 atoms
 
-Pair  time (%) = 0.0026933 (1.39621)
+Pair  time (%) = 0.00268549 (1.83259)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000305772 (0.158513)
-Outpt time (%) = 0.00638688 (3.31097)
-Other time (%) = 0.183514 (95.1343)
+Comm  time (%) = 0.000291169 (0.198695)
+Outpt time (%) = 0.00642931 (4.38741)
+Other time (%) = 0.137134 (93.5813)
 
 Nlocal:    1200 ave 1200 max 1200 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1100,7 +1101,7 @@ Changing box ...
 WARNING: Resetting reneighboring criteria during minimization (../min.cpp:173)
 Setting up minimization ...
  ATC: computing bond matrix ..........done
-Memory usage per processor = 23.7261 Mbytes
+Memory usage per processor = 24.3365 Mbytes
 Step KinEng PotEng Press fxsum fysum fzsum 
 2433   0   -18537.76901415941   -24298.948 3.8747523e-13 5.2831402e-12 -6.6347969e-14 
 2440   0   -18540.01318499379   -16519.475 -3.2208582e-12 -2.7180729e-05 -4.0105939e-13 
@@ -1118,7 +1119,7 @@ Step KinEng PotEng Press fxsum fysum fzsum
 2560   0   -18544.58502109056   -1008.4423 1.7819469e-13 1.3868038e-11 6.517703e-14 
 2570   0   -18544.58502109044   -1008.4423 1.4870776e-12 -1.2270293e-11 9.0609811e-14 
 2575   0   -18544.58502109047   -1008.4423 -2.3857825e-13 1.0195675e-11 6.0073474e-15 
-Loop time of 0.756386 on 4 procs for 142 steps with 4800 atoms
+Loop time of 0.934876 on 4 procs for 142 steps with 4800 atoms
 
 Minimization stats:
   Stopping criterion = force tolerance
@@ -1129,11 +1130,11 @@ Minimization stats:
   Final line search alpha, max atom move = 1 4.36984e-13
   Iterations, force evaluations = 142 284
 
-Pair  time (%) = 0.661463 (87.4504)
+Pair  time (%) = 0.69384 (74.2174)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.066303 (8.76576)
-Outpt time (%) = 0.00166374 (0.21996)
-Other time (%) = 0.0269565 (3.56385)
+Comm  time (%) = 0.190337 (20.3596)
+Outpt time (%) = 0.00147843 (0.158142)
+Other time (%) = 0.0492197 (5.26484)
 
 Nlocal:    1200 ave 1200 max 1200 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1152,17 +1153,17 @@ Dangerous builds = 0
   run 1
 Setting up run ...
  ATC: computing bond matrix ..........done
-Memory usage per processor = 23.0394 Mbytes
+Memory usage per processor = 23.6498 Mbytes
 Step KinEng PotEng Press fxsum fysum fzsum 
 2575   0   -18544.58502109042   -1008.4423 -2.3877189e-13 1.0195595e-11 6.0385724e-15 
 2576   0   -18544.58502109042   -1008.4423 -2.3877189e-13 1.0195595e-11 6.0385724e-15 
-Loop time of 0.201727 on 4 procs for 1 steps with 4800 atoms
+Loop time of 0.145015 on 4 procs for 1 steps with 4800 atoms
 
-Pair  time (%) = 0.00267446 (1.32578)
+Pair  time (%) = 0.00267482 (1.84451)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000333369 (0.165258)
-Outpt time (%) = 0.00615078 (3.04907)
-Other time (%) = 0.192568 (95.4599)
+Comm  time (%) = 0.000255167 (0.175959)
+Outpt time (%) = 0.00619352 (4.27094)
+Other time (%) = 0.135892 (93.7086)
 
 Nlocal:    1200 ave 1200 max 1200 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1193,7 +1194,7 @@ Changing box ...
 WARNING: Resetting reneighboring criteria during minimization (../min.cpp:173)
 Setting up minimization ...
  ATC: computing bond matrix ..........done
-Memory usage per processor = 23.7261 Mbytes
+Memory usage per processor = 24.3365 Mbytes
 Step KinEng PotEng Press fxsum fysum fzsum 
 2576   0      -18537.86919514   -23952.428 -6.3755067e-13 1.8610839e-11 -6.2221062e-14 
 2580   0   -18539.14079053524   -19773.613 -6.9875621e-12 -2.1231065e-12 -7.5061485e-15 
@@ -1209,7 +1210,7 @@ Step KinEng PotEng Press fxsum fysum fzsum
 2680   0   -18544.58502109152   -1000.9723 -4.3052271e-13 9.7475523e-09 -5.7240497e-13 
 2690   0   -18544.58502109055   -1000.9724 3.8952735e-14 2.8103179e-10 1.3394841e-12 
 2700   0   -18544.58502109041   -1000.9724 3.6211563e-13 6.3288004e-12 3.3577308e-14 
-Loop time of 0.771028 on 4 procs for 124 steps with 4800 atoms
+Loop time of 0.634397 on 4 procs for 124 steps with 4800 atoms
 
 Minimization stats:
   Stopping criterion = force tolerance
@@ -1220,11 +1221,11 @@ Minimization stats:
   Final line search alpha, max atom move = 1 4.28359e-13
   Iterations, force evaluations = 124 248
 
-Pair  time (%) = 0.602882 (78.192)
+Pair  time (%) = 0.569101 (89.7074)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.13337 (17.2977)
-Outpt time (%) = 0.00144494 (0.187404)
-Other time (%) = 0.0333309 (4.32291)
+Comm  time (%) = 0.0384364 (6.05872)
+Outpt time (%) = 0.00134099 (0.21138)
+Other time (%) = 0.0255188 (4.02253)
 
 Nlocal:    1200 ave 1200 max 1200 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1243,17 +1244,17 @@ Dangerous builds = 0
   run 1
 Setting up run ...
  ATC: computing bond matrix ..........done
-Memory usage per processor = 23.0394 Mbytes
+Memory usage per processor = 23.6498 Mbytes
 Step KinEng PotEng Press fxsum fysum fzsum 
 2700   0    -18544.5850210904   -1000.9724 3.6220691e-13 6.3290068e-12 3.3001379e-14 
 2701   0    -18544.5850210904   -1000.9724 3.6220691e-13 6.3290068e-12 3.3001379e-14 
-Loop time of 0.844953 on 4 procs for 1 steps with 4800 atoms
+Loop time of 0.146069 on 4 procs for 1 steps with 4800 atoms
 
-Pair  time (%) = 0.00514245 (0.608608)
+Pair  time (%) = 0.00264668 (1.81194)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.114826 (13.5896)
-Outpt time (%) = 0.0676661 (8.00826)
-Other time (%) = 0.657319 (77.7935)
+Comm  time (%) = 0.000277281 (0.189828)
+Outpt time (%) = 0.00632149 (4.32773)
+Other time (%) = 0.136824 (93.6705)
 
 Nlocal:    1200 ave 1200 max 1200 min
 Histogram: 4 0 0 0 0 0 0 0 0 0

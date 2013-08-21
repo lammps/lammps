@@ -1,4 +1,4 @@
-LAMMPS (14 Aug 2013)
+LAMMPS (24 Aug 2013)
 
 units		real
 atom_style	atomic
@@ -52,6 +52,7 @@ neigh_modify	every 10 delay 0 check no
 # zero initial momentum
 fix             AtC internal   atc elastic     Ar_thermo_elastic.mat
 ATC: constructing elastic coupling with parameter file Ar_thermo_elastic.mat
+ ATC: version 2.0
  ATC: peratom PE compute created with ID: 3
  ATC: computed mass density : 1.09915
  ATC: 1 materials defined from Ar_thermo_elastic.mat
@@ -77,13 +78,13 @@ Memory usage per processor = 56.6533 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0    29.995658   -4509.8851            0   -4303.9707    135.84496 
        1    29.920966   -4509.8851            0   -4304.4835    135.59617 
-Loop time of 0.161032 on 4 procs for 1 steps with 2304 atoms
+Loop time of 0.0227677 on 4 procs for 1 steps with 2304 atoms
 
-Pair  time (%) = 0.013374 (8.3052)
+Pair  time (%) = 0.00611377 (26.8528)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.00626355 (3.88963)
-Outpt time (%) = 0.027244 (16.9184)
-Other time (%) = 0.11415 (70.8868)
+Comm  time (%) = 0.00170422 (7.48523)
+Outpt time (%) = 8.44598e-05 (0.370963)
+Other time (%) = 0.0148653 (65.291)
 
 Nlocal:    576 ave 648 max 504 min
 Histogram: 2 0 0 0 0 0 0 0 0 2
@@ -104,6 +105,7 @@ unfix AtC
 #               ID  group atc PhysicsType ParameterFile
 fix             AtC internal   atc thermo_elastic     Ar_thermo_elastic.mat
 ATC: constructing thermo-mechanical coupling with parameter file Ar_thermo_elastic.mat
+ ATC: version 2.0
  ATC: peratom PE compute created with ID: 3
  ATC: computed mass density : 1.09915
  ATC: 1 materials defined from Ar_thermo_elastic.mat

@@ -1,4 +1,4 @@
-LAMMPS (14 Aug 2013)
+LAMMPS (24 Aug 2013)
 units     	real
 atom_style full # charge
 ### NOTE p p p is required for both lammps & atc since periodic images are employed in ExtrinsicModelElectrostatic::correct_electrostatic_forces
@@ -124,6 +124,7 @@ neigh_modify every 10 check no
 # coulombic interactions
 fix         ATC FLUID   atc species_electrostatic  Ar_electrostatic.mat
 ATC: constructing electrostatic species coupling with parameter file Ar_electrostatic.mat
+ ATC: version 2.0
  ATC: peratom PE compute created with ID: 13
  ATC: 1 materials defined from Ar_electrostatic.mat
  ATC: creating fem_efield extrinsic model
@@ -158,4 +159,11 @@ fix_modify ATC mesh create_elementset BOX BOX
 ## NOTE tag instead of type, what about transition tyme
 fix_modify ATC mass_matrix fe
 fix_modify ATC internal_element_set FLUID
+fix_modify ATC include atomic_charge
+fix_modify ATC add_species N type 3
+fix_modify ATC add_species P type 4
+fix_modify ATC add_species Nt type 5
+fix_modify ATC add_species Pt type 6
+## CC
+fix_modify ATC control concentration N R 0.001 Nt  # deletions R
 ERROR: Illegal fix_modify command (../fix.cpp:104)

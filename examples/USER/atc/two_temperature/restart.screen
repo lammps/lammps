@@ -1,4 +1,4 @@
-LAMMPS (14 Aug 2013)
+LAMMPS (24 Aug 2013)
 Reading data file ...
   orthogonal box = (-64.86 -16.215 -16.215) to (64.86 16.215 16.215)
   4 by 1 by 1 MPI processor grid
@@ -8,13 +8,14 @@ Lattice spacing in x,y,z = 5.405 5.405 5.405
 2880 atoms in group internal
 576 atoms in group ghost
 ATC: constructing two_temperature coupling with parameter file Ar_ttm.mat
+ ATC: version 2.0
  ATC: peratom PE compute created with ID: 3
  ATC: 2 materials defined from Ar_ttm.mat
  ATC: creating two_temperature extrinsic model
  ATC: 2 materials defined from Ar_ttm.mat
  ATC: created uniform mesh with 60 nodes, 15 unique nodes, and 14 elements
 Setting up run ...
-Memory usage per processor = 97.9907 Mbytes
+Memory usage per processor = 55.2173 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0    16.671491   -6505.7593            0   -6334.0647   -1236.2423 
      100    16.671491   -6501.3833            0   -6329.6886   -1223.1536 
@@ -27,13 +28,13 @@ Step Temp E_pair E_mol TotEng Press
      800    16.671491   -6503.8814            0   -6332.1868   -1228.9533 
      900    16.671491    -6505.846            0   -6334.1514   -1235.4657 
     1000    16.671491   -6504.4261            0   -6332.7314   -1231.2716 
-Loop time of 37.7773 on 4 procs for 1000 steps with 3456 atoms
+Loop time of 21.6885 on 4 procs for 1000 steps with 3456 atoms
 
-Pair  time (%) = 10.8992 (28.8511)
-Neigh time (%) = 4.99517 (13.2227)
-Comm  time (%) = 6.46988 (17.1264)
-Outpt time (%) = 0.0506067 (0.13396)
-Other time (%) = 15.3625 (40.6659)
+Pair  time (%) = 8.96213 (41.3221)
+Neigh time (%) = 3.83331 (17.6744)
+Comm  time (%) = 1.81188 (8.35411)
+Outpt time (%) = 0.000838339 (0.00386537)
+Other time (%) = 7.08033 (32.6456)
 
 Nlocal:    864 ave 864 max 864 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -52,7 +53,7 @@ Dangerous builds = 0
  ATC: created nodeset lbc with 1 nodes
  ATC: created nodeset rbc with 1 nodes
 Setting up run ...
-Memory usage per processor = 102.974 Mbytes
+Memory usage per processor = 60.2008 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0    16.671491   -6504.4261            0   -6332.7314   -1231.2716 
      100    16.530548   -6502.2979            0   -6332.0547   -1225.9982 
@@ -75,13 +76,13 @@ Step Temp E_pair E_mol TotEng Press
     1800    21.314998   -6465.4549            0   -6245.9382   -1104.9574 
     1900    21.353208   -6458.9075            0   -6238.9973   -1085.5335 
     2000    21.394021    -6453.327            0   -6232.9964    -1069.954 
-Loop time of 235.783 on 4 procs for 2000 steps with 3456 atoms
+Loop time of 50.0521 on 4 procs for 2000 steps with 3456 atoms
 
-Pair  time (%) = 26.6899 (11.3197)
-Neigh time (%) = 13.9674 (5.92386)
-Comm  time (%) = 42.2094 (17.9018)
-Outpt time (%) = 0.572407 (0.242769)
-Other time (%) = 152.344 (64.6118)
+Pair  time (%) = 18.3171 (36.5961)
+Neigh time (%) = 7.84265 (15.669)
+Comm  time (%) = 3.58356 (7.15965)
+Outpt time (%) = 0.0244664 (0.0488819)
+Other time (%) = 20.2843 (40.5264)
 
 Nlocal:    864 ave 864 max 864 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -98,6 +99,7 @@ Neighbor list builds = 200
 Dangerous builds = 0
 System init for write_restart ...
 ATC: constructing two_temperature coupling with parameter file Ar_ttm.mat
+ ATC: version 2.0
  ATC: peratom PE compute created with ID: 3
  ATC: 2 materials defined from Ar_ttm.mat
  ATC: creating two_temperature extrinsic model
@@ -112,7 +114,7 @@ ATC: constructing two_temperature coupling with parameter file Ar_ttm.mat
 Setting up run ...
  ATC: P0, found 3456 atoms in reference file
  ATC: P0, read  3456 reference positions
-Memory usage per processor = 102.974 Mbytes
+Memory usage per processor = 60.2008 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0    21.394021    -6453.327            0   -6232.9964    -1069.954 
      100    21.611528   -6449.5788            0   -6227.0081   -1058.3224 
@@ -135,13 +137,13 @@ Step Temp E_pair E_mol TotEng Press
     1800    27.343301   -6410.2665            0   -6128.6661   -928.15556 
     1900    27.586019   -6407.6536            0   -6123.5535   -917.44798 
     2000    27.450662   -6401.9839            0   -6119.2778   -903.28749 
-Loop time of 65.9952 on 4 procs for 2000 steps with 3456 atoms
+Loop time of 52.4423 on 4 procs for 2000 steps with 3456 atoms
 
-Pair  time (%) = 19.756 (29.9355)
-Neigh time (%) = 8.36309 (12.6723)
-Comm  time (%) = 7.43406 (11.2645)
-Outpt time (%) = 0.0658885 (0.0998383)
-Other time (%) = 30.3762 (46.0278)
+Pair  time (%) = 18.6275 (35.52)
+Neigh time (%) = 7.95142 (15.1622)
+Comm  time (%) = 4.52928 (8.6367)
+Outpt time (%) = 0.00900048 (0.0171626)
+Other time (%) = 21.325 (40.6639)
 
 Nlocal:    864 ave 864 max 864 min
 Histogram: 4 0 0 0 0 0 0 0 0 0

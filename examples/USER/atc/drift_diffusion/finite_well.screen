@@ -1,4 +1,4 @@
-LAMMPS (14 Aug 2013)
+LAMMPS (24 Aug 2013)
 units    metal
 
 variable E equal 0.1
@@ -33,6 +33,7 @@ atom_modify     sort 0 1
 #          ID  group atc PhysicsType ParameterFile
 fix        AtC all   atc drift_diffusion-schrodinger  SiGe_ddm_schrodinger.mat
 ATC: constructing drift_diffusion-schrodinger coupling with parameter file SiGe_ddm_schrodinger.mat
+ ATC: version 2.0
  ATC: peratom PE compute created with ID: 3
  ATC: 2 materials defined from SiGe_ddm_schrodinger.mat
  ATC: creating drift_diffusion extrinsic model

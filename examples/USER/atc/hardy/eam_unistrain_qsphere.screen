@@ -1,10 +1,11 @@
-LAMMPS (14 Aug 2013)
+LAMMPS (24 Aug 2013)
 Lattice spacing in x,y,z = 3.615 3.615 3.615
 Created orthogonal box = (-65.07 -10.845 -10.845) to (65.07 10.845 10.845)
   4 by 1 by 1 MPI processor grid
 Created 4896 atoms
 4608 atoms in group internal
 ATC: constructing kernel field estimate
+ ATC: version 2.0
  ATC: peratom PE compute created with ID: 3
  ATC: created uniform mesh with 40 nodes, 10 unique nodes, and 9 elements
 Setting up run ...
@@ -13,13 +14,13 @@ Memory usage per processor = 12.3855 Mbytes
 Step PotEng KinEng Press Lx Ly Lz 
        0   -17256.022            0   -2117.8338       130.14        21.69        21.69 
        1   -17256.022            0   -2117.8338       130.14        21.69        21.69 
-Loop time of 0.13748 on 4 procs for 1 steps with 4896 atoms
+Loop time of 0.00496483 on 4 procs for 1 steps with 4896 atoms
 
-Pair  time (%) = 0.0405408 (29.4885)
+Pair  time (%) = 0.00444251 (89.4797)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.0661281 (48.1002)
-Outpt time (%) = 0.0133058 (9.67834)
-Other time (%) = 0.0175053 (12.733)
+Comm  time (%) = 0.000396073 (7.97757)
+Outpt time (%) = 6.84857e-05 (1.37942)
+Other time (%) = 5.77569e-05 (1.16332)
 
 Nlocal:    1224 ave 1296 max 1152 min
 Histogram: 2 0 0 0 0 0 0 0 0 2
@@ -44,13 +45,13 @@ Memory usage per processor = 12.3855 Mbytes
 Step PotEng KinEng Press Lx Ly Lz 
        1   -17252.771            0   -14787.592       130.14        21.69        21.69 
        2   -17252.771            0   -14787.592       130.14        21.69        21.69 
-Loop time of 0.444931 on 4 procs for 1 steps with 4896 atoms
+Loop time of 0.0662808 on 4 procs for 1 steps with 4896 atoms
 
-Pair  time (%) = 0.0429311 (9.64893)
+Pair  time (%) = 0.00459045 (6.92576)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.0753596 (16.9374)
-Outpt time (%) = 0.0446068 (10.0256)
-Other time (%) = 0.282034 (63.3881)
+Comm  time (%) = 0.000395298 (0.596399)
+Outpt time (%) = 0.000612199 (0.923644)
+Other time (%) = 0.0606829 (91.5542)
 
 Nlocal:    1224 ave 1296 max 1152 min
 Histogram: 2 0 0 0 0 0 0 0 0 2

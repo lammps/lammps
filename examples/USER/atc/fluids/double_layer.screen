@@ -1,4 +1,4 @@
-LAMMPS (14 Aug 2013)
+LAMMPS (24 Aug 2013)
 
 units 		metal
 atom_style 	full
@@ -119,6 +119,7 @@ group ATC_ATOMS type 4 5
 27 atoms in group ATC_ATOMS
 fix ATC ATC_ATOMS atc species_electrostatic Ar_species_dl.mat
 ATC: constructing electrostatic species coupling with parameter file Ar_species_dl.mat
+ ATC: version 2.0
  ATC: peratom PE compute created with ID: 5
  ATC: 1 materials defined from Ar_species_dl.mat
  ATC: creating fem_efield extrinsic model
@@ -167,36 +168,36 @@ Setting up run ...
 Memory usage per processor = 54.1045 Mbytes
 Step E_pair E_mol TotEng Press fluidT 
        0   -9252.0858            0   -9228.1564    -55763.67    293.65526 
-     100   -9252.3247            0   -9228.0784   -55827.581    307.58592 
-     200   -9251.4752            0   -9227.7891   -55737.506    282.95787 
-     300   -9251.4249            0   -9227.5267   -55707.319    292.28243 
-     400    -9251.418            0   -9227.1803    -55676.42    307.20457 
-     500   -9251.2317            0   -9226.4518   -55626.477    331.04006 
-     600   -9251.0816            0   -9226.0561   -55592.086    341.83069 
-     700   -9250.3998            0   -9226.2318   -55560.989    304.13946 
-     800   -9251.0058            0   -9226.6944   -55690.148    310.44444 
-     900   -9251.0001            0   -9227.2599   -55752.304    285.33992 
-    1000   -9250.9076            0   -9227.1099   -55769.609    287.86493 
-Loop time of 110.95 on 4 procs for 1000 steps with 1982 atoms
+     100   -9252.3246            0   -9228.0767   -55827.604    307.65619 
+     200   -9251.4773            0   -9227.8252   -55739.237    281.46665 
+     300   -9251.4162            0   -9227.6021   -55712.377    288.58631 
+     400   -9251.4192            0   -9227.3092   -55688.538    301.59217 
+     500   -9251.3116            0   -9226.6162    -55652.69    327.32164 
+     600   -9251.1532            0   -9226.2326   -55637.593    337.22358 
+     700   -9250.5037            0    -9226.425   -55610.998    300.21653 
+     800     -9250.72            0    -9226.768   -55686.507    294.64934 
+     900   -9251.0634            0   -9227.1621   -55774.601    292.41664 
+    1000   -9250.8046            0   -9227.0389   -55778.639    286.45437 
+Loop time of 32.2267 on 4 procs for 1000 steps with 1982 atoms
 
-Pair  time (%) = 10.3921 (9.36645)
-Bond  time (%) = 0.000747621 (0.000673836)
-Neigh time (%) = 0.0807644 (0.0727935)
-Comm  time (%) = 7.50919 (6.76808)
-Outpt time (%) = 0.527695 (0.475615)
-Other time (%) = 92.4396 (83.3164)
+Pair  time (%) = 6.65709 (20.6571)
+Bond  time (%) = 0.000525236 (0.00162982)
+Neigh time (%) = 0.0401824 (0.124687)
+Comm  time (%) = 0.252991 (0.785034)
+Outpt time (%) = 0.0763716 (0.236982)
+Other time (%) = 25.1996 (78.1946)
 
 Nlocal:    495.5 ave 976 max 63 min
 Histogram: 2 0 0 0 0 0 0 0 1 1
 Nghost:    916.5 ave 1083 max 778 min
 Histogram: 2 0 0 0 0 0 0 0 1 1
-Neighs:    132325 ave 269946 max 8208 min
+Neighs:    132292 ave 269908 max 8168 min
 Histogram: 2 0 0 0 0 0 0 0 1 1
-FullNghs:  219343 ave 455925 max 9588 min
+FullNghs:  219310 ave 455907 max 9552 min
 Histogram: 2 0 0 0 0 0 0 0 1 1
 
-Total # of neighbors = 877372
-Ave neighs/atom = 442.67
+Total # of neighbors = 877238
+Ave neighs/atom = 442.602
 Ave special neighs/atom = 0
 Neighbor list builds = 4
 Dangerous builds = 0

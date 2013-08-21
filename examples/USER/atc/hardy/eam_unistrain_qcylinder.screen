@@ -1,10 +1,11 @@
-LAMMPS (14 Aug 2013)
+LAMMPS (24 Aug 2013)
 Lattice spacing in x,y,z = 3.615 3.615 3.615
 Created orthogonal box = (-65.07 -10.845 -10.845) to (65.07 10.845 10.845)
   4 by 1 by 1 MPI processor grid
 Created 4896 atoms
 4608 atoms in group internal
 ATC: constructing kernel field estimate
+ ATC: version 2.0
  ATC: peratom PE compute created with ID: 3
  ATC: created uniform mesh with 40 nodes, 10 unique nodes, and 9 elements
 Setting up run ...
@@ -13,13 +14,13 @@ Memory usage per processor = 34.3603 Mbytes
 Step PotEng KinEng Press Lx Ly Lz 
        0   -17256.022            0   -2117.8338       130.14        21.69        21.69 
        1   -17256.022            0   -2117.8338       130.14        21.69        21.69 
-Loop time of 0.22 on 4 procs for 1 steps with 4896 atoms
+Loop time of 0.00503868 on 4 procs for 1 steps with 4896 atoms
 
-Pair  time (%) = 0.0452225 (20.5557)
+Pair  time (%) = 0.00448877 (89.0862)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.107069 (48.6676)
-Outpt time (%) = 0.0576439 (26.2018)
-Other time (%) = 0.0100647 (4.57488)
+Comm  time (%) = 0.000422835 (8.39179)
+Outpt time (%) = 5.97835e-05 (1.18649)
+Other time (%) = 6.72936e-05 (1.33554)
 
 Nlocal:    1224 ave 1296 max 1152 min
 Histogram: 2 0 0 0 0 0 0 0 0 2
@@ -39,20 +40,18 @@ Displacing atoms ...
  ATC: output custom names:
 
 Setting up run ...
- ATC: kernel matrix bandwidth 1005
  ATC: computing bond matrix ..........done
 Memory usage per processor = 34.3603 Mbytes
 Step PotEng KinEng Press Lx Ly Lz 
        1   -17252.771            0   -14787.592       130.14        21.69        21.69 
- ATC: kernel matrix bandwidth 1005
        2   -17252.771            0   -14787.592       130.14        21.69        21.69 
-Loop time of 0.224722 on 4 procs for 1 steps with 4896 atoms
+Loop time of 0.0590639 on 4 procs for 1 steps with 4896 atoms
 
-Pair  time (%) = 0.00557947 (2.48283)
+Pair  time (%) = 0.0045597 (7.71994)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.00455528 (2.02708)
-Outpt time (%) = 0.000734568 (0.326878)
-Other time (%) = 0.213853 (95.1632)
+Comm  time (%) = 0.000361979 (0.61286)
+Outpt time (%) = 0.000646472 (1.09453)
+Other time (%) = 0.0534958 (90.5727)
 
 Nlocal:    1224 ave 1296 max 1152 min
 Histogram: 2 0 0 0 0 0 0 0 0 2

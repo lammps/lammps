@@ -1,4 +1,4 @@
-LAMMPS (14 Aug 2013)
+LAMMPS (24 Aug 2013)
 units    real
 atom_style  atomic
 
@@ -67,18 +67,19 @@ group	 ghost region mdGhost
 # ATC commands
 fix	AtC internal atc thermal Ar_ttm.mat
 ATC: constructing thermal coupling with parameter file Ar_ttm.mat
+ ATC: version 2.0
  ATC: peratom PE compute created with ID: 3
  ATC: 2 materials defined from Ar_ttm.mat
 fix_modify	AtC boundary ghost
 fix_modify	AtC mesh read semicircle.mesh  f f p
- ATC: P1, writing periodicity corrected mesh: periodic_semicircle.mesh
- ATC: P2, writing periodicity corrected mesh: periodic_semicircle.mesh
- ATC: P3, writing periodicity corrected mesh: periodic_semicircle.mesh
  ATC: read 398 nodes
  ATC: read 176 HEX8 elements
  ATC: condensed 199 periodic nodes in the 3 direction
  ATC: created nodeset 1 with 44 nodes
  ATC: created nodeset 2 with 4 nodes
+ ATC: P1, writing periodicity corrected mesh: periodic_semicircle.mesh
+ ATC: P2, writing periodicity corrected mesh: periodic_semicircle.mesh
+ ATC: P3, writing periodicity corrected mesh: periodic_semicircle.mesh
  ATC: WARNING: mesh is not aligned with the coordinate directions atom-to-element mapping will be expensive
  ATC: P0, writing periodicity corrected mesh: periodic_semicircle.mesh
 fix_modify	AtC mesh nodeset_to_elementset 2 hole min
@@ -100,7 +101,7 @@ timestep  5.0
 thermo    100
 run       500
 Setting up run ...
-Memory usage per processor = 94.811 Mbytes
+Memory usage per processor = 52.3462 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0    20.498895   -5250.6971            0   -5057.1829   -1088.0506 
      100    10.255763   -5131.7808            0   -5034.9641   -671.92179 
@@ -108,13 +109,13 @@ Step Temp E_pair E_mol TotEng Press
      300    10.255763   -5191.6455            0   -5094.8288   -564.44341 
      400    10.255763   -5185.5031            0   -5088.6864   -611.34498 
      500    10.255763   -5185.1021            0   -5088.2853   -686.81479 
-Loop time of 15.2128 on 4 procs for 500 steps with 3168 atoms
+Loop time of 8.99855 on 4 procs for 500 steps with 3168 atoms
 
-Pair  time (%) = 2.78663 (18.3176)
-Neigh time (%) = 0.0548139 (0.360314)
-Comm  time (%) = 3.63319 (23.8824)
-Outpt time (%) = 0.000398099 (0.00261687)
-Other time (%) = 8.73779 (57.437)
+Pair  time (%) = 2.4525 (27.2543)
+Neigh time (%) = 0.0542204 (0.602546)
+Comm  time (%) = 0.659509 (7.32906)
+Outpt time (%) = 0.000407517 (0.00452869)
+Other time (%) = 5.83192 (64.8095)
 
 Nlocal:    792 ave 944 max 640 min
 Histogram: 2 0 0 0 0 0 0 0 0 2
@@ -160,7 +161,7 @@ reset_timestep  0
 thermo 100
 run    1000
 Setting up run ...
-Memory usage per processor = 108.386 Mbytes
+Memory usage per processor = 65.9216 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0    10.255763   -5185.1021            0   -5088.2853   -686.81479 
      100    9.9160769   -5177.6646            0   -5084.0545   -753.44628 
@@ -173,13 +174,13 @@ Step Temp E_pair E_mol TotEng Press
      800    10.245262   -5181.8268            0   -5085.1092   -707.19351 
      900    10.342331   -5183.9012            0   -5086.2673   -667.21622 
     1000    10.446039   -5184.9612            0   -5086.3482   -647.13367 
-Loop time of 83.0725 on 4 procs for 1000 steps with 3168 atoms
+Loop time of 28.4605 on 4 procs for 1000 steps with 3168 atoms
 
-Pair  time (%) = 6.33517 (7.62607)
-Neigh time (%) = 0.152702 (0.183818)
-Comm  time (%) = 8.85507 (10.6595)
-Outpt time (%) = 0.0723367 (0.0870767)
-Other time (%) = 67.6572 (81.4436)
+Pair  time (%) = 5.05702 (17.7685)
+Neigh time (%) = 0.12658 (0.444755)
+Comm  time (%) = 1.66495 (5.85002)
+Outpt time (%) = 0.0552746 (0.194215)
+Other time (%) = 21.5567 (75.7425)
 
 Nlocal:    792 ave 944 max 640 min
 Histogram: 2 0 0 0 0 0 0 0 0 2

@@ -27,6 +27,7 @@ fix_modify  AtC  fields none
 fix_modify  AtC  fields add displacement
 fix_modify  AtC  fields add internal_energy stress cauchy_born_energy cauchy_born_stress
 fix_modify  AtC  gradients add displacement
+fix_modify  AtC set reference_potential_energy 0.
 fix_modify  AtC  output cb_volumetricFE 1 full_text tensor_components
 log  cb_volumetric.log
 thermo 100

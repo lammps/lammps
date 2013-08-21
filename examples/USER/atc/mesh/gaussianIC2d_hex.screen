@@ -1,4 +1,4 @@
-LAMMPS (14 Aug 2013)
+LAMMPS (24 Aug 2013)
 units    real
 atom_style  atomic
 
@@ -36,6 +36,7 @@ group	 ghost subtract all internal
 
 fix             AtC internal   atc two_temperature  Ar_ttm.mat
 ATC: constructing two_temperature coupling with parameter file Ar_ttm.mat
+ ATC: version 2.0
  ATC: peratom PE compute created with ID: 3
  ATC: 2 materials defined from Ar_ttm.mat
  ATC: creating two_temperature extrinsic model
@@ -72,7 +73,7 @@ timestep  1.0
 thermo    10
 run	  400
 Setting up run ...
-Memory usage per processor = 91.5244 Mbytes
+Memory usage per processor = 50.5401 Mbytes
 Step Temp PotEng AtC[2] AtC[4] 
        0    18.559464   -2927.2438           20    22.619065 
       10    9.2908989   -2926.8636           20    22.619065 
@@ -115,13 +116,13 @@ Step Temp PotEng AtC[2] AtC[4]
      380    9.2908989   -2851.9001           20    22.619065 
      390    9.2908989   -2852.2299           20    22.619065 
      400    9.2908989   -2852.6005           20    22.619065 
-Loop time of 26.8725 on 4 procs for 400 steps with 1792 atoms
+Loop time of 18.4213 on 4 procs for 400 steps with 1792 atoms
 
-Pair  time (%) = 1.1555 (4.29993)
+Pair  time (%) = 1.11548 (6.05539)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 3.3023 (12.2888)
-Outpt time (%) = 0.070357 (0.261817)
-Other time (%) = 22.3444 (83.1495)
+Comm  time (%) = 0.398548 (2.16351)
+Outpt time (%) = 0.043588 (0.236617)
+Other time (%) = 16.8637 (91.5445)
 
 Nlocal:    448 ave 448 max 448 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -160,7 +161,7 @@ dump            D1  all atom 10 gaussianIC2d_hex.dmp
 # relax the system
 run       1000
 Setting up run ...
-Memory usage per processor = 96.3294 Mbytes
+Memory usage per processor = 55.345 Mbytes
 Step Temp PotEng AtC[2] AtC[4] 
      400    9.2908989   -2852.6005           20    22.619065 
      410    9.3739709   -2853.0186    20.040932    22.611409 
@@ -263,13 +264,13 @@ Step Temp PotEng AtC[2] AtC[4]
     1380    12.444674   -2883.9691    22.539592    22.343613 
     1390    12.360208   -2883.6693    22.496432    22.342016 
     1400    12.266237    -2883.307    22.447301    22.340354 
-Loop time of 294.852 on 4 procs for 1000 steps with 1792 atoms
+Loop time of 113.07 on 4 procs for 1000 steps with 1792 atoms
 
-Pair  time (%) = 3.79985 (1.28873)
-Neigh time (%) = 0.0335855 (0.0113906)
-Comm  time (%) = 18.051 (6.12205)
-Outpt time (%) = 3.2335 (1.09665)
-Other time (%) = 269.734 (91.4812)
+Pair  time (%) = 2.80277 (2.4788)
+Neigh time (%) = 0.0123174 (0.0108937)
+Comm  time (%) = 0.853601 (0.754934)
+Outpt time (%) = 1.49777 (1.32464)
+Other time (%) = 107.903 (95.4307)
 
 Nlocal:    448 ave 448 max 448 min
 Histogram: 4 0 0 0 0 0 0 0 0 0

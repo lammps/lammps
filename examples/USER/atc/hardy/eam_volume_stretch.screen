@@ -1,4 +1,4 @@
-LAMMPS (14 Aug 2013)
+LAMMPS (24 Aug 2013)
 units		metal
 atom_style	atomic
 # create domain
@@ -33,6 +33,7 @@ thermo_style custom step pe ke press lx ly lz
 #               ID  group atc PhysicsType ParameterFile
 fix             AtC internal   atc field
 ATC: constructing shape function field estimate
+ ATC: version 2.0
  ATC: peratom PE compute created with ID: 3
 fix_modify      AtC  fields none
 fix_modify      AtC  fields add mass_density
@@ -52,13 +53,13 @@ Memory usage per processor = 20.2625 Mbytes
 Step PotEng KinEng Press Lx Ly Lz 
        0     -3058.56            0 -0.027860375        21.69        21.69        21.69 
        1     -3058.56            0 -0.027860375        21.69        21.69        21.69 
-Loop time of 0.0294803 on 4 procs for 1 steps with 864 atoms
+Loop time of 0.00121945 on 4 procs for 1 steps with 864 atoms
 
-Pair  time (%) = 0.0104292 (35.3769)
+Pair  time (%) = 0.000969291 (79.4858)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.0189348 (64.2289)
-Outpt time (%) = 6.9201e-05 (0.234737)
-Other time (%) = 4.70281e-05 (0.159524)
+Comm  time (%) = 0.000159681 (13.0945)
+Outpt time (%) = 4.44055e-05 (3.64143)
+Other time (%) = 4.60744e-05 (3.77829)
 
 Nlocal:    216 ave 216 max 216 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -90,13 +91,13 @@ Memory usage per processor = 20.2625 Mbytes
 Step PotEng KinEng Press Lx Ly Lz 
        1   -3058.5204            0   -4126.8763     21.71169     21.71169     21.71169 
        2   -3058.5204            0   -4126.8763     21.71169     21.71169     21.71169 
-Loop time of 0.0434771 on 4 procs for 1 steps with 864 atoms
+Loop time of 0.0388485 on 4 procs for 1 steps with 864 atoms
 
-Pair  time (%) = 0.000937521 (2.15636)
+Pair  time (%) = 0.00091958 (2.3671)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000136197 (0.313261)
-Outpt time (%) = 0.000539005 (1.23975)
-Other time (%) = 0.0418643 (96.2906)
+Comm  time (%) = 0.000169635 (0.436658)
+Outpt time (%) = 0.000460684 (1.18585)
+Other time (%) = 0.0372986 (96.0104)
 
 Nlocal:    216 ave 216 max 216 min
 Histogram: 4 0 0 0 0 0 0 0 0 0

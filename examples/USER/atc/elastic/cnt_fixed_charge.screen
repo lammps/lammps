@@ -1,4 +1,4 @@
-LAMMPS (14 Aug 2013)
+LAMMPS (24 Aug 2013)
 units		metal
 atom_style charge
 dielectric      1.
@@ -105,6 +105,7 @@ Setting atom values ...
 # coupling
 fix         AtC internal   atc electrostatic CNT_id.mat
 ATC: constructing electrostatic mechanical coupling with parameter file CNT_id.mat
+ ATC: version 2.0
  ATC: peratom PE compute created with ID: 3
  ATC: computed mass density : 2.05933
  ATC: 1 materials defined from CNT_id.mat
@@ -262,7 +263,7 @@ Step TotEng KinEng CM[1] CM[2] CM[3] Q AtC[4] AtC[5] AtC[6] AtC[7] FIX[1] FIX[2]
      480   -6155.5887            0 -0.0058774787 8.0639107e-12    96.934537         -0.1            0            0            0 -0.00094915808 0.00030232037 -4.1063286e-10 -0.0063827796   0.26227474 -0.0012514785 
      490   -6155.5887            0 -0.0071402115 -4.9061812e-11    96.934554         -0.1            0            0            0 -0.00094915808 0.00014674646 -1.4276993e-09 -0.0085602294   0.26227356 -0.0010959045 
      500   -6155.5887            0 -0.0089111607 -5.2606473e-11    96.934565         -0.1            0            0            0 -0.00094915808 0.00062500656 6.8011742e-10 -0.0084420596   0.26227196 -0.0015741646 
-Loop time of 106.653 on 4 procs for 500 steps with 846 atoms
+Loop time of 35.8016 on 4 procs for 500 steps with 846 atoms
 
 Minimization stats:
   Stopping criterion = max force evaluations
@@ -273,11 +274,11 @@ Minimization stats:
   Final line search alpha, max atom move = 1 0.000212848
   Iterations, force evaluations = 500 1000
 
-Pair  time (%) = 9.67218 (9.06879)
+Pair  time (%) = 7.56243 (21.1232)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 6.7444 (6.32366)
-Outpt time (%) = 2.93299 (2.75002)
-Other time (%) = 87.3039 (81.8575)
+Comm  time (%) = 0.909729 (2.54103)
+Outpt time (%) = 0.470353 (1.31378)
+Other time (%) = 26.859 (75.022)
 
 Nlocal:    211.5 ave 216 max 207 min
 Histogram: 2 0 0 0 0 0 0 0 0 2
@@ -327,13 +328,13 @@ Memory usage per processor = 54.1206 Mbytes
 Step TotEng KinEng CM[1] CM[2] CM[3] Q AtC[4] AtC[5] AtC[6] AtC[7] FIX[1] FIX[2] FIX[3] AtC FSUM[1] 
      500   -6155.5887            0 -0.0089111607 -5.2606424e-11    96.934565         -0.1            0            0            0 -0.00094915808 0.00062500656 6.8011742e-10 -0.0084420596   0.26227196 -0.0015741646 
      501   -6155.5887            0 -0.0089111607 -5.2606424e-11    96.934565         -0.1            0            0            0 -0.00094915808 0.00062500656 6.8011742e-10 -0.0084420596   0.26227196 -0.0015741646 
-Loop time of 0.0591159 on 4 procs for 1 steps with 846 atoms
+Loop time of 0.0582818 on 4 procs for 1 steps with 846 atoms
 
-Pair  time (%) = 0.00747705 (12.6481)
+Pair  time (%) = 0.0074538 (12.7892)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000546396 (0.924278)
-Outpt time (%) = 0.0172972 (29.2598)
-Other time (%) = 0.0337953 (57.1678)
+Comm  time (%) = 0.000557423 (0.956426)
+Outpt time (%) = 0.0170317 (29.2229)
+Other time (%) = 0.0332389 (57.0314)
 
 Nlocal:    211.5 ave 216 max 198 min
 Histogram: 1 0 0 0 0 0 0 0 0 3

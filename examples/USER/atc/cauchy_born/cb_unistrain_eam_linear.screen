@@ -1,4 +1,4 @@
-LAMMPS (14 Aug 2013)
+LAMMPS (24 Aug 2013)
 units		real
 atom_style	atomic
 # create domain
@@ -30,6 +30,7 @@ thermo_style custom step pe ke press lx ly lz
 #           ID  group atc PhysicsType ParameterFile
 fix         PP1 internal   atc field Au_eam_linear.mat
 ATC: constructing shape function field estimate with parameter file Au_eam_linear.mat
+ ATC: version 2.0
  ATC: peratom PE compute created with ID: 3
 fix_modify  PP1 mesh create 8 1 1 BOX f p p
  ATC: created uniform mesh with 36 nodes, 9 unique nodes, and 8 elements
@@ -40,6 +41,7 @@ fix_modify  PP1  set reference_potential_energy 0 # correct cb and messes pe
 #           ID  group atc PhysicsType ParameterFile
 fix         PP2 internal   atc field Au_eam.mat
 ATC: constructing shape function field estimate with parameter file Au_eam.mat
+ ATC: version 2.0
  ATC: peratom PE compute created with ID: 3
 fix_modify  PP2 mesh create 8 1 1 BOX f p p
  ATC: created uniform mesh with 36 nodes, 9 unique nodes, and 8 elements
@@ -67,17 +69,17 @@ Setting up run ...
  ATC: CB stiffness: 11.5362 Einstein freq: 0.975052
  ATC: computing bond matrix ...........done
  ATC: CB stiffness: 11.5362 Einstein freq: 0.975052
-Memory usage per processor = 43.4446 Mbytes
+Memory usage per processor = 44.055 Mbytes
 Step step PotEng KinEng Press Lx Ly Lz 
        0            0   -3488.8211            0   -387.61198        65.28        16.32        16.32 
        1            0   -3488.8211            0   -387.61198        65.28        16.32        16.32 
-Loop time of 0.0171664 on 4 procs for 1 steps with 896 atoms
+Loop time of 0.0148683 on 4 procs for 1 steps with 896 atoms
 
-Pair  time (%) = 0.000946522 (5.51381)
+Pair  time (%) = 0.000981808 (6.60335)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000137866 (0.803114)
-Outpt time (%) = 8.52942e-05 (0.496868)
-Other time (%) = 0.0159967 (93.1862)
+Comm  time (%) = 0.000169516 (1.14011)
+Outpt time (%) = 8.64863e-05 (0.581682)
+Other time (%) = 0.0136305 (91.6749)
 
 Nlocal:    224 ave 256 max 192 min
 Histogram: 2 0 0 0 0 0 0 0 0 2
@@ -99,17 +101,17 @@ Displacing atoms ...
 run		1
 Setting up run ...
  ATC: computing bond matrix ...........done
-Memory usage per processor = 43.4446 Mbytes
+Memory usage per processor = 44.055 Mbytes
 Step step PotEng KinEng Press Lx Ly Lz 
        1            1   -3488.7472            0   -447.10849        65.28        16.32        16.32 
        2            1   -3488.7472            0   -447.10849        65.28        16.32        16.32 
-Loop time of 0.0233803 on 4 procs for 1 steps with 896 atoms
+Loop time of 0.0173955 on 4 procs for 1 steps with 896 atoms
 
-Pair  time (%) = 0.000981331 (4.19726)
+Pair  time (%) = 0.000986218 (5.66939)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000181496 (0.776279)
-Outpt time (%) = 0.000347793 (1.48755)
-Other time (%) = 0.0218697 (93.5389)
+Comm  time (%) = 0.000169992 (0.977221)
+Outpt time (%) = 0.000409067 (2.35157)
+Other time (%) = 0.0158302 (91.0018)
 
 Nlocal:    224 ave 256 max 192 min
 Histogram: 2 0 0 0 0 0 0 0 0 2
@@ -131,17 +133,17 @@ Displacing atoms ...
 run		1
 Setting up run ...
  ATC: computing bond matrix ...........done
-Memory usage per processor = 43.4446 Mbytes
+Memory usage per processor = 44.055 Mbytes
 Step step PotEng KinEng Press Lx Ly Lz 
        2            2   -3488.6569            0   -506.40727        65.28        16.32        16.32 
        3            2   -3488.6569            0   -506.40727        65.28        16.32        16.32 
-Loop time of 0.0714502 on 4 procs for 1 steps with 896 atoms
+Loop time of 0.0175592 on 4 procs for 1 steps with 896 atoms
 
-Pair  time (%) = 0.0255377 (35.742)
+Pair  time (%) = 0.000983775 (5.60263)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.0149598 (20.9374)
-Outpt time (%) = 0.000393927 (0.551331)
-Other time (%) = 0.0305588 (42.7693)
+Comm  time (%) = 0.000178218 (1.01496)
+Outpt time (%) = 0.000334024 (1.90228)
+Other time (%) = 0.0160632 (91.4801)
 
 Nlocal:    224 ave 256 max 192 min
 Histogram: 2 0 0 0 0 0 0 0 0 2

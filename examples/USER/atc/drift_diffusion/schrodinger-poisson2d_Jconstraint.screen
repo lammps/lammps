@@ -1,4 +1,4 @@
-LAMMPS (14 Aug 2013)
+LAMMPS (24 Aug 2013)
 #variable iter equal 2 # need two for potential to affect density
 variable iter1 equal 4  # NOTE <<<<
 variable iter2 equal 25 # NOTE <<<<
@@ -55,6 +55,7 @@ atom_modify     sort 0 1
 #    ID  group atc PhysicsType ParameterFile
 fix  AtC all   atc drift_diffusion-schrodinger-slice SiVacuum_ddm_schrodinger.mat
 Constructing ATC transfer (drift_diffusion-schrodinger-slice) with parameter file SiVacuum_ddm_schrodinger.mat
+ ATC: version 2.0
  ATC: peratom PE compute created with ID: 3
  ATC: WARNING: must use a unit system where: [Energy/force] = [Length] and [charge] = e
  ATC: WARNING: material units metal do not match lammps

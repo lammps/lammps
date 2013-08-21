@@ -89,6 +89,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   int iarg;
 
   mol2body = NULL;
+  body2mol = NULL;
 
   // single rigid body
   // nbody = 1
@@ -138,13 +139,19 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) ncount[molecule[i]]++;
 
-    memory->create(mol2body,maxmol+1,"rigid:ncount");
+    memory->create(mol2body,maxmol+1,"rigid:mol2body");
     MPI_Allreduce(ncount,mol2body,maxmol+1,MPI_INT,MPI_SUM,world);
 
     nbody = 0;
     for (i = 0; i <= maxmol; i++)
       if (mol2body[i]) mol2body[i] = nbody++;
       else mol2body[i] = -1;
+
+    memory->create(body2mol,nbody,"rigid:body2mol");
+
+    nbody = 0;
+    for (i = 0; i <= maxmol; i++)
+      if (mol2body[i] >= 0) body2mol[nbody++] = i;
 
     for (i = 0; i < nlocal; i++) {
       body[i] = -1;
@@ -356,7 +363,8 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
       pcouple = XYZ;
       p_start[0] = p_start[1] = p_start[2] = force->numeric(FLERR,arg[iarg+1]);
       p_stop[0] = p_stop[1] = p_stop[2] = force->numeric(FLERR,arg[iarg+2]);
-      p_period[0] = p_period[1] = p_period[2] = force->numeric(FLERR,arg[iarg+3]);
+      p_period[0] = p_period[1] = p_period[2] = 
+        force->numeric(FLERR,arg[iarg+3]);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
       if (dimension == 2) {
 	      p_start[2] = p_stop[2] = p_period[2] = 0.0;
@@ -370,7 +378,8 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 	      error->all(FLERR,"Illegal fix rigid command");
       p_start[0] = p_start[1] = p_start[2] = force->numeric(FLERR,arg[iarg+1]);
       p_stop[0] = p_stop[1] = p_stop[2] = force->numeric(FLERR,arg[iarg+2]);
-      p_period[0] = p_period[1] = p_period[2] = force->numeric(FLERR,arg[iarg+3]);
+      p_period[0] = p_period[1] = p_period[2] = 
+        force->numeric(FLERR,arg[iarg+3]);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
       if (dimension == 2) {
       	p_start[2] = p_stop[2] = p_period[2] = 0.0;
@@ -451,6 +460,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
       int n = strlen(arg[iarg+1]) + 1;
       infile = new char[n];
       strcpy(infile,arg[iarg+1]);
+      restart_file = 1;
       iarg += 2;
 
     } else error->all(FLERR,"Illegal fix rigid command");
@@ -537,6 +547,7 @@ FixRigid::~FixRigid()
   delete random;
   delete [] infile;
   memory->destroy(mol2body);
+  memory->destroy(body2mol);
 
   // delete locally stored arrays
 
@@ -2092,7 +2103,7 @@ void FixRigid::readfile(int which, double *vec, double **array, int *inbody)
   while (nread < nlines) {
     nchunk = MIN(nlines-nread,CHUNK);
     eofflag = comm->read_lines_from_file(fp,nchunk,MAXLINE,buffer);
-    if (eofflag) error->all(FLERR,"Unexpected end of data file");
+    if (eofflag) error->all(FLERR,"Unexpected end of fix rigid file");
 
     buf = buffer;
     next = strchr(buf,'\n');
@@ -2152,6 +2163,54 @@ void FixRigid::readfile(int which, double *vec, double **array, int *inbody)
 
   delete [] buffer;
   delete [] values;
+}
+
+/* ----------------------------------------------------------------------
+   write out restart info for mass, COM, inertia tensor to file
+   identical format to infile option, so info can be read in when restarting
+   only proc 0 writes list of global bodies to file
+------------------------------------------------------------------------- */
+
+void FixRigid::write_restart_file()
+{
+  if (me) return;
+
+  const char *outfile = "tmp.restart.inertia";
+  FILE *fp = fopen(outfile,"w");
+  if (fp == NULL) {
+    char str[128];
+    sprintf(str,"Cannot open fix rigid restart file %s",outfile);
+    error->one(FLERR,str);
+  }
+
+  fprintf(fp,"fix rigid mass, COM, inertia tensor info for "
+          "%d bodies on timestep " TAGINT_FORMAT "\n\n",
+          nbody,update->ntimestep);
+  fprintf(fp,"%d\n",nbody);
+
+  // compute I tensor against xyz axes from diagonalized I and current quat
+  // Ispace = P Idiag P_transpose
+  // P is stored column-wise in exyz_space
+
+  double p[3][3],pdiag[3][3],ispace[3][3];
+
+  int id;
+  for (int i = 0; i < nbody; i++) {
+    if (rstyle == SINGLE || rstyle == GROUP) id = i;
+    else id = body2mol[i];
+
+    MathExtra::col2mat(ex_space[i],ey_space[i],ez_space[i],p);
+    MathExtra::times3_diag(p,inertia[i],pdiag);
+    MathExtra::times3_transpose(pdiag,p,ispace);
+
+    fprintf(fp,"%d %-1.16e %-1.16e %-1.16e %-1.16e "
+            "%-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e\n",
+            id,masstotal[i],xcm[i][0],xcm[i][1],xcm[i][2],
+            ispace[0][0],ispace[1][1],ispace[2][2],
+            ispace[0][1],ispace[0][2],ispace[1][2]);
+  }
+
+  fclose(fp);
 }
 
 /* ----------------------------------------------------------------------

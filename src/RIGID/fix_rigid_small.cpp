@@ -140,6 +140,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
       int n = strlen(arg[iarg+1]) + 1;
       infile = new char[n];
       strcpy(infile,arg[iarg+1]);
+      restart_file = 1;
       iarg += 2;
 
     } else error->all(FLERR,"Illegal fix rigid/small command");
@@ -336,7 +337,7 @@ void FixRigidSmall::init()
 /* ----------------------------------------------------------------------
    one-time initialization of rigid body attributes via local comm
    extended flags, mass, COM, inertia tensor, displacement of each atom
-   require communication stencil have been setup by comm->borders()
+   requires communication stencil has been setup by comm->borders()
 ------------------------------------------------------------------------- */
 
 void FixRigidSmall::setup_pre_neighbor()
@@ -2072,7 +2073,7 @@ void FixRigidSmall::readfile(int which, double **array, int *inbody)
 
   hash = new std::map<int,int>();
   for (int i = 0; i < nlocal; i++)
-    if (bodyown[i] >= 0) (*hash)[molecule[i]] = bodyown[i];
+    if (bodyown[i] >= 0) (*hash)[atom->molecule[i]] = bodyown[i];
 
   // open file and read header
 
@@ -2163,6 +2164,111 @@ void FixRigidSmall::readfile(int which, double **array, int *inbody)
   delete [] buffer;
   delete [] values;
   delete hash;
+}
+
+/* ----------------------------------------------------------------------
+   write out restart info for mass, COM, inertia tensor to file
+   identical format to infile option, so info can be read in when restarting
+   each proc contributes info for rigid bodies it owns
+------------------------------------------------------------------------- */
+
+void FixRigidSmall::write_restart_file()
+{
+  FILE *fp;
+
+  // do not write file if bodies have not yet been intialized
+
+  if (firstflag) return;
+
+  // proc 0 opens file and writes header
+
+  if (me == 0) {
+    const char *outfile = "tmp.restart.inertia";
+    fp = fopen(outfile,"w");
+    if (fp == NULL) {
+      char str[128];
+      sprintf(str,"Cannot open fix rigid restart file %s",outfile);
+      error->one(FLERR,str);
+    }
+
+    fprintf(fp,"fix rigid mass, COM, inertia tensor info for "
+            "%d bodies on timestep " TAGINT_FORMAT "\n\n",
+            nbody,update->ntimestep);
+    fprintf(fp,"%d\n",nbody);
+  }
+
+  // communication buffer for all my rigid body info
+  // max_size = largest buffer needed by any proc
+
+  int ncol = 11;
+  int sendrow = nlocal_body;
+  int maxrow;
+  MPI_Allreduce(&sendrow,&maxrow,1,MPI_INT,MPI_MAX,world);
+
+  double **buf;
+  if (me == 0) memory->create(buf,MAX(1,maxrow),ncol,"rigid/small:buf");
+  else memory->create(buf,MAX(1,sendrow),ncol,"rigid/small:buf");
+
+  // pack my rigid body info into buf
+  // compute I tensor against xyz axes from diagonalized I and current quat
+  // Ispace = P Idiag P_transpose
+  // P is stored column-wise in exyz_space
+
+  double p[3][3],pdiag[3][3],ispace[3][3];
+
+  for (int i = 0; i < nlocal_body; i++) {
+    MathExtra::col2mat(body[i].ex_space,body[i].ey_space,body[i].ez_space,p);
+    MathExtra::times3_diag(p,body[i].inertia,pdiag);
+    MathExtra::times3_transpose(pdiag,p,ispace);
+
+    buf[i][0] = atom->molecule[body[i].ilocal];
+    buf[i][1] = body[i].mass;
+    buf[i][2] = body[i].xcm[0];
+    buf[i][3] = body[i].xcm[1];
+    buf[i][4] = body[i].xcm[2];
+    buf[i][5] = ispace[0][0];
+    buf[i][6] = ispace[1][1];
+    buf[i][7] = ispace[2][2];
+    buf[i][8] = ispace[0][1];
+    buf[i][9] = ispace[0][2];
+    buf[i][10] = ispace[1][2];
+  }
+
+  // write one chunk of rigid body info per proc to file
+  // proc 0 pings each proc, receives its chunk, writes to file
+  // all other procs wait for ping, send their chunk to proc 0
+
+  int tmp,recvrow;
+  MPI_Status status;
+  MPI_Request request;
+
+  if (me == 0) {
+    for (int iproc = 0; iproc < nprocs; iproc++) {
+      if (iproc) {
+        MPI_Irecv(&buf[0][0],maxrow*ncol,MPI_DOUBLE,iproc,0,world,&request);
+        MPI_Send(&tmp,0,MPI_INT,iproc,0,world);
+        MPI_Wait(&request,&status);
+        MPI_Get_count(&status,MPI_DOUBLE,&recvrow);
+        recvrow /= ncol;
+      } else recvrow = sendrow;
+
+      for (int i = 0; i < recvrow; i++)
+        fprintf(fp,"%d %-1.16e %-1.16e %-1.16e %-1.16e "
+                "%-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e\n",
+                static_cast<int> (buf[i][0]),buf[i][1],
+                buf[i][2],buf[i][3],buf[i][4],
+                buf[i][5],buf[i][6],buf[i][7],buf[i][8],buf[i][9],buf[i][10]);
+    }
+    
+  } else {
+    MPI_Recv(&tmp,0,MPI_INT,0,0,world,&status);
+    MPI_Rsend(&buf[0][0],sendrow*ncol,MPI_DOUBLE,0,0,world);
+  }
+
+  // clean up and close file
+
+  memory->destroy(buf);
+  if (me == 0) fclose(fp);
 }
 
 /* ----------------------------------------------------------------------

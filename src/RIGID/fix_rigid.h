@@ -36,6 +36,7 @@ class FixRigid : public Fix {
   virtual void final_integrate();
   void initial_integrate_respa(int, int, int);
   void final_integrate_respa(int, int);
+  void write_restart_file();
   virtual double compute_scalar();
   virtual int modify_param(int, char **) {return 0;}
   
@@ -68,6 +69,7 @@ class FixRigid : public Fix {
   int nbody;                // # of rigid bodies
   int *nrigid;              // # of atoms in each rigid body
   int *mol2body;            // convert mol-ID to rigid body index
+  int *body2mol;            // convert rigid body index to mol-ID
   int maxmol;               // size of mol2body = max mol-ID
 
   int *body;                // which body each atom is part of (-1 if none)

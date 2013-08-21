@@ -43,6 +43,7 @@ class FixRigidSmall : public Fix {
   virtual void final_integrate();
   void initial_integrate_respa(int, int, int);
   void final_integrate_respa(int, int);
+  void write_restart_file();
 
   void grow_arrays(int);
   void copy_arrays(int, int, int);

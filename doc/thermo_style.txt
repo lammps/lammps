@@ -55,6 +55,7 @@ args = list of arguments for a particular style :l
       elong = long-range kspace energy
       etail = VanderWaal energy long-range tail correction
       vol = volume
+      density = mass density of system
       lx,ly,lz = box lengths in x,y,z
       xlo,xhi,ylo,yhi,zlo,zhi = box boundaries
       xy,xz,yz = box tilt for triclinic (non-orthogonal) simulation boxes
@@ -243,7 +244,7 @@ define the periodic unit cell of a crystal.  See "this
 section"_Section_howto.html#howto_12 of the doc pages for a geometric
 description of triclinic periodic cells, including a precise defintion
 of these quantities in terms of the internal LAMMPS cell dimensions
-{lx}, {ly}, {lz}, {yz}, {xz}, {xy},
+{lx}, {ly}, {lz}, {yz}, {xz}, {xy}.
 
 :line
 

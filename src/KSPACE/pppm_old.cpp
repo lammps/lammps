@@ -62,7 +62,7 @@ PPPMOld::PPPMOld(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
 
   triclinic_support = 0;
   pppmflag = 1;
-  group_group_enable = 1;
+  group_group_enable = 0;
 
   accuracy_relative = fabs(force->numeric(FLERR,arg[0]));
 
@@ -339,7 +339,7 @@ void PPPMOld::init()
     //   -z proc, but not vice versa
     // this is accomplished by nzhi_in = nzhi_out on +z end (no ghost cells)
 
-    if (slabflag && (comm->myloc[2] == comm->procgrid[2]-1)) {
+    if (slabflag == 1 && (comm->myloc[2] == comm->procgrid[2]-1)) {
       nzhi_in = nz_pppm - 1;
       nzhi_out = nz_pppm - 1;
     }
@@ -2431,7 +2431,8 @@ void PPPMOld::compute_rho_coeff()
    Slab-geometry correction term to dampen inter-slab interactions between
    periodically repeating slabs.  Yields good approximation to 2D Ewald if
    adequate empty space is left between repeating slabs (J. Chem. Phys.
-   111, 3155).  Slabs defined here to be parallel to the xy plane.
+   111, 3155).  Slabs defined here to be parallel to the xy plane. Also
+   extended to non-neutral systems (J. Chem. Phys. 131, 094107).
 ------------------------------------------------------------------------- */
 
 void PPPMOld::slabcorr()
@@ -2440,6 +2441,7 @@ void PPPMOld::slabcorr()
 
   double *q = atom->q;
   double **x = atom->x;
+  double zprd = domain->zprd;
   int nlocal = atom->nlocal;
 
   double dipole = 0.0;
@@ -2450,9 +2452,25 @@ void PPPMOld::slabcorr()
   double dipole_all;
   MPI_Allreduce(&dipole,&dipole_all,1,MPI_DOUBLE,MPI_SUM,world);
 
+  // need to make non-neutral systems and/or
+  //  per-atom energy translationally invariant
+
+  double dipole_r2 = 0.0;
+  if (eflag_atom || fabs(qsum) > SMALL) {
+    for (int i = 0; i < nlocal; i++)
+      dipole_r2 += q[i]*x[i][2]*x[i][2];
+
+    // sum local contributions
+
+    double tmp;
+    MPI_Allreduce(&dipole_r2,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
+    dipole_r2 = tmp;
+  }
+
   // compute corrections
 
-  const double e_slabcorr = 2.0*MY_PI*dipole_all*dipole_all/volume;
+  const double e_slabcorr = MY_2PI*(dipole_all*dipole_all -
+    qsum*dipole_r2 - qsum*qsum*zprd*zprd/12.0)/volume;
   const double qscale = force->qqrd2e * scale;
 
   if (eflag_global) energy += qscale * e_slabcorr;
@@ -2460,16 +2478,18 @@ void PPPMOld::slabcorr()
   // per-atom energy
 
   if (eflag_atom) {
-    double efact = 2.0*MY_PI*dipole_all/volume;
-    for (int i = 0; i < nlocal; i++) eatom[i] += qscale * q[i]*x[i][2]*efact;
+    double efact = qscale * MY_2PI/volume;
+    for (int i = 0; i < nlocal; i++)
+      eatom[i] += efact * q[i]*(x[i][2]*dipole_all - 0.5*(dipole_r2 +
+        qsum*x[i][2]*x[i][2]) - qsum*zprd*zprd/12.0);
   }
 
   // add on force corrections
 
-  double ffact = -4.0*MY_PI*dipole_all/volume;
+  double ffact = qscale * (-4.0*MY_PI/volume);
   double **f = atom->f;
 
-  for (int i = 0; i < nlocal; i++) f[i][2] += qscale * q[i]*ffact;
+  for (int i = 0; i < nlocal; i++) f[i][2] += ffact * q[i]*(dipole_all - qsum*x[i][2]);
 }
 
 

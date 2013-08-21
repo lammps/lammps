@@ -167,14 +167,16 @@ value is inefficient; a smaller value introduces unwanted slab-slab
 interactions.  The use of fixed boundaries in z means that the user
 must prevent particle migration beyond the initial z-bounds, typically
 by providing a wall-style fix.  The methodology behind the <I>slab</I>
-option is explained in the paper by <A HREF = "#Yeh">(Yeh)</A>.  An alternative slab
-option can be invoked with the <I>nozforce</I> keyword in lieu of the
-volfactor. This turns off all kspace forces in the z direction. 
-The <I>nozforce</I> option is not supported by MSM. For MSM, any combination
-of periodic, non-periodic, or shrink-wrapped boundaries can be set 
-using <A HREF = "boundary.html">boundary</A> (the slab approximation in not needed).
-The <I>slab</I> keyword is not currently supported by Ewald or PPPM when
-using a triclinic simulation cell.
+option is explained in the paper by <A HREF = "#Yeh">(Yeh)</A>.  The <I>slab</I> option
+is also extended to non-neutral systems
+<A HREF = "#Ballenegger">(Ballenegger)</A>. An alternative slab option can be
+invoked with the <I>nozforce</I> keyword in lieu of the volfactor. This
+turns off all kspace forces in the z direction.  The <I>nozforce</I> option
+is not supported by MSM. For MSM, any combination of periodic,
+non-periodic, or shrink-wrapped boundaries can be set using
+<A HREF = "boundary.html">boundary</A> (the slab approximation in not needed).  The
+<I>slab</I> keyword is not currently supported by Ewald or PPPM when using
+a triclinic simulation cell.
 </P>
 <P>The <I>compute</I> keyword allows Kspace computations to be turned off,
 even though a <A HREF = "kspace_style.html">kspace_style</A> is defined.  This is
@@ -243,6 +245,11 @@ Adam Hilger, NY (1989).
 <A NAME = "Yeh"></A>
 
 <P><B>(Yeh)</B> Yeh and Berkowitz, J Chem Phys, 111, 3155 (1999).
+</P>
+<A NAME = "Ballenegger"></A>
+
+<P><B>(Ballenegger)</B> Ballenegger, Arnold, Cerda, J Chem Phys, 131, 094107
+(2009).
 </P>
 <A NAME = "Hardy"></A>
 

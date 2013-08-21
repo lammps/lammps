@@ -71,6 +71,7 @@ class Ewald : public KSpace {
 
   // group-group interactions
 
+  void slabcorr_groups(int,int,int);
   void allocate_groups();
   void deallocate_groups();
 };
@@ -130,7 +131,8 @@ E: KSpace accuracy must be > 0
 
 The kspace accuracy designated in the input must be greater than zero.
 
-E: Cannot (yet) use Kspace slab correction with compute group/group
+E: Cannot (yet) use K-space slab correction with compute group/group
+for triclinic systems
 
 This option is not yet supported.
 

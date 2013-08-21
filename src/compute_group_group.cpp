@@ -226,9 +226,7 @@ void ComputeGroupGroup::pair_contribution()
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    if (mask[i] & groupbit) othergroupbit = jgroupbit;
-    else if (mask[i] & jgroupbit) othergroupbit = groupbit;
-    else continue;
+    if (!(mask[i] & groupbit || mask[i] & jgroupbit)) continue; // skip if atom I is not in either group
 
     xtmp = x[i][0];
     ytmp = x[i][1];
@@ -243,7 +241,13 @@ void ComputeGroupGroup::pair_contribution()
       factor_coul = special_coul[sbmask(j)];
       j &= NEIGHMASK;
 
-      if (!(mask[j] & othergroupbit)) continue;
+      if (!(mask[j] & groupbit || mask[j] & jgroupbit)) continue; // skip if atom J is not in either group
+
+      int ij_flag = 0;
+      int ji_flag = 0;
+      if (mask[i] & groupbit && mask[j] & jgroupbit) ij_flag = 1;
+      if (mask[j] & groupbit && mask[i] & jgroupbit) ji_flag = 1;
+      if (!ij_flag && !ji_flag) continue; // skip if atoms I,J are only in the same group
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -259,12 +263,12 @@ void ComputeGroupGroup::pair_contribution()
 
         if (newton_pair || j < nlocal) {
           one[0] += eng;
-          if (othergroupbit == jgroupbit) {
+          if (ij_flag) {
             one[1] += delx*fpair;
             one[2] += dely*fpair;
             one[3] += delz*fpair;
           }
-          if (othergroupbit == groupbit) {
+          if (ji_flag) {
             one[1] -= delx*fpair;
             one[2] -= dely*fpair;
             one[3] -= delz*fpair;
@@ -275,7 +279,7 @@ void ComputeGroupGroup::pair_contribution()
 
         } else {
           one[0] += 0.5*eng;
-          if (othergroupbit == jgroupbit) {
+          if (ij_flag) {
             one[1] += delx*fpair;
             one[2] += dely*fpair;
             one[3] += delz*fpair;
@@ -298,17 +302,17 @@ void ComputeGroupGroup::kspace_contribution()
   double *vector_kspace = force->kspace->f2group;
 
   force->kspace->compute_group_group(groupbit,jgroupbit,0);
-  scalar += force->kspace->e2group;
+  scalar += 2.0*force->kspace->e2group;
   vector[0] += vector_kspace[0];
   vector[1] += vector_kspace[1];
   vector[2] += vector_kspace[2];
 
-  // compute extra B <--> A Kspace interaction so energy matches
+  // subtract extra A <--> A Kspace interaction so energy matches
   //   real-space style of compute group-group
   // add extra Kspace term to energy
 
   force->kspace->compute_group_group(groupbit,jgroupbit,1);
-  scalar += force->kspace->e2group;
+  scalar -= force->kspace->e2group;
 
   // self energy correction term
 
@@ -320,7 +324,11 @@ void ComputeGroupGroup::kspace_contribution()
     double xprd = domain->xprd;
     double yprd = domain->yprd;
     double zprd = domain->zprd;
-    double volume = xprd*yprd*zprd;
+
+    // adjustment of z dimension for 2d slab Ewald
+    // 3d Ewald just uses zprd since slab_volfactor = 1.0
+
+    double volume = xprd*yprd*zprd*force->kspace->slab_volfactor;
     scalar -= e_correction/volume;
   }
 }
@@ -365,17 +373,17 @@ void ComputeGroupGroup::kspace_correction()
   // self-energy correction
 
   e_self = qscale * g_ewald*qsqsum_group/MY_PIS;
-  e_correction = qsum_A*qsum_B;
+  e_correction = 2.0*qsum_A*qsum_B;
 
-  // Extra BA terms
+  // subtract extra AA terms
 
   qsum_A = qsum_B = 0.0;
 
   for (int i = 0; i < atom->nlocal; i++) {
-    if ((mask[i] & groupbit_A) && (mask[i] & groupbit_B))
-            continue;
+    if (!((mask[i] & groupbit_A) && (mask[i] & groupbit_B)))
+      continue;
 
-        if (mask[i] & groupbit_A) qsum_A += q[i];
+    if (mask[i] & groupbit_A) qsum_A += q[i];
     if (mask[i] & groupbit_B) qsum_B += q[i];
   }
 
@@ -387,6 +395,6 @@ void ComputeGroupGroup::kspace_correction()
 
   // k=0 energy correction term (still need to divide by volume above)
 
-  e_correction += qsum_A*qsum_B;
+  e_correction -= qsum_A*qsum_B;
   e_correction *= qscale * MY_PI2 / (g_ewald*g_ewald);
 }

@@ -22,6 +22,7 @@
 #include "comm.h"
 #include "domain.h"
 #include "lattice.h"
+#include "group.h"
 #include "modify.h"
 #include "fix.h"
 #include "compute.h"
@@ -50,7 +51,8 @@ using namespace MathConst;
 // step, elapsed, elaplong, dt, time, cpu, tpcpu, spcpu
 // atoms, temp, press, pe, ke, etotal, enthalpy
 // evdwl, ecoul, epair, ebond, eangle, edihed, eimp, emol, elong, etail
-// vol, lx, ly, lz, xlo, xhi, ylo, yhi, zlo, zhi, xy, xz, yz, xlat, ylat, zlat
+// vol, density, lx, ly, lz, xlo, xhi, ylo, yhi, zlo, zhi, xy, xz, yz,
+// xlat, ylat, zlat
 // pxx, pyy, pzz, pxy, pxz, pyz
 // fmax, fnorm
 // cella, cellb, cellc, cellalpha, cellbeta, cellgamma
@@ -715,6 +717,8 @@ void Thermo::parse_fields(char *str)
 
     } else if (strcmp(word,"vol") == 0) {
       addfield("Volume",&Thermo::compute_vol,FLOAT);
+    } else if (strcmp(word,"density") == 0) {
+      addfield("Density",&Thermo::compute_density,FLOAT);
     } else if (strcmp(word,"lx") == 0) {
       addfield("Lx",&Thermo::compute_lx,FLOAT);
     } else if (strcmp(word,"ly") == 0) {
@@ -1225,6 +1229,7 @@ int Thermo::evaluate_keyword(char *word, double *answer)
     compute_etail();
 
   } else if (strcmp(word,"vol") == 0) compute_vol();
+  else if (strcmp(word,"density") == 0) compute_density();
   else if (strcmp(word,"lx") == 0) compute_lx();
   else if (strcmp(word,"ly") == 0) compute_ly();
   else if (strcmp(word,"lz") == 0) compute_lz();
@@ -1696,6 +1701,15 @@ void Thermo::compute_vol()
     dvalue = domain->xprd * domain->yprd * domain->zprd;
   else
     dvalue = domain->xprd * domain->yprd;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_density()
+{
+  double mass = group->mass(0);
+  compute_vol();
+  dvalue = force->mv2d * mass/dvalue;
 }
 
 /* ---------------------------------------------------------------------- */

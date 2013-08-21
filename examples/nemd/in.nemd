@@ -2,7 +2,7 @@
 
 units		lj
 atom_style	atomic
-dimension	2d
+dimension	2
 
 lattice		sq2 0.8442
 region		box prism 0 10 0 8 -0.5 0.5 0 0 0

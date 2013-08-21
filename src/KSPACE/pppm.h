@@ -169,6 +169,7 @@ class PPPM : public KSpace {
   virtual void deallocate_groups();
   virtual void make_rho_groups(int, int, int);
   virtual void poisson_groups(int);
+  virtual void slabcorr_groups(int,int,int);
 
 /* ----------------------------------------------------------------------
    denominator for Hockney-Eastwood Green's function
@@ -325,6 +326,7 @@ This indicates bad physics, e.g. due to highly overlapping atoms, too
 large a timestep, etc.
 
 E: Cannot (yet) use K-space slab correction with compute group/group
+for triclinic systems
 
 This option is not yet supported.
 

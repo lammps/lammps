@@ -33,6 +33,7 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 4) error->all(FLERR,"Illegal fix property/atom command");
 
   restart_peratom = 1;
+  wd_section = 1;
 
   int iarg = 3;
   nvalue = narg-iarg;
@@ -150,7 +151,7 @@ void FixPropertyAtom::init()
 }
 
 /* ----------------------------------------------------------------------
-   unpack section of data file
+   unpack N lines in buf from section of data file labeled by keyword
 ------------------------------------------------------------------------- */
 
 void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf)
@@ -209,11 +210,93 @@ void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf)
   delete [] values;
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   return # of lines in section of data file labeled by keyword
+------------------------------------------------------------------------- */
 
 bigint FixPropertyAtom::read_data_skip_lines(char *keyword)
 {
   return atom->natoms;
+}
+
+/* ----------------------------------------------------------------------
+   return size I own for Mth data section
+   # of data sections = 1 for this fix
+   nx = # of local atoms
+   ny = columns = tag + nvalues
+------------------------------------------------------------------------- */
+
+void FixPropertyAtom::write_data_section_size(int mth, int &nx, int &ny)
+{
+  nx = atom->nlocal;
+  ny = nvalue + 1;
+}
+
+/* ----------------------------------------------------------------------
+   pack values for Mth data section into buf
+   buf allocated by caller as Nlocal by Nvalues+1
+------------------------------------------------------------------------- */
+
+void FixPropertyAtom::write_data_section_pack(int mth, double **buf)
+{
+  int i;
+
+  // 1st column = atom tag
+  // rest of columns = per-atom values
+
+  int *tag = atom->tag;
+  int nlocal = atom->nlocal;
+
+  for (i = 0; i < nlocal; i++) buf[i][0] = tag[i];
+
+  for (int m = 0; m < nvalue; m++) {
+    int mp1 = m+1;
+    if (style[m] == MOLECULE) {
+      int *molecule = atom->molecule;
+      for (i = 0; i < nlocal; i++) buf[i][mp1] = molecule[i];
+    } else if (style[m] == INTEGER) {
+      int *vec = atom->ivector[index[m]];
+      for (i = 0; i < nlocal; i++) buf[i][mp1] = vec[i];
+    } else if (style[m] == DOUBLE) {
+      double *vec = atom->dvector[index[m]];
+      for (i = 0; i < nlocal; i++) buf[i][mp1] = vec[i];
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   write section keyword for Mth data section to file
+   use MOLECULE if that is only field, else use fix ID
+   only called by proc 0
+------------------------------------------------------------------------- */
+
+void FixPropertyAtom::write_data_section_keyword(int mth, FILE *fp)
+{
+  if (nvalue == 1 && style[0] == MOLECULE) fprintf(fp,"\nMolecule\n\n");
+  else fprintf(fp,"\n%s\n\n",id);
+}
+
+/* ----------------------------------------------------------------------
+   write N lines from buf to file
+   convert buf fields to int or double depending on styles
+   index can be used to prepend global numbering
+   only called by proc 0
+------------------------------------------------------------------------- */
+
+void FixPropertyAtom::write_data_section(int mth, FILE *fp, 
+                                         int n, double **buf, int index)
+{
+  int m;
+
+  for (int i = 0; i < n; i++) {
+    fprintf(fp,TAGINT_FORMAT,static_cast<int> (buf[i][0]));
+    for (m = 0; m < nvalue; m++) {
+      if (style[m] == MOLECULE || style[m] == INTEGER)
+        fprintf(fp," " TAGINT_FORMAT,static_cast<int> (buf[i][m+1]));
+      else fprintf(fp," %g",buf[i][m+1]);
+    }
+    fprintf(fp,"\n");
+  }
 }
 
 /* ----------------------------------------------------------------------

@@ -26,6 +26,7 @@
 #include "improper.h"
 #include "update.h"
 #include "modify.h"
+#include "fix.h"
 #include "domain.h"
 #include "universe.h"
 #include "comm.h"
@@ -106,12 +107,13 @@ void WriteData::command(int narg, char **arg)
   if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
 
   write(file);
+
   delete [] file;
 }
 
 /* ----------------------------------------------------------------------
    called from command()
-   later might let it be directly called within run/minimize loop
+   might later let it be directly called within run/minimize loop
 ------------------------------------------------------------------------- */
 
 void WriteData::write(char *file)
@@ -174,6 +176,12 @@ void WriteData::write(char *file)
   if (atom->ndihedrals) dihedrals();
   if (atom->nimpropers) impropers();
 
+  // extra sections managed by fixes
+
+  for (int i = 0; i < modify->nfix; i++)
+    if (modify->fix[i]->wd_section) 
+      for (int m = 0; m < modify->fix[i]->wd_section; m++) fix(i,m);
+
   // close data file
 
   if (me == 0) fclose(fp);
@@ -211,6 +219,11 @@ void WriteData::header()
     fprintf(fp,"%d improper types\n",atom->nimpropertypes);
   }
 
+  for (int i = 0; i < modify->nfix; i++)
+    if (modify->fix[i]->wd_header) 
+      for (int m = 0; m < modify->fix[i]->wd_header; m++) 
+        modify->fix[i]->write_data_header(fp,m);
+  
   fprintf(fp,"\n");
 
   fprintf(fp,"%-1.16e %-1.16e xlo xhi\n",domain->boxlo[0],domain->boxhi[0]);
@@ -397,7 +410,7 @@ void WriteData::bonds()
 
   int foo = atom->avec->pack_bond(buf);
 
-  // write one chunk of atoms per proc to file
+  // write one chunk of info per proc to file
   // proc 0 pings each proc, receives its chunk, writes to file
   // all other procs wait for ping, send their chunk to proc 0
 
@@ -450,7 +463,7 @@ void WriteData::angles()
 
   atom->avec->pack_angle(buf);
 
-  // write one chunk of atoms per proc to file
+  // write one chunk of info per proc to file
   // proc 0 pings each proc, receives its chunk, writes to file
   // all other procs wait for ping, send their chunk to proc 0
 
@@ -521,7 +534,7 @@ void WriteData::dihedrals()
 
   atom->avec->pack_dihedral(buf);
 
-  // write one chunk of atoms per proc to file
+  // write one chunk of info per proc to file
   // proc 0 pings each proc, receives its chunk, writes to file
   // all other procs wait for ping, send their chunk to proc 0
 
@@ -592,7 +605,7 @@ void WriteData::impropers()
 
   atom->avec->pack_improper(buf);
 
-  // write one chunk of atoms per proc to file
+  // write one chunk of info per proc to file
   // proc 0 pings each proc, receives its chunk, writes to file
   // all other procs wait for ping, send their chunk to proc 0
 
@@ -619,6 +632,59 @@ void WriteData::impropers()
   } else {
     MPI_Recv(&tmp,0,MPI_INT,0,0,world,&status);
     MPI_Rsend(&buf[0][0],sendrow*ncol,MPI_INT,0,0,world);
+  }
+
+  memory->destroy(buf);
+}
+
+/* ----------------------------------------------------------------------
+   write out Mth section of data file owned by Fix ifix
+------------------------------------------------------------------------- */
+
+void WriteData::fix(int ifix, int mth)
+{
+  // communication buffer for Fix info
+
+  int sendrow,ncol;
+  modify->fix[ifix]->write_data_section_size(mth,sendrow,ncol);
+  int maxrow;
+  MPI_Allreduce(&sendrow,&maxrow,1,MPI_INT,MPI_MAX,world);
+
+  double **buf;
+  if (me == 0) memory->create(buf,MAX(1,maxrow),ncol,"write_data:buf");
+  else memory->create(buf,MAX(1,sendrow),ncol,"write_data:buf");
+
+  // pack my fix data into buf
+
+  modify->fix[ifix]->write_data_section_pack(mth,buf);
+
+  // write one chunk of info per proc to file
+  // proc 0 pings each proc, receives its chunk, writes to file
+  // all other procs wait for ping, send their chunk to proc 0
+
+  int tmp,recvrow;
+  MPI_Status status;
+  MPI_Request request;
+
+  int index = 1;
+  if (me == 0) {
+    modify->fix[ifix]->write_data_section_keyword(mth,fp);
+    for (int iproc = 0; iproc < nprocs; iproc++) {
+      if (iproc) {
+        MPI_Irecv(&buf[0][0],maxrow*ncol,MPI_DOUBLE,iproc,0,world,&request);
+        MPI_Send(&tmp,0,MPI_INT,iproc,0,world);
+        MPI_Wait(&request,&status);
+        MPI_Get_count(&status,MPI_DOUBLE,&recvrow);
+        recvrow /= ncol;
+      } else recvrow = sendrow;
+
+      modify->fix[ifix]->write_data_section(mth,fp,recvrow,buf,index);
+      index += recvrow;
+    }
+    
+  } else {
+    MPI_Recv(&tmp,0,MPI_INT,0,0,world,&status);
+    MPI_Rsend(&buf[0][0],sendrow*ncol,MPI_DOUBLE,0,0,world);
   }
 
   memory->destroy(buf);

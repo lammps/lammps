@@ -47,6 +47,7 @@ class WriteData : protected Pointers {
   void angles();
   void dihedrals();
   void impropers();
+  void fix(int, int);
 };
 
 }

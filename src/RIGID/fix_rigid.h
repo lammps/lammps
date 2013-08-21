@@ -60,9 +60,9 @@ class FixRigid : public Fix {
   int triclinic;
   double MINUSPI,TWOPI;
 
+  char *infile;             // file to read rigid body attributes from
   int rstyle;               // SINGLE,MOLECULE,GROUP
   int firstflag;            // 1 for first-time setup of rigid bodies
-  char *infile;             // file to read rigid body attributes from
 
   int dimension;            // # of dimensions
   int nbody;                // # of rigid bodies

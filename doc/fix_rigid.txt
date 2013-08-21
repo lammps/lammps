@@ -419,9 +419,8 @@ temperature as well without use of the Langevin or Nose/Hoover options
 associated with the fix rigid commands.
 
 The {infile} keyword allows a file of rigid body attributes to be read
-in from a file, rather then letting LAMMPS compute them.  It can only
-be used with the fix rigid command and its variants.  There are 3 such
-attributes: the total mass of the rigid body, its center-of-mass
+in from a file, rather then having LAMMPS compute them.  There are 3
+such attributes: the total mass of the rigid body, its center-of-mass
 position, and its 6 moments of inertia.  For rigid bodies consisting
 of point particles or non-overlapping finite-size particles, LAMMPS
 can compute these values accurately.  However, for rigid bodies
@@ -468,8 +467,8 @@ simulation with rigid bodies using the
 rigid body attributes as input for the 2nd simulation, if the rigid
 bodies have moved or rotated.  Instead, you need to produce a new
 {infile} that reflects the correct attributes for each rigid body at
-the time of restart.  We are thinking about a good way to overcome
-this issue.
+the time of restart.  We are thinking about a good way to make this
+process easier.
 
 :line
 

@@ -25,6 +25,7 @@ class Fix : protected Pointers {
 
   int restart_global;            // 1 if Fix saves global state, 0 if not
   int restart_peratom;           // 1 if Fix saves peratom state, 0 if not
+  int restart_file;              // 1 if Fix writes own restart file, 0 if not
   int force_reneighbor;          // 1 if Fix forces reneighboring, 0 if not
 
   int box_change_size;           // 1 if Fix changes box size, 0 if not
@@ -108,6 +109,7 @@ class Fix : protected Pointers {
   virtual void end_of_step() {}
   virtual void post_run() {}
   virtual void write_restart(FILE *) {}
+  virtual void write_restart_file() {}
   virtual void restart(char *) {}
 
   virtual void grow_arrays(int) {}

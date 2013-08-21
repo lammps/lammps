@@ -41,29 +41,31 @@ namespace MathExtra {
 
   // 3x3 matrix operations
 
+  inline void col2mat(const double *ex, const double *ey, const double *ez,
+                      double m[3][3]);
   inline double det3(const double mat[3][3]);
-  inline void diag_times3(const double *diagonal, const double mat[3][3],
+  inline void diag_times3(const double *d, const double m[3][3],
+                          double ans[3][3]);
+  inline void times3_diag(const double m[3][3], const double *d,
                           double ans[3][3]);
   inline void plus3(const double m[3][3], const double m2[3][3],
                     double ans[3][3]);
   inline void times3(const double m[3][3], const double m2[3][3],
                      double ans[3][3]);
-  inline void transpose_times3(const double mat1[3][3],
-                               const double mat2[3][3],
+  inline void transpose_times3(const double m[3][3], const double m2[3][3],
                                double ans[3][3]);
-  inline void times3_transpose(const double mat1[3][3],
-                               const double mat2[3][3],
+  inline void times3_transpose(const double m[3][3], const double m2[3][3],
                                double ans[3][3]);
   inline void invert3(const double mat[3][3], double ans[3][3]);
   inline void matvec(const double mat[3][3], const double *vec, double *ans);
   inline void matvec(const double *ex, const double *ey, const double *ez,
                      const double *vec, double *ans);
-  inline void transpose_matvec(const double mat[3][3], const double*vec,
+  inline void transpose_matvec(const double mat[3][3], const double *vec,
                                double *ans);
   inline void transpose_matvec(const double *ex, const double *ey,
                                const double *ez, const double *v,
                                double *ans);
-  inline void transpose_diag3(const double mat[3][3], const double*vec,
+  inline void transpose_diag3(const double m[3][3], const double *d,
                               double ans[3][3]);
   inline void vecmat(const double *v, const double m[3][3], double *ans);
   inline void scalar_times3(const double f, double m[3][3]);
@@ -239,6 +241,24 @@ void MathExtra::cross3(const double *v1, const double *v2, double *ans)
 }
 
 /* ----------------------------------------------------------------------
+   construct matrix from 3 column vectors
+------------------------------------------------------------------------- */
+
+void MathExtra::col2mat(const double *ex, const double *ey, const double *ez,
+                        double m[3][3])
+{
+  m[0][0] = ex[0];
+  m[1][0] = ex[1];
+  m[2][0] = ex[2];
+  m[0][1] = ey[0];
+  m[1][1] = ey[1];
+  m[2][1] = ey[2];
+  m[0][2] = ez[0];
+  m[1][2] = ez[1];
+  m[2][2] = ez[2];
+}
+
+/* ----------------------------------------------------------------------
    determinant of a matrix
 ------------------------------------------------------------------------- */
 
@@ -266,6 +286,24 @@ void MathExtra::diag_times3(const double *d, const double m[3][3],
   ans[2][0] = d[2]*m[2][0];
   ans[2][1] = d[2]*m[2][1];
   ans[2][2] = d[2]*m[2][2];
+}
+
+/* ----------------------------------------------------------------------
+   full matrix times a diagonal matrix
+------------------------------------------------------------------------- */
+
+void MathExtra::times3_diag(const double m[3][3], const double *d,
+                            double ans[3][3])
+{
+  ans[0][0] = m[0][0]*d[0];
+  ans[0][1] = m[0][1]*d[1];
+  ans[0][2] = m[0][2]*d[2];
+  ans[1][0] = m[1][0]*d[0];
+  ans[1][1] = m[1][1]*d[1];
+  ans[1][2] = m[1][2]*d[2];
+  ans[2][0] = m[2][0]*d[0];
+  ans[2][1] = m[2][1]*d[1];
+  ans[2][2] = m[2][2]*d[2];
 }
 
 /* ----------------------------------------------------------------------

@@ -29,6 +29,7 @@
 #include "neighbor.h"
 #include "domain.h"
 #include "modify.h"
+#include "fix.h"
 #include "universe.h"
 #include "comm.h"
 #include "output.h"
@@ -292,6 +293,12 @@ void WriteRestart::write(char *file)
   }
 
   memory->destroy(buf);
+
+  // invoke any fixes that write their own restart file
+
+  for (int ifix = 0; ifix < modify->nfix; ifix++)
+    if (modify->fix[ifix]->restart_file)
+      modify->fix[ifix]->write_restart_file();
 }
 
 /* ----------------------------------------------------------------------

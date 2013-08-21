@@ -46,8 +46,7 @@ Fix::Fix(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   style = new char[n];
   strcpy(style,arg[2]);
 
-  restart_global = 0;
-  restart_peratom = 0;
+  restart_global = restart_peratom = restart_file = 0;
   force_reneighbor = 0;
   box_change_size = box_change_shape = box_change_domain = 0;
   thermo_energy = 0;

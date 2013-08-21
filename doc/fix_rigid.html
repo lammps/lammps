@@ -475,14 +475,17 @@ the simulation box XYZ axes, not with respect to the prinicpal axes of
 the rigid body itself.  LAMMPS performs the latter calculation
 internally.
 </P>
-<P>IMPORTANT NOTE: The last point means that you cannot restart a
-simulation with rigid bodies using the
-<A HREF = "read_restart.html">read_restart</A> command and use the same <I>infile</I> of
-rigid body attributes as input for the 2nd simulation, if the rigid
-bodies have moved or rotated.  Instead, you need to produce a new
-<I>infile</I> that reflects the correct attributes for each rigid body at
-the time of restart.  We are thinking about a good way to make this
-process easier.
+<P>IMPORTANT NOTE: If you use the <I>infile</I> keyword and write restart
+files during a simulation, then each time a restart file is written,
+the fix also write an auxiliary restart file with the name
+rfile.rigid, where "rfile" is the name of the restart file,
+e.g. tmp.restart.10000 and tmp.restart.10000.rigid.  This auxiliary
+file is in the same format described above and contains info on the
+current center-of-mass and 6 moments of inertia.  Thus it can be used
+in a new input script that restarts the run and re-specifies a rigid
+fix using an <I>infile</I> keyword and the appropriate filename.  Note that
+the auxiliary file will contain one line for every rigid body, even if
+the original file only listed a subset of the rigid bodies.
 </P>
 <HR>
 

@@ -1,0 +1,20 @@
+# author: sjplimp@sandia.gov
+# packaged:
+# 3d Lennard-Jones melt
+log		log.melt
+thermo_modify   format float %22.16g
+units		lj
+atom_style	atomic
+lattice		fcc 0.8442
+region		box block 0 10 0 10 0 10
+create_box	1 box
+create_atoms	1 box
+mass		1 1.0
+velocity	all create 3.0 87287
+pair_style	lj/cut 2.5
+pair_coeff	1 1 1.0 1.0 2.5
+neighbor	0.3 bin
+neigh_modify	every 20 delay 0 check no
+fix		1 all nve
+thermo		50
+run		250

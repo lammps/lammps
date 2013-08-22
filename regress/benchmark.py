@@ -206,7 +206,7 @@ def build(arch):
 #====================================================
 if __name__ == '__main__':
   tests = init()
-  #build(arch)
+  build(arch)
   work_queue = mp.Queue()
   for test in tests:
     work_queue.put(test)

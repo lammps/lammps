@@ -833,8 +833,8 @@ namespace ATC {
            field != fields.end(); field++) {
         FieldName thisFieldName = field->first;
         FIELDS::const_iterator fieldItr = fields.find(thisFieldName);
-        const DENS_MAT & field = (fieldItr->second).quantity();
-        atomicSources[thisFieldName].reset(field.nRows(),field.nCols());
+        const DENS_MAT & f = (fieldItr->second).quantity();
+        atomicSources[thisFieldName].reset(f.nRows(),f.nCols());
       }
     }
   }
@@ -981,8 +981,8 @@ namespace ATC {
            field != fields.end(); field++) {
         FieldName thisFieldName = field->first;
         FIELDS::const_iterator fieldItr = fields.find(thisFieldName);
-        const DENS_MAT & field = (fieldItr->second).quantity();
-        (rhs[thisFieldName].set_quantity()).reset(field.nRows(),field.nCols());
+        const DENS_MAT & f = (fieldItr->second).quantity();
+        (rhs[thisFieldName].set_quantity()).reset(f.nRows(),f.nCols());
       }
     }
   }

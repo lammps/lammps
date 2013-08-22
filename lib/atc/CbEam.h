@@ -10,9 +10,6 @@
 namespace ATC
 {
 
-  // forward declares
-  class LAMMPS_NS::PairEAM;
-
   /**
    *  @class  CbEam 
    *  @brief  Class for computing Cauchy-Born quantities for an Embeded-Atom Method material 

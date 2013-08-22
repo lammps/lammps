@@ -19,7 +19,7 @@ lattice        fcc ${lattice_constant}
 region         box block 0 $c 0 $c 0 $c
 boundary       p p p
 pair_style     lj/cut 13.5  
-read_data      ftcb_constV_setup.data
+read_data      ftcb_constV_setup.init
 mass           1 39.95
 pair_coeff     1 1 0.238 3.405 
 # define region

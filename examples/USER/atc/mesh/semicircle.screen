@@ -28,7 +28,7 @@ region		offsetPlane block -10 2 -10 10 -2 2
 region		mdRegion intersect 2 bigCyl offsetPlane
 #create_box 1 mdRegion
 pair_style  lj/cut 13.5
-read_data	semicircle_init.atm
+read_data	semicircle.init
 Reading data file ...
   orthogonal box = (-54.05 -54.05 -10.81) to (10.81 54.05 10.81)
   2 by 2 by 1 MPI processor grid
@@ -109,13 +109,13 @@ Step Temp E_pair E_mol TotEng Press
      300    10.255763   -5191.6455            0   -5094.8288   -564.44341 
      400    10.255763   -5185.5031            0   -5088.6864   -611.34498 
      500    10.255763   -5185.1021            0   -5088.2853   -686.81479 
-Loop time of 8.99855 on 4 procs for 500 steps with 3168 atoms
+Loop time of 9.133 on 4 procs for 500 steps with 3168 atoms
 
-Pair  time (%) = 2.4525 (27.2543)
-Neigh time (%) = 0.0542204 (0.602546)
-Comm  time (%) = 0.659509 (7.32906)
-Outpt time (%) = 0.000407517 (0.00452869)
-Other time (%) = 5.83192 (64.8095)
+Pair  time (%) = 2.4777 (27.1291)
+Neigh time (%) = 0.0536322 (0.587235)
+Comm  time (%) = 0.756923 (8.28778)
+Outpt time (%) = 0.00793254 (0.0868558)
+Other time (%) = 5.83681 (63.909)
 
 Nlocal:    792 ave 944 max 640 min
 Histogram: 2 0 0 0 0 0 0 0 0 2
@@ -174,13 +174,13 @@ Step Temp E_pair E_mol TotEng Press
      800    10.245262   -5181.8268            0   -5085.1092   -707.19351 
      900    10.342331   -5183.9012            0   -5086.2673   -667.21622 
     1000    10.446039   -5184.9612            0   -5086.3482   -647.13367 
-Loop time of 28.4605 on 4 procs for 1000 steps with 3168 atoms
+Loop time of 28.0821 on 4 procs for 1000 steps with 3168 atoms
 
-Pair  time (%) = 5.05702 (17.7685)
-Neigh time (%) = 0.12658 (0.444755)
-Comm  time (%) = 1.66495 (5.85002)
-Outpt time (%) = 0.0552746 (0.194215)
-Other time (%) = 21.5567 (75.7425)
+Pair  time (%) = 4.98532 (17.7526)
+Neigh time (%) = 0.097468 (0.347082)
+Comm  time (%) = 1.60774 (5.72515)
+Outpt time (%) = 0.0571377 (0.203466)
+Other time (%) = 21.3345 (75.9717)
 
 Nlocal:    792 ave 944 max 640 min
 Histogram: 2 0 0 0 0 0 0 0 0 2

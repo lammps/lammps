@@ -6,7 +6,7 @@ dielectric      1.
 variable type string "_charge"
 boundary	s s f
 # read in CNT
-read_data  cnt_9_0_100${type}.data
+read_data  cnt_9_0_100${type}.init
 lattice       diamond  3.6 # NOTE ???
 pair_style  airebo 3.0
 pair_coeff  * * ./CH.airebo C

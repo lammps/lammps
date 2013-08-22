@@ -35,7 +35,7 @@ boundary  f f p
 #write_restart cutout.rst
 
 pair_style lj/cut 13.5
-read_data cutout.data
+read_data cutout.init
 group   internal region FREE
 group   ghost subtract all internal
 

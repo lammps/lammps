@@ -66,18 +66,18 @@ Step Temp E_pair E_mol TotEng Press
      800    899.87085    -671.8463    565.65986    208.80118      -105587 
      900    906.34218    -708.2316    826.83201    435.85323   -84326.936 
     1000    920.33455   -635.04397    592.63924    279.74592   -40120.926 
-Loop time of 67.1496 on 4 procs for 1000 steps with 2709 atoms
+Loop time of 68.499 on 4 procs for 1000 steps with 2709 atoms
 
-Pair  time (%) = 52.7003 (78.4819)
-Bond  time (%) = 0.142409 (0.212077)
-Kspce time (%) = 10.311 (15.3553)
-Neigh time (%) = 1.5854 (2.36099)
-Comm  time (%) = 0.648017 (0.965035)
-Outpt time (%) = 0.014302 (0.0212986)
-Other time (%) = 1.74815 (2.60337)
+Pair  time (%) = 54.2221 (79.1575)
+Bond  time (%) = 0.160618 (0.234482)
+Kspce time (%) = 9.82363 (14.3413)
+Neigh time (%) = 1.63287 (2.38378)
+Comm  time (%) = 0.90873 (1.32663)
+Outpt time (%) = 0.0148201 (0.0216355)
+Other time (%) = 1.73623 (2.53468)
 
-FFT time (% of Kspce) = 0.647065 (6.27547)
-FFT Gflps 3d (1d only) = 1.56306 3.46456
+FFT time (% of Kspce) = 2.05532 (20.9222)
+FFT Gflps 3d (1d only) = 0.492088 2.80368
 
 Nlocal:    677.25 ave 694 max 650 min
 Histogram: 1 0 0 0 0 1 0 0 1 1

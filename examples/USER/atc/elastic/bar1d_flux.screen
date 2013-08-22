@@ -119,13 +119,13 @@ Step myTemp myPres PotEng
      800 1.3218953e-08  -0.02139071   -4509.8852 
      900 1.6753544e-08 -0.026203391   -4509.8852 
     1000 2.0559423e-08 -0.031228823   -4509.8852 
-Loop time of 22.401 on 4 procs for 1000 steps with 2304 atoms
+Loop time of 24.1164 on 4 procs for 1000 steps with 2304 atoms
 
-Pair  time (%) = 5.92745 (26.4607)
-Neigh time (%) = 2.61159 (11.6584)
-Comm  time (%) = 6.5556 (29.2648)
-Outpt time (%) = 0.0144683 (0.0645879)
-Other time (%) = 7.29186 (32.5515)
+Pair  time (%) = 6.2026 (25.7194)
+Neigh time (%) = 2.63126 (10.9107)
+Comm  time (%) = 7.4789 (31.0117)
+Outpt time (%) = 0.0113449 (0.0470423)
+Other time (%) = 7.79232 (32.3112)
 
 Nlocal:    576 ave 864 max 288 min
 Histogram: 2 0 0 0 0 0 0 0 0 2
@@ -258,13 +258,13 @@ Step myTemp myPres PotEng
    10800 1.684499e-08 -0.040493081   -4509.8852 
    10900 1.2305474e-08 -0.041691151   -4509.8851 
    11000 1.1330272e-08 -0.040137729   -4509.8851 
-Loop time of 209.077 on 4 procs for 10000 steps with 2304 atoms
+Loop time of 226.828 on 4 procs for 10000 steps with 2304 atoms
 
-Pair  time (%) = 58.372 (27.9189)
-Neigh time (%) = 25.3886 (12.1432)
-Comm  time (%) = 59.3392 (28.3815)
-Outpt time (%) = 0.11328 (0.0541809)
-Other time (%) = 65.8637 (31.5022)
+Pair  time (%) = 61.0718 (26.9243)
+Neigh time (%) = 25.8663 (11.4035)
+Comm  time (%) = 65.2721 (28.7761)
+Outpt time (%) = 0.107786 (0.047519)
+Other time (%) = 74.5096 (32.8486)
 
 Nlocal:    576 ave 864 max 288 min
 Histogram: 2 0 0 0 0 0 0 0 0 2

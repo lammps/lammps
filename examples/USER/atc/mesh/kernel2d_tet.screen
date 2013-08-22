@@ -52,15 +52,15 @@ Setting up run ...
 Memory usage per processor = 603.85 Mbytes
 Step CPU Temp 
        0            0            0 
-       1 0.0049870014            0 
-       2   0.01454401            0 
-Loop time of 0.0145637 on 4 procs for 2 steps with 2304 atoms
+       1 0.0051000118            0 
+       2     0.015239            0 
+Loop time of 0.0152517 on 4 procs for 2 steps with 2304 atoms
 
-Pair  time (%) = 0.00896931 (61.5866)
+Pair  time (%) = 0.00925326 (60.6704)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000530958 (3.64575)
-Outpt time (%) = 0.00337762 (23.192)
-Other time (%) = 0.00168586 (11.5757)
+Comm  time (%) = 0.0011673 (7.65356)
+Outpt time (%) = 0.00324547 (21.2794)
+Other time (%) = 0.00158566 (10.3966)
 
 Nlocal:    576 ave 576 max 576 min
 Histogram: 4 0 0 0 0 0 0 0 0 0

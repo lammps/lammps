@@ -78,14 +78,14 @@ Memory usage per processor = 48.9866 Mbytes
 Step TotEng Temp Press PotEng Fx Fy 
        0    13388.811            0     12185513    13388.811       -11520 -5.4091662e-13 
        1    13388.811            0     12185513    13388.811       -11520 -5.4091662e-13 
-Loop time of 0.00830519 on 4 procs for 1 steps with 576 atoms
+Loop time of 0.00876236 on 4 procs for 1 steps with 576 atoms
 
-Pair  time (%) = 0.00297707 (35.8459)
-Bond  time (%) = 2.38419e-07 (0.00287072)
+Pair  time (%) = 0.00293046 (33.4438)
+Bond  time (%) = 2.98023e-07 (0.00340118)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000398695 (4.80056)
-Outpt time (%) = 0.00104666 (12.6024)
-Other time (%) = 0.00388253 (46.7482)
+Comm  time (%) = 0.000374079 (4.26916)
+Outpt time (%) = 0.00139093 (15.874)
+Other time (%) = 0.00406659 (46.4097)
 
 Nlocal:    144 ave 144 max 144 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -122,14 +122,14 @@ Memory usage per processor = 48.9866 Mbytes
 Step TotEng Temp Press PotEng Fx Fy 
        1    13388.811            0     12185513    13388.811   -200361.27 6.719863e-13 
        2    13388.811            0     12185513    13388.811   -200361.27 6.719863e-13 
-Loop time of 0.00797027 on 4 procs for 1 steps with 576 atoms
+Loop time of 0.00804049 on 4 procs for 1 steps with 576 atoms
 
-Pair  time (%) = 0.00295955 (37.1323)
-Bond  time (%) = 2.98023e-07 (0.00373918)
+Pair  time (%) = 0.00292277 (36.3507)
+Bond  time (%) = 7.7486e-07 (0.00963698)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000350654 (4.39952)
-Outpt time (%) = 0.000887036 (11.1293)
-Other time (%) = 0.00377274 (47.3351)
+Comm  time (%) = 0.000391722 (4.87187)
+Outpt time (%) = 0.000965953 (12.0136)
+Other time (%) = 0.00375926 (46.7542)
 
 Nlocal:    144 ave 144 max 144 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -157,14 +157,14 @@ Memory usage per processor = 48.9866 Mbytes
 Step TotEng Temp Press PotEng Fx Fy 
        2    13388.811            0     12185513    13388.811   -252475.24 1.1650611e-12 
        3    13388.811            0     12185513    13388.811   -252475.24 1.1650611e-12 
-Loop time of 0.00816 on 4 procs for 1 steps with 576 atoms
+Loop time of 0.00827122 on 4 procs for 1 steps with 576 atoms
 
-Pair  time (%) = 0.00294703 (36.1156)
-Bond  time (%) = 5.36442e-07 (0.00657405)
+Pair  time (%) = 0.00292873 (35.4087)
+Bond  time (%) = 0 (0)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000403166 (4.94076)
-Outpt time (%) = 0.00085324 (10.4564)
-Other time (%) = 0.00395602 (48.4807)
+Comm  time (%) = 0.000398278 (4.81523)
+Outpt time (%) = 0.000935972 (11.316)
+Other time (%) = 0.00400823 (48.46)
 
 Nlocal:    144 ave 144 max 144 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -194,14 +194,14 @@ Memory usage per processor = 48.9866 Mbytes
 Step TotEng Temp Press PotEng Fx Fy 
        3    13388.811            0     12185513    13388.811   -225709.12 9.1181426e-13 
        4    13388.811            0     12185513    13388.811   -225709.12 9.1181426e-13 
-Loop time of 0.0081799 on 4 procs for 1 steps with 576 atoms
+Loop time of 0.00827569 on 4 procs for 1 steps with 576 atoms
 
-Pair  time (%) = 0.00293809 (35.9184)
-Bond  time (%) = 2.38419e-07 (0.00291469)
+Pair  time (%) = 0.00293577 (35.4746)
+Bond  time (%) = 5.36442e-07 (0.00648214)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000377715 (4.61759)
-Outpt time (%) = 0.000873506 (10.6787)
-Other time (%) = 0.00399035 (48.7824)
+Comm  time (%) = 0.000405252 (4.8969)
+Outpt time (%) = 0.000962913 (11.6354)
+Other time (%) = 0.00397122 (47.9866)
 
 Nlocal:    144 ave 144 max 144 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -233,14 +233,14 @@ Memory usage per processor = 48.9866 Mbytes
 Step TotEng Temp Press PotEng Fx Fy 
        4    13388.811            0     12185513    13388.811 4.3291948e-09 -1.4571568e-12 
        5    13388.811            0     12185513    13388.811 4.3364707e-09 -1.4571568e-12 
-Loop time of 0.00845003 on 4 procs for 1 steps with 576 atoms
+Loop time of 0.0088349 on 4 procs for 1 steps with 576 atoms
 
-Pair  time (%) = 0.00297916 (35.2562)
-Bond  time (%) = 5.36442e-07 (0.0063484)
+Pair  time (%) = 0.0029276 (33.1368)
+Bond  time (%) = 7.15256e-07 (0.0080958)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000409603 (4.84736)
-Outpt time (%) = 0.000993252 (11.7544)
-Other time (%) = 0.00406748 (48.1357)
+Comm  time (%) = 0.000395775 (4.47968)
+Outpt time (%) = 0.00099498 (11.2619)
+Other time (%) = 0.00451583 (51.1135)
 
 Nlocal:    144 ave 144 max 144 min
 Histogram: 4 0 0 0 0 0 0 0 0 0

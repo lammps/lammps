@@ -69,13 +69,13 @@ Step Temp E_pair E_mol TotEng Press
     4800            0            0            0            0            0 
     4900            0            0            0            0            0 
     5000            0            0            0            0            0 
-Loop time of 7.59518 on 4 procs for 5000 steps with 0 atoms
+Loop time of 7.10685 on 4 procs for 5000 steps with 0 atoms
 
 Pair  time (%) = 0 (0)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.0109366 (0.143994)
-Outpt time (%) = 0.0142687 (0.187865)
-Other time (%) = 7.56998 (99.6681)
+Comm  time (%) = 0.00348318 (0.0490116)
+Outpt time (%) = 0.0230871 (0.324858)
+Other time (%) = 7.08028 (99.6261)
 
 Nlocal:    0 ave 0 max 0 min
 Histogram: 4 0 0 0 0 0 0 0 0 0

@@ -121,14 +121,14 @@ Step TotEng Temp Press PotEng Fn Fp
      800     17805.47    15491.378     14643513     16654.08    2644.7457   -2644.7457 
      900    20614.308     23711.81     16239209    18851.938     218.5282    -218.5282 
     1000    22067.741    26242.181     17175599    20117.302   -752.00587    752.00587 
-Loop time of 3.63361 on 4 procs for 1000 steps with 576 atoms
+Loop time of 4.29563 on 4 procs for 1000 steps with 576 atoms
 
-Pair  time (%) = 1.38237 (38.0439)
-Bond  time (%) = 0.000235617 (0.00648437)
-Neigh time (%) = 0.0341454 (0.939708)
-Comm  time (%) = 0.147869 (4.06947)
-Outpt time (%) = 0.0093652 (0.257738)
-Other time (%) = 2.05963 (56.6827)
+Pair  time (%) = 1.58551 (36.9097)
+Bond  time (%) = 0.000192702 (0.004486)
+Neigh time (%) = 0.0330397 (0.769147)
+Comm  time (%) = 0.338273 (7.87483)
+Outpt time (%) = 0.0100924 (0.234945)
+Other time (%) = 2.32853 (54.2069)
 
 Nlocal:    144 ave 144 max 144 min
 Histogram: 4 0 0 0 0 0 0 0 0 0

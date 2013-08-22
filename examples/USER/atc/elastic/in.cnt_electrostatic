@@ -9,7 +9,7 @@ lattice       diamond  3.6
 pair_style    tersoff
 boundary	s s f
 
-read_data  tube_8_4.data
+read_data  tube_8_4.init
 
 # PARAMETERS-----------------------------
 variable L equal zhi-zlo

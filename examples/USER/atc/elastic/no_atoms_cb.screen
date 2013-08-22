@@ -5,11 +5,11 @@ Created orthogonal box = (0 0 0) to (525.623 52.5623 52.5623)
 ATC: constructing elastic coupling with parameter file Ar_CauchyBorn.mat
  ATC: version 2.0
  ATC: peratom PE compute created with ID: 3
-using face quad!
-using face quad!
-using face quad!
  ATC: computed mass density : 1.10041
  ATC: 1 materials defined from Ar_CauchyBorn.mat
+using face quad!
+using face quad!
+using face quad!
  ATC: created uniform mesh with 104 nodes, 26 unique nodes, and 25 elements
 using face quad!
  ATC: created nodeset lbc with 1 nodes
@@ -26,43 +26,43 @@ Setting up run ...
 Memory usage per processor = 0.432442 Mbytes
 Step CPU 
        0            0 
-     100    2.1487799 
-     200    4.1481848 
-     300     7.412642 
-     400    9.6907878 
-     500    11.643677 
-     600    13.599353 
-     700     15.55519 
-     800    17.510581 
-     900    19.459496 
-    1000    21.414392 
-    1100    23.370743 
-    1200     26.28022 
-    1300    28.605597 
-    1400    30.586462 
-    1500      32.5365 
-    1600    34.481518 
-    1700    36.419934 
-    1800    38.358634 
-    1900     40.29752 
-    2000    42.238558 
-    2100    45.087001 
-    2200     47.32252 
-    2300    49.377443 
-    2400    51.324046 
-    2500    53.267819 
-    2600     55.21533 
-    2700    57.160197 
-    2800     59.10475 
-    2900    61.047967 
-    3000    62.992302 
-Loop time of 62.9923 on 4 procs for 3000 steps with 0 atoms
+     100    2.1066351 
+     200     4.140079 
+     300    6.1538899 
+     400    8.1631861 
+     500    10.181937 
+     600    12.204611 
+     700    14.223403 
+     800    17.350649 
+     900     19.90096 
+    1000    21.898739 
+    1100    23.938567 
+    1200    26.278074 
+    1300     28.28702 
+    1400    30.292373 
+    1500    32.318474 
+    1600    34.354097 
+    1700    37.096822 
+    1800    39.421984 
+    1900    41.417953 
+    2000     43.41916 
+    2100    45.446625 
+    2200    47.446915 
+    2300    49.560144 
+    2400    51.568924 
+    2500    54.260083 
+    2600    57.053021 
+    2700     59.37361 
+    2800    61.375514 
+    2900    63.364057 
+    3000    65.359522 
+Loop time of 65.3595 on 4 procs for 3000 steps with 0 atoms
 
 Pair  time (%) = 0 (0)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.0045175 (0.0071715)
-Outpt time (%) = 0.016863 (0.0267699)
-Other time (%) = 62.9709 (99.9661)
+Comm  time (%) = 0.00770777 (0.0117929)
+Outpt time (%) = 0.0109929 (0.0168192)
+Other time (%) = 65.3408 (99.9714)
 
 Nlocal:    0 ave 0 max 0 min
 Histogram: 4 0 0 0 0 0 0 0 0 0

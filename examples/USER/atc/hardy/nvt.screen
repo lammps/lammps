@@ -4,7 +4,7 @@ boundary  p p p
 lattice 	fcc  5.376 orient x 1 0 0 orient y 0 1 0 orient z 0 0 1
 Lattice spacing in x,y,z = 5.376 5.376 5.376
 region  	box block 0 5 0 5 0 5
-read_data	nvt.data
+read_data	nvt.init
 Reading data file ...
   orthogonal box = (0 0 0) to (26.88 26.88 26.88)
   1 by 2 by 2 MPI processor grid
@@ -67,13 +67,13 @@ Step Temp TotEng KinEng PotEng Press Volume
      800    29.876839   -900.32866    44.528592   -944.85725   -587.67852    19421.725 
      900    29.966977   -899.86769    44.662933   -944.53062   -581.80498    19421.725 
     1000    29.907621   -901.57887    44.574469   -946.15334   -613.00908    19421.725 
-Loop time of 1.38273 on 4 procs for 1000 steps with 500 atoms
+Loop time of 1.42359 on 4 procs for 1000 steps with 500 atoms
 
-Pair  time (%) = 0.747143 (54.0337)
+Pair  time (%) = 0.747143 (52.4831)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.297985 (21.5504)
-Outpt time (%) = 0.000655055 (0.0473739)
-Other time (%) = 0.336952 (24.3685)
+Comm  time (%) = 0.3064 (21.5231)
+Outpt time (%) = 0.000646651 (0.045424)
+Other time (%) = 0.369397 (25.9483)
 
 Nlocal:    125 ave 129 max 121 min
 Histogram: 1 0 0 0 0 2 0 0 0 1

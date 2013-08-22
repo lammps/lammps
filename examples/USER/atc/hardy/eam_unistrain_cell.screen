@@ -15,13 +15,13 @@ Memory usage per processor = 34.3603 Mbytes
 Step PotEng KinEng Press Lx Ly Lz 
        0   -17256.022            0   -2117.8338       130.14        21.69        21.69 
        1   -17256.022            0   -2117.8338       130.14        21.69        21.69 
-Loop time of 0.00486255 on 4 procs for 1 steps with 4896 atoms
+Loop time of 0.00486404 on 4 procs for 1 steps with 4896 atoms
 
-Pair  time (%) = 0.00441444 (90.7845)
+Pair  time (%) = 0.00440079 (90.4761)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000329494 (6.77617)
-Outpt time (%) = 6.47902e-05 (1.33243)
-Other time (%) = 5.3823e-05 (1.10689)
+Comm  time (%) = 0.000330746 (6.79983)
+Outpt time (%) = 6.52075e-05 (1.3406)
+Other time (%) = 6.72936e-05 (1.38349)
 
 Nlocal:    1224 ave 1296 max 1152 min
 Histogram: 2 0 0 0 0 0 0 0 0 2
@@ -48,13 +48,13 @@ Step PotEng KinEng Press Lx Ly Lz
        1   -17252.771            0   -14787.592       130.14        21.69        21.69 
  ATC: Warning: Using native lammps partitioning
        2   -17252.771            0   -14787.592       130.14        21.69        21.69 
-Loop time of 0.0539712 on 4 procs for 1 steps with 4896 atoms
+Loop time of 0.0532355 on 4 procs for 1 steps with 4896 atoms
 
-Pair  time (%) = 0.00456005 (8.44905)
+Pair  time (%) = 0.00454545 (8.53838)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000343502 (0.636454)
-Outpt time (%) = 0.000622272 (1.15297)
-Other time (%) = 0.0484453 (89.7615)
+Comm  time (%) = 0.000336945 (0.632933)
+Outpt time (%) = 0.000728548 (1.36854)
+Other time (%) = 0.0476246 (89.4602)
 
 Nlocal:    1224 ave 1296 max 1152 min
 Histogram: 2 0 0 0 0 0 0 0 0 2

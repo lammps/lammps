@@ -13,7 +13,7 @@ pair_style      lj/cut 2.5
 pair_modify     table 0
 special_bonds   lj 1.0 1.0 1.0
 
-read_data    	harmonic_bonds.data
+read_data    	harmonic_bonds.init
 Scanning data file ...
   6 = max bonds/atom
 Reading data file ...
@@ -98,14 +98,14 @@ Step Temp TotEng E_vdwl E_bond Pxx Pyy Pzz Lz
      900    0.4864295    20.309827   -5.7089607    25.289491   0.18995702   -0.4389685   0.32204857    12.716563 
  ATC: computing bond matrix ...........done
     1000   0.43059305    20.104384   -5.8079042    25.266707 -0.0082532778   0.34329484   0.20699648    12.673678 
-Loop time of 2.39793 on 4 procs for 1000 steps with 2100 atoms
+Loop time of 2.50382 on 4 procs for 1000 steps with 2100 atoms
 
-Pair  time (%) = 1.16311 (48.5046)
-Bond  time (%) = 0.109937 (4.58467)
-Neigh time (%) = 0.31618 (13.1855)
-Comm  time (%) = 0.334303 (13.9413)
-Outpt time (%) = 0.020691 (0.86287)
-Other time (%) = 0.453715 (18.9211)
+Pair  time (%) = 1.16768 (46.6359)
+Bond  time (%) = 0.11119 (4.44082)
+Neigh time (%) = 0.331808 (13.252)
+Comm  time (%) = 0.389283 (15.5475)
+Outpt time (%) = 0.0209447 (0.836509)
+Other time (%) = 0.482918 (19.2872)
 
 Nlocal:    525 ave 530 max 523 min
 Histogram: 2 1 0 0 0 0 0 0 0 1

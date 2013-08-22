@@ -18,7 +18,7 @@ lattice         fcc 5.405 origin 0.25 0.25 0.25
 
 pair_style  lj/cut 13.5
 
-read_data   uniform_exchange_init.data
+read_data   uniform_exchange.init
 
 region    simRegion block -12 12 -3 3 -3 3
 region     feRegion block -12 12 -3 3 -3 3

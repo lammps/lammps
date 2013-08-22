@@ -108,13 +108,13 @@ Step Temp E_pair E_mol TotEng Press
      800 9.9628095e-09   -4406.6663            0   -4406.6663   -1155.1871 
      900 1.1034555e-08   -4406.6659            0   -4406.6659    -1155.189 
     1000 1.2796459e-08   -4406.6655            0   -4406.6655    -1155.191 
-Loop time of 19.6955 on 4 procs for 1000 steps with 2304 atoms
+Loop time of 20.946 on 4 procs for 1000 steps with 2304 atoms
 
-Pair  time (%) = 5.91161 (30.015)
-Neigh time (%) = 2.56621 (13.0294)
-Comm  time (%) = 6.10149 (30.9791)
-Outpt time (%) = 0.00123084 (0.00624931)
-Other time (%) = 5.115 (25.9703)
+Pair  time (%) = 6.10204 (29.1322)
+Neigh time (%) = 2.6388 (12.5981)
+Comm  time (%) = 6.81079 (32.5159)
+Outpt time (%) = 0.00111789 (0.00533698)
+Other time (%) = 5.39328 (25.7485)
 
 Nlocal:    576 ave 864 max 288 min
 Histogram: 2 0 0 0 0 0 0 0 0 2
@@ -247,13 +247,13 @@ Step Temp E_pair E_mol TotEng Press
    10800 2.0914266e-09   -4406.6645            0   -4406.6645   -1155.1951 
    10900 5.1353017e-10   -4406.6645            0   -4406.6645   -1155.1951 
    11000 5.470711e-10   -4406.6645            0   -4406.6645    -1155.195 
-Loop time of 189.978 on 4 procs for 10000 steps with 2304 atoms
+Loop time of 202.252 on 4 procs for 10000 steps with 2304 atoms
 
-Pair  time (%) = 58.7997 (30.9507)
-Neigh time (%) = 25.3649 (13.3514)
-Comm  time (%) = 59.8944 (31.5269)
-Outpt time (%) = 0.0364809 (0.0192026)
-Other time (%) = 45.8831 (24.1517)
+Pair  time (%) = 60.2122 (29.7709)
+Neigh time (%) = 25.8986 (12.8051)
+Comm  time (%) = 64.0708 (31.6787)
+Outpt time (%) = 0.0546121 (0.027002)
+Other time (%) = 52.0157 (25.7183)
 
 Nlocal:    576 ave 864 max 288 min
 Histogram: 2 0 0 0 0 0 0 0 0 2

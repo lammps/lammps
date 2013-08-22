@@ -6,8 +6,8 @@ dielectric      1.
 variable type string "_charge"
 boundary	s s f
 # read in CNT
-read_data  cnt_9_0_100${type}.data
-read_data  cnt_9_0_100_charge.data
+read_data  cnt_9_0_100${type}.init
+read_data  cnt_9_0_100_charge.init
 Reading data file ...
   orthogonal box = (-7.04598 -7.04598 0) to (7.04598 7.04598 100)
   1 by 1 by 4 MPI processor grid
@@ -263,7 +263,7 @@ Step TotEng KinEng CM[1] CM[2] CM[3] Q AtC[4] AtC[5] AtC[6] AtC[7] FIX[1] FIX[2]
      480   -6155.5887            0 -0.0058774787 8.0639107e-12    96.934537         -0.1            0            0            0 -0.00094915808 0.00030232037 -4.1063286e-10 -0.0063827796   0.26227474 -0.0012514785 
      490   -6155.5887            0 -0.0071402115 -4.9061812e-11    96.934554         -0.1            0            0            0 -0.00094915808 0.00014674646 -1.4276993e-09 -0.0085602294   0.26227356 -0.0010959045 
      500   -6155.5887            0 -0.0089111607 -5.2606473e-11    96.934565         -0.1            0            0            0 -0.00094915808 0.00062500656 6.8011742e-10 -0.0084420596   0.26227196 -0.0015741646 
-Loop time of 35.8016 on 4 procs for 500 steps with 846 atoms
+Loop time of 39.4484 on 4 procs for 500 steps with 846 atoms
 
 Minimization stats:
   Stopping criterion = max force evaluations
@@ -274,11 +274,11 @@ Minimization stats:
   Final line search alpha, max atom move = 1 0.000212848
   Iterations, force evaluations = 500 1000
 
-Pair  time (%) = 7.56243 (21.1232)
+Pair  time (%) = 7.80279 (19.7797)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.909729 (2.54103)
-Outpt time (%) = 0.470353 (1.31378)
-Other time (%) = 26.859 (75.022)
+Comm  time (%) = 1.08491 (2.75021)
+Outpt time (%) = 0.542379 (1.37491)
+Other time (%) = 30.0183 (76.0951)
 
 Nlocal:    211.5 ave 216 max 207 min
 Histogram: 2 0 0 0 0 0 0 0 0 2
@@ -328,13 +328,13 @@ Memory usage per processor = 54.1206 Mbytes
 Step TotEng KinEng CM[1] CM[2] CM[3] Q AtC[4] AtC[5] AtC[6] AtC[7] FIX[1] FIX[2] FIX[3] AtC FSUM[1] 
      500   -6155.5887            0 -0.0089111607 -5.2606424e-11    96.934565         -0.1            0            0            0 -0.00094915808 0.00062500656 6.8011742e-10 -0.0084420596   0.26227196 -0.0015741646 
      501   -6155.5887            0 -0.0089111607 -5.2606424e-11    96.934565         -0.1            0            0            0 -0.00094915808 0.00062500656 6.8011742e-10 -0.0084420596   0.26227196 -0.0015741646 
-Loop time of 0.0582818 on 4 procs for 1 steps with 846 atoms
+Loop time of 0.0692386 on 4 procs for 1 steps with 846 atoms
 
-Pair  time (%) = 0.0074538 (12.7892)
+Pair  time (%) = 0.00749618 (10.8266)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000557423 (0.956426)
-Outpt time (%) = 0.0170317 (29.2229)
-Other time (%) = 0.0332389 (57.0314)
+Comm  time (%) = 0.000554144 (0.80034)
+Outpt time (%) = 0.0175228 (25.3078)
+Other time (%) = 0.0436655 (63.0653)
 
 Nlocal:    211.5 ave 216 max 198 min
 Histogram: 1 0 0 0 0 0 0 0 0 3

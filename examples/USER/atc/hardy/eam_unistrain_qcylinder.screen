@@ -14,13 +14,13 @@ Memory usage per processor = 34.3603 Mbytes
 Step PotEng KinEng Press Lx Ly Lz 
        0   -17256.022            0   -2117.8338       130.14        21.69        21.69 
        1   -17256.022            0   -2117.8338       130.14        21.69        21.69 
-Loop time of 0.00503868 on 4 procs for 1 steps with 4896 atoms
+Loop time of 0.00495648 on 4 procs for 1 steps with 4896 atoms
 
-Pair  time (%) = 0.00448877 (89.0862)
+Pair  time (%) = 0.00445449 (89.872)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000422835 (8.39179)
-Outpt time (%) = 5.97835e-05 (1.18649)
-Other time (%) = 6.72936e-05 (1.33554)
+Comm  time (%) = 0.000380516 (7.67714)
+Outpt time (%) = 6.06775e-05 (1.22421)
+Other time (%) = 6.07967e-05 (1.22661)
 
 Nlocal:    1224 ave 1296 max 1152 min
 Histogram: 2 0 0 0 0 0 0 0 0 2
@@ -45,13 +45,13 @@ Memory usage per processor = 34.3603 Mbytes
 Step PotEng KinEng Press Lx Ly Lz 
        1   -17252.771            0   -14787.592       130.14        21.69        21.69 
        2   -17252.771            0   -14787.592       130.14        21.69        21.69 
-Loop time of 0.0590639 on 4 procs for 1 steps with 4896 atoms
+Loop time of 0.0584641 on 4 procs for 1 steps with 4896 atoms
 
-Pair  time (%) = 0.0045597 (7.71994)
+Pair  time (%) = 0.00454807 (7.77926)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000361979 (0.61286)
-Outpt time (%) = 0.000646472 (1.09453)
-Other time (%) = 0.0534958 (90.5727)
+Comm  time (%) = 0.000343978 (0.588359)
+Outpt time (%) = 0.000752985 (1.28795)
+Other time (%) = 0.052819 (90.3444)
 
 Nlocal:    1224 ave 1296 max 1152 min
 Histogram: 2 0 0 0 0 0 0 0 0 2

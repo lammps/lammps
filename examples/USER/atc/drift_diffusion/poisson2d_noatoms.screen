@@ -1,4 +1,4 @@
-LAMMPS (14 Aug 2013)
+LAMMPS (24 Aug 2013)
 variable nx equal 80 # 80 # 40
 variable ny equal ${nx}
 variable ny equal 80
@@ -33,6 +33,7 @@ atom_modify     sort 0 1
 #               ID  group atc PhysicsType ParameterFile
 fix             AtC all   atc drift_diffusion CNT_ddm.mat
 ATC: constructing drift_diffusion coupling with parameter file CNT_ddm.mat
+ ATC: version 2.0
  ATC: peratom PE compute created with ID: 3
  ATC: WARNING: must use a unit system where: [Energy/force] = [Length] and [charge] = e
  ATC: WARNING: material units metal do not match lammps

@@ -1,14 +1,14 @@
 #ifndef EXTRINSIC_MODEL
 #define EXTRINSIC_MODEL
 
-// ATC headers
+#include <vector>
+#include <map>
+#include <string>
+
 #include "ATC_TypeDefs.h"
 #include "MatrixLibrary.h"
 
-using namespace std;
 namespace ATC {
-
-  // forward declarations
   class ATC_Coupling;
   class ExtrinsicModel;
   class PhysicsModel;
@@ -55,7 +55,7 @@ namespace ATC {
     bool modify(int narg, char **arg);
 
     /** create_model */
-    void create_model(ExtrinsicModelType modelType, string matFileName);
+    void create_model(ExtrinsicModelType modelType, std::string matFileName);
 
     /** construct the transfers needed by the model */
     void construct_transfers();
@@ -99,7 +99,7 @@ namespace ATC {
 
 
     /** model name enum to string */
-    static bool model_to_string(const ExtrinsicModelType index, string & name) 
+    static bool model_to_string(const ExtrinsicModelType index, std::string & name) 
     {
       switch (index) {
         case NO_MODEL:
@@ -146,7 +146,7 @@ namespace ATC {
     };
 
     /** string to model enum */
-    static bool string_to_model(const string & name, ExtrinsicModelType & index) 
+    static bool string_to_model(const std::string & name, ExtrinsicModelType & index) 
     {
       if      (name=="no_model")
         index = NO_MODEL;
@@ -191,7 +191,7 @@ namespace ATC {
     ATC_Coupling * atc_;
 
     /** equation handler */
-    vector<ExtrinsicModel *> extrinsicModels_;
+    std::vector<ExtrinsicModel *> extrinsicModels_;
 
   private:
     ExtrinsicModelManager(); // DO NOT define this, only use constructor above
@@ -216,7 +216,7 @@ namespace ATC {
     // constructor
     ExtrinsicModel(ExtrinsicModelManager * modelManager,
                    ExtrinsicModelType modelType,
-                   string matFileName);
+                   std::string matFileName);
 
     // destructor
     virtual ~ExtrinsicModel();
@@ -269,7 +269,7 @@ namespace ATC {
     virtual void output(OUTPUT_LIST & outputData){};
 
     /** get the fields and their sizes */
-    void num_fields(map<FieldName,int> & fieldSizes);
+    void num_fields(std::map<FieldName,int> & fieldSizes);
 
     /** return the type of model being used */
     ExtrinsicModelType model_type() const {return modelType_;};

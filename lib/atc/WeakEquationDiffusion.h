@@ -1,6 +1,9 @@
 #ifndef WEAK_EQUATION_DIFFUSION_H
 #define WEAK_EQUATION_DIFFUSION_H
 
+#include <set>
+#include <string>
+
 #include "WeakEquation.h"
 
 namespace ATC{
@@ -36,9 +39,9 @@ class WeakEquationDiffusion : public WeakEquation {
                            DENS_MAT_VEC &flux) const ;
 
   /** necessary interfaces */
-  virtual set<string> needs_material_functions(void)  const
+  virtual std::set<std::string> needs_material_functions(void)  const
   {
-    set<string> needs;
+    std::set<std::string> needs;
     return needs;
   } 
 };

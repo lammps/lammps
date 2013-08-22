@@ -5,6 +5,8 @@
 #include "LammpsInterface.h"
 
 
+using std::stringstream;
+
 namespace ATC {
   //===================================================================
   //  TangentOperator

@@ -233,12 +233,12 @@ public:
  *  \section I/O functions
  */
   //* outputs this SparseMatrix to a formatted string
-  string to_string() const;
+  std::string to_string() const;
   using Matrix<T>::matlab;
   //* writes a command to recreate this matrix in matlab to a stream
-  void matlab(ostream &o, const string &name="S")  const;
+  void matlab(std::ostream &o, const std::string &name="S")  const;
   //* prints a row histogram for each row
-  void print_row_histogram(const string &name, INDEX nbins = 10) const;
+  void print_row_histogram(const std::string &name, INDEX nbins = 10) const;
   //* prints a histogram of the values in a row
   void print_row_histogram(INDEX row, INDEX nbins) const;
   //* prints the current triplets
@@ -284,7 +284,7 @@ protected:
   void copy(const SparseMatrix<T> &C);
 
   //* new (unsorted triplet values - won't intersect CRS values)
-  mutable vector<TRI_COORD<T> > _tri;
+  mutable std::vector<TRI_COORD<T> > _tri;
 /*
  *  \section User specified variables
  */  

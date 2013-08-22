@@ -1,13 +1,12 @@
 #ifndef KINETOSTAT_H
 #define KINETOSTAT_H
 
-// ATC headers
 #include "AtomicRegulator.h"
 #include "PerAtomQuantityLibrary.h"
-
-// other headers
 #include <map>
 #include <set>
+#include <utility>
+#include <string>
 
 namespace ATC {
 
@@ -28,7 +27,7 @@ namespace ATC {
 
     // constructor
     Kinetostat(ATC_Coupling *atc,
-               const string & regulatorPrefix = "");
+               const std::string & regulatorPrefix = "");
         
     // destructor
     virtual ~Kinetostat(){};
@@ -60,7 +59,7 @@ namespace ATC {
   public:
   
     KinetostatShapeFunction(Kinetostat *kinetostat,
-                            const string & regulatorPrefix = "");
+                            const std::string & regulatorPrefix = "");
         
     virtual ~KinetostatShapeFunction(){};
 
@@ -140,7 +139,8 @@ namespace ATC {
     DIAG_MAN & mdMassMatrix_;
 
     /** nodeset corresponding to Hoover coupling */
-    set<pair<int,int> > hooverNodes_;
+    std::set<std::pair<int,int> > hooverNodes_;
+
     
     /** pointer to atom positions */
     FundamentalAtomQuantity * atomPositions_;
@@ -546,7 +546,7 @@ namespace ATC {
   public:
   
     KinetostatGlcFs(Kinetostat *kinetostat,
-                    const string & regulatorPrefix = "");
+                    const std::string & regulatorPrefix = "");
         
     virtual ~KinetostatGlcFs(){};
 
@@ -629,7 +629,7 @@ namespace ATC {
   public:
   
     KinetostatFlux(Kinetostat *kinetostat,
-                   const string & regulatorPrefix = "");
+                   const std::string & regulatorPrefix = "");
         
     virtual ~KinetostatFlux(){};
 
@@ -690,7 +690,7 @@ namespace ATC {
   public:
   
     KinetostatFluxGhost(Kinetostat *kinetostat,
-                        const string & regulatorPrefix = "");
+                        const std::string & regulatorPrefix = "");
         
     virtual ~KinetostatFluxGhost(){};
 
@@ -729,7 +729,7 @@ namespace ATC {
   public:
   
     KinetostatFixed(Kinetostat *kinetostat,
-                    const string & regulatorPrefix = "");
+                    const std::string & regulatorPrefix = "");
         
     virtual ~KinetostatFixed(){};
 

@@ -1,6 +1,8 @@
 #include "CBLattice.h"
 #include "CbPotential.h"
 
+#include <fstream>
+
 namespace ATC {
   // removes any overlapping atoms (avoid calling because it scales n^2.)
   INDEX AtomCluster::remove_overlap()
@@ -29,7 +31,7 @@ namespace ATC {
   {
     const int npts = int(ref_coords_.size());
     if (path.substr(path.size()-5,4) != ".dat") path += ".dat";
-    fstream fid(path.c_str(), std::ios::out);
+    std::fstream fid(path.c_str(), std::ios::out);
 
     for (int i=0; i<npts; i++) {
       DENS_VEC x (current_config ? r(i):R(i));
@@ -44,7 +46,7 @@ namespace ATC {
   {
     const int npts = int(ref_coords_.size());
     if (path.substr(path.size()-5,4) != ".vtk") path += ".vtk";
-    fstream fid(path.c_str(), std::ios::out);
+    std::fstream fid(path.c_str(), std::ios::out);
 
     // write header
     fid << "# vtk DataFile Version 2.0\nWritten from FE-LAMMPS\n";

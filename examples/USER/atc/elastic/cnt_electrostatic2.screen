@@ -1,4 +1,4 @@
-LAMMPS (14 Aug 2013)
+LAMMPS (24 Aug 2013)
 units		metal
 atom_style	atomic
 
@@ -71,6 +71,7 @@ timestep        0.0005
 # coupling
 fix         AtC internal   atc electrostatic-equilibrium CNT_electrostatic2.mat
 ATC: constructing equilibrium electrostatic coupling with parameter file CNT_electrostatic2.mat
+ ATC: version 2.0
  ATC: peratom PE compute created with ID: 3
  ATC: computed mass density : 2.05933
  ATC: 1 materials defined from CNT_electrostatic2.mat
@@ -184,18 +185,18 @@ Setting up run ...
 Memory usage per processor = 53.9593 Mbytes
 Step CPU TotEng KinEng 
        0            0   -7315.3918 4.2386027e-06 
-      20    7.0248148   -7315.3918 0.0003453277 
-      40    8.5434699   -7315.3918 0.0012274403 
-      60    14.682407   -7315.3918 0.0026370119 
-      80    21.289801   -7315.3918  0.004552872 
-     100    29.208281   -7315.3918 0.0069472253 
-Loop time of 29.2009 on 4 procs for 100 steps with 1008 atoms
+      20   0.77713203   -7315.3918 0.0003453277 
+      40     1.406508   -7315.3918 0.0012274403 
+      60    2.4594879   -7315.3918 0.0026370119 
+      80    3.0469959   -7315.3918  0.004552872 
+     100    3.6344919   -7315.3918 0.0069472253 
+Loop time of 3.63452 on 4 procs for 100 steps with 1008 atoms
 
-Pair  time (%) = 0.305472 (1.04611)
+Pair  time (%) = 0.208631 (5.74027)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.435163 (1.49024)
-Outpt time (%) = 0.202401 (0.693134)
-Other time (%) = 28.2578 (96.7705)
+Comm  time (%) = 0.0310229 (0.853562)
+Outpt time (%) = 0.0790334 (2.17452)
+Other time (%) = 3.31584 (91.2316)
 
 Nlocal:    252 ave 256 max 248 min
 Histogram: 2 0 0 0 0 0 0 0 0 2

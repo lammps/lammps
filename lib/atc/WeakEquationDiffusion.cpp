@@ -1,7 +1,6 @@
 #include "ATC_Transfer.h"
 #include "WeakEquationDiffusion.h"
 #include "Material.h"
-#include <string>
 #include <iostream>
 #include <fstream>
 

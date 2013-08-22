@@ -1,10 +1,13 @@
 #ifndef SPECIES_TIME_INTEGRATOR_H
 #define SPECIES_TIME_INTEGRATOR_H
 
+#include <map>
+#include <utility>
+#include <string>
+
 // ATC headers
 #include "TimeIntegrator.h"
 
-using namespace std;
 namespace ATC {
 
   // forward declarations
@@ -41,10 +44,8 @@ namespace ATC {
 
   protected:
         
-    /** sets of species tracked */
-    const map<string,pair<IdType,int> > & speciesIds_;
     /** sets of molecules tracked */
-    const map<string,pair<MolSize,int> > & moleculeIds_;
+    const std::map<std::string,std::pair<MolSize,int> > & moleculeIds_;
 
     /** data */
     DENS_MAN nodalAtomicSpeciesConcentrationFiltered_;
@@ -67,8 +68,7 @@ namespace ATC {
   
     // constructor
     SpeciesIntegrationMethod(SpeciesTimeIntegrator * speciesTimeIntegrator,
-      const map<string,pair<IdType,int> > & speciesIds,
-      const map<string,pair<MolSize,int> > & moleculeIds);
+      const std::map<std::string,std::pair<MolSize,int> > & moleculeIds);
         
     // destructor
     virtual ~SpeciesIntegrationMethod() {nodalAtomicMassDensity_=NULL;};
@@ -92,10 +92,9 @@ namespace ATC {
     DENS_MAN & speciesConcentration_;
     DENS_MAN * nodalAtomicSpeciesConcentration_;
     DENS_MAN & nodalAtomicSpeciesConcentrationFiltered_;
-    /** sets of species tracked */
-    const map<string,pair<IdType,int> > & speciesIds_;
+
     /** sets of molecules tracked */
-    const map<string,pair<MolSize,int> > & moleculeIds_;
+    const std::map<std::string,std::pair<MolSize,int> > & moleculeIds_;
 
   private:
 
@@ -117,8 +116,7 @@ namespace ATC {
   
     // constructor
     SpeciesTimeIntegratorFractionalStep(SpeciesTimeIntegrator * speciesTimeIntegrator,
-      const map<string,pair<IdType,int> > & speciesIds,
-      const map<string,pair<MolSize,int> > & moleculeIds);
+      const std::map<std::string,std::pair<MolSize,int> > & moleculeIds);
         
     // destructor
     virtual ~SpeciesTimeIntegratorFractionalStep(){};
@@ -153,8 +151,7 @@ namespace ATC {
   
     // constructor
     SpeciesTimeIntegratorFractionalStepFiltered(SpeciesTimeIntegrator * speciesTimeIntegrator,
-      const map<string,pair<IdType,int> > & speciesIds,
-      const map<string,pair<MolSize,int> > & moleculeIds);
+      const std::map<std::string,std::pair<MolSize,int> > & moleculeIds);
         
     // destructor
     virtual ~SpeciesTimeIntegratorFractionalStepFiltered(){};

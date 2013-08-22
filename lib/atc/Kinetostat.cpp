@@ -7,6 +7,10 @@
 #include "ElasticTimeIntegrator.h"
 #include "TransferOperator.h"
 
+using std::set;
+using std::pair;
+using std::string;
+
 namespace ATC {
 
   //--------------------------------------------------------
@@ -59,10 +63,10 @@ namespace ATC {
         evaulation\n
         \section examples
         fix_modify AtC control momentum glc_velocity \n
-        fix_modify AtC control momentum stress_flux faceset bndy_faces \n
+        fix_modify AtC control momentum flux faceset bndy_faces \n
         \section description
         \section restrictions
-        only for be used with specific transfers :
+        only to be used with specific transfers :
         elastic \n
         rescale not valid with time filtering activated
         \section related

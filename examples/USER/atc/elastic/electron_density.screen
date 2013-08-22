@@ -1,4 +1,4 @@
-LAMMPS (14 Aug 2013)
+LAMMPS (24 Aug 2013)
 units		metal
 # PARAMETERS-----------------------------
 variable s equal 1
@@ -30,6 +30,7 @@ mass         *  12.01
 ### NOTE ATC:  material cnt does not provide all interfaces for charge_density physics and will be treated as null
 fix         AtC box  atc electrostatic-equilibrium CNT.mat
 ATC: constructing equilibrium electrostatic coupling with parameter file CNT.mat
+ ATC: version 2.0
  ATC: peratom PE compute created with ID: 3
  ATC: computed mass density : 96.08
  ATC: computed mass density : 96.08
@@ -119,14 +120,14 @@ Setting up run ...
 Memory usage per processor = 0.432442 Mbytes
 Step CPU TotEng KinEng 
        0            0            0           -0 
-       1   0.01880908            0           -0 
-Loop time of 0.018833 on 4 procs for 1 steps with 0 atoms
+       1 0.0019478798            0           -0 
+Loop time of 0.00196469 on 4 procs for 1 steps with 0 atoms
 
 Pair  time (%) = 0 (0)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 2.5034e-06 (0.0132926)
-Outpt time (%) = 0.017292 (91.8175)
-Other time (%) = 0.00153852 (8.16923)
+Comm  time (%) = 4.05312e-06 (0.206298)
+Outpt time (%) = 0.00036931 (18.7974)
+Other time (%) = 0.00159132 (80.9963)
 
 Nlocal:    0 ave 0 max 0 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -159,14 +160,14 @@ Setting up run ...
 Memory usage per processor = 0.432442 Mbytes
 Step CPU TotEng KinEng 
        1            0            0           -0 
-       2   0.11045408            0           -0 
-Loop time of 0.110485 on 4 procs for 1 steps with 0 atoms
+       2 0.0016391277            0           -0 
+Loop time of 0.00165129 on 4 procs for 1 steps with 0 atoms
 
 Pair  time (%) = 0 (0)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 1.54972e-06 (0.00140265)
-Outpt time (%) = 0.00781226 (7.07087)
-Other time (%) = 0.102671 (92.9277)
+Comm  time (%) = 1.19209e-06 (0.0721917)
+Outpt time (%) = 0.000236452 (14.3192)
+Other time (%) = 0.00141364 (85.6086)
 
 Nlocal:    0 ave 0 max 0 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -199,14 +200,14 @@ Setting up run ...
 Memory usage per processor = 0.432442 Mbytes
 Step CPU TotEng KinEng 
        2            0            0           -0 
-       3   0.10601687            0           -0 
-Loop time of 0.123864 on 4 procs for 1 steps with 0 atoms
+       3 0.0016679764            0           -0 
+Loop time of 0.00168163 on 4 procs for 1 steps with 0 atoms
 
 Pair  time (%) = 0 (0)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 2.02656e-06 (0.00163611)
-Outpt time (%) = 0.0475852 (38.4172)
-Other time (%) = 0.0762771 (61.5812)
+Comm  time (%) = 1.43051e-06 (0.0850672)
+Outpt time (%) = 0.000220239 (13.0968)
+Other time (%) = 0.00145996 (86.8181)
 
 Nlocal:    0 ave 0 max 0 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -242,14 +243,14 @@ Setting up run ...
 Memory usage per processor = 0.432442 Mbytes
 Step CPU TotEng KinEng 
        3            0            0           -0 
-       4 0.0015778542            0           -0 
-Loop time of 0.00159025 on 4 procs for 1 steps with 0 atoms
+       4 0.0016648769            0           -0 
+Loop time of 0.00167871 on 4 procs for 1 steps with 0 atoms
 
 Pair  time (%) = 0 (0)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 7.15256e-07 (0.0449775)
-Outpt time (%) = 0.00022918 (14.4115)
-Other time (%) = 0.00136036 (85.5435)
+Comm  time (%) = 1.66893e-06 (0.0994177)
+Outpt time (%) = 0.000243187 (14.4866)
+Other time (%) = 0.00143385 (85.414)
 
 Nlocal:    0 ave 0 max 0 min
 Histogram: 4 0 0 0 0 0 0 0 0 0

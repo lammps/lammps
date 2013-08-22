@@ -4,6 +4,7 @@
 #include "PerAtomQuantity.h"
 #include "TransferOperator.h"
 
+using std::string;
 
 namespace ATC {
 
@@ -48,14 +49,14 @@ typedef PerAtomQuantity<double> PAQ;
 //-----------------------------------------------------------------------------
 //* restricted_atom_quantity
 //-----------------------------------------------------------------------------
-  DENS_MAN * FieldManager::projected_atom_quantity(FieldName field,string name, PAQ * atomic, FieldName massMat, DIAG_MAN * normalization)
+  DENS_MAN * FieldManager::projected_atom_quantity(FieldName field,string name, PAQ * atomic,  DIAG_MAN * normalization)
   {
     if (atc_->use_md_mass_normalization()) {
       if (name == "default") { name = field_to_intrinsic_name(field); }
       DENS_MAN * quantity = interscaleManager_.dense_matrix(name);
       if (!quantity) {
         DENS_MAN * restricted = restricted_atom_quantity(field,field_to_restriction_name(field),atomic);
-        quantity = new AtfShapeFunctionMdProjection(atc_,restricted,massMat);
+        quantity = new AtfShapeFunctionMdProjection(atc_,restricted,use_mass_matrix(field));
         interscaleManager_.add_dense_matrix(quantity,name);
       }
       return quantity;
@@ -68,13 +69,13 @@ typedef PerAtomQuantity<double> PAQ;
       if (atc_->kernel_on_the_fly()) {
         if (atc_->kernel_based()) {
           quantity = new OnTheFlyKernelAccumulationNormalized(atc_, atomic, 
-                                                              atc_->kernel_function(), 
-                                                              atc_->atom_coarsegraining_positions(), 
-                                                              normalization);
+            atc_->kernel_function(), 
+            atc_->atom_coarsegraining_positions(), 
+            normalization);
         } else {
           quantity = new OnTheFlyMeshAccumulationNormalized(atc_, atomic, 
-                                                            atc_->atom_coarsegraining_positions(), 
-                                                            normalization);
+            atc_->atom_coarsegraining_positions(), 
+            normalization);
         }
       } else {
         quantity = new AtfProjection(atc_, atomic, 
@@ -89,7 +90,7 @@ typedef PerAtomQuantity<double> PAQ;
 //-----------------------------------------------------------------------------
 //* referenced_projected_atom_quantity
 //-----------------------------------------------------------------------------
-  DENS_MAN * FieldManager::referenced_projected_atom_quantity(FieldName field,string name, PAQ * atomic, const DENS_MAT * reference, FieldName massMat, DIAG_MAN * normalization)
+  DENS_MAN * FieldManager::referenced_projected_atom_quantity(FieldName field,string name, PAQ * atomic, DENS_MAN * reference, DIAG_MAN * normalization)
   {
     if (name == "default") { name = field_to_string(field); }
     DENS_MAN * quantity = interscaleManager_.dense_matrix(name);
@@ -97,7 +98,7 @@ typedef PerAtomQuantity<double> PAQ;
 
     if (atc_->use_md_mass_normalization()) {
       DENS_MAN * restricted = restricted_atom_quantity(field,field_to_restriction_name(field),atomic);
-      quantity = new AtfShapeFunctionMdProjectionReferenced(atc_,restricted,reference,massMat);
+      quantity = new AtfShapeFunctionMdProjectionReferenced(atc_,restricted,reference,use_mass_matrix(field));
     }
     else if (atc_->kernel_on_the_fly()) {
       if (atc_->kernel_based()) {
@@ -128,7 +129,7 @@ typedef PerAtomQuantity<double> PAQ;
 //* scaled_projected_atom_quantity
 //-----------------------------------------------------------------------------
 
-  DENS_MAN * FieldManager::scaled_projected_atom_quantity(FieldName field,string name, PAQ * atomic, double scale, FieldName massMat, DIAG_MAN * normalization)
+  DENS_MAN * FieldManager::scaled_projected_atom_quantity(FieldName field,string name, PAQ * atomic, double scale, DIAG_MAN * normalization)
   {
     if (name == "default") { name = field_to_string(field); }
     DENS_MAN * quantity = interscaleManager_.dense_matrix(name);
@@ -136,7 +137,7 @@ typedef PerAtomQuantity<double> PAQ;
 
     if (atc_->use_md_mass_normalization()) {
       DENS_MAN * restricted = restricted_atom_quantity(field,field_to_restriction_name(field),atomic);
-      quantity = new AtfShapeFunctionMdProjectionScaled(atc_,restricted,scale,massMat);
+      quantity = new AtfShapeFunctionMdProjectionScaled(atc_,restricted,scale,use_mass_matrix(field));
     }
     else if (atc_->kernel_on_the_fly()) {
       if (atc_->kernel_based()) {
@@ -167,7 +168,7 @@ typedef PerAtomQuantity<double> PAQ;
   DENS_MAN * FieldManager::charge_density(string name)
   {
     FundamentalAtomQuantity * atomic = interscaleManager_.fundamental_atom_quantity(LammpsInterface::ATOM_CHARGE);
-    return projected_atom_quantity(CHARGE_DENSITY,name,atomic,MASS_DENSITY,atc_->accumulant_inverse_volumes());
+    return projected_atom_quantity(CHARGE_DENSITY,name,atomic,atc_->accumulant_inverse_volumes());
   }
 //-----------------------------------------------------------------------------
 //* MASS_DENSITY
@@ -175,38 +176,19 @@ typedef PerAtomQuantity<double> PAQ;
   DENS_MAN * FieldManager::mass_density(string name)
   {
     FundamentalAtomQuantity * atomic = interscaleManager_.fundamental_atom_quantity(LammpsInterface::ATOM_MASS);
-    return projected_atom_quantity(MASS_DENSITY,name,atomic,MASS_DENSITY,atc_->accumulant_inverse_volumes());
+    return projected_atom_quantity(MASS_DENSITY,name,atomic,atc_->accumulant_inverse_volumes());
   }
 //-----------------------------------------------------------------------------
 //* SPECIES_CONCENTRATION
 //-----------------------------------------------------------------------------
   DENS_MAN * FieldManager::species_concentration(string name)
   {
-    DENS_MAN * c = NULL;
-#ifdef ATC_VERBOSE
-    atc_->print_tracked();
-#endif
-    PAQ * atomSpecies = atomic_species_vector(); 
-
-    if (atc_->kernel_on_the_fly()) {
-      if (atc_->kernel_based()) {
-        c = new OnTheFlyKernelAccumulationNormalized(atc_, atomSpecies, 
-          atc_->kernel_function(), 
-          atc_->atom_coarsegraining_positions(), 
-          atc_->accumulant_inverse_volumes());
-      } else {
-        c = new OnTheFlyMeshAccumulationNormalized(atc_, atomSpecies, 
-          atc_->atom_coarsegraining_positions(), 
-          atc_->accumulant_inverse_volumes());
-      }
-    } else {
-      c = new AtfProjection(atc_, atomSpecies, 
-        atc_->accumulant(), 
-        atc_->accumulant_inverse_volumes());
+    PerAtomQuantity<double> * atomTypeVector = interscaleManager_.per_atom_quantity("atom_species_vector");
+    if (!atomTypeVector) {
+      atomTypeVector = new AtomTypeVector(atc_,atc_->type_list(),atc_->group_list());
+      interscaleManager_.add_per_atom_quantity(atomTypeVector,"atom_species_vector");
     }
-    if (name == "default") { name = field_to_string(SPECIES_CONCENTRATION); }
-    interscaleManager_.add_dense_matrix(c,name);
-    return c;
+    return projected_atom_quantity(SPECIES_CONCENTRATION,name,atomTypeVector,atc_->accumulant_inverse_volumes());
   }
 //-----------------------------------------------------------------------------
 //* NUMBER_DENSITY
@@ -218,7 +200,7 @@ typedef PerAtomQuantity<double> PAQ;
       atomic = new AtomNumber(atc_);
       interscaleManager_.add_per_atom_quantity(atomic, "atomNumber");
     }
-    return projected_atom_quantity(NUMBER_DENSITY,name,atomic,MASS_DENSITY,atc_->accumulant_inverse_volumes());
+    return projected_atom_quantity(NUMBER_DENSITY,name,atomic,atc_->accumulant_inverse_volumes());
   }
 //-----------------------------------------------------------------------------
 //* MOMENTUM 
@@ -230,7 +212,7 @@ typedef PerAtomQuantity<double> PAQ;
       atomic = new AtomicMomentum(atc_);
       interscaleManager_.add_per_atom_quantity(atomic, "atomMomentum");
     }
-    return projected_atom_quantity(MOMENTUM,name,atomic,MASS_DENSITY,atc_->accumulant_inverse_volumes());
+    return projected_atom_quantity(MOMENTUM,name,atomic,atc_->accumulant_inverse_volumes());
   }
 //-----------------------------------------------------------------------------
 //* VELOCITY 
@@ -266,7 +248,7 @@ typedef PerAtomQuantity<double> PAQ;
   DENS_MAN * FieldManager::projected_velocity(string name)
   {
     FundamentalAtomQuantity * atomic = interscaleManager_.fundamental_atom_quantity(LammpsInterface::ATOM_VELOCITY);
-    return projected_atom_quantity(PROJECTED_VELOCITY,name,atomic,MASS_DENSITY,atc_->accumulant_inverse_volumes());
+    return projected_atom_quantity(PROJECTED_VELOCITY,name,atomic,atc_->accumulant_inverse_volumes());
   }
 //-----------------------------------------------------------------------------
 //* DISPLACEMENT 
@@ -318,13 +300,38 @@ typedef PerAtomQuantity<double> PAQ;
 //-----------------------------------------------------------------------------
   DENS_MAN * FieldManager::reference_potential_energy(string name)
   {
-    PAQ * atomic = interscaleManager_.per_atom_quantity("AtomicReferencePotential");
-    if (!atomic) {
-      atomic = new AtcAtomQuantity<double>(atc_);
-      interscaleManager_.add_per_atom_quantity(atomic, "AtomicReferencePotential");
-      atomic->set_memory_type(PERSISTENT);
+    DENS_MAN * rpe = interscaleManager_.dense_matrix(field_to_string(REFERENCE_POTENTIAL_ENERGY));
+    if (! rpe ) { 
+      PAQ * atomic = interscaleManager_.per_atom_quantity("AtomicReferencePotential");
+      if (!atomic) {
+        atomic = new AtcAtomQuantity<double>(atc_);
+        interscaleManager_.add_per_atom_quantity(atomic, "AtomicReferencePotential");
+        atomic->set_memory_type(PERSISTENT);
+      }
+
+      SPAR_MAN * referenceAccumulant = interscaleManager_.sparse_matrix("ReferenceAccumulant");
+      if (!referenceAccumulant) {
+        referenceAccumulant = new SPAR_MAN();
+        referenceAccumulant->set_memory_type(PERSISTENT);
+        interscaleManager_.add_sparse_matrix(referenceAccumulant,
+                                             "ReferenceAccumulant");
+      }
+
+      DIAG_MAN * referenceAccumulantInverseVolumes = interscaleManager_.diagonal_matrix("ReferenceAccumulantInverseVolumes");
+      if (!referenceAccumulantInverseVolumes) {
+        referenceAccumulantInverseVolumes = new DIAG_MAN();
+        referenceAccumulantInverseVolumes->set_memory_type(PERSISTENT);
+        interscaleManager_.add_diagonal_matrix(referenceAccumulantInverseVolumes,
+                                               "ReferenceAccumulantInverseVolumes");
+      }
+
+      rpe = new AtfProjection(atc_, atomic,
+        referenceAccumulant,
+        referenceAccumulantInverseVolumes);
+      interscaleManager_.add_dense_matrix(rpe,field_to_string(REFERENCE_POTENTIAL_ENERGY));
+      rpe->set_memory_type(PERSISTENT);
     }
-    return projected_atom_quantity(REFERENCE_POTENTIAL_ENERGY,"NodalAtomicReferencePotential",atomic,MASS_DENSITY,atc_->accumulant_inverse_volumes());
+    return rpe;
   }
 //-----------------------------------------------------------------------------
 //* POTENTIAL_ENERGY 
@@ -332,8 +339,17 @@ typedef PerAtomQuantity<double> PAQ;
   DENS_MAN * FieldManager::potential_energy(string name)
   {
     PerAtomQuantity<double> * atomic = interscaleManager_.per_atom_quantity("AtomicPotentialEnergy");
-    const DENS_MAT * reference = atc_->nodal_ref_potential_energy();
-    return referenced_projected_atom_quantity(POTENTIAL_ENERGY,name,atomic,reference,MASS_DENSITY,atc_->accumulant_inverse_volumes());
+    if (!atomic) {
+      atomic = new ComputedAtomQuantity(atc_,(atc_->lammps_interface())->compute_pe_name(), atc_->pe_scale());
+      interscaleManager_.add_per_atom_quantity(atomic,"AtomicPotentialEnergy");
+    }
+    DENS_MAN * reference = interscaleManager_.dense_matrix(field_to_string(REFERENCE_POTENTIAL_ENERGY));
+    if (reference) {
+      return referenced_projected_atom_quantity(POTENTIAL_ENERGY,name,atomic,reference,atc_->accumulant_inverse_volumes());
+    }
+    else {
+      return projected_atom_quantity(POTENTIAL_ENERGY,name,atomic,atc_->accumulant_inverse_volumes());
+    }
   }
 //-----------------------------------------------------------------------------
 //* TEMPERATURE 
@@ -342,7 +358,7 @@ typedef PerAtomQuantity<double> PAQ;
  {
     double Tcoef = 1./((atc_->nsd())*(atc_->lammps_interface())->kBoltzmann());
     PAQ * atomic = per_atom_quantity("AtomicTwiceFluctuatingKineticEnergy");
-    return scaled_projected_atom_quantity(TEMPERATURE,name,atomic,Tcoef,TEMPERATURE,atc_->accumulant_weights());
+    return scaled_projected_atom_quantity(TEMPERATURE,name,atomic,Tcoef,atc_->accumulant_weights());
   }
 //-----------------------------------------------------------------------------
 //* KINETIC_TEMPERATURE
@@ -351,7 +367,7 @@ typedef PerAtomQuantity<double> PAQ;
   {
     double Tcoef = 1./((atc_->nsd())*(atc_->lammps_interface())->kBoltzmann());
     PAQ * atomic = per_atom_quantity("AtomicTwiceKineticEnergy");
-    return scaled_projected_atom_quantity(KINETIC_TEMPERATURE,name,atomic,Tcoef,MASS_DENSITY,atc_->accumulant_weights());  
+    return scaled_projected_atom_quantity(KINETIC_TEMPERATURE,name,atomic,Tcoef,atc_->accumulant_weights());  
   }
 //-----------------------------------------------------------------------------
 //* THERMAL_ENERGY 
@@ -360,7 +376,7 @@ typedef PerAtomQuantity<double> PAQ;
   {
     double Ecoef = 0.5*atc_->ke_scale();
     PAQ * atomic = per_atom_quantity("AtomicTwiceFluctuatingKineticEnergy");
-    return scaled_projected_atom_quantity(THERMAL_ENERGY,name,atomic,Ecoef,MASS_DENSITY,atc_->accumulant_inverse_volumes());
+    return scaled_projected_atom_quantity(THERMAL_ENERGY,name,atomic,Ecoef,atc_->accumulant_inverse_volumes());
   }
 //-----------------------------------------------------------------------------
 //* KINETIC_ENERGY 
@@ -369,7 +385,7 @@ typedef PerAtomQuantity<double> PAQ;
   {
     double Ecoef = 0.5*atc_->ke_scale();
     PAQ * atomic = per_atom_quantity("AtomicTwiceKineticEnergy");
-    return scaled_projected_atom_quantity(KINETIC_ENERGY,name,atomic,Ecoef,MASS_DENSITY,atc_->accumulant_inverse_volumes());
+    return scaled_projected_atom_quantity(KINETIC_ENERGY,name,atomic,Ecoef,atc_->accumulant_inverse_volumes());
   }
 //-----------------------------------------------------------------------------
 //* CHARGE_FLUX
@@ -378,7 +394,7 @@ typedef PerAtomQuantity<double> PAQ;
   {
 
     PAQ * atomic = per_atom_quantity("AtomicChargeVelocity");
-    return projected_atom_quantity(CHARGE_FLUX,name,atomic,MASS_DENSITY,atc_->accumulant_inverse_volumes());
+    return projected_atom_quantity(CHARGE_FLUX,name,atomic,atc_->accumulant_inverse_volumes());
   }
 //-----------------------------------------------------------------------------
 //* SPECIES_FLUX
@@ -386,8 +402,35 @@ typedef PerAtomQuantity<double> PAQ;
   DENS_MAN * FieldManager::species_flux(string name)
   {
     PAQ * atomic = per_atom_quantity("AtomicSpeciesVelocity");
-    return projected_atom_quantity(SPECIES_FLUX,name,atomic,MASS_DENSITY,atc_->accumulant_inverse_volumes());
+    return projected_atom_quantity(SPECIES_FLUX,name,atomic,atc_->accumulant_inverse_volumes());
   }
+//-----------------------------------------------------------------------------
+//* INTERNAL_ENERGY 
+//-----------------------------------------------------------------------------
+  DENS_MAN * FieldManager::internal_energy(string name)
+  {
+    if (name == "default") { name = field_to_string(INTERNAL_ENERGY); }
+    DENS_MAN * te = thermal_energy(field_to_string(THERMAL_ENERGY));
+    DENS_MAN * pe = potential_energy(field_to_string(POTENTIAL_ENERGY));
+    DenseMatrixSum * ie = new DenseMatrixSum(te,pe);
+    interscaleManager_.add_dense_matrix(ie,name);
+    return ie;
+  }
+//-----------------------------------------------------------------------------
+//* ENERGY 
+//-----------------------------------------------------------------------------
+  DENS_MAN * FieldManager::energy(string name)
+  {
+    if (name == "default") { name = field_to_string(ENERGY); }
+    DENS_MAN * ke = kinetic_energy(field_to_string(KINETIC_ENERGY));
+    DENS_MAN * pe = potential_energy(field_to_string(POTENTIAL_ENERGY));
+    DenseMatrixSum * e = new DenseMatrixSum(ke,pe);
+    interscaleManager_.add_dense_matrix(e,name);
+
+    return e;
+  }
+
+
 
 
 
@@ -479,26 +522,27 @@ typedef PerAtomQuantity<double> PAQ;
     }
     return atomic;
   }
-
-   PAQ * FieldManager::prolonged_field(FieldName field)
-   {
-     PAQ * quantity = interscaleManager_.per_atom_quantity(field_to_prolongation_name(field));
-     if (!quantity) {
-       
+  //-----------------------------------------------------------------------------
+  //* Prolonged coarse scale field
+  //-----------------------------------------------------------------------------
+  PAQ * FieldManager::prolonged_field(FieldName field)
+  {
+    PAQ * quantity = interscaleManager_.per_atom_quantity(field_to_prolongation_name(field));
+    if (!quantity) {
+      
       DENS_MAN * coarseQuantity = interscaleManager_.dense_matrix(field_to_string(field));
-       if (!coarseQuantity) coarseQuantity = nodal_atomic_field(field);
-       if (!coarseQuantity) throw ATC_Error("can not prolong quantity: " + field_to_string(field) + " no field registered");
-       if (atc_->kernel_on_the_fly()) {
-         quantity = new OnTheFlyShapeFunctionProlongation(atc_,
-                   coarseQuantity,atc_->atom_coarsegraining_positions());
-       } else {
-         quantity = new FtaShapeFunctionProlongation(atc_,
-                  coarseQuantity,atc_->interpolant());
-       }
-       interscaleManager_.add_per_atom_quantity(quantity,
-                     field_to_prolongation_name(field));
-     }
-     return quantity;
-   }
-
+      if (!coarseQuantity) coarseQuantity = nodal_atomic_field(field);
+      if (!coarseQuantity) throw ATC_Error("can not prolong quantity: " + field_to_string(field) + " no field registered");
+      if (atc_->kernel_on_the_fly()) {
+        quantity = new OnTheFlyShapeFunctionProlongation(atc_,
+          coarseQuantity,atc_->atom_coarsegraining_positions());
+      } else {
+        quantity = new FtaShapeFunctionProlongation(atc_,
+          coarseQuantity,atc_->interpolant());
+      }
+      interscaleManager_.add_per_atom_quantity(quantity,
+          field_to_prolongation_name(field));
+    }
+    return quantity;
+  }
 }

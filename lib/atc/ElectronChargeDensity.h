@@ -3,10 +3,7 @@
 
 #include <map>
 #include <string>
-
-using std::map;
-using std::string;
-
+#include <fstream>
 #include "ATC_TypeDefs.h"
 #include "Function.h"
 
@@ -46,7 +43,7 @@ namespace ATC {
   class ElectronChargeDensityInterpolation : public ElectronChargeDensity
   {
     public:
-      ElectronChargeDensityInterpolation(fstream &matfile,map<string,double> & parameters);
+      ElectronChargeDensityInterpolation(std::fstream &matfile,std::map<std::string,double> & parameters);
       virtual ~ElectronChargeDensityInterpolation() {};
       virtual bool electron_charge_density(const FIELD_MATS &fields,
                                            DENS_MAT &flux) const
@@ -87,7 +84,7 @@ namespace ATC {
   class ElectronChargeDensityLinear : public ElectronChargeDensity
   {
     public:
-      ElectronChargeDensityLinear(fstream &matfile,map<string,double> & parameters);
+      ElectronChargeDensityLinear(std::fstream &matfile,std::map<std::string,double> & parameters);
       virtual ~ElectronChargeDensityLinear() {};
       virtual bool electron_charge_density(const FIELD_MATS &fields,
                                            DENS_MAT &flux) const
@@ -119,7 +116,7 @@ namespace ATC {
   class ElectronChargeDensityExponential : public ElectronChargeDensity
   {
     public:
-      ElectronChargeDensityExponential(fstream &matfile,map<string,double> & parameters);
+      ElectronChargeDensityExponential(std::fstream &matfile,std::map<std::string,double> & parameters);
       virtual ~ElectronChargeDensityExponential() {};
 
       double n(const double phi, double T)  const
@@ -190,7 +187,7 @@ namespace ATC {
   class ElectronChargeDensityFermiDirac : public ElectronChargeDensity
   {
     public:
-      ElectronChargeDensityFermiDirac(fstream &matfile,map<string,double> & parameters);
+      ElectronChargeDensityFermiDirac(std::fstream &matfile,std::map<std::string,double> & parameters);
       virtual ~ElectronChargeDensityFermiDirac() {};
       double fermi_dirac(const double E, const double T) const
       {

@@ -1,10 +1,11 @@
 #ifndef CONCENTRATION_REGULATOR_H
 #define CONCENTRATION_REGULATOR_H
 
-// ATC headers
+#include <map>
+#include <string>
+
 #include "AtomicRegulator.h"
 #include "LammpsInterface.h"
-
 
 namespace ATC {
 
@@ -41,7 +42,7 @@ namespace ATC {
       double maxEnergy;
       int maxExchanges;
       int maxAttempts;
-      string transitionTag;
+      std::string transitionTag;
       ESET elemset; 
     };
 
@@ -87,8 +88,8 @@ namespace ATC {
 
   protected:
     /** registry charge regulators */
-    map<string,ConcentrationRegulatorMethod *> regulators_;
-    map<string,ConcentrationRegulatorParameters> parameters_;
+    std::map<std::string,ConcentrationRegulatorMethod *> regulators_;
+    std::map<std::string,ConcentrationRegulatorParameters> parameters_;
 
   private:
     ConcentrationRegulator(); // DO NOT define this

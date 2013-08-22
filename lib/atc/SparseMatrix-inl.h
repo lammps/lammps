@@ -73,7 +73,7 @@ void SparseMatrix<T>::_create(INDEX size, INDEX nrows)
   }
   catch (std::exception &e)
   {
-    cout << "Could not allocate SparseMatrix of "<< _size << " nonzeros.\n";
+    std::cout << "Could not allocate SparseMatrix of "<< _size << " nonzeros.\n";
     ERROR_FOR_BACKTRACE
       exit(EXIT_FAILURE);
   }
@@ -89,7 +89,7 @@ template<typename T>
 void SparseMatrix<T>::_delete()
 {
   
-  vector<TRI_COORD<T> >().swap(_tri); // completely deletes _tri
+  std::vector<TRI_COORD<T> >().swap(_tri); // completely deletes _tri
   if (_val) delete [] _val;
   if (_ia)  delete [] _ia;
   if (_ja)  delete [] _ja;
@@ -139,7 +139,7 @@ void SparseMatrix<T>::_set_equal(const Matrix<T> &r)
   else if (dynamic_cast<const DenseMatrix<T>*>(ptr_r))  this->reset(r);
   else
   { 
-    cout <<"Error in general sparse matrix assignment\n";
+    std::cout <<"Error in general sparse matrix assignment\n";
     exit(1);
   }
 } 
@@ -332,7 +332,7 @@ void SparseMatrix<T>::compress()
         nextCRS = TRI_COORD<T>(crs_row, _ja[crs_pt], _val[crs_pt]);
       }
     }
-    else cout << "SparseMatrix - Error in compressing CRS\n";
+    else std::cout << "SparseMatrix - Error in compressing CRS\n";
 
     // Add next to the new CRS structure.
     // Is this a new row (is j>0 and is ja[j] == 0)?
@@ -361,7 +361,7 @@ INDEX SparseMatrix<T>::CountUniqueTriplets()
   std::sort(_tri.begin(), _tri.end(), triplet_comparision<T>);
   INDEX nUnique=1 + _size;
   
-  typename vector<TRI_COORD<T> >::reverse_iterator t;  
+  typename std::vector<TRI_COORD<T> >::reverse_iterator t;  
   // Loop backwards over all new triplets.
   for (t = _tri.rbegin(); t+1!=_tri.rend();  ++t) {
     // If this triplet is the same as the preceding one.
@@ -440,7 +440,7 @@ T& SparseMatrix<T>::operator()(INDEX i, INDEX j)
   // NEVER use index operator as LHS to modify values not already in the
   // sparcity pattern - the crude check below will only catch this on the 
   // second infraction.
-  if (_zero != T(0)) cout << "Use add or set for SparseMatrix\n";
+  if (_zero != T(0)) std::cout << "Use add or set for SparseMatrix\n";
   return _zero;
 }
 //-----------------------------------------------------------------------------
@@ -547,7 +547,7 @@ void SparseMatrix<T>::reset(const DenseMatrix<T>& D, double TOL)
 template<typename T>
 void SparseMatrix<T>::copy(const T * ptr, INDEX rows, INDEX cols)
 {
-  cout << "SparseMatrix<T>::copy() has no effect.\n";
+  std::cout << "SparseMatrix<T>::copy() has no effect.\n";
   throw;
 }
 //-----------------------------------------------------------------------------
@@ -884,10 +884,10 @@ DiagonalMatrix<T> SparseMatrix<T>::row_sum_lump() const
 // output function - builds a string with each nonzero triplet value
 //-----------------------------------------------------------------------------
 template<typename T>
-string SparseMatrix<T>::to_string() const 
+std::string SparseMatrix<T>::to_string() const 
 {
   compress(*this);
-  string out;  
+  std::string out;  
   INDEX i, ij;
   for(i=0; i<_nRowsCRS; i++)
   {
@@ -931,18 +931,18 @@ T SparseMatrix<T>::row_min(INDEX row) const
 // prints a histogram of the values of a row to the screen
 //-----------------------------------------------------------------------------
 template<typename T>
-void SparseMatrix<T>::print_row_histogram(const string &name, INDEX nbins) const 
+void SparseMatrix<T>::print_row_histogram(const std::string &name, INDEX nbins) const 
 {
   compress(*this);
-  cout << "Begin histogram " << name << "\n";
-  cout << "#  rows: " << _nRows << " columns: " << _nCols 
+  std::cout << "Begin histogram " << name << "\n";
+  std::cout << "#  rows: " << _nRows << " columns: " << _nCols 
        << " size:  " << _size << "\n";
   for(INDEX i=0; i<_nRows; i++) 
   {
     print_row_histogram(i, nbins);
-    cout << "\n";
+    std::cout << "\n";
   }
-  cout << "End histogram " << name << "\n";
+  std::cout << "End histogram " << name << "\n";
 }
 //-----------------------------------------------------------------------------
 // prints a histogram of the values of a row to the screen
@@ -952,7 +952,7 @@ void SparseMatrix<T>::print_row_histogram(INDEX row, INDEX nbins) const
 {
   compress(*this);
   if (!nbins) nbins++;
-  vector<INDEX> counts(nbins, 0);
+  std::vector<INDEX> counts(nbins, 0);
   const T min = row_min(row);
   const T max = row_max(row);
   const T range = max-min;
@@ -966,14 +966,14 @@ void SparseMatrix<T>::print_row_histogram(INDEX row, INDEX nbins) const
       counts[bin-(bin==nbins)]++;
     }
   }
-  cout<<showbase<<scientific;
-  cout<<"# Histogram: row "<<row<<" min "<<min<<" max "<<max<<" cnt " <<RowSize(row)<<"\n";
+  std::cout<<std::showbase<<std::scientific;
+  std::cout<<"# Histogram: row "<<row<<" min "<<min<<" max "<<max<<" cnt " <<RowSize(row)<<"\n";
   T bin_start = min;
   for(INDEX i=0; i<nbins; i++) 
   {
-    cout << "(" << bin_start << ",";
+    std::cout << "(" << bin_start << ",";
     bin_start += bin_size;
-    cout << bin_start << ") " << counts[i] << "\n";
+    std::cout << bin_start << ") " << counts[i] << "\n";
   }
 }
 //-----------------------------------------------------------------------------
@@ -982,8 +982,8 @@ void SparseMatrix<T>::print_row_histogram(INDEX row, INDEX nbins) const
 template<typename T>
 void SparseMatrix<T>::print_triplets() const 
 {
-  typename vector<TRI_COORD<T> >::const_iterator t;
-  string out;
+  typename std::vector<TRI_COORD<T> >::const_iterator t;
+  std::string out;
   out += "==================BEGIN TRIPLETS=======================\n";
   // Loop backwards over all new triplets.
   for (t = _tri.begin(); t!=_tri.end();  ++t) {
@@ -993,18 +993,18 @@ void SparseMatrix<T>::print_triplets() const
     out += "\n";
   }
   out += "===================END TRIPLETS========================\n";
-  cout << out;
+  std::cout << out;
 }
 //-----------------------------------------------------------------------------
 // Outputs a string to a sparse Matlab type
 //-----------------------------------------------------------------------------
 template<typename T>
-void SparseMatrix<T>::matlab(ostream &o, const string &s) const 
+void SparseMatrix<T>::matlab(std::ostream &o, const std::string &s) const 
 {
   compress(*this);
   INDEX i, ij;
   o << s <<" = sparse(" << nRows() << "," << nCols() << ");\n";
-  o << showbase << scientific;
+  o << std::showbase << std::scientific;
   for(i=0; i<_nRowsCRS; i++) 
     for(ij=_ia[i]; ij<_ia[i+1]; ij++)
       o<<s<<"("<<i+1<<","<<_ja[ij]+1<<")="<<_val[ij]<<";\n";

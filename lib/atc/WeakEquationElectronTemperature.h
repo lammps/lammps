@@ -1,6 +1,9 @@
 #ifndef WEAK_EQUATION_ELECTRON_TEMPERATURE_H
 #define WEAK_EQUATION_ELECTRON_TEMPERATURE_H
 
+#include <set>
+#include <string>
+
 #include "WeakEquation.h"
 
 namespace ATC{
@@ -50,13 +53,13 @@ class WeakEquationElectronTemperature : public WeakEquation {
                            DENS_MAT &flux) const ;
 
   /** necessary interfaces */
-  virtual set<string> needs_material_functions(void) const
+  virtual std::set<std::string> needs_material_functions(void) const
   {
-    string list[4] = {"electron_thermal_energy",
+    std::string list[4] = {"electron_thermal_energy",
                       "electron_heat_capacity",
                       "electron_phonon_exchange",
                       "electron_heat_flux"};
-    set<string> needs(list,list+4);
+    std::set<std::string> needs(list,list+4);
     return needs;
   }
 
@@ -108,9 +111,9 @@ class WeakEquationElectronTemperatureJouleHeating :
                            DENS_MAT &flux) const;
 
   /** necessary interfaces */
-  virtual set<string> needs_material_functions(void) const
+  virtual std::set<std::string> needs_material_functions(void) const
   {
-    set<string> needs 
+    std::set<std::string> needs 
       = WeakEquationElectronTemperature::needs_material_functions();
     needs.insert("electric_field");
     return needs;
@@ -158,9 +161,9 @@ class WeakEquationElectronTemperatureConvection :
                            DENS_MAT &flux) const;
 
   /** necessary interfaces */
-  virtual set<string> needs_material_functions(void) const
+  virtual std::set<std::string> needs_material_functions(void) const
   {
-    set<string> needs 
+    std::set<std::string> needs 
       = WeakEquationElectronTemperature::needs_material_functions();
     needs.insert("electron_drag_power");
     return needs;

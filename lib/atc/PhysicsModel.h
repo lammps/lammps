@@ -2,6 +2,8 @@
 #define PHYSICS_MODEL_H
 
 #include <map>
+#include <vector>
+#include <string>
 #include "Array2D.h"
 #include "MatrixLibrary.h"
 #include "ATC_Error.h"
@@ -10,9 +12,6 @@
 #include "NonLinearSolver.h"
 #include "ATC_TypeDefs.h"
 #include "Utility.h"
-
-using namespace std;
-using namespace ATC_Utility;
 
 namespace ATC 
 {
@@ -36,13 +35,13 @@ namespace ATC
   public:
 
     // constructor 
-    PhysicsModel(string fileName);
+    PhysicsModel(std::string fileName);
 
     // destructor
     virtual ~PhysicsModel();
 
     /** parse material file */
-    void parse_material_file(string fileName);
+    void parse_material_file(std::string fileName);
 
     /** initialize */
     void initialize(void); 
@@ -54,22 +53,22 @@ namespace ATC
     int nMaterials(void) const { return materials_.size(); }
 
     /** access material index from name */
-    int material_index(const string & name) const;
+    int material_index(const std::string & name) const;
 
     /** access material from index */
     const Material * material(const int index) const {return materials_[index];}
 
     /** access to parameter values */
-    bool parameter_value(const string& name, double& value, 
+    bool parameter_value(const std::string& name, double& value, 
                          const int imat = 0) const ;
 
     /** return fields ids and length */
-    void num_fields(map<FieldName,int> & fieldSizes, 
+    void num_fields(std::map<FieldName,int> & fieldSizes, 
                         Array2D<bool> & rhsMask) const;
 
     /** is the material model linear */
     bool is_linear(FieldName name) const { 
-      vector< Material* >::const_iterator iter;
+      std::vector< Material* >::const_iterator iter;
       for (iter = materials_.begin(); iter != materials_.end(); iter++) {
         Material * mat = *iter;
         bool linear = mat->linear_flux(name) 
@@ -82,7 +81,7 @@ namespace ATC
 
     /** is rhs linear */
     bool has_linear_rhs(FieldName name) const { 
-      vector< Material* >::const_iterator iter;
+      std::vector< Material* >::const_iterator iter;
       for (iter = materials_.begin(); iter != materials_.end(); iter++) {
         Material * mat = *iter;
         bool constant = mat->linear_flux(name) && mat->linear_source(name);
@@ -93,7 +92,7 @@ namespace ATC
 
     /** is mass matrix constant */
     bool has_constant_mass(FieldName name) const { 
-      vector< Material* >::const_iterator iter;
+      std::vector< Material* >::const_iterator iter;
       for (iter = materials_.begin(); iter != materials_.end(); iter++) {
         Material * mat = *iter;
         bool constant = mat->constant_density(name);
@@ -105,7 +104,7 @@ namespace ATC
     /** access to weak equations */
     const WeakEquation * weak_equation(FieldName field) const
     { 
-      map<FieldName,WeakEquation *>::const_iterator itr = weakEqns_.find(field);
+      std::map<FieldName,WeakEquation *>::const_iterator itr = weakEqns_.find(field);
       if (itr == weakEqns_.end()) return NULL;
       return (weakEqns_.find(field))->second;
     }
@@ -124,20 +123,20 @@ namespace ATC
 
   protected:
     /** parameter values */
-    map<string, double> parameterValues_;
+    std::map<std::string, double> parameterValues_;
 
     /** material models */
-    vector<Material *> materials_; 
-    map<string,int> materialNameToIndexMap_;// maps tag to index
+    std::vector<Material *> materials_; 
+    std::map<std::string,int> materialNameToIndexMap_;// maps tag to index
 
     /** weak equations */
-    map<FieldName,WeakEquation *> weakEqns_;
+    std::map<FieldName,WeakEquation *> weakEqns_;
 
     /** null weak equations per material */
     Array2D<int> null_;
 
     /** type tag */
-    string type_;
+    std::string type_;
   };
 
 
@@ -151,7 +150,7 @@ namespace ATC
   class PhysicsModelThermal : public PhysicsModel
   {
   public: 
-    PhysicsModelThermal(string filename);
+    PhysicsModelThermal(std::string filename);
   };
   //-------------------------------------------------------------------
   // @class   PhysicsModelElastic
@@ -159,7 +158,7 @@ namespace ATC
   class PhysicsModelElastic : public PhysicsModel
   {
   public: 
-    PhysicsModelElastic(string filename);
+    PhysicsModelElastic(std::string filename);
   };
   //-------------------------------------------------------------------
   // @class   PhysicsModelThemoMechanical
@@ -167,7 +166,7 @@ namespace ATC
   class PhysicsModelThermoElastic : public PhysicsModel
   {
   public: 
-    PhysicsModelThermoElastic(string filename);
+    PhysicsModelThermoElastic(std::string filename);
   };
   
   //-------------------------------------------------------------------
@@ -176,7 +175,7 @@ namespace ATC
   class PhysicsModelShear : public PhysicsModel
   {
   public: 
-    PhysicsModelShear(string filename);
+    PhysicsModelShear(std::string filename);
   };
   //-------------------------------------------------------------------
   // @class   PhysicsModelThemoShear
@@ -184,7 +183,7 @@ namespace ATC
   class PhysicsModelThermoShear : public PhysicsModel
   {
   public: 
-    PhysicsModelThermoShear(string filename);
+    PhysicsModelThermoShear(std::string filename);
   };
   //-------------------------------------------------------------------
   // @class   PhysicsModelSpecies
@@ -192,7 +191,7 @@ namespace ATC
   class PhysicsModelSpecies : public PhysicsModel
   {
   public: 
-    PhysicsModelSpecies(string filename);
+    PhysicsModelSpecies(std::string filename);
   };
   //-------------------------------------------------------------------
   // @class   PhysicsModelTwoTemperature
@@ -200,7 +199,7 @@ namespace ATC
   class PhysicsModelTwoTemperature : public PhysicsModel
   {
   public: 
-    PhysicsModelTwoTemperature(string filename);
+    PhysicsModelTwoTemperature(std::string filename);
   };
   //-------------------------------------------------------------------
   // @class   PhysicsModelDriftDiffusion
@@ -208,7 +207,7 @@ namespace ATC
   class PhysicsModelDriftDiffusion : public PhysicsModel
   {
   public: 
-    PhysicsModelDriftDiffusion(string filename);
+    PhysicsModelDriftDiffusion(std::string filename);
   };
   //-------------------------------------------------------------------
   // @class   PhysicsModelDriftDiffusionEquilibrium
@@ -216,7 +215,7 @@ namespace ATC
   class PhysicsModelDriftDiffusionEquilibrium : public PhysicsModel
   {
   public: 
-    PhysicsModelDriftDiffusionEquilibrium(string filename);
+    PhysicsModelDriftDiffusionEquilibrium(std::string filename);
   };
   //-------------------------------------------------------------------
   // @class   PhysicsModelDriftDiffusionSchrodinger
@@ -224,7 +223,7 @@ namespace ATC
   class PhysicsModelDriftDiffusionSchrodinger : public PhysicsModel
   {
   public: 
-    PhysicsModelDriftDiffusionSchrodinger(string filename);
+    PhysicsModelDriftDiffusionSchrodinger(std::string filename);
   };
   //-------------------------------------------------------------------
   // @class   PhysicsModelDriftDiffusionConvection
@@ -232,7 +231,7 @@ namespace ATC
   class PhysicsModelDriftDiffusionConvection : public PhysicsModel
   {
   public: 
-    PhysicsModelDriftDiffusionConvection(string filename);
+    PhysicsModelDriftDiffusionConvection(std::string filename);
   };
   //-------------------------------------------------------------------
   // @class   PhysicsModelDriftDiffusionEquilibrium
@@ -240,7 +239,7 @@ namespace ATC
   class PhysicsModelDriftDiffusionConvectionEquilibrium : public PhysicsModel
   {
   public: 
-    PhysicsModelDriftDiffusionConvectionEquilibrium(string filename);
+    PhysicsModelDriftDiffusionConvectionEquilibrium(std::string filename);
   };
   //-------------------------------------------------------------------
   // @class   PhysicsModelDriftDiffusionSchrodinger
@@ -248,7 +247,7 @@ namespace ATC
   class PhysicsModelDriftDiffusionConvectionSchrodinger : public PhysicsModel
   {
   public: 
-    PhysicsModelDriftDiffusionConvectionSchrodinger(string filename);
+    PhysicsModelDriftDiffusionConvectionSchrodinger(std::string filename);
   };
   //-------------------------------------------------------------------
   // @class   PhysicsModelDriftDiffusionSchrodingerSlice
@@ -256,7 +255,7 @@ namespace ATC
   class PhysicsModelDriftDiffusionSchrodingerSlice : public PhysicsModel
   {
   public: 
-    PhysicsModelDriftDiffusionSchrodingerSlice(string filename);
+    PhysicsModelDriftDiffusionSchrodingerSlice(std::string filename);
   };
   //-------------------------------------------------------------------
   // @class   PhysicsModelElectrostatic
@@ -264,7 +263,7 @@ namespace ATC
   class PhysicsModelElectrostatic : public PhysicsModel
   {
   public: 
-    PhysicsModelElectrostatic(string filename);
+    PhysicsModelElectrostatic(std::string filename);
   };
   //-------------------------------------------------------------------
   // @class   PhysicsModelElectrostaticEquilibrium
@@ -272,7 +271,7 @@ namespace ATC
   class PhysicsModelElectrostaticEquilibrium : public PhysicsModel
   {
   public: 
-    PhysicsModelElectrostaticEquilibrium(string filename);
+    PhysicsModelElectrostaticEquilibrium(std::string filename);
   };
   //-------------------------------------------------------------------
   // @class   PhysicsModelElectrostatic
@@ -280,7 +279,7 @@ namespace ATC
   class PhysicsModelSpeciesElectrostatic : public PhysicsModel
   {
   public: 
-    PhysicsModelSpeciesElectrostatic(string filename);
+    PhysicsModelSpeciesElectrostatic(std::string filename);
   };
   //-------------------------------------------------------------------
   // @class PhysicsModelTangentOperator

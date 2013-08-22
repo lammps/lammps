@@ -1,7 +1,10 @@
 #include "MPI_Wrappers.h"
 #include "Utility.h"
 using ATC_Utility::to_string;
+#include "ATC_Error.h"
+using ATC::ATC_Error;
 using std::cout;
+using std::string;
 #ifdef ISOLATE_FE
 #include "Matrix.h"
 using ATC_Matrix::SparseMatrix;

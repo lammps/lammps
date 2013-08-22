@@ -9,7 +9,7 @@
 #include "ElasticTimeIntegrator.h"
 
 // Other headers
-#include <map>
+#include <string>
 
 namespace ATC {
 
@@ -54,14 +54,14 @@ namespace ATC {
 
     /** post time integration */
     virtual void finish();
+#ifdef OBSOLETE
+    
 
-    /** first time, before atomic integration */
-    virtual void pre_init_integrate();
     /** first time, after atomic velocity but before position integration */
     virtual void mid_init_integrate();
     /** first time, after atomic integration */
     virtual void post_init_integrate();
-
+#endif
     /** second time, before atomic integration */
     virtual void pre_final_integrate();
     /** second time, after atomic integration */
@@ -98,17 +98,6 @@ namespace ATC {
     /** set up data which is dependency managed */
     virtual void construct_transfers();
 
-    // ghost atom routines
-    /** set ghost function positions based on FE state */
-    virtual void set_ghost_atoms();
-    /** analagous to FixATC initial_integrate applied to ghosts */
-    void initial_integrate_ghost();
-    /** analagous to FixATC final_integrate applied to ghosts */
-    void final_integrate_ghost();
-    /** forces on dynamic ghosts */
-    void add_ghost_forces();
-    void apply_ghost_forces();
-
     /** adds resetting of any kinetostat arrays associated with local atom count */
     virtual void reset_nlocal();
 
@@ -129,13 +118,9 @@ namespace ATC {
     Array2D<bool> velocityMask_;
 
     // Add in fields for restarting
-    virtual void  read_restart_data(string fileName_, RESTART_LIST & data);
-    virtual void write_restart_data(string fileName_, RESTART_LIST & data);
+    virtual void  read_restart_data(std::string fileName_, RESTART_LIST & data);
+    virtual void write_restart_data(std::string fileName_, RESTART_LIST & data);
     void pack_elastic_fields(RESTART_LIST & data);
-
-    // boundary dynamics 
-    BoundaryDynamicsType boundaryDynamics_;
-    double gamma_, mu_, kappa_;
 
     // data
     double refPE_;

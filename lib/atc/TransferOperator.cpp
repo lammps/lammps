@@ -72,8 +72,9 @@ namespace ATC {
   //  Constructor
   //--------------------------------------------------------
   FeToAtomTransfer::FeToAtomTransfer(ATC_Method * atc,
-                                     DENS_MAN * source) :
-    ProtectedAtomQuantity<double>(atc,source->nCols()),
+                                     DENS_MAN * source,
+                                     AtomType atomType) :
+    ProtectedAtomQuantity<double>(atc,source->nCols(),atomType),
     source_(source)
   {
     source_->register_dependence(this);
@@ -378,11 +379,12 @@ namespace ATC {
   AtfProjectionReferenced::AtfProjectionReferenced(ATC_Method * atc,
                                PerAtomQuantity<double> * source,
                                SPAR_MAN * accumulant,
-                               const DENS_MAT * reference,
+                               DENS_MAN * reference,
                                DIAG_MAN * weights) :
       AtfProjection(atc,source,accumulant,weights),
       reference_(reference)
   {
+    if(reference_) reference_->register_dependence(this);
   }
 
   //--------------------------------------------------------
@@ -390,6 +392,7 @@ namespace ATC {
   //--------------------------------------------------------
   AtfProjectionReferenced::~AtfProjectionReferenced()
   {
+    if(reference_) reference_->remove_dependence(this);
   }
 
   //--------------------------------------------------------
@@ -398,7 +401,7 @@ namespace ATC {
   void AtfProjectionReferenced::reset_quantity() const
   {
     global_restriction();
-    quantity_ -= *reference_;
+    quantity_ -= (reference_->quantity());
   }
 
   //--------------------------------------------------------
@@ -743,12 +746,13 @@ namespace ATC {
   //  Constructor
   //--------------------------------------------------------
   AtfShapeFunctionMdProjectionReferenced::AtfShapeFunctionMdProjectionReferenced(ATC_Method * atc,
-                                                                                 DENS_MAN * source,
-                                                                                 const DENS_MAT * reference,
-                                                                                 FieldName thisField) :
+    DENS_MAN * source,
+    DENS_MAN * reference,
+    FieldName thisField) :
     AtfShapeFunctionMdProjection(atc,source,thisField),
     reference_(reference)
   {
+    reference_->register_dependence(this);
   }
 
   //--------------------------------------------------------
@@ -756,6 +760,7 @@ namespace ATC {
   //--------------------------------------------------------
   AtfShapeFunctionMdProjectionReferenced::~AtfShapeFunctionMdProjectionReferenced()
   {
+    reference_->remove_dependence(this);
   }
 
   //--------------------------------------------------------
@@ -764,7 +769,7 @@ namespace ATC {
   void AtfShapeFunctionMdProjectionReferenced::reset_quantity() const
   {
     quantity_ = source_->quantity();
-    quantity_ -= *reference_;
+    quantity_ -= reference_->quantity();
     atc_->apply_inverse_md_mass_matrix(quantity_,thisField_);
   }
 
@@ -779,8 +784,9 @@ namespace ATC {
   //--------------------------------------------------------
   FtaShapeFunctionProlongation::FtaShapeFunctionProlongation(ATC_Method * atc,
                                                              DENS_MAN * source,
-                                                             SPAR_MAN * shapeFunction) :
-    FeToAtomTransfer(atc,source),
+                                                             SPAR_MAN * shapeFunction,
+                                                             AtomType atomType) :
+    FeToAtomTransfer(atc,source,atomType),
     shapeFunction_(shapeFunction)
   {
     shapeFunction_->register_dependence(this);

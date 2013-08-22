@@ -17,10 +17,6 @@
 #define HACK(l,m)
 
 
-
-
-
-
 namespace ATC {
   /**
    *  @class  ATC_Error

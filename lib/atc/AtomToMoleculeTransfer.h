@@ -3,12 +3,12 @@
 #ifndef ATOM_TO_MOLECULE_TRANSFER_H
 #define ATOM_TO_MOLECULE_TRANSFER_H
 
+#include <set>
+
 // ATC_Method headers
 #include "TransferOperator.h"
 #include "MoleculeSet.h"
 #include "PaqAtcUtility.h"
-
-using namespace std;
 
 namespace ATC {
 
@@ -76,8 +76,8 @@ namespace ATC {
     int nLocalMol = smallMoleculeSet_->local_molecule_count();
     (this->quantity_).reset(nLocalMol,sourceMatrix.nCols()); 
     for (int i = 0;  i < nLocalMol ; i++) {
-      const set<int> & atomsLocalMolArray =  smallMoleculeSet_->atoms_by_local_molecule(i);
-      set<int>::const_iterator atomsLocalMolID;
+      const std::set<int> & atomsLocalMolArray =  smallMoleculeSet_->atoms_by_local_molecule(i);
+      std::set<int>::const_iterator atomsLocalMolID;
       for (atomsLocalMolID = atomsLocalMolArray.begin(); atomsLocalMolID!= atomsLocalMolArray.end();atomsLocalMolID++) {
         for (int j = 0; j < sourceMatrix.nCols(); j++){
           (this->quantity_)(i,j) += sourceMatrix(*atomsLocalMolID,j);

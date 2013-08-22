@@ -81,7 +81,7 @@ public:
   // output to matlab (is this needed)
 //  using Matrix<T>::matlab;
   //* Writes a matlab string to a stream that creates this object with a name.
-  void matlab(ostream &o, const string &s="v") const;
+  void matlab(std::ostream &o, const std::string &s="v") const;
 
 protected:
   //* Banned operators

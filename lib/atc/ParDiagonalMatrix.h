@@ -7,8 +7,6 @@
 #include "DiagonalMatrix.h"
 #include "DenseMatrix.h"
 
-using namespace MPI_Wrappers;
-
 namespace ATC_matrix {
 
   /**

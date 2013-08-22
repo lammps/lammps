@@ -1,17 +1,102 @@
 #ifndef TIME_INTEGRATOR_H
 #define TIME_INTEGRATOR_H
 
-// ATC headers
 #include "MatrixLibrary.h"
 #include "TimeFilter.h"
 #include "ATC_TypeDefs.h"
 
-using namespace std;
 namespace ATC {
 
   // forward declarations
+  class ATC_Method;
   class ATC_Coupling;
   class TimeIntegrationMethod;
+
+  /**
+   *  @class  AtomTimeIntegrator
+   *  @brief  Base class for various time integrators for atomic quantities (replacing other lammps fixes)
+   */
+
+  class AtomTimeIntegrator {
+  
+  public:
+
+    // constructor
+    AtomTimeIntegrator(){};
+
+    // destructor
+    virtual ~AtomTimeIntegrator(){};
+
+    /** create and get necessary transfer operators */
+    virtual void construct_transfers(){};
+        
+   /** Predictor phase, Verlet first step for velocity */
+    virtual void init_integrate_velocity(double dt){};
+
+    /** Predictor phase, Verlet first step for position */
+    virtual void init_integrate_position(double dt){};
+
+    /** Corrector phase, Verlet second step for velocity */
+    virtual void final_integrate(double dt){};
+
+  };
+
+  /**
+   *  @class  AtomTimeIntegratorType
+   *  @brief  class for applying velocity-verlet based on atom type
+   */
+
+  class AtomTimeIntegratorType : public AtomTimeIntegrator {
+  
+  public:
+
+    // constructor
+    AtomTimeIntegratorType(ATC_Method * atc, AtomType atomType);
+
+    // destructor
+    virtual ~AtomTimeIntegratorType(){};
+
+    /** create and get necessary transfer operators */
+    virtual void construct_transfers();
+        
+   /** Predictor phase, Verlet first step for velocity */
+    virtual void init_integrate_velocity(double dt);
+
+    /** Predictor phase, Verlet first step for position */
+    virtual void init_integrate_position(double dt);
+
+    /** Corrector phase, Verlet second step for velocity */
+    virtual void final_integrate(double dt);
+
+  protected:
+
+    /** pointer to atc object */
+    ATC_Method * atc_;
+
+    /** atom type this is applied to */
+    AtomType atomType_;
+
+    /** atomic masses */
+    DENS_MAN * mass_;
+
+    /** atomic positions */
+    DENS_MAN * position_;
+
+    /** atomic velocities */
+    DENS_MAN * velocity_;
+
+    /** atomic forces */
+    DENS_MAN * force_;
+
+    // workspace
+    DENS_MAT _deltaQuantity_;
+
+  private:
+
+    // DO NOT define this
+    AtomTimeIntegratorType();
+
+  };
 
   /**
    *  @class  TimeIntegrator

@@ -1,13 +1,11 @@
 #ifndef THERMOSTAT_H
 #define THERMOSTAT_H
 
-// ATC headers
 #include "AtomicRegulator.h"
 #include "PerAtomQuantityLibrary.h"
-
-// other headers
 #include <map>
 #include <set>
+#include <string>
 
 namespace ATC {
 
@@ -29,7 +27,7 @@ namespace ATC {
 
     // constructor
     Thermostat(ATC_Coupling * atc,
-               const string & regulatorPrefix = "");
+               const std::string & regulatorPrefix = "");
         
     // destructor
     virtual ~Thermostat(){};
@@ -51,9 +49,9 @@ namespace ATC {
 
     // data regarding fixed nodes and applied fluxes
     /** set of all fixed nodes */
-    set<int> fixedNodes_;
+    std::set<int> fixedNodes_;
     /** set of all nodes which have a flux applied */
-    set<int> fluxNodes_;
+    std::set<int> fluxNodes_;
 
     /** maximum number of iterations used in iterative solve for lambda */
     int lambdaMaxIterations_;
@@ -77,7 +75,7 @@ namespace ATC {
   public:
   
     ThermostatShapeFunction(Thermostat * thermostat,
-                            const string & regulatorPrefix = "");
+                            const std::string & regulatorPrefix = "");
         
     virtual ~ThermostatShapeFunction() {};
 
@@ -208,7 +206,7 @@ namespace ATC {
   public:
   
     ThermostatGlcFs(Thermostat * thermostat,
-                    const string & regulatorPrefix = "");
+                    const std::string & regulatorPrefix = "");
         
     virtual ~ThermostatGlcFs() {};
 
@@ -342,7 +340,7 @@ namespace ATC {
   public:
   
     ThermostatFlux(Thermostat * thermostat,
-                   const string & regulatorPrefix = "");
+                   const std::string & regulatorPrefix = "");
         
     virtual ~ThermostatFlux() {};
 
@@ -387,7 +385,7 @@ namespace ATC {
   public:
   
     ThermostatFixed(Thermostat * thermostat,
-                    const string & regulatorPrefix = "");
+                    const std::string & regulatorPrefix = "");
         
     virtual ~ThermostatFixed() {};
 
@@ -487,7 +485,7 @@ namespace ATC {
   public:
   
     ThermostatFluxFiltered(Thermostat * thermostat,
-                           const string & regulatorPrefix = "");
+                           const std::string & regulatorPrefix = "");
         
     virtual ~ThermostatFluxFiltered() {};
 
@@ -535,7 +533,7 @@ namespace ATC {
   public:
   
     ThermostatFixedFiltered(Thermostat * thermostat,
-                            const string & regulatorPrefix = "");
+                            const std::string & regulatorPrefix = "");
         
     virtual ~ThermostatFixedFiltered() {};
 

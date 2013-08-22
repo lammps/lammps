@@ -2,8 +2,10 @@
 #define ATC_TYPEDEFS_H
 
 #include <set>
-using std::pair;
-using std::set;
+#include <vector>
+#include <map>
+#include <utility>
+#include <string>
 
 #ifdef NEW_LAMMPS
 #include "lmptype.h"
@@ -11,8 +13,6 @@ using std::set;
 
 #include "Array.h"
 #include "Array2D.h"
-
-using namespace ATC_matrix;
 
 #include "MatrixLibrary.h"
 #include "DependencyManager.h"
@@ -122,6 +122,7 @@ namespace ATC
       THERMAL_ENERGY,
       KINETIC_ENERGY,
       STRESS,
+      KINETIC_STRESS,
       HEAT_FLUX,
       CHARGE_FLUX,
       SPECIES_FLUX,
@@ -168,6 +169,7 @@ namespace ATC
     1, // THERMAL_ENERGY
     1, // KINETIC_ENERGY
     NDIM*NDIM, // STRESS
+    NDIM*NDIM, // KINETIC_STRESS
     NDIM, // HEAT_FLUX
     NDIM, // CHARGE_FLUX
     0, // SPECIES_FLUX - VARIABLE
@@ -190,17 +192,23 @@ namespace ATC
     NDIM*NDIM //  DISLOCATION_DENSITY
   };
 
-  enum hardyNormalization { 
+  enum NodalAtomicFieldNormalization { 
     NO_NORMALIZATION=0,
-    VOLUME_NORMALIZATION, NUMBER_NORMALIZATION, MASS_NORMALIZATION
+    VOLUME_NORMALIZATION, NUMBER_NORMALIZATION, MASS_NORMALIZATION,
+    MASS_MATRIX
   };
+
+  inline FieldName use_mass_matrix(FieldName in) {
+    if (in == TEMPERATURE) return in;
+    else                   return MASS_DENSITY;
+  }
 
   /** enums for FE Element and Interpolate classes */
   enum FeEltGeometry   {HEXA, TETRA};
   enum FeIntQuadrature {NODAL, GAUSS1, GAUSS2, GAUSS3, FACE};
 
   /** field name enum to string */
-  inline FeIntQuadrature string_to_FIQ(const string &str) 
+  inline FeIntQuadrature string_to_FIQ(const std::string &str) 
   {
     if (str == "nodal")
       return NODAL;
@@ -217,7 +225,7 @@ namespace ATC
   }
 
   /** field name enum to string */
-  inline string field_to_string(const FieldName index) 
+  inline std::string field_to_string(const FieldName index) 
   {
     switch (index) {
     case TEMPERATURE:
@@ -258,6 +266,8 @@ namespace ATC
       return "kinetic_energy";
     case STRESS:
       return "stress";
+    case KINETIC_STRESS:
+      return "kinetic_stress";
     case ESHELBY_STRESS:
       return "eshelby_stress";
     case CAUCHY_BORN_STRESS:
@@ -302,7 +312,7 @@ namespace ATC
   };
 
   /** string to field enum */
-  inline FieldName string_to_field(const string & name) 
+  inline FieldName string_to_field(const std::string & name) 
   {
     if      (name=="temperature")
       return TEMPERATURE;
@@ -342,6 +352,8 @@ namespace ATC
       return KINETIC_ENERGY;
     else if (name=="stress")
       return STRESS;
+    else if (name=="kinetic_stress")
+      return KINETIC_STRESS;
     else if (name=="eshelby_stress")
       return ESHELBY_STRESS;
     else if (name=="cauchy_born_stress")
@@ -399,7 +411,7 @@ namespace ATC
     else return false;
   };
 
-  inline string field_to_intrinsic_name(const FieldName index) 
+  inline std::string field_to_intrinsic_name(const FieldName index) 
   {
     if (is_intrinsic(index)) {
       return "NodalAtomic"+ATC_Utility::to_cap(field_to_string(index));
@@ -408,7 +420,7 @@ namespace ATC
       throw ATC_Error("field "+field_to_string(index)+" is not an intrinsic field");
     }
   }
-  inline string field_to_restriction_name(const FieldName index) 
+  inline std::string field_to_restriction_name(const FieldName index) 
   {
     if (is_intrinsic(index)) {
       return "Restricted"+ATC_Utility::to_cap(field_to_string(index));
@@ -417,7 +429,7 @@ namespace ATC
       throw ATC_Error("field "+field_to_string(index)+" is not an intrinsic field");
     }
   }
-  inline string field_to_prolongation_name(const FieldName index) 
+  inline std::string field_to_prolongation_name(const FieldName index) 
   {
     return "Prolonged"+ATC_Utility::to_cap(field_to_string(index));
   }
@@ -430,16 +442,8 @@ namespace ATC
     TOTAL
   };
 
-  /** types of ghost boundary conditions in momentum */
-  enum BoundaryDynamicsType {
-    NO_BOUNDARY_DYNAMICS=0,
-    PRESCRIBED,
-    DAMPED_HARMONIC,
-    COUPLED
-  };
-
   /** string to temperature definition enum */
-  inline bool string_to_temperature_def(const string & name, TemperatureDefType & index) {
+  inline bool string_to_temperature_def(const std::string & name, TemperatureDefType & index) {
     if      (name=="none")
       index = NONE;
     else if (name=="kinetic")
@@ -503,63 +507,63 @@ namespace ATC
   };
 
   /** basic */
-  typedef pair<int, int> PAIR;
+  typedef std::pair<int, int> PAIR;
 
   /** typedefs for compact set of bc values */
-  typedef set < pair < int, double> > BC_SET; // node, value
-  typedef vector< BC_SET > BCS;  // dof (node, value)
-  typedef set<int> NSET;  // nodeset
-  typedef set<PAIR> FSET;  // faceset
-  typedef set<int> ESET;  // elementset
+  typedef std::set < std::pair < int, double> > BC_SET; // node, value
+  typedef std::vector< BC_SET > BCS;  // dof (node, value)
+  typedef std::set<int> NSET;  // nodeset
+  typedef std::set<PAIR> FSET;  // faceset
+  typedef std::set<int> ESET;  // elementset
 
   /** typedefs for N and B integrand functions */
-  typedef set<FieldName> ARG_NAMES; 
-  typedef map<FieldName, DenseMatrix<double> > ARGS; 
-  typedef MatrixDependencyManager<DenseMatrix, double>  FIELD;
-  typedef vector<MatrixDependencyManager<DenseMatrix, double> >  GRAD_FIELD;
-  typedef map<FieldName, MatrixDependencyManager<DenseMatrix, double> > FIELDS;
-  typedef map<FieldName, MatrixDependencyManager<DenseMatrix, double> * > FIELD_POINTERS;
-  typedef map<FieldName, DenseMatrix<double> > FIELD_MATS;
-  typedef map<string, MatrixDependencyManager<DenseMatrix, double> > TAG_FIELDS;
-  typedef map<FieldName, vector<MatrixDependencyManager<DenseMatrix, double> > > GRAD_FIELDS;
-  typedef map<FieldName, vector<DenseMatrix<double> > > GRAD_FIELD_MATS;
-  typedef map<FieldName, MatrixDependencyManager<DiagonalMatrix, double> > MASS_MATS;
-  typedef map<FieldName, MatrixDependencyManager<SparseMatrix, double> > CON_MASS_MATS;
-  typedef MatrixDependencyManager<DenseMatrix, double> DENS_MAN;
-  typedef MatrixDependencyManager<SparseMatrix, double> SPAR_MAN;
-  typedef MatrixDependencyManager<ParSparseMatrix, double> PAR_SPAR_MAN;
-  typedef MatrixDependencyManager<DiagonalMatrix, double> DIAG_MAN;
-  typedef MatrixDependencyManager<ParDiagonalMatrix, double> PAR_DIAG_MAN;
+  typedef std::set<FieldName> ARG_NAMES; 
+  typedef std::map<FieldName, ATC_matrix::DenseMatrix<double> > ARGS; 
+  typedef ATC::MatrixDependencyManager<ATC_matrix::DenseMatrix, double>  FIELD;
+  typedef std::vector<ATC::MatrixDependencyManager<ATC_matrix::DenseMatrix, double> >  GRAD_FIELD;
+  typedef std::map<FieldName, ATC::MatrixDependencyManager<ATC_matrix::DenseMatrix, double> > FIELDS;
+  typedef std::map<FieldName, ATC::MatrixDependencyManager<ATC_matrix::DenseMatrix, double> * > FIELD_POINTERS;
+  typedef std::map<FieldName, ATC_matrix::DenseMatrix<double> > FIELD_MATS;
+  typedef std::map<std::string, ATC::MatrixDependencyManager<ATC_matrix::DenseMatrix, double> > TAG_FIELDS;
+  typedef std::map<FieldName, std::vector<ATC::MatrixDependencyManager<ATC_matrix::DenseMatrix, double> > > GRAD_FIELDS;
+  typedef std::map<FieldName, std::vector<ATC_matrix::DenseMatrix<double> > > GRAD_FIELD_MATS;
+  typedef std::map<FieldName, ATC::MatrixDependencyManager<DiagonalMatrix, double> > MASS_MATS;
+  typedef std::map<FieldName, ATC::MatrixDependencyManager<SparseMatrix, double> > CON_MASS_MATS;
+  typedef ATC::MatrixDependencyManager<ATC_matrix::DenseMatrix, double> DENS_MAN;
+  typedef ATC::MatrixDependencyManager<SparseMatrix, double> SPAR_MAN;
+  typedef ATC::MatrixDependencyManager<ParSparseMatrix, double> PAR_SPAR_MAN;
+  typedef ATC::MatrixDependencyManager<DiagonalMatrix, double> DIAG_MAN;
+  typedef ATC::MatrixDependencyManager<ParDiagonalMatrix, double> PAR_DIAG_MAN;
 
   /** typedefs for WeakEquation evaluation */
   typedef Array2D<bool>  RHS_MASK;
 
   /** typedefs for input/output */
-  typedef map<string, const Matrix<double>*> OUTPUT_LIST;
-  typedef map<string, Matrix<double>*> RESTART_LIST;
+  typedef std::map<std::string, const ATC_matrix::Matrix<double>*> OUTPUT_LIST;
+  typedef std::map<std::string, ATC_matrix::Matrix<double>*> RESTART_LIST;
 
-  typedef  pair<int, int>  ID_PAIR;
-  typedef vector< pair<int, int> > ID_LIST;
+  typedef  std::pair<int, int>  ID_PAIR;
+  typedef std::vector< std::pair<int, int> > ID_LIST;
 
   /** misc typedefs */
   class XT_Function;
   class UXT_Function;
-  typedef map<FieldName, map<PAIR, Array<XT_Function*> > > SURFACE_SOURCE;
-  typedef map<FieldName, map<PAIR, Array<UXT_Function*> > > ROBIN_SURFACE_SOURCE;
-  typedef map<FieldName, Array2D<XT_Function *> > VOLUME_SOURCE;
-  typedef map<string, MatrixDependencyManager<DenseMatrix, double> > ATOMIC_DATA;
+  typedef std::map<FieldName, std::map<PAIR, Array<XT_Function*> > > SURFACE_SOURCE;
+  typedef std::map<FieldName, std::map<PAIR, Array<UXT_Function*> > > ROBIN_SURFACE_SOURCE;
+  typedef std::map<FieldName, Array2D<XT_Function *> > VOLUME_SOURCE;
+  typedef std::map<std::string, ATC::MatrixDependencyManager<ATC_matrix::DenseMatrix, double> > ATOMIC_DATA;
   
   /** typedefs for FE_Mesh */
-  typedef map<string, set<int > > NODE_SET_MAP;
-  typedef map<string, set<int > > ELEMENT_SET_MAP;
-  typedef map<string, set<PAIR> > FACE_SET_MAP;
+  typedef std::map<std::string, std::set<int > > NODE_SET_MAP;
+  typedef std::map<std::string, std::set<int > > ELEMENT_SET_MAP;
+  typedef std::map<std::string, std::set<PAIR> > FACE_SET_MAP;
 
   /** string to index */
   // inline vs. static is used to avoid compiler warnings that the function isn't used
   // the compiler seems to just check if static functions are used in the file they're
   // declared in rather than all the files that include the header,
   // same for arrays (but not primitives, e.g. ints) hopefully this also speeds up the code
-  inline bool string_to_index(const string & dim, int & index, int & sgn)
+  inline bool string_to_index(const std::string & dim, int & index, int & sgn)
   {
     char dir;
     if (dim.empty()) return false;
@@ -573,7 +577,7 @@ namespace ATC
   };
 
   /** string to index */
-  inline string index_to_string(const int &index)
+  inline std::string index_to_string(const int &index)
   {
     if      (index==0) return "x";
     else if (index==1) return "y";
@@ -582,7 +586,7 @@ namespace ATC
   };
 
   /** string to index */
-  inline bool string_to_index(const string &dim, int &index)
+  inline bool string_to_index(const std::string &dim, int &index)
   {
     if (dim=="x")
       index = 0;
@@ -596,12 +600,12 @@ namespace ATC
     return true;
   };
 
-  inline string print_mask(const Array2D<bool> & rhsMask) 
+  inline std::string print_mask(const Array2D<bool> & rhsMask) 
   {
-    string msg;
+    std::string msg;
     for (int i = 0; i < NUM_FIELDS; i++) {       
       FieldName field = (FieldName) i;
-      string name = field_to_string(field);
+      std::string name = field_to_string(field);
       if (rhsMask(field,FLUX)
           || rhsMask(field,SOURCE)           
           || rhsMask(field,PRESCRIBED_SOURCE)

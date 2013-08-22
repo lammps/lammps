@@ -1,4 +1,4 @@
-LAMMPS (14 Aug 2013)
+LAMMPS (24 Aug 2013)
 units    metal
 
 variable E equal  10.0
@@ -24,6 +24,7 @@ atom_modify     sort 0 1
 #          ID  group atc PhysicsType ParameterFile
 fix        AtC all   atc drift_diffusion  Si_ddm.mat
 ATC: constructing drift_diffusion coupling with parameter file Si_ddm.mat
+ ATC: version 2.0
  ATC: peratom PE compute created with ID: 3
  ATC: 1 materials defined from Si_ddm.mat
  ATC: creating drift_diffusion extrinsic model
@@ -77,17 +78,17 @@ Setting up run ...
 Memory usage per processor = 0.432198 Mbytes
 Step CPU AtC[1] AtC[2] AtC[3] AtC[4] AtC[5] 
     0       0   0.38734836          300 1.0987928e-07          300  0.011872454 
-   10     2.3    0.3873484    300.00003   0.42381602 1.1554067e+09  0.011872454 
-   20     3.8   0.38734851    300.00011   0.84762424 2.3107922e+09  0.011872453 
-   30     4.9   0.38734869    300.00025    1.2714314 3.4661766e+09  0.011872354 
-   40     6.2   0.38734894    300.00045    1.6952106 4.6215141e+09  0.011870471 
-Loop time of 6.19604 on 4 procs for 40 steps with 0 atoms
+   10     1.2    0.3873484    300.00003   0.42381602 1.1554067e+09  0.011872454 
+   20     2.3   0.38734851    300.00011   0.84762424 2.3107922e+09  0.011872453 
+   30     3.4   0.38734869    300.00025    1.2714314 3.4661766e+09  0.011872354 
+   40     4.7   0.38734894    300.00045    1.6952106 4.6215141e+09  0.011870471 
+Loop time of 4.68728 on 4 procs for 40 steps with 0 atoms
 
 Pair  time (%) = 0 (0)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 5.73993e-05 (0.000926387)
-Outpt time (%) = 0.0347454 (0.560768)
-Other time (%) = 6.16123 (99.4383)
+Comm  time (%) = 7.98702e-05 (0.00170398)
+Outpt time (%) = 0.0345622 (0.737362)
+Other time (%) = 4.65264 (99.2609)
 
 Nlocal:    0 ave 0 max 0 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -116,17 +117,17 @@ Setting up run ...
 Memory usage per processor = 0.432198 Mbytes
 Step CPU AtC[1] AtC[2] AtC[3] AtC[4] AtC[5] 
    40       0   0.38734894    300.00045    1.6952106 4.6215141e+09  0.011870471 
-   50     6.1   0.38734927     300.0007     2.127197 5.798188e+09  0.012062369 
-   60      20   0.38734967    300.00101    2.5636712 6.9867833e+09   0.01226417 
-   70      26   0.38735014    300.00137    3.0038699 8.1852725e+09   0.01246759 
-   80      32   0.38735069     300.0018    3.4468819 9.3912166e+09  0.012666742 
-Loop time of 32.1279 on 4 procs for 40 steps with 0 atoms
+   50     7.1   0.38734927     300.0007     2.127197 5.798188e+09  0.012062369 
+   60      13   0.38734967    300.00101    2.5636712 6.9867833e+09   0.01226417 
+   70      19   0.38735014    300.00137    3.0038699 8.1852725e+09   0.01246759 
+   80      25   0.38735069     300.0018    3.4468819 9.3912166e+09  0.012666742 
+Loop time of 25.1053 on 4 procs for 40 steps with 0 atoms
 
 Pair  time (%) = 0 (0)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 9.63807e-05 (0.000299991)
-Outpt time (%) = 0.0351226 (0.109321)
-Other time (%) = 32.0926 (99.8904)
+Comm  time (%) = 9.38773e-05 (0.000373935)
+Outpt time (%) = 0.0351194 (0.139888)
+Other time (%) = 25.0701 (99.8597)
 
 Nlocal:    0 ave 0 max 0 min
 Histogram: 4 0 0 0 0 0 0 0 0 0

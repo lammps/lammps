@@ -105,8 +105,12 @@ run 		2000
 #  ATC: CB stiffness: 7.56717 Einstein freq: 0.355649 from Ar_CauchyBorn.mat 
 #  real to metal 1 kcal/mol = 0.04336 eV
 variable kCal2eV equal 0.04336
-variable k equal 1.e-3 # 7.56717*${kCal2eV}  NOTE <<<
-variable g equal 0.75*0.355649e3*${kCal2eV}
-variable m equal 0.5*39.95
+variable fconv equal 1./0.000103643 # NOTE old routine was doing calculations in lammps units, not atc units, so this conversion is necessary for bmark to pass
+#variable k equal 1.e-3 # 7.56717*${kCal2eV}  NOTE <<<
+#variable k equal 0.75*0.355649e3*${kCal2eV}
+variable k equal 0.5*39.95*${fconv} # NOTE it was set to above, should have been 2 above, but there was a bug so this value is here for bmark
+#variable g equal 0.75*0.355649e3*${kCal2eV}
+variable g equal 1.e-3*${fconv} # NOTE it should be above, but there was a bug so this value is here for bmark
+variable m equal 2. #0.5*39.95
 fix_modify AtC boundary_dynamics damped_harmonic $k $g $m
 run 		2000

@@ -1,5 +1,7 @@
 #include "ParDiagonalMatrix.h"
 
+using MPI_Wrappers::allgatherv;
+
 namespace ATC_matrix {
 
   // template<>

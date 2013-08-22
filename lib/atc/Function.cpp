@@ -3,6 +3,11 @@
 #include "LammpsInterface.h"
 #include <sstream>
 
+using std::stringstream;
+using std::string;
+using std::set;
+using std::fstream;
+
 namespace ATC {
 
   //====================================================================

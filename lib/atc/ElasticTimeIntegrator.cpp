@@ -32,26 +32,24 @@ namespace ATC {
     bool foundMatch = false;
     int argIndex = 0;
     // time integration scheme
-    /*! \page man_time_integration fix_modify AtC time_integration
+    /*! \page man_momentum_time_integration fix_modify AtC time_integration (momentum)
       \section syntax
       fix_modify AtC time_integration <descriptor> \n
       - descriptor (string) = time integration type  \n
       
       various time integration methods for the finite elements\n
       \section description
-      Verlet - atomic velocity update with 2nd order Verlet \n
-      nodal temperature update with 2nd order Verlet \n
-      kinetostats based on controlling force \n
-      FRACTIONAL_STEP - atomic velocity update with 2nd order Verlet \n
-      mixed nodal momentum update, 2nd order Verlet for continuum and exact 2nd order Verlet for atomic contributions\n
-      kinetostats based on controlling discrete momentum changes\n
+      verlet - atomic velocity update with 2nd order Verlet, nodal temperature update with 2nd order Verlet, kinetostats based on controlling force \n
+      fractional_step - atomic velocity update with 2nd order Verlet, mixed nodal momentum update, 2nd order Verlet for continuum and exact 2nd order Verlet for atomic contributions, kinetostats based on controlling discrete momentum changes\n
+      gear - atomic velocity update with 2nd order Verlet, nodal temperature update with 3rd or 4th order Gear, kinetostats based on controlling power \n
       \section examples
       <TT> fix_modify atc time_integration verlet </TT> \n
       <TT> fix_modify atc time_integration fractional_step </TT> \n
       \section description
       \section related
+      see \ref man_fix_atc
       \section default
-      Gear
+      none 
     */
     if (strcmp(arg[argIndex],"verlet")==0) {
       timeIntegrationType_ = VERLET;

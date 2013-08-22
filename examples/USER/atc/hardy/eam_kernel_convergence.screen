@@ -1,4 +1,4 @@
-LAMMPS (14 Aug 2013)
+LAMMPS (24 Aug 2013)
 log    eam_kernel_convergence.log
 units    metal
 dimension  3
@@ -33,6 +33,7 @@ reset_timestep  0
 velocity	all set 0.0 0.0 0.0 sum no units box
 fix         ATC internal atc hardy
 ATC: constructing kernel field estimate
+ ATC: version 2.0
  ATC: peratom PE compute created with ID: 3
 fix_modify  ATC mesh create 1 1 1 SYSTEM p p p
  ATC: created uniform mesh with 8 nodes, 1 unique nodes, and 1 elements
@@ -64,18 +65,17 @@ label loop_i
 run 1
 Setting up run ...
  ATC: computing bond matrix .done
- ATC: kernel matrix bandwidth 0
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
        0            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
        1            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.300242 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.033035 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0241128 (8.03112)
+Pair  time (%) = 0.00650418 (19.6887)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.0410731 (13.68)
-Outpt time (%) = 0.0514653 (17.1413)
-Other time (%) = 0.183591 (61.1476)
+Comm  time (%) = 0.00039655 (1.20039)
+Outpt time (%) = 0.000133812 (0.405062)
+Other time (%) = 0.0260005 (78.7058)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -104,20 +104,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 0
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
        1            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 0
        2            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.48248 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0392294 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.084024 (17.415)
+Pair  time (%) = 0.00644267 (16.4231)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.118364 (24.5323)
-Outpt time (%) = 0.0659893 (13.6771)
-Other time (%) = 0.214103 (44.3755)
+Comm  time (%) = 0.000404775 (1.03182)
+Outpt time (%) = 0.000334024 (0.851465)
+Other time (%) = 0.0320479 (81.6937)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -146,20 +144,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 0
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
        2            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 0
        3            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.545094 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0384309 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.104079 (19.0937)
+Pair  time (%) = 0.00651246 (16.9459)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.12345 (22.6474)
-Outpt time (%) = 0.0724639 (13.2938)
-Other time (%) = 0.245102 (44.9651)
+Comm  time (%) = 0.000358164 (0.931969)
+Outpt time (%) = 0.000287235 (0.747405)
+Other time (%) = 0.0312731 (81.3747)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -188,20 +184,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 0
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
        3            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 0
        4            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.386178 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0369787 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0569655 (14.7511)
+Pair  time (%) = 0.00647753 (17.5169)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.0992606 (25.7033)
-Outpt time (%) = 0.0438565 (11.3566)
-Other time (%) = 0.186095 (48.189)
+Comm  time (%) = 0.000436544 (1.18053)
+Outpt time (%) = 0.000283301 (0.766119)
+Other time (%) = 0.0297813 (80.5364)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -230,20 +224,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 0
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
        4            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 0
        5            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.535095 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0393946 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0920835 (17.2088)
+Pair  time (%) = 0.00651276 (16.5321)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.173024 (32.3351)
-Outpt time (%) = 0.0531778 (9.938)
-Other time (%) = 0.21681 (40.5181)
+Comm  time (%) = 0.000539005 (1.36822)
+Outpt time (%) = 0.000285983 (0.725945)
+Other time (%) = 0.0320569 (81.3737)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -272,20 +264,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 0
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
        5            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 0
        6            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.201573 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.037346 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0382269 (18.9643)
+Pair  time (%) = 0.0064882 (17.3732)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000640154 (0.317579)
-Outpt time (%) = 0.000263035 (0.130491)
-Other time (%) = 0.162443 (80.5877)
+Comm  time (%) = 0.00043124 (1.15471)
+Outpt time (%) = 0.000279486 (0.74837)
+Other time (%) = 0.0301471 (80.7237)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -314,20 +304,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 0
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
        6            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 0
        7            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.429407 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0372508 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.109139 (25.4161)
+Pair  time (%) = 0.00648546 (17.4103)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.155901 (36.3062)
-Outpt time (%) = 0.000292003 (0.0680015)
-Other time (%) = 0.164075 (38.2097)
+Comm  time (%) = 0.000456989 (1.22679)
+Outpt time (%) = 0.000291228 (0.781805)
+Other time (%) = 0.0300171 (80.5811)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -356,20 +344,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 47
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
        7            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 47
        8            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.147352 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.120404 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00983864 (6.67697)
+Pair  time (%) = 0.0264624 (21.9781)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.00774616 (5.25691)
-Outpt time (%) = 0.000296652 (0.201322)
-Other time (%) = 0.129471 (87.8648)
+Comm  time (%) = 0.0135617 (11.2636)
+Outpt time (%) = 0.0042749 (3.55048)
+Other time (%) = 0.0761046 (63.2079)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -398,20 +384,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 47
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
        8            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 47
        9            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.118696 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.273495 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00697953 (5.88018)
+Pair  time (%) = 0.0864977 (31.6268)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000497282 (0.418955)
-Outpt time (%) = 0.000273347 (0.230292)
-Other time (%) = 0.110946 (93.4706)
+Comm  time (%) = 0.11316 (41.3756)
+Outpt time (%) = 0.00028652 (0.104762)
+Other time (%) = 0.0735507 (26.8928)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -440,20 +424,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 47
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
        9            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 47
       10            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.402689 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0394507 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0666595 (16.5536)
+Pair  time (%) = 0.00646698 (16.3926)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.0105869 (2.62905)
-Outpt time (%) = 0.0670815 (16.6584)
-Other time (%) = 0.258361 (64.159)
+Comm  time (%) = 0.000455558 (1.15475)
+Outpt time (%) = 0.000291586 (0.739115)
+Other time (%) = 0.0322366 (81.7136)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -482,20 +464,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 288
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       10            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 288
       11            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.307537 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0371261 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0362225 (11.7783)
+Pair  time (%) = 0.00652719 (17.5811)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.0385796 (12.5447)
-Outpt time (%) = 0.000294566 (0.0957824)
-Other time (%) = 0.23244 (75.5813)
+Comm  time (%) = 0.000438929 (1.18227)
+Outpt time (%) = 0.000287414 (0.774156)
+Other time (%) = 0.0298725 (80.4624)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -524,20 +504,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 288
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       11            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 288
       12            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.3476 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0374072 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0432398 (12.4395)
+Pair  time (%) = 0.00652391 (17.4403)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.0443696 (12.7646)
-Outpt time (%) = 0.047818 (13.7566)
-Other time (%) = 0.212172 (61.0393)
+Comm  time (%) = 0.000443697 (1.18613)
+Outpt time (%) = 0.000281215 (0.751767)
+Other time (%) = 0.0301583 (80.6218)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -566,20 +544,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 311
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       12            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 311
       13            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.430106 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0368505 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.075536 (17.5622)
+Pair  time (%) = 0.0064677 (17.5512)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.0911922 (21.2023)
-Outpt time (%) = 0.048534 (11.2842)
-Other time (%) = 0.214844 (49.9513)
+Comm  time (%) = 0.000371039 (1.00688)
+Outpt time (%) = 0.000283182 (0.768462)
+Other time (%) = 0.0297285 (80.6735)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -608,20 +584,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 311
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       13            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 311
       14            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.284159 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0370417 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0467392 (16.4483)
+Pair  time (%) = 0.00647908 (17.4913)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.0432881 (15.2337)
-Outpt time (%) = 0.000284493 (0.100118)
-Other time (%) = 0.193847 (68.2179)
+Comm  time (%) = 0.000379324 (1.02405)
+Outpt time (%) = 0.00026685 (0.720404)
+Other time (%) = 0.0299165 (80.7642)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -650,20 +624,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 312
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       14            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 312
       15            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.352391 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0373898 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0567713 (16.1103)
+Pair  time (%) = 0.00645733 (17.2703)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.055818 (15.8398)
-Outpt time (%) = 0.0249187 (7.07134)
-Other time (%) = 0.214883 (60.9785)
+Comm  time (%) = 0.000376701 (1.0075)
+Outpt time (%) = 0.000305176 (0.816202)
+Other time (%) = 0.0302505 (80.906)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -692,20 +664,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 478
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       15            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 478
       16            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.332613 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0384287 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0567642 (17.0661)
+Pair  time (%) = 0.00648546 (16.8766)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.0283655 (8.52808)
-Outpt time (%) = 0.026697 (8.02646)
-Other time (%) = 0.220786 (66.3793)
+Comm  time (%) = 0.000369966 (0.962733)
+Outpt time (%) = 0.000295699 (0.769473)
+Other time (%) = 0.0312776 (81.3912)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -734,20 +704,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 478
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       16            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 478
       17            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.400051 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0371521 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0440897 (11.021)
+Pair  time (%) = 0.00647396 (17.4256)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.0782601 (19.5625)
-Outpt time (%) = 0.0452949 (11.3223)
-Other time (%) = 0.232406 (58.0941)
+Comm  time (%) = 0.000393748 (1.05983)
+Outpt time (%) = 0.000291646 (0.785005)
+Other time (%) = 0.0299927 (80.7296)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -776,20 +744,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 478
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       17            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 478
       18            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.259991 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0386119 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00655723 (2.5221)
+Pair  time (%) = 0.00645721 (16.7234)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.0127867 (4.91813)
-Outpt time (%) = 0.0437278 (16.819)
-Other time (%) = 0.196919 (75.7408)
+Comm  time (%) = 0.000380099 (0.984409)
+Outpt time (%) = 0.000285566 (0.73958)
+Other time (%) = 0.031489 (81.5526)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -818,20 +784,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 503
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       18            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 503
       19            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.310079 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.186472 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0415583 (13.4025)
+Pair  time (%) = 0.0751666 (40.3099)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.0384805 (12.4099)
-Outpt time (%) = 0.0133858 (4.31692)
-Other time (%) = 0.216654 (69.8707)
+Comm  time (%) = 0.038013 (20.3854)
+Outpt time (%) = 0.00339681 (1.82162)
+Other time (%) = 0.0698953 (37.4831)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -860,20 +824,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 503
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       19            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 503
       20            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.19849 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.037857 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00919574 (4.63284)
+Pair  time (%) = 0.00646615 (17.0805)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.011555 (5.82142)
-Outpt time (%) = 0.000275791 (0.138944)
-Other time (%) = 0.177464 (89.4068)
+Comm  time (%) = 0.000383317 (1.01254)
+Outpt time (%) = 0.000252604 (0.66726)
+Other time (%) = 0.0307549 (81.2397)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -902,20 +864,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 503
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       20            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 503
       21            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.13786 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0382027 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00668496 (4.84911)
+Pair  time (%) = 0.00654542 (17.1334)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000468671 (0.339963)
-Outpt time (%) = 0.00025773 (0.186951)
-Other time (%) = 0.130448 (94.624)
+Comm  time (%) = 0.000404716 (1.05939)
+Outpt time (%) = 0.000296235 (0.77543)
+Other time (%) = 0.0309563 (81.0318)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -944,20 +904,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 504
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       21            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 504
       22            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.107814 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0389788 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00661451 (6.13514)
+Pair  time (%) = 0.0065403 (16.7791)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000394523 (0.365931)
-Outpt time (%) = 0.000290513 (0.269459)
-Other time (%) = 0.100514 (93.2295)
+Comm  time (%) = 0.000404239 (1.03707)
+Outpt time (%) = 0.000325084 (0.834001)
+Other time (%) = 0.0317092 (81.3498)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -986,20 +944,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 504
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       22            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 504
       23            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.108355 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0405288 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00665593 (6.14269)
+Pair  time (%) = 0.00649828 (16.0337)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000427246 (0.394301)
-Outpt time (%) = 0.000290215 (0.267837)
-Other time (%) = 0.100982 (93.1952)
+Comm  time (%) = 0.000369489 (0.911671)
+Outpt time (%) = 0.000311732 (0.769163)
+Other time (%) = 0.0333493 (82.2854)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1028,20 +984,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 546
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       23            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 546
       24            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.108156 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0378535 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00659281 (6.09565)
+Pair  time (%) = 0.00653696 (17.2691)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000379384 (0.350774)
-Outpt time (%) = 0.000281692 (0.260449)
-Other time (%) = 0.100902 (93.2931)
+Comm  time (%) = 0.000383198 (1.01232)
+Outpt time (%) = 0.00030303 (0.800534)
+Other time (%) = 0.0306303 (80.918)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1070,20 +1024,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 546
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       24            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 546
       25            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.340118 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0379782 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.047267 (13.8972)
+Pair  time (%) = 0.00654668 (17.238)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.0213372 (6.27346)
-Outpt time (%) = 0.0179818 (5.28692)
-Other time (%) = 0.253532 (74.5424)
+Comm  time (%) = 0.000364423 (0.959559)
+Outpt time (%) = 0.000307202 (0.808892)
+Other time (%) = 0.0307599 (80.9936)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1112,20 +1064,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 743
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       25            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 743
       26            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.28821 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0379718 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.019009 (6.59554)
+Pair  time (%) = 0.00648707 (17.0839)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000516176 (0.179097)
-Outpt time (%) = 0.0522387 (18.1252)
-Other time (%) = 0.216446 (75.1001)
+Comm  time (%) = 0.000367403 (0.967568)
+Outpt time (%) = 0.000303447 (0.799139)
+Other time (%) = 0.0308139 (81.1494)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1154,20 +1104,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 743
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       26            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 743
       27            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.295394 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0380117 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0570537 (19.3145)
+Pair  time (%) = 0.00650251 (17.1066)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.0329895 (11.168)
-Outpt time (%) = 0.000254452 (0.0861399)
-Other time (%) = 0.205096 (69.4314)
+Comm  time (%) = 0.00037688 (0.991484)
+Outpt time (%) = 0.000311494 (0.819468)
+Other time (%) = 0.0308208 (81.0825)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1196,20 +1144,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 755
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       27            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 755
       28            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.394992 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0388156 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0525671 (13.3084)
+Pair  time (%) = 0.00649077 (16.7221)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.042494 (10.7582)
-Outpt time (%) = 0.0442644 (11.2064)
-Other time (%) = 0.255667 (64.727)
+Comm  time (%) = 0.000387251 (0.997671)
+Outpt time (%) = 0.000288785 (0.743992)
+Other time (%) = 0.0316488 (81.5363)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1238,20 +1184,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 755
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       28            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 755
       29            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.32978 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0383511 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0278023 (8.43057)
+Pair  time (%) = 0.00650549 (16.963)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.0396687 (12.0288)
-Outpt time (%) = 0.0126302 (3.82989)
-Other time (%) = 0.249679 (75.7107)
+Comm  time (%) = 0.000413597 (1.07845)
+Outpt time (%) = 0.000302076 (0.787661)
+Other time (%) = 0.0311299 (81.1709)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1280,20 +1224,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 864
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       29            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 864
       30            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.353342 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0388775 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0475768 (13.4648)
+Pair  time (%) = 0.00645369 (16.6001)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.023629 (6.68727)
-Outpt time (%) = 0.000285506 (0.0808016)
-Other time (%) = 0.281851 (79.7672)
+Comm  time (%) = 0.000415444 (1.0686)
+Outpt time (%) = 0.000338078 (0.869597)
+Other time (%) = 0.0316703 (81.4617)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1322,20 +1264,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 910
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       30            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 910
       31            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.278774 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0392246 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0142775 (5.12152)
+Pair  time (%) = 0.00650924 (16.5948)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.00300127 (1.0766)
-Outpt time (%) = 0.051642 (18.5247)
-Other time (%) = 0.209853 (75.2772)
+Comm  time (%) = 0.000398636 (1.01629)
+Outpt time (%) = 0.00028348 (0.72271)
+Other time (%) = 0.0320332 (81.6662)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1364,20 +1304,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 912
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       31            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 912
       32            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.222321 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.041373 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0169145 (7.60813)
+Pair  time (%) = 0.00652206 (15.764)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000565529 (0.254375)
-Outpt time (%) = 0.000303566 (0.136544)
-Other time (%) = 0.204538 (92.001)
+Comm  time (%) = 0.000427663 (1.03368)
+Outpt time (%) = 0.000317514 (0.767442)
+Other time (%) = 0.0341058 (82.4348)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1406,20 +1344,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 912
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       32            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 912
       33            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.271986 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0391045 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0168534 (6.19641)
+Pair  time (%) = 0.00647622 (16.5613)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000433564 (0.159407)
-Outpt time (%) = 0.0317252 (11.6643)
-Other time (%) = 0.222974 (81.9799)
+Comm  time (%) = 0.00040257 (1.02947)
+Outpt time (%) = 0.000288963 (0.738952)
+Other time (%) = 0.0319367 (81.6702)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1448,20 +1384,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 982
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       33            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 982
       34            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.343778 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.039366 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.061799 (17.9764)
+Pair  time (%) = 0.00648183 (16.4655)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.078127 (22.726)
-Outpt time (%) = 0.000294745 (0.085737)
-Other time (%) = 0.203557 (59.2119)
+Comm  time (%) = 0.00038296 (0.972819)
+Outpt time (%) = 0.000316799 (0.804752)
+Other time (%) = 0.0321844 (81.7569)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1490,20 +1424,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 982
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       34            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 982
       35            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.171309 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0398639 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00657851 (3.84013)
+Pair  time (%) = 0.00655723 (16.449)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000591993 (0.34557)
-Outpt time (%) = 0.000343978 (0.200794)
-Other time (%) = 0.163795 (95.6135)
+Comm  time (%) = 0.000386298 (0.969042)
+Outpt time (%) = 0.000287056 (0.72009)
+Other time (%) = 0.0326333 (81.8618)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1532,20 +1464,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 982
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       35            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 982
       36            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.15479 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0398003 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0169563 (10.9544)
+Pair  time (%) = 0.00647628 (16.2719)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000479996 (0.310095)
-Outpt time (%) = 0.00029999 (0.193804)
-Other time (%) = 0.137054 (88.5418)
+Comm  time (%) = 0.00038147 (0.958458)
+Outpt time (%) = 0.000287831 (0.723187)
+Other time (%) = 0.0326548 (82.0464)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1574,20 +1504,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 982
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       36            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 982
       37            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.108144 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0403428 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0065847 (6.08884)
+Pair  time (%) = 0.00645649 (16.0041)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000512004 (0.473447)
-Outpt time (%) = 0.000298738 (0.276242)
-Other time (%) = 0.100748 (93.1615)
+Comm  time (%) = 0.000403762 (1.00083)
+Outpt time (%) = 0.000293553 (0.727646)
+Other time (%) = 0.033189 (82.2674)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1616,20 +1544,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 982
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       37            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 982
       38            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.365101 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0401198 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0161821 (4.43222)
+Pair  time (%) = 0.00653249 (16.2824)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.0784575 (21.4893)
-Outpt time (%) = 0.0112433 (3.0795)
-Other time (%) = 0.259218 (70.999)
+Comm  time (%) = 0.00039041 (0.973111)
+Outpt time (%) = 0.000307977 (0.767643)
+Other time (%) = 0.0328889 (81.9768)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1658,20 +1584,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 982
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       38            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 982
       39            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.430036 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0405351 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0818088 (19.0237)
+Pair  time (%) = 0.00647205 (15.9665)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.0706595 (16.431)
-Outpt time (%) = 0.0469042 (10.907)
-Other time (%) = 0.230664 (53.6382)
+Comm  time (%) = 0.000407696 (1.00578)
+Outpt time (%) = 0.000314474 (0.775807)
+Other time (%) = 0.0333409 (82.2519)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1700,20 +1624,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 1152
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       39            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 1152
       40            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.207975 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0404704 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00668073 (3.21227)
+Pair  time (%) = 0.00648749 (16.0302)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.00038588 (0.185542)
-Outpt time (%) = 0.000258744 (0.124411)
-Other time (%) = 0.20065 (96.4778)
+Comm  time (%) = 0.000388265 (0.95938)
+Outpt time (%) = 0.000284553 (0.703113)
+Other time (%) = 0.0333101 (82.3073)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1742,20 +1664,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 1175
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       40            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 1175
       41            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.410035 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0425766 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.07674 (18.7155)
+Pair  time (%) = 0.00662249 (15.5543)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.0558463 (13.6199)
-Outpt time (%) = 0.0472893 (11.533)
-Other time (%) = 0.230159 (56.1316)
+Comm  time (%) = 0.000389457 (0.914721)
+Outpt time (%) = 0.000304043 (0.71411)
+Other time (%) = 0.0352606 (82.8168)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1784,20 +1704,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 1176
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       41            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 1176
       42            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.569466 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0414016 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0682225 (11.9801)
+Pair  time (%) = 0.00649077 (15.6776)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.0417059 (7.32369)
-Outpt time (%) = 0.0824587 (14.48)
-Other time (%) = 0.377079 (66.2162)
+Comm  time (%) = 0.000381052 (0.920381)
+Outpt time (%) = 0.00030756 (0.742869)
+Other time (%) = 0.0342222 (82.6592)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1826,20 +1744,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 1187
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       42            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 1187
       43            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.349966 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0421495 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0566317 (16.1821)
+Pair  time (%) = 0.0065133 (15.4529)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.0434393 (12.4124)
-Outpt time (%) = 0.0316042 (9.03066)
-Other time (%) = 0.218291 (62.3749)
+Comm  time (%) = 0.000412405 (0.978433)
+Outpt time (%) = 0.000315487 (0.748496)
+Other time (%) = 0.0349083 (82.8202)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1868,20 +1784,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 1211
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       43            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 1211
       44            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.392429 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0428472 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0517555 (13.1885)
+Pair  time (%) = 0.00656044 (15.3113)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.0731887 (18.6502)
-Outpt time (%) = 0.045777 (11.665)
-Other time (%) = 0.221708 (56.4963)
+Comm  time (%) = 0.000398517 (0.930089)
+Outpt time (%) = 0.000325501 (0.759679)
+Other time (%) = 0.0355627 (82.999)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1910,20 +1824,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 1211
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       44            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 1211
       45            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.288743 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0420851 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0428154 (14.8282)
+Pair  time (%) = 0.0066309 (15.7559)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.0185749 (6.43302)
-Outpt time (%) = 0.0170892 (5.91848)
-Other time (%) = 0.210263 (72.8203)
+Comm  time (%) = 0.000450253 (1.06987)
+Outpt time (%) = 0.000315428 (0.749501)
+Other time (%) = 0.0346885 (82.4247)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1952,20 +1864,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 1342
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       45            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 1342
       46            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.476904 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0420685 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0492818 (10.3337)
+Pair  time (%) = 0.00649852 (15.4475)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.0432622 (9.07147)
-Outpt time (%) = 0.040977 (8.5923)
-Other time (%) = 0.343383 (72.0025)
+Comm  time (%) = 0.000382423 (0.90905)
+Outpt time (%) = 0.000275671 (0.655292)
+Other time (%) = 0.0349119 (82.9882)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1994,20 +1904,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 1367
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       46            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 1367
       47            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.131054 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0450137 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0091778 (7.00306)
+Pair  time (%) = 0.00665849 (14.7922)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.00810724 (6.18618)
-Outpt time (%) = 0.000286102 (0.218308)
-Other time (%) = 0.113483 (86.5925)
+Comm  time (%) = 0.000468254 (1.04025)
+Outpt time (%) = 0.000276983 (0.61533)
+Other time (%) = 0.0376099 (83.5523)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -2036,20 +1944,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 1368
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       47            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 1368
       48            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.324749 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0446415 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.036183 (11.1418)
+Pair  time (%) = 0.0066427 (14.8801)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.0234717 (7.22765)
-Outpt time (%) = 0.0480435 (14.7941)
-Other time (%) = 0.217051 (66.8365)
+Comm  time (%) = 0.000487983 (1.09312)
+Outpt time (%) = 0.000266016 (0.595893)
+Other time (%) = 0.0372448 (83.4309)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -2078,20 +1984,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 1410
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       48            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 1410
       49            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.36251 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0425613 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0491887 (13.5689)
+Pair  time (%) = 0.0065003 (15.2728)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.0482228 (13.3025)
-Outpt time (%) = 0.0454938 (12.5497)
-Other time (%) = 0.219605 (60.5789)
+Comm  time (%) = 0.000373781 (0.878218)
+Outpt time (%) = 0.000287056 (0.674453)
+Other time (%) = 0.0354002 (83.1745)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -2120,20 +2024,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 1414
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       49            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 1414
       50            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.377475 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.042306 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.056691 (15.0185)
+Pair  time (%) = 0.00660574 (15.6142)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.0432966 (11.4701)
-Outpt time (%) = 0.0455235 (12.06)
-Other time (%) = 0.231963 (61.4514)
+Comm  time (%) = 0.000434875 (1.02793)
+Outpt time (%) = 0.000267565 (0.632452)
+Other time (%) = 0.0349978 (82.7254)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -2162,20 +2064,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 1414
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       50            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 1414
       51            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.342563 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.042854 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0467207 (13.6386)
+Pair  time (%) = 0.00650024 (15.1683)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.0359398 (10.4914)
-Outpt time (%) = 0.0465243 (13.5812)
-Other time (%) = 0.213379 (62.2888)
+Comm  time (%) = 0.000383735 (0.895446)
+Outpt time (%) = 0.00028801 (0.672072)
+Other time (%) = 0.035682 (83.2641)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -2204,20 +2104,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 1416
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       51            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 1416
       52            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.360143 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0434695 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0467206 (12.9728)
+Pair  time (%) = 0.00649798 (14.9484)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.0333865 (9.27036)
-Outpt time (%) = 0.046984 (13.0459)
-Other time (%) = 0.233052 (64.7109)
+Comm  time (%) = 0.000384271 (0.884002)
+Outpt time (%) = 0.00029546 (0.679696)
+Other time (%) = 0.0362918 (83.4879)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -2246,20 +2144,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 1437
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       52            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 1437
       53            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.342496 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0440991 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0341545 (9.97222)
+Pair  time (%) = 0.00655478 (14.8638)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.0283093 (8.26558)
-Outpt time (%) = 0.0456939 (13.3414)
-Other time (%) = 0.234339 (68.4208)
+Comm  time (%) = 0.00037545 (0.851377)
+Outpt time (%) = 0.000291467 (0.660936)
+Other time (%) = 0.0368774 (83.6239)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -2288,20 +2184,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 1437
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       53            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 1437
       54            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.350093 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0451357 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0466567 (13.3269)
+Pair  time (%) = 0.00653124 (14.4702)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.0359852 (10.2788)
-Outpt time (%) = 0.0534886 (15.2784)
-Other time (%) = 0.213963 (61.1159)
+Comm  time (%) = 0.000422835 (0.93681)
+Outpt time (%) = 0.000314355 (0.696467)
+Other time (%) = 0.0378672 (83.8965)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -2330,20 +2224,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 1486
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       54            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 1486
       55            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.283023 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0437731 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0466025 (16.466)
+Pair  time (%) = 0.00654078 (14.9425)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.0382988 (13.5321)
-Outpt time (%) = 0.0156633 (5.53429)
-Other time (%) = 0.182458 (64.4677)
+Comm  time (%) = 0.000398755 (0.91096)
+Outpt time (%) = 0.000291765 (0.66654)
+Other time (%) = 0.0365418 (83.48)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -2372,20 +2264,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 1607
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       55            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 1607
       56            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.200101 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0435703 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00681722 (3.40689)
+Pair  time (%) = 0.00649369 (14.9039)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.010536 (5.26532)
-Outpt time (%) = 0.0104398 (5.21724)
-Other time (%) = 0.172308 (86.1106)
+Comm  time (%) = 0.000383556 (0.880315)
+Outpt time (%) = 0.000293911 (0.674566)
+Other time (%) = 0.0363991 (83.5412)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -2414,20 +2304,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 1619
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       56            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 1619
       57            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.34729 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0463326 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0140542 (4.04683)
+Pair  time (%) = 0.00662327 (14.2951)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.00326961 (0.941463)
-Outpt time (%) = 0.0595106 (17.1357)
-Other time (%) = 0.270456 (77.876)
+Comm  time (%) = 0.00039655 (0.855876)
+Outpt time (%) = 0.000284076 (0.613123)
+Other time (%) = 0.0390287 (84.236)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -2456,20 +2344,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 1641
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       57            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 1641
       58            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.38494 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.048007 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.05675 (14.7426)
+Pair  time (%) = 0.0065155 (13.572)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.0333247 (8.6571)
-Outpt time (%) = 0.0447482 (11.6247)
-Other time (%) = 0.250117 (64.9756)
+Comm  time (%) = 0.000366092 (0.76258)
+Outpt time (%) = 0.000288963 (0.601919)
+Other time (%) = 0.0408365 (85.0635)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -2498,20 +2384,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 1643
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       58            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 1643
       59            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.412444 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0455515 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0535668 (12.9876)
+Pair  time (%) = 0.00648105 (14.228)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.0633941 (15.3703)
-Outpt time (%) = 0.0569338 (13.804)
-Other time (%) = 0.23855 (57.838)
+Comm  time (%) = 0.0003708 (0.814024)
+Outpt time (%) = 0.000300467 (0.65962)
+Other time (%) = 0.0383992 (84.2984)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -2540,20 +2424,18 @@ jump in.eam_kernel_convergence loop_i
 # initial (1)
 run 1
 Setting up run ...
- ATC: kernel matrix bandwidth 1643
  ATC: computing bond matrix .done
 Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       59            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
- ATC: kernel matrix bandwidth 1643
       60            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.247306 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0462273 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0260277 (10.5245)
+Pair  time (%) = 0.00654 (14.1475)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000401855 (0.162493)
-Outpt time (%) = 0.00262171 (1.06011)
-Other time (%) = 0.218255 (88.2529)
+Comm  time (%) = 0.000392854 (0.849831)
+Outpt time (%) = 0.000321984 (0.696524)
+Other time (%) = 0.0389725 (84.3062)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0

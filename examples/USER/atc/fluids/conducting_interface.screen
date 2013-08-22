@@ -1,4 +1,4 @@
-LAMMPS (14 Aug 2013)
+LAMMPS (24 Aug 2013)
 units     	real
 atom_style full
 ########### BEGIN PARAMETERS ####################################
@@ -69,6 +69,7 @@ neigh_modify every 1 check no
 fix WALLS all wall/reflect xlo EDGE xhi EDGE
 fix         PP  all   atc field
 ATC: constructing shape function field estimate
+ ATC: version 2.0
  ATC: peratom PE compute created with ID: 3
 fix_modify  PP  add_species IONS type 1 2 3 4
 fix_modify  PP  fields add species_concentration mass_density charge_density # temperature
@@ -81,6 +82,7 @@ fix_modify  PP  mesh create 10 1 1 BOX f p p
  ATC: created uniform mesh with 44 nodes, 11 unique nodes, and 10 elements
 fix         ATC FLUID  atc species_electrostatic  Ar_electrostatic.mat
 ATC: constructing electrostatic species coupling with parameter file Ar_electrostatic.mat
+ ATC: version 2.0
  ATC: peratom PE compute created with ID: 3
  ATC: 1 materials defined from Ar_electrostatic.mat
  ATC: creating fem_efield extrinsic model
@@ -121,4 +123,62 @@ fix_modify ATC mesh create_elementset fluidElts ${Ls} INF -INF INF -INF INF
 fix_modify ATC mesh create_elementset fluidElts 4 INF -INF INF -INF INF
  ATC: created elementset fluidElts with 32 elements
 fix_modify ATC internal_element_set fluidElts
+fix_modify ATC mesh output conducting_interfaceMESH full_text binary
+fix_modify ATC output volume_integral fluidElts mass_density
+fix_modify ATC output volume_integral fluidElts charge_density
+# ic/bcs
+#fix_modify ATC initial charge_density     all 0.
+fix_modify ATC initial mass_density       all 0.
+fix_modify ATC initial electric_potential all 0.
+# output
+thermo    	$s
+thermo    	100
+variable cFLUID   equal count(FLUID)
+compute PAVE P reduce ave x
+compute PMIN P reduce min x
+compute PMAX P reduce max x
+compute NAVE N reduce ave x
+compute NMIN N reduce min x
+compute NMAX N reduce max x
+compute q all property/atom q
+compute Q all reduce sum c_q
+compute Qf FLUID reduce sum c_q
+compute m all property/atom mass
+compute M all reduce sum c_m
+compute Mf FLUID reduce sum c_m
+compute F FLUID reduce sum fx fy fz
+thermo_style 	custom step temp press etotal pe c_Q c_M c_Qf c_Mf c_PMIN c_PAVE c_PMAX c_NMIN c_NAVE c_NMAX c_F[1] c_F[2] c_F[3]
+compute T FLUID temp
+thermo_modify  temp T
+WARNING: Temperature for thermo pressure is not for group all (../thermo.cpp:438)
+thermo_modify  flush yes
+log conducting_interface.log
+fix_modify ATC output conducting_interfaceFE $s full_text binary
+fix_modify ATC output conducting_interfaceFE 100 full_text binary
+ ATC: Warning : text output can create _LARGE_ files
+ ATC: output custom names:
+NodalAtomicSpeciesConcentration : NodalAtomicSpeciesConcentrationP
+NodalAtomicSpeciesConcentration : NodalAtomicSpeciesConcentrationN
+species_concentration : species_concentrationP
+species_concentration : species_concentrationN
+
+fix_modify  PP output conducting_interfacePP $s full_text binary
+fix_modify  PP output conducting_interfacePP 100 full_text binary
+ ATC: Warning : text output can create _LARGE_ files
+ ATC: output custom names:
+NodalAtomicSpeciesConcentration : NodalAtomicSpeciesConcentrationIONS_1
+NodalAtomicSpeciesConcentration : NodalAtomicSpeciesConcentrationIONS_2
+NodalAtomicSpeciesConcentration : NodalAtomicSpeciesConcentrationIONS_3
+NodalAtomicSpeciesConcentration : NodalAtomicSpeciesConcentrationIONS_4
+species_concentration : species_concentrationIONS_1
+species_concentration : species_concentrationIONS_2
+species_concentration : species_concentrationIONS_3
+species_concentration : species_concentrationIONS_4
+
+dump   X all custom $s conducting_interface.dmp id type x y z q vx vy vz fx fy fz
+dump   X all custom 100 conducting_interface.dmp id type x y z q vx vy vz fx fy fz
+fix_modify ATC  fix     electric_potential rbc 0.
+# stage 1 : active source controlling far-field shielding
+fix_modify ATC  control charge LAYER conductor ${phiInf}
+fix_modify ATC  control charge LAYER conductor -1
 ERROR: Illegal fix_modify command (../fix.cpp:104)

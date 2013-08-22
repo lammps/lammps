@@ -9,7 +9,6 @@
 // other includes
 #include <set>
 #include <map>
-using std::pair;
 
 namespace ATC {
 

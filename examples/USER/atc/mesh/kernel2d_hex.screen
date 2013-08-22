@@ -1,4 +1,4 @@
-LAMMPS (14 Aug 2013)
+LAMMPS (24 Aug 2013)
 units    real
 atom_style  atomic
 
@@ -32,6 +32,7 @@ group    internal region BOX
 
 fix            AtC internal atc hardy
 ATC: constructing kernel field estimate
+ ATC: version 2.0
  ATC: peratom PE compute created with ID: 3
 fix_modify     AtC kernel quartic_cylinder 5.0
 fix_modify     AtC mesh read gaussianIC2d_hex.mesh
@@ -52,19 +53,18 @@ timestep  0.0
 thermo    1
 run     2
 Setting up run ...
- ATC: kernel matrix bandwidth 535
 Memory usage per processor = 490.313 Mbytes
 Step CPU Temp 
        0            0            0 
-       1  0.015694857            0 
-       2   0.02523303            0 
-Loop time of 0.025247 on 4 procs for 2 steps with 2304 atoms
+       1 0.0049748421            0 
+       2  0.013383865            0 
+Loop time of 0.0133951 on 4 procs for 2 steps with 2304 atoms
 
-Pair  time (%) = 0.00923944 (36.5961)
+Pair  time (%) = 0.00893837 (66.7288)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000781298 (3.09461)
-Outpt time (%) = 0.00327528 (12.9729)
-Other time (%) = 0.011951 (47.3364)
+Comm  time (%) = 0.000545621 (4.0733)
+Outpt time (%) = 0.00268465 (20.0421)
+Other time (%) = 0.00122643 (9.15579)
 
 Nlocal:    576 ave 576 max 576 min
 Histogram: 4 0 0 0 0 0 0 0 0 0

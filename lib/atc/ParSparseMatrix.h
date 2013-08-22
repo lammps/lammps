@@ -7,8 +7,6 @@
 #include "DiagonalMatrix.h"
 #include <algorithm>
 
-using namespace MPI_Wrappers;
-
 namespace ATC_matrix {
 
   /**

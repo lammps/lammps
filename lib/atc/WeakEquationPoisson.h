@@ -1,6 +1,9 @@
 #ifndef WEAK_EQUATION_POISSON_H
 #define WEAK_EQUATION_POISSON_H
 
+#include <set>
+#include <string>
+
 #include "WeakEquation.h"
 
 namespace ATC{
@@ -53,9 +56,9 @@ class WeakEquationPoisson : public WeakEquation {
                                        DENS_MAT &coefs) const;
 
   /** necessary interfaces */
-  virtual set<string> needs_material_functions(void) const
+  virtual std::set<std::string> needs_material_functions(void) const
   {
-    set<string> needs;
+    std::set<std::string> needs;
     needs.insert("electric_displacement");
     needs.insert("electron_charge_density");
     return needs;
@@ -100,9 +103,9 @@ class WeakEquationPoissonConstantRHS : public WeakEquationPoisson {
                                        const Material * material,
                                        DENS_MAT &coefs) const {};
 
-  virtual set<string> needs_material_functions(void) const
+  virtual std::set<std::string> needs_material_functions(void) const
   {
-    set<string> needs;
+    std::set<std::string> needs;
     needs.insert("electric_displacement");
     return needs;
   }

@@ -8,16 +8,19 @@
 #include "LammpsInterface.h"
 #include "VoigtOperations.h"
 #include <iostream>
-#include <fstream>
 
+using ATC_Utility::command_line;
+using ATC_Utility::str2dbl;
 using voigt3::voigt_idx1;
 using voigt3::voigt_idx2;
-//using voigt3::voigt_idx1_symm;
-//using voigt3::voigt_idx2_symm;
 using voigt3::to_voigt_unsymmetric;
 using voigt3::from_voigt_unsymmetric;
 using voigt3::to_voigt;
 using voigt3::from_voigt;
+using std::stringstream;
+using std::vector;
+using std::string;
+using std::fstream;
 
 namespace ATC {
 //=============================================================================

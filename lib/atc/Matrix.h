@@ -21,12 +21,12 @@ public:
   virtual ~Matrix() {}
 
   //* stream output functions
-  void print(ostream &o) const { o << to_string(); }
-  void print(ostream &o, const string &name) const;
-  friend ostream& operator<<(ostream &o, const Matrix<T> &m){m.print(o); return o;}
+  void print(std::ostream &o) const { o << to_string(); }
+  void print(std::ostream &o, const std::string &name) const;
+  friend std::ostream& operator<<(std::ostream &o, const Matrix<T> &m){m.print(o); return o;}
   void print() const;
-  virtual void print(const string &name) const;
-  virtual string to_string() const;
+  virtual void print(const std::string &name) const;
+  virtual std::string to_string() const;
 
   // element by element operations
   DenseMatrix<T> operator/(const Matrix<T>& B) const;
@@ -35,13 +35,13 @@ public:
 
   // functions that return a copy 
   DenseMatrix<T> transpose() const;
-  void row_partition(const set<int> & rowsIn, set<int> & rows, set<int> & colsC,
+  void row_partition(const std::set<int> & rowsIn, std::set<int> & rows, std::set<int> & colsC,
     DenseMatrix<T> & A1, DenseMatrix<T> & A2, bool complement=true) const;
-  set<int> row_partition(const set<int> & rows, 
+  std::set<int> row_partition(const std::set<int> & rows, 
     DenseMatrix<T> & A1, DenseMatrix<T> & A2) const;
-  void map(const set<int>& rows, const set<int>& cols, DenseMatrix<T> & A) const;
-  void insert(const set<int>& rows, const set<int>& cols, const DenseMatrix<T> & A);
-  void assemble(const set<int>& rows, const set<int>& cols, const DenseMatrix<T> & A);
+  void map(const std::set<int>& rows, const std::set<int>& cols, DenseMatrix<T> & A) const;
+  void insert(const std::set<int>& rows, const std::set<int>& cols, const DenseMatrix<T> & A);
+  void assemble(const std::set<int>& rows, const std::set<int>& cols, const DenseMatrix<T> & A);
 
   // matrix to scalar functions
   T sum()    const;
@@ -94,14 +94,14 @@ public:
   //* create restart file
   virtual void write_restart(FILE *f) const=0;    
   //* writes a matlab command to recreate this in a variable named s
-  virtual void matlab(ostream &o, const string &s="M") const;
+  virtual void matlab(std::ostream &o, const std::string &s="M") const;
   //* writes a mathematica command to recreate this in a variable named s
-  virtual void mathematica(ostream &o, const string &s="M") const;
+  virtual void mathematica(std::ostream &o, const std::string &s="M") const;
 
   // output to matlab, with variable name s
-  void matlab(const string &s="M") const;
+  void matlab(const std::string &s="M") const;
   // output to mathematica, with variable name s
-  void mathematica(const string &s="M") const;
+  void mathematica(const std::string &s="M") const;
 
   Matrix<T>& operator+=(const Matrix &r);
   Matrix<T>& operator-=(const Matrix &r);
@@ -286,9 +286,9 @@ void MultAB(const Matrix<T> &A, const Matrix<T> &B, DenseMatrix<T> &C,
 //-----------------------------------------------------------------------------
 //* output operator
 template<typename T>
-string Matrix<T>::to_string() const
+std::string Matrix<T>::to_string() const
 {
-  string s;
+  std::string s;
   for (INDEX i=0; i<nRows(); i++)
   {
     if (i) s += '\n';
@@ -303,7 +303,7 @@ string Matrix<T>::to_string() const
 //-----------------------------------------------------------------------------
 //* output operator that wraps the matrix in a nice labeled box
 template<typename T>
-void Matrix<T>::print(ostream &o, const string &name) const
+void Matrix<T>::print(std::ostream &o, const std::string &name) const
 {
   o << "------- Begin "<<name<<" -----------------\n";
   this->print(o);
@@ -314,14 +314,14 @@ void Matrix<T>::print(ostream &o, const string &name) const
 template<typename T>
 void Matrix<T>::print() const 
 {
-  print(cout); 
+  print(std::cout); 
 }
 //-----------------------------------------------------------------------------
 //* named print operator, use cout by default
 template<typename T>
-void Matrix<T>::print(const string &name) const 
+void Matrix<T>::print(const std::string &name) const 
 {
-  print(cout, name); 
+  print(std::cout, name); 
 }
 //-----------------------------------------------------------------------------
 //* element by element division
@@ -693,14 +693,14 @@ void Matrix<T>::add_scaled(const Matrix<T> &A, const T& s)
 //-----------------------------------------------------------------------------
 //* writes a matlab command to the console
 template<typename T>
-void Matrix<T>::matlab(const string &s) const 
+void Matrix<T>::matlab(const std::string &s) const 
 {
-  this->matlab(cout, s); 
+  this->matlab(std::cout, s); 
 }
 //-----------------------------------------------------------------------------
 //* Writes a matlab script defining the vector to the stream
 template<typename T>
-void Matrix<T>::matlab(ostream &o, const string &s) const
+void Matrix<T>::matlab(std::ostream &o, const std::string &s) const
 {
   o << s <<"=zeros(" << nRows() << ","<<nCols()<<");\n";
   int szi = this->nRows();
@@ -712,14 +712,14 @@ void Matrix<T>::matlab(ostream &o, const string &s) const
 //-----------------------------------------------------------------------------
 //* writes a mathematica command to the console
 template<typename T>
-void Matrix<T>::mathematica(const string &s) const 
+void Matrix<T>::mathematica(const std::string &s) const 
 {
-  this->mathematica(cout, s); 
+  this->mathematica(std::cout, s); 
 }
 //-----------------------------------------------------------------------------
 //* Writes a mathematica script defining the vector to the stream
 template<typename T>
-void Matrix<T>::mathematica(ostream &o, const string &s) const
+void Matrix<T>::mathematica(std::ostream &o, const std::string &s) const
 {
   o << s <<" = { \n";
   o.precision(15);
@@ -822,33 +822,33 @@ inline bool Matrix<T>::check_range(T min, T max) const
 template<typename T>
 void ierror(const Matrix<T> &a, const char *FILE, int LINE, INDEX i, INDEX j)
 {
-  cout << "Error: Matrix indexing failure ";
-  cout << "in file: " << FILE << ", line: "<< LINE <<"\n";
-  cout << "Tried accessing index (" << i << ", " << j <<")\n";
-  cout << "Matrix size was "<< a.nRows() << "x" << a.nCols() << "\n";
+  std::cout << "Error: Matrix indexing failure ";
+  std::cout << "in file: " << FILE << ", line: "<< LINE <<"\n";
+  std::cout << "Tried accessing index (" << i << ", " << j <<")\n";
+  std::cout << "Matrix size was "<< a.nRows() << "x" << a.nCols() << "\n";
   ERROR_FOR_BACKTRACE
   exit(EXIT_FAILURE);
 }
 //-----------------------------------------------------------------------------
 //* Displays custom message and indexing error and quits
 template<typename T>
-void ierror(const Matrix<T> &a, INDEX i, INDEX j, const string m)
+void ierror(const Matrix<T> &a, INDEX i, INDEX j, const std::string m)
 {
-  cout << m << "\n";
-  cout << "Tried accessing index (" << i << ", " << j <<")\n";
-  cout << "Matrix size was "<< a.nRows() << "x" << a.nCols() << "\n";
+  std::cout << m << "\n";
+  std::cout << "Tried accessing index (" << i << ", " << j <<")\n";
+  std::cout << "Matrix size was "<< a.nRows() << "x" << a.nCols() << "\n";
   ERROR_FOR_BACKTRACE
   exit(EXIT_FAILURE);
 }
 //-----------------------------------------------------------------------------
 //* Displays matrix compatibility error message
 template<typename T>
-void merror(const Matrix<T> &a, const Matrix<T> &b, const string m)
+void merror(const Matrix<T> &a, const Matrix<T> &b, const std::string m)
 {
-  cout << "Error: " << m << "\n";
-  cout << "Matrix sizes were " << a.nRows() << "x" << a.nCols();
-  if (&a != &b) cout << ", and "<< b.nRows() << "x" << b.nCols();
-  cout << "\n";
+  std::cout << "Error: " << m << "\n";
+  std::cout << "Matrix sizes were " << a.nRows() << "x" << a.nCols();
+  if (&a != &b) std::cout << ", and "<< b.nRows() << "x" << b.nCols();
+  std::cout << "\n";
   if (a.size() < 100) a.print("Matrix");
   ERROR_FOR_BACKTRACE
   exit(EXIT_FAILURE);
@@ -861,8 +861,8 @@ void merror(const Matrix<T> &a, const Matrix<T> &b, const string m)
 //* rows is the map for A1, (rows,colsC) is the map for A2
 
 template <typename T>
-void Matrix<T>::row_partition(const set<int> & rowsIn, 
-set<int> & rows, set<int> & colsC,
+void Matrix<T>::row_partition(const std::set<int> & rowsIn, 
+std::set<int> & rows, std::set<int> & colsC,
 DenseMatrix<T> & A1, DenseMatrix<T> & A2, bool complement) const
 {
   if (complement) {
@@ -891,7 +891,7 @@ DenseMatrix<T> & A1, DenseMatrix<T> & A2, bool complement) const
   int ncolsC = colsC.size();
   A1.reset(nrows,nrows);
   A2.reset(nrows,ncolsC);
-  set<int>::const_iterator itrI, itrJ;
+  std::set<int>::const_iterator itrI, itrJ;
   INDEX i =0;
   for (itrI = rows.begin(); itrI != rows.end(); itrI++) {
     INDEX j = 0;
@@ -909,11 +909,11 @@ DenseMatrix<T> & A1, DenseMatrix<T> & A2, bool complement) const
 }
 
 template <typename T>
-set<int> Matrix<T>::row_partition(const set<int> & rows, 
+std::set<int> Matrix<T>::row_partition(const std::set<int> & rows, 
 DenseMatrix<T> & A1, DenseMatrix<T> & A2) const
 {
   // complement of set "rows" in set of this.cols is "cols"
-  set<int> colsC;
+  std::set<int> colsC;
   for (INDEX i = 0; i < this->nCols();  i++) {
     if (rows.find(i) == rows.end() ) colsC.insert(i);
   }
@@ -933,7 +933,7 @@ DenseMatrix<T> & A1, DenseMatrix<T> & A2) const
   int ncolsC = colsC.size();
   A1.reset(nrows,nrows);
   A2.reset(nrows,ncolsC);
-  set<int>::const_iterator itrI, itrJ;
+  std::set<int>::const_iterator itrI, itrJ;
   INDEX i =0;
   for (itrI = rows.begin(); itrI != rows.end(); itrI++) {
     INDEX j = 0;
@@ -954,7 +954,7 @@ DenseMatrix<T> & A1, DenseMatrix<T> & A2) const
 //-----------------------------------------------------------------------------
 //* returns row & column mapped matrix
 template <typename T>
-void Matrix<T>::map(const set<int> & rows, const set<int> & cols, 
+void Matrix<T>::map(const std::set<int> & rows, const std::set<int> & cols, 
 DenseMatrix<T> & A ) const
 {
   if      (rows.size() == 0 || cols.size() == 0 ) {
@@ -964,7 +964,7 @@ DenseMatrix<T> & A ) const
   int nrows = rows.size();
   int ncols = cols.size();
   A.reset(nrows,ncols);
-  set<int>::const_iterator itrI, itrJ;
+  std::set<int>::const_iterator itrI, itrJ;
   INDEX i =0;
   for (itrI = rows.begin(); itrI != rows.end(); itrI++) {
     INDEX j = 0;
@@ -978,17 +978,17 @@ DenseMatrix<T> & A ) const
 //-----------------------------------------------------------------------------
 //* inserts elements from a smaller matrix 
 template <typename T>
-void Matrix<T>::insert(const set<int> & rows, const set<int> & cols, 
+void Matrix<T>::insert(const std::set<int> & rows, const std::set<int> & cols, 
 const DenseMatrix<T> & A ) 
 {
   if      (rows.size() == 0 || cols.size() == 0 )  return;
-  set<int>::const_iterator itrI, itrJ;
+  std::set<int>::const_iterator itrI, itrJ;
   int i =0;
   for (itrI = rows.begin(); itrI != rows.end(); itrI++) {
     int j = 0;
     for (itrJ = cols.begin(); itrJ != cols.end(); itrJ++) {
       (*this)(*itrI,*itrJ) = A(i,j);
-//cout << *itrI << " " << *itrJ << " : " << (*this)(*itrI,*itrJ) << "\n";
+//std::cout << *itrI << " " << *itrJ << " : " << (*this)(*itrI,*itrJ) << "\n";
       j++;
     }
     i++;
@@ -997,11 +997,11 @@ const DenseMatrix<T> & A )
 //-----------------------------------------------------------------------------
 //* assemble elements from a smaller matrix 
 template <typename T>
-void Matrix<T>::assemble(const set<int> & rows, const set<int> & cols, 
+void Matrix<T>::assemble(const std::set<int> & rows, const std::set<int> & cols, 
 const DenseMatrix<T> & A ) 
 {
   if      (rows.size() == 0 || cols.size() == 0 )  return;
-  set<int>::const_iterator itrI, itrJ;
+  std::set<int>::const_iterator itrI, itrJ;
   int i =0;
   for (itrI = rows.begin(); itrI != rows.end(); itrI++) {
     int j = 0;

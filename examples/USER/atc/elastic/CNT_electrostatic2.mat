@@ -8,6 +8,7 @@ electric_field linear
 end
 electron_density linear
   coefficient  -1.e-2  # NOTE will not converge with +0.01, try smaller pos
+  #coefficient   1.e-2  # NOTE will not converge with +0.01, try smaller pos
 end
 mass_density
 #electron_density interpolation

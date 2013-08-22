@@ -3,10 +3,8 @@
 
 /** MomentumTimeIntegrator : a class to implement various elasticity integrators for FE quantities */
 
-// ATC headers
 #include "TimeIntegrator.h"
 
-using namespace std;
 namespace ATC {
 
     // forward declarations

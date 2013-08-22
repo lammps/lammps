@@ -1,4 +1,4 @@
-LAMMPS (14 Aug 2013)
+LAMMPS (24 Aug 2013)
 units       real
 atom_style  atomic
 variable lattice_constant equal 5.256227487
@@ -33,6 +33,7 @@ thermo_style  custom step vol etotal
 timestep  0
 fix         ATC all atc field Ar_CauchyBorn.mat
 ATC: constructing shape function field estimate with parameter file Ar_CauchyBorn.mat
+ ATC: version 2.0
  ATC: peratom PE compute created with ID: 3
 # the original configuration of the atoms
 fix_modify  ATC  reset_atomic_reference_positions read_xref_0.data
@@ -60,13 +61,13 @@ Memory usage per processor = 16.0674 Mbytes
 Step Volume TotEng 
        0    12370.307   -416.09102 
        1    12370.307   -416.09102 
-Loop time of 0.00229579 on 4 procs for 1 steps with 256 atoms
+Loop time of 0.00215995 on 4 procs for 1 steps with 256 atoms
 
-Pair  time (%) = 0.00048399 (21.0816)
+Pair  time (%) = 0.000487804 (22.584)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000252604 (11.0029)
-Outpt time (%) = 0.00147229 (64.1301)
-Other time (%) = 8.69036e-05 (3.78534)
+Comm  time (%) = 0.000238955 (11.063)
+Outpt time (%) = 0.00136787 (63.3286)
+Other time (%) = 6.53267e-05 (3.02445)
 
 Nlocal:    64 ave 64 max 64 min
 Histogram: 4 0 0 0 0 0 0 0 0 0

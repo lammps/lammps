@@ -3,10 +3,12 @@
 #ifndef TRANSFER_LIBRARY_H
 #define TRANSFER_LIBRARY_H
 
+#include <string>
+#include <map>
+#include <vector>
+
 // ATC_Method headers
 #include "TransferOperator.h"
-
-using namespace std;
 
 namespace ATC {
 
@@ -240,6 +242,41 @@ namespace ATC {
   };
 
   /**
+   *  @class  AtomElementMask
+   *  @brief  determines which elements should be used for FE quadrature based on presence of atoms
+   */
+  class AtomElementMask : public DenseMatrixTransfer<bool> {
+
+  public:
+    
+    // constructor
+    AtomElementMask(ATC_Coupling * atc,
+                    MatrixDependencyManager<DenseMatrix, int> * hasAtoms = NULL);
+    
+    // destructor
+    virtual ~AtomElementMask() {
+      hasAtoms_->remove_dependence(this);
+    };
+
+    /** apply transfer operator */
+    virtual void reset_quantity() const;
+
+  protected:
+
+    /** shape function matrix over the atoms used to help define the geometry */
+    MatrixDependencyManager<DenseMatrix, int> * hasAtoms_;
+
+    /** finite element engine */
+    const FE_Engine * feEngine_;
+
+  private:
+
+    // do not define
+    AtomElementMask();
+
+  };
+
+  /**
    *  @class  NodalGeometryType
    *  @brief  Computes the computational geometry associated with each node with respect to the FE and MD regions
    */
@@ -287,6 +324,52 @@ namespace ATC {
 
     // do not define
     NodalGeometryType();
+
+  };
+
+  /**
+   *  @class  NodalGeometryTypeElementSet
+   *  @brief  Divdes nodes into MD, FE, and boundary based on if they are connected to nodes in internal and not internal
+   */
+  
+  class NodalGeometryTypeElementSet : public DenseMatrixTransfer<int> {
+
+  public:
+    
+    // constructor
+    NodalGeometryTypeElementSet(ATC_Coupling * atc,
+                                MatrixDependencyManager<DenseMatrix, int> * hasInternal = NULL);
+    
+    // destructor
+    virtual ~NodalGeometryTypeElementSet() {
+      hasInternal_->remove_dependence(this);
+    };
+
+    /** apply transfer operator */
+    virtual void reset_quantity() const;
+
+  protected:
+
+    /** shape function matrix over the internal atoms used to help define the geometry */
+    MatrixDependencyManager<DenseMatrix, int> * hasInternal_;
+
+    /** finite element engine */
+    const FE_Engine * feEngine_;
+
+    /** number of nodes in the mesh */
+    int nNodes_;
+
+    /** number of elements in the mesh */
+    int nElts_;
+
+    // workspace
+    // ints so they can be shared through MPI
+    mutable Array<int> _nodesInternal_, _nodesGhost_;
+
+  private:
+
+    // do not define
+    NodalGeometryTypeElementSet();
 
   };
 
@@ -589,7 +672,7 @@ namespace ATC {
     virtual void reset_quantity() const;
 
     /** map from fields to their sizes */
-    map<FieldName,int> fieldSizes_;
+    std::map<FieldName,int> fieldSizes_;
 
     /** map from atom to element in which it resides */
     MatrixDependencyManager<DenseMatrix, int> * nodalGeometryType_;
@@ -971,7 +1054,7 @@ namespace ATC {
     PerAtomShapeFunctionGradient(ATC_Method * atc,
                                  MatrixDependencyManager<DenseMatrix, int>* atomToElementMap = NULL,
                                  DENS_MAN* atomPositions = NULL,
-                                 const string & tag = "AtomicShapeFunctionGradient",
+                                 const std::string & tag = "AtomicShapeFunctionGradient",
                                  AtomType atomType = INTERNAL); 
     
     // destructor
@@ -994,7 +1077,7 @@ namespace ATC {
     const FE_Engine * feEngine_;
 
     /** container for dependency managers */
-    vector<AtcAtomSparseMatrix<double> * > matrices_;
+    std::vector<AtcAtomSparseMatrix<double> * > matrices_;
 
   private:
 
@@ -1248,11 +1331,11 @@ namespace ATC {
                                KernelFunction* kernelFunction,
                                DENS_MAN* atomCoarseGrainingPositions,
                                DIAG_MAN* weights,
-                               const DENS_MAT * reference);
+                               DENS_MAN * reference);
     
     // destructor
     virtual ~OnTheFlyKernelAccumulationNormalizedReferenced() {
-      atomCoarseGrainingPositions_->remove_dependence(this);
+      reference_->remove_dependence(this);
     };
 
     /** do nothing */
@@ -1260,7 +1343,8 @@ namespace ATC {
 
   protected:
 
-    const DENS_MAT * reference_;
+    /** reference value */
+    DENS_MAN * reference_;
 
   private:
 
@@ -1503,11 +1587,11 @@ namespace ATC {
                                PerAtomQuantity<double> * source,
                                DENS_MAN* atomCoarseGrainingPositions,
                                DIAG_MAN* weights,
-                               const DENS_MAT * reference);
+                               DENS_MAN * reference);
     
     // destructor
     virtual ~OnTheFlyMeshAccumulationNormalizedReferenced() {
-      atomCoarseGrainingPositions_->remove_dependence(this);
+      reference_->remove_dependence(this);
     };
 
     /** do nothing */
@@ -1515,7 +1599,8 @@ namespace ATC {
 
   protected:
 
-    const DENS_MAT * reference_;
+    /** reference value */
+    DENS_MAN * reference_;
 
   private:
 

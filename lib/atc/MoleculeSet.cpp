@@ -4,6 +4,14 @@
 #include "LammpsInterface.h"
 #include "ATC_Error.h"
 #include <queue>
+#include <utility>
+#include <sstream>
+
+using std::multimap;
+using std::map;
+using std::pair;
+using std::set;
+using std::stringstream;
 
 namespace ATC {
 

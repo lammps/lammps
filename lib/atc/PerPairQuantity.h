@@ -8,15 +8,14 @@
 #include "DependencyManager.h"
 #include "PerAtomQuantity.h"
 #include <map>
-
-using std::map;
-using std::pair;
+#include <utility>
+#include <string>
 
 namespace ATC {
   /** mapping of atomic pairs to pair index value */
-  typedef map< pair< int,int >,int > PAIR_MAP;
-  typedef map< pair< int,int >,int >::const_iterator PAIR_MAP_ITERATOR;
-  typedef pair< pair< int,int >,int > ATOM_PAIR;
+  typedef std::map< std::pair< int,int >,int > PAIR_MAP;
+  typedef std::map< std::pair< int,int >,int >::const_iterator PAIR_MAP_ITERATOR;
+  typedef std::pair< std::pair< int,int >,int > ATOM_PAIR;
 
   /**
    *  @class  PairMap 
@@ -27,13 +26,18 @@ namespace ATC {
   public:
     PairMap(LammpsInterface * lammpsInterface, int groupbit);
     virtual ~PairMap(void);
-    virtual bool need_reset(void) const = 0; 
+
     virtual void reset(void) const = 0;
     void quantity() {}; 
     void set_quantity() { throw ATC_Error("inappropriate access to pair map");}
+
+    // lammps communication
+    virtual void post_exchange() {this->force_reset();};
+    virtual void rest_nlocal() {this->force_reset();};
+
     // iterator interface
     int size(void) const { 
-      if (need_reset()) reset(); 
+      if (this->need_reset()) reset(); 
       return nPairs_+nBonds_; 
     }
     int num_bonds(void) const { return nBonds_; }
@@ -55,10 +59,10 @@ namespace ATC {
   public:
     PairMapNeighbor(LammpsInterface * lammpsInterface, int groupbit);
     virtual ~PairMapNeighbor(void) {};
-    virtual bool need_reset(void) const;
+
     virtual void reset(void) const;
     virtual ATOM_PAIR  start(void) const {
-      if (need_reset()) reset();
+      if (this->need_reset()) reset();
       iterator_ = pairMap_.begin(); return *iterator_;}
     virtual ATOM_PAIR  next(void)  const {
        iterator_++; return *iterator_;}
@@ -85,12 +89,12 @@ namespace ATC {
     bool       finished()  const  { return index_==nBonds_; }
     ATOM_PAIR  atom_pair(int n) const {
       if ( !(n<nBonds_) ) {
-        pair<int,int> pair_ij(-1,-1); // this is the "end" value
+        std::pair<int,int> pair_ij(-1,-1); // this is the "end" value
         ATOM_PAIR p(pair_ij,n);
         return p;
       }
       int * bond = (lammpsInterface_->bond_list())[n];
-      pair<int,int> pair_ij(bond[0],bond[1]); 
+      std::pair<int,int> pair_ij(bond[0],bond[1]); 
       ATOM_PAIR p(pair_ij,n);
       return p;
     }
@@ -124,7 +128,7 @@ namespace ATC {
     }
     ATOM_PAIR  atom_pair(int n) const {
       int * bond = (lammpsInterface_->bond_list())[n];
-      pair<int,int> pair_ij(bond[0],bond[1]); 
+      std::pair<int,int> pair_ij(bond[0],bond[1]); 
       ATOM_PAIR p(pair_ij,n);
       return p;
     }

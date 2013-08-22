@@ -1,6 +1,9 @@
 #ifndef WEAK_EQUATION_ELECTRON_CONTINUITY_H
 #define WEAK_EQUATION_ELECTRON_CONTINUITY_H
 
+#include <set>
+#include <string>
+
 #include "WeakEquation.h"
 
 namespace ATC{
@@ -43,10 +46,10 @@ class WeakEquationElectronContinuity : public WeakEquation {
                            DENS_MAT &flux) const;
 
   /** necessary interfaces */
-  virtual set<string> needs_material_functions(void) const
+  virtual std::set<std::string> needs_material_functions(void) const
   {
-    string list[2] = {"electron_flux","electron_recombination"};
-    set<string> needs(list,list+2);
+    std::string list[2] = {"electron_flux","electron_recombination"};
+    std::set<std::string> needs(list,list+2);
     return needs;
   }
 
@@ -93,9 +96,9 @@ class WeakEquationElectronEquilibrium : public WeakEquation {
 
 
   /** necessary interfaces */
-  virtual set<string> needs_material_functions(void) const
+  virtual std::set<std::string> needs_material_functions(void) const
   {
-    set<string> needs;
+    std::set<std::string> needs;
     needs.insert("electron_charge_density");
     return needs;
   }

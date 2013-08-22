@@ -3,10 +3,7 @@
 
 #include <map>
 #include <string>
-
-using std::map;
-using std::string;
-
+#include <fstream>
 #include "ATC_TypeDefs.h"
 
 namespace ATC {
@@ -37,8 +34,8 @@ namespace ATC {
   class ElectronPhononExchangeLinear : public ElectronPhononExchange
   {
     public:
-      ElectronPhononExchangeLinear(fstream &matfile,
-                                   map<string,double> & parameters);
+      ElectronPhononExchangeLinear(std::fstream &matfile,
+                                   std::map<std::string,double> & parameters);
       virtual ~ElectronPhononExchangeLinear() {};
       virtual bool electron_phonon_exchange(const FIELD_MATS &fields,
                                                   DENS_MAT &flux)
@@ -66,8 +63,8 @@ namespace ATC {
   class ElectronPhononExchangePowerLaw : public ElectronPhononExchange
   {
     public:
-      ElectronPhononExchangePowerLaw(fstream &matfile,  
-                                     map<string,double> & parameters);
+      ElectronPhononExchangePowerLaw(std::fstream &matfile,  
+                                     std::map<std::string,double> & parameters);
       virtual ~ElectronPhononExchangePowerLaw() {};
       virtual bool electron_phonon_exchange(const FIELD_MATS &fields,
                                                   DENS_MAT &flux)
@@ -96,8 +93,8 @@ namespace ATC {
   class ElectronPhononExchangeHertel : public ElectronPhononExchange
   {
     public:
-      ElectronPhononExchangeHertel(fstream &matfile,  
-                                   map<string,double> & parameters,
+      ElectronPhononExchangeHertel(std::fstream &matfile,  
+                                   std::map<std::string,double> & parameters,
                                    Material * material);
       virtual ~ElectronPhononExchangeHertel() {};
       virtual bool electron_phonon_exchange(const FIELD_MATS &fields,

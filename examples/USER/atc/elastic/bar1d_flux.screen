@@ -1,4 +1,4 @@
-LAMMPS (14 Aug 2013)
+LAMMPS (24 Aug 2013)
 
 units		real
 atom_style	atomic
@@ -47,6 +47,7 @@ neigh_modify	every 10 delay 0 check no
 #               ID  group atc PhysicsType ParameterFile
 fix             AtC internal   atc elastic     Ar_elastic.mat
 ATC: constructing elastic coupling with parameter file Ar_elastic.mat
+ ATC: version 2.0
  ATC: peratom PE compute created with ID: 3
  ATC: computed mass density : 1.09915
  ATC: computed mass density : 1.09915
@@ -105,7 +106,7 @@ timestep	5
 thermo		100
 run 		1000
 Setting up run ...
-Memory usage per processor = 93.0953 Mbytes
+Memory usage per processor = 65.6268 Mbytes
 Step myTemp myPres PotEng 
        0            0 -0.00072339042   -4509.8851 
      100 1.7485737e-12 -0.00065677838   -4509.8851 
@@ -118,13 +119,13 @@ Step myTemp myPres PotEng
      800 1.3218953e-08  -0.02139071   -4509.8852 
      900 1.6753544e-08 -0.026203391   -4509.8852 
     1000 2.0559423e-08 -0.031228823   -4509.8852 
-Loop time of 77.9631 on 4 procs for 1000 steps with 2304 atoms
+Loop time of 22.401 on 4 procs for 1000 steps with 2304 atoms
 
-Pair  time (%) = 8.02545 (10.2939)
-Neigh time (%) = 4.56744 (5.85847)
-Comm  time (%) = 22.9713 (29.4644)
-Outpt time (%) = 0.286932 (0.368036)
-Other time (%) = 42.1119 (54.0152)
+Pair  time (%) = 5.92745 (26.4607)
+Neigh time (%) = 2.61159 (11.6584)
+Comm  time (%) = 6.5556 (29.2648)
+Outpt time (%) = 0.0144683 (0.0645879)
+Other time (%) = 7.29186 (32.5515)
 
 Nlocal:    576 ave 864 max 288 min
 Histogram: 2 0 0 0 0 0 0 0 0 2
@@ -154,7 +155,7 @@ timestep        5
 thermo		100
 run 		10000
 Setting up run ...
-Memory usage per processor = 93.5532 Mbytes
+Memory usage per processor = 66.0846 Mbytes
 Step myTemp myPres PotEng 
     1000 2.0559423e-08 -0.031228823   -4509.8852 
     1100 2.4448613e-08 -0.036521719   -4509.8852 
@@ -257,19 +258,19 @@ Step myTemp myPres PotEng
    10800 1.684499e-08 -0.040493081   -4509.8852 
    10900 1.2305474e-08 -0.041691151   -4509.8851 
    11000 1.1330272e-08 -0.040137729   -4509.8851 
-Loop time of 371.175 on 4 procs for 10000 steps with 2304 atoms
+Loop time of 209.077 on 4 procs for 10000 steps with 2304 atoms
 
-Pair  time (%) = 66.4286 (17.8968)
-Neigh time (%) = 31.4239 (8.46606)
-Comm  time (%) = 117.354 (31.617)
-Outpt time (%) = 0.685033 (0.184558)
-Other time (%) = 155.283 (41.8355)
+Pair  time (%) = 58.372 (27.9189)
+Neigh time (%) = 25.3886 (12.1432)
+Comm  time (%) = 59.3392 (28.3815)
+Outpt time (%) = 0.11328 (0.0541809)
+Other time (%) = 65.8637 (31.5022)
 
 Nlocal:    576 ave 864 max 288 min
 Histogram: 2 0 0 0 0 0 0 0 0 2
 Nghost:    5170 ave 6910 max 3430 min
 Histogram: 2 0 0 0 0 0 0 0 0 2
-Neighs:    178632 ave 289296 max 68184 min
+Neighs:    178632 ave 287569 max 69518 min
 Histogram: 2 0 0 0 0 0 0 0 0 2
 FullNghs:  357264 ave 577008 max 137520 min
 Histogram: 2 0 0 0 0 0 0 0 0 2

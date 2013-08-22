@@ -1,6 +1,9 @@
 #ifndef WEAK_EQUATION_ELECTRON_MOMENTUM_H
 #define WEAK_EQUATION_ELECTRON_MOMENTUM_H
 
+#include <set>
+#include <string>
+
 #include "WeakEquation.h"
 
 namespace ATC{
@@ -37,10 +40,10 @@ namespace ATC{
                              DENS_MAT_VEC &flux) const ;
     
     /** necessary interfaces */
-    virtual set<string> needs_material_functions(void) const
+    virtual std::set<std::string> needs_material_functions(void) const
     {
-      string list[2] = {"inv_effective_mass","electron_heat_capacity"};
-      set<string> needs(list,list+2);
+      std::string list[2] = {"inv_effective_mass","electron_heat_capacity"};
+      std::set<std::string> needs(list,list+2);
       return needs;
     }
 
@@ -88,9 +91,9 @@ namespace ATC{
                              DENS_MAT &flux) const ;
     
     /** necessary interfaces */
-    virtual set<string> needs_material_functions(void) const
+    virtual std::set<std::string> needs_material_functions(void) const
     {
-      set<string> needs
+      std::set<std::string> needs
         = WeakEquationElectronMomentum::needs_material_functions();
       needs.insert("electron_drag_coefficient");
       needs.insert("electron_heat_capacity");

@@ -36,20 +36,6 @@ namespace ATC {
   bool KinetoThermostat::modify(int narg, char **arg)
   {
     bool foundMatch = false;
-
-    int argIndex = 0;
-    if (strcmp(arg[argIndex],"thermal")==0) {
-      foundMatch = thermostat_.modify(narg,arg);
-    }
-
-    if (strcmp(arg[argIndex],"momentum")==0) {
-      foundMatch = kinetostat_.modify(narg,arg);
-    }
-
-    if (!foundMatch)
-      foundMatch = AtomicRegulator::modify(narg,arg);
-    if (foundMatch)
-      needReset_ = true;
     return foundMatch;
   }
 

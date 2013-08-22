@@ -42,6 +42,7 @@
 
 using namespace LAMMPS_NS; 
 using namespace FixConst;
+using std::string;
 
 // main page of doxygen documentation
 /*! \mainpage AtC : Atom-to-Continuum methods
@@ -149,7 +150,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
     using separate fixes.
     \n
     For detailed exposition of the theory and algorithms please see:\n
-    - Wagner, GJ; Jones, RE; Templeton, JA; Parks, MA.  <VAR> An
+    - Wagner, GJ; Jones, RE; Templeton, JA; Parks, MA,  <VAR> An
       atomistic-to-continuum coupling method for heat transfer in solids. </VAR>
       Special Issue of Computer Methods and Applied Mechanics (2008) 197:3351. \n
     - Zimmerman, JA; Webb, EB; Hoyt, JJ;. Jones, RE; Klein, PA; Bammann, DJ,
@@ -160,6 +161,19 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
       <VAR> A material frame approach for evaluating continuum variables in
        atomistic simulations. </VAR>
       Journal of Computational Physics (2010), 229:2364. \n
+    - Templeton, JA; Jones, RE; Wagner, GJ,  <VAR> Application of a field-based method
+      to spatially varying thermal transport problems in molecular dynamics. </VAR>
+      Modelling and Simulation in Materials Science and Engineering (2010), 18:085007. \n
+    - Jones, RE; Templeton, JA; Wagner, GJ; Olmsted, D; Modine, JA, <VAR>
+      Electron transport enhanced molecular dynamics for metals and semi-metals.  </VAR>
+      International Journal for Numerical Methods in Engineering (2010), 83:940. \n
+    - Templeton, JA; Jones, RE; Lee, JW; Zimmerman, JA; Wong, BM,
+      <VAR> A long-range electric field solver for molecular dynamics based on
+      atomistic-to-continuum modeling.  </VAR>
+      Journal of Chemical Theory and Computation (2011), 7:1736. \n
+    - Mandadapu, KK; Templeton, JA; Lee, JW, <VAR> Polarization as a field variable
+      from molecular dynamics simulations. </VAR>
+      Journal of Chemical Physics (2013), 139:054115. \n
 
     Please refer to the standard
     finite element (FE) texts, e.g. T.J.R Hughes <VAR> The finite element 
@@ -295,7 +309,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
       } 
       else { 
         if (me==0) printf("ATC: constructing shape function field estimate with parameter file %s\n",arg[4]);
-        std::string matParamFile = arg[4];
+        string matParamFile = arg[4];
         atc_ = new ATC::ATC_TransferPartitionOfUnity(groupName,
                                                      array_atom, this,
                                                      matParamFile);
@@ -315,7 +329,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
       } 
       else { 
         if (me==0) printf("ATC: constructing kernel field estimate with parameter file %s\n",arg[4]);
-        std::string matParamFile = arg[4];
+        string matParamFile = arg[4];
         atc_ = new ATC::ATC_TransferKernel(groupName,
                                            array_atom, this,
                                            matParamFile);
@@ -324,7 +338,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
     // PhysicsTypes
     else if (strcmp(arg[3],"thermal")==0) 
     {
-      std::string matParamFile = arg[4];
+      string matParamFile = arg[4];
       if (me==0) printf("ATC: constructing thermal coupling with parameter file %s\n",arg[4]);
       atc_ = new ATC::ATC_CouplingEnergy(groupName,
                                          array_atom, this,
@@ -332,7 +346,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
     }
     else if (strcmp(arg[3],"two_temperature")==0) 
     {
-      std::string matParamFile = arg[4];
+      string matParamFile = arg[4];
       if (me==0) printf("ATC: constructing two_temperature coupling with parameter file %s\n",arg[4]);
       atc_ = new ATC::ATC_CouplingEnergy(groupName,
                                          array_atom, this,
@@ -340,7 +354,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
     }
     else if (strcmp(arg[3],"drift_diffusion")==0) 
     {
-      std::string matParamFile = arg[4];
+      string matParamFile = arg[4];
       if (me==0) printf("ATC: constructing drift_diffusion coupling with parameter file %s\n",arg[4]);
       atc_ = new ATC::ATC_CouplingEnergy(groupName,
                                          array_atom, this,
@@ -348,7 +362,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
     }
     else if (strcmp(arg[3],"drift_diffusion-equilibrium")==0) 
     {
-      std::string matParamFile = arg[4];
+      string matParamFile = arg[4];
       if (me==0) printf("ATC: constructing drift_diffusion-equilibrium coupling with parameter file %s\n",arg[4]);
       atc_ = new ATC::ATC_CouplingEnergy(groupName,
                                          array_atom, this,
@@ -356,7 +370,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
     }
     else if (strcmp(arg[3],"drift_diffusion-schrodinger")==0) 
     {
-      std::string matParamFile = arg[4];
+      string matParamFile = arg[4];
       if (me==0) printf("ATC: constructing drift_diffusion-schrodinger coupling with parameter file %s\n",arg[4]);
       atc_ = new ATC::ATC_CouplingEnergy(groupName,
                                          array_atom, this,
@@ -364,7 +378,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
     }
     else if (strcmp(arg[3],"drift_diffusion-schrodinger-slice")==0) 
     {
-      std::string matParamFile = arg[4];
+      string matParamFile = arg[4];
       if (me==0) printf("Constructing ATC transfer (drift_diffusion-schrodinger-slice) with parameter file %s\n",arg[4]);
       atc_ = new ATC::ATC_CouplingEnergy(groupName,
                                          array_atom, this,
@@ -372,7 +386,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
     }
     else if (strcmp(arg[3],"convective_drift_diffusion")==0) 
     {
-      std::string matParamFile = arg[4];
+      string matParamFile = arg[4];
       if (me==0) printf("ATC: constructing convective_drift_diffusion coupling with parameter file %s\n",arg[4]);
       atc_ = new ATC::ATC_CouplingEnergy(groupName,
                                          array_atom, this,
@@ -380,7 +394,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
     }
     else if (strcmp(arg[3],"convective_drift_diffusion-equilibrium")==0) 
     {
-      std::string matParamFile = arg[4];
+      string matParamFile = arg[4];
       if (me==0) printf("ATC: constructing convective_drift_diffusion-equilibrium coupling with parameter file %s\n",arg[4]);
       atc_ = new ATC::ATC_CouplingEnergy(groupName,
                                          array_atom, this,
@@ -388,7 +402,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
     }
     else if (strcmp(arg[3],"convective_drift_diffusion-schrodinger")==0) 
     {
-      std::string matParamFile = arg[4];
+      string matParamFile = arg[4];
       if (me==0) printf("ATC: constructing convective_drift_diffusion-schrodinger coupling with parameter file %s\n",arg[4]);
       atc_ = new ATC::ATC_CouplingEnergy(groupName,
                                          array_atom, this,
@@ -396,7 +410,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
     }
     else if (strcmp(arg[3],"elastic")==0) 
     {
-      std::string matParamFile = arg[4];
+      string matParamFile = arg[4];
       if (me==0) printf("ATC: constructing elastic coupling with parameter file %s\n",arg[4]);
       atc_ = new ATC::ATC_CouplingMomentum(groupName,
                                            array_atom, this,
@@ -405,7 +419,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
     }
     else if (strcmp(arg[3],"electrostatic")==0) 
     {
-      std::string matParamFile = arg[4];
+      string matParamFile = arg[4];
       if (me==0) printf("ATC: constructing electrostatic mechanical coupling with parameter file %s\n",arg[4]);
       atc_ = new ATC::ATC_CouplingMomentum(groupName,
                                            array_atom, this,
@@ -415,7 +429,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
     }
     else if (strcmp(arg[3],"electrostatic-equilibrium")==0) 
     {
-      std::string matParamFile = arg[4];
+      string matParamFile = arg[4];
       if (me==0) printf("ATC: constructing equilibrium electrostatic coupling with parameter file %s\n",arg[4]);
       atc_ = new ATC::ATC_CouplingMomentum(groupName,
                                            array_atom, this,
@@ -425,7 +439,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
     }
     else if (strcmp(arg[3],"shear")==0)  
     {
-      std::string matParamFile = arg[4];
+      string matParamFile = arg[4];
       if (me==0) printf("ATC: constructing viscous/shear coupling with parameter file %s\n",arg[4]);
       atc_ = new ATC::ATC_CouplingMomentum(groupName,
                                            array_atom, this,
@@ -434,7 +448,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
     }
     else if (strcmp(arg[3],"electrostatic_equilibrium")==0) 
     {
-      std::string matParamFile = arg[4];
+      string matParamFile = arg[4];
       if (me==0) printf("Constructing ATC transfer (electrostatic_equilibrium) with parameter file %s\n",arg[4]);
       atc_ = new ATC::ATC_CouplingMomentum(groupName,
                                            array_atom, this,
@@ -444,7 +458,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
     }
     else if (strcmp(arg[3],"species")==0)
     {
-      std::string matParamFile = arg[4];
+      string matParamFile = arg[4];
       if (me==0) printf("ATC: constructing species diffusion coupling with parameter file %s\n",arg[4]);
       atc_ = new ATC::ATC_CouplingMass(groupName,
                                        array_atom, this,
@@ -452,7 +466,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
     }
     else if (strcmp(arg[3],"species_electrostatic")==0)
     {
-      std::string matParamFile = arg[4];
+      string matParamFile = arg[4];
       if (me==0) printf("ATC: constructing electrostatic species coupling with parameter file %s\n",arg[4]);
       atc_ = new ATC::ATC_CouplingMass(groupName,
                                        array_atom, this,
@@ -460,7 +474,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
     }
     else if (strcmp(arg[3],"thermo_elastic")==0) 
     {
-      std::string matParamFile = arg[4];
+      string matParamFile = arg[4];
       if (me==0) printf("ATC: constructing thermo-mechanical coupling with parameter file %s\n",arg[4]);
       atc_ = new ATC::ATC_CouplingMomentumEnergy(groupName,
                                                  array_atom, this,
@@ -797,7 +811,6 @@ void FixATC::initial_integrate(int vflag)
     throw;
   }
 }
-
 /* ---------------------------------------------------------------------- */
 
 void FixATC::final_integrate()

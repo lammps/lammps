@@ -6,6 +6,11 @@
 #include "TimeIntegrator.h"
 #include "LinearSolver.h"
 
+using std::map;
+using std::string;
+using std::set;
+using std::pair;
+
 namespace ATC {
 
   
@@ -158,7 +163,7 @@ namespace ATC {
     bool foundMatch = false;
 
         // set parameters for numerical matrix solutions
-    /*! \page man_control fix_modify AtC control <physics_type>
+    /*! \page man_control fix_modify AtC control
       \section syntax
       fix_modify AtC control <physics_type> <solution_parameter> <value>\n
         - physics_type (string) = thermal | momentum\n
@@ -236,7 +241,7 @@ namespace ATC {
       \section examples
        <TT> fix_modify atc control lumped_lambda_solve on </TT> \n
       \section description
-      Command use or not use lumped matrix for lambda solve
+      Command to use or not use lumped matrix for lambda solve
       \section restrictions 
       \section related
       \section default
@@ -631,8 +636,14 @@ namespace ATC {
                                           regulatorPrefix_+"RegulatorShapeFunction");
 
       // shape function derivatives
+      VectorDependencyManager<SPAR_MAT * > * interpolantGradient = interscaleManager.vector_sparse_matrix("InterpolantGradient");
+      if (!interpolantGradient) {
+        interpolantGradient = new PerAtomShapeFunctionGradient(atc_);
+        interscaleManager.add_vector_sparse_matrix(interpolantGradient,
+                                                   "InterpolantGradient");
+      }
       shpFcnDerivs_ = new RowMappedSparseMatrixVector(atc_,
-                                                      interscaleManager.vector_sparse_matrix("InterpolantGradient"),
+                                                      interpolantGradient,
                                                       lambdaAtomMap_);
       interscaleManager.add_vector_sparse_matrix(shpFcnDerivs_,
                                                  regulatorPrefix_+"RegulatorShapeFunctionGradient");

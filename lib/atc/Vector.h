@@ -26,7 +26,7 @@ public:
   Vector(const Vector<T> &c); // do not implement!
   virtual ~Vector() {}
 
-  string to_string() const;
+  std::string to_string() const;
 
   // pure virtual functions
   virtual T  operator()(INDEX i, INDEX j=0) const=0;
@@ -43,7 +43,7 @@ public:
   
   // output to matlab
   using Matrix<T>::matlab;
-  void matlab(ostream &o, const string &s="v") const;
+  void matlab(std::ostream &o, const std::string &s="v") const;
 
   using Matrix<T>::operator=;
   INDEX nCols()                   const;
@@ -144,18 +144,18 @@ DenseVector<T> operator-(const Vector<T> &a, const Vector<T> &b)
 ///////////////////////////////////////////////////////////////////////////////
 //* output operator
 template<typename T>
-string Vector<T>::to_string() const
+std::string Vector<T>::to_string() const
 {
-  string s;
+  std::string s;
   int sz = this->size(); 
   for (INDEX i = 0; i < sz; i++) 
-    s += string(i?"\t":"") + ATC_Utility::to_string((*this)[i],myPrecision);
+    s += std::string(i?"\t":"") + ATC_Utility::to_string((*this)[i],myPrecision);
   return s;
 }
 ///////////////////////////////////////////////////////////////////////////////
 //* Writes a matlab script defining the vector to the stream
 template<typename T>
-void Vector<T>::matlab(ostream &o, const string &s) const
+void Vector<T>::matlab(std::ostream &o, const std::string &s) const
 {
   o << s <<"=zeros(" << this->size() << ",1);\n";
   int sz = this->size(); 

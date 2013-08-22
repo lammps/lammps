@@ -44,7 +44,7 @@ public:
   INDEX nCols()                   const { return _nCols; }
   T * ptr()                   const { return _data;  }
   void write_restart(FILE *f)     const;
-  void from_file(string & name);
+  void from_file(std::string & name);
   void set_all_elements_to(const T &v);
   DiagonalMatrix<T> diag()    const;
  
@@ -156,7 +156,7 @@ DenseMatrix<T> DenseMatrix<T>::mult_by_element(const DenseMatrix<T>& B)   const
         C(i,j) = (*this)(i,j)*B(i,j);
   }
   else if (B.nCols() == 1) {
-    cout << "MULTIPLYING\n";
+    std::cout << "MULTIPLYING\n";
     int szi = this->nRows(); 
     int szj = this->nCols(); 
     for (INDEX i = 0; i < szi; i++) 
@@ -210,7 +210,7 @@ void DenseMatrix<T>::write_restart(FILE *f)                               const
 // reads matrix from text file (matrix needs to be sized)
 //----------------------------------------------------------------------------
 template <typename T>
-void DenseMatrix<T>::from_file(string & name)       
+void DenseMatrix<T>::from_file(std::string & name)       
 {
   GCHK(_nRows == 0,"from_file needs nRows > 0");
   GCHK(_nCols == 0,"from_file needs nCols > 0");
@@ -328,7 +328,7 @@ DenseMatrix<T>& DenseMatrix<T>::operator=(const SparseMatrix<T> &c)
   for (INDEX i=0; i<c.size(); i++)
   {
     TRIPLET<T> x = c.triplet(i);
-    cout << "x.i: "<< x.i << "\nx.j: "<< x.j << "\nv.j: "<< x.v << std::endl << std::endl;
+    std::cout << "x.i: "<< x.i << "\nx.j: "<< x.j << "\nv.j: "<< x.v << std::endl << std::endl;
     (*this)(x.i, x.j) =  x.v;
   }
   return *this;

@@ -6,10 +6,10 @@
 #include "MatrixLibrary.h"
 #include "ATC_Error.h"
 #include "FE_Mesh.h"
-
 #include <sstream>
-
-using namespace std;
+#include <set>
+#include <utility>
+#include <string>
 
 namespace ATC {
 
@@ -17,7 +17,7 @@ namespace ATC {
 
   public:
     /** constructor, takes a filename */
-    MeshReader(string filename, Array<bool> periodicity, double tol=1.e-8);
+    MeshReader(std::string filename, Array<bool> periodicity, double tol=1.e-8);
 
     /** destructor */
     ~MeshReader();
@@ -26,25 +26,24 @@ namespace ATC {
     FE_Mesh* create_mesh();
 
   private:
+    int number_of_vertices(std::string str);
+
     /** reads .mesh format file */
     void read_mesh_file();
 
     /** reads .exo format file */
     void read_exo_file();
 
-    /** helper function for parsing mesh type string */
-    int int_from_str(string str); 
-
     /** Data members for storing necessary information */
-    string meshfile_;
-    Array<bool> periodicity_;
-    string elementType_;
+    std::string meshfile_;
+    ATC_matrix::Array<bool> periodicity_;
+    std::string elementType_;
     int nNodes_;
     int nElements_;
     int nNodeSets_;
-    Array2D<int> * conn_;
+    ATC_matrix::Array2D<int> * conn_;
     DENS_MAT * nodeCoords_;
-    Array<pair<string,set<int> > > * nodeSets_;
+    ATC_matrix::Array<std::pair<std::string,std::set<int> > > * nodeSets_;
     double coordTol_;
   };
 

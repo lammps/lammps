@@ -6,6 +6,10 @@
 #include "ATC_Method.h"
 //#include <typeinfo>
 
+using std::set;
+using std::map;
+using std::string;
+
 namespace ATC{
 
   //--------------------------------------------------------
@@ -550,6 +554,7 @@ namespace ATC{
     post_exchange_loop(perAtomDiagonalMatrices_);
     post_exchange_loop(perAtomSparseMatrices_);
     post_exchange_loop(smallMoleculeSets_);
+    post_exchange_loop(pairMaps_);
   }
 
   //--------------------------------------------------------

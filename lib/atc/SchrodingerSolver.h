@@ -8,6 +8,7 @@
 // other includes
 #include <vector>
 #include <map>
+#include <set>
 
 namespace ATC {
 
@@ -98,7 +99,7 @@ class SliceSchrodingerSolver : public SchrodingerSolver {
     const FE_Engine * feEngine,
     const PrescribedDataManager * prescribedDataMgr,
     /*const*/ ATC_Coupling * atc,
-    const Array< set<int> > & oneDslices,
+    const Array< std::set<int> > & oneDslices,
     const int solverType = ATC::LinearSolver::DIRECT_SOLVE,
     bool parallel = false
   );
@@ -115,11 +116,11 @@ class SliceSchrodingerSolver : public SchrodingerSolver {
   /** solve */
   virtual bool solve(FIELDS & fields); 
 
-  Array< set<int> > & slices(void){ return oneDslices_;} 
+  Array< std::set<int> > & slices(void){ return oneDslices_;} 
 
  protected:
 
-  Array< set<int> > oneDslices_;
+  Array< std::set<int> > oneDslices_;
 
 };
 
@@ -172,7 +173,7 @@ class SliceSchrodingerPoissonSolver : public SchrodingerPoissonSolver  {
     int oneDcoor_;
     double Ef_shift_;
     double safe_dEf_;
-    Array< set<int> > & oneDslices_;
+    Array< std::set<int> > & oneDslices_;
     Array2D<double> EfHistory_;
 };
 

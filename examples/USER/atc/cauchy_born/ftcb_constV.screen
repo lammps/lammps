@@ -1,4 +1,4 @@
-LAMMPS (14 Aug 2013)
+LAMMPS (24 Aug 2013)
 log            ftcb_constV.log
 units          real
 atom_style     atomic
@@ -58,6 +58,7 @@ timestep       0.10000000000000000555
 # filtered
 fix            ATCFILT all atc field Ar_CauchyBorn.mat
 ATC: constructing shape function field estimate with parameter file Ar_CauchyBorn.mat
+ ATC: version 2.0
  ATC: peratom PE compute created with ID: 3
 #fix_modify     ATCFILT  reset_atomic_reference_positions ftcb_constV_setup.data
 fix_modify     ATCFILT mesh create 1 1 1 box p p p
@@ -83,6 +84,7 @@ fix_modify     ATCFILT  filter type step
 # not filtered
 fix            ATC all atc field Ar_CauchyBorn.mat
 ATC: constructing shape function field estimate with parameter file Ar_CauchyBorn.mat
+ ATC: version 2.0
  ATC: peratom PE compute created with ID: 3
 #fix_modify     ATC  reset_atomic_reference_positions ftcb_constV_setup.data
 fix_modify     ATC mesh create 1 1 1 box p p p
@@ -179,13 +181,13 @@ Step Temp Press TotEng Lx Ly Lz
  ATC: computing bond matrix ...........done
  ATC: computing bond matrix ...........done
    10000   0.19513095     6.800965   -1742.9477    31.537365    31.537365    31.537365 
-Loop time of 217.59 on 4 procs for 10000 steps with 864 atoms
+Loop time of 63.5403 on 4 procs for 10000 steps with 864 atoms
 
-Pair  time (%) = 22.0583 (10.1375)
-Neigh time (%) = 0.106731 (0.0490514)
-Comm  time (%) = 92.9321 (42.7096)
-Outpt time (%) = 0.514863 (0.23662)
-Other time (%) = 101.978 (46.8672)
+Pair  time (%) = 13.9658 (21.9794)
+Neigh time (%) = 0.0580555 (0.0913681)
+Comm  time (%) = 4.97638 (7.83185)
+Outpt time (%) = 0.00315738 (0.0049691)
+Other time (%) = 44.5369 (70.0924)
 
 Nlocal:    216 ave 223 max 212 min
 Histogram: 2 0 0 0 1 0 0 0 0 1
@@ -272,13 +274,13 @@ Step Temp Press TotEng Lx Ly Lz
  ATC: computing bond matrix ...........done
  ATC: computing bond matrix ...........done
    20000   0.19726939    5.6206257   -1743.0501    31.537365    31.537365    31.537365 
-Loop time of 100.792 on 4 procs for 10000 steps with 864 atoms
+Loop time of 64.7984 on 4 procs for 10000 steps with 864 atoms
 
-Pair  time (%) = 15.7625 (15.6386)
-Neigh time (%) = 0.0767966 (0.0761931)
-Comm  time (%) = 22.8833 (22.7034)
-Outpt time (%) = 0.135321 (0.134258)
-Other time (%) = 61.9342 (61.4475)
+Pair  time (%) = 14.2825 (22.0414)
+Neigh time (%) = 0.0583839 (0.0901009)
+Comm  time (%) = 6.29545 (9.71545)
+Outpt time (%) = 0.00295156 (0.004555)
+Other time (%) = 44.1591 (68.1485)
 
 Nlocal:    216 ave 231 max 208 min
 Histogram: 1 1 1 0 0 0 0 0 0 1

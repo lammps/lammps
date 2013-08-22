@@ -3,6 +3,14 @@
 #include "ATC_Coupling.h"
 #include "ATC_Error.h"
 
+using ATC_Utility::to_string;
+using ATC_Utility::rnd;
+using std::map;
+using std::string;
+using std::pair;
+using std::min;
+using std::max;
+
 namespace ATC {
 
 const double kMinScale_ = 10000.;

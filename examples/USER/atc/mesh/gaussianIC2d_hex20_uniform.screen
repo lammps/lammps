@@ -1,4 +1,4 @@
-LAMMPS (14 Aug 2013)
+LAMMPS (24 Aug 2013)
 units    real
 atom_style  atomic
 
@@ -33,6 +33,7 @@ group    internal region mdInternal
 
 fix             AtC internal   atc two_temperature  Ar_ttm.mat
 ATC: constructing two_temperature coupling with parameter file Ar_ttm.mat
+ ATC: version 2.0
  ATC: peratom PE compute created with ID: 3
  ATC: 2 materials defined from Ar_ttm.mat
  ATC: creating two_temperature extrinsic model
@@ -83,13 +84,13 @@ Step Temp PotEng AtC[2] AtC[4]
       80    10.015134   -3732.7051    20.022115    21.767782 
       90    10.008795    -3732.612    20.017899    21.778957 
      100    10.001827   -3732.5177    20.013234    21.790338 
-Loop time of 19.9066 on 4 procs for 100 steps with 2304 atoms
+Loop time of 11.1578 on 4 procs for 100 steps with 2304 atoms
 
-Pair  time (%) = 0.396025 (1.98942)
+Pair  time (%) = 0.343728 (3.08059)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.421989 (2.11984)
-Outpt time (%) = 0.125925 (0.63258)
-Other time (%) = 18.9627 (95.2582)
+Comm  time (%) = 0.0180171 (0.161474)
+Outpt time (%) = 0.115886 (1.03861)
+Other time (%) = 10.6802 (95.7193)
 
 Nlocal:    576 ave 576 max 576 min
 Histogram: 4 0 0 0 0 0 0 0 0 0

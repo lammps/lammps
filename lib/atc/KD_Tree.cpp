@@ -1,6 +1,8 @@
 #include "KD_Tree.h"
 #include <assert.h>
 
+using std::vector;
+
 KD_Tree *KD_Tree::create_KD_tree(const int nNodesPerElem, const int nNodes, 
                                  const DENS_MAT *nodalCoords, const int nElems, 
                                  const Array2D<int> &conn) {

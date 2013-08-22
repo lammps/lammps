@@ -1,4 +1,4 @@
-LAMMPS (14 Aug 2013)
+LAMMPS (24 Aug 2013)
 log            log.flying_cube
 units          real
 atom_style     atomic
@@ -106,7 +106,7 @@ Step Temp Pxx Pyy Pzz TotEng Lx Ly Lz
      480            0 -4.8910054e-07 -4.8910048e-07 -4.8910165e-07   -1743.9897    31.537365    31.537365    31.537365 
      490            0 -4.8910103e-07 -4.8910094e-07 -4.8910185e-07   -1743.9897    31.537365    31.537365    31.537365 
      500            0 -4.8910081e-07 -4.8910044e-07 -4.891017e-07   -1743.9897    31.537365    31.537365    31.537365 
-Loop time of 4.18888 on 4 procs for 500 steps with 864 atoms
+Loop time of 3.9743 on 4 procs for 500 steps with 864 atoms
 
 Minimization stats:
   Stopping criterion = max force evaluations
@@ -117,11 +117,11 @@ Minimization stats:
   Final line search alpha, max atom move = 1 1.74791e-14
   Iterations, force evaluations = 500 1000
 
-Pair  time (%) = 2.3942 (57.1561)
+Pair  time (%) = 2.24396 (56.4617)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 1.44252 (34.4369)
-Outpt time (%) = 0.00359005 (0.0857043)
-Other time (%) = 0.348568 (8.32127)
+Comm  time (%) = 1.37063 (34.4873)
+Outpt time (%) = 0.00599617 (0.150873)
+Other time (%) = 0.353717 (8.9001)
 
 Nlocal:    216 ave 216 max 216 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -147,6 +147,7 @@ region         BOX block 0 ${xHI} -0.5 31.7 -0.5 31.7 units box
 region         BOX block 0 31.537364922000001854 -0.5 31.7 -0.5 31.7 units box
 fix            ATC all atc field
 ATC: constructing shape function field estimate
+ ATC: version 2.0
  ATC: peratom PE compute created with ID: 3
 fix_modify     ATC mesh create 1 1 1 box p p p
  ATC: created uniform mesh with 8 nodes, 1 unique nodes, and 1 elements
@@ -537,13 +538,13 @@ Step Temp Pxx Pyy Pzz TotEng Lx Ly Lz
     3480    160162.49    1803377.9 -4.8910193e-07 -4.8910309e-07    410741.67    31.537365    31.537365    31.537365 
     3490    160162.49    1803377.9 -4.8910055e-07 -4.8910166e-07    410741.67    31.537365    31.537365    31.537365 
     3500    160162.49    1803377.9 -4.8910204e-07 -4.8910346e-07    410741.67    31.537365    31.537365    31.537365 
-Loop time of 260.545 on 4 procs for 3500 steps with 864 atoms
+Loop time of 90.1652 on 4 procs for 3500 steps with 864 atoms
 
-Pair  time (%) = 7.82867 (3.00473)
-Neigh time (%) = 0.516552 (0.198258)
-Comm  time (%) = 67.7833 (26.016)
-Outpt time (%) = 11.4734 (4.40363)
-Other time (%) = 172.943 (66.3774)
+Pair  time (%) = 5.38365 (5.97087)
+Neigh time (%) = 0.103525 (0.114816)
+Comm  time (%) = 3.40683 (3.77844)
+Outpt time (%) = 1.42917 (1.58506)
+Other time (%) = 79.8421 (88.5508)
 
 Nlocal:    216 ave 216 max 216 min
 Histogram: 4 0 0 0 0 0 0 0 0 0

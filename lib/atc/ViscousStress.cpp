@@ -2,7 +2,12 @@
 #include "ATC_Error.h"
 #include "LammpsInterface.h"
 #include <iostream>
-#include <fstream>
+
+using ATC_Utility::command_line;
+using ATC_Utility::str2dbl;
+using std::string;
+using std::vector;
+using std::fstream;
 
 namespace ATC {
 

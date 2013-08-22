@@ -7,7 +7,6 @@
 #include "MatrixLibrary.h"
 #include "ATC_TypeDefs.h"
 
-using std::vector;
 namespace ATC
 {
   class CbPotential; // forward definition for potentials.

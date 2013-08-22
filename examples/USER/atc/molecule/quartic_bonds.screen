@@ -1,4 +1,4 @@
-LAMMPS (14 Aug 2013)
+LAMMPS (24 Aug 2013)
 units           lj
 lattice		sc 1.0
 Lattice spacing in x,y,z = 1 1 1
@@ -55,6 +55,7 @@ group           MESH  region MESH
 #               ID  group atc PhysicsType ParameterFile
 fix             ATC MESH  atc field
 ATC: constructing shape function field estimate
+ ATC: version 2.0
  ATC: peratom PE compute created with ID: 5
 fix_modify      ATC atom_element_map eulerian 100
 fix_modify      ATC fields add mass_density energy stress
@@ -90,14 +91,14 @@ Step Temp TotEng E_vdwl E_bond Pxx Pyy Pzz Lz
      300   0.60702877    -4.114999   -5.4634339   0.43832539  -0.05969492  -0.37357729    0.1227012    12.887908 
  ATC: computing bond matrix ..........done
      400   0.67773634   -4.0068285   -5.5021915   0.47924261    0.5562405   0.24275905    0.4181606    12.828709 
-Loop time of 27.2369 on 4 procs for 400 steps with 2100 atoms
+Loop time of 21.8007 on 4 procs for 400 steps with 2100 atoms
 
-Pair  time (%) = 0.510639 (1.87481)
-Bond  time (%) = 0.0195364 (0.0717276)
-Neigh time (%) = 0.107538 (0.394826)
-Comm  time (%) = 1.0591 (3.88848)
-Outpt time (%) = 0.088418 (0.324626)
-Other time (%) = 25.4517 (93.4455)
+Pair  time (%) = 0.500449 (2.29557)
+Bond  time (%) = 0.0201066 (0.0922291)
+Neigh time (%) = 0.11078 (0.508151)
+Comm  time (%) = 0.334585 (1.53475)
+Outpt time (%) = 0.00405079 (0.0185811)
+Other time (%) = 20.8307 (95.5507)
 
 Nlocal:    525 ave 528 max 522 min
 Histogram: 2 0 0 0 0 0 0 0 0 2

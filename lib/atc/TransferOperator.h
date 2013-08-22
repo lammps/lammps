@@ -3,12 +3,9 @@
 #ifndef TRANSFER_OPERATOR_H
 #define TRANSFER_OPERATOR_H
 
-// ATC_Method headers
 #include "PerAtomQuantityLibrary.h"
 #include <set>
 #include <vector>
-
-using namespace std;
 
 namespace ATC {
 
@@ -253,10 +250,10 @@ namespace ATC {
     virtual ~SetTransfer() {};
 
     /** apply transfer operator */
-    virtual const set<T> & quantity() const {if (this->need_reset()) {this->reset_quantity(); SetDependencyManager<T>::needReset_ = false;} return SetDependencyManager<T>::quantity_;};
+    virtual const std::set<T> & quantity() const {if (this->need_reset()) {this->reset_quantity(); SetDependencyManager<T>::needReset_ = false;} return SetDependencyManager<T>::quantity_;};
 
     /** returns a non-const version for manipulations and changes, resets dependent quantities */
-    virtual set<T> & set_quantity()
+    virtual std::set<T> & set_quantity()
       {throw ATC_Error("SetTransfer::set_quantity - Cannot modify protected quantities"); return this->quantity_;};
 
   protected:
@@ -283,10 +280,10 @@ namespace ATC {
     virtual ~VectorTransfer() {};
 
     /** apply transfer operator */
-    virtual const vector<T> & quantity() const {if (this->need_reset()) {this->reset_quantity(); VectorDependencyManager<T>::needReset_ = false;} return VectorDependencyManager<T>::quantity_;};
+    virtual const std::vector<T> & quantity() const {if (this->need_reset()) {this->reset_quantity(); VectorDependencyManager<T>::needReset_ = false;} return VectorDependencyManager<T>::quantity_;};
 
     /** returns a non-const version for manipulations and changes, resets dependent quantities */
-    virtual vector<T> & set_quantity()
+    virtual std::vector<T> & set_quantity()
       {throw ATC_Error("VectorTransfer::set_quantity - Cannot modify protected quantities"); return this->quantity_;};
 
   protected:
@@ -369,7 +366,8 @@ namespace ATC {
     
     // constructor
     FeToAtomTransfer(ATC_Method * atc,
-                     DENS_MAN * source);
+                     DENS_MAN * source,
+                     AtomType atomType = INTERNAL);
     
     // destructor
     virtual ~FeToAtomTransfer();
@@ -621,7 +619,7 @@ namespace ATC {
     AtfProjectionReferenced(ATC_Method * atc,
                   PerAtomQuantity<double> * source,
                   SPAR_MAN * accumulant,
-                  const DENS_MAT * reference,
+                  DENS_MAN * reference,
                   DIAG_MAN * weights = NULL);
     
     // destructor
@@ -632,7 +630,8 @@ namespace ATC {
 
   protected:
 
-    const DENS_MAT * reference_;
+    /** reference value */
+    DENS_MAN * reference_;
 
   private:
 
@@ -835,7 +834,7 @@ namespace ATC {
     // constructor
     AtfShapeFunctionMdProjectionReferenced(ATC_Method * atc,
                                            DENS_MAN * source,
-                                           const DENS_MAT * reference,
+                                           DENS_MAN * reference,
                                            FieldName thisField);
     
     // destructor
@@ -847,7 +846,7 @@ namespace ATC {
   protected:
 
     /** reference value */
-    const DENS_MAT * reference_;
+    DENS_MAN * reference_;
 
   private:
 
@@ -994,7 +993,8 @@ namespace ATC {
     // constructor
     FtaShapeFunctionProlongation(ATC_Method * atc,
                                  DENS_MAN * source,
-                                 SPAR_MAN * shapeFunction);
+                                 SPAR_MAN * shapeFunction,
+                                 AtomType atomType = INTERNAL);
     
     // destructor
     virtual ~FtaShapeFunctionProlongation();

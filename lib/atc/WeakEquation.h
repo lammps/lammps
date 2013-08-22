@@ -1,6 +1,9 @@
 #ifndef WEAK_EQUATION_H
 #define WEAK_EQUATION_H
 
+#include <string>
+#include <set>
+
 #include "ATC_TypeDefs.h"
 
 namespace ATC{
@@ -84,7 +87,7 @@ class WeakEquation {
   int field_size(void) const {return fieldSize_;}
 
   /** list of require interfaces */
-  virtual set<string> needs_material_functions(void) const = 0;
+  virtual std::set<std::string> needs_material_functions(void) const = 0;
 
   protected:
   /** type of equation */

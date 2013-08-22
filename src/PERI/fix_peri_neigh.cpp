@@ -400,7 +400,7 @@ void FixPeriNeigh::grow_arrays(int nmax)
    copy values within local atom-based arrays
 ------------------------------------------------------------------------- */
 
-void FixPeriNeigh::copy_arrays(int i, int j)
+void FixPeriNeigh::copy_arrays(int i, int j, int delflag)
 {
   npartner[j] = npartner[i];
   for (int m = 0; m < npartner[j]; m++) {

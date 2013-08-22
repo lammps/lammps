@@ -3,9 +3,16 @@
 
 #include <iostream>
 #include <fstream>
+#include <map>
+#include <string>
+#include <vector>
 
 using ATC_Utility::command_line;
 using ATC_Utility::str2dbl;
+using std::fstream;
+using std::map;
+using std::string;
+using std::vector;
 
 namespace ATC {
 

@@ -207,7 +207,6 @@ namespace ATC {
       Command to assign an id to a set of FE nodes to be used subsequently
       in defining boundary conditions.
       \section restrictions
-      Only viable for rectangular grids.
       \section related
       \section default
       Coordinates are assumed to be in lattice units.
@@ -235,7 +234,6 @@ namespace ATC {
       \section description
       Command to add nodes to an already existing FE nodeset.
       \section restrictions
-      Only viable for rectangular grids.
       \section related
       \section default
       Coordinates are assumed to be in lattice units.

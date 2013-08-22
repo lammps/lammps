@@ -16,18 +16,21 @@
 #include "ExtrinsicModel.h"
 #include "InterscaleOperators.h"
 #include "TransferLibrary.h"
+#include "GhostManager.h"
 
 // Other headers
 #include <vector>
 #include <set>
+#include <utility>
+#include <string>
+#include <map>
 
-using namespace std;
 
-
-
-using LAMMPS_NS::Fix;
 
 namespace ATC {
+
+  // forward declarations
+  class AtomTimeIntegrator;
 
   /**
    *  @class  ATC_Method
@@ -39,12 +42,12 @@ namespace ATC {
   public: /** methods */
 
     /** constructor */
-    ATC_Method(string groupName, double **& perAtomArray, LAMMPS_NS::Fix * thisFix);
+    ATC_Method(std::string groupName, double **& perAtomArray, LAMMPS_NS::Fix * thisFix);
 
     /** destructor */
     virtual ~ATC_Method();
 
-    string version() {return "2.0";}
+    std::string version() {return "2.0";}
 
     /** parser/modifier */
     virtual bool modify(int narg, char **arg);
@@ -66,22 +69,22 @@ namespace ATC {
     };
 
     /** Predictor phase, Verlet first step for velocity */
-    virtual void init_integrate_velocity(){}; 
+    virtual void init_integrate_velocity(); 
 
     /** Predictor phase, executed between velocity and position Verlet */
     virtual void mid_init_integrate(){};
 
     /** Predictor phase, Verlet first step for position */
-    virtual void init_integrate_position(){}; 
+    virtual void init_integrate_position(); 
 
     /** Predictor phase, executed after Verlet */
-    virtual void post_init_integrate(){};
+    virtual void post_init_integrate();
 
     /** Corrector phase, executed before Verlet */
     virtual void pre_final_integrate(){};
 
     /** Corrector phase, Verlet second step for velocity */
-    virtual void final_integrate(){};
+    virtual void final_integrate();
 
     /** Corrector phase, executed after Verlet*/
     virtual void post_final_integrate();
@@ -108,6 +111,7 @@ namespace ATC {
     void setup_pre_exchange();
     virtual void pre_neighbor();
     virtual void post_force();
+    int doubles_per_atom() const;
     virtual int memory_usage();
     virtual void grow_arrays(int);
     void copy_arrays(int, int);
@@ -186,18 +190,18 @@ namespace ATC {
     /** print tracked types and groups */
     int print_tracked() const
     {
-      string msg = "species:\n";
+      std::string msg = "species:\n";
       for(unsigned int i = 0; i < typeList_.size(); i++) {
-        msg+=" type:"+to_string(typeList_[i])+" name: "+ typeNames_[i]+"\n";      }
+        msg+=" type:"+ATC_Utility::to_string(typeList_[i])+" name: "+ typeNames_[i]+"\n";      }
       for(unsigned int i = 0; i < groupList_.size(); i++) {
-        msg+=" group (bit):"+to_string(groupList_[i])+" name: "+ groupNames_[i]+"\n";
+        msg+=" group (bit):"+ATC_Utility::to_string(groupList_[i])+" name: "+ groupNames_[i]+"\n";
       }
       ATC::LammpsInterface::instance()->print_msg_once(msg);
       return typeList_.size()+groupList_.size();
     }
-    vector<string>  tracked_names() const
+    std::vector<std::string>  tracked_names() const
     {
-      vector<string> names(typeList_.size()+groupList_.size());
+      std::vector<std::string> names(typeList_.size()+groupList_.size());
       int j = 0;
       for(unsigned int i = 0; i < typeList_.size(); i++) {
         names[j++] = typeNames_[i];
@@ -207,7 +211,7 @@ namespace ATC {
       }
       return names;
     }
-    int tag_to_type(string tag) const {
+    int tag_to_type(std::string tag) const {
       for(unsigned int i = 0; i < typeList_.size(); i++) {
         if (tag == typeNames_[i]) return typeList_[i];
       }
@@ -237,10 +241,6 @@ namespace ATC {
     int nlocal_ghost() const {return nLocalGhost_;};
     /** get the number of all LAMMPS real and parallel ghost atoms on this processor */
     int nproc_ghost() const {return nLocalTotal_ + lammpsInterface_->nghost();};
-    /** get number of ATC internal atoms */
-    int ninternal() const {return nInternal_;}
-    /** get number of ATC ghost atoms */
-    int nghost() const {return nGhost_;};
     /** match group bits */
     bool is_ghost_group(int grpbit) { return (grpbit == groupbitGhost_); }
     bool is_internal_group(int grpbit) { return (grpbit == groupbit_); }
@@ -272,7 +272,7 @@ namespace ATC {
     /** access to all fields rates of change (roc) */
     FIELDS &fields_roc() {return dot_fields_;};
     /** add a new field */
-    void add_fields(map<FieldName,int> & newFieldSizes);
+    void add_fields(std::map<FieldName,int> & newFieldSizes);
     /** access FE rate of change */
     DENS_MAT &get_field_roc(FieldName thisField)
       { return dot_fields_[thisField].set_quantity(); };
@@ -303,14 +303,15 @@ namespace ATC {
     const Array<int> &internal_to_atom_map() {return internalToAtom_;};
     /** ghost atom to global map */
     const Array<int> &ghost_to_atom_map() {return ghostToAtom_;};
-    const map<int,int> & atom_to_internal_map() {return atomToInternal_;};
+    const std::map<int,int> & atom_to_internal_map() {return atomToInternal_;};
     /** access to xref */
     double ** xref() {return xref_;};
     /** access to faceset names */
-    const set<PAIR> &faceset(const string & name) const {return (feEngine_->fe_mesh())->faceset(name);};
+    const std::set<PAIR> &faceset(const std::string & name) const {return (feEngine_->fe_mesh())->faceset(name);};
     DENS_VEC copy_nodal_coordinates(int i) const { return feEngine_->fe_mesh()->nodal_coordinates(i); }
     /** access to set of DENS_MANs accessed by tagging */
-    DENS_MAN & tagged_dens_man(const string & tag) {return taggedDensMan_[tag];};
+
+    DENS_MAN & tagged_dens_man(const std::string & tag) {return taggedDensMan_[tag];};
     /** access to atom to element type map */
     AtomToElementMapType atom_to_element_map_type() {return atomToElementMapType_;};
     /** access to atom to element update frequency */
@@ -320,17 +321,18 @@ namespace ATC {
     /** step number within a run or minimize */
     int local_step() const {return localStep_;};
     /** flags whether a methods reset is required */
-     virtual bool reset_methods() const {return (!initialized_) || timeFilterManager_.need_reset() || timeFilterManager_.end_equilibrate();};
+    virtual bool reset_methods() const {return (!initialized_) || timeFilterManager_.need_reset() || timeFilterManager_.end_equilibrate() || ghostManager_.need_reset();};
     /** sizes of each field being considered */
-    const map<FieldName,int> & field_sizes() {return fieldSizes_;};
+    const std::map<FieldName,int> & field_sizes() {return fieldSizes_;};
     /*@}*/
    /** compute the consistent MD mass matrix */
    void compute_consistent_md_mass_matrix(const SPAR_MAT & shapeFunctionMatrix,
                                           SPAR_MAT & mdMassMatrix) const;
-    /** access to species ids */
-    const map<string,pair<IdType,int> > & species_ids() const {return speciesIds_;};
     /** access to molecule ids */
-    const map<string,pair<MolSize,int> > & molecule_ids() const {return moleculeIds_;};
+    const std::map<std::string,std::pair<MolSize,int> > & molecule_ids() const {return moleculeIds_;};
+    /** access to internal element set */
+    const std::string & internal_element_set() {return internalElementSet_;};
+    
 
     //----------------------------------------------------------------
     /** \name mass matrix operations */
@@ -408,7 +410,7 @@ namespace ATC {
      {
        MASS_MATS::const_iterator man =  massMatsMd_.find(thisField);
        if (man == massMatsMd_.end() ) {
-         string msg = " MD mass for " + field_to_string(thisField) +  " does not exist";
+         std::string msg = " MD mass for " + field_to_string(thisField) +  " does not exist";
          throw ATC_Error(msg);
        }
        return man->second;
@@ -423,12 +425,14 @@ namespace ATC {
     bool kernel_on_the_fly() const { return kernelOnTheFly_;}
     bool has_kernel_function() { return kernelFunction_ != NULL; }
     KernelFunction * kernel_function() { return kernelFunction_; }
-    vector<int> & type_list() { return typeList_; }
-    vector<int> & group_list() { return groupList_; }
+    std::vector<int> & type_list() { return typeList_; }
+    std::vector<int> & group_list() { return groupList_; }
     SPAR_MAN* interpolant() { return shpFcn_; }
     SPAR_MAN* accumulant() { return accumulant_; }
     DIAG_MAN* accumulant_weights() { return  accumulantWeights_;}
     DIAG_MAN* accumulant_inverse_volumes() { return accumulantInverseVolumes_; }
+    int accumulant_bandwidth() const { if (accumulantBandwidth_) return accumulantBandwidth_; else return feEngine_->num_nodes(); };
+
     PerAtomQuantity<double> * atom_coarsegraining_positions() { return  atomCoarseGrainingPositions_; }
     PerAtomQuantity<double> * atom_reference_positions() { return  atomReferencePositions_; }
     PerAtomQuantity<int> * atom_to_element_map() { return atomElement_;}
@@ -438,8 +442,8 @@ namespace ATC {
     
     /** from a atom group, find the nodes that have non-zero shape function contributions */
 
-    bool nodal_influence(const int groupbit, set<int>& nset, set<int>& aset, double tol =1.e-8);
-    int nodal_influence(const int groupbit, set<int>& nset, set<int>& aset, 
+    bool nodal_influence(const int groupbit, std::set<int>& nset, std::set<int>& aset, double tol =1.e-8);
+    int nodal_influence(const int groupbit, std::set<int>& nset, std::set<int>& aset, 
       bool ghost,
       double tol =1.e-8);
     /*@{*/
@@ -465,8 +469,7 @@ namespace ATC {
     /** \name access to potential energy reference */
     //---------------------------------------------------------------
     /*@{*/
-    bool has_ref_pe(void) const { return hasRefPE_; }
-    const DENS_MAT * nodal_ref_potential_energy(void) { return &nodalRefPotentialEnergy_; }
+    DENS_MAN * nodal_ref_potential_energy(void) { return nodalRefPotentialEnergy_; }
 
   protected: /** methods */
     /** time functions */
@@ -490,15 +493,19 @@ namespace ATC {
     /** constructs all data which is updated with time integration, i.e. fields */
     virtual void construct_time_integration_data() = 0;
     /** create methods, e.g. time integrators, filters */
-    virtual void construct_methods() = 0;
+    virtual void construct_methods();
     /** set up data which is dependency managed */
     virtual void construct_transfers();
+    /** sets up accumulant & interpolant */
+    virtual void construct_interpolant()=0;
+    /** sets up mol transfers */
+    virtual void construct_molecule_transfers()=0;
 
     /** update the peratom output pointers */
     void update_peratom_output(void);
 
-    virtual void  read_restart_data(string fileName_, RESTART_LIST & data);
-    virtual void write_restart_data(string fileName_, RESTART_LIST & data);
+    virtual void  read_restart_data(std::string fileName_, RESTART_LIST & data);
+    virtual void write_restart_data(std::string fileName_, RESTART_LIST & data);
     void pack_fields(RESTART_LIST & data); 
 
    /** mass matrices */
@@ -511,15 +518,15 @@ namespace ATC {
     MASS_MATS massMatsAq_;
     MASS_MATS massMatsAqInstantaneous_;
     Array<bool> useConsistentMassMatrix_;
-    map<FieldName,SPAR_MAN> consistentMassMats_;
-    map<FieldName,DENS_MAN> consistentMassMatsInv_;
-    map<FieldName,TimeFilter * > massMatTimeFilters_;
+    std::map<FieldName,SPAR_MAN> consistentMassMats_;
+    std::map<FieldName,DENS_MAN> consistentMassMatsInv_;
+    std::map<FieldName,TimeFilter * > massMatTimeFilters_;
 
     //---------------------------------------------------------------
     /** \name quadrature weight function */
     //---------------------------------------------------------------
     /*@{*/
-    void write_atomic_weights(const string filename,const DIAG_MAT & atomicVolumeMatrix);
+    void write_atomic_weights(const std::string filename,const DIAG_MAT & atomicVolumeMatrix);
 
     /** resets shape function matrices based on atoms on this processor */
     virtual void reset_nlocal();
@@ -546,13 +553,12 @@ namespace ATC {
     //---------------------------------------------------------------
     /*@{*/
     /** map from species string tag to LAMMPS type id or group bit */
-    map<string,pair<IdType,int> > speciesIds_; // OBSOLETE
-    map<string,pair<MolSize,int> > moleculeIds_;
+    std::map<std::string,std::pair<MolSize,int> > moleculeIds_;
     /** a list of lammps types & groups ATC tracks */
-    vector<string> typeNames_;
-    vector<string> groupNames_;
-    vector<int> typeList_;
-    vector<int> groupList_;
+    std::vector<std::string> typeNames_;
+    std::vector<std::string> groupNames_;
+    std::vector<int> typeList_;
+    std::vector<int> groupList_;
     /*@}*/
 
     void reset_fields();
@@ -573,6 +579,13 @@ namespace ATC {
     InterscaleManager interscaleManager_;
 
     TimeFilterManager timeFilterManager_;
+
+    /** check to see if we are integrating the atoms */
+    bool integrateInternalAtoms_;
+    /** object which integrates atoms */
+    AtomTimeIntegrator * atomTimeIntegrator_;
+    /** objects which handles integration and modification of ghost atoms */
+    GhostManager ghostManager_;
 
     /** finite element handler */
     FE_Engine * feEngine_;
@@ -601,15 +614,17 @@ namespace ATC {
 
     /** Number of Spatial Dimensions */
     int nsd_;
+
 #ifdef EXTENDED_ERROR_CHECKING
     /** data for handling atoms crossing processors */
     bool atomSwitch_;
 #endif
+
     /** reference position of the atoms */
     double ** xref_;
     bool readXref_;
     bool needXrefProcessorGhosts_;
-    string xRefFile_;
+    std::string xRefFile_;
 
     /** flag for tracking displacements or not, depending on physics */
     bool trackDisplacement_;
@@ -619,6 +634,9 @@ namespace ATC {
     bool needsAtomToElementMap_;
     PerAtomQuantity<int> * atomElement_;
     PerAtomQuantity<int> * atomGhostElement_;
+
+    /* use element sets to define internal and/or ghost regions */
+    std::string internalElementSet_;
     
     /** atomic ATC material tag */
     
@@ -650,7 +668,7 @@ namespace ATC {
     bool parallelConsistency_;
 
     /** base name for output files */
-    string outputPrefix_;
+    std::string outputPrefix_;
 
     /** output flag */ 
     
@@ -696,7 +714,7 @@ namespace ATC {
     /** \name fields and necessary data for FEM */
     //---------------------------------------------------------------
     /*@{*/
-    map<FieldName,int> fieldSizes_;
+    std::map<FieldName,int> fieldSizes_;
     FIELDS fields_;
     /*@}*/
 
@@ -726,11 +744,11 @@ namespace ATC {
     DIAG_MAN invNodeVolumes_; 
     /** atomic quadrature integration weights (V_\alpha) */
     ProtectedAtomDiagonalMatrix<double> * atomVolume_;
-    string atomicWeightsFile_;
+    std::string atomicWeightsFile_;
     bool atomicWeightsWriteFlag_;
     int atomicWeightsWriteFrequency_;
     double atomicVolume_;  // global atomic volume for homogeneous set of atoms
-    map<int,double> Valpha_;
+    std::map<int,double> Valpha_;
     AtomicWeightType atomWeightType_;
     /*@}*/
 
@@ -749,8 +767,8 @@ namespace ATC {
     int groupbit_;
     int groupbitGhost_;
     bool needProcGhost_;
-    string groupTag_;
-    string groupTagGhost_;
+    std::string groupTag_;
+    std::string groupTagGhost_;
   
     /** number of atoms of correct type,
         ghosts are atoms outside our domain of interest
@@ -760,8 +778,6 @@ namespace ATC {
     /** Number of atoms on this processor */
     int nLocalTotal_;
     int nLocalGhost_;
-    int nInternal_;
-    int nGhost_;
     Array<int> internalToAtom_;
     std::map<int,int> atomToInternal_;
     Array<int> ghostToAtom_;
@@ -783,10 +799,8 @@ namespace ATC {
     // sparse matrix where columns correspond to global node numbering
     SPAR_MAN * shpFcn_;
     VectorDependencyManager<SPAR_MAT * > * shpFcnDerivs_;
-    SPAR_MAN * shpFcnGhost_;
-    VectorDependencyManager<SPAR_MAT * > * shpFcnDerivsGhost_;
-    /** map from species string tag to the species density */
-    map<string,DENS_MAN> taggedDensMan_;
+    /** map from species std::string tag to the species density */
+    std::map<std::string,DENS_MAN> taggedDensMan_;
 
     /** weighted shape function matrices at overlap nodes
         for use with thermostats */
@@ -810,6 +824,7 @@ namespace ATC {
     SPAR_MAN  kernelAccumulantMolGrad_; // KKM add
     DIAG_MAN* accumulantWeights_;
     DIAG_MAN* accumulantInverseVolumes_;  
+    int accumulantBandwidth_;
     /*@}*/
 
 
@@ -817,15 +832,15 @@ namespace ATC {
     /** \name restart procedures */
     //---------------------------------------------------------------
     bool useRestart_;
-    string restartFileName_;
+    std::string restartFileName_;
 
     //---------------------------------------------------------------
     /** \name data specific to node/faceset for global output */
     //---------------------------------------------------------------
     /** group computes : type, group_id -> value */
-    map< pair < string, FieldName > , NodesetOperationType> nsetData_;
-    map < pair<string,string>, FacesetIntegralType  >       fsetData_;
-    map < pair<string, FieldName>,ElementsetOperationType > esetData_;
+    std::map< std::pair<std::string, FieldName > , NodesetOperationType> nsetData_;
+    std::map< std::pair<std::string,std::string>, FacesetIntegralType  >       fsetData_;
+    std::map< std::pair<std::string, FieldName>,ElementsetOperationType > esetData_;
 
 
     //---------------------------------------------------------------
@@ -836,8 +851,8 @@ namespace ATC {
     bool setRefPEvalue_;
     double refPEvalue_;
     bool readRefPE_;
-    string nodalRefPEfile_;
-    DENS_MAT nodalRefPotentialEnergy_;
+    std::string nodalRefPEfile_;
+    DENS_MAN* nodalRefPotentialEnergy_;
     void set_reference_potential_energy(void);
 
   private: /** data */

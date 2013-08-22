@@ -1,13 +1,15 @@
 #ifndef EXTRINSIC_MODEL_ELECTROSTATIC
 #define EXTRINSIC_MODEL_ELECTROSTATIC
 
-/** owned fields: ELECTRIC_POTENTIAL */
+// WIP_REJ
 #define CHARGED_SURFACE
 
-// ATC headers
 #include "ExtrinsicModel.h"
+#include <utility>
+#include <string>
+#include <vector>
+#include <map>
 
-using namespace std;
 namespace ATC {
 
   // forward declarations
@@ -23,6 +25,7 @@ namespace ATC {
   /**
    *  @class  ExtrinsicModelElectrostatic
    *  @brief  add self-consistent electrostatic forces
+   *          owned field: ELECTRIC_POTENTIAL 
    */
 
   //--------------------------------------------------------
@@ -38,7 +41,7 @@ namespace ATC {
     // constructor
     ExtrinsicModelElectrostatic(ExtrinsicModelManager * modelManager,
                    ExtrinsicModelType modelType,
-                   string matFileName);
+                   std::string matFileName);
 
     // destructor
     virtual ~ExtrinsicModelElectrostatic();
@@ -100,25 +103,25 @@ namespace ATC {
     void apply_charged_surfaces(MATRIX & nodalPotential);
 
     /** set charged surface data */
-    void add_charged_surface(const string & facesetName,
+    void add_charged_surface(const std::string & facesetName,
                              const double chargeDensity);
 #endif
     /** charge regulator */
     ChargeRegulator * chargeRegulator_; 
 
     /** local electric potential Green's function for each node */
-    vector<SparseVector<double> > greensFunctions_;
+    std::vector<SparseVector<double> > greensFunctions_;
 
 #ifdef CHARGED_SURFACE
     /** stores surface charge data at fixed charge surfaces */
-    map<string,double> surfaceCharges_;
+    std::map<std::string,double> surfaceCharges_;
 
     /** data structure to store information for applying charged surfaces */
-    map<string,map<int,pair<DENS_VEC,double> > > chargedSurfaces_;
+    std::map<std::string,std::map<int,std::pair<DENS_VEC,double> > > chargedSurfaces_;
 #endif
 
     /** data structure storing potential induced only by charges under the nodal shape function support */
-    map<string,map<int,double> > nodalChargePotential_;
+    std::map<std::string,std::map<int,double> > nodalChargePotential_;
 
     
     /** allows electric force only applied only in z direction to complement LAMMPS slab command */
@@ -161,7 +164,7 @@ namespace ATC {
     // constructor
     ExtrinsicModelElectrostaticMomentum(ExtrinsicModelManager * modelManager,
                                        ExtrinsicModelType modelType,
-                                       string matFileName);
+                                       std::string matFileName);
 
     // destructor
     virtual ~ExtrinsicModelElectrostaticMomentum();

@@ -1,4 +1,4 @@
-LAMMPS (14 Aug 2013)
+LAMMPS (24 Aug 2013)
 dimension 3
 boundary  p p p
 lattice 	fcc  5.376 orient x 1 0 0 orient y 0 1 0 orient z 0 0 1
@@ -16,6 +16,7 @@ group		internal region box
 500 atoms in group internal
 fix         ATC internal atc field
 ATC: constructing shape function field estimate
+ ATC: version 2.0
  ATC: peratom PE compute created with ID: 3
 fix_modify  ATC mesh create 1 1 1 box p p p
  ATC: created uniform mesh with 8 nodes, 1 unique nodes, and 1 elements
@@ -29,6 +30,7 @@ fix_modify  ATC output nvtFE 100 text
 
 fix         PP  internal atc field
 ATC: constructing shape function field estimate
+ ATC: version 2.0
  ATC: peratom PE compute created with ID: 3
 fix_modify  PP  filter type step # defaults to running
 fix_modify  PP  filter on
@@ -65,13 +67,13 @@ Step Temp TotEng KinEng PotEng Press Volume
      800    29.876839   -900.32866    44.528592   -944.85725   -587.67852    19421.725 
      900    29.966977   -899.86769    44.662933   -944.53062   -581.80498    19421.725 
     1000    29.907621   -901.57887    44.574469   -946.15334   -613.00908    19421.725 
-Loop time of 6.81743 on 4 procs for 1000 steps with 500 atoms
+Loop time of 1.38273 on 4 procs for 1000 steps with 500 atoms
 
-Pair  time (%) = 0.99375 (14.5766)
+Pair  time (%) = 0.747143 (54.0337)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 2.8781 (42.2167)
-Outpt time (%) = 0.115153 (1.6891)
-Other time (%) = 2.83043 (41.5175)
+Comm  time (%) = 0.297985 (21.5504)
+Outpt time (%) = 0.000655055 (0.0473739)
+Other time (%) = 0.336952 (24.3685)
 
 Nlocal:    125 ave 129 max 121 min
 Histogram: 1 0 0 0 0 2 0 0 0 1

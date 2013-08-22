@@ -1,14 +1,11 @@
 #ifndef FE_MESH_H
 #define FE_MESH_H
 
-// ATC_Transfer headers
 #include "Array.h"
 #include "Array2D.h"
 #include "MatrixLibrary.h"
 #include "ATC_TypeDefs.h"
 #include "KD_Tree.h"
-
-// Other headers
 #include <vector>
 #include <deque>
 #include <list>
@@ -16,12 +13,12 @@
 #include <set>
 #include <utility>
 #include <float.h>
+#include <string>
+#include <vector>
 #include "mpi.h"
 
-using namespace std;
-
 namespace ATC {
-  // Forward declarations
+
   class FE_Element;
 
   /**
@@ -45,7 +42,7 @@ namespace ATC {
     void initialize(void);
 
     /** write an unstructured mesh */
-    void write_mesh(string meshFile);
+    void write_mesh(std::string meshFile);
 
 
 
@@ -117,7 +114,7 @@ namespace ATC {
     // N is numIPsInElement X numNodesInElement
     void shape_function(const int eltID,
                         DENS_MAT &N,
-                        vector<DENS_MAT> &dN,
+                        std::vector<DENS_MAT> &dN,
                         DIAG_MAT &weights) const;
 
     /** evaluate shape functions for all ip's on a face */
@@ -129,8 +126,8 @@ namespace ATC {
 
     void face_shape_function(const PAIR &face,
                              DENS_MAT &N,
-                             vector<DENS_MAT> &dN,
-                             vector<DENS_MAT> &Nn,
+                             std::vector<DENS_MAT> &dN,
+                             std::vector<DENS_MAT> &Nn,
                              DIAG_MAT &weights) const;
 
     /** compute normal vector from the specified face */
@@ -222,92 +219,92 @@ namespace ATC {
     }
 
     /** query whether a nodeset with the given name exists */
-    bool query_nodeset(const string & name) const;
+    bool query_nodeset(const std::string & name) const;
 
     /** get node set (unique ID's) from the string name assigned to the set */
-    const set<int> & nodeset(const string & name) const;
+    const std::set<int> & nodeset(const std::string & name) const;
 
     /** create node set with tag "name" from nodes in given spatial range */
-    void create_nodeset(const string & name, const set<int> & nodeset);
-    void create_nodeset(const string & name,
+    void create_nodeset(const std::string & name, const std::set<int> & nodeset);
+    void create_nodeset(const std::string & name,
                         double xmin, double xmax,
                         double ymin, double ymax,
                         double zmin, double zmax);
 
     /** add to node set with tag "name" from nodes in given spatial range */
-    void add_to_nodeset(const string & name,
+    void add_to_nodeset(const std::string & name,
                         double xmin, double xmax,
                         double ymin, double ymax,
                         double zmin, double zmax);
 
     /** get element set from the string name assigned to the set */
-    const set<int> & elementset(const string & name) const;
+    const std::set<int> & elementset(const std::string & name) const;
 
     /** create element set with tag "name" from nodes in given spatial range */
-    void create_elementset(const string & name,
+    void create_elementset(const std::string & name,
                            double xmin, double xmax,
                            double ymin, double ymax,
                            double zmin, double zmax);
 
 
     /** get the minimal element set from a nodeset by name */
-    void nodeset_to_minimal_elementset(const string &name, 
-                                       set<int> &elemSet) const;
+    void nodeset_to_minimal_elementset(const std::string &name, 
+                                       std::set<int> &elemSet) const;
     /** get the minimal element set from a set of nodes */
-    void nodeset_to_minimal_elementset(const set<int> &nodeSet, 
-                                       set<int> &elemSet) const;
+    void nodeset_to_minimal_elementset(const std::set<int> &nodeSet, 
+                                       std::set<int> &elemSet) const;
     /** get the maximal element set from a nodeset by name */
-    void nodeset_to_maximal_elementset(const string &name, 
-                                       set<int> &elemSet) const;
+    void nodeset_to_maximal_elementset(const std::string &name, 
+                                       std::set<int> &elemSet) const;
     /** get the maximal element set from a set of nodes */
-    void nodeset_to_maximal_elementset(const set<int> &nodeSet, 
-                                       set<int> &elemSet) const;
+    void nodeset_to_maximal_elementset(const std::set<int> &nodeSet, 
+                                       std::set<int> &elemSet) const;
 
     /** get complement of element set by name */
-    void elementset_complement(const string &name, 
-                               set<int> &elemSet) const;
-    void elementset_complement(const set<int> &elemSet, 
-                               set<int> &elemSetComplement) const;
+    void elementset_complement(const std::string &name, 
+                               std::set<int> &elemSet) const;
+    void elementset_complement(const std::set<int> &elemSet, 
+                               std::set<int> &elemSetComplement) const;
 
     /** get the node set from an element set by name */
-    void elementset_to_minimal_nodeset(const string &name, 
-                                       set<int> &nodeSet) const;
+    void elementset_to_minimal_nodeset(const std::string &name, 
+                                       std::set<int> &nodeSet) const;
 
-    void elementset_to_nodeset(const string &name, 
-                               set<int> &nodeSet) const;
-    void elementset_to_nodeset(const set<int> &elemSet, 
-                               set<int> &nodeSet) const;
+    void elementset_to_nodeset(const std::string &name, 
+                               std::set<int> &nodeSet) const;
+    void elementset_to_nodeset(const std::set<int> &elemSet, 
+                               std::set<int> &nodeSet) const;
 
     /** convert faceset to nodeset in _unique_ node numbering */
-    void faceset_to_nodeset(const string &name, 
-                            set<int> &nodeSet) const;
-    void faceset_to_nodeset(const set<PAIR> &faceSet, 
-                            set<int> &nodeSet) const;
+    void faceset_to_nodeset(const std::string &name, 
+                            std::set<int> &nodeSet) const;
+    void faceset_to_nodeset(const std::set<PAIR> &faceSet, 
+                            std::set<int> &nodeSet) const;
 
-    void faceset_to_nodeset_global(const string &name, 
-                                   set<int> &nodeSet) const;
-    void faceset_to_nodeset_global(const set<PAIR> &faceSet, 
-                                   set<int> &nodeSet) const;
+    void faceset_to_nodeset_global(const std::string &name, 
+                                   std::set<int> &nodeSet) const;
+    void faceset_to_nodeset_global(const std::set<PAIR> &faceSet, 
+                                   std::set<int> &nodeSet) const;
 
     /** get face set from the string name assigned to the set */
-    const set< pair<int,int> > & faceset(const string & name) const;
+    const std::set< std::pair<int,int> > & faceset(const std::string & name) const;
 
     /** create face set with tag "name" from faces aligned with box */
-    void create_faceset(const string & name,
+    void create_faceset(const std::string & name,
                         double xmin, double xmax,
                         double ymin, double ymax,
                         double zmin, double zmax, 
                         bool outward);
     /** create face set with tag "name" from faces aligned with plane */
-    void create_faceset(const string & name, double x, int idir, int isgn,
+    void create_faceset(const std::string & name, double x, int idir, int isgn,
                         int nIdx2=-1, double x2lo=0.0, double x2hi=0.0,
                         int nIdx3=-1, double x3lo=0.0, double x3hi=0.0);
 
     /** cut mesh */
-    virtual void cut_mesh(const set<PAIR> & faceSet, const set<int> & nodeSet) = 0;
+    virtual void cut_mesh(const std::set<PAIR> & faceSet, const std::set<int> & nodeSet) = 0;
     
     /** delete elements */
-    virtual void delete_elements(const set<int> & elementList) = 0;
+    virtual void delete_elements(const std::set<int> & elementList) = 0;
 
     /** return number of spatial dimensions */
     int num_spatial_dimensions() const { return nSD_; }
@@ -389,16 +386,16 @@ namespace ATC {
    virtual double coordinate_tolerance(void) const {return 1.e-8;}
 
     /** element type */
-    string element_type(void) const ; 
+    std::string element_type(void) const ; 
 
     /** output mesh subsets */
-    void output(string prefix) const; 
+    void output(std::string prefix) const; 
   
     /* Parallelization data members */
  
     /** return element vector for this processor */
-    const vector<int> & owned_elts() const { return myElts_; }
-    const vector<int> & owned_and_ghost_elts() const { 
+    const std::vector<int> & owned_elts() const { return myElts_; }
+    const std::vector<int> & owned_and_ghost_elts() const { 
       return (decomposition_) ? myAndGhostElts_: myElts_; }
     bool is_owned_elt(int elt) const;
     
@@ -442,7 +439,7 @@ namespace ATC {
 
     /** map from unique node id to associated elements for periodic meshes */
     /** this data structure is only ever accessed from an unpartitioned context */
-    Array<vector<int> > uniqueNodeToElementMap_;
+    Array<std::vector<int> > uniqueNodeToElementMap_;
 
     /** map of global to unique node ID's */
     Array<int> globalToUniqueMap_;
@@ -455,7 +452,7 @@ namespace ATC {
     NODE_SET_MAP nodeSetMap_;
 
     /** maximal nodeset */
-    set<int> nodeSetAll_;
+    std::set<int> nodeSetAll_;
 
     /** map of string names to node sets */
     FACE_SET_MAP faceSetMap_;
@@ -464,32 +461,32 @@ namespace ATC {
     ELEMENT_SET_MAP elementSetMap_;
 
     /** maximal elementset */
-    set<int> elementSetAll_;
+    std::set<int> elementSetAll_;
 
     /** length scaling used by lammps */
     double xscale_, yscale_, zscale_;
 
     /** Processor demarcations */
-    vector<double> procs_;
+    std::vector<double> procs_;
 
     /** Dimension (x=0, y=1, or z=2) */
     int partitionAxis_;
 
     /** List of nodes for this processor */
-    vector<int> myNodes_;
+    std::vector<int> myNodes_;
 
     /** List of elements for this processor */
-    vector<int> myElts_;
-    vector<int> myAndGhostElts_;
+    std::vector<int> myElts_;
+    std::vector<int> myAndGhostElts_;
 
     /** maps between my IDs and the total IDs */
-    map<int,int> elemToMyElemMap_;
+    std::map<int,int> elemToMyElemMap_;
    
     /** Lists of ghost nodes/neighbor ghost nodes */
-    vector<int> ghostNodesL_; 
-    vector<int> ghostNodesR_;
-    vector<int> shareNodesL_;
-    vector<int> shareNodesR_;
+    std::vector<int> ghostNodesL_; 
+    std::vector<int> ghostNodesR_;
+    std::vector<int> shareNodesL_;
+    std::vector<int> shareNodesR_;
 
     /** extruded */
     bool twoDimensional_;
@@ -509,13 +506,13 @@ namespace ATC {
 
     /** constructor for read-in mesh **/
     // can later be extended to take nodesets, elementsets, etc.
-    FE_3DMesh(const string elementType, 
+    FE_3DMesh(const std::string elementType, 
               const int nNodes,
               const int nElements,
               const Array2D<int> *connectivity,
               const DENS_MAT *nodalCoordinates,
               const Array<bool> periodicity,
-              const Array<pair<string,set<int> > > *nodeSets);
+              const Array<std::pair<std::string,std::set<int> > > *nodeSets);
 
     /** destructor */
     virtual ~FE_3DMesh();
@@ -528,7 +525,7 @@ namespace ATC {
 
     /** Removes duplicate elements that appear in more than one vector
          within procEltLists. **/
-    void prune_duplicate_elements(vector<vector<int> > &procEltLists, 
+    void prune_duplicate_elements(std::vector<std::vector<int> > &procEltLists, 
                                   int *eltToOwners);
     
     /** Takes procEltLists, and if there are more than nProcs of them
@@ -538,7 +535,7 @@ namespace ATC {
           //       processors if during pruning processors end up
           //       elementless. This is slightly complicated because of
           //       ghost nodes.
-    void redistribute_extra_proclists(vector<vector<int> > &procEltLists,
+    void redistribute_extra_proclists(std::vector<std::vector<int> > &procEltLists,
                                       int *eltToOwners, int nProcs);
                                         
     /** This takes in a dense matrix and a list of elements
@@ -548,17 +545,17 @@ namespace ATC {
           //       the set intersection, which does redundant computations
           //       right now, and filling in the adjacencies for both elements
           //       simultaneously when two elements share a face.
-    void compute_face_adjacencies(const list<int> &elts, 
+    void compute_face_adjacencies(const std::list<int> &elts, 
                                   DENS_MAT &faceAdjacencies);
 
     /** Counts the number of nonempty vectors in a vector of vectors. **/
-    int numNonempty(vector<vector<int> > &v);
+    int numNonempty(std::vector<std::vector<int> > &v);
       
     /**  In the partitioning, we want to sort vectors of integers by size, 
           and furthermore we want empty vectors to count as the "largest" 
           possible vector because they dont want to count in the minimum. **/
     struct vectorComparer {
-        bool operator() (vector<int> l, vector<int> r) {
+        bool operator() (std::vector<int> l, std::vector<int> r) {
           if (l.empty())
             return false;
           if (r.empty())
@@ -572,10 +569,10 @@ namespace ATC {
       return 0.25*(this->min_element_size()); // loose
       //return 0.5;
     }
-    virtual void cut_mesh(const set<PAIR> &faceSet,
-                          const set<int> &nodeSet);
+    virtual void cut_mesh(const std::set<PAIR> &faceSet,
+                          const std::set<int> &nodeSet);
     
-    virtual void delete_elements(const set<int> &elementSet);
+    virtual void delete_elements(const std::set<int> &elementSet);
 
     /** map spatial location to element */
     virtual int map_to_element(const DENS_VEC &x) const;
@@ -586,8 +583,8 @@ namespace ATC {
     /** create global-to-unique node mapping */
     virtual void setup_periodicity(double tol = 1.e-8);
     void fix_periodicity  (int idim);
-    int find_boundary_nodes(int idim, set<int> & nodes);
-    bool match_nodes(int idim, set<int> & top, set<int> & bot,
+    int find_boundary_nodes(int idim, std::set<int> & nodes);
+    bool match_nodes(int idim, std::set<int> & top, std::set<int> & bot,
                      Array<int> & map);
     void set_unique_connectivity(void);
     bool orient(int idir);
@@ -599,7 +596,7 @@ namespace ATC {
     bool contains_point(const int eltID, const DENS_VEC & x) const;
 
   private:
-    Array<vector<int> > nodeToParentElements_;
+    Array<std::vector<int> > nodeToParentElements_;
 
   };
 
@@ -655,7 +652,7 @@ namespace ATC {
     Array<double> hx_, hy_, hz_;
 
     /** nodal locations */
-    vector< Array<double> > x_;
+    std::vector< Array<double> > x_;
   };
 
   /**
@@ -691,7 +688,7 @@ namespace ATC {
     { hx = L_[0]/n_[0]; hy = L_[1]/n_[1]; hz = L_[2]/n_[2]; }
 
     virtual double min_element_size(void) const
-    { return min(L_[0]/n_[0], min(L_[1]/n_[1], L_[2]/n_[2])); }
+    { return std::min(L_[0]/n_[0], std::min(L_[1]/n_[1], L_[2]/n_[2])); }
 
     /** map spatial location to element */
     virtual int map_to_element(const DENS_VEC &x) const; 

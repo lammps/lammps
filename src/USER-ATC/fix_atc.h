@@ -38,7 +38,6 @@ namespace LAMMPS_NS {
 
     /** initial_integrate */
     void initial_integrate(int vflag);
-
     /** final_integrate */
     void final_integrate();
 

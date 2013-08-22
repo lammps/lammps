@@ -11,6 +11,8 @@
 #include <utility>
 #include <typeinfo>
 
+using std::string;
+
 namespace ATC {
 
   //--------------------------------------------------------
@@ -93,15 +95,6 @@ namespace ATC {
     // init_filter uses fieldRateNdFiltered which comes from the time integrator,
     // which is why the time integrator is initialized first
 
-    // set the reference potential, if necessary, because the nodal energy is needed to initialize the time integrator
-    if (!initialized_) {
-      if (temperatureDef_==TOTAL) {
-        PerAtomQuantity<double> * atomicReferencePotential = interscaleManager_.per_atom_quantity("AtomicReferencePotential");
-        PerAtomQuantity<double> * atomicPotentialEnergy = interscaleManager_.per_atom_quantity("AtomicPotentialEnergy");
-        atomicReferencePotential->set_quantity() = atomicPotentialEnergy->quantity();
-      }
-    }
-
     // other initializations
     if (reset_methods()) {
       for (_tiIt_ = timeIntegrators_.begin(); _tiIt_ != timeIntegrators_.end(); ++_tiIt_) {
@@ -114,7 +107,9 @@ namespace ATC {
     if (timeFilterManager_.need_reset()) {
       init_filter();
     }
-    timeFilterManager_.initialize(); // clears need for reset
+    // clears need for reset
+    timeFilterManager_.initialize();
+    ghostManager_.initialize();
 
     if (!initialized_) {
       // initialize sources based on initial FE temperature
@@ -196,21 +191,34 @@ namespace ATC {
                                                "AtomicTwiceKineticEnergy");
 
       // atomic potential energy
-      //ComputedAtomQuantity * atomicPotentialEnergy = new ComputedAtomQuantity(this,lammpsInterface_->compute_pe_name(), 1./(lammpsInterface_->mvv2e()));
-      //interscaleManager_.add_per_atom_quantity(atomicPotentialEnergy,
-      //                                         "AtomicPotentialEnergy");
-      PerAtomQuantity<double> * atomicPotentialEnergy = interscaleManager_.per_atom_quantity("AtomicPotentialEnergy");
+      ComputedAtomQuantity * atomicPotentialEnergy = new ComputedAtomQuantity(this,
+                                                                              lammpsInterface_->compute_pe_name(),
+                                                                              1./(lammpsInterface_->mvv2e()));
+      interscaleManager_.add_per_atom_quantity(atomicPotentialEnergy,
+                                               "AtomicPotentialEnergy");
 
-/////////////////////////////////////
-      FieldManager fmgr(this);
-      fmgr.nodal_atomic_field(REFERENCE_POTENTIAL_ENERGY);
-      PerAtomQuantity<double> * atomicReferencePotential = 
-        interscaleManager_.per_atom_quantity("AtomicReferencePotential");
-/////////////////////////////////////
+      // reference potential energy
+      AtcAtomQuantity<double> * atomicReferencePotential;
+      if (!initialized_) {
+        atomicReferencePotential = new AtcAtomQuantity<double>(this);
+        interscaleManager_.add_per_atom_quantity(atomicReferencePotential,
+                                                 "AtomicReferencePotential");
+        atomicReferencePotential->set_memory_type(PERSISTENT);
+      }
+      else {
+        atomicReferencePotential = static_cast<AtcAtomQuantity<double> * >(interscaleManager_.per_atom_quantity("AtomicReferencePotential"));
+      }
+      nodalRefPotentialEnergy_ = new AtfShapeFunctionRestriction(this,
+                                                                 atomicReferencePotential,
+                                                                 shpFcn_);
+      interscaleManager_.add_dense_matrix(nodalRefPotentialEnergy_,
+                                          "NodalAtomicReferencePotential");
+
       // fluctuating potential energy
-      AtomicEnergyForTemperature * atomicFluctuatingPotentialEnergy = new FluctuatingPotentialEnergy(this,
-         atomicPotentialEnergy,
-         atomicReferencePotential);
+      AtomicEnergyForTemperature * atomicFluctuatingPotentialEnergy =
+        new FluctuatingPotentialEnergy(this,
+                                       atomicPotentialEnergy,
+                                       atomicReferencePotential);
       interscaleManager_.add_per_atom_quantity(atomicFluctuatingPotentialEnergy,
          "AtomicFluctuatingPotentialEnergy");
 
@@ -388,6 +396,9 @@ namespace ATC {
     else if (strcmp(arg[argIndx],"temperature_definition")==0) {
       argIndx++;
       string_to_temperature_def(arg[argIndx],temperatureDef_);
+      if (temperatureDef_ == TOTAL) {
+        setRefPE_ = true;
+      }
       foundMatch = true;
       needReset_ = true;
     }
@@ -451,31 +462,7 @@ namespace ATC {
                                            atomElement_);
   }
 
-  //--------------------------------------------------
-  //  pre_init_integrate
-  //    time integration before the lammps atomic
-  //    integration of the Verlet step 1
-  //--------------------------------------------------
-  void ATC_CouplingEnergy::pre_init_integrate()
-  {
-    ATC_Coupling::pre_init_integrate();
-    double dt = lammpsInterface_->dt();
-
-    // Perform any initialization, no actual integration
-    for (_tiIt_ = timeIntegrators_.begin(); _tiIt_ != timeIntegrators_.end(); ++_tiIt_) {
-      (_tiIt_->second)->pre_initial_integrate1(dt);
-    }
-    
-    // Apply thermostat force to atom velocities
-    atomicRegulator_->apply_pre_predictor(dt,lammpsInterface_->ntimestep());
-
-    // Predict nodal temperatures and time derivatives based on FE data
-    for (_tiIt_ = timeIntegrators_.begin(); _tiIt_ != timeIntegrators_.end(); ++_tiIt_) {
-      (_tiIt_->second)->pre_initial_integrate2(dt);
-    }
-    extrinsicModelManager_.pre_init_integrate();
-  }
-
+#ifdef OBSOLETE
   //--------------------------------------------------------
   //  mid_init_integrate
   //    time integration between the velocity update and
@@ -525,7 +512,7 @@ namespace ATC {
 
     ATC_Coupling::post_init_integrate();
   }
-  
+#endif
   //--------------------------------------------------------
   //  post_final_integrate
   //    integration after the second stage lammps atomic 

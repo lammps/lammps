@@ -1,15 +1,14 @@
 #ifndef FE_INTERPOLATE_H
 #define FE_INTERPOLATE_H
 
-// ATC_Transfer headers
 #include "MatrixLibrary.h"
 #include "ATC_TypeDefs.h"
 
-using namespace std;
+#include <vector>
+#include <map>
 
 namespace ATC {
 
-  // Forward declarations
   struct FE_Quadrature;
   class FE_Element;
 
@@ -73,7 +72,7 @@ namespace ATC {
      *           weights(ip) */
     virtual void shape_function(const DENS_MAT &eltCoords,
                                 DENS_MAT &N,
-                                vector<DENS_MAT> &dN, 
+                                std::vector<DENS_MAT> &dN, 
                                 DIAG_MAT &weights);
 
     /** compute shape functions at all face ip's:
@@ -92,8 +91,8 @@ namespace ATC {
                                      const DENS_MAT &faceCoords,
                                      const int faceID,
                                      DENS_MAT &N,
-                                     vector<DENS_MAT> &dN,
-                                     vector<DENS_MAT> &Nn,
+                                     std::vector<DENS_MAT> &dN,
+                                     std::vector<DENS_MAT> &Nn,
                                      DIAG_MAT &weights);
 
     /** compute unit normal vector for a face:
@@ -112,7 +111,7 @@ namespace ATC {
                           DENS_MAT &dxdr) const;
     virtual void tangents(const DENS_MAT &eltCoords,
                           const VECTOR &localCoords,
-                          vector<DENS_VEC> &t,
+                          std::vector<DENS_VEC> &t,
                           const bool normalize = false) const;
     /** get number of ips in scheme */
     int num_ips() const;
@@ -127,23 +126,23 @@ namespace ATC {
     // Number of dimensions
     int nSD_;
 
-    map<FeIntQuadrature,FE_Quadrature *> feQuadList_;
+    std::map<FeIntQuadrature,FE_Quadrature *> feQuadList_;
     FE_Quadrature *feQuad_;
 
     // matrix of shape functions at ip's: N_(ip, node)
     DENS_MAT N_;
 
     
-    vector<DENS_MAT> dNdr_;
+    std::vector<DENS_MAT> dNdr_;
 
     // matrix of shape functions at ip's: N_(ip, node)
-    vector<DENS_MAT> NFace_;
+    std::vector<DENS_MAT> NFace_;
 
     // matrix of generic face shape function derivatives
-    vector<vector<DENS_MAT> > dNdrFace_;
+    std::vector<std::vector<DENS_MAT> > dNdrFace_;
 
     // matrix of generic face shape function derivatives
-    vector<DENS_MAT> dNdrFace2D_;
+    std::vector<DENS_MAT> dNdrFace2D_;
 
   };
 

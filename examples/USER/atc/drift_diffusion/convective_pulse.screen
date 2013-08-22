@@ -1,4 +1,4 @@
-LAMMPS (14 Aug 2013)
+LAMMPS (24 Aug 2013)
 units    metal
 
 variable V equal  5000.0
@@ -25,6 +25,7 @@ atom_modify     sort 0 1
 #          ID  group atc PhysicsType ParameterFile
 fix        AtC all   atc convective_drift_diffusion  Cu_cddm.mat
 ATC: constructing convective_drift_diffusion coupling with parameter file Cu_cddm.mat
+ ATC: version 2.0
  ATC: peratom PE compute created with ID: 3
  ATC: 2 materials defined from Cu_cddm.mat
  ATC: creating convective_drift_diffusion extrinsic model
@@ -112,23 +113,23 @@ Setting up run ...
 Memory usage per processor = 0.432198 Mbytes
 Step CPU AtC[1] AtC[2] AtC[3] AtC[4] AtC[5] 
     0       0   0.65909742          300 0.0054411845          300    10.091586 
-   10       3   0.65909742          300 0.0054411845          300    10.091586 
-   20       6   0.65909742          300 0.0054411845          300    10.091586 
-   30      10   0.65909742          300 0.0054411845          300    10.091586 
-   40      14   0.65909742          300 0.0054411845          300    10.091586 
-   50      17   0.65909742          300 0.0054411845          300    10.091586 
+   10     3.1   0.65909742          300 0.0054411845          300    10.091586 
+   20     6.1   0.65909742          300 0.0054411845          300    10.091586 
+   30     9.1   0.65909742          300 0.0054411845          300    10.091586 
+   40      13   0.65909742          300 0.0054411845          300    10.091586 
+   50      16   0.65909742          300 0.0054411845          300    10.091586 
    60      20   0.65909742          300 0.0054411845          300    10.091586 
    70      23   0.65909742          300 0.0054411845          300    10.091586 
-   80      33   0.65909742          300 0.0054411845          300    10.091586 
-   90      37   0.65909742          300 0.0054411845          300    10.091586 
-  100      40   0.65909742          300 0.0054411845          300    10.091586 
-Loop time of 39.7392 on 4 procs for 100 steps with 0 atoms
+   80      26   0.65909742          300 0.0054411845          300    10.091586 
+   90      29   0.65909742          300 0.0054411845          300    10.091586 
+  100      32   0.65909742          300 0.0054411845          300    10.091586 
+Loop time of 31.5941 on 4 procs for 100 steps with 0 atoms
 
 Pair  time (%) = 0 (0)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000300825 (0.000756998)
-Outpt time (%) = 0.125219 (0.315103)
-Other time (%) = 39.6136 (99.6841)
+Comm  time (%) = 0.000305891 (0.000968189)
+Outpt time (%) = 0.103175 (0.326564)
+Other time (%) = 31.4907 (99.6725)
 
 Nlocal:    0 ave 0 max 0 min
 Histogram: 4 0 0 0 0 0 0 0 0 0

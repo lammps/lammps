@@ -1,6 +1,5 @@
 #include "WeakEquationPoisson.h"
 #include "Material.h"
-#include <string>
 #include <iostream>
 #include <fstream>
 

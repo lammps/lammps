@@ -3,10 +3,6 @@
 
 #include <map>
 #include <string>
-
-using std::map;
-using std::string;
-
 #include "ATC_TypeDefs.h"
 
 namespace ATC {
@@ -88,7 +84,7 @@ namespace ATC {
   class ElectronFluxLinear : public ElectronFlux
   {
     public:
-      ElectronFluxLinear(fstream &matfile, map<string,double> & parameters);
+      ElectronFluxLinear(std::fstream &matfile, std::map<std::string,double> & parameters);
       virtual ~ElectronFluxLinear() {};
       virtual void electron_flux(const FIELD_MATS &fields,
                                  const GRAD_FIELD_MATS &gradFields,
@@ -148,7 +144,7 @@ namespace ATC {
   class ElectronFluxThermopower : public ElectronFlux
   {
     public:
-      ElectronFluxThermopower(fstream &matfile,map<string,double> & parameters);
+      ElectronFluxThermopower(std::fstream &matfile,std::map<std::string,double> & parameters);
       virtual ~ElectronFluxThermopower() {};
       virtual void electron_flux(const FIELD_MATS &fields,
                                  const GRAD_FIELD_MATS &gradFields,
@@ -211,7 +207,7 @@ namespace ATC {
   class ElectronFluxConvection : public ElectronFlux
   {
     public:
-      ElectronFluxConvection(fstream &matfile,map<string,double> & parameters);
+      ElectronFluxConvection(std::fstream &matfile,std::map<std::string,double> & parameters);
       virtual ~ElectronFluxConvection() {};
       virtual void electron_flux(const FIELD_MATS &fields,
                                  const GRAD_FIELD_MATS &gradFields,

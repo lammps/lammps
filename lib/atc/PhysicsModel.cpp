@@ -10,15 +10,23 @@
 #include "WeakEquationPhononTemperature.h"
 #include "WeakEquationPoisson.h"
 #include "WeakEquationSchrodinger.h"
-
 #include "ATC_Coupling.h" // for tangent operator
-
-#include <string>
 #include <iostream>
 #include <fstream>
+#include <sstream>
+#include <utility>
+
+using ATC_Utility::command_line;
+using ATC_Utility::to_lower;
+using std::fstream;
+using std::stringstream;
+using std::pair;
+using std::string;
+using std::map;
+using std::set;
+using std::vector;
 
 namespace ATC {
-
 
 //---------------------------------------------------------------------
 // PhysicsModel

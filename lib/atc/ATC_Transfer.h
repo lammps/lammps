@@ -9,8 +9,8 @@
 
 // Other headers
 #include <map>
-#include <list>
-using std::list;
+#include <string>
+#include <vector>
 
 namespace ATC {
 
@@ -56,7 +56,7 @@ class ATC_Transfer : public ATC_Method {
   virtual void output(); 
 
   /** external access to hardy data and other information*/
-  const DENS_MAT * hardy_data(string field) { return &hardyData_[field].quantity(); }
+  const DENS_MAT * hardy_data(std::string field) { return &hardyData_[field].quantity(); }
 
  protected:
 
@@ -70,9 +70,9 @@ class ATC_Transfer : public ATC_Method {
   SmallMoleculeDipoleMoment * dipoleMoment_; // KKM add
   SmallMoleculeQuadrupoleMoment * quadrupoleMoment_; // KKM add
   /** container for dependency managed data */
-  vector < DENS_MAN * > outputFields_;
+  std::vector < DENS_MAN * > outputFields_;
   
-  map < string, DENS_MAN * > outputFieldsTagged_;
+  std::map < std::string, DENS_MAN * > outputFieldsTagged_;
 
   DENS_MAN * restrictedCharge_; // WIP/TEMP
 
@@ -86,7 +86,7 @@ class ATC_Transfer : public ATC_Method {
   Array<bool> outputFlags_;
   Array<bool> gradFlags_;
   Array<bool> rateFlags_;
-  map<string,int> computes_;
+  std::map<std::string,int> computes_;
   bool outputStepZero_;
 
   /** check whether atoms have shifted box or element or neighbors changed */
@@ -99,12 +99,16 @@ class ATC_Transfer : public ATC_Method {
   virtual void set_continuum_data();
   /** sets up all data necessary to define the computational geometry */
   virtual void set_computational_geometry();
+  /** sets up accumulant & interpolant */
+  virtual void construct_interpolant();
   /** constructs all data which is updated with time integration, i.e. fields */
   virtual void construct_time_integration_data();
   /** create methods, e.g. time integrators, filters */
   virtual void construct_methods();
   /** set up data which is dependency managed */
   virtual void construct_transfers();
+  /** sets up mol transfers */
+  virtual void construct_molecule_transfers();
 
   /** compute atom to nodal quantities */
 // OBSOLETE

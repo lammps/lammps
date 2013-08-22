@@ -11,6 +11,13 @@
 #include "AtomToMoleculeTransfer.h"
 #include "MoleculeSet.h"
 #include "ChargeRegulator.h"
+#include <set>
+
+using std::string;
+using std::vector;
+using std::map;
+using std::pair;
+using std::set;
 
 static const double kTol_ = 1.0e-8; 
 static const double tol_sparse = 1.e-30;//tolerance for compaction from dense
@@ -164,6 +171,15 @@ namespace ATC {
     // add charge density transfer operator
     if (atc_->track_charge()) {
       InterscaleManager & interscaleManager(atc_->interscale_manager());
+
+      // make sure we have gradients at atoms
+      VectorDependencyManager<SPAR_MAT * > * interpolantGradient = interscaleManager.vector_sparse_matrix("InterpolantGradient");
+      if (!interpolantGradient) {
+        interpolantGradient = new PerAtomShapeFunctionGradient(atc_);
+        interscaleManager.add_vector_sparse_matrix(interpolantGradient,
+                                                   "InterpolantGradient");
+      }
+
       FundamentalAtomQuantity * atomicCharge = 
         interscaleManager.fundamental_atom_quantity(LammpsInterface::ATOM_CHARGE);
       AtfShapeFunctionRestriction * nodalAtomicCharge = 
@@ -173,20 +189,6 @@ namespace ATC {
         new AtfShapeFunctionMdProjection(atc_,nodalAtomicCharge,MASS_DENSITY);
       interscaleManager.add_dense_matrix(nodalAtomicChargeDensity,"NodalAtomicChargeDensity");
 
-      
-      // add species charge density transfer operators
-      const map<string,pair<IdType,int> > & speciesIds(atc_->species_ids());
-      map<string,pair<IdType,int> >::const_iterator specid;
-      for (specid = speciesIds.begin(); specid != speciesIds.end(); specid++) {
-        const string specie = specid->first;
-        AtfShapeFunctionRestriction * nodalAtomicSpeciesCharge =
-          new AtfShapeFunctionRestriction(atc_,atomicCharge,
-                                          interscaleManager.sparse_matrix("Accumulant"+specie));
-        interscaleManager.add_dense_matrix(nodalAtomicSpeciesCharge,"NodalAtomicSpeciesCharge"+specie);
-        AtfShapeFunctionMdProjection * nodalAtomicSpeciesChargeDensity =
-          new AtfShapeFunctionMdProjection(atc_,nodalAtomicSpeciesCharge,MASS_DENSITY);
-        interscaleManager.add_dense_matrix(nodalAtomicSpeciesChargeDensity,"NodalAtomicSpeciesChargeDensity"+specie);
-      }
 
       // get the total charge and dipole moment at the node per molecule
       // small molecules require per atom quantities with ghosts
@@ -312,8 +314,18 @@ namespace ATC {
         nodalAtomicGhostCharge_ = interscaleManager.dense_matrix("NodalAtomicGhostCharge");
         if (! nodalAtomicGhostCharge_) {
           FundamentalAtomQuantity * ghostCharge = interscaleManager.fundamental_atom_quantity(LammpsInterface::ATOM_CHARGE, GHOST);
+          
+          PerAtomSparseMatrix<double> * ghostShapeFunctions = interscaleManager.per_atom_sparse_matrix("InterpolantGhost");
+          if (!ghostShapeFunctions) {
+            ghostShapeFunctions = new PerAtomShapeFunction(atc_,
+                                                           interscaleManager.per_atom_quantity("AtomicGhostCoarseGrainingPositions"),
+                                                           interscaleManager.per_atom_int_quantity("AtomGhostElement"),
+                                                           GHOST);
+            interscaleManager.add_per_atom_sparse_matrix(ghostShapeFunctions,"InterpolantGhost");
+          }
+
           nodalAtomicGhostCharge_ = new AtfShapeFunctionRestriction(atc_,ghostCharge,
-                                                                    interscaleManager.per_atom_sparse_matrix("InterpolantGhost"));
+                                                                    ghostShapeFunctions);
           interscaleManager.add_dense_matrix(nodalAtomicGhostCharge_,"NodalAtomicGhostCharge");
         }
       }
@@ -446,14 +458,6 @@ namespace ATC {
       }
     }
     
-    const map<string,pair<IdType,int> > & speciesIds(atc_->species_ids());
-    map<string,pair<IdType,int> >::const_iterator specie;
-    for (specie = speciesIds.begin(); specie != speciesIds.end(); specie++) {
-      DENS_MAN & nodalAtomicSpeciesChargeDensityOut(atc_->tagged_dens_man("NodalAtomicSpeciesChargeDensity"+specie->first));
-      DENS_MAN * nodalAtomicSpeciesChargeDensity((atc_->interscale_manager()).dense_matrix("NodalAtomicSpeciesChargeDensity"+specie->first));
-      nodalAtomicSpeciesChargeDensityOut = nodalAtomicSpeciesChargeDensity->quantity();
-    }
-
     const map<string,pair<MolSize,int> > & moleculeIds(atc_->molecule_ids());
     map<string,pair<MolSize,int> >::const_iterator molecule;
     for (molecule = moleculeIds.begin(); molecule != moleculeIds.end(); molecule++) {
@@ -540,10 +544,11 @@ namespace ATC {
     int nsd = atc_->nsd();
     int nLocal = atc_->nlocal();
     DENS_MAT E(nLocal,nsd);
+    const SPAR_MAT_VEC & shapeFucntionDerivatives(((atc_->interscale_manager()).vector_sparse_matrix("InterpolantGradient"))->quantity());
     if (nLocal > 0) {
       for (int i=0; i < nsd; i++) {
         CLON_VEC Ei = column(E,i);
-        Ei = -1.*(*(((atc_->shpFcnDerivs_)->quantity())[i])*potential);
+        Ei = -1.*(*(shapeFucntionDerivatives[i])*potential);
       }
     }
    

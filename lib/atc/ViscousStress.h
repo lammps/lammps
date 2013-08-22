@@ -4,15 +4,9 @@
 #include <map>
 #include <string>
 #include <vector>
-
-using std::map;
-using std::string;
-
+#include <fstream>
 #include "MatrixLibrary.h"
 #include "ATC_TypeDefs.h"
-
-using ATC_Utility::command_line;
-using ATC_Utility::str2dbl;
 
 namespace ATC {
 
@@ -28,7 +22,7 @@ namespace ATC {
       virtual ~ViscousStress() {};
       virtual void initialize(void){};
       //* Returns parameter values, (Nothing uses this).
-      virtual void parameters(map<string,double> &parameters) {}
+      virtual void parameters(std::map<std::string,double> &parameters) {}
       //* Computes viscous stress given a strain rate tensor.
       //* Units: mvv/L^3 (i.e. for units Real: g/(mol ps^2 A^2) )
       virtual void viscous_stress(const FIELD_MATS &fields,
@@ -53,7 +47,7 @@ namespace ATC {
   {
     public:
       ViscousStressConstant():viscosity_(0.){};
-      ViscousStressConstant(fstream &matfile);
+      ViscousStressConstant(std::fstream &matfile);
       ViscousStressConstant(double viscosity)
         : viscosity_(viscosity) {};
       void viscous_stress(const FIELD_MATS &fields,

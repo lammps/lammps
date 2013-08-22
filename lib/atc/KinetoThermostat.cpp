@@ -411,6 +411,14 @@ namespace ATC {
   //--------------------------------------------------------
   //  pre_force
   //--------------------------------------------------------
+  void KinetoThermostat::pre_force()
+  {
+    thermostat_.pre_force();
+    kinetostat_.pre_force();
+  }
+  //--------------------------------------------------------
+  // coupling_mode
+  //-------------------------------------------------------
   AtomicRegulator::RegulatorCouplingType KinetoThermostat::coupling_mode(const FieldName field) const
   {
     //TEMP_JAT

@@ -65,9 +65,11 @@ namespace ATC {
     virtual void apply_post_corrector(double dt, int timeStep);
     /** prior to exchanges */
     virtual void pre_exchange();
+    /** prior to force calculation */
+    virtual void pre_force();
     /** force a reset to occur */
     void force_reset() {kinetostat_.force_reset();thermostat_.force_reset();};
-  /** compute the thermal boundary flux, must be consistent with regulator */
+    /** compute the thermal boundary flux, must be consistent with regulator */
     virtual void compute_boundary_flux(FIELDS & fields);
     /** type of boundary coupling */
     virtual RegulatorCouplingType coupling_mode(const FieldName) const;

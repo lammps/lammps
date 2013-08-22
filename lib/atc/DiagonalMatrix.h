@@ -36,6 +36,8 @@ class DiagonalMatrix : public Matrix<T>
   void shallowreset(const Vector<T> &v);
   //* resets based on a "shallow" copy of a DiagonalMatrix
   void shallowreset(const DiagonalMatrix<T> &c);
+  //* resets based on a "shallow" copy of one column DenseMatrix
+  void shallowreset(const DenseMatrix<T> &c);
 
   T& operator()(INDEX i, INDEX j);
   T  operator()(INDEX i, INDEX j) const;
@@ -311,6 +313,15 @@ void DiagonalMatrix<T>::shallowreset(const Vector<T> &v)
 {
   _delete();
   _data = new CloneVector<T>(v);
+}
+//-----------------------------------------------------------------------------
+// shallow reset from a DenseMatrix
+//-----------------------------------------------------------------------------
+template<typename T>
+void DiagonalMatrix<T>::shallowreset(const DenseMatrix<T> &c)
+{
+  _delete();
+  _data = new CloneVector<T>(*(c._data));
 }
 //-----------------------------------------------------------------------------
 // reference indexing operator - must throw an error if i!=j

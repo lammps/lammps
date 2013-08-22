@@ -641,7 +641,7 @@ void FixATC::min_pre_exchange()
 void FixATC::min_setup_pre_exchange()
 {
   try {
-    atc_->pre_exchange();
+    atc_->setup_pre_exchange();
   }
   catch (ATC::ATC_Error& atcError) {
     ATC::LammpsInterface::instance()->print_msg(atcError.error_description());

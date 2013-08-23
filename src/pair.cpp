@@ -1436,6 +1436,10 @@ void Pair::virial_fdotr_compute()
     }
   }
   
+  // prevent multiple calls to update the virial
+  // when a hybrid pair style uses both a gpu and non-gpu pair style
+  // or when respa is used with gpu pair styles
+
   vflag_fdotr = 0;
 }
 

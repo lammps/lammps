@@ -1,0 +1,30 @@
+!BIOSYM molecular_data 4
+ 
+!Date: Tue Jul 02 12:42:23 2013   Materials Studio Generated MDF file
+ 
+#topology
+
+@column 1 element
+@column 2 atom_type
+@column 3 charge_group
+@column 4 isotope
+@column 5 formal_charge
+@column 6 charge
+@column 7 switching_atom
+@column 8 oop_flag
+@column 9 chirality_flag
+@column 10 occupancy
+@column 11 xray_temp_factor
+@column 12 connections
+ 
+@molecule hydrogen
+ 
+HYDR_1:H1           H  h       1     0  0     0.0000 0 0 8 1.0000  0.0000 H2
+HYDR_1:H2           H  h       1     0  0     0.0000 0 0 8 1.0000  0.0000 H1
+ 
+!
+#symmetry
+@periodicity 3 xyz
+@group (P1)
+
+#end

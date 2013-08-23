@@ -13,6 +13,8 @@
 </H3>
 <H3>fix wall/lj126 command 
 </H3>
+<H3>fix wall/lj1043 command 
+</H3>
 <H3>fix wall/colloid command 
 </H3>
 <H3>fix wall/harmonic command 
@@ -23,7 +25,7 @@
 </PRE>
 <UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
 
-<LI>style = <I>wall/lj93</I> or <I>wall/lj126</I> or <I>wall/colloid</I> or <I>wall/harmonic</I> 
+<LI>style = <I>wall/lj93</I> or <I>wall/lj126</I> or <I>wall/lj1043</I> or <I>wall/colloid</I> or <I>wall/harmonic</I> 
 
 <LI>one or more face/arg pairs may be appended 
 
@@ -78,6 +80,10 @@ wall-particle interactions depends on the style.
 </P>
 <CENTER><IMG SRC = "Eqs/pair_lj.jpg">
 </CENTER>
+<P>For style <I>wall/lj1043</I>, the energy E is given by the 10/4/3 potential:
+</P>
+<CENTER><IMG SRC = "Eqs/fix_wall_lj1043.jpg">
+</CENTER>
 <P>For style <I>wall/colloid</I>, the energy E is given by an integrated form
 of the <A HREF = "pair_colloid.html">pair_style colloid</A> potential:
 </P>
@@ -115,16 +121,18 @@ can specify formulas with various mathematical functions, and include
 box parameters and timestep and elapsed time.  Thus it is easy to
 specify a time-dependent wall position.  See examples below.
 </P>
-<P>For the <I>wall/lj93</I> and <I>wall/lj126</I> styles, <I>epsilon</I> and <I>sigma</I> are
-the usual Lennard-Jones parameters, which determine the strength and
-size of the particle as it interacts with the wall.  Epsilon has
-energy units.  Note that this <I>epsilon</I> and <I>sigma</I> may be different
-than any <I>epsilon</I> or <I>sigma</I> values defined for a pair style that
-computes particle-particle interactions.
+<P>For the <I>wall/lj93</I> and <I>wall/lj126</I> and <I>wall/lj1043</I> styles,
+<I>epsilon</I> and <I>sigma</I> are the usual Lennard-Jones parameters, which
+determine the strength and size of the particle as it interacts with
+the wall.  Epsilon has energy units.  Note that this <I>epsilon</I> and
+<I>sigma</I> may be different than any <I>epsilon</I> or <I>sigma</I> values defined
+for a pair style that computes particle-particle interactions.
 </P>
 <P>The <I>wall/lj93</I> interaction is derived by integrating over a 3d
 half-lattice of Lennard-Jones 12/6 particles.  The <I>wall/lj126</I>
 interaction is effectively a harder, more repulsive wall interaction.
+The <I>wall/lj1043</I> interaction is yet a different form of wall
+interaction, described in Magda et al in <A HREF = "#Magda">(Magda)</A>.
 </P>
 <P>For the <I>wall/colloid</I> style, <I>R</I> is the radius of the colloid
 particle, <I>D</I> is the distance from the surface of the colloid particle
@@ -291,5 +299,11 @@ being minimized), you MUST enable the <A HREF = "fix_modify.html">fix_modify</A>
 <P><B>Default:</B>
 </P>
 <P>The option defaults units = lattice, fld = no, and pbc = no.
+</P>
+<HR>
+
+<A NAME = "Magda"></A>
+
+<P><B>(Magda)</B> Magda, Tirrell, Davis, J Chem Phys, 83, 1888-1901 (1985).
 </P>
 </HTML>

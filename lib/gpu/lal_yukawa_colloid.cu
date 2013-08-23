@@ -59,7 +59,8 @@ __kernel void k_yukawa_colloid(const __global numtyp4 *restrict x_,
   
   if (ii<inum) {
     const __global int *nbor, *list_end;
-    int i, numj, n_stride;
+    int i, numj;
+    __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,list_end,nbor);
   
@@ -150,7 +151,8 @@ __kernel void k_yukawa_colloid_fast(const __global numtyp4 *restrict x_,
   
   if (ii<inum) {
     const __global int *nbor, *list_end;
-    int i, numj, n_stride;
+    int i, numj;
+    __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,list_end,nbor);
 

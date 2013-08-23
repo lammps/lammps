@@ -77,7 +77,7 @@ int GayBerneT::init(const int ntypes, const double gamma,
 
   // Allocate a host write buffer for copying type data
   UCL_H_Vec<numtyp> host_write(lj_types*lj_types*32,*(this->ucl_device),
-                               UCL_WRITE_OPTIMIZED);
+                               UCL_WRITE_ONLY);
 
   for (int i=0; i<lj_types*lj_types; i++)
     host_write[i]=0.0;
@@ -98,7 +98,7 @@ int GayBerneT::init(const int ntypes, const double gamma,
   this->atom->type_pack4(ntypes,lj_types,lj3,host_write,host_lj3,host_lj4,
 		         host_offset);
 
-  dev_error.alloc(1,*(this->ucl_device));
+  dev_error.alloc(1,*(this->ucl_device),UCL_WRITE_ONLY);
   dev_error.zero();
     
   // Allocate, cast and asynchronous memcpy of constant data
@@ -258,6 +258,9 @@ void GayBerneT::loop(const bool _eflag, const bool _vflag) {
                                    &ainum, &this->_threads_per_atom);
       this->time_ellipsoid2.stop();
    } else {
+      GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum()-
+                               this->_last_ellipse)/
+                               (BX/this->_threads_per_atom)));
       this->ans->force.zero();
       this->ans->engv.zero();
       this->time_nbor1.stop();

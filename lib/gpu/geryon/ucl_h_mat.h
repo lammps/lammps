@@ -39,33 +39,35 @@ class UCL_H_Mat : public UCL_BaseMat {
    };
    typedef numtyp data_type; 
    
-  UCL_H_Mat() : _kind(UCL_VIEW), _rows(0) {
+  UCL_H_Mat() : _cols(0) {
     #ifdef _OCL_MAT
     _carray=(cl_mem)(0);
     #endif
   }
-  ~UCL_H_Mat() { if (_kind!=UCL_VIEW) _host_free(*this,_kind); }
+  ~UCL_H_Mat() { _host_free(*this); }
   
   /// Construct with specied number of rows and columns
   /** \sa alloc() **/
   UCL_H_Mat(const size_t rows, const size_t cols, UCL_Device &device, 
-            const enum UCL_MEMOPT kind=UCL_RW_OPTIMIZED) 
-    { _rows=0; _kind=UCL_VIEW; alloc(rows,cols,device,kind); }
+            const enum UCL_MEMOPT kind=UCL_READ_WRITE) 
+    { _cols=0; _kind=UCL_VIEW; alloc(rows,cols,device,kind); }
   
   /// Set up host matrix with specied # of rows/cols and reserve memory
   /** The kind parameter controls memory pinning as follows:
-    * - UCL_NOT_PINNED      - Memory is not pinned
-    * - UCL_WRITE_OPTIMIZED - Memory can be pinned (write-combined)
-    * - UCL_RW_OPTIMIZED    - Memory can be pinned 
+    * - UCL_READ_WRITE - Specify that you will read and write from host
+    * - UCL_WRITE_ONLY - Specify that you will only write from host
+    * - UCL_READ_ONLY  - Specify that you will only read from host
+    * - UCL_NOT_PINNED - Memory is not pinned/page-locked on host
     * \param cq Default command queue for operations copied from another mat
     * \return UCL_SUCCESS if the memory allocation is successful **/
   template <class mat_type>
   inline int alloc(const size_t rows, const size_t cols, mat_type &cq,
-                   const enum UCL_MEMOPT kind=UCL_RW_OPTIMIZED) {
+                   const enum UCL_MEMOPT kind=UCL_READ_WRITE,
+                   const enum UCL_MEMOPT kind2=UCL_NOT_SPECIFIED) {
     clear();
 
     _row_bytes=cols*sizeof(numtyp);
-    int err=_host_alloc(*this,cq,_row_bytes*rows,kind);
+    int err=_host_alloc(*this,cq,_row_bytes*rows,kind,kind2);
     if (err!=UCL_SUCCESS) {
       #ifndef UCL_NO_EXIT
       std::cerr << "UCL Error: Could not allocate " << _row_bytes*_rows
@@ -86,17 +88,19 @@ class UCL_H_Mat : public UCL_BaseMat {
 
   /// Set up host matrix with specied # of rows/cols and reserve memory
   /** The kind parameter controls memory pinning as follows:
-    * - UCL_NOT_PINNED      - Memory is not pinned
-    * - UCL_WRITE_OPTIMIZED - Memory can be pinned (write-combined)
-    * - UCL_RW_OPTIMIZED    - Memory can be pinned 
+    * - UCL_READ_WRITE - Specify that you will read and write from host
+    * - UCL_WRITE_ONLY - Specify that you will only write from host
+    * - UCL_READ_ONLY  - Specify that you will only read from host
+    * - UCL_NOT_PINNED - Memory is not pinned/page-locked on host
     * \param device Used to get the default command queue for operations
     * \return UCL_SUCCESS if the memory allocation is successful **/
   inline int alloc(const size_t rows, const size_t cols, UCL_Device &device,
-                   const enum UCL_MEMOPT kind=UCL_RW_OPTIMIZED) {
+                   const enum UCL_MEMOPT kind=UCL_READ_WRITE,
+                   const enum UCL_MEMOPT kind2=UCL_NOT_SPECIFIED) {
     clear();
 
     _row_bytes=cols*sizeof(numtyp);
-    int err=_host_alloc(*this,device,_row_bytes*rows,kind);
+    int err=_host_alloc(*this,device,_row_bytes*rows,kind,kind2);
     if (err!=UCL_SUCCESS) {
       #ifndef UCL_NO_EXIT
       std::cerr << "UCL Error: Could not allocate " << _row_bytes*_rows
@@ -115,15 +119,11 @@ class UCL_H_Mat : public UCL_BaseMat {
     return err;
   }    
   
-  /// Return the type of memory allocation
-  /** Returns UCL_READ_WRITE, UCL_WRITE_ONLY, UCL_READ_ONLY, or UCL_VIEW **/ 
-  inline enum UCL_MEMOPT kind() const { return _kind; }
-  
   /// Do not allocate memory, instead use an existing allocation from Geryon
   /** This function must be passed a Geryon vector or matrix container.
     * No memory is freed when the object is destructed.
     * - The view does not prevent the memory from being freed by the
-    *   allocating container 
+    *   allocating container when using CUDA APIs 
     * - Viewing a device container on the host is not supported 
     * \param stride Number of _elements_ between the start of each row **/ 
   template <class ucl_type>
@@ -140,6 +140,8 @@ class UCL_H_Mat : public UCL_BaseMat {
     _end=_array+_cols;
     #ifdef _OCL_MAT
     _carray=input.cbegin();
+    CL_SAFE_CALL(clRetainMemObject(input.cbegin()));
+    CL_SAFE_CALL(clRetainCommandQueue(input.cq()));
     #endif
   }
 
@@ -147,7 +149,7 @@ class UCL_H_Mat : public UCL_BaseMat {
   /** This function must be passed a Geryon vector or matrix container.
     * No memory is freed when the object is destructed.
     * - The view does not prevent the memory from being freed by the
-    *   allocating container 
+    *   allocating container when using CUDA APIs 
     * - Viewing a device container on the host is not supported **/ 
   template <class ucl_type>
   inline void view(ucl_type &input, const size_t rows, const size_t cols) 
@@ -157,7 +159,7 @@ class UCL_H_Mat : public UCL_BaseMat {
   /** This function must be passed a Geryon vector or matrix container.
     * No memory is freed when the object is destructed.
     * - The view does not prevent the memory from being freed by the
-    *   allocating container 
+    *   allocating container when using CUDA APIs 
     * - If a matrix is used a input, all elements (including padding)
     *   will be used for view 
     * - Viewing a device container on the host is not supported **/ 
@@ -169,9 +171,9 @@ class UCL_H_Mat : public UCL_BaseMat {
   /** This function must be passed a Geryon vector or matrix container.
     * No memory is freed when the object is destructed.
     * - The view does not prevent the memory from being freed by the
-    *   allocating container 
+    *   allocating container when using CUDA APIs 
     * - If a matrix is used a input, all elements (including padding)
-    *   will be used for view 
+    *   will be used for view when using CUDA APIs 
     * - Viewing a device container on the host is not supported **/ 
   template <class ucl_type>
   inline void view(ucl_type &input) 
@@ -180,7 +182,7 @@ class UCL_H_Mat : public UCL_BaseMat {
   /// Do not allocate memory, instead use an existing allocation
   /** - No memory is freed when the object is destructed.
     * - The view does not prevent the memory from being freed by the
-    *   allocating container 
+    *   allocating container when using CUDA APIs 
     * - Viewing a device pointer on the host is not supported 
     * \param stride Number of _elements_ between the start of each row **/ 
   template <class ptr_type>
@@ -197,14 +199,14 @@ class UCL_H_Mat : public UCL_BaseMat {
     _end=_array+_cols;
     
     #ifdef _OCL_MAT
-    _host_alloc(*this,dev,_row_bytes,UCL_VIEW);
+    _host_view(*this,dev,_row_bytes*rows);
     #endif 
   }
 
   /// Do not allocate memory, instead use an existing allocation
   /** - No memory is freed when the object is destructed.
     * - The view does not prevent the memory from being freed by the
-    *   allocating container 
+    *   allocating container when using CUDA APIs 
     * - Viewing a device pointer on the host is not supported **/ 
   template <class ptr_type>
   inline void view(ptr_type *input, const size_t rows, const size_t cols,
@@ -213,7 +215,7 @@ class UCL_H_Mat : public UCL_BaseMat {
   /// Do not allocate memory, instead use an existing allocation
   /** - No memory is freed when the object is destructed.
     * - The view does not prevent the memory from being freed by the
-    *   allocating container 
+    *   allocating container when using CUDA APIs 
     * - Viewing a device pointer on the host is not supported **/ 
   template <class ptr_type>
   inline void view(ptr_type *input, const size_t cols, UCL_Device &dev)
@@ -223,7 +225,7 @@ class UCL_H_Mat : public UCL_BaseMat {
   /** This function must be passed a Geryon vector or matrix container.
     * No memory is freed when the object is destructed.
     * - The view does not prevent the memory from being freed by the
-    *   allocating container 
+    *   allocating container when using CUDA APIs 
     * - Viewing a device container on the host is not supported 
     * \param stride Number of _elements_ between the start of each row **/ 
   template <class ucl_type>
@@ -239,7 +241,7 @@ class UCL_H_Mat : public UCL_BaseMat {
     _array=input.begin()+offset;
     _end=_array+_cols;
     #ifdef _OCL_MAT
-    _host_alloc(*this,input,_row_bytes,UCL_VIEW);
+    _host_view(*this,input,_row_bytes*_rows);
     #endif
   }
   
@@ -247,7 +249,7 @@ class UCL_H_Mat : public UCL_BaseMat {
   /** This function must be passed a Geryon vector or matrix container.
     * No memory is freed when the object is destructed.
     * - The view does not prevent the memory from being freed by the
-    *   allocating container 
+    *   allocating container when using CUDA APIs 
     * - Viewing a device container on the host is not supported **/ 
   template <class ucl_type>
   inline void view_offset(const size_t offset,ucl_type &input,const size_t rows,
@@ -258,7 +260,7 @@ class UCL_H_Mat : public UCL_BaseMat {
   /** This function must be passed a Geryon vector or matrix container.
     * No memory is freed when the object is destructed.
     * - The view does not prevent the memory from being freed by the
-    *   allocating container 
+    *   allocating container when using CUDA APIs 
     * - If a matrix is used a input, all elements (including padding)
     *   will be used for view 
     * - Viewing a device container on the host is not supported **/ 
@@ -270,7 +272,7 @@ class UCL_H_Mat : public UCL_BaseMat {
   /** This function must be passed a Geryon vector or matrix container.
     * No memory is freed when the object is destructed.
     * - The view does not prevent the memory from being freed by the
-    *   allocating container 
+    *   allocating container when using CUDA APIs 
     * - If a matrix is used a input, all elements (including padding)
     *   will be used for view 
     * - Viewing a device container on the host is not supported **/ 
@@ -296,7 +298,7 @@ class UCL_H_Mat : public UCL_BaseMat {
   /// Do not allocate memory, instead use an existing allocation
   /** - No memory is freed when the object is destructed.
     * - The view does not prevent the memory from being freed by the
-    *   allocating container 
+    *   allocating container when using CUDA APIs 
     * - Viewing a device pointer on the host is not supported 
     * \param stride Number of _elements_ between the start of each row **/ 
   template <class ptr_type>
@@ -307,7 +309,7 @@ class UCL_H_Mat : public UCL_BaseMat {
   /// Do not allocate memory, instead use an existing allocation
   /** - No memory is freed when the object is destructed.
     * - The view does not prevent the memory from being freed by the
-    *   allocating container 
+    *   allocating container when using CUDA APIs 
     * - Viewing a device pointer on the host is not supported **/ 
   template <class ptr_type>
   inline void view_offset(const size_t offset, ptr_type *input, 
@@ -316,7 +318,7 @@ class UCL_H_Mat : public UCL_BaseMat {
   
   /// Free memory and set size to 0
   inline void clear() 
-    { if (_kind!=UCL_VIEW) {_rows=0; _kind=UCL_VIEW; _host_free(*this,_kind); }} 
+    { _host_free(*this); _cols=0; _kind=UCL_VIEW; } 
 
   /// Resize the allocation to rows x cols elements
   /** \note Cannot be used on views **/
@@ -409,7 +411,6 @@ class UCL_H_Mat : public UCL_BaseMat {
   #endif
   
  private:
-  enum UCL_MEMOPT _kind;
   numtyp *_array, *_end;
   size_t _row_bytes, _rows, _cols;
 

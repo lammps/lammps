@@ -88,7 +88,7 @@ int TableT::init(const int ntypes,
   
   // Allocate a host write buffer for data initialization
   UCL_H_Vec<int> host_write_int(lj_types*lj_types,*(this->ucl_device),
-                               UCL_WRITE_OPTIMIZED);
+                               UCL_WRITE_ONLY);
 
   for (int i=0; i<lj_types*lj_types; i++) 
     host_write_int[i] = 0;
@@ -113,7 +113,7 @@ int TableT::init(const int ntypes,
   ucl_copy(nmask,host_write_int,false);
   
   UCL_H_Vec<numtyp4> host_write(lj_types*lj_types,*(this->ucl_device),
-                               UCL_WRITE_OPTIMIZED);
+                               UCL_WRITE_ONLY);
 
   coeff2.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   for (int ix=1; ix<ntypes; ix++)
@@ -127,7 +127,7 @@ int TableT::init(const int ntypes,
 
   // Allocate tablength arrays
   UCL_H_Vec<numtyp4> host_write2(_ntables*_tablength,*(this->ucl_device),
-                               UCL_WRITE_OPTIMIZED);
+                                 UCL_WRITE_ONLY);
   for (int i=0; i<_ntables*_tablength; i++) {
     host_write2[i].x = 0.0;
     host_write2[i].y = 0.0;
@@ -190,7 +190,7 @@ int TableT::init(const int ntypes,
   ucl_copy(coeff4,host_write2,false);
   
   UCL_H_Vec<numtyp> host_rsq(lj_types*lj_types,*(this->ucl_device),
-                               UCL_WRITE_OPTIMIZED);
+                             UCL_WRITE_ONLY);
   cutsq.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack1(ntypes,lj_types,cutsq,host_rsq,host_cutsq);
             

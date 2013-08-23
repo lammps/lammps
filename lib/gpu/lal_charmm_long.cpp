@@ -76,7 +76,7 @@ int CHARMMLongT::init(const int ntypes,
   if (h_size<max_bio_shared_types)
     h_size=max_bio_shared_types;
   UCL_H_Vec<numtyp> host_write(h_size*32,*(this->ucl_device),
-                               UCL_WRITE_OPTIMIZED);
+                               UCL_WRITE_ONLY);
   for (int i=0; i<h_size*32; i++)
     host_write[i]=0.0;
 

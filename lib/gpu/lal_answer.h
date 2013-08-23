@@ -47,6 +47,8 @@ class Answer {
   inline int inum() const { return _inum; }
   /// Set number of local atoms for future copy operations
   inline void inum(const int n) { _inum=n; }
+  /// Return the maximum number of atoms that can be stored currently
+  inline int max_inum() const { return _max_local; }
   
   /// Memory usage per atom in this class
   int bytes_per_atom() const; 
@@ -131,6 +133,9 @@ class Answer {
   
   /// Return the time the CPU was idle waiting for GPU
   inline double cpu_idle_time() { return _time_cpu_idle; }
+
+  /// Change the command queue used for copies and timers
+  void cq(const int cq_index);
 
   // ------------------------------ DATA ----------------------------------
 

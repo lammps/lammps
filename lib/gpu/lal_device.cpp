@@ -47,7 +47,8 @@ template <class numtyp, class acctyp>
 int DeviceT::init_device(MPI_Comm world, MPI_Comm replica, const int first_gpu,
                          const int last_gpu, const int gpu_mode, 
                          const double p_split, const int nthreads, 
-                         const int t_per_atom, const double cell_size) {
+                         const int t_per_atom, const double cell_size,
+                         char *ocl_vendor) {
   _nthreads=nthreads;
   #ifdef _OPENMP
   omp_set_num_threads(nthreads);
@@ -140,6 +141,9 @@ int DeviceT::init_device(MPI_Comm world, MPI_Comm replica, const int first_gpu,
 
   _long_range_precompute=0;
 
+  if (set_ocl_params(ocl_vendor)!=0)
+    return -11;
+  
   int flag=0;
   for (int i=0; i<_procs_per_gpu; i++) {
     if (_gpu_rank==i)
@@ -147,6 +151,64 @@ int DeviceT::init_device(MPI_Comm world, MPI_Comm replica, const int first_gpu,
     gpu_barrier();
   }
   return flag;
+}
+
+template <class numtyp, class acctyp>
+int DeviceT::set_ocl_params(char *ocl_vendor) {
+  #ifdef USE_OPENCL
+  std::string s_vendor=OCL_DEFAULT_VENDOR;
+  if (ocl_vendor!=NULL)
+    s_vendor=ocl_vendor;
+  if (s_vendor=="none")
+    s_vendor="generic";
+  
+  if (s_vendor=="kepler") {
+    _ocl_vendor_name="NVIDIA Kepler";
+    #if defined (__APPLE__) || defined(MACOSX)
+    _ocl_vendor_string="-DKEPLER_OCL -DNO_OCL_PTX";
+    #else
+    _ocl_vendor_string="-DKEPLER_OCL";
+    #endif
+  } else if (s_vendor=="fermi") {    
+    _ocl_vendor_name="NVIDIA Fermi";
+    _ocl_vendor_string="-DFERMI_OCL";
+  } else if (s_vendor=="cypress") {    
+    _ocl_vendor_name="AMD Cypress";
+    _ocl_vendor_string="-DCYPRESS_OCL";
+  } else if (s_vendor=="generic") {    
+    _ocl_vendor_name="GENERIC";
+    _ocl_vendor_string="-DGENERIC_OCL";
+  } else {
+    _ocl_vendor_name="CUSTOM";
+    _ocl_vendor_string="-DUSE_OPENCL";
+    int token_count=0;
+    std::string params[13];
+    char *pch = strtok(ocl_vendor,"\" ");
+    while (pch != NULL) {
+      if (token_count==13)
+        return -11;
+      params[token_count]=pch;
+      token_count++;
+      pch = strtok(NULL,"\" ");
+    }
+    _ocl_vendor_string+=" -DMEM_THREADS="+params[0]+
+                        " -DTHREADS_PER_ATOM="+params[1]+
+                        " -DTHREADS_PER_CHARGE="+params[2]+
+                        " -DBLOCK_PAIR="+params[3]+
+                        " -DMAX_SHARED_TYPES="+params[4]+
+                        " -DBLOCK_NBOR_BUILD="+params[5]+
+                        " -DBLOCK_BIO_PAIR="+params[6]+
+                        " -DBLOCK_ELLIPSE="+params[7]+
+                        " -DWARP_SIZE="+params[8]+
+                        " -DPPPM_BLOCK_1D="+params[9]+
+                        " -DBLOCK_CELL_2D="+params[10]+
+                        " -DBLOCK_CELL_ID="+params[11]+
+                        " -DMAX_BIO_SHARED_TYPES="+params[12];
+  }
+  _ocl_compile_string="-cl-fast-relaxed-math -cl-mad-enable "+
+                      std::string(OCL_PRECISION_COMPILE)+" "+_ocl_vendor_string;
+  #endif
+  return 0;
 }
 
 template <class numtyp, class acctyp>
@@ -206,7 +268,7 @@ int DeviceT::init(Answer<numtyp,acctyp> &ans, const bool charge,
   if (!nbor->init(&_neighbor_shared,ef_nlocal,host_nlocal,max_nbors,maxspecial,
                   *gpu,gpu_nbor,gpu_host,pre_cut, _block_cell_2d, 
                   _block_cell_id, _block_nbor_build, threads_per_atom,
-                  _warp_size, _time_device))
+                  _warp_size, _time_device, compile_string()))
     return -3;
   if (_cell_size<0.0)
     nbor->cell_size(cell_size,cell_size);
@@ -274,7 +336,8 @@ void DeviceT::init_message(FILE *screen, const char *name,
     fprintf(screen,"-  with %d thread(s) per proc.\n",_nthreads);
     #endif
     #ifdef USE_OPENCL
-    fprintf(screen,"-  with OpenCL Parameters for: %s\n",OCL_VENDOR);
+    fprintf(screen,"-  with OpenCL Parameters for: %s\n",
+            _ocl_vendor_name.c_str());
     #endif
     fprintf(screen,"-------------------------------------");
     fprintf(screen,"-------------------------------------\n");
@@ -571,9 +634,8 @@ int DeviceT::compile_kernels() {
   if (_compiled)
   	return flag;
   	
-  std::string flags="-cl-mad-enable -D"+std::string(OCL_VENDOR);
   dev_program=new UCL_Program(*gpu);
-  int success=dev_program->load_string(device,flags.c_str());
+  int success=dev_program->load_string(device,compile_string().c_str());
   if (success!=UCL_SUCCESS)
     return -4;
   k_zero.set_function(*dev_program,"kernel_zero");
@@ -640,10 +702,11 @@ Device<PRECISION,ACC_PRECISION> global_device;
 int lmp_init_device(MPI_Comm world, MPI_Comm replica, const int first_gpu,
                     const int last_gpu, const int gpu_mode, 
                     const double particle_split, const int nthreads,
-                    const int t_per_atom, const double cell_size) {
+                    const int t_per_atom, const double cell_size, 
+                    char *opencl_vendor) {
   return global_device.init_device(world,replica,first_gpu,last_gpu,gpu_mode,
                                    particle_split,nthreads,t_per_atom, 
-                                   cell_size);
+                                   cell_size,opencl_vendor);
 }
 
 void lmp_clear_device() {
@@ -654,3 +717,4 @@ double lmp_gpu_forces(double **f, double **tor, double *eatom,
                       double **vatom, double *virial, double &ecoul) {
   return global_device.fix_gpu(f,tor,eatom,vatom,virial,ecoul);
 }
+

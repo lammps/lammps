@@ -59,12 +59,12 @@
   if (offset==0) {                                                           \
     __global acctyp *ap1=engv+ii;                                            \
     if (eflag>0) {                                                           \
-      *ap1+=energy;                                                          \
+      *ap1+=energy*(acctyp)0.5;                                              \
       ap1+=astride;                                                          \
     }                                                                        \
     if (vflag>0) {                                                           \
       for (int i=0; i<6; i++) {                                              \
-        *ap1+=virial[i];                                                     \
+        *ap1+=virial[i]*(acctyp)0.5;                                         \
         ap1+=astride;                                                        \
       }                                                                      \
     }                                                                        \
@@ -104,12 +104,12 @@
   if (offset==0) {                                                          \
     __global acctyp *ap1=engv+ii;                                           \
     if (eflag>0) {                                                          \
-      *ap1+=energy;                                                         \
+      *ap1+=energy*(acctyp)0.5;                                             \
       ap1+=astride;                                                         \
     }                                                                       \
     if (vflag>0) {                                                          \
       for (int i=0; i<6; i++) {                                             \
-        *ap1+=virial[i];                                                    \
+        *ap1+=virial[i]*(acctyp)0.5;                                        \
         ap1+=astride;                                                       \
       }                                                                     \
     }                                                                       \
@@ -173,7 +173,8 @@ __kernel void k_resquared_ellipsoid_sphere(const __global numtyp4 *restrict x_,
 
   if (ii<inum) {
     const __global int *nbor, *nbor_end;
-    int i, numj, n_stride;
+    int i, numj;
+    __local int n_stride;
     nbor_info_e(dev_nbor,stride,t_per_atom,ii,offset,i,numj,
                 n_stride,nbor_end,nbor);
   
@@ -424,7 +425,8 @@ __kernel void k_resquared_sphere_ellipsoid(const __global numtyp4 *restrict x_,
 
   if (ii<inum) {
     const __global int *nbor, *nbor_end;
-    int j, numj, n_stride;
+    int j, numj;
+    __local int n_stride;
     nbor_info_e(dev_nbor,stride,t_per_atom,ii,offset,j,numj,
                 n_stride,nbor_end,nbor);
   
@@ -615,7 +617,8 @@ __kernel void k_resquared_lj(const __global numtyp4 *restrict x_,
   
   if (ii<inum) {
     const __global int *nbor, *list_end;
-    int i, numj, n_stride;
+    int i, numj;
+    __local int n_stride;
     nbor_info_e(dev_ij,stride,t_per_atom,ii,offset,i,numj,
                 n_stride,list_end,nbor);
   
@@ -708,7 +711,8 @@ __kernel void k_resquared_lj_fast(const __global numtyp4 *restrict x_,
   
   if (ii<inum) {
     const __global int *nbor, *list_end;
-    int i, numj, n_stride;
+    int i, numj;
+    __local int n_stride;
     nbor_info_e(dev_ij,stride,t_per_atom,ii,offset,i,numj,
                 n_stride,list_end,nbor);
 

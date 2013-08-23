@@ -3,6 +3,7 @@
                   --------------------------------
                      
                        W. Michael Brown (ORNL)
+                        Trung Dac Nguyen (ORNL)
                           Peng Wang (NVIDIA)
                        Axel Kohlmeyer (Temple)
                          Steve Plimpton (SNL)
@@ -60,6 +61,8 @@ devices on your system. A Makefile for OpenCL compilation is provided,
 but support for OpenCL use is not currently provided by the developers.
 Details of the implementation are provided in:
 
+----
+
 Brown, W.M., Wang, P. Plimpton, S.J., Tharrington, A.N. Implementing 
 Molecular Dynamics on Hybrid High Performance Computers - Short Range 
 Forces. Computer Physics Communications. 2011. 182: p. 898-911. 
@@ -68,28 +71,64 @@ and
 
 Brown, W.M., Kohlmeyer, A. Plimpton, S.J., Tharrington, A.N. Implementing 
 Molecular Dynamics on Hybrid High Performance Computers - Particle-Particle 
-Particle-Mesh. Computer Physics Communications. 2011. In press. 
+Particle-Mesh. Computer Physics Communications. 2012. 183: p. 449-459. 
 
+and
+
+Brown, W.M., Masako, Y. Implementing Molecular Dynamics on Hybrid High 
+Performance Computers - Three-Body Potentials. Computer Physics Communications. 
+2013. In press.
+
+----
 
 NOTE: Installation of the CUDA SDK is not required.
 
 Current styles supporting GPU acceleration:
 
-   1. lj/cut
-   2. lj96/cut
-   3. lj/expand
-   4. lj/cut/coul/cut
-   5. lj/cut/coul/long
-   6. lj/charmm/coul/long
-   7. lj/class2
-   8. lj/class2/coul/long
-   9. morse
-  10. cg/cmm
-  11. cg/cmm/coul/long
-  12. coul/long
-  13. gayberne
-  14. resquared
-  15. pppm
+     1  beck
+     2  born/coul/long
+     3  born/coul/wolf
+     4  born
+     5  buck/coul/cut
+     6  buck/coul/long
+     7  buck
+     8  colloid
+     9  coul/dsf
+    10  coul/long
+    11  eam/alloy
+    12  eam/fs
+    13  eam
+    14  eam/lj
+    15  gauss
+    16  gayberne
+    17  lj96/cut
+    18  lj/charmm/coul/long
+    19  lj/class2/coul/long
+    20  lj/class2
+    21  lj/cut/coul/cut
+    22  lj/cut/coul/debye
+    23  lj/cut/coul/dsf
+    24  lj/cut/coul/long
+    25  lj/cut/coul/msm
+    26  lj/cut/coul/wolf/fsw
+    27  lj/cut/dipole/cut
+    28  lj/cut
+    29  lj/cut/tgpu
+    30  lj/expand
+    31  lj/sdk/coul/long
+    32  cg/cmm/coul/long
+    33  lj/sdk
+    34  cg/cmm
+    35  lj/sf/dipole/sf
+    36  mie/cut
+    37  morse
+    38  resquared
+    39  soft
+    40  sw
+    41  table
+    42  yukawa/colloid
+    43  yukawa
+    44  pppm
 
 
                      MULTIPLE LAMMPS PROCESSES
@@ -170,3 +209,4 @@ make yes-asphere
 make yes-kspace
 make yes-gpu
 make linux
+

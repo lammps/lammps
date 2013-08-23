@@ -47,14 +47,14 @@ typedef CUdeviceptr device_ptr;
 // --------------------------------------------------------------------------
 template <class mat_type, class copy_type>
 inline int _host_alloc(mat_type &mat, copy_type &cm, const size_t n,  
-                        const enum UCL_MEMOPT kind) {
+                       const enum UCL_MEMOPT kind, const enum UCL_MEMOPT kind2){
   CUresult err=CUDA_SUCCESS;
-  if (kind==UCL_RW_OPTIMIZED)  
-    err=cuMemAllocHost((void **)mat.host_ptr(),n);
-  else if (kind==UCL_WRITE_OPTIMIZED)
+  if (kind==UCL_NOT_PINNED)
+    *(mat.host_ptr())=(typename mat_type::data_type*)malloc(n);
+  else if (kind==UCL_WRITE_ONLY)
     err=cuMemHostAlloc((void **)mat.host_ptr(),n,CU_MEMHOSTALLOC_WRITECOMBINED);
   else
-    *(mat.host_ptr())=(typename mat_type::data_type*)malloc(n);
+    err=cuMemAllocHost((void **)mat.host_ptr(),n);
   if (err!=CUDA_SUCCESS || *(mat.host_ptr())==NULL)
     return UCL_MEMORY_ERROR;
   mat.cq()=cm.cq();
@@ -63,14 +63,14 @@ inline int _host_alloc(mat_type &mat, copy_type &cm, const size_t n,
 
 template <class mat_type>
 inline int _host_alloc(mat_type &mat, UCL_Device &dev, const size_t n,  
-                       const enum UCL_MEMOPT kind) {
+                       const enum UCL_MEMOPT kind, const enum UCL_MEMOPT kind2){
   CUresult err=CUDA_SUCCESS;
-  if (kind==UCL_RW_OPTIMIZED)  
-    err=cuMemAllocHost((void **)mat.host_ptr(),n);
-  else if (kind==UCL_WRITE_OPTIMIZED)
+  if (kind==UCL_NOT_PINNED)
+    *(mat.host_ptr())=(typename mat_type::data_type*)malloc(n);
+  else if (kind==UCL_WRITE_ONLY)
     err=cuMemHostAlloc((void **)mat.host_ptr(),n,CU_MEMHOSTALLOC_WRITECOMBINED);
   else
-    *(mat.host_ptr())=(typename mat_type::data_type*)malloc(n);
+    err=cuMemAllocHost((void **)mat.host_ptr(),n);
   if (err!=CUDA_SUCCESS || *(mat.host_ptr())==NULL)
     return UCL_MEMORY_ERROR;
   mat.cq()=dev.cq();
@@ -78,8 +78,10 @@ inline int _host_alloc(mat_type &mat, UCL_Device &dev, const size_t n,
 }
 
 template <class mat_type>
-inline void _host_free(mat_type &mat, const enum UCL_MEMOPT kind) {
-  if (kind!=UCL_NOT_PINNED)
+inline void _host_free(mat_type &mat) {
+  if (mat.kind()==UCL_VIEW)
+    return;
+  else if (mat.kind()!=UCL_NOT_PINNED)
     CU_DESTRUCT_CALL(cuMemFreeHost(mat.begin()));
   else
     free(mat.begin());
@@ -87,14 +89,14 @@ inline void _host_free(mat_type &mat, const enum UCL_MEMOPT kind) {
 
 template <class mat_type>
 inline int _host_resize(mat_type &mat, const size_t n) {
-  _host_free(mat,mat.kind());
+  _host_free(mat);
   CUresult err=CUDA_SUCCESS;
-  if (mat.kind()==UCL_RW_OPTIMIZED)  
-    err=cuMemAllocHost((void **)mat.host_ptr(),n);
-  else if (mat.kind()==UCL_WRITE_OPTIMIZED)
-    err=cuMemHostAlloc((void **)mat.host_ptr(),n,CU_MEMHOSTALLOC_WRITECOMBINED);
-  else
+  if (mat.kind()==UCL_NOT_PINNED)
     *(mat.host_ptr())=(typename mat_type::data_type*)malloc(n);
+  else if (mat.kind()==UCL_WRITE_ONLY)
+    err=cuMemHostAlloc((void **)mat.host_ptr(),n,CU_MEMHOSTALLOC_WRITECOMBINED);
+  else  
+    err=cuMemAllocHost((void **)mat.host_ptr(),n);
   if (err!=CUDA_SUCCESS || *(mat.host_ptr())==NULL)
     return UCL_MEMORY_ERROR;
   return UCL_SUCCESS;
@@ -155,7 +157,8 @@ inline int _device_alloc(mat_type &mat, UCL_Device &d, const size_t rows,
 
 template <class mat_type>
 inline void _device_free(mat_type &mat) {
-  CU_DESTRUCT_CALL(cuMemFree(mat.cbegin()));
+  if (mat.kind()!=UCL_VIEW)
+    CU_DESTRUCT_CALL(cuMemFree(mat.cbegin()));
 }
 
 template <class mat_type>
@@ -229,13 +232,13 @@ inline void _host_zero(void *ptr, const size_t n) {
 }
 
 template <class mat_type>
-inline void _device_zero(mat_type &mat, const size_t n) {
+inline void _device_zero(mat_type &mat, const size_t n, command_queue &cq) {
   if (n%32==0)
-    CU_SAFE_CALL(cuMemsetD32(mat.cbegin(),0,n/4));
+    CU_SAFE_CALL(cuMemsetD32Async(mat.cbegin(),0,n/4,cq));
   else if (n%16==0)
-    CU_SAFE_CALL(cuMemsetD16(mat.cbegin(),0,n/2));
+    CU_SAFE_CALL(cuMemsetD16Async(mat.cbegin(),0,n/2,cq));
   else
-    CU_SAFE_CALL(cuMemsetD8(mat.cbegin(),0,n));
+    CU_SAFE_CALL(cuMemsetD8Async(mat.cbegin(),0,n,cq));
 }
 
 // --------------------------------------------------------------------------

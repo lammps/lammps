@@ -73,7 +73,7 @@ int ColloidT::init(const int ntypes,
 
   // Allocate a host write buffer for data initialization
   UCL_H_Vec<numtyp> host_write(lj_types*lj_types*32,*(this->ucl_device),
-                               UCL_WRITE_OPTIMIZED);
+                               UCL_WRITE_ONLY);
 
   for (int i=0; i<lj_types*lj_types; i++)
     host_write[i]=0.0;
@@ -95,7 +95,7 @@ int ColloidT::init(const int ntypes,
                          host_sigma3,host_sigma6);
 
   UCL_H_Vec<int> dview_form(lj_types*lj_types,*(this->ucl_device),
-                             UCL_WRITE_OPTIMIZED);
+                             UCL_WRITE_ONLY);
   for (int i=0; i<lj_types*lj_types; i++) dview_form[i]=0;
                                 
   form.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);

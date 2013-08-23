@@ -92,10 +92,9 @@ enum UCL_MEMOPT {
   UCL_WRITE_ONLY,     ///< Allow any optimizations for memory that is write only
   UCL_READ_ONLY,      ///< Allow any optimizations for memory that is read only
   UCL_READ_WRITE,     ///< Allow read and write
-  UCL_WRITE_OPTIMIZED,///< Allow host memory to be pinned (write combined)
-  UCL_RW_OPTIMIZED,   ///< Allow host memory to be pinned  
   UCL_NOT_PINNED,     ///< Host memory is not to be pinned
-  UCL_VIEW            ///< View of another memory allocation
+  UCL_VIEW,           ///< View of another memory allocation
+  UCL_NOT_SPECIFIED
 };
 
 enum UCL_DEVICE_TYPE { 

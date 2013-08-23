@@ -215,15 +215,36 @@ typedef struct _double4 double4;
 #endif
 
 // -------------------------------------------------------------------------
+//                            NVIDIA GENERIC OPENCL DEFINITIONS
+// -------------------------------------------------------------------------
+
+#ifdef NV_GENERIC_OCL
+
+#define USE_OPENCL
+#define fast_mul mul24
+#define MEM_THREADS 16
+#define THREADS_PER_ATOM 1
+#define THREADS_PER_CHARGE 1
+#define BLOCK_PAIR 64
+#define MAX_SHARED_TYPES 8
+#define BLOCK_NBOR_BUILD 64
+#define BLOCK_BIO_PAIR 64
+
+#define WARP_SIZE 32
+#define PPPM_BLOCK_1D 64
+#define BLOCK_CELL_2D 8
+#define BLOCK_CELL_ID 128
+#define MAX_BIO_SHARED_TYPES 128
+
+#endif
+
+// -------------------------------------------------------------------------
 //                           NVIDIA FERMI OPENCL DEFINITIONS
 // -------------------------------------------------------------------------
 
 #ifdef FERMI_OCL
 
 #define USE_OPENCL
-#define fast_mul(X,Y) (X)*(Y)
-#define ARCH 0
-#define DRIVER 0
 #define MEM_THREADS 32
 #define THREADS_PER_ATOM 4
 #define THREADS_PER_CHARGE 8
@@ -238,7 +259,54 @@ typedef struct _double4 double4;
 #define BLOCK_CELL_ID 128
 #define MAX_BIO_SHARED_TYPES 128
 
-#pragma OPENCL EXTENSION cl_khr_fp64: enable
+#endif
+
+// -------------------------------------------------------------------------
+//                           NVIDIA KEPLER OPENCL DEFINITIONS
+// -------------------------------------------------------------------------
+
+#ifdef KEPLER_OCL
+
+#define USE_OPENCL
+#define MEM_THREADS 32
+#define THREADS_PER_ATOM 4
+#define THREADS_PER_CHARGE 8
+#define BLOCK_PAIR 256
+#define MAX_SHARED_TYPES 11
+#define BLOCK_NBOR_BUILD 128
+#define BLOCK_BIO_PAIR 256
+#define BLOCK_ELLIPSE 128
+
+#define WARP_SIZE 32
+#define PPPM_BLOCK_1D 64
+#define BLOCK_CELL_2D 8
+#define BLOCK_CELL_ID 128
+#define MAX_BIO_SHARED_TYPES 128
+
+#ifndef NO_OCL_PTX
+#define ARCH 300
+#ifdef _SINGLE_SINGLE
+inline float shfl_xor(float var, int laneMask, int width) {
+  float ret;
+  int c;
+  c = ((WARP_SIZE-width) << 8) | 0x1f;
+  asm volatile ("shfl.bfly.b32 %0, %1, %2, %3;" : "=f"(ret) : "f"(var), "r"(laneMask), "r"(c));
+  return ret;
+}
+#else
+#pragma OPENCL EXTENSION cl_khr_fp64 : enable
+inline double shfl_xor(double var, int laneMask, int width) {
+  int c = ((WARP_SIZE-width) << 8) | 0x1f;
+  int x,y,x2,y2;
+  double ans;
+  asm volatile ("mov.b64 {%0, %1}, %2;" : "=r"(y), "=r"(x) : "d"(var));
+  asm volatile ("shfl.bfly.b32 %0, %1, %2, %3;" : "=r"(x2) : "r"(x), "r"(laneMask), "r"(c));
+  asm volatile ("shfl.bfly.b32 %0, %1, %2, %3;" : "=r"(y2) : "r"(y), "r"(laneMask), "r"(c));
+  asm volatile ("mov.b64 %0, {%1, %2};" : "=d"(ans) : "r"(y2), "r"(x2));
+  return ans;
+}
+#endif
+#endif
 
 #endif
 
@@ -249,9 +317,6 @@ typedef struct _double4 double4;
 #ifdef CYPRESS_OCL
 
 #define USE_OPENCL
-#define fast_mul(X,Y) (X)*(Y)
-#define ARCH 0
-#define DRIVER 0
 #define MEM_THREADS 32
 #define THREADS_PER_ATOM 4
 #define THREADS_PER_CHARGE 8
@@ -266,12 +331,6 @@ typedef struct _double4 double4;
 #define BLOCK_CELL_ID 128
 #define MAX_BIO_SHARED_TYPES 128
 
-#if defined(cl_khr_fp64)
-#pragma OPENCL EXTENSION cl_khr_fp64 : enable
-#elif defined(cl_amd_fp64)
-#pragma OPENCL EXTENSION cl_amd_fp64 : enable
-#endif
-
 #endif
 
 // -------------------------------------------------------------------------
@@ -281,9 +340,6 @@ typedef struct _double4 double4;
 #ifdef GENERIC_OCL
 
 #define USE_OPENCL
-#define fast_mul mul24
-#define ARCH 0
-#define DRIVER 0
 #define MEM_THREADS 16
 #define THREADS_PER_ATOM 1
 #define THREADS_PER_CHARGE 1
@@ -298,6 +354,20 @@ typedef struct _double4 double4;
 #define BLOCK_CELL_ID 128
 #define MAX_BIO_SHARED_TYPES 128
 
+#endif
+
+// -------------------------------------------------------------------------
+//                     OPENCL Stuff for All Hardware
+// -------------------------------------------------------------------------
+#ifdef USE_OPENCL
+
+#ifndef _SINGLE_SINGLE
+
+#ifndef cl_khr_fp64
+#ifndef cl_amd_fp64
+#pragma OPENCL EXTENSION cl_khr_fp64 : enable
+#endif
+#endif
 #if defined(cl_khr_fp64)
 #pragma OPENCL EXTENSION cl_khr_fp64 : enable
 #elif defined(cl_amd_fp64)
@@ -306,10 +376,17 @@ typedef struct _double4 double4;
 
 #endif
 
-// -------------------------------------------------------------------------
-//                     OPENCL Stuff for All Hardware
-// -------------------------------------------------------------------------
-#ifdef USE_OPENCL
+#ifndef fast_mul
+#define fast_mul(X,Y) (X)*(Y)
+#endif
+
+#ifndef ARCH
+#define ARCH 0
+#endif
+
+#ifndef DRIVER
+#define DRIVER 0
+#endif
 
 #define GLOBAL_ID_X get_global_id(0)
 #define THREAD_ID_X get_local_id(0)

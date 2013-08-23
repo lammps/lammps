@@ -48,15 +48,12 @@ void NeighborShared::clear() {
   }
 }
 
-void NeighborShared::compile_kernels(UCL_Device &dev, const int gpu_nbor) {
+void NeighborShared::compile_kernels(UCL_Device &dev, const int gpu_nbor,
+                                     const std::string flags) {
   if (_compiled)
   	return;
   	
   _gpu_nbor=gpu_nbor;
-  std::string flags="-cl-fast-relaxed-math -cl-mad-enable "+
-                    std::string(OCL_PRECISION_COMPILE)+" -D"+
-                    std::string(OCL_VENDOR);
-
   if (_gpu_nbor==0) {
     nbor_program=new UCL_Program(dev);
     nbor_program->load_string(neighbor_cpu,flags.c_str());

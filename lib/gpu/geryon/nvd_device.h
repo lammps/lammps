@@ -65,15 +65,19 @@ class UCL_Device {
  public:
   /// Collect properties for every GPU on the node
   /** \note You must set the active GPU with set() before using the device **/
-  UCL_Device();
+  inline UCL_Device();
   
-  ~UCL_Device();
+  inline ~UCL_Device();
 
   /// Returns 1 (For compatibility with OpenCL)
   inline int num_platforms() { return 1; }
 
   /// Return a string with name and info of the current platform
-  std::string platform_name() { return "NVIDIA Corporation NVIDIA CUDA Driver"; }
+  inline std::string platform_name() 
+    { return "NVIDIA Corporation NVIDIA CUDA Driver"; }
+
+  /// Delete any contexts/data and set the platform number to be used
+  inline int set_platform(const int pid);
 
   /// Return the number of devices that support CUDA
   inline int num_devices() { return _properties.size(); }
@@ -81,8 +85,12 @@ class UCL_Device {
   /// Set the CUDA device to the specified device number
   /** A context and default command queue will be created for the device
     * Returns UCL_SUCCESS if successful or UCL_ERROR if the device could not
-    * be allocated for use **/
-  int set(int num);
+    * be allocated for use. clear() is called to delete any contexts and
+    * associated data from previous calls to set(). **/
+  inline int set(int num);
+
+  /// Delete any context and associated data stored from a call to set()
+  inline void clear();
 
   /// Get the current device number
   inline int device_num() { return _device; }
@@ -147,16 +155,17 @@ class UCL_Device {
   inline bool shared_memory(const int i) { return device_type(i)==UCL_CPU; }
   
   /// Returns true if double precision is support for the current device
-  bool double_precision() { return double_precision(_device); }
+  inline bool double_precision() { return double_precision(_device); }
   /// Returns true if double precision is support for the device
-  bool double_precision(const int i) {return arch(i)>=1.3;}
+  inline bool double_precision(const int i) {return arch(i)>=1.3;}
   
   /// Get the number of cores in the current device
   inline unsigned cores() { return cores(_device); }
   /// Get the number of cores
   inline unsigned cores(const int i) 
     { if (arch(i)<2.0) return _properties[i].multiProcessorCount*8; 
-      else if (arch(i)<3.0) return _properties[i].multiProcessorCount*32;
+      else if (arch(i)<2.1) return _properties[i].multiProcessorCount*32;
+      else if (arch(i)<3.0) return _properties[i].multiProcessorCount*48;
       else return _properties[i].multiProcessorCount*192; }
   
   /// Get the gigabytes of global memory in the current device
@@ -216,8 +225,34 @@ class UCL_Device {
   inline bool sharing_supported(const int i)
     { return (_properties[i].computeMode == CU_COMPUTEMODE_DEFAULT); }
 
+  /// True if splitting device into equal subdevices supported
+  inline bool fission_equal()
+    { return fission_equal(_device); }
+  /// True if splitting device into equal subdevices supported
+  inline bool fission_equal(const int i)
+    { return false; }
+  /// True if splitting device into subdevices by specified counts supported
+  inline bool fission_by_counts()
+    { return fission_by_counts(_device); }
+  /// True if splitting device into subdevices by specified counts supported
+  inline bool fission_by_counts(const int i)
+    { return false; }    
+  /// True if splitting device into subdevices by affinity domains supported
+  inline bool fission_by_affinity()
+    { return fission_by_affinity(_device); }
+  /// True if splitting device into subdevices by affinity domains supported
+  inline bool fission_by_affinity(const int i)
+    { return false; }
+
+  /// Maximum number of subdevices allowed from device fission
+  inline int max_sub_devices()
+    { return max_sub_devices(_device); }
+  /// Maximum number of subdevices allowed from device fission
+  inline int max_sub_devices(const int i)
+    { return 0; }
+
   /// List all devices along with all properties
-  void print_all(std::ostream &out);
+  inline void print_all(std::ostream &out);
  
  private:
   int _device, _num_devices;
@@ -228,7 +263,7 @@ class UCL_Device {
 };
 
 // Grabs the properties for all devices
-inline UCL_Device::UCL_Device() {
+UCL_Device::UCL_Device() {
   CU_SAFE_CALL_NS(cuInit(0));
   CU_SAFE_CALL_NS(cuDeviceGetCount(&_num_devices));
   for (int dev=0; dev<_num_devices; ++dev) {
@@ -280,22 +315,21 @@ inline UCL_Device::UCL_Device() {
   _cq.back()=0;
 }
 
-inline UCL_Device::~UCL_Device() {
-  if (_device>-1) {
-    for (int i=1; i<num_queues(); i++) pop_command_queue();
-    cuCtxDestroy(_context);
-  }
+UCL_Device::~UCL_Device() {
+  clear();
+}
+
+int UCL_Device::set_platform(const int pid) {
+  clear();
+  #ifdef UCL_DEBUG
+  assert(pid<num_platforms());
+  #endif
+  return UCL_SUCCESS;
 }
 
 // Set the CUDA device to the specified device number
-inline int UCL_Device::set(int num) {
-  if (_device==num)
-    return UCL_SUCCESS;
-  if (_device>-1) {
-    CU_SAFE_CALL_NS(cuCtxDestroy(_context));
-    for (int i=1; i<num_queues(); i++) pop_command_queue();
-    _cq[0]=0;
-  }
+int UCL_Device::set(int num) {
+  clear();
   _device=_properties[num].device_id;
   CU_SAFE_CALL_NS(cuDeviceGet(&_cu_device,_device));
   CUresult err=cuCtxCreate(&_context,0,_cu_device);
@@ -310,8 +344,16 @@ inline int UCL_Device::set(int num) {
   return UCL_SUCCESS;
 }
 
+void UCL_Device::clear() {
+  if (_device>-1) {
+    for (int i=1; i<num_queues(); i++) pop_command_queue();
+    cuCtxDestroy(_context);
+  }
+  _device=-1;
+}
+
 // List all devices along with all properties
-inline void UCL_Device::print_all(std::ostream &out) {
+void UCL_Device::print_all(std::ostream &out) {
   #if CUDA_VERSION >= 2020
   int driver_version;
   cuDriverGetVersion(&driver_version);

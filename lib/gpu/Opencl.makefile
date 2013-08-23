@@ -17,7 +17,7 @@ OBJS = $(OBJ_DIR)/lal_atom.o $(OBJ_DIR)/lal_answer.o \
        $(OBJ_DIR)/lal_neighbor_shared.o $(OBJ_DIR)/lal_neighbor.o \
        $(OBJ_DIR)/lal_device.o $(OBJ_DIR)/lal_base_atomic.o \
        $(OBJ_DIR)/lal_base_charge.o $(OBJ_DIR)/lal_base_ellipsoid.o \
-       $(OBJ_DIR)/lal_base_dipole.o \
+       $(OBJ_DIR)/lal_base_dipole.o $(OBJ_DIR)/lal_base_three.o \
        $(OBJ_DIR)/lal_pppm.o $(OBJ_DIR)/lal_pppm_ext.o \
        $(OBJ_DIR)/lal_gayberne.o $(OBJ_DIR)/lal_gayberne_ext.o \
        $(OBJ_DIR)/lal_re_squared.o $(OBJ_DIR)/lal_re_squared_ext.o \
@@ -48,7 +48,12 @@ OBJS = $(OBJ_DIR)/lal_atom.o $(OBJ_DIR)/lal_answer.o \
        $(OBJ_DIR)/lal_gauss.o $(OBJ_DIR)/lal_gauss_ext.o \
        $(OBJ_DIR)/lal_yukawa_colloid.o $(OBJ_DIR)/lal_yukawa_colloid_ext.o \
        $(OBJ_DIR)/lal_lj_coul_debye.o $(OBJ_DIR)/lal_lj_coul_debye_ext.o \
-       $(OBJ_DIR)/lal_coul_dsf.o $(OBJ_DIR)/lal_coul_dsf_ext.o
+       $(OBJ_DIR)/lal_coul_dsf.o $(OBJ_DIR)/lal_coul_dsf_ext.o \
+       $(OBJ_DIR)/lal_sw.o $(OBJ_DIR)/lal_sw_ext.o \
+       $(OBJ_DIR)/lal_beck.o $(OBJ_DIR)/lal_beck_ext.o \
+       $(OBJ_DIR)/lal_mie.o $(OBJ_DIR)/lal_mie_ext.o \
+       $(OBJ_DIR)/lal_soft.o $(OBJ_DIR)/lal_soft_ext.o \
+       $(OBJ_DIR)/lal_lj_coul_msm.o $(OBJ_DIR)/lal_lj_coul_msm_ext.o
 
 KERS = $(OBJ_DIR)/device_cl.h $(OBJ_DIR)/atom_cl.h \
        $(OBJ_DIR)/neighbor_cpu_cl.h $(OBJ_DIR)/pppm_cl.h \
@@ -68,7 +73,9 @@ KERS = $(OBJ_DIR)/device_cl.h $(OBJ_DIR)/atom_cl.h \
        $(OBJ_DIR)/born_coul_long_cl.h $(OBJ_DIR)/dipole_lj_cl.h \
        $(OBJ_DIR)/dipole_lj_sf_cl.h $(OBJ_DIR)/colloid_cl.h \
        $(OBJ_DIR)/gauss_cl.h $(OBJ_DIR)/yukawa_colloid_cl.h \
-       $(OBJ_DIR)/lj_coul_debye_cl.h $(OBJ_DIR)/coul_dsf_cl.h
+       $(OBJ_DIR)/lj_coul_debye_cl.h $(OBJ_DIR)/coul_dsf_cl.h \
+       $(OBJ_DIR)/sw_cl.h $(OBJ_DIR)/beck_cl.h $(OBJ_DIR)/mie_cl.h \
+       $(OBJ_DIR)/soft_cl.h $(OBJ_DIR)/lj_coul_msm_cl.h
 
 
 OCL_EXECS = $(BIN_DIR)/ocl_get_devices
@@ -116,6 +123,9 @@ $(OBJ_DIR)/lal_base_ellipsoid.o: $(OCL_H) lal_base_ellipsoid.h lal_base_ellipsoi
 
 $(OBJ_DIR)/lal_base_dipole.o: $(OCL_H) lal_base_dipole.h lal_base_dipole.cpp
 	$(OCL) -o $@ -c lal_base_dipole.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_base_three.o: $(OCL_H) lal_base_three.h lal_base_three.cpp
+	$(OCL) -o $@ -c lal_base_three.cpp
 
 $(OBJ_DIR)/pppm_cl.h: lal_pppm.cu lal_preprocessor.h
 	$(BSH) ./geryon/file_to_cstr.sh pppm lal_preprocessor.h lal_pppm.cu $(OBJ_DIR)/pppm_cl.h;
@@ -404,6 +414,51 @@ $(OBJ_DIR)/lal_coul_dsf.o: $(ALL_H) lal_coul_dsf.h lal_coul_dsf.cpp  $(OBJ_DIR)/
 
 $(OBJ_DIR)/lal_coul_dsf_ext.o: $(ALL_H) lal_coul_dsf.h lal_coul_dsf_ext.cpp lal_base_charge.h
 	$(OCL) -o $@ -c lal_coul_dsf_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/sw_cl.h: lal_sw.cu $(PRE1_H)
+	$(BSH) ./geryon/file_to_cstr.sh sw $(PRE1_H) lal_sw.cu $(OBJ_DIR)/sw_cl.h;
+
+$(OBJ_DIR)/lal_sw.o: $(ALL_H) lal_sw.h lal_sw.cpp  $(OBJ_DIR)/sw_cl.h $(OBJ_DIR)/sw_cl.h $(OBJ_DIR)/lal_base_three.o
+	$(OCL) -o $@ -c lal_sw.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_sw_ext.o: $(ALL_H) lal_sw.h lal_sw_ext.cpp lal_base_three.h
+	$(OCL) -o $@ -c lal_sw_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/beck_cl.h: lal_beck.cu $(PRE1_H)
+	$(BSH) ./geryon/file_to_cstr.sh beck $(PRE1_H) lal_beck.cu $(OBJ_DIR)/beck_cl.h;
+
+$(OBJ_DIR)/lal_beck.o: $(ALL_H) lal_beck.h lal_beck.cpp  $(OBJ_DIR)/beck_cl.h $(OBJ_DIR)/beck_cl.h $(OBJ_DIR)/lal_base_atomic.o
+	$(OCL) -o $@ -c lal_beck.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_beck_ext.o: $(ALL_H) lal_beck.h lal_beck_ext.cpp lal_base_atomic.h
+	$(OCL) -o $@ -c lal_beck_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/mie_cl.h: lal_mie.cu $(PRE1_H)
+	$(BSH) ./geryon/file_to_cstr.sh mie $(PRE1_H) lal_mie.cu $(OBJ_DIR)/mie_cl.h;
+
+$(OBJ_DIR)/lal_mie.o: $(ALL_H) lal_mie.h lal_mie.cpp  $(OBJ_DIR)/mie_cl.h $(OBJ_DIR)/mie_cl.h $(OBJ_DIR)/lal_base_atomic.o
+	$(OCL) -o $@ -c lal_mie.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_mie_ext.o: $(ALL_H) lal_mie.h lal_mie_ext.cpp lal_base_atomic.h
+	$(OCL) -o $@ -c lal_mie_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/soft_cl.h: lal_soft.cu $(PRE1_H)
+	$(BSH) ./geryon/file_to_cstr.sh soft $(PRE1_H) lal_soft.cu $(OBJ_DIR)/soft_cl.h;
+
+$(OBJ_DIR)/lal_soft.o: $(ALL_H) lal_soft.h lal_soft.cpp  $(OBJ_DIR)/soft_cl.h $(OBJ_DIR)/soft_cl.h $(OBJ_DIR)/lal_base_atomic.o
+	$(OCL) -o $@ -c lal_soft.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_soft_ext.o: $(ALL_H) lal_soft.h lal_soft_ext.cpp lal_base_atomic.h
+	$(OCL) -o $@ -c lal_soft_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lj_coul_msm_cl.h: lal_lj_coul_msm.cu $(PRE1_H)
+	$(BSH) ./geryon/file_to_cstr.sh lj_coul_msm $(PRE1_H) lal_lj_coul_msm.cu $(OBJ_DIR)/lj_coul_msm_cl.h;
+
+$(OBJ_DIR)/lal_lj_coul_msm.o: $(ALL_H) lal_lj_coul_msm.h lal_lj_coul_msm.cpp  $(OBJ_DIR)/lj_coul_msm_cl.h $(OBJ_DIR)/lj_coul_msm_cl.h $(OBJ_DIR)/lal_base_charge.o
+	$(OCL) -o $@ -c lal_lj_coul_msm.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_lj_coul_msm_ext.o: $(ALL_H) lal_lj_coul_msm.h lal_lj_coul_msm_ext.cpp lal_base_charge.h
+	$(OCL) -o $@ -c lal_lj_coul_msm_ext.cpp -I$(OBJ_DIR)
 
 $(BIN_DIR)/ocl_get_devices: ./geryon/ucl_get_devices.cpp
 	$(OCL) -o $@ ./geryon/ucl_get_devices.cpp -DUCL_OPENCL $(OCL_LINK) 

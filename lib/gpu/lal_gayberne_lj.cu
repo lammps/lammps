@@ -54,7 +54,8 @@ __kernel void k_gayberne_sphere_ellipsoid(const __global numtyp4 *restrict x_,
 
   if (ii<inum) {
     const __global int *nbor, *nbor_end;
-    int i, numj, n_stride;
+    int i, numj;
+    __local int n_stride;
     nbor_info_e(dev_nbor,stride,t_per_atom,ii,offset,i,numj,
                 n_stride,nbor_end,nbor);
   
@@ -276,7 +277,8 @@ __kernel void k_gayberne_lj(const __global numtyp4 *restrict x_,
   
   if (ii<inum) {
     const __global int *nbor, *list_end;
-    int i, numj, n_stride;
+    int i, numj;
+    __local int n_stride;
     nbor_info_e(dev_ij,stride,t_per_atom,ii,offset,i,numj,
                 n_stride,list_end,nbor);
   
@@ -370,7 +372,8 @@ __kernel void k_gayberne_lj_fast(const __global numtyp4 *restrict x_,
   
   if (ii<inum) {
     const __global int *nbor, *list_end;
-    int i, numj, n_stride;
+    int i, numj;
+    __local int n_stride;
     nbor_info_e(dev_ij,stride,t_per_atom,ii,offset,i,numj,
                 n_stride,list_end,nbor);
 

@@ -4,7 +4,12 @@
 
 # which file will be copied to Makefile.lammps
 
-EXTRAMAKE = Makefile.lammps.standard
+EXTRAMAKE = Makefile.lammps.mac_ocl
+
+OCL_TUNE = -DFERMI_OCL       # -- Uncomment for NVIDIA Fermi
+# OCL_TUNE = -DKEPLER_OCL    # -- Uncomment for NVIDIA Kepler
+# OCL_TUNE = -DCYPRESS_OCL   # -- Uncomment for AMD Cypress
+# OCL_TUNE = -DGENERIC_OCL   # -- Uncomment for generic device
 
 OCL_CPP = mpic++ -O3 -DMPI_GERYON -DUCL_NO_EXIT
 OCL_LINK = -framework OpenCL

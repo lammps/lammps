@@ -70,44 +70,47 @@ bool AtomT::alloc(const int nall) {
 
   // ---------------------------  Device allocations
   int gpu_bytes=0;
-  success=success && (x.alloc(_max_atoms*4,*dev,UCL_WRITE_OPTIMIZED,
+  success=success && (x.alloc(_max_atoms*4,*dev,UCL_WRITE_ONLY,
                               UCL_READ_ONLY)==UCL_SUCCESS);
   #ifdef GPU_CAST
-  success=success && (x_cast.alloc(_max_atoms*3,*dev,UCL_READ_ONLY)==
-                      UCL_SUCCESS);
-  success=success && (type_cast.alloc(_max_atoms,*dev,UCL_READ_ONLY)==
-                      UCL_SUCCESS);
+  success=success && (x_cast.alloc(_max_atoms*3,*dev,UCL_WRITE_ONLY,
+                                   UCL_READ_ONLY)==UCL_SUCCESS);
+  success=success && (type_cast.alloc(_max_atoms,*dev,UCL_WRITE_ONLY,
+                                      UCL_READ_ONLY)==UCL_SUCCESS);
   gpu_bytes+=x_cast.device.row_bytes()+type_cast.device.row_bytes();
   #endif
 
   if (_charge && _host_view==false) {
-    success=success && (q.alloc(_max_atoms,*dev,UCL_WRITE_OPTIMIZED,
+    success=success && (q.alloc(_max_atoms,*dev,UCL_WRITE_ONLY,
                                 UCL_READ_ONLY)==UCL_SUCCESS);
     gpu_bytes+=q.device.row_bytes();
   }
   if (_rot && _host_view==false) {
-    success=success && (quat.alloc(_max_atoms*4,*dev,UCL_WRITE_OPTIMIZED,
+    success=success && (quat.alloc(_max_atoms*4,*dev,UCL_WRITE_ONLY,
                                    UCL_READ_ONLY)==UCL_SUCCESS);
     gpu_bytes+=quat.device.row_bytes();
   }
 
   if (_gpu_nbor>0) {
     if (_bonds) {
-      success=success && (dev_tag.alloc(_max_atoms,*dev)==UCL_SUCCESS);
+      success=success && (dev_tag.alloc(_max_atoms,*dev,
+                                        UCL_READ_ONLY)==UCL_SUCCESS);
       gpu_bytes+=dev_tag.row_bytes();
     }
     if (_gpu_nbor==1) {
       success=success && (dev_cell_id.alloc(_max_atoms,*dev)==UCL_SUCCESS);
       gpu_bytes+=dev_cell_id.row_bytes();
     } else {
-      success=success && (host_particle_id.alloc(_max_atoms,*dev)==UCL_SUCCESS);
+      success=success && (host_particle_id.alloc(_max_atoms,*dev,
+                                                 UCL_WRITE_ONLY)==UCL_SUCCESS);
       success=success && 
              (host_cell_id.alloc(_max_atoms,*dev,UCL_NOT_PINNED)==UCL_SUCCESS);
     }
     if (_gpu_nbor==2 && _host_view)
       dev_particle_id.view(host_particle_id);
     else
-      success=success && (dev_particle_id.alloc(_max_atoms,*dev)==UCL_SUCCESS);
+      success=success && (dev_particle_id.alloc(_max_atoms,*dev,
+                                                UCL_READ_ONLY)==UCL_SUCCESS);
     gpu_bytes+=dev_particle_id.row_bytes();
   }
 
@@ -130,7 +133,7 @@ bool AtomT::add_fields(const bool charge, const bool rot,
     _charge=true;
     _other=true;
     if (_host_view==false) {
-      success=success && (q.alloc(_max_atoms,*dev,UCL_WRITE_OPTIMIZED,
+      success=success && (q.alloc(_max_atoms,*dev,UCL_WRITE_ONLY,
                                   UCL_READ_ONLY)==UCL_SUCCESS);
       gpu_bytes+=q.device.row_bytes();
     }
@@ -140,7 +143,7 @@ bool AtomT::add_fields(const bool charge, const bool rot,
     _rot=true;
     _other=true;
     if (_host_view==false) {
-      success=success && (quat.alloc(_max_atoms*4,*dev,UCL_WRITE_OPTIMIZED,
+      success=success && (quat.alloc(_max_atoms*4,*dev,UCL_WRITE_ONLY,
                                      UCL_READ_ONLY)==UCL_SUCCESS);
       gpu_bytes+=quat.device.row_bytes();
     }
@@ -149,7 +152,8 @@ bool AtomT::add_fields(const bool charge, const bool rot,
   if (bonds && _bonds==false) {
     _bonds=true;
     if (_bonds && _gpu_nbor>0) {
-      success=success && (dev_tag.alloc(_max_atoms,*dev)==UCL_SUCCESS);
+      success=success && (dev_tag.alloc(_max_atoms,*dev,
+                                        UCL_READ_ONLY)==UCL_SUCCESS);
       gpu_bytes+=dev_tag.row_bytes();
     }
   }
@@ -163,17 +167,20 @@ bool AtomT::add_fields(const bool charge, const bool rot,
         return false;
     }
     #endif
-    success=success && (dev_particle_id.alloc(_max_atoms,*dev)==UCL_SUCCESS);
+    success=success && (dev_particle_id.alloc(_max_atoms,*dev,
+                                              UCL_READ_ONLY)==UCL_SUCCESS);
     gpu_bytes+=dev_particle_id.row_bytes();
     if (_bonds) {
-      success=success && (dev_tag.alloc(_max_atoms,*dev)==UCL_SUCCESS);
+      success=success && (dev_tag.alloc(_max_atoms,*dev,
+                                        UCL_READ_ONLY)==UCL_SUCCESS);
       gpu_bytes+=dev_tag.row_bytes();
     }
     if (_gpu_nbor==1) {
       success=success && (dev_cell_id.alloc(_max_atoms,*dev)==UCL_SUCCESS);
       gpu_bytes+=dev_cell_id.row_bytes();
     } else {
-      success=success && (host_particle_id.alloc(_max_atoms,*dev)==UCL_SUCCESS);
+      success=success && (host_particle_id.alloc(_max_atoms,*dev,
+                                                 UCL_WRITE_ONLY)==UCL_SUCCESS);
       success=success && 
              (host_cell_id.alloc(_max_atoms,*dev,UCL_NOT_PINNED)==UCL_SUCCESS);
     }             

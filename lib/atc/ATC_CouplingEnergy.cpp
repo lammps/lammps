@@ -30,7 +30,9 @@ namespace ATC {
                                          string matParamFile,
                                          ExtrinsicModelType extrinsicModel)
     : ATC_Coupling(groupName,perAtomArray,thisFix),
+#ifdef OBSOLETE
       nodalAtomicHeatCapacity_(NULL),
+#endif
       nodalAtomicKineticTemperature_(NULL),
       nodalAtomicConfigurationalTemperature_(NULL)
   {
@@ -145,25 +147,10 @@ namespace ATC {
     }
 
     // reset integration field mask
-    temperatureMask_.reset(NUM_FIELDS,NUM_FLUX);
-    temperatureMask_ = false;
+    intrinsicMask_.reset(NUM_FIELDS,NUM_FLUX);
+    intrinsicMask_ = false;
     for (int i = 0; i < NUM_FLUX; i++)
-      temperatureMask_(TEMPERATURE,i) = fieldMask_(TEMPERATURE,i);
-  }
-
-  //--------------------------------------------------------
-  //  construct_methods
-  //    have managers instantiate requested algorithms
-  //    and methods
-  //--------------------------------------------------------
-  void ATC_CouplingEnergy::construct_methods()
-  {
-    ATC_Coupling::construct_methods();
-
-    for (_tiIt_ = timeIntegrators_.begin(); _tiIt_ != timeIntegrators_.end(); ++_tiIt_) {
-      (_tiIt_->second)->construct_methods();
-    }
-    atomicRegulator_->construct_methods();
+      intrinsicMask_(TEMPERATURE,i) = fieldMask_(TEMPERATURE,i);
   }
 
   //--------------------------------------------------------
@@ -270,7 +257,7 @@ namespace ATC {
                                                                                              TEMPERATURE);
     interscaleManager_.add_dense_matrix(nodalAtomicTemperature,
                                         "NodalAtomicTemperature");
-    
+#ifdef OBSOLETE
     if (!useFeMdMassMatrix_) {
       // classical thermodynamic heat capacity of the atoms
       HeatCapacity * heatCapacity = new HeatCapacity(this);
@@ -284,6 +271,7 @@ namespace ATC {
       interscaleManager_.add_dense_matrix(nodalAtomicHeatCapacity_,
                                                "NodalAtomicHeatCapacity");
     }
+#endif
     for (_tiIt_ = timeIntegrators_.begin(); _tiIt_ != timeIntegrators_.end(); ++_tiIt_) {
       (_tiIt_->second)->construct_transfers();
     }
@@ -326,7 +314,7 @@ namespace ATC {
       }
     }
   }
-
+#ifdef OBSOLETE
   //---------------------------------------------------------
   //  compute_md_mass_matrix
   //    compute the mass matrix arising from only atomistic
@@ -338,20 +326,8 @@ namespace ATC {
     
     if (thisField == TEMPERATURE)
       massMat.reset(nodalAtomicHeatCapacity_->quantity());
-  }     
-
-  //--------------------------------------------------------
-  //  finish
-  //    final clean up after a run
-  //--------------------------------------------------------
-  void ATC_CouplingEnergy::finish()
-  {
-    // base class
-    ATC_Coupling::finish();
-
-    atomicRegulator_->finish();
   }
-
+#endif
   //--------------------------------------------------------
   //  modify
   //    parses inputs and modifies state of the filter
@@ -412,198 +388,6 @@ namespace ATC {
 
   }
 
-  //--------------------------------------------------
-  // pack_fields
-  //   bundle all allocated field matrices into a list
-  //   for output needs
-  //--------------------------------------------------
-  void ATC_CouplingEnergy::pack_thermal_fields(RESTART_LIST & data)
-  {
-    atomicRegulator_->pack_fields(data);
-  }
-  
-  //--------------------------------------------------
-  // write_restart_file
-  //   bundle matrices that need to be saved and call
-  //   fe_engine to write the file
-  //--------------------------------------------------
-  void ATC_CouplingEnergy::write_restart_data(string fileName, RESTART_LIST & data)
-  {
-    pack_thermal_fields(data);
-    ATC_Method::write_restart_data(fileName,data);
-  }
-  
-  //--------------------------------------------------
-  // read_restart_file
-  //   bundle matrices that need to be saved and call
-  //   fe_engine to write the file
-  //--------------------------------------------------
-  void ATC_CouplingEnergy::read_restart_data(string fileName, RESTART_LIST & data)
-  {
-    pack_thermal_fields(data);
-    ATC_Method::read_restart_data(fileName,data);
-  }
-
-  //--------------------------------------------------
-  void ATC_CouplingEnergy::reset_nlocal()
-  {
-    ATC_Coupling::reset_nlocal();
-    atomicRegulator_->reset_nlocal();
-  }
-
-  //--------------------------------------------------
-  // reset_atom_materials
-  //   update the atom materials map 
-  //--------------------------------------------------
-  void ATC_CouplingEnergy::reset_atom_materials()
-  {
-    ATC_Coupling::reset_atom_materials();
-    atomicRegulator_->reset_atom_materials(elementToMaterialMap_,
-                                           atomElement_);
-  }
-
-#ifdef OBSOLETE
-  //--------------------------------------------------------
-  //  mid_init_integrate
-  //    time integration between the velocity update and
-  //    the position lammps update of Verlet step 1
-  //--------------------------------------------------------
-  void ATC_CouplingEnergy::mid_init_integrate()
-  {
-    // CONTINUOUS VELOCITY UPDATE
-    
-    ATC_Coupling::mid_init_integrate();
-    double dt = lammpsInterface_->dt();
-
-    // Compute nodal velocity at n+1/2
-    for (_tiIt_ = timeIntegrators_.begin(); _tiIt_ != timeIntegrators_.end(); ++_tiIt_) {
-      (_tiIt_->second)->mid_initial_integrate1(dt);
-    }
-
-    atomicRegulator_->apply_mid_predictor(dt,lammpsInterface_->ntimestep());
-
-    extrinsicModelManager_.mid_init_integrate();
-  }
-
-  //--------------------------------------------------------
-  //  post_init_integrate
-  //    time integration after the lammps atomic updates of
-  //    Verlet step 1
-  //--------------------------------------------------------
-  void ATC_CouplingEnergy::post_init_integrate()
-  {
-    double dt = lammpsInterface_->dt();
-  
-    // Compute nodal velocity at n+1
-    for (_tiIt_ = timeIntegrators_.begin(); _tiIt_ != timeIntegrators_.end(); ++_tiIt_) {
-      (_tiIt_->second)->post_initial_integrate1(dt);
-    }
-
-    // Update kinetostat quantities if displacement is being regulated
-    atomicRegulator_->apply_post_predictor(dt,lammpsInterface_->ntimestep());
-
-    // Update extrisic model
-    extrinsicModelManager_.post_init_integrate();
-
-    // fixed values, non-group bcs handled through FE
-    set_fixed_nodes();
-      
-    update_time(0.5);
-
-    ATC_Coupling::post_init_integrate();
-  }
-#endif
-  //--------------------------------------------------------
-  //  post_final_integrate
-  //    integration after the second stage lammps atomic 
-  //    update of Verlet step 2
-  //--------------------------------------------------------
-  void ATC_CouplingEnergy::post_final_integrate()
-  {
-    double dt = lammpsInterface_->dt();
-
-    // update changes in atomic energy or from atomic work, if needed
-    // this is here to simplify computing changes in total atomic energy
-    // even though all the data needed is available by pre_final_integrate
-    for (_tiIt_ = timeIntegrators_.begin(); _tiIt_ != timeIntegrators_.end(); ++_tiIt_) {
-      (_tiIt_->second)->pre_final_integrate1(dt);
-    }
-
-    // Set prescribed sources for current time
-    prescribedDataMgr_->set_sources(time()+0.5*dt,sources_);
-
-    // predictor step in extrinsic model
-    extrinsicModelManager_.pre_final_integrate();
-
-    // predict thermostat contributions
-    // compute sources based on predicted FE temperature
-    
-    if (timeIntegrators_[TEMPERATURE]->has_final_predictor()) {
-      // set state-based sources
-      extrinsicModelManager_.set_sources(fields_,extrinsicSources_);
-      atomicRegulator_->compute_boundary_flux(fields_);
-      compute_atomic_sources(temperatureMask_,fields_,atomicSources_);
-    }
-
-    // Compute thermostat forces
-    atomicRegulator_->apply_pre_corrector(dt,lammpsInterface_->ntimestep());
-
-    // Determine FE contributions to d theta/dt    
-    // Compute atom-integrated rhs
-    // parallel communication happens within FE_Engine
-    
-    
-    
-    // Determine FE contributions to dT/dt-----------------------
-    compute_rhs_vector(temperatureMask_,fields_,rhs_,FE_DOMAIN);
-    for (_tiIt_ = timeIntegrators_.begin(); _tiIt_ != timeIntegrators_.end(); ++_tiIt_) {
-      (_tiIt_->second)->add_to_rhs();
-    }
-    // For flux matching, add appropriate fraction of "drag" power
-    
-    atomicRegulator_->add_to_rhs(rhs_);
-
-    // final phase predictor step
-    for (_tiIt_ = timeIntegrators_.begin(); _tiIt_ != timeIntegrators_.end(); ++_tiIt_) {
-      (_tiIt_->second)->post_final_integrate1(dt);
-    }
-
-    // fix nodes, non-group bcs applied through FE
-    set_fixed_nodes();
-
-    // corrector step extrinsic model
-    extrinsicModelManager_.post_final_integrate();
-
-    // correct thermostat and finish
-    if (timeIntegrators_[TEMPERATURE]->has_final_corrector()) {
-      // set state-based sources
-      extrinsicModelManager_.set_sources(fields_,extrinsicSources_);
-      atomicRegulator_->compute_boundary_flux(fields_);
-      compute_atomic_sources(temperatureMask_,fields_,atomicSources_);
-    }
-
-    // finish FE temperature update
-    for (_tiIt_ = timeIntegrators_.begin(); _tiIt_ != timeIntegrators_.end(); ++_tiIt_) {
-      (_tiIt_->second)->post_final_integrate2(dt);
-    }
-
-    // apply corrector phase of thermostat
-    atomicRegulator_->apply_post_corrector(dt,lammpsInterface_->ntimestep());
-
-    // finalalize time filtering
-    for (_tiIt_ = timeIntegrators_.begin(); _tiIt_ != timeIntegrators_.end(); ++_tiIt_) {
-      (_tiIt_->second)->post_final_integrate3(dt);
-    }
-
-    // Fix nodes, non-group bcs applied through FE
-    set_fixed_nodes();
-
-    update_time(0.5);
-    
-    output();
-    ATC_Coupling::post_final_integrate(); // adds next step to computes
-  }
-  
   //--------------------------------------------------------------------
   //     compute_vector
   //--------------------------------------------------------------------

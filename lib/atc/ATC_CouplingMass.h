@@ -49,20 +49,9 @@ namespace ATC {
     /** pre time integration */
     virtual void initialize();
 
-    /** prior to force */
-    virtual void pre_force();
     /** prior to exchange */
     virtual void pre_exchange();
     virtual void reset_atoms() { resetNlocal_=true;}
-#ifdef OBSOLETE
-
-    /** first time, after atomic velocity but before position integration */
-    virtual void mid_init_integrate();
-    /** first time, after atomic integration */
-    virtual void post_init_integrate();
-#endif
-    /** second time, after atomic integration */
-    virtual void post_final_integrate();
 
     /** compute vector for output */
     virtual double compute_vector(int n);
@@ -78,27 +67,18 @@ namespace ATC {
     //---------------------------------------------------------------
     /** constructs all data which is updated with time integration, i.e. fields */
     //virtual void construct_time_integration_data();
-    /** create methods, e.g. time integrators, filters */
-    virtual void construct_methods();
     /** set up data which is dependency managed */
     virtual void construct_transfers();
 
     /** sets the position/velocity of the ghost atoms */
     virtual void set_ghost_atoms(){};
-
+#ifdef OBSOLETE
     /** compute the mass matrix components coming from MD integration */
     virtual void compute_md_mass_matrix(FieldName thisField,
                                         DIAG_MAT & massMats);
-
+#endif
     /** physics specific filter initialization */
     void init_filter();
-
-    /** field mask for velocity integration */
-    Array2D<bool> speciesMask_;
-
-    // Add in fields for restarting
-    virtual void  read_restart_data(std::string fileName_, RESTART_LIST & data);
-    virtual void write_restart_data(std::string fileName_, RESTART_LIST & data);
 
     // DATA structures for tracking individual species and molecules
     FIELD_POINTERS atomicFields_;

@@ -52,21 +52,6 @@ namespace ATC {
       return resetMethods || (_ctiIt_->second)->need_reset();
     };
 
-    /** post time integration */
-    virtual void finish();
-#ifdef OBSOLETE
-    
-
-    /** first time, after atomic velocity but before position integration */
-    virtual void mid_init_integrate();
-    /** first time, after atomic integration */
-    virtual void post_init_integrate();
-#endif
-    /** second time, before atomic integration */
-    virtual void pre_final_integrate();
-    /** second time, after atomic integration */
-    virtual void post_final_integrate();
-
     /** pre/post atomic force calculation in minimize */
     virtual void min_pre_force();
     virtual void min_post_force();
@@ -82,10 +67,6 @@ namespace ATC {
     /** output routines */
     virtual void output(void);
 
-    
-    /** set up atom to material identification */
-    virtual void reset_atom_materials();
-
   protected:
 
     //---------------------------------------------------------------
@@ -93,34 +74,21 @@ namespace ATC {
     //---------------------------------------------------------------
     /** constructs all data which is updated with time integration, i.e. fields */
     //virtual void construct_time_integration_data();
-    /** create methods, e.g. time integrators, filters */
-    virtual void construct_methods();
     /** set up data which is dependency managed */
     virtual void construct_transfers();
-
-    /** adds resetting of any kinetostat arrays associated with local atom count */
-    virtual void reset_nlocal();
-
+#ifdef OBSOLETE
     /** compute the mass matrix components coming from MD integration */
     virtual void compute_md_mass_matrix(FieldName thisField,
                                         DIAG_MAT & massMats);
-
+    //
     /** operator to compute the mass matrix for the momentum equation from MD integration */
     AtfShapeFunctionRestriction * nodalAtomicMass_;
 
     /** operator to compute the dimensionless mass matrix from MD integration */
     AtfShapeFunctionRestriction * nodalAtomicCount_;
-
+#endif
     /** physics specific filter initialization */
     void init_filter();
-
-    /** field mask for velocity integration */
-    Array2D<bool> velocityMask_;
-
-    // Add in fields for restarting
-    virtual void  read_restart_data(std::string fileName_, RESTART_LIST & data);
-    virtual void write_restart_data(std::string fileName_, RESTART_LIST & data);
-    void pack_elastic_fields(RESTART_LIST & data);
 
     // data
     double refPE_;

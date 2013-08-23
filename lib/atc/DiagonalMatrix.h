@@ -321,7 +321,7 @@ template<typename T>
 void DiagonalMatrix<T>::shallowreset(const DenseMatrix<T> &c)
 {
   _delete();
-  _data = new CloneVector<T>(*(c._data));
+  _data = new CloneVector<T>(c,CLONE_COL);
 }
 //-----------------------------------------------------------------------------
 // reference indexing operator - must throw an error if i!=j

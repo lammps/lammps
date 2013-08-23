@@ -389,6 +389,11 @@ namespace ATC {
                                                        atomShapeFunctions,
                                                        GHOST);
     interscaleManager.add_per_atom_quantity(atomFeVelocity_,field_to_prolongation_name(VELOCITY)+"Ghost");
+    // calculate nominal bond stiffness
+    int i = 0, j = 1;// HACk should be an atom and its neighbor in the boundary
+    double rsq = 0.0;
+    //k0_ = LammpsInterface_->bond_stiffness(i,j,rsq);
+    k0_ = LammpsInterface::instance()->bond_stiffness(i,j,rsq);
   }
 
   //--------------------------------------------------------

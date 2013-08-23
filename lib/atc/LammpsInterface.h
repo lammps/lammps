@@ -468,6 +468,7 @@ class LammpsInterface {
   void pair_reinit() const;
   int single_enable() const;
   LAMMPS_NS::PairEAM * pair_eam(void) const; 
+  double bond_stiffness(int i, int j, double rsq) const;
   /*@}*/
 
   /** \name Methods for addition/deletion of atoms*/

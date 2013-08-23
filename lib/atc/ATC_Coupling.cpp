@@ -34,6 +34,9 @@ namespace ATC {
     elementMask_(NULL),
     elementMaskMass_(NULL),
     elementMaskMassMd_(NULL),
+    nodalAtomicMass_(NULL),
+    nodalAtomicCount_(NULL),
+    nodalAtomicHeatCapacity_(NULL),
     internalToMask_(NULL),
     internalElement_(NULL),
     ghostElement_(NULL),
@@ -733,6 +736,10 @@ namespace ATC {
   }
 
   //--------------------------------------------------------
+  //  construct_methods
+  //    have managers instantiate requested algorithms
+  //    and methods
+  //--------------------------------------------------------
   void ATC_Coupling::construct_methods()
   {
     ATC_Method::construct_methods();
@@ -748,6 +755,11 @@ namespace ATC {
           massMatTimeFilters_[thisField] = timeFilterManager_.construct(TimeFilterManager::INSTANTANEOUS);
       }
     }
+
+    for (_tiIt_ = timeIntegrators_.begin(); _tiIt_ != timeIntegrators_.end(); ++_tiIt_) {
+      (_tiIt_->second)->construct_methods();
+    }
+    atomicRegulator_->construct_methods();
   }
   //-------------------------------------------------------------------
   void ATC_Coupling::init_filter()
@@ -833,8 +845,8 @@ namespace ATC {
            field != fields.end(); field++) {
         FieldName thisFieldName = field->first;
         FIELDS::const_iterator fieldItr = fields.find(thisFieldName);
-        const DENS_MAT & field = (fieldItr->second).quantity();
-        atomicSources[thisFieldName].reset(field.nRows(),field.nCols());
+        const DENS_MAT & f = (fieldItr->second).quantity();
+        atomicSources[thisFieldName].reset(f.nRows(),f.nCols());
       }
     }
   }
@@ -981,8 +993,8 @@ namespace ATC {
            field != fields.end(); field++) {
         FieldName thisFieldName = field->first;
         FIELDS::const_iterator fieldItr = fields.find(thisFieldName);
-        const DENS_MAT & field = (fieldItr->second).quantity();
-        (rhs[thisFieldName].set_quantity()).reset(field.nRows(),field.nCols());
+        const DENS_MAT & f = (fieldItr->second).quantity();
+        (rhs[thisFieldName].set_quantity()).reset(f.nRows(),f.nCols());
       }
     }
   }
@@ -1411,8 +1423,42 @@ namespace ATC {
   void ATC_Coupling::construct_transfers()
   {
     ATC_Method::construct_transfers();
-    
 
+    if (!useFeMdMassMatrix_) {
+      // transfer for MD mass matrices based on requested intrinsic fields
+      if (fieldSizes_.find(TEMPERATURE) != fieldSizes_.end()) {
+        // classical thermodynamic heat capacity of the atoms
+        HeatCapacity * heatCapacity = new HeatCapacity(this);
+        interscaleManager_.add_per_atom_quantity(heatCapacity,
+                                                 "AtomicHeatCapacity");
+
+        // atomic thermal mass matrix
+        nodalAtomicHeatCapacity_ = new AtfShapeFunctionRestriction(this,
+                                                                   heatCapacity,
+                                                                   shpFcn_);
+        interscaleManager_.add_dense_matrix(nodalAtomicHeatCapacity_,
+                                            "NodalAtomicHeatCapacity");
+      }
+      if ((fieldSizes_.find(VELOCITY) != fieldSizes_.end()) || (fieldSizes_.find(DISPLACEMENT) != fieldSizes_.end())) {
+        // atomic momentum mass matrix
+        FundamentalAtomQuantity * atomicMass = interscaleManager_.fundamental_atom_quantity(LammpsInterface::ATOM_MASS);
+        nodalAtomicMass_ = new AtfShapeFunctionRestriction(this,
+                                                           atomicMass,
+                                                           shpFcn_);
+        interscaleManager_.add_dense_matrix(nodalAtomicMass_,
+                                            "AtomicMomentumMassMat");
+      }
+      if (fieldSizes_.find(MASS_DENSITY) != fieldSizes_.end()) {
+        // atomic dimensionless mass matrix
+        ConstantQuantity<double> * atomicOnes = new ConstantQuantity<double>(this,1);
+        interscaleManager_.add_per_atom_quantity(atomicOnes,"AtomicOnes");
+        nodalAtomicCount_ = new AtfShapeFunctionRestriction(this,
+                                                            atomicOnes,
+                                                            shpFcn_);
+        interscaleManager_.add_dense_matrix(nodalAtomicCount_,
+                                            "AtomicDimensionlessMassMat");
+      }
+    }
 
     extrinsicModelManager_.construct_transfers();
   }
@@ -1573,6 +1619,57 @@ namespace ATC {
         myMassMatInv(iNode,iNode) = 0.;
     }
   }
+
+  //---------------------------------------------------------
+  //  compute_md_mass_matrix
+  //    compute the mass matrix arising from only atomistic
+  //    quadrature and contributions as a summation
+  //---------------------------------------------------------
+  void ATC_Coupling::compute_md_mass_matrix(FieldName thisField,
+                                            DIAG_MAT & massMat)
+  {
+    
+    if (thisField == TEMPERATURE) {
+      massMat.shallowreset(nodalAtomicHeatCapacity_->quantity());
+    }
+    
+    else if (thisField == DISPLACEMENT || thisField == VELOCITY) {
+      massMat.shallowreset(nodalAtomicMass_->quantity());
+    }
+    else if (thisField == MASS_DENSITY || thisField == SPECIES_CONCENTRATION) {
+      massMat.shallowreset(nodalAtomicVolume_->quantity());
+    }
+  }   
+
+  //--------------------------------------------------
+  // write_restart_file
+  //   bundle matrices that need to be saved and call
+  //   fe_engine to write the file
+  //--------------------------------------------------
+  void ATC_Coupling::write_restart_data(string fileName, RESTART_LIST & data)
+  {
+    atomicRegulator_->pack_fields(data);
+    ATC_Method::write_restart_data(fileName,data);
+  }
+  
+  //--------------------------------------------------
+  // read_restart_file
+  //   bundle matrices that need to be saved and call
+  //   fe_engine to write the file
+  //--------------------------------------------------
+  void ATC_Coupling::read_restart_data(string fileName, RESTART_LIST & data)
+  {
+    atomicRegulator_->pack_fields(data);
+    ATC_Method::read_restart_data(fileName,data);
+  }
+
+  //--------------------------------------------------
+  void ATC_Coupling::reset_nlocal()
+  {
+    ATC_Method::reset_nlocal();
+    atomicRegulator_->reset_nlocal();
+  }
+
   //--------------------------------------------------------
   void ATC_Coupling::reset_atom_materials()
   {
@@ -1603,6 +1700,9 @@ namespace ATC {
         }
       }
     }
+
+    atomicRegulator_->reset_atom_materials(elementToMaterialMap_,
+                                           atomElement_);
   }
 
   //--------------------------------------------------------
@@ -1678,7 +1778,7 @@ namespace ATC {
     ATC_Method::post_init_integrate();
 
     // Apply time filtering to mass matrices, if needed
-    if (timeFilterManager_.filter_dynamics() && !useFeMdMassMatrix_) {
+    if ((atomToElementMapType_ == EULERIAN) && timeFilterManager_.filter_dynamics() && !useFeMdMassMatrix_) {
       map<FieldName,int>::const_iterator field;
       for (field = fieldSizes_.begin(); field!=fieldSizes_.end(); field++) {
         FieldName thisField = field->first;
@@ -1704,6 +1804,16 @@ namespace ATC {
   void ATC_Coupling::pre_exchange()
   {
     ATC_Method::pre_exchange();
+  }
+
+  //--------------------------------------------------------
+  //  pre_force
+  //    prior to calculation of forces
+  //--------------------------------------------------------
+  void ATC_Coupling::pre_force()
+  {
+    ATC_Method::pre_force();
+    atomicRegulator_->pre_force(); 
   }
 
   //--------------------------------------------------------
@@ -1746,6 +1856,93 @@ namespace ATC {
     extrinsicModelManager_.post_force();
   }
 
+  //--------------------------------------------------------
+  //  post_final_integrate
+  //    integration after the second stage lammps atomic 
+  //    update of Verlet step 2
+  //--------------------------------------------------------
+  void ATC_Coupling::post_final_integrate()
+  {
+    double dt = lammpsInterface_->dt();
+
+    // update of atomic contributions for fractional step methods
+    for (_tiIt_ = timeIntegrators_.begin(); _tiIt_ != timeIntegrators_.end(); ++_tiIt_) {
+      (_tiIt_->second)->pre_final_integrate1(dt);
+    }
+
+    // Set sources
+    prescribedDataMgr_->set_sources(time()+0.5*dt,sources_);
+    extrinsicModelManager_.pre_final_integrate();
+    
+    bool needsSources = false;
+    for (_tiIt_ = timeIntegrators_.begin(); _tiIt_ != timeIntegrators_.end(); ++_tiIt_) {
+      if ((_tiIt_->second)->has_final_predictor()) {
+        needsSources = true;
+        break;
+      }
+    }
+    if (needsSources) {
+      extrinsicModelManager_.set_sources(fields_,extrinsicSources_);
+      atomicRegulator_->compute_boundary_flux(fields_);
+      compute_atomic_sources(intrinsicMask_,fields_,atomicSources_);
+    }
+    atomicRegulator_->apply_pre_corrector(dt,lammpsInterface_->ntimestep());
+
+    // Compute atom-integrated rhs
+    // parallel communication happens within FE_Engine
+    compute_rhs_vector(intrinsicMask_,fields_,rhs_,FE_DOMAIN);
+    for (_tiIt_ = timeIntegrators_.begin(); _tiIt_ != timeIntegrators_.end(); ++_tiIt_) {
+      (_tiIt_->second)->add_to_rhs();
+    }
+    atomicRegulator_->add_to_rhs(rhs_);
+    
+    // Compute and add atomic contributions to FE equations
+    for (_tiIt_ = timeIntegrators_.begin(); _tiIt_ != timeIntegrators_.end(); ++_tiIt_) {
+      (_tiIt_->second)->post_final_integrate1(dt);
+    }
+    
+   // fix nodes, non-group bcs applied through FE
+    set_fixed_nodes();
+        
+    // corrector step extrinsic model
+    extrinsicModelManager_.post_final_integrate();
+
+    // set state-based sources
+    needsSources = false;
+    for (_tiIt_ = timeIntegrators_.begin(); _tiIt_ != timeIntegrators_.end(); ++_tiIt_) {
+      if ((_tiIt_->second)->has_final_corrector()) {
+        needsSources = true;
+        break;
+      }
+    }
+    if (needsSources) {
+      extrinsicModelManager_.set_sources(fields_,extrinsicSources_);
+      atomicRegulator_->compute_boundary_flux(fields_);
+      compute_atomic_sources(intrinsicMask_,fields_,atomicSources_);
+    }
+
+    // Finish update of FE velocity
+    for (_tiIt_ = timeIntegrators_.begin(); _tiIt_ != timeIntegrators_.end(); ++_tiIt_) {
+      (_tiIt_->second)->post_final_integrate2(dt);
+    }
+    
+    // apply corrector phase of thermostat
+    atomicRegulator_->apply_post_corrector(dt,lammpsInterface_->ntimestep());
+
+    // final phase of time integration
+    for (_tiIt_ = timeIntegrators_.begin(); _tiIt_ != timeIntegrators_.end(); ++_tiIt_) {
+      (_tiIt_->second)->post_final_integrate3(dt);
+    }
+
+    // Fix nodes, non-group bcs applied through FE
+    set_fixed_nodes();
+    
+    update_time(0.5);
+    
+    output();
+    lammpsInterface_->computes_addstep(lammpsInterface_->ntimestep()+1); // adds next step to computes
+  }
+
   //=================================================================
   //
   //=================================================================
@@ -1756,6 +1953,7 @@ namespace ATC {
     for (_tiIt_ = timeIntegrators_.begin(); _tiIt_ != timeIntegrators_.end(); ++_tiIt_) {
       (_tiIt_->second)->finish();
     }
+    atomicRegulator_->finish();
   }
 
 

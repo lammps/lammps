@@ -186,23 +186,9 @@ namespace ATC {
     }
 
     // reset integration field mask
-    speciesMask_.reset(NUM_FIELDS,NUM_FLUX);
-    speciesMask_ = false;
+    intrinsicMask_.reset(NUM_FIELDS,NUM_FLUX);
+    intrinsicMask_ = false;
 
-  }
-
-  //--------------------------------------------------------
-  //  construct_methods
-  //    have managers instantiate requested algorithms
-  //    and methods
-  //--------------------------------------------------------
-  void ATC_CouplingMass::construct_methods()
-  {
-    ATC_Coupling::construct_methods();
-    for (_tiIt_ = timeIntegrators_.begin(); _tiIt_ != timeIntegrators_.end(); ++_tiIt_) {
-      (_tiIt_->second)->construct_methods();
-    }
-    atomicRegulator_->construct_methods();
   }
 
   void ATC_CouplingMass::construct_transfers()
@@ -259,7 +245,7 @@ namespace ATC {
     
     ATC_Coupling::init_filter();
   }
-
+#ifdef OBSOLETE
   void ATC_CouplingMass::compute_md_mass_matrix(FieldName thisField,
                                                 DIAG_MAT & massMat)
   {
@@ -269,37 +255,8 @@ namespace ATC {
       massMat.reset(nodalAtomicVolume_->quantity());
     }
   }
-
-  //--------------------------------------------------
-  // write_restart_file
-  //   bundle matrices that need to be saved and call
-  //   fe_engine to write the file
-  //--------------------------------------------------
-  void ATC_CouplingMass::write_restart_data(string fileName, RESTART_LIST & data)
-  {
-    ATC_Method::write_restart_data(fileName,data);
-  }
-    
-  //--------------------------------------------------
-  // write_restart_file
-  //   bundle matrices that need to be saved and call
-  //   fe_engine to write the file
-  //--------------------------------------------------
-  void ATC_CouplingMass::read_restart_data(string fileName, RESTART_LIST & data)
-  {
-    ATC_Method::read_restart_data(fileName,data);
-  }
-
-  //--------------------------------------------------------
-  //  pre_force
-  //    prior to calculation of forces
-  //--------------------------------------------------------
-  void ATC_CouplingMass::pre_force()
-  {
-    ATC_Coupling::pre_force();
-    atomicRegulator_->pre_force(); 
-  }
-
+#endif
+  //WIP_JAT consolidate to coupling when we handle the temperature correctly
   //--------------------------------------------------------
   //  pre_exchange
   //    prior to exchange of atoms
@@ -318,123 +275,6 @@ namespace ATC {
     }
   }
 
-#ifdef OBSOLETE
-  //--------------------------------------------------------
-  //  mid_init_integrate
-  //    time integration between the velocity update and
-  //    the position lammps update of Verlet step 1
-  //--------------------------------------------------------
-  void ATC_CouplingMass::mid_init_integrate()
-  {
-    ATC_Coupling::mid_init_integrate();
-    double dt = lammpsInterface_->dt();
-
-    for (_tiIt_ = timeIntegrators_.begin(); _tiIt_ != timeIntegrators_.end(); ++_tiIt_) {
-      (_tiIt_->second)->mid_initial_integrate1(dt);
-    }
-
-    atomicRegulator_->apply_mid_predictor(dt,lammpsInterface_->ntimestep());
-
-    extrinsicModelManager_.mid_init_integrate();
-  }
-
-  //--------------------------------------------------------
-  //  post_init_integrate
-  //    time integration after the lammps atomic updates of
-  //    Verlet step 1
-  //--------------------------------------------------------
-  void ATC_CouplingMass::post_init_integrate()
-  {
-    double dt = lammpsInterface_->dt();
-  
-    for (_tiIt_ = timeIntegrators_.begin(); _tiIt_ != timeIntegrators_.end(); ++_tiIt_) {
-      (_tiIt_->second)->post_initial_integrate1(dt);
-    }
-
-    atomicRegulator_->apply_post_predictor(dt,lammpsInterface_->ntimestep());
-
-    extrinsicModelManager_.post_init_integrate();
-
-    set_fixed_nodes();
-    update_time(0.5); // half step
-    ATC_Coupling::post_init_integrate();
-  }
-#endif
-  //--------------------------------------------------------
-  //  post_final_integrate
-  //    integration after the second stage lammps atomic 
-  //    update of Verlet step 2
-  //--------------------------------------------------------
-  void ATC_CouplingMass::post_final_integrate()
-  {
-    double dt = lammpsInterface_->dt();
-
-    for (_tiIt_ = timeIntegrators_.begin(); _tiIt_ != timeIntegrators_.end(); ++_tiIt_) {
-      (_tiIt_->second)->pre_final_integrate1(dt);
-    }
-
-    prescribedDataMgr_->set_sources(time()+0.5*dt,sources_);
-    extrinsicModelManager_.pre_final_integrate();
-
-    
-    if (timeIntegrators_[MASS_DENSITY]->has_final_predictor()) {
-      // set state-based sources
-      extrinsicModelManager_.set_sources(fields_,extrinsicSources_);
-      
-      compute_atomic_sources(speciesMask_,fields_,atomicSources_);
-    }
-
-    
-
-    // set state-based RHS
-    // Determine FE contributions to dv/dt-----------------------
-    // Compute atom-integrated rhs
-    // parallel communication happens within FE_Engine
-    compute_rhs_vector(speciesMask_,fields_,rhs_,FE_DOMAIN);
-    // Compute and add atomic contributions to FE equations
-    for (_tiIt_ = timeIntegrators_.begin(); _tiIt_ != timeIntegrators_.end(); ++_tiIt_) {
-      (_tiIt_->second)->add_to_rhs();
-    }
-    atomicRegulator_->add_to_rhs(rhs_);
-
-    // final phase predictor step
-    for (_tiIt_ = timeIntegrators_.begin(); _tiIt_ != timeIntegrators_.end(); ++_tiIt_) {
-      (_tiIt_->second)->post_final_integrate1(dt);
-    }
-
-    set_fixed_nodes();
-
-    // corrector step extrinsic model
-    extrinsicModelManager_.post_final_integrate();
-
-    if (timeIntegrators_[MASS_DENSITY]->has_final_corrector()) {
-      // set state-based sources
-      extrinsicModelManager_.set_sources(fields_,extrinsicSources_);
-      
-      compute_atomic_sources(speciesMask_,fields_,atomicSources_);
-    }
-
-    // finish FE temperature update
-    for (_tiIt_ = timeIntegrators_.begin(); _tiIt_ != timeIntegrators_.end(); ++_tiIt_) {
-      (_tiIt_->second)->post_final_integrate2(dt);
-    }
-
-    // apply corrector phase of thermostat
-    atomicRegulator_->apply_post_corrector(dt,lammpsInterface_->ntimestep());
-
-    // finalize time integration
-    for (_tiIt_ = timeIntegrators_.begin(); _tiIt_ != timeIntegrators_.end(); ++_tiIt_) {
-      (_tiIt_->second)->post_final_integrate3(dt);
-    }
-
-    // Fix nodes, non-group bcs applied through FE
-    set_fixed_nodes();
-
-    update_time(0.5);
-    output();
-    ATC_Coupling::post_final_integrate(); // addstep for computes
-  }
-  
   //--------------------------------------------------------
   //  output
   //    does post-processing steps and outputs data

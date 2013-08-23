@@ -1,6 +1,6 @@
 #!/bin/bash
 cd /code/lammps-atc/regress
-#./benchmark.py 4 12 min melt >& latest
+./benchmark.py 4 12 min melt >& latest
 fail=`grep -c FAIL latest`
 addresses="rjones@sandia.gov jatempl@sandia.gov jzimmer@sandia.gov sjplimp@sandia.gov pscrozi@sandia.gov akohlmey@gmail.com" 
 subject="\"LAMMPS regression $fail tests failed\""

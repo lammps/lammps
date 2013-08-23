@@ -90,7 +90,7 @@ RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
     if (axis == 'z') lo = zscale*force->numeric(FLERR,arg[6]);
   }
 
-  if (strcmp(arg[7],"INF") == 0 || strcmp(arg[6],"EDGE") == 0) {
+  if (strcmp(arg[7],"INF") == 0 || strcmp(arg[7],"EDGE") == 0) {
     if (domain->box_exist == 0)
       error->all(FLERR,"Cannot use region INF or EDGE when box does not exist");
     if (axis == 'x') {

@@ -344,7 +344,11 @@ void ChangeBox::command(int narg, char **arg)
 
   // apply shrink-wrap boundary conditions
 
-  if (domain->nonperiodic == 2) domain->reset_box();
+  if (domain->nonperiodic == 2) {
+    if (domain->triclinic) domain->x2lamda(atom->nlocal);
+    domain->reset_box();
+    if (domain->triclinic) domain->lamda2x(atom->nlocal);
+  }
 
   // move atoms back inside simulation box and to new processors
   // use remap() instead of pbc()

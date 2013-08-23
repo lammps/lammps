@@ -181,13 +181,13 @@ Step Temp Press TotEng Lx Ly Lz
  ATC: computing bond matrix ...........done
  ATC: computing bond matrix ...........done
    10000   0.19513095     6.800965   -1742.9477    31.537365    31.537365    31.537365 
-Loop time of 63.0111 on 4 procs for 10000 steps with 864 atoms
+Loop time of 65.0533 on 4 procs for 10000 steps with 864 atoms
 
-Pair  time (%) = 14.2887 (22.6765)
-Neigh time (%) = 0.0612963 (0.0972785)
-Comm  time (%) = 5.64765 (8.96293)
-Outpt time (%) = 0.00296688 (0.0047085)
-Other time (%) = 43.0105 (68.2586)
+Pair  time (%) = 14.401 (22.1372)
+Neigh time (%) = 0.0566635 (0.0871031)
+Comm  time (%) = 6.05715 (9.31105)
+Outpt time (%) = 0.00306785 (0.0047159)
+Other time (%) = 44.5355 (68.46)
 
 Nlocal:    216 ave 223 max 212 min
 Histogram: 2 0 0 0 1 0 0 0 0 1
@@ -274,13 +274,13 @@ Step Temp Press TotEng Lx Ly Lz
  ATC: computing bond matrix ...........done
  ATC: computing bond matrix ...........done
    20000   0.19726939    5.6206257   -1743.0501    31.537365    31.537365    31.537365 
-Loop time of 58.5387 on 4 procs for 10000 steps with 864 atoms
+Loop time of 62.9814 on 4 procs for 10000 steps with 864 atoms
 
-Pair  time (%) = 13.8989 (23.7432)
-Neigh time (%) = 0.0561359 (0.0958954)
-Comm  time (%) = 3.6625 (6.25654)
-Outpt time (%) = 0.00293058 (0.00500623)
-Other time (%) = 40.9182 (69.8994)
+Pair  time (%) = 14.1598 (22.4825)
+Neigh time (%) = 0.0564907 (0.0896943)
+Comm  time (%) = 5.43685 (8.63246)
+Outpt time (%) = 0.00284231 (0.00451293)
+Other time (%) = 43.3254 (68.7908)
 
 Nlocal:    216 ave 231 max 208 min
 Histogram: 1 1 1 0 0 0 0 0 0 1

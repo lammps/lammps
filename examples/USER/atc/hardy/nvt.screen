@@ -67,13 +67,13 @@ Step Temp TotEng KinEng PotEng Press Volume
      800    29.876839   -900.32866    44.528592   -944.85725   -587.67852    19421.725 
      900    29.966977   -899.86769    44.662933   -944.53062   -581.80498    19421.725 
     1000    29.907621   -901.57887    44.574469   -946.15334   -613.00908    19421.725 
-Loop time of 1.42359 on 4 procs for 1000 steps with 500 atoms
+Loop time of 1.43083 on 4 procs for 1000 steps with 500 atoms
 
-Pair  time (%) = 0.747143 (52.4831)
+Pair  time (%) = 0.761305 (53.2071)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.3064 (21.5231)
-Outpt time (%) = 0.000646651 (0.045424)
-Other time (%) = 0.369397 (25.9483)
+Comm  time (%) = 0.317228 (22.1708)
+Outpt time (%) = 0.00066191 (0.0462604)
+Other time (%) = 0.351639 (24.5758)
 
 Nlocal:    125 ave 129 max 121 min
 Histogram: 1 0 0 0 0 2 0 0 0 1

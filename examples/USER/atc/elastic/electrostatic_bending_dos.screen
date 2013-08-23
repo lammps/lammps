@@ -94,13 +94,13 @@ Setting up run ...
 Memory usage per processor = 2.45103 Mbytes
 Step Q TotEng CM[1] CM[3] 
        0            0    -6155.851   -3752.4867   -51103.063 
-Loop time of 6.67572e-06 on 4 procs for 0 steps with 846 atoms
+Loop time of 5.96046e-06 on 4 procs for 0 steps with 846 atoms
 
 Pair  time (%) = 0 (0)
 Neigh time (%) = 0 (0)
 Comm  time (%) = 0 (0)
 Outpt time (%) = 0 (0)
-Other time (%) = 6.67572e-06 (100)
+Other time (%) = 5.96046e-06 (100)
 
 Nlocal:    211.5 ave 216 max 198 min
 Histogram: 1 0 0 0 0 0 0 0 0 3
@@ -317,7 +317,7 @@ Step Q PotEng dx dz FIX[1] FIX[3]
      480            0    -6155.851 1.0913936e-11 -0.0011954718 1.7273457e-11 8.5179641e-12 
      490            0    -6155.851 1.0913936e-11 -0.0011954718 1.7452029e-11 8.4042773e-12 
      500            0    -6155.851 1.0913936e-11 -0.0011954718 1.7463576e-11 8.1070706e-12 
-Loop time of 47.2134 on 4 procs for 500 steps with 846 atoms
+Loop time of 49.3837 on 4 procs for 500 steps with 846 atoms
 
 Minimization stats:
   Stopping criterion = max force evaluations
@@ -328,11 +328,11 @@ Minimization stats:
   Final line search alpha, max atom move = 1 6.70891e-13
   Iterations, force evaluations = 500 1000
 
-Pair  time (%) = 7.6071 (16.1121)
+Pair  time (%) = 7.60634 (15.4025)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.754668 (1.59842)
-Outpt time (%) = 0.00579727 (0.0122789)
-Other time (%) = 38.8459 (82.2772)
+Comm  time (%) = 0.929179 (1.88155)
+Outpt time (%) = 0.0080055 (0.0162108)
+Other time (%) = 40.8402 (82.6997)
 
 Nlocal:    211.5 ave 216 max 198 min
 Histogram: 1 0 0 0 0 0 0 0 0 3
@@ -445,7 +445,7 @@ Step Q PotEng dx dz FIX[1] FIX[3]
      980            0    -6155.851 0.0003179655 -0.0011954718 1.7269717e-11 8.5640384e-12 
      990            0    -6155.851 0.0003179655 -0.0011954718 1.7215684e-11 8.985479e-12 
     1000            0    -6155.851 0.0003179655 -0.0011954718 1.7359402e-11 9.1016084e-12 
-Loop time of 52.4279 on 4 procs for 500 steps with 846 atoms
+Loop time of 45.8549 on 4 procs for 500 steps with 846 atoms
 
 Minimization stats:
   Stopping criterion = max force evaluations
@@ -456,11 +456,11 @@ Minimization stats:
   Final line search alpha, max atom move = 1 6.69757e-13
   Iterations, force evaluations = 500 1000
 
-Pair  time (%) = 7.585 (14.4675)
+Pair  time (%) = 7.42672 (16.1961)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 1.125 (2.1458)
-Outpt time (%) = 0.0108191 (0.0206361)
-Other time (%) = 43.7071 (83.3661)
+Comm  time (%) = 0.756676 (1.65016)
+Outpt time (%) = 0.0206363 (0.0450036)
+Other time (%) = 37.6508 (82.1087)
 
 Nlocal:    211.5 ave 216 max 198 min
 Histogram: 1 0 0 0 0 0 0 0 0 3
@@ -573,7 +573,7 @@ Step Q PotEng dx dz FIX[1] FIX[3]
     1480            0    -6155.851 0.00031796548 -0.0011954718 1.7054681e-11 9.3104413e-12 
     1490            0    -6155.851 0.00031796548 -0.0011954718 1.722188e-11 9.3294261e-12 
     1500            0    -6155.851 0.00031796548 -0.0011954718 1.7142694e-11 9.3715036e-12 
-Loop time of 45.7556 on 4 procs for 500 steps with 846 atoms
+Loop time of 44.5893 on 4 procs for 500 steps with 846 atoms
 
 Minimization stats:
   Stopping criterion = max force evaluations
@@ -584,11 +584,11 @@ Minimization stats:
   Final line search alpha, max atom move = 1 8.93204e-13
   Iterations, force evaluations = 500 1000
 
-Pair  time (%) = 7.4391 (16.2583)
+Pair  time (%) = 7.41525 (16.6301)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.7151 (1.56287)
-Outpt time (%) = 0.00588948 (0.0128716)
-Other time (%) = 37.5955 (82.1659)
+Comm  time (%) = 0.697285 (1.56379)
+Outpt time (%) = 0.00551951 (0.0123785)
+Other time (%) = 36.4713 (81.7937)
 
 Nlocal:    211.5 ave 216 max 198 min
 Histogram: 1 0 0 0 0 0 0 0 0 3

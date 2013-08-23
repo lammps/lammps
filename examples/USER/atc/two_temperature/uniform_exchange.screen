@@ -67,13 +67,13 @@ Step PotEng Temp AtC[2] AtC[4]
      480   -6591.7933    19.843386           20           30 
      490   -6589.9573    19.837677           20           30 
      500   -6587.2689    19.832888           20           30 
-Loop time of 9.73246 on 4 procs for 500 steps with 3456 atoms
+Loop time of 12.3006 on 4 procs for 500 steps with 3456 atoms
 
-Pair  time (%) = 4.82022 (49.5273)
-Neigh time (%) = 2.1062 (21.6409)
-Comm  time (%) = 0.575479 (5.91299)
-Outpt time (%) = 0.00457436 (0.047001)
-Other time (%) = 2.22599 (22.8718)
+Pair  time (%) = 5.16972 (42.0283)
+Neigh time (%) = 2.30395 (18.7305)
+Comm  time (%) = 1.86285 (15.1444)
+Outpt time (%) = 0.00649101 (0.0527699)
+Other time (%) = 2.95757 (24.0441)
 
 Nlocal:    864 ave 864 max 864 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -595,13 +595,13 @@ Step PotEng Temp AtC[2] AtC[4]
     5480   -6538.0259    25.322264    25.372916    25.302183 
     5490   -6538.1544      25.3361    25.386454    25.302798 
     5500   -6536.8742    25.212636    25.393996    25.303497 
-Loop time of 113.484 on 4 procs for 5000 steps with 3456 atoms
+Loop time of 129.462 on 4 procs for 5000 steps with 3456 atoms
 
-Pair  time (%) = 47.9073 (42.2152)
-Neigh time (%) = 21.0072 (18.5112)
-Comm  time (%) = 4.75303 (4.18829)
-Outpt time (%) = 0.0703849 (0.062022)
-Other time (%) = 39.7458 (35.0233)
+Pair  time (%) = 50.9041 (39.3198)
+Neigh time (%) = 21.6889 (16.7531)
+Comm  time (%) = 10.2584 (7.92392)
+Outpt time (%) = 0.154454 (0.119304)
+Other time (%) = 46.4559 (35.8839)
 
 Nlocal:    864 ave 864 max 864 min
 Histogram: 4 0 0 0 0 0 0 0 0 0

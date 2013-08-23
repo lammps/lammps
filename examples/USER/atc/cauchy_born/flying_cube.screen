@@ -106,7 +106,7 @@ Step Temp Pxx Pyy Pzz TotEng Lx Ly Lz
      480            0 -4.8910054e-07 -4.8910048e-07 -4.8910165e-07   -1743.9897    31.537365    31.537365    31.537365 
      490            0 -4.8910103e-07 -4.8910094e-07 -4.8910185e-07   -1743.9897    31.537365    31.537365    31.537365 
      500            0 -4.8910081e-07 -4.8910044e-07 -4.891017e-07   -1743.9897    31.537365    31.537365    31.537365 
-Loop time of 2.6583 on 4 procs for 500 steps with 864 atoms
+Loop time of 2.69771 on 4 procs for 500 steps with 864 atoms
 
 Minimization stats:
   Stopping criterion = max force evaluations
@@ -117,11 +117,11 @@ Minimization stats:
   Final line search alpha, max atom move = 1 1.74791e-14
   Iterations, force evaluations = 500 1000
 
-Pair  time (%) = 2.20028 (82.7702)
+Pair  time (%) = 2.22068 (82.3173)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.405075 (15.2381)
-Outpt time (%) = 0.00386053 (0.145226)
-Other time (%) = 0.0490846 (1.84647)
+Comm  time (%) = 0.424106 (15.7209)
+Outpt time (%) = 0.00369722 (0.13705)
+Other time (%) = 0.0492265 (1.82475)
 
 Nlocal:    216 ave 216 max 216 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -538,13 +538,13 @@ Step Temp Pxx Pyy Pzz TotEng Lx Ly Lz
     3480    160162.49    1803377.9 -4.8910193e-07 -4.8910309e-07    410741.67    31.537365    31.537365    31.537365 
     3490    160162.49    1803377.9 -4.8910055e-07 -4.8910166e-07    410741.67    31.537365    31.537365    31.537365 
     3500    160162.49    1803377.9 -4.8910204e-07 -4.8910346e-07    410741.67    31.537365    31.537365    31.537365 
-Loop time of 86.704 on 4 procs for 3500 steps with 864 atoms
+Loop time of 91.2456 on 4 procs for 3500 steps with 864 atoms
 
-Pair  time (%) = 5.30349 (6.11678)
-Neigh time (%) = 0.102296 (0.117983)
-Comm  time (%) = 1.95494 (2.25473)
-Outpt time (%) = 1.13595 (1.31014)
-Other time (%) = 78.2073 (90.2004)
+Pair  time (%) = 5.3465 (5.85946)
+Neigh time (%) = 0.100766 (0.110434)
+Comm  time (%) = 1.96247 (2.15075)
+Outpt time (%) = 1.30759 (1.43305)
+Other time (%) = 82.5282 (90.4463)
 
 Nlocal:    216 ave 216 max 216 min
 Histogram: 4 0 0 0 0 0 0 0 0 0

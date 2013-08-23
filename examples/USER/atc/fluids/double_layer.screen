@@ -178,14 +178,14 @@ Step E_pair E_mol TotEng Press fluidT
      800     -9250.72            0    -9226.768   -55686.507    294.64934 
      900   -9251.0634            0   -9227.1621   -55774.601    292.41664 
     1000   -9250.8046            0   -9227.0389   -55778.639    286.45437 
-Loop time of 33.0028 on 4 procs for 1000 steps with 1982 atoms
+Loop time of 33.335 on 4 procs for 1000 steps with 1982 atoms
 
-Pair  time (%) = 6.77354 (20.5241)
-Bond  time (%) = 0.000575602 (0.0017441)
-Neigh time (%) = 0.0390739 (0.118396)
-Comm  time (%) = 0.339662 (1.02919)
-Outpt time (%) = 0.0657595 (0.199255)
-Other time (%) = 25.7842 (78.1273)
+Pair  time (%) = 6.92194 (20.7648)
+Bond  time (%) = 0.000487626 (0.00146281)
+Neigh time (%) = 0.0395007 (0.118496)
+Comm  time (%) = 0.29625 (0.888707)
+Outpt time (%) = 0.0683134 (0.20493)
+Other time (%) = 26.0085 (78.0216)
 
 Nlocal:    495.5 ave 976 max 63 min
 Histogram: 2 0 0 0 0 0 0 0 1 1

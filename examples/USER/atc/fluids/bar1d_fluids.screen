@@ -19,23 +19,23 @@ Setting up run ...
 Memory usage per processor = 18.9868 Mbytes
 Step CPU TotEng PotEng AtC[1] Temp AtC[2] 
      0       0   -994.32071   -1292.1036    1073.0916         99.9          100 
-   200     1.1   -1039.0541   -1337.1351    1073.0916          100          100 
-   400     2.2   -1063.5946   -1361.6756    1073.0916          100          100 
-   600       3   -1074.9626   -1373.0436    1073.0916          100          100 
-   800     3.9   -1081.7626   -1379.8436    1073.0916          100          100 
-  1000     4.7   -1078.0299   -1376.1109    1073.0916          100          100 
-  1200     5.6   -1084.8934   -1382.9744    1073.0916          100          100 
-  1400     6.4   -1082.8007   -1380.8817    1073.0916          100          100 
-  1600     7.3   -1091.2229   -1389.3039    1073.0916          100          100 
-  1800     8.2   -1089.9946   -1388.0756    1073.0916          100          100 
-  2000       9    -1090.382    -1388.463    1073.0916          100          100 
-Loop time of 9.04165 on 4 procs for 2000 steps with 1288 atoms
+   200    0.77   -1039.0541   -1337.1351    1073.0916          100          100 
+   400     1.5   -1063.5946   -1361.6756    1073.0916          100          100 
+   600     2.3   -1074.9626   -1373.0436    1073.0916          100          100 
+   800     3.1   -1081.7626   -1379.8436    1073.0916          100          100 
+  1000     3.9   -1078.0299   -1376.1109    1073.0916          100          100 
+  1200     4.7   -1084.8934   -1382.9744    1073.0916          100          100 
+  1400     5.4   -1082.8007   -1380.8817    1073.0916          100          100 
+  1600     6.2   -1091.2229   -1389.3039    1073.0916          100          100 
+  1800       7   -1089.9946   -1388.0756    1073.0916          100          100 
+  2000     7.8    -1090.382    -1388.463    1073.0916          100          100 
+Loop time of 7.79824 on 4 procs for 2000 steps with 1288 atoms
 
-Pair  time (%) = 4.58364 (50.6947)
-Neigh time (%) = 1.84137 (20.3654)
-Comm  time (%) = 1.23272 (13.6338)
-Outpt time (%) = 0.00281537 (0.0311377)
-Other time (%) = 1.3811 (15.2749)
+Pair  time (%) = 4.18298 (53.6401)
+Neigh time (%) = 1.79092 (22.9656)
+Comm  time (%) = 0.628929 (8.06501)
+Outpt time (%) = 0.00293517 (0.0376389)
+Other time (%) = 1.19248 (15.2916)
 
 Nlocal:    322 ave 348 max 291 min
 Histogram: 1 0 1 0 0 0 0 0 0 2
@@ -57,33 +57,33 @@ Setting up run ...
 Memory usage per processor = 25.6115 Mbytes
 Step CPU TotEng PotEng AtC[1] Temp AtC[2] 
      0       0    -1090.382    -1388.463    1073.0916          100          100 
-   100    0.47   -1087.5927   -1390.2846     1075.454    101.54684    100.25977 
-   200    0.94   -1081.8609   -1380.2432    1075.0766    100.10105    100.30105 
-   300     1.4   -1076.5286   -1384.5736    1077.5462     103.3427    100.56974 
-   400     1.9   -1078.3503   -1388.7033    1083.8991    104.11699    101.14862 
-   500     2.4   -1074.2004   -1390.3057     1091.383    106.04678    101.81783 
-   600     2.8   -1072.5105   -1390.2059    1098.5161    106.58021    102.45902 
-   700     3.3   -1065.5654   -1373.1988    1105.2316    103.20464    103.06686 
-   800     3.8   -1062.4651   -1386.6034     1110.624    108.74168    103.56901 
-   900     4.3    -1054.767     -1378.04    1119.5121    108.45141    104.35038 
-  1000     4.7   -1048.6471   -1376.1878    1129.6369    109.88311    105.23054 
-  1100     5.4   -1049.0911   -1378.9232    1137.6524    110.65183    105.94222 
-  1200     5.9   -1048.3472   -1381.7201    1147.7652    111.83972    106.82141 
-  1300     6.3   -1051.0343   -1380.5791    1156.3021    110.55547    107.57474 
-  1400     6.8   -1047.5028   -1377.2009     1162.231    110.60686    108.11974 
-  1500     7.5   -1049.3227   -1379.9459    1168.2617    110.91724    108.67288 
-  1600     8.2   -1044.2411   -1376.4008    1172.3108    111.43272    109.06773 
-  1700     8.7   -1041.3107   -1376.9092    1178.0968    112.58635    109.60132 
-  1800     9.2   -1041.7106   -1387.1043    1185.6231    115.87242    110.27393 
-  1900     9.7   -1032.7907   -1374.3649    1193.8935    114.59107    111.00596 
+   100    0.45   -1087.5927   -1390.2846     1075.454    101.54684    100.25977 
+   200    0.89   -1081.8609   -1380.2432    1075.0766    100.10105    100.30105 
+   300     1.3   -1076.5286   -1384.5736    1077.5462     103.3427    100.56974 
+   400     1.8   -1078.3503   -1388.7033    1083.8991    104.11699    101.14862 
+   500     2.2   -1074.2004   -1390.3057     1091.383    106.04678    101.81783 
+   600     3.8   -1072.5105   -1390.2059    1098.5161    106.58021    102.45902 
+   700     4.2   -1065.5654   -1373.1988    1105.2316    103.20464    103.06686 
+   800     4.7   -1062.4651   -1386.6034     1110.624    108.74168    103.56901 
+   900     5.2    -1054.767     -1378.04    1119.5121    108.45141    104.35038 
+  1000     5.9   -1048.6471   -1376.1878    1129.6369    109.88311    105.23054 
+  1100     6.5   -1049.0911   -1378.9232    1137.6524    110.65183    105.94222 
+  1200     6.9   -1048.3472   -1381.7201    1147.7652    111.83972    106.82141 
+  1300     7.4   -1051.0343   -1380.5791    1156.3021    110.55547    107.57474 
+  1400     7.8   -1047.5028   -1377.2009     1162.231    110.60686    108.11974 
+  1500     8.3   -1049.3227   -1379.9459    1168.2617    110.91724    108.67288 
+  1600     8.7   -1044.2411   -1376.4008    1172.3108    111.43272    109.06773 
+  1700     9.2   -1041.3107   -1376.9092    1178.0968    112.58635    109.60132 
+  1800     9.7   -1041.7106   -1387.1043    1185.6231    115.87242    110.27393 
+  1900      10   -1032.7907   -1374.3649    1193.8935    114.59107    111.00596 
   2000      11   -1026.8551   -1378.0117    1201.8627    117.80577    111.71394 
-Loop time of 11.2746 on 4 procs for 2000 steps with 1288 atoms
+Loop time of 10.5797 on 4 procs for 2000 steps with 1288 atoms
 
-Pair  time (%) = 4.72937 (41.9472)
-Neigh time (%) = 1.91532 (16.9879)
-Comm  time (%) = 1.47289 (13.0638)
-Outpt time (%) = 0.010129 (0.0898395)
-Other time (%) = 3.14687 (27.9112)
+Pair  time (%) = 4.28553 (40.5071)
+Neigh time (%) = 1.89029 (17.8671)
+Comm  time (%) = 1.0431 (9.85941)
+Outpt time (%) = 0.0105612 (0.0998255)
+Other time (%) = 3.35022 (31.6665)
 
 Nlocal:    322 ave 342 max 299 min
 Histogram: 1 0 1 0 0 0 0 0 0 2
@@ -166,98 +166,98 @@ Step CPU TotEng PotEng AtC[1] Temp AtC[2]
 
  ATC: P0,  Iterative solve for lambda failed to converge after 50 iterations, final tolerance was 2.79083
 
+terminate called after throwing an instance of 'ATC::ATC_Error'
+terminate called after throwing an instance of 'terminate called after throwing an instance of 'ATC::ATC_Error'
+terminate called after throwing an instance of 'ATC::ATC_Error'
+[pharsalus:11201] *** Process received signal ***
  ATC: P2, ERROR: CG solve did not converge, iterations: 4 residual: -nan
  ATC: P3, ERROR: CG solve did not converge, iterations: 4 residual: -nan
  ATC: P1, ERROR: CG solve did not converge, iterations: 4 residual: -nan
  ATC: P0, ERROR: CG solve did not converge, iterations: 4 residual: -nan
-terminate called after throwing an instance of 'ATC::ATC_Error'
-terminate called after throwing an instance of 'ATC::ATC_Error'
-terminate called after throwing an instance of 'ATC::ATC_Error'
-[pharsalus:18190] *** Process received signal ***
-terminate called after throwing an instance of 'ATC::ATC_Error'
-[pharsalus:18193] *** Process received signal ***
-[pharsalus:18193] Signal: Aborted (6)
-[pharsalus:18193] Signal code:  (-6)
-[pharsalus:18189] *** Process received signal ***
-[pharsalus:18190] Signal: Aborted (6)
-[pharsalus:18190] Signal code:  (-6)
-[pharsalus:18191] *** Process received signal ***
-[pharsalus:18191] Signal: Aborted (6)
-[pharsalus:18191] Signal code:  (-6)
-[pharsalus:18189] Signal: Aborted (6)
-[pharsalus:18189] Signal code:  (-6)
-[pharsalus:18190] [ 0] /lib64/libpthread.so.0() [0x3e7ce0f500]
-[pharsalus:18190] [ 1] /lib64/libc.so.6(gsignal+0x35) [0x3e7c2328a5]
-[pharsalus:18190] [ 2] /lib64/libc.so.6(abort+0x175) [0x3e7c234085]
-[pharsalus:18190] [ 3] /usr/lib64/libstdc++.so.6(_ZN9__gnu_cxx27__verbose_terminate_handlerEv+0x12d) [0x3e83ebea5d]
-[pharsalus:18190] [ 4] /usr/lib64/libstdc++.so.6() [0x3e83ebcbe6]
-[pharsalus:18190] [ 5] /usr/lib64/libstdc++.so.6() [0x3e83ebcc13]
-[pharsalus:18190] [ 6] /usr/lib64/libstdc++.so.6(__cxa_rethrow+0x46) [0x3e83ebcc96]
-[pharsalus:18190] [ 7] ../../../lmp_openmpi(_ZN9LAMMPS_NS6FixATC15final_integrateEv+0x8b) [0x69382b]
-[pharsalus:18190] [ 8] ../../../lmp_openmpi(_ZN9LAMMPS_NS6Modify15final_integrateEv+0x46) [0x7fbf86]
-[pharsalus:18190] [ 9] ../../../lmp_openmpi(_ZN9LAMMPS_NS6Verlet3runEi+0x280) [0xa945e0]
-[pharsalus:18190] [10] ../../../lmp_openmpi(_ZN9LAMMPS_NS3Run7commandEiPPc+0x296) [0xa5f496]
-[pharsalus:18190] [11] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input15command_creatorINS_3RunEEEvPNS_6LAMMPSEiPPc+0x33) [0x7cf903]
-[pharsalus:18190] [12] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input15execute_commandEv+0x7a7) [0x7cd2c7]
-[pharsalus:18190] [13] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input4fileEv+0x63c) [0x7cf2ac]
-[pharsalus:18190] [14] ../../../lmp_openmpi(main+0x49) [0x7dd4b9]
-[pharsalus:18190] [15] /lib64/libc.so.6(__libc_start_main+0xfd) [0x3e7c21ecdd]
-[pharsalus:18190] [16] ../../../lmp_openmpi() [0x53dd89]
-[pharsalus:18190] *** End of error message ***
-[pharsalus:18193] [ 0] /lib64/libpthread.so.0() [0x3e7ce0f500]
-[pharsalus:18189] [ 0] /lib64/libpthread.so.0() [0x3e7ce0f500]
-[pharsalus:18189] [ 1] /lib64/libc.so.6(gsignal+0x35) [0x3e7c2328a5]
-[pharsalus:18189] [ 2] /lib64/libc.so.6(abort+0x175) [0x3e7c234085]
-[pharsalus:18189] [ 3] /usr/lib64/libstdc++.so.6(_ZN9__gnu_cxx27__verbose_terminate_handlerEv+0x12d) [0x3e83ebea5d]
-[pharsalus:18189] [ 4] /usr/lib64/libstdc++.so.6() [0x3e83ebcbe6]
-[pharsalus:18189] [ 5] /usr/lib64/libstdc++.so.6() [0x3e83ebcc13]
-[pharsalus:18189] [ 6] /usr/lib64/libstdc++.so.6(__cxa_rethrow+0x46) [0x3e83ebcc96]
-[pharsalus:18189] [ 7] ../../../lmp_openmpi(_ZN9LAMMPS_NS6FixATC15final_integrateEv+0x8b) [0x69382b]
-[pharsalus:18189] [ 8] ../../../lmp_openmpi(_ZN9LAMMPS_NS6Modify15final_integrateEv+0x46) [0x7fbf86]
-[pharsalus:18189] [ 9] ../../../lmp_openmpi(_ZN9LAMMPS_NS6Verlet3runEi+0x280) [0xa945e0]
-[pharsalus:18189] [10] ../../../lmp_openmpi(_ZN9LAMMPS_NS3Run7commandEiPPc+0x296) [0xa5f496]
-[pharsalus:18189] [11] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input15command_creatorINS_3RunEEEvPNS_6LAMMPSEiPPc+0x33) [0x7cf903]
-[pharsalus:18189] [12] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input15execute_commandEv+0x7a7) [0x7cd2c7]
-[pharsalus:18189] [13] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input4fileEv+0x63c) [0x7cf2ac]
-[pharsalus:18189] [14] ../../../lmp_openmpi(main+0x49) [0x7dd4b9]
-[pharsalus:18189] [15] /lib64/libc.so.6(__libc_start_main+0xfd) [0x3e7c21ecdd]
-[pharsalus:18189] [16] ../../../lmp_openmpi() [0x53dd89]
-[pharsalus:18189] *** End of error message ***
-[pharsalus:18191] [ 0] /lib64/libpthread.so.0() [0x3e7ce0f500]
-[pharsalus:18191] [ 1] /lib64/libc.so.6(gsignal+0x35) [0x3e7c2328a5]
-[pharsalus:18191] [ 2] /lib64/libc.so.6(abort+0x175) [0x3e7c234085]
-[pharsalus:18191] [ 3] /usr/lib64/libstdc++.so.6(_ZN9__gnu_cxx27__verbose_terminate_handlerEv+0x12d) [0x3e83ebea5d]
-[pharsalus:18191] [ 4] /usr/lib64/libstdc++.so.6() [0x3e83ebcbe6]
-[pharsalus:18191] [ 5] /usr/lib64/libstdc++.so.6() [0x3e83ebcc13]
-[pharsalus:18191] [ 6] /usr/lib64/libstdc++.so.6(__cxa_rethrow+0x46) [0x3e83ebcc96]
-[pharsalus:18191] [ 7] ../../../lmp_openmpi(_ZN9LAMMPS_NS6FixATC15final_integrateEv+0x8b) [0x69382b]
-[pharsalus:18191] [ 8] ../../../lmp_openmpi(_ZN9LAMMPS_NS6Modify15final_integrateEv+0x46) [0x7fbf86]
-[pharsalus:18191] [ 9] ../../../lmp_openmpi(_ZN9LAMMPS_NS6Verlet3runEi+0x280) [0xa945e0]
-[pharsalus:18191] [10] ../../../lmp_openmpi(_ZN9LAMMPS_NS3Run7commandEiPPc+0x296) [0xa5f496]
-[pharsalus:18191] [11] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input15command_creatorINS_3RunEEEvPNS_6LAMMPSEiPPc+0x33) [0x7cf903]
-[pharsalus:18191] [12] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input15execute_commandEv+0x7a7) [0x7cd2c7]
-[pharsalus:18191] [13] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input4fileEv+0x63c) [0x7cf2ac]
-[pharsalus:18191] [14] ../../../lmp_openmpi(main+0x49) [0x7dd4b9]
-[pharsalus:18191] [15] /lib64/libc.so.6(__libc_start_main+0xfd) [0x3e7c21ecdd]
-[pharsalus:18191] [16] ../../../lmp_openmpi() [0x53dd89]
-[pharsalus:18191] *** End of error message ***
-[pharsalus:18193] [ 1] /lib64/libc.so.6(gsignal+0x35) [0x3e7c2328a5]
-[pharsalus:18193] [ 2] /lib64/libc.so.6(abort+0x175) [0x3e7c234085]
-[pharsalus:18193] [ 3] /usr/lib64/libstdc++.so.6(_ZN9__gnu_cxx27__verbose_terminate_handlerEv+0x12d) [0x3e83ebea5d]
-[pharsalus:18193] [ 4] /usr/lib64/libstdc++.so.6() [0x3e83ebcbe6]
-[pharsalus:18193] [ 5] /usr/lib64/libstdc++.so.6() [0x3e83ebcc13]
-[pharsalus:18193] [ 6] /usr/lib64/libstdc++.so.6(__cxa_rethrow+0x46) [0x3e83ebcc96]
-[pharsalus:18193] [ 7] ../../../lmp_openmpi(_ZN9LAMMPS_NS6FixATC15final_integrateEv+0x8b) [0x69382b]
-[pharsalus:18193] [ 8] ../../../lmp_openmpi(_ZN9LAMMPS_NS6Modify15final_integrateEv+0x46) [0x7fbf86]
-[pharsalus:18193] [ 9] ../../../lmp_openmpi(_ZN9LAMMPS_NS6Verlet3runEi+0x280) [0xa945e0]
-[pharsalus:18193] [10] ../../../lmp_openmpi(_ZN9LAMMPS_NS3Run7commandEiPPc+0x296) [0xa5f496]
-[pharsalus:18193] [11] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input15command_creatorINS_3RunEEEvPNS_6LAMMPSEiPPc+0x33) [0x7cf903]
-[pharsalus:18193] [12] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input15execute_commandEv+0x7a7) [0x7cd2c7]
-[pharsalus:18193] [13] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input4fileEv+0x63c) [0x7cf2ac]
-[pharsalus:18193] [14] ../../../lmp_openmpi(main+0x49) [0x7dd4b9]
-[pharsalus:18193] [15] /lib64/libc.so.6(__libc_start_main+0xfd) [0x3e7c21ecdd]
-[pharsalus:18193] [16] ../../../lmp_openmpi() [0x53dd89]
-[pharsalus:18193] *** End of error message ***
+[pharsalus:11198] *** Process received signal ***
+[pharsalus:11198] Signal: Aborted (6)
+[pharsalus:11198] Signal code:  (-6)
+[pharsalus:11199] *** Process received signal ***
+[pharsalus:11199] Signal: Aborted (6)
+[pharsalus:11199] Signal code:  (-6)
+[pharsalus:11201] Signal: Aborted (6)
+[pharsalus:11201] Signal code:  (-6)
+ATC::ATC_Error'
+[pharsalus:11200] *** Process received signal ***
+[pharsalus:11200] Signal: Aborted (6)
+[pharsalus:11200] Signal code:  (-6)
+[pharsalus:11201] [ 0] /lib64/libpthread.so.0() [0x3e7ce0f500]
+[pharsalus:11201] [ 1] /lib64/libc.so.6(gsignal+0x35) [0x3e7c2328a5]
+[pharsalus:11201] [ 2] /lib64/libc.so.6(abort+0x175) [0x3e7c234085]
+[pharsalus:11201] [ 3] /usr/lib64/libstdc++.so.6(_ZN9__gnu_cxx27__verbose_terminate_handlerEv+0x12d) [0x3e83ebea5d]
+[pharsalus:11201] [ 4] /usr/lib64/libstdc++.so.6() [0x3e83ebcbe6]
+[pharsalus:11201] [ 5] /usr/lib64/libstdc++.so.6() [0x3e83ebcc13]
+[pharsalus:11201] [ 6] /usr/lib64/libstdc++.so.6(__cxa_rethrow+0x46) [0x3e83ebcc96]
+[pharsalus:11201] [ 7] ../../../lmp_openmpi(_ZN9LAMMPS_NS6FixATC15final_integrateEv+0x8b) [0x68d05b]
+[pharsalus:11201] [ 8] ../../../lmp_openmpi(_ZN9LAMMPS_NS6Modify15final_integrateEv+0x46) [0x7c4366]
+[pharsalus:11201] [ 9] ../../../lmp_openmpi(_ZN9LAMMPS_NS6Verlet3runEi+0x280) [0xa530d0]
+[pharsalus:11201] [10] ../../../lmp_openmpi(_ZN9LAMMPS_NS3Run7commandEiPPc+0x296) [0xa220a6]
+[pharsalus:11201] [11] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input15command_creatorINS_3RunEEEvPNS_6LAMMPSEiPPc+0x33) [0x797eb3]
+[pharsalus:11201] [12] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input15execute_commandEv+0x7a7) [0x795977]
+[pharsalus:11201] [13] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input4fileEv+0x63c) [0x79795c]
+[pharsalus:11201] [14] ../../../lmp_openmpi(main+0x49) [0x7a5899]
+[pharsalus:11201] [15] /lib64/libc.so.6(__libc_start_main+0xfd) [0x3e7c21ecdd]
+[pharsalus:11201] [16] ../../../lmp_openmpi() [0x538069]
+[pharsalus:11201] *** End of error message ***
+[pharsalus:11198] [ 0] /lib64/libpthread.so.0() [0x3e7ce0f500]
+[pharsalus:11198] [ 1] /lib64/libc.so.6(gsignal+0x35) [0x3e7c2328a5]
+[pharsalus:11198] [ 2] /lib64/libc.so.6(abort+0x175) [0x3e7c234085]
+[pharsalus:11198] [ 3] /usr/lib64/libstdc++.so.6(_ZN9__gnu_cxx27__verbose_terminate_handlerEv+0x12d) [0x3e83ebea5d]
+[pharsalus:11198] [ 4] /usr/lib64/libstdc++.so.6() [0x3e83ebcbe6]
+[pharsalus:11198] [ 5] /usr/lib64/libstdc++.so.6() [0x3e83ebcc13]
+[pharsalus:11198] [ 6] /usr/lib64/libstdc++.so.6(__cxa_rethrow+0x46) [0x3e83ebcc96]
+[pharsalus:11198] [ 7] ../../../lmp_openmpi(_ZN9LAMMPS_NS6FixATC15final_integrateEv+0x8b) [0x68d05b]
+[pharsalus:11198] [ 8] ../../../lmp_openmpi(_ZN9LAMMPS_NS6Modify15final_integrateEv+0x46) [0x7c4366]
+[pharsalus:11198] [ 9] ../../../lmp_openmpi(_ZN9LAMMPS_NS6Verlet3runEi+0x280) [0xa530d0]
+[pharsalus:11198] [10] ../../../lmp_openmpi(_ZN9LAMMPS_NS3Run7commandEiPPc+0x296) [0xa220a6]
+[pharsalus:11198] [11] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input15command_creatorINS_3RunEEEvPNS_6LAMMPSEiPPc+0x33) [0x797eb3]
+[pharsalus:11198] [12] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input15execute_commandEv+0x7a7) [0x795977]
+[pharsalus:11198] [13] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input4fileEv+0x63c) [0x79795c]
+[pharsalus:11198] [14] ../../../lmp_openmpi(main+0x49) [0x7a5899]
+[pharsalus:11198] [15] /lib64/libc.so.6(__libc_start_main+0xfd) [0x3e7c21ecdd]
+[pharsalus:11198] [16] ../../../lmp_openmpi() [0x538069]
+[pharsalus:11198] *** End of error message ***
+[pharsalus:11199] [ 0] /lib64/libpthread.so.0() [0x3e7ce0f500]
+[pharsalus:11199] [ 1] /lib64/libc.so.6(gsignal+0x35) [0x3e7c2328a5]
+[pharsalus:11199] [ 2] /lib64/libc.so.6(abort+0x175) [0x3e7c234085]
+[pharsalus:11199] [ 3] /usr/lib64/libstdc++.so.6(_ZN9__gnu_cxx27__verbose_terminate_handlerEv+0x12d) [0x3e83ebea5d]
+[pharsalus:11199] [ 4] /usr/lib64/libstdc++.so.6() [0x3e83ebcbe6]
+[pharsalus:11199] [ 5] /usr/lib64/libstdc++.so.6() [0x3e83ebcc13]
+[pharsalus:11199] [ 6] /usr/lib64/libstdc++.so.6(__cxa_rethrow+0x46) [0x3e83ebcc96]
+[pharsalus:11199] [ 7] ../../../lmp_openmpi(_ZN9LAMMPS_NS6FixATC15final_integrateEv+0x8b) [0x68d05b]
+[pharsalus:11199] [ 8] ../../../lmp_openmpi(_ZN9LAMMPS_NS6Modify15final_integrateEv+0x46) [0x7c4366]
+[pharsalus:11199] [ 9] ../../../lmp_openmpi(_ZN9LAMMPS_NS6Verlet3runEi+0x280) [0xa530d0]
+[pharsalus:11199] [10] ../../../lmp_openmpi(_ZN9LAMMPS_NS3Run7commandEiPPc+0x296) [0xa220a6]
+[pharsalus:11199] [11] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input15command_creatorINS_3RunEEEvPNS_6LAMMPSEiPPc+0x33) [0x797eb3]
+[pharsalus:11199] [12] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input15execute_commandEv+0x7a7) [0x795977]
+[pharsalus:11199] [13] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input4fileEv+0x63c) [0x79795c]
+[pharsalus:11199] [14] ../../../lmp_openmpi(main+0x49) [0x7a5899]
+[pharsalus:11199] [15] /lib64/libc.so.6(__libc_start_main+0xfd) [0x3e7c21ecdd]
+[pharsalus:11199] [16] ../../../lmp_openmpi() [0x538069]
+[pharsalus:11199] *** End of error message ***
+[pharsalus:11200] [ 0] /lib64/libpthread.so.0() [0x3e7ce0f500]
+[pharsalus:11200] [ 1] /lib64/libc.so.6(gsignal+0x35) [0x3e7c2328a5]
+[pharsalus:11200] [ 2] /lib64/libc.so.6(abort+0x175) [0x3e7c234085]
+[pharsalus:11200] [ 3] /usr/lib64/libstdc++.so.6(_ZN9__gnu_cxx27__verbose_terminate_handlerEv+0x12d) [0x3e83ebea5d]
+[pharsalus:11200] [ 4] /usr/lib64/libstdc++.so.6() [0x3e83ebcbe6]
+[pharsalus:11200] [ 5] /usr/lib64/libstdc++.so.6() [0x3e83ebcc13]
+[pharsalus:11200] [ 6] /usr/lib64/libstdc++.so.6(__cxa_rethrow+0x46) [0x3e83ebcc96]
+[pharsalus:11200] [ 7] ../../../lmp_openmpi(_ZN9LAMMPS_NS6FixATC15final_integrateEv+0x8b) [0x68d05b]
+[pharsalus:11200] [ 8] ../../../lmp_openmpi(_ZN9LAMMPS_NS6Modify15final_integrateEv+0x46) [0x7c4366]
+[pharsalus:11200] [ 9] ../../../lmp_openmpi(_ZN9LAMMPS_NS6Verlet3runEi+0x280) [0xa530d0]
+[pharsalus:11200] [10] ../../../lmp_openmpi(_ZN9LAMMPS_NS3Run7commandEiPPc+0x296) [0xa220a6]
+[pharsalus:11200] [11] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input15command_creatorINS_3RunEEEvPNS_6LAMMPSEiPPc+0x33) [0x797eb3]
+[pharsalus:11200] [12] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input15execute_commandEv+0x7a7) [0x795977]
+[pharsalus:11200] [13] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input4fileEv+0x63c) [0x79795c]
+[pharsalus:11200] [14] ../../../lmp_openmpi(main+0x49) [0x7a5899]
+[pharsalus:11200] [15] /lib64/libc.so.6(__libc_start_main+0xfd) [0x3e7c21ecdd]
+[pharsalus:11200] [16] ../../../lmp_openmpi() [0x538069]
+[pharsalus:11200] *** End of error message ***
 --------------------------------------------------------------------------
-mpirun noticed that process rank 2 with PID 18191 on node pharsalus exited on signal 6 (Aborted).
+mpirun noticed that process rank 2 with PID 11200 on node pharsalus exited on signal 6 (Aborted).
 --------------------------------------------------------------------------

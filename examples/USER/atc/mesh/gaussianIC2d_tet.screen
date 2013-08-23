@@ -79,13 +79,13 @@ Step Temp PotEng AtC[2] AtC[4]
       80    10.018854   -3732.6191    20.018692    21.657452 
       90    10.008439   -3732.4929    20.013835    21.653444 
      100     9.995993   -3732.3576    20.008205    21.649488 
-Loop time of 40.9323 on 4 procs for 100 steps with 2304 atoms
+Loop time of 41.7235 on 4 procs for 100 steps with 2304 atoms
 
-Pair  time (%) = 0.359623 (0.87858)
+Pair  time (%) = 0.366258 (0.877822)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.100282 (0.244995)
-Outpt time (%) = 0.0734078 (0.179339)
-Other time (%) = 40.399 (98.6971)
+Comm  time (%) = 0.397571 (0.952871)
+Outpt time (%) = 0.0817724 (0.195987)
+Other time (%) = 40.8779 (97.9733)
 
 Nlocal:    576 ave 576 max 576 min
 Histogram: 4 0 0 0 0 0 0 0 0 0

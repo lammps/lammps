@@ -83,7 +83,7 @@ Step KinEng PotEng Press fxsum fysum fzsum
  200   0   -18804.05511297479   -129.61922 -5.3396542e-11 3.7182177e-11 1.0315588e-13 
  210   0   -18804.05511297483   -129.61922 -7.4321343e-12 3.6389846e-12 1.5270715e-13 
  217   0   -18804.05511297483   -129.61922 -8.7495582e-13 -9.0918848e-13 -1.5813771e-13 
-Loop time of 1.26473 on 4 procs for 217 steps with 4800 atoms
+Loop time of 1.1919 on 4 procs for 217 steps with 4800 atoms
 
 Minimization stats:
   Stopping criterion = force tolerance
@@ -94,11 +94,11 @@ Minimization stats:
   Final line search alpha, max atom move = 1 4.98176e-13
   Iterations, force evaluations = 217 434
 
-Pair  time (%) = 1.06716 (84.3788)
+Pair  time (%) = 1.05006 (88.1)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.150986 (11.9382)
-Outpt time (%) = 0.00231534 (0.18307)
-Other time (%) = 0.0442641 (3.49989)
+Comm  time (%) = 0.093149 (7.81518)
+Outpt time (%) = 0.00258434 (0.216825)
+Other time (%) = 0.046102 (3.86795)
 
 Nlocal:    1200 ave 1200 max 1200 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -181,13 +181,13 @@ Memory usage per processor = 23.6491 Mbytes
 Step KinEng PotEng Press fxsum fysum fzsum 
    0   0   -18804.05511297483   -129.61922 -8.7410388e-13 -9.0953256e-13 -1.5920078e-13 
    1   0   -18804.05511297483   -129.61922 -8.7410388e-13 -9.0953256e-13 -1.5920078e-13 
-Loop time of 0.120985 on 4 procs for 1 steps with 4800 atoms
+Loop time of 0.139871 on 4 procs for 1 steps with 4800 atoms
 
-Pair  time (%) = 0.0027563 (2.27821)
+Pair  time (%) = 0.00628603 (4.49417)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000333011 (0.27525)
-Outpt time (%) = 0.000164926 (0.136319)
-Other time (%) = 0.117731 (97.3102)
+Comm  time (%) = 0.0108959 (7.79)
+Outpt time (%) = 0.000148296 (0.106024)
+Other time (%) = 0.12254 (87.6098)
 
 Nlocal:    1200 ave 1200 max 1200 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -255,7 +255,7 @@ Step KinEng PotEng Press fxsum fysum fzsum
  230   0    -18796.6849059705   -25528.746 -9.2570447e-12 -6.5234379e-11 -5.6801785e-14 
  240   0   -18796.68490597055   -25528.746 -1.9896646e-11 3.3817194e-11 9.6343072e-14 
  249   0   -18796.68490597057   -25528.746 3.4677051e-13 6.539951e-12 -8.5036145e-15 
-Loop time of 1.34122 on 4 procs for 248 steps with 4800 atoms
+Loop time of 1.35789 on 4 procs for 248 steps with 4800 atoms
 
 Minimization stats:
   Stopping criterion = force tolerance
@@ -266,11 +266,11 @@ Minimization stats:
   Final line search alpha, max atom move = 1 4.01235e-13
   Iterations, force evaluations = 248 496
 
-Pair  time (%) = 1.16483 (86.849)
+Pair  time (%) = 1.16996 (86.1601)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.123856 (9.23462)
-Outpt time (%) = 0.00256711 (0.191402)
-Other time (%) = 0.04996 (3.72497)
+Comm  time (%) = 0.126024 (9.28088)
+Outpt time (%) = 0.00309974 (0.228277)
+Other time (%) = 0.0588064 (4.33073)
 
 Nlocal:    1200 ave 1200 max 1200 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -293,13 +293,13 @@ Memory usage per processor = 23.6491 Mbytes
 Step KinEng PotEng Press fxsum fysum fzsum 
  249   0   -18796.68490597057   -25528.746 3.4668762e-13 6.5399934e-12 -9.027501e-15 
  250   0   -18796.68490597057   -25528.746 3.4668762e-13 6.5399934e-12 -9.027501e-15 
-Loop time of 0.139842 on 4 procs for 1 steps with 4800 atoms
+Loop time of 0.118602 on 4 procs for 1 steps with 4800 atoms
 
-Pair  time (%) = 0.00263202 (1.88214)
+Pair  time (%) = 0.00263005 (2.21756)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000441372 (0.315622)
-Outpt time (%) = 0.00713122 (5.09948)
-Other time (%) = 0.129637 (92.7028)
+Comm  time (%) = 0.000314236 (0.264951)
+Outpt time (%) = 0.00677246 (5.71026)
+Other time (%) = 0.108885 (91.8072)
 
 Nlocal:    1200 ave 1200 max 1200 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -359,7 +359,7 @@ Step KinEng PotEng Press fxsum fysum fzsum
  490   0   -18775.19753261282   -48655.305 -2.1050048e-11 2.8067392e-11 6.9531186e-14 
  500   0   -18775.19753261291   -48655.305 -1.3303657e-12 1.0812714e-11 -3.0850322e-14 
  502   0   -18775.19753261292   -48655.305 -2.2029077e-12 8.0001559e-12 7.7080703e-14 
-Loop time of 1.40594 on 4 procs for 252 steps with 4800 atoms
+Loop time of 1.32745 on 4 procs for 252 steps with 4800 atoms
 
 Minimization stats:
   Stopping criterion = force tolerance
@@ -370,11 +370,11 @@ Minimization stats:
   Final line search alpha, max atom move = 1 3.90715e-13
   Iterations, force evaluations = 252 504
 
-Pair  time (%) = 1.19252 (84.8196)
+Pair  time (%) = 1.1608 (87.4459)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.143991 (10.2416)
-Outpt time (%) = 0.00321096 (0.228385)
-Other time (%) = 0.0662266 (4.71047)
+Comm  time (%) = 0.107484 (8.09704)
+Outpt time (%) = 0.00327063 (0.246384)
+Other time (%) = 0.0558953 (4.21072)
 
 Nlocal:    1200 ave 1200 max 1200 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -397,13 +397,13 @@ Memory usage per processor = 23.6491 Mbytes
 Step KinEng PotEng Press fxsum fysum fzsum 
  502   0   -18775.19753261291   -48655.305 -2.2034903e-12 7.9996871e-12 7.6945395e-14 
  503   0   -18775.19753261291   -48655.305 -2.2034903e-12 7.9996871e-12 7.6945395e-14 
-Loop time of 0.160197 on 4 procs for 1 steps with 4800 atoms
+Loop time of 0.114736 on 4 procs for 1 steps with 4800 atoms
 
-Pair  time (%) = 0.00265449 (1.65702)
+Pair  time (%) = 0.00264329 (2.30379)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000391006 (0.244078)
-Outpt time (%) = 0.00727874 (4.54361)
-Other time (%) = 0.149873 (93.5553)
+Comm  time (%) = 0.000363708 (0.316994)
+Outpt time (%) = 0.00712168 (6.207)
+Other time (%) = 0.104608 (91.1722)
 
 Nlocal:    1200 ave 1200 max 1200 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -465,7 +465,7 @@ Step KinEng PotEng Press fxsum fysum fzsum
  760   0   -18740.66696866212   -69632.296 -9.0617494e-12 1.2776108e-11 1.2775718e-13 
  770   0   -18740.66696866213   -69632.296 -2.5180353e-12 -1.8959756e-12 2.3569688e-14 
  772   0   -18740.66696866214   -69632.296 -5.2109265e-12 -1.9328798e-12 -1.1258355e-14 
-Loop time of 2.10111 on 4 procs for 269 steps with 4800 atoms
+Loop time of 1.41441 on 4 procs for 269 steps with 4800 atoms
 
 Minimization stats:
   Stopping criterion = force tolerance
@@ -476,11 +476,11 @@ Minimization stats:
   Final line search alpha, max atom move = 1 3.96302e-13
   Iterations, force evaluations = 269 538
 
-Pair  time (%) = 1.38506 (65.9204)
+Pair  time (%) = 1.23001 (86.9627)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.59572 (28.3527)
-Outpt time (%) = 0.0135444 (0.644631)
-Other time (%) = 0.106784 (5.08228)
+Comm  time (%) = 0.112976 (7.98751)
+Outpt time (%) = 0.00349563 (0.247144)
+Other time (%) = 0.0679292 (4.80264)
 
 Nlocal:    1200 ave 1200 max 1200 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -503,13 +503,13 @@ Memory usage per processor = 23.6491 Mbytes
 Step KinEng PotEng Press fxsum fysum fzsum 
  772   0   -18740.66696866215   -69632.296 -5.2107068e-12 -1.9333735e-12 -1.0859369e-14 
  773   0   -18740.66696866215   -69632.296 -5.2107068e-12 -1.9333735e-12 -1.0859369e-14 
-Loop time of 0.196995 on 4 procs for 1 steps with 4800 atoms
+Loop time of 0.111558 on 4 procs for 1 steps with 4800 atoms
 
-Pair  time (%) = 0.00443953 (2.25363)
+Pair  time (%) = 0.00257671 (2.30975)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.00581145 (2.95005)
-Outpt time (%) = 0.00692171 (3.51364)
-Other time (%) = 0.179822 (91.2827)
+Comm  time (%) = 0.00033766 (0.302678)
+Outpt time (%) = 0.00670928 (6.01418)
+Other time (%) = 0.101934 (91.3734)
 
 Nlocal:    1200 ave 1200 max 1200 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -570,7 +570,7 @@ Step KinEng PotEng Press fxsum fysum fzsum
 1020   0   -18694.13500038753   -88564.203 -3.0206456e-11 -1.5138533e-11 -1.6674162e-14 
 1030   0   -18694.13500038753   -88564.203 1.507389e-12 1.1376859e-11 -6.9095771e-14 
 1032   0   -18694.13500038751   -88564.203 1.2597073e-12 1.0879965e-11 3.8890766e-14 
-Loop time of 1.41899 on 4 procs for 259 steps with 4800 atoms
+Loop time of 1.32566 on 4 procs for 259 steps with 4800 atoms
 
 Minimization stats:
   Stopping criterion = force tolerance
@@ -581,11 +581,11 @@ Minimization stats:
   Final line search alpha, max atom move = 1 4.11711e-13
   Iterations, force evaluations = 259 518
 
-Pair  time (%) = 1.20415 (84.86)
+Pair  time (%) = 1.16988 (88.2487)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.151572 (10.6817)
-Outpt time (%) = 0.00332385 (0.234241)
-Other time (%) = 0.0599393 (4.22408)
+Comm  time (%) = 0.0967417 (7.2976)
+Outpt time (%) = 0.003263 (0.24614)
+Other time (%) = 0.0557787 (4.2076)
 
 Nlocal:    1200 ave 1200 max 1200 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -608,13 +608,13 @@ Memory usage per processor = 23.6491 Mbytes
 Step KinEng PotEng Press fxsum fysum fzsum 
 1032   0   -18694.13500038751   -88564.203 1.2597022e-12 1.0880291e-11 3.8668721e-14 
 1033   0   -18694.13500038751   -88564.203 1.2597022e-12 1.0880291e-11 3.8668721e-14 
-Loop time of 0.120245 on 4 procs for 1 steps with 4800 atoms
+Loop time of 0.110542 on 4 procs for 1 steps with 4800 atoms
 
-Pair  time (%) = 0.00256133 (2.13009)
+Pair  time (%) = 0.00252974 (2.28849)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000328302 (0.273028)
-Outpt time (%) = 0.0069077 (5.74469)
-Other time (%) = 0.110448 (91.8522)
+Comm  time (%) = 0.000296116 (0.267876)
+Outpt time (%) = 0.00685018 (6.1969)
+Other time (%) = 0.100866 (91.2467)
 
 Nlocal:    1200 ave 1200 max 1200 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -676,7 +676,7 @@ Step KinEng PotEng Press fxsum fysum fzsum
 1290   0   -18636.61338120518   -105565.49 -2.2122047e-11 -7.9136919e-12 -9.8118562e-14 
 1300   0   -18636.61338120521   -105565.49 1.081791e-11 1.3057743e-11 1.0332013e-14 
 1305   0   -18636.61338120521   -105565.49 5.0637371e-12 8.1071121e-12 -3.3531337e-14 
-Loop time of 1.44323 on 4 procs for 272 steps with 4800 atoms
+Loop time of 1.37855 on 4 procs for 272 steps with 4800 atoms
 
 Minimization stats:
   Stopping criterion = force tolerance
@@ -687,11 +687,11 @@ Minimization stats:
   Final line search alpha, max atom move = 1 3.94851e-13
   Iterations, force evaluations = 272 544
 
-Pair  time (%) = 1.24907 (86.5467)
+Pair  time (%) = 1.22351 (88.753)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.132043 (9.14913)
-Outpt time (%) = 0.00319654 (0.221485)
-Other time (%) = 0.0589232 (4.08272)
+Comm  time (%) = 0.09508 (6.89708)
+Outpt time (%) = 0.00322962 (0.234276)
+Other time (%) = 0.0567366 (4.11566)
 
 Nlocal:    1200 ave 1200 max 1200 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -714,13 +714,13 @@ Memory usage per processor = 23.6491 Mbytes
 Step KinEng PotEng Press fxsum fysum fzsum 
 1305   0   -18636.61338120522   -105565.49 5.0642547e-12 8.1072881e-12 -3.333011e-14 
 1306   0   -18636.61338120522   -105565.49 5.0642547e-12 8.1072881e-12 -3.333011e-14 
-Loop time of 0.122523 on 4 procs for 1 steps with 4800 atoms
+Loop time of 0.905573 on 4 procs for 1 steps with 4800 atoms
 
-Pair  time (%) = 0.0025745 (2.10125)
+Pair  time (%) = 0.00952035 (1.05131)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000308752 (0.251996)
-Outpt time (%) = 0.00710821 (5.80155)
-Other time (%) = 0.112531 (91.8452)
+Comm  time (%) = 0.0323003 (3.56684)
+Outpt time (%) = 0.0197695 (2.18309)
+Other time (%) = 0.843982 (93.1988)
 
 Nlocal:    1200 ave 1200 max 1200 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -782,7 +782,7 @@ Step KinEng PotEng Press fxsum fysum fzsum
 1560   0   -18569.08790547055    -120696.2 -3.19902e-11 9.1507895e-12 1.8244087e-14 
 1570   0   -18569.08790547052    -120696.2 -1.7156297e-11 4.6740893e-12 3.5214887e-16 
 1575   0   -18569.08790547054    -120696.2 -5.0504343e-12 -3.9081775e-13 6.7177167e-14 
-Loop time of 1.43429 on 4 procs for 269 steps with 4800 atoms
+Loop time of 1.38217 on 4 procs for 269 steps with 4800 atoms
 
 Minimization stats:
   Stopping criterion = force tolerance
@@ -793,11 +793,11 @@ Minimization stats:
   Final line search alpha, max atom move = 1 5.2689e-13
   Iterations, force evaluations = 269 538
 
-Pair  time (%) = 1.23753 (86.2819)
+Pair  time (%) = 1.21532 (87.9286)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.137325 (9.57441)
-Outpt time (%) = 0.00326562 (0.227682)
-Other time (%) = 0.0561677 (3.91606)
+Comm  time (%) = 0.104532 (7.5629)
+Outpt time (%) = 0.00331026 (0.239497)
+Other time (%) = 0.0590044 (4.26896)
 
 Nlocal:    1200 ave 1200 max 1200 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -820,13 +820,13 @@ Memory usage per processor = 23.6491 Mbytes
 Step KinEng PotEng Press fxsum fysum fzsum 
 1575   0   -18569.08790547054    -120696.2 -5.0503339e-12 -3.9139805e-13 6.7683706e-14 
 1576   0   -18569.08790547054    -120696.2 -5.0503339e-12 -3.9139805e-13 6.7683706e-14 
-Loop time of 0.12176 on 4 procs for 1 steps with 4800 atoms
+Loop time of 0.11159 on 4 procs for 1 steps with 4800 atoms
 
-Pair  time (%) = 0.00257325 (2.11338)
+Pair  time (%) = 0.00252771 (2.26517)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000355005 (0.291561)
-Outpt time (%) = 0.0069012 (5.66787)
-Other time (%) = 0.111931 (91.9272)
+Comm  time (%) = 0.000315011 (0.282292)
+Outpt time (%) = 0.00678498 (6.08026)
+Other time (%) = 0.101963 (91.3723)
 
 Nlocal:    1200 ave 1200 max 1200 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -890,7 +890,7 @@ Step KinEng PotEng Press fxsum fysum fzsum
 1850   0   -18492.54791413184   -133967.22 -5.6782406e-12 1.2649759e-13 -1.0939426e-13 
 1860   0   -18492.54791413187   -133967.22 -1.9471408e-12 3.263459e-12 1.1285244e-14 
 1867   0   -18492.54791413186   -133967.22 6.9845188e-13 6.5521008e-12 -1.1701317e-13 
-Loop time of 1.51667 on 4 procs for 291 steps with 4800 atoms
+Loop time of 1.48705 on 4 procs for 291 steps with 4800 atoms
 
 Minimization stats:
   Stopping criterion = force tolerance
@@ -901,11 +901,11 @@ Minimization stats:
   Final line search alpha, max atom move = 1 4.5029e-13
   Iterations, force evaluations = 291 582
 
-Pair  time (%) = 1.32671 (87.4753)
+Pair  time (%) = 1.3119 (88.2217)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.126772 (8.35855)
-Outpt time (%) = 0.00341022 (0.224849)
-Other time (%) = 0.0597771 (3.94133)
+Comm  time (%) = 0.108932 (7.32539)
+Outpt time (%) = 0.00352585 (0.237104)
+Other time (%) = 0.0626904 (4.21577)
 
 Nlocal:    1200 ave 1200 max 1200 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -928,13 +928,13 @@ Memory usage per processor = 23.6491 Mbytes
 Step KinEng PotEng Press fxsum fysum fzsum 
 1867   0   -18492.54791413186   -133967.22 6.9777732e-13 6.551863e-12 -1.1686745e-13 
 1868   0   -18492.54791413186   -133967.22 6.9777732e-13 6.551863e-12 -1.1686745e-13 
-Loop time of 0.123046 on 4 procs for 1 steps with 4800 atoms
+Loop time of 0.110414 on 4 procs for 1 steps with 4800 atoms
 
-Pair  time (%) = 0.00263977 (2.14535)
+Pair  time (%) = 0.00254023 (2.30064)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000498652 (0.405256)
-Outpt time (%) = 0.00677395 (5.5052)
-Other time (%) = 0.113134 (91.9442)
+Comm  time (%) = 0.000306904 (0.277957)
+Outpt time (%) = 0.00683707 (6.1922)
+Other time (%) = 0.10073 (91.2292)
 
 Nlocal:    1200 ave 1200 max 1200 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1026,7 +1026,7 @@ Step KinEng PotEng Press fxsum fysum fzsum
 2420   0   -18544.58502109054   -1016.0246 2.8651381e-12 8.1466436e-12 1.5645645e-13 
 2430   0   -18544.58502109047   -1016.0246 9.2212618e-13 -1.7898741e-13 9.6594607e-14 
 2432   0   -18544.58502109047   -1016.0246 -2.5384753e-13 1.381581e-12 7.1834899e-15 
-Loop time of 3.19402 on 4 procs for 564 steps with 4800 atoms
+Loop time of 3.13935 on 4 procs for 564 steps with 4800 atoms
 
 Minimization stats:
   Stopping criterion = force tolerance
@@ -1037,11 +1037,11 @@ Minimization stats:
   Final line search alpha, max atom move = 1 4.51583e-13
   Iterations, force evaluations = 564 1082
 
-Pair  time (%) = 2.47729 (77.5601)
-Neigh time (%) = 0.247571 (7.75106)
-Comm  time (%) = 0.247868 (7.76036)
-Outpt time (%) = 0.00680584 (0.21308)
-Other time (%) = 0.214492 (6.71542)
+Pair  time (%) = 2.45133 (78.0841)
+Neigh time (%) = 0.247004 (7.86801)
+Comm  time (%) = 0.214938 (6.84657)
+Outpt time (%) = 0.00706154 (0.224937)
+Other time (%) = 0.219013 (6.9764)
 
 Nlocal:    1200 ave 1200 max 1200 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1064,13 +1064,13 @@ Memory usage per processor = 23.6491 Mbytes
 Step KinEng PotEng Press fxsum fysum fzsum 
 2432   0   -18544.58502109047   -1016.0246 -2.5329791e-13 1.381277e-12 7.3534928e-15 
 2433   0   -18544.58502109047   -1016.0246 -2.5329791e-13 1.381277e-12 7.3534928e-15 
-Loop time of 0.138592 on 4 procs for 1 steps with 4800 atoms
+Loop time of 0.143119 on 4 procs for 1 steps with 4800 atoms
 
-Pair  time (%) = 0.00267649 (1.9312)
+Pair  time (%) = 0.00272852 (1.90648)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000300467 (0.2168)
-Outpt time (%) = 0.00644147 (4.6478)
-Other time (%) = 0.129173 (93.2042)
+Comm  time (%) = 0.000418484 (0.292404)
+Outpt time (%) = 0.00664002 (4.63952)
+Other time (%) = 0.133332 (93.1616)
 
 Nlocal:    1200 ave 1200 max 1200 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1119,7 +1119,7 @@ Step KinEng PotEng Press fxsum fysum fzsum
 2560   0   -18544.58502109056   -1008.4423 1.7819469e-13 1.3868038e-11 6.517703e-14 
 2570   0   -18544.58502109044   -1008.4423 1.4870776e-12 -1.2270293e-11 9.0609811e-14 
 2575   0   -18544.58502109047   -1008.4423 -2.3857825e-13 1.0195675e-11 6.0073474e-15 
-Loop time of 0.740509 on 4 procs for 142 steps with 4800 atoms
+Loop time of 0.727325 on 4 procs for 142 steps with 4800 atoms
 
 Minimization stats:
   Stopping criterion = force tolerance
@@ -1130,11 +1130,11 @@ Minimization stats:
   Final line search alpha, max atom move = 1 4.36984e-13
   Iterations, force evaluations = 142 284
 
-Pair  time (%) = 0.65404 (88.323)
+Pair  time (%) = 0.648199 (89.121)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.0586759 (7.92373)
-Outpt time (%) = 0.00151491 (0.204577)
-Other time (%) = 0.0262783 (3.54868)
+Comm  time (%) = 0.0499128 (6.86251)
+Outpt time (%) = 0.00158638 (0.218111)
+Other time (%) = 0.0276265 (3.79836)
 
 Nlocal:    1200 ave 1200 max 1200 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1157,13 +1157,13 @@ Memory usage per processor = 23.6498 Mbytes
 Step KinEng PotEng Press fxsum fysum fzsum 
 2575   0   -18544.58502109042   -1008.4423 -2.3877189e-13 1.0195595e-11 6.0385724e-15 
 2576   0   -18544.58502109042   -1008.4423 -2.3877189e-13 1.0195595e-11 6.0385724e-15 
-Loop time of 0.144983 on 4 procs for 1 steps with 4800 atoms
+Loop time of 0.150688 on 4 procs for 1 steps with 4800 atoms
 
-Pair  time (%) = 0.00268716 (1.85342)
+Pair  time (%) = 0.00265646 (1.76289)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000255704 (0.176368)
-Outpt time (%) = 0.00627971 (4.33133)
-Other time (%) = 0.135761 (93.6389)
+Comm  time (%) = 0.000317812 (0.210907)
+Outpt time (%) = 0.0064041 (4.24991)
+Other time (%) = 0.14131 (93.7763)
 
 Nlocal:    1200 ave 1200 max 1200 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1210,7 +1210,7 @@ Step KinEng PotEng Press fxsum fysum fzsum
 2680   0   -18544.58502109152   -1000.9723 -4.3052271e-13 9.7475523e-09 -5.7240497e-13 
 2690   0   -18544.58502109055   -1000.9724 3.8952735e-14 2.8103179e-10 1.3394841e-12 
 2700   0   -18544.58502109041   -1000.9724 3.6211563e-13 6.3288004e-12 3.3577308e-14 
-Loop time of 0.656036 on 4 procs for 124 steps with 4800 atoms
+Loop time of 0.632594 on 4 procs for 124 steps with 4800 atoms
 
 Minimization stats:
   Stopping criterion = force tolerance
@@ -1221,11 +1221,11 @@ Minimization stats:
   Final line search alpha, max atom move = 1 4.28359e-13
   Iterations, force evaluations = 124 248
 
-Pair  time (%) = 0.573748 (87.4567)
+Pair  time (%) = 0.565158 (89.3397)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.055838 (8.51143)
-Outpt time (%) = 0.00125825 (0.191796)
-Other time (%) = 0.0251924 (3.8401)
+Comm  time (%) = 0.0416234 (6.57979)
+Outpt time (%) = 0.00140607 (0.222271)
+Other time (%) = 0.0244069 (3.85822)
 
 Nlocal:    1200 ave 1200 max 1200 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1248,13 +1248,13 @@ Memory usage per processor = 23.6498 Mbytes
 Step KinEng PotEng Press fxsum fysum fzsum 
 2700   0    -18544.5850210904   -1000.9724 3.6220691e-13 6.3290068e-12 3.3001379e-14 
 2701   0    -18544.5850210904   -1000.9724 3.6220691e-13 6.3290068e-12 3.3001379e-14 
-Loop time of 0.139166 on 4 procs for 1 steps with 4800 atoms
+Loop time of 0.145412 on 4 procs for 1 steps with 4800 atoms
 
-Pair  time (%) = 0.0026328 (1.89184)
+Pair  time (%) = 0.00262046 (1.80209)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000216722 (0.15573)
-Outpt time (%) = 0.00608581 (4.37306)
-Other time (%) = 0.130231 (93.5794)
+Comm  time (%) = 0.000275075 (0.18917)
+Outpt time (%) = 0.00623572 (4.28832)
+Other time (%) = 0.136281 (93.7204)
 
 Nlocal:    1200 ave 1200 max 1200 min
 Histogram: 4 0 0 0 0 0 0 0 0 0

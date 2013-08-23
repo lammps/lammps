@@ -424,13 +424,13 @@ Step Temp E_pair E_mol TotEng Press
     3980    27.430392   -6402.8753            0    -6120.378    -907.1389 
     3990    27.280815   -6400.7088            0   -6119.7519   -902.24647 
     4000    27.271626    -6399.937            0   -6119.0747   -900.07961 
-Loop time of 96.2912 on 4 procs for 4000 steps with 3456 atoms
+Loop time of 100.125 on 4 procs for 4000 steps with 3456 atoms
 
-Pair  time (%) = 36.8754 (38.2957)
-Neigh time (%) = 15.6221 (16.2238)
-Comm  time (%) = 6.87021 (7.13482)
-Outpt time (%) = 0.153298 (0.159203)
-Other time (%) = 36.7702 (38.1865)
+Pair  time (%) = 37.1019 (37.0557)
+Neigh time (%) = 15.6873 (15.6678)
+Comm  time (%) = 7.19195 (7.18299)
+Outpt time (%) = 0.170629 (0.170417)
+Other time (%) = 39.9729 (39.9231)
 
 Nlocal:    864 ave 864 max 864 min
 Histogram: 4 0 0 0 0 0 0 0 0 0

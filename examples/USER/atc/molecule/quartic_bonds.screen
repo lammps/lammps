@@ -91,14 +91,14 @@ Step Temp TotEng E_vdwl E_bond Pxx Pyy Pzz Lz
      300   0.60702877    -4.114999   -5.4634339   0.43832539  -0.05969492  -0.37357729    0.1227012    12.887908 
  ATC: computing bond matrix ..........done
      400   0.67773634   -4.0068285   -5.5021915   0.47924261    0.5562405   0.24275905    0.4181606    12.828709 
-Loop time of 21.2416 on 4 procs for 400 steps with 2100 atoms
+Loop time of 20.5487 on 4 procs for 400 steps with 2100 atoms
 
-Pair  time (%) = 0.454152 (2.13804)
-Bond  time (%) = 0.0197388 (0.0929254)
-Neigh time (%) = 0.103282 (0.486228)
-Comm  time (%) = 0.130415 (0.613964)
-Outpt time (%) = 0.0123892 (0.0583252)
-Other time (%) = 20.5216 (96.6105)
+Pair  time (%) = 0.466344 (2.26946)
+Bond  time (%) = 0.021544 (0.104843)
+Neigh time (%) = 0.106401 (0.517798)
+Comm  time (%) = 0.196994 (0.958666)
+Outpt time (%) = 0.00453418 (0.0220655)
+Other time (%) = 19.7529 (96.1272)
 
 Nlocal:    525 ave 528 max 522 min
 Histogram: 2 0 0 0 0 0 0 0 0 2

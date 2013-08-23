@@ -67,7 +67,7 @@ fix_modify      AtC mesh create_nodeset rbc  11.9   12.1   -INF  INF   -INF  INF
 fix_modify      AtC  fix temperature lbc 40.
 fix_modify      AtC  fix temperature rbc 20.
 # initialize filter
-#thermo		1
+thermo		1
 run		100
 # set up output, should be before a "run"
 fix_modify      AtC  output bar1dFE 100 text binary

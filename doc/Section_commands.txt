@@ -532,6 +532,7 @@ of each style or click on the style itself for a full description:
 "wall/colloid"_fix_wall.html,
 "wall/gran"_fix_wall_gran.html,
 "wall/harmonic"_fix_wall.html,
+"wall/lj1043"_fix_wall.html,
 "wall/lj126"_fix_wall.html,
 "wall/lj93"_fix_wall.html,
 "wall/piston"_fix_wall_piston.html,

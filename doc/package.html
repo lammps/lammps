@@ -25,11 +25,13 @@
     last = ID of last GPU to be used on each node
     split = fraction of particles assigned to the GPU
     zero or more keyword/value pairs may be appended
-    keywords = <I>threads_per_atom</I> or <I>cellsize</I>
+    keywords = <I>threads_per_atom</I> or <I>cellsize</I> or <I>device</I>
       <I>threads_per_atom</I> value = Nthreads
         Nthreads = # of GPU threads used per atom
       <I>cellsize</I> value = dist
         dist = length (distance units) in each dimension for neighbor bins
+      <I>device</I> value = device_type
+        device_type = <I>kepler</I> or <I>fermi</I> or <I>cypress</I> or <I>generic</I>
   <I>cuda</I> args = keyword value ...
     one or more keyword/value pairs may be appended
     keywords = <I>gpu/node</I> or <I>gpu/node/special</I> or <I>timing</I> or <I>test</I> or <I>override/bpa</I>
@@ -146,6 +148,12 @@ calculations or in some cases to eliminate them with models such as
 it can be more efficient to use smaller values for cellsize in parallel
 simulations. For example, with a cutoff of 20*sigma and a neighbor skin of
 sigma, a cellsize of 5.25*sigma can be efficient for parallel simulations.
+</P>
+<P>The <I>device</I> keyword can be used to tune parameters to optimize for a specific
+accelerator when using OpenCL. For CUDA, the <I>device</I> keyword is ignored.
+Currently, the device type is limited to NVIDIA Kepler, NVIDIA Fermi, 
+AMD Cypress, or a generic device. More devices will be added soon. The default
+device type can be specified when building LAMMPS with the GPU library.
 </P>
 <HR>
 

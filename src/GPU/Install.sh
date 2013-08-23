@@ -27,6 +27,8 @@ action () {
 action fix_gpu.cpp
 action fix_gpu.h
 action gpu_extra.h
+action pair_beck_gpu.cpp
+action pair_beck_gpu.h 
 action pair_born_coul_long_gpu.cpp pair_born_coul_long.cpp
 action pair_born_coul_long_gpu.h pair_born_coul_long.cpp
 action pair_born_coul_wolf_gpu.cpp
@@ -75,6 +77,8 @@ action pair_lj_cut_coul_dsf_gpu.cpp
 action pair_lj_cut_coul_dsf_gpu.h
 action pair_lj_cut_coul_long_gpu.cpp pair_lj_cut_coul_long.cpp
 action pair_lj_cut_coul_long_gpu.h pair_lj_cut_coul_long.cpp
+action pair_lj_cut_coul_msm_gpu.cpp
+action pair_lj_cut_coul_msm_gpu.h
 action pair_lj_cut_gpu.cpp
 action pair_lj_cut_gpu.h
 action pair_lj_expand_gpu.cpp
@@ -83,10 +87,16 @@ action pair_lj_sdk_coul_long_gpu.cpp pair_lj_sdk_coul_long.cpp
 action pair_lj_sdk_coul_long_gpu.h pair_lj_sdk_coul_long.cpp
 action pair_lj_sdk_gpu.cpp pair_lj_sdk.cpp
 action pair_lj_sdk_gpu.h pair_lj_sdk.cpp
+action pair_mie_cut_gpu.cpp
+action pair_mie_cut_gpu.h 
 action pair_morse_gpu.cpp
 action pair_morse_gpu.h
 action pair_resquared_gpu.cpp pair_resquared.cpp
 action pair_resquared_gpu.h pair_resquared.cpp
+action pair_soft_gpu.cpp
+action pair_soft_gpu.h
+action pair_sw_gpu.cpp pair_sw.cpp
+action pair_sw_gpu.h pair_sw.h
 action pair_table_gpu.cpp pair_table.cpp
 action pair_table_gpu.h pair_table.cpp
 action pair_yukawa_colloid_gpu.cpp pair_yukawa_colloid.cpp

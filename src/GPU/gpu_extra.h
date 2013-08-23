@@ -52,6 +52,12 @@ namespace GPU_EXTRA {
       else if (all_success == -9)
         error->all(FLERR,
                    "CPU neighbor lists must be used for ellipsoid/sphere mix.");
+      else if (all_success == -10)
+        error->all(FLERR,
+                   "Invalid threads_per_atom specified.");
+      else if (all_success == -11)
+        error->all(FLERR,
+                   "Invalid custom OpenCL parameter string.");
       else
         error->all(FLERR,"Unknown error in GPU library");
     }
@@ -110,8 +116,19 @@ E: CPU neighbor lists must be used for ellipsoid/sphere mix
 When using Gay-Berne or RE-squared pair styles with both ellipsoidal and
 spherical particles, the neighbor list must be built on the CPU
 
+E: Invalid threads_per_atom specified.
+
+For 3-body potentials on the GPU, the threads_per_atom setting cannot be
+greater than 4 for NVIDIA GPUs.
+
 E: Unknown error in GPU library
 
 Self-explanatory.
 
+E: Invalid custom OpenCL parameter string.
+
+There are not enough or too many parameters in the custom string for package
+GPU.
+
 */
+

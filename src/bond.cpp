@@ -39,6 +39,7 @@ Bond::Bond(LAMMPS *lmp) : Pointers(lmp)
   maxeatom = maxvatom = 0;
   eatom = NULL;
   vatom = NULL;
+  setflag = NULL;
 
   datamask = ALL_MASK;
   datamask_ext = ALL_MASK;

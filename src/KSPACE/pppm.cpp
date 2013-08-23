@@ -232,7 +232,8 @@ void PPPM::init()
     int typeA = *p_typeA;
     int typeB = *p_typeB;
 
-    if (force->angle == NULL || force->bond == NULL)
+    if (force->angle == NULL || force->bond == NULL ||
+        force->angle->setflag == NULL || force->bond->setflag == NULL)
       error->all(FLERR,"Bond and angle potentials must be defined for TIP4P");
     if (typeA < 1 || typeA > atom->nangletypes ||
         force->angle->setflag[typeA] == 0)

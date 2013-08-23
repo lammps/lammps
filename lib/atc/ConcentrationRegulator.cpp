@@ -125,6 +125,16 @@ const double kMinScale_ = 10000.;
   }
 
   //--------------------------------------------------------
+  //  finish
+  //--------------------------------------------------------
+  void ConcentrationRegulator::finish()
+  {
+    map<string, ConcentrationRegulatorMethod *>::iterator itr;
+    for (itr = regulators_.begin();
+         itr != regulators_.end(); itr++) { itr->second->finish();}
+  }
+
+  //--------------------------------------------------------
   //  output
   //--------------------------------------------------------
   void ConcentrationRegulator::output(OUTPUT_LIST & outputData) const

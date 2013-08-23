@@ -246,7 +246,7 @@ namespace ATC {
     PerAtomQuantity<double> * atomForces_;
 
     /** spring constant */
-    double kappa_;
+    double kappa_, k0_;
 
     /** damping constant */
     double gamma_;

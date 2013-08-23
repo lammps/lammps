@@ -786,7 +786,7 @@ double LammpsInterface::pair_force(
   }
 }
 double LammpsInterface::pair_force(
-                                   std::pair< std::pair< int,int >,int > apair, double rsq, 
+  std::pair< std::pair< int,int >,int > apair, double rsq, 
   double & fmag_over_rmag, int nbonds) const
 { 
   int n = apair.second;
@@ -799,6 +799,17 @@ double LammpsInterface::pair_force(
     int j = ij.second;
     return pair_force(i,j, rsq,fmag_over_rmag);
   }
+}
+double LammpsInterface::bond_stiffness(int i, int j, double rsq0) const
+{ 
+  const double perturbation = 1.e-8;
+  double rsq1 = sqrt(rsq0)+perturbation;
+  rsq1 *= rsq1;
+  double f0,f1;
+  pair_force(i,j,rsq0,f0);
+  pair_force(i,j,rsq1,f1);
+  double k =  (f1-f0)/perturbation;
+  return k;
 }
 
 double LammpsInterface::pair_cutoff() const

@@ -53,7 +53,7 @@ namespace ATC {
     virtual void reset_atoms(){};
 
     /** pre force */
-    virtual void pre_force() {};
+    virtual void pre_force();
 
     /** post force */
     virtual void post_force();
@@ -72,14 +72,16 @@ namespace ATC {
 
     /** Predictor phase, executed after Verlet */
     virtual void post_init_integrate();
-
+#ifdef OBSOLETE
     /** Corrector phase, executed before Verlet */
     virtual void pre_final_integrate(){};
-
+#endif
     /** Corrector phase, executed after Verlet*/
     
-    virtual void post_final_integrate() {lammpsInterface_->computes_addstep(lammpsInterface_->ntimestep()+1);};
-
+    virtual void post_final_integrate();
+#ifdef OBSOLETE    
+{lammpsInterface_->computes_addstep(lammpsInterface_->ntimestep()+1);};
+#endif
     /** pre/post atomic force calculation in minimize */
     virtual void min_pre_force(){};
     virtual void min_post_force(){};
@@ -224,6 +226,8 @@ namespace ATC {
     //---------------------------------------------------------------
     /*@{*/
     void pack_fields(RESTART_LIST & data);
+    virtual void  read_restart_data(std::string fileName_, RESTART_LIST & data);
+    virtual void write_restart_data(std::string fileName_, RESTART_LIST & data);
     void output() { ATC_Method::output(); }
     /*@}*/
 
@@ -271,6 +275,8 @@ namespace ATC {
     Array2D<bool> &field_mask() {return fieldMask_;}; 
     /** create field mask */
     void reset_flux_mask();
+    /** field mask for intrinsic integration */
+    Array2D<bool> intrinsicMask_;
     /** wrapper for FE_Engine's compute_flux functions */
     void compute_flux(const Array2D<bool> & rhs_mask,
                       const FIELDS &fields, 
@@ -307,6 +313,9 @@ namespace ATC {
     void compute_mass_matrix(FieldName thisField, PhysicsModel * physicsModel = NULL);
     /** updates filtering of MD contributions */
     void update_mass_matrix(FieldName thisField);
+    /** compute the mass matrix components coming from MD integration */
+    virtual void compute_md_mass_matrix(FieldName thisField,
+                                        DIAG_MAT & massMats);
 
   private: /** methods */
     ATC_Coupling(); // do not define
@@ -328,6 +337,8 @@ namespace ATC {
     virtual void construct_molecule_transfers();
     /** sets up accumulant & interpolant */
     virtual void construct_interpolant();
+    /** reset number of local atoms */
+    virtual void reset_nlocal();
 
     //---------------------------------------------------------------
     /** status */
@@ -383,6 +394,12 @@ namespace ATC {
     MatrixDependencyManager<DenseMatrix, bool> * elementMask_;
     MatrixDependencyManager<DenseMatrix, bool> * elementMaskMass_;
     MatrixDependencyManager<DenseMatrix, bool> * elementMaskMassMd_;
+    /** operator to compute the mass matrix for the momentum equation from MD integration */
+    AtfShapeFunctionRestriction * nodalAtomicMass_;
+    /** operator to compute the dimensionless mass matrix from MD integration */
+    AtfShapeFunctionRestriction * nodalAtomicCount_;
+    /** operator to compute mass matrix from MD */
+    AtfShapeFunctionRestriction * nodalAtomicHeatCapacity_;
     MatrixDependencyManager<DenseMatrix, bool> * create_full_element_mask();
     MatrixDependencyManager<DenseMatrix, int> * create_element_set_mask(const std::string & elementSetName);
     LargeToSmallAtomMap * internalToMask_;

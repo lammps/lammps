@@ -78,6 +78,8 @@ namespace ATC {
     virtual void pre_force();
     /** prior to exchanges */
     virtual void pre_exchange();
+    /** following a run */
+    virtual void finish();
     /** ATC output */
     virtual void output(OUTPUT_LIST & outputData) const;
     /** scalar output */
@@ -109,6 +111,7 @@ namespace ATC {
     void initialize(void) {};
     virtual void pre_force() {};  
     virtual void pre_exchange() {};  
+    virtual void finish() {};  
     virtual void set_weights() {};
     virtual double compute_vector(int n) const { return 0;}
     virtual void output(OUTPUT_LIST & outputData){};

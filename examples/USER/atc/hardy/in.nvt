@@ -7,7 +7,7 @@ dimension 3
 boundary  p p p
 lattice 	fcc  5.376 orient x 1 0 0 orient y 0 1 0 orient z 0 0 1
 region  	box block 0 5 0 5 0 5
-read_data	nvt.data
+read_data	nvt.init
 pair_style  lj/cut 13.0
 pair_coeff	1 1 0.2381 3.405
 group		internal region box

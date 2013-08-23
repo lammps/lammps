@@ -33,7 +33,7 @@ pair_style  	lj/cut 13.0
 lattice   	fcc  $a
 lattice   	fcc  5.7190250320000002304
 Lattice spacing in x,y,z = 5.71903 5.71903 5.71903
-read_data interface_init.data
+read_data interface.init
 Scanning data file ...
 Reading data file ...
   orthogonal box = (0 0 0) to (114.381 22.8761 22.8761)

@@ -15,7 +15,7 @@ newton off
 
 pair_style lj/cut 13.000000
 pair_modify mix arithmetic
-read_data waternve.atm
+read_data waternve.init
 Scanning data file ...
 Reading data file ...
   orthogonal box = (-19.38 -19.38 -21.88) to (19.38 19.38 23.94)
@@ -178,14 +178,14 @@ Step E_pair E_mol TotEng Press fluidT
      800     -9250.72            0    -9226.768   -55686.507    294.64934 
      900   -9251.0634            0   -9227.1621   -55774.601    292.41664 
     1000   -9250.8046            0   -9227.0389   -55778.639    286.45437 
-Loop time of 32.2267 on 4 procs for 1000 steps with 1982 atoms
+Loop time of 33.335 on 4 procs for 1000 steps with 1982 atoms
 
-Pair  time (%) = 6.65709 (20.6571)
-Bond  time (%) = 0.000525236 (0.00162982)
-Neigh time (%) = 0.0401824 (0.124687)
-Comm  time (%) = 0.252991 (0.785034)
-Outpt time (%) = 0.0763716 (0.236982)
-Other time (%) = 25.1996 (78.1946)
+Pair  time (%) = 6.92194 (20.7648)
+Bond  time (%) = 0.000487626 (0.00146281)
+Neigh time (%) = 0.0395007 (0.118496)
+Comm  time (%) = 0.29625 (0.888707)
+Outpt time (%) = 0.0683134 (0.20493)
+Other time (%) = 26.0085 (78.0216)
 
 Nlocal:    495.5 ave 976 max 63 min
 Histogram: 2 0 0 0 0 0 0 0 1 1

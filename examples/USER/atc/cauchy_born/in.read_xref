@@ -10,7 +10,7 @@ lattice        fcc ${lattice_constant}
 region         box block 0 $c 0 $c 0 $c
 boundary       p p p
 # the stretched configuration of the atoms
-read_data read_xref_1.data
+read_data read_xref_1.init
 mass         1 39.95
 pair_style lj/cut 13.5  
 pair_coeff 1 1 0.238 3.405 

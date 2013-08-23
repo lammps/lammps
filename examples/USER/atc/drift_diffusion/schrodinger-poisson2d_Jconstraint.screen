@@ -1,4 +1,5 @@
 LAMMPS (24 Aug 2013)
+log schrodinger-poisson2d_Jconstraint.log
 #variable iter equal 2 # need two for potential to affect density
 variable iter1 equal 4  # NOTE <<<<
 variable iter2 equal 25 # NOTE <<<<

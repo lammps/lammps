@@ -28,7 +28,7 @@ region         box block 0 6 0 6 0 $c
 region         box block 0 6 0 6 0 6
 boundary       p p p
 pair_style     lj/cut 13.5
-read_data      ftcb_constV_setup.data
+read_data      ftcb_constV_setup.init
 Reading data file ...
   orthogonal box = (0 0 0) to (31.5374 31.5374 31.5374)
   1 by 2 by 2 MPI processor grid
@@ -181,13 +181,13 @@ Step Temp Press TotEng Lx Ly Lz
  ATC: computing bond matrix ...........done
  ATC: computing bond matrix ...........done
    10000   0.19513095     6.800965   -1742.9477    31.537365    31.537365    31.537365 
-Loop time of 63.5403 on 4 procs for 10000 steps with 864 atoms
+Loop time of 65.0533 on 4 procs for 10000 steps with 864 atoms
 
-Pair  time (%) = 13.9658 (21.9794)
-Neigh time (%) = 0.0580555 (0.0913681)
-Comm  time (%) = 4.97638 (7.83185)
-Outpt time (%) = 0.00315738 (0.0049691)
-Other time (%) = 44.5369 (70.0924)
+Pair  time (%) = 14.401 (22.1372)
+Neigh time (%) = 0.0566635 (0.0871031)
+Comm  time (%) = 6.05715 (9.31105)
+Outpt time (%) = 0.00306785 (0.0047159)
+Other time (%) = 44.5355 (68.46)
 
 Nlocal:    216 ave 223 max 212 min
 Histogram: 2 0 0 0 1 0 0 0 0 1
@@ -274,13 +274,13 @@ Step Temp Press TotEng Lx Ly Lz
  ATC: computing bond matrix ...........done
  ATC: computing bond matrix ...........done
    20000   0.19726939    5.6206257   -1743.0501    31.537365    31.537365    31.537365 
-Loop time of 64.7984 on 4 procs for 10000 steps with 864 atoms
+Loop time of 62.9814 on 4 procs for 10000 steps with 864 atoms
 
-Pair  time (%) = 14.2825 (22.0414)
-Neigh time (%) = 0.0583839 (0.0901009)
-Comm  time (%) = 6.29545 (9.71545)
-Outpt time (%) = 0.00295156 (0.004555)
-Other time (%) = 44.1591 (68.1485)
+Pair  time (%) = 14.1598 (22.4825)
+Neigh time (%) = 0.0564907 (0.0896943)
+Comm  time (%) = 5.43685 (8.63246)
+Outpt time (%) = 0.00284231 (0.00451293)
+Other time (%) = 43.3254 (68.7908)
 
 Nlocal:    216 ave 231 max 208 min
 Histogram: 1 1 1 0 0 0 0 0 0 1

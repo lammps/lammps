@@ -20,7 +20,7 @@ pair_style      lj/cut 2.5
 pair_modify     table 0
 special_bonds   lj 1.0 1.0 1.0
 
-read_data    	harmonic_bonds.data
+read_data    	harmonic_bonds.init
 
 #                  k      b1     b2   rc  U0
 bond_coeff      1 1434.3 -0.7589 0.00 1.5 67.2234

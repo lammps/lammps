@@ -17,7 +17,7 @@ region		offsetPlane block -${lg} $g -${lg} ${lg} -$w $w
 region		mdRegion intersect 2 bigCyl offsetPlane
 #create_box 1 mdRegion
 pair_style  lj/cut 13.5
-read_data	semicircle_init.atm
+read_data	semicircle.init
 
 # region for internal atoms
 region     mdInternalCyl cylinder z 0. 0. $l -$w $w

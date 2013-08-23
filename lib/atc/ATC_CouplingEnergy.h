@@ -51,27 +51,11 @@ namespace ATC {
       return resetMethods || (_ctiIt_->second)->need_reset();
     };
 
-    /** post time integration */
-    virtual void finish();
-#ifdef OBSOLETE
-
-    /** first time, after atomic velocity but before position integration */
-    virtual void mid_init_integrate();
-    /** first time, after atomic integration */
-    virtual void post_init_integrate();
-#endif
-    /** second time substep routine */
-    virtual void post_final_integrate();
-
     /** compute vector for output */
     virtual double compute_vector(int n);
 
     /** output */
     virtual void output();
-
-    
-    /** set up atom to material identification */
-    virtual void reset_atom_materials();
 
   protected:
 
@@ -80,29 +64,21 @@ namespace ATC {
     //---------------------------------------------------------------
     /** constructs all data which is updated with time integration, i.e. fields */
     //virtual void construct_time_integration_data();
-    /** create methods, e.g. time integrators, filters */
-    virtual void construct_methods();
     /** set up data which is dependency managed */
     virtual void construct_transfers();
 
     /** sets the position/velocity of the ghost atoms */
     virtual void set_ghost_atoms(){};
-    
-    /** adds resetting of any thermostat arrays associated with local atom count */
-    virtual void reset_nlocal();
-
+#ifdef OBSOLETE
     /** compute the mass matrix components coming from MD integration */
     virtual void compute_md_mass_matrix(FieldName thisField,
                                         DIAG_MAT & massMats);
 
     /** operator to compute mass matrix from MD */
     AtfShapeFunctionRestriction * nodalAtomicHeatCapacity_;
-
+#endif
     /** physics specific filter initialization */
     void init_filter();
-
-    /** field mask for velocity integration */
-    Array2D<bool> temperatureMask_;
 
     
     double compute_lambda_power(int gid);
@@ -115,11 +91,6 @@ namespace ATC {
 
     /** workspace matrices for output */
     DENS_MAT _keTemp_, _peTemp_;
-
-    // Add in fields for restarting
-    virtual void  read_restart_data(std::string fileName_, RESTART_LIST & data);
-    virtual void write_restart_data(std::string fileName_, RESTART_LIST & data);
-    void pack_thermal_fields(RESTART_LIST & data);
 
   };
     

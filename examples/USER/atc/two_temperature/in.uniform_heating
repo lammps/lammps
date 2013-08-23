@@ -7,7 +7,7 @@ boundary	f p p
 # create domain
 #lattice	type reduced density rho* = 4*(sigma/a)^3, where N=4 for fcc, s = 3.405 A (Wagner) and a = 5.25 A (Ashcroft & Mermin, p. 70)
 pair_style	lj/cut 13.5
-read_data	uniform_heating_init.data
+read_data	uniform_heating.init
 lattice         fcc 5.405 origin 0.25 0.25 0.25
 region		mdRegion block   -8 8 -3 3 -3 3
 region		mdInternal block -6 6 -3 3 -3 3

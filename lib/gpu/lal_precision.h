@@ -96,19 +96,27 @@ inline std::ostream & operator<<(std::ostream &out, const _lgpu_double4 &v) {
 
 enum{SPHERE_SPHERE,SPHERE_ELLIPSE,ELLIPSE_SPHERE,ELLIPSE_ELLIPSE};
 
-// OCL_VENDOR: preprocessor define for hardware
+// OCL_DEFAULT_VENDOR: preprocessor define for hardware
 // specific sizes of OpenCL kernel related constants
 
 #ifdef FERMI_OCL
-#define OCL_VENDOR "FERMI_OCL"
+#define OCL_DEFAULT_VENDOR "fermi"
+#endif
+
+#ifdef KEPLER_OCL
+#define OCL_DEFAULT_VENDOR "kepler"
 #endif
 
 #ifdef CYPRESS_OCL
-#define OCL_VENDOR "CYPRESS_OCL"
+#define OCL_DEFAULT_VENDOR "cypress"
 #endif
 
-#ifndef OCL_VENDOR
-#define OCL_VENDOR "GENERIC_OCL"
+#ifdef GENERIC_OCL
+#define OCL_DEFAULT_VENDOR "generic"
+#endif
+
+#ifndef OCL_DEFAULT_VENDOR
+#define OCL_DEFAULT_VENDOR "none"
 #endif
 
 #endif

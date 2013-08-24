@@ -142,6 +142,9 @@ class KSpace : protected Pointers {
     } else
       return (-1.0/rho/rho);
   }
+  
+  double **get_gcons() { return gcons; }
+  double **get_dgcons() { return dgcons; }
 
  protected:
   int gridflag,gridflag_6;

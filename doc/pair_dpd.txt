@@ -38,11 +38,11 @@ Style {dpd} computes a force field for dissipative particle dynamics
 
 Style {dpd/tstat} invokes a DPD thermostat on pairwise interactions,
 which is equivalent to the non-conservative portion of the DPD force
-field.  This thermostat can be used in conjunction with any "pair
-style"_pair_style.html, and in leiu of per-particle thermostats like
-"fix langevin"_fix_langevin.html or ensemble thermostats like Nose
-Hoover as implemented by "fix nvt"_fix_nh.html.  To use {dpd/stat}
-with another pair style, use the "pair_style
+field.  This pair-wise thermostat can be used in conjunction with any
+"pair style"_pair_style.html, and in leiu of per-particle thermostats
+like "fix langevin"_fix_langevin.html or ensemble thermostats like
+Nose Hoover as implemented by "fix nvt"_fix_nh.html.  To use
+{dpd/stat} as a thermostat for another pair style, use the "pair_style
 hybrid/overlay"_pair_hybrid.html command to compute both the desired
 pair interaction and the thermostat for each pair of particles.
 

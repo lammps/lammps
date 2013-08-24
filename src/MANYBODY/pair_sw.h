@@ -31,8 +31,8 @@ class PairSW : public Pair {
   virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
-  double init_one(int, int);
-  void init_style();
+  virtual double init_one(int, int);
+  virtual void init_style();
 
  protected:
   struct Param {
@@ -56,7 +56,7 @@ class PairSW : public Pair {
   int maxparam;                 // max # of parameter sets
   Param *params;                // parameter set for an I-J-K interaction
 
-  void allocate();
+  virtual void allocate();
   void read_file(char *);
   void setup();
   void twobody(Param *, double, double &, int, double &);

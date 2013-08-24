@@ -44,10 +44,10 @@ bool AnswerT::alloc(const int inum) {
     _ans_fields+=4;
   
   // ---------------------------  Device allocations
-  success=success && (engv.alloc(_ev_fields*_max_local,*dev,UCL_RW_OPTIMIZED,
-                                 UCL_WRITE_ONLY)==UCL_SUCCESS);
-  success=success && (force.alloc(_ans_fields*_max_local,*dev,UCL_RW_OPTIMIZED,
-                                UCL_WRITE_ONLY)==UCL_SUCCESS);
+  success=success && (engv.alloc(_ev_fields*_max_local,*dev,UCL_READ_ONLY,
+                                 UCL_READ_WRITE)==UCL_SUCCESS);
+  success=success && (force.alloc(_ans_fields*_max_local,*dev,UCL_READ_ONLY,
+                                UCL_READ_WRITE)==UCL_SUCCESS);
   _gpu_bytes=engv.device.row_bytes()+force.device.row_bytes();
   
   _allocated=true;  
@@ -175,78 +175,42 @@ double AnswerT::energy_virial(double *eatom, double **vatom,
     return 0.0;
 
   double evdwl=0.0;
-  double virial_acc[6];
-  for (int i=0; i<6; i++) virial_acc[i]=0.0;
-  if (_ilist==NULL) {
-    for (int i=0; i<_inum; i++) {
-      int al=i;
-      if (_eflag) {
-        if (_ef_atom) {
-          evdwl+=engv[al];
-          eatom[i]+=engv[al]*0.5;
-          al+=_inum;
-        } else {
-          evdwl+=engv[al];
-          al+=_inum;
-        }
-      }
-      if (_vflag) {
-        if (_vf_atom) {
-          for (int j=0; j<6; j++) {
-            vatom[i][j]+=engv[al]*0.5;
-            virial_acc[j]+=engv[al];
-            al+=_inum;
-          }
-        } else {
-          for (int j=0; j<6; j++) {
-            virial_acc[j]+=engv[al];
-            al+=_inum;
-          }
-        }
-      }
+  int vstart=0;
+  if (_eflag) {
+    for (int i=0; i<_inum; i++)
+      evdwl+=engv[i];
+    if (_ef_atom)
+      if (_ilist==NULL) 
+        for (int i=0; i<_inum; i++)
+          eatom[i]+=engv[i];
+      else
+        for (int i=0; i<_inum; i++)
+          eatom[_ilist[i]]+=engv[i];
+    vstart=_inum;
+  }
+  if (_vflag) {
+    int iend=vstart+_inum;
+    for (int j=0; j<6; j++) {
+      for (int i=vstart; i<iend; i++)
+        virial[j]+=engv[i];
+      if (_vf_atom)
+        if (_ilist==NULL)
+          for (int i=vstart; i<iend; i++)
+            vatom[i][j]+=engv[i];
+        else
+          for (int i=vstart; i<iend; i++)
+            vatom[_ilist[i]][j]+=engv[i];
+      vstart+=_inum;
+      iend+=_inum;
     }
-    for (int j=0; j<6; j++)
-      virial[j]+=virial_acc[j]*0.5;
-  } else {
-    for (int i=0; i<_inum; i++) {
-      int al=i;
-      int ii=_ilist[i];
-      if (_eflag) {
-        if (_ef_atom) {
-          evdwl+=engv[al];
-          eatom[ii]+=engv[al]*0.5;
-          al+=_inum;
-        } else {
-          evdwl+=engv[al];
-          al+=_inum;
-        }
-      }
-      if (_vflag) {
-        if (_vf_atom) {
-          for (int j=0; j<6; j++) {
-            vatom[ii][j]+=engv[al]*0.5;
-            virial_acc[j]+=engv[al];
-            al+=_inum;
-          }
-        } else {
-          for (int j=0; j<6; j++) {
-            virial_acc[j]+=engv[al];
-            al+=_inum;
-          }
-        }
-      }
-    }
-    for (int j=0; j<6; j++)
-      virial[j]+=virial_acc[j]*0.5;
   }
   
-  evdwl*=0.5;
   return evdwl;
 }
 
 template <class numtyp, class acctyp>
 double AnswerT::energy_virial(double *eatom, double **vatom,
-                                   double *virial, double &ecoul) {
+                              double *virial, double &ecoul) {
   if (_eflag==false && _vflag==false)
     return 0.0;
 
@@ -254,84 +218,43 @@ double AnswerT::energy_virial(double *eatom, double **vatom,
     return energy_virial(eatom,vatom,virial);
 
   double evdwl=0.0;
-  double _ecoul=0.0;
-  double virial_acc[6];
-  for (int i=0; i<6; i++) virial_acc[i]=0.0;
-  if (_ilist==NULL) {
-    for (int i=0; i<_inum; i++) {
-      int al=i;
-      if (_eflag) {
-        if (_ef_atom) {
-          evdwl+=engv[al];
-          eatom[i]+=engv[al]*0.5;
-          al+=_inum;
-          _ecoul+=engv[al];
-          eatom[i]+=engv[al]*0.5;
-          al+=_inum;
-        } else {
-          evdwl+=engv[al];
-          al+=_inum;
-          _ecoul+=engv[al];
-          al+=_inum;
-        }
+  int vstart=0, iend=_inum*2;
+  if (_eflag) {
+    for (int i=0; i<_inum; i++)
+      evdwl+=engv[i];
+    for (int i=_inum; i<iend; i++)
+      ecoul+=engv[i];
+    if (_ef_atom)
+      if (_ilist==NULL) {
+        for (int i=0; i<_inum; i++)
+          eatom[i]+=engv[i];
+        for (int i=_inum; i<iend; i++)
+          eatom[i]+=engv[i];
+      } else {
+        for (int i=0; i<_inum; i++)
+          eatom[_ilist[i]]+=engv[i];
+        for (int i=_inum; i<iend; i++)
+          eatom[_ilist[i]]+=engv[i];
       }
-      if (_vflag) {
-        if (_vf_atom) {
-          for (int j=0; j<6; j++) {
-            vatom[i][j]+=engv[al]*0.5;
-            virial_acc[j]+=engv[al];
-            al+=_inum;
-          }
-        } else {
-          for (int j=0; j<6; j++) {
-            virial_acc[j]+=engv[al];
-            al+=_inum;
-          }
-        }
-      }
+    vstart=iend;
+    iend+=_inum;
+  }
+  if (_vflag) {
+    for (int j=0; j<6; j++) {
+      for (int i=vstart; i<iend; i++)
+        virial[j]+=engv[i];
+      if (_vf_atom)
+        if (_ilist==NULL)
+          for (int i=vstart; i<iend; i++)
+              vatom[i][j]+=engv[i];
+        else
+          for (int i=vstart; i<iend; i++)
+              vatom[_ilist[i]][j]+=engv[i];
+      vstart+=_inum;
+      iend+=_inum;
     }
-    for (int j=0; j<6; j++)
-      virial[j]+=virial_acc[j]*0.5;
-  } else {
-    for (int i=0; i<_inum; i++) {
-      int al=i;
-      int ii=_ilist[i];
-      if (_eflag) {
-        if (_ef_atom) {
-          evdwl+=engv[al];
-          eatom[ii]+=engv[al]*0.5;
-          al+=_inum;
-          _ecoul+=engv[al];
-          eatom[ii]+=engv[al]*0.5;
-          al+=_inum;
-        } else {
-          evdwl+=engv[al];
-          al+=_inum;
-          _ecoul+=engv[al];
-          al+=_inum;
-        }
-      }
-      if (_vflag) {
-        if (_vf_atom) {
-          for (int j=0; j<6; j++) {
-            vatom[ii][j]+=engv[al]*0.5;
-            virial_acc[j]+=engv[al];
-            al+=_inum;
-          }
-        } else {
-          for (int j=0; j<6; j++) {
-            virial_acc[j]+=engv[al];
-            al+=_inum;
-          }
-        }
-      }
-    }
-    for (int j=0; j<6; j++)
-      virial[j]+=virial_acc[j]*0.5;
   }
   
-  evdwl*=0.5;
-  ecoul+=_ecoul*0.5;
   return evdwl;
 }
 
@@ -373,4 +296,14 @@ void AnswerT::get_answers(double **f, double **tor) {
   }
 }
 
+template <class numtyp, class acctyp>
+void AnswerT::cq(const int cq_index) {
+  engv.cq(dev->cq(cq_index));
+  force.cq(dev->cq(cq_index));
+  time_answer.clear();
+  time_answer.init(*dev,dev->cq(cq_index));
+  time_answer.zero();
+}
+
 template class Answer<PRECISION,ACC_PRECISION>;
+

@@ -51,6 +51,10 @@ inline void ucl_sync(cl_command_queue &cq) {
   CL_SAFE_CALL(clFinish(cq));
 }
 
+inline bool _shared_mem_device(cl_device_type &device_type) {
+  return (device_type==CL_DEVICE_TYPE_CPU);
+}
+
 struct OCLProperties {
   std::string name;
   cl_device_type device_type;
@@ -64,6 +68,10 @@ struct OCLProperties {
   bool double_precision;
   int alignment;
   size_t timer_resolution;
+  bool ecc_support;
+  std::string c_version;
+  bool partition_equal, partition_counts, partition_affinity;
+  cl_uint max_sub_devices;
 };
 
 /// Class for looking at data parallel device properties
@@ -74,15 +82,18 @@ class UCL_Device {
  public:
   /// Collect properties for every device on the node
    /** \note You must set the active GPU with set() before using the device **/
-  UCL_Device();
+  inline UCL_Device();
   
-  ~UCL_Device();
+  inline ~UCL_Device();
 
   /// Return the number of platforms (0 if error or no platforms)
   inline int num_platforms() { return _num_platforms; }
   
   /// Return a string with name and info of the current platform
-  std::string platform_name();
+  inline std::string platform_name();
+
+  /// Delete any contexts/data and set the platform number to be used
+  inline int set_platform(const int pid);
 
   /// Return the number of devices that support OpenCL
   inline int num_devices() { return _num_devices; }
@@ -90,8 +101,12 @@ class UCL_Device {
   /// Set the OpenCL device to the specified device number
   /** A context and default command queue will be created for the device *
     * Returns UCL_SUCCESS if successful or UCL_ERROR if the device could not
-    * be allocated for use **/
-  int set(int num);
+    * be allocated for use. clear() is called to delete any contexts and
+    * associated data from previous calls to set(). **/
+  inline int set(int num);
+  
+  /// Delete any context and associated data stored from a call to set()
+  inline void clear();
 
   /// Get the current device number
   inline int device_num() { return _device; }
@@ -161,12 +176,14 @@ class UCL_Device {
   /// Returns true if host memory is efficiently addressable from device
   inline bool shared_memory() { return shared_memory(_device); }
   /// Returns true if host memory is efficiently addressable from device
-  inline bool shared_memory(const int i) { return device_type(i)==UCL_CPU; }
+  inline bool shared_memory(const int i) 
+    { return _shared_mem_device(_properties[i].device_type); }
   
   /// Returns true if double precision is support for the current device
-  bool double_precision() { return double_precision(_device); }
+  inline bool double_precision() { return double_precision(_device); }
   /// Returns true if double precision is support for the device
-  bool double_precision(const int i) {return _properties[i].double_precision;}
+  inline bool double_precision(const int i) 
+    {return _properties[i].double_precision;}
    
   /// Get the number of cores in the current device
   inline unsigned cores() { return cores(_device); }
@@ -227,8 +244,34 @@ class UCL_Device {
   inline bool sharing_supported(const int i)
     { return true; }
 
+  /// True if splitting device into equal subdevices supported
+  inline bool fission_equal()
+    { return fission_equal(_device); }
+  /// True if splitting device into equal subdevices supported
+  inline bool fission_equal(const int i)
+    { return _properties[i].partition_equal; }
+  /// True if splitting device into subdevices by specified counts supported
+  inline bool fission_by_counts()
+    { return fission_by_counts(_device); }
+  /// True if splitting device into subdevices by specified counts supported
+  inline bool fission_by_counts(const int i)
+    { return _properties[i].partition_counts; }    
+  /// True if splitting device into subdevices by affinity domains supported
+  inline bool fission_by_affinity()
+    { return fission_by_affinity(_device); }
+  /// True if splitting device into subdevices by affinity domains supported
+  inline bool fission_by_affinity(const int i)
+    { return _properties[i].partition_affinity; }
+
+  /// Maximum number of subdevices allowed from device fission
+  inline int max_sub_devices()
+    { return max_sub_devices(_device); }
+  /// Maximum number of subdevices allowed from device fission
+  inline int max_sub_devices(const int i)
+    { return _properties[i].max_sub_devices; }
+
   /// List all devices along with all properties
-  void print_all(std::ostream &out);
+  inline void print_all(std::ostream &out);
   
   /// Return the OpenCL type for the device
   inline cl_device_id & cl_device() { return _cl_device; }
@@ -237,7 +280,8 @@ class UCL_Device {
   int _num_platforms;          // Number of platforms
   int _platform;               // UCL_Device ID for current platform
   cl_platform_id _cl_platform; // OpenCL ID for current platform
-  cl_context _context;         // Context used for accessing the device
+  cl_platform_id _cl_platforms[20]; // OpenCL IDs for all platforms
+  cl_context _context;              // Context used for accessing the device
   std::vector<cl_command_queue> _cq;// The default command queue for this device
   int _device;                            // UCL_Device ID for current device
   cl_device_id _cl_device;                // OpenCL ID for current device
@@ -245,31 +289,57 @@ class UCL_Device {
   int _num_devices;                       // Number of devices
   std::vector<OCLProperties> _properties; // Properties for each device
   
-  void add_properties(cl_device_id);
-  int create_context();
+  inline void add_properties(cl_device_id);
+  inline int create_context();
   int _default_cq;
 };
 
 // Grabs the properties for all devices
-inline UCL_Device::UCL_Device() {
-  cl_int errorv;
-  cl_uint nplatforms;
-  
-  _cl_device=0;
+UCL_Device::UCL_Device() {
   _device=-1;
-  _num_devices=0;
-  _platform=0;
-  _default_cq=0;
 
   // --- Get Number of Platforms
-  errorv=clGetPlatformIDs(1,&_cl_platform,&nplatforms);
+  cl_uint nplatforms;
+  cl_int errorv=clGetPlatformIDs(20,_cl_platforms,&nplatforms);
   
   if (errorv!=CL_SUCCESS) {
     _num_platforms=0;
     return;
   } else
     _num_platforms=static_cast<int>(nplatforms);
+
+  set_platform(0);
+}
+
+UCL_Device::~UCL_Device() {
+  clear();
+}
+
+void UCL_Device::clear() {
+  if (_device>-1) {
+    for (size_t i=0; i<_cq.size(); i++) {
+      CL_DESTRUCT_CALL(clReleaseCommandQueue(_cq.back()));
+      _cq.pop_back();
+    }
+    CL_DESTRUCT_CALL(clReleaseContext(_context));
+  }
+  _device=-1;
+}
+
+int UCL_Device::set_platform(int pid) {
+  clear();
+  cl_int errorv;
+  
+  _cl_device=0;
+  _device=-1;
+  _num_devices=0;
+  _default_cq=0;
  
+  #ifdef UCL_DEBUG
+  assert(pid<num_platforms());
+  #endif
+  _platform=pid;
+  _cl_platform=_cl_platforms[_platform];
   
   // --- Get Number of Devices
   cl_uint n;
@@ -277,7 +347,7 @@ inline UCL_Device::UCL_Device() {
   _num_devices=n;
   if (errorv!=CL_SUCCESS || _num_devices==0) {
     _num_devices=0;
-    return;
+    return UCL_ERROR;
   }
   cl_device_id device_list[_num_devices];
   CL_SAFE_CALL(clGetDeviceIDs(_cl_platform,CL_DEVICE_TYPE_ALL,n,device_list,
@@ -288,19 +358,11 @@ inline UCL_Device::UCL_Device() {
     _cl_devices.push_back(device_list[i]);
     add_properties(device_list[i]);
   }
+
+  return UCL_SUCCESS;
 }
 
-inline UCL_Device::~UCL_Device() {
-  if (_device>-1) {
-    for (size_t i=0; i<_cq.size(); i++) {
-      CL_DESTRUCT_CALL(clReleaseCommandQueue(_cq.back()));
-      _cq.pop_back();
-    }
-    CL_DESTRUCT_CALL(clReleaseContext(_context));
-  }
-}
-
-inline int UCL_Device::create_context() {
+int UCL_Device::create_context() {
   cl_int errorv;
   cl_context_properties props[3];
   props[0]=CL_CONTEXT_PLATFORM;
@@ -320,9 +382,10 @@ inline int UCL_Device::create_context() {
   return UCL_SUCCESS;
 }
 
-inline void UCL_Device::add_properties(cl_device_id device_list) {
+void UCL_Device::add_properties(cl_device_id device_list) {
   OCLProperties op;
   char buffer[1024];
+  cl_bool ans_bool;
     
   CL_SAFE_CALL(clGetDeviceInfo(device_list,CL_DEVICE_NAME,1024,buffer,NULL));
   op.name=buffer;
@@ -363,10 +426,49 @@ inline void UCL_Device::add_properties(cl_device_id device_list) {
                                CL_DEVICE_PROFILING_TIMER_RESOLUTION,
                                sizeof(size_t),&op.timer_resolution,NULL));
   
+
+  op.ecc_support=false;
+  CL_SAFE_CALL(clGetDeviceInfo(device_list,
+                               CL_DEVICE_ERROR_CORRECTION_SUPPORT,
+                               sizeof(ans_bool),&ans_bool,NULL));
+  if (ans_bool==CL_TRUE)
+    op.ecc_support=true;
+  
+  op.c_version="";
+  op.partition_equal=false;
+  op.partition_counts=false;
+  op.partition_affinity=false;
+
+  #ifdef CL_VERSION_1_2
+  size_t return_bytes;
+  CL_SAFE_CALL(clGetDeviceInfo(device_list,CL_DEVICE_OPENCL_C_VERSION,1024,
+                               buffer,NULL));
+  op.c_version=buffer;
+
+  cl_device_partition_property pinfo[4];
+  CL_SAFE_CALL(clGetDeviceInfo(device_list,
+                               CL_DEVICE_PARTITION_PROPERTIES,
+                               4*sizeof(cl_device_partition_property),
+                               pinfo,&return_bytes));
+  int nprops=return_bytes/sizeof(cl_device_partition_property);
+  for (int i=0; i<nprops; i++) {
+    if (pinfo[i]==CL_DEVICE_PARTITION_EQUALLY)
+      op.partition_equal=true;
+    else if (pinfo[i]==CL_DEVICE_PARTITION_BY_COUNTS)
+      op.partition_counts=true;
+    else if (pinfo[i]==CL_DEVICE_PARTITION_BY_AFFINITY_DOMAIN)
+      op.partition_affinity=true;
+  }
+  
+  CL_SAFE_CALL(clGetDeviceInfo(device_list,
+                               CL_DEVICE_PARTITION_MAX_SUB_DEVICES,
+                               sizeof(cl_uint),&op.max_sub_devices,NULL));
+  #endif
+  
   _properties.push_back(op);
 }
 
-inline std::string UCL_Device::platform_name() {
+std::string UCL_Device::platform_name() {
   char info[1024];
   
   CL_SAFE_CALL(clGetPlatformInfo(_cl_platform,CL_PLATFORM_VENDOR,1024,info,
@@ -385,7 +487,7 @@ inline std::string UCL_Device::platform_name() {
 }
 
 // Get a string telling the type of the device
-inline std::string UCL_Device::device_type_name(const int i) {
+std::string UCL_Device::device_type_name(const int i) {
   if (_properties[i].device_type==CL_DEVICE_TYPE_CPU)
     return "CPU";
   else if (_properties[i].device_type==CL_DEVICE_TYPE_GPU)
@@ -397,7 +499,7 @@ inline std::string UCL_Device::device_type_name(const int i) {
 }
 
 // Get a string telling the type of the device
-inline int UCL_Device::device_type(const int i) {
+int UCL_Device::device_type(const int i) {
   if (_properties[i].device_type==CL_DEVICE_TYPE_CPU)
     return UCL_CPU;
   else if (_properties[i].device_type==CL_DEVICE_TYPE_GPU)
@@ -409,17 +511,8 @@ inline int UCL_Device::device_type(const int i) {
 }
 
 // Set the CUDA device to the specified device number
-inline int UCL_Device::set(int num) {
-  if (_device==num)
-    return UCL_SUCCESS;
-  
-  if (_device>-1) {
-    for (size_t i=0; i<_cq.size(); i++) {
-      CL_SAFE_CALL(clReleaseCommandQueue(_cq.back()));
-      _cq.pop_back();
-    }
-    CL_SAFE_CALL(clReleaseContext(_context));
-  }
+int UCL_Device::set(int num) {
+  clear();
   
   cl_device_id device_list[_num_devices];
   cl_uint n;
@@ -432,7 +525,7 @@ inline int UCL_Device::set(int num) {
 }
 
 // List all devices along with all properties
-inline void UCL_Device::print_all(std::ostream &out) {
+void UCL_Device::print_all(std::ostream &out) {
   if (num_devices() == 0)
     out << "There is no device supporting OpenCL\n";
   for (int i=0; i<num_devices(); ++i) {
@@ -475,6 +568,28 @@ inline void UCL_Device::print_all(std::ostream &out) {
     out << "  Clock rate:                                    "
         << clock_rate(i) << " GHz\n";
     //out << "  Concurrent copy and execution:                 ";
+    out << "  ECC support:                                   ";
+    if (_properties[i].ecc_support)
+      out << "Yes\n";
+    else
+      out << "No\n";
+    out << "  Device fission into equal partitions:          ";
+    if (fission_equal(i))
+      out << "Yes\n";
+    else
+      out << "No\n";
+    out << "  Device fission by counts:                      ";
+    if (fission_by_counts(i))
+      out << "Yes\n";
+    else
+      out << "No\n";
+    out << "  Device fission by affinity:                    ";
+    if (fission_by_affinity(i))
+      out << "Yes\n";
+    else
+      out << "No\n";
+    out << "  Maximum subdevices from fission:               "
+        << max_sub_devices(i) << std::endl;
   }
 }
 

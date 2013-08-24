@@ -455,9 +455,7 @@ void BaseEllipsoidT::compile_kernels(UCL_Device &dev,
   std::string s_lj=kns+"_lj";
   std::string s_lj_fast=kns+"_lj_fast";
 
-  std::string flags="-cl-fast-relaxed-math -cl-mad-enable "+
-                    std::string(OCL_PRECISION_COMPILE)+" -D"+
-                    std::string(OCL_VENDOR);
+  std::string flags=device->compile_string();
 
   nbor_program=new UCL_Program(dev);
   nbor_program->load_string(ellipsoid_nbor,flags.c_str());

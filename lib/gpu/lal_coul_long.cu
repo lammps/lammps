@@ -74,12 +74,12 @@ texture<int2> q_tex;
     if (eflag>0) {                                                          \
       *ap1=(acctyp)0;                                                       \
       ap1+=inum;                                                            \
-      *ap1=e_coul;                                                          \
+      *ap1=e_coul*(acctyp)0.5;                                              \
       ap1+=inum;                                                            \
     }                                                                       \
     if (vflag>0) {                                                          \
       for (int i=0; i<6; i++) {                                             \
-        *ap1=virial[i];                                                     \
+        *ap1=virial[i]*(acctyp)0.5;                                         \
         ap1+=inum;                                                          \
       }                                                                     \
     }                                                                       \
@@ -109,12 +109,12 @@ texture<int2> q_tex;
     if (eflag>0) {                                                          \
       *ap1=(acctyp)0;                                                       \
       ap1+=inum;                                                            \
-      *ap1=e_coul;                                                          \
+      *ap1=e_coul*(acctyp)0.5;                                              \
       ap1+=inum;                                                            \
     }                                                                       \
     if (vflag>0) {                                                          \
       for (int i=0; i<6; i++) {                                             \
-        *ap1=virial[i];                                                     \
+        *ap1=virial[i]*(acctyp)0.5;                                         \
         ap1+=inum;                                                          \
       }                                                                     \
     }                                                                       \
@@ -155,7 +155,8 @@ __kernel void k_coul_long(const __global numtyp4 *restrict x_,
 
   if (ii<inum) {
     const __global int *nbor, *list_end;
-    int i, numj, n_stride;
+    int i, numj;
+    __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,list_end,nbor);
 
@@ -244,7 +245,8 @@ __kernel void k_coul_long_fast(const __global numtyp4 *restrict x_,
 
   if (ii<inum) {
     const __global int *nbor, *list_end;
-    int i, numj, n_stride;
+    int i, numj;
+    __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,list_end,nbor);
 

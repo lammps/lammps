@@ -56,25 +56,24 @@ int YukawaColloidT::init(const int ntypes,
   if (success!=0)
     return success;
 
+  if (this->ucl_device->shared_memory() && sizeof(numtyp)==sizeof(double))
+    _shared_view=true;
+  else
+    _shared_view=false;
+
   // allocate rad
-  
-  bool cpuview=false;
-  if (this->ucl_device->device_type()==UCL_CPU)
-    cpuview=true;
   
   int ef_nall=nall;
   if (ef_nall==0)
     ef_nall=2000;
   
   _max_rad_size=static_cast<int>(static_cast<double>(ef_nall)*1.10);
-  host_rad.alloc(_max_rad_size,*(this->ucl_device));
-  if (cpuview)
-    dev_rad.view(host_rad);
-  else 
-    dev_rad.alloc(_max_rad_size,*(this->ucl_device),UCL_WRITE_ONLY);
+    
+  if (_shared_view==false)
+    c_rad.alloc(_max_rad_size,*(this->ucl_device),UCL_WRITE_ONLY,UCL_READ_ONLY);
   
   rad_tex.get_texture(*(this->pair_program),"rad_tex");
-  rad_tex.bind_float(dev_rad,1);
+  rad_tex.bind_float(c_rad,1);
 
   // If atom type constants fit in shared memory use fast kernel
   int lj_types=ntypes;
@@ -90,7 +89,7 @@ int YukawaColloidT::init(const int ntypes,
 
   // Allocate a host write buffer for data initialization
   UCL_H_Vec<numtyp> host_write(lj_types*lj_types*32,*(this->ucl_device),
-                               UCL_WRITE_OPTIMIZED);
+                               UCL_WRITE_ONLY);
 
   for (int i=0; i<lj_types*lj_types*32; i++)
     host_write[i]=(numtyp)0.0;
@@ -118,8 +117,7 @@ void YukawaColloidT::clear() {
   coeff.clear();
   sp_lj.clear();
 
-  host_rad.clear();
-  dev_rad.clear();
+  c_rad.clear();
 
   this->clear_atomic();
 }
@@ -143,22 +141,11 @@ void YukawaColloidT::compute(const int f_ago, const int inum_full,
   // ------------------- Resize rad array --------------------------
   
   if (nall>_max_rad_size) {
-    dev_rad.clear();
-    host_rad.clear();
-    
     _max_rad_size=static_cast<int>(static_cast<double>(nall)*1.10);
-    host_rad.alloc(_max_rad_size,*(this->ucl_device));
-
-    if (this->ucl_device->device_type()==UCL_CPU) {
-      if (sizeof(numtyp)==sizeof(double)) {
-        host_rad.view((numtyp*)rad,nall,*(this->ucl_device));
-        dev_rad.view(host_rad);
-      } 
-    } else {
-      dev_rad.alloc(_max_rad_size,*(this->ucl_device));
+    if (_shared_view==false) {
+      c_rad.resize(_max_rad_size);
+      rad_tex.bind_float(c_rad,1);
     }
-    
-    rad_tex.bind_float(dev_rad,1);
   }
 
   // ----------------------------------------------------------------
@@ -212,22 +199,11 @@ int** YukawaColloidT::compute(const int ago, const int inum_full, const int nall
   // ------------------- Resize rad array ----------------------------
   
   if (nall>_max_rad_size) {
-    dev_rad.clear();
-    host_rad.clear();
-    
     _max_rad_size=static_cast<int>(static_cast<double>(nall)*1.10);
-    host_rad.alloc(_max_rad_size,*(this->ucl_device));
-
-    if (this->ucl_device->device_type()==UCL_CPU) {
-      if (sizeof(numtyp)==sizeof(double)) {
-        host_rad.view((numtyp*)rad,nall,*(this->ucl_device));
-        dev_rad.view(host_rad);
-      } 
-    } else {
-      dev_rad.alloc(_max_rad_size,*(this->ucl_device));
+    if (_shared_view==false) {
+      c_rad.resize(_max_rad_size);
+      rad_tex.bind_float(c_rad,1);
     }
-    
-    rad_tex.bind_float(dev_rad,1);
   }      
 
   // -----------------------------------------------------------------
@@ -298,13 +274,13 @@ void YukawaColloidT::loop(const bool _eflag, const bool _vflag) {
   this->time_pair.start();
   if (shared_types) {
     this->k_pair_fast.set_size(GX,BX);
-    this->k_pair_fast.run(&this->atom->x, &dev_rad, &coeff, &sp_lj,
+    this->k_pair_fast.run(&this->atom->x, &c_rad, &coeff, &sp_lj,
                           &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                           &this->ans->force, &this->ans->engv, &eflag, &vflag,
                           &ainum, &nbor_pitch, &this->_threads_per_atom, &_kappa);
   } else {
     this->k_pair.set_size(GX,BX);
-    this->k_pair.run(&this->atom->x, &dev_rad, &coeff, &_lj_types, &sp_lj, 
+    this->k_pair.run(&this->atom->x, &c_rad, &coeff, &_lj_types, &sp_lj, 
                      &this->nbor->dev_nbor, &this->_nbor_data->begin(), 
                      &this->ans->force, &this->ans->engv, &eflag, &vflag,
                      &ainum, &nbor_pitch, &this->_threads_per_atom, &_kappa);

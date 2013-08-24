@@ -47,13 +47,15 @@ class Neighbor {
     * \param pre_cut True if cutoff test will be performed in separate kernel
     *                than the force kernel 
     * \param threads_per_atom Number of threads used per atom for force
-    *                         calculation **/
+    *                         calculation 
+    * \param compile_flags Flags for JIT compiling **/
   bool init(NeighborShared *shared, const int inum, const int host_inum,
             const int max_nbors, const int maxspecial, UCL_Device &dev,
             const int gpu_nbor, const int gpu_host, const bool pre_cut,
             const int block_cell_2d, const int block_cell_id, 
             const int block_nbor_build, const int threads_per_atom,
-            const int warp_size, const bool time_device);
+            const int warp_size, const bool time_device, 
+            const std::string compile_flags);
 
   /// Set the size of the cutoff+skin
   inline void cell_size(const double size, const double cutoff) { 
@@ -143,6 +145,10 @@ class Neighbor {
   void get_host(const int inum, int *ilist, int *numj, 
                 int **firstneigh, const int block_size);
   
+  /// Copy neighbor list from host for 3-body (first time or from a rebuild)  
+  void get_host3(const int inum, const int nlist, int *ilist, int *numj, 
+                 int **firstneigh, const int block_size);
+  
   /// Return the stride in elements for each nbor row
   inline int nbor_pitch() const { return _nbor_pitch; }
   
@@ -207,11 +213,9 @@ class Neighbor {
   UCL_D_Vec<int> dev_nspecial;
   /// Device storage for special neighbors
   UCL_D_Vec<int> dev_special, dev_special_t;
-  /// Host storage for number of particles per cell
-  UCL_H_Vec<int> host_cell_counts;
+  /// Host/Device storage for number of particles per cell
+  UCL_Vector<int,int> cell_counts;
   int *cell_iter;
-  /// Device storage for number of particles per cell
-  UCL_D_Vec<int> dev_cell_counts;
 
   /// Device timers
   UCL_Timer time_nbor, time_kernel, time_hybrid1, time_hybrid2, time_transpose;

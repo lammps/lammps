@@ -77,12 +77,12 @@
   if (offset==0) {                                                          \
     engv+=ii;                                                               \
     if (eflag>0) {                                                          \
-      *engv=energy;                                                         \
+      *engv=energy*(acctyp)0.5;                                             \
       engv+=inum;                                                           \
     }                                                                       \
     if (vflag>0) {                                                          \
       for (int i=0; i<6; i++) {                                             \
-        *engv=virial[i];                                                    \
+        *engv=virial[i]*(acctyp)0.5;                                        \
         engv+=inum;                                                         \
       }                                                                     \
     }                                                                       \
@@ -125,14 +125,14 @@
   if (offset==0) {                                                          \
     engv+=ii;                                                               \
     if (eflag>0) {                                                          \
-      *engv=energy;                                                         \
+      *engv=energy*(acctyp)0.5;                                             \
       engv+=inum;                                                           \
-      *engv=e_coul;                                                         \
+      *engv=e_coul*(acctyp)0.5;                                             \
       engv+=inum;                                                           \
     }                                                                       \
     if (vflag>0) {                                                          \
       for (int i=0; i<6; i++) {                                             \
-        *engv=virial[i];                                                    \
+        *engv=virial[i]*(acctyp)0.5;                                        \
         engv+=inum;                                                         \
       }                                                                     \
     }                                                                       \
@@ -160,12 +160,12 @@
   if (offset==0) {                                                          \
     engv+=ii;                                                               \
     if (eflag>0) {                                                          \
-      *engv=energy;                                                         \
+      *engv=energy*(acctyp)0.5;                                             \
       engv+=inum;                                                           \
     }                                                                       \
     if (vflag>0) {                                                          \
       for (int i=0; i<6; i++) {                                             \
-        *engv=virial[i];                                                    \
+        *engv=virial[i]*(acctyp)0.5;                                        \
         engv+=inum;                                                         \
       }                                                                     \
     }                                                                       \
@@ -192,14 +192,14 @@
   if (offset==0) {                                                          \
     engv+=ii;                                                               \
     if (eflag>0) {                                                          \
-      *engv=energy;                                                         \
+      *engv=energy*(acctyp)0.5;                                             \
       engv+=inum;                                                           \
-      *engv=e_coul;                                                         \
+      *engv=e_coul*(acctyp)0.5;                                             \
       engv+=inum;                                                           \
     }                                                                       \
     if (vflag>0) {                                                          \
       for (int i=0; i<6; i++) {                                             \
-        *engv=virial[i];                                                    \
+        *engv=virial[i]*(acctyp)0.5;                                        \
         engv+=inum;                                                         \
       }                                                                     \
     }                                                                       \

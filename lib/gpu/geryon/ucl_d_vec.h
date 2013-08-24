@@ -39,14 +39,14 @@ class UCL_D_Vec : public UCL_BaseMat {
   };
   typedef numtyp data_type; 
 
-  UCL_D_Vec() : _cols(0), _kind(UCL_VIEW) {}
-  ~UCL_D_Vec() { if (_kind!=UCL_VIEW) _device_free(*this); }
+  UCL_D_Vec() : _cols(0) {}
+  ~UCL_D_Vec() { _device_free(*this); }
 
   /// Construct with n columns
   /** \sa alloc() **/
   UCL_D_Vec(const size_t n, UCL_Device &device,
             const enum UCL_MEMOPT kind=UCL_READ_WRITE) : 
-    _cols(0), _kind(UCL_VIEW) { alloc(n,device,kind); }
+    _cols(0) { alloc(n,device,kind); }
 
   /// Set up host vector with 'cols' columns and reserve memory
   /** The kind parameter controls memory optimizations as follows:
@@ -119,15 +119,11 @@ class UCL_D_Vec : public UCL_BaseMat {
     return err; 
   }
 
-  /// Return the type of memory allocation
-  /** Returns UCL_READ_WRITE, UCL_WRITE_ONLY, UCL_READ_ONLY, or UCL_VIEW **/ 
-  inline enum UCL_MEMOPT kind() const { return _kind; }
-  
   /// Do not allocate memory, instead use an existing allocation from Geryon
   /** This function must be passed a Geryon vector or matrix container.
     * No memory is freed when the object is destructed.
     * - The view does not prevent the memory from being freed by the
-    *   allocating container **/
+    *   allocating container when using CUDA APIs **/
   template <class ucl_type>
   inline void view(ucl_type &input, const size_t rows, const size_t cols) {
     #ifdef UCL_DEBUG
@@ -139,8 +135,10 @@ class UCL_D_Vec : public UCL_BaseMat {
     _row_bytes=_cols*sizeof(numtyp);
     this->_cq=input.cq();
     #ifdef _OCL_MAT
-    _offset=0;
+    _offset=input.offset();
     _array=input.cbegin();
+    CL_SAFE_CALL(clRetainMemObject(input.cbegin()));
+    CL_SAFE_CALL(clRetainCommandQueue(input.cq()));
     #else
     _device_view(&_array,input.begin());
     #endif
@@ -154,7 +152,7 @@ class UCL_D_Vec : public UCL_BaseMat {
   /** This function must be passed a Geryon vector or matrix container.
     * No memory is freed when the object is destructed.
     * - The view does not prevent the memory from being freed by the
-    *   allocating container 
+    *   allocating container when using CUDA APIs 
     * \param stride Number of _elements_ between the start of each row **/ 
   template <class ucl_type>
   inline void view(ucl_type &input, const size_t rows, const size_t cols,
@@ -164,7 +162,7 @@ class UCL_D_Vec : public UCL_BaseMat {
   /** This function must be passed a Geryon vector or matrix container.
     * No memory is freed when the object is destructed.
     * - The view does not prevent the memory from being freed by the
-    *   allocating container 
+    *   allocating container when using CUDA APIs 
     * - If a matrix is used a input, all elements (including padding)
     *   will be used for view **/
   template <class ucl_type>
@@ -175,7 +173,7 @@ class UCL_D_Vec : public UCL_BaseMat {
   /** This function must be passed a Geryon vector or matrix container.
     * No memory is freed when the object is destructed.
     * - The view does not prevent the memory from being freed by the
-    *   allocating container 
+    *   allocating container when using CUDA APIs 
     * - If a matrix is used a input, all elements (including padding)
     *   will be used for view **/
   template <class ucl_type>
@@ -185,7 +183,7 @@ class UCL_D_Vec : public UCL_BaseMat {
   /// Do not allocate memory, instead use an existing allocation
   /** - No memory is freed when the object is destructed.
     * - The view does not prevent the memory from being freed by the
-    *   allocating container **/
+    *   allocating container when using CUDA APIs **/
   template <class ptr_type>
   inline void view(ptr_type input, const size_t rows, const size_t cols,
                    UCL_Device &dev) {
@@ -203,13 +201,15 @@ class UCL_D_Vec : public UCL_BaseMat {
     #endif
     #ifdef _OCL_MAT
     _offset=0;
+    CL_SAFE_CALL(clRetainMemObject(input));
+    CL_SAFE_CALL(clRetainCommandQueue(dev.cq()));
     #endif
   }
   
   /// Do not allocate memory, instead use an existing allocation
   /** - No memory is freed when the object is destructed.
     * - The view does not prevent the memory from being freed by the
-    *   allocating container 
+    *   allocating container when using CUDA APIs 
     * \param stride Number of _elements_ between the start of each row **/ 
   template <class ptr_type>
   inline void view(ptr_type input, const size_t rows, const size_t cols,
@@ -219,7 +219,7 @@ class UCL_D_Vec : public UCL_BaseMat {
   /// Do not allocate memory, instead use an existing allocation
   /** - No memory is freed when the object is destructed.
     * - The view does not prevent the memory from being freed by the
-    *   allocating container **/
+    *   allocating container when using CUDA APIs **/
   template <class ptr_type>
   inline void view(ptr_type input, const size_t cols, UCL_Device &dev)
     { view(input,1,cols,dev); }
@@ -228,7 +228,7 @@ class UCL_D_Vec : public UCL_BaseMat {
   /** This function must be passed a Geryon vector or matrix container.
     * No memory is freed when the object is destructed.
     * - The view does not prevent the memory from being freed by the
-    *   allocating container **/
+    *   allocating container when using CUDA APIs **/
   template <class ucl_type>
   inline void view_offset(const size_t offset,ucl_type &input,const size_t rows,
                           const size_t cols) {
@@ -242,7 +242,9 @@ class UCL_D_Vec : public UCL_BaseMat {
     this->_cq=input.cq();
     #ifdef _OCL_MAT
     _array=input.begin();
-    _offset=offset;
+    _offset=offset+input.offset();
+    CL_SAFE_CALL(clRetainMemObject(input.begin()));
+    CL_SAFE_CALL(clRetainCommandQueue(input.cq()));
     #else
     _device_view(&_array,input.begin(),offset,sizeof(numtyp));
     #endif
@@ -256,7 +258,7 @@ class UCL_D_Vec : public UCL_BaseMat {
   /** This function must be passed a Geryon vector or matrix container.
     * No memory is freed when the object is destructed.
     * - The view does not prevent the memory from being freed by the
-    *   allocating container 
+    *   allocating container when using CUDA APIs 
     * \param stride Number of _elements_ between the start of each row **/ 
   template <class ucl_type>
   inline void view_offset(const size_t offset,ucl_type &input,const size_t rows,
@@ -267,7 +269,7 @@ class UCL_D_Vec : public UCL_BaseMat {
   /** This function must be passed a Geryon vector or matrix container.
     * No memory is freed when the object is destructed.
     * - The view does not prevent the memory from being freed by the
-    *   allocating container 
+    *   allocating container when using CUDA APIs 
     * - If a matrix is used a input, all elements (including padding)
     *   will be used for view **/
   template <class ucl_type>
@@ -278,7 +280,7 @@ class UCL_D_Vec : public UCL_BaseMat {
   /** This function must be passed a Geryon vector or matrix container.
     * No memory is freed when the object is destructed.
     * - The view does not prevent the memory from being freed by the
-    *   allocating container 
+    *   allocating container when using CUDA APIs 
     * - If a matrix is used a input, all elements (including padding)
     *   will be used for view **/
   template <class ucl_type>
@@ -288,7 +290,7 @@ class UCL_D_Vec : public UCL_BaseMat {
   /// Do not allocate memory, instead use an existing allocation
   /** - No memory is freed when the object is destructed.
     * - The view does not prevent the memory from being freed by the
-    *   allocating container **/
+    *   allocating container when using CUDA APIs **/
   template <class ptr_type>
   inline void view_offset(const size_t offset,ptr_type input,const size_t rows,
                           const size_t cols, UCL_Device &dev) {
@@ -304,6 +306,8 @@ class UCL_D_Vec : public UCL_BaseMat {
     #ifdef _OCL_MAT
     _array=input;
     _offset=offset;
+    CL_SAFE_CALL(clRetainMemObject(input));
+    CL_SAFE_CALL(clRetainCommandQueue(dev.cq()));
     #else
     #ifdef _UCL_DEVICE_PTR_MAT
     _array=input+offset*sizeof(numtyp);
@@ -320,7 +324,7 @@ class UCL_D_Vec : public UCL_BaseMat {
   /// Do not allocate memory, instead use an existing allocation
   /** - No memory is freed when the object is destructed.
     * - The view does not prevent the memory from being freed by the
-    *   allocating container 
+    *   allocating container when using CUDA APIs 
     * \param stride Number of _elements_ between the start of each row **/ 
   template <class ptr_type>
   inline void view_offset(const size_t offset,ptr_type input,const size_t rows,
@@ -330,7 +334,7 @@ class UCL_D_Vec : public UCL_BaseMat {
   /// Do not allocate memory, instead use an existing allocation
   /** - No memory is freed when the object is destructed.
     * - The view does not prevent the memory from being freed by the
-    *   allocating container **/
+    *   allocating container when using CUDA APIs **/
   template <class ptr_type>
   inline void view_offset(const size_t offset, ptr_type input, 
                           const size_t cols, UCL_Device &dev)
@@ -338,7 +342,7 @@ class UCL_D_Vec : public UCL_BaseMat {
   
   /// Free memory and set size to 0
   inline void clear() 
-    { if (_kind!=UCL_VIEW) { _cols=0; _kind=UCL_VIEW; _device_free(*this); } }
+    { _device_free(*this); _cols=0; _kind=UCL_VIEW;  }
 
   /// Resize the allocation to contain cols elements
   /** \note Cannot be used on views **/
@@ -373,11 +377,15 @@ class UCL_D_Vec : public UCL_BaseMat {
   inline int resize_ib(const int cols)
     { if (cols>_cols) return resize(cols); else return UCL_SUCCESS; }
 
-  /// Set each element to zero
-  inline void zero() { _device_zero(*this,row_bytes()); }
-
-  /// Set first n elements to zero
-  inline void zero(const int n) { _device_zero(*this,n*sizeof(numtyp)); }
+  /// Set each element to zero asynchronously in the default command_queue
+  inline void zero() { zero(_cq); }
+  /// Set first n elements to zero asynchronously in the default command_queue
+  inline void zero(const int n) { zero(n,_cq); }
+  /// Set each element to zero asynchronously
+  inline void zero(command_queue &cq) { _device_zero(*this,row_bytes(),cq); }
+  /// Set first n elements to zero asynchronously
+  inline void zero(const int n, command_queue &cq) 
+    { _device_zero(*this,n*sizeof(numtyp),cq); }
 
   #ifdef _UCL_DEVICE_PTR_MAT
   /// For OpenCL, returns a (void *) device pointer to memory allocation
@@ -465,7 +473,6 @@ class UCL_D_Vec : public UCL_BaseMat {
 
  private:
   size_t _row_bytes, _row_size, _rows, _cols;
-  enum UCL_MEMOPT _kind;
   
   #ifdef _UCL_DEVICE_PTR_MAT
   device_ptr _array;

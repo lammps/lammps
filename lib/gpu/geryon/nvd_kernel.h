@@ -377,6 +377,10 @@ class UCL_Kernel {
     #endif
   }
 
+  /// Return the default command queue/stream associated with this data
+  inline command_queue & cq() { return _cq; }
+  /// Change the default command queue associated with matrix
+  inline void cq(command_queue &cq_in) { _cq=cq_in; }
   #include "ucl_arg_kludge.h"
 
  private:

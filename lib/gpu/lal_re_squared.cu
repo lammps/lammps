@@ -75,7 +75,8 @@ __kernel void k_resquared(const __global numtyp4 *restrict x_,
 
   if (ii<inum) {
     const __global int *nbor, *nbor_end;
-    int i, numj, n_stride;
+    int i, numj;
+    __local int n_stride;
     nbor_info_e(dev_nbor,stride,t_per_atom,ii,offset,i,numj,
                 n_stride,nbor_end,nbor);
   

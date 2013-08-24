@@ -54,82 +54,138 @@ typedef cl_mem device_ptr;
 
 template <class mat_type, class copy_type>
 inline int _host_alloc(mat_type &mat, copy_type &cm, const size_t n,  
-                       const enum UCL_MEMOPT kind) {
+                       const enum UCL_MEMOPT kind, const enum UCL_MEMOPT kind2){
   cl_int error_flag;
   cl_context context;
   CL_SAFE_CALL(clGetMemObjectInfo(cm.cbegin(),CL_MEM_CONTEXT,sizeof(context),
                                   &context,NULL));
-
-  if (kind==UCL_VIEW) {
-    mat.cbegin()=clCreateBuffer(context, CL_MEM_USE_HOST_PTR,n,mat.host_ptr(),
-                                &error_flag);
-    CL_CHECK_ERR(error_flag);
-    return UCL_SUCCESS;
-  }
-  if (kind==UCL_WRITE_OPTIMIZED) {
-    mat.cbegin()=clCreateBuffer(context,
-                                CL_MEM_READ_ONLY | CL_MEM_ALLOC_HOST_PTR,
-                                n,NULL,&error_flag);                        
-    if (error_flag != CL_SUCCESS) 
-      return UCL_MEMORY_ERROR;
-    *mat.host_ptr() = (typename mat_type::data_type*)
-                      clEnqueueMapBuffer(cm.cq(),mat.cbegin(),CL_TRUE,
-                                         CL_MAP_WRITE,0,n,0,NULL,NULL,NULL);
+  
+  cl_mem_flags buffer_perm;
+  cl_map_flags map_perm;
+  if (kind2==UCL_NOT_SPECIFIED) {
+    if (kind==UCL_READ_ONLY) {
+      #ifdef CL_VERSION_1_2
+      buffer_perm=CL_MEM_HOST_READ_ONLY|CL_MEM_WRITE_ONLY|CL_MEM_ALLOC_HOST_PTR;
+      #else
+      buffer_perm=CL_MEM_WRITE_ONLY | CL_MEM_ALLOC_HOST_PTR;
+      #endif
+      map_perm=CL_MAP_READ;
+    } else if (kind==UCL_WRITE_ONLY) {
+      #ifdef CL_VERSION_1_2
+      buffer_perm=CL_MEM_HOST_WRITE_ONLY|CL_MEM_READ_ONLY|CL_MEM_ALLOC_HOST_PTR;
+      #else
+      buffer_perm=CL_MEM_READ_ONLY | CL_MEM_ALLOC_HOST_PTR;
+      #endif
+      map_perm=CL_MAP_WRITE;
+    } else {
+      buffer_perm=CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR;
+      map_perm=CL_MAP_READ | CL_MAP_WRITE;
+    }
   } else {
-    mat.cbegin()=clCreateBuffer(context,
-                                CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR,
-                                n,NULL,&error_flag);
-    if (error_flag != CL_SUCCESS) 
-      return UCL_MEMORY_ERROR;
+    if (kind2==UCL_READ_ONLY)
+      buffer_perm=CL_MEM_READ_ONLY | CL_MEM_ALLOC_HOST_PTR;
+    else if (kind2==UCL_WRITE_ONLY)
+      buffer_perm=CL_MEM_WRITE_ONLY | CL_MEM_ALLOC_HOST_PTR;
+    else
+      buffer_perm=CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR;
+    
+    if (kind==UCL_READ_ONLY) {
+      #ifdef CL_VERSION_1_2
+      buffer_perm=buffer_perm | CL_MEM_HOST_READ_ONLY;
+      #endif
+      map_perm=CL_MAP_READ;
+    } else if (kind==UCL_WRITE_ONLY) {
+      #ifdef CL_VERSION_1_2
+      buffer_perm=buffer_perm | CL_MEM_HOST_WRITE_ONLY;
+      #endif
+      map_perm=CL_MAP_WRITE;
+    } else
+      map_perm=CL_MAP_READ | CL_MAP_WRITE;
+  }
+    
+  mat.cbegin()=clCreateBuffer(context,buffer_perm,n,NULL,&error_flag);
+  if (error_flag != CL_SUCCESS) 
+    return UCL_MEMORY_ERROR;
     *mat.host_ptr() = (typename mat_type::data_type*)
                       clEnqueueMapBuffer(cm.cq(),mat.cbegin(),CL_TRUE,
-                                         CL_MAP_READ | CL_MAP_WRITE,
-                                         0,n,0,NULL,NULL,NULL);
-  }
+                                         map_perm,0,n,0,NULL,NULL,NULL);
+
   mat.cq()=cm.cq();
+  CL_SAFE_CALL(clRetainCommandQueue(mat.cq()));
+  return UCL_SUCCESS;
+}
+
+template <class mat_type, class copy_type>
+inline int _host_view(mat_type &mat, copy_type &cm, const size_t n) {
+  cl_int error_flag;
+  cl_context context;
+  CL_SAFE_CALL(clGetMemObjectInfo(cm.cbegin(),CL_MEM_CONTEXT,sizeof(context),
+                                  &context,NULL));
+  cl_mem_flags orig_flags;
+  CL_SAFE_CALL(clGetMemObjectInfo(cm.cbegin(),CL_MEM_FLAGS,sizeof(orig_flags),
+                                  &orig_flags,NULL));
+  orig_flags=orig_flags & ~CL_MEM_ALLOC_HOST_PTR;
+  
+  mat.cbegin()=clCreateBuffer(context, CL_MEM_USE_HOST_PTR | orig_flags, n,
+                              mat.host_ptr(), &error_flag);
+  CL_CHECK_ERR(error_flag);
   CL_SAFE_CALL(clRetainCommandQueue(mat.cq()));
   return UCL_SUCCESS;
 }
 
 template <class mat_type>
 inline int _host_alloc(mat_type &mat, UCL_Device &dev, const size_t n,  
-                       const enum UCL_MEMOPT kind) {
-  cl_int error_flag;
-  if (kind==UCL_VIEW) {
-    mat.cbegin()=clCreateBuffer(dev.context(), CL_MEM_USE_HOST_PTR,
-                                n,mat.host_ptr(),&error_flag);
-    CL_CHECK_ERR(error_flag);
-    return UCL_SUCCESS;
-  }
-  if (kind==UCL_WRITE_OPTIMIZED) {
-    mat.cbegin()=clCreateBuffer(dev.context(),
-                                CL_MEM_READ_ONLY | CL_MEM_ALLOC_HOST_PTR,
-                                n,NULL,&error_flag);                        
-    if (error_flag != CL_SUCCESS) 
-      return UCL_MEMORY_ERROR;
-    *mat.host_ptr() = (typename mat_type::data_type*)
-                      clEnqueueMapBuffer(dev.cq(),mat.cbegin(),CL_TRUE,
-                                         CL_MAP_WRITE,0,n,0,NULL,NULL,NULL);
+                       const enum UCL_MEMOPT kind, const enum UCL_MEMOPT kind2){
+  cl_mem_flags buffer_perm;
+  cl_map_flags map_perm;
+  if (kind==UCL_READ_ONLY) {
+    #ifdef CL_VERSION_1_2
+    buffer_perm=CL_MEM_HOST_READ_ONLY|CL_MEM_WRITE_ONLY|CL_MEM_ALLOC_HOST_PTR;
+    #else
+    buffer_perm=CL_MEM_WRITE_ONLY | CL_MEM_ALLOC_HOST_PTR;
+    #endif
+    map_perm=CL_MAP_READ;
+  } else if (kind==UCL_WRITE_ONLY) {
+    #ifdef CL_VERSION_1_2
+    buffer_perm=CL_MEM_HOST_WRITE_ONLY|CL_MEM_READ_ONLY|CL_MEM_ALLOC_HOST_PTR;
+    #else
+    buffer_perm=CL_MEM_READ_ONLY | CL_MEM_ALLOC_HOST_PTR;
+    #endif
+    map_perm=CL_MAP_WRITE;
   } else {
-    mat.cbegin()=clCreateBuffer(dev.context(),
-                                CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR,
-                                n,NULL,&error_flag);
-    if (error_flag != CL_SUCCESS) 
-      return UCL_MEMORY_ERROR;
-    *mat.host_ptr() = (typename mat_type::data_type*)
-                      clEnqueueMapBuffer(dev.cq(),mat.cbegin(),CL_TRUE,
-                                         CL_MAP_READ & CL_MAP_WRITE,
-                                         0,n,0,NULL,NULL,NULL);
+    buffer_perm=CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR;
+    map_perm=CL_MAP_READ | CL_MAP_WRITE;
   }
+
+  cl_int error_flag;
+  mat.cbegin()=clCreateBuffer(dev.context(),buffer_perm,n,NULL,&error_flag);
+  if (error_flag != CL_SUCCESS) 
+    return UCL_MEMORY_ERROR;
+
+  *mat.host_ptr() = (typename mat_type::data_type*)
+                    clEnqueueMapBuffer(dev.cq(),mat.cbegin(),CL_TRUE,
+                                       map_perm,0,n,0,NULL,NULL,NULL);
   mat.cq()=dev.cq();
   CL_SAFE_CALL(clRetainCommandQueue(mat.cq()));
   return UCL_SUCCESS;
 }
 
 template <class mat_type>
-inline void _host_free(mat_type &mat, const enum UCL_MEMOPT kind) {
-  CL_DESTRUCT_CALL(clReleaseMemObject(mat.cbegin()));
-  CL_DESTRUCT_CALL(clReleaseCommandQueue(mat.cq()));
+inline int _host_view(mat_type &mat, UCL_Device &dev, const size_t n) {
+  cl_int error_flag;
+  mat.cbegin()=clCreateBuffer(dev.context(), CL_MEM_USE_HOST_PTR,
+                              n,mat.host_ptr(),&error_flag);
+  CL_CHECK_ERR(error_flag);
+  CL_SAFE_CALL(clRetainCommandQueue(mat.cq()));
+  return UCL_SUCCESS;
+}
+
+template <class mat_type>
+inline void _host_free(mat_type &mat) {
+  if (mat.cols()>0) {
+    CL_DESTRUCT_CALL(clReleaseMemObject(mat.cbegin()));
+    CL_DESTRUCT_CALL(clReleaseCommandQueue(mat.cq()));
+  }
 }
 
 template <class mat_type>
@@ -138,28 +194,26 @@ inline int _host_resize(mat_type &mat, const size_t n) {
   cl_context context;
   CL_SAFE_CALL(clGetMemObjectInfo(mat.cbegin(),CL_MEM_CONTEXT,sizeof(context),
                                   &context,NULL));
+  cl_mem_flags buffer_perm;
+  CL_SAFE_CALL(clGetMemObjectInfo(mat.cbegin(),CL_MEM_FLAGS,sizeof(buffer_perm),
+                                  &buffer_perm,NULL));
 
   CL_DESTRUCT_CALL(clReleaseMemObject(mat.cbegin()));
-  if (mat.kind()==UCL_WRITE_OPTIMIZED) {
-    mat.cbegin()=clCreateBuffer(context,
-                                CL_MEM_READ_ONLY | CL_MEM_ALLOC_HOST_PTR,
-                                n,NULL,&error_flag);                        
-    if (error_flag != CL_SUCCESS) 
-      return UCL_MEMORY_ERROR;
-    *mat.host_ptr() = (typename mat_type::data_type*)
-                      clEnqueueMapBuffer(mat.cq(),mat.cbegin(),CL_TRUE,
-                                         CL_MAP_WRITE,0,n,0,NULL,NULL,NULL);
-  } else {
-    mat.cbegin()=clCreateBuffer(context,
-                                CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR,
-                                n,NULL,&error_flag);
-    if (error_flag != CL_SUCCESS) 
-      return UCL_MEMORY_ERROR;
-    *mat.host_ptr() = (typename mat_type::data_type*)
-                      clEnqueueMapBuffer(mat.cq(),mat.cbegin(),CL_TRUE,
-                                         CL_MAP_READ | CL_MAP_WRITE,
-                                         0,n,0,NULL,NULL,NULL);
-  }
+
+  cl_map_flags map_perm;
+  if (mat.kind()==UCL_READ_ONLY)
+    map_perm=CL_MAP_READ;
+  else if (mat.kind()==UCL_WRITE_ONLY)
+    map_perm=CL_MAP_WRITE;
+  else
+    map_perm=CL_MAP_READ | CL_MAP_WRITE;
+
+  mat.cbegin()=clCreateBuffer(context,buffer_perm,n,NULL,&error_flag);
+  if (error_flag != CL_SUCCESS) 
+    return UCL_MEMORY_ERROR;
+  *mat.host_ptr() = (typename mat_type::data_type*)
+                    clEnqueueMapBuffer(mat.cq(),mat.cbegin(),CL_TRUE,
+                                       map_perm,0,n,0,NULL,NULL,NULL);
   return UCL_SUCCESS;
 }
 
@@ -179,9 +233,17 @@ inline int _device_alloc(mat_type &mat, copy_type &cm, const size_t n,
   if (kind==UCL_READ_WRITE)
     flag=CL_MEM_READ_WRITE;
   else if (kind==UCL_READ_ONLY)
+    #ifdef CL_VERSION_1_2
+    flag=CL_MEM_READ_ONLY | CL_MEM_HOST_WRITE_ONLY;
+    #else
     flag=CL_MEM_READ_ONLY;
+    #endif
   else if (kind==UCL_WRITE_ONLY)
+    #ifdef CL_VERSION_1_2
+    flag=CL_MEM_WRITE_ONLY | CL_MEM_HOST_READ_ONLY;
+    #else
     flag=CL_MEM_WRITE_ONLY;
+    #endif
   else
     assert(0==1);
   mat.cbegin()=clCreateBuffer(context,flag,n,NULL,&error_flag);
@@ -200,9 +262,17 @@ inline int _device_alloc(mat_type &mat, UCL_Device &dev, const size_t n,
   if (kind==UCL_READ_WRITE)
     flag=CL_MEM_READ_WRITE;
   else if (kind==UCL_READ_ONLY)
+    #ifdef CL_VERSION_1_2
+    flag=CL_MEM_READ_ONLY | CL_MEM_HOST_WRITE_ONLY;
+    #else
     flag=CL_MEM_READ_ONLY;
+    #endif
   else if (kind==UCL_WRITE_ONLY)
+    #ifdef CL_VERSION_1_2
+    flag=CL_MEM_WRITE_ONLY | CL_MEM_HOST_READ_ONLY;
+    #else
     flag=CL_MEM_WRITE_ONLY;
+    #endif
   else
     assert(0==1);
   mat.cbegin()=clCreateBuffer(dev.context(),flag,n,NULL,
@@ -238,8 +308,10 @@ inline int _device_alloc(mat_type &mat, UCL_Device &dev, const size_t rows,
 
 template <class mat_type>
 inline void _device_free(mat_type &mat) {
-  CL_DESTRUCT_CALL(clReleaseMemObject(mat.cbegin()));
-  CL_DESTRUCT_CALL(clReleaseCommandQueue(mat.cq()));
+  if (mat.cols()>0) {
+    CL_DESTRUCT_CALL(clReleaseMemObject(mat.cbegin()));
+    CL_DESTRUCT_CALL(clReleaseCommandQueue(mat.cq()));
+  }
 }
 
 template <class mat_type>
@@ -255,9 +327,17 @@ inline int _device_resize(mat_type &mat, const size_t n) {
   if (mat.kind()==UCL_READ_WRITE)
     flag=CL_MEM_READ_WRITE;
   else if (mat.kind()==UCL_READ_ONLY)
+    #ifdef CL_VERSION_1_2
+    flag=CL_MEM_READ_ONLY | CL_MEM_HOST_WRITE_ONLY;
+    #else
     flag=CL_MEM_READ_ONLY;
+    #endif
   else if (mat.kind()==UCL_WRITE_ONLY)
+    #ifdef CL_VERSION_1_2
+    flag=CL_MEM_WRITE_ONLY | CL_MEM_HOST_READ_ONLY;
+    #else
     flag=CL_MEM_WRITE_ONLY;
+    #endif
   else
     assert(0==1);
   mat.cbegin()=clCreateBuffer(context,flag,n,NULL,&error_flag);
@@ -285,9 +365,17 @@ inline int _device_resize(mat_type &mat, const size_t rows,
   if (mat.kind()==UCL_READ_WRITE)
     flag=CL_MEM_READ_WRITE;
   else if (mat.kind()==UCL_READ_ONLY)
+    #ifdef CL_VERSION_1_2
+    flag=CL_MEM_READ_ONLY | CL_MEM_HOST_WRITE_ONLY;
+    #else
     flag=CL_MEM_READ_ONLY;
+    #endif
   else if (mat.kind()==UCL_WRITE_ONLY)
+    #ifdef CL_VERSION_1_2
+    flag=CL_MEM_WRITE_ONLY | CL_MEM_HOST_READ_ONLY;
+    #else
     flag=CL_MEM_WRITE_ONLY;
+    #endif
   else
     assert(0==1);
   mat.cbegin()=clCreateBuffer(context,flag,pitch*rows,NULL,&error_flag);
@@ -344,7 +432,19 @@ inline void _ocl_kernel_from_source(cl_context &context, cl_device_id &device,
 }
 
 template <class mat_type>
-inline void _device_zero(mat_type &mat, const size_t n) {
+inline void _device_zero(mat_type &mat, const size_t n, command_queue &cq) {
+  #ifdef CL_VERSION_1_2
+  #ifndef __APPLE__
+  #define UCL_CL_ZERO
+  #endif
+  #endif
+
+  #ifdef UCL_CL_ZERO
+  cl_int zeroint=0;
+  CL_SAFE_CALL(clEnqueueFillBuffer(cq,mat.begin(),&zeroint,sizeof(cl_int),
+                                   mat.byteoff(),n,0,NULL,NULL));
+
+  #else
   cl_context context;
   CL_SAFE_CALL(clGetMemObjectInfo(mat.cbegin(),CL_MEM_CONTEXT,sizeof(context),
                                   &context,NULL));
@@ -354,17 +454,20 @@ inline void _device_zero(mat_type &mat, const size_t n) {
   
   const char * szero[3]={
     "#pragma OPENCL EXTENSION cl_khr_fp64 : enable\n",
-    "__kernel void _device_zero(__global NUMTYP *a)",
-    "  { int gid=get_global_id(0); a[gid]=(NUMTYP)0; }"
+    "__kernel void _device_zero(__global NUMTYP *a, const int offset)",
+    "  { int gid=get_global_id(0)+offset; a[gid]=(NUMTYP)0; }"
   };
   
   cl_kernel kzero;
   _ocl_kernel_from_source(context,device,szero,3,kzero,"_device_zero",
                    _UCL_DATA_ID<typename mat_type::data_type>::numtyp_flag());
   
+  cl_int offset=mat.offset();
   CL_SAFE_CALL(clSetKernelArg(kzero,0,sizeof(cl_mem),(void *)&mat.begin()));
+  CL_SAFE_CALL(clSetKernelArg(kzero,1,sizeof(cl_int),(void *)&offset));
   size_t kn=n/sizeof(typename mat_type::data_type);
-  CL_SAFE_CALL(clEnqueueNDRangeKernel(mat.cq(),kzero,1,0,&kn,0,0,0,0));
+  CL_SAFE_CALL(clEnqueueNDRangeKernel(cq,kzero,1,0,&kn,0,0,0,0));
+  #endif
 }
 
 // --------------------------------------------------------------------------
@@ -470,9 +573,15 @@ template <> struct _ucl_memcpy<1,0> {
                         cl_command_queue &cq, const cl_bool block,
                         const size_t dst_offset, const size_t src_offset) {
     if (src.cbegin()==dst.cbegin()) {
+      #ifdef UCL_DBG_MEM_TRACE
+      std::cerr << "UCL_COPY 1S\n";
+      #endif
       if (block) ucl_sync(cq);
       return;
     }
+    #ifdef UCL_DBG_MEM_TRACE
+    std::cerr << "UCL_COPY 1NS\n";
+    #endif
     CL_SAFE_CALL(clEnqueueReadBuffer(cq,src.cbegin(),block,src_offset,n,
                                      dst.begin(),0,NULL,NULL));
   }
@@ -484,8 +593,14 @@ template <> struct _ucl_memcpy<1,0> {
                         size_t dst_offset, size_t src_offset) {
     if (src.cbegin()==dst.cbegin()) {
       if (block) ucl_sync(cq);
+      #ifdef UCL_DBG_MEM_TRACE
+      std::cerr << "UCL_COPY 2S\n";
+      #endif
       return;
     }
+    #ifdef UCL_DBG_MEM_TRACE
+    std::cerr << "UCL_COPY 2NS\n";
+    #endif
     if (spitch==dpitch && dst.cols()==src.cols() && 
         src.cols()==cols/src.element_size())
       CL_SAFE_CALL(clEnqueueReadBuffer(cq,src.cbegin(),block,src_offset,
@@ -511,8 +626,14 @@ template <> struct _ucl_memcpy<0,1> {
                         const size_t dst_offset, const size_t src_offset) {
     if (src.cbegin()==dst.cbegin()) {
       if (block) ucl_sync(cq);
+      #ifdef UCL_DBG_MEM_TRACE
+      std::cerr << "UCL_COPY 3S\n";
+      #endif
       return;                        
     }
+    #ifdef UCL_DBG_MEM_TRACE
+    std::cerr << "UCL_COPY 3NS\n";
+    #endif
     CL_SAFE_CALL(clEnqueueWriteBuffer(cq,dst.cbegin(),block,dst_offset,n,
                                       src.begin(),0,NULL,NULL));
   }
@@ -524,8 +645,14 @@ template <> struct _ucl_memcpy<0,1> {
                         size_t dst_offset, size_t src_offset) {
     if (src.cbegin()==dst.cbegin()) {
       if (block) ucl_sync(cq);
+      #ifdef UCL_DBG_MEM_TRACE
+      std::cerr << "UCL_COPY 4S\n";
+      #endif
       return;                        
     }
+    #ifdef UCL_DBG_MEM_TRACE
+    std::cerr << "UCL_COPY 4NS\n";
+    #endif
     if (spitch==dpitch && dst.cols()==src.cols() && 
         src.cols()==cols/src.element_size())
       CL_SAFE_CALL(clEnqueueWriteBuffer(cq,dst.cbegin(),block,dst_offset,
@@ -549,9 +676,17 @@ template <int mem1, int mem2> struct _ucl_memcpy {
   static inline void mc(p1 &dst, const p2 &src, const size_t n,
                         cl_command_queue &cq, const cl_bool block,
                         const size_t dst_offset, const size_t src_offset) {
-    if (src.cbegin()!=dst.cbegin() || src_offset!=dst_offset)
+    if (src.cbegin()!=dst.cbegin() || src_offset!=dst_offset) {
       CL_SAFE_CALL(clEnqueueCopyBuffer(cq,src.cbegin(),dst.cbegin(),src_offset,
                                        dst_offset,n,0,NULL,NULL));
+      #ifdef UCL_DBG_MEM_TRACE
+      std::cerr << "UCL_COPY 6NS\n";
+      #endif
+    }
+    #ifdef UCL_DBG_MEM_TRACE
+    else std::cerr << "UCL_COPY 6S\n";
+    #endif
+    
     if (block==CL_TRUE) ucl_sync(cq);
   }
   template <class p1, class p2>
@@ -561,6 +696,9 @@ template <int mem1, int mem2> struct _ucl_memcpy {
                         const cl_bool block,
                         size_t dst_offset, size_t src_offset) {
     if (src.cbegin()!=dst.cbegin() || src_offset!=dst_offset) {                        
+      #ifdef UCL_DBG_MEM_TRACE
+      std::cerr << "UCL_COPY 7NS\n";
+      #endif
       if (spitch==dpitch && dst.cols()==src.cols() && 
           src.cols()==cols/src.element_size())
         CL_SAFE_CALL(clEnqueueCopyBuffer(cq,src.cbegin(),dst.cbegin(),src_offset,
@@ -575,6 +713,10 @@ template <int mem1, int mem2> struct _ucl_memcpy {
           dst_offset+=dpitch;
         }                                       
     }                                 
+    #ifdef UCL_DBG_MEM_TRACE
+    else std::cerr << "UCL_COPY 7S\n";
+    #endif
+
     if (block==CL_TRUE) ucl_sync(cq);
   }
 };

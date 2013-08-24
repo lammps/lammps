@@ -45,25 +45,20 @@ class YukawaColloid : public BaseAtomic<numtyp, acctyp> {
 
   inline void cast_rad_data(double* rad) {
     int nall = this->atom->nall();
-    if (this->ucl_device->device_type()==UCL_CPU) {
-      if (sizeof(numtyp)==sizeof(double)) {
-        host_rad.view((numtyp*)rad,nall,*(this->ucl_device));
-        dev_rad.view(host_rad);
-      } else {
-        for (int i=0; i<nall; i++) host_rad[i]=rad[i];
-      }
+    if (_shared_view) {
+      c_rad.host.view((numtyp*)rad,nall,*(this->ucl_device));
+      c_rad.device.view(c_rad.host);
     } else {
       if (sizeof(numtyp)==sizeof(double))
-        memcpy(host_rad.begin(),rad,nall*sizeof(numtyp));
-      else {
-        for (int i=0; i<nall; i++) host_rad[i]=rad[i];
-      }
+        memcpy(c_rad.host.begin(),rad,nall*sizeof(numtyp));
+      else
+        for (int i=0; i<nall; i++) c_rad[i]=rad[i];
     }
   }
 
   // Copy rad to device asynchronously
   inline void add_rad_data() {
-    ucl_copy(dev_rad,host_rad,this->atom->nall(),true);
+    c_rad.update_device(this->atom->nall(),true);
   }
 
   /// Clear all host and device data
@@ -114,10 +109,10 @@ class YukawaColloid : public BaseAtomic<numtyp, acctyp> {
   numtyp _kappa;
 
   /// Per-atom arrays
-  UCL_H_Vec<numtyp> host_rad;
-  UCL_D_Vec<numtyp> dev_rad;
+  UCL_Vector<numtyp,numtyp> c_rad;
 
  private:
+  bool _shared_view;
   bool _allocated;
   void loop(const bool _eflag, const bool _vflag);
 };

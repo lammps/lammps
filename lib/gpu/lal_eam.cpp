@@ -66,7 +66,7 @@ int EAMT::init(const int ntypes, double host_cutforcesq, int **host_type2rhor,
     ef_nall=2000;
 
   _max_fp_size=static_cast<int>(static_cast<double>(ef_nall)*1.10);
-  _fp.alloc(_max_fp_size,*(this->ucl_device),UCL_RW_OPTIMIZED,UCL_WRITE_ONLY);
+  _fp.alloc(_max_fp_size,*(this->ucl_device),UCL_READ_WRITE,UCL_READ_WRITE);
                                      
   k_energy.set_function(*(this->pair_program),"k_energy");
   k_energy_fast.set_function(*(this->pair_program),"k_energy_fast");
@@ -106,7 +106,7 @@ int EAMT::init(const int ntypes, double host_cutforcesq, int **host_type2rhor,
   _nr=nr;
   
   UCL_H_Vec<int2> dview_type(lj_types*lj_types,*(this->ucl_device),
-                             UCL_WRITE_OPTIMIZED);
+                             UCL_WRITE_ONLY);
   
   for (int i=0; i<lj_types*lj_types; i++) {
     dview_type[i].x=0; dview_type[i].y=0;
@@ -126,7 +126,7 @@ int EAMT::init(const int ntypes, double host_cutforcesq, int **host_type2rhor,
   
   // pack type2frho
   UCL_H_Vec<int> dview_type2frho(lj_types,*(this->ucl_device),
-                                 UCL_WRITE_OPTIMIZED);
+                                 UCL_WRITE_ONLY);
 
   type2frho.alloc(lj_types,*(this->ucl_device),UCL_READ_ONLY);
   for (int i=0; i<ntypes; i++)
@@ -135,7 +135,7 @@ int EAMT::init(const int ntypes, double host_cutforcesq, int **host_type2rhor,
 
   // pack frho_spline
   UCL_H_Vec<numtyp4> dview_frho_spline(nfrho*(nrho+1),*(this->ucl_device),
-                                       UCL_WRITE_OPTIMIZED);
+                                       UCL_WRITE_ONLY);
                                
   for (int ix=0; ix<nfrho; ix++)
     for (int iy=0; iy<nrho+1; iy++) {
@@ -165,7 +165,7 @@ int EAMT::init(const int ntypes, double host_cutforcesq, int **host_type2rhor,
 
   // pack rhor_spline
   UCL_H_Vec<numtyp4> dview_rhor_spline(nrhor*(nr+1),*(this->ucl_device),
-                                       UCL_WRITE_OPTIMIZED);
+                                       UCL_WRITE_ONLY);
                                
   for (int ix=0; ix<nrhor; ix++)
     for (int iy=0; iy<nr+1; iy++) {
@@ -195,7 +195,7 @@ int EAMT::init(const int ntypes, double host_cutforcesq, int **host_type2rhor,
 
   // pack z2r_spline
   UCL_H_Vec<numtyp4> dview_z2r_spline(nz2r*(nr+1),*(this->ucl_device),
-                                      UCL_WRITE_OPTIMIZED);
+                                      UCL_WRITE_ONLY);
                                
   for (int ix=0; ix<nz2r; ix++)
     for (int iy=0; iy<nr+1; iy++) {

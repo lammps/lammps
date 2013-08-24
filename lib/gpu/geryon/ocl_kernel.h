@@ -134,6 +134,11 @@ class UCL_Program {
     return UCL_SUCCESS;
   }                                               
    
+  /// Return the default command queue/stream associated with this data
+  inline command_queue & cq() { return _cq; }
+  /// Change the default command queue associated with matrix
+  inline void cq(command_queue &cq_in) { _cq=cq_in; }
+
   friend class UCL_Kernel;
  private:
   bool _init_done;
@@ -175,7 +180,16 @@ class UCL_Kernel {
   template <class dtype>
   inline void set_arg(const cl_uint index, const dtype * const arg) { 
     CL_SAFE_CALL(clSetKernelArg(_kernel,index,sizeof(dtype),arg)); 
-    if (index>_num_args) _num_args=index;
+    if (index>_num_args) {
+      _num_args=index;
+      #ifdef UCL_DEBUG
+      if (_num_args>_kernel_info_nargs) {
+        std::cerr << "TOO MANY ARGUMENTS TO OPENCL FUNCTION: " 
+                  << _kernel_info_name << std::endl;
+        assert(0==1);
+      }
+      #endif
+    }
   }
  
   /// Set a geryon container as a kernel argument.
@@ -203,6 +217,13 @@ class UCL_Kernel {
   inline void add_arg(const dtype * const arg) {
     CL_SAFE_CALL(clSetKernelArg(_kernel,_num_args,sizeof(dtype),arg)); 
     _num_args++; 
+    #ifdef UCL_DEBUG
+    if (_num_args>_kernel_info_nargs) {
+      std::cerr << "TOO MANY ARGUMENTS TO OPENCL FUNCTION: " 
+                << _kernel_info_name << std::endl;
+      assert(0==1);
+    }
+    #endif
   }
 
   /// Add a geryon container as a kernel argument.
@@ -289,10 +310,7 @@ class UCL_Kernel {
   }
   
   /// Run the kernel in the default command queue
-  inline void run() {
-    CL_SAFE_CALL(clEnqueueNDRangeKernel(_cq,_kernel,_dimensions,NULL,
-                                        _num_blocks,_block_size,0,NULL,NULL));
-  }
+  inline void run();
   
   /// Clear any arguments associated with the kernel
   inline void clear_args() { _num_args=0; }
@@ -309,6 +327,12 @@ class UCL_Kernel {
   
   cl_command_queue _cq;        // The default command queue for this kernel
   unsigned _num_args;
+
+  #ifdef UCL_DEBUG
+  std::string _kernel_info_name;
+  unsigned _kernel_info_nargs;
+  //std::string _kernel_info_args[256];
+  #endif
 };
 
 inline int UCL_Kernel::set_function(UCL_Program &program, const char *function) {
@@ -329,7 +353,30 @@ inline int UCL_Kernel::set_function(UCL_Program &program, const char *function) 
     #endif
     return UCL_FUNCTION_NOT_FOUND;
   }
+  
+  #ifdef UCL_DEBUG
+  _kernel_info_name=function;
+  cl_uint nargs;
+  CL_SAFE_CALL(clGetKernelInfo(_kernel,CL_KERNEL_NUM_ARGS,sizeof(cl_uint),
+                               &nargs,NULL));
+  _kernel_info_nargs=nargs;
+  #ifdef NOT_TEST_CL_VERSION_1_2
+  char tname[256];
+  size_t ret;
+  for (cl_uint i=0; i<nargs; i++) {
+    CL_SAFE_CALL(clGetKernelArgInfo(_kernel,i,CL_KERNEL_ARG_TYPE_NAME,256,
+                                    tname,&ret));
+    _kernel_info_args[i]=tname;
+  }
+  #endif
+  #endif
+  
   return UCL_SUCCESS;                                               
+}
+
+void UCL_Kernel::run() {
+  CL_SAFE_CALL(clEnqueueNDRangeKernel(_cq,_kernel,_dimensions,NULL,
+                                      _num_blocks,_block_size,0,NULL,NULL));
 }
 
 } // namespace

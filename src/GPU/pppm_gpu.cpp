@@ -78,7 +78,7 @@ FFT_SCALAR* PPPM_GPU_API(init)(const int nlocal, const int nall, FILE *screen,
                                const double slab_volfactor,
                                const int nx_pppm, const int ny_pppm,
                                const int nz_pppm, const bool split,
-                               int &success);
+                               const bool respa, int &success);
 void PPPM_GPU_API(clear)(const double poisson_time);
 int PPPM_GPU_API(spread)(const int ago, const int nlocal, const int nall,
                       double **host_x, int *host_type, bool &success,
@@ -152,6 +152,10 @@ void PPPMGPU::init()
 
   // GPU precision specific init
 
+  bool respa_value=false;
+  if (strstr(update->integrate_style,"respa"))
+    respa_value=true;  
+
   if (order>8)
     error->all(FLERR,"Cannot use order greater than 8 with pppm/gpu.");
   PPPM_GPU_API(clear)(poisson_time);
@@ -162,7 +166,7 @@ void PPPMGPU::init()
                                order, nxlo_out, nylo_out, nzlo_out, nxhi_out,
                                nyhi_out, nzhi_out, rho_coeff, &data,
                                slab_volfactor,nx_pppm,ny_pppm,nz_pppm,
-                               kspace_split,success);
+                               kspace_split,respa_value,success);
 
   GPU_EXTRA::check_flag(success,error,world);
 

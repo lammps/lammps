@@ -7,6 +7,7 @@
 :line
 
 pair_style soft command :h3
+pair_style soft/gpu command :h3
 pair_style soft/omp command :h3
 
 [Syntax:]

@@ -4,9 +4,14 @@
 
 # which file will be copied to Makefile.lammps
 
-EXTRAMAKE = Makefile.lammps.standard
+EXTRAMAKE = Makefile.lammps.opencl
 
-OCL_CPP = mpic++ -O3 -DMPI_GERYON -DUCL_NO_EXIT -DMPICH_IGNORE_CXX_SEEK
+OCL_TUNE = -DFERMI_OCL       # -- Uncomment for NVIDIA Fermi
+# OCL_TUNE = -DKEPLER_OCL    # -- Uncomment for NVIDIA Kepler
+# OCL_TUNE = -DCYPRESS_OCL   # -- Uncomment for AMD Cypress
+# OCL_TUNE = -DGENERIC_OCL   # -- Uncomment for generic device
+
+OCL_CPP = mpic++ $(DEFAULT_DEVICE) -O3 -DMPI_GERYON -DUCL_NO_EXIT -DMPICH_IGNORE_CXX_SEEK
 OCL_LINK = -lOpenCL
 OCL_PREC = -D_SINGLE_SINGLE
 

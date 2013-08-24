@@ -44,11 +44,11 @@ pair_coeff 1 1 1.0 1.0
 </P>
 <P>Style <I>dpd/tstat</I> invokes a DPD thermostat on pairwise interactions,
 which is equivalent to the non-conservative portion of the DPD force
-field.  This thermostat can be used in conjunction with any <A HREF = "pair_style.html">pair
-style</A>, and in leiu of per-particle thermostats like
-<A HREF = "fix_langevin.html">fix langevin</A> or ensemble thermostats like Nose
-Hoover as implemented by <A HREF = "fix_nh.html">fix nvt</A>.  To use <I>dpd/stat</I>
-with another pair style, use the <A HREF = "pair_hybrid.html">pair_style
+field.  This pair-wise thermostat can be used in conjunction with any
+<A HREF = "pair_style.html">pair style</A>, and in leiu of per-particle thermostats
+like <A HREF = "fix_langevin.html">fix langevin</A> or ensemble thermostats like
+Nose Hoover as implemented by <A HREF = "fix_nh.html">fix nvt</A>.  To use
+<I>dpd/stat</I> as a thermostat for another pair style, use the <A HREF = "pair_hybrid.html">pair_style
 hybrid/overlay</A> command to compute both the desired
 pair interaction and the thermostat for each pair of particles.
 </P>

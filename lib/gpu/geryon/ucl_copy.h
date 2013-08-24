@@ -103,6 +103,30 @@
 #ifdef UCL_COPY_ALLOW
 
 // --------------------------------------------------------------------------
+// - CHECK PERMISSIONS FOR SOURCE AND DESTINATION IN COPY
+// --------------------------------------------------------------------------
+template <class mat1, class mat2>
+inline void _check_ucl_copy_perm(mat1 &dst, mat2 &src) {
+  if ((int)mat1::MEM_TYPE==(int)mat2::MEM_TYPE) {
+    if (dst.kind()==UCL_READ_ONLY) {
+      std::cerr << "Attempt to copy where destination is UCL_READ_ONLY\n";
+      assert(0==1);
+    } else if (src.kind()==UCL_WRITE_ONLY) {
+      std::cerr << "Attempt to copy where source is UCL_WRITE_ONLY\n";
+      assert(0==1);
+    }
+  } else {
+    if (dst.kind()==UCL_WRITE_ONLY) {
+      std::cerr << "Destination in host-device copy cannot be UCL_WRITE_ONLY\n";
+      assert(0==1);
+    } else if (src.kind()==UCL_READ_ONLY) {
+      std::cerr << "Source in host-device copy cannot be UCL_READ_ONLY\n";
+      assert(0==1);
+    }
+  }
+} 
+
+// --------------------------------------------------------------------------
 // - HOST-HOST COPY ROUTINES
 // --------------------------------------------------------------------------
 
@@ -117,9 +141,20 @@ template <> struct _host_host_copy<1,1> {
     assert(mat1::PADDED==0 && mat2::PADDED==0);
     assert(mat1::ROW_MAJOR==1 && mat2::ROW_MAJOR==1);
     #endif
-    if ((int)mat1::DATA_TYPE==(int)mat2::DATA_TYPE && mat1::DATA_TYPE!=0)
+    if ((int)mat1::DATA_TYPE==(int)mat2::DATA_TYPE && mat1::DATA_TYPE!=0) {
+      #ifdef _OCL_MAT
+      if (dst.begin()==src.begin()) {
+        #ifdef UCL_DBG_MEM_TRACE
+        std::cerr << "UCL_COPY 7S\n";
+        #endif
+        return;
+      }
+      #endif
       memcpy(dst.begin(),src.begin(),numel*sizeof(typename mat1::data_type));
-    else
+      #ifdef UCL_DBG_MEM_TRACE
+      std::cerr << "UCL_COPY 7NS\n";
+      #endif
+    } else
       for (size_t i=0; i<numel; i++)
         dst[i]=static_cast<typename mat1::data_type>(src[i]);
   }
@@ -138,15 +173,27 @@ template <> struct _host_host_copy<1,1> {
       src_row_size=cols;
     else
       src_row_size=src.row_size();
-    if ((int)mat1::DATA_TYPE==(int)mat2::DATA_TYPE && mat1::DATA_TYPE!=0)
+    if ((int)mat1::DATA_TYPE==(int)mat2::DATA_TYPE && mat1::DATA_TYPE!=0) {
+      #ifdef _OCL_MAT
+      if (dst.begin()==src.begin()) {
+        #ifdef UCL_DBG_MEM_TRACE
+        std::cerr << "UCL_COPY 8S\n";
+        #endif
+        return;
+      }
+      #endif
+      
+      #ifdef UCL_DBG_MEM_TRACE
+      std::cerr << "UCL_COPY 8NS\n";
+      #endif
       for (size_t i=0; i<rows; i++)
         memcpy(dst.begin()+i*dst_row_size,src.begin()+i*src_row_size,
                cols*sizeof(typename mat1::data_type));
-    else
+    } else
       for (size_t j=0; j<rows; j++) {
-        int dst_i=j*dst_row_size;
-        int d_end=dst_i+cols;
-        int src_i=j*src_row_size;
+        size_t dst_i=j*dst_row_size;
+        size_t d_end=dst_i+cols;
+        size_t src_i=j*src_row_size;
         for (; dst_i<d_end; dst_i++) {
           dst[dst_i]=static_cast<typename mat1::data_type>(src[src_i]);
           src_i++;
@@ -216,15 +263,14 @@ template <int host_type2> struct _ucl_cast_copy<1,host_type2> {
         ucl_mv_cpy(cast_buffer,cols*sizeof(typename mat2::data_type),src,
                    src.row_bytes(),cols*sizeof(typename mat2::data_type),
                    rows);
-      int dst_i=0;
-      int buff_i=0;
+      size_t dst_i=0, buff_i=0, doff=dst.cols()-cols;
       for (size_t i=0; i<rows; i++) {
         for (size_t j=0; j<cols; j++) {
           dst[dst_i]=static_cast<typename mat1::data_type>(cast_buffer[buff_i]);
           buff_i++;
           dst_i++;
         }
-        dst_i+=dst.cols()-cols;
+        dst_i+=doff;
       }
     }
   }
@@ -255,15 +301,14 @@ template <int host_type2> struct _ucl_cast_copy<1,host_type2> {
                    src.row_bytes(),cols*sizeof(typename mat2::data_type),
                    rows,cq);
       cast_buffer.sync();
-      int dst_i=0;
-      int buff_i=0;
+      size_t dst_i=0, buff_i=0, doff=dst.cols()-cols;
       for (size_t i=0; i<rows; i++) {
         for (size_t j=0; j<cols; j++) {
           dst[dst_i]=static_cast<typename mat1::data_type>(cast_buffer[buff_i]);
           buff_i++;
           dst_i++;
         }
-        dst_i+=dst.cols()-cols;
+        dst_i+=doff;
       }
     }
   }
@@ -293,38 +338,62 @@ template <int host_type1> struct _ucl_cast_copy<host_type1,1> {
     assert(src.numel()>=rows*cols && cast_buffer.numel()>=rows*cols);
     if (mat1::VECTOR==0) assert(dst.rows()>=rows && dst.cols()>=cols);
     if (mat2::VECTOR==0) assert(src.rows()>=rows && src.cols()>=cols);
+    if (mat3::VECTOR==0) { 
+      assert(cast_buffer.rows()>=rows && cast_buffer.cols()>=cols);
+      assert(dst.rows()>=rows && dst.cols()>=cols);
+    }
     #endif
     if (mat2::VECTOR) {
-      for (size_t i=0; i<rows*cols; i++)
-        cast_buffer[i]=static_cast<typename mat3::data_type>(src[i]);
-      ucl_mv_cpy(dst,dst.row_bytes(),cast_buffer,
-                 cols*sizeof(typename mat1::data_type),
-                 cols*sizeof(typename mat1::data_type),rows);
+      if (mat3::VECTOR==0) {
+        size_t ci=0, si=0, co=cast_buffer.cols()-cols, so=src.cols()-cols;
+        for (size_t i=0; i<rows; i++) {
+          for (size_t j=0; j<cols; j++) {
+            cast_buffer[ci]=static_cast<typename mat3::data_type>(src[si]);
+            ci++;
+            si++;
+          }
+          ci+=co;
+          si+=so;
+        }
+        ucl_mv_cpy(dst,dst.row_bytes(),cast_buffer,cast_buffer.row_bytes(),
+                   cols*sizeof(typename mat1::data_type),rows);
+      } else {
+        for (size_t i=0; i<rows*cols; i++)
+          cast_buffer[i]=static_cast<typename mat3::data_type>(src[i]);
+        ucl_mv_cpy(dst,dst.row_bytes(),cast_buffer,
+                   cols*sizeof(typename mat1::data_type),
+                   cols*sizeof(typename mat1::data_type),rows);
+      }
     } else if (mat1::VECTOR) {
-      int src_i=0;
-      int buf_i=0;
+      size_t src_i=0, buf_i=0, soff=src.cols()-cols;
       for (size_t i=0; i<rows; i++) {
         for (size_t j=0; j<cols; j++) {
           cast_buffer[buf_i]=static_cast<typename mat3::data_type>(src[src_i]);
           buf_i++;
           src_i++;
         }
-        src_i+=src.cols()-cols;
+        src_i+=soff;
       }
       ucl_mv_cpy(dst,cast_buffer,cols*sizeof(typename mat1::data_type)*rows);
     } else {
-      int src_i=0;
-      int buf_i=0;
+      size_t src_i=0, buf_i=0, so=src.cols()-cols, co, spitch;
+      if (mat3::VECTOR==0) {
+        co=cast_buffer.cols()-cols;
+        spitch=cast_buffer.row_bytes();
+      } else {
+        co=0;
+        spitch=cols*sizeof(typename mat1::data_type);
+      }
       for (size_t i=0; i<rows; i++) {
         for (size_t j=0; j<cols; j++) {
           cast_buffer[buf_i]=static_cast<typename mat3::data_type>(src[src_i]);
           buf_i++;
           src_i++;
         }
-        src_i+=src.cols()-cols;
+        src_i+=so;
+        buf_i+=co;
       }
-      ucl_mv_cpy(dst,dst.row_bytes(),cast_buffer,
-                 cols*sizeof(typename mat1::data_type),
+      ucl_mv_cpy(dst,dst.row_bytes(),cast_buffer,spitch,
                  cols*sizeof(typename mat1::data_type),rows);
     }
   }
@@ -337,38 +406,62 @@ template <int host_type1> struct _ucl_cast_copy<host_type1,1> {
     assert(src.numel()>=rows*cols && cast_buffer.numel()>=rows*cols);
     if (mat1::VECTOR==0) assert(dst.rows()>=rows && dst.cols()>=cols);    
     if (mat2::VECTOR==0) assert(src.rows()>=rows && src.cols()>=cols);    
+    if (mat3::VECTOR==0) { 
+      assert(cast_buffer.rows()>=rows && cast_buffer.cols()>=cols);
+      assert(dst.rows()>=rows && dst.cols()>=cols);
+    }
     #endif
     if (mat2::VECTOR) {
-      for (size_t i=0; i<rows*cols; i++)
-        cast_buffer[i]=static_cast<typename mat3::data_type>(src[i]);
-      ucl_mv_cpy(dst,dst.row_bytes(),
-                 cast_buffer,cols*sizeof(typename mat1::data_type),
-                 cols*sizeof(typename mat1::data_type),rows,cq);
+      if (mat3::VECTOR==0) {
+        size_t ci=0, si=0, co=cast_buffer.cols()-cols, so=src.cols()-cols;
+        for (size_t i=0; i<rows; i++) {
+          for (size_t j=0; j<cols; j++) {
+            cast_buffer[ci]=static_cast<typename mat3::data_type>(src[si]);
+            ci++;
+            si++;
+          }
+          ci+=co;
+          si+=so;
+        }
+        ucl_mv_cpy(dst,dst.row_bytes(),cast_buffer,cast_buffer.row_bytes(),
+                   cols*sizeof(typename mat1::data_type),rows);
+      } else {
+        for (size_t i=0; i<rows*cols; i++)
+          cast_buffer[i]=static_cast<typename mat3::data_type>(src[i]);
+        ucl_mv_cpy(dst,dst.row_bytes(),
+                   cast_buffer,cols*sizeof(typename mat1::data_type),
+                   cols*sizeof(typename mat1::data_type),rows,cq);
+      }
     } else if (mat1::VECTOR) {
-      int src_i=0;
-      int buf_i=0;
+      size_t src_i=0, buf_i=0, soff=src.cols()-cols;
       for (size_t i=0; i<rows; i++) {
         for (size_t j=0; j<cols; j++) {
           cast_buffer[buf_i]=static_cast<typename mat3::data_type>(src[src_i]);
           buf_i++;
           src_i++;
         }
-        src_i+=src.cols()-cols;
+        src_i+=soff;
       }
       ucl_mv_cpy(dst,cast_buffer,cols*sizeof(typename mat1::data_type)*rows,cq);
     } else {
-      int src_i=0;
-      int buf_i=0;
+      size_t src_i=0, buf_i=0, so=src.cols()-cols, co, spitch;
+      if (mat3::VECTOR==0) {
+        co=cast_buffer.cols()-cols;
+        spitch=cast_buffer.row_bytes();
+      } else {
+        co=0;
+        spitch=cols*sizeof(typename mat1::data_type);
+      }
       for (size_t i=0; i<rows; i++) {
         for (size_t j=0; j<cols; j++) {
           cast_buffer[buf_i]=static_cast<typename mat3::data_type>(src[src_i]);
           buf_i++;
           src_i++;
         }
-        src_i+=src.cols()-cols;
+        src_i+=so;
+        buf_i+=co;
       }
-      ucl_mv_cpy(dst,dst.row_bytes(),cast_buffer,
-                 cols*sizeof(typename mat1::data_type),
+      ucl_mv_cpy(dst,dst.row_bytes(),cast_buffer,spitch,
                  cols*sizeof(typename mat1::data_type),rows,cq);
     }
   }
@@ -444,9 +537,13 @@ inline void ucl_cast_copy(mat1 &dst, const mat2 &src, const size_t numel,
   #endif
   if ((int)mat1::DATA_TYPE==(int)mat2::DATA_TYPE)
     ucl_copy(dst,src,numel,cq);
-  else
+  else {
+    #ifdef UCL_DEBUG
+    _check_ucl_copy_perm(dst,src);
+    #endif
     _ucl_cast_copy<mat1::MEM_TYPE,mat2::MEM_TYPE>::cc(dst,src,numel,
                                                       cast_buffer,cq);
+  }
 }
 
 /// Asynchronous copy of matrix/vector with cast (Device/Host transfer)
@@ -463,6 +560,7 @@ inline void ucl_cast_copy(mat1 &dst, const mat2 &src, const size_t numel,
   assert(dst.numel()>=numel && src.numel()>=numel);
   assert(cast_buffer.numel()>=numel);
   assert(mat1::ROW_MAJOR==1 && mat2::ROW_MAJOR==1);
+  _check_ucl_copy_perm(dst,src);
   #endif
   if ((int)mat1::DATA_TYPE==(int)mat2::DATA_TYPE)
     ucl_copy(dst,src,numel,async);
@@ -491,6 +589,7 @@ inline void ucl_copy(mat1 &dst, const mat2 &src, const size_t numel,
   assert(dst.row_size()*dst.rows()>=numel && src.row_size()*src.rows()>=numel);
   assert(mat1::ROW_MAJOR==1 && mat2::ROW_MAJOR==1);
   assert(mat1::ROW_MAJOR==1 && mat2::ROW_MAJOR==1);
+  _check_ucl_copy_perm(dst,src);
   #endif
   if (mat1::MEM_TYPE==1 && mat2::MEM_TYPE==1)
     _host_host_copy<mat1::MEM_TYPE,mat2::MEM_TYPE>::hhc(dst,src,numel);
@@ -498,12 +597,12 @@ inline void ucl_copy(mat1 &dst, const mat2 &src, const size_t numel,
       (mat1::MEM_TYPE==1 || mat2::MEM_TYPE==1)) {
     if (mat1::MEM_TYPE==1) {
       UCL_H_Vec<typename mat2::data_type> cast_buffer;
-      cast_buffer.alloc(numel,dst,UCL_RW_OPTIMIZED);
+      cast_buffer.alloc(numel,dst,UCL_READ_ONLY);
       _ucl_cast_copy<mat1::MEM_TYPE,mat2::MEM_TYPE>::cc(dst,src,numel,
                                                         cast_buffer,cq);
     } else {
       UCL_H_Vec<typename mat1::data_type> cast_buffer;
-      cast_buffer.alloc(numel,dst,UCL_WRITE_OPTIMIZED);
+      cast_buffer.alloc(numel,dst,UCL_WRITE_ONLY);
       _ucl_cast_copy<mat1::MEM_TYPE,mat2::MEM_TYPE>::cc(dst,src,numel,
                                                         cast_buffer,cq);
     }
@@ -529,6 +628,7 @@ inline void ucl_copy(mat1 &dst, const mat2 &src, const size_t numel,
   #ifdef UCL_DEBUG
   assert(dst.row_size()*dst.rows()>=numel && src.row_size()*src.rows()>=numel);
   assert(mat1::ROW_MAJOR==1 && mat2::ROW_MAJOR==1);
+  _check_ucl_copy_perm(dst,src);
   #endif
   if (mat1::MEM_TYPE==1 && mat2::MEM_TYPE==1)
     _host_host_copy<mat1::MEM_TYPE,mat2::MEM_TYPE>::hhc(dst,src,numel);
@@ -538,12 +638,12 @@ inline void ucl_copy(mat1 &dst, const mat2 &src, const size_t numel,
            (mat1::MEM_TYPE==1 || mat2::MEM_TYPE==1)) {
     if (mat1::MEM_TYPE==1) {
       UCL_H_Vec<typename mat2::data_type> cast_buffer;
-      cast_buffer.alloc(numel,dst,UCL_RW_OPTIMIZED);
+      cast_buffer.alloc(numel,dst,UCL_READ_ONLY);
       _ucl_cast_copy<mat1::MEM_TYPE,mat2::MEM_TYPE>::cc(dst,src,numel,
                                                         cast_buffer);
     } else {
       UCL_H_Vec<typename mat1::data_type> cast_buffer;
-      cast_buffer.alloc(numel,dst,UCL_WRITE_OPTIMIZED);
+      cast_buffer.alloc(numel,dst,UCL_WRITE_ONLY);
       _ucl_cast_copy<mat1::MEM_TYPE,mat2::MEM_TYPE>::cc(dst,src,numel,
                                                         cast_buffer);
     }
@@ -574,9 +674,13 @@ inline void ucl_cast_copy(mat1 &dst, const mat2 &src, const size_t rows,
     ucl_copy(dst,src,rows,cols,async);
   else if (async)
     ucl_copy(dst,src,rows,cols,dst.cq());
-  else
+  else {
+    #ifdef UCL_DEBUG
+    _check_ucl_copy_perm(dst,src);
+    #endif
     _ucl_cast_copy<mat1::MEM_TYPE,mat2::MEM_TYPE>::cc(dst,src,rows,cols,
                                                       cast_buffer);
+  }
 }
 
 /// Asynchronous copy subset matrix rows,cols with cast (Device/Host transfer)
@@ -595,9 +699,13 @@ inline void ucl_cast_copy(mat1 &dst, const mat2 &src, const size_t rows,
                           command_queue &cq) {
   if ((int)mat1::DATA_TYPE==(int)mat2::DATA_TYPE)
     ucl_copy(dst,src,rows,cols,cq);
-  else 
+  else {
+    #ifdef UCL_DEBUG
+    _check_ucl_copy_perm(dst,src);
+    #endif
     _ucl_cast_copy<mat1::MEM_TYPE,mat2::MEM_TYPE>::cc(dst,src,rows,cols,
                                                       cast_buffer,cq);
+  }
 }
 
 /// Asynchronous copy of subset matrix rows,cols (memory already allocated)
@@ -617,18 +725,21 @@ inline void ucl_cast_copy(mat1 &dst, const mat2 &src, const size_t rows,
 template <class mat1, class mat2>
 inline void ucl_copy(mat1 &dst, const mat2 &src, const size_t rows,
                      const size_t cols, command_queue &cq) {
+  #ifdef UCL_DEBUG
+  _check_ucl_copy_perm(dst,src);
+  #endif
   if (mat1::MEM_TYPE==1 && mat2::MEM_TYPE==1)
     _host_host_copy<mat1::MEM_TYPE,mat2::MEM_TYPE>::hhc(dst,src,rows,cols);
   else if ((int)mat1::DATA_TYPE!=(int)mat2::DATA_TYPE && 
            (mat1::MEM_TYPE==1 || mat2::MEM_TYPE==1)) {
     if (mat1::MEM_TYPE==1) {
       UCL_H_Vec<typename mat2::data_type> cast_buffer;
-      cast_buffer.alloc(rows*cols,dst,UCL_RW_OPTIMIZED);
+      cast_buffer.alloc(rows*cols,dst,UCL_READ_ONLY);
       _ucl_cast_copy<mat1::MEM_TYPE,mat2::MEM_TYPE>::cc(dst,src,rows,cols,
                                                         cast_buffer,cq);
     } else {
       UCL_H_Vec<typename mat1::data_type> cast_buffer;
-      cast_buffer.alloc(rows*cols,dst,UCL_WRITE_OPTIMIZED);
+      cast_buffer.alloc(rows*cols,dst,UCL_WRITE_ONLY);
       _ucl_cast_copy<mat1::MEM_TYPE,mat2::MEM_TYPE>::cc(dst,src,rows,cols,
                                                         cast_buffer,cq);
     }
@@ -678,6 +789,9 @@ inline void ucl_copy(mat1 &dst, const mat2 &src, const size_t rows,
 template <class mat1, class mat2>
 inline void ucl_copy(mat1 &dst, const mat2 &src, const size_t rows,
                      const size_t cols, const bool async) {
+  #ifdef UCL_DEBUG
+  _check_ucl_copy_perm(dst,src);
+  #endif
   if (async)
     ucl_copy(dst,src,rows,cols,dst.cq());
   else if (mat1::MEM_TYPE==1 && mat2::MEM_TYPE==1)
@@ -686,12 +800,12 @@ inline void ucl_copy(mat1 &dst, const mat2 &src, const size_t rows,
            (mat1::MEM_TYPE==1 || mat2::MEM_TYPE==1)) {
     if (mat1::MEM_TYPE==1) {
       UCL_H_Vec<typename mat2::data_type> cast_buffer;
-      cast_buffer.alloc(rows*cols,dst,UCL_RW_OPTIMIZED);
+      cast_buffer.alloc(rows*cols,dst,UCL_READ_ONLY);
       _ucl_cast_copy<mat1::MEM_TYPE,mat2::MEM_TYPE>::cc(dst,src,rows,cols,
                                                         cast_buffer);
     } else {
       UCL_H_Vec<typename mat1::data_type> cast_buffer;
-      cast_buffer.alloc(rows*cols,dst,UCL_WRITE_OPTIMIZED);
+      cast_buffer.alloc(rows*cols,dst,UCL_WRITE_ONLY);
       _ucl_cast_copy<mat1::MEM_TYPE,mat2::MEM_TYPE>::cc(dst,src,rows,cols,
                                                         cast_buffer);
     }

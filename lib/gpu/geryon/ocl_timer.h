@@ -27,6 +27,12 @@
 #include "ocl_macros.h"
 #include "ocl_device.h"
 
+#ifdef CL_VERSION_1_2
+#define UCL_OCL_MARKER(cq,event) clEnqueueMarkerWithWaitList(cq,0,NULL,event)
+#else
+#define UCL_OCL_MARKER clEnqueueMarker
+#endif
+
 namespace ucl_opencl {
 
 /// Class for timing OpenCL events
@@ -63,10 +69,10 @@ class UCL_Timer {
   }
   
   /// Start timing on default command queue
-  inline void start() { clEnqueueMarker(_cq,&start_event); }
+  inline void start() { UCL_OCL_MARKER(_cq,&start_event); }
   
   /// Stop timing on default command queue
-  inline void stop() { clEnqueueMarker(_cq,&stop_event); }
+  inline void stop() { UCL_OCL_MARKER(_cq,&stop_event); }
   
   /// Block until the start event has been reached on device
   inline void sync_start() 
@@ -78,7 +84,7 @@ class UCL_Timer {
 
   /// Set the time elapsed to zero (not the total_time)
   inline void zero() 
-    { clEnqueueMarker(_cq,&start_event); clEnqueueMarker(_cq,&stop_event); } 
+    { UCL_OCL_MARKER(_cq,&start_event); UCL_OCL_MARKER(_cq,&stop_event); } 
   
   /// Set the total time to zero
   inline void zero_total() { _total_time=0.0; }

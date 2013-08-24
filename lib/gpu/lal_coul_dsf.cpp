@@ -73,7 +73,7 @@ int CoulDSFT::init(const int ntypes, const int nlocal, const int nall,
 
   // Allocate a host write buffer for data initialization
   UCL_H_Vec<numtyp> host_write(lj_types*lj_types*32,*(this->ucl_device),
-                               UCL_WRITE_OPTIMIZED);
+                               UCL_WRITE_ONLY);
 
   for (int i=0; i<lj_types*lj_types; i++)
     host_write[i]=0.0;

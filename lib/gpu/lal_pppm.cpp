@@ -136,10 +136,10 @@ grdtyp * PPPMT::init(const int nlocal, const int nall, FILE *_screen,
   _npts_y=nyhi_out-nylo_out+1;
   _npts_z=nzhi_out-nzlo_out+1;
   _npts_yx=_npts_x*_npts_y;
-  success=success && (brick.alloc(_npts_x*_npts_y*_npts_z,*ucl_device)==
-                      UCL_SUCCESS);
-  success=success && (vd_brick.alloc(_npts_x*_npts_y*_npts_z*4,*ucl_device)==
-                      UCL_SUCCESS);
+  success=success && (brick.alloc(_npts_x*_npts_y*_npts_z,*ucl_device,
+                                  UCL_READ_ONLY,UCL_WRITE_ONLY)==UCL_SUCCESS);
+  success=success && (vd_brick.alloc(_npts_x*_npts_y*_npts_z*4,*ucl_device,
+                                    UCL_READ_WRITE,UCL_READ_ONLY)==UCL_SUCCESS);
   *vd_brick_p=vd_brick.host.begin();
   _max_bytes+=brick.device.row_bytes()+vd_brick.device.row_bytes();
 
@@ -159,7 +159,7 @@ grdtyp * PPPMT::init(const int nlocal, const int nall, FILE *_screen,
   _max_bytes+=d_brick_atoms.row_bytes();
 
   // Allocate error flags for checking out of bounds atoms
-  success=success && (error_flag.alloc(1,*ucl_device,UCL_RW_OPTIMIZED,
+  success=success && (error_flag.alloc(1,*ucl_device,UCL_READ_ONLY,
                                        UCL_WRITE_ONLY)==UCL_SUCCESS);
   if (!success) {
     flag=-3;
@@ -374,9 +374,7 @@ void PPPMT::compile_kernels(UCL_Device &dev) {
   if (sizeof(grdtyp)==sizeof(double) && ucl_device->double_precision()==false)
     return;
 
-  std::string flags="-cl-fast-relaxed-math -cl-mad-enable "+
-                    std::string(OCL_PRECISION_COMPILE)+" -D"+
-                    std::string(OCL_VENDOR);
+  std::string flags=device->compile_string();
   #ifdef USE_OPENCL
   flags+=std::string(" -Dgrdtyp=")+ucl_template_name<grdtyp>()+" -Dgrdtyp4="+
          ucl_template_name<grdtyp>()+"4";

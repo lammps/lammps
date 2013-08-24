@@ -17,6 +17,8 @@
 #include "atom.h"
 #include "force.h"
 #include "pair.h"
+#include "pair_hybrid.h"
+#include "pair_hybrid_overlay.h"
 #include "respa.h"
 #include "input.h"
 #include "timer.h"
@@ -38,7 +40,7 @@ extern int lmp_init_device(MPI_Comm world, MPI_Comm replica,
                            const int first_gpu, const int last_gpu,
                            const int gpu_mode, const double particle_split,
                            const int nthreads, const int t_per_atom,
-                           const double cell_size);
+                           const double cell_size, char *opencl_flags);
 extern void lmp_clear_device();
 extern double lmp_gpu_forces(double **f, double **tor, double *eatom,
                              double **vatom, double *virial, double &ecoul);
@@ -103,6 +105,7 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   double cell_size = -1;
 
   int iarg = 7;
+  char *opencl_flags = NULL;
   while (iarg < narg) {
     if (iarg+2 > narg) error->all(FLERR,"Illegal fix GPU command");
 
@@ -112,6 +115,8 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
       nthreads = force->inumeric(FLERR,arg[iarg+1]);
     else if (strcmp(arg[iarg],"cellsize") == 0)
       cell_size = force->numeric(FLERR,arg[iarg+1]);
+    else if (strcmp(arg[iarg],"device") == 0)
+      opencl_flags = arg[iarg+1];
     else
       error->all(FLERR,"Illegal fix GPU command");
 
@@ -128,7 +133,7 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
 
   int gpu_flag = lmp_init_device(universe->uworld, world, first_gpu, last_gpu,
                                  _gpu_mode, _particle_split, nthreads,
-                                 threads_per_atom, cell_size);
+                                 threads_per_atom, cell_size, opencl_flags);
   GPU_EXTRA::check_flag(gpu_flag,error,world);
 }
 
@@ -165,21 +170,24 @@ void FixGPU::init()
         force->pair_match("hybrid/overlay",1) != NULL)
       error->all(FLERR,"GPU 'split' must be positive for hybrid pair styles");
 
+  // Make sure fdotr virial is not accumulated multiple times
+  
+  if (force->pair_match("hybrid",1) != NULL) {
+    PairHybrid *hybrid = (PairHybrid *) force->pair;
+    for (int i = 0; i < hybrid->nstyles; i++)
+      if (strstr(hybrid->keywords[i],"/gpu")==NULL)
+        force->pair->no_virial_fdotr_compute = 1;
+  } else if (force->pair_match("hybrid/overlay",1) != NULL) {
+    PairHybridOverlay *hybrid = (PairHybridOverlay *) force->pair;
+    for (int i = 0; i < hybrid->nstyles; i++)
+      if (strstr(hybrid->keywords[i],"/gpu")==NULL)
+        force->pair->no_virial_fdotr_compute = 1;
+  }
+
   // r-RESPA support
 
-  if (strstr(update->integrate_style,"respa")) {
+  if (strstr(update->integrate_style,"respa"))
     _nlevels_respa = ((Respa *) update->integrate)->nlevels;
-
-    // need to check that gpu accelerated styles are at the outmost levels
-    
-    if ((force->pair_match("/gpu",0) != NULL) &&
-        (((Respa *) update->integrate)->level_pair != _nlevels_respa-1))
-      error->all(FLERR,"GPU pair style must be at outermost respa level");
-
-    if ((force->kspace_match("/gpu",0) != NULL) &&
-        (((Respa *) update->integrate)->level_kspace != _nlevels_respa-1))
-      error->all(FLERR,"GPU Kspace style must be at outermost respa level");
-  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -194,8 +202,9 @@ void FixGPU::setup(int vflag)
   if (strstr(update->integrate_style,"verlet"))
     post_force(vflag);
   else {
+    // In setup only, all forces calculated on gpu are put in the outer level
     ((Respa *) update->integrate)->copy_flevel_f(_nlevels_respa-1);
-    post_force_respa(vflag,_nlevels_respa-1,0);
+    post_force(vflag);
     ((Respa *) update->integrate)->copy_f_flevel(_nlevels_respa-1);
   }
 }
@@ -241,7 +250,7 @@ void FixGPU::min_post_force(int vflag)
 
 void FixGPU::post_force_respa(int vflag, int ilevel, int iloop)
 {
-  if (ilevel == _nlevels_respa-1) post_force(vflag);
+  post_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -252,3 +261,4 @@ double FixGPU::memory_usage()
   // Memory usage currently returned by pair routine
   return bytes;
 }
+

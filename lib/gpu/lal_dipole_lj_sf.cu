@@ -76,14 +76,14 @@ texture<int4,1> mu_tex;
   if (offset==0) {                                                          \
     engv+=ii;                                                               \
     if (eflag>0) {                                                          \
-      *engv=energy;                                                         \
+      *engv=energy*(acctyp)0.5;                                             \
       engv+=inum;                                                           \
-      *engv=e_coul;                                                         \
+      *engv=e_coul*(acctyp)0.5;                                             \
       engv+=inum;                                                           \
     }                                                                       \
     if (vflag>0) {                                                          \
       for (int i=0; i<6; i++) {                                             \
-        *engv=virial[i];                                                    \
+        *engv=virial[i]*(acctyp)0.5;                                        \
         engv+=inum;                                                         \
       }                                                                     \
     }                                                                       \
@@ -116,14 +116,14 @@ texture<int4,1> mu_tex;
   if (offset==0) {                                                          \
     engv+=ii;                                                               \
     if (eflag>0) {                                                          \
-      *engv=energy;                                                         \
+      *engv=energy*(acctyp)0.5;                                             \
       engv+=inum;                                                           \
-      *engv=e_coul;                                                         \
+      *engv=e_coul*(acctyp)0.5;                                             \
       engv+=inum;                                                           \
     }                                                                       \
     if (vflag>0) {                                                          \
       for (int i=0; i<6; i++) {                                             \
-        *engv=virial[i];                                                    \
+        *engv=virial[i]*(acctyp)0.5;                                        \
         engv+=inum;                                                         \
       }                                                                     \
     }                                                                       \
@@ -175,7 +175,8 @@ __kernel void k_dipole_lj_sf(const __global numtyp4 *restrict x_,
   
   if (ii<inum) {
     const __global int *nbor, *list_end;
-    int i, numj, n_stride;
+    int i, numj;
+    __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,list_end,nbor);
   
@@ -418,7 +419,8 @@ __kernel void k_dipole_lj_sf_fast(const __global numtyp4 *restrict x_,
   
   if (ii<inum) {
     const __global int *nbor, *list_end;
-    int i, numj, n_stride;
+    int i, numj;
+    __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,list_end,nbor);
   

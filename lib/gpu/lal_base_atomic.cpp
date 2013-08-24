@@ -272,12 +272,8 @@ void BaseAtomicT::compile_kernels(UCL_Device &dev, const void *pair_str,
     return;
 
   std::string s_fast=std::string(kname)+"_fast";
-  std::string flags="-cl-fast-relaxed-math -cl-mad-enable "+
-                    std::string(OCL_PRECISION_COMPILE)+" -D"+
-                    std::string(OCL_VENDOR);
-
   pair_program=new UCL_Program(dev);
-  pair_program->load_string(pair_str,flags.c_str());
+  pair_program->load_string(pair_str,device->compile_string().c_str());
   k_pair_fast.set_function(*pair_program,s_fast.c_str());
   k_pair.set_function(*pair_program,kname);
   pos_tex.get_texture(*pair_program,"pos_tex");

@@ -137,6 +137,7 @@ BuildRequires:  mpich-devel >= 3.0.2
 
 This package contains a parallel LAMMPS executable for MPICH.
 %endif
+%endif
 
 %package python
 Summary:        LAMMPS Python module

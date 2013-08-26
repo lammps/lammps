@@ -30,6 +30,8 @@
 %global with_suse 0
 %if %{defined _mpich2_load}
 %global with_mpich2 1
+%else
+%global with_mpich2 0
 %endif
 %endif
 
@@ -136,6 +138,7 @@ BuildRequires:  mpich-devel >= 3.0.2
 %{lammps_desc}
 
 This package contains a parallel LAMMPS executable for MPICH.
+%endif
 %endif
 
 %package python

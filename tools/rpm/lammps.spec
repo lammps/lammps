@@ -23,18 +23,22 @@
 
 %if %{defined suse_version}
 %global with_suse 1
+%global with_mpich2 0
 %global _openmpi_load :
 %global _openmpi_unload :
 %else
 %global with_suse 0
+%if %{defined _mpich2_load}
+%global with_mpich2 1
+%endif
 %endif
 
 # to find the proper location for installing the lammps.py* files
 %{!?python_sitearch: %global python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
 
 Name:           lammps
-Version:        20130802
-Release:        4%{?dist}
+Version:        20130826
+Release:        5%{?dist}
 Summary:        LAMMPS Molecular Dynamics Simulator
 Group:          Applications/Engineering
 
@@ -106,6 +110,8 @@ This package contains a parallel LAMMPS executable for OpenMPI.
 %if %{with_suse}
 # no out-of-the-box support for MPICH2
 %else
+# older Fedora and RHEL/CenOS use MPICH2
+%if %{with_mpich2}
 %package mpich2
 Summary:        LAMMPS MPICH2 executable
 Group:          Applications/Engineering
@@ -117,6 +123,19 @@ BuildRequires:  mpich2-devel
 %{lammps_desc}
 
 This package contains a parallel LAMMPS executable for MPICH2.
+%else
+# package names and files for MPICH3 went back to plain MPICH
+%package mpich
+Summary:        LAMMPS MPICH executable
+Group:          Applications/Engineering
+Requires:       lammps-common
+Requires:       mpich
+BuildRequires:  mpich-devel >= 3.0.2
+
+%description mpich
+%{lammps_desc}
+
+This package contains a parallel LAMMPS executable for MPICH.
 %endif
 
 %package python
@@ -215,8 +234,12 @@ mv src/lmp_g++ openmpi/
 %if %{with_suse}
 # no MPICH2 build with SuSE
 %else
-# build MPICH2 parallel version
+# build MPICH parallel version
+%if %{with_mpich2}
 %{_mpich2_load}
+%else
+%{_mpich_load}
+%endif
 # need to rebuild lib/atc
 cd lib/atc
 make -f Makefile.g++ clean
@@ -230,9 +253,13 @@ make g++ CC=mpicxx CCFLAGS="${RPM_OPT_FLAGS} -fopenmp" LINK=mpicxx LINKFLAGS="${
 
 # and save the executable
 cd ../
-mkdir mpich2
-mv src/lmp_g++ mpich2/
+mkdir mpich
+mv src/lmp_g++ mpich/
+%if %{with_mpich2}
 %{_mpich2_unload}
+%else
+%{_mpich_unload}
+%endif
 %endif
 
 # build done (so far)
@@ -261,10 +288,17 @@ install -p -m 755 openmpi/lmp_g++ $RPM_BUILD_ROOT/%{_libdir}/openmpi/bin/
 %if %{with_suse}
 # no MPICH2 support in SuSE
 %else
+%if %{with_mpich2}
 %{_mpich2_load}
 mkdir -p $RPM_BUILD_ROOT/%{_libdir}/mpich2/bin
-install -p -m 755 mpich2/lmp_g++ $RPM_BUILD_ROOT/%{_libdir}/mpich2/bin/
+install -p -m 755 mpich/lmp_g++ $RPM_BUILD_ROOT/%{_libdir}/mpich2/bin/
 %{_mpich2_unload}
+%else
+%{_mpich_load}
+mkdir -p $RPM_BUILD_ROOT/%{_libdir}/mpich/bin
+install -p -m 755 mpich/lmp_g++ $RPM_BUILD_ROOT/%{_libdir}/mpich/bin/
+%{_mpich_unload}
+%endif
 %endif
 
 mkdir -p $RPM_BUILD_ROOT/%{python_sitearch}
@@ -322,9 +356,15 @@ rm -rf %{buildroot}
 %if %{with_suse}
 # no MPICH2 package for suse
 %else
+%if %{with_mpich2}
 %files mpich2
 %defattr(-,root,root,-)
 %{_libdir}/mpich2/bin/lmp_g++
+%else
+%files mpich
+%defattr(-,root,root,-)
+%{_libdir}/mpich/bin/lmp_g++
+%endif
 %endif
 
 %files python

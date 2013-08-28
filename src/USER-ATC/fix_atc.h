@@ -38,6 +38,10 @@ namespace LAMMPS_NS {
 
     /** initial_integrate */
     void initial_integrate(int vflag);
+
+    /** after first integrate phase */
+    void post_integrate();
+
     /** final_integrate */
     void final_integrate();
 

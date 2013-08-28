@@ -532,6 +532,7 @@ int FixATC::setmask()
 {
   int mask = 0;
   mask |= INITIAL_INTEGRATE;
+  mask |= POST_INTEGRATE;
   mask |= FINAL_INTEGRATE;
   mask |= PRE_EXCHANGE;
   mask |= PRE_NEIGHBOR;
@@ -777,31 +778,18 @@ void FixATC::initial_integrate(int vflag)
     ATC::LammpsInterface::instance()->print_msg(atcError.error_description());
     throw;
   }
-
+  // integration of atoms, if desired
   try {
-    atc_->init_integrate_velocity();
+    atc_->init_integrate();
   }
   catch (ATC::ATC_Error& atcError) {
     ATC::LammpsInterface::instance()->print_msg(atcError.error_description());
     throw;
   }
+}
 
-  try {
-    atc_->mid_init_integrate();
-  }
-  catch (ATC::ATC_Error& atcError) {
-    ATC::LammpsInterface::instance()->print_msg(atcError.error_description());
-    throw;
-  }
-
-  try {
-    atc_->init_integrate_position();
-  }
-  catch (ATC::ATC_Error& atcError) {
-    ATC::LammpsInterface::instance()->print_msg(atcError.error_description());
-    throw;
-  }
-
+void FixATC::post_integrate()
+{
   try {
     atc_->post_init_integrate();
   }
@@ -810,6 +798,7 @@ void FixATC::initial_integrate(int vflag)
     throw;
   }
 }
+
 /* ---------------------------------------------------------------------- */
 
 void FixATC::final_integrate()
@@ -829,9 +818,19 @@ void FixATC::final_integrate()
     ATC::LammpsInterface::instance()->print_msg(atcError.error_description());
     throw;
   }
+}
 
+void FixATC::end_of_step()
+{
   try {
     atc_->post_final_integrate();
+  }
+  catch (ATC::ATC_Error& atcError) {
+    ATC::LammpsInterface::instance()->print_msg(atcError.error_description());
+    throw;
+  }
+  try {
+    atc_->end_of_step();
   }
   catch (ATC::ATC_Error& atcError) {
     ATC::LammpsInterface::instance()->print_msg(atcError.error_description());
@@ -873,17 +872,6 @@ void FixATC::post_force(int vflag)
   
   try {
     atc_->post_force(); 
-  }
-  catch (ATC::ATC_Error& atcError) {
-    ATC::LammpsInterface::instance()->print_msg(atcError.error_description());
-    throw;
-  }
-}
-/* ---------------------------------------------------------------------- */
-void FixATC::end_of_step()
-{
-  try {
-    atc_->end_of_step();
   }
   catch (ATC::ATC_Error& atcError) {
     ATC::LammpsInterface::instance()->print_msg(atcError.error_description());

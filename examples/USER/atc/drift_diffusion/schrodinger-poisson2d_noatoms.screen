@@ -1,4 +1,4 @@
-LAMMPS (24 Aug 2013)
+LAMMPS (27 Aug 2013)
 #variable iter equal 2 # need two for potential to affect density
 variable iter equal 1  # NOTE <<<<
 variable r    equal 1

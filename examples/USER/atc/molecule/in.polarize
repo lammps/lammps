@@ -1,5 +1,6 @@
 ###
-log log.water
+echo both
+log log.polarize
 
 variable nstepsequil equal 1000000
 variable nsteps equal 100
@@ -34,7 +35,7 @@ kspace_modify slab 3.0
 pair_style lj/cut/coul/long 13.0 13.0 
 bond_style harmonic
 angle_style harmonic
-read_data waterequil.data
+read_data waterequil.init
 
 
 #velocity all create 0.0 482748 dist uniform

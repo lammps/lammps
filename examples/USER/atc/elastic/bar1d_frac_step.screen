@@ -1,4 +1,4 @@
-LAMMPS (24 Aug 2013)
+LAMMPS (27 Aug 2013)
 
 units		real
 atom_style	atomic
@@ -63,6 +63,8 @@ fix_modify  AtC  initial velocity x all 0.0
 fix_modify  AtC  initial velocity y all 0.0
 fix_modify  AtC  initial velocity z all 0.0
 fix_modify  AtC  time_integration fractional_step
+fix_modify  AtC  internal_atom_integrate off
+fix iNVE internal nve
 
 # set node sets and bcs
 #           ID  mesh create_nodeset tag xmin xmax ymin ymax zmin zmax
@@ -107,13 +109,13 @@ Step Temp E_pair E_mol TotEng Press
      800 9.5474556e-09   -4509.8852            0   -4509.8852    26.923147 
      900 1.2412323e-08   -4509.8852            0   -4509.8852    26.917542 
     1000 1.5423223e-08   -4509.8852            0   -4509.8852    26.911973 
-Loop time of 21.0169 on 4 procs for 1000 steps with 2304 atoms
+Loop time of 20.835 on 4 procs for 1000 steps with 2304 atoms
 
-Pair  time (%) = 6.07239 (28.8928)
-Neigh time (%) = 2.57211 (12.2383)
-Comm  time (%) = 6.10444 (29.0453)
-Outpt time (%) = 0.0483207 (0.229913)
-Other time (%) = 6.21968 (29.5936)
+Pair  time (%) = 5.85529 (28.1032)
+Neigh time (%) = 2.53527 (12.1683)
+Comm  time (%) = 6.03739 (28.9772)
+Outpt time (%) = 0.0180721 (0.0867391)
+Other time (%) = 6.38895 (30.6645)
 
 Nlocal:    576 ave 864 max 288 min
 Histogram: 2 0 0 0 0 0 0 0 0 2
@@ -203,19 +205,19 @@ Step Temp E_pair E_mol TotEng Press
     4800 1.8690218e-08   -4509.8853            0   -4509.8853    26.908349 
     4900 1.9317873e-08   -4509.8852            0   -4509.8852    26.905059 
     5000 1.8273072e-08   -4509.8851            0   -4509.8851    26.904542 
-Loop time of 105.697 on 4 procs for 5000 steps with 2304 atoms
+Loop time of 108.649 on 4 procs for 5000 steps with 2304 atoms
 
-Pair  time (%) = 30.0683 (28.4476)
-Neigh time (%) = 12.7786 (12.0898)
-Comm  time (%) = 30.3178 (28.6836)
-Outpt time (%) = 0.00932336 (0.00882081)
-Other time (%) = 32.5233 (30.7702)
+Pair  time (%) = 30.1538 (27.7533)
+Neigh time (%) = 13.1196 (12.0752)
+Comm  time (%) = 33.7221 (31.0376)
+Outpt time (%) = 0.00899172 (0.00827591)
+Other time (%) = 31.6449 (29.1257)
 
 Nlocal:    576 ave 864 max 288 min
 Histogram: 2 0 0 0 0 0 0 0 0 2
 Nghost:    5170 ave 6910 max 3430 min
 Histogram: 2 0 0 0 0 0 0 0 0 2
-Neighs:    178632 ave 288545 max 68120 min
+Neighs:    178632 ave 288957 max 67836 min
 Histogram: 2 0 0 0 0 0 0 0 0 2
 FullNghs:  357264 ave 577008 max 137520 min
 Histogram: 2 0 0 0 0 0 0 0 0 2

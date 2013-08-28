@@ -1,4 +1,4 @@
-LAMMPS (24 Aug 2013)
+LAMMPS (27 Aug 2013)
 units		real
 atom_style	atomic
 # create domain
@@ -76,13 +76,13 @@ Memory usage per processor = 43.9024 Mbytes
 Step step PotEng KinEng Press Lx Ly Lz 
        0            0   -3435.8868            0    50.003991        65.28        16.32        16.32 
        1            0   -3435.8868            0    50.003991        65.28        16.32        16.32 
-Loop time of 0.00991845 on 4 procs for 1 steps with 896 atoms
+Loop time of 0.00907576 on 4 procs for 1 steps with 896 atoms
 
-Pair  time (%) = 0.000431955 (4.35506)
+Pair  time (%) = 0.000409544 (4.5125)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000183165 (1.84671)
-Outpt time (%) = 7.67112e-05 (0.773419)
-Other time (%) = 0.00922662 (93.0248)
+Comm  time (%) = 0.000166595 (1.8356)
+Outpt time (%) = 0.000163734 (1.80408)
+Other time (%) = 0.00833589 (91.8478)
 
 Nlocal:    224 ave 256 max 192 min
 Histogram: 2 0 0 0 0 0 0 0 0 2
@@ -108,13 +108,13 @@ Memory usage per processor = 43.9024 Mbytes
 Step step PotEng KinEng Press Lx Ly Lz 
        1            1    -3435.904            0   -77.521908        65.28        16.32        16.32 
        2            1    -3435.904            0   -77.521908        65.28        16.32        16.32 
-Loop time of 0.0137113 on 4 procs for 1 steps with 896 atoms
+Loop time of 0.0131203 on 4 procs for 1 steps with 896 atoms
 
-Pair  time (%) = 0.000457823 (3.33903)
+Pair  time (%) = 0.000410676 (3.13008)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000109017 (0.795089)
-Outpt time (%) = 0.000366211 (2.67087)
-Other time (%) = 0.0127782 (93.195)
+Comm  time (%) = 0.000128627 (0.980365)
+Outpt time (%) = 0.000374734 (2.85614)
+Other time (%) = 0.0122063 (93.0334)
 
 Nlocal:    224 ave 256 max 192 min
 Histogram: 2 0 0 0 0 0 0 0 0 2
@@ -140,13 +140,13 @@ Memory usage per processor = 43.9024 Mbytes
 Step step PotEng KinEng Press Lx Ly Lz 
        2            2   -3435.8757            0   -203.99195        65.28        16.32        16.32 
        3            2   -3435.8757            0   -203.99195        65.28        16.32        16.32 
-Loop time of 0.0138195 on 4 procs for 1 steps with 896 atoms
+Loop time of 0.013119 on 4 procs for 1 steps with 896 atoms
 
-Pair  time (%) = 0.000415981 (3.01011)
+Pair  time (%) = 0.000416636 (3.17583)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000124633 (0.901868)
-Outpt time (%) = 0.000336647 (2.43604)
-Other time (%) = 0.0129422 (93.652)
+Comm  time (%) = 0.000141144 (1.07587)
+Outpt time (%) = 0.000354707 (2.70377)
+Other time (%) = 0.0122065 (93.0445)
 
 Nlocal:    224 ave 256 max 192 min
 Histogram: 2 0 0 0 0 0 0 0 0 2

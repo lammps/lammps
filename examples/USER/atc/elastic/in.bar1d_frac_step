@@ -49,6 +49,8 @@ fix_modify  AtC  initial velocity x all 0.0
 fix_modify  AtC  initial velocity y all 0.0
 fix_modify  AtC  initial velocity z all 0.0
 fix_modify  AtC  time_integration fractional_step
+fix_modify  AtC  internal_atom_integrate off
+fix iNVE internal nve
 
 # set node sets and bcs
 #           ID  mesh create_nodeset tag xmin xmax ymin ymax zmin zmax

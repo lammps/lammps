@@ -1,4 +1,4 @@
-LAMMPS (24 Aug 2013)
+LAMMPS (27 Aug 2013)
 Scanning data file ...
   2 = max bonds/atom
   1 = max angles/atom
@@ -30,6 +30,11 @@ ATC: constructing electrostatic species coupling with parameter file water.mat
  ATC: creating fem_efield extrinsic model
  ATC: 1 materials defined from water.mat
  ATC: created uniform mesh with 8 nodes, 1 unique nodes, and 1 elements
+Finding SHAKE clusters ...
+  0 = # of size 2 clusters
+  0 = # of size 3 clusters
+  0 = # of size 4 clusters
+  903 = # of frozen angles
  ATC: Warning : text output can create _LARGE_ files
  ATC: output custom names:
 NodalAtomicSpeciesConcentration : NodalAtomicSpeciesConcentrationHyd
@@ -53,43 +58,43 @@ Setting up run ...
  ATC: WARNING: all initial conditions for species_concentration have not been defined and the undefined are assumed zero
  ATC: WARNING: material: [water] cannot find mass_density
  ATC: WARNING: physics model: [species electrostatic], material: [water] does not provide all interfaces for <mass_density> physics and will be treated as null 
-Memory usage per processor = 109.05 Mbytes
+Memory usage per processor = 110.158 Mbytes
 Step Temp E_pair E_mol TotEng Press 
-       0    197.00275   -442.89515   0.59348399   -373.34352    21627.063 
-     100     829.3047   -532.01992    298.21091    56.477887    47888.516 
-     200    742.78324   -696.73237    968.19413    531.46299   -41757.145 
-     300    1194.0466   -640.77501    416.31161    193.49647   -47297.597 
-     400    722.14402   -655.95913     486.9587    83.776311   -117009.94 
-     500    856.93093   -774.82666    955.23125    480.36167   -144380.28 
-     600    614.34783   -818.49346    1205.9216    602.47228    -170076.9 
-     700    738.19704   -704.05013    689.90234     244.2481   -138086.85 
-     800    899.87085    -671.8463    565.65986    208.80118      -105587 
-     900    906.34218    -708.2316    826.83201    435.85323   -84326.936 
-    1000    920.33455   -635.04397    592.63924    279.74592   -40120.926 
-Loop time of 65.5694 on 4 procs for 1000 steps with 2709 atoms
+       0     295.5587   -442.89515            0     -373.937   -131998.23 
+     100    290.87863   -434.43358            0   -366.56736   -44230.026 
+     200    291.92834   -434.76926            0   -366.65812    -44008.69 
+     300    300.25145   -435.04826            0   -364.99523   -44050.489 
+     400    295.94333   -436.37626            0   -367.32837   -44134.004 
+     500    291.82014   -433.60004            0   -365.51415   -43960.556 
+     600    297.07921   -434.96259            0   -365.64968   -44403.145 
+     700    290.21983   -434.02012            0   -366.30761   -44175.149 
+     800    291.85669   -434.29732            0    -366.2029   -44436.275 
+     900    301.54816   -436.20597            0   -365.85039   -44253.686 
+    1000    295.98791   -434.24829            0      -365.19   -43743.988 
+Loop time of 64.2344 on 4 procs for 1000 steps with 2709 atoms
 
-Pair  time (%) = 52.5051 (80.0756)
-Bond  time (%) = 0.14109 (0.215176)
-Kspce time (%) = 8.3972 (12.8066)
-Neigh time (%) = 1.53506 (2.34113)
-Comm  time (%) = 0.915804 (1.39669)
-Outpt time (%) = 0.0142876 (0.02179)
-Other time (%) = 2.06087 (3.14303)
+Pair  time (%) = 52.3703 (81.5299)
+Bond  time (%) = 0.00628233 (0.00978032)
+Kspce time (%) = 7.34014 (11.4271)
+Neigh time (%) = 1.05395 (1.64079)
+Comm  time (%) = 0.661233 (1.02941)
+Outpt time (%) = 0.029508 (0.045938)
+Other time (%) = 2.77304 (4.31707)
 
-FFT time (% of Kspce) = 0.687578 (8.18818)
-FFT Gflps 3d (1d only) = 1.47096 3.5009
+FFT time (% of Kspce) = 0.857083 (11.6767)
+FFT Gflps 3d (1d only) = 1.18005 3.49919
 
-Nlocal:    677.25 ave 694 max 650 min
-Histogram: 1 0 0 0 0 1 0 0 1 1
-Nghost:    11513.2 ave 11662 max 11354 min
-Histogram: 1 0 0 1 0 0 1 0 0 1
-Neighs:    821091 ave 848197 max 781864 min
-Histogram: 1 0 0 0 1 0 0 0 0 2
-FullNghs:  963818 ave 999880 max 913538 min
-Histogram: 1 0 0 0 1 0 0 0 1 1
+Nlocal:    677.25 ave 699 max 659 min
+Histogram: 1 0 1 0 0 1 0 0 0 1
+Nghost:    11513.2 ave 11625 max 11415 min
+Histogram: 2 0 0 0 0 0 0 0 1 1
+Neighs:    820083 ave 844320 max 799220 min
+Histogram: 1 0 1 0 0 1 0 0 0 1
+FullNghs:  963001 ave 994085 max 936561 min
+Histogram: 1 0 1 0 0 1 0 0 0 1
 
-Total # of neighbors = 3855272
-Ave neighs/atom = 1423.13
+Total # of neighbors = 3852004
+Ave neighs/atom = 1421.93
 Ave special neighs/atom = 2
-Neighbor list builds = 23
+Neighbor list builds = 15
 Dangerous builds = 0

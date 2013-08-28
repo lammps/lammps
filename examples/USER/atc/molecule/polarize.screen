@@ -1,4 +1,50 @@
-LAMMPS (24 Aug 2013)
+LAMMPS (27 Aug 2013)
+log log.polarize
+
+variable nstepsequil equal 1000000
+variable nsteps equal 100
+variable temp equal 300.0
+variable tdamp equal 0.100
+variable x_dim equal 50
+variable y_dim equal 50
+variable z_fluid equal 37.7919
+variable efieldz equal -0.0723725329978652551934
+variable x_max equal ${x_dim}/2
+variable x_max equal 50/2
+variable y_max equal ${y_dim}/2
+variable y_max equal 50/2
+variable fluid_half_thickness equal ${z_fluid}/2
+variable fluid_half_thickness equal 37.791899999999998272/2
+variable buffer equal 2.45
+variable zhiwall equal ${fluid_half_thickness}+${buffer}
+variable zhiwall equal 18.895949999999999136+${buffer}
+variable zhiwall equal 18.895949999999999136+2.4500000000000001776
+variable zlowall equal -${fluid_half_thickness}-${buffer}
+variable zlowall equal -18.895949999999999136-${buffer}
+variable zlowall equal -18.895949999999999136-2.4500000000000001776
+variable zmaxatc equal ${fluid_half_thickness}+10
+variable zmaxatc equal 18.895949999999999136+10
+variable zmaxsub equal ${zmaxatc}-0.1
+variable zmaxsub equal 28.895949999999999136-0.1
+variable zmaxsup equal ${zmaxatc}+0.1
+variable zmaxsup equal 28.895949999999999136+0.1
+
+variable cellatc equal 5
+
+
+units metal
+atom_style full
+dimension 3
+newton off
+neighbor 2 bin
+neigh_modify every 1 delay 1 check no
+boundary p p f
+kspace_style pppm 1e-5
+kspace_modify slab 3.0
+pair_style lj/cut/coul/long 13.0 13.0
+bond_style harmonic
+angle_style harmonic
+read_data waterequil.init
 Scanning data file ...
   2 = max bonds/atom
   1 = max angles/atom
@@ -14,13 +60,257 @@ Finding 1-2 1-3 1-4 neighbors ...
   1 = max # of 1-3 neighbors
   1 = max # of 1-4 neighbors
   2 = max # of special neighbors
+
+
+#velocity all create 0.0 482748 dist uniform
+
+lattice sc 0.05
 Lattice spacing in x,y,z = 0.05 0.05 0.05
+
+#region ATC block EDGE EDGE EDGE EDGE -${zmaxatc} ${zmaxatc} units box
+#variable nelemelec equal round(2*${zmaxatc}/0.05)
+region ATC block EDGE EDGE EDGE EDGE EDGE EDGE units box
+# region ATC block EDGE EDGE EDGE EDGE 0.0 0.05 units box
+#region ATC block -${fem_atc} ${fem_atc} -${fem_atc} ${fem_atc} -${fem_atc} ${fem_atc} units box
+variable nelem equal 2
+# variable nelem equal 1
+
+group water type 1 2
 9474 atoms in group water
+group hyd type 1
 6316 atoms in group hyd
+group oxy type 2
 3158 atoms in group oxy
+
+timestep 0.0005
+dielectric 1.0
+
+pair_coeff 1 * 0.0 0.0
+pair_coeff 2 2 0.006596 3.1507
+
+bond_coeff 1 19.513855 0.957200
+
+angle_coeff 1 2.385027 104.519997
+
+special_bonds amber
 Finding 1-2 1-3 1-4 neighbors ...
   2 = max # of 1-2 neighbors
   1 = max # of 1-3 neighbors
   1 = max # of 1-4 neighbors
   2 = max # of special neighbors
-ERROR: Invalid fix style (../modify.cpp:714)
+
+#fix 2 all nvt temp ${temp} ${temp} ${tdamp}
+
+fix lowall oxy wall/lj1043 zlo ${zlowall} 0.1351 3.1507 11.0275 units box
+fix lowall oxy wall/lj1043 zlo -21.345949999999998425 0.1351 3.1507 11.0275 units box
+fix hiwall oxy wall/lj1043 zhi ${zhiwall} 0.1351 3.1507 11.0275 units box
+fix hiwall oxy wall/lj1043 zhi 21.345949999999998425 0.1351 3.1507 11.0275 units box
+
+fix efield all efield 0. 0. v_efieldz
+
+# assign SHAKE fixes
+fix 1 all shake  0.00001 500 5000 b 1 a 1
+Finding SHAKE clusters ...
+  0 = # of size 2 clusters
+  0 = # of size 3 clusters
+  0 = # of size 4 clusters
+  3158 = # of frozen angles
+
+thermo 100
+thermo_style custom step temp ke pe etotal f_efield f_lowall f_hiwall
+
+variable dumpfreq equal 1
+
+#dump 1 all atom 500 waterequil.dump
+#dump_modify 1 image yes scale no flush yes
+
+#run ${nstepsequil}
+
+#write_restart waterequil.restart
+
+#unfix 2
+fix 3 all nve
+
+fix AtC all atc hardy
+ATC: constructing kernel field estimate
+ ATC: version 2.0
+ ATC: peratom PE compute created with ID: 3
+fix_modify AtC mesh create 1 1 ${nelem} ATC p p f
+fix_modify AtC mesh create 1 1 2 ATC p p f
+ ATC: created uniform mesh with 12 nodes, 3 unique nodes, and 2 elements
+#fix_modify AtC_half mesh create 1 1 ${nelem} ATC p p f
+fix_modify AtC kernel cell 25 25 ${cellatc}
+fix_modify AtC kernel cell 25 25 5
+fix_modify AtC atom_element_map eulerian ${dumpfreq}
+fix_modify AtC atom_element_map eulerian 1
+fix_modify AtC fields none
+fix_modify AtC fields add dipole_moment mass_density
+fix_modify AtC add_molecule small Water water
+fix_modify AtC output polarizeFE ${dumpfreq} text vector_components
+fix_modify AtC output polarizeFE 1 text vector_components
+ ATC: Warning : text output can create _LARGE_ files
+ ATC: output custom names:
+
+run ${nsteps}
+run 100
+PPPM initialization ...
+  G vector (1/distance) = 0.229056
+  grid = 30 30 64
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.000159261
+  estimated relative force accuracy = 1.10601e-05
+  using double precision FFTs
+  3d grid and FFT values/proc = 31944 14400
+Setting up run ...
+SHAKE stats (type/ave/delta) on step 0
+  1 0.9572 3.63187e-08
+  1 104.52 3.67915e-06
+ ATC: computing kernel matrix molecule ...done
+Memory usage per processor = 50.0731 Mbytes
+Step Temp KinEng PotEng TotEng efield lowall hiwall 
+       0    295.19689    240.96267   -1265.6426   -1024.6799            0   -25.236036   -26.079483 
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+ ATC: computing kernel matrix molecule ...done
+     100    296.18885    241.77239   -1266.3101   -1024.5377            0   -25.105524   -26.164269 
+Loop time of 45.5704 on 4 procs for 100 steps with 9474 atoms
+
+Pair  time (%) = 16.3605 (35.9017)
+Bond  time (%) = 0.00160581 (0.00352379)
+Kspce time (%) = 6.05084 (13.278)
+Neigh time (%) = 19.7865 (43.4197)
+Comm  time (%) = 0.413389 (0.907142)
+Outpt time (%) = 0.000264287 (0.000579953)
+Other time (%) = 2.95726 (6.48942)
+
+FFT time (% of Kspce) = 0.787418 (13.0134)
+FFT Gflps 3d (1d only) = 1.60365 5.42005
+
+Nlocal:    2368.5 ave 2387 max 2357 min
+Histogram: 1 1 0 0 1 0 0 0 0 1
+Nghost:    9049.75 ave 9086 max 9029 min
+Histogram: 2 0 0 0 1 0 0 0 0 1
+Neighs:    1.94028e+06 ave 1.95668e+06 max 1.92845e+06 min
+Histogram: 1 0 1 1 0 0 0 0 0 1
+FullNghs:  2.74796e+06 ave 2.77359e+06 max 2.72966e+06 min
+Histogram: 1 0 1 0 1 0 0 0 0 1
+
+Total # of neighbors = 10991852
+Ave neighs/atom = 1160.21
+Ave special neighs/atom = 2
+Neighbor list builds = 100
+Dangerous builds = 0
+
+
+#fix AtCH hyd atc field
+#fix_modify AtCH mesh create 1 1 ${nelemelec} ATC p p f
+#fix_modify AtCH atom_element_map eulerian ${dumpfreq}
+#fix_modify AtCH fields add number_density
+#fix_modify AtCH output FEH ${dumpfreq} text binary
+
+#fix AtCO oxy atc field
+#fix_modify AtCO mesh create 1 1 ${nelemelec} ATC p p f
+#fix_modify AtCO atom_element_map eulerian ${dumpfreq}
+#fix_modify AtCO fields add number_density
+#fix_modify AtCO output FEO ${dumpfreq} text binary
+
+#run ${nsteps}
+
+#write_restart waterendpolarize.restart

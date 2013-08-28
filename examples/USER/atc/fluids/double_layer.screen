@@ -1,4 +1,4 @@
-LAMMPS (24 Aug 2013)
+LAMMPS (27 Aug 2013)
 
 units 		metal
 atom_style 	full
@@ -178,14 +178,14 @@ Step E_pair E_mol TotEng Press fluidT
      800     -9250.72            0    -9226.768   -55686.507    294.64934 
      900   -9251.0634            0   -9227.1621   -55774.601    292.41664 
     1000   -9250.8046            0   -9227.0389   -55778.639    286.45437 
-Loop time of 33.335 on 4 procs for 1000 steps with 1982 atoms
+Loop time of 33.5833 on 4 procs for 1000 steps with 1982 atoms
 
-Pair  time (%) = 6.92194 (20.7648)
-Bond  time (%) = 0.000487626 (0.00146281)
-Neigh time (%) = 0.0395007 (0.118496)
-Comm  time (%) = 0.29625 (0.888707)
-Outpt time (%) = 0.0683134 (0.20493)
-Other time (%) = 26.0085 (78.0216)
+Pair  time (%) = 6.80929 (20.2758)
+Bond  time (%) = 0.000513554 (0.00152919)
+Neigh time (%) = 0.0404075 (0.12032)
+Comm  time (%) = 0.282087 (0.839961)
+Outpt time (%) = 0.0870072 (0.259079)
+Other time (%) = 26.364 (78.5033)
 
 Nlocal:    495.5 ave 976 max 63 min
 Histogram: 2 0 0 0 0 0 0 0 1 1

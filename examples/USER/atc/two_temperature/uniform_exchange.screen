@@ -1,4 +1,4 @@
-LAMMPS (24 Aug 2013)
+LAMMPS (27 Aug 2013)
 Lattice spacing in x,y,z = 5.405 5.405 5.405
 Reading data file ...
   orthogonal box = (-64.86 -16.215 -16.215) to (64.86 16.215 16.215)
@@ -67,13 +67,13 @@ Step PotEng Temp AtC[2] AtC[4]
      480   -6591.7933    19.843386           20           30 
      490   -6589.9573    19.837677           20           30 
      500   -6587.2689    19.832888           20           30 
-Loop time of 12.3006 on 4 procs for 500 steps with 3456 atoms
+Loop time of 9.1193 on 4 procs for 500 steps with 3456 atoms
 
-Pair  time (%) = 5.16972 (42.0283)
-Neigh time (%) = 2.30395 (18.7305)
-Comm  time (%) = 1.86285 (15.1444)
-Outpt time (%) = 0.00649101 (0.0527699)
-Other time (%) = 2.95757 (24.0441)
+Pair  time (%) = 4.7124 (51.675)
+Neigh time (%) = 2.08011 (22.81)
+Comm  time (%) = 0.205331 (2.25161)
+Outpt time (%) = 0.00345474 (0.0378839)
+Other time (%) = 2.118 (23.2255)
 
 Nlocal:    864 ave 864 max 864 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -595,13 +595,13 @@ Step PotEng Temp AtC[2] AtC[4]
     5480   -6538.0259    25.322264    25.372916    25.302183 
     5490   -6538.1544      25.3361    25.386454    25.302798 
     5500   -6536.8742    25.212636    25.393996    25.303497 
-Loop time of 129.462 on 4 procs for 5000 steps with 3456 atoms
+Loop time of 128.05 on 4 procs for 5000 steps with 3456 atoms
 
-Pair  time (%) = 50.9041 (39.3198)
-Neigh time (%) = 21.6889 (16.7531)
-Comm  time (%) = 10.2584 (7.92392)
-Outpt time (%) = 0.154454 (0.119304)
-Other time (%) = 46.4559 (35.8839)
+Pair  time (%) = 50.4992 (39.437)
+Neigh time (%) = 22.7834 (17.7926)
+Comm  time (%) = 8.60588 (6.72071)
+Outpt time (%) = 0.118921 (0.0928704)
+Other time (%) = 46.0428 (35.9568)
 
 Nlocal:    864 ave 864 max 864 min
 Histogram: 4 0 0 0 0 0 0 0 0 0

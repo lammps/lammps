@@ -42,15 +42,6 @@ namespace ATC {
     /** pre time integration */
     virtual void initialize();
 
-    /** flags whether a methods reset is required */
-    
-    virtual bool reset_methods() const {
-      bool resetMethods = ATC_Method::reset_methods() || atomicRegulator_->need_reset();
-      _ctiIt_ = timeIntegrators_.find(TEMPERATURE);
-      if (_ctiIt_ == timeIntegrators_.end()) return resetMethods;
-      return resetMethods || (_ctiIt_->second)->need_reset();
-    };
-
     /** compute vector for output */
     virtual double compute_vector(int n);
 
@@ -69,14 +60,7 @@ namespace ATC {
 
     /** sets the position/velocity of the ghost atoms */
     virtual void set_ghost_atoms(){};
-#ifdef OBSOLETE
-    /** compute the mass matrix components coming from MD integration */
-    virtual void compute_md_mass_matrix(FieldName thisField,
-                                        DIAG_MAT & massMats);
 
-    /** operator to compute mass matrix from MD */
-    AtfShapeFunctionRestriction * nodalAtomicHeatCapacity_;
-#endif
     /** physics specific filter initialization */
     void init_filter();
 

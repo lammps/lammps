@@ -562,7 +562,7 @@ Tv(0) = 300.;
   int ConcentrationRegulatorMethodTransition::pick_element() const
   {
     double r = uniform();
-    ESET::iterator itr = elemset_.begin(); // global?
+    ESET::const_iterator itr = elemset_.begin(); // global?
     for (int i = 0; i < volumes_.size() ; ++i) {
       if (r < volumes_(i)) return *itr;
       itr++;

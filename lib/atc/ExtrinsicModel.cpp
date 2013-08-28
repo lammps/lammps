@@ -234,23 +234,6 @@ namespace ATC {
   }
 
   //--------------------------------------------------------
-  //  mid_init_integrate
-  //--------------------------------------------------------
-  void ExtrinsicModelManager::mid_init_integrate(ExtrinsicModelType modelType)
-  {
-    vector<ExtrinsicModel *>::iterator imodel;
-    if (modelType == NUM_MODELS) {// execute all the models
-      for(imodel=extrinsicModels_.begin(); imodel!=extrinsicModels_.end(); imodel++)
-        (*imodel)->mid_init_integrate();
-    }
-    else { // execute only requested type of model
-      for(imodel=extrinsicModels_.begin(); imodel!=extrinsicModels_.end(); imodel++)
-        if ((*imodel)->model_type() == modelType)
-          (*imodel)->mid_init_integrate();
-    }
-  }
-
-  //--------------------------------------------------------
   //  post_init_integrate
   //--------------------------------------------------------
   void ExtrinsicModelManager::post_init_integrate(ExtrinsicModelType modelType)

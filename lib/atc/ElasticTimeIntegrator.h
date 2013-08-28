@@ -131,8 +131,8 @@ namespace ATC {
       virtual void initialize();
       
       // time step methods, corresponding to ATC_Transfer
-      /** first part of mid_initial_integrate */
-      virtual void mid_initial_integrate1(double dt);
+      /** first part of pre_initial_integrate */
+      virtual void pre_initial_integrate1(double dt);
       /** first part of post_initial_integrate */
       virtual void post_initial_integrate1(double dt);
       /** first part of pre_final_integrate */
@@ -190,8 +190,8 @@ namespace ATC {
         virtual ~ElasticTimeIntegratorVerletFiltered(){};
         
         // time step methods, corresponding to ATC_Transfer
-        /** first part of mid_initial_integrate */
-        virtual void mid_initial_integrate1(double dt);
+        /** first part of pre_initial_integrate */
+        virtual void pre_initial_integrate1(double dt);
         /** first part of post_initial_integrate */
         virtual void post_initial_integrate1(double dt);
         /** second part of post_final_integrate */
@@ -243,10 +243,9 @@ namespace ATC {
     // time step methods, corresponding to ATC_Transfer
     /** first part of pre_initial_integrate */
     virtual void pre_initial_integrate1(double dt);
-    /** second part of mid_initial_integrate */
+    /** second part of pre_initial_integrate */
     virtual void pre_initial_integrate2(double dt);
-    /** first part of mid_initial_integrate */
-    virtual void mid_initial_integrate1(double dt);
+
     /** first part of post_initial_integrate */
     virtual void post_initial_integrate1(double dt);
     /** second part of post_final_integrate */

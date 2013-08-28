@@ -911,6 +911,8 @@ namespace ATC {
     if ( output_now() && !outputStepZero_ ) output();
     outputStepZero_ = false;
 
+    //ATC_Method::post_final_integrate();
+
   }
 
   //-------------------------------------------------------------------

@@ -123,68 +123,6 @@ namespace ATC {
     // Base class initalizations
     ATC_Coupling::initialize();
 
-    // check that only all atoms
-
-    if (bndyIntType_ != NO_QUADRATURE) throw ATC_Error("ATC_CouplingMass: only all atoms simulations are supported");
-
-    // set consistent initial conditions, if requested
-    if (!timeFilterManager_.filter_dynamics()) {
-      if (consistentInitialization_) {
-        
-        DENS_MAT & massDensity(fields_[MASS_DENSITY].set_quantity());
-        const DENS_MAT & atomicMassDensity(atomicFields_[MASS_DENSITY]->quantity());
-        
-        DENS_MAT & speciesConcentration(fields_[SPECIES_CONCENTRATION].set_quantity());
-        const DENS_MAT & atomicSpeciesConcentration(atomicFields_[SPECIES_CONCENTRATION]->quantity());
-
-        const INT_ARRAY & nodeType(nodalGeometryType_->quantity());
-        for (int i = 0; i<nNodes_; ++i) {
-          
-          if (nodeType(i,0)==MD_ONLY) {
-            massDensity(i,0) = atomicMassDensity(i,0);
-            for (int j = 0; j < atomicSpeciesConcentration.nCols(); ++j) {
-              speciesConcentration(i,j) = atomicSpeciesConcentration(i,j);
-            }
-          }
-        }
-      }
-    }
-
-
-    // other initializatifields_[SPECIES_CONCENTRATION].quantity()ons
-    if (reset_methods()) { 
-      for (_tiIt_ = timeIntegrators_.begin(); _tiIt_ != timeIntegrators_.end(); ++_tiIt_) {
-        (_tiIt_->second)->initialize();
-      }
-    }
-    extrinsicModelManager_.initialize();  // always needed to construct new Poisson solver
-    if (timeFilterManager_.need_reset()) {
-      init_filter();
-    }
-    // clears need for reset
-    timeFilterManager_.initialize();
-    atomicRegulator_->initialize();
-    ghostManager_.initialize();
-    
-    if (!initialized_) {
-      // initialize sources based on initial FE temperature
-      double dt = lammpsInterface_->dt(); 
-      // set sources
-
-      prescribedDataMgr_->set_sources(time()+0.5*dt,sources_);
-      extrinsicModelManager_.set_sources(fields_,extrinsicSources_);
-      compute_atomic_sources(fieldMask_,fields_,atomicSources_);
-
-      // read in field data if necessary
-      if (useRestart_) {
-        RESTART_LIST data;
-        read_restart_data(restartFileName_,data);
-        useRestart_ = false;
-      }
-      
-      initialized_ = true;
-    }
-
     // reset integration field mask
     intrinsicMask_.reset(NUM_FIELDS,NUM_FLUX);
     intrinsicMask_ = false;
@@ -245,17 +183,7 @@ namespace ATC {
     
     ATC_Coupling::init_filter();
   }
-#ifdef OBSOLETE
-  void ATC_CouplingMass::compute_md_mass_matrix(FieldName thisField,
-                                                DIAG_MAT & massMat)
-  {
 
-    if (thisField == MASS_DENSITY ||
-        thisField == SPECIES_CONCENTRATION) {
-      massMat.reset(nodalAtomicVolume_->quantity());
-    }
-  }
-#endif
   //WIP_JAT consolidate to coupling when we handle the temperature correctly
   //--------------------------------------------------------
   //  pre_exchange

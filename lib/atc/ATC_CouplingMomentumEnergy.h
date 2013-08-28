@@ -42,16 +42,6 @@ namespace ATC {
     /** pre time integration */
     virtual void initialize();
 
-    /** flags whether a methods reset is required */
-    
-    virtual bool reset_methods() const {
-      bool resetMethods = ATC_Method::reset_methods() || atomicRegulator_->need_reset();
-      for (_ctiIt_ = timeIntegrators_.begin(); _ctiIt_ != timeIntegrators_.end(); ++_ctiIt_) {
-        resetMethods |= (_ctiIt_->second)->need_reset();
-      }
-      return resetMethods;
-    };
-
     /** compute scalar for output - added energy */
     virtual double compute_scalar(void);
 
@@ -72,20 +62,7 @@ namespace ATC {
     //virtual void construct_time_integration_data();
     /** set up data which is dependency managed */
     virtual void construct_transfers();
-#ifdef OBSOLETE
-    /** compute the mass matrix components coming from MD integration */
-    virtual void compute_md_mass_matrix(FieldName thisField,
-                                        DIAG_MAT & massMats);
-    //
-    /** operator to compute the mass matrix for the momentum equation from MD integration */
-    AtfShapeFunctionRestriction * nodalAtomicMass_;
 
-    /** operator to compute the dimensionless mass matrix from MD integration */
-    AtfShapeFunctionRestriction * nodalAtomicCount_;
-
-    /** operator to compute mass matrix from MD */
-    AtfShapeFunctionRestriction * nodalAtomicHeatCapacity_;
-#endif
     /** physics specific filter initialization */
     void init_filter();
     /** kinetic temperature for post-processing */

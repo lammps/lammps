@@ -389,8 +389,8 @@ namespace ATC {
     /** instantiate all needed data */
     virtual void construct_transfers();
 
-    /** applies kinetostat to atoms in the mid-predictor phase */
-    virtual void apply_mid_predictor(double dt);
+    /** applies kinetostat to atoms in the pre-predictor phase */
+    virtual void apply_pre_predictor(double dt);
 
     /** applies kinetostat to atoms in the post-corrector phase */
     virtual void apply_post_corrector(double dt);

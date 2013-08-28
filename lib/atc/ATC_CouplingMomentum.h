@@ -44,14 +44,6 @@ namespace ATC {
     /** pre time integration */
     virtual void initialize();
 
-    /** flags whether a methods reset is required */
-    virtual bool reset_methods() const {
-      bool resetMethods = ATC_Method::reset_methods() ||atomicRegulator_->need_reset();
-      _ctiIt_ = timeIntegrators_.find(VELOCITY);
-      if (_ctiIt_ == timeIntegrators_.end()) return resetMethods;
-      return resetMethods || (_ctiIt_->second)->need_reset();
-    };
-
     /** pre/post atomic force calculation in minimize */
     virtual void min_pre_force();
     virtual void min_post_force();
@@ -76,17 +68,7 @@ namespace ATC {
     //virtual void construct_time_integration_data();
     /** set up data which is dependency managed */
     virtual void construct_transfers();
-#ifdef OBSOLETE
-    /** compute the mass matrix components coming from MD integration */
-    virtual void compute_md_mass_matrix(FieldName thisField,
-                                        DIAG_MAT & massMats);
-    //
-    /** operator to compute the mass matrix for the momentum equation from MD integration */
-    AtfShapeFunctionRestriction * nodalAtomicMass_;
 
-    /** operator to compute the dimensionless mass matrix from MD integration */
-    AtfShapeFunctionRestriction * nodalAtomicCount_;
-#endif
     /** physics specific filter initialization */
     void init_filter();
 

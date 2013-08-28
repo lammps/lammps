@@ -161,6 +161,9 @@ namespace ATC {
     /** resets nlocal count of managed atomic quantities which do not perform parallel exchange */
     void reset_nlocal();
 
+    /** resets specific lammps fundamental quantities data, as needed, to account for times when lammps can change quantities */
+    void fundamental_force_reset(unsigned quantity);
+
     /** resets all lammps data, as needed, to account for times when lammps can change quantities */
     void lammps_force_reset();
 

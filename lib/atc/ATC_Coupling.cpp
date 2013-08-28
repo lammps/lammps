@@ -1070,6 +1070,16 @@ namespace ATC {
                                     rhs);
     }
   }
+  
+  //--------------------------------------------------
+  bool ATC_Coupling::reset_methods() const
+  {
+    bool resetMethods = ATC_Method::reset_methods() || atomicRegulator_->need_reset();
+    for (_ctiIt_ = timeIntegrators_.begin(); _ctiIt_ != timeIntegrators_.end(); ++_ctiIt_) {
+      resetMethods |= (_ctiIt_->second)->need_reset();
+    }
+    return resetMethods;
+  }
   //--------------------------------------------------
   void ATC_Coupling::initialize()
   { 
@@ -1122,10 +1132,120 @@ namespace ATC {
         }
       }
     }
-
     
     // prepare computes for first timestep
     lammpsInterface_->computes_addstep(lammpsInterface_->ntimestep()+1);
+
+    // resetting precedence:
+    // time integrator -> kinetostat/thermostat -> time filter
+    // init_filter uses fieldRateNdFiltered which comes from the time integrator,
+    // which is why the time integrator is initialized first
+
+    // other initializations
+    if (reset_methods()) {
+      for (_tiIt_ = timeIntegrators_.begin(); _tiIt_ != timeIntegrators_.end(); ++_tiIt_) {
+        (_tiIt_->second)->initialize();
+      }
+      atomicRegulator_->initialize();
+    }
+    extrinsicModelManager_.initialize();
+    if (timeFilterManager_.need_reset()) {// reset thermostat power
+      init_filter();
+    }
+    // clears need for reset
+    timeFilterManager_.initialize();
+    ghostManager_.initialize();
+
+    if (!initialized_) {
+      // initialize sources based on initial FE temperature
+      double dt = lammpsInterface_->dt();
+      prescribedDataMgr_->set_sources(time()+0.5*dt,sources_);
+      extrinsicModelManager_.set_sources(fields_,extrinsicSources_);
+      atomicRegulator_->compute_boundary_flux(fields_);
+      compute_atomic_sources(fieldMask_,fields_,atomicSources_);
+
+      // read in field data if necessary
+      if (useRestart_) {
+        RESTART_LIST data;
+        read_restart_data(restartFileName_,data);
+        useRestart_ = false;
+      }
+
+      // set consistent initial conditions, if requested
+      if (!timeFilterManager_.filter_dynamics() && consistentInitialization_) {
+        
+        const INT_ARRAY & nodeType(nodalGeometryType_->quantity());
+
+        if (fieldSizes_.find(VELOCITY) != fieldSizes_.end()) {
+          DENS_MAT & velocity(fields_[VELOCITY].set_quantity());
+          DENS_MAN * nodalAtomicVelocity(interscaleManager_.dense_matrix("NodalAtomicVelocity"));
+          const DENS_MAT & atomicVelocity(nodalAtomicVelocity->quantity());
+          for (int i = 0; i<nNodes_; ++i) {
+            
+            if (nodeType(i,0)==MD_ONLY) {
+              for (int j = 0; j < nsd_; j++) {
+                velocity(i,j) = atomicVelocity(i,j);
+              }
+            }
+          }
+        }
+
+        if (fieldSizes_.find(TEMPERATURE) != fieldSizes_.end()) {
+          DENS_MAT & temperature(fields_[TEMPERATURE].set_quantity());
+          DENS_MAN * nodalAtomicTemperature(interscaleManager_.dense_matrix("NodalAtomicTemperature"));
+          const DENS_MAT & atomicTemperature(nodalAtomicTemperature->quantity());
+            
+          for (int i = 0; i<nNodes_; ++i) {
+            
+            if (nodeType(i,0)==MD_ONLY) {
+              temperature(i,0) = atomicTemperature(i,0);
+            }
+          }
+        }
+
+        if (fieldSizes_.find(DISPLACEMENT) != fieldSizes_.end()) {
+          DENS_MAT & displacement(fields_[DISPLACEMENT].set_quantity());
+          DENS_MAN * nodalAtomicDisplacement(interscaleManager_.dense_matrix("NodalAtomicDisplacement"));
+          const DENS_MAT & atomicDisplacement(nodalAtomicDisplacement->quantity());
+          for (int i = 0; i<nNodes_; ++i) {
+            
+            if (nodeType(i,0)==MD_ONLY) {
+              for (int j = 0; j < nsd_; j++) {
+                displacement(i,j) = atomicDisplacement(i,j);
+              }
+            }
+          }
+        }
+          
+        //WIP_JAT update next two when full species time integrator is added
+        if (fieldSizes_.find(MASS_DENSITY) != fieldSizes_.end()) {
+          DENS_MAT & massDensity(fields_[MASS_DENSITY].set_quantity());
+          const DENS_MAT & atomicMassDensity(atomicFields_[MASS_DENSITY]->quantity());
+          for (int i = 0; i<nNodes_; ++i) {
+            
+            if (nodeType(i,0)==MD_ONLY) {
+              massDensity(i,0) = atomicMassDensity(i,0);
+            }
+          }
+        }
+          
+        if (fieldSizes_.find(SPECIES_CONCENTRATION) != fieldSizes_.end()) {
+          DENS_MAT & speciesConcentration(fields_[SPECIES_CONCENTRATION].set_quantity());
+          const DENS_MAT & atomicSpeciesConcentration(atomicFields_[SPECIES_CONCENTRATION]->quantity());
+          for (int i = 0; i<nNodes_; ++i) {
+            
+            if (nodeType(i,0)==MD_ONLY) {
+              for (int j = 0; j < atomicSpeciesConcentration.nCols(); ++j) {
+                speciesConcentration(i,j) = atomicSpeciesConcentration(i,j);
+              }
+            }
+          }
+        }
+      }
+      
+      initialized_ = true;
+    }
+
   }
   //-------------------------------------------------------------------
   void ATC_Coupling::construct_time_integration_data()
@@ -1731,22 +1851,23 @@ namespace ATC {
   }
 
   //--------------------------------------------------------
-  //  mid_init_integrate
-  //    time integration between the velocity update and
-  //    the position lammps update of Verlet step 1
+  //  init_integrate
+  //    time integration of lammps atomic quantities
   //--------------------------------------------------------
-  void ATC_Coupling::mid_init_integrate()
+  void ATC_Coupling::init_integrate()
   {
-    double dt = lammpsInterface_->dt();
+    atomTimeIntegrator_->init_integrate_velocity(dt());
+    ghostManager_.init_integrate_velocity(dt());
+    // account for other fixes doing time integration
+    interscaleManager_.fundamental_force_reset(LammpsInterface::ATOM_VELOCITY);
 
-    // Compute nodal velocity at n+1/2, if needed
-    for (_tiIt_ = timeIntegrators_.begin(); _tiIt_ != timeIntegrators_.end(); ++_tiIt_) {
-      (_tiIt_->second)->mid_initial_integrate1(dt);
-    }
+    // apply constraints to velocity
+    atomicRegulator_->apply_mid_predictor(dt(),lammpsInterface_->ntimestep());
 
-    atomicRegulator_->apply_mid_predictor(dt,lammpsInterface_->ntimestep());
-
-    extrinsicModelManager_.mid_init_integrate();
+    atomTimeIntegrator_->init_integrate_position(dt());
+    ghostManager_.init_integrate_position(dt());
+    // account for other fixes doing time integration
+    interscaleManager_.fundamental_force_reset(LammpsInterface::ATOM_POSITION);
   }
 
   ///--------------------------------------------------------
@@ -1941,6 +2062,7 @@ namespace ATC {
     
     output();
     lammpsInterface_->computes_addstep(lammpsInterface_->ntimestep()+1); // adds next step to computes
+    //ATC_Method::post_final_integrate();
   }
 
   //=================================================================

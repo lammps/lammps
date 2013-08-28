@@ -1129,7 +1129,7 @@ namespace ATC {
   //    apply the kinetostat to the atoms in the
   //    mid-predictor integration phase
   //--------------------------------------------------------
-  void StressFlux::apply_mid_predictor(double dt)
+  void StressFlux::apply_pre_predictor(double dt)
   {
     double dtLambda = 0.5*dt;
     // apply lambda force to atoms

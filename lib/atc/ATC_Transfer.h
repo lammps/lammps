@@ -46,7 +46,6 @@ class ATC_Transfer : public ATC_Method {
 
   /** second time substep routine */
   virtual void pre_final_integrate();
-  //virtual void final_integrate(){};
   virtual void post_final_integrate();
 
   /** communication routines */

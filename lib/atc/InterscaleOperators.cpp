@@ -507,14 +507,22 @@ namespace ATC{
   //--------------------------------------------------------
   //  computes_force_reset
   //--------------------------------------------------------
-  void InterscaleManager::lammps_force_reset()
+  void InterscaleManager::fundamental_force_reset(unsigned quantity)
   {
     for (unsigned int i = 0; i < NUM_ATOM_TYPES; i++) {
-      for (unsigned int j = 0; j < LammpsInterface::NUM_FUNDAMENTAL_ATOM_QUANTITIES; j++) {
-        if (fundamentalAtomQuantities_[i][j]) {
-          fundamentalAtomQuantities_[i][j]->lammps_force_reset();
-        }
+      if (fundamentalAtomQuantities_[i][quantity]) {
+        fundamentalAtomQuantities_[i][quantity]->lammps_force_reset();
       }
+    }
+  }
+
+  //--------------------------------------------------------
+  //  computes_force_reset
+  //--------------------------------------------------------
+  void InterscaleManager::lammps_force_reset()
+  {
+    for (unsigned int j = 0; j < LammpsInterface::NUM_FUNDAMENTAL_ATOM_QUANTITIES; j++) {
+      fundamental_force_reset(j);
     }
     lammps_reset_loop(perAtomQuantities_);
     lammps_reset_loop(perAtomIntQuantities_);

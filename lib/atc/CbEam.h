@@ -9,7 +9,6 @@
 
 namespace ATC
 {
-  class LAMMPS_NS::PairEAM; // necessary for non-lib build of ATC (vs USER-ATC)
 
   /**
    *  @class  CbEam 

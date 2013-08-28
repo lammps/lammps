@@ -72,16 +72,9 @@ namespace ATC {
 
     /** sets the position/velocity of the ghost atoms */
     virtual void set_ghost_atoms(){};
-#ifdef OBSOLETE
-    /** compute the mass matrix components coming from MD integration */
-    virtual void compute_md_mass_matrix(FieldName thisField,
-                                        DIAG_MAT & massMats);
-#endif
+
     /** physics specific filter initialization */
     void init_filter();
-
-    // DATA structures for tracking individual species and molecules
-    FIELD_POINTERS atomicFields_;
 
     bool resetNlocal_;
 

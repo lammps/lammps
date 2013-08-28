@@ -84,7 +84,7 @@ namespace ATC {
     DENS_MAN & massDensity_;
       
     /** atomic nodal mass density field */
-// OBOLETE?
+// OBSOLETE?
     DENS_MAN & nodalAtomicMassDensityOut_;
     DENS_MAN * nodalAtomicMassDensity_;
       

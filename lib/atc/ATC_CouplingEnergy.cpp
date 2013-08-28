@@ -30,9 +30,6 @@ namespace ATC {
                                          string matParamFile,
                                          ExtrinsicModelType extrinsicModel)
     : ATC_Coupling(groupName,perAtomArray,thisFix),
-#ifdef OBSOLETE
-      nodalAtomicHeatCapacity_(NULL),
-#endif
       nodalAtomicKineticTemperature_(NULL),
       nodalAtomicConfigurationalTemperature_(NULL)
   {
@@ -69,9 +66,6 @@ namespace ATC {
     extVector_ = 1;
     if (extrinsicModel != NO_MODEL)
       sizeVector_ += extrinsicModelManager_.size_vector(sizeVector_);
-
-    // create PE per atom ccompute
-    //lammpsInterface_->create_compute_pe_peratom();
   }
 
   //--------------------------------------------------------
@@ -91,60 +85,6 @@ namespace ATC {
   {
     // Base class initalizations
     ATC_Coupling::initialize();
-    
-    // resetting precedence:
-    // time integrator -> thermostat -> time filter
-    // init_filter uses fieldRateNdFiltered which comes from the time integrator,
-    // which is why the time integrator is initialized first
-
-    // other initializations
-    if (reset_methods()) {
-      for (_tiIt_ = timeIntegrators_.begin(); _tiIt_ != timeIntegrators_.end(); ++_tiIt_) {
-        (_tiIt_->second)->initialize();
-      }
-      atomicRegulator_->initialize();
-    }
-    extrinsicModelManager_.initialize(); 
-    // reset thermostat power for time filter initial conditions for special cases
-    if (timeFilterManager_.need_reset()) {
-      init_filter();
-    }
-    // clears need for reset
-    timeFilterManager_.initialize();
-    ghostManager_.initialize();
-
-    if (!initialized_) {
-      // initialize sources based on initial FE temperature
-      double dt = lammpsInterface_->dt();
-      prescribedDataMgr_->set_sources(time()+0.5*dt,sources_);
-      extrinsicModelManager_.set_sources(fields_,extrinsicSources_);
-      atomicRegulator_->compute_boundary_flux(fields_);
-      compute_atomic_sources(fieldMask_,fields_,atomicSources_);
-
-      // read in field data if necessary
-      if (useRestart_) {
-        RESTART_LIST data;
-        read_restart_data(restartFileName_,data);
-        useRestart_ = false;
-      }
-
-      // set consistent initial conditions, if requested
-      if (!timeFilterManager_.filter_dynamics()) {
-        if (consistentInitialization_) {
-          
-          DENS_MAT & temperature(fields_[TEMPERATURE].set_quantity());
-          DENS_MAN * nodalAtomicTemperature(interscaleManager_.dense_matrix("NodalAtomicTemperature"));
-          const DENS_MAT & atomicTemperature(nodalAtomicTemperature->quantity());
-          const INT_ARRAY & nodeType(nodalGeometryType_->quantity());
-          for (int i = 0; i<nNodes_; ++i) {
-            
-            if (nodeType(i,0)==MD_ONLY)
-              temperature(i,0) = atomicTemperature(i,0);
-          }
-        }
-      }
-      initialized_ = true;
-    }
 
     // reset integration field mask
     intrinsicMask_.reset(NUM_FIELDS,NUM_FLUX);
@@ -257,21 +197,7 @@ namespace ATC {
                                                                                              TEMPERATURE);
     interscaleManager_.add_dense_matrix(nodalAtomicTemperature,
                                         "NodalAtomicTemperature");
-#ifdef OBSOLETE
-    if (!useFeMdMassMatrix_) {
-      // classical thermodynamic heat capacity of the atoms
-      HeatCapacity * heatCapacity = new HeatCapacity(this);
-      interscaleManager_.add_per_atom_quantity(heatCapacity,
-                                               "AtomicHeatCapacity");
 
-      // atomic thermal mass matrix
-      nodalAtomicHeatCapacity_ = new AtfShapeFunctionRestriction(this,
-                                                              heatCapacity,
-                                                              shpFcn_);
-      interscaleManager_.add_dense_matrix(nodalAtomicHeatCapacity_,
-                                               "NodalAtomicHeatCapacity");
-    }
-#endif
     for (_tiIt_ = timeIntegrators_.begin(); _tiIt_ != timeIntegrators_.end(); ++_tiIt_) {
       (_tiIt_->second)->construct_transfers();
     }
@@ -314,20 +240,7 @@ namespace ATC {
       }
     }
   }
-#ifdef OBSOLETE
-  //---------------------------------------------------------
-  //  compute_md_mass_matrix
-  //    compute the mass matrix arising from only atomistic
-  //    quadrature and contributions as a summation
-  //---------------------------------------------------------
-  void ATC_CouplingEnergy::compute_md_mass_matrix(FieldName thisField,
-                                                  DIAG_MAT & massMat)
-  {
-    
-    if (thisField == TEMPERATURE)
-      massMat.reset(nodalAtomicHeatCapacity_->quantity());
-  }
-#endif
+
   //--------------------------------------------------------
   //  modify
   //    parses inputs and modifies state of the filter

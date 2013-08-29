@@ -230,10 +230,10 @@ namespace ATC {
   }
 
   //--------------------------------------------------------
-  //  mid_initial_integrate1
-  //    time integration at the mid-point of Verlet step 1
+  //  pre_initial_integrate1
+  //    time integration before Verlet step 1
   //--------------------------------------------------------
-  void ElasticTimeIntegratorVerlet::mid_initial_integrate1(double dt)
+  void ElasticTimeIntegratorVerlet::pre_initial_integrate1(double dt)
   {
     explicit_1(velocity_.set_quantity(),acceleration_.quantity(),.5*dt);
   }
@@ -334,10 +334,10 @@ namespace ATC {
   }
 
   //--------------------------------------------------------
-  //  mid_initial_integrate1
-  //    time integration at the mid-point of Verlet step 1
+  //  pre_initial_integrate1
+  //    time integration before Verlet step 1
   //--------------------------------------------------------
-  void ElasticTimeIntegratorVerletFiltered::mid_initial_integrate1(double dt)
+  void ElasticTimeIntegratorVerletFiltered::pre_initial_integrate1(double dt)
   {
     explicit_1(velocity_.set_quantity(),acceleration_.quantity(),.5*dt);
     explicit_1(nodalAtomicVelocityOut_.set_quantity(),nodalAtomicAcceleration_.quantity(),.5*dt);
@@ -497,11 +497,10 @@ namespace ATC {
   }
 
   //--------------------------------------------------------
-  //  mid_initial_integrate1
-  //    time integration between the velocity and position
-  //    updates in Verlet step 1
+  //  post_initial_integrate1
+  //    time integration after Verlet step 1
   //--------------------------------------------------------
-  void ElasticTimeIntegratorFractionalStep::mid_initial_integrate1(double dt)
+  void ElasticTimeIntegratorFractionalStep::post_initial_integrate1(double dt)
   {
     // atomic contributions to change in momentum
     // compute change in restricted atomic momentum
@@ -531,16 +530,9 @@ namespace ATC {
                                     nodalAtomicVelocityOld_,
                                     VELOCITY);
     nodalAtomicMomentumOld_ = nodalAtomicMomentum;
-  }
 
-  //--------------------------------------------------------
-  //  post_initial_integrate1
-  //    time integration after Verlet step 1
-  //--------------------------------------------------------
-  void ElasticTimeIntegratorFractionalStep::post_initial_integrate1(double dt)
-  {
     // get nodal momentum for second part of force update
-    nodalAtomicForce_ = nodalAtomicMomentum_->quantity();
+    nodalAtomicForce_ = nodalAtomicMomentum;
     nodalAtomicForce_ *= -1.;
 
     // update nodal displacements

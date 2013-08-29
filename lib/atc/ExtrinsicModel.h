@@ -77,8 +77,7 @@ namespace ATC {
     // calls during LAMMPS Velocity-Verlet integration
     /** Predictor phase, executed before Verlet */
     void pre_init_integrate(ExtrinsicModelType modelType = NUM_MODELS);
-    /** Predictor phase, executed between velocity and position Verlet */
-    void mid_init_integrate(ExtrinsicModelType modelType = NUM_MODELS);
+
     /** Predictor phase, executed after Verlet */
     void post_init_integrate(ExtrinsicModelType modelType = NUM_MODELS);
 
@@ -243,9 +242,6 @@ namespace ATC {
 
     /** Predictor phase, executed before Verlet */
     virtual void pre_init_integrate(){};
-
-    /** Predictor phase, executed between velocity and position Verlet */
-    virtual void mid_init_integrate(){};
 
     /** Predictor phase, executed after Verlet */
     virtual void post_init_integrate(){};

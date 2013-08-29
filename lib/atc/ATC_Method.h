@@ -68,14 +68,8 @@ namespace ATC {
       update_step();
     };
 
-    /** Predictor phase, Verlet first step for velocity */
-    virtual void init_integrate_velocity(); 
-
-    /** Predictor phase, executed between velocity and position Verlet */
-    virtual void mid_init_integrate(){};
-
-    /** Predictor phase, Verlet first step for position */
-    virtual void init_integrate_position(); 
+    /** Predictor phase, Verlet first step for velocity and position */
+    virtual void init_integrate(); 
 
     /** Predictor phase, executed after Verlet */
     virtual void post_init_integrate();

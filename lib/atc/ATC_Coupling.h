@@ -61,27 +61,25 @@ namespace ATC {
     /** pre integration run */
     virtual void initialize();
 
+    /** flags whether a methods reset is required */
+    virtual bool reset_methods() const;
+
     /** post integration run : called at end of run or simulation */
     virtual void finish();
 
     /** first time, before atomic integration */
     virtual void pre_init_integrate();
 
-    /** Predictor phase, executed between velocity and position Verlet */
-    virtual void mid_init_integrate();
+    /** Predictor phase, Verlet first step for velocity and position */
+    virtual void init_integrate(); 
 
     /** Predictor phase, executed after Verlet */
     virtual void post_init_integrate();
-#ifdef OBSOLETE
-    /** Corrector phase, executed before Verlet */
-    virtual void pre_final_integrate(){};
-#endif
+
     /** Corrector phase, executed after Verlet*/
     
     virtual void post_final_integrate();
-#ifdef OBSOLETE    
-{lammpsInterface_->computes_addstep(lammpsInterface_->ntimestep()+1);};
-#endif
+
     /** pre/post atomic force calculation in minimize */
     virtual void min_pre_force(){};
     virtual void min_post_force(){};
@@ -446,6 +444,8 @@ namespace ATC {
     FIELDS rhs_;  // for pde
     FIELDS rhsAtomDomain_; // for thermostat
     FIELDS boundaryFlux_; // for thermostat & rhs pde
+    // DATA structures for tracking individual species and molecules
+    FIELD_POINTERS atomicFields_;
     /*@}*/
 
     // workspace variables

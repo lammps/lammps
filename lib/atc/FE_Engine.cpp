@@ -89,7 +89,7 @@ namespace ATC{
     // now do all FE_Engine data structure partitioning
 
     // partition nullElements_
-    /*for (vector<int>::iterator elemsIter = feMesh_->processor_elts().begin();
+    /*for (vector<int>::const_iterator elemsIter = feMesh_->processor_elts().begin();
          elemsIter != feMesh_->processor_elts().end();
          ++elemsIter)
     {
@@ -550,7 +550,7 @@ namespace ATC{
     DENS_MAT elementMassMatrix(nNodesPerElement_,nNodesPerElement_); 
 
     vector<int> myElems = feMesh_->owned_elts();
-    for (vector<int>::iterator elemsIter = myElems.begin();
+    for (vector<int>::const_iterator elemsIter = myElems.begin();
          elemsIter != myElems.end();
          ++elemsIter)
     {
@@ -604,7 +604,7 @@ namespace ATC{
     DENS_MAT coefsAtIPs;
 
     vector<int> myElems = feMesh_->owned_elts();
-    for (vector<int>::iterator elemsIter = myElems.begin();
+    for (vector<int>::const_iterator elemsIter = myElems.begin();
          elemsIter != myElems.end();
          ++elemsIter)
     {
@@ -782,7 +782,7 @@ namespace ATC{
 
     // element wise assembly
     vector<int> myElems = feMesh_->owned_elts();
-    for (vector<int>::iterator elemsIter = myElems.begin(); 
+    for (vector<int>::const_iterator elemsIter = myElems.begin(); 
          elemsIter != myElems.end();
          ++elemsIter) 
     {
@@ -849,7 +849,7 @@ namespace ATC{
     massMatrix.reset(nNodesUnique_,nNodesUnique_);// zero since partial fill
     DENS_MAT elementMassMatrix(nNodesPerElement_,nNodesPerElement_); 
     vector<int> myElems = feMesh_->owned_elts();
-    for (vector<int>::iterator elemsIter = myElems.begin();
+    for (vector<int>::const_iterator elemsIter = myElems.begin();
          elemsIter != myElems.end();
          ++elemsIter)
     {
@@ -905,7 +905,7 @@ namespace ATC{
     // assemble lumped diagonal mass 
     DENS_VEC Nvec(nNodesPerElement_);
     vector<int> myElems = feMesh_->owned_elts();
-    for (vector<int>::iterator elemsIter = myElems.begin();
+    for (vector<int>::const_iterator elemsIter = myElems.begin();
          elemsIter != myElems.end();
          ++elemsIter)
     {
@@ -944,7 +944,7 @@ namespace ATC{
     }
     // assemble diagonal matrix
     vector<int> myElems = feMesh_->owned_elts();
-    for (vector<int>::iterator elemsIter = myElems.begin();
+    for (vector<int>::const_iterator elemsIter = myElems.begin();
          elemsIter != myElems.end();
          ++elemsIter)
     {
@@ -1143,7 +1143,7 @@ namespace ATC{
     Array<int> count(nNodesUnique_); count = 0;
     set_quadrature(NODAL);
     vector<int> myElems = feMesh_->owned_elts();
-    for (vector<int>::iterator elemsIter = myElems.begin();
+    for (vector<int>::const_iterator elemsIter = myElems.begin();
          elemsIter != myElems.end();
          ++elemsIter)
     {
@@ -1204,7 +1204,7 @@ namespace ATC{
 
     DENS_MAT elementEnergy(nNodesPerElement_,1); // workspace
     vector<int> myElems = feMesh_->owned_elts();
-    for (vector<int>::iterator elemsIter = myElems.begin();
+    for (vector<int>::const_iterator elemsIter = myElems.begin();
          elemsIter != myElems.end();
          ++elemsIter)
     {
@@ -1269,7 +1269,7 @@ namespace ATC{
 
     // Iterate over elements partitioned onto current processor.
     vector<int> myElems = feMesh_->owned_elts();
-    for (vector<int>::iterator elemsIter = myElems.begin(); 
+    for (vector<int>::const_iterator elemsIter = myElems.begin(); 
          elemsIter != myElems.end();
          ++elemsIter) 
     {
@@ -1337,7 +1337,7 @@ namespace ATC{
       } 
     }
 
-    vector<FieldName>::iterator _fieldIter_;
+    vector<FieldName>::const_iterator _fieldIter_;
     for (_fieldIter_ = usedFields.begin(); _fieldIter_ != usedFields.end(); 
          ++_fieldIter_) {
       // myRhs is where we put the global result for this field.
@@ -1660,7 +1660,7 @@ namespace ATC{
 
     // element wise assembly
     vector<int> myElems = feMesh_->owned_elts();
-    for (vector<int>::iterator elemsIter = myElems.begin();
+    for (vector<int>::const_iterator elemsIter = myElems.begin();
          elemsIter != myElems.end();
          ++elemsIter)
     {
@@ -1740,7 +1740,7 @@ namespace ATC{
     }
   
     // element wise assembly
-    set< PAIR >::iterator iter;
+    set< PAIR >::const_iterator iter;
     for (iter = faceSet.begin(); iter != faceSet.end(); iter++) {
       // get connectivity
       int ielem = iter->first;
@@ -2214,7 +2214,7 @@ namespace ATC{
     }
 
     vector<int> myElems = feMesh_->owned_elts();
-    for (vector<int>::iterator elemsIter = myElems.begin();
+    for (vector<int>::const_iterator elemsIter = myElems.begin();
          elemsIter != myElems.end();
          ++elemsIter)
     {
@@ -2291,7 +2291,7 @@ namespace ATC{
                           // the data member?
 
     // element wise assembly
-    set< pair <int,int> >::iterator iter;
+    set< pair <int,int> >::const_iterator iter;
     for (iter = faceSet.begin(); iter != faceSet.end(); iter++) {
       int ielem = iter->first;
       // if this is not our element, do not do calculations

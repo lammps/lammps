@@ -699,6 +699,8 @@ pecified
         <TT> fix_modify AtC internal_atom_integrate on </TT>
         \section description
         Has AtC perform time integration for the atoms in the group on which it operates.  This does not include boundary atoms.
+        \section restrictions
+        AtC must be created before any fixes doing time integration.  It must be on for coupling methods which impose constraints on velocities during the first verlet step, e.g. control momentum glc_velocity.
         \section default
         on for coupling methods, off for post-processors
         off
@@ -1503,16 +1505,17 @@ pecified
     }
   }
   //--------------------------------------------------------
-  void ATC_Method::init_integrate_velocity()
+  void ATC_Method::init_integrate()
   {
     atomTimeIntegrator_->init_integrate_velocity(dt());
     ghostManager_.init_integrate_velocity(dt());
-  }
-  //--------------------------------------------------------
-  void ATC_Method::init_integrate_position()
-  {
+    // account for other fixes doing time integration
+    interscaleManager_.fundamental_force_reset(LammpsInterface::ATOM_VELOCITY);
+
     atomTimeIntegrator_->init_integrate_position(dt());
     ghostManager_.init_integrate_position(dt());
+    // account for other fixes doing time integration
+    interscaleManager_.fundamental_force_reset(LammpsInterface::ATOM_POSITION);
   }
   //-------------------------------------------------------------------
   void ATC_Method::post_init_integrate()
@@ -1564,6 +1567,8 @@ pecified
   {
     atomTimeIntegrator_->final_integrate(dt());
     ghostManager_.final_integrate(dt());
+    // account for other fixes doing time integration
+    interscaleManager_.fundamental_force_reset(LammpsInterface::ATOM_VELOCITY);
   }
   //-------------------------------------------------------------------
   void ATC_Method::post_final_integrate()
@@ -1577,7 +1582,6 @@ pecified
   {
     localStep_ += 1;
   }
-
   //--------------------------------------------------------------
   void ATC_Method::finish()
   {

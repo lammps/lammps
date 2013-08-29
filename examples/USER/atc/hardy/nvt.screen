@@ -1,4 +1,4 @@
-LAMMPS (24 Aug 2013)
+LAMMPS (27 Aug 2013)
 dimension 3
 boundary  p p p
 lattice 	fcc  5.376 orient x 1 0 0 orient y 0 1 0 orient z 0 0 1
@@ -14,6 +14,7 @@ pair_style  lj/cut 13.0
 pair_coeff	1 1 0.2381 3.405
 group		internal region box
 500 atoms in group internal
+
 fix         ATC internal atc field
 ATC: constructing shape function field estimate
  ATC: version 2.0
@@ -48,6 +49,7 @@ compute_modify	thermo_temp extra 0
 thermo_style 	custom step temp etotal ke pe press vol
 timestep 	4.0
 reset_timestep	0
+# NOTE fixes performing time integration (init_integrate/final_integrate) should be defined after atc
 fix 		NVT all nvt temp 30 30 10.0 drag 0.2 tchain 1
 log		nvt.log
 run 		1000
@@ -67,13 +69,13 @@ Step Temp TotEng KinEng PotEng Press Volume
      800    29.876839   -900.32866    44.528592   -944.85725   -587.67852    19421.725 
      900    29.966977   -899.86769    44.662933   -944.53062   -581.80498    19421.725 
     1000    29.907621   -901.57887    44.574469   -946.15334   -613.00908    19421.725 
-Loop time of 1.43083 on 4 procs for 1000 steps with 500 atoms
+Loop time of 1.48076 on 4 procs for 1000 steps with 500 atoms
 
-Pair  time (%) = 0.761305 (53.2071)
+Pair  time (%) = 0.757719 (51.1709)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.317228 (22.1708)
-Outpt time (%) = 0.00066191 (0.0462604)
-Other time (%) = 0.351639 (24.5758)
+Comm  time (%) = 0.332254 (22.4381)
+Outpt time (%) = 0.00243467 (0.16442)
+Other time (%) = 0.388352 (26.2265)
 
 Nlocal:    125 ave 129 max 121 min
 Histogram: 1 0 0 0 0 2 0 0 0 1

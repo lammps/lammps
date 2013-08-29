@@ -1,4 +1,4 @@
-LAMMPS (24 Aug 2013)
+LAMMPS (27 Aug 2013)
 units       real
 atom_style  atomic
 variable lattice_constant equal 5.256227487
@@ -71,7 +71,7 @@ Memory usage per processor = 23.7542 Mbytes
 Step step Pxx Pyy Pzz Pxy Pxz Pyz gamma PotEng 
        0            0 -4.8909542e-07 -4.8909515e-07 -4.8909708e-07 3.5104429e-13 -1.4141608e-12 -8.6196267e-13            0   -1743.9897 
        1            0 -4.8909445e-07 -4.8909445e-07 -4.8909627e-07 2.4570879e-13 -1.3724298e-12 -8.8539776e-13            0   -1743.9897 
-Loop time of 0.00986111 on 4 procs for 1 steps with 864 atoms
+Loop time of 0.010337 on 4 procs for 1 steps with 864 atoms
 
 Minimization stats:
   Stopping criterion = energy tolerance
@@ -82,11 +82,11 @@ Minimization stats:
   Final line search alpha, max atom move = 1 1.80689e-14
   Iterations, force evaluations = 1 2
 
-Pair  time (%) = 0.00795078 (80.6277)
+Pair  time (%) = 0.00803959 (77.775)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.00155658 (15.785)
+Comm  time (%) = 0.00185275 (17.9235)
 Outpt time (%) = 0 (0)
-Other time (%) = 0.000353754 (3.58736)
+Other time (%) = 0.000444651 (4.30155)
 
 Nlocal:    216 ave 216 max 216 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -108,13 +108,13 @@ Memory usage per processor = 23.0675 Mbytes
 Step step Pxx Pyy Pzz Pxy Pxz Pyz gamma PotEng 
        1            0 -4.8909426e-07 -4.890941e-07 -4.8909627e-07 1.0203176e-13 -1.3879622e-12 -8.8539776e-13            0   -1743.9897 
        2            0 -4.8909426e-07 -4.890941e-07 -4.8909627e-07 1.0203176e-13 -1.3879622e-12 -8.8539776e-13            0   -1743.9897 
-Loop time of 0.589029 on 4 procs for 1 steps with 864 atoms
+Loop time of 0.570597 on 4 procs for 1 steps with 864 atoms
 
-Pair  time (%) = 0.00269467 (0.457476)
+Pair  time (%) = 0.00268507 (0.470572)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000495553 (0.0841305)
-Outpt time (%) = 0.000582933 (0.0989652)
-Other time (%) = 0.585256 (99.3594)
+Comm  time (%) = 0.00057584 (0.100919)
+Outpt time (%) = 0.036393 (6.37806)
+Other time (%) = 0.530943 (93.0504)
 
 Nlocal:    216 ave 216 max 216 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -153,7 +153,7 @@ Memory usage per processor = 23.7542 Mbytes
 Step step Pxx Pyy Pzz Pxy Pxz Pyz gamma PotEng 
        2            1   -429.84615   -429.84615   -429.84615 1.6244616e-13 -2.4910642e-13 -7.3535979e-13        0.005   -1742.4738 
        4            1   -429.84615   -429.84615   -429.84615 -1.2399576e-13 -9.5902644e-13 -1.3896357e-12        0.005   -1742.4738 
-Loop time of 0.0154624 on 4 procs for 2 steps with 864 atoms
+Loop time of 0.0152799 on 4 procs for 2 steps with 864 atoms
 
 Minimization stats:
   Stopping criterion = energy tolerance
@@ -164,11 +164,11 @@ Minimization stats:
   Final line search alpha, max atom move = 1 1.42178e-14
   Iterations, force evaluations = 2 4
 
-Pair  time (%) = 0.0126531 (81.8311)
+Pair  time (%) = 0.0125178 (81.9227)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.00235188 (15.2103)
+Comm  time (%) = 0.0022862 (14.9621)
 Outpt time (%) = 0 (0)
-Other time (%) = 0.000457466 (2.95857)
+Other time (%) = 0.000476003 (3.11521)
 
 Nlocal:    216 ave 216 max 216 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -190,13 +190,13 @@ Memory usage per processor = 23.0675 Mbytes
 Step step Pxx Pyy Pzz Pxy Pxz Pyz gamma PotEng 
        4            1   -429.84615   -429.84615   -429.84615 -9.7213572e-14 -9.5902644e-13 -1.3896357e-12        0.005   -1742.4738 
        5            1   -429.84615   -429.84615   -429.84615 -9.7213572e-14 -9.5902644e-13 -1.3896357e-12        0.005   -1742.4738 
-Loop time of 0.584488 on 4 procs for 1 steps with 864 atoms
+Loop time of 0.576928 on 4 procs for 1 steps with 864 atoms
 
-Pair  time (%) = 0.00271827 (0.465068)
+Pair  time (%) = 0.00271755 (0.471039)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000644147 (0.110207)
-Outpt time (%) = 0.0140409 (2.40226)
-Other time (%) = 0.567085 (97.0225)
+Comm  time (%) = 0.000766218 (0.13281)
+Outpt time (%) = 0.0155602 (2.69708)
+Other time (%) = 0.557884 (96.6991)
 
 Nlocal:    216 ave 216 max 216 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -235,7 +235,7 @@ Memory usage per processor = 23.7542 Mbytes
 Step step Pxx Pyy Pzz Pxy Pxz Pyz gamma PotEng 
        5            2    -778.0092    -778.0092    -778.0092 7.4220526e-13 1.122178e-12 -9.6027588e-13     0.010025   -1730.6001 
        6            2    -778.0092    -778.0092    -778.0092 2.027045e-13 5.1825031e-13 -9.2993731e-13     0.010025   -1730.6001 
-Loop time of 0.00881428 on 4 procs for 1 steps with 864 atoms
+Loop time of 0.0082739 on 4 procs for 1 steps with 864 atoms
 
 Minimization stats:
   Stopping criterion = energy tolerance
@@ -246,11 +246,11 @@ Minimization stats:
   Final line search alpha, max atom move = 1 1.4759e-14
   Iterations, force evaluations = 1 2
 
-Pair  time (%) = 0.00673956 (76.4618)
+Pair  time (%) = 0.00652492 (78.8615)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.00156629 (17.7699)
+Comm  time (%) = 0.00144571 (17.4731)
 Outpt time (%) = 0 (0)
-Other time (%) = 0.000508428 (5.76823)
+Other time (%) = 0.000303268 (3.66536)
 
 Nlocal:    216 ave 216 max 216 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -272,13 +272,13 @@ Memory usage per processor = 23.0675 Mbytes
 Step step Pxx Pyy Pzz Pxy Pxz Pyz gamma PotEng 
        6            2    -778.0092    -778.0092    -778.0092 2.7752314e-13 5.1825031e-13 -9.2993731e-13     0.010025   -1730.6001 
        7            2    -778.0092    -778.0092    -778.0092 2.7752314e-13 5.1825031e-13 -9.2993731e-13     0.010025   -1730.6001 
-Loop time of 0.608097 on 4 procs for 1 steps with 864 atoms
+Loop time of 0.542856 on 4 procs for 1 steps with 864 atoms
 
-Pair  time (%) = 0.00230396 (0.37888)
+Pair  time (%) = 0.00224203 (0.413006)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000505984 (0.0832078)
-Outpt time (%) = 0.0128615 (2.11504)
-Other time (%) = 0.592426 (97.4229)
+Comm  time (%) = 0.000526428 (0.0969739)
+Outpt time (%) = 0.0148385 (2.73342)
+Other time (%) = 0.525249 (96.7566)
 
 Nlocal:    216 ave 216 max 216 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -317,7 +317,7 @@ Memory usage per processor = 23.7542 Mbytes
 Step step Pxx Pyy Pzz Pxy Pxz Pyz gamma PotEng 
        7            3   -1113.9681   -1113.9681   -1113.9681 -7.697124e-13 -4.3806097e-13 1.4128091e-12  0.015075125   -1723.8495 
        8            3   -1113.9681   -1113.9681   -1113.9681 6.6266201e-13 4.7186976e-13 2.719048e-12  0.015075125   -1723.8495 
-Loop time of 0.00839263 on 4 procs for 1 steps with 864 atoms
+Loop time of 0.00829887 on 4 procs for 1 steps with 864 atoms
 
 Minimization stats:
   Stopping criterion = energy tolerance
@@ -328,11 +328,11 @@ Minimization stats:
   Final line search alpha, max atom move = 1 2.31482e-14
   Iterations, force evaluations = 1 2
 
-Pair  time (%) = 0.00648439 (77.2629)
+Pair  time (%) = 0.00640553 (77.1856)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.00149041 (17.7586)
+Comm  time (%) = 0.00148505 (17.8946)
 Outpt time (%) = 0 (0)
-Other time (%) = 0.000417829 (4.97852)
+Other time (%) = 0.000408292 (4.91985)
 
 Nlocal:    216 ave 216 max 216 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -354,13 +354,13 @@ Memory usage per processor = 23.0675 Mbytes
 Step step Pxx Pyy Pzz Pxy Pxz Pyz gamma PotEng 
        8            3   -1113.9681   -1113.9681   -1113.9681 6.4417311e-13 5.3127209e-13 2.719048e-12  0.015075125   -1723.8495 
        9            3   -1113.9681   -1113.9681   -1113.9681 6.4417311e-13 5.3127209e-13 2.719048e-12  0.015075125   -1723.8495 
-Loop time of 0.545379 on 4 procs for 1 steps with 864 atoms
+Loop time of 0.504394 on 4 procs for 1 steps with 864 atoms
 
-Pair  time (%) = 0.00224721 (0.412046)
+Pair  time (%) = 0.00218529 (0.43325)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000599265 (0.109881)
-Outpt time (%) = 0.0199156 (3.6517)
-Other time (%) = 0.522617 (95.8264)
+Comm  time (%) = 0.000523269 (0.103742)
+Outpt time (%) = 0.013922 (2.76014)
+Other time (%) = 0.487763 (96.7029)
 
 Nlocal:    216 ave 216 max 216 min
 Histogram: 4 0 0 0 0 0 0 0 0 0

@@ -45,7 +45,7 @@ namespace ATC {
   void AtomTimeIntegratorType::init_integrate_velocity(double dt)
   {
     const DENS_MAT & m(mass_->quantity());
-    
+  
     _deltaQuantity_ = force_->quantity();
     _deltaQuantity_ /= m;
     _deltaQuantity_ *= 0.5*dt;
@@ -146,26 +146,6 @@ namespace ATC {
   void TimeIntegrator::pre_initial_integrate2(double dt)
   {
     timeIntegrationMethod_->pre_initial_integrate2(dt);
-  }
-
-  //--------------------------------------------------------
-  //  mid_initial_integrate1
-  //    first time integration computations
-  //    at the mid-point of Verlet step 1
-  //--------------------------------------------------------
-  void TimeIntegrator::mid_initial_integrate1(double dt)
-  {
-    timeIntegrationMethod_->mid_initial_integrate1(dt);
-  }
-
-  //--------------------------------------------------------
-  //  mid_initial_integrate2
-  //    second time integration computations
-  //    at the mid-point of Verlet step 1
-  //--------------------------------------------------------
-  void TimeIntegrator::mid_initial_integrate2(double dt)
-  {
-    timeIntegrationMethod_->mid_initial_integrate2(dt);
   }
 
   //--------------------------------------------------------

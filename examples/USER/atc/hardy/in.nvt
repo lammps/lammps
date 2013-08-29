@@ -11,6 +11,7 @@ read_data	nvt.init
 pair_style  lj/cut 13.0
 pair_coeff	1 1 0.2381 3.405
 group		internal region box
+
 fix         ATC internal atc field
 fix_modify  ATC mesh create 1 1 1 box p p p
 fix_modify  ATC atom_element_map eulerian 100
@@ -31,6 +32,7 @@ compute_modify	thermo_temp extra 0
 thermo_style 	custom step temp etotal ke pe press vol
 timestep 	4.0
 reset_timestep	0
+# NOTE fixes performing time integration (init_integrate/final_integrate) should be defined after atc
 fix 		NVT all nvt temp 30 30 10.0 drag 0.2 tchain 1
 log		nvt.log
 run 		1000

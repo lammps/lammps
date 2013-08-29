@@ -1,14 +1,15 @@
-LAMMPS (24 Aug 2013)
+LAMMPS (27 Aug 2013)
 Lattice spacing in x,y,z = 5.25623 5.25623 5.25623
 Created orthogonal box = (0 0 0) to (525.623 52.5623 52.5623)
   4 by 1 by 1 MPI processor grid
-using face quad!
-using face quad!
 ATC: constructing elastic coupling with parameter file Ar_CauchyBorn.mat
  ATC: version 2.0
  ATC: peratom PE compute created with ID: 3
  ATC: computed mass density : 1.10041
  ATC: 1 materials defined from Ar_CauchyBorn.mat
+using face quad!
+using face quad!
+using face quad!
  ATC: created uniform mesh with 104 nodes, 26 unique nodes, and 25 elements
 using face quad!
  ATC: created nodeset lbc with 1 nodes
@@ -20,49 +21,48 @@ using face quad!
  ATC: Warning : text output can create _LARGE_ files
  ATC: output custom names:
 
-using face quad!
 Setting up run ...
  ATC: CB stiffness: 7.56711 Einstein freq: 0.355647
 Memory usage per processor = 0.432442 Mbytes
 Step CPU 
        0            0 
-     100     2.028368 
-     200     4.079551 
-     300    6.1825569 
-     400     8.206713 
-     500    10.225944 
-     600     12.24613 
-     700    14.276745 
-     800    17.391958 
-     900    19.867347 
-    1000    21.934926 
-    1100    23.959632 
-    1200     25.97643 
-    1300    27.981763 
-    1400    29.985305 
-    1500    32.003374 
-    1600    34.914501 
-    1700    37.329244 
-    1800    39.360264 
-    1900    41.372809 
-    2000    43.389509 
-    2100    45.435329 
-    2200    47.472332 
-    2300    49.508706 
-    2400    51.552826 
-    2500    54.662803 
-    2600    57.090822 
-    2700    59.095309 
-    2800    61.097256 
-    2900    63.101845 
-    3000    65.107837 
-Loop time of 65.1079 on 4 procs for 3000 steps with 0 atoms
+     100    2.0457919 
+     200     4.101423 
+     300    6.1499789 
+     400    9.2957749 
+     500    11.688035 
+     600    13.731427 
+     700     15.77228 
+     800    17.811932 
+     900    19.852762 
+    1000    21.882801 
+    1100     23.93514 
+    1200    25.988387 
+    1300    28.728787 
+    1400    31.048599 
+    1500    33.080274 
+    1600    35.128266 
+    1700     37.17908 
+    1800    39.261248 
+    1900    41.303723 
+    2000    43.349305 
+    2100    45.395747 
+    2200    48.240129 
+    2300    50.583308 
+    2400     52.62927 
+    2500    54.690471 
+    2600    56.746712 
+    2700    58.793826 
+    2800    60.844968 
+    2900    62.903978 
+    3000    64.959421 
+Loop time of 64.9594 on 4 procs for 3000 steps with 0 atoms
 
 Pair  time (%) = 0 (0)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.00249618 (0.00383392)
-Outpt time (%) = 0.00434643 (0.00667574)
-Other time (%) = 65.101 (99.9895)
+Comm  time (%) = 0.00323021 (0.00497266)
+Outpt time (%) = 0.00466377 (0.0071795)
+Other time (%) = 64.9516 (99.9878)
 
 Nlocal:    0 ave 0 max 0 min
 Histogram: 4 0 0 0 0 0 0 0 0 0

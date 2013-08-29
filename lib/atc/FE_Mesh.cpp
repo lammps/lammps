@@ -1432,7 +1432,8 @@ namespace ATC {
 
   int FE_Mesh::map_elem_to_myElem(int elemID) const
   {
-    return elemToMyElemMap_.at(elemID);
+    
+    return elemToMyElemMap_.find(elemID)->second;
   }
 
   int FE_Mesh::map_myElem_to_elem(int myElemID) const

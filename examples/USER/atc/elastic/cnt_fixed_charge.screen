@@ -1,4 +1,4 @@
-LAMMPS (24 Aug 2013)
+LAMMPS (27 Aug 2013)
 units		metal
 atom_style charge
 dielectric      1.
@@ -263,7 +263,7 @@ Step TotEng KinEng CM[1] CM[2] CM[3] Q AtC[4] AtC[5] AtC[6] AtC[7] FIX[1] FIX[2]
      480   -6155.5887            0 -0.0058774787 8.0639107e-12    96.934537         -0.1            0            0            0 -0.00094915808 0.00030232037 -4.1063286e-10 -0.0063827796   0.26227474 -0.0012514785 
      490   -6155.5887            0 -0.0071402115 -4.9061812e-11    96.934554         -0.1            0            0            0 -0.00094915808 0.00014674646 -1.4276993e-09 -0.0085602294   0.26227356 -0.0010959045 
      500   -6155.5887            0 -0.0089111607 -5.2606473e-11    96.934565         -0.1            0            0            0 -0.00094915808 0.00062500656 6.8011742e-10 -0.0084420596   0.26227196 -0.0015741646 
-Loop time of 36.7702 on 4 procs for 500 steps with 846 atoms
+Loop time of 32.7055 on 4 procs for 500 steps with 846 atoms
 
 Minimization stats:
   Stopping criterion = max force evaluations
@@ -274,11 +274,11 @@ Minimization stats:
   Final line search alpha, max atom move = 1 0.000212848
   Iterations, force evaluations = 500 1000
 
-Pair  time (%) = 7.57054 (20.5888)
+Pair  time (%) = 7.49533 (22.9176)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.957487 (2.60398)
-Outpt time (%) = 0.847001 (2.3035)
-Other time (%) = 27.3952 (74.5037)
+Comm  time (%) = 0.531961 (1.62652)
+Outpt time (%) = 0.464386 (1.4199)
+Other time (%) = 24.2138 (74.0359)
 
 Nlocal:    211.5 ave 216 max 207 min
 Histogram: 2 0 0 0 0 0 0 0 0 2
@@ -328,13 +328,13 @@ Memory usage per processor = 54.1206 Mbytes
 Step TotEng KinEng CM[1] CM[2] CM[3] Q AtC[4] AtC[5] AtC[6] AtC[7] FIX[1] FIX[2] FIX[3] AtC FSUM[1] 
      500   -6155.5887            0 -0.0089111607 -5.2606424e-11    96.934565         -0.1            0            0            0 -0.00094915808 0.00062500656 6.8011742e-10 -0.0084420596   0.26227196 -0.0015741646 
      501   -6155.5887            0 -0.0089111607 -5.2606424e-11    96.934565         -0.1            0            0            0 -0.00094915808 0.00062500656 6.8011742e-10 -0.0084420596   0.26227196 -0.0015741646 
-Loop time of 0.0591235 on 4 procs for 1 steps with 846 atoms
+Loop time of 0.0594741 on 4 procs for 1 steps with 846 atoms
 
-Pair  time (%) = 0.00743282 (12.5717)
+Pair  time (%) = 0.00749248 (12.5979)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000576854 (0.975676)
-Outpt time (%) = 0.0171655 (29.0334)
-Other time (%) = 0.0339483 (57.4193)
+Comm  time (%) = 0.000545979 (0.918011)
+Outpt time (%) = 0.0173965 (29.2505)
+Other time (%) = 0.0340391 (57.2336)
 
 Nlocal:    211.5 ave 216 max 198 min
 Histogram: 1 0 0 0 0 0 0 0 0 3

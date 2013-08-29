@@ -1,4 +1,4 @@
-LAMMPS (24 Aug 2013)
+LAMMPS (27 Aug 2013)
 units    real
 atom_style  atomic
 
@@ -79,13 +79,13 @@ Step Temp PotEng AtC[2] AtC[4]
       80    10.018854   -3732.6191    20.018692    21.657452 
       90    10.008439   -3732.4929    20.013835    21.653444 
      100     9.995993   -3732.3576    20.008205    21.649488 
-Loop time of 41.7235 on 4 procs for 100 steps with 2304 atoms
+Loop time of 41.8226 on 4 procs for 100 steps with 2304 atoms
 
-Pair  time (%) = 0.366258 (0.877822)
+Pair  time (%) = 0.376811 (0.900975)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.397571 (0.952871)
-Outpt time (%) = 0.0817724 (0.195987)
-Other time (%) = 40.8779 (97.9733)
+Comm  time (%) = 0.128205 (0.306545)
+Outpt time (%) = 0.0721631 (0.172546)
+Other time (%) = 41.2454 (98.6199)
 
 Nlocal:    576 ave 576 max 576 min
 Histogram: 4 0 0 0 0 0 0 0 0 0

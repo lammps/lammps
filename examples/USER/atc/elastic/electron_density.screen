@@ -1,4 +1,4 @@
-LAMMPS (24 Aug 2013)
+LAMMPS (27 Aug 2013)
 units		metal
 # PARAMETERS-----------------------------
 variable s equal 1
@@ -120,14 +120,14 @@ Setting up run ...
 Memory usage per processor = 0.432442 Mbytes
 Step CPU TotEng KinEng 
        0            0            0           -0 
-       1  0.001942873            0           -0 
-Loop time of 0.00195646 on 4 procs for 1 steps with 0 atoms
+       1 0.0018398762            0           -0 
+Loop time of 0.00185424 on 4 procs for 1 steps with 0 atoms
 
 Pair  time (%) = 0 (0)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 1.72853e-06 (0.08835)
-Outpt time (%) = 0.000358939 (18.3463)
-Other time (%) = 0.0015958 (81.5653)
+Comm  time (%) = 1.90735e-06 (0.102864)
+Outpt time (%) = 0.000307441 (16.5804)
+Other time (%) = 0.00154489 (83.3167)
 
 Nlocal:    0 ave 0 max 0 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -160,14 +160,14 @@ Setting up run ...
 Memory usage per processor = 0.432442 Mbytes
 Step CPU TotEng KinEng 
        1            0            0           -0 
-       2  0.001652956            0           -0 
-Loop time of 0.00166643 on 4 procs for 1 steps with 0 atoms
+       2 0.0016520023            0           -0 
+Loop time of 0.00166446 on 4 procs for 1 steps with 0 atoms
 
 Pair  time (%) = 0 (0)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 7.15256e-07 (0.0429215)
-Outpt time (%) = 0.00018388 (11.0344)
-Other time (%) = 0.00148183 (88.9227)
+Comm  time (%) = 9.53674e-07 (0.0572963)
+Outpt time (%) = 0.00020498 (12.3151)
+Other time (%) = 0.00145853 (87.6276)
 
 Nlocal:    0 ave 0 max 0 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -200,14 +200,14 @@ Setting up run ...
 Memory usage per processor = 0.432442 Mbytes
 Step CPU TotEng KinEng 
        2            0            0           -0 
-       3 0.0015969276            0           -0 
-Loop time of 0.00160939 on 4 procs for 1 steps with 0 atoms
+       3 0.0015928745            0           -0 
+Loop time of 0.00160515 on 4 procs for 1 steps with 0 atoms
 
 Pair  time (%) = 0 (0)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 2.02656e-06 (0.125921)
-Outpt time (%) = 0.000166118 (10.3218)
-Other time (%) = 0.00144124 (89.5522)
+Comm  time (%) = 1.49012e-06 (0.0928333)
+Outpt time (%) = 0.000180781 (11.2625)
+Other time (%) = 0.00142288 (88.6446)
 
 Nlocal:    0 ave 0 max 0 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -243,14 +243,14 @@ Setting up run ...
 Memory usage per processor = 0.432442 Mbytes
 Step CPU TotEng KinEng 
        3            0            0           -0 
-       4 0.0015408993            0           -0 
-Loop time of 0.00155497 on 4 procs for 1 steps with 0 atoms
+       4  0.001532793            0           -0 
+Loop time of 0.00154501 on 4 procs for 1 steps with 0 atoms
 
 Pair  time (%) = 0 (0)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 1.3113e-06 (0.08433)
-Outpt time (%) = 0.00017637 (11.3424)
-Other time (%) = 0.00137728 (88.5733)
+Comm  time (%) = 1.3113e-06 (0.0848733)
+Outpt time (%) = 0.00018543 (12.0019)
+Other time (%) = 0.00135827 (87.9133)
 
 Nlocal:    0 ave 0 max 0 min
 Histogram: 4 0 0 0 0 0 0 0 0 0

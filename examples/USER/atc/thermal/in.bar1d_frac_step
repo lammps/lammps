@@ -36,6 +36,8 @@ fix             AtC internal   atc thermal     Ar_thermal.mat
 #               ID  part keywords    nx ny nz region
 fix_modify      AtC mesh create 4 1  1  mdInternal f p p
 fix_modify      AtC  time_integration fractional_step
+fix_modify  AtC  internal_atom_integrate off
+fix iNVE internal nve
 fix_modify      AtC  internal_quadrature off
 # fix a temperature
 fix_modify     	AtC  fix temperature all 20.

@@ -1,4 +1,4 @@
-LAMMPS (24 Aug 2013)
+LAMMPS (27 Aug 2013)
 
 units		real
 atom_style	atomic
@@ -57,6 +57,8 @@ fix_modify      AtC mesh create 12  1  1  simRegion f p p
 fix_modify      AtC mesh create_faceset obndy box -6.0 6.0 -INF INF -INF  INF outward
  ATC: created faceset obndy with 2 faces
 fix_modify      AtC internal_quadrature off
+fix_modify  AtC  internal_atom_integrate off
+fix iNVE internal nve
 
 # initial conditions
 fix_modify  AtC  initial displacement x all 0.0
@@ -120,13 +122,13 @@ Step myTemp myPres PotEng
      800 1.3809125e-08 -0.021486202   -4509.8852 
      900 1.6783957e-08 -0.026147268   -4509.8852 
     1000 1.9615527e-08 -0.030744945   -4509.8852 
-Loop time of 19.809 on 4 procs for 1000 steps with 2304 atoms
+Loop time of 19.1331 on 4 procs for 1000 steps with 2304 atoms
 
-Pair  time (%) = 5.952 (30.0469)
-Neigh time (%) = 2.52128 (12.728)
-Comm  time (%) = 6.54116 (33.0211)
-Outpt time (%) = 0.00889587 (0.0449082)
-Other time (%) = 4.78566 (24.159)
+Pair  time (%) = 5.92606 (30.9728)
+Neigh time (%) = 2.6207 (13.6972)
+Comm  time (%) = 6.28234 (32.8349)
+Outpt time (%) = 0.00953484 (0.0498342)
+Other time (%) = 4.29449 (22.4453)
 
 Nlocal:    576 ave 864 max 288 min
 Histogram: 2 0 0 0 0 0 0 0 0 2
@@ -186,13 +188,13 @@ Step myTemp myPres PotEng
     3800 9.0938842e-09 0.0087100206    -4509.885 
     3900 7.7454581e-09  0.016669158    -4509.885 
     4000 9.3314606e-09  0.023405906    -4509.885 
-Loop time of 61.5356 on 4 procs for 3000 steps with 2304 atoms
+Loop time of 60.6473 on 4 procs for 3000 steps with 2304 atoms
 
-Pair  time (%) = 18.1179 (29.4429)
-Neigh time (%) = 7.71046 (12.5301)
-Comm  time (%) = 20.2516 (32.9104)
-Outpt time (%) = 0.0316036 (0.0513583)
-Other time (%) = 15.4241 (25.0653)
+Pair  time (%) = 17.8815 (29.4844)
+Neigh time (%) = 7.99824 (13.1881)
+Comm  time (%) = 20.0906 (33.1269)
+Outpt time (%) = 0.030941 (0.0510179)
+Other time (%) = 14.6461 (24.1496)
 
 Nlocal:    576 ave 864 max 288 min
 Histogram: 2 0 0 0 0 0 0 0 0 2

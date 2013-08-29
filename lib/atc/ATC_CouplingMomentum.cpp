@@ -33,10 +33,6 @@ namespace ATC {
                                              PhysicsType intrinsicModel,
                                              ExtrinsicModelType extrinsicModel)
     : ATC_Coupling(groupName,perAtomArray,thisFix),
-#ifdef OBSOLETE
-      nodalAtomicMass_(NULL),
-      nodalAtomicCount_(NULL),
-#endif
       refPE_(0)
   {
     // Allocate PhysicsModel 
@@ -109,73 +105,6 @@ namespace ATC {
 
     // Base class initalizations
     ATC_Coupling::initialize();
-
-    // check resetting precedence:
-    // time integrator -> kinetostat -> time filter
-
-    // other initializations
-    if (reset_methods()) {
-      for (_tiIt_ = timeIntegrators_.begin(); _tiIt_ != timeIntegrators_.end(); ++_tiIt_) {
-        (_tiIt_->second)->initialize();
-      }
-      atomicRegulator_->initialize();
-    }
-    extrinsicModelManager_.initialize();
-    if (timeFilterManager_.need_reset()) { // reset kinetostat power
-      init_filter();
-    }
-    // clears need for reset
-    timeFilterManager_.initialize();
-    ghostManager_.initialize();
-    
-    if (!initialized_) {
-      // initialize sources based on initial FE temperature
-      double dt = lammpsInterface_->dt();
-      prescribedDataMgr_->set_sources(time()+0.5*dt,sources_);
-      extrinsicModelManager_.set_sources(fields_,extrinsicSources_);
-      atomicRegulator_->compute_boundary_flux(fields_);
-      compute_atomic_sources(fieldMask_,fields_,atomicSources_);
-
-      // read in field data if necessary
-      if (useRestart_) {
-        RESTART_LIST data;
-        read_restart_data(restartFileName_,data);
-        useRestart_ = false;
-      }
-
-      // set consistent initial conditions, if requested
-      if (!timeFilterManager_.filter_dynamics()) {
-        if (consistentInitialization_) {
-          
-          DENS_MAT & velocity(fields_[VELOCITY].set_quantity());
-          DENS_MAN * nodalAtomicVelocity(interscaleManager_.dense_matrix("NodalAtomicVelocity"));
-          const DENS_MAT & atomicVelocity(nodalAtomicVelocity->quantity());
-          const INT_ARRAY & nodeType(nodalGeometryType_->quantity());
-          for (int i = 0; i<nNodes_; ++i) {
-            
-            if (nodeType(i,0)==MD_ONLY) {
-              for (int j = 0; j < nsd_; j++) {
-                velocity(i,j) = atomicVelocity(i,j);
-              }
-            }
-          }
-          if (trackDisplacement_) {
-            DENS_MAT & displacement(fields_[DISPLACEMENT].set_quantity());
-            DENS_MAN * nodalAtomicDisplacement(interscaleManager_.dense_matrix("NodalAtomicDisplacement"));
-            const DENS_MAT & atomicDisplacement(nodalAtomicDisplacement->quantity());
-            for (int i = 0; i<nNodes_; ++i) {
-              
-              if (nodeType(i,0)==MD_ONLY) {
-                for (int j = 0; j < nsd_; j++) {
-                  displacement(i,j) = atomicDisplacement(i,j);
-                }
-              }
-            }
-          }
-        }
-      }
-      initialized_ = true;
-    }
 
     // reset integration field mask
     intrinsicMask_.reset(NUM_FIELDS,NUM_FLUX);
@@ -252,27 +181,7 @@ namespace ATC {
       interscaleManager_.add_dense_matrix(nodalAtomicDisplacement,
                                           "NodalAtomicDisplacement");
     }
-#ifdef OBSOLETE
-    // atomic mass matrix data
-    if (!useFeMdMassMatrix_) {
-      // atomic momentum mass matrix
-      FundamentalAtomQuantity * atomicMass = interscaleManager_.fundamental_atom_quantity(LammpsInterface::ATOM_MASS);
-      nodalAtomicMass_ = new AtfShapeFunctionRestriction(this,
-                                                         atomicMass,
-                                                         shpFcn_);
-      interscaleManager_.add_dense_matrix(nodalAtomicMass_,
-                                          "AtomicMomentumMassMat");
 
-      // atomic dimensionless mass matrix
-      ConstantQuantity<double> * atomicOnes = new ConstantQuantity<double>(this,1);
-      interscaleManager_.add_per_atom_quantity(atomicOnes,"AtomicOnes");
-      nodalAtomicCount_ = new AtfShapeFunctionRestriction(this,
-                                                          atomicOnes,
-                                                          shpFcn_);
-      interscaleManager_.add_dense_matrix(nodalAtomicCount_,
-                                          "AtomicDimensionlessMassMat");
-    }
-#endif
     for (_tiIt_ = timeIntegrators_.begin(); _tiIt_ != timeIntegrators_.end(); ++_tiIt_) {
       (_tiIt_->second)->construct_transfers();
     }
@@ -293,24 +202,7 @@ namespace ATC {
         // nothing needed in other cases since kinetostat force is balanced by boundary flux in FE equations
         atomicRegulator_->reset_lambda_contribution(nodalAtomicFieldsRoc_[VELOCITY].quantity());
   }
-#ifdef OBSOLETE
-  //---------------------------------------------------------
-  //  compute_md_mass_matrix
-  //    compute the mass matrix arising from only atomistic
-  //    quadrature and contributions as a summation
-  //---------------------------------------------------------
-  void ATC_CouplingMomentum::compute_md_mass_matrix(FieldName thisField,
-                                                    DIAG_MAT & massMat)
-  {
-    
-    
-    if (thisField == DISPLACEMENT || thisField == VELOCITY)
-      massMat.reset(nodalAtomicMass_->quantity());
-    else if (thisField == MASS_DENSITY) { // dimensionless mass matrix
-      massMat.reset(nodalAtomicCount_->quantity());
-    }
-  }
-#endif
+
   //--------------------------------------------------------
   //  modify
   //    parses inputs and modifies state of the filter

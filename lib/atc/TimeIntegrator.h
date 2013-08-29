@@ -145,12 +145,7 @@ namespace ATC {
     virtual void pre_initial_integrate1(double dt);
     /** second part of pre_initial_integrate */
     virtual void pre_initial_integrate2(double dt);
-        
-    /** first part of mid_initial_integrate */
-    virtual void mid_initial_integrate1(double dt);
-    /** second part of mid_initial_integrate */
-    virtual void mid_initial_integrate2(double dt);
-        
+
     /** first part of post_initial_integrate */
     virtual void post_initial_integrate1(double dt);
     /** second part of post_initial_integrate */
@@ -257,12 +252,7 @@ namespace ATC {
     virtual void pre_initial_integrate1(double dt){};
     /** second part of pre_initial_integrate */
     virtual void pre_initial_integrate2(double dt){};
-        
-    /** first part of mid_initial_integrate */
-    virtual void mid_initial_integrate1(double dt){};
-    /** second part of mid_initial_integrate */
-    virtual void mid_initial_integrate2(double dt){};
-        
+
     /** first part of post_initial_integrate */
     virtual void post_initial_integrate1(double dt){};
     /** second part of post_initial_integrate */

@@ -250,8 +250,6 @@ void RespaOMP::recurse(int ilevel)
       modify->post_integrate_respa(ilevel,iloop);
     timer->stamp(Timer::MODIFY);
 
-    if (ilevel) recurse(ilevel-1);
-
     // at outermost level, check on rebuilding neighbor list
     // at innermost level, communicate
     // at middle levels, do nothing
@@ -293,6 +291,13 @@ void RespaOMP::recurse(int ilevel)
       timer->stamp(Timer::COMM);
     }
 
+    if (ilevel) recurse(ilevel-1);
+
+    // force computations
+    // important that ordering is same as Verlet
+    // so that any order dependencies are the same
+    // when potentials are invoked at same level
+                 
     force_clear(newton[ilevel]);
     if (modify->n_pre_force_respa) {
       timer->stamp();

@@ -82,8 +82,12 @@ involves the count of {itypeN} atoms, the count of {jtypeN} atoms, the
 volume of the entire simulation box, and the volume of the bin's thin
 shell in 3d (or the area of the bin's thin ring in 2d).
 
-A coordination number coord(r) is also calculated, which is the sum of
-g(r) values for all bins up to and including the current bin.
+A coordination number coord(r) is also calculated, which is the
+number of atoms of type {jtypeN} within the current bin or closer,
+averaged over atoms of type {itypeN}.   This is calculated as the area-
+or volume-weighted sum of g(r) values over all bins up to and including the
+current bin, multiplied by the global average volume density of atoms of type
+jtypeN.
 
 The simplest way to output the results of the compute rdf calculation
 to a file is to use the "fix ave/time"_fix_ave_time.html command, for
@@ -117,7 +121,16 @@ The RDF is not computed for distances longer than the force cutoff,
 since processors (in parallel) don't know about atom coordinates for
 atoms further away than that distance.  If you want an RDF for larger
 distances, you can use the "rerun"_rerun.html command to post-process
-a dump file.
+a dump file. The definition of g(r) used by LAMMPS is only appropriate
+for characterizing atoms that are uniformly distributed 
+throughout the simulation cell. In such cases, 
+the coordination number is still correct and meaningful.
+As an example, if a large simulation
+cell contains only one atom of type {itypeN} and one of {jtypeN},
+then g(r) will register an arbitrarily large spike at whatever 
+distance they happen to be at, and zero everywhere else. 
+coord(r) will show a step change from zero to one at the location
+of the spike in g(r).
 
 [Related commands:]
 

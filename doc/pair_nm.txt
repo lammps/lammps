@@ -1,0 +1,143 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+pair_style nm command :h3
+pair_style nm/cut/coul/cut command :h3
+pair_style nm/cut/coul/long command :h3
+
+[Syntax:]
+
+pair_style style args :pre 
+
+style = {nm} or {nm/cut/coul/cut} or {nm/cut/coul/long} :ulb,l
+args = list of arguments for a particular style :l
+  {nm} args = cutoff
+    cutoff = global cutoff for Pair interactions (distance units)
+  {nm/cut/coul/cut} args = cutoff (cutoff2)
+    cutoff = global cutoff for Pair (and Coulombic if only 1 arg) (distance units)
+    cutoff2 = global cutoff for Coulombic (optional) (distance units)
+  {nm/cut/coul/long} args = cutoff (cutoff2)
+    cutoff = global cutoff for Pair (and Coulombic if only 1 arg) (distance units)
+    cutoff2 = global cutoff for Coulombic (optional) (distance units) :pre
+:ule
+
+[Examples:]
+
+pair_style nm 12.0
+pair_coeff * * 0.01 5.4 8.0 7.0
+pair_coeff 1 1 0.01 4.4 7.0 6.0 :pre
+
+pair_style nm/cut/coul/cut 12.0 15.0
+pair_coeff * * 0.01 5.4 8.0 7.0
+pair_coeff 1 1 0.01 4.4 7.0 6.0 :pre
+
+pair_style nm/cut/coul/long 12.0 15.0
+pair_coeff * * 0.01 5.4 8.0 7.0
+pair_coeff 1 1 0.01 4.4 7.0 6.0 :pre
+
+[Description:]
+
+Style {nm} computes site-site interactions based on the N-M potential
+by "Clarke"_#Clarke, mainly used for ionic liquids.  A site can
+represent a single atom or a united-atom site.  The energy of an
+interaction has the following form:
+
+:c,image(Eqs/pair_nm.jpg)
+
+Rc is the cutoff.
+
+Style {nm/cut/coul/cut} adds a Coulombic pairwise interaction given by
+
+:c,image(Eqs/pair_coulomb.jpg)
+
+where C is an energy-conversion constant, Qi and Qj are the charges on
+the 2 atoms, and epsilon is the dielectric constant which can be set 
+by the "dielectric"_dielectric.html command.  If one cutoff is
+specified in the pair_style command, it is used for both the NM and 
+Coulombic terms.  If two cutoffs are specified, they are used as
+cutoffs for the NM and Coulombic terms respectively.
+
+Styles {nm/cut/coul/long} compute the same
+Coulombic interactions as style {nm/cut/coul/cut} except that an
+additional damping factor is applied to the Coulombic term so it can
+be used in conjunction with the "kspace_style"_kspace_style.html
+command and its {ewald} or {pppm} option.  The Coulombic cutoff
+specified for this style means that pairwise interactions within this
+distance are computed directly; interactions outside that distance are
+computed in reciprocal space.
+
+For all of the {nm} pair styles, the following coefficients must
+be defined for each pair of atoms types
+via the "pair_coeff"_pair_coeff.html command as in the
+examples above, or in the data file or restart files read by the
+"read_data"_read_data.html or "read_restart"_read_restart.html
+commands.
+
+E0 (energy units)
+r0 (distance units)
+n (unitless)
+m (unitless)
+cutoff1 (distance units)
+cutoff2 (distance units) :ul
+
+The latter 2 coefficients are optional.  If not specified, the global
+NM and Coulombic cutoffs specified in the pair_style command are used.
+If only one cutoff is specified, it is used as the cutoff for both NM
+and Coulombic interactions for this type pair.  If both coefficients
+are specified, they are used as the NM and Coulombic cutoffs for this
+type pair.  You cannot specify 2 cutoffs for style {nm}, since it
+has no Coulombic terms.
+
+For {nm/cut/coul/long} only the NM cutoff can be specified since a
+Coulombic cutoff cannot be specified for an individual I,J type pair.
+All type pairs use the same global Coulombic cutoff specified in the
+pair_style command.
+
+:line
+
+[Mixing, shift, table, tail correction, restart, rRESPA info]:
+
+These pair styles do not support mixing. Thus, coefficients for all
+I,J pairs must be specified explicitly.
+
+All of the {nm} pair styles supports the
+"pair_modify"_pair_modify.html shift option for the energy of the pair
+interaction.
+
+The {nm/cut/coul/long} pair styles support the
+"pair_modify"_pair_modify.html table option since they can tabulate
+the short-range portion of the long-range Coulombic interaction.
+
+All of the {nm} pair styles support the "pair_modify"_pair_modify.html
+tail option for adding a long-range tail correction to the energy and
+pressure for the NM portion of the pair interaction.
+
+All of the {nm} pair styles write their information to "binary restart
+files"_restart.html, so pair_style and pair_coeff commands do not need
+to be specified in an input script that reads a restart file.
+
+All of the {nm} pair styles can only be used via the {pair} keyword of
+the "run_style respa"_run_style.html command.  They do not support the
+{inner}, {middle}, {outer} keywords.
+
+[Restrictions:]
+
+These pair styles are part of the MISC package.  It is only enabled if
+LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
+
+[Related commands:]
+
+"pair_coeff"_pair_coeff.html
+
+[Default:] none
+
+:line
+
+:link(Clarke)
+[(Clarke)] Clarke and Smith, J Chem Phys, 84, 2290 (1986).

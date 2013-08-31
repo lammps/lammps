@@ -1,0 +1,154 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>pair_style nm command 
+</H3>
+<H3>pair_style nm/cut/coul/cut command 
+</H3>
+<H3>pair_style nm/cut/coul/long command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>pair_style style args 
+</PRE>
+<UL><LI>style = <I>nm</I> or <I>nm/cut/coul/cut</I> or <I>nm/cut/coul/long</I> 
+
+<LI>args = list of arguments for a particular style 
+
+<PRE>  <I>nm</I> args = cutoff
+    cutoff = global cutoff for Pair interactions (distance units)
+  <I>nm/cut/coul/cut</I> args = cutoff (cutoff2)
+    cutoff = global cutoff for Pair (and Coulombic if only 1 arg) (distance units)
+    cutoff2 = global cutoff for Coulombic (optional) (distance units)
+  <I>nm/cut/coul/long</I> args = cutoff (cutoff2)
+    cutoff = global cutoff for Pair (and Coulombic if only 1 arg) (distance units)
+    cutoff2 = global cutoff for Coulombic (optional) (distance units) 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>pair_style nm 12.0
+pair_coeff * * 0.01 5.4 8.0 7.0
+pair_coeff 1 1 0.01 4.4 7.0 6.0 
+</PRE>
+<PRE>pair_style nm/cut/coul/cut 12.0 15.0
+pair_coeff * * 0.01 5.4 8.0 7.0
+pair_coeff 1 1 0.01 4.4 7.0 6.0 
+</PRE>
+<PRE>pair_style nm/cut/coul/long 12.0 15.0
+pair_coeff * * 0.01 5.4 8.0 7.0
+pair_coeff 1 1 0.01 4.4 7.0 6.0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Style <I>nm</I> computes site-site interactions based on the N-M potential
+by <A HREF = "#Clarke">Clarke</A>, mainly used for ionic liquids.  A site can
+represent a single atom or a united-atom site.  The energy of an
+interaction has the following form:
+</P>
+<CENTER><IMG SRC = "Eqs/pair_nm.jpg">
+</CENTER>
+<P>Rc is the cutoff.
+</P>
+<P>Style <I>nm/cut/coul/cut</I> adds a Coulombic pairwise interaction given by
+</P>
+<CENTER><IMG SRC = "Eqs/pair_coulomb.jpg">
+</CENTER>
+<P>where C is an energy-conversion constant, Qi and Qj are the charges on
+the 2 atoms, and epsilon is the dielectric constant which can be set 
+by the <A HREF = "dielectric.html">dielectric</A> command.  If one cutoff is
+specified in the pair_style command, it is used for both the NM and 
+Coulombic terms.  If two cutoffs are specified, they are used as
+cutoffs for the NM and Coulombic terms respectively.
+</P>
+<P>Styles <I>nm/cut/coul/long</I> compute the same
+Coulombic interactions as style <I>nm/cut/coul/cut</I> except that an
+additional damping factor is applied to the Coulombic term so it can
+be used in conjunction with the <A HREF = "kspace_style.html">kspace_style</A>
+command and its <I>ewald</I> or <I>pppm</I> option.  The Coulombic cutoff
+specified for this style means that pairwise interactions within this
+distance are computed directly; interactions outside that distance are
+computed in reciprocal space.
+</P>
+<P>For all of the <I>nm</I> pair styles, the following coefficients must
+be defined for each pair of atoms types
+via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the
+examples above, or in the data file or restart files read by the
+<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
+commands.
+</P>
+<UL><LI>E0 (energy units)
+<LI>r0 (distance units)
+<LI>n (unitless)
+<LI>m (unitless)
+<LI>cutoff1 (distance units)
+<LI>cutoff2 (distance units) 
+</UL>
+<P>The latter 2 coefficients are optional.  If not specified, the global
+NM and Coulombic cutoffs specified in the pair_style command are used.
+If only one cutoff is specified, it is used as the cutoff for both NM
+and Coulombic interactions for this type pair.  If both coefficients
+are specified, they are used as the NM and Coulombic cutoffs for this
+type pair.  You cannot specify 2 cutoffs for style <I>nm</I>, since it
+has no Coulombic terms.
+</P>
+<P>For <I>nm/cut/coul/long</I> only the NM cutoff can be specified since a
+Coulombic cutoff cannot be specified for an individual I,J type pair.
+All type pairs use the same global Coulombic cutoff specified in the
+pair_style command.
+</P>
+<HR>
+
+<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
+</P>
+<P>These pair styles do not support mixing. Thus, coefficients for all
+I,J pairs must be specified explicitly.
+</P>
+<P>All of the <I>nm</I> pair styles supports the
+<A HREF = "pair_modify.html">pair_modify</A> shift option for the energy of the pair
+interaction.
+</P>
+<P>The <I>nm/cut/coul/long</I> pair styles support the
+<A HREF = "pair_modify.html">pair_modify</A> table option since they can tabulate
+the short-range portion of the long-range Coulombic interaction.
+</P>
+<P>All of the <I>nm</I> pair styles support the <A HREF = "pair_modify.html">pair_modify</A>
+tail option for adding a long-range tail correction to the energy and
+pressure for the NM portion of the pair interaction.
+</P>
+<P>All of the <I>nm</I> pair styles write their information to <A HREF = "restart.html">binary restart
+files</A>, so pair_style and pair_coeff commands do not need
+to be specified in an input script that reads a restart file.
+</P>
+<P>All of the <I>nm</I> pair styles can only be used via the <I>pair</I> keyword of
+the <A HREF = "run_style.html">run_style respa</A> command.  They do not support the
+<I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>These pair styles are part of the MISC package.  It is only enabled if
+LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_coeff.html">pair_coeff</A>
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "Clarke"></A>
+
+<P><B>(Clarke)</B> Clarke and Smith, J Chem Phys, 84, 2290 (1986).
+</P>
+</HTML>

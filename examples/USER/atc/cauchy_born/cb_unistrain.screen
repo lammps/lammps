@@ -1,4 +1,4 @@
-LAMMPS (27 Aug 2013)
+LAMMPS (30 Aug 2013)
 units		real
 atom_style	atomic
 # create domain
@@ -8,21 +8,6 @@ region		BOX block -8 8 -2 2 -2 2
 boundary	f p p
 create_box	1 BOX
 Created orthogonal box = (-42.0498 -10.5125 -10.5125) to (42.0498 10.5125 10.5125)
-terminate called after throwing an instance of 'terminate called after throwing an instance of 'ATC::ATC_Error'
-[pharsalus:33578] *** Process received signal ***
-terminate called after throwing an instance of 'ATC::ATC_Error'
-[pharsalus:33579] *** Process received signal ***
-[pharsalus:33579] Signal: Aborted (6)
-[pharsalus:33579] Signal code:  (-6)
-terminate called after throwing an instance of 'ATC::ATC_Error'
-[pharsalus:33580] *** Process received signal ***
-[pharsalus:33580] Signal: Aborted (6)
-[pharsalus:33580] Signal code:  (-6)
-[pharsalus:33578] Signal: Aborted (6)
-[pharsalus:33578] Signal code:  (-6)
- ATC: P1, ERROR: elastic_deformation_gradient is not a valid field
- ATC: P2, ERROR: elastic_deformation_gradient is not a valid field
- ATC: P3, ERROR: elastic_deformation_gradient is not a valid field
   4 by 1 by 1 MPI processor grid
 # create atoms
 region		MD block -7 7 -2 2 -2 2
@@ -47,6 +32,8 @@ fix         AtC internal   atc field Ar_CauchyBorn.mat
 ATC: constructing shape function field estimate with parameter file Ar_CauchyBorn.mat
  ATC: version 2.0
  ATC: peratom PE compute created with ID: 3
+ ATC: P1, ERROR: elastic_deformation_gradient is not a valid field
+ ATC: P3, ERROR: elastic_deformation_gradient is not a valid field
 fix_modify  AtC mesh create 8 1 1 BOX f p p
  ATC: created uniform mesh with 36 nodes, 9 unique nodes, and 8 elements
 fix_modify  AtC  fields none
@@ -55,70 +42,83 @@ fix_modify  AtC  fields add internal_energy stress cauchy_born_energy cauchy_bor
 fix_modify  AtC  gradients add displacement
 fix_modify  AtC  fields add elastic_deformation_gradient
  ATC: P0, ERROR: elastic_deformation_gradient is not a valid field
-ATC::ATC_Error'
-[pharsalus:33577] *** Process received signal ***
-[pharsalus:33577] Signal: Aborted (6)
-[pharsalus:33577] Signal code:  (-6)
-[pharsalus:33579] [ 0] /lib64/libpthread.so.0() [0x3e7ce0f500]
-[pharsalus:33580] [ 0] /lib64/libpthread.so.0() [0x3e7ce0f500]
-[pharsalus:33580] [ 1] /lib64/libc.so.6(gsignal+0x35) [0x3e7c2328a5]
-[pharsalus:33580] [ 2] /lib64/libc.so.6(abort+0x175) [0x3e7c234085]
-[pharsalus:33580] [ 3] /usr/lib64/libstdc++.so.6(_ZN9__gnu_cxx27__verbose_terminate_handlerEv+0x12d) [0x3e83ebea5d]
-[pharsalus:33580] [ 4] /usr/lib64/libstdc++.so.6() [0x3e83ebcbe6]
-[pharsalus:33580] [ 5] /usr/lib64/libstdc++.so.6() [0x3e83ebcc13]
-[pharsalus:33580] [ 6] /usr/lib64/libstdc++.so.6(__cxa_rethrow+0x46) [0x3e83ebcc96]
-[pharsalus:33580] [ 7] ../../../lmp_openmpi(_ZN9LAMMPS_NS6FixATC12modify_paramEiPPc+0x70) [0x694a60]
-[pharsalus:33580] [ 8] ../../../lmp_openmpi(_ZN9LAMMPS_NS3Fix13modify_paramsEiPPc+0xb9) [0x6bcc29]
-[pharsalus:33580] [ 9] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input15execute_commandEv+0xcab) [0x79e68b]
-[pharsalus:33580] [10] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input4fileEv+0x63c) [0x7a016c]
-[pharsalus:33580] [11] ../../../lmp_openmpi(main+0x49) [0x7ae0f9]
-[pharsalus:33580] [12] /lib64/libc.so.6(__libc_start_main+0xfd) [0x3e7c21ecdd]
-[pharsalus:33580] [13] ../../../lmp_openmpi() [0x53a009]
-[pharsalus:33580] *** End of error message ***
-[pharsalus:33578] [ 0] /lib64/libpthread.so.0() [0x3e7ce0f500]
-[pharsalus:33578] [ 1] /lib64/libc.so.6(gsignal+0x35) [0x3e7c2328a5]
-[pharsalus:33578] [ 2] /lib64/libc.so.6(abort+0x175) [0x3e7c234085]
-[pharsalus:33578] [ 3] /usr/lib64/libstdc++.so.6(_ZN9__gnu_cxx27__verbose_terminate_handlerEv+0x12d) [0x3e83ebea5d]
-[pharsalus:33578] [ 4] /usr/lib64/libstdc++.so.6() [0x3e83ebcbe6]
-[pharsalus:33578] [ 5] /usr/lib64/libstdc++.so.6() [0x3e83ebcc13]
-[pharsalus:33578] [ 6] /usr/lib64/libstdc++.so.6(__cxa_rethrow+0x46) [0x3e83ebcc96]
-[pharsalus:33578] [ 7] ../../../lmp_openmpi(_ZN9LAMMPS_NS6FixATC12modify_paramEiPPc+0x70) [0x694a60]
-[pharsalus:33578] [ 8] ../../../lmp_openmpi(_ZN9LAMMPS_NS3Fix13modify_paramsEiPPc+0xb9) [0x6bcc29]
-[pharsalus:33578] [ 9] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input15execute_commandEv+0xcab) [0x79e68b]
-[pharsalus:33578] [10] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input4fileEv+0x63c) [0x7a016c]
-[pharsalus:33578] [11] ../../../lmp_openmpi(main+0x49) [0x7ae0f9]
-[pharsalus:33578] [12] /lib64/libc.so.6(__libc_start_main+0xfd) [0x3e7c21ecdd]
-[pharsalus:33578] [13] ../../../lmp_openmpi() [0x53a009]
-[pharsalus:33578] *** End of error message ***
-[pharsalus:33579] [ 1] /lib64/libc.so.6(gsignal+0x35) [0x3e7c2328a5]
-[pharsalus:33579] [ 2] /lib64/libc.so.6(abort+0x175) [0x3e7c234085]
-[pharsalus:33579] [ 3] /usr/lib64/libstdc++.so.6(_ZN9__gnu_cxx27__verbose_terminate_handlerEv+0x12d) [0x3e83ebea5d]
-[pharsalus:33579] [ 4] /usr/lib64/libstdc++.so.6() [0x3e83ebcbe6]
-[pharsalus:33579] [ 5] /usr/lib64/libstdc++.so.6() [0x3e83ebcc13]
-[pharsalus:33579] [ 6] /usr/lib64/libstdc++.so.6(__cxa_rethrow+0x46) [0x3e83ebcc96]
-[pharsalus:33579] [ 7] ../../../lmp_openmpi(_ZN9LAMMPS_NS6FixATC12modify_paramEiPPc+0x70) [0x694a60]
-[pharsalus:33579] [ 8] ../../../lmp_openmpi(_ZN9LAMMPS_NS3Fix13modify_paramsEiPPc+0xb9) [0x6bcc29]
-[pharsalus:33579] [ 9] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input15execute_commandEv+0xcab) [0x79e68b]
-[pharsalus:33579] [10] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input4fileEv+0x63c) [0x7a016c]
-[pharsalus:33579] [11] ../../../lmp_openmpi(main+0x49) [0x7ae0f9]
-[pharsalus:33579] [12] /lib64/libc.so.6(__libc_start_main+0xfd) [0x3e7c21ecdd]
-[pharsalus:33579] [13] ../../../lmp_openmpi() [0x53a009]
-[pharsalus:33579] *** End of error message ***
-[pharsalus:33577] [ 0] /lib64/libpthread.so.0() [0x3e7ce0f500]
-[pharsalus:33577] [ 1] /lib64/libc.so.6(gsignal+0x35) [0x3e7c2328a5]
-[pharsalus:33577] [ 2] /lib64/libc.so.6(abort+0x175) [0x3e7c234085]
-[pharsalus:33577] [ 3] /usr/lib64/libstdc++.so.6(_ZN9__gnu_cxx27__verbose_terminate_handlerEv+0x12d) [0x3e83ebea5d]
-[pharsalus:33577] [ 4] /usr/lib64/libstdc++.so.6() [0x3e83ebcbe6]
-[pharsalus:33577] [ 5] /usr/lib64/libstdc++.so.6() [0x3e83ebcc13]
-[pharsalus:33577] [ 6] /usr/lib64/libstdc++.so.6(__cxa_rethrow+0x46) [0x3e83ebcc96]
-[pharsalus:33577] [ 7] ../../../lmp_openmpi(_ZN9LAMMPS_NS6FixATC12modify_paramEiPPc+0x70) [0x694a60]
-[pharsalus:33577] [ 8] ../../../lmp_openmpi(_ZN9LAMMPS_NS3Fix13modify_paramsEiPPc+0xb9) [0x6bcc29]
-[pharsalus:33577] [ 9] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input15execute_commandEv+0xcab) [0x79e68b]
-[pharsalus:33577] [10] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input4fileEv+0x63c) [0x7a016c]
-[pharsalus:33577] [11] ../../../lmp_openmpi(main+0x49) [0x7ae0f9]
-[pharsalus:33577] [12] /lib64/libc.so.6(__libc_start_main+0xfd) [0x3e7c21ecdd]
-[pharsalus:33577] [13] ../../../lmp_openmpi() [0x53a009]
-[pharsalus:33577] *** End of error message ***
+terminate called after throwing an instance of 'ATC::ATC_Error'
+[pharsalus:01453] *** Process received signal ***
+[pharsalus:01453] Signal: Aborted (6)
+[pharsalus:01453] Signal code:  (-6)
+terminate called after throwing an instance of 'ATC::ATC_Error'
+[pharsalus:01450] *** Process received signal ***
+terminate called after throwing an instance of 'ATC::ATC_Error'
+[pharsalus:01451] *** Process received signal ***
+[pharsalus:01450] Signal: Aborted (6)
+[pharsalus:01450] Signal code:  (-6)
+[pharsalus:01451] Signal: Aborted (6)
+[pharsalus:01451] Signal code:  (-6)
+ ATC: P2, ERROR: elastic_deformation_gradient is not a valid field
+terminate called after throwing an instance of 'ATC::ATC_Error'
+[pharsalus:01452] *** Process received signal ***
+[pharsalus:01452] Signal: Aborted (6)
+[pharsalus:01452] Signal code:  (-6)
+[pharsalus:01453] [ 0] /lib64/libpthread.so.0() [0x3e7ce0f500]
+[pharsalus:01453] [ 1] /lib64/libc.so.6(gsignal+0x35) [0x3e7c2328a5]
+[pharsalus:01453] [ 2] /lib64/libc.so.6(abort+0x175) [0x3e7c234085]
+[pharsalus:01453] [ 3] /usr/lib64/libstdc++.so.6(_ZN9__gnu_cxx27__verbose_terminate_handlerEv+0x12d) [0x3e83ebea5d]
+[pharsalus:01453] [ 4] /usr/lib64/libstdc++.so.6() [0x3e83ebcbe6]
+[pharsalus:01453] [ 5] /usr/lib64/libstdc++.so.6() [0x3e83ebcc13]
+[pharsalus:01453] [ 6] /usr/lib64/libstdc++.so.6(__cxa_rethrow+0x46) [0x3e83ebcc96]
+[pharsalus:01453] [ 7] ../../../lmp_openmpi(_ZN9LAMMPS_NS6FixATC12modify_paramEiPPc+0x70) [0x697000]
+[pharsalus:01453] [ 8] ../../../lmp_openmpi(_ZN9LAMMPS_NS3Fix13modify_paramsEiPPc+0xb9) [0x691659]
+[pharsalus:01453] [ 9] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input15execute_commandEv+0xcab) [0x79fe8b]
+[pharsalus:01453] [10] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input4fileEv+0x63c) [0x7a196c]
+[pharsalus:01453] [11] ../../../lmp_openmpi(main+0x49) [0x7af929]
+[pharsalus:01453] [12] /lib64/libc.so.6(__libc_start_main+0xfd) [0x3e7c21ecdd]
+[pharsalus:01453] [13] ../../../lmp_openmpi() [0x53b429]
+[pharsalus:01453] *** End of error message ***
+[pharsalus:01450] [ 0] /lib64/libpthread.so.0() [0x3e7ce0f500]
+[pharsalus:01450] [ 1] /lib64/libc.so.6(gsignal+0x35) [0x3e7c2328a5]
+[pharsalus:01450] [ 2] /lib64/libc.so.6(abort+0x175) [0x3e7c234085]
+[pharsalus:01450] [ 3] /usr/lib64/libstdc++.so.6(_ZN9__gnu_cxx27__verbose_terminate_handlerEv+0x12d) [0x3e83ebea5d]
+[pharsalus:01450] [ 4] /usr/lib64/libstdc++.so.6() [0x3e83ebcbe6]
+[pharsalus:01450] [ 5] /usr/lib64/libstdc++.so.6() [0x3e83ebcc13]
+[pharsalus:01450] [ 6] /usr/lib64/libstdc++.so.6(__cxa_rethrow+0x46) [0x3e83ebcc96]
+[pharsalus:01450] [ 7] ../../../lmp_openmpi(_ZN9LAMMPS_NS6FixATC12modify_paramEiPPc+0x70) [0x697000]
+[pharsalus:01450] [ 8] ../../../lmp_openmpi(_ZN9LAMMPS_NS3Fix13modify_paramsEiPPc+0xb9) [0x691659]
+[pharsalus:01450] [ 9] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input15execute_commandEv+0xcab) [0x79fe8b]
+[pharsalus:01450] [10] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input4fileEv+0x63c) [0x7a196c]
+[pharsalus:01450] [11] ../../../lmp_openmpi(main+0x49) [0x7af929]
+[pharsalus:01450] [12] /lib64/libc.so.6(__libc_start_main+0xfd) [0x3e7c21ecdd]
+[pharsalus:01450] [13] ../../../lmp_openmpi() [0x53b429]
+[pharsalus:01450] *** End of error message ***
+[pharsalus:01451] [ 0] /lib64/libpthread.so.0() [0x3e7ce0f500]
+[pharsalus:01451] [ 1] /lib64/libc.so.6(gsignal+0x35) [0x3e7c2328a5]
+[pharsalus:01451] [ 2] /lib64/libc.so.6(abort+0x175) [0x3e7c234085]
+[pharsalus:01451] [ 3] /usr/lib64/libstdc++.so.6(_ZN9__gnu_cxx27__verbose_terminate_handlerEv+0x12d) [0x3e83ebea5d]
+[pharsalus:01451] [ 4] /usr/lib64/libstdc++.so.6() [0x3e83ebcbe6]
+[pharsalus:01451] [ 5] /usr/lib64/libstdc++.so.6() [0x3e83ebcc13]
+[pharsalus:01451] [ 6] /usr/lib64/libstdc++.so.6(__cxa_rethrow+0x46) [0x3e83ebcc96]
+[pharsalus:01451] [ 7] ../../../lmp_openmpi(_ZN9LAMMPS_NS6FixATC12modify_paramEiPPc+0x70) [0x697000]
+[pharsalus:01451] [ 8] ../../../lmp_openmpi(_ZN9LAMMPS_NS3Fix13modify_paramsEiPPc+0xb9) [0x691659]
+[pharsalus:01451] [ 9] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input15execute_commandEv+0xcab) [0x79fe8b]
+[pharsalus:01451] [10] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input4fileEv+0x63c) [0x7a196c]
+[pharsalus:01451] [11] ../../../lmp_openmpi(main+0x49) [0x7af929]
+[pharsalus:01451] [12] /lib64/libc.so.6(__libc_start_main+0xfd) [0x3e7c21ecdd]
+[pharsalus:01451] [13] ../../../lmp_openmpi() [0x53b429]
+[pharsalus:01451] *** End of error message ***
+[pharsalus:01452] [ 0] /lib64/libpthread.so.0() [0x3e7ce0f500]
+[pharsalus:01452] [ 1] /lib64/libc.so.6(gsignal+0x35) [0x3e7c2328a5]
+[pharsalus:01452] [ 2] /lib64/libc.so.6(abort+0x175) [0x3e7c234085]
+[pharsalus:01452] [ 3] /usr/lib64/libstdc++.so.6(_ZN9__gnu_cxx27__verbose_terminate_handlerEv+0x12d) [0x3e83ebea5d]
+[pharsalus:01452] [ 4] /usr/lib64/libstdc++.so.6() [0x3e83ebcbe6]
+[pharsalus:01452] [ 5] /usr/lib64/libstdc++.so.6() [0x3e83ebcc13]
+[pharsalus:01452] [ 6] /usr/lib64/libstdc++.so.6(__cxa_rethrow+0x46) [0x3e83ebcc96]
+[pharsalus:01452] [ 7] ../../../lmp_openmpi(_ZN9LAMMPS_NS6FixATC12modify_paramEiPPc+0x70) [0x697000]
+[pharsalus:01452] [ 8] ../../../lmp_openmpi(_ZN9LAMMPS_NS3Fix13modify_paramsEiPPc+0xb9) [0x691659]
+[pharsalus:01452] [ 9] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input15execute_commandEv+0xcab) [0x79fe8b]
+[pharsalus:01452] [10] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input4fileEv+0x63c) [0x7a196c]
+[pharsalus:01452] [11] ../../../lmp_openmpi(main+0x49) [0x7af929]
+[pharsalus:01452] [12] /lib64/libc.so.6(__libc_start_main+0xfd) [0x3e7c21ecdd]
+[pharsalus:01452] [13] ../../../lmp_openmpi() [0x53b429]
+[pharsalus:01452] *** End of error message ***
 --------------------------------------------------------------------------
-mpirun noticed that process rank 1 with PID 33578 on node pharsalus exited on signal 6 (Aborted).
+mpirun noticed that process rank 3 with PID 1453 on node pharsalus exited on signal 6 (Aborted).
 --------------------------------------------------------------------------

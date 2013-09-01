@@ -1,4 +1,4 @@
-LAMMPS (27 Aug 2013)
+LAMMPS (30 Aug 2013)
 units 		metal
 variable E equal 20.0
 variable nx equal 16
@@ -121,14 +121,14 @@ Step TotEng Temp Press PotEng Fn Fp
      800     17805.47    15491.378     14643513     16654.08    2644.7457   -2644.7457 
      900    20614.308     23711.81     16239209    18851.938     218.5282    -218.5282 
     1000    22067.741    26242.181     17175599    20117.302   -752.00587    752.00587 
-Loop time of 4.96026 on 4 procs for 1000 steps with 576 atoms
+Loop time of 3.62172 on 4 procs for 1000 steps with 576 atoms
 
-Pair  time (%) = 1.38793 (27.9809)
-Bond  time (%) = 0.000217199 (0.00437879)
-Neigh time (%) = 0.033968 (0.684803)
-Comm  time (%) = 0.29168 (5.88034)
-Outpt time (%) = 0.00964534 (0.194453)
-Other time (%) = 3.23682 (65.2551)
+Pair  time (%) = 1.48902 (41.1135)
+Bond  time (%) = 0.000212669 (0.00587205)
+Neigh time (%) = 0.0337982 (0.933206)
+Comm  time (%) = 0.176507 (4.87357)
+Outpt time (%) = 0.0090723 (0.250497)
+Other time (%) = 1.91312 (52.8234)
 
 Nlocal:    144 ave 144 max 144 min
 Histogram: 4 0 0 0 0 0 0 0 0 0

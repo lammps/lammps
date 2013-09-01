@@ -1,4 +1,4 @@
-LAMMPS (27 Aug 2013)
+LAMMPS (30 Aug 2013)
 dimension 3
 boundary  p p p
 lattice 	fcc  5.376 orient x 1 0 0 orient y 0 1 0 orient z 0 0 1
@@ -69,13 +69,13 @@ Step Temp TotEng KinEng PotEng Press Volume
      800    29.876839   -900.32866    44.528592   -944.85725   -587.67852    19421.725 
      900    29.966977   -899.86769    44.662933   -944.53062   -581.80498    19421.725 
     1000    29.907621   -901.57887    44.574469   -946.15334   -613.00908    19421.725 
-Loop time of 1.48076 on 4 procs for 1000 steps with 500 atoms
+Loop time of 1.44902 on 4 procs for 1000 steps with 500 atoms
 
-Pair  time (%) = 0.757719 (51.1709)
+Pair  time (%) = 0.747129 (51.5609)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.332254 (22.4381)
-Outpt time (%) = 0.00243467 (0.16442)
-Other time (%) = 0.388352 (26.2265)
+Comm  time (%) = 0.295985 (20.4265)
+Outpt time (%) = 0.00255066 (0.176027)
+Other time (%) = 0.403357 (27.8365)
 
 Nlocal:    125 ave 129 max 121 min
 Histogram: 1 0 0 0 0 2 0 0 0 1

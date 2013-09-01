@@ -1,4 +1,4 @@
-LAMMPS (27 Aug 2013)
+LAMMPS (30 Aug 2013)
 log            ftcb_constV.log
 units          real
 atom_style     atomic
@@ -181,13 +181,13 @@ Step Temp Press TotEng Lx Ly Lz
  ATC: computing bond matrix ...........done
  ATC: computing bond matrix ...........done
    10000   0.19513095     6.800965   -1742.9477    31.537365    31.537365    31.537365 
-Loop time of 64.3348 on 4 procs for 10000 steps with 864 atoms
+Loop time of 58.3949 on 4 procs for 10000 steps with 864 atoms
 
-Pair  time (%) = 14.2409 (22.1356)
-Neigh time (%) = 0.0580876 (0.0902895)
-Comm  time (%) = 4.87182 (7.57261)
-Outpt time (%) = 0.0800281 (0.124393)
-Other time (%) = 45.084 (70.0771)
+Pair  time (%) = 13.909 (23.819)
+Neigh time (%) = 0.0574451 (0.0983736)
+Comm  time (%) = 3.65585 (6.26056)
+Outpt time (%) = 0.0496507 (0.0850259)
+Other time (%) = 40.7229 (69.7371)
 
 Nlocal:    216 ave 223 max 212 min
 Histogram: 2 0 0 0 1 0 0 0 0 1
@@ -274,13 +274,13 @@ Step Temp Press TotEng Lx Ly Lz
  ATC: computing bond matrix ...........done
  ATC: computing bond matrix ...........done
    20000   0.19726939    5.6206257   -1743.0501    31.537365    31.537365    31.537365 
-Loop time of 66.0806 on 4 procs for 10000 steps with 864 atoms
+Loop time of 57.1651 on 4 procs for 10000 steps with 864 atoms
 
-Pair  time (%) = 14.5608 (22.035)
-Neigh time (%) = 0.0682575 (0.103294)
-Comm  time (%) = 7.13521 (10.7977)
-Outpt time (%) = 0.0594501 (0.0899661)
-Other time (%) = 44.2569 (66.974)
+Pair  time (%) = 13.9005 (24.3164)
+Neigh time (%) = 0.057418 (0.100442)
+Comm  time (%) = 3.53054 (6.17604)
+Outpt time (%) = 0.0499184 (0.0873231)
+Other time (%) = 39.6267 (69.3198)
 
 Nlocal:    216 ave 231 max 208 min
 Histogram: 1 1 1 0 0 0 0 0 0 1

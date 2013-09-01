@@ -1,4 +1,4 @@
-LAMMPS (27 Aug 2013)
+LAMMPS (30 Aug 2013)
 units       real
 atom_style  atomic
 variable lattice_constant equal 5.256227487
@@ -61,13 +61,13 @@ Memory usage per processor = 16.0674 Mbytes
 Step Volume TotEng 
        0    12370.307   -416.09102 
        1    12370.307   -416.09102 
-Loop time of 0.0022338 on 4 procs for 1 steps with 256 atoms
+Loop time of 0.00302124 on 4 procs for 1 steps with 256 atoms
 
-Pair  time (%) = 0.000480235 (21.4985)
+Pair  time (%) = 0.000536978 (17.7734)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.00028491 (12.7545)
-Outpt time (%) = 0.00137806 (61.6912)
-Other time (%) = 9.05991e-05 (4.05582)
+Comm  time (%) = 0.000412047 (13.6383)
+Outpt time (%) = 0.0019865 (65.7513)
+Other time (%) = 8.57115e-05 (2.83696)
 
 Nlocal:    64 ave 64 max 64 min
 Histogram: 4 0 0 0 0 0 0 0 0 0

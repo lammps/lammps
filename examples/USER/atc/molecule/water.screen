@@ -1,4 +1,4 @@
-LAMMPS (27 Aug 2013)
+LAMMPS (30 Aug 2013)
 Scanning data file ...
   2 = max bonds/atom
   1 = max angles/atom
@@ -71,18 +71,18 @@ Step Temp E_pair E_mol TotEng Press
      800    291.85669   -434.29732            0    -366.2029   -44436.275 
      900    301.54816   -436.20597            0   -365.85039   -44253.686 
     1000    295.98791   -434.24829            0      -365.19   -43743.988 
-Loop time of 64.2344 on 4 procs for 1000 steps with 2709 atoms
+Loop time of 59.4778 on 4 procs for 1000 steps with 2709 atoms
 
-Pair  time (%) = 52.3703 (81.5299)
-Bond  time (%) = 0.00628233 (0.00978032)
-Kspce time (%) = 7.34014 (11.4271)
-Neigh time (%) = 1.05395 (1.64079)
-Comm  time (%) = 0.661233 (1.02941)
-Outpt time (%) = 0.029508 (0.045938)
-Other time (%) = 2.77304 (4.31707)
+Pair  time (%) = 50.9628 (85.6837)
+Bond  time (%) = 0.00689393 (0.0115908)
+Kspce time (%) = 4.90648 (8.24926)
+Neigh time (%) = 1.00524 (1.69011)
+Comm  time (%) = 0.578538 (0.972696)
+Outpt time (%) = 0.019442 (0.0326879)
+Other time (%) = 1.99843 (3.35996)
 
-FFT time (% of Kspce) = 0.857083 (11.6767)
-FFT Gflps 3d (1d only) = 1.18005 3.49919
+FFT time (% of Kspce) = 0.683713 (13.9349)
+FFT Gflps 3d (1d only) = 1.47928 3.47903
 
 Nlocal:    677.25 ave 699 max 659 min
 Histogram: 1 0 1 0 0 1 0 0 0 1

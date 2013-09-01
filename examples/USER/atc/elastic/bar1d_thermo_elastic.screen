@@ -1,4 +1,4 @@
-LAMMPS (27 Aug 2013)
+LAMMPS (30 Aug 2013)
 
 units		real
 atom_style	atomic
@@ -78,13 +78,13 @@ Memory usage per processor = 56.6533 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0    29.995658   -4509.8851            0   -4303.9707    135.84496 
        1    29.920966   -4509.8851            0   -4304.4835    135.59617 
-Loop time of 0.0319905 on 4 procs for 1 steps with 2304 atoms
+Loop time of 0.0227802 on 4 procs for 1 steps with 2304 atoms
 
-Pair  time (%) = 0.00614798 (19.2181)
+Pair  time (%) = 0.00607026 (26.6471)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.00152296 (4.76065)
-Outpt time (%) = 8.75592e-05 (0.273704)
-Other time (%) = 0.024232 (75.7475)
+Comm  time (%) = 0.00152951 (6.71423)
+Outpt time (%) = 8.60691e-05 (0.377825)
+Other time (%) = 0.0150943 (66.2608)
 
 Nlocal:    576 ave 648 max 504 min
 Histogram: 2 0 0 0 0 0 0 0 0 2

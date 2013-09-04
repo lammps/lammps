@@ -46,6 +46,8 @@
   <I>rot</I> value = <I>no</I> or <I>yes</I> 
   <I>temp</I> value = temperature ID
   <I>loop</I> value = <I>all</I> or <I>local</I> or <I>geom</I>
+  <I>rigid</I> value = fix-ID
+    fix-ID = ID of rigid body fix
   <I>units</I> value = <I>box</I> or <I>lattice</I> 
 </PRE>
 
@@ -101,7 +103,23 @@ case).
 </P>
 <P>The <I>zero</I> style adjusts the velocities of the group of atoms so that
 the aggregate linear or angular momentum is zero.  No other changes
-are made to the velocities of the atoms.
+are made to the velocities of the atoms.  If the <I>rigid</I> option is
+specified (see below), then the zeroing is performed on individual
+rigid bodies, as defined by the <A HREF = "fix_rigid.html">fix rigid or fix
+rigid/small</A> commands.  In other words, zero linear
+will set the linear momentum of each rigid body to zero, and zero
+angular will set the angular momentum of each rigid body to zero.
+This is done by adjusting the velocities of the atoms in each rigid
+body.
+</P>
+<P>IMPORTANT NOTE: When using the <I>rigid</I> option with the <I>zero</I> style,
+only the velocities of atoms that are in the group specified with the
+velocity command will be adjusted, and likewise contribute to the
+calculation of the center-of-mass velocity or angular momentum of each
+rigid body.  This allows you to zero out the momenta of a subset of
+the rigid bodies, but you will get incomplete zeroing if you specify a
+group that includes only a subset of the atoms in one or more of the
+rigid bodies.
 </P>
 <P>All temperatures specified in the velocity command are in temperature
 units; see the <A HREF = "units.html">units</A> command.  The units of velocities and

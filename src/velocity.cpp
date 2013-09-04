@@ -26,6 +26,9 @@
 #include "variable.h"
 #include "force.h"
 #include "modify.h"
+#include "fix.h"
+#include "fix_rigid.h"
+#include "fix_rigid_small.h"
 #include "compute.h"
 #include "compute_temp.h"
 #include "random_park.h"
@@ -86,6 +89,7 @@ void Velocity::command(int narg, char **arg)
   rotation_flag = 0;
   loop_flag = ALL;
   scale_flag = 1;
+  rfix = -1;
 
   // read options from end of input line
   // change defaults as options specify
@@ -617,13 +621,41 @@ void Velocity::ramp(int narg, char **arg)
 
 /* ----------------------------------------------------------------------
    zero linear or angular momentum of a group
+   if using rigid/small requires init of entire system since
+      its methods perform forward/reverse comm,
+      comm::init needs neighbor::init needs pair::init needs kspace::init, etc
+      also requires setup_pre_neighbor call to setup bodies
 ------------------------------------------------------------------------- */
 
 void Velocity::zero(int narg, char **arg)
 {
-  if (strcmp(arg[0],"linear") == 0) zero_momentum();
-  else if (strcmp(arg[0],"angular") == 0) zero_rotation();
-  else error->all(FLERR,"Illegal velocity command");
+  if (strcmp(arg[0],"linear") == 0) {
+    if (rfix < 0) zero_momentum();
+    else {
+      if (strcmp(modify->fix[rfix]->style,"rigid") == 0)
+        ((FixRigid *) modify->fix[rfix])->zero_momentum(igroup);
+      else if (strcmp(modify->fix[rfix]->style,"rigid/small") == 0) {
+        lmp->init();
+        ((FixRigidSmall *) modify->fix[rfix])->setup_pre_neighbor();
+        ((FixRigidSmall *) modify->fix[rfix])->zero_momentum(igroup);
+      }
+      else error->all(FLERR,"Velocity rigid used with non-rigid fix-ID");
+    }
+
+  } else if (strcmp(arg[0],"angular") == 0) {
+    if (rfix < 0) zero_rotation();
+    else {
+      if (strcmp(modify->fix[rfix]->style,"rigid") == 0)
+        ((FixRigid *) modify->fix[rfix])->zero_rotation(igroup);
+      else if (strcmp(modify->fix[rfix]->style,"rigid/small") == 0) {
+        lmp->init();
+        ((FixRigidSmall *) modify->fix[rfix])->setup_pre_neighbor();
+        ((FixRigidSmall *) modify->fix[rfix])->zero_rotation(igroup);
+      }
+      else error->all(FLERR,"Velocity rigid used with non-rigid fix-ID");
+    }
+
+  } else error->all(FLERR,"Illegal velocity command");
 }
 
 /* ----------------------------------------------------------------------
@@ -654,10 +686,10 @@ void Velocity::rescale(double t_old, double t_new)
 
 void Velocity::zero_momentum()
 {
-  // cannot have 0 atoms in group
+  // cannot have no atoms in group
 
   if (group->count(igroup) == 0)
-    error->all(FLERR,"Cannot zero momentum of 0 atoms");
+    error->all(FLERR,"Cannot zero momentum of no atoms");
 
   // compute velocity of center-of-mass of group
 
@@ -687,10 +719,10 @@ void Velocity::zero_rotation()
 {
   int i;
 
-  // cannot have 0 atoms in group
+  // cannot have no atoms in group
 
   if (group->count(igroup) == 0)
-    error->all(FLERR,"Cannot zero momentum of 0 atoms");
+    error->all(FLERR,"Cannot zero momentum of no atoms");
 
   // compute omega (angular velocity) of group around center-of-mass
 
@@ -717,7 +749,7 @@ void Velocity::zero_rotation()
   for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       domain->unmap(x[i],image[i],unwrap);
-      dx = unwrap[0]- xcm[0];
+      dx = unwrap[0] - xcm[0];
       dy = unwrap[1] - xcm[1];
       dz = unwrap[2] - xcm[2];
       v[i][0] -= omega[1]*dz - omega[2]*dy;
@@ -778,6 +810,11 @@ void Velocity::options(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"local") == 0) loop_flag = LOCAL;
       else if (strcmp(arg[iarg+1],"geom") == 0) loop_flag = GEOM;
       else error->all(FLERR,"Illegal velocity command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"rigid") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal velocity command");
+      rfix = modify->find_fix(arg[iarg+1]);
+      if (rfix < 0) error->all(FLERR,"Fix ID for velocity does not exist");
       iarg += 2;
     } else if (strcmp(arg[iarg],"units") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal velocity command");

@@ -35,7 +35,7 @@ class Velocity : protected Pointers {
  private:
   int igroup,groupbit;
   int style;
-  int dist_flag,sum_flag,momentum_flag,rotation_flag,loop_flag,scale_flag;
+  int dist_flag,sum_flag,momentum_flag,rotation_flag,loop_flag,scale_flag,rfix;
   double xscale,yscale,zscale;
   class Compute *temperature;
 

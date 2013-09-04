@@ -51,6 +51,8 @@ class FixRigid : public Fix {
   int dof(int);
   void deform(int);
   void reset_dt();
+  void zero_momentum(int);
+  void zero_rotation(int);
   virtual void *extract(const char*,int &);
   double compute_array(int, int);
     

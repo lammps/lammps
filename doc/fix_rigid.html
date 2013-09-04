@@ -391,8 +391,14 @@ time units and determines how rapidly the temperature is relaxed.  For
 example, a value of 100.0 means to relax the temperature in a timespan
 of (roughly) 100 time units (tau or fmsec or psec - see the
 <A HREF = "units.html">units</A> command).  The random # <I>seed</I> must be a positive
-integer.  The way the Langevin thermostatting operates is explained on
-the <A HREF = "fix_langevin.html">fix langevin</A> doc page.
+integer.
+</P>
+<P>The way that Langevin thermostatting operates is explained on the <A HREF = "fix_langevin.html">fix
+langevin</A> doc page.  If you wish to simply viscously
+damp the rotational motion without thermostatting, you can set
+<I>Tstart</I> and <I>Tstop</I> to 0.0, which means only the viscous drag term in
+the Langevin thermostat will be applied.  See the discussion on the
+<A HREF = "doc/fix_viscous.html">fix viscous</A> doc page for details.
 </P>
 <P>IMPORTANT NOTE: When the <I>langevin</I> keyword is used with fix rigid
 versus fix rigid/small, different dynamics will result for parallel

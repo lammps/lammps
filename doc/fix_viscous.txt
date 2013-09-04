@@ -67,11 +67,14 @@ Note that Brownian dynamics models also typically include a randomized
 force term to thermostat the system at a chosen temperature.  The "fix
 langevin"_fix_langevin.html command does this.  It has the same
 viscous damping term as fix viscous and adds a random force to each
-atom.  Hence if using fix {langevin} you do not typically need to use
-fix {viscous}.  Also note that the gamma of fix viscous is related to
-the damping parameter of "fix langevin"_fix_langevin.html, except that
-the units of gamma are force/velocity and the units of damp are time,
-so that it can more easily be used as a thermostat.
+atom.  The random force term is proportional to the sqrt of the chosen
+thermostatting temperature.  Thus if you use fix langevin with a
+target T = 0, its random force term is zero, and you are essentially
+performing the same operation as fix viscous.  Also note that the
+gamma of fix viscous is related to the damping parameter of "fix
+langevin"_fix_langevin.html, however the former is specified in units
+of force/velocity and the latter in units of time, so that it can more
+easily be used as a thermostat.
 
 :line
 

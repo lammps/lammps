@@ -2095,6 +2095,7 @@ void FixRigid::readfile(int which, double *vec, double **array, int *inbody)
   }
 
   MPI_Bcast(&nlines,1,MPI_INT,0,world);
+  if (nlines == 0) error->all(FLERR,"Fix rigid file has no lines");
 
   char *buffer = new char[CHUNK*MAXLINE];
   char **values = new char*[ATTRIBUTE_PERBODY];
@@ -2184,7 +2185,7 @@ void FixRigid::write_restart_file(char *file)
     error->one(FLERR,str);
   }
 
-  fprintf(fp,"fix rigid mass, COM, inertia tensor info for "
+  fprintf(fp,"# fix rigid mass, COM, inertia tensor info for "
           "%d bodies on timestep " BIGINT_FORMAT "\n\n",
           nbody,update->ntimestep);
   fprintf(fp,"%d\n",nbody);
@@ -2340,15 +2341,17 @@ void FixRigid::reset_dt()
 
 /* ----------------------------------------------------------------------
    zero linear momentum of each rigid body
-   called by velocity zero linear command with its vgroupbit
+   called by velocity zero linear command with its vgroup
    only atoms in velocity command group contribute to vcm of body,
      and only their velocities are adjusted, odd if partial bodies specified
 ------------------------------------------------------------------------- */
 
-void FixRigid::zero_momentum(int vgroupbit)
+void FixRigid::zero_momentum(int vgroup)
 {
   int i,ibody;
   double massone;
+
+  int vgroupbit = group->bitmask[vgroup];
 
   // vcm = velocity of center-of-mass of each rigid body
 
@@ -2395,18 +2398,19 @@ void FixRigid::zero_momentum(int vgroupbit)
 
 /* ----------------------------------------------------------------------
    zero angular momentum of each rigid body
-   called by velocity zero linear command with its vgroupbit
+   called by velocity zero linear command with its vgroup
    only atoms in velocity command group contribute to angmom/omega of body,
      and only their velocities are adjusted, odd if partial bodies specified
 ------------------------------------------------------------------------- */
 
-void FixRigid::zero_rotation(int vgroupbit)
+void FixRigid::zero_rotation(int vgroup)
 {
   int i,ibody;
   double massone,radone;
 
+  int vgroupbit = group->bitmask[vgroup];
+
   // angmom = angular momentum of each rigid body
-  // do not add in contribution from extended particles since zeroed below
 
   double **x = atom->x;
   double **v = atom->v;
@@ -2439,6 +2443,39 @@ void FixRigid::zero_rotation(int vgroupbit)
     sum[ibody][0] += dy * massone*v[i][2] - dz * massone*v[i][1];
     sum[ibody][1] += dz * massone*v[i][0] - dx * massone*v[i][2];
     sum[ibody][2] += dx * massone*v[i][1] - dy * massone*v[i][0];
+  }
+
+  // extended particles add their rotation to angmom of body
+
+  if (extended) {
+    AtomVecLine::Bonus *lbonus;
+    if (avec_line) lbonus = avec_line->bonus;
+    double **omega_one = atom->omega;
+    double **angmom_one = atom->angmom;
+    double *radius = atom->radius;
+    int *line = atom->line;
+
+    for (i = 0; i < nlocal; i++) {
+      if (body[i] < 0) continue;
+      ibody = body[i];
+
+      if (eflags[i] & OMEGA) {
+        if (eflags[i] & SPHERE) {
+          radone = radius[i];
+          sum[ibody][0] += SINERTIA*rmass[i] * radone*radone * omega_one[i][0];
+          sum[ibody][1] += SINERTIA*rmass[i] * radone*radone * omega_one[i][1];
+          sum[ibody][2] += SINERTIA*rmass[i] * radone*radone * omega_one[i][2];
+        } else if (eflags[i] & LINE) {
+          radone = lbonus[line[i]].length;
+          sum[ibody][2] += LINERTIA*rmass[i] * radone*radone * omega_one[i][2];
+        }
+      }
+      if (eflags[i] & ANGMOM) {
+        sum[ibody][0] += angmom_one[i][0];
+        sum[ibody][1] += angmom_one[i][1];
+        sum[ibody][2] += angmom_one[i][2];
+      }
+    }
   }
 
   MPI_Allreduce(sum[0],all[0],6*nbody,MPI_DOUBLE,MPI_SUM,world);

@@ -632,27 +632,25 @@ void Velocity::zero(int narg, char **arg)
   if (strcmp(arg[0],"linear") == 0) {
     if (rfix < 0) zero_momentum();
     else {
-      if (strcmp(modify->fix[rfix]->style,"rigid") == 0)
-        ((FixRigid *) modify->fix[rfix])->zero_momentum(igroup);
-      else if (strcmp(modify->fix[rfix]->style,"rigid/small") == 0) {
+      if (strcmp(modify->fix[rfix]->style,"rigid/small") == 0) {
         lmp->init();
         ((FixRigidSmall *) modify->fix[rfix])->setup_pre_neighbor();
         ((FixRigidSmall *) modify->fix[rfix])->zero_momentum(igroup);
-      }
-      else error->all(FLERR,"Velocity rigid used with non-rigid fix-ID");
+      } else if (strstr(modify->fix[rfix]->style,"rigid")) {
+        ((FixRigid *) modify->fix[rfix])->zero_momentum(igroup);
+      } else error->all(FLERR,"Velocity rigid used with non-rigid fix-ID");
     }
 
   } else if (strcmp(arg[0],"angular") == 0) {
     if (rfix < 0) zero_rotation();
     else {
-      if (strcmp(modify->fix[rfix]->style,"rigid") == 0)
-        ((FixRigid *) modify->fix[rfix])->zero_rotation(igroup);
-      else if (strcmp(modify->fix[rfix]->style,"rigid/small") == 0) {
+      if (strcmp(modify->fix[rfix]->style,"rigid/small") == 0) {
         lmp->init();
         ((FixRigidSmall *) modify->fix[rfix])->setup_pre_neighbor();
         ((FixRigidSmall *) modify->fix[rfix])->zero_rotation(igroup);
-      }
-      else error->all(FLERR,"Velocity rigid used with non-rigid fix-ID");
+      } else if (strstr(modify->fix[rfix]->style,"rigid")) {
+        ((FixRigid *) modify->fix[rfix])->zero_rotation(igroup);
+      } else error->all(FLERR,"Velocity rigid used with non-rigid fix-ID");
     }
 
   } else error->all(FLERR,"Illegal velocity command");

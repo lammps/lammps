@@ -147,6 +147,10 @@ void DumpLocal::init_style()
     vformat[i] = strcat(vformat[i]," ");
   }
 
+  // setup boundary string
+
+  domain->boundary_string(boundstr);
+
   // find current ptr for each compute,fix,variable
   // check that fix frequency is acceptable
 

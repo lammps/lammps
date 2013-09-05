@@ -2547,7 +2547,6 @@ double FixRigid::compute_scalar()
   double wbody[3],rot[3][3];
 
   double t = 0.0;
-
   for (int i = 0; i < nbody; i++) {
     t += masstotal[i] * (fflag[i][0]*vcm[i][0]*vcm[i][0] +
                          fflag[i][1]*vcm[i][1]*vcm[i][1] +
@@ -2591,6 +2590,51 @@ void *FixRigid::extract(const char *str, int &dim)
   }
 
   return NULL;
+}
+
+/* ----------------------------------------------------------------------
+   return translational KE for all rigid bodies
+   KE = 1/2 M Vcm^2
+------------------------------------------------------------------------- */
+
+double FixRigid::extract_ke()
+{
+  double ke = 0.0;
+  for (int i = 0; i < nbody; i++)
+    ke += masstotal[i] * 
+      (vcm[i][0]*vcm[i][0] + vcm[i][1]*vcm[i][1] + vcm[i][2]*vcm[i][2]);
+
+  return 0.5*ke;
+}
+
+/* ----------------------------------------------------------------------
+   return rotational KE for all rigid bodies
+   Erotational = 1/2 I wbody^2
+------------------------------------------------------------------------- */
+
+double FixRigid::extract_erotational()
+{
+  double wbody[3],rot[3][3];
+
+  double erotate = 0.0;
+  for (int i = 0; i < nbody; i++) {
+
+    // wbody = angular velocity in body frame
+
+    MathExtra::quat_to_mat(quat[i],rot);
+    MathExtra::transpose_matvec(rot,angmom[i],wbody);
+    if (inertia[i][0] == 0.0) wbody[0] = 0.0;
+    else wbody[0] /= inertia[i][0];
+    if (inertia[i][1] == 0.0) wbody[1] = 0.0;
+    else wbody[1] /= inertia[i][1];
+    if (inertia[i][2] == 0.0) wbody[2] = 0.0;
+    else wbody[2] /= inertia[i][2];
+
+    erotate += inertia[i][0]*wbody[0]*wbody[0] +
+      inertia[i][1]*wbody[1]*wbody[1] + inertia[i][2]*wbody[2]*wbody[2];
+  }
+
+  return 0.5*erotate;
 }
 
 /* ----------------------------------------------------------------------

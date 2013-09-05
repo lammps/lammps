@@ -62,7 +62,9 @@ class FixRigidSmall : public Fix {
   void reset_dt();
   void zero_momentum(int);
   void zero_rotation(int);
-  void *extract(const char*,int &);
+  void *extract(const char*, int &);
+  double extract_ke();
+  double extract_erotational();
   double compute_scalar();
   double memory_usage();
 

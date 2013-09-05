@@ -23,7 +23,7 @@ Kn = elastic constant for normal particle repulsion (force/distance units or pre
 Kt = elastic constant for tangential contact (force/distance units or pressure units - see discussion below) :l
 gamma_n = damping coefficient for collisions in normal direction (1/time units or 1/time-distance units - see discussion below) :l
 gamma_t = damping coefficient for collisions in tangential direction (1/time units or 1/time-distance units - see discussion below) :l
-xmu = static yield criterion (unitless fraction between 0.0 and 1.0) :l
+xmu = static yield criterion (unitless value between 0.0 and 1.0e4) :l
 dampflag = 0 or 1 if tangential damping force is excluded or included :l,ule
 
 IMPORTANT NOTE: Versions of LAMMPS before 9Jan09 had different style
@@ -147,6 +147,11 @@ between 2 particles grows according to a tangential spring and
 dash-pot model until Ft/Fn = xmu and is then held at Ft = Fn*xmu until
 the particles lose contact.  In the Hertzian case, a similar analogy
 holds, though the spring is no longer linear.
+
+IMPORTANT NOTE: Normally, xmu should be specified as a fractional
+value between 0.0 and 1.0, however LAMMPS allows large values (up to
+1.0e4) to allow for modeling of systems which can sustain very large
+tangential forces.
 
 For granular styles there are no additional coefficients to set for
 each pair of atom types via the "pair_coeff"_pair_coeff.html command.

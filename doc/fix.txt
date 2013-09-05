@@ -214,6 +214,7 @@ list of fix styles available in LAMMPS:
 "press/berendsen"_fix_press_berendsen.html - pressure control by \
      Berendsen barostat
 "print"_fix_print.html - print text and variables during a simulation
+"property/atom"_fix_property_atom.html - add customized per-atom values
 "reax/bonds"_fix_reax_bonds.html - write out ReaxFF bond information \
 "recenter"_fix_recenter.html - constrain the center-of-mass position \
   of a group of atoms
@@ -228,6 +229,8 @@ list of fix styles available in LAMMPS:
      move as a rigid body with alternate NVE integration
 "rigid/nvt"_fix_rigid.html - constrain one or more clusters of atoms to \
      move as a rigid body with NVT integration
+"rigid"_fix_rigid.html - constrain many small clusters of atoms to \
+     move as a rigid body with NVE integration
 "setforce"_fix_setforce.html - set the force on each atom
 "shake"_fix_shake.html - SHAKE constraints on bonds and/or angles
 "spring"_fix_spring.html - apply harmonic spring force to group of atoms

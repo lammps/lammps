@@ -1,0 +1,61 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>compute ke/rigid command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>compute ID group-ID ke/rigid fix-ID 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
+<LI>ke = style name of this compute command
+<LI>fix-ID = ID of rigid body fix 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>compute 1 all ke/rigid myRigid 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define a computation that calculates the translational kinetic energy
+of a collection of rigid bodies, as defined by one of the <A HREF = "fix_rigid.html">fix
+rigid</A> command variants.
+</P>
+<P>The kinetic energy of each rigid body is computed as 1/2 M Vcm^2,
+where M is the total mass of the rigid body, and Vcm is its
+center-of-mass velocity.
+</P>
+<P>The <I>fix-ID</I> should be the ID of one of the <A HREF = "fix_rigid.html">fix rigid</A>
+commands which defines the rigid bodies.  The group specified in the
+compute command is ignored.  The kinetic energy of all the rigid
+bodies defined by the fix rigid command in included in the
+calculation.
+</P>
+<P><B>Output info:</B>
+</P>
+<P>This compute calculates a global scalar (the summed KE of all the
+rigid bodies).  This value can be used by any command that uses a
+global scalar value from a compute as input.  See <A HREF = "Section_howto.html#howto_15">Section_howto
+15</A> for an overview of LAMMPS output
+options.
+</P>
+<P>The scalar value calculated by this compute is "extensive".  The
+scalar value will be in energy <A HREF = "units.html">units</A>.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "compute_erotate_rigid.html">compute erotate/rigid</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

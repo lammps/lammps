@@ -177,6 +177,7 @@ available in LAMMPS:
 "dihedral/local"_compute_dihedral_local.html - angle of each dihedral
 "displace/atom"_compute_displace_atom.html - displacement of each atom
 "erotate/asphere"_compute_erotate_asphere.html - rotational energy of aspherical particles
+"erotate/rigid"_compute_erotate_rigid.html - rotational energy of rigid bodies
 "erotate/sphere"_compute_erotate_sphere.html - rotational energy of spherical particles
 "erotate/sphere/atom"_compute_erotate_sphere.html - rotational energy for each spherical particle
 "event/displace"_compute_event_displace.html - detect event on atom displacement
@@ -188,6 +189,7 @@ available in LAMMPS:
 "inertia/molecule"_compute_inertia_molecule.html - inertia tensor for each molecule
 "ke"_compute_ke.html - translational kinetic energy
 "ke/atom"_compute_ke_atom.html - kinetic energy for each atom
+"ke/rigid"_compute_ke_rigid.html - translational kinetic energy of rigid bodies
 "msd"_compute_msd.html - mean-squared displacement of group of atoms
 "msd/molecule"_compute_msd_molecule.html - mean-squared displacement for each molecule
 "pair"_compute_pair.html - values computed by a pair style

@@ -1,0 +1,57 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+compute erotate/rigid command :h3
+
+[Syntax:]
+
+compute ID group-ID erotate/rigid fix-ID :pre
+
+ID, group-ID are documented in "compute"_compute.html command
+erotate/rigid = style name of this compute command
+fix-ID = ID of rigid body fix :ul
+
+[Examples:]
+
+compute 1 all erotate/rigid myRigid :pre
+
+[Description:]
+
+Define a computation that calculates the rotational kinetic energy of
+a collection of rigid bodies, as defined by one of the "fix
+rigid"_fix_rigid.html command variants.
+
+The rotational energy of each rigid body is computed as 1/2 I Wbody^2,
+where I is the inertia tensor for the rigid body, and Wbody is its
+angular velocity vector.  Both I and Wbody are in the frame of
+reference of the rigid body, i.e. I is diagonalized.
+
+The {fix-ID} should be the ID of one of the "fix rigid"_fix_rigid.html
+commands which defines the rigid bodies.  The group specified in the
+compute command is ignored.  The rotational energy of all the rigid
+bodies defined by the fix rigid command in included in the
+calculation.
+
+[Output info:]
+
+This compute calculates a global scalar (the summed rotational energy
+of all the rigid bodies).  This value can be used by any command that
+uses a global scalar value from a compute as input.  See
+"Section_howto 15"_Section_howto.html#howto_15 for an overview of
+LAMMPS output options.
+
+The scalar value calculated by this compute is "extensive".  The
+scalar value will be in energy "units"_units.html.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"compute ke/rigid"_compute_erotate_ke_rigid.html
+
+[Default:] none

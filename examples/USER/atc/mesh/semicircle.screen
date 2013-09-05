@@ -1,4 +1,4 @@
-LAMMPS (27 Aug 2013)
+LAMMPS (30 Aug 2013)
 units    real
 atom_style  atomic
 
@@ -74,12 +74,12 @@ fix_modify	AtC boundary ghost
 fix_modify	AtC mesh read semicircle.mesh  f f p
  ATC: read 398 nodes
  ATC: read 176 HEX8 elements
+ ATC: P1, writing periodicity corrected mesh: periodic_semicircle.mesh
+ ATC: P3, writing periodicity corrected mesh: periodic_semicircle.mesh
  ATC: condensed 199 periodic nodes in the 3 direction
  ATC: created nodeset 1 with 44 nodes
  ATC: created nodeset 2 with 4 nodes
- ATC: P1, writing periodicity corrected mesh: periodic_semicircle.mesh
  ATC: P2, writing periodicity corrected mesh: periodic_semicircle.mesh
- ATC: P3, writing periodicity corrected mesh: periodic_semicircle.mesh
  ATC: WARNING: mesh is not aligned with the coordinate directions atom-to-element mapping will be expensive
  ATC: P0, writing periodicity corrected mesh: periodic_semicircle.mesh
 fix_modify	AtC mesh nodeset_to_elementset 2 hole min
@@ -109,13 +109,13 @@ Step Temp E_pair E_mol TotEng Press
      300    10.255763   -5191.6455            0   -5094.8288   -564.44341 
      400    10.255763   -5185.5031            0   -5088.6864   -611.34498 
      500    10.255763   -5185.1021            0   -5088.2853   -686.81479 
-Loop time of 8.85008 on 4 procs for 500 steps with 3168 atoms
+Loop time of 9.08358 on 4 procs for 500 steps with 3168 atoms
 
-Pair  time (%) = 2.42339 (27.3827)
-Neigh time (%) = 0.0542718 (0.613235)
-Comm  time (%) = 0.651604 (7.36269)
-Outpt time (%) = 0.000380278 (0.00429688)
-Other time (%) = 5.72043 (64.6371)
+Pair  time (%) = 2.5019 (27.5431)
+Neigh time (%) = 0.0543029 (0.597814)
+Comm  time (%) = 0.724279 (7.97349)
+Outpt time (%) = 0.000456929 (0.00503028)
+Other time (%) = 5.80264 (63.8806)
 
 Nlocal:    792 ave 944 max 640 min
 Histogram: 2 0 0 0 0 0 0 0 0 2
@@ -174,13 +174,13 @@ Step Temp E_pair E_mol TotEng Press
      800    10.245262   -5181.8268            0   -5085.1092   -707.19351 
      900    10.342331   -5183.9012            0   -5086.2673   -667.21622 
     1000    10.446039   -5184.9612            0   -5086.3482   -647.13367 
-Loop time of 28.8873 on 4 procs for 1000 steps with 3168 atoms
+Loop time of 25.9666 on 4 procs for 1000 steps with 3168 atoms
 
-Pair  time (%) = 4.99263 (17.2831)
-Neigh time (%) = 0.0909939 (0.314996)
-Comm  time (%) = 1.76148 (6.09779)
-Outpt time (%) = 0.0562053 (0.194568)
-Other time (%) = 21.986 (76.1095)
+Pair  time (%) = 4.93896 (19.0204)
+Neigh time (%) = 0.0919983 (0.354294)
+Comm  time (%) = 1.34195 (5.16797)
+Outpt time (%) = 0.0565627 (0.217828)
+Other time (%) = 19.5372 (75.2395)
 
 Nlocal:    792 ave 944 max 640 min
 Histogram: 2 0 0 0 0 0 0 0 0 2

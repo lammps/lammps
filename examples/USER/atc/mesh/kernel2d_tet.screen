@@ -1,4 +1,4 @@
-LAMMPS (27 Aug 2013)
+LAMMPS (30 Aug 2013)
 units    real
 atom_style  atomic
 
@@ -52,15 +52,15 @@ Setting up run ...
 Memory usage per processor = 603.85 Mbytes
 Step CPU Temp 
        0            0            0 
-       1 0.0049540997            0 
-       2  0.014386177            0 
-Loop time of 0.0144055 on 4 procs for 2 steps with 2304 atoms
+       1  0.004981041            0 
+       2  0.014793873            0 
+Loop time of 0.0148094 on 4 procs for 2 steps with 2304 atoms
 
-Pair  time (%) = 0.00892383 (61.9474)
+Pair  time (%) = 0.00903654 (61.0188)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000519812 (3.60843)
-Outpt time (%) = 0.0032984 (22.8968)
-Other time (%) = 0.00166345 (11.5473)
+Comm  time (%) = 0.000729501 (4.92592)
+Outpt time (%) = 0.00340539 (22.9948)
+Other time (%) = 0.001638 (11.0605)
 
 Nlocal:    576 ave 576 max 576 min
 Histogram: 4 0 0 0 0 0 0 0 0 0

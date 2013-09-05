@@ -1,4 +1,4 @@
-LAMMPS (27 Aug 2013)
+LAMMPS (30 Aug 2013)
 variable nx equal 80 # 80 # 40
 variable ny equal ${nx}
 variable ny equal 80

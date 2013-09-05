@@ -1,4 +1,4 @@
-LAMMPS (27 Aug 2013)
+LAMMPS (30 Aug 2013)
 
 units		real
 atom_style	atomic
@@ -109,13 +109,13 @@ Step Temp E_pair E_mol TotEng Press
      800 9.5474556e-09   -4509.8852            0   -4509.8852    26.923147 
      900 1.2412323e-08   -4509.8852            0   -4509.8852    26.917542 
     1000 1.5423223e-08   -4509.8852            0   -4509.8852    26.911973 
-Loop time of 20.835 on 4 procs for 1000 steps with 2304 atoms
+Loop time of 19.6581 on 4 procs for 1000 steps with 2304 atoms
 
-Pair  time (%) = 5.85529 (28.1032)
-Neigh time (%) = 2.53527 (12.1683)
-Comm  time (%) = 6.03739 (28.9772)
-Outpt time (%) = 0.0180721 (0.0867391)
-Other time (%) = 6.38895 (30.6645)
+Pair  time (%) = 5.96992 (30.3688)
+Neigh time (%) = 2.49911 (12.7129)
+Comm  time (%) = 6.03219 (30.6855)
+Outpt time (%) = 0.000867546 (0.00441317)
+Other time (%) = 5.15602 (26.2285)
 
 Nlocal:    576 ave 864 max 288 min
 Histogram: 2 0 0 0 0 0 0 0 0 2
@@ -205,13 +205,13 @@ Step Temp E_pair E_mol TotEng Press
     4800 1.8690218e-08   -4509.8853            0   -4509.8853    26.908349 
     4900 1.9317873e-08   -4509.8852            0   -4509.8852    26.905059 
     5000 1.8273072e-08   -4509.8851            0   -4509.8851    26.904542 
-Loop time of 108.649 on 4 procs for 5000 steps with 2304 atoms
+Loop time of 97.2827 on 4 procs for 5000 steps with 2304 atoms
 
-Pair  time (%) = 30.1538 (27.7533)
-Neigh time (%) = 13.1196 (12.0752)
-Comm  time (%) = 33.7221 (31.0376)
-Outpt time (%) = 0.00899172 (0.00827591)
-Other time (%) = 31.6449 (29.1257)
+Pair  time (%) = 29.7789 (30.6107)
+Neigh time (%) = 12.5179 (12.8676)
+Comm  time (%) = 29.2909 (30.109)
+Outpt time (%) = 0.00928915 (0.00954861)
+Other time (%) = 25.6857 (26.4032)
 
 Nlocal:    576 ave 864 max 288 min
 Histogram: 2 0 0 0 0 0 0 0 0 2

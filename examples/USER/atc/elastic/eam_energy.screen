@@ -1,4 +1,4 @@
-LAMMPS (27 Aug 2013)
+LAMMPS (30 Aug 2013)
 units		metal
 atom_style      atomic
 atom_modify map hash
@@ -87,13 +87,13 @@ Setting up run ...
 Memory usage per processor = 41.8034 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0            0      -1414.8            0      -1414.8  0.022463201 
-Loop time of 7.62939e-06 on 4 procs for 0 steps with 360 atoms
+Loop time of 1.0252e-05 on 4 procs for 0 steps with 360 atoms
 
 Pair  time (%) = 0 (0)
 Neigh time (%) = 0 (0)
 Comm  time (%) = 0 (0)
 Outpt time (%) = 0 (0)
-Other time (%) = 7.62939e-06 (100)
+Other time (%) = 1.0252e-05 (100)
 
 Nlocal:    90 ave 90 max 90 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -129,13 +129,13 @@ Memory usage per processor = 41.8034 Mbytes
 Step TotEng pe KinEng ATC[1] ATC[2] x v x2 Ly dL strain 
        0         -1414.8            0            0            0            0       -19.38            0       -19.38         40.8            0            0 
        1         -1414.8            0            0            0            0       -19.38            0       -19.38         40.8            0            0 
-Loop time of 0.00541574 on 4 procs for 1 steps with 360 atoms
+Loop time of 0.00549316 on 4 procs for 1 steps with 360 atoms
 
-Pair  time (%) = 0.000424087 (7.83064)
+Pair  time (%) = 0.000414193 (7.54015)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000101745 (1.87869)
-Outpt time (%) = 0.00190574 (35.1889)
-Other time (%) = 0.00298417 (55.1017)
+Comm  time (%) = 6.98566e-05 (1.2717)
+Outpt time (%) = 0.0019924 (36.2706)
+Other time (%) = 0.00301671 (54.9175)
 
 Nlocal:    90 ave 90 max 90 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -158,13 +158,13 @@ Memory usage per processor = 41.8034 Mbytes
 Step TotEng pe KinEng ATC[1] ATC[2] x v x2 Ly dL strain 
        1      -1414.7633            0  0.036746101            0            0       -19.38          0.1       -19.38         40.8            0            0 
        2      -1414.7633            0  0.036746101  0.036746101            0       -19.38          0.1       -19.38         40.8            0            0 
-Loop time of 0.00706458 on 4 procs for 1 steps with 360 atoms
+Loop time of 0.00695777 on 4 procs for 1 steps with 360 atoms
 
-Pair  time (%) = 0.000441551 (6.25021)
+Pair  time (%) = 0.000445962 (6.40955)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000136375 (1.93041)
-Outpt time (%) = 0.00180322 (25.5248)
-Other time (%) = 0.00468343 (66.2946)
+Comm  time (%) = 0.000112355 (1.61481)
+Outpt time (%) = 0.00171965 (24.7156)
+Other time (%) = 0.0046798 (67.26)
 
 Nlocal:    90 ave 90 max 90 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -187,13 +187,13 @@ Memory usage per processor = 41.8034 Mbytes
 Step TotEng pe KinEng ATC[1] ATC[2] x v x2 Ly dL strain 
        2       -1414.653            0    0.1469844  0.036746101            0       -19.38          0.2       -19.38         40.8            0            0 
        3       -1414.653            0    0.1469844    0.1469844            0       -19.38          0.2       -19.38         40.8            0            0 
-Loop time of 0.00688624 on 4 procs for 1 steps with 360 atoms
+Loop time of 0.00692767 on 4 procs for 1 steps with 360 atoms
 
-Pair  time (%) = 0.000405192 (5.88408)
+Pair  time (%) = 0.000420749 (6.07346)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000103951 (1.50954)
-Outpt time (%) = 0.00171721 (24.9368)
-Other time (%) = 0.00465989 (67.6696)
+Comm  time (%) = 0.000110626 (1.59688)
+Outpt time (%) = 0.00177026 (25.5534)
+Other time (%) = 0.00462604 (66.7762)
 
 Nlocal:    90 ave 90 max 90 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -216,13 +216,13 @@ Memory usage per processor = 41.8034 Mbytes
 Step TotEng pe KinEng ATC[1] ATC[2] x v x2 Ly dL strain 
        3      -1414.4693            0   0.33071491    0.1469844            0       -19.38          0.3       -19.38         40.8            0            0 
        4      -1414.4693            0   0.33071491   0.33071491            0       -19.38          0.3       -19.38         40.8            0            0 
-Loop time of 0.0068897 on 4 procs for 1 steps with 360 atoms
+Loop time of 0.0068838 on 4 procs for 1 steps with 360 atoms
 
-Pair  time (%) = 0.0004372 (6.3457)
+Pair  time (%) = 0.000432014 (6.27581)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000113785 (1.65153)
-Outpt time (%) = 0.00177503 (25.7635)
-Other time (%) = 0.00456369 (66.2393)
+Comm  time (%) = 0.000115931 (1.68411)
+Outpt time (%) = 0.00171983 (24.9838)
+Other time (%) = 0.00461602 (67.0563)
 
 Nlocal:    90 ave 90 max 90 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -248,13 +248,13 @@ Memory usage per processor = 41.8034 Mbytes
 Step TotEng pe KinEng ATC[1] ATC[2] x v x2 Ly dL strain 
        4      -1414.1262   0.34311553   0.33071491   0.33071491            0     -19.5738          0.3     -19.5738       41.208        0.408         0.01 
        5      -1414.1262   0.34311553   0.33071491   0.33071491   0.34908704     -19.5738          0.3     -19.5738       41.208        0.408         0.01 
-Loop time of 0.00696105 on 4 procs for 1 steps with 360 atoms
+Loop time of 0.00684071 on 4 procs for 1 steps with 360 atoms
 
-Pair  time (%) = 0.000416279 (5.98012)
+Pair  time (%) = 0.000422955 (6.18291)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000133216 (1.91374)
-Outpt time (%) = 0.0017975 (25.8222)
-Other time (%) = 0.00461406 (66.2839)
+Comm  time (%) = 8.39233e-05 (1.22682)
+Outpt time (%) = 0.00172395 (25.2013)
+Other time (%) = 0.00460988 (67.389)
 
 Nlocal:    90 ave 90 max 90 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -280,13 +280,13 @@ Memory usage per processor = 41.8034 Mbytes
 Step TotEng pe KinEng ATC[1] ATC[2] x v x2 Ly dL strain 
        5      -1413.1082    1.3610604   0.33071491   0.33071491            0   -19.769538          0.3   -19.769538     41.62008      0.82008       0.0201 
        6      -1413.1082    1.3610604   0.33071491   0.33071491    1.0612595   -19.769538          0.3   -19.769538     41.62008      0.82008       0.0201 
-Loop time of 0.00695205 on 4 procs for 1 steps with 360 atoms
+Loop time of 0.00686866 on 4 procs for 1 steps with 360 atoms
 
-Pair  time (%) = 0.000408947 (5.8824)
+Pair  time (%) = 0.000416577 (6.06489)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 9.81092e-05 (1.41123)
-Outpt time (%) = 0.0017482 (25.1466)
-Other time (%) = 0.00469679 (67.5598)
+Comm  time (%) = 0.000141203 (2.05576)
+Outpt time (%) = 0.00175518 (25.5534)
+Other time (%) = 0.0045557 (66.3259)
 
 Nlocal:    90 ave 90 max 90 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -312,13 +312,13 @@ Memory usage per processor = 41.8034 Mbytes
 Step TotEng pe KinEng ATC[1] ATC[2] x v x2 Ly dL strain 
        6      -1411.4328    3.0364818   0.33071491   0.33071491            0   -19.967233          0.3   -19.967233    42.036281    1.2362808     0.030301 
        7      -1411.4328    3.0364818   0.33071491   0.33071491    1.7947982   -19.967233          0.3   -19.967233    42.036281    1.2362808     0.030301 
-Loop time of 0.006953 on 4 procs for 1 steps with 360 atoms
+Loop time of 0.00686812 on 4 procs for 1 steps with 360 atoms
 
-Pair  time (%) = 0.000440717 (6.33851)
+Pair  time (%) = 0.000451982 (6.58087)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000120342 (1.73079)
-Outpt time (%) = 0.00176901 (25.4423)
-Other time (%) = 0.00462294 (66.4884)
+Comm  time (%) = 6.69956e-05 (0.975457)
+Outpt time (%) = 0.00174725 (25.44)
+Other time (%) = 0.0046019 (67.0037)
 
 Nlocal:    90 ave 90 max 90 min
 Histogram: 4 0 0 0 0 0 0 0 0 0

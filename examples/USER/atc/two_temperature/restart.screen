@@ -1,4 +1,4 @@
-LAMMPS (27 Aug 2013)
+LAMMPS (30 Aug 2013)
 Reading data file ...
   orthogonal box = (-64.86 -16.215 -16.215) to (64.86 16.215 16.215)
   4 by 1 by 1 MPI processor grid
@@ -28,13 +28,13 @@ Step Temp E_pair E_mol TotEng Press
      800    16.671491   -6503.8814            0   -6332.1868   -1228.9533 
      900    16.671491    -6505.846            0   -6334.1514   -1235.4657 
     1000    16.671491   -6504.4261            0   -6332.7314   -1231.2716 
-Loop time of 21.2328 on 4 procs for 1000 steps with 3456 atoms
+Loop time of 19.7594 on 4 procs for 1000 steps with 3456 atoms
 
-Pair  time (%) = 9.10513 (42.8824)
-Neigh time (%) = 3.86009 (18.1799)
-Comm  time (%) = 1.60985 (7.58191)
-Outpt time (%) = 0.000943601 (0.00444407)
-Other time (%) = 6.65677 (31.3514)
+Pair  time (%) = 8.87045 (44.8924)
+Neigh time (%) = 3.79509 (19.2065)
+Comm  time (%) = 1.14559 (5.79771)
+Outpt time (%) = 0.000865936 (0.00438241)
+Other time (%) = 5.94736 (30.099)
 
 Nlocal:    864 ave 864 max 864 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -76,13 +76,13 @@ Step Temp E_pair E_mol TotEng Press
     1800    21.314998   -6465.4549            0   -6245.9382   -1104.9574 
     1900    21.353208   -6458.9075            0   -6238.9973   -1085.5335 
     2000    21.394021    -6453.327            0   -6232.9964    -1069.954 
-Loop time of 50.0809 on 4 procs for 2000 steps with 3456 atoms
+Loop time of 46.953 on 4 procs for 2000 steps with 3456 atoms
 
-Pair  time (%) = 18.4234 (36.7873)
-Neigh time (%) = 7.85611 (15.6868)
-Comm  time (%) = 3.43103 (6.85097)
-Outpt time (%) = 0.0019564 (0.00390649)
-Other time (%) = 20.3684 (40.671)
+Pair  time (%) = 18.3041 (38.9839)
+Neigh time (%) = 7.82752 (16.671)
+Comm  time (%) = 2.70777 (5.76698)
+Outpt time (%) = 0.00189728 (0.0040408)
+Other time (%) = 18.1117 (38.5741)
 
 Nlocal:    864 ave 864 max 864 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -137,13 +137,13 @@ Step Temp E_pair E_mol TotEng Press
     1800    27.343301   -6410.2665            0   -6128.6661   -928.15556 
     1900    27.586019   -6407.6536            0   -6123.5535   -917.44798 
     2000    27.450662   -6401.9839            0   -6119.2778   -903.28749 
-Loop time of 53.8605 on 4 procs for 2000 steps with 3456 atoms
+Loop time of 46.8731 on 4 procs for 2000 steps with 3456 atoms
 
-Pair  time (%) = 18.7079 (34.7339)
-Neigh time (%) = 8.06432 (14.9726)
-Comm  time (%) = 4.4794 (8.31666)
-Outpt time (%) = 0.00981998 (0.0182322)
-Other time (%) = 22.5991 (41.9586)
+Pair  time (%) = 18.273 (38.984)
+Neigh time (%) = 7.83951 (16.725)
+Comm  time (%) = 2.87021 (6.12336)
+Outpt time (%) = 0.0091598 (0.0195417)
+Other time (%) = 17.8812 (38.1481)
 
 Nlocal:    864 ave 864 max 864 min
 Histogram: 4 0 0 0 0 0 0 0 0 0

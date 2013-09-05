@@ -1,4 +1,4 @@
-LAMMPS (27 Aug 2013)
+LAMMPS (30 Aug 2013)
 Lattice spacing in x,y,z = 1 1 1
 Created orthogonal box = (0 0 0) to (10 1 1)
   4 by 1 by 1 MPI processor grid
@@ -19,14 +19,14 @@ Setting up run ...
 Memory usage per processor = 0.416939 Mbytes
 Step CPU 
        0            0 
-       1  0.019987106 
-Loop time of 0.020033 on 4 procs for 1 steps with 0 atoms
+       1   0.02030015 
+Loop time of 0.0203151 on 4 procs for 1 steps with 0 atoms
 
 Pair  time (%) = 0 (0)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 2.5034e-06 (0.0124964)
-Outpt time (%) = 0.0085007 (42.4335)
-Other time (%) = 0.0115298 (57.554)
+Comm  time (%) = 3.57628e-06 (0.0176041)
+Outpt time (%) = 0.00105923 (5.21404)
+Other time (%) = 0.0192522 (94.7684)
 
 Nlocal:    0 ave 0 max 0 min
 Histogram: 4 0 0 0 0 0 0 0 0 0

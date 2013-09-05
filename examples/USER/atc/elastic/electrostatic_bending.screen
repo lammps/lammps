@@ -1,4 +1,4 @@
-LAMMPS (27 Aug 2013)
+LAMMPS (30 Aug 2013)
 units		metal
 atom_style charge
 dielectric      1.
@@ -310,7 +310,7 @@ Step TotEng KinEng CM[1] CM[2] CM[3] Q AtC[4] AtC[5] AtC[6] AtC[7] FIX[1] FIX[2]
      480    -6155.851            0  6.13809e-10 -4.9012022e-10    96.935509       -0.025            0            0            0            0 -5.5839534e-08 4.5710027e-08 8.7271236e-05            0 5.5839543e-08 5.5839543e-08 
      490    -6155.851            0 -6.1673512e-10 5.8106663e-10    96.935508       -0.025            0            0            0            0 8.9417248e-08 -6.795396e-08 4.2860856e-05            0 -8.941724e-08 -8.941724e-08 
      500    -6155.851            0 -1.4672717e-11 -1.0669776e-11    96.935508       -0.025            0            0            0            0 -1.9116216e-08 1.6870874e-08 3.2008126e-05            0 1.9116217e-08 1.9116217e-08 
-Loop time of 37.3717 on 4 procs for 500 steps with 846 atoms
+Loop time of 30.9289 on 4 procs for 500 steps with 846 atoms
 
 Minimization stats:
   Stopping criterion = max force evaluations
@@ -321,11 +321,11 @@ Minimization stats:
   Final line search alpha, max atom move = 1 4.97842e-07
   Iterations, force evaluations = 500 1000
 
-Pair  time (%) = 7.85085 (21.0075)
+Pair  time (%) = 7.36287 (23.8058)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.892387 (2.38787)
-Outpt time (%) = 0.571988 (1.53054)
-Other time (%) = 28.0565 (75.0741)
+Comm  time (%) = 0.433724 (1.40232)
+Outpt time (%) = 0.469743 (1.51878)
+Other time (%) = 22.6626 (73.2731)
 
 Nlocal:    211.5 ave 216 max 207 min
 Histogram: 2 0 0 0 0 0 0 0 0 2
@@ -352,7 +352,7 @@ Memory usage per processor = 55.3135 Mbytes
 Step TotEng KinEng CM[1] CM[2] CM[3] Q AtC[4] AtC[5] AtC[6] AtC[7] FIX[1] FIX[2] FIX[3] AtC FSUM[1] RSUM[1] 
      500    -6155.851            0 -1.4672652e-11 -1.0669743e-11    96.935508       -0.025            0            0            0            0 -1.9116216e-08 1.6870874e-08 3.2008126e-05            0 1.9116216e-08 1.9116216e-08 
      501    -6155.851            0 -1.4672652e-11 -1.0669743e-11    96.935508       -0.025            0            0            0            0 -1.9116216e-08 1.6870874e-08 3.2008126e-05            0 1.9116216e-08 1.9116216e-08 
-Loop time of 0.124965 on 4 procs for 1 steps with 846 atoms
+Loop time of 0.126459 on 4 procs for 1 steps with 846 atoms
 
 Minimization stats:
   Stopping criterion = linesearch alpha is zero
@@ -363,11 +363,11 @@ Minimization stats:
   Final line search alpha, max atom move = 0.5 2.48921e-07
   Iterations, force evaluations = 1 2
 
-Pair  time (%) = 0.0223168 (17.8584)
+Pair  time (%) = 0.0224647 (17.7644)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.00166315 (1.33089)
+Comm  time (%) = 0.00162107 (1.28189)
 Outpt time (%) = 0 (0)
-Other time (%) = 0.100985 (80.8107)
+Other time (%) = 0.102374 (80.9537)
 
 Nlocal:    211.5 ave 216 max 198 min
 Histogram: 1 0 0 0 0 0 0 0 0 3
@@ -456,7 +456,7 @@ Step TotEng KinEng CM[1] CM[2] CM[3] Q AtC[4] AtC[5] AtC[6] AtC[7] FIX[1] FIX[2]
      680    -6155.851            0 0.0091353864 -1.2005671e-09    96.935506       -0.025            0            0            0 0.00083333333 -0.00098634606 -5.6084108e-09 -0.0001949811 -7.612822e-06 0.0018196794 0.0018196794 
      690    -6155.851            0 0.0092720897 -6.6192949e-11    96.935506       -0.025            0            0            0 0.00083333333 -0.0015552585 -8.6270391e-10 9.3688022e-05 -7.7267414e-06 0.0023885919 0.0023885919 
      699    -6155.851            0 0.0093583676 1.0464746e-09    96.935509       -0.025            0            0            0 0.00083333333 -0.0017464739 2.5209399e-08 7.7398462e-05 -7.7986397e-06 0.0025798072 0.0025798072 
-Loop time of 13.8392 on 4 procs for 198 steps with 846 atoms
+Loop time of 12.6142 on 4 procs for 198 steps with 846 atoms
 
 Minimization stats:
   Stopping criterion = linesearch alpha is zero
@@ -467,11 +467,11 @@ Minimization stats:
   Final line search alpha, max atom move = 0.0078125 9.80074e-07
   Iterations, force evaluations = 198 409
 
-Pair  time (%) = 3.0624 (22.1285)
+Pair  time (%) = 3.02133 (23.9519)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.321592 (2.32378)
-Outpt time (%) = 0.165954 (1.19916)
-Other time (%) = 10.2892 (74.3485)
+Comm  time (%) = 0.217952 (1.72784)
+Outpt time (%) = 0.172572 (1.36808)
+Other time (%) = 9.2023 (72.9522)
 
 Nlocal:    211.5 ave 216 max 198 min
 Histogram: 1 0 0 0 0 0 0 0 0 3
@@ -499,7 +499,7 @@ Step TotEng KinEng CM[1] CM[2] CM[3] Q AtC[4] AtC[5] AtC[6] AtC[7] FIX[1] FIX[2]
      699    -6155.851            0 0.0093583676 1.0464746e-09    96.935509       -0.025            0            0            0 0.00083333333 -0.0017464739 2.5209399e-08 7.7398462e-05 -7.7986397e-06 0.0025798072 0.0025798072 
      700    -6155.851            0 0.0093585294 1.0053739e-09    96.935509       -0.025            0            0            0 0.00083333333 -0.0017544129 2.4247674e-08 5.1686313e-05 -7.7987745e-06 0.0025877462 0.0025877462 
      701    -6155.851            0 0.0093585294 1.0053739e-09    96.935509       -0.025            0            0            0 0.00083333333 -0.0017544129 2.4247674e-08 5.1686313e-05 -7.7987745e-06 0.0025877462 0.0025877462 
-Loop time of 0.500238 on 4 procs for 2 steps with 846 atoms
+Loop time of 0.497815 on 4 procs for 2 steps with 846 atoms
 
 Minimization stats:
   Stopping criterion = linesearch alpha is zero
@@ -510,11 +510,11 @@ Minimization stats:
   Final line search alpha, max atom move = 0.015625 1.26666e-06
   Iterations, force evaluations = 2 14
 
-Pair  time (%) = 0.110933 (22.1761)
+Pair  time (%) = 0.111058 (22.3091)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.00833148 (1.6655)
-Outpt time (%) = 0.00879508 (1.75818)
-Other time (%) = 0.372179 (74.4002)
+Comm  time (%) = 0.00784844 (1.57658)
+Outpt time (%) = 0.0085063 (1.70873)
+Other time (%) = 0.370402 (74.4056)
 
 Nlocal:    211.5 ave 216 max 198 min
 Histogram: 1 0 0 0 0 0 0 0 0 3
@@ -611,7 +611,7 @@ Step TotEng KinEng CM[1] CM[2] CM[3] Q AtC[4] AtC[5] AtC[6] AtC[7] FIX[1] FIX[2]
      960   -6155.8511            0   0.12158268 2.8258211e-09    96.935015       -0.025            0            0            0 0.0016666667 0.0013596908 -1.5767032e-06 0.0030979015 -0.00020263779 0.00030697591 0.00030697591 
      970   -6155.8511            0   0.12403838 -1.3425882e-09    96.935054       -0.025            0            0            0 0.0016666667 0.0017582125 -2.2550336e-07 -0.0026021546 -0.00020673063 -9.1545869e-05 -9.1545869e-05 
      972   -6155.8511            0   0.12405405 -2.2177075e-10    96.935054       -0.025            0            0            0 0.0016666667 0.0017724415 -1.7549598e-07 -0.0025842017 -0.00020675674 -0.00010577487 -0.00010577487 
-Loop time of 21.9994 on 4 procs for 271 steps with 846 atoms
+Loop time of 17.0323 on 4 procs for 271 steps with 846 atoms
 
 Minimization stats:
   Stopping criterion = linesearch alpha is zero
@@ -622,11 +622,11 @@ Minimization stats:
   Final line search alpha, max atom move = 0.015625 1.38092e-06
   Iterations, force evaluations = 271 553
 
-Pair  time (%) = 4.33801 (19.7188)
+Pair  time (%) = 4.08135 (23.9625)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.85839 (3.90188)
-Outpt time (%) = 0.296559 (1.34803)
-Other time (%) = 16.5064 (75.0313)
+Comm  time (%) = 0.286546 (1.68237)
+Outpt time (%) = 0.265996 (1.56172)
+Other time (%) = 12.3984 (72.7934)
 
 Nlocal:    211.5 ave 216 max 198 min
 Histogram: 1 0 0 0 0 0 0 0 0 3
@@ -653,7 +653,7 @@ Memory usage per processor = 55.3135 Mbytes
 Step TotEng KinEng CM[1] CM[2] CM[3] Q AtC[4] AtC[5] AtC[6] AtC[7] FIX[1] FIX[2] FIX[3] AtC FSUM[1] RSUM[1] 
      972   -6155.8511            0   0.12405405 -2.2177075e-10    96.935054       -0.025            0            0            0 0.0016666667 0.0017724415 -1.7549598e-07 -0.0025842017 -0.00020675674 -0.00010577487 -0.00010577487 
      973   -6155.8511            0   0.12405405 -2.2177075e-10    96.935054       -0.025            0            0            0 0.0016666667 0.0017724415 -1.7549598e-07 -0.0025842017 -0.00020675674 -0.00010577487 -0.00010577487 
-Loop time of 0.281839 on 4 procs for 1 steps with 846 atoms
+Loop time of 0.277973 on 4 procs for 1 steps with 846 atoms
 
 Minimization stats:
   Stopping criterion = linesearch alpha is zero
@@ -664,11 +664,11 @@ Minimization stats:
   Final line search alpha, max atom move = 0.015625 1.38092e-06
   Iterations, force evaluations = 1 7
 
-Pair  time (%) = 0.059489 (21.1074)
+Pair  time (%) = 0.0595517 (21.4235)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.00420737 (1.49283)
+Comm  time (%) = 0.00425941 (1.53231)
 Outpt time (%) = 0 (0)
-Other time (%) = 0.218143 (77.3997)
+Other time (%) = 0.214162 (77.0441)
 
 Nlocal:    211.5 ave 216 max 198 min
 Histogram: 1 0 0 0 0 0 0 0 0 3
@@ -738,7 +738,7 @@ Memory usage per processor = 55.3135 Mbytes
 Step TotEng KinEng CM[1] CM[2] CM[3] Q AtC[4] AtC[5] AtC[6] AtC[7] FIX[1] FIX[2] FIX[3] AtC FSUM[1] RSUM[1] 
      973   -6155.8512            0   0.12405405 -2.2177075e-10    96.935054       -0.025            0            0            0       0.0025 0.0017724415 -1.7549598e-07 -0.0025842017 -0.00031013512 0.00072755846 0.00072755846 
      977   -6155.8512            0   0.12406088 -1.0970139e-09    96.935055       -0.025            0            0            0       0.0025 0.0017262049 -1.3531203e-07 -0.0026622077 -0.0003101522 0.00077379508 0.00077379508 
-Loop time of 0.650799 on 4 procs for 4 steps with 846 atoms
+Loop time of 0.638204 on 4 procs for 4 steps with 846 atoms
 
 Minimization stats:
   Stopping criterion = linesearch alpha is zero
@@ -749,11 +749,11 @@ Minimization stats:
   Final line search alpha, max atom move = 0.015625 1.01449e-06
   Iterations, force evaluations = 4 19
 
-Pair  time (%) = 0.147043 (22.5943)
+Pair  time (%) = 0.147569 (23.1225)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.0102098 (1.56881)
+Comm  time (%) = 0.0103859 (1.62737)
 Outpt time (%) = 0 (0)
-Other time (%) = 0.493546 (75.8369)
+Other time (%) = 0.480249 (75.2501)
 
 Nlocal:    211.5 ave 216 max 198 min
 Histogram: 1 0 0 0 0 0 0 0 0 3
@@ -780,7 +780,7 @@ Memory usage per processor = 55.3135 Mbytes
 Step TotEng KinEng CM[1] CM[2] CM[3] Q AtC[4] AtC[5] AtC[6] AtC[7] FIX[1] FIX[2] FIX[3] AtC FSUM[1] RSUM[1] 
      977   -6155.8512            0   0.12406088 -1.0970139e-09    96.935055       -0.025            0            0            0       0.0025 0.0017262049 -1.3531203e-07 -0.0026622077 -0.0003101522 0.00077379508 0.00077379508 
      978   -6155.8512            0   0.12406088 -1.0970139e-09    96.935055       -0.025            0            0            0       0.0025 0.0017262049 -1.3531203e-07 -0.0026622077 -0.0003101522 0.00077379508 0.00077379508 
-Loop time of 0.27975 on 4 procs for 1 steps with 846 atoms
+Loop time of 0.28216 on 4 procs for 1 steps with 846 atoms
 
 Minimization stats:
   Stopping criterion = linesearch alpha is zero
@@ -791,11 +791,11 @@ Minimization stats:
   Final line search alpha, max atom move = 0.015625 1.01449e-06
   Iterations, force evaluations = 1 7
 
-Pair  time (%) = 0.059441 (21.2479)
+Pair  time (%) = 0.0597659 (21.1816)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.0041911 (1.49816)
+Comm  time (%) = 0.00443769 (1.57275)
 Outpt time (%) = 0 (0)
-Other time (%) = 0.216118 (77.254)
+Other time (%) = 0.217956 (77.2457)
 
 Nlocal:    211.5 ave 216 max 198 min
 Histogram: 1 0 0 0 0 0 0 0 0 3

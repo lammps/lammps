@@ -60,6 +60,8 @@ class FixRigidSmall : public Fix {
   int dof(int);
   void deform(int);
   void reset_dt();
+  void zero_momentum(int);
+  void zero_rotation(int);
   void *extract(const char*,int &);
   double compute_scalar();
   double memory_usage();

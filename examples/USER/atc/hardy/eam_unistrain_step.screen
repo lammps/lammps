@@ -1,4 +1,4 @@
-LAMMPS (27 Aug 2013)
+LAMMPS (30 Aug 2013)
 units		metal
 atom_style	atomic
 # create domain
@@ -53,13 +53,13 @@ Memory usage per processor = 34.3603 Mbytes
 Step PotEng KinEng Press Lx Ly Lz 
        0   -17256.022            0   -2117.8338       130.14        21.69        21.69 
        1   -17256.022            0   -2117.8338       130.14        21.69        21.69 
-Loop time of 0.00481725 on 4 procs for 1 steps with 4896 atoms
+Loop time of 0.00491542 on 4 procs for 1 steps with 4896 atoms
 
-Pair  time (%) = 0.00438052 (90.9342)
+Pair  time (%) = 0.00442022 (89.9257)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.00031966 (6.63573)
-Outpt time (%) = 4.99487e-05 (1.03687)
-Other time (%) = 6.71148e-05 (1.39322)
+Comm  time (%) = 0.000348747 (7.09496)
+Outpt time (%) = 6.56247e-05 (1.33508)
+Other time (%) = 8.08239e-05 (1.64429)
 
 Nlocal:    1224 ave 1296 max 1152 min
 Histogram: 2 0 0 0 0 0 0 0 0 2
@@ -87,13 +87,13 @@ Memory usage per processor = 34.3603 Mbytes
 Step PotEng KinEng Press Lx Ly Lz 
        1   -17252.771            0   -14787.592       130.14        21.69        21.69 
        2   -17252.771            0   -14787.592       130.14        21.69        21.69 
-Loop time of 0.0587208 on 4 procs for 1 steps with 4896 atoms
+Loop time of 0.0609433 on 4 procs for 1 steps with 4896 atoms
 
-Pair  time (%) = 0.00456274 (7.77022)
+Pair  time (%) = 0.00458765 (7.52773)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000354826 (0.60426)
-Outpt time (%) = 0.000666022 (1.13422)
-Other time (%) = 0.0531372 (90.4913)
+Comm  time (%) = 0.000336945 (0.552883)
+Outpt time (%) = 0.000727952 (1.19447)
+Other time (%) = 0.0552908 (90.7249)
 
 Nlocal:    1224 ave 1296 max 1152 min
 Histogram: 2 0 0 0 0 0 0 0 0 2

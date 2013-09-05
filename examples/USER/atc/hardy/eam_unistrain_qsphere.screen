@@ -1,4 +1,4 @@
-LAMMPS (27 Aug 2013)
+LAMMPS (30 Aug 2013)
 Lattice spacing in x,y,z = 3.615 3.615 3.615
 Created orthogonal box = (-65.07 -10.845 -10.845) to (65.07 10.845 10.845)
   4 by 1 by 1 MPI processor grid
@@ -14,13 +14,13 @@ Memory usage per processor = 12.3855 Mbytes
 Step PotEng KinEng Press Lx Ly Lz 
        0   -17256.022            0   -2117.8338       130.14        21.69        21.69 
        1   -17256.022            0   -2117.8338       130.14        21.69        21.69 
-Loop time of 0.0049392 on 4 procs for 1 steps with 4896 atoms
+Loop time of 0.00503403 on 4 procs for 1 steps with 4896 atoms
 
-Pair  time (%) = 0.00447571 (90.6162)
+Pair  time (%) = 0.00445276 (88.4533)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000346839 (7.02218)
-Outpt time (%) = 5.78165e-05 (1.17056)
-Other time (%) = 5.88298e-05 (1.19108)
+Comm  time (%) = 0.000399053 (7.92711)
+Outpt time (%) = 8.45194e-05 (1.67896)
+Other time (%) = 9.7692e-05 (1.94063)
 
 Nlocal:    1224 ave 1296 max 1152 min
 Histogram: 2 0 0 0 0 0 0 0 0 2
@@ -45,13 +45,13 @@ Memory usage per processor = 12.3855 Mbytes
 Step PotEng KinEng Press Lx Ly Lz 
        1   -17252.771            0   -14787.592       130.14        21.69        21.69 
        2   -17252.771            0   -14787.592       130.14        21.69        21.69 
-Loop time of 0.114901 on 4 procs for 1 steps with 4896 atoms
+Loop time of 0.0662282 on 4 procs for 1 steps with 4896 atoms
 
-Pair  time (%) = 0.00467449 (4.06829)
+Pair  time (%) = 0.00455725 (6.88113)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.00037092 (0.322817)
-Outpt time (%) = 0.00064671 (0.562842)
-Other time (%) = 0.109209 (95.0461)
+Comm  time (%) = 0.000357509 (0.539813)
+Outpt time (%) = 0.000589728 (0.890449)
+Other time (%) = 0.0607237 (91.6886)
 
 Nlocal:    1224 ave 1296 max 1152 min
 Histogram: 2 0 0 0 0 0 0 0 0 2

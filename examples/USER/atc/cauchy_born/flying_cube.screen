@@ -1,4 +1,4 @@
-LAMMPS (27 Aug 2013)
+LAMMPS (30 Aug 2013)
 log            log.flying_cube
 units          real
 atom_style     atomic
@@ -106,7 +106,7 @@ Step Temp Pxx Pyy Pzz TotEng Lx Ly Lz
      480            0 -4.8910054e-07 -4.8910048e-07 -4.8910165e-07   -1743.9897    31.537365    31.537365    31.537365 
      490            0 -4.8910103e-07 -4.8910094e-07 -4.8910185e-07   -1743.9897    31.537365    31.537365    31.537365 
      500            0 -4.8910081e-07 -4.8910044e-07 -4.891017e-07   -1743.9897    31.537365    31.537365    31.537365 
-Loop time of 3.60006 on 4 procs for 500 steps with 864 atoms
+Loop time of 2.60095 on 4 procs for 500 steps with 864 atoms
 
 Minimization stats:
   Stopping criterion = max force evaluations
@@ -117,11 +117,11 @@ Minimization stats:
   Final line search alpha, max atom move = 1 1.74791e-14
   Iterations, force evaluations = 500 1000
 
-Pair  time (%) = 2.31732 (64.369)
+Pair  time (%) = 2.2023 (84.6729)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 1.02401 (28.4441)
-Outpt time (%) = 0.00411642 (0.114343)
-Other time (%) = 0.254617 (7.07256)
+Comm  time (%) = 0.349195 (13.4257)
+Outpt time (%) = 0.00349456 (0.134357)
+Other time (%) = 0.045961 (1.76709)
 
 Nlocal:    216 ave 216 max 216 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -538,13 +538,13 @@ Step Temp Pxx Pyy Pzz TotEng Lx Ly Lz
     3480    160162.49    1803377.9 -4.8910193e-07 -4.8910309e-07    410741.67    31.537365    31.537365    31.537365 
     3490    160162.49    1803377.9 -4.8910055e-07 -4.8910166e-07    410741.67    31.537365    31.537365    31.537365 
     3500    160162.49    1803377.9 -4.8910204e-07 -4.8910346e-07    410741.67    31.537365    31.537365    31.537365 
-Loop time of 88.8638 on 4 procs for 3500 steps with 864 atoms
+Loop time of 80.8516 on 4 procs for 3500 steps with 864 atoms
 
-Pair  time (%) = 5.32526 (5.99261)
-Neigh time (%) = 0.100294 (0.112863)
-Comm  time (%) = 3.46178 (3.8956)
-Outpt time (%) = 1.13803 (1.28064)
-Other time (%) = 78.8384 (88.7183)
+Pair  time (%) = 5.18115 (6.40822)
+Neigh time (%) = 0.100233 (0.123972)
+Comm  time (%) = 1.20288 (1.48777)
+Outpt time (%) = 0.865927 (1.07101)
+Other time (%) = 73.5014 (90.909)
 
 Nlocal:    216 ave 216 max 216 min
 Histogram: 4 0 0 0 0 0 0 0 0 0

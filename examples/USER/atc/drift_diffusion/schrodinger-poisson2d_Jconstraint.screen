@@ -1,43 +1,51 @@
-LAMMPS (27 Aug 2013)
+LAMMPS (30 Aug 2013)
 log schrodinger-poisson2d_Jconstraint.log
-#variable iter equal 2 # need two for potential to affect density
-variable iter1 equal 4  # NOTE <<<<
-variable iter2 equal 25 # NOTE <<<<
-variable r    equal 1
-variable nx equal 12 # 30 40 10
-variable mx equal 4  # 4  2
-#variable ny equal ${nx}
-variable ny equal 12 # 30 40
-variable my equal 8 # 12 6
-variable nz equal 1
-variable hx  equal 1.0
-variable hy  equal ${hx}*${nx}/${ny}
-variable hy  equal 1*${nx}/${ny}
-variable hy  equal 1*12/${ny}
-variable hy  equal 1*12/12
-variable l  equal -${hx}*${nx}
-variable l  equal -1*${nx}
-variable l  equal -1*12
-variable u  equal  ${hx}*${nx}
-variable u  equal  1*${nx}
-variable u  equal  1*12
+# physical parameters ===========================
+variable T  equal 300
+variable n0 equal 0.00007
+variable J0 equal 40.0
+variable Vs equal 1.0
+# geometric parameters ===========================
+#variable Vg equal 1.0
+variable iter1 equal 4
+variable iter2 equal 25
+variable r    equal 10 # run
+variable nx equal 12  # elements in x
+variable ny equal 12  # elements in y
+variable nz equal 1   # elements in z
+variable mx equal 4   # wire elements in x
+variable my equal 3   # wire elements in y
+variable n1 equal floor(${nx}/4) # number of elements in lower vaccuum
+variable n1 equal floor(12/4) 
+variable n2 equal 3*${n1} # number of elements in lower vaccuum + wire
+variable n2 equal 3*3 
+variable hx  equal 1.0    # mesh size in x
+variable hy  equal ${hx}  # mesh size in y
+variable hy  equal 1  
+variable l  equal -${hx}*${nx} # box lower bound
+variable l  equal -1*${nx} 
+variable l  equal -1*12 
+variable u  equal  ${hx}*${nx} # box upper bound
+variable u  equal  1*${nx} 
+variable u  equal  1*12 
 variable w  equal  ${hy}*${my}
 variable w  equal  1*${my}
-variable w  equal  1*8
+variable w  equal  1*3
 variable q  equal  ${hx}*${mx}
 variable q  equal  1*${mx}
 variable q  equal  1*4
-variable y equal ${nx}+1-${mx}
-variable y equal 12+1-${mx}
-variable y equal 12+1-4
-variable T  equal 300
-variable S equal 1
-variable n0 equal 0.00007
-variable J0 equal 40.0 # 100.0  40.0
-variable Vs equal 1.0
-#variable Vg equal 1.0 # 10.0 0.0
+variable y  equal ${nx}+1-${mx}
+variable y  equal 12+1-${mx}
+variable y  equal 12+1-4
+variable w1 equal (-$w-$l)/($u-$l)
+variable w1 equal (-3-$l)/($u-$l)
+variable w1 equal (-3--12)/($u-$l)
+variable w1 equal (-3--12)/(12-$l)
+variable w1 equal (-3--12)/(12--12)
+variable w2 equal 1-${w1}
+variable w2 equal 1-0.375
 variable tol equal 0.01
-#################################################
+#================================================
 atom_style      atomic
 timestep  0.001
 boundary      f f f
@@ -53,8 +61,7 @@ Created orthogonal box = (-19.0488 -19.0488 0) to (19.0488 19.0488 1.5874)
   2 by 2 by 1 MPI processor grid
 mass          * 12.01
 atom_modify     sort 0 1
-#    ID  group atc PhysicsType ParameterFile
-fix  AtC all   atc drift_diffusion-schrodinger-slice SiVacuum_ddm_schrodinger.mat
+fix  AtC all  atc drift_diffusion-schrodinger-slice SiVacuum_ddm_schrodinger.mat
 Constructing ATC transfer (drift_diffusion-schrodinger-slice) with parameter file SiVacuum_ddm_schrodinger.mat
  ATC: version 2.0
  ATC: peratom PE compute created with ID: 3
@@ -66,6 +73,7 @@ Constructing ATC transfer (drift_diffusion-schrodinger-slice) with parameter fil
  ATC: creating drift_diffusion extrinsic model
  ATC: WARNING: must use a unit system where: [Energy/force] = [Length] and [charge] = e
  ATC: WARNING: material units metal do not match lammps
+[pharsalus:03148] *** Process received signal ***
  ATC: WARNING: must use a unit system where: [Energy/force] = [Length] and [charge] = e
  ATC: WARNING: material units metal do not match lammps
  ATC: 2 materials defined from SiVacuum_ddm_schrodinger.mat
@@ -74,138 +82,82 @@ Constructing ATC transfer (drift_diffusion-schrodinger-slice) with parameter fil
  ATC: WARNING: must use a unit system where: [Energy/force] = [Length] and [charge] = e
  ATC: WARNING: material units metal do not match lammps
  ATC: 2 materials defined from SiVacuum_ddm_schrodinger.mat
-#            ID  part keywords    nx ny nz region
-fix_modify   AtC mesh create ${nx} ${ny} ${nz}  BOX f f p
-fix_modify   AtC mesh create 12 ${ny} ${nz}  BOX f f p
-fix_modify   AtC mesh create 12 12 ${nz}  BOX f f p
-fix_modify   AtC mesh create 12 12 1  BOX f f p
- ATC: created uniform mesh with 338 nodes, 169 unique nodes, and 144 elements
-# surfaces & regions
-variable a equal $l-${tol}
-variable a equal -12-${tol}
-variable a equal -12-0.010000000000000000208
-variable b equal $l+$q+${tol}
-variable b equal -12+$q+${tol}
-variable b equal -12+4+${tol}
-variable b equal -12+4+0.010000000000000000208
-variable c equal -$w-${tol}
-variable c equal -8-${tol}
-variable c equal -8-0.010000000000000000208
-variable d equal  $w+${tol}
-variable d equal  8+${tol}
-variable d equal  8+0.010000000000000000208
-variable e equal $l+$q-${tol}
-variable e equal -12+$q-${tol}
-variable e equal -12+4-${tol}
-variable e equal -12+4-0.010000000000000000208
-fix_modify AtC mesh create_nodeset bot -INF INF $a $b -INF INF
-fix_modify AtC mesh create_nodeset bot -INF INF -12.009999999999999787 $b -INF INF
-fix_modify AtC mesh create_nodeset bot -INF INF -12.009999999999999787 -7.9900000000000002132 -INF INF
- ATC: created nodeset bot with 39 nodes
-fix_modify AtC mesh create_nodeset lbc   $a $b -INF INF -INF INF
-fix_modify AtC mesh create_nodeset lbc   -12.009999999999999787 $b -INF INF -INF INF
-fix_modify AtC mesh create_nodeset lbc   -12.009999999999999787 -7.9900000000000002132 -INF INF -INF INF
- ATC: created nodeset lbc with 39 nodes
-variable a equal $u-$q-${tol}
-variable a equal 12-$q-${tol}
-variable a equal 12-4-${tol}
-variable a equal 12-4-0.010000000000000000208
-variable b equal $u+${tol}
-variable b equal 12+${tol}
-variable b equal 12+0.010000000000000000208
-variable e equal $u-$q+${tol}
-variable e equal 12-$q+${tol}
-variable e equal 12-4+${tol}
-variable e equal 12-4+0.010000000000000000208
-fix_modify AtC mesh create_nodeset top -INF INF $a $b -INF INF
-fix_modify AtC mesh create_nodeset top -INF INF 7.9900000000000002132 $b -INF INF
-fix_modify AtC mesh create_nodeset top -INF INF 7.9900000000000002132 12.009999999999999787 -INF INF
- ATC: created nodeset top with 39 nodes
-fix_modify AtC mesh create_nodeset rbc   $a $b -INF INF -INF INF
-fix_modify AtC mesh create_nodeset rbc   7.9900000000000002132 $b -INF INF -INF INF
-fix_modify AtC mesh create_nodeset rbc   7.9900000000000002132 12.009999999999999787 -INF INF -INF INF
- ATC: created nodeset rbc with 39 nodes
-variable a equal -$w-${tol}
-variable a equal -8-${tol}
-variable a equal -8-0.010000000000000000208
-variable b equal  $w+${tol}
-variable b equal  8+${tol}
-variable b equal  8+0.010000000000000000208
-variable c equal  $l+$q-${tol}
-variable c equal  -12+$q-${tol}
-variable c equal  -12+4-${tol}
-variable c equal  -12+4-0.010000000000000000208
-variable d equal  $u-$q+${tol}
-variable d equal  12-$q+${tol}
-variable d equal  12-4+${tol}
-variable d equal  12-4+0.010000000000000000208
-fix_modify AtC mesh create_elementset wire $c $d $a $b  -INF INF
-fix_modify AtC mesh create_elementset wire -8.0099999999999997868 $d $a $b  -INF INF
-fix_modify AtC mesh create_elementset wire -8.0099999999999997868 8.0099999999999997868 $a $b  -INF INF
-fix_modify AtC mesh create_elementset wire -8.0099999999999997868 8.0099999999999997868 -8.0099999999999997868 $b  -INF INF
-fix_modify AtC mesh create_elementset wire -8.0099999999999997868 8.0099999999999997868 -8.0099999999999997868 8.0099999999999997868  -INF INF
- ATC: created elementset wire with 64 elements
-fix_modify AtC mesh create_nodeset    wire $c $d $a $b  -INF INF
-fix_modify AtC mesh create_nodeset    wire -8.0099999999999997868 $d $a $b  -INF INF
-fix_modify AtC mesh create_nodeset    wire -8.0099999999999997868 8.0099999999999997868 $a $b  -INF INF
-fix_modify AtC mesh create_nodeset    wire -8.0099999999999997868 8.0099999999999997868 -8.0099999999999997868 $b  -INF INF
-fix_modify AtC mesh create_nodeset    wire -8.0099999999999997868 8.0099999999999997868 -8.0099999999999997868 8.0099999999999997868  -INF INF
- ATC: created nodeset wire with 81 nodes
-variable e equal $c+2*${tol}
-variable e equal -8.0099999999999997868+2*${tol}
-variable e equal -8.0099999999999997868+2*0.010000000000000000208
-variable f equal $c+${tol}
-variable f equal -8.0099999999999997868+${tol}
-variable f equal -8.0099999999999997868+0.010000000000000000208
-fix_modify AtC mesh create_nodeset lwire   $c $e $a $b  -INF INF
-fix_modify AtC mesh create_nodeset lwire   -8.0099999999999997868 $e $a $b  -INF INF
-fix_modify AtC mesh create_nodeset lwire   -8.0099999999999997868 -7.9900000000000002132 $a $b  -INF INF
-fix_modify AtC mesh create_nodeset lwire   -8.0099999999999997868 -7.9900000000000002132 -8.0099999999999997868 $b  -INF INF
-fix_modify AtC mesh create_nodeset lwire   -8.0099999999999997868 -7.9900000000000002132 -8.0099999999999997868 8.0099999999999997868  -INF INF
- ATC: created nodeset lwire with 9 nodes
-fix_modify AtC mesh create_faceset lwire   $f INF $a $b  -INF INF
-fix_modify AtC mesh create_faceset lwire   -8 INF $a $b  -INF INF
-fix_modify AtC mesh create_faceset lwire   -8 INF -8.0099999999999997868 $b  -INF INF
-fix_modify AtC mesh create_faceset lwire   -8 INF -8.0099999999999997868 8.0099999999999997868  -INF INF
- ATC: created faceset lwire with 8 faces
-variable e equal $d-2*${tol}
-variable e equal 8.0099999999999997868-2*${tol}
-variable e equal 8.0099999999999997868-2*0.010000000000000000208
-variable f equal $d-${tol}
-variable f equal 8.0099999999999997868-${tol}
-variable f equal 8.0099999999999997868-0.010000000000000000208
-fix_modify AtC mesh create_nodeset rwire   $e $d $a $b  -INF INF
-fix_modify AtC mesh create_nodeset rwire   7.9900000000000002132 $d $a $b  -INF INF
-fix_modify AtC mesh create_nodeset rwire   7.9900000000000002132 8.0099999999999997868 $a $b  -INF INF
-fix_modify AtC mesh create_nodeset rwire   7.9900000000000002132 8.0099999999999997868 -8.0099999999999997868 $b  -INF INF
-fix_modify AtC mesh create_nodeset rwire   7.9900000000000002132 8.0099999999999997868 -8.0099999999999997868 8.0099999999999997868  -INF INF
- ATC: created nodeset rwire with 9 nodes
-fix_modify AtC mesh create_faceset rwire   -INF $f $a $b  -INF INF
-fix_modify AtC mesh create_faceset rwire   -INF 8 $a $b  -INF INF
-fix_modify AtC mesh create_faceset rwire   -INF 8 -8.0099999999999997868 $b  -INF INF
-fix_modify AtC mesh create_faceset rwire   -INF 8 -8.0099999999999997868 8.0099999999999997868  -INF INF
- ATC: created faceset rwire with 8 faces
-variable e equal $a+2*${tol}
-variable e equal -8.0099999999999997868+2*${tol}
-variable e equal -8.0099999999999997868+2*0.010000000000000000208
-fix_modify AtC mesh create_nodeset bwire   $c $d $a $e  -INF INF
-fix_modify AtC mesh create_nodeset bwire   -8.0099999999999997868 $d $a $e  -INF INF
-fix_modify AtC mesh create_nodeset bwire   -8.0099999999999997868 8.0099999999999997868 $a $e  -INF INF
-fix_modify AtC mesh create_nodeset bwire   -8.0099999999999997868 8.0099999999999997868 -8.0099999999999997868 $e  -INF INF
-fix_modify AtC mesh create_nodeset bwire   -8.0099999999999997868 8.0099999999999997868 -8.0099999999999997868 -7.9900000000000002132  -INF INF
- ATC: created nodeset bwire with 9 nodes
-variable e equal $b-2*${tol}
-variable e equal 8.0099999999999997868-2*${tol}
-variable e equal 8.0099999999999997868-2*0.010000000000000000208
-fix_modify AtC mesh create_nodeset twire   $c $d $e $b  -INF INF
-fix_modify AtC mesh create_nodeset twire   -8.0099999999999997868 $d $e $b  -INF INF
-fix_modify AtC mesh create_nodeset twire   -8.0099999999999997868 8.0099999999999997868 $e $b  -INF INF
-fix_modify AtC mesh create_nodeset twire   -8.0099999999999997868 8.0099999999999997868 7.9900000000000002132 $b  -INF INF
-fix_modify AtC mesh create_nodeset twire   -8.0099999999999997868 8.0099999999999997868 7.9900000000000002132 8.0099999999999997868  -INF INF
- ATC: created nodeset twire with 9 nodes
-# new material
-fix_modify AtC material wire Si
-# simplify
-fix_modify  AtC extrinsic one_dimensional x wire $y
-fix_modify  AtC extrinsic one_dimensional x wire 9
-ERROR: Illegal fix_modify command (../fix.cpp:104)
+fix_modify   AtC mesh create ${nx} ${ny} ${nz}  BOX f f p dy position-number-density 0 0 4.0   ${w1} ${n1} 1.   ${w2} ${n2} 1.   1 ${ny} 4.0
+fix_modify   AtC mesh create 12 ${ny} ${nz}  BOX f f p dy position-number-density 0 0 4.0   ${w1} ${n1} 1.   ${w2} ${n2} 1.   1 ${ny} 4.0
+fix_modify   AtC mesh create 12 12 ${nz}  BOX f f p dy position-number-density 0 0 4.0   ${w1} ${n1} 1.   ${w2} ${n2} 1.   1 ${ny} 4.0
+fix_modify   AtC mesh create 12 12 1  BOX f f p dy position-number-density 0 0 4.0   ${w1} ${n1} 1.   ${w2} ${n2} 1.   1 ${ny} 4.0
+fix_modify   AtC mesh create 12 12 1  BOX f f p dy position-number-density 0 0 4.0   0.375 ${n1} 1.   ${w2} ${n2} 1.   1 ${ny} 4.0
+fix_modify   AtC mesh create 12 12 1  BOX f f p dy position-number-density 0 0 4.0   0.375 3 1.   ${w2} ${n2} 1.   1 ${ny} 4.0
+fix_modify   AtC mesh create 12 12 1  BOX f f p dy position-number-density 0 0 4.0   0.375 3 1.   0.625 ${n2} 1.   1 ${ny} 4.0
+fix_modify   AtC mesh create 12 12 1  BOX f f p dy position-number-density 0 0 4.0   0.375 3 1.   0.625 9 1.   1 ${ny} 4.0
+fix_modify   AtC mesh create 12 12 1  BOX f f p dy position-number-density 0 0 4.0   0.375 3 1.   0.625 9 1.   1 12 4.0
+[pharsalus:03148] Signal: Segmentation fault (11)
+[pharsalus:03148] Signal code: Address not mapped (1)
+[pharsalus:03148] Failing at address: (nil)
+[pharsalus:03149] *** Process received signal ***
+[pharsalus:03149] Signal: Segmentation fault (11)
+[pharsalus:03149] Signal code: Address not mapped (1)
+[pharsalus:03149] Failing at address: (nil)
+[pharsalus:03151] *** Process received signal ***
+[pharsalus:03150] *** Process received signal ***
+[pharsalus:03150] Signal: Segmentation fault (11)
+[pharsalus:03150] Signal code: Address not mapped (1)
+[pharsalus:03150] Failing at address: (nil)
+[pharsalus:03151] Signal: Segmentation fault (11)
+[pharsalus:03151] Signal code: Address not mapped (1)
+[pharsalus:03151] Failing at address: (nil)
+[pharsalus:03148] [ 0] /lib64/libpthread.so.0() [0x3e7ce0f500]
+[pharsalus:03148] [ 1] ../../../lmp_openmpi(_ZN3ATC9FE_Engine6modifyEiPPc+0x9d7) [0xae409f]
+[pharsalus:03148] [ 2] ../../../lmp_openmpi(_ZN3ATC10ATC_Method6modifyEiPPc+0x5e) [0xa9f036]
+[pharsalus:03148] [ 3] ../../../lmp_openmpi(_ZN3ATC12ATC_Coupling6modifyEiPPc+0x1c37) [0xbb3b0d]
+[pharsalus:03148] [ 4] ../../../lmp_openmpi(_ZN3ATC18ATC_CouplingEnergy6modifyEiPPc+0x30f) [0xa7c631]
+[pharsalus:03148] [ 5] ../../../lmp_openmpi(_ZN9LAMMPS_NS6FixATC12modify_paramEiPPc+0x1d) [0x696fad]
+[pharsalus:03148] [ 6] ../../../lmp_openmpi(_ZN9LAMMPS_NS3Fix13modify_paramsEiPPc+0xb9) [0x691659]
+[pharsalus:03148] [ 7] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input15execute_commandEv+0xcab) [0x79fe8b]
+[pharsalus:03148] [ 8] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input4fileEv+0x63c) [0x7a196c]
+[pharsalus:03148] [ 9] ../../../lmp_openmpi(main+0x49) [0x7af929]
+[pharsalus:03148] [10] /lib64/libc.so.6(__libc_start_main+0xfd) [0x3e7c21ecdd]
+[pharsalus:03148] [11] ../../../lmp_openmpi() [0x53b429]
+[pharsalus:03148] *** End of error message ***
+[pharsalus:03149] [ 0] /lib64/libpthread.so.0() [0x3e7ce0f500]
+[pharsalus:03150] [ 0] /lib64/libpthread.so.0() [0x3e7ce0f500]
+[pharsalus:03150] [ 1] ../../../lmp_openmpi(_ZN3ATC9FE_Engine6modifyEiPPc+0x9d7) [0xae409f]
+[pharsalus:03150] [ 2] ../../../lmp_openmpi(_ZN3ATC10ATC_Method6modifyEiPPc+0x5e) [0xa9f036]
+[pharsalus:03150] [ 3] ../../../lmp_openmpi(_ZN3ATC12ATC_Coupling6modifyEiPPc+0x1c37) [0xbb3b0d]
+[pharsalus:03150] [ 4] ../../../lmp_openmpi(_ZN3ATC18ATC_CouplingEnergy6modifyEiPPc+0x30f) [0xa7c631]
+[pharsalus:03150] [ 5] ../../../lmp_openmpi(_ZN9LAMMPS_NS6FixATC12modify_paramEiPPc+0x1d) [0x696fad]
+[pharsalus:03150] [ 6] ../../../lmp_openmpi(_ZN9LAMMPS_NS3Fix13modify_paramsEiPPc+0xb9) [0x691659]
+[pharsalus:03150] [ 7] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input15execute_commandEv+0xcab) [0x79fe8b]
+[pharsalus:03150] [ 8] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input4fileEv+0x63c) [0x7a196c]
+[pharsalus:03150] [ 9] ../../../lmp_openmpi(main+0x49) [0x7af929]
+[pharsalus:03150] [10] /lib64/libc.so.6(__libc_start_main+0xfd) [0x3e7c21ecdd]
+[pharsalus:03150] [11] ../../../lmp_openmpi() [0x53b429]
+[pharsalus:03150] *** End of error message ***
+[pharsalus:03151] [ 0] /lib64/libpthread.so.0() [0x3e7ce0f500]
+[pharsalus:03149] [ 1] ../../../lmp_openmpi(_ZN3ATC9FE_Engine6modifyEiPPc+0x9d7) [0xae409f]
+[pharsalus:03149] [ 2] ../../../lmp_openmpi(_ZN3ATC10ATC_Method6modifyEiPPc+0x5e) [0xa9f036]
+[pharsalus:03149] [ 3] ../../../lmp_openmpi(_ZN3ATC12ATC_Coupling6modifyEiPPc+0x1c37) [0xbb3b0d]
+[pharsalus:03149] [ 4] ../../../lmp_openmpi(_ZN3ATC18ATC_CouplingEnergy6modifyEiPPc+0x30f) [0xa7c631]
+[pharsalus:03149] [ 5] ../../../lmp_openmpi(_ZN9LAMMPS_NS6FixATC12modify_paramEiPPc+0x1d) [0x696fad]
+[pharsalus:03149] [ 6] ../../../lmp_openmpi(_ZN9LAMMPS_NS3Fix13modify_paramsEiPPc+0xb9) [0x691659]
+[pharsalus:03149] [ 7] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input15execute_commandEv+0xcab) [0x79fe8b]
+[pharsalus:03149] [ 8] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input4fileEv+0x63c) [0x7a196c]
+[pharsalus:03149] [ 9] ../../../lmp_openmpi(main+0x49) [0x7af929]
+[pharsalus:03149] [10] /lib64/libc.so.6(__libc_start_main+0xfd) [0x3e7c21ecdd]
+[pharsalus:03149] [11] ../../../lmp_openmpi() [0x53b429]
+[pharsalus:03149] *** End of error message ***
+[pharsalus:03151] [ 1] ../../../lmp_openmpi(_ZN3ATC9FE_Engine6modifyEiPPc+0x9d7) [0xae409f]
+[pharsalus:03151] [ 2] ../../../lmp_openmpi(_ZN3ATC10ATC_Method6modifyEiPPc+0x5e) [0xa9f036]
+[pharsalus:03151] [ 3] ../../../lmp_openmpi(_ZN3ATC12ATC_Coupling6modifyEiPPc+0x1c37) [0xbb3b0d]
+[pharsalus:03151] [ 4] ../../../lmp_openmpi(_ZN3ATC18ATC_CouplingEnergy6modifyEiPPc+0x30f) [0xa7c631]
+[pharsalus:03151] [ 5] ../../../lmp_openmpi(_ZN9LAMMPS_NS6FixATC12modify_paramEiPPc+0x1d) [0x696fad]
+[pharsalus:03151] [ 6] ../../../lmp_openmpi(_ZN9LAMMPS_NS3Fix13modify_paramsEiPPc+0xb9) [0x691659]
+[pharsalus:03151] [ 7] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input15execute_commandEv+0xcab) [0x79fe8b]
+[pharsalus:03151] [ 8] ../../../lmp_openmpi(_ZN9LAMMPS_NS5Input4fileEv+0x63c) [0x7a196c]
+[pharsalus:03151] [ 9] ../../../lmp_openmpi(main+0x49) [0x7af929]
+[pharsalus:03151] [10] /lib64/libc.so.6(__libc_start_main+0xfd) [0x3e7c21ecdd]
+[pharsalus:03151] [11] ../../../lmp_openmpi() [0x53b429]
+[pharsalus:03151] *** End of error message ***
+--------------------------------------------------------------------------
+mpirun noticed that process rank 1 with PID 3149 on node pharsalus exited on signal 11 (Segmentation fault).
+--------------------------------------------------------------------------

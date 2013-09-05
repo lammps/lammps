@@ -1,4 +1,4 @@
-LAMMPS (27 Aug 2013)
+LAMMPS (30 Aug 2013)
 units           lj
 lattice		sc 1.0
 Lattice spacing in x,y,z = 1 1 1
@@ -98,14 +98,14 @@ Step Temp TotEng E_vdwl E_bond Pxx Pyy Pzz Lz
      900    0.4864295    20.309827   -5.7089607    25.289491   0.18995702   -0.4389685   0.32204857    12.716563 
  ATC: computing bond matrix ...........done
     1000   0.43059305    20.104384   -5.8079042    25.266707 -0.0082532778   0.34329484   0.20699648    12.673678 
-Loop time of 2.88003 on 4 procs for 1000 steps with 2100 atoms
+Loop time of 2.37561 on 4 procs for 1000 steps with 2100 atoms
 
-Pair  time (%) = 1.18465 (41.1333)
-Bond  time (%) = 0.109605 (3.80568)
-Neigh time (%) = 0.35628 (12.3707)
-Comm  time (%) = 0.630874 (21.9052)
-Outpt time (%) = 0.0205886 (0.714877)
-Other time (%) = 0.578028 (20.0702)
+Pair  time (%) = 1.15772 (48.7335)
+Bond  time (%) = 0.108688 (4.57518)
+Neigh time (%) = 0.317073 (13.347)
+Comm  time (%) = 0.327571 (13.7889)
+Outpt time (%) = 0.0205073 (0.863244)
+Other time (%) = 0.444053 (18.6922)
 
 Nlocal:    525 ave 530 max 523 min
 Histogram: 2 1 0 0 0 0 0 0 0 1

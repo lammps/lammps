@@ -195,7 +195,8 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
                      "calculate a per-atom array");
         if (argindex[i] &&
             argindex[i] > modify->compute[icompute]->size_peratom_cols)
-          error->all(FLERR,"Compute reduce compute array is accessed out-of-range");
+          error->all(FLERR,
+                     "Compute reduce compute array is accessed out-of-range");
       } else if (modify->compute[icompute]->local_flag) {
         flavor[i] = LOCAL;
         if (argindex[i] == 0 &&
@@ -207,8 +208,10 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
                      "calculate a local array");
         if (argindex[i] &&
             argindex[i] > modify->compute[icompute]->size_local_cols)
-          error->all(FLERR,"Compute reduce compute array is accessed out-of-range");
-      } else error->all(FLERR,"Compute reduce compute calculates global values");
+          error->all(FLERR,
+                     "Compute reduce compute array is accessed out-of-range");
+      } else error->all(FLERR,
+                        "Compute reduce compute calculates global values");
 
     } else if (which[i] == FIX) {
       int ifix = modify->find_fix(ids[i]);

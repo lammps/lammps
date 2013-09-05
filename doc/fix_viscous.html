@@ -76,11 +76,14 @@ needed, gamma can be adjusted for atoms of different sizes
 force term to thermostat the system at a chosen temperature.  The <A HREF = "fix_langevin.html">fix
 langevin</A> command does this.  It has the same
 viscous damping term as fix viscous and adds a random force to each
-atom.  Hence if using fix <I>langevin</I> you do not typically need to use
-fix <I>viscous</I>.  Also note that the gamma of fix viscous is related to
-the damping parameter of <A HREF = "fix_langevin.html">fix langevin</A>, except that
-the units of gamma are force/velocity and the units of damp are time,
-so that it can more easily be used as a thermostat.
+atom.  The random force term is proportional to the sqrt of the chosen
+thermostatting temperature.  Thus if you use fix langevin with a
+target T = 0, its random force term is zero, and you are essentially
+performing the same operation as fix viscous.  Also note that the
+gamma of fix viscous is related to the damping parameter of <A HREF = "fix_langevin.html">fix
+langevin</A>, however the former is specified in units
+of force/velocity and the latter in units of time, so that it can more
+easily be used as a thermostat.
 </P>
 <HR>
 

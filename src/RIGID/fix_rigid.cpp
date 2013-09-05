@@ -784,7 +784,7 @@ void FixRigid::setup(int vflag)
 
   // zero langextra in case Langevin thermostat not used
   // no point to calling post_force() here since langextra
-  //   is only added to fcm/torque in final_integrate()
+  // is only added to fcm/torque in final_integrate()
 
   for (ibody = 0; ibody < nbody; ibody++)
     for (i = 0; i < 6; i++) langextra[ibody][i] = 0.0;
@@ -2339,6 +2339,168 @@ void FixRigid::reset_dt()
 }
 
 /* ----------------------------------------------------------------------
+   zero linear momentum of each rigid body
+   called by velocity zero linear command with its vgroupbit
+   only atoms in velocity command group contribute to vcm of body,
+     and only their velocities are adjusted, odd if partial bodies specified
+------------------------------------------------------------------------- */
+
+void FixRigid::zero_momentum(int vgroupbit)
+{
+  int i,ibody;
+  double massone;
+
+  // vcm = velocity of center-of-mass of each rigid body
+
+  double **v = atom->v;
+  double *rmass = atom->rmass;
+  double *mass = atom->mass;
+  int *mask = atom->mask;
+  int *type = atom->type;
+  int nlocal = atom->nlocal;
+
+  for (ibody = 0; ibody < nbody; ibody++)
+    for (i = 0; i < 6; i++) sum[ibody][i] = 0.0;
+
+  for (i = 0; i < nlocal; i++) {
+    if (!(mask[i] & vgroupbit)) continue;
+    if (body[i] < 0) continue;
+    ibody = body[i];
+    if (rmass) massone = rmass[i];
+    else massone = mass[type[i]];
+    sum[ibody][0] += v[i][0] * massone;
+    sum[ibody][1] += v[i][1] * massone;
+    sum[ibody][2] += v[i][2] * massone;
+  }
+
+  MPI_Allreduce(sum[0],all[0],6*nbody,MPI_DOUBLE,MPI_SUM,world);
+
+  for (ibody = 0; ibody < nbody; ibody++) {
+    vcm[ibody][0] = all[ibody][0]/masstotal[ibody];
+    vcm[ibody][1] = all[ibody][1]/masstotal[ibody];
+    vcm[ibody][2] = all[ibody][2]/masstotal[ibody];
+  }
+
+  // adjust velocities by vcm to zero linear momentum
+
+  for (i = 0; i < nlocal; i++) {
+    if (!(mask[i] & vgroupbit)) continue;
+    if (body[i] < 0) continue;
+    ibody = body[i];
+    v[i][0] -= vcm[ibody][0];
+    v[i][1] -= vcm[ibody][1];
+    v[i][2] -= vcm[ibody][2];
+  }
+}
+
+/* ----------------------------------------------------------------------
+   zero angular momentum of each rigid body
+   called by velocity zero linear command with its vgroupbit
+   only atoms in velocity command group contribute to angmom/omega of body,
+     and only their velocities are adjusted, odd if partial bodies specified
+------------------------------------------------------------------------- */
+
+void FixRigid::zero_rotation(int vgroupbit)
+{
+  int i,ibody;
+  double massone,radone;
+
+  // angmom = angular momentum of each rigid body
+  // do not add in contribution from extended particles since zeroed below
+
+  double **x = atom->x;
+  double **v = atom->v;
+  double *rmass = atom->rmass;
+  double *mass = atom->mass;
+  tagint *image = atom->image;
+  int *mask = atom->mask;
+  int *type = atom->type;
+  int nlocal = atom->nlocal;
+
+  double dx,dy,dz;
+  double unwrap[3];
+
+  for (ibody = 0; ibody < nbody; ibody++)
+    for (i = 0; i < 6; i++) sum[ibody][i] = 0.0;
+
+  for (i = 0; i < nlocal; i++) {
+    if (!(mask[i] & vgroupbit)) continue;
+    if (body[i] < 0) continue;
+    ibody = body[i];
+
+    domain->unmap(x[i],image[i],unwrap);
+    dx = unwrap[0] - xcm[ibody][0];
+    dy = unwrap[1] - xcm[ibody][1];
+    dz = unwrap[2] - xcm[ibody][2];
+
+    if (rmass) massone = rmass[i];
+    else massone = mass[type[i]];
+
+    sum[ibody][0] += dy * massone*v[i][2] - dz * massone*v[i][1];
+    sum[ibody][1] += dz * massone*v[i][0] - dx * massone*v[i][2];
+    sum[ibody][2] += dx * massone*v[i][1] - dy * massone*v[i][0];
+  }
+
+  MPI_Allreduce(sum[0],all[0],6*nbody,MPI_DOUBLE,MPI_SUM,world);
+
+  for (ibody = 0; ibody < nbody; ibody++) {
+    angmom[ibody][0] = all[ibody][0];
+    angmom[ibody][1] = all[ibody][1];
+    angmom[ibody][2] = all[ibody][2];
+  }
+
+  // convert angmom to omega
+
+  for (ibody = 0; ibody < nbody; ibody++)
+    MathExtra::angmom_to_omega(angmom[ibody],ex_space[ibody],ey_space[ibody],
+                               ez_space[ibody],inertia[ibody],omega[ibody]);
+
+  // adjust velocities to zero omega
+  // vnew_i = v_i - w x r_i
+  // must use unwrapped coords to compute r_i correctly
+
+  for (i = 0; i < nlocal; i++) {
+    if (!(mask[i] & vgroupbit)) continue;
+    if (body[i] < 0) continue;
+    ibody = body[i];
+
+    domain->unmap(x[i],image[i],unwrap);
+    dx = unwrap[0] - xcm[ibody][0];
+    dy = unwrap[1] - xcm[ibody][1];
+    dz = unwrap[2] - xcm[ibody][2];
+
+    v[i][0] -= omega[ibody][1]*dz - omega[ibody][2]*dy;
+    v[i][1] -= omega[ibody][2]*dx - omega[ibody][0]*dz;
+    v[i][2] -= omega[ibody][0]*dy - omega[ibody][1]*dx;
+  }
+
+  // also explicitly zero omega and angmom of extended particles
+
+  if (extended) {
+    double **omega_one = atom->omega;
+    double **angmom_one = atom->angmom;
+
+    for (i = 0; i < nlocal; i++) {
+      if (!(mask[i] & vgroupbit)) continue;
+      if (body[i] < 0) continue;
+
+      if (eflags[i] & OMEGA) {
+        if (eflags[i] & SPHERE) {
+          omega_one[i][0] = 0.0;
+          omega_one[i][1] = 0.0;
+          omega_one[i][2] = 0.0;
+        } else if (eflags[i] & LINE) omega_one[i][2] = 0.0;
+      }
+      if (eflags[i] & ANGMOM) {
+        angmom_one[i][0] = 0.0;
+        angmom_one[i][1] = 0.0;
+        angmom_one[i][2] = 0.0;
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
    return temperature of collection of rigid bodies
    non-active DOF are removed by fflag/tflag and in tfactor
 ------------------------------------------------------------------------- */
@@ -2351,8 +2513,8 @@ double FixRigid::compute_scalar()
 
   for (int i = 0; i < nbody; i++) {
     t += masstotal[i] * (fflag[i][0]*vcm[i][0]*vcm[i][0] +
-                             fflag[i][1]*vcm[i][1]*vcm[i][1] +
-                             fflag[i][2]*vcm[i][2]*vcm[i][2]);
+                         fflag[i][1]*vcm[i][1]*vcm[i][1] +
+                         fflag[i][2]*vcm[i][2]*vcm[i][2]);
 
     // wbody = angular velocity in body frame
 

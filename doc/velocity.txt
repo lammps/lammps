@@ -39,6 +39,8 @@ keyword = {dist} or {sum} or {mom} or {rot} or {temp} or {loop} or {units} :l
   {rot} value = {no} or {yes} 
   {temp} value = temperature ID
   {loop} value = {all} or {local} or {geom}
+  {rigid} value = fix-ID
+    fix-ID = ID of rigid body fix
   {units} value = {box} or {lattice} :pre
 :ule
 
@@ -93,7 +95,23 @@ case).
 
 The {zero} style adjusts the velocities of the group of atoms so that
 the aggregate linear or angular momentum is zero.  No other changes
-are made to the velocities of the atoms.
+are made to the velocities of the atoms.  If the {rigid} option is
+specified (see below), then the zeroing is performed on individual
+rigid bodies, as defined by the "fix rigid or fix
+rigid/small"_fix_rigid.html commands.  In other words, zero linear
+will set the linear momentum of each rigid body to zero, and zero
+angular will set the angular momentum of each rigid body to zero.
+This is done by adjusting the velocities of the atoms in each rigid
+body.
+
+IMPORTANT NOTE: When using the {rigid} option with the {zero} style,
+only the velocities of atoms that are in the group specified with the
+velocity command will be adjusted, and likewise contribute to the
+calculation of the center-of-mass velocity or angular momentum of each
+rigid body.  This allows you to zero out the momenta of a subset of
+the rigid bodies, but you will get incomplete zeroing if you specify a
+group that includes only a subset of the atoms in one or more of the
+rigid bodies.
 
 All temperatures specified in the velocity command are in temperature
 units; see the "units"_units.html command.  The units of velocities and

@@ -1,4 +1,4 @@
-LAMMPS (27 Aug 2013)
+LAMMPS (30 Aug 2013)
 units 		metal
 variable E equal 20.0
 variable nx equal 32
@@ -78,14 +78,14 @@ Memory usage per processor = 48.9866 Mbytes
 Step TotEng Temp Press PotEng Fx Fy 
        0    13388.811            0     12185513    13388.811       -11520 -5.4091662e-13 
        1    13388.811            0     12185513    13388.811       -11520 -5.4091662e-13 
-Loop time of 0.00829577 on 4 procs for 1 steps with 576 atoms
+Loop time of 0.00854391 on 4 procs for 1 steps with 576 atoms
 
-Pair  time (%) = 0.00294286 (35.4742)
-Bond  time (%) = 4.76837e-07 (0.00574795)
+Pair  time (%) = 0.00297153 (34.7795)
+Bond  time (%) = 7.7486e-07 (0.00906916)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.00044173 (5.32476)
-Outpt time (%) = 0.00104153 (12.555)
-Other time (%) = 0.00386918 (46.6403)
+Comm  time (%) = 0.000446737 (5.22872)
+Outpt time (%) = 0.00115174 (13.4803)
+Other time (%) = 0.00397313 (46.5024)
 
 Nlocal:    144 ave 144 max 144 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -122,14 +122,14 @@ Memory usage per processor = 48.9866 Mbytes
 Step TotEng Temp Press PotEng Fx Fy 
        1    13388.811            0     12185513    13388.811   -200361.27 6.719863e-13 
        2    13388.811            0     12185513    13388.811   -200361.27 6.719863e-13 
-Loop time of 0.00794274 on 4 procs for 1 steps with 576 atoms
+Loop time of 0.00797898 on 4 procs for 1 steps with 576 atoms
 
-Pair  time (%) = 0.00293833 (36.9939)
-Bond  time (%) = 4.76837e-07 (0.00600344)
+Pair  time (%) = 0.00296175 (37.1195)
+Bond  time (%) = 2.38419e-07 (0.00298809)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000394285 (4.96409)
-Outpt time (%) = 0.000862241 (10.8557)
-Other time (%) = 0.0037474 (47.1803)
+Comm  time (%) = 0.000458777 (5.74982)
+Outpt time (%) = 0.000847757 (10.6249)
+Other time (%) = 0.00371045 (46.5028)
 
 Nlocal:    144 ave 144 max 144 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -157,14 +157,14 @@ Memory usage per processor = 48.9866 Mbytes
 Step TotEng Temp Press PotEng Fx Fy 
        2    13388.811            0     12185513    13388.811   -252475.24 1.1650611e-12 
        3    13388.811            0     12185513    13388.811   -252475.24 1.1650611e-12 
-Loop time of 0.00815225 on 4 procs for 1 steps with 576 atoms
+Loop time of 0.00814193 on 4 procs for 1 steps with 576 atoms
 
-Pair  time (%) = 0.00293952 (36.0578)
-Bond  time (%) = 2.38419e-07 (0.00292458)
+Pair  time (%) = 0.0029577 (36.3268)
+Bond  time (%) = 2.98023e-07 (0.00366035)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000404 (4.95569)
-Outpt time (%) = 0.000874519 (10.7273)
-Other time (%) = 0.00393397 (48.2562)
+Comm  time (%) = 0.000454485 (5.58203)
+Outpt time (%) = 0.000847459 (10.4086)
+Other time (%) = 0.00388199 (47.679)
 
 Nlocal:    144 ave 144 max 144 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -194,14 +194,14 @@ Memory usage per processor = 48.9866 Mbytes
 Step TotEng Temp Press PotEng Fx Fy 
        3    13388.811            0     12185513    13388.811   -225709.12 9.1181426e-13 
        4    13388.811            0     12185513    13388.811   -225709.12 9.1181426e-13 
-Loop time of 0.00816631 on 4 procs for 1 steps with 576 atoms
+Loop time of 0.00825572 on 4 procs for 1 steps with 576 atoms
 
-Pair  time (%) = 0.00293618 (35.9548)
-Bond  time (%) = 2.98023e-07 (0.00364942)
+Pair  time (%) = 0.00296426 (35.9055)
+Bond  time (%) = 7.15256e-07 (0.00866376)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.00040102 (4.91066)
-Outpt time (%) = 0.000861526 (10.5497)
-Other time (%) = 0.00396729 (48.5811)
+Comm  time (%) = 0.000457525 (5.54192)
+Outpt time (%) = 0.000843704 (10.2196)
+Other time (%) = 0.00398952 (48.3243)
 
 Nlocal:    144 ave 144 max 144 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -233,14 +233,14 @@ Memory usage per processor = 48.9866 Mbytes
 Step TotEng Temp Press PotEng Fx Fy 
        4    13388.811            0     12185513    13388.811 4.3291948e-09 -1.4571568e-12 
        5    13388.811            0     12185513    13388.811 4.3364707e-09 -1.4571568e-12 
-Loop time of 0.0085628 on 4 procs for 1 steps with 576 atoms
+Loop time of 0.00868404 on 4 procs for 1 steps with 576 atoms
 
-Pair  time (%) = 0.00296867 (34.6694)
-Bond  time (%) = 5.36442e-07 (0.00626479)
+Pair  time (%) = 0.00308079 (35.4764)
+Bond  time (%) = 2.38419e-07 (0.00274548)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000421822 (4.92621)
-Outpt time (%) = 0.00109708 (12.8122)
-Other time (%) = 0.00407469 (47.586)
+Comm  time (%) = 0.000677586 (7.80265)
+Outpt time (%) = 0.000885546 (10.1974)
+Other time (%) = 0.00403988 (46.5208)
 
 Nlocal:    144 ave 144 max 144 min
 Histogram: 4 0 0 0 0 0 0 0 0 0

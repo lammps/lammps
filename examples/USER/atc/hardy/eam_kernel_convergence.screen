@@ -1,4 +1,4 @@
-LAMMPS (27 Aug 2013)
+LAMMPS (30 Aug 2013)
 log    eam_kernel_convergence.log
 units    metal
 dimension  3
@@ -69,13 +69,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
        0            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
        1            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.0395501 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0388415 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.006603 (16.6953)
+Pair  time (%) = 0.00668323 (17.2064)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000421107 (1.06474)
-Outpt time (%) = 0.000159979 (0.404496)
-Other time (%) = 0.032366 (81.8355)
+Comm  time (%) = 0.000434041 (1.11747)
+Outpt time (%) = 0.00015521 (0.3996)
+Other time (%) = 0.031569 (81.2765)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -109,13 +109,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
        1            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
        2            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.0474406 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0444712 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00669873 (14.1202)
+Pair  time (%) = 0.00655448 (14.7387)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000473261 (0.997586)
-Outpt time (%) = 0.000411451 (0.867297)
-Other time (%) = 0.0398571 (84.0149)
+Comm  time (%) = 0.000383198 (0.861677)
+Outpt time (%) = 0.00036943 (0.830716)
+Other time (%) = 0.0371641 (83.5689)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -149,13 +149,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
        2            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
        3            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.0501975 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.04445 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00661498 (13.1779)
+Pair  time (%) = 0.00666296 (14.9898)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000387311 (0.771574)
-Outpt time (%) = 0.000298738 (0.595126)
-Other time (%) = 0.0428965 (85.4554)
+Comm  time (%) = 0.000398874 (0.897354)
+Outpt time (%) = 0.000319004 (0.717669)
+Other time (%) = 0.0370692 (83.3952)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -189,13 +189,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
        3            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
        4            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.0477923 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0450163 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00657451 (13.7564)
+Pair  time (%) = 0.00657719 (14.6107)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000369549 (0.77324)
-Outpt time (%) = 0.000283778 (0.593773)
-Other time (%) = 0.0405644 (84.8765)
+Comm  time (%) = 0.000380218 (0.844623)
+Outpt time (%) = 0.000315726 (0.701359)
+Other time (%) = 0.0377432 (83.8433)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -229,13 +229,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
        4            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
        5            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.0485635 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0467604 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00662422 (13.6403)
+Pair  time (%) = 0.00669754 (14.3231)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.00042361 (0.87228)
-Outpt time (%) = 0.000283718 (0.58422)
-Other time (%) = 0.041232 (84.9032)
+Comm  time (%) = 0.000395298 (0.845368)
+Outpt time (%) = 0.000298798 (0.638998)
+Other time (%) = 0.0393688 (84.1926)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -269,13 +269,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
        5            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
        6            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.0494186 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0444613 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00657856 (13.3119)
+Pair  time (%) = 0.00662082 (14.8912)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000388324 (0.785785)
-Outpt time (%) = 0.000302553 (0.612225)
-Other time (%) = 0.0421492 (85.2901)
+Comm  time (%) = 0.000426888 (0.960136)
+Outpt time (%) = 0.000336528 (0.756901)
+Other time (%) = 0.037077 (83.3917)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -309,13 +309,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
        6            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
        7            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.0507774 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.043804 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00664049 (13.0776)
+Pair  time (%) = 0.00669903 (15.2932)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000502288 (0.989196)
-Outpt time (%) = 0.000306845 (0.604293)
-Other time (%) = 0.0433278 (85.3289)
+Comm  time (%) = 0.000481784 (1.09986)
+Outpt time (%) = 0.000290036 (0.662122)
+Other time (%) = 0.0363332 (82.9449)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -349,13 +349,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
        7            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
        8            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.0488118 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0430405 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00664699 (13.6176)
+Pair  time (%) = 0.00658572 (15.3012)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000445426 (0.912537)
-Outpt time (%) = 0.000272036 (0.557315)
-Other time (%) = 0.0414473 (84.9126)
+Comm  time (%) = 0.000426412 (0.990723)
+Outpt time (%) = 0.000294507 (0.684255)
+Other time (%) = 0.0357338 (83.0238)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -389,13 +389,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
        8            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
        9            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.0484525 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0435542 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00658947 (13.5999)
+Pair  time (%) = 0.00668299 (15.3441)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000446022 (0.920534)
-Outpt time (%) = 0.000260472 (0.537583)
-Other time (%) = 0.0411565 (84.942)
+Comm  time (%) = 0.000415802 (0.954676)
+Outpt time (%) = 0.000314295 (0.721618)
+Other time (%) = 0.0361412 (82.9796)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -429,13 +429,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
        9            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
       10            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.0495487 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0486593 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00662756 (13.3758)
+Pair  time (%) = 0.00675815 (13.8887)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000498533 (1.00615)
-Outpt time (%) = 0.000290215 (0.585716)
-Other time (%) = 0.0421324 (85.0323)
+Comm  time (%) = 0.00060457 (1.24245)
+Outpt time (%) = 0.000319958 (0.657547)
+Other time (%) = 0.0409766 (84.2113)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -469,13 +469,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       10            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
       11            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.046988 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.043182 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00662333 (14.0958)
+Pair  time (%) = 0.00663495 (15.3651)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000433624 (0.922839)
-Outpt time (%) = 0.000315726 (0.671928)
-Other time (%) = 0.0396153 (84.3094)
+Comm  time (%) = 0.000424802 (0.983748)
+Outpt time (%) = 0.000311017 (0.720247)
+Other time (%) = 0.0358112 (82.9309)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -509,13 +509,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       11            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
       12            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.046703 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0425012 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00661439 (14.1626)
+Pair  time (%) = 0.00653344 (15.3724)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000460207 (0.985391)
-Outpt time (%) = 0.000275671 (0.590265)
-Other time (%) = 0.0393528 (84.2617)
+Comm  time (%) = 0.000374615 (0.881422)
+Outpt time (%) = 0.000294507 (0.692937)
+Other time (%) = 0.0352986 (83.0533)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -549,13 +549,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       12            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
       13            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.0472049 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0425894 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00660223 (13.9863)
+Pair  time (%) = 0.00661176 (15.5244)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000453651 (0.961026)
-Outpt time (%) = 0.000278175 (0.589293)
-Other time (%) = 0.0398708 (84.4633)
+Comm  time (%) = 0.000386238 (0.906887)
+Outpt time (%) = 0.00029546 (0.693741)
+Other time (%) = 0.035296 (82.8749)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -589,13 +589,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       13            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
       14            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.0469932 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0442333 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00659144 (14.0264)
+Pair  time (%) = 0.00668049 (15.1028)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000462472 (0.984126)
-Outpt time (%) = 0.000255942 (0.544637)
-Other time (%) = 0.0396833 (84.4449)
+Comm  time (%) = 0.00046289 (1.04647)
+Outpt time (%) = 0.000296593 (0.670519)
+Other time (%) = 0.0367934 (83.1802)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -629,13 +629,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       14            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
       15            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.0473867 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0436885 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00673616 (14.2153)
+Pair  time (%) = 0.00662446 (15.1629)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000516236 (1.08941)
-Outpt time (%) = 0.000288606 (0.609044)
-Other time (%) = 0.0398457 (84.0863)
+Comm  time (%) = 0.000436783 (0.999765)
+Outpt time (%) = 0.000319958 (0.732361)
+Other time (%) = 0.0363073 (83.1049)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -669,13 +669,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       15            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
       16            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.047845 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0439955 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0067153 (14.0355)
+Pair  time (%) = 0.00660646 (15.0162)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.00045681 (0.95477)
-Outpt time (%) = 0.000284612 (0.594863)
-Other time (%) = 0.0403883 (84.4148)
+Comm  time (%) = 0.000481367 (1.09413)
+Outpt time (%) = 0.000303268 (0.689317)
+Other time (%) = 0.0366044 (83.2003)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -709,13 +709,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       16            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
       17            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.0480892 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0434833 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00688326 (14.3135)
+Pair  time (%) = 0.00669628 (15.3997)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000514805 (1.07052)
-Outpt time (%) = 0.000281215 (0.584777)
-Other time (%) = 0.0404099 (84.0312)
+Comm  time (%) = 0.000483215 (1.11127)
+Outpt time (%) = 0.000315428 (0.725401)
+Other time (%) = 0.0359883 (82.7636)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -749,13 +749,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       17            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
       18            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.0475456 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0477023 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00672293 (14.14)
+Pair  time (%) = 0.00672126 (14.09)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000507295 (1.06697)
-Outpt time (%) = 0.000262737 (0.552601)
-Other time (%) = 0.0400526 (84.2405)
+Comm  time (%) = 0.000448525 (0.940258)
+Outpt time (%) = 0.000302494 (0.634128)
+Other time (%) = 0.04023 (84.3356)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -789,13 +789,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       18            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
       19            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.0468457 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0470713 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00657803 (14.0419)
+Pair  time (%) = 0.00674224 (14.3234)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000366211 (0.781738)
-Outpt time (%) = 0.000246942 (0.527139)
-Other time (%) = 0.0396546 (84.6492)
+Comm  time (%) = 0.000493646 (1.04872)
+Outpt time (%) = 0.000291288 (0.618822)
+Other time (%) = 0.0395442 (84.009)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -829,13 +829,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       19            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
       20            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.0474598 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.048237 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00658852 (13.8823)
+Pair  time (%) = 0.00677496 (14.0452)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000380397 (0.801514)
-Outpt time (%) = 0.000263512 (0.555233)
-Other time (%) = 0.0402274 (84.7609)
+Comm  time (%) = 0.000567019 (1.17549)
+Outpt time (%) = 0.00029999 (0.621909)
+Other time (%) = 0.040595 (84.1574)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -869,13 +869,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       20            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
       21            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.047832 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0509337 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00656044 (13.7156)
+Pair  time (%) = 0.00661951 (12.9963)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000381708 (0.798018)
-Outpt time (%) = 0.000262201 (0.54817)
-Other time (%) = 0.0406277 (84.9382)
+Comm  time (%) = 0.00161797 (3.17662)
+Outpt time (%) = 0.000371218 (0.728826)
+Other time (%) = 0.042325 (83.0982)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -909,13 +909,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       21            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
       22            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.0481368 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0464286 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00660634 (13.7241)
+Pair  time (%) = 0.0066936 (14.417)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000432968 (0.899453)
-Outpt time (%) = 0.000268459 (0.5577)
-Other time (%) = 0.0408291 (84.8188)
+Comm  time (%) = 0.000405967 (0.874391)
+Outpt time (%) = 0.000337005 (0.725856)
+Other time (%) = 0.038992 (83.9828)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -949,13 +949,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       22            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
       23            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.0483947 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0457432 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00670546 (13.8558)
+Pair  time (%) = 0.00663924 (14.5142)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000418246 (0.864239)
-Outpt time (%) = 0.000289202 (0.59759)
-Other time (%) = 0.0409818 (84.6824)
+Comm  time (%) = 0.000397205 (0.868337)
+Outpt time (%) = 0.000336826 (0.73634)
+Other time (%) = 0.03837 (83.8812)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -989,13 +989,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       23            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
       24            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.048525 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0460812 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00672925 (13.8676)
+Pair  time (%) = 0.00662678 (14.3807)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000537395 (1.10746)
-Outpt time (%) = 0.000332832 (0.685899)
-Other time (%) = 0.0409255 (84.339)
+Comm  time (%) = 0.000387967 (0.84192)
+Outpt time (%) = 0.0003317 (0.719816)
+Other time (%) = 0.0387347 (84.0576)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1029,13 +1029,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       24            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
       25            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.0491625 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0444973 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00673848 (13.7066)
+Pair  time (%) = 0.00659299 (14.8166)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000423014 (0.860441)
-Outpt time (%) = 0.0003075 (0.625477)
-Other time (%) = 0.0416935 (84.8075)
+Comm  time (%) = 0.000383079 (0.860905)
+Outpt time (%) = 0.000355303 (0.798484)
+Other time (%) = 0.0371659 (83.524)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1069,13 +1069,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       25            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
       26            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.050602 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0452562 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00693566 (13.7063)
+Pair  time (%) = 0.006598 (14.5792)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.00064075 (1.26625)
-Outpt time (%) = 0.000337481 (0.666933)
-Other time (%) = 0.0426881 (84.3605)
+Comm  time (%) = 0.000348926 (0.771001)
+Outpt time (%) = 0.000234187 (0.517469)
+Other time (%) = 0.0380751 (84.1323)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1109,13 +1109,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       26            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
       27            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.0488909 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0462826 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00658703 (13.4729)
+Pair  time (%) = 0.00662923 (14.3234)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000392079 (0.801947)
-Outpt time (%) = 0.000308514 (0.631024)
-Other time (%) = 0.0416033 (85.0941)
+Comm  time (%) = 0.000385463 (0.832847)
+Outpt time (%) = 0.000336051 (0.726085)
+Other time (%) = 0.0389318 (84.1177)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1149,13 +1149,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       27            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
       28            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.0485175 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0453917 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00672925 (13.8697)
+Pair  time (%) = 0.0065527 (14.4359)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000529468 (1.09129)
-Outpt time (%) = 0.000296474 (0.611066)
-Other time (%) = 0.0409623 (84.4279)
+Comm  time (%) = 0.000399888 (0.88097)
+Outpt time (%) = 0.000322282 (0.710002)
+Other time (%) = 0.0381169 (83.9731)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1189,13 +1189,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       28            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
       29            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.0485406 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0468631 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00664878 (13.6974)
+Pair  time (%) = 0.00654542 (13.9671)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.00044179 (0.910145)
-Outpt time (%) = 0.000311732 (0.642209)
-Other time (%) = 0.0411383 (84.7503)
+Comm  time (%) = 0.000425279 (0.907493)
+Outpt time (%) = 0.000329494 (0.7031)
+Other time (%) = 0.0395629 (84.4223)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1229,13 +1229,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       29            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
       30            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.0497741 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0452335 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00671172 (13.4844)
+Pair  time (%) = 0.00657338 (14.5321)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000448585 (0.901242)
-Outpt time (%) = 0.000309229 (0.621265)
-Other time (%) = 0.0423045 (84.9931)
+Comm  time (%) = 0.000432432 (0.955999)
+Outpt time (%) = 0.000304997 (0.674272)
+Other time (%) = 0.0379227 (83.8376)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1269,13 +1269,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       30            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
       31            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.049176 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0480517 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00669396 (13.6122)
+Pair  time (%) = 0.00655156 (13.6344)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000425577 (0.865416)
-Outpt time (%) = 0.000320971 (0.652698)
-Other time (%) = 0.0417355 (84.8696)
+Comm  time (%) = 0.000382543 (0.796106)
+Outpt time (%) = 0.000351429 (0.731356)
+Other time (%) = 0.0407662 (84.8381)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1309,13 +1309,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       31            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
       32            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.0506071 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0477419 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00670218 (13.2436)
+Pair  time (%) = 0.00654197 (13.7028)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.0004825 (0.953423)
-Outpt time (%) = 0.000298023 (0.588896)
-Other time (%) = 0.0431244 (85.2141)
+Comm  time (%) = 0.000469983 (0.984423)
+Outpt time (%) = 0.000343025 (0.718498)
+Other time (%) = 0.040387 (84.5943)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1349,13 +1349,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       32            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
       33            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.05039 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0460263 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00664127 (13.1797)
+Pair  time (%) = 0.00656921 (14.2727)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000446975 (0.887032)
-Outpt time (%) = 0.000318825 (0.632715)
-Other time (%) = 0.0429829 (85.3005)
+Comm  time (%) = 0.000368297 (0.800189)
+Outpt time (%) = 0.000332475 (0.722358)
+Other time (%) = 0.0387563 (84.2047)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1389,13 +1389,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       33            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
       34            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.0493942 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0473687 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00657576 (13.3128)
+Pair  time (%) = 0.00670165 (14.1478)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.00037092 (0.750938)
-Outpt time (%) = 0.000306726 (0.620975)
-Other time (%) = 0.0421408 (85.3153)
+Comm  time (%) = 0.000524163 (1.10656)
+Outpt time (%) = 0.000349283 (0.737371)
+Other time (%) = 0.0397936 (84.0082)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1429,13 +1429,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       34            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
       35            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.0496204 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.046108 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00668854 (13.4794)
+Pair  time (%) = 0.00654757 (14.2005)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000457525 (0.92205)
-Outpt time (%) = 0.000322819 (0.650576)
-Other time (%) = 0.0421516 (84.948)
+Comm  time (%) = 0.000339448 (0.736203)
+Outpt time (%) = 0.000317812 (0.689277)
+Other time (%) = 0.0389032 (84.374)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1469,13 +1469,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       35            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
       36            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.207456 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0488273 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.046747 (22.5334)
+Pair  time (%) = 0.00661004 (13.5376)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.0208657 (10.0579)
-Outpt time (%) = 0.000226021 (0.108949)
-Other time (%) = 0.139618 (67.2998)
+Comm  time (%) = 0.000516057 (1.0569)
+Outpt time (%) = 0.000327706 (0.671154)
+Other time (%) = 0.0413735 (84.7344)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1509,13 +1509,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       36            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
       37            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.280093 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0482109 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0543582 (19.4072)
+Pair  time (%) = 0.00662351 (13.7386)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.0733205 (26.1772)
-Outpt time (%) = 0.0481269 (17.1825)
-Other time (%) = 0.104288 (37.2332)
+Comm  time (%) = 0.00036943 (0.766279)
+Outpt time (%) = 0.000328839 (0.682085)
+Other time (%) = 0.0408891 (84.813)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1549,13 +1549,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       37            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
       38            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.0532775 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0471065 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00673932 (12.6495)
+Pair  time (%) = 0.006558 (13.9216)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000537395 (1.00867)
-Outpt time (%) = 0.000318527 (0.597865)
-Other time (%) = 0.0456823 (85.744)
+Comm  time (%) = 0.000435412 (0.924314)
+Outpt time (%) = 0.000320494 (0.680361)
+Other time (%) = 0.0397926 (84.4737)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1589,13 +1589,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       38            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
       39            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.0534188 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0549213 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00669748 (12.5377)
+Pair  time (%) = 0.00675124 (12.2926)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000448167 (0.838969)
-Outpt time (%) = 0.000323057 (0.604763)
-Other time (%) = 0.0459501 (86.0186)
+Comm  time (%) = 0.000515997 (0.939521)
+Outpt time (%) = 0.00526404 (9.5847)
+Other time (%) = 0.04239 (77.1832)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1629,13 +1629,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       39            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
       40            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.0650671 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0495687 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00943083 (14.494)
+Pair  time (%) = 0.00669849 (13.5135)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.0084067 (12.9201)
-Outpt time (%) = 0.000323236 (0.496774)
-Other time (%) = 0.0469063 (72.0892)
+Comm  time (%) = 0.000469565 (0.947302)
+Outpt time (%) = 0.000340939 (0.68781)
+Other time (%) = 0.0420597 (84.8513)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1669,13 +1669,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       40            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
       41            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.0533485 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0490418 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0067023 (12.5633)
+Pair  time (%) = 0.0066058 (13.4697)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000465155 (0.871917)
-Outpt time (%) = 0.000316322 (0.592935)
-Other time (%) = 0.0458647 (85.9719)
+Comm  time (%) = 0.000433326 (0.883584)
+Outpt time (%) = 0.000357926 (0.729838)
+Other time (%) = 0.0416448 (84.9168)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1709,13 +1709,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       41            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
       42            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.053821 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0508096 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00667632 (12.4047)
+Pair  time (%) = 0.00657028 (12.9312)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000430524 (0.799919)
-Outpt time (%) = 0.000302613 (0.562258)
-Other time (%) = 0.0464115 (86.2331)
+Comm  time (%) = 0.000399768 (0.786797)
+Outpt time (%) = 0.00033778 (0.664795)
+Other time (%) = 0.0435017 (85.6172)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1749,13 +1749,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       42            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
       43            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.123184 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0507447 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00662261 (5.3762)
+Pair  time (%) = 0.00655782 (12.9232)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.0201377 (16.3477)
-Outpt time (%) = 0.000317514 (0.257756)
-Other time (%) = 0.0961061 (78.0184)
+Comm  time (%) = 0.000423729 (0.835023)
+Outpt time (%) = 0.000360966 (0.711337)
+Other time (%) = 0.0434021 (85.5305)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1789,13 +1789,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       43            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
       44            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.0563125 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0505193 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00683844 (12.1437)
+Pair  time (%) = 0.00671071 (13.2835)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000503361 (0.893871)
-Outpt time (%) = 0.000320911 (0.569876)
-Other time (%) = 0.0486498 (86.3925)
+Comm  time (%) = 0.00045383 (0.89833)
+Outpt time (%) = 0.000358701 (0.710027)
+Other time (%) = 0.042996 (85.1082)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1829,13 +1829,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       44            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
       45            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.0552663 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0524542 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00674129 (12.1978)
+Pair  time (%) = 0.006612 (12.6053)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000389397 (0.704584)
-Outpt time (%) = 0.000321209 (0.581203)
-Other time (%) = 0.0478144 (86.5164)
+Comm  time (%) = 0.000409305 (0.780309)
+Outpt time (%) = 0.000383735 (0.731561)
+Other time (%) = 0.0450492 (85.8829)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1869,13 +1869,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       45            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
       46            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.0557265 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0492374 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00687802 (12.3425)
+Pair  time (%) = 0.00649416 (13.1895)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000578701 (1.03847)
-Outpt time (%) = 0.00029552 (0.530304)
-Other time (%) = 0.0479742 (86.0888)
+Comm  time (%) = 0.000331461 (0.67319)
+Outpt time (%) = 0.000332773 (0.675853)
+Other time (%) = 0.042079 (85.4615)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1909,13 +1909,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       46            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
       47            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.055882 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0506536 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00682402 (12.2115)
+Pair  time (%) = 0.00669324 (13.2138)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.00047332 (0.847)
-Outpt time (%) = 0.000325501 (0.582479)
-Other time (%) = 0.0482591 (86.359)
+Comm  time (%) = 0.000456214 (0.900655)
+Outpt time (%) = 0.000328243 (0.648015)
+Other time (%) = 0.0431759 (85.2376)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1949,13 +1949,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       47            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
       48            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.0595302 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0503905 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00673079 (11.3065)
+Pair  time (%) = 0.0066368 (13.1707)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000500858 (0.841351)
-Outpt time (%) = 0.000322342 (0.541476)
-Other time (%) = 0.0519762 (87.3107)
+Comm  time (%) = 0.000430107 (0.853548)
+Outpt time (%) = 0.000324786 (0.644538)
+Other time (%) = 0.0429988 (85.3312)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -1989,13 +1989,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       48            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
       49            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.0576805 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0500505 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00688422 (11.9351)
+Pair  time (%) = 0.00659347 (13.1736)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000460625 (0.79858)
-Outpt time (%) = 0.000321329 (0.557084)
-Other time (%) = 0.0500143 (86.7092)
+Comm  time (%) = 0.000380039 (0.759312)
+Outpt time (%) = 0.000337005 (0.673329)
+Other time (%) = 0.04274 (85.3937)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -2029,13 +2029,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       49            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
       50            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.0906075 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0518271 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00924164 (10.1996)
+Pair  time (%) = 0.00671631 (12.9591)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.00815338 (8.99857)
-Outpt time (%) = 0.000327289 (0.361216)
-Other time (%) = 0.0728852 (80.4406)
+Comm  time (%) = 0.000467718 (0.902457)
+Outpt time (%) = 0.000360131 (0.69487)
+Other time (%) = 0.044283 (85.4436)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -2069,13 +2069,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       50            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
       51            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.0685455 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0526264 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00928813 (13.5503)
+Pair  time (%) = 0.00670689 (12.7444)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.00821632 (11.9867)
-Outpt time (%) = 0.000331461 (0.483564)
-Other time (%) = 0.0507096 (73.9795)
+Comm  time (%) = 0.00036931 (0.701759)
+Outpt time (%) = 0.000372231 (0.707309)
+Other time (%) = 0.0451779 (85.8466)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -2109,13 +2109,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       51            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
       52            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.0672966 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0524865 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00675327 (10.0351)
+Pair  time (%) = 0.0066576 (12.6844)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000452399 (0.672247)
-Outpt time (%) = 0.00033772 (0.501838)
-Other time (%) = 0.0597532 (88.7908)
+Comm  time (%) = 0.000452936 (0.862957)
+Outpt time (%) = 0.000351846 (0.670356)
+Other time (%) = 0.0450241 (85.7823)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -2149,13 +2149,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       52            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
       53            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.0840369 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0540738 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00688875 (8.19729)
+Pair  time (%) = 0.00665456 (12.3064)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.00049752 (0.592026)
-Outpt time (%) = 0.000298023 (0.354634)
-Other time (%) = 0.0763526 (90.8561)
+Comm  time (%) = 0.000372946 (0.689699)
+Outpt time (%) = 0.000340104 (0.628963)
+Other time (%) = 0.0467062 (86.3749)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -2189,13 +2189,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       53            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
       54            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.0834497 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0548586 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00687099 (8.23368)
+Pair  time (%) = 0.00666082 (12.1418)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000444531 (0.532694)
-Outpt time (%) = 0.000349104 (0.418341)
-Other time (%) = 0.0757851 (90.8153)
+Comm  time (%) = 0.000418544 (0.762951)
+Outpt time (%) = 0.000342011 (0.623442)
+Other time (%) = 0.0474372 (86.4718)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -2229,13 +2229,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       54            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
       55            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.0620403 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0522921 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00674981 (10.8797)
+Pair  time (%) = 0.00653929 (12.5053)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000441909 (0.712294)
-Outpt time (%) = 0.000352502 (0.568182)
-Other time (%) = 0.054496 (87.8398)
+Comm  time (%) = 0.000342727 (0.655408)
+Outpt time (%) = 0.000322282 (0.616312)
+Other time (%) = 0.0450878 (86.223)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -2269,13 +2269,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       55            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
       56            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.0593352 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.053045 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00668448 (11.2656)
+Pair  time (%) = 0.00649953 (12.2529)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000445485 (0.750794)
-Outpt time (%) = 0.000361979 (0.610057)
-Other time (%) = 0.0518433 (87.3735)
+Comm  time (%) = 0.000308335 (0.581271)
+Outpt time (%) = 0.000325024 (0.612733)
+Other time (%) = 0.0459121 (86.5531)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -2309,13 +2309,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       56            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
       57            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.0569044 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0528077 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00685525 (12.047)
+Pair  time (%) = 0.0065245 (12.3552)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000565052 (0.992984)
-Outpt time (%) = 0.000325263 (0.571594)
-Other time (%) = 0.0491589 (86.3885)
+Comm  time (%) = 0.000353277 (0.668987)
+Outpt time (%) = 0.000313759 (0.594153)
+Other time (%) = 0.0456162 (86.3817)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -2349,13 +2349,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       57            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
       58            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.0591496 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0526786 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00692374 (11.7055)
+Pair  time (%) = 0.00652826 (12.3926)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000492573 (0.832757)
-Outpt time (%) = 0.000303745 (0.51352)
-Other time (%) = 0.0514296 (86.9483)
+Comm  time (%) = 0.000332415 (0.631025)
+Outpt time (%) = 0.000316858 (0.601494)
+Other time (%) = 0.0455011 (86.3749)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -2389,13 +2389,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       58            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
       59            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.0582783 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0535012 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.00673443 (11.5556)
+Pair  time (%) = 0.00652122 (12.1889)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000434399 (0.745386)
-Outpt time (%) = 0.000304341 (0.52222)
-Other time (%) = 0.0508052 (87.1768)
+Comm  time (%) = 0.000347257 (0.649063)
+Outpt time (%) = 0.000323713 (0.605057)
+Other time (%) = 0.046309 (86.5569)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -2429,13 +2429,13 @@ Memory usage per processor = 18.2282 Mbytes
 Step KinEng PotEng Pxx Pyy Pzz Pxy 
       59            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
       60            0    -27164.16    0.0224632    0.0224632    0.0224632 -3.0464385e-13 
-Loop time of 0.0583085 on 4 procs for 1 steps with 6912 atoms
+Loop time of 0.0536864 on 4 procs for 1 steps with 6912 atoms
 
-Pair  time (%) = 0.0067125 (11.512)
+Pair  time (%) = 0.00665629 (12.3985)
 Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000517726 (0.887908)
-Outpt time (%) = 0.000351787 (0.60332)
-Other time (%) = 0.0507265 (86.9967)
+Comm  time (%) = 0.000488102 (0.909173)
+Outpt time (%) = 0.000350952 (0.653707)
+Other time (%) = 0.0461911 (86.0387)
 
 Nlocal:    1728 ave 1728 max 1728 min
 Histogram: 4 0 0 0 0 0 0 0 0 0

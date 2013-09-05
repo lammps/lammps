@@ -1,4 +1,4 @@
-LAMMPS (27 Aug 2013)
+LAMMPS (30 Aug 2013)
 log log.polarize
 
 variable nstepsequil equal 1000000
@@ -270,18 +270,18 @@ Step Temp KinEng PotEng TotEng efield lowall hiwall
  ATC: computing kernel matrix molecule ...done
  ATC: computing kernel matrix molecule ...done
      100    296.18885    241.77239   -1266.3101   -1024.5377            0   -25.105524   -26.164269 
-Loop time of 45.5704 on 4 procs for 100 steps with 9474 atoms
+Loop time of 39.4264 on 4 procs for 100 steps with 9474 atoms
 
-Pair  time (%) = 16.3605 (35.9017)
-Bond  time (%) = 0.00160581 (0.00352379)
-Kspce time (%) = 6.05084 (13.278)
-Neigh time (%) = 19.7865 (43.4197)
-Comm  time (%) = 0.413389 (0.907142)
-Outpt time (%) = 0.000264287 (0.000579953)
-Other time (%) = 2.95726 (6.48942)
+Pair  time (%) = 15.485 (39.2757)
+Bond  time (%) = 0.00152647 (0.00387171)
+Kspce time (%) = 2.45746 (6.23305)
+Neigh time (%) = 19.0463 (48.3087)
+Comm  time (%) = 0.193679 (0.491242)
+Outpt time (%) = 0.000291049 (0.00073821)
+Other time (%) = 2.24208 (5.68676)
 
-FFT time (% of Kspce) = 0.787418 (13.0134)
-FFT Gflps 3d (1d only) = 1.60365 5.42005
+FFT time (% of Kspce) = 0.656798 (26.7267)
+FFT Gflps 3d (1d only) = 1.92257 5.45241
 
 Nlocal:    2368.5 ave 2387 max 2357 min
 Histogram: 1 1 0 0 1 0 0 0 0 1

@@ -24,7 +24,7 @@ compute 1 all ke :pre
 Define a computation that calculates the translational kinetic energy
 of a group of particles.
 
-The kinetic energy or each particle is computed as 1/2 m v^2, where m
+The kinetic energy of each particle is computed as 1/2 m v^2, where m
 and v are the mass and velocity of the particle.
 
 There is a subtle difference between the quantity calculated by this
@@ -42,10 +42,10 @@ include different degrees of freedom (translational, rotational, etc).
 
 [Output info:]
 
-This compute calculates a global scalar (the KE).  This value can be
-used by any command that uses a global scalar value from a compute as
-input.  See "Section_howto 15"_Section_howto.html#howto_15 for an
-overview of LAMMPS output options.
+This compute calculates a global scalar (the summed KE).  This value
+can be used by any command that uses a global scalar value from a
+compute as input.  See "Section_howto 15"_Section_howto.html#howto_15
+for an overview of LAMMPS output options.
 
 The scalar value calculated by this compute is "extensive".  The
 scalar value will be in energy "units"_units.html.

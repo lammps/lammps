@@ -67,7 +67,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
   if (dampflag == 0) gammat = 0.0;
 
   if (kn < 0.0 || kt < 0.0 || gamman < 0.0 || gammat < 0.0 ||
-      xmu < 0.0 || xmu > 1.0 || dampflag < 0 || dampflag > 1)
+      xmu < 0.0 || xmu > 10000.0 || dampflag < 0 || dampflag > 1)
     error->all(FLERR,"Illegal fix wall/gran command");
 
   // convert Kn and Kt from pressure units to force/distance^2 if Hertzian

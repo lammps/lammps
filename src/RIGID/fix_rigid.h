@@ -53,7 +53,9 @@ class FixRigid : public Fix {
   void reset_dt();
   void zero_momentum(int);
   void zero_rotation(int);
-  virtual void *extract(const char*,int &);
+  virtual void *extract(const char*, int &);
+  double extract_ke();
+  double extract_erotational();
   double compute_array(int, int);
     
  protected:

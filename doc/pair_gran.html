@@ -37,7 +37,7 @@
 
 <LI>gamma_t = damping coefficient for collisions in tangential direction (1/time units or 1/time-distance units - see discussion below) 
 
-<LI>xmu = static yield criterion (unitless fraction between 0.0 and 1.0) 
+<LI>xmu = static yield criterion (unitless value between 0.0 and 1.0e4) 
 
 <LI>dampflag = 0 or 1 if tangential damping force is excluded or included 
 </UL>
@@ -161,6 +161,11 @@ between 2 particles grows according to a tangential spring and
 dash-pot model until Ft/Fn = xmu and is then held at Ft = Fn*xmu until
 the particles lose contact.  In the Hertzian case, a similar analogy
 holds, though the spring is no longer linear.
+</P>
+<P>IMPORTANT NOTE: Normally, xmu should be specified as a fractional
+value between 0.0 and 1.0, however LAMMPS allows large values (up to
+1.0e4) to allow for modeling of systems which can sustain very large
+tangential forces.
 </P>
 <P>For granular styles there are no additional coefficients to set for
 each pair of atom types via the <A HREF = "pair_coeff.html">pair_coeff</A> command.

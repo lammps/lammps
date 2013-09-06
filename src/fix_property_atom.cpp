@@ -172,7 +172,7 @@ void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf)
 
   char **values = new char*[nwords];
 
-  // loop over lines of atom velocities
+  // loop over lines of atom info
   // tokenize the line into values
   // if I own atom tag, unpack its values
 
@@ -272,7 +272,7 @@ void FixPropertyAtom::write_data_section_pack(int mth, double **buf)
 
 void FixPropertyAtom::write_data_section_keyword(int mth, FILE *fp)
 {
-  if (nvalue == 1 && style[0] == MOLECULE) fprintf(fp,"\nMolecule\n\n");
+  if (nvalue == 1 && style[0] == MOLECULE) fprintf(fp,"\nMolecules\n\n");
   else fprintf(fp,"\n%s\n\n",id);
 }
 

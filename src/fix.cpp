@@ -65,6 +65,7 @@ Fix::Fix(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   comm_forward = comm_reverse = comm_border = 0;
   restart_reset = 0;
+  nevery = 1;
 
   maxvatom = 0;
   vatom = NULL;

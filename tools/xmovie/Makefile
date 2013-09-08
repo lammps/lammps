@@ -8,7 +8,7 @@ WARNS	= -Wimplicit -Wunused -Wmissing-prototypes
 CCOPTS 	= -c $(OPTIM) $(DEFINES) $(WARNS) $(XINCLUDE)
 LNOPTS	= $(OPTIM) 
 
-LIBS	= $(XLIBDIR) -lX11 -lXaw -lm
+LIBS	= $(XLIBDIR) -lX11 -lXaw -lXt -lXpm -lm
 
 # try this version on a Mac
 #LIBS	= $(XLIBDIR) -lX11 -lXaw -lXt -lXext -lXmu -lXpm

@@ -39,19 +39,21 @@ FixCountdown::FixCountdown(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 0;
   vector_flag = 1;
   size_vector = 4;
-  nevery = 1;
 
   _times = NULL;
   _last_wall = _complete = 0.0;
   _outfreq = 0;
   _ntimes = _idx = 0;
 
-  printf("narg=%d arg[0]=%s arg[1]=%s arg[2]=%s arg[3]=%s\n",
-   narg,arg[0],arg[1],arg[2],arg[3]);
-  if (narg == 4) {
-    _outfreq = force->inumeric(FLERR,arg[3]);
+  if (narg == 5) {
+    nevery = force->inumeric(FLERR,arg[3]);
+    _outfreq = force->inumeric(FLERR,arg[4]);
   } else error->all(FLERR,"Illegal fix countdown command");
-  printf("outfreq=%d\n",_outfreq);
+
+  if (nevery <= 0)
+    error->all(FLERR,"Fix countdown requires: Nevery > 0");
+
+  global_freq = nevery;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -109,7 +111,7 @@ void FixCountdown::end_of_step()
     wsum += w;
     w *= decay;
   }
-  w = tsum/wsum * tstep * (1.0 - _complete);
+  w = tsum/wsum * tstep * (1.0 - _complete) / static_cast<double>(nevery);
   int day = floor(w/86400.0);
   _eta[0] = static_cast<double>(day);
   w -= _eta[0]*86400.0;

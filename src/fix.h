@@ -175,6 +175,9 @@ class Fix : protected Pointers {
   virtual void write_data_section_keyword(int, FILE *) {}
   virtual void write_data_section(int, FILE *, int, double **, int) {}
 
+  virtual void zero_momentum() {}
+  virtual void zero_rotation() {}
+
   virtual int modify_param(int, char **) {return 0;}
   virtual void *extract(const char *, int &) {return NULL;}
 

@@ -112,15 +112,6 @@ angular will set the angular momentum of each rigid body to zero.
 This is done by adjusting the velocities of the atoms in each rigid
 body.
 </P>
-<P>IMPORTANT NOTE: When using the <I>rigid</I> option with the <I>zero</I> style,
-only the velocities of atoms that are in the group specified with the
-velocity command will be adjusted, and likewise contribute to the
-calculation of the center-of-mass velocity or angular momentum of each
-rigid body.  This allows you to zero out the momenta of a subset of
-the rigid bodies, but you will get incomplete zeroing if you specify a
-group that includes only a subset of the atoms in one or more of the
-rigid bodies.
-</P>
 <P>All temperatures specified in the velocity command are in temperature
 units; see the <A HREF = "units.html">units</A> command.  The units of velocities and
 coordinates depend on whether the <I>units</I> keyword is set to <I>box</I> or
@@ -200,6 +191,12 @@ stored on a particular machine.
 </P>
 <HR>
 
+<P>The <I>rigid</I> option only has meaning when used with the <I>zero</I> style.
+It allows specification of a fix-ID for one of the <A HREF = "fix_rigid.html">rigid-body
+fix</A> variants which defines a set of rigid bodies.  The
+zeroing of linear or angular momentum is then performed for each rigid
+body defined by the fix, as described above.
+</P>
 <P>The <I>units</I> option is used by <I>set</I> and <I>ramp</I>.  If units = box, 
 the velocities and coordinates specified in the velocity command are
 in the standard units described by the <A HREF = "units.html">units</A> command
@@ -217,6 +214,7 @@ command must have been previously used to define the lattice spacing.
 <P><B>Default:</B>
 </P>
 <P>The option defaults are dist = uniform, sum = no, mom = yes, rot = no,
-temp = full style on group-ID, loop = all, and units = lattice.
+temp = full style on group-ID, loop = all, and units = lattice.  The
+rigid option is not defined by default.
 </P>
 </HTML>

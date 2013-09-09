@@ -102,4 +102,3 @@ thermo		100
 #dump_modify	1 pad 4 adiam 1 1 adiam 2 0.2
 
 run		5000
-

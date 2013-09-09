@@ -345,11 +345,15 @@ void FixRigidSmall::setup_pre_neighbor()
 {
   if (firstflag) {
     firstflag = 0;
-    setup_bodies();
+    setup_bodies_static();
+    setup_bodies_dynamic();
   } else pre_neighbor();
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   compute initial fcm and torque on bodies, also initial virial
+   reset all particle velocities to be consistent with vcm and omega
+------------------------------------------------------------------------- */
 
 void FixRigidSmall::setup(int vflag)
 {
@@ -358,32 +362,23 @@ void FixRigidSmall::setup(int vflag)
 
   //check(1);
 
-  // sum vcm, fcm, angmom, torque across all rigid bodies
-  // vcm = velocity of COM
+  // sum fcm, torque across all rigid bodies
   // fcm = force on COM
-  // angmom = angular momentum around COM
   // torque = torque around COM
 
   double **x = atom->x;
-  double **v = atom->v;
   double **f = atom->f;
-  double *rmass = atom->rmass;
-  double *mass = atom->mass;
   int *type = atom->type;
   int *image = atom->image;
   int nlocal = atom->nlocal;
 
-  double *xcm,*vcm,*fcm,*acm,*tcm;
+  double *xcm,*fcm,*tcm;
   double dx,dy,dz;
   double unwrap[3];
 
   for (ibody = 0; ibody < nlocal_body+nghost_body; ibody++) {
-    vcm = body[ibody].vcm;
-    vcm[0] = vcm[1] = vcm[2] = 0.0;
     fcm = body[ibody].fcm;
     fcm[0] = fcm[1] = fcm[2] = 0.0;
-    acm = body[ibody].angmom;
-    acm[0] = acm[1] = acm[2] = 0.0;
     tcm = body[ibody].torque;
     tcm[0] = tcm[1] = tcm[2] = 0.0;
   }
@@ -392,13 +387,6 @@ void FixRigidSmall::setup(int vflag)
     if (atom2body[i] < 0) continue;
     Body *b = &body[atom2body[i]];
 
-    if (rmass) massone = rmass[i];
-    else massone = mass[type[i]];
-
-    vcm = b->vcm;
-    vcm[0] += v[i][0] * massone;
-    vcm[1] += v[i][1] * massone;
-    vcm[2] += v[i][2] * massone;
     fcm = b->fcm;
     fcm[0] += f[i][0];
     fcm[1] += f[i][1];
@@ -410,10 +398,6 @@ void FixRigidSmall::setup(int vflag)
     dy = unwrap[1] - xcm[1];
     dz = unwrap[2] - xcm[2];
 
-    acm = b->angmom;
-    acm[0] += dy * massone*v[i][2] - dz * massone*v[i][1];
-    acm[1] += dz * massone*v[i][0] - dx * massone*v[i][2];
-    acm[2] += dx * massone*v[i][1] - dy * massone*v[i][0];
     tcm = b->torque;
     tcm[0] += dy * f[i][2] - dz * f[i][1];
     tcm[1] += dz * f[i][0] - dx * f[i][2];
@@ -423,36 +407,11 @@ void FixRigidSmall::setup(int vflag)
   // extended particles add their rotation/torque to angmom/torque of body
 
   if (extended) {
-    AtomVecLine::Bonus *lbonus;
-    if (avec_line) lbonus = avec_line->bonus;
-    double **omega = atom->omega;
-    double **angmom = atom->angmom;
     double **torque = atom->torque;
-    double *radius = atom->radius;
-    int *line = atom->line;
 
     for (i = 0; i < nlocal; i++) {
       if (atom2body[i] < 0) continue;
       Body *b = &body[atom2body[i]];
-
-      if (eflags[i] & OMEGA) {
-        if (eflags[i] & SPHERE) {
-          radone = radius[i];
-          acm = b->angmom;
-          acm[0] += SINERTIA*rmass[i] * radone*radone * omega[i][0];
-          acm[1] += SINERTIA*rmass[i] * radone*radone * omega[i][1];
-          acm[2] += SINERTIA*rmass[i] * radone*radone * omega[i][2];
-        } else if (eflags[i] & LINE) {
-          radone = lbonus[line[i]].length;
-          b->angmom[2] += LINERTIA*rmass[i] * radone*radone * omega[i][2];
-        }
-      }
-      if (eflags[i] & ANGMOM) {
-        acm = b->angmom;
-        acm[0] += angmom[i][0];
-        acm[1] += angmom[i][1];
-        acm[2] += angmom[i][2];
-      }
       if (eflags[i] & TORQUE) {
         tcm = b->torque;
         tcm[0] += torque[i][0];
@@ -462,28 +421,17 @@ void FixRigidSmall::setup(int vflag)
     }
   }
 
-  // reverse communicate vcm, fcm, angmom, torque of all bodies
+  // reverse communicate fcm, torque of all bodies
 
-  commflag = VCM_ANGMOM;
-  comm->reverse_comm_variable_fix(this);
   commflag = FORCE_TORQUE;
   comm->reverse_comm_variable_fix(this);
-
-  // normalize velocity of COM
-
-  for (ibody = 0; ibody < nlocal_body; ibody++) {
-    vcm = body[ibody].vcm;
-    vcm[0] /= body[ibody].mass;
-    vcm[1] /= body[ibody].mass;
-    vcm[2] /= body[ibody].mass;
-  }
 
   // virial setup before call to set_v
 
   if (vflag) v_setup(vflag);
   else evflag = 0;
 
-  // compute and forward communicate updated info of all bodies
+  // compute and forward communicate vcm and omega of all bodies
 
   for (ibody = 0; ibody < nlocal_body; ibody++) {
     Body *b = &body[ibody];
@@ -855,7 +803,7 @@ int FixRigidSmall::dof(int tgroup)
 {
   int i,j;
 
-  // cannot count DOF correctly unless setup_bodies() has been called
+  // cannot count DOF correctly unless setup_bodies_static() has been called
 
   if (firstflag) {
     if (comm->me == 0) 
@@ -1559,7 +1507,7 @@ void FixRigidSmall::ring_farthest(int n, char *cbuf)
    read per-body attributes from infile if specified
 ------------------------------------------------------------------------- */
 
-void FixRigidSmall::setup_bodies()
+void FixRigidSmall::setup_bodies_static()
 {
   int i,itype,ibody;
 
@@ -2045,6 +1993,116 @@ void FixRigidSmall::setup_bodies()
 
   memory->destroy(itensor);
   if (infile) memory->destroy(inbody);
+}
+
+/* ----------------------------------------------------------------------
+   one-time initialization of dynamic rigid body attributes
+   Vcm and angmom, computed explicitly from constituent particles
+   even if wrong for overlapping particles, is OK,
+     since is just setting initial time=0 Vcm and angmom of the body
+     which can be estimated value
+------------------------------------------------------------------------- */
+
+void FixRigidSmall::setup_bodies_dynamic()
+{
+  int i,n,ibody;
+  double massone,radone;
+
+  // sum vcm, angmom across all rigid bodies
+  // vcm = velocity of COM
+  // angmom = angular momentum around COM
+
+  double **x = atom->x;
+  double **v = atom->v;
+  double *rmass = atom->rmass;
+  double *mass = atom->mass;
+  int *type = atom->type;
+  int *image = atom->image;
+  int nlocal = atom->nlocal;
+
+  double *xcm,*vcm,*acm;
+  double dx,dy,dz;
+  double unwrap[3];
+
+  for (ibody = 0; ibody < nlocal_body+nghost_body; ibody++) {
+    vcm = body[ibody].vcm;
+    vcm[0] = vcm[1] = vcm[2] = 0.0;
+    acm = body[ibody].angmom;
+    acm[0] = acm[1] = acm[2] = 0.0;
+  }
+
+  for (i = 0; i < nlocal; i++) {
+    if (atom2body[i] < 0) continue;
+    Body *b = &body[atom2body[i]];
+
+    if (rmass) massone = rmass[i];
+    else massone = mass[type[i]];
+
+    vcm = b->vcm;
+    vcm[0] += v[i][0] * massone;
+    vcm[1] += v[i][1] * massone;
+    vcm[2] += v[i][2] * massone;
+
+    domain->unmap(x[i],image[i],unwrap);
+    xcm = b->xcm;
+    dx = unwrap[0] - xcm[0];
+    dy = unwrap[1] - xcm[1];
+    dz = unwrap[2] - xcm[2];
+
+    acm = b->angmom;
+    acm[0] += dy * massone*v[i][2] - dz * massone*v[i][1];
+    acm[1] += dz * massone*v[i][0] - dx * massone*v[i][2];
+    acm[2] += dx * massone*v[i][1] - dy * massone*v[i][0];
+  }
+
+  // extended particles add their rotation to angmom of body
+
+  if (extended) {
+    AtomVecLine::Bonus *lbonus;
+    if (avec_line) lbonus = avec_line->bonus;
+    double **omega = atom->omega;
+    double **angmom = atom->angmom;
+    double *radius = atom->radius;
+    int *line = atom->line;
+
+    for (i = 0; i < nlocal; i++) {
+      if (atom2body[i] < 0) continue;
+      Body *b = &body[atom2body[i]];
+
+      if (eflags[i] & OMEGA) {
+        if (eflags[i] & SPHERE) {
+          radone = radius[i];
+          acm = b->angmom;
+          acm[0] += SINERTIA*rmass[i] * radone*radone * omega[i][0];
+          acm[1] += SINERTIA*rmass[i] * radone*radone * omega[i][1];
+          acm[2] += SINERTIA*rmass[i] * radone*radone * omega[i][2];
+        } else if (eflags[i] & LINE) {
+          radone = lbonus[line[i]].length;
+          b->angmom[2] += LINERTIA*rmass[i] * radone*radone * omega[i][2];
+        }
+      }
+      if (eflags[i] & ANGMOM) {
+        acm = b->angmom;
+        acm[0] += angmom[i][0];
+        acm[1] += angmom[i][1];
+        acm[2] += angmom[i][2];
+      }
+    }
+  }
+
+  // reverse communicate vcm, angmom of all bodies
+
+  commflag = VCM_ANGMOM;
+  comm->reverse_comm_variable_fix(this);
+
+  // normalize velocity of COM
+
+  for (ibody = 0; ibody < nlocal_body; ibody++) {
+    vcm = body[ibody].vcm;
+    vcm[0] /= body[ibody].mass;
+    vcm[1] /= body[ibody].mass;
+    vcm[2] /= body[ibody].mass;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -2800,234 +2858,52 @@ void FixRigidSmall::reset_dt()
 
 /* ----------------------------------------------------------------------
    zero linear momentum of each rigid body
-   called by velocity zero linear command with its vgroup
-   only atoms in velocity command group contribute to vcm of body,
-     and only their velocities are adjusted, odd if partial bodies specified
+   set Vcm to 0.0, then reset velocities of particles via set_v()
 ------------------------------------------------------------------------- */
 
-void FixRigidSmall::zero_momentum(int vgroup)
+void FixRigidSmall::zero_momentum()
 {
-  int i,ibody;
-  double massone;
-
-  int vgroupbit = group->bitmask[vgroup];
-
-  // sum vcm across all rigid bodies
-
-  double **v = atom->v;
-  double *rmass = atom->rmass;
-  double *mass = atom->mass;
-  int *mask = atom->mask;
-  int *type = atom->type;
-  int nlocal = atom->nlocal;
-
-  double *vcm,*acm;
-
-  for (ibody = 0; ibody < nlocal_body+nghost_body; ibody++) {
+  double *vcm;
+  for (int ibody = 0; ibody < nlocal_body+nghost_body; ibody++) {
     vcm = body[ibody].vcm;
     vcm[0] = vcm[1] = vcm[2] = 0.0;
-    acm = body[ibody].angmom;
-    acm[0] = acm[1] = acm[2] = 0.0;
   }
 
-  for (i = 0; i < nlocal; i++) {
-    if (!(mask[i] & vgroupbit)) continue;
-    if (atom2body[i] < 0) continue;
-    Body *b = &body[atom2body[i]];
-    if (rmass) massone = rmass[i];
-    else massone = mass[type[i]];
-    vcm = b->vcm;
-    vcm[0] += v[i][0] * massone;
-    vcm[1] += v[i][1] * massone;
-    vcm[2] += v[i][2] * massone;
-  }
-
-  // reverse communicate vcm (and angmom) of all bodies
-
-  commflag = VCM_ANGMOM;
-  comm->reverse_comm_variable_fix(this);
-
-  // normalize velocity of COM
-
-  for (ibody = 0; ibody < nlocal_body; ibody++) {
-    vcm = body[ibody].vcm;
-    vcm[0] /= body[ibody].mass;
-    vcm[1] /= body[ibody].mass;
-    vcm[2] /= body[ibody].mass;
-  }
-
-  // adjust velocities by vcm to zero linear momentum
-
-  for (i = 0; i < nlocal; i++) {
-    if (!(mask[i] & vgroupbit)) continue;
-    if (atom2body[i] < 0) continue;
-    Body *b = &body[atom2body[i]];
-    vcm = b->vcm;
-    v[i][0] -= vcm[0];
-    v[i][1] -= vcm[1];
-    v[i][2] -= vcm[2];
-  }
-}
-
-/* ----------------------------------------------------------------------
-   zero angular momentum of each rigid body
-   called by velocity zero linear command with its vgroup
-   only atoms in velocity command group contribute to angmom/omega of body,
-     and only their velocities are adjusted, odd if partial bodies specified
-------------------------------------------------------------------------- */
-
-void FixRigidSmall::zero_rotation(int vgroup)
-{
-  int i,ibody;
-  double massone,radone;
-
-  int vgroupbit = group->bitmask[vgroup];
-
-  // sum angmom across all rigid bodies
-
-  double **x = atom->x;
-  double **v = atom->v;
-  double *rmass = atom->rmass;
-  double *mass = atom->mass;
-  int *type = atom->type;
-  int *image = atom->image;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-
-  double *xcm,*vcm,*acm;
-  double dx,dy,dz;
-  double unwrap[3];
-
-  for (ibody = 0; ibody < nlocal_body+nghost_body; ibody++) {
-    vcm = body[ibody].vcm;
-    vcm[0] = vcm[1] = vcm[2] = 0.0;
-    acm = body[ibody].angmom;
-    acm[0] = acm[1] = acm[2] = 0.0;
-  }
-
-  for (i = 0; i < nlocal; i++) {
-    if (!(mask[i] & vgroupbit)) continue;
-    if (atom2body[i] < 0) continue;
-    Body *b = &body[atom2body[i]];
-
-    if (rmass) massone = rmass[i];
-    else massone = mass[type[i]];
-
-    domain->unmap(x[i],image[i],unwrap);
-    xcm = b->xcm;
-    dx = unwrap[0] - xcm[0];
-    dy = unwrap[1] - xcm[1];
-    dz = unwrap[2] - xcm[2];
-
-    acm = b->angmom;
-    acm[0] += dy * massone*v[i][2] - dz * massone*v[i][1];
-    acm[1] += dz * massone*v[i][0] - dx * massone*v[i][2];
-    acm[2] += dx * massone*v[i][1] - dy * massone*v[i][0];
-  }
-
-  // extended particles add their rotation to angmom of body
-
-  if (extended) {
-    AtomVecLine::Bonus *lbonus;
-    if (avec_line) lbonus = avec_line->bonus;
-    double **omega = atom->omega;
-    double **angmom = atom->angmom;
-    double **torque = atom->torque;
-    double *radius = atom->radius;
-    int *line = atom->line;
-
-    for (i = 0; i < nlocal; i++) {
-      if (!(mask[i] & vgroupbit)) continue;
-      if (atom2body[i] < 0) continue;
-      Body *b = &body[atom2body[i]];
-
-      if (eflags[i] & OMEGA) {
-        if (eflags[i] & SPHERE) {
-          radone = radius[i];
-          acm = b->angmom;
-          acm[0] += SINERTIA*rmass[i] * radone*radone * omega[i][0];
-          acm[1] += SINERTIA*rmass[i] * radone*radone * omega[i][1];
-          acm[2] += SINERTIA*rmass[i] * radone*radone * omega[i][2];
-        } else if (eflags[i] & LINE) {
-          radone = lbonus[line[i]].length;
-          b->angmom[2] += LINERTIA*rmass[i] * radone*radone * omega[i][2];
-        }
-      }
-      if (eflags[i] & ANGMOM) {
-        acm = b->angmom;
-        acm[0] += angmom[i][0];
-        acm[1] += angmom[i][1];
-        acm[2] += angmom[i][2];
-      }
-    }
-  }
-
-  // reverse communicate angmom (and vcm) of all bodies
-
-  commflag = VCM_ANGMOM;
-  comm->reverse_comm_variable_fix(this);
-
-  // convert angmom to omega and communicate it
-
-  for (ibody = 0; ibody < nlocal_body; ibody++) {
-    Body *b = &body[ibody];
-    MathExtra::angmom_to_omega(b->angmom,b->ex_space,b->ey_space,
-                               b->ez_space,b->inertia,b->omega);
-  }
+  // forward communicate of vcm to all ghost copies
 
   commflag = FINAL;
   comm->forward_comm_variable_fix(this);
 
-  // adjust velocities to zero omega
-  // vnew_i = v_i - w x r_i
-  // must use unwrapped coords to compute r_i correctly
+  // set velocity of atoms in rigid bodues
 
-  double *omega;
+  evflag = 0;
+  set_v();
+}
 
-  for (i = 0; i < nlocal; i++) {
-    if (!(mask[i] & vgroupbit)) continue;
-    if (atom2body[i] < 0) continue;
-    Body *b = &body[atom2body[i]];
+/* ----------------------------------------------------------------------
+   zero angular momentum of each rigid body
+   set angmom/omega to 0.0, then reset velocities of particles via set_v()
+------------------------------------------------------------------------- */
 
-    if (rmass) massone = rmass[i];
-    else massone = mass[type[i]];
-
-    domain->unmap(x[i],image[i],unwrap);
-    xcm = b->xcm;
-    dx = unwrap[0] - xcm[0];
-    dy = unwrap[1] - xcm[1];
-    dz = unwrap[2] - xcm[2];
-
-    omega = b->omega;
-    v[i][0] -= omega[1]*dz - omega[2]*dy;
-    v[i][1] -= omega[2]*dx - omega[0]*dz;
-    v[i][2] -= omega[0]*dy - omega[1]*dx;
+void FixRigidSmall::zero_rotation()
+{
+  double *angmom,*omega;
+  for (int ibody = 0; ibody < nlocal_body+nghost_body; ibody++) {
+    angmom = body[ibody].angmom;
+    angmom[0] = angmom[1] = angmom[2] = 0.0;
+    omega = body[ibody].omega;
+    omega[0] = omega[1] = omega[2] = 0.0;
   }
 
-  // also explicitly zero omega and angmom of extended particles
+  // forward communicate of omega to all ghost copies
 
-  if (extended) {
-    double **omega_one = atom->omega;
-    double **angmom_one = atom->angmom;
+  commflag = FINAL;
+  comm->forward_comm_variable_fix(this);
 
-    for (i = 0; i < nlocal; i++) {
-      if (!(mask[i] & vgroupbit)) continue;
-      if (atom2body[i] < 0) continue;
+  // set velocity of atoms in rigid bodues
 
-      if (eflags[i] & OMEGA) {
-        if (eflags[i] & SPHERE) {
-          omega_one[i][0] = 0.0;
-          omega_one[i][1] = 0.0;
-          omega_one[i][2] = 0.0;
-        } else if (eflags[i] & LINE) omega_one[i][2] = 0.0;
-      }
-      if (eflags[i] & ANGMOM) {
-        angmom_one[i][0] = 0.0;
-        angmom_one[i][1] = 0.0;
-        angmom_one[i][2] = 0.0;
-      }
-    }
-  }
+  evflag = 0;
+  set_v();
 }
 
 /* ---------------------------------------------------------------------- */

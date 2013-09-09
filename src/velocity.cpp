@@ -635,9 +635,9 @@ void Velocity::zero(int narg, char **arg)
       if (strcmp(modify->fix[rfix]->style,"rigid/small") == 0) {
         lmp->init();
         ((FixRigidSmall *) modify->fix[rfix])->setup_pre_neighbor();
-        ((FixRigidSmall *) modify->fix[rfix])->zero_momentum(igroup);
+        ((FixRigidSmall *) modify->fix[rfix])->zero_momentum();
       } else if (strstr(modify->fix[rfix]->style,"rigid")) {
-        ((FixRigid *) modify->fix[rfix])->zero_momentum(igroup);
+        ((FixRigid *) modify->fix[rfix])->zero_momentum();
       } else error->all(FLERR,"Velocity rigid used with non-rigid fix-ID");
     }
 
@@ -647,9 +647,9 @@ void Velocity::zero(int narg, char **arg)
       if (strcmp(modify->fix[rfix]->style,"rigid/small") == 0) {
         lmp->init();
         ((FixRigidSmall *) modify->fix[rfix])->setup_pre_neighbor();
-        ((FixRigidSmall *) modify->fix[rfix])->zero_rotation(igroup);
+        ((FixRigidSmall *) modify->fix[rfix])->zero_rotation();
       } else if (strstr(modify->fix[rfix]->style,"rigid")) {
-        ((FixRigid *) modify->fix[rfix])->zero_rotation(igroup);
+        ((FixRigid *) modify->fix[rfix])->zero_rotation();
       } else error->all(FLERR,"Velocity rigid used with non-rigid fix-ID");
     }
 

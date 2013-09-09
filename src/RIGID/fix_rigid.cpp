@@ -639,10 +639,14 @@ void FixRigid::init()
     step_respa = ((Respa *) update->integrate)->step;
 
   // one-time initialization of rigid body attributes
-  // extended flags, masstotal, COM, inertia tensor
+  // setup_bodies_static = extended flags, masstotal, COM, inertia tensor
+  // setup_bodies_dynamic = vcm and angmom
 
-  if (firstflag) setup_bodies();
-  firstflag = 0;
+  if (firstflag) {
+    firstflag = 0;
+    setup_bodies_static();
+    setup_bodies_dynamic();
+  }
 
   // temperature scale factor
 
@@ -655,20 +659,19 @@ void FixRigid::init()
   else tfactor = 0.0;
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   compute initial fcm and torque on bodies, also initial virial
+   reset all particle velocities to be consistent with vcm and omega
+------------------------------------------------------------------------- */
 
 void FixRigid::setup(int vflag)
 {
   int i,n,ibody;
   double massone,radone;
 
-  // vcm = velocity of center-of-mass of each rigid body
   // fcm = force on center-of-mass of each rigid body
 
-  double **v = atom->v;
   double **f = atom->f;
-  double *rmass = atom->rmass;
-  double *mass = atom->mass;
   int *type = atom->type;
   int nlocal = atom->nlocal;
 
@@ -678,29 +681,19 @@ void FixRigid::setup(int vflag)
   for (i = 0; i < nlocal; i++) {
     if (body[i] < 0) continue;
     ibody = body[i];
-    if (rmass) massone = rmass[i];
-    else massone = mass[type[i]];
-
-    sum[ibody][0] += v[i][0] * massone;
-    sum[ibody][1] += v[i][1] * massone;
-    sum[ibody][2] += v[i][2] * massone;
-    sum[ibody][3] += f[i][0];
-    sum[ibody][4] += f[i][1];
-    sum[ibody][5] += f[i][2];
+    sum[ibody][0] += f[i][0];
+    sum[ibody][1] += f[i][1];
+    sum[ibody][2] += f[i][2];
   }
 
   MPI_Allreduce(sum[0],all[0],6*nbody,MPI_DOUBLE,MPI_SUM,world);
 
   for (ibody = 0; ibody < nbody; ibody++) {
-    vcm[ibody][0] = all[ibody][0]/masstotal[ibody];
-    vcm[ibody][1] = all[ibody][1]/masstotal[ibody];
-    vcm[ibody][2] = all[ibody][2]/masstotal[ibody];
-    fcm[ibody][0] = all[ibody][3];
-    fcm[ibody][1] = all[ibody][4];
-    fcm[ibody][2] = all[ibody][5];
+    fcm[ibody][0] = all[ibody][0];
+    fcm[ibody][1] = all[ibody][1];
+    fcm[ibody][2] = all[ibody][2];
   }
 
-  // angmom = angular momentum of each rigid body
   // torque = torque on each rigid body
 
   tagint *image = atom->image;
@@ -721,52 +714,23 @@ void FixRigid::setup(int vflag)
     dy = unwrap[1] - xcm[ibody][1];
     dz = unwrap[2] - xcm[ibody][2];
 
-    if (rmass) massone = rmass[i];
-    else massone = mass[type[i]];
-
-    sum[ibody][0] += dy * massone*v[i][2] - dz * massone*v[i][1];
-    sum[ibody][1] += dz * massone*v[i][0] - dx * massone*v[i][2];
-    sum[ibody][2] += dx * massone*v[i][1] - dy * massone*v[i][0];
-    sum[ibody][3] += dy * f[i][2] - dz * f[i][1];
-    sum[ibody][4] += dz * f[i][0] - dx * f[i][2];
-    sum[ibody][5] += dx * f[i][1] - dy * f[i][0];
+    sum[ibody][0] += dy * f[i][2] - dz * f[i][1];
+    sum[ibody][1] += dz * f[i][0] - dx * f[i][2];
+    sum[ibody][2] += dx * f[i][1] - dy * f[i][0];
   }
 
-  // extended particles add their rotation/torque to angmom/torque of body
+  // extended particles add their torque to torque of body
 
   if (extended) {
-    AtomVecLine::Bonus *lbonus;
-    if (avec_line) lbonus = avec_line->bonus;
-    double **omega_one = atom->omega;
-    double **angmom_one = atom->angmom;
     double **torque_one = atom->torque;
-    double *radius = atom->radius;
-    int *line = atom->line;
 
     for (i = 0; i < nlocal; i++) {
       if (body[i] < 0) continue;
       ibody = body[i];
-
-      if (eflags[i] & OMEGA) {
-        if (eflags[i] & SPHERE) {
-          radone = radius[i];
-          sum[ibody][0] += SINERTIA*rmass[i] * radone*radone * omega_one[i][0];
-          sum[ibody][1] += SINERTIA*rmass[i] * radone*radone * omega_one[i][1];
-          sum[ibody][2] += SINERTIA*rmass[i] * radone*radone * omega_one[i][2];
-        } else if (eflags[i] & LINE) {
-          radone = lbonus[line[i]].length;
-          sum[ibody][2] += LINERTIA*rmass[i] * radone*radone * omega_one[i][2];
-        }
-      }
-      if (eflags[i] & ANGMOM) {
-        sum[ibody][0] += angmom_one[i][0];
-        sum[ibody][1] += angmom_one[i][1];
-        sum[ibody][2] += angmom_one[i][2];
-      }
       if (eflags[i] & TORQUE) {
-        sum[ibody][3] += torque_one[i][0];
-        sum[ibody][4] += torque_one[i][1];
-        sum[ibody][5] += torque_one[i][2];
+        sum[ibody][0] += torque_one[i][0];
+        sum[ibody][1] += torque_one[i][1];
+        sum[ibody][2] += torque_one[i][2];
       }
     }
   }
@@ -774,12 +738,9 @@ void FixRigid::setup(int vflag)
   MPI_Allreduce(sum[0],all[0],6*nbody,MPI_DOUBLE,MPI_SUM,world);
 
   for (ibody = 0; ibody < nbody; ibody++) {
-    angmom[ibody][0] = all[ibody][0];
-    angmom[ibody][1] = all[ibody][1];
-    angmom[ibody][2] = all[ibody][2];
-    torque[ibody][0] = all[ibody][3];
-    torque[ibody][1] = all[ibody][4];
-    torque[ibody][2] = all[ibody][5];
+    torque[ibody][0] = all[ibody][0];
+    torque[ibody][1] = all[ibody][1];
+    torque[ibody][2] = all[ibody][2];
   }
 
   // zero langextra in case Langevin thermostat not used
@@ -1150,7 +1111,7 @@ void FixRigid::pre_neighbor()
 
 int FixRigid::dof(int tgroup)
 {
-  // cannot count DOF correctly unless setup_bodies() has been called
+  // cannot count DOF correctly unless setup_bodies_static() has been called
 
   if (firstflag) {
     if (comm->me == 0) 
@@ -1561,13 +1522,13 @@ void FixRigid::set_v()
 }
 
 /* ----------------------------------------------------------------------
-   one-time initialization of rigid body attributes
+   one-time initialization of static rigid body attributes
    extended flags, masstotal, center-of-mass
    Cartesian and diagonalized inertia tensor
    read per-body attributes from infile if specified
 ------------------------------------------------------------------------- */
 
-void FixRigid::setup_bodies()
+void FixRigid::setup_bodies_static()
 {
   int i,ibody;
 
@@ -2060,6 +2021,104 @@ void FixRigid::setup_bodies()
 }
 
 /* ----------------------------------------------------------------------
+   one-time initialization of dynamic rigid body attributes
+   Vcm and angmom, computed explicitly from constituent particles
+   even if wrong for overlapping particles, is OK,
+     since is just setting initial time=0 Vcm and angmom of the body
+     which can be estimated value
+------------------------------------------------------------------------- */
+
+void FixRigid::setup_bodies_dynamic()
+{
+  int i,n,ibody;
+  double massone,radone;
+
+  // vcm = velocity of center-of-mass of each rigid body
+  // angmom = angular momentum of each rigid body
+
+  double **x = atom->x;
+  double **v = atom->v;
+  double *rmass = atom->rmass;
+  double *mass = atom->mass;
+  tagint *image = atom->image;
+  int *type = atom->type;
+  int nlocal = atom->nlocal;
+
+  double dx,dy,dz;
+  double unwrap[3];
+
+  for (ibody = 0; ibody < nbody; ibody++)
+    for (i = 0; i < 6; i++) sum[ibody][i] = 0.0;
+
+  for (i = 0; i < nlocal; i++) {
+    if (body[i] < 0) continue;
+    ibody = body[i];
+
+    if (rmass) massone = rmass[i];
+    else massone = mass[type[i]];
+
+    sum[ibody][0] += v[i][0] * massone;
+    sum[ibody][1] += v[i][1] * massone;
+    sum[ibody][2] += v[i][2] * massone;
+
+    domain->unmap(x[i],image[i],unwrap);
+    dx = unwrap[0] - xcm[ibody][0];
+    dy = unwrap[1] - xcm[ibody][1];
+    dz = unwrap[2] - xcm[ibody][2];
+
+    sum[ibody][3] += dy * massone*v[i][2] - dz * massone*v[i][1];
+    sum[ibody][4] += dz * massone*v[i][0] - dx * massone*v[i][2];
+    sum[ibody][5] += dx * massone*v[i][1] - dy * massone*v[i][0];
+  }
+
+  // extended particles add their rotation to angmom of body
+
+  if (extended) {
+    AtomVecLine::Bonus *lbonus;
+    if (avec_line) lbonus = avec_line->bonus;
+    double **omega_one = atom->omega;
+    double **angmom_one = atom->angmom;
+    double *radius = atom->radius;
+    int *line = atom->line;
+
+    for (i = 0; i < nlocal; i++) {
+      if (body[i] < 0) continue;
+      ibody = body[i];
+
+      if (eflags[i] & OMEGA) {
+        if (eflags[i] & SPHERE) {
+          radone = radius[i];
+          sum[ibody][3] += SINERTIA*rmass[i] * radone*radone * omega_one[i][0];
+          sum[ibody][4] += SINERTIA*rmass[i] * radone*radone * omega_one[i][1];
+          sum[ibody][5] += SINERTIA*rmass[i] * radone*radone * omega_one[i][2];
+        } else if (eflags[i] & LINE) {
+          radone = lbonus[line[i]].length;
+          sum[ibody][5] += LINERTIA*rmass[i] * radone*radone * omega_one[i][2];
+        }
+      }
+      if (eflags[i] & ANGMOM) {
+        sum[ibody][3] += angmom_one[i][0];
+        sum[ibody][4] += angmom_one[i][1];
+        sum[ibody][5] += angmom_one[i][2];
+      }
+    }
+  }
+
+  MPI_Allreduce(sum[0],all[0],6*nbody,MPI_DOUBLE,MPI_SUM,world);
+
+  // normalize velocity of COM
+
+  for (ibody = 0; ibody < nbody; ibody++) {
+    vcm[ibody][0] = all[ibody][0]/masstotal[ibody];
+    vcm[ibody][1] = all[ibody][1]/masstotal[ibody];
+    vcm[ibody][2] = all[ibody][2]/masstotal[ibody];
+    angmom[ibody][0] = all[ibody][3];
+    angmom[ibody][1] = all[ibody][4];
+    angmom[ibody][2] = all[ibody][5];
+  }
+}
+
+/* ----------------------------------------------------------------------
    read per rigid body info from user-provided file
    which = 0 to read total mass and center-of-mass, store in vec and array
    which = 1 to read 6 moments of inertia, store in array
@@ -2341,200 +2400,32 @@ void FixRigid::reset_dt()
 
 /* ----------------------------------------------------------------------
    zero linear momentum of each rigid body
-   called by velocity zero linear command with its vgroup
-   only atoms in velocity command group contribute to vcm of body,
-     and only their velocities are adjusted, odd if partial bodies specified
+   set Vcm to 0.0, then reset velocities of particles via set_v()
 ------------------------------------------------------------------------- */
 
-void FixRigid::zero_momentum(int vgroup)
+void FixRigid::zero_momentum()
 {
-  int i,ibody;
-  double massone;
+  for (int ibody = 0; ibody < nbody; ibody++)
+    vcm[ibody][0] = vcm[ibody][1] = vcm[ibody][2] = 0.0;
 
-  int vgroupbit = group->bitmask[vgroup];
-
-  // vcm = velocity of center-of-mass of each rigid body
-
-  double **v = atom->v;
-  double *rmass = atom->rmass;
-  double *mass = atom->mass;
-  int *mask = atom->mask;
-  int *type = atom->type;
-  int nlocal = atom->nlocal;
-
-  for (ibody = 0; ibody < nbody; ibody++)
-    for (i = 0; i < 6; i++) sum[ibody][i] = 0.0;
-
-  for (i = 0; i < nlocal; i++) {
-    if (!(mask[i] & vgroupbit)) continue;
-    if (body[i] < 0) continue;
-    ibody = body[i];
-    if (rmass) massone = rmass[i];
-    else massone = mass[type[i]];
-    sum[ibody][0] += v[i][0] * massone;
-    sum[ibody][1] += v[i][1] * massone;
-    sum[ibody][2] += v[i][2] * massone;
-  }
-
-  MPI_Allreduce(sum[0],all[0],6*nbody,MPI_DOUBLE,MPI_SUM,world);
-
-  for (ibody = 0; ibody < nbody; ibody++) {
-    vcm[ibody][0] = all[ibody][0]/masstotal[ibody];
-    vcm[ibody][1] = all[ibody][1]/masstotal[ibody];
-    vcm[ibody][2] = all[ibody][2]/masstotal[ibody];
-  }
-
-  // adjust velocities by vcm to zero linear momentum
-
-  for (i = 0; i < nlocal; i++) {
-    if (!(mask[i] & vgroupbit)) continue;
-    if (body[i] < 0) continue;
-    ibody = body[i];
-    v[i][0] -= vcm[ibody][0];
-    v[i][1] -= vcm[ibody][1];
-    v[i][2] -= vcm[ibody][2];
-  }
+  evflag = 0;
+  set_v();
 }
 
 /* ----------------------------------------------------------------------
    zero angular momentum of each rigid body
-   called by velocity zero linear command with its vgroup
-   only atoms in velocity command group contribute to angmom/omega of body,
-     and only their velocities are adjusted, odd if partial bodies specified
+   set angmom/omega to 0.0, then reset velocities of particles via set_v()
 ------------------------------------------------------------------------- */
 
-void FixRigid::zero_rotation(int vgroup)
+void FixRigid::zero_rotation()
 {
-  int i,ibody;
-  double massone,radone;
-
-  int vgroupbit = group->bitmask[vgroup];
-
-  // angmom = angular momentum of each rigid body
-
-  double **x = atom->x;
-  double **v = atom->v;
-  double *rmass = atom->rmass;
-  double *mass = atom->mass;
-  tagint *image = atom->image;
-  int *mask = atom->mask;
-  int *type = atom->type;
-  int nlocal = atom->nlocal;
-
-  double dx,dy,dz;
-  double unwrap[3];
-
-  for (ibody = 0; ibody < nbody; ibody++)
-    for (i = 0; i < 6; i++) sum[ibody][i] = 0.0;
-
-  for (i = 0; i < nlocal; i++) {
-    if (!(mask[i] & vgroupbit)) continue;
-    if (body[i] < 0) continue;
-    ibody = body[i];
-
-    domain->unmap(x[i],image[i],unwrap);
-    dx = unwrap[0] - xcm[ibody][0];
-    dy = unwrap[1] - xcm[ibody][1];
-    dz = unwrap[2] - xcm[ibody][2];
-
-    if (rmass) massone = rmass[i];
-    else massone = mass[type[i]];
-
-    sum[ibody][0] += dy * massone*v[i][2] - dz * massone*v[i][1];
-    sum[ibody][1] += dz * massone*v[i][0] - dx * massone*v[i][2];
-    sum[ibody][2] += dx * massone*v[i][1] - dy * massone*v[i][0];
+  for (int ibody = 0; ibody < nbody; ibody++) {
+    angmom[ibody][0] = angmom[ibody][1] = angmom[ibody][2] = 0.0;
+    omega[ibody][0] = omega[ibody][1] = omega[ibody][2] = 0.0;
   }
 
-  // extended particles add their rotation to angmom of body
-
-  if (extended) {
-    AtomVecLine::Bonus *lbonus;
-    if (avec_line) lbonus = avec_line->bonus;
-    double **omega_one = atom->omega;
-    double **angmom_one = atom->angmom;
-    double *radius = atom->radius;
-    int *line = atom->line;
-
-    for (i = 0; i < nlocal; i++) {
-      if (body[i] < 0) continue;
-      ibody = body[i];
-
-      if (eflags[i] & OMEGA) {
-        if (eflags[i] & SPHERE) {
-          radone = radius[i];
-          sum[ibody][0] += SINERTIA*rmass[i] * radone*radone * omega_one[i][0];
-          sum[ibody][1] += SINERTIA*rmass[i] * radone*radone * omega_one[i][1];
-          sum[ibody][2] += SINERTIA*rmass[i] * radone*radone * omega_one[i][2];
-        } else if (eflags[i] & LINE) {
-          radone = lbonus[line[i]].length;
-          sum[ibody][2] += LINERTIA*rmass[i] * radone*radone * omega_one[i][2];
-        }
-      }
-      if (eflags[i] & ANGMOM) {
-        sum[ibody][0] += angmom_one[i][0];
-        sum[ibody][1] += angmom_one[i][1];
-        sum[ibody][2] += angmom_one[i][2];
-      }
-    }
-  }
-
-  MPI_Allreduce(sum[0],all[0],6*nbody,MPI_DOUBLE,MPI_SUM,world);
-
-  for (ibody = 0; ibody < nbody; ibody++) {
-    angmom[ibody][0] = all[ibody][0];
-    angmom[ibody][1] = all[ibody][1];
-    angmom[ibody][2] = all[ibody][2];
-  }
-
-  // convert angmom to omega
-
-  for (ibody = 0; ibody < nbody; ibody++)
-    MathExtra::angmom_to_omega(angmom[ibody],ex_space[ibody],ey_space[ibody],
-                               ez_space[ibody],inertia[ibody],omega[ibody]);
-
-  // adjust velocities to zero omega
-  // vnew_i = v_i - w x r_i
-  // must use unwrapped coords to compute r_i correctly
-
-  for (i = 0; i < nlocal; i++) {
-    if (!(mask[i] & vgroupbit)) continue;
-    if (body[i] < 0) continue;
-    ibody = body[i];
-
-    domain->unmap(x[i],image[i],unwrap);
-    dx = unwrap[0] - xcm[ibody][0];
-    dy = unwrap[1] - xcm[ibody][1];
-    dz = unwrap[2] - xcm[ibody][2];
-
-    v[i][0] -= omega[ibody][1]*dz - omega[ibody][2]*dy;
-    v[i][1] -= omega[ibody][2]*dx - omega[ibody][0]*dz;
-    v[i][2] -= omega[ibody][0]*dy - omega[ibody][1]*dx;
-  }
-
-  // also explicitly zero omega and angmom of extended particles
-
-  if (extended) {
-    double **omega_one = atom->omega;
-    double **angmom_one = atom->angmom;
-
-    for (i = 0; i < nlocal; i++) {
-      if (!(mask[i] & vgroupbit)) continue;
-      if (body[i] < 0) continue;
-
-      if (eflags[i] & OMEGA) {
-        if (eflags[i] & SPHERE) {
-          omega_one[i][0] = 0.0;
-          omega_one[i][1] = 0.0;
-          omega_one[i][2] = 0.0;
-        } else if (eflags[i] & LINE) omega_one[i][2] = 0.0;
-      }
-      if (eflags[i] & ANGMOM) {
-        angmom_one[i][0] = 0.0;
-        angmom_one[i][1] = 0.0;
-        angmom_one[i][2] = 0.0;
-      }
-    }
-  }
+  evflag = 0;
+  set_v();
 }
 
 /* ----------------------------------------------------------------------

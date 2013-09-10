@@ -1,0 +1,53 @@
+# Aspherical shear demo - 2d line box and triangle mixture, implicit solvent
+
+units		lj
+atom_style	line
+dimension	2
+
+read_data	data.line
+
+velocity	all create 1.44 320984 loop geom
+
+neighbor	0.3 bin
+neigh_modify	delay 0 every 1 check yes
+neigh_modify	exclude molecule all
+
+pair_style	line/lj 2.5
+pair_coeff	* * 1.0 0.25
+
+fix		2 all rigid molecule langevin 2.0 2.0 1.0 492983
+
+fix		3 all deform 1 x scale 0.3 y scale 0.3
+fix		4 all enforce2d
+
+compute		10 all property/atom end1x end1y end2x end2y
+
+#dump		1 all custom 500 dump1.atom id type x y z ix iy iz
+#dump		2 all custom 500 dump1.line id type &
+#		c_10[1] c_10[2] c_10[3] c_10[4]
+
+timestep	0.004
+
+compute		1 all erotate/asphere
+compute		2 all ke
+compute		3 all pe
+variable	toteng equal (c_1+c_2+c_3)/atoms
+
+thermo		1000
+thermo_style	custom step temp f_2 pe ke c_1 c_2 c_3 v_toteng
+
+run		10000
+
+#undump          1
+#undump          2
+unfix           3
+
+change_box      all triclinic
+
+#dump		1 all custom 500 dump2.atom id type x y z ix iy iz
+#dump		2 all custom 500 dump2.line id type &
+#		c_10[1] c_10[2] c_10[3] c_10[4]
+
+fix		3 all deform 1 xy erate 0.01 units box
+
+run		100000

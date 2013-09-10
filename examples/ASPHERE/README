@@ -1,0 +1,36 @@
+This directory has examples of how to model aspherical particles with
+or without solvent, in 3 styles LAMMPS provides.  Namely point
+ellipsoids, rigid bodies, and generalized aspherical bodies built from
+line/triangle surface facets in 2d/3d.
+
+Each directory has an input script, a data file (if needed), and an
+output log file.  Most of the systems are 2d, but many of the runs
+take a minute or two on 8 processors, since these are complicated
+systems.  Some of the directories include a Python script, which can
+be used with the Pizza.py tool to create the data file, e.g. for
+collections of rigid bodies.
+
+The web site for Pizza.py is http://pizza.sandia.gov
+
+For example, If you have Pizza.py installed you can type "pizza.py -f
+box.py", which creates the data.box data file in the box dir.
+
+If you uncomment the dump or dump image lines in the input scripts the
+runs will produce dump files or JPG images which you can view or
+animate.  See the Movies page of the LAMMPS web site
+(http://lammps.sandia.gov/movies.html), for animations of these
+scripts.  Most were done using the dump image command.  A few were
+done using the gl tool in Pizza.py; the Pizza.py scripts that do the
+animation are given in the directory, e.g. as line.viz.py.
+
+These are the directories in ASPHERE.  SRD refers to a coarse-grained
+stochastic rotation dynamics solvent, using the fix srd command.
+
+box = 2d rigid box particles in SRDs, self-diffusion and viscosity
+dimer = 2d rigid dimers in SRDs, self-diffusion and viscosity
+ellipsoid = 2d ellipsoids in SRDs, self-diffusion and viscosity
+line = 2d line-faceted rigid particles, NEMD shearing for viscosity,
+       implicit and in SRDs
+poly = 2d poly-disperse spheroids in SRDs, self-diffusion and viscosity
+star = 2d rigid star particles in SRDs, self-diffusion and viscosity
+tri = 3d triangle-faceted rigid particles in SRDs, NEMD shearing for viscosity

@@ -57,7 +57,7 @@ ifeq ($(COMPILER),gnu)
   CPP         = g++ # C++ Compiler
   CC          = gcc # C compiler
   AR          = ar
-  DBUG        = -g -DDEBUG -DNANCHECK -Wall -pedantic #-ansi
+  DBUG        = -O2 # -g -DDEBUG -DNANCHECK -Wall -pedantic #-ansi
   OPT         = #-O3
 endif
 

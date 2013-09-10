@@ -1,4 +1,4 @@
-# 3d Lennard-Jones melt
+# Aspherical shear demo - 3d triangle boxes, solvated by SRD particles
 
 units		lj
 atom_style	tri

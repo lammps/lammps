@@ -579,6 +579,12 @@ or
 make no-manybody
 make g++ :pre
 
+IMPORTANT NOTE: You should NOT include/exclude packages and build
+LAMMPS in a single make command by using multiple targets, e.g. make
+yes-colloid g++.  This is because the make procedure creates a list of
+source files that will be out-of-date for the build if the package
+configuration changes during the same command.
+
 Some packages have individual files that depend on other packages
 being included.  LAMMPS checks for this and does the right thing.
 I.e. individual files are only included if their dependencies are

@@ -51,8 +51,8 @@ class FixRigid : public Fix {
   int dof(int);
   void deform(int);
   void reset_dt();
-  void zero_momentum(int);
-  void zero_rotation(int);
+  void zero_momentum();
+  void zero_rotation();
   virtual void *extract(const char*, int &);
   double extract_ke();
   double extract_erotational();
@@ -136,7 +136,8 @@ class FixRigid : public Fix {
   void no_squish_rotate(int, double *, double *, double *, double) const;
   void set_xv();
   void set_v();
-  void setup_bodies();
+  void setup_bodies_static();
+  void setup_bodies_dynamic();
   void readfile(int, double *, double **, int *);
 };
 

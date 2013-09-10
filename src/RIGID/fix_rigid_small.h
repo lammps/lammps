@@ -60,8 +60,8 @@ class FixRigidSmall : public Fix {
   int dof(int);
   void deform(int);
   void reset_dt();
-  void zero_momentum(int);
-  void zero_rotation(int);
+  void zero_momentum();
+  void zero_rotation();
   void *extract(const char*, int &);
   double extract_ke();
   double extract_erotational();
@@ -161,7 +161,8 @@ class FixRigidSmall : public Fix {
   void set_xv();
   void set_v();
   void create_bodies();
-  void setup_bodies();
+  void setup_bodies_static();
+  void setup_bodies_dynamic();
   void readfile(int, double **, int *);
   void grow_body();
   void reset_atom2body();

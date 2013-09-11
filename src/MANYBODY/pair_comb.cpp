@@ -71,7 +71,7 @@ PairComb::PairComb(LAMMPS *lmp) : Pair(lmp)
   phin = NULL;
   dphin = NULL;
   erpaw = NULL;
-
+  
   sht_num = NULL;
   sht_first = NULL;
 
@@ -108,7 +108,7 @@ PairComb::~PairComb()
   memory->destroy(erpaw);
   memory->destroy(bbij);
   memory->destroy(sht_num);
-  memory->destroy(sht_first);
+  memory->sfree(sht_first);
 
   delete [] ipage;
 

@@ -159,6 +159,10 @@ void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf)
   int j,m,tagdata;
   char *next;
 
+  if (atom->map_style == 0) 
+    error->all(FLERR,"Fix property/atom cannot read from data file "
+               "unless an atom map is defined");
+
   next = strchr(buf,'\n');
   *next = '\0';
   int nwords = atom->count_words(buf);

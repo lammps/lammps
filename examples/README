@@ -109,6 +109,12 @@ create a GIF file suitable for viewing in a browser.
 
 Upper-case directories
 
+The ASPHERE directory has examples of how to model aspherical
+particles with or without solvent, in 3 styles LAMMPS provides.
+Namely point ellipsoids, rigid bodies, and generalized aspherical
+bodies built from line/triangle surface facets in 2d/3d.  See the
+ASPHERE/README file to get started.
+
 The COUPLE directory has examples of how to use LAMMPS as a library,
 either by itself or in tandem with another code or library.  See the
 COUPLE/README file to get started.

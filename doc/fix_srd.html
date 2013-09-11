@@ -38,10 +38,12 @@
   <I>cubic</I> values = style tolerance
     style = <I>error</I> or <I>warn</I>
     tolerance = fractional difference allowed (0 <= tol <= 1)
-  <I>shift</I> = <I>yes</I> or <I>no</I> or <I>possible</I> = SRD bin shifting for better statistics
-    <I>yes</I> = perform bin shifting each time SRD velocities are rescaled
-    <I>no</I> = no shifting
-    <I>possible</I> = shift depending on mean free path and bin size
+  <I>shift</I> values = flag shiftseed
+    flag = <I>yes</I> or <I>no</I> or <I>possible</I> = SRD bin shifting for better statistics
+      <I>yes</I> = perform bin shifting each time SRD velocities are rescaled
+      <I>no</I> = no shifting
+      <I>possible</I> = shift depending on mean free path and bin size
+    shiftseed = random # seed (positive integer)
   <I>tstat</I> value = <I>yes</I> or <I>no</I> = thermostat SRD particles or not
   <I>rescale</I> value = <I>yes</I> or <I>no</I> or <I>rotate</I> or <I>collide</I> = rescaling of SRD velocities
     <I>yes</I> = rescale during velocity rotation and collisions
@@ -260,20 +262,18 @@ lamda.  If lamda is less than 0.6 of the SRD bin size, then shifting
 is required.  A shift means that all of the SRD particles are shifted
 by a vector whose coordinates are chosen randomly in the range [-1/2
 bin size, 1/2 bin size].  Note that all particles are shifted by the
-same vector.  The specified random number seed is used to generate
-these vectors.  This operation sufficiently randomizes which SRD
-particles are in the same bin, even if lamda is small.
+same vector.  The specified random number <I>shiftseed</I> is used to
+generate these vectors.  This operation sufficiently randomizes which
+SRD particles are in the same bin, even if lamda is small.
 </P>
-<P>If the <I>shift</I> style is set to <I>no</I>, then no shifting is performed,
-but bin data will be communicated if bins overlap processor
-boundaries.  An error will be generated if lamda < 0.6 of the SRD bin
-size.  If the <I>shift</I> style is set to <I>possible</I>, then shifting is
-performed only if lamda < 0.6 of the SRD bin size.  A warning is
-generated to let you know this is occurring.  If the <I>shift</I> style is
-set to <I>yes</I> then shifting is performed regardless of the magnitude of
-lamda.
-</P>
-<P>The shift seed is not used if the <I>shift</I> style is set to <I>no</I>, but
+<P>If the <I>shift</I> flag is set to <I>no</I>, then no shifting is performed, but
+bin data will be communicated if bins overlap processor boundaries.
+An error will be generated if lamda < 0.6 of the SRD bin size.  If the
+<I>shift</I> flag is set to <I>possible</I>, then shifting is performed only if
+lamda < 0.6 of the SRD bin size.  A warning is generated to let you
+know this is occurring.  If the <I>shift</I> flag is set to <I>yes</I> then
+shifting is performed regardless of the magnitude of lamda.  Note that
+the <I>shiftseed</I> is not used if the <I>shift</I> flag is set to <I>no</I>, but
 must still be specified.
 </P>
 <P>Note that shifting of SRD coordinates requires extra communication,

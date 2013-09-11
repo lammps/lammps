@@ -1,0 +1,242 @@
+LAMMPS (9 Sep 2013)
+# 3d Lennard-Jones melt
+
+units		lj
+atom_style	tri
+atom_modify	first big
+
+read_data	data.tri.srd
+  orthogonal box = (-8.43734 -8.43734 -8.43734) to (8.43734 8.43734 8.43734)
+  2 by 2 by 2 MPI processor grid
+  1500 atoms
+  1500 triangles
+
+# add small particles as hi density lattice
+
+lattice		sc 0.4
+Lattice spacing in x,y,z = 1.35721 1.35721 1.35721
+region		box block INF INF INF INF INF INF
+lattice		sc 20.0
+Lattice spacing in x,y,z = 0.368403 0.368403 0.368403
+create_atoms	2 region box
+Created 91125 atoms
+
+group		big type 1
+1500 atoms in group big
+group		small type 2
+91125 atoms in group small
+set		group small mass 0.01
+  91125 settings made for mass
+
+# delete overlaps
+# must set 1-2 cutoff to non-zero value
+
+pair_style	lj/cut 1.5
+pair_coeff	1 1 1.0 1.0
+pair_coeff	2 2 0.0 1.0 0.0
+pair_coeff	1 2 0.0 1.0
+
+delete_atoms	overlap 1.5 small big
+Deleted 76354 atoms, new total = 16271
+
+# SRD run
+
+reset_timestep	0
+
+velocity	small create 1.44 87287 loop geom
+
+neighbor	0.3 bin
+neigh_modify	delay 0 every 1 check yes
+neigh_modify	exclude molecule big include big
+
+communicate	multi group big vel yes
+neigh_modify	include big
+
+# no pairwise interactions with small particles
+
+pair_style	tri/lj 3.5
+pair_coeff	1 1 0.1 1.0
+pair_coeff	2 2 0.0 1.0 0.0
+pair_coeff	1 2 0.0 1.0 0.0
+
+# use fix SRD to push small particles out from inside big ones
+# if comment out, big particles won't see SRD particles
+
+timestep	0.001
+
+fix		1 big rigid molecule #langevin 1.0 1.0 0.1 12398
+125 rigid bodies with 1500 atoms
+fix	        2 small srd 20 big 1.0 0.25 49894 		search 0.2 cubic warn 0.0001 shift yes 49829 		overlap yes collision noslip
+
+fix		3 all deform 1 x scale 0.6 y scale 0.6 z scale 0.6
+
+# diagnostics
+
+compute		tsmall small temp/deform
+compute		tbig big temp
+variable	pebig equal pe*atoms/count(big)
+variable	ebig equal etotal*atoms/count(big)
+
+compute		1 big erotate/asphere
+compute		2 all ke
+compute		3 all pe
+variable	toteng equal (c_1+c_2+c_3)/atoms
+
+thermo		1000
+thermo_style	custom step f_1 c_tsmall f_2[9] temp press
+thermo_modify	temp tbig
+WARNING: Temperature for thermo pressure is not for group all (../thermo.cpp:438)
+
+compute		10 all property/atom corner1x corner1y corner1z 		corner2x corner2y corner2z corner3x corner3y corner3z
+
+dump		1 all custom 500 dump1.atom.srd id type x y z ix iy iz
+dump		2 all custom 500 dump1.tri.srd id type 		c_10[1] c_10[2] c_10[3] c_10[4] c_10[5] c_10[6] 		c_10[7] c_10[8] c_10[9]
+
+run		10000
+WARNING: Using fix srd with box deformation but no SRD thermostat (../fix_srd.cpp:385)
+SRD info:
+  SRD/big particles = 14771 1500
+  big particle diameter max/min = 1.46014 0.436602
+  SRD temperature & lamda = 1 0.2
+  SRD max distance & max velocity = 0.8 40
+  SRD grid counts: 67 67 67
+  SRD grid size: request, actual (xyz) = 0.25, 0.251861 0.251861 0.251861
+  SRD per actual grid cell = 0.0647662
+  SRD viscosity = -1.09837
+  big/SRD mass density ratio = 24.668
+WARNING: SRD bin size for fix srd differs from user request (../fix_srd.cpp:2737)
+WARNING: Fix srd grid size > 1/4 of big particle diameter (../fix_srd.cpp:2759)
+WARNING: Fix srd viscosity < 0.0 due to low SRD density (../fix_srd.cpp:2761)
+  # of rescaled SRD velocities = 0
+  ave/max small velocity = 19.9708 35.1504
+  ave/max big velocity = 0 0
+WARNING: Using compute temp/deform with inconsistent fix deform remap option (../compute_temp_deform.cpp:76)
+Memory usage per processor = 112.926 Mbytes
+Step 1 tsmall 2[9] Temp Press 
+       0            0    1.4405441            0            0  -0.15917996 
+    1000    1.0535509    1.1241378  0.030778612            0   0.15526438 
+    2000    2.4635987    1.0240667  0.031199432            0  0.011069846 
+    3000    3.1093028    1.0070585    0.0412299            0   0.34124887 
+    4000    2.9091229    1.0109332  0.042413338            0  -0.43067212 
+    5000     3.143486     1.007502  0.047871105            0   0.44935703 
+    6000    3.3117859    1.0031975  0.060884331            0  -0.17753945 
+    7000    3.7329968   0.99472569  0.071341886            0    1.4727109 
+    8000    4.0314822    1.0148882  0.089434073            0    6.3915959 
+    9000    6.3667017    1.0144773   0.10558433            0    14.945841 
+   10000    14.065219    1.0159965   0.11784659            0    131.62736 
+Loop time of 229.245 on 8 procs for 10000 steps with 16271 atoms
+
+Pair  time (%) = 142.296 (62.0717)
+Neigh time (%) = 33.5162 (14.6203)
+Comm  time (%) = 44.4642 (19.396)
+Outpt time (%) = 0.822778 (0.358909)
+Other time (%) = 8.14531 (3.55311)
+
+Nlocal:    2033.88 ave 2131 max 1886 min
+Histogram: 1 0 0 1 0 1 2 1 1 1
+Nghost:    2777.38 ave 2813 max 2734 min
+Histogram: 2 0 1 0 0 0 2 0 0 3
+Neighs:    30097.6 ave 35599 max 25702 min
+Histogram: 3 0 0 1 0 1 0 1 1 1
+
+Total # of neighbors = 240781
+Ave neighs/atom = 14.7982
+Neighbor list builds = 500
+Dangerous builds = 0
+
+undump          1
+undump          2
+unfix		3
+
+change_box      all triclinic
+  triclinic box = (-5.0624 -5.0624 -5.0624) to (5.0624 5.0624 5.0624) with tilt (0 0 0)
+
+fix	        2 small srd 20 big 1.0 0.25 49894 		search 0.2 cubic warn 0.0001 shift yes 49829 		overlap yes collision noslip tstat yes
+
+dump		1 all custom 500 dump2.atom.srd id type x y z ix iy iz
+dump		2 all custom 500 dump2.tri.srd id type 		c_10[1] c_10[2] c_10[3] c_10[4] c_10[5] c_10[6] 		c_10[7] c_10[8] c_10[9]
+
+fix		3 all deform 1 xy erate 0.05 units box remap v
+
+run		40000
+SRD info:
+  SRD/big particles = 14771 1500
+  big particle diameter max/min = 1.46014 0.436602
+  SRD temperature & lamda = 1 0.2
+  SRD max distance & max velocity = 0.8 40
+  SRD grid counts: 40 40 40
+  SRD grid size: request, actual (xyz) = 0.25, 0.25312 0.25312 0.25312
+  SRD per actual grid cell = -1.93929
+  SRD viscosity = -0.36972
+  big/SRD mass density ratio = -0.836253
+WARNING: SRD bin size for fix srd differs from user request (../fix_srd.cpp:2737)
+WARNING: Fix srd grid size > 1/4 of big particle diameter (../fix_srd.cpp:2759)
+WARNING: Fix srd viscosity < 0.0 due to low SRD density (../fix_srd.cpp:2761)
+  # of rescaled SRD velocities = 2
+  ave/max small velocity = 16.086 40
+  ave/max big velocity = 1.89008 7.06443
+Memory usage per processor = 67.8409 Mbytes
+Step 1 tsmall 2[9] Temp Press 
+   10000    14.065219    1.0159841            0            0    125.62369 
+   11000     15.89949    1.1021294   0.13432606            0    79.756722 
+   12000    13.591974    1.0986468   0.14491966            0    69.017912 
+   13000    10.672662    1.0974608   0.13980161            0     68.47417 
+   14000    10.433124    1.0970815   0.13358543            0    63.921726 
+   15000    11.350239    1.0919622   0.13501392            0    56.434986 
+   16000    9.9440024    1.0909392   0.13733839            0    60.312203 
+   17000    8.8069504    1.0862993    0.1331224            0    60.673373 
+   18000    9.7454087    1.0874377   0.14030315            0    55.359223 
+   19000    8.7467828    1.0955594   0.13826168            0    58.135899 
+   20000     9.094869    1.0853936   0.13980748            0    54.918577 
+   21000    8.1769632    1.0877609   0.13527913            0    59.779335 
+   22000    8.4802311    1.0874158   0.14097292            0    55.518841 
+   23000    8.5085635    1.0938995   0.13479334            0    52.444531 
+   24000    7.7708574     1.093106   0.13843648            0    53.619874 
+   25000    7.5891864    1.0892977    0.1309956            0    50.959157 
+   26000    7.1595504    1.0943558    0.1313863            0     50.73602 
+   27000    6.4924522    1.0932486   0.13264833            0    50.620315 
+   28000    6.8555436    1.0956448    0.1395996            0    53.675344 
+   29000    7.0391394    1.0867312   0.14199161            0    53.493952 
+   30000    7.9245188    1.0927432   0.13348801            0    50.474831 
+   31000    8.1045132    1.0932086   0.13605758            0    48.830305 
+   32000    8.3316171    1.0984609   0.13978578            0    48.671107 
+   33000    7.3537207    1.0866232   0.13800293            0    49.619075 
+   34000    7.5646404    1.0762414    0.1282765            0    48.104248 
+   35000    7.6598613    1.0988043    0.1399969            0    48.344193 
+   36000    8.2985234    1.0927025   0.13712115            0    51.995955 
+   37000    7.8266025    1.0986061   0.13590656            0    55.526454 
+   38000    8.1374325    1.0908854    0.1356955            0    51.766017 
+   39000    7.1742247    1.0867582   0.13871443            0    54.475644 
+   40000    7.1327095    1.0873612   0.13361669            0    53.584849 
+   41000    7.4393759     1.083626   0.13678989            0    52.190793 
+   42000    7.1145295    1.0867999   0.13910883            0    56.760468 
+   43000    7.1195706    1.1052677   0.14404153            0    58.427514 
+   44000    7.9713656    1.0931625   0.13568773            0    58.026623 
+   45000    7.9875631    1.0928839   0.13617383            0    60.495025 
+   46000    8.7377452    1.0927309   0.14312311            0    62.011464 
+   47000    8.5499453    1.0941412   0.13203028            0      64.3929 
+   48000    8.6633515    1.0929638   0.14189189            0    58.671573 
+   49000    8.6567883    1.0832134    0.1353634            0    54.667636 
+   50000    7.9400691    1.0942958   0.13789637            0    58.089009 
+Loop time of 1633.43 on 8 procs for 40000 steps with 16271 atoms
+
+Pair  time (%) = 1201.96 (73.5851)
+Neigh time (%) = 184.862 (11.3174)
+Comm  time (%) = 188.22 (11.523)
+Outpt time (%) = 3.30344 (0.202239)
+Other time (%) = 55.0837 (3.37226)
+
+Nlocal:    2033.88 ave 2156 max 1952 min
+Histogram: 2 1 0 1 1 0 2 0 0 1
+Nghost:    2752.38 ave 2941 max 2567 min
+Histogram: 1 0 1 0 2 2 0 1 0 1
+Neighs:    30128.1 ave 38439 max 23335 min
+Histogram: 1 0 1 2 2 1 0 0 0 1
+
+Total # of neighbors = 241025
+Ave neighs/atom = 14.8132
+Neighbor list builds = 2002
+Dangerous builds = 0
+
+Please see the log.cite file for references relevant to this simulation
+

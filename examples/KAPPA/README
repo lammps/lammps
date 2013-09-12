@@ -16,7 +16,7 @@ These are the 4 methods for computing thermal conductivity.  The first
 
 in.langevin = thermostat 2 regions at different temperatures via fix langevin
 in.heat = add/subtract energy to 2 regions via fix heat
-in.mp = uses fix thermal/conductivity and the Muller-Plathe method
+in.mp = use fix thermal/conductivity and the Muller-Plathe method
 in.heatflux = use compute heat/flux and the Green-Kubo method
 
 The NEMD systems have 8000 atoms with a box length 2x larger in z, the
@@ -46,7 +46,7 @@ energy flux, and dTemp/dZ = temperature gradient.
 dQ = 8000 * 0.5*(0.905+0.947) / 100 / 18.82^2 / 2
   8000 atoms
   0.5*(0.905+0.947) = from log file =
-    ave of total per-atom in/out energy for 2 regions
+    ave of total in/out energy for 2 regions normalized by # of atoms
   100 = 20,000 steps at 0.005 tau timestep = run time in tau
   xy box area = 18.82^2
   divide by 2 since energy flux goes in 2 directions due to periodic z

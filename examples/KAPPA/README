@@ -1,8 +1,13 @@
 This directory has 4 scripts that compute the thermal conductivity
 (kappa) of a Lennard-Jones fluid using 4 different methods.  See the
 discussion in Section 6.20 of the manual for an overview of the
-methods and pointers to which commands implement them.  Citations can
-also be found in the manaul.
+methods and pointers to doc pages for the commands which implement
+them.  Citations for the various methods can also be found in the
+manaul.
+
+These scripts are provided for illustration purposes.  No guarantee is
+made that the systems are fully equilibrated or that the runs are long
+enough to generate good statistics and highly accurate results.
 
 -------------
 
@@ -76,8 +81,8 @@ Kappa = 3.45
 
 (4) in.heatflux
 
-kappa is computed directly within the script, by performing the time
-integration for the formulas discussed on the compute heat/flux doc
+kappa is computed directly within the script, by performing a time
+integration of the formulas discussed on the compute heat/flux doc
 page - the resulting value prints at the end of the run and is in the
 log file
 

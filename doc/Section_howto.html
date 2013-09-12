@@ -1915,7 +1915,7 @@ LAMMPS.
 <A NAME = "howto_20"></A><H4>6.20 Calculating thermal conductivity 
 </H4>
 <P>The thermal conductivity kappa of a material can be measured in at
-least 4 ways using various options in LAMMPS.  See the examples/KAPPS
+least 4 ways using various options in LAMMPS.  See the examples/KAPPA
 directory for scripts that implement the 4 methods discussed here for
 a simple Lennard-Jones fluid model.  Also, see <A HREF = "Section_howto.html#howto_21">this
 section</A> of the manual for an analogous
@@ -1943,13 +1943,15 @@ regions.  See the paper by <A HREF = "#Ikeshoji">Ikeshoji and Hafskjold</A> for
 details of this idea.  Note that thermostatting fixes such as <A HREF = "fix_nh.html">fix
 nvt</A>, <A HREF = "fix_langevin.html">fix langevin</A>, and <A HREF = "fix_temp_rescale.html">fix
 temp/rescale</A> store the cumulative energy they
-add/subtract.  Alternatively, as a second method, the <A HREF = "fix_heat.html">fix
-heat</A> command can used in place of thermostats on each
-of two regions to add/subtract specified amounts of energy to both
-regions.  In both cases, the resulting temperatures of the two regions
-can be monitored with the "compute temp/region" command and the
-temperature profile of the intermediate region can be monitored with
-the <A HREF = "fix_ave_spatial.html">fix ave/spatial</A> and <A HREF = "compute_ke_atom.html">compute
+add/subtract.
+</P>
+<P>Alternatively, as a second method, the <A HREF = "fix_heat.html">fix heat</A>
+command can used in place of thermostats on each of two regions to
+add/subtract specified amounts of energy to both regions.  In both
+cases, the resulting temperatures of the two regions can be monitored
+with the "compute temp/region" command and the temperature profile of
+the intermediate region can be monitored with the <A HREF = "fix_ave_spatial.html">fix
+ave/spatial</A> and <A HREF = "compute_ke_atom.html">compute
 ke/atom</A> commands.
 </P>
 <P>The third method is to perform a reverse non-equilibrium MD simulation
@@ -1985,8 +1987,10 @@ formalism.
 
 <A NAME = "howto_21"></A><H4>6.21 Calculating viscosity 
 </H4>
-<P>The shear viscosity eta of a fluid can be measured in at least 3 ways
-using various options in LAMMPS.  See <A HREF = "Section_howto.html#howto_20">this
+<P>The shear viscosity eta of a fluid can be measured in at least 4 ways
+using various options in LAMMPS.  See the examples/VISCOSITY directory
+for scripts that implement the 4 methods discussed here for a simple
+Lennard-Jones fluid model.  Also, see <A HREF = "Section_howto.html#howto_20">this
 section</A> of the manual for an analogous
 discussion for thermal conductivity.
 </P>
@@ -2005,33 +2009,38 @@ momentum flows.  Viscosity thus has units of pressure-time.
 <P>The first method is to perform a non-equlibrium MD (NEMD) simulation
 by shearing the simulation box via the <A HREF = "fix_deform.html">fix deform</A>
 command, and using the <A HREF = "fix_nvt_sllod.html">fix nvt/sllod</A> command to
-thermostat the fluid via the SLLOD equations of motion.  The velocity
-profile setup in the fluid by this procedure can be monitored by the
-<A HREF = "fix_ave_spatial.html">fix ave/spatial</A> command, which determines
+thermostat the fluid via the SLLOD equations of motion.
+Alternatively, as a second method, one or more moving walls can be
+used to shear the fluid in between them, again with some kind of
+thermostat that modifies only the thermal (non-shearing) components of
+velocity to prevent the fluid from heating up.
+</P>
+<P>In both cases, the velocity profile setup in the fluid by this
+procedure can be monitored by the <A HREF = "fix_ave_spatial.html">fix
+ave/spatial</A> command, which determines
 grad(Vstream) in the equation above.  E.g. the derivative in the
 y-direction of the Vx component of fluid motion or grad(Vstream) =
-dVx/dy.  In this case, the Pxy off-diagonal component of the pressure
-or stress tensor, as calculated by the <A HREF = "compute_pressure.html">compute
-pressure</A> command, can also be monitored, which
-is the J term in the equation above.  See <A HREF = "Section_howto.html#howto_13">this
-section</A> of the manual for details on NEMD
-simulations.
+dVx/dy.  The Pxy off-diagonal component of the pressure or stress
+tensor, as calculated by the <A HREF = "compute_pressure.html">compute pressure</A>
+command, can also be monitored, which is the J term in the equation
+above.  See <A HREF = "Section_howto.html#howto_13">this section</A> of the manual
+for details on NEMD simulations.
 </P>
-<P>The second method is to perform a reverse non-equilibrium MD
-simulation using the <A HREF = "fix_viscosity.html">fix viscosity</A> command which
-implements the rNEMD algorithm of Muller-Plathe.  Momentum in one
-dimension is swapped between atoms in two different layers of the
-simulation box in a different dimension.  This induces a velocity
-gradient which can be monitored with the <A HREF = "fix_ave_spatial.html">fix
-ave/spatial</A> command.  The fix tallies the
-cummulative momentum transfer that it performs.  See the <A HREF = "fix_viscosity.html">fix
-viscosity</A> command for details.
+<P>The third method is to perform a reverse non-equilibrium MD simulation
+using the <A HREF = "fix_viscosity.html">fix viscosity</A> command which implements
+the rNEMD algorithm of Muller-Plathe.  Momentum in one dimension is
+swapped between atoms in two different layers of the simulation box in
+a different dimension.  This induces a velocity gradient which can be
+monitored with the <A HREF = "fix_ave_spatial.html">fix ave/spatial</A> command.
+The fix tallies the cummulative momentum transfer that it performs.
+See the <A HREF = "fix_viscosity.html">fix viscosity</A> command for details.
 </P>
-<P>The third method is based on the Green-Kubo (GK) formula which relates
-the ensemble average of the auto-correlation of the stress/pressure
-tensor to eta.  This can be done in a steady-state equilibrated
-simulation which is in contrast to the two preceding non-equilibrium
-methods, where momentum flows continuously through the simulation box.
+<P>The fourth method is based on the Green-Kubo (GK) formula which
+relates the ensemble average of the auto-correlation of the
+stress/pressure tensor to eta.  This can be done in a steady-state
+equilibrated simulation which is in contrast to the two preceding
+non-equilibrium methods, where momentum flows continuously through the
+simulation box.
 </P>
 <P>Here is an example input script that calculates the viscosity of
 liquid Ar via the GK formalism:

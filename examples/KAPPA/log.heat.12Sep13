@@ -1,0 +1,195 @@
+LAMMPS (10 Sep 2013)
+# Sample LAMMPS input script for thermal conductivity of Ar
+# use Muller-Plathe method via fix heat
+
+# settings
+
+variable	x equal 10
+variable	y equal 10
+variable	z equal 20
+
+variable	rho equal 0.6
+variable        t equal 1.35
+variable	rc equal 2.5
+
+#variable	rho equal 0.85
+#variable        t equal 0.7
+#variable	rc equal 3.0
+
+# setup problem
+
+units		lj
+atom_style	atomic
+
+lattice		fcc ${rho}
+lattice		fcc 0.5999999999999999778
+Lattice spacing in x,y,z = 1.88207 1.88207 1.88207
+region		box block 0 $x 0 $y 0 $z
+region		box block 0 10 0 $y 0 $z
+region		box block 0 10 0 10 0 $z
+region		box block 0 10 0 10 0 20
+create_box	1 box
+Created orthogonal box = (0 0 0) to (18.8207 18.8207 37.6414)
+  2 by 1 by 4 MPI processor grid
+create_atoms	1 box
+Created 8000 atoms
+mass		1 1.0
+
+velocity	all create $t 87287
+velocity	all create 1.3500000000000000888 87287
+
+pair_style	lj/cut ${rc}
+pair_style	lj/cut 2.5
+pair_coeff	1 1 1.0 1.0
+
+neighbor	0.3 bin
+neigh_modify	delay 0 every 1
+
+# heat layers
+
+region          hot block INF INF INF INF 0 1
+region          cold block  INF INF INF INF 10 11
+compute         Thot all temp/region hot
+compute         Tcold all temp/region cold
+
+# 1st equilibration run
+
+fix             1 all nvt temp $t $t 0.5
+fix             1 all nvt temp 1.3500000000000000888 $t 0.5
+fix             1 all nvt temp 1.3500000000000000888 1.3500000000000000888 0.5
+thermo	        100
+run             1000
+Memory usage per processor = 2.15017 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0         1.35   -4.1241917            0   -2.0994448   -3.1961612 
+     100    1.1819832   -3.7640881            0    -1.991335   0.53985757 
+     200    1.2578365   -3.7395333            0   -1.8530144   0.69591862 
+     300    1.3282971   -3.7215427            0   -1.7293461   0.79036065 
+     400    1.3714367   -3.7043826            0   -1.6474847   0.85873226 
+     500    1.3590952   -3.6707735            0   -1.6323855   0.99602024 
+     600    1.3575117   -3.7118244            0   -1.6758114   0.81454305 
+     700    1.3284444   -3.7075488            0   -1.7151313   0.81136596 
+     800    1.3419994   -3.7155648            0   -1.7028172   0.82925677 
+     900    1.3562214   -3.6965608            0    -1.662483   0.88908144 
+    1000    1.3732016   -3.7100024            0   -1.6504575   0.83982823 
+Loop time of 0.949627 on 8 procs for 1000 steps with 8000 atoms
+
+Pair  time (%) = 0.541163 (56.9869)
+Neigh time (%) = 0.235518 (24.8011)
+Comm  time (%) = 0.116666 (12.2854)
+Outpt time (%) = 0.000346035 (0.036439)
+Other time (%) = 0.0559345 (5.89015)
+
+Nlocal:    1000 ave 1020 max 982 min
+Histogram: 1 0 2 1 0 1 1 1 0 1
+Nghost:    2299.5 ave 2331 max 2268 min
+Histogram: 1 1 1 1 0 0 0 3 0 1
+Neighs:    27122 ave 28382 max 26337 min
+Histogram: 2 0 2 1 1 0 0 1 0 1
+
+Total # of neighbors = 216976
+Ave neighs/atom = 27.122
+Neighbor list builds = 162
+Dangerous builds = 0
+
+velocity	all scale $t
+velocity	all scale 1.3500000000000000888
+
+unfix		1
+
+# 2nd equilibration run
+
+fix		1 all nve
+fix             hot all heat 1 100.0 region hot
+fix             cold all heat 1 -100.0 region cold
+
+thermo_style    custom step temp c_Thot c_Tcold
+thermo	        1000
+run             10000
+Memory usage per processor = 2.15017 Mbytes
+Step Temp Thot Tcold 
+    1000         1.35    1.4312938    1.2955632 
+    2000    1.3383526    1.4886167    1.1845746 
+    3000    1.3512872    1.5330189    1.2431131 
+    4000    1.3491306    1.5459695     1.299492 
+    5000    1.3611321    1.5755273    1.2212673 
+    6000     1.369584    1.6987374    1.1421637 
+    7000    1.3769492    1.7653566    1.1554964 
+    8000    1.3680264    1.6426586    1.1020001 
+    9000    1.3642597    1.7579672    1.0253294 
+   10000    1.3677656     1.698858    1.0444677 
+   11000    1.3708468    1.7470719    1.1183408 
+Loop time of 11.1763 on 8 procs for 10000 steps with 8000 atoms
+
+Pair  time (%) = 5.4498 (48.7623)
+Neigh time (%) = 2.4618 (22.027)
+Comm  time (%) = 1.84575 (16.5149)
+Outpt time (%) = 0.000465661 (0.00416652)
+Other time (%) = 1.41845 (12.6917)
+
+Nlocal:    1000 ave 1118 max 871 min
+Histogram: 1 2 0 1 0 0 0 1 1 2
+Nghost:    2294.25 ave 2525 max 2085 min
+Histogram: 3 1 0 0 0 0 0 0 2 2
+Neighs:    27446.5 ave 33253 max 20930 min
+Histogram: 1 2 1 0 0 0 0 0 2 2
+
+Total # of neighbors = 219572
+Ave neighs/atom = 27.4465
+Neighbor list builds = 1683
+Dangerous builds = 0
+
+# thermal conductivity calculation
+
+compute		ke all ke/atom
+variable	temp atom c_ke/1.5
+
+fix		2 all ave/spatial 10 100 1000 z lower 0.05 v_temp 		  file tmp.heat.profile units reduced
+
+variable        tdiff equal f_2[11][3]-f_2[1][3]
+fix             ave all ave/time 1 1 1000 v_tdiff ave running start 13000
+thermo_style    custom step temp c_Thot c_Tcold v_tdiff f_ave
+
+run             20000
+Memory usage per processor = 2.15109 Mbytes
+Step Temp Thot Tcold tdiff ave 
+   11000    1.3708468    1.7662195    1.1183408            0            0 
+   12000    1.3722799    1.7811544    1.1393699  -0.71744565            0 
+   13000    1.3777974    1.8307271    1.0776677  -0.71069865  -0.71069865 
+   14000    1.3817673    1.7198196     1.078178  -0.74200864  -0.72635365 
+   15000    1.3849706    1.8792544    1.0381687    -0.747805   -0.7335041 
+   16000    1.3823079    1.8783335    1.0890383  -0.77082774  -0.74283501 
+   17000    1.3791187    1.8245087    1.0557001  -0.74548067  -0.74336414 
+   18000    1.3955968    1.8048436    1.0474721  -0.76527944  -0.74701669 
+   19000    1.3817125    1.8576994    1.0761735  -0.78636785  -0.75263828 
+   20000    1.3805485    1.9065688    1.0803109  -0.77920679  -0.75595935 
+   21000    1.3970612    1.8589171    1.0670841   -0.8216476  -0.76325804 
+   22000    1.3859794    1.7546388    1.0939013  -0.84576687  -0.77150892 
+   23000    1.4050968    1.9619801    1.1196115  -0.78305414  -0.77255849 
+   24000    1.3825415    1.8510125    1.0372205  -0.81397516  -0.77600988 
+   25000    1.3801926    1.8709932    1.0294042  -0.77974743  -0.77629738 
+   26000    1.3849019    1.8814658     1.063162  -0.74552957  -0.77409968 
+   27000    1.3767533    1.9604879    1.0333709  -0.81435399   -0.7767833 
+   28000    1.3799935     1.957718     1.084241  -0.80689552  -0.77866532 
+   29000    1.3773579    1.8567955    1.0675762  -0.81444274  -0.78076987 
+   30000     1.382101    1.9337034    1.0679145  -0.79821576  -0.78173909 
+   31000    1.3779178    1.8832819    1.0837774  -0.80611097  -0.78302182 
+Loop time of 24.0082 on 8 procs for 20000 steps with 8000 atoms
+
+Pair  time (%) = 10.9795 (45.7322)
+Neigh time (%) = 5.06218 (21.0852)
+Comm  time (%) = 5.02267 (20.9207)
+Outpt time (%) = 0.00179473 (0.00747548)
+Other time (%) = 2.94205 (12.2544)
+
+Nlocal:    1000 ave 1119 max 853 min
+Histogram: 1 1 2 0 0 0 0 0 1 3
+Nghost:    2304.25 ave 2554 max 2033 min
+Histogram: 2 1 1 0 0 0 0 0 2 2
+Neighs:    27503.1 ave 33833 max 20256 min
+Histogram: 1 3 0 0 0 0 0 0 0 4
+
+Total # of neighbors = 220025
+Ave neighs/atom = 27.5031
+Neighbor list builds = 3443
+Dangerous builds = 0

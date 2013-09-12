@@ -1,0 +1,88 @@
+# Sample LAMMPS input script for thermal conductivity of Ar
+# thermostatting 2 regions via fix langevin
+
+# settings
+
+variable	x equal 10
+variable	y equal 10
+variable	z equal 20
+
+variable	rho equal 0.6
+variable        t equal 1.35
+variable	rc equal 2.5
+variable        tlo equal 1.0
+variable        thi equal 1.70
+
+#variable	rho equal 0.85
+#variable        t equal 0.7
+#variable	rc equal 3.0
+#variable        tlo equal 0.3
+#variable        thi equal 1.0
+
+# setup problem
+
+units		lj
+atom_style	atomic
+
+lattice		fcc ${rho}
+region		box block 0 $x 0 $y 0 $z
+create_box	1 box
+create_atoms	1 box
+mass		1 1.0
+
+velocity	all create $t 87287
+
+pair_style	lj/cut ${rc}
+pair_coeff	1 1 1.0 1.0
+
+neighbor	0.3 bin
+neigh_modify	delay 0 every 1
+
+# heat layers
+
+region          hot block INF INF INF INF 0 1
+region          cold block  INF INF INF INF 10 11
+compute         Thot all temp/region hot
+compute         Tcold all temp/region cold
+
+# 1st equilibration run
+
+fix             1 all nvt temp $t $t 0.5
+thermo	        100
+run             1000
+
+velocity	all scale $t
+
+unfix		1
+
+# 2nd equilibration run
+
+fix		1 all nve
+fix             hot all langevin ${thi} ${thi} 1.0 59804 tally yes
+fix             cold all langevin ${tlo} ${tlo} 1.0 287859 tally yes
+fix_modify      hot temp Thot
+fix_modify      cold temp Tcold
+
+variable        tdiff equal c_Thot-c_Tcold
+thermo_style    custom step temp c_Thot c_Tcold f_hot f_cold v_tdiff
+thermo	        1000
+run             10000 
+
+# thermal conductivity calculation
+# reset langevin thermostats to zero energy accumulation
+
+compute		ke all ke/atom
+variable	temp atom c_ke/1.5
+
+fix             hot all langevin ${thi} ${thi} 1.0 59804 tally yes
+fix             cold all langevin ${tlo} ${tlo} 1.0 287859 tally yes
+fix_modify      hot temp Thot
+fix_modify      cold temp Tcold
+
+fix             ave all ave/time 10 100 1000 v_tdiff ave running
+thermo_style    custom step temp c_Thot c_Tcold f_hot f_cold v_tdiff f_ave
+
+fix		2 all ave/spatial 10 100 1000 z lower 0.05 v_temp &
+		  file profile.langevin units reduced
+
+run             20000

@@ -1,0 +1,84 @@
+This directory has 4 scripts that compute the thermal conductivity
+(kappa) of a Lennard-Jones fluid using 4 different methods.  See the
+discussion in Section 6.20 of the manual for an overview of the
+methods and pointers to which commands implement them.  Citations can
+also be found in the manaul.
+
+-------------
+
+These are the 4 methods for computing thermal conductivity.  The first
+3 are non-equilibrium methods; the last is an equilibrium method.
+
+in.langevin = thermostat 2 regions at different temperatures via fix langevin
+in.heat = add/subtract energy to 2 regions via fix heat
+in.mp = uses fix thermal/conductivity and the Muller-Plathe method
+in.heatflux = use compute heat/flux and the Green-Kubo method
+
+The NEMD systems have 8000 atoms with a box length 2x larger in z, the
+non-equilibrium direction.  The G-K system has 4000 atoms and a cubic
+box; it also needs to be run longer to generate good statistics.
+
+The scripts were all run on 8 processors.  They all run in a minute or
+so and produce the accompanying log files and profile files (for
+temperature or heat-flux).
+
+The state point of the LJ fluid is rho* = 0.6, T* = 1.35, and Rcut =
+2.5 sigma.  This was chosen to agree with a 1986 paper by D Evans in
+Phys Rev A, 34, p 1449, where he computed the thermal conductivity of
+a small 108-atom system using a thermostatting method.  Fig 1 in the
+paper shows his simulations produced a kappa of around 3.4 for this
+system, in agreement with an experimental data point as well.
+
+-------------
+
+Here is how to extract Kappa from the log file output for each method.
+
+The NEMD methods use the formula kappa = dQ * dZ/dTemp where dQ =
+energy flux, and dTemp/dZ = temperature gradient.
+
+(1) in.langevin
+
+dQ = 8000 * 0.5*(0.905+0.947) / 100 / 18.82^2 / 2
+  8000 atoms
+  0.5*(0.905+0.947) = from log file =
+    ave of total per-atom in/out energy for 2 regions
+  100 = 20,000 steps at 0.005 tau timestep = run time in tau
+  xy box area = 18.82^2
+  divide by 2 since energy flux goes in 2 directions due to periodic z
+dTemp = 0.578 from log file for average Temp difference between 2 regions
+dZ = 18.82
+
+Kappa = 3.41
+
+(2) in.heat
+
+dQ = (100*100) / 100 / 18.82^2 / 2
+  100*100 = 100 (time in tau) * 100 (energy delta specified in fix heat)
+  100 = 20,000 steps at 0.005 tau timestep = run time in tau
+  xy box area = 18.82^2
+  divide by 2 since energy flux goes in 2 directions due to periodic z
+dTemp = 0.783 from log file for average Temp difference between 2 regions
+dZ = 18.82
+
+Kappa = 3.39
+
+(3) in.mp 
+
+dQ = 15087 / 100 / 18.82^2 / 2
+  15087 = cummulative delta energy, tallied by fix thermal/conductivity
+  100 = 20,000 steps at 0.005 tau timestep = run time in tau
+  xy box area = 18.82^2
+  divide by 2 since energy flux goes in 2 directions due to periodic z
+dTemp = 1.16 from log file for average Temp difference between 2 regions
+dZ = 18.82
+
+Kappa = 3.45
+
+(4) in.heatflux
+
+kappa is computed directly within the script, by performing the time
+integration for the formulas discussed on the compute heat/flux doc
+page - the resulting value prints at the end of the run and is in the
+log file
+
+Kappa = 3.78

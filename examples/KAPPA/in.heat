@@ -1,4 +1,4 @@
-# Sample LAMMPS input script for thermal conductivity of Ar
+# sample LAMMPS input script for thermal conductivity of liquid LJ
 # use fix heat to add/subtract energy from 2 regions
 
 # settings

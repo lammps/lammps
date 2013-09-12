@@ -1,5 +1,5 @@
-# Sample LAMMPS input script for thermal conductivity of Ar
-# use Muller-Plathe method via fix thermal_conductivity 
+# sample LAMMPS input script for thermal conductivity of liquid LJ
+# Muller-Plathe method via fix thermal_conductivity 
 
 # settings
 

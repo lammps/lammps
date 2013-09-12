@@ -1,5 +1,5 @@
-# Sample LAMMPS input script for thermal conductivity of Ar
-# use Green-Kubo method via compute heat/flux and fix ave/correlate
+# sample LAMMPS input script for thermal conductivity of liquid LJ
+# Green-Kubo method via compute heat/flux and fix ave/correlate
 
 # settings
 

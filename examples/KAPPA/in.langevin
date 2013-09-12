@@ -1,4 +1,4 @@
-# Sample LAMMPS input script for thermal conductivity of Ar
+# sample LAMMPS input script for thermal conductivity of liquid LJ
 # thermostatting 2 regions via fix langevin
 
 # settings

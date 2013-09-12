@@ -27,7 +27,7 @@ Style {lj/smooth/linear} computes a LJ interaction that combines the
 standard 12/6 Lennard-Jones function and subtracts a linear term that
 includes the cutoff distance Rc, as in this formula:
 
-:c,image(Eqs/pair_lj_cut_smooth.jpg)
+:c,image(Eqs/pair_lj_cut_smooth_linear.jpg)
 
 At the cutoff Rc, the energy and force (its 1st derivative) will be 0.0.
 

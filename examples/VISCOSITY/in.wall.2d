@@ -73,6 +73,11 @@ fix		vave all ave/time 1000 1 1000 v_visc ave running
 thermo_style	custom step temp pxy v_visc f_vave
 thermo_modify	temp tilt
 
-#dump	        1 all custom 1000 dump.wall.2d id type x y z
+# only need to run for 5000 steps to make a good 100-frame movie
+
+#dump	        1 all custom 50 dump.wall.2d id type x y z vx
+
+#dump		1 all image 50 image.*.jpg vx type zoom 1.6 adiam 1.2
+#dump_modify	1 pad 5 amap 0.0 ${srate} ca 0.0 2 min blue max red
 
 run		50000

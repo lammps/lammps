@@ -66,11 +66,18 @@ run		50000
 # data gathering run
 
 variable	visc equal -pxy/(v_srate/ly)
-fix		vave all ave/time 10 100 1000 v_visc ave running start 56000
+fix		vave all ave/time 10 100 1000 v_visc ave running start 61000
 
-thermo_style	custom step temp press pxy v_visc f_vave xy
+thermo_style	custom step temp press pxy v_visc f_vave
 thermo_modify	temp tilt
 
-#dump	        1 all custom 10 dump.nemd.2d id type x y z vx
+# only need to run for 5400 steps to make a good 100-frame movie
+# set 54K steps above in equil and 5400 here simply to make good movie
+# 54K and 5400 are multiples of box-swap periodicity = 2700 steps
+
+#dump	        1 all custom 50 dump.nemd.2d id type x y z vx
+
+#dump		1 all image 50 image.*.jpg vx type zoom 1.2 adiam 1.2
+#dump_modify	1 pad 5 amap 0.0 ${srate} ca 0.0 2 min blue max red
 
 run		50000

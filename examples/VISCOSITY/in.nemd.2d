@@ -1,0 +1,76 @@
+# sample LAMMPS input script for viscosity of 2d LJ liquid
+# NEMD via fix deform and fix nvt/sllod
+
+# settings
+
+variable	x equal 20
+variable	y equal 20
+
+variable	rho equal 0.6
+variable        t equal 1.0
+variable	rc equal 2.5
+
+variable	srate equal 2.7
+
+# problem setup
+
+units		lj
+dimension	2
+atom_style	atomic
+neigh_modify	delay 0 every 1
+
+# problem setup
+
+lattice         sq2 ${rho}
+region          simbox prism 0 $y 0 $y -0.1 0.1 0.0 0.0 0.0
+create_box      1 simbox
+create_atoms    1 box
+
+pair_style      lj/cut ${rc}
+pair_coeff      * * 1 1
+
+mass            * 1.0
+velocity        all create $t 97287
+
+fix             1 all nve
+fix	        2 all langevin $t $t 0.1 498094
+fix	        3 all enforce2d
+
+# equilibration run
+
+thermo          1000
+run	        5000
+
+unfix  	        1
+unfix		2
+
+# turn on NEMD shear and equilibrate some more
+
+velocity	all scale $t
+
+variable	xyrate equal ${srate}/lx
+
+fix		1 all nvt/sllod temp $t $t 0.1
+fix		2 all deform 1 xy erate ${xyrate} remap v
+fix		4 all ave/spatial 20 250 5000 y center 0.05 vx &
+		  units reduced file profile.nemd.2d
+
+compute		usual all temp
+compute		tilt all temp/deform
+
+thermo          1000
+thermo_style	custom step temp c_usual epair etotal press pxy
+thermo_modify	temp tilt
+run		50000
+
+# data gathering run
+
+variable	visc equal -pxy/(v_srate/ly)
+fix		vave all ave/time 10 100 1000 v_visc ave running start 56000
+
+thermo_style	custom step temp press pxy v_visc f_vave xy
+thermo_modify	temp tilt
+
+#dump	        1 all custom 10 dump.nemd.2d id type x y z vx
+
+run		50000

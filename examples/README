@@ -123,6 +123,10 @@ The ELASTIC directory has an example script for computing elastic
 constants, using a zero temperature Si example.  See the
 ELASTIC/in.elastic file for more info.
 
+The KAPPA directory has an example scripts for computing the thermal
+conductivity (kappa) of a LJ liquid using 4 different methods.  See
+the KAPPA/README file for more info.
+
 The USER directory contains subdirectories of user-provided example
 scripts for ser packages.  See the README files in those directories
 for more info.  See the doc/Section_start.html file for more info

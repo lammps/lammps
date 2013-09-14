@@ -25,6 +25,10 @@ The scripts were all run on a single processor.  They all run in a
 minute or so and produce the accompanying log files and profile files
 (for velocity or momemtum flux).
 
+See the Movies page of the LAMMPS web site
+(http://lammps.sandia.gov/movies.html), for animations of the NEMD
+scripts, created using the dump image command.
+
 The state point of the LJ fluid is rho* = 0.6, T* = 1.0, and Rcut =
 2.5 sigma.  This system should have a shear viscosity of about 1.0.
 
@@ -63,7 +67,7 @@ dMom = -1370.2 from log file, tallied by MP
 dVelX = 4th column of log output, from fix ave/spatial
 dY = 1/2 of Y box length
 
-eta = 1.09 = running average output as last log file column
+eta = 0.997 = running average output as last log file column
 
 (4) in.gk.2d
 

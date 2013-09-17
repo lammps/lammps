@@ -28,21 +28,26 @@ pair_coeff 1 1 14.0
 </P>
 <P>Style <I>zbl</I> computes the Zeigler-Biersack-Littmark (ZBL) repulsive
 interaction for describing high-energy collisions between atoms.
-<A HREF = "#Zeigler">(Zeigler)</A>. It includes an additional switching function 
-S(r) that ramps the energy, force, and curvature
-smoothly to zero between an inner and outer cutoff. The switching
-function is the same one used in <A HREF = "pair_gromacs.html">pair_style lj/gromacs</A>.
+<A HREF = "#Zeigler">(Zeigler)</A>. It includes an additional switching function
+S(r) that ramps the energy, force, and curvature smoothly to zero
+between an inner and outer cutoff. The switching function is the same
+one used in <A HREF = "pair_gromacs.html">pair_style lj/gromacs</A>.
 </P>
 <P>The inner and outer cutoff are the same for all pairs of 
 atom types. 
 </P>
-<P>A single dimensionless coefficient Z must be defined for each atom
-type via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
-above, or in the data file or restart files read by the
+<P>The following coefficient must be defined for each pair of atoms types
+via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples above,
+or in the data file or restart files read by the
 <A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
-commands. Z is usually taken to be the atomic number
-of the element. Z can not be specified for two different atoms types.
-Therefore the lists of atom types I and atom types J must match.
+commands:
+</P>
+<UL><LI>Z (dimensionless) 
+</UL>
+<P>Although Z must be defined for all atom type pairs I,J, it is only
+stored for individual atom types, i.e. when I = J.  Z is usually taken
+to be the atomic number of the element that corresponds to the atom
+type.
 </P>
 <HR>
 
@@ -86,6 +91,7 @@ support the <I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
 
 <A NAME = "Zeigler"></A>
 
-<P><B>(Zeigler)</B> J.F. Zeigler, J. P. Biersack and U. Littmark, "The Stopping and Range of Ions in Matter," Volume 1, Pergamon, 1985. 
+<P><B>(Zeigler)</B> J.F. Zeigler, J. P. Biersack and U. Littmark, "The
+Stopping and Range of Ions in Matter," Volume 1, Pergamon, 1985.
 </P>
 </HTML>

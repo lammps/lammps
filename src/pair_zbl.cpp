@@ -240,10 +240,6 @@ void PairZBL::init_style()
 
   cut_innersq = cut_inner * cut_inner;
   cut_globalsq = cut_global * cut_global;
-  // metal units: e^2/angstrom = 2*Ryd*bohr
-  // econv = 2.0*13.6058*0.529177 = 14.3998;
-  // all units:
-  econv = force->qqr2e;
 }
 
 /* ----------------------------------------------------------------------
@@ -253,12 +249,12 @@ void PairZBL::init_style()
 double PairZBL::init_one(int i, int j)
 {
 
-  double ainv = (pow(z[i],pzbl) + pow(z[j],pzbl))/a0;
+  double ainv = (pow(z[i],pzbl) + pow(z[j],pzbl))/(a0*force->angstrom);
   d1a[i][j] = d1*ainv;
   d2a[i][j] = d2*ainv;
   d3a[i][j] = d3*ainv;
   d4a[i][j] = d4*ainv;
-  zze[i][j] = z[i]*z[j]*econv;
+  zze[i][j] = z[i]*z[j]*force->qqr2e*force->qelectron*force->qelectron;
 
   d1a[j][i] = d1a[i][j];
   d2a[j][i] = d2a[i][j];

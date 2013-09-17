@@ -37,7 +37,7 @@ class PairZBL : public Pair {
 
  protected:
   double cut_global, cut_inner;
-  double cut_globalsq, cut_innersq, econv;
+  double cut_globalsq, cut_innersq;
   double *z;
   double **d1a,**d2a,**d3a,**d4a,**zze;
   double **sw1,**sw2,**sw3,**sw4,**sw5;

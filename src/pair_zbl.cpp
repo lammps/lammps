@@ -240,6 +240,10 @@ void PairZBL::init_style()
 
   cut_innersq = cut_inner * cut_inner;
   cut_globalsq = cut_global * cut_global;
+  // metal units: e^2/angstrom = 2*Ryd*bohr
+  // econv = 2.0*13.6058*0.529177 = 14.3998;
+  // all units:
+  econv = force->qqr2e;
 }
 
 /* ----------------------------------------------------------------------
@@ -273,9 +277,17 @@ double PairZBL::init_one(int i, int j)
   // sw1 = A 
   // sw2 = B 
 
+  // de2dr2 = 2*A*t + 3*B*t^2
+
+  // Require that at t = tc:
+  // e = -Fc
+  // dedr = -Fc'
+  // d2edr2 = -Fc'' 
+
+  // Hence:
   // A = (-3Fc' + tc*Fc'')/tc^2
   // B = ( 2Fc' - tc*Fc'')/tc^3
-  // C = = -Fc + tc/2*Fc' - tc^2/12*Fc''
+  // C = -Fc + tc/2*Fc' - tc^2/12*Fc''
 
   double tc = cut_global - cut_inner;
   double fc = e_zbl(cut_global, i, j);

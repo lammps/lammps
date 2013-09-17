@@ -37,7 +37,7 @@ class PairZBL : public Pair {
 
  protected:
   double cut_global, cut_inner;
-  double cut_globalsq, cut_innersq;
+  double cut_globalsq, cut_innersq, econv;
   double *z;
   double **d1a,**d2a,**d3a,**d4a,**zze;
   double **sw1,**sw2,**sw3,**sw4,**sw5;
@@ -62,10 +62,6 @@ namespace PairZBLConstants {
   static const double d2 = 0.40290;
   static const double d3 = 0.94229;
   static const double d4 = 3.19980;
-
-  //  units: e^2/angstrom = 2*Ryd*bohr
-
-  static const double econv = 2.0*13.6058*0.529177;
 }
 
 }

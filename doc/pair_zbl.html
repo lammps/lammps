@@ -58,40 +58,39 @@ stored for individual atom types, i.e. when I = J.  Z is normally equal
 to the atomic number of the atom type.
 </P>
 <P>IMPORTANT NOTE: The numerical values of the exponential decay
-constants in the screening function depend
-on the unit of distance. In the above equation they are given for
-units of angstroms. LAMMPS will automatically convert these values to 
-the distance unit of the specified LAMMPS <A HREF = "units.html">units</A> setting. 
-The values of Z should always be given in units of electron charge.
+constants in the screening function depend on the unit of distance. In
+the above equation they are given for units of angstroms. LAMMPS will
+automatically convert these values to the distance unit of the
+specified LAMMPS <A HREF = "units.html">units</A> setting.  The values of Z should
+always be given in units of electron charge.
 </P>
 <HR>
 
 <P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
 </P>
-<P>For atom type pairs I,J and I != J, the ZBL interaction
-is defined by the values of Z for the two atom types, as in 
-the equation above.
+<P>Mixing is not relevant for this pair style, since as explained above,
+Z values are stored on a per-type basis, and both Zi and Zj are used
+explicitly in the ZBL formula.
 </P>
-<P>The ZBL pair style does not support the
-<A HREF = "pair_modify.html">pair_modify</A> shift option, since the ZBL
-interaction is already smoothed to 0.0 at the
-cutoff.
+<P>The ZBL pair style does not support the <A HREF = "pair_modify.html">pair_modify</A>
+shift option, since the ZBL interaction is already smoothed to 0.0 at
+the cutoff.
 </P>
-<P>The <A HREF = "pair_modify.html">pair_modify</A> table option is not relevant
-for this pair style.
+<P>The <A HREF = "pair_modify.html">pair_modify</A> table option is not relevant for
+this pair style.
 </P>
-<P>This pair style does not support the
-<A HREF = "pair_modify.html">pair_modify</A> tail option for adding long-range tail
-corrections to energy and pressure, since there are no corrections for
-a potential that goes to 0.0 at the cutoff.
+<P>This pair style does not support the <A HREF = "pair_modify.html">pair_modify</A>
+tail option for adding long-range tail corrections to energy and
+pressure, since there are no corrections for a potential that goes to
+0.0 at the cutoff.
 </P>
-<P>This pair style does not write information to <A HREF = "restart.html">binary
-restart files</A>, so pair_style and pair_coeff commands
-must be specified in an input script that reads a restart file.
+<P>This pair style does not write information to <A HREF = "restart.html">binary restart
+files</A>, so pair_style and pair_coeff commands must be
+specified in an input script that reads a restart file.
 </P>
-<P>This pair style can only be used via the <I>pair</I>
-keyword of the <A HREF = "run_style.html">run_style respa</A> command.  It does not
-support the <I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
+<P>This pair style can only be used via the <I>pair</I> keyword of the
+<A HREF = "run_style.html">run_style respa</A> command.  It does not support the
+<I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
 </P>
 <HR>
 

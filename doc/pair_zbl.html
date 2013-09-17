@@ -26,35 +26,51 @@ pair_coeff 1 1 14.0
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Style <I>zbl</I> computes the Zeigler-Biersack-Littmark (ZBL) repulsive
-interaction for describing high-energy collisions between atoms.
-<A HREF = "#Zeigler">(Zeigler)</A>. It includes an additional switching function
-S(r) that ramps the energy, force, and curvature smoothly to zero
-between an inner and outer cutoff. The switching function is the same
-one used in <A HREF = "pair_gromacs.html">pair_style lj/gromacs</A>.
+<P>Style <I>zbl</I> computes the Ziegler-Biersack-Littmark (ZBL) screened nuclear
+repulsion for describing high-energy collisions between atoms.
+<A HREF = "#Ziegler">(Ziegler)</A>. It includes an additional switching function 
+that ramps the energy, force, and curvature smoothly to zero 
+between an inner and outer cutoff. The potential
+energy due to a pair of atoms at a distance r_ij is given by:
 </P>
-<P>The inner and outer cutoff are the same for all pairs of 
-atom types. 
+<CENTER><IMG SRC = "Eqs/pair_zbl.jpg">
+</CENTER>
+<P>where e is the electron
+charge, epsilon_0 is the electrical permittivity of vacuum, and 
+Z_i and Z_j are the nuclear charges of the two atoms in electron
+charge units. 
+The switching
+function S(r) is identical to that used by 
+<A HREF = "pair_gromacs.html">pair_style lj/gromacs</A>. 
+Here, the inner and outer cutoff are the same 
+for all pairs of atom types.
 </P>
-<P>The following coefficient must be defined for each pair of atoms types
+<P>The following coefficient must be defined for each pair of atom types
 via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples above,
-or in the data file or restart files read by the
-<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
-commands:
+or in the LAMMPS data file. 
+Z can not be specified for two different atoms types.
+Therefore the lists of atom types I and atom types J must match.
 </P>
-<UL><LI>Z (dimensionless) 
+<UL><LI>Z (electron charge) 
 </UL>
 <P>Although Z must be defined for all atom type pairs I,J, it is only
-stored for individual atom types, i.e. when I = J.  Z is usually taken
-to be the atomic number of the element that corresponds to the atom
-type.
+stored for individual atom types, i.e. when I = J.  Z is normally equal
+to the atomic number of the atom type.
+</P>
+<P>IMPORTANT NOTE: The numerical values of the exponential decay
+constants in the screening function depend
+on the unit of distance. In the above equation they are given for
+units of angstroms. LAMMPS will automatically convert these values to 
+the distance unit of the specified LAMMPS <A HREF = "units.html">units</A> setting. 
+The values of Z should always be given in units of electron charge.
 </P>
 <HR>
 
 <P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
 </P>
 <P>For atom type pairs I,J and I != J, the ZBL interaction
-is defined by the values of Z for the two atom types.
+is defined by the values of Z for the two atom types, as in 
+the equation above.
 </P>
 <P>The ZBL pair style does not support the
 <A HREF = "pair_modify.html">pair_modify</A> shift option, since the ZBL
@@ -89,9 +105,9 @@ support the <I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
 </P>
 <HR>
 
-<A NAME = "Zeigler"></A>
+<A NAME = "Ziegler"></A>
 
-<P><B>(Zeigler)</B> J.F. Zeigler, J. P. Biersack and U. Littmark, "The
+<P><B>(Ziegler)</B> J.F. Ziegler, J. P. Biersack and U. Littmark, "The
 Stopping and Range of Ions in Matter," Volume 1, Pergamon, 1985.
 </P>
 </HTML>

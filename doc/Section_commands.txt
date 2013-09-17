@@ -794,7 +794,8 @@ potentials.  Click on the style itself for a full description:
 "tip4p/long"_pair_coul.html,
 "tri/lj"_pair_tri_lj.html,
 "yukawa"_pair_yukawa.html,
-"yukawa/colloid"_pair_yukawa_colloid.html :tb(c=4,ea=c)
+"yukawa/colloid"_pair_yukawa_colloid.html,
+"zbl"_pair_zbl.html :tb(c=4,ea=c)
 
 These are pair styles contributed by users, which can be used if
 "LAMMPS is built with the appropriate

@@ -38,8 +38,10 @@ using namespace LAMMPS_NS;
 #define CHUNK 1024
 #define EPSILON 1.0e-6
 
+// also in reader_native.cpp
+
 enum{ID,TYPE,X,Y,Z,VX,VY,VZ,IX,IY,IZ};
-enum{UNSET,UNSCALED,SCALED};
+enum{UNSET,NOSCALE_NOWRAP,NOSCALE_WRAP,SCALE_NOWRAP,SCALE_WRAP};
 
 /* ---------------------------------------------------------------------- */
 
@@ -298,7 +300,6 @@ bigint ReadDump::next(bigint ncurrent, bigint nlast, int nevery, int nskip)
 /* ----------------------------------------------------------------------
    read and broadcast and store snapshot header info
    set nsnapatoms = # of atoms in snapshot
-   set yindex,zindex
 ------------------------------------------------------------------------- */
 
 void ReadDump::header(int fieldinfo)
@@ -309,7 +310,8 @@ void ReadDump::header(int fieldinfo)
   if (me == 0)
     nsnapatoms = reader->read_header(box,triclinic_snap,
                                      fieldinfo,nfield,fieldtype,fieldlabel,
-                                     scaledflag,fieldflag,xflag,yflag,zflag);
+                                     scaleflag,wrapflag,fieldflag,
+                                     xflag,yflag,zflag);
 
   MPI_Bcast(&nsnapatoms,1,MPI_LMP_BIGINT,0,world);
   MPI_Bcast(&triclinic_snap,1,MPI_INT,0,world);
@@ -363,30 +365,51 @@ void ReadDump::header(int fieldinfo)
       error->one(FLERR,"Read_dump triclinic status does not match simulation");
   }
 
-  // error check field and scaling info
+  // error check on requested fields exisiting in dump file
 
   if (fieldflag < 0)
     error->one(FLERR,"Read_dump field not found in dump file");
 
-  // set overall scaling of coordinates
-  // error if x,y,z scaling are not the same
+  // all explicitly requested x,y,z must have consistent scaling & wrapping
 
-  scaled = MAX(xflag,yflag);
-  scaled = MAX(zflag,scaled);
-  if ((xflag != UNSET && xflag != scaled) ||
-      (yflag != UNSET && yflag != scaled) ||
-      (zflag != UNSET && zflag != scaled))
-    error->one(FLERR,"Read_dump x,y,z fields do not have consistent scaling");
+  int value = MAX(xflag,yflag);
+  value = MAX(zflag,value);
+  if ((xflag != UNSET && xflag != value) ||
+      (yflag != UNSET && yflag != value) ||
+      (zflag != UNSET && zflag != value))
+    error->one(FLERR,
+               "Read_dump xyz fields do not have consistent scaling/wrapping");
+
+  // set scaled/wrapped based on xyz flags
+
+  value = UNSET;
+  if (xflag != UNSET) value = xflag;
+  if (yflag != UNSET) value = yflag;
+  if (zflag != UNSET) value = zflag;
+
+  if (value == UNSET) {
+    scaled = wrapped = 0;
+  } else if (value == NOSCALE_NOWRAP) {
+    scaled = wrapped = 0;
+  } else if (value == NOSCALE_WRAP) {
+    scaled = 0;
+    wrapped = 1;
+  } else if (value == SCALE_NOWRAP) {
+    scaled = 1;
+    wrapped = 0;
+  } else if (value == SCALE_WRAP) {
+    scaled = wrapped = 1;
+  }
 
   // scaled, triclinic coords require all 3 x,y,z fields, to perform unscaling
   // set yindex,zindex = column index of Y and Z fields in fields array
   // needed for unscaling to absolute coords in xfield(), yfield(), zfield()
 
-  if (scaled == SCALED && triclinic == 1) {
+  if (scaled && triclinic == 1) {
     int flag = 0;
-    if (xflag != scaled) flag = 1;
-    if (yflag != scaled) flag = 1;
-    if (dimension == 3 && zflag != scaled) flag = 1;
+    if (xflag == UNSET) flag = 1;
+    if (yflag == UNSET) flag = 1;
+    if (dimension == 3 && zflag == UNSET) flag = 1;
     if (flag)
       error->one(FLERR,"All read_dump x,y,z fields must be specified for "
                  "scaled, triclinic coords");
@@ -597,7 +620,8 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
   trimflag = 0;
   addflag = 0;
   for (int i = 0; i < nfield; i++) fieldlabel[i] = NULL;
-  scaledflag = UNSCALED;
+  scaleflag = 0;
+  wrapflag = 1;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"box") == 0) {
@@ -642,8 +666,14 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
       iarg += 3;
     } else if (strcmp(arg[iarg],"scaled") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");
-      if (strcmp(arg[iarg+1],"yes") == 0) scaledflag = SCALED;
-      else if (strcmp(arg[iarg+1],"no") == 0) scaledflag = UNSCALED;
+      if (strcmp(arg[iarg+1],"yes") == 0) scaleflag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) scaleflag = 0;
+      else error->all(FLERR,"Illegal read_dump command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"wrapped") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");
+      if (strcmp(arg[iarg+1],"yes") == 0) wrapflag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) wrapflag = 0;
       else error->all(FLERR,"Illegal read_dump command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"format") == 0) {
@@ -742,7 +772,9 @@ void ReadDump::process_atoms(int n)
         }
       }
 
-      // replace image flag in case changed by ix,iy,iz fields
+      // replace image flag in case changed by ix,iy,iz fields or unwrapping
+
+      if (!wrapped) xbox = ybox = zbox = 0;
 
       image[m] = ((tagint) (xbox + IMGMAX) & IMGMASK) | 
         (((tagint) (ybox + IMGMAX) & IMGMASK) << IMGBITS) | 
@@ -877,7 +909,7 @@ void ReadDump::delete_atoms()
 
 double ReadDump::xfield(int i, int j)
 {
-  if (scaled == UNSCALED) return fields[i][j];
+  if (!scaled) return fields[i][j];
   else if (!triclinic) return fields[i][j]*xprd + xlo;
   else if (dimension == 2)
     return xprd*fields[i][j] + xy*fields[i][yindex] + xlo;
@@ -886,7 +918,7 @@ double ReadDump::xfield(int i, int j)
 
 double ReadDump::yfield(int i, int j)
 {
-  if (scaled == UNSCALED) return fields[i][j];
+  if (!scaled) return fields[i][j];
   else if (!triclinic) return fields[i][j]*yprd + ylo;
   else if (dimension == 2) return yprd*fields[i][j] + ylo;
   return yprd*fields[i][j] + yz*fields[i][zindex] + ylo;
@@ -894,6 +926,6 @@ double ReadDump::yfield(int i, int j)
 
 double ReadDump::zfield(int i, int j)
 {
-  if (scaled == UNSCALED) return fields[i][j];
+  if (!scaled) return fields[i][j];
   return fields[i][j]*zprd + zlo;
 }

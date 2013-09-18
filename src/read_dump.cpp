@@ -40,7 +40,7 @@ using namespace LAMMPS_NS;
 
 // also in reader_native.cpp
 
-enum{ID,TYPE,X,Y,Z,VX,VY,VZ,IX,IY,IZ};
+enum{ID,TYPE,X,Y,Z,VX,VY,VZ,Q,IX,IY,IZ};
 enum{UNSET,NOSCALE_NOWRAP,NOSCALE_WRAP,SCALE_NOWRAP,SCALE_WRAP};
 
 /* ---------------------------------------------------------------------- */
@@ -589,6 +589,11 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
     else if (strcmp(arg[iarg],"vx") == 0) fieldtype[nfield++] = VX;
     else if (strcmp(arg[iarg],"vy") == 0) fieldtype[nfield++] = VY;
     else if (strcmp(arg[iarg],"vz") == 0) fieldtype[nfield++] = VZ;
+    else if (strcmp(arg[iarg],"q") == 0) {
+      if (!atom->q_flag)
+        error->all(FLERR,"Read dump of atom property that isn't allocated");
+      fieldtype[nfield++] = Q;
+    }
     else if (strcmp(arg[iarg],"ix") == 0) fieldtype[nfield++] = IX;
     else if (strcmp(arg[iarg],"iy") == 0) fieldtype[nfield++] = IY;
     else if (strcmp(arg[iarg],"iz") == 0) fieldtype[nfield++] = IZ;
@@ -710,6 +715,7 @@ void ReadDump::process_atoms(int n)
 
   double **x = atom->x;
   double **v = atom->v;
+  double *q = atom->q;
   tagint *image = atom->image;
   int nlocal = atom->nlocal;
   int map_tag_max = atom->map_tag_max;
@@ -753,6 +759,9 @@ void ReadDump::process_atoms(int n)
           break;
         case VX:
           v[m][0] = fields[i][ifield];
+          break;
+        case Q:
+          q[m] = fields[i][ifield];
           break;
         case VY:
           v[m][1] = fields[i][ifield];
@@ -831,6 +840,7 @@ void ReadDump::process_atoms(int n)
     nadd++;
 
     v = atom->v;
+    q = atom->q;
     image = atom->image;
 
     // set atom attributes from other dump file fields
@@ -847,6 +857,9 @@ void ReadDump::process_atoms(int n)
         break;
       case VZ:
         v[m][2] = fields[i][ifield];
+        break;
+      case Q:
+        q[m] = fields[i][ifield];
         break;
       case IX:
         xbox = static_cast<int> (fields[i][ifield]);

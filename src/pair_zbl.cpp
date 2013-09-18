@@ -249,12 +249,12 @@ void PairZBL::init_style()
 double PairZBL::init_one(int i, int j)
 {
 
-  double ainv = (pow(z[i],pzbl) + pow(z[j],pzbl))/a0;
+  double ainv = (pow(z[i],pzbl) + pow(z[j],pzbl))/(a0*force->angstrom);
   d1a[i][j] = d1*ainv;
   d2a[i][j] = d2*ainv;
   d3a[i][j] = d3*ainv;
   d4a[i][j] = d4*ainv;
-  zze[i][j] = z[i]*z[j]*econv;
+  zze[i][j] = z[i]*z[j]*force->qqr2e*force->qelectron*force->qelectron;
 
   d1a[j][i] = d1a[i][j];
   d2a[j][i] = d2a[i][j];
@@ -273,9 +273,17 @@ double PairZBL::init_one(int i, int j)
   // sw1 = A 
   // sw2 = B 
 
+  // de2dr2 = 2*A*t + 3*B*t^2
+
+  // Require that at t = tc:
+  // e = -Fc
+  // dedr = -Fc'
+  // d2edr2 = -Fc'' 
+
+  // Hence:
   // A = (-3Fc' + tc*Fc'')/tc^2
   // B = ( 2Fc' - tc*Fc'')/tc^3
-  // C = = -Fc + tc/2*Fc' - tc^2/12*Fc''
+  // C = -Fc + tc/2*Fc' - tc^2/12*Fc''
 
   double tc = cut_global - cut_inner;
   double fc = e_zbl(cut_global, i, j);

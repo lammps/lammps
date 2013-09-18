@@ -23,51 +23,71 @@ pair_coeff 1 1 14.0 :pre
 
 [Description:]
 
-Style {zbl} computes the Zeigler-Biersack-Littmark (ZBL) repulsive
-interaction for describing high-energy collisions between atoms.
-"(Zeigler)"_#Zeigler. It includes an additional switching function 
-S(r) that ramps the energy, force, and curvature
-smoothly to zero between an inner and outer cutoff. The switching
-function is the same one used in "pair_style lj/gromacs"_pair_gromacs.html.
+Style {zbl} computes the Ziegler-Biersack-Littmark (ZBL) screened nuclear
+repulsion for describing high-energy collisions between atoms.
+"(Ziegler)"_#Ziegler. It includes an additional switching function 
+that ramps the energy, force, and curvature smoothly to zero 
+between an inner and outer cutoff. The potential
+energy due to a pair of atoms at a distance r_ij is given by:
 
-The inner and outer cutoff are the same for all pairs of 
-atom types. 
+:c,image(Eqs/pair_zbl.jpg)
 
-A single dimensionless coefficient Z must be defined for each atom
-type via the "pair_coeff"_pair_coeff.html command as in the examples
-above, or in the data file or restart files read by the
-"read_data"_read_data.html or "read_restart"_read_restart.html
-commands. Z is usually taken to be the atomic number
-of the element. Z can not be specified for two different atoms types.
+where e is the electron
+charge, epsilon_0 is the electrical permittivity of vacuum, and 
+Z_i and Z_j are the nuclear charges of the two atoms in electron
+charge units. 
+The switching
+function S(r) is identical to that used by 
+"pair_style lj/gromacs"_pair_gromacs.html. 
+Here, the inner and outer cutoff are the same 
+for all pairs of atom types.
+
+The following coefficient must be defined for each pair of atom types
+via the "pair_coeff"_pair_coeff.html command as in the examples above,
+or in the LAMMPS data file. 
+Z can not be specified for two different atoms types.
 Therefore the lists of atom types I and atom types J must match.
+
+Z (electron charge) :ul
+
+Although Z must be defined for all atom type pairs I,J, it is only
+stored for individual atom types, i.e. when I = J.  Z is normally equal
+to the atomic number of the atom type.
+
+IMPORTANT NOTE: The numerical values of the exponential decay
+constants in the screening function depend on the unit of distance. In
+the above equation they are given for units of angstroms. LAMMPS will
+automatically convert these values to the distance unit of the
+specified LAMMPS "units"_units.html setting.  The values of Z should
+always be given in units of electron charge.
 
 :line
 
 [Mixing, shift, table, tail correction, restart, rRESPA info]:
 
-For atom type pairs I,J and I != J, the ZBL interaction
-is defined by the values of Z for the two atom types.
+Mixing is not relevant for this pair style, since as explained above,
+Z values are stored on a per-type basis, and both Zi and Zj are used
+explicitly in the ZBL formula.
 
-The ZBL pair style does not support the
-"pair_modify"_pair_modify.html shift option, since the ZBL
-interaction is already smoothed to 0.0 at the
-cutoff.
+The ZBL pair style does not support the "pair_modify"_pair_modify.html
+shift option, since the ZBL interaction is already smoothed to 0.0 at
+the cutoff.
 
-The "pair_modify"_pair_modify.html table option is not relevant
-for this pair style.
+The "pair_modify"_pair_modify.html table option is not relevant for
+this pair style.
 
-This pair style does not support the
-"pair_modify"_pair_modify.html tail option for adding long-range tail
-corrections to energy and pressure, since there are no corrections for
-a potential that goes to 0.0 at the cutoff.
+This pair style does not support the "pair_modify"_pair_modify.html
+tail option for adding long-range tail corrections to energy and
+pressure, since there are no corrections for a potential that goes to
+0.0 at the cutoff.
 
-This pair style does not write information to "binary
-restart files"_restart.html, so pair_style and pair_coeff commands
-must be specified in an input script that reads a restart file.
+This pair style does not write information to "binary restart
+files"_restart.html, so pair_style and pair_coeff commands must be
+specified in an input script that reads a restart file.
 
-This pair style can only be used via the {pair}
-keyword of the "run_style respa"_run_style.html command.  It does not
-support the {inner}, {middle}, {outer} keywords.
+This pair style can only be used via the {pair} keyword of the
+"run_style respa"_run_style.html command.  It does not support the
+{inner}, {middle}, {outer} keywords.
 
 :line
 
@@ -81,5 +101,6 @@ support the {inner}, {middle}, {outer} keywords.
 
 :line
 
-:link(Zeigler)
-[(Zeigler)] J.F. Zeigler, J. P. Biersack and U. Littmark, "The Stopping and Range of Ions in Matter," Volume 1, Pergamon, 1985. 
+:link(Ziegler)
+[(Ziegler)] J.F. Ziegler, J. P. Biersack and U. Littmark, "The
+Stopping and Range of Ions in Matter," Volume 1, Pergamon, 1985.

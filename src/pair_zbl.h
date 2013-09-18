@@ -62,10 +62,6 @@ namespace PairZBLConstants {
   static const double d2 = 0.40290;
   static const double d3 = 0.94229;
   static const double d4 = 3.19980;
-
-  //  units: e^2/angstrom = 2*Ryd*bohr
-
-  static const double econv = 2.0*13.6058*0.529177;
 }
 
 }

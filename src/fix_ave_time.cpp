@@ -17,6 +17,7 @@
 
 #include "stdlib.h"
 #include "string.h"
+#include "unistd.h"
 #include "fix_ave_time.h"
 #include "update.h"
 #include "modify.h"
@@ -636,6 +637,10 @@ void FixAveTime::invoke_scalar(bigint ntimestep)
     for (i = 0; i < nvalues; i++) fprintf(fp," %g",vector_total[i]/norm);
     fprintf(fp,"\n");
     fflush(fp);
+    if (overwrite) {
+      long fileend = ftell(fp);
+      ftruncate(fileno(fp),fileend);
+    }
   }
 }
 

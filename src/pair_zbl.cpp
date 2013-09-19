@@ -215,8 +215,8 @@ void PairZBL::coeff(int narg, char **arg)
 
   double z_one = force->numeric(FLERR,arg[2]);
 
-  // Set flag for each i-j pair
-  // Set z-parameter only for i-i pairs
+  // set flag for each i-j pair
+  // set z-parameter only for i-i pairs
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

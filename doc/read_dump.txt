@@ -15,12 +15,13 @@ read_dump file Nstep field1 field2 ... keyword values ... :pre
 file = name of dump file to read :ulb,l
 Nstep = snapshot timestep to read from file :l
 one or more fields may be appended :l
-field = {x} or {y} or {z} or {vx} or {vy} or {vz} or {ix} or {iy} or {iz}
+field = {x} or {y} or {z} or {vx} or {vy} or {vz} or {q} or {ix} or {iy} or {iz}
   {x},{y},{z} = atom coordinates
   {vx},{vy},{vz} = velocity components
+  {q} = charge
   {ix},{iy},{iz} = image flags in each dimension :pre
 zero or more keyword/value pairs may be appended :l
-keyword = {box} or {replace} or {purge} or {trim} or {add} or {label} or {scaled} or {format} :l
+keyword = {box} or {replace} or {purge} or {trim} or {add} or {label} or {scaled} or {wrapped} or {format} :l
   {box} value = {yes} or {no} = replace simulation box with dump box
   {replace} value = {yes} or {no} = overwrite atoms with dump atoms
   {purge} value = {yes} or {no} = delete all atoms before adding dump atoms
@@ -30,6 +31,7 @@ keyword = {box} or {replace} or {purge} or {trim} or {add} or {label} or {scaled
     field = one of the listed fields or {id} or {type}
     column = label on corresponding column in dump file
   {scaled} value = {yes} or {no} = coords in dump file are scaled/unscaled
+  {wrapped} value = {yes} or {no} = coords in dump file are wrapped/unwrapped
   {format} values = format of dump file, must be last keyword if used
     {native} = native LAMMPS dump file
     {xyz} = XYZ file
@@ -147,9 +149,9 @@ always work perfectly.
 :line
 
 Per-atom information from the dump file snapshot is then read from the
-dump file snapshot.  This corresponds tot the specified {fields}
-listed in the read_dump command.  It is an error to specify a
-z-dimension field, namely {z}, {vz}, or {iz}, for a 2d simulation.
+dump file snapshot.  This corresponds to the specified {fields} listed
+in the read_dump command.  It is an error to specify a z-dimension
+field, namely {z}, {vz}, or {iz}, for a 2d simulation.
 
 For dump files in {native} format, each column of per-atom data has a
 text label listed in the file.  A matching label for each field must
@@ -171,14 +173,14 @@ If the {add} keyword is specified with a value of {yes}, as discussed
 below, the dump file must contain atom types, with a column label of
 "type".
 
-If a column label in the dump file is not a match to a specified
-field, the {label} keyword can be used to specify which column label
-to associate with that field.  An example is if a time-averaged
-coordinate is written to the dump file via the "fix
-ave/atom"_fix_ave_atom.html command.  The column will then have a
-label corresponding to the fix-ID rather than "x" or "xs".  The
-{label} keyword can also be used to specify new column labels for
-fields {id} and {type}.
+If a column label you want to read from the dump file is not a match
+to a specified field, the {label} keyword can be used to specify the
+specific column label from the dump file to associate with that field.
+An example is if a time-averaged coordinate is written to the dump
+file via the "fix ave/atom"_fix_ave_atom.html command.  The column
+will then have a label corresponding to the fix-ID rather than "x" or
+"xs".  The {label} keyword can also be used to specify new column
+labels for fields {id} and {type}.
 
 For dump files in {xyz} format, only the {x}, {y}, and {z} fields are
 supported.  The dump file does not store atom IDs, so these are
@@ -251,43 +253,53 @@ added atoms is the same as is described for the
 
 :line
 
-Atom coordinates read from the dump file are converted into absolute,
+Atom coordinates read from the dump file are first converted into
 unscaled coordinates, relative to the box dimensions of the snapshot.
-These coordinates may then be assigned to an existing or new atom in
-the current simulation.  The coordinates will be remapped to the
+These coordinates are then be assigned to an existing or new atom in
+the current simulation.  The coordinates will then be remapped to the
 simulation box, whether it is the original box or the dump snapshot
-box.  If periodic boundary conditiona apply, this means the atom will
-be remapped back into the box if necessary.  If shrink-wrap boundary
-conditions apply, the new coordinates may change the current box
-dimensions.  If fixed boundary conditions apply, the atom will be lost
-if it is outside the simulation box.
+box.  If periodic boundary conditions apply, this means the atom will
+be remapped back into the simulation box if necessary.  If shrink-wrap
+boundary conditions apply, the new coordinates may change the
+simulation box dimensions.  If fixed boundary conditions apply, the
+atom will be lost if it is outside the simulation box.
 
 For {native} format dump files, the 3 xyz image flags for an atom in
 the dump file are set to the corresponding values appearing in the
 dump file if the {ix}, {iy}, {iz} fields are specified.  If not
 specified, the image flags for replaced atoms are not changed and
-image flags for new atoms are set to default values.  The remapping
-procedure described in the previous paragraph can change images flags
-for all atoms (old and new) if periodic boundary conditions are
-applied to remap an atom back into the simulation box.  Note that
-inconsistent image flag values can result if you use image flag fields
-from the dump file but do not also use the dump file box parameters.
+image flags for new atoms are set to default values.  If coordinates
+read from the dump file are in unwrapped format (e.g. {xu}) then the
+image flags for read-in atoms are also set to default values.  The
+remapping procedure described in the previous paragraph will then
+change images flags for all atoms (old and new) if periodic boundary
+conditions are applied to remap an atom back into the simulation box.
 
-LAMMPS knows how to compute absolute, unscaled coordinates for the
+IMPORTANT NOTE: If you get a warning about inconsistent image flags
+after reading in a dump snapshot, it means one or more pairs of bonded
+atoms now have inconsistent image flags.  As discussed in "Section
+errors"_Section_errors.html this may or may not cause problems for
+subsequent simulations, One way this can happen is if you read image
+flag fields from the dump file but do not also use the dump file box
+parameters.
+
+LAMMPS knows how to compute unscaled and remapped coordinates for the
 snapshot column labels discussed above, e.g. {x}, {xs}, {xu}, {xsu}.
 If another column label is assigned to the {x} or {y} or {z} field via
 the {label} keyword, e.g. for coordinates output by the "fix
 ave/atom"_fix_ave_atom.html command, then LAMMPS needs to know whether
-the coordinate information in the dump file is scaled or unscaled.
-This can be set via the {scaled} keyword.  The value of the {scaled}
-keyword is ignored for field {x} or {y} or {z} if the {label} keyword
-is not used to assign a column label to that field.
+the coordinate information in the dump file is scaled and/or wrapped.
+This can be set via the {scaled} and {wrapped} keywords.  Note that
+the value of the {scaled} and {wrapped} keywords is ignored for fields
+{x} or {y} or {z} if the {label} keyword is not used to assign a
+column label to that field.
 
-The scaled vs unscaled setting must be consistent for any of the {x},
-{y}, {z} fields that are specified.  If the dump file coordinates are
-scaled and the simulation box is triclinic, then all 3 of the {x},
-{y}, {z} fields must be specified, since they are all needed to
-generate absolute, unscaled coordinates.
+The scaled/unscaled and wrapped/unwrapped setting must be identical
+for any of the {x}, {y}, {z} fields that are specified.  Thus you
+cannot read {xs} and {yu} from the dump file.  Also, if the dump file
+coordinates are scaled and the simulation box is triclinic, then all 3
+of the {x}, {y}, {z} fields must be specified, since they are all
+needed to generate absolute, unscaled coordinates.
 
 :line
 
@@ -310,4 +322,4 @@ They are only enabled if LAMMPS was built with that packages.  See the
 [Default:]
 
 The option defaults are box = yes, replace = yes, purge = no, trim =
-no, add = no, scaled = no, and format = native.
+no, add = no, scaled = no, wrapped = yes, and format = native.

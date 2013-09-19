@@ -98,7 +98,7 @@ void ReaderXYZ::skip()
    read remaining header info:
      return natoms
      box bounds, triclinic (inferred), fieldflag (1 if any fields not found),
-     xyz flag = UNSET (not a requested field), SCALED, UNSCALED
+     xyz flags = from input scaleflag & wrapflag
    if fieldflag set:
      match Nfield fields to per-atom column labels
      allocate and set fieldindex = which column each field maps to
@@ -111,7 +111,7 @@ void ReaderXYZ::skip()
 bigint ReaderXYZ::read_header(double box[3][3], int &triclinic,
                               int fieldinfo, int nfield,
                               int *fieldtype, char **fieldlabel,
-                              int scaledflag, int &fieldflag,
+                              int scaleflag, int wrapflag, int &fieldflag,
                               int &xflag, int &yflag, int &zflag)
 {
 
@@ -128,11 +128,11 @@ bigint ReaderXYZ::read_header(double box[3][3], int &triclinic,
   memory->create(fieldindex,nfield,"read_dump:fieldindex");
 
   // for xyz we know nothing about the style of coordinates,
-  // so the caller has to set the proper flag.
+  // so caller has to set the proper flags
 
-  xflag = scaledflag;
-  yflag = scaledflag;
-  zflag = scaledflag;
+  xflag = 2*scaleflag + wrapflag + 1;
+  yflag = 2*scaleflag + wrapflag + 1;
+  zflag = 2*scaleflag + wrapflag + 1;
 
   // copy fieldtype list for supported fields
 

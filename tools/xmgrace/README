@@ -1,0 +1,16 @@
+This directory contains a collection of scripts for generating xmgrace plots. 
+To use any of these tools, you will probably first need to 
+install the xmgrace plotting package:
+
+http://plasma-gate.weizmann.ac.il/Grace/
+
+Here is a brief description of the files:
+
+ lammpsplot.cpp: a C++ program that converts log files to xmgrace with labels
+ lammpsplot.pdf: documentation for lammpsplot
+ logplotawk.oneliner: an awk command that pipes a log file to xmgrace
+ logplotgrep.oneliner: a grep command that pipes a log file to xmgrace
+ plotthermodata.awk: an awk program that converts log files to xmgrace with labels
+
+
+ 

@@ -326,7 +326,7 @@ void PairNb3bHarmonic::read_file(char *file)
 
   FILE *fp = NULL;
   if (comm->me == 0) {
-    FILE *fp = open_potential(file);
+    fp = open_potential(file);
     if (fp == NULL) {
       char str[128];
       sprintf(str,"Cannot open nb3b/harmonic potential file %s",file);

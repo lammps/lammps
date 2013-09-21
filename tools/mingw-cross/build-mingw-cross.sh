@@ -33,7 +33,7 @@ pushd "${LAMMPS_PATH}"
 git archive -v --format=tar --prefix=lammps-current/ HEAD \
     README LICENSE doc src lib python txt2html lammps.book \
     examples/{README,ASPHERE,KAPPA,VISCOSITY,dipole,peri,hugoniostat,colloid,crack,friction,msst,obstacle,body,sputter,pour,ELASTIC,neb,ellipse,flow,meam,min,indent,micelle,shear,srd,dreiding,eim,prd,rigid,COUPLE,peptide,melt,comb,tad,reax,USER/{atc,awpmd,misc,phonon,cg-cmm}} \
-    bench potentials tools/*.cpp tools/*.f tools/mingw-cross tools/msi2lmp \
+    bench potentials tools/*.cpp tools/*.f tools/mingw-cross tools/msi2lmp tools/createatoms \
     | tar -C ${MINGW_BUILD_DIR} -xvf -
 popd
 
@@ -88,6 +88,9 @@ x86_64-w64-mingw32-g++ ${MINGW64FLAGS} -o mingw64/binary2txt.exe ${TOOLDIR}/bina
 
 i686-w64-mingw32-gfortran   ${MINGW32FLAGS} -o mingw32/chain.exe ${TOOLDIR}/chain.f
 x86_64-w64-mingw32-gfortran ${MINGW64FLAGS} -o mingw64/chain.exe ${TOOLDIR}/chain.f
+
+i686-w64-mingw32-gfortran   ${MINGW32FLAGS} -o mingw32/createatoms.exe ${TOOLDIR}/createAtoms.f
+x86_64-w64-mingw32-gfortran ${MINGW64FLAGS} -o mingw64/createatoms.exe ${TOOLDIR}/createAtoms.f
 
 make -C ${TOOLDIR}/msi2lmp/src TARGET=${PWD}/mingw32/msi2lmp.exe \
 	CC=i686-w64-mingw32-gcc CFLAGS="${MINGW32FLAGS}"

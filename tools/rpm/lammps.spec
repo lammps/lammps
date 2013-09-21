@@ -209,9 +209,12 @@ cd ../
 g++ -o serial/restart2data ${RPM_OPT_FLAGS} %{bigintsize} tools/restart2data.cpp
 g++ -o serial/binary2txt ${RPM_OPT_FLAGS} %{bigintsize} tools/binary2txt.cpp
 gfortran -o serial/chain.x ${RPM_OPT_FLAGS} tools/chain.f
-
+gfortran -o serial/createatoms ${RPM_OPT_FLAGS} tools/createatoms/createAtoms.f
+g++ -o serial/lammpsplot ${RPM_OPT_FLAGS} tools/xmgrace/lammpsplot.cpp
 make -C tools/msi2lmp/src CC=gcc CCFLAGS="${RPM_OPT_FLAGS} %{bigintsize}"
 mv tools/msi2lmp/src/msi2lmp.exe serial/msi2lmp
+cp tools/msi2lmp/README tools/msi2lmp/README.msi2lmp
+cp tools/createatoms/Manual.pdf tools/creatatoms/createatoms.pdf
 
 # build OpenMPI parallel version, if supported
 %if %{with_openmpi}
@@ -274,6 +277,8 @@ install -p -m 755 serial/lmp_g++ %{buildroot}%{_bindir}
 install -p -m 755 serial/restart2data %{buildroot}%{_bindir}
 install -p -m 755 serial/binary2txt %{buildroot}%{_bindir}
 install -p -m 755 serial/chain.x %{buildroot}%{_bindir}
+install -p -m 755 serial/createatoms %{buildroot}%{_bindir}
+install -p -m 755 serial/lammpsplot %{buildroot}%{_bindir}
 install -p -m 755 serial/msi2lmp %{buildroot}%{_bindir}
 
 %if %{with_openmpi}
@@ -320,6 +325,8 @@ mkdir -p $RPM_BUILD_ROOT/%{_datadir}/lammps/examples/msi2lmp
 cp -ap tools/msi2lmp/test/*.{mdf,car} $RPM_BUILD_ROOT/%{_datadir}/lammps/examples/msi2lmp/
 cp -ap tools/msi2lmp/test/reference/*.data $RPM_BUILD_ROOT/%{_datadir}/lammps/examples/msi2lmp/
 cp -ap tools/msi2lmp/test/in.* $RPM_BUILD_ROOT/%{_datadir}/lammps/examples/msi2lmp
+mkdir -p $RPM_BUILD_ROOT/%{_datadir}/lammps/examples/createatoms
+cp -ap tools/createatoms/create.input $RPM_BUILD_ROOT/%{_datadir}/lammps/examples/createatoms
 
 %clean
 rm -rf %{buildroot}
@@ -333,11 +340,16 @@ rm -rf %{buildroot}
 %{_bindir}/restart2data
 %{_bindir}/binary2txt
 %{_bindir}/chain.x
+%{_bindir}/createatoms
+%{_bindir}/lammpsplot
 %{_bindir}/msi2lmp
 %{_sysconfdir}/profile.d/lammps.*sh
 %{_datadir}/lammps/potentials
 %{_datadir}/lammps/frc_files
 %doc README LICENSE
+%doc tools/createatoms/createatoms.pdf
+%doc tools/msi2lmp/README.msi2lmp
+%doc tools/xmgrace/lammpsplot.pdf
 
 %files doc
 %defattr(-,root,root,-)

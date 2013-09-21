@@ -1,0 +1,6 @@
+# This 1-liner will extract up to a billion lines from
+# a simple log file and plot all the columns
+#
+# by Aidan Thompson athomps at sandia.gov
+
+ grep -A1000000000 Step log.lammps | grep -v Step | xmgrace -nxy -

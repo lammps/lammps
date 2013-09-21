@@ -89,8 +89,10 @@ x86_64-w64-mingw32-g++ ${MINGW64FLAGS} -o mingw64/binary2txt.exe ${TOOLDIR}/bina
 i686-w64-mingw32-gfortran   ${MINGW32FLAGS} -o mingw32/chain.exe ${TOOLDIR}/chain.f
 x86_64-w64-mingw32-gfortran ${MINGW64FLAGS} -o mingw64/chain.exe ${TOOLDIR}/chain.f
 
-i686-w64-mingw32-gfortran   ${MINGW32FLAGS} -o mingw32/createatoms.exe ${TOOLDIR}/createAtoms.f
-x86_64-w64-mingw32-gfortran ${MINGW64FLAGS} -o mingw64/createatoms.exe ${TOOLDIR}/createAtoms.f
+i686-w64-mingw32-gfortran   ${MINGW32FLAGS} -o mingw32/createatoms.exe \
+	${TOOLDIR}/createatoms/createAtoms.f
+x86_64-w64-mingw32-gfortran ${MINGW64FLAGS} -o mingw64/createatoms.exe \
+	${TOOLDIR}/createatoms/createAtoms.f
 
 make -C ${TOOLDIR}/msi2lmp/src TARGET=${PWD}/mingw32/msi2lmp.exe \
 	CC=i686-w64-mingw32-gcc CFLAGS="${MINGW32FLAGS}"

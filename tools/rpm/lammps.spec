@@ -214,7 +214,7 @@ g++ -o serial/lammpsplot ${RPM_OPT_FLAGS} tools/xmgrace/lammpsplot.cpp
 make -C tools/msi2lmp/src CC=gcc CCFLAGS="${RPM_OPT_FLAGS} %{bigintsize}"
 mv tools/msi2lmp/src/msi2lmp.exe serial/msi2lmp
 cp tools/msi2lmp/README tools/msi2lmp/README.msi2lmp
-cp tools/createatoms/Manual.pdf tools/creatatoms/createatoms.pdf
+cp tools/createatoms/Manual.pdf tools/createatoms/createatoms.pdf
 
 # build OpenMPI parallel version, if supported
 %if %{with_openmpi}

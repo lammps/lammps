@@ -71,6 +71,7 @@ void PairADPOMP::compute(int eflag, int vflag)
 
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(Timer::START);
     ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
 
     if (force->newton_pair)
@@ -91,6 +92,7 @@ void PairADPOMP::compute(int eflag, int vflag)
       else eval<0,0,0>(ifrom, ito, thr);
     }
 
+    thr->timer(Timer::PAIR);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 }
@@ -112,9 +114,9 @@ void PairADPOMP::eval(int iifrom, int iito, ThrData * const thr)
 
   const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
   dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
-  double * _noalias const rho_t = thr->get_rho();
-  dbl3_t * _noalias const mu_t = (dbl3_t *) thr->get_mu()[0];
-  double * const * _noalias const lambda_t = thr->get_lambda();
+  double * const rho_t = thr->get_rho();
+  double * const * const mu_t = thr->get_mu();
+  double * const * const lambda_t = thr->get_lambda();
   const int tid = thr->get_tid();
 
   int *type = atom->type;
@@ -159,9 +161,9 @@ void PairADPOMP::eval(int iifrom, int iito, ThrData * const thr)
         rho_t[i] += ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
         coeff = u2r_spline[type2u2r[jtype][itype]][m];
         u2 = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
-        mu_t[i].x += u2*delx;
-        mu_t[i].y += u2*dely;
-        mu_t[i].z += u2*delz;
+        mu_t[i][0] += u2*delx;
+        mu_t[i][1] += u2*dely;
+        mu_t[i][2] += u2*delz;
         coeff = w2r_spline[type2w2r[jtype][itype]][m];
         w2 = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
         lambda_t[i][0] += w2*delx*delx;
@@ -177,9 +179,9 @@ void PairADPOMP::eval(int iifrom, int iito, ThrData * const thr)
           rho_t[j] += ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
           coeff = u2r_spline[type2u2r[itype][jtype]][m];
           u2 = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
-          mu_t[j].x -= u2*delx;
-          mu_t[j].y -= u2*dely;
-          mu_t[j].z -= u2*delz;
+          mu_t[j][0] -= u2*delx;
+          mu_t[j][1] -= u2*dely;
+          mu_t[j][2] -= u2*delz;
           coeff = w2r_spline[type2w2r[itype][jtype]][m];
           w2 = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
           lambda_t[j][0] += w2*delx*delx;
@@ -200,9 +202,10 @@ void PairADPOMP::eval(int iifrom, int iito, ThrData * const thr)
 
   if (NEWTON_PAIR) {
     // reduce per thread density
-    data_reduce_thr(&(rho_t[0]), nall, comm->nthreads, 1, tid);
-    data_reduce_thr(&(mu_t[0].x), nall, comm->nthreads, 3, tid);
-    data_reduce_thr(&(lambda_t[0][0]), nall, comm->nthreads, 6, tid);
+    thr->timer(Timer::PAIR);
+    data_reduce_thr(&(rho[0]), nall, comm->nthreads, 1, tid);
+    data_reduce_thr(&(mu[0][0]), nall, comm->nthreads, 3, tid);
+    data_reduce_thr(&(lambda[0][0]), nall, comm->nthreads, 6, tid);
 
     // wait until reduction is complete
     sync_threads();
@@ -217,9 +220,10 @@ void PairADPOMP::eval(int iifrom, int iito, ThrData * const thr)
 
   } else {
     // reduce per thread density
-    data_reduce_thr(&(rho_t[0]), nlocal, comm->nthreads, 1, tid);
-    data_reduce_thr(&(mu_t[0].x), nlocal, comm->nthreads, 3, tid);
-    data_reduce_thr(&(lambda_t[0][0]), nlocal, comm->nthreads, 6, tid);
+    thr->timer(Timer::PAIR);
+    data_reduce_thr(&(rho[0]), nlocal, comm->nthreads, 1, tid);
+    data_reduce_thr(&(mu[0][0]), nlocal, comm->nthreads, 3, tid);
+    data_reduce_thr(&(lambda[0][0]), nlocal, comm->nthreads, 6, tid);
 
     // wait until reduction is complete
     sync_threads();
@@ -239,13 +243,13 @@ void PairADPOMP::eval(int iifrom, int iito, ThrData * const thr)
     fp[i] = (coeff[0]*p + coeff[1])*p + coeff[2];
     if (EFLAG) {
       phi = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
-      phi += 0.5*(mu_t[i].x*mu_t[i].x+mu_t[i].y*mu_t[i].y+mu_t[i].z*mu_t[i].z);
-      phi += 0.5*(lambda_t[i][0]*lambda_t[i][0]+lambda_t[i][1]*
-                  lambda_t[i][1]+lambda_t[i][2]*lambda_t[i][2]);
-      phi += 1.0*(lambda_t[i][3]*lambda_t[i][3]+lambda_t[i][4]*
-                  lambda_t[i][4]+lambda_t[i][5]*lambda_t[i][5]);
-      phi -= 1.0/6.0*(lambda_t[i][0]+lambda_t[i][1]+lambda_t[i][2])*
-        (lambda_t[i][0]+lambda_t[i][1]+lambda_t[i][2]);
+      phi += 0.5*(mu[i][0]*mu[i][0]+mu[i][1]*mu[i][1]+mu[i][2]*mu[i][2]);
+      phi += 0.5*(lambda[i][0]*lambda[i][0]+lambda[i][1]*
+                  lambda[i][1]+lambda[i][2]*lambda[i][2]);
+      phi += 1.0*(lambda[i][3]*lambda[i][3]+lambda[i][4]*
+                  lambda[i][4]+lambda[i][5]*lambda[i][5]);
+      phi -= 1.0/6.0*(lambda[i][0]+lambda[i][1]+lambda[i][2])*
+        (lambda[i][0]+lambda[i][1]+lambda[i][2]);
       e_tally_thr(this,i,i,nlocal,/* newton_pair */ 1, phi, 0.0, thr);
     }
   }
@@ -329,16 +333,16 @@ void PairADPOMP::eval(int iifrom, int iito, ThrData * const thr)
         psip = fp[i]*rhojp + fp[j]*rhoip + phip;
         fpair = -psip*recip;
 
-        delmux = mu_t[i].x-mu_t[j].x;
-        delmuy = mu_t[i].y-mu_t[j].y;
-        delmuz = mu_t[i].z-mu_t[j].z;
+        delmux = mu[i][0]-mu[j][0];
+        delmuy = mu[i][1]-mu[j][1];
+        delmuz = mu[i][2]-mu[j][2];
         trdelmu = delmux*delx+delmuy*dely+delmuz*delz;
-        sumlamxx = lambda_t[i][0]+lambda_t[j][0];
-        sumlamyy = lambda_t[i][1]+lambda_t[j][1];
-        sumlamzz = lambda_t[i][2]+lambda_t[j][2];
-        sumlamyz = lambda_t[i][3]+lambda_t[j][3];
-        sumlamxz = lambda_t[i][4]+lambda_t[j][4];
-        sumlamxy = lambda_t[i][5]+lambda_t[j][5];
+        sumlamxx = lambda[i][0]+lambda[j][0];
+        sumlamyy = lambda[i][1]+lambda[j][1];
+        sumlamzz = lambda[i][2]+lambda[j][2];
+        sumlamyz = lambda[i][3]+lambda[j][3];
+        sumlamxz = lambda[i][4]+lambda[j][4];
+        sumlamxy = lambda[i][5]+lambda[j][5];
         tradellam = sumlamxx*delx*delx+sumlamyy*dely*dely+
           sumlamzz*delz*delz+2.0*sumlamxy*delx*dely+
           2.0*sumlamxz*delx*delz+2.0*sumlamyz*dely*delz;

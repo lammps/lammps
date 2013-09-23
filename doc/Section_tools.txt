@@ -64,7 +64,6 @@ own sub-directories with their own Makefiles.
 "python"_#pythontools
 "reax"_#reax
 "restart2data"_#restart
-"thermo_extract"_#thermo_extract
 "vim"_#vim
 "xmgrace"_#xmgrace
 "xmovie"_#xmovie :ul
@@ -444,20 +443,6 @@ If a "%" appears in the specified restart-file, the tool expects a set
 of multiple files to exist.  See the "restart"_restart.html and
 "write_restart"_write_restart.html commands for info on how such sets
 of files are written by LAMMPS, and how the files are named.
-
-:line
-
-thermo_extract tool :h4,link(thermo_extract)
-
-The thermo_extract tool reads one of more LAMMPS log files and
-extracts a thermodynamic value (e.g. Temp, Press).  It spits out the
-time,value as 2 columns of numbers so the tool can be used as a quick
-way to plot some quantity of interest.  See the header of the
-thermo_extract.c file for the syntax of how to run it and other
-details.
-
-This tool was written by Vikas Varshney at Wright Patterson AFB
-(vikas.varshney at gmail.com).
 
 :line
 

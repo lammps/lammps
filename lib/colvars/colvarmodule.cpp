@@ -746,7 +746,7 @@ void cvm::exit (std::string const &message)
 
 void cvm::read_index_file (char const *filename)
 {
-  std::ifstream is (filename);
+  std::ifstream is (filename, std::ios::binary);
   if (!is.good())
     fatal_error ("Error: in opening index file \""+
                  std::string (filename)+"\".\n");

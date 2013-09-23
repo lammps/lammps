@@ -229,6 +229,8 @@ void PairDPDTstat::read_restart_settings(FILE *fp)
   MPI_Bcast(&seed,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
 
+  temperature = t_start;
+
   // initialize Marsaglia RNG with processor-unique seed
   // same seed that pair_style command initially specified
 

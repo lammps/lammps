@@ -733,7 +733,8 @@ void ReadData::bodies()
   bigint natoms = nbodies;
 
   while (nread < natoms) {
-    nchunk = MIN(natoms-nread,CHUNK);
+    if (natoms-nread > CHUNK) nmax = CHUNK;
+    else nmax = natoms-nread;
 
     if (me == 0) {
       nchunk = 0;

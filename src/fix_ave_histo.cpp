@@ -13,6 +13,7 @@
 
 #include "stdlib.h"
 #include "string.h"
+#include "unistd.h"
 #include "fix_ave_histo.h"
 #include "atom.h"
 #include "update.h"
@@ -816,6 +817,10 @@ void FixAveHisto::end_of_step()
       for (i = 0; i < nbins; i++)
         fprintf(fp,"%d %g %g %g\n",i+1,coord[i],0.0,0.0);
     fflush(fp);
+    if (overwrite) {
+      long fileend = ftell(fp);
+      ftruncate(fileno(fp),fileend);
+    }
   }
 }
 

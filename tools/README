@@ -35,10 +35,9 @@ pymol_asphere	       convert LAMMPS output of ellipsoids to PyMol format
 python		       Python scripts for post-processing LAMMPS output
 reax	       	       Tools for analyzing output of ReaxFF simulations
 restart2data	       convert a binary restart file to an input data file
-thermo_extract         C program for extracting thermo info from log file
 vim		       add-ons to VIM editor for editing LAMMPS input scripts
 xmovie		       a quick/simple viz package (2d projections of 3d)
-xmgrace                a collection of scripts that generate xmgrace plots
+xmgrace                a collection of scripts to generate xmgrace plots
 
 For tools that are single C, C++, or Fortran files, a Makefile for
 building them is included in this directory.  You may need to edit it

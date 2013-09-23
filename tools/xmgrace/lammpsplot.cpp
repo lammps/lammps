@@ -2,23 +2,18 @@
 
 #include <stdlib.h>
 #include <iostream>
-#include <fstream.h>
+#include <fstream>
 #include <string>
 #include <vector>
+#include <cstring>
 #include <cctype>
 #include <cstdlib>
 #include <map>
 #include <iomanip>
 #include <algorithm>
-#include <math.h>
+#include <cmath>
 
 using namespace std;
-using std::cout; 
-using std::cin;
-using std::endl;
-using std::string;
-using std::cerr;
-using std::vector;
 
 typedef vector<string> sentence;
 typedef vector<sentence> filedata;

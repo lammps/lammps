@@ -68,8 +68,8 @@ own sub-directories with their own Makefiles.
 <LI><A HREF = "#pythontools">python</A>
 <LI><A HREF = "#reax">reax</A>
 <LI><A HREF = "#restart">restart2data</A>
-<LI><A HREF = "#thermo_extract">thermo_extract</A>
 <LI><A HREF = "#vim">vim</A>
+<LI><A HREF = "#xmgrace">xmgrace</A>
 <LI><A HREF = "#xmovie">xmovie</A> 
 </UL>
 <HR>
@@ -450,20 +450,6 @@ of files are written by LAMMPS, and how the files are named.
 </P>
 <HR>
 
-<H4><A NAME = "thermo_extract"></A>thermo_extract tool 
-</H4>
-<P>The thermo_extract tool reads one of more LAMMPS log files and
-extracts a thermodynamic value (e.g. Temp, Press).  It spits out the
-time,value as 2 columns of numbers so the tool can be used as a quick
-way to plot some quantity of interest.  See the header of the
-thermo_extract.c file for the syntax of how to run it and other
-details.
-</P>
-<P>This tool was written by Vikas Varshney at Wright Patterson AFB
-(vikas.varshney at gmail.com).
-</P>
-<HR>
-
 <H4><A NAME = "vim"></A>vim tool 
 </H4>
 <P>The files in the tools/vim directory are add-ons to the VIM editor
@@ -472,6 +458,21 @@ file for details.
 </P>
 <P>These files were provided by Gerolf Ziegenhain (gerolf at
 ziegenhain.com)
+</P>
+<HR>
+
+<H4><A NAME = "xmgrace"></A>xmgrace tool 
+</H4>
+<P>The files in the tools/xmgrace directory can be used to plot the
+thermodynamic data in LAMMPS log files via the xmgrace plotting
+package.  There are several tools in the directory that can be used in
+post-processing mode.  The lammpsplot.cpp file can be compiled and
+used to create plots from the current state of a running LAMMPS
+simulation.
+</P>
+<P>See the README file for details.
+</P>
+<P>These files were provided by Vikas Varshney (vv0210 at gmail.com)
 </P>
 <HR>
 

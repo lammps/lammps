@@ -10,9 +10,10 @@ log command :h3
 
 [Syntax:]
 
-log file :pre
+log file keyword :pre
 
-file = name of new logfile :ul
+file = name of new logfile
+keyword = {append} if data should be appended to a file (optional) :ul
 
 [Examples:]
 
@@ -22,7 +23,9 @@ log log.equil :pre
 
 This command closes the current LAMMPS log file, opens a new file with
 the specified name, and begins logging information to it.  If the
-specified file name is {none}, then no new log file is opened.
+specified file name is {none}, then no new log file is opened. If the
+optional keyword {append} is given, then output will be appended, the
+file already exists instead of overwriting it.
 
 If multiple processor partitions are being used, the file name should
 be a variable, so that different processors do not attempt to write to

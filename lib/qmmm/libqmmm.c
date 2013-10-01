@@ -15,6 +15,9 @@
 
 #define BUF_SIZE 1024
 
+/* global variable for global QM/MM configuration */
+qmmm_config_t qmmmcfg;
+
 static char *skip_whitespace(char *ptr)
 {
     while ((*ptr == ' ') || (*ptr == '\t')

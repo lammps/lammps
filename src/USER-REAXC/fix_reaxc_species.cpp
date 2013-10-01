@@ -318,7 +318,7 @@ void FixReaxCSpecies::create_compute()
   args = new char*[narg];
   args[0]  = (char *) "SPECATOM";
   args[1]  = (char *) "all";
-  args[2]  = (char *) "spec/atom";
+  args[2]  = (char *) "SPEC/ATOM";
   args[3]  = (char *) "q";
   args[4]  = (char *) "x";
   args[5]  = (char *) "y";

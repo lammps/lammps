@@ -1,0 +1,55 @@
+# library build -*- makefile -*- for qmmm module
+
+# which file will be copied to Makefile.lammps
+
+EXTRAMAKE = Makefile.lammps.empty
+
+# ------ SETTINGS ------
+
+CC =		gcc
+CFLAGS =	-O2 -mpc64 -march=native -funroll-loops -g -Wall
+
+ARCHIVE =	ar
+ARCHFLAG =	-rscv
+SHELL =		/bin/sh
+
+# ------ DEFINITIONS ------
+
+DIR =
+SRC = $(DIR)libqmmm.c
+
+LIB = libqmmm.a
+OBJ = $(SRC:%.c=$(DIR)%.o)
+
+# ------ MAKE PROCEDURE ------
+
+default: $(LIB) $(EXE) Makefile.lammps
+
+Makefile.lammps:
+	@cp $(EXTRAMAKE) Makefile.lammps
+
+$(LIB):	$(OBJ)
+	$(ARCHIVE) $(ARFLAGS) $(LIB) $(OBJ)
+	@cp $(EXTRAMAKE) Makefile.lammps
+
+# ------ MAKE FLAGS ------
+
+.SUFFIXES:
+.SUFFIXES: .c .o
+
+.PHONY: default clean
+
+# ------ COMPILE RULES ------
+
+.c.o:
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# ------ DEPENDENCIES ------
+#
+libqmmm.o: libqmmm.c libqmmm.h 
+
+# ------ CLEAN ------
+
+clean:
+	-rm *.o *~ $(LIB)
+

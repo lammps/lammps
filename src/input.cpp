@@ -845,13 +845,21 @@ void Input::label()
 
 void Input::log()
 {
-  if (narg != 1) error->all(FLERR,"Illegal log command");
+  if (narg > 2) error->all(FLERR,"Illegal log command");
+
+  int appendflag = 0;
+  if (narg == 2) {
+    if (strcmp(arg[1],"append") == 0) appendflag = 1;
+    else error->all(FLERR,"Illegal log command");
+  }
 
   if (me == 0) {
     if (logfile) fclose(logfile);
     if (strcmp(arg[0],"none") == 0) logfile = NULL;
     else {
-      logfile = fopen(arg[0],"w");
+      if (appendflag) logfile = fopen(arg[0],"a");
+      else logfile = fopen(arg[0],"w");
+
       if (logfile == NULL) {
         char str[128];
         sprintf(str,"Cannot open logfile %s",arg[0]);

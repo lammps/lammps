@@ -41,8 +41,9 @@ class FixEfield : public Fix {
 
  private:
   double ex,ey,ez;
-  int varflag;
+  int varflag,iregion;;
   char *xstr,*ystr,*zstr,*estr;
+  char *idregion;
   int xvar,yvar,zvar,evar,xstyle,ystyle,zstyle,estyle;
   int nlevels_respa;
   double qe2f;
@@ -68,6 +69,10 @@ E: Illegal ... command
 Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
+
+E: Region ID for fix addforce does not exist
+
+Self-explanatory.
 
 E: Fix efield requires atom attribute q or mu
 

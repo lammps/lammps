@@ -307,9 +307,9 @@ FixQMMM::FixQMMM(LAMMPS *lmp, int narg, char **arg) :
   if (narg > 5)
     error->all(FLERR,"Illegal fix qmmm command");
 
-  if (update->unit_style,"metal") {
+  if (strcmp(update->unit_style,"metal") == 0) {
     qmmm_fscale = 1.0; // XXX: FIX THIS
-  } else if (update->unit_style,"real") {
+  } else if (strcmp(update->unit_style,"real") == 0) {
     qmmm_fscale = 1.0;
   } else error->all(FLERR,"Fix qmmm requires real or metal units");
 

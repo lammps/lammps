@@ -45,7 +45,6 @@
 #include "accelerator_cuda.h"
 #include "error.h"
 #include "memory.h"
-#include "timer.h"
 
 #ifdef _OPENMP
 #include "omp.h"
@@ -522,7 +521,7 @@ void Input::reallocate(char *&str, int &max, int n)
 int Input::execute_command()
 {
   int flag = 1;
-
+  
   if (!strcmp(command,"clear")) clear();
   else if (!strcmp(command,"echo")) echo();
   else if (!strcmp(command,"if")) ifthenelse();
@@ -584,7 +583,6 @@ int Input::execute_command()
   else if (!strcmp(command,"thermo_modify")) thermo_modify();
   else if (!strcmp(command,"thermo_style")) thermo_style();
   else if (!strcmp(command,"timestep")) timestep();
-  else if (!strcmp(command,"timers")) timers();
   else if (!strcmp(command,"uncompute")) uncompute();
   else if (!strcmp(command,"undump")) undump();
   else if (!strcmp(command,"unfix")) unfix();
@@ -850,17 +848,17 @@ void Input::log()
   if (narg > 2) error->all(FLERR,"Illegal log command");
 
   int appendflag = 0;
-  if ((narg == 2) && (strcmp(arg[1],"append") == 0))
-    appendflag = 1;
+  if (narg == 2) {
+    if (strcmp(arg[1],"append") == 0) appendflag = 1;
+    else error->all(FLERR,"Illegal log command");
+  }
 
   if (me == 0) {
     if (logfile) fclose(logfile);
     if (strcmp(arg[0],"none") == 0) logfile = NULL;
     else {
-      if (appendflag)
-        logfile = fopen(arg[0],"a");
-      else
-        logfile = fopen(arg[0],"w");
+      if (appendflag) logfile = fopen(arg[0],"a");
+      else logfile = fopen(arg[0],"w");
 
       if (logfile == NULL) {
         char str[128];
@@ -1543,13 +1541,6 @@ void Input::timestep()
 {
   if (narg != 1) error->all(FLERR,"Illegal timestep command");
   update->dt = force->numeric(FLERR,arg[0]);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Input::timers()
-{
-  timer->modify_params(narg,arg);
 }
 
 /* ---------------------------------------------------------------------- */

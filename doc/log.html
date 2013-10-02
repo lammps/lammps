@@ -13,19 +13,23 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>log file 
+<PRE>log file keyword 
 </PRE>
-<UL><LI>file = name of new logfile 
+<UL><LI>file = name of new logfile
+<LI>keyword = <I>append</I> if output should be appended to logfile (optional) 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>log log.equil 
+<PRE>log log.equil
+log log.equil append 
 </PRE>
 <P><B>Description:</B>
 </P>
 <P>This command closes the current LAMMPS log file, opens a new file with
 the specified name, and begins logging information to it.  If the
-specified file name is <I>none</I>, then no new log file is opened.
+specified file name is <I>none</I>, then no new log file is opened.  If the
+optional keyword <I>append</I> is specified, then output will be appended
+to an existing log file, instead of overwriting it.
 </P>
 <P>If multiple processor partitions are being used, the file name should
 be a variable, so that different processors do not attempt to write to

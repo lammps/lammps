@@ -32,10 +32,13 @@ class FixQMMM : public Fix {
   int setmask();
   void init();
 //  void setup_pre_force(int);
-//  void setup(int);
+  void setup(int);
 //  void pre_force(int);          // to send out updated positions
 //  void post_force(int);         // to receive and update forces
   double memory_usage();
+
+ protected:
+  void exchange_positions();    // communicate positions to QM and MM slave
 
  protected:
   MPI_Comm qm_comm;   // intra communicator with QM subsystem
@@ -60,6 +63,7 @@ class FixQMMM : public Fix {
   int    qmmm_mode;   // QM/MM coupling mode (mechanical or electrostatic)
   int    qmmm_role;   // role in QM/MM coupling (MM master or MM slave)
   int    size_one;    // size of one element in communication buffer
+  int    maxbuf;      // size of communication buffer
   int    do_init;     // flag for one time initialization
 };
 

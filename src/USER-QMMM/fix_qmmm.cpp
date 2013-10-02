@@ -317,15 +317,10 @@ FixQMMM::FixQMMM(LAMMPS *lmp, int narg, char **arg) :
   mm_group = group->find("all");
   if ((narg == 5) && (0 == strcmp(arg[0],"couple"))) {
     mm_group = group->find(arg[4]);
-  } else error->all(FLERR,"Illegal fix qmmm command");
+  } else if (narg != 3) error->all(FLERR,"Illegal fix qmmm command");
 
   if (mm_group == -1)
     error->all(FLERR,"Could not find fix qmmm couple group ID");
-  if (mm_group == igroup)
-    error->all(FLERR,"Coupling group cannot be the same as the fix group");
-
-  num_mm = group->count(mm_group);
-  num_qm = group->count(igroup);
 
   /* retrieve settings from global QM/MM configuration struct */
   comm_mode = qmmmcfg.comm_mode;
@@ -413,28 +408,38 @@ void FixQMMM::init()
       // broadcast across MM master processes
       MPI_Bcast(nat, 2, MPI_INT, 0, world);
 
+      num_qm = group->count(igroup);
+      num_mm = group->count(mm_group);
+
       // consistency check. the fix group and the QM and MM slave
       if ((num_qm != nat[0]) || (num_qm != nat[1]))
         error->all(FLERR,"Inconsistant number of QM/MM atoms");
 
+      memory->create(qm_coord,num_qm,"qmmm:qm_coord");
+      memory->create(mm_coord,num_mm,"qmmm:mm_coord");
+
     } else if (qmmm_role == QMMM_ROLE_SLAVE) {
-      int nat = atom->natoms;
+
+      num_qm = group->count(igroup);
+      num_mm = group->count(mm_group);
 
       if (me == 0) {
         /* send number of QM atoms from MM-slave */
-        MPI_Send(&nat, 1, MPI_INT, 0, 0, mm_comm);
+        MPI_Send(&num_qm, 1, MPI_INT, 0, 0, mm_comm);
       }
+      memory->create(qm_coord,num_qm,"qmmm:qm_coord");
+      memory->create(mm_coord,num_mm,"qmmm:mm_coord");
     }
 
     // communication buffer
-    int maxbuf = atom->nmax*size_one;
+    maxbuf = atom->nmax*size_one;
     comm_buf = (void *) memory->smalloc(maxbuf,"qmmm:comm_buf");
 
     /* initialize and build hashtables. */
     inthash_t *qm_hash=new inthash_t;
     inthash_t *mm_hash=new inthash_t;
     inthash_init(qm_hash, num_qm);
-    inthash_init(qm_hash, num_mm);
+    inthash_init(mm_hash, num_mm);
     qm_idmap = (void *)qm_hash;
     mm_idmap = (void *)mm_hash;
     mm_grbit = group->bitmask[mm_group];
@@ -453,7 +458,7 @@ void FixQMMM::init()
       for (i=0; i < nlocal; ++i) {
         if (mask[i] & groupbit)
           qm_taglist[qm_ntag++] = tag[i];
-        else if (mask[i] & mm_grbit)
+        if (mask[i] & mm_grbit)
           mm_taglist[mm_ntag++] = tag[i];
       }
 
@@ -470,26 +475,26 @@ void FixQMMM::init()
             qm_taglist[qm_ntag++] = buf[j].tag;
           else
             mm_taglist[mm_ntag++] = buf[j].tag;
-          }
         }
+      }
 
-        /* sort list of tags by value to have consistently the
-         * same list when running in parallel and build hash table. */
-        id_sort(qm_taglist, 0, num_qm-1);
-        id_sort(mm_taglist, 0, num_mm-1);
-        for (i=0; i < num_qm; ++i) {
-          inthash_insert(qm_hash, qm_taglist[i], i);
-        }
-        for (i=0; i < num_mm; ++i) {
-          inthash_insert(mm_hash, mm_taglist[i], i);
-        }
-        delete[] qm_taglist;
-        delete[] mm_taglist;
+      /* sort list of tags by value to have consistently the
+       * same list when running in parallel and build hash table. */
+      id_sort(qm_taglist, 0, num_qm);
+      id_sort(mm_taglist, 0, num_mm);
+      for (i=0; i < num_qm; ++i) {
+        inthash_insert(qm_hash, qm_taglist[i], i);
+      }
+      for (i=0; i < num_mm; ++i) {
+        inthash_insert(mm_hash, mm_taglist[i], i);
+      }
+      delete[] qm_taglist;
+      delete[] mm_taglist;
 
-        /* generate reverse index-to-tag map for communicating
-         * qm/mm forces back to the proper atoms */
-        qm_remap=inthash_keys(qm_hash);
-        mm_remap=inthash_keys(mm_hash);
+      /* generate reverse index-to-tag map for communicating
+       * qm/mm forces back to the proper atoms */
+      qm_remap=inthash_keys(qm_hash);
+      mm_remap=inthash_keys(mm_hash);
     } else {
       j = 0;
       for (i=0; i < nlocal; ++i) {
@@ -504,19 +509,111 @@ void FixQMMM::init()
         }
       }
       /* blocking receive to wait until it is our turn to send data. */
-      MPI_Recv(&tmp, 0, MPI_INT, 0, 0, world, &status);
+      MPI_Recv(&tmp, 0, MPI_INT, 0, 0, world, MPI_STATUS_IGNORE);
       MPI_Rsend(comm_buf, j*size_one, MPI_BYTE, 0, 0, world);
     }
   }
 }
 
-#if 0
+void FixQMMM::exchange_positions()
+{
+
+  if (qmmm_role == QMMM_ROLE_MASTER) {
+    int i,j,k;
+    int *mask  = atom->mask;
+    int *tag  = atom->tag;
+    int nlocal = atom->nlocal;
+    double **x = atom->x;
+
+    /* check and potentially grow local communication buffers. */
+    if (atom->nmax*size_one > maxbuf) {
+      memory->destroy(comm_buf);
+      maxbuf = atom->nmax*size_one;
+      comm_buf = memory->smalloc(maxbuf,"qmmm:comm_buf");
+    }
+    
+    MPI_Status status;
+    MPI_Request request;
+    int tmp, ndata;
+    struct commdata *buf = static_cast<struct commdata *>(comm_buf);
+
+    if (comm->me == 0) {
+      // insert local atoms into comm buffer
+      for (i=0; i<nlocal; ++i) {
+        if (mask[i] & groupbit) {
+          const int j = 3*inthash_lookup((inthash_t *)qm_idmap, tag[i]);
+          if (j != HASH_FAIL) {
+            qm_coord[j]   = x[i][0];
+            qm_coord[j+1] = x[i][1];
+            qm_coord[j+2] = x[i][2];
+          }
+        }
+      }
+
+      /* loop over procs to receive remote data */
+      for (i=1; i < comm->nprocs; ++i) {
+        MPI_Irecv(comm_buf, maxbuf, MPI_BYTE, i, 0, world, &request);
+        MPI_Send(&tmp, 0, MPI_INT, i, 0, world);
+        MPI_Wait(&request, &status);
+        MPI_Get_count(&status, MPI_BYTE, &ndata);
+        ndata /= size_one;
+
+        for (k=0; k<ndata; ++k) {
+          const int j = 3*inthash_lookup((inthash_t *)qm_idmap, buf[k].tag);
+          if (j != HASH_FAIL) {
+            qm_coord[j]   = buf[k].x;
+            qm_coord[j+1] = buf[k].y;
+            qm_coord[j+2] = buf[k].z;
+          }
+        }
+      }
+
+      /* done collecting frame data now send it to QM and MM slave. */
+      MPI_Send(qm_coord, num_qm, MPI_DOUBLE, 1, 0, qm_comm);
+      printf("MM master: after send coords to QM\n");
+      MPI_Send(qm_coord, num_qm, MPI_DOUBLE, 1, 0, mm_comm);
+      printf("MM master: after send coords to MM\n");
+
+    } else {
+
+      /* copy coordinate data into communication buffer */
+      ndata = 0;
+      for (i=0; i<nlocal; ++i) {
+        if (mask[i] & groupbit) {
+          buf[ndata].tag = tag[i];
+          buf[ndata].x   = x[i][0];
+          buf[ndata].y   = x[i][1];
+          buf[ndata].z   = x[i][2];
+          ++ndata;
+        }
+      }
+
+      /* blocking receive to wait until it is our turn to send data. */
+      MPI_Recv(&tmp, 0, MPI_INT, 0, 0, world, MPI_STATUS_IGNORE);
+      MPI_Rsend(comm_buf, ndata*size_one, MPI_BYTE, 0, 0, world);
+    }
+  } else if (qmmm_role == QMMM_ROLE_SLAVE) {
+    MPI_Recv(qm_coord, num_qm, MPI_DOUBLE, 0, 0, mm_comm, MPI_STATUS_IGNORE);
+    printf("MM slave: after received coords\n");
+    // XXX: apply coordinates
+  }
+  return;
+}
+
+
 
 /* ---------------------------------------------------------------------- */
-/* wait for IMD client (e.g. VMD) to respond, initialize communication
- * buffers and collect tag/id maps. */
 void FixQMMM::setup(int)
 {
+
+  // XXX: verify that the size of the groups has not changed
+  // num_mm = group->count(mm_group);
+  // num_qm = group->count(igroup);
+
+  exchange_positions();
+
+#if 0
+
   /* nme:    number of atoms in group on this MPI task
    * nmax:   max number of atoms in group across all MPI tasks
    * nlocal: all local atoms
@@ -602,7 +699,10 @@ void FixQMMM::setup(int)
   }
 
   return;
+#endif
 }
+
+#if 0
 
 /* ---------------------------------------------------------------------- */
 /* Main IMD protocol handler:

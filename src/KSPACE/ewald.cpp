@@ -281,9 +281,9 @@ void Ewald::setup()
     tmp[1] = kymax/yprd;
     tmp[2] = kzmax/zprd;
     lamda2xT(&tmp[0],&tmp[0]);
-    kxmax = static_cast<int>(tmp[0]);
-    kymax = static_cast<int>(tmp[1]);
-    kzmax = static_cast<int>(tmp[2]);
+    kxmax = MAX(1,static_cast<int>(tmp[0]));
+    kymax = MAX(1,static_cast<int>(tmp[1]));
+    kzmax = MAX(1,static_cast<int>(tmp[2]));
 
     kmax = MAX(kxmax,kymax);
     kmax = MAX(kmax,kzmax);

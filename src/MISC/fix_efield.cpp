@@ -29,6 +29,7 @@
 #include "respa.h"
 #include "input.h"
 #include "variable.h"
+#include "region.h"
 #include "memory.h"
 #include "error.h"
 
@@ -42,7 +43,7 @@ enum{NONE,CONSTANT,EQUAL,ATOM};
 FixEfield::FixEfield(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg != 6) error->all(FLERR,"Illegal fix efield command");
+  if (narg < 6) error->all(FLERR,"Illegal fix efield command");
 
   vector_flag = 1;
   scalar_flag = 1;
@@ -83,11 +84,22 @@ FixEfield::FixEfield(LAMMPS *lmp, int narg, char **arg) :
 
   // optional args
 
+  iregion = -1;
+  idregion = NULL;
   estr = NULL;
 
   int iarg = 6;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"energy") == 0) {
+    if (strcmp(arg[iarg],"region") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix efield command");
+      iregion = domain->find_region(arg[iarg+1]);
+      if (iregion == -1)
+        error->all(FLERR,"Region ID for fix efield does not exist");
+      int n = strlen(arg[iarg+1]) + 1;
+      idregion = new char[n];
+      strcpy(idregion,arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"energy") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix efield command");
       if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
         int n = strlen(&arg[iarg+1][2]) + 1;
@@ -113,6 +125,7 @@ FixEfield::~FixEfield()
   delete [] ystr;
   delete [] zstr;
   delete [] estr;
+  delete [] idregion;
   memory->destroy(efield);
 }
 
@@ -171,6 +184,15 @@ void FixEfield::init()
     if (input->variable->atomstyle(evar)) estyle = ATOM;
     else error->all(FLERR,"Variable for fix efield is invalid style");
   } else estyle = NONE;
+
+
+  // set index and check validity of region
+
+  if (iregion >= 0) {
+    iregion = domain->find_region(idregion);
+    if (iregion == -1)
+      error->all(FLERR,"Region ID for fix aveforce does not exist");
+  }
 
   if (xstyle == ATOM || ystyle == ATOM || zstyle == ATOM)
     varflag = ATOM;
@@ -257,6 +279,9 @@ void FixEfield::post_force(int vflag)
     if (qflag) {
       for (int i = 0; i < nlocal; i++)
         if (mask[i] & groupbit) {
+          if (iregion >= 0 &&
+              !domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
+            continue;
           fx = q[i]*ex;
           fy = q[i]*ey;
           fz = q[i]*ez;
@@ -281,6 +306,9 @@ void FixEfield::post_force(int vflag)
       double tx,ty,tz;
       for (int i = 0; i < nlocal; i++)
         if (mask[i] & groupbit) {
+          if (iregion >= 0 &&
+              !domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
+            continue;
           tx = ez*mu[i][1] - ey*mu[i][2];
           ty = ex*mu[i][2] - ez*mu[i][0];
           tz = ey*mu[i][0] - ex*mu[i][1];
@@ -318,6 +346,9 @@ void FixEfield::post_force(int vflag)
     if (qflag) {
       for (int i = 0; i < nlocal; i++)
         if (mask[i] & groupbit) {
+          if (iregion >= 0 &&
+              !domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
+            continue;
           if (xstyle == ATOM) fx = qe2f * q[i]*efield[i][0];
           else fx = q[i]*ex;
           f[i][0] += fx;
@@ -343,6 +374,9 @@ void FixEfield::post_force(int vflag)
       double tx,ty,tz;
       for (int i = 0; i < nlocal; i++)
         if (mask[i] & groupbit) {
+          if (iregion >= 0 &&
+              !domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
+            continue;
           tx = ez*mu[i][1] - ey*mu[i][2];
           ty = ex*mu[i][2] - ez*mu[i][0];
           tz = ey*mu[i][0] - ex*mu[i][1];

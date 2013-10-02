@@ -1,4 +1,4 @@
-processors         4 1 1 # manually assign processors to spatial regions
+processors         * 1 1 # manually assign processors to spatial regions
 atom_style         meso
 dimension          2
 newton             on
@@ -39,7 +39,7 @@ fix                integrate_bc_fix bc meso/stationary
 dump               dump_id all custom 100 dump.lammpstrj id type xs ys zs c_rho_peratom c_e_peratom fx fy
 dump_modify        dump_id first yes
 thermo             10
-thermo_style       custom step ke c_esph v_etot f_gfix press f_dtfix[1] f_dtfix
+thermo_style       custom step ke c_esph v_etot f_gfix press time f_dtfix
 thermo_modify      norm no
 
 neigh_modify       every 5 delay 0 check no

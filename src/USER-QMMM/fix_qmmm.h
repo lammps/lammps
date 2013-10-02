@@ -55,6 +55,7 @@ class FixQMMM : public Fix {
   int    num_qm;      // total number of QM atoms controlled by this fix
   int    num_mm;      // total number of MM atoms for electrostatic coupling
   int    mm_group;    // group of MM atoms for electrostatic coupling
+  int    mm_grbit;    // group of MM atoms for electrostatic coupling
   int    comm_mode;   // QM/MM communication method (MPI or shmemq)
   int    qmmm_mode;   // QM/MM coupling mode (mechanical or electrostatic)
   int    qmmm_role;   // role in QM/MM coupling (MM master or MM slave)

@@ -308,7 +308,7 @@ FixQMMM::FixQMMM(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Illegal fix qmmm command");
 
   if (strcmp(update->unit_style,"metal") == 0) {
-    qmmm_fscale = 1.0; // XXX: FIX THIS
+    qmmm_fscale = 23.0609;
   } else if (strcmp(update->unit_style,"real") == 0) {
     qmmm_fscale = 1.0;
   } else error->all(FLERR,"Fix qmmm requires real or metal units");
@@ -324,13 +324,8 @@ FixQMMM::FixQMMM(LAMMPS *lmp, int narg, char **arg) :
   if (mm_group == igroup)
     error->all(FLERR,"Coupling group cannot be the same as the fix group");
 
-  /* initialize various QM/MM settings */
-  if (atom->natoms > MAXSMALLINT)
-    error->all(FLERR,"System has too many atoms for fix qmmm");
-
-  num_mm = atom->natoms;
+  num_mm = group->count(mm_group);
   num_qm = group->count(igroup);
-  qmmm_fscale = 1.0;
 
   /* retrieve settings from global QM/MM configuration struct */
   comm_mode = qmmmcfg.comm_mode;
@@ -364,10 +359,18 @@ FixQMMM::FixQMMM(LAMMPS *lmp, int narg, char **arg) :
 FixQMMM::~FixQMMM()
 {
 
-  inthash_t *hashtable = (inthash_t *)qm_idmap;
-  inthash_destroy(hashtable);
-  delete hashtable;
-  free(qm_remap);
+  if (qm_idmap) {
+    inthash_t *hashtable = (inthash_t *)qm_idmap;
+    inthash_destroy(hashtable);
+    delete hashtable;
+    free(qm_remap);
+  }
+  if (mm_idmap) {
+    inthash_t *hashtable = (inthash_t *)mm_idmap;
+    inthash_destroy(hashtable);
+    delete hashtable;
+    free(mm_remap);
+  }
 
   memory->destroy(comm_buf);
   memory->destroy(qm_coord);
@@ -427,24 +430,32 @@ void FixQMMM::init()
     int maxbuf = atom->nmax*size_one;
     comm_buf = (void *) memory->smalloc(maxbuf,"qmmm:comm_buf");
 
-    /* initialize and build hashtable. */
-    inthash_t *hashtable=new inthash_t;
-    inthash_init(hashtable, num_mm);
-    qm_idmap = (void *)hashtable;
+    /* initialize and build hashtables. */
+    inthash_t *qm_hash=new inthash_t;
+    inthash_t *mm_hash=new inthash_t;
+    inthash_init(qm_hash, num_qm);
+    inthash_init(qm_hash, num_mm);
+    qm_idmap = (void *)qm_hash;
+    mm_idmap = (void *)mm_hash;
+    mm_grbit = group->bitmask[mm_group];
 
     MPI_Status status;
     MPI_Request request;
-    int i, j, tmp, ndata, numtag, nlocal = atom->nlocal;
+    int i, j, tmp, ndata, qm_ntag, mm_ntag, nlocal = atom->nlocal;
     int *tag = atom->tag;
+    int *mask  = atom->mask;
     struct commdata *buf = static_cast<struct commdata *>(comm_buf);
 
     if (me == 0) {
-      int *taglist = new int[num_mm];
-
+      int *qm_taglist = new int[num_qm];
+      int *mm_taglist = new int[num_mm];
+      qm_ntag = mm_ntag = 0;
       for (i=0; i < nlocal; ++i) {
-        taglist[i] = tag[i];
+        if (mask[i] & groupbit)
+          qm_taglist[qm_ntag++] = tag[i];
+        else if (mask[i] & mm_grbit)
+          mm_taglist[mm_ntag++] = tag[i];
       }
-      numtag=nlocal;
 
       /* loop over procs to receive remote data */
       for (i=1; i < comm->nprocs; ++i) {
@@ -455,29 +466,46 @@ void FixQMMM::init()
         ndata /= size_one;
 
         for (j=0; j < ndata; ++j) {
-            taglist[numtag] = buf[j].tag;
-            ++numtag;
+          if (buf[j].x < 0.0)
+            qm_taglist[qm_ntag++] = buf[j].tag;
+          else
+            mm_taglist[mm_ntag++] = buf[j].tag;
           }
         }
 
         /* sort list of tags by value to have consistently the
          * same list when running in parallel and build hash table. */
-        id_sort(taglist, 0, num_mm-1);
-        for (i=0; i < num_mm; ++i) {
-          inthash_insert(hashtable, taglist[i], i);
+        id_sort(qm_taglist, 0, num_qm-1);
+        id_sort(mm_taglist, 0, num_mm-1);
+        for (i=0; i < num_qm; ++i) {
+          inthash_insert(qm_hash, qm_taglist[i], i);
         }
-        delete[] taglist;
+        for (i=0; i < num_mm; ++i) {
+          inthash_insert(mm_hash, mm_taglist[i], i);
+        }
+        delete[] qm_taglist;
+        delete[] mm_taglist;
 
         /* generate reverse index-to-tag map for communicating
          * qm/mm forces back to the proper atoms */
-        qm_remap=inthash_keys(hashtable);
+        qm_remap=inthash_keys(qm_hash);
+        mm_remap=inthash_keys(mm_hash);
     } else {
+      j = 0;
       for (i=0; i < nlocal; ++i) {
-        buf[i].tag = tag[i];
+        if (mask[i] & groupbit) {
+          buf[j].x = -1.0;
+          buf[j].tag = tag[i];
+          ++j;
+        } else if (mask[i] & mm_grbit) {
+          buf[j].x = 1.0;
+          buf[j].tag = tag[i];
+          ++j;
+        }
       }
       /* blocking receive to wait until it is our turn to send data. */
       MPI_Recv(&tmp, 0, MPI_INT, 0, 0, world, &status);
-      MPI_Rsend(comm_buf, nlocal*size_one, MPI_BYTE, 0, 0, world);
+      MPI_Rsend(comm_buf, j*size_one, MPI_BYTE, 0, 0, world);
     }
   }
 }
@@ -515,9 +543,9 @@ void FixQMMM::setup(int)
     error->all(FLERR,"LAMMPS terminated on error in setting up IMD connection.");
 
   /* initialize and build hashtable. */
-  inthash_t *hashtable=new inthash_t;
-  inthash_init(hashtable, num_coords);
-  qm_idmap = (void *)hashtable;
+  inthash_t *qm_hash=new inthash_t;
+  inthash_init(qm_hash, num_coords);
+  qm_idmap = (void *)qm_hash;
 
   MPI_Status status;
   MPI_Request request;
@@ -553,13 +581,13 @@ void FixQMMM::setup(int)
      * same list when running in parallel and build hash table. */
     id_sort(taglist, 0, num_coords-1);
     for (i=0; i < num_coords; ++i) {
-      inthash_insert(hashtable, taglist[i], i);
+      inthash_insert(qm_hash, taglist[i], i);
     }
     delete[] taglist;
 
     /* generate reverse index-to-tag map for communicating
      * IMD forces back to the proper atoms */
-    qm_remap=inthash_keys(hashtable);
+    qm_remap=inthash_keys(qm_hash);
   } else {
     nme=0;
     for (i=0; i < nlocal; ++i) {

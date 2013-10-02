@@ -126,6 +126,7 @@ class Thermo : protected Pointers {
   void compute_cpu();
   void compute_tpcpu();
   void compute_spcpu();
+  void compute_cpuremain();
 
   void compute_atoms();
   void compute_temp();

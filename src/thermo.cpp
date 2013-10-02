@@ -46,7 +46,7 @@ using namespace MathConst;
 
 // customize a new keyword by adding to this list:
 
-// step, elapsed, elaplong, dt, time, cpu, tpcpu, spcpu
+// step, elapsed, elaplong, dt, time, cpu, tpcpu, spcpu, cpuremain
 // atoms, temp, press, pe, ke, etotal, enthalpy
 // evdwl, ecoul, epair, ebond, eangle, edihed, eimp, emol, elong, etail
 // vol, density, lx, ly, lz, xlo, xhi, ylo, yhi, zlo, zhi, xy, xz, yz,
@@ -657,6 +657,8 @@ void Thermo::parse_fields(char *str)
       addfield("T/CPU",&Thermo::compute_tpcpu,FLOAT);
     } else if (strcmp(word,"spcpu") == 0) {
       addfield("S/CPU",&Thermo::compute_spcpu,FLOAT);
+    } else if (strcmp(word,"cpuremain") == 0) {
+      addfield("CPULeft",&Thermo::compute_cpuremain,FLOAT);
 
     } else if (strcmp(word,"atoms") == 0) {
       addfield("Atoms",&Thermo::compute_atoms,BIGINT);
@@ -1014,6 +1016,12 @@ int Thermo::evaluate_keyword(char *word, double *answer)
       error->all(FLERR,
                  "This variable thermo keyword cannot be used between runs");
     compute_spcpu();
+
+  } else if (strcmp(word,"cpuremain") == 0) {
+    if (update->whichflag == 0)
+      error->all(FLERR,
+                 "This variable thermo keyword cannot be used between runs");
+    compute_cpuremain();
 
   } else if (strcmp(word,"atoms") == 0) {
     compute_atoms();
@@ -1500,6 +1508,16 @@ void Thermo::compute_spcpu()
 
   last_step = new_step;
   last_spcpu = new_cpu;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_cpuremain()
+{
+  if (firststep == 0) dvalue = 0.0;
+  else dvalue = timer->elapsed(TIME_LOOP) * 
+         (update->laststep - update->ntimestep) /
+         (update->ntimestep - update->firststep);
 }
 
 /* ---------------------------------------------------------------------- */

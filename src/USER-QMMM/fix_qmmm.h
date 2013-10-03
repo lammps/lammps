@@ -75,6 +75,5 @@ class FixQMMM : public Fix {
 // Local Variables:
 // mode: c++
 // c-basic-offset: 2
-// fill-column: 76
 // indent-tabs-mode: nil
 // End:

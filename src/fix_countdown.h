@@ -46,5 +46,3 @@ class FixCountdown : public Fix {
 
 #endif
 #endif
-
-

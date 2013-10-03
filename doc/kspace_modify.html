@@ -17,7 +17,7 @@
 </PRE>
 <UL><LI>one or more keyword/value pairs may be listed 
 
-<LI>keyword = <I>mesh</I> or <I>order</I> or <I>order/disp</I> or <I>overlap</I> or <I>minorder</I> or <I>force</I> or <I>gewald</I> or <I>gewald/disp</I> or <I>slab</I> or (nozforce</I> or <I>compute</I> or <I>cutoff/adjust</I> or <I>diff</I> 
+<LI>keyword = <I>mesh</I> or <I>order</I> or <I>order/disp</I> or <I>overlap</I> or <I>minorder</I> or <I>force</I> or <I>gewald</I> or <I>gewald/disp</I> or <I>slab</I> or (nozforce</I> or <I>compute</I> or <I>cutoff/adjust</I> or <I>diff</I> or <I>kmax/ewald</I> 
 
 <PRE>  <I>mesh</I> value = x y z
     x,y,z = grid size in each dimension for long-range Coulombics
@@ -43,6 +43,8 @@
   <I>cutoff/adjust</I> value = <I>yes</I> or <I>no</I> 
   <I>fftbench</I> value = <I>yes</I> or <I>no</I> 
   <I>diff</I> value = <I>ad</I> or <I>ik</I> = 2 or 4 FFTs for PPPM in smoothed or non-smoothed mode 
+  <I>kmax/ewald</I> value = kx ky kz 
+    kx,ky,kz = number of Ewald sum kspace vectors in each dimension 
 </PRE>
 
 </UL>
@@ -218,6 +220,14 @@ requires a somewhat larger PPPM mesh to achieve the same accuracy as
 the <I>ik</I> method. Currently, only the <I>ik</I> method (default) can be 
 used for a triclinic simulation cell with PPPM. The <I>ad</I> method is 
 always used for MSM.
+</P>
+<P>The <I>kmax/ewald</I> keyword sets the number of kspace vectors in
+each dimension for kspace style <I>ewald</I>.  The three values must
+be positive integers. Values for kx,ky,kz of
+0,0,0 unset the option. When this option is not 
+set, the Ewald sum scheme chooses its own kspace vectors, 
+consistent with the
+user-specified accuracy and pairwise cutoff. 
 </P>
 <P>IMPORTANT NOTE: Currently, not all PPPM styles support the <I>ad</I>
 option.  Support for those PPPM variants will be added later.

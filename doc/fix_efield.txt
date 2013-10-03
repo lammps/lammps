@@ -17,7 +17,9 @@ efield = style name of this fix command :l
 ex,ey,ez = E-field component values (electric field units) :l
 any of ex,ey,ez can be a variable (see below) :l
 zero or more keyword/value pairs may be appended to args :l
-keyword = {energy} :l
+keyword = {region} or {energy} :l
+  {region} value = region-ID
+    region-ID = ID of region atoms must be in to have added force
   {energy} value = v_name
     v_name = variable with name that calculates the potential energy of each atom in the added E-field :pre
 :ule
@@ -56,6 +58,10 @@ Atom-style variables can specify the same formulas as equal-style
 variables but can also include per-atom values, such as atom
 coordinates.  Thus it is easy to specify a spatially-dependent E-field
 with optional time-dependence as well.
+
+If the {region} keyword is used, the atom must also be in the
+specified geometric "region"_region.html in order to have force added
+to it.
 
 :line 
 
@@ -101,6 +107,8 @@ variable formulas, i.e. that -Grad(E) = F.  For example, if the force
 due to the electric field were a spring-like F = kx, then the energy
 formula should be E = -0.5kx^2.  If you don't do this correctly, the
 minimization will not converge properly.
+
+:line 
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 

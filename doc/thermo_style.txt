@@ -17,7 +17,8 @@ args = list of arguments for a particular style :l
   {one} args = none
   {multi} args = none
   {custom} args = list of attributes
-    possible attributes = step, elapsed, elaplong, dt, time, cpu, tpcpu, spcpu,
+    possible attributes = step, elapsed, elaplong, dt, time,
+                          cpu, tpcpu, spcpu, cpuremain,
                           atoms, temp, press, pe, ke, etotal, enthalpy,
                           evdwl, ecoul, epair, ebond, eangle, edihed, eimp,
                           emol, elong, etail,
@@ -37,6 +38,7 @@ args = list of arguments for a particular style :l
       cpu = elapsed CPU time in seconds
       tpcpu = time per CPU second
       spcpu = timesteps per CPU second
+      cpuremain = estimated CPU time remaining in run
       atoms = # of atoms
       temp = temperature
       press = pressure
@@ -231,6 +233,15 @@ will continually output the time and timestep rate for the last 100
 steps.  The {tpcpu} keyword does not attempt to track any changes in
 timestep size, e.g. due to using the "fix dt/reset"_fix_dt_reset.html
 command.
+
+The {cpuremain} keyword estimates the CPU time remaining in the
+current run, based on the time elapsed thus far.  It will only be a
+good estimate if the CPU time/timestep for the rest of the run is
+similar to the preceding timesteps.  On the initial timestep the value
+will be 0.0 since there is no history to estimate from.  For a
+minimization run performed by the "minimize" command, the estimate is
+based on the {maxiter} parameter, assuming the minimization will
+proceed for the maximum number of allowed iterations.
 
 The {fmax} and {fnorm} keywords are useful for monitoring the progress
 of an "energy minimization"_minimize.html.  The {fmax} keyword

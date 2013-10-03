@@ -25,9 +25,11 @@
 
 <LI>zero or more keyword/value pairs may be appended to args 
 
-<LI>keyword = <I>energy</I> 
+<LI>keyword = <I>region</I> or <I>energy</I> 
 
-<PRE>  <I>energy</I> value = v_name
+<PRE>  <I>region</I> value = region-ID
+    region-ID = ID of region atoms must be in to have added force
+  <I>energy</I> value = v_name
     v_name = variable with name that calculates the potential energy of each atom in the added E-field 
 </PRE>
 
@@ -66,6 +68,10 @@ time.  Thus it is easy to specify a time-dependent E-field.
 variables but can also include per-atom values, such as atom
 coordinates.  Thus it is easy to specify a spatially-dependent E-field
 with optional time-dependence as well.
+</P>
+<P>If the <I>region</I> keyword is used, the atom must also be in the
+specified geometric <A HREF = "region.html">region</A> in order to have force added
+to it.
 </P>
 <HR>
 
@@ -112,6 +118,8 @@ due to the electric field were a spring-like F = kx, then the energy
 formula should be E = -0.5kx^2.  If you don't do this correctly, the
 minimization will not converge properly.
 </P>
+<HR>
+
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>
 <P>No information about this fix is written to <A HREF = "restart.html">binary restart

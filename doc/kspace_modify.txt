@@ -221,7 +221,10 @@ be positive integers. Values for kx,ky,kz of
 0,0,0 unset the option. When this option is not 
 set, the Ewald sum scheme chooses its own kspace vectors, 
 consistent with the
-user-specified accuracy and pairwise cutoff. 
+user-specified accuracy and pairwise cutoff. In any case,
+if kspace style {ewald} is invoked, the values used 
+are printed to the screen and
+the log file at the start of the run.
 
 IMPORTANT NOTE: Currently, not all PPPM styles support the {ad}
 option.  Support for those PPPM variants will be added later.

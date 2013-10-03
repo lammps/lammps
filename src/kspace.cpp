@@ -46,6 +46,8 @@ KSpace::KSpace(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   overlap_allowed = 1;
   fftbench = 1;
 
+  kewaldflag = 0;
+
   order_6 = 5;
   gridflag_6 = 0;
   gewaldflag_6 = 0;
@@ -434,6 +436,18 @@ void KSpace::modify_params(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"no") == 0) adjust_cutoff_flag = 0;
       else error->all(FLERR,"Illegal kspace_modify command");
       iarg += 2;
+    } else if (strcmp(arg[iarg],"kmax/ewald") == 0) {
+      if (iarg+4 > narg) error->all(FLERR,"Illegal kspace_modify command");
+      kx_ewald = atoi(arg[iarg+1]);
+      ky_ewald = atoi(arg[iarg+2]);
+      kz_ewald = atoi(arg[iarg+3]);
+      if (kx_ewald < 0 || ky_ewald < 0 || kz_ewald < 0)
+	error->all(FLERR,"Bad kspace_modify kmax/ewald parameter");
+      if (kx_ewald > 0 && ky_ewald > 0 && kz_ewald > 0)
+	kewaldflag = 1;
+      else
+	kewaldflag = 0;
+      iarg += 4;
     } else error->all(FLERR,"Illegal kspace_modify command");
   }
 }

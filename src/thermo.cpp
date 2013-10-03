@@ -1517,7 +1517,7 @@ void Thermo::compute_spcpu()
 void Thermo::compute_cpuremain()
 {
   if (firststep == 0) dvalue = 0.0;
-  else dvalue = timer->elapsed(TIME_LOOP) * 
+  else dvalue = timer->elapsed(Timer::TOTAL) * 
          (update->laststep - update->ntimestep) /
          (update->ntimestep - update->firststep);
 }

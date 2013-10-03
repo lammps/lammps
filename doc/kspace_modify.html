@@ -226,8 +226,8 @@ option.  Support for those PPPM variants will be added later.
 </P>
 <P>The <I>kmax/ewald</I> keyword sets the number of kspace vectors in
 each dimension for kspace style <I>ewald</I>.  The three values must
-be positive integers. Values for kx,ky,kz of
-0,0,0 unset the option. When this option is not 
+be positive integers, or else (0,0,0), which unsets the option. 
+When this option is not 
 set, the Ewald sum scheme chooses its own kspace vectors, 
 consistent with the
 user-specified accuracy and pairwise cutoff. In any case,

@@ -38,7 +38,6 @@ PairNMCutCoulLongOMP::PairNMCutCoulLongOMP(LAMMPS *lmp) :
 {
   suffix_flag |= Suffix::OMP;
   respa_enable = 0;
-  cut_respa = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -87,10 +86,11 @@ void PairNMCutCoulLongOMP::compute(int eflag, int vflag)
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
 void PairNMCutCoulLongOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
-  int i,j,ii,jj,jnum,itype,jtype,itable;
+  int i,j,ii,jj,jnum,jtype,itable;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
   double fraction,table;
-  double r,rsq,r2inv,r6inv,forcecoul,forcenm,factor_coul,factor_lj;
+  double r,rsq,rinv,r2inv,factor_coul,factor_lj;
+  double forcecoul,forcenm,rminv,rninv;
   double grij,expm2,prefactor,t,erfc;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
@@ -114,13 +114,23 @@ void PairNMCutCoulLongOMP::eval(int iifrom, int iito, ThrData * const thr)
 
   for (ii = iifrom; ii < iito; ++ii) {
 
-    i = ilist[ii];
+    const int i = ilist[ii];
+    const int itype = type[i];
+    const int    * _noalias const jlist = firstneigh[i];
+    const double * _noalias const cutsqi = cutsq[itype];
+    const double * _noalias const cut_ljsqi = cut_ljsq[itype];
+    const double * _noalias const offseti = offset[itype];
+    const double * _noalias const mmi = mm[itype];
+    const double * _noalias const nni = nn[itype];
+    const double * _noalias const nmi = nm[itype];
+    const double * _noalias const e0nmi = e0nm[itype];
+    const double * _noalias const r0mi = r0m[itype];
+    const double * _noalias const r0ni = r0n[itype];
+
     qtmp = q[i];
     xtmp = x[i].x;
     ytmp = x[i].y;
     ztmp = x[i].z;
-    itype = type[i];
-    jlist = firstneigh[i];
     jnum = numneigh[i];
     fxtmp=fytmp=fztmp=0.0;
 
@@ -136,9 +146,9 @@ void PairNMCutCoulLongOMP::eval(int iifrom, int iito, ThrData * const thr)
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
 
-      if (rsq < cutsq[itype][jtype]) {
+      if (rsq < cutsqi[jtype]) {
         r2inv = 1.0/rsq;
-
+        
         if (rsq < cut_coulsq) {
           if (!ncoultablebits || rsq <= tabinnersq) {
             r = sqrt(rsq);
@@ -148,7 +158,11 @@ void PairNMCutCoulLongOMP::eval(int iifrom, int iito, ThrData * const thr)
             erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
             prefactor = qqrd2e * qtmp*q[j]/r;
             forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
-            if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
+            if (EFLAG) ecoul = prefactor*erfc;
+            if (factor_coul < 1.0) {
+              forcecoul -= (1.0-factor_coul)*prefactor;
+              if (EFLAG) ecoul -= (1.0-factor_coul)*prefactor;
+            }
           } else {
             union_int_float_t rsq_lookup;
             rsq_lookup.f = rsq;
@@ -157,19 +171,38 @@ void PairNMCutCoulLongOMP::eval(int iifrom, int iito, ThrData * const thr)
             fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
             table = ftable[itable] + fraction*dftable[itable];
             forcecoul = qtmp*q[j] * table;
+            if (EFLAG)
+              ecoul = qtmp*q[j] * (etable[itable] + fraction*detable[itable]);
             if (factor_coul < 1.0) {
               table = ctable[itable] + fraction*dctable[itable];
               prefactor = qtmp*q[j] * table;
               forcecoul -= (1.0-factor_coul)*prefactor;
+              if (EFLAG) ecoul -= (1.0-factor_coul)*prefactor;
             }
           }
-        } else forcecoul = 0.0;
+        } else {
+            forcecoul = 0.0;
+            if (EFLAG) ecoul = 0.0;
+        }
 
-        if (rsq < cut_nmsq[itype][jtype]) {
-          r6inv = r2inv*r2inv*r2inv;
-          forcenm = r6inv * (nm1[itype][jtype]*r6inv - nm2[itype][jtype]);
-          forcenm *= factor_nm;
-        } else forcenm = 0.0;
+        if (rsq < cut_ljsqi[jtype]) {
+          r = sqrt(rsq);
+          rminv = pow(r2inv,mmi[jtype]/2.0);
+          rninv = pow(r2inv,nni[jtype]/2.0);
+          forcenm = e0nmi[jtype]*nmi[jtype] * 
+            (r0ni[jtype]/pow(r,nni[jtype]) - 
+             r0mi[jtype]/pow(r,mmi[jtype]));
+          forcenm *= factor_lj;
+          if (EFLAG) 
+            evdwl = (e0nmi[jtype]*(mmi[jtype] * 
+                                   r0ni[jtype]*rninv - 
+                                   nni[jtype] * 
+                                   r0mi[jtype]*rminv) -
+                     offseti[jtype]) * factor_lj;
+        } else {
+          forcenm = 0.0;
+          if (EFLAG) evdwl = 0.0;
+        }
 
         fpair = (forcecoul + forcenm) * r2inv;
 
@@ -180,24 +213,6 @@ void PairNMCutCoulLongOMP::eval(int iifrom, int iito, ThrData * const thr)
           f[j].x -= delx*fpair;
           f[j].y -= dely*fpair;
           f[j].z -= delz*fpair;
-        }
-
-        if (EFLAG) {
-          if (rsq < cut_coulsq) {
-            if (!ncoultablebits || rsq <= tabinnersq)
-              ecoul = prefactor*erfc;
-            else {
-              table = etable[itable] + fraction*detable[itable];
-              ecoul = qtmp*q[j] * table;
-            }
-            if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
-          } else ecoul = 0.0;
-
-          if (rsq < cut_nmsq[itype][jtype]) {
-            evdwl = r6inv*(nm3[itype][jtype]*r6inv-nm4[itype][jtype]) -
-              offset[itype][jtype];
-            evdwl *= factor_lj;
-          } else evdwl = 0.0;
         }
 
         if (EVFLAG) ev_tally_thr(this, i,j,nlocal,NEWTON_PAIR,
@@ -212,10 +227,10 @@ void PairNMCutCoulLongOMP::eval(int iifrom, int iito, ThrData * const thr)
 
 /* ---------------------------------------------------------------------- */
 
-double PairNMCutCoulLongOMP::memory_usage()
-{
-  double bytes = memory_usage_thr();
-  bytes += PairNMCutCoulLong::memory_usage();
+  double PairNMCutCoulLongOMP::memory_usage()
+  {
+    double bytes = memory_usage_thr();
+    bytes += PairNMCutCoulLong::memory_usage();
 
-  return bytes;
-}
+    return bytes;
+  }

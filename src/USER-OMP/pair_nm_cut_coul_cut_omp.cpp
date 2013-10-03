@@ -159,9 +159,9 @@ void PairNMCutCoulCutOMP::eval(int iifrom, int iito, ThrData * const thr)
           forcenm *= factor_lj;
           if (EFLAG) 
             evdwl = (e0nmi[jtype]*(mmi[jtype] * 
-                                         r0ni[jtype]*rninv - 
-                                         nni[jtype] * 
-                                         r0mi[jtype]*rminv) -
+                                   r0ni[jtype]*rninv - 
+                                   nni[jtype] * 
+                                   r0mi[jtype]*rminv) -
                      offseti[jtype]) * factor_lj;
         } else {
           forcenm = 0.0;

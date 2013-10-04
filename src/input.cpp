@@ -41,6 +41,7 @@
 #include "update.h"
 #include "neighbor.h"
 #include "special.h"
+#include "timer.h"
 #include "variable.h"
 #include "accelerator_cuda.h"
 #include "error.h"
@@ -583,6 +584,7 @@ int Input::execute_command()
   else if (!strcmp(command,"thermo_modify")) thermo_modify();
   else if (!strcmp(command,"thermo_style")) thermo_style();
   else if (!strcmp(command,"timestep")) timestep();
+  else if (!strcmp(command,"timers")) timers();
   else if (!strcmp(command,"uncompute")) uncompute();
   else if (!strcmp(command,"undump")) undump();
   else if (!strcmp(command,"unfix")) unfix();
@@ -1533,6 +1535,13 @@ void Input::thermo_modify()
 void Input::thermo_style()
 {
   output->create_thermo(narg,arg);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::timers()
+{
+  timer->modify_params(narg,arg);
 }
 
 /* ---------------------------------------------------------------------- */

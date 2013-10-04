@@ -160,6 +160,9 @@ class KSpace : protected Pointers {
   int vflag_either,vflag_global,vflag_atom;
   int maxeatom,maxvatom;
 
+  int kewaldflag;                   // 1 if kspace range set for Ewald sum
+  int kx_ewald,ky_ewald,kz_ewald;   // kspace settings for Ewald sum
+
   void pair_check();
   void ev_setup(int, int);
   double estimate_table_accuracy(double, double);
@@ -198,6 +201,10 @@ command-line option when running LAMMPS to see the offending line.
 E: Bad kspace_modify slab parameter
 
 Kspace_modify value for the slab/volume keyword must be >= 2.0.
+
+E: Bad kspace_modify kmax/ewald parameter
+
+Kspace_modify values for the kmax/ewald keyword must be integers > 0
 
 W: Kspace_modify slab param < 2.0 may cause unphysical behavior
 

@@ -52,7 +52,7 @@ PairTIP4PCutOMP::PairTIP4PCutOMP(LAMMPS *lmp) :
 
 /* ---------------------------------------------------------------------- */
 
-PairTIP4PCutOMP::~PairTIP4PCutOMP() 
+PairTIP4PCutOMP::~PairTIP4PCutOMP()
 {
   memory->destroy(hneigh_thr);
   memory->destroy(newsite_thr);

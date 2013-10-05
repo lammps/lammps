@@ -125,7 +125,7 @@ void PairZBLOMP::eval(int iifrom, int iito, ThrData * const thr)
 
         if (r > cut_inner) {
           t = r - cut_inner;
-          fswitch = t*t * 
+          fswitch = t*t *
             (sw1i[jtype] + sw2i[jtype]*t);
           fpair += fswitch;
         }
@@ -145,7 +145,7 @@ void PairZBLOMP::eval(int iifrom, int iito, ThrData * const thr)
           evdwl = e_zbl(r, itype, jtype);
           evdwl += sw5i[jtype];
           if (r > cut_inner) {
-            eswitch = t*t*t * 
+            eswitch = t*t*t *
               (sw3i[jtype] + sw4i[jtype]*t);
             evdwl += eswitch;
           }

@@ -224,7 +224,7 @@ void DihedralQuadraticOMP::eval(int nfrom, int nto, ThrData * const thr)
     }
     p = p * dphi;
 
-    if (EFLAG) edihedral = p; 
+    if (EFLAG) edihedral = p;
 
     a = pd;
     c = c * a;

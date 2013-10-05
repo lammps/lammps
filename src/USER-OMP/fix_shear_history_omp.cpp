@@ -44,7 +44,7 @@ void FixShearHistoryOMP::pre_exchange()
   const int nall = nlocal + nghost;
   const int nthreads = comm->nthreads;
   maxtouch = 0;
-  
+
 #if defined(_OPENMP)
 #pragma omp parallel default(none)
 #endif

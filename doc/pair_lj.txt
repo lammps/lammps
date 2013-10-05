@@ -22,6 +22,7 @@ pair_style lj/cut/coul/debye/gpu command :h3
 pair_style lj/cut/coul/debye/omp command :h3
 pair_style lj/cut/coul/dsf command :h3
 pair_style lj/cut/coul/dsf/gpu command :h3
+pair_style lj/cut/coul/dsf/omp command :h3
 pair_style lj/cut/coul/long command :h3
 pair_style lj/cut/coul/long/cuda command :h3
 pair_style lj/cut/coul/long/gpu command :h3

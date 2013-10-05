@@ -17,22 +17,22 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(nm/cut/omp,PairNMCutOMP)
+PairStyle(coul/dsf/omp,PairCoulDSFOMP)
 
 #else
 
-#ifndef LMP_PAIR_NM_CUT_OMP_H
-#define LMP_PAIR_NM_CUT_OMP_H
+#ifndef LMP_PAIR_COUL_DSF_OMP_H
+#define LMP_PAIR_COUL_DSF_OMP_H
 
-#include "pair_nm_cut.h"
+#include "pair_coul_dsf.h"
 #include "thr_omp.h"
 
 namespace LAMMPS_NS {
 
-class PairNMCutOMP : public PairNMCut, public ThrOMP {
+class PairCoulDSFOMP : public PairCoulDSF, public ThrOMP {
 
  public:
-  PairNMCutOMP(class LAMMPS *);
+  PairCoulDSFOMP(class LAMMPS *);
 
   virtual void compute(int, int);
   virtual double memory_usage();

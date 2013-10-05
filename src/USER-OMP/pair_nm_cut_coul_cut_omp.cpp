@@ -153,14 +153,14 @@ void PairNMCutCoulCutOMP::eval(int iifrom, int iito, ThrData * const thr)
           r = sqrt(rsq);
           rminv = pow(r2inv,mmi[jtype]/2.0);
           rninv = pow(r2inv,nni[jtype]/2.0);
-          forcenm = e0nmi[jtype]*nmi[jtype] * 
-            (r0ni[jtype]/pow(r,nni[jtype]) - 
+          forcenm = e0nmi[jtype]*nmi[jtype] *
+            (r0ni[jtype]/pow(r,nni[jtype]) -
              r0mi[jtype]/pow(r,mmi[jtype]));
           forcenm *= factor_lj;
-          if (EFLAG) 
-            evdwl = (e0nmi[jtype]*(mmi[jtype] * 
-                                   r0ni[jtype]*rninv - 
-                                   nni[jtype] * 
+          if (EFLAG)
+            evdwl = (e0nmi[jtype]*(mmi[jtype] *
+                                   r0ni[jtype]*rninv -
+                                   nni[jtype] *
                                    r0mi[jtype]*rminv) -
                      offseti[jtype]) * factor_lj;
         } else {

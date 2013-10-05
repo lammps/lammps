@@ -303,7 +303,7 @@ void PairLJLongCoulLongOMP::compute(int eflag, int vflag)
           }
         }
       }
-    } 
+    }
 
     thr->timer(Timer::PAIR);
     reduce_thr(this, eflag, vflag, thr);
@@ -620,7 +620,7 @@ void PairLJLongCoulLongOMP::compute_outer(int eflag, int vflag)
           }
         }
       }
-    } 
+    }
 
     thr->timer(Timer::PAIR);
     reduce_thr(this, eflag, vflag, thr);
@@ -987,7 +987,7 @@ void PairLJLongCoulLongOMP::eval_outer(int iiform, int iito, ThrData * const thr
 {
   double evdwl,ecoul,fvirial,fpair;
   evdwl = ecoul = 0.0;
-  
+
   const double * const * const x = atom->x;
   double * const * const f = thr->get_f();
   const double * const q = atom->q;
@@ -1001,7 +1001,7 @@ void PairLJLongCoulLongOMP::eval_outer(int iiform, int iito, ThrData * const thr
   double *f0 = f[0], *fi = f0;
 
   int *ilist = listouter->ilist;
-  
+
   int i, j, ii;
   int *jneigh, *jneighn, typei, typej, ni, respa_flag;
   double qi = 0.0, qri = 0.0;
@@ -1010,16 +1010,16 @@ void PairLJLongCoulLongOMP::eval_outer(int iiform, int iito, ThrData * const thr
   double g2 = g_ewald_6*g_ewald_6, g6 = g2*g2*g2, g8 = g6*g2;
   double respa_lj = 0.0, respa_coul = 0.0, frespa = 0.0;
   vector xi, d;
-  
+
   const double cut_in_off = cut_respa[2];
   const double cut_in_on = cut_respa[3];
-  
+
   const double cut_in_diff = cut_in_on - cut_in_off;
   const double cut_in_off_sq = cut_in_off*cut_in_off;
   const double cut_in_on_sq = cut_in_on*cut_in_on;
-  
+
   //ineighn = (ineigh = list->ilist)+list->inum;
-  
+
   for (ii = iiform; ii < iito; ++ii) {                        // loop over my atoms
     i = ilist[ii]; fi = f0+3*i;
     if (ORDER1) qri = (qi = q[i])*qqrd2e;                // initialize constants
@@ -1028,20 +1028,20 @@ void PairLJLongCoulLongOMP::eval_outer(int iiform, int iito, ThrData * const thr
     cutsqi = cutsq[typei]; cut_ljsqi = cut_ljsq[typei];
     memcpy(xi, x0+(i+(i<<1)), sizeof(vector));
     jneighn = (jneigh = listouter->firstneigh[i])+listouter->numneigh[i];
-    
+
     for (; jneigh<jneighn; ++jneigh) {                        // loop over neighbors
       j = *jneigh;
       ni = sbmask(j);
       j &= NEIGHMASK;
-      
+
       { register const double *xj = x0+(j+(j<<1));
         d[0] = xi[0] - xj[0];                                // pair vector
         d[1] = xi[1] - xj[1];
         d[2] = xi[2] - xj[2]; }
-      
+
       if ((rsq = vec_dot(d, d)) >= cutsqi[typej = type[j]]) continue;
       r2inv = 1.0/rsq;
-      
+
       frespa = 1.0;                                       // check whether and how to compute respa corrections
       respa_coul = 0;
       respa_lj = 0;
@@ -1050,7 +1050,7 @@ void PairLJLongCoulLongOMP::eval_outer(int iiform, int iito, ThrData * const thr
         register double rsw = (sqrt(rsq)-cut_in_off)/cut_in_diff;
         frespa = 1-rsw*rsw*(3.0-2.0*rsw);
       }
-      
+
       if (ORDER1 && (rsq < cut_coulsq)) {                // coulombic
         if (!CTABLE || rsq <= tabinnersq) {        // series real space
           register double r = sqrt(rsq), s = qri*q[j];
@@ -1091,7 +1091,7 @@ void PairLJLongCoulLongOMP::eval_outer(int iiform, int iito, ThrData * const thr
           }
         }
       }
-       
+
       else force_coul = respa_coul = ecoul = 0.0;
 
       if (rsq < cut_ljsqi[typej]) {                        // lennard-jones
@@ -1147,9 +1147,9 @@ void PairLJLongCoulLongOMP::eval_outer(int iiform, int iito, ThrData * const thr
         }
       }
       else force_lj = respa_lj = evdwl = 0.0;
-      
+
       fpair = (force_coul+force_lj)*r2inv;
-      
+
       if (NEWTON_PAIR || j < nlocal) {
         register double *fj = f0+(j+(j<<1)), f;
         fi[0] += f = d[0]*fpair; fj[0] -= f;
@@ -1161,7 +1161,7 @@ void PairLJLongCoulLongOMP::eval_outer(int iiform, int iito, ThrData * const thr
         fi[1] += d[1]*fpair;
         fi[2] += d[2]*fpair;
       }
-      
+
       if (EVFLAG) {
         fvirial = (force_coul + force_lj + respa_coul + respa_lj)*r2inv;
         ev_tally_thr(this,i,j,nlocal,NEWTON_PAIR,

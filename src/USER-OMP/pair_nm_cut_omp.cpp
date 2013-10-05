@@ -130,8 +130,8 @@ void PairNMCutOMP::eval(int iifrom, int iito, ThrData * const thr)
         rminv = pow(r2inv,mmi[jtype]*0.5);
         rninv = pow(r2inv,nni[jtype]*0.5);
 
-        forcenm = e0nmi[jtype]*nmi[jtype] * 
-          (r0ni[jtype]/pow(r,nni[jtype]) - 
+        forcenm = e0nmi[jtype]*nmi[jtype] *
+          (r0ni[jtype]/pow(r,nni[jtype]) -
            r0mi[jtype]/pow(r,mmi[jtype]));
         fpair = factor_lj*forcenm*r2inv;
 
@@ -145,8 +145,8 @@ void PairNMCutOMP::eval(int iifrom, int iito, ThrData * const thr)
         }
 
         if (EFLAG) {
-          evdwl = e0nmi[jtype] * 
-            (mmi[jtype]*r0ni[jtype]*rninv - 
+          evdwl = e0nmi[jtype] *
+            (mmi[jtype]*r0ni[jtype]*rninv -
              nni[jtype]*r0mi[jtype]*rminv) - offseti[jtype];
         }
 

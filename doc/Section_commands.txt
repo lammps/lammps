@@ -981,6 +981,7 @@ package"_Section_accelerate.html.
 "table/omp"_pair_table.html,
 "tersoff/cuda"_pair_tersoff.html,
 "tersoff/omp"_pair_tersoff.html,
+"tersoff/mod/omp"_pair_tersoff_mod.html,
 "tersoff/table/omp"_pair_tersoff.html,
 "tersoff/zbl/omp"_pair_tersoff_zbl.html,
 "tip4p/cut/omp"_pair_coul.html,

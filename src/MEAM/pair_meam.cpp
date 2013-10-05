@@ -460,7 +460,7 @@ void PairMEAM::read_files(char *globalfile, char *userfile)
 
   FILE *fp;
   if (comm->me == 0) {
-    fp = fopen(globalfile,"r");
+    fp = open_potential(globalfile);
     if (fp == NULL) {
       char str[128];
       sprintf(str,"Cannot open MEAM potential file %s",globalfile);
@@ -641,7 +641,7 @@ void PairMEAM::read_files(char *globalfile, char *userfile)
   // open user param file on proc 0
 
   if (comm->me == 0) {
-    fp = fopen(userfile,"r");
+    fp = open_potential(userfile);
     if (fp == NULL) {
       char str[128];
       sprintf(str,"Cannot open MEAM potential file %s",userfile);

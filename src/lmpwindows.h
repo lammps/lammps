@@ -37,9 +37,16 @@ inline double trunc(double x) {
 }
 
 // Windows version of mkdir function does not have permission flags
+#ifndef S_IRWXU
 # define S_IRWXU 0
+#endif
+#ifndef S_IRGRP
 # define S_IRGRP 0
+#endif
+#ifndef S_IXGRP
 # define S_IXGRP 0
+#endif
 inline int mkdir(const char *path, int){
   return _mkdir(path);
 }
+

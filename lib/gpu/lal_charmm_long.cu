@@ -32,7 +32,7 @@ texture<int2> q_tex;
 __kernel void k_charmm_long(const __global numtyp4 *restrict x_,
                             const __global numtyp4 *restrict lj1,
                             const int lj_types, 
-                            const __global numtyp *restrict sp_lj_in,
+                            const __global numtyp *restrict sp_lj,
                             const __global int *dev_nbor,
                             const __global int *dev_packed,
                             __global acctyp4 *restrict ans,
@@ -47,16 +47,6 @@ __kernel void k_charmm_long(const __global numtyp4 *restrict x_,
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
 
-  __local numtyp sp_lj[8];
-  sp_lj[0]=sp_lj_in[0];
-  sp_lj[1]=sp_lj_in[1];
-  sp_lj[2]=sp_lj_in[2];
-  sp_lj[3]=sp_lj_in[3];
-  sp_lj[4]=sp_lj_in[4];
-  sp_lj[5]=sp_lj_in[5];
-  sp_lj[6]=sp_lj_in[6];
-  sp_lj[7]=sp_lj_in[7];
-
   acctyp energy=(acctyp)0;
   acctyp e_coul=(acctyp)0;
   acctyp4 f;
@@ -66,18 +56,18 @@ __kernel void k_charmm_long(const __global numtyp4 *restrict x_,
     virial[i]=(acctyp)0;
 
   if (ii<inum) {
-    const __global int *nbor, *list_end;
+    int nbor, nbor_end;
     int i, numj;
     __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
-              n_stride,list_end,nbor);
+              n_stride,nbor_end,nbor);
   
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     numtyp qtmp; fetch(qtmp,i,q_tex);
     int itype=ix.w;
 
-    for ( ; nbor<list_end; nbor+=n_stride) {
-      int j=*nbor;
+    for ( ; nbor<nbor_end; nbor+=n_stride) {
+      int j=dev_packed[nbor];
 
       numtyp factor_lj, factor_coul;
       factor_lj = sp_lj[sbmask(j)];
@@ -196,18 +186,18 @@ __kernel void k_charmm_long_fast(const __global numtyp4 *restrict x_,
   __syncthreads();
   
   if (ii<inum) {
-    const __global int *nbor, *list_end;
+    int nbor, nbor_end;
     int i, numj;
     __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
-              n_stride,list_end,nbor);
+              n_stride,nbor_end,nbor);
   
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     numtyp qtmp; fetch(qtmp,i,q_tex);
     int itype=ix.w;
 
-    for ( ; nbor<list_end; nbor+=n_stride) {
-      int j=*nbor;
+    for ( ; nbor<nbor_end; nbor+=n_stride) {
+      int j=dev_packed[nbor];
 
       numtyp factor_lj, factor_coul;
       factor_lj = sp_lj[sbmask(j)];

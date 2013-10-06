@@ -202,6 +202,7 @@ void BaseEllipsoidT::output_times() {
   MPI_Reduce(&_max_bytes,&mpi_max_bytes,1,MPI_DOUBLE,MPI_MAX,0,
              device->replica());
   double max_mb=mpi_max_bytes/(1024*1024);
+  double t_time=times[0]+times[1]+times[2]+times[3]+times[4]+times[5];
 
   if (device->replica_me()==0)
     if (screen && times[5]>0.0) {
@@ -209,11 +210,11 @@ void BaseEllipsoidT::output_times() {
 
       fprintf(screen,"\n\n-------------------------------------");
       fprintf(screen,"--------------------------------\n");
-      fprintf(screen,"      GPU Time Info (average): ");
+      fprintf(screen,"    Device Time Info (average): ");
       fprintf(screen,"\n-------------------------------------");
       fprintf(screen,"--------------------------------\n");
 
-      if (device->procs_per_gpu()==1) {
+      if (device->procs_per_gpu()==1 && t_time>0) {
         fprintf(screen,"Data Transfer:   %.4f s.\n",times[0]/replica_size);
         fprintf(screen,"Data Cast/Pack:  %.4f s.\n",times[5]/replica_size);
         fprintf(screen,"Neighbor copy:   %.4f s.\n",times[1]/replica_size);
@@ -226,7 +227,8 @@ void BaseEllipsoidT::output_times() {
       }
       if (nbor->gpu_nbor()==2)
         fprintf(screen,"Neighbor (CPU):  %.4f s.\n",times[9]/replica_size);
-      fprintf(screen,"GPU Overhead:    %.4f s.\n",times[6]/replica_size);
+      if (times[6]>0)
+        fprintf(screen,"Device Overhead: %.4f s.\n",times[6]/replica_size);
       fprintf(screen,"Average split:   %.4f.\n",avg_split);
       fprintf(screen,"Threads / atom:  %d.\n",_threads_per_atom);      
       fprintf(screen,"Max Mem / Proc:  %.2f MB.\n",max_mb);

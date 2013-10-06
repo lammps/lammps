@@ -66,13 +66,14 @@ int CHARMMLongT::init(const int ntypes,
   // If atom type constants fit in shared memory use fast kernel
   int lj_types=ntypes;
   shared_types=false;
-  if (this->_block_bio_size>=64 && mix_arithmetic)
+  int max_bio_shared_types=this->device->max_bio_shared_types();
+  if (this->_block_bio_size>=64 && mix_arithmetic &&
+      lj_types<=max_bio_shared_types)
     shared_types=true;
   _lj_types=lj_types;
 
   // Allocate a host write buffer for data initialization
   int h_size=lj_types*lj_types;
-  int max_bio_shared_types=this->device->max_bio_shared_types();
   if (h_size<max_bio_shared_types)
     h_size=max_bio_shared_types;
   UCL_H_Vec<numtyp> host_write(h_size*32,*(this->ucl_device),
@@ -84,8 +85,10 @@ int CHARMMLongT::init(const int ntypes,
   this->atom->type_pack4(ntypes,lj_types,lj1,host_write,host_lj1,host_lj2,
                          host_lj3,host_lj4);
 
-  ljd.alloc(max_bio_shared_types,*(this->ucl_device),UCL_READ_ONLY);
-  this->atom->self_pack2(ntypes,ljd,host_write,epsilon,sigma);
+  if (shared_types) {
+    ljd.alloc(max_bio_shared_types,*(this->ucl_device),UCL_READ_ONLY);
+    this->atom->self_pack2(ntypes,ljd,host_write,epsilon,sigma);
+  }
 
   sp_lj.alloc(8,*(this->ucl_device),UCL_READ_ONLY);
   for (int i=0; i<4; i++) {

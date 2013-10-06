@@ -1005,9 +1005,16 @@ void Input::shell()
     if (me == 0)
       for (int i = 1; i < narg; i++) rmdir(arg[i]);
 
-  } else if (strcmp(arg[0],"setenv") == 0) {
-    if (narg != 3) error->all(FLERR,"Illegal shell setenv command");
-    setenv(arg[1],arg[2],1);
+  } else if (strcmp(arg[0],"putenv") == 0) {
+    if (narg < 2) error->all(FLERR,"Illegal shell putenv command");
+    for (int i = 1; i < narg; i++) {
+      char *ptr = strdup(arg[i]);
+#ifdef _WIN32 
+      if (ptr != NULL) _putenv(ptr);
+#else
+      if (ptr != NULL) putenv(ptr);
+#endif
+    }
 
   // use work string to concat args back into one string separated by spaces
   // invoke string in shell via system()

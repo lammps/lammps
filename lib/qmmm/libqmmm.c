@@ -18,6 +18,7 @@
 /* global variable for global QM/MM configuration */
 qmmm_config_t qmmmcfg;
 
+/* local helper function: advance char pointer beyond leading whitespace */
 static char *skip_whitespace(char *ptr)
 {
     while ((*ptr == ' ') || (*ptr == '\t')
@@ -25,6 +26,7 @@ static char *skip_whitespace(char *ptr)
     return ptr;
 }
 
+/* local helper function: trim string to remove trailing whitespace */
 static void trim_whitespace(char *ptr)
 {
     while ((*ptr != ' ') && (*ptr != '\t')
@@ -32,6 +34,9 @@ static void trim_whitespace(char *ptr)
     *ptr = '\0';
 }
 
+
+/* read and parse global QM/MM configuration file and
+   store the result in a qmmm_config_t struct */
 int read_qmmm_config(const char *file, qmmm_config_t *cfg)
 {
     FILE *fp;
@@ -181,6 +186,7 @@ int read_qmmm_config(const char *file, qmmm_config_t *cfg)
 }
 
 
+/* perform consistency checks on a qmmm_config_t struct */
 const char *check_qmmm_config(qmmm_config_t *cfg) {
     const char *msg = NULL;
 
@@ -210,6 +216,7 @@ const char *check_qmmm_config(qmmm_config_t *cfg) {
     return msg;
 }
 
+/* free storage associated with qmmm_config_t struct */
 void free_qmmm_config(qmmm_config_t *cfg) {
 
     if (cfg->qmdir != NULL) free(cfg->qmdir);

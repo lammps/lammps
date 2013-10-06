@@ -14,15 +14,18 @@
 extern "C" {
 #endif
 
+/* transport method for data exchange between QM and MM codes */
 #define QMMM_COMM_NONE  0
 #define QMMM_COMM_MPI   1
 #define QMMM_COMM_SHM   2
 
+/* type or "level" of QM/MM coupling */
 #define QMMM_MODE_OFF  -1
 #define QMMM_MODE_NONE  0
 #define QMMM_MODE_MECH  1
 #define QMMM_MODE_ELEC  2
 
+/* flag indicating the role of this process in a QM/MM calculation */
 #define QMMM_ROLE_QM     1
 #define QMMM_ROLE_MASTER 2
 #define QMMM_ROLE_SLAVE  3
@@ -30,6 +33,7 @@ extern "C" {
 #define QMMM_OK     0
 #define QMMM_ERROR -1
 
+/* container struct for global QM/MM configuration information */
 typedef struct {
     int comm_mode, qmmm_mode;    /* communication and coupling mode */
     char *qmdir, *madir, *sldir; /* directories to run codes in */
@@ -44,10 +48,18 @@ typedef struct {
     int my_comm, qm_comm, mm_comm; /* Fortran representation of MPI_Comms */
 } qmmm_config_t;
 
+/* declare a global variable for the QM/MM setup.
+   thus there can be only one QM/MM coupling currently */
 extern qmmm_config_t qmmmcfg;    
 
+/* read and parse global QM/MM configuration file and
+   store the result in a qmmm_config_t struct */
 int read_qmmm_config(const char *, qmmm_config_t *);
+
+/* perform consistency checks on a qmmm_config_t struct */
 const char *check_qmmm_config(qmmm_config_t *);
+
+/* free storage associated with qmmm_config_t struct */
 void free_qmmm_config(qmmm_config_t *);
 
 #ifdef __cplusplus

@@ -510,6 +510,7 @@ neigh_half_multi_omp.cpp
 neigh_half_nsq_omp.cpp
 neigh_respa_omp.cpp
 neighbor_omp.h
+
 pair_adp.cpp
 pair_adp.h
 pair_adp_omp.cpp
@@ -915,14 +916,14 @@ pair_nb3b_harmonic_omp.cpp
 pair_nb3b_harmonic_omp.h
 pair_nm_cut.cpp
 pair_nm_cut.h
-pair_nm_cut_coul_cut.cpp
-pair_nm_cut_coul_cut.h
-pair_nm_cut_coul_long.cpp
-pair_nm_cut_coul_long.h
 pair_nm_cut_omp.cpp
 pair_nm_cut_omp.h
+pair_nm_cut_coul_cut.cpp
+pair_nm_cut_coul_cut.h
 pair_nm_cut_coul_cut_omp.cpp
 pair_nm_cut_coul_cut_omp.h
+pair_nm_cut_coul_long.cpp
+pair_nm_cut_coul_long.h
 pair_nm_cut_coul_long_omp.cpp
 pair_nm_cut_coul_long_omp.h
 pair_omp.cpp

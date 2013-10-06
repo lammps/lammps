@@ -616,6 +616,8 @@ pair_coul_diel_omp.cpp
 pair_coul_diel_omp.h
 pair_coul_dsf_gpu.cpp
 pair_coul_dsf_gpu.h
+pair_coul_dsf_omp.cpp
+pair_coul_dsf_omp.h
 pair_coul_long.cpp
 pair_coul_long.h
 pair_coul_long_gpu.cpp
@@ -777,6 +779,8 @@ pair_lj_cut_coul_debye_omp.cpp
 pair_lj_cut_coul_debye_omp.h
 pair_lj_cut_coul_dsf_gpu.cpp
 pair_lj_cut_coul_dsf_gpu.h
+pair_lj_cut_coul_dsf_omp.cpp
+pair_lj_cut_coul_dsf_omp.h
 pair_lj_cut_coul_long.cpp
 pair_lj_cut_coul_long.h
 pair_lj_cut_coul_long_omp.cpp
@@ -913,6 +917,12 @@ pair_nm_cut_coul_cut.cpp
 pair_nm_cut_coul_cut.h
 pair_nm_cut_coul_long.cpp
 pair_nm_cut_coul_long.h
+pair_nm_cut_omp.cpp
+pair_nm_cut_omp.h
+pair_nm_cut_coul_cut_omp.cpp
+pair_nm_cut_coul_cut_omp.h
+pair_nm_cut_coul_long_omp.cpp
+pair_nm_cut_coul_long_omp.h
 pair_omp.cpp
 pair_omp.h
 pair_omp_gpu.cpp
@@ -968,6 +978,8 @@ pair_tersoff.cpp
 pair_tersoff.h
 pair_tersoff_mod.cpp
 pair_tersoff_mod.h
+pair_tersoff_mod_omp.cpp
+pair_tersoff_mod_omp.h
 pair_tersoff_omp.cpp
 pair_tersoff_omp.h
 pair_tersoff_table.cpp
@@ -1000,6 +1012,8 @@ pair_yukawa_colloid_gpu.cpp
 pair_yukawa_colloid_gpu.h
 pair_yukawa_colloid_omp.cpp
 pair_yukawa_colloid_omp.h
+pair_zbl_omp.cpp
+pair_zbl_omp.h
 pppm.cpp
 pppm.h
 pppm_cg.cpp

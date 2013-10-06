@@ -31,14 +31,21 @@ class FixQMMM : public Fix {
   ~FixQMMM();
   int setmask();
   void init();
-//  void setup_pre_force(int);
+
+  // send up-to-date position information to QM and MM slave code
+  void setup_pre_exchange();
+  void post_integrate();
+
+  // receive and update forces
   void setup(int);
-//  void pre_force(int);          // to send out updated positions
-//  void post_force(int);         // to receive and update forces
+  void post_force(int);
+  //void post_run();
+
   double memory_usage();
 
  protected:
   void exchange_positions();    // communicate positions to QM and MM slave
+  void exchange_forces();       // collected forces from QM and MM slave
 
  protected:
   MPI_Comm qm_comm;   // intra communicator with QM subsystem

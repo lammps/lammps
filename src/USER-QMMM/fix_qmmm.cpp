@@ -372,8 +372,9 @@ FixQMMM::~FixQMMM()
 int FixQMMM::setmask()
 {
   int mask = 0;
-  mask |= PRE_FORCE;
-//  mask |= POST_FORCE;
+  mask |= POST_INTEGRATE;
+  mask |= POST_FORCE;
+//  mask |= POST_RUN;
   return mask;
 }
 
@@ -409,6 +410,7 @@ void FixQMMM::init()
         error->all(FLERR,"Inconsistant number of QM/MM atoms");
 
       memory->create(qm_coord,3*num_qm,"qmmm:qm_coord");
+      memory->create(qm_force,3*num_qm,"qmmm:qm_force");
 
       const char fmt[] = "Initializing QM/MM master with %d QM atoms\n";
       
@@ -430,6 +432,7 @@ void FixQMMM::init()
         MPI_Send(&num_qm, 1, MPI_INT, 0, QMMM_TAG_SIZE, mm_comm);
       }
       memory->create(qm_coord,3*num_qm,"qmmm:qm_coord");
+      memory->create(qm_force,3*num_qm,"qmmm:qm_force");
 
       const char fmt[] = "Initializing QM/MM slave with %d QM atoms\n";
       
@@ -514,12 +517,20 @@ void FixQMMM::init()
 
 void FixQMMM::exchange_positions()
 {
+  double **x = atom->x;
+  const int * const mask  = atom->mask;
+  const int * const tag  = atom->tag;
+  const int nlocal = atom->nlocal;
+
+  if (comm->me == 0) {
+    if (screen) fputs("QMMM: exchange positions",screen);
+    if (logfile) fputs("QMMM: exchange positions",logfile);
+  }
+
   if (qmmm_role == QMMM_ROLE_MASTER) {
-    int i,j,k;
-    int *mask  = atom->mask;
-    int *tag  = atom->tag;
-    int nlocal = atom->nlocal;
-    double **x = atom->x;
+    MPI_Status status;
+    MPI_Request request;
+    int i,tmp;
 
     /* check and potentially grow local communication buffers. */
     if (atom->nmax*size_one > maxbuf) {
@@ -527,11 +538,7 @@ void FixQMMM::exchange_positions()
       maxbuf = atom->nmax*size_one;
       comm_buf = memory->smalloc(maxbuf,"qmmm:comm_buf");
     }
-    
-    MPI_Status status;
-    MPI_Request request;
-    int tmp, ndata;
-    struct commdata *buf = static_cast<struct commdata *>(comm_buf);
+    struct commdata *buf = static_cast<struct commdata *>(comm_buf);    
 
     if (comm->me == 0) {
       // insert local atoms into comm buffer
@@ -548,13 +555,14 @@ void FixQMMM::exchange_positions()
 
       /* loop over procs to receive remote data */
       for (i=1; i < comm->nprocs; ++i) {
+        int ndata;
         MPI_Irecv(comm_buf, maxbuf, MPI_BYTE, i, 0, world, &request);
         MPI_Send(&tmp, 0, MPI_INT, i, 0, world);
         MPI_Wait(&request, &status);
         MPI_Get_count(&status, MPI_BYTE, &ndata);
         ndata /= size_one;
 
-        for (k=0; k<ndata; ++k) {
+        for (int k=0; k<ndata; ++k) {
           const int j = 3*inthash_lookup((inthash_t *)qm_idmap, buf[k].tag);
           if (j != 3*HASH_FAIL) {
             qm_coord[j]   = buf[k].x;
@@ -572,8 +580,8 @@ void FixQMMM::exchange_positions()
     } else {
 
       /* copy coordinate data into communication buffer */
-      ndata = 0;
-      for (i=0; i<nlocal; ++i) {
+      int ndata = 0;
+      for (i=0; i<nlocal; ++i)
         if (mask[i] & groupbit) {
           buf[ndata].tag = tag[i];
           buf[ndata].x   = x[i][0];
@@ -581,479 +589,104 @@ void FixQMMM::exchange_positions()
           buf[ndata].z   = x[i][2];
           ++ndata;
         }
-      }
 
       /* blocking receive to wait until it is our turn to send data. */
       MPI_Recv(&tmp, 0, MPI_INT, 0, 0, world, MPI_STATUS_IGNORE);
       MPI_Rsend(comm_buf, ndata*size_one, MPI_BYTE, 0, 0, world);
     }
   } else if (qmmm_role == QMMM_ROLE_SLAVE) {
-    const int nlocal = atom->nlocal;
-    const int *mask = atom->mask;
-    const int *tag = atom->tag;
-    double **x = atom->x;
-    int i,j;
 
     MPI_Recv(qm_coord, 3*num_qm, MPI_DOUBLE, 0, QMMM_TAG_COORD,
              mm_comm, MPI_STATUS_IGNORE);
     MPI_Bcast(qm_coord, 3*num_qm, MPI_DOUBLE,0,world);
 
     /* update coordinates of (QM) atoms */
-    for (i=0; i < nlocal; ++i) {
-      if (mask[i] & groupbit) {
-        for (j=0; j < num_qm; ++j) {
+    for (int i=0; i < nlocal; ++i)
+      if (mask[i] & groupbit)
+        for (int j=0; j < num_qm; ++j)
           if (tag[i] == qm_remap[j]) {
             x[i][0] = qm_coord[3*j];
             x[i][1] = qm_coord[3*j+1];
             x[i][2] = qm_coord[3*j+2];
           }
-        }
-      }
-    }
   }
   return;
 }
 
 
+void FixQMMM::exchange_forces()
+{
+  double **f = atom->f;
+  const int * const mask  = atom->mask;
+  const int * const tag  = atom->tag;
+  const int nlocal = atom->nlocal;
+
+  if (comm->me == 0) {
+    if (screen)  fputs("QMMM: exchange forces",screen);
+    if (logfile) fputs("QMMM: exchange forces",logfile);
+  }
+
+  if (qmmm_role == QMMM_ROLE_MASTER) {
+    MPI_Request req[2];
+    struct commdata *buf = static_cast<struct commdata *>(comm_buf);    
+
+    if (comm->me == 0) {
+      // receive QM forces from QE
+      MPI_Irecv(qm_force,3*num_qm,MPI_DOUBLE,1,QMMM_TAG_FORCE,qm_comm,req);
+      // receive MM forces from LAMMPS
+      MPI_Irecv(qm_coord,3*num_qm,MPI_DOUBLE,1,QMMM_TAG_FORCE,mm_comm,req+1);
+      MPI_Waitall(2,req,MPI_STATUS_IGNORE);
+      // subtract MM forces from QM forces to get the delta
+      for (int i=0; i < num_qm; ++i) {
+        buf[i].tag = qm_remap[i];
+        buf[i].x = qm_force[3*i+0] - qm_coord[3*i+0];
+        buf[i].y = qm_force[3*i+1] - qm_coord[3*i+1];
+        buf[i].z = qm_force[3*i+2] - qm_coord[3*i+2];
+    }
+    MPI_Bcast(comm_buf,num_qm*size_one,MPI_BYTE,0,world);
+
+    /* update forces of (QM) atoms */
+    for (int i=0; i < nlocal; ++i)
+      if (mask[i] & groupbit)
+        for (int j=0; j < num_qm; ++j)
+          if (tag[i] == buf[j].tag) {
+//            f[i][0] += buf[j].x;
+//            f[i][0] += buf[j].y;
+//            f[i][0] += buf[j].z;
+          }
+    }
+  } else if (qmmm_role == QMMM_ROLE_SLAVE) {
+    // XXX collect forces
+    MPI_Send(qm_force, 3*num_qm, MPI_DOUBLE, 0, QMMM_TAG_FORCE, mm_comm);
+  }
+  return;
+}
+
+/* ---------------------------------------------------------------------- */
+void FixQMMM::setup_pre_exchange()
+{
+  exchange_positions();
+}
+
+/* ---------------------------------------------------------------------- */
+void FixQMMM::post_integrate()
+{
+  exchange_positions();
+}
 
 /* ---------------------------------------------------------------------- */
 void FixQMMM::setup(int)
 {
-
-  // XXX: verify that the size of the groups has not changed
-  // num_mm = group->count(mm_group);
-  // num_qm = group->count(igroup);
-
-  exchange_positions();
-
-#if 0
-
-  /* nme:    number of atoms in group on this MPI task
-   * nmax:   max number of atoms in group across all MPI tasks
-   * nlocal: all local atoms
-   */
-  int i,j;
-  int nmax,nme,nlocal;
-  int *mask  = atom->mask;
-  int *tag  = atom->tag;
-  nlocal = atom->nlocal;
-  nme=0;
-  for (i=0; i < nlocal; ++i)
-    if (mask[i] & groupbit) ++nme;
-
-  MPI_Allreduce(&nme,&nmax,1,MPI_INT,MPI_MAX,world);
-  memory->destroy(comm_buf);
-  maxbuf = nmax*size_one;
-  comm_buf = (void *) memory->smalloc(maxbuf,"imd:comm_buf");
-
-  connect_msg = 1;
-  reconnect();
-  MPI_Bcast(&imd_inactive, 1, MPI_INT, 0, world);
-  MPI_Bcast(&imd_terminate, 1, MPI_INT, 0, world);
-  if (imd_terminate)
-    error->all(FLERR,"LAMMPS terminated on error in setting up IMD connection.");
-
-  /* initialize and build hashtable. */
-  inthash_t *qm_hash=new inthash_t;
-  inthash_init(qm_hash, num_coords);
-  qm_idmap = (void *)qm_hash;
-
-  MPI_Status status;
-  MPI_Request request;
-  int tmp, ndata;
-  struct commdata *buf = static_cast<struct commdata *>(comm_buf);
-
-  if (me == 0) {
-    int *taglist = new int[num_coords];
-    int numtag=0; /* counter to map atom tags to a 0-based consecutive index list */
-
-    for (i=0; i < nlocal; ++i) {
-      if (mask[i] & groupbit) {
-        taglist[numtag] = tag[i];
-        ++numtag;
-      }
-    }
-
-    /* loop over procs to receive remote data */
-    for (i=1; i < comm->nprocs; ++i) {
-      MPI_Irecv(comm_buf, maxbuf, MPI_BYTE, i, 0, world, &request);
-      MPI_Send(&tmp, 0, MPI_INT, i, 0, world);
-      MPI_Wait(&request, &status);
-      MPI_Get_count(&status, MPI_BYTE, &ndata);
-      ndata /= size_one;
-
-      for (j=0; j < ndata; ++j) {
-        taglist[numtag] = buf[j].tag;
-        ++numtag;
-      }
-    }
-
-    /* sort list of tags by value to have consistently the
-     * same list when running in parallel and build hash table. */
-    id_sort(taglist, 0, num_coords-1);
-    for (i=0; i < num_coords; ++i) {
-      inthash_insert(qm_hash, taglist[i], i);
-    }
-    delete[] taglist;
-
-    /* generate reverse index-to-tag map for communicating
-     * IMD forces back to the proper atoms */
-    qm_remap=inthash_keys(qm_hash);
-  } else {
-    nme=0;
-    for (i=0; i < nlocal; ++i) {
-      if (mask[i] & groupbit) {
-        buf[nme].tag = tag[i];
-        ++nme;
-      }
-    }
-    /* blocking receive to wait until it is our turn to send data. */
-    MPI_Recv(&tmp, 0, MPI_INT, 0, 0, world, &status);
-    MPI_Rsend(comm_buf, nme*size_one, MPI_BYTE, 0, 0, world);
-  }
-
-  return;
-#endif
+  exchange_forces();
+  
 }
-
-#if 0
 
 /* ---------------------------------------------------------------------- */
-/* Main IMD protocol handler:
- * Send coodinates, energies, and add IMD forces to atoms. */
+
 void FixQMMM::post_force(int vflag)
 {
-  /* check for reconnect */
-  if (imd_inactive) {
-    reconnect();
-    MPI_Bcast(&imd_inactive, 1, MPI_INT, 0, world);
-    MPI_Bcast(&imd_terminate, 1, MPI_INT, 0, world);
-    if (imd_terminate)
-      error->all(FLERR,"LAMMPS terminated on error in setting up IMD connection.");
-    if (imd_inactive)
-      return;     /* IMD client has detached and not yet come back. do nothing. */
-  }
-
-  int *tag = atom->tag;
-  double **x = atom->x;
-  tagint *image = atom->image;
-  int nlocal = atom->nlocal;
-  int *mask  = atom->mask;
-  struct commdata *buf;
-
-  if (me == 0) {
-    /* process all pending incoming data. */
-    int imd_paused=0;
-    while ((imdsock_selread(clientsock, 0) > 0) || imd_paused) {
-      /* if something requested to turn off IMD while paused get out */
-      if (imd_inactive) break;
-
-      int32 length;
-      int msg = imd_recv_header(clientsock, &length);
-
-      switch(msg) {
-
-        case IMD_GO:
-          if (screen)
-            fprintf(screen, "Ignoring unexpected IMD_GO message.\n");
-          break;
-
-        case IMD_IOERROR:
-          if (screen)
-            fprintf(screen, "IMD connection lost.\n");
-          /* fallthrough */
-
-        case IMD_DISCONNECT: {
-          /* disconnect from client. wait for new connection. */
-          imd_paused = 0;
-          imd_forces = 0;
-          memory->destroy(force_buf);
-          force_buf = NULL;
-          imdsock_destroy(clientsock);
-          clientsock = NULL;
-          if (screen)
-            fprintf(screen, "IMD client detached. LAMMPS run continues.\n");
-
-          connect_msg = 1;
-          reconnect();
-          if (imd_terminate) imd_inactive = 1;
-          break;
-        }
-
-        case IMD_KILL:
-          /* stop the simulation job and shutdown IMD */
-          if (screen)
-            fprintf(screen, "IMD client requested termination of run.\n");
-          imd_inactive = 1;
-          imd_terminate = 1;
-          imd_paused = 0;
-          imdsock_destroy(clientsock);
-          clientsock = NULL;
-          break;
-
-        case IMD_PAUSE:
-          /* pause the running simulation. wait for second IMD_PAUSE to continue. */
-          if (imd_paused) {
-            if (screen)
-              fprintf(screen, "Continuing run on IMD client request.\n");
-            imd_paused = 0;
-          } else {
-            if (screen)
-              fprintf(screen, "Pausing run on IMD client request.\n");
-            imd_paused = 1;
-          }
-          break;
-
-        case IMD_TRATE:
-          /* change the IMD transmission data rate */
-          if (length > 0)
-            imd_trate = length;
-          if (screen)
-            fprintf(screen, "IMD client requested change of transfer rate. Now it is %d.\n", imd_trate);
-          break;
-
-        case IMD_ENERGIES: {
-          IMDEnergies dummy_energies;
-          imd_recv_energies(clientsock, &dummy_energies);
-          break;
-        }
-
-        case IMD_FCOORDS: {
-          float *dummy_coords = new float[3*length];
-          imd_recv_fcoords(clientsock, length, dummy_coords);
-          delete[] dummy_coords;
-          break;
-        }
-
-        case IMD_MDCOMM: {
-          int32 *imd_tags = new int32[length];
-          float *imd_fdat = new float[3*length];
-          imd_recv_mdcomm(clientsock, length, imd_tags, imd_fdat);
-
-          if (imd_forces < length) { /* grow holding space for forces, if needed. */
-            memory->destroy(force_buf);
-            force_buf = (void *) memory->smalloc(length*size_one,
-                                                 "imd:force_buf");
-          }
-          imd_forces = length;
-          buf = static_cast<struct commdata *>(force_buf);
-
-          /* compare data to hash table */
-          for (int ii=0; ii < length; ++ii) {
-            buf[ii].tag = qm_remap[imd_tags[ii]];
-            buf[ii].x   = imd_fdat[3*ii];
-            buf[ii].y   = imd_fdat[3*ii+1];
-            buf[ii].z   = imd_fdat[3*ii+2];
-          }
-          delete[] imd_tags;
-          delete[] imd_fdat;
-          break;
-        }
-
-        default:
-          if (screen)
-            fprintf(screen, "Unhandled incoming IMD message #%d. length=%d\n", msg, length);
-          break;
-      }
-    }
-  }
-
-  /* update all tasks with current settings. */
-  int old_imd_forces = imd_forces;
-  MPI_Bcast(&imd_trate, 1, MPI_INT, 0, world);
-  MPI_Bcast(&imd_inactive, 1, MPI_INT, 0, world);
-  MPI_Bcast(&imd_forces, 1, MPI_INT, 0, world);
-  MPI_Bcast(&imd_terminate, 1, MPI_INT, 0, world);
-  if (imd_terminate)
-    error->all(FLERR,"LAMMPS terminated on IMD request.");
-
-  if (imd_forces > 0) {
-    /* check if we need to readjust the forces comm buffer on the receiving nodes. */
-    if (me != 0) {
-      if (old_imd_forces < imd_forces) { /* grow holding space for forces, if needed. */
-        if (force_buf != NULL)
-          memory->sfree(force_buf);
-        force_buf = memory->smalloc(imd_forces*size_one, "imd:force_buf");
-      }
-    }
-    MPI_Bcast(force_buf, imd_forces*size_one, MPI_BYTE, 0, world);
-  }
-
-  /* Check if we need to communicate coordinates to the client.
-   * Tuning imd_trate allows to keep the overhead for IMD low
-   * at the expense of a more jumpy display. Rather than using
-   * end_of_step() we do everything here in one go.
-   *
-   * If we don't communicate, only check if we have forces
-   * stored away and apply them. */
-  if (update->ntimestep % imd_trate) {
-    if (imd_forces > 0) {
-      double **f = atom->f;
-      buf = static_cast<struct commdata *>(force_buf);
-
-      /* XXX. this is in principle O(N**2) == not good.
-       * however we assume for now that the number of atoms
-       * that we manipulate via IMD will be small compared
-       * to the total system size, so we don't hurt too much. */
-      for (int j=0; j < imd_forces; ++j) {
-        for (int i=0; i < nlocal; ++i) {
-          if (mask[i] & groupbit) {
-            if (buf[j].tag == tag[i]) {
-              f[i][0] += imd_fscale*buf[j].x;
-              f[i][1] += imd_fscale*buf[j].y;
-              f[i][2] += imd_fscale*buf[j].z;
-            }
-          }
-        }
-      }
-    }
-    return;
-  }
-
-  /* check and potentially grow local communication buffers. */
-  int i, k, nmax, nme=0;
-  for (i=0; i < nlocal; ++i)
-    if (mask[i] & groupbit) ++nme;
-
-  MPI_Allreduce(&nme,&nmax,1,MPI_INT,MPI_MAX,world);
-  if (nmax*size_one > maxbuf) {
-    memory->destroy(comm_buf);
-    maxbuf = nmax*size_one;
-    comm_buf = memory->smalloc(maxbuf,"imd:comm_buf");
-  }
-
-  MPI_Status status;
-  MPI_Request request;
-  int tmp, ndata;
-  buf = static_cast<struct commdata *>(comm_buf);
-
-  if (me == 0) {
-    /* collect data into new array. we bypass the IMD API to save
-     * us one extra copy of the data. */
-    msglen = 3*sizeof(float)*num_coords+IMDHEADERSIZE;
-    msgdata = new char[msglen];
-    imd_fill_header((IMDheader *)msgdata, IMD_FCOORDS, num_coords);
-    /* array pointer, to the offset where we receive the coordinates. */
-    float *recvcoord = (float *) (msgdata+IMDHEADERSIZE);
-
-    /* add local data */
-    if (unwrap_flag) {
-      double xprd = domain->xprd;
-      double yprd = domain->yprd;
-      double zprd = domain->zprd;
-      double xy = domain->xy;
-      double xz = domain->xz;
-      double yz = domain->yz;
-
-      for (i=0; i<nlocal; ++i) {
-        if (mask[i] & groupbit) {
-          const int j = 3*inthash_lookup((inthash_t *)qm_idmap, tag[i]);
-          if (j != HASH_FAIL) {
-            int ix = (image[i] & IMGMASK) - IMGMAX;
-            int iy = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-            int iz = (image[i] >> IMG2BITS) - IMGMAX;
-
-            if (domain->triclinic) {
-              recvcoord[j]   = x[i][0] + ix * xprd + iy * xy + iz * xz;
-              recvcoord[j+1] = x[i][1] + iy * yprd + iz * yz;
-              recvcoord[j+2] = x[i][2] + iz * zprd;
-            } else {
-              recvcoord[j]   = x[i][0] + ix * xprd;
-              recvcoord[j+1] = x[i][1] + iy * yprd;
-              recvcoord[j+2] = x[i][2] + iz * zprd;
-            }
-          }
-        }
-      }
-    } else {
-      for (i=0; i<nlocal; ++i) {
-        if (mask[i] & groupbit) {
-          const int j = 3*inthash_lookup((inthash_t *)qm_idmap, tag[i]);
-          if (j != HASH_FAIL) {
-            recvcoord[j]   = x[i][0];
-            recvcoord[j+1] = x[i][1];
-            recvcoord[j+2] = x[i][2];
-          }
-        }
-      }
-    }
-
-    /* loop over procs to receive remote data */
-    for (i=1; i < comm->nprocs; ++i) {
-      MPI_Irecv(comm_buf, maxbuf, MPI_BYTE, i, 0, world, &request);
-      MPI_Send(&tmp, 0, MPI_INT, i, 0, world);
-      MPI_Wait(&request, &status);
-      MPI_Get_count(&status, MPI_BYTE, &ndata);
-      ndata /= size_one;
-
-      for (k=0; k<ndata; ++k) {
-        const int j = 3*inthash_lookup((inthash_t *)qm_idmap, buf[k].tag);
-        if (j != HASH_FAIL) {
-          recvcoord[j]   = buf[k].x;
-          recvcoord[j+1] = buf[k].y;
-          recvcoord[j+2] = buf[k].z;
-        }
-      }
-    }
-
-    /* done collecting frame data now communicate with IMD client. */
-
-    /* send coordinate data, if client is able to accept */
-    if (clientsock && imdsock_selwrite(clientsock,0)) {
-      imd_writen(clientsock, msgdata, msglen);
-    }
-    delete[] msgdata;
-
-  } else {
-    /* copy coordinate data into communication buffer */
-    nme = 0;
-    if (unwrap_flag) {
-      double xprd = domain->xprd;
-      double yprd = domain->yprd;
-      double zprd = domain->zprd;
-      double xy = domain->xy;
-      double xz = domain->xz;
-      double yz = domain->yz;
-
-      for (i=0; i<nlocal; ++i) {
-        if (mask[i] & groupbit) {
-          int ix = (image[i] & IMGMASK) - IMGMAX;
-          int iy = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-          int iz = (image[i] >> IMG2BITS) - IMGMAX;
-
-          if (domain->triclinic) {
-            buf[nme].tag = tag[i];
-            buf[nme].x   = x[i][0] + ix * xprd + iy * xy + iz * xz;
-            buf[nme].y   = x[i][1] + iy * yprd + iz * yz;
-            buf[nme].z   = x[i][2] + iz * zprd;
-          } else {
-            buf[nme].tag = tag[i];
-            buf[nme].x   = x[i][0] + ix * xprd;
-            buf[nme].y   = x[i][1] + iy * yprd;
-            buf[nme].z   = x[i][2] + iz * zprd;
-          }
-          ++nme;
-        }
-      }
-    } else {
-      for (i=0; i<nlocal; ++i) {
-        if (mask[i] & groupbit) {
-          buf[nme].tag = tag[i];
-          buf[nme].x   = x[i][0];
-          buf[nme].y   = x[i][1];
-          buf[nme].z   = x[i][2];
-          ++nme;
-        }
-      }
-    }
-    /* blocking receive to wait until it is our turn to send data. */
-    MPI_Recv(&tmp, 0, MPI_INT, 0, 0, world, &status);
-    MPI_Rsend(comm_buf, nme*size_one, MPI_BYTE, 0, 0, world);
-  }
-
-  return;
+  exchange_forces();
 }
-#endif
 
 /* ---------------------------------------------------------------------- */
 /* local memory usage. approximately. */

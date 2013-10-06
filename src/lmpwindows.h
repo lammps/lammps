@@ -50,7 +50,7 @@ inline int mkdir(const char *path, int){
 #include <string.h>
 inline int setenv(const char *name, const char *value, int) {
   int len=strlen(name)+strlen(value)+2;
-  char *str = malloc(len);
+  char *str = (char *)malloc(len);
   strcpy(str,name);
   strcat(str,"=");
   strcat(str,value);

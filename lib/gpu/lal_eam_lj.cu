@@ -471,8 +471,8 @@ __kernel void kernel_pair_fast(__global numtyp4 *x_, __global numtyp *fp_,
     int itype=fast_mul((int)MAX_SHARED_TYPES,iw);
 
     numtyp factor_lj;
-    for ( ; nbor<list_end; nbor+=n_stride) {
-      int j=*nbor;
+    for ( ; nbor<nbor_end; nbor+=n_stride) {
+      int j=dev_packed[nbor];
       factor_lj = sp_lj[sbmask(j)];
       j &= NEIGHMASK;
 

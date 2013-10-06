@@ -69,11 +69,11 @@ __kernel void k_born_wolf(const __global numtyp4 *restrict x_,
     virial[i]=(acctyp)0;
   
   if (ii<inum) {
-    const __global int *nbor, *list_end;
+    int nbor, nbor_end;
     int i, numj;
     __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
-              n_stride,list_end,nbor);
+              n_stride,nbor_end,nbor);
   
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     numtyp qtmp; fetch(qtmp,i,q_tex);
@@ -85,8 +85,8 @@ __kernel void k_born_wolf(const __global numtyp4 *restrict x_,
       e_coul += (acctyp)2.0*e_self;
     }
 
-    for ( ; nbor<list_end; nbor+=n_stride) {
-      int j=*nbor;
+    for ( ; nbor<nbor_end; nbor+=n_stride) {
+      int j=dev_packed[nbor];
 
       numtyp factor_lj, factor_coul;
       factor_lj = sp_lj[sbmask(j)];
@@ -201,11 +201,11 @@ __kernel void k_born_wolf_fast(const __global numtyp4 *restrict x_,
   __syncthreads();
   
   if (ii<inum) {
-    const __global int *nbor, *list_end;
+    int nbor, nbor_end;
     int i, numj;
     __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
-              n_stride,list_end,nbor);
+              n_stride,nbor_end,nbor);
   
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     numtyp qtmp; fetch(qtmp,i,q_tex);
@@ -218,8 +218,8 @@ __kernel void k_born_wolf_fast(const __global numtyp4 *restrict x_,
       e_coul += (acctyp)2.0*e_self;
     }
 
-    for ( ; nbor<list_end; nbor+=n_stride) {
-      int j=*nbor;
+    for ( ; nbor<nbor_end; nbor+=n_stride) {
+      int j=dev_packed[nbor];
 
       numtyp factor_lj, factor_coul;
       factor_lj = sp_lj[sbmask(j)];

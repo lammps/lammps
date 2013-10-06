@@ -10,218 +10,234 @@ fix atc command :h3
 
 [Syntax:]
 
-fix ID groupID atc type paramfile :pre
+fix <fixID> <group> atc <type> <parameter_file> :pre
 
-ID, group-ID are documented in "fix"_fix.html command :ulb,l
-atc = style name of this fix command :l
-type = {thermal} or {two_temperature} or {hardy} :l
- {thermal} = thermal coupling with field: temperature
- {two_temperature} = electron-phonon coupling with field, temperature and electron_temperature
- {hardy} = Hardy on-the-fly post-processing :pre
-paramfile = file with material parameters (not specified for {hardy} type) :l,ule
+fixID = name of fix :l
+group = name of group fix is to be applied :l
+type = {thermal} or {two_temperature} or {hardy} or {field} :l
+ {thermal} = thermal coupling with fields: temperature
+ {two_temperature} = electron-phonon coupling with field: temperature and electron_temperature
+ {hardy} = on-the-fly post-processing using kernel localization functions (see "related" section for possible fields) 
+ {field} = on-the-fly post-processing using mesh-based localization functions (see "related" section for possible fields) :pre 
+parameter_file = name of the file with material parameters. Note: Neither hardy nor field requires a parameter file :l,ule 
 
 [Examples:]
 
-fix AtC atc_atoms atc thermal Ar_thermal.dat
-fix AtC atc_atoms atc transfer hardy :pre
+fix AtC internal atc thermal Ar_thermal.dat 
+fix AtC internal atc two_temperature Ar_ttm.mat
+fix AtC internal atc hardy
+fix AtC internal atc field :pre 
 
 [Description:]
 
-This fix creates a coupled finite element (FE) and molecular dynamics
-(MD) simulation and/or an on-the-fly estimation of continuum fields,
-where a FE mesh is specified and overlaps the particles, something
-like this:
+This fix is the beginning to creating a coupled FE/MD simulation and/or an on-the-fly estimation of continuum fields. The coupled versions of this fix do Verlet integration and the post-processing does not. After instantiating this fix, several other fix_modify commands will be needed to set up the problem, e.g. define the finite element mesh and prescribe initial and boundary conditions.
 
 :c,image(JPG/atc_nanotube.jpg)
 
-Interscale operators are defined that construct continuum fields from
-atomic data.  Coupled simulations use FE projection approximated on a
-discrete field.  Currently, coupling is restricted to thermal physics.
-The Hardy module can use either FE projection or integration Kernels
-evaluated at mesh points.
-
-Coupling methods enable appropriate corrections to the atomic data to
-be made based on the FE field.  For example, a Gaussian isokinetic
-thermostat can apply heat sources to the atoms that varies in space on
-the same scale as the FE element size.  Meshes are not created
-automatically and must be specified on LAMMPS regions with prescribed
-element sizes.
-
-Coupling and post-processing can be combined in the same simulations
-using separate fix atc commands.
-
-Note that mesh computations and storage run in serial (not
-parallelized) so performance will degrade when large element counts
-are used.
-
-For detailed exposition of the theory and algorithms implemented in
-this fix, please see the papers "here"_#Wagner and "here"_#Zimmerman.
-Please refer to the standard finite element (FE) texts, such as "this
-book"_#Hughes, for the basics of FE simulation.
-
-:line
-
-{Thermal} and {two_temperature} (coupling) types use a Verlet
-time-integration algorithm.  The {hardy} type does not contain its own
-time-integrator and must be used with a separate fix that does contain
-one, e.g. "fix nve"_fix_nve.html, "fix nvt"_fix_nh.html, etc.
-
-A set of example input files with the attendant material files are
-included in the examples/USER/atc directory of the LAMMPS
-distribution.
-
-An extensive set of additional documentation pages for the options
-turned on via the "fix_modify"_fix_modify.html command for this fix
-are inlcluded in the doc/USER/atc directory of the LAMMPS
-distribution.  Individual doc pages are listed and linked to below.
-
-The following commands are typical of a coupling problem:
-
+The following coupling example is typical, but non-exhaustive:
  # ... commands to create and initialize the MD system :pre
 
- # initial fix to designate coupling type and group to apply it to
- # tag group physics material_file
+ # initial fix to designate coupling type and group to apply it to 
+ # tag group physics material_file 
  fix AtC internal atc thermal Ar_thermal.mat :pre
-
- # create a uniform 12 x 2 x 2 mesh that covers region contain the group
- # nx ny nz region periodicity
- fix_modify AtC fem create mesh 12 2 2 mdRegion f p p :pre
-
- # specify the control method for the type of coupling
- # physics control_type
- fix_modify AtC transfer thermal control flux :pre
-
- # specify the initial values for the empirical field "temperature"
- # field node_group value
- fix_modify AtC transfer initial temperature all 30.0 :pre
-
- # create an output stream for nodal fields
- # filename output_frequency
- fix_modify AtC transfer output atc_fe_output 100 :pre
-
- run 1000 :pre
-
-The following commands are typical of a post-processing (Hardy) problem:
+ 
+ # create a uniform 12 x 2 x 2 mesh that covers region contain the group 
+ # nx ny nz region periodicity 
+ fix_modify AtC mesh create 12 2 2 mdRegion f p p :pre
+ 
+ # specify the control method for the type of coupling 
+ # physics control_type 
+ fix_modify AtC thermal control flux :pre
+ 
+ # specify the initial values for the empirical field "temperature" 
+ # field node_group value 
+ fix_modify AtC initial temperature all 30 :pre
+ 
+ # create an output stream for nodal fields 
+ # filename output_frequency 
+ fix_modify AtC output atc_fe_output 100 :pre
+ 
+ run 1000 :pre 
+ 
+likewise for this post-processing example: 
 
  # ... commands to create and initialize the MD system :pre
 
- # initial fix to designate post-processing and the group to apply it to
- # no material file is allowed nor required
+ # initial fix to designate post-processing and the group to apply it to 
+ # no material file is allowed nor required 
  fix AtC internal atc hardy :pre
+ 
+ # for hardy fix, specific kernel function (function type and range) to # be used as a localization function 
+ fix AtC kernel quartic_sphere 10.0 :pre
+ 
+ # create a uniform 1 x 1 x 1 mesh that covers region contain the group 
+ # with periodicity this effectively creats a system average 
+ fix_modify AtC mesh create 1 1 1 box p p p :pre 
 
- # create a uniform 1 x 1 x 1 mesh that covers region contain the group
- # with periodicity this effectively creats a system average
- fix_modify AtC fem create mesh 1 1 1 box p p p :pre
-
- # change from default lagrangian map to eulerian
- # refreshed every 100 steps
+ # change from default lagrangian map to eulerian 
+ # refreshed every 100 steps 
  fix_modify AtC atom_element_map eulerian 100 :pre
+ 
+ # start with no field defined 
+ # add mass density, potential energy density, stress and temperature 
+ fix_modify AtC fields add density energy stress temperature :pre
 
- # start with no field defined
- fix_modify AtC transfer fields none :pre
-
- # add mass density, potential energy density, stress and temperature
- fix_modify AtC transfer fields add density energy stress temperature :pre
-
- # create an output stream for nodal fields
- # filename output_frequency
- fix_modify AtC transfer output nvtFE 100 text :pre
+ # create an output stream for nodal fields 
+ # filename output_frequency 
+ fix_modify AtC output nvtFE 100 text :pre
 
  run 1000 :pre
+ 
+the mesh's linear interpolation functions can be used as the localization function 
+ by using the field option: 
+
+ fix AtC internal atc field 
+ 
+ fix_modify AtC mesh create 1 1 1 box p p p 
+
+ ... 
+
+Note coupling and post-processing can be combined in the same simulations using separate fixes. 
 
 :line
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
-No information about this fix is written to "binary restart
-files"_restart.html.  The "fix_modify"_fix_modify.html options
-relevant to this fix are listed below.  No global scalar or vector or
-per-atom quantities are stored by this fix for access by various
-"output commands"_Section_howto.html#howto_15.  No parameter of this
-fix can be used with the {start/stop} keywords of the "run"_run.html
-command.  This fix is not invoked during "energy
-minimization"_minimize.html.
+No information about this fix is written to "binary restart files"_restart.html.  The "fix_modify"_fix_modify.html options relevant to this fix are listed below.  No global scalar or vector or per-atom quantities are stored by this fix for access by various "output commands"_Section_howto.html#howto_15.  No parameter of this fix can be used with the {start/stop} keywords of the "run"_run.html command.  This fix is not invoked during "energy minimization"_minimize.html.
 
 [Restrictions:]
 
-This fix is part of the USER-ATC package.  It is only enabled if
-LAMMPS was built with that package, which also requires the ATC
-library be built and linked with LAMMPS.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+Thermal and two_temperature (coupling) types use a Verlet time-integration algorithm. The hardy type does not contain its own time-integrator and must be used with a separate fix that does contain one, e.g. nve, nvt, etc. 
+
+Currently, 
+- the coupling is restricted to thermal physics 
+- the FE computations are done in serial on each processor. :ul
 
 [Related commands:]
 
-After specifying this fix in your input script, several other
-"fix_modify"_fix_modify.html commands are used to setup the problem,
-e.g. define the finite element mesh and prescribe initial and boundary
-conditions.
+After specifying this fix in your input script, several other "fix_modify"_fix_modify.html commands are used to setup the problem, e.g. define the finite element mesh and prescribe initial and boundary conditions.
 
-fix_modify commands for setup:
+fix_modify commands for setup: 
 
-"fix_modify AtC fem create mesh"_USER/atc/man_fem_mesh.html
-"fix_modify AtC mesh create_nodeset"_USER/atc/man_mesh_nodeset.html
-"fix_modify AtC mesh create_faceset"_USER/atc/man_mesh_faceset.html
-"fix_modify AtC mesh create_elementset"_USER/atc/man_mesh_elemset.html
-"fix_modify AtC transfer internal"_USER/atc/man_transfer_internal.html
-"fix_modify AtC transfer boundary"_USER/atc/man_transfer_boundary.html
-"fix_modify AtC transfer internal_quadrature"_USER/atc/man_internal_quadrature.html
-"fix_modify AtC transfer pmfc"_USER/atc/man_time_integration.html
-"fix_modify AtC extrinsic electron_integration"_USER/atc/man_electron_integration.html :ul
+"fix_modify AtC mesh create"_USER/atc/man_mesh_create.html
+"fix_modify AtC mesh quadrature"_USER/atc/man_mesh_quadrature.html
+"fix_modify AtC mesh read"_USER/atc/man_mesh_read.html
+"fix_modify AtC mesh write"_USER/atc/man_mesh_write.html
+"fix_modify AtC mesh create_nodeset"_USER/atc/man_mesh_create_nodeset.html
+"fix_modify AtC mesh add_to_nodeset"_USER/atc/man_mesh_add_to_nodeset.html
+"fix_modify AtC mesh create_faceset box"_USER/atc/man_mesh_create_faceset_box.html
+"fix_modify AtC mesh create_faceset plane"_USER/atc/man_mesh_create_faceset_plane.html
+"fix_modify AtC mesh create_elementset"_USER/atc/man_mesh_create_elementset.html
+"fix_modify AtC mesh delete_elements"_USER/atc/man_mesh_delete_elements.html
+"fix_modify AtC mesh nodeset_to_elementset"_USER/atc/man_mesh_nodeset_to_elementset.html
+"fix_modify AtC boundary"_USER/atc/man_boundary.html
+"fix_modify AtC internal_quadrature"_USER/atc/man_internal_quadrature.html
+"fix_modify AtC time_integration (thermal)"_USER/atc/man_thermal_time_integration.html
+"fix_modify AtC time_integration (momentum)"_USER/atc/man_momentum_time_integration.html
+"fix_modify AtC extrinsic electron_integration"_USER/atc/man_electron_integration.html
+"fix_modify AtC internal_element_set"_USER/atc/man_internal_element_set.html
+"fix_modify AtC decomposition"_USER/atc/man_decomposition.html :ul
 
 fix_modify commands for boundary and initial conditions:
 
-"fix_modify AtC transfer initial"_USER/atc/man_initial.html
-"fix_modify AtC transfer fix"_USER/atc/man_fix_nodes.html
-"fix_modify AtC transfer unfix"_USER/atc/man_unfix_nodes.html
-"fix_modify AtC transfer fix_flux"_USER/atc/man_fix_flux.html
-"fix_modify AtC transferunfix_flux"_USER/atc/man_unfix_flux.html
-"fix_modify AtC transfer source"_USER/atc/man_source.html
-"fix_modify AtC transfer remove_source"_USER/atc/man_remove_source.html :ul
+"fix_modify AtC initial"_USER/atc/man_initial.html
+"fix_modify AtC fix"_USER/atc/man_fix_nodes.html
+"fix_modify AtC unfix"_USER/atc/man_unfix_nodes.html
+"fix_modify AtC fix_flux"_USER/atc/man_fix_flux.html
+"fix_modify AtC unfix_flux"_USER/atc/man_unfix_flux.html
+"fix_modify AtC source"_USER/atc/man_source.html
+"fix_modify AtC remove_source"_USER/atc/man_remove_source.html :ul
 
-fix_modify commands for control and filtering:
+fix_modify commands for control and filtering: 
 
-"fix_modify AtC transfer thermal control"_USER/atc/man_thermal_control.html
-"fix_modify AtC transfer filter"_USER/atc/man_time_filter.html
-"fix_modify AtC transfer filter scale"_USER/atc/man_filter_scale.html
-"fix_modify AtC transfer equilibrium_start"_USER/atc/man_equilibrium_start.html
-"fix_modify AtC extrinsic exchange"_USER/atc/man_extrinsic_exchange.html :ul
+"fix_modify AtC control"_USER/atc/man_control.html
+"fix_modify AtC control thermal"_USER/atc/man_control_thermal.html
+"fix_modify AtC control thermal correction_max_iterations"_USER/atc/man_control_thermal_correction_max_iterations.html
+"fix_modify AtC control momentum"_USER/atc/man_control_momentum.html
+"fix_modify AtC control localized_lambda"_USER/atc/man_localized_lambda.html
+"fix_modify AtC control lumped_lambda_solve"_USER/atc/man_lumped_lambda_solve.html
+"fix_modify AtC control mask_direction"_USER/atc/man_mask_direction.html control
+"fix_modify AtC filter"_USER/atc/man_time_filter.html
+"fix_modify AtC filter scale"_USER/atc/man_filter_scale.html
+"fix_modify AtC filter type"_USER/atc/man_filter_type.html
+"fix_modify AtC equilibrium_start"_USER/atc/man_equilibrium_start.html
+"fix_modify AtC extrinsic exchange"_USER/atc/man_extrinsic_exchange.html
+"fix_modify AtC poisson_solver"_USER/atc/man_poisson_solver.html :ul
 
-fix_modify commands for output:
+fix_modify commands for output: 
 
-"fix_modify AtC transfer output"_USER/atc/man_transfer_output.html
-"fix_modify AtC transfer atomic_output"_USER/atc/man_transfer_atomic_output.html
+"fix_modify AtC output"_USER/atc/man_output.html
+"fix_modify AtC output nodeset"_USER/atc/man_output_nodeset.html
+"fix_modify AtC output elementset"_USER/atc/man_output_elementset.html
+"fix_modify AtC output boundary_integral"_USER/atc/man_boundary_integral.html
+"fix_modify AtC output contour_integral"_USER/atc/man_contour_integral.html
 "fix_modify AtC mesh output"_USER/atc/man_mesh_output.html
-"fix_modify AtC transfer write_restart"_USER/atc/man_write_restart.html
-"fix_modify AtC transfer read_restart"_USER/atc/man_read_restart.html :ul
+"fix_modify AtC write_restart"_USER/atc/man_write_restart.html
+"fix_modify AtC read_restart"_USER/atc/man_read_restart.html :ul
 
-fix_modify commands for post-processing:
+fix_modify commands for post-processing: 
 
-"fix_modify AtC transfer fields"_USER/atc/man_hardy_fields.html
-"fix_modify AtC transfer gradients"_USER/atc/man_hardy_gradients.html
-"fix_modify AtC transfer rates"_USER/atc/man_hardy_rates.html
-"fix_modify AtC transfer computes"_USER/atc/man_hardy_computes.html
-"fix_modify AtC set"_USER/atc/man_hardy_set.html
-"fix_modify AtC transfer on_the_fly"_USER/atc/man_hardy_on_the_fly.html
-"fix_modify AtC boundary_integral"_USER/atc/man_boundary_integral.html
-"fix_modify AtC contour_integral"_USER/atc/man_contour_integral.html :ul
+"fix_modify AtC kernel"_USER/atc/man_hardy_kernel.html
+"fix_modify AtC fields"_USER/atc/man_hardy_fields.html
+"fix_modify AtC grdients"_USER/atc/man_hardy_gradients.html
+"fix_modify AtC rates"_USER/atc/man_hardy_rates.html
+"fix_modify AtC computes"_USER/atc/man_hardy_computes.html
+"fix_modify AtC on_the_fly"_USER/atc/man_hardy_on_the_fly.html
+"fix_modify AtC pair_interactions/bond_interactions"_USER/atc/man_pair_interactions.html
+"fix_modify AtC sample_frequency"_USER/atc/man_sample_frequency.html
+"fix_modify AtC set"_USER/atc/man_set.html :ul
 
-miscellaneous fix_modify commands:
+miscellaneous fix_modify commands: 
 
-"fix_modify AtC transfer atom_element_map"_USER/atc/man_atom_element_map.html
-"fix_modify AtC transfer neighbor_reset_frequency"_USER/atc/man_neighbor_reset_frequency.html :ul
+"fix_modify AtC atom_element_map"_USER/atc/man_atom_element_map.html
+"fix_modify AtC atom_weight"_USER/atc/man_atom_weight.html
+"fix_modify AtC write_atom_weights"_USER/atc/man_write_atom_weights.html
+"fix_modify AtC reset_time"_USER/atc/man_reset_time.html
+"fix_modify AtC reset_atomic_reference_positions"_USER/atc/man_reset_atomic_reference_positions.html
+"fix_modify AtC fe_md_boundary"_USER/atc/man_fe_md_boundary.html
+"fix_modify AtC boundary_faceset"_USER/atc/man_boundary_faceset.html
+"fix_modify AtC consistent_fe_initialization"_USER/atc/man_consistent_fe_initialization.html
+"fix_modify AtC mass_matrix"_USER/atc/man_mass_matrix.html
+"fix_modify AtC material"_USER/atc/man_material.html
+"fix_modify AtC atomic_charge"_USER/atc/man_atomic_charge.html
+"fix_modify AtC source_integration"_USER/atc/man_source_integration.html
+"fix_modify AtC temperature_definition"_USER/atc/man_temperature_definition.html
+"fix_modify AtC track_displacement"_USER/atc/man_track_displacement.html
+"fix_modify AtC boundary_dynamics"_USER/atc/man_boundary_dynamics.html
+"fix_modify AtC add_species"_USER/atc/man_add_species.html
+"fix_modify AtC add_molecule"_USER/atc/man_add_molecule.html
+"fix_modify AtC remove_species"_USER/atc/man_remove_species.html
+"fix_modify AtC remove_molecule"_USER/atc/man_remove_molecule.html :ul
 
-[Default:] none
+Note: a set of example input files with the attendant material files are included with this package 
+
+[Default:]
+None 
 
 :line
 
+For detailed exposition of the theory and algorithms please see:
+
 :link(Wagner)
-[(Wagner)] Wagner, Jones, Templeton, Parks, Special Issue of
-Computer Methods and Applied Mechanics, 197, 3351-3365 (2008).
+[(Wagner)] Wagner, GJ; Jones, RE; Templeton, JA; Parks, MA, "An atomistic-to-continuum coupling method for heat transfer in solids." Special Issue of Computer Methods and Applied Mechanics (2008) 197:3351. 
 
-:link(Zimmerman)
-[(Zimmerman)] Zimmerman, Webb, Hoyt, Jones, Klein, Bammann, Special
-Issue of Modelling and Simulation in Materials Science and
-Engineering, 12, S319 (2004).
+:link(Zimmeman2004)
+[(Zimmerman2004)] Zimmerman, JA; Webb, EB; Hoyt, JJ;. Jones, RE; Klein, PA; Bammann, DJ, "Calculation of stress in atomistic simulation." Special Issue of Modelling and Simulation in Materials Science and Engineering (2004), 12:S319. 
 
-:link(Hughes)
-[(Hughes)] T.J.R Hughes, "The Finite Element Method," Dover (2003).
+:link(Zimmerman2010)
+[(Zimmerman2010)] Zimmerman, JA; Jones, RE; Templeton, JA, "A material frame approach for evaluating continuum variables in atomistic simulations." Journal of Computational Physics (2010), 229:2364. 
+
+:link(Templeton2010)
+[(Templeton2010)] Templeton, JA; Jones, RE; Wagner, GJ, "Application of a field-based method to spatially varying thermal transport problems in molecular dynamics." Modelling and Simulation in Materials Science and Engineering (2010), 18:085007. 
+
+:link(Jones)
+[(Jones)] Jones, RE; Templeton, JA; Wagner, GJ; Olmsted, D; Modine, JA, "Electron transport enhanced molecular dynamics for metals and semi-metals." International Journal for Numerical Methods in Engineering (2010), 83:940. 
+
+:link(Templeton2011)
+[(Templeton2011)] Templeton, JA; Jones, RE; Lee, JW; Zimmerman, JA; Wong, BM, "A long-range electric field solver for molecular dynamics based on atomistic-to-continuum modeling." Journal of Chemical Theory and Computation (2011), 7:1736. 
+
+:link(Mandadapu)
+[(Mandadapu)] Mandadapu, KK; Templeton, JA; Lee, JW, "Polarization as a field variable from molecular dynamics simulations." Journal of Chemical Physics (2013), 139:054115. 
+
+Please refer to the standard finite element (FE) texts, e.g. T.J.R Hughes " The finite element method ", Dover 2003, for the basics of FE simulation.
+

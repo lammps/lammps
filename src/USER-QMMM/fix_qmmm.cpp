@@ -33,6 +33,11 @@
 
 #include "libqmmm.h"
 
+// message tags for QM/MM inter communicator communication
+
+enum {QMMM_TAG_OTHER=0, QMMM_TAG_SIZE=1, QMMM_TAG_COORD=2,QMMM_TAG_FORCE=3};
+
+
 /* re-usable integer hash table code with static linkage. */
 
 /** hash table top level data structure */
@@ -400,9 +405,9 @@ void FixQMMM::init()
 
       if (me == 0) {
         // receive number of QM atoms from QE
-        MPI_Irecv(nat, 1, MPI_INT, 1, 0, qm_comm, req);
+        MPI_Irecv(nat, 1, MPI_INT, 1, QMMM_TAG_SIZE, qm_comm, req);
         // receive number of QM atoms from MM slave
-        MPI_Irecv(nat+1, 1, MPI_INT, 1, 0, mm_comm, req+1);
+        MPI_Irecv(nat+1, 1, MPI_INT, 1, QMMM_TAG_SIZE, mm_comm, req+1);
         MPI_Waitall(2,req,MPI_STATUS_IGNORE);
       }
       // broadcast across MM master processes
@@ -424,8 +429,8 @@ void FixQMMM::init()
       num_mm = group->count(mm_group);
 
       if (me == 0) {
-        /* send number of QM atoms from MM-slave */
-        MPI_Send(&num_qm, 1, MPI_INT, 0, 0, mm_comm);
+        /* send number of QM atoms to MM-slave */
+        MPI_Send(&num_qm, 1, MPI_INT, 0, QMMM_TAG_SIZE, mm_comm);
       }
       memory->create(qm_coord,num_qm,"qmmm:qm_coord");
       memory->create(mm_coord,num_mm,"qmmm:mm_coord");
@@ -569,9 +574,9 @@ void FixQMMM::exchange_positions()
       }
 
       /* done collecting frame data now send it to QM and MM slave. */
-      MPI_Send(qm_coord, num_qm, MPI_DOUBLE, 1, 0, qm_comm);
+      MPI_Send(qm_coord, 3*num_qm, MPI_DOUBLE, 1, QMMM_TAG_COORD, qm_comm);
       printf("MM master: after send coords to QM\n");
-      MPI_Send(qm_coord, num_qm, MPI_DOUBLE, 1, 0, mm_comm);
+      MPI_Send(qm_coord, 3*num_qm, MPI_DOUBLE, 1, QMMM_TAG_COORD, mm_comm);
       printf("MM master: after send coords to MM\n");
 
     } else {

@@ -389,6 +389,8 @@ fix_qeq_comb_omp.cpp
 fix_qeq_comb_omp.h
 fix_qeq_reax.cpp
 fix_qeq_reax.h
+fix_qmmm.cpp
+fix_qmmm.h
 fix_reax_bonds.cpp
 fix_reax_bonds.h
 fix_reax_c.cpp

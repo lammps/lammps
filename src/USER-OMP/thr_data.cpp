@@ -54,7 +54,7 @@ void ThrData::_stamp(enum Timer::ttype flag)
   if (flag == Timer::START) {
     _timer_active = 1;
   }
-  
+
   if (_timer_active) _timer->stamp(flag);
 }
 

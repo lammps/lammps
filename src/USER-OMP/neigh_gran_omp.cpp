@@ -95,7 +95,7 @@ void Neighbor::granular_nsq_no_newton_omp(NeighList *list)
       touchptr = ipage_touch->vget();
       shearptr = dpage_shear->vget();
     }
-    
+
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];

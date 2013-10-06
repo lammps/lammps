@@ -13,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 #include "math.h"
-#include "pair_nm_cut_omp.h"
+#include "pair_zbl_omp.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -22,11 +22,12 @@
 
 #include "suffix.h"
 using namespace LAMMPS_NS;
+using namespace PairZBLConstants;
 
 /* ---------------------------------------------------------------------- */
 
-PairNMCutOMP::PairNMCutOMP(LAMMPS *lmp) :
-  PairNMCut(lmp), ThrOMP(lmp, THR_PAIR)
+PairZBLOMP::PairZBLOMP(LAMMPS *lmp) :
+  PairZBL(lmp), ThrOMP(lmp, THR_PAIR)
 {
   suffix_flag |= Suffix::OMP;
   respa_enable = 0;
@@ -34,7 +35,7 @@ PairNMCutOMP::PairNMCutOMP(LAMMPS *lmp) :
 
 /* ---------------------------------------------------------------------- */
 
-void PairNMCutOMP::compute(int eflag, int vflag)
+void PairZBLOMP::compute(int eflag, int vflag)
 {
   if (eflag || vflag) {
     ev_setup(eflag,vflag);
@@ -73,18 +74,17 @@ void PairNMCutOMP::compute(int eflag, int vflag)
 }
 
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-void PairNMCutOMP::eval(int iifrom, int iito, ThrData * const thr)
+void PairZBLOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
   const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
   dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
   const int * _noalias const type = atom->type;
-  const double * _noalias const special_lj = force->special_lj;
   const int * _noalias const ilist = list->ilist;
   const int * _noalias const numneigh = list->numneigh;
   const int * const * const firstneigh = list->firstneigh;
 
   double xtmp,ytmp,ztmp,delx,dely,delz,fxtmp,fytmp,fztmp;
-  double r,rsq,r2inv,rminv,rninv,forcenm,factor_lj,evdwl,fpair;
+  double rsq,t,fswitch,eswitch,evdwl,fpair;
 
   const int nlocal = atom->nlocal;
   int j,jj,jnum,jtype;
@@ -97,14 +97,11 @@ void PairNMCutOMP::eval(int iifrom, int iito, ThrData * const thr)
     const int i = ilist[ii];
     const int itype = type[i];
     const int    * _noalias const jlist = firstneigh[i];
-    const double * _noalias const cutsqi = cutsq[itype];
-    const double * _noalias const offseti = offset[itype];
-    const double * _noalias const mmi = mm[itype];
-    const double * _noalias const nni = nn[itype];
-    const double * _noalias const nmi = nm[itype];
-    const double * _noalias const e0nmi = e0nm[itype];
-    const double * _noalias const r0mi = r0m[itype];
-    const double * _noalias const r0ni = r0n[itype];
+    const double * _noalias const sw1i = sw1[itype];
+    const double * _noalias const sw2i = sw2[itype];
+    const double * _noalias const sw3i = sw3[itype];
+    const double * _noalias const sw4i = sw4[itype];
+    const double * _noalias const sw5i = sw5[itype];
 
     xtmp = x[i].x;
     ytmp = x[i].y;
@@ -114,7 +111,6 @@ void PairNMCutOMP::eval(int iifrom, int iito, ThrData * const thr)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-      factor_lj = special_lj[sbmask(j)];
       j &= NEIGHMASK;
 
       delx = xtmp - x[j].x;
@@ -123,21 +119,22 @@ void PairNMCutOMP::eval(int iifrom, int iito, ThrData * const thr)
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
 
-      if (rsq < cutsqi[jtype]) {
-        r2inv = 1.0/rsq;
-        r = sqrt(rsq);
+      if (rsq < cut_globalsq) {
+        const double r = sqrt(rsq);
+        fpair = dzbldr(r, itype, jtype);
 
-        rminv = pow(r2inv,mmi[jtype]*0.5);
-        rninv = pow(r2inv,nni[jtype]*0.5);
+        if (r > cut_inner) {
+          t = r - cut_inner;
+          fswitch = t*t *
+            (sw1i[jtype] + sw2i[jtype]*t);
+          fpair += fswitch;
+        }
 
-        forcenm = e0nmi[jtype]*nmi[jtype] * 
-          (r0ni[jtype]/pow(r,nni[jtype]) - 
-           r0mi[jtype]/pow(r,mmi[jtype]));
-        fpair = factor_lj*forcenm*r2inv;
-
+        fpair *= -1.0/r;
         fxtmp += delx*fpair;
         fytmp += dely*fpair;
         fztmp += delz*fpair;
+
         if (NEWTON_PAIR || j < nlocal) {
           f[j].x -= delx*fpair;
           f[j].y -= dely*fpair;
@@ -145,9 +142,13 @@ void PairNMCutOMP::eval(int iifrom, int iito, ThrData * const thr)
         }
 
         if (EFLAG) {
-          evdwl = e0nmi[jtype] * 
-            (mmi[jtype]*r0ni[jtype]*rninv - 
-             nni[jtype]*r0mi[jtype]*rminv) - offseti[jtype];
+          evdwl = e_zbl(r, itype, jtype);
+          evdwl += sw5i[jtype];
+          if (r > cut_inner) {
+            eswitch = t*t*t *
+              (sw3i[jtype] + sw4i[jtype]*t);
+            evdwl += eswitch;
+          }
         }
 
         if (EVFLAG) ev_tally_thr(this,i,j,nlocal,NEWTON_PAIR,
@@ -162,10 +163,10 @@ void PairNMCutOMP::eval(int iifrom, int iito, ThrData * const thr)
 
 /* ---------------------------------------------------------------------- */
 
-double PairNMCutOMP::memory_usage()
+double PairZBLOMP::memory_usage()
 {
   double bytes = memory_usage_thr();
-  bytes += PairNMCut::memory_usage();
+  bytes += PairZBL::memory_usage();
 
   return bytes;
 }

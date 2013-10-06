@@ -72,12 +72,12 @@ void MSMOMP::compute(int eflag, int vflag)
    MSM direct part procedure for intermediate grid levels
 ------------------------------------------------------------------------- */
 
-void MSMOMP::direct(int n) 
+void MSMOMP::direct(int n)
 {
   // zero out electric potential
 
   memset(&(egrid[n][nzlo_out[n]][nylo_out[n]][nxlo_out[n]]),0,ngrid[n]*sizeof(double));
-  
+
   // zero out virial
 
   if (vflag_atom) {
@@ -180,7 +180,7 @@ void MSMOMP::direct_eval(const int nn)
       icz += nzlo_inn;
       icy += nylo_inn;
       icx += nxlo_inn;
-      
+
       const int kmax = zper ? nzhi_direct : MIN(nzhi_direct,betazn - icz);
       const int jmin = yper ? nylo_direct : MAX(nylo_direct,alphan - icy);
       const int jmax = yper ? nyhi_direct : MIN(nyhi_direct,betayn - icy);
@@ -372,7 +372,7 @@ void MSMOMP::direct_peratom(const int nn)
     icz += nzlo_inn;
     icy += nylo_inn;
     icx += nxlo_inn;
-    
+
     const int kmax = zper ? nzhi_direct : MIN(nzhi_direct,betazn - icz);
     const int jmin = yper ? nylo_direct : MAX(nylo_direct,alphan - icy);
     const int jmax = yper ? nyhi_direct : MIN(nyhi_direct,betayn - icy);

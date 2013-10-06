@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -12,17 +12,37 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Tony Sheh (U Michigan), Trung Dac Nguyen (U Michigan)
-   references: Kamberaj et al., J. Chem. Phys. 122, 224114 (2005)
-               Miller et al., J Chem Phys. 116, 8649-8659 (2002)
+   Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "fix_rigid_nve_omp.h"
+#ifdef PAIR_CLASS
 
-using namespace LAMMPS_NS;
+PairStyle(zbl/omp,PairZBLOMP)
 
-/* ---------------------------------------------------------------------- */
+#else
 
-FixRigidNVEOMP::FixRigidNVEOMP(LAMMPS *lmp, int narg, char **arg) :
-  FixRigidNHOMP(lmp, narg, arg) {}
+#ifndef LMP_PAIR_ZBL_OMP_H
+#define LMP_PAIR_ZBL_OMP_H
 
+#include "pair_zbl.h"
+#include "thr_omp.h"
+
+namespace LAMMPS_NS {
+
+class PairZBLOMP : public PairZBL, public ThrOMP {
+
+ public:
+  PairZBLOMP(class LAMMPS *);
+
+  virtual void compute(int, int);
+  virtual double memory_usage();
+
+ private:
+  template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
+  void eval(int ifrom, int ito, ThrData * const thr);
+};
+
+}
+
+#endif
+#endif

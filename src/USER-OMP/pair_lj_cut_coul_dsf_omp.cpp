@@ -13,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 #include "math.h"
-#include "pair_nm_cut_omp.h"
+#include "pair_lj_cut_coul_dsf_omp.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -21,12 +21,22 @@
 #include "neigh_list.h"
 
 #include "suffix.h"
+#include "math_const.h"
 using namespace LAMMPS_NS;
+using namespace MathConst;
+
+#define EWALD_F   1.12837917
+#define EWALD_P   0.3275911
+#define A1        0.254829592
+#define A2       -0.284496736
+#define A3        1.421413741
+#define A4       -1.453152027
+#define A5        1.061405429
 
 /* ---------------------------------------------------------------------- */
 
-PairNMCutOMP::PairNMCutOMP(LAMMPS *lmp) :
-  PairNMCut(lmp), ThrOMP(lmp, THR_PAIR)
+PairLJCutCoulDSFOMP::PairLJCutCoulDSFOMP(LAMMPS *lmp) :
+  PairLJCutCoulDSF(lmp), ThrOMP(lmp, THR_PAIR)
 {
   suffix_flag |= Suffix::OMP;
   respa_enable = 0;
@@ -34,7 +44,7 @@ PairNMCutOMP::PairNMCutOMP(LAMMPS *lmp) :
 
 /* ---------------------------------------------------------------------- */
 
-void PairNMCutOMP::compute(int eflag, int vflag)
+void PairLJCutCoulDSFOMP::compute(int eflag, int vflag)
 {
   if (eflag || vflag) {
     ev_setup(eflag,vflag);
@@ -67,54 +77,62 @@ void PairNMCutOMP::compute(int eflag, int vflag)
       if (force->newton_pair) eval<0,0,1>(ifrom, ito, thr);
       else eval<0,0,0>(ifrom, ito, thr);
     }
+
     thr->timer(Timer::PAIR);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 }
 
+/* ---------------------------------------------------------------------- */
+
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-void PairNMCutOMP::eval(int iifrom, int iito, ThrData * const thr)
+void PairLJCutCoulDSFOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
+  int i,j,ii,jj,jnum,itype,jtype;
+  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
+  double r,rsq,r2inv,r6inv,forcecoul,forcelj,factor_coul,factor_lj;
+  double prefactor,erfcc,erfcd,t;
+  int *ilist,*jlist,*numneigh,**firstneigh;
+
+  evdwl = ecoul = 0.0;
+
   const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
   dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
+  const double * _noalias const q = atom->q;
   const int * _noalias const type = atom->type;
-  const double * _noalias const special_lj = force->special_lj;
-  const int * _noalias const ilist = list->ilist;
-  const int * _noalias const numneigh = list->numneigh;
-  const int * const * const firstneigh = list->firstneigh;
-
-  double xtmp,ytmp,ztmp,delx,dely,delz,fxtmp,fytmp,fztmp;
-  double r,rsq,r2inv,rminv,rninv,forcenm,factor_lj,evdwl,fpair;
-
   const int nlocal = atom->nlocal;
-  int j,jj,jnum,jtype;
+  const double * _noalias const special_coul = force->special_coul;
+  const double * _noalias const special_lj = force->special_lj;
+  const double qqrd2e = force->qqrd2e;
+  double fxtmp,fytmp,fztmp;
 
-  evdwl = 0.0;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
 
   // loop over neighbors of my atoms
 
-  for (int ii = iifrom; ii < iito; ++ii) {
-    const int i = ilist[ii];
-    const int itype = type[i];
-    const int    * _noalias const jlist = firstneigh[i];
-    const double * _noalias const cutsqi = cutsq[itype];
-    const double * _noalias const offseti = offset[itype];
-    const double * _noalias const mmi = mm[itype];
-    const double * _noalias const nni = nn[itype];
-    const double * _noalias const nmi = nm[itype];
-    const double * _noalias const e0nmi = e0nm[itype];
-    const double * _noalias const r0mi = r0m[itype];
-    const double * _noalias const r0ni = r0n[itype];
+  for (ii = iifrom; ii < iito; ++ii) {
 
+    i = ilist[ii];
+    qtmp = q[i];
     xtmp = x[i].x;
     ytmp = x[i].y;
     ztmp = x[i].z;
+    itype = type[i];
+    jlist = firstneigh[i];
     jnum = numneigh[i];
     fxtmp=fytmp=fztmp=0.0;
+
+    if (EVFLAG) {
+      double e_self = -(e_shift/2.0 + alpha/MY_PIS) * qtmp*qtmp*qqrd2e;
+      ev_tally_thr(this,i,i,nlocal,0,0.0,e_self,0.0,0.0,0.0,0.0,thr);
+    }
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       factor_lj = special_lj[sbmask(j)];
+      factor_coul = special_coul[sbmask(j)];
       j &= NEIGHMASK;
 
       delx = xtmp - x[j].x;
@@ -123,17 +141,25 @@ void PairNMCutOMP::eval(int iifrom, int iito, ThrData * const thr)
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
 
-      if (rsq < cutsqi[jtype]) {
+      if (rsq < cutsq[itype][jtype]) {
         r2inv = 1.0/rsq;
-        r = sqrt(rsq);
 
-        rminv = pow(r2inv,mmi[jtype]*0.5);
-        rninv = pow(r2inv,nni[jtype]*0.5);
+        if (rsq < cut_ljsq[itype][jtype]) {
+          r6inv = r2inv*r2inv*r2inv;
+          forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
+          forcelj *= factor_lj;
+        } else forcelj = 0.0;
 
-        forcenm = e0nmi[jtype]*nmi[jtype] *
-          (r0ni[jtype]/pow(r,nni[jtype]) -
-           r0mi[jtype]/pow(r,mmi[jtype]));
-        fpair = factor_lj*forcenm*r2inv;
+        if (rsq < cut_coulsq) {
+          r = sqrt(rsq);
+          prefactor = factor_coul * qqrd2e*qtmp*q[j]/r;
+          erfcd = exp(-alpha*alpha*r*r);
+          t = 1.0 / (1.0 + EWALD_P*alpha*r);
+          erfcc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * erfcd;
+          forcecoul = prefactor * (erfcc/r + 2.0*alpha/MY_PIS * erfcd +
+            r*f_shift) * r;
+        } else forcecoul = 0.0;
+        fpair = (forcecoul + forcelj) * r2inv;
 
         fxtmp += delx*fpair;
         fytmp += dely*fpair;
@@ -145,13 +171,19 @@ void PairNMCutOMP::eval(int iifrom, int iito, ThrData * const thr)
         }
 
         if (EFLAG) {
-          evdwl = e0nmi[jtype] *
-            (mmi[jtype]*r0ni[jtype]*rninv -
-             nni[jtype]*r0mi[jtype]*rminv) - offseti[jtype];
+          if (rsq < cut_ljsq[itype][jtype]) {
+            evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
+              offset[itype][jtype];
+            evdwl *= factor_lj;
+          } else evdwl = 0.0;
+
+         if (rsq < cut_coulsq) {
+           ecoul = prefactor * (erfcc - r*e_shift - rsq*f_shift);
+          } else ecoul = 0.0;
         }
 
-        if (EVFLAG) ev_tally_thr(this,i,j,nlocal,NEWTON_PAIR,
-                                 evdwl,0.0,fpair,delx,dely,delz,thr);
+        if (EVFLAG) ev_tally_thr(this, i,j,nlocal,NEWTON_PAIR,
+                                 evdwl,ecoul,fpair,delx,dely,delz,thr);
       }
     }
     f[i].x += fxtmp;
@@ -162,10 +194,10 @@ void PairNMCutOMP::eval(int iifrom, int iito, ThrData * const thr)
 
 /* ---------------------------------------------------------------------- */
 
-double PairNMCutOMP::memory_usage()
+double PairLJCutCoulDSFOMP::memory_usage()
 {
   double bytes = memory_usage_thr();
-  bytes += PairNMCut::memory_usage();
+  bytes += PairLJCutCoulDSF::memory_usage();
 
   return bytes;
 }

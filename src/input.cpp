@@ -980,11 +980,11 @@ void Input::shell()
   if (narg < 1) error->all(FLERR,"Illegal shell command");
 
   if (strcmp(arg[0],"cd") == 0) {
-    if (narg != 2) error->all(FLERR,"Illegal shell command");
+    if (narg != 2) error->all(FLERR,"Illegal shell cd command");
     chdir(arg[1]);
 
   } else if (strcmp(arg[0],"mkdir") == 0) {
-    if (narg < 2) error->all(FLERR,"Illegal shell command");
+    if (narg < 2) error->all(FLERR,"Illegal shell mkdir command");
 #if !defined(WINDOWS) && !defined(__MINGW32__)
     if (me == 0)
       for (int i = 1; i < narg; i++)
@@ -992,18 +992,22 @@ void Input::shell()
 #endif
 
   } else if (strcmp(arg[0],"mv") == 0) {
-    if (narg != 3) error->all(FLERR,"Illegal shell command");
+    if (narg != 3) error->all(FLERR,"Illegal shell mv command");
     if (me == 0) rename(arg[1],arg[2]);
 
   } else if (strcmp(arg[0],"rm") == 0) {
-    if (narg < 2) error->all(FLERR,"Illegal shell command");
+    if (narg < 2) error->all(FLERR,"Illegal shell rm command");
     if (me == 0)
       for (int i = 1; i < narg; i++) unlink(arg[i]);
 
   } else if (strcmp(arg[0],"rmdir") == 0) {
-    if (narg < 2) error->all(FLERR,"Illegal shell command");
+    if (narg < 2) error->all(FLERR,"Illegal shell rmdir command");
     if (me == 0)
       for (int i = 1; i < narg; i++) rmdir(arg[i]);
+
+  } else if (strcmp(arg[0],"setenv") == 0) {
+    if (narg != 3) error->all(FLERR,"Illegal shell setenv command");
+    setenv(arg[1],arg[2],1);
 
   // use work string to concat args back into one string separated by spaces
   // invoke string in shell via system()

@@ -46,7 +46,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-RespaOMP::RespaOMP(LAMMPS *lmp, int narg, char **arg) 
+RespaOMP::RespaOMP(LAMMPS *lmp, int narg, char **arg)
   : Respa(lmp, narg, arg),ThrOMP(lmp, THR_INTGR)
 {
 }
@@ -139,7 +139,7 @@ void RespaOMP::setup()
       }
       fix->did_reduce();
     }
-      
+
     if (newton[ilevel]) comm->reverse_comm();
     copy_f_flevel(ilevel);
   }
@@ -271,7 +271,7 @@ void RespaOMP::recurse(int ilevel)
         }
         timer->stamp();
         comm->exchange();
-        if (atom->sortfreq > 0 && 
+        if (atom->sortfreq > 0 &&
             update->ntimestep >= atom->nextsort) atom->sort();
         comm->borders();
         timer->stamp(Timer::COMM);
@@ -297,7 +297,7 @@ void RespaOMP::recurse(int ilevel)
     // important that ordering is same as Verlet
     // so that any order dependencies are the same
     // when potentials are invoked at same level
-                 
+
     force_clear(newton[ilevel]);
     if (modify->n_pre_force_respa) {
       timer->stamp();

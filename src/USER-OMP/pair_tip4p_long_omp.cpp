@@ -52,7 +52,7 @@ PairTIP4PLongOMP::PairTIP4PLongOMP(LAMMPS *lmp) :
 
 /* ---------------------------------------------------------------------- */
 
-PairTIP4PLongOMP::~PairTIP4PLongOMP() 
+PairTIP4PLongOMP::~PairTIP4PLongOMP()
 {
   memory->destroy(hneigh_thr);
   memory->destroy(newsite_thr);

@@ -52,7 +52,7 @@ PairLJCutTIP4PCutOMP::PairLJCutTIP4PCutOMP(LAMMPS *lmp) :
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutTIP4PCutOMP::~PairLJCutTIP4PCutOMP() 
+PairLJCutTIP4PCutOMP::~PairLJCutTIP4PCutOMP()
 {
   memory->destroy(hneigh_thr);
   memory->destroy(newsite_thr);

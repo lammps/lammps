@@ -284,7 +284,7 @@ void PPPMTIP4POMP::compute_gf_ad()
     }
     thr->timer(Timer::KSPACE);
   } // end of paralle region
-  
+
   // compute the coefficients for the self-force correction
 
   double prex, prey, prez, tmp[6];
@@ -446,7 +446,7 @@ void PPPMTIP4POMP::make_rho()
       const int ny = p2g[i].b;
       const int nz = p2g[i].t;
 
-      // pre-screen whether this atom will ever come within 
+      // pre-screen whether this atom will ever come within
       // reach of the data segement this thread is updating.
       if ( ((nz+nlower-nzlo_out)*ix*iy >= jto)
            || ((nz+nupper-nzlo_out+1)*ix*iy < jfrom) ) continue;

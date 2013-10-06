@@ -66,7 +66,7 @@ static int get_tid()
 
 /* ---------------------------------------------------------------------- */
 
-FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg) 
+FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg)
   :  Fix(lmp, narg, arg),
      thr(NULL), last_omp_style(NULL), last_pair_hybrid(NULL),
      _nthr(-1), _neighbor(true), _mixed(false), _reduced(true)
@@ -123,7 +123,7 @@ FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg)
       fprintf(screen,"using %s neighbor list subroutines\n", nmode);
       fprintf(screen,"prefer %s precision OpenMP force kernels\n", kmode);
     }
-    
+
     if (logfile) {
       if (reset_thr)
 	fprintf(logfile,"set %d OpenMP thread(s) per MPI task\n", nthreads);
@@ -265,7 +265,7 @@ void FixOMP::init()
     CheckStyleForOMP(improper);
     CheckHybridForOMP(improper,Improper);
   }
-  
+
   if (kspace_split >= 0) {
     CheckStyleForOMP(kspace);
   }

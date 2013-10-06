@@ -34,7 +34,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairBuckLongCoulLongOMP::PairBuckLongCoulLongOMP(LAMMPS *lmp) : 
+PairBuckLongCoulLongOMP::PairBuckLongCoulLongOMP(LAMMPS *lmp) :
   PairBuckLongCoulLong(lmp), ThrOMP(lmp, THR_PAIR)
 {
   suffix_flag |= Suffix::OMP;
@@ -303,7 +303,7 @@ void PairBuckLongCoulLongOMP::compute(int eflag, int vflag)
           }
         }
       }
-    } 
+    }
 
     thr->timer(Timer::PAIR);
     reduce_thr(this, eflag, vflag, thr);
@@ -622,7 +622,7 @@ void PairBuckLongCoulLongOMP::compute_outer(int eflag, int vflag)
           }
         }
       }
-    } 
+    }
 
     thr->timer(Timer::PAIR);
     reduce_thr(this, eflag, vflag, thr);
@@ -1010,7 +1010,7 @@ void PairBuckLongCoulLongOMP::eval_outer(int iiform, int iito, ThrData * const t
   double *f0 = f[0], *fi = f0;
 
   int *ilist = listouter->ilist;
-  
+
   int i, j, ii;
   int *jneigh, *jneighn, typei, typej, ni, respa_flag;
   double qi = 0.0, qri = 0.0;
@@ -1019,10 +1019,10 @@ void PairBuckLongCoulLongOMP::eval_outer(int iiform, int iito, ThrData * const t
   double g2 = g_ewald_6*g_ewald_6, g6 = g2*g2*g2, g8 = g6*g2;
   double respa_buck = 0.0, respa_coul = 0.0, frespa = 0.0;
   vector xi, d;
-  
+
   const double cut_in_off = cut_respa[2];
   const double cut_in_on = cut_respa[3];
-  
+
   const double cut_in_diff = cut_in_on - cut_in_off;
   const double cut_in_off_sq = cut_in_off*cut_in_off;
   const double cut_in_on_sq = cut_in_on*cut_in_on;

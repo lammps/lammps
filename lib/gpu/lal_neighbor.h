@@ -227,6 +227,7 @@ class Neighbor {
   int _gpu_nbor, _max_atoms, _max_nbors, _max_host, _nbor_pitch, _maxspecial;
   bool _gpu_host, _alloc_packed;
   double _cutoff, _cell_size, _bin_time;
+  enum UCL_MEMOPT _packed_permissions;
 
   double _gpu_bytes, _c_bytes, _cell_bytes;
   void alloc(bool &success);

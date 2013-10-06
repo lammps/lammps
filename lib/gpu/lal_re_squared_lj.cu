@@ -172,7 +172,7 @@ __kernel void k_resquared_ellipsoid_sphere(const __global numtyp4 *restrict x_,
     virial[i]=(acctyp)0;
 
   if (ii<inum) {
-    const __global int *nbor, *nbor_end;
+    int nbor, nbor_end;
     int i, numj;
     __local int n_stride;
     nbor_info_e(dev_nbor,stride,t_per_atom,ii,offset,i,numj,
@@ -199,7 +199,7 @@ __kernel void k_resquared_ellipsoid_sphere(const __global numtyp4 *restrict x_,
 
     numtyp factor_lj;
     for ( ; nbor<nbor_end; nbor+=n_stride) {
-      int j=*nbor;
+      int j=dev_nbor[nbor];
       factor_lj = sp_lj[sbmask(j)];
       j &= NEIGHMASK;
 
@@ -424,7 +424,7 @@ __kernel void k_resquared_sphere_ellipsoid(const __global numtyp4 *restrict x_,
     virial[i]=(acctyp)0;
 
   if (ii<inum) {
-    const __global int *nbor, *nbor_end;
+    int nbor, nbor_end;
     int j, numj;
     __local int n_stride;
     nbor_info_e(dev_nbor,stride,t_per_atom,ii,offset,j,numj,
@@ -435,7 +435,7 @@ __kernel void k_resquared_sphere_ellipsoid(const __global numtyp4 *restrict x_,
 
     numtyp factor_lj;
     for ( ; nbor<nbor_end; nbor+=n_stride) {
-      int i=*nbor;
+      int i=dev_nbor[nbor];
       factor_lj = sp_lj[sbmask(i)];
       i &= NEIGHMASK;
 
@@ -616,19 +616,19 @@ __kernel void k_resquared_lj(const __global numtyp4 *restrict x_,
     virial[i]=(acctyp)0;
   
   if (ii<inum) {
-    const __global int *nbor, *list_end;
+    int nbor, nbor_end;
     int i, numj;
     __local int n_stride;
     nbor_info_e(dev_ij,stride,t_per_atom,ii,offset,i,numj,
-                n_stride,list_end,nbor);
+                n_stride,nbor_end,nbor);
   
     numtyp4 ix; fetch4(ix,i,pos_tex);
     int itype=ix.w;
 
     numtyp factor_lj;
-    for ( ; nbor<list_end; nbor+=n_stride) {
+    for ( ; nbor<nbor_end; nbor+=n_stride) {
   
-      int j=*nbor;
+      int j=dev_ij[nbor];
       factor_lj = sp_lj[sbmask(j)];
       j &= NEIGHMASK;
 
@@ -710,20 +710,20 @@ __kernel void k_resquared_lj_fast(const __global numtyp4 *restrict x_,
   __syncthreads();
   
   if (ii<inum) {
-    const __global int *nbor, *list_end;
+    int nbor, nbor_end;
     int i, numj;
     __local int n_stride;
     nbor_info_e(dev_ij,stride,t_per_atom,ii,offset,i,numj,
-                n_stride,list_end,nbor);
+                n_stride,nbor_end,nbor);
 
     numtyp4 ix; fetch4(ix,i,pos_tex);
     int iw=ix.w;
     int itype=fast_mul((int)MAX_SHARED_TYPES,iw);
 
     numtyp factor_lj;
-    for ( ; nbor<list_end; nbor+=n_stride) {
+    for ( ; nbor<nbor_end; nbor+=n_stride) {
   
-      int j=*nbor;
+      int j=dev_ij[nbor];
       factor_lj = sp_lj[sbmask(j)];
       j &= NEIGHMASK;
 

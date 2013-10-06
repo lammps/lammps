@@ -52,7 +52,7 @@ bool AtomT::alloc(const int nall) {
   
   // Ignore host/device transfers?
   _host_view=false;
-  if (dev->shared_memory()) {
+  if (dev->shared_memory() && sizeof(numtyp)==sizeof(double)) {
     _host_view=true;
     #ifdef GPU_CAST
     assert(0==1);

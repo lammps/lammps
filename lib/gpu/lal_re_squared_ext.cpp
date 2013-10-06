@@ -50,7 +50,7 @@ int re_gpu_init(const int ntypes, double **shape, double **well, double **cutsq,
     message=true;
 
   if (message) {
-    fprintf(screen,"Initializing GPU and compiling on process 0...");
+    fprintf(screen,"Initializing Device and compiling on process 0...");
     fflush(screen);
   }
 
@@ -68,9 +68,9 @@ int re_gpu_init(const int ntypes, double **shape, double **well, double **cutsq,
   for (int i=0; i<procs_per_gpu; i++) {
     if (message) {
       if (last_gpu-first_gpu==0)
-        fprintf(screen,"Initializing GPU %d on core %d...",first_gpu,i);
+        fprintf(screen,"Initializing Device %d on core %d...",first_gpu,i);
       else
-        fprintf(screen,"Initializing GPUs %d-%d on core %d...",first_gpu,
+        fprintf(screen,"Initializing Devices %d-%d on core %d...",first_gpu,
                 last_gpu,i);
       fflush(screen);
     }

@@ -160,7 +160,7 @@ grdtyp * PPPMT::init(const int nlocal, const int nall, FILE *_screen,
 
   // Allocate error flags for checking out of bounds atoms
   success=success && (error_flag.alloc(1,*ucl_device,UCL_READ_ONLY,
-                                       UCL_WRITE_ONLY)==UCL_SUCCESS);
+                                       UCL_READ_WRITE)==UCL_SUCCESS);
   if (!success) {
     flag=-3;
     return 0;

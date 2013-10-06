@@ -69,11 +69,15 @@ int main(int argc, char *argv[]) {
     if (in1.eof() || !in1) {
       if (in2.eof() || !in2)
         break;
+      if (token2=="Please")
+        break;
       ok=false;
       break;
     }
     
     if (in2.eof() || !in2) {
+      if (token1=="Please")
+        break;
       ok=false;
       break;
     }

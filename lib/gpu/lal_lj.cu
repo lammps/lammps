@@ -28,7 +28,7 @@ __kernel void k_lj(const __global numtyp4 *restrict x_,
                    const __global numtyp4 *restrict lj1,
                    const __global numtyp4 *restrict lj3, 
                    const int lj_types, 
-                   const __global numtyp *restrict sp_lj_in, 
+                   const __global numtyp *restrict sp_lj, 
                    const __global int * dev_nbor, 
                    const __global int * dev_packed, 
                    __global acctyp4 *restrict ans, 
@@ -37,12 +37,6 @@ __kernel void k_lj(const __global numtyp4 *restrict x_,
                    const int nbor_pitch, const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
-
-  __local numtyp sp_lj[4];
-  sp_lj[0]=sp_lj_in[0];
-  sp_lj[1]=sp_lj_in[1];
-  sp_lj[2]=sp_lj_in[2];
-  sp_lj[3]=sp_lj_in[3];
 
   acctyp energy=(acctyp)0;
   acctyp4 f;

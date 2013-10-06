@@ -47,6 +47,12 @@ inline int mkdir(const char *path, int){
 }
 
 // Windows does not have setenv(). emulate with _putenv_s()
+#include <string.h>
 inline int setenv(const char *name, const char *value, int) {
-  return _putenv_s(name,value);
+  int len=strlen(name)+strlen(value)+2;
+  char *str = malloc(len);
+  strcpy(str,name);
+  strcat(str,"=");
+  strcat(str,value);
+  return _putenv(str);
 }

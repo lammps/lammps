@@ -1038,7 +1038,7 @@ void FixIMD::post_force(int vflag)
       for (i=0; i<nlocal; ++i) {
         if (mask[i] & groupbit) {
           const int j = 3*inthash_lookup((inthash_t *)idmap, tag[i]);
-          if (j != HASH_FAIL) {
+          if (j != 3*HASH_FAIL) {
             int ix = (image[i] & IMGMASK) - IMGMAX;
             int iy = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
             int iz = (image[i] >> IMG2BITS) - IMGMAX;
@@ -1059,7 +1059,7 @@ void FixIMD::post_force(int vflag)
       for (i=0; i<nlocal; ++i) {
         if (mask[i] & groupbit) {
           const int j = 3*inthash_lookup((inthash_t *)idmap, tag[i]);
-          if (j != HASH_FAIL) {
+          if (j != 3*HASH_FAIL) {
             recvcoord[j]   = x[i][0];
             recvcoord[j+1] = x[i][1];
             recvcoord[j+2] = x[i][2];
@@ -1078,7 +1078,7 @@ void FixIMD::post_force(int vflag)
 
       for (k=0; k<ndata; ++k) {
         const int j = 3*inthash_lookup((inthash_t *)idmap, buf[k].tag);
-        if (j != HASH_FAIL) {
+        if (j != 3*HASH_FAIL) {
           recvcoord[j]   = buf[k].x;
           recvcoord[j+1] = buf[k].y;
           recvcoord[j+2] = buf[k].z;

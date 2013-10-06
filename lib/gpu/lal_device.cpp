@@ -175,6 +175,12 @@ int DeviceT::set_ocl_params(char *ocl_vendor) {
   } else if (s_vendor=="cypress") {    
     _ocl_vendor_name="AMD Cypress";
     _ocl_vendor_string="-DCYPRESS_OCL";
+  } else if (s_vendor=="phi") {    
+    _ocl_vendor_name="Intel Phi";
+    _ocl_vendor_string="-DPHI_OCL";
+  } else if (s_vendor=="intel") {    
+    _ocl_vendor_name="Intel CPU";
+    _ocl_vendor_string="-DINTEL_OCL";
   } else if (s_vendor=="generic") {    
     _ocl_vendor_name="GENERIC";
     _ocl_vendor_string="-DGENERIC_OCL";
@@ -330,7 +336,7 @@ void DeviceT::init_message(FILE *screen, const char *name,
   if (_replica_me == 0 && screen) {
     fprintf(screen,"\n-------------------------------------");
     fprintf(screen,"-------------------------------------\n");
-    fprintf(screen,"- Using GPGPU acceleration for %s:\n",name);
+    fprintf(screen,"- Using acceleration for %s:\n",name);
     fprintf(screen,"-  with %d proc(s) per device.\n",_procs_per_gpu);
     #ifdef _OPENMP
     fprintf(screen,"-  with %d thread(s) per proc.\n",_nthreads);
@@ -348,10 +354,10 @@ void DeviceT::init_message(FILE *screen, const char *name,
     for (int i=first_gpu; i<last; i++) {
       std::string sname;
       if (i==first_gpu)
-        sname=gpu->name(i)+", "+toa(gpu->cores(i))+" cores, "+fs+
+        sname=gpu->name(i)+", "+toa(gpu->cus(i))+" CUs, "+fs+
               toa(gpu->gigabytes(i))+" GB, "+toa(gpu->clock_rate(i))+" GHZ (";
       else              
-        sname=gpu->name(i)+", "+toa(gpu->cores(i))+" cores, "+fs+
+        sname=gpu->name(i)+", "+toa(gpu->cus(i))+" CUs, "+fs+
               toa(gpu->clock_rate(i))+" GHZ (";
       if (sizeof(PRECISION)==4) {
         if (sizeof(ACC_PRECISION)==4)
@@ -361,7 +367,7 @@ void DeviceT::init_message(FILE *screen, const char *name,
       } else
         sname+="Double Precision)";
 
-      fprintf(screen,"GPU %d: %s\n",i,sname.c_str());
+      fprintf(screen,"Device %d: %s\n",i,sname.c_str());
     }
 
     fprintf(screen,"-------------------------------------");
@@ -506,16 +512,17 @@ void DeviceT::output_times(UCL_Timer &time_pair, Answer<numtyp,acctyp> &ans,
   double mpi_max_bytes;
   MPI_Reduce(&my_max_bytes,&mpi_max_bytes,1,MPI_DOUBLE,MPI_MAX,0,_comm_replica);
   double max_mb=mpi_max_bytes/(1024.0*1024.0);
+  double t_time=times[0]+times[1]+times[2]+times[3]+times[4];
 
   if (replica_me()==0)
     if (screen && times[5]>0.0) {
       fprintf(screen,"\n\n-------------------------------------");
       fprintf(screen,"--------------------------------\n");
-      fprintf(screen,"      GPU Time Info (average): ");
+      fprintf(screen,"    Device Time Info (average): ");
       fprintf(screen,"\n-------------------------------------");
       fprintf(screen,"--------------------------------\n");
 
-      if (time_device()) {
+      if (time_device() && t_time>0) {
         fprintf(screen,"Data Transfer:   %.4f s.\n",times[0]/_replica_size);
         fprintf(screen,"Data Cast/Pack:  %.4f s.\n",times[4]/_replica_size);
         fprintf(screen,"Neighbor copy:   %.4f s.\n",times[1]/_replica_size);
@@ -527,7 +534,8 @@ void DeviceT::output_times(UCL_Timer &time_pair, Answer<numtyp,acctyp> &ans,
       }
       if (nbor.gpu_nbor()==2)
         fprintf(screen,"Neighbor (CPU):  %.4f s.\n",times[8]/_replica_size);
-      fprintf(screen,"GPU Overhead:    %.4f s.\n",times[5]/_replica_size);
+      if (times[5]>0)
+        fprintf(screen,"Device Overhead: %.4f s.\n",times[5]/_replica_size);
       fprintf(screen,"Average split:   %.4f.\n",avg_split);
       fprintf(screen,"Threads / atom:  %d.\n",threads_per_atom);
       fprintf(screen,"Max Mem / Proc:  %.2f MB.\n",max_mb);
@@ -566,16 +574,17 @@ void DeviceT::output_kspace_times(UCL_Timer &time_in,
   double mpi_max_bytes;
   MPI_Reduce(&my_max_bytes,&mpi_max_bytes,1,MPI_DOUBLE,MPI_MAX,0,_comm_replica);
   double max_mb=mpi_max_bytes/(1024.0*1024.0);
+  double t_time=times[0]+times[1]+times[2]+times[3]+times[4]+times[5];
 
   if (replica_me()==0)
     if (screen && times[6]>0.0) {
       fprintf(screen,"\n\n-------------------------------------");
       fprintf(screen,"--------------------------------\n");
-      fprintf(screen,"      GPU Time Info (average): ");
+      fprintf(screen,"    Device Time Info (average): ");
       fprintf(screen,"\n-------------------------------------");
       fprintf(screen,"--------------------------------\n");
 
-      if (time_device()) {
+      if (time_device() && t_time>0) {
         fprintf(screen,"Data Out:        %.4f s.\n",times[0]/_replica_size);
         fprintf(screen,"Data In:         %.4f s.\n",times[1]/_replica_size);
         fprintf(screen,"Kernel (map):    %.4f s.\n",times[2]/_replica_size);

@@ -19,24 +19,21 @@
 #include "atom.h"
 #include "comm.h"
 #include "update.h"
-// #include "domain.h"
 #include "force.h"
 #include "error.h"
 #include "group.h"
 #include "memory.h"
 
-// #include <math.h>
-// #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-// #include <errno.h>
 
 #include "libqmmm.h"
 
 // message tags for QM/MM inter communicator communication
-
+// have to match with those from the QM code
 enum {QMMM_TAG_OTHER=0, QMMM_TAG_SIZE=1, QMMM_TAG_COORD=2,QMMM_TAG_FORCE=3};
 
+/****************************************************************************/
 
 /* re-usable integer hash table code with static linkage. */
 
@@ -365,19 +362,10 @@ FixQMMM::~FixQMMM()
     delete hashtable;
     free(qm_remap);
   }
-  if (mm_idmap) {
-    inthash_t *hashtable = (inthash_t *)mm_idmap;
-    inthash_destroy(hashtable);
-    delete hashtable;
-    free(mm_remap);
-  }
 
   memory->destroy(comm_buf);
   memory->destroy(qm_coord);
-  memory->destroy(mm_coord);
   memory->destroy(qm_force);
-  memory->destroy(mm_force);
-  memory->destroy(mm_type);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -385,7 +373,7 @@ int FixQMMM::setmask()
 {
   int mask = 0;
   mask |= PRE_FORCE;
-  mask |= POST_FORCE;
+//  mask |= POST_FORCE;
   return mask;
 }
 
@@ -420,51 +408,59 @@ void FixQMMM::init()
       if ((num_qm != nat[0]) || (num_qm != nat[1]))
         error->all(FLERR,"Inconsistant number of QM/MM atoms");
 
-      memory->create(qm_coord,num_qm,"qmmm:qm_coord");
-      memory->create(mm_coord,num_mm,"qmmm:mm_coord");
+      memory->create(qm_coord,3*num_qm,"qmmm:qm_coord");
+
+      const char fmt[] = "Initializing QM/MM master with %d QM atoms\n";
+      
+      if (screen)  fprintf(screen,fmt,num_qm);
+      if (logfile) fprintf(logfile,fmt,num_qm);
+
+      if (qmmm_mode == QMMM_MODE_ELEC) {
+        const char fm2[] = "Electrostatic coupling with %d atoms\n";
+        if (screen)  fprintf(screen,fm2,num_mm);
+        if (logfile) fprintf(logfile,fm2,num_mm);
+      } 
 
     } else if (qmmm_role == QMMM_ROLE_SLAVE) {
 
       num_qm = group->count(igroup);
-      num_mm = group->count(mm_group);
 
       if (me == 0) {
-        /* send number of QM atoms to MM-slave */
+        /* send number of QM atoms to MM-master for confirmation */
         MPI_Send(&num_qm, 1, MPI_INT, 0, QMMM_TAG_SIZE, mm_comm);
       }
-      memory->create(qm_coord,num_qm,"qmmm:qm_coord");
-      memory->create(mm_coord,num_mm,"qmmm:mm_coord");
+      memory->create(qm_coord,3*num_qm,"qmmm:qm_coord");
+
+      const char fmt[] = "Initializing QM/MM slave with %d QM atoms\n";
+      
+      if (screen)  fprintf(screen,fmt,num_qm);
+      if (logfile) fprintf(logfile,fmt,num_qm);
+
     }
 
     // communication buffer
     maxbuf = atom->nmax*size_one;
     comm_buf = (void *) memory->smalloc(maxbuf,"qmmm:comm_buf");
 
-    /* initialize and build hashtables. */
+    /* initialize and build hashtable to map QM atoms */
     inthash_t *qm_hash=new inthash_t;
-    inthash_t *mm_hash=new inthash_t;
     inthash_init(qm_hash, num_qm);
-    inthash_init(mm_hash, num_mm);
     qm_idmap = (void *)qm_hash;
-    mm_idmap = (void *)mm_hash;
-    mm_grbit = group->bitmask[mm_group];
 
     MPI_Status status;
     MPI_Request request;
-    int i, j, tmp, ndata, qm_ntag, mm_ntag, nlocal = atom->nlocal;
+    const int nlocal = atom->nlocal;
+    int i, j, tmp, ndata, qm_ntag;
     int *tag = atom->tag;
     int *mask  = atom->mask;
     struct commdata *buf = static_cast<struct commdata *>(comm_buf);
 
     if (me == 0) {
       int *qm_taglist = new int[num_qm];
-      int *mm_taglist = new int[num_mm];
-      qm_ntag = mm_ntag = 0;
+      qm_ntag = 0;
       for (i=0; i < nlocal; ++i) {
         if (mask[i] & groupbit)
           qm_taglist[qm_ntag++] = tag[i];
-        if (mask[i] & mm_grbit)
-          mm_taglist[mm_ntag++] = tag[i];
       }
 
       /* loop over procs to receive remote data */
@@ -476,39 +472,35 @@ void FixQMMM::init()
         ndata /= size_one;
 
         for (j=0; j < ndata; ++j) {
-          if (buf[j].x < 0.0)
-            qm_taglist[qm_ntag++] = buf[j].tag;
-          else
-            mm_taglist[mm_ntag++] = buf[j].tag;
+          qm_taglist[qm_ntag++] = buf[j].tag;
         }
       }
 
       /* sort list of tags by value to have consistently the
        * same list when running in parallel and build hash table. */
       id_sort(qm_taglist, 0, num_qm);
-      id_sort(mm_taglist, 0, num_mm);
       for (i=0; i < num_qm; ++i) {
         inthash_insert(qm_hash, qm_taglist[i], i);
       }
-      for (i=0; i < num_mm; ++i) {
-        inthash_insert(mm_hash, mm_taglist[i], i);
-      }
       delete[] qm_taglist;
-      delete[] mm_taglist;
 
       /* generate reverse index-to-tag map for communicating
        * qm/mm forces back to the proper atoms */
       qm_remap=inthash_keys(qm_hash);
-      mm_remap=inthash_keys(mm_hash);
+
+#if 0
+      // print hashtable and reverse mapping
+      for (i=0; i < num_qm; ++i) {
+        printf("qm_remap[%d]=%d  qm_hash[%d]=%d\n",i,qm_remap[i],
+               qm_remap[i], inthash_lookup(qm_hash, qm_remap[i]));
+      }
+#endif
+
     } else {
       j = 0;
       for (i=0; i < nlocal; ++i) {
         if (mask[i] & groupbit) {
           buf[j].x = -1.0;
-          buf[j].tag = tag[i];
-          ++j;
-        } else if (mask[i] & mm_grbit) {
-          buf[j].x = 1.0;
           buf[j].tag = tag[i];
           ++j;
         }
@@ -522,7 +514,6 @@ void FixQMMM::init()
 
 void FixQMMM::exchange_positions()
 {
-
   if (qmmm_role == QMMM_ROLE_MASTER) {
     int i,j,k;
     int *mask  = atom->mask;
@@ -547,7 +538,7 @@ void FixQMMM::exchange_positions()
       for (i=0; i<nlocal; ++i) {
         if (mask[i] & groupbit) {
           const int j = 3*inthash_lookup((inthash_t *)qm_idmap, tag[i]);
-          if (j != HASH_FAIL) {
+          if (j != 3*HASH_FAIL) {
             qm_coord[j]   = x[i][0];
             qm_coord[j+1] = x[i][1];
             qm_coord[j+2] = x[i][2];
@@ -565,7 +556,7 @@ void FixQMMM::exchange_positions()
 
         for (k=0; k<ndata; ++k) {
           const int j = 3*inthash_lookup((inthash_t *)qm_idmap, buf[k].tag);
-          if (j != HASH_FAIL) {
+          if (j != 3*HASH_FAIL) {
             qm_coord[j]   = buf[k].x;
             qm_coord[j+1] = buf[k].y;
             qm_coord[j+2] = buf[k].z;
@@ -573,12 +564,11 @@ void FixQMMM::exchange_positions()
         }
       }
 
-      /* done collecting frame data now send it to QM and MM slave. */
-      MPI_Send(qm_coord, 3*num_qm, MPI_DOUBLE, 1, QMMM_TAG_COORD, qm_comm);
-      printf("MM master: after send coords to QM\n");
-      MPI_Send(qm_coord, 3*num_qm, MPI_DOUBLE, 1, QMMM_TAG_COORD, mm_comm);
-      printf("MM master: after send coords to MM\n");
-
+      /* done collecting frame data, send it from rank 0 to QM and MM slave. */
+      if (comm->me == 0) {
+        MPI_Send(qm_coord, 3*num_qm, MPI_DOUBLE, 1, QMMM_TAG_COORD, qm_comm);
+        MPI_Send(qm_coord, 3*num_qm, MPI_DOUBLE, 1, QMMM_TAG_COORD, mm_comm);
+      }
     } else {
 
       /* copy coordinate data into communication buffer */
@@ -598,9 +588,28 @@ void FixQMMM::exchange_positions()
       MPI_Rsend(comm_buf, ndata*size_one, MPI_BYTE, 0, 0, world);
     }
   } else if (qmmm_role == QMMM_ROLE_SLAVE) {
-    MPI_Recv(qm_coord, num_qm, MPI_DOUBLE, 0, 0, mm_comm, MPI_STATUS_IGNORE);
-    printf("MM slave: after received coords\n");
-    // XXX: apply coordinates
+    const int nlocal = atom->nlocal;
+    const int *mask = atom->mask;
+    const int *tag = atom->tag;
+    double **x = atom->x;
+    int i,j;
+
+    MPI_Recv(qm_coord, 3*num_qm, MPI_DOUBLE, 0, QMMM_TAG_COORD,
+             mm_comm, MPI_STATUS_IGNORE);
+    MPI_Bcast(qm_coord, 3*num_qm, MPI_DOUBLE,0,world);
+
+    /* update coordinates of (QM) atoms */
+    for (i=0; i < nlocal; ++i) {
+      if (mask[i] & groupbit) {
+        for (j=0; j < num_qm; ++j) {
+          if (tag[i] == qm_remap[j]) {
+            x[i][0] = qm_coord[3*j];
+            x[i][1] = qm_coord[3*j+1];
+            x[i][2] = qm_coord[3*j+2];
+          }
+        }
+      }
+    }
   }
   return;
 }

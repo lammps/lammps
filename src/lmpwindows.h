@@ -39,20 +39,14 @@ inline double trunc(double x) {
 // Windows version of mkdir function does not have permission flags
 #ifndef S_IRWXU
 # define S_IRWXU 0
+#endif
+#ifndef S_IRGRP
 # define S_IRGRP 0
+#endif
+#ifndef S_IXGRP
 # define S_IXGRP 0
 #endif
 inline int mkdir(const char *path, int){
   return _mkdir(path);
 }
 
-// Windows does not have setenv(). emulate with _putenv_s()
-#include <string.h>
-inline int setenv(const char *name, const char *value, int) {
-  int len=strlen(name)+strlen(value)+2;
-  char *str = (char *)malloc(len);
-  strcpy(str,name);
-  strcat(str,"=");
-  strcat(str,value);
-  return _putenv(str);
-}

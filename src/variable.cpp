@@ -47,7 +47,7 @@ using namespace MathConst;
 
 #define MYROUND(a) (( a-floor(a) ) >= .5) ? ceil(a) : floor(a)
 
-enum{INDEX,LOOP,WORLD,UNIVERSE,ULOOP,STRING,SCALARFILE,ATOMFILE,EQUAL,ATOM};
+enum{INDEX,LOOP,WORLD,UNIVERSE,ULOOP,STRING,GETENV,SCALARFILE,ATOMFILE,EQUAL,ATOM};
 enum{ARG,OP};
 
 // customize by adding a function
@@ -280,6 +280,27 @@ void Variable::set(int narg, char **arg)
     data[nvar] = new char*[num[nvar]];
     copy(1,&arg[2],data[nvar]);
 
+  // GETENV
+  // remove pre-existing var if also style GETENV (allows it to be reset)
+  // num = 1, which = 1st value
+  // data = 1 value, string to eval
+
+  } else if (strcmp(arg[1],"getenv") == 0) {
+    if (narg != 3) error->all(FLERR,"Illegal variable command");
+    if (find(arg[0]) >= 0) {
+      if (style[find(arg[0])] != GETENV)
+        error->all(FLERR,"Cannot redefine variable as a different style");
+      remove(find(arg[0]));
+    }
+    if (nvar == maxvar) grow();
+    style[nvar] = GETENV;
+    num[nvar] = 1;
+    which[nvar] = 0;
+    pad[nvar] = 0;
+    data[nvar] = new char*[num[nvar]];
+    copy(1,&arg[2],data[nvar]);
+    data[nvar][1] = NULL;
+
   // SCALARFILE for strings or numbers
   // which = 1st value
   // data = 1 value, string to eval
@@ -413,10 +434,11 @@ int Variable::next(int narg, char **arg)
       error->all(FLERR,"All variables in next command must be same style");
   }
 
-  // invalid styles STRING or EQUAL or WORLD or ATOM
+  // invalid styles STRING or EQUAL or WORLD or ATOM or GETENV
 
   int istyle = style[find(arg[0])];
-  if (istyle == STRING || istyle == EQUAL || istyle == WORLD || istyle == ATOM)
+  if (istyle == STRING || istyle == EQUAL || istyle == WORLD
+      || istyle == GETENV || istyle == ATOM)
     error->all(FLERR,"Invalid variable style with next command");
 
   // increment all variables in list
@@ -505,6 +527,7 @@ int Variable::next(int narg, char **arg)
      return ptr to stored string
    if LOOP or ULOOP var, write int to data[0] and return ptr to string
    if EQUAL var, evaluate variable and put result in str
+   if GETENV var, query environment and put result in str
    if ATOM or ATOMFILE var, return NULL
    return NULL if no variable with name or which value is bad,
      caller must respond
@@ -540,6 +563,14 @@ char *Variable::retrieve(char *name)
     sprintf(result,"%.20g",answer);
     int n = strlen(result) + 1;
     if (data[ivar][1]) delete [] data[ivar][1];
+    data[ivar][1] = new char[n];
+    strcpy(data[ivar][1],result);
+    str = data[ivar][1];
+  } else if (style[ivar] == GETENV) {
+    const char *result = getenv(data[ivar][0]);
+    if (data[ivar][1]) delete [] data[ivar][1];
+    if (result == NULL) result = (const char *)"";
+    int n = strlen(result) + 1;
     data[ivar][1] = new char[n];
     strcpy(data[ivar][1],result);
     str = data[ivar][1];

@@ -310,7 +310,7 @@ FixQMMM::FixQMMM(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Illegal fix qmmm command");
 
   if (strcmp(update->unit_style,"metal") == 0) {
-    qmmm_fscale = 23.0609;
+    qmmm_fscale = 1.0/23.0609;
   } else if (strcmp(update->unit_style,"real") == 0) {
     qmmm_fscale = 1.0;
   } else error->all(FLERR,"Fix qmmm requires real or metal units");
@@ -374,7 +374,6 @@ int FixQMMM::setmask()
   int mask = 0;
   mask |= POST_INTEGRATE;
   mask |= POST_FORCE;
-//  mask |= POST_RUN;
   return mask;
 }
 
@@ -481,6 +480,76 @@ void FixQMMM::exchange_positions()
 }
 
 /* ---------------------------------------------------------------------- */
+
+void FixQMMM::exchange_forces()
+{
+  double **f = atom->f;
+  const int * const mask  = atom->mask;
+  const int * const tag  = atom->tag;
+  const int nlocal = atom->nlocal;
+
+  if (comm->me == 0) {
+    if (screen)  fputs("QMMM: exchange forces\n",screen);
+    if (logfile) fputs("QMMM: exchange forces\n",logfile);
+  }
+
+  if (qmmm_role == QMMM_ROLE_MASTER) {
+    MPI_Request req[2];
+    struct commdata *buf = static_cast<struct commdata *>(comm_buf);    
+
+    if (comm->me == 0) {
+      // receive QM forces from QE
+      MPI_Irecv(qm_force,3*num_qm,MPI_DOUBLE,1,QMMM_TAG_FORCE,qm_comm,req);
+      // receive MM forces from LAMMPS
+      MPI_Irecv(qm_coord,3*num_qm,MPI_DOUBLE,1,QMMM_TAG_FORCE,mm_comm,req+1);
+      MPI_Waitall(2,req,MPI_STATUS_IGNORE);
+
+      // subtract MM forces from QM forces to get the delta
+      // NOTE: QM forces are always sent in "real" units,
+      // so we need to apply the scaling factor to get to the
+      // supported internal units ("metal" or "real")
+      for (int i=0; i < num_qm; ++i) {
+        buf[i].tag = qm_remap[i];
+        buf[i].x = qmmm_fscale*qm_force[3*i+0] - qm_coord[3*i+0];
+        buf[i].y = qmmm_fscale*qm_force[3*i+1] - qm_coord[3*i+1];
+        buf[i].z = qmmm_fscale*qm_force[3*i+2] - qm_coord[3*i+2];
+    }
+    MPI_Bcast(comm_buf,num_qm*size_one,MPI_BYTE,0,world);
+
+    /* apply forces resulting from QM/MM coupling */
+    for (int i=0; i < nlocal; ++i)
+      if (mask[i] & groupbit)
+        for (int j=0; j < num_qm; ++j)
+          if (tag[i] == buf[j].tag) {
+//            f[i][0] += buf[j].x;
+//            f[i][0] += buf[j].y;
+//            f[i][0] += buf[j].z;
+          }
+    }
+
+  } else if (qmmm_role == QMMM_ROLE_SLAVE) {
+
+    memset(qm_force,0,3*num_qm*sizeof(double));
+    for (int i=0; i < nlocal; ++i)
+      if (mask[i] & groupbit) {
+        const int j = 3*inthash_lookup((inthash_t *)qm_idmap, tag[i]);
+        if (j != 3*HASH_FAIL) {
+          qm_force[j]   = f[i][0];
+          qm_force[j+1] = f[i][1];
+          qm_force[j+2] = f[i][2];
+        }
+      }
+
+    // collect and send MM slave forces to MM master
+    // the reduction is not really needed with only one rank (for now)
+    MPI_Reduce(qm_force,qm_coord,3*num_qm,MPI_DOUBLE,MPI_SUM,0,world);
+    MPI_Send(qm_coord, 3*num_qm, MPI_DOUBLE, 0, QMMM_TAG_FORCE, mm_comm);
+  }
+  return;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void FixQMMM::init()
 {
   if (strstr(update->integrate_style,"respa"))
@@ -509,7 +578,7 @@ void FixQMMM::init()
 
       // consistency check. the fix group and the QM and MM slave
       if ((num_qm != nat[0]) || (num_qm != nat[1]))
-        error->all(FLERR,"Inconsistant number of QM/MM atoms");
+        error->all(FLERR,"Inconsistent number of QM/MM atoms");
 
       memory->create(qm_coord,3*num_qm,"qmmm:qm_coord");
       memory->create(qm_force,3*num_qm,"qmmm:qm_force");
@@ -620,58 +689,6 @@ void FixQMMM::init()
   }
 }
 
-
-
-void FixQMMM::exchange_forces()
-{
-  double **f = atom->f;
-  const int * const mask  = atom->mask;
-  const int * const tag  = atom->tag;
-  const int nlocal = atom->nlocal;
-
-  if (comm->me == 0) {
-    if (screen)  fputs("QMMM: exchange forces\n",screen);
-    if (logfile) fputs("QMMM: exchange forces\n",logfile);
-  }
-
-  if (qmmm_role == QMMM_ROLE_MASTER) {
-    MPI_Request req[2];
-    struct commdata *buf = static_cast<struct commdata *>(comm_buf);    
-
-    if (comm->me == 0) {
-      // receive QM forces from QE
-      MPI_Irecv(qm_force,3*num_qm,MPI_DOUBLE,1,QMMM_TAG_FORCE,qm_comm,req);
-      // receive MM forces from LAMMPS
-      MPI_Irecv(qm_coord,3*num_qm,MPI_DOUBLE,1,QMMM_TAG_FORCE,mm_comm,req+1);
-      MPI_Waitall(2,req,MPI_STATUS_IGNORE);
-      // subtract MM forces from QM forces to get the delta
-      for (int i=0; i < num_qm; ++i) {
-        buf[i].tag = qm_remap[i];
-        buf[i].x = qm_force[3*i+0] - qm_coord[3*i+0];
-        buf[i].y = qm_force[3*i+1] - qm_coord[3*i+1];
-        buf[i].z = qm_force[3*i+2] - qm_coord[3*i+2];
-    }
-    MPI_Bcast(comm_buf,num_qm*size_one,MPI_BYTE,0,world);
-
-    /* update forces of (QM) atoms */
-    for (int i=0; i < nlocal; ++i)
-      if (mask[i] & groupbit)
-        for (int j=0; j < num_qm; ++j)
-          if (tag[i] == buf[j].tag) {
-//            f[i][0] += buf[j].x;
-//            f[i][0] += buf[j].y;
-//            f[i][0] += buf[j].z;
-          }
-    }
-
-  } else if (qmmm_role == QMMM_ROLE_SLAVE) {
-
-    // XXX collect forces
-    // send MM slave forces to MM master
-    MPI_Send(qm_force, 3*num_qm, MPI_DOUBLE, 0, QMMM_TAG_FORCE, mm_comm);
-  }
-  return;
-}
 
 /* ---------------------------------------------------------------------- */
 void FixQMMM::post_integrate()

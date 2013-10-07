@@ -30,16 +30,15 @@ class FixQMMM : public Fix {
   FixQMMM(class LAMMPS *, int, char **);
   ~FixQMMM();
   int setmask();
+
   void init();
 
   // send up-to-date position information to QM and MM slave code
-  void setup_pre_exchange();
   void post_integrate();
 
   // receive and update forces
   void setup(int);
   void post_force(int);
-  //void post_run();
 
   double memory_usage();
 

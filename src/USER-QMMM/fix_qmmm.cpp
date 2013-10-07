@@ -379,6 +379,108 @@ int FixQMMM::setmask()
 }
 
 /* ---------------------------------------------------------------------- */
+
+void FixQMMM::exchange_positions()
+{
+  double **x = atom->x;
+  const int * const mask  = atom->mask;
+  const int * const tag  = atom->tag;
+  const int nlocal = atom->nlocal;
+
+  if (comm->me == 0) {
+    if (screen) fputs("QMMM: exchange positions\n",screen);
+    if (logfile) fputs("QMMM: exchange positions\n",logfile);
+  }
+
+  if (qmmm_role == QMMM_ROLE_MASTER) {
+    MPI_Status status;
+    MPI_Request request;
+    int i,tmp;
+
+    /* check and potentially grow local communication buffers. */
+    if (atom->nmax*size_one > maxbuf) {
+      memory->destroy(comm_buf);
+      maxbuf = atom->nmax*size_one;
+      comm_buf = memory->smalloc(maxbuf,"qmmm:comm_buf");
+    }
+    struct commdata *buf = static_cast<struct commdata *>(comm_buf);    
+
+    if (comm->me == 0) {
+      // insert local atoms into comm buffer
+      for (i=0; i<nlocal; ++i) {
+        if (mask[i] & groupbit) {
+          const int j = 3*inthash_lookup((inthash_t *)qm_idmap, tag[i]);
+          if (j != 3*HASH_FAIL) {
+            qm_coord[j]   = x[i][0];
+            qm_coord[j+1] = x[i][1];
+            qm_coord[j+2] = x[i][2];
+          }
+        }
+      }
+
+      /* loop over procs to receive remote data */
+      for (i=1; i < comm->nprocs; ++i) {
+        int ndata;
+        MPI_Irecv(comm_buf, maxbuf, MPI_BYTE, i, 0, world, &request);
+        MPI_Send(&tmp, 0, MPI_INT, i, 0, world);
+        MPI_Wait(&request, &status);
+        MPI_Get_count(&status, MPI_BYTE, &ndata);
+        ndata /= size_one;
+
+        for (int k=0; k<ndata; ++k) {
+          const int j = 3*inthash_lookup((inthash_t *)qm_idmap, buf[k].tag);
+          if (j != 3*HASH_FAIL) {
+            qm_coord[j]   = buf[k].x;
+            qm_coord[j+1] = buf[k].y;
+            qm_coord[j+2] = buf[k].z;
+          }
+        }
+      }
+
+      /* done collecting coordinates, send it to dependent codes */
+      if (comm->me == 0) {
+        MPI_Send(qm_coord, 3*num_qm, MPI_DOUBLE, 1, QMMM_TAG_COORD, qm_comm);
+        MPI_Send(qm_coord, 3*num_qm, MPI_DOUBLE, 1, QMMM_TAG_COORD, mm_comm);
+      }
+
+    } else {
+
+      /* copy coordinate data into communication buffer */
+      int ndata = 0;
+      for (i=0; i<nlocal; ++i)
+        if (mask[i] & groupbit) {
+          buf[ndata].tag = tag[i];
+          buf[ndata].x   = x[i][0];
+          buf[ndata].y   = x[i][1];
+          buf[ndata].z   = x[i][2];
+          ++ndata;
+        }
+
+      /* blocking receive to wait until it is our turn to send data. */
+      MPI_Recv(&tmp, 0, MPI_INT, 0, 0, world, MPI_STATUS_IGNORE);
+      MPI_Rsend(comm_buf, ndata*size_one, MPI_BYTE, 0, 0, world);
+    }
+  } else if (qmmm_role == QMMM_ROLE_SLAVE) {
+
+    MPI_Recv(qm_coord, 3*num_qm, MPI_DOUBLE, 0, QMMM_TAG_COORD,
+             mm_comm, MPI_STATUS_IGNORE);
+    // not needed for as long as we allow only one MPI task as slave
+    MPI_Bcast(qm_coord, 3*num_qm, MPI_DOUBLE,0,world);
+
+    /* update coordinates of (QM) atoms */
+    for (int i=0; i < nlocal; ++i)
+      if (mask[i] & groupbit)
+        for (int j=0; j < num_qm; ++j)
+          if (tag[i] == qm_remap[j]) {
+            x[i][0] = qm_coord[3*j];
+            x[i][1] = qm_coord[3*j+1];
+            x[i][2] = qm_coord[3*j+2];
+          }
+  }
+  return;
+}
+
+/* ---------------------------------------------------------------------- */
 void FixQMMM::init()
 {
   if (strstr(update->integrate_style,"respa"))
@@ -512,106 +614,12 @@ void FixQMMM::init()
       MPI_Recv(&tmp, 0, MPI_INT, 0, 0, world, MPI_STATUS_IGNORE);
       MPI_Rsend(comm_buf, j*size_one, MPI_BYTE, 0, 0, world);
     }
+
+    // finally, after all is set up, do a first position synchronization
+    exchange_positions();
   }
 }
 
-void FixQMMM::exchange_positions()
-{
-  double **x = atom->x;
-  const int * const mask  = atom->mask;
-  const int * const tag  = atom->tag;
-  const int nlocal = atom->nlocal;
-
-  if (comm->me == 0) {
-    if (screen) fputs("QMMM: exchange positions",screen);
-    if (logfile) fputs("QMMM: exchange positions",logfile);
-  }
-
-  if (qmmm_role == QMMM_ROLE_MASTER) {
-    MPI_Status status;
-    MPI_Request request;
-    int i,tmp;
-
-    /* check and potentially grow local communication buffers. */
-    if (atom->nmax*size_one > maxbuf) {
-      memory->destroy(comm_buf);
-      maxbuf = atom->nmax*size_one;
-      comm_buf = memory->smalloc(maxbuf,"qmmm:comm_buf");
-    }
-    struct commdata *buf = static_cast<struct commdata *>(comm_buf);    
-
-    if (comm->me == 0) {
-      // insert local atoms into comm buffer
-      for (i=0; i<nlocal; ++i) {
-        if (mask[i] & groupbit) {
-          const int j = 3*inthash_lookup((inthash_t *)qm_idmap, tag[i]);
-          if (j != 3*HASH_FAIL) {
-            qm_coord[j]   = x[i][0];
-            qm_coord[j+1] = x[i][1];
-            qm_coord[j+2] = x[i][2];
-          }
-        }
-      }
-
-      /* loop over procs to receive remote data */
-      for (i=1; i < comm->nprocs; ++i) {
-        int ndata;
-        MPI_Irecv(comm_buf, maxbuf, MPI_BYTE, i, 0, world, &request);
-        MPI_Send(&tmp, 0, MPI_INT, i, 0, world);
-        MPI_Wait(&request, &status);
-        MPI_Get_count(&status, MPI_BYTE, &ndata);
-        ndata /= size_one;
-
-        for (int k=0; k<ndata; ++k) {
-          const int j = 3*inthash_lookup((inthash_t *)qm_idmap, buf[k].tag);
-          if (j != 3*HASH_FAIL) {
-            qm_coord[j]   = buf[k].x;
-            qm_coord[j+1] = buf[k].y;
-            qm_coord[j+2] = buf[k].z;
-          }
-        }
-      }
-
-      /* done collecting frame data, send it from rank 0 to QM and MM slave. */
-      if (comm->me == 0) {
-        MPI_Send(qm_coord, 3*num_qm, MPI_DOUBLE, 1, QMMM_TAG_COORD, qm_comm);
-        MPI_Send(qm_coord, 3*num_qm, MPI_DOUBLE, 1, QMMM_TAG_COORD, mm_comm);
-      }
-    } else {
-
-      /* copy coordinate data into communication buffer */
-      int ndata = 0;
-      for (i=0; i<nlocal; ++i)
-        if (mask[i] & groupbit) {
-          buf[ndata].tag = tag[i];
-          buf[ndata].x   = x[i][0];
-          buf[ndata].y   = x[i][1];
-          buf[ndata].z   = x[i][2];
-          ++ndata;
-        }
-
-      /* blocking receive to wait until it is our turn to send data. */
-      MPI_Recv(&tmp, 0, MPI_INT, 0, 0, world, MPI_STATUS_IGNORE);
-      MPI_Rsend(comm_buf, ndata*size_one, MPI_BYTE, 0, 0, world);
-    }
-  } else if (qmmm_role == QMMM_ROLE_SLAVE) {
-
-    MPI_Recv(qm_coord, 3*num_qm, MPI_DOUBLE, 0, QMMM_TAG_COORD,
-             mm_comm, MPI_STATUS_IGNORE);
-    MPI_Bcast(qm_coord, 3*num_qm, MPI_DOUBLE,0,world);
-
-    /* update coordinates of (QM) atoms */
-    for (int i=0; i < nlocal; ++i)
-      if (mask[i] & groupbit)
-        for (int j=0; j < num_qm; ++j)
-          if (tag[i] == qm_remap[j]) {
-            x[i][0] = qm_coord[3*j];
-            x[i][1] = qm_coord[3*j+1];
-            x[i][2] = qm_coord[3*j+2];
-          }
-  }
-  return;
-}
 
 
 void FixQMMM::exchange_forces()
@@ -622,8 +630,8 @@ void FixQMMM::exchange_forces()
   const int nlocal = atom->nlocal;
 
   if (comm->me == 0) {
-    if (screen)  fputs("QMMM: exchange forces",screen);
-    if (logfile) fputs("QMMM: exchange forces",logfile);
+    if (screen)  fputs("QMMM: exchange forces\n",screen);
+    if (logfile) fputs("QMMM: exchange forces\n",logfile);
   }
 
   if (qmmm_role == QMMM_ROLE_MASTER) {
@@ -655,17 +663,14 @@ void FixQMMM::exchange_forces()
 //            f[i][0] += buf[j].z;
           }
     }
+
   } else if (qmmm_role == QMMM_ROLE_SLAVE) {
+
     // XXX collect forces
+    // send MM slave forces to MM master
     MPI_Send(qm_force, 3*num_qm, MPI_DOUBLE, 0, QMMM_TAG_FORCE, mm_comm);
   }
   return;
-}
-
-/* ---------------------------------------------------------------------- */
-void FixQMMM::setup_pre_exchange()
-{
-  exchange_positions();
 }
 
 /* ---------------------------------------------------------------------- */

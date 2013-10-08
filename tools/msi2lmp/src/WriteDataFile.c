@@ -30,7 +30,7 @@ void WriteDataFile(char *nameroot)
 
   if (forcefield & (FF_TYPE_CLASS1|FF_TYPE_OPLSAA)) total_no_angle_angles = 0;
 
-  fprintf(DatF, "LAMMPS data file from msi2lmp v3.8 for %s\n\n", nameroot);
+  fprintf(DatF, "LAMMPS data file from msi2lmp v3.9.1 for %s\n\n", nameroot);
   fprintf(DatF, " %6d atoms\n", total_no_atoms);
   fprintf(DatF, " %6d bonds\n", total_no_bonds);
   fprintf(DatF, " %6d angles\n",total_no_angles);

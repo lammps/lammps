@@ -14,6 +14,31 @@ struct FrcFieldItem ff_atomtypes, equivalence, ff_vdw, ff_bond, ff_morse, ff_ang
   ff_bonbon, ff_bonang, ff_angtor, ff_angangtor, ff_endbontor, ff_midbontor, ff_angang, ff_bonbon13;
 
 
+void ClearFrcData(void)
+{
+  ClearFrcItem(&ff_atomtypes);
+  ClearFrcItem(&equivalence);
+  ClearFrcItem(&ff_vdw);
+  ClearFrcItem(&ff_bond);
+  if (forcefield & FF_TYPE_CLASS1) {  /* Morse bond terms for class I */
+      ClearFrcItem(&ff_morse);
+  }
+  ClearFrcItem(&ff_ang);
+  ClearFrcItem(&ff_tor);
+  ClearFrcItem(&ff_oop);
+
+  if (forcefield & FF_TYPE_CLASS2) {  /* Cross terms for class II */
+    ClearFrcItem(&ff_bonbon);
+    ClearFrcItem(&ff_bonang);
+    ClearFrcItem(&ff_angtor);
+    ClearFrcItem(&ff_angangtor);
+    ClearFrcItem(&ff_endbontor);
+    ClearFrcItem(&ff_midbontor);
+    ClearFrcItem(&ff_bonbon13);
+    ClearFrcItem(&ff_angang);
+  }
+}
+
 void ReadFrcFile(void)
 {
   /* Open Forcefield File */

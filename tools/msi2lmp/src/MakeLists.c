@@ -439,11 +439,11 @@ void build_oops_list()
 
 int count_angle_angles()
 {
-  int num_triples[10] = {0,0,0,4,10,20,35,56,84,120};
+  int num_triples[11] = {0,0,0,0,4,10,20,35,56,84,120};
   int j,n;
 
   for (n=0,j=0; j < total_no_atoms; j++) {
-    n += num_triples[atoms[j].no_connect-1];
+    n += num_triples[atoms[j].no_connect];
   }
   return n;
 }

@@ -1,8 +1,20 @@
 /*
 *
-*  msi2lmp.exe  V3.9
+*  msi2lmp.exe
+*
+*   v3.9.1 AK- Bugfix for Class2. Free allocated memory. Print version number.
 *
 *   v3.9 AK  - Rudimentary support for OPLS-AA
+*
+*   v3.8 AK  - Some refactoring and cleanup of global variables
+*            - Bugfixes for argument parsing and improper definitions
+*            - improved handling of box dimensions and image flags
+*            - port to compiling on windows using MinGW
+*            - more consistent print level handling
+*            - more consistent handling of missing parameters
+*            - Added a regression test script with examples.
+*
+*   V3.7 STM - Added support for triclinic cells
 *
 *   v3.6 KLA - Changes to output to either lammps 2001 (F90 version) or to
 *              lammps 2005 (C++ version)
@@ -122,6 +134,8 @@
 #include <string.h>
 #include <ctype.h>
 
+static const char version[] = "v3.9.1 / 08-Oct-2013";
+
 /* global variables */
 
 char  *rootname;
@@ -138,38 +152,38 @@ int    iflag;
 int   *no_atoms;
 int    no_molecules;
 int    replicate[3];
-int    total_no_atoms;
-int    total_no_bonds;
-int    total_no_angles;
-int    total_no_dihedrals;
-int    total_no_angle_angles;
-int    total_no_oops;
-int    no_atom_types;
-int    no_bond_types;
-int    no_angle_types;
-int    no_dihedral_types;
-int    no_oop_types;
-int    no_angleangle_types;
-char   *FrcFileName;
-FILE   *CarF;
-FILE   *FrcF;
-FILE   *PrmF;
-FILE   *MdfF;
-FILE   *RptF;
+int    total_no_atoms = 0;
+int    total_no_bonds = 0;
+int    total_no_angles = 0;
+int    total_no_dihedrals = 0;
+int    total_no_angle_angles = 0;
+int    total_no_oops = 0;
+int    no_atom_types = 0;
+int    no_bond_types = 0;
+int    no_angle_types = 0;
+int    no_dihedral_types = 0;
+int    no_oop_types = 0;
+int    no_angleangle_types = 0;
+char   *FrcFileName = NULL;
+FILE   *CarF = NULL;
+FILE   *FrcF = NULL;
+FILE   *PrmF = NULL;
+FILE   *MdfF = NULL;
+FILE   *RptF = NULL;
 
-struct Atom *atoms;
-struct MoleculeList *molecule;
-struct BondList *bonds;
-struct AngleList *angles;
-struct DihedralList *dihedrals;
-struct OOPList *oops;
-struct AngleAngleList *angleangles;
-struct AtomTypeList *atomtypes;
-struct BondTypeList *bondtypes;
-struct AngleTypeList *angletypes;
-struct DihedralTypeList *dihedraltypes;
-struct OOPTypeList *ooptypes;
-struct AngleAngleTypeList *angleangletypes;
+struct Atom *atoms = NULL;
+struct MoleculeList *molecule = NULL;
+struct BondList *bonds = NULL;
+struct AngleList *angles = NULL;
+struct DihedralList *dihedrals = NULL;
+struct OOPList *oops = NULL;
+struct AngleAngleList *angleangles = NULL;
+struct AtomTypeList *atomtypes = NULL;
+struct BondTypeList *bondtypes = NULL;
+struct AngleTypeList *angletypes = NULL;
+struct DihedralTypeList *dihedraltypes = NULL;
+struct OOPTypeList *ooptypes = NULL;
+struct AngleAngleTypeList *angleangletypes = NULL;
 
 void condexit(int val)
 {
@@ -312,7 +326,7 @@ int main (int argc, char *argv[])
 
 
   if (pflag > 0) {
-    puts("\nRunning msi2lmp.....\n");
+    printf("\nRunning msi2lmp %s ...\n",version);
     if (forcefield & FF_TYPE_CLASS1) puts(" Forcefield: Class I");
     if (forcefield & FF_TYPE_CLASS2) puts(" Forcefield: Class II");
     if (forcefield & FF_TYPE_OPLSAA) puts(" Forcefield: OPLS-AA");
@@ -372,9 +386,31 @@ int main (int argc, char *argv[])
   /* Write out the final data */
   WriteDataFile(rootname);
 
+  /* free up memory to detect possible memory corruption */
   free(rootname);
+  free(FrcFileName);
+  ClearFrcData();
+
+  for (n=0; n < no_molecules; n++) {
+    free(molecule[n].residue);
+  }
+
+  free(no_atoms);
+  free(molecule);
+  free(atoms);
+  free(atomtypes);
+  if (bonds) free(bonds);
+  if (bondtypes) free(bondtypes);
+  if (angles) free(angles);
+  if (angletypes) free(angletypes);
+  if (dihedrals) free(dihedrals);
+  if (dihedraltypes) free(dihedraltypes);
+  if (oops) free(oops);
+  if (ooptypes) free(ooptypes);
+  if (angleangles) free(angleangles);
+  if (angleangletypes) free(angleangletypes);
+
   if (pflag > 0)
     printf("\nNormal program termination\n");
   return 0;
 }
-

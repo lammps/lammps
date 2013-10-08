@@ -1,6 +1,13 @@
 Stephanie Teich-McGoldrick (Sandai) is the current maintainer
 of the msi2lmp tool.  She can be contacted at steichm at sandia.gov
 
+08 Oct 2013 Axel Kohlmeyer <akohlmey@gmail.com>
+
+Fixed a memory access violation with Class 2 force fields.
+Free all allocated memory to better detection of memory errors.
+Print out version number and data with all print levels > 0.
+Added valgrind checks to the regression tests
+
 02 Aug 2013 Axel Kohlmeyer <akohlmey@gmail.com>
 
 Added rudimentary support for OPLS-AA based on

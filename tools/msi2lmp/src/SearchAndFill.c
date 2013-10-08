@@ -24,6 +24,11 @@ static int blank_line(char *line)
 
 static unsigned char string_match(char *,char *);
 
+void ClearFrcItem(struct FrcFieldItem *item)
+{
+    free(item->data);
+}
+
 void SearchAndFill(struct FrcFieldItem *item)
 {
   int i,j;  /* counters */

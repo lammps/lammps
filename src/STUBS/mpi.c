@@ -101,16 +101,22 @@ double MPI_Wtime()
 
 /* ---------------------------------------------------------------------- */
 
+static int stubtypesize(MPI_Datatype datatype)
+{
+  if (datatype == MPI_INT)             return sizeof(int);
+  else if (datatype == MPI_FLOAT)      return sizeof(float);
+  else if (datatype == MPI_DOUBLE)     return sizeof(double);
+  else if (datatype == MPI_CHAR)       return sizeof(char);
+  else if (datatype == MPI_BYTE)       return sizeof(char);
+  else if (datatype == MPI_LONG_LONG)  return sizeof(uint64_t);
+  else if (datatype == MPI_DOUBLE_INT) return sizeof(double_int);
+}
+
+/* ---------------------------------------------------------------------- */
+
 int MPI_Type_size(MPI_Datatype datatype, int *size)
 {
-  if (datatype == MPI_INT) *size = sizeof(int);
-  else if (datatype == MPI_FLOAT) *size = sizeof(float);
-  else if (datatype == MPI_DOUBLE) *size = sizeof(double);
-  else if (datatype == MPI_CHAR) *size = sizeof(char);
-  else if (datatype == MPI_BYTE) *size = sizeof(char);
-  else if (datatype == MPI_LONG_LONG) *size = sizeof(uint64_t);
-  else if (datatype == MPI_DOUBLE_INT) *size = sizeof(double_int);
-
+  *size = stubtypesize(datatype);
   return 0;
 }
 
@@ -226,10 +232,37 @@ int MPI_Comm_free(MPI_Comm *comm) {return 0;}
 /* ---------------------------------------------------------------------- */
 
 MPI_Fint MPI_Comm_c2f(MPI_Comm comm) { return comm; };
+
 /* ---------------------------------------------------------------------- */
 
 MPI_Comm MPI_Comm_f2c(MPI_Fint comm) { return comm; };
 
+//* ---------------------------------------------------------------------- */
+
+int MPI_Comm_group(MPI_Comm comm, MPI_Group *group) 
+{
+   *group = comm;
+   return 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int MPI_Comm_create(MPI_Comm comm, MPI_Group group, MPI_Comm *newcomm) 
+{
+   *newcomm = group;
+   return 0;
+}
+
+* ---------------------------------------------------------------------- */
+
+int MPI_Group_incl(MPI_Group group, int n, int *ranks, MPI_Group *newgroup)
+{
+   if (n > 0)
+     *newgroup = MPI_COMM_WORLD;
+   else
+     *newgroup = group;
+   return 0;
+}
 /* ---------------------------------------------------------------------- */
 
 int MPI_Cart_create(MPI_Comm comm_old, int ndims, int *dims, int *periods,
@@ -283,15 +316,7 @@ int MPI_Bcast(void *buf, int count, MPI_Datatype datatype,
 int MPI_Allreduce(void *sendbuf, void *recvbuf, int count,
                   MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
 {
-  int n;
-  if (datatype == MPI_INT) n = count*sizeof(int);
-  else if (datatype == MPI_FLOAT) n = count*sizeof(float);
-  else if (datatype == MPI_DOUBLE) n = count*sizeof(double);
-  else if (datatype == MPI_CHAR) n = count*sizeof(char);
-  else if (datatype == MPI_BYTE) n = count*sizeof(char);
-  else if (datatype == MPI_LONG_LONG) n = count*sizeof(uint64_t);
-  else if (datatype == MPI_DOUBLE_INT) n = count*sizeof(double_int);
-
+  int n = count * stubtypesize(datatype);
   if (sendbuf == MPI_IN_PLACE || recvbuf == MPI_IN_PLACE) return 0;
   memcpy(recvbuf,sendbuf,n);
   return 0;
@@ -305,15 +330,7 @@ int MPI_Reduce(void *sendbuf, void *recvbuf, int count,
 		   MPI_Datatype datatype, MPI_Op op,
 		   int root, MPI_Comm comm)
 {
-  int n;
-  if (datatype == MPI_INT) n = count*sizeof(int);
-  else if (datatype == MPI_FLOAT) n = count*sizeof(float);
-  else if (datatype == MPI_DOUBLE) n = count*sizeof(double);
-  else if (datatype == MPI_CHAR) n = count*sizeof(char);
-  else if (datatype == MPI_BYTE) n = count*sizeof(char);
-  else if (datatype == MPI_LONG_LONG) n = count*sizeof(uint64_t);
-  else if (datatype == MPI_DOUBLE_INT) n = count*sizeof(double_int);
-
+  int n = count * stubtypesize(datatype);
   if (sendbuf == MPI_IN_PLACE || recvbuf == MPI_IN_PLACE) return 0;
   memcpy(recvbuf,sendbuf,n);
   return 0;
@@ -325,15 +342,7 @@ int MPI_Reduce(void *sendbuf, void *recvbuf, int count,
 int MPI_Scan(void *sendbuf, void *recvbuf, int count,
              MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
 {
-  int n;
-  if (datatype == MPI_INT) n = count*sizeof(int);
-  else if (datatype == MPI_FLOAT) n = count*sizeof(float);
-  else if (datatype == MPI_DOUBLE) n = count*sizeof(double);
-  else if (datatype == MPI_CHAR) n = count*sizeof(char);
-  else if (datatype == MPI_BYTE) n = count*sizeof(char);
-  else if (datatype == MPI_LONG_LONG) n = count*sizeof(uint64_t);
-  else if (datatype == MPI_DOUBLE_INT) n = count*sizeof(double_int);
-
+  int n = count * stubtypesize(datatype);
   if (sendbuf == MPI_IN_PLACE || recvbuf == MPI_IN_PLACE) return 0;
   memcpy(recvbuf,sendbuf,n);
   return 0;
@@ -347,14 +356,7 @@ int MPI_Allgather(void *sendbuf, int sendcount, MPI_Datatype sendtype,
                   void *recvbuf, int recvcount, MPI_Datatype recvtype,
                   MPI_Comm comm)
 {
-  int n;
-  if (sendtype == MPI_INT) n = sendcount*sizeof(int);
-  else if (sendtype == MPI_FLOAT) n = sendcount*sizeof(float);
-  else if (sendtype == MPI_DOUBLE) n = sendcount*sizeof(double);
-  else if (sendtype == MPI_CHAR) n = sendcount*sizeof(char);
-  else if (sendtype == MPI_BYTE) n = sendcount*sizeof(char);
-  else if (sendtype == MPI_LONG_LONG) n = sendcount*sizeof(uint64_t);
-  else if (sendtype == MPI_DOUBLE_INT) n = sendcount*sizeof(double_int);
+  int n = sendcount * stubtypesize(sendtype);
 
   if (sendbuf == MPI_IN_PLACE || recvbuf == MPI_IN_PLACE) return 0;
   memcpy(recvbuf,sendbuf,n);
@@ -369,15 +371,7 @@ int MPI_Allgatherv(void *sendbuf, int sendcount, MPI_Datatype sendtype,
                    void *recvbuf, int *recvcounts, int *displs,
                    MPI_Datatype recvtype, MPI_Comm comm)
 {
-  int n;
-  if (sendtype == MPI_INT) n = sendcount*sizeof(int);
-  else if (sendtype == MPI_FLOAT) n = sendcount*sizeof(float);
-  else if (sendtype == MPI_DOUBLE) n = sendcount*sizeof(double);
-  else if (sendtype == MPI_CHAR) n = sendcount*sizeof(char);
-  else if (sendtype == MPI_BYTE) n = sendcount*sizeof(char);
-  else if (sendtype == MPI_LONG_LONG) n = sendcount*sizeof(uint64_t);
-  else if (sendtype == MPI_DOUBLE_INT) n = sendcount*sizeof(double_int);
-
+  int n = sendcount * stubtypesize(sendtype);
   if (sendbuf == MPI_IN_PLACE || recvbuf == MPI_IN_PLACE) return 0;
   memcpy(recvbuf,sendbuf,n);
   return 0;
@@ -390,15 +384,7 @@ int MPI_Allgatherv(void *sendbuf, int sendcount, MPI_Datatype sendtype,
 int MPI_Reduce_scatter(void *sendbuf, void *recvbuf, int *recvcounts,
                        MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
 {
-  int n;
-  if (datatype == MPI_INT) n = *recvcounts*sizeof(int);
-  else if (datatype == MPI_FLOAT) n = *recvcounts*sizeof(float);
-  else if (datatype == MPI_DOUBLE) n = *recvcounts*sizeof(double);
-  else if (datatype == MPI_CHAR) n = *recvcounts*sizeof(char);
-  else if (datatype == MPI_BYTE) n = *recvcounts*sizeof(char);
-  else if (datatype == MPI_LONG_LONG) n = *recvcounts*sizeof(uint64_t);
-  else if (datatype == MPI_DOUBLE_INT) n = *recvcounts*sizeof(double_int);
-
+  int n = *recvcounts * stubtypesize(datatype);
   if (sendbuf == MPI_IN_PLACE || recvbuf == MPI_IN_PLACE) return 0;
   memcpy(recvbuf,sendbuf,n);
   return 0;
@@ -412,15 +398,7 @@ int MPI_Gather(void *sendbuf, int sendcount, MPI_Datatype sendtype,
                void *recvbuf, int recvcount, MPI_Datatype recvtype,
                int root, MPI_Comm comm)
 {
-  int n;
-  if (sendtype == MPI_INT) n = sendcount*sizeof(int);
-  else if (sendtype == MPI_FLOAT) n = sendcount*sizeof(float);
-  else if (sendtype == MPI_DOUBLE) n = sendcount*sizeof(double);
-  else if (sendtype == MPI_CHAR) n = sendcount*sizeof(char);
-  else if (sendtype == MPI_BYTE) n = sendcount*sizeof(char);
-  else if (sendtype == MPI_LONG_LONG) n = sendcount*sizeof(uint64_t);
-  else if (sendtype == MPI_DOUBLE_INT) n = sendcount*sizeof(double_int);
-
+  int n = sendcount * stubtypesize(sendtype);
   if (sendbuf == MPI_IN_PLACE || recvbuf == MPI_IN_PLACE) return 0;
   memcpy(recvbuf,sendbuf,n);
   return 0;
@@ -434,15 +412,7 @@ int MPI_Gatherv(void *sendbuf, int sendcount, MPI_Datatype sendtype,
 		void *recvbuf, int *recvcounts, int *displs,
 		MPI_Datatype recvtype, int root, MPI_Comm comm)
 {
-  int n;
-  if (sendtype == MPI_INT) n = sendcount*sizeof(int);
-  else if (sendtype == MPI_FLOAT) n = sendcount*sizeof(float);
-  else if (sendtype == MPI_DOUBLE) n = sendcount*sizeof(double);
-  else if (sendtype == MPI_CHAR) n = sendcount*sizeof(char);
-  else if (sendtype == MPI_BYTE) n = sendcount*sizeof(char);
-  else if (sendtype == MPI_LONG_LONG) n = sendcount*sizeof(uint64_t);
-  else if (sendtype == MPI_DOUBLE_INT) n = sendcount*sizeof(double_int);
-
+  int n = sendcount * stubtypesize(sendtype);
   if (sendbuf == MPI_IN_PLACE || recvbuf == MPI_IN_PLACE) return 0;
   memcpy(recvbuf,sendbuf,n);
   return 0;
@@ -456,16 +426,39 @@ int MPI_Scatterv(void *sendbuf, int *sendcounts, int *displs,
 		 MPI_Datatype sendtype, void *recvbuf, int recvcount,
 		 MPI_Datatype recvtype, int root, MPI_Comm comm)
 {
-  int n;
-  if (sendtype == MPI_INT) n = recvcount*sizeof(int);
-  else if (sendtype == MPI_FLOAT) n = recvcount*sizeof(float);
-  else if (sendtype == MPI_DOUBLE) n = recvcount*sizeof(double);
-  else if (sendtype == MPI_CHAR) n = recvcount*sizeof(char);
-  else if (sendtype == MPI_BYTE) n = recvcount*sizeof(char);
-  else if (sendtype == MPI_LONG_LONG) n = recvcount*sizeof(uint64_t);
-  else if (sendtype == MPI_DOUBLE_INT) n = recvcount*sizeof(double_int);
-
+  int n = recvcount * stubtypesize(recvtype);
   if (sendbuf == MPI_IN_PLACE || recvbuf == MPI_IN_PLACE) return 0;
   memcpy(recvbuf,sendbuf,n);
   return 0;
 }
+
+/* ---------------------------------------------------------------------- */
+
+/* copy values from data1 to data2 */
+
+int MPI_Alltoall(void *sendbuf, int sendcount, MPI_Datatype sendtype,
+                 void *recvbuf, int recvcount, MPI_Datatype recvtype,
+                 MPI_Comm comm)
+{
+  int n = sendcount * stubtypesize(sendtype);
+  if (sendbuf == MPI_IN_PLACE || recvbuf == MPI_IN_PLACE) return 0;
+  memcpy(recvbuf,sendbuf,n);
+  return 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+/* copy values from data1 to data2 */
+
+int MPI_Alltoallv(void *sendbuf, int *sendcounts, int *sdispls,
+                  MPI_Datatype sendtype,
+                  void *recvbuf, int *recvcounts, int *rdispls,
+                  MPI_Datatype recvtype, MPI_Comm comm)
+{
+  int n = *sendcounts * stubtypesize(sendtype);
+  if (sendbuf == MPI_IN_PLACE || recvbuf == MPI_IN_PLACE) return 0;
+  memcpy(recvbuf,sendbuf,n);
+  return 0;
+}
+
+/* ---------------------------------------------------------------------- */

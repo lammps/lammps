@@ -153,7 +153,7 @@ FixPhonon::FixPhonon(LAMMPS *lmp,  int narg, char **arg) : Fix(lmp, narg, arg)
   for (int i=1; i<nprocs; i++) fft_disp[i] = fft_disp[i-1]+fft_cnts[i-1];
   delete []nx_loc;
 
-  fft   = new FFT3d(lmp,world,nz,ny,nx,0,nz-1,0,ny-1,nxlo,nxhi,0,nz-1,0,ny-1,nxlo,nxhi,0,0,&mysize);
+  fft   = new FFT3d(lmp,world,nz,ny,nx,0,nz-1,0,ny-1,nxlo,nxhi,0,nz-1,0,ny-1,nxlo,nxhi,0,0,&mysize,0);
   fft_data = (double *) memory->smalloc(MAX(1,mynq)*2*sizeof(double),"fix_phonon:fft_data");
 
   // allocate variables; MAX(1,... is used because NULL buffer will result in error for MPI

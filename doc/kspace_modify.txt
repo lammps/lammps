@@ -13,7 +13,7 @@ kspace_modify command :h3
 kspace_modify keyword value ... :pre
 
 one or more keyword/value pairs may be listed :ulb,l
-keyword = {mesh} or {order} or {order/disp} or {overlap} or {minorder} or {force} or {gewald} or {gewald/disp} or {slab} or (nozforce} or {compute} or {cutoff/adjust} or {diff} or {kmax/ewald} :l
+keyword = {mesh} or {order} or {order/disp} or {overlap} or {minorder} or {force} or {gewald} or {gewald/disp} or {slab} or (nozforce} or {compute} or {cutoff/adjust} or {fftbench} or {collective} or {diff} or {kmax/ewald} :l
   {mesh} value = x y z
     x,y,z = grid size in each dimension for long-range Coulombics
   {mesh/disp} value = x y z
@@ -37,6 +37,7 @@ keyword = {mesh} or {order} or {order/disp} or {overlap} or {minorder} or {force
   {compute} value = {yes} or {no} 
   {cutoff/adjust} value = {yes} or {no} 
   {fftbench} value = {yes} or {no} 
+  {collective} value = {yes} or {no} 
   {diff} value = {ad} or {ik} = 2 or 4 FFTs for PPPM in smoothed or non-smoothed mode 
   {kmax/ewald} value = kx ky kz 
     kx,ky,kz = number of Ewald sum kspace vectors in each dimension :pre
@@ -196,6 +197,14 @@ The {fftbench} keyword applies only to PPPM. It is on by default. If
 this option is turned off, LAMMPS will not take the time at the end
 of a run to give FFT benchmark timings, and will finish a few seconds
 faster than it would if this option were on.
+
+The {collective} keyword applies only to PPPM. It is off by default,
+except on BlueGene machines. If this option is turned on, LAMMPS will
+use MPI collective operations to remap data for 3d-FFT operations
+instead of the default point-to-point communication. This has proven
+to be faster on IBM BlueGene machines, but may also be faster on 
+other machines with an efficient implementation of MPI collective
+operations and adequate hardware.
 
 The {diff} keyword specifies the differentiation scheme used by the
 PPPM method to compute forces on particles given electrostatic

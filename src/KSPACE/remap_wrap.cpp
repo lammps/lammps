@@ -29,7 +29,7 @@ Remap::Remap(LAMMPS *lmp, MPI_Comm comm,
   plan = remap_3d_create_plan(comm,
                               in_ilo,in_ihi,in_jlo,in_jhi,in_klo,in_khi,
                               out_ilo,out_ihi,out_jlo,out_jhi,out_klo,out_khi,
-                              nqty,permute,memory,precision);
+                              nqty,permute,memory,precision,0);
   if (plan == NULL) error->one(FLERR,"Could not create 3d remap plan");
 }
 

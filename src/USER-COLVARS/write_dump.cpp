@@ -27,13 +27,16 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-// syntax: write_dump <group-ID> <dump-style> <filename> [<flags>]
-//  flags are keywords supported by the dump command
+// syntax:
+// write_dump <group-ID> <dump-style> <filename> [<flags1>] [modify <flags2>]
+//
+//  <flags1> are keywords supported by the dump command
+//  <flags2> are keywords supported by the dump_modify command
 
 void WriteDump::command(int narg, char **arg)
 {
   Dump *dump;
-  int lnarg;
+  int i,lnarg,modarg;
   char **larg;
 
   if (narg < 3) error->all(FLERR,"Illegal write_dump command");
@@ -42,14 +45,18 @@ void WriteDump::command(int narg, char **arg)
       error->all(FLERR,"Must have atom IDs for write_dump command");
 
   // create the Dump class instance
-  lnarg = narg + 2;
+  lnarg = narg + 2;             // all arguments plus dump id and frequency
   larg = new char*[lnarg];
-  larg[0] = (char *) "WRITE_DUMP";
-  larg[1] = arg[0]; // group
-  larg[2] = arg[1]; // dump style
-  larg[3] = (char *) "0";
-  for (int i=2; i < narg; ++i)
+  larg[0] = (char *) "WRITE_DUMP"; // dump id
+  larg[1] = arg[0];                // group
+  larg[2] = arg[1];                // dump style
+  larg[3] = (char *) "0";          // dump frequency
+  // copy the remaining arguments until we hit "modify"
+  for (i=modarg=2; i < narg; modarg = ++i) {
+    if (strcmp(arg[i],"modify") == 0) break;
     larg[i+2] = arg[i];
+  }
+  lnarg = modarg+2;
 
   if (0) return;         // dummy line to enable else-if macro expansion
 
@@ -61,11 +68,13 @@ void WriteDump::command(int narg, char **arg)
 
   else error->all(FLERR,"Invalid dump style");
 
-  // tweak dump settings. write out sorted dump
-  lnarg = 2;
-  larg[0] = (char *) "sort";
-  larg[1] = (char *) "id";
-  dump->modify_params(lnarg,larg);
+  // tweak dump settings via dump_modify with the remaining arguments, if any.
+  ++modarg;
+  lnarg = narg - modarg;
+  for (i = 0; i < lnarg; ++i)
+    larg[i] = arg[i+modarg];
+
+  if (lnarg > 0) dump->modify_params(lnarg,larg);
 
   // write out one frame and then delete the dump again
   dump->init();

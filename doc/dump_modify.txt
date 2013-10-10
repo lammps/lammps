@@ -582,7 +582,7 @@ The option defaults are
 
 acolor = * red/green/blue/yellow/aqua/cyan
 adiam = * 1.0
-amap = min max cf 2 min blue max red
+amap = min max cf 0.0 2 min blue max red
 append = no
 bcolor = * red/green/blue/yellow/aqua/cyan
 bdiam = * 0.5

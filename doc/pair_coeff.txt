@@ -209,7 +209,8 @@ section of "this page"_Section_commands.html#cmd_5.
 "pair_style tersoff/zbl"_pair_tersoff_zbl.html - Tersoff/ZBL 3-body potential
 "pair_style tri/lj"_pair_tri_lj.html - LJ potential between triangles
 "pair_style yukawa"_pair_yukawa.html - Yukawa potential
-"pair_style yukawa/colloid"_pair_yukawa_colloid.html - screened Yukawa potential for finite-size particles :ul
+"pair_style yukawa/colloid"_pair_yukawa_colloid.html - screened Yukawa potential for finite-size particles
+"pair_style zbl"_pair_zbl.html - Ziegler-Biersack-Littmark potential :ul
 
 :line
 

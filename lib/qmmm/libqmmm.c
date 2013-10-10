@@ -99,6 +99,11 @@ int read_qmmm_config(const char *file, qmmm_config_t *cfg)
             trim_whitespace(ptr);
             cfg->steps = atoi(ptr);
 
+        } else if (strncmp(ptr,"verbose",7) == 0) {
+            ptr = skip_whitespace(ptr+5);
+            trim_whitespace(ptr);
+            cfg->verbose = atoi(ptr);
+
         } else if (strncmp(ptr,"handle",6) == 0) {
             ptr = skip_whitespace(ptr+6);
             trim_whitespace(ptr);
@@ -271,6 +276,7 @@ int write_qmmm_config(const char *file, qmmm_config_t *cfg)
     if (cfg->restart) fprintf(fp,"restart %s\n",cfg->restart);
     if (cfg->handle)  fprintf(fp,"handle %s\n", cfg->handle);
     fprintf(fp,"steps %d\n",cfg->steps);
+    fprintf(fp,"verbose %d\n",cfg->verbose);
 
     fputs("\n# QM system configuration:\n",fp);
     if (cfg->qmdir) fprintf(fp,"qmdir %s\n", cfg->qmdir);

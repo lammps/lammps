@@ -41,6 +41,7 @@ typedef struct {
   char *qmout, *maout, *slout;  /* stdout files for codes */
   char *qmcmd, *macmd, *slcmd;  /* command to run codes (SHMEM only) */
   char *qmarg, *maarg, *slarg;  /* extra flags to pass to code */
+  int verbose;                  /* verbosity level */
   int role;                     /* role of this rank */
   int steps;                    /* number of MD steps */
   int nmm;                      /* tasks reserved for MD (master and slave) */

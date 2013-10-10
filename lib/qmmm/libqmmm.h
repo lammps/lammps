@@ -35,17 +35,18 @@ extern "C" {
 
 /* container struct for global QM/MM configuration information */
 typedef struct {
-    int comm_mode, qmmm_mode;    /* communication and coupling mode */
-    char *qmdir, *madir, *sldir; /* directories to run codes in */
-    char *qminp, *mainp, *slinp; /* input files for codes */
-    char *qmout, *maout, *slout; /* stdout files for codes */
-    char *qmcmd, *macmd, *slcmd; /* command to run codes (SHMEM only) */
-    char *qmarg, *maarg, *slarg; /* extra flags to pass to code */
-    int role;                    /* role of this rank */
-    int steps;                   /* number of MD steps */
-    int nmm;                     /* tasks reserved for MD (master and slave) */
-    char *handle;                /* handle for SHEMEM communication */
-    int my_comm, qm_comm, mm_comm; /* Fortran representation of MPI_Comms */
+  int comm_mode, qmmm_mode;     /* communication and coupling mode */
+  char *qmdir, *madir, *sldir;  /* directories to run codes in */
+  char *qminp, *mainp, *slinp;  /* input files for codes */
+  char *qmout, *maout, *slout;  /* stdout files for codes */
+  char *qmcmd, *macmd, *slcmd;  /* command to run codes (SHMEM only) */
+  char *qmarg, *maarg, *slarg;  /* extra flags to pass to code */
+  int role;                     /* role of this rank */
+  int steps;                    /* number of MD steps */
+  int nmm;                      /* tasks reserved for MD (master and slave) */
+  char *restart;                /* name of (MM) restart file */
+  char *handle;                 /* handle for SHEMEM communication */
+  int my_comm, qm_comm, mm_comm; /* MPI communicators, Fortran-style */
 } qmmm_config_t;
 
 /* declare a global variable for the QM/MM setup.

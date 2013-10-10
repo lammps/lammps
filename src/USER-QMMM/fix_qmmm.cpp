@@ -652,7 +652,7 @@ void FixQMMM::init()
 
       /* sort list of tags by value to have consistently the
        * same list when running in parallel and build hash table. */
-      id_sort(qm_taglist, 0, num_qm);
+      id_sort(qm_taglist, 0, num_qm-1);
       for (i=0; i < num_qm; ++i) {
         inthash_insert(qm_hash, qm_taglist[i], i);
       }

@@ -100,7 +100,7 @@ int read_qmmm_config(const char *file, qmmm_config_t *cfg)
             cfg->steps = atoi(ptr);
 
         } else if (strncmp(ptr,"verbose",7) == 0) {
-            ptr = skip_whitespace(ptr+5);
+            ptr = skip_whitespace(ptr+7);
             trim_whitespace(ptr);
             cfg->verbose = atoi(ptr);
 

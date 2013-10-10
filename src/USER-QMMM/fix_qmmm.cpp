@@ -511,7 +511,7 @@ void FixQMMM::exchange_forces()
       // supported internal units ("metal" or "real")
       for (int i=0; i < num_qm; ++i) {
         if  (verbose > 1) {
-           const char fmt[] = "[%d]: QM(%g %g %g) MM(%g %g %g) /\(%g %g %g)\n";
+           const char fmt[] = "[%d]: QM(%g %g %g) MM(%g %g %g) /\\(%g %g %g)\n";
            if (screen) fprintf(screen, fmt, qm_remap[i],
                 qmmm_fscale*qm_force[3*i+0], qmmm_fscale*qm_force[3*i+1],
                 qmmm_fscale*qm_force[3*i+2], qm_coord[3*i+0], qm_coord[3*i+1],

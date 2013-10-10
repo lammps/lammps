@@ -71,6 +71,7 @@ class FixQMMM : public Fix {
   int    size_one;    // size of one element in communication buffer
   int    maxbuf;      // size of communication buffer
   int    do_init;     // flag for one time initialization
+  int    verbose;     // print level (<= 0 means no output)
 };
 
 }

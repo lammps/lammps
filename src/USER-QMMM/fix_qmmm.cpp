@@ -328,6 +328,7 @@ FixQMMM::FixQMMM(LAMMPS *lmp, int narg, char **arg) :
   comm_mode = qmmmcfg.comm_mode;
   qmmm_mode = qmmmcfg.qmmm_mode;
   qmmm_role = qmmmcfg.role;
+  verbose   = qmmmcfg.verbose;
 
   if (comm_mode != QMMM_COMM_MPI)
     error->all(FLERR,"Only MPI communication mode is currently supported");
@@ -386,7 +387,7 @@ void FixQMMM::exchange_positions()
   const int * const tag  = atom->tag;
   const int nlocal = atom->nlocal;
 
-  if (comm->me == 0) {
+  if ((comm->me == 0) && (verbose > 0)) {
     if (screen) fputs("QMMM: exchange positions\n",screen);
     if (logfile) fputs("QMMM: exchange positions\n",logfile);
   }
@@ -488,7 +489,7 @@ void FixQMMM::exchange_forces()
   const int * const tag  = atom->tag;
   const int nlocal = atom->nlocal;
 
-  if (comm->me == 0) {
+  if ((comm->me) == 0 && (verbose > 0)) {
     if (screen)  fputs("QMMM: exchange forces\n",screen);
     if (logfile) fputs("QMMM: exchange forces\n",logfile);
   }
@@ -509,6 +510,23 @@ void FixQMMM::exchange_forces()
       // so we need to apply the scaling factor to get to the
       // supported internal units ("metal" or "real")
       for (int i=0; i < num_qm; ++i) {
+        if  (verbose > 1) {
+           const char fmt[] = "[%d]: QM(%g %g %g) MM(%g %g %g) /\(%g %g %g)\n";
+           if (screen) fprintf(screen, fmt, qm_remap[i],
+                qmmm_fscale*qm_force[3*i+0], qmmm_fscale*qm_force[3*i+1],
+                qmmm_fscale*qm_force[3*i+2], qm_coord[3*i+0], qm_coord[3*i+1],
+                qm_coord[3*i+2],
+                qmmm_fscale*qm_force[3*i+0] - qm_coord[3*i+0],
+                qmmm_fscale*qm_force[3*i+1] - qm_coord[3*i+1],
+                qmmm_fscale*qm_force[3*i+2] - qm_coord[3*i+2]);
+           if (logfile) fprintf(logfile, fmt, qm_remap[i],
+                qmmm_fscale*qm_force[3*i+0], qmmm_fscale*qm_force[3*i+1],
+                qmmm_fscale*qm_force[3*i+2], qm_coord[3*i+0], qm_coord[3*i+1],
+                qm_coord[3*i+2],
+                qmmm_fscale*qm_force[3*i+0] - qm_coord[3*i+0],
+                qmmm_fscale*qm_force[3*i+1] - qm_coord[3*i+1],
+                qmmm_fscale*qm_force[3*i+2] - qm_coord[3*i+2]);
+        }
         buf[i].tag = qm_remap[i];
         buf[i].x = qmmm_fscale*qm_force[3*i+0] - qm_coord[3*i+0];
         buf[i].y = qmmm_fscale*qm_force[3*i+1] - qm_coord[3*i+1];
@@ -521,9 +539,9 @@ void FixQMMM::exchange_forces()
       if (mask[i] & groupbit)
         for (int j=0; j < num_qm; ++j)
           if (tag[i] == buf[j].tag) {
-//            f[i][0] += buf[j].x;
-//            f[i][0] += buf[j].y;
-//            f[i][0] += buf[j].z;
+            f[i][0] += buf[j].x;
+            f[i][0] += buf[j].y;
+            f[i][0] += buf[j].z;
           }
     }
 
@@ -662,13 +680,15 @@ void FixQMMM::init()
        * qm/mm forces back to the proper atoms */
       qm_remap=inthash_keys(qm_hash);
 
-#if 0
-      // print hashtable and reverse mapping
-      for (i=0; i < num_qm; ++i) {
-        printf("qm_remap[%d]=%d  qm_hash[%d]=%d\n",i,qm_remap[i],
-               qm_remap[i], inthash_lookup(qm_hash, qm_remap[i]));
+      if (verbose > 1) {
+        // print hashtable and reverse mapping
+        for (i=0; i < num_qm; ++i) {
+          if (screen) fprintf(screen, "qm_remap[%d]=%d  qm_hash[%d]=%d\n",
+            i,qm_remap[i],qm_remap[i], inthash_lookup(qm_hash, qm_remap[i]));
+          if (logfile) fprintf(logfile, "qm_remap[%d]=%d  qm_hash[%d]=%d\n",
+            i,qm_remap[i],qm_remap[i], inthash_lookup(qm_hash, qm_remap[i]));
+        }
       }
-#endif
 
     } else {
       j = 0;
@@ -689,18 +709,18 @@ void FixQMMM::init()
   }
 }
 
-
 /* ---------------------------------------------------------------------- */
+
 void FixQMMM::post_integrate()
 {
   exchange_positions();
 }
 
 /* ---------------------------------------------------------------------- */
+
 void FixQMMM::setup(int)
 {
   exchange_forces();
-  
 }
 
 /* ---------------------------------------------------------------------- */

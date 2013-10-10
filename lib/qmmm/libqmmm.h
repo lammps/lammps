@@ -54,8 +54,12 @@ typedef struct {
 extern qmmm_config_t qmmmcfg;    
 
 /* read and parse global QM/MM configuration file and
-   store the result in a qmmm_config_t struct */
+ * store the result in a qmmm_config_t struct */
 int read_qmmm_config(const char *, qmmm_config_t *);
+
+/* write out the global QM/MM configuration file in
+ * the same format as the read function can parse */
+int write_qmmm_config(const char *, qmmm_config_t *);
 
 /* perform consistency checks on a qmmm_config_t struct */
 const char *check_qmmm_config(qmmm_config_t *);

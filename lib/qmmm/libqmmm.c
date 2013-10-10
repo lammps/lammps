@@ -245,7 +245,6 @@ int write_qmmm_config(const char *file, qmmm_config_t *cfg)
     FILE *fp;
     time_t now;
 
-    /* need to have config file and storage for config provided */
     if (cfg == NULL)
         return QMMM_ERROR;
 
@@ -274,6 +273,9 @@ int write_qmmm_config(const char *file, qmmm_config_t *cfg)
     fprintf(fp,"steps %d\n",cfg->steps);
 
     fputs("\n# QM system configuration:\n",fp);
+    if (cfg->qmdir) fprintf(fp,"qmdir %s\n", cfg->qmdir);
+    else fputs("qmdir (required input not set)\n",fp);
+
     if (cfg->qminp) fprintf(fp,"qminp %s\n", cfg->qminp);
     else fputs("qminp (required input not set)\n",fp);
 
@@ -284,6 +286,9 @@ int write_qmmm_config(const char *file, qmmm_config_t *cfg)
     if (cfg->qmarg) fprintf(fp,"qmarg %s\n", cfg->qmarg);
 
     fputs("\n# MM master system configuration:\n",fp);
+    if (cfg->madir) fprintf(fp,"madir %s\n", cfg->madir);
+    else fputs("madir (required input not set)\n",fp);
+
     if (cfg->mainp) fprintf(fp,"mainp %s\n", cfg->mainp);
     else fputs("mainp (required input not set)\n",fp);
 
@@ -294,6 +299,9 @@ int write_qmmm_config(const char *file, qmmm_config_t *cfg)
     if (cfg->maarg) fprintf(fp,"maarg %s\n", cfg->maarg);
 
     fputs("\n# MM slave system configuration:\n",fp);
+    if (cfg->sldir) fprintf(fp,"sldir %s\n", cfg->sldir);
+    else fputs("sldir (required input not set)\n",fp);
+
     if (cfg->slinp) fprintf(fp,"slinp %s\n", cfg->slinp);
     else fputs("slinp (required input not set)\n",fp);
 

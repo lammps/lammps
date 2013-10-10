@@ -22,7 +22,7 @@ namespace LAMMPS_NS {
 class Remap : protected Pointers {
  public:
   Remap(class LAMMPS *, MPI_Comm,int,int,int,int,int,int,
-        int,int,int,int,int,int,int,int,int,int);
+        int,int,int,int,int,int,int,int,int,int,int);
   ~Remap();
   void perform(FFT_SCALAR *, FFT_SCALAR *, FFT_SCALAR *);
 

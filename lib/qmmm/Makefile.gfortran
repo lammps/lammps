@@ -7,7 +7,7 @@ EXTRAMAKE = Makefile.lammps.empty
 QETOPDIR=$(HOME)/compile/espresso
 
 # import compiler settings from Quantum ESPRESSO
-include $(QETOPDIR)/make.sys
+sinclude $(QETOPDIR)/make.sys
 
 # FLAGS for c++ OpenMPI when QE was compiled with GNU Fortran 4.x
 MPICXX=mpicxx
@@ -29,7 +29,7 @@ $(QETOPDIR)/clib/clib.a   \
 $(QETOPDIR)/iotk/src/libiotk.a
 
 # part 3: add-on libraries and main library for LAMMPS
-include ../../src/Makefile.package
+sinclude ../../src/Makefile.package
 LAMMPSCFG = openmpi-omp
 LAMMPSLIB = ../../src/liblammps_$(LAMMPSCFG).a
 

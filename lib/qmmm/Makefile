@@ -2,13 +2,13 @@
 
 SHELL=/bin/sh
 
-TARGETS= fermi mingw32-cross mingw64-cross
+TARGETS= gfortran
 CLEAN = $(patsubst %,clean-%,$(TARGETS))
 
 default:
-	@echo available targets: all $(TARGETS)
+	@echo available targets: $(TARGETS)
 
-.PHONY: all default
+.PHONY: default
 .SUFFIXES:
 
 all:

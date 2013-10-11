@@ -1,5 +1,8 @@
 # -*- Makefile -*- for coupling LAMMPS to PWscf for QM/MM molecular dynamics
 
+# this file will be copied to Makefile.lammps
+EXTRAMAKE = Makefile.lammps.empty
+
 # top level directory of Quantum ESPRESSO 5.1 or later
 QETOPDIR=$(HOME)/compile/espresso
 
@@ -34,6 +37,7 @@ LAMMPSLIB = ../../src/liblammps_$(LAMMPSCFG).a
 SRC=pwqmmm.c libqmmm.c
 OBJ=$(SRC:%.c=%.o)
 
+
 default: libqmmm.a
 
 all : tldeps libqmmm.a pwqmmm.x
@@ -43,6 +47,7 @@ pwqmmm.x : pwqmmm.o $(OBJ) $(PWOBJS) $(LIBOBJS) $(LAMMPSLIB)
 
 libqmmm.a: libqmmm.o
 	$(AR) $(ARFLAGS) $@ $^
+	@cp $(EXTRAMAKE) Makefile.lammps
 
 %.o: %.c
 	$(MPICXX) -c $(LAMMPSFLAGS) $(MPICXXFLAGS) $< -o $@

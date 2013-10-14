@@ -47,7 +47,7 @@ enum{NO,YES};
 
 /* ---------------------------------------------------------------------- */
 
-Image::Image(LAMMPS *lmp) : Pointers(lmp)
+Image::Image(LAMMPS *lmp, int nmap_caller) : Pointers(lmp)
 {
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
@@ -75,19 +75,12 @@ Image::Image(LAMMPS *lmp) : Pointers(lmp)
   boxcolor = color2rgb("yellow");
   background[0] = background[1] = background[2] = 0;
 
-  // default color map
+  // define nmap colormaps, all with default settings
 
-  mlo = MINVALUE;
-  mhi = MAXVALUE;
-  mstyle = CONTINUOUS;
-  mrange = FRACTIONAL;
-
-  nentry = 2;
-  mentry = new MapEntry[nentry];
-  mentry[0].svalue = 0.0;
-  mentry[0].color = color2rgb("blue");
-  mentry[1].svalue = 1.0;
-  mentry[1].color = color2rgb("red");
+  nmap = nmap_caller;
+  maps = new ColorMap*[nmap];
+  for (int i = 0; i < nmap; i++)
+    maps[i] = new ColorMap(lmp,this);
 
   // static parameters
 
@@ -124,7 +117,6 @@ Image::~Image()
   for (int i = 0; i < ncolors; i++) delete [] username[i];
   memory->sfree(username);
   memory->destroy(userrgb);
-  delete [] mentry;
 
   memory->destroy(depthBuffer);
   memory->destroy(surfaceBuffer);
@@ -261,55 +253,6 @@ void Image::view_params(double boxxlo, double boxxhi, double boxylo,
   // param for rasterizing spheres
 
   tanPerPixel = -(maxdel / (double) height);
-}
-
-/* ----------------------------------------------------------------------
-   set explicit values for all min/max settings in color map
-   lo/hi current and lvalue/hvalue settings for lo/hi = MIN/MAX VALUE in entries
-   if mlo/mhi = MIN/MAX VALUE, compute bounds on just the atoms being visualized
-------------------------------------------------------------------------- */
-
-void Image::color_minmax(int n, double *buf, int stride)
-{
-  double two[2],twoall[2];
-
-  if (mlo == MINVALUE || mhi == MAXVALUE) {
-    double lo = BIG;
-    double hi = -BIG;
-    int m = 0;
-    for (int i = 0; i < n; i++) {
-      lo = MIN(lo,buf[m]);
-      hi = MAX(hi,buf[m]);
-      m += stride;
-    }
-    two[0] = -lo;
-    two[1] = hi;
-    MPI_Allreduce(two,twoall,2,MPI_DOUBLE,MPI_MAX,world);
-  }
-
-  if (mlo == MINVALUE) locurrent = -twoall[0];
-  else locurrent = mlovalue;
-  if (mhi == MAXVALUE) hicurrent = twoall[1];
-  else hicurrent = mhivalue;
-  if (locurrent > hicurrent) error->all(FLERR,"Invalid image color range");
-
-  if (mstyle == CONTINUOUS) {
-    if (mrange == ABSOLUTE) mentry[0].svalue = locurrent;
-    else mentry[0].svalue = 0.0;
-    if (mrange == ABSOLUTE) mentry[nentry-1].svalue = hicurrent;
-    else mentry[nentry-1].svalue = 1.0;
-  } else if (mstyle == DISCRETE) {
-    for (int i = 0; i < nentry; i++) {
-      if (mentry[i].lo == MINVALUE) {
-        if (mrange == ABSOLUTE) mentry[i].lvalue = locurrent;
-        else mentry[i].lvalue = 0.0;
-      }
-      if (mentry[i].hi == MAXVALUE) {
-        if (mrange == ABSOLUTE) mentry[i].hvalue = hicurrent;
-        else mentry[i].hvalue = 1.0;
-      }
-    }
-  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1090,97 +1033,31 @@ void Image::write_PPM(FILE *fp)
 }
 
 /* ----------------------------------------------------------------------
-   define a color map
-   args = lo hi style delta N entry1 entry2 ... entryN as defined by caller
+   redefine properties of the color map index
    return 1 if any error in args, else return 0
 ------------------------------------------------------------------------- */
 
-int Image::colormap(int narg, char **arg)
+int Image::map_reset(int index, int narg, char **arg)
 {
-  if (!islower(arg[0][0])) {
-    mlo = NUMERIC;
-    mlovalue = force->numeric(FLERR,arg[0]);
-  } else if (strcmp(arg[0],"min") == 0) mlo = MINVALUE;
-  else return 1;
+  return maps[index]->reset(narg,arg);
+}
 
-  if (!islower(arg[1][0])) {
-    mhi = NUMERIC;
-    mhivalue = force->numeric(FLERR,arg[1]);
-  } else if (strcmp(arg[1],"max") == 0) mhi = MAXVALUE;
-  else return 1;
+/* ----------------------------------------------------------------------
+   set min/max bounds of color map index
+------------------------------------------------------------------------- */
 
-  if (mlo == NUMERIC && mhi == NUMERIC && mlovalue >= mhivalue) return 1;
+void Image::map_minmax(int index, int n, double *buf, int stride)
+{
+  maps[index]->minmax(n,buf,stride);
+}
 
-  if (strlen(arg[2]) != 2) return 1;
-  if (arg[2][0] == 'c') mstyle = CONTINUOUS;
-  else if (arg[2][0] == 'd') mstyle = DISCRETE;
-  else if (arg[2][0] == 's') mstyle = SEQUENTIAL;
-  else return 1;
-  if (arg[2][1] == 'a') mrange = ABSOLUTE;
-  else if (arg[2][1] == 'f') mrange = FRACTIONAL;
-  else return 1;
+/* ----------------------------------------------------------------------
+   return 3-vector color corresponding to value from color map index
+------------------------------------------------------------------------- */
 
-  if (mstyle == SEQUENTIAL) {
-    mbinsize = force->numeric(FLERR,arg[3]);
-    if (mbinsize <= 0.0) return 1;
-    mbinsizeinv = 1.0/mbinsize;
-  }
-
-  nentry = force->inumeric(FLERR,arg[4]);
-  if (nentry < 1) return 1;
-  mentry = new MapEntry[nentry];
-
-  int n = 5;
-  for (int i = 0; i < nentry; i++) {
-    if (mstyle == CONTINUOUS) {
-      if (n+2 > narg) return 1;
-      if (!islower(arg[n][0])) {
-        mentry[i].single = NUMERIC;
-        mentry[i].svalue = force->numeric(FLERR,arg[n]);
-      } else if (strcmp(arg[n],"min") == 0) mentry[i].single = MINVALUE;
-      else if (strcmp(arg[n],"max") == 0) mentry[i].single = MAXVALUE;
-      else return 1;
-      mentry[i].color = color2rgb(arg[n+1]);
-      n += 2;
-    } else if (mstyle == DISCRETE) {
-      if (n+3 > narg) return 1;
-      if (!islower(arg[n][0])) {
-        mentry[i].lo = NUMERIC;
-        mentry[i].lvalue = force->numeric(FLERR,arg[n]);
-      } else if (strcmp(arg[n],"min") == 0) mentry[i].single = MINVALUE;
-      else if (strcmp(arg[n],"max") == 0) mentry[i].single = MAXVALUE;
-      else return 1;
-      if (!islower(arg[n+1][0])) {
-        mentry[i].hi = NUMERIC;
-        mentry[i].hvalue = force->numeric(FLERR,arg[n+1]);
-      } else if (strcmp(arg[n+1],"min") == 0) mentry[i].single = MINVALUE;
-      else if (strcmp(arg[n+1],"max") == 0) mentry[i].single = MAXVALUE;
-      else return 1;
-      mentry[i].color = color2rgb(arg[n+2]);
-      n += 3;
-    } else if (mstyle == SEQUENTIAL) {
-      if (n+1 > narg) return 1;
-      mentry[i].color = color2rgb(arg[n]);
-      n += 1;
-    }
-    if (mentry[i].color == NULL) return 1;
-  }
-
-  if (mstyle == CONTINUOUS) {
-    if (nentry < 2) return 1;
-    if (mentry[0].single != MINVALUE || mentry[nentry-1].single != MAXVALUE)
-      return 1;
-    for (int i = 2; i < nentry-1; i++)
-      if (mentry[i].svalue <= mentry[i-1].svalue) return 1;
-  } else if (mstyle == DISCRETE) {
-    if (nentry < 1) return 1;
-    if (mentry[nentry-1].lo != MINVALUE || mentry[nentry-1].hi != MAXVALUE)
-      return 1;
-  } else if (mstyle == SEQUENTIAL) {
-    if (nentry < 1) return 1;
-  }
-
-  return 0;
+double *Image::map_value2color(int index, double value)
+{
+  return maps[index]->value2color(value);
 }
 
 /* ----------------------------------------------------------------------
@@ -1214,52 +1091,6 @@ int Image::addcolor(char *name, double r, double g, double b)
   userrgb[icolor][2] = b;
 
   return 0;
-}
-
-/* ----------------------------------------------------------------------
-   convert value into an RGB color via color map
-------------------------------------------------------------------------- */
-
-double *Image::value2color(double value)
-{
-  double lo,hi;
-
-  value = MAX(value,locurrent);
-  value = MIN(value,hicurrent);
-
-  if (mrange == FRACTIONAL) {
-    if (locurrent == hicurrent) value = 0.0;
-    else value = (value-locurrent) / (hicurrent-locurrent);
-    lo = 0.0;
-    hi = 1.0;
-  } else {
-    lo = locurrent;
-    hi = hicurrent;
-  }
-
-  if (mstyle == CONTINUOUS) {
-    for (int i = 0; i < nentry-1; i++)
-      if (value >= mentry[i].svalue && value <= mentry[i+1].svalue) {
-        double fraction = (value-mentry[i].svalue) /
-          (mentry[i+1].svalue-mentry[i].svalue);
-        interpolate[0] = mentry[i].color[0] +
-          fraction*(mentry[i+1].color[0]-mentry[i].color[0]);
-        interpolate[1] = mentry[i].color[1] +
-          fraction*(mentry[i+1].color[1]-mentry[i].color[1]);
-        interpolate[2] = mentry[i].color[2] +
-          fraction*(mentry[i+1].color[2]-mentry[i].color[2]);
-        return interpolate;
-      }
-  } else if (mstyle == DISCRETE) {
-    for (int i = 0; i < nentry; i++)
-      if (value >= mentry[i].lvalue && value <= mentry[i].hvalue)
-        return mentry[i].color;
-  } else {
-    int ibin = static_cast<int> ((value-lo) * mbinsizeinv);
-    return mentry[ibin%nentry].color;
-  }
-
-  return NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -1752,4 +1583,221 @@ double Image::element2diam(char *element)
   for (int i = 0; i < NELEMENTS; i++)
     if (strcmp(element,name[i]) == 0) return diameter[i];
   return 0.0;
+}
+
+// ----------------------------------------------------------------------
+// ----------------------------------------------------------------------
+// ColorMap class
+// ----------------------------------------------------------------------
+// ----------------------------------------------------------------------
+
+ColorMap::ColorMap(LAMMPS *lmp, Image *caller) : Pointers(lmp)
+{
+  image = caller;
+
+  // default color map
+
+  nentry = 2;
+  mentry = new MapEntry[nentry];
+  mentry[0].svalue = 0.0;
+  mentry[0].color = image->color2rgb("blue");
+  mentry[1].svalue = 1.0;
+  mentry[1].color = image->color2rgb("red");
+}
+
+/* ---------------------------------------------------------------------- */
+
+ColorMap::~ColorMap()
+{
+  delete [] mentry;
+}
+
+/* ----------------------------------------------------------------------
+   redefine color map
+   args = lo hi style delta N entry1 entry2 ... entryN as defined by caller
+   return 1 if any error in args, else return 0
+------------------------------------------------------------------------- */
+
+int ColorMap::reset(int narg, char **arg)
+{
+  if (!islower(arg[0][0])) {
+    mlo = NUMERIC;
+    mlovalue = force->numeric(FLERR,arg[0]);
+  } else if (strcmp(arg[0],"min") == 0) mlo = MINVALUE;
+  else return 1;
+
+  if (!islower(arg[1][0])) {
+    mhi = NUMERIC;
+    mhivalue = force->numeric(FLERR,arg[1]);
+  } else if (strcmp(arg[1],"max") == 0) mhi = MAXVALUE;
+  else return 1;
+
+  if (mlo == NUMERIC && mhi == NUMERIC && mlovalue >= mhivalue) return 1;
+
+  if (strlen(arg[2]) != 2) return 1;
+  if (arg[2][0] == 'c') mstyle = CONTINUOUS;
+  else if (arg[2][0] == 'd') mstyle = DISCRETE;
+  else if (arg[2][0] == 's') mstyle = SEQUENTIAL;
+  else return 1;
+  if (arg[2][1] == 'a') mrange = ABSOLUTE;
+  else if (arg[2][1] == 'f') mrange = FRACTIONAL;
+  else return 1;
+
+  if (mstyle == SEQUENTIAL) {
+    mbinsize = force->numeric(FLERR,arg[3]);
+    if (mbinsize <= 0.0) return 1;
+    mbinsizeinv = 1.0/mbinsize;
+  }
+
+  nentry = force->inumeric(FLERR,arg[4]);
+  if (nentry < 1) return 1;
+  mentry = new MapEntry[nentry];
+
+  int n = 5;
+  for (int i = 0; i < nentry; i++) {
+    if (mstyle == CONTINUOUS) {
+      if (n+2 > narg) return 1;
+      if (!islower(arg[n][0])) {
+        mentry[i].single = NUMERIC;
+        mentry[i].svalue = force->numeric(FLERR,arg[n]);
+      } else if (strcmp(arg[n],"min") == 0) mentry[i].single = MINVALUE;
+      else if (strcmp(arg[n],"max") == 0) mentry[i].single = MAXVALUE;
+      else return 1;
+      mentry[i].color = image->color2rgb(arg[n+1]);
+      n += 2;
+    } else if (mstyle == DISCRETE) {
+      if (n+3 > narg) return 1;
+      if (!islower(arg[n][0])) {
+        mentry[i].lo = NUMERIC;
+        mentry[i].lvalue = force->numeric(FLERR,arg[n]);
+      } else if (strcmp(arg[n],"min") == 0) mentry[i].single = MINVALUE;
+      else if (strcmp(arg[n],"max") == 0) mentry[i].single = MAXVALUE;
+      else return 1;
+      if (!islower(arg[n+1][0])) {
+        mentry[i].hi = NUMERIC;
+        mentry[i].hvalue = force->numeric(FLERR,arg[n+1]);
+      } else if (strcmp(arg[n+1],"min") == 0) mentry[i].single = MINVALUE;
+      else if (strcmp(arg[n+1],"max") == 0) mentry[i].single = MAXVALUE;
+      else return 1;
+      mentry[i].color = image->color2rgb(arg[n+2]);
+      n += 3;
+    } else if (mstyle == SEQUENTIAL) {
+      if (n+1 > narg) return 1;
+      mentry[i].color = image->color2rgb(arg[n]);
+      n += 1;
+    }
+    if (mentry[i].color == NULL) return 1;
+  }
+
+  if (mstyle == CONTINUOUS) {
+    if (nentry < 2) return 1;
+    if (mentry[0].single != MINVALUE || mentry[nentry-1].single != MAXVALUE)
+      return 1;
+    for (int i = 2; i < nentry-1; i++)
+      if (mentry[i].svalue <= mentry[i-1].svalue) return 1;
+  } else if (mstyle == DISCRETE) {
+    if (nentry < 1) return 1;
+    if (mentry[nentry-1].lo != MINVALUE || mentry[nentry-1].hi != MAXVALUE)
+      return 1;
+  } else if (mstyle == SEQUENTIAL) {
+    if (nentry < 1) return 1;
+  }
+
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
+   set explicit values for all min/max settings in color map
+   lo/hi current and lvalue/hvalue settings for lo/hi = MIN/MAX VALUE in entries
+   if mlo/mhi = MIN/MAX VALUE, compute bounds based on N strided values in buf
+------------------------------------------------------------------------- */
+
+void ColorMap::minmax(int n, double *buf, int stride)
+{
+  double two[2],twoall[2];
+
+  if (mlo == MINVALUE || mhi == MAXVALUE) {
+    double lo = BIG;
+    double hi = -BIG;
+    int m = 0;
+    for (int i = 0; i < n; i++) {
+      lo = MIN(lo,buf[m]);
+      hi = MAX(hi,buf[m]);
+      m += stride;
+    }
+    two[0] = -lo;
+    two[1] = hi;
+    MPI_Allreduce(two,twoall,2,MPI_DOUBLE,MPI_MAX,world);
+  }
+
+  if (mlo == MINVALUE) locurrent = -twoall[0];
+  else locurrent = mlovalue;
+  if (mhi == MAXVALUE) hicurrent = twoall[1];
+  else hicurrent = mhivalue;
+  if (locurrent > hicurrent) error->all(FLERR,"Invalid image color range");
+
+  if (mstyle == CONTINUOUS) {
+    if (mrange == ABSOLUTE) mentry[0].svalue = locurrent;
+    else mentry[0].svalue = 0.0;
+    if (mrange == ABSOLUTE) mentry[nentry-1].svalue = hicurrent;
+    else mentry[nentry-1].svalue = 1.0;
+  } else if (mstyle == DISCRETE) {
+    for (int i = 0; i < nentry; i++) {
+      if (mentry[i].lo == MINVALUE) {
+        if (mrange == ABSOLUTE) mentry[i].lvalue = locurrent;
+        else mentry[i].lvalue = 0.0;
+      }
+      if (mentry[i].hi == MAXVALUE) {
+        if (mrange == ABSOLUTE) mentry[i].hvalue = hicurrent;
+        else mentry[i].hvalue = 1.0;
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   convert value into an RGB color via color map
+   return pointer to 3-vector
+------------------------------------------------------------------------- */
+
+double *ColorMap::value2color(double value)
+{
+  double lo,hi;
+
+  value = MAX(value,locurrent);
+  value = MIN(value,hicurrent);
+
+  if (mrange == FRACTIONAL) {
+    if (locurrent == hicurrent) value = 0.0;
+    else value = (value-locurrent) / (hicurrent-locurrent);
+    lo = 0.0;
+    hi = 1.0;
+  } else {
+    lo = locurrent;
+    hi = hicurrent;
+  }
+
+  if (mstyle == CONTINUOUS) {
+    for (int i = 0; i < nentry-1; i++)
+      if (value >= mentry[i].svalue && value <= mentry[i+1].svalue) {
+        double fraction = (value-mentry[i].svalue) /
+          (mentry[i+1].svalue-mentry[i].svalue);
+        interpolate[0] = mentry[i].color[0] +
+          fraction*(mentry[i+1].color[0]-mentry[i].color[0]);
+        interpolate[1] = mentry[i].color[1] +
+          fraction*(mentry[i+1].color[1]-mentry[i].color[1]);
+        interpolate[2] = mentry[i].color[2] +
+          fraction*(mentry[i+1].color[2]-mentry[i].color[2]);
+        return interpolate;
+      }
+  } else if (mstyle == DISCRETE) {
+    for (int i = 0; i < nentry; i++)
+      if (value >= mentry[i].lvalue && value <= mentry[i].hvalue)
+        return mentry[i].color;
+  } else {
+    int ibin = static_cast<int> ((value-lo) * mbinsizeinv);
+    return mentry[ibin%nentry].color;
+  }
+
+  return NULL;
 }

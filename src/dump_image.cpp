@@ -76,10 +76,10 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
   if (strcmp(arg[6],"type") == 0) adiam = TYPE;
   else if (strcmp(arg[6],"element") == 0) adiam = ELEMENT;
 
-  // create Image class
+  // create Image class with single colormap for atoms
   // change defaults for 2d
 
-  image = new Image(lmp);
+  image = new Image(lmp,1);
 
   if (domain->dimension == 2) {
     image->theta = 0.0;
@@ -493,7 +493,7 @@ void DumpImage::write()
 
   // nme = # of atoms this proc will contribute to dump
   // pack buf with x,y,z,color,diameter
-  // set minmax color range if using color map
+  // set minmax color range if using atom color map
   // create my portion of image for my particles
 
   nme = count();
@@ -505,7 +505,7 @@ void DumpImage::write()
   }
 
   pack(NULL);
-  if (acolor == ATTRIBUTE) image->color_minmax(nchoose,buf,size_one);
+  if (acolor == ATTRIBUTE) image->map_minmax(0,nchoose,buf,size_one);
 
   // create image on each proc, then merge them
 
@@ -635,7 +635,7 @@ void DumpImage::create_image()
         itype = static_cast<int> (buf[m]);
         color = colorelement[itype];
       } else if (acolor == ATTRIBUTE) {
-        color = image->value2color(buf[m]);
+        color = image->map_value2color(0,buf[m]);
       }
 
       if (adiam == NUMERIC) {
@@ -717,8 +717,8 @@ void DumpImage::create_image()
             color1 = colorelement[type[atom1]];
             color2 = colorelement[type[atom2]];
           } else if (acolor == ATTRIBUTE) {
-            color1 = image->value2color(bufcopy[atom1][0]);
-            color2 = image->value2color(bufcopy[atom2][0]);
+            color1 = image->map_value2color(0,bufcopy[atom1][0]);
+            color2 = image->map_value2color(0,bufcopy[atom2][0]);
           }
         } else if (bcolor == TYPE) {
           itype = bond_type[atom1][m];
@@ -957,7 +957,7 @@ int DumpImage::modify_param(int narg, char **arg)
     if (nentry < 1) error->all(FLERR,"Illegal dump_modify command");
     int n = 6 + factor*nentry;
     if (narg < n) error->all(FLERR,"Illegal dump_modify command");
-    int flag = image->colormap(n-1,&arg[1]);
+    int flag = image->map_reset(0,n-1,&arg[1]);
     if (flag) error->all(FLERR,"Illegal dump_modify command");
     return n;
   }

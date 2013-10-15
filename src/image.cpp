@@ -1597,6 +1597,11 @@ ColorMap::ColorMap(LAMMPS *lmp, Image *caller) : Pointers(lmp)
 
   // default color map
 
+  mlo = MINVALUE;
+  mhi = MAXVALUE;
+  mstyle = CONTINUOUS;
+  mrange = FRACTIONAL;
+
   nentry = 2;
   mentry = new MapEntry[nentry];
   mentry[0].svalue = 0.0;

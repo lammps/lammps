@@ -1672,6 +1672,7 @@ int ColorMap::reset(int narg, char **arg)
 
   nentry = force->inumeric(FLERR,arg[4]);
   if (nentry < 1) return 1;
+  delete [] mentry;
   mentry = new MapEntry[nentry];
 
   int n = 5;

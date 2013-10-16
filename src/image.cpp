@@ -113,6 +113,9 @@ Image::Image(LAMMPS *lmp, int nmap_caller) : Pointers(lmp)
 
 Image::~Image()
 {
+  for (int i = 0; i < nmap; i++) delete maps[i];
+  delete [] maps;
+
   for (int i = 0; i < ncolors; i++) delete [] username[i];
   memory->sfree(username);
   memory->destroy(userrgb);
@@ -1774,6 +1777,10 @@ int ColorMap::minmax(double mindynamic, double maxdynamic)
       }
     }
   }
+
+  printf("MINMAX %g %g\n",mindynamic,maxdynamic);
+
+  return 0;
 }
 
 /* ----------------------------------------------------------------------

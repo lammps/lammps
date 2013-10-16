@@ -24,7 +24,7 @@ keyword = {bond} or {angle} or {dihedral} :l
     atom1,atom2,atom3 = IDs of 3 atoms in angle, atom2 = middle atom
     Kstart,Kstop = restraint coefficients at start/end of run (energy units)
     theta0 = equilibrium angle theta (degrees)
-  {bond} args = atom1 atom2 atom3 atom4 Kstart Kstop phi0
+  {dihedral} args = atom1 atom2 atom3 atom4 Kstart Kstop phi0
     atom1,atom2,atom3,atom4 = IDs of 4 atoms in dihedral in linear order
     Kstart,Kstop = restraint coefficients at start/end of run (energy units)
     phi0 = equilibrium dihedral angle phi (degrees) :pre

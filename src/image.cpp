@@ -1054,7 +1054,7 @@ int Image::map_reset(int index, int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   set min/max bounds of color map index
+   set min/max bounds of dynamic color map index
 ------------------------------------------------------------------------- */
 
 int Image::map_minmax(int index, double mindynamic, double maxdynamic)
@@ -1777,8 +1777,6 @@ int ColorMap::minmax(double mindynamic, double maxdynamic)
       }
     }
   }
-
-  printf("MINMAX %g %g\n",mindynamic,maxdynamic);
 
   return 0;
 }

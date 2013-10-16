@@ -51,8 +51,9 @@ class Image : protected Pointers {
   void draw_box(double (*)[3], double);
   void draw_axes(double (*)[3], double);
 
+  int map_dynamic(int);
   int map_reset(int, int, char **);
-  void map_minmax(int, int, double *, int);
+  int map_minmax(int, double, double);
   double *map_value2color(int, double);
 
   int addcolor(char *, double, double, double);
@@ -138,10 +139,12 @@ class Image : protected Pointers {
 
 class ColorMap : protected Pointers {
  public:
+  int dynamic;                     // 0/1 if lo/hi bounds are static/dynamic
+
   ColorMap(class LAMMPS *, class Image*);
   ~ColorMap();
   int reset(int, char **);
-  void minmax(int, double *, int);
+  int minmax(double, double);
   double *value2color(double);
 
  private:

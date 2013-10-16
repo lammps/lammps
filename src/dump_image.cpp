@@ -35,6 +35,8 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
+#define BIG 1.0e20
+
 enum{PPM,JPG};
 enum{NUMERIC,ATOM,TYPE,ELEMENT,ATTRIBUTE};
 enum{STATIC,DYNAMIC};
@@ -492,9 +494,6 @@ void DumpImage::write()
   if (viewflag == DYNAMIC) view_params();
 
   // nme = # of atoms this proc will contribute to dump
-  // pack buf with x,y,z,color,diameter
-  // set minmax color range if using atom color map
-  // create my portion of image for my particles
 
   nme = count();
 
@@ -504,8 +503,28 @@ void DumpImage::write()
     memory->create(buf,maxbuf*size_one,"dump:buf");
   }
 
+  // pack buf with color & diameter
+
   pack(NULL);
-  if (acolor == ATTRIBUTE) image->map_minmax(0,nchoose,buf,size_one);
+
+  // set minmax color range if using dynamic atom color map
+
+  if (acolor == ATTRIBUTE && image->map_dynamic(0)) {
+    double two[2],twoall[2];
+    double lo = BIG;
+    double hi = -BIG;
+    int m = 0;
+    for (int i = 0; i < nchoose; i++) {
+      lo = MIN(lo,buf[m]);
+      hi = MAX(hi,buf[m]);
+      m += size_one;
+    }
+    two[0] = -lo;
+    two[1] = hi;
+    MPI_Allreduce(two,twoall,2,MPI_DOUBLE,MPI_MAX,world);
+    int flag = image->map_minmax(0,-twoall[0],twoall[1]);
+    if (flag) error->all(FLERR,"Invalid color map min/max values");
+  }
 
   // create image on each proc, then merge them
 

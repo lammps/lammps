@@ -37,7 +37,6 @@ using namespace MathConst;
 
 #define NCOLORS 140
 #define NELEMENTS 109
-#define BIG 1.0e20
 #define EPSILON 1.0e-6
 
 enum{NUMERIC,MINVALUE,MAXVALUE};
@@ -1033,6 +1032,15 @@ void Image::write_PPM(FILE *fp)
 }
 
 /* ----------------------------------------------------------------------
+   return static/dynamic status of color map index
+------------------------------------------------------------------------- */
+
+int Image::map_dynamic(int index)
+{
+  return maps[index]->dynamic;
+}
+
+/* ----------------------------------------------------------------------
    redefine properties of the color map index
    return 1 if any error in args, else return 0
 ------------------------------------------------------------------------- */
@@ -1046,9 +1054,9 @@ int Image::map_reset(int index, int narg, char **arg)
    set min/max bounds of color map index
 ------------------------------------------------------------------------- */
 
-void Image::map_minmax(int index, int n, double *buf, int stride)
+int Image::map_minmax(int index, double mindynamic, double maxdynamic)
 {
-  maps[index]->minmax(n,buf,stride);
+  return maps[index]->minmax(mindynamic,maxdynamic);
 }
 
 /* ----------------------------------------------------------------------
@@ -1597,6 +1605,8 @@ ColorMap::ColorMap(LAMMPS *lmp, Image *caller) : Pointers(lmp)
 
   // default color map
 
+  dynamic = 1;
+
   mlo = MINVALUE;
   mhi = MAXVALUE;
   mstyle = CONTINUOUS;
@@ -1604,9 +1614,9 @@ ColorMap::ColorMap(LAMMPS *lmp, Image *caller) : Pointers(lmp)
 
   nentry = 2;
   mentry = new MapEntry[nentry];
-  mentry[0].svalue = 0.0;
+  mentry[0].single = MINVALUE;
   mentry[0].color = image->color2rgb("blue");
-  mentry[1].svalue = 1.0;
+  mentry[1].single = MAXVALUE;
   mentry[1].color = image->color2rgb("red");
 }
 
@@ -1638,6 +1648,9 @@ int ColorMap::reset(int narg, char **arg)
   else return 1;
 
   if (mlo == NUMERIC && mhi == NUMERIC && mlovalue >= mhivalue) return 1;
+
+  if (mlo == MINVALUE || mhi == MAXVALUE) dynamic = 1;
+  else dynamic = 0;
 
   if (strlen(arg[2]) != 2) return 1;
   if (arg[2][0] == 'c') mstyle = CONTINUOUS;
@@ -1708,44 +1721,47 @@ int ColorMap::reset(int narg, char **arg)
     if (nentry < 1) return 1;
   }
 
+  // one-time call to minmax if color map is static
+
+  if (!dynamic) return minmax(mlovalue,mhivalue);
+
   return 0;
 }
 
 /* ----------------------------------------------------------------------
-   set explicit values for all min/max settings in color map
-   lo/hi current and lvalue/hvalue settings for lo/hi = MIN/MAX VALUE in entries
-   if mlo/mhi = MIN/MAX VALUE, compute bounds based on N strided values in buf
+   set explicit values for all min/max settings in color map 
+     from min/max dynamic values
+   set lo/hi current and lvalue/hvalue entries that are MIN/MAX VALUE
+   called only once if mlo/mhi != MIN/MAX VALUE, else called repeatedly
+   return 1 = error if any values now overlap incorrectly with dynamic bounds
+   else return 0
 ------------------------------------------------------------------------- */
 
-void ColorMap::minmax(int n, double *buf, int stride)
+int ColorMap::minmax(double mindynamic, double maxdynamic)
 {
-  double two[2],twoall[2];
-
-  if (mlo == MINVALUE || mhi == MAXVALUE) {
-    double lo = BIG;
-    double hi = -BIG;
-    int m = 0;
-    for (int i = 0; i < n; i++) {
-      lo = MIN(lo,buf[m]);
-      hi = MAX(hi,buf[m]);
-      m += stride;
-    }
-    two[0] = -lo;
-    two[1] = hi;
-    MPI_Allreduce(two,twoall,2,MPI_DOUBLE,MPI_MAX,world);
-  }
-
-  if (mlo == MINVALUE) locurrent = -twoall[0];
+  if (mlo == MINVALUE) locurrent = mindynamic;
   else locurrent = mlovalue;
-  if (mhi == MAXVALUE) hicurrent = twoall[1];
+  if (mhi == MAXVALUE) hicurrent = maxdynamic;
   else hicurrent = mhivalue;
-  if (locurrent > hicurrent) error->all(FLERR,"Invalid image color range");
+  if (locurrent > hicurrent) return 1;
 
   if (mstyle == CONTINUOUS) {
     if (mrange == ABSOLUTE) mentry[0].svalue = locurrent;
     else mentry[0].svalue = 0.0;
     if (mrange == ABSOLUTE) mentry[nentry-1].svalue = hicurrent;
     else mentry[nentry-1].svalue = 1.0;
+
+    // error in ABSOLUTE mode if new lo/hi current cause 
+    // first/last entry to become lo > hi with adjacent entry
+
+    if (mrange == ABSOLUTE) {
+      if (mentry[0].svalue > mentry[1].svalue) return 1;
+      if (mentry[nentry-2].svalue > mentry[nentry-1].svalue) return 1;
+    }
+
+  // OK if new lo/hi current cause an entry to have lo > hi,
+  // since last entry will always be a match
+
   } else if (mstyle == DISCRETE) {
     for (int i = 0; i < nentry; i++) {
       if (mentry[i].lo == MINVALUE) {

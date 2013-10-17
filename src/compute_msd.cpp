@@ -127,17 +127,7 @@ void ComputeMSD::init()
 
   // nmsd = # of atoms in group
 
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-
-  nmsd = 0;
-  for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) nmsd++;
-
-  int nmsd_all;
-  MPI_Allreduce(&nmsd,&nmsd_all,1,MPI_INT,MPI_SUM,world);
-  nmsd = nmsd_all;
-
+  nmsd = group->count(igroup);
   masstotal = group->mass(igroup);
 }
 

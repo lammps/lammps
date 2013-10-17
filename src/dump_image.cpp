@@ -35,6 +35,8 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
+#define BIG 1.0e20
+
 enum{PPM,JPG};
 enum{NUMERIC,ATOM,TYPE,ELEMENT,ATTRIBUTE};
 enum{STATIC,DYNAMIC};
@@ -76,10 +78,10 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
   if (strcmp(arg[6],"type") == 0) adiam = TYPE;
   else if (strcmp(arg[6],"element") == 0) adiam = ELEMENT;
 
-  // create Image class
+  // create Image class with single colormap for atoms
   // change defaults for 2d
 
-  image = new Image(lmp);
+  image = new Image(lmp,1);
 
   if (domain->dimension == 2) {
     image->theta = 0.0;
@@ -492,9 +494,6 @@ void DumpImage::write()
   if (viewflag == DYNAMIC) view_params();
 
   // nme = # of atoms this proc will contribute to dump
-  // pack buf with x,y,z,color,diameter
-  // set minmax color range if using color map
-  // create my portion of image for my particles
 
   nme = count();
 
@@ -504,8 +503,28 @@ void DumpImage::write()
     memory->create(buf,maxbuf*size_one,"dump:buf");
   }
 
+  // pack buf with color & diameter
+
   pack(NULL);
-  if (acolor == ATTRIBUTE) image->color_minmax(nchoose,buf,size_one);
+
+  // set minmax color range if using dynamic atom color map
+
+  if (acolor == ATTRIBUTE && image->map_dynamic(0)) {
+    double two[2],twoall[2];
+    double lo = BIG;
+    double hi = -BIG;
+    int m = 0;
+    for (int i = 0; i < nchoose; i++) {
+      lo = MIN(lo,buf[m]);
+      hi = MAX(hi,buf[m]);
+      m += size_one;
+    }
+    two[0] = -lo;
+    two[1] = hi;
+    MPI_Allreduce(two,twoall,2,MPI_DOUBLE,MPI_MAX,world);
+    int flag = image->map_minmax(0,-twoall[0],twoall[1]);
+    if (flag) error->all(FLERR,"Invalid color map min/max values");
+  }
 
   // create image on each proc, then merge them
 
@@ -635,7 +654,7 @@ void DumpImage::create_image()
         itype = static_cast<int> (buf[m]);
         color = colorelement[itype];
       } else if (acolor == ATTRIBUTE) {
-        color = image->value2color(buf[m]);
+        color = image->map_value2color(0,buf[m]);
       }
 
       if (adiam == NUMERIC) {
@@ -717,8 +736,8 @@ void DumpImage::create_image()
             color1 = colorelement[type[atom1]];
             color2 = colorelement[type[atom2]];
           } else if (acolor == ATTRIBUTE) {
-            color1 = image->value2color(bufcopy[atom1][0]);
-            color2 = image->value2color(bufcopy[atom2][0]);
+            color1 = image->map_value2color(0,bufcopy[atom1][0]);
+            color2 = image->map_value2color(0,bufcopy[atom2][0]);
           }
         } else if (bcolor == TYPE) {
           itype = bond_type[atom1][m];
@@ -957,7 +976,7 @@ int DumpImage::modify_param(int narg, char **arg)
     if (nentry < 1) error->all(FLERR,"Illegal dump_modify command");
     int n = 6 + factor*nentry;
     if (narg < n) error->all(FLERR,"Illegal dump_modify command");
-    int flag = image->colormap(n-1,&arg[1]);
+    int flag = image->map_reset(0,n-1,&arg[1]);
     if (flag) error->all(FLERR,"Illegal dump_modify command");
     return n;
   }

@@ -32,7 +32,8 @@ class ComputeMSD : public Compute {
   virtual void compute_vector();
 
  protected:
-  int comflag,nmsd;
+  int comflag;
+  bigint nmsd;
   double masstotal;
   char *id_fix;
   class FixStore *fix;

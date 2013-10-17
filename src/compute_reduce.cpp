@@ -301,7 +301,7 @@ ComputeReduce::~ComputeReduce()
 
 void ComputeReduce::init()
 {
-  // set indices and check validity of all computes,fixes,variables
+  // set indices of all computes,fixes,variables
 
   for (int m = 0; m < nvalues; m++) {
     if (which[m] == COMPUTE) {

@@ -196,6 +196,8 @@ void Ewald::init()
               estimated_accuracy/two_charge_force);
       fprintf(screen,"  KSpace vectors: actual max1d max3d = %d %d %d\n",
               kcount,kmax,kmax3d);
+      fprintf(screen,"                  kxmax kymax kzmax  = %d %d %d\n",
+              kxmax,kymax,kzmax);
     }
     if (logfile) {
       fprintf(logfile,"  G vector (1/distance) = %g\n",g_ewald);
@@ -205,6 +207,8 @@ void Ewald::init()
               estimated_accuracy/two_charge_force);
       fprintf(logfile,"  KSpace vectors: actual max1d max3d = %d %d %d\n",
               kcount,kmax,kmax3d);
+      fprintf(logfile,"                  kxmax kymax kzmax  = %d %d %d\n",
+              kxmax,kymax,kzmax);
     }
   }
 }
@@ -231,63 +235,87 @@ void Ewald::setup()
   unitk[1] = 2.0*MY_PI/yprd;
   unitk[2] = 2.0*MY_PI/zprd_slab;
 
-  // determine kmax
-  // function of current box size, accuracy, G_ewald (short-range cutoff)
-
-  bigint natoms = atom->natoms;
-  double err;
-  kxmax = 1;
-  kymax = 1;
-  kzmax = 1;
-
-  err = rms(kxmax,xprd,natoms,q2);
-  while (err > accuracy) {
-    kxmax++;
-    err = rms(kxmax,xprd,natoms,q2);
-  }
-
-  err = rms(kymax,yprd,natoms,q2);
-  while (err > accuracy) {
-    kymax++;
-    err = rms(kymax,yprd,natoms,q2);
-  }
-
-  err = rms(kzmax,zprd_slab,natoms,q2);
-  while (err > accuracy) {
-    kzmax++;
-    err = rms(kzmax,zprd_slab,natoms,q2);
-  }
-
   int kmax_old = kmax;
-  kmax = MAX(kxmax,kymax);
-  kmax = MAX(kmax,kzmax);
-  kmax3d = 4*kmax*kmax*kmax + 6*kmax*kmax + 3*kmax;
 
-  double gsqxmx = unitk[0]*unitk[0]*kxmax*kxmax;
-  double gsqymx = unitk[1]*unitk[1]*kymax*kymax;
-  double gsqzmx = unitk[2]*unitk[2]*kzmax*kzmax;
-  gsqmx = MAX(gsqxmx,gsqymx);
-  gsqmx = MAX(gsqmx,gsqzmx);
+  if (kewaldflag == 0) {
 
-  kxmax_orig = kxmax;
-  kymax_orig = kymax;
-  kzmax_orig = kzmax;
+    // determine kmax
+    // function of current box size, accuracy, G_ewald (short-range cutoff)
 
-  // scale lattice vectors for triclinic skew
+    bigint natoms = atom->natoms;
+    double err;
+    kxmax = 1;
+    kymax = 1;
+    kzmax = 1;
 
-  if (triclinic) {
-    double tmp[3];
-    tmp[0] = kxmax/xprd;
-    tmp[1] = kymax/yprd;
-    tmp[2] = kzmax/zprd;
-    lamda2xT(&tmp[0],&tmp[0]);
-    kxmax = MAX(1,static_cast<int>(tmp[0]));
-    kymax = MAX(1,static_cast<int>(tmp[1]));
-    kzmax = MAX(1,static_cast<int>(tmp[2]));
+    err = rms(kxmax,xprd,natoms,q2);
+    while (err > accuracy) {
+      kxmax++;
+      err = rms(kxmax,xprd,natoms,q2);
+    }
+
+    err = rms(kymax,yprd,natoms,q2);
+    while (err > accuracy) {
+      kymax++;
+      err = rms(kymax,yprd,natoms,q2);
+    }
+
+    err = rms(kzmax,zprd_slab,natoms,q2);
+    while (err > accuracy) {
+      kzmax++;
+      err = rms(kzmax,zprd_slab,natoms,q2);
+    }
 
     kmax = MAX(kxmax,kymax);
     kmax = MAX(kmax,kzmax);
     kmax3d = 4*kmax*kmax*kmax + 6*kmax*kmax + 3*kmax;
+    
+    double gsqxmx = unitk[0]*unitk[0]*kxmax*kxmax;
+    double gsqymx = unitk[1]*unitk[1]*kymax*kymax;
+    double gsqzmx = unitk[2]*unitk[2]*kzmax*kzmax;
+    gsqmx = MAX(gsqxmx,gsqymx);
+    gsqmx = MAX(gsqmx,gsqzmx);
+    
+    kxmax_orig = kxmax;
+    kymax_orig = kymax;
+    kzmax_orig = kzmax;
+
+    // scale lattice vectors for triclinic skew
+    
+    if (triclinic) {
+      double tmp[3];
+      tmp[0] = kxmax/xprd;
+      tmp[1] = kymax/yprd;
+      tmp[2] = kzmax/zprd;
+      lamda2xT(&tmp[0],&tmp[0]);
+      kxmax = MAX(1,static_cast<int>(tmp[0]));
+      kymax = MAX(1,static_cast<int>(tmp[1]));
+      kzmax = MAX(1,static_cast<int>(tmp[2]));
+      
+      kmax = MAX(kxmax,kymax);
+      kmax = MAX(kmax,kzmax);
+      kmax3d = 4*kmax*kmax*kmax + 6*kmax*kmax + 3*kmax;
+    }
+
+  } else {
+
+    kxmax = kx_ewald;
+    kymax = ky_ewald;
+    kzmax = kz_ewald;
+    
+    kxmax_orig = kxmax;
+    kymax_orig = kymax;
+    kzmax_orig = kzmax;
+
+    kmax = MAX(kxmax,kymax);
+    kmax = MAX(kmax,kzmax);
+    kmax3d = 4*kmax*kmax*kmax + 6*kmax*kmax + 3*kmax;
+
+    double gsqxmx = unitk[0]*unitk[0]*kxmax*kxmax;
+    double gsqymx = unitk[1]*unitk[1]*kymax*kymax;
+    double gsqzmx = unitk[2]*unitk[2]*kzmax*kzmax;
+    gsqmx = MAX(gsqxmx,gsqymx);
+    gsqmx = MAX(gsqmx,gsqzmx);
   }
 
   gsqmx *= 1.00001;

@@ -353,6 +353,13 @@ void LAMMPS_NS::data_reduce_thr(double *dall, int nall, int nthreads, int ndim, 
         dall[m+6] = t6;
         dall[m+7] = t7;
       }
+      // do the last < 8 values
+      for (m = m; m < ito; m++) {
+        for (int n = 1; n < nthreads; ++n) {
+          dall[m] += dall[n*nvals + m];
+          dall[n*nvals + m] = 0.0;
+        }
+      }
     }
 #endif
   }

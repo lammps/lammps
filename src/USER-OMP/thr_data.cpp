@@ -315,7 +315,6 @@ void LAMMPS_NS::data_reduce_thr(double *dall, int nall, int nthreads, int ndim, 
       // for architectures that have L1 D-cache line sizes of 64 bytes
       // (8 doubles) wide, explictly unroll this loop to  compute 8
       // contiguous values in the array at a time
-      // -- modify this code based on the size of the cache line
       double t0, t1, t2, t3, t4, t5, t6, t7;
       for (m = ifrom; m < (ito-7); m+=8) {
         t0 = dall[m  ];

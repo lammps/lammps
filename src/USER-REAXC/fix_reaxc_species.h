@@ -20,11 +20,20 @@ FixStyle(reax/c/species,FixReaxCSpecies)
 #ifndef LMP_FIX_REAXC_SPECIES_H
 #define LMP_FIX_REAXC_SPECIES_H
 
-#include "stdio.h"
 #include "fix.h"
 #include "pointers.h"
 
+#include "pair_reax_c.h"
+#include "reaxc_types.h"
+#include "reaxc_defs.h"
+
+#define BUFLEN 1000
+
 namespace LAMMPS_NS {
+
+typedef struct {
+  double x, y, z;
+} AtomCoord;
 
 class FixReaxCSpecies : public Fix {
  public:
@@ -38,42 +47,45 @@ class FixReaxCSpecies : public Fix {
   double compute_vector(int);
 
  private:
-  class PairReaxC *reaxc;
-  class NeighList *list;
-
   int me, nprocs, nmax, nlocal, ntypes, ntotal;
-  int nrepeat, irepeat, repeat, nfreq, posfreq;
+  bigint natoms;
+  int nrepeat, nfreq, posfreq;
   int Nmoltype, vector_nmole, vector_nspec;
   int *Name, *MolName, *NMol, *nd, *MolType, *molmap;
   double *clusterID;
+  int *PBCconnected;
+  AtomCoord *x0;
 
   double bg_cut;
-  double *tmpq, **tmpx;
-  double **BOCut, **abo;
+  double **BOCut;
+  char **tmparg;
 
   FILE *fp, *pos;
-  int eleflag, posflag, padflag, multipos;
+  int eleflag, posflag, multipos, padflag, setupflag;
   int singlepos_opened, multipos_opened;
-  char *ele, **eletype, *posspec, *filepos;
+  char *ele, **eletype, *filepos;
 
   void Output_ReaxC_Bonds(bigint, FILE *);
-  void GatherBondOrder(struct _reax_list*);
+  void create_compute();
+  void create_fix();
   void FindMolecule();
   void SortMolecule(int &);
   void FindSpecies(int, int &);
-  void WriteFormulae(int, int);
-  void OpenPos();
-  void WritePos(int, int);
-
+  void WriteFormulas(int, int);
   int CheckExistence(int, int);
-  int nint(const double &);
 
+  int nint(const double &);
   int pack_comm(int, int *, double *, int, int *);
   void unpack_comm(int, int, double *);
+  void OpenPos();
+  void WritePos(int, int);
   double memory_usage();
 
-  bigint nvalid, nextvalid();
-  struct _reax_list *lists;
+  bigint nvalid;
+
+  class NeighList *list;
+  class FixAveAtom *f_SPECBOND;
+  class PairReaxC *reaxc;
 
 };
 }

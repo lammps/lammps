@@ -108,11 +108,14 @@ PairReaxC::PairReaxC(LAMMPS *lmp) : Pair(lmp)
   system->pair_ptr = this;
 
   fix_reax = NULL;
+  tmpid = NULL;
+  tmpbo = NULL;
 
   nextra = 14;
   pvector = new double[nextra];
 
   setup_flag = 0;
+  fixspecies_flag = 0;
 
   nmax = 0;
 }
@@ -158,6 +161,9 @@ PairReaxC::~PairReaxC()
     delete [] eta;
     delete [] gamma;
   }
+
+  memory->destroy(tmpid);
+  memory->destroy(tmpbo);
 
   delete [] pvector;
 
@@ -534,6 +540,26 @@ void PairReaxC::compute(int eflag, int vflag)
 
   Output_Results( system, control, data, &lists, out_control, mpi_data );
 
+  // populate tmpid and tmpbo arrays for fix reax/c/species
+  int i, j;
+
+  if(fixspecies_flag) {
+    if (system->N > nmax) {
+      memory->destroy(tmpid);
+      memory->destroy(tmpbo);
+      nmax = system->N;
+      memory->create(tmpid,nmax,MAXSPECBOND,"pair:tmpid");
+      memory->create(tmpbo,nmax,MAXSPECBOND,"pair:tmpbo");
+    }
+   
+    for (i = 0; i < system->N; i ++)
+      for (j = 0; j < MAXSPECBOND; j ++) {
+        tmpbo[i][j] = 0.0;
+	tmpid[i][j] = 0;
+      }
+    FindBond();
+  }
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -733,6 +759,68 @@ void *PairReaxC::extract(const char *str, int &dim)
     return (void *) gamma;
   }
   return NULL;
+}
+
+/* ---------------------------------------------------------------------- */
+
+double PairReaxC::memory_usage()
+{
+  double bytes = 0.0;
+  
+  // From pair_reax_c
+  bytes += 1.0 * system->N * sizeof(int);
+  bytes += 1.0 * system->N * sizeof(double);
+
+  // From reaxc_allocate: BO
+  bytes += 1.0 * system->total_cap * sizeof(reax_atom);
+  bytes += 19.0 * system->total_cap * sizeof(real);
+  bytes += 3.0 * system->total_cap * sizeof(int);
+
+  double mem1 = bytes;
+
+  // From reaxc_lists
+  bytes += 2.0 * lists->n * sizeof(int);
+  bytes += lists->num_intrs * sizeof(three_body_interaction_data);
+  bytes += lists->num_intrs * sizeof(bond_data);
+  bytes += lists->num_intrs * sizeof(dbond_data);
+  bytes += lists->num_intrs * sizeof(dDelta_data);
+  bytes += lists->num_intrs * sizeof(far_neighbor_data);
+  bytes += lists->num_intrs * sizeof(hbond_data);
+
+  if(fixspecies_flag)
+    bytes += 2 * nmax * MAXSPECBOND * sizeof(double);
+
+  return bytes;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairReaxC::FindBond()
+{
+  int i, ii, j, pj, jtag, nj, jtmp, jj;
+  double bo_tmp, bo_cut, rij, rsq, r_tmp;
+
+  bond_data *bo_ij;
+  bo_cut = 0.10;
+
+  for (i = 0; i < system->n; i++) {
+    nj = 0;
+    for( pj = Start_Index(i, lists); pj < End_Index(i, lists); ++pj ) {
+      bo_ij = &( lists->select.bond_list[pj] );
+      j = bo_ij->nbr;
+      if (j < i) continue;
+
+      bo_tmp = bo_ij->bo_data.BO;
+      r_tmp = bo_ij->d;
+
+      if (bo_tmp >= bo_cut ) {
+	tmpid[i][nj] = j;
+	tmpbo[i][nj] = bo_tmp;
+	nj ++;
+	if (nj > MAXSPECBOND) error->all(FLERR,"Increase MAXSPECBOND in fix_reaxc_species.h");
+      }
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */

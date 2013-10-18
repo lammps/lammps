@@ -78,6 +78,7 @@ class PairReaxC : public Pair {
 
   int nmax;
   void FindBond();
+  double memory_usage();
 };
 
 }

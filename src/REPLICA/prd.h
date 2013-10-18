@@ -120,7 +120,11 @@ after the PRD simulation.
 
 E: Too many timesteps
 
-The cummulative timesteps must fit in a 64-bit integer.
+The cumulative timesteps must fit in a 64-bit integer.
+
+E: Cannot use PRD with a changing box
+
+The current box dimensions are not copied between replicas
 
 E: Cannot use PRD with a time-dependent fix defined
 

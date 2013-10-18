@@ -20,20 +20,11 @@ FixStyle(reax/c/species,FixReaxCSpecies)
 #ifndef LMP_FIX_REAXC_SPECIES_H
 #define LMP_FIX_REAXC_SPECIES_H
 
+#include "stdio.h"
 #include "fix.h"
 #include "pointers.h"
 
-#include "pair_reax_c.h"
-#include "reaxc_types.h"
-#include "reaxc_defs.h"
-
-#define BUFLEN 1000
-
 namespace LAMMPS_NS {
-
-typedef struct {
-  double x, y, z;
-} AtomCoord;
 
 class FixReaxCSpecies : public Fix {
  public:
@@ -47,45 +38,42 @@ class FixReaxCSpecies : public Fix {
   double compute_vector(int);
 
  private:
+  class PairReaxC *reaxc;
+  class NeighList *list;
+
   int me, nprocs, nmax, nlocal, ntypes, ntotal;
-  bigint natoms;
-  int nrepeat, nfreq, posfreq;
+  int nrepeat, irepeat, repeat, nfreq, posfreq;
   int Nmoltype, vector_nmole, vector_nspec;
   int *Name, *MolName, *NMol, *nd, *MolType, *molmap;
   double *clusterID;
-  int *PBCconnected;
-  AtomCoord *x0;
 
   double bg_cut;
-  double **BOCut;
-  char **tmparg;
+  double *tmpq, **tmpx;
+  double **BOCut, **abo;
 
   FILE *fp, *pos;
-  int eleflag, posflag, multipos, padflag, setupflag;
+  int eleflag, posflag, padflag, multipos;
   int singlepos_opened, multipos_opened;
-  char *ele, **eletype, *filepos;
+  char *ele, **eletype, *posspec, *filepos;
 
   void Output_ReaxC_Bonds(bigint, FILE *);
-  void create_compute();
-  void create_fix();
+  void GatherBondOrder(struct _reax_list*);
   void FindMolecule();
   void SortMolecule(int &);
   void FindSpecies(int, int &);
-  void WriteFormulas(int, int);
-  int CheckExistence(int, int);
-
-  int nint(const double &);
-  int pack_comm(int, int *, double *, int, int *);
-  void unpack_comm(int, int, double *);
+  void WriteFormulae(int, int);
   void OpenPos();
   void WritePos(int, int);
+
+  int CheckExistence(int, int);
+  int nint(const double &);
+
+  int pack_comm(int, int *, double *, int, int *);
+  void unpack_comm(int, int, double *);
   double memory_usage();
 
-  bigint nvalid;
-
-  class NeighList *list;
-  class FixAveAtom *f_SPECBOND;
-  class PairReaxC *reaxc;
+  bigint nvalid, nextvalid();
+  struct _reax_list *lists;
 
 };
 }

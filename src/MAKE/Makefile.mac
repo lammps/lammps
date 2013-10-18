@@ -28,7 +28,7 @@ SHLIBFLAGS =	-shared
 # LAMMPS ifdef settings, OPTIONAL
 # see possible settings in doc/Section_start.html#2_2 (step 4)
 
-LMP_INC =	-DLAMMPS_GZIP
+LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_JPEG
 
 # MPI library, REQUIRED
 # see discussion in doc/Section_start.html#2_2 (step 5)
@@ -59,9 +59,13 @@ FFT_LIB =	-lfftw
 # PATH = path for JPEG library
 # LIB = name of JPEG library
 
-JPG_INC =       
-JPG_PATH = 	
-JPG_LIB =	
+JPG_INC =       -I/opt/local/include
+#JPG_PATH = 	-L/opt/local/lib
+#JPG_LIB =	-ljpeg
+
+#JPG_INC =       
+#JPG_PATH = 	
+#JPG_LIB =	
 
 # ---------------------------------------------------------------------
 # build rules and dependencies
@@ -82,7 +86,8 @@ vpath %.h ..
 # Link target
 
 $(EXE):	$(OBJ)
-	$(LINK) $(LINKFLAGS) $(EXTRA_PATH) $(OBJ) $(EXTRA_LIB) $(LIB) -o $(EXE)
+	$(LINK) $(LINKFLAGS) $(EXTRA_PATH) $(OBJ) $(EXTRA_LIB) $(LIB) \
+        /opt/local/lib/libjpeg.a -o $(EXE)
 	$(SIZE) $(EXE)
 
 # Library targets

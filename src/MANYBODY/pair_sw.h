@@ -57,10 +57,10 @@ class PairSW : public Pair {
   Param *params;                // parameter set for an I-J-K interaction
 
   virtual void allocate();
-  void read_file(char *);
-  void setup();
-  void twobody(Param *, double, double &, int, double &);
-  void threebody(Param *, Param *, Param *, double, double, double *, double *,
+  virtual void read_file(char *);
+  virtual void setup();
+  virtual void twobody(Param *, double, double &, int, double &);
+  virtual void threebody(Param *, Param *, Param *, double, double, double *, double *,
                  double *, double *, int, double &);
 };
 

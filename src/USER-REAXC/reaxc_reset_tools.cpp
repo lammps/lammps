@@ -180,6 +180,7 @@ void Reset_Neighbor_Lists( reax_system *system, control_params *control,
 {
   int i, total_bonds, Hindex, total_hbonds;
   reax_list *bonds, *hbonds;
+  int mincap = 0;
 
   /* bonds list */
   if( system->N > 0 ){
@@ -198,7 +199,7 @@ void Reset_Neighbor_Lists( reax_system *system, control_params *control,
       workspace->realloc.bonds = 1;
       if( total_bonds >= bonds->num_intrs ) {
         fprintf(stderr,
-                "p%d: not enough space for bonds! total=%d allocated=%d\n",
+                "proc %d: not enough space for bonds! total=%d allocated=%d\n",
                 system->my_rank, total_bonds, bonds->num_intrs );
         MPI_Abort( comm, INSUFFICIENT_MEMORY );
       }
@@ -224,12 +225,14 @@ void Reset_Neighbor_Lists( reax_system *system, control_params *control,
     }
 
     /* is reallocation needed? */
-    if( total_hbonds >= hbonds->num_intrs * 0.90/*DANGER_ZONE*/ ) {
+    if( total_hbonds >= hbonds->num_intrs * DANGER_ZONE ) {
       workspace->realloc.hbonds = 1;
       if( total_hbonds >= hbonds->num_intrs ) {
         fprintf(stderr,
-                "p%d: not enough space for hbonds! total=%d allocated=%d\n",
+                "proc %d: not enough space for hbonds! total=%d allocated=%d; ",
                 system->my_rank, total_hbonds, hbonds->num_intrs );
+	mincap = 1.20 * total_hbonds/MIN_HBONDS;
+	fprintf(stderr,"increase mincap to at least %d \n",mincap);
         MPI_Abort( comm, INSUFFICIENT_MEMORY );
       }
     }

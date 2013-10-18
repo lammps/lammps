@@ -225,6 +225,11 @@ void PRD::command(int narg, char **arg)
 
   update->minimize->init();
 
+  // cannot use PRD with a changing box
+
+  if (domain->box_change)
+    error->all(FLERR,"Cannot use PRD with a changing box");
+
   // cannot use PRD with time-dependent fixes or regions or atom sorting
 
   for (int i = 0; i < modify->nfix; i++)

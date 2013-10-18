@@ -607,7 +607,7 @@ void Variable::compute_atom(int ivar, int igroup,
     } else {
       int m = 0;
       for (int i = 0; i < nlocal; i++) {
-        if (mask[i] && groupbit) result[m] += eval_tree(tree,i);
+        if (mask[i] & groupbit) result[m] += eval_tree(tree,i);
         m += stride;
       }
     }
@@ -624,7 +624,7 @@ void Variable::compute_atom(int ivar, int igroup,
     } else {
       int m = 0;
       for (int i = 0; i < nlocal; i++) {
-        if (mask[i] && groupbit) result[m] += vstore[i];
+        if (mask[i] & groupbit) result[m] += vstore[i];
         m += stride;
       }
     }

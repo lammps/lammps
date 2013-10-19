@@ -349,6 +349,7 @@ FixQMMM::FixQMMM(LAMMPS *lmp, int narg, char **arg) :
 
   /* storage required to communicate a single coordinate or force. */
   size_one = sizeof(struct commdata);
+  maxbuf = -1;
 }
 
 /*********************************
@@ -737,7 +738,9 @@ double FixQMMM::memory_usage(void)
   double bytes;
   
   bytes = sizeof(FixQMMM);
-  
+  bytes += maxbuf;
+  bytes += 6*num_qm*sizeof(double);
+
   return bytes;
 }
 

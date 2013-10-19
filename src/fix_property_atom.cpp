@@ -378,13 +378,13 @@ int FixPropertyAtom::pack_border(int n, int *list, double *buf)
         j = list[i];
         buf[m++] = molecule[j];
       }
-    } else if (style[j] == INTEGER) {
+    } else if (style[k] == INTEGER) {
       int *ivector = atom->ivector[index[k]];
       for (i = 0; i < n; i++) {
         j = list[i];
         buf[m++] = ivector[j];
       }
-    } else if (style[j] == DOUBLE) {
+    } else if (style[k] == DOUBLE) {
       double *dvector = atom->dvector[index[k]];
       for (i = 0; i < n; i++) {
         j = list[i];

@@ -177,7 +177,7 @@ cd ../../src
 
 # install packages
 # fortran reax is obsolete, no GPU support.
-make yes-all no-kim no-gpu no-user-cuda no-reax
+make yes-all no-kim no-gpu no-user-cuda no-reax no-user-qmmm
 
 make -C STUBS
 

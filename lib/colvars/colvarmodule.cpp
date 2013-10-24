@@ -1,3 +1,4 @@
+#include <sstream>
 #include "colvarmodule.h"
 #include "colvarparse.h"
 #include "colvarproxy.h"
@@ -319,6 +320,27 @@ void colvarmodule::change_configuration (std::string const &bias_name,
   if (found > 1) cvm::fatal_error ("Error: duplicate bias name.\n");
   cvm::decrease_depth();
 }
+
+
+std::string colvarmodule::read_colvar(std::string const &name)
+{
+  cvm::increase_depth();
+  int found = 0;
+  std::stringstream ss;
+  for (std::vector<colvar *>::iterator cvi = colvars.begin();
+       cvi != colvars.end();
+       cvi++) {
+    if ( (*cvi)->name == name ) {
+      ++found;
+      ss << (*cvi)->value();
+    }
+  }
+  if ( found < 1 ) cvm::fatal_error ("Error: colvar not found");
+  if ( found > 1 ) cvm::fatal_error ("Error: duplicate colvar");
+  cvm::decrease_depth();
+  return ss.str();
+}
+
 
 cvm::real colvarmodule::energy_difference (std::string const &bias_name,
                                            std::string const &conf)
@@ -793,6 +815,44 @@ void cvm::read_index_file (char const *filename)
 
 }
 
+void cvm::load_coords_xyz (char const *filename,
+                           std::vector<atom_pos> &pos,
+                           const std::vector<int> &indices)
+{
+  std::ifstream xyz_is (filename);
+  int natoms;
+  char symbol[256];
+  std::string line;
+
+  if ( ! (xyz_is >> natoms) ) {
+    cvm::fatal_error ("Error: cannot parse XYZ file "
+                      + std::string (filename) + ".\n");
+  }
+  // skip comment line
+  std::getline (xyz_is, line);
+  std::getline (xyz_is, line);
+  xyz_is.width (255);
+  std::vector<atom_pos>::iterator pos_i = pos.begin();
+
+  if (pos.size() != natoms) { // Use specified indices
+    int next = 0; // indices are zero-based
+    std::vector<int>::const_iterator index = indices.begin();
+    for ( ; pos_i != pos.end() ; pos_i++, index++) {
+
+      while ( next < *index ) {
+        std::getline (xyz_is, line);
+        next++;
+      }
+      xyz_is >> symbol;
+      xyz_is >> (*pos_i)[0] >> (*pos_i)[1] >> (*pos_i)[2];
+    }
+  } else {          // Use all positions
+    for ( ; pos_i != pos.end() ; pos_i++) {
+      xyz_is >> symbol;
+      xyz_is >> (*pos_i)[0] >> (*pos_i)[1] >> (*pos_i)[2];
+    }
+  }
+}
 
 // static pointers
 std::vector<colvar *>     colvarmodule::colvars;

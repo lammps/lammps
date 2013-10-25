@@ -635,13 +635,13 @@ The previous sections of this doc page describe how to add new
 features of various kinds to LAMMPS.  Packages are simply collections
 of one or more new class files which are invoked as a new "style"
 within a LAMMPS input script.  If designed correctly, these additions
-do not require changes to the main core of LAMMPS; they are simply
-add-on files.  If you think your new feature requires non-trivial
-changes in core LAMMPS files, you'll need to "communicate with the
-developers"_http://lammps.sandia.gov/authors.html, since we may or may
-not want to make those changes.  An example of a trivial change is
-making a parent-class method "virtual" when you derive a new child
-class from it.
+typically do not require changes to the main core of LAMMPS; they are
+simply add-on files.  If you think your new feature requires
+non-trivial changes in core LAMMPS files, you'll need to "communicate
+with the developers"_http://lammps.sandia.gov/authors.html, since we
+may or may not want to make those changes.  An example of a trivial
+change is making a parent-class method "virtual" when you derive a new
+child class from it.
 
 Here is what you need to do to submit a user package or single file
 for our consideration.  Following these steps will save time for both
@@ -649,6 +649,14 @@ you and us.  See existing package files for examples.
 
 All source files you provide must compile with the most current
 version of LAMMPS. :ulb,l
+
+If you want your file(s) to be added to main LAMMPS or one of its
+standard packages, then it needs to be written in a style compatible
+with other LAMMPS source files.  This is so the developers can
+understand it and hopefully maintain it.  This basically means that
+the code accesses data structures, performs its operations, and is
+formatted similar to other LAMMPS source files, including the use of
+the error class for error and warning messages. :l
 
 If your contribution is a single file (actually a *.cpp and *.h file)
 it can most rapidly be added to the USER-MISC directory.  Send us the
@@ -668,10 +676,11 @@ directory. :l
 
 Your new source files need to have the LAMMPS copyright, GPL notice,
 and your name at the top, like other LAMMPS source files.  They need
-to create a class that is inside the LAMMPS namespace.  Other than
-that, your files can do whatever is necessary to implement the new
-features.  They don't have to be written in the same stylistic format
-and syntax as other LAMMPS files, though that would be nice. :l
+to create a class that is inside the LAMMPS namespace.  If the file is
+for one of the USER packages, including USER-MISC, then we are not as
+picky about the coding style (see above).  I.e. they do not need to be
+in the same stylistic format and syntax as other LAMMPS files, though
+that would be nice. :l
 
 Finally, you must also send a documentation file for each new command
 or style you are adding to LAMMPS.  This will be one file for a

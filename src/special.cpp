@@ -684,7 +684,10 @@ void Special::angle_trim()
     //   and list of 1,3 and 2,4 atoms in each dihedral stored by atom
 
     int nbuf = 0;
-    for (i = 0; i < nlocal; i++) nbuf += 2*num_angle[i] + 2*2*num_dihedral[i];
+    for (i = 0; i < nlocal; i++) {
+      if (num_angle && atom->nangles) nbuf += 2*num_angle[i];
+      if (num_dihedral && atom->ndihedrals) nbuf + 2*2*num_dihedral[i];
+    }
     int *buf;
     memory->create(buf,nbuf,"special:buf");
 
@@ -692,18 +695,21 @@ void Special::angle_trim()
     // and with list of 1,3 and 2,4 atoms in each dihedral
 
     int size = 0;
-    for (i = 0; i < nlocal; i++)
-      for (j = 0; j < num_angle[i]; j++) {
-        buf[size++] = angle_atom1[i][j];
-        buf[size++] = angle_atom3[i][j];
-      }
-    for (i = 0; i < nlocal; i++)
-      for (j = 0; j < num_dihedral[i]; j++) {
-        buf[size++] = dihedral_atom1[i][j];
-        buf[size++] = dihedral_atom3[i][j];
-        buf[size++] = dihedral_atom2[i][j];
-        buf[size++] = dihedral_atom4[i][j];
-      }
+    if (num_angle && atom->nangles)
+      for (i = 0; i < nlocal; i++)
+        for (j = 0; j < num_angle[i]; j++) {
+          buf[size++] = angle_atom1[i][j];
+          buf[size++] = angle_atom3[i][j];
+        }
+
+    if (num_dihedral && atom->ndihedrals)
+      for (i = 0; i < nlocal; i++)
+        for (j = 0; j < num_dihedral[i]; j++) {
+          buf[size++] = dihedral_atom1[i][j];
+          buf[size++] = dihedral_atom3[i][j];
+          buf[size++] = dihedral_atom2[i][j];
+          buf[size++] = dihedral_atom4[i][j];
+        }
 
     // cycle buffer around ring of procs back to self
     // when receive buffer, scan list of 1,3 atoms looking for atoms I own

@@ -51,9 +51,11 @@ using namespace LAMMPS_NS;
 
 // compare two style strings and compare under consideration of possibly
 // having suffixes which should be ignored (like /cuda, /gpu, /omp, /opt)
+// we also need to strip off all coulomb related parts, since they do not
+// affect the choice of coefficients (with very few execptions).
 
-static const char *suffixes[] = { "/cuda", "/gpu", "/opt", "/omp", NULL};
-
+static const char *suffixes[] = {"/cuda","/gpu","/opt","/omp","/coul/cut",
+  "/coul/long","/coul/msm","/coul/dsf","/coul/debye","/coul/charmm",NULL};
 
 static int style_match(const char *one, const char *two)
 {

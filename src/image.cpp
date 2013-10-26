@@ -32,6 +32,13 @@
 #include "jpeglib.h"
 #endif
 
+#ifdef LAMMPS_PNG
+#include <png.h>
+#include <zlib.h>
+#include <setjmp.h>
+#include "version.h"
+#endif
+
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
@@ -685,7 +692,6 @@ void Image::draw_triangle(double *x, double *y, double *z, double *surfaceColor)
 {
   double d1[3], d1len, d2[3], d2len, normal[3], invndotd;
   double xlocal[3], ylocal[3], zlocal[3];
-  double center[3], bounds[6];
   double surface[3];
   double depth;
 
@@ -715,10 +721,6 @@ void Image::draw_triangle(double *x, double *y, double *z, double *surfaceColor)
   if (invndotd == 0) return;
 
   double r[3],u[3];
-
-  center[0] = (xlocal[0] + ylocal[0] + zlocal[0]) / 3;
-  center[1] = (xlocal[1] + ylocal[1] + zlocal[1]) / 3;
-  center[2] = (xlocal[2] + ylocal[2] + zlocal[2]) / 3;
 
   r[0] = MathExtra::dot3(camRight,xlocal);
   r[1] = MathExtra::dot3(camRight,ylocal);
@@ -1016,6 +1018,59 @@ void Image::write_JPG(FILE *fp)
 
   jpeg_finish_compress(&cinfo);
   jpeg_destroy_compress(&cinfo);
+#endif
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Image::write_PNG(FILE *fp)
+{
+#ifdef LAMMPS_PNG
+  png_structp png_ptr;
+  png_infop info_ptr;
+
+  png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+
+  if (!png_ptr) return;
+
+  info_ptr = png_create_info_struct(png_ptr);
+  if (!info_ptr) {
+    png_destroy_write_struct(&png_ptr, NULL);
+    return;
+  }
+
+  if (setjmp(png_jmpbuf(png_ptr))) {
+    png_destroy_write_struct(&png_ptr, &info_ptr);
+    return;
+  }
+
+  png_init_io(png_ptr, fp);
+  png_set_compression_level(png_ptr,Z_BEST_COMPRESSION);
+  png_set_IHDR(png_ptr,info_ptr,width,height,8,PNG_COLOR_TYPE_RGB,
+    PNG_INTERLACE_NONE,PNG_COMPRESSION_TYPE_DEFAULT,PNG_FILTER_TYPE_DEFAULT);
+
+  png_text text_ptr[1];
+
+  char key[]  = "Software";
+  char text[] = "LAMMPS " LAMMPS_VERSION;
+  text_ptr[0].key = key;
+  text_ptr[0].text = text;
+  text_ptr[0].compression = PNG_TEXT_COMPRESSION_NONE;
+  text_ptr[0].itxt_length = 0;
+  text_ptr[0].lang = NULL;
+  text_ptr[0].lang_key = NULL;
+
+  png_set_text(png_ptr,info_ptr,text_ptr,1);
+  png_write_info(png_ptr,info_ptr);
+
+  png_bytep row_pointers[height];
+  for (int i=0; i < height; ++i)
+    row_pointers[i] = (png_bytep) &writeBuffer[(height-i-1)*3*width];
+
+  png_write_image(png_ptr, row_pointers);
+  png_write_end(png_ptr, info_ptr);
+
+  png_destroy_write_struct(&png_ptr, &info_ptr);
 #endif
 }
 

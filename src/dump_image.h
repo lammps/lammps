@@ -85,9 +85,13 @@ E: Invalid dump image filename
 The file produced by dump image cannot be binary and must
 be for a single processor.
 
-E: Cannot dump JPG file
+E: Support for writing images in JPEG format not included
 
 LAMMPS was not built with the -DLAMMPS_JPEG switch in the Makefile.
+
+E: Support for writing images in PNG format not included
+
+LAMMPS was not built with the -DLAMMPS_PNG switch in the Makefile.
 
 E: Illegal ... command
 

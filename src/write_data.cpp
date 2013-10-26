@@ -256,29 +256,29 @@ void WriteData::force_fields()
 {
   if (force->pair && force->pair->writedata) {
     if (pairflag == II) {
-      fprintf(fp,"\nPair Coeffs\n\n");
+      fprintf(fp,"\nPair Coeffs # %s\n\n", force->pair_style);
       force->pair->write_data(fp);
     } else if (pairflag == IJ) {
-      fprintf(fp,"\nPairIJ Coeffs\n\n");
+      fprintf(fp,"\nPairIJ Coeffs # %s\n\n", force->pair_style);
       force->pair->write_data_all(fp);
     }
   }
   if (atom->avec->bonds_allow && force->bond && force->bond->writedata) {
-    fprintf(fp,"\nBond Coeffs\n\n");
+    fprintf(fp,"\nBond Coeffs # %s\n\n", force->bond_style);
     force->bond->write_data(fp);
   }
   if (atom->avec->angles_allow && force->angle && force->angle->writedata) {
-    fprintf(fp,"\nAngle Coeffs\n\n");
+    fprintf(fp,"\nAngle Coeffs # %s\n\n", force->angle_style);
     force->angle->write_data(fp);
   }
   if (atom->avec->dihedrals_allow && force->dihedral && 
       force->dihedral->writedata) {
-    fprintf(fp,"\nDihedral Coeffs\n\n");
+    fprintf(fp,"\nDihedral Coeffs # %s\n\n", force->dihedral_style);
     force->dihedral->write_data(fp);
   }
   if (atom->avec->impropers_allow && force->improper && 
       force->improper->writedata) {
-    fprintf(fp,"\nImproper Coeffs\n\n");
+    fprintf(fp,"\nImproper Coeffs # %s\n\n", force->improper_style);
     force->improper->write_data(fp);
   }
 }
@@ -315,7 +315,7 @@ void WriteData::atoms()
   MPI_Request request;
 
   if (me == 0) {
-    fprintf(fp,"\nAtoms\n\n");
+    fprintf(fp,"\nAtoms # %s\n\n",atom->atom_style);
     for (int iproc = 0; iproc < nprocs; iproc++) {
       if (iproc) {
         MPI_Irecv(&buf[0][0],maxrow*ncol,MPI_DOUBLE,iproc,0,world,&request);

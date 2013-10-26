@@ -49,6 +49,43 @@ using namespace LAMMPS_NS;
                            // customize for new sections
 #define NSECTIONS 25       // change when add to header::section_keywords
 
+// compare two style strings and compare under consideration of possibly
+// having suffixes which should be ignored (like /cuda, /gpu, /omp, /opt)
+
+static const char *suffixes[] = { "/cuda", "/gpu", "/opt", "/omp", NULL};
+
+
+static int style_match(const char *one, const char *two)
+{
+  int i, delta, len, len1, len2;
+
+  len1 = strlen(one);
+  len2 = strlen(two);
+
+  for (i=0; suffixes[i] != NULL; ++i) {
+    len = strlen(suffixes[i]);
+
+    if ((delta = len1 - len) > 0)
+      if (strcmp(one+delta,suffixes[i]) == 0)
+        len1 = delta;
+
+    if ((delta = len2 - len) > 0)
+      if (strcmp(two+delta,suffixes[i]) == 0)
+        len2 = delta;
+  }
+
+  // after trimming off the suffix, the length has to match
+
+  if (len1 != len2)
+    return 0;
+
+  if (strncmp(one,two,len1) == 0)
+    return 1;
+
+  return 0;
+}
+
+
 /* ---------------------------------------------------------------------- */
 
 ReadData::ReadData(LAMMPS *lmp) : Pointers(lmp)
@@ -56,6 +93,7 @@ ReadData::ReadData(LAMMPS *lmp) : Pointers(lmp)
   MPI_Comm_rank(world,&me);
   line = new char[MAXLINE];
   keyword = new char[MAXLINE];
+  style = new char[MAXLINE];
   buffer = new char[CHUNK*MAXLINE];
   narg = maxarg = 0;
   arg = NULL;
@@ -79,6 +117,7 @@ ReadData::~ReadData()
 {
   delete [] line;
   delete [] keyword;
+  delete [] style;
   delete [] buffer;
   memory->sfree(arg);
 
@@ -210,6 +249,8 @@ void ReadData::command(int narg, char **arg)
     }
 
     if (strcmp(keyword,"Atoms") == 0) {
+      if (me == 0 && !style_match(style,atom->atom_style))
+        error->warning(FLERR,"Recommended atom style in data file differs");
       atoms();
       atomflag = 1;
     } else if (strcmp(keyword,"Velocities") == 0) {
@@ -263,34 +304,46 @@ void ReadData::command(int narg, char **arg)
     } else if (strcmp(keyword,"Pair Coeffs") == 0) {
       if (force->pair == NULL)
         error->all(FLERR,"Must define pair_style before Pair Coeffs");
+      if (me == 0 && !style_match(style,force->pair_style))
+        error->warning(FLERR,"Recommended pair style in data file differs");
       paircoeffs();
     } else if (strcmp(keyword,"PairIJ Coeffs") == 0) {
       if (force->pair == NULL)
         error->all(FLERR,"Must define pair_style before PairIJ Coeffs");
+      if (me == 0 && !style_match(style,force->pair_style))
+        error->warning(FLERR,"Recommended pair style in data file differs");
       pairIJcoeffs();
     } else if (strcmp(keyword,"Bond Coeffs") == 0) {
       if (atom->avec->bonds_allow == 0)
         error->all(FLERR,"Invalid data file section: Bond Coeffs");
       if (force->bond == NULL)
         error->all(FLERR,"Must define bond_style before Bond Coeffs");
+      if (me == 0 && !style_match(style,force->bond_style))
+        error->warning(FLERR,"Recommended bond style in data file differs");
       bondcoeffs();
     } else if (strcmp(keyword,"Angle Coeffs") == 0) {
       if (atom->avec->angles_allow == 0)
         error->all(FLERR,"Invalid data file section: Angle Coeffs");
       if (force->angle == NULL)
         error->all(FLERR,"Must define angle_style before Angle Coeffs");
+      if (me == 0 && !style_match(style,force->angle_style))
+        error->warning(FLERR,"Recommended angle style in data file differs");
       anglecoeffs(0);
     } else if (strcmp(keyword,"Dihedral Coeffs") == 0) {
       if (atom->avec->dihedrals_allow == 0)
         error->all(FLERR,"Invalid data file section: Dihedral Coeffs");
       if (force->dihedral == NULL)
         error->all(FLERR,"Must define dihedral_style before Dihedral Coeffs");
+      if (me == 0 && !style_match(style,force->dihedral_style))
+        error->warning(FLERR,"Recommended dihedral style in data file differs");
       dihedralcoeffs(0);
     } else if (strcmp(keyword,"Improper Coeffs") == 0) {
       if (atom->avec->impropers_allow == 0)
         error->all(FLERR,"Invalid data file section: Improper Coeffs");
       if (force->improper == NULL)
         error->all(FLERR,"Must define improper_style before Improper Coeffs");
+      if (me == 0 && !style_match(style,force->improper_style))
+        error->warning(FLERR,"Recommended improper style in data file differs");
       impropercoeffs(0);
 
     } else if (strcmp(keyword,"BondBond Coeffs") == 0) {
@@ -439,7 +492,7 @@ void ReadData::header(int flag)
     // trim anything from '#' onward
     // if line is blank, continue
 
-    if (ptr = strchr(line,'#')) *ptr = '\0';
+    if ((ptr = strchr(line,'#'))) *ptr = '\0';
     if (strspn(line," \t\n\r") == strlen(line)) continue;
 
     // allow special fixes first chance to match and process the line
@@ -564,7 +617,7 @@ void ReadData::header(int flag)
 
 void ReadData::atoms()
 {
-  int i,m,nchunk,eof;
+  int nchunk,eof;
 
   bigint nread = 0;
   bigint natoms = atom->natoms;
@@ -636,7 +689,7 @@ void ReadData::atoms()
 
 void ReadData::velocities()
 {
-  int i,m,nchunk,eof;
+  int nchunk,eof;
 
   int mapflag = 0;
   if (atom->map_style == 0) {
@@ -675,7 +728,7 @@ void ReadData::velocities()
 
 void ReadData::bonus(bigint nbonus, AtomVec *ptr, const char *type)
 {
-  int i,m,nchunk,eof;
+  int nchunk,eof;
 
   int mapflag = 0;
   if (atom->map_style == 0) {
@@ -791,12 +844,10 @@ void ReadData::bodies()
 
 void ReadData::bonds()
 {
-  int i,m,nchunk,eof;
+  int i,nchunk,eof;
 
   bigint nread = 0;
   bigint nbonds = atom->nbonds;
-
-  bigint natoms = atom->natoms;
 
   while (nread < nbonds) {
     nchunk = MIN(nbonds-nread,CHUNK);
@@ -828,7 +879,7 @@ void ReadData::bonds()
 
 void ReadData::angles()
 {
-  int i,m,nchunk,eof;
+  int i,nchunk,eof;
 
   bigint nread = 0;
   bigint nangles = atom->nangles;
@@ -863,7 +914,7 @@ void ReadData::angles()
 
 void ReadData::dihedrals()
 {
-  int i,m,nchunk,eof;
+  int i,nchunk,eof;
 
   bigint nread = 0;
   bigint ndihedrals = atom->ndihedrals;
@@ -898,7 +949,7 @@ void ReadData::dihedrals()
 
 void ReadData::impropers()
 {
-  int i,m,nchunk,eof;
+  int i,nchunk,eof;
 
   bigint nread = 0;
   bigint nimpropers = atom->nimpropers;
@@ -933,7 +984,7 @@ void ReadData::impropers()
 
 void ReadData::mass()
 {
-  int i,m;
+  int i;
   char *next;
   char *buf = new char[atom->ntypes*MAXLINE];
 
@@ -1504,6 +1555,22 @@ void ReadData::parse_keyword(int first, int flag)
     MPI_Bcast(line,n,MPI_CHAR,0,world);
   }
 
+  // handle comments following the keyword
+  // truncate string and increment pointer over whitespace
+
+  char *ptr;
+  if ((ptr = strrchr(line,'#'))) {
+      *ptr++ = '\0';
+      while (*ptr == ' ' || *ptr == '\t') ++ptr;
+
+      int stop = strlen(ptr) - 1;
+      while (ptr[stop] == ' ' || ptr[stop] == '\t'
+             || ptr[stop] == '\n' || ptr[stop] == '\r') stop--;
+      ptr[stop+1] = '\0';
+
+      strcpy(style,ptr);
+  } else style[0] = '\0';
+
   // copy non-whitespace portion of line into keyword
 
   int start = strspn(line," \t\n\r");
@@ -1540,7 +1607,7 @@ void ReadData::skip_lines(int n)
 void ReadData::parse_coeffs(char *line, const char *addstr, int dupflag)
 {
   char *ptr;
-  if (ptr = strchr(line,'#')) *ptr = '\0';
+  if ((ptr = strchr(line,'#'))) *ptr = '\0';
 
   narg = 0;
   char *word = strtok(line," \t\n\r\f");

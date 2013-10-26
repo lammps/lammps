@@ -32,7 +32,7 @@ class ReadData : protected Pointers {
   void command(int, char **);
 
  private:
-  char *line,*keyword,*buffer;
+  char *line,*keyword,*buffer,*style;
   FILE *fp;
   char **arg;
   int me,narg,maxarg,compressed;

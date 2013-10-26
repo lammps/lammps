@@ -54,14 +54,14 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
   int n = strlen(filename);
   if (strlen(filename) > 4 && strcmp(&filename[n-4],".jpg") == 0)
     filetype = JPG;
-  else if (strlen(filename) > 5 && strcmp(&filename[n-5],".jpeg") == 0)
-    filetype = JPG;
-  else if (strlen(filename) > 4 && strcmp(&filename[n-4],".png") == 0)
-    filetype = PNG;
   else if (strlen(filename) > 4 && strcmp(&filename[n-4],".JPG") == 0)
+    filetype = JPG;
+  else if (strlen(filename) > 5 && strcmp(&filename[n-5],".jpeg") == 0)
     filetype = JPG;
   else if (strlen(filename) > 5 && strcmp(&filename[n-5],".JPEG") == 0)
     filetype = JPG;
+  else if (strlen(filename) > 4 && strcmp(&filename[n-4],".png") == 0)
+    filetype = PNG;
   else if (strlen(filename) > 4 && strcmp(&filename[n-4],".PNG") == 0)
     filetype = PNG;
   else filetype = PPM;

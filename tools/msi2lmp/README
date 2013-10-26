@@ -1,5 +1,11 @@
-Stephanie Teich-McGoldrick (Sandai) is the current maintainer
-of the msi2lmp tool.  She can be contacted at steichm at sandia.gov
+Axel Kohlmeyer is the current maintainer of the msi2lmp tool.
+Please send any inquiries about msi2lmp to the lammps-users mailing list.
+
+26 Oct 2013 Axel Kohlmeyer <akohlmey@gmail.com>
+
+Implemented writing out force field style hints in generated data
+files for improved consistency checking when reading those files.
+Also added writing out CGCMM style comments to identify atom types.
 
 08 Oct 2013 Axel Kohlmeyer <akohlmey@gmail.com>
 

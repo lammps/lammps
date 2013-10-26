@@ -27,7 +27,7 @@
 * The thrid version was revised in Fall 2011 by 
 * Stephanie Teich-McGoldrick to add support non-orthogonal cells.
 *
-* The next revision was done in Summer 2013 by
+* The next revision was done in Summer/Fall 2013 by
 * Axel Kohlmeyer to improve portability to Windows compilers,
 * clean up command line parsing and improve compatibility with
 * the then current LAMMPS versions. This revision removes 

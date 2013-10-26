@@ -2,6 +2,8 @@
 *
 *  msi2lmp.exe
 *
+*   v3.9.2 AK- Support for writing out force field style hints
+*
 *   v3.9.1 AK- Bugfix for Class2. Free allocated memory. Print version number.
 *
 *   v3.9 AK  - Rudimentary support for OPLS-AA
@@ -134,7 +136,7 @@
 #include <string.h>
 #include <ctype.h>
 
-static const char version[] = "v3.9.1 / 08-Oct-2013";
+static const char version[] = "v3.9.2 / 26-Oct-2013";
 
 /* global variables */
 

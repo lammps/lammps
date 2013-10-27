@@ -72,7 +72,7 @@ class Image : protected Pointers {
 
   double *depthBuffer,*surfaceBuffer;
   double *depthcopy,*surfacecopy;
-  char *imageBuffer,*rgbcopy,*writeBuffer;
+  unsigned char *imageBuffer,*rgbcopy,*writeBuffer;
 
   // constant view params
 

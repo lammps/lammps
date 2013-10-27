@@ -1049,14 +1049,19 @@ void Image::write_PNG(FILE *fp)
   png_set_IHDR(png_ptr,info_ptr,width,height,8,PNG_COLOR_TYPE_RGB,
     PNG_INTERLACE_NONE,PNG_COMPRESSION_TYPE_DEFAULT,PNG_FILTER_TYPE_DEFAULT);
 
-  png_text text_ptr[1];
-  memset(txt_ptr,0,sizeof(png_text));
+  png_text text_ptr[2];
+  memset(text_ptr,0,2*sizeof(png_text));
 
-  char key[]  = "Software";
-  char text[] = "LAMMPS " LAMMPS_VERSION;
-  text_ptr[0].key = key;
-  text_ptr[0].text = text;
+  char key0[]  = "Software";
+  char text0[] = "LAMMPS " LAMMPS_VERSION;
+  char key1[]  = "Description";
+  char text1[] = "Dump image snapshot";
+  text_ptr[0].key = key0;
+  text_ptr[0].text = text0;
+  text_ptr[1].key = key1;
+  text_ptr[1].text = text1;
   text_ptr[0].compression = PNG_TEXT_COMPRESSION_NONE;
+  text_ptr[1].compression = PNG_TEXT_COMPRESSION_NONE;
 
   png_set_text(png_ptr,info_ptr,text_ptr,1);
   png_write_info(png_ptr,info_ptr);
@@ -1842,7 +1847,7 @@ int ColorMap::minmax(double mindynamic, double maxdynamic)
 
 double *ColorMap::value2color(double value)
 {
-  double lo,hi;
+  double lo;
 
   value = MAX(value,locurrent);
   value = MIN(value,hicurrent);
@@ -1851,10 +1856,8 @@ double *ColorMap::value2color(double value)
     if (locurrent == hicurrent) value = 0.0;
     else value = (value-locurrent) / (hicurrent-locurrent);
     lo = 0.0;
-    hi = 1.0;
   } else {
     lo = locurrent;
-    hi = hicurrent;
   }
 
   if (mstyle == CONTINUOUS) {

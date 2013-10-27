@@ -1050,15 +1050,13 @@ void Image::write_PNG(FILE *fp)
     PNG_INTERLACE_NONE,PNG_COMPRESSION_TYPE_DEFAULT,PNG_FILTER_TYPE_DEFAULT);
 
   png_text text_ptr[1];
+  memset(txt_ptr,0,sizeof(png_text));
 
   char key[]  = "Software";
   char text[] = "LAMMPS " LAMMPS_VERSION;
   text_ptr[0].key = key;
   text_ptr[0].text = text;
   text_ptr[0].compression = PNG_TEXT_COMPRESSION_NONE;
-  text_ptr[0].itxt_length = 0;
-  text_ptr[0].lang = NULL;
-  text_ptr[0].lang_key = NULL;
 
   png_set_text(png_ptr,info_ptr,text_ptr,1);
   png_write_info(png_ptr,info_ptr);

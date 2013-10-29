@@ -63,7 +63,7 @@ enum{DONE,ADD,SUBTRACT,MULTIPLY,DIVIDE,CARAT,MODULO,UNARY,
 
 // customize by adding a special function
 
-enum{SUM,XMIN,XMAX,AVE,TRAP,NEXT};
+enum{SUM,XMIN,XMAX,AVE,TRAP,NEXT,ISDEF};
 
 #define INVOKED_SCALAR 1
 #define INVOKED_VECTOR 2
@@ -3047,6 +3047,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
 
   if (strcmp(word,"sum") && strcmp(word,"min") && strcmp(word,"max") &&
       strcmp(word,"ave") && strcmp(word,"trap") && strcmp(word,"gmask") &&
+      strcmp(word,"isdef") &&
       strcmp(word,"rmask") && strcmp(word,"grmask") && strcmp(word,"next"))
     return 0;
 
@@ -3269,6 +3270,28 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
     newtree->ivalue2 = iregion;
     newtree->left = newtree->middle = newtree->right = NULL;
     treestack[ntreestack++] = newtree;
+
+  // check if a variable is defined
+
+  } else if (strcmp(word,"isdef") == 0) {
+    int vartype;
+
+    if (narg != 1)
+      error->all(FLERR,"Invalid special function isdef in variable formula");
+
+    int ivar = find(arg1);
+    if (ivar == -1)
+      vartype = 0;
+    else
+      vartype = style[ivar]+1;
+
+    if (tree) {
+      Tree *newtree = new Tree();
+      newtree->type = VALUE;
+      newtree->value = double(vartype);
+      newtree->left = newtree->middle = newtree->right = NULL;
+      treestack[ntreestack++] = newtree;
+    } else argstack[nargstack++] = double(vartype);
 
   // special function for file-style or atomfile-style variables
 

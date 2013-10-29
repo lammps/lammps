@@ -1243,8 +1243,8 @@ defining index and other kinds of variables and "this
 section"_Section_commands.html#cmd_2 for more info on using variables
 in input scripts.
 
-NOTE: Currently, the command-line parser looks for arguments that
-start with "-" to indicate new switches.  Thus you cannot specify
+IMPORTANT NOTE: Currently, the command-line parser looks for arguments
+that start with "-" to indicate new switches.  Thus you cannot specify
 multiple variable values if any of they start with a "-", e.g. a
 negative numeric value.  It is OK if the first value1 starts with a
 "-", since it is automatically skipped.

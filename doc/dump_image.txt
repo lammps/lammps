@@ -69,7 +69,9 @@ dump myDump all image 100 dump.*.jpg type type :pre
 [Description:]
 
 Dump a high-quality ray-traced image of the atom configuration every N
-timesteps as either a JPG or PPM file.  A series of such images can
+timesteps as either a JPG or PPM file.  The options for this command
+as well as the "dump_modify"_dump_modify.html command control what is
+included in the image and how it appears.  A series of such images can
 easily be converted into an animated movie of your simulation; see
 further details below.  Other dump styles store snapshots of numerical
 data asociated with atoms in various formats, as discussed on the

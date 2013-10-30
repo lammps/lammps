@@ -60,6 +60,19 @@ time the calculation is performed (i.e. each time a snapshot of atoms
 is dumped).  Thus it can be inefficient to compute/dump this quantity
 too frequently.
 </P>
+<P>IMPORTANT NOTE: If you have a bonded system, then the settings of
+<A HREF = "special_bonds.html">special_bonds</A> command can remove pairwise
+interactions between atoms in the same bond, angle, or dihedral.  This
+is the default setting for the <A HREF = "special_bonds.html">special_bonds</A>
+command, and means those pairwise interactions do not appear in the
+neighbor list.  Because this fix uses the neighbor list, it also means
+those pairs will not be included in the coordination count.  One way
+to get around this, is to write a dump file, and use the
+<A HREF = "rerun.html">rerun</A> command to compute the coordination for snapshots
+in the dump file.  The rerun script can use a
+<A HREF = "special_bonds.html">special_bonds</A> command that includes all pairs in
+the neighbor list.
+</P>
 <P><B>Output info:</B>
 </P>
 <P>If single <I>type1</I> keyword is specified (or if none are specified),

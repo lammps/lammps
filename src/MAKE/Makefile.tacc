@@ -55,12 +55,12 @@ FFT_INC =       -DFFT_FFTW -I${FFTW_INC}
 FFT_PATH =	-L${FFTW_LIB}
 FFT_LIB =	${FFTW_LIB}/libfftw.a
 
-# JPEG library, OPTIONAL
+# JPEG and/or PNG library, OPTIONAL
 # see discussion in doc/Section_start.html#2_2 (step 7)
-# only needed if -DLAMMPS_JPEG listed with LMP_INC
-# INC = path for jpeglib.h
-# PATH = path for JPEG library
-# LIB = name of JPEG library
+# only needed if -DLAMMPS_JPEG or -DLAMMPS_PNG listed with LMP_INC
+# INC = path(s) for jpeglib.h and/or png.h
+# PATH = path(s) for JPEG library and/or PNG library
+# LIB = name(s) of JPEG library and/or PNG library
 
 JPG_INC =       
 JPG_PATH = 	

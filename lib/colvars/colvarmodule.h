@@ -2,7 +2,7 @@
 #define COLVARMODULE_H
 
 #ifndef COLVARS_VERSION
-#define COLVARS_VERSION "2013-06-19"
+#define COLVARS_VERSION "2013-10-22"
 #endif
 
 #ifndef COLVARS_DEBUG
@@ -22,6 +22,7 @@
 #include <iostream>
 #include <iomanip>
 #include <string>
+#include <cstring>
 #include <sstream>
 #include <fstream>
 #include <cmath>
@@ -178,6 +179,9 @@ public:
   /// currently works for harmonic (force constant and/or centers)
   void change_configuration (std::string const &bias_name, std::string const &conf);
 
+  /// Read a colvar value
+  std::string read_colvar(std::string const &name);
+
   /// Calculate change in energy from using alt. config. for the given bias -
   /// currently works for harmonic (force constant and/or centers)
   real energy_difference (std::string const &bias_name, std::string const &conf);
@@ -316,14 +320,18 @@ public:
                           double const pdb_field_value = 0.0);
 
   /// \brief Load the coordinates for a group of atoms from a file
-  /// (usually a PDB); the number of atoms in "filename" must match
-  /// the number of elements in "pos"
+  /// (PDB or XYZ)
   static void load_coords (char const *filename,
                            std::vector<atom_pos> &pos,
                            const std::vector<int> &indices,
                            std::string const &pdb_field,
                            double const pdb_field_value = 0.0);
 
+  /// \brief Load the coordinates for a group of atoms from an
+  /// XYZ file
+  static void load_coords_xyz (char const *filename,
+                              std::vector<atom_pos> &pos,
+                              const std::vector<int> &indices);
 
   /// Frequency for collective variables trajectory output
   static size_t cv_traj_freq;
@@ -489,7 +497,19 @@ inline void cvm::load_coords (char const *file_name,
                               std::string const &pdb_field,
                               double const pdb_field_value)
 {
-  proxy->load_coords (file_name, pos, indices, pdb_field, pdb_field_value);
+  // Differentiate between PDB and XYZ files
+  // for XYZ files, use CVM internal parser
+  // otherwise call proxy function for PDB
+
+  char const *ext = strlen(file_name) > 4 ? file_name + (strlen(file_name) - 4) : file_name;
+  if ( !strncmp(ext, ".xyz", 4) || !strncmp(ext, ".XYZ", 4) ) {
+    if ( pdb_field.size() > 0 ) {
+      cvm::fatal_error ("Error: PDB column may not be specified for XYZ coordinate file.\n");
+    }
+    cvm::load_coords_xyz (file_name, pos, indices);
+  } else {
+    proxy->load_coords (file_name, pos, indices, pdb_field, pdb_field_value);
+  }
 }
 
 inline void cvm::backup_file (char const *filename)

@@ -1104,7 +1104,6 @@ void colvar::eigenvector::calc_Jacobian_derivative()
   // gradients of products of 2 quaternion components
   cvm::rvector g11, g22, g33, g01, g02, g03, g12, g13, g23;
 
-  cvm::atom_pos x_relative;
   cvm::real sum = 0.0;
 
   for (size_t ia = 0; ia < atoms.size(); ia++) {

@@ -12,7 +12,7 @@ shell command :h3
 
 shell cmd args :pre
 
-cmd = {cd} or {mkdir} or {mv} or {rm} or {rmdir} or arbitrary command :ulb,l
+cmd = {cd} or {mkdir} or {mv} or {rm} or {rmdir} or {putenv} or arbitrary command :ulb,l
   {cd} arg = dir
     dir = directory to change to
   {mkdir} args = dir1 dir2 ...
@@ -24,6 +24,8 @@ cmd = {cd} or {mkdir} or {mv} or {rm} or {rmdir} or arbitrary command :ulb,l
     file1,file2 = one or more filenames to delete
   {rmdir} args = dir1 dir2 ...
     dir1,dir2 = one or more directories to delete
+  {putenv} args = var1=value1 var2=value2
+    var=value = one of more definitions of environment variables
   anything else is passed as a command to the shell for direct execution :pre
 :ule
 
@@ -35,6 +37,7 @@ shell mkdir tmp1 tmp2 tmp3
 shell rmdir tmp1
 shell mv log.lammps hold/log.1
 shell rm TMP/file1 TMP/file2
+shell putenv LAMMPS_POTENTIALS=../../potentials
 shell my_setup file1 10 file2
 shell my_post_process 100 dump.out :pre
 
@@ -71,6 +74,12 @@ files.
 The {rmdir} cmd executes the Unix "rmdir" command to remove one or
 more directories.  A directory must be empty to be successfully
 removed.
+
+The {putenv} cmd defines or updates an environment variable directly.
+Since this command does not pass through the shell, no shell variable
+expansion or globbing is performed, only the usual substitution for
+LAMMPS variables defined with the "variable"_variable.html command is
+performed.  The resulting string is then used literally.
 
 Any other cmd is passed as-is to the shell along with its arguments as
 one string, invoked by the C-library system() call.  For example,

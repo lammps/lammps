@@ -17,7 +17,7 @@
 </PRE>
 <UL><LI>name = name of variable to define 
 
-<LI>style = <I>delete</I> or <I>index</I> or <I>loop</I> or <I>world</I> or <I>universe</I> or <I>uloop</I> or <I>string</I> or <I>file</I> or <I>atomfile</I> or <I>equal</I> or <I>atom</I> 
+<LI>style = <I>delete</I> or <I>index</I> or <I>loop</I> or <I>world</I> or <I>universe</I> or <I>uloop</I> or <I>string</I> or <I>getenv</I> or <I>file</I> or <I>atomfile</I> or <I>equal</I> or <I>atom</I> 
 
 <PRE>  <I>delete</I> = no args
   <I>index</I> args = one or more strings
@@ -39,6 +39,7 @@
     N = integer size of loop
     pad = all values will be same length, e.g. 001, 002, ..., 100
   <I>string</I> arg = one string
+  <I>getenv</I> arg = one string
   <I>file</I> arg = filename
   <I>atomfile</I> arg = filename
   <I>equal</I> or <I>atom</I> args = one formula containing numbers, thermo keywords, math operations, group functions, atom values and vectors, compute/fix/variable references
@@ -139,11 +140,11 @@ means that using the <A HREF = "Section_start.html#start_7">command-line switch<
 script.
 </P>
 <P>There are two exceptions to this rule.  First, variables of style
-<I>string</I> and <I>equal</I> and <I>atom</I> ARE redefined each time the command is
-encountered.  This allows these style of variables to be redefined
-multiple times in an input script.  In a loop, this means the formula
-associated with an <I>equal</I> or <I>atom</I> style variable can change if it
-contains a substitution for another variable, e.g. $x.
+<I>string</I>, <I>getenv</I>, <I>equal</I> and <I>atom</I> ARE redefined each time the
+command is encountered.  This allows these style of variables to be
+redefined multiple times in an input script.  In a loop, this means
+the formula associated with an <I>equal</I> or <I>atom</I> style variable can
+change if it contains a substitution for another variable, e.g. $x.
 </P>
 <P>Second, as described below, if a variable is iterated on to the end of
 its list of strings via the <A HREF = "next.html">next</A> command, it is removed
@@ -245,6 +246,16 @@ The only difference between this and using the <I>index</I> style with a
 single string is that a variable with <I>string</I> style can be redefined.
 E.g. by another command later in the input script, or if the script is
 read again in a loop.
+</P>
+<P>For the <I>getenv</I> style, a single string is assigned to the variable
+which should be the name of an environment variable.  When the
+variable is evaluated, it returns the value of the environment
+variable, or an empty string if it not defined.  This style of
+variable can be used to adapt the behavior of LAMMPS input scripts via
+environment variable settings, or to retrieve information that has
+been previously stored with the <A HREF = "shell.html">shell putenv</A> command.
+Note that because environment variable settings are stored by the
+operating systems, they persist beyond a <A HREF = "clear.html">clear</A> command.
 </P>
 <P>For the <I>file</I> style, a filename is provided which contains a list of
 strings to assign to the variable, one per line.  The strings can be

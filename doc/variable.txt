@@ -13,7 +13,7 @@ variable command :h3
 variable name style args ... :pre
 
 name = name of variable to define :ulb,l
-style = {delete} or {index} or {loop} or {world} or {universe} or {uloop} or {string} or {file} or {atomfile} or {equal} or {atom} :l
+style = {delete} or {index} or {loop} or {world} or {universe} or {uloop} or {string} or {getenv} or {file} or {atomfile} or {equal} or {atom} :l
   {delete} = no args
   {index} args = one or more strings
   {loop} args = N
@@ -34,6 +34,7 @@ style = {delete} or {index} or {loop} or {world} or {universe} or {uloop} or {st
     N = integer size of loop
     pad = all values will be same length, e.g. 001, 002, ..., 100
   {string} arg = one string
+  {getenv} arg = one string
   {file} arg = filename
   {atomfile} arg = filename
   {equal} or {atom} args = one formula containing numbers, thermo keywords, math operations, group functions, atom values and vectors, compute/fix/variable references
@@ -133,11 +134,11 @@ means that using the "command-line switch"_Section_start.html#start_7
 script.
 
 There are two exceptions to this rule.  First, variables of style
-{string} and {equal} and {atom} ARE redefined each time the command is
-encountered.  This allows these style of variables to be redefined
-multiple times in an input script.  In a loop, this means the formula
-associated with an {equal} or {atom} style variable can change if it
-contains a substitution for another variable, e.g. $x.
+{string}, {getenv}, {equal} and {atom} ARE redefined each time the
+command is encountered.  This allows these style of variables to be
+redefined multiple times in an input script.  In a loop, this means
+the formula associated with an {equal} or {atom} style variable can
+change if it contains a substitution for another variable, e.g. $x.
 
 Second, as described below, if a variable is iterated on to the end of
 its list of strings via the "next"_next.html command, it is removed
@@ -239,6 +240,16 @@ The only difference between this and using the {index} style with a
 single string is that a variable with {string} style can be redefined.
 E.g. by another command later in the input script, or if the script is
 read again in a loop.
+
+For the {getenv} style, a single string is assigned to the variable
+which should be the name of an environment variable.  When the
+variable is evaluated, it returns the value of the environment
+variable, or an empty string if it not defined.  This style of
+variable can be used to adapt the behavior of LAMMPS input scripts via
+environment variable settings, or to retrieve information that has
+been previously stored with the "shell putenv"_shell.html command.
+Note that because environment variable settings are stored by the
+operating systems, they persist beyond a "clear"_clear.html command.
 
 For the {file} style, a filename is provided which contains a list of
 strings to assign to the variable, one per line.  The strings can be

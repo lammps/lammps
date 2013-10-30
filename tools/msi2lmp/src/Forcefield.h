@@ -29,6 +29,7 @@ extern struct FrcFieldItem ff_atomtypes, equivalence, ff_vdw, ff_bond, ff_morse,
 
 /* prototypes */
 extern void InitializeItems(void);
+extern void ClearFrcItem(struct FrcFieldItem *item);
 extern void SearchAndFill(struct FrcFieldItem *item);
 
 

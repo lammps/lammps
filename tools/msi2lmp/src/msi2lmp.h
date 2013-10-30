@@ -209,6 +209,7 @@ extern void FrcMenu();
 extern void ReadCarFile();
 extern void ReadMdfFile();
 extern void ReadFrcFile();
+extern void ClearFrcData();
 extern void MakeLists();
 extern void GetParameters();
 extern void CheckLists();

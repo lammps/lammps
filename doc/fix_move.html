@@ -197,11 +197,16 @@ position and velocity of atoms on the outermost rRESPA level.
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>
 <P>This fix writes the original coordinates of moving atoms to <A HREF = "restart.html">binary
-restart files</A>, so that the motion can be continuous in a
-restarted simulation.  See the <A HREF = "read_restart.html">read_restart</A>
-command for info on how to re-specify a fix in an input script that
-reads a restart file, so that the operation of the fix continues in an
-uninterrupted fashion.
+restart files</A>, as well as the initial timestep, so that
+the motion can be continuous in a restarted simulation.  See the
+<A HREF = "read_restart.html">read_restart</A> command for info on how to re-specify
+a fix in an input script that reads a restart file, so that the
+operation of the fix continues in an uninterrupted fashion.
+</P>
+<P>IMPORTANNT NOTE: Because the move positions are a function of the
+current timestep and the initial timestep, you cannot reset the
+timestep to a different value after reading a restart file, if you
+expect a fix move command to work in an uninterrupted fashion.
 </P>
 <P>None of the <A HREF = "fix_modify.html">fix_modify</A> options are relevant to this
 fix.  

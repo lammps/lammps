@@ -860,6 +860,7 @@ package"_Section_accelerate.html.
 "coul/cut/omp"_pair_coul.html,
 "coul/debye/omp"_pair_coul.html,
 "coul/dsf/gpu"_pair_coul.html,
+"coul/dsf/omp"_pair_coul.html,
 "coul/long/gpu"_pair_coul.html,
 "coul/long/omp"_pair_coul.html,
 "coul/msm/omp"_pair_coul.html,
@@ -917,6 +918,7 @@ package"_Section_accelerate.html.
 "lj/cut/coul/debye/gpu"_pair_lj.html,
 "lj/cut/coul/debye/omp"_pair_lj.html,
 "lj/cut/coul/dsf/gpu"_pair_lj.html,
+"lj/cut/coul/dsf/omp"_pair_lj.html,
 "lj/cut/coul/long/cuda"_pair_lj.html,
 "lj/cut/coul/long/gpu"_pair_lj.html,
 "lj/cut/coul/long/omp"_pair_lj.html,
@@ -964,6 +966,9 @@ package"_Section_accelerate.html.
 "morse/omp"_pair_morse.html,
 "morse/opt"_pair_morse.html,
 "nb3b/harmonic/omp"_pair_nb3b_harmonic.html,
+"nm/cut/omp"_pair_nm.html,
+"nm/cut/coul/cut/omp"_pair_nm.html,
+"nm/cut/coul/long/omp"_pair_nm.html,
 "peri/lps/omp"_pair_peri.html,
 "peri/pmb/omp"_pair_peri.html,
 "rebo/omp"_pair_airebo.html,
@@ -978,6 +983,7 @@ package"_Section_accelerate.html.
 "table/omp"_pair_table.html,
 "tersoff/cuda"_pair_tersoff.html,
 "tersoff/omp"_pair_tersoff.html,
+"tersoff/mod/omp"_pair_tersoff_mod.html,
 "tersoff/table/omp"_pair_tersoff.html,
 "tersoff/zbl/omp"_pair_tersoff_zbl.html,
 "tip4p/cut/omp"_pair_coul.html,
@@ -986,7 +992,8 @@ package"_Section_accelerate.html.
 "yukawa/gpu"_pair_yukawa.html,
 "yukawa/omp"_pair_yukawa.html,
 "yukawa/colloid/gpu"_pair_yukawa_colloid.html,
-"yukawa/colloid/omp"_pair_yukawa_colloid.html :tb(c=4,ea=c)
+"yukawa/colloid/omp"_pair_yukawa_colloid.html,
+"zbl/omp"_pair_zbl.html :tb(c=4,ea=c)
 
 :line
 

@@ -41,6 +41,7 @@ class Image : protected Pointers {
   void clear();
   void merge();
   void write_JPG(FILE *);
+  void write_PNG(FILE *);
   void write_PPM(FILE *);
   void view_params(double, double, double, double, double, double);
 
@@ -71,7 +72,7 @@ class Image : protected Pointers {
 
   double *depthBuffer,*surfaceBuffer;
   double *depthcopy,*surfacecopy;
-  char *imageBuffer,*rgbcopy,*writeBuffer;
+  unsigned char *imageBuffer,*rgbcopy,*writeBuffer;
 
   // constant view params
 

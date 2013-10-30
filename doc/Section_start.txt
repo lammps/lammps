@@ -80,9 +80,9 @@ This section has the following sub-sections:
 
 Building LAMMPS can be non-trivial.  You may need to edit a makefile,
 there are compiler options to consider, additional libraries can be
-used (MPI, FFT, JPEG), LAMMPS packages may be included or excluded,
-some of these packages use auxiliary libraries which need to be
-pre-built, etc.
+used (MPI, FFT, JPEG, PNG), LAMMPS packages may be included or
+excluded, some of these packages use auxiliary libraries which need to
+be pre-built, etc.
 
 Please read this section carefully.  If you are not comfortable with
 makefiles, or building codes on a Unix platform, or running an MPI job
@@ -182,6 +182,7 @@ within the LAMMPS code.  The options that are currently recogized are:
 
 -DLAMMPS_GZIP
 -DLAMMPS_JPEG
+-DLAMMPS_PNG
 -DLAMMPS_MEMALIGN
 -DLAMMPS_XDR
 -DLAMMPS_SMALLBIG
@@ -197,9 +198,13 @@ compile with -DLAMMPS_GZIP.  It requires that your Unix support the
 "popen" command.
 
 If you use -DLAMMPS_JPEG, the "dump image"_dump.html command will be
-able to write out JPEG image files.  If not, it will only be able to
-write out text-based PPM image files.  For JPEG files, you must also
-link LAMMPS with a JPEG library, as described below.
+able to write out JPEG image files. For JPEG files, you must also link
+LAMMPS with a JPEG library, as described below. If you use
+-DLAMMPS_PNG, the "dump image"_dump.html command will be able to write
+out PNG image files.  For PNG files, you must also link LAMMPS with a
+PNG library, as described below.  If neither of those two defines are
+used, LAMMPS will only be able to write out text-based PPM image
+files.
 
 Using -DLAMMPS_MEMALIGN=<bytes> enables the use of the
 posix_memalign() call instead of malloc() when large chunks or memory
@@ -343,16 +348,23 @@ been tested with the FFTW3, FFTW2, MKL, and KISS FFT options.
 
 [Step 7]
 
-The 3 JPG variables allow you to specify a JPEG library which LAMMPS
-uses when writing out JPEG files via the "dump image"_dump_image.html
-command.  These can be left blank if you do not use the -DLAMMPS_JPEG
-switch discussed above in Step 4, since in that case JPEG output will
-be disabled.
+The 3 JPG variables allow you to specify a JPEG and/or PNG library
+which LAMMPS uses when writing out JPEG or PNG files via the "dump
+image"_dump_image.html command.  These can be left blank if you do not
+use the -DLAMMPS_JPEG or -DLAMMPS_PNG switches discussed above in Step
+4, since in that case JPEG/PNG output will be disabled.
 
-A standard JPEG library usually goes by the name libjpeg.a and has an
-associated header file jpeglib.h.  Whichever JPEG library you have on
-your platform, you'll need to set the appropriate JPG_INC, JPG_PATH,
-and JPG_LIB variables, so that the compiler and linker can find it.
+A standard JPEG library usually goes by the name libjpeg.a or
+libjpeg.so and has an associated header file jpeglib.h.  Whichever
+JPEG library you have on your platform, you'll need to set the
+appropriate JPG_INC, JPG_PATH, and JPG_LIB variables, so that the
+compiler and linker can find it.
+
+A standard PNG library usually goes by the name libpng.a or libpng.so
+and has an associated header file png.h.  Whichever PNG library you
+have on your platform, you'll need to set the appropriate JPG_INC,
+JPG_PATH, and JPG_LIB variables, so that the compiler and linker can
+find it.
 
 As before, if these header and library files are in the usual place on
 your machine, you may not need to set these variables.
@@ -1243,8 +1255,8 @@ defining index and other kinds of variables and "this
 section"_Section_commands.html#cmd_2 for more info on using variables
 in input scripts.
 
-IMPORTANT NOTE: Currently, the command-line parser looks for arguments
-that start with "-" to indicate new switches.  Thus you cannot specify
+NOTE: Currently, the command-line parser looks for arguments that
+start with "-" to indicate new switches.  Thus you cannot specify
 multiple variable values if any of they start with a "-", e.g. a
 negative numeric value.  It is OK if the first value1 starts with a
 "-", since it is automatically skipped.

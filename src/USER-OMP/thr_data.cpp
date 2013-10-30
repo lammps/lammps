@@ -25,6 +25,7 @@
 
 using namespace LAMMPS_NS;
 
+/* ---------------------------------------------------------------------- */
 
 ThrData::ThrData(int tid)
   : _f(0),_torque(0),_erforce(0),_de(0),_drho(0),_mu(0),_lambda(0),_rhoB(0),
@@ -261,7 +262,7 @@ double ThrData::memory_usage()
 void LAMMPS_NS::data_reduce_thr(double *dall, int nall, int nthreads, int ndim, int tid)
 {
 #if defined(_OPENMP)
-  // NOOP in non-threaded execution.
+  // NOOP in single-threaded execution.
   if (nthreads == 1) return;
 #pragma omp barrier
   {
@@ -270,15 +271,72 @@ void LAMMPS_NS::data_reduce_thr(double *dall, int nall, int nthreads, int ndim, 
     const int ifrom = tid*idelta;
     const int ito   = ((ifrom + idelta) > nvals) ? nvals : (ifrom + idelta);
 
-    // this if protects against having more threads than atoms
+#if defined(USER_OMP_NO_UNROLL)
     if (ifrom < nvals) {
-      for (int m = ifrom; m < ito; ++m) {
+      int m = 0;
+
+      for (m = ifrom; m < ito; ++m) {
         for (int n = 1; n < nthreads; ++n) {
           dall[m] += dall[n*nvals + m];
           dall[n*nvals + m] = 0.0;
         }
       }
     }
+#else
+    // this if protects against having more threads than atoms
+    if (ifrom < nvals) {
+      int m = 0;
+
+      // for architectures that have L1 D-cache line sizes of 64 bytes
+      // (8 doubles) wide, explictly unroll this loop to  compute 8
+      // contiguous values in the array at a time
+      // -- modify this code based on the size of the cache line
+      double t0, t1, t2, t3, t4, t5, t6, t7;
+      for (m = ifrom; m < (ito-7); m+=8) {
+        t0 = dall[m  ];
+        t1 = dall[m+1];
+        t2 = dall[m+2];
+        t3 = dall[m+3];
+        t4 = dall[m+4];
+        t5 = dall[m+5];
+        t6 = dall[m+6];
+        t7 = dall[m+7];
+        for (int n = 1; n < nthreads; ++n) {
+          t0 += dall[n*nvals + m  ];
+          t1 += dall[n*nvals + m+1];
+          t2 += dall[n*nvals + m+2];
+          t3 += dall[n*nvals + m+3];
+          t4 += dall[n*nvals + m+4];
+          t5 += dall[n*nvals + m+5];
+          t6 += dall[n*nvals + m+6];
+          t7 += dall[n*nvals + m+7];
+          dall[n*nvals + m  ] = 0.0;
+          dall[n*nvals + m+1] = 0.0;
+          dall[n*nvals + m+2] = 0.0;
+          dall[n*nvals + m+3] = 0.0;
+          dall[n*nvals + m+4] = 0.0;
+          dall[n*nvals + m+5] = 0.0;
+          dall[n*nvals + m+6] = 0.0;
+          dall[n*nvals + m+7] = 0.0;
+        }
+        dall[m  ] = t0;
+        dall[m+1] = t1;
+        dall[m+2] = t2;
+        dall[m+3] = t3;
+        dall[m+4] = t4;
+        dall[m+5] = t5;
+        dall[m+6] = t6;
+        dall[m+7] = t7;
+      }
+      // do the last < 8 values
+      for (; m < ito; m++) {
+        for (int n = 1; n < nthreads; ++n) {
+          dall[m] += dall[n*nvals + m];
+          dall[n*nvals + m] = 0.0;
+        }
+      }
+    }
+#endif
   }
 #else
   // NOOP in non-threaded execution.

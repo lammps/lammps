@@ -95,21 +95,14 @@ The filename suffix determines whether a JPEG, PNG, or PPM file is
 created.  If the suffix is ".jpg" or ".jpeg", then a JPEG format file
 is created, if the suffix is ".png", then a PNG format is created,
 else a PPM (aka NETPBM) format file is created.  The JPG and PNG files
-are binary; PPM is a text file.  JPG images have lossy compression;
-PNG and PPM formats have lossless compression.  To write out JPEG and
-PNG format files, you must build LAMMPS with support for the
-corresponding JPEG or PNG library.  See "this
+are binary; PPM has a text mode header followed by binary data.
+JPG images have lossy compression; PNG has lossless compression; and
+PPM files are uncompressed but can be compressed with gzip, if LAMMPS
+has been compiled with -DLAMMPS_GZIP and a ".gz" suffix is used.
+To write out JPEG and PNG format files, you must build LAMMPS with
+support for the corresponding JPEG or PNG library.  See "this
 section"_Section_start.html#start_2_4 of the manual for instructions
 on how to do this.
-
-The filename suffix determines whether a JPEG, PNG, or PPM file is created.
-If the suffix is ".jpg" or ".jpeg", then a JPEG format (binary image format
-with lossy compression) file is created, if the suffix is ".png", then a PNG
-format (binary image format with lossless compression) is created, else a
-PPM (aka NETPBM) format file (lossless text format) is created.  To write out
-JPEG and PNG format files, you must build LAMMPS with support for the
-corresponding JPEG or PNG library.  See "this section"_Section_start.html#start_2_4
-of the manual for instructions on how to do this.
 
 IMPORTANT NOTE: Because periodic boundary conditions are enforced only
 on timesteps when neighbor lists are rebuilt, the coordinates of an

@@ -22,16 +22,17 @@
 #include <stdio.h>
 
 #include "memory.h"
+#include "timer.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ThrData::ThrData(int tid)
+ThrData::ThrData(int tid, Timer *t)
   : _f(0),_torque(0),_erforce(0),_de(0),_drho(0),_mu(0),_lambda(0),_rhoB(0),
-    _D_values(0),_rho(0),_fp(0),_rho1d(0),_drho1d(0),_tid(tid)
+    _D_values(0),_rho(0),_fp(0),_rho1d(0),_drho1d(0),_tid(tid), _timer(t)
 {
-  // nothing else to do here.
+  _timer_active = 0;
 }
 
 
@@ -41,6 +42,30 @@ void ThrData::check_tid(int tid)
 {
   if (tid != _tid)
     fprintf(stderr,"WARNING: external and internal tid mismatch %d != %d\n",tid,_tid);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ThrData::_stamp(enum Timer::ttype flag)
+{
+  // do nothing until it gets set to 0 in ::setup()
+  if (_timer_active < 0) return;
+
+  if (flag == Timer::START) {
+    _timer_active = 1;
+  }
+
+  if (_timer_active) _timer->stamp(flag);
+}
+
+/* ---------------------------------------------------------------------- */
+
+double ThrData::get_time(enum Timer::ttype flag)
+{
+  if (_timer)
+    return _timer->get_wall(flag);
+  else
+    return 0.0;
 }
 
 /* ---------------------------------------------------------------------- */

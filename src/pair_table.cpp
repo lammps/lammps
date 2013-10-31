@@ -882,6 +882,11 @@ void PairTable::write_restart_settings(FILE *fp)
 {
   fwrite(&tabstyle,sizeof(int),1,fp);
   fwrite(&tablength,sizeof(int),1,fp);
+  fwrite(&ewaldflag,sizeof(int),1,fp);
+  fwrite(&pppmflag,sizeof(int),1,fp);
+  fwrite(&msmflag,sizeof(int),1,fp);
+  fwrite(&dispersionflag,sizeof(int),1,fp);
+  fwrite(&tip4pflag,sizeof(int),1,fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -893,9 +898,19 @@ void PairTable::read_restart_settings(FILE *fp)
   if (comm->me == 0) {
     fread(&tabstyle,sizeof(int),1,fp);
     fread(&tablength,sizeof(int),1,fp);
+    fread(&ewaldflag,sizeof(int),1,fp);
+    fread(&pppmflag,sizeof(int),1,fp);
+    fread(&msmflag,sizeof(int),1,fp);
+    fread(&dispersionflag,sizeof(int),1,fp);
+    fread(&tip4pflag,sizeof(int),1,fp);
   }
   MPI_Bcast(&tabstyle,1,MPI_INT,0,world);
   MPI_Bcast(&tablength,1,MPI_INT,0,world);
+  MPI_Bcast(&ewaldflag,1,MPI_INT,0,world);
+  MPI_Bcast(&pppmflag,1,MPI_INT,0,world);
+  MPI_Bcast(&msmflag,1,MPI_INT,0,world);
+  MPI_Bcast(&dispersionflag,1,MPI_INT,0,world);
+  MPI_Bcast(&tip4pflag,1,MPI_INT,0,world);
 }
 
 /* ---------------------------------------------------------------------- */

@@ -50,6 +50,15 @@ exactly like the <A HREF = "fix_nve.html">fix nve</A> command.  Since forces are
 unaltered, pressures computed by thermodynamic output will still be
 very large for overlapped configurations.
 </P>
+<P>IMPORTANT NOTE: You should not use <A HREF = "fix_shake.html">fix shake</A> in
+conjunction with this fix.  That is because fix shake applies
+contraint forces based on the predicted postitions of atoms after the
+next timestep.  It has no way of knowing the timestep may change due
+to this fix, which will cause the constraint forces to be invalid.  A
+better strategy is to turn off fix shake when performing initial
+dynamics that need this fix, then turn fix shake on when doing normal
+dynamics with a fixed-size timestep.
+</P>
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>
 <P>No information about this fix is written to <A HREF = "restart.html">binary restart

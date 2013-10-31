@@ -77,9 +77,9 @@ removed.
 
 The {putenv} cmd defines or updates an environment variable directly.
 Since this command does not pass through the shell, no shell variable
-expansion or globbing is performed, only '$' expansion of LAMMPS variables
-defined with the variable_variable.html command is done, the resulting
-string is then used literally.
+expansion or globbing is performed, only the usual substitution for
+LAMMPS variables defined with the "variable"_variable.html command is
+performed.  The resulting string is then used literally.
 
 Any other cmd is passed as-is to the shell along with its arguments as
 one string, invoked by the C-library system() call.  For example,

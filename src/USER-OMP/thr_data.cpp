@@ -22,17 +22,16 @@
 #include <stdio.h>
 
 #include "memory.h"
-#include "timer.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ThrData::ThrData(int tid, Timer *t)
+ThrData::ThrData(int tid)
   : _f(0),_torque(0),_erforce(0),_de(0),_drho(0),_mu(0),_lambda(0),_rhoB(0),
-    _D_values(0),_rho(0),_fp(0),_rho1d(0),_drho1d(0),_tid(tid), _timer(t)
+    _D_values(0),_rho(0),_fp(0),_rho1d(0),_drho1d(0),_tid(tid)
 {
-  _timer_active = 0;
+  // nothing else to do here.
 }
 
 
@@ -42,30 +41,6 @@ void ThrData::check_tid(int tid)
 {
   if (tid != _tid)
     fprintf(stderr,"WARNING: external and internal tid mismatch %d != %d\n",tid,_tid);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void ThrData::_stamp(enum Timer::ttype flag)
-{
-  // do nothing until it gets set to 0 in ::setup()
-  if (_timer_active < 0) return;
-
-  if (flag == Timer::START) {
-    _timer_active = 1;
-  }
-
-  if (_timer_active) _timer->stamp(flag);
-}
-
-/* ---------------------------------------------------------------------- */
-
-double ThrData::get_time(enum Timer::ttype flag)
-{
-  if (_timer)
-    return _timer->get_wall(flag);
-  else
-    return 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -315,6 +290,7 @@ void LAMMPS_NS::data_reduce_thr(double *dall, int nall, int nthreads, int ndim, 
       // for architectures that have L1 D-cache line sizes of 64 bytes
       // (8 doubles) wide, explictly unroll this loop to  compute 8
       // contiguous values in the array at a time
+      // -- modify this code based on the size of the cache line
       double t0, t1, t2, t3, t4, t5, t6, t7;
       for (m = ifrom; m < (ito-7); m+=8) {
         t0 = dall[m  ];

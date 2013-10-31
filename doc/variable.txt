@@ -57,7 +57,7 @@ style = {delete} or {index} or {loop} or {world} or {universe} or {uloop} or {st
 		      bound(group,xmin,region), gyration(group,region), ke(group,reigon),
 		      angmom(group,dim,region), torque(group,dim,region), 
 		      inertia(group,dimdim,region), omega(group,dim,region)
-    special functions = sum(x), min(x), max(x), ave(x), trap(x), gmask(x), rmask(x), grmask(x,y), next(x), isdef(x)
+    special functions = sum(x), min(x), max(x), ave(x), trap(x), gmask(x), rmask(x), grmask(x,y), next(x)
     atom value = id\[i\], mass\[i\], type\[i\], x\[i\], y\[i\], z\[i\], vx\[i\], vy\[i\], vz\[i\], fx\[i\], fy\[i\], fz\[i\]
     atom vector = id, mass, type, x, y, z, vx, vy, vz, fx, fy, fz
     compute references = c_ID, c_ID\[i\], c_ID\[i\]\[j\]
@@ -241,13 +241,15 @@ single string is that a variable with {string} style can be redefined.
 E.g. by another command later in the input script, or if the script is
 read again in a loop.
 
-For the {getenv} style, a single string is assigned to the variable.
-This string is interpreted as the name of an environment variable
-and the variable will be expanded to the value of that environment
-variable or an empty string, if it is not defined. This can be used
-to adapt the behavior of LAMMPS input scripts without changing them
-or to retrieve information that has been previously stored with
-{shell putenv} and thus will be available beyond a {clear} command.
+For the {getenv} style, a single string is assigned to the variable
+which should be the name of an environment variable.  When the
+variable is evaluated, it returns the value of the environment
+variable, or an empty string if it not defined.  This style of
+variable can be used to adapt the behavior of LAMMPS input scripts via
+environment variable settings, or to retrieve information that has
+been previously stored with the "shell putenv"_shell.html command.
+Note that because environment variable settings are stored by the
+operating systems, they persist beyond a "clear"_clear.html command.
 
 For the {file} style, a filename is provided which contains a list of
 strings to assign to the variable, one per line.  The strings can be
@@ -349,7 +351,7 @@ Region functions: count(ID,IDR), mass(ID,IDR), charge(ID,IDR), \
 		  bound(ID,dir,IDR), gyration(ID,IDR), ke(ID,IDR), \
 		  angmom(ID,dim,IDR), torque(ID,dim,IDR), \
                   inertia(ID,dimdim,IDR), omega(ID,dim,IDR)
-Special functions: sum(x), min(x), max(x), ave(x), trap(x), gmask(x), rmask(x), grmask(x,y), next(x), isdef(x)
+Special functions: sum(x), min(x), max(x), ave(x), trap(x), gmask(x), rmask(x), grmask(x,y), next(x)
 Atom values: id\[i\], mass\[i\], type\[i\], x\[i\], y\[i\], z\[i\], \
              vx\[i\], vy\[i\], vz\[i\], fx\[i\], fy\[i\], fz\[i\]
 Atom vectors: id, mass, type, x, y, z, vx, vy, vz, fx, fy, fz
@@ -635,10 +637,6 @@ The next(x) function takes 1 argument which is a variable ID (not
 variable.  Each time the next() function is invoked (i.e. each time
 the equal-style or atom-style variable is evaluated), the following
 steps occur.
-
-The isdef(x) function takes 1 argument which is a variable ID (not
-"v_foo", just "foo").  It returns 1 if the corresponding variable
-is defined and 0 if not.
 
 For file-style variables, the current string value stored by the
 file-style variable is converted to a numeric value and returned by

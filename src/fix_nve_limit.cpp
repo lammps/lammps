@@ -20,6 +20,8 @@
 #include "force.h"
 #include "update.h"
 #include "respa.h"
+#include "modify.h"
+#include "comm.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -65,6 +67,14 @@ void FixNVELimit::init()
 
   if (strstr(update->integrate_style,"respa"))
     step_respa = ((Respa *) update->integrate)->step;
+
+  // warn if using fix shake, which will lead to invalid constraint forces
+
+  for (int i = 0; i < modify->nfix; i++)
+    if (strcmp(modify->fix[i]->style,"shake") == 0) {
+      if (comm->me == 0)
+        error->warning(FLERR,"Should not use fix nve/limit with fix shake");
+    }
 }
 
 /* ----------------------------------------------------------------------

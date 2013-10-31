@@ -111,9 +111,9 @@ more instructions on how to use the accelerated styles effectively.
 
 [Restrictions:] 
  
-This pair style can only be used if LAMMPS was built with the
-USER_MISC package.  See the "Making LAMMPS"_Section_start.html#start_3
-section for more info on packages.
+This pair style can only be used if LAMMPS was built with the MANYBODY
+package (which it is by default).  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info on packages.
 
 [Related commands:]
 

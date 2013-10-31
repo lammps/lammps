@@ -236,9 +236,14 @@ void CreateAtoms::command(int narg, char **arg)
   // reset simulation now that more atoms are defined
   // add tags for newly created atoms if possible
   // if global map exists, reset it
-
   // change these to MAXTAGINT when allow tagint = bigint
-  if (atom->natoms > MAXSMALLINT) atom->tag_enable = 0;
+
+  if (atom->natoms > MAXSMALLINT) {
+    if (comm->me == 0) 
+      error->warning(FLERR,"Total atom count exceeds ID limit, "
+                     "atoms will not have individual IDs");
+    atom->tag_enable = 0;
+  }
   if (atom->natoms <= MAXSMALLINT) atom->tag_extend();
 
   if (atom->map_style) {

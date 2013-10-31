@@ -36,6 +36,18 @@ defined by the "pair_style"_pair_style.html command.  The bins are of
 uniform size in radial distance.  Thus a single bin encompasses a thin
 shell of distances in 3d and a thin ring of distances in 2d.
 
+IMPORTANT NOTE: If you have a bonded system, then the settings of
+"special_bonds"_special_bonds.html command can remove pairwise
+interactions between atoms in the same bond, angle, or dihedral.  This
+is the default setting for the "special_bonds"_special_bonds.html
+command, and means those pairwise interactions do not appear in the
+neighbor list.  Because this fix uses the neighbor list, it also means
+those pairs will not be included in the RDF.  One way to get around
+this, is to write a dump file, and use the "rerun"_rerun.html command
+to compute the RDF for snapshots in the dump file.  The rerun script
+can use a "special_bonds"_special_bonds.html command that includes all
+pairs in the neighbor list.
+
 The {itypeN} and {jtypeN} arguments are optional.  These arguments
 must come in pairs.  If no pairs are listed, then a single histogram
 is computed for g(r) between all atom types.  If one or more pairs are

@@ -674,6 +674,20 @@ void Set::set(int keyword)
       atom->angmom[i][2] = zvalue;
     }
 
+    // reset any or all of 3 image flags
+
+    else if (keyword == IMAGE) {
+      int xbox = (atom->image[i] & IMGMASK) - IMGMAX;
+      int ybox = (atom->image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+      int zbox = (atom->image[i] >> IMG2BITS) - IMGMAX;
+      if (ximageflag) xbox = ximage;
+      if (yimageflag) ybox = yimage;
+      if (zimageflag) zbox = zimage;
+      atom->image[i] = ((tagint) (xbox + IMGMAX) & IMGMASK) | 
+        (((tagint) (ybox + IMGMAX) & IMGMASK) << IMGBITS) | 
+        (((tagint) (zbox + IMGMAX) & IMGMASK) << IMG2BITS);
+    }
+
     // set value for custom integer or double vector
 
     else if (keyword == INAME) {

@@ -544,7 +544,8 @@ void Output::add_dump(int narg, char **arg)
       error->all(FLERR,"Reuse of dump ID");
   int igroup = group->find(arg[1]);
   if (igroup == -1) error->all(FLERR,"Could not find dump group ID");
-  if (force->inumeric(FLERR,arg[3]) <= 0) error->all(FLERR,"Invalid dump frequency");
+  if (force->inumeric(FLERR,arg[3]) <= 0) 
+    error->all(FLERR,"Invalid dump frequency");
 
   // extend Dump list if necessary
 

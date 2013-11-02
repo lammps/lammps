@@ -27,12 +27,14 @@ namespace LAMMPS_NS {
 class DumpImage : public DumpCustom {
  public:
   DumpImage(class LAMMPS *, int, char**);
-  ~DumpImage();
+  virtual ~DumpImage();
   int pack_comm(int, int *, double *, int, int *);
   void unpack_comm(int, int, double *);
 
- private:
+ protected:
   int filetype;
+  enum{PPM,JPG,PNG};
+
   int acolor,adiam;                // what determines color/diam of atoms
   double adiamvalue;               // atom diameter value
   int atomflag,bondflag;           // 0/1 for draw atoms,bonds
@@ -62,7 +64,7 @@ class DumpImage : public DumpCustom {
   double **bufcopy;                // buffer for communicating bond/atom info
   int maxbufcopy;
 
-  void init_style();
+  virtual void init_style();
   int modify_param(int, char **);
   void write();
 

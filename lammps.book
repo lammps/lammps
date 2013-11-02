@@ -73,7 +73,6 @@ doc/variable.html
 doc/velocity.html
 doc/read_data.html
 doc/write_data.html
-doc/write_dump.html
 doc/restart.html
 doc/read_restart.html
 doc/write_restart.html

@@ -1,0 +1,89 @@
+ "LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+   
+write_dump command :h3
+
+[Syntax:]
+
+write_dump ID group-ID style N file dump-args modify dump-modify-args :pre
+
+ID = user-assigned name for the dump (ignored) :ulb,l
+group-ID = ID of the group of atoms to be dumped :l
+style = any of the supported "dump styles"_dump.html :l
+N = dump every this many timesteps (ignored) :l
+file = name of file to write dump info to :l
+dump-args = any additional args needed for a particular "dump style"_dump.html :l
+modify = all args after this keyword are passed to "dump_modify"_dump_modify.html (optional) :l
+dump-modify-args = args for "dump_modify"_dump_modify.html (optional) :l,ule
+
+[Examples:]
+
+write_dump 1 all atom 0 dump.atom
+write_dump 1 subgroup atom 0 dump.run.bin
+write_dump 1 all custom 0 dump.myforce.* id type x y vx fx
+write_dump 1 flow custom 0 dump.%.myforce id type c_myF\[3\] v_ke modify sort id
+write_dump 1 all xyz 0 system.xyz modify sort id elements O H 
+write_dump 1 all image 0 snap*.jpg type type size 960 960 modify backcolor white
+write_dump 1 all image 0 snap*.jpg element element &
+   bond atom 0.3 shiny 0.1 ssao yes 6345 0.2 size 1600 1600  &
+   modify backcolor white element C C O H N C C C O H H S O H :pre
+
+[Description:]
+
+Dump a single snapshot of atom quantities to one or more files for the
+current state of the system.  This is a one-time operation, in
+contrast to the "dump"_dump.html command which will write out multiple
+snapshots periodically during a running simulation.
+
+The syntax for this command is identical to that of the
+"dump"_dump.html and "dump_modify"_dump_modify.html commands as if
+they were concatenated together, with one exception.  This is so that
+the full range of "dump_modify"_dump_modify.html options can be
+specified for the single snapshot, just as they can be for multiple
+snapshots.  The syntax exception is that if a second set of
+dump-modify-args is specified, they must be preceeded by the "modify"
+keyword, so that LAMMPS can cleanly separate the two sets of args.
+
+Note that the dump ID and frequency {N} arguments are ignored, since
+they are irrelevant when only a single snapshot is being written.
+
+Also note that if the specified filename uses the wildcard characters
+"*" or "%", as supported by the "dump"_dump.html commmand, they will
+operate in the same fashion to create the new filename(s).
+
+:line
+
+[Restrictions:]
+
+All restrictions for the "dump"_dump.html and
+"dump_modify"_dump_modify.html commands apply to this command as well.
+For the "dump image"_dump_image.html dump style, this means the
+filename is required to contain a '*' character, which will be
+replaced by the current timestep.
+
+Since dumps are normally written during a "run"_run.html or "energy
+minimization"_minimize.html, the simulation has to be ready to run
+before this command can be used.  Similarly, if the dump requires
+information from a compute, fix, or variable, the information needs to
+have been calculated for the current timestep (e.g. by a prior run),
+else LAMMPS will generate an error message.
+
+For example, it is not possible to dump per-atom energy with this
+command before a run has been performed, since no energies and forces
+have yet been calculated.  See the "variable"_variable.html doc page
+sectinn on Variable Accuracy for more information on this topic.
+
+[Related commands:]
+
+"dump"_dump.html, "dump image"_dump_image.html, "dump_modify"_dump_modify.html
+
+[Default:]
+
+The defaults are listed on the doc pages for the "dump"_dump.html and
+"dump image"_dump_image.html and "dump_modify"_dump_modify.html
+commands.

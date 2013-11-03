@@ -51,6 +51,10 @@
 #include "omp.h"
 #endif
 
+#ifdef _WIN32
+#include <direct.h>
+#endif
+
 using namespace LAMMPS_NS;
 
 #define DELTALINE 256

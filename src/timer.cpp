@@ -21,6 +21,7 @@
 
 #ifdef _WIN32
 #include <windows.h>
+#include <stdint.h>
 #else
 #include <sys/time.h>
 #include <sys/resource.h>

@@ -108,6 +108,10 @@ datestr=$(date +%Y%m%d)
 cp ${TOOLDIR}/mingw-cross/lammps.nsis ${TOOLDIR}/mingw-cross/EnvVarUpdate.nsh .
 cp ${TOOLDIR}/mingw-cross/Obj_mingw32/libOpenCL.dll mingw32
 cp ${TOOLDIR}/mingw-cross/Obj_mingw64/libOpenCL.dll mingw64
+cp ${TOOLDIR}/mingw-cross/Obj_mingw32/gzip.exe mingw32
+cp ${TOOLDIR}/mingw-cross/Obj_mingw64/gzip.exe mingw64
+cp ${TOOLDIR}/mingw-cross/Obj_mingw32/ffmpeg.exe mingw32
+cp ${TOOLDIR}/mingw-cross/Obj_mingw64/ffmpeg.exe mingw64
 cp lammps-current/lib/gpu/Obj_mingw32/ocl_get_devices mingw32/ocl_get_devices.exe
 cp lammps-current/lib/gpu/Obj_mingw64/ocl_get_devices mingw64/ocl_get_devices.exe
 

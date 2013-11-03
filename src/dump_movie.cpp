@@ -44,8 +44,14 @@ void DumpMovie::openfile()
   char moviecmd[1024];
 
   if ((comm->me == 0) && (fp == NULL)) {
-    sprintf(moviecmd,"ffmpeg -v error -y -r %d -f image2pipe -c:v ppm -i - "
-            "-r 24 -b:v %dk %s ", framerate, bitrate, filename);
+
+#ifdef LAMMPS_FFMPEG
+    sprintf(moviecmd,"ffmpeg -v error -y -r %.2f -f image2pipe -c:v ppm -i - "
+            "-r 24.0 -b:v %dk %s ", framerate, bitrate, filename);
+#else
+    error->one(FLERR,"Cannot generate movie file");
+#endif
+
 #if defined(_WIN32)
     fp = _popen(moviecmd,"wb");
 #else
@@ -79,12 +85,12 @@ int DumpMovie::modify_param(int narg, char **arg)
 
   if (strcmp(arg[0],"framerate") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
-    framerate = force->inumeric(FLERR,arg[1]);
-    if (framerate <= 0) error->all(FLERR,"Illegal dump_modify command");
+    framerate = force->numeric(FLERR,arg[1]);
+    if ((framerate <= 0.1) || (framerate > 24.0))
+      error->all(FLERR,"Illegal dump_modify framerate command");
     return 2;
   }
 
   return 0;
 }
-
 

@@ -33,8 +33,8 @@ class DumpMovie : public DumpImage {
   virtual int modify_param(int, char **);
 
  protected:
+  double framerate;             // frame rate of animation
   int bitrate;                  // bitrate of video file in kbps
-  int framerate;                // frame rate of animation
 };
 
 }

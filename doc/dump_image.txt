@@ -7,14 +7,15 @@
 :line
 
 dump image command :h3
+dump movie command :h3
 
 [Syntax:]
 
-dump ID group-ID image N file color diameter keyword value ... :pre
+dump ID group-ID image-or-movie N file color diameter keyword value ... :pre
 
 ID = user-assigned name for the dump :ulb,l
 group-ID = ID of the group of atoms to be imaged :l
-image = style of dump command (other styles {atom} or {cfg} or {dcd} or {xtc} or {xyz} or {local} or {custom} are discussed on the "dump"_dump.html doc page) :l
+image-or-movie = style of dump command (other styles {atom} or {cfg} or {dcd} or {xtc} or {xyz} or {local} or {custom} are discussed on the "dump"_dump.html doc page) :l
 N = dump every this many timesteps :l
 file = name of file to write image to :l
 color = atom attribute that determines color of each atom :l
@@ -64,18 +65,24 @@ keyword = {adiam} or {atom} or {bond} or {size} or {view} or {center} or {up} or
 
 [Examples:]
 
-dump myDump all image 100 dump.*.jpg type type :pre
+dump d0 all image 100 dump.*.jpg type type :pre
+dump d1 mobile image 500 snap.*.png element element ssao yes 4539 0.6 :pre
+dump d2 all image 200 img-*.ppm type type zoom 2.5 adiam 1.5 size 1280 720 :pre
+dump m0 all movie 1000 movie.mpg type type size 640 480 :pre
+dump m1 all movie 1000 movie.avi type type size 640 480 :pre
+dump m2 all movie 100 movie.mp4 type type zoom 1.8 adiam v_value size 1280 720 :pre
 
 [Description:]
 
-Dump a high-quality ray-traced image of the atom configuration every N
-timesteps as either a JPG or PNG or PPM file.  The options for this
-command as well as the "dump_modify"_dump_modify.html command control
-what is included in the image and how it appears.  A series of such
-images can easily be converted into an animated movie of your
-simulation; see further details below.  Other dump styles store
-snapshots of numerical data asociated with atoms in various formats,
-as discussed on the "dump"_dump.html doc page.
+Dump a high-quality rendered image of the atom configuration every N
+timesteps and save it either a JPG or PNG, or PPM file or compress it
+into a movie.  The options for this command as well as the
+"dump_modify"_dump_modify.html command control what is included in the
+image or movie and how it appears.  A series of such images can easily
+be manually converted into an animated movie of your simulation or the
+process can be automated using the movie style; see further details below.
+Other dump styles store snapshots of numerical data asociated with atoms
+in various formats, as discussed on the "dump"_dump.html doc page.
 
 Here are two sample images, rendered as 1024x1024 JPG files.  Click to
 see the full-size images:
@@ -128,6 +135,9 @@ that the "dump_modify pad"_dump_modify.html command can be used to
 insure all timestep numbers are the same length (e.g. 00010), which
 can make it easier to convert a series of images into a movie in the
 correct ordering.
+
+Dump movie filenames on the other hand must not have any wildcard
+character but only one file is written by the movie encoder.
 
 :line
 
@@ -364,7 +374,8 @@ shading is performed.
 :line
 
 A series of JPG or PPM images can be converted into a movie file and
-then played as a movie using commonly available tools.
+then played as a movie using commonly available tools. Using the 
+movie dump style skips this intermediate step
 
 Convert JPG or PPM files into an animated GIF or MPEG or other movie
 file:
@@ -381,7 +392,7 @@ Load the images into QuickTime to animate them
 Select "Export" under the File menu
 Save the movie as a QuickTime movie (*.mov) or in another format
 
-c) Windows-based tool. :ule,l
+c) Use FFmpeg  :ule,l
 
 If someone tells us how to do this via a common Windows-based tool,
 we'll post the instructions here.

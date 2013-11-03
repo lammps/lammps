@@ -57,6 +57,12 @@ void DumpMovie::openfile()
 #else
     fp = popen(moviecmd,"w");
 #endif
+
+    if (fp == NULL) {
+      char str[128];
+      sprintf(str,"Failed to open FFmpeg pipeline to file %s",filename);
+      error->one(FLERR,str);
+    }
   }
 }
 /* ---------------------------------------------------------------------- */

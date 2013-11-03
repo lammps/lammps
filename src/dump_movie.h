@@ -65,4 +65,9 @@ Harmless. This happens when the pipeline to FFmpeg is closed and no
 more image data is sent to be appended to the movie. FFmpeg will 
 simply terminate and close the movie file.
 
+E: Failed to open FFmpeg pipeline to file %s
+
+The specified file cannot be opened.  Check that the path and name are
+correct and writable and that the FFmpeg executable can be found and run.
+
 */

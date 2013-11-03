@@ -1086,7 +1086,9 @@ void Image::write_PNG(FILE *fp)
 
 void Image::write_PPM(FILE *fp)
 {
-  fprintf (fp,"P6\n%d %d\n255\n",width,height);
+  fwrite("P6\n",3,1,fp);
+  fprintf (fp,"%d %d",width,height);
+  fwrite("\n255\n",5,1,fp);
 
   int x,y;
   for (y = height-1; y >= 0; y --)

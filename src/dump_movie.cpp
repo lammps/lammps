@@ -46,7 +46,11 @@ void DumpMovie::openfile()
   if ((comm->me == 0) && (fp == NULL)) {
     sprintf(moviecmd,"ffmpeg -v error -y -r %d -f image2pipe -c:v ppm -i - "
             "-r 24 -b:v %dk %s ", framerate, bitrate, filename);
+#if defined(_WIN32)
+    fp = _popen(moviecmd,"wb");
+#else
     fp = popen(moviecmd,"w");
+#endif
   }
 }
 /* ---------------------------------------------------------------------- */

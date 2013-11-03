@@ -30,6 +30,7 @@ class DumpMovie : public DumpImage {
 
   virtual void openfile();
   virtual void init_style();
+  virtual int modify_param(int, char **);
 
  protected:
   int bitrate;                  // bitrate of video file in kbps

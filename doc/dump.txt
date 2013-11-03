@@ -16,7 +16,7 @@ dump ID group-ID style N file args :pre
 
 ID = user-assigned name for the dump :ulb,l
 group-ID = ID of the group of atoms to be dumped :l
-style = {atom} or {cfg} or {dcd} or {xtc} or {xyz} or {image} or {molfile} or {local} or {custom} :l
+style = {atom} or {cfg} or {dcd} or {xtc} or {xyz} or {image} or {movie} or {molfile} or {local} or {custom} :l
 N = dump every this many timesteps :l
 file = name of file to write dump info to :l
 args = list of arguments for a particular style :l
@@ -27,6 +27,8 @@ args = list of arguments for a particular style :l
   {xyz} args = none :pre
 
   {image} args = discussed on "dump image"_dump_image.html doc page :pre
+
+  {movie} args = discussed on "dump image"_dump_image.html doc page :pre
 
   {molfile} args = discussed on "dump molfile"_dump_molfile.html doc page :pre
 
@@ -93,12 +95,13 @@ dump e_data all custom 100 dump.eff id type x y z spin eradius fx fy fz eforce :
 [Description:]
 
 Dump a snapshot of atom quantities to one or more files every N
-timesteps in one of several styles.  The {image} style is the
-exception; it creates a JPG or PPM image file of the atom
-configuration every N timesteps, as discussed on the "dump
-image"_dump_image.html doc page.  The timesteps on which dump output
-is written can also be controlled by a variable. See the "dump_modify
-every"_dump_modify.html command.
+timesteps in one of several styles.  The {image} and {movie} styles are
+the exception: the {image} style renders a JPG, PNG, or PPM image file
+of the atom configuration every N timesteps while the {movie} style
+combines and compresses them into a movie file; both are discussed in
+detail on the "dump image"_dump_image.html doc page.  The timesteps on
+which dump output is written can also be controlled by a variable.
+See the "dump_modify every"_dump_modify.html command.
 
 Only information for atoms in the specified group is dumped.  The
 "dump_modify thresh and region"_dump_modify.html commands can also
@@ -554,5 +557,5 @@ machines.
 
 [Default:]
 
-The defaults for the image style are listed on the "dump
-image"_dump_image.html doc page.
+The defaults for the {image} and {movie} styles are listed on the
+"dump image"_dump_image.html doc page.

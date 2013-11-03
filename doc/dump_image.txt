@@ -373,9 +373,10 @@ shading is performed.
 
 :line
 
-A series of JPG or PPM images can be converted into a movie file and
-then played as a movie using commonly available tools. Using the 
-movie dump style skips this intermediate step
+A series of JPG, PNG, or PPM images can be converted into a movie file
+and then played as a movie using commonly available tools. Using the 
+movie dump style skips this intermediate step, but requires LAMMPS to
+be compiled with -DLAMMPS_FFMPEG and an FFmpeg executable installed.
 
 Convert JPG or PPM files into an animated GIF or MPEG or other movie
 file:
@@ -427,10 +428,14 @@ per-atom quantities which could then be output into dump files.
 
 [Restrictions:]
 
-To write JPG images, you must use a -DLAMMPS_JPEG switch when building
-LAMMPS and link with a JPEG library.  See the "Making
-LAMMPS"_Section_start.html#start_2_4 section of the documentation for
-details.
+To write JPG images, you must use the -DLAMMPS_JPEG switch when building
+LAMMPS and link with a JPEG library. To write PNG images, you must 
+use the -DLAMMPS_PNG switch when building LAMMPS and link with a PNG library.
+To write {movie} dumps, you must use the -DLAMMPS_FFMPEG switch when
+building LAMMPS and have the FFmpeg executable available on the machine
+where LAMMPS is being run. See the 
+"Making LAMMPS"_Section_start.html#start_2_4 section of the documentation
+for details.
 
 [Related commands:]
 

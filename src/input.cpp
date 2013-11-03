@@ -985,11 +985,14 @@ void Input::shell()
 
   } else if (strcmp(arg[0],"mkdir") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal shell mkdir command");
-#if !defined(WINDOWS) && !defined(__MINGW32__)
     if (me == 0)
-      for (int i = 1; i < narg; i++)
+      for (int i = 1; i < narg; i++) {
+#if defined(_WIN32)
+        _mkdir(arg[i]);
+#else
         mkdir(arg[i], S_IRWXU | S_IRGRP | S_IXGRP);
 #endif
+      }
 
   } else if (strcmp(arg[0],"mv") == 0) {
     if (narg != 3) error->all(FLERR,"Illegal shell mv command");

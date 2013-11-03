@@ -79,11 +79,11 @@ doc/write_restart.html
 doc/dump.html
 doc/undump.html
 doc/dump_modify.html
-doc/dump_image.html
 doc/dump_molfile.html
 doc/read_dump.html
 doc/write_dump.html
 doc/rerun.html
+doc/dump_image.html
 doc/atom_style.html
 doc/body.html
 doc/atom_modify.html

@@ -369,6 +369,7 @@ in the command's documentation.
 "dump"_dump.html,
 "dump image"_dump_image.html,
 "dump_modify"_dump_modify.html,
+"dump movie"_dump_movie.html,
 "echo"_echo.html,
 "fix"_fix.html,
 "fix_modify"_fix_modify.html,

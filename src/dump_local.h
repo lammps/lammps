@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class DumpLocal : public Dump {
  public:
   DumpLocal(LAMMPS *, int, char **);
-  ~DumpLocal();
+  virtual ~DumpLocal();
 
  private:
   int nevery;                // dump frequency to check Fix against

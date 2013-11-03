@@ -518,8 +518,14 @@ void FixTMD::open(char *file)
   else {
 #ifdef LAMMPS_GZIP
     char gunzip[128];
-    sprintf(gunzip,"gunzip -c %s",file);
+    sprintf(gunzip,"gzip -c -d %s",file);
+
+#ifdef _WIN32
+    fp = _popen(gunzip,"rb");
+#else
     fp = popen(gunzip,"r");
+#endif
+
 #else
     error->one(FLERR,"Cannot open gzipped file");
 #endif

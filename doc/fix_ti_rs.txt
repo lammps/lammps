@@ -88,6 +88,9 @@ This switching function has the characteristic that the temperature
 scaling is faster at temperatures closer to the initial temperature of
 the procedure.
 
+An example script using this command is provided in the
+examples/USER/misc/ti directory.
+
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
 No information about this fix is written to "binary restart

@@ -19,48 +19,11 @@
 
 <LI>one or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>acolor</I> or <I>adiam</I> or <I>amap</I> or <I>append</I> or <I>bcolor</I> or <I>bdiam</I> or <I>backcolor</I> or <I>boxcolor</I> or <I>color</I> or <I>every</I> or <I>flush</I> or <I>format</I> or <I>image</I> or <I>label</I> or <I>precision</I> or <I>region</I> or <I>scale</I> or <I>sort</I> or <I>thresh</I> or <I>unwrap</I> 
+<LI>these keywords apply to various dump styles 
 
-<PRE>  <I>acolor</I> args = type color
-    type = atom type or range of types (see below)
-    color = name of color or color1/color2/...
-  <I>adiam</I> args = type diam
-    type = atom type or range of types (see below)
-    diam = diameter of atoms of that type (distance units)
-  <I>amap</I> args = lo hi style delta N entry1 entry2 ... entryN
-    lo = number or <I>min</I> = lower bound of range of color map
-    hi = number or <I>max</I> = upper bound of range of color map
-    style = 2 letters = "c" or "d" or "s" plus "a" or "f"
-      "c" for continuous
-      "d" for discrete
-      "s" for sequential
-      "a" for absolute
-      "f" for fractional
-    delta = binsize (only used for style "s", otherwise ignored)
-      binsize = range is divided into bins of this width
-    N = # of subsequent entries
-    entry = value color (for continuous style)
-      value = number or <I>min</I> or <I>max</I> = single value within range
-      color = name of color used for that value
-    entry = lo hi color (for discrete style)
-      lo/hi = number or <I>min</I> or <I>max</I> = lower/upper bound of subset of range
-      color = name of color used for that subset of values
-    entry = color (for sequential style)
-      color = name of color used for a bin of values
-  <I>append</I> arg = <I>yes</I> or <I>no</I>
-  <I>bcolor</I> args = type color
-    type = bond type or range of types (see below)
-    color = name of color or color1/color2/...
-  <I>bdiam</I> args = type diam
-    type = bond type or range of types (see below)
-    diam = diameter of bonds of that type (distance units)
-  <I>backcolor</I> arg = color
-    color = name of color for background
-  <I>boxcolor</I> arg = color
-    color = name of color for box lines
-  <I>color</I> args = name R G B
-    name = name of color
-    R,G,B = red/green/blue numeric values from 0.0 to 1.0
+<LI>keyword = <I>append</I> or <I>element</I> or <I>every</I> or <I>fileper</I> or <I>first</I> or <I>flush</I> or <I>format</I> or <I>image</I> or <I>label</I> or <I>nfile</I> or <I>pad</I> or <I>precision</I> or <I>region</I> or <I>scale</I> or <I>sort</I> or <I>thresh</I> or <I>unwrap</I> 
+
+<PRE>  <I>append</I> arg = <I>yes</I> or <I>no</I>
   <I>element</I> args = E1 E2 ... EN, where N = # of atom types
     E1,...,EN = element name, e.g. C or Fe or Ga
   <I>every</I> arg = N
@@ -92,6 +55,54 @@
     these 3 args can be replaced by the word "none" to turn off thresholding
   <I>unwrap</I> arg = <I>yes</I> or <I>no</I> 
 </PRE>
+<LI>these keywords apply only to the <I>image</I> and <I>movie</I> <A HREF = "dump_image.html">styles</A> 
+
+<LI>keyword = <I>acolor</I> or <I>adiam</I> or <I>amap</I> or <I>bcolor</I> or <I>bdiam</I> or <I>backcolor</I> or <I>boxcolor</I> or <I>color</I> or <I>bitrate</I> or <I>framerate</I> 
+
+<PRE>  <I>acolor</I> args = type color
+    type = atom type or range of types (see below)
+    color = name of color or color1/color2/...
+  <I>adiam</I> args = type diam
+    type = atom type or range of types (see below)
+    diam = diameter of atoms of that type (distance units)
+  <I>amap</I> args = lo hi style delta N entry1 entry2 ... entryN
+    lo = number or <I>min</I> = lower bound of range of color map
+    hi = number or <I>max</I> = upper bound of range of color map
+    style = 2 letters = "c" or "d" or "s" plus "a" or "f"
+      "c" for continuous
+      "d" for discrete
+      "s" for sequential
+      "a" for absolute
+      "f" for fractional
+    delta = binsize (only used for style "s", otherwise ignored)
+      binsize = range is divided into bins of this width
+    N = # of subsequent entries
+    entry = value color (for continuous style)
+      value = number or <I>min</I> or <I>max</I> = single value within range
+      color = name of color used for that value
+    entry = lo hi color (for discrete style)
+      lo/hi = number or <I>min</I> or <I>max</I> = lower/upper bound of subset of range
+      color = name of color used for that subset of values
+    entry = color (for sequential style)
+      color = name of color used for a bin of values
+  <I>backcolor</I> arg = color
+    color = name of color for background
+  <I>bcolor</I> args = type color
+    type = bond type or range of types (see below)
+    color = name of color or color1/color2/...
+  <I>bdiam</I> args = type diam
+    type = bond type or range of types (see below)
+    diam = diameter of bonds of that type (distance units)
+  <I>bitrate</I> arg = rate
+    rate = target bitrate for movie in kbps
+  <I>boxcolor</I> arg = color
+    color = name of color for box lines
+  <I>color</I> args = name R G B
+    name = name of color
+    R,G,B = red/green/blue numeric values from 0.0 to 1.0 
+</PRE>
+  <I>framerate</I> arg = fps
+    fps = frames per second for movie
 
 </UL>
 <P><B>Examples:</B>
@@ -111,151 +122,10 @@ parameters are relevant to all dump styles.
 </P>
 <HR>
 
-<P>The <I>acolor</I> keyword applies only to the dump <I>image</I> style.  It can
-be used with the <A HREF = "dump_image.html">dump image</A> command, when its atom
-color setting is <I>type</I>, to set the color that atoms of each type will
-be drawn in the image.
-</P>
-<P>The specified <I>type</I> should be an integer from 1 to Ntypes = the
-number of atom types.  A wildcard asterisk can be used in place of or
-in conjunction with the <I>type</I> argument to specify a range of atom
-types.  This takes the form "*" or "*n" or "n*" or "m*n".  If N = the
-number of atom types, then an asterisk with no numeric values means
-all types from 1 to N.  A leading asterisk means all types from 1 to n
-(inclusive).  A trailing asterisk means all types from n to N
-(inclusive).  A middle asterisk means all types from m to n
-(inclusive).
-</P>
-<P>The specified <I>color</I> can be a single color which is any of the 140
-pre-defined colors (see below) or a color name defined by the
-dump_modify color option.  Or it can be two or more colors separated
-by a "/" character, e.g. red/green/blue.  In the former case, that
-color is assigned to all the specified atom types.  In the latter
-case, the list of colors are assigned in a round-robin fashion to each
-of the specified atom types.
-</P>
 <HR>
 
-<P>The <I>adiam</I> keyword applies only to the dump <I>image</I> style.  It can be
-used with the <A HREF = "dump_image.html">dump image</A> command, when its atom
-diameter setting is <I>type</I>, to set the size that atoms of each type
-will be drawn in the image.  The specified <I>type</I> should be an integer
-from 1 to Ntypes.  As with the <I>acolor</I> keyword, a wildcard asterisk
-can be used as part of the <I>type</I> argument to specify a range of atomt
-types.  The specified <I>diam</I> is the size in whatever distance
-<A HREF = "units.html">units</A> the input script is using, e.g. Angstroms.
-</P>
-<HR>
-
-<P>The <I>amap</I> keyword applies only to the dump <I>image</I> style.  It can be
-used with the <A HREF = "dump_image.html">dump image</A> command, with its <I>atom</I>
-keyword, when its atom setting is an atom-attribute, to setup a color
-map.  The color map is used to assign a specific RGB (red/green/blue)
-color value to an individual atom when it is drawn, based on the
-atom's attribute, which is a numeric value, e.g. its x-component of
-velocity if the atom-attribute "vx" was specified.
-</P>
-<P>The basic idea of a color map is that the atom-attribute will be
-within a range of values, and that range is associated with a a series
-of colors (e.g. red, blue, green).  An atom's specific value (vx =
--3.2) can then mapped to the series of colors (e.g. halfway between
-red and blue), and a specific color is determined via an interpolation
-procedure.
-</P>
-<P>There are many possible options for the color map, enabled by the
-<I>amap</I> keyword.  Here are the details.
-</P>
-<P>The <I>lo</I> and <I>hi</I> settings determine the range of values allowed for
-the atom attribute.  If numeric values are used for <I>lo</I> and/or <I>hi</I>,
-then values that are lower/higher than that value are set to the
-value.  I.e. the range is static.  If <I>lo</I> is specified as <I>min</I> or
-<I>hi</I> as <I>max</I> then the range is dynamic, and the lower and/or
-upper bound will be calculated each time an image is drawn, based
-on the set of atoms being visualized.
-</P>
-<P>The <I>style</I> setting is two letters, such as "ca".  The first letter is
-either "c" for continuous, "d" for discrete, or "s" for sequential.
-The second letter is either "a" for absolute, or "f" for fractional.
-</P>
-<P>A continuous color map is one in which the color changes continuously
-from value to value within the range.  A discrete color map is one in
-which discrete colors are assigned to sub-ranges of values within the
-range.  A sequential color map is one in which discrete colors are
-assigned to a sequence of sub-ranges of values covering the entire
-range.
-</P>
-<P>An absolute color map is one in which the values to which colors are
-assigned are specified explicitly as values within the range.  A
-fractional color map is one in which the values to which colors are
-assigned are specified as a fractional portion of the range.  For
-example if the range is from -10.0 to 10.0, and the color red is to be
-assigned to atoms with a value of 5.0, then for an absolute color map
-the number 5.0 would be used.  But for a fractional map, the number
-0.75 would be used since 5.0 is 3/4 of the way from -10.0 to 10.0.
-</P>
-<P>The <I>delta</I> setting must be specified for all styles, but is only used
-for the sequential style; otherwise the value is ignored.  It
-specifies the bin size to use within the range for assigning
-consecutive colors to.  For example, if the range is from -10.0 to
-10.0 and a <I>delta</I> of 1.0 is used, then 20 colors will be assigned to
-the range.  The first will be from -10.0 <= color1 < -9.0, then 2nd
-from -9.0 <= color2 < -8.0, etc.
-</P>
-<P>The <I>N</I> setting is how many entries follow.  The format of the entries
-depends on whether the color map style is continuous, discrete or
-sequential.  In all cases the <I>color</I> setting can be any of the 140
-pre-defined colors (see below) or a color name defined by the
-dump_modify color option.
-</P>
-<P>For continuous color maps, each entry has a <I>value</I> and a <I>color</I>.
-The <I>value</I> is either a number within the range of values or <I>min</I> or
-<I>max</I>.  The <I>value</I> of the first entry must be <I>min</I> and the <I>value</I>
-of the last entry must be <I>max</I>.  Any entries in between must have
-increasing values.  Note that numeric values can be specified either
-as absolute numbers or as fractions (0.0 to 1.0) of the range,
-depending on the "a" or "f" in the style setting for the color map.
-</P>
-<P>Here is how the entries are used to determine the color of an
-individual atom, given the value X of its atom attribute.  X will fall
-between 2 of the entry values.  The color of the atom is linearly
-interpolated (in each of the RGB values) between the 2 colors
-associated with those entries.  For example, if X = -5.0 and the 2
-surrounding entries are "red" at -10.0 and "blue" at 0.0, then the
-atom's color will be halfway between "red" and "blue", which happens
-to be "purple".
-</P>
-<P>For discrete color maps, each entry has a <I>lo</I> and <I>hi</I> value and a
-<I>color</I>.  The <I>lo</I> and <I>hi</I> settings are either numbers within the
-range of values or <I>lo</I> can be <I>min</I> or <I>hi</I> can be <I>max</I>.  The <I>lo</I>
-and <I>hi</I> settings of the last entry must be <I>min</I> and <I>max</I>.  Other
-entries can have any <I>lo</I> and <I>hi</I> values and the sub-ranges of
-different values can overlap.  Note that numeric <I>lo</I> and <I>hi</I> values
-can be specified either as absolute numbers or as fractions (0.0 to
-1.0) of the range, depending on the "a" or "f" in the style setting
-for the color map.
-</P>
-<P>Here is how the entries are used to determine the color of an
-individual atom, given the value X of its atom attribute.  The entries
-are scanned from first to last.  The first time that <I>lo</I> <= X <=
-<I>hi</I>, X is assigned the color associated with that entry.  You can
-think of the last entry as assigning a default color (since it will
-always be matched by X), and the earlier entries as colors that
-override the default.  Also note that no interpolation of a color RGB
-is done.  All atoms will be drawn with one of the colors in the list
-of entries.
-</P>
-<P>For sequential color maps, each entry has only a <I>color</I>.  Here is how
-the entries are used to determine the color of an individual atom,
-given the value X of its atom attribute.  The range is partitioned
-into N bins of width <I>binsize</I>.  Thus X will fall in a specific bin
-from 1 to N, say the Mth bin.  If it falls on a boundary between 2
-bins, it is considered to be in the higher of the 2 bins.  Each bin is
-assigned a color from the E entries.  If E < N, then the colors are
-repeated.  For example if 2 entries with colors red and green are
-specified, then the odd numbered bins will be red and the even bins
-green.  The color of the atom is the color of its bin.  Note that the
-sequential color map is really a shorthand way of defining a discrete
-color map without having to specify where all the bin boundaries are.
+<P>These keywords apply to various dump styles, including the <A HREF = "dump_image.html">dump
+image</A> style.  The description gives details.
 </P>
 <HR>
 
@@ -269,73 +139,6 @@ dump_modify command is used after the <A HREF = "dump.html">dump</A> command, bu
 before the first command that causes dump snapshots to be output,
 e.g. a <A HREF = "run.html">run</A> or <A HREF = "minimize.html">minimize</A> command.  Once the
 dump file has been opened, this keyword has no further effect.
-</P>
-<HR>
-
-<P>The <I>bcolor</I> keyword applies only to the dump <I>image</I> style.  It can
-be used with the <A HREF = "dump_image.html">dump image</A> command, with its <I>bond</I>
-keyword, when its color setting is <I>type</I>, to set the color that bonds
-of each type will be drawn in the image.
-</P>
-<P>The specified <I>type</I> should be an integer from 1 to Nbondtypes = the
-number of bond types.  A wildcard asterisk can be used in place of or
-in conjunction with the <I>type</I> argument to specify a range of bond
-types.  This takes the form "*" or "*n" or "n*" or "m*n".  If N = the
-number of bond types, then an asterisk with no numeric values means
-all types from 1 to N.  A leading asterisk means all types from 1 to n
-(inclusive).  A trailing asterisk means all types from n to N
-(inclusive).  A middle asterisk means all types from m to n
-(inclusive).
-</P>
-<P>The specified <I>color</I> can be a single color which is any of the 140
-pre-defined colors (see below) or a color name defined by the
-dump_modify color option.  Or it can be two or more colors separated
-by a "/" character, e.g. red/green/blue.  In the former case, that
-color is assigned to all the specified bond types.  In the latter
-case, the list of colors are assigned in a round-robin fashion to each
-of the specified bond types.
-</P>
-<HR>
-
-<P>The <I>bdiam</I> keyword applies only to the dump <I>image</I> style.  It can be
-used with the <A HREF = "dump_image.html">dump image</A> command, with its <I>bond</I>
-keyword, when its diam setting is <I>type</I>, to set the diameter that
-bonds of each type will be drawn in the image.  The specified <I>type</I>
-should be an integer from 1 to Nbondtypes.  As with the <I>bcolor</I>
-keyword, a wildcard asterisk can be used as part of the <I>type</I>
-argument to specify a range of bond types.  The specified <I>diam</I> is
-the size in whatever distance <A HREF = "units.html">units</A> you are using,
-e.g. Angstroms.
-</P>
-<HR>
-
-<P>The <I>backcolor</I> keyword applies only to the dump <I>image</I> style.  It
-sets the background color of the images.  The color name can be any of
-the 140 pre-defined colors (see below) or a color name defined by the
-dump_modify color option.
-</P>
-<HR>
-
-<P>The <I>boxcolor</I> keyword applies only to the dump <I>image</I> style.  It
-sets the color of the simulation box drawn around the atoms in each
-image.  See the "dump image box" command for how to specify that a box
-be drawn.  The color name can be any of the 140 pre-defined colors
-(see below) or a color name defined by the dump_modify color option.
-</P>
-<HR>
-
-<P>The <I>color</I> keyword applies only to the dump <I>image</I> style.  It allows
-definition of a new color name, in addition to the 140-predefined
-colors (see below), and associates 3 red/green/blue RGB values with
-that color name.  The color name can then be used with any other
-dump_modify keyword that takes a color name as a value.  The RGB
-values should each be floating point values between 0.0 and 1.0
-inclusive.
-</P>
-<P>When a color name is converted to RGB values, the user-defined color
-names are searched first, then the 140 pre-defined color names.  This
-means you can also use the <I>color</I> keyword to overwrite one of the
-pre-defined color names with new RBG values.
 </P>
 <HR>
 
@@ -471,13 +274,13 @@ e.g. BONDS or ANGLES.
 
 <P>The <I>nfile</I> or <I>fileper</I> keywords can be used in conjunction with the
 "%" wildcard character in the specified dump file name, for all dump
-styles except the <I>dcd</I>, <I>xtc</I>, and <I>xyz</I> styles (for which "%" is not
-allowed).  As explained on the <A HREF = "dump.html">dump</A> command doc page, the
-"%" character causes the dump file to be written in pieces, one piece
-for each of P processors.  By default P = the number of processors the
-simulation is running on.  The <I>nfile</I> or <I>fileper</I> keyword can be
-used to set P to a smaller value, which can be more efficient when
-running on a large number of processors.
+styles except the <I>dcd</I>, <I>image</I>, <I>movie</I>, <I>xtc</I>, and <I>xyz</I> styles
+(for which "%" is not allowed).  As explained on the <A HREF = "dump.html">dump</A>
+command doc page, the "%" character causes the dump file to be written
+in pieces, one piece for each of P processors.  By default P = the
+number of processors the simulation is running on.  The <I>nfile</I> or
+<I>fileper</I> keyword can be used to set P to a smaller value, which can
+be more efficient when running on a large number of processors.
 </P>
 <P>The <I>nfile</I> keyword sets P to the specified Nf value.  For example, if
 Nf = 4, and the simulation is running on 100 processors, 4 files will
@@ -510,13 +313,14 @@ nanometer accuracy, e.g. for N = 1000, the coordinates are written to
 </P>
 <HR>
 
-<P>The <I>region</I> keyword only applies to the dump <I>custom</I> and <I>cfg</I> and
-<I>image</I> styles.  If specified, only atoms in the region will be
-written to the dump file or included in the image.  Only one region
-can be applied as a filter (the last one specified).  See the
-<A HREF = "region.html">region</A> command for more details.  Note that a region can
-be defined as the "inside" or "outside" of a geometric shape, and it
-can be the "union" or "intersection" of a series of simpler regions.
+<P>The <I>region</I> keyword only applies to the dump <I>custom</I>, <I>cfg</I>,
+<I>image</I>, and <I>movie</I> styles.  If specified, only atoms in the region
+will be written to the dump file or included in the image/movie.  Only
+one region can be applied as a filter (the last one specified).  See
+the <A HREF = "region.html">region</A> command for more details.  Note that a region
+can be defined as the "inside" or "outside" of a geometric shape, and
+it can be the "union" or "intersection" of a series of simpler
+regions.
 </P>
 <HR>
 
@@ -552,11 +356,11 @@ cost, as well as memory, versus unsorted output.
 </P>
 <HR>
 
-<P>The <I>thresh</I> keyword only applies to the dump <I>custom</I> and <I>cfg</I> and
-<I>image</I> styles.  Multiple thresholds can be specified.  Specifying
-"none" turns off all threshold criteria.  If thresholds are specified,
-only atoms whose attributes meet all the threshold criteria are
-written to the dump file or included in the image.  The possible
+<P>The <I>thresh</I> keyword only applies to the dump <I>custom</I>, <I>cfg</I>,
+<I>image</I>, and <I>mvoie</I> styles.  Multiple thresholds can be specified.
+Specifying "none" turns off all threshold criteria.  If thresholds are
+specified, only atoms whose attributes meet all the threshold criteria
+are written to the dump file or included in the image.  The possible
 attributes that can be tested for are the same as those that can be
 specified in the <A HREF = "dump.html">dump custom</A> command, with the exception
 of the <I>element</I> attribute, since it is not a numeric value.  Note
@@ -577,6 +381,254 @@ box size stored with the snapshot.
 </P>
 <HR>
 
+<P>These keywords apply only to the <A HREF = "dump_image.html">dump image</A> and
+<A HREF = "dump_image.html">dump movie</A> styles.  Any keyword that affects an
+image, also affects a movie, since the movie is simply a collection of
+images.  Some of the keywords only affect the <A HREF = "dump_image.html">dump
+movie</A> style.  The description gives details.
+</P>
+<HR>
+
+<P>The <I>acolor</I> keyword can be used with the <A HREF = "dump_image.html">dump image</A>
+command, when its atom color setting is <I>type</I>, to set the color that
+atoms of each type will be drawn in the image.
+</P>
+<P>The specified <I>type</I> should be an integer from 1 to Ntypes = the
+number of atom types.  A wildcard asterisk can be used in place of or
+in conjunction with the <I>type</I> argument to specify a range of atom
+types.  This takes the form "*" or "*n" or "n*" or "m*n".  If N = the
+number of atom types, then an asterisk with no numeric values means
+all types from 1 to N.  A leading asterisk means all types from 1 to n
+(inclusive).  A trailing asterisk means all types from n to N
+(inclusive).  A middle asterisk means all types from m to n
+(inclusive).
+</P>
+<P>The specified <I>color</I> can be a single color which is any of the 140
+pre-defined colors (see below) or a color name defined by the
+dump_modify color option.  Or it can be two or more colors separated
+by a "/" character, e.g. red/green/blue.  In the former case, that
+color is assigned to all the specified atom types.  In the latter
+case, the list of colors are assigned in a round-robin fashion to each
+of the specified atom types.
+</P>
+<HR>
+
+<P>The <I>adiam</I> keyword can be used with the <A HREF = "dump_image.html">dump image</A>
+command, when its atom diameter setting is <I>type</I>, to set the size
+that atoms of each type will be drawn in the image.  The specified
+<I>type</I> should be an integer from 1 to Ntypes.  As with the <I>acolor</I>
+keyword, a wildcard asterisk can be used as part of the <I>type</I>
+argument to specify a range of atomt types.  The specified <I>diam</I> is
+the size in whatever distance <A HREF = "units.html">units</A> the input script is
+using, e.g. Angstroms.
+</P>
+<HR>
+
+<P>The <I>amap</I> keyword can be used with the <A HREF = "dump_image.html">dump image</A>
+command, with its <I>atom</I> keyword, when its atom setting is an
+atom-attribute, to setup a color map.  The color map is used to assign
+a specific RGB (red/green/blue) color value to an individual atom when
+it is drawn, based on the atom's attribute, which is a numeric value,
+e.g. its x-component of velocity if the atom-attribute "vx" was
+specified.
+</P>
+<P>The basic idea of a color map is that the atom-attribute will be
+within a range of values, and that range is associated with a a series
+of colors (e.g. red, blue, green).  An atom's specific value (vx =
+-3.2) can then mapped to the series of colors (e.g. halfway between
+red and blue), and a specific color is determined via an interpolation
+procedure.
+</P>
+<P>There are many possible options for the color map, enabled by the
+<I>amap</I> keyword.  Here are the details.
+</P>
+<P>The <I>lo</I> and <I>hi</I> settings determine the range of values allowed for
+the atom attribute.  If numeric values are used for <I>lo</I> and/or <I>hi</I>,
+then values that are lower/higher than that value are set to the
+value.  I.e. the range is static.  If <I>lo</I> is specified as <I>min</I> or
+<I>hi</I> as <I>max</I> then the range is dynamic, and the lower and/or
+upper bound will be calculated each time an image is drawn, based
+on the set of atoms being visualized.
+</P>
+<P>The <I>style</I> setting is two letters, such as "ca".  The first letter is
+either "c" for continuous, "d" for discrete, or "s" for sequential.
+The second letter is either "a" for absolute, or "f" for fractional.
+</P>
+<P>A continuous color map is one in which the color changes continuously
+from value to value within the range.  A discrete color map is one in
+which discrete colors are assigned to sub-ranges of values within the
+range.  A sequential color map is one in which discrete colors are
+assigned to a sequence of sub-ranges of values covering the entire
+range.
+</P>
+<P>An absolute color map is one in which the values to which colors are
+assigned are specified explicitly as values within the range.  A
+fractional color map is one in which the values to which colors are
+assigned are specified as a fractional portion of the range.  For
+example if the range is from -10.0 to 10.0, and the color red is to be
+assigned to atoms with a value of 5.0, then for an absolute color map
+the number 5.0 would be used.  But for a fractional map, the number
+0.75 would be used since 5.0 is 3/4 of the way from -10.0 to 10.0.
+</P>
+<P>The <I>delta</I> setting must be specified for all styles, but is only used
+for the sequential style; otherwise the value is ignored.  It
+specifies the bin size to use within the range for assigning
+consecutive colors to.  For example, if the range is from -10.0 to
+10.0 and a <I>delta</I> of 1.0 is used, then 20 colors will be assigned to
+the range.  The first will be from -10.0 <= color1 < -9.0, then 2nd
+from -9.0 <= color2 < -8.0, etc.
+</P>
+<P>The <I>N</I> setting is how many entries follow.  The format of the entries
+depends on whether the color map style is continuous, discrete or
+sequential.  In all cases the <I>color</I> setting can be any of the 140
+pre-defined colors (see below) or a color name defined by the
+dump_modify color option.
+</P>
+<P>For continuous color maps, each entry has a <I>value</I> and a <I>color</I>.
+The <I>value</I> is either a number within the range of values or <I>min</I> or
+<I>max</I>.  The <I>value</I> of the first entry must be <I>min</I> and the <I>value</I>
+of the last entry must be <I>max</I>.  Any entries in between must have
+increasing values.  Note that numeric values can be specified either
+as absolute numbers or as fractions (0.0 to 1.0) of the range,
+depending on the "a" or "f" in the style setting for the color map.
+</P>
+<P>Here is how the entries are used to determine the color of an
+individual atom, given the value X of its atom attribute.  X will fall
+between 2 of the entry values.  The color of the atom is linearly
+interpolated (in each of the RGB values) between the 2 colors
+associated with those entries.  For example, if X = -5.0 and the 2
+surrounding entries are "red" at -10.0 and "blue" at 0.0, then the
+atom's color will be halfway between "red" and "blue", which happens
+to be "purple".
+</P>
+<P>For discrete color maps, each entry has a <I>lo</I> and <I>hi</I> value and a
+<I>color</I>.  The <I>lo</I> and <I>hi</I> settings are either numbers within the
+range of values or <I>lo</I> can be <I>min</I> or <I>hi</I> can be <I>max</I>.  The <I>lo</I>
+and <I>hi</I> settings of the last entry must be <I>min</I> and <I>max</I>.  Other
+entries can have any <I>lo</I> and <I>hi</I> values and the sub-ranges of
+different values can overlap.  Note that numeric <I>lo</I> and <I>hi</I> values
+can be specified either as absolute numbers or as fractions (0.0 to
+1.0) of the range, depending on the "a" or "f" in the style setting
+for the color map.
+</P>
+<P>Here is how the entries are used to determine the color of an
+individual atom, given the value X of its atom attribute.  The entries
+are scanned from first to last.  The first time that <I>lo</I> <= X <=
+<I>hi</I>, X is assigned the color associated with that entry.  You can
+think of the last entry as assigning a default color (since it will
+always be matched by X), and the earlier entries as colors that
+override the default.  Also note that no interpolation of a color RGB
+is done.  All atoms will be drawn with one of the colors in the list
+of entries.
+</P>
+<P>For sequential color maps, each entry has only a <I>color</I>.  Here is how
+the entries are used to determine the color of an individual atom,
+given the value X of its atom attribute.  The range is partitioned
+into N bins of width <I>binsize</I>.  Thus X will fall in a specific bin
+from 1 to N, say the Mth bin.  If it falls on a boundary between 2
+bins, it is considered to be in the higher of the 2 bins.  Each bin is
+assigned a color from the E entries.  If E < N, then the colors are
+repeated.  For example if 2 entries with colors red and green are
+specified, then the odd numbered bins will be red and the even bins
+green.  The color of the atom is the color of its bin.  Note that the
+sequential color map is really a shorthand way of defining a discrete
+color map without having to specify where all the bin boundaries are.
+</P>
+<HR>
+
+<P>The <I>backcolor</I> sets the background color of the images.  The color
+name can be any of the 140 pre-defined colors (see below) or a color
+name defined by the dump_modify color option.
+</P>
+<HR>
+
+<P>The <I>bcolor</I> keyword can be used with the <A HREF = "dump_image.html">dump image</A>
+command, with its <I>bond</I> keyword, when its color setting is <I>type</I>, to
+set the color that bonds of each type will be drawn in the image.
+</P>
+<P>The specified <I>type</I> should be an integer from 1 to Nbondtypes = the
+number of bond types.  A wildcard asterisk can be used in place of or
+in conjunction with the <I>type</I> argument to specify a range of bond
+types.  This takes the form "*" or "*n" or "n*" or "m*n".  If N = the
+number of bond types, then an asterisk with no numeric values means
+all types from 1 to N.  A leading asterisk means all types from 1 to n
+(inclusive).  A trailing asterisk means all types from n to N
+(inclusive).  A middle asterisk means all types from m to n
+(inclusive).
+</P>
+<P>The specified <I>color</I> can be a single color which is any of the 140
+pre-defined colors (see below) or a color name defined by the
+dump_modify color option.  Or it can be two or more colors separated
+by a "/" character, e.g. red/green/blue.  In the former case, that
+color is assigned to all the specified bond types.  In the latter
+case, the list of colors are assigned in a round-robin fashion to each
+of the specified bond types.
+</P>
+<HR>
+
+<P>The <I>bdiam</I> keyword can be used with the <A HREF = "dump_image.html">dump image</A>
+command, with its <I>bond</I> keyword, when its diam setting is <I>type</I>, to
+set the diameter that bonds of each type will be drawn in the image.
+The specified <I>type</I> should be an integer from 1 to Nbondtypes.  As
+with the <I>bcolor</I> keyword, a wildcard asterisk can be used as part of
+the <I>type</I> argument to specify a range of bond types.  The specified
+<I>diam</I> is the size in whatever distance <A HREF = "units.html">units</A> you are
+using, e.g. Angstroms.
+</P>
+<HR>
+
+<P>The <I>bitrate</I> keyword can be used with the <A HREF = "dump_movie.html">dump
+movie</A> command to define the size of the resulting
+movie file and its quality via setting how many kbits per second are
+to be used for the movie file. Higher bitrates require less
+compression and will result in higher quality movies.  The quality is
+also determined by the compression format and encoder.  The default
+setting is 2000 kbit/s, which will result in average quality with
+older compression formats.
+</P>
+<P>IMPORTANT NOTE: Not all movie file formats supported by dump movie
+allow the bitrate to be set.  If not, the setting is silently ignored.
+</P>
+<HR>
+
+<P>The <I>boxcolor</I> keyword sets the color of the simulation box drawn
+around the atoms in each image.  See the "dump image box" command for
+how to specify that a box be drawn.  The color name can be any of the
+140 pre-defined colors (see below) or a color name defined by the
+dump_modify color option.
+</P>
+<HR>
+
+<P>The <I>color</I> keyword allows definition of a new color name, in addition
+to the 140-predefined colors (see below), and associates 3
+red/green/blue RGB values with that color name.  The color name can
+then be used with any other dump_modify keyword that takes a color
+name as a value.  The RGB values should each be floating point values
+between 0.0 and 1.0 inclusive.
+</P>
+<P>When a color name is converted to RGB values, the user-defined color
+names are searched first, then the 140 pre-defined color names.  This
+means you can also use the <I>color</I> keyword to overwrite one of the
+pre-defined color names with new RBG values.
+</P>
+<HR>
+
+<P>The <I>framerate</I> keyword can be used with the <A HREF = "dump_movie.html">dump
+movie</A> command to define the duration of the resulting
+movie file.  Movie files written by the dump <I>movie</I> command have a
+default frame rate of 24 frames per second and the images generated
+will be converted at that rate.  Thus a sequence of 1000 dump images
+will result in a movie of about 42 seconds.  To make a movie run
+longer you can either generate images more frequently or lower the
+frame rate.  To speed a movie up, you can do the inverse.  Using a
+frame rate higher than 24 is not recommended, as it will result in
+simply dropping the rendered images. It is more efficient to dump
+images less frequently.
+</P>
+<HR>
+
+<HR>
+
 <P><B>Restrictions:</B> none
 </P>
 <P><B>Related commands:</B>
@@ -587,22 +639,16 @@ box size stored with the snapshot.
 </P>
 <P>The option defaults are
 </P>
-<UL><LI>acolor = * red/green/blue/yellow/aqua/cyan
-<LI>adiam = * 1.0
-<LI>amap = min max cf 0.0 2 min blue max red
-<LI>append = no
-<LI>bcolor = * red/green/blue/yellow/aqua/cyan
-<LI>bdiam = * 0.5
-<LI>backcolor = black
-<LI>boxcolor = yellow
-<LI>color = 140 color names are pre-defined as listed below
+<UL><LI>append = no
 <LI>element = "C" for every atom type
 <LI>every = whatever it was set to via the <A HREF = "dump.html">dump</A> command
+<LI>fileper = # of processors
 <LI>first = no
 <LI>flush = yes
 <LI>format = %d and %g for each integer or floating point value
 <LI>image = no
 <LI>label = ENTRIES
+<LI>nfile = 1
 <LI>pad = 0
 <LI>precision = 1000
 <LI>region = none
@@ -611,6 +657,17 @@ box size stored with the snapshot.
 <LI>sort = id for dump styles <I>dcd</I>, <I>xtc</I>, and <I>xyz</I>
 <LI>thresh = none
 <LI>unwrap = no 
+</UL>
+<UL><LI>acolor = * red/green/blue/yellow/aqua/cyan
+<LI>adiam = * 1.0
+<LI>amap = min max cf 0.0 2 min blue max red
+<LI>backcolor = black
+<LI>bcolor = * red/green/blue/yellow/aqua/cyan
+<LI>bdiam = * 0.5
+<LI>bitrate = 2000
+<LI>boxcolor = yellow
+<LI>color = 140 color names are pre-defined as listed below
+<LI>framerate = 24 
 </UL>
 <HR>
 

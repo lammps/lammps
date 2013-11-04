@@ -7,14 +7,15 @@
 :line
 
 dump image command :h3
+dump movie command :h3
 
 [Syntax:]
 
-dump ID group-ID image N file color diameter keyword value ... :pre
+dump ID group-ID style N file color diameter keyword value ... :pre
 
 ID = user-assigned name for the dump :ulb,l
 group-ID = ID of the group of atoms to be imaged :l
-image = style of dump command (other styles {atom} or {cfg} or {dcd} or {xtc} or {xyz} or {local} or {custom} are discussed on the "dump"_dump.html doc page) :l
+style = {image} or {movie} = style of dump command (other styles {atom} or {cfg} or {dcd} or {xtc} or {xyz} or {local} or {custom} are discussed on the "dump"_dump.html doc page) :l
 N = dump every this many timesteps :l
 file = name of file to write image to :l
 color = atom attribute that determines color of each atom :l
@@ -64,18 +65,26 @@ keyword = {adiam} or {atom} or {bond} or {size} or {view} or {center} or {up} or
 
 [Examples:]
 
-dump myDump all image 100 dump.*.jpg type type :pre
+dump d0 all image 100 dump.*.jpg type type :pre
+dump d1 mobile image 500 snap.*.png element element ssao yes 4539 0.6 :pre
+dump d2 all image 200 img-*.ppm type type zoom 2.5 adiam 1.5 size 1280 720 :pre
+dump m0 all movie 1000 movie.mpg type type size 640 480 :pre
+dump m1 all movie 1000 movie.avi type type size 640 480 :pre
+dump m2 all movie 100 movie.m4v type type zoom 1.8 adiam v_value size 1280 720 :pre
 
 [Description:]
 
-Dump a high-quality ray-traced image of the atom configuration every N
-timesteps as either a JPG or PNG or PPM file.  The options for this
-command as well as the "dump_modify"_dump_modify.html command control
-what is included in the image and how it appears.  A series of such
-images can easily be converted into an animated movie of your
-simulation; see further details below.  Other dump styles store
-snapshots of numerical data asociated with atoms in various formats,
-as discussed on the "dump"_dump.html doc page.
+Dump a high-quality rendered image of the atom configuration every N
+timesteps and save the images either as a sequence of JPG or PNG, or
+PPM files, or as a single movie file.  The options for this command as
+well as the "dump_modify"_dump_modify.html command control what is
+included in the image or movie and how it appears.  A series of such
+images can easily be manually converted into an animated movie of your
+simulation or the process can be automated without writing the
+intermediate files using the dump movie style; see further details
+below.  Other dump styles store snapshots of numerical data asociated
+with atoms in various formats, as discussed on the "dump"_dump.html
+doc page.
 
 Here are two sample images, rendered as 1024x1024 JPG files.  Click to
 see the full-size images:
@@ -92,22 +101,27 @@ Only atoms in the specified group are rendered in the image.  The
 alter what atoms are included in the image.\
 
 The filename suffix determines whether a JPEG, PNG, or PPM file is
-created.  If the suffix is ".jpg" or ".jpeg", then a JPEG format file
-is created, if the suffix is ".png", then a PNG format is created,
-else a PPM (aka NETPBM) format file is created.  The JPG and PNG files
-are binary; PPM is a text file.  JPG images have lossy compression;
-PNG and PPM formats have lossless compression.  To write out JPEG and
-PNG format files, you must build LAMMPS with support for the
-corresponding JPEG or PNG library.  See "this
-section"_Section_start.html#start_2_4 of the manual for instructions
-on how to do this.
+created with the {image} dump style.  If the suffix is ".jpg" or ".jpeg",
+then a JPEG format file is created, if the suffix is ".png", then a PNG
+format is created, else a PPM (aka NETPBM) format file is created.
+The JPG and PNG files are binary; PPM has a text mode header followed
+by binary data. JPG images have lossy compression; PNG has lossless
+compression; and PPM files are uncompressed but can be compressed with
+gzip, if LAMMPS has been compiled with -DLAMMPS_GZIP and a ".gz" suffix
+is used.
 
-The filename suffix determines whether a JPG or PPM file is created.
-If the suffix is ".jpg" or ".jpeg", then a JPG file is created, else a
-PPM file is created, which is a text-based format.  To write out JPG
-files, you must build LAMMPS with a JPEG library.  See "this
-section"_Section_start.html#start_2_4 of the manual for instructions
-on how to do this.
+Similarly, the format of the resulting movie is chosen with the
+{movie} dump style. This is handled by the underlying FFmpeg converter
+and thus details have to be looked up in the FFmpeg documentation.
+Typical examples are: .avi, .mpg, .m4v, .mp4, .mkv, .flv, .mov, .gif
+Additional settings of the movie compression like bitrate and
+framerate can be set using the "dump_modify"_dump_modify.html command.
+
+To write out JPEG and PNG format files, you must build LAMMPS with
+support for the corresponding JPEG or PNG library. To convert images
+into movies, LAMMPS has to be compiled with the -DLAMMPS_FFMPEG
+flag. See "this section"_Section_start.html#start_2_4 of the manual
+for instructions on how to do this.
 
 IMPORTANT NOTE: Because periodic boundary conditions are enforced only
 on timesteps when neighbor lists are rebuilt, the coordinates of an
@@ -125,7 +139,7 @@ can be useful if the dump command is invoked after a minimization
 ended on an arbitrary timestep.  N can be changed between runs by
 using the "dump_modify every"_dump_modify.html command.
 
-Dump image filenames must contain a wildcard character "*", so that
+Dump {image} filenames must contain a wildcard character "*", so that
 one image file per snapshot is written.  The "*" character is replaced
 with the timestep value.  For example, tmp.dump.*.jpg becomes
 tmp.dump.0.jpg, tmp.dump.10000.jpg, tmp.dump.20000.jpg, etc.  Note
@@ -133,6 +147,10 @@ that the "dump_modify pad"_dump_modify.html command can be used to
 insure all timestep numbers are the same length (e.g. 00010), which
 can make it easier to convert a series of images into a movie in the
 correct ordering.
+
+Dump {movie} filenames on the other hand, must not have any wildcard
+character since only one file combining all images into a single
+movie will be written by the movie encoder.
 
 :line
 
@@ -368,28 +386,47 @@ shading is performed.
 
 :line
 
-A series of JPG or PPM images can be converted into a movie file and
-then played as a movie using commonly available tools.
+A series of JPG, PNG, or PPM images can be converted into a movie file
+and then played as a movie using commonly available tools. Using dump
+style {movie} automates this step and avoids the intermediate step of
+writing (many) image snapshot file. But LAMMPS has to be compiled with
+-DLAMMPS_FFMPEG and an FFmpeg executable have to be installed.
 
-Convert JPG or PPM files into an animated GIF or MPEG or other movie
-file:
+To manually convert JPG, PNG or PPM files into an animated GIF or MPEG
+or other movie file you can use:
 
 a) Use the ImageMagick convert program. :ulb,l
 
 % convert *.jpg foo.gif
 % convert -loop 1 *.ppm foo.mpg :pre
 
+Animated GIF files from ImageMagick are unoptimized. You can use a
+program like gifsicle to optimize and massively shrink them.
+MPEG files created by ImageMagick are in MPEG-1 format with rather
+inefficient compression and low quality.
+
 b) Use QuickTime. :l
 
-Select "Open Image Sequence" under the File menu
-Load the images into QuickTime to animate them
-Select "Export" under the File menu
-Save the movie as a QuickTime movie (*.mov) or in another format
+Select "Open Image Sequence" under the File menu Load the images into
+QuickTime to animate them Select "Export" under the File menu Save the
+movie as a QuickTime movie (*.mov) or in another format.  QuickTime
+can generate very high quality and efficiently compressed movie
+files. Some of the supported formats require to buy a license and some
+are not readable on all platforms until specific runtime libraries are
+installed.
 
-c) Windows-based tool. :ule,l
+c) Use FFmpeg  :ule,l
 
-If someone tells us how to do this via a common Windows-based tool,
-we'll post the instructions here.
+FFmpeg is a command line tool that is available on many platforms and
+allows extremely flexible encoding and decoding of movies.
+
+cat snap.*.jpg | ffmpeg -y -f image2pipe -c:v mjpeg -i - -b:v 2000k movie.m4v
+cat snap.*.ppm | ffmpeg -y -f image2pipe -c:v ppm -i - -b:v 2400k movie.avi :pre
+
+Frontends for FFmpeg exist for multiple platforms. For more
+information see the "FFmpeg homepage"_http://www.ffmpeg.org/
+
+:line
 
 Play the movie:
 
@@ -398,9 +435,12 @@ a) Use your browser to view an animated GIF movie. :ulb,l
 Select "Open File" under the File menu
 Load the animated GIF file
 
-b) Use the freely available mplayer tool to view an MPEG movie. :l
+b) Use the freely available mplayer or ffplay tool to view a
+movie. Both are available for multiple OSes and support a large
+variety of file formats and decoders. :l
 
-% mplayer foo.mpg :pre
+% mplayer foo.mpg 
+% ffplay bar.avi :pre
 
 c) Use the "Pizza.py"_http://www.sandia.gov/~sjplimp/pizza.html
 "animate tool"_http://www.sandia.gov/~sjplimp/pizza/doc/animate.html,
@@ -408,8 +448,12 @@ which works directly on a series of image files. :l
 
 a = animate("foo*.jpg") :pre
 
-d) QuickTime and other Windows-based media players can
-obviously play movie files directly. :ule,l
+d) QuickTime and other Windows- or MacOS-based media players can
+obviously play movie files directly. Similarly the corresponding tools
+bundled with Linux desktop environments, however, due to licensing
+issues of some of the file formats, some formats may require
+installing additional libraries, purchasing a license, or are not
+supported. :ule,l
 
 :line
 
@@ -421,10 +465,18 @@ per-atom quantities which could then be output into dump files.
 
 [Restrictions:]
 
-To write JPG images, you must use a -DLAMMPS_JPEG switch when building
-LAMMPS and link with a JPEG library.  See the "Making
-LAMMPS"_Section_start.html#start_2_4 section of the documentation for
-details.
+To write JPG images, you must use the -DLAMMPS_JPEG switch when
+building LAMMPS and link with a JPEG library. To write PNG images, you
+must use the -DLAMMPS_PNG switch when building LAMMPS and link with a
+PNG library.
+
+To write {movie} dumps, you must use the -DLAMMPS_FFMPEG switch when
+building LAMMPS and have the FFmpeg executable available on the
+machine where LAMMPS is being run.
+
+See the "Making LAMMPS"_Section_start.html#start_2_4 section of the
+documentation for details on how to configure and compile optional in
+LAMMPS.
 
 [Related commands:]
 

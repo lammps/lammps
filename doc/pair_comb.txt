@@ -29,11 +29,11 @@ pair_coeff * * ../potentials/ffield.comb3 O Cu N C O :pre
 
 [Description:]
 
-Style {comb} computes the second-generation variable charge COMB 
-(Charge-Optimized Many-Body) potential.  Style {comb3} computes 
-the third-generation COMB potential.  These COMB potentials are 
-described in "(COMB1)"_#COMB1 and "(COMB2)"_#COMB2.  Briefly, 
-the total energy {E<sub>T</sub>} of a system of atoms is given by
+Style {comb} computes the second-generation variable charge COMB
+(Charge-Optimized Many-Body) potential.  Style {comb3} computes the
+third-generation COMB potential.  These COMB potentials are described
+in "(COMB)"_#COMB and "(COMB3)"_#COMB3.  Briefly, the total energy
+{E<sub>T</sub>} of a system of atoms is given by
 
 :c,image(Eqs/pair_comb1.jpg)
 
@@ -48,22 +48,22 @@ atoms {i} and {j},
 {E<sup>barr</sup>} is a charge barrier function, and 
 {E<sup>corr</sup>} are angular correction terms.
 
-The COMB potentials (styles {comb} and {comb3}) are variable 
-charge potentials.  The equilibrium
-charge on each atom is calculated by the electronegativity
-equalization (QEq) method.  See "Rick"_#Rick for further details.
-This is implemented by the "fix qeq/comb"_fix_qeq_comb.html command,
-which should normally be specified in the input script when running a
-model with the COMB potential.  The "fix qeq/comb"_fix_qeq_comb.html
-command has options that determine how often charge equilibration is
-performed, its convergence criterion, and which atoms are included in
-the calculation.
+The COMB potentials (styles {comb} and {comb3}) are variable charge
+potentials.  The equilibrium charge on each atom is calculated by the
+electronegativity equalization (QEq) method.  See "Rick"_#Rick for
+further details.  This is implemented by the "fix
+qeq/comb"_fix_qeq_comb.html command, which should normally be
+specified in the input script when running a model with the COMB
+potential.  The "fix qeq/comb"_fix_qeq_comb.html command has options
+that determine how often charge equilibration is performed, its
+convergence criterion, and which atoms are included in the
+calculation.
 
-Only a single pair_coeff command is used with the {comb} and {comb3} 
-styles which specifies the COMB potential file with parameters for 
-all needed elements.  These are mapped to LAMMPS atom types by 
-specifying N additional arguments after the potential file in the 
-pair_coeff command, where N is the number of LAMMPS atom types.  
+Only a single pair_coeff command is used with the {comb} and {comb3}
+styles which specifies the COMB potential file with parameters for all
+needed elements.  These are mapped to LAMMPS atom types by specifying
+N additional arguments after the potential file in the pair_coeff
+command, where N is the number of LAMMPS atom types.
 
 For example, if your LAMMPS simulation of a Si/SiO<sub>2</sub>/
 HfO<sub>2</sub> interface has 4 atom types, and you want the 1st and
@@ -82,27 +82,25 @@ This can be used when a {comb} potential is used as part of the
 {hybrid} pair style.  The NULL values are placeholders for atom types
 that will be used with other potentials.
 
-For style {comb}, the provided potential file {ffield.comb} contains 
-all currently-available 2nd generation COMB parameterizations: 
-for Si, Cu, Hf, Ti, O, their oxides and Zr, Zn and U metals.  
-For style {comb3}, the potential file {ffield.comb3} contains all 
-currently-available 3rd generation COMB paramterizations: 
-O, Cu, N, C, H, Ti and Zn.  
-The status of the optimization of the compounds, for example 
-Cu<sub>2</sub>O, TiN and hydrocarbons, are given in the 
+For style {comb}, the provided potential file {ffield.comb} contains
+all currently-available 2nd generation COMB parameterizations: for Si,
+Cu, Hf, Ti, O, their oxides and Zr, Zn and U metals.  For style
+{comb3}, the potential file {ffield.comb3} contains all
+currently-available 3rd generation COMB paramterizations: O, Cu, N, C,
+H, Ti and Zn.  The status of the optimization of the compounds, for
+example Cu<sub>2</sub>O, TiN and hydrocarbons, are given in the
 following table:
 
 :c,image(Eqs/pair_comb2.jpg)
 
-For style {comb3}, in addition to ffield.comb3, a special 
-parameter file, {lib.comb3}, 
-that is exclusively used for C/O/H systems, will be automatically 
-loaded if carbon atom is detected in LAMMPS input structure.  
-Keyword {polar} indicates whether the force field includes the atomic 
-polarization. Since the equilibration of the polarization has not 
-yet been implemented, it can only set polar_off at present. 
+For style {comb3}, in addition to ffield.comb3, a special parameter
+file, {lib.comb3}, that is exclusively used for C/O/H systems, will be
+automatically loaded if carbon atom is detected in LAMMPS input
+structure.  Keyword {polar} indicates whether the force field includes
+the atomic polarization. Since the equilibration of the polarization
+has not yet been implemented, it can only set polar_off at present.
 
-IMPORTANT NOTE: You can not use potential file {ffield.comb} with 
+IMPORTANT NOTE: You can not use potential file {ffield.comb} with
 style {comb3}, nor file {ffield.comb3} with style {comb}.
 
 :line
@@ -175,11 +173,11 @@ doesn't use "metal" units.
 
 :line
 
-:link(COMB1)
-[(COMB1)] S. R. Phillpot and S. B. Sinnott, Science 325, 1634-1635 (2009)
+:link(COMB)
+[(COMB)] S. R. Phillpot and S. B. Sinnott, Science 325, 1634-1635 (2009)
 
-:link(COMB2)
-[(COMB2)] T. Liang, T.-R. Shan, Y.-T. Cheng, B. D. Devine, M. Noordhoek, 
+:link(COMB3)
+[(COMB3)] T. Liang, T.-R. Shan, Y.-T. Cheng, B. D. Devine, M. Noordhoek, 
 Y. Li, Z. Lu, S. R. Phillpot, and S. B. Sinnott, Mat. Sci. & Eng: R, 
 in press (DOI: 10.1016/j.mser.2013.07.001)
 

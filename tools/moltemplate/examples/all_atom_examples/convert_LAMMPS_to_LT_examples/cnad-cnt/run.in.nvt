@@ -1,0 +1,46 @@
+###########################################################
+# Interaction of a carbon nanotube with a pair of mystery
+# molecules (extracted from the cnat-cnt.data/in files).
+###########################################################
+#
+# define the system being simulated:
+
+# -- init section --
+include system.in.init
+
+# -- atom definition section --
+
+read_data system.data
+
+# -- settings section --
+
+include system.in.settings
+
+# -- run section --
+
+
+timestep        0.05
+dump            1 all custom 2000 traj_nvt.lammpstrj id mol type x y z ix iy iz
+
+# The Nose-Hoover thermostat used with "fix nvt" can produce very odd-looking
+# dynamics in dilute systems with few atoms (such as this one).
+# Commenting this next line out:
+
+# fix             fxnvt all nvt temp 300.0 300.0 500.0 tchain 1
+
+# Alternately, I receive fewer questions if I use langevin/nve instead:
+fix fxlan all langevin 300.0 300.0 1000.0 48279 scale 3 1.5
+fix fxnve all nve
+
+
+thermo_style    custom step temp pe etotal press vol epair ebond eangle edihed
+thermo          500  # time interval for printing out "thermo" data
+#thermo_modify  flush yes
+
+#restart         1000000  restart_nvt
+
+run		500000
+
+write_restart  system_after_nvt.rst
+
+

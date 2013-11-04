@@ -1,0 +1,70 @@
+# NOTE: YOU MUST COMPLETE STEPS 1 AND 2 BEFORE RUNNING PACKMOL ON THIS FILE
+
+# Step 3: Pack the lipids in the outer monolayer around the proteins from step1.
+#
+# ----- Run using: -----
+# packmol < step3_outerlayer.inp
+#    (This takes about 4 hours on an Intel i7 processor)
+
+
+# ----- Settings:  -----
+
+# All the atoms from diferent molecules will be at least 5.5 Angstrons apart
+tolerance 5.5
+# (Setting "discale" to 1.4 increases the typical separation 
+#  distance to approximately 1.4*5.5 = 7.7 Angstroms.)
+discale 1.4
+# The other parameters below are optional:
+nloop 10000
+maxit 20
+seed 12345
+sidemax 3000.0
+# What fraction of the molecules are moved during "large moves"? (default 0.05)
+movefrac 0.05
+
+
+# The output file name
+
+output step3_outerlayer.xyz
+
+# File types are in xyz format
+
+filetype xyz
+
+
+# The proteins and lipids whose position we determined earlier in steps 1-2
+# will be frozen in place during this step.
+
+structure step2_innerlayer.xyz
+  number 1 
+  fixed 0. 0. 0. 0. 0. 0.
+end structure
+
+
+# 12500 DPPC lipids will be put in a shell with their hydrophilic heads
+# (atom 1) pointing outwards, and their tails (atom 5) pointing inwards.
+
+
+structure DPPC.xyz
+  number 12500
+  atoms 5
+    inside sphere 0. 0. 0. 310.0
+  end atoms
+  atoms 1
+    outside sphere 0. 0. 0. 336.0
+  end atoms
+end structure 
+
+# 12500 DLPC lipids will be put in a shell with their hydrophilic heads
+# (atom 1) pointing outwards, and their tails (atom 4) pointing inwards.
+
+structure DLPC.xyz
+  number 12500
+  atoms 4
+    inside sphere 0. 0. 0. 313.0 
+  end atoms
+  atoms 1
+    outside sphere 0. 0. 0. 332.0
+  end atoms
+end structure 
+

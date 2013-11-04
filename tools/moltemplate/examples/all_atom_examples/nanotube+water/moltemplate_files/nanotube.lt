@@ -1,0 +1,24 @@
+import "graphene.lt"
+
+# ------------------ nanotube ---------------
+
+# Now use this to build a simple ("zigzag") nanotube where the long-axis of each
+# hexagon is aligned with the tube axis (along the Z direction).  If the 
+# cicumference of a "zigzag" nanotube contains N hexagons, then the radius of 
+# the tube, R=(W/4)/tan((2*pi)/(4*N)), where W=2*d*sqrt(3)/2, and d = the carbon
+# bond length.  If N=14 and d=1.42 Ansgroms then R=5.457193512764 Angstroms
+# In the Joly 2011 paper, the tube radii varied between 5.14 and 18.7 Angstroms.
+
+
+nanotube = new Graphene/2AtomCellAlignXZ.move(0, 5.457193512764, 0) # 5.45 = R
+                      [14].rot(25.7142857,0,0,1)                    #25.7=360/14
+                      [12].rot(12.8571429,0,0,1).move(0, 0, 2.13)   #12.9=180/14
+                                                                    #2.13= d*1.5
+
+                      # Note: The length is 12 hexegons, the circumference is
+                      # 14 hexegons (~=25.56 and 34.43 Angstroms, respectively).
+
+# Move all of the unit-cells in the nanotube between the two graphene sheets.
+
+nanotube[*][*].move(0, 0, 33.42)
+

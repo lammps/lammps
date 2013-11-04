@@ -1,0 +1,254 @@
+# This file defines a 4-helix bundle coarse-grained protein model (AUF2) used in
+#      G. Bellesia, AI Jewett, and J-E Shea, 
+#      Protein Science, Vol19 141-154 (2010)
+#
+# Strategy:
+#
+#1) First I'll define some building blocks (A16, B16, T3)
+#   which are helices, sheets and turns of a predetermined length)
+#
+#2)  Then I'll copy and paste them together to build
+#    a 4-helix bundle (or a 4-strand beta-barrel).
+#    This approach is optional.  If your protein has helices which are not
+#    identical, you should probably just include all 4 helices in a single
+#    "Data Atoms" section and don't try to subdivide the protein into pieces.)
+
+
+
+1beadProtSci2010 {  # <-- enclose definitions in a namespace for portability
+
+  # A16 is a coarse-grained alpha-helix containing 16 residues (one "atom" each)
+
+  A16 {
+
+    #  AtomID   MoleculeID AtomType  Charge       X        Y         Z
+
+    write('Data Atoms') {
+      $atom:a1  $mol:... @atom:../sL  0.0      -2.4      -2.4       0.0
+      $atom:a2  $mol:... @atom:../sL  0.0       2.4      -2.4       3.6
+      $atom:a3  $mol:... @atom:../sH  0.0       2.4       2.4       7.2
+      $atom:a4  $mol:... @atom:../sH  0.0      -2.4       2.4       10.8
+      $atom:a5  $mol:... @atom:../sL  0.0      -2.4      -2.4       14.4
+      $atom:a6  $mol:... @atom:../sL  0.0       2.4      -2.4       18.0
+      $atom:a7  $mol:... @atom:../sH  0.0       2.4       2.4       21.6
+      $atom:a8  $mol:... @atom:../sH  0.0      -2.4       2.4       25.2
+      $atom:a9  $mol:... @atom:../sL  0.0      -2.4      -2.4       28.8
+      $atom:a10 $mol:... @atom:../sL  0.0       2.4      -2.4       32.4
+      $atom:a11 $mol:... @atom:../sH  0.0       2.4       2.4       36.0
+      $atom:a12 $mol:... @atom:../sH  0.0      -2.4       2.4       39.6
+      $atom:a13 $mol:... @atom:../sL  0.0      -2.4      -2.4       43.2
+      $atom:a14 $mol:... @atom:../sL  0.0       2.4      -2.4       46.8
+      $atom:a15 $mol:... @atom:../sH  0.0       2.4       2.4       50.4
+      $atom:a16 $mol:... @atom:../sH  0.0      -2.4       2.4       54.0
+    }
+
+    write('Data Bonds') {
+      $bond:b1 @bond:../backbone $atom:a1 $atom:a2
+      $bond:b2 @bond:../backbone $atom:a2 $atom:a3
+      $bond:b3 @bond:../backbone $atom:a3 $atom:a4
+      $bond:b4 @bond:../backbone $atom:a4 $atom:a5
+      $bond:b5 @bond:../backbone $atom:a5 $atom:a6
+      $bond:b6 @bond:../backbone $atom:a6 $atom:a7
+      $bond:b7 @bond:../backbone $atom:a7 $atom:a8
+      $bond:b8 @bond:../backbone $atom:a8 $atom:a9
+      $bond:b9 @bond:../backbone $atom:a9 $atom:a10
+      $bond:b10 @bond:../backbone $atom:a10 $atom:a11
+      $bond:b11 @bond:../backbone $atom:a11 $atom:a12
+      $bond:b12 @bond:../backbone $atom:a12 $atom:a13
+      $bond:b13 @bond:../backbone $atom:a13 $atom:a14
+      $bond:b14 @bond:../backbone $atom:a14 $atom:a15
+      $bond:b15 @bond:../backbone $atom:a15 $atom:a16
+    }
+
+  } # A16
+
+
+  T3 { # T3 is a "turn" region consisting of 3 beads
+
+    #  AtomID   MoleculeID AtomType  Charge       X        Y         Z
+
+    write('Data Atoms') {
+      $atom:a1  $mol:... @atom:../tN  0.0      -4.8       0.0       0.0
+      $atom:a2  $mol:... @atom:../tN  0.0       0.0       3.3     -1.44
+      $atom:a3  $mol:... @atom:../tN  0.0       4.8       0.0       0.0
+    }
+
+    write('Data Bonds') {
+      $bond:b1 @bond:../backbone $atom:a1 $atom:a2
+      $bond:b2 @bond:../backbone $atom:a2 $atom:a3
+    }
+
+  } # T3
+
+
+  # ----- Now build a larger molecule using A16 and T3 -------
+
+  # Create a 4-Helix bundle.
+  # In this version, the hydrophobic beads are poing outward.
+  # I oriented them this way because I want to place this protein in a membrane.
+  # (There is another file in this directory containing alternate version
+  #  of this same molecule with the hydrophobic beads pointing inward.)
+
+  4HelixInsideOut {
+    helix1 = new A16.rot(-225, 0,0,1).move(-5.70,-5.70,-32.4)
+    helix2 = new A16.rot(-135, 0,0,1).move( 5.70,-5.70,-28.8)
+    helix3 = new A16.rot( -45, 0,0,1).move( 5.70, 5.70,-25.2)
+    helix4 = new A16.rot(  45, 0,0,1).move(-5.70, 5.70,-21.6)
+
+    turn1  = new T3.rot(180,1,0,0).rot(-20,0,1,0).rot( 10,0,0,1).move(0.78,-4.2, 27.9)
+    turn2  = new T3.rot(-10,1,0,0).rot( 20,0,1,0).rot(-70,0,0,1).move(4.55, 2.4,-33.0)
+    turn3  = new T3.rot(180,1,0,0).rot(-20,0,1,0).rot(190,0,0,1).move(-0.78,4.2, 34.2)
+
+    write('Data Bonds') {
+      $bond:turn1a  @bond:../backbone   $atom:turn1/a1   $atom:helix1/a16
+      $bond:turn1b  @bond:../backbone   $atom:turn1/a3   $atom:helix2/a16
+      $bond:turn2a  @bond:../backbone   $atom:turn2/a1   $atom:helix3/a1
+      $bond:turn2b  @bond:../backbone   $atom:turn2/a3   $atom:helix2/a1
+      $bond:turn3a  @bond:../backbone   $atom:turn3/a1   $atom:helix3/a16
+      $bond:turn3b  @bond:../backbone   $atom:turn3/a3   $atom:helix4/a16
+    }
+    create_var { $mol } # molecule ID number shared by all atoms in this protein
+
+  } # 4HelixInsideOut
+
+
+  # -------- Minor coordinates adjustment: -----------
+
+  # Those coordinates in the commands above are a little too large.
+  # To make it easier to type them in, I was using sigma=6.0 Angstroms.
+  # Instead, here I'll try using sigma=5.5 Angstroms.   5.5/6 = 0.916667)
+
+  4HelixInsideOut.scale(0.9166666666666666)
+
+  # Note: "scale()" only effects the initial coordinates of
+  #       the molecule, not the force field parameters.
+  #       (If you plan to minimize the molecule, you don't need to 
+  #        be so careful about the initial coordinates.  In that case,
+  #        you don't have worry about "scale()".  Feel free to remove.)
+
+
+
+  #  -------------- Force-Field Parameters ------------
+
+  #  Units and force-field styles for this protein model
+  #  (These can be overridden later.)
+
+  write_once("In Init") {
+    units           real
+    atom_style      full
+    bond_style      hybrid harmonic
+    angle_style     hybrid harmonic
+    dihedral_style  hybrid fourier
+    pair_style hybrid lj/charmm/coul/charmm/inter es4k4l maxmax 21.0 24.0
+    pair_modify     mix arithmetic
+    special_bonds   lj 0.0 0.0 1.0   #(turn on "1-4" interactions)
+  }
+
+  #  --- Distance Units ---
+  # In this version of the model, sigma (the bond-length 
+  # and particle diameter) is rounded to 5.5 Angstroms.
+  #
+  #  --- Energy & Temperature Units ---
+  #   In this protein model, "epsilon" represents the free energy 
+  # bonus for bringing two hydrophobic amino acids together.  
+  # Here I choose to set epsilon to 1.806551818181818 kCal/mole.
+  # This value was chosen so that a temperature of 300 Kelvin lies at 
+  # 0.33 epsilon, which is the unfolding temperature of the marginally stable 
+  # "ASF1" protein model from the Bellesia et al 2010 paper.
+  #   This choice insures that both the "ASF1" model from that paper,
+  # as well as the much more stable "AUF2" protein we use here (which
+  # unfolds at 0.42*eps) should definitely remain stable at 300 degrees Kelvin,
+  # in the bulk at least.  (However it's not clear that these energy
+  # parameters will work well for a protein in membrane.  Perhaps I'll
+  # run some tests and fine tune these parameters for this scenario.)
+
+
+  # 2-body (non-bonded) interactions:
+  #
+  #   Uij(r) = 4*eps_ij * (K*(sig_ij/r)^12 + L*(sig_ij/r)^6)
+  #
+  #              i       j            pairstylename            eps sig K L
+  #
+  write_once("In Settings") {
+    pair_coeff @atom:sH @atom:sH lj/charmm/coul/charmm/inter  1.8065518 5.5 1 -1
+    pair_coeff @atom:sL @atom:sL lj/charmm/coul/charmm/inter  1.8065518 5.5 1 0
+    pair_coeff @atom:tN @atom:tN lj/charmm/coul/charmm/inter  1.8065518 5.5 1 0
+  }
+
+  # The exact value of the bond_coeff does not matter too much as long as 
+  # it is "stiff enough".  Here I use a softer bond spring than the one 
+  # used in the paper so that I can increase the time step.
+  # I also use a relatively soft spring to constrain the bond angles.
+
+  #   bond_coeff     bondType            bondstylename    k    r0
+
+  write_once("In Settings") {
+    bond_coeff @bond:1beadProtSci2010/backbone harmonic  10.0  5.5
+  }
+
+
+
+  # We use the same bond-angle forces whenever 
+  # there are 3 consecutively-bonded atoms:
+  #
+  # angleType       atomtypes1 2 3   bondtypes1 2
+
+  write_once("Data Angles By Type") {
+    @angle:backbone    @atom:*  @atom:*  @atom:*   @bond:*  @bond:*
+  }
+
+  #   angle_coeff  angleType  anglestylename   k   theta0
+  write_once("In Settings") {
+    angle_coeff @angle:backbone   harmonic   100.0  105.0
+  }
+
+
+
+
+  #   Dihedral interactions are also determined by atom-type name in this case.
+  # I chose atoms whose type-names begin with "t" to be "turn" atoms.
+  # Atoms whose type-names begin with "s" could be either helices or sheets.
+  # (In this case, helices.  In this example, we use the @dihedral:delta65_0 
+  #  parameters.  This corresponds to the "AUF2" model from the
+  #  Bellesia et. al 2010 paper.)
+
+  #   dihedralType         atomtypes1 2 3 4                  bondtypes1 2 3
+
+  write_once("Data Dihedrals By Type") {
+    @dihedral:delta65_0  @atom:s* @atom:s* @atom:s* @atom:s*   *  *  *
+
+    # If "tN" (turn) atoms are present, use the @dihedral:turn parameters
+
+    @dihedral:turn       @atom:tN @atom:*  @atom:*  @atom:*    *  *  *
+  }
+
+
+  # From the Bellesia et al 2010 paper:
+  #             for helices: U_{dih}(\phi) = 1.2*(cos(3\phi) + cos(\phi+\delta))
+  #               for turns: U_{dih}(\phi) = 0.2*cos(3\phi)
+  #
+  # General formula used for "dihedral_style fourier":
+  # U_{dih}(\phi) = \Sum_{i=1}^m  K_i [ 1.0 + cos(n_i \phi - d_i) ]
+  #
+  # Syntax:
+  #                dihedralType dihedralstyle m  K_1 n_1 d_1  K2 n_2 d_2 ...
+
+  write_once("In Settings") {
+    dihedral_coeff @dihedral:delta60_0 fourier 2 2.167862 3 0 2.167862 1 -60.0
+    dihedral_coeff @dihedral:delta62_5 fourier 2 2.167862 3 0 2.167862 1 -62.5
+    dihedral_coeff @dihedral:delta65_0 fourier 2 2.167862 3 0 2.167862 1 -65.0
+    dihedral_coeff @dihedral:turn      fourier 1 0.361310 3 0
+    # Note: 2.167862=1.2*epsilon and 0.361310=0.2*epsilon.
+  }
+
+
+  #  --- Mass Units ---
+  # Typical amino acids weigh approximately 110.0 grams/mole.  (Rounding down):
+  write_once("Data Masses") {
+    @atom:1beadProtSci2010/sH 100.0
+    @atom:1beadProtSci2010/sL 100.0
+    @atom:1beadProtSci2010/tN 100.0
+  }
+
+} # 1beadProtSci2010 (namespace)
+

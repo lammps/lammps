@@ -1,0 +1,411 @@
+# This file defines a family of coarse-grained protein models used in:
+# G. Bellesia, AI Jewett, and J-E Shea, Protein Science, Vol19 141-154 (2010)
+# 
+#
+# For portability, all definitions in this file are enclosed within
+# the "1beadProtSci2010" namespace.  To access them, put 
+# "using namespace 1beadProtSci2010" in your LT file.
+
+# Strategy:
+#
+#1) First I'll define some building blocks
+#   (short helices, sheets and turns of a predetermined length)
+#
+#2)  Then I'll cut and paste them together to build
+#   a 4-helix bundle or a 4-strand beta-barrel.
+#
+#   Doing it this way is optional.  It's simpler (but longer) to simply write
+#   out the entire sequence of all 73 atoms in a single "Data Atoms" section.
+#   (IE. Don't try to subdivide it.)  It's also simpler to explicitly list the
+#   72 bonds, 71 3-body angles and 70 4-body dihedral angle interactions
+#   manually (instead of inferring them from the atom type).  If your protein
+#   has helices which are not identical, this would probably be easier.
+#   Use whichever style you prefer.
+#   
+#
+# Note that atom types, bond types, angle types, and dihedral types 
+# are shared between all molecules defined in the "1beadProtSci2010" family.
+# (That's why there is a "../" in their path-names. Otherwise atom, bond,
+#  angle types, etc... are not shared between different molecules.)
+#
+#    Confusing detail:
+# Each molecule in LAMMPS can be assigned a unique molecule-ID (an integer).
+# These are represented by the "$mol" variable written next to each atom.
+# Our protein has multiple subunits (in this case: helices, sheets, turns).
+# Because we want the subunits to share the same molecule-ID counter we use
+# "$mol:..." instead of "$mol" which tells moltemplate to search for the 
+# parent molecule's ID.  This is optional.  If it bothers you, just use "$mol"
+
+
+
+1beadProtSci2010 {
+
+  write_once("In Init") {
+    # -- Default styles for "1beadProtSci2010" --
+    units           lj
+    atom_style      full
+    # (Hybrid force fields were not necessary but are used for portability.)
+    bond_style      hybrid harmonic
+    angle_style     hybrid harmonic
+    dihedral_style  hybrid charmm
+    pair_style hybrid lj/charmm/coul/charmm/inter es4k4l maxmax 3.5 4.0
+
+    # If charges are needed, (assuming biopolymers), try one of:
+    #dielectric      80.0
+    #pair_style      hybrid lj/cut/coul/debye 0.1 4.0
+    # or (for short distances, below a couple nm)
+    #pair_style      hybrid lj/charmm/coul/charmm/implicit 3.5 4.0
+
+    pair_modify     mix arithmetic
+    special_bonds   lj 0.0 0.0 1.0   #(turn on "1-4" interactions)
+  }
+
+
+  # ----  Building blocks: A16, B16, Turn3 ----
+
+  # A16 is a coarse-grained alpha-helix containing 16 residues (one "atom" each)
+
+  A16 {
+
+    #  AtomID   MoleculeID AtomType  Charge       X        Y         Z
+
+    write('Data Atoms') {
+      $atom:a1  $mol:... @atom:../L  0.0      -0.4      -0.4       0.0
+      $atom:a2  $mol:... @atom:../L  0.0       0.4      -0.4       0.6
+      $atom:a3  $mol:... @atom:../H  0.0       0.4       0.4       1.2
+      $atom:a4  $mol:... @atom:../H  0.0      -0.4       0.4       1.8
+      $atom:a5  $mol:... @atom:../L  0.0      -0.4      -0.4       2.4
+      $atom:a6  $mol:... @atom:../L  0.0       0.4      -0.4       3.0
+      $atom:a7  $mol:... @atom:../H  0.0       0.4       0.4       3.6
+      $atom:a8  $mol:... @atom:../H  0.0      -0.4       0.4       4.2
+      $atom:a9  $mol:... @atom:../L  0.0      -0.4      -0.4       4.8
+      $atom:a10 $mol:... @atom:../L  0.0       0.4      -0.4       5.4
+      $atom:a11 $mol:... @atom:../H  0.0       0.4       0.4       6.0
+      $atom:a12 $mol:... @atom:../H  0.0      -0.4       0.4       6.6
+      $atom:a13 $mol:... @atom:../L  0.0      -0.4      -0.4       7.2
+      $atom:a14 $mol:... @atom:../L  0.0       0.4      -0.4       7.8
+      $atom:a15 $mol:... @atom:../H  0.0       0.4       0.4       8.4
+      $atom:a16 $mol:... @atom:../H  0.0      -0.4       0.4       9.0
+    }
+
+    write('Data Bonds') {
+      $bond:b1 @bond:../backbone $atom:a1 $atom:a2
+      $bond:b2 @bond:../backbone $atom:a2 $atom:a3
+      $bond:b3 @bond:../backbone $atom:a3 $atom:a4
+      $bond:b4 @bond:../backbone $atom:a4 $atom:a5
+      $bond:b5 @bond:../backbone $atom:a5 $atom:a6
+      $bond:b6 @bond:../backbone $atom:a6 $atom:a7
+      $bond:b7 @bond:../backbone $atom:a7 $atom:a8
+      $bond:b8 @bond:../backbone $atom:a8 $atom:a9
+      $bond:b9 @bond:../backbone $atom:a9 $atom:a10
+      $bond:b10 @bond:../backbone $atom:a10 $atom:a11
+      $bond:b11 @bond:../backbone $atom:a11 $atom:a12
+      $bond:b12 @bond:../backbone $atom:a12 $atom:a13
+      $bond:b13 @bond:../backbone $atom:a13 $atom:a14
+      $bond:b14 @bond:../backbone $atom:a14 $atom:a15
+      $bond:b15 @bond:../backbone $atom:a15 $atom:a16
+    }
+
+  } # A16
+
+
+  # B16 is a coarse-grained beta-strand containing 16 residues (one "atom" each)
+
+  B16 {
+
+    #  AtomID   MoleculeID AtomType  Charge      X         Y         Z
+
+    write('Data Atoms') {
+      $atom:a1  $mol:... @atom:../L  0.0      -0.3       0.0       0.0
+      $atom:a2  $mol:... @atom:../H  0.0       0.3       0.0       0.8
+      $atom:a3  $mol:... @atom:../L  0.0      -0.3       0.0       1.6
+      $atom:a4  $mol:... @atom:../H  0.0       0.3       0.0       2.4
+      $atom:a5  $mol:... @atom:../L  0.0      -0.3       0.0       3.2
+      $atom:a6  $mol:... @atom:../H  0.0       0.3       0.0       4.0
+      $atom:a7  $mol:... @atom:../L  0.0      -0.3       0.0       4.8
+      $atom:a8  $mol:... @atom:../H  0.0       0.3       0.0       5.6
+      $atom:a9  $mol:... @atom:../L  0.0      -0.3       0.0       6.4
+      $atom:a10 $mol:... @atom:../H  0.0       0.3       0.0       7.2
+      $atom:a11 $mol:... @atom:../L  0.0      -0.3       0.0       8.0
+      $atom:a12 $mol:... @atom:../H  0.0       0.3       0.0       8.8
+      $atom:a13 $mol:... @atom:../L  0.0      -0.3       0.0       9.6
+      $atom:a14 $mol:... @atom:../H  0.0       0.3       0.0       10.4
+      $atom:a15 $mol:... @atom:../L  0.0      -0.3       0.0       11.2
+      $atom:a16 $mol:... @atom:../H  0.0       0.3       0.0       12.0
+    }
+
+    write('Data Bonds') {
+      $bond:b1 @bond:../backbone $atom:a1 $atom:a2
+      $bond:b2 @bond:../backbone $atom:a2 $atom:a3
+      $bond:b3 @bond:../backbone $atom:a3 $atom:a4
+      $bond:b4 @bond:../backbone $atom:a4 $atom:a5
+      $bond:b5 @bond:../backbone $atom:a5 $atom:a6
+      $bond:b6 @bond:../backbone $atom:a6 $atom:a7
+      $bond:b7 @bond:../backbone $atom:a7 $atom:a8
+      $bond:b8 @bond:../backbone $atom:a8 $atom:a9
+      $bond:b9 @bond:../backbone $atom:a9 $atom:a10
+      $bond:b10 @bond:../backbone $atom:a10 $atom:a11
+      $bond:b11 @bond:../backbone $atom:a11 $atom:a12
+      $bond:b12 @bond:../backbone $atom:a12 $atom:a13
+      $bond:b13 @bond:../backbone $atom:a13 $atom:a14
+      $bond:b14 @bond:../backbone $atom:a14 $atom:a15
+      $bond:b15 @bond:../backbone $atom:a15 $atom:a16
+    }
+
+  } # B16
+
+  T3 { # T3 is a "turn" region consisting of 3 beads
+
+    #  AtomID   MoleculeID AtomType  Charge       X        Y         Z
+
+    write('Data Atoms') {
+      $atom:a1  $mol:... @atom:../N  0.0      -0.8       0.0       0.0
+      $atom:a2  $mol:... @atom:../N  0.0       0.0       0.55     -0.24
+      $atom:a3  $mol:... @atom:../N  0.0       0.8       0.0       0.0
+    }
+
+    write('Data Bonds') {
+      $bond:b1 @bond:../backbone $atom:a1 $atom:a2
+      $bond:b2 @bond:../backbone $atom:a2 $atom:a3
+    }
+
+  } # T3
+
+  # (Note: Again, atom types, bond-types, (dihedral-types, any variable, etc) 
+  #        can be shared.  The ".." in "@atom:../CA" tells moltemplate that 
+  #        atom type CA is defined in the parent's environment. (We are 
+  #        sharing the CA atom type between both the H and P residues.
+  #        The same is true of the ".." in "@bond:../sidechain".
+  #        
+  #
+  #  Note: The "..." in "$mol:..." tells moltemplate that this molecule may
+  #        be a part of a larger molecule, and (if so) to use the larger
+  #        molecule's id number as it's own.
+
+
+
+  # ----- Now build larger molecules using A16, B16 and T3 -------
+
+  4HelixBundle {
+
+    helix1 = new A16.rot( -45, 0,0,1).move(-1.12691645,-1.12691645, 0)
+    helix2 = new A16.rot(  45, 0,0,1).move( 1.12691645,-1.12691645, 0)
+    helix3 = new A16.rot( 135, 0,0,1).move( 1.12691645, 1.12691645, 0)
+    helix4 = new A16.rot( 225, 0,0,1).move(-1.12691645, 1.12691645, 0)
+    # Note: 1.12691645 ~= 0.5*2^(1/6) + 0.4*sqrt(2)
+
+    turn1  = new T3.rot(180,1,0,0).rot(-17,0,0,1).move(-0.2,-0.7,9.9)
+    turn2  = new T3.rot(  0,1,0,0).rot(-100,0,0,1).move(0.7,-0.15,-0.3)
+    turn3  = new T3.rot(180,1,0,0).rot(163,0,0,1).move(0.2,0.7,9.9)
+
+    # Note: In the paper, this is described as the "UA2" conformation
+    # (I played around with the angles until it looked "okay".  This is not
+    #  the minimum energy conformation.  Further minimization is necessary.)
+
+    # Now bond the pieces together.
+    # (Note: angle & dihedral interactions will be generated automatically.)
+    write('Data Bonds') {
+      $bond:turn1a  @bond:../backbone  $atom:turn1/a1    $atom:helix1/a16
+      $bond:turn1b  @bond:../backbone  $atom:turn1/a3    $atom:helix2/a16
+      $bond:turn2a  @bond:../backbone  $atom:turn2/a1    $atom:helix3/a1
+      $bond:turn2b  @bond:../backbone  $atom:turn2/a3    $atom:helix2/a1
+      $bond:turn3a  @bond:../backbone  $atom:turn3/a1    $atom:helix3/a16
+      $bond:turn3b  @bond:../backbone  $atom:turn3/a3    $atom:helix4/a16
+    }
+    create_var { $mol } # <-- create a variable for the parent's Molecule-ID
+  }
+
+  4SheetBundle {
+
+    sheet1 = new B16.rot(  45, 0,0,1).move(-0.793700526,-0.793700526, 0)
+    sheet2 = new B16.rot( 135, 0,0,1).move( 0.793700526,-0.793700526, 0)
+    sheet3 = new B16.rot( 225, 0,0,1).move( 0.793700526, 0.793700526, 0)
+    sheet4 = new B16.rot( 315, 0,0,1).move(-0.793700526, 0.793700526, 0)
+    # Note: 0.793700526 ~= 0.5*2^(1/6) * sqrt(1/2)
+
+    turn1  = new T3.rot(180,1,0,0).rot(0,0,0,1).move(0,-1.3,12.6)
+    turn2  = new T3.rot(  0,1,0,0).rot(-90,0,0,1).move(0.7,-0.0,-0.9)
+    turn3  = new T3.rot(180,1,0,0).rot(-180,0,0,1).move(0,1.3,12.6)
+
+    write('Data Bonds') {
+      $bond:turn1a  @bond:../backbone  $atom:turn1/a1    $atom:sheet1/a16
+      $bond:turn1b  @bond:../backbone  $atom:turn1/a3    $atom:sheet2/a16
+      $bond:turn2a  @bond:../backbone  $atom:turn2/a1    $atom:sheet3/a1
+      $bond:turn2b  @bond:../backbone  $atom:turn2/a3    $atom:sheet2/a1
+      $bond:turn3a  @bond:../backbone  $atom:turn3/a1    $atom:sheet3/a16
+      $bond:turn3b  @bond:../backbone  $atom:turn3/a3    $atom:sheet4/a16
+    }
+    create_var { $mol } # molecule ID number shared by all atoms in this protein
+  }
+
+
+  # There are 3 atom types (referred to above as ../H, ../L, and ../N)
+  # Define their masses:
+
+  write_once("Data Masses") {
+    @atom:H   1.0
+    @atom:L   1.0
+    @atom:N   1.0
+
+  }
+
+
+
+  # --------------------------------------------------------------------
+  # -- In this example, all force field parameters are stored in the  --
+  # -- file named "In Settings".  They can also go in sections like   --
+  # -- "Data Pair Coeffs", "Data Bond Coeffs", "Data Angle Coeffs"... --
+  # --------------------------------------------------------------------
+
+
+
+
+  # 2-body (non-bonded) interactions:
+  #
+  #   Uij(r) = 4*eps_ij * (K*(sig_ij/r)^12 + L*(sig_ij/r)^6)
+  #
+  #              i       j           pairstylename          eps sig  K L
+  #
+  write_once("In Settings") {
+    pair_coeff @atom:H @atom:H lj/charmm/coul/charmm/inter  1.0 1.0 1 -1
+    pair_coeff @atom:L @atom:L lj/charmm/coul/charmm/inter  1.0 1.0 1 0
+    pair_coeff @atom:N @atom:N lj/charmm/coul/charmm/inter  1.0 1.0 1 0
+  }
+  # (Interactions between different atom types use "arithmetic" 
+  #  and "maxmax" ("repulsion-wins") mixing rules.)
+
+
+  # 2-body (bonded) interactions:
+  #
+  #   Ubond(r) = (k/2)*(r-0)^2
+  #
+  #   The corresponding command is:
+  #
+  #   bond_coeff     bondType    bondstylename   k     r0
+  #
+
+  write_once("In Settings") {
+    bond_coeff     @bond:backbone   harmonic    66.6   1.0
+  }
+
+
+
+  # 3-body interactions in this example are listed by atomType and bondType
+  # The atomIDs involved are determined automatically.  The forumula used is:
+  #
+  # Uangle(theta) = (k/2)*(theta-theta0)^2   
+  #     (k in kcal/mol/rad^2, theta0 in degrees)
+  #
+  # The corresponding command is:
+  #
+  #   angle_coeff  angleType  anglestylename   k   theta0
+
+  write_once("In Settings") {
+    angle_coeff @angle:backbone   harmonic    66.6  105.0
+  }
+
+  # Generate a "backbone" 3-body interaction whenever 3 atoms are bonded
+  # together.  We do this by to asking moltemplate to generate this 
+  # 3-body interaction whenever 3 consecutively bonded atoms satisfy
+  # the following type requirement:
+  #
+  # angleType       atomtypes1 2 3   bondtypes1 2
+
+  write_once("Data Angles By Type") {
+    @angle:backbone    *  *  *          *  *
+  }
+
+
+
+
+
+  # 4-body interactions in this example are listed by atomType and bondType
+  # The atomIDs involved are determined automatically.  The forumula used is:
+  #
+  # Udihedral(phi) = K * (1 + cos(n*phi - d))
+  #
+  #     The d parameter is in degrees, K is in kcal/mol/rad^2.
+  #
+  # The corresponding command is:
+  #
+  # dihedral_coeff dihedralType   dihedralstylename  K  n   d   w
+  #    ("w" is the weight for 1-4 pair interactions, which we set to 0)
+
+  write_once("In Settings") {
+    dihedral_coeff @dihedral:turn       charmm      0.2 3   0 0
+    dihedral_coeff @dihedral:term3      charmm      1.2 3   0 0
+
+    dihedral_coeff @dihedral:delta65_0  charmm      1.2 1 -65 0
+    dihedral_coeff @dihedral:delta62_5  charmm      1.2 1 -62 0
+    dihedral_coeff @dihedral:delta60_0  charmm      1.2 1 -60 0
+    dihedral_coeff @dihedral:delta57_5  charmm      1.2 1 -57 0
+    dihedral_coeff @dihedral:delta55_0  charmm      1.2 1 -55 0
+  }
+
+  #write_once("In Settings") {
+  #  dihedral_coeff @dihedral:turn       charmm      0.2 3   0.0 0
+  #  dihedral_coeff @dihedral:term3      charmm      1.2 3   0.0 0
+  #  dihedral_coeff @dihedral:delta65_0  charmm      1.2 1 -65.0 0
+  #  dihedral_coeff @dihedral:delta62_5  charmm      1.2 1 -62.5 0
+  #  dihedral_coeff @dihedral:delta60_0  charmm      1.2 1 -60.0 0
+  #  dihedral_coeff @dihedral:delta57_5  charmm      1.2 1 -57.5 0
+  #  dihedral_coeff @dihedral:delta55_0  charmm      1.2 1 -55.5 0
+  #}
+
+  # Generate 4-body interactions whenever 4 consecutively bonded atoms satisfy
+  # the following type requirements:
+
+  write_once("Data Dihedrals By Type") {
+    # The dihedral interaction between backbone atoms in the helix or sheet-like
+    # regions is proportional to the sum of two terms: cos(phi+delta)+cos(3*phi)
+    # where delta is a constant used to control the bias between helices/sheets.
+    # As of 2013-4-07, the "fourier", "table", "class2", and "charmm",
+    " dihedral_styles can implement this potential.
+    # However dihedral_style "charmm" can only handle one cosine term at a time.
+    # So we use two commands to create two dihedral interactions for the same
+    # set of of four atoms ("cos3" and "delta60_0").  (To allow the 
+    # superposition of multiple dihedral interactions on the same atoms, 
+    # be sure to run moltemplate with the "-overlay-dihdedrals" argument.)
+    #
+    # dihedralType        atomtypes1 2 3 4                  bondtypes1 2 3
+
+    @dihedral:term3      @atom:H  @atom:L  @atom:H  @atom:L   *  *  *
+    @dihedral:delta60_0  @atom:H  @atom:L  @atom:H  @atom:L   *  *  *
+
+    @dihedral:term3      @atom:H  @atom:L  @atom:L  @atom:H   *  *  *
+    @dihedral:delta60_0  @atom:H  @atom:L  @atom:L  @atom:H   *  *  *
+
+    @dihedral:term3      @atom:L  @atom:H  @atom:H  @atom:L   *  *  *
+    @dihedral:delta60_0  @atom:L  @atom:H  @atom:H  @atom:L   *  *  *
+
+    @dihedral:term3      @atom:H  @atom:H  @atom:L  @atom:L   *  *  *
+    @dihedral:delta60_0  @atom:H  @atom:H  @atom:L  @atom:L   *  *  *
+
+    # Comment out the next 4 lines: (They are redundant with the lines above)
+    #@dihedral:term3     @atom:L  @atom:L  @atom:H  @atom:H   *  *  *
+    #@dihedral:delta60_0 @atom:L  @atom:L  @atom:H  @atom:H   *  *  *
+    #@dihedral:term3     @atom:L  @atom:H  @atom:L  @atom:H   *  *  *
+    #@dihedral:delta60_0 @atom:L  @atom:H  @atom:L  @atom:H   *  *  *
+    # (Redundant: The LLHH pattern is identical to HHLL after order reversal)
+    # (Redundant: The LHLH pattern is identical to HLHL after order reversal)
+
+    # Right now the dihedral-angle settings are "unfrustrated", meaning that the
+    # peptide backbone is equally happy to adopt helical or sheet-like secondary
+    # structure (See Table IV of Bellesia et. al, Prot Sci, 19, 141 (2010)).
+    # You can change that by changing "delta60_0" to one of the other choices.
+
+    # Any dihedral interactions containing "N" atoms use the @dihedral:turn
+    # interaction (which is much weaker).
+    @dihedral:turn       @atom:N  @atom:*  @atom:*  @atom:*    *  *  *
+    @dihedral:turn       @atom:N  @atom:N  @atom:*  @atom:*    *  *  *
+    @dihedral:turn       @atom:N  @atom:N  @atom:N  @atom:*    *  *  *
+    @dihedral:turn       @atom:N  @atom:N  @atom:N  @atom:N    *  *  *
+    # Comment out the next 4 lines: (They are redundant with the lines above)
+    # @dihedral:turn      @atom:N  @atom:N  @atom:N  @atom:N   *  *  *
+    # @dihedral:turn      @atom:*  @atom:N  @atom:N  @atom:N   *  *  *
+    # @dihedral:turn      @atom:*  @atom:*  @atom:N  @atom:N   *  *  *
+    # @dihedral:turn      @atom:*  @atom:*  @atom:*  @atom:N   *  *  *
+  }
+
+} # 1beadProtSci2010 (namespace)
+

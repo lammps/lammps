@@ -1,0 +1,20 @@
+import "spce.lt"
+
+# --------------- water ------------------
+
+# Create a rhombohedral box of water. (A rectangular box works also.)
+
+wat  =  new SPCE  [9].move(3.5526287,    0,      0 )
+                  [9].move(1.77631435, 3.3133,   0 )
+                  [6].move(   0,         0,    3.45)
+
+# Optional: Center the water box at the origin. (Not really necessary.)
+
+wat[*][*][*].move(-23.9802437, -14.90985, 11.47)
+
+# --------------- Note: -----------------
+# The spacing between water molecules does not matter much as long as it is
+# reasonable. (I adjusted the spacing try to insure that the waters are spread 
+# uniformly throughout the box.  We do not want bubles to form if there are 
+# gaps near the XY periodic boundaries.)  We will have to equilibrate it later.
+

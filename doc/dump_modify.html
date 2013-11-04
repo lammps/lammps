@@ -125,20 +125,22 @@ parameters are relevant to all dump styles.
 <HR>
 
 <P>These keywords apply to various dump styles, including the <A HREF = "dump_image.html">dump
-image</A> style.  The description gives details.
+image</A> and <A HREF = "dump_image.html">dump movie</A> styles.  The
+description gives details.
 </P>
 <HR>
 
 <P>The <I>append</I> keyword applies to all dump styles except <I>cfg</I> and <I>xtc</I>
 and <I>dcd</I>.  It also applies only to text output files, not to binary
-or gzipped files.  If specified as <I>yes</I>, then dump snapshots are
-appended to the end of an existing dump file.  If specified as <I>no</I>,
-then a new dump file will be created which will overwrite an existing
-file with the same name.  This keyword can only take effect if the
-dump_modify command is used after the <A HREF = "dump.html">dump</A> command, but
-before the first command that causes dump snapshots to be output,
-e.g. a <A HREF = "run.html">run</A> or <A HREF = "minimize.html">minimize</A> command.  Once the
-dump file has been opened, this keyword has no further effect.
+or gzipped or image/movie files.  If specified as <I>yes</I>, then dump
+snapshots are appended to the end of an existing dump file.  If
+specified as <I>no</I>, then a new dump file will be created which will
+overwrite an existing file with the same name.  This keyword can only
+take effect if the dump_modify command is used after the
+<A HREF = "dump.html">dump</A> command, but before the first command that causes
+dump snapshots to be output, e.g. a <A HREF = "run.html">run</A> or
+<A HREF = "minimize.html">minimize</A> command.  Once the dump file has been opened,
+this keyword has no further effect.
 </P>
 <HR>
 
@@ -379,6 +381,8 @@ the coordinate would be if it had not been wrapped back into the
 periodic box.  Note that these coordinates may thus be far outside the
 box size stored with the snapshot.
 </P>
+<HR>
+
 <HR>
 
 <P>These keywords apply only to the <A HREF = "dump_image.html">dump image</A> and

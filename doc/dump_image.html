@@ -79,17 +79,12 @@
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>dump d0 all image 100 dump.*.jpg type type 
-</PRE>
-<PRE>dump d1 mobile image 500 snap.*.png element element ssao yes 4539 0.6 
-</PRE>
-<PRE>dump d2 all image 200 img-*.ppm type type zoom 2.5 adiam 1.5 size 1280 720 
-</PRE>
-<PRE>dump m0 all movie 1000 movie.mpg type type size 640 480 
-</PRE>
-<PRE>dump m1 all movie 1000 movie.avi type type size 640 480 
-</PRE>
-<PRE>dump m2 all movie 100 movie.m4v type type zoom 1.8 adiam v_value size 1280 720 
+<PRE>dump d0 all image 100 dump.*.jpg type type
+dump d1 mobile image 500 snap.*.png element element ssao yes 4539 0.6
+dump d2 all image 200 img-*.ppm type type zoom 2.5 adiam 1.5 size 1280 720
+dump m0 all movie 1000 movie.mpg type type size 640 480
+dump m1 all movie 1000 movie.avi type type size 640 480
+dump m2 all movie 100 movie.m4v type type zoom 1.8 adiam v_value size 1280 720 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -104,6 +99,11 @@ intermediate files using the dump movie style; see further details
 below.  Other dump styles store snapshots of numerical data asociated
 with atoms in various formats, as discussed on the <A HREF = "dump.html">dump</A>
 doc page.
+</P>
+<P>Note that a set of images or a movie can be made after a simulation
+has been run, using the <A HREF = "rerun.html">rerun</A> command to read snapshots
+from an existing dump file, and using these dump commands in the rerun
+script to generate the images/movie.
 </P>
 <P>Here are two sample images, rendered as 1024x1024 JPG files.  Click to
 see the full-size images:

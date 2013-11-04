@@ -13,51 +13,50 @@
 </H3>
 <H3>pair_style comb/omp command 
 </H3>
+<H3>pair_style comb3 command 
+</H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>pair_style comb 
+<PRE>pair_style comb
+pair_style comb3 keyword 
 </PRE>
+<PRE>keyword = <I>polar</I>
+  <I>polar</I> value = <I>polar_on</I> or <I>polar_off</I> = whether or not to include atomic polarization 
+</PRE>
+
+</UL>
 <P><B>Examples:</B>
 </P>
 <PRE>pair_style comb
 pair_coeff * * ../potentials/ffield.comb Si
 pair_coeff * * ../potentials/ffield.comb Hf Si O 
 </PRE>
+<PRE>pair_style comb3 polar_off
+pair_coeff * * ../potentials/ffield.comb3 O Cu N C O 
+</PRE>
 <P><B>Description:</B>
 </P>
-<P>Style <I>comb</I> computes a variable charge COMB (Charge-Optimized
-Many-Body) potential as described in <A HREF = "#COMB_1">(COMB_1)</A> and
-<A HREF = "#COMB_2">(COMB_2)</A>.  The energy E of a system of atoms 
-is given by
+<P>Style <I>comb</I> computes the second-generation variable charge COMB 
+(Charge-Optimized Many-Body) potential.  Style <I>comb3</I> computes 
+the third-generation COMB potential.  These COMB potentials are 
+described in <A HREF = "#COMB1">(COMB1)</A> and <A HREF = "#COMB2">(COMB2)</A>.  Briefly, 
+the total energy <I>E<sub>T</sub></I> of a system of atoms is given by
 </P>
 <CENTER><IMG SRC = "Eqs/pair_comb1.jpg">
 </CENTER>
-<P>where <I>E<sub>T</sub></I> is the total potential energy of the system,
-<I>E<sup>S</sup><sub>i</sub></I> is the self-energy term of atom <I>i</I>,
-<I>V<sub>ij</sub></I> is the interatomic potential between the <I>i</I>th and
-<I>j</I>th atoms, <I>r<sub>ij</sub></I> is the distance of the atoms <I>i</I> and
-<I>j</I>, and <I>q<sub>i</sub></I> and <I>q<sub>j</sub></I> are charges of the atoms,
-and <I>E<sup>BB</sup><sub>i</sub></I> is the bond-bending term of atom <I>i</I>.
+<P>where <I>E<sub>i</sub><sup>self</sup></I> is the self-energy of atom <I>i</I> 
+(including atomic ionization energies and electron affinities),
+<I>E<sub>ij</sub><sup>short</sup></I> is the bond-order potential between 
+atoms <I>i</I> and <I>j</I>,
+<I>E<sub>ij</sub><sup>Coul</sup></I> is the Coulomb interactions,
+<I>E<sup>polar</sup></I> is the polarization term for organic systems 
+(style <I>comb3</I> only), 
+<I>E<sup>vdW</sup></I> is the van der Waals energy (style <I>comb3</I> only), 
+<I>E<sup>barr</sup></I> is a charge barrier function, and 
+<I>E<sup>corr</sup></I> are angular correction terms.
 </P>
-<P>The interatomic potential energy <I>V<sub>ij</sub></I> consists of four
-components: two-body short-range repulsion,
-<I>U<sup>R</sup><sub>ij</sub></I>, many-body short-range attraction,
-<I>U<sup>A</sup><sub>ij</sub></I>, long-range Coulombic electrostatic
-interaction, <I>U<sup>I</sup><sub>ij</sub></I>, and van der Waals energy,
-<I>U<sup>V</sup><sub>ij</sub></I>, which are defined as:
-</P>
-<CENTER><IMG SRC = "Eqs/pair_comb2.jpg">
-</CENTER>
-<P>The short-range repulsion and attraction are based on the
-<A HREF = "#Tersoff">Tersoff</A> potential (see the <A HREF = "pair_tersoff.html">pair_style
-tersoff</A> command); thus for a zero-charge pure
-element system with no van der Waals interaction, the COMB potential
-reduces to Tersoff potential, typically truncated at a short cutoff,
-e.g. 3 to 4 Angstroms.  The long-range Coulombic term uses the Wolf
-summation method described in <A HREF = "#Wolf">Wolf</A>, spherically truncated at a
-longer cutoff, e.g. 12 Angstroms.
-</P>
-<P>The COMB potential is a variable charge potential.  The equilibrium
+<P>The COMB potentials (styles <I>comb</I> and <I>comb3</I>) are variable 
+charge potentials.  The equilibrium
 charge on each atom is calculated by the electronegativity
 equalization (QEq) method.  See <A HREF = "#Rick">Rick</A> for further details.
 This is implemented by the <A HREF = "fix_qeq_comb.html">fix qeq/comb</A> command,
@@ -67,14 +66,11 @@ command has options that determine how often charge equilibration is
 performed, its convergence criterion, and which atoms are included in
 the calculation.
 </P>
-<P>Only a single pair_coeff command is used with the <I>comb</I> style which
-specifies the COMB potential file with parameters for all needed
-elements.  These are mapped to LAMMPS atom types by specifying N
-additional arguments after the potential file in the pair_coeff
-command, where N is the number of LAMMPS atom types.  The provided
-potential file <I>ffield.comb</I> contains all currently-available COMB
-parameterizations: for Si, Cu, Hf, Ti, O, their oxides and Zr, Zn and
-U metals.
+<P>Only a single pair_coeff command is used with the <I>comb</I> and <I>comb3</I> 
+styles which specifies the COMB potential file with parameters for 
+all needed elements.  These are mapped to LAMMPS atom types by 
+specifying N additional arguments after the potential file in the 
+pair_coeff command, where N is the number of LAMMPS atom types.  
 </P>
 <P>For example, if your LAMMPS simulation of a Si/SiO<sub>2</sub>/
 HfO<sub>2</sub> interface has 4 atom types, and you want the 1st and
@@ -93,80 +89,28 @@ This can be used when a <I>comb</I> potential is used as part of the
 <I>hybrid</I> pair style.  The NULL values are placeholders for atom types
 that will be used with other potentials.
 </P>
-<P>The <I>ffield.comb</I> potential file is in the <I>potentials</I> directory of
-the LAMMPS distribution.  See the <A HREF = "pair_coeff.html">pair_coeff</A> doc page
-for alternate ways to specify the path for the potential file.  Lines
-that are not blank or comments (starting with #) define parameters for
-a triplet of elements.  The 49 parameters in a single entry correspond
-to coefficients in the formula above:
+<P>For style <I>comb</I>, the provided potential file <I>ffield.comb</I> contains 
+all currently-available 2nd generation COMB parameterizations: 
+for Si, Cu, Hf, Ti, O, their oxides and Zr, Zn and U metals.  
+For style <I>comb3</I>, the potential file <I>ffield.comb3</I> contains all 
+currently-available 3rd generation COMB paramterizations: 
+O, Cu, N, C, H, Ti and Zn.  
+The status of the optimization of the compounds, for example 
+Cu<sub>2</sub>O, TiN and hydrocarbons, are given in the 
+following table:
 </P>
-<UL><LI>element 1 (the center atom in a 3-body interaction)
-<LI>element 2 (the atom bonded to the center atom)
-<LI>element 3 (the atom influencing the 1-2 bond in a bond-order sense)
-<LI>m
-<LI>c
-<LI>d
-<LI>h (cos_theta0 (can be a value -1 or 1))
-<LI>n
-<LI>beta
-<LI>lambda21, lambda2 of element 1 (1/distance units)
-<LI>lambda22, lambda2 of element 2 (1/distance units)
-<LI>B of element 1 (energy units)
-<LI>B of element 2 (energy units)
-<LI>R (cutoff, distance units, 0.5*(r_outer + r_inner))
-<LI>D (cutoff, distance units, R - r_inner)
-<LI>lambda11, lambda1 of element 1 (1/distance units)
-<LI>lambda12, lambda1 of element 2 (1/distance units)
-<LI>A of element 1 (energy units) 
-<LI>A of element 2 (energy units) 
-<LI>K_LP_1 (energy units, 1st order Legendre polynomial coefficient)
-<LI>K_LP_3 (energy units, 3rd order Legendre polynomial coefficient)
-<LI>K_LP_6 (energy units, 6th order Legendre polynomial coefficient)
-<LI>A123 (cos_theta, theta = equilibrium MOM or OMO bond angles)
-<LI>Aconf (cos_theta, theta = equilibrium MOM or OMO bond-bending coefficient)
-<LI>addrep (energy units, additional repulsion)
-<LI>R_omiga_a (unit-less scaler for A)
-<LI>R_omiga_b (unit-less scaler for B)
-<LI>R_omiga_c (unit-less scaler for 0.5*(lambda21+lambda22))
-<LI>R_omiga_d (unit-less scaler for 0.5*(lambda11+lambda12))
-<LI>QL1 (charge units, lower charge limit for element 1)
-<LI>QU1 (charge units, upper charge limit for element 1)
-<LI>DL1 (distance units, ion radius of element 1 with charge QL1)
-<LI>DU1 (distance units, ion radius of element 1 with charge QU1)
-<LI>QL2 (charge units, lower charge limit for element 2)
-<LI>QU2 (charge units, upper charge limit for element 2)
-<LI>DL2 (distance units, ion radius of element 2 with charge QL2)
-<LI>DU2 (distance units, ion radius of element 2 with charge QU2)
-<LI>chi (energy units, self energy 1st power term)
-<LI>dJ (energy units, self energy 2nd power term)
-<LI>dK (energy units, self energy 3rd power term)
-<LI>dL (energy units, self energy 4th power term)
-<LI>dM (energy units, self energy 6th power term)
-<LI>esm (distance units, orbital exponent)
-<LI>cmn1 (self energy penalty, rho 1 of element 1)
-<LI>cml1 (self energy penalty, rho 1 of element 2)
-<LI>cmn2 (self energy penalty, rho 2 of element 1)
-<LI>cmn2 (self energy penalty, rho 2 of element 2)
-<LI>coulcut (long range Coulombic cutoff, distance units)
-<LI>hfocor (coordination term) 
-</UL>
-<P>The parameterization of COMB potentials start with a pure element
-(e.g. Si, Cu) then extend to its oxide and polymorphs
-(e.g. SiO<sub>2</sub>, Cu<sub>2</sub>O). For interactions not
-involving oxygen (e.g.  Si-Cu or Hf-Zr), the COMB potential uses a
-mixing rule to generate these parameters.  For furthur details on the
-parameterization and parameters, see the <A HREF = "pair_tersoff.html">Tersoff</A>
-doc page and the COMB publications <A HREF = "#COMB_1">(COMB_1)</A> and
-<A HREF = "#COMB_2">(COMB_2)</A>.  For more details on 3-body interaction types
-(e.g. SiSiO vs SiOSi), the mixing rule, and how to generate the
-potential file, please see the <A HREF = "pair_tersoff.html">Tersoff</A> doc page.
+<CENTER><IMG SRC = "Eqs/pair_comb2.jpg">
+</CENTER>
+<P>For style <I>comb3</I>, in addition to ffield.comb3, a special 
+parameter file, <I>lib.comb3</I>, 
+that is exclusively used for C/O/H systems, will be automatically 
+loaded if carbon atom is detected in LAMMPS input structure.  
+Keyword <I>polar</I> indicates whether the force field includes the atomic 
+polarization. Since the equilibration of the polarization has not 
+yet been implemented, it can only set polar_off at present. 
 </P>
-<P>In the potentials directory, the file <I>ffield.comb</I> provides the
-LAMMPS parameters for COMB's Si, Cu, Ti, Hf and their oxides, as well
-as pure U, Zn and Zr metals. This file can be used for pure elements
-(e.g. Si, Zr), binary oxides, binary alloys (e.g.  SiCu, TiZr), and
-complex systems.  Note that alloys and complex systems require all
-3-body entries be pre-defined in the potential file.
+<P>IMPORTANT NOTE: You can not use potential file <I>ffield.comb</I> with 
+style <I>comb3</I>, nor file <I>ffield.comb3</I> with style <I>comb</I>.
 </P>
 <HR>
 
@@ -198,16 +142,16 @@ more instructions on how to use the accelerated styles effectively.
 two different element types, mixing is performed by LAMMPS as
 described above from values in the potential file.
 </P>
-<P>This pair style does not support the <A HREF = "pair_modify.html">pair_modify</A>
+<P>These pair styles does not support the <A HREF = "pair_modify.html">pair_modify</A>
 shift, table, and tail options.
 </P>
-<P>This pair style does not write its information to <A HREF = "restart.html">binary restart
+<P>These pair styles do not write its information to <A HREF = "restart.html">binary restart
 files</A>, since it is stored in potential files.  Thus, you
 need to re-specify the pair_style, pair_coeff, and <A HREF = "fix_qeq_comb.html">fix
 qeq/comb</A> commands in an input script that reads a
 restart file.
 </P>
-<P>This pair style can only be used via the <I>pair</I> keyword of the
+<P>These pair styles can only be used via the <I>pair</I> keyword of the
 <A HREF = "run_style.html">run_style respa</A> command.  It does not support the
 <I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
 </P>
@@ -215,15 +159,15 @@ restart file.
 
 <P><B>Restrictions:</B>
 </P>
-<P>This pair style is part of the MANYBODY package.  It is only enabled
+<P>These pair styles are part of the MANYBODY package.  It is only enabled
 if LAMMPS was built with that package (which it is by default).  See
 the <A HREF = "Section_start.html#start_3">Making LAMMPS</A> section for more info.
 </P>
-<P>This pair style requires the <A HREF = "newton.html">newton</A> setting to be "on"
+<P>These pair styles requires the <A HREF = "newton.html">newton</A> setting to be "on"
 for pair interactions.
 </P>
-<P>The COMB potentials in the <I>ffield.comb</I> file provided with LAMMPS
-(see the potentials directory) are parameterized for metal
+<P>The COMB potentials in the <I>ffield.comb</I> and <I>ffield.comb3</I> files provided 
+with LAMMPS (see the potentials directory) are parameterized for metal
 <A HREF = "units.html">units</A>.  You can use the COMB potential with any LAMMPS
 units, but you would need to create your own COMB potential file with
 coefficients listed in the appropriate units if your simulation
@@ -238,27 +182,19 @@ doesn't use "metal" units.
 </P>
 <HR>
 
-<A NAME = "COMB_1"></A>
+<A NAME = "COMB1"></A>
 
-<P><B>(COMB_1)</B> J. Yu, S. B. Sinnott, S. R. Phillpot, Phys Rev B, 75, 085311 (2007),
+<P><B>(COMB1)</B> S. R. Phillpot and S. B. Sinnott, Science 325, 1634-1635 (2009)
 </P>
-<A NAME = "COMB_2"></A>
+<A NAME = "COMB2"></A>
 
-<P><B>(COMB_2)</B> T.-R. Shan, B. D. Devine, T. W. Kemper, S. B. Sinnott, S. R.
-Phillpot, Phys Rev B, 81, 125328 (2010).
-</P>
-<A NAME = "Tersoff"></A>
-
-<P><B>(Tersoff)</B> J. Tersoff, Phys Rev B, 37, 6991 (1988).
+<P><B>(COMB2)</B> T. Liang, T.-R. Shan, Y.-T. Cheng, B. D. Devine, M. Noordhoek, 
+Y. Li, Z. Lu, S. R. Phillpot, and S. B. Sinnott, Mat. Sci. & Eng: R, 
+in press (DOI: 10.1016/j.mser.2013.07.001)
 </P>
 <A NAME = "Rick"></A>
 
 <P><B>(Rick)</B> S. W. Rick, S. J. Stuart, B. J. Berne, J Chem Phys 101, 6141
 (1994).
-</P>
-<A NAME = "Wolf"></A>
-
-<P><B>(Wolf)</B> D. Wolf, P. Keblinski, S. R. Phillpot, J. Eggebrecht, J Chem
-Phys, 110, 8254 (1999).
 </P>
 </HTML>

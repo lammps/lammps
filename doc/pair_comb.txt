@@ -8,52 +8,48 @@
 
 pair_style comb command :h3
 pair_style comb/omp command :h3
+pair_style comb3 command :h3
 
 [Syntax:]
 
-pair_style comb :pre
+pair_style comb
+pair_style comb3 keyword :pre
+
+keyword = {polar}
+  {polar} value = {polar_on} or {polar_off} = whether or not to include atomic polarization :pre
+:ule
 
 [Examples:]
 
 pair_style comb
 pair_coeff * * ../potentials/ffield.comb Si
 pair_coeff * * ../potentials/ffield.comb Hf Si O :pre
+pair_style comb3 polar_off
+pair_coeff * * ../potentials/ffield.comb3 O Cu N C O :pre
 
 [Description:]
 
-Style {comb} computes a variable charge COMB (Charge-Optimized
-Many-Body) potential as described in "(COMB_1)"_#COMB_1 and
-"(COMB_2)"_#COMB_2.  The energy E of a system of atoms 
-is given by
+Style {comb} computes the second-generation variable charge COMB 
+(Charge-Optimized Many-Body) potential.  Style {comb3} computes 
+the third-generation COMB potential.  These COMB potentials are 
+described in "(COMB1)"_#COMB1 and "(COMB2)"_#COMB2.  Briefly, 
+the total energy {E<sub>T</sub>} of a system of atoms is given by
 
 :c,image(Eqs/pair_comb1.jpg)
 
-where {E<sub>T</sub>} is the total potential energy of the system,
-{E<sup>S</sup><sub>i</sub>} is the self-energy term of atom {i},
-{V<sub>ij</sub>} is the interatomic potential between the {i}th and
-{j}th atoms, {r<sub>ij</sub>} is the distance of the atoms {i} and
-{j}, and {q<sub>i</sub>} and {q<sub>j</sub>} are charges of the atoms,
-and {E<sup>BB</sup><sub>i</sub>} is the bond-bending term of atom {i}.
+where {E<sub>i</sub><sup>self</sup>} is the self-energy of atom {i} 
+(including atomic ionization energies and electron affinities),
+{E<sub>ij</sub><sup>short</sup>} is the bond-order potential between 
+atoms {i} and {j},
+{E<sub>ij</sub><sup>Coul</sup>} is the Coulomb interactions,
+{E<sup>polar</sup>} is the polarization term for organic systems 
+(style {comb3} only), 
+{E<sup>vdW</sup>} is the van der Waals energy (style {comb3} only), 
+{E<sup>barr</sup>} is a charge barrier function, and 
+{E<sup>corr</sup>} are angular correction terms.
 
-The interatomic potential energy {V<sub>ij</sub>} consists of four
-components: two-body short-range repulsion,
-{U<sup>R</sup><sub>ij</sub>}, many-body short-range attraction,
-{U<sup>A</sup><sub>ij</sub>}, long-range Coulombic electrostatic
-interaction, {U<sup>I</sup><sub>ij</sub>}, and van der Waals energy,
-{U<sup>V</sup><sub>ij</sub>}, which are defined as:
-
-:c,image(Eqs/pair_comb2.jpg)
-
-The short-range repulsion and attraction are based on the
-"Tersoff"_#Tersoff potential (see the "pair_style
-tersoff"_pair_tersoff.html command); thus for a zero-charge pure
-element system with no van der Waals interaction, the COMB potential
-reduces to Tersoff potential, typically truncated at a short cutoff,
-e.g. 3 to 4 Angstroms.  The long-range Coulombic term uses the Wolf
-summation method described in "Wolf"_#Wolf, spherically truncated at a
-longer cutoff, e.g. 12 Angstroms.
-
-The COMB potential is a variable charge potential.  The equilibrium
+The COMB potentials (styles {comb} and {comb3}) are variable 
+charge potentials.  The equilibrium
 charge on each atom is calculated by the electronegativity
 equalization (QEq) method.  See "Rick"_#Rick for further details.
 This is implemented by the "fix qeq/comb"_fix_qeq_comb.html command,
@@ -63,14 +59,11 @@ command has options that determine how often charge equilibration is
 performed, its convergence criterion, and which atoms are included in
 the calculation.
 
-Only a single pair_coeff command is used with the {comb} style which
-specifies the COMB potential file with parameters for all needed
-elements.  These are mapped to LAMMPS atom types by specifying N
-additional arguments after the potential file in the pair_coeff
-command, where N is the number of LAMMPS atom types.  The provided
-potential file {ffield.comb} contains all currently-available COMB
-parameterizations: for Si, Cu, Hf, Ti, O, their oxides and Zr, Zn and
-U metals.
+Only a single pair_coeff command is used with the {comb} and {comb3} 
+styles which specifies the COMB potential file with parameters for 
+all needed elements.  These are mapped to LAMMPS atom types by 
+specifying N additional arguments after the potential file in the 
+pair_coeff command, where N is the number of LAMMPS atom types.  
 
 For example, if your LAMMPS simulation of a Si/SiO<sub>2</sub>/
 HfO<sub>2</sub> interface has 4 atom types, and you want the 1st and
@@ -89,80 +82,28 @@ This can be used when a {comb} potential is used as part of the
 {hybrid} pair style.  The NULL values are placeholders for atom types
 that will be used with other potentials.
 
-The {ffield.comb} potential file is in the {potentials} directory of
-the LAMMPS distribution.  See the "pair_coeff"_pair_coeff.html doc page
-for alternate ways to specify the path for the potential file.  Lines
-that are not blank or comments (starting with #) define parameters for
-a triplet of elements.  The 49 parameters in a single entry correspond
-to coefficients in the formula above:
+For style {comb}, the provided potential file {ffield.comb} contains 
+all currently-available 2nd generation COMB parameterizations: 
+for Si, Cu, Hf, Ti, O, their oxides and Zr, Zn and U metals.  
+For style {comb3}, the potential file {ffield.comb3} contains all 
+currently-available 3rd generation COMB paramterizations: 
+O, Cu, N, C, H, Ti and Zn.  
+The status of the optimization of the compounds, for example 
+Cu<sub>2</sub>O, TiN and hydrocarbons, are given in the 
+following table:
 
-element 1 (the center atom in a 3-body interaction)
-element 2 (the atom bonded to the center atom)
-element 3 (the atom influencing the 1-2 bond in a bond-order sense)
-m
-c
-d
-h (cos_theta0 (can be a value -1 or 1))
-n
-beta
-lambda21, lambda2 of element 1 (1/distance units)
-lambda22, lambda2 of element 2 (1/distance units)
-B of element 1 (energy units)
-B of element 2 (energy units)
-R (cutoff, distance units, 0.5*(r_outer + r_inner))
-D (cutoff, distance units, R - r_inner)
-lambda11, lambda1 of element 1 (1/distance units)
-lambda12, lambda1 of element 2 (1/distance units)
-A of element 1 (energy units) 
-A of element 2 (energy units) 
-K_LP_1 (energy units, 1st order Legendre polynomial coefficient)
-K_LP_3 (energy units, 3rd order Legendre polynomial coefficient)
-K_LP_6 (energy units, 6th order Legendre polynomial coefficient)
-A123 (cos_theta, theta = equilibrium MOM or OMO bond angles)
-Aconf (cos_theta, theta = equilibrium MOM or OMO bond-bending coefficient)
-addrep (energy units, additional repulsion)
-R_omiga_a (unit-less scaler for A)
-R_omiga_b (unit-less scaler for B)
-R_omiga_c (unit-less scaler for 0.5*(lambda21+lambda22))
-R_omiga_d (unit-less scaler for 0.5*(lambda11+lambda12))
-QL1 (charge units, lower charge limit for element 1)
-QU1 (charge units, upper charge limit for element 1)
-DL1 (distance units, ion radius of element 1 with charge QL1)
-DU1 (distance units, ion radius of element 1 with charge QU1)
-QL2 (charge units, lower charge limit for element 2)
-QU2 (charge units, upper charge limit for element 2)
-DL2 (distance units, ion radius of element 2 with charge QL2)
-DU2 (distance units, ion radius of element 2 with charge QU2)
-chi (energy units, self energy 1st power term)
-dJ (energy units, self energy 2nd power term)
-dK (energy units, self energy 3rd power term)
-dL (energy units, self energy 4th power term)
-dM (energy units, self energy 6th power term)
-esm (distance units, orbital exponent)
-cmn1 (self energy penalty, rho 1 of element 1)
-cml1 (self energy penalty, rho 1 of element 2)
-cmn2 (self energy penalty, rho 2 of element 1)
-cmn2 (self energy penalty, rho 2 of element 2)
-coulcut (long range Coulombic cutoff, distance units)
-hfocor (coordination term) :ul
+:c,image(Eqs/pair_comb2.jpg)
 
-The parameterization of COMB potentials start with a pure element
-(e.g. Si, Cu) then extend to its oxide and polymorphs
-(e.g. SiO<sub>2</sub>, Cu<sub>2</sub>O). For interactions not
-involving oxygen (e.g.  Si-Cu or Hf-Zr), the COMB potential uses a
-mixing rule to generate these parameters.  For furthur details on the
-parameterization and parameters, see the "Tersoff"_pair_tersoff.html
-doc page and the COMB publications "(COMB_1)"_#COMB_1 and
-"(COMB_2)"_#COMB_2.  For more details on 3-body interaction types
-(e.g. SiSiO vs SiOSi), the mixing rule, and how to generate the
-potential file, please see the "Tersoff"_pair_tersoff.html doc page.
+For style {comb3}, in addition to ffield.comb3, a special 
+parameter file, {lib.comb3}, 
+that is exclusively used for C/O/H systems, will be automatically 
+loaded if carbon atom is detected in LAMMPS input structure.  
+Keyword {polar} indicates whether the force field includes the atomic 
+polarization. Since the equilibration of the polarization has not 
+yet been implemented, it can only set polar_off at present. 
 
-In the potentials directory, the file {ffield.comb} provides the
-LAMMPS parameters for COMB's Si, Cu, Ti, Hf and their oxides, as well
-as pure U, Zn and Zr metals. This file can be used for pure elements
-(e.g. Si, Zr), binary oxides, binary alloys (e.g.  SiCu, TiZr), and
-complex systems.  Note that alloys and complex systems require all
-3-body entries be pre-defined in the potential file.
+IMPORTANT NOTE: You can not use potential file {ffield.comb} with 
+style {comb3}, nor file {ffield.comb3} with style {comb}.
 
 :line
 
@@ -194,16 +135,16 @@ For atom type pairs I,J and I != J, where types I and J correspond to
 two different element types, mixing is performed by LAMMPS as
 described above from values in the potential file.
 
-This pair style does not support the "pair_modify"_pair_modify.html
+These pair styles does not support the "pair_modify"_pair_modify.html
 shift, table, and tail options.
 
-This pair style does not write its information to "binary restart
+These pair styles do not write its information to "binary restart
 files"_restart.html, since it is stored in potential files.  Thus, you
 need to re-specify the pair_style, pair_coeff, and "fix
 qeq/comb"_fix_qeq_comb.html commands in an input script that reads a
 restart file.
 
-This pair style can only be used via the {pair} keyword of the
+These pair styles can only be used via the {pair} keyword of the
 "run_style respa"_run_style.html command.  It does not support the
 {inner}, {middle}, {outer} keywords.
 
@@ -211,15 +152,15 @@ This pair style can only be used via the {pair} keyword of the
 
 [Restrictions:]
 
-This pair style is part of the MANYBODY package.  It is only enabled
+These pair styles are part of the MANYBODY package.  It is only enabled
 if LAMMPS was built with that package (which it is by default).  See
 the "Making LAMMPS"_Section_start.html#start_3 section for more info.
 
-This pair style requires the "newton"_newton.html setting to be "on"
+These pair styles requires the "newton"_newton.html setting to be "on"
 for pair interactions.
 
-The COMB potentials in the {ffield.comb} file provided with LAMMPS
-(see the potentials directory) are parameterized for metal
+The COMB potentials in the {ffield.comb} and {ffield.comb3} files provided 
+with LAMMPS (see the potentials directory) are parameterized for metal
 "units"_units.html.  You can use the COMB potential with any LAMMPS
 units, but you would need to create your own COMB potential file with
 coefficients listed in the appropriate units if your simulation
@@ -234,20 +175,14 @@ doesn't use "metal" units.
 
 :line
 
-:link(COMB_1)
-[(COMB_1)] J. Yu, S. B. Sinnott, S. R. Phillpot, Phys Rev B, 75, 085311 (2007),
+:link(COMB1)
+[(COMB1)] S. R. Phillpot and S. B. Sinnott, Science 325, 1634-1635 (2009)
 
-:link(COMB_2)
-[(COMB_2)] T.-R. Shan, B. D. Devine, T. W. Kemper, S. B. Sinnott, S. R.
-Phillpot, Phys Rev B, 81, 125328 (2010).
-
-:link(Tersoff)
-[(Tersoff)] J. Tersoff, Phys Rev B, 37, 6991 (1988).
+:link(COMB2)
+[(COMB2)] T. Liang, T.-R. Shan, Y.-T. Cheng, B. D. Devine, M. Noordhoek, 
+Y. Li, Z. Lu, S. R. Phillpot, and S. B. Sinnott, Mat. Sci. & Eng: R, 
+in press (DOI: 10.1016/j.mser.2013.07.001)
 
 :link(Rick)
 [(Rick)] S. W. Rick, S. J. Stuart, B. J. Berne, J Chem Phys 101, 6141
 (1994).
-
-:link(Wolf)
-[(Wolf)] D. Wolf, P. Keblinski, S. R. Phillpot, J. Eggebrecht, J Chem
-Phys, 110, 8254 (1999).

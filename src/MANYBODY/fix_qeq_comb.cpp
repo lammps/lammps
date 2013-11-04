@@ -12,7 +12,8 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Tzu-Ray Shan (U Florida, rayshan@ufl.edu)
+
+   Contributing authors: Ray Shan (Sandia, tnshan@sandia.gov)
 ------------------------------------------------------------------------- */
 
 #include "lmptype.h"
@@ -21,6 +22,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "pair_comb.h"
+#include "pair_comb3.h"
 #include "fix_qeq_comb.h"
 #include "neighbor.h"
 #include "neigh_list.h"
@@ -88,6 +90,7 @@ FixQEQComb::FixQEQComb(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   for (int i = 0; i < nlocal; i++) qf[i] = 0.0;
 
   comb = NULL;
+  comb3 = NULL;
 
   comm_forward = 1;
 }
@@ -121,8 +124,9 @@ void FixQEQComb::init()
     error->all(FLERR,"Fix qeq/comb requires atom attribute q");
 
   comb = (PairComb *) force->pair_match("comb",1);
-  if (comb == NULL)
-    error->all(FLERR,"Must use pair_style comb with fix qeq/comb");
+  comb3 = (PairComb3 *) force->pair_match("comb3",1);
+  if (comb == NULL && comb3 == NULL)
+    error->all(FLERR,"Must use pair_style comb or comb3 with fix qeq/comb");
 
   if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
@@ -188,8 +192,8 @@ void FixQEQComb::post_force(int vflag)
   // more loops for first-time charge equilibrium
 
   iloop = 0;
-  if (firstflag) loopmax = 500;
-  else loopmax = 200;
+  if (firstflag) loopmax = 200;
+  else loopmax = 100;
 
   // charge-equilibration loop
 
@@ -211,9 +215,14 @@ void FixQEQComb::post_force(int vflag)
   int *tag = atom->tag;
   int nlocal = atom->nlocal;
 
-  inum = comb->list->inum;
-  ilist = comb->list->ilist;
-
+ if (comb) {
+    inum = comb->list->inum;
+    ilist = comb->list->ilist;
+  }
+  if (comb3) {
+    inum = comb3->list->inum;
+    ilist = comb3->list->ilist;
+  }
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     q1[i] = q2[i] = qf[i] = 0.0;
@@ -227,9 +236,11 @@ void FixQEQComb::post_force(int vflag)
         q[i]  += q1[i];
       }
     }
-    comm->forward_comm_fix(this);
 
+    comm->forward_comm_fix(this);
     if(comb) enegtot = comb->yasu_char(qf,igroup);
+    if(comb3) enegtot = comb3->combqeq(qf,igroup);
+
     enegtot /= ngroup;
     enegchk = enegmax = 0.0;
 

@@ -1090,11 +1090,7 @@ void Image::write_PPM(FILE *fp)
 
   int x,y;
   for (y = height-1; y >= 0; y --)
-    for (x = 0; x < width; x ++)
-      fprintf(fp,"%c%c%c",
-              writeBuffer[0 + x*3 + y*width*3],
-              writeBuffer[1 + x*3 + y*width*3],
-              writeBuffer[2 + x*3 + y*width*3]);
+    fwrite(&writeBuffer[y*width*3],3,width,fp);
 }
 
 /* ----------------------------------------------------------------------

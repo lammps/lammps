@@ -85,8 +85,8 @@ dump myDump all atom 100 dump.atom
 dump 2 subgroup atom 50 dump.run.bin
 dump 4a all custom 100 dump.myforce.* id type x y vx fx
 dump 4b flow custom 100 dump.%.myforce id type c_myF\[3\] v_ke
-dump 2 inner cfg 10 dump.snap.*.cfg id type xs ys zs vx vy vz
-dump snap all cfg 100 dump.config.*.cfg id type xs ys zs id type c_Stress[2]
+dump 2 inner cfg 10 dump.snap.*.cfg mass type xs ys zs vx vy vz
+dump snap all cfg 100 dump.config.*.cfg mass type xs ys zs id type c_Stress[2]
 dump 1 all xtc 1000 file.xtc
 dump e_data all custom 100 dump.eff id type x y z spin eradius fx fy fz eforce :pre
 
@@ -225,9 +225,9 @@ extended CFG format files, as used by the
 package.  Since the extended CFG format uses a single snapshot of the
 system per file, a wildcard "*" must be included in the filename, as
 discussed below.  The list of atom attributes for style {cfg} must
-begin with either "id type xs ys zs" or "id type xsu ysu zsu" or 
+begin with either "mass type xs ys zs" or "mass type xsu ysu zsu" 
 since these quantities are needed to
-write the CFG files in the appropriate format (though the "id" and
+write the CFG files in the appropriate format (though the "mass" and
 "type" fields do not appear explicitly in the file).  Any remaining
 attributes will be stored as "auxiliary properties" in the CFG files.
 Note that you will typically want to use the "dump_modify

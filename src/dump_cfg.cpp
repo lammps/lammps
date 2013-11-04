@@ -13,6 +13,7 @@
 
 /* ----------------------------------------------------------------------
    Contributing author: Liang Wan (Chinese Academy of Sciences)
+   	Memory efficiency improved by Ray Shan (Sandia)
 ------------------------------------------------------------------------- */
 
 #include "math.h"
@@ -34,7 +35,7 @@
 
 using namespace LAMMPS_NS;
 
-enum{INT,DOUBLE};  // same as in dump_custom.cpp
+enum{INT,DOUBLE,STRING};   // same as in DumpCustom
 
 /* ---------------------------------------------------------------------- */
 
@@ -42,25 +43,22 @@ DumpCFG::DumpCFG(LAMMPS *lmp, int narg, char **arg) :
   DumpCustom(lmp, narg, arg)
 {
   if (narg < 10 ||
-      strcmp(arg[5],"id") != 0 || strcmp(arg[6],"type") != 0 ||
+      strcmp(arg[5],"mass") != 0 || strcmp(arg[6],"type") != 0 ||
       (strcmp(arg[7],"xs") != 0 && strcmp(arg[7],"xsu") != 0) ||
       (strcmp(arg[8],"ys") != 0 && strcmp(arg[8],"ysu") != 0) ||
       (strcmp(arg[9],"zs") != 0 && strcmp(arg[9],"zsu") != 0))
     error->all(FLERR,"Dump cfg arguments must start with "
-               "'id type xs ys zs' or 'id type xsu ysu zsu'");
+               "'mass type xs ys zs' or 'mass type xsu ysu zsu'");
 
   if (strcmp(arg[7],"xs") == 0)
     if (strcmp(arg[8],"ysu") == 0 || strcmp(arg[9],"zsu") == 0)
-      error->all(FLERR,"Dump cfg arguments can not mix xs|ys|zs with xsu|ysu|zsu");
+      error->all(FLERR,
+                 "Dump cfg arguments can not mix xs|ys|zs with xsu|ysu|zsu");
     else unwrapflag = 0;
   else if (strcmp(arg[8],"ys") == 0 || strcmp(arg[9],"zs") == 0)
-    error->all(FLERR,"Dump cfg arguments can not mix xs|ys|zs with xsu|ysu|zsu");
+    error->all(FLERR,
+               "Dump cfg arguments can not mix xs|ys|zs with xsu|ysu|zsu");
   else unwrapflag = 1;
-
-  // arrays for data rearrangement
-
-  rbuf = NULL;
-  nchosen = nlines = 0;
 
   // setup auxiliary property name strings
   // convert 'X_ID[m]' (X=c,f,v) to 'ID_m'
@@ -105,8 +103,6 @@ DumpCFG::DumpCFG(LAMMPS *lmp, int narg, char **arg) :
 
 DumpCFG::~DumpCFG()
 {
-  if (rbuf) memory->destroy(rbuf);
-
   if (auxname) {
     for (int i = 0; i < nfield-5; i++) delete [] auxname[i];
     delete [] auxname;
@@ -117,7 +113,8 @@ DumpCFG::~DumpCFG()
 
 void DumpCFG::init_style()
 {
-  if (multifile == 0) error->all(FLERR,"Dump cfg requires one snapshot per file");
+  if (multifile == 0) 
+    error->all(FLERR,"Dump cfg requires one snapshot per file");
 
   DumpCustom::init_style();
 }
@@ -160,78 +157,57 @@ void DumpCFG::write_header(bigint n)
   fprintf(fp,"entry_count = %d\n",nfield-2);
   for (int i = 0; i < nfield-5; i++)
     fprintf(fp,"auxiliary[%d] = %s\n",i,auxname[i]);
-
-  // allocate memory needed for data rearrangement
-
-  nchosen = static_cast<int> (n);
-  if (rbuf) memory->destroy(rbuf);
-  memory->create(rbuf,nchosen,size_one,"dump:rbuf");
 }
 
-/* ----------------------------------------------------------------------
-   write data lines to file in a block-by-block style
-   write head of block (mass & element name) only if has atoms of the type
-------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
 void DumpCFG::write_data(int n, double *mybuf)
 {
-  int i,j,m,itype;
+  int i,j,m;
 
-  double *rmass = atom->rmass;
-  double *mass = atom->mass;
-
-  // transfer data from buf to rbuf
-  // if write by proc 0, transfer chunk by chunk
-
-  for (i = 0, m = 0; i < n; i++) {
-    for (j = 0; j < size_one; j++)
-      rbuf[nlines][j] = mybuf[m++];
-    nlines++;
-  }
-
-  // write data lines in rbuf to file after transfer is done
-
-  double unwrap_coord;
-
-  if (nlines == nchosen) {
-    for (itype = 1; itype <= ntypes; itype++) {
-      for (i = 0; i < nchosen; i++)
-        if (rbuf[i][1] == itype) break;
-      if (i < nchosen) {
-        if (rmass) fprintf(fp,"%g\n",rmass[i]);
-        else fprintf(fp,"%g\n",mass[itype]);
-        fprintf(fp,"%s\n",typenames[itype]);
-        for (; i < nchosen; i++) {
-          if (rbuf[i][1] == itype) {
-            if (unwrapflag == 0)
-              for (j = 2; j < size_one; j++) {
-                if (vtype[j] == INT)
-                  fprintf(fp,vformat[j],static_cast<int> (rbuf[i][j]));
-                else fprintf(fp,vformat[j],rbuf[i][j]);
-              }
-            else {
-
-              // Unwrapped scaled coordinates are shifted to
-              // center of expanded box, to prevent
-              // rewrapping by AtomEye. Dividing by
-              // expansion factor restores correct
-              // interatomic distances.
-
-              for (j = 2; j < 5; j++) {
-                unwrap_coord = (rbuf[i][j] - 0.5)/UNWRAPEXPAND + 0.5;
-                fprintf(fp,vformat[j],unwrap_coord);
-              }
-              for (j = 5; j < size_one; j++) {
-                if (vtype[j] == INT)
-                  fprintf(fp,vformat[j],static_cast<int> (rbuf[i][j]));
-                else fprintf(fp,vformat[j],rbuf[i][j]);
-              }
-            }
-            fprintf(fp,"\n");
-          }
+  if (unwrapflag == 0) {
+    m = 0;
+    for (i = 0; i < n; i++) {
+      for (j = 0; j < size_one; j++) {
+        if (j == 0) {
+	  fprintf(fp,"%f \n",mybuf[m]);
+        } else if (j == 1) {
+	  fprintf(fp,"%s \n",typenames[(int) mybuf[m]]);
+        } else if (j >= 2) {
+          if (vtype[j] == INT) 
+            fprintf(fp,vformat[j],static_cast<int> (mybuf[m]));
+          else if (vtype[j] == DOUBLE) 
+            fprintf(fp,vformat[j],mybuf[m]);
+          else if (vtype[j] == STRING) 
+            fprintf(fp,vformat[j],typenames[(int) mybuf[m]]);
         }
+        m++;
       }
+      fprintf(fp,"\n");
     }
-    nlines = 0;
+  } else if (unwrapflag == 1) {
+    m = 0;
+    double unwrap_coord;
+    for (i = 0; i < n; i++) {
+      for (j = 0; j < size_one; j++) {
+        if (j == 0) {
+	  fprintf(fp,"%f \n",mybuf[m]);
+        } else if (j == 1) {
+	  fprintf(fp,"%s \n",typenames[(int) mybuf[m]]);
+        } else if (j >= 2 && j <= 4) {
+          unwrap_coord = (mybuf[m] - 0.5)/UNWRAPEXPAND + 0.5;
+          fprintf(fp,vformat[j],unwrap_coord);
+        } else if (j >= 5 ) {
+          if (vtype[j] == INT) 
+            fprintf(fp,vformat[j],static_cast<int> (mybuf[m]));
+          else if (vtype[j] == DOUBLE) 
+            fprintf(fp,vformat[j],mybuf[m]);
+          else if (vtype[j] == STRING) 
+            fprintf(fp,vformat[j],typenames[(int) mybuf[m]]);
+        }
+        m++;
+      }
+      fprintf(fp,"\n");
+    }
   }
 }

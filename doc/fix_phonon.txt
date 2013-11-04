@@ -17,7 +17,12 @@ phonon = style name of this fix command :l
 N = measure the Green's function every this many timesteps :l
 Noutput = output the dynamical matrix every this many measurements :l
 Nwait = wait this many timesteps before measuring :l
-map_file = file containing the mapping info between atom ID and the lattice indices :l
+map_file = {file} or {GAMMA} :l
+  {file} is the file that contains the mapping info between atom ID and the lattice indices. :pre
+
+  {GAMMA} flags to treate the whole simulation box as a unit cell, so that the mapping
+  info can be generated internally. In this case, dynamical matrix at only the gamma-point
+  will/can be evaluated. :pre
 prefix = prefix for output files :l
 one or none keyword/value pairs may be appended :l
 keyword = {sysdim} or {nasr} :l
@@ -30,7 +35,8 @@ keyword = {sysdim} or {nasr} :l
 [Examples:]
 
 fix 1 all phonon 20 5000 200000 map.in LJ1D sysdim 1
-fix 1 all phonon 20 5000 200000 map.in EAM3D :pre
+fix 1 all phonon 20 5000 200000 map.in EAM3D
+fix 1 all phonon 10 5000 500000 GAMMA EAM0D nasr 100 :pre
 
 [Description:]
 
@@ -110,6 +116,13 @@ indices and the atom IDs, which tells the code which atom sits at
 which lattice point; the lattice indices start from 0. An auxiliary
 code, "latgen"_http://code.google.com/p/latgen, can be employed to
 generate the compatible map file for various crystals.
+
+In case one simulates an aperiodic system, where the whole simulation box
+is treated as a unit cell, one can set {map_file} as {GAMMA}, so that the mapping
+info will be generated internally and a file is not needed. In this case, the
+dynamical matrix at only the gamma-point will/can be evaluated. Please keep in
+mind that fix-phonon is designed for cyrstals, it will be inefficient and
+even degrade the performance of lammps in case the unit cell is too large.
 
 The calculated dynamical matrix elements are written out in
 "energy/distance^2/mass"_units.html units.  The coordinates for {q}

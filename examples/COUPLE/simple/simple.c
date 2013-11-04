@@ -99,10 +99,10 @@ int main(int narg, char **arg)
 
     int natoms = lammps_get_natoms(ptr);
     double *x = (double *) malloc(3*natoms*sizeof(double));
-    lammps_gather_atoms(lmp,"x",1,3,x);
+    lammps_gather_atoms(ptr,"x",1,3,x);
     double epsilon = 0.1;
     x[0] += epsilon;
-    lammps_scatter_atoms(lmp,"x",1,3,x);
+    lammps_scatter_atoms(ptr,"x",1,3,x);
     free(x);
 
     lammps_command(ptr,"run 1");

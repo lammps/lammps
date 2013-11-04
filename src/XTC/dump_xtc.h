@@ -34,7 +34,7 @@ namespace LAMMPS_NS {
 class DumpXTC : public Dump {
  public:
   DumpXTC(class LAMMPS *, int, char**);
-  ~DumpXTC();
+  virtual ~DumpXTC();
 
  private:
   int natoms,ntotal;

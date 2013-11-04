@@ -49,12 +49,13 @@ class Reader : protected Pointers {
 
 E: Cannot open gzipped file
 
-LAMMPS is attempting to open a gzipped version of the specified file
-but was unsuccessful.  Check that the path and name are correct.
+LAMMPS was compiled without support for reading and writing gzipped
+files through a pipeline to the gzip program with -DLAMMPS_GZIP.
 
 E: Cannot open file %s
 
 The specified file cannot be opened.  Check that the path and name are
-correct.
+correct. If the file is a compressed file, also check that the gzip
+executable can be found and run.
 
 */

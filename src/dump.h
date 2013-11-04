@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -149,13 +149,14 @@ integer for dump.
 
 E: Cannot open gzipped file
 
-LAMMPS is attempting to open a gzipped version of the specified file
-but was unsuccessful.  Check that the path and name are correct.
+LAMMPS was compiled without support for reading and writing gzipped
+files through a pipeline to the gzip program with -DLAMMPS_GZIP.
 
 E: Cannot open dump file
 
-The output file for the dump command cannot be opened.  Check that the
-path and name are correct.
+The specified file cannot be opened.  Check that the path and name are
+correct. If the file is a compressed file, also check that the gzip
+executable can be found and run.
 
 E: Illegal ... command
 

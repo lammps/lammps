@@ -404,7 +404,11 @@ void Dump::openfile()
 #ifdef LAMMPS_GZIP
       char gzip[128];
       sprintf(gzip,"gzip -6 > %s",filecurrent);
+#ifdef _WIN32
+      fp = _popen(gzip,"wb");
+#else
       fp = popen(gzip,"w");
+#endif
 #else
       error->one(FLERR,"Cannot open gzipped file");
 #endif

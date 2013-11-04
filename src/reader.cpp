@@ -41,8 +41,14 @@ void Reader::open_file(const char *file)
   else {
 #ifdef LAMMPS_GZIP
     char gunzip[1024];
-    sprintf(gunzip,"gunzip -c %s",file);
+    sprintf(gunzip,"gzip -c -d %s",file);
+
+#ifdef _WIN32
+    fp = _popen(gunzip,"rb");
+#else
     fp = popen(gunzip,"r");
+#endif
+
 #else
     error->one(FLERR,"Cannot open gzipped file");
 #endif

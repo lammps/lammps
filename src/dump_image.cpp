@@ -33,7 +33,6 @@ using namespace MathConst;
 
 #define BIG 1.0e20
 
-enum{PPM,JPG,PNG};
 enum{NUMERIC,ATOM,TYPE,ELEMENT,ATTRIBUTE};
 enum{STATIC,DYNAMIC};
 enum{NO,YES};
@@ -547,7 +546,10 @@ void DumpImage::write()
     if (filetype == JPG) image->write_JPG(fp);
     else if (filetype == PNG) image->write_PNG(fp);
     else image->write_PPM(fp);
-    fclose(fp);
+    if (multifile) {
+      fclose(fp);
+      fp = NULL;
+    }
   }
 }
 

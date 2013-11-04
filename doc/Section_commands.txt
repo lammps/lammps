@@ -722,6 +722,7 @@ potentials.  Click on the style itself for a full description:
 "buck/long/coul/long"_pair_buck_long.html,
 "colloid"_pair_colloid.html,
 "comb"_pair_comb.html,
+"comb3"_pair_comb.html,
 "coul/cut"_pair_coul.html,
 "coul/debye"_pair_coul.html,
 "coul/dsf"_pair_coul.html,

@@ -310,11 +310,11 @@ Computes:
 Output:
 
 "dump"_dump.html, "dump image"_dump_image.html,
-"dump_modify"_dump_modify.html, "restart"_restart.html,
-"thermo"_thermo.html, "thermo_modify"_thermo_modify.html,
-"thermo_style"_thermo_style.html, "undump"_undump.html,
-"write_data"_write_data.html, "write_dump"_write_dump.html,
-"write_restart"_write_restart.html
+"dump_modify"_dump_modify.html, "dump movie"_dump_image.html,
+"restart"_restart.html, "thermo"_thermo.html,
+"thermo_modify"_thermo_modify.html, "thermo_style"_thermo_style.html,
+"undump"_undump.html, "write_data"_write_data.html,
+"write_dump"_write_dump.html, "write_restart"_write_restart.html
 
 Actions:
 
@@ -369,6 +369,7 @@ in the command's documentation.
 "dump"_dump.html,
 "dump image"_dump_image.html,
 "dump_modify"_dump_modify.html,
+"dump movie"_dump_image.html,
 "echo"_echo.html,
 "fix"_fix.html,
 "fix_modify"_fix_modify.html,

@@ -1,0 +1,153 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix ti/rs command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID ti/rs lambda_initial lambda_final t_switch t_equil keyword value ... 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>ti/rs = style name of this fix command 
+
+<LI>lambda_initial/lambda_final = initial/final values of the coupling parameter 
+
+<LI>t_switch/t_equil = number of steps of the switching/equilibration procedure 
+
+<LI>keyword = <I>function</I> 
+
+<PRE>  <I>function</I> value = function-ID
+    function-ID = ID of the switching function (1, 2 or 3) 
+</PRE>
+
+</UL>
+<P><B>Example:</B>
+</P>
+<PRE>fix ref all ti/rs 50.0 2000 1000 
+fix vf vacancy ti/rs 10.0 70000 50000 function 2 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>This fix allows you to compute the free energy temperature dependence
+by performing a thermodynamic integration procedure known as
+Reversible Scaling <A HREF = "#deKoning99">(de Koning99,</A> <A HREF = "#deKoning00a"">de
+Koning00a)</A>. The thermodynamic integration is performed
+using the nonequilibrium method of Adiabatic Switching
+<A HREF = "#Watanabe">(Watanabe,</A> <A HREF = "#deKoning96">de Koning96)</A>.
+</P>
+<P>The forces on the atoms are dynamically scaled during the simulation,
+the rescaling is done in the following manner:
+</P>
+<CENTER><IMG SRC = "Eqs/fix_ti_rs_force.jpg">
+</CENTER>
+<P>where F_int is the total force on the atoms due to the interatomic
+potential and lambda is the coupling parameter of the thermodynamic
+integration.
+</P>
+<P>The fix acts as follows: during the first <I>t_equil</I> steps after the
+fix is defined the value of lambda is <I>lambda_initial</I> , this is the
+period to equilibrate the system in the lambda = <I>lambda_initial</I>
+state. After this the value of lambda changes continuously from
+<I>lambda_initial</I> to <I>lambda_final</I> according to the function defined
+using the keyword <I>function</I> (described below), this is done in
+<I>t_switch</I> steps. Then comes the second equilibration period of
+<I>t_equil</I> to equilibrate the system in the lambda = <I>lambda_final</I>
+state. After that the switching back to the lambda = <I>lambda_initial</I>
+state is done using <I>t_switch</I> timesteps and following the same
+switching function. After this period the value of lambda is kept
+equal to <I>lambda_initial</I> indefinitely or until a <A HREF = "unfix.html">unfix</A>
+erase the fix.
+</P>
+<P>The description of thermodynamic integration in both directions is
+done in <A HREF = "#deKoning00b">de Koning00b</A>, the main reason is to try to
+eliminate the dissipated heat due to the nonequilibrium process.
+</P>
+<P>The <I>function</I> keyword allows the use of three different switching
+rates. The option <I>1</I> results in a constant rescaling where the lambda
+parameter changes at a constant rate during the switching time
+according to the switching function
+</P>
+<CENTER><IMG SRC = "Eqs/fix_ti_rs_function_1.jpg">
+</CENTER>
+<P>where tau is the scaled time variable t/t_switch. This switching
+function has the characteristic that the temperature scaling is faster
+at temperatures closer to the final temperature of the procedure. The
+option number <I>2</I> performs the switching at a rate defined by the
+following switching function
+</P>
+<CENTER><IMG SRC = "Eqs/fix_ti_rs_function_2.jpg">
+</CENTER>
+<P>This switching function has the characteristic that the temperature
+scaling occurs at a constant rate during all the procedure. The option
+number <I>3</I> performs the switching at a rate defined by the following
+switching function
+</P>
+<CENTER><IMG SRC = "Eqs/fix_ti_rs_function_3.jpg">
+</CENTER>
+<P>This switching function has the characteristic that the temperature
+scaling is faster at temperatures closer to the initial temperature of
+the procedure.
+</P>
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>No information about this fix is written to <A HREF = "restart.html">binary restart
+files</A>.
+</P>
+<P>This fix computes a global vector quantitie which can be accessed by
+various <A HREF = "Section_howto.html#howto_15">output commands</A>. The vector has
+2 positions, the first one is the coupling parameter lambda and the
+second one is the time derivative of lambda. The scalar and vector
+values calculated by this fix are "extensive".
+</P>
+<P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
+the <A HREF = "run.html">run</A> command.
+</P>
+<P>The forces due to this fix are imposed during an energy minimization,
+invoked by the <A HREF = "minimize.html">minimize</A> command.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_ti_spring.html">fix ti/spring</A>
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This command is part of the USER-MISC package.  It is only enabled if
+LAMMPS was built with those packages.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P><B>Default:</B>
+</P>
+<P>The keyword default is function = 1.
+</P>
+<HR>
+
+<A NAME = "deKoning99"></A>
+
+<P><B>(de Koning 99)</B> M. de Koning, A. Antonelli and S. Yip, Phys Rev Lett, 83, 3973 (1999).
+</P>
+<A NAME = "Watanabe"></A>
+
+<P><B>(Watanabe)</B> M. Watanabe and W. P. Reinhardt, Phys Rev Lett, 65, 3301 (1990).
+</P>
+<A NAME = "deKoning96"></A>
+
+<P><B>(de Koning 96)</B> M. de Koning and A. Antonelli, Phys Rev E, 53, 465 (1996).
+</P>
+<A NAME = "deKoning00a"></A>
+
+<P><B>(de Koning 00a)</B> M. de Koning, A. Antonelli and S. Yip, J Chem Phys, 115, 11025 (2000).
+</P>
+<A NAME = "deKoning00b"></A>
+
+<P><B>(de Koning 00b)</B> M. de Koning et al., Computing in Science & Engineering, 2, 88 (2000).
+</P>
+</HTML>

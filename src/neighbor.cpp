@@ -467,12 +467,11 @@ void Neighbor::init()
     stencil_create = new StencilPtr[nlist];
 
     // create individual lists, one per request
-    // copy dnum setting from request to list
     // pass list ptr back to requestor (except for Command class)
+    // wait to allocate initial pages until copy lists are detected
 
     for (i = 0; i < nlist; i++) {
       lists[i] = new NeighList(lmp);
-      lists[i]->setup_pages(pgsize,oneatom,requests[i]->dnum);
       lists[i]->index = i;
 
       if (requests[i]->pair) {
@@ -594,6 +593,12 @@ void Neighbor::init()
         }
       }
     }
+
+    // allocate initial pages for each list, except if listcopy set
+
+    for (i = 0; i < nlist; i++)
+      if (!lists[i]->listcopy)
+        lists[i]->setup_pages(pgsize,oneatom,requests[i]->dnum);
 
     // set ptrs to pair_build and stencil_create functions for each list
     // ptrs set to NULL if not set explicitly

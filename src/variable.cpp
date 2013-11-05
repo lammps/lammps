@@ -605,7 +605,7 @@ double Variable::compute_equal(char *str)
 }
 
 /* ----------------------------------------------------------------------
-   compute result of atom-style and atomfile-atyle variable evaluation
+   compute result of atom-style and atomfile-style variable evaluation
    only computed for atoms in igroup, else result is 0.0
    answers are placed every stride locations into result
    if sumflag, add variable values to existing result
@@ -1036,6 +1036,10 @@ double Variable::evaluate(char *str, Tree **tree)
             peratom2global(1,NULL,&compute->array_atom[0][index2-1],
                            compute->size_peratom_cols,index1,
                            tree,treestack,ntreestack,argstack,nargstack);
+          else
+            peratom2global(1,NULL,NULL,
+                           compute->size_peratom_cols,index1,
+                           tree,treestack,ntreestack,argstack,nargstack);
 
         // c_ID = vector from per-atom vector
 
@@ -1217,6 +1221,10 @@ double Variable::evaluate(char *str, Tree **tree)
 
           if (fix->array_atom)
             peratom2global(1,NULL,&fix->array_atom[0][index2-1],
+                           fix->size_peratom_cols,index1,
+                           tree,treestack,ntreestack,argstack,nargstack);
+          else
+            peratom2global(1,NULL,NULL,
                            fix->size_peratom_cols,index1,
                            tree,treestack,ntreestack,argstack,nargstack);
 
@@ -3350,6 +3358,8 @@ void Variable::peratom2global(int flag, char *word,
 
   int index = atom->map(id);
 
+  printf("WORD %d %d %s %d\n",me,index,word,flag);
+
   double mine;
   if (index >= 0 && index < atom->nlocal) {
 
@@ -3376,8 +3386,12 @@ void Variable::peratom2global(int flag, char *word,
 
   } else mine = 0.0;
 
+  printf("PRE %d %d %s %d\n",me,index,word,flag);
+
   double value;
   MPI_Allreduce(&mine,&value,1,MPI_DOUBLE,MPI_SUM,world);
+
+  printf("POST %d %d %s %d\n",me,index,word,flag);
 
   if (tree) {
     Tree *newtree = new Tree();

@@ -669,6 +669,7 @@ each style or click on the style itself for a full description:
 "temp/region"_compute_temp_region.html,
 "temp/sphere"_compute_temp_sphere.html,
 "ti"_compute_ti.html,
+"vacf"_compute_vacf.html,
 "voronoi/atom"_compute_voronoi_atom.html :tb(c=6,ea=c)
 
 These are compute styles contributed by users, which can be used if

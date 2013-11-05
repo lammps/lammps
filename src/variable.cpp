@@ -3358,8 +3358,6 @@ void Variable::peratom2global(int flag, char *word,
 
   int index = atom->map(id);
 
-  printf("WORD %d %d %s %d\n",me,index,word,flag);
-
   double mine;
   if (index >= 0 && index < atom->nlocal) {
 
@@ -3386,12 +3384,8 @@ void Variable::peratom2global(int flag, char *word,
 
   } else mine = 0.0;
 
-  printf("PRE %d %d %s %d\n",me,index,word,flag);
-
   double value;
   MPI_Allreduce(&mine,&value,1,MPI_DOUBLE,MPI_SUM,world);
-
-  printf("POST %d %d %s %d\n",me,index,word,flag);
 
   if (tree) {
     Tree *newtree = new Tree();

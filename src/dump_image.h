@@ -26,6 +26,8 @@ namespace LAMMPS_NS {
 
 class DumpImage : public DumpCustom {
  public:
+  int multifile_override;          // used by write_dump command
+
   DumpImage(class LAMMPS *, int, char**);
   virtual ~DumpImage();
   int pack_comm(int, int *, double *, int, int *);

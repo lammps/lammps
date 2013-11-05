@@ -40,6 +40,8 @@ NeighList::NeighList(LAMMPS *lmp) :
   firstneigh = NULL;
   firstdouble = NULL;
 
+  dnum = 0;
+
   iskip = NULL;
   ijskip = NULL;
 

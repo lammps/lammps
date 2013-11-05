@@ -51,19 +51,21 @@ keyword separates the arguments that would normally be passed to the
 support optional arguments and thus LAMMPS needs to be able to cleanly
 separate the two sets of args.
 
-Note that if the specified filename uses the wildcard characters
-"*" or "%", as supported by the "dump"_dump.html commmand, they will
-operate in the same fashion to create the new filename(s).
+Note that if the specified filename uses wildcard characters "*" or
+"%", as supported by the "dump"_dump.html commmand, they will operate
+in the same fashion to create the new filename(s).  Normally, "dump
+image"_dump_image.html files require a filename with a "*" character
+for the timestep.  That is not the case for the write_dump command; no
+wildcard "*" character is necessary.
 
 :line
 
 [Restrictions:]
 
 All restrictions for the "dump"_dump.html and
-"dump_modify"_dump_modify.html commands apply to this command as well.
-For the "dump image"_dump_image.html dump style, this means the
-filename is required to contain a '*' character, which will be
-replaced by the current timestep.
+"dump_modify"_dump_modify.html commands apply to this command as well,
+with the exception of the "dump image"_dump_image.html filename not
+requiring a wildcard "*" character, as noted above.
 
 Since dumps are normally written during a "run"_run.html or "energy
 minimization"_minimize.html, the simulation has to be ready to run
@@ -79,7 +81,8 @@ sectinn on Variable Accuracy for more information on this topic.
 
 [Related commands:]
 
-"dump"_dump.html, "dump image"_dump_image.html, "dump_modify"_dump_modify.html
+"dump"_dump.html, "dump image"_dump_image.html,
+"dump_modify"_dump_modify.html
 
 [Default:]
 

@@ -12,6 +12,7 @@
 
 """
 
+
 import sys
 lines_orig = []
 in_stream = sys.stdin
@@ -19,8 +20,8 @@ f = None
 fname = None
 num_lines_ignore = 0
 
-# Lines from files passed as arguments are read and processed silently.
 
+# Lines from files passed as arguments are read and processed silently.
 # (Why? Sometimes it's necessary to read the contents of previous input scripts
 #  in order to be able to understand a script command which appears later.
 #  I'm assuming these files will be processed by lammps in the same order. So I
@@ -33,6 +34,7 @@ if len(sys.argv) > 1:
         lines_orig += in_stream.readlines()
         num_lines_ignore += len(lines_orig)
         f.close()
+
 
 # Lines read from the standard input are read, processed, and printed to stdout
 in_stream = sys.stdin

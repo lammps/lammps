@@ -11,18 +11,18 @@
 ltemplify.py
 
 The "ltemplify.py" script can be used to convert existing LAMMPS
-input script and data files into a single .ttree file 
+input script and data files into a single .lt file 
 (which includes both topology and force-field information 
  for a single molecule in your system).
 
 Example:
 
-   ltemplify.py -name Mol file.in file.data > mol.ttree
+   ltemplify.py -name Mol file.in file.data > mol.lt
 
 This creates a template for a new type of molecule (named "Mol"),
 consisting of all the atoms in the lammps files you included,
-and saves this data in a single ttree file ("mol.ttree").
-This file can be used with moltemplate/ttree to
+and saves this data in a single ttree file ("mol.lt").
+This file can be used with moltemplate (ttree) to
 define large systems containing this molecule.
 
 """
@@ -155,9 +155,9 @@ def BelongsToSel(i, sel):
 
 try:
 
-    g_program_name = __file__.split('/')[-1]  # = 'lemplify.py'
-    g_version_str  = '0.31'
-    g_date_str     = '2013-6-17'
+    g_program_name = __file__.split('/')[-1]  # = 'ltemplify.py'
+    g_version_str  = '0.36'
+    g_date_str     = '2013-8-22'
     sys.stderr.write(g_program_name+' v'+g_version_str+' '+g_date_str+'\n')
 
     non_empty_output = False
@@ -265,6 +265,7 @@ try:
     atoms_already_read = False
     some_pair_coeffs_read = False
     complained_atom_style_mismatch = False
+    infer_types_from_comments = False
 
 
     argv = sys.argv
@@ -294,6 +295,14 @@ try:
                                  '    Make sure you enclose the entire list in quotes.\n');
             column_names = argv[i+1].strip('\"\'').strip().split()
             del(argv[i:i+2])
+
+        elif (argv[i] == '-ignore-comments'):
+            infer_types_from_comments = False
+            del(argv[i:i+1])
+
+        elif (argv[i] == '-infer-comments'):
+            infer_types_from_comments = True
+            del(argv[i:i+1])
 
         elif ((argv[i] == '-name') or
               (argv[i] == '-molname') or
@@ -383,6 +392,15 @@ try:
             del(argv[i:i+2])
         else:
             i += 1
+
+
+    # atom type names
+    atomtypes_name2int = {}
+    atomtypes_int2name = {}
+    #atomids_name2int = {}  not needed
+    atomids_int2name = {}
+    atomids_by_type = {}
+
 
     if atom_style_undefined:
         # The default atom_style is "full"
@@ -496,7 +514,7 @@ try:
                     l_in_init.append((' '*indent)+line.lstrip())
 
                 #if (line.strip() == 'LAMMPS Description'):
-                #    sys.stderr.write('  processing \"'+line.strip()+'\"\n')
+                #    sys.stderr.write('  reading \"'+line.strip()+'\"\n')
                 #    # skip over this section
                 #    while lex:
                 #        line = lex.ReadLine()
@@ -505,7 +523,7 @@ try:
                 #            break
                   
                 elif (line.strip() == 'Atoms'):
-                    sys.stderr.write('  processing \"'+line.strip()+'\"\n')
+                    sys.stderr.write('  reading \"'+line.strip()+'\"\n')
                     atoms_already_read = True
                     while lex:
                         line = lex.ReadLine()
@@ -544,8 +562,20 @@ try:
                             if (BelongsToSel(atomid, atomid_selection) and
                                 BelongsToSel(atomtype, atomtype_selection) and
                                 BelongsToSel(molid, molid_selection)):
-                                tokens[i_atomid]   = '$atom:id'+tokens[i_atomid]
-                                tokens[i_atomtype] = '@atom:type'+tokens[i_atomtype]
+
+                                tokens[i_atomid] = '$atom:id'+tokens[i_atomid]
+                                #tokens[i_atomid] = '$atom:'+atomids_int2name[atomid]
+                                # fill atomtype_int2str[] with a default name (change later):
+                                #tokens[i_atomtype] = '@atom:type'+tokens[i_atomtype]
+                                atomtype = int(tokens[i_atomtype])
+                                atomtype_name = 'type'+tokens[i_atomtype]
+                                atomtypes_int2name[atomtype] = atomtype_name
+                                tokens[i_atomtype] = '@atom:'+atomtype_name
+
+                                # I can't use atomids_int2names or atomtypes_int2names yet
+                                # because they probably have not been defined yet.
+                                # (Instead assign these names in a later pass.)
+
                                 if i_molid:
                                     tokens[i_molid]    = '$mol:id'+tokens[i_molid]
                                 l_data_atoms.append((' '*indent)+(' '.join(tokens)+'\n'))
@@ -563,20 +593,52 @@ try:
 
 
                 elif (line.strip() == 'Masses'):
-                    sys.stderr.write('  processing \"'+line.strip()+'\"\n')
+                    sys.stderr.write('  reading \"'+line.strip()+'\"\n')
                     while lex:
-                        line = lex.ReadLine()
+                        # Read the next line of text but don't skip comments
+                        comment_char_backup = lex.commenters
+                        lex.commenters = ''
+                        line_orig = lex.ReadLine()
+                        lex.commenters = comment_char_backup
+
+                        comment_text = ''
+                        ic = line_orig.find('#')
+                        line = line_orig[:ic]
+                        if ic != -1:
+                            comment_text = line_orig[ic+1:].strip()
+                                
                         if line.strip() in data_file_header_names:
                             lex.push_raw_text(line) # <- Save line for later
                             break
+
                         tokens = line.strip().split()
                         if len(tokens) > 0:
                             atomtype = Intify(tokens[0])
+                            atomtype_name = str(atomtype)
+
+                            if comment_text != '':
+                                comment_tokens = comment_text.split()
+                                # Assume the first word after the # is the atom type name
+                                atomtype_name = comment_tokens[0]
+
                             if BelongsToSel(atomtype, atomtype_selection):
                                 #tokens[0] = '@atom:type'+tokens[0]
                                 l_data_masses.append((' '*indent)+(' '.join(tokens)+'\n'))
+                                # infer atom type names from comment strings?
+                                if infer_types_from_comments:
+                                    if atomtype_name in atomtypes_name2int:
+                                        raise InputError('Error: duplicate atom type names in mass section: \"'+atomtype_name+'\"\n'
+                                                         '       (By default '+g_program_name+' attempts to infer atom type names from\n'
+                                                         '       comments which appear in the \"Masses\" section of your data file.)\n'
+                                                         '       You can avoid this error by adding the \"-ignore-comments\" argument.\n')
+                                    atomtypes_name2int[atomtype_name] = atomtype
+                                    atomtypes_int2name[atomtype] = atomtype_name
+                                else:
+                                    atomtypes_int2name[atomtype] = 'type'+str(atomtype)
+
+
                 elif (line.strip() == 'Velocities'):
-                    sys.stderr.write('  processing \"'+line.strip()+'\"\n')
+                    sys.stderr.write('  reading \"'+line.strip()+'\"\n')
                     while lex:
                         line = lex.ReadLine()
                         if line.strip() in data_file_header_names:
@@ -594,12 +656,13 @@ try:
                             if (BelongsToSel(atomid, atomid_selection) and
                                 BelongsToSel(atomtype, atomtype_selection) and
                                 BelongsToSel(molid, molid_selection)):
-                                tokens[0] = '$atom:id'+tokens[0]
+                                #tokens[0] = '$atom:id'+tokens[0]
+                                tokens[0] = '$atom:'+atomids_int2name[atomid]
                                 l_data_velocities.append((' '*indent)+(' '.join(tokens)+'\n'))
 
                 # non-point-like-particles:
                 elif (line.strip() == 'Ellipsoids'):
-                    sys.stderr.write('  processing \"'+line.strip()+'\"\n')
+                    sys.stderr.write('  reading \"'+line.strip()+'\"\n')
                     while lex:
                         line = lex.ReadLine()
                         if line.strip() in data_file_header_names:
@@ -617,10 +680,11 @@ try:
                             if (BelongsToSel(atomid, atomid_selection) and
                                 BelongsToSel(atomtype, atomtype_selection) and
                                 BelongsToSel(molid, molid_selection)):
-                                tokens[0] = '$atom:id'+tokens[0]
+                                #tokens[0] = '$atom:id'+tokens[0]
+                                tokens[0] = '$atom:'+atomids_int2name[atomid]
                                 l_data_ellipsoids.append((' '*indent)+(' '.join(tokens)+'\n'))
                 elif (line.strip() == 'Lines'):
-                    sys.stderr.write('  processing \"'+line.strip()+'\"\n')
+                    sys.stderr.write('  reading \"'+line.strip()+'\"\n')
                     while lex:
                         line = lex.ReadLine()
                         if line.strip() in data_file_header_names:
@@ -638,10 +702,11 @@ try:
                             if (BelongsToSel(atomid, atomid_selection) and
                                 BelongsToSel(atomtype, atomtype_selection) and
                                 BelongsToSel(molid, molid_selection)):
-                                tokens[0] = '$atom:id'+tokens[0]
+                                #tokens[0] = '$atom:id'+tokens[0]
+                                tokens[0] = '$atom:'+atomids_int2name[atomid]
                                 l_data_lines.append((' '*indent)+(' '.join(tokens)+'\n'))
                 elif (line.strip() == 'Triangles'):
-                    sys.stderr.write('  processing \"'+line.strip()+'\"\n')
+                    sys.stderr.write('  reading \"'+line.strip()+'\"\n')
                     while lex:
                         line = lex.ReadLine()
                         if line.strip() in data_file_header_names:
@@ -659,11 +724,12 @@ try:
                             if (BelongsToSel(atomid, atomid_selection) and
                                 BelongsToSel(atomtype, atomtype_selection) and
                                 BelongsToSel(molid, molid_selection)):
-                                tokens[0] = '$atom:id'+tokens[0]
+                                #tokens[0] = '$atom:id'+tokens[0]
+                                tokens[0] = '$atom:'+atomids_int2name[atomid]
                                 l_data_triangles.append((' '*indent)+(' '.join(tokens)+'\n'))
 
                 elif (line.strip() == 'Bonds'):
-                    sys.stderr.write('  processing \"'+line.strip()+'\"\n')
+                    sys.stderr.write('  reading \"'+line.strip()+'\"\n')
                     while lex:
                         line = lex.ReadLine()
                         if line.strip() in data_file_header_names:
@@ -692,6 +758,7 @@ try:
                                     BelongsToSel(atomtypes[n], atomtype_selection) and
                                     BelongsToSel(molids[n], molid_selection)):
                                     #tokens[2+n] = '$atom:id'+tokens[2+n]
+                                    #tokens[2+n] = '$atom:'+atomids_int2name[atomids[n]]
                                     some_in_selection = True
                                 else:
                                     in_selections = False
@@ -712,7 +779,7 @@ try:
 
 
                 elif (line.strip() == 'Angles'):
-                    sys.stderr.write('  processing \"'+line.strip()+'\"\n')
+                    sys.stderr.write('  reading \"'+line.strip()+'\"\n')
                     while lex:
                         line = lex.ReadLine()
                         if line == '':
@@ -743,6 +810,7 @@ try:
                                     BelongsToSel(atomtypes[n], atomtype_selection) and
                                     BelongsToSel(molids[n], molid_selection)):
                                     #tokens[2+n] = '$atom:id'+tokens[2+n]
+                                    #tokens[2+n] = '$atom:'+atomids_int2name[atomids[n]]
                                     some_in_selection = True
                                 else:
                                     in_selections = False
@@ -762,7 +830,7 @@ try:
 
 
                 elif (line.strip() == 'Dihedrals'):
-                    sys.stderr.write('  processing \"'+line.strip()+'\"\n')
+                    sys.stderr.write('  reading \"'+line.strip()+'\"\n')
                     while lex:
                         line = lex.ReadLine()
                         if line.strip() in data_file_header_names:
@@ -791,6 +859,7 @@ try:
                                     BelongsToSel(atomtypes[n], atomtype_selection) and
                                     BelongsToSel(molids[n], molid_selection)):
                                     #tokens[2+n] = '$atom:id'+tokens[2+n]
+                                    #tokens[2+n] = '$atom:'+atomids_int2name[atomids[n]]
                                     some_in_selection = True
                                 else:
                                     in_selections = False
@@ -810,7 +879,7 @@ try:
 
 
                 elif (line.strip() == 'Impropers'):
-                    sys.stderr.write('  processing \"'+line.strip()+'\"\n')
+                    sys.stderr.write('  reading \"'+line.strip()+'\"\n')
                     while lex:
                         line = lex.ReadLine()
                         if line.strip() in data_file_header_names:
@@ -839,6 +908,7 @@ try:
                                     BelongsToSel(atomtypes[n], atomtype_selection) and
                                     BelongsToSel(molids[n], molid_selection)):
                                     #tokens[2+n] = '$atom:id'+tokens[2+n]
+                                    #tokens[2+n] = '$atom:'+atomids_int2name[atomids[n]]
                                     some_in_selection = True
                                 else:
                                     in_selections = False
@@ -858,7 +928,7 @@ try:
 
 
                 elif (line.strip() == 'Bond Coeffs'):
-                    sys.stderr.write('  processing \"'+line.strip()+'\"\n')
+                    sys.stderr.write('  reading \"'+line.strip()+'\"\n')
                     while lex:
                         line = lex.ReadLine()
                         if line.strip() in data_file_header_names:
@@ -870,7 +940,7 @@ try:
                             l_data_bond_coeffs.append((' '*indent)+(' '.join(tokens)+'\n'))
 
                 elif (line.strip() == 'Angle Coeffs'):
-                    sys.stderr.write('  processing \"'+line.strip()+'\"\n')
+                    sys.stderr.write('  reading \"'+line.strip()+'\"\n')
                     while lex:
                         line = lex.ReadLine()
                         if line.strip() in data_file_header_names:
@@ -882,7 +952,7 @@ try:
                             l_data_angle_coeffs.append((' '*indent)+(' '.join(tokens)+'\n'))
 
                 elif (line.strip() == 'Dihedral Coeffs'):
-                    sys.stderr.write('  processing \"'+line.strip()+'\"\n')
+                    sys.stderr.write('  reading \"'+line.strip()+'\"\n')
                     while lex:
                         line = lex.ReadLine()
                         if line.strip() in data_file_header_names:
@@ -894,7 +964,7 @@ try:
                             l_data_dihedral_coeffs.append((' '*indent)+(' '.join(tokens)+'\n'))
 
                 elif (line.strip() == 'Improper Coeffs'):
-                    sys.stderr.write('  processing \"'+line.strip()+'\"\n')
+                    sys.stderr.write('  reading \"'+line.strip()+'\"\n')
                     while lex:
                         line = lex.ReadLine()
                         if line.strip() in data_file_header_names:
@@ -906,7 +976,7 @@ try:
                             l_data_improper_coeffs.append((' '*indent)+(' '.join(tokens)+'\n'))
 
                 elif (line.strip() == 'Pair Coeffs'):
-                    sys.stderr.write('  processing \"'+line.strip()+'\"\n')
+                    sys.stderr.write('  reading \"'+line.strip()+'\"\n')
                     some_pair_coeffs_read = True
                     while lex:
                         line = lex.ReadLine()
@@ -982,7 +1052,7 @@ try:
 
                 # -- class2 force fields --
                 elif (line.strip() == 'BondBond Coeffs'):
-                    sys.stderr.write('  processing \"'+line.strip()+'\"\n')
+                    sys.stderr.write('  reading \"'+line.strip()+'\"\n')
                     while lex:
                         line = lex.ReadLine()
                         if line.strip() in data_file_header_names:
@@ -994,7 +1064,7 @@ try:
                             l_data_bondbond_coeffs.append((' '*indent)+(' '.join(tokens)+'\n'))
 
                 elif (line.strip() == 'BondAngle Coeffs'):
-                    sys.stderr.write('  processing \"'+line.strip()+'\"\n')
+                    sys.stderr.write('  reading \"'+line.strip()+'\"\n')
                     while lex:
                         line = lex.ReadLine()
                         if line.strip() in data_file_header_names:
@@ -1006,7 +1076,7 @@ try:
                             l_data_bondangle_coeffs.append((' '*indent)+(' '.join(tokens)+'\n'))
 
                 elif (line.strip() == 'MiddleBondTorsion Coeffs'):
-                    sys.stderr.write('  processing \"'+line.strip()+'\"\n')
+                    sys.stderr.write('  reading \"'+line.strip()+'\"\n')
                     while lex:
                         line = lex.ReadLine()
                         if line.strip() in data_file_header_names:
@@ -1018,7 +1088,7 @@ try:
                             l_data_middlebondtorsion_coeffs.append((' '*indent)+(' '.join(tokens)+'\n'))
 
                 elif (line.strip() == 'EndBondTorsion Coeffs'):
-                    sys.stderr.write('  processing \"'+line.strip()+'\"\n')
+                    sys.stderr.write('  reading \"'+line.strip()+'\"\n')
                     while lex:
                         line = lex.ReadLine()
                         if line.strip() in data_file_header_names:
@@ -1030,7 +1100,7 @@ try:
                             l_data_endbondtorsion_coeffs.append((' '*indent)+(' '.join(tokens)+'\n'))
 
                 elif (line.strip() == 'AngleTorsion Coeffs'):
-                    sys.stderr.write('  processing \"'+line.strip()+'\"\n')
+                    sys.stderr.write('  reading \"'+line.strip()+'\"\n')
                     while lex:
                         line = lex.ReadLine()
                         if line.strip() in data_file_header_names:
@@ -1042,7 +1112,7 @@ try:
                             l_data_angletorsion_coeffs.append((' '*indent)+(' '.join(tokens)+'\n'))
 
                 elif (line.strip() == 'AngleAngleTorsion Coeffs'):
-                    sys.stderr.write('  processing \"'+line.strip()+'\"\n')
+                    sys.stderr.write('  reading \"'+line.strip()+'\"\n')
                     while lex:
                         line = lex.ReadLine()
                         if line.strip() in data_file_header_names:
@@ -1054,7 +1124,7 @@ try:
                             l_data_angleangletorsion_coeffs.append((' '*indent)+(' '.join(tokens)+'\n'))
 
                 elif (line.strip() == 'BondBond13 Coeffs'):
-                    sys.stderr.write('  processing \"'+line.strip()+'\"\n')
+                    sys.stderr.write('  reading \"'+line.strip()+'\"\n')
                     while lex:
                         line = lex.ReadLine()
                         if line.strip() in data_file_header_names:
@@ -1066,7 +1136,7 @@ try:
                             l_data_bondbond13_coeffs.append((' '*indent)+(' '.join(tokens)+'\n'))
 
                 elif (line.strip() == 'AngleAngle Coeffs'):
-                    sys.stderr.write('  processing \"'+line.strip()+'\"\n')
+                    sys.stderr.write('  reading \"'+line.strip()+'\"\n')
                     while lex:
                         line = lex.ReadLine()
                         if line.strip() in data_file_header_names:
@@ -1078,7 +1148,7 @@ try:
                             l_data_angleangle_coeffs.append((' '*indent)+(' '.join(tokens)+'\n'))
 
                 elif (line.strip() == 'Angles By Type'):
-                    sys.stderr.write('  processing \"'+line.strip()+'\"\n')
+                    sys.stderr.write('  reading \"'+line.strip()+'\"\n')
                     while lex:
                         line = lex.ReadLine()
                         if line.strip() in data_file_header_names:
@@ -1090,7 +1160,7 @@ try:
                             l_data_angles_by_type.append((' '*indent)+(' '.join(tokens)+'\n'))
 
                 elif (line.strip() == 'Dihedrals By Type'):
-                    sys.stderr.write('  processing \"'+line.strip()+'\"\n')
+                    sys.stderr.write('  reading \"'+line.strip()+'\"\n')
                     while lex:
                         line = lex.ReadLine()
                         if line.strip() in data_file_header_names:
@@ -1102,7 +1172,7 @@ try:
                             l_data_dihedrals_by_type.append((' '*indent)+(' '.join(tokens)+'\n'))
 
                 elif (line.strip() == 'Impropers By Type'):
-                    sys.stderr.write('  processing \"'+line.strip()+'\"\n')
+                    sys.stderr.write('  reading \"'+line.strip()+'\"\n')
                     while lex:
                         line = lex.ReadLine()
                         if line.strip() in data_file_header_names:
@@ -1117,6 +1187,101 @@ try:
                     sys.stderr.write('  Ignoring line \"'+line.strip()+'\"\n')
 
     sys.stderr.write('\n\n')
+
+    sys.stderr.write('  processing \"Atoms\" section (')
+
+    # post-processing:
+
+    if len(l_data_masses) == 0:
+        infer_types_from_comments = False
+
+    # Pass 1 through l_data_atoms:
+    # Now do a second-pass throught the "l_data_atoms" section, and 
+    # finish dealing with "infer_types_from_comments".
+    # During this pass, peplace the atomtype names and atomid names with 
+    # atom type names which were inferred from comments read earlier.
+
+    sys.stderr.write('pass1')
+    for i in range(0, len(l_data_atoms)):
+        tokens = l_data_atoms[i].split()
+        atomid = tokens[i_atomid]
+        if atomid.find('$atom:') == 0:
+            atomid = atomid[6:]
+            # convert to an integer
+            atomid = Intify(atomid)
+
+        if infer_types_from_comments:
+            atomtype = tokens[i_atomtype]
+            # remove the "@atom:" prefix (we will put it back later)
+            if atomtype.find('@atom:') == 0:
+                atomtype = atomtype[6:]
+            # convert to an integer
+            atomtype = Intify(atomtype)
+            atomtype_name = atomtypes_int2name[atomtype]
+            if atomtype in atomids_by_type:
+                l_atomids = atomids_by_type[atomtype]
+                prev_count = len(l_atomids)
+                # lookup the most recently added atom of this type:
+                #prev_atomid_name = l_atomids[-1]
+                #ic = prev_atomid_name.rfind('_')
+                #prev_count = int(prev_atomid_name[ic+1:])
+                atomid_name = atomtype_name+'_'+str(prev_count+1)
+                atomids_by_type[atomtype].append(atomid)
+            else:
+                atomids_by_type[atomtype] = [atomid]
+                atomid_name = atomtype_name+'_1'
+            atomids_int2name[atomid] = atomid_name
+            #atomids_name2str[atomid_name] = atomid
+        else:
+            atomids_int2name[atomid] = 'id'+str(atomid)
+
+    sys.stderr.write(', pass2')
+    # Pass 2: If any atom types only appear once, simplify their atomid names.
+    for i in range(0, len(l_data_atoms)):
+        tokens = l_data_atoms[i].split()
+
+        # remove the "@atom:" prefix (we will put it back later)
+        atomtype = tokens[i_atomtype]
+        if atomtype.find('@atom:') == 0:
+            atomtype = atomtype[6:]
+        atomtype = Intify(atomtype)
+        if infer_types_from_comments:
+            if len(atomids_by_type[atomtype]) == 1:
+                atomid = tokens[i_atomid]
+                if atomid.find('$atom:') == 0:
+                    atomid = atomid[6:]
+                atomid = Intify(atomid)
+                atomtype_name = atomtypes_int2name[atomtype]
+                atomids_int2name[atomid] = atomtype_name
+
+    sys.stderr.write(', pass3')
+    # Pass 3: substitute the atomid names and atom type names into l_data_atoms
+    for i in range(0, len(l_data_atoms)):
+        tokens = l_data_atoms[i].split()
+        atomid = tokens[i_atomid]
+        if atomid.find('$atom:') == 0:
+            atomid = atomid[6:]
+            # convert to an integer
+            atomid = Intify(atomid)
+        atomtype = tokens[i_atomtype]
+        if atomtype.find('@atom:') == 0:
+            atomtype = atomtype[6:]
+        atomtype = Intify(atomtype)
+        tokens = l_data_atoms[i].split()
+        tokens[i_atomid] = '$atom:'+atomids_int2name[atomid]
+        tokens[i_atomtype] = '@atom:'+atomtypes_int2name[atomtype]
+        l_data_atoms[i] = (' '*indent)+(' '.join(tokens)+'\n')
+    sys.stderr.write(')\n')
+
+
+    if len(l_data_atoms) == 0:
+        raise InputError('Error('+g_program_name+'): You have no atoms in you selection!\n'
+                         '\n'
+                         '       Either you have chosen a set of atoms, molecules, or atom types which\n'
+                         '       does not exist, or there is a problem with (the format of) your\n'
+                         '       arguments. Check the documentation and examples.\n')
+
+
     # --- Now delete items that were not selected from the other lists ---
 
     # --- MASSES ---
@@ -1132,7 +1297,8 @@ try:
                   BelongsToSel(atomtype, atomtype_selection)))):
             del(l_data_masses[i_line])
         else:
-            tokens[0] = '@atom:type'+str(atomtype)
+            atomtype_name = atomtypes_int2name[atomtype]
+            tokens[0] = '@atom:'+atomtype_name
             l_data_masses[i_line] = (' '*indent)+(' '.join(tokens)+'\n')
             i_line += 1
 
@@ -1274,14 +1440,18 @@ try:
             for i in range(i_a_final, i_b_final+1):
                 for j in range(j_a_final, j_b_final+1):
                     if j >= i:
-                        tokens[1] = '@atom:type'+str(i)
-                        tokens[2] = '@atom:type'+str(j)
+                        #tokens[1] = '@atom:type'+str(i)
+                        #tokens[2] = '@atom:type'+str(j)
+                        tokens[1] = '@atom:'+atomtypes_int2name[i]
+                        tokens[2] = '@atom:'+atomtypes_int2name[j]
                         l_in_pair_coeffs.insert(i_line, 
                                                 (' '*indent)+(' '.join(tokens)+'\n'))
                         i_line += 1
         else:
-            tokens[1] = '@atom:type'+tokens[1]
-            tokens[2] = '@atom:type'+tokens[2]
+            #tokens[1] = '@atom:type'+tokens[1]
+            #tokens[2] = '@atom:type'+tokens[2]
+            tokens[1] = '@atom:'+atomtypes_int2name[int(tokens[1])]
+            tokens[2] = '@atom:'+atomtypes_int2name[int(tokens[2])]
             l_in_pair_coeffs[i_line] = (' '*indent)+(' '.join(tokens)+'\n')
             i_line += 1
 
@@ -1356,12 +1526,16 @@ try:
         elif ('*' in atomtype_i_str):
             del(l_in_masses[i_line])
             for i in range(i_a_final, i_b_final+1):
-                tokens[1] = '@atom:type'+str(i)
+                #tokens[1] = '@atom:type'+str(i)
+                tokens[1] = '@atom:'+atomtypes_int2name[i]
+                # CONTINUEHERE: CHECK THAT THIS IS WORKING
                 l_in_masses.insert(i_line, (' '*indent)+(' '.join(tokens)+'\n'))
                 i_line += 1
         else:
             assert(i_a == i_b)
-            tokens[1] = '@atom:type'+str(i_a)
+            #tokens[1] = '@atom:type'+str(i_a)
+            tokens[1] = '@atom:'+atomtypes_int2name[i_a]
+            # CONTINUEHERE: CHECK THAT THIS IS WORKING
             l_in_masses[i_line] = (' '*indent)+(' '.join(tokens)+'\n')
             i_line += 1
 
@@ -1376,7 +1550,7 @@ try:
         line = l_data_bonds[i_line]
         tokens = line.strip().split()
         assert(len(tokens) == 4)
-        
+
         bondid   = Intify(tokens[0])
         bondtype = Intify(tokens[1])
         atomid1  = Intify(tokens[2])
@@ -1385,8 +1559,10 @@ try:
         #    (atomid2 in needed_atomids)):
         tokens[0] = '$bond:id'+str(bondid)
         tokens[1] = '@bond:type'+str(bondtype)
-        tokens[2] = '$atom:id'+str(atomid1)
-        tokens[3] = '$atom:id'+str(atomid2)
+        #tokens[2] = '$atom:id'+str(atomid1)
+        #tokens[3] = '$atom:id'+str(atomid2)
+        tokens[2] = '$atom:'+atomids_int2name[atomid1]
+        tokens[3] = '$atom:'+atomids_int2name[atomid2]
         needed_bondids.add(bondid)
         needed_bondtypes.add(bondtype)
         l_data_bonds[i_line] = (' '*indent)+(' '.join(tokens)+'\n')
@@ -1436,7 +1612,8 @@ try:
                 i_b = Intify(bondtype_tokens[1])
 
         else:
-            i_a = i_b = Intify(bondtype_str)
+            i_a = Intify(bondtype_str)
+            i_b = i_a
 
         if i_a < min_needed_bondtype:
             i_a = min_needed_bondtype
@@ -1458,8 +1635,10 @@ try:
                                             (' '*indent)+(' '.join(tokens)+'\n'))
                     i_line += 1
         else:
-            assert(i_a == i_b)
-            if (i_a in needed_bondtypes):
+            if i_a < i_b:
+                raise InputError('Error: number of bond types in data file is not consistent with the\n'
+                                 '       number of bond types you have define bond_coeffs for.\n')
+            if (i_a == i_b) and (i_a in needed_bondtypes):
                 tokens[1] = '@bond:type'+str(i_a)
                 l_in_bond_coeffs[i_line] = (' '*indent)+(' '.join(tokens)+'\n')
                 i_line += 1
@@ -1488,9 +1667,12 @@ try:
         #    (atomid2 in needed_atomids)):
         tokens[0] = '$angle:id'+str(angleid)
         tokens[1] = '@angle:type'+str(angletype)
-        tokens[2] = '$atom:id'+str(atomid1)
-        tokens[3] = '$atom:id'+str(atomid2)
-        tokens[4] = '$atom:id'+str(atomid3)
+        #tokens[2] = '$atom:id'+str(atomid1)
+        #tokens[3] = '$atom:id'+str(atomid2)
+        #tokens[4] = '$atom:id'+str(atomid3)
+        tokens[2] = '$atom:'+atomids_int2name[atomid1]
+        tokens[3] = '$atom:'+atomids_int2name[atomid2]
+        tokens[4] = '$atom:'+atomids_int2name[atomid3]
         needed_angleids.add(angleid)
         needed_angletypes.add(angletype)
         l_data_angles[i_line] = (' '*indent)+(' '.join(tokens)+'\n')
@@ -1562,8 +1744,10 @@ try:
                                              (' '*indent)+(' '.join(tokens)+'\n'))
                     i_line += 1
         else:
-            assert(i_a == i_b)
-            if (i_a in needed_angletypes):
+            if i_a < i_b:
+                raise InputError('Error: number of angle types in data file is not consistent with the\n'
+                                 '       number of angle types you have define angle_coeffs for.\n')
+            if (i_a == i_b) and (i_a in needed_angletypes):
                 tokens[1] = '@angle:type'+str(i_a)
                 l_in_angle_coeffs[i_line] = (' '*indent)+(' '.join(tokens)+'\n')
                 i_line += 1
@@ -1591,10 +1775,15 @@ try:
         #    (atomid2 in needed_atomids)):
         tokens[0] = '$dihedral:id'+str(dihedralid)
         tokens[1] = '@dihedral:type'+str(dihedraltype)
-        tokens[2] = '$atom:id'+str(atomid1)
-        tokens[3] = '$atom:id'+str(atomid2)
-        tokens[4] = '$atom:id'+str(atomid3)
-        tokens[5] = '$atom:id'+str(atomid4)
+        #tokens[2] = '$atom:id'+str(atomid1)
+        #tokens[3] = '$atom:id'+str(atomid2)
+        #tokens[4] = '$atom:id'+str(atomid3)
+        #tokens[5] = '$atom:id'+str(atomid4)
+        tokens[2] = '$atom:'+atomids_int2name[atomid1]
+        tokens[3] = '$atom:'+atomids_int2name[atomid2]
+        tokens[4] = '$atom:'+atomids_int2name[atomid3]
+        tokens[5] = '$atom:'+atomids_int2name[atomid4]
+
         needed_dihedralids.add(dihedralid)
         needed_dihedraltypes.add(dihedraltype)
         l_data_dihedrals[i_line] = (' '*indent)+(' '.join(tokens)+'\n')
@@ -1666,8 +1855,10 @@ try:
                                                 (' '*indent)+(' '.join(tokens)+'\n'))
                     i_line += 1
         else:
-            assert(i_a == i_b)
-            if (i_a in needed_dihedraltypes):
+            if i_a < i_b:
+                raise InputError('Error: number of dihedral types in data file is not consistent with the\n'
+                                 '       number of dihedral types you have define bond_coeffs for.\n')
+            if (i_a == i_b) and (i_a in needed_dihedraltypes):
                 tokens[1] = '@dihedral:type'+str(i_a)
                 l_in_dihedral_coeffs[i_line] = (' '*indent)+(' '.join(tokens)+'\n')
                 i_line += 1
@@ -1695,10 +1886,15 @@ try:
         #    (atomid2 in needed_atomids)):
         tokens[0] = '$improper:id'+str(improperid)
         tokens[1] = '@improper:type'+str(impropertype)
-        tokens[2] = '$atom:id'+str(atomid1)
-        tokens[3] = '$atom:id'+str(atomid2)
-        tokens[4] = '$atom:id'+str(atomid3)
-        tokens[5] = '$atom:id'+str(atomid4)
+        #tokens[2] = '$atom:id'+str(atomid1)
+        #tokens[3] = '$atom:id'+str(atomid2)
+        #tokens[4] = '$atom:id'+str(atomid3)
+        #tokens[5] = '$atom:id'+str(atomid4)
+        tokens[2] = '$atom:'+atomids_int2name[atomid1]
+        tokens[3] = '$atom:'+atomids_int2name[atomid2]
+        tokens[4] = '$atom:'+atomids_int2name[atomid3]
+        tokens[5] = '$atom:'+atomids_int2name[atomid4]
+
         needed_improperids.add(improperid)
         needed_impropertypes.add(impropertype)
         l_data_impropers[i_line] = (' '*indent)+(' '.join(tokens)+'\n')
@@ -1770,8 +1966,10 @@ try:
                                                 (' '*indent)+(' '.join(tokens)+'\n'))
                     i_line += 1
         else:
-            assert(i_a == i_b)
-            if (i_a in needed_impropertypes):
+            if i_a < i_b:
+                raise InputError('Error: number of improper types in data file is not consistent with the\n'
+                                 '       number of improper types you have define bond_coeffs for.\n')
+            if (i_a == i_b) and (i_a in needed_impropertypes):
                 tokens[1] = '@improper:type'+str(i_a)
                 l_in_improper_coeffs[i_line] = (' '*indent)+(' '.join(tokens)+'\n')
                 i_line += 1
@@ -2021,15 +2219,17 @@ try:
     if mol_name != '':
         sys.stdout.write('\n} # end of \"'+mol_name+'\" type definition\n')
 
-    if non_empty_output and no_warnings:
-        sys.stderr.write('WARNING: The '+g_program_name+' script has not been rigorously tested.\n'
-                         '         Exotic (manybody) pair styles (and other force-field styles\n'
-                         '         with unusual syntax) are not understood by '+g_program_name+'\n'
-                         '         (although they are supported by moltemplate).  Please look over\n'
-                         '         the resulting LT file and check for errors.  Convert any remaining\n'
-                         '         atom, bond, angle, dihedral, or improper id or type numbers to the\n'
-                         '         corresponding variables.  Feel free to report any bugs you find.\n'
-                         '         (-Andrew Jewett 2012-12-11)\n')
+    #if non_empty_output and no_warnings:
+    if non_empty_output:
+        sys.stderr.write('\nWARNING: The '+g_program_name+' script has not been rigorously tested.\n'
+                         '         Exotic (many-body) pair-styles and pair-styles with\n'
+                         '         unusual syntax (such as hbond/dreiding) are not understood\n'
+                         '         by '+g_program_name+' (...although they are supported by moltemplate).\n'
+                         '         Please look over the resulting LT file and check for errors.\n'
+                         '         Convert any remaining atom, bond, angle, dihedral, or improper id\n'
+                         '         or type numbers to the corresponding $ or @-style counter variables.\n'
+                         '         Feel free to report any bugs you find.\n'
+                         '         (-Andrew Jewett 2013-8-14)\n')
 
 except (ValueError, InputError) as err:
     sys.stderr.write('\n'+str(err)+'\n')

@@ -8,6 +8,7 @@
 # 
 # Modified by Vikas Varshney, U Akron, 5 July 2005, as described in README
 # Bug Fixed :Third argument in Dihedral Coeffs section is an integer - Ketan S Khare September 26, 2011
+# Modified by Vikas Varshney, Oct 8, 2013 to include additional flags (Atomic_Number, Coulombic and van der Waals 1-4 factors which are included in newer vesions of .top and .crd files in amber12. 
 
 #============================================================
 
@@ -554,6 +555,11 @@ class Amber:
       	for i in range(self.NATOM):
             self.CHRG.append(eval(Pop(Item_list,0)))
 
+	print 'Reading Atomic Number...'
+        self.ANUMBER = []
+      	for i in range(self.NATOM):
+            self.ANUMBER.append(eval(Pop(Item_list,0)))
+
         print 'Reading Atomic Masses...'
 	self.AMASS = []
         for i in range(self.NATOM):
@@ -618,6 +624,16 @@ class Amber:
         self.PHASE = []
         for i in range(self.NPTRA):
             self.PHASE.append(eval(Pop(Item_list,0)))
+        
+	print 'Reading 1-4 Electrostatic Scaling Factor...'
+        self.SCEEFAC = []
+        for i in range(self.NPTRA):
+            self.SCEEFAC.append(eval(Pop(Item_list,0)))
+        
+	print 'Reading 1-4 Van der Waals Scaling Factor...'
+        self.SCNBFAC = []
+        for i in range(self.NPTRA):
+            self.SCNBFAC.append(eval(Pop(Item_list,0)))
         
 	print 'Reading Solty...' #I think this is currently not used in AMBER. Check it out, though
         self.SOLTY = []

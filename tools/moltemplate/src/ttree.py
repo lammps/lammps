@@ -94,8 +94,8 @@ g_filename    = __file__.split('/')[-1]
 g_module_name  = g_filename
 if g_filename.rfind('.py') != -1:
     g_module_name = g_filename[:g_filename.rfind('.py')]
-g_date_str     = '2013-7-15'
-g_version_str  = '0.75'
+g_date_str     = '2013-9-12'
+g_version_str  = '0.76'
 
 
 
@@ -238,6 +238,7 @@ class InstantiateCommand(Command):
 
 
 class DeleteCommand(Command):
+    __slots__=[]
     def __init__(self,
                  srcloc = None):
         Command.__init__(self, srcloc)
@@ -419,7 +420,7 @@ class ScopeEnd(ScopeCommand):
 
 
 
-# COMMENTING OUT: NOT NEEDED AT THE MOME
+# COMMENTING OUT: NOT NEEDED AT THE MOMENT
 #class VarAssignCommand(Command):
 #    """ VarAssignCommand
 #

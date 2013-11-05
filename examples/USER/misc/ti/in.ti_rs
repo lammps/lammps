@@ -1,0 +1,64 @@
+# Rodrigo Freitas - rodrigohb@gmail.com
+
+
+#-------------------------- Initial Setup -------------------------------------#
+  units             metal
+  atom_modify       map array 
+#------------------------------------------------------------------------------#
+
+
+#-------------------------- Atomic Setup --------------------------------------#
+  lattice           sc 10.0
+  region            my_region block 0 8 0 8 0 8
+  create_box        1 my_region
+  create_atoms      1 box
+
+  mass              * 50.0
+  atom_modify       sort 0 0
+#------------------------------------------------------------------------------#
+
+
+#---------------------- Thermostat & Barostat ---------------------------------#
+  fix               f1 all nve
+  fix               f2 all spring/self 10.0
+  fix               f3 all ti/rs 1.0 0.5 2000 1000 function 2
+  fix               f4 all langevin 100.0 100.0 0.5 1230917 zero yes
+#------------------------------------------------------------------------------#
+
+
+#------------------ Computes, variables & modifications -----------------------#
+  compute           Tcm all temp/com
+  fix_modify        f4 temp Tcm
+
+  variable          step    equal step
+  variable          U       equal f_f2/atoms
+  variable          lambda  equal f_f3[1]
+  variable          dlambda equal f_f3[2]
+#------------------------------------------------------------------------------#
+
+
+#------------------------- Thermo stuff ---------------------------------------#
+  thermo            0
+  timestep          0.001
+#------------------------------------------------------------------------------#
+
+
+#------------------------- Running the Simulation -----------------------------#
+  velocity          all create 200.0 8128481 mom yes rot yes dist gaussian
+
+  # Forward. 
+  run               999
+  fix               f5 all print 1 "${step} ${U} ${lambda} ${dlambda}" & 
+                    screen no file forward_rs.dat &
+                    title '# step U lambda dlambda'
+  run               2001
+  unfix             f5
+
+  # Backward.
+  run               999
+  fix               f5 all print 1 "${step} ${U} ${lambda} ${dlambda}" & 
+                    screen no file backward_rs.dat &
+                    title '# step U lambda dlmabda'
+  run               2001
+  unfix             f5
+#------------------------------------------------------------------------------#

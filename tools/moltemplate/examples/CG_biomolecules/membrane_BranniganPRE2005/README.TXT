@@ -18,7 +18,7 @@ have been replaced by harmonic bonds.
 
 A truncated version of this lipid (named "DLPC") has also been added.
 Unlike the original "DPPC" molecule model, "DLPC" has not been carefully
-parameterized to reproduce the correct behavior in a lipid bilayer mixture.
+parameterized to reproduce the correct behavior in a lipid bilayer.
 
 
 -------------

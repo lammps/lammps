@@ -9,6 +9,14 @@ dump2try99.py		same as dump2trj for LAMMPS 99 format
 -------------------------
 
 Modifications in file amber2lammps.py, by Vikas Varshney
+Dated Nov 4, 2013
+Email address: vv0210@gmail.com
+
+added support for flags used in current version of AMBER
+
+-------------------------
+
+Modifications in file amber2lammps.py, by Vikas Varshney
 Dated July 5, 2005
 Email address : vv5@uakron.edu
 

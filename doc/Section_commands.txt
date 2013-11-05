@@ -1,4 +1,4 @@
-<"Previous Section"_Section_start.html - "LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next Section"_Section_packages.html :c
+"Previous Section"_Section_start.html - "LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc - "Next Section"_Section_packages.html :c
 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
@@ -310,11 +310,11 @@ Computes:
 Output:
 
 "dump"_dump.html, "dump image"_dump_image.html,
-"dump_modify"_dump_modify.html, "restart"_restart.html,
-"thermo"_thermo.html, "thermo_modify"_thermo_modify.html,
-"thermo_style"_thermo_style.html, "undump"_undump.html,
-"write_data"_write_data.html, "write_dump"_write_dump.html,
-"write_restart"_write_restart.html
+"dump_modify"_dump_modify.html, "dump movie"_dump_image.html,
+"restart"_restart.html, "thermo"_thermo.html,
+"thermo_modify"_thermo_modify.html, "thermo_style"_thermo_style.html,
+"undump"_undump.html, "write_data"_write_data.html,
+"write_dump"_write_dump.html, "write_restart"_write_restart.html
 
 Actions:
 
@@ -369,7 +369,7 @@ in the command's documentation.
 "dump"_dump.html,
 "dump image"_dump_image.html,
 "dump_modify"_dump_modify.html,
-"dump movie"_dump_movie.html,
+"dump movie"_dump_image.html,
 "echo"_echo.html,
 "fix"_fix.html,
 "fix_modify"_fix_modify.html,
@@ -565,7 +565,9 @@ package"_Section_start.html#start_3.
 "reax/c/bonds"_fix_reax_bonds.html,
 "reax/c/species"_fix_reaxc_species.html,
 "smd"_fix_smd.html,
-"temp/rescale/eff"_fix_temp_rescale_eff.html :tb(c=6,ea=c)
+"temp/rescale/eff"_fix_temp_rescale_eff.html,
+"ti/rs"_fix_ti_rs.html,
+"ti/spring"_fix_ti_spring.html :tb(c=6,ea=c)
 
 These are accelerated fix styles, which can be used if LAMMPS is
 built with the "appropriate accelerated
@@ -723,6 +725,7 @@ potentials.  Click on the style itself for a full description:
 "buck/long/coul/long"_pair_buck_long.html,
 "colloid"_pair_colloid.html,
 "comb"_pair_comb.html,
+"comb3"_pair_comb.html,
 "coul/cut"_pair_coul.html,
 "coul/debye"_pair_coul.html,
 "coul/dsf"_pair_coul.html,
@@ -779,6 +782,7 @@ potentials.  Click on the style itself for a full description:
 "meam"_pair_meam.html,
 "mie/cut"_pair_mie.html,
 "morse"_pair_morse.html,
+"nb3b/harmonic"_pair_nb3b_harmonic.html,
 "nm/cut"_pair_nm.html,
 "nm/cut/coul/cut"_pair_nm.html,
 "nm/cut/coul/long"_pair_nm.html,
@@ -819,7 +823,6 @@ package"_Section_start.html#start_3.
 "lj/sf"_pair_lj_sf.html,
 "meam/spline"_pair_meam_spline.html,
 "meam/sw/spline"_pair_meam_sw_spline.html,
-"nb3b/harmonic"_pair_nb3b_harmonic.html,
 "reax/c"_pair_reax_c.html,
 "sph/heatconduction"_pair_sph_heatconduction.html,
 "sph/idealgas"_pair_sph_idealgas.html,

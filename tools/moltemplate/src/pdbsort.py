@@ -41,14 +41,14 @@ class AtomDescr:
     def __le__(self, other):
         #return ((self.chainID < other.chainID) or ((self.chainID == other.chainID) and ((self.seqNum < other.seqNum) or ((self.seqNum == other.seqNum) and (self.iCode <= other.iCode)))))))
         # instead I'll exploit python's ability to compare tuples
-        return (self.chainID, self.seqNum, self.iCode) <= (other.chainID, other.seqNum, other.iCode)
+        return (self.chainID, self.seqNum, self.iCode, self.atomID) <= (other.chainID, other.seqNum, other.iCode, other.atomID)
 
     def __lt__(self, other):
-        return (self.chainID, self.seqNum, self.iCode) < (other.chainID, other.seqNum, other.iCode)
+        return (self.chainID, self.seqNum, self.iCode, self.atomID) < (other.chainID, other.seqNum, other.iCode, other.atomID)
 
     def __eq__(self, other):
         #return ((self.chainID == x.chainID) and (self.seqNum == x.seqNum) and (self.iCode == x.iCode))
-        return (self.chainID, self.seqNum, self.iCode) == (other.chainID, other.seqNum, other.iCode)
+        return (self.chainID, self.seqNum, self.iCode, self.atomID) == (other.chainID, other.seqNum, other.iCode, other.atomID)
 
     def __ne__(self, other):
         return not __eq__(self, other)
@@ -85,8 +85,8 @@ class AtomDescr:
 import sys
 from operator import attrgetter
 g_program_name = __file__.split('/')[-1]
-g_version_str = 0.1
-g_date_str = 2012-5-06
+g_version_str = 0.11
+g_date_str = 2013-9-18
 
 if len(sys.argv) == 1:
     use_all_residues = True

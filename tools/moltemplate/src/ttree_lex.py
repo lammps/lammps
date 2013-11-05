@@ -717,6 +717,7 @@ def MatchesPattern(s, pattern):
     return True
 
 
+
 def MatchesAll(multi_string, pattern):
     assert(len(multi_string) == len(pattern))
     for i in range(0, len(pattern)):

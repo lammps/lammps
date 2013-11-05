@@ -359,8 +359,8 @@ def GenInteractions_files(lines_data,
 if __name__ == "__main__":
 
     g_program_name = __file__.split('/')[-1]  # = 'nbody_by_type.py'
-    g_date_str     = '2013-7-15'
-    g_version_str  = '0.12'
+    g_date_str     = '2013-8-06'
+    g_version_str  = '0.15'
 
     #######  Main Code Below: #######
     sys.stderr.write(g_program_name+' v'+g_version_str+' '+g_date_str+' ')
@@ -391,7 +391,8 @@ if __name__ == "__main__":
                              '--------------- general documentation -------------\n'
                              '\n' + man_page_text + '\n')
 
-        section_name = ''  # (This will be replaced later.)
+        section_name = ''         # (This will be replaced later.)
+        section_name_bytype = ''  # (This will be replaced later.)
 
         # Loop over the remaining arguments not processed yet.
         # These arguments are specific to the lttree.py program
@@ -465,25 +466,58 @@ if __name__ == "__main__":
                 prefix = argv[i+1]
                 del(argv[i:i+2])
 
+            elif argv[i].lower() == '-subgraph':
+                if i+1 >= len(argv):
+                    raise InputError('Error: '+argv[i]+' flag should be followed by the name of a python file\n'
+                                     '       containing the definition of the subgraph you are searching for\n'
+                                     '       and it\'s symmetry properties.\n'
+                                     '       (See nbody_Dihedrals.py for example.)\n')
+                bond_pattern_module_name = argv[i+1]
+                # If the file name ends in ".py", then strip off this suffix.
+                bond_pattern_module_name=bond_pattern_module_name.rstrip('.py')
+                del(argv[i:i+2])
+
+            elif argv[i].lower() == '-section':
+                if i+1 >= len(argv):
+                    raise InputError('Error: '+argv[i]+' flag should be followed by the name of the LAMMPS\n'
+                                     '       Data section describing the type of interaction being generated.\n'
+                                     '       (For example: \"Angles\", \"Dihedrals\", \"Impropers\", etc...)\n')
+                section_name = argv[i+1]
+                del(argv[i:i+2])
+
+
+            elif argv[i].lower() == '-sectionbytype':
+                if i+1 >= len(argv):
+                    raise InputError('Error: '+argv[i]+' flag should be followed by the name of the\n'
+
+                                     '       write_once(\"???? By Type\") section describing how to create the\n'
+                                     '       interactions.  (For example: \"Angles By Type\", \"Dihedrals By Type\",\n'
+                                     '        \"Impropers By Type\", etc...  Note that this argument\n'
+                                     '        will contain spaces, so surround it with quotes.)\n')
+                
+                section_name_bytype = argv[i+1]
+                del(argv[i:i+2])
+
             elif argv[i][0] == '-':
                 raise InputError('Error('+g_program_name+'):\n'
                                  'Unrecogized command line argument \"'+argv[i]+'\"\n')
             else:
                 i += 1
 
+        #if len(argv) == 1:
+        #    raise InputError('Error: Missing argument required.\n'
+        #                     '       The \"'+g_program_name+'\" program requires an argument containing the\n'
+        #                     '       name of a section from a LAMMPS data file storing bonded interactions.\n'
+        #                     '       (For example: "Angles", "Dihedrals", or "Impropers".)\n')
+        #                     #'        Note: The first letter of each section is usually capitalized.)\n'
 
         if len(argv) == 1:
-            raise InputError('Error: Missing argument required.\n'
-                             '       The \"'+g_program_name+'\" program requires an argument containing the\n'
-                             '       name of a section from a LAMMPS data file storing bonded interactions.\n'
-                             '       (For example: "Angles", "Dihedrals", or "Impropers".)\n')
-                             #'        Note: The first letter of each section is usually capitalized.)\n'
-
+            pass
         elif len(argv) == 2:
             section_name = argv[1]
+            section_name_bytype = section_name + ' By Type'
             bond_pattern_module_name = 'nbody_'+section_name
             del(argv[1:2])
-
         else:
             # if there are more than 2 remaining arguments,
             problem_args = ['\"'+arg+'\"' for arg in argv[1:]]
@@ -493,10 +527,16 @@ if __name__ == "__main__":
                              '         '+(' '.join(problem_args))+'\n\n'
                              '       (The actual problem may be earlier in the argument list.)\n')
 
+        if ((section_name == '') or
+            (section_name_bytype == '') or
+            (bond_pattern_module_name == '')):
+            raise InputError('Syntax Error('+g_program_name+'):\n\n'
+                             '       You have not defined the following arguments:\n'
+                             '       -section name\n'
+                             '       -sectionbytype namebytype\n'
+                             '       -subgraph pythonfile.py\n')
 
         # ------------ Done parsing argument list ----------
-
-        section_name_bytype = section_name + ' By Type'
 
         if (fname_atoms or fname_bonds or fname_nbody or fname_nbodybytype):
             output_full_DATA_file = False
@@ -506,6 +546,7 @@ if __name__ == "__main__":
             lines_data = sys.stdin.readlines()
 
         # Calculate the interactions and generate a list of lines of text
+
         lines_new_interactions = \
             GenInteractions_files(lines_data,
                                   bond_pattern_module_name,

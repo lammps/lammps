@@ -1,0 +1,72 @@
+LAMMPS (5 Nov 2013)
+# Graphene-OH on Cu2O (110) surface
+
+units		metal
+atom_style	charge
+dimension       3
+boundary        p p p
+
+read_data   	data.comb3-OHCCu
+  triclinic box = (0 0 0) to (21.3 24.6 23.8162) with tilt (0 0 0)
+  1 by 1 by 1 MPI processor grid
+  682 atoms
+
+mass            1 16.0
+mass            2 63.5
+mass            3 1.00
+mass            4 12.0
+mass            5 12.0
+
+pair_style	comb3 polar_off
+pair_coeff	* * ffield.comb3 O Cu H C C
+
+neighbor	2.0 bin
+neigh_modify	every 1 delay 0 check yes
+
+dump            1 all cfg 10 *.cfg mass type xs ys zs id type q
+dump_modify   	1 element O Cu H C C
+
+fix             1 all nve
+fix             2 all qeq/comb 10 1e-3 file fq.out
+
+timestep        0.00020
+
+thermo_style	custom step temp etotal pe evdwl ecoul press vol lx ly lz
+thermo_modify	norm yes
+velocity	all create 300.0 2398378
+thermo	  	10
+run  		100
+Memory usage per processor = 25.5933 Mbytes
+Step Temp TotEng PotEng E_vdwl E_coul Press Volume Lx Ly Lz 
+       0          300   -4.3728818    -4.411603   -3.8436746  -0.56792838   -21237.662    12479.212         21.3         24.6      23.8162 
+      10    458.62564   -4.3728548   -4.4320499   -3.8642328  -0.56781711   -18048.055    12479.212         21.3         24.6      23.8162 
+      20    744.81494   -4.3728588   -4.4689925   -3.9006671  -0.56832542   -17246.791    12479.212         21.3         24.6      23.8162 
+      30    918.51338   -4.3729447   -4.4914978     -3.92258   -0.5689178   -18547.495    12479.212         21.3         24.6      23.8162 
+      40    966.08747   -4.3732206   -4.4979141   -3.9280403  -0.56987377   -27675.956    12479.212         21.3         24.6      23.8162 
+      50     953.7008   -4.3732162   -4.4963109   -3.9251828  -0.57112816   -23768.538    12479.212         21.3         24.6      23.8162 
+      60    1051.9611   -4.3733738    -4.509151   -3.9367614  -0.57238959     2567.532    12479.212         21.3         24.6      23.8162 
+      70    1182.0586   -4.3735982   -4.5261673   -3.9525774  -0.57358987    9288.2917    12479.212         21.3         24.6      23.8162 
+      80     1247.345   -4.3738251   -4.5348207    -3.960019  -0.57480169    12178.117    12479.212         21.3         24.6      23.8162 
+      90    1293.7474   -4.3741289   -4.5411137   -3.9651965  -0.57591714     17036.28    12479.212         21.3         24.6      23.8162 
+     100    1320.6233   -4.3743569   -4.5448106   -3.9678065  -0.57700407    21564.551    12479.212         21.3         24.6      23.8162 
+Loop time of 18.5723 on 1 procs for 100 steps with 682 atoms
+
+Pair  time (%) = 8.42377 (45.3568)
+Neigh time (%) = 0.0747871 (0.402682)
+Comm  time (%) = 0.00560045 (0.0301549)
+Outpt time (%) = 0.0121541 (0.0654423)
+Other time (%) = 10.0559 (54.145)
+
+Nlocal:    682 ave 682 max 682 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    6390 ave 6390 max 6390 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    0 ave 0 max 0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:  365302 ave 365302 max 365302 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 365302
+Ave neighs/atom = 535.633
+Neighbor list builds = 1
+Dangerous builds = 0

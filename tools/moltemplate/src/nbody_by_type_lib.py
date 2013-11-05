@@ -17,7 +17,7 @@ from ttree_lex import MatchesPattern, MatchesAll, InputError
 
 def GenInteractions_int(G_system, 
                         g_bond_pattern,
-                        typepattern_to_coefftype,
+                        typepattern_to_coefftypes,
                         canonical_order, #function to sort atoms and bonds
                         atomtypes_int2str,
                         bondtypes_int2str,
@@ -26,11 +26,11 @@ def GenInteractions_int(G_system,
     GenInteractions() automatically determines a list of interactions 
     present in a system of bonded atoms (argument "G_system"),
     which satisfy the bond topology present in "g_bond_pattern", and 
-    satisfy the atom and bond type requirements in "typepattern_to_coefftype".
+    satisfy the atom and bond type requirements in "typepattern_to_coefftypes".
 
     Whenever a set of atoms in "G_system" are bonded together in a way which
     matches "g_bond_pattern", and when the atom and bond types is consistent 
-    with one of the entries in "typepattern_to_coefftype", the corresponding 
+    with one of the entries in "typepattern_to_coefftypes", the corresponding 
     list of atoms from G_system is appended to the list of results.
 
     These results (the list of lists of atoms participating in an interaction)
@@ -40,7 +40,7 @@ def GenInteractions_int(G_system,
 
     Arguments:
     
-     -- typepattern_to_coefftype is a list of 2-tuples --
+     -- typepattern_to_coefftypes is a list of 2-tuples --
     The first element of the 2-tuple is the "typepattern".
     It contains a string describing a list of atom types and bond types.
     The typepattern is associated with a "coefftype",
@@ -93,7 +93,7 @@ def GenInteractions_int(G_system,
 
     if report_progress:
         startatomid = 0
-        sys.stderr.write('    Searching for matching bond patterns:\n')
+        sys.stderr.write('  searching for matching bond patterns:\n')
         sys.stderr.write('    0%')
 
     # Figure out which atoms from "G_system" bond together in a way which 
@@ -158,22 +158,92 @@ def GenInteractions_int(G_system,
 
     if report_progress:
         sys.stderr.write('  100%\n')
-        sys.stderr.write('    Looking up atom and bond types...')
-
-    # Now test each match to see if the types of atoms and bonds involved match
-    # any of the type-patterns in the "typepattern_to_coefftype" argument.
-    # If so, store them in the out_topo list
+        #sys.stderr.write('    ...done\n')
+        #sys.stderr.write('    Looking up available atom and bond types...')
 
     #coefftype_to_atomids = defaultdict(list)
     #abids_to_coefftypes = defaultdict(list)
     coefftype_to_atomids = OrderedDict()
     abids_to_coefftypes = OrderedDict()
 
-    count = 0
 
-    for typepattern, coefftype in typepattern_to_coefftype:
+
+
+    # -------------------- reporting progress -----------------------
+    if report_progress:
+        # The next interval of code is not technically necessary, but it makes 
+        # the printed output easier to read by excluding irrelevant interactions
+        # Now, test each match to see if the atoms and bonds involved match
+        # any of the type-patterns in the "typepattern_to_coefftypes" argument.
+
+        types_atoms_all_str = set([])
+        types_bonds_all_str = set([])
+        for typepattern, coefftype in typepattern_to_coefftypes:
+            for atombondtypes, abidslist in interactions_by_type.items():
+                for Iv in atombondtypes[0]:
+                    types_atoms_all_str.add(atomtypes_int2str[Iv])
+                for Ie in atombondtypes[1]:
+                    types_bonds_all_str.add(bondtypes_int2str[Ie])
+    # ------------------ reporting progress (end) -------------------
+
+
+
+    count = 0
+    for typepattern, coefftype in typepattern_to_coefftypes:
+
+
+        # ------------------ reporting progress -----------------------
+        # The next interval of code is not technically necessary, but it makes 
+        # the printed output easier to read by excluding irrelevant interactions
+
         if report_progress:
-            sys.stderr.write('    Checking (atom-types,bond-types) against \n     '+str(typepattern)+'-->'+coefftype+'\n')
+
+            # Check to see if the atoms or bonds referred to in typepattern
+            # are (potentially) satisfied by any of the atoms present in the system.
+            # If any of the required atoms for this typepattern are not present
+            # in this system, then skip to the next typepattern.
+            atoms_available_Iv = [False for Iv in range(0, g_bond_pattern.GetNumVerts())]
+            for Iv in range(0, g_bond_pattern.GetNumVerts()):
+                for type_atom_str in types_atoms_all_str:
+                    if MatchesPattern(type_atom_str, typepattern[Iv]):
+                        atoms_available_Iv[Iv] = True
+            atoms_available = True
+            for Iv in range(0, g_bond_pattern.GetNumVerts()):
+                if not atoms_available_Iv[Iv]:
+                    atoms_available = False
+
+            bonds_available_Ie = [False for Ie in range(0, g_bond_pattern.GetNumEdges())]
+            for Ie in range(0, g_bond_pattern.GetNumEdges()):
+                for type_bond_str in types_bonds_all_str:
+                    if MatchesPattern(type_bond_str,
+                                      typepattern[g_bond_pattern.GetNumVerts()+Ie]):
+                        bonds_available_Ie[Ie] = True
+            bonds_available = True
+            for Ie in range(0, g_bond_pattern.GetNumEdges()):
+                if not bonds_available_Ie[Ie]:
+                    bonds_available = False
+
+            if atoms_available and bonds_available:
+
+                # Explanation:
+                # (Again) only if ALL of the atoms and bond requirements for
+                # this typepattern are satisfied by at least SOME of the atoms
+                # present in the this system, ...THEN print a status message.
+                # (Because for complex all-atom force-fields, the number of
+                # possible atom types, and typepatterns far exceeds the number
+                # of atom types typically present in the system.  Otherwise
+                # hundreds of kB of irrelevant information can be printed.)
+
+                sys.stderr.write('    checking '+coefftype+' type requirements:'
+                                 #' (atom-types,bond-types) '
+                                 '\n     '+str(typepattern)+'\n')
+
+        # ------------------ reporting progress (end) -------------------
+
+
+
+
+
         for atombondtypes, abidslist in interactions_by_type.items():
             # express atom & bond types in a tuple of the original string format
             types_atoms  = [atomtypes_int2str[Iv] for Iv in atombondtypes[0]]
@@ -211,7 +281,7 @@ def GenInteractions_int(G_system,
                         count += 1
 
     if report_progress:
-        sys.stderr.write(' done\n    (found '+
+        sys.stderr.write('  (found '+
                          str(count)+' non-redundant matches)\n')
 
     return coefftype_to_atomids
@@ -225,7 +295,7 @@ def GenInteractions_int(G_system,
 
 def GenInteractions_str(bond_pairs,
                         g_bond_pattern,
-                        typepattern_to_coefftype,
+                        typepattern_to_coefftypes,
                         canonical_order, #function to sort atoms and bonds
                         atomids_str,
                         atomtypes_str,
@@ -290,14 +360,15 @@ def GenInteractions_str(bond_pairs,
 
     coefftype_to_atomids_int = GenInteractions_int(G_system,
                                                    g_bond_pattern,
-                                                   typepattern_to_coefftype,
+                                                   typepattern_to_coefftypes,
                                                    canonical_order,
                                                    atomtypes_int2str,
                                                    bondtypes_int2str,
                                                    report_progress)
     coefftype_to_atomids_str = OrderedDict()
     for coefftype, atomidss_int in coefftype_to_atomids_int.items():
-        sys.stderr.write('  processing coefftype='+str(coefftype)+'\n')
+        if report_progress:
+            sys.stderr.write('    processing coefftype: '+str(coefftype)+'\n')
         for atomids_int in atomidss_int:
             if coefftype in coefftype_to_atomids_str:
                 coefftype_to_atomids_str[coefftype].append(

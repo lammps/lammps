@@ -1,5 +1,4 @@
 import "2bead.lt"
-import "2bead_angles.lt"
 
 Peptide {
 
@@ -21,20 +20,20 @@ Peptide {
   res14 = new 2bead/P.rot(180.0, 1,0,0).move(41.6,0,0)
 
   # Now, link the residues together this way:
-  write("Data Bonds") {
-    $bond:backbone1  @bond:2bead/backbone  $atom:res1/CA  $atom:res2/CA
-    $bond:backbone2  @bond:2bead/backbone  $atom:res2/CA  $atom:res3/CA
-    $bond:backbone3  @bond:2bead/backbone  $atom:res3/CA  $atom:res4/CA
-    $bond:backbone4  @bond:2bead/backbone  $atom:res4/CA  $atom:res5/CA
-    $bond:backbone5  @bond:2bead/backbone  $atom:res5/CA  $atom:res6/CA
-    $bond:backbone6  @bond:2bead/backbone  $atom:res6/CA  $atom:res7/CA
-    $bond:backbone7  @bond:2bead/backbone  $atom:res7/CA  $atom:res8/CA
-    $bond:backbone8  @bond:2bead/backbone  $atom:res8/CA  $atom:res9/CA
-    $bond:backbone9  @bond:2bead/backbone  $atom:res9/CA  $atom:res10/CA
-    $bond:backbone10  @bond:2bead/backbone  $atom:res10/CA  $atom:res11/CA
-    $bond:backbone11  @bond:2bead/backbone  $atom:res11/CA  $atom:res12/CA
-    $bond:backbone12  @bond:2bead/backbone  $atom:res12/CA  $atom:res13/CA
-    $bond:backbone13  @bond:2bead/backbone  $atom:res13/CA  $atom:res14/CA
+  write("Data Bond List") {
+    $bond:backbone1  $atom:res1/CA  $atom:res2/CA
+    $bond:backbone2  $atom:res2/CA  $atom:res3/CA
+    $bond:backbone3  $atom:res3/CA  $atom:res4/CA
+    $bond:backbone4  $atom:res4/CA  $atom:res5/CA
+    $bond:backbone5  $atom:res5/CA  $atom:res6/CA
+    $bond:backbone6  $atom:res6/CA  $atom:res7/CA
+    $bond:backbone7  $atom:res7/CA  $atom:res8/CA
+    $bond:backbone8  $atom:res8/CA  $atom:res9/CA
+    $bond:backbone9  $atom:res9/CA  $atom:res10/CA
+    $bond:backbone10  $atom:res10/CA  $atom:res11/CA
+    $bond:backbone11  $atom:res11/CA  $atom:res12/CA
+    $bond:backbone12  $atom:res12/CA  $atom:res13/CA
+    $bond:backbone13  $atom:res13/CA  $atom:res14/CA
   }
 
   create_var { $mol }    # <--create a molecule ID number for this peptide
@@ -48,4 +47,4 @@ Peptide {
 
 
 # Angle, dihedral and improper interactions will be generated
-# according to the instructions in "2bead_angles.lt"
+# according to the instructions in "2bead_force_field.lt"

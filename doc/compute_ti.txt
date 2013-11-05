@@ -76,7 +76,7 @@ wildcard asterisk can be used in place of or in conjunction with the
 an asterisk with no numeric values means all types from 1 to N.  A
 leading asterisk means all types from 1 to n (inclusive).  A trailing
 asterisk means all types from n to N (inclusive).  A middle asterisk
-means all types from m to n (inclusive). 
+means all types from m to n (inclusive).
 
 You also specify two functions, as "equal-style
 variables"_variable.html.  The first is specified as {v_name1}, where
@@ -105,6 +105,8 @@ command.
 More details about the exact functional forms for the computation of
 du/dl can be found in the paper by "Eike"_#Eike.
 
+:line
+
 [Output info:] 
 
 This compute calculates a global scalar, namely dUs/dlambda.  This
@@ -119,8 +121,8 @@ The scalar value will be in energy "units"_units.html.
 
 [Restrictions:]
 
-This compute is part of the MISC package.  It is only enabled if LAMMPS
-was built with that package.  See the "Making
+This compute is part of the MISC package.  It is only enabled if
+LAMMPS was built with that package.  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info.
 
 [Related commands:]
@@ -128,6 +130,8 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 "fix adapt"_fix_adapt.html
 
 [Default:] none
+
+:line
 
 :link(Eike)
 [(Eike)] Eike and Maginn, Journal of Chemical Physics, 124, 164503 (2006).

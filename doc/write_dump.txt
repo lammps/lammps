@@ -34,19 +34,20 @@ write_dump all image snap*.jpg element element &
 [Description:]
 
 Dump a single snapshot of atom quantities to one or more files for the
-current state of the system.  This is a one-time immediate operation, in
-contrast to the "dump"_dump.html command which will will set up a dump
-style to write out snapshots periodically during running a simulation.
+current state of the system.  This is a one-time immediate operation,
+in contrast to the "dump"_dump.html command which will will set up a
+dump style to write out snapshots periodically during a running
+simulation.
 
 The syntax for this command is mostly identical to that of the
 "dump"_dump.html and "dump_modify"_dump_modify.html commands as if
 they were concatenated together, with the following exceptions: There
-is no need for a dump ID or dump frequency and the keyword {modify}
-is added. The latter is so that the full range of 
+is no need for a dump ID or dump frequency and the keyword {modify} is
+added.  The latter is so that the full range of
 "dump_modify"_dump_modify.html options can be specified for the single
-snapshot, just as they can be for multiple snapshots.  The {modify} 
-keywords separates the arguments that would normally be passed to the
-{dump} command from those that would be given the {dump_modify}. Both
+snapshot, just as they can be for multiple snapshots.  The {modify}
+keyword separates the arguments that would normally be passed to the
+{dump} command from those that would be given the {dump_modify}.  Both
 support optional arguments and thus LAMMPS needs to be able to cleanly
 separate the two sets of args.
 

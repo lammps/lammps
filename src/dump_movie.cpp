@@ -11,15 +11,18 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+/* ----------------------------------------------------------------------
+   Contributing author:  Axel Kohlmeyer (Temple U)
+------------------------------------------------------------------------- */
 
+#include "stdio.h"
+#include "stdlib.h"
+#include "string.h"
 #include "dump_movie.h"
 #include "comm.h"
-#include "error.h"
 #include "force.h"
 #include "memory.h"
+#include "error.h"
 
 using namespace LAMMPS_NS;
 
@@ -70,6 +73,7 @@ void DumpMovie::openfile()
 void DumpMovie::init_style()
 {
   // initialize image style circumventing multifile check
+
   multifile = 1;
   DumpImage::init_style();
   multifile = 0;

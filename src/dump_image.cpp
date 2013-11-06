@@ -47,6 +47,7 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
   // force binary flag on to avoid corrupted output on Windows
 
   binary = 1;
+  multifile_override = 0;
 
   // set filetype based on filename suffix
 
@@ -389,7 +390,7 @@ DumpImage::~DumpImage()
 
 void DumpImage::init_style()
 {
-  if (multifile == 0)
+  if (multifile == 0 && !multifile_override)
     error->all(FLERR,"Dump image requires one snapshot per file");
   if (sort_flag) error->all(FLERR,"Dump image cannot perform sorting");
 

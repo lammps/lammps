@@ -57,30 +57,10 @@
 
 2bead {
 
-  # LAMMPS supports a large number of force-field styles.  We must select
-  # which ones we need.  This information belongs in the "In Init" section.
-  # (Hybrid styles used for portability. These choices can be overridden later.)
-
   write_once("In Init") {
-    # -- Default styles for "2bead" --
     units           real
     atom_style      full
-    # (Hybrid force fields were not necessary but are used for portability.)
-    bond_style      hybrid harmonic
-    angle_style     hybrid harmonic
-    dihedral_style  hybrid charmm
-    pair_style      hybrid lj/cut 11.0
-
-    # If charges are needed, (assuming biopolymers), try one of:
-    #dielectric      80.0
-    #pair_style      hybrid lj/cut/coul/debye 0.1 11.0
-    # or (for short distances, below a couple nm)
-    #pair_style      hybrid lj/charmm/coul/charmm/implicit 9.0 11.0
-
-    pair_modify     mix arithmetic
-    special_bonds   lj 0.0 0.0 0.0
   }
-
 
   # Define H (the "hydrophobic" residue)
   H {
@@ -89,8 +69,15 @@
       $atom:CA $mol:... @atom:../CA 0.0  0.000  1.0000   0.0000000
       $atom:R  $mol:... @atom:R     0.0  0.000  4.4000   0.0000000
     }
-    write("Data Bonds") {
-      $bond:CR  @bond:../sidechain  $atom:CA $atom:R
+
+    # Old Data Bonds style
+    # write("Data Bonds") {
+    #   $bond:CR  @bond:../sidechain  $atom:CA $atom:R
+    # }
+
+    # New Data Bond List style
+    write("Data Bond List") {
+      $bond:CR $atom:CA $atom:R
     }
   }
 
@@ -102,10 +89,18 @@
       $atom:CA $mol:... @atom:../CA 0.0  0.000  1.0000   0.0000000
       $atom:R  $mol:... @atom:R     0.0  0.000  4.4000   0.0000000
     }
-    write("Data Bonds") {
-      $bond:CR  @bond:../sidechain  $atom:CA $atom:R
+
+    # Old Data Bonds style
+    # write("Data Bonds") {
+    #   $bond:CR  @bond:../sidechain  $atom:CA $atom:R
+    # }
+
+    # New Data Bond List style
+    write("Data Bond List") {
+      $bond:CR $atom:CA $atom:R
     }
   }
+
 
   # (Note: Again, atom types, bond-types, (dihedral-types, any variable, etc) 
   #        can be shared.  The ".." in "@atom:../CA" tells moltemplate that 
@@ -127,46 +122,6 @@
     @atom:CA   13.0
     @atom:H/R  50.0
     @atom:P/R  50.0
-  }
-
-
-  # --------------------------------------------------------------------
-  # -- In this example, all force field parameters are stored in the  --
-  # -- file named "In Settings".  They can also go in sections like   --
-  # -- "Data Pair Coeffs", "Data Bond Coeffs", "Data Angle Coeffs"... --
-  # --------------------------------------------------------------------
-
-
-  # 2-body (non-bonded) interactions:
-  #
-  #   Uij(r) = 4*eps_ij * ( (sig_ij/r)^12 - (sig_ij/r)^6 )
-  #
-  # Hydrophobic side-chains are attractive (large epsilon parameter).
-  # Polar side-chains and backbone atoms are not attractive (small epsilon).
-  #
-  #              i       j           pairstylename   eps sig
-  #
-  write_once("In Settings") {
-    pair_coeff @atom:CA  @atom:CA    lj/cut         0.10 2.0
-    pair_coeff @atom:H/R @atom:H/R   lj/cut         2.50 3.6
-    pair_coeff @atom:P/R @atom:P/R   lj/cut         0.10 3.6
-  }
-  #
-  # (Interactions between different atom types use "arithmetic" mixing rules.)
-
-
-  # 2-body (bonded) interactions:
-  #
-  #   Ubond(r) = (k/2)*(r-0)^2
-  #
-  #   The corresponding command is:
-  #
-  #   bond_coeff     bondType    bondstylename   k     r0
-  #
-
-  write_once("In Settings") {
-    bond_coeff     @bond:sidechain  harmonic    30.0   3.4
-    bond_coeff     @bond:backbone   harmonic    30.0   3.7
   }
 
 } # 2bead

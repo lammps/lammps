@@ -36,7 +36,12 @@ Graphene {
   # Now define properties of the Carbon graphene atom
 
   write_once("In Init") {
-    pair_style hybrid  lj/charmm/coul/charmm  9.0 10.0
+    # If all of the graphene carbon atoms have zero charge, try this:
+    pair_style hybrid  lj/cut  10.0
+
+    # If some of the boundary atoms have non-zero (partial) charge, try these:
+    #pair_style hybrid  lj/charmm/coul/charmm  9.0 10.0
+    #pair_style hybrid  lj/charmm/coul/long    9.0 10.0
   }
 
   write_once("Data Masses") {
@@ -44,12 +49,19 @@ Graphene {
   }
 
   write_once("In Settings") {
-    #              i       j                              epsilon     sigma 
-    pair_coeff  @atom:C @atom:C  lj/charmm/coul/charmm   0.068443     3.407
+    # If all graphene carbon atoms have zero charge, try this:
+    pair_coeff  @atom:C @atom:C  lj/cut                  0.068443     3.407
+
+    #              i       j                              epsilon     sigma
+    # If some of the boundary atoms have non-zero (partial) charge, try these:
+    #pair_coeff  @atom:C @atom:C  lj/charmm/coul/charmm  0.068443     3.407
+    #pair_coeff  @atom:C @atom:C  lj/charmm/coul/long    0.068443     3.407
 
     # These Lennard-Jones parameters come from
     #  R. Saito, R. Matsuo, T. Kimura, G. Dresselhaus, M.S. Dresselhaus,
     #  Chem Phys Lett, 348:187 (2001)
+    # LAMMPS provides more realistic manybody force fields for graphene.
+    # But in this example, we immobilize the atoms so it does not matter.)
 
     # Define a group consisting of only carbon atoms in graphene molecules
     group Cgraphene type @atom:C

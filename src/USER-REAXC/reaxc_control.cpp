@@ -393,6 +393,8 @@ char Read_Control_File( char *control_file, control_params* control,
   free( tmp );
   free( s );
 
+  fclose(fp);
+
   // fprintf( stderr,"%d %d %10.5f %d %10.5f %10.5f\n",
   //   control->ensemble, control->nsteps, control->dt,
   //   control->tabulate, control->T, control->P );

@@ -44,8 +44,8 @@ SPCE {
     pair_coeff   @atom:O @atom:O  lj/charmm/coul/long  0.1553  3.166 
     pair_coeff   @atom:H @atom:H  lj/charmm/coul/long  0.0     2.058
     group spce type  @atom:O  @atom:H
-    fix fSHAKE spce shake 0.0001 10 100 b @bond:OH a @angle:HOH
-    # (Remember to "unfix" fSHAKE during minimization.)
+    fix fShakeSPCE spce shake 0.0001 10 100 b @bond:OH a @angle:HOH
+    # (Remember to "unfix" fShakeSPCE during minimization.)
   }
 
 } # end of definition of "SPCE" water molecule type

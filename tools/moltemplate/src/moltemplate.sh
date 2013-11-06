@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Author: Andrew Jewett (jewett.aij at g mail)
 #         http://www.chem.ucsb.edu/~sheagroup
@@ -7,8 +7,8 @@
 # All rights reserved.
 
 G_PROGRAM_NAME="moltemplate.sh"
-G_VERSION="1.1"
-G_DATE="2013-7-15"
+G_VERSION="1.14"
+G_DATE="2013-10-08"
 
 echo "${G_PROGRAM_NAME} v${G_VERSION} ${G_DATE}" >&2
 echo "" >&2
@@ -16,7 +16,8 @@ echo "" >&2
 
 # Check for python:
 # I prefer python over python3 because python3 requires 
-# more memory.  Just use regular python when available.
+# more memory.  Use regular python (ie 2.7) when available.
+
 if which python > /dev/null; then 
     PYTHON_COMMAND='python'
 elif which python3 > /dev/null; then 
@@ -75,6 +76,8 @@ remove_duplicate_atoms.py
 remove_duplicates_nbody.py
 renumber_DATA_first_column.py
 ttree_render.py
+dump2data.py
+raw2data.py
 EOF
 )
 
@@ -87,8 +90,8 @@ IFS="
     
 for f in $MOLTEMPLATE_FILES_NEEDED; do
     if [ ! -s "${SCRIPT_DIR}/$f" ]; then
-	echo "Error: Missing file \"${SCRIPT_DIR}/$f\"" >&2
-	ERR_BAD_INSTALL
+        echo "Error: Missing file \"${SCRIPT_DIR}/$f\"" >&2
+        ERR_BAD_INSTALL
     fi
 done
 IFS=$OIFS
@@ -110,47 +113,6 @@ LTTREE_CHECK_COMMAND="$PYTHON_COMMAND \"${SCRIPT_DIR}/lttree_check.py\" ${IMOLPA
 LTTREE_POSTPROCESS_COMMAND="$PYTHON_COMMAND \"${SCRIPT_DIR}/lttree_postprocess.py\" ${IMOLPATH}"
 
 
-# What is the name of the .LT file we are reading?
-for LAST_ARG; do true; done
-# (I copied this code from a web page:
-# http://stackoverflow.com/questions/1853946/getting-the-last-argument-passed-to-a-shell-script)
-
-# Check to see if this string ends in .lt or .LT
-# If so, then set the base name of the output files
-# to equal the base name of the .LT file being read.
-# (Being careful here.
-#  Sometimes the last argument is not the .lt or .LT file.
-#  Sometimes that file appears earlier in the argument list.
-#  I want to supply a default value.)
-#
-#   Note, in bash you can use: 
-# if [ "${LAST_ARG/%.lt/}" -neq "$LAST_ARG" ]; then
-#     OUT_FILE_BASE="${LAST_ARG/%.lt/}"
-# But in the original bourn shell (sh), this does not work. 
-# Instead we use a hack involving basename and dirname:
-LTFILE="$LAST_ARG"
-LTFILE_DIR=`dirname "$LTFILE"`
-LTFILE_BASE=`basename "$LTFILE" .lt`
-LTFILE_NO_EXT="${LTFILE_DIR}/${LTFILE_BASE}"
-OUT_FILE_BASE="system"
-if [ "$LTFILE_NO_EXT" != "$LTFILE" ]; then
-    OUT_FILE_BASE="$LTFILE_BASE"
-else
-    LTFILE_BASE=`basename "$LAST_ARG" .LT`
-    LTFILE_NO_EXT="${LTFILE_DIR}/${LTFILE_BASE}"
-    if [ "$LTFILE_NO_EXT" != "$LTFILE" ]; then
-	OUT_FILE_BASE="$LTFILE_BASE"
-    fi
-fi
-OUT_FILE_INPUT_SCRIPT="${OUT_FILE_BASE}.in"
-OUT_FILE_INIT="${OUT_FILE_BASE}.in.init"
-OUT_FILE_SETTINGS="${OUT_FILE_BASE}.in.settings"
-OUT_FILE_DATA="${OUT_FILE_BASE}.data"
-OUT_FILE_COORDS="${OUT_FILE_BASE}.in.coords"
-
-rm -f "$OUT_FILE_INPUT_SCRIPT" "$OUT_FILE_INIT" "$OUT_FILE_SETTINGS" "$OUT_FILE_DATA" "$OUT_FILE_COORDS"
-
-
 # -----------------------------------------------------------
 # If everything worked, then running ttree usually 
 # generates the following files:
@@ -166,6 +128,7 @@ data_atoms="Data Atoms"
 data_masses="Data Masses"
 data_velocities="Data Velocities"
 data_bonds="Data Bonds"
+data_bond_list="Data Bond List"
 data_angles="Data Angles"
 data_dihedrals="Data Dihedrals"
 data_impropers="Data Impropers"
@@ -176,6 +139,7 @@ data_improper_coeffs="Data Improper Coeffs"
 data_pair_coeffs="Data Pair Coeffs"
 
 # interactions-by-type (not id. This is not part of the LAMMPS standard.)
+data_bonds_by_type="Data Bonds By Type"
 data_angles_by_type="Data Angles By Type"
 data_dihedrals_by_type="Data Dihedrals By Type"
 data_impropers_by_type="Data Impropers By Type"
@@ -235,6 +199,7 @@ $data_improper_coeffs
 $data_atoms
 $data_velocities
 $data_bonds
+$data_bond_list
 $data_angles
 $data_dihedrals
 $data_impropers
@@ -250,6 +215,7 @@ $data_ellipsoids
 $data_lines
 $data_triangles
 $data_boundary
+$data_bonds_by_type
 $data_angles_by_type
 $data_dihedrals_by_type
 $data_impropers_by_type
@@ -365,6 +331,8 @@ rm -f "$tmp_atom_coords"
 PDB_FILE=""
 XYZ_FILE=""
 RAW_FILE=""
+LT_FILE=""
+OUT_FILE_BASE="system"
 # REMOVE_DUPLICATE variables:
 # ...If true (default), then any duplicate entries in the lists of bonds
 # bonds, angles, dihedrals, or impropers in the LAMMPS DATA file
@@ -383,39 +351,37 @@ for A in "$@"; do
 done
 
 TTREE_ARGS=""
+ATOM_STYLE=""
 
 i=0
 while [ "$i" -lt "$ARGC" ]; do
     i=$((i+1))
     eval A=\${ARGV${i}}
-    if [ "$A" = "-nocheck" ]; then
-	# Disable syntax checking by undefining LTTREE_CHECK_COMMAND
-	unset LTTREE_CHECK_COMMAND
-	unset LTTREE_POSTPROCESS_COMMAND
-    elif [ "$A" = "-overlay-bonds" ]; then
-	# In that case, do not remove duplicate bond interactions
-	unset REMOVE_DUPLICATE_BONDS
-    elif [ "$A" = "-overlay-angles" ]; then
-	# In that case, do not remove duplicate angle interactions
-	unset REMOVE_DUPLICATE_ANGLES
-    elif [ "$A" = "-overlay-dihdedrals" ]; then
-	# In that case, do not remove duplicate dihedral interactions
-	unset REMOVE_DUPLICATE_DIHEDRALS
-    elif [ "$A" = "-overlay-impropers" ]; then
-	# In that case, do not remove duplicate improper interactions
-	unset REMOVE_DUPLICATE_IMPROPERS
+    if [ "$A" == "-nocheck" ]; then
+        # Disable syntax checking by undefining LTTREE_CHECK_COMMAND
+        unset LTTREE_CHECK_COMMAND
+        unset LTTREE_POSTPROCESS_COMMAND
+    elif [ "$A" == "-overlay-bonds" ]; then
+        # In that case, do not remove duplicate bond interactions
+        unset REMOVE_DUPLICATE_BONDS
+    elif [ "$A" == "-overlay-angles" ]; then
+        # In that case, do not remove duplicate angle interactions
+        unset REMOVE_DUPLICATE_ANGLES
+    elif [ "$A" == "-overlay-dihdedrals" ]; then
+        # In that case, do not remove duplicate dihedral interactions
+        unset REMOVE_DUPLICATE_DIHEDRALS
+    elif [ "$A" == "-overlay-impropers" ]; then
+        # In that case, do not remove duplicate improper interactions
+        unset REMOVE_DUPLICATE_IMPROPERS
 
-    elif [ "$A" = "-raw" ]; then
+    elif [ "$A" == "-raw" ]; then
         if [ "$i" -eq "$ARGC" ]; then
             echo "$SYNTAX_MSG" >&2
             exit 7
         fi
-	# "isnum(x)" returns 1 or 0 depending upon whether or not
-	# a string is numeric.
-	#http://rosettacode.org/wiki/Determine_if_a_string_is_numeric#AWK
         i=$((i+1))
         eval A=\${ARGV${i}}
-	RAW_FILE=$A
+        RAW_FILE=$A
         if [ ! -s "$RAW_FILE" ]; then
             echo "$SYNTAX_MSG" >&2
             echo "-----------------------" >&2
@@ -424,20 +390,17 @@ while [ "$i" -lt "$ARGC" ]; do
             echo "       (File is empty or does not exist.)" >&2
             exit 8
         fi
-	#echo "  (extracting coordinates from \"$RAW_FILE\")" >&2
-	awk '{if (NF==3) {print $0}}' < "$RAW_FILE" > "$tmp_atom_coords"
+        #echo "  (extracting coordinates from \"$RAW_FILE\")" >&2
+        awk '{if (NF==3) {print $0}}' < "$RAW_FILE" > "$tmp_atom_coords"
 
-    elif [ "$A" = "-xyz" ]; then
+    elif [ "$A" == "-xyz" ]; then
         if [ "$i" -eq "$ARGC" ]; then
             echo "$SYNTAX_MSG" >&2
             exit 7
         fi
-	# "isnum(x)" returns 1 or 0 depending upon whether or not
-	# a string is numeric.
-	#http://rosettacode.org/wiki/Determine_if_a_string_is_numeric#AWK
         i=$((i+1))
         eval A=\${ARGV${i}}
-	XYZ_FILE=$A
+        XYZ_FILE=$A
         if [ ! -s "$XYZ_FILE" ]; then
             echo "$SYNTAX_MSG" >&2
             echo "-----------------------" >&2
@@ -446,10 +409,15 @@ while [ "$i" -lt "$ARGC" ]; do
             echo "       (File is empty or does not exist.)" >&2
             exit 8
         fi
-	#echo "  (extracting coordinates from \"$XYZ_FILE\")" >&2
-	awk 'function isnum(x){return(x==x+0)} BEGIN{targetframe=1;framecount=0} {if (isnum($0)) {framecount++} else{if (framecount==targetframe){  if (NF>0) { if ((NF==3) && isnum($1)) {print $1" "$2" "$3} else if ((NF==4) && isnum($2)) {print $2" "$3" "$4} }}}}' < "$XYZ_FILE" > "$tmp_atom_coords"
+        #echo "  (extracting coordinates from \"$XYZ_FILE\")" >&2
 
-    elif [ "$A" = "-pdb" ]; then 
+        # "isnum(x)" returns 1 or 0 depending upon whether or not
+        # a string is numeric.
+        #http://rosettacode.org/wiki/Determine_if_a_string_is_numeric#AWK
+
+        awk 'function isnum(x){return(x==x+0)} BEGIN{targetframe=1;framecount=0} {if (isnum($0)) {framecount++} else{if (framecount==targetframe){  if (NF>0) { if ((NF==3) && isnum($1)) {print $1" "$2" "$3} else if ((NF==4) && isnum($2)) {print $2" "$3" "$4} }}}}' < "$XYZ_FILE" > "$tmp_atom_coords"
+
+    elif [ "$A" == "-pdb" ]; then 
         if [ "$i" -eq "$ARGC" ]; then
             echo "$SYNTAX_MSG" >&2
             exit 9
@@ -465,13 +433,13 @@ while [ "$i" -lt "$ARGC" ]; do
             echo "       (File is empty or does not exist.)" >&2
             exit 10
         fi
-	#echo "  (extracting coordinates from \"$PDB_FILE\")" >&2
-	if grep -q '^ATOM  \|^HETATM' "$PDB_FILE"; then
+        #echo "  (extracting coordinates from \"$PDB_FILE\")" >&2
+        if grep -q '^ATOM  \|^HETATM' "$PDB_FILE"; then
             # Extract the coords from the "ATOM" records in the PDB file
-	    if ! $PYTHON_COMMAND "${SCRIPT_DIR}/pdbsort.py" < "$PDB_FILE" \
-		| awk '/^ATOM  |^HETATM/{print substr($0,31,8)" "substr($0,39,8)" "substr($0,47,8)}' > "$tmp_atom_coords"; then
-		ERR_INTERNAL
-	    fi
+            if ! $PYTHON_COMMAND "${SCRIPT_DIR}/pdbsort.py" < "$PDB_FILE" \
+                | awk '/^ATOM  |^HETATM/{print substr($0,31,8)" "substr($0,39,8)" "substr($0,47,8)}' > "$tmp_atom_coords"; then
+                ERR_INTERNAL
+            fi
         else
             echo "$SYNTAX_MSG" >&2
             echo "-----------------------" >&2
@@ -482,12 +450,12 @@ while [ "$i" -lt "$ARGC" ]; do
         # Now extract the periodic bounding-box informatio from the PDB file
         # The CRYST1 records are described at:
         # http://deposit.rcsb.org/adit/docs/pdb_atom_format.html
-	BOXSIZE_A=-1.0
-	BOXSIZE_B=-1.0
-	BOXSIZE_C=-1.0
-	ALPHA=" 90.00"  #Note: The space before the number in " 90.00" is intentional.
-	BETA=" 90.00"   #      Later we will check to see if the system is triclinic
-	GAMMA=" 90.00"  #      by comparing these strings for equality with " 90.00"
+        BOXSIZE_A=-1.0
+        BOXSIZE_B=-1.0
+        BOXSIZE_C=-1.0
+        ALPHA=" 90.00"  #Note: The space before the number in " 90.00" is intentional.
+        BETA=" 90.00"   #      Later we will check to see if the system is triclinic
+        GAMMA=" 90.00"  #      by comparing these strings for equality with " 90.00"
         if grep -qF "CRYST1" "$PDB_FILE"; then
             BOXSIZE_A=`awk '/CRYST1/{print substr($0,8,8)}' < "$PDB_FILE"`
             BOXSIZE_B=`awk '/CRYST1/{print substr($0,17,8)}' < "$PDB_FILE"`
@@ -505,42 +473,113 @@ while [ "$i" -lt "$ARGC" ]; do
             # equations are correct, but I don't know if their are special cases 
             # that require the coordinates to be rotated or processed beforehand.
             # This is an experimental feature.
-	    TRICLINIC="True"
-	    PI=3.1415926535897931
-	    BOXSIZE_X=$BOXSIZE_A
-	    BOXSIZE_Y=`awk "BEGIN{print $BOXSIZE_B*sin($GAMMA*$PI/180.0)}"`
-	    BOXSIZE_XY=`awk "BEGIN{print $BOXSIZE_B*cos($GAMMA*$PI/180.0)}"`
-	    BOXSIZE_XZ=`awk "BEGIN{print $BOXSIZE_C*cos($BETA*$PI/180.0)}"`
-	    BOXSIZE_YZ=`awk "BEGIN{ca=cos($ALPHA*$PI/180.0); cb=cos($BETA*$PI/180.0); cg=cos($GAMMA*$PI/180.0); sg=sin($GAMMA*$PI/180.0); c=$BOXSIZE_C; print c*(ca-(cg*cb))/sg}"`
-	    BOXSIZE_Z=`awk "BEGIN{print sqrt(($BOXSIZE_C**2)-(($BOXSIZE_XZ**2)+($BOXSIZE_YZ**2)))}"`
+            TRICLINIC="True"
+            PI=3.1415926535897931
+            BOXSIZE_X=$BOXSIZE_A
+            BOXSIZE_Y=`awk "BEGIN{print $BOXSIZE_B*sin($GAMMA*$PI/180.0)}"`
+            BOXSIZE_XY=`awk "BEGIN{print $BOXSIZE_B*cos($GAMMA*$PI/180.0)}"`
+            BOXSIZE_XZ=`awk "BEGIN{print $BOXSIZE_C*cos($BETA*$PI/180.0)}"`
+            BOXSIZE_YZ=`awk "BEGIN{ca=cos($ALPHA*$PI/180.0); cb=cos($BETA*$PI/180.0); cg=cos($GAMMA*$PI/180.0); sg=sin($GAMMA*$PI/180.0); c=$BOXSIZE_C; print c*(ca-(cg*cb))/sg}"`
+            BOXSIZE_Z=`awk "BEGIN{print sqrt(($BOXSIZE_C**2)-(($BOXSIZE_XZ**2)+($BOXSIZE_YZ**2)))}"`
         else
-	    BOXSIZE_X=$BOXSIZE_A
-	    BOXSIZE_Y=$BOXSIZE_B
-	    BOXSIZE_Z=$BOXSIZE_C
-	    BOXSIZE_XY=0.0
-	    BOXSIZE_XZ=0.0
-	    BOXSIZE_YZ=0.0
-	fi
-	BOXSIZE_MINX=0.0
-	BOXSIZE_MINY=0.0
-	BOXSIZE_MINZ=0.0
-	BOXSIZE_MAXX=$BOXSIZE_X
-	BOXSIZE_MAXY=$BOXSIZE_Y
-	BOXSIZE_MAXZ=$BOXSIZE_Z
+            BOXSIZE_X=$BOXSIZE_A
+            BOXSIZE_Y=$BOXSIZE_B
+            BOXSIZE_Z=$BOXSIZE_C
+            BOXSIZE_XY=0.0
+            BOXSIZE_XZ=0.0
+            BOXSIZE_YZ=0.0
+        fi
+        BOXSIZE_MINX=0.0
+        BOXSIZE_MINY=0.0
+        BOXSIZE_MINZ=0.0
+        BOXSIZE_MAXX=$BOXSIZE_X
+        BOXSIZE_MAXY=$BOXSIZE_Y
+        BOXSIZE_MAXZ=$BOXSIZE_Z
+
+    elif [ "$A" == "-atomstyle" ] || [ "$A" == "-atom-style" ] || [ "$A" == "-atom_style" ]; then
+        if [ "$i" -eq "$ARGC" ]; then
+            echo "$SYNTAX_MSG" >&2
+            exit 7
+        fi
+        i=$((i+1))
+        eval A=\${ARGV${i}}
+        if [ -z "$A" ]; then
+            echo "$SYNTAX_MSG" >&2
+            echo "-----------------------" >&2
+            echo "" >&2
+            echo "Error: The \"-atomstyle\" argument should be followed by an atom style." >&2
+            echo "       (See the \"atom_style\" command in the LAMMPS documentation.\n" >&2
+            echo "        Note: hybrid atom styles are allowed but should be enclosed in quotes.)\n" >&2
+            exit 8
+        fi
+
+        #echo "  (atom_style=\"$A\")" >&2
+        #echo "" >&2
+
+        ATOM_STYLE="-atomstyle \"$A\""
+
+        # (minor detail: $ATOM_STYLE should also be appended to TTREE_ARGS)
+        if [ -z "$TTREE_ARGS" ]; then
+            TTREE_ARGS="$ATOM_STYLE"
+        else
+            TTREE_ARGS="${TTREE_ARGS} $ATOM_STYLE"
+        fi
+
 
     #else:  If the arguments are not understood in this script, then
     #       pass them on to "lttree.py"
     else
         if [ -z "$TTREE_ARGS" ]; then
-	    TTREE_ARGS="\"$A\""
+            TTREE_ARGS="\"$A\""
         else
             TTREE_ARGS="${TTREE_ARGS} \"$A\""
+        fi
+
+        # Check to see if this string ($A) ends in .lt or .LT
+        # If so, then set the base name of the output files
+        # to equal the base name of the .LT file being read.
+        # (Being careful here.
+        #  Sometimes the last argument is not the .lt or .LT file.
+        #  Sometimes that file appears earlier in the argument list.
+        #  I want to supply a default value.)
+        #
+        #   Note, in bash you can use: 
+        # if [ "${LAST_ARG/%.lt/}" -neq "$LAST_ARG" ]; then
+        #     OUT_FILE_BASE="${LAST_ARG/%.lt/}"
+        # But in the original bourn shell (sh), this does not work. 
+        # Instead we use a hack involving basename and dirname:
+
+        A_FIRSTCHAR="$(echo $A| cut -c 1)"
+
+        if [ "$A_FIRSTCHAR" != "-" ]; then
+            DN=`dirname "$A"`
+            if [ "$DN" == "." ]; then
+                DN=""
+            else
+                DN="${DN}/"
+            fi
+
+            BN=`basename "$A" .lt`
+            if [ "${DN}${BN}" != "$A" ]; then
+                OUT_FILE_BASE="$BN"
+            else
+                BN=`basename "$A" .LT`
+                if [ "${DN}${BN}" != "$A" ]; then
+                    OUT_FILE_BASE="$BN"
+                fi
+            fi
         fi
     fi
 done
 
 
+OUT_FILE_INPUT_SCRIPT="${OUT_FILE_BASE}.in"
+OUT_FILE_INIT="${OUT_FILE_BASE}.in.init"
+OUT_FILE_SETTINGS="${OUT_FILE_BASE}.in.settings"
+OUT_FILE_DATA="${OUT_FILE_BASE}.data"
+OUT_FILE_COORDS="${OUT_FILE_BASE}.in.coords"
 
+rm -f "$OUT_FILE_INPUT_SCRIPT" "$OUT_FILE_INIT" "$OUT_FILE_SETTINGS" "$OUT_FILE_DATA" "$OUT_FILE_COORDS"
 
 
 
@@ -559,7 +598,7 @@ done
 
 if [ -n "$LTTREE_CHECK_COMMAND" ]; then
     if ! eval $LTTREE_CHECK_COMMAND $TTREE_ARGS; then
-	exit 1
+        exit 1
     fi
 fi
 
@@ -589,20 +628,20 @@ if [ -s "${data_atoms}" ]; then
     if ! $PYTHON_COMMAND "${SCRIPT_DIR}/remove_duplicate_atoms.py" \
                                    < "${data_atoms}" \
                                    > "${data_atoms}.tmp"; then
-	ERR_INTERNAL
+        ERR_INTERNAL
     fi
     mv -f "${data_atoms}.tmp" "${data_atoms}"
     if ! $PYTHON_COMMAND "${SCRIPT_DIR}/remove_duplicate_atoms.py" \
                                    < "${data_atoms}.template" \
                                    > "${data_atoms}.tmp"; then
-	ERR_INTERNAL
+        ERR_INTERNAL
     fi
     mv -f "${data_atoms}.tmp" "${data_atoms}.template"
 
     if ! $PYTHON_COMMAND "${SCRIPT_DIR}/renumber_DATA_first_column.py" \
                                        < "${data_atoms}" \
                                        > "${data_atoms}.tmp"; then
-	ERR_INTERNAL
+        ERR_INTERNAL
     fi
     mv -f "${data_atoms}.tmp" "${data_atoms}"
 else
@@ -630,11 +669,98 @@ fi
 # These data sections must be processed before everything else (because
 # they effect the other data sections, and the ttree_assignments.txt file.)
 # -------------------------------------------------------
+
+if [ -s "${data_bond_list}.template" ]; then
+
+    if [ ! -s "$data_bonds_by_type" ]; then
+        echo "Error: You have a \"Data Bond List\", section somewhere\n"
+        echo "       without a \"Data Bonds By Type\" section to support it.\n"
+        echo "       (Did you mean to use \"Data Bonds\" instead?)\n"
+        echo "Details:"
+        echo "       Unlike the \"Data Bonds\" section, the \"Data Bond List\" section\n"
+        echo "       allows the user to omit the bond types.  Instead moltemplate attempts\n"
+        echo "       to infer the type of bond by considering the pair of atom types.\n"
+        echo "       However you must define a \"Data Bonds By Type\" section\n"
+        echo "       to make this feature work (or use \"Data Bonds\" instead).\n"
+
+        exit 15
+    fi
+    echo "Looking up bond types according to atom type" >&2
+    #-- Generate a file containing bondid bondtype atomid1 atomid2 --
+    if ! $PYTHON_COMMAND "${SCRIPT_DIR}/bonds_by_type.py" \
+            -atoms "${data_atoms}.template" \
+            -bond-list "${data_bond_list}.template" \
+            -bondsbytype "${data_bonds_by_type}.template" \
+            -prefix '$/bond:bytype' > gen_Bonds.template.tmp; then
+        exit 4
+    #WARNING: DO NOT REPLACE THIS WITH
+    #if ! $NBODY_COMMAND ...<-this sometimes causes a shell quotes-related error
+    fi
+
+    # ---- cleanup: ----
+    # ---- Create or re-build the "${data_bonds}.template" file ----
+    # Instert these lines into the "${data_bonds}.template" file which includes
+    # the newly generated interactions. (Note: these are in .template format)
+
+    cp gen_Bonds.template.tmp new_Bonds.template.tmp
+    if [ -s "${data_bonds}.template" ]; then
+        # Then append existing "Bonds" to the end of the generated interactions
+        # (Hopefully this way they will override those interactions.)
+        cat "${data_bonds}.template" >> new_Bonds.template.tmp 
+    fi
+    mv -f new_Bonds.template.tmp "${data_bonds}.template"
+
+
+
+    #  ------  THE NEXT STEP IS NOT CURRENTLY NEEDED ------
+    # All of the $bond variables have already been created, they just lack types
+    # However we will need to do this if the user wants to omits the bond-ids.
+    # In case I plan to allow the user to omit bond-ids, I leave this code here.
+    #
+    #echo "(Repairing ttree_assignments.txt file after bonds added.)" >&2
+    #
+    ## ---- Repair the ttree_assignments.txt file ----
+    ## The next 2 lines extract the variable names from data_new.template.tmp
+    ## and instert them into the appropriate place in ttree_assignments.txt 
+    ## (renumbering the relevant variable-assignments to avoid clashes).
+    #if ! $PYTHON_COMMAND "${SCRIPT_DIR}/nbody_fix_ttree_assignments.py" \
+    #      '/bond' gen_Bonds.template.tmp \
+    #      < ttree_assignments.txt \
+    #      > ttree_assignments.tmp; then
+    #    exit 5
+    #fi
+    #
+    #echo "(Rendering ttree_assignments.tmp file after bonds added.)" >&2
+    #mv -f ttree_assignments.tmp ttree_assignments.txt
+    #  ----------------------------------------------------
+
+
+
+    # ---- Re-build (render) the "$data_bonds" file ----
+    # Now substitute these variable values (assignments) into the variable 
+    # names present in the .template file.  (We want to convert the file from 
+    # a .template format into an ordinary (numeric) LAMMPS data-section format.)
+
+    if ! $PYTHON_COMMAND "${SCRIPT_DIR}/ttree_render.py" \
+           ttree_assignments.txt \
+           < "${data_bonds}.template" \
+           > "$data_bonds"; then
+        exit 6
+    fi
+
+    echo "" >&2
+
+    rm -f gen_Bonds.template.tmp new_Bonds.template.tmp 
+fi
+
+
 if [ -s "$data_angles_by_type" ]; then
     echo "Generating 3-body angle interactions by atom/bond type" >&2
     #-- Generate a file containing the list of interactions on separate lines --
     if ! $PYTHON_COMMAND "${SCRIPT_DIR}/nbody_by_type.py" \
-            Angles \
+            -subgraph nbody_Angles.py \
+            -section "Angles" \
+            -sectionbytype "Angles By Type" \
             -atoms "${data_atoms}.template" \
             -bonds "${data_bonds}.template" \
             -nbodybytype "${data_angles_by_type}.template" \
@@ -651,9 +777,9 @@ if [ -s "$data_angles_by_type" ]; then
 
     cp gen_Angles.template.tmp new_Angles.template.tmp
     if [ -s "${data_angles}.template" ]; then
-	# Then append existing "Angles" to the end of the generated interactions
-	# (Hopefully this way they will override those interactions.)
-	cat "${data_angles}.template" >> new_Angles.template.tmp 
+        # Then append existing "Angles" to the end of the generated interactions
+        # (Hopefully this way they will override those interactions.)
+        cat "${data_angles}.template" >> new_Angles.template.tmp 
     fi
     mv -f new_Angles.template.tmp "${data_angles}.template"
 
@@ -676,13 +802,13 @@ if [ -s "$data_angles_by_type" ]; then
     # Now substitute these variable values (assignments) into the variable 
     # names present in the .template file.  (We want to convert the file from 
     # a .template format into an ordinary (numeric) LAMMPS data-section format.)
-
     if ! $PYTHON_COMMAND "${SCRIPT_DIR}/ttree_render.py" \
            ttree_assignments.tmp \
            < "${data_angles}.template" \
            > "$data_angles"; then
         exit 6
     fi
+    echo "" >&2
 
     mv -f ttree_assignments.tmp ttree_assignments.txt
     rm -f gen_Angles.template.tmp new_Angles.template.tmp 
@@ -695,7 +821,9 @@ if [ -s "$data_dihedrals_by_type" ]; then
     echo "Generating 4-body dihedral interactions by atom/bond type" >&2
     #-- Generate a file containing the list of interactions on separate lines --
     if ! $PYTHON_COMMAND "${SCRIPT_DIR}/nbody_by_type.py" \
-            Dihedrals \
+            -subgraph nbody_Dihedrals.py \
+            -section "Dihedrals" \
+            -sectionbytype "Dihedrals By Type" \
             -atoms "${data_atoms}.template" \
             -bonds "${data_bonds}.template" \
             -nbodybytype "${data_dihedrals_by_type}.template" \
@@ -712,9 +840,9 @@ if [ -s "$data_dihedrals_by_type" ]; then
 
     cp gen_Dihedrals.template.tmp new_Dihedrals.template.tmp
     if [ -s "${data_dihedrals}.template" ]; then
-	# Then append existing "Dihedrals" to the end of the generated interactions
-	# (Hopefully this way they will override those interactions.)
-	cat "${data_dihedrals}.template" >> new_Dihedrals.template.tmp 
+        # Then append existing "Dihedrals" to the end of the generated interactions
+        # (Hopefully this way they will override those interactions.)
+        cat "${data_dihedrals}.template" >> new_Dihedrals.template.tmp 
     fi
     mv -f new_Dihedrals.template.tmp "${data_dihedrals}.template"
 
@@ -743,6 +871,7 @@ if [ -s "$data_dihedrals_by_type" ]; then
            > "$data_dihedrals"; then
         exit 6
     fi
+    echo "" >&2
 
     mv -f ttree_assignments.tmp ttree_assignments.txt
     rm -f gen_Dihedrals.template.tmp new_Dihedrals.template.tmp 
@@ -750,12 +879,13 @@ fi
 
 
 
-
 if [ -s "$data_impropers_by_type" ]; then
     echo "Generating 4-body improper interactions by atom/bond type" >&2
     #-- Generate a file containing the list of interactions on separate lines --
     if ! $PYTHON_COMMAND "${SCRIPT_DIR}/nbody_by_type.py" \
-            Impropers \
+            -subgraph nbody_Impropers.py \
+            -section "Impropers" \
+            -sectionbytype "Impropers By Type" \
             -atoms "${data_atoms}.template" \
             -bonds "${data_bonds}.template" \
             -nbodybytype "${data_impropers_by_type}.template" \
@@ -772,9 +902,9 @@ if [ -s "$data_impropers_by_type" ]; then
 
     cp gen_Impropers.template.tmp new_Impropers.template.tmp
     if [ -s "${data_impropers}.template" ]; then
-	# Then append existing "Impropers" to the end of the generated interactions
-	# (Hopefully this way they will override those interactions.)
-	cat "${data_impropers}.template" >> new_Impropers.template.tmp 
+        # Then append existing "Impropers" to the end of the generated interactions
+        # (Hopefully this way they will override those interactions.)
+        cat "${data_impropers}.template" >> new_Impropers.template.tmp 
     fi
     mv -f new_Impropers.template.tmp "${data_impropers}.template"
 
@@ -803,6 +933,7 @@ if [ -s "$data_impropers_by_type" ]; then
            > "$data_impropers"; then
         exit 6
     fi
+    echo "" >&2
 
     mv -f ttree_assignments.tmp ttree_assignments.txt
     rm -f gen_Impropers.template.tmp new_Impropers.template.tmp 
@@ -830,7 +961,7 @@ if [ -s "${data_masses}" ]; then
     if ! $PYTHON_COMMAND "${SCRIPT_DIR}/remove_duplicate_atoms.py" \
                                    < "${data_masses}" \
                                    > "${data_masses}.tmp"; then
-	ERR_INTERNAL
+        ERR_INTERNAL
     fi
     mv -f "${data_masses}.tmp" "${data_masses}" 
 fi
@@ -838,30 +969,30 @@ fi
 
 if [ -s "${data_bonds}" ]; then
     if [ ! -z $REMOVE_DUPLICATE_BONDS ]; then
-	if ! $PYTHON_COMMAND "${SCRIPT_DIR}/nbody_reorder_atoms.py" \
+        if ! $PYTHON_COMMAND "${SCRIPT_DIR}/nbody_reorder_atoms.py" \
                              Bonds \
                              < "${data_bonds}" \
                              > "${data_bonds}.tmp"; then
-	    ERR_INTERNAL
-	fi
-	cp -f "${data_bonds}.tmp" "${data_bonds}"
+            ERR_INTERNAL
+        fi
+        cp -f "${data_bonds}.tmp" "${data_bonds}"
         if ! $PYTHON_COMMAND "${SCRIPT_DIR}/remove_duplicates_nbody.py" 2 \
                              < "${data_bonds}" \
                              > "${data_bonds}.tmp"; then
-	    ERR_INTERNAL
-	fi
+            ERR_INTERNAL
+        fi
         mv "${data_bonds}.tmp" "${data_bonds}"
         if ! $PYTHON_COMMAND "${SCRIPT_DIR}/remove_duplicates_nbody.py" 2 \
                              < "${data_bonds}.template" \
                              > "${data_bonds}.tmp"; then
-	    ERR_INTERNAL
-	fi
+            ERR_INTERNAL
+        fi
         mv "${data_bonds}.tmp" "${data_bonds}.template"
     fi
     if ! $PYTHON_COMMAND "${SCRIPT_DIR}/renumber_DATA_first_column.py" \
                          < "${data_bonds}" \
                          > "${data_bonds}.tmp"; then
-	ERR_INTERNAL
+        ERR_INTERNAL
     fi
     mv -f "${data_bonds}.tmp" "${data_bonds}"
 fi
@@ -871,30 +1002,30 @@ fi
 
 if [ -s "${data_angles}" ]; then
     if [ ! -z $REMOVE_DUPLICATE_ANGLES ]; then
-	if ! $PYTHON_COMMAND "${SCRIPT_DIR}/nbody_reorder_atoms.py" \
+        if ! $PYTHON_COMMAND "${SCRIPT_DIR}/nbody_reorder_atoms.py" \
                              Angles \
                              < "${data_angles}" \
                              > "${data_angles}.tmp"; then
-	    ERR_INTERNAL
-	fi
-	cp -f "${data_angles}.tmp" "${data_angles}"
+            ERR_INTERNAL
+        fi
+        cp -f "${data_angles}.tmp" "${data_angles}"
         if ! $PYTHON_COMMAND "${SCRIPT_DIR}/remove_duplicates_nbody.py" 3 \
                              < "${data_angles}" \
                              > "${data_angles}.tmp"; then
-	    ERR_INTERNAL
-	fi
+            ERR_INTERNAL
+        fi
         mv "${data_angles}.tmp" "${data_angles}"
         if ! $PYTHON_COMMAND "${SCRIPT_DIR}/remove_duplicates_nbody.py" 3 \
                              < "${data_angles}.template" \
                              > "${data_angles}.tmp"; then
-	    ERR_INTERNAL
-	fi
+            ERR_INTERNAL
+        fi
         mv "${data_angles}.tmp" "${data_angles}".template
     fi
     if ! $PYTHON_COMMAND "${SCRIPT_DIR}/renumber_DATA_first_column.py" \
                          < "${data_angles}" \
                          > "${data_angles}.tmp"; then
-	ERR_INTERNAL
+        ERR_INTERNAL
     fi
     mv -f "${data_angles}.tmp" "${data_angles}"
 fi
@@ -902,30 +1033,30 @@ fi
 
 if [ -s "${data_dihedrals}" ]; then
     if [ ! -z $REMOVE_DUPLICATE_DIHEDRALS ]; then
-	if ! $PYTHON_COMMAND "${SCRIPT_DIR}/nbody_reorder_atoms.py" \
+        if ! $PYTHON_COMMAND "${SCRIPT_DIR}/nbody_reorder_atoms.py" \
                              Dihedrals \
                              < "${data_dihedrals}" \
                              > "${data_dihedrals}.tmp"; then
-	    ERR_INTERNAL
-	fi
-	cp -f "${data_dihedrals}.tmp" "${data_dihedrals}"
+            ERR_INTERNAL
+        fi
+        cp -f "${data_dihedrals}.tmp" "${data_dihedrals}"
         if ! $PYTHON_COMMAND "${SCRIPT_DIR}/remove_duplicates_nbody.py" 4 \
                              < "${data_dihedrals}" \
                              > "${data_dihedrals}.tmp"; then
-	    ERR_INTERNAL
-	fi
+            ERR_INTERNAL
+        fi
         mv "${data_dihedrals}.tmp" "${data_dihedrals}"
         if ! $PYTHON_COMMAND "${SCRIPT_DIR}/remove_duplicates_nbody.py" 4 \
                              < "${data_dihedrals}.template" \
                              > "${data_dihedrals}.tmp"; then
-	    ERR_INTERNAL
-	fi
+            ERR_INTERNAL
+        fi
         mv "${data_dihedrals}.tmp" "${data_dihedrals}.template"
     fi
     if ! $PYTHON_COMMAND "${SCRIPT_DIR}/renumber_DATA_first_column.py" \
                          < "${data_dihedrals}" \
                          > "${data_dihedrals}.tmp"; then
-	ERR_INTERNAL
+        ERR_INTERNAL
     fi
     mv -f "${data_dihedrals}.tmp" "${data_dihedrals}"
 fi
@@ -933,30 +1064,30 @@ fi
 
 if [ -s "${data_impropers}" ]; then
     if [ ! -z $REMOVE_DUPLICATE_IMPROPERS ]; then
-	if ! $PYTHON_COMMAND "${SCRIPT_DIR}/nbody_reorder_atoms.py" \
+        if ! $PYTHON_COMMAND "${SCRIPT_DIR}/nbody_reorder_atoms.py" \
                              Impropers \
                              < "${data_impropers}" \
                              > "${data_impropers}.tmp"; then
-	    ERR_INTERNAL
-	fi
-	cp -f "${data_impropers}.tmp" "${data_impropers}"
+            ERR_INTERNAL
+        fi
+        cp -f "${data_impropers}.tmp" "${data_impropers}"
         if ! $PYTHON_COMMAND "${SCRIPT_DIR}/remove_duplicates_nbody.py" 4 \
                              < "${data_impropers}" \
                              > "${data_impropers}.tmp"; then
-	    ERR_INTERNAL
-	fi
+            ERR_INTERNAL
+        fi
         mv "${data_impropers}.tmp" "${data_impropers}"
         if ! $PYTHON_COMMAND "${SCRIPT_DIR}/remove_duplicates_nbody.py" 4 \
                              < "${data_impropers}.template" \
                              > "${data_impropers}.tmp"; then
-	    ERR_INTERNAL
-	fi
+            ERR_INTERNAL
+        fi
         mv "${data_impropers}.tmp" "${data_impropers}.template"
     fi
     if ! $PYTHON_COMMAND "${SCRIPT_DIR}/renumber_DATA_first_column.py" \
                          < "${data_impropers}" \
                          > "${data_impropers}.tmp"; then
-	ERR_INTERNAL
+        ERR_INTERNAL
     fi
     mv -f "${data_impropers}.tmp" "${data_impropers}"
 fi
@@ -1064,16 +1195,16 @@ if [ -s "$data_boundary" ]; then
     BOXSIZE_MAXZ=`awk '{if ($4=="zhi") {zhi=$2}} END{print zhi}' < "$data_boundary"`
 
     if [ -z "$BOXSIZE_MINX" ] || [ -z "$BOXSIZE_MAXX" ]; then
-	echo "Error: Problem with box boundary format (\"xlo xhi\") in \"$data_boundary\"" >&2
-	exit 12
+        echo "Error: Problem with box boundary format (\"xlo xhi\") in \"$data_boundary\"" >&2
+        exit 12
     fi
     if [ -z "$BOXSIZE_MINY" ] || [ -z "$BOXSIZE_MAXY" ]; then
-	echo "Error: Problem with box boundary format (\"ylo yhi\") in \"$data_boundary\"" >&2
-	exit 12
+        echo "Error: Problem with box boundary format (\"ylo yhi\") in \"$data_boundary\"" >&2
+        exit 12
     fi
     if [ -z "$BOXSIZE_MINZ" ] || [ -z "$BOXSIZE_MAXZ" ]; then
-	echo "Error: Problem with box boundary format (\"zlo zhi\") in \"$data_boundary\"" >&2
-	exit 12
+        echo "Error: Problem with box boundary format (\"zlo zhi\") in \"$data_boundary\"" >&2
+        exit 12
     fi
 
     BOXSIZE_XY=`awk '{if ($4=="xy") {xy=$1}} END{print xy}' < "$data_boundary"`
@@ -1107,39 +1238,39 @@ if [ -z "$BOXSIZE_MINX" ] || [ -z "$BOXSIZE_MAXX" ] || [ -z "$BOXSIZE_MINY" ] ||
         # Estimate the minimimum, maximum x,y,z values
         # from the coordinate data.
 
-	MINMAX_BOUNDS=`awk 'BEGIN{first=1}{if (NF>=3){x=$1; y=$2; z=$3; if (first) {first=0; xmin=x; xmax=x; ymin=y; ymax=y; zmin=z; zmax=z;} else {if (x<xmin) xmin=x; if (x>xmax) xmax=x; if (y<ymin) ymin=y; if (y>ymax) ymax=y; if (z<zmin) zmin=z; if (z>zmax) zmax=z;}}} END{print xmin" "xmax" "ymin" "ymax" "zmin" "zmax;}' < "$tmp_atom_coords"`
+        MINMAX_BOUNDS=`awk 'BEGIN{first=1}{if (NF>=3){x=$1; y=$2; z=$3; if (first) {first=0; xmin=x; xmax=x; ymin=y; ymax=y; zmin=z; zmax=z;} else {if (x<xmin) xmin=x; if (x>xmax) xmax=x; if (y<ymin) ymin=y; if (y>ymax) ymax=y; if (z<zmin) zmin=z; if (z>zmax) zmax=z;}}} END{print xmin" "xmax" "ymin" "ymax" "zmin" "zmax;}' < "$tmp_atom_coords"`
 
         # ...and add a narrow margin (10%) around the boundaries:
-	BOXSIZE_MINX=`echo $MINMAX_BOUNDS | awk "{margin=0.1; width=$2-$1; print $1-0.5*margin*width}"`
-	BOXSIZE_MAXX=`echo $MINMAX_BOUNDS | awk "{margin=0.1; width=$2-$1; print $2+0.5*margin*width}"`
-	BOXSIZE_MINY=`echo $MINMAX_BOUNDS | awk "{margin=0.1; width=$4-$3; print $3-0.5*margin*width}"`
-	BOXSIZE_MAXY=`echo $MINMAX_BOUNDS | awk "{margin=0.1; width=$4-$3; print $4+0.5*margin*width}"`
-	BOXSIZE_MINZ=`echo $MINMAX_BOUNDS | awk "{margin=0.1; width=$6-$5; print $5-0.5*margin*width}"`
-	BOXSIZE_MAXZ=`echo $MINMAX_BOUNDS | awk "{margin=0.1; width=$6-$5; print $6+0.5*margin*width}"`
+        BOXSIZE_MINX=`echo $MINMAX_BOUNDS | awk "{margin=0.1; width=$2-$1; print $1-0.5*margin*width}"`
+        BOXSIZE_MAXX=`echo $MINMAX_BOUNDS | awk "{margin=0.1; width=$2-$1; print $2+0.5*margin*width}"`
+        BOXSIZE_MINY=`echo $MINMAX_BOUNDS | awk "{margin=0.1; width=$4-$3; print $3-0.5*margin*width}"`
+        BOXSIZE_MAXY=`echo $MINMAX_BOUNDS | awk "{margin=0.1; width=$4-$3; print $4+0.5*margin*width}"`
+        BOXSIZE_MINZ=`echo $MINMAX_BOUNDS | awk "{margin=0.1; width=$6-$5; print $5-0.5*margin*width}"`
+        BOXSIZE_MAXZ=`echo $MINMAX_BOUNDS | awk "{margin=0.1; width=$6-$5; print $6+0.5*margin*width}"`
     else
         # By default, choose some reasonably large box:
-	BOXSIZE_MINX="-100.0"
-	BOXSIZE_MAXX="100.0"
-	BOXSIZE_MINY="-100.0"
-	BOXSIZE_MAXY="100.0"
-	BOXSIZE_MINZ="-100.0"
-	BOXSIZE_MAXZ="100.0"
-	# ...and print message scolding the user for being lazy
-	echo "----------------------------------------------------------------------" >&2
+        BOXSIZE_MINX="-100.0"
+        BOXSIZE_MAXX="100.0"
+        BOXSIZE_MINY="-100.0"
+        BOXSIZE_MAXY="100.0"
+        BOXSIZE_MINZ="-100.0"
+        BOXSIZE_MAXZ="100.0"
+        # ...and print message scolding the user for being lazy
+        echo "----------------------------------------------------------------------" >&2
         echo "---- WARNING: Unable to determine periodic boundary conditions.   ----" >&2
-	echo "----           (A default cube of volume=(200.0)^3 was used.      ----" >&2
-	echo "----               This is probably not what you want!)           ----" >&2
-	echo "---- It is recommended that you specify your periodic boundary    ----" >&2
-	echo "---- by adding a write_once(\"Boundary\") command to your .lt file. ----" >&2
-	echo "---- For example:                                                 ----" >&2
-	#echo "----------------------------------------------------------------------" >&2
-	echo "----                                                              ----" >&2
-	echo "----   write_once(\"Boundary\") {                                   ----" >&2
-	echo "----     2.51  46.79 xlo xhi                                      ----" >&2
-	echo "----     -4.38 35.824 ylo yhi                                     ----" >&2
-	echo "----     0.3601 42.95 zlo zhi                                     ----" >&2
-	echo "----   }                                                          ----" >&2
-	echo "----------------------------------------------------------------------" >&2
+        echo "----           (A default cube of volume=(200.0)^3 was used.      ----" >&2
+        echo "----               This is probably not what you want!)           ----" >&2
+        echo "---- It is recommended that you specify your periodic boundary    ----" >&2
+        echo "---- by adding a write_once(\"Boundary\") command to your .lt file. ----" >&2
+        echo "---- For example:                                                 ----" >&2
+        #echo "----------------------------------------------------------------------" >&2
+        echo "----                                                              ----" >&2
+        echo "----   write_once(\"Boundary\") {                                   ----" >&2
+        echo "----     2.51  46.79 xlo xhi                                      ----" >&2
+        echo "----     -4.38 35.824 ylo yhi                                     ----" >&2
+        echo "----     0.3601 42.95 zlo zhi                                     ----" >&2
+        echo "----   }                                                          ----" >&2
+        echo "----------------------------------------------------------------------" >&2
     fi
 fi
 
@@ -1193,7 +1324,7 @@ if [ -s "$data_pair_coeffs" ]; then
     echo "" >> "$OUT_FILE_DATA"
 else
     if [ ! -s "$in_settings" ] || (! grep -q pair_coeff "$in_settings"); then
-	echo "WARNING: no pair coeffs have been set!" >&2
+        echo "WARNING: no pair coeffs have been set!" >&2
     fi
 fi
 
@@ -1205,7 +1336,7 @@ if [ -s "$data_bond_coeffs" ]; then
     echo "" >> "$OUT_FILE_DATA"
 else
     if [ -n "$NBONDTYPES" ] && ( [ ! -s "$in_settings" ] || (! grep -q bond_coeff "$in_settings") ); then
-	echo "WARNING: no bond coeff have been set!" >&2
+        echo "WARNING: no bond coeff have been set!" >&2
     fi
 fi
 
@@ -1217,7 +1348,7 @@ if [ -s "$data_angle_coeffs" ]; then
     echo "" >> "$OUT_FILE_DATA"
 else
     if [ -n "$NANGLETYPES" ] && ( [ ! -s "$in_settings" ] || (! grep -q angle_coeff "$in_settings") ); then
-	echo "WARNING: no angle coeffs have been set!" >&2
+        echo "WARNING: no angle coeffs have been set!" >&2
     fi
 fi
 
@@ -1228,7 +1359,7 @@ if [ -s "$data_dihedral_coeffs" ]; then
     echo "" >> "$OUT_FILE_DATA"
 else
     if [ -n "$NDIHEDRALTYPES" ] && ( [ ! -s "$in_settings" ] || (! grep -q dihedral_coeff "$in_settings") ); then
-	echo "WARNING: no dihedral coeffs have been set!" >&2
+        echo "WARNING: no dihedral coeffs have been set!" >&2
     fi
 fi
 
@@ -1239,7 +1370,7 @@ if [ -s "$data_improper_coeffs" ]; then
     echo "" >> "$OUT_FILE_DATA"
 else
     if [ -n "$NIMPROPERTYPES" ] && ( [ ! -s "$in_settings" ] || (! grep -q improper_coeff "$in_settings") ); then
-	echo "WARNING: no improper coeffs have been set!" >&2
+        echo "WARNING: no improper coeffs have been set!" >&2
     fi
 fi
 
@@ -1429,19 +1560,35 @@ fi
 
 
 if [ -s "$tmp_atom_coords" ]; then
-    rm -f "$OUT_FILE_COORDS"
-    awk '{if (NF>=3) {natom++; print "set atom "natom"  x "$1"  y "$2"  z "$3"  image 0 0 0"}}' < "$tmp_atom_coords" >> "$OUT_FILE_COORDS"
-    echo "# Load the atom coordinates:" >> $OUT_FILE_INPUT_SCRIPT
-    echo "" >> $OUT_FILE_INPUT_SCRIPT
-    echo "include \"$OUT_FILE_COORDS\"" >> $OUT_FILE_INPUT_SCRIPT
-    echo "" >> $OUT_FILE_INPUT_SCRIPT
+
     NATOMS=`awk '/^\\\$\/atom:/{n++}END{print n}' < ttree_assignments.txt`
     NATOMCRDS=`awk '{if (NF>=3) natom+=1} END{print(natom)}' < "$tmp_atom_coords"`
     if [ $NATOMS -ne $NATOMCRDS ]; then 
         echo "Error: Number of atoms in coordinate file provided by user ($NATOMCRDS)" >&2
-	echo "does not match the number of atoms generated in ttree file ($NATOMS)" >&2
+        echo "does not match the number of atoms generated in ttree file ($NATOMS)" >&2
         exit 14
     fi
+
+    # Copy the coordinates in $tmp_atom_coords into $OUT_FILE_DATA
+    rm -f "$OUT_FILE_COORDS"
+    if ! $PYTHON_COMMAND "${SCRIPT_DIR}/raw2data.py" $ATOM_STYLE "$OUT_FILE_DATA" < "$tmp_atom_coords" > "$OUT_FILE_COORDS"; then
+        ERR_INTERNAL
+    fi
+    mv -f "$OUT_FILE_COORDS" "$OUT_FILE_DATA"
+
+    # Previously, in earlier versions of moltemplate, we used to 
+    # create a new input script containing "set" commands which the
+    # user was supposed to tell LAMMPS to read using an "include" command.
+    # If for some reason, you want to go back to doing it that way, then
+    # uncomment the following 6 lines:
+    #
+    #rm -f "$OUT_FILE_COORDS"
+    #awk '{if (NF>=3) {natom++; print "set atom "natom"  x "$1"  y "$2"  z "$3"  image 0 0 0"}}' < "$tmp_atom_coords" >> "$OUT_FILE_COORDS"
+    #echo "# Load the atom coordinates:" >> $OUT_FILE_INPUT_SCRIPT
+    #echo "" >> $OUT_FILE_INPUT_SCRIPT
+    #echo "include \"$OUT_FILE_COORDS\"" >> $OUT_FILE_INPUT_SCRIPT
+    #echo "" >> $OUT_FILE_INPUT_SCRIPT
+
 else
     rm -f "$OUT_FILE_COORDS"
 #    echo "Warning: (moltemplate.sh)" >&2
@@ -1478,7 +1625,12 @@ IFS="
 for file in $MOLTEMPLATE_TEMP_FILES; do
     #echo "file=\"$file\""
     rm -f "output_ttree/$file" >/dev/null 2>&1 || true
-    mv "$file" output_ttree/ >/dev/null 2>&1 || true
+    if [ -e "$file" ]; then
+        #mv "$file" output_ttree/ >/dev/null 2>&1 || true
+        #dos2unix < "$file" > "output_ttree/$file"
+        tr -d '\r' < "$file" > "output_ttree/$file"
+        rm -f "$file" >/dev/null 2>&1 || true
+    fi
 done
 IFS=$OIFS
 
@@ -1507,11 +1659,21 @@ ls "${data_prefix}"* 2> /dev/null | while read file_name; do
     mv -f "$file_name" output_ttree/
 done
 
+
 if [ -e "$data_prefix_no_space" ]; then
     echo "" >> "$OUT_FILE_DATA"
     cat "$data_prefix_no_space" >> "$OUT_FILE_DATA"
     echo "" >> "$OUT_FILE_DATA"
     mv -f "$data_prefix_no_space" output_ttree/
+fi
+
+
+
+if [ -e "$OUT_FILE_DATA" ]; then
+    mv -f "$OUT_FILE_DATA" "$OUT_FILE_DATA.tmp" >/dev/null 2>&1 || true
+    #dos2unix < "$OUT_FILE_DATA.tmp" > "$OUT_FILE_DATA"
+    tr -d '\r' < "$OUT_FILE_DATA.tmp" > "$OUT_FILE_DATA"
+    rm -f "$OUT_FILE_DATA.tmp" >/dev/null 2>&1 || true
 fi
 
 
@@ -1553,10 +1715,12 @@ echo "" > input_scripts_so_far.tmp
 for file_name in "$OUT_FILE_INIT" "$OUT_FILE_INPUT_SCRIPT" "$OUT_FILE_SETTINGS"; do
     if [ -s "$file_name" ]; then
         echo "postprocessing file \"$file_name\"" >&2
-	$PYTHON_COMMAND "${SCRIPT_DIR}/postprocess_input_script.py" input_scripts_so_far.tmp < "$file_name" > "$file_name".tmp
-	echo "" >&2
-	mv "$file_name".tmp "$file_name"
-	cat "$file_name" >> input_scripts_so_far.tmp
+        $PYTHON_COMMAND "${SCRIPT_DIR}/postprocess_input_script.py" input_scripts_so_far.tmp < "$file_name" > "$file_name".tmp
+        echo "" >&2
+        mv "$file_name".tmp "$file_name"
+        #cat "$file_name" >> input_scripts_so_far.tmp
+        #dos2unix < "$file_name" >> input_scripts_so_far.tmp
+        tr -d '\r' < "$file_name" >> input_scripts_so_far.tmp
     fi
 done
 

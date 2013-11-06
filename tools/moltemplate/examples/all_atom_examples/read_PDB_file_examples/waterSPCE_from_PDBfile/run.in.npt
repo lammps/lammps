@@ -18,19 +18,16 @@ read_data system.data
 
 include system.in.settings
 
-# Load the atom coordinates:
-
-include "system.in.coords"
 
 # ----- run section -----
 
 
 # -- minimization protocol --
 # In general, it's always a good idea to minimize the system beforehand.
-# fSHAKE was defined in system.in.settings. It is incompatible with "minimize".
-unfix         fSHAKE
+# fShakeSPCE was defined in system.in.settings. It is incompatible with minimize
+unfix         fShakeSPCE
 minimize 1.0e-5 1.0e-7 100000 400000
-# Now read "system.in.settings" in order to redefine fSHAKE again:
+# Now read "system.in.settings" in order to redefine fShakeSPCE again:
 include       system.in.settings
 
 # -- simulation protocol --

@@ -20,6 +20,7 @@ data_atoms="Data Atoms"
 data_masses="Data Masses"
 data_velocities="Data Velocities"
 data_bonds="Data Bonds"
+data_bond_list="Data Bond List"
 data_angles="Data Angles"
 data_dihedrals="Data Dihedrals"
 data_impropers="Data Impropers"
@@ -30,6 +31,7 @@ data_improper_coeffs="Data Improper Coeffs"
 data_pair_coeffs="Data Pair Coeffs"
 
 # interactions-by-type (not id. This is not part of the LAMMPS standard.)
+data_bonds_by_type="Data Bonds By Type"
 data_angles_by_type="Data Angles By Type"
 data_dihedrals_by_type="Data Dihedrals By Type"
 data_impropers_by_type="Data Impropers By Type"
@@ -177,6 +179,8 @@ def ColNames2AidAtypeMolid(column_names):
         i_molid = column_names.index('molid')
     elif 'mol' in column_names:
         i_molid = column_names.index('mol')
+    elif '$mol' in column_names:
+        i_molid = column_names.index('$mol')
     else:
         pass # some atom_types do not have a valid molecule-ID
 

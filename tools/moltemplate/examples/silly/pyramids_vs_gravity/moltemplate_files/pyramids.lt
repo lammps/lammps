@@ -183,13 +183,6 @@ PyramidMenkaure {
 }
 
 PyramidQueens1 {
-  #layer0 = new ImmobileBrick.move(-3.5,-3.5,0.0) [8].move(1.0,0,0) [8].move(0,1.0,0)
-  #layer1 = new ImmobileBrick.move(-3.0,-3.0,0.707106781187) [7].move(1.0,0,0) [7].move(0,1.0,0)
-  #layer2 = new ImmobileBrick.move(-2.0,-2.0,1.41421356237) [5].move(1.0,0,0) [5].move(0,1.0,0)
-  #layer3 = new ImmobileBrick.move(-1.5,-1.5,2.12132034356) [4].move(1.0,0,0) [4].move(0,1.0,0)
-  #layer4 = new Brick.move(-0.5,-0.5,2.82842712475) [2].move(1.0,0,0) [2].move(0,1.0,0)
-  #layer5 = new Brick.move(0.0,0.0,3.53553390593) [1].move(1.0,0,0) [1].move(0,1.0,0)
-
   layer0 = new ImmobileBrick.move(-3.5,-3.5,0.0) [8].move(1.0,0,0) [8].move(0,1.0,0)
   layer1 = new ImmobileBrick.move(-3.0,-3.0,0.707106781187) [7].move(1.0,0,0) [7].move(0,1.0,0)
   layer2 = new ImmobileBrick.move(-2.0,-2.0,1.707106781187) [5].move(1.0,0,0) [5].move(0,1.0,0)

@@ -59,9 +59,9 @@ class FixPhonon : public Fix {
   bigint prev_nstep;                            // number of steps from previous run(s); to judge if waitsteps is reached.
   int nfreq, ifreq;                             // after this number of measurement (nfreq), the result will be output once
   int nx,ny,nz,nucell,ntotal;                   // surface dimensions in x- and y-direction, number of atom per unit surface cell
-  int GFcounter;                                // counter variables
+  int neval;                                    // # of evaluations
   int sysdim;                                   // system dimension
-  int nGFatoms, nfind;                          // total number of GF atoms; total number of GF atom on this proc
+  int ngroup, nfind;                            // total number of atoms in group; total number of atoms on this proc
   char *prefix, *logfile;                       // prefix of output file names
   FILE *flog;
   
@@ -80,8 +80,8 @@ class FixPhonon : public Fix {
   double **RIloc;                               // R(r) and index on local proc
   double **RIall;                               // gathered R(r) and index
   double **Rsort;                               // sorted R(r)
-  double **Rnow;                                // Current R(r) on local proc for GF atoms
-  double **Rsum;                                // Accumulated R(r) on local proc for GF atoms
+  double **Rnow;                                // Current R(r) on local proc
+  double **Rsum;                                // Accumulated R(r) on local proc
 
   int *recvcnts, *displs;                       // MPI related variables
 

@@ -434,6 +434,28 @@ def CheckDataFileNames(filename,
                              'You should probably use write_once(\"'+filename+'\") instead.\n')
 
 
+    elif ((section_name.lower() == 'bonds by type') or
+          (section_name.lower() == 'bonds bytype') or          
+          (section_name.lower() == 'bonds_by_type') or
+          (section_name.lower() == 'bonds_bytype') or
+          (section_name.lower() == 'bondsbytype') or
+          (section_name.lower() == 'bond by type') or
+          (section_name.lower() == 'bond bytype') or          
+          (section_name.lower() == 'bond_by_type') or
+          (section_name.lower() == 'bond_bytype') or
+          (section_name.lower() == 'bondbytype')):
+        if (filename != data_bonds_by_type):
+            raise InputError('Probable typo in '+ErrorLeader(srcloc.infile,srcloc.lineno)+'\n\n'+
+                             'Output file name (\"'+filename+'\") does not match,\n'
+                             'yet overlaps closely with reserved lttree-file name.\n'
+                             'Perhaps you meant \"'+data_bonds_by_type+'\"?')
+        elif (write_command != 'write_once'):
+            raise InputError('Probable typo in '+ErrorLeader(srcloc.infile,srcloc.lineno)+'\n\n'+
+                             'When using moltemplate.sh to build LAMMPS input files, you probably do not\n'
+                             'want to use the '+write_command+'() command with \"'+filename+'\".\n'
+                             'You should probably use write_once(\"'+filename+'\") instead.\n')
+
+
 
     elif ((section_name.lower() == 'angles by type') or
           (section_name.lower() == 'angles bytype') or          
@@ -513,6 +535,22 @@ def CheckDataFileNames(filename,
                              'When using moltemplate.sh to build LAMMPS input files, you probably do not\n'
                              'want to use the '+write_command+'() command with \"'+filename+'\".\n'
                              'You should probably use write(\"'+filename+'\") instead.\n')
+
+    elif ((section_name.lower().find('bond list') == 0) or
+          (section_name.lower().find('bonds list') == 0) or
+          (section_name.lower().find('bond_list') == 0) or
+          (section_name.lower().find('bonds_list') == 0)):
+        if (filename != data_bond_list):
+            raise InputError('Probable typo in '+ErrorLeader(srcloc.infile,srcloc.lineno)+'\n\n'+
+                             'Output file name (\"'+filename+'\") does not match,\n'
+                             'yet overlaps closely with reserved lttree-file name.\n'
+                             'Perhaps you meant \"'+data_bonds_by_type+'\"?')
+        elif (write_command != 'write'):
+            raise InputError('Probable typo in '+ErrorLeader(srcloc.infile,srcloc.lineno)+'\n\n'+
+                             'When using moltemplate.sh to build LAMMPS input files, you probably do not\n'
+                             'want to use the '+write_command+'() command with \"'+filename+'\".\n'
+                             'You should probably use write(\"'+filename+'\") instead.\n')
+
 
     elif ((section_name.lower() == 'angles') or
           (section_name.lower() == 'angle')):
@@ -975,6 +1013,52 @@ def CheckSyntaxStatic(context_node,
                                                  g_no_check_msg)
 
 
+            elif filename == 'Data Bond List':
+                table = TableFromTemplate(command.tmpl_list,
+                                          [[' ', '\t', '\r'], '\n'],
+                                          [True, False])
+                for i in range(0, len(table)):
+                    syntax_err = False
+                    assert(hasattr(table[i], '__len__'))
+                    if len(table[i]) > 0:
+                        if ((len(table[i]) > 1) and
+                            isinstance(table[i][0], TextBlock) and
+                            (len(table[i][0].text) > 0) and
+                            (table[i][0].text == '#')):
+                            pass
+                        else:
+                            if len(table[i]) < 3:
+                                syntax_err = True
+                            table_entry = table[i][0]
+                            if (not ((isinstance(table_entry, VarRef)) and
+                                     (table_entry.prefix in ('$','${')) and
+                                     (ExtractCatName(table_entry.descr_str) == 'bond'))):
+                                syntax_err = True
+                            if len(table[i]) > 1:
+                                table_entry = table[i][1]
+                            if (not ((isinstance(table_entry, VarRef)) and
+                                     (table_entry.prefix in ('$','${')) and
+                                     (ExtractCatName(table_entry.descr_str) == 'atom'))):
+                                syntax_err = True
+                            if len(table[i]) > 2:
+                                table_entry = table[i][2]
+                            if (not ((isinstance(table_entry, VarRef)) and
+                                     (table_entry.prefix in ('$','${')) and
+                                     (ExtractCatName(table_entry.descr_str) == 'atom'))):
+                                syntax_err = True
+
+                            if syntax_err:
+                                raise InputError('----------------------------------------------------\n'+
+                                                 '     Syntax error near '+
+                                                 ErrorLeader(table[i][0].srcloc.infile,
+                                                             table[i][0].srcloc.lineno)+'\n'
+                                                 '     Incorrect "Data Bond List" syntax.\n'+
+                                                 'Each lines in this section should have this format:\n\n'
+                                                 '  $bond:id $atom:id1 $atom:id2\n'+
+                                                 '----------------------------------------------------\n'+
+                                                 g_no_check_msg)
+
+
             elif filename == 'Data Angles':
                 table = TableFromTemplate(command.tmpl_list,
                                           [[' ', '\t', '\r'], '\n'],
@@ -1397,6 +1481,34 @@ def CheckSyntaxStatic(context_node,
                     else:
                         data_pair_coeffs_defined.add((table[i][0].binding,
                                                       table[i][0].binding))
+
+
+            elif filename == 'Data Bonds By Type':
+                table = TableFromTemplate(command.tmpl_list,
+                                          [[' ','\t','\r'], '\n'],
+                                          [True, False])
+                for i in range(0, len(table)):
+                    if len(table[i]) == 0:
+                        pass
+                    elif ((len(table[i]) > 1) and
+                          isinstance(table[i][0], TextBlock) and
+                          (len(table[i][0].text) > 0) and
+                          (table[i][0].text == '#')):
+                        pass #Ignore comment lines (postprocessing removes them)
+                    elif (not ((len(table[i]) >= 3) and
+                               isinstance(table[i][0], VarRef) and
+                               (table[i][0].prefix in ('@', '@{')) and 
+                               (table[i][0].nptr.cat_name == 'bond') and
+                               (table[i][0].nptr.cat_node == root_node))):
+                        raise InputError('----------------------------------------------------\n'+
+                                         '     Syntax error near '+
+                                         ErrorLeader(table[i][0].srcloc.infile,
+                                                     table[i][0].srcloc.lineno)+'\n'
+                                         '     Incorrect \"Data Bonds By Type\" syntax.\n'
+                                         '  Each line of the \"Data Bonds By Type\" section should begin with an\n'
+                                         '  @bond:type variable followed by 2 atom types.\n'+
+                                         '----------------------------------------------------\n'+
+                                         g_no_check_msg)
 
 
             elif filename == 'Data Angles By Type':
@@ -1834,7 +1946,7 @@ if __name__ == "__main__":
 
     g_program_name = __file__.split('/')[-1]  # = 'lttree_check.py'
     g_version_str  = '0.73'
-    g_date_str     = '2013-2-15'
+    g_date_str     = '2013-8-06'
     sys.stderr.write(g_program_name+' v'+g_version_str+' '+g_date_str+'\n')
 
     try:

@@ -16,15 +16,26 @@ citation information.
 
 The suffix of each file indicates the pair style it is used with:
 
+adp           ADP angular dependent potential
 airebo	      AI-REBO and REBO potentials
 bop	      BOP potential, analytic form
 bop.table     BOP potential, tabulated form
+cdeam         concentration-dependent EAM
+comb          COMB potential
+comb3         COMB3 potential
 eam	      embedded atom method (EAM) single element, DYNAMO funcfl format
 eam.alloy     EAM multi-element alloy, DYNAMO setfl format
 eam.fs	      Finnis-Sinclair EAM format (single element or alloy)
+edip          EDIP potential for silicon-based materials
+eim           embedded-ion method (EIM) potential
+nb3d.harmonic non-bonded 3-body harmonic potential
+lcbop         LCBOP long-range bond-order potential
 meam	      modified EAM (MEAM) library and individual elements/alloys
 meam.spline   modified EAM (MEAM) spline potential
+meam.sw.spline modified EAM (MEAM) Stillinger-Weber spline potential
 nb3b.harmonic nonbonded 3-body harmonic potential
 reax	      ReaxFF potential (see README.reax for more info)
 sw	      Stillinger-Weber potential
 tersoff	      Tersoff potential
+tersoff.mod   modified Tersoff potential
+tersoff.zbl   Tersoff with ZBL core

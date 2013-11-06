@@ -62,15 +62,15 @@ NOTE: BECAUSE ALL OF THE ORIGINAL FORCE FIELD PARAMETERS WERE INTENTIONALLY
     -----------
 
 Instructions:
-Execute the commands in:
+Run the commands (follow the instructions) in these files:
 
 step 1)
-README_run_ltemplify.sh
+README_step1_run_ltemplify.sh
 
 and then
 
 step 2)
-README_run_moltemplate.sh
+README_step2_run_moltemplate.sh
 
 step 3)  OPTIONAL
 

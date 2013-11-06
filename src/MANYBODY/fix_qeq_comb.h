@@ -48,6 +48,7 @@ class FixQEQComb : public Fix {
   FILE *fp;
 
   class PairComb *comb;
+  class PairComb3 *comb3;
   int nmax;
   double *qf,*q1,*q2;
 };

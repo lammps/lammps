@@ -686,7 +686,7 @@ void Special::angle_trim()
     int nbuf = 0;
     for (i = 0; i < nlocal; i++) {
       if (num_angle && atom->nangles) nbuf += 2*num_angle[i];
-      if (num_dihedral && atom->ndihedrals) nbuf + 2*2*num_dihedral[i];
+      if (num_dihedral && atom->ndihedrals) nbuf += 2*2*num_dihedral[i];
     }
     int *buf;
     memory->create(buf,nbuf,"special:buf");

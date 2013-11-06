@@ -605,7 +605,7 @@ double Variable::compute_equal(char *str)
 }
 
 /* ----------------------------------------------------------------------
-   compute result of atom-style and atomfile-atyle variable evaluation
+   compute result of atom-style and atomfile-style variable evaluation
    only computed for atoms in igroup, else result is 0.0
    answers are placed every stride locations into result
    if sumflag, add variable values to existing result
@@ -1036,6 +1036,10 @@ double Variable::evaluate(char *str, Tree **tree)
             peratom2global(1,NULL,&compute->array_atom[0][index2-1],
                            compute->size_peratom_cols,index1,
                            tree,treestack,ntreestack,argstack,nargstack);
+          else
+            peratom2global(1,NULL,NULL,
+                           compute->size_peratom_cols,index1,
+                           tree,treestack,ntreestack,argstack,nargstack);
 
         // c_ID = vector from per-atom vector
 
@@ -1217,6 +1221,10 @@ double Variable::evaluate(char *str, Tree **tree)
 
           if (fix->array_atom)
             peratom2global(1,NULL,&fix->array_atom[0][index2-1],
+                           fix->size_peratom_cols,index1,
+                           tree,treestack,ntreestack,argstack,nargstack);
+          else
+            peratom2global(1,NULL,NULL,
                            fix->size_peratom_cols,index1,
                            tree,treestack,ntreestack,argstack,nargstack);
 

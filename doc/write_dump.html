@@ -59,19 +59,21 @@ keyword separates the arguments that would normally be passed to the
 support optional arguments and thus LAMMPS needs to be able to cleanly
 separate the two sets of args.
 </P>
-<P>Note that if the specified filename uses the wildcard characters
-"*" or "%", as supported by the <A HREF = "dump.html">dump</A> commmand, they will
-operate in the same fashion to create the new filename(s).
+<P>Note that if the specified filename uses wildcard characters "*" or
+"%", as supported by the <A HREF = "dump.html">dump</A> commmand, they will operate
+in the same fashion to create the new filename(s).  Normally, <A HREF = "dump_image.html">dump
+image</A> files require a filename with a "*" character
+for the timestep.  That is not the case for the write_dump command; no
+wildcard "*" character is necessary.
 </P>
 <HR>
 
 <P><B>Restrictions:</B>
 </P>
 <P>All restrictions for the <A HREF = "dump.html">dump</A> and
-<A HREF = "dump_modify.html">dump_modify</A> commands apply to this command as well.
-For the <A HREF = "dump_image.html">dump image</A> dump style, this means the
-filename is required to contain a '*' character, which will be
-replaced by the current timestep.
+<A HREF = "dump_modify.html">dump_modify</A> commands apply to this command as well,
+with the exception of the <A HREF = "dump_image.html">dump image</A> filename not
+requiring a wildcard "*" character, as noted above.
 </P>
 <P>Since dumps are normally written during a <A HREF = "run.html">run</A> or <A HREF = "minimize.html">energy
 minimization</A>, the simulation has to be ready to run
@@ -87,7 +89,8 @@ sectinn on Variable Accuracy for more information on this topic.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "dump.html">dump</A>, <A HREF = "dump_image.html">dump image</A>, <A HREF = "dump_modify.html">dump_modify</A>
+<P><A HREF = "dump.html">dump</A>, <A HREF = "dump_image.html">dump image</A>,
+<A HREF = "dump_modify.html">dump_modify</A>
 </P>
 <P><B>Default:</B>
 </P>

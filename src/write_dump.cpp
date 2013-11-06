@@ -19,6 +19,7 @@
 #include "write_dump.h"
 #include "style_dump.h"
 #include "dump.h"
+#include "dump_image.h"
 #include "atom.h"
 #include "group.h"
 #include "error.h"
@@ -57,7 +58,7 @@ void WriteDump::command(int narg, char **arg)
 
 #define DUMP_CLASS
 #define DumpStyle(key,Class) \
-  else if (strcmp(arg[2],#key) == 0) dump = new Class(lmp,modindex+2,dumpargs);
+  else if (strcmp(arg[1],#key) == 0) dump = new Class(lmp,modindex+2,dumpargs);
 #include "style_dump.h"
 #undef DUMP_CLASS
 
@@ -66,6 +67,10 @@ void WriteDump::command(int narg, char **arg)
   if (modindex < narg) dump->modify_params(narg-modindex-1,&arg[modindex+1]);
 
   // write out one frame and then delete the dump again
+  // set multifile_override for DumpImage so that filename needs no "*"
+
+  if (strcmp(arg[1],"image") == 0) 
+    ((DumpImage *) dump)->multifile_override = 1;
 
   dump->init();
   dump->write();

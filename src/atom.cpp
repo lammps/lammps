@@ -1433,7 +1433,7 @@ void Atom::delete_callback(const char *id, int flag)
     int match;
     for (match = 0; match < nextra_restart; match++)
       if (extra_restart[match] == ifix) break;
-    for (int i = ifix; i < nextra_restart-1; i++)
+    for (int i = match; i < nextra_restart-1; i++)
       extra_restart[i] = extra_restart[i+1];
     nextra_restart--;
 
@@ -1441,7 +1441,7 @@ void Atom::delete_callback(const char *id, int flag)
     int match;
     for (match = 0; match < nextra_border; match++)
       if (extra_border[match] == ifix) break;
-    for (int i = ifix; i < nextra_border-1; i++)
+    for (int i = match; i < nextra_border-1; i++)
       extra_border[i] = extra_border[i+1];
     nextra_border--;
   }

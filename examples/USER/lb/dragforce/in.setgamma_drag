@@ -1,0 +1,68 @@
+#===========================================================================#
+# Drag force on a single sphere.                                            #
+#                                                                           #
+# Here, gamma (used in the calculation of the particle-fluid interaction    #
+#   force) is set by the user (gamma = 13.0 for this simulation.)  This     #
+#   type of simulation is used to calibrate the value for gamma which will  #
+#   give the desired Stokes drag force.                                     #
+#                                                                           #
+# Sample output from this run can be found in the file:                     # 
+#   'setgamma13d0_drag.out'                                                 #
+#===========================================================================# 
+
+units          micro
+dimension      3
+boundary       p p f
+atom_style     atomic
+
+#----------------------------------------------------------------------------
+# Need a neighbor bin size smaller than the lattice-Boltzmann grid spacing
+#   to ensure that the particles belonging to a given processor remain inside
+#   that processors lattice-Boltzmann grid.
+# The arguments for neigh_modify have been set to "delay 0 every 1", again
+#   to ensure that the particles belonging to a given processor remain inside
+#   that processors lattice-Boltzmann grid.  However, these values can likely
+#   be somewhat increased without issue.  If a problem does arise (a particle
+#   is outside of its processors LB grid) an error message is printed and 
+#   the simulation is terminated.  
+#----------------------------------------------------------------------------
+neighbor       1.0 bin
+neigh_modify   delay 0 every 1
+
+read_data      data.one_radius16d2
+
+#----------------------------------------------------------------------------
+# None of the particles comprising the spherical colloidal object should
+#   interact with one another.
+#----------------------------------------------------------------------------
+pair_style	lj/cut 2.45
+pair_coeff	* * 0.0 0.0 2.45
+neigh_modify    exclude type 1 1 
+
+mass * 1.0
+timestep 4.0
+
+velocity all set 0.0 0.0001 0.0 units box
+
+#---------------------------------------------------------------------------
+# Create a lattice-Boltzmann fluid covering the simulation domain.
+# All of the particles in the simulation apply a force to the fluid.
+# Use the LB integration scheme of Ollila et. al. (for stability reasons,
+#   this integration scheme should be used when a large user set value for 
+#   gamma is specified), a fluid density = 1.0, fluid viscosity = 1.0, value 
+#   for gamma=13.0, lattice spacing dx=4.0, and mass unit, dm=10.0.
+# Print the force and torque acting on the particle to the screen at each 
+#   timestep.
+#----------------------------------------------------------------------------
+fix	1 all lb/fluid 1 2 1.0 1.0 setGamma 13.0 dx 4.0 dm 10.0 calcforce 10 all 
+
+#---------------------------------------------------------------------------
+# For this simulation the colloidal particle moves at a constant velocity
+#   through the fluid.  As such, we do not wish to apply the force from
+#   the fluid back onto the object.  Therefore, we do not use any of the
+#   viscous_lb, rigid_pc_sphere, or pc fixes, and simply integrate the 
+#   particle motion using one of the built-in LAMMPS integrators.
+#---------------------------------------------------------------------------
+fix     2 all nve
+
+run	100000

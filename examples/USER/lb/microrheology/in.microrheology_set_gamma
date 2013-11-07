@@ -1,0 +1,113 @@
+#===========================================================================#
+# 2 particle microrheology test                                             #
+#                                                                           #
+# Run consists of 2 colloidal particles undergoing Brownian motion in a     #
+#   thermal lattice-Boltzmann fluid.                                        #
+#                                                                           #
+# Here, gamma (used in the calculation of the particle-fluid interaction    #
+#   force) is set by the user (gamma = 1.4692 for this simulation...this    # 
+#   value has been calibrated a priori through simulations of the drag      # 
+#   force acting on a single particle of the same radius).                  #
+#                                                                           #
+# Sample output from this run can be found in the file:                     # 
+#   'microrheology_setgamma.out'                                            #
+#===========================================================================#
+
+units          nano
+dimension      3
+boundary       p p p
+atom_style     molecular
+read_data      data.two
+
+#----------------------------------------------------------------------------
+# Need a neighbor bin size smaller than the lattice-Boltzmann grid spacing   
+#   to ensure that the particles belonging to a given processor remain inside
+#   that processors lattice-Boltzmann grid.  
+# The arguments for neigh_modify have been set to "delay 0 every 1", again
+#   to ensure that the particles belonging to a given processor remain inside
+#   that processors lattice-Boltzmann grid.  However, these values can likely
+#   be somewhat increased without issue.  If a problem does arise (a particle
+#   is outside of its processors LB grid) an error message is printed and 
+#   the simulation is terminated.                                
+#---------------------------------------------------------------------------- 
+neighbor 0.3 bin
+neigh_modify delay 0 every 1
+neigh_modify exclude type 2 2
+neigh_modify exclude type 2 1
+
+#----------------------------------------------------------------------------
+# Implement a hard-sphere interaction between the particles at the center of 
+#   each colloidal object (use a truncated and shifted Lennard-Jones 
+#   potential).
+#----------------------------------------------------------------------------
+pair_style	lj/cut 5.88
+pair_coeff	* * 0.0 0.0 5.88
+pair_coeff      1 1 100.0 5.238484463 5.88
+pair_modify     shift yes
+
+mass * 0.0002398
+timestep 0.00045
+
+#----------------------------------------------------------------------------
+# ForceAtoms are the particles at the center of each colloidal object which  
+#   do not interact with the fluid, but are used to implement the hard-sphere
+#   interactions.       
+# FluidAtoms are the particles representing the surface of the colloidal
+#   object which do interact with the fluid.                               
+#----------------------------------------------------------------------------
+group ForceAtoms type 1
+group FluidAtoms type 2
+
+#---------------------------------------------------------------------------
+# Create a lattice-Boltzmann fluid covering the simulation domain.
+# This fluid feels a force due to the particles specified through FluidAtoms 
+#   (however, this fix does not explicity apply a force back on to these 
+#    particles...this is accomplished through the use of the rigid_pc_sphere 
+#    fix).
+# Use the LB integration scheme of Ollila et. al. (for stability reasons,
+#   this integration scheme should be used when a large user set value for 
+#   gamma is specified), a fluid viscosity = 1.0, fluid density= 0.0009982071, 
+#   value for gamma=1.4692, lattice spacing dx=1.2, and mass unit, dm=0.003.
+# Use a thermal lattice-Boltzmann fluid (temperature 300K, random number 
+#   seed=2762).  This enables the particles to undergo Brownian motion in 
+#   the fluid.
+#----------------------------------------------------------------------------
+fix   1 FluidAtoms lb/fluid 1 2 1.0 0.0009982071 setGamma 1.4692 dx 1.2 dm 0.003 noise 300.0 2762
+
+#----------------------------------------------------------------------------
+# Apply the force from the fluid to the particles, and integrate their 
+#   motion, constraining them to move and rotate together as a single rigid 
+#   spherical object.  
+# Since both the ForceAtoms (central atoms), and the FluidAtoms (spherical
+#   shell) should move and rotate together, this fix is applied to all of 
+#   the atoms in the system.  However, since the central atoms should not
+#   feel a force due to the fluid, they are excluded from the fluid force 
+#   calculation through the use of the 'innerNodes' keyword.
+# NOTE: This fix should only be used when the user specifies a value for 
+#   gamma (through the setGamma keyword) in the lb_fluid fix. 
+#----------------------------------------------------------------------------
+fix   2 all lb/rigid/pc/sphere molecule innerNodes ForceAtoms 
+
+#----------------------------------------------------------------------------
+# To ensure that numerical errors do not lead to a buildup of momentum in the
+#   system, the momentum_lb fix is used every 10000 timesteps to zero out the
+#   total (particle plus fluid) momentum in the system.
+#----------------------------------------------------------------------------
+fix   3 all lb/momentum 10000 linear 1 1 1
+
+#----------------------------------------------------------------------------
+# Create variables containing the positions of the central atoms (these 
+#   values should correspond to the center of mass of each composite 
+#   colloidal particle), and output these quantities to the screen.
+#----------------------------------------------------------------------------
+variable x1 equal x[1]
+variable y1 equal y[1]
+variable z1 equal z[1]
+variable x2 equal x[242]
+variable y2 equal y[242]
+variable z2 equal z[242]
+
+thermo_style custom v_x1 v_y1 v_z1 v_x2 v_y2 v_z2
+thermo       1
+
+run	       2000000000

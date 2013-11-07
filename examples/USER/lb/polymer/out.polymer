@@ -1,0 +1,19 @@
+LAMMPS (22 Feb 2013)
+Scanning data file ...
+  1 = max bonds/atom
+Reading data file ...
+  orthogonal box = (0 0 0) to (40 40 40)
+  2 by 2 by 2 MPI processor grid
+  992 atoms
+  31 bonds
+Finding 1-2 1-3 1-4 neighbors ...
+  2 = max # of 1-2 neighbors
+  2 = max # of special neighbors
+32 atoms in group ForceAtoms
+960 atoms in group FluidAtoms
+Using a lattice-Boltzmann grid of 40 by 40 by 40 total grid points. (fix_lb_fluid.cpp:354)
+32 rigid bodies with 992 atoms
+Setting up run ...
+Memory usage per processor = 0.539707 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0            0   -8.2758489    2790.7741    2782.4982 1.8503717e-20 

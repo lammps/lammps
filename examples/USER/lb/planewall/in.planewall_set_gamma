@@ -1,0 +1,92 @@
+#===========================================================================#
+# Rigid sphere freely moving near a stationary plane wall in a system       #
+# undergoing shear flow.                                                    # 
+# Every 10 time steps the center of mass velocity and angular velocity of   #
+# the sphere are printed to the screen.                                     #
+#                                                                           #  
+# Here, gamma (used in the calculation of the particle-fluid interaction    #
+#   force) is set by the user (gamma = 13.655 for this simulation...this    # 
+#   value has been calibrated a priori through simulations of the drag      # 
+#   force acting on a single particle of the same radius).                  #
+#                                                                           #
+# Sample output from this run can be found in the file:                     # 
+#   'wall_setgamma.out'                                                     #
+#===========================================================================# 
+
+units          micro
+dimension      3
+boundary       p p f
+atom_style     atomic
+
+#----------------------------------------------------------------------------
+# Need a neighbor bin size smaller than the lattice-Boltzmann grid spacing
+#   to ensure that the particles belonging to a given processor remain inside
+#   that processors lattice-Boltzmann grid.
+# The arguments for neigh_modify have been set to "delay 0 every 1", again
+#   to ensure that the particles belonging to a given processor remain inside
+#   that processors lattice-Boltzmann grid.  However, these values can likely
+#   be somewhat increased without issue.  If a problem does arise (a particle
+#   is outside of its processors LB grid) an error message is printed and 
+#   the simulation is terminated.    
+#----------------------------------------------------------------------------
+neighbor       1.0 bin
+neigh_modify   delay 0 every 1 
+
+read_data      data.one_radius16d2
+
+#----------------------------------------------------------------------------
+# None of the particles interact with one another.
+#----------------------------------------------------------------------------
+pair_style     lj/cut 2.45
+pair_coeff     * * 0.0 0.0 2.45
+neigh_modify   exclude type 1 1 
+
+mass           * 100.0
+timestep       4.0
+
+group          sphere1 id <> 1 320
+
+#----------------------------------------------------------------------------
+# Colloidal particle is initially stationary.
+#----------------------------------------------------------------------------
+velocity       all set 0.0 0.0 0.0 units box
+
+#----------------------------------------------------------------------------
+# Create a lattice-Boltzmann fluid covering the simulation domain.
+# All of the particles in the simulation apply a force to the fluid.
+#   (however, this fix does not explicity apply a force back on to these 
+#    particles...this is accomplished through the use of the rigid_pc_sphere
+#    fix).
+# Use the LB integration scheme of Ollila et. al. (for stability reasons,
+#   this integration scheme should be used when a large user set value for 
+#   gamma is specified), a fluid density = 1.0, fluid viscosity = 1.0, value 
+#   for gamma=13.655, lattice spacing dx=4.0, and mass unit, dm=10.0.
+# Create shear in the system, by giving the upper z-wall a velocity of 0.0001
+#   along the y-direction, while keeping the lower z-wall stationary.
+#-----------------------------------------------------------------------------
+fix    1 all lb/fluid 1 2 1.0 1.0 setGamma 13.655 dx 4.0 dm 10.0 zwall_velocity 0.0 0.0001
+
+#----------------------------------------------------------------------------
+# Apply the force from the fluid to the particles, and integrate their 
+#   motion, constraining them to move and rotate together as a single rigid 
+#   spherical object.  
+# NOTE: This fix should only be used when the user specifies a value for 
+#   gamma (through the setGamma keyword) in the lb_fluid fix. 
+#----------------------------------------------------------------------------
+fix    2 all lb/rigid/pc/sphere group 1 sphere1 
+
+#----------------------------------------------------------------------------
+# Create variables for the center-of-mass and angular velocities, and output
+#   these quantities to the screen.
+#----------------------------------------------------------------------------
+variable vx equal vcm(all,x)
+variable vy equal vcm(all,y)
+variable vz equal vcm(all,z)
+variable omegax equal omega(all,x)
+variable omegay equal omega(all,y)
+variable omegaz equal omega(all,z)
+
+thermo_style   custom v_vx v_vy v_vz v_omegax v_omegay v_omegaz
+thermo         10
+
+run	       200000

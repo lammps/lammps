@@ -1,0 +1,105 @@
+#===========================================================================#
+# polymer test                                                              #
+#                                                                           #
+# Run consists of a lone 32-bead coarse-grained polymer                     #
+# undergoing Brownian motion in thermal lattice-Boltzmann fluid.            #
+#                                                                           #
+# Here, gamma (used in the calculation of the monomer-fluid interaction     #
+#   force) is set by the user (gamma = 0.03 for this simulation...this      # 
+#   value has been calibrated a priori through simulations of the drag      # 
+#   force acting on a single particle of the same radius).                  #
+# Sample output from this run can be found in the file:                     # 
+#   'dump.polymer.lammpstrj'                                                #
+# and viewed using, e.g., the VMD software.                                 #
+#                                                                           #
+# Santtu Ollila                                                             #
+# santtu.ollila@aalto.fi                                                    #
+# Aalto University                                                          #
+# August 14, 2013                                                           #
+#===========================================================================#
+
+units	   	nano
+dimension	3
+boundary	p p p
+atom_style	hybrid molecular
+special_bonds	fene
+read_data	data.polymer
+
+#----------------------------------------------------------------------------
+# Need a neighbor bin size smaller than the lattice-Boltzmann grid spacing   
+#   to ensure that the particles belonging to a given processor remain inside
+#   that processors lattice-Boltzmann grid.                                  
+#---------------------------------------------------------------------------- 
+neighbor 0.5 bin
+neigh_modify delay 0 every 1 check yes
+neigh_modify exclude type 2 2
+neigh_modify exclude type 2 1
+
+#----------------------------------------------------------------------------
+# Implement a hard-sphere interaction between the particles at the center of 
+#   each monomer (use a truncated and shifted Lennard-Jones potential).
+#----------------------------------------------------------------------------
+bond_style	fene
+bond_coeff	1 60.0 2.25 4.14195 1.5
+pair_style	lj/cut 1.68369
+pair_coeff	1 1 4.14195 1.5 1.68369
+pair_coeff	1 2 4.14195 1.5 1.68369
+pair_coeff	2 2 0 1.0
+
+mass * 0.000000771064
+timestep 0.00003
+
+#----------------------------------------------------------------------------
+# ForceAtoms are the particles at the center of each monomer which  
+#   do not interact with the fluid, but are used to implement the hard-sphere
+#   interactions.       
+# FluidAtoms are the particles representing the surface of the monomer
+# which do interact with the fluid.                               
+#----------------------------------------------------------------------------
+group ForceAtoms type 1
+group FluidAtoms type 2
+
+#---------------------------------------------------------------------------
+# Create a lattice-Boltzmann fluid covering the simulation domain.
+# This fluid feels a force due to the particles specified through FluidAtoms 
+#   (however, this fix does not explicity apply a force back on to these 
+#    particles. This is accomplished through the use of the rigid_pc_sphere 
+#    fix).
+# Use the LB integration scheme of Ollila et. al. (for stability reasons,
+#   this integration scheme should be used when a large user set value for 
+#   gamma is specified), a fluid viscosity = 0.023333333,
+#   fluid density= 0.0000166368, 
+#   value for gamma=0.03, lattice spacing dx=1.0, and mass unit, dm=0.0000166368.
+# Use a thermal lattice-Boltzmann fluid (temperature 300K, random number 
+#   seed=15003).  This enables the particles to undergo Brownian motion in 
+#   the fluid.
+#----------------------------------------------------------------------------
+fix 1 FluidAtoms lb/fluid 5 1 0.023333333 0.0000166368 setGamma 0.03 dx 1.0 dm 0.0000166368 noise 300.0 15003
+
+#----------------------------------------------------------------------------
+# Apply the force from the fluid to the particles, and integrate their 
+#   motion, constraining them to move and rotate together as a single rigid 
+#   spherical object.  
+# Since both the ForceAtoms (central atoms), and the FluidAtoms (spherical
+#   shell) should move and rotate together, this fix is applied to all of 
+#   the atoms in the system.  However, since the central atoms should not
+#   feel a force due to the fluid, they are excluded from the force 
+#   calculation through the use of the 'innerNodes' keyword.
+# NOTE: This fix should only be used when the user specifies a value for 
+#   gamma (through the setGamma keyword) in the lb_fluid fix. 
+#----------------------------------------------------------------------------
+fix   2 all lb/rigid/pc/sphere molecule innerNodes ForceAtoms 
+
+#----------------------------------------------------------------------------
+# To ensure that numerical errors do not lead to a buildup of momentum in the
+#   system, the momentum_lb fix is used every 10000 timesteps to zero out the
+#   total (particle plus fluid) momentum in the system.
+#----------------------------------------------------------------------------
+fix   3 all lb/momentum 10000 linear 1 1 1
+
+#----------------------------------------------------------------------------
+# Write position and velocity coordinates into a file every 2000 time steps.
+#----------------------------------------------------------------------------
+
+dump		1 ForceAtoms custom 2000 dump.polymer.lammpstrj id x y z vx vy vz
+run		2000001

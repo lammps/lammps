@@ -45,8 +45,8 @@ FixTIRS::FixTIRS(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   extvector   = 1;
 
   // Time variables.
-  t_switch  = atof(arg[5]);
-  t_equil   = atof(arg[6]);
+  t_switch  = atoi(arg[5]);
+  t_equil   = atoi(arg[6]);
   t0 = update->ntimestep;    
   if (t_switch < 0.0) error->all(FLERR,"Illegal fix ti/rs command");
   if (t_equil  < 0.0) error->all(FLERR,"Illegal fix ti/rs command");

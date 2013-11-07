@@ -11,13 +11,6 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------
-   Contributing authors: Frances Mackay, Santtu Ollila, Colin Denniston (UWO)
-
-   Based on fix_momentum,
-   Contributing author: Naveen Michaud-Agrawal (Johns Hopkins U)
-------------------------------------------------------------------------- */
-
 #ifdef FIX_CLASS
 
 FixStyle(lb/momentum,FixLbMomentum)

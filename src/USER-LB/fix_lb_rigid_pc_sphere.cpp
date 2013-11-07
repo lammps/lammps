@@ -13,7 +13,6 @@
 
 /* ----------------------------------------------------------------------
    Contributing authors: Frances Mackay, Santtu Ollila, Colin Denniston (UWO)
-
    Based on fix_rigid (version from 2008).
 ------------------------------------------------------------------------- */
 
@@ -39,8 +38,6 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-#define MIN(A,B) ((A) < (B)) ? (A) : (B)
-#define MAX(A,B) ((A) > (B)) ? (A) : (B)
 /* -------------------------------------------------------------------------- */
 
 FixLbRigidPCSphere::FixLbRigidPCSphere(LAMMPS *lmp, int narg, char **arg) :

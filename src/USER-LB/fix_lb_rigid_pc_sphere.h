@@ -11,12 +11,6 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------
-   Contributing authors: Frances Mackay, Santtu Ollila, Colin Denniston (UWO)
-
-   Based on fix_rigid.
-------------------------------------------------------------------------- */
-
 #ifdef FIX_CLASS
 
 FixStyle(lb/rigid/pc/sphere,FixLbRigidPCSphere)

@@ -11,10 +11,6 @@
    For more info, see the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------ */
 
-/* ----------------------------------------------------------------------
-   Contributing authors: Frances Mackay, Santtu Ollila, Colin Denniston (UWO)
-------------------------------------------------------------------------- */
-
 #ifdef FIX_CLASS
 
 FixStyle(lb/fluid,FixLbFluid)

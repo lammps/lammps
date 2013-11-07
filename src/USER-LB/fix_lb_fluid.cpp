@@ -1259,7 +1259,8 @@ void FixLbFluid::read_restartfile(void)
   MPI_Type_create_subarray(4,gsizes,lsizes,starts,MPI_ORDER_C,MPI_DOUBLE,&filetype);
   MPI_Type_commit(&filetype);
 
-  MPI_File_set_view(pFileRead,0,MPI_DOUBLE,filetype,"native",MPI_INFO_NULL);
+  MPI_File_set_view(pFileRead,0,MPI_DOUBLE,filetype,(char *) "native",
+                    MPI_INFO_NULL);
   MPI_File_seek(pFileRead,0,MPI_SEEK_SET);
   MPI_File_read_all(pFileRead,&f_lb[0][0][0][0],1,realtype,&status);
   if(typeLB == 2){
@@ -1305,7 +1306,7 @@ void FixLbFluid::write_restartfile(void)
   MPI_Type_create_subarray(4,gsizes,lsizes,starts,MPI_ORDER_C,MPI_DOUBLE,&filetype);
   MPI_Type_commit(&filetype);
 
-  MPI_File_set_view(fh,0,MPI_DOUBLE,filetype,"native",MPI_INFO_NULL);
+  MPI_File_set_view(fh,0,MPI_DOUBLE,filetype,(char *) "native",MPI_INFO_NULL);
   MPI_File_write_all(fh,&f_lb[0][0][0][0],1,realtype,&status);
   if(typeLB == 2){
     MPI_File_write_all(fh,&feqold[0][0][0][0],1,realtype,&status);

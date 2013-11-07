@@ -245,6 +245,48 @@ void Update::set_units(const char *style)
     dt = 0.001;
     neighbor->skin = 2.0;
 
+  } else if (strcmp(style,"micro") == 0) {
+    force->boltz = 1.3806504e-8;
+    force->hplanck = 6.62606896e-13;
+    force->mvv2e = 1.0;
+    force->ftm2v = 1.0;
+    force->mv2d = 1.0;
+    force->nktv2p = 1.0;
+    force->qqr2e = 8.9876e30;
+    force->qe2f = 1.0;
+    force->vxmu2f = 1.0;
+    force->xxt2kmu = 1.0;
+    force->e_mass = 0.0;    // not yet set
+    force->hhmrr2e = 0.0;
+    force->mvh2r = 0.0;
+    force->angstrom = 1.0e-4;
+    force->femtosecond = 1.0e-9;
+    force->qelectron = 1.6021765e-19;
+
+    dt = 2.0;
+    neighbor->skin = 0.1;
+                                              
+  } else if (strcmp(style,"nano") == 0) {  
+    force->boltz = 0.013806503;
+    force->hplanck = 6.62606896e-4;
+    force->mvv2e = 1.0;
+    force->ftm2v = 1.0;
+    force->mv2d = 1.0;
+    force->nktv2p = 1.0;
+    force->qqr2e = 8.9876e39;
+    force->qe2f = 1.0;
+    force->vxmu2f = 1.0;
+    force->xxt2kmu = 1.0;
+    force->e_mass = 0.0;    // not yet set
+    force->hhmrr2e = 0.0;
+    force->mvh2r = 0.0;
+    force->angstrom = 1.0e-1;
+    force->femtosecond = 1.0e-6;
+    force->qelectron = 1.6021765e-19;
+       
+    dt = 0.00045;
+    neighbor->skin = 0.1;
+
   } else error->all(FLERR,"Illegal units command");
 
   delete [] unit_style;

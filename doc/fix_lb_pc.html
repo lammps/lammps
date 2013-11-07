@@ -15,11 +15,8 @@
 </P>
 <PRE>fix ID group-ID lb/pc 
 </PRE>
-<UL><LI>ID, group-ID are documented in the <A HREF = "fix.html">fix</A> command 
-
+<UL><LI>ID, group-ID are documented in the <A HREF = "fix.html">fix</A> command
 <LI>lb/pc = style name of this fix command 
-
-
 </UL>
 <P><B>Examples:</B>
 </P>
@@ -27,9 +24,13 @@
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Update the positions and velocities of the individual particles described
-by <I>group-ID</I>, experiencing velocity-dependent hydrodynamic forces, 
-using the integration algorithm described in <A HREF = "#Mackay">Mackay et al.</A> &#91;1&#93;.  This integration algorithm should only be used if a user-specified value for the force-coupling constant used in <A HREF = "fix_lb_fluid.html">fix lb/fluid</A> has been set; do not use this integration algorithm if the force coupling constant has been set by default.
+<P>Update the positions and velocities of the individual particles
+described by <I>group-ID</I>, experiencing velocity-dependent hydrodynamic
+forces, using the integration algorithm described in <A HREF = "#Mackay">Mackay et
+al.</A>.  This integration algorithm should only be used if a
+user-specified value for the force-coupling constant used in <A HREF = "fix_lb_fluid.html">fix
+lb/fluid</A> has been set; do not use this integration
+algorithm if the force coupling constant has been set by default.
 </P>
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>
@@ -43,16 +44,18 @@ This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>
 </P>
 <P><B>Restrictions:</B> 
 </P>
-<P>Can only be used if a lattice-Boltzmann fluid has been created via the
-<A HREF = "fix_lb_fluid.html">fix lb/fluid</A> command, and must come after this command. 
+<P>This fix is part of the USER-LB package.  It is only enabled if LAMMPS
+was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
 </P>
-<P> This fix can only be used if LAMMPS was built with the
-"fluid" package.  See the <A HREF = "Section_start.html#2_3">Making
-LAMMPS</A> section for more info on packages.
+<P>Can only be used if a lattice-Boltzmann fluid has been created via the
+<A HREF = "fix_lb_fluid.html">fix lb/fluid</A> command, and must come after this
+command.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "fix_lb_fluid.html">fix lb/fluid</A> <A HREF = "fix_lb_rigid_pc_sphere.html">fix lb/rigid/pc/sphere</A>
+<P><A HREF = "fix_lb_fluid.html">fix lb/fluid</A> <A HREF = "fix_lb_rigid_pc_sphere.html">fix
+lb/rigid/pc/sphere</A>
 </P>
 <P><B>Default:</B> None.
 </P>
@@ -60,6 +63,6 @@ LAMMPS</A> section for more info on packages.
 
 <A NAME = "Mackay"></A>
 
-<P><B>&#91;1&#93; (Mackay et al.)</B> Mackay, F. E., Ollila, S.T.T., and Denniston, C., Hydrodynamic Forces Implemented into LAMMPS through a lattice-Boltzmann fluid, Computer Physics Communications 184 (2013) 2021-2031.
+<P><B>(Mackay et al.)</B> Mackay, F. E., Ollila, S.T.T., and Denniston, C., Hydrodynamic Forces Implemented into LAMMPS through a lattice-Boltzmann fluid, Computer Physics Communications 184 (2013) 2021-2031.
 </P>
 </HTML>

@@ -19,9 +19,8 @@ bodystyle = {single} or {molecule} or {group} :l
   {molecule} args = none
   {group} args = N groupID1 groupID2 ...
     N = # of groups
-
 zero or more keyword/value pairs may be appended :l
-keyword = {force} or {torque} or {innerNodes} 	
+keyword = {force} or {torque} or {innerNodes} :l
   {force} values = M xflag yflag zflag
     M = which rigid body from 1-Nbody (see asterisk form below)
     xflag,yflag,zflag = off/on if component of center-of-mass force is active
@@ -30,7 +29,7 @@ keyword = {force} or {torque} or {innerNodes}
     xflag,yflag,zflag = off/on if component of center-of-mass torque is active 
   {innerNodes} values = innergroup-ID 
     innergroup-ID = ID of the atom group which does not experience a hydrodynamic force from the lattice-Boltzmann fluid :pre
- :ule
+:ule
 
 [Examples:]
 
@@ -39,53 +38,60 @@ fix 1 all lb/rigid/pc/sphere force 1 0 0 innerNodes ForceAtoms :pre
 
 [Description:]
 
-This fix is based on the "fix rigid"_fix_rigid.html command, and was 
-created to be used in place of that fix, to integrate the equations of motion
-of spherical rigid bodies when a lattice-Boltzmann fluid is present with a user-specified value of the force-coupling constant.
-The fix uses the integration algorithm described in "Mackay et al."_#Mackay &#91;1&#93; to update
-the positions, velocities, and orientations of a set of spherical rigid bodies experiencing
-velocity dependent hydrodynamic forces.  The spherical bodies are assumed to rotate as 
-solid, uniform density spheres, with moments of inertia calculated using the combined sum of the masses 
-of all the constituent particles (which are assumed to be point particles).
+This fix is based on the "fix rigid"_fix_rigid.html command, and was
+created to be used in place of that fix, to integrate the equations of
+motion of spherical rigid bodies when a lattice-Boltzmann fluid is
+present with a user-specified value of the force-coupling constant.
+The fix uses the integration algorithm described in "Mackay et
+al."_#Mackay to update the positions, velocities, and orientations of
+a set of spherical rigid bodies experiencing velocity dependent
+hydrodynamic forces.  The spherical bodies are assumed to rotate as
+solid, uniform density spheres, with moments of inertia calculated
+using the combined sum of the masses of all the constituent particles
+(which are assumed to be point particles).
 
 :line
 
-By default, all of the atoms that this fix acts on experience a hydrodynamic force due to the 
-presence of the lattice-Boltzmann fluid.  However, the {innerNodes} keyword allows the user 
-to specify atoms belonging to a rigid object which do not interact with the lattice-Boltzmann 
-fluid (i.e. these atoms do not feel a hydrodynamic force from the lattice-Boltzmann fluid).  
-This can be used to distinguish between atoms on the surface of a non-porous object, and 
-those on the inside.  
+By default, all of the atoms that this fix acts on experience a
+hydrodynamic force due to the presence of the lattice-Boltzmann fluid.
+However, the {innerNodes} keyword allows the user to specify atoms
+belonging to a rigid object which do not interact with the
+lattice-Boltzmann fluid (i.e. these atoms do not feel a hydrodynamic
+force from the lattice-Boltzmann fluid).  This can be used to
+distinguish between atoms on the surface of a non-porous object, and
+those on the inside.
 
-This feature can be used, for example, when implementing a hard sphere interaction
-between two spherical objects.  Instead of interactions occurring between the particles on
-the surfaces of the two spheres, it is desirable simply to place an atom at the center of
-each sphere, which does not contribute to the hydrodynamic force, and have these central
-atoms interact with one another.  
+This feature can be used, for example, when implementing a hard sphere
+interaction between two spherical objects.  Instead of interactions
+occurring between the particles on the surfaces of the two spheres, it
+is desirable simply to place an atom at the center of each sphere,
+which does not contribute to the hydrodynamic force, and have these
+central atoms interact with one another.
 
 :line  
 
-Apart from the features described above, this fix is very similar to the rigid fix (although
-it includes fewer optional arguments, and assumes the constituent atoms are point particles); see "fix_rigid"_fix_rigid.html 
-for a complete documentation.
+Apart from the features described above, this fix is very similar to
+the rigid fix (although it includes fewer optional arguments, and
+assumes the constituent atoms are point particles); see
+"fix_rigid"_fix_rigid.html for a complete documentation.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
 No information about the {rigid} and {rigid/nve} fixes are written to
 "binary restart files"_restart.html.
 
-Similar to the "fix_rigid"_fix_rigid.html command:
-&quot; The rigid fix computes a global scalar which can be
-accessed by various "output commands"_Section_howto.html#howto_15.
-The scalar value calculated by these fixes is "intensive".  The scalar
-is the current temperature of the collection of rigid bodies.  This is
-averaged over all rigid bodies and their translational and rotational
-degrees of freedom.  The translational energy of a rigid body is 1/2 m
-v^2, where m = total mass of the body and v = the velocity of its
-center of mass.  The rotational energy of a rigid body is 1/2 I w^2,
-where I = the moment of inertia tensor of the body and w = its angular
-velocity.  Degrees of freedom constrained by the {force} and {torque}
-keywords are removed from this calculation.&quot;
+Similar to the "fix_rigid"_fix_rigid.html command: &quot; The rigid
+fix computes a global scalar which can be accessed by various "output
+commands"_Section_howto.html#howto_15.  The scalar value calculated by
+these fixes is "intensive".  The scalar is the current temperature of
+the collection of rigid bodies.  This is averaged over all rigid
+bodies and their translational and rotational degrees of freedom.  The
+translational energy of a rigid body is 1/2 m v^2, where m = total
+mass of the body and v = the velocity of its center of mass.  The
+rotational energy of a rigid body is 1/2 I w^2, where I = the moment
+of inertia tensor of the body and w = its angular velocity.  Degrees
+of freedom constrained by the {force} and {torque} keywords are
+removed from this calculation.&quot;
 
 &quot;All of these fixes compute a global array of values which can be
 accessed by various "output commands"_Section_howto.html#howto_15.
@@ -113,16 +119,18 @@ No parameter of these fixes can be used with the {start/stop} keywords
 of the "run"_run.html command.  These fixes are not invoked during
 "energy minimization"_minimize.html. &quot;
 
-
 [Restrictions:] 
 
-Can only be used if a lattice-Boltzmann fluid has been created via the
-"fix lb/fluid"_fix_lb_fluid.html command, and must come after this command.  
-Should only be used if the force coupling constant used in "fix lb/fluid"_fix_lb_fluid.html has been set by the user; this integration fix cannot be used if the force coupling constant is set by default.
+This fix is part of the USER-LB package.  It is only enabled if LAMMPS
+was built with that package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
 
-This fix can only be used if LAMMPS was built with the
-"fluid" package.  See the "Making
-LAMMPS"_Section_start.html#2_3 section for more info on packages.
+Can only be used if a lattice-Boltzmann fluid has been created via the
+"fix lb/fluid"_fix_lb_fluid.html command, and must come after this
+command.  Should only be used if the force coupling constant used in
+"fix lb/fluid"_fix_lb_fluid.html has been set by the user; this
+integration fix cannot be used if the force coupling constant is set
+by default.
 
 [Related commands:]
 
@@ -135,4 +143,4 @@ The defaults are force * on on on, and torque * on on on.
 :line
 
 :link(Mackay)
-[&#91;1&#93; (Mackay et al.)] Mackay, F. E., Ollila, S.T.T., and Denniston, C., Hydrodynamic Forces Implemented into LAMMPS through a lattice-Boltzmann fluid, Computer Physics Communications 184 (2013) 2021-2031.
+[(Mackay et al.)] Mackay, F. E., Ollila, S.T.T., and Denniston, C., Hydrodynamic Forces Implemented into LAMMPS through a lattice-Boltzmann fluid, Computer Physics Communications 184 (2013) 2021-2031.

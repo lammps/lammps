@@ -12,9 +12,8 @@ fix lb/pc command :h3
 
 fix ID group-ID lb/pc :pre
 
-ID, group-ID are documented in the "fix"_fix.html command :ulb,l
-lb/pc = style name of this fix command :l
-:ule
+ID, group-ID are documented in the "fix"_fix.html command
+lb/pc = style name of this fix command :ul
 
 [Examples:]
 
@@ -22,10 +21,13 @@ fix 1 all lb/pc :pre
 
 [Description:]
 
-Update the positions and velocities of the individual particles described
-by {group-ID}, experiencing velocity-dependent hydrodynamic forces, 
-using the integration algorithm described in "Mackay et al."_#Mackay &#91;1&#93;.  This integration algorithm should only be used if a user-specified value for the force-coupling constant used in "fix lb/fluid"_fix_lb_fluid.html has been set; do not use this integration algorithm if the force coupling constant has been set by default.
-
+Update the positions and velocities of the individual particles
+described by {group-ID}, experiencing velocity-dependent hydrodynamic
+forces, using the integration algorithm described in "Mackay et
+al."_#Mackay.  This integration algorithm should only be used if a
+user-specified value for the force-coupling constant used in "fix
+lb/fluid"_fix_lb_fluid.html has been set; do not use this integration
+algorithm if the force coupling constant has been set by default.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
@@ -39,20 +41,22 @@ This fix is not invoked during "energy minimization"_minimize.html.
 
 [Restrictions:] 
 
-Can only be used if a lattice-Boltzmann fluid has been created via the
-"fix lb/fluid"_fix_lb_fluid.html command, and must come after this command. 
+This fix is part of the USER-LB package.  It is only enabled if LAMMPS
+was built with that package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
 
- This fix can only be used if LAMMPS was built with the
-"fluid" package.  See the "Making
-LAMMPS"_Section_start.html#2_3 section for more info on packages.
+Can only be used if a lattice-Boltzmann fluid has been created via the
+"fix lb/fluid"_fix_lb_fluid.html command, and must come after this
+command.
 
 [Related commands:]
 
-"fix lb/fluid"_fix_lb_fluid.html "fix lb/rigid/pc/sphere"_fix_lb_rigid_pc_sphere.html
+"fix lb/fluid"_fix_lb_fluid.html "fix
+lb/rigid/pc/sphere"_fix_lb_rigid_pc_sphere.html
 
 [Default:] None.
 
 :line
 
 :link(Mackay) 
-[&#91;1&#93; (Mackay et al.)] Mackay, F. E., Ollila, S.T.T., and Denniston, C., Hydrodynamic Forces Implemented into LAMMPS through a lattice-Boltzmann fluid, Computer Physics Communications 184 (2013) 2021-2031.
+[(Mackay et al.)] Mackay, F. E., Ollila, S.T.T., and Denniston, C., Hydrodynamic Forces Implemented into LAMMPS through a lattice-Boltzmann fluid, Computer Physics Communications 184 (2013) 2021-2031.

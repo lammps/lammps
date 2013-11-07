@@ -15,12 +15,11 @@ fix ID group-ID lb/momentum nevery keyword values ... :pre
 ID, group-ID are documented in the "fix"_fix.html command :ulb,l
 lb/momentum = style name of this fix command :l
 nevery = adjust the momentum every this many timesteps :l
-
 zero or more keyword/value pairs may be appended :l
-keyword = {linear} 
+keyword = {linear} :l
   {linear} values = xflag yflag zflag
     xflag,yflag,zflag = 0/1 to exclude/include each dimension. :pre
- :ule
+:ule
 
 [Examples:]
 
@@ -29,20 +28,21 @@ fix 1 all lb/momentum linear 1 1 0 :pre
 
 [Description:]
 
-This fix is based on the "fix momentum"_fix_momentum.html command, and was 
-created to be used in place of that command, when a lattice-Boltzmann fluid is present.
+This fix is based on the "fix momentum"_fix_momentum.html command, and
+was created to be used in place of that command, when a
+lattice-Boltzmann fluid is present.
 
-Zero the total linear momentum of the system, including both the atoms specified
-by group-ID and the lattice-Boltzmann fluid every nevery timesteps.  This is
-accomplished by adjusting the particle velocities and the fluid velocities at each 
-lattice site.
+Zero the total linear momentum of the system, including both the atoms
+specified by group-ID and the lattice-Boltzmann fluid every nevery
+timesteps.  This is accomplished by adjusting the particle velocities
+and the fluid velocities at each lattice site.
 
 NOTE:  This fix only considers the linear momentum of the system.
 
-By default, the subtraction is performed for each dimension.  This can be changed
-by specifying the keyword {linear}, along with a set of three flags set to 0/1 in order
-to exclude/ include the corresponding dimension.
-
+By default, the subtraction is performed for each dimension.  This can
+be changed by specifying the keyword {linear}, along with a set of
+three flags set to 0/1 in order to exclude/ include the corresponding
+dimension.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
@@ -57,11 +57,12 @@ This fix is not invoked during "energy minimization"_minimize.html.
 [Restrictions:] 
 
 Can only be used if a lattice-Boltzmann fluid has been created via the
-"fix lb/fluid"_fix_lb_fluid.html command, and must come after this command.  
+"fix lb/fluid"_fix_lb_fluid.html command, and must come after this
+command.
 
-This fix can only be used if LAMMPS was built with the
-"fluid" package.  See the "Making
-LAMMPS"_Section_start.html#2_3 section for more info on packages.
+This fix is part of the USER-LB package.  It is only enabled if LAMMPS
+was built with that package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
 
 [Related commands:]
 

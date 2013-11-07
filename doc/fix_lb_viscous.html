@@ -15,11 +15,8 @@
 </P>
 <PRE>fix ID group-ID lb/viscous 
 </PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
-
-<PRE>lb/viscous = style name of this fix command 
-</PRE>
-
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
+<LI>lb/viscous = style name of this fix command 
 </UL>
 <P><B>Examples:</B>
 </P>
@@ -32,21 +29,27 @@ is to be used in place of that command when a lattice-Boltzmann fluid
 is present, and the user wishes to integrate the particle motion using
 one of the built in LAMMPS integrators.
 </P>
-<P>This fix adds a force, F = - Gamma*(velocity-fluid_velocity), to each 
-atom, where Gamma is the force coupling constant described in the
-<A HREF = "fix_lb_fluid.html">fix lb/fluid</A> command (which applies an equal and opposite
-force to the fluid).  
+<P>This fix adds a force, F = - Gamma*(velocity-fluid_velocity), to each
+atom, where Gamma is the force coupling constant described in the <A HREF = "fix_lb_fluid.html">fix
+lb/fluid</A> command (which applies an equal and
+opposite force to the fluid).
 </P>
-<P>IMPORTANT NOTE: This fix should only be used in conjunction with one of the
-built in LAMMPS integrators; it should not be used with the 
-<A HREF = "fix_lb_pc.html">fix lb/pc</A> or <A HREF = "fix_lb_rigid_pc_sphere.html">fix lb/rigid/pc/sphere</A> integrators,  
-which already include the hydrodynamic forces.  These latter fixes should only be used if the force coupling constant has been set by the user (instead of using the default value); if the default force coupling value is used, then this fix provides the only method for adding the hydrodynamic forces to the particles.
+<P>IMPORTANT NOTE: This fix should only be used in conjunction with one
+of the built in LAMMPS integrators; it should not be used with the
+<A HREF = "fix_lb_pc.html">fix lb/pc</A> or <A HREF = "fix_lb_rigid_pc_sphere.html">fix
+lb/rigid/pc/sphere</A> integrators, which
+already include the hydrodynamic forces.  These latter fixes should
+only be used if the force coupling constant has been set by the user
+(instead of using the default value); if the default force coupling
+value is used, then this fix provides the only method for adding the
+hydrodynamic forces to the particles.
 </P>
 <HR>
 
-<P>For further details, as well as descriptions and results of several test runs,
-see <A HREF = "#Mackay">Mackay et al.</A> &#91;1&#93; .  Please include a citation to this
-paper if this fix is used in work contributing to published research. 
+<P>For further details, as well as descriptions and results of several
+test runs, see <A HREF = "#Mackay">Mackay et al.</A>.  Please include a citation to
+this paper if this fix is used in work contributing to published
+research.
 </P>
 <HR>
 
@@ -69,19 +72,22 @@ for details."
 </P>
 <P><B>Restrictions:</B>
 </P>
+<P>This fix is part of the USER-LB package.  It is only enabled if LAMMPS
+was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
 <P>Can only be used if a lattice-Boltzmann fluid has been created via the
-<A HREF = "fix_lb_fluid.html">fix lb/fluid</A> command, and must come after this command. 
+<A HREF = "fix_lb_fluid.html">fix lb/fluid</A> command, and must come after this
+command.
 </P>
-<P>This fix should not be used if either the <A HREF = "fix_lb_pc.html">fix lb/pc</A> or 
-<A HREF = "fix_lb_rigid_pc_sphere.html">fix lb/rigid/pc/sphere</A> integrator is used. 
-</P>
-<P> This fix can only be used if LAMMPS was built with the
-"fluid" package.  See the <A HREF = "Section_start.html#2_3">Making
-LAMMPS</A> section for more info on packages.
+<P>This fix should not be used if either the <A HREF = "fix_lb_pc.html">fix lb/pc</A>
+or <A HREF = "fix_lb_rigid_pc_sphere.html">fix lb/rigid/pc/sphere</A> integrator is
+used.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "fix_lb_fluid.html">fix lb/fluid</A>, <A HREF = "fix_lb_pc.html">fix lb/pc</A>, <A HREF = "fix_lb_rigid_pc_sphere.html">fix lb/rigid/pc/sphere</A>
+<P><A HREF = "fix_lb_fluid.html">fix lb/fluid</A>, <A HREF = "fix_lb_pc.html">fix lb/pc</A>, <A HREF = "fix_lb_rigid_pc_sphere.html">fix
+lb/rigid/pc/sphere</A>
 </P>
 <P><B>Default:</B> none
 </P>
@@ -89,6 +95,6 @@ LAMMPS</A> section for more info on packages.
 
 <A NAME = "Mackay"></A>
 
-<P><B>&#91;1&#93; (Mackay et al.)</B> Mackay, F. E., Ollila, S.T.T., and Denniston, C., Hydrodynamic Forces Implemented into LAMMPS through a lattice-Boltzmann fluid, Computer Physics Communications 184 (2013) 2021-2031.
+<P><B>(Mackay et al.)</B> Mackay, F. E., Ollila, S.T.T., and Denniston, C., Hydrodynamic Forces Implemented into LAMMPS through a lattice-Boltzmann fluid, Computer Physics Communications 184 (2013) 2021-2031.
 </P>
 </HTML>

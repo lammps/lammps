@@ -1,0 +1,80 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix lb/momentum command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID lb/momentum nevery keyword values ... 
+</PRE>
+<UL><LI>ID, group-ID are documented in the <A HREF = "fix.html">fix</A> command 
+
+<LI>lb/momentum = style name of this fix command 
+
+<LI>nevery = adjust the momentum every this many timesteps 
+
+<LI>zero or more keyword/value pairs may be appended 
+
+<PRE>keyword = <I>linear</I> 
+  <I>linear</I> values = xflag yflag zflag
+    xflag,yflag,zflag = 0/1 to exclude/include each dimension. 
+</PRE>
+ 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 1 sphere lb/momentum 
+fix 1 all lb/momentum linear 1 1 0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>This fix is based on the <A HREF = "fix_momentum.html">fix momentum</A> command, and was 
+created to be used in place of that command, when a lattice-Boltzmann fluid is present.
+</P>
+<P>Zero the total linear momentum of the system, including both the atoms specified
+by group-ID and the lattice-Boltzmann fluid every nevery timesteps.  This is
+accomplished by adjusting the particle velocities and the fluid velocities at each 
+lattice site.
+</P>
+<P>NOTE:  This fix only considers the linear momentum of the system.
+</P>
+<P>By default, the subtraction is performed for each dimension.  This can be changed
+by specifying the keyword <I>linear</I>, along with a set of three flags set to 0/1 in order
+to exclude/ include the corresponding dimension.
+</P>
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>No information about this fix is written to <A HREF = "restart.html">binary restart
+files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
+are relevant to this fix.  No global or per-atom quantities are stored
+by this fix for access by various <A HREF = "Section_howto.html#4_15">output
+commands</A>.  No parameter of this fix can be
+used with the <I>start/stop</I> keywords of the <A HREF = "run.html">run</A> command.
+This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
+</P>
+<P><B>Restrictions:</B> 
+</P>
+<P>Can only be used if a lattice-Boltzmann fluid has been created via the
+<A HREF = "fix_lb_fluid.html">fix lb/fluid</A> command, and must come after this command.  
+</P>
+<P>This fix can only be used if LAMMPS was built with the
+"fluid" package.  See the <A HREF = "Section_start.html#2_3">Making
+LAMMPS</A> section for more info on packages.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_momentum.html">fix momentum</A>, <A HREF = "fix_lb_fluid.html">fix lb/fluid</A>
+</P>
+<P><B>Default:</B> 
+</P>
+<P>Zeros the total system linear momentum in each dimension.
+</P>
+</HTML>

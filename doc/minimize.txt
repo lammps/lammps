@@ -61,7 +61,8 @@ Optimization (Procedure 3.1 on p 41).
 The "minimization styles"_min_style.html {quickmin} and {fire} perform
 damped dynamics using an Euler integration step.  Thus they require a
 "timestep"_timestep.html be defined, typically the same value used for
-"running dynamics"_run.html with the system.
+"running dynamics"_run.html with the system, though it may be more
+efficient to use a larger timestep.
 
 The objective function being minimized is the total potential energy
 of the system as a function of the N atom coordinates:
@@ -124,7 +125,7 @@ freedom, such as from the "fix box/relax"_fix_box_relax.html command.
 
 Following minimization, a statistical summary is printed that lists
 which convergence criterion caused the minimizer to stop, as well as
-information about the energy, force, final line search, and and
+information about the energy, force, final line search, and
 iteration counts.  An example is as follows:
 
 Minimization stats:

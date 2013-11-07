@@ -12,7 +12,7 @@ units command :h3
 
 units style :pre
 
-style = {lj} or {real} or {metal} or {si} or {cgs} or {electron} :ul
+style = {lj} or {real} or {metal} or {si} or {cgs} or {electron} or {micro} or {nano} :ul
 
 [Examples:]
 
@@ -142,6 +142,40 @@ charge = multiple of electron charge (+1.0 is a proton)
 dipole moment = Debye
 electric field = volts/cm :ul
 
+For style {micro}, these are the units:
+
+mass = picograms
+distance = micrometers
+time = microseconds
+energy = picogram-micrometer^2/microsecond^2
+velocity = micrometers/microsecond
+force = picogram-micrometer/microsecond^2
+torque = picogram-micrometer^2/microsecond^2
+temperature = Kelvin
+pressure = picogram/(micrometer-microsecond^2)
+dynamic viscosity = picogram/(micrometer-microsecond)
+charge = picocoulombs
+dipole = picocoulomb-micrometer
+electric field = volt/micrometer 
+density = picograms/micrometer^dim :ul
+
+For style {nano}, these are the units:
+
+mass = attograms
+distance = nanometers
+time = nanoseconds
+energy = attogram-nanometer^2/nanosecond^2
+velocity = nanometers/nanosecond
+force = attogram-nanometer/nanosecond^2
+torque = attogram-nanometer^2/nanosecond^2
+temperature = Kelvin
+pressure = attogram/(nanometer-nanosecond^2)
+dynamic viscosity = attogram/(nanometer-nanosecond)
+charge = multiple of electron charge (+1.0 is a proton)
+dipole = charge-nanometer
+electric field = volt/nanometer 
+density = attograms/nanometer^dim :ul
+
 The units command also sets the timestep size and neighbor skin
 distance to default values for each style:
 
@@ -150,7 +184,9 @@ For style {real} these are dt = 1.0 fmsec and skin = 2.0 Angstroms.
 For style {metal} these are dt = 0.001 psec and skin = 2.0 Angstroms.
 For style {si} these are dt = 1.0e-8 sec and skin = 0.001 meters.
 For style {cgs} these are dt = 1.0e-8 sec and skin = 0.1 cm.
-For style {electron} these are dt = 0.001 fmsec and skin = 2.0 Bohr. :ul
+For style {electron} these are dt = 0.001 fmsec and skin = 2.0 Bohr. 
+For style {micro} these are dt = 2.0 microsec and skin = 0.1 micrometers.
+For style {nano} these are dt = 0.00045 nanosec and skin = 0.1 nanometers. :ul
 
 [Restrictions:]
 

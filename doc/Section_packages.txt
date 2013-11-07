@@ -110,6 +110,7 @@ USER-CG-CMM, coarse-graining model, Axel Kohlmeyer (Temple U), "pair_style lj/sd
 USER-COLVARS, collective variables, Fiorin & Henin & Kohlmeyer (3), "fix colvars"_fix_colvars.html, USER/colvars, "colvars"_colvars, lib/colvars
 USER-CUDA, NVIDIA GPU styles, Christian Trott (U Tech Ilmenau), "Section accelerate"_Section_accelerate.html#acc_7, USER/cuda, -, lib/cuda
 USER-EFF, electron force field, Andres Jaramillo-Botero (Caltech), "pair_style eff/cut"_pair_eff.html, USER/eff, "eff"_eff, -
+USER-LB, Lattice Boltzmann fluid, Colin Denniston (U Western Ontario), "fix lb/fluid"_fix_lb_fluid.html, USER/lb, -, -
 USER-MISC, single-file contributions, USER-MISC/README, USER-MISC/README, -, -, -
 USER-MOLFILE, "VMD"_VMD molfile plug-ins, Axel Kohlmeyer (Temple U), "dump molfile"_dump_molfile.html, -, -, VMD-MOLFILE
 USER-OMP, OpenMP threaded styles, Axel Kohlmeyer (Temple U), "Section accelerate"_Section_accelerate.html#acc_5, -, -, -

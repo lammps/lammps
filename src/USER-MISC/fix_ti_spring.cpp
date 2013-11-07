@@ -26,20 +26,23 @@
 #include "respa.h"
 #include "memory.h"
 #include "error.h"
+#include "force.h"
 
 using namespace LAMMPS_NS; 
 using namespace FixConst;  
 
 /* ---------------------------------------------------------------------- */
 
-FixTISpring::FixTISpring(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg) {
-
+FixTISpring::FixTISpring(LAMMPS *lmp, int narg, char **arg) : 
+  Fix(lmp, narg, arg) 
+{
   if (narg < 6 || narg > 8)
     error->all(FLERR,"Illegal fix ti/spring command");
 
   // Flags.
   restart_peratom = 1;
   scalar_flag = 1;
+  global_freq = 1;
   vector_flag = 1;
   size_vector = 2;
   global_freq = 1;
@@ -47,15 +50,17 @@ FixTISpring::FixTISpring(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg
   extvector = 1;
 
   // Spring constant.
-  k = atof(arg[3]);
-  espring = 0.0;
+  k = force->numeric(FLERR,arg[3]);
   if (k <= 0.0) error->all(FLERR,"Illegal fix ti/spring command");
 
-  // Initial position.
+  // Perform initial allocation of atom-based array.
+  // Registar with Atom class.
   xoriginal = NULL;
   grow_arrays(atom->nmax);
   atom->add_callback(0);
   atom->add_callback(1);
+
+  // xoriginal = initial unwrapped positions of atom.
 
   double **x = atom->x;
   int *mask = atom->mask;
@@ -63,13 +68,13 @@ FixTISpring::FixTISpring(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) domain->unmap(x[i], image[i], xoriginal[i]);
+    if (mask[i] & groupbit) domain->unmap(x[i],image[i],xoriginal[i]);
     else xoriginal[i][0] = xoriginal[i][1] = xoriginal[i][2] = 0.0;
   }
 
   // Time variables.
-  t_switch = atof(arg[4]); // Switching time.
-  t_equil = atof(arg[5]);  // Equilibration time.
+  t_switch = atoi(arg[4]); // Switching time.
+  t_equil = atoi(arg[5]);  // Equilibration time.
   t0 = update->ntimestep;  // Initial time.
   if (t_switch < 0.0) error->all(FLERR,"Illegal fix ti/spring command");
   if (t_equil  < 0.0) error->all(FLERR,"Illegal fix ti/spring command");
@@ -84,6 +89,8 @@ FixTISpring::FixTISpring(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg
   }
   lambda  =  switch_func(0); 
   dlambda = dswitch_func(0); 
+
+  espring = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -143,10 +150,8 @@ void FixTISpring::min_setup(int vflag)
 
 void FixTISpring::post_force(int vflag)
 {
-
   // If on the first equilibration do not calculate forces.
   int t = update->ntimestep - t0;
-  espring = 0.0;
   if(t < t_equil) return;
 
   double **x = atom->x;
@@ -158,9 +163,11 @@ void FixTISpring::post_force(int vflag)
   double dx, dy, dz;
   double unwrap[3];
 
+  espring = 0.0;
+
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      domain->unmap(x[i], image[i], unwrap);
+      domain->unmap(x[i],image[i],unwrap);
       dx = unwrap[0] - xoriginal[i][0];
       dy = unwrap[1] - xoriginal[i][1];
       dz = unwrap[2] - xoriginal[i][2];
@@ -250,7 +257,7 @@ void FixTISpring::grow_arrays(int nmax)
      copy values within local atom-based array
 ------------------------------------------------------------------------- */
 
-void FixTISpring::copy_arrays(int i, int j)
+void FixTISpring::copy_arrays(int i, int j, int delflag)
 {
   xoriginal[j][0] = xoriginal[i][0];
   xoriginal[j][1] = xoriginal[i][1];
@@ -293,7 +300,6 @@ int FixTISpring::pack_restart(int i, double *buf)
   buf[3] = xoriginal[i][2];
   return 4;
 }
-
 
 /* ----------------------------------------------------------------------
     unpack values from atom->extra array to restart the fix

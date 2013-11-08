@@ -173,18 +173,17 @@ void FixNEB::min_post_force(int vflag)
 
   pe->addstep(update->ntimestep+1);
 
-  // Compute norm of GradV for log output
+  // compute norm of GradV for log output
 
   double **f = atom->f;
   double fsq = 0.0;
-  for (int i = 0; i < nlocal; i++) {
-    fsq += f[i][0]*f[i][0]+f[i][1]*f[i][1]+f[i][2]*f[i][2];
-  }
+  for (int i = 0; i < nlocal; i++)
+    fsq += f[i][0]*f[i][0] + f[i][1]*f[i][1]; //+ f[i][2]*f[i][2];
 
   MPI_Allreduce(&fsq,&gradvnorm,1,MPI_DOUBLE,MPI_MAX,world);
   gradvnorm = sqrt(gradvnorm);
 
-  // if this is first or last replica, no change to forces, just return
+  // first or last replica has no change to forces, just return
 
   if (ireplica == 0 || ireplica == nreplica-1) {
     plen = nlen = 0.0;

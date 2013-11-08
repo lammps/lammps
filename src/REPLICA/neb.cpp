@@ -21,6 +21,7 @@
 #include "atom.h"
 #include "update.h"
 #include "domain.h"
+#include "comm.h"
 #include "min.h"
 #include "modify.h"
 #include "fix.h"
@@ -35,8 +36,9 @@
 
 using namespace LAMMPS_NS;
 
-#define CHUNK 1000
 #define MAXLINE 256
+#define CHUNK 1024
+#define ATTRIBUTE_PERLINE 4
 
 /* ---------------------------------------------------------------------- */
 
@@ -104,14 +106,13 @@ void NEB::command(int narg, char **arg)
   if (domain->box_exist == 0)
     error->all(FLERR,"NEB command before simulation box is defined");
 
-  if (narg != 6) error->universe_all(FLERR,"Illegal NEB command");
+  if (narg < 6) error->universe_all(FLERR,"Illegal NEB command");
 
   etol = force->numeric(FLERR,arg[0]);
   ftol = force->numeric(FLERR,arg[1]);
   n1steps = force->inumeric(FLERR,arg[2]);
   n2steps = force->inumeric(FLERR,arg[3]);
   nevery = force->inumeric(FLERR,arg[4]);
-  infile = arg[5];
 
   // error checks
 
@@ -139,9 +140,19 @@ void NEB::command(int narg, char **arg)
   if (atom->map_style == 0)
     error->all(FLERR,"Cannot use NEB unless atom map exists");
 
-  // read in file of final state atom coords and reset my coords
+  // process file-style setting to setup initial configs for all replicas
 
-  readfile(infile);
+  if (strcmp(arg[5],"final") == 0) {
+    if (narg != 7) error->universe_all(FLERR,"Illegal NEB command");
+    infile = arg[6];
+    readfile(infile,0);
+  } else if (strcmp(arg[5],"each") == 0) {
+    if (narg != 7) error->universe_all(FLERR,"Illegal NEB command");
+    infile = arg[6];
+    readfile(infile,1);
+  } else if (strcmp(arg[5],"none") == 0) {
+    if (narg != 6) error->universe_all(FLERR,"Illegal NEB command");
+  } else error->universe_all(FLERR,"Illegal NEB command");
 
   // run the NEB calculation
 
@@ -308,92 +319,175 @@ void NEB::run()
 }
 
 /* ----------------------------------------------------------------------
-   read target coordinates from file, store with appropriate atom
-   adjust coords of each atom based on ireplica
-   new coord = replica fraction between current and final state
+   read initial config atom coords from file
+   flag = 0
+     only first replica open file and reads it
+     first replica bcasts each line to all replicas
+     final replica stores coords
+     intermediate replicas interpolate from coords
+       new coord = replica fraction between current and final state
+     initial replica does nothing
+   flag = 1
+     each replica (except first) opens file and reads it
+     each replica stores coords
+     initial replica does nothing
 ------------------------------------------------------------------------- */
 
-void NEB::readfile(char *file)
+void NEB::readfile(char *file, int flag)
 {
-  if (me_universe == 0) {
-    if (screen) fprintf(screen,"Reading NEB coordinate file %s ...\n",file);
-    open(file);
+  int i,j,m,nchunk,tag,eofflag;
+  int nlines;
+  char *eof,*start,*next,*buf;
+  char line[MAXLINE];
+  double xx,yy,zz,delx,dely,delz;
+
+  if (me_universe == 0 && screen)
+    fprintf(screen,"Reading NEB coordinate file(s) ...\n");
+
+  // flag = 0, universe root reads header of file, bcast to universe
+  // flag = 1, each replica's root reads header of file, bcast to world
+  //   but explicitly skip first replica
+
+  if (flag == 0) {
+    if (me_universe == 0) {
+      open(file);
+      while (1) {
+        eof = fgets(line,MAXLINE,fp);
+        if (eof == NULL) error->one(FLERR,"Unexpected end of neb file");
+        start = &line[strspn(line," \t\n\v\f\r")];
+        if (*start != '\0' && *start != '#') break;
+      }
+      sscanf(line,"%d",&nlines);
+    }
+    MPI_Bcast(&nlines,1,MPI_INT,0,uworld);
+
+  } else {
+    if (me == 0) {
+      if (ireplica) {
+        open(file);
+        while (1) {
+          eof = fgets(line,MAXLINE,fp);
+          if (eof == NULL) error->one(FLERR,"Unexpected end of neb file");
+          start = &line[strspn(line," \t\n\v\f\r")];
+          if (*start != '\0' && *start != '#') break;
+        }
+        sscanf(line,"%d",&nlines);
+      } else nlines = 0;
+    }
+    MPI_Bcast(&nlines,1,MPI_INT,0,world);
   }
+
+  char *buffer = new char[CHUNK*MAXLINE];
+  char **values = new char*[ATTRIBUTE_PERLINE];
 
   double fraction = ireplica/(nreplica-1.0);
 
   double **x = atom->x;
   int nlocal = atom->nlocal;
 
-  char *buffer = new char[CHUNK*MAXLINE];
-  char *ptr,*next,*bufptr;
-  int i,m,nlines,tag;
-  double xx,yy,zz,delx,dely,delz;
+  // loop over chunks of lines read from file
+  // two versions of read_lines_from_file() for world vs universe bcast
+  // count # of atom coords changed so can check for invalid atom IDs in file
 
-  int firstline = 1;
   int ncount = 0;
-  int eof = 0;
 
-  while (!eof) {
-    if (me_universe == 0) {
-      m = 0;
-      for (nlines = 0; nlines < CHUNK; nlines++) {
-        ptr = fgets(&buffer[m],MAXLINE,fp);
-        if (ptr == NULL) break;
-        m += strlen(&buffer[m]);
-      }
-      if (ptr == NULL) eof = 1;
-      buffer[m++] = '\n';
-    }
+  int nread = 0;
+  while (nread < nlines) {
+    nchunk = MIN(nlines-nread,CHUNK);
+    if (flag == 0)
+      eofflag = comm->read_lines_from_file_universe(fp,nchunk,MAXLINE,buffer);
+    else
+      eofflag = comm->read_lines_from_file(fp,nchunk,MAXLINE,buffer);
+    if (eofflag) error->all(FLERR,"Unexpected end of neb file");
 
-    MPI_Bcast(&eof,1,MPI_INT,0,uworld);
-    MPI_Bcast(&nlines,1,MPI_INT,0,uworld);
-    MPI_Bcast(&m,1,MPI_INT,0,uworld);
-    MPI_Bcast(buffer,m,MPI_CHAR,0,uworld);
+    buf = buffer;
+    next = strchr(buf,'\n');
+    *next = '\0';
+    int nwords = atom->count_words(buf);
+    *next = '\n';
 
-    bufptr = buffer;
-    for (i = 0; i < nlines; i++) {
-      next = strchr(bufptr,'\n');
-      *next = '\0';
+    if (nwords != ATTRIBUTE_PERLINE)
+      error->all(FLERR,"Incorrect atom format in neb file");
 
-      if (firstline) {
-        if (atom->count_words(bufptr) == 4) firstline = 0;
-        else error->all(FLERR,"Incorrect format in NEB coordinate file");
-      }
+    // loop over lines of atom coords
+    // tokenize the line into values
 
-      sscanf(bufptr,"%d %lg %lg %lg",&tag,&xx,&yy,&zz);
-
+    for (int i = 0; i < nchunk; i++) {
+      next = strchr(buf,'\n');
+      
+      values[0] = strtok(buf," \t\n\r\f");
+      for (j = 1; j < nwords; j++)
+        values[j] = strtok(NULL," \t\n\r\f");
+      
       // adjust atom coord based on replica fraction
+      // for flag = 0, interpolate for intermediate and final replicas
+      // for flag = 1, replace existing coord with new coord
       // ignore image flags of final x
-      // new x is displacement from old x
-      // if final x is across periodic boundary:
-      //   new x may be outside box
-      //   will be remapped back into box when simulation starts
-      //   its image flags will be adjusted appropriately
+      // for interpolation:
+      //   new x is displacement from old x via minimum image convention
+      //   if final x is across periodic boundary:
+      //     new x may be outside box
+      //     will be remapped back into box when simulation starts
+      //     its image flags will then be adjusted
 
+      tag = atoi(values[0]);
       m = atom->map(tag);
       if (m >= 0 && m < nlocal) {
-        delx = xx - x[m][0];
-        dely = yy - x[m][1];
-        delz = zz - x[m][2];
-        domain->minimum_image(delx,dely,delz);
-        x[m][0] += fraction*delx;
-        x[m][1] += fraction*dely;
-        x[m][2] += fraction*delz;
         ncount++;
+        xx = atof(values[1]);
+        yy = atof(values[2]);
+        zz = atof(values[3]);
+
+        if (flag == 0) {
+          delx = xx - x[m][0];
+          dely = yy - x[m][1];
+          delz = zz - x[m][2];
+          domain->minimum_image(delx,dely,delz);
+          x[m][0] += fraction*delx;
+          x[m][1] += fraction*dely;
+          x[m][2] += fraction*delz;
+        } else {
+          x[m][0] = xx;
+          x[m][1] = yy;
+          x[m][2] = zz;
+        }
       }
 
-      bufptr = next + 1;
+      buf = next + 1;
     }
+
+    nread += nchunk;
+  }
+
+  // check that all atom IDs in file were found by a proc
+
+  if (flag == 0) {
+    int ntotal;
+    MPI_Allreduce(&ncount,&ntotal,1,MPI_INT,MPI_SUM,uworld);
+    if (ntotal != (nreplica-1)*nlines)
+      error->universe_all(FLERR,"Invalid atom IDs in neb file");
+  } else {
+    int ntotal;
+    MPI_Allreduce(&ncount,&ntotal,1,MPI_INT,MPI_SUM,world);
+    if (ntotal != nlines)
+      error->all(FLERR,"Invalid atom IDs in neb file");
   }
 
   // clean up
 
   delete [] buffer;
+  delete [] values;
 
-  if (me_universe == 0) {
-    if (compressed) pclose(fp);
-    else fclose(fp);
+  if (flag == 0) {
+    if (me_universe == 0) {
+      if (compressed) pclose(fp);
+      else fclose(fp);
+    }
+  } else {
+    if (me == 0 && ireplica) {
+      if (compressed) pclose(fp);
+      else fclose(fp);
+    }
   }
 }
 

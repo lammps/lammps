@@ -18,7 +18,7 @@ args = list of arguments for a particular style :l
   {multi} args = none
   {custom} args = list of attributes
     possible attributes = step, elapsed, elaplong, dt, time,
-                          cpu, tpcpu, spcpu, cpuremain,
+                          cpu, tpcpu, spcpu, cpuremain, part,
                           atoms, temp, press, pe, ke, etotal, enthalpy,
                           evdwl, ecoul, epair, ebond, eangle, edihed, eimp,
                           emol, elong, etail,
@@ -39,6 +39,7 @@ args = list of arguments for a particular style :l
       tpcpu = time per CPU second
       spcpu = timesteps per CPU second
       cpuremain = estimated CPU time remaining in run
+      part = which partition (0 to Npartition-1) this is
       atoms = # of atoms
       temp = temperature
       press = pressure
@@ -242,6 +243,13 @@ will be 0.0 since there is no history to estimate from.  For a
 minimization run performed by the "minimize" command, the estimate is
 based on the {maxiter} parameter, assuming the minimization will
 proceed for the maximum number of allowed iterations.
+
+The {part} keyword is useful for multi-replica or multi-partition
+simulations to indicate which partition this output and this file
+corresponds to, or for use in a "variable"_variable.html to append to
+a filename for output specific to this partition.  See the
+"Command-line options"_Section_commands.html#start_7 section of the
+manual for details on running in multi-partition mode.
 
 The {fmax} and {fnorm} keywords are useful for monitoring the progress
 of an "energy minimization"_minimize.html.  The {fmax} keyword

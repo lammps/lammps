@@ -21,6 +21,7 @@
 #include "update.h"
 #include "comm.h"
 #include "domain.h"
+#include "universe.h"
 #include "lattice.h"
 #include "group.h"
 #include "modify.h"
@@ -46,7 +47,7 @@ using namespace MathConst;
 
 // customize a new keyword by adding to this list:
 
-// step, elapsed, elaplong, dt, time, cpu, tpcpu, spcpu, cpuremain
+// step, elapsed, elaplong, dt, time, cpu, tpcpu, spcpu, cpuremain, part
 // atoms, temp, press, pe, ke, etotal, enthalpy
 // evdwl, ecoul, epair, ebond, eangle, edihed, eimp, emol, elong, etail
 // vol, density, lx, ly, lz, xlo, xhi, ylo, yhi, zlo, zhi, xy, xz, yz,
@@ -659,6 +660,8 @@ void Thermo::parse_fields(char *str)
       addfield("S/CPU",&Thermo::compute_spcpu,FLOAT);
     } else if (strcmp(word,"cpuremain") == 0) {
       addfield("CPULeft",&Thermo::compute_cpuremain,FLOAT);
+    } else if (strcmp(word,"part") == 0) {
+      addfield("Part",&Thermo::compute_part,INT);
 
     } else if (strcmp(word,"atoms") == 0) {
       addfield("Atoms",&Thermo::compute_atoms,BIGINT);
@@ -1022,6 +1025,10 @@ int Thermo::evaluate_keyword(char *word, double *answer)
       error->all(FLERR,
                  "This variable thermo keyword cannot be used between runs");
     compute_cpuremain();
+
+  } else if (strcmp(word,"part") == 0) {
+    compute_part();
+    dvalue = ivalue;
 
   } else if (strcmp(word,"atoms") == 0) {
     compute_atoms();
@@ -1518,6 +1525,13 @@ void Thermo::compute_cpuremain()
   else dvalue = timer->elapsed(TIME_LOOP) * 
          (update->laststep - update->ntimestep) /
          (update->ntimestep - update->firststep);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_part()
+{
+  ivalue = universe->iworld;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -268,10 +268,13 @@ bigint NeighList::memory_usage()
   bytes += maxatoms * sizeof(int *);
 
   int nmypage = comm->nthreads;
-  for (int i = 0; i < nmypage; i++)
-    bytes += ipage[i].size();
-  
-  if (dnum) {
+
+  if (ipage) {
+    for (int i = 0; i < nmypage; i++)
+      bytes += ipage[i].size();
+  }
+
+  if (dnum && dpage) {
     for (int i = 0; i < nmypage; i++) {
       bytes += maxatoms * sizeof(double *);
       bytes += dpage[i].size();

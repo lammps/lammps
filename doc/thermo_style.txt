@@ -247,9 +247,9 @@ proceed for the maximum number of allowed iterations.
 The {part} keyword is useful for multi-replica or multi-partition
 simulations to indicate which partition this output and this file
 corresponds to, or for use in a "variable"_variable.html to append to
-a filename for output specific to this partition.  See the
-"Command-line options"_Section_commands.html#start_7 section of the
-manual for details on running in multi-partition mode.
+a filename for output specific to this partition.  See "Section_start
+7"_Section_start.html#start_7 of the manual for details on running in
+multi-partition mode.
 
 The {fmax} and {fnorm} keywords are useful for monitoring the progress
 of an "energy minimization"_minimize.html.  The {fmax} keyword

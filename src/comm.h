@@ -66,6 +66,7 @@ class Comm : protected Pointers {
   void ring(int, int, void *, int, void (*)(int, char *),   // ring comm
             void *, int self = 1);
   int read_lines_from_file(FILE *, int, int, char *);  // read/bcast file lines
+  int read_lines_from_file_universe(FILE *, int, int, char *);  
 
   virtual void set(int, char **);         // set communication style
   void set_processors(int, char **);      // set 3d processor grid attributes

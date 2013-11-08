@@ -225,23 +225,22 @@ extended CFG format files, as used by the
 package.  Since the extended CFG format uses a single snapshot of the
 system per file, a wildcard "*" must be included in the filename, as
 discussed below.  The list of atom attributes for style {cfg} must
-begin with either "mass type xs ys zs" or "mass type xsu ysu zsu" 
-since these quantities are needed to
-write the CFG files in the appropriate format (though the "mass" and
-"type" fields do not appear explicitly in the file).  Any remaining
-attributes will be stored as "auxiliary properties" in the CFG files.
-Note that you will typically want to use the "dump_modify
-element"_dump_modify.html command with CFG-formatted files, to
-associate element names with atom types, so that AtomEye can render
-atoms appropriately. When unwrapped coordinates {xsu}, {ysu}, and {zsu}
-are requested, the nominal AtomEye periodic cell dimensions are expanded 
-by a large factor UNWRAPEXPAND = 10.0, which ensures atoms that are 
-displayed correctly for up to UNWRAPEXPAND/2 periodic boundary crossings 
-in any direction. 
-Beyond this, AtomEye will rewrap the unwrapped coordinates. 
-The expansion causes the atoms to be drawn farther
-away from the viewer, but it is easy to zoom the atoms closer, and
-the interatomic distances are unaffected.   
+begin with either "mass type xs ys zs" or "mass type xsu ysu zsu"
+since these quantities are needed to write the CFG files in the
+appropriate format (though the "mass" and "type" fields do not appear
+explicitly in the file).  Any remaining attributes will be stored as
+"auxiliary properties" in the CFG files.  Note that you will typically
+want to use the "dump_modify element"_dump_modify.html command with
+CFG-formatted files, to associate element names with atom types, so
+that AtomEye can render atoms appropriately. When unwrapped
+coordinates {xsu}, {ysu}, and {zsu} are requested, the nominal AtomEye
+periodic cell dimensions are expanded by a large factor UNWRAPEXPAND =
+10.0, which ensures atoms that are displayed correctly for up to
+UNWRAPEXPAND/2 periodic boundary crossings in any direction.  Beyond
+this, AtomEye will rewrap the unwrapped coordinates.  The expansion
+causes the atoms to be drawn farther away from the viewer, but it is
+easy to zoom the atoms closer, and the interatomic distances are
+unaffected.
 
 The {dcd} style writes DCD files, a standard atomic trajectory format
 used by the CHARMM, NAMD, and XPlor molecular dynamics packages.  DCD

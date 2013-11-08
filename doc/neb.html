@@ -13,25 +13,41 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>neb etol ftol N1 N2 Nevery filename 
+<PRE>neb etol ftol N1 N2 Nevery file-style arg 
 </PRE>
-<UL><LI>etol = stopping tolerance for energy (energy units)
-<LI>ftol = stopping tolerance for force (force units)
+<UL><LI>etol = stopping tolerance for energy (energy units) 
+
+<LI>ftol = stopping tolerance for force (force units) 
+
 <LI>N1 = max # of iterations (timesteps) to run initial NEB 
-<LI>N2 = max # of iterations (timesteps) to run barrier-climbing NEB
-<LI>Nevery = print replica energies and reaction coordinates every this many timesteps
-<LI>filename = file specifying final atom coordinates on other side of barrier 
+
+<LI>N2 = max # of iterations (timesteps) to run barrier-climbing NEB 
+
+<LI>Nevery = print replica energies and reaction coordinates every this many timesteps 
+
+<LI>file-style= <I>final</I> or <I>each</I> or <I>none</I> 
+
+<PRE>  <I>final</I> arg = filename
+    filename = file with initial coords for final replica
+      coords for intermediate replicas are linearly interpolated between first and last replica
+  <I>each</I> arg = filename
+    filename = unique filename for each replica (except first) with its initial coords
+  <I>none</I> arg = no argument
+    all replicas assumed to already have their initial coords 
+</PRE>
+
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>neb 0.1 0.0 1000 500 50 coords.final
-neb 0.0 0.001 1000 500 50 coords.final 
+<PRE>neb 0.1 0.0 1000 500 50 final coords.final
+neb 0.0 0.001 1000 500 50 each coords.initial.$i
+neb 0.0 0.001 1000 500 50 none 
 </PRE>
 <P><B>Description:</B>
 </P>
 <P>Perform a nudged elastic band (NEB) calculation using multiple
-replicas of a system.  Two or more replicas must be used, two of which
-are the end points of the transition path.
+replicas of a system.  Two or more replicas must be used; the first
+and last are the end points of the transition path.
 </P>
 <P>NEB is a method for finding both the atomic configurations and height
 of the energy barrier associated with a transition state, e.g. for an
@@ -45,17 +61,24 @@ partitions are defined at run-time using the -partition command-line
 switch; see <A HREF = "Section_start.html#start_7">Section_start 6</A> of the
 manual.  Note that if you have MPI installed, you can run a
 multi-replica simulation with more replicas (partitions) than you have
-physical processors, e.g you can run a 10-replica simulation on one or
-two processors.  You will simply not get the performance speed-up you
-would see with one or more physical processors per replica.  See <A HREF = "Section_howto.html#howto_5">this
-section</A> of the manual for further
-discussion.
+physical processors, e.g you can run a 10-replica simulation on just
+one or two processors.  You will simply not get the performance
+speed-up you would see with one or more physical processors per
+replica.  See <A HREF = "Section_howto.html#howto_5">this section</A> of the manual
+for further discussion.
 </P>
-<P>NOTE: The current NEB implementation in LAMMPS restricts you to having
-exactly one processor per replica.
+<P>IMPORTANT NOTE: The current NEB implementation in LAMMPS only allows
+there to be one processor per replica.
+</P>
+<P>IMPORTANT NOTE: As explained below, a NEB calculation perfoms a
+damped-dynamics minimization across all the replicas.  This uses
+whatever timestep you have defined in your input script, via the
+<A HREF = "timestep.html">timestep</A> command.  You may get faster convergence if
+you use a larger timestep than you would normally use for dynamics
+with the same system.
 </P>
 <P>When a NEB calculation is performed, it is assumed that each replica
-is running the same model, though LAMMPS does not check for this.
+is running the same system, though LAMMPS does not check for this.
 I.e. the simulation domain, the number of atoms, the interaction
 potentials, and the starting configuration when the neb command is
 issued should be the same for every replica.
@@ -64,63 +87,135 @@ issued should be the same for every replica.
 atom in adjacent replicas by springs, which induce inter-replica
 forces.  These forces are imposed by the <A HREF = "fix_neb.html">fix neb</A>
 command, which must be used in conjunction with the neb command.  The
-group used to define the fix neb command specifies which atoms the
-inter-replica springs are applied to.  These are the NEB atoms.
-Additional atoms can be present in your system, e.g. to provide a
-background force field or simply to hold fixed during the NEB
-procedure, but they will not be part of the barrier finding procedure.
+group used to define the fix neb command defines the NEB atoms which
+are the only ones that inter-replica springs are applied to.  If the
+group does not include all atoms, then non-NEB atoms have no
+inter-replica springs and the forces they feel and their motion is
+computed in the usual way due only to other atoms within their
+replica.  Conceptually, the non-NEB atoms provide a background force
+field for the NEB atoms.  They can be allowed to move during the NEB
+minimiation procedure (which will typically induce different
+coordinates for non-NEB atoms in different replicas), or held fixed
+using other LAMMPS commands such as <A HREF = "fix_setforce">fix setforce</A>.  Note
+that the <A HREF = "partition.html">partition</A> command can be used to invoke a
+command on a subset of the replicas, e.g. if you wish to hold NEB or
+non-NEB atoms fixed in only the end-point replicas.
 </P>
-<P>The "starting configuration" for NEB should be a state with the NEB
-atoms (and all other atoms) having coordinates on one side of the
-energy barrier.  These coordinates will be assigned to the first
-replica #1.  The coordinates should be close to a local energy
-minimum.  A perfect energy minimum is not required, since NEB runs via
-damped dynamics which will tend to drive the configuration of replica
-#1 to a true energy minimum, but you will typically get better
-convergence if the initial state is already at a minimum.  For
-example, for a system with a free surface, the surface should be fully
-relaxed before attempting a NEB calculation.
+<P>The initial atomic configuration for each of the replicas can be
+specified in different manners via the <I>file-style</I> setting, as
+discussed below.  Only atoms whose initial coordinates should differ
+from the current configuration need be specified.
 </P>
-<P>The final configuration is specified in the input <I>filename</I>, which is
-formatted as described below.  Only coordinates for NEB atoms or a
-subset of them should be listed in the file; they represent the state
-of the system on the other side of the barrier, at or near an energy
-minimum.  These coordinates will be assigned to the last replica #M.
-The final coordinates of atoms not listed in <I>filename</I> are set equal
-to their initial coordinates.  Again, a perfect energy minimum is not
-required for the final configuration, since the atoms in replica #M
-will tend to move during the NEB procedure to the nearest energy
-minimum.  Also note that a final coordinate does not need to be
-specified for a NEB atom if you expect it to only displace slightly
-during the NEB procedure.  For example, only the final coordinate of
-the single atom diffusing into a vacancy need be specified if the
-surrounding atoms will only relax slightly in the final configuration.
+<P>Conceptually, the initial configuration for the first replica should
+be a state with all the atoms (NEB and non-NEB) having coordinates on
+one side of the energy barrier.  A perfect energy minimum is not
+required, since atoms in the first replica experience no spring forces
+from the 2nd replica.  Thus the damped dynamics minimizaiton will
+drive the first replica to an energy minimum if it is not already
+there.  However, you will typically get better convergence if the
+initial state is already at a minimum.  For example, for a system with
+a free surface, the surface should be fully relaxed before attempting
+a NEB calculation.
 </P>
-<P>The initial coordinates of all atoms (not just NEB atoms) in the
-intermediate replicas #2,#3,...,#M-1 are set to values linearly
-interpolated between the corresponding atoms in replicas #1 and #M.
+<P>Likewise, the initial configuration of the final replica should be a
+state with all the atoms (NEB and non-NEB) on the other side of the
+energy barrier.  Again, a perfect energy minimum is not required,
+since the atoms in the last replica also experience no spring forces
+from the next-to-last replica, and thus the damped dynamics
+minimization will drive it to an energy minimum.
 </P>
-<P>A NEB calculation has two stages, each of which is a minimization
-procedure, performed via damped dynamics.  To enable this, you must
-first define an appropriate <A HREF = "min_style.html">min_style</A>, such as
-<I>quickmin</I> or <I>fire</I>.  The <I>cg</I>, <I>sd</I>, and <I>hftn</I> styles cannot be
-used, since they perform iterative line searches in their inner loop,
-which cannot be easily synchronized across multiple replicas.
+<P>As explained below, the initial configurations of intermediate
+replicas can be atomic coordinates interpolated in a linear fashion
+between the first and last replicas.  This is often adequate state for
+simple transitions.  For more complex transitions, it may lead to slow
+convergence or even bad results if the minimum energy path (MEP, see
+below) of states over the barrier cannot be correctly converged to
+from such an initial configuration.  In this case, you will want to
+generate initial states for the intermediate replicas that are
+geometrically closer to the MEP and read them in.
 </P>
-<P>The minimizer tolerances for energy and force are set by <I>etol</I> and <I>ftol</I>, 
-the same as for
-the <A HREF = "minimize.html">minimize</A> command.
+<HR>
+
+<P>For a <I>file-style</I> setting of <I>final</I>, a filename is specified which
+contains atomic coordinates for zero or more atoms, in the format
+described below.  For each atom that appears in the file, the new
+coordinates are assigned to that atom in the final replica.  Each
+intermediate replica also assigns a new position to that atom in an
+interpolated manner.  This is done by using the current position of
+the atom as the starting point and the read-in position as the final
+point.  The distance between them is calculated, and the new position
+is assigned to be a fraction of the distance.  E.g. if there are 10
+replicas, the 2nd replica will assign a position that is 10% of the
+distance along a line between the starting and final point, and the
+9th replica will assign a position that is 90% of the distance along
+the line.  Note that this procedure to produce consistent coordinates
+across all the replicas, the current coordinates need to be the same
+in all replicas.  LAMMPS does not check for this, but invalid initial
+configurations will likely result if it is not the case.
 </P>
-<P>A non-zero <I>etol</I>
-means that the NEB calculation will terminate if the energy criterion is met 
-by every replica.  The energies being compared to
-<I>etol</I> do not include any contribution from the inter-replica forces, since
-these are non-conservative.
-A non-zero <I>ftol</I>
-means that the NEB calculation will terminate if the force criterion is met 
-by every replica.  The forces being compared to
-<I>ftol</I> include the inter-replica forces between an atom and its images
-in adjacent replicas.
+<P>NOTE: The "distance" between the starting and final point is
+calculated in a minimum-image sense for a periodic simulation box.
+This means that if the two positions are on opposite sides of a box
+(periodic in that dimension), the distance between them will be small,
+because the periodic image of one of the atoms is close to the other.
+Similarly, even if the assigned position resulting from the
+interpolation is outside the periodic box, the atom will be wrapped
+back into the box when the NEB calculation begins.
+</P>
+<P>For a <I>file-style</I> setting of <I>each</I>, a filename is specified which is
+assumed to be unique to each replica.  This can be done by
+using a variable in the filename, e.g.
+</P>
+<PRE>variable i equal part
+neb 0.0 0.001 1000 500 50 each coords.initial.$i 
+</PRE>
+<P>which in this case will substitute the partition ID (0 to N-1) for the
+variable I, which is also effectively the replica ID.  See the
+<A HREF = "variable.html">variable</A> command for other options, such as using
+world-, universe-, or uloop-style variables.
+</P>
+<P>Each replica (except the first replica) will read its file, formatted
+as described below, and for any atom that appears in the file, assign
+the specified coordinates to its atom.  The various files do not need
+to contain the same set of atoms.
+</P>
+<P>For a <I>file-style</I> setting of <I>none</I>, no filename is specified.  Each
+replica is assumed to already be in its initial configuration at the
+time the neb command is issued.  This allows each replica to define
+its own configuration by reading a replica-specific data or restart or
+dump file, via the <A HREF = "read_data.html">read_data</A>,
+<A HREF = "read_restart.html">read_restart</A>, or <A HREF = "read_dump.html">read_dump</A>
+commands.  The replica-specific names of these files can be specified
+as in the discussion above for the <I>each</I> file-style.  Also see the
+section below for how a NEB calculation can produce restart files, so
+that a long calculation can be restarted if needed.
+</P>
+<P>IMPORTANT NOTE: None of the <I>file-style</I> settings change the initial
+configuration of any atom in the first replica.  The first replica
+must thus be in the correct initial configuration at the time the neb
+command is issued.  
+</P>
+<HR>
+
+<P>A NEB calculation proceeds in two stages, each of which is a
+minimization procedure, performed via damped dynamics.  To enable
+this, you must first define a damped dynamics
+<A HREF = "min_style.html">min_style</A>, such as <I>quickmin</I> or <I>fire</I>.  The <I>cg</I>,
+<I>sd</I>, and <I>hftn</I> styles cannot be used, since they perform iterative
+line searches in their inner loop, which cannot be easily synchronized
+across multiple replicas.
+</P>
+<P>The minimizer tolerances for energy and force are set by <I>etol</I> and
+<I>ftol</I>, the same as for the <A HREF = "minimize.html">minimize</A> command.
+</P>
+<P>A non-zero <I>etol</I> means that the NEB calculation will terminate if the
+energy criterion is met by every replica.  The energies being compared
+to <I>etol</I> do not include any contribution from the inter-replica
+forces, since these are non-conservative.  A non-zero <I>ftol</I> means
+that the NEB calculation will terminate if the force criterion is met
+by every replica.  The forces being compared to <I>ftol</I> include the
+inter-replica forces between an atom and its images in adjacent
+replicas.
 </P>
 <P>The maximum number of iterations in each stage is set by <I>N1</I> and
 <I>N2</I>.  These are effectively timestep counts since each iteration of
@@ -163,7 +258,8 @@ configurations along the MEP.
 <HR>
 
 <P>A few other settings in your input script are required or advised to
-perform a NEB calculation.
+perform a NEB calculation.  See the IMPORTANT NOTE about the choice of
+timestep at the beginning of this doc page.
 </P>
 <P>An atom map must be defined which it is not by default for <A HREF = "atom_style.html">atom_style
 atomic</A> problems.  The <A HREF = "atom_modify.html">atom_modify
@@ -193,21 +289,34 @@ advised.
 </P>
 <HR>
 
-<P>The specified <I>filename</I> contains atom coordinates for the final
-configuration.  Only atoms with coordinates different than the initial
-configuration need to be specified, i.e. those geometrically near the
-barrier.
+<P>Each file read by the neb command containing atomic coordinates used
+to initialize one or more replicas must be formatted as follows.
 </P>
 <P>The file can be ASCII text or a gzipped text file (detected by a .gz
-suffix).  The file should contain one line per atom, formatted
-with the atom ID, followed by the final x,y,z coordinates:
+suffix).  The file can contain initial blank lines or comment lines
+starting with "#" which are ignored.  The first non-blank, non-comment
+line should list N = the number of lines to follow.  The N successive
+lines contain the following information:
 </P>
-<PRE>125     24.97311   1.69005     23.46956
-126     1.94691    2.79640     1.92799
-127     0.15906    3.46099     0.79121
-... 
+<PRE>ID1 x1 y1 z1
+ID2 x2 y2 z2
+...
+IDN xN yN zN 
 </PRE>
-<P>The lines can be listed in any order.
+<P>The fields are the the atom ID, followed by the x,y,z coordinates.
+The lines can be listed in any order.  Additional trailing information
+on the line is OK, such as a comment.
+</P>
+<P>Note that for a typical NEB calculation you do not need to specify
+initial coordinates for very many atoms to produce differing starting
+and final replicas whose intermediate replicas will converge to the
+energy barrier.  Typically only new coordinates for atoms
+geometrically near the barrier need be specified.
+</P>
+<P>Also note there is no requirement that the atoms in the file
+correspond to the NEB atoms in the group defined by the <A HREF = "fix_neb.html">fix
+neb</A> command.  Not every NEB atom need be in the file,
+and non-NEB atoms can be listed in the file.
 </P>
 <HR>
 

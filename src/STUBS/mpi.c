@@ -302,38 +302,6 @@ int MPI_Cart_rank(MPI_Comm comm, int *coords, int *rank)
 
 /* ---------------------------------------------------------------------- */
 
-int MPI_File_open(MPI_Comm comm, char *filename, int mode,
-                  MPI_Info info, MPI_File *handle)
-{
-    FILE *fp;
-    if (info != MPI_INFO_NULL) return 1;  /* no support for MPI_INFO */
-    if (handle == NULL) return 1;         /* sanity check */
-
-    if (mode == MPI_MODE_RDONLY) {
-        fp = fopen(filename,"r");
-        if (fp == NULL) return 1;
-        *handle = fp;
-        return 0;
-    } else if (mode == MPI_MODE_WRONLY|MPI_MODE_CREATE) {
-        fp = fopen(filename,"w");
-        if (fp == NULL) return 1;
-        *handle = fp;
-        return 0;
-    } 
-
-    return 1;            /* not yet implemented */
-}    
-
-/* ---------------------------------------------------------------------- */
-
-int MPI_File_close(MPI_File *fp)
-{
-    if (handle == NULL) return 1;         /* sanity check */
-    return fclose(*fp);
-}
-
-/* ---------------------------------------------------------------------- */
-
 int MPI_Barrier(MPI_Comm comm) {return 0;}
 
 /* ---------------------------------------------------------------------- */

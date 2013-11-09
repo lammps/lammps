@@ -15,7 +15,7 @@
 </P>
 <PRE>units style 
 </PRE>
-<UL><LI>style = <I>lj</I> or <I>real</I> or <I>metal</I> or <I>si</I> or <I>cgs</I> or <I>electron</I> 
+<UL><LI>style = <I>lj</I> or <I>real</I> or <I>metal</I> or <I>si</I> or <I>cgs</I> or <I>electron</I> or <I>micro</I> or <I>nano</I> 
 </UL>
 <P><B>Examples:</B>
 </P>
@@ -145,6 +145,40 @@ by the number of atoms, i.e. energy/atom.  This can be changed via the
 <LI>dipole moment = Debye
 <LI>electric field = volts/cm 
 </UL>
+<P>For style <I>micro</I>, these are the units:
+</P>
+<UL><LI>mass = picograms
+<LI>distance = micrometers
+<LI>time = microseconds
+<LI>energy = picogram-micrometer^2/microsecond^2
+<LI>velocity = micrometers/microsecond
+<LI>force = picogram-micrometer/microsecond^2
+<LI>torque = picogram-micrometer^2/microsecond^2
+<LI>temperature = Kelvin
+<LI>pressure = picogram/(micrometer-microsecond^2)
+<LI>dynamic viscosity = picogram/(micrometer-microsecond)
+<LI>charge = picocoulombs
+<LI>dipole = picocoulomb-micrometer
+<LI>electric field = volt/micrometer 
+<LI>density = picograms/micrometer^dim 
+</UL>
+<P>For style <I>nano</I>, these are the units:
+</P>
+<UL><LI>mass = attograms
+<LI>distance = nanometers
+<LI>time = nanoseconds
+<LI>energy = attogram-nanometer^2/nanosecond^2
+<LI>velocity = nanometers/nanosecond
+<LI>force = attogram-nanometer/nanosecond^2
+<LI>torque = attogram-nanometer^2/nanosecond^2
+<LI>temperature = Kelvin
+<LI>pressure = attogram/(nanometer-nanosecond^2)
+<LI>dynamic viscosity = attogram/(nanometer-nanosecond)
+<LI>charge = multiple of electron charge (+1.0 is a proton)
+<LI>dipole = charge-nanometer
+<LI>electric field = volt/nanometer 
+<LI>density = attograms/nanometer^dim 
+</UL>
 <P>The units command also sets the timestep size and neighbor skin
 distance to default values for each style:
 </P>
@@ -154,6 +188,8 @@ distance to default values for each style:
 <LI>For style <I>si</I> these are dt = 1.0e-8 sec and skin = 0.001 meters.
 <LI>For style <I>cgs</I> these are dt = 1.0e-8 sec and skin = 0.1 cm.
 <LI>For style <I>electron</I> these are dt = 0.001 fmsec and skin = 2.0 Bohr. 
+<LI>For style <I>micro</I> these are dt = 2.0 microsec and skin = 0.1 micrometers.
+<LI>For style <I>nano</I> these are dt = 0.00045 nanosec and skin = 0.1 nanometers. 
 </UL>
 <P><B>Restrictions:</B>
 </P>

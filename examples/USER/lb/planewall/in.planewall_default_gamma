@@ -1,0 +1,99 @@
+#===========================================================================#
+# Rigid sphere freely moving near a stationary plane wall in a system       #
+# undergoing shear flow.                                                    # 
+# Every 10 time steps the center of mass velocity and angular velocity of   #
+# the sphere are printed to the screen.                                     #
+#                                                                           #  
+# Here, gamma (used in the calculation of the particle-fluid interaction    #
+#   force) is calculated by default.  Thus, the colloidal objects will have #
+#   a slightly larger "hydrodynamic" radii than given by the placement of   #
+#   the particle nodes.                                                     #
+#                                                                           #
+# Sample output from this run can be found in the file:                     # 
+#   'wall_defaultgamma.out'                                                 #
+#===========================================================================# 
+
+units          micro
+dimension      3
+boundary       p p f
+atom_style     atomic
+
+#----------------------------------------------------------------------------
+# Need a neighbor bin size smaller than the lattice-Boltzmann grid spacing
+#   to ensure that the particles belonging to a given processor remain inside
+#   that processors lattice-Boltzmann grid.
+# The arguments for neigh_modify have been set to "delay 0 every 1", again
+#   to ensure that the particles belonging to a given processor remain inside
+#   that processors lattice-Boltzmann grid.  However, these values can likely
+#   be somewhat increased without issue.  If a problem does arise (a particle
+#   is outside of its processors LB grid) an error message is printed and 
+#   the simulation is terminated.   
+#----------------------------------------------------------------------------
+neighbor       1.0 bin
+neigh_modify   delay 0 every 1 
+
+read_data      data.one_radius16d2
+
+#----------------------------------------------------------------------------
+# None of the particles interact with one another.
+#----------------------------------------------------------------------------
+pair_style     lj/cut 2.45
+pair_coeff     * * 0.0 0.0 2.45
+neigh_modify   exclude type 1 1 
+
+mass           * 100.0
+timestep       3.0
+
+group          sphere1 id <> 1 320
+
+#----------------------------------------------------------------------------
+# Colloidal particle is initially stationary.
+#----------------------------------------------------------------------------
+velocity       all set 0.0 0.0 0.0 units box
+
+#----------------------------------------------------------------------------
+# Create a lattice-Boltzmann fluid covering the simulation domain.
+# All of the particles in the simulation apply a force to the fluid.
+#   (however, this fix does not explicity apply a force back on to these 
+#    particles...this is accomplished through the use of the viscous_lb fix.
+# Use the standard LB integration scheme, a fluid density = 1.0, 
+#   fluid viscosity = 1.0, lattice spacing dx=4.0, and mass unit, dm=10.0.
+# Use the default method to calculate the interaction force between the 
+#   particles and the fluid.  This calculation requires the surface area 
+#   of the composite object represented by each particle node.  By default 
+#   this area is assumed equal to dx*dx; however, since this is not the case
+#   here, it is input through the setArea keyword (i.e. particles of type 1 
+#   correspond to a surface area of 10.3059947).
+# Use the trilinear interpolation stencil to distribute the force from
+#   a given particle onto the fluid mesh.
+# Create shear in the system, by giving the upper z-wall a velocity of 0.0001
+#   along the y-direction, while keeping the lower z-wall stationary.
+#-----------------------------------------------------------------------------
+fix   1 all lb/fluid 1 1 1.0 1.0 setArea 1 10.3059947 dx 4.0 dm 10.0 trilinear zwall_velocity 0.0 0.0001
+
+#----------------------------------------------------------------------------
+# Apply the force due to the fluid onto the particles.
+#----------------------------------------------------------------------------
+fix   2 all lb/viscous
+
+#----------------------------------------------------------------------------
+# Integrate the motion of the particles, constraining them to move and 
+#   rotate together as a single rigid spherical object.  
+#----------------------------------------------------------------------------
+fix   3 all rigid group 1 sphere1 
+
+#----------------------------------------------------------------------------
+# Create variables for the center-of-mass and angular velocities, and output
+#   these quantities to the screen.
+#----------------------------------------------------------------------------
+variable vx equal vcm(all,x)
+variable vy equal vcm(all,y)
+variable vz equal vcm(all,z)
+variable omegax equal omega(all,x)
+variable omegay equal omega(all,y)
+variable omegaz equal omega(all,z)
+
+thermo_style   custom v_vx v_vy v_vz v_omegax v_omegay v_omegaz
+thermo         10
+
+run	       200000

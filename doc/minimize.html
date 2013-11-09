@@ -64,7 +64,8 @@ Optimization (Procedure 3.1 on p 41).
 <P>The <A HREF = "min_style.html">minimization styles</A> <I>quickmin</I> and <I>fire</I> perform
 damped dynamics using an Euler integration step.  Thus they require a
 <A HREF = "timestep.html">timestep</A> be defined, typically the same value used for
-<A HREF = "run.html">running dynamics</A> with the system.
+<A HREF = "run.html">running dynamics</A> with the system, though it may be more
+efficient to use a larger timestep.
 </P>
 <P>The objective function being minimized is the total potential energy
 of the system as a function of the N atom coordinates:
@@ -127,7 +128,7 @@ freedom, such as from the <A HREF = "fix_box_relax.html">fix box/relax</A> comma
 </P>
 <P>Following minimization, a statistical summary is printed that lists
 which convergence criterion caused the minimizer to stop, as well as
-information about the energy, force, final line search, and and
+information about the energy, force, final line search, and
 iteration counts.  An example is as follows:
 </P>
 <PRE>Minimization stats:

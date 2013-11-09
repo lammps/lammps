@@ -53,7 +53,7 @@ class NEB : protected Pointers {
   double **all;                // PE,plen,nlen,gradvnorm from each replica
   double *rdist;               // normalize reaction distance, 0 to 1
 
-  void readfile(char *);
+  void readfile(char *, int);
   void open(char *);
   void print_status();
 };

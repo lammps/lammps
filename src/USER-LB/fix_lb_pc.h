@@ -17,8 +17,8 @@ FixStyle(lb/pc,FixLbPC)
 
 #else
 
-#ifndef FIX_LB_PC_H
-#define FIX_LB_PC_H
+#ifndef LMP_FIX_LB_PC_H
+#define LMP_FIX_LB_PC_H
 
 #include "fix.h"
 

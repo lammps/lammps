@@ -17,12 +17,14 @@ FixStyle(lb/fluid,FixLbFluid)
 
 #else 
 
-#ifndef FIX_LB_FLUID_H
-#define FIX_LB_FLUID_H
+#ifndef LMP_FIX_LB_FLUID_H
+#define LMP_FIX_LB_FLUID_H
 
-#include "stdio.h"
 #include "fix.h"
-#include "random_park.h"
+
+#if defined(MPI_STUBS)
+#error "The USER-LB package cannot be compiled in serial with MPI STUBS"
+#endif
 
 namespace LAMMPS_NS {
 
@@ -48,9 +50,6 @@ public:
     int unpack_exchange(int, double *);
 
   private:
-#define kappa_lb 0.0
-#define sqrt2 1.41421356237310
-
     double viscosity,densityinit_real,a_0_real,T;
     int setdx,seta0;
     int numvel;

@@ -17,8 +17,8 @@ FixStyle(lb/rigid/pc/sphere,FixLbRigidPCSphere)
 
 #else
 
-#ifndef FIX_LB_RIGID_PC_SPHERE_H
-#define FIX_LB_RIGID_PC_SPHERE_H
+#ifndef LMP_FIX_LB_RIGID_PC_SPHERE_H
+#define LMP_FIX_LB_RIGID_PC_SPHERE_H
 
 #include "fix.h"
 

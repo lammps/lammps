@@ -17,8 +17,8 @@ FixStyle(lb/momentum,FixLbMomentum)
 
 #else
 
-#ifndef FIX_LB_MOMENTUM_H
-#define FIX_LB_MOMENTUM_H
+#ifndef LMP_FIX_LB_MOMENTUM_H
+#define LMP_FIX_LB_MOMENTUM_H
 
 #include "fix.h"
 

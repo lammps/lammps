@@ -61,9 +61,10 @@ popd
 pushd src
 
 # configure installed packages
-make yes-all no-kim no-user-cuda no-reax no-user-qmmm
+make yes-all no-kim no-user-cuda no-reax no-user-qmmm no-user-lb
 make -j${NUMCPU} mingw32-cross || exit 4
 make -j${NUMCPU} mingw64-cross || exit 4
+make yes-user-lb
 make -j${NUMCPU} mingw32-cross-mpi || exit 4
 make -j${NUMCPU} mingw64-cross-mpi || exit 4
 cp lmp_mingw32-cross ${MINGW_BUILD_DIR}/mingw32/lmp_serial.exe

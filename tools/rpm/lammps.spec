@@ -177,8 +177,8 @@ make -f Makefile.g++ CXX=g++ CXXFLAGS="-fPIC ${RPM_OPT_FLAGS} %{bigintsize}" EXT
 cd ../../src
 
 # install packages
-# fortran reax is obsolete, no GPU support.
-make yes-all no-kim no-gpu no-user-cuda no-reax no-user-qmmm
+# fortran reax is obsolete, no GPU support, QM/MM requires a Q-E library, USER-LB requires MPI-IO.
+make yes-all no-kim no-gpu no-user-cuda no-reax no-user-qmmm no-user-lb
 
 make -C STUBS
 
@@ -229,6 +229,8 @@ make -f Makefile.g++ CC=mpicxx CCFLAGS="-fPIC -I../../src -DMPICH_IGNORE_CXX_SEE
 cd ../../src
 make clean-g++
 
+# enable USER-LB since we have a full MPI library now
+make yes-user-lb
 make g++ CC=mpicxx CCFLAGS="${RPM_OPT_FLAGS} -fopenmp" LINK=mpicxx LINKFLAGS="${RPM_LD_FLAGS} -fopenmp" LMP_INC="-DLAMMPS_GZIP -DLAMMPS_FFMPEG -DLAMMPS_JPEG -DLAMMPS_PNG %{bigintsize} " MPI_INC="" MPI_PATH="" MPI_LIB=-lrt FFT_INC=-DFFT_FFTW3 FFT_LIB=-lfftw3 JPG_LIB="-ljpeg -lpng"
 
 # and save the executable
@@ -255,6 +257,8 @@ make -f Makefile.g++ CC=mpicxx CCFLAGS="-fPIC -I../../src -DMPICH_IGNORE_CXX_SEE
 # back to main source dir
 cd ../../src
 make clean-g++
+# enable USER-LB since we have a full MPI library now
+make yes-user-lb
 
 make g++ CC=mpicxx CCFLAGS="${RPM_OPT_FLAGS} -fopenmp" LINK=mpicxx LINKFLAGS="${RPM_LD_FLAGS} -fopenmp" LMP_INC="-DLAMMPS_GZIP -DLAMMPS_FFMPEG -DLAMMPS_JPEG -DLAMMPS_PNG %{bigintsize} " MPI_INC="" MPI_PATH="" MPI_LIB="-lrt" FFT_INC=-DFFT_FFTW3 FFT_LIB=-lfftw3 JPG_LIB="-ljpeg -lpng"
 

@@ -15,6 +15,7 @@
 #define MPI_STUBS
 
 #include "stdlib.h"
+#include "stdio.h"
 
 /* use C bindings for MPI interface */
 
@@ -49,10 +50,17 @@ extern "C" {
 
 #define MPI_ANY_SOURCE -1
 #define MPI_STATUS_IGNORE NULL
+#define MPI_REQUEST_NULL 0
+#deinfe MPI_INFO_NULL 0
+
+#define MPI_MODE_CREATE 1
+#define MPI_MODE_RDONLY 2
+#define MPI_MODE_WRONLY 4
 
 #define MPI_Comm int
 #define MPI_Request int
 #define MPI_Datatype int
+#define MPI_File FILE *
 #define MPI_Op int
 #define MPI_Fint int
 #define MPI_Group int
@@ -118,6 +126,10 @@ int MPI_Cart_get(MPI_Comm comm, int maxdims, int *dims, int *periods,
 int MPI_Cart_shift(MPI_Comm comm, int direction, int displ,
                    int *source, int *dest);
 int MPI_Cart_rank(MPI_Comm comm, int *coords, int *rank);
+
+int MPI_File_open(MPI_Comm comm, char *filename, int mode, MPI_Info info, MPI_File *fp);
+int MPI_File_close(MPI_File *fp);
+  
 
 int MPI_Barrier(MPI_Comm comm);
 int MPI_Bcast(void *buf, int count, MPI_Datatype datatype,

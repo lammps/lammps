@@ -58,7 +58,6 @@ using namespace MathConst;
 // pxx, pyy, pzz, pxy, pxz, pyz
 // fmax, fnorm
 // cella, cellb, cellc, cellalpha, cellbeta, cellgamma
-// part
 
 // customize a new thermo style by adding a DEFINE to this list
 // also insure allocation of line string is correct in constructor
@@ -797,9 +796,6 @@ void Thermo::parse_fields(char *str)
     } else if (strcmp(word,"cellgamma") == 0) {
       addfield("CellGamma",&Thermo::compute_cellgamma,FLOAT);
 
-    } else if (strcmp(word,"part") == 0) {
-      addfield("Part",&Thermo::compute_part,INT);
-
     // compute value = c_ID, fix value = f_ID, variable value = v_ID
     // count trailing [] and store int arguments
     // copy = at most 8 chars of ID to pass to addfield
@@ -1365,12 +1361,6 @@ int Thermo::evaluate_keyword(char *word, double *answer)
   else if (strcmp(word,"cellalpha") == 0) compute_cellalpha();
   else if (strcmp(word,"cellbeta") == 0) compute_cellbeta();
   else if (strcmp(word,"cellgamma") == 0) compute_cellgamma();
-
-  else if (strcmp(word,"part") == 0) {
-    compute_part();
-    dvalue = ivalue;
-
-  }
 
   else return 1;
 
@@ -2015,9 +2005,3 @@ void Thermo::compute_cellgamma()
   }
 }
 
-/* ---------------------------------------------------------------------- */
-
-void Thermo::compute_part()
-{
-  ivalue = universe->iworld;
-}

@@ -415,6 +415,12 @@ precedence.  Parenthesis can be used to group one or more portions of
 a formula and/or enforce a different order of evaluation than what
 would occur with the default precedence.
 
+IMPORTANT NOTE: Because a unary minus is higher precedence than
+exponentiation, the formula "-2^2" will evaluate to 4, not -4.  This
+convention is compatible with some programming languages, but not
+others.  This behavior can be overridden with parenthesis; the formula
+"-(2^2)" will evaluate to -4.
+
 The 6 relational operators return either a 1.0 or 0.0 depending on
 whether the relationship between x and y is TRUE or FALSE.  For
 example the expression x<10.0 in an atom-style variable formula will

@@ -38,6 +38,9 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
+static const double kappa_lb=0.0;
+static const double sqrt2=1.41421356237310;
+
 FixLbFluid::FixLbFluid(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {

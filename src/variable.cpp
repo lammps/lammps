@@ -47,7 +47,8 @@ using namespace MathConst;
 
 #define MYROUND(a) (( a-floor(a) ) >= .5) ? ceil(a) : floor(a)
 
-enum{INDEX,LOOP,WORLD,UNIVERSE,ULOOP,STRING,GETENV,SCALARFILE,ATOMFILE,EQUAL,ATOM};
+enum{INDEX,LOOP,WORLD,UNIVERSE,ULOOP,STRING,GETENV,
+     SCALARFILE,ATOMFILE,EQUAL,ATOM};
 enum{ARG,OP};
 
 // customize by adding a function

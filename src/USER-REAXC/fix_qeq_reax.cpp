@@ -318,6 +318,9 @@ void FixQEqReax::init()
 {
   if (!atom->q_flag) error->all(FLERR,"Fix qeq/reax requires atom attribute q");
 
+  if (!force->pair_match("reax/c",1))
+    error->all(FLERR,"Must use pair_style reax/c with fix qeq/reax");
+
   // need a half neighbor list w/ Newton off and ghost neighbors
   // built whenever re-neighboring occurs
 

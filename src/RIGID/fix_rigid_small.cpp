@@ -369,7 +369,7 @@ void FixRigidSmall::setup(int vflag)
   double **x = atom->x;
   double **f = atom->f;
   int *type = atom->type;
-  int *image = atom->image;
+  tagint *image = atom->image;
   int nlocal = atom->nlocal;
 
   double *xcm,*fcm,*tcm;
@@ -1224,7 +1224,7 @@ void FixRigidSmall::create_bodies()
 
   // error check on image flags of atoms in rigid bodies
 
-  int *image = atom->image;
+  tagint *image = atom->image;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -1474,7 +1474,7 @@ void FixRigidSmall::ring_nearest(int n, char *cbuf)
 void FixRigidSmall::ring_farthest(int n, char *cbuf)
 {
   double **x = frsptr->atom->x;
-  int *image = frsptr->atom->image;
+  tagint *image = frsptr->atom->image;
   int nlocal = frsptr->atom->nlocal;
 
   double *buf = (double *) cbuf;
@@ -2017,7 +2017,7 @@ void FixRigidSmall::setup_bodies_dynamic()
   double *rmass = atom->rmass;
   double *mass = atom->mass;
   int *type = atom->type;
-  int *image = atom->image;
+  tagint *image = atom->image;
   int nlocal = atom->nlocal;
 
   double *xcm,*vcm,*acm;
@@ -2797,9 +2797,9 @@ void FixRigidSmall::unpack_reverse_comm(int n, int *list, double *buf)
       j = list[i];
       if (bodyown[j] < 0) continue;
       k = bodyown[j];
-      counts[k][0] += buf[m++];
-      counts[k][1] += buf[m++];
-      counts[k][2] += buf[m++];
+      counts[k][0] += static_cast<int> (buf[m++]);
+      counts[k][1] += static_cast<int> (buf[m++]);
+      counts[k][2] += static_cast<int> (buf[m++]);
     }
   }
 }

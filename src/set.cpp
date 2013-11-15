@@ -387,7 +387,7 @@ void Set::command(int narg, char **arg)
     } else if (strstr(arg[iarg],"i_") == arg[iarg]) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
       if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) varparse(arg[iarg+1],1);
-      else ivalue = force->numeric(FLERR,arg[iarg+1]);
+      else ivalue = force->inumeric(FLERR,arg[iarg+1]);
       int flag;
       index_custom = atom->find_custom(&arg[iarg][2],flag);
       if (index_custom < 0 || flag != 0)

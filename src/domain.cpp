@@ -565,7 +565,7 @@ void Domain::image_check()
   memory->create(unwrap,atom->nmax,3,"domain:unwrap");
 
   double **x = atom->x;
-  int *image = atom->image;
+  tagint *image = atom->image;
   int nlocal = atom->nlocal;
 
   for (i = 0; i < nlocal; i++)

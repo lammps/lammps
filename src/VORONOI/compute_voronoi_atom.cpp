@@ -294,6 +294,7 @@ void ComputeVoronoi::processCell(voronoicell_neighbor &c, int i)
       // count only faces above area threshold
       c.face_areas(narea);
       have_narea = true;
+      voro[i][1] = 0.0;
       for (j=0; j<narea.size(); ++j)  
         if (narea[j] > fthresh) voro[i][1] += 1.0;
     } else {
@@ -306,6 +307,7 @@ void ComputeVoronoi::processCell(voronoicell_neighbor &c, int i)
       voro[i][2] = c.surface_area();
     } else if (surface == VOROSURF_GROUP) {
       if (!have_narea) c.face_areas(narea);
+      voro[i][2] = 0.0;
       // loop over all faces (neighbors) and check if they are in the surface group
       for (j=0; j<voro[i][1]; ++j)  
         if (mask[neigh[j]] & sgroupbit) voro[i][2] += narea[j];

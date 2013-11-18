@@ -246,8 +246,9 @@ class Data {
   double *mass;
   double *x,*y,*z,*vx,*vy,*vz;
   double *omegax,*omegay,*omegaz;
-  tagint *tag;
-  int *type,*mask,*image;
+  int *tag;
+  int *type,*mask;
+  tagint *image;
   int *molecule;
   double *q,*mux,*muy,*muz,*mul,*radius,*density,*vfrac,*rmass;
   double *s0,*x0x,*x0y,*x0z;
@@ -850,7 +851,7 @@ int atom(double *buf, Data &data)
     data.tag = new int[data.natoms];
     data.type = new int[data.natoms];
     data.mask = new int[data.natoms];
-    data.image = new int[data.natoms];
+    data.image = new tagint[data.natoms];
     data.vx = new double[data.natoms];
     data.vy = new double[data.natoms];
     data.vz = new double[data.natoms];

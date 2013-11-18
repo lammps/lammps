@@ -1,4 +1,4 @@
-pair_style dipole/sf 12
+pair_style lj/sf/dipole/sf 12
 special_bonds lj/coul 0.0 1.0 1.0 
 bond_style harmonic 
 angle_style hybrid cosine/squared dipole

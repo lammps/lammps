@@ -46,7 +46,45 @@
 #include "memory.h"
 #include "error.h"
 
+#include <list>
+#include <string>
+
 using namespace LAMMPS_NS;
+
+static void print_sorted_list(std::list<std::string> *styles, FILE *fp)
+{
+  std::list<std::string>::const_iterator it;
+  int i,len;
+
+  // sort
+  styles->sort();
+
+  i = 666;
+  for (it = styles->begin(); it != styles->end(); ++it) {
+    len = it->length();
+    if (i + len > 80) { 
+      fprintf(fp,"\n");
+      i = 0;
+    }
+
+    if (len < 16) {
+      fprintf(fp,"%-16s",(*it).c_str());
+      i += 16;
+    } else if (len < 32) {
+      fprintf(fp,"%-32s",(*it).c_str());
+      i += 32;
+    } else if (len < 48) {
+      fprintf(fp,"%-48s",(*it).c_str());
+      i += 48;
+    } else if (len < 64) {
+      fprintf(fp,"%-64s",(*it).c_str());
+      i += 64;
+    } else {
+      fprintf(fp,"%-80s",(*it).c_str());
+      i += 80;
+    }
+  }
+}
 
 /* ----------------------------------------------------------------------
    start up LAMMPS
@@ -168,6 +206,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
       if (iarg+1 > narg)
         error->universe_all(FLERR,"Invalid command-line argument");
       helpflag = 1;
+      citeflag = 0;
       iarg += 1;
     } else error->universe_all(FLERR,"Invalid command-line argument");
   }
@@ -209,9 +248,11 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
         error->universe_one(FLERR,"Cannot open universe screen file");
     }
     if (logflag == 0) {
-      universe->ulogfile = fopen("log.lammps","w");
-      if (universe->ulogfile == NULL)
-        error->universe_warn(FLERR,"Cannot open log.lammps for writing");
+      if (helpflag == 0) {
+        universe->ulogfile = fopen("log.lammps","w");
+        if (universe->ulogfile == NULL)
+          error->universe_warn(FLERR,"Cannot open log.lammps for writing");
+      }
     } else if (strcmp(arg[logflag],"none") == 0)
       universe->ulogfile = NULL;
     else {
@@ -562,103 +603,132 @@ void LAMMPS::destroy()
 
 void LAMMPS::print_styles()
 {
+  std::list<std::string> styles;
   printf("\nList of style options included in this executable:\n\n");
 
   printf("Atom styles:");
 #define ATOM_CLASS
-#define AtomStyle(key,Class) printf(" %s",#key);
+#define AtomStyle(key,Class) styles.push_back(#key);
 #include "style_atom.h"
 #undef ATOM_CLASS
+  print_sorted_list(&styles,stdout);
+  styles.clear();
   printf("\n\n");
 
   printf("Integrate styles:");
 #define INTEGRATE_CLASS
-#define IntegrateStyle(key,Class) printf(" %s",#key);
+#define IntegrateStyle(key,Class) styles.push_back(#key);
 #include "style_integrate.h"
 #undef INTEGRATE_CLASS
+  print_sorted_list(&styles,stdout);
+  styles.clear();
   printf("\n\n");
 
   printf("Minimize styles:");
 #define MINIMIZE_CLASS
-#define MinimizeStyle(key,Class) printf(" %s",#key);
+#define MinimizeStyle(key,Class) styles.push_back(#key);
 #include "style_minimize.h"
 #undef MINIMIZE_CLASS
+  print_sorted_list(&styles,stdout);
+  styles.clear();
   printf("\n\n");
 
   printf("Pair styles:");
 #define PAIR_CLASS
-#define PairStyle(key,Class) printf(" %s",#key);
+#define PairStyle(key,Class) styles.push_back(#key);
 #include "style_pair.h"
 #undef PAIR_CLASS
+  print_sorted_list(&styles,stdout);
+  styles.clear();
   printf("\n\n");
 
   printf("Bond styles:");
 #define BOND_CLASS
-#define BondStyle(key,Class) printf(" %s",#key);
+#define BondStyle(key,Class) styles.push_back(#key);
 #include "style_bond.h"
 #undef BOND_CLASS
+  print_sorted_list(&styles,stdout);
+  styles.clear();
   printf("\n\n");
 
   printf("Angle styles:");
 #define ANGLE_CLASS
-#define AngleStyle(key,Class) printf(" %s",#key);
+#define AngleStyle(key,Class) styles.push_back(#key);
 #include "style_angle.h"
 #undef ANGLE_CLASS
+  print_sorted_list(&styles,stdout);
+  styles.clear();
   printf("\n\n");
 
   printf("Dihedral styles:");
 #define DIHEDRAL_CLASS
-#define DihedralStyle(key,Class) printf(" %s",#key);
+#define DihedralStyle(key,Class) styles.push_back(#key);
 #include "style_dihedral.h"
 #undef DIHEDRAL_CLASS
+  print_sorted_list(&styles,stdout);
+  styles.clear();
   printf("\n\n");
 
   printf("Improper styles:");
 #define IMPROPER_CLASS
-#define ImproperStyle(key,Class) printf(" %s",#key);
+#define ImproperStyle(key,Class) styles.push_back(#key);
 #include "style_improper.h"
 #undef IMPROPER_CLASS
+  print_sorted_list(&styles,stdout);
+  styles.clear();
   printf("\n\n");
 
   printf("KSpace styles:");
 #define KSPACE_CLASS
-#define KSpaceStyle(key,Class) printf(" %s",#key);
+#define KSpaceStyle(key,Class) styles.push_back(#key);
 #include "style_kspace.h"
 #undef KSPACE_CLASS
+  print_sorted_list(&styles,stdout);
+  styles.clear();
   printf("\n\n");
 
   printf("Fix styles (upper case are only for internal use):");
 #define FIX_CLASS
-#define FixStyle(key,Class) printf(" %s",#key);
+#define FixStyle(key,Class) styles.push_back(#key);
 #include "style_fix.h"
 #undef FIX_CLASS
+  print_sorted_list(&styles,stdout);
+  styles.clear();
   printf("\n\n");
 
-  printf("Compute styles:");
+  printf("Compute styles (upper case are only for internal use):");
 #define COMPUTE_CLASS
-#define ComputeStyle(key,Class) printf(" %s",#key);
+#define ComputeStyle(key,Class) styles.push_back(#key);
 #include "style_compute.h"
 #undef COMPUTE_CLASS
+  print_sorted_list(&styles,stdout);
+  styles.clear();
   printf("\n\n");
 
   printf("Region styles:");
 #define REGION_CLASS
-#define RegionStyle(key,Class) printf(" %s",#key);
+#define RegionStyle(key,Class) styles.push_back(#key);
 #include "style_region.h"
 #undef REGION_CLASS
+  print_sorted_list(&styles,stdout);
+  styles.clear();
   printf("\n\n");
 
   printf("Dump styles:");
 #define DUMP_CLASS
-#define DumpStyle(key,Class) printf(" %s",#key);
+#define DumpStyle(key,Class) styles.push_back(#key);
 #include "style_dump.h"
 #undef DUMP_CLASS
+  print_sorted_list(&styles,stdout);
+  styles.clear();
   printf("\n\n");
 
   printf("Command styles (add-on input script commands):");
 #define COMMAND_CLASS
-#define CommandStyle(key,Class) printf(" %s",#key);
+#define CommandStyle(key,Class) styles.push_back(#key);
 #include "style_command.h"
 #undef COMMAND_CLASS
+  print_sorted_list(&styles,stdout);
+  styles.clear();
   printf("\n");
 }

@@ -796,6 +796,17 @@ void Neighbor::init()
     }
   }
 
+  // sync on/off settings across all procs
+
+  int on_or_off = bond_off;
+  MPI_Allreduce(&on_or_off,&bond_off,1,MPI_INT,MPI_MAX,world);
+  on_or_off = angle_off;
+  MPI_Allreduce(&on_or_off,&angle_off,1,MPI_INT,MPI_MAX,world);
+  on_or_off = dihedral_off;
+  MPI_Allreduce(&on_or_off,&dihedral_off,1,MPI_INT,MPI_MAX,world);
+  on_or_off = improper_off;
+  MPI_Allreduce(&on_or_off,&improper_off,1,MPI_INT,MPI_MAX,world);
+
   // set ptrs to topology build functions
 
   if (bond_off) bond_build = &Neighbor::bond_partial;

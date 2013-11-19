@@ -322,7 +322,7 @@ void NEB::run()
    read initial config atom coords from file
    flag = 0
      only first replica open file and reads it
-     first replica bcasts each line to all replicas
+     first replica bcasts lines to all replicas
      final replica stores coords
      intermediate replicas interpolate from coords
        new coord = replica fraction between current and final state
@@ -520,7 +520,7 @@ void NEB::open(char *file)
 }
 
 /* ----------------------------------------------------------------------
-   query fix NEB for PE of each replica
+   query fix NEB for info on each replica
    proc 0 prints current NEB status
 ------------------------------------------------------------------------- */
 

@@ -552,7 +552,7 @@ package"_Section_start.html#start_3.
 "colvars"_fix_colvars.html,
 "imd"_fix_imd.html,
 "langevin/eff"_fix_langevin_eff.html,
-"lb/fluid"_fix_lb/fluid.html,
+"lb/fluid"_fix_lb_fluid.html,
 "lb/momentum"_fix_lb_momentum.html,
 "lb/pc"_fix_lb_pc.html,
 "lb/rigid/pc/sphere"_fix_lb_rigid_pc_sphere.html,

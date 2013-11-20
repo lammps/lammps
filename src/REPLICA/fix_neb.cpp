@@ -178,7 +178,7 @@ void FixNEB::min_post_force(int vflag)
   double **f = atom->f;
   double fsq = 0.0;
   for (int i = 0; i < nlocal; i++)
-    fsq += f[i][0]*f[i][0] + f[i][1]*f[i][1]; //+ f[i][2]*f[i][2];
+    fsq += f[i][0]*f[i][0] + f[i][1]*f[i][1] + f[i][2]*f[i][2];
 
   MPI_Allreduce(&fsq,&gradvnorm,1,MPI_DOUBLE,MPI_MAX,world);
   gradvnorm = sqrt(gradvnorm);

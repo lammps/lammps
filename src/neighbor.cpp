@@ -796,7 +796,7 @@ void Neighbor::init()
     }
   }
 
-  // make certain we use the same type lists across all MPI ranks
+  // sync on/off settings across all procs
 
   int on_or_off = bond_off;
   MPI_Allreduce(&on_or_off,&bond_off,1,MPI_INT,MPI_MAX,world);

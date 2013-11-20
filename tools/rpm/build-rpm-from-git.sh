@@ -50,7 +50,7 @@ git archive -v --format=tar --prefix=lammps-current/ HEAD \
 popd
 
 # we use the source rpm on suse, since they do not have a "dist" tag.
-if grep -q -i suse /etc/issue && test $(uname -i) = i386
+if grep -q -i suse\ 12 /etc/issue && test $(uname -i) = i386
 then
     rpmbuild --clean --rmsource --rmspec -ba "${MYRPM_BUILD_DIR}/SPECS/lammps.spec" || exit 1
 else

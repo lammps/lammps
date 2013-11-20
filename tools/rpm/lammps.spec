@@ -1,13 +1,17 @@
-# verified on Fedora 17     / x86_64 / 2013-07-07
-# verified on Fedora 17     / i386   / 2013-07-07
-# verified on Fedora 18     / x86_64 / 2013-07-07
-# verified on Fedora 18     / i386   / 2013-07-07
-# verified on Fedora 19     / x86_64 / 2013-07-07
-# verified on Fedora 19     / i386   / 2013-07-07
-# verified on CentOS 6.4    / x86_64 / 2013-07-07
-# verified on CentOS 6.4    / i386   / 2013-07-07
-# verified on OpenSuSE 12.3 / x86_64 / 2013-07-07
-# verified on OpenSuSE 12.3 / i586   / 2013-07-07
+# verified on Fedora 17     / x86_64 / 2013-11-20
+# verified on Fedora 17     / i386   / 2013-11-20
+# verified on Fedora 18     / x86_64 / 2013-11-20
+# verified on Fedora 18     / i386   / 2013-11-20
+# verified on Fedora 19     / x86_64 / 2013-11-20
+# verified on Fedora 19     / i386   / 2013-11-20
+# verified on Fedora 20     / x86_64 / 2013-11-20
+# verified on Fedora 20     / i386   / 2013-11-20
+# verified on CentOS 6.4    / x86_64 / 2013-11-20
+# verified on CentOS 6.4    / i386   / 2013-11-20
+# verified on OpenSuSE 12.3 / x86_64 / 2013-11-20
+# verified on OpenSuSE 12.3 / i586   / 2013-11-20
+# verified on OpenSuSE 13.1 / x86_64 / 2013-11-20
+# verified on OpenSuSE 13.1 / i586   / 2013-11-20
 
 %ifnarch s390 s390x
 %global with_openmpi 1
@@ -39,8 +43,8 @@
 %{!?python_sitearch: %global python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
 
 Name:           lammps
-Version:        20130826
-Release:        5%{?dist}
+Version:        20131120
+Release:        6%{?dist}
 Summary:        LAMMPS Molecular Dynamics Simulator
 Group:          Applications/Engineering
 
@@ -395,6 +399,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Nov 20 2013 Axel Kohlmeyer <akohlmey@gmail.com> - 20131120-5
+- Update for Fedora 20 and OpenSuSE 13.1
+
 * Fri Aug  2 2013 Axel Kohlmeyer <akohlmey@gmail.com> - 20130802-4
 - Rename $BIOSYM_LIBRARY to $MSI2LMP_LIBRARY and biosym_frc_files to frc_files
 

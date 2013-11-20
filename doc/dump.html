@@ -109,8 +109,8 @@ timesteps in one of several styles.  The <I>image</I> style is the
 exception; it creates a JPG or PPM image file of the atom
 configuration every N timesteps, as discussed on the <A HREF = "dump_image.html">dump
 image</A> doc page.  The timesteps on which dump output
-is written can also be controlled by a variable. See the <A HREF = "dump_modify.html">dump_modify
-every</A> command.
+is written can also be controlled by a variable; see the <A HREF = "dump_modify.html">dump_modify
+every</A> command for details.
 </P>
 <P>Only information for atoms in the specified group is dumped.  The
 <A HREF = "dump_modify.html">dump_modify thresh and region</A> commands can also
@@ -119,7 +119,7 @@ options; see details below.
 </P>
 <P>As described below, the filename determines the kind of output (text
 or binary or gzipped, one big file or one per timestep, one big file
-or one per processor).
+or multiple smaller files).
 </P>
 <P>IMPORTANT NOTE: Because periodic boundary conditions are enforced only
 on timesteps when neighbor lists are rebuilt, the coordinates of an
@@ -134,7 +134,7 @@ if the <A HREF = "atom_modify.html">atom_modify sort</A> option is on, which it 
 by default.  In this case atoms are re-ordered periodically during a
 simulation, due to spatial sorting.  It is also true when running in
 parallel, because data for a single snapshot is collected from
-multiple processors.
+multiple processors, each of which owns a subset of the atoms.
 </P>
 <P>For the <I>atom</I>, <I>custom</I>, <I>cfg</I>, and <I>local</I> styles, sorting is off by
 default.  For the <I>dcd</I>, <I>xtc</I>, <I>xyz</I>, and <I>molfile</I> styles, sorting by
@@ -293,11 +293,12 @@ from using the (numerical) atom type to an element name (or some
 other label). This will help many visualization programs to guess
 bonds and colors.
 </P>
-<P>Note that <I>atom</I>, <I>custom</I>, <I>dcd</I>, <I>xtc</I>, and <I>xyz</I> style dump files can
-be read directly by <A HREF = "http://www.ks.uiuc.edu/Research/vmd">VMD</A> (a popular
-molecular viewing program).  See <A HREF = "Section_tools.html#vmd">Section tools</A>
-of the manual and the tools/lmp2vmd/README.txt file for more information
-about support in VMD for reading and visualizing LAMMPS dump files.
+<P>Note that <I>atom</I>, <I>custom</I>, <I>dcd</I>, <I>xtc</I>, and <I>xyz</I> style dump files
+can be read directly by <A HREF = "http://www.ks.uiuc.edu/Research/vmd">VMD</A>, a
+popular molecular viewing program.  See <A HREF = "Section_tools.html#vmd">Section
+tools</A> of the manual and the
+tools/lmp2vmd/README.txt file for more information about support in
+VMD for reading and visualizing LAMMPS dump files.
 </P>
 <HR>
 
@@ -330,7 +331,7 @@ tmp.dump.20000, etc.  This option is not available for the <I>dcd</I> and
 <I>xtc</I> styles.  Note that the <A HREF = "dump_modify.html">dump_modify pad</A>
 command can be used to insure all timestep numbers are the same length
 (e.g. 00010), which can make it easier to read a series of dump files
-in order by some post-processing tools.
+in order with some post-processing tools.
 </P>
 <P>If a "%" character appears in the filename, then each of P processors
 writes a portion of the dump file, and the "%" character is replaced

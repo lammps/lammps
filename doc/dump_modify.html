@@ -99,10 +99,10 @@
     color = name of color for box lines
   <I>color</I> args = name R G B
     name = name of color
-    R,G,B = red/green/blue numeric values from 0.0 to 1.0 
-</PRE>
+    R,G,B = red/green/blue numeric values from 0.0 to 1.0
   <I>framerate</I> arg = fps
-    fps = frames per second for movie
+    fps = frames per second for movie 
+</PRE>
 
 </UL>
 <P><B>Examples:</B>
@@ -245,6 +245,8 @@ the first two fields (atom id and type) are not actually written into
 the CFG file, though you must include formats for them in the format
 string.
 </P>
+<HR>
+
 <P>The <I>fileper</I> keyword is documented below with the <I>nfile</I> keyword.
 </P>
 <HR>
@@ -262,7 +264,7 @@ attributes in the dump command itself.
 <HR>
 
 <P>The <I>label</I> keyword applies only to the dump <I>local</I> style.  When
-it writes local informatoin, such as bond or angle topology
+it writes local information, such as bond or angle topology
 to a dump file, it will use the specified <I>label</I> to format
 the header.  By default this includes 2 lines:
 </P>
@@ -359,7 +361,7 @@ cost, as well as memory, versus unsorted output.
 <HR>
 
 <P>The <I>thresh</I> keyword only applies to the dump <I>custom</I>, <I>cfg</I>,
-<I>image</I>, and <I>mvoie</I> styles.  Multiple thresholds can be specified.
+<I>image</I>, and <I>movie</I> styles.  Multiple thresholds can be specified.
 Specifying "none" turns off all threshold criteria.  If thresholds are
 specified, only atoms whose attributes meet all the threshold criteria
 are written to the dump file or included in the image.  The possible

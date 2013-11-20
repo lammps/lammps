@@ -89,9 +89,9 @@ keyword = {acolor} or {adiam} or {amap} or {bcolor} or {bdiam} or {backcolor} or
     color = name of color for box lines
   {color} args = name R G B
     name = name of color
-    R,G,B = red/green/blue numeric values from 0.0 to 1.0 :pre
+    R,G,B = red/green/blue numeric values from 0.0 to 1.0
   {framerate} arg = fps
-    fps = frames per second for movie
+    fps = frames per second for movie :pre
 :ule
 
 [Examples:]
@@ -233,6 +233,8 @@ the first two fields (atom id and type) are not actually written into
 the CFG file, though you must include formats for them in the format
 string.
 
+:line
+
 The {fileper} keyword is documented below with the {nfile} keyword.
 
 :line
@@ -250,7 +252,7 @@ attributes in the dump command itself.
 :line
 
 The {label} keyword applies only to the dump {local} style.  When
-it writes local informatoin, such as bond or angle topology
+it writes local information, such as bond or angle topology
 to a dump file, it will use the specified {label} to format
 the header.  By default this includes 2 lines:
 
@@ -347,7 +349,7 @@ cost, as well as memory, versus unsorted output.
 :line
 
 The {thresh} keyword only applies to the dump {custom}, {cfg},
-{image}, and {mvoie} styles.  Multiple thresholds can be specified.
+{image}, and {movie} styles.  Multiple thresholds can be specified.
 Specifying "none" turns off all threshold criteria.  If thresholds are
 specified, only atoms whose attributes meet all the threshold criteria
 are written to the dump file or included in the image.  The possible

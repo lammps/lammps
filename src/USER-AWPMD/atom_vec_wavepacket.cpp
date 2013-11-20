@@ -31,7 +31,6 @@ using namespace LAMMPS_NS;
 
 #define DELTA 10000
 
-
 /* ---------------------------------------------------------------------- */
 
 AtomVecWavepacket::AtomVecWavepacket(LAMMPS *lmp) : AtomVec(lmp)
@@ -440,13 +439,13 @@ int AtomVecWavepacket::pack_border(int n, int *list, double *buf,
       buf[m++] = x[j][0];
       buf[m++] = x[j][1];
       buf[m++] = x[j][2];
-      buf[m++] = tag[j];
-      buf[m++] = type[j];
-      buf[m++] = mask[j];
+      buf[m++] = ubuf(tag[j]).d;
+      buf[m++] = ubuf(type[j]).d;
+      buf[m++] = ubuf(mask[j]).d;
       buf[m++] = q[j];
-      buf[m++] = spin[j];
+      buf[m++] = ubuf(spin[j]).d;
       buf[m++] = eradius[j];
-      buf[m++] = etag[j];
+      buf[m++] = ubuf(etag[j]).d;
     }
   } else {
     if (domain->triclinic == 0) {
@@ -463,13 +462,13 @@ int AtomVecWavepacket::pack_border(int n, int *list, double *buf,
       buf[m++] = x[j][0] + dx;
       buf[m++] = x[j][1] + dy;
       buf[m++] = x[j][2] + dz;
-      buf[m++] = tag[j];
-      buf[m++] = type[j];
-      buf[m++] = mask[j];
+      buf[m++] = ubuf(tag[j]).d;
+      buf[m++] = ubuf(type[j]).d;
+      buf[m++] = ubuf(mask[j]).d;
       buf[m++] = q[j];
-      buf[m++] = spin[j];
+      buf[m++] = ubuf(spin[j]).d;
       buf[m++] = eradius[j];
-      buf[m++] = etag[j];
+      buf[m++] = ubuf(etag[j]).d;
     }
   }
 
@@ -495,18 +494,17 @@ int AtomVecWavepacket::pack_border_vel(int n, int *list, double *buf,
       buf[m++] = x[j][0];
       buf[m++] = x[j][1];
       buf[m++] = x[j][2];
-      buf[m++] = tag[j];
-      buf[m++] = type[j];
-      buf[m++] = mask[j];
+      buf[m++] = ubuf(tag[j]).d;
+      buf[m++] = ubuf(type[j]).d;
+      buf[m++] = ubuf(mask[j]).d;
       buf[m++] = q[j];
-      buf[m++] = spin[j];
+      buf[m++] = ubuf(spin[j]).d;
       buf[m++] = eradius[j];
-      buf[m++] = etag[j];
+      buf[m++] = ubuf(etag[j]).d;
 
       buf[m++] = v[j][0];
       buf[m++] = v[j][1];
       buf[m++] = v[j][2];
-
 
       buf[m++] = ervel[j];
       buf[m++] = cs[2*j];
@@ -528,13 +526,13 @@ int AtomVecWavepacket::pack_border_vel(int n, int *list, double *buf,
         buf[m++] = x[j][0] + dx;
         buf[m++] = x[j][1] + dy;
         buf[m++] = x[j][2] + dz;
-        buf[m++] = tag[j];
-        buf[m++] = type[j];
-        buf[m++] = mask[j];
+        buf[m++] = ubuf(tag[j]).d;
+        buf[m++] = ubuf(type[j]).d;
+        buf[m++] = ubuf(mask[j]).d;
         buf[m++] = q[j];
-        buf[m++] = spin[j];
+        buf[m++] = ubuf(spin[j]).d;
         buf[m++] = eradius[j];
-        buf[m++] = etag[j];
+        buf[m++] = ubuf(etag[j]).d;
 
         buf[m++] = v[j][0];
         buf[m++] = v[j][1];
@@ -554,13 +552,13 @@ int AtomVecWavepacket::pack_border_vel(int n, int *list, double *buf,
         buf[m++] = x[j][0] + dx;
         buf[m++] = x[j][1] + dy;
         buf[m++] = x[j][2] + dz;
-        buf[m++] = tag[j];
-        buf[m++] = type[j];
-        buf[m++] = mask[j];
+        buf[m++] = ubuf(tag[j]).d;
+        buf[m++] = ubuf(type[j]).d;
+        buf[m++] = ubuf(mask[j]).d;
         buf[m++] = q[j];
-        buf[m++] = spin[j];
+        buf[m++] = ubuf(spin[j]).d;
         buf[m++] = eradius[j];
-        buf[m++] = etag[j];
+        buf[m++] = ubuf(etag[j]).d;
 
         if (mask[i] & deform_groupbit) {
           buf[m++] = v[j][0] + dvx;
@@ -596,10 +594,10 @@ int AtomVecWavepacket::pack_border_hybrid(int n, int *list, double *buf)
   for (i = 0; i < n; i++) {
     j = list[i];
     buf[m++] = q[j];
-    buf[m++] = spin[j];
+    buf[m++] = ubuf(spin[j]).d;
     buf[m++] = eradius[j];
 
-    buf[m++] = etag[j];
+    buf[m++] = ubuf(etag[j]).d;
     buf[m++] = ervel[j];
     buf[m++] = cs[2*j];
     buf[m++] = cs[2*j+1];
@@ -620,13 +618,13 @@ void AtomVecWavepacket::unpack_border(int n, int first, double *buf)
     x[i][0] = buf[m++];
     x[i][1] = buf[m++];
     x[i][2] = buf[m++];
-    tag[i] = static_cast<int> (buf[m++]);
-    type[i] = static_cast<int> (buf[m++]);
-    mask[i] = static_cast<int> (buf[m++]);
+    tag[i] = (int) ubuf(buf[m++]).i;
+    type[i] = (int) ubuf(buf[m++]).i;
+    mask[i] = (int) ubuf(buf[m++]).i;
     q[i] = buf[m++];
-    spin[i] = static_cast<int> (buf[m++]);
+    spin[i] = (int) ubuf(buf[m++]).i;
     eradius[i] = buf[m++];
-    etag[i] = (int)buf[m++];
+    etag[i] = (int) ubuf(buf[m++]).i;
   }
 
   if (atom->nextra_border)
@@ -648,13 +646,13 @@ void AtomVecWavepacket::unpack_border_vel(int n, int first, double *buf)
     x[i][0] = buf[m++];
     x[i][1] = buf[m++];
     x[i][2] = buf[m++];
-    tag[i] = static_cast<int> (buf[m++]);
-    type[i] = static_cast<int> (buf[m++]);
-    mask[i] = static_cast<int> (buf[m++]);
+    tag[i] = (int) ubuf(buf[m++]).i;
+    type[i] = (int) ubuf(buf[m++]).i;
+    mask[i] = (int) ubuf(buf[m++]).i;
     q[i] = buf[m++];
-    spin[i] = static_cast<int> (buf[m++]);
+    spin[i] = (int) ubuf(buf[m++]).i;
     eradius[i] = buf[m++];
-    etag[i] = (int)buf[m++];
+    etag[i] = (int) ubuf(buf[m++]).i;
     v[i][0] = buf[m++];
     v[i][1] = buf[m++];
     v[i][2] = buf[m++];
@@ -679,10 +677,9 @@ int AtomVecWavepacket::unpack_border_hybrid(int n, int first, double *buf)
   last = first + n;
   for (i = first; i < last; i++) {
     q[i] = buf[m++];
-    spin[i] = static_cast<int> (buf[m++]);
+    spin[i] = (int) ubuf(buf[m++]).i;
     eradius[i] = buf[m++];
-
-    etag[i] = (int)buf[m++];
+    etag[i] = (int) ubuf(buf[m++]).i;
     ervel[i] = buf[m++];
     cs[2*i] = buf[m++];
     cs[2*i+1] = buf[m++];
@@ -704,17 +701,17 @@ int AtomVecWavepacket::pack_exchange(int i, double *buf)
   buf[m++] = v[i][0];
   buf[m++] = v[i][1];
   buf[m++] = v[i][2];
-  buf[m++] = tag[i];
-  buf[m++] = type[i];
-  buf[m++] = mask[i];
-  *((tagint *) &buf[m++]) = image[i];
+  buf[m++] = ubuf(tag[i]).d;
+  buf[m++] = ubuf(type[i]).d;
+  buf[m++] = ubuf(mask[i]).d;
+  buf[m++] = ubuf(image[i]).d;
 
   buf[m++] = q[i];
-  buf[m++] = spin[i];
+  buf[m++] = ubuf(spin[i]).d;
   buf[m++] = eradius[i];
   buf[m++] = ervel[i];
 
-  buf[m++] = etag[i];
+  buf[m++] = ubuf(etag[i]).d;
   buf[m++] = cs[2*i];
   buf[m++] = cs[2*i+1];
 
@@ -740,17 +737,17 @@ int AtomVecWavepacket::unpack_exchange(double *buf)
   v[nlocal][0] = buf[m++];
   v[nlocal][1] = buf[m++];
   v[nlocal][2] = buf[m++];
-  tag[nlocal] = static_cast<int> (buf[m++]);
-  type[nlocal] = static_cast<int> (buf[m++]);
-  mask[nlocal] = static_cast<int> (buf[m++]);
-  image[nlocal] = *((tagint *) &buf[m++]);
+  tag[nlocal] = (int) ubuf(buf[m++]).i;
+  type[nlocal] = (int) ubuf(buf[m++]).i;
+  mask[nlocal] = (int) ubuf(buf[m++]).i;
+  image[nlocal] = (tagint) ubuf(buf[m++]).i;
 
   q[nlocal] = buf[m++];
-  spin[nlocal] = static_cast<int> (buf[m++]);
+  spin[nlocal] = (int) ubuf(buf[m++]).i;
   eradius[nlocal] = buf[m++];
   ervel[nlocal] = buf[m++];
 
-  etag[nlocal] = buf[m++];
+  etag[nlocal] = (int) ubuf(buf[m++]).i;
   cs[2*nlocal] = buf[m++];
   cs[2*nlocal+1] = buf[m++];
 
@@ -795,20 +792,20 @@ int AtomVecWavepacket::pack_restart(int i, double *buf)
   buf[m++] = x[i][0];
   buf[m++] = x[i][1];
   buf[m++] = x[i][2];
-  buf[m++] = tag[i];
-  buf[m++] = type[i];
-  buf[m++] = mask[i];
-  *((tagint *) &buf[m++]) = image[i];
+  buf[m++] = ubuf(tag[i]).d;
+  buf[m++] = ubuf(type[i]).d;
+  buf[m++] = ubuf(mask[i]).d;
+  buf[m++] = ubuf(image[i]).d;
   buf[m++] = v[i][0];
   buf[m++] = v[i][1];
   buf[m++] = v[i][2];
 
   buf[m++] = q[i];
-  buf[m++] = spin[i];
+  buf[m++] = ubuf(spin[i]).d;
   buf[m++] = eradius[i];
   buf[m++] = ervel[i];
 
-  buf[m++] = etag[i];
+  buf[m++] = ubuf(etag[i]).d;
   buf[m++] = cs[2*i];
   buf[m++] = cs[2*i+1];
 
@@ -837,20 +834,20 @@ int AtomVecWavepacket::unpack_restart(double *buf)
   x[nlocal][0] = buf[m++];
   x[nlocal][1] = buf[m++];
   x[nlocal][2] = buf[m++];
-  tag[nlocal] = static_cast<int> (buf[m++]);
-  type[nlocal] = static_cast<int> (buf[m++]);
-  mask[nlocal] = static_cast<int> (buf[m++]);
-  image[nlocal] = *((tagint *) &buf[m++]);
+  tag[nlocal] = (int) ubuf(buf[m++]).i;
+  type[nlocal] = (int) ubuf(buf[m++]).i;
+  mask[nlocal] = (int) ubuf(buf[m++]).i;
+  image[nlocal] = (tagint) ubuf(buf[m++]).i;
   v[nlocal][0] = buf[m++];
   v[nlocal][1] = buf[m++];
   v[nlocal][2] = buf[m++];
 
   q[nlocal] = buf[m++];
-  spin[nlocal] = static_cast<int> (buf[m++]);
+  spin[nlocal] = (int) ubuf(buf[m++]).i;
   eradius[nlocal] = buf[m++];
   ervel[nlocal] = buf[m++];
 
-  etag[nlocal] = buf[m++];
+  etag[nlocal] = (int) ubuf(buf[m++]).i;
   cs[2*nlocal] = buf[m++];
   cs[2*nlocal+1] = buf[m++];
 
@@ -888,11 +885,11 @@ void AtomVecWavepacket::create_atom(int itype, double *coord)
   v[nlocal][2] = 0.0;
 
   q[nlocal] = 1.;
-  spin[nlocal] = 0.;
+  spin[nlocal] = 0;
   eradius[nlocal] = 0.0;
   ervel[nlocal] = 0.0;
 
-  etag[nlocal]= 0.;
+  etag[nlocal] = 0;
   cs[2*nlocal] = 0.;
   cs[2*nlocal+1] = 0.;
 
@@ -1003,20 +1000,20 @@ void AtomVecWavepacket::pack_data(double **buf)
 {
   int nlocal = atom->nlocal;
   for (int i = 0; i < nlocal; i++) {
-    buf[i][0] = tag[i];
-    buf[i][1] = type[i];
+    buf[i][0] = ubuf(tag[i]).d;
+    buf[i][1] = ubuf(type[i]).d;
     buf[i][2] = q[i];
-    buf[i][3] = spin[i];
+    buf[i][3] = ubuf(spin[i]).d;
     buf[i][4] = eradius[i];
-    buf[i][5] = etag[i];
+    buf[i][5] = ubuf(etag[i]).d;
     buf[i][6] = cs[2*i];
     buf[i][7] = cs[2*i+1];
     buf[i][8] = x[i][0];
     buf[i][9] = x[i][1];
     buf[i][10] = x[i][2];
-    buf[i][11] = (image[i] & IMGMASK) - IMGMAX;
-    buf[i][12] = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-    buf[i][13] = (image[i] >> IMG2BITS) - IMGMAX;
+    buf[i][11] = ubuf((image[i] & IMGMASK) - IMGMAX).d;
+    buf[i][12] = ubuf((image[i] >> IMGBITS & IMGMASK) - IMGMAX).d;
+    buf[i][13] = ubuf((image[i] >> IMG2BITS) - IMGMAX).d;
   }
 }
 
@@ -1027,9 +1024,9 @@ void AtomVecWavepacket::pack_data(double **buf)
 int AtomVecWavepacket::pack_data_hybrid(int i, double *buf)
 {
   buf[0] = q[i];
-  buf[1] = spin[i];
+  buf[1] = ubuf(spin[i]).d;
   buf[2] = eradius[i];
-  buf[3] = etag[i];
+  buf[3] = ubuf(etag[i]).d;
   buf[4] = cs[2*i];
   buf[5] = cs[2*i+1];
   return 6;
@@ -1044,11 +1041,12 @@ void AtomVecWavepacket::write_data(FILE *fp, int n, double **buf)
   for (int i = 0; i < n; i++)
     fprintf(fp,"%d %d %-1.16e %d %-1.16e %d %-1.16e %-1.16e %-1.16e "
             "%-1.16e %-1.16e %d %d %d\n",
-            (int) buf[i][0],(int) buf[i][1],
-            buf[i][2],(int) buf[i][3],buf[i][4],
-            (int) buf[i][5],buf[i][6],buf[i][7],
+            (int) ubuf(buf[i][0]).i,(int) ubuf(buf[i][1]).i,
+            buf[i][2],(int) ubuf(buf[i][3]).i,buf[i][4],
+            (int) ubuf(buf[i][5]).i,buf[i][6],buf[i][8],
             buf[i][8],buf[i][9],buf[i][10],
-            (int) buf[i][11],(int) buf[i][12],(int) buf[i][13]);
+            (int) ubuf(buf[i][11]).i,(int) ubuf(buf[i][12]).i,
+            (int) ubuf(buf[i][13]).i);
 }
 
 /* ----------------------------------------------------------------------
@@ -1058,7 +1056,8 @@ void AtomVecWavepacket::write_data(FILE *fp, int n, double **buf)
 int AtomVecWavepacket::write_data_hybrid(FILE *fp, double *buf)
 {
   fprintf(fp," %-1.16e %d %-1.16e %d %-1.16e %-1.16e",
-          buf[0],(int) buf[1],buf[2],(int) buf[3],buf[4],buf[5]);
+          buf[0],(int) ubuf(buf[1]).i,buf[2],(int) ubuf(buf[3]).i,
+          buf[4],buf[5]);
   return 6;
 }
 
@@ -1070,7 +1069,7 @@ void AtomVecWavepacket::pack_vel(double **buf)
 {
   int nlocal = atom->nlocal;
   for (int i = 0; i < nlocal; i++) {
-    buf[i][0] = tag[i];
+    buf[i][0] = ubuf(tag[i]).d;
     buf[i][1] = v[i][0];
     buf[i][2] = v[i][1];
     buf[i][3] = v[i][2];
@@ -1096,7 +1095,7 @@ void AtomVecWavepacket::write_vel(FILE *fp, int n, double **buf)
 {
   for (int i = 0; i < n; i++)
     fprintf(fp,"%d %-1.16e %-1.16e %-1.16e %-1.16e\n",
-            (int) buf[i][0],buf[i][1],buf[i][2],buf[i][3],buf[i][4]);
+            (int) ubuf(buf[i][0]).i,buf[i][1],buf[i][2],buf[i][3],buf[i][4]);
 }
 
 /* ----------------------------------------------------------------------

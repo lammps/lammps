@@ -452,9 +452,9 @@ int AtomVecHybrid::pack_border(int n, int *list, double *buf,
       buf[m++] = x[j][0];
       buf[m++] = x[j][1];
       buf[m++] = x[j][2];
-      buf[m++] = tag[j];
-      buf[m++] = type[j];
-      buf[m++] = mask[j];
+      buf[m++] = ubuf(tag[j]).d;
+      buf[m++] = ubuf(type[j]).d;
+      buf[m++] = ubuf(mask[j]).d;
     }
   } else {
     if (domain->triclinic == 0) {
@@ -471,9 +471,9 @@ int AtomVecHybrid::pack_border(int n, int *list, double *buf,
       buf[m++] = x[j][0] + dx;
       buf[m++] = x[j][1] + dy;
       buf[m++] = x[j][2] + dz;
-      buf[m++] = tag[j];
-      buf[m++] = type[j];
-      buf[m++] = mask[j];
+      buf[m++] = ubuf(tag[j]).d;
+      buf[m++] = ubuf(type[j]).d;
+      buf[m++] = ubuf(mask[j]).d;
     }
   }
 
@@ -506,9 +506,9 @@ int AtomVecHybrid::pack_border_vel(int n, int *list, double *buf,
       buf[m++] = x[j][0];
       buf[m++] = x[j][1];
       buf[m++] = x[j][2];
-      buf[m++] = tag[j];
-      buf[m++] = type[j];
-      buf[m++] = mask[j];
+      buf[m++] = ubuf(tag[j]).d;
+      buf[m++] = ubuf(type[j]).d;
+      buf[m++] = ubuf(mask[j]).d;
       buf[m++] = v[j][0];
       buf[m++] = v[j][1];
       buf[m++] = v[j][2];
@@ -539,9 +539,9 @@ int AtomVecHybrid::pack_border_vel(int n, int *list, double *buf,
         buf[m++] = x[j][0] + dx;
         buf[m++] = x[j][1] + dy;
         buf[m++] = x[j][2] + dz;
-        buf[m++] = tag[j];
-        buf[m++] = type[j];
-        buf[m++] = mask[j];
+        buf[m++] = ubuf(tag[j]).d;
+        buf[m++] = ubuf(type[j]).d;
+        buf[m++] = ubuf(mask[j]).d;
         buf[m++] = v[j][0];
         buf[m++] = v[j][1];
         buf[m++] = v[j][2];
@@ -565,9 +565,9 @@ int AtomVecHybrid::pack_border_vel(int n, int *list, double *buf,
         buf[m++] = x[j][0] + dx;
         buf[m++] = x[j][1] + dy;
         buf[m++] = x[j][2] + dz;
-        buf[m++] = tag[j];
-        buf[m++] = type[j];
-        buf[m++] = mask[j];
+        buf[m++] = ubuf(tag[j]).d;
+        buf[m++] = ubuf(type[j]).d;
+        buf[m++] = ubuf(mask[j]).d;
         if (mask[i] & deform_groupbit) {
           buf[m++] = v[j][0] + dvx;
           buf[m++] = v[j][1] + dvy;
@@ -616,9 +616,9 @@ void AtomVecHybrid::unpack_border(int n, int first, double *buf)
     x[i][0] = buf[m++];
     x[i][1] = buf[m++];
     x[i][2] = buf[m++];
-    tag[i] = static_cast<int> (buf[m++]);
-    type[i] = static_cast<int> (buf[m++]);
-    mask[i] = static_cast<int> (buf[m++]);
+    tag[i] = (int) ubuf(buf[m++]).i;
+    type[i] = (int) ubuf(buf[m++]).i;
+    mask[i] = (int) ubuf(buf[m++]).i;
   }
 
   // unpack sub-style contributions as contiguous chunks
@@ -647,9 +647,9 @@ void AtomVecHybrid::unpack_border_vel(int n, int first, double *buf)
     x[i][0] = buf[m++];
     x[i][1] = buf[m++];
     x[i][2] = buf[m++];
-    tag[i] = static_cast<int> (buf[m++]);
-    type[i] = static_cast<int> (buf[m++]);
-    mask[i] = static_cast<int> (buf[m++]);
+    tag[i] = (int) ubuf(buf[m++]).i;
+    type[i] = (int) ubuf(buf[m++]).i;
+    mask[i] = (int) ubuf(buf[m++]).i;
     v[i][0] = buf[m++];
     v[i][1] = buf[m++];
     v[i][2] = buf[m++];
@@ -929,8 +929,8 @@ void AtomVecHybrid::pack_data(double **buf)
 
   int nlocal = atom->nlocal;
   for (int i = 0; i < nlocal; i++) {
-    buf[i][0] = tag[i];
-    buf[i][1] = type[i];
+    buf[i][0] = ubuf(tag[i]).d;
+    buf[i][1] = ubuf(type[i]).d;
     buf[i][2] = x[i][0];
     buf[i][3] = x[i][1];
     buf[i][4] = x[i][2];
@@ -939,9 +939,9 @@ void AtomVecHybrid::pack_data(double **buf)
     for (k = 0; k < nstyles; k++)
       m += styles[k]->pack_data_hybrid(i,&buf[i][m]);
 
-    buf[i][m] = (image[i] & IMGMASK) - IMGMAX;
-    buf[i][m+1] = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-    buf[i][m+2] = (image[i] >> IMG2BITS) - IMGMAX;
+    buf[i][m] = ubuf((image[i] & IMGMASK) - IMGMAX).d;
+    buf[i][m+1] = ubuf((image[i] >> IMGBITS & IMGMASK) - IMGMAX).d;
+    buf[i][m+2] = ubuf((image[i] >> IMG2BITS) - IMGMAX).d;
   }
 }
 
@@ -955,7 +955,7 @@ void AtomVecHybrid::write_data(FILE *fp, int n, double **buf)
 
   for (int i = 0; i < n; i++) {
     fprintf(fp,"%d %d %-1.16e %-1.16e %-1.16e",
-            (int) buf[i][0],(int) buf[i][1],
+            (int) ubuf(buf[i][0]).i,(int) ubuf(buf[i][1]).i,
             buf[i][2],buf[i][3],buf[i][4]);
 
     m = 5;
@@ -963,7 +963,8 @@ void AtomVecHybrid::write_data(FILE *fp, int n, double **buf)
       m += styles[k]->write_data_hybrid(fp,&buf[i][m]);
 
     fprintf(fp," %d %d %d\n",
-            (int) buf[i][m],(int) buf[i][m+1],(int) buf[i][m+2]);
+            (int) ubuf(buf[i][m]).i,(int) ubuf(buf[i][m+1]).i,
+            (int) ubuf(buf[i][m+2]).i);
   }
 }
 
@@ -977,7 +978,7 @@ void AtomVecHybrid::pack_vel(double **buf)
 
   int nlocal = atom->nlocal;
   for (int i = 0; i < nlocal; i++) {
-    buf[i][0] = tag[i];
+    buf[i][0] = ubuf(tag[i]).d;
     buf[i][1] = v[i][0];
     buf[i][2] = v[i][1];
     buf[i][3] = v[i][2];
@@ -998,7 +999,7 @@ void AtomVecHybrid::write_vel(FILE *fp, int n, double **buf)
 
   for (int i = 0; i < n; i++) {
     fprintf(fp,"%d %g %g %g",
-            (int) buf[i][0],buf[i][1],buf[i][2],buf[i][3]);
+            (int) ubuf(buf[i][0]).i,buf[i][1],buf[i][2],buf[i][3]);
 
     m = 4;
     for (k = 0; k < nstyles; k++)

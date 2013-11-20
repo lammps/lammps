@@ -480,13 +480,13 @@ int AtomVecLine::pack_border(int n, int *list, double *buf,
       buf[m++] = x[j][0];
       buf[m++] = x[j][1];
       buf[m++] = x[j][2];
-      buf[m++] = tag[j];
-      buf[m++] = type[j];
-      buf[m++] = mask[j];
-      buf[m++] = molecule[j];
-      if (line[j] < 0) buf[m++] = 0;
+      buf[m++] = ubuf(tag[j]).d;
+      buf[m++] = ubuf(type[j]).d;
+      buf[m++] = ubuf(mask[j]).d;
+      buf[m++] = ubuf(molecule[j]).d;
+      if (line[j] < 0) buf[m++] = ubuf(0).d;
       else {
-        buf[m++] = 1;
+        buf[m++] = ubuf(1).d;
         buf[m++] = bonus[line[j]].length;
         buf[m++] = bonus[line[j]].theta;
       }
@@ -506,13 +506,13 @@ int AtomVecLine::pack_border(int n, int *list, double *buf,
       buf[m++] = x[j][0] + dx;
       buf[m++] = x[j][1] + dy;
       buf[m++] = x[j][2] + dz;
-      buf[m++] = tag[j];
-      buf[m++] = type[j];
-      buf[m++] = mask[j];
-      buf[m++] = molecule[j];
-      if (line[j] < 0) buf[m++] = 0;
+      buf[m++] = ubuf(tag[j]).d;
+      buf[m++] = ubuf(type[j]).d;
+      buf[m++] = ubuf(mask[j]).d;
+      buf[m++] = ubuf(molecule[j]).d;
+      if (line[j] < 0) buf[m++] = ubuf(0).d;
       else {
-        buf[m++] = 1;
+        buf[m++] = ubuf(1).d;
         buf[m++] = bonus[line[j]].length;
         buf[m++] = bonus[line[j]].theta;
       }
@@ -541,13 +541,13 @@ int AtomVecLine::pack_border_vel(int n, int *list, double *buf,
       buf[m++] = x[j][0];
       buf[m++] = x[j][1];
       buf[m++] = x[j][2];
-      buf[m++] = tag[j];
-      buf[m++] = type[j];
-      buf[m++] = mask[j];
-      buf[m++] = molecule[j];
-      if (line[j] < 0) buf[m++] = 0;
+      buf[m++] = ubuf(tag[j]).d;
+      buf[m++] = ubuf(type[j]).d;
+      buf[m++] = ubuf(mask[j]).d;
+      buf[m++] = ubuf(molecule[j]).d;
+      if (line[j] < 0) buf[m++] = ubuf(0).d;
       else {
-        buf[m++] = 1;
+        buf[m++] = ubuf(1).d;
         buf[m++] = bonus[line[j]].length;
         buf[m++] = bonus[line[j]].theta;
       }
@@ -574,13 +574,13 @@ int AtomVecLine::pack_border_vel(int n, int *list, double *buf,
         buf[m++] = x[j][0] + dx;
         buf[m++] = x[j][1] + dy;
         buf[m++] = x[j][2] + dz;
-        buf[m++] = tag[j];
-        buf[m++] = type[j];
-        buf[m++] = mask[j];
-        buf[m++] = molecule[j];
-        if (line[j] < 0) buf[m++] = 0;
+        buf[m++] = ubuf(tag[j]).d;
+        buf[m++] = ubuf(type[j]).d;
+        buf[m++] = ubuf(mask[j]).d;
+        buf[m++] = ubuf(molecule[j]).d;
+        if (line[j] < 0) buf[m++] = ubuf(0).d;
         else {
-          buf[m++] = 1;
+          buf[m++] = ubuf(1).d;
           buf[m++] = bonus[line[j]].length;
           buf[m++] = bonus[line[j]].theta;
         }
@@ -600,13 +600,13 @@ int AtomVecLine::pack_border_vel(int n, int *list, double *buf,
         buf[m++] = x[j][0] + dx;
         buf[m++] = x[j][1] + dy;
         buf[m++] = x[j][2] + dz;
-        buf[m++] = tag[j];
-        buf[m++] = type[j];
-        buf[m++] = mask[j];
-        buf[m++] = molecule[j];
-        if (line[j] < 0) buf[m++] = 0;
+        buf[m++] = ubuf(tag[j]).d;
+        buf[m++] = ubuf(type[j]).d;
+        buf[m++] = ubuf(mask[j]).d;
+        buf[m++] = ubuf(molecule[j]).d;
+        if (line[j] < 0) buf[m++] = ubuf(0).d;
         else {
-          buf[m++] = 1;
+          buf[m++] = ubuf(1).d;
           buf[m++] = bonus[line[j]].length;
           buf[m++] = bonus[line[j]].theta;
         }
@@ -643,9 +643,9 @@ int AtomVecLine::pack_border_hybrid(int n, int *list, double *buf)
   for (i = 0; i < n; i++) {
     j = list[i];
     buf[m++] = molecule[j];
-    if (line[j] < 0) buf[m++] = 0;
+    if (line[j] < 0) buf[m++] = ubuf(0).d;
     else {
-      buf[m++] = 1;
+      buf[m++] = ubuf(1).d;
       buf[m++] = bonus[line[j]].length;
       buf[m++] = bonus[line[j]].theta;
     }
@@ -666,11 +666,11 @@ void AtomVecLine::unpack_border(int n, int first, double *buf)
     x[i][0] = buf[m++];
     x[i][1] = buf[m++];
     x[i][2] = buf[m++];
-    tag[i] = static_cast<int> (buf[m++]);
-    type[i] = static_cast<int> (buf[m++]);
-    mask[i] = static_cast<int> (buf[m++]);
-    molecule[i] = static_cast<int> (buf[m++]);
-    line[i] = static_cast<int> (buf[m++]);
+    tag[i] = (int) ubuf(buf[m++]).i;
+    type[i] = (int) ubuf(buf[m++]).i;
+    mask[i] = (int) ubuf(buf[m++]).i;
+    molecule[i] = (int) ubuf(buf[m++]).i;
+    line[i] = (int) ubuf(buf[m++]).i;
     if (line[i] == 0) line[i] = -1;
     else {
       j = nlocal_bonus + nghost_bonus;
@@ -702,11 +702,11 @@ void AtomVecLine::unpack_border_vel(int n, int first, double *buf)
     x[i][0] = buf[m++];
     x[i][1] = buf[m++];
     x[i][2] = buf[m++];
-    tag[i] = static_cast<int> (buf[m++]);
-    type[i] = static_cast<int> (buf[m++]);
-    mask[i] = static_cast<int> (buf[m++]);
-    molecule[i] = static_cast<int> (buf[m++]);
-    line[i] = static_cast<int> (buf[m++]);
+    tag[i] = (int) ubuf(buf[m++]).i;
+    type[i] = (int) ubuf(buf[m++]).i;
+    mask[i] = (int) ubuf(buf[m++]).i;
+    molecule[i] = (int) ubuf(buf[m++]).i;
+    line[i] = (int) ubuf(buf[m++]).i;
     if (line[i] == 0) line[i] = -1;
     else {
       j = nlocal_bonus + nghost_bonus;
@@ -740,8 +740,8 @@ int AtomVecLine::unpack_border_hybrid(int n, int first, double *buf)
   m = 0;
   last = first + n;
   for (i = first; i < last; i++) {
-    molecule[i] = static_cast<int> (buf[m++]);
-    line[i] = static_cast<int> (buf[m++]);
+    molecule[i] = (int) ubuf(buf[m++]).i;
+    line[i] = (int) ubuf(buf[m++]).i;
     if (line[i] == 0) line[i] = -1;
     else {
       j = nlocal_bonus + nghost_bonus;
@@ -770,20 +770,20 @@ int AtomVecLine::pack_exchange(int i, double *buf)
   buf[m++] = v[i][0];
   buf[m++] = v[i][1];
   buf[m++] = v[i][2];
-  buf[m++] = tag[i];
-  buf[m++] = type[i];
-  buf[m++] = mask[i];
-  *((tagint *) &buf[m++]) = image[i];
+  buf[m++] = ubuf(tag[i]).d;
+  buf[m++] = ubuf(type[i]).d;
+  buf[m++] = ubuf(mask[i]).d;
+  buf[m++] = ubuf(image[i]).d;
 
-  buf[m++] = molecule[i];
+  buf[m++] = ubuf(molecule[i]).d;
   buf[m++] = rmass[i];
   buf[m++] = omega[i][0];
   buf[m++] = omega[i][1];
   buf[m++] = omega[i][2];
 
-  if (line[i] < 0) buf[m++] = 0;
+  if (line[i] < 0) buf[m++] = ubuf(0).d;
   else {
-    buf[m++] = 1;
+    buf[m++] = ubuf(1).d;
     int j = line[i];
     buf[m++] = bonus[j].length;
     buf[m++] = bonus[j].theta;
@@ -811,18 +811,18 @@ int AtomVecLine::unpack_exchange(double *buf)
   v[nlocal][0] = buf[m++];
   v[nlocal][1] = buf[m++];
   v[nlocal][2] = buf[m++];
-  tag[nlocal] = static_cast<int> (buf[m++]);
-  type[nlocal] = static_cast<int> (buf[m++]);
-  mask[nlocal] = static_cast<int> (buf[m++]);
-  image[nlocal] = *((tagint *) &buf[m++]);
+  tag[nlocal] = (int) ubuf(buf[m++]).i;
+  type[nlocal] = (int) ubuf(buf[m++]).i;
+  mask[nlocal] = (int) ubuf(buf[m++]).i;
+  image[nlocal] = (tagint) ubuf(buf[m++]).i;
 
-  molecule[nlocal] = static_cast<int> (buf[m++]);
+  molecule[nlocal] = (int) ubuf(buf[m++]).i;
   rmass[nlocal] = buf[m++];
   omega[nlocal][0] = buf[m++];
   omega[nlocal][1] = buf[m++];
   omega[nlocal][2] = buf[m++];
 
-  line[nlocal] = static_cast<int> (buf[m++]);
+  line[nlocal] = (int) ubuf(buf[m++]).i;
   if (line[nlocal] == 0) line[nlocal] = -1;
   else {
     if (nlocal_bonus == nmax_bonus) grow_bonus();
@@ -876,23 +876,23 @@ int AtomVecLine::pack_restart(int i, double *buf)
   buf[m++] = x[i][0];
   buf[m++] = x[i][1];
   buf[m++] = x[i][2];
-  buf[m++] = tag[i];
-  buf[m++] = type[i];
-  buf[m++] = mask[i];
-  *((tagint *) &buf[m++]) = image[i];
+  buf[m++] = ubuf(tag[i]).d;
+  buf[m++] = ubuf(type[i]).d;
+  buf[m++] = ubuf(mask[i]).d;
+  buf[m++] = ubuf(image[i]).d;
   buf[m++] = v[i][0];
   buf[m++] = v[i][1];
   buf[m++] = v[i][2];
 
-  buf[m++] = molecule[i];
+  buf[m++] = ubuf(molecule[i]).d;
   buf[m++] = rmass[i];
   buf[m++] = omega[i][0];
   buf[m++] = omega[i][1];
   buf[m++] = omega[i][2];
 
-  if (line[i] < 0) buf[m++] = 0;
+  if (line[i] < 0) buf[m++] = ubuf(0).d;
   else {
-    buf[m++] = 1;
+    buf[m++] = ubuf(1).d;
     int j = line[i];
     buf[m++] = bonus[j].length;
     buf[m++] = bonus[j].theta;
@@ -923,21 +923,21 @@ int AtomVecLine::unpack_restart(double *buf)
   x[nlocal][0] = buf[m++];
   x[nlocal][1] = buf[m++];
   x[nlocal][2] = buf[m++];
-  tag[nlocal] = static_cast<int> (buf[m++]);
-  type[nlocal] = static_cast<int> (buf[m++]);
-  mask[nlocal] = static_cast<int> (buf[m++]);
-  image[nlocal] = *((tagint *) &buf[m++]);
+  tag[nlocal] = (int) ubuf(buf[m++]).i;
+  type[nlocal] = (int) ubuf(buf[m++]).i;
+  mask[nlocal] = (int) ubuf(buf[m++]).i;
+  image[nlocal] = (tagint) ubuf(buf[m++]).i;
   v[nlocal][0] = buf[m++];
   v[nlocal][1] = buf[m++];
   v[nlocal][2] = buf[m++];
 
-  molecule[nlocal] = static_cast<int> (buf[m++]);
+  molecule[nlocal] = (int) ubuf(buf[m++]).i;
   rmass[nlocal] = buf[m++];
   omega[nlocal][0] = buf[m++];
   omega[nlocal][1] = buf[m++];
   omega[nlocal][2] = buf[m++];
 
-  line[nlocal] = static_cast<int> (buf[m++]);
+  line[nlocal] = (int) ubuf(buf[m++]).i;
   if (line[nlocal] == 0) line[nlocal] = -1;
   else {
     if (nlocal_bonus == nmax_bonus) grow_bonus();
@@ -1133,19 +1133,19 @@ void AtomVecLine::pack_data(double **buf)
 {
   int nlocal = atom->nlocal;
   for (int i = 0; i < nlocal; i++) {
-    buf[i][0] = tag[i];
-    buf[i][1] = molecule[i];
-    buf[i][2] = type[i];
-    if (line[i] < 0) buf[i][3] = 0;
-    else buf[i][3] = 1;
+    buf[i][0] = ubuf(tag[i]).d;
+    buf[i][1] = ubuf(molecule[i]).d;
+    buf[i][2] = ubuf(type[i]).d;
+    if (line[i] < 0) buf[i][3] = ubuf(0).d;
+    else buf[i][3] = ubuf(1).d;
     if (line[i] < 0) buf[i][4] = rmass[i];
     else buf[i][4] = rmass[i]/bonus[line[i]].length;
     buf[i][5] = x[i][0];
     buf[i][6] = x[i][1];
     buf[i][7] = x[i][2];
-    buf[i][8] = (image[i] & IMGMASK) - IMGMAX;
-    buf[i][9] = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-    buf[i][10] = (image[i] >> IMG2BITS) - IMGMAX;
+    buf[i][8] = ubuf((image[i] & IMGMASK) - IMGMAX).d;
+    buf[i][9] = ubuf((image[i] >> IMGBITS & IMGMASK) - IMGMAX).d;
+    buf[i][10] = ubuf((image[i] >> IMG2BITS) - IMGMAX).d;
   }
 }
 
@@ -1155,9 +1155,9 @@ void AtomVecLine::pack_data(double **buf)
 
 int AtomVecLine::pack_data_hybrid(int i, double *buf)
 {
-  buf[0] = molecule[i];
-  if (line[i] < 0) buf[1] = 0;
-  else buf[1] = 1;
+  buf[0] = ubuf(molecule[i]).d;
+  if (line[i] < 0) buf[1] = ubuf(0).d;
+  else buf[1] = ubuf(1).d;
   if (line[i] < 0) buf[2] = rmass[i];
   else buf[2] = rmass[i]/bonus[line[i]].length;
   return 3;
@@ -1171,9 +1171,11 @@ void AtomVecLine::write_data(FILE *fp, int n, double **buf)
 {
   for (int i = 0; i < n; i++)
     fprintf(fp,"%d %d %d %d %-1.16e %-1.16e %-1.16e %-1.16e %d %d %d\n",
-            (int) buf[i][0],(int) buf[i][1],(int) buf[i][2],(int) buf[i][3],
+            (int) ubuf(buf[i][0]).i,(int) ubuf(buf[i][1]).i,
+            (int) ubuf(buf[i][2]).i,(int) ubuf(buf[i][3]).i,
             buf[i][4],buf[i][5],buf[i][6],buf[i][7],
-            (int) buf[i][8],(int) buf[i][9],(int) buf[i][10]);
+            (int) ubuf(buf[i][8]).i,(int) ubuf(buf[i][9]).i,
+            (int) ubuf(buf[i][10]).i);
 }
 
 /* ----------------------------------------------------------------------
@@ -1182,7 +1184,7 @@ void AtomVecLine::write_data(FILE *fp, int n, double **buf)
 
 int AtomVecLine::write_data_hybrid(FILE *fp, double *buf)
 {
-  fprintf(fp," %d %d %-1.16e",(int) buf[0],(int) buf[1],buf[2]);
+  fprintf(fp," %d %d %-1.16e",(int) ubuf(buf[0]).i,(int) ubuf(buf[1]).i,buf[2]);
   return 3;
 }
 
@@ -1194,7 +1196,7 @@ void AtomVecLine::pack_vel(double **buf)
 {
   int nlocal = atom->nlocal;
   for (int i = 0; i < nlocal; i++) {
-    buf[i][0] = tag[i];
+    buf[i][0] = ubuf(tag[i]).d;
     buf[i][1] = v[i][0];
     buf[i][2] = v[i][1];
     buf[i][3] = v[i][2];
@@ -1224,7 +1226,7 @@ void AtomVecLine::write_vel(FILE *fp, int n, double **buf)
 {
   for (int i = 0; i < n; i++)
     fprintf(fp,"%d %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e\n",
-            (int) buf[i][0],buf[i][1],buf[i][2],buf[i][3],
+            (int) ubuf(buf[i][0]).i,buf[i][1],buf[i][2],buf[i][3],
             buf[i][4],buf[i][5],buf[i][6]);
 }
 
@@ -1257,7 +1259,8 @@ bigint AtomVecLine::memory_usage()
   if (atom->memcheck("molecule")) bytes += memory->usage(molecule,nmax);
   if (atom->memcheck("rmass")) bytes += memory->usage(rmass,nmax);
   if (atom->memcheck("omega")) bytes += memory->usage(omega,nmax,3);
-  if (atom->memcheck("torque")) bytes += memory->usage(torque,nmax*comm->nthreads,3);
+  if (atom->memcheck("torque")) 
+    bytes += memory->usage(torque,nmax*comm->nthreads,3);
   if (atom->memcheck("line")) bytes += memory->usage(line,nmax);
 
   bytes += nmax_bonus*sizeof(Bonus);

@@ -393,11 +393,11 @@ int AtomVecFull::pack_border(int n, int *list, double *buf,
       buf[m++] = x[j][0];
       buf[m++] = x[j][1];
       buf[m++] = x[j][2];
-      buf[m++] = tag[j];
-      buf[m++] = type[j];
-      buf[m++] = mask[j];
+      buf[m++] = ubuf(tag[j]).d;
+      buf[m++] = ubuf(type[j]).d;
+      buf[m++] = ubuf(mask[j]).d;
       buf[m++] = q[j];
-      buf[m++] = molecule[j];
+      buf[m++] = ubuf(molecule[j]).d;
     }
   } else {
     if (domain->triclinic == 0) {
@@ -414,11 +414,11 @@ int AtomVecFull::pack_border(int n, int *list, double *buf,
       buf[m++] = x[j][0] + dx;
       buf[m++] = x[j][1] + dy;
       buf[m++] = x[j][2] + dz;
-      buf[m++] = tag[j];
-      buf[m++] = type[j];
-      buf[m++] = mask[j];
+      buf[m++] = ubuf(tag[j]).d;
+      buf[m++] = ubuf(type[j]).d;
+      buf[m++] = ubuf(mask[j]).d;
       buf[m++] = q[j];
-      buf[m++] = molecule[j];
+      buf[m++] = ubuf(molecule[j]).d;
     }
   }
 
@@ -444,11 +444,11 @@ int AtomVecFull::pack_border_vel(int n, int *list, double *buf,
       buf[m++] = x[j][0];
       buf[m++] = x[j][1];
       buf[m++] = x[j][2];
-      buf[m++] = tag[j];
-      buf[m++] = type[j];
-      buf[m++] = mask[j];
+      buf[m++] = ubuf(tag[j]).d;
+      buf[m++] = ubuf(type[j]).d;
+      buf[m++] = ubuf(mask[j]).d;
       buf[m++] = q[j];
-      buf[m++] = molecule[j];
+      buf[m++] = ubuf(molecule[j]).d;
       buf[m++] = v[j][0];
       buf[m++] = v[j][1];
       buf[m++] = v[j][2];
@@ -487,11 +487,11 @@ int AtomVecFull::pack_border_vel(int n, int *list, double *buf,
         buf[m++] = x[j][0] + dx;
         buf[m++] = x[j][1] + dy;
         buf[m++] = x[j][2] + dz;
-        buf[m++] = tag[j];
-        buf[m++] = type[j];
-        buf[m++] = mask[j];
+        buf[m++] = ubuf(tag[j]).d;
+        buf[m++] = ubuf(type[j]).d;
+        buf[m++] = ubuf(mask[j]).d;
         buf[m++] = q[j];
-        buf[m++] = molecule[j];
+        buf[m++] = ubuf(molecule[j]).d;
         if (mask[i] & deform_groupbit) {
           buf[m++] = v[j][0] + dvx;
           buf[m++] = v[j][1] + dvy;
@@ -522,7 +522,7 @@ int AtomVecFull::pack_border_hybrid(int n, int *list, double *buf)
   for (i = 0; i < n; i++) {
     j = list[i];
     buf[m++] = q[j];
-    buf[m++] = molecule[j];
+    buf[m++] = ubuf(molecule[j]).d;
   }
   return m;
 }
@@ -540,11 +540,11 @@ void AtomVecFull::unpack_border(int n, int first, double *buf)
     x[i][0] = buf[m++];
     x[i][1] = buf[m++];
     x[i][2] = buf[m++];
-    tag[i] = static_cast<int> (buf[m++]);
-    type[i] = static_cast<int> (buf[m++]);
-    mask[i] = static_cast<int> (buf[m++]);
+    tag[i] = (int) ubuf(buf[m++]).i;
+    type[i] = (int) ubuf(buf[m++]).i;
+    mask[i] = (int) ubuf(buf[m++]).i;
     q[i] = buf[m++];
-    molecule[i] = static_cast<int> (buf[m++]);
+    molecule[i] = (int) ubuf(buf[m++]).i;
   }
 
   if (atom->nextra_border)
@@ -566,11 +566,11 @@ void AtomVecFull::unpack_border_vel(int n, int first, double *buf)
     x[i][0] = buf[m++];
     x[i][1] = buf[m++];
     x[i][2] = buf[m++];
-    tag[i] = static_cast<int> (buf[m++]);
-    type[i] = static_cast<int> (buf[m++]);
-    mask[i] = static_cast<int> (buf[m++]);
+    tag[i] = (int) ubuf(buf[m++]).i;
+    type[i] = (int) ubuf(buf[m++]).i;
+    mask[i] = (int) ubuf(buf[m++]).i;
     q[i] = buf[m++];
-    molecule[i] = static_cast<int> (buf[m++]);
+    molecule[i] = (int) ubuf(buf[m++]).i;
     v[i][0] = buf[m++];
     v[i][1] = buf[m++];
     v[i][2] = buf[m++];
@@ -592,7 +592,7 @@ int AtomVecFull::unpack_border_hybrid(int n, int first, double *buf)
   last = first + n;
   for (i = first; i < last; i++) {
     q[i] = buf[m++];
-    molecule[i] = static_cast<int> (buf[m++]);
+    molecule[i] = (int) ubuf(buf[m++]).i;
   }
   return m;
 }
@@ -613,50 +613,50 @@ int AtomVecFull::pack_exchange(int i, double *buf)
   buf[m++] = v[i][0];
   buf[m++] = v[i][1];
   buf[m++] = v[i][2];
-  buf[m++] = tag[i];
-  buf[m++] = type[i];
-  buf[m++] = mask[i];
-  *((tagint *) &buf[m++]) = image[i];
+  buf[m++] = ubuf(tag[i]).d;
+  buf[m++] = ubuf(type[i]).d;
+  buf[m++] = ubuf(mask[i]).d;
+  buf[m++] = ubuf(image[i]).d;
 
   buf[m++] = q[i];
-  buf[m++] = molecule[i];
+  buf[m++] = ubuf(molecule[i]).d;
 
-  buf[m++] = num_bond[i];
+  buf[m++] = ubuf(num_bond[i]).d;
   for (k = 0; k < num_bond[i]; k++) {
-    buf[m++] = bond_type[i][k];
-    buf[m++] = bond_atom[i][k];
+    buf[m++] = ubuf(bond_type[i][k]).d;
+    buf[m++] = ubuf(bond_atom[i][k]).d;
   }
 
-  buf[m++] = num_angle[i];
+  buf[m++] = ubuf(num_angle[i]).d;
   for (k = 0; k < num_angle[i]; k++) {
-    buf[m++] = angle_type[i][k];
-    buf[m++] = angle_atom1[i][k];
-    buf[m++] = angle_atom2[i][k];
-    buf[m++] = angle_atom3[i][k];
+    buf[m++] = ubuf(angle_type[i][k]).d;
+    buf[m++] = ubuf(angle_atom1[i][k]).d;
+    buf[m++] = ubuf(angle_atom2[i][k]).d;
+    buf[m++] = ubuf(angle_atom3[i][k]).d;
   }
 
-  buf[m++] = num_dihedral[i];
+  buf[m++] = ubuf(num_dihedral[i]).d;
   for (k = 0; k < num_dihedral[i]; k++) {
-    buf[m++] = dihedral_type[i][k];
-    buf[m++] = dihedral_atom1[i][k];
-    buf[m++] = dihedral_atom2[i][k];
-    buf[m++] = dihedral_atom3[i][k];
-    buf[m++] = dihedral_atom4[i][k];
+    buf[m++] = ubuf(dihedral_type[i][k]).d;
+    buf[m++] = ubuf(dihedral_atom1[i][k]).d;
+    buf[m++] = ubuf(dihedral_atom2[i][k]).d;
+    buf[m++] = ubuf(dihedral_atom3[i][k]).d;
+    buf[m++] = ubuf(dihedral_atom4[i][k]).d;
   }
 
-  buf[m++] = num_improper[i];
+  buf[m++] = ubuf(num_improper[i]).d;
   for (k = 0; k < num_improper[i]; k++) {
-    buf[m++] = improper_type[i][k];
-    buf[m++] = improper_atom1[i][k];
-    buf[m++] = improper_atom2[i][k];
-    buf[m++] = improper_atom3[i][k];
-    buf[m++] = improper_atom4[i][k];
+    buf[m++] = ubuf(improper_type[i][k]).d;
+    buf[m++] = ubuf(improper_atom1[i][k]).d;
+    buf[m++] = ubuf(improper_atom2[i][k]).d;
+    buf[m++] = ubuf(improper_atom3[i][k]).d;
+    buf[m++] = ubuf(improper_atom4[i][k]).d;
   }
 
-  buf[m++] = nspecial[i][0];
-  buf[m++] = nspecial[i][1];
-  buf[m++] = nspecial[i][2];
-  for (k = 0; k < nspecial[i][2]; k++) buf[m++] = special[i][k];
+  buf[m++] = ubuf(nspecial[i][0]).d;
+  buf[m++] = ubuf(nspecial[i][1]).d;
+  buf[m++] = ubuf(nspecial[i][2]).d;
+  for (k = 0; k < nspecial[i][2]; k++) buf[m++] = ubuf(special[i][k]).d;
 
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
@@ -682,51 +682,51 @@ int AtomVecFull::unpack_exchange(double *buf)
   v[nlocal][0] = buf[m++];
   v[nlocal][1] = buf[m++];
   v[nlocal][2] = buf[m++];
-  tag[nlocal] = static_cast<int> (buf[m++]);
-  type[nlocal] = static_cast<int> (buf[m++]);
-  mask[nlocal] = static_cast<int> (buf[m++]);
-  image[nlocal] = *((tagint *) &buf[m++]);
+  tag[nlocal] = (int) ubuf(buf[m++]).i;
+  type[nlocal] = (int) ubuf(buf[m++]).i;
+  mask[nlocal] = (int) ubuf(buf[m++]).i;
+  image[nlocal] = (tagint) ubuf(buf[m++]).i;
 
   q[nlocal] = buf[m++];
-  molecule[nlocal] = static_cast<int> (buf[m++]);
+  molecule[nlocal] = (int) ubuf(buf[m++]).i;
 
-  num_bond[nlocal] = static_cast<int> (buf[m++]);
+  num_bond[nlocal] = (int) ubuf(buf[m++]).i;
   for (k = 0; k < num_bond[nlocal]; k++) {
-    bond_type[nlocal][k] = static_cast<int> (buf[m++]);
-    bond_atom[nlocal][k] = static_cast<int> (buf[m++]);
+    bond_type[nlocal][k] = (int) ubuf(buf[m++]).i;
+    bond_atom[nlocal][k] = (int) ubuf(buf[m++]).i;
   }
 
-  num_angle[nlocal] = static_cast<int> (buf[m++]);
+  num_angle[nlocal] = (int) ubuf(buf[m++]).i;
   for (k = 0; k < num_angle[nlocal]; k++) {
-    angle_type[nlocal][k] = static_cast<int> (buf[m++]);
-    angle_atom1[nlocal][k] = static_cast<int> (buf[m++]);
-    angle_atom2[nlocal][k] = static_cast<int> (buf[m++]);
-    angle_atom3[nlocal][k] = static_cast<int> (buf[m++]);
+    angle_type[nlocal][k] = (int) ubuf(buf[m++]).i;
+    angle_atom1[nlocal][k] = (int) ubuf(buf[m++]).i;
+    angle_atom2[nlocal][k] = (int) ubuf(buf[m++]).i;
+    angle_atom3[nlocal][k] = (int) ubuf(buf[m++]).i;
   }
 
-  num_dihedral[nlocal] = static_cast<int> (buf[m++]);
+  num_dihedral[nlocal] = (int) ubuf(buf[m++]).i;
   for (k = 0; k < num_dihedral[nlocal]; k++) {
-    dihedral_type[nlocal][k] = static_cast<int> (buf[m++]);
-    dihedral_atom1[nlocal][k] = static_cast<int> (buf[m++]);
-    dihedral_atom2[nlocal][k] = static_cast<int> (buf[m++]);
-    dihedral_atom3[nlocal][k] = static_cast<int> (buf[m++]);
-    dihedral_atom4[nlocal][k] = static_cast<int> (buf[m++]);
+    dihedral_type[nlocal][k] = (int) ubuf(buf[m++]).i;
+    dihedral_atom1[nlocal][k] = (int) ubuf(buf[m++]).i;
+    dihedral_atom2[nlocal][k] = (int) ubuf(buf[m++]).i;
+    dihedral_atom3[nlocal][k] = (int) ubuf(buf[m++]).i;
+    dihedral_atom4[nlocal][k] = (int) ubuf(buf[m++]).i;
   }
 
-  num_improper[nlocal] = static_cast<int> (buf[m++]);
+  num_improper[nlocal] = (int) ubuf(buf[m++]).i;
   for (k = 0; k < num_improper[nlocal]; k++) {
-    improper_type[nlocal][k] = static_cast<int> (buf[m++]);
-    improper_atom1[nlocal][k] = static_cast<int> (buf[m++]);
-    improper_atom2[nlocal][k] = static_cast<int> (buf[m++]);
-    improper_atom3[nlocal][k] = static_cast<int> (buf[m++]);
-    improper_atom4[nlocal][k] = static_cast<int> (buf[m++]);
+    improper_type[nlocal][k] = (int) ubuf(buf[m++]).i;
+    improper_atom1[nlocal][k] = (int) ubuf(buf[m++]).i;
+    improper_atom2[nlocal][k] = (int) ubuf(buf[m++]).i;
+    improper_atom3[nlocal][k] = (int) ubuf(buf[m++]).i;
+    improper_atom4[nlocal][k] = (int) ubuf(buf[m++]).i;
   }
 
-  nspecial[nlocal][0] = static_cast<int> (buf[m++]);
-  nspecial[nlocal][1] = static_cast<int> (buf[m++]);
-  nspecial[nlocal][2] = static_cast<int> (buf[m++]);
+  nspecial[nlocal][0] = (int) ubuf(buf[m++]).i;
+  nspecial[nlocal][1] = (int) ubuf(buf[m++]).i;
+  nspecial[nlocal][2] = (int) ubuf(buf[m++]).i;
   for (k = 0; k < nspecial[nlocal][2]; k++)
-    special[nlocal][k] = static_cast<int> (buf[m++]);
+    special[nlocal][k] = (int) ubuf(buf[m++]).i;
 
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
@@ -774,47 +774,47 @@ int AtomVecFull::pack_restart(int i, double *buf)
   buf[m++] = x[i][0];
   buf[m++] = x[i][1];
   buf[m++] = x[i][2];
-  buf[m++] = tag[i];
-  buf[m++] = type[i];
-  buf[m++] = mask[i];
-  *((tagint *) &buf[m++]) = image[i];
+  buf[m++] = ubuf(tag[i]).d;
+  buf[m++] = ubuf(type[i]).d;
+  buf[m++] = ubuf(mask[i]).d;
+  buf[m++] = ubuf(image[i]).d;
   buf[m++] = v[i][0];
   buf[m++] = v[i][1];
   buf[m++] = v[i][2];
 
   buf[m++] = q[i];
-  buf[m++] = molecule[i];
+  buf[m++] = ubuf(molecule[i]).d;
 
-  buf[m++] = num_bond[i];
+  buf[m++] = ubuf(num_bond[i]).d;
   for (k = 0; k < num_bond[i]; k++) {
-    buf[m++] = MAX(bond_type[i][k],-bond_type[i][k]);
-    buf[m++] = bond_atom[i][k];
+    buf[m++] = ubuf(MAX(bond_type[i][k],-bond_type[i][k])).d;
+    buf[m++] = ubuf(bond_atom[i][k]).d;
   }
 
-  buf[m++] = num_angle[i];
+  buf[m++] = ubuf(num_angle[i]).d;
   for (k = 0; k < num_angle[i]; k++) {
-    buf[m++] = MAX(angle_type[i][k],-angle_type[i][k]);
-    buf[m++] = angle_atom1[i][k];
-    buf[m++] = angle_atom2[i][k];
-    buf[m++] = angle_atom3[i][k];
+    buf[m++] = ubuf(MAX(angle_type[i][k],-angle_type[i][k])).d;
+    buf[m++] = ubuf(angle_atom1[i][k]).d;
+    buf[m++] = ubuf(angle_atom2[i][k]).d;
+    buf[m++] = ubuf(angle_atom3[i][k]).d;
   }
 
-  buf[m++] = num_dihedral[i];
+  buf[m++] = ubuf(num_dihedral[i]).d;
   for (k = 0; k < num_dihedral[i]; k++) {
-    buf[m++] = MAX(dihedral_type[i][k],-dihedral_type[i][k]);
-    buf[m++] = dihedral_atom1[i][k];
-    buf[m++] = dihedral_atom2[i][k];
-    buf[m++] = dihedral_atom3[i][k];
-    buf[m++] = dihedral_atom4[i][k];
+    buf[m++] = ubuf(MAX(dihedral_type[i][k],-dihedral_type[i][k])).d;
+    buf[m++] = ubuf(dihedral_atom1[i][k]).d;
+    buf[m++] = ubuf(dihedral_atom2[i][k]).d;
+    buf[m++] = ubuf(dihedral_atom3[i][k]).d;
+    buf[m++] = ubuf(dihedral_atom4[i][k]).d;
   }
 
-  buf[m++] = num_improper[i];
+  buf[m++] = ubuf(num_improper[i]).d;
   for (k = 0; k < num_improper[i]; k++) {
-    buf[m++] = MAX(improper_type[i][k],-improper_type[i][k]);
-    buf[m++] = improper_atom1[i][k];
-    buf[m++] = improper_atom2[i][k];
-    buf[m++] = improper_atom3[i][k];
-    buf[m++] = improper_atom4[i][k];
+    buf[m++] = ubuf(MAX(improper_type[i][k],-improper_type[i][k])).d;
+    buf[m++] = ubuf(improper_atom1[i][k]).d;
+    buf[m++] = ubuf(improper_atom2[i][k]).d;
+    buf[m++] = ubuf(improper_atom3[i][k]).d;
+    buf[m++] = ubuf(improper_atom4[i][k]).d;
   }
 
   if (atom->nextra_restart)
@@ -844,47 +844,47 @@ int AtomVecFull::unpack_restart(double *buf)
   x[nlocal][0] = buf[m++];
   x[nlocal][1] = buf[m++];
   x[nlocal][2] = buf[m++];
-  tag[nlocal] = static_cast<int> (buf[m++]);
-  type[nlocal] = static_cast<int> (buf[m++]);
-  mask[nlocal] = static_cast<int> (buf[m++]);
-  image[nlocal] = *((tagint *) &buf[m++]);
+  tag[nlocal] = (int) ubuf(buf[m++]).i;
+  type[nlocal] = (int) ubuf(buf[m++]).i;
+  mask[nlocal] = (int) ubuf(buf[m++]).i;
+  image[nlocal] = (tagint) ubuf(buf[m++]).i;
   v[nlocal][0] = buf[m++];
   v[nlocal][1] = buf[m++];
   v[nlocal][2] = buf[m++];
 
   q[nlocal] = buf[m++];
-  molecule[nlocal] = static_cast<int> (buf[m++]);
+  molecule[nlocal] = (int) ubuf(buf[m++]).i;
 
-  num_bond[nlocal] = static_cast<int> (buf[m++]);
+  num_bond[nlocal] = (int) ubuf(buf[m++]).i;
   for (k = 0; k < num_bond[nlocal]; k++) {
-    bond_type[nlocal][k] = static_cast<int> (buf[m++]);
-    bond_atom[nlocal][k] = static_cast<int> (buf[m++]);
+    bond_type[nlocal][k] = (int) ubuf(buf[m++]).i;
+    bond_atom[nlocal][k] = (int) ubuf(buf[m++]).i;
   }
 
-  num_angle[nlocal] = static_cast<int> (buf[m++]);
+  num_angle[nlocal] = (int) ubuf(buf[m++]).i;
   for (k = 0; k < num_angle[nlocal]; k++) {
-    angle_type[nlocal][k] = static_cast<int> (buf[m++]);
-    angle_atom1[nlocal][k] = static_cast<int> (buf[m++]);
-    angle_atom2[nlocal][k] = static_cast<int> (buf[m++]);
-    angle_atom3[nlocal][k] = static_cast<int> (buf[m++]);
+    angle_type[nlocal][k] = (int) ubuf(buf[m++]).i;
+    angle_atom1[nlocal][k] = (int) ubuf(buf[m++]).i;
+    angle_atom2[nlocal][k] = (int) ubuf(buf[m++]).i;
+    angle_atom3[nlocal][k] = (int) ubuf(buf[m++]).i;
   }
 
-  num_dihedral[nlocal] = static_cast<int> (buf[m++]);
+  num_dihedral[nlocal] = (int) ubuf(buf[m++]).i;
   for (k = 0; k < num_dihedral[nlocal]; k++) {
-    dihedral_type[nlocal][k] = static_cast<int> (buf[m++]);
-    dihedral_atom1[nlocal][k] = static_cast<int> (buf[m++]);
-    dihedral_atom2[nlocal][k] = static_cast<int> (buf[m++]);
-    dihedral_atom3[nlocal][k] = static_cast<int> (buf[m++]);
-    dihedral_atom4[nlocal][k] = static_cast<int> (buf[m++]);
+    dihedral_type[nlocal][k] = (int) ubuf(buf[m++]).i;
+    dihedral_atom1[nlocal][k] = (int) ubuf(buf[m++]).i;
+    dihedral_atom2[nlocal][k] = (int) ubuf(buf[m++]).i;
+    dihedral_atom3[nlocal][k] = (int) ubuf(buf[m++]).i;
+    dihedral_atom4[nlocal][k] = (int) ubuf(buf[m++]).i;
   }
 
-  num_improper[nlocal] = static_cast<int> (buf[m++]);
+  num_improper[nlocal] = (int) ubuf(buf[m++]).i;
   for (k = 0; k < num_improper[nlocal]; k++) {
-    improper_type[nlocal][k] = static_cast<int> (buf[m++]);
-    improper_atom1[nlocal][k] = static_cast<int> (buf[m++]);
-    improper_atom2[nlocal][k] = static_cast<int> (buf[m++]);
-    improper_atom3[nlocal][k] = static_cast<int> (buf[m++]);
-    improper_atom4[nlocal][k] = static_cast<int> (buf[m++]);
+    improper_type[nlocal][k] = (int) ubuf(buf[m++]).i;
+    improper_atom1[nlocal][k] = (int) ubuf(buf[m++]).i;
+    improper_atom2[nlocal][k] = (int) ubuf(buf[m++]).i;
+    improper_atom3[nlocal][k] = (int) ubuf(buf[m++]).i;
+    improper_atom4[nlocal][k] = (int) ubuf(buf[m++]).i;
   }
 
   nspecial[nlocal][0] = nspecial[nlocal][1] = nspecial[nlocal][2] = 0;
@@ -998,16 +998,16 @@ void AtomVecFull::pack_data(double **buf)
 {
   int nlocal = atom->nlocal;
   for (int i = 0; i < nlocal; i++) {
-    buf[i][0] = tag[i];
-    buf[i][1] = molecule[i];
-    buf[i][2] = type[i];
+    buf[i][0] = ubuf(tag[i]).d;
+    buf[i][1] = ubuf(molecule[i]).d;
+    buf[i][2] = ubuf(type[i]).d;
     buf[i][3] = q[i];
     buf[i][4] = x[i][0];
     buf[i][5] = x[i][1];
     buf[i][6] = x[i][2];
-    buf[i][7] = (image[i] & IMGMASK) - IMGMAX;
-    buf[i][8] = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-    buf[i][9] = (image[i] >> IMG2BITS) - IMGMAX;
+    buf[i][7] = ubuf((image[i] & IMGMASK) - IMGMAX).d;
+    buf[i][8] = ubuf((image[i] >> IMGBITS & IMGMASK) - IMGMAX).d;
+    buf[i][9] = ubuf((image[i] >> IMG2BITS) - IMGMAX).d;
   }
 }
 
@@ -1017,7 +1017,7 @@ void AtomVecFull::pack_data(double **buf)
 
 int AtomVecFull::pack_data_hybrid(int i, double *buf)
 {
-  buf[0] = molecule[i];
+  buf[0] = ubuf(molecule[i]).d;
   buf[1] = q[i];
   return 2;
 }
@@ -1030,9 +1030,11 @@ void AtomVecFull::write_data(FILE *fp, int n, double **buf)
 {
   for (int i = 0; i < n; i++)
     fprintf(fp,"%d %d %d %-1.16e %-1.16e %-1.16e %-1.16e %d %d %d\n",
-            (int) buf[i][0],(int) buf[i][1],(int) buf[i][2],
+            (int) ubuf(buf[i][0]).i,(int) ubuf(buf[i][1]).i,
+            (int) ubuf(buf[i][2]).i,
             buf[i][3],buf[i][4],buf[i][5],buf[i][6],
-            (int) buf[i][7],(int) buf[i][8],(int) buf[i][9]);
+            (int) ubuf(buf[i][7]).i,(int) ubuf(buf[i][8]).i,
+            (int) ubuf(buf[i][9]).i);
 }
 
 /* ----------------------------------------------------------------------
@@ -1041,7 +1043,7 @@ void AtomVecFull::write_data(FILE *fp, int n, double **buf)
 
 int AtomVecFull::write_data_hybrid(FILE *fp, double *buf)
 {
-  fprintf(fp," %d %-1.16e",(int) buf[0],buf[1]);
+  fprintf(fp," %d %-1.16e",(int) ubuf(buf[0]).i,buf[1]);
   return 2;
 }
 

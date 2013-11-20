@@ -114,6 +114,14 @@ class AtomVec : protected Pointers {
   int deform_vremap;                    // local copy of domain properties
   int deform_groupbit;
   double *h_rate;
+
+  union ubuf {
+    double   d;
+    int64_t  i;
+    ubuf(double arg) : d(arg) {}
+    ubuf(int64_t arg) : i(arg) {}
+    ubuf(int arg) : i(arg) {}
+  };
 };
 
 }

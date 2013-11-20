@@ -895,7 +895,6 @@ int AtomVecEllipsoid::pack_exchange(int i, double *buf)
   buf[m++] = tag[i];
   buf[m++] = type[i];
   buf[m++] = mask[i];
-  buf[m] = 0.0;      // for valgrind
   *((tagint *) &buf[m++]) = image[i];
 
   buf[m++] = rmass[i];
@@ -1014,7 +1013,6 @@ int AtomVecEllipsoid::pack_restart(int i, double *buf)
   buf[m++] = tag[i];
   buf[m++] = type[i];
   buf[m++] = mask[i];
-  buf[m] = 0.0;      // for valgrind
   *((tagint *) &buf[m++]) = image[i];
   buf[m++] = v[i][0];
   buf[m++] = v[i][1];

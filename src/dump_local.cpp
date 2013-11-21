@@ -30,6 +30,8 @@ using namespace LAMMPS_NS;
 enum{INT,DOUBLE};
 
 #define INVOKED_LOCAL 16
+#define ONEFIELD 32
+#define DELTA 1048576
 
 /* ---------------------------------------------------------------------- */
 
@@ -151,6 +153,11 @@ void DumpLocal::init_style()
 
   domain->boundary_string(boundstr);
 
+  // setup function ptrs
+
+  if (buffer_flag == 1) write_choice = &DumpLocal::write_string;
+  else write_choice = &DumpLocal::write_lines;
+
   // find current ptr for each compute,fix,variable
   // check that fix frequency is acceptable
 
@@ -260,9 +267,54 @@ void DumpLocal::pack(int *dummy)
   for (int n = 0; n < size_one; n++) (this->*pack_choice[n])(n);
 }
 
+/* ----------------------------------------------------------------------
+   convert mybuf of doubles to one big formatted string in sbuf
+   return -1 if strlen exceeds an int, since used as arg in MPI calls in Dump
+------------------------------------------------------------------------- */
+
+int DumpLocal::convert_string(int n, double *mybuf)
+{
+  int i,j;
+
+  int offset = 0;
+  int m = 0;
+  for (i = 0; i < n; i++) {
+    if (offset + size_one*ONEFIELD > maxsbuf) {
+      if ((bigint) maxsbuf + DELTA > MAXSMALLINT) return -1;
+      maxsbuf += DELTA;
+      memory->grow(sbuf,maxsbuf,"dump:sbuf");
+    }
+
+    for (j = 0; j < size_one; j++) {
+      if (vtype[j] == INT) 
+        offset += sprintf(&sbuf[offset],vformat[j],static_cast<int> (mybuf[m]));
+      else 
+        offset += sprintf(&sbuf[offset],vformat[j],mybuf[m]);
+      m++;
+    }
+    offset += sprintf(&sbuf[offset],"\n");
+  }
+
+  return offset;
+}
+
 /* ---------------------------------------------------------------------- */
 
 void DumpLocal::write_data(int n, double *mybuf)
+{
+  (this->*write_choice)(n,mybuf);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpLocal::write_string(int n, double *mybuf)
+{
+  fwrite(mybuf,sizeof(char),n,fp);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpLocal::write_lines(int n, double *mybuf)
 {
   int i,j;
 

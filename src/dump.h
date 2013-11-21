@@ -69,6 +69,8 @@ class Dump : protected Pointers {
   int flush_flag;            // 0 if no flush, 1 if flush every dump
   int sort_flag;             // 1 if sorted output
   int append_flag;           // 1 if open file in append mode, 0 if not
+  int buffer_allow;          // 1 if style allows for buffer_flag, 0 if not
+  int buffer_flag;           // 1 if buffer output as one big string, 0 if not
   int padflag;               // timestep padding in filename
   int singlefile_opened;     // 1 = one big file, already opened, else 0
   int sortcol;               // 0 to sort on ID, 1-N on columns
@@ -82,6 +84,7 @@ class Dump : protected Pointers {
   FILE *fp;                  // file to write dump to
   int size_one;              // # of quantities for one atom
   int nme;                   // # of atoms in this dump from me
+  int nsme;                  // # of chars in string output from me
 
   double boxxlo,boxxhi;      // local copies of domain values
   double boxylo,boxyhi;      // lo/hi are bounding box for triclinic
@@ -96,6 +99,9 @@ class Dump : protected Pointers {
 
   int maxbuf;                // size of buf
   double *buf;               // memory for atom quantities
+
+  int maxsbuf;               // size of sbuf
+  char *sbuf;                // memory for atom quantities in string format
 
   int maxids;                // size of ids
   int maxsort;               // size of bufsort, idsort, index
@@ -112,6 +118,7 @@ class Dump : protected Pointers {
   virtual void write_header(bigint) = 0;
   virtual int count();
   virtual void pack(int *) = 0;
+  virtual int convert_string(int, double *) {return 0;}
   virtual void write_data(int, double *) = 0;
 
   void sort();

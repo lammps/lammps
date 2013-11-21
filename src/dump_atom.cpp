@@ -17,9 +17,13 @@
 #include "atom.h"
 #include "update.h"
 #include "group.h"
+#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+
+#define ONELINE 256
+#define DELTA 1048576
 
 /* ---------------------------------------------------------------------- */
 
@@ -29,6 +33,8 @@ DumpAtom::DumpAtom(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
 
   scale_flag = 1;
   image_flag = 0;
+  buffer_allow = 1;
+  buffer_flag = 1;
   format_default = NULL;
 }
 
@@ -96,9 +102,13 @@ void DumpAtom::init_style()
   else if (scale_flag == 0 && image_flag == 1)
     pack_choice = &DumpAtom::pack_noscale_image;
 
+  if (image_flag == 0) convert_choice = &DumpAtom::convert_noimage;
+  else convert_choice = &DumpAtom::convert_image;
+
   if (binary) write_choice = &DumpAtom::write_binary;
-  else if (image_flag == 0) write_choice = &DumpAtom::write_noimage;
-  else if (image_flag == 1) write_choice = &DumpAtom::write_image;
+  else if (buffer_flag == 1) write_choice = &DumpAtom::write_string;
+  else if (image_flag == 0) write_choice = &DumpAtom::write_lines_noimage;
+  else if (image_flag == 1) write_choice = &DumpAtom::write_lines_image;
 
   // open single file, one time only
 
@@ -138,6 +148,13 @@ void DumpAtom::write_header(bigint ndump)
 void DumpAtom::pack(int *ids)
 {
   (this->*pack_choice)(ids);
+}
+
+/* ---------------------------------------------------------------------- */
+
+int DumpAtom::convert_string(int n, double *mybuf)
+{
+  return (this->*convert_choice)(n,mybuf);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -388,6 +405,58 @@ void DumpAtom::pack_noscale_noimage(int *ids)
     }
 }
 
+/* ----------------------------------------------------------------------
+   convert mybuf of doubles to one big formatted string in sbuf
+   return -1 if strlen exceeds an int, since used as arg in MPI calls in Dump
+------------------------------------------------------------------------- */
+
+int DumpAtom::convert_image(int n, double *mybuf)
+{
+  int offset = 0;
+  int m = 0;
+  for (int i = 0; i < n; i++) {
+    if (offset + ONELINE > maxsbuf) {
+      if ((bigint) maxsbuf + DELTA > MAXSMALLINT) return -1;
+      maxsbuf += DELTA;
+      memory->grow(sbuf,maxsbuf,"dump:sbuf");
+    }
+
+    offset += sprintf(&sbuf[offset],format,
+                      static_cast<int> (mybuf[m]), 
+                      static_cast<int> (mybuf[m+1]),
+                      mybuf[m+2],mybuf[m+3],mybuf[m+4], 
+                      static_cast<int> (mybuf[m+5]),
+                      static_cast<int> (mybuf[m+6]),
+                      static_cast<int> (mybuf[m+7]));
+    m += size_one;
+  }
+
+  return offset;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int DumpAtom::convert_noimage(int n, double *mybuf)
+{
+  int offset = 0;
+  int m = 0;
+  for (int i = 0; i < n; i++) {
+    if (offset + ONELINE > maxsbuf) {
+      if ((bigint) maxsbuf + DELTA > MAXSMALLINT) return -1;
+      maxsbuf += DELTA;
+      memory->grow(sbuf,maxsbuf,"dump:sbuf");
+    }
+
+    offset += sprintf(&sbuf[offset],format,
+                      static_cast<int> (mybuf[m]),
+                      static_cast<int> (mybuf[m+1]),
+                      mybuf[m+2],mybuf[m+3],mybuf[m+4]);
+    m += size_one;
+  }
+
+  return offset;
+}
+
 /* ---------------------------------------------------------------------- */
 
 void DumpAtom::write_binary(int n, double *mybuf)
@@ -399,7 +468,14 @@ void DumpAtom::write_binary(int n, double *mybuf)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpAtom::write_image(int n, double *mybuf)
+void DumpAtom::write_string(int n, double *mybuf)
+{
+  fwrite(mybuf,sizeof(char),n,fp);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpAtom::write_lines_image(int n, double *mybuf)
 {
   int m = 0;
   for (int i = 0; i < n; i++) {
@@ -413,7 +489,7 @@ void DumpAtom::write_image(int n, double *mybuf)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpAtom::write_noimage(int n, double *mybuf)
+void DumpAtom::write_lines_noimage(int n, double *mybuf)
 {
   int m = 0;
   for (int i = 0; i < n; i++) {

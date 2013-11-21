@@ -78,6 +78,7 @@ class DumpCustom : public Dump {
   virtual void write_header(bigint);
   int count();
   void pack(int *);
+  int convert_string(int, double *);
   virtual void write_data(int, double *);
   bigint memory_usage();
 
@@ -94,10 +95,16 @@ class DumpCustom : public Dump {
   void header_item(bigint);
   void header_item_triclinic(bigint);
 
-  typedef void (DumpCustom::*FnPtrData)(int, double *);
-  FnPtrData write_choice;              // ptr to write data functions
+  typedef int (DumpCustom::*FnPtrConvert)(int, double *);
+  FnPtrConvert convert_choice;          // ptr to convert data functions
+  int convert_image(int, double *);
+  int convert_noimage(int, double *);
+
+  typedef void (DumpCustom::*FnPtrWrite)(int, double *);
+  FnPtrWrite write_choice;             // ptr to write data functions
   void write_binary(int, double *);
-  void write_text(int, double *);
+  void write_string(int, double *);
+  void write_lines(int, double *);
 
   // customize by adding a method prototype
 

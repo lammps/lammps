@@ -47,6 +47,8 @@ enum{LT,LE,GT,GE,EQ,NEQ};
 enum{INT,DOUBLE,STRING};    // same as in DumpCFG
 
 #define INVOKED_PERATOM 8
+#define ONEFIELD 32
+#define DELTA 1048576
 
 /* ---------------------------------------------------------------------- */
 
@@ -65,6 +67,8 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
   pack_choice = new FnPtrPack[nfield];
   vtype = new int[nfield];
 
+  buffer_allow = 1;
+  buffer_flag = 1;
   iregion = -1;
   idregion = NULL;
   nthresh = 0;
@@ -233,7 +237,8 @@ void DumpCustom::init_style()
     header_choice = &DumpCustom::header_item_triclinic;
 
   if (binary) write_choice = &DumpCustom::write_binary;
-  else write_choice = &DumpCustom::write_text;
+  else if (buffer_flag == 1) write_choice = &DumpCustom::write_string;
+  else write_choice = &DumpCustom::write_lines;
 
   // find current ptr for each compute,fix,variable
   // check that fix frequency is acceptable
@@ -596,7 +601,8 @@ int DumpCustom::count()
         double boxxlo = domain->boxlo[0];
         double invxprd = 1.0/domain->xprd;
         for (i = 0; i < nlocal; i++)
-          dchoose[i] = (x[i][0] - boxxlo) * invxprd + (image[i] & IMGMASK) - IMGMAX;
+          dchoose[i] = (x[i][0] - boxxlo) * invxprd + 
+            (image[i] & IMGMASK) - IMGMAX;
         ptr = dchoose;
         nstride = 1;
 
@@ -607,7 +613,8 @@ int DumpCustom::count()
         double invyprd = 1.0/domain->yprd;
         for (i = 0; i < nlocal; i++)
           dchoose[i] =
-            (x[i][1] - boxylo) * invyprd + (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+            (x[i][1] - boxylo) * invyprd + 
+            (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
         ptr = dchoose;
         nstride = 1;
 
@@ -617,7 +624,8 @@ int DumpCustom::count()
         double boxzlo = domain->boxlo[2];
         double invzprd = 1.0/domain->zprd;
         for (i = 0; i < nlocal; i++)
-          dchoose[i] = (x[i][2] - boxzlo) * invzprd + (image[i] >> IMG2BITS) - IMGMAX;
+          dchoose[i] = (x[i][2] - boxzlo) * invzprd + 
+            (image[i] >> IMG2BITS) - IMGMAX;
         ptr = dchoose;
         nstride = 1;
 
@@ -895,6 +903,39 @@ void DumpCustom::pack(int *ids)
   }
 }
 
+/* ----------------------------------------------------------------------
+   convert mybuf of doubles to one big formatted string in sbuf
+   return -1 if strlen exceeds an int, since used as arg in MPI calls in Dump
+------------------------------------------------------------------------- */
+
+int DumpCustom::convert_string(int n, double *mybuf)
+{
+  int i,j;
+
+  int offset = 0;
+  int m = 0;
+  for (i = 0; i < n; i++) {
+    if (offset + size_one*ONEFIELD > maxsbuf) {
+      if ((bigint) maxsbuf + DELTA > MAXSMALLINT) return -1;
+      maxsbuf += DELTA;
+      memory->grow(sbuf,maxsbuf,"dump:sbuf");
+    }
+
+    for (j = 0; j < size_one; j++) {
+      if (vtype[j] == INT) 
+        offset += sprintf(&sbuf[offset],vformat[j],static_cast<int> (mybuf[m]));
+      else if (vtype[j] == DOUBLE) 
+        offset += sprintf(&sbuf[offset],vformat[j],mybuf[m]);
+      else if (vtype[j] == STRING)
+        offset += sprintf(&sbuf[offset],vformat[j],typenames[(int) mybuf[m]]);
+      m++;
+    }
+    offset += sprintf(&sbuf[offset],"\n");
+  }
+
+  return offset;
+}
+
 /* ---------------------------------------------------------------------- */
 
 void DumpCustom::write_data(int n, double *mybuf)
@@ -913,7 +954,14 @@ void DumpCustom::write_binary(int n, double *mybuf)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCustom::write_text(int n, double *mybuf)
+void DumpCustom::write_string(int n, double *mybuf)
+{
+  fwrite(mybuf,sizeof(char),n,fp);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::write_lines(int n, double *mybuf)
 {
   int i,j;
 
@@ -1159,9 +1207,11 @@ int DumpCustom::parse_fields(int narg, char **arg)
       if (modify->compute[n]->peratom_flag == 0)
         error->all(FLERR,"Dump custom compute does not compute per-atom info");
       if (argindex[i] == 0 && modify->compute[n]->size_peratom_cols > 0)
-        error->all(FLERR,"Dump custom compute does not calculate per-atom vector");
+        error->all(FLERR,
+                   "Dump custom compute does not calculate per-atom vector");
       if (argindex[i] > 0 && modify->compute[n]->size_peratom_cols == 0)
-        error->all(FLERR,"Dump custom compute does not calculate per-atom array");
+        error->all(FLERR,\
+                   "Dump custom compute does not calculate per-atom array");
       if (argindex[i] > 0 &&
           argindex[i] > modify->compute[n]->size_peratom_cols)
         error->all(FLERR,"Dump custom compute vector is accessed out-of-range");

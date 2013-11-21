@@ -21,9 +21,10 @@
 
 <LI>these keywords apply to various dump styles 
 
-<LI>keyword = <I>append</I> or <I>element</I> or <I>every</I> or <I>fileper</I> or <I>first</I> or <I>flush</I> or <I>format</I> or <I>image</I> or <I>label</I> or <I>nfile</I> or <I>pad</I> or <I>precision</I> or <I>region</I> or <I>scale</I> or <I>sort</I> or <I>thresh</I> or <I>unwrap</I> 
+<LI>keyword = <I>append</I> or <I>buffer</I> or <I>element</I> or <I>every</I> or <I>fileper</I> or <I>first</I> or <I>flush</I> or <I>format</I> or <I>image</I> or <I>label</I> or <I>nfile</I> or <I>pad</I> or <I>precision</I> or <I>region</I> or <I>scale</I> or <I>sort</I> or <I>thresh</I> or <I>unwrap</I> 
 
 <PRE>  <I>append</I> arg = <I>yes</I> or <I>no</I>
+  <I>buffer</I> arg = <I>yes</I> or <I>no</I>
   <I>element</I> args = E1 E2 ... EN, where N = # of atom types
     E1,...,EN = element name, e.g. C or Fe or Ga
   <I>every</I> arg = N
@@ -141,6 +142,23 @@ take effect if the dump_modify command is used after the
 dump snapshots to be output, e.g. a <A HREF = "run.html">run</A> or
 <A HREF = "minimize.html">minimize</A> command.  Once the dump file has been opened,
 this keyword has no further effect.
+</P>
+<HR>
+
+<P>The <I>buffer</I> keyword applies only to dump styles <I>atom</I>, <I>custom</I>,
+<I>local</I>, and <I>xyz</I>.  It also applies only to text output files, not to
+binary or gzipped files.  If specified as <I>yes</I>, which is the default,
+then each processor writes its output into an internal text buffer,
+which is then sent to the processor(s) which perform file writes, and
+written by those processors(s) as one large chunk of text.  If
+specified as <I>no</I>, each processor sends its per-atom data in binary
+format to the processor(s) which perform file wirtes, and those
+processor(s) format and write it line by line into the output file.
+</P>
+<P>The buffering mode is typically faster since each processor does the
+relatively expensive task of formatting the output for its own atoms.
+However it requires about twice the memory (per processor) for the
+extra buffering.
 </P>
 <HR>
 
@@ -646,6 +664,7 @@ images less frequently.
 <P>The option defaults are
 </P>
 <UL><LI>append = no
+<LI>buffer = yes for dump styles <I>atom</I>, <I>custom</I>, <I>loca</I>, and <I>xyz</I>
 <LI>element = "C" for every atom type
 <LI>every = whatever it was set to via the <A HREF = "dump.html">dump</A> command
 <LI>fileper = # of processors

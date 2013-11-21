@@ -8,6 +8,7 @@
    
 dump command :h3
 "dump image"_dump_image.html command :h3
+"dump movie"_dump_image.html command :h3
 "dump molfile"_dump_molfile.html command :h3
 
 [Syntax:]

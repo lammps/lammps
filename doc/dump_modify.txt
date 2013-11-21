@@ -15,8 +15,9 @@ dump_modify dump-ID keyword values ... :pre
 dump-ID = ID of dump to modify :ulb,l
 one or more keyword/value pairs may be appended :l
 these keywords apply to various dump styles :l
-keyword = {append} or {element} or {every} or {fileper} or {first} or {flush} or {format} or {image} or {label} or {nfile} or {pad} or {precision} or {region} or {scale} or {sort} or {thresh} or {unwrap} :l
+keyword = {append} or {buffer} or {element} or {every} or {fileper} or {first} or {flush} or {format} or {image} or {label} or {nfile} or {pad} or {precision} or {region} or {scale} or {sort} or {thresh} or {unwrap} :l
   {append} arg = {yes} or {no}
+  {buffer} arg = {yes} or {no}
   {element} args = E1 E2 ... EN, where N = # of atom types
     E1,...,EN = element name, e.g. C or Fe or Ga
   {every} arg = N
@@ -129,6 +130,23 @@ take effect if the dump_modify command is used after the
 dump snapshots to be output, e.g. a "run"_run.html or
 "minimize"_minimize.html command.  Once the dump file has been opened,
 this keyword has no further effect.
+
+:line
+
+The {buffer} keyword applies only to dump styles {atom}, {custom},
+{local}, and {xyz}.  It also applies only to text output files, not to
+binary or gzipped files.  If specified as {yes}, which is the default,
+then each processor writes its output into an internal text buffer,
+which is then sent to the processor(s) which perform file writes, and
+written by those processors(s) as one large chunk of text.  If
+specified as {no}, each processor sends its per-atom data in binary
+format to the processor(s) which perform file wirtes, and those
+processor(s) format and write it line by line into the output file.
+
+The buffering mode is typically faster since each processor does the
+relatively expensive task of formatting the output for its own atoms.
+However it requires about twice the memory (per processor) for the
+extra buffering.
 
 :line
 
@@ -632,6 +650,7 @@ images less frequently.
 The option defaults are
 
 append = no
+buffer = yes for dump styles {atom}, {custom}, {loca}, and {xyz}
 element = "C" for every atom type
 every = whatever it was set to via the "dump"_dump.html command
 fileper = # of processors

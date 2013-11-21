@@ -569,7 +569,7 @@ void LAMMPS::destroy()
 
 void LAMMPS::print_styles()
 {
-  const int maxstyles = 1024; 
+  const int maxstyles = 1024;
   const char **styles = new const char *[maxstyles];
   int numstyles;
   printf("\nList of style options included in this executable:\n\n");
@@ -577,7 +577,7 @@ void LAMMPS::print_styles()
   printf("* Atom styles:\n");
   numstyles=0;
 #define ATOM_CLASS
-#define AtomStyle(key,Class) styles[numstyles]= #key; ++numstyles; 
+#define AtomStyle(key,Class) styles[numstyles]= #key; ++numstyles;
 #include "style_atom.h"
 #undef ATOM_CLASS
   print_columns(styles,numstyles,screen);
@@ -720,7 +720,7 @@ static void print_columns(const char **styles, const int num, FILE *fp)
   int pos = 80;
   for (i = 0; i < num; ++i) {
     len = strlen(styles[i]);
-    if (pos + len > 80) { 
+    if (pos + len > 80) {
       fprintf(fp,"\n");
       pos = 0;
     }

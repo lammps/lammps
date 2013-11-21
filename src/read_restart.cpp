@@ -896,10 +896,11 @@ bigint ReadRestart::read_bigint()
 }
 
 /* ----------------------------------------------------------------------
-// auto-detect if restart file needs to be byte-swapped on this platform
-// return 0 if not, 1 if it does
-// re-open file with fp after checking first few bytes
+   auto-detect if restart file needs to be byte-swapped on this platform
+   return 0 if not, 1 if it does
+   re-open file with fp after checking first few bytes
    read a bigint from restart file and bcast it
+   NOTE: not yet fully implemented, ditto for swapflag logic
 ------------------------------------------------------------------------- */
 
 int ReadRestart::autodetect(FILE **pfp, char *file)

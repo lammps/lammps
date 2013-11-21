@@ -13,6 +13,7 @@
 
 #include "mpi.h"
 #include "string.h"
+#include "ctype.h"
 #include "lammps.h"
 #include "style_angle.h"
 #include "style_atom.h"
@@ -639,7 +640,7 @@ void LAMMPS::print_styles()
   printf("\n\n");
 
   pos = 80;
-  printf("* Fix styles (upper case are only for internal use):\n");
+  printf("* Fix styles\n");
 #define FIX_CLASS
 #define FixStyle(key,Class) print_column(#key,pos);
 #include "style_fix.h"
@@ -647,7 +648,7 @@ void LAMMPS::print_styles()
   printf("\n\n");
 
   pos = 80;
-  printf("* Compute styles: (upper case are only for internal use):\n");
+  printf("* Compute styles:\n");
 #define COMPUTE_CLASS
 #define ComputeStyle(key,Class) print_column(#key,pos);
 #include "style_compute.h"
@@ -671,7 +672,7 @@ void LAMMPS::print_styles()
   printf("\n\n");
 
   pos = 80;
-  printf("* Command styles (add-on input script commands):\n");
+  printf("* Command styles\n");
 #define COMMAND_CLASS
 #define CommandStyle(key,Class) print_column(#key,pos);
 #include "style_command.h"
@@ -681,10 +682,13 @@ void LAMMPS::print_styles()
 
 /* ----------------------------------------------------------------------
    print style names in columns
+   skip any style that starts with upper-case letter, since internal
 ------------------------------------------------------------------------- */
 
 void LAMMPS::print_column(const char *str, int &pos)
 {
+  if (isupper(str[0])) return;
+
   int len = strlen(str);
   if (pos+len > 80) { 
     fprintf(screen,"\n");

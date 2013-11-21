@@ -48,6 +48,9 @@ DumpLocal::DumpLocal(LAMMPS *lmp, int narg, char **arg) :
   pack_choice = new FnPtrPack[nfield];
   vtype = new int[nfield];
 
+  buffer_allow = 1;
+  buffer_flag = 1;
+
   // computes & fixes which the dump accesses
 
   field2index = new int[nfield];

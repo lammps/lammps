@@ -77,7 +77,7 @@ void AtomVec::pack_vel(double **buf)
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    buf[i][0] = tag[i];
+    buf[i][0] = ubuf(tag[i]).d;
     buf[i][1] = v[i][0];
     buf[i][2] = v[i][1];
     buf[i][3] = v[i][2];
@@ -92,7 +92,7 @@ void AtomVec::write_vel(FILE *fp, int n, double **buf)
 {
   for (int i = 0; i < n; i++)
     fprintf(fp,"%d %-1.16e %-1.16e %-1.16e\n",
-            (int) buf[i][0],buf[i][1],buf[i][2],buf[i][3]);
+            (int) ubuf(buf[i][0]).i,buf[i][1],buf[i][2],buf[i][3]);
 }
 
 /* ----------------------------------------------------------------------

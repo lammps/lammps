@@ -612,11 +612,11 @@ void help_message(FILE *fp)
         "-reorder <topology specs>   : processor reordering (-r)\n"
         "-screen none/<filename>     : where to send screen output (-sc)\n"
         "-suffix cuda/gpu/opt/omp    : style suffix to apply (-sf)\n"
-        "-var <varname> <value>      : set index style variable (-v)\n\n",fp);
+        "-var <varname> <value>      : set index style variable (-v)\n",fp);
 
   fputs("\nList of style options included in this executable:\n\n",fp);
 
-  fputs("* Atom styles:\n",fp);
+  fputs("* Atom styles:",fp);
   int n=0;
 #define ATOM_CLASS
 #define AtomStyle(key,Class) if (n<nmax) {styles[n]=#key; ++n;}
@@ -626,7 +626,7 @@ void help_message(FILE *fp)
   if (n==nmax) fputs("\nWARNING: not showing all styles. Increase nmax.",fp);
   fputs("\n\n",fp);
 
-  fputs("* Integrate styles:\n",fp);
+  fputs("* Integrate styles:",fp);
   n=0;
 #define INTEGRATE_CLASS
 #define IntegrateStyle(key,Class) if (n<nmax) {styles[n]=#key; ++n;}
@@ -636,7 +636,7 @@ void help_message(FILE *fp)
   if (n==nmax) fputs("\nWARNING: not showing all styles. Increase nmax.",fp);
   fputs("\n\n",fp);
 
-  fputs("* Minimize styles:\n",fp);
+  fputs("* Minimize styles:",fp);
   n=0;
 #define MINIMIZE_CLASS
 #define MinimizeStyle(key,Class) if (n<nmax) {styles[n]=#key; ++n;}
@@ -646,7 +646,7 @@ void help_message(FILE *fp)
   if (n==nmax) fputs("\nWARNING: not showing all styles. Increase nmax.",fp);
   fputs("\n\n",fp);
 
-  fputs("* Pair styles:\n",fp);
+  fputs("* Pair styles:",fp);
   n=0;
 #define PAIR_CLASS
 #define PairStyle(key,Class) if (n<nmax) {styles[n]=#key; ++n;}
@@ -656,7 +656,7 @@ void help_message(FILE *fp)
   if (n==nmax) fputs("\nWARNING: not showing all styles. Increase nmax.",fp);
   fputs("\n\n",fp);
 
-  fputs("* Bond styles:\n",fp);
+  fputs("* Bond styles:",fp);
   n=0;
 #define BOND_CLASS
 #define BondStyle(key,Class) if (n<nmax) {styles[n]=#key; ++n;}
@@ -666,7 +666,7 @@ void help_message(FILE *fp)
   if (n==nmax) fputs("\nWARNING: not showing all styles. Increase nmax.",fp);
   fputs("\n\n",fp);
 
-  fputs("* Angle styles:\n",fp);
+  fputs("* Angle styles:",fp);
   n=0;
 #define ANGLE_CLASS
 #define AngleStyle(key,Class) if (n<nmax) {styles[n]=#key; ++n;}
@@ -676,7 +676,7 @@ void help_message(FILE *fp)
   if (n==nmax) fputs("\nWARNING: not showing all styles. Increase nmax.",fp);
   fputs("\n\n",fp);
 
-  fputs("* Dihedral styles:\n",fp);
+  fputs("* Dihedral styles:",fp);
   n=0;
 #define DIHEDRAL_CLASS
 #define DihedralStyle(key,Class) if (n<nmax) {styles[n]=#key; ++n;}
@@ -686,7 +686,7 @@ void help_message(FILE *fp)
   if (n==nmax) fputs("\nWARNING: not showing all styles. Increase nmax.",fp);
   fputs("\n\n",fp);
 
-  fputs("* Improper styles:\n",fp);
+  fputs("* Improper styles:",fp);
   n=0;
 #define IMPROPER_CLASS
 #define ImproperStyle(key,Class) if (n<nmax) {styles[n]=#key; ++n;}
@@ -696,7 +696,7 @@ void help_message(FILE *fp)
   if (n==nmax) fputs("\nWARNING: not showing all styles. Increase nmax.",fp);
   fputs("\n\n",fp);
 
-  fputs("* KSpace styles:\n",fp);
+  fputs("* KSpace styles:",fp);
   n=0;
 #define KSPACE_CLASS
 #define KSpaceStyle(key,Class) if (n<nmax) {styles[n]=#key; ++n;}
@@ -706,7 +706,7 @@ void help_message(FILE *fp)
   if (n==nmax) fputs("\nWARNING: not showing all styles. Increase nmax.",fp);
   fputs("\n\n",fp);
 
-  fputs("* Fix styles (upper case are only for internal use):\n",fp);
+  fputs("* Fix styles:",fp);
   n=0;
 #define FIX_CLASS
 #define FixStyle(key,Class) if (n<nmax) {styles[n]=#key; ++n;}
@@ -716,7 +716,7 @@ void help_message(FILE *fp)
   if (n==nmax) fputs("\nWARNING: not showing all styles. Increase nmax.",fp);
   fputs("\n\n",fp);
 
-  fputs("* Compute styles (upper case are only for internal use):\n",fp);
+  fputs("* Compute styles:",fp);
   n=0;
 #define COMPUTE_CLASS
 #define ComputeStyle(key,Class) if (n<nmax) {styles[n]=#key; ++n;}
@@ -726,7 +726,7 @@ void help_message(FILE *fp)
   if (n==nmax) fputs("\nWARNING: not showing all styles. Increase nmax.",fp);
   fputs("\n\n",fp);
 
-  fputs("* Region styles:\n",fp);
+  fputs("* Region styles:",fp);
   n=0;
 #define REGION_CLASS
 #define RegionStyle(key,Class) if (n<nmax) {styles[n]=#key; ++n;}
@@ -736,7 +736,7 @@ void help_message(FILE *fp)
   if (n==nmax) fputs("\nWARNING: not showing all styles. Increase nmax.",fp);
   fputs("\n\n",fp);
 
-  fputs("* Dump styles:\n",fp);
+  fputs("* Dump styles:",fp);
   n=0;
 #define DUMP_CLASS
 #define DumpStyle(key,Class) if (n<nmax) {styles[n]=#key; ++n;}
@@ -746,7 +746,7 @@ void help_message(FILE *fp)
   if (n==nmax) fputs("\nWARNING: not showing all styles. Increase nmax.",fp);
   fputs("\n\n",fp);
 
-  fputs("* Command styles (add-on input script commands):\n",fp);
+  fputs("* Command styles (add-on input script commands):",fp);
   n=0;
 #define COMMAND_CLASS
 #define CommandStyle(key,Class) if (n<nmax) {styles[n]=#key; ++n;}
@@ -778,6 +778,10 @@ static void print_columns(const char **styles, const int num, FILE *fp)
 
   int pos = 80;
   for (i = 0; i < num; ++i) {
+
+    // skip "secret" styles
+    if (isupper(styles[i][0])) continue;
+
     len = strlen(styles[i]);
     if (pos + len > 80) {
       fprintf(fp,"\n");

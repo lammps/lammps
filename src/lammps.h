@@ -57,8 +57,8 @@ class LAMMPS {
   void destroy();
 
  private:
-  void print_styles();
-  void print_column(const char *, int &);
+  void help();
+  void print_style(const char *, int &);
 };
 
 }

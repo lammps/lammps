@@ -420,7 +420,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   // if helpflag set, print help and quit
 
   if (helpflag) {
-    if (universe->me == 0) print_styles();
+    if (universe->me == 0 && screen) help();
     error->done();
   }
 }
@@ -560,124 +560,140 @@ void LAMMPS::destroy()
 }
 
 /* ----------------------------------------------------------------------
-   for each style, print name of all child classes built into executable
+   help message for command line options and styles present in executable
 ------------------------------------------------------------------------- */
 
-void LAMMPS::print_styles()
+void LAMMPS::help()
 {
-  printf("\nList of style options included in this executable:\n\n");
+  fprintf(screen,
+          "\nCommand line options:\n\n"
+          "-cuda on/off                : turn CUDA mode on or off (-c)\n"
+          "-echo none/screen/log/both  : echoing of input script (-e)\n"
+          "-in filename                : read input from file, not stdin (-i)\n"
+          "-help                       : print this help message (-h)\n"
+          "-log none/filename          : where to send log output (-l)\n"
+          "-nocite                     : disable writing log.cite file (-nc)\n"
+          "-partition size1 size2 ...  : assign partition sizes (-p)\n"
+          "-plog basename              : basename for partition logs (-pl)\n"
+          "-pscreen basename           : basename for partition screens (-ps)\n"
+          "-reorder topology-specs     : processor reordering (-r)\n"
+          "-screen none/filename       : where to send screen output (-sc)\n"
+          "-suffix cuda/gpu/opt/omp    : style suffix to apply (-sf)\n"
+          "-var varname value          : set index style variable (-v)\n\n");
+  
+  fprintf(screen,"Style options compiled with this executable\n\n");
 
   int pos = 80;
-  printf("* Atom styles:\n");
+  fprintf(screen,"* Atom styles:\n");
 #define ATOM_CLASS
-#define AtomStyle(key,Class) print_column(#key,pos);
+#define AtomStyle(key,Class) print_style(#key,pos);
 #include "style_atom.h"
 #undef ATOM_CLASS
-  printf("\n\n");
+  fprintf(screen,"\n\n");
 
   pos = 80;
-  printf("* Integrate styles:\n");
+  fprintf(screen,"* Integrate styles:\n");
 #define INTEGRATE_CLASS
-#define IntegrateStyle(key,Class) print_column(#key,pos);
+#define IntegrateStyle(key,Class) print_style(#key,pos);
 #include "style_integrate.h"
 #undef INTEGRATE_CLASS
-  printf("\n\n");
+  fprintf(screen,"\n\n");
 
   pos = 80;
-  printf("* Minimize styles:\n");
+  fprintf(screen,"* Minimize styles:\n");
 #define MINIMIZE_CLASS
-#define MinimizeStyle(key,Class) print_column(#key,pos);
+#define MinimizeStyle(key,Class) print_style(#key,pos);
 #include "style_minimize.h"
 #undef MINIMIZE_CLASS
-  printf("\n\n");
+  fprintf(screen,"\n\n");
 
   pos = 80;
-  printf("* Pair styles:\n");
+  fprintf(screen,"* Pair styles:\n");
 #define PAIR_CLASS
-#define PairStyle(key,Class) print_column(#key,pos);
+#define PairStyle(key,Class) print_style(#key,pos);
 #include "style_pair.h"
 #undef PAIR_CLASS
-  printf("\n\n");
+  fprintf(screen,"\n\n");
 
   pos = 80;
-  printf("* Bond styles:\n");
+  fprintf(screen,"* Bond styles:\n");
 #define BOND_CLASS
-#define BondStyle(key,Class) print_column(#key,pos);
+#define BondStyle(key,Class) print_style(#key,pos);
 #include "style_bond.h"
 #undef BOND_CLASS
-  printf("\n\n");
+  fprintf(screen,"\n\n");
 
   pos = 80;
-  printf("* Angle styles:\n");
+  fprintf(screen,"* Angle styles:\n");
 #define ANGLE_CLASS
-#define AngleStyle(key,Class) print_column(#key,pos);
+#define AngleStyle(key,Class) print_style(#key,pos);
 #include "style_angle.h"
 #undef ANGLE_CLASS
-  printf("\n\n");
+  fprintf(screen,"\n\n");
 
   pos = 80;
-  printf("* Dihedral styles:\n");
+  fprintf(screen,"* Dihedral styles:\n");
 #define DIHEDRAL_CLASS
-#define DihedralStyle(key,Class) print_column(#key,pos);
+#define DihedralStyle(key,Class) print_style(#key,pos);
 #include "style_dihedral.h"
 #undef DIHEDRAL_CLASS
-  printf("\n\n");
+  fprintf(screen,"\n\n");
 
   pos = 80;
-  printf("* Improper styles:\n");
+  fprintf(screen,"* Improper styles:\n");
 #define IMPROPER_CLASS
-#define ImproperStyle(key,Class) print_column(#key,pos);
+#define ImproperStyle(key,Class) print_style(#key,pos);
 #include "style_improper.h"
 #undef IMPROPER_CLASS
-  printf("\n\n");
+  fprintf(screen,"\n\n");
 
   pos = 80;
-  printf("* KSpace styles:\n");
+  fprintf(screen,"* KSpace styles:\n");
 #define KSPACE_CLASS
-#define KSpaceStyle(key,Class) print_column(#key,pos);
+#define KSpaceStyle(key,Class) print_style(#key,pos);
 #include "style_kspace.h"
 #undef KSPACE_CLASS
-  printf("\n\n");
+  fprintf(screen,"\n\n");
 
   pos = 80;
-  printf("* Fix styles\n");
+  fprintf(screen,"* Fix styles\n");
 #define FIX_CLASS
-#define FixStyle(key,Class) print_column(#key,pos);
+#define FixStyle(key,Class) print_style(#key,pos);
 #include "style_fix.h"
 #undef FIX_CLASS
-  printf("\n\n");
+  fprintf(screen,"\n\n");
 
   pos = 80;
-  printf("* Compute styles:\n");
+  fprintf(screen,"* Compute styles:\n");
 #define COMPUTE_CLASS
-#define ComputeStyle(key,Class) print_column(#key,pos);
+#define ComputeStyle(key,Class) print_style(#key,pos);
 #include "style_compute.h"
 #undef COMPUTE_CLASS
-  printf("\n\n");
+  fprintf(screen,"\n\n");
 
   pos = 80;
-  printf("* Region styles:\n");
+  fprintf(screen,"* Region styles:\n");
 #define REGION_CLASS
-#define RegionStyle(key,Class) print_column(#key,pos);
+#define RegionStyle(key,Class) print_style(#key,pos);
 #include "style_region.h"
 #undef REGION_CLASS
-  printf("\n\n");
+  fprintf(screen,"\n\n");
 
   pos = 80;
-  printf("* Dump styles:\n");
+  fprintf(screen,"* Dump styles:\n");
 #define DUMP_CLASS
-#define DumpStyle(key,Class) print_column(#key,pos);
+#define DumpStyle(key,Class) print_style(#key,pos);
 #include "style_dump.h"
 #undef DUMP_CLASS
-  printf("\n\n");
+  fprintf(screen,"\n\n");
 
   pos = 80;
-  printf("* Command styles\n");
+  fprintf(screen,"* Command styles\n");
 #define COMMAND_CLASS
-#define CommandStyle(key,Class) print_column(#key,pos);
+#define CommandStyle(key,Class) print_style(#key,pos);
 #include "style_command.h"
 #undef COMMAND_CLASS
-  printf("\n");
+  fprintf(screen,"\n");
 }
 
 /* ----------------------------------------------------------------------
@@ -685,7 +701,7 @@ void LAMMPS::print_styles()
    skip any style that starts with upper-case letter, since internal
 ------------------------------------------------------------------------- */
 
-void LAMMPS::print_column(const char *str, int &pos)
+void LAMMPS::print_style(const char *str, int &pos)
 {
   if (isupper(str[0])) return;
 

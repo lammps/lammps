@@ -575,6 +575,8 @@ void help_message(FILE *fp)
   const char *pager = NULL;
   const char **styles = new const char *[nmax];
 
+  if (fp == NULL) return;
+
   // if output is stdout, use pipe to pager
 
   if (fp == stdout) {
@@ -594,7 +596,7 @@ void help_message(FILE *fp)
   }
   
   // general help message about command line and flags
-  fputs("\nUsage: lmp_g++ -v t 300 -log none -nc "
+  fputs("\nUsage example: lmp_g++ -v t 300 -log none -nc "
         "-echo screen -in in.alloy\n\n",fp);
 
   fputs("List of command line options supported by this executable:\n"

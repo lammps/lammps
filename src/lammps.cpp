@@ -50,6 +50,8 @@
 
 using namespace LAMMPS_NS;
 
+// for help flag output
+static void help_message(FILE *);
 static void print_columns(const char **, const int, FILE *);
 
 /* ----------------------------------------------------------------------
@@ -424,7 +426,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   // if helpflag set, print help and quit
 
   if (helpflag) {
-    if (universe->me == 0) print_styles();
+    if (universe->me == 0) help_message(screen);
     error->done();
   }
 }
@@ -567,139 +569,194 @@ void LAMMPS::destroy()
    for each style, print name of all child classes built into executable
 ------------------------------------------------------------------------- */
 
-void LAMMPS::print_styles()
+void help_message(FILE *fp)
 {
-  const int maxstyles = 1024;
-  const char **styles = new const char *[maxstyles];
-  int numstyles;
-  printf("\nList of style options included in this executable:\n\n");
+  const int nmax = 500;
+  const char *pager = NULL;
+  const char **styles = new const char *[nmax];
 
-  printf("* Atom styles:\n");
-  numstyles=0;
+  // if output is stdout, use pipe to pager
+
+  if (fp == stdout) {
+    pager = getenv("PAGER");
+    if (pager == NULL) pager = "more";
+#if defined(_WIN32)
+    fp = _popen(pager,"w");
+#else
+    fp = popen(pager,"w");
+#endif
+
+    // reset to original state, if pipe command fails
+    if (fp == NULL) {
+      fp = stdout;
+      pager = NULL;
+    }
+  }
+  
+  // general help message about command line and flags
+  fputs("\nUsage: lmp_g++ -v t 300 -log none -nc "
+        "-echo screen -in in.alloy\n\n",fp);
+
+  fputs("List of command line options supported by this executable:\n"
+        "-cuda on/off                : turn CUDA mode on or off (-c)\n"
+        "-echo none/screen/log/both  : select how to echo input (-e)\n"
+        "-in <filename>              : read input from file not stdin (-i)\n"
+        "-help                       : print this help message (-h)\n"
+        "-log none/<filename>        : where to send log output (-l)\n"
+        "-nocite                     : disable writing log.cite file (-nc)\n"
+        "-partition <partition size> : assign partition sizes (-p)\n"
+        "-plog <basename>            : basename for partition logs (-pl)\n"
+        "-pscreen <basename>         : basename for partition screens (-ps)\n"
+        "-reorder <topology specs>   : processor reordering (-r)\n"
+        "-screen none/<filename>     : where to send screen output (-sc)\n"
+        "-suffix cuda/gpu/opt/omp    : style suffix to apply (-sf)\n"
+        "-var <varname> <value>      : set index style variable (-v)\n\n",fp);
+
+  fputs("\nList of style options included in this executable:\n\n",fp);
+
+  fputs("* Atom styles:\n",fp);
+  int n=0;
 #define ATOM_CLASS
-#define AtomStyle(key,Class) styles[numstyles]= #key; ++numstyles;
+#define AtomStyle(key,Class) if (n<nmax) {styles[n]=#key; ++n;}
 #include "style_atom.h"
 #undef ATOM_CLASS
-  print_columns(styles,numstyles,screen);
-  printf("\n\n");
+  print_columns(styles,n,fp);
+  if (n==nmax) fputs("\nWARNING: not showing all styles. Increase nmax.",fp);
+  fputs("\n\n",fp);
 
-  printf("* Integrate styles:\n");
-  numstyles=0;
+  fputs("* Integrate styles:\n",fp);
+  n=0;
 #define INTEGRATE_CLASS
-#define IntegrateStyle(key,Class) styles[numstyles]= #key; ++numstyles;
+#define IntegrateStyle(key,Class) if (n<nmax) {styles[n]=#key; ++n;}
 #include "style_integrate.h"
 #undef INTEGRATE_CLASS
-  print_columns(styles,numstyles,screen);
-  printf("\n\n");
+  print_columns(styles,n,fp);
+  if (n==nmax) fputs("\nWARNING: not showing all styles. Increase nmax.",fp);
+  fputs("\n\n",fp);
 
-  printf("* Minimize styles:\n");
-  numstyles=0;
+  fputs("* Minimize styles:\n",fp);
+  n=0;
 #define MINIMIZE_CLASS
-#define MinimizeStyle(key,Class) styles[numstyles]= #key; ++numstyles;
+#define MinimizeStyle(key,Class) if (n<nmax) {styles[n]=#key; ++n;}
 #include "style_minimize.h"
 #undef MINIMIZE_CLASS
-  print_columns(styles,numstyles,screen);
-  printf("\n\n");
+  print_columns(styles,n,fp);
+  if (n==nmax) fputs("\nWARNING: not showing all styles. Increase nmax.",fp);
+  fputs("\n\n",fp);
 
-  printf("* Pair styles:\n");
-  numstyles=0;
+  fputs("* Pair styles:\n",fp);
+  n=0;
 #define PAIR_CLASS
-#define PairStyle(key,Class) styles[numstyles]= #key; ++numstyles;
+#define PairStyle(key,Class) if (n<nmax) {styles[n]=#key; ++n;}
 #include "style_pair.h"
 #undef PAIR_CLASS
-  print_columns(styles,numstyles,screen);
-  printf("\n\n");
+  print_columns(styles,n,fp);
+  if (n==nmax) fputs("\nWARNING: not showing all styles. Increase nmax.",fp);
+  fputs("\n\n",fp);
 
-  printf("* Bond styles:\n");
-  numstyles=0;
+  fputs("* Bond styles:\n",fp);
+  n=0;
 #define BOND_CLASS
-#define BondStyle(key,Class) styles[numstyles]= #key; ++numstyles;
+#define BondStyle(key,Class) if (n<nmax) {styles[n]=#key; ++n;}
 #include "style_bond.h"
 #undef BOND_CLASS
-  print_columns(styles,numstyles,screen);
-  printf("\n\n");
+  print_columns(styles,n,fp);
+  if (n==nmax) fputs("\nWARNING: not showing all styles. Increase nmax.",fp);
+  fputs("\n\n",fp);
 
-  printf("* Angle styles:\n");
-  numstyles=0;
+  fputs("* Angle styles:\n",fp);
+  n=0;
 #define ANGLE_CLASS
-#define AngleStyle(key,Class) styles[numstyles]= #key; ++numstyles;
+#define AngleStyle(key,Class) if (n<nmax) {styles[n]=#key; ++n;}
 #include "style_angle.h"
 #undef ANGLE_CLASS
-  print_columns(styles,numstyles,screen);
-  printf("\n\n");
+  print_columns(styles,n,fp);
+  if (n==nmax) fputs("\nWARNING: not showing all styles. Increase nmax.",fp);
+  fputs("\n\n",fp);
 
-  printf("* Dihedral styles:\n");
-  numstyles=0;
+  fputs("* Dihedral styles:\n",fp);
+  n=0;
 #define DIHEDRAL_CLASS
-#define DihedralStyle(key,Class) styles[numstyles]= #key; ++numstyles;
+#define DihedralStyle(key,Class) if (n<nmax) {styles[n]=#key; ++n;}
 #include "style_dihedral.h"
 #undef DIHEDRAL_CLASS
-  print_columns(styles,numstyles,screen);
-  printf("\n\n");
+  print_columns(styles,n,fp);
+  if (n==nmax) fputs("\nWARNING: not showing all styles. Increase nmax.",fp);
+  fputs("\n\n",fp);
 
-  printf("* Improper styles:\n");
-  numstyles=0;
+  fputs("* Improper styles:\n",fp);
+  n=0;
 #define IMPROPER_CLASS
-#define ImproperStyle(key,Class) styles[numstyles]= #key; ++numstyles;
+#define ImproperStyle(key,Class) if (n<nmax) {styles[n]=#key; ++n;}
 #include "style_improper.h"
 #undef IMPROPER_CLASS
-  print_columns(styles,numstyles,screen);
-  printf("\n\n");
+  print_columns(styles,n,fp);
+  if (n==nmax) fputs("\nWARNING: not showing all styles. Increase nmax.",fp);
+  fputs("\n\n",fp);
 
-  printf("* KSpace styles:\n");
-  numstyles=0;
+  fputs("* KSpace styles:\n",fp);
+  n=0;
 #define KSPACE_CLASS
-#define KSpaceStyle(key,Class) styles[numstyles]= #key; ++numstyles;
+#define KSpaceStyle(key,Class) if (n<nmax) {styles[n]=#key; ++n;}
 #include "style_kspace.h"
 #undef KSPACE_CLASS
-  print_columns(styles,numstyles,screen);
-  printf("\n\n");
+  print_columns(styles,n,fp);
+  if (n==nmax) fputs("\nWARNING: not showing all styles. Increase nmax.",fp);
+  fputs("\n\n",fp);
 
-  printf("* Fix styles (upper case are only for internal use):\n");
-  numstyles=0;
+  fputs("* Fix styles (upper case are only for internal use):\n",fp);
+  n=0;
 #define FIX_CLASS
-#define FixStyle(key,Class) styles[numstyles]= #key; ++numstyles;
+#define FixStyle(key,Class) if (n<nmax) {styles[n]=#key; ++n;}
 #include "style_fix.h"
 #undef FIX_CLASS
-  print_columns(styles,numstyles,screen);
-  printf("\n\n");
+  print_columns(styles,n,fp);
+  if (n==nmax) fputs("\nWARNING: not showing all styles. Increase nmax.",fp);
+  fputs("\n\n",fp);
 
-  printf("* Compute styles (upper case are only for internal use):\n");
-  numstyles=0;
+  fputs("* Compute styles (upper case are only for internal use):\n",fp);
+  n=0;
 #define COMPUTE_CLASS
-#define ComputeStyle(key,Class) styles[numstyles]= #key; ++numstyles;
+#define ComputeStyle(key,Class) if (n<nmax) {styles[n]=#key; ++n;}
 #include "style_compute.h"
 #undef COMPUTE_CLASS
-  print_columns(styles,numstyles,screen);
-  printf("\n\n");
+  print_columns(styles,n,fp);
+  if (n==nmax) fputs("\nWARNING: not showing all styles. Increase nmax.",fp);
+  fputs("\n\n",fp);
 
-  printf("* Region styles:\n");
-  numstyles=0;
+  fputs("* Region styles:\n",fp);
+  n=0;
 #define REGION_CLASS
-#define RegionStyle(key,Class) styles[numstyles]= #key; ++numstyles;
+#define RegionStyle(key,Class) if (n<nmax) {styles[n]=#key; ++n;}
 #include "style_region.h"
 #undef REGION_CLASS
-  print_columns(styles,numstyles,screen);
-  printf("\n\n");
+  print_columns(styles,n,fp);
+  if (n==nmax) fputs("\nWARNING: not showing all styles. Increase nmax.",fp);
+  fputs("\n\n",fp);
 
-  printf("* Dump styles:\n");
-  numstyles=0;
+  fputs("* Dump styles:\n",fp);
+  n=0;
 #define DUMP_CLASS
-#define DumpStyle(key,Class) styles[numstyles]= #key; ++numstyles;
+#define DumpStyle(key,Class) if (n<nmax) {styles[n]=#key; ++n;}
 #include "style_dump.h"
 #undef DUMP_CLASS
-  print_columns(styles,numstyles,screen);
-  printf("\n\n");
+  print_columns(styles,n,fp);
+  if (n==nmax) fputs("\nWARNING: not showing all styles. Increase nmax.",fp);
+  fputs("\n\n",fp);
 
-  printf("* Command styles (add-on input script commands):\n");
-  numstyles=0;
+  fputs("* Command styles (add-on input script commands):\n",fp);
+  n=0;
 #define COMMAND_CLASS
-#define CommandStyle(key,Class) styles[numstyles]= #key; ++numstyles;
+#define CommandStyle(key,Class) if (n<nmax) {styles[n]=#key; ++n;}
 #include "style_command.h"
 #undef COMMAND_CLASS
-  print_columns(styles,numstyles,screen);
-  printf("\n");
+  print_columns(styles,n,fp);
+  if (n==nmax) fputs("\nWARNING: not showing all styles. Increase nmax.",fp);
+  fputs("\n\n",fp);
   delete[] styles;
+
+  // wait for pager, if active
+  if (pager != NULL) pclose(fp);
 }
 
 /* ----------------------------------------------------------------------

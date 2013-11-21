@@ -46,45 +46,11 @@
 #include "memory.h"
 #include "error.h"
 
-#include <list>
-#include <string>
+#include <stdlib.h>
 
 using namespace LAMMPS_NS;
 
-static void print_sorted_list(std::list<std::string> *styles, FILE *fp)
-{
-  std::list<std::string>::const_iterator it;
-  int i,len;
-
-  // sort
-  styles->sort();
-
-  i = 666;
-  for (it = styles->begin(); it != styles->end(); ++it) {
-    len = it->length();
-    if (i + len > 80) { 
-      fprintf(fp,"\n");
-      i = 0;
-    }
-
-    if (len < 16) {
-      fprintf(fp,"%-16s",(*it).c_str());
-      i += 16;
-    } else if (len < 32) {
-      fprintf(fp,"%-32s",(*it).c_str());
-      i += 32;
-    } else if (len < 48) {
-      fprintf(fp,"%-48s",(*it).c_str());
-      i += 48;
-    } else if (len < 64) {
-      fprintf(fp,"%-64s",(*it).c_str());
-      i += 64;
-    } else {
-      fprintf(fp,"%-80s",(*it).c_str());
-      i += 80;
-    }
-  }
-}
+static void print_columns(const char **, const int, FILE *);
 
 /* ----------------------------------------------------------------------
    start up LAMMPS
@@ -598,137 +564,182 @@ void LAMMPS::destroy()
 }
 
 /* ----------------------------------------------------------------------
-   for each style, print name of all child classes build into executable
+   for each style, print name of all child classes built into executable
 ------------------------------------------------------------------------- */
 
 void LAMMPS::print_styles()
 {
-  std::list<std::string> styles;
+  const int maxstyles = 1024; 
+  const char **styles = new const char *[maxstyles];
+  int numstyles;
   printf("\nList of style options included in this executable:\n\n");
 
-  printf("Atom styles:");
+  printf("* Atom styles:\n");
+  numstyles=0;
 #define ATOM_CLASS
-#define AtomStyle(key,Class) styles.push_back(#key);
+#define AtomStyle(key,Class) styles[numstyles]= #key; ++numstyles; 
 #include "style_atom.h"
 #undef ATOM_CLASS
-  print_sorted_list(&styles,stdout);
-  styles.clear();
+  print_columns(styles,numstyles,screen);
   printf("\n\n");
 
-  printf("Integrate styles:");
+  printf("* Integrate styles:\n");
+  numstyles=0;
 #define INTEGRATE_CLASS
-#define IntegrateStyle(key,Class) styles.push_back(#key);
+#define IntegrateStyle(key,Class) styles[numstyles]= #key; ++numstyles;
 #include "style_integrate.h"
 #undef INTEGRATE_CLASS
-  print_sorted_list(&styles,stdout);
-  styles.clear();
+  print_columns(styles,numstyles,screen);
   printf("\n\n");
 
-  printf("Minimize styles:");
+  printf("* Minimize styles:\n");
+  numstyles=0;
 #define MINIMIZE_CLASS
-#define MinimizeStyle(key,Class) styles.push_back(#key);
+#define MinimizeStyle(key,Class) styles[numstyles]= #key; ++numstyles;
 #include "style_minimize.h"
 #undef MINIMIZE_CLASS
-  print_sorted_list(&styles,stdout);
-  styles.clear();
+  print_columns(styles,numstyles,screen);
   printf("\n\n");
 
-  printf("Pair styles:");
+  printf("* Pair styles:\n");
+  numstyles=0;
 #define PAIR_CLASS
-#define PairStyle(key,Class) styles.push_back(#key);
+#define PairStyle(key,Class) styles[numstyles]= #key; ++numstyles;
 #include "style_pair.h"
 #undef PAIR_CLASS
-  print_sorted_list(&styles,stdout);
-  styles.clear();
+  print_columns(styles,numstyles,screen);
   printf("\n\n");
 
-  printf("Bond styles:");
+  printf("* Bond styles:\n");
+  numstyles=0;
 #define BOND_CLASS
-#define BondStyle(key,Class) styles.push_back(#key);
+#define BondStyle(key,Class) styles[numstyles]= #key; ++numstyles;
 #include "style_bond.h"
 #undef BOND_CLASS
-  print_sorted_list(&styles,stdout);
-  styles.clear();
+  print_columns(styles,numstyles,screen);
   printf("\n\n");
 
-  printf("Angle styles:");
+  printf("* Angle styles:\n");
+  numstyles=0;
 #define ANGLE_CLASS
-#define AngleStyle(key,Class) styles.push_back(#key);
+#define AngleStyle(key,Class) styles[numstyles]= #key; ++numstyles;
 #include "style_angle.h"
 #undef ANGLE_CLASS
-  print_sorted_list(&styles,stdout);
-  styles.clear();
+  print_columns(styles,numstyles,screen);
   printf("\n\n");
 
-  printf("Dihedral styles:");
+  printf("* Dihedral styles:\n");
+  numstyles=0;
 #define DIHEDRAL_CLASS
-#define DihedralStyle(key,Class) styles.push_back(#key);
+#define DihedralStyle(key,Class) styles[numstyles]= #key; ++numstyles;
 #include "style_dihedral.h"
 #undef DIHEDRAL_CLASS
-  print_sorted_list(&styles,stdout);
-  styles.clear();
+  print_columns(styles,numstyles,screen);
   printf("\n\n");
 
-  printf("Improper styles:");
+  printf("* Improper styles:\n");
+  numstyles=0;
 #define IMPROPER_CLASS
-#define ImproperStyle(key,Class) styles.push_back(#key);
+#define ImproperStyle(key,Class) styles[numstyles]= #key; ++numstyles;
 #include "style_improper.h"
 #undef IMPROPER_CLASS
-  print_sorted_list(&styles,stdout);
-  styles.clear();
+  print_columns(styles,numstyles,screen);
   printf("\n\n");
 
-  printf("KSpace styles:");
+  printf("* KSpace styles:\n");
+  numstyles=0;
 #define KSPACE_CLASS
-#define KSpaceStyle(key,Class) styles.push_back(#key);
+#define KSpaceStyle(key,Class) styles[numstyles]= #key; ++numstyles;
 #include "style_kspace.h"
 #undef KSPACE_CLASS
-  print_sorted_list(&styles,stdout);
-  styles.clear();
+  print_columns(styles,numstyles,screen);
   printf("\n\n");
 
-  printf("Fix styles (upper case are only for internal use):");
+  printf("* Fix styles (upper case are only for internal use):\n");
+  numstyles=0;
 #define FIX_CLASS
-#define FixStyle(key,Class) styles.push_back(#key);
+#define FixStyle(key,Class) styles[numstyles]= #key; ++numstyles;
 #include "style_fix.h"
 #undef FIX_CLASS
-  print_sorted_list(&styles,stdout);
-  styles.clear();
+  print_columns(styles,numstyles,screen);
   printf("\n\n");
 
-  printf("Compute styles (upper case are only for internal use):");
+  printf("* Compute styles (upper case are only for internal use):\n");
+  numstyles=0;
 #define COMPUTE_CLASS
-#define ComputeStyle(key,Class) styles.push_back(#key);
+#define ComputeStyle(key,Class) styles[numstyles]= #key; ++numstyles;
 #include "style_compute.h"
 #undef COMPUTE_CLASS
-  print_sorted_list(&styles,stdout);
-  styles.clear();
+  print_columns(styles,numstyles,screen);
   printf("\n\n");
 
-  printf("Region styles:");
+  printf("* Region styles:\n");
+  numstyles=0;
 #define REGION_CLASS
-#define RegionStyle(key,Class) styles.push_back(#key);
+#define RegionStyle(key,Class) styles[numstyles]= #key; ++numstyles;
 #include "style_region.h"
 #undef REGION_CLASS
-  print_sorted_list(&styles,stdout);
-  styles.clear();
+  print_columns(styles,numstyles,screen);
   printf("\n\n");
 
-  printf("Dump styles:");
+  printf("* Dump styles:\n");
+  numstyles=0;
 #define DUMP_CLASS
-#define DumpStyle(key,Class) styles.push_back(#key);
+#define DumpStyle(key,Class) styles[numstyles]= #key; ++numstyles;
 #include "style_dump.h"
 #undef DUMP_CLASS
-  print_sorted_list(&styles,stdout);
-  styles.clear();
+  print_columns(styles,numstyles,screen);
   printf("\n\n");
 
-  printf("Command styles (add-on input script commands):");
+  printf("* Command styles (add-on input script commands):\n");
+  numstyles=0;
 #define COMMAND_CLASS
-#define CommandStyle(key,Class) styles.push_back(#key);
+#define CommandStyle(key,Class) styles[numstyles]= #key; ++numstyles;
 #include "style_command.h"
 #undef COMMAND_CLASS
-  print_sorted_list(&styles,stdout);
-  styles.clear();
+  print_columns(styles,numstyles,screen);
   printf("\n");
+  delete[] styles;
+}
+
+/* ----------------------------------------------------------------------
+   sort and format the -h style name output
+------------------------------------------------------------------------- */
+
+static int cmpstringp(const void *p1, const void *p2)
+{
+  return strcmp(* (char * const *) p1, * (char * const *) p2);
+}
+
+static void print_columns(const char **styles, const int num, FILE *fp)
+{
+  int len,i;
+
+  qsort(styles,num,sizeof(const char *),&cmpstringp);
+
+  int pos = 80;
+  for (i = 0; i < num; ++i) {
+    len = strlen(styles[i]);
+    if (pos + len > 80) { 
+      fprintf(fp,"\n");
+      pos = 0;
+    }
+
+    if (len < 16) {
+      fprintf(fp,"%-16s",styles[i]);
+      pos += 16;
+    } else if (len < 32) {
+      fprintf(fp,"%-32s",styles[i]);
+      pos += 32;
+    } else if (len < 48) {
+      fprintf(fp,"%-48s",styles[i]);
+      pos += 48;
+    } else if (len < 64) {
+      fprintf(fp,"%-64s",styles[i]);
+      pos += 64;
+    } else {
+      fprintf(fp,"%-80s",styles[i]);
+      pos += 80;
+    }
+  }
 }

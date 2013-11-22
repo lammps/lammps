@@ -58,11 +58,17 @@ class DumpLocal : public Dump {
   void write_header(bigint);
   int count();
   void pack(int *);
+  int convert_string(int, double *);
   void write_data(int, double *);
 
   void parse_fields(int, char **);
   int add_compute(char *);
   int add_fix(char *);
+
+  typedef void (DumpLocal::*FnPtrWrite)(int, double *);
+  FnPtrWrite write_choice;             // ptr to write data functions
+  void write_string(int, double *);
+  void write_lines(int, double *);
 
   // customize by adding a method prototype
 

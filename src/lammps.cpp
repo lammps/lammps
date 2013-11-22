@@ -75,11 +75,14 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   int partscreenflag = 0;
   int partlogflag = 0;
   int cudaflag = -1;
+  int restartflag = 0;
   int citeflag = 1;
   int helpflag = 0;
 
   suffix = NULL;
   suffix_enable = 0;
+  char *rfile = NULL;
+  char *dfile = NULL;
 
   int iarg = 1;
   while (iarg < narg) {
@@ -153,12 +156,20 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
       suffix_enable = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"-reorder") == 0 ||
-               strcmp(arg[iarg],"-r") == 0) {
+               strcmp(arg[iarg],"-ro") == 0) {
       if (iarg+3 > narg)
         error->universe_all(FLERR,"Invalid command-line argument");
       if (universe->existflag)
         error->universe_all(FLERR,"Cannot use -reorder after -partition");
       universe->reorder(arg[iarg+1],arg[iarg+2]);
+      iarg += 3;
+    } else if (strcmp(arg[iarg],"-restart") == 0 ||
+               strcmp(arg[iarg],"-r") == 0) {
+      if (iarg+3 > narg)
+        error->universe_all(FLERR,"Invalid command-line argument");
+      restartflag = 1;
+      rfile = arg[iarg+1];
+      dfile = arg[iarg+2];
       iarg += 3;
     } else if (strcmp(arg[iarg],"-nocite") == 0 ||
                strcmp(arg[iarg],"-nc") == 0) {
@@ -421,6 +432,17 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
 
   if (helpflag) {
     if (universe->me == 0 && screen) help();
+    error->done();
+  }
+
+  // if restartflag set, process 2 command and quit
+
+  if (restartflag) {
+    char cmd[128];
+    sprintf(cmd,"read_restart %s\n",rfile);
+    input->one(cmd);
+    sprintf(cmd,"write_data %s\n",dfile);
+    input->one(cmd);
     error->done();
   }
 }

@@ -26,7 +26,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairMorse::PairMorse(LAMMPS *lmp) : Pair(lmp) {}
+PairMorse::PairMorse(LAMMPS *lmp) : Pair(lmp)
+{
+  writedata = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -303,6 +306,28 @@ void PairMorse::read_restart_settings(FILE *fp)
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void PairMorse::write_data(FILE *fp)
+{
+  for (int i = 1; i <= atom->ntypes; i++)
+    fprintf(fp,"%d %g %g %g\n",i,d0[i][i],alpha[i][i],r0[i][i]);
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes all pairs to data file
+------------------------------------------------------------------------- */
+
+void PairMorse::write_data_all(FILE *fp)
+{
+  for (int i = 1; i <= atom->ntypes; i++)
+    for (int j = i; j <= atom->ntypes; j++)
+      fprintf(fp,"%d %d %g %g %g %g\n",
+              i,j,d0[i][j],alpha[i][j],r0[i][j],cut[i][j]);
 }
 
 /* ---------------------------------------------------------------------- */

@@ -38,6 +38,7 @@ using namespace LAMMPS_NS;
 
 PairDPD::PairDPD(LAMMPS *lmp) : Pair(lmp)
 {
+  writedata = 1;
   random = NULL;
 }
 
@@ -359,6 +360,27 @@ void PairDPD::read_restart_settings(FILE *fp)
 
   if (random) delete random;
   random = new RanMars(lmp,seed + comm->me);
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void PairDPD::write_data(FILE *fp)
+{
+  for (int i = 1; i <= atom->ntypes; i++)
+    fprintf(fp,"%d %g %g\n",i,a0[i][i],gamma[i][i]);
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes all pairs to data file
+------------------------------------------------------------------------- */
+
+void PairDPD::write_data_all(FILE *fp)
+{
+  for (int i = 1; i <= atom->ntypes; i++)
+    for (int j = i; j <= atom->ntypes; j++)
+      fprintf(fp,"%d %d %g %g %g\n",i,j,a0[i][j],gamma[i][j],cut[i][j]);
 }
 
 /* ---------------------------------------------------------------------- */

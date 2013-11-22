@@ -50,6 +50,7 @@ PairBuckLongCoulLong::PairBuckLongCoulLong(LAMMPS *lmp) : Pair(lmp)
 {
   dispersionflag = ewaldflag = pppmflag = 1;
   respa_enable = 1;
+  writedata = 1;
   ftable = NULL;
   fdisptable = NULL;
 }
@@ -89,11 +90,13 @@ void PairBuckLongCoulLong::settings(int narg, char **arg)
     error->warning(FLERR,"Geometric mixing assumed for 1/r^6 coefficients");
   if (!comm->me && ewald_order == ((1<<1) | (1<<6))) 
     error->warning(FLERR,"Using largest cutoff for buck/long/coul/long");
-  if (!*(++arg)) error->all(FLERR,"Cutoffs missing in pair_style buck/long/coul/long");
+  if (!*(++arg)) 
+    error->all(FLERR,"Cutoffs missing in pair_style buck/long/coul/long");
   if (ewald_off & (1<<6)) 
     error->all(FLERR,"LJ6 off not supported in pair_style buck/long/coul/long");
   if (!((ewald_order^ewald_off) & (1<<1))) 
-    error->all(FLERR,"Coulomb cut not supported in pair_style buck/long/coul/coul");
+    error->all(FLERR,
+               "Coulomb cut not supported in pair_style buck/long/coul/coul");
   cut_buck_global = force->numeric(FLERR,*(arg++));
   if (narg == 4 && ((ewald_order & 0x42) == 0x42)) 
     error->all(FLERR,"Only one cutoff allowed when requesting all long");
@@ -435,6 +438,29 @@ void PairBuckLongCoulLong::read_restart_settings(FILE *fp)
   MPI_Bcast(&ncoultablebits,1,MPI_INT,0,world);
   MPI_Bcast(&tabinner,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&ewald_order,1,MPI_INT,0,world);
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void PairBuckLongCoulLong::write_data(FILE *fp)
+{
+  for (int i = 1; i <= atom->ntypes; i++)
+    fprintf(fp,"%d %g %g %g\n",i,
+            buck_a_read[i][i],buck_rho_read[i][i],buck_c_read[i][i]);
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes all pairs to data file
+------------------------------------------------------------------------- */
+
+void PairBuckLongCoulLong::write_data_all(FILE *fp)
+{
+  for (int i = 1; i <= atom->ntypes; i++)
+    for (int j = i; j <= atom->ntypes; j++)
+      fprintf(fp,"%d %d %g %g %g\n",i,j,
+              buck_a_read[i][j],buck_rho_read[i][j],buck_c_read[i][j]);
 }
 
 /* ----------------------------------------------------------------------

@@ -37,6 +37,8 @@ class PairLJCutTIP4PCut : public Pair {
   virtual void read_restart_settings(FILE *);
   void write_restart(FILE *);
   void read_restart(FILE *);
+  void write_data(FILE *);
+  void write_data_all(FILE *);
   double memory_usage();
 
  protected:

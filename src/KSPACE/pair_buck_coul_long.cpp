@@ -42,6 +42,7 @@ using namespace MathConst;
 PairBuckCoulLong::PairBuckCoulLong(LAMMPS *lmp) : Pair(lmp)
 {
   ewaldflag = pppmflag = 1;
+  writedata = 1;
   ftable = NULL;
 }
 
@@ -452,6 +453,28 @@ void PairBuckCoulLong::read_restart_settings(FILE *fp)
   MPI_Bcast(&tail_flag,1,MPI_INT,0,world);
   MPI_Bcast(&ncoultablebits,1,MPI_INT,0,world);
   MPI_Bcast(&tabinner,1,MPI_DOUBLE,0,world);
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void PairBuckCoulLong::write_data(FILE *fp)
+{
+  for (int i = 1; i <= atom->ntypes; i++)
+    fprintf(fp,"%d %g %g %g\n",i,a[i][i],rho[i][i],c[i][i]);
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes all pairs to data file
+------------------------------------------------------------------------- */
+
+void PairBuckCoulLong::write_data_all(FILE *fp)
+{
+  for (int i = 1; i <= atom->ntypes; i++)
+    for (int j = i; j <= atom->ntypes; j++)
+      fprintf(fp,"%d %d %g %g %g %g\n",i,j,
+              a[i][j],rho[i][j],c[i][j],cut_lj[i][j]);
 }
 
 /* ---------------------------------------------------------------------- */

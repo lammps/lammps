@@ -30,6 +30,7 @@ using namespace LAMMPS_NS;
 PairDPDTstat::PairDPDTstat(LAMMPS *lmp) : PairDPD(lmp)
 {
   single_enable = 0;
+  writedata = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -201,6 +202,52 @@ void PairDPDTstat::coeff(int narg, char **arg)
    proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
+void PairDPDTstat::write_restart(FILE *fp)
+{
+  write_restart_settings(fp);
+
+  int i,j;
+  for (i = 1; i <= atom->ntypes; i++)
+    for (j = i; j <= atom->ntypes; j++) {
+      fwrite(&setflag[i][j],sizeof(int),1,fp);
+      if (setflag[i][j]) {
+        fwrite(&gamma[i][j],sizeof(double),1,fp);
+        fwrite(&cut[i][j],sizeof(double),1,fp);
+      }
+    }
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 reads from restart file, bcasts
+------------------------------------------------------------------------- */
+
+void PairDPDTstat::read_restart(FILE *fp)
+{
+  read_restart_settings(fp);
+
+  allocate();
+
+  int i,j;
+  int me = comm->me;
+  for (i = 1; i <= atom->ntypes; i++)
+    for (j = i; j <= atom->ntypes; j++) {
+      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
+      if (setflag[i][j]) {
+        if (me == 0) {
+          fread(&gamma[i][j],sizeof(double),1,fp);
+          fread(&cut[i][j],sizeof(double),1,fp);
+        }
+        MPI_Bcast(&gamma[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
+      }
+    }
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to restart file
+------------------------------------------------------------------------- */
+
 void PairDPDTstat::write_restart_settings(FILE *fp)
 {
   fwrite(&t_start,sizeof(double),1,fp);
@@ -236,4 +283,25 @@ void PairDPDTstat::read_restart_settings(FILE *fp)
 
   if (random) delete random;
   random = new RanMars(lmp,seed + comm->me);
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void PairDPDTstat::write_data(FILE *fp)
+{
+  for (int i = 1; i <= atom->ntypes; i++)
+    fprintf(fp,"%d %g\n",i,gamma[i][i]);
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes all pairs to data file
+------------------------------------------------------------------------- */
+
+void PairDPDTstat::write_data_all(FILE *fp)
+{
+  for (int i = 1; i <= atom->ntypes; i++)
+    for (int j = i; j <= atom->ntypes; j++)
+      fprintf(fp,"%d %d %g %g\n",i,j,gamma[i][j],cut[i][j]);
 }

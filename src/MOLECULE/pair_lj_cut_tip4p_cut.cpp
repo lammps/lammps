@@ -38,6 +38,7 @@ using namespace MathConst;
 PairLJCutTIP4PCut::PairLJCutTIP4PCut(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
+  writedata = 1;
 
   nmax = 0;
   hneigh = NULL;
@@ -674,6 +675,27 @@ void PairLJCutTIP4PCut::read_restart_settings(FILE *fp)
 
   cut_coulsq = cut_coul * cut_coul;
   cut_coulsqplus = (cut_coul + 2.0*qdist) * (cut_coul + 2.0*qdist);
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void PairLJCutTIP4PCut::write_data(FILE *fp)
+{
+  for (int i = 1; i <= atom->ntypes; i++)
+    fprintf(fp,"%d %g %g\n",i,epsilon[i][i],sigma[i][i]);
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes all pairs to data file
+------------------------------------------------------------------------- */
+
+void PairLJCutTIP4PCut::write_data_all(FILE *fp)
+{
+  for (int i = 1; i <= atom->ntypes; i++)
+    for (int j = i; j <= atom->ntypes; j++)
+      fprintf(fp,"%d %d %g %g %g\n",i,j,epsilon[i][j],sigma[i][j],cut_lj[i][j]);
 }
 
 /* ----------------------------------------------------------------------

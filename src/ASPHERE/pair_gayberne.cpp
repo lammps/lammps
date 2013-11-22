@@ -358,7 +358,8 @@ void PairGayBerne::init_style()
 
   for (int i = 1; i <= atom->ntypes; i++) {
     if (!atom->shape_consistency(i,shape1[i][0],shape1[i][1],shape1[i][2]))
-      error->all(FLERR,"Pair gayberne requires atoms with same type have same shape");
+      error->all(FLERR,
+                 "Pair gayberne requires atoms with same type have same shape");
     if (shape1[i][0] == 0.0)
       shape1[i][0] = shape1[i][1] = shape1[i][2] = 1.0;
     shape2[i][0] = shape1[i][0]*shape1[i][0];
@@ -530,7 +531,10 @@ void PairGayBerne::read_restart_settings(FILE *fp)
 void PairGayBerne::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
-    fprintf(fp,"%d %g %g\n",i,epsilon[i][i],sigma[i][i]);
+    fprintf(fp,"%d %g %g %g %g %g %g %g %g\n",i,
+            epsilon[i][i],sigma[i][i],
+            pow(well[i][0],-mu),pow(well[i][1],-mu),pow(well[i][2],-mu),
+            pow(well[i][0],-mu),pow(well[i][1],-mu),pow(well[i][2],-mu));
 }
 
 /* ----------------------------------------------------------------------
@@ -541,7 +545,11 @@ void PairGayBerne::write_data_all(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++)
-      fprintf(fp,"%d %d %g %g %g\n",i,j,epsilon[i][j],sigma[i][j],cut[i][j]);
+      fprintf(fp,"%d %d %g %g %g %g %g %g %g %g %g\n",i,j,
+              epsilon[i][i],sigma[i][i],
+              pow(well[i][0],-mu),pow(well[i][1],-mu),pow(well[i][2],-mu),
+              pow(well[j][0],-mu),pow(well[j][1],-mu),pow(well[j][2],-mu),
+              cut[i][j]);
 }
 
 /* ----------------------------------------------------------------------

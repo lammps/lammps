@@ -85,7 +85,7 @@ void NeighRequest::archive()
 
 /* ----------------------------------------------------------------------
    compare this request to other request
-   identical means all params set by requestor are the same
+   identical means all params set by requester are the same
    compare to original values in other if Neighbor may have changed them
    return 1 if identical, 0 if not
 ------------------------------------------------------------------------- */

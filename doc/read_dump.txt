@@ -61,9 +61,9 @@ coordinates, and optionally the atom velocities and image flags and
 the simluation box dimensions.  This is useful for restarting a run
 from a particular snapshot in a dump file.  See the
 "read_restart"_read_restart.html and "read_data"_read_data.html
-commands and the "restart2data"_Section_tools.html#restart tool for
-alternative methods to do this.  Also see the "rerun"_rerun.html
-command for a means of reading multiple snapshots from a dump file.
+commands for alternative methods to do this.  Also see the
+"rerun"_rerun.html command for a means of reading multiple snapshots
+from a dump file.
 
 Note that a simulation box must already be defined before using the
 read_dump command.  This can be done by the

@@ -1018,7 +1018,8 @@ letter abbreviation can be used:
 <LI>-p or -partition
 <LI>-pl or -plog
 <LI>-ps or -pscreen
-<LI>-r or -reorder
+<LI>-r or -restart
+<LI>-ro or -reorder
 <LI>-sc or -screen
 <LI>-sf or -suffix
 <LI>-v or -var 
@@ -1137,6 +1138,21 @@ screen files to be suppressed (-pscreen none) or placed in a
 sub-directory (-pscreen replica_files/screen).  If this option is not
 used the screen file for partition N is screen.N or whatever is
 specified by the -screen command-line option.
+</P>
+<PRE>-restart restartfile datafile 
+</PRE>
+<P>Convert the restart file into a data file and immediately exit.  This
+is the same operation as if the following 2-line input script were
+run:
+</P>
+<PRE>read_restart restartfile
+write_data datafile 
+</PRE>
+<P>Note that the specified restartfile and datafile can have wild-card
+characters ("*",%") as described by the
+<A HREF = "read_restart.html">read_restart</A> and <A HREF = "write_data.html">write_data</A>
+commands.  But a filename such as file.* will need to be enclosed in
+quotes to avoid shell expansion of the "*" character.
 </P>
 <PRE>-reorder nth N
 -reorder custom filename 

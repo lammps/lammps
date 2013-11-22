@@ -51,10 +51,9 @@ run will continue from where the previous run left off.  Or binary
 restart files can be saved to disk using the <A HREF = "restart.html">restart</A>
 command.  At a later time, these binary files can be read via a
 <A HREF = "read_restart.html">read_restart</A> command in a new script.  Or they can
-be converted to text data files and read by a
-<A HREF = "read_data.html">read_data</A> command in a new script.  <A HREF = "Section_tools.html">This
-section</A> discusses the <I>restart2data</I> tool that is
-used to perform the conversion.
+be converted to text data files using the <A HREF = "Section_start.html#start_7">-r command-line
+switch</A> and read by a
+<A HREF = "read_data.html">read_data</A> command in a new script.
 </P>
 <P>Here we give examples of 2 scripts that read either a binary restart
 file or a converted data file and then issue a new run command to
@@ -100,9 +99,9 @@ notice that the thermodynamic data match at step 50 (if you also put a
 uses random numbers in a way that does not allow for perfect restarts.
 </P>
 <P>As an alternate approach, the restart file could be converted to a data
-file using this tool:
+file as follows:
 </P>
-<PRE>restart2data tmp.restart.50 tmp.restart.data 
+<PRE>lmp_g++ -r tmp.restart.50 tmp.restart.data 
 </PRE>
 <P>Then, this script could be used to re-run the last 50 steps:
 </P>

@@ -1,0 +1,73 @@
+
+units real
+atom_style full
+boundary p p p
+
+variable b equal isdef(bstyle)
+variable a equal isdef(astyle)
+
+special_bonds lj/coul 0.0 0.0 1.0
+
+# read system data and define box
+read_data data.2mols
+
+# force field styles
+pair_style   lj/cut 10.0
+if $b then "bond_style   ${bstyle}" else "bond_style none"
+if $a then "angle_style  ${astyle}" else "angle_style none"
+
+# force field parameters
+pair_coeff  * *  0.00000 0.0000
+if $b then "bond_coeff   ${bcoeff}"
+if $a then "angle_coeff  ${acoeff}"
+
+velocity  all set 0.0 0.0 0.0
+
+thermo 1
+
+fix 1 all nve
+run 1 post no
+
+if $b then "shell putenv BSTYLE=${bstyle}" else "shell putenv BSTYLE=none"
+if $a then "shell putenv ASTYLE=${astyle}" else "shell putenv ASTYLE=none"
+if !$b then "variable bstyle index none"
+if !$a then "variable astyle index none"
+
+write_data ${bstyle}_${astyle}.data
+write_restart ${bstyle}_${astyle}.restart
+
+variable bstyle delete
+variable astyle delete
+
+clear
+
+variable bstyle getenv BSTYLE
+variable astyle getenv ASTYLE
+
+units real
+atom_style full
+boundary p p p
+newton on on
+
+pair_style   lj/cut 10.0  
+bond_style   ${bstyle}
+angle_style  ${astyle}
+
+read_data ${bstyle}_${astyle}.data
+
+thermo 1
+
+fix 1 all nve
+run 1 post no
+
+clear
+
+variable bstyle getenv BSTYLE
+variable astyle getenv ASTYLE
+
+read_restart ${bstyle}_${astyle}.restart
+
+thermo 1
+
+fix 1 all nve
+run 1 post no

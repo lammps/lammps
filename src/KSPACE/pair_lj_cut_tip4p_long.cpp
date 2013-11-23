@@ -54,6 +54,7 @@ PairLJCutTIP4PLong::PairLJCutTIP4PLong(LAMMPS *lmp) :
   tip4pflag = 1;
   single_enable = 0;
   respa_enable = 0;
+  writedata = 1;
 
   nmax = 0;
   hneigh = NULL;

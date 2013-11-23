@@ -31,7 +31,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairYukawaColloid::PairYukawaColloid(LAMMPS *lmp) : PairYukawa(lmp) {}
+PairYukawaColloid::PairYukawaColloid(LAMMPS *lmp) : PairYukawa(lmp)
+{
+  writedata = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 

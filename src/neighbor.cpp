@@ -233,6 +233,7 @@ void Neighbor::init()
   //   needs to be non-zero for migration distance check
   //   even if pair = NULL and no neighbor lists are used
   // cutneigh = force cutoff + skin if cutforce > 0, else cutneigh = 0
+  // cutneighghost = pair cutghost if it requests it, else same as cutneigh
 
   triggersq = 0.25*skin*skin;
   boxcheck = 0;
@@ -270,7 +271,7 @@ void Neighbor::init()
       if (force->pair && force->pair->ghostneigh) {
         cut = force->pair->cutghost[i][j] + skin;
         cutneighghostsq[i][j] = cut*cut;
-      }
+      } else cutneighghostsq[i][j] = cut*cut;
     }
   }
   cutneighmaxsq = cutneighmax * cutneighmax;
@@ -435,6 +436,10 @@ void Neighbor::init()
   // no need to re-create if:
   //   neigh style, triclinic, pgsize, oneatom have not changed
   //   current requests = old requests
+  // first archive request params for current requests 
+  //   before Neighbor possibly changes them below
+
+  for (i = 0; i < nrequest; i++) requests[i]->archive();
 
   int same = 1;
   if (style != old_style) same = 0;

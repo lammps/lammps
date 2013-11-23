@@ -58,9 +58,9 @@ produced the restart file, it could be a LAMMPS bug, so consider
 wrong.
 
 Because restart files are binary, they may not be portable to other
-machines.  They can be converted to ASCII data files using the
-"restart2data tool"_Section_tools.html#restart in the tools
-sub-directory of the LAMMPS distribution.
+machines.  In this case, you can use the "-r command-line
+switch"_Section_start.html#start_7 to convert a restart file to a data
+file.
 
 Similar to how restart files are written (see the
 "write_restart"_write_restart.html and "restart"_restart.html
@@ -78,16 +78,16 @@ set of multiple files to exist.  The "restart"_restart.html and
 "write_restart"_write_restart.html commands explain how such sets are
 created.  Read_restart will first read a filename where "%" is
 replaced by "base".  This file tells LAMMPS how many processors
-created the set.  Read_restart then reads the additional files.  For
-example, if the restart file was specified as save.% when it was
-written, then read_restart reads the files save.base, save.0, save.1,
-... save.P-1, where P is the number of processors that created the
-restart file.  The processors in the current LAMMPS simulation share
-the work of reading these files; each reads a roughly equal subset of
-the files.  The number of processors which created the set can be
-different the number of processors in the current LAMMPS simulation.
-This can be a fast mode of input on parallel machines that support
-parallel I/O.
+created the set and how many files are in it.  Read_restart then reads
+the additional files.  For example, if the restart file was specified
+as save.% when it was written, then read_restart reads the files
+save.base, save.0, save.1, ... save.P-1, where P is the number of
+processors that created the restart file.  The processors in the
+current LAMMPS simulation share the work of reading these files; each
+reads a roughly equal subset of the files.  The number of processors
+which created the set can be different the number of processors in the
+current LAMMPS simulation.  This can be a fast mode of input on
+parallel machines that support parallel I/O.
 
 :line
 

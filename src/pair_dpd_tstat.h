@@ -31,8 +31,12 @@ class PairDPDTstat : public PairDPD {
   void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
+  void write_restart(FILE *);
+  void read_restart(FILE *);
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
+  void write_data(FILE *);
+  void write_data_all(FILE *);
 
  protected:
   double t_start,t_stop;

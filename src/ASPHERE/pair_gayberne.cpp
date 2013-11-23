@@ -52,6 +52,7 @@ PairGayBerne::PairGayBerne(LAMMPS *lmp) : Pair(lmp)
   if (lmp->citeme) lmp->citeme->add(cite_pair_gayberne);
 
   single_enable = 0;
+  writedata = 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -357,7 +358,8 @@ void PairGayBerne::init_style()
 
   for (int i = 1; i <= atom->ntypes; i++) {
     if (!atom->shape_consistency(i,shape1[i][0],shape1[i][1],shape1[i][2]))
-      error->all(FLERR,"Pair gayberne requires atoms with same type have same shape");
+      error->all(FLERR,
+                 "Pair gayberne requires atoms with same type have same shape");
     if (shape1[i][0] == 0.0)
       shape1[i][0] = shape1[i][1] = shape1[i][2] = 1.0;
     shape2[i][0] = shape1[i][0]*shape1[i][0];
@@ -520,6 +522,34 @@ void PairGayBerne::read_restart_settings(FILE *fp)
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void PairGayBerne::write_data(FILE *fp)
+{
+  for (int i = 1; i <= atom->ntypes; i++)
+    fprintf(fp,"%d %g %g %g %g %g %g %g %g\n",i,
+            epsilon[i][i],sigma[i][i],
+            pow(well[i][0],-mu),pow(well[i][1],-mu),pow(well[i][2],-mu),
+            pow(well[i][0],-mu),pow(well[i][1],-mu),pow(well[i][2],-mu));
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes all pairs to data file
+------------------------------------------------------------------------- */
+
+void PairGayBerne::write_data_all(FILE *fp)
+{
+  for (int i = 1; i <= atom->ntypes; i++)
+    for (int j = i; j <= atom->ntypes; j++)
+      fprintf(fp,"%d %d %g %g %g %g %g %g %g %g %g\n",i,j,
+              epsilon[i][i],sigma[i][i],
+              pow(well[i][0],-mu),pow(well[i][1],-mu),pow(well[i][2],-mu),
+              pow(well[j][0],-mu),pow(well[j][1],-mu),pow(well[j][2],-mu),
+              cut[i][j]);
 }
 
 /* ----------------------------------------------------------------------

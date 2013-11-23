@@ -34,10 +34,7 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairCoulWolf::PairCoulWolf(LAMMPS *lmp) : Pair(lmp)
-{
-  writedata = 0;
-}
+PairCoulWolf::PairCoulWolf(LAMMPS *lmp) : Pair(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 

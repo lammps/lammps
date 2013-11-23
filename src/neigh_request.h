@@ -91,10 +91,19 @@ class NeighRequest : protected Pointers {
 
   int otherlist;         // index of other list to copy or skip from
 
+  // original params by requester
+  // stored to compare against in identical() in case Neighbor changes them
+
+  int half_original;
+  int half_from_full_original;
+  int copy_original;
+  int otherlist_original;
+
   // methods
 
   NeighRequest(class LAMMPS *);
   ~NeighRequest();
+  void archive();
   int identical(NeighRequest *);
   int same_kind(NeighRequest *);
   int same_skip(NeighRequest *);

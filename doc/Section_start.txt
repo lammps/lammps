@@ -1009,7 +1009,8 @@ letter abbreviation can be used:
 -p or -partition
 -pl or -plog
 -ps or -pscreen
--r or -reorder
+-r or -restart
+-ro or -reorder
 -sc or -screen
 -sf or -suffix
 -v or -var :ul
@@ -1128,6 +1129,21 @@ screen files to be suppressed (-pscreen none) or placed in a
 sub-directory (-pscreen replica_files/screen).  If this option is not
 used the screen file for partition N is screen.N or whatever is
 specified by the -screen command-line option.
+
+-restart restartfile datafile :pre 
+
+Convert the restart file into a data file and immediately exit.  This
+is the same operation as if the following 2-line input script were
+run:
+
+read_restart restartfile
+write_data datafile :pre
+
+Note that the specified restartfile and datafile can have wild-card
+characters ("*",%") as described by the
+"read_restart"_read_restart.html and "write_data"_write_data.html
+commands.  But a filename such as file.* will need to be enclosed in
+quotes to avoid shell expansion of the "*" character.
 
 -reorder nth N
 -reorder custom filename :pre

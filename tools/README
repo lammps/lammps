@@ -34,7 +34,6 @@ phonon                 post-process output of fix phonon command
 pymol_asphere	       convert LAMMPS output of ellipsoids to PyMol format
 python		       Python scripts for post-processing LAMMPS output
 reax	       	       Tools for analyzing output of ReaxFF simulations
-restart2data	       convert a binary restart file to an input data file
 vim		       add-ons to VIM editor for editing LAMMPS input scripts
 xmovie		       a quick/simple viz package (2d projections of 3d)
 xmgrace                a collection of scripts to generate xmgrace plots

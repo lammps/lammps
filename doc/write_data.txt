@@ -58,10 +58,7 @@ If you want to do more exact restarts, using binary files, see the
 "restart"_restart.html, "write_restart"_write_restart.html, and
 "read_restart"_read_restart.html commands.  You can also convert
 binary restart files to text data files, after a simulation has run,
-using the "restart2data"_Section_tools.html#restart2data tool in the
-tools directory.  When the write_data command is fully implemented
-(see NOTE above), the restart2data command will be obsolete and will
-be removed from the LAMMPS distribution.
+using the "-r command-line switch"_Section_start.html#start_7.
 
 IMPORTANT NOTE: Only limited information about a simulation is stored
 in a data file.  For example, no information about atom

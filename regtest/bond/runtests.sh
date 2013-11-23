@@ -35,29 +35,48 @@ done
 
 rm -f *.data *.restart log.*
 
+# hack to handle styles with a '/'
+mkdir -p fene
+mkdir -p harmonic/shift
+mkdir -p none_cosine/shift
+mkdir -p none_fourier
+
+runcheck ${exe} '-v astyle harmonic'   '-v acoeff' '1 100.0 91.0'           log.none-harmonic
+# first term of charmm angle is harmonic
+runcheck ${exe} '-v astyle charmm'     '-v acoeff' '1 100.0 91.0  0.0 1.7'  log.none-charmm-a
+runcheck ${exe} '-v astyle charmm'     '-v acoeff' '1 100.0 91.0 40.0 1.7'  log.none-charmm-b
+# first term of quartic angle is harmonic with k being 1/2k
+runcheck ${exe} '-v astyle quartic'    '-v acoeff' '1 91.0 100.0 0.0 0.0'   log.none-quartic-a
+runcheck ${exe} '-v astyle quartic'    '-v acoeff' '1 91.0 100.0 -10.0 5.0' log.none-quartic-b
+runcheck ${exe} '-v astyle cosine'     '-v acoeff' '1 10.0'                  log.none-cosine
+runcheck ${exe} '-v astyle cosine/squared'   '-v acoeff' '1 200.0 101.0'     log.none-cosine-squared
+runcheck ${exe} '-v astyle cosine/delta'     '-v acoeff' '1 200.0 101.0'     log.none-cosine-delta
+runcheck ${exe} '-v astyle cosine/shift'     '-v acoeff' '1 200.0 101.0'     log.none-cosine-shift
+runcheck ${exe} '-v astyle cosine/shift/exp' '-v acoeff' '1 100.0 101.0 2.0' log.none-cosine-shift-exp
+runcheck ${exe} '-v astyle cosine/periodic'  '-v acoeff' '1 20.0 -1 4'       log.none-cosine-periodic
+runcheck ${exe} '-v astyle fourier'          '-v acoeff' '1 50.0 2.0 1.0 .5' log.none-fourier
+runcheck ${exe} '-v astyle fourier/simple'   '-v acoeff' '1 10.0 1.0 2.0'    log.none-fourier-simple
+
+# XXX: need special case input for angle styles class2 sdk table
+
 runcheck ${exe} '-v bstyle harmonic'    '-v bcoeff' '1 100.0 1.01'            log.harmonic-none
 runcheck ${exe} '-v bstyle morse'       '-v bcoeff' '1 100.0 2.0 1.01'        log.morse-none
 runcheck ${exe} '-v bstyle nonlinear'   '-v bcoeff' '1 100.0 1.01 2.0'        log.nonlinear-none
-
 # first term of class2 is harmonic
 runcheck ${exe} '-v bstyle class2'      '-v bcoeff' '1 1.01 100.0 0.0 0.0'    log.class2a-none
 runcheck ${exe} '-v bstyle class2'      '-v bcoeff' '1 1.01 100.0 80.0 80.0'  log.class2b-none
-
 runcheck ${exe} '-v bstyle fene'        '-v bcoeff' '1 50.0 1.01 0.5 0.9'     log.fene-none
-
-# hack to handle styles with a '/'
-mkdir -p fene
 runcheck ${exe} '-v bstyle fene/expand' '-v bcoeff' '1 50.0 1.01 0.5 0.9 0.0' log.fene-expand-a-none
 runcheck ${exe} '-v bstyle fene/expand' '-v bcoeff' '1 50.0 1.01 0.5 0.9 0.1' log.fene-expand-b-none
-rm -r fene
-
-mkdir -p harmonic/shift
 runcheck ${exe} '-v bstyle harmonic/shift' '-v bcoeff' '1 100.0 1.01 2.5'     log.harmonic-shift-none
 runcheck ${exe} '-v bstyle harmonic/shift/cut' '-v bcoeff' '1 100.0 1.01 2.5' log.harmonic-shift-cut-none
-rm -r harmonic
 
 # XXX: need special case inputs for bond style quartic and table.
 
-
+# cleanup
+rm -r none_cosine
+rm -r none_fourier
+rm -r fene
+rm -r harmonic
 
 rm -f *.data *.restart

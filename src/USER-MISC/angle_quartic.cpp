@@ -120,7 +120,7 @@ void AngleQuartic::compute(int eflag, int vflag)
       eangle = k2[type] * dtheta2 + k3[type] * dtheta3 + k4[type] * dtheta4;
     }
 
-    a = -2.0 * tk * s;
+    a = -tk * s;
     a11 = a*c / rsq1;
     a12 = -a / (r1*r2);
     a22 = a*c / rsq2;
@@ -253,7 +253,7 @@ void AngleQuartic::read_restart(FILE *fp)
 void AngleQuartic::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->nangletypes; i++)
-    fprintf(fp,"%d %g %g %g %g\n",i,k2[i],k3[i],k4[i],theta0[i]/MY_PI*180.0);
+    fprintf(fp,"%d %g %g %g %g\n",i,theta0[i]/MY_PI*180.0,k2[i],k3[i],k4[i]);
 }
 
 /* ---------------------------------------------------------------------- */

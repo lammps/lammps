@@ -42,10 +42,10 @@ mkdir -p none_cosine/shift
 mkdir -p none_fourier
 
 runcheck ${exe} '-v astyle harmonic'   '-v acoeff' '1 100.0 91.0'           log.none-harmonic
-# first term of charmm angle is harmonic
+# first term of charmm angle is same as harmonic
 runcheck ${exe} '-v astyle charmm'     '-v acoeff' '1 100.0 91.0  0.0 1.7'  log.none-charmm-a
 runcheck ${exe} '-v astyle charmm'     '-v acoeff' '1 100.0 91.0 40.0 1.7'  log.none-charmm-b
-# first term of quartic angle is harmonic with k being 1/2k
+# first term of quartic angle is same as harmonic
 runcheck ${exe} '-v astyle quartic'    '-v acoeff' '1 91.0 100.0 0.0 0.0'   log.none-quartic-a
 runcheck ${exe} '-v astyle quartic'    '-v acoeff' '1 91.0 100.0 -10.0 5.0' log.none-quartic-b
 runcheck ${exe} '-v astyle cosine'     '-v acoeff' '1 10.0'                  log.none-cosine
@@ -54,10 +54,19 @@ runcheck ${exe} '-v astyle cosine/delta'     '-v acoeff' '1 200.0 101.0'     log
 runcheck ${exe} '-v astyle cosine/shift'     '-v acoeff' '1 200.0 101.0'     log.none-cosine-shift
 runcheck ${exe} '-v astyle cosine/shift/exp' '-v acoeff' '1 100.0 101.0 2.0' log.none-cosine-shift-exp
 runcheck ${exe} '-v astyle cosine/periodic'  '-v acoeff' '1 20.0 -1 4'       log.none-cosine-periodic
-runcheck ${exe} '-v astyle fourier'          '-v acoeff' '1 50.0 2.0 1.0 .5' log.none-fourier
-runcheck ${exe} '-v astyle fourier/simple'   '-v acoeff' '1 10.0 1.0 2.0'    log.none-fourier-simple
+runcheck ${exe} '-v astyle fourier'          '-v acoeff' '1 50.0 2.0 1.0 .5' log.none-fourier-a
+runcheck ${exe} '-v astyle fourier/simple'   '-v acoeff' '1 10.0 1.0 2.0'    log.none-fourier-simple-a
+# these two are the same
+runcheck ${exe} '-v astyle fourier'          '-v acoeff' '1 20.0 1.0 2.0 0.' log.none-fourier-b
+runcheck ${exe} '-v astyle fourier/simple'   '-v acoeff' '1 20.0 2.0 1.0'    log.none-fourier-simple-b
+# these two are the same
+runcheck ${exe} '-v astyle fourier'          '-v acoeff' '1 20.0 1.0 0.0 2.' log.none-fourier-c
+runcheck ${exe} '-v astyle fourier/simple'   '-v acoeff' '1 20.0 2.0 2.0'    log.none-fourier-simple-c
+# same as cosine
+runcheck ${exe} '-v astyle fourier'          '-v acoeff' '1 10.0 1.0 1.0 0.' log.none-fourier-d
+runcheck ${exe} '-v astyle fourier/simple'   '-v acoeff' '1 10.0 1.0 1.0'    log.none-fourier-simple-d
 
-# XXX: need special case input for angle styles class2 sdk table
+# XXX: need special case input for angle styles class2 sdk table dipole
 
 runcheck ${exe} '-v bstyle harmonic'    '-v bcoeff' '1 100.0 1.01'            log.harmonic-none
 runcheck ${exe} '-v bstyle morse'       '-v bcoeff' '1 100.0 2.0 1.01'        log.morse-none

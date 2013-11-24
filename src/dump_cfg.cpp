@@ -60,6 +60,9 @@ DumpCFG::DumpCFG(LAMMPS *lmp, int narg, char **arg) :
                "Dump cfg arguments can not mix xs|ys|zs with xsu|ysu|zsu");
   else unwrapflag = 1;
 
+  buffer_flag = 0;  // XXX :broken
+  buffer_allow = 0; // XXX: broken
+
   // setup auxiliary property name strings
   // convert 'X_ID[m]' (X=c,f,v) to 'ID_m'
 
@@ -170,9 +173,9 @@ void DumpCFG::write_data(int n, double *mybuf)
     for (i = 0; i < n; i++) {
       for (j = 0; j < size_one; j++) {
         if (j == 0) {
-	  fprintf(fp,"%f \n",mybuf[m]);
+          fprintf(fp,"%f \n",mybuf[m]);
         } else if (j == 1) {
-	  fprintf(fp,"%s \n",typenames[(int) mybuf[m]]);
+          fprintf(fp,"%s \n",typenames[(int) mybuf[m]]);
         } else if (j >= 2) {
           if (vtype[j] == INT) 
             fprintf(fp,vformat[j],static_cast<int> (mybuf[m]));
@@ -191,9 +194,9 @@ void DumpCFG::write_data(int n, double *mybuf)
     for (i = 0; i < n; i++) {
       for (j = 0; j < size_one; j++) {
         if (j == 0) {
-	  fprintf(fp,"%f \n",mybuf[m]);
+          fprintf(fp,"%f \n",mybuf[m]);
         } else if (j == 1) {
-	  fprintf(fp,"%s \n",typenames[(int) mybuf[m]]);
+          fprintf(fp,"%s \n",typenames[(int) mybuf[m]]);
         } else if (j >= 2 && j <= 4) {
           unwrap_coord = (mybuf[m] - 0.5)/UNWRAPEXPAND + 0.5;
           fprintf(fp,vformat[j],unwrap_coord);

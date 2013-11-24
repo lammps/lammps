@@ -25,10 +25,10 @@ log=$5
 for n in 1 2 4 8
 do \
     mpirun -x OMP_NUM_THREADS -np $n ${lmp} -i in.bond_angle ${sty} ${coe} "${arg}" -log ${log}-${n} -echo none -screen none
-    grep -A2 ^Step ${log}-${n} > out
+    grep -A2 ^Step ${log}-${n} | sed 's,-0.000000, 0.000000,g' > out
     diff -u ref/${log} out && rm out ${log}-${n} && echo OK ${log} ${n} || echo ERROR ${log} ${n}
     mpirun -x OMP_NUM_THREADS -np $n ${lmp} -i in.bond_angle ${sty} ${coe} "${arg}" -log ${log}-omp-${n} -echo none -screen none -suffix omp
-    grep -A2 ^Step ${log}-omp-${n} > omp
+    grep -A2 ^Step ${log}-omp-${n} | sed 's,-0.000000, 0.000000,g' > omp
     diff -u ref/${log} omp && rm omp ${log}-omp-${n} && echo OK ${log} omp ${n} || echo ERROR ${log} omp ${n}
 done
 }

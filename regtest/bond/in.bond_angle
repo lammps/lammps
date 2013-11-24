@@ -24,6 +24,7 @@ if $a then "angle_coeff  ${acoeff}"
 velocity  all set 0.0 0.0 0.0
 
 thermo 1
+thermo_modify format 6 %15.6f
 
 fix 1 all nve
 run 1 post no
@@ -56,6 +57,7 @@ angle_style  ${astyle}
 read_data ${bstyle}_${astyle}.data
 
 thermo 1
+thermo_modify format 6 %15.6f
 
 fix 1 all nve
 run 1 post no
@@ -68,6 +70,7 @@ variable astyle getenv ASTYLE
 read_restart ${bstyle}_${astyle}.restart
 
 thermo 1
+thermo_modify format 6 %15.6f
 
 fix 1 all nve
 run 1 post no

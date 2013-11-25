@@ -1130,14 +1130,14 @@ sub-directory (-pscreen replica_files/screen).  If this option is not
 used the screen file for partition N is screen.N or whatever is
 specified by the -screen command-line option.
 
--restart restartfile datafile options :pre 
+-restart restartfile datafile keyword value ... :pre 
 
 Convert the restart file into a data file and immediately exit.  This
 is the same operation as if the following 2-line input script were
 run:
 
 read_restart restartfile
-write_data datafile options :pre
+write_data datafile keyword value ... :pre
 
 Note that the specified restartfile and datafile can have wild-card
 characters ("*",%") as described by the
@@ -1145,10 +1145,9 @@ characters ("*",%") as described by the
 commands.  But a filename such as file.* will need to be enclosed in
 quotes to avoid shell expansion of the "*" character.
 
-Also note that following datafile, the same optional keywords can be
-listed as used by the "write_data"_write_data.html command.  Currently
-this is just {ii} or {ij}, which affects the format in which pair
-coefficients are written out to the data file.
+Also note that following datafile, the same optional keyword/value
+pairs can be listed as used by the "write_data"_write_data.html
+command.
 
 -reorder nth N
 -reorder custom filename :pre

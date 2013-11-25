@@ -83,6 +83,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   suffix_enable = 0;
   char *rfile = NULL;
   char *dfile = NULL;
+  int wdfirst,wdlast;
 
   int iarg = 1;
   while (iarg < narg) {
@@ -171,6 +172,10 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
       rfile = arg[iarg+1];
       dfile = arg[iarg+2];
       iarg += 3;
+      // delimit any extra args for the write_data command
+      wdfirst = iarg;
+      while (iarg < narg && arg[iarg][0] != '-') iarg++;
+      wdlast = iarg;
     } else if (strcmp(arg[iarg],"-nocite") == 0 ||
                strcmp(arg[iarg],"-nc") == 0) {
       citeflag = 0;
@@ -436,12 +441,16 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   }
 
   // if restartflag set, process 2 command and quit
+  // add args between wdfirst and wdlast to write_data
 
   if (restartflag) {
     char cmd[128];
     sprintf(cmd,"read_restart %s\n",rfile);
     input->one(cmd);
-    sprintf(cmd,"write_data %s\n",dfile);
+    sprintf(cmd,"write_data %s",dfile);
+    for (iarg = wdfirst; iarg < wdlast; iarg++)
+      sprintf(&cmd[strlen(cmd)]," %s",arg[iarg]);
+    strcat(cmd,"\n");
     input->one(cmd);
     error->done();
   }

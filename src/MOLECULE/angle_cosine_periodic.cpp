@@ -269,8 +269,10 @@ void AngleCosinePeriodic::read_restart(FILE *fp)
 
 void AngleCosinePeriodic::write_data(FILE *fp)
 {
-  for (int i = 1; i <= atom->nangletypes; i++)
-    fprintf(fp,"%d %g %d %d\n",i,k[i],b[i],multiplicity[i]);
+  for (int i = 1; i <= atom->nangletypes; i++) {
+    int m = multiplicity[i];
+    fprintf(fp,"%d %g %d %d\n",i,k[i]*m*m,b[i],m);
+  }
 }
 
 /* ---------------------------------------------------------------------- */

@@ -143,7 +143,7 @@ void AngleQuarticOMP::eval(int nfrom, int nto, ThrData * const thr)
       eangle = k2[type] * dtheta2 + k3[type] * dtheta3 + k4[type] * dtheta4;
     }
 
-    a = -2.0 * tk * s;
+    a = -tk * s;
     a11 = a*c / rsq1;
     a12 = -a / (r1*r2);
     a22 = a*c / rsq2;

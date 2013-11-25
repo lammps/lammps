@@ -134,6 +134,8 @@ void BondHarmonicShift::coeff(int narg, char **arg)
   double Umin = force->numeric(FLERR,arg[1]);   // energy at minimum
   double r0_one = force->numeric(FLERR,arg[2]); // position of minimum
   double r1_one = force->numeric(FLERR,arg[3]);  // position where energy = 0
+  if (r0_one == r1_one)
+    error->all(FLERR,"Bond harmonic/shift r0 and r1 must be different");
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -185,6 +187,16 @@ void BondHarmonicShift::read_restart(FILE *fp)
   MPI_Bcast(&r1[1],atom->nbondtypes,MPI_DOUBLE,0,world);
 
   for (int i = 1; i <= atom->nbondtypes; i++) setflag[i] = 1;
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void BondHarmonicShift::write_data(FILE *fp)
+{
+  for (int i = 1; i <= atom->nbondtypes; i++)
+    fprintf(fp,"%d %g %g %g\n",i,k[i],r0[i],r1[i]);
 }
 
 /* ---------------------------------------------------------------------- */

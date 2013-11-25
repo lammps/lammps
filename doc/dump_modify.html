@@ -145,13 +145,13 @@ this keyword has no further effect.
 </P>
 <HR>
 
-<P>The <I>buffer</I> keyword applies only to dump styles <I>atom</I>, <I>custom</I>,
-<I>local</I>, and <I>xyz</I>.  It also applies only to text output files, not to
-binary or gzipped files.  If specified as <I>yes</I>, which is the default,
-then each processor writes its output into an internal text buffer,
-which is then sent to the processor(s) which perform file writes, and
-written by those processors(s) as one large chunk of text.  If
-specified as <I>no</I>, each processor sends its per-atom data in binary
+<P>The <I>buffer</I> keyword applies only to dump styles <I>atom</I>, <I>cfg</I>,
+<I>custom</I>, <I>local</I>, and <I>xyz</I>.  It also applies only to text output
+files, not to binary or gzipped files.  If specified as <I>yes</I>, which
+is the default, then each processor writes its output into an internal
+text buffer, which is then sent to the processor(s) which perform file
+writes, and written by those processors(s) as one large chunk of text.
+If specified as <I>no</I>, each processor sends its per-atom data in binary
 format to the processor(s) which perform file wirtes, and those
 processor(s) format and write it line by line into the output file.
 </P>

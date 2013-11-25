@@ -33,10 +33,8 @@ DumpXYZ::DumpXYZ(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
 
   size_one = 5;
 
-  buffer_flag = 0;  // XXX :broken
-  buffer_allow = 0; // XXX: broken
-
   sort_flag = 1;
+  buffer_flag = 0;
   sortcol = 0;
 
   if (format_default) delete [] format_default;

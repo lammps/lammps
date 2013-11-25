@@ -860,6 +860,8 @@ void Dump::modify_params(int narg, char **arg)
       iarg += n;
     }
   }
+  if (buffer_flag == 1 && sort_flag == 1)
+        error->all(FLERR,"Dump_modify buffer yes and sort are not allowed at the same time");
 }
 
 /* ----------------------------------------------------------------------

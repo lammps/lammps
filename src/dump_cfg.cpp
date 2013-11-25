@@ -60,9 +60,6 @@ DumpCFG::DumpCFG(LAMMPS *lmp, int narg, char **arg) :
                "Dump cfg arguments can not mix xs|ys|zs with xsu|ysu|zsu");
   else unwrapflag = 1;
 
-  buffer_flag = 0;  // XXX :broken
-  buffer_allow = 0; // XXX: broken
-
   // setup auxiliary property name strings
   // convert 'X_ID[m]' (X=c,f,v) to 'ID_m'
 

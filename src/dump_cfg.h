@@ -35,8 +35,13 @@ class DumpCFG : public DumpCustom {
 
   void init_style();
   void write_header(bigint);
+  int convert_string(int, double *);
   void write_data(int, double *);
 
+  typedef void (DumpCFG::*FnPtrWrite)(int, double *);
+  FnPtrWrite write_choice;             // ptr to write data functions
+  void write_string(int, double *);
+  void write_lines(int, double *);
 };
 
 }

@@ -78,7 +78,7 @@ class DumpCustom : public Dump {
   virtual void write_header(bigint);
   int count();
   void pack(int *);
-  int convert_string(int, double *);
+  virtual int convert_string(int, double *);
   virtual void write_data(int, double *);
   bigint memory_usage();
 

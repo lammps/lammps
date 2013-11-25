@@ -195,8 +195,10 @@ void BondHarmonicShift::read_restart(FILE *fp)
 
 void BondHarmonicShift::write_data(FILE *fp)
 {
-  for (int i = 1; i <= atom->nbondtypes; i++)
-    fprintf(fp,"%d %g %g %g\n",i,k[i],r0[i],r1[i]);
+  for (int i = 1; i <= atom->nbondtypes; i++) {
+    double d2 = (r0[i]-r1[i])*(r0[i]-r1[i]);
+    fprintf(fp,"%d %g %g %g\n",i,k[i]*d2,r0[i],r1[i]);
+  }
 }
 
 /* ---------------------------------------------------------------------- */

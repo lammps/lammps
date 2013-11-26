@@ -31,11 +31,13 @@
 #include "memory.h"
 #include "error.h"
 
-#define UNWRAPEXPAND 10.0
-
 using namespace LAMMPS_NS;
 
 enum{INT,DOUBLE,STRING};   // same as in DumpCustom
+
+#define UNWRAPEXPAND 10.0
+#define ONEFIELD 32
+#define DELTA 1048576
 
 /* ---------------------------------------------------------------------- */
 
@@ -117,6 +119,11 @@ void DumpCFG::init_style()
     error->all(FLERR,"Dump cfg requires one snapshot per file");
 
   DumpCustom::init_style();
+
+  // setup function ptrs
+
+  if (buffer_flag == 1) write_choice = &DumpCFG::write_string;
+  else write_choice = &DumpCFG::write_lines;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -159,9 +166,99 @@ void DumpCFG::write_header(bigint n)
     fprintf(fp,"auxiliary[%d] = %s\n",i,auxname[i]);
 }
 
+/* ----------------------------------------------------------------------
+   convert mybuf of doubles to one big formatted string in sbuf
+   return -1 if strlen exceeds an int, since used as arg in MPI calls in Dump
+------------------------------------------------------------------------- */
+
+int DumpCFG::convert_string(int n, double *mybuf)
+{
+  int i,j;
+
+  int offset = 0;
+  int m = 0;
+
+  if (unwrapflag == 0) {
+    for (i = 0; i < n; i++) {
+      if (offset + size_one*ONEFIELD > maxsbuf) {
+        if ((bigint) maxsbuf + DELTA > MAXSMALLINT) return -1;
+        maxsbuf += DELTA;
+        memory->grow(sbuf,maxsbuf,"dump:sbuf");
+      }
+
+      for (j = 0; j < size_one; j++) {
+        if (j == 0) {
+	  offset += sprintf(&sbuf[offset],"%f \n",mybuf[m]);
+        } else if (j == 1) {
+	  offset += sprintf(&sbuf[offset],"%s \n",typenames[(int) mybuf[m]]);
+        } else if (j >= 2) {
+          if (vtype[j] == INT) 
+            offset += 
+              sprintf(&sbuf[offset],vformat[j],static_cast<int> (mybuf[m]));
+          else if (vtype[j] == DOUBLE) 
+            offset += sprintf(&sbuf[offset],vformat[j],mybuf[m]);
+          else if (vtype[j] == STRING) 
+            offset += 
+              sprintf(&sbuf[offset],vformat[j],typenames[(int) mybuf[m]]);
+        }
+        m++;
+      }
+      offset += sprintf(&sbuf[offset],"\n");
+    }
+
+  } else if (unwrapflag == 1) {
+    double unwrap_coord;
+    for (i = 0; i < n; i++) {
+      if (offset + size_one*ONEFIELD > maxsbuf) {
+        if ((bigint) maxsbuf + DELTA > MAXSMALLINT) return -1;
+        maxsbuf += DELTA;
+        memory->grow(sbuf,maxsbuf,"dump:sbuf");
+      }
+
+      for (j = 0; j < size_one; j++) {
+        if (j == 0) {
+	  offset += sprintf(&sbuf[offset],"%f \n",mybuf[m]);
+        } else if (j == 1) {
+	  offset += sprintf(&sbuf[offset],"%s \n",typenames[(int) mybuf[m]]);
+        } else if (j >= 2 && j <= 4) {
+          unwrap_coord = (mybuf[m] - 0.5)/UNWRAPEXPAND + 0.5;
+          offset += sprintf(&sbuf[offset],vformat[j],unwrap_coord);
+        } else if (j >= 5 ) {
+          if (vtype[j] == INT) 
+            offset += 
+              sprintf(&sbuf[offset],vformat[j],static_cast<int> (mybuf[m]));
+          else if (vtype[j] == DOUBLE) 
+            offset += sprintf(&sbuf[offset],vformat[j],mybuf[m]);
+          else if (vtype[j] == STRING) 
+            offset += 
+              sprintf(&sbuf[offset],vformat[j],typenames[(int) mybuf[m]]);
+        }
+        m++;
+      }
+      offset += sprintf(&sbuf[offset],"\n");
+    }
+  }
+
+  return offset;
+}
+
 /* ---------------------------------------------------------------------- */
 
 void DumpCFG::write_data(int n, double *mybuf)
+{
+  (this->*write_choice)(n,mybuf);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCFG::write_string(int n, double *mybuf)
+{
+  fwrite(mybuf,sizeof(char),n,fp);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCFG::write_lines(int n, double *mybuf)
 {
   int i,j,m;
 

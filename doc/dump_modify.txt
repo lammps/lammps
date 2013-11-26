@@ -133,13 +133,13 @@ this keyword has no further effect.
 
 :line
 
-The {buffer} keyword applies only to dump styles {atom}, {custom},
-{local}, and {xyz}.  It also applies only to text output files, not to
-binary or gzipped files.  If specified as {yes}, which is the default,
-then each processor writes its output into an internal text buffer,
-which is then sent to the processor(s) which perform file writes, and
-written by those processors(s) as one large chunk of text.  If
-specified as {no}, each processor sends its per-atom data in binary
+The {buffer} keyword applies only to dump styles {atom}, {cfg},
+{custom}, {local}, and {xyz}.  It also applies only to text output
+files, not to binary or gzipped files.  If specified as {yes}, which
+is the default, then each processor writes its output into an internal
+text buffer, which is then sent to the processor(s) which perform file
+writes, and written by those processors(s) as one large chunk of text.
+If specified as {no}, each processor sends its per-atom data in binary
 format to the processor(s) which perform file wirtes, and those
 processor(s) format and write it line by line into the output file.
 

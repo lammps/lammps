@@ -135,7 +135,7 @@ void BondHarmonicShift::coeff(int narg, char **arg)
   double r0_one = force->numeric(FLERR,arg[2]); // position of minimum
   double r1_one = force->numeric(FLERR,arg[3]);  // position where energy = 0
   if (r0_one == r1_one)
-    error->all(FLERR,"r0 and r1 must be different");
+    error->all(FLERR,"Bond harmonic/shift r0 and r1 must be different");
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

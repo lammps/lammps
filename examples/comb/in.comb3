@@ -19,8 +19,8 @@ pair_coeff	* * ffield.comb3 O Cu H C C
 neighbor	2.0 bin
 neigh_modify	every 1 delay 0 check yes 
 
-dump            1 all cfg 10 *.cfg mass type xs ys zs id type q
-dump_modify   	1 element O Cu H C C
+#dump            1 all cfg 10 *.cfg mass type xs ys zs id type q
+#dump_modify   	1 element O Cu H C C
 
 fix             1 all nve
 fix             2 all qeq/comb 10 1e-3 file fq.out

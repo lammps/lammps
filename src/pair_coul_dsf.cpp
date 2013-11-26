@@ -43,7 +43,10 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairCoulDSF::PairCoulDSF(LAMMPS *lmp) : Pair(lmp) {}
+PairCoulDSF::PairCoulDSF(LAMMPS *lmp) : Pair(lmp)
+{
+  single_enable = 0;
+}
 
 /* ---------------------------------------------------------------------- */
 

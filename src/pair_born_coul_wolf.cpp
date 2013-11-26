@@ -37,6 +37,7 @@ using namespace MathConst;
 PairBornCoulWolf::PairBornCoulWolf(LAMMPS *lmp) : Pair(lmp)
 {
   writedata = 1;
+  single_enable = 0;
 }
 
 /* ---------------------------------------------------------------------- */

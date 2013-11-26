@@ -96,11 +96,12 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
 
   // process attributes
   // ioptional = start of additional optional args
-  // only dump image style processes optional args
+  // only dump image and dump movie styles process optional args
 
   ioptional = parse_fields(narg,arg);
 
-  if (ioptional < narg && strcmp(style,"image") != 0)
+  if (ioptional < narg && 
+      strcmp(style,"image") != 0 && strcmp(style,"movie") != 0)
     error->all(FLERR,"Invalid attribute in dump custom command");
   size_one = nfield = ioptional - 5;
 

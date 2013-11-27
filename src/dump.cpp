@@ -338,8 +338,9 @@ void Dump::write()
  
   // if buffering, convert doubles into strings
   // insure sbuf is sized for communicating
+  // cannot buffer if output is to binary file
 
-  if (buffer_flag) {
+  if (buffer_flag && !binary) {
     nsme = convert_string(nme,buf);
     int nsmin,nsmax;
     MPI_Allreduce(&nsme,&nsmin,1,MPI_INT,MPI_MIN,world);
@@ -363,7 +364,7 @@ void Dump::write()
 
   // comm and output buf of doubles
 
-  if (buffer_flag == 0) {
+  if (buffer_flag == 0 || binary) {
     if (filewriter) {
       for (int iproc = 0; iproc < nclusterprocs; iproc++) {
         if (iproc) {

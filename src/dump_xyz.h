@@ -29,7 +29,7 @@ class DumpXYZ : public Dump {
   DumpXYZ(class LAMMPS *, int, char**);
   virtual ~DumpXYZ();
 
- private:
+ protected:
   int ntypes;
   char **typenames;
 

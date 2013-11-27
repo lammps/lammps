@@ -321,7 +321,7 @@ void NEB::run()
 /* ----------------------------------------------------------------------
    read initial config atom coords from file
    flag = 0
-     only first replica open file and reads it
+     only first replica opens file and reads it
      first replica bcasts lines to all replicas
      final replica stores coords
      intermediate replicas interpolate from coords
@@ -464,7 +464,7 @@ void NEB::readfile(char *file, int flag)
   if (flag == 0) {
     int ntotal;
     MPI_Allreduce(&ncount,&ntotal,1,MPI_INT,MPI_SUM,uworld);
-    if (ntotal != (nreplica-1)*nlines)
+    if (ntotal != nreplica*nlines)
       error->universe_all(FLERR,"Invalid atom IDs in neb file");
   } else {
     int ntotal;

@@ -1,0 +1,70 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>compute vacf command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>compute ID group-ID vacf 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
+<LI>vacf = style name of this compute command 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>compute 1 all vacf
+compute 1 upper vacf 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define a computation that calculates the velocity auto-correlation
+function (VACF), averaged over a group of atoms.  Each atom's
+contribution to the VACF is its current velocity vector dotted into
+its initial velocity vector at the time the compute was specified.
+</P>
+<P>A vector of four quantites is calculated by this compute.  The first 3
+elements of the vector are vx * vx0 (and similarly for the y and z
+components), summed and averaged over atoms in the group.  Vx is the
+current x-component of velocity for the atom, vx0 is the initial
+x-component of velocity for the atom.  The 4th element of the vector
+is the total VACF, i.e. (vx*vx0 + vy*vy0 + vz*vz0), summed and
+averaged over atoms in the group.
+</P>
+<P>The integral of the VACF versus time is proportional to the diffusion
+coefficient of the diffusing atoms.
+</P>
+<P>IMPORTANT NOTE: If you want the quantities calculated by this compute
+to be continuous when running from a <A HREF = "read_restart.html">restart file</A>,
+then you should use the same ID for this compute, as in the original
+run.  This is so that the created fix will also have the same ID, and
+thus be initialized correctly with atom velocities from the restart
+file.
+</P>
+<P><B>Output info:</B>
+</P>
+<P>This compute calculates a global vector of length 4, which can be
+accessed by indices 1-4 by any command that uses global vector values
+from a compute as input.  See <A HREF = "Section_howto.html#howto_15">this
+section</A> for an overview of LAMMPS output
+options.
+</P>
+<P>The vector values are "intensive".  The vector values will be in
+velocity^2 <A HREF = "units.html">units</A>.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "compute_msd.html">compute msd</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

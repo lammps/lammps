@@ -48,7 +48,7 @@ using namespace MathConst;
 #define MYROUND(a) (( a-floor(a) ) >= .5) ? ceil(a) : floor(a)
 
 enum{INDEX,LOOP,WORLD,UNIVERSE,ULOOP,STRING,GETENV,
-     SCALARFILE,ATOMFILE,EQUAL,ATOM};
+     SCALARFILE,ATOMFILE,FORMAT,EQUAL,ATOM};
 enum{ARG,OP};
 
 // customize by adding a function
@@ -338,6 +338,24 @@ void Variable::set(int narg, char **arg)
     int flag = reader[nvar]->read_peratom();
     if (flag) error->all(FLERR,"Atomfile variable could not read values");
 
+  // FORMAT
+  // num = 3, which = 1st value
+  // data = 3 values
+  //   1st is name of variable to eval, 2nd is format string,
+  //   3rd is filled on retrieval
+
+  } else if (strcmp(arg[1],"format") == 0) {
+    if (narg != 4) error->all(FLERR,"Illegal variable command");
+    if (find(arg[0]) >= 0) return;
+    if (nvar == maxvar) grow();
+    style[nvar] = FORMAT;
+    num[nvar] = 3;
+    which[nvar] = 0;
+    pad[nvar] = 0;
+    data[nvar] = new char*[num[nvar]];
+    copy(2,&arg[2],data[nvar]);
+    data[nvar][2] = NULL;
+
   // EQUAL
   // remove pre-existing var if also style EQUAL (allows it to be reset)
   // num = 2, which = 1st value
@@ -435,11 +453,11 @@ int Variable::next(int narg, char **arg)
       error->all(FLERR,"All variables in next command must be same style");
   }
 
-  // invalid styles STRING or EQUAL or WORLD or ATOM or GETENV
+  // invalid styles STRING or EQUAL or WORLD or ATOM or GETENV or FORMAT
 
   int istyle = style[find(arg[0])];
   if (istyle == STRING || istyle == EQUAL || istyle == WORLD
-      || istyle == GETENV || istyle == ATOM)
+      || istyle == GETENV || istyle == ATOM || istyle == FORMAT)
     error->all(FLERR,"Invalid variable style with next command");
 
   // increment all variables in list
@@ -528,6 +546,7 @@ int Variable::next(int narg, char **arg)
      return ptr to stored string
    if LOOP or ULOOP var, write int to data[0] and return ptr to string
    if EQUAL var, evaluate variable and put result in str
+   if FORMAT var, evaluate its variable and put formatted result in str
    if GETENV var, query environment and put result in str
    if ATOM or ATOMFILE var, return NULL
    return NULL if no variable with name or which value is bad,
@@ -567,6 +586,17 @@ char *Variable::retrieve(char *name)
     data[ivar][1] = new char[n];
     strcpy(data[ivar][1],result);
     str = data[ivar][1];
+  } else if (style[ivar] == FORMAT) {
+    char result[64];
+    int jvar = find(data[ivar][0]);
+    if (jvar == -1) return NULL;
+    double answer = evaluate(data[jvar][0],NULL);
+    sprintf(result,data[ivar][1],answer);
+    int n = strlen(result) + 1;
+    if (data[ivar][2]) delete [] data[ivar][2];
+    data[ivar][2] = new char[n];
+    strcpy(data[ivar][2],result);
+    str = data[ivar][2];
   } else if (style[ivar] == GETENV) {
     const char *result = getenv(data[ivar][0]);
     if (data[ivar][1]) delete [] data[ivar][1];

@@ -590,6 +590,7 @@ char *Variable::retrieve(char *name)
     char result[64];
     int jvar = find(data[ivar][0]);
     if (jvar == -1) return NULL;
+    if (!equalstyle(jvar)) return NULL;
     double answer = evaluate(data[jvar][0],NULL);
     sprintf(result,data[ivar][1],answer);
     int n = strlen(result) + 1;

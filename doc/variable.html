@@ -17,7 +17,7 @@
 </PRE>
 <UL><LI>name = name of variable to define 
 
-<LI>style = <I>delete</I> or <I>index</I> or <I>loop</I> or <I>world</I> or <I>universe</I> or <I>uloop</I> or <I>string</I> or <I>getenv</I> or <I>file</I> or <I>atomfile</I> or <I>equal</I> or <I>atom</I> 
+<LI>style = <I>delete</I> or <I>index</I> or <I>loop</I> or <I>world</I> or <I>universe</I> or <I>uloop</I> or <I>string</I> or <I>format</I> or <I>getenv</I> or <I>file</I> or <I>atomfile</I> or <I>equal</I> or <I>atom</I> 
 
 <PRE>  <I>delete</I> = no args
   <I>index</I> args = one or more strings
@@ -39,6 +39,9 @@
     N = integer size of loop
     pad = all values will be same length, e.g. 001, 002, ..., 100
   <I>string</I> arg = one string
+  <I>format</I> args = vname fstr
+    vname = name of equal-style variable to evaluate
+    fstr = C-style format string
   <I>getenv</I> arg = one string
   <I>file</I> arg = filename
   <I>atomfile</I> arg = filename
@@ -86,6 +89,7 @@ variable f file values.txt
 variable temp world 300.0 310.0 320.0 ${Tfinal}
 variable x universe 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
 variable x uloop 15 pad
+variable str format x %.6g
 variable x delete 
 </PRE>
 <P><B>Description:</B>
@@ -127,7 +131,8 @@ simulation.
 a variable of style <I>equal</I> or <I>atom</I> that contains a formula, the
 formula is NOT immediately evaluated and the result stored.  See the
 discussion below about "Immediate Evaluation of Variables" if you want
-to do this.
+to do this.  This is also true of the <I>format</I> style variable
+since it evaluates another variable when it is invoked.
 </P>
 <P>IMPORTANT NOTE: When a variable command is encountered in the input
 script and the variable name has already been specified, the command
@@ -144,7 +149,8 @@ script.
 command is encountered.  This allows these style of variables to be
 redefined multiple times in an input script.  In a loop, this means
 the formula associated with an <I>equal</I> or <I>atom</I> style variable can
-change if it contains a substitution for another variable, e.g. $x.
+change if it contains a substitution for another variable, e.g. $x or
+v_x.
 </P>
 <P>Second, as described below, if a variable is iterated on to the end of
 its list of strings via the <A HREF = "next.html">next</A> command, it is removed
@@ -246,6 +252,13 @@ The only difference between this and using the <I>index</I> style with a
 single string is that a variable with <I>string</I> style can be redefined.
 E.g. by another command later in the input script, or if the script is
 read again in a loop.
+</P>
+<P>For the <I>format</I> style, an equal-style variable is specified along
+with a C-style format string, e.g. "%f" or "%.10g", which must be
+appropriate for formatting a double-precision floating-point value.
+This allows an equal-style variable to be formatted specifically for
+output as a string, e.g. by the <A HREF = "print.html">print</A> command, if the
+default format "%.20g" has too much precision.
 </P>
 <P>For the <I>getenv</I> style, a single string is assigned to the variable
 which should be the name of an environment variable.  When the

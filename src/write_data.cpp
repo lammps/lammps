@@ -71,8 +71,10 @@ void WriteData::command(int narg, char **arg)
   } else strcpy(file,arg[0]);
 
   // read optional args
+  // noinit is a hidden arg, only used by -r command-line switch
 
   pairflag = II;
+  int noinit = 0;
 
   int iarg = 1;
   while (iarg < narg) {
@@ -82,29 +84,40 @@ void WriteData::command(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"ij") == 0) pairflag = IJ;
       else error->all(FLERR,"Illegal write_data command");
       iarg += 2;
+    } else if (strcmp(arg[iarg],"noinit") == 0) {
+      noinit = 1;
+      iarg++;
     } else error->all(FLERR,"Illegal write_data command");
   }
 
   // init entire system since comm->exchange is done
   // comm::init needs neighbor::init needs pair::init needs kspace::init, etc
+  // exception is when called by -r command-line switch
+  //   then write_data immediately follows reading of restart file
+  //   assume that read_restart initialized necessary values
+  //   if don't make exception:
+  //     pair->init() can fail due to various unset values:
+  //     e.g. pair hybrid coeffs, dpd ghost-atom velocity setting
 
-  if (comm->me == 0 && screen)
-    fprintf(screen,"System init for write_data ...\n");
-  lmp->init();
+  if (noinit == 0) {
+    if (comm->me == 0 && screen)
+      fprintf(screen,"System init for write_data ...\n");
+    lmp->init();
 
-  // move atoms to new processors before writing file
-  // do setup_pre_exchange to force update of per-atom info if needed
-  // enforce PBC in case atoms are outside box
-  // call borders() to rebuild atom map since exchange() destroys map
+    // move atoms to new processors before writing file
+    // do setup_pre_exchange to force update of per-atom info if needed
+    // enforce PBC in case atoms are outside box
+    // call borders() to rebuild atom map since exchange() destroys map
 
-  modify->setup_pre_exchange();
-  if (domain->triclinic) domain->x2lamda(atom->nlocal);
-  domain->pbc();
-  domain->reset_box();
-  comm->setup();
-  comm->exchange();
-  comm->borders();
-  if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
+    modify->setup_pre_exchange();
+    if (domain->triclinic) domain->x2lamda(atom->nlocal);
+    domain->pbc();
+    domain->reset_box();
+    comm->setup();
+    comm->exchange();
+    comm->borders();
+    if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
+  }
 
   write(file);
 

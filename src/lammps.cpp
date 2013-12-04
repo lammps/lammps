@@ -448,6 +448,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
 
   // if restartflag set, process 2 command and quit
   // add args between wdfirst and wdlast to write_data
+  // also add "noinit" to prevent write_data from doing system init
 
   if (restartflag) {
     char cmd[128];
@@ -456,7 +457,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
     sprintf(cmd,"write_data %s",dfile);
     for (iarg = wdfirst; iarg < wdlast; iarg++)
       sprintf(&cmd[strlen(cmd)]," %s",arg[iarg]);
-    strcat(cmd,"\n");
+    strcat(cmd," noinit\n");
     input->one(cmd);
     error->done();
   }

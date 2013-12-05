@@ -184,7 +184,6 @@ void FixHeat::end_of_step()
   }
   double vcmsq = vcm[0]*vcm[0] + vcm[1]*vcm[1] + vcm[2]*vcm[2];
 
-
   // add heat via scale factor on velocities for CONSTANT and EQUAL cases
   // scale = velocity scale factor to accomplish eflux change in energy
   // vsub = velocity subtracted from each atom to preserve momentum

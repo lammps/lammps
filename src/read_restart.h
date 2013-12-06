@@ -35,9 +35,11 @@ class ReadRestart : protected Pointers {
   FILE *fp;
   int nfix_restart_global,nfix_restart_peratom;
 
-  int mpiio;                 // 1 for MPIIO output, else 0
   int multiproc;             // 0 = proc 0 writes for all
                              // else # of procs writing files
+
+  int mpiioflag;               // 1 for MPIIO output, else 0
+  class RestartMPIIO *mpiio;   // MPIIO for restart file input
 
   void file_search(char *, char *);
   void header(int);

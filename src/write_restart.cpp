@@ -34,6 +34,7 @@
 #include "comm.h"
 #include "output.h"
 #include "thermo.h"
+#include "mpiio.h"
 #include "memory.h"
 #include "error.h"
 
@@ -96,17 +97,24 @@ void WriteRestart::command(int narg, char **arg)
 
   if (strchr(arg[0],'%')) multiproc = nprocs;
   else multiproc = 0;
-  if (strstr(arg[0],".mpi")) mpiio = 1;
-  else mpiio = 0;
+  if (strstr(arg[0],".mpi")) mpiioflag = 1;
+  else mpiioflag = 0;
 
-  if (multiproc && mpiio) 
+  if (multiproc && mpiioflag) 
     error->all(FLERR,
                "Write restart MPI-IO output not allowed with '%' in filename");
+
+  if (mpiioflag) {
+    mpiio = new RestartMPIIO(lmp);
+    if (!mpiio->mpiio_exists) 
+      error->all(FLERR,"Writing to MPI-IO filename when "
+                 "MPIIO package is not installed");
+  }
 
   // setup output style and process optional args
   // also called by Output class for periodic restart files
 
-  multiproc_options(multiproc,mpiio,narg-1,&arg[1]);
+  multiproc_options(multiproc,mpiioflag,narg-1,&arg[1]);
 
   // init entire system since comm->exchange is done
   // comm::init needs neighbor::init needs pair::init needs kspace::init, etc
@@ -136,11 +144,11 @@ void WriteRestart::command(int narg, char **arg)
 /* ----------------------------------------------------------------------
 ------------------------------------------------------------------------- */
 
-void WriteRestart::multiproc_options(int multiproc_caller, int mpiio_caller,
+void WriteRestart::multiproc_options(int multiproc_caller, int mpiioflag_caller,
                                      int narg, char **arg)
 {
   multiproc = multiproc_caller;
-  mpiio = mpiio_caller;
+  mpiioflag = mpiioflag_caller;
 
   // defaults for multiproc file writing
 
@@ -363,32 +371,49 @@ void WriteRestart::write(char *file)
     }
   }
 
+  // MPI-IO output to single file
+
+  if (mpiioflag) {
+    // add calls to RestartMPIIO class
+    // reopen header file in append mode
+    // perform writes
+
+    // mpiio->open(file);
+    // mpiio->write(send_size,buf);
+    // mpiio->close();
+  }
+
+  // output of one or more native files
   // filewriter = 1 = this proc writes to file
   // ping each proc in my cluster, receive its data, write data to file
   // else wait for ping from fileproc, send my data to fileproc
 
-  int tmp,recv_size;
-  MPI_Status status;
-  MPI_Request request;
+  else {
+    int tmp,recv_size;
+    MPI_Status status;
+    MPI_Request request;
 
-  if (filewriter) {
-    write_int(PROCSPERFILE,nclusterprocs);
-    for (int iproc = 0; iproc < nclusterprocs; iproc++) {
-      if (iproc) {
-        MPI_Irecv(buf,max_size,MPI_DOUBLE,me+iproc,0,world,&request);
-        MPI_Send(&tmp,0,MPI_INT,me+iproc,0,world);
-        MPI_Wait(&request,&status);
-        MPI_Get_count(&status,MPI_DOUBLE,&recv_size);
-      } else recv_size = send_size;
+    if (filewriter) {
+      write_int(PROCSPERFILE,nclusterprocs);
+      for (int iproc = 0; iproc < nclusterprocs; iproc++) {
+        if (iproc) {
+          MPI_Irecv(buf,max_size,MPI_DOUBLE,me+iproc,0,world,&request);
+          MPI_Send(&tmp,0,MPI_INT,me+iproc,0,world);
+          MPI_Wait(&request,&status);
+          MPI_Get_count(&status,MPI_DOUBLE,&recv_size);
+        } else recv_size = send_size;
+        
+        write_double_vec(PERPROC,recv_size,buf);
+      }
+      fclose(fp);
 
-      write_double_vec(PERPROC,recv_size,buf);
+    } else {
+      MPI_Recv(&tmp,0,MPI_INT,fileproc,0,world,&status);
+      MPI_Rsend(buf,send_size,MPI_DOUBLE,fileproc,0,world);
     }
-    fclose(fp);
-
-  } else {
-    MPI_Recv(&tmp,0,MPI_INT,fileproc,0,world,&status);
-    MPI_Rsend(buf,send_size,MPI_DOUBLE,fileproc,0,world);
   }
+
+  // clean up
 
   memory->destroy(buf);
 
@@ -528,8 +553,11 @@ void WriteRestart::file_layout(int send_size)
 {
   if (me == 0) {
     write_int(MULTIPROC,multiproc);
-    write_int(MPIIO,mpiio);
+    write_int(MPIIO,mpiioflag);
   }
+
+  // NOTE: could add MPI-IO specific fields to header here
+  // e.g. gather send_size across all procs and call write_int_vec()
 
   // -1 flag signals end of file layout info
 

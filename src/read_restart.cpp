@@ -35,6 +35,7 @@
 #include "improper.h"
 #include "special.h"
 #include "universe.h"
+#include "mpiio.h"
 #include "memory.h"
 #include "error.h"
 
@@ -96,12 +97,19 @@ void ReadRestart::command(int narg, char **arg)
 
   if (strchr(arg[0],'%')) multiproc = 1;
   else multiproc = 0;
-  if (strstr(arg[0],".mpi")) mpiio = 1;
-  else mpiio = 0;
+  if (strstr(arg[0],".mpi")) mpiioflag = 1;
+  else mpiioflag = 0;
 
-  if (multiproc && mpiio) 
+  if (multiproc && mpiioflag) 
     error->all(FLERR,
                "Read restart MPI-IO output not allowed with '%' in filename");
+
+  if (mpiioflag) {
+    mpiio = new RestartMPIIO(lmp);
+    if (!mpiio->mpiio_exists) 
+      error->all(FLERR,"Reading from MPI-IO filename when "
+                 "MPIIO package is not installed");
+  }
 
   // open single restart file or base file for multiproc case
 
@@ -170,19 +178,37 @@ void ReadRestart::command(int narg, char **arg)
 
   if (me == 0) fclose(fp);
 
-  // single file:
-  // nprocs_file = # of chunks in file
-  // proc 0 reads a chunk and bcasts it to other procs
-  // each proc unpacks the atoms, saving ones in it's sub-domain
-  // check for atom in sub-domain differs for orthogonal vs triclinic box
-
   AtomVec *avec = atom->avec;
 
   int maxbuf = 0;
   double *buf = NULL;
   int m;
 
-  if (multiproc == 0) {
+  // MPI-IO input from single file
+
+  if (mpiioflag) {
+    // add calls to RestartMPIIO class
+    // reopen header file
+    // perform reads
+    // allow for different # of procs reading than wrote the file
+
+    // mpiio->open(file);
+    // mpiio->read();
+    // mpiio->close();
+
+    // then process atom info as
+
+    //m = 0;
+    //while (m < n) m += avec->unpack_restart(&buf[m]);
+  }
+
+  // input of single native file
+  // nprocs_file = # of chunks in file
+  // proc 0 reads a chunk and bcasts it to other procs
+  // each proc unpacks the atoms, saving ones in it's sub-domain
+  // check for atom in sub-domain differs for orthogonal vs triclinic box
+
+  else if (multiproc == 0) {
 
     int triclinic = domain->triclinic;
     double *x,lamda[3];
@@ -225,13 +251,14 @@ void ReadRestart::command(int narg, char **arg)
     }
 
     if (me == 0) fclose(fp);
+  }
 
-  // multiple files with procs <= files
+  // input of multiple native files with procs <= files
   // # of files = multiproc_file
   // each proc reads a subset of files, striding by nprocs
   // each proc keeps all atoms in all perproc chunks in its files
 
-  } else if (nprocs <= multiproc_file) {
+  else if (nprocs <= multiproc_file) {
 
     char *procfile = new char[strlen(file) + 16];
     char *ptr = strchr(file,'%');
@@ -275,15 +302,16 @@ void ReadRestart::command(int narg, char **arg)
     }
 
     delete [] procfile;
+  }
 
-  // multiple files with procs > files
+  // input of multiple native files with procs > files
   // # of files = multiproc_file
   // cluster procs based on # of files
   // 1st proc in each cluster reads per-proc chunks from file
   // sends chunks round-robin to other procs in its cluster
   // each proc keeps all atoms in its perproc chunks in file
 
-  } else {
+  else {
 
     // nclusterprocs = # of procs in my cluster that read from one file
     // filewriter = 1 if this proc reads file, else 0
@@ -382,10 +410,10 @@ void ReadRestart::command(int narg, char **arg)
   delete [] file;
   memory->destroy(buf);
 
-  // for multiproc files:
+  // for multiproc or MPI-IO files:
   // perform irregular comm to migrate atoms to correct procs
 
-  if (multiproc) {
+  if (multiproc || mpiioflag) {
 
     // create a temporary fix to hold and migrate extra atom info
     // necessary b/c irregular will migrate atoms
@@ -899,12 +927,15 @@ void ReadRestart::file_layout()
         error->all(FLERR,"Restart file is a multi-proc file");
 
     } else if (flag = MPIIO) {
-      int mpiio_file = read_int();
-      if (mpiio == 0 && mpiio_file)
+      int mpiioflag_file = read_int();
+      if (mpiioflag == 0 && mpiioflag_file)
         error->all(FLERR,"Restart file is a MPI-IO file");
-      if (mpiio && mpiio_file == 0)
+      if (mpiioflag && mpiioflag_file == 0)
         error->all(FLERR,"Restart file is not a MPI-IO file");
     }
+
+    // NOTE: could add reading of MPI-IO specific fields to header here
+    // e.g. read vector of PERPROCSIZE values
 
     flag = read_int();
   }

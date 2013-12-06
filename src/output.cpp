@@ -762,13 +762,13 @@ void Output::create_restart(int narg, char **arg)
       error->all(FLERR,"Both restart files must have '%' or neither");
   }
 
-  int mpiio;
-  if (strstr(arg[1],".mpi")) mpiio = 1;
-  else mpiio = 0;
+  int mpiioflag;
+  if (strstr(arg[1],".mpi")) mpiioflag = 1;
+  else mpiioflag = 0;
   if (nfile == 2) {
-    if (mpiio && !strstr(arg[2],".mpi")) 
+    if (mpiioflag && !strstr(arg[2],".mpi")) 
       error->all(FLERR,"Both restart files must use MPI-IO or neither");
-    if (!mpiio && strstr(arg[2],".mpi"))
+    if (!mpiioflag && strstr(arg[2],".mpi"))
       error->all(FLERR,"Both restart files must use MPI-IO or neither");
   }
 
@@ -777,7 +777,7 @@ void Output::create_restart(int narg, char **arg)
   delete restart;
   restart = new WriteRestart(lmp);
   int iarg = nfile+1;
-  restart->multiproc_options(multiproc,mpiio,narg-iarg,&arg[iarg]);
+  restart->multiproc_options(multiproc,mpiioflag,narg-iarg,&arg[iarg]);
 }
 
 /* ----------------------------------------------------------------------

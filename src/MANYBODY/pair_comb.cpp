@@ -936,7 +936,7 @@ double PairComb::elp(Param *param, double rsqij, double rsqik,
   if (param->aconf > 1.0e-6 || param->plp1 > 1.0e-6 ||
       param->plp3 > 1.0e-6 || param->plp6 > 1.0e-6) {
     double rij,rik,costheta,lp1,lp3,lp6;
-    double rmu,rmu2,comtt,fck;
+    double rmu,rmu2,comtt,fcj,fck;
     double pplp1 = param->plp1, pplp3 = param->plp3, pplp6 = param->plp6;
     double c123 = cos(param->a123*MY_PI/180.0);
 
@@ -946,6 +946,7 @@ double PairComb::elp(Param *param, double rsqij, double rsqik,
     rij = sqrt(rsqij);
     rik = sqrt(rsqik);
     costheta = vec3_dot(delrij,delrik) / (rij*rik);
+    fcj = comb_fc(rij,param);
     fck = comb_fc(rik,param);
     rmu = costheta;
 
@@ -967,7 +968,7 @@ double PairComb::elp(Param *param, double rsqij, double rsqik,
         comtt += param->aconf *(4.0-(rmu-c123)*(rmu-c123));
     }
 
-    return 0.5 * fck * comtt;
+    return 0.5 * fcj * fck * comtt;
   }
 
   return 0.0;
@@ -1030,7 +1031,7 @@ void PairComb::flp(Param *param, double rsqij, double rsqik,
       }
     }
 
-    com4k = fcj * fck_d * comtt;
+    com4k = 2.0 * fcj * fck_d * comtt;
     com5 = fcj * fck * comtt_d;
 
     ffj1 =-0.5*(com5/(rij*rik));
@@ -1091,7 +1092,7 @@ double PairComb::comb_fc(double r, Param *param)
 
   if (r < comb_R-comb_D) return 1.0;
   if (r > comb_R+comb_D) return 0.0;
-  return 0.5*(1.0 + cos(MY_PI*(r - comb_R)/comb_D));
+  return 0.5*(1.0 - sin(MY_PI2*(r - comb_R)/comb_D));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1103,7 +1104,7 @@ double PairComb::comb_fc_d(double r, Param *param)
 
   if (r < comb_R-comb_D) return 0.0;
   if (r > comb_R+comb_D) return 0.0;
-  return -(MY_PI2/comb_D) * sin(MY_PI*(r - comb_R)/comb_D);
+  return -(MY_PI4/comb_D) * cos(MY_PI2*(r - comb_R)/comb_D);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1795,7 +1796,6 @@ double PairComb::qfo_self(Param *param, double qi, double selfpot)
  self_d = 0.0;
  qmin = param->QL1*0.90;
  qmax = param->QU1*0.90;
- if (qmax > 4.50 ) qmax = -0.70;
  cmin = cmax = 1000.0;
 
  self_d = s1+qi*(2.0*(s2+selfpot)+qi*(3.0*s3+qi*(4.0*s4+qi*qi*6.0*s5)));

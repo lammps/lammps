@@ -100,17 +100,6 @@ void WriteRestart::command(int narg, char **arg)
   if (strstr(arg[0],".mpi")) mpiioflag = 1;
   else mpiioflag = 0;
 
-  if (multiproc && mpiioflag) 
-    error->all(FLERR,
-               "Write restart MPI-IO output not allowed with '%' in filename");
-
-  if (mpiioflag) {
-    mpiio = new RestartMPIIO(lmp);
-    if (!mpiio->mpiio_exists) 
-      error->all(FLERR,"Writing to MPI-IO filename when "
-                 "MPIIO package is not installed");
-  }
-
   // setup output style and process optional args
   // also called by Output class for periodic restart files
 
@@ -149,6 +138,19 @@ void WriteRestart::multiproc_options(int multiproc_caller, int mpiioflag_caller,
 {
   multiproc = multiproc_caller;
   mpiioflag = mpiioflag_caller;
+
+  // error checks
+
+  if (multiproc && mpiioflag) 
+    error->all(FLERR,
+               "Restart file MPI-IO output not allowed with '%' in filename");
+
+  if (mpiioflag) {
+    mpiio = new RestartMPIIO(lmp);
+    if (!mpiio->mpiio_exists) 
+      error->all(FLERR,"Writing to MPI-IO filename when "
+                 "MPIIO package is not installed");
+  }
 
   // defaults for multiproc file writing
 

@@ -105,14 +105,18 @@ script that reads the restart file, though you can redefine settings
 after the restart file is read.
 </P>
 <P>One exception is that some pair styles do not store their info in
-restart files.  The doc pages for individual pair styles note if this
-is the case.  This is also true of bond_style hybrid (and angle_style,
-dihedral_style, improper_style hybrid).
+restart files.  Typically these are many-body potentials which read
+their parameters from separate files; you need to re-specify the <A HREF = "pair_style.html">pair
+style</A> and <A HREF = "pair_coeff.html">pair coeff</A> commands in
+your restart input script.  The doc pages for individual pair styles
+note if this is the case.  This is also true of bond_style hybrid (and
+angle_style, dihedral_style, improper_style hybrid).
 </P>
-<P>All settings made by the <A HREF = "pair_modify.html">pair_modify</A> command,
-such as the shift and tail settings, are stored in the restart file
-with the pair style.  The one exception is the <A HREF = "pair_modify.html">pair_modify
-compute</A> setting is not stored.
+<P>All settings made by the <A HREF = "pair_modify.html">pair_modify</A> command, such
+as the shift and tail settings, are stored in the restart file with
+the pair style.  The one exception is the <A HREF = "pair_modify.html">pair_modify
+compute</A> setting is not stored, since it is typically
+only used for debugging purposes.
 </P>
 <P>Information about <A HREF = "kspace_style.html">kspace_style</A> settings are not
 stored in the restart file.  Hence if you wish to use an Ewald or PPPM

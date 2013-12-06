@@ -706,9 +706,13 @@ void Output::create_restart(int narg, char **arg)
     return;
   }
 
-  if (narg != 2 && narg != 3) error->all(FLERR,"Illegal restart command");
+  if (narg < 2) error->all(FLERR,"Illegal restart command");
 
-  if (narg == 2) {
+  int nfile = 0;
+  if (narg % 2 == 0) nfile = 1;
+  else nfile = 2;
+
+  if (nfile = 1) {
     restart_flag = restart_flag_single = 1;
 
     if (varflag) {
@@ -725,7 +729,7 @@ void Output::create_restart(int narg, char **arg)
     if (strchr(restart1,'*') == NULL) strcat(restart1,".*");
   }
 
-  if (narg == 3) {
+  if (nfile == 2) {
     restart_flag = restart_flag_double = 1;
 
     if (varflag) {
@@ -745,7 +749,35 @@ void Output::create_restart(int narg, char **arg)
     strcpy(restart2b,arg[2]);
   }
 
-  if (restart == NULL) restart = new WriteRestart(lmp);
+  // check for multiproc output and an MPI-IO filename
+  // if 2 filenames, must be consistent
+
+  int multiproc;
+  if (strchr(arg[1],'%')) multiproc = comm->nprocs;
+  else multiproc = 0;
+  if (nfile == 2) {
+    if (multiproc && !strchr(arg[2],'%')) 
+      error->all(FLERR,"Both restart files must have '%' or neither");
+    if (!multiproc && strchr(arg[2],'%'))
+      error->all(FLERR,"Both restart files must have '%' or neither");
+  }
+
+  int mpiio;
+  if (strstr(arg[1],".mpi")) mpiio = 1;
+  else mpiio = 0;
+  if (nfile == 2) {
+    if (mpiio && !strstr(arg[2],".mpi")) 
+      error->all(FLERR,"Both restart files must use MPI-IO or neither");
+    if (!mpiio && strstr(arg[2],".mpi"))
+      error->all(FLERR,"Both restart files must use MPI-IO or neither");
+  }
+
+  // setup output style and process optional args
+
+  delete restart;
+  restart = new WriteRestart(lmp);
+  int iarg = nfile+1;
+  restart->multiproc_options(multiproc,mpiio,narg-iarg,&arg[iarg]);
 }
 
 /* ----------------------------------------------------------------------

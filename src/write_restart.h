@@ -29,6 +29,7 @@ class WriteRestart : protected Pointers {
  public:
   WriteRestart(class LAMMPS *);
   void command(int, char **);
+  void multiproc_options(int, int, int, char **);
   void write(char *);
 
  private:
@@ -36,14 +37,29 @@ class WriteRestart : protected Pointers {
   FILE *fp;
   bigint natoms;         // natoms (sum of nlocal) to write into file
 
+  int mpiio;                 // 1 for MPIIO output, else 0
+  int multiproc;             // 0 = proc 0 writes for all
+                             // else # of procs writing files
+  int nclusterprocs;         // # of procs in my cluster that write to one file
+  int filewriter;            // 1 if this proc writes a file, else 0
+  int fileproc;              // ID of proc in my cluster who writes to file
+  int icluster;              // which cluster I am in
+
   void header();
   void type_arrays();
   void force_fields();
+  void file_layout(int);
+
+  void magic_string();
+  void endian();
+  void version_numeric();
 
   void write_int(int, int);
-  void write_double(int, double);
-  void write_char(int, char *);
   void write_bigint(int, bigint);
+  void write_double(int, double);
+  void write_string(int, char *);
+  void write_int_vec(int, int, int *);
+  void write_double_vec(int, int, double *);
 };
 
 }

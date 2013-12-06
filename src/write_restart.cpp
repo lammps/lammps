@@ -39,23 +39,26 @@
 
 using namespace LAMMPS_NS;
 
-// same as read_restart.cpp and tools/restart2data.cpp
+// same as read_restart.cpp
+
+#define MAGIC_STRING "LammpS RestartT"
+#define ENDIAN 0x0001
+#define ENDIANSWAP 0x1000
+#define VERSION_NUMERIC 0
 
 enum{VERSION,SMALLINT,TAGINT,BIGINT,
-       UNITS,NTIMESTEP,DIMENSION,NPROCS,PROCGRID_0,PROCGRID_1,PROCGRID_2,
-       NEWTON_PAIR,NEWTON_BOND,XPERIODIC,YPERIODIC,ZPERIODIC,
-       BOUNDARY_00,BOUNDARY_01,BOUNDARY_10,BOUNDARY_11,BOUNDARY_20,BOUNDARY_21,
-       ATOM_STYLE,NATOMS,NTYPES,
-       NBONDS,NBONDTYPES,BOND_PER_ATOM,
-       NANGLES,NANGLETYPES,ANGLE_PER_ATOM,
-       NDIHEDRALS,NDIHEDRALTYPES,DIHEDRAL_PER_ATOM,
-       NIMPROPERS,NIMPROPERTYPES,IMPROPER_PER_ATOM,
-       BOXLO_0,BOXHI_0,BOXLO_1,BOXHI_1,BOXLO_2,BOXHI_2,
-       SPECIAL_LJ_1,SPECIAL_LJ_2,SPECIAL_LJ_3,
-       SPECIAL_COUL_1,SPECIAL_COUL_2,SPECIAL_COUL_3,
-       XY,XZ,YZ};
-enum{MASS};
-enum{PAIR,BOND,ANGLE,DIHEDRAL,IMPROPER};
+     UNITS,NTIMESTEP,DIMENSION,NPROCS,PROCGRID,
+     NEWTON_PAIR,NEWTON_BOND,
+     XPERIODIC,YPERIODIC,ZPERIODIC,BOUNDARY,
+     ATOM_STYLE,NATOMS,NTYPES,
+     NBONDS,NBONDTYPES,BOND_PER_ATOM,
+     NANGLES,NANGLETYPES,ANGLE_PER_ATOM,
+     NDIHEDRALS,NDIHEDRALTYPES,DIHEDRAL_PER_ATOM,
+     NIMPROPERS,NIMPROPERTYPES,IMPROPER_PER_ATOM,
+     TRICLINIC,BOXLO,BOXHI,XY,XZ,YZ,
+     SPECIAL_LJ,SPECIAL_COUL,
+     MASS,PAIR,BOND,ANGLE,DIHEDRAL,IMPROPER,
+     MULTIPROC,MPIIO,PROCSPERFILE,PERPROC};
 
 enum{IGNORE,WARN,ERROR};                    // same as thermo.cpp
 
@@ -65,6 +68,7 @@ WriteRestart::WriteRestart(LAMMPS *lmp) : Pointers(lmp)
 {
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
+  multiproc = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -75,7 +79,7 @@ void WriteRestart::command(int narg, char **arg)
 {
   if (domain->box_exist == 0)
     error->all(FLERR,"Write_restart command before simulation box is defined");
-  if (narg != 1) error->all(FLERR,"Illegal write_restart command");
+  if (narg < 1) error->all(FLERR,"Illegal write_restart command");
 
   // if filename contains a "*", replace with current timestep
 
@@ -88,6 +92,21 @@ void WriteRestart::command(int narg, char **arg)
     sprintf(file,"%s" BIGINT_FORMAT "%s",arg[0],update->ntimestep,ptr+1);
   } else strcpy(file,arg[0]);
 
+  // check for multiproc output and an MPI-IO filename
+
+  if (strchr(arg[0],'%')) multiproc = nprocs;
+  else multiproc = 0;
+  if (strstr(arg[0],".mpi")) mpiio = 1;
+  else mpiio = 0;
+
+  if (multiproc && mpiio) 
+    error->all(FLERR,
+               "Write restart MPI-IO output not allowed with '%' in filename");
+
+  // setup output style and process optional args
+  // also called by Output class for periodic restart files
+
+  multiproc_options(multiproc,mpiio,narg-1,&arg[1]);
 
   // init entire system since comm->exchange is done
   // comm::init needs neighbor::init needs pair::init needs kspace::init, etc
@@ -115,6 +134,78 @@ void WriteRestart::command(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
+------------------------------------------------------------------------- */
+
+void WriteRestart::multiproc_options(int multiproc_caller, int mpiio_caller,
+                                     int narg, char **arg)
+{
+  multiproc = multiproc_caller;
+  mpiio = mpiio_caller;
+
+  // defaults for multiproc file writing
+
+  nclusterprocs = nprocs;
+  filewriter = 0;
+  if (me == 0) filewriter = 1;
+  fileproc = 0;
+
+  if (multiproc) {
+    nclusterprocs = 1;
+    filewriter = 1;
+    fileproc = me;
+    icluster = me;
+  }
+
+  // optional args
+
+  int iarg = 0;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"fileper") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal write_restart command");
+      if (!multiproc)
+	error->all(FLERR,"Cannot use write_restart fileper "
+                   "without % in restart file name");
+      int nper = force->inumeric(FLERR,arg[iarg+1]);
+      if (nper <= 0) error->all(FLERR,"Illegal write_restart command");
+      
+      multiproc = nprocs/nper;
+      if (nprocs % nper) multiproc++;
+      fileproc = me/nper * nper;
+      int fileprocnext = MIN(fileproc+nper,nprocs);
+      nclusterprocs = fileprocnext - fileproc;
+      if (me == fileproc) filewriter = 1;
+      else filewriter = 0;
+      icluster = fileproc/nper;
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"nfile") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal write_restart command");
+      if (!multiproc)
+	error->all(FLERR,"Cannot use write_restart nfile "
+                   "without % in restart file name");
+      int nfile = force->inumeric(FLERR,arg[iarg+1]);
+      if (nfile <= 0) error->all(FLERR,"Illegal write_restart command");
+      nfile = MIN(nfile,nprocs);
+
+      multiproc = nfile;
+      icluster = static_cast<int> ((bigint) me * nfile/nprocs);
+      fileproc = static_cast<int> ((bigint) icluster * nprocs/nfile);
+      int fcluster = static_cast<int> ((bigint) fileproc * nfile/nprocs);
+      if (fcluster < icluster) fileproc++;
+      int fileprocnext = 
+        static_cast<int> ((bigint) (icluster+1) * nprocs/nfile);
+      fcluster = static_cast<int> ((bigint) fileprocnext * nfile/nprocs);
+      if (fcluster < icluster+1) fileprocnext++;
+      nclusterprocs = fileprocnext - fileproc;
+      if (me == fileproc) filewriter = 1;
+      else filewriter = 0;
+      iarg += 2;
+
+    } else error->all(FLERR,"Illegal write_restart command");
+  }
+}
+
+/* ----------------------------------------------------------------------
    called from command() and directly from output within run/minimize loop
    file = final file name to write, except may contain a "%"
 ------------------------------------------------------------------------- */
@@ -138,12 +229,6 @@ void WriteRestart::write(char *file)
   if (natoms != atom->natoms && output->thermo->lostflag == ERROR)
     error->all(FLERR,"Atom count is inconsistent, cannot write restart file");
 
-  // check if filename contains "%"
-
-  int multiproc;
-  if (strchr(file,'%')) multiproc = 1;
-  else multiproc = 0;
-
   // open single restart file or base file for multiproc case
 
   if (me == 0) {
@@ -164,8 +249,15 @@ void WriteRestart::write(char *file)
     if (multiproc) delete [] hfile;
   }
 
-  // proc 0 writes header, groups, ntype-length arrays, force field
-  // all procs write fix info
+  // proc 0 writes magic string, endian flag, numeric version
+
+  if (me == 0) {
+    magic_string();
+    endian();
+    version_numeric();
+  }
+
+  // proc 0 writes header, groups, pertype info, force field info
 
   if (me == 0) {
     header();
@@ -174,9 +266,11 @@ void WriteRestart::write(char *file)
     force_fields();
   }
 
+  // all procs write fix info
+
   modify->write_restart(fp);
 
-  // communication buffer for all my atom's info
+  // communication buffer for my atom info
   // max_size = largest buffer needed by any proc
 
   int max_size;
@@ -184,8 +278,35 @@ void WriteRestart::write(char *file)
   MPI_Allreduce(&send_size,&max_size,1,MPI_INT,MPI_MAX,world);
 
   double *buf;
-  if (me == 0) memory->create(buf,max_size,"write_restart:buf");
-  else memory->create(buf,send_size,"write_restart:buf");
+  memory->create(buf,max_size,"write_restart:buf");
+
+  // all procs write file layout info which may include per-proc sizes
+
+  file_layout(send_size);
+
+  // header info is complete
+  // if multiproc output:
+  // close header file, open multiname file on each writing proc
+
+  if (multiproc) {
+    if (me == 0) fclose(fp);
+
+    char *multiname = new char[strlen(file) + 16];
+    char *ptr = strchr(file,'%');
+    *ptr = '\0';
+    sprintf(multiname,"%s%d%s",file,icluster,ptr+1);
+
+    if (filewriter) {
+      fp = fopen(multiname,"wb");
+      if (fp == NULL) {
+        char str[128];
+        sprintf(str,"Cannot open restart file %s",multiname);
+        error->one(FLERR,str);
+      }
+    }
+
+    delete [] multiname;
+  }
 
   // pack my atom data into buf
 
@@ -242,55 +363,31 @@ void WriteRestart::write(char *file)
     }
   }
 
-  // if single file:
-  //   write one chunk of atoms per proc to file
-  //   proc 0 pings each proc, receives its chunk, writes to file
-  //   all other procs wait for ping, send their chunk to proc 0
-  // else if one file per proc:
-  //   each proc opens its own file and writes its chunk directly
+  // filewriter = 1 = this proc writes to file
+  // ping each proc in my cluster, receive its data, write data to file
+  // else wait for ping from fileproc, send my data to fileproc
 
-  if (multiproc == 0) {
-    int tmp,recv_size;
-    MPI_Status status;
-    MPI_Request request;
+  int tmp,recv_size;
+  MPI_Status status;
+  MPI_Request request;
 
-    if (me == 0) {
-      for (int iproc = 0; iproc < nprocs; iproc++) {
-        if (iproc) {
-          MPI_Irecv(buf,max_size,MPI_DOUBLE,iproc,0,world,&request);
-          MPI_Send(&tmp,0,MPI_INT,iproc,0,world);
-          MPI_Wait(&request,&status);
-          MPI_Get_count(&status,MPI_DOUBLE,&recv_size);
-        } else recv_size = send_size;
+  if (filewriter) {
+    write_int(PROCSPERFILE,nclusterprocs);
+    for (int iproc = 0; iproc < nclusterprocs; iproc++) {
+      if (iproc) {
+        MPI_Irecv(buf,max_size,MPI_DOUBLE,me+iproc,0,world,&request);
+        MPI_Send(&tmp,0,MPI_INT,me+iproc,0,world);
+        MPI_Wait(&request,&status);
+        MPI_Get_count(&status,MPI_DOUBLE,&recv_size);
+      } else recv_size = send_size;
 
-        fwrite(&recv_size,sizeof(int),1,fp);
-        fwrite(buf,sizeof(double),recv_size,fp);
-      }
-      fclose(fp);
-
-    } else {
-      MPI_Recv(&tmp,0,MPI_INT,0,0,world,&status);
-      MPI_Rsend(buf,send_size,MPI_DOUBLE,0,0,world);
+      write_double_vec(PERPROC,recv_size,buf);
     }
+    fclose(fp);
 
   } else {
-    if (me == 0) fclose(fp);
-
-    char *perproc = new char[strlen(file) + 16];
-    char *ptr = strchr(file,'%');
-    *ptr = '\0';
-    sprintf(perproc,"%s%d%s",file,me,ptr+1);
-    *ptr = '%';
-    fp = fopen(perproc,"wb");
-    if (fp == NULL) {
-      char str[128];
-      sprintf(str,"Cannot open restart file %s",perproc);
-      error->one(FLERR,str);
-    }
-    delete [] perproc;
-    fwrite(&send_size,sizeof(int),1,fp);
-    fwrite(buf,sizeof(double),send_size,fp);
-    fclose(fp);
+    MPI_Recv(&tmp,0,MPI_INT,fileproc,0,world,&status);
+    MPI_Rsend(buf,send_size,MPI_DOUBLE,fileproc,0,world);
   }
 
   memory->destroy(buf);
@@ -308,35 +405,28 @@ void WriteRestart::write(char *file)
 
 void WriteRestart::header()
 {
-  write_char(VERSION,universe->version);
+  write_string(VERSION,universe->version);
   write_int(SMALLINT,sizeof(smallint));
   write_int(TAGINT,sizeof(tagint));
   write_int(BIGINT,sizeof(bigint));
-  write_char(UNITS,update->unit_style);
+  write_string(UNITS,update->unit_style);
   write_bigint(NTIMESTEP,update->ntimestep);
   write_int(DIMENSION,domain->dimension);
   write_int(NPROCS,nprocs);
-  write_int(PROCGRID_0,comm->procgrid[0]);
-  write_int(PROCGRID_1,comm->procgrid[1]);
-  write_int(PROCGRID_2,comm->procgrid[2]);
+  write_int_vec(PROCGRID,3,comm->procgrid);
   write_int(NEWTON_PAIR,force->newton_pair);
   write_int(NEWTON_BOND,force->newton_bond);
   write_int(XPERIODIC,domain->xperiodic);
   write_int(YPERIODIC,domain->yperiodic);
   write_int(ZPERIODIC,domain->zperiodic);
-  write_int(BOUNDARY_00,domain->boundary[0][0]);
-  write_int(BOUNDARY_01,domain->boundary[0][1]);
-  write_int(BOUNDARY_10,domain->boundary[1][0]);
-  write_int(BOUNDARY_11,domain->boundary[1][1]);
-  write_int(BOUNDARY_20,domain->boundary[2][0]);
-  write_int(BOUNDARY_21,domain->boundary[2][1]);
+  write_int_vec(BOUNDARY,6,&domain->boundary[0][0]);
 
   // atom_style must be written before atom class values
   // so read_restart can create class before reading class values
   // if style = hybrid, also write sub-class styles
   // avec->write_restart() writes atom_style specific info
 
-  write_char(ATOM_STYLE,atom->atom_style);
+  write_string(ATOM_STYLE,atom->atom_style);
 
   if (strcmp(atom->atom_style,"hybrid") == 0) {
     AtomVecHybrid *avec_hybrid = (AtomVecHybrid *) atom->avec;
@@ -349,8 +439,7 @@ void WriteRestart::header()
       fwrite(keywords[i],sizeof(char),n,fp);
     }
   }
-
-  if (me == 0) atom->avec->write_restart_settings(fp);
+  atom->avec->write_restart_settings(fp);
 
   write_bigint(NATOMS,natoms);
   write_int(NTYPES,atom->ntypes);
@@ -367,25 +456,15 @@ void WriteRestart::header()
   write_int(NIMPROPERTYPES,atom->nimpropertypes);
   write_int(IMPROPER_PER_ATOM,atom->improper_per_atom);
 
-  write_double(BOXLO_0,domain->boxlo[0]);
-  write_double(BOXHI_0,domain->boxhi[0]);
-  write_double(BOXLO_1,domain->boxlo[1]);
-  write_double(BOXHI_1,domain->boxhi[1]);
-  write_double(BOXLO_2,domain->boxlo[2]);
-  write_double(BOXHI_2,domain->boxhi[2]);
+  write_int(TRICLINIC,domain->triclinic);
+  write_double_vec(BOXLO,3,domain->boxlo);
+  write_double_vec(BOXHI,3,domain->boxhi);
+  write_double(XY,domain->xy);
+  write_double(XZ,domain->xz);
+  write_double(YZ,domain->yz);
 
-  write_double(SPECIAL_LJ_1,force->special_lj[1]);
-  write_double(SPECIAL_LJ_2,force->special_lj[2]);
-  write_double(SPECIAL_LJ_3,force->special_lj[3]);
-  write_double(SPECIAL_COUL_1,force->special_coul[1]);
-  write_double(SPECIAL_COUL_2,force->special_coul[2]);
-  write_double(SPECIAL_COUL_3,force->special_coul[3]);
-
-  if (domain->triclinic) {
-    write_double(XY,domain->xy);
-    write_double(XZ,domain->xz);
-    write_double(YZ,domain->yz);
-  }
+  write_double_vec(SPECIAL_LJ,3,&force->special_lj[1]);
+  write_double_vec(SPECIAL_COUL,3,&force->special_coul[1]);
 
   // -1 flag signals end of header
 
@@ -399,11 +478,7 @@ void WriteRestart::header()
 
 void WriteRestart::type_arrays()
 {
-  if (atom->mass) {
-    int flag = MASS;
-    fwrite(&flag,sizeof(int),1,fp);
-    fwrite(&atom->mass[1],sizeof(double),atom->ntypes,fp);
-  }
+  if (atom->mass) write_double_vec(MASS,atom->ntypes,&atom->mass[1]);
 
   // -1 flag signals end of type arrays
 
@@ -417,44 +492,24 @@ void WriteRestart::type_arrays()
 
 void WriteRestart::force_fields()
 {
-  if (force->pair) {
-    int flag = PAIR;
-    fwrite(&flag,sizeof(int),1,fp);
-    int n = strlen(force->pair_style) + 1;
-    fwrite(&n,sizeof(int),1,fp);
-    fwrite(force->pair_style,sizeof(char),n,fp);
+  if (force->pair && force->pair->restartinfo) {
+    write_string(PAIR,force->pair_style);
     force->pair->write_restart(fp);
   }
   if (atom->avec->bonds_allow && force->bond) {
-    int flag = BOND;
-    fwrite(&flag,sizeof(int),1,fp);
-    int n = strlen(force->bond_style) + 1;
-    fwrite(&n,sizeof(int),1,fp);
-    fwrite(force->bond_style,sizeof(char),n,fp);
+    write_string(BOND,force->bond_style);
     force->bond->write_restart(fp);
   }
   if (atom->avec->angles_allow && force->angle) {
-    int flag = ANGLE;
-    fwrite(&flag,sizeof(int),1,fp);
-    int n = strlen(force->angle_style) + 1;
-    fwrite(&n,sizeof(int),1,fp);
-    fwrite(force->angle_style,sizeof(char),n,fp);
+    write_string(ANGLE,force->angle_style);
     force->angle->write_restart(fp);
   }
   if (atom->avec->dihedrals_allow && force->dihedral) {
-    int flag = DIHEDRAL;
-    fwrite(&flag,sizeof(int),1,fp);
-    int n = strlen(force->dihedral_style) + 1;
-    fwrite(&n,sizeof(int),1,fp);
-    fwrite(force->dihedral_style,sizeof(char),n,fp);
+    write_string(DIHEDRAL,force->dihedral_style);
     force->dihedral->write_restart(fp);
   }
   if (atom->avec->impropers_allow && force->improper) {
-    int flag = IMPROPER;
-    fwrite(&flag,sizeof(int),1,fp);
-    int n = strlen(force->improper_style) + 1;
-    fwrite(&n,sizeof(int),1,fp);
-    fwrite(force->improper_style,sizeof(char),n,fp);
+    write_string(IMPROPER,force->improper_style);
     force->improper->write_restart(fp);
   }
 
@@ -462,6 +517,62 @@ void WriteRestart::force_fields()
 
   int flag = -1;
   fwrite(&flag,sizeof(int),1,fp);
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes out file layout info
+   all procs call this method, only proc 0 writes to file
+------------------------------------------------------------------------- */
+
+void WriteRestart::file_layout(int send_size)
+{
+  if (me == 0) {
+    write_int(MULTIPROC,multiproc);
+    write_int(MPIIO,mpiio);
+  }
+
+  // -1 flag signals end of file layout info
+
+  if (me == 0) {
+    int flag = -1;
+    fwrite(&flag,sizeof(int),1,fp);
+  }
+}
+
+// ----------------------------------------------------------------------
+// ----------------------------------------------------------------------
+// low-level fwrite methods
+// ----------------------------------------------------------------------
+// ----------------------------------------------------------------------
+
+/* ----------------------------------------------------------------------
+------------------------------------------------------------------------- */
+
+void WriteRestart::magic_string()
+{
+  int n = strlen(MAGIC_STRING) + 1;
+  char *str = new char[n];
+  strcpy(str,MAGIC_STRING);
+  fwrite(str,sizeof(char),n,fp);
+  delete [] str;
+}
+
+/* ----------------------------------------------------------------------
+------------------------------------------------------------------------- */
+
+void WriteRestart::endian()
+{
+  int endian = ENDIAN;
+  fwrite(&endian,sizeof(int),1,fp);
+}
+
+/* ----------------------------------------------------------------------
+------------------------------------------------------------------------- */
+
+void WriteRestart::version_numeric()
+{
+  int vn = VERSION_NUMERIC;
+  fwrite(&vn,sizeof(int),1,fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -475,6 +586,16 @@ void WriteRestart::write_int(int flag, int value)
 }
 
 /* ----------------------------------------------------------------------
+   write a flag and a bigint into restart file
+------------------------------------------------------------------------- */
+
+void WriteRestart::write_bigint(int flag, bigint value)
+{
+  fwrite(&flag,sizeof(int),1,fp);
+  fwrite(&value,sizeof(bigint),1,fp);
+}
+
+/* ----------------------------------------------------------------------
    write a flag and a double into restart file
 ------------------------------------------------------------------------- */
 
@@ -485,23 +606,35 @@ void WriteRestart::write_double(int flag, double value)
 }
 
 /* ----------------------------------------------------------------------
-   write a flag and a char str into restart file
+   write a flag and a char string (including NULL) into restart file
 ------------------------------------------------------------------------- */
 
-void WriteRestart::write_char(int flag, char *value)
+void WriteRestart::write_string(int flag, char *value)
 {
-  fwrite(&flag,sizeof(int),1,fp);
   int n = strlen(value) + 1;
+  fwrite(&flag,sizeof(int),1,fp);
   fwrite(&n,sizeof(int),1,fp);
   fwrite(value,sizeof(char),n,fp);
 }
 
 /* ----------------------------------------------------------------------
-   write a flag and a bigint into restart file
+   write a flag and vector of N ints into restart file
 ------------------------------------------------------------------------- */
 
-void WriteRestart::write_bigint(int flag, bigint value)
+void WriteRestart::write_int_vec(int flag, int n, int *vec)
 {
   fwrite(&flag,sizeof(int),1,fp);
-  fwrite(&value,sizeof(bigint),1,fp);
+  fwrite(&n,sizeof(int),1,fp);
+  fwrite(vec,sizeof(int),n,fp);
+}
+
+/* ----------------------------------------------------------------------
+   write a flag and vector of N doubles into restart file
+------------------------------------------------------------------------- */
+
+void WriteRestart::write_double_vec(int flag, int n, double *vec)
+{
+  fwrite(&flag,sizeof(int),1,fp);
+  fwrite(&n,sizeof(int),1,fp);
+  fwrite(vec,sizeof(double),n,fp);
 }

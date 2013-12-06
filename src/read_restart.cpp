@@ -128,11 +128,11 @@ void ReadRestart::command(int narg, char **arg)
 
   magic_string();
   endian();
-  int outofdate = version_numeric();
+  int incompatible = version_numeric();
 
   // read header info which creates simulation box
 
-  header(outofdate);
+  header(incompatible);
   domain->box_exist = 1;
 
   // problem setup using info from header
@@ -586,7 +586,7 @@ void ReadRestart::file_search(char *infile, char *outfile)
    read header of restart file
 ------------------------------------------------------------------------- */
 
-void ReadRestart::header(int outofdate)
+void ReadRestart::header(int incompatible)
 {
   int px,py,pz;
   int xperiodic,yperiodic,zperiodic;
@@ -605,8 +605,8 @@ void ReadRestart::header(int outofdate)
         if (screen) fprintf(screen,"  restart file = %s, LAMMPS = %s\n",
                             version,universe->version);
       }
-      if (outofdate) 
-        error->all(FLERR,"Restart file too old for current version to read");
+      if (incompatible) 
+        error->all(FLERR,"Restart file incompatible with current version");
       delete [] version;
 
     // check lmptype.h sizes, error if different
@@ -957,7 +957,7 @@ int ReadRestart::version_numeric()
   int vn;
   if (me == 0) fread(&vn,sizeof(int),1,fp);
   MPI_Bcast(&vn,1,MPI_INT,0,world);
-  if (vn < VERSION_NUMERIC) return 1;
+  if (vn != VERSION_NUMERIC) return 1;
   return 0;
 }
 

@@ -252,7 +252,7 @@ with a C-style format string, e.g. "%f" or "%.10g", which must be
 appropriate for formatting a double-precision floating-point value.
 This allows an equal-style variable to be formatted specifically for
 output as a string, e.g. by the "print"_print.html command, if the
-default format "%.20g" has too much precision.
+default format "%.15g" has too much precision.
 
 For the {getenv} style, a single string is assigned to the variable
 which should be the name of an environment variable.  When the

@@ -31,23 +31,32 @@ class ReadRestart : protected Pointers {
   void command(int, char **);
 
  private:
-  int me,nprocs,nprocs_file;
+  int me,nprocs,nprocs_file,multiproc_file;
   FILE *fp;
-  int swapflag;
+  int nfix_restart_global,nfix_restart_peratom;
+
+  int multiproc;             // 0 = proc 0 writes for all
+                             // else # of procs writing files
+
+  int mpiioflag;               // 1 for MPIIO output, else 0
+  class RestartMPIIO *mpiio;   // MPIIO for restart file input
 
   void file_search(char *, char *);
-  void header();
+  void header(int);
   void type_arrays();
   void force_fields();
 
-  void nread_int(int *, int, FILE *);
-  void nread_double(double *, int, FILE *);
-  void nread_char(char *, int, FILE *);
+  void magic_string();
+  void endian();
+  int version_numeric();
+  void file_layout();
+
   int read_int();
-  double read_double();
-  char *read_char();
   bigint read_bigint();
-  int autodetect(FILE **, char *);
+  double read_double();
+  char *read_string();
+  void read_int_vec(int, int *);
+  void read_double_vec(int, double *);
 };
 
 }

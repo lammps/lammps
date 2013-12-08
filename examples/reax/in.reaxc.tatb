@@ -46,6 +46,6 @@ timestep	0.0625
 #		axes yes 0.8 0.02 view 60 -30
 #dump_modify	1 pad 3
 
-fix 		3 all species 1 5 5 species.tatb
+fix 		3 all reax/c/species 1 5 5 species.tatb
 
 run		25

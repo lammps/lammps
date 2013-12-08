@@ -57,12 +57,12 @@ class Dump : protected Pointers {
   int binary;                // 1 if dump file is written binary, 0 no
   int multifile;             // 0 = one big file, 1 = one file per timestep
 
-  int multiproc;             // 0 = proc 0 writes for all, 
+  int multiproc;             // 0 = proc 0 writes for all
                              // else # of procs writing files
   int nclusterprocs;         // # of procs in my cluster that write to one file
   int filewriter;            // 1 if this proc writes a file, else 0
   int fileproc;              // ID of proc in my cluster who writes to file
-  char *multiname;           // dump filename with % converted to cluster ID
+  char *multiname;           // filename with % converted to cluster ID
   MPI_Comm clustercomm;      // MPI communicator within my cluster of procs
 
   int header_flag;           // 0 = item, 2 = xyz

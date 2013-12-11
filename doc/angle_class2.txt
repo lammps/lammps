@@ -33,8 +33,8 @@ the equilibrium bond lengths.
 See "(Sun)"_#Sun for a description of the COMPASS class2 force field.
 
 Coefficients for the Ea, Ebb, and Eba formulas must be defined for
-each angle type via the "bond_coeff"_bond_coeff.html command as in the
-example above, or in the data file or restart files read by the
+each angle type via the "angle_coeff"_angle_coeff.html command as in
+the example above, or in the data file or restart files read by the
 "read_data"_read_data.html or "read_restart"_read_restart.html
 commands.
 
@@ -48,7 +48,7 @@ K4 (energy/radian^4) :ul
 Theta0 is specified in degrees, but LAMMPS converts it to radians
 internally; hence the units of the various K are in per-radian.
 
-For the Ebb formula, each line in a "bond_coeff"_bond_coeff.html
+For the Ebb formula, each line in a "angle_coeff"_angle_coeff.html
 command in the input script lists 4 coefficients, the first of which
 is "bb" to indicate they are BondBond coefficients.  In a data file,
 these coefficients should be listed under a "BondBond Coeffs" heading
@@ -60,7 +60,7 @@ M (energy/distance^2)
 r1 (distance)
 r2 (distance) :ul
 
-For the Eba formula, each line in a "bond_coeff"_bond_coeff.html
+For the Eba formula, each line in a "angle_coeff"_angle_coeff.html
 command in the input script lists 5 coefficients, the first of which
 is "ba" to indicate they are BondAngle coefficients.  In a data file,
 these coefficients should be listed under a "BondAngle Coeffs" heading

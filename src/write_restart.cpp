@@ -296,7 +296,8 @@ void WriteRestart::write(char *file)
 
   // header info is complete
   // if multiproc output:
-  // close header file, open multiname file on each writing proc
+  //   close header file, open multiname file on each writing proc,
+  //   write PROCSPERFILE into new file
 
   if (multiproc) {
     if (me == 0) fclose(fp);
@@ -313,6 +314,7 @@ void WriteRestart::write(char *file)
         sprintf(str,"Cannot open restart file %s",multiname);
         error->one(FLERR,str);
       }
+      write_int(PROCSPERFILE,nclusterprocs);
     }
 
     delete [] multiname;
@@ -396,7 +398,6 @@ void WriteRestart::write(char *file)
     MPI_Request request;
 
     if (filewriter) {
-      write_int(PROCSPERFILE,nclusterprocs);
       for (int iproc = 0; iproc < nclusterprocs; iproc++) {
         if (iproc) {
           MPI_Irecv(buf,max_size,MPI_DOUBLE,me+iproc,0,world,&request);

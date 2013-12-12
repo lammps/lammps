@@ -33,8 +33,8 @@ the equilibrium bond lengths.
 See "(Sun)"_#Sun for a description of the COMPASS class2 force field.
 
 Coefficients for the Ea, Ebb, and Eba formulas must be defined for
-each angle type via the "angle_coeff"_angle_coeff.html command as in the
-example above, or in the data file or restart files read by the
+each angle type via the "angle_coeff"_angle_coeff.html command as in
+the example above, or in the data file or restart files read by the
 "read_data"_read_data.html or "read_restart"_read_restart.html
 commands.
 

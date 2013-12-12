@@ -712,7 +712,7 @@ void Output::create_restart(int narg, char **arg)
   if (narg % 2 == 0) nfile = 1;
   else nfile = 2;
 
-  if (nfile = 1) {
+  if (nfile == 1) {
     restart_flag = restart_flag_single = 1;
 
     if (varflag) {

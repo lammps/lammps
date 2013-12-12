@@ -37,8 +37,8 @@ the equilibrium bond lengths.
 <P>See <A HREF = "#Sun">(Sun)</A> for a description of the COMPASS class2 force field.
 </P>
 <P>Coefficients for the Ea, Ebb, and Eba formulas must be defined for
-each angle type via the <A HREF = "bond_coeff.html">bond_coeff</A> command as in the
-example above, or in the data file or restart files read by the
+each angle type via the <A HREF = "angle_coeff.html">angle_coeff</A> command as in
+the example above, or in the data file or restart files read by the
 <A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
 commands.
 </P>
@@ -52,7 +52,7 @@ commands.
 <P>Theta0 is specified in degrees, but LAMMPS converts it to radians
 internally; hence the units of the various K are in per-radian.
 </P>
-<P>For the Ebb formula, each line in a <A HREF = "bond_coeff.html">bond_coeff</A>
+<P>For the Ebb formula, each line in a <A HREF = "angle_coeff.html">angle_coeff</A>
 command in the input script lists 4 coefficients, the first of which
 is "bb" to indicate they are BondBond coefficients.  In a data file,
 these coefficients should be listed under a "BondBond Coeffs" heading
@@ -64,7 +64,7 @@ the angle type.
 <LI>r1 (distance)
 <LI>r2 (distance) 
 </UL>
-<P>For the Eba formula, each line in a <A HREF = "bond_coeff.html">bond_coeff</A>
+<P>For the Eba formula, each line in a <A HREF = "angle_coeff.html">angle_coeff</A>
 command in the input script lists 5 coefficients, the first of which
 is "ba" to indicate they are BondAngle coefficients.  In a data file,
 these coefficients should be listed under a "BondAngle Coeffs" heading

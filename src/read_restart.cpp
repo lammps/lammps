@@ -174,15 +174,17 @@ void ReadRestart::command(int narg, char **arg)
 
   file_layout();
 
-  // all done with reading header info
+  // close header file if in multiproc mode
 
-  if (me == 0) fclose(fp);
+  if (multiproc && me == 0) fclose(fp);
+
+  // read per-proc info
 
   AtomVec *avec = atom->avec;
 
   int maxbuf = 0;
   double *buf = NULL;
-  int m;
+  int m,flag;
 
   // MPI-IO input from single file
 
@@ -274,7 +276,6 @@ void ReadRestart::command(int narg, char **arg)
         error->one(FLERR,str);
       }
 
-      int flag;
       fread(&flag,sizeof(int),1,fp);
       if (flag != PROCSPERFILE) 
         error->one(FLERR,"Invalid flag in peratom section of restart file");
@@ -504,7 +505,7 @@ void ReadRestart::command(int narg, char **arg)
   // check if tags are being used
   // create global mapping and bond topology now that system is defined
 
-  int flag = 0;
+  flag = 0;
   for (int i = 0; i < atom->nlocal; i++)
     if (atom->tag[i] > 0) flag = 1;
   int flag_all;
@@ -926,7 +927,7 @@ void ReadRestart::file_layout()
       if (multiproc && multiproc_file == 0)
         error->all(FLERR,"Restart file is a multi-proc file");
 
-    } else if (flag = MPIIO) {
+    } else if (flag == MPIIO) {
       int mpiioflag_file = read_int();
       if (mpiioflag == 0 && mpiioflag_file)
         error->all(FLERR,"Restart file is a MPI-IO file");

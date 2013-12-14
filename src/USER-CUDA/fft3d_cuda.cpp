@@ -243,7 +243,7 @@ struct fft_plan_3d *fft_3d_create_plan_cuda(
       remap_3d_create_plan(comm,in_ilo,in_ihi,in_jlo,in_jhi,in_klo,in_khi,
                            first_ilo,first_ihi,first_jlo,first_jhi,
                            first_klo,first_khi,
-                           members,0,0,2);
+                           members,0,0,2,0);
     if (plan->pre_plan == NULL) return NULL;
   }
 
@@ -268,7 +268,7 @@ struct fft_plan_3d *fft_3d_create_plan_cuda(
                            first_klo,first_khi,
                            second_ilo,second_ihi,second_jlo,second_jhi,
                            second_klo,second_khi,
-                           2,1,0,2);
+                           2,1,0,2,0);
   if (plan->mid1_plan == NULL) return NULL;
 
   // 1d FFTs along mid axis
@@ -308,7 +308,7 @@ struct fft_plan_3d *fft_3d_create_plan_cuda(
                          second_ilo,second_ihi,
                          third_jlo,third_jhi,third_klo,third_khi,
                          third_ilo,third_ihi,
-                         2,1,0,2);
+                         2,1,0,2,0);
   if (plan->mid2_plan == NULL) return NULL;
 
   // 1d FFTs along slow axis
@@ -332,7 +332,7 @@ struct fft_plan_3d *fft_3d_create_plan_cuda(
                            third_jlo,third_jhi,
                            out_klo,out_khi,out_ilo,out_ihi,
                            out_jlo,out_jhi,
-                           2,(permute+1)%3,0,2);
+                           2,(permute+1)%3,0,2,0);
     if (plan->post_plan == NULL) return NULL;
   }
 

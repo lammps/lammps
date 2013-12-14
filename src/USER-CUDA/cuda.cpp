@@ -131,7 +131,6 @@ Cuda::Cuda(LAMMPS* lmp) : Pointers(lmp)
   pinned = true;
 
   debugdata = 0;
-  new int[2 * CUDA_MAX_DEBUG_SIZE];
 
   finished_setup = false;
   begin_setup = false;
@@ -173,6 +172,7 @@ Cuda::~Cuda()
   delete cu_virial;
   delete cu_eng_vdwl;
   delete cu_eng_coul;
+  delete cu_extent;
   delete cu_eatom;
   delete cu_vatom;
   delete cu_radius;
@@ -187,6 +187,9 @@ Cuda::~Cuda()
   delete [] v_radius;
   delete cu_omega_rmass;
   delete [] omega_rmass;
+
+  delete cu_debugdata;
+  delete[] debugdata;
 
   delete cu_map_array;
 

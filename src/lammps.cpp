@@ -485,6 +485,8 @@ LAMMPS::~LAMMPS()
     if (universe->ulogfile) fclose(universe->ulogfile);
   }
 
+  if (infile && infile != stdin) fclose(infile);
+
   if (world != universe->uworld) MPI_Comm_free(&world);
 
   delete cuda;

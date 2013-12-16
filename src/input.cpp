@@ -242,7 +242,8 @@ void Input::file(const char *filename)
   if (me == 0) {
     if (nfile > 1)
       error->one(FLERR,"Invalid use of library file() function");
-    
+
+    if (infile && infile != stdin) fclose(infile);    
     infile = fopen(filename,"r");
     if (infile == NULL) {
       char str[128];

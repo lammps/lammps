@@ -822,7 +822,7 @@ void Input::jump()
   if (me == 0) {
     if (strcmp(arg[0],"SELF") == 0) rewind(infile);
     else {
-      if (infile != stdin) fclose(infile);
+      if (infile && infile != stdin) fclose(infile);
       infile = fopen(arg[0],"r");
       if (infile == NULL) {
         char str[128];

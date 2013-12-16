@@ -479,11 +479,16 @@ LAMMPS::~LAMMPS()
   delete citeme;
 
   if (universe->nworlds == 1) {
+    if (screen && screen != stdout) fclose(screen);
     if (logfile) fclose(logfile);
+    logfile = NULL;
+    if (screen != stdout) screen = NULL;
   } else {
     if (screen && screen != stdout) fclose(screen);
     if (logfile) fclose(logfile);
     if (universe->ulogfile) fclose(universe->ulogfile);
+    logfile = NULL;
+    if (screen != stdout) screen = NULL;
   }
 
   if (infile && infile != stdin) fclose(infile);

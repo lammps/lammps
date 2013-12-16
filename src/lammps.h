@@ -55,6 +55,10 @@ class LAMMPS {
   void post_create();
   void init();
   void destroy();
+
+ private:
+  LAMMPS() {};                   // prohibit using the default constructor
+  LAMMPS(const LAMMPS &) {};     // prohibit using the copy constructor
 };
 
 }

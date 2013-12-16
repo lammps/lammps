@@ -45,6 +45,7 @@
 #include "timer.h"
 #include "memory.h"
 #include "error.h"
+#include "version.h"
 
 #include <stdlib.h>
 
@@ -630,26 +631,28 @@ void help_message(FILE *fp)
   }
   
   // general help message about command line and flags
-  fputs("\nUsage example: lmp_g++ -v t 300 -log none -nc "
+  fputs("\nLarge-scale Atomic/Molecular Massively Parallel Simulator - "
+        LAMMPS_VERSION "-ICMS\n\n"
+        "Usage example: lmp_g++ -v t 300 -log none -nc "
         "-echo screen -in in.alloy\n\n",fp);
 
-  fputs("List of command line options supported by this executable:\n"
-        " -cuda on/off                 : turn CUDA mode on or off (-c)\n"
-        " -echo none/screen/log/both   : select how to echo input (-e)\n"
+  fputs("List of command line options supported by this LAMMPS executable:\n"
+        " -cuda on/off                 : turn CUDA mode on or off       (-c)\n"
+        " -echo none/screen/log/both   : select how to echo input       (-e)\n"
         " -in <filename>               : read input from file not stdin (-i)\n"
-        " -help                        : print this help message (-h)\n"
-        " -log none/<filename>         : where to send log output (-l)\n"
-        " -nocite                      : disable writing log.cite file (-nc)\n"
-        " -partition <partition size>  : assign partition sizes (-p)\n"
-        " -plog <basename>             : basename for partition logs (-pl)\n"
+        " -help                        : print this help message        (-h)\n"
+        " -log none/<filename>         : where to send log output       (-l)\n"
+        " -nocite                      : disable writing log.cite file  (-nc)\n"
+        " -partition <partition size>  : assign partition sizes         (-p)\n"
+        " -plog <basename>             : basename for partition logs    (-pl)\n"
         " -pscreen <basename>          : basename for partition screens (-ps)\n"
-        " -restart <restart> <datafile>: convert restart to data file (-r)\n"
-        " -reorder <topology specs>    : processor reordering (-ro)\n"
-        " -screen none/<filename>      : where to send screen output (-sc)\n"
-        " -suffix cuda/gpu/opt/omp     : style suffix to apply (-sf)\n"
-        " -var <varname> <value>       : set index style variable (-v)\n",fp);
+        " -restart <restart> <datafile>: convert restart to data file   (-r)\n"
+        " -reorder <topology specs>    : processor reordering           (-ro)\n"
+        " -screen none/<filename>      : where to send screen output    (-sc)\n"
+        " -suffix cuda/gpu/opt/omp     : style suffix to apply          (-sf)\n"
+        " -var <varname> <value>       : set index style variable       (-v)\n",fp);
 
-  fputs("\nList of style options included in this executable:\n\n",fp);
+  fputs("\nList of style options included in this LAMMPS executable:\n\n",fp);
 
   fputs("* Atom styles:",fp);
   int n=0;

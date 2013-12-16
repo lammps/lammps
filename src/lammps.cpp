@@ -71,6 +71,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
 
   screen = NULL;
   logfile = NULL;
+  infile = NULL;
 
   // parse input switches
 
@@ -261,7 +262,6 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
     screen = universe->uscreen;
     logfile = universe->ulogfile;
     world = universe->uworld;
-    infile = NULL;
 
     if (universe->me == 0) {
       if (inflag == 0) infile = stdin;

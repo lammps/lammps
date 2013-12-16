@@ -186,7 +186,10 @@ void Input::file()
     if (n == 0) {
       if (label_active) error->all(FLERR,"Label wasn't found in input script");
       if (me == 0) {
-        if (infile != stdin) fclose(infile);
+        if (infile != stdin) {
+          fclose(infile);
+          infile = NULL;
+        }
         nfile--;
       }
       MPI_Bcast(&nfile,1,MPI_INT,0,world);

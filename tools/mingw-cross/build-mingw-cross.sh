@@ -33,7 +33,7 @@ pushd "${LAMMPS_PATH}"
 git archive -v --format=tar --prefix=lammps-current/ HEAD \
     README LICENSE doc src lib python txt2html lammps.book \
     examples/{README,ASPHERE,KAPPA,VISCOSITY,dipole,peri,hugoniostat,colloid,crack,friction,msst,obstacle,body,sputter,pour,ELASTIC,neb,ellipse,flow,meam,min,indent,micelle,shear,srd,dreiding,eim,prd,rigid,COUPLE,peptide,melt,comb,tad,reax,USER/{atc,awpmd,misc,phonon,cg-cmm}} \
-    bench potentials tools/*.cpp tools/*.f tools/mingw-cross tools/msi2lmp tools/createatoms \
+    bench potentials tools/*.cpp tools/*.f tools/mingw-cross tools/msi2lmp tools/createatoms tools/colvars \
     | tar -C ${MINGW_BUILD_DIR} -xvf -
 popd
 
@@ -103,6 +103,13 @@ make -C ${TOOLDIR}/msi2lmp/src TARGET=${PWD}/mingw64/msi2lmp.exe \
 	CC=x86_64-w64-mingw32-gcc CFLAGS="${MINGW64FLAGS}" clean
 make -C ${TOOLDIR}/msi2lmp/src TARGET=${PWD}/mingw64/msi2lmp.exe \
 	CC=x86_64-w64-mingw32-gcc CFLAGS="${MINGW64FLAGS}"
+
+make -C ${TOOLDIR}/colvars EXT=.exe clean
+make -C ${TOOLDIR}/colvars EXT=.exe CXX=i686-w64-mingw32-g++ CXXFLAGS="${MINGW32FLAGS}"
+cp ${TOOLDIR}/colvars/*.exe ${PWD}/mingw32/
+make -C ${TOOLDIR}/colvars EXT=.exe clean
+make -C ${TOOLDIR}/colvars EXT=.exe CXX=x86_64-w64-mingw32-g++ CXXFLAGS="${MINGW64FLAGS}"
+cp ${TOOLDIR}/colvars/*.exe ${PWD}/mingw64/
 
 # assemble and customize installer scripts 
 datestr=$(date +%Y%m%d)

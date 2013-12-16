@@ -1,17 +1,17 @@
-# verified on Fedora 17     / x86_64 / 2013-11-20
-# verified on Fedora 17     / i386   / 2013-11-20
-# verified on Fedora 18     / x86_64 / 2013-11-20
-# verified on Fedora 18     / i386   / 2013-11-20
-# verified on Fedora 19     / x86_64 / 2013-11-20
-# verified on Fedora 19     / i386   / 2013-11-20
-# verified on Fedora 20     / x86_64 / 2013-11-20
-# verified on Fedora 20     / i386   / 2013-11-20
-# verified on CentOS 6.4    / x86_64 / 2013-11-20
-# verified on CentOS 6.4    / i386   / 2013-11-20
-# verified on OpenSuSE 12.3 / x86_64 / 2013-11-20
-# verified on OpenSuSE 12.3 / i586   / 2013-11-20
-# verified on OpenSuSE 13.1 / x86_64 / 2013-11-20
-# verified on OpenSuSE 13.1 / i586   / 2013-11-20
+# verified on Fedora 17     / x86_64 / 2013-12-16
+# verified on Fedora 17     / i386   / 2013-12-16
+# verified on Fedora 18     / x86_64 / 2013-12-16
+# verified on Fedora 18     / i386   / 2013-12-16
+# verified on Fedora 19     / x86_64 / 2013-12-16
+# verified on Fedora 19     / i386   / 2013-12-16
+# verified on Fedora 20     / x86_64 / 2013-12-16
+# verified on Fedora 20     / i386   / 2013-12-16
+# verified on CentOS 6.4    / x86_64 / 2013-12-16
+# verified on CentOS 6.4    / i386   / 2013-12-16
+# verified on OpenSuSE 12.3 / x86_64 / 2013-12-16
+# verified on OpenSuSE 12.3 / i586   / 2013-12-16
+# verified on OpenSuSE 13.1 / x86_64 / 2013-12-16
+# verified on OpenSuSE 13.1 / i586   / 2013-12-16
 
 %ifnarch s390 s390x
 %global with_openmpi 1
@@ -218,6 +218,8 @@ gfortran -o serial/createatoms ${RPM_OPT_FLAGS} tools/createatoms/createAtoms.f
 g++ -o serial/lammpsplot ${RPM_OPT_FLAGS} tools/xmgrace/lammpsplot.cpp
 make -C tools/msi2lmp/src CC=gcc CCFLAGS="${RPM_OPT_FLAGS} %{bigintsize}"
 mv tools/msi2lmp/src/msi2lmp.exe serial/msi2lmp
+make -C tools/colvars CXX=g++ CXXFLAGS="${RPM_OPT_FLAGS}" EXT=
+mv tools/colvars/abf_integrate serial/abf_integrate
 cp tools/msi2lmp/README tools/msi2lmp/README.msi2lmp
 cp tools/createatoms/Manual.pdf tools/createatoms/createatoms.pdf
 
@@ -289,6 +291,7 @@ install -p -m 755 serial/chain.x %{buildroot}%{_bindir}
 install -p -m 755 serial/createatoms %{buildroot}%{_bindir}
 install -p -m 755 serial/lammpsplot %{buildroot}%{_bindir}
 install -p -m 755 serial/msi2lmp %{buildroot}%{_bindir}
+install -p -m 755 serial/abf_integrate %{buildroot}%{_bindir}
 
 %if %{with_openmpi}
 %if %{with_suse}
@@ -352,6 +355,7 @@ rm -rf %{buildroot}
 %{_bindir}/createatoms
 %{_bindir}/lammpsplot
 %{_bindir}/msi2lmp
+%{_bindir}/abf_integrate
 %{_sysconfdir}/profile.d/lammps.*sh
 %{_datadir}/lammps/potentials
 %{_datadir}/lammps/frc_files
@@ -399,6 +403,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Dec 16 2013 Axel Kohlmeyer <akohlmey@gmail.com> - 20131120-6
+- Include abf_integrate as tool for colvars
+
 * Wed Nov 20 2013 Axel Kohlmeyer <akohlmey@gmail.com> - 20131120-5
 - Update for Fedora 20 and OpenSuSE 13.1
 

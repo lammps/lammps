@@ -833,7 +833,7 @@ public:
   }
 
   /// Gradient of the square distance: returns a 4-vector equivalent
-  /// to the one provided by slerp
+  /// to that provided by slerp
   inline cvm::quaternion dist2_grad (cvm::quaternion const &Q2) const
   {
     cvm::real const cos_omega = this->q0*Q2.q0 + this->q1*Q2.q1 + this->q2*Q2.q2 + this->q3*Q2.q3;

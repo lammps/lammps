@@ -31,7 +31,7 @@ colvarbias::colvarbias (std::string const &conf, char const *key)
        bi++) {
     if ((*bi)->name == this->name)
       cvm::fatal_error ("Error: this bias cannot have the same name, \""+this->name+
-                        "\", of another bias.\n");
+                        "\", as another bias.\n");
   }
 
   // lookup the associated colvars

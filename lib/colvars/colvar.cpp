@@ -969,16 +969,20 @@ cvm::real colvar::update()
   if (tasks[task_extended_lagrangian]) {
 
     cvm::real dt = cvm::dt();
+    cvm::real f_ext;
 
     // the total force is applied to the fictitious mass, while the
     // atoms only feel the harmonic force
-    // fr: extended coordinate force; f: colvar force applied to atomic coordinates
-    fr   = f;
-    fr  += (-0.5 * ext_force_k) * this->dist2_lgrad (xr, x);
-    f    = (-0.5 * ext_force_k) * this->dist2_rgrad (xr, x);
+    // fr: extended coordinate force (without harmonic spring), for output in trajectory
+    // f_ext: total force on extended coordinate (including harmonic spring)
+    // f: - initially, external biasing force
+    //    -  after this code block, colvar force to be applied to atomic coordinates, ie. spring force
+    fr    = f;
+    f_ext = f + (-0.5 * ext_force_k) * this->dist2_lgrad (xr, x);
+    f     =     (-0.5 * ext_force_k) * this->dist2_rgrad (xr, x);
 
-    // leap frog: starting from x_i, f_i, v_(i-1/2)
-    vr  += (0.5 * dt) * fr / ext_mass;
+    // leapfrog: starting from x_i, f_i, v_(i-1/2)
+    vr  += (0.5 * dt) * f_ext / ext_mass;
     // Because of leapfrog, kinetic energy at time i is approximate
     kinetic_energy = 0.5 * ext_mass * vr * vr;
     potential_energy = 0.5 * ext_force_k * this->dist2(xr, x);
@@ -987,7 +991,7 @@ cvm::real colvar::update()
       vr -= dt * ext_gamma * vr.real_value;
       vr += dt * ext_sigma * cvm::rand_gaussian() / ext_mass;
     }
-    vr  += (0.5 * dt) * fr / ext_mass;
+    vr  += (0.5 * dt) * f_ext / ext_mass;
     xr  += dt * vr;
     xr.apply_constraints();
     if (this->b_periodic) this->wrap (xr);
@@ -1216,15 +1220,8 @@ std::istream & colvar::read_traj (std::istream &is)
   }
 
   if (tasks[task_output_system_force]) {
-
     is >> ft;
-
-    if (tasks[task_extended_lagrangian]) {
-      is >> fr;
-      ft_reported = fr;
-    } else {
-      ft_reported = ft;
-    }
+    ft_reported = ft;
   }
 
   if (tasks[task_output_applied_force]) {
@@ -1282,7 +1279,7 @@ std::ostream & colvar::write_traj_label (std::ostream & os)
        << cvm::wrap_string (this->name, this_cv_width);
 
     if (tasks[task_extended_lagrangian]) {
-      // restraint center
+      // extended DOF
       os << " r_"
          << cvm::wrap_string (this->name, this_cv_width-2);
     }
@@ -1294,29 +1291,22 @@ std::ostream & colvar::write_traj_label (std::ostream & os)
        << cvm::wrap_string (this->name, this_cv_width-2);
 
     if (tasks[task_extended_lagrangian]) {
-      // restraint center
+      // extended DOF
       os << " vr_"
          << cvm::wrap_string (this->name, this_cv_width-3);
     }
   }
 
   if (tasks[task_output_energy]) {
-      os << " Ep_"
-         << cvm::wrap_string (this->name, this_cv_width-3)
-         << " Ek_"
-         << cvm::wrap_string (this->name, this_cv_width-3);
+    os << " Ep_"
+       << cvm::wrap_string (this->name, this_cv_width-3)
+       << " Ek_"
+       << cvm::wrap_string (this->name, this_cv_width-3);
   }
 
   if (tasks[task_output_system_force]) {
-
     os << " fs_"
        << cvm::wrap_string (this->name, this_cv_width-3);
-
-    if (tasks[task_extended_lagrangian]) {
-      // restraint center
-      os << " fr_"
-         << cvm::wrap_string (this->name, this_cv_width-3);
-    }
   }
 
   if (tasks[task_output_applied_force]) {
@@ -1359,31 +1349,30 @@ std::ostream & colvar::write_traj (std::ostream &os)
   }
 
   if (tasks[task_output_energy]) {
-      os << " "
-         << std::setprecision (cvm::cv_prec) << std::setw (cvm::cv_width)
-         << potential_energy
-         << " "
-         << kinetic_energy;
+    os << " "
+       << std::setprecision (cvm::cv_prec) << std::setw (cvm::cv_width)
+       << potential_energy
+       << " "
+       << kinetic_energy;
   }
 
 
   if (tasks[task_output_system_force]) {
-
-    if (tasks[task_extended_lagrangian]) {
-      os << " "
-         << std::setprecision (cvm::cv_prec) << std::setw (cvm::cv_width)
-         << ft;
-    }
-
     os << " "
        << std::setprecision (cvm::cv_prec) << std::setw (cvm::cv_width)
        << ft_reported;
   }
 
   if (tasks[task_output_applied_force]) {
-    os << " "
-       << std::setprecision (cvm::cv_prec) << std::setw (cvm::cv_width)
-       << f;
+    if (tasks[task_extended_lagrangian]) {
+      os << " "
+         << std::setprecision (cvm::cv_prec) << std::setw (cvm::cv_width)
+         << fr;
+    } else {
+      os << " "
+         << std::setprecision (cvm::cv_prec) << std::setw (cvm::cv_width)
+         << f;
+    }
   }
 
   return os;

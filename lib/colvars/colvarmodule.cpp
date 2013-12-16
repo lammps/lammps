@@ -1069,7 +1069,7 @@ cvm::quaternion::position_derivative_inner (cvm::rvector const &pos,
 
 
 // Calculate the optimal rotation between two groups, and implement it
-// as a quaternion.  The method is the one documented in: Coutsias EA,
+// as a quaternion.  Uses the method documented in: Coutsias EA,
 // Seok C, Dill KA.  Using quaternions to calculate RMSD.  J Comput
 // Chem. 25(15):1849-57 (2004) DOI: 10.1002/jcc.20110 PubMed: 15376254
 

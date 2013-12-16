@@ -238,12 +238,12 @@ void Input::file(const char *filename)
   // error if another nested file still open, should not be possible
   // open new filename and set infile, infiles[0], nfile
   // call to file() will close filename and decrement nfile
-  
+
   if (me == 0) {
     if (nfile > 1)
       error->one(FLERR,"Invalid use of library file() function");
 
-    if (infile && infile != stdin) fclose(infile);    
+    if (infile && infile != stdin) fclose(infile); 
     infile = fopen(filename,"r");
     if (infile == NULL) {
       char str[128];

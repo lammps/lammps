@@ -19,42 +19,44 @@
 
 <LI>deposit = style name of this fix command 
 
-<LI>N = # of atoms to insert 
+<LI>N = # of atoms or molecules to insert 
 
-<LI>type = atom type to assign to inserted atoms 
+<LI>type = atom type to assign to inserted atoms (for atom insertion) 
 
-<LI>M = insert a single particle every M steps 
+<LI>M = insert a single atom or molecule every M steps 
 
 <LI>seed = random # seed (positive integer) 
 
 <LI>one or more keyword/value pairs may be appended to args 
 
-<LI>keyword = <I>region</I> or <I>id</I> or <I>global</I> or <I>local</I> or <I>near</I> or <I>attempt</I> or <I>rate</I> or <I>vx</I> or <I>vy</I> or <I>vz</I> or <I>units</I> 
+<LI>keyword = <I>region</I> or <I>mol</I> or <I>id</I> or <I>global</I> or <I>local</I> or <I>near</I> or <I>attempt</I> or <I>rate</I> or <I>vx</I> or <I>vy</I> or <I>vz</I> or <I>units</I> 
 
 <PRE>  <I>region</I> value = region-ID
     region-ID = ID of region to use as insertion volume
+  <I>mol</I> value = template-ID
+    template-ID = ID of molecule template specified in a separate <A HREF = "molecule.html">molecule</A> command
   <I>id</I> value = <I>max</I> or <I>next</I>
-    max = atom ID for new atom is max ID of all current atoms plus one
-    next = atom ID for new atom increments by one for every deposition
+    max = atom ID for new atom(s) is max ID of all current atoms plus one
+    next = atom ID for new atom(s) increments by one for every deposition
   <I>global</I> values = lo hi
-    lo,hi = put new particle a distance lo-hi above all other particles (distance units)
+    lo,hi = put new atom/molecule a distance lo-hi above all other atoms (distance units)
   <I>local</I> values = lo hi delta
-    lo,hi = put new particle a distance lo-hi above any nearby particle beneath it (distance units)
+    lo,hi = put new atom/molecule a distance lo-hi above any nearby atom beneath it (distance units)
     delta = lateral distance within which a neighbor is considered "nearby" (distance units)
   <I>near</I> value = R
-    R = only insert particle if further than R from existing particles (distance units)
+    R = only insert atom/molecule if further than R from existing particles (distance units)
   <I>attempt</I> value = Q
     Q = attempt a single insertion up to Q times
   <I>rate</I> value = V
     V = z velocity (y in 2d) at which insertion volume moves (velocity units)
   <I>vx</I> values = vxlo vxhi
-    vxlo,vxhi = range of x velocities for inserted particle (velocity units)
+    vxlo,vxhi = range of x velocities for inserted atom/molecule (velocity units)
   <I>vy</I> values = vylo vyhi
-    vylo,vyhi = range of y velocities for inserted particle (velocity units)
+    vylo,vyhi = range of y velocities for inserted atom/molecule (velocity units)
   <I>vz</I> values = vzlo vzhi
-    vzlo,vzhi = range of z velocities for inserted particle (velocity units)
+    vzlo,vzhi = range of z velocities for inserted atom/molecule (velocity units)
   <I>target</I> values = tx ty tz
-    tx,ty,tz = location of sputtering target (distance units)
+    tx,ty,tz = location of target point (distance units)
   <I>units</I> value = <I>lattice</I> or <I>box</I>
     lattice = the geometry is defined in lattice units
     box = the geometry is defined in simulation box units 
@@ -64,28 +66,35 @@
 <P><B>Examples:</B>
 </P>
 <PRE>fix 3 all deposit 1000 2 100 29494 region myblock local 1.0 1.0 1.0 units box
-fix 2 newatoms deposit 10000 1 500 12345 region disk near 2.0 vz -1.0 -0.8 
-</PRE>
-<PRE>fix 4 sputter deposit 1000 2 500 12235 region sphere vz -1.0 -1.0 target 5.0 5.0 0.0 units lattice 
+fix 2 newatoms deposit 10000 1 500 12345 region disk near 2.0 vz -1.0 -0.8
+fix 4 sputter deposit 1000 2 500 12235 region sphere vz -1.0 -1.0 target 5.0 5.0 0.0 units lattice 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Insert a single particle into the simulation domain every M timesteps
-until N particles have been inserted.  This is useful for simulating
-the deposition of particles onto a surface.
+<P>Insert a single atom or molecule into the simulation domain every M
+timesteps until N atoms or molecules have been inserted.  This is
+useful for simulating deposition onto a surface.  For the remainder of
+this doc page, a single inserted atom or molecule is referred to as a
+"particle".
 </P>
-<P>Inserted particles have the specified atom type and are assigned to
-two groups: the default group "all" and the group specified in the fix
-deposit command (which can also be "all").
+<P>If inserted particles are individual atoms, they are assigned the
+specified atom type.  For molecules the specified type is ignored, and
+the type of each atom in the inserted molecule is specified in the
+file read by the <A HREF = "molecule.html">molecule</A> command.
+</P>
+<P>All atoms in the inserted particle are assigned to two groups: the
+default group "all" and the group specified in the fix deposit command
+(which can also be "all").
 </P>
 <P>If you are computing temperature values which include inserted
-particles, you will want to use the <A HREF = "compute_modify.html">compute_modify</A>
-dynamic option, which insures the current number of atoms is used as a
-normalizing factor each time temperature is computed.
+particles, you will want to use the
+<A HREF = "compute_modify.html">compute_modify</A> dynamic option, which insures the
+current number of atoms is used as a normalizing factor each time the
+temperature is computed.
 </P>
 <P>Care must be taken that inserted particles are not too near existing
-particles, using the options described below.  When inserting
-particles above a surface in a non-periodic box (see the
+atoms, using the options described below.  When inserting particles
+above a surface in a non-periodic box (see the
 <A HREF = "boundary.html">boundary</A> command), the possibility of a particle
 escaping the surface and flying upward should be considered, since the
 particle may be lost or the box size may grow infinitely large.  A
@@ -93,17 +102,36 @@ particle may be lost or the box size may grow infinitely large.  A
 prevent this behavior.  Note that if a shrink-wrap boundary is used,
 it is OK to insert the new particle outside the box, however the box
 will immediately be expanded to include the new particle. When
-simulating a sputtering experiment it is probably more realistic
-to ignore those atoms using the <A HREF = "thermo_modify.html">thermo_modify</A>
-command with the <I>lost ignore</I> option and a fixed <A HREF = "boundary.html">boundary</A>.
+simulating a sputtering experiment it is probably more realistic to
+ignore those atoms using the <A HREF = "thermo_modify.html">thermo_modify</A>
+command with the <I>lost ignore</I> option and a fixed
+<A HREF = "boundary.html">boundary</A>.
 </P>
-<P>This command must use the <I>region</I> keyword to define an insertion
-volume.  The specified region must have been previously defined with a
-<A HREF = "region.html">region</A> command.  It must be defined with side = <I>in</I>.
+<P>The fix deposit command must use the <I>region</I> keyword to define an
+insertion volume.  The specified region must have been previously
+defined with a <A HREF = "region.html">region</A> command.  It must be defined with
+side = <I>in</I>.
 </P>
-<P>Each timestep a particle is to be inserted, its coordinates are chosen
-as follows.  A random position within the insertion volume is
-generated.  If neither the <I>global</I> or <I>local</I> keyword is used, that
+<P>Individual atoms are inserted, unless the <I>mol</I> keyword is used.  It
+specifies a previously defined <I>template-ID</I> used by the
+<A HREF = "molecule.html">molecule</A> command which reads a file that defines the
+molecule.  The coordinates, atom types, charges, etc, as well as any
+bond/angle/etc information for the molecule must be specified in the
+molecule file.  See the <A HREF = "molecule.html">molecule</A> command for details.
+The only required settings from this file are the coordinates and
+types of atoms in the molecule.
+</P>
+<P>Each timestep a particle is inserted, the coordinates for its atoms
+are chosen as follows.  For insertion of individual atoms, the
+"position" referred to in the following description is the coordinate
+of the atom.  For insertion of molecule, the "position<A HREF = "molecule.html"> is the
+geometric center of the molecule; see the (molecule</A> doc
+page for details.  A random rotation of the molecule around its center
+point is performed, which determines the coordinates all the
+individual atoms.
+</P>
+<P>A random position within the region insertion volume is generated.  If
+neither the <I>global</I> or <I>local</I> keyword is used, the random position
 is the trial position.  If the <I>global</I> keyword is used, the random
 x,y values are used, but the z position of the new particle is set
 above the highest current atom in the simulation by a distance
@@ -112,14 +140,18 @@ the y position.)  If the <I>local</I> keyword is used, the z position is
 set a distance between lo/hi above the highest current atom in the
 simulation that is "nearby" the chosen x,y position.  In this context,
 "nearby" means the lateral distance (in x,y) between the new and old
-particles is less than the delta parameter.
+particles is less than the <I>delta</I> setting.
 </P>
-<P>Once a trial x,y,z location has been computed, the insertion is only
-performed if no current particle in the simulation is within a
-distance R of the new particle.  If this test fails, a new random
-position within the insertion volume is chosen and another trial is
-made.  Up to Q attempts are made.  If an atom is not successfully
-deposited, LAMMPS prints a warning message.
+<P>Once a trial x,y,z position has been selected, the insertion is only
+performed if no current atom in the simulation is within a distance R
+of any atom in the new particle.  Note that the default value for R is
+0.0, which will allow atoms to strongly overlap if you are inserting
+where other atoms are present.  This distance test is performed
+independently for each atom in an inserted molecule, based on the
+randomly rotated configuration of the molecule.  If this test fails, a
+new random position within the insertion volume is chosen and another
+trial is made.  Up to Q attempts are made.  If the particle is not
+successfully inserted, LAMMPS prints a warning message.
 </P>
 <P>The <I>rate</I> option moves the insertion volume in the z direction (3d)
 or y direction (2d).  This enables particles to be inserted from a
@@ -130,22 +162,31 @@ options choose a z-coordinate for insertion independently.
 <P>The vx, vy, and vz components of velocity for the inserted particle
 are set using the values specified for the <I>vx</I>, <I>vy</I>, and <I>vz</I>
 keywords.  Note that normally, new particles should be a assigned a
-negative vertical velocity so that they move towards the surface.
+negative vertical velocity so that they move towards the surface.  For
+molecules, the same velocity is given to every particle (no rotation
+or bond vibration).
 </P>
-<P>In case the <I>target</I> option is used, the velocity vector of the 
-inserted particle will be changed in a way so that it would pass
-through the specified coordinate. This allows convenient simulation
-of a sputtering process.
+<P>If the <I>target</I> option is used, the velocity vector of the inserted
+particle is changed so that it points from the insertion position
+towards the specified target point.  The magnitude of the velocity is
+unchanged.  This can be useful, for example, for simulating a
+sputtering process.  E.g. the target point can be far away, so that
+all incident particles strike the surface as if they are in an
+incident beam of particles at a prescribed angle.
 </P>
-<P>The <I>id</I> keyword determines how an atom ID is assigned to newly
-deposited atoms.  For the <I>max</I> setting, the IDs of all current atoms
-are checked and the new ID is the current maximum value plus one.
-This means that if atoms have left the system, the new ID may reflect
-this fact.  For the <I>next</I> setting, the maximum ID of all atoms is
-stored at the time the fix is defined.  Each time a deposited atom is
-added, this value is incremented by one and assigned to the new atom.
-Thus atom IDs for deposited atoms will be consecutive even if atoms
-leave the system over time.
+<P>The <I>id</I> keyword determines how atom IDs and molecule IDs are assigned
+to newly deposited particles.  Molecule IDs are only assigned if
+molecules are being inserted.  For the <I>max</I> setting, the atom and
+molecule IDs of all current atoms are checked.  Atoms in the new
+particle are assigned IDs starting with the current maximum plus one.
+If a molecule is inserted it is assigned an ID = current maximum plus
+one.  This means that if particles leave the system, the new IDs may
+replace the lost ones.  For the <I>next</I> setting, the maximum ID of any
+atom and molecule is stored at the time the fix is defined.  Each time
+a new particle is added, this value is incremented to assign IDs to
+the new atom(s) or molecule.  Thus atom and molecule IDs for deposited
+particles will be consecutive even if particles leave the system over
+time.
 </P>
 <P>The <I>units</I> keyword determines the meaning of the distance units used
 for the other deposition parameters.  A <I>box</I> value selects standard
@@ -159,9 +200,9 @@ units of distance or velocity.
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>
 <P>This fix writes the state of the deposition to <A HREF = "restart.html">binary restart
-files</A>.  This includes information about how many atoms
-have been depositied, the random number generator seed, the next
-timestep for deposition, etc.  See the
+files</A>.  This includes information about how many
+particles have been depositied, the random number generator seed, the
+next timestep for deposition, etc.  See the
 <A HREF = "read_restart.html">read_restart</A> command for info on how to re-specify
 a fix in an input script that reads a restart file, so that the
 operation of the fix continues in an uninterrupted fashion.
@@ -184,8 +225,9 @@ defined by the <A HREF = "region.html">region</A> command.
 </P>
 <P><B>Default:</B>
 </P>
-<P>The option defaults are id = max, delta = 0.0, near = 0.0, attempt =
-10, rate = 0.0, vx = 0.0 0.0, vy = 0.0 0.0, vz = 0.0 0.0, and units =
-lattice.
+<P>Insertions are performed for individual atoms, i.e. no <I>mol</I> setting
+is defined.  Additional option defaults are id = max, delta = 0.0,
+near = 0.0, attempt = 10, rate = 0.0, vx = 0.0 0.0, vy = 0.0 0.0, vz =
+0.0 0.0, and units = lattice.
 </P>
 </HTML>

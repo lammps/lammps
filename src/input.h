@@ -103,6 +103,7 @@ class Input : protected Pointers {
   void mass();
   void min_modify();
   void min_style();
+  void molecule();
   void neigh_modify();
   void neighbor_command();
   void newton();

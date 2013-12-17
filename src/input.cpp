@@ -564,6 +564,7 @@ int Input::execute_command()
   else if (!strcmp(command,"mass")) mass();
   else if (!strcmp(command,"min_modify")) min_modify();
   else if (!strcmp(command,"min_style")) min_style();
+  else if (!strcmp(command,"molecule")) molecule();
   else if (!strcmp(command,"neigh_modify")) neigh_modify();
   else if (!strcmp(command,"neighbor")) neighbor_command();
   else if (!strcmp(command,"newton")) newton();
@@ -1307,6 +1308,13 @@ void Input::min_style()
   if (domain->box_exist == 0)
     error->all(FLERR,"Min_style command before simulation box is defined");
   update->create_minimize(narg,arg);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::molecule()
+{
+  atom->add_molecule(narg,arg);
 }
 
 /* ---------------------------------------------------------------------- */

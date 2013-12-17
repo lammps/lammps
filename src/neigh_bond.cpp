@@ -16,12 +16,16 @@
 #include "force.h"
 #include "update.h"
 #include "domain.h"
+#include "output.h"
+#include "thermo.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
 
 #define BONDDELTA 10000
+
+enum{IGNORE,WARN,ERROR};           // same as thermo.cpp
 
 // bondlist, anglelist, dihedrallist, improperlist
 //   no longer store atom->map() of the bond partners
@@ -42,17 +46,23 @@ void Neighbor::bond_all()
   int *tag = atom->tag;
   int newton_bond = force->newton_bond;
 
+  int lostbond = output->thermo->lostbond;
+  int nmissing = 0;
   nbondlist = 0;
 
   for (i = 0; i < nlocal; i++)
     for (m = 0; m < num_bond[i]; m++) {
       atom1 = atom->map(bond_atom[i][m]);
       if (atom1 == -1) {
-        char str[128];
-        sprintf(str,
-                "Bond atoms %d %d missing on proc %d at step " BIGINT_FORMAT,
-                tag[i],bond_atom[i][m],me,update->ntimestep);
-        error->one(FLERR,str);
+        nmissing++;
+        if (lostbond == ERROR) {
+          char str[128];
+          sprintf(str,
+                  "Bond atoms %d %d missing on proc %d at step " BIGINT_FORMAT,
+                  tag[i],bond_atom[i][m],me,update->ntimestep);
+          error->one(FLERR,str);
+        }
+        continue;
       }
       atom1 = domain->closest_image(i,atom1);
       if (newton_bond || i < atom1) {
@@ -68,6 +78,16 @@ void Neighbor::bond_all()
     }
 
   if (cluster_check) bond_check();
+  if (lostbond == IGNORE) return;
+
+  int all;
+  MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
+  if (all) {
+    char str[128];
+    sprintf(str,
+            "Bond atoms missing at step " BIGINT_FORMAT,update->ntimestep);
+    if (me == 0) error->warning(FLERR,str);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -83,6 +103,8 @@ void Neighbor::bond_partial()
   int *tag = atom->tag;
   int newton_bond = force->newton_bond;
 
+  int lostbond = output->thermo->lostbond;
+  int nmissing = 0;
   nbondlist = 0;
 
   for (i = 0; i < nlocal; i++)
@@ -90,11 +112,15 @@ void Neighbor::bond_partial()
       if (bond_type[i][m] <= 0) continue;
       atom1 = atom->map(bond_atom[i][m]);
       if (atom1 == -1) {
-        char str[128];
-        sprintf(str,
-                "Bond atoms %d %d missing on proc %d at step " BIGINT_FORMAT,
-                tag[i],bond_atom[i][m],me,update->ntimestep);
-        error->one(FLERR,str);
+        nmissing++;
+        if (lostbond == ERROR) {
+          char str[128];
+          sprintf(str,
+                  "Bond atoms %d %d missing on proc %d at step " BIGINT_FORMAT,
+                  tag[i],bond_atom[i][m],me,update->ntimestep);
+          error->one(FLERR,str);
+        }
+        continue;
       }
       atom1 = domain->closest_image(i,atom1);
       if (newton_bond || i < atom1) {
@@ -110,6 +136,16 @@ void Neighbor::bond_partial()
     }
 
   if (cluster_check) bond_check();
+  if (lostbond == IGNORE) return;
+
+  int all;
+  MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
+  if (all) {
+    char str[128];
+    sprintf(str,
+            "Bond atoms missing at step " BIGINT_FORMAT,update->ntimestep);
+    if (me == 0) error->warning(FLERR,str);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -151,6 +187,8 @@ void Neighbor::angle_all()
   int **angle_type = atom->angle_type;
   int newton_bond = force->newton_bond;
 
+  int lostbond = output->thermo->lostbond;
+  int nmissing = 0;
   nanglelist = 0;
 
   for (i = 0; i < nlocal; i++)
@@ -159,13 +197,17 @@ void Neighbor::angle_all()
       atom2 = atom->map(angle_atom2[i][m]);
       atom3 = atom->map(angle_atom3[i][m]);
       if (atom1 == -1 || atom2 == -1 || atom3 == -1) {
-        char str[128];
-        sprintf(str,
-                "Angle atoms %d %d %d missing on proc %d at step "
-                BIGINT_FORMAT,
-                angle_atom1[i][m],angle_atom2[i][m],angle_atom3[i][m],
-                me,update->ntimestep);
-        error->one(FLERR,str);
+        nmissing++;
+        if (lostbond == ERROR) {
+          char str[128];
+          sprintf(str,
+                  "Angle atoms %d %d %d missing on proc %d at step "
+                  BIGINT_FORMAT,
+                  angle_atom1[i][m],angle_atom2[i][m],angle_atom3[i][m],
+                  me,update->ntimestep);
+          error->one(FLERR,str);
+        }
+        continue;
       }
       atom1 = domain->closest_image(i,atom1);
       atom2 = domain->closest_image(i,atom2);
@@ -184,6 +226,16 @@ void Neighbor::angle_all()
     }
 
   if (cluster_check) angle_check();
+  if (lostbond == IGNORE) return;
+
+  int all;
+  MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
+  if (all) {
+    char str[128];
+    sprintf(str,
+            "Angle atoms missing at step " BIGINT_FORMAT,update->ntimestep);
+    if (me == 0) error->warning(FLERR,str);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -200,6 +252,8 @@ void Neighbor::angle_partial()
   int **angle_type = atom->angle_type;
   int newton_bond = force->newton_bond;
 
+  int lostbond = output->thermo->lostbond;
+  int nmissing = 0;
   nanglelist = 0;
 
   for (i = 0; i < nlocal; i++)
@@ -209,13 +263,17 @@ void Neighbor::angle_partial()
       atom2 = atom->map(angle_atom2[i][m]);
       atom3 = atom->map(angle_atom3[i][m]);
       if (atom1 == -1 || atom2 == -1 || atom3 == -1) {
-        char str[128];
-        sprintf(str,
-                "Angle atoms %d %d %d missing on proc %d at step "
-                BIGINT_FORMAT,
-                angle_atom1[i][m],angle_atom2[i][m],angle_atom3[i][m],
-                me,update->ntimestep);
-        error->one(FLERR,str);
+        nmissing++;
+        if (lostbond == ERROR) {
+          char str[128];
+          sprintf(str,
+                  "Angle atoms %d %d %d missing on proc %d at step "
+                  BIGINT_FORMAT,
+                  angle_atom1[i][m],angle_atom2[i][m],angle_atom3[i][m],
+                  me,update->ntimestep);
+          error->one(FLERR,str);
+        }
+        continue;
       }
       atom1 = domain->closest_image(i,atom1);
       atom2 = domain->closest_image(i,atom2);
@@ -234,6 +292,16 @@ void Neighbor::angle_partial()
     }
 
   if (cluster_check) angle_check();
+  if (lostbond == IGNORE) return;
+
+  int all;
+  MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
+  if (all) {
+    char str[128];
+    sprintf(str,
+            "Angle atoms missing at step " BIGINT_FORMAT,update->ntimestep);
+    if (me == 0) error->warning(FLERR,str);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -290,6 +358,8 @@ void Neighbor::dihedral_all()
   int **dihedral_type = atom->dihedral_type;
   int newton_bond = force->newton_bond;
 
+  int lostbond = output->thermo->lostbond;
+  int nmissing = 0;
   ndihedrallist = 0;
 
   for (i = 0; i < nlocal; i++)
@@ -299,14 +369,18 @@ void Neighbor::dihedral_all()
       atom3 = atom->map(dihedral_atom3[i][m]);
       atom4 = atom->map(dihedral_atom4[i][m]);
       if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1) {
-        char str[128];
-        sprintf(str,
-                "Dihedral atoms %d %d %d %d missing on proc %d at step "
-                BIGINT_FORMAT,
-                dihedral_atom1[i][m],dihedral_atom2[i][m],
-                dihedral_atom3[i][m],dihedral_atom4[i][m],
-                me,update->ntimestep);
-        error->one(FLERR,str);
+        nmissing++;
+        if (lostbond == ERROR) {
+          char str[128];
+          sprintf(str,
+                  "Dihedral atoms %d %d %d %d missing on proc %d at step "
+                  BIGINT_FORMAT,
+                  dihedral_atom1[i][m],dihedral_atom2[i][m],
+                  dihedral_atom3[i][m],dihedral_atom4[i][m],
+                  me,update->ntimestep);
+          error->one(FLERR,str);
+        }
+        continue;
       }
       atom1 = domain->closest_image(i,atom1);
       atom2 = domain->closest_image(i,atom2);
@@ -328,6 +402,16 @@ void Neighbor::dihedral_all()
     }
 
   if (cluster_check) dihedral_check(ndihedrallist,dihedrallist);
+  if (lostbond == IGNORE) return;
+
+  int all;
+  MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
+  if (all) {
+    char str[128];
+    sprintf(str,
+            "Dihedral atoms missing at step " BIGINT_FORMAT,update->ntimestep);
+    if (me == 0) error->warning(FLERR,str);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -345,6 +429,8 @@ void Neighbor::dihedral_partial()
   int **dihedral_type = atom->dihedral_type;
   int newton_bond = force->newton_bond;
 
+  int lostbond = output->thermo->lostbond;
+  int nmissing = 0;
   ndihedrallist = 0;
 
   for (i = 0; i < nlocal; i++)
@@ -355,14 +441,18 @@ void Neighbor::dihedral_partial()
       atom3 = atom->map(dihedral_atom3[i][m]);
       atom4 = atom->map(dihedral_atom4[i][m]);
       if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1) {
-        char str[128];
-        sprintf(str,
-                "Dihedral atoms %d %d %d %d missing on proc %d at step "
-                BIGINT_FORMAT,
-                dihedral_atom1[i][m],dihedral_atom2[i][m],
-                dihedral_atom3[i][m],dihedral_atom4[i][m],
-                me,update->ntimestep);
-        error->one(FLERR,str);
+        nmissing++;
+        if (lostbond == ERROR) {
+          char str[128];
+          sprintf(str,
+                  "Dihedral atoms %d %d %d %d missing on proc %d at step "
+                  BIGINT_FORMAT,
+                  dihedral_atom1[i][m],dihedral_atom2[i][m],
+                  dihedral_atom3[i][m],dihedral_atom4[i][m],
+                  me,update->ntimestep);
+          error->one(FLERR,str);
+        }
+        continue;
       }
       atom1 = domain->closest_image(i,atom1);
       atom2 = domain->closest_image(i,atom2);
@@ -384,6 +474,16 @@ void Neighbor::dihedral_partial()
     }
 
   if (cluster_check) dihedral_check(ndihedrallist,dihedrallist);
+  if (lostbond == IGNORE) return;
+
+  int all;
+  MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
+  if (all) {
+    char str[128];
+    sprintf(str,
+            "Dihedral atoms missing at step " BIGINT_FORMAT,update->ntimestep);
+    if (me == 0) error->warning(FLERR,str);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -457,6 +557,8 @@ void Neighbor::improper_all()
   int **improper_type = atom->improper_type;
   int newton_bond = force->newton_bond;
 
+  int lostbond = output->thermo->lostbond;
+  int nmissing = 0;
   nimproperlist = 0;
 
   for (i = 0; i < nlocal; i++)
@@ -466,14 +568,18 @@ void Neighbor::improper_all()
       atom3 = atom->map(improper_atom3[i][m]);
       atom4 = atom->map(improper_atom4[i][m]);
       if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1) {
-        char str[128];
-        sprintf(str,
-                "Improper atoms %d %d %d %d missing on proc %d at step "
-                BIGINT_FORMAT,
-                improper_atom1[i][m],improper_atom2[i][m],
-                improper_atom3[i][m],improper_atom4[i][m],
-                me,update->ntimestep);
-        error->one(FLERR,str);
+        nmissing++;
+        if (lostbond == ERROR) {
+          char str[128];
+          sprintf(str,
+                  "Improper atoms %d %d %d %d missing on proc %d at step "
+                  BIGINT_FORMAT,
+                  improper_atom1[i][m],improper_atom2[i][m],
+                  improper_atom3[i][m],improper_atom4[i][m],
+                  me,update->ntimestep);
+          error->one(FLERR,str);
+        }
+        continue;
       }
       atom1 = domain->closest_image(i,atom1);
       atom2 = domain->closest_image(i,atom2);
@@ -495,6 +601,16 @@ void Neighbor::improper_all()
     }
 
   if (cluster_check) dihedral_check(nimproperlist,improperlist);
+  if (lostbond == IGNORE) return;
+
+  int all;
+  MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
+  if (all) {
+    char str[128];
+    sprintf(str,
+            "Improper atoms missing at step " BIGINT_FORMAT,update->ntimestep);
+    if (me == 0) error->warning(FLERR,str);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -512,6 +628,8 @@ void Neighbor::improper_partial()
   int **improper_type = atom->improper_type;
   int newton_bond = force->newton_bond;
 
+  int lostbond = output->thermo->lostbond;
+  int nmissing = 0;
   nimproperlist = 0;
 
   for (i = 0; i < nlocal; i++)
@@ -522,14 +640,18 @@ void Neighbor::improper_partial()
       atom3 = atom->map(improper_atom3[i][m]);
       atom4 = atom->map(improper_atom4[i][m]);
       if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1) {
-        char str[128];
-        sprintf(str,
-                "Improper atoms %d %d %d %d missing on proc %d at step "
-                BIGINT_FORMAT,
-                improper_atom1[i][m],improper_atom2[i][m],
-                improper_atom3[i][m],improper_atom4[i][m],
-                me,update->ntimestep);
-        error->one(FLERR,str);
+        nmissing++;
+        if (lostbond == ERROR) {
+          char str[128];
+          sprintf(str,
+                  "Improper atoms %d %d %d %d missing on proc %d at step "
+                  BIGINT_FORMAT,
+                  improper_atom1[i][m],improper_atom2[i][m],
+                  improper_atom3[i][m],improper_atom4[i][m],
+                  me,update->ntimestep);
+          error->one(FLERR,str);
+        }
+        continue;
       }
       atom1 = domain->closest_image(i,atom1);
       atom2 = domain->closest_image(i,atom2);
@@ -551,4 +673,14 @@ void Neighbor::improper_partial()
     }
 
   if (cluster_check) dihedral_check(nimproperlist,improperlist);
+  if (lostbond == IGNORE) return;
+
+  int all;
+  MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
+  if (all) {
+    char str[128];
+    sprintf(str,
+            "Improper atoms missing at step " BIGINT_FORMAT,update->ntimestep);
+    if (me == 0) error->warning(FLERR,str);
+  }
 }

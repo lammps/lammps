@@ -32,6 +32,8 @@
 #include "region.h"
 #include "lattice.h"
 #include "comm.h"
+#include "output.h"
+#include "thermo.h"
 #include "universe.h"
 #include "math_const.h"
 #include "memory.h"
@@ -45,7 +47,8 @@ using namespace MathConst;
 #define DELTAREGION 4
 #define BONDSTRETCH 1.1
 
-enum{NO_REMAP,X_REMAP,V_REMAP};                   // same as fix_deform.cpp
+enum{NO_REMAP,X_REMAP,V_REMAP};    // same as fix_deform.cpp
+enum{IGNORE,WARN,ERROR};           // same as thermo.cpp
 
 /* ----------------------------------------------------------------------
    default is periodic
@@ -583,11 +586,19 @@ void Domain::image_check()
 
   double delx,dely,delz;
 
+  int lostbond = output->thermo->lostbond;
+  int nmissing = 0;
+
   int flag = 0;
   for (i = 0; i < nlocal; i++)
     for (j = 0; j < num_bond[i]; j++) {
       k = atom->map(bond_atom[i][j]);
-      if (k == -1) error->one(FLERR,"Bond atom missing in image check");
+      if (k == -1) {
+        nmissing++;
+        if (lostbond == ERROR)
+          error->one(FLERR,"Bond atom missing in image check");
+        continue;
+      }
 
       delx = unwrap[i][0] - unwrap[k][0];
       dely = unwrap[i][1] - unwrap[k][1];
@@ -605,6 +616,13 @@ void Domain::image_check()
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_MAX,world);
   if (flagall && comm->me == 0) 
     error->warning(FLERR,"Inconsistent image flags");
+
+  if (lostbond == WARN) {
+    int all;
+    MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
+    if (all && comm->me == 0) 
+      error->warning(FLERR,"Bond atoms missing in image flag check");
+  }
 
   memory->destroy(unwrap);
 }
@@ -643,10 +661,18 @@ void Domain::box_too_small_check()
   double delx,dely,delz,rsq,r;
   double maxbondme = 0.0;
 
+  int lostbond = output->thermo->lostbond;
+  int nmissing = 0;
+
   for (i = 0; i < nlocal; i++)
     for (j = 0; j < num_bond[i]; j++) {
       k = atom->map(bond_atom[i][j]);
-      if (k == -1) error->one(FLERR,"Bond atom missing in box size check");
+      if (k == -1) {
+        nmissing++;
+        if (lostbond == ERROR)
+          error->one(FLERR,"Bond atom missing in box size check");
+        continue;
+      }
       delx = x[i][0] - x[k][0];
       dely = x[i][1] - x[k][1];
       delz = x[i][2] - x[k][2];
@@ -654,6 +680,13 @@ void Domain::box_too_small_check()
       rsq = delx*delx + dely*dely + delz*delz;
       maxbondme = MAX(maxbondme,rsq);
     }
+
+  if (lostbond == WARN) {
+    int all;
+    MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
+    if (all && comm->me == 0) 
+      error->warning(FLERR,"Bond atoms missing in box size check");
+  }
 
   double maxbondall;
   MPI_Allreduce(&maxbondme,&maxbondall,1,MPI_DOUBLE,MPI_MAX,world);

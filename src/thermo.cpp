@@ -62,7 +62,7 @@ using namespace MathConst;
 #define ONE "step temp epair emol etotal press"
 #define MULTI "etotal ke temp pe ebond eangle edihed eimp evdwl ecoul elong press"
 
-enum{IGNORE,WARN,ERROR};           // same as write_restart.cpp
+enum{IGNORE,WARN,ERROR};           // same as several files
 enum{ONELINE,MULTILINE};
 enum{INT,FLOAT,BIGINT};
 enum{SCALAR,VECTOR,ARRAY};
@@ -88,7 +88,7 @@ Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   modified = 0;
   normuserflag = 0;
   lineflag = ONELINE;
-  lostflag = ERROR;
+  lostflag = lostbond = ERROR;
   lostbefore = 0;
   flushflag = 0;
 
@@ -489,6 +489,14 @@ void Thermo::modify_params(int narg, char **arg)
       if (strcmp(arg[iarg+1],"ignore") == 0) lostflag = IGNORE;
       else if (strcmp(arg[iarg+1],"warn") == 0) lostflag = WARN;
       else if (strcmp(arg[iarg+1],"error") == 0) lostflag = ERROR;
+      else error->all(FLERR,"Illegal thermo_modify command");
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"lost/bond") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal thermo_modify command");
+      if (strcmp(arg[iarg+1],"ignore") == 0) lostbond = IGNORE;
+      else if (strcmp(arg[iarg+1],"warn") == 0) lostbond = WARN;
+      else if (strcmp(arg[iarg+1],"error") == 0) lostbond = ERROR;
       else error->all(FLERR,"Illegal thermo_modify command");
       iarg += 2;
 

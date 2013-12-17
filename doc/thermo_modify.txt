@@ -13,8 +13,9 @@ thermo_modify command :h3
 thermo_modify keyword value ... :pre
 
 one or more keyword/value pairs may be listed :ulb,l
-keyword = {lost} or {norm} or {flush} or {line} or {format} or {temp} or {press}:l
+keyword = {lost} or {lost/bond} or {norm} or {flush} or {line} or {format} or {temp} or {press}:l
   {lost} value = {error} or {warn} or {ignore}
+  {lost/bond} value = {error} or {warn} or {ignore}
   {norm} value = {yes} or {no}
   {flush} value = {yes} or {no}
   {line} value = {one} or {multi}
@@ -56,6 +57,16 @@ checks and either issues an error or warning.  The code will exit with
 an error and continue with a warning.  A warning will only be issued
 once, the first time an atom is lost.  This can be a useful debugging
 option.
+
+The {lost/bond} keyword determines whether LAMMPS throws an error or
+not if an atom in a bonded interaction (bond, angle, etc) cannot be
+found when it creates bonded neighbor lists.  By default this is a
+fatal error.  However in some scenarios it may be desirable to only
+issue a warning or ignore it and skip the computation of the missing
+bond, angle, etc.  An example would be when gas molecules in a vapor
+are drifting out of the box through a fixed boundary condition (see
+the "boundary"_boundary.html command).  In this case one atom may be
+deleted before the rest of the molecule is, on a later timestep.
 
 The {norm} keyword determines whether various thermodynamic output
 values are normalized by the number of atoms or not, depending on

@@ -17,8 +17,9 @@
 </PRE>
 <UL><LI>one or more keyword/value pairs may be listed 
 
-<PRE>keyword = <I>lost</I> or <I>norm</I> or <I>flush</I> or <I>line</I> or <I>format</I> or <I>temp</I> or <I>press</I>:l
+<PRE>keyword = <I>lost</I> or <I>lost/bond</I> or <I>norm</I> or <I>flush</I> or <I>line</I> or <I>format</I> or <I>temp</I> or <I>press</I>:l
   <I>lost</I> value = <I>error</I> or <I>warn</I> or <I>ignore</I>
+  <I>lost/bond</I> value = <I>error</I> or <I>warn</I> or <I>ignore</I>
   <I>norm</I> value = <I>yes</I> or <I>no</I>
   <I>flush</I> value = <I>yes</I> or <I>no</I>
   <I>line</I> value = <I>one</I> or <I>multi</I>
@@ -61,6 +62,16 @@ checks and either issues an error or warning.  The code will exit with
 an error and continue with a warning.  A warning will only be issued
 once, the first time an atom is lost.  This can be a useful debugging
 option.
+</P>
+<P>The <I>lost/bond</I> keyword determines whether LAMMPS throws an error or
+not if an atom in a bonded interaction (bond, angle, etc) cannot be
+found when it creates bonded neighbor lists.  By default this is a
+fatal error.  However in some scenarios it may be desirable to only
+issue a warning or ignore it and skip the computation of the missing
+bond, angle, etc.  An example would be when gas molecules in a vapor
+are drifting out of the box through a fixed boundary condition (see
+the <A HREF = "boundary.html">boundary</A> command).  In this case one atom may be
+deleted before the rest of the molecule is, on a later timestep.
 </P>
 <P>The <I>norm</I> keyword determines whether various thermodynamic output
 values are normalized by the number of atoms or not, depending on

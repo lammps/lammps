@@ -151,6 +151,9 @@ void ReadData::command(int narg, char **arg)
       if (compressed) pclose(fp);
       else fclose(fp);
       atom->bond_per_atom += atom->extra_bond_per_atom;
+      atom->angle_per_atom += atom->extra_angle_per_atom;
+      atom->dihedral_per_atom += atom->extra_dihedral_per_atom;
+      atom->improper_per_atom += atom->extra_improper_per_atom;
     }
 
     MPI_Bcast(&atom->bond_per_atom,1,MPI_INT,0,world);
@@ -499,6 +502,12 @@ void ReadData::header(int flag)
 
     else if (strstr(line,"extra bond per atom"))
       sscanf(line,"%d",&atom->extra_bond_per_atom);
+    else if (strstr(line,"extra angle per atom"))
+      sscanf(line,"%d",&atom->extra_angle_per_atom);
+    else if (strstr(line,"extra dihedral per atom"))
+      sscanf(line,"%d",&atom->extra_dihedral_per_atom);
+    else if (strstr(line,"extra improper per atom"))
+      sscanf(line,"%d",&atom->extra_improper_per_atom);
 
     else if (strstr(line,"xlo xhi"))
       sscanf(line,"%lg %lg",&domain->boxlo[0],&domain->boxhi[0]);

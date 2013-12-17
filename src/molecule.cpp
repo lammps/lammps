@@ -331,6 +331,10 @@ void Molecule::types(char *line)
     readline(line);
     sscanf(line,"%d %d",&tmp,&type[i]);
   }
+
+  for (int i = 0; i < natoms; i++)
+    if (type[i] <= 0 || type[i] > atom->ntypes)
+      error->all(FLERR,"Invalid atom type in molecule file");
 }
 
 /* ----------------------------------------------------------------------

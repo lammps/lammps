@@ -52,7 +52,7 @@ void DumpMovie::openfile()
     sprintf(moviecmd,"ffmpeg -v error -y -r %.2f -f image2pipe -c:v ppm -i - "
             "-r 24.0 -b:v %dk %s ", framerate, bitrate, filename);
 #else
-    error->one(FLERR,"Cannot generate movie file");
+    error->one(FLERR,"Support for writing movies not included");
 #endif
 
 #if defined(_WIN32)

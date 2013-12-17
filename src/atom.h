@@ -35,7 +35,8 @@ class Atom : protected Pointers {
   bigint nbonds,nangles,ndihedrals,nimpropers;
   int ntypes,nbondtypes,nangletypes,ndihedraltypes,nimpropertypes;
   int bond_per_atom,angle_per_atom,dihedral_per_atom,improper_per_atom;
-  int extra_bond_per_atom;
+  int extra_bond_per_atom,extra_angle_per_atom;
+  int extra_dihedral_per_atom,extra_improper_per_atom;
 
   int firstgroup;               // store atoms in this group first, -1 if unset
   int nfirst;                   // # of atoms in first group on this proc

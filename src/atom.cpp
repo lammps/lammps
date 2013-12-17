@@ -31,14 +31,18 @@
 #include "update.h"
 #include "domain.h"
 #include "group.h"
+#include "molecule.h"
 #include "accelerator_cuda.h"
 #include "atom_masks.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define DELTA 1
+#define DELTA_MOLECULE 1
 #define DELTA_MEMSTR 1024
 #define EPSILON 1.0e-6
 #define CUDA_CHUNK 3000
@@ -105,6 +109,11 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   num_improper = NULL;
   improper_type = improper_atom1 = improper_atom2 = NULL;
   improper_atom3 = improper_atom4 = NULL;
+
+  // user-defined molecules
+
+  nmolecule = maxmol = 0;
+  molecules = NULL;
 
   // custom atom arrays
 
@@ -229,6 +238,11 @@ Atom::~Atom()
   memory->destroy(improper_atom2);
   memory->destroy(improper_atom3);
   memory->destroy(improper_atom4);
+
+  // delete user-defined molecules
+
+  for (int i = 0; i < nmolecule; i++) delete molecules[i];
+  memory->sfree(molecules);
 
   // delete custom atom arrays
 
@@ -1150,6 +1164,99 @@ int Atom::shape_consistency(int itype,
   shapey = oneall[1];
   shapez = oneall[2];
   return 1;
+}
+
+/* ----------------------------------------------------------------------
+   add a new molecule template
+------------------------------------------------------------------------- */
+
+void Atom::add_molecule(int narg, char **arg)
+{
+  if (narg < 1) error->all(FLERR,"Illegal molecule command");
+  if (find_molecule(arg[0]) >= 0) error->all(FLERR,"Reuse of molecule ID");
+
+  // extend molecule list if necessary
+
+  if (nmolecule == maxmol) {
+    maxmol += DELTA_MOLECULE;
+    molecules = (Molecule **)
+      memory->srealloc(molecules,maxmol*sizeof(Molecule *),"atom::molecules");
+  }
+
+  molecules[nmolecule++] = new Molecule(lmp,narg,arg);
+}
+
+/* ----------------------------------------------------------------------
+   find which molecule has molecule ID
+   return -1 if does not exist
+------------------------------------------------------------------------- */
+
+int Atom::find_molecule(char *id)
+{
+  int imol;
+  for (imol = 0; imol < nmolecule; imol++)
+    if (strcmp(id,molecules[imol]->id) == 0) return imol;
+  return -1;
+}
+
+/* ----------------------------------------------------------------------
+   add info for iatom from molecule template onemol to current atom ilocal
+------------------------------------------------------------------------- */
+
+void Atom::add_molecule_atom(Molecule *onemol, int iatom,
+                             int ilocal, int offset)
+{
+  if (onemol->qflag) q[ilocal] = onemol->q[iatom];
+  if (onemol->radiusflag) radius[ilocal] = onemol->radius[iatom];
+  if (onemol->rmassflag) rmass[ilocal] = onemol->rmass[iatom];
+  else if (rmass_flag) 
+    rmass[ilocal] = 4.0*MY_PI/3.0 *
+      radius[ilocal]*radius[ilocal]*radius[ilocal];
+
+  if (onemol->bondflag) {
+    num_bond[ilocal] = onemol->num_bond[iatom];
+    for (int i = 0; i < num_bond[ilocal]; i++) {
+      bond_type[ilocal][i] = onemol->bond_type[iatom][i];
+      bond_atom[ilocal][i] = onemol->bond_atom[iatom][i] + offset;
+    }
+  }
+  if (onemol->angleflag) {
+    num_angle[ilocal] = onemol->num_angle[iatom];
+    for (int i = 0; i < num_angle[ilocal]; i++) {
+      angle_type[ilocal][i] = onemol->angle_type[iatom][i];
+      angle_atom1[ilocal][i] = onemol->angle_atom1[iatom][i] + offset;
+      angle_atom2[ilocal][i] = onemol->angle_atom2[iatom][i] + offset;
+      angle_atom3[ilocal][i] = onemol->angle_atom3[iatom][i] + offset;
+    }
+  }
+  if (onemol->dihedralflag) {
+    num_dihedral[ilocal] = onemol->num_dihedral[iatom];
+    for (int i = 0; i < num_dihedral[ilocal]; i++) {
+      dihedral_type[ilocal][i] = onemol->dihedral_type[iatom][i];
+      dihedral_atom1[ilocal][i] = onemol->dihedral_atom1[iatom][i] + offset;
+      dihedral_atom2[ilocal][i] = onemol->dihedral_atom2[iatom][i] + offset;
+      dihedral_atom3[ilocal][i] = onemol->dihedral_atom3[iatom][i] + offset;
+      dihedral_atom4[ilocal][i] = onemol->dihedral_atom4[iatom][i] + offset;
+    }
+  }
+  if (onemol->improperflag) {
+    num_improper[ilocal] = onemol->num_improper[iatom];
+    for (int i = 0; i < num_improper[ilocal]; i++) {
+      improper_type[ilocal][i] = onemol->improper_type[iatom][i];
+      improper_atom1[ilocal][i] = onemol->improper_atom1[iatom][i] + offset;
+      improper_atom2[ilocal][i] = onemol->improper_atom2[iatom][i] + offset;
+      improper_atom3[ilocal][i] = onemol->improper_atom3[iatom][i] + offset;
+      improper_atom4[ilocal][i] = onemol->improper_atom4[iatom][i] + offset;
+    }
+  }
+
+  if (onemol->specialflag) {
+    nspecial[ilocal][0] = onemol->nspecial[iatom][0];
+    nspecial[ilocal][1] = onemol->nspecial[iatom][1];
+    int n = nspecial[ilocal][2] = onemol->nspecial[iatom][2];
+    for (int i = 0; i < n; i++)
+      special[ilocal][i] = onemol->special[iatom][i] + offset;
+  }
 }
 
 /* ----------------------------------------------------------------------

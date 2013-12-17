@@ -1,0 +1,248 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+molecule command :h3
+
+[Syntax:]
+
+molecule ID file :pre
+
+ID = user-assigned name or template ID for the molecule
+file = name of file containing molecule description :ul
+
+[Examples:]
+
+molecule 1 mymol
+molecule CO2 co2.txt :pre
+
+[Description:]
+
+Define a molecule that can be used as part of other LAMMPS commands,
+typically to define a collection of particles as a bonded molecule or
+a rigid body.  Commands that use molecule definitions include (or will
+include) "fix deposit"_fix_deposit.html, "fix pour"_fix_pour.html, and
+"fix gcmc"_fix_gcmc.html.
+
+The ID of a molecule can only contain alphanumeric characters and
+underscores.
+
+The format of the molecule description file is similar to
+the data file read by the "read_data"_read_data.html commands,
+and is as follows.
+
+A molecule file has a header and a body.  The header appears first.
+The first line of the header is always skipped; it typically contains
+a description of the file.  Then lines are read one at a time.  Lines
+can have a trailing comment starting with '#' that is ignored.  If the
+line is blank (only whitespace after comment is deleted), it is
+skipped.  If the line contains a header keyword, the corresponding
+value(s) is read from the line.  If it doesn't contain a header
+keyword, the line begins the body of the file.
+
+The body of the file contains zero or more sections.  The first line
+of a section has only a keyword.  The next line is skipped.  The
+remaining lines of the section contain values.  The number of lines
+depends on the section keyword as described below.  Zero or more blank
+lines can be used between sections.  Sections can appear in any order,
+with a few exceptions as noted below.
+
+These are the recognized header keywords.  Header lines can come in
+any order.  The value(s) are read from the beginning of the line.
+Thus the keyword {atoms} should be in a line like "10 atoms"; the
+keyword {ylo yhi} should be in a line like "-10.0 10.0 ylo yhi"; the
+keyword {xy xz yz} should be in a line like "0.0 5.0 6.0 xy xz yz".
+All these settings have a default value of 0, except the lo/hi box
+size defaults are -0.5 and 0.5.  A line need only appear if the value
+is different than the default.
+
+{atoms} = # of atoms in molecule
+{bonds} = # of bonds in molecule
+{angles} = # of angles in molecule
+{dihedrals} = # of dihedrals in molecule
+{impropers} = # of impropers in molecule :ul
+
+These are the allowed section keywords for the body of the file.
+
+{Coords, Types, Charges, Diameters, Masses} = atom-property sections 
+{Bonds, Angles, Dihedrals, Impropers} = molecular topology sections 
+{Special Bond Counts, Special Bonds} = special neighbor info :ul
+
+IMPORTANT NOTE: Whether a section is required depends on how the
+molecule definition is used by other LAMMPS commands.  For example, to
+add a molecule via the "fix deposit"_fix_deposit.html command, the
+Coords and Types sections are required.  To add a rigid body via the
+"fix pour"_fix_pout.html command, the Bonds (Angles, etc) sections are
+not required, since the molecule will be treated as a rigid body.
+Some sections are optional.  For example, the "fix pour"_fix_pour.html
+command can add finite-size granular particles.  If the Diameters
+section is not specified, added particles will have a default diameter
+of 1.0.  See the doc pages for LAMMPS commands that use read-in
+molecules for more details.
+
+Each section is listed below in alphabetic order.  The format of each
+section is described including the number of lines it must contain and
+rules (if any) for whether it can appear in the data file.  In each
+case the ID is ignored; it is simply included for readability as a
+number from 1 to Nlines for the section, indicating which atom (or
+bond, etc) the entry applies to.  The lines must be listed in order
+from 1 to Nlines.
+
+:line
+
+{Coords} section:
+
+one line per atom
+line syntax: ID x y z
+x,y,z = coordinate of atom :ul
+
+:line
+
+{Types} section:
+
+one line per atom
+line syntax: ID type
+type = atom type of atom :ul
+
+:line
+
+{Charges} section:
+
+one line per atom
+line syntax: ID q
+q = charge on atom :ul
+
+This section is only allowed for "atom styles"_atom_style.html that
+support charge.  If not listed, the default charge on each atom in the
+molecule is 0.0.
+
+:line
+
+{Diameters} section:
+
+one line per atom
+line syntax: ID diam
+diam = diameter of atom :ul
+
+This section is only allowed for "atom styles"_atom_style.html that
+support finite-size spherical particles, e.g. atom_style sphere.  If
+not listed, the default diameter of each atom in the molecule is 1.0.
+
+:line
+
+{Masses} section:
+
+one line per atom
+line syntax: ID mass
+mass = mass of atom :ul
+
+This section is only allowed for "atom styles"_atom_style.html that
+support per-atom mass, as opposed to per-type mass.  See the
+"mass"_mass.html command for details.  If not listed, the default mass
+for each atom is derived from its volume (see Diameters section) and a
+default density of 1.0, in "units"_units.html of mass/volume.
+
+:line
+
+{Bonds} section:
+
+one line per bond
+line syntax: ID type atom1 atom2
+type = bond type (1-Nbondtype)
+atom1,atom2 = IDs of atoms in bond :ul
+
+The IDs for the two atoms in each bond should be values
+from 1 to Natoms, where Natoms = # of atoms in the molecule.
+
+:line
+
+{Angles} section:
+
+one line per angle
+line syntax: ID type atom1 atom2 atom3
+type = angle type (1-Nangletype)
+atom1,atom2,atom3 = IDs of atoms in angle :ul
+
+The IDs for the three atoms in each angle should be values from 1 to
+Natoms, where Natoms = # of atoms in the molecule.  The 3 atoms are
+ordered linearly within the angle.  Thus the central atom (around
+which the angle is computed) is the atom2 in the list.
+
+:line
+
+{Dihedrals} section:
+
+one line per dihedral
+line syntax: ID type atom1 atom2 atom3 atom4
+type = dihedral type (1-Ndihedraltype)
+atom1,atom2,atom3,atom4 = IDs of atoms in dihedral :ul
+
+The IDs for the four atoms in each dihedral should be values from 1 to
+Natoms, where Natoms = # of atoms in the molecule.  The 4 atoms are
+ordered linearly within the dihedral.
+
+:line
+
+{Impropers} section:
+
+one line per improper
+line syntax: ID type atom1 atom2 atom3 atom4
+type = improper type (1-Nimpropertype)
+atom1,atom2,atom3,atom4 = IDs of atoms in improper :ul
+
+The IDs for the four atoms in each improper should be values from 1 to
+Natoms, where Natoms = # of atoms in the molecule.  The ordering of
+the 4 atoms determines the definition of the improper angle used in
+the formula for the defined "improper style"_improper_style.html.  See
+the doc pages for individual styles for details.
+
+:line
+
+{Special Bond Counts} section:
+
+one line per atom
+line syntax: ID N1 N2 N3
+N1 = # of 1-2 bonds
+N2 = # of 1-3 bonds
+N3 = # of 1-4 bonds :ul
+
+N1, N2, N3 are the number of 1-2, 1-3, 1-4 neighbors respectively of
+this atom within the topology of the molecule.  See the
+"special_bonds"_special_bonds.html doc page for more discussion of
+1-2, 1-3, 1-4 neighbors.  If this section appears, the Special Bonds
+section must also appear.  If this section is not specied, the
+atoms in the molecule will have no special bonds.
+
+:line
+
+{Special Bonds} section:
+
+one line per atom
+line syntax: ID a b c d ...
+a,b,c,d,... = IDs of atoms in N1+N2+N3 special bonds :ul
+
+A, b, c, d, etc are the IDs of the n1+n2+n3 atoms that are 1-2, 1-3,
+1-4 neighbors of this atom.  The IDs should be values from 1 to
+Natoms, where Natoms = # of atoms in the molecule.  The first N1
+values should be the 1-2 neighbors, the next N2 should be the 1-3
+neighbors, the last N3 should be the 1-4 neighbors.  No atom ID should
+appear more than once.  See the "special_bonds"_special_bonds.html doc
+page for more discussion of 1-2, 1-3, 1-4 neighbors.  If this section
+appears, the Special Bond Counts section must also appear.  If this
+section is not specied, the atoms in the molecule will have no special
+bonds.
+
+:line
+
+[Restrictions:] none
+
+[Related commands:]
+
+"fix deposit"_fix_deposit.html, "fix pour"_fix_pour.html,
+"fix_gcmc"_fix_gcmc.html
+
+[Default:] none

@@ -132,7 +132,8 @@ FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
       coord[0] = region_xlo + random_equal->uniform() * (region_xhi-region_xlo);
       coord[1] = region_ylo + random_equal->uniform() * (region_yhi-region_ylo);
       coord[2] = region_zlo + random_equal->uniform() * (region_zhi-region_zlo);
-      if (domain->regions[iregion]->match(coord[0],coord[1],coord[2]) != 0) inside++;
+      if (domain->regions[iregion]->match(coord[0],coord[1],coord[2]) != 0) 
+        inside++;
     }
 
     double max_region_volume = (region_xhi - region_xlo)*
@@ -440,7 +441,8 @@ void FixGCMC::attempt_atomic_translation()
     coord[1] = x[i][1] + displace*ry;
     coord[2] = x[i][2] + displace*rz;
     double energy_after = energy(i,ngcmc_type,-1,coord);
-    if (random_unequal->uniform() < exp(-beta*(energy_after - energy_before))) {
+    if (random_unequal->uniform() < 
+        exp(-beta*(energy_after - energy_before))) {
       x[i][0] = coord[0];
       x[i][1] = coord[1];
       x[i][2] = coord[2];
@@ -475,7 +477,8 @@ void FixGCMC::attempt_atomic_deletion()
   int success = 0;
   if (i >= 0) {
     double deletion_energy = energy(i,ngcmc_type,-1,atom->x[i]);
-    if (random_unequal->uniform() < ngas*exp(beta*deletion_energy)/(zz*volume)) {
+    if (random_unequal->uniform() < 
+        ngas*exp(beta*deletion_energy)/(zz*volume)) {
       atom->avec->copy(atom->nlocal-1,i,1);
       atom->nlocal--;
       success = 1;
@@ -606,7 +609,8 @@ void FixGCMC::attempt_molecule_translation()
   double energy_after_sum = 0.0;
   MPI_Allreduce(&energy_after,&energy_after_sum,1,MPI_DOUBLE,MPI_SUM,world);
 
-  if (random_equal->uniform() < exp(-beta*(energy_after_sum - energy_before_sum))) {
+  if (random_equal->uniform() < 
+      exp(-beta*(energy_after_sum - energy_before_sum))) {
     for (int i = 0; i < atom->nlocal; i++) {
       if (atom->molecule[i] == translation_molecule) {
         x[i][0] += com_displace[0];
@@ -665,9 +669,12 @@ void FixGCMC::attempt_molecule_rotation()
       xtmp[0] -= com[0];
       xtmp[1] -= com[1];
       xtmp[2] -= com[2];
-      atom_coord[n][0] = rot[0]*xtmp[0] + rot[1]*xtmp[1] + rot[2]*xtmp[2] + com[0];
-      atom_coord[n][1] = rot[3]*xtmp[0] + rot[4]*xtmp[1] + rot[5]*xtmp[2] + com[1];
-      atom_coord[n][2] = rot[6]*xtmp[0] + rot[7]*xtmp[1] + rot[8]*xtmp[2] + com[2];
+      atom_coord[n][0] = 
+        rot[0]*xtmp[0] + rot[1]*xtmp[1] + rot[2]*xtmp[2] + com[0];
+      atom_coord[n][1] = 
+        rot[3]*xtmp[0] + rot[4]*xtmp[1] + rot[5]*xtmp[2] + com[1];
+      atom_coord[n][2] = 
+        rot[6]*xtmp[0] + rot[7]*xtmp[1] + rot[8]*xtmp[2] + com[2];
       xtmp[0] = atom_coord[n][0];
       xtmp[1] = atom_coord[n][1];
       xtmp[2] = atom_coord[n][2];
@@ -680,7 +687,8 @@ void FixGCMC::attempt_molecule_rotation()
   double energy_after_sum = 0.0;
   MPI_Allreduce(&energy_after,&energy_after_sum,1,MPI_DOUBLE,MPI_SUM,world);
 
-  if (random_equal->uniform() < exp(-beta*(energy_after_sum - energy_before_sum))) {
+  if (random_equal->uniform() < 
+      exp(-beta*(energy_after_sum - energy_before_sum))) {
     int n = 0;
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & rotation_groupbit) {
@@ -715,7 +723,8 @@ void FixGCMC::attempt_molecule_deletion()
 
   double deletion_energy_sum = molecule_energy(deletion_molecule);
 
-  if (random_equal->uniform() < ngas*exp(beta*deletion_energy_sum)/(zz*volume*natoms_per_molecule)) {
+  if (random_equal->uniform() < 
+      ngas*exp(beta*deletion_energy_sum)/(zz*volume*natoms_per_molecule)) {
     int i = 0;
     while (i < atom->nlocal) {
       if (atom->molecule[i] == deletion_molecule) {
@@ -1015,10 +1024,12 @@ void FixGCMC::get_model_molecule()
   }
 
   natoms_per_molecule = 0;
-  MPI_Allreduce(&natoms_per_molecule_local,&natoms_per_molecule,1,MPI_INT,MPI_SUM,world);
+  MPI_Allreduce(&natoms_per_molecule_local,&natoms_per_molecule,1,
+                MPI_INT,MPI_SUM,world);
 
   if (natoms_per_molecule == 0)
-    error->all(FLERR,"Fix gcmc could not find any atoms in the user-supplied template molecule");
+    error->all(FLERR,"Fix gcmc could not find any atoms "
+               "in the user-supplied template molecule");
   
   memory->create(atom_coord,natoms_per_molecule,3,"fixGCMC:atom_coord");
 
@@ -1026,7 +1037,8 @@ void FixGCMC::get_model_molecule()
 
   maxmol = 0;
   if (atom->molecular) {
-    for (int i = 0; i < atom->nlocal; i++) maxmol = MAX(atom->molecule[i],maxmol);
+    for (int i = 0; i < atom->nlocal; i++) 
+      maxmol = MAX(atom->molecule[i],maxmol);
     int maxmol_all;
     MPI_Allreduce(&maxmol,&maxmol_all,1,MPI_INT,MPI_MAX,world);
     maxmol = maxmol_all;
@@ -1081,7 +1093,8 @@ void FixGCMC::get_model_molecule()
   atom->nextra_grow = old_atom->nextra_grow;
 
   if (atom->nextra_grow) {
-    memory->grow(atom->extra_grow,old_atom->nextra_grow_max,"fixGCMC:extra_grow");
+    memory->grow(atom->extra_grow,old_atom->nextra_grow_max,
+                 "fixGCMC:extra_grow");
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
       atom->extra_grow[iextra] = old_atom->extra_grow[iextra];
   }
@@ -1130,7 +1143,8 @@ void FixGCMC::get_model_molecule()
 
   memory->destroy(buf);
   
-  // make sure that the number of model atoms is equal to the number of atoms per gas molecule
+  // make sure that the number of model atoms is 
+  // equal to the number of atoms per gas molecule
   
   int nlocal = atom->nlocal;
   if (nlocal != natoms_per_molecule)

@@ -97,6 +97,9 @@ is different than the default.
 {dihedral types} = # of dihedral types in system
 {improper types} = # of improper types in system
 {extra bond per atom} = leave space for this many new bonds per atom
+{extra angle per atom} = leave space for this many new angles per atom
+{extra dihedral per atom} = leave space for this many new dihedrals per atom
+{extra improper per atom} = leave space for this many new impropers per atom
 {ellipsoids} = # of ellipsoids in system
 {lines} = # of line segments in system
 {triangles} = # of triangles in system
@@ -172,10 +175,12 @@ command).  When using "shrink-wrap" boundary conditions (see the
 a parallel simulation to lose atoms the first time that LAMMPS
 shrink-wraps the box around the atoms.
 
-The "extra bond per atom" setting should be used if new bonds will be
-added to the system when a simulation runs, e.g. by using the "fix
+The "extra bond per atom" setting (angle, dihedral, improper) should
+be used if new bonds (angles, dihedrals, impropers) will be added to
+the system when a simulation runs, e.g. by using the "fix
 bond/create"_fix_bond_create.html command.  This will pre-allocate
-space in LAMMPS data structures for storing the new bonds.
+space in LAMMPS data structures for storing the new bonds (angles,
+dihedrals, impropers).
 
 The "ellipsoids" and "lines" and "triangles" and "bodies" settings are
 only used with "atom_style ellipsoid or line or tri or

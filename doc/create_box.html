@@ -13,14 +13,31 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>create_box N region-ID 
+<PRE>create_box N region-ID keyword value ... 
 </PRE>
-<UL><LI>N = # of atom types to use in this simulation
+<UL><LI>N = # of atom types to use in this simulation 
+
 <LI>region-ID = ID of region to use as simulation domain 
+
+<LI>zero or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>bond types</I> or <I>angle types</I> or <I>dihedral types</I> or <I>improper types</I> or <I>extra bond per atom</I> or <I>extra angle per atom</I> or <I>extra dihedral per atom</I> or <I>extra improper per atom</I> 
+
+<PRE>  <I>bond types</I> value = # of bond types
+  <I>angle types</I> value = # of angle types
+  <I>dihedral types</I> value = # of dihedral types
+  <I>improper types</I> value = # of improper types
+  <I>extra bond per atom</I> value = # of bonds per atom
+  <I>extra angle per atom</I> value = # of angles per atom
+  <I>extra dihedral per atom</I> value = # of dihedrals per atom
+  <I>extra improper per atom</I> value = # of impropers per atom 
+</PRE>
+
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>create_box 2 mybox 
+<PRE>create_box 2 mybox
+create_box 2 mybox "bond types" 2 "extra bond per atom" 1 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -84,6 +101,30 @@ boundary conditions (see the <A HREF = "boundary.html">boundary</A> command), a 
 (mostly empty) box may cause a parallel simulation to lose atoms the
 first time that LAMMPS shrink-wraps the box around the atoms.
 </P>
+<HR>
+
+<P>The optional keywords can be used to create a system that allows for
+bond (angle, dihedral, improper) interactions to be added later,
+similar to the way they would be specified in a data file.  Note that
+if these keywords are not used, then the create_box command creates an
+atomic (non-molecular) simulation that does not allow bonds between
+pairs of atoms to be defined or a <A HREF = "bond_style.html">bond potential</A> to
+be specified.
+</P>
+<P>As an example, see the examples/deposit/in.deposit.mol script, which
+deposits molecules onto a substrate.  Initially there are no molecules
+in the system, but they are added later by the <A HREF = "fix_deposit.html">fix
+deposit</A> command.  The create_box command is used in
+the script with the "bond types" and "extra bond per atom" keywords to
+allow molecules with bonds to be later added to the system.
+</P>
+<P>The keywords that can be specified are listed above.  Note that each
+is a multi-word keyword which must be specified as a single argument.
+This means the keyword must be enclosed in quotes, as in the example
+above.
+</P>
+<HR>
+
 <P><B>Restrictions:</B>
 </P>
 <P>An <A HREF = "atom_style.html">atom_style</A> and <A HREF = "region.html">region</A> must have
@@ -91,7 +132,8 @@ been previously defined to use this command.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "create_atoms.html">create_atoms</A>, <A HREF = "region.html">region</A>
+<P><A HREF = "read_data.html">read_data</A>, <A HREF = "create_atoms.html">create_atoms</A>,
+<A HREF = "region.html">region</A>
 </P>
 <P><B>Default:</B> none
 </P>

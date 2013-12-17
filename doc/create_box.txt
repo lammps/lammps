@@ -10,14 +10,26 @@ create_box command :h3
 
 [Syntax:]
 
-create_box N region-ID :pre
+create_box N region-ID keyword value ... :pre
 
-N = # of atom types to use in this simulation
-region-ID = ID of region to use as simulation domain :ul
+N = # of atom types to use in this simulation :ulb,l
+region-ID = ID of region to use as simulation domain :l
+zero or more keyword/value pairs may be appended :l
+keyword = {bond types} or {angle types} or {dihedral types} or {improper types} or {extra bond per atom} or {extra angle per atom} or {extra dihedral per atom} or {extra improper per atom} :l
+  {bond types} value = # of bond types
+  {angle types} value = # of angle types
+  {dihedral types} value = # of dihedral types
+  {improper types} value = # of improper types
+  {extra bond per atom} value = # of bonds per atom
+  {extra angle per atom} value = # of angles per atom
+  {extra dihedral per atom} value = # of dihedrals per atom
+  {extra improper per atom} value = # of impropers per atom :pre
+:ule
 
 [Examples:]
 
-create_box 2 mybox :pre
+create_box 2 mybox
+create_box 2 mybox "bond types" 2 "extra bond per atom" 1 :pre
 
 [Description:]
 
@@ -81,6 +93,30 @@ boundary conditions (see the "boundary"_boundary.html command), a huge
 (mostly empty) box may cause a parallel simulation to lose atoms the
 first time that LAMMPS shrink-wraps the box around the atoms.
 
+:line
+
+The optional keywords can be used to create a system that allows for
+bond (angle, dihedral, improper) interactions to be added later,
+similar to the way they would be specified in a data file.  Note that
+if these keywords are not used, then the create_box command creates an
+atomic (non-molecular) simulation that does not allow bonds between
+pairs of atoms to be defined or a "bond potential"_bond_style.html to
+be specified.
+
+As an example, see the examples/deposit/in.deposit.mol script, which
+deposits molecules onto a substrate.  Initially there are no molecules
+in the system, but they are added later by the "fix
+deposit"_fix_deposit.html command.  The create_box command is used in
+the script with the "bond types" and "extra bond per atom" keywords to
+allow molecules with bonds to be later added to the system.
+
+The keywords that can be specified are listed above.  Note that each
+is a multi-word keyword which must be specified as a single argument.
+This means the keyword must be enclosed in quotes, as in the example
+above.
+
+:line
+
 [Restrictions:]
 
 An "atom_style"_atom_style.html and "region"_region.html must have
@@ -88,6 +124,7 @@ been previously defined to use this command.
 
 [Related commands:]
 
-"create_atoms"_create_atoms.html, "region"_region.html
+"read_data"_read_data.html, "create_atoms"_create_atoms.html,
+"region"_region.html
 
 [Default:] none

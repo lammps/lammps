@@ -57,21 +57,6 @@ FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
 
   if (seed <= 0) error->all(FLERR,"Illegal fix deposit command");
 
-  // set defaults
-
-  iregion = -1;
-  idregion = NULL;
-  mode = ATOM;
-  idnext = 0;
-  globalflag = localflag = 0;
-  lo = hi = deltasq = 0.0;
-  nearsq = 0.0;
-  maxattempt = 10;
-  rateflag = 0;
-  vxlo = vxhi = vylo = vyhi = vzlo = vzhi = 0.0;
-  scaleflag = 1;
-  targetflag = 0;
-
   // read options from end of input line
 
   options(narg-7,&arg[7]);
@@ -105,7 +90,12 @@ FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
 
   // error check and further setup for mode = MOLECULE
 
+  if (atom->tag_enable == 0)
+    error->all(FLERR,"Cannot use fix_deposit unless atoms have IDs");
+
   if (mode == MOLECULE) {
+    if (atom->molecule_flag == 0)
+      error->all(FLERR,"Fix deposit requires atom attribute molecule");
     if (onemol->xflag == 0)
       error->all(FLERR,"Fix deposit molecule must have coordinates");
     if (onemol->typeflag == 0)
@@ -114,7 +104,7 @@ FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
     onemol->compute_center();
   }
 
-  // setup of coords and imagesflags array
+  // setup of coords and imageflags array
 
   if (mode == ATOM) natom = 1;
   else natom = onemol->natoms;
@@ -206,7 +196,7 @@ void FixDeposit::init()
 
 void FixDeposit::pre_exchange()
 {
-  int i,j,m;
+  int i,j,m,n;
   int flag,flagall;
   double coord[3],lamda[3],delx,dely,delz,rsq;
   double alpha,beta,gamma;
@@ -216,8 +206,6 @@ void FixDeposit::pre_exchange()
   // just return if should not be called on this timestep
 
   if (next_reneighbor != update->ntimestep) return;
-
-  int dimension = domain->dimension;
 
   // compute current offset = bottom of insertion volume
 
@@ -239,6 +227,7 @@ void FixDeposit::pre_exchange()
 
   // attempt an insertion until successful
 
+  int dimension = domain->dimension;
   int nfix = modify->nfix;
   Fix **fix = modify->fix;
 
@@ -395,18 +384,18 @@ void FixDeposit::pre_exchange()
       if (newcoord[0] >= sublo[0] && newcoord[0] < subhi[0] &&
           newcoord[1] >= sublo[1] && newcoord[1] < subhi[1] &&
           newcoord[2] >= sublo[2] && newcoord[2] < subhi[2]) flag = 1;
-      else if (domain->dimension == 3 && newcoord[2] >= domain->boxhi[2] &&
+      else if (dimension == 3 && newcoord[2] >= domain->boxhi[2] &&
                comm->myloc[2] == comm->procgrid[2]-1 &&
                newcoord[0] >= sublo[0] && newcoord[0] < subhi[0] &&
                newcoord[1] >= sublo[1] && newcoord[1] < subhi[1]) flag = 1;
-      else if (domain->dimension == 2 && newcoord[1] >= domain->boxhi[1] &&
+      else if (dimension == 2 && newcoord[1] >= domain->boxhi[1] &&
                comm->myloc[1] == comm->procgrid[1]-1 &&
                newcoord[0] >= sublo[0] && newcoord[0] < subhi[0]) flag = 1;
 
       if (flag) {
         if (mode == ATOM) atom->avec->create_atom(ntype,coords[m]);
         else atom->avec->create_atom(onemol->type[m],coords[m]);
-        int n = atom->nlocal - 1;
+        n = atom->nlocal - 1;
         atom->tag[n] = maxtag_all + m+1;
         if (atom->molecule_flag) atom->molecule[n] = maxmol_all;
         atom->mask[n] = 1 | groupbit;
@@ -497,7 +486,20 @@ void FixDeposit::find_maxid()
 
 void FixDeposit::options(int narg, char **arg)
 {
-  if (narg < 0) error->all(FLERR,"Illegal fix indent command");
+  // defaults
+
+  iregion = -1;
+  idregion = NULL;
+  mode = ATOM;
+  idnext = 0;
+  globalflag = localflag = 0;
+  lo = hi = deltasq = 0.0;
+  nearsq = 0.0;
+  maxattempt = 10;
+  rateflag = 0;
+  vxlo = vxhi = vylo = vyhi = vzlo = vzhi = 0.0;
+  scaleflag = 1;
+  targetflag = 0;
 
   int iarg = 0;
   while (iarg < narg) {

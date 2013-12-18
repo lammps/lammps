@@ -397,7 +397,7 @@ void FixDeposit::pre_exchange()
         else atom->avec->create_atom(onemol->type[m],coords[m]);
         n = atom->nlocal - 1;
         atom->tag[n] = maxtag_all + m+1;
-        if (atom->molecule_flag) atom->molecule[n] = maxmol_all;
+        if (mode == MOLECULE) atom->molecule[n] = maxmol_all;
         atom->mask[n] = 1 | groupbit;
         atom->image[n] = imageflags[m];
         atom->v[n][0] = vxtmp;
@@ -429,7 +429,7 @@ void FixDeposit::pre_exchange()
   // reset global natoms,nbonds,etc
   // increment maxtag_all and maxmol_all if necessary
   // if global map exists, reset it now instead of waiting for comm
-  // since adding an atom messes up ghosts
+  // since adding atoms messes up ghosts
 
   if (success) {
     atom->natoms += natom;

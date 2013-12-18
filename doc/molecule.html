@@ -15,7 +15,7 @@
 </P>
 <PRE>molecule ID file 
 </PRE>
-<UL><LI>ID = user-assigned name or template ID for the molecule
+<UL><LI>ID = user-assigned name of the molecule template
 <LI>file = name of file containing molecule description 
 </UL>
 <P><B>Examples:</B>
@@ -25,18 +25,18 @@ molecule CO2 co2.txt
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Define a molecule that can be used as part of other LAMMPS commands,
-typically to define a collection of particles as a bonded molecule or
-a rigid body.  Commands that use molecule definitions include (or will
-include) <A HREF = "fix_deposit.html">fix deposit</A>, <A HREF = "fix_pour.html">fix pour</A>, and
-<A HREF = "fix_gcmc.html">fix gcmc</A>.
+<P>Define a molecule template that can be used as part of other LAMMPS
+commands, typically to define a collection of particles as a bonded
+molecule or a rigid body.  Commands that use molecule templates
+include (or will include) <A HREF = "fix_deposit.html">fix deposit</A>, <A HREF = "fix_pour.html">fix
+pour</A>, and <A HREF = "fix_gcmc.html">fix gcmc</A>.
 </P>
-<P>The ID of a molecule can only contain alphanumeric characters and
-underscores.
+<P>The ID of a molecule template can only contain alphanumeric characters
+and underscores.
 </P>
-<P>The format of the molecule description file is similar to
-the data file read by the <A HREF = "read_data.html">read_data</A> commands,
-and is as follows.
+<P>The format of the molecule description file is similar to the data
+file read by the <A HREF = "read_data.html">read_data</A> commands, and is as
+follows.
 </P>
 <P>A molecule file has a header and a body.  The header appears first.
 The first line of the header is always skipped; it typically contains

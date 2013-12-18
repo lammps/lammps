@@ -40,7 +40,7 @@ class FixDeposit : public Fix {
  private:
   int ninsert,nfreq,seed;
   int iregion,globalflag,localflag,maxattempt,rateflag,scaleflag,targetflag;
-  int mode;
+  int mode,idnext;
   double lo,hi,deltasq,nearsq,rate;
   double vxlo,vxhi,vylo,vyhi,vzlo,vzhi;
   double xlo,xhi,ylo,yhi,zlo,zhi;
@@ -53,7 +53,6 @@ class FixDeposit : public Fix {
   int *imageflags;
 
   int nfirst,ninserted;
-  int idnext;
   int maxtag_all,maxmol_all;
   class RanPark *random;
 

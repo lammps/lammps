@@ -19,8 +19,6 @@
 namespace LAMMPS_NS {
 
 class Thermo : protected Pointers {
-  friend class WriteRestart;           // accesses lostflag
-  friend class WriteData;              // accesses lostflag
   friend class MinCG;                  // accesses compute_pe
 
  public:
@@ -28,6 +26,8 @@ class Thermo : protected Pointers {
   int normflag;          // 0 if do not normalize by atoms, 1 if normalize
   int modified;          // 1 if thermo_modify has been used, else 0
   int cudable;           // 1 if all computes used are cudable
+  int lostflag;          // IGNORE,WARN,ERROR
+  int lostbond;          // ditto for atoms in bonds
 
   Thermo(class LAMMPS *, int, char **);
   ~Thermo();
@@ -58,7 +58,7 @@ class Thermo : protected Pointers {
   int normuser;
 
   int firststep;
-  int lostflag,lostbefore;
+  int lostbefore;
   int flushflag,lineflag;
 
   double last_tpcpu,last_spcpu;

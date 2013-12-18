@@ -288,7 +288,7 @@ void Atom::settings(Atom *old)
 
 /* ----------------------------------------------------------------------
    create an AtomVec style
-   called from input script, restart file, replicate
+   called from lammps.cpp, input script, restart file, replicate
 ------------------------------------------------------------------------- */
 
 void Atom::create_avec(const char *style, int narg, char **arg, char *suffix)
@@ -308,13 +308,18 @@ void Atom::create_avec(const char *style, int narg, char **arg, char *suffix)
   vfrac_flag = spin_flag = eradius_flag = ervel_flag = erforce_flag = 0;
 
   // create instance of AtomVec
-  // use grow to initialize atom-based arrays to length 1
-  // so that x[0][0] can be referenced even if proc has no atoms
+  // use grow() to initialize atom-based arrays to length 1
+  //   so that x[0][0] can always be referenced even if proc has no atoms
+  // but reset nmax = 0
+  //   so 2d arrays like bond_type will later be allocated correctly
+  //   since currently, 2nd dimension bond_per_atom = 0
 
   int sflag;
   avec = new_avec(style,suffix,sflag);
   avec->settings(narg,arg);
   avec->grow(1);
+  nmax = 0;
+  avec->reset();
 
   if (sflag) {
     char estyle[256];

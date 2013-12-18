@@ -98,6 +98,7 @@ class AtomVec : protected Pointers {
   virtual void write_vel(FILE *, int, double **);
   virtual int write_vel_hybrid(FILE *, double *) {return 0;}
 
+  void reset();
   int pack_bond(int **);
   void write_bond(FILE *, int, int **, int);
   int pack_angle(int **);

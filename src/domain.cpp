@@ -621,7 +621,7 @@ void Domain::image_check()
     int all;
     MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
     if (all && comm->me == 0) 
-      error->warning(FLERR,"Bond atoms missing in image flag check");
+      error->warning(FLERR,"Bond atoms missing in image check");
   }
 
   memory->destroy(unwrap);

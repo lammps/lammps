@@ -201,7 +201,7 @@ void FixDeposit::pre_exchange()
   double coord[3],lamda[3],delx,dely,delz,rsq;
   double alpha,beta,gamma;
   double r[3],rotmat[3][3],quat[4];
-  double *newcoord,*center;
+  double *newcoord;
 
   // just return if should not be called on this timestep
 
@@ -313,12 +313,11 @@ void FixDeposit::pre_exchange()
       MathExtra::norm3(r);
       MathExtra::axisangle_to_quat(r,theta,quat);
       MathExtra::quat_to_mat(quat,rotmat);
-      center = onemol->center;
       for (i = 0; i < natom; i++) {
         MathExtra::matvec(rotmat,onemol->dx[i],coords[i]);
-        coords[i][0] += center[0] + coord[0];
-        coords[i][1] += center[1] + coord[1];
-        coords[i][2] += center[2] + coord[2];
+        coords[i][0] += coord[0];
+        coords[i][1] += coord[1];
+        coords[i][2] += coord[2];
 
         imageflags[i] = ((tagint) IMGMAX << IMG2BITS) |
           ((tagint) IMGMAX << IMGBITS) | IMGMAX;

@@ -63,7 +63,7 @@ static int style_match(const char *one, const char *two)
 
   // cannot compare empty styles
 
-  if ((len1 == NULL) || (len2 == NULL)) return 1;
+  if ((one == NULL) || (two == NULL)) return 1;
 
   len1 = strlen(one);
   len2 = strlen(two);

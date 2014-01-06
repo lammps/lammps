@@ -15,7 +15,7 @@
 </P>
 <PRE>molecule ID file 
 </PRE>
-<UL><LI>ID = user-assigned name of the molecule template
+<UL><LI>ID = user-assigned name for the molecule template
 <LI>file = name of file containing molecule description 
 </UL>
 <P><B>Examples:</B>
@@ -34,9 +34,8 @@ pour</A>, and <A HREF = "fix_gcmc.html">fix gcmc</A>.
 <P>The ID of a molecule template can only contain alphanumeric characters
 and underscores.
 </P>
-<P>The format of the molecule description file is similar to the data
-file read by the <A HREF = "read_data.html">read_data</A> commands, and is as
-follows.
+<P>The format of the molecule file is similar to the data file read by
+the <A HREF = "read_data.html">read_data</A> commands, and is as follows.
 </P>
 <P>A molecule file has a header and a body.  The header appears first.
 The first line of the header is always skipped; it typically contains
@@ -92,8 +91,8 @@ section is described including the number of lines it must contain and
 rules (if any) for whether it can appear in the data file.  In each
 case the ID is ignored; it is simply included for readability as a
 number from 1 to Nlines for the section, indicating which atom (or
-bond, etc) the entry applies to.  The lines must be listed in order
-from 1 to Nlines.
+bond, etc) the entry applies to.  The lines are assumed to be listed
+in order from 1 to Nlines.
 </P>
 <HR>
 

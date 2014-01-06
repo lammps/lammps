@@ -12,7 +12,7 @@ molecule command :h3
 
 molecule ID file :pre
 
-ID = user-assigned name of the molecule template
+ID = user-assigned name for the molecule template
 file = name of file containing molecule description :ul
 
 [Examples:]
@@ -31,9 +31,8 @@ pour"_fix_pour.html, and "fix gcmc"_fix_gcmc.html.
 The ID of a molecule template can only contain alphanumeric characters
 and underscores.
 
-The format of the molecule description file is similar to the data
-file read by the "read_data"_read_data.html commands, and is as
-follows.
+The format of the molecule file is similar to the data file read by
+the "read_data"_read_data.html commands, and is as follows.
 
 A molecule file has a header and a body.  The header appears first.
 The first line of the header is always skipped; it typically contains
@@ -89,8 +88,8 @@ section is described including the number of lines it must contain and
 rules (if any) for whether it can appear in the data file.  In each
 case the ID is ignored; it is simply included for readability as a
 number from 1 to Nlines for the section, indicating which atom (or
-bond, etc) the entry applies to.  The lines must be listed in order
-from 1 to Nlines.
+bond, etc) the entry applies to.  The lines are assumed to be listed
+in order from 1 to Nlines.
 
 :line
 

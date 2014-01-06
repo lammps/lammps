@@ -388,6 +388,7 @@ in the command's documentation.
 "minimize"_minimize.html,
 "min_modify"_min_modify.html,
 "min_style"_min_style.html,
+"molecule"_molecule.html,
 "neb"_neb.html,
 "neigh_modify"_neigh_modify.html,
 "neighbor"_neighbor.html,

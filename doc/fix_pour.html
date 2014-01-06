@@ -27,10 +27,12 @@
 
 <LI>one or more keyword/value pairs may be appended to args 
 
-<LI>keyword = <I>region</I> or <I>diam</I> or <I>dens</I> or <I>vol</I> or <I>rate</I> or <I>vel</I> 
+<LI>keyword = <I>region</I> or <I>mol</I> or <I>diam</I> or <I>dens</I> or <I>vol</I> or <I>rate</I> or <I>vel</I> 
 
 <PRE>  <I>region</I> value = region-ID
     region-ID = ID of region to use as insertion volume
+  <I>mol</I> value = template-ID
+    template-ID = ID of molecule template specified in a separate <A HREF = "molecule.html">molecule</A> command
   <I>diam</I> values = dstyle args
     dstyle = <I>one</I> or <I>range</I> or <I>poly</I>
       <I>one</I> args = D
@@ -64,14 +66,21 @@ fix 2 all pour 10000 1 19985583 region disk diam poly 2 0.7 0.4 1.5 0.6
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Insert particles into a granular run every few timesteps within a
-specified region until N particles have been inserted.  This is useful
-for simulating the pouring of particles into a container under the
-influence of gravity.
+<P>Insert finite-size particles or molecules into the simulation box
+every few timesteps within a specified region until N particles have
+been inserted.  This is typically used to model the pouring of
+granular particles into a container under the influence of gravity.
+For the remainder of this doc page, a single inserted atom or molecule
+is referred to as a "particle".
 </P>
-<P>Inserted particles are assigned the specified atom type and are
-assigned to two groups: the default group "all" and the group
-specified in the fix pour command (which can also be "all").
+<P>If inserted particles are individual atoms, they are assigned the
+specified atom type.  For molecules the specified type is ignored, and
+the type of each atom in the inserted molecule is specified in the
+file read by the <A HREF = "molecule.html">molecule</A> command.
+</P>
+<P>All atoms in the inserted particle are assigned to two groups: the
+default group "all" and the group specified in the fix pour command
+(which can also be "all").
 </P>
 <P>This command must use the <I>region</I> keyword to define an insertion
 volume.  The specified region must have been previously defined with a
@@ -79,26 +88,40 @@ volume.  The specified region must have been previously defined with a
 <I>cylinder</I> and must be defined with side = <I>in</I>.  The cylinder style
 of region can only be used with 3d simulations.
 </P>
+<P>Individual atoms are inserted, unless the <I>mol</I> keyword is used.  It
+specifies a <I>template-ID</I> previously defined using the
+<A HREF = "molecule.html">molecule</A> command, which reads a file that defines the
+molecule.  The coordinates, atom types, center-of-mass, moments of
+inertia, etc, as well as any bond/angle/etc information for the
+molecule can be specified in the molecule file.  See the
+<A HREF = "molecule.html">molecule</A> command for details.  The only settings
+required to be in this file are the coordinates and types of atoms in
+the molecule.
+</P>
 <P>Each timestep particles are inserted, they are placed randomly inside
-the insertion volume so as to mimic a stream of poured particles.  The
-larger the volume, the more particles that can be inserted at any one
-timestep.  Particles are inserted again after enough time has elapsed
-that the previously inserted particles fall out of the insertion
-volume under the influence of gravity.  Insertions continue every so
-many timesteps until the desired # of particles has been inserted.
+the insertion volume so as to mimic a stream of poured particles.  If
+they are molecules they are also oriented randomly.  The larger the
+volume, the more particles that can be inserted at any one timestep.
+Particles are inserted again after enough time has elapsed that the
+previously inserted particles fall out of the insertion volume under
+the influence of gravity.  Insertions continue every so many timesteps
+until the desired # of particles has been inserted.
 </P>
 <P>All other keywords are optional with defaults as shown below.
 </P>
-<P>The <I>diam</I> option specifes the diameters of inserted particles.  There
-are 3 styles: <I>one</I>, <I>range</I>, or <I>poly</I>.  For <I>one</I>, all particles
-will have diameter <I>D</I>.  For <I>range</I>, the diameter of each particle
-will be chosen randomly and uniformly between the specified <I>Dlo</I> and
-<I>Dhi</I> bounds.  For <I>poly</I>, a series of <I>Npoly</I> diameters is specified.
-For each diameter a percentage value from 0.0 to 1.0 is also
-specified.  The <I>Npoly</I> percentages must sum to 1.0.  For the example
-shown above with "diam 2 0.7 0.4 1.5 0.6", all inserted particles will
-have a diameter of 0.7 or 1.5.  40% of the particles will be small;
-60% will be large.
+<P>The <I>diam</I> option is only used when inserting atoms and specifes the
+diameters of inserted particles.  For molecule insertion, the
+diameters of individual atoms in the molecule can be specified in the
+file read by the <A HREF = "molecule.html">molecule</A> command.  There are 3
+styles: <I>one</I>, <I>range</I>, or <I>poly</I>.  For <I>one</I>, all particles will have
+diameter <I>D</I>.  For <I>range</I>, the diameter of each particle will be
+chosen randomly and uniformly between the specified <I>Dlo</I> and <I>Dhi</I>
+bounds.  For <I>poly</I>, a series of <I>Npoly</I> diameters is specified.  For
+each diameter a percentage value from 0.0 to 1.0 is also specified.
+The <I>Npoly</I> percentages must sum to 1.0.  For the example shown above
+with "diam 2 0.7 0.4 1.5 0.6", all inserted particles will have a
+diameter of 0.7 or 1.5.  40% of the particles will be small; 60% will
+be large.
 </P>
 <P>The <I>dens</I> and <I>vel</I> options enable inserted particles to have a range
 of densities or xy velocities.  The specific values for a particular
@@ -124,6 +147,8 @@ insertions, it prints a warning.
 or y direction (2d).  This enables pouring particles from a
 successively higher height over time.
 </P>
+<HR>
+
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>
 <P>No information about this fix is written to <A HREF = "restart.html">binary restart

@@ -18,9 +18,11 @@ N = # of atoms to insert :l
 type = atom type to assign to inserted atoms :l
 seed = random # seed (positive integer) :l
 one or more keyword/value pairs may be appended to args :l
-keyword = {region} or {diam} or {dens} or {vol} or {rate} or {vel} :l
+keyword = {region} or {mol} or {diam} or {dens} or {vol} or {rate} or {vel} :l
   {region} value = region-ID
     region-ID = ID of region to use as insertion volume
+  {mol} value = template-ID
+    template-ID = ID of molecule template specified in a separate "molecule"_molecule.html command
   {diam} values = dstyle args
     dstyle = {one} or {range} or {poly}
       {one} args = D
@@ -53,14 +55,21 @@ fix 2 all pour 10000 1 19985583 region disk diam poly 2 0.7 0.4 1.5 0.6 :pre
 
 [Description:]
 
-Insert particles into a granular run every few timesteps within a
-specified region until N particles have been inserted.  This is useful
-for simulating the pouring of particles into a container under the
-influence of gravity.
+Insert finite-size particles or molecules into the simulation box
+every few timesteps within a specified region until N particles have
+been inserted.  This is typically used to model the pouring of
+granular particles into a container under the influence of gravity.
+For the remainder of this doc page, a single inserted atom or molecule
+is referred to as a "particle".
 
-Inserted particles are assigned the specified atom type and are
-assigned to two groups: the default group "all" and the group
-specified in the fix pour command (which can also be "all").
+If inserted particles are individual atoms, they are assigned the
+specified atom type.  For molecules the specified type is ignored, and
+the type of each atom in the inserted molecule is specified in the
+file read by the "molecule"_molecule.html command.
+
+All atoms in the inserted particle are assigned to two groups: the
+default group "all" and the group specified in the fix pour command
+(which can also be "all").
 
 This command must use the {region} keyword to define an insertion
 volume.  The specified region must have been previously defined with a
@@ -68,26 +77,40 @@ volume.  The specified region must have been previously defined with a
 {cylinder} and must be defined with side = {in}.  The cylinder style
 of region can only be used with 3d simulations.
 
+Individual atoms are inserted, unless the {mol} keyword is used.  It
+specifies a {template-ID} previously defined using the
+"molecule"_molecule.html command, which reads a file that defines the
+molecule.  The coordinates, atom types, center-of-mass, moments of
+inertia, etc, as well as any bond/angle/etc information for the
+molecule can be specified in the molecule file.  See the
+"molecule"_molecule.html command for details.  The only settings
+required to be in this file are the coordinates and types of atoms in
+the molecule.
+
 Each timestep particles are inserted, they are placed randomly inside
-the insertion volume so as to mimic a stream of poured particles.  The
-larger the volume, the more particles that can be inserted at any one
-timestep.  Particles are inserted again after enough time has elapsed
-that the previously inserted particles fall out of the insertion
-volume under the influence of gravity.  Insertions continue every so
-many timesteps until the desired # of particles has been inserted.
+the insertion volume so as to mimic a stream of poured particles.  If
+they are molecules they are also oriented randomly.  The larger the
+volume, the more particles that can be inserted at any one timestep.
+Particles are inserted again after enough time has elapsed that the
+previously inserted particles fall out of the insertion volume under
+the influence of gravity.  Insertions continue every so many timesteps
+until the desired # of particles has been inserted.
 
 All other keywords are optional with defaults as shown below.
 
-The {diam} option specifes the diameters of inserted particles.  There
-are 3 styles: {one}, {range}, or {poly}.  For {one}, all particles
-will have diameter {D}.  For {range}, the diameter of each particle
-will be chosen randomly and uniformly between the specified {Dlo} and
-{Dhi} bounds.  For {poly}, a series of {Npoly} diameters is specified.
-For each diameter a percentage value from 0.0 to 1.0 is also
-specified.  The {Npoly} percentages must sum to 1.0.  For the example
-shown above with "diam 2 0.7 0.4 1.5 0.6", all inserted particles will
-have a diameter of 0.7 or 1.5.  40% of the particles will be small;
-60% will be large.
+The {diam} option is only used when inserting atoms and specifes the
+diameters of inserted particles.  For molecule insertion, the
+diameters of individual atoms in the molecule can be specified in the
+file read by the "molecule"_molecule.html command.  There are 3
+styles: {one}, {range}, or {poly}.  For {one}, all particles will have
+diameter {D}.  For {range}, the diameter of each particle will be
+chosen randomly and uniformly between the specified {Dlo} and {Dhi}
+bounds.  For {poly}, a series of {Npoly} diameters is specified.  For
+each diameter a percentage value from 0.0 to 1.0 is also specified.
+The {Npoly} percentages must sum to 1.0.  For the example shown above
+with "diam 2 0.7 0.4 1.5 0.6", all inserted particles will have a
+diameter of 0.7 or 1.5.  40% of the particles will be small; 60% will
+be large.
 
 The {dens} and {vel} options enable inserted particles to have a range
 of densities or xy velocities.  The specific values for a particular
@@ -112,6 +135,8 @@ insertions, it prints a warning.
 The {rate} option moves the insertion volume in the z direction (3d)
 or y direction (2d).  This enables pouring particles from a
 successively higher height over time.
+
+:line
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 

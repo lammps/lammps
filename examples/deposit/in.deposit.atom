@@ -40,9 +40,9 @@ thermo_modify	temp add
 
 #dump		1 all atom 50 dump.deposit.atom
 
-dump		2 all image 50 image.*.jpg type type &
-		axes yes 0.8 0.02 view 80 -30
-dump_modify	2 pad 5
+#dump		2 all image 50 image.*.jpg type type &
+#		axes yes 0.8 0.02 view 80 -30
+#dump_modify	2 pad 5
 
 #dump		3 all movie 50 movie.mpg type type &
 #		axes yes 0.8 0.02 view 80 -30

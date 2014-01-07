@@ -40,7 +40,7 @@ class Molecule : protected Pointers {
 
   // 1 if attribute defined or computed, 0 if not
 
-  int centerflag,comflag,inertiaflag;
+  int centerflag,massflag,comflag,inertiaflag;
 
   // attributes
 
@@ -69,17 +69,29 @@ class Molecule : protected Pointers {
   int **nspecial;
   int **special;
 
-  double center[3];    // geometric center of molecule
-  double xcm[3];       // center of mass of molecule
-  double inertia[6];   // moments of inertia of molecule
+  double center[3];         // geometric center of molecule
+  double masstotal;         // total mass of molecule
+  double com[3];            // center of mass of molecule
+  double itensor[6];        // moments of inertia of molecule
+  double inertia[3];        // principal moments of inertia of molecule
+  double ex[3],ey[3],ez[3]; // principal axes of molecule in space coords
+  double quat[4];           // quaternion for orientation of molecule
+
+  double molradius;    // radius of molecule from COM,
+                       // including finite-size particle radii 
+  int comatom;         // index (1-Natom) of atom closest to COM
+  double maxextent;    // furthest any atom in molecule is from comatom
 
   double **dx;         // displacement of each atom relative to center
   double **dxcom;      // displacement of each atom relative to COM
+  double **dxbody;     // displacement of each atom relative to COM
+                       // in body frame (diagonalized interia tensor)
 
   Molecule(class LAMMPS *, int, char **);
   ~Molecule();
   void compute_center();
-  void compute_xcm();
+  void compute_mass();
+  void compute_com();
   void compute_inertia();
 
  private:

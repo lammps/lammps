@@ -101,6 +101,8 @@ FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
     if (onemol->typeflag == 0)
       error->all(FLERR,"Fix deposit molecule must have atom types");
 
+    // fix deposit uses geoemetric center of molecule for insertion
+
     onemol->compute_center();
   }
 
@@ -326,6 +328,7 @@ void FixDeposit::pre_exchange()
     }
 
     // if distance to any inserted atom is less than near, try again
+    // use minimum_image() to account for PBC
 
     double **x = atom->x;
     int nlocal = atom->nlocal;

@@ -19,6 +19,7 @@
 #include "force.h"
 #include "comm.h"
 #include "domain.h"
+#include "math_extra.h"
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
@@ -27,6 +28,8 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 
 #define MAXLINE 256
+#define EPSILON 1.0e-7
+#define BIG 1.0e20
 
 /* ---------------------------------------------------------------------- */
 
@@ -75,7 +78,9 @@ Molecule::~Molecule()
 
 /* ----------------------------------------------------------------------
    compute center = geometric center of molecule
-   also compute dx = displacement of each atom from origin
+   also compute:
+     dx = displacement of each atom from center
+     molradius = radius of molecule from center including finite-size particles
 ------------------------------------------------------------------------- */
 
 void Molecule::compute_center()
@@ -101,38 +106,186 @@ void Molecule::compute_center()
     dx[i][1] = x[i][1] - center[1];
     dx[i][2] = x[i][2] - center[2];
   }
+
+  molradius = 0.0;
+  for (int i = 0; i < natoms; i++) {
+    double rad = MathExtra::len3(dx[i]);
+    if (radiusflag) rad += radius[i];
+    molradius = MAX(molradius,rad);
+  }
 }
 
 /* ----------------------------------------------------------------------
-   compute xcm = center or mass of molecule
-   account for finite size particles
-   also compute dxcom = displacement of each atom from COM
+   compute masstotal = total mass of molecule
+   could have been set by user, otherwise calculate it
 ------------------------------------------------------------------------- */
 
-void Molecule::compute_xcm()
+void Molecule::compute_mass()
 {
-  comflag = 1;
+  if (massflag) return;
+  massflag = 1;
 
-  // NOTE this is not yet right
+  if (!rmassflag) atom->check_mass();
 
-  xcm[0] = xcm[1] = xcm[2] = 0.0;
+  masstotal = 0.0;
   for (int i = 0; i < natoms; i++) {
-    xcm[0] += x[i][0];
-    xcm[1] += x[i][1];
-    xcm[2] += x[i][2];
+    if (rmassflag) masstotal += rmass[i];
+      else masstotal += atom->type[type[i]];
   }
-  xcm[0] /= natoms;
-  xcm[1] /= natoms;
-  xcm[2] /= natoms;
+}
+
+/* ----------------------------------------------------------------------
+   compute com = center of mass of molecule
+   could have been set by user, otherwise calculate it
+   NOTE: account for finite size particles?
+   also compute:
+     dxcom = displacement of each atom from COM
+     comatom = which atom (1-Natom) is nearest the COM
+     maxextent = furthest any atom in molecule is from comatom (not COM)
+------------------------------------------------------------------------- */
+
+void Molecule::compute_com()
+{
+  if (!comflag) {
+    comflag = 1;
+
+    if (!rmassflag) atom->check_mass();
+
+    double onemass;
+    com[0] = com[1] = com[2] = 0.0;
+    for (int i = 0; i < natoms; i++) {
+      if (rmassflag) onemass = rmass[i];
+      else onemass = atom->type[type[i]];
+      com[0] += x[i][0]*onemass;
+      com[1] += x[i][1]*onemass;
+      com[2] += x[i][2]*onemass;
+    }
+    com[0] /= masstotal;
+    com[1] /= masstotal;
+    com[2] /= masstotal;
+  }
 
   memory->destroy(dxcom);
   memory->create(dxcom,natoms,3,"molecule:dxcom");
 
   for (int i = 0; i < natoms; i++) {
-    dxcom[i][0] = x[i][0] - center[0];
-    dxcom[i][1] = x[i][1] - center[1];
-    dxcom[i][2] = x[i][2] - center[2];
+    dxcom[i][0] = x[i][0] - com[0];
+    dxcom[i][1] = x[i][1] - com[1];
+    dxcom[i][2] = x[i][2] - com[2];
   }
+
+  double rsqmin = BIG;
+  for (int i = 0; i < natoms; i++) {
+    double rsq = MathExtra::lensq3(dxcom[i]);
+    if (rsq < rsqmin) {
+      comatom = i;
+      rsqmin = rsq;
+    }
+  }
+
+  double rsqmax = 0.0;
+  for (int i = 0; i < natoms; i++) {
+    double dx = x[comatom][0] - x[i][0];
+    double dy = x[comatom][1] - x[i][1];
+    double dz = x[comatom][2] - x[i][2];
+    double rsq = dx*dx + dy*dy + dz*dz;
+    rsqmax = MAX(rsqmax,rsq);
+  }
+
+  comatom++;
+  maxextent = sqrt(rsqmax);
+}
+
+/* ----------------------------------------------------------------------
+   compute itensor = 6 moments of inertia of molecule around xyz axes
+   could have been set by user, otherwise calculate it
+   NOTE: account for finite size particles?
+   also compute:
+     inertia = 3 principal components of inertia
+     ex,ey,ez = principal axes in space coords
+     quat = quaternion for orientation of molecule
+     dxbody = displacement of each atom from COM in body frame
+------------------------------------------------------------------------- */
+
+void Molecule::compute_inertia()
+{
+  if (!inertiaflag) {
+    inertiaflag = 1;
+
+    if (!rmassflag) atom->check_mass();
+
+    double onemass,dx,dy,dz;
+    for (int i = 0; i < 6; i++) itensor[i] = 0.0;
+    for (int i = 0; i < natoms; i++) {
+      if (rmassflag) onemass = rmass[i];
+      else onemass = atom->type[type[i]];
+      dx = dxcom[i][0];
+      dy = dxcom[i][1];
+      dz = dxcom[i][2];
+      itensor[0] += onemass * (dy*dy + dz*dz);
+      itensor[1] += onemass * (dx*dx + dz*dz);
+      itensor[2] += onemass * (dx*dx + dy*dy);
+      itensor[3] -= onemass * dy*dz;
+      itensor[4] -= onemass * dx*dz;
+      itensor[5] -= onemass * dx*dy;
+    }
+  }
+
+  // diagonalize inertia tensor for each body via Jacobi rotations
+  // inertia = 3 eigenvalues = principal moments of inertia
+  // evectors and exzy = 3 evectors = principal axes of rigid body
+
+  int ierror;
+  double cross[3];
+  double tensor[3][3],evectors[3][3];
+
+  tensor[0][0] = itensor[0];
+  tensor[1][1] = itensor[1];
+  tensor[2][2] = itensor[2];
+  tensor[1][2] = tensor[2][1] = itensor[3];
+  tensor[0][2] = tensor[2][0] = itensor[4];
+  tensor[0][1] = tensor[1][0] = itensor[5];
+  
+  if (MathExtra::jacobi(tensor,inertia,evectors))
+    error->all(FLERR,"Insufficient Jacobi rotations for rigid molecule");
+  
+  ex[0] = evectors[0][0];
+  ex[1] = evectors[1][0];
+  ex[2] = evectors[2][0];
+  ey[0] = evectors[0][1];
+  ey[1] = evectors[1][1];
+  ey[2] = evectors[2][1];
+  ez[0] = evectors[0][2];
+  ez[1] = evectors[1][2];
+  ez[2] = evectors[2][2];
+
+  // if any principal moment < scaled EPSILON, set to 0.0
+  
+  double max;
+  max = MAX(inertia[0],inertia[1]);
+  max = MAX(max,inertia[2]);
+  
+  if (inertia[0] < EPSILON*max) inertia[0] = 0.0;
+  if (inertia[1] < EPSILON*max) inertia[1] = 0.0;
+  if (inertia[2] < EPSILON*max) inertia[2] = 0.0;
+  
+  // enforce 3 evectors as a right-handed coordinate system
+  // flip 3rd vector if needed
+  
+  MathExtra::cross3(ex,ey,cross);
+  if (MathExtra::dot3(cross,ez) < 0.0) MathExtra::negate3(ez);
+  
+  // create quaternion
+  
+  MathExtra::exyz_to_q(ex,ey,ez,quat);
+
+  // compute displacements in body frame defined by quat
+
+  memory->destroy(dxbody);
+  memory->create(dxbody,natoms,3,"molecule:dxbody");
+
+  for (int i = 0; i < natoms; i++)
+    MathExtra::transpose_matvec(ex,ey,ez,dxcom[i],dxbody[i]);
 }
 
 /* ----------------------------------------------------------------------
@@ -174,6 +327,24 @@ void Molecule::read(int flag)
     else if (strstr(line,"angles")) sscanf(line,"%d",&nangles);
     else if (strstr(line,"dihedrals")) sscanf(line,"%d",&ndihedrals);
     else if (strstr(line,"impropers")) sscanf(line,"%d",&nimpropers);
+
+    else if (strstr(line,"mass")) {
+      massflag = 1;
+      sscanf(line,"%lg",&masstotal);
+    }
+    else if (strstr(line,"com")) {
+      comflag = 1;
+      sscanf(line,"%lg %lg %lg",&com[0],&com[1],&com[2]);
+      if (domain->dimension == 2 && com[2] != 0.0)
+        error->all(FLERR,"Molecule file z center-of-mass must be 0.0 for 2d");
+    }
+    else if (strstr(line,"inertia")) {
+      inertiaflag = 1;
+      sscanf(line,"%lg %lg %lg %lg %lg %lg",
+             &itensor[0],&itensor[1],&itensor[2],
+             &itensor[3],&itensor[4],&itensor[5]);
+    }
+
     else break;
   }
 
@@ -375,6 +546,9 @@ void Molecule::masses(char *line)
     readline(line);
     sscanf(line,"%d %lg",&tmp,&rmass[i]);
   }
+
+  for (int i = 0; i < natoms; i++)
+    if (rmass[i] <= 0.0) error->all(FLERR,"Invalid atom mass in molecule file");
 }
 
 /* ----------------------------------------------------------------------
@@ -717,7 +891,7 @@ void Molecule::initialize()
   bondflag = angleflag = dihedralflag = improperflag = 0;
   nspecialflag = specialflag = 0;
 
-  centerflag = comflag = inertiaflag = 0;
+  centerflag = massflag = comflag = inertiaflag = 0;
 
   x = NULL;
   type = NULL;
@@ -746,6 +920,7 @@ void Molecule::initialize()
 
   dx = NULL;
   dxcom = NULL;
+  dxbody = NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -855,6 +1030,7 @@ void Molecule::deallocate()
 
   memory->destroy(dx);
   memory->destroy(dxcom);
+  memory->destroy(dxbody);
 }
 
 /* ----------------------------------------------------------------------

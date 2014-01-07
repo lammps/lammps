@@ -33,6 +33,10 @@ class FixRigidSmall : public Fix {
 
   static FixRigidSmall *frsptr;
 
+  // Molecules being added on-the-fly as rigid bodies
+
+  class Molecule *onemol;
+
   FixRigidSmall(class LAMMPS *, int, char **);
   virtual ~FixRigidSmall();
   virtual int setmask();
@@ -67,6 +71,8 @@ class FixRigidSmall : public Fix {
   double extract_erotational();
   double compute_scalar();
   double memory_usage();
+
+  void set_molecule(int, int, double *, double *, double *);
 
  protected:
   int me,nprocs;

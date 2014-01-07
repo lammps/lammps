@@ -17,10 +17,10 @@ Each of these sub-directories contains a sample problem you can run
 with LAMMPS.  Most are 2d models so that they run quickly, requiring a
 few seconds to a few minutes to run on a desktop machine.  Each
 problem has an input script (in.*) and produces a log file (log.*) and
-(optionally) a dump file (dump.*) or image files (image.*) when it
-runs.  Some use a data file (data.*) of initial coordinates as
-additional input.  Some require that you install one or more optional
-LAMMPS packages.
+(optionally) a dump file (dump.*) or image files (image.*) or movie
+(movie.mpg) when it runs.  Some use a data file (data.*) of initial
+coordinates as additional input.  Some require that you install one or
+more optional LAMMPS packages.
 
 A few sample log file outputs on different machines and different
 numbers of processors are included in the directories to compare your
@@ -32,17 +32,25 @@ identical answers to those in the log of dump files included here.
 See the Errors section of the LAMMPS documentation for more
 discussion.
 
+Most of the example input scripts have commented-out lines that
+produce dump snapshots of the running simulation in any of 3 formats.
+
 If you uncomment the dump command in the input script, a text dump
 file will be produced, which can be animated by various visualization
-programs (see http://lammps.sandia.gov/viz.html).  It can also be
-animated using the xmovie tool described in the Additional Tools
-section of the LAMMPS documentation.
+programs (see http://lammps.sandia.gov/viz.html) such as VMD or
+AtomEye.  It can also be animated using the xmovie tool described in
+the Additional Tools section of the LAMMPS documentation.
 
 If you uncomment the dump image command in the input script, and
 assuming you have built LAMMPS with a JPG library, JPG snapshot images
 will be produced when the simulation runs.  They can be quickly
 post-processed into a movie using commands described on the dump image
 doc page.
+
+If you uncomment the dump movie command in the input script, and
+assuming you have built LAMMPS with the FFMPEG library, an MPG movie
+will be produced when the simulation runs.  The movie file can be
+played using various viewers, such as mplayer or QuickTime.
 
 Animations of many of these examples can be viewed on the Movies
 section of the LAMMPS WWW Site.

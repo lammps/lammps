@@ -42,13 +42,13 @@ keyword = {region} or {diam} or {dens} or {vol} or {rate} or {vel} or {mol} or {
     vxlo,vxhi = range of x velocities for inserted particles (velocity units)
     vylo,vyhi = range of y velocities for inserted particles (velocity units)
     vz = z velocity (3d) assigned to inserted particles (velocity units)
-    vy = y velocity (2d) assigned to inserted particles (velocity units) :pre
+    vy = y velocity (2d) assigned to inserted particles (velocity units)
   {mol} value = template-ID
     template-ID = ID of molecule template specified in a separate "molecule"_molecule.html command
   {rigid} value = fix-ID
     fix-ID = ID of "fix rigid/small"_fix_rigid.html command
   {shake} value = fix-ID
-    fix-ID = ID of "fix shake"_fix_shake.html command
+    fix-ID = ID of "fix shake"_fix_shake.html command :pre
 :ule
 
 [Examples:]

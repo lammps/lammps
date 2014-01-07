@@ -18,11 +18,13 @@ N = # of atoms to insert :l
 type = atom type to assign to inserted atoms :l
 seed = random # seed (positive integer) :l
 one or more keyword/value pairs may be appended to args :l
-keyword = {region} or {mol} or {diam} or {dens} or {vol} or {rate} or {vel} :l
+keyword = {region} or {mol} or {rigid} or {diam} or {dens} or {vol} or {rate} or {vel} :l
   {region} value = region-ID
     region-ID = ID of region to use as insertion volume
   {mol} value = template-ID
     template-ID = ID of molecule template specified in a separate "molecule"_molecule.html command
+  {rigid} value = fix-ID
+    fix-ID = ID of "fix rigid/small"_fix_rigid.html command
   {diam} values = dstyle args
     dstyle = {one} or {range} or {poly}
       {one} args = D
@@ -51,16 +53,17 @@ keyword = {region} or {mol} or {diam} or {dens} or {vol} or {rate} or {vel} :l
 
 fix 3 all pour 1000 2 29494 region myblock
 fix 2 all pour 10000 1 19985583 region disk vol 0.33 100 rate 1.0 diam range 0.9 1.1 
-fix 2 all pour 10000 1 19985583 region disk diam poly 2 0.7 0.4 1.5 0.6 :pre
+fix 2 all pour 10000 1 19985583 region disk diam poly 2 0.7 0.4 1.5 0.6
+fix ins all pour 500 1 4767548 vol 0.8 10 region slab mol object rigid myRigid :pre
 
 [Description:]
 
 Insert finite-size particles or molecules into the simulation box
-every few timesteps within a specified region until N particles have
-been inserted.  This is typically used to model the pouring of
-granular particles into a container under the influence of gravity.
-For the remainder of this doc page, a single inserted atom or molecule
-is referred to as a "particle".
+every few timesteps within a specified region until N particles or
+molecules have been inserted.  This is typically used to model the
+pouring of granular particles into a container under the influence of
+gravity.  For the remainder of this doc page, a single inserted atom
+or molecule is referred to as a "particle".
 
 If inserted particles are individual atoms, they are assigned the
 specified atom type.  For molecules the specified type is ignored, and
@@ -86,6 +89,12 @@ molecule can be specified in the molecule file.  See the
 "molecule"_molecule.html command for details.  The only settings
 required to be in this file are the coordinates and types of atoms in
 the molecule.
+
+If you wish to insert molecules via the {mol} keyword, that will be
+treated as rigid bodies, you can first specify a "fix
+rigid/small"_fix_rigid.html command, and then use the {rigid} keyword
+with this command, specifying the ID of the fix rigid/small command as
+its value.
 
 Each timestep particles are inserted, they are placed randomly inside
 the insertion volume so as to mimic a stream of poured particles.  If

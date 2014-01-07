@@ -27,7 +27,7 @@ bodystyle = {single} or {molecule} or {group} :l
     groupID1, groupID2, ... = list of N group IDs :pre
 
 zero or more keyword/value pairs may be appended :l
-keyword = {langevin} or {temp} or {iso} or {aniso} or {x} or {y} or {z} or {couple} or {tparam} or {pchain} or {dilate} or {force} or {torque} or {infile} :l
+keyword = {langevin} or {temp} or {iso} or {aniso} or {x} or {y} or {z} or {couple} or {tparam} or {pchain} or {dilate} or {force} or {torque} or {infile} or {mol} :l
   {langevin} values = Tstart Tstop Tperiod seed
     Tstart,Tstop = desired temperature at start/stop of run (temperature units)
     Tdamp = temperature damping parameter (time units)
@@ -57,7 +57,9 @@ keyword = {langevin} or {temp} or {iso} or {aniso} or {x} or {y} or {z} or {coup
     M = which rigid body from 1-Nbody (see asterisk form below)
     xflag,yflag,zflag = off/on if component of center-of-mass torque is active
   {infile} filename
-    filename = file with per-body values of mass, center-of-mass, moments of inertia :pre
+    filename = file with per-body values of mass, center-of-mass, moments of inertia
+  {mol} value = template-ID
+    template-ID = ID of molecule template specified in a separate "molecule"_molecule.html command :pre
 :ule
 
 [Examples:]
@@ -163,6 +165,12 @@ setforce"_fix_setforce.html command), and integrating them as usual
 Each rigid body must have two or more atoms.  An atom can belong to at
 most one rigid body.  Which atoms are in which bodies can be defined
 via several options.
+
+IMPORTANT NOTE: With fix rigid/small, which requires bodystyle
+{molecule}, you can define a system that has no rigid bodies
+initially.  This is useful when you are adding rigid bodies on-the-fly
+via commands such as "fix deposit"_fix_deposit.html or "fix
+pour"_fix_pour.html.
 
 For bodystyle {single} the entire fix group of atoms is treated as one
 rigid body.  This option is only allowed for fix rigid and its
@@ -424,6 +432,22 @@ rigid bodies should then effectively thermostat the rigid body
 temperature as well without use of the Langevin or Nose/Hoover options
 associated with the fix rigid commands.
 
+:line
+
+The {mol} keyword can only be used with fix rigid/small.  It should
+be used when other commands, such as "fix deposit"_fix_deposit.html or
+"fix pour"_fix_pour.html, which will add rigid bodies on-the-fly
+during a simulation.  You specify a {template-ID} previously defined
+using the "molecule"_molecule.html command, which reads a file that
+defines the molecule.  You must use the same {template-ID} that the
+command adding rigid bodies uses.  The coordinates, atom types, atom
+diameters, center-of-mass, and moments of inertia can be specified in
+the molecule file.  See the "molecule"_molecule.html command for
+details.  The only settings required to be in this file are the
+coordinates and types of atoms in the molecule.
+
+:line
+
 The {infile} keyword allows a file of rigid body attributes to be read
 in from a file, rather then having LAMMPS compute them.  There are 3
 such attributes: the total mass of the rigid body, its center-of-mass
@@ -478,6 +502,15 @@ in a new input script that restarts the run and re-specifies a rigid
 fix using an {infile} keyword and the appropriate filename.  Note that
 the auxiliary file will contain one line for every rigid body, even if
 the original file only listed a subset of the rigid bodies.
+
+IMPORTANT NOTE: If you are using fix rigid/small and defining a system
+that has no rigid bodies initially, because they will be added
+on-the-fly by commands such as "fix deposit"_fix_deposit.html or "fix
+pour"_fix_pour.html, you may still wish to use the {infile} keyword.
+This is so that restart files written during the simulation will
+output an auxiliary restart file as described above with information
+on the new rigid bodies.  In this case the initial {infile} file
+should use N = 0.
 
 :line
 

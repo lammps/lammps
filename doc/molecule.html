@@ -54,20 +54,26 @@ lines can be used between sections.  Sections can appear in any order,
 with a few exceptions as noted below.
 </P>
 <P>These are the recognized header keywords.  Header lines can come in
-any order.  The value(s) are read from the beginning of the line.
-Thus the keyword <I>atoms</I> should be in a line like "10 atoms"; the
-keyword <I>ylo yhi</I> should be in a line like "-10.0 10.0 ylo yhi"; the
-keyword <I>xy xz yz</I> should be in a line like "0.0 5.0 6.0 xy xz yz".
-All these settings have a default value of 0, except the lo/hi box
-size defaults are -0.5 and 0.5.  A line need only appear if the value
-is different than the default.
+any order.  The numeric value(s) are read from the beginning of the
+line.  The keyword should appear at the end of the line.  All these
+settings have default values, as explained below.  A line need only
+appear if the value(s) are different than the default.
 </P>
-<UL><LI><I>atoms</I> = # of atoms in molecule
-<LI><I>bonds</I> = # of bonds in molecule
-<LI><I>angles</I> = # of angles in molecule
-<LI><I>dihedrals</I> = # of dihedrals in molecule
-<LI><I>impropers</I> = # of impropers in molecule 
+<UL><LI>N <I>atoms</I> = # of atoms N in molecule, default = 0
+<LI>Nb <I>bonds</I> = # of bonds Nb in molecule, default = 0
+<LI>Na <I>angles</I> = # of angles Na in molecule, default = 0
+<LI>Nd <I>dihedrals</I> = # of dihedrals Nd in molecule, default = 0
+<LI>Ni <I>impropers</I> = # of impropers Ni in molecule, default = 0
+<LI>Mtotal <I>mass</I> = total mass of molecule
+<LI>Xc Yc Zc <I>com</I> = coordinates of center-of-mass of molecule
+<LI>Ixx Iyy Izz Ixy Ixz Iyz <I>inertia</I> = 6 components of inertia tensor of molecule 
 </UL>
+<P>For <I>mass</I>, <I>com</I>, and <I>inertia</I>, the default is for LAMMPS to
+calculate this quantity itself if needed, assuming the molecules
+consists of a set of point particles.  You typically only need to
+specify these values for a rigid body consisting of overlapping
+finite-size particles.
+</P>
 <P>These are the allowed section keywords for the body of the file.
 </P>
 <UL><LI><I>Coords, Types, Charges, Diameters, Masses</I> = atom-property sections 
@@ -75,16 +81,17 @@ is different than the default.
 <LI><I>Special Bond Counts, Special Bonds</I> = special neighbor info 
 </UL>
 <P>IMPORTANT NOTE: Whether a section is required depends on how the
-molecule definition is used by other LAMMPS commands.  For example, to
+molecule template is used by other LAMMPS commands.  For example, to
 add a molecule via the <A HREF = "fix_deposit.html">fix deposit</A> command, the
 Coords and Types sections are required.  To add a rigid body via the
 <A HREF = "fix_pout.html">fix pour</A> command, the Bonds (Angles, etc) sections are
 not required, since the molecule will be treated as a rigid body.
 Some sections are optional.  For example, the <A HREF = "fix_pour.html">fix pour</A>
-command can add finite-size granular particles.  If the Diameters
-section is not specified, added particles will have a default diameter
-of 1.0.  See the doc pages for LAMMPS commands that use read-in
-molecules for more details.
+command can be used to add "molecules" which are clusters of
+finite-size granular particles.  If the Diameters section is not
+specified, each particle in the molecule will have a default diameter
+of 1.0.  See the doc pages for LAMMPS commands that use molecule
+templates for more details.
 </P>
 <P>Each section is listed below in alphabetic order.  The format of each
 section is described including the number of lines it must contain and

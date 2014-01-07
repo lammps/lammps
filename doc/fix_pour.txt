@@ -120,18 +120,20 @@ many timesteps until the desired # of particles has been inserted.
 All other keywords are optional with defaults as shown below.
 
 The {diam} option is only used when inserting atoms and specifes the
-diameters of inserted particles.  For molecule insertion, the
-diameters of individual atoms in the molecule can be specified in the
-file read by the "molecule"_molecule.html command.  There are 3
-styles: {one}, {range}, or {poly}.  For {one}, all particles will have
-diameter {D}.  For {range}, the diameter of each particle will be
-chosen randomly and uniformly between the specified {Dlo} and {Dhi}
-bounds.  For {poly}, a series of {Npoly} diameters is specified.  For
-each diameter a percentage value from 0.0 to 1.0 is also specified.
-The {Npoly} percentages must sum to 1.0.  For the example shown above
-with "diam 2 0.7 0.4 1.5 0.6", all inserted particles will have a
-diameter of 0.7 or 1.5.  40% of the particles will be small; 60% will
-be large.
+diameters of inserted particles.  There are 3 styles: {one}, {range},
+or {poly}.  For {one}, all particles will have diameter {D}.  For
+{range}, the diameter of each particle will be chosen randomly and
+uniformly between the specified {Dlo} and {Dhi} bounds.  For {poly}, a
+series of {Npoly} diameters is specified.  For each diameter a
+percentage value from 0.0 to 1.0 is also specified.  The {Npoly}
+percentages must sum to 1.0.  For the example shown above with "diam 2
+0.7 0.4 1.5 0.6", all inserted particles will have a diameter of 0.7
+or 1.5.  40% of the particles will be small; 60% will be large.
+
+Note that for molecule insertion, the diameters of individual atoms in
+the molecule can be specified in the file read by the
+"molecule"_molecule.html command.  If not specified, the diameter of
+each atom in the molecule has a default diameter of 1.0.
 
 The {dens} and {vel} options enable inserted particles to have a range
 of densities or xy velocities.  The specific values for a particular

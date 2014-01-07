@@ -27,10 +27,16 @@ molecule CO2 co2.txt
 </P>
 <P>Define a molecule template that can be used as part of other LAMMPS
 commands, typically to define a collection of particles as a bonded
-molecule or a rigid body.  Commands that use molecule templates
-include (or will include) <A HREF = "fix_deposit.html">fix deposit</A>, <A HREF = "fix_pour.html">fix
-pour</A>, and <A HREF = "fix_gcmc.html">fix gcmc</A>.
+molecule or a rigid body.  Commands that currently use molecule
+templates (or will in the future) include:
 </P>
+<UL><LI><A HREF = "fix_deposit.html">fix deposit</A>
+<LI><A HREF = "fix_pour.html">fix pour</A>
+<LI><A HREF = "fix_rigid.html">fix rigid/small</A>
+<LI><A HREF = "fix_shake.html">fix shake</A>
+<LI><A HREF = "fix_gcmc.html">fix gcmc</A> (not yet)
+<LI><A HREF = "create_atoms.html">create_atoms</A> (not yet) 
+</UL>
 <P>The ID of a molecule template can only contain alphanumeric characters
 and underscores.
 </P>
@@ -86,7 +92,8 @@ internally.
 </P>
 <UL><LI><I>Coords, Types, Charges, Diameters, Masses</I> = atom-property sections 
 <LI><I>Bonds, Angles, Dihedrals, Impropers</I> = molecular topology sections 
-<LI><I>Special Bond Counts, Special Bonds</I> = special neighbor info 
+<LI><I>Special Bond Counts, Special Bonds</I> = special neighbor info
+<LI><I>Shake Flags, Shake Atoms, Shake Bond Types</I> = SHAKE info 
 </UL>
 <P>IMPORTANT NOTE: Whether a section is required depends on how the
 molecule template is used by other LAMMPS commands.  For example, to
@@ -104,10 +111,10 @@ templates for more details.
 <P>Each section is listed below in alphabetic order.  The format of each
 section is described including the number of lines it must contain and
 rules (if any) for whether it can appear in the data file.  In each
-case the ID is ignored; it is simply included for readability as a
-number from 1 to Nlines for the section, indicating which atom (or
-bond, etc) the entry applies to.  The lines are assumed to be listed
-in order from 1 to Nlines.
+case the ID is ignored; it is simply included for readability, and
+should be a number from 1 to Nlines for the section, indicating which
+atom (or bond, etc) the entry applies to.  The lines are assumed to be
+listed in order from 1 to Nlines, but LAMMPS does not check for this.
 </P>
 <HR>
 
@@ -134,8 +141,8 @@ in order from 1 to Nlines.
 <LI>q = charge on atom 
 </UL>
 <P>This section is only allowed for <A HREF = "atom_style.html">atom styles</A> that
-support charge.  If not listed, the default charge on each atom in the
-molecule is 0.0.
+support charge.  If this section is not included, the default charge
+on each atom in the molecule is 0.0.
 </P>
 <HR>
 
@@ -159,9 +166,10 @@ not listed, the default diameter of each atom in the molecule is 1.0.
 </UL>
 <P>This section is only allowed for <A HREF = "atom_style.html">atom styles</A> that
 support per-atom mass, as opposed to per-type mass.  See the
-<A HREF = "mass.html">mass</A> command for details.  If not listed, the default mass
-for each atom is derived from its volume (see Diameters section) and a
-default density of 1.0, in <A HREF = "units.html">units</A> of mass/volume.
+<A HREF = "mass.html">mass</A> command for details.  If this section is not
+included, the default mass for each atom is derived from its volume
+(see Diameters section) and a default density of 1.0, in
+<A HREF = "units.html">units</A> of mass/volume.
 </P>
 <HR>
 
@@ -252,6 +260,103 @@ page for more discussion of 1-2, 1-3, 1-4 neighbors.  If this section
 appears, the Special Bond Counts section must also appear.  If this
 section is not specied, the atoms in the molecule will have no special
 bonds.
+</P>
+<P><I>Shake Flags</I> section:
+</P>
+<UL><LI>one line per atom
+<LI>line syntax: ID flag
+<LI>flag = 0,1,2,3,4 
+</UL>
+<P>This section is only needed when molecules created using the template
+will be constrained by SHAKE via the "fix shake" command.  The other
+two Shake sections must also appear in the file, following this one.
+</P>
+<P>The meaning of the flag for each atom is as follows.  See the <A HREF = "fix_shake.html">fix
+shake</A> doc page for a further description of SHAKE
+clusters.
+</P>
+<UL><LI>0 = not part of a SHAKE cluster
+<LI>1 = part of a SHAKE angle cluster (two bonds and the angle they form)
+<LI>2 = part of a 2-atom SHAKE cluster with a single bond
+<LI>3 = part of a 3-atom SHAKE cluster with two bonds
+<LI>4 = part of a 4-atom SHAKE cluster with three bonds 
+</UL>
+<P><I>Shake Atoms</I> section:
+</P>
+<UL><LI>one line per atom
+<LI>line syntax: ID a b c d
+<LI>a,b,c,d = IDs of atoms in cluster 
+</UL>
+<P>This section is only needed when molecules created using the template
+will be constrained by SHAKE via the "fix shake" command.  The other
+two Shake sections must also appear in the file.
+</P>
+<P>The a,b,c,d values are atom IDs (from 1 to Natoms) for all the atoms
+in the SHAKE cluster that this atom belongs to.  The number of values
+that must appear is determined by the shake flag for the atom (see the
+Shake Flags section above).  All atoms in a particular cluster should
+list their a,b,c,d values identically.
+</P>
+<P>If flag = 0, no a,b,c,d values are listed on the line, just the
+(ignored) ID.
+</P>
+<P>If flag = 1, a,b,c are listed, where a = ID of central atom in the
+angle, and b,c the other two atoms in the angle.
+</P>
+<P>If flag = 2, a,b are listed, where a = ID of atom in bond with the the
+lowest ID, and b = ID of atom in bond with the highest ID.
+</P>
+<P>If flag = 3, a,b,c are listed, where a = ID of central atom,
+and b,c = IDs of other two atoms bonded to the central atom.
+</P>
+<P>If flag = 4, a,b,c,d are listed, where a = ID of central atom,
+and b,c,d = IDs of other three atoms bonded to the central atom.
+</P>
+<P>See the <A HREF = "fix_shake.html">fix shake</A> doc page for a further description
+of SHAKE clusters.
+</P>
+<P><I>Shake Bond Types</I> section:
+</P>
+<UL><LI>one line per atom
+<LI>line syntax: ID a b c
+<LI>a,b,c = bond types of bonds in cluster 
+</UL>
+<P>This section is only needed when molecules created using the template
+will be constrained by SHAKE via the "fix shake" command.  The other
+two Shake sections must also appear in the file.
+</P>
+<P>The a,b,c values are bond types (from 1 to Nbondtypes) for all bonds
+in the SHAKE cluster that this atom belongs to.  The number of values
+that must appear is determined by the shake flag for the atom (see the
+Shake Flags section above).  All atoms in a particular cluster should
+list their a,b,c values identically.
+</P>
+<P>If flag = 0, no a,b,c values are listed on the line, just the
+(ignored) ID.
+</P>
+<P>If flag = 1, a,b,c are listed, where a = bondtype of the bond between
+the central atom and the first non-central atom (value b in the Shake
+Atoms section), b = bondtype of the bond between the central atom and
+the 2nd non-central atom (value c in the Shake Atoms section), and c =
+the angle type (1 to Nangletypes) of the angle between the 3 atoms.
+</P>
+<P>If flag = 2, only a is listed, where a = bondtype of the bond between
+the 2 atoms in the cluster.
+</P>
+<P>If flag = 3, a,b are listed, where a = bondtype of the bond between
+the central atom and the first non-central atom (value b in the Shake
+Atoms section), and b = bondtype of the bond between the central atom
+and the 2nd non-central atom (value c in the Shake Atoms section).
+</P>
+<P>If flag = 4, a,b,c are listed, where a = bondtype of the bond between
+the central atom and the first non-central atom (value b in the Shake
+Atoms section), b = bondtype of the bond between the central atom and
+the 2nd non-central atom (value c in the Shake Atoms section), and c =
+bondtype of the bond between the central atom and the 3rd non-central
+atom (value d in the Shake Atoms section).
+</P>
+<P>See the <A HREF = "fix_shake.html">fix shake</A> doc page for a further description
+of SHAKE clusters.
 </P>
 <HR>
 

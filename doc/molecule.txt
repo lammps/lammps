@@ -24,9 +24,15 @@ molecule CO2 co2.txt :pre
 
 Define a molecule template that can be used as part of other LAMMPS
 commands, typically to define a collection of particles as a bonded
-molecule or a rigid body.  Commands that use molecule templates
-include (or will include) "fix deposit"_fix_deposit.html, "fix
-pour"_fix_pour.html, and "fix gcmc"_fix_gcmc.html.
+molecule or a rigid body.  Commands that currently use molecule
+templates (or will in the future) include:
+
+"fix deposit"_fix_deposit.html
+"fix pour"_fix_pour.html
+"fix rigid/small"_fix_rigid.html
+"fix shake"_fix_shake.html
+"fix gcmc"_fix_gcmc.html (not yet)
+"create_atoms"_create_atoms.html (not yet) :ul
 
 The ID of a molecule template can only contain alphanumeric characters
 and underscores.
@@ -83,7 +89,8 @@ These are the allowed section keywords for the body of the file.
 
 {Coords, Types, Charges, Diameters, Masses} = atom-property sections 
 {Bonds, Angles, Dihedrals, Impropers} = molecular topology sections 
-{Special Bond Counts, Special Bonds} = special neighbor info :ul
+{Special Bond Counts, Special Bonds} = special neighbor info
+{Shake Flags, Shake Atoms, Shake Bond Types} = SHAKE info :ul
 
 IMPORTANT NOTE: Whether a section is required depends on how the
 molecule template is used by other LAMMPS commands.  For example, to
@@ -101,10 +108,10 @@ templates for more details.
 Each section is listed below in alphabetic order.  The format of each
 section is described including the number of lines it must contain and
 rules (if any) for whether it can appear in the data file.  In each
-case the ID is ignored; it is simply included for readability as a
-number from 1 to Nlines for the section, indicating which atom (or
-bond, etc) the entry applies to.  The lines are assumed to be listed
-in order from 1 to Nlines.
+case the ID is ignored; it is simply included for readability, and
+should be a number from 1 to Nlines for the section, indicating which
+atom (or bond, etc) the entry applies to.  The lines are assumed to be
+listed in order from 1 to Nlines, but LAMMPS does not check for this.
 
 :line
 
@@ -131,8 +138,8 @@ line syntax: ID q
 q = charge on atom :ul
 
 This section is only allowed for "atom styles"_atom_style.html that
-support charge.  If not listed, the default charge on each atom in the
-molecule is 0.0.
+support charge.  If this section is not included, the default charge
+on each atom in the molecule is 0.0.
 
 :line
 
@@ -156,9 +163,10 @@ mass = mass of atom :ul
 
 This section is only allowed for "atom styles"_atom_style.html that
 support per-atom mass, as opposed to per-type mass.  See the
-"mass"_mass.html command for details.  If not listed, the default mass
-for each atom is derived from its volume (see Diameters section) and a
-default density of 1.0, in "units"_units.html of mass/volume.
+"mass"_mass.html command for details.  If this section is not
+included, the default mass for each atom is derived from its volume
+(see Diameters section) and a default density of 1.0, in
+"units"_units.html of mass/volume.
 
 :line
 
@@ -249,6 +257,103 @@ page for more discussion of 1-2, 1-3, 1-4 neighbors.  If this section
 appears, the Special Bond Counts section must also appear.  If this
 section is not specied, the atoms in the molecule will have no special
 bonds.
+
+{Shake Flags} section:
+
+one line per atom
+line syntax: ID flag
+flag = 0,1,2,3,4 :ul
+
+This section is only needed when molecules created using the template
+will be constrained by SHAKE via the "fix shake" command.  The other
+two Shake sections must also appear in the file, following this one.
+
+The meaning of the flag for each atom is as follows.  See the "fix
+shake"_fix_shake.html doc page for a further description of SHAKE
+clusters.
+
+0 = not part of a SHAKE cluster
+1 = part of a SHAKE angle cluster (two bonds and the angle they form)
+2 = part of a 2-atom SHAKE cluster with a single bond
+3 = part of a 3-atom SHAKE cluster with two bonds
+4 = part of a 4-atom SHAKE cluster with three bonds :ul
+
+{Shake Atoms} section:
+
+one line per atom
+line syntax: ID a b c d
+a,b,c,d = IDs of atoms in cluster :ul
+
+This section is only needed when molecules created using the template
+will be constrained by SHAKE via the "fix shake" command.  The other
+two Shake sections must also appear in the file.
+
+The a,b,c,d values are atom IDs (from 1 to Natoms) for all the atoms
+in the SHAKE cluster that this atom belongs to.  The number of values
+that must appear is determined by the shake flag for the atom (see the
+Shake Flags section above).  All atoms in a particular cluster should
+list their a,b,c,d values identically.
+
+If flag = 0, no a,b,c,d values are listed on the line, just the
+(ignored) ID.
+
+If flag = 1, a,b,c are listed, where a = ID of central atom in the
+angle, and b,c the other two atoms in the angle.
+
+If flag = 2, a,b are listed, where a = ID of atom in bond with the the
+lowest ID, and b = ID of atom in bond with the highest ID.
+
+If flag = 3, a,b,c are listed, where a = ID of central atom,
+and b,c = IDs of other two atoms bonded to the central atom.
+
+If flag = 4, a,b,c,d are listed, where a = ID of central atom,
+and b,c,d = IDs of other three atoms bonded to the central atom.
+
+See the "fix shake"_fix_shake.html doc page for a further description
+of SHAKE clusters.
+
+{Shake Bond Types} section:
+
+one line per atom
+line syntax: ID a b c
+a,b,c = bond types of bonds in cluster :ul
+
+This section is only needed when molecules created using the template
+will be constrained by SHAKE via the "fix shake" command.  The other
+two Shake sections must also appear in the file.
+
+The a,b,c values are bond types (from 1 to Nbondtypes) for all bonds
+in the SHAKE cluster that this atom belongs to.  The number of values
+that must appear is determined by the shake flag for the atom (see the
+Shake Flags section above).  All atoms in a particular cluster should
+list their a,b,c values identically.
+
+If flag = 0, no a,b,c values are listed on the line, just the
+(ignored) ID.
+
+If flag = 1, a,b,c are listed, where a = bondtype of the bond between
+the central atom and the first non-central atom (value b in the Shake
+Atoms section), b = bondtype of the bond between the central atom and
+the 2nd non-central atom (value c in the Shake Atoms section), and c =
+the angle type (1 to Nangletypes) of the angle between the 3 atoms.
+
+If flag = 2, only a is listed, where a = bondtype of the bond between
+the 2 atoms in the cluster.
+
+If flag = 3, a,b are listed, where a = bondtype of the bond between
+the central atom and the first non-central atom (value b in the Shake
+Atoms section), and b = bondtype of the bond between the central atom
+and the 2nd non-central atom (value c in the Shake Atoms section).
+
+If flag = 4, a,b,c are listed, where a = bondtype of the bond between
+the central atom and the first non-central atom (value b in the Shake
+Atoms section), b = bondtype of the bond between the central atom and
+the 2nd non-central atom (value c in the Shake Atoms section), and c =
+bondtype of the bond between the central atom and the 3rd non-central
+atom (value d in the Shake Atoms section).
+
+See the "fix shake"_fix_shake.html doc page for a further description
+of SHAKE clusters.
 
 :line
 

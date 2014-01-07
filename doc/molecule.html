@@ -261,6 +261,8 @@ appears, the Special Bond Counts section must also appear.  If this
 section is not specied, the atoms in the molecule will have no special
 bonds.
 </P>
+<HR>
+
 <P><I>Shake Flags</I> section:
 </P>
 <UL><LI>one line per atom
@@ -281,6 +283,8 @@ clusters.
 <LI>3 = part of a 3-atom SHAKE cluster with two bonds
 <LI>4 = part of a 4-atom SHAKE cluster with three bonds 
 </UL>
+<HR>
+
 <P><I>Shake Atoms</I> section:
 </P>
 <UL><LI>one line per atom
@@ -315,11 +319,13 @@ and b,c,d = IDs of other three atoms bonded to the central atom.
 <P>See the <A HREF = "fix_shake.html">fix shake</A> doc page for a further description
 of SHAKE clusters.
 </P>
+<HR>
+
 <P><I>Shake Bond Types</I> section:
 </P>
 <UL><LI>one line per atom
 <LI>line syntax: ID a b c
-<LI>a,b,c = bond types of bonds in cluster 
+<LI>a,b,c = bond types (or angle type) of bonds (or angle) in cluster 
 </UL>
 <P>This section is only needed when molecules created using the template
 will be constrained by SHAKE via the "fix shake" command.  The other

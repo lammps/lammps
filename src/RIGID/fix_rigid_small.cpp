@@ -3019,6 +3019,11 @@ void *FixRigidSmall::extract(const char *str, int &dim)
     return atom2body;
   }
 
+  if (strcmp(str,"onemol") == 0) {
+    dim = 0;
+    return onemol;
+  }
+
   // return vector of rigid body masses, for owned+ghost bodies
   // used by granular pair styles, indexed by atom2body
 

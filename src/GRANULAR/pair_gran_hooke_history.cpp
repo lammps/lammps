@@ -27,8 +27,6 @@
 #include "update.h"
 #include "modify.h"
 #include "fix.h"
-#include "fix_pour.h"
-#include "fix_deposit.h"
 #include "fix_shear_history.h"
 #include "comm.h"
 #include "neighbor.h"
@@ -451,44 +449,39 @@ void PairGranHookeHistory::init_style()
   if (i < modify->nfix) freeze_group_bit = modify->fix[i]->groupbit;
   else freeze_group_bit = 0;
 
-  // check for FixPour and set pour_type and pour_maxrad
-
-  int pour_type = 0;
-  double pour_maxrad = 0.0;
-  for (i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,"pour") == 0) break;
-  if (i < modify->nfix) {
-    pour_type = ((FixPour *) modify->fix[i])->ntype;
-    pour_maxrad = ((FixPour *) modify->fix[i])->radius_max;
-  }
-
-  // check for FixDeposit and set deposit_type and deposit_maxrad
-
-  int deposit_type = 0;
-  double deposit_maxrad = 0.0;
-  for (i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,"deposit") == 0) break;
-  if (i < modify->nfix) {
-    deposit_type = ((FixDeposit *) modify->fix[i])->ntype;
-    deposit_maxrad = 0.5;
-  }
-
-  // check for FixRigid
+  // check for FixRigid so can extract rigid body masses
 
   fix_rigid = NULL;
   for (i = 0; i < modify->nfix; i++)
     if (modify->fix[i]->rigid_flag) break;
   if (i < modify->nfix) fix_rigid = modify->fix[i];
 
+  // check for FixPour and FixDeposit so can extract particle radii
+
+  int ipour;
+  for (ipour = 0; ipour < modify->nfix; ipour++)
+    if (strcmp(modify->fix[ipour]->style,"pour") == 0) break;
+  if (ipour == modify->nfix) ipour = -1;
+
+  int idep;
+  for (idep = 0; idep < modify->nfix; idep++)
+    if (strcmp(modify->fix[idep]->style,"deposit") == 0) break;
+  if (idep == modify->nfix) idep = -1;
+
   // set maxrad_dynamic and maxrad_frozen for each type
   // include future FixPour and FixDeposit particles as dynamic
 
-  for (i = 1; i <= atom->ntypes; i++)
+  int itype;
+  for (i = 1; i <= atom->ntypes; i++) {
     onerad_dynamic[i] = onerad_frozen[i] = 0.0;
-  if (pour_type) onerad_dynamic[pour_type] = pour_maxrad;
-  if (deposit_type) onerad_dynamic[deposit_type] = 
-                      MAX(onerad_dynamic[deposit_type],deposit_maxrad);
-
+    if (ipour >= 0) 
+      onerad_dynamic[i] = 
+        *((double *) modify->fix[ipour]->extract("radius",itype));
+    if (idep >= 0) 
+      onerad_dynamic[i] = 
+        *((double *) modify->fix[idep]->extract("radius",itype));
+  }
+    
   double *radius = atom->radius;
   int *mask = atom->mask;
   int *type = atom->type;

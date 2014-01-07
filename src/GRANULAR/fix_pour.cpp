@@ -23,8 +23,6 @@
 #include "molecule.h"
 #include "modify.h"
 #include "fix_gravity.h"
-#include "fix_rigid_small.h"
-#include "fix_shake.h"
 #include "domain.h"
 #include "region.h"
 #include "region_block.h"
@@ -325,8 +323,9 @@ void FixPour::init()
   if (rigidflag) {
     int ifix = modify->find_fix(idrigid);
     if (ifix < 0) error->all(FLERR,"Fix pour rigid fix does not exist");
-    fixrigid = (FixRigidSmall *) modify->fix[ifix];
-    if (onemol != fixrigid->onemol)
+    fixrigid = modify->fix[ifix];
+    int tmp;
+    if (onemol != (Molecule *) fixrigid->extract("onemol",tmp))
       error->all(FLERR,
                  "Fix pour and fix rigid/small not using same molecule ID");
   }
@@ -338,10 +337,10 @@ void FixPour::init()
   if (shakeflag) {
     int ifix = modify->find_fix(idshake);
     if (ifix < 0) error->all(FLERR,"Fix pour shake fix does not exist");
-    fixshake = (FixShake *) modify->fix[ifix];
-    if (onemol != fixshake->onemol)
-      error->all(FLERR,
-                 "Fix pour and fix shake not using same molecule ID");
+    fixshake = modify->fix[ifix];
+    int tmp;
+    if (onemol != (Molecule *) fixshake->extract("onemol",tmp))
+      error->all(FLERR,"Fix pour and fix shake not using same molecule ID");
   }
 }
 
@@ -493,8 +492,8 @@ void FixPour::pre_exchange()
           coords[i][2] += coord[2];
 
           // coords[3] = particle radius
-          // default to 0.5, if not defined in Molecule
-          //   same as atom->avec->create_atom() when invoked below
+          // default to 0.5, if radii not defined in Molecule
+          //   same as atom->avec->create_atom(), invoked below
 
           if (onemol->radiusflag) coords[i][3] = onemol->radius[i];
           else coords[i][3] = 0.5;
@@ -942,3 +941,34 @@ void FixPour::reset_dt()
   error->all(FLERR,"Cannot change timestep with fix pour");
 }
 
+/* ----------------------------------------------------------------------
+   extract particle radius for atom type = itype
+------------------------------------------------------------------------- */
+
+void *FixPour::extract(const char *str, int &itype)
+{
+  if (strcmp(str,"radius") == 0) {
+    if (mode == ATOM) {
+      if (itype == ntype) oneradius = radius_max;
+      else oneradius = 0.0;
+    } else {
+      double *radius = onemol->radius;
+      int *type = onemol->type;
+      int natoms = onemol->natoms;
+
+      // check radii of matching types in Molecule
+      // default to 0.5, if radii not defined in Molecule
+      //   same as atom->avec->create_atom(), invoked in pre_exchange()
+
+      oneradius = 0.0;
+      for (int i = 0; i < natoms; i++)
+        if (type[i] == itype-ntype) {
+          if (radius) oneradius = MAX(oneradius,radius[i]);
+          else oneradius = 0.5;
+        }
+    }
+    itype = 0;
+    return &oneradius;
+  }
+  return NULL;
+}

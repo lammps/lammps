@@ -33,10 +33,6 @@ class FixRigidSmall : public Fix {
 
   static FixRigidSmall *frsptr;
 
-  // molecules being added on-the-fly as rigid bodies
-
-  class Molecule *onemol;
-
   FixRigidSmall(class LAMMPS *, int, char **);
   virtual ~FixRigidSmall();
   virtual int setmask();
@@ -52,6 +48,8 @@ class FixRigidSmall : public Fix {
   void grow_arrays(int);
   void copy_arrays(int, int, int);
   void set_arrays(int);
+  void set_molecule(int, int, double *, double *, double *);
+
   int pack_exchange(int, double *);
   int unpack_exchange(int, double *);
   int pack_comm(int, int *, double *, int, int *);
@@ -71,8 +69,6 @@ class FixRigidSmall : public Fix {
   double extract_erotational();
   double compute_scalar();
   double memory_usage();
-
-  void set_molecule(int, int, double *, double *, double *);
 
  protected:
   int me,nprocs;
@@ -154,6 +150,10 @@ class FixRigidSmall : public Fix {
   double **langextra;               // Langevin thermostat forces and torques
   int maxlang;                      // max size of langextra
   class RanMars *random;            // RNG
+
+  // molecules added on-the-fly as rigid bodies
+
+  class Molecule *onemol;
 
   // class data used by ring communication callbacks
 

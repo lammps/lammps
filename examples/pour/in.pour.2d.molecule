@@ -1,0 +1,61 @@
+# Pour 2d granular particles into container
+
+dimension	2
+atom_style	sphere
+atom_modify     map array
+boundary	f fm p
+newton		off
+communicate	single vel yes cutoff 2.5
+
+fix             prop all property/atom mol
+
+region		reg block 0 100 0 50 -0.5 0.5 units box
+create_box	1 reg
+
+neighbor	0.2 bin
+neigh_modify	delay 0
+
+# IMPORTANT NOTE: these values of stiffness (4000) and timestep (0.001)
+# are used in this example file to produce a quick simulation and movie.
+# More appropriate values for realistic simulations would be
+# k = 4.0e5 and dt = 0.0001, as in bench/in.chute (if it were Hertzian).
+
+pair_style      gran/hertz/history 4000.0 NULL 100.0 NULL 0.5 0
+pair_coeff	* *
+
+timestep	0.001
+
+fix		2 all gravity 1.0 spherical 0.0 -180.0
+fix		xwalls all wall/gran 4000.0 NULL 100.0 NULL 0 1 &
+		xplane 0 100
+fix		ywalls all wall/gran 4000.0 NULL 100.0 NULL 0 1 &
+		yplane 0 NULL
+
+molecule        object molecule.vshape
+fix             3 all rigid/small molecule mol object
+
+# insure region size + molecule size does not overlap wall
+
+region          slab block 3.0 97.0 30 34.5 -0.5 0.5 units box
+fix             ins all pour 500 0 4767548 vol 0.8 10 &
+	        region slab mol object rigid 3
+
+fix             4 all enforce2d
+
+compute		1 all erotate/sphere
+thermo_style	custom step atoms ke c_1 vol
+thermo		1000
+thermo_modify	lost ignore norm no
+compute_modify	thermo_temp dynamic yes
+
+#dump		id all atom 100 tmp.dump
+
+dump		1 all image 250 image.*.jpg type type &
+		zoom 1.6 adiam 1.5
+dump_modify	1 pad 5
+
+#dump		1 all movie 250 movie.mpg type type &
+#		zoom 1.6 adiam 1.5
+#dump_modify	1 pad 5
+
+run	        25000

@@ -21,6 +21,7 @@
 #include "atom_vec_ellipsoid.h"
 #include "atom_vec_line.h"
 #include "atom_vec_tri.h"
+#include "molecule.h"
 #include "domain.h"
 #include "update.h"
 #include "respa.h"
@@ -122,6 +123,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   int seed;
   langflag = 0;
   infile = NULL;
+  onemol = NULL;
 
   int iarg = 4;
   while (iarg < narg) {
@@ -138,7 +140,6 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Fix rigid/small langevin period must be > 0.0");
       if (seed <= 0) error->all(FLERR,"Illegal fix rigid/small command");
       iarg += 5;
-
     } else if (strcmp(arg[iarg],"infile") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid/small command");
       delete [] infile;
@@ -147,8 +148,30 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
       strcpy(infile,arg[iarg+1]);
       restart_file = 1;
       iarg += 2;
-
+    } else if (strcmp(arg[iarg],"mol") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid/small command");
+      int imol = atom->find_molecule(arg[iarg+1]);
+      if (imol == -1)
+        error->all(FLERR,"Molecule ID for fix rigid/small does not exist");
+      onemol = atom->molecules[imol];
+      iarg += 2;
     } else error->all(FLERR,"Illegal fix rigid/small command");
+  }
+
+  // error check and further setup for Molecule template
+
+  if (onemol) {
+    if (onemol->xflag == 0)
+      error->all(FLERR,"Fix rigid/small molecule must have coordinates");
+    if (onemol->typeflag == 0)
+      error->all(FLERR,"Fix rigid/small molecule must have atom types");
+
+    // fix rigid/small uses center, masstotal, COM, inertia of molecule
+
+    onemol->compute_center();
+    onemol->compute_mass();
+    onemol->compute_com();
+    onemol->compute_inertia();
   }
 
   // create rigid bodies based on molecule ID
@@ -222,7 +245,6 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   MPI_Allreduce(&one,&nbody,1,MPI_INT,MPI_SUM,world);
   bigint atomall;
   MPI_Allreduce(&atomone,&atomall,1,MPI_LMP_BIGINT,MPI_SUM,world);
-  if (nbody == 0) error->all(FLERR,"No rigid bodies defined");
 
   if (me == 0) {
     if (screen) {
@@ -1381,9 +1403,11 @@ void FixRigidSmall::create_bodies()
   comm->ring(m,sizeof(double),buf,3,ring_farthest,NULL);
 
   // find maxextent of rsqfar across all procs
+  // if defined, include molecule->maxextent
 
   MPI_Allreduce(&rsqfar,&maxextent,1,MPI_DOUBLE,MPI_MAX,world);
   maxextent = sqrt(maxextent);
+  if (onemol) maxextent = MAX(maxextent,onemol->maxextent);
 
   // clean up
 
@@ -1546,6 +1570,10 @@ void FixRigidSmall::setup_bodies_static()
 
     MPI_Allreduce(&flag,&extended,1,MPI_INT,MPI_MAX,world);
   }
+
+  // extended = 1 if using molecule template with finite-size particles
+
+  if (onemol && onemol->radiusflag) extended = 1;
 
   // grow extended arrays and set extended flags for each particle
   // orientflag = 4 if any particle stores ellipsoid or tri orientation
@@ -2384,6 +2412,80 @@ void FixRigidSmall::copy_arrays(int i, int j, int delflag)
 
   if (bodyown[i] >= 0 && i != j) body[bodyown[i]].ilocal = j;
   bodyown[j] = bodyown[i];
+}
+
+/* ----------------------------------------------------------------------
+   initialize a molecule inserted by another fix, e.g. deposit or pour
+   nlocalprev = # of atoms on this proc before molecule inserted
+   tagprev = atom ID previous to new atoms in the molecule
+   xgeom = geometric center of new molecule
+   vcm = COM velocity of new molecule
+   quat = rotation of new molecule (around geometric center)
+          relative to template in Molecule class
+------------------------------------------------------------------------- */
+
+void FixRigidSmall::set_molecule(int nlocalprev, int tagprev, 
+                                 double *xgeom, double *vcm, double *quat)
+{
+  double ctr2com[3],ctr2com_rotate[3];
+  double rotmat[3][3];
+
+  int nlocal = atom->nlocal;
+  if (nlocalprev == nlocal) return;
+
+  double **x = atom->x;
+  int *tag = atom->tag;
+
+  for (int i = nlocalprev; i < nlocal; i++) {
+    bodytag[i] = tagprev + onemol->comatom;
+    if (tag[i]-tagprev == onemol->comatom) bodyown[i] = nlocal_body;
+
+    int m = tag[i]-tagprev-1;
+    displace[i][0] = onemol->dxbody[m][0];
+    displace[i][1] = onemol->dxbody[m][1];
+    displace[i][2] = onemol->dxbody[m][2];
+
+    eflags[i] = 0;
+    if (onemol->radiusflag) {
+      eflags[i] |= SPHERE;
+      eflags[i] |= OMEGA;
+      eflags[i] |= TORQUE;
+    }
+
+    if (bodyown[i] >= 0) {
+      if (nlocal_body == nmax_body) grow_body();
+      Body *b = &body[nlocal_body];
+      b->mass = onemol->masstotal;
+
+      // new COM = Q (onemol->xcm - onemol->center) + xgeom
+      // Q = rotation matrix associated with quat
+
+      MathExtra::quat_to_mat(quat,rotmat);
+      MathExtra::sub3(onemol->com,onemol->center,ctr2com);
+      MathExtra::matvec(rotmat,ctr2com,ctr2com_rotate);
+      MathExtra::add3(ctr2com_rotate,xgeom,b->xcm);
+
+      b->vcm[0] = vcm[0];
+      b->vcm[1] = vcm[1];
+      b->vcm[2] = vcm[2];
+      b->inertia[0] = onemol->inertia[0];
+      b->inertia[1] = onemol->inertia[1];
+      b->inertia[2] = onemol->inertia[2];
+
+      // final quat is product of insertion quat and original quat
+      // true even if insertion rotation was not around COM
+
+      MathExtra::quatquat(quat,onemol->quat,b->quat);
+      MathExtra::q_to_exyz(b->quat,b->ex_space,b->ey_space,b->ez_space);
+
+      b->angmom[0] = b->angmom[1] = b->angmom[2] = 0.0;
+      b->omega[0] = b->omega[1] = b->omega[2] = 0.0;
+      b->image = ((tagint) IMGMAX << IMG2BITS) |
+        ((tagint) IMGMAX << IMGBITS) | IMGMAX;
+      b->ilocal = i;
+      nlocal_body++;
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------

@@ -44,7 +44,7 @@ class FixPour : public Fix {
 
  private:
   int ninsert,ntype,seed;
-  int dstyle,npoly;
+  int iregion,mode,idnext,dstyle,npoly,rigidflag;
   double radius_one,radius_max;
   double radius_lo,radius_hi;
   double *radius_poly,*frac_poly;
@@ -57,16 +57,27 @@ class FixPour : public Fix {
   double xlo,xhi,ylo,yhi,zlo,zhi;
   double xc,yc,rc;
   double grav;
+  char *idrigid;
+
+  class Molecule *onemol;
+  int natom;
+  double **coords;
+  int *imageflags;
+  class FixRigidSmall *fixrigid;
 
   int me,nprocs;
   int *recvcounts,*displs;
   int nfreq,nfirst,ninserted,nper;
   double lo_current,hi_current;
-  class RanPark *random;
+  int maxtag_all,maxmol_all;
+  class RanPark *random,*random2;
 
+  void find_maxid();
   int overlap(int);
+  int outside(int, double, double, double);
   void xyz_random(double, double *);
   double radius_sample();
+  void options(int, char **);
 };
 
 }

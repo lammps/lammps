@@ -493,6 +493,7 @@ void Molecule::coords(char *line)
 
 /* ----------------------------------------------------------------------
    read types from file
+   set maxtype = max of any atom type
 ------------------------------------------------------------------------- */
 
 void Molecule::types(char *line)
@@ -506,6 +507,9 @@ void Molecule::types(char *line)
   for (int i = 0; i < natoms; i++)
     if (type[i] <= 0 || type[i] > atom->ntypes)
       error->all(FLERR,"Invalid atom type in molecule file");
+
+  for (int i = 0; i < natoms; i++)
+    maxtype = MAX(maxtype,type[i]);
 }
 
 /* ----------------------------------------------------------------------
@@ -884,6 +888,7 @@ void Molecule::initialize()
 {
   natoms = 0;
   nbonds = nangles = ndihedrals = nimpropers = 0;
+  maxtype = 0;
   bond_per_atom = angle_per_atom = dihedral_per_atom = improper_per_atom = 0;
   maxspecial = 0;
 

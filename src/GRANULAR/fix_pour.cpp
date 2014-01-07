@@ -67,6 +67,11 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
 
   options(narg-6,&arg[6]);
 
+  // error check on type
+
+  if (mode == ATOM && (ntype <= 0 || ntype > atom->ntypes))
+    error->all(FLERR,"Invalid atom type in fix pour command");
+
   // error checks on region and its extent being inside simulation box
 
   if (iregion == -1) error->all(FLERR,"Must specify a region in fix pour");
@@ -119,11 +124,16 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
       error->all(FLERR,"Fix pour molecule must have coordinates");
     if (onemol->typeflag == 0)
       error->all(FLERR,"Fix pour molecule must have atom types");
+    if (ntype+onemol->maxtype <= 0 || ntype+onemol->maxtype > atom->ntypes)
+      error->all(FLERR,"Invalid atom type in fix pour mol command");
 
     // fix pour uses geoemetric center of molecule for insertion
 
     onemol->compute_center();
   }
+
+  if (rigidflag && mode == ATOM)
+    error->all(FLERR,"Cannot use fix_pour rigid and not molecule");
 
   // setup of coords and imageflags array
 
@@ -558,7 +568,7 @@ void FixPour::pre_exchange()
 
       if (flag) {
         if (mode == ATOM) atom->avec->create_atom(ntype,coords[m]);
-        else atom->avec->create_atom(onemol->type[m],coords[m]);
+        else atom->avec->create_atom(ntype+onemol->type[m],coords[m]);
         int n = atom->nlocal - 1;
         atom->tag[n] = maxtag_all + m+1;
         if (mode == MOLECULE) atom->molecule[n] = maxmol_all;

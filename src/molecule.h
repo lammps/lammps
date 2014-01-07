@@ -29,6 +29,7 @@ class Molecule : protected Pointers {
 
   // max bond,angle,etc per atom
 
+  int maxtype;
   int bond_per_atom,angle_per_atom,dihedral_per_atom,improper_per_atom;
   int maxspecial;
 

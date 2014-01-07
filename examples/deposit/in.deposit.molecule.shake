@@ -32,11 +32,12 @@ fix		1 addatoms nve
 fix		2 mobile langevin 0.1 0.1 0.1 587283
 fix		3 mobile nve
 
-molecule        dimer molecule.dimer
+molecule        dimer molecule.dimer.shake
 region          slab block 0 5 0 5 8 9
 fix		4 addatoms deposit 100 0 100 12345 region slab near 1.0 &
-                mol dimer vz -1.0 -1.0
+                mol dimer vz -1.0 -1.0 shake 6
 fix		5 addatoms wall/reflect zhi EDGE
+fix             6 all shake 0.0001 20 1000 b 1 mol dimer
 
 thermo_style	custom step atoms temp epair etotal press
 thermo          100
@@ -44,11 +45,11 @@ thermo_modify	temp add lost/bond ignore lost warn
 
 #dump		1 all atom 50 dump.deposit.atom
 
-#dump		1 all movie 50 image.*.jpg type type &
+#dump		1 all image 50 image.*.jpg type type &
 #		axes yes 0.8 0.02 view 80 -30
 #dump_modify	1 pad 5
 
-#dump		1 all movie 50 movie.mpg type type &
+#dump		1 all movie 50 tmp.mpg type type &
 #		axes yes 0.8 0.02 view 80 -30
 #dump_modify	1 pad 5
 

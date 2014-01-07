@@ -2415,7 +2415,22 @@ void FixRigidSmall::copy_arrays(int i, int j, int delflag)
 }
 
 /* ----------------------------------------------------------------------
+   initialize one atom's array values, called when atom is created
+------------------------------------------------------------------------- */
+
+void FixRigidSmall::set_arrays(int i)
+{
+  bodyown[i] = -1;
+  bodytag[i] = 0;
+  atom2body[i] = -1;
+  displace[i][0] = 0.0;
+  displace[i][1] = 0.0;
+  displace[i][2] = 0.0;
+}
+
+/* ----------------------------------------------------------------------
    initialize a molecule inserted by another fix, e.g. deposit or pour
+   called when molecule is created
    nlocalprev = # of atoms on this proc before molecule inserted
    tagprev = atom ID previous to new atoms in the molecule
    xgeom = geometric center of new molecule
@@ -2427,6 +2442,7 @@ void FixRigidSmall::copy_arrays(int i, int j, int delflag)
 void FixRigidSmall::set_molecule(int nlocalprev, int tagprev, 
                                  double *xgeom, double *vcm, double *quat)
 {
+  int m;
   double ctr2com[3],ctr2com_rotate[3];
   double rotmat[3][3];
 
@@ -2440,7 +2456,7 @@ void FixRigidSmall::set_molecule(int nlocalprev, int tagprev,
     bodytag[i] = tagprev + onemol->comatom;
     if (tag[i]-tagprev == onemol->comatom) bodyown[i] = nlocal_body;
 
-    int m = tag[i]-tagprev-1;
+    m = tag[i] - tagprev-1;
     displace[i][0] = onemol->dxbody[m][0];
     displace[i][1] = onemol->dxbody[m][1];
     displace[i][2] = onemol->dxbody[m][2];
@@ -2486,20 +2502,6 @@ void FixRigidSmall::set_molecule(int nlocalprev, int tagprev,
       nlocal_body++;
     }
   }
-}
-
-/* ----------------------------------------------------------------------
-   initialize one atom's array values, called when atom is created
-------------------------------------------------------------------------- */
-
-void FixRigidSmall::set_arrays(int i)
-{
-  bodyown[i] = -1;
-  bodytag[i] = 0;
-  atom2body[i] = -1;
-  displace[i][0] = 0.0;
-  displace[i][1] = 0.0;
-  displace[i][2] = 0.0;
 }
 
 /* ----------------------------------------------------------------------

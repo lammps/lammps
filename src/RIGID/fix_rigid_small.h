@@ -33,7 +33,7 @@ class FixRigidSmall : public Fix {
 
   static FixRigidSmall *frsptr;
 
-  // Molecules being added on-the-fly as rigid bodies
+  // molecules being added on-the-fly as rigid bodies
 
   class Molecule *onemol;
 

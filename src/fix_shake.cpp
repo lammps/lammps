@@ -20,6 +20,7 @@
 #include "fix_shake.h"
 #include "atom.h"
 #include "atom_vec.h"
+#include "molecule.h"
 #include "update.h"
 #include "respa.h"
 #include "modify.h"
@@ -101,7 +102,6 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   char mode = '\0';
   int next = 6;
   while (next < narg) {
-
     if (strcmp(arg[next],"b") == 0) mode = 'b';
     else if (strcmp(arg[next],"a") == 0) mode = 'a';
     else if (strcmp(arg[next],"t") == 0) mode = 't';
@@ -109,7 +109,13 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
       mode = 'm';
       atom->check_mass();
 
-    } else if (mode == 'b') {
+    // break if keyword that is not b,a,t,m
+
+    } else if (isalpha(arg[next][0])) break;
+
+    // read numeric args of b,a,t,m
+
+    else if (mode == 'b') {
       int i = force->inumeric(FLERR,arg[next]);
       if (i < 1 || i > atom->nbondtypes)
         error->all(FLERR,"Invalid bond type index for fix shake");
@@ -137,6 +143,27 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
     } else error->all(FLERR,"Illegal fix shake command");
     next++;
   }
+
+  // parse optional args
+
+  onemol = NULL;
+
+  int iarg = next;
+  while (iarg < narg) {
+    if (strcmp(arg[next],"mol") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix shake command");
+      int imol = atom->find_molecule(arg[iarg+1]);
+      if (imol == -1)
+        error->all(FLERR,"Molecule ID for fix shake does not exist");
+      onemol = atom->molecules[imol];
+      iarg += 2;
+    } else error->all(FLERR,"Illegal fix shake command");
+  }
+
+  // error check for Molecule template
+
+  if (onemol && onemol->shakeflag == 0)
+    error->all(FLERR,"Fix shake molecule must have shake info");
 
   // allocate bond and angle distance arrays, indexed from 1 to n
 
@@ -2173,8 +2200,9 @@ void FixShake::stats()
               update->ntimestep);
       for (i = 1; i < nb; i++)
         if (b_count_all[i])
-          fprintf(screen,"  %d %g %g\n",i,
-                  b_ave_all[i]/b_count_all[i],b_max_all[i]-b_min_all[i]);
+          fprintf(screen,"  %d %g %g %d\n",i,
+                  b_ave_all[i]/b_count_all[i],b_max_all[i]-b_min_all[i],
+                  b_count_all[i]);
       for (i = 1; i < na; i++)
         if (a_count_all[i])
           fprintf(screen,"  %d %g %g\n",i,
@@ -2305,6 +2333,7 @@ void FixShake::copy_arrays(int i, int j, int delflag)
   }
 }
 
+
 /* ----------------------------------------------------------------------
    initialize one atom's array values, called when atom is created
 ------------------------------------------------------------------------- */
@@ -2315,7 +2344,8 @@ void FixShake::set_arrays(int i)
 }
 
 /* ----------------------------------------------------------------------
-   update one atom's array values, called when atom is created
+   update one atom's array values
+   called when molecule is created from fix gcmc
 ------------------------------------------------------------------------- */
 
 void FixShake::update_arrays(int i, int atom_offset)
@@ -2338,6 +2368,60 @@ void FixShake::update_arrays(int i, int atom_offset)
     shake_atom[i][1] += atom_offset;
     shake_atom[i][2] += atom_offset;
     shake_atom[i][3] += atom_offset;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   initialize a molecule inserted by another fix, e.g. deposit or pour
+   called when molecule is created
+   nlocalprev = # of atoms on this proc before molecule inserted
+   tagprev = atom ID previous to new atoms in the molecule
+   xgeom,vcm,quat ignored
+------------------------------------------------------------------------- */
+
+void FixShake::set_molecule(int nlocalprev, int tagprev, 
+                            double *xgeom, double *vcm, double *quat)
+{
+  int m,flag;
+
+  int nlocal = atom->nlocal;
+  if (nlocalprev == nlocal) return;
+
+  int *tag = atom->tag;
+  int **mol_shake_atom = onemol->shake_atom;
+  int **mol_shake_type = onemol->shake_type;
+
+  for (int i = nlocalprev; i < nlocal; i++) {
+    m = tag[i] - tagprev-1;
+
+    flag = shake_flag[i] = onemol->shake_flag[m];
+
+    if (flag == 1) {
+      shake_atom[i][0] = mol_shake_atom[m][0] + tagprev;
+      shake_atom[i][1] = mol_shake_atom[m][1] + tagprev;
+      shake_atom[i][2] = mol_shake_atom[m][2] + tagprev;
+      shake_type[i][0] = mol_shake_type[m][0];
+      shake_type[i][1] = mol_shake_type[m][1];
+      shake_type[i][2] = mol_shake_type[m][2];
+    } else if (flag == 2) {
+      shake_atom[i][0] = mol_shake_atom[m][0] + tagprev;
+      shake_atom[i][1] = mol_shake_atom[m][1] + tagprev;
+      shake_type[i][0] = mol_shake_type[m][0];
+    } else if (flag == 3) {
+      shake_atom[i][0] = mol_shake_atom[m][0] + tagprev;
+      shake_atom[i][1] = mol_shake_atom[m][1] + tagprev;
+      shake_atom[i][2] = mol_shake_atom[m][2] + tagprev;
+      shake_type[i][0] = mol_shake_type[m][0];
+      shake_type[i][1] = mol_shake_type[m][1];
+    } else if (flag == 4) {
+      shake_atom[i][0] = mol_shake_atom[m][0] + tagprev;
+      shake_atom[i][1] = mol_shake_atom[m][1] + tagprev;
+      shake_atom[i][2] = mol_shake_atom[m][2] + tagprev;
+      shake_atom[i][3] = mol_shake_atom[m][3] + tagprev;
+      shake_type[i][0] = mol_shake_type[m][0];
+      shake_type[i][1] = mol_shake_type[m][1];
+      shake_type[i][2] = mol_shake_type[m][2];
+    }
   }
 }
 
@@ -2478,4 +2562,17 @@ void FixShake::reset_dt()
     dtf_innerhalf = 0.5 * step_respa[0] * force->ftm2v;
     dtf_inner = step_respa[0] * force->ftm2v;
   }
+}
+
+/* ----------------------------------------------------------------------
+   extract Molecule ptr
+------------------------------------------------------------------------- */
+
+void *FixShake::extract(const char *str, int &dim)
+{
+  dim = 0;
+  if (strcmp(str,"onemol") == 0) {
+    return onemol;
+  }
+  return NULL;
 }

@@ -22,7 +22,6 @@
 #include "update.h"
 #include "modify.h"
 #include "fix.h"
-#include "fix_rigid_small.h"
 #include "comm.h"
 #include "domain.h"
 #include "lattice.h"
@@ -116,6 +115,10 @@ FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
 
   if (rigidflag && mode == ATOM)
     error->all(FLERR,"Cannot use fix deposit rigid and not molecule");
+  if (shakeflag && mode == ATOM)
+    error->all(FLERR,"Cannot use fix deposit shake and not molecule");
+  if (rigidflag && shakeflag)
+    error->all(FLERR,"Cannot use fix deposit rigid and shake");
 
   // setup of coords and imageflags array
 
@@ -179,6 +182,7 @@ FixDeposit::~FixDeposit()
 {
   delete random;
   delete [] idrigid;
+  delete [] idshake;
   delete [] idregion;
   memory->destroy(coords);
   memory->destroy(imageflags);
@@ -210,10 +214,24 @@ void FixDeposit::init()
   if (rigidflag) {
     int ifix = modify->find_fix(idrigid);
     if (ifix < 0) error->all(FLERR,"Fix pour rigid fix does not exist");
-    fixrigid = (FixRigidSmall *) modify->fix[ifix];
-    if (onemol != fixrigid->onemol)
+    fixrigid = modify->fix[ifix];
+    int tmp;
+    if (onemol != (Molecule *) fixrigid->extract("onemol",tmp))
       error->all(FLERR,
                  "Fix deposit and fix rigid/small not using same molecule ID");
+  }
+
+  // if shakeflag defined, check for SHAKE fix
+  // its molecule template must be same as this one
+
+  fixshake = NULL;
+  if (shakeflag) {
+    int ifix = modify->find_fix(idshake);
+    if (ifix < 0) error->all(FLERR,"Fix deposit shake fix does not exist");
+    fixshake = modify->fix[ifix];
+    int tmp;
+    if (onemol != (Molecule *) fixshake->extract("onemol",tmp))
+      error->all(FLERR,"Fix deposit and fix shake not using same molecule ID");
   }
 }
 
@@ -438,10 +456,13 @@ void FixDeposit::pre_exchange()
       }
 
       // FixRigidSmall::set_molecule stores rigid body attributes
-      // coord is new position of geometric center of mol, not COM
+      //   coord is new position of geometric center of mol, not COM
+      // FixShake::set_molecule stores shake info for molecule
 
       if (rigidflag)
         fixrigid->set_molecule(nlocalprev,maxtag_all,coord,vnew,quat);
+      else if (shakeflag)
+        fixshake->set_molecule(nlocalprev,maxtag_all,coord,vnew,quat);
     }
 
     // old code: unsuccessful if no proc performed insertion of an atom
@@ -528,6 +549,8 @@ void FixDeposit::options(int narg, char **arg)
   mode = ATOM;
   rigidflag = 0;
   idrigid = NULL;
+  shakeflag = 0;
+  idshake = NULL;
   idnext = 0;
   globalflag = localflag = 0;
   lo = hi = deltasq = 0.0;
@@ -557,12 +580,6 @@ void FixDeposit::options(int narg, char **arg)
       mode = MOLECULE;
       onemol = atom->molecules[imol];
      iarg += 2;
-    } else if (strcmp(arg[iarg],"id") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix deposit command");
-      if (strcmp(arg[iarg+1],"max") == 0) idnext = 0;
-      else if (strcmp(arg[iarg+1],"next") == 0) idnext = 1;
-      else error->all(FLERR,"Illegal fix deposit command");
-      iarg += 2;
     } else if (strcmp(arg[iarg],"rigid") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix deposit command");
       int n = strlen(arg[iarg+1]) + 1;
@@ -571,7 +588,21 @@ void FixDeposit::options(int narg, char **arg)
       strcpy(idrigid,arg[iarg+1]);
       rigidflag = 1;
       iarg += 2;
+    } else if (strcmp(arg[iarg],"shake") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix deposit command");
+      int n = strlen(arg[iarg+1]) + 1;
+      delete [] idshake;
+      idshake = new char[n];
+      strcpy(idshake,arg[iarg+1]);
+      shakeflag = 1;
+      iarg += 2;
 
+    } else if (strcmp(arg[iarg],"id") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix deposit command");
+      if (strcmp(arg[iarg+1],"max") == 0) idnext = 0;
+      else if (strcmp(arg[iarg+1],"next") == 0) idnext = 1;
+      else error->all(FLERR,"Illegal fix deposit command");
+      iarg += 2;
     } else if (strcmp(arg[iarg],"global") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix deposit command");
       globalflag = 1;

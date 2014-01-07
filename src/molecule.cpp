@@ -428,6 +428,25 @@ void Molecule::read(int flag)
       if (flag) special_read(line);
       else skip_lines(natoms,line);
 
+    } else if (strcmp(keyword,"Shake Flags") == 0) {
+      shakeflagflag = 1;
+      if (flag) shakeflag_read(line);
+      else skip_lines(natoms,line);
+    } else if (strcmp(keyword,"Shake Atoms") == 0) {
+      shakeatomflag = 1;
+      if (shaketypeflag) shakeflag = 1;
+      if (!shakeflagflag) 
+	error->all(FLERR,"Molecule file shake flags not before shake atoms");
+      if (flag) shakeatom_read(line);
+      else skip_lines(natoms,line);
+    } else if (strcmp(keyword,"Shake Bond Types") == 0) {
+      shaketypeflag = 1;
+      if (shakeatomflag) shakeflag = 1;
+      if (!shakeflagflag) 
+	error->all(FLERR,"Molecule file shake flags not before shake bonds");
+      if (flag) shaketype_read(line);
+      else skip_lines(natoms,line);
+
     } else error->one(FLERR,"Unknown section in molecule file");
 	     
     parse_keyword(1,line,keyword);
@@ -469,6 +488,9 @@ void Molecule::read(int flag)
       error->all(FLERR,"Molecule file has special flags but no bonds");
     if (maxspecial > atom->maxspecial)
       error->all(FLERR,"Molecule file special bond counts are too large");
+
+    if ((shakeflagflag || shakeatomflag || shaketypeflag) && !shakeflag)
+      error->all(FLERR,"Molecule file shake info is incomplete");
   }
 }
 
@@ -537,6 +559,10 @@ void Molecule::diameters(char *line)
     sscanf(line,"%d %lg",&tmp,&radius[i]);
     radius[i] *= 0.5;
   }
+
+  for (int i = 0; i < natoms; i++)
+    if (radius[i] < 0.0) 
+      error->all(FLERR,"Invalid atom diameter in molecule file");
 }
 
 /* ----------------------------------------------------------------------
@@ -881,6 +907,88 @@ void Molecule::special_read(char *line)
 }
 
 /* ----------------------------------------------------------------------
+   read SHAKE flags from file
+------------------------------------------------------------------------- */
+
+void Molecule::shakeflag_read(char *line)
+{
+  int tmp;
+  for (int i = 0; i < natoms; i++) {
+    readline(line);
+    sscanf(line,"%d %d",&tmp,&shake_flag[i]);
+  }
+
+  for (int i = 0; i < natoms; i++)
+    if (shake_flag[i] < 0 || shake_flag[i] > 4) 
+      error->all(FLERR,"Invalid shake flag in molecule file");
+}
+
+/* ----------------------------------------------------------------------
+   read SHAKE atom info from file
+------------------------------------------------------------------------- */
+
+void Molecule::shakeatom_read(char *line)
+{
+  int tmp;
+  for (int i = 0; i < natoms; i++) {
+    readline(line);
+    if (shake_flag[i] == 1)
+      sscanf(line,"%d %d %d %d",&tmp,
+             &shake_atom[i][0],&shake_atom[i][1],&shake_atom[i][2]);
+    else if (shake_flag[i] == 2)
+      sscanf(line,"%d %d %d",&tmp,&shake_atom[i][0],&shake_atom[i][1]);
+    else if (shake_flag[i] == 3)
+      sscanf(line,"%d %d %d %d",&tmp,
+             &shake_atom[i][0],&shake_atom[i][1],&shake_atom[i][2]);
+    else if (shake_flag[i] == 4)
+      sscanf(line,"%d %d %d %d %d",&tmp,
+             &shake_atom[i][0],&shake_atom[i][1],
+             &shake_atom[i][2],&shake_atom[i][3]);
+  }
+
+  for (int i = 0; i < natoms; i++) {
+    int m = shake_flag[i];
+    if (m == 1) m = 3;
+    for (int j = 0; j < m; j++)
+      if (shake_atom[i][j] <= 0 || shake_atom[i][j] > natoms)
+        error->all(FLERR,"Invalid shake atom in molecule file");
+  }
+}
+
+/* ----------------------------------------------------------------------
+   read SHAKE bond type info from file
+------------------------------------------------------------------------- */
+
+void Molecule::shaketype_read(char *line)
+{
+  int tmp;
+  for (int i = 0; i < natoms; i++) {
+    readline(line);
+    if (shake_flag[i] == 1)
+      sscanf(line,"%d %d %d %d",&tmp,
+             &shake_type[i][0],&shake_type[i][1],&shake_type[i][2]);
+    else if (shake_flag[i] == 2)
+      sscanf(line,"%d %d",&tmp,&shake_type[i][0]);
+    else if (shake_flag[i] == 3)
+      sscanf(line,"%d %d %d",&tmp,&shake_type[i][0],&shake_type[i][1]);
+    else if (shake_flag[i] == 4)
+      sscanf(line,"%d %d %d %d",&tmp,
+             &shake_type[i][0],&shake_type[i][1],&shake_type[i][2]);
+  }
+
+  for (int i = 0; i < natoms; i++) {
+    int m = shake_flag[i];
+    if (m == 1) m = 3;
+    for (int j = 0; j < m-1; j++)
+      if (shake_type[i][j] <= 0 || shake_type[i][j] > atom->nbondtypes)
+        error->all(FLERR,"Invalid shake bond type in molecule file");
+    if (shake_flag[i] == 1)
+      if (shake_type[i][2] <= 0 || shake_type[i][2] > atom->nangletypes)
+        error->all(FLERR,"Invalid shake angle type in molecule file");
+  }
+}
+
+/* ----------------------------------------------------------------------
    init all data structures to empty
 ------------------------------------------------------------------------- */
 
@@ -895,6 +1003,7 @@ void Molecule::initialize()
   xflag = typeflag = qflag = radiusflag = rmassflag = 0;
   bondflag = angleflag = dihedralflag = improperflag = 0;
   nspecialflag = specialflag = 0;
+  shakeflag = shakeflagflag = shakeatomflag = shaketypeflag = 0;
 
   centerflag = massflag = comflag = inertiaflag = 0;
 
@@ -922,6 +1031,9 @@ void Molecule::initialize()
 
   nspecial = NULL;
   special = NULL;
+
+  shake_flag = NULL;
+  shake_atom = shake_type = NULL;
 
   dx = NULL;
   dxcom = NULL;
@@ -992,6 +1104,12 @@ void Molecule::allocate()
     memory->create(nspecial,natoms,3,"molecule:nspecial");
   if (specialflag)
     memory->create(special,natoms,maxspecial,"molecule:special");
+
+  if (shakeflag) {
+    memory->create(shake_flag,natoms,"molecule:shake_flag");
+    memory->create(shake_atom,natoms,4,"molecule:shake_flag");
+    memory->create(shake_type,natoms,3,"molecule:shake_flag");
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1032,6 +1150,10 @@ void Molecule::deallocate()
 
   memory->destroy(nspecial);
   memory->destroy(special);
+
+  memory->destroy(shake_flag);
+  memory->destroy(shake_atom);
+  memory->destroy(shake_type);
 
   memory->destroy(dx);
   memory->destroy(dxcom);

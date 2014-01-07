@@ -71,6 +71,14 @@ consists of a set of point particles.  You typically only need to
 specify these values for a rigid body consisting of overlapping
 finite-size particles.
 
+The mass and center-of-mass coordinates (Xc,Yc,Zc) are
+self-explanatory.  The 6 moments of inertia (ixx,iyy,izz,ixy,ixz,iyz)
+should be the values consistent with the current orientation of the
+rigid body around its center of mass.  The values are with respect to
+the simulation box XYZ axes, not with respect to the prinicpal axes of
+the rigid body itself.  LAMMPS performs the latter calculation
+internally.
+
 These are the allowed section keywords for the body of the file.
 
 {Coords, Types, Charges, Diameters, Masses} = atom-property sections 

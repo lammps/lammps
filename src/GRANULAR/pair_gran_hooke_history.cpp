@@ -474,14 +474,18 @@ void PairGranHookeHistory::init_style()
   int itype;
   for (i = 1; i <= atom->ntypes; i++) {
     onerad_dynamic[i] = onerad_frozen[i] = 0.0;
-    if (ipour >= 0) 
+    if (ipour >= 0) {
+      itype = i;
       onerad_dynamic[i] = 
         *((double *) modify->fix[ipour]->extract("radius",itype));
-    if (idep >= 0) 
+    }
+    if (idep >= 0) {
+      itype = i;
       onerad_dynamic[i] = 
         *((double *) modify->fix[idep]->extract("radius",itype));
+    }
   }
-    
+
   double *radius = atom->radius;
   int *mask = atom->mask;
   int *type = atom->type;

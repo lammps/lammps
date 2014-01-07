@@ -18,7 +18,7 @@
 <H1></H1>
 
 LAMMPS Documentation :c,h3
-30 Dec 2013 version :c,h4
+31 Dec 2013 version :c,h4
 
 Version info: :h4
 

@@ -98,12 +98,16 @@ its value.
 
 Each timestep particles are inserted, they are placed randomly inside
 the insertion volume so as to mimic a stream of poured particles.  If
-they are molecules they are also oriented randomly.  The larger the
-volume, the more particles that can be inserted at any one timestep.
-Particles are inserted again after enough time has elapsed that the
-previously inserted particles fall out of the insertion volume under
-the influence of gravity.  Insertions continue every so many timesteps
-until the desired # of particles has been inserted.
+they are molecules they are also oriented randomly.  Each atom in the
+particle is tested for overlaps with existing particles, including
+effects due to periodic boundary conditions if applicable.  If an
+overlap is detected, another random insertion attempt is made; see the
+{vol} keyword discussion below.  The larger the volume of the
+insertion region, the more particles that can be inserted at any one
+timestep.  Particles are inserted again after enough time has elapsed
+that the previously inserted particles fall out of the insertion
+volume under the influence of gravity.  Insertions continue every so
+many timesteps until the desired # of particles has been inserted.
 
 All other keywords are optional with defaults as shown below.
 

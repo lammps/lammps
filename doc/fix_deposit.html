@@ -144,14 +144,15 @@ particles is less than the <I>delta</I> setting.
 </P>
 <P>Once a trial x,y,z position has been selected, the insertion is only
 performed if no current atom in the simulation is within a distance R
-of any atom in the new particle.  Note that the default value for R is
-0.0, which will allow atoms to strongly overlap if you are inserting
-where other atoms are present.  This distance test is performed
-independently for each atom in an inserted molecule, based on the
-randomly rotated configuration of the molecule.  If this test fails, a
-new random position within the insertion volume is chosen and another
-trial is made.  Up to Q attempts are made.  If the particle is not
-successfully inserted, LAMMPS prints a warning message.
+of any atom in the new particle, including the effect of periodic
+boundary conditions if applicable.  Note that the default value for R
+is 0.0, which will allow atoms to strongly overlap if you are
+inserting where other atoms are present.  This distance test is
+performed independently for each atom in an inserted molecule, based
+on the randomly rotated configuration of the molecule.  If this test
+fails, a new random position within the insertion volume is chosen and
+another trial is made.  Up to Q attempts are made.  If the particle is
+not successfully inserted, LAMMPS prints a warning message.
 </P>
 <P>The <I>rate</I> option moves the insertion volume in the z direction (3d)
 or y direction (2d).  This enables particles to be inserted from a

@@ -21,7 +21,7 @@
 
 <LI>N = # of atoms or molecules to insert 
 
-<LI>type = atom type to assign to inserted atoms (for atom insertion) 
+<LI>type = atom type to assign to inserted atoms (offset for moleclue insertion) 
 
 <LI>M = insert a single atom or molecule every M steps 
 
@@ -35,6 +35,8 @@
     region-ID = ID of region to use as insertion volume
   <I>mol</I> value = template-ID
     template-ID = ID of molecule template specified in a separate <A HREF = "molecule.html">molecule</A> command
+  <I>rigid</I> value = fix-ID
+    fix-ID = ID of <A HREF = "fix_rigid.html">fix rigid/small</A> command
   <I>id</I> value = <I>max</I> or <I>next</I>
     max = atom ID for new atom(s) is max ID of all current atoms plus one
     next = atom ID for new atom(s) increments by one for every deposition
@@ -78,9 +80,11 @@ this doc page, a single inserted atom or molecule is referred to as a
 "particle".
 </P>
 <P>If inserted particles are individual atoms, they are assigned the
-specified atom type.  For molecules the specified type is ignored, and
-the type of each atom in the inserted molecule is specified in the
-file read by the <A HREF = "molecule.html">molecule</A> command.
+specified atom type.  If they are molecules, the type of each atom in
+the inserted molecule is specified in the file read by the
+<A HREF = "molecule.html">molecule</A> command, and those values are added to the
+specified atom type.  E.g. if <I>type</I> = 2, and the file specifies atom
+types 1,2,3, then the inserted molecule will have atom types 3,4,5.
 </P>
 <P>All atoms in the inserted particle are assigned to two groups: the
 default group "all" and the group specified in the fix deposit command
@@ -120,6 +124,11 @@ bond/angle/etc information for the molecule can be specified in the
 molecule file.  See the <A HREF = "molecule.html">molecule</A> command for details.
 The only settings required to be in this file are the coordinates and
 types of atoms in the molecule.
+</P>
+<P>If you wish to insert molecules via the <I>mol</I> keyword, that will be
+treated as rigid bodies, use the <I>rigid</I> keyword, specifying as its
+value the ID of a separate <A HREF = "fix_rigid_small.html">fix rigid/small</A>
+command which also appears in your input script.
 </P>
 <P>Each timestep a particle is inserted, the coordinates for its atoms
 are chosen as follows.  For insertion of individual atoms, the

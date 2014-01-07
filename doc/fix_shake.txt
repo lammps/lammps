@@ -11,25 +11,30 @@ fix shake/cuda command :h3
 
 [Syntax:]
 
-fix ID group-ID shake tol iter N keyword values ... :pre
+fix ID group-ID shake tol iter N constraint values ... keyword value ... :pre
 
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 shake = style name of this fix command :l
 tol = accuracy tolerance of SHAKE solution :l
 iter = max # of iterations in each SHAKE solution :l
 N = print SHAKE statistics every this many timesteps (0 = never) :l
-one or more keyword/value pairs are appended :l
-keyword = {b} or {a} or {t} or {m} :l
+one or more constraint/value pairs are appended :l
+constraint = {b} or {a} or {t} or {m} :l
   {b} values = one or more bond types
   {a} values = one or more angle types
   {t} values = one or more atom types
   {m} value = one or more mass values :pre
+zero or more keyword/value pairs may be appended :l
+keyword = {mol} :l
+  {mol} value = template-ID
+    template-ID = ID of molecule template specified in a separate "molecule"_molecule.html command :pre
 :ule
 
 [Examples:]
 
 fix 1 sub shake 0.0001 20 10 b 4 19 a 3 5 2
-fix 1 sub shake 0.0001 20 10 t 5 6 m 1.0 a 31 :pre
+fix 1 sub shake 0.0001 20 10 t 5 6 m 1.0 a 31
+fix 1 sub shake 0.0001 20 10 t 5 6 m 1.0 a 31 mol myMol :pre
 
 [Description:]
 
@@ -59,17 +64,17 @@ also constrained.  This means water molecules or CH2 or CH3 groups may
 be constrained, but not all the C-C backbone bonds of a long polymer
 chain.
 
-The {b} keyword lists bond types that will be constrained.  The {t}
-keyword lists atom types.  All bonds connected to an atom of the
-specified type will be constrained.  The {m} keyword lists atom
+The {b} constraint lists bond types that will be constrained.  The {t}
+constraint lists atom types.  All bonds connected to an atom of the
+specified type will be constrained.  The {m} constraint lists atom
 masses.  All bonds connected to atoms of the specified masses will be
 constrained (within a fudge factor of MASSDELTA specified in
-fix_shake.cpp).  The {a} keyword lists angle types.  If both bonds in
-the angle are constrained then the angle will also be constrained if
-its type is in the list.
+fix_shake.cpp).  The {a} constraint lists angle types.  If both bonds
+in the angle are constrained then the angle will also be constrained
+if its type is in the list.
 
-For all keywords, a particular bond is only constrained if both atoms
-in the bond are in the group specified with the SHAKE fix.
+For all constraints, a particular bond is only constrained if both
+atoms in the bond are in the group specified with the SHAKE fix.
 
 The degrees-of-freedom removed by SHAKE bonds and angles are accounted
 for in temperature and pressure computations.  Similarly, the SHAKE
@@ -86,6 +91,20 @@ take them into account and the time integration will typically not
 satisfy the SHAKE constraints.  The solution for this is to make sure
 that fix shake is defined in your input script after any other fixes
 which add or change forces (to atoms that fix shake operates on).
+
+:line
+
+The {mol} keyword should be used when other commands, such as "fix
+deposit"_fix_deposit.html or "fix pour"_fix_pour.html, add molecules
+on-the-fly during a simulation, and you wish to contrain the new
+molecules via SHAKE.  You specify a {template-ID} previously defined
+using the "molecule"_molecule.html command, which reads a file that
+defines the molecule.  You must use the same {template-ID} that the
+command adding molecules uses.  The coordinates, atom types, special
+bond restrictions, and SHAKE info can be specified in the molecule
+file.  See the "molecule"_molecule.html command for details.  The only
+settings required to be in this file (by this command) are the SHAKE
+info of atoms in the molecule.
 
 :line
 

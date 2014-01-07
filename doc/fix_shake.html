@@ -15,7 +15,7 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>fix ID group-ID shake tol iter N keyword values ... 
+<PRE>fix ID group-ID shake tol iter N constraint values ... keyword value ... 
 </PRE>
 <UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
 
@@ -27,21 +27,29 @@
 
 <LI>N = print SHAKE statistics every this many timesteps (0 = never) 
 
-<LI>one or more keyword/value pairs are appended 
+<LI>one or more constraint/value pairs are appended 
 
-<LI>keyword = <I>b</I> or <I>a</I> or <I>t</I> or <I>m</I> 
+<LI>constraint = <I>b</I> or <I>a</I> or <I>t</I> or <I>m</I> 
 
 <PRE>  <I>b</I> values = one or more bond types
   <I>a</I> values = one or more angle types
   <I>t</I> values = one or more atom types
   <I>m</I> value = one or more mass values 
 </PRE>
+<LI>zero or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>mol</I> 
+
+<PRE>  <I>mol</I> value = template-ID
+    template-ID = ID of molecule template specified in a separate <A HREF = "molecule.html">molecule</A> command 
+</PRE>
 
 </UL>
 <P><B>Examples:</B>
 </P>
 <PRE>fix 1 sub shake 0.0001 20 10 b 4 19 a 3 5 2
-fix 1 sub shake 0.0001 20 10 t 5 6 m 1.0 a 31 
+fix 1 sub shake 0.0001 20 10 t 5 6 m 1.0 a 31
+fix 1 sub shake 0.0001 20 10 t 5 6 m 1.0 a 31 mol myMol 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -71,17 +79,17 @@ also constrained.  This means water molecules or CH2 or CH3 groups may
 be constrained, but not all the C-C backbone bonds of a long polymer
 chain.
 </P>
-<P>The <I>b</I> keyword lists bond types that will be constrained.  The <I>t</I>
-keyword lists atom types.  All bonds connected to an atom of the
-specified type will be constrained.  The <I>m</I> keyword lists atom
+<P>The <I>b</I> constraint lists bond types that will be constrained.  The <I>t</I>
+constraint lists atom types.  All bonds connected to an atom of the
+specified type will be constrained.  The <I>m</I> constraint lists atom
 masses.  All bonds connected to atoms of the specified masses will be
 constrained (within a fudge factor of MASSDELTA specified in
-fix_shake.cpp).  The <I>a</I> keyword lists angle types.  If both bonds in
-the angle are constrained then the angle will also be constrained if
-its type is in the list.
+fix_shake.cpp).  The <I>a</I> constraint lists angle types.  If both bonds
+in the angle are constrained then the angle will also be constrained
+if its type is in the list.
 </P>
-<P>For all keywords, a particular bond is only constrained if both atoms
-in the bond are in the group specified with the SHAKE fix.
+<P>For all constraints, a particular bond is only constrained if both
+atoms in the bond are in the group specified with the SHAKE fix.
 </P>
 <P>The degrees-of-freedom removed by SHAKE bonds and angles are accounted
 for in temperature and pressure computations.  Similarly, the SHAKE
@@ -98,6 +106,20 @@ take them into account and the time integration will typically not
 satisfy the SHAKE constraints.  The solution for this is to make sure
 that fix shake is defined in your input script after any other fixes
 which add or change forces (to atoms that fix shake operates on).
+</P>
+<HR>
+
+<P>The <I>mol</I> keyword should be used when other commands, such as <A HREF = "fix_deposit.html">fix
+deposit</A> or <A HREF = "fix_pour.html">fix pour</A>, add molecules
+on-the-fly during a simulation, and you wish to contrain the new
+molecules via SHAKE.  You specify a <I>template-ID</I> previously defined
+using the <A HREF = "molecule.html">molecule</A> command, which reads a file that
+defines the molecule.  You must use the same <I>template-ID</I> that the
+command adding molecules uses.  The coordinates, atom types, special
+bond restrictions, and SHAKE info can be specified in the molecule
+file.  See the <A HREF = "molecule.html">molecule</A> command for details.  The only
+settings required to be in this file (by this command) are the SHAKE
+info of atoms in the molecule.
 </P>
 <HR>
 

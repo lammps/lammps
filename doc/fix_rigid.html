@@ -153,7 +153,7 @@ the distance.
 to predict.  The best way to decide is to perform a short test run.
 Both variants should give identical numerical answers for short runs.
 Long runs should give statistically similar results, but round-off
-differences will accumulate to produce divergent trajectories.
+differences may accumulate to produce divergent trajectories.
 </P>
 <P>IMPORTANT NOTE: You should not update the atoms in rigid bodies via
 other time-integration fixes (e.g. <A HREF = "fix_nve.html">fix nve</A>, <A HREF = "fix_nvt.html">fix
@@ -248,10 +248,14 @@ means all types from m to n (inclusive).  Note that you can use the
 particular rigid body has its component flags set multiple times, the
 settings from the final keyword are used.
 </P>
-<P>For computational efficiency, you may wish to turn off pairwise and
-bond interactions within each rigid body, as they no longer contribute
-to the motion.  The <A HREF = "neigh_modify.html">neigh_modify exclude</A> and
-<A HREF = "delete_bonds.html">delete_bonds</A> commands are used to do this.
+<P>IMPORTANT NOTE: For computational efficiency, you may wish to turn off
+pairwise and bond interactions within each rigid body, as they no
+longer contribute to the motion.  The <A HREF = "neigh_modify.html">neigh_modify
+exclude</A> and <A HREF = "delete_bonds.html">delete_bonds</A>
+commands are used to do this.  If the rigid bodies have strongly
+overalapping atoms, you may need to turn off these interactions to
+avoid numerical problems due to large equal/opposite intra-body forces
+swamping the contribution of small inter-body forces.
 </P>
 <P>For computational efficiency, you should typically define one fix
 rigid or fix rigid/small command which includes all the desired rigid
@@ -448,17 +452,17 @@ associated with the fix rigid commands.
 </P>
 <HR>
 
-<P>The <I>mol</I> keyword can only be used with fix rigid/small.  It should
-be used when other commands, such as <A HREF = "fix_deposit.html">fix deposit</A> or
-<A HREF = "fix_pour.html">fix pour</A>, which will add rigid bodies on-the-fly
-during a simulation.  You specify a <I>template-ID</I> previously defined
-using the <A HREF = "molecule.html">molecule</A> command, which reads a file that
-defines the molecule.  You must use the same <I>template-ID</I> that the
-command adding rigid bodies uses.  The coordinates, atom types, atom
-diameters, center-of-mass, and moments of inertia can be specified in
-the molecule file.  See the <A HREF = "molecule.html">molecule</A> command for
-details.  The only settings required to be in this file are the
-coordinates and types of atoms in the molecule.
+<P>The <I>mol</I> keyword can only be used with fix rigid/small.  It should be
+used when other commands, such as <A HREF = "fix_deposit.html">fix deposit</A> or
+<A HREF = "fix_pour.html">fix pour</A>, add rigid bodies on-the-fly during a
+simulation.  You specify a <I>template-ID</I> previously defined using the
+<A HREF = "molecule.html">molecule</A> command, which reads a file that defines the
+molecule.  You must use the same <I>template-ID</I> that the command adding
+rigid bodies uses.  The coordinates, atom types, atom diameters,
+center-of-mass, and moments of inertia can be specified in the
+molecule file.  See the <A HREF = "molecule.html">molecule</A> command for details.
+The only settings required to be in this file are the coordinates and
+types of atoms in the molecule.
 </P>
 <HR>
 

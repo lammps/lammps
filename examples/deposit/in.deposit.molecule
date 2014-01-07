@@ -44,12 +44,12 @@ thermo_modify	temp add lost/bond ignore lost warn
 
 #dump		1 all atom 50 dump.deposit.atom
 
-#dump		1 all movie 50 image.*.jpg type type &
+#dump		2 all movie 50 image.*.jpg type type &
 #		axes yes 0.8 0.02 view 80 -30
-#dump_modify	1 pad 5
+#dump_modify	2 pad 5
 
-#dump		1 all movie 50 movie.mpg type type &
+#dump		3 all movie 50 movie.mpg type type &
 #		axes yes 0.8 0.02 view 80 -30
-#dump_modify	1 pad 5
+#dump_modify	3 pad 5
 
 run             10000

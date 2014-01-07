@@ -29,14 +29,10 @@
 
 <LI>one or more keyword/value pairs may be appended to args 
 
-<LI>keyword = <I>region</I> or <I>mol</I> or <I>id</I> or <I>global</I> or <I>local</I> or <I>near</I> or <I>attempt</I> or <I>rate</I> or <I>vx</I> or <I>vy</I> or <I>vz</I> or <I>units</I> 
+<LI>keyword = <I>region</I> or <I>id</I> or <I>global</I> or <I>local</I> or <I>near</I> or <I>attempt</I> or <I>rate</I> or <I>vx</I> or <I>vy</I> or <I>vz</I> or <I>mol</I> or <I>rigid</I> or <I>shake</I> or <I>units</I> 
 
 <PRE>  <I>region</I> value = region-ID
     region-ID = ID of region to use as insertion volume
-  <I>mol</I> value = template-ID
-    template-ID = ID of molecule template specified in a separate <A HREF = "molecule.html">molecule</A> command
-  <I>rigid</I> value = fix-ID
-    fix-ID = ID of <A HREF = "fix_rigid.html">fix rigid/small</A> command
   <I>id</I> value = <I>max</I> or <I>next</I>
     max = atom ID for new atom(s) is max ID of all current atoms plus one
     next = atom ID for new atom(s) increments by one for every deposition
@@ -59,6 +55,12 @@
     vzlo,vzhi = range of z velocities for inserted atom/molecule (velocity units)
   <I>target</I> values = tx ty tz
     tx,ty,tz = location of target point (distance units)
+  <I>mol</I> value = template-ID
+    template-ID = ID of molecule template specified in a separate <A HREF = "molecule.html">molecule</A> command
+  <I>rigid</I> value = fix-ID
+    fix-ID = ID of <A HREF = "fix_rigid.html">fix rigid/small</A> command
+  <I>shake</I> value = fix-ID
+    fix-ID = ID of <A HREF = "fix_shake.html">fix shake</A> command
   <I>units</I> value = <I>lattice</I> or <I>box</I>
     lattice = the geometry is defined in lattice units
     box = the geometry is defined in simulation box units 
@@ -129,6 +131,11 @@ types of atoms in the molecule.
 treated as rigid bodies, use the <I>rigid</I> keyword, specifying as its
 value the ID of a separate <A HREF = "fix_rigid_small.html">fix rigid/small</A>
 command which also appears in your input script.
+</P>
+<P>If you wish to insert molecules via the <I>mol</I> keyword, that will have
+their bonds or angles constrained via SHAKE, use the <I>shake</I> keyword,
+specifying as its value the ID of a separate <A HREF = "fix_shake.html">fix
+shake</A> command which also appears in your input script.
 </P>
 <P>Each timestep a particle is inserted, the coordinates for its atoms
 are chosen as follows.  For insertion of individual atoms, the

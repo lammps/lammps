@@ -49,8 +49,12 @@ thermo_style custom step temp ke pe lx ly lz pxx pyy pzz etotal &
 
 #dump		id all atom 50 dump.msst
 
-#dump		1 all image 25 image.*.jpg type type &
+#dump		2 all image 25 image.*.jpg type type &
 #		axes yes 0.8 0.02 view 60 -30
-#dump_modify	1 pad 3
+#dump_modify	2 pad 3
+
+#dump		3 all movie 25 movie.mpg type type &
+#		axes yes 0.8 0.02 view 60 -30
+#dump_modify	3 pad 3
 
 run	        100

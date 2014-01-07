@@ -50,12 +50,12 @@ compute_modify	thermo_temp dynamic yes
 
 #dump		id all atom 100 tmp.dump
 
-dump		1 all image 250 image.*.jpg type type &
-		zoom 1.6 adiam 1.5
-dump_modify	1 pad 5
-
-#dump		1 all movie 250 movie.mpg type type &
+#dump		2 all image 250 image.*.jpg type type &
 #		zoom 1.6 adiam 1.5
-#dump_modify	1 pad 5
+#dump_modify	2 pad 5
+
+#dump		3 all movie 250 movie.mpg type type &
+#		zoom 1.6 adiam 1.5
+#dump_modify	3 pad 5
 
 run	        25000

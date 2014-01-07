@@ -44,7 +44,10 @@ thermo		100
 
 #dump		1 all atom 250 dump.srd.pure
 
-#dump		1 all image 250 image.*.jpg type type zoom 1.6 adiam 0.2
-#dump_modify	1 pad 4
+#dump		2 all image 250 image.*.jpg type type zoom 1.6 adiam 0.2
+#dump_modify	2 pad 4
+
+#dump		3 all movie 250 movie.mpg type type zoom 1.6 adiam 0.2
+#dump_modify	3 pad 4
 
 run		5000

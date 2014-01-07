@@ -57,13 +57,16 @@ pair_coeff	1 4 1.0 1.0 1.12246
 
 pair_coeff	2 3 1.0 0.88 1.12246
 pair_coeff	2 4 1.0 0.75 1.12246
-
+image
 thermo		1000
 
 #dump		1 all atom 2000 dump.micelle
 
-#dump		1 all image 2000 image.*.jpg type type zoom 1.6
-#dump_modify	1 pad 5 adiam 1 0.5 adiam 2 1.5 adiam 3 1.0 adiam 4 0.75
+#dump		2 all image 2000 image.*.jpg type type zoom 1.6
+#dump_modify	2 pad 5 adiam 1 0.5 adiam 2 1.5 adiam 3 1.0 adiam 4 0.75
+
+#dump		3 all movie 2000 movie.mpg type type zoom 1.6
+#dump_modify	3 pad 5 adiam 1 0.5 adiam 2 1.5 adiam 3 1.0 adiam 4 0.75
 
 reset_timestep	0
 run		60000

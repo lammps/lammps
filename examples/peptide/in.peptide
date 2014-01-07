@@ -27,9 +27,13 @@ group		peptide type <= 12
 
 #dump		1 peptide atom 10 dump.peptide
 
-#dump		1 peptide image 25 image.*.jpg type type &
+#dump		2 peptide image 25 image.*.jpg type type &
 #		axes yes 0.8 0.02 view 60 -30 bond atom 0.5
-#dump_modify	1 pad 3
+#dump_modify	2 pad 3
+
+#dump		3 peptide movie 25 movie.mpg type type &
+#		axes yes 0.8 0.02 view 60 -30 bond atom 0.5
+#dump_modify	3 pad 3
 
 #compute		bnd all property/local btype batom1 batom2
 #dump		2 peptide local 300 dump.bond index c_bnd[1] c_bnd[2] c_bnd[3]

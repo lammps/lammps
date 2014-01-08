@@ -420,7 +420,7 @@ files. Some of the supported formats require to buy a license and some
 are not readable on all platforms until specific runtime libraries are
 installed.
 
-c) Use FFmpeg  :ule,l
+c) Use FFmpeg  :l
 
 FFmpeg is a command line tool that is available on many platforms and
 allows extremely flexible encoding and decoding of movies.
@@ -430,6 +430,8 @@ cat snap.*.ppm | ffmpeg -y -f image2pipe -c:v ppm -i - -b:v 2400k movie.avi :pre
 
 Frontends for FFmpeg exist for multiple platforms. For more
 information see the "FFmpeg homepage"_http://www.ffmpeg.org/
+
+:ule
 
 :line
 
@@ -454,10 +456,10 @@ which works directly on a series of image files. :l
 a = animate("foo*.jpg") :pre
 
 d) QuickTime and other Windows- or MacOS-based media players can
-obviously play movie files directly. Similarly the corresponding tools
-bundled with Linux desktop environments, however, due to licensing
-issues of some of the file formats, some formats may require
-installing additional libraries, purchasing a license, or are not
+obviously play movie files directly. Similarly for corresponding tools
+bundled with Linux desktop environments.  However, due to licensing
+issues with some file formats, the formats may require installing
+additional libraries, purchasing a license, or may not be
 supported. :ule,l
 
 :line

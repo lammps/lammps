@@ -1205,7 +1205,8 @@ int Atom::find_molecule(char *id)
 }
 
 /* ----------------------------------------------------------------------
-   add info for iatom from molecule template onemol to current atom ilocal
+   add info to current atom ilocal from molecule template onemol and its iatom
+   offset = atom ID preceeding IDs of atoms in this molecule
 ------------------------------------------------------------------------- */
 
 void Atom::add_molecule_atom(Molecule *onemol, int iatom,
@@ -1255,7 +1256,15 @@ void Atom::add_molecule_atom(Molecule *onemol, int iatom,
     }
   }
 
+  // error check against maxspecial in case user has not done one of these:
+  // create_box extra/special/per/atom N
+  // read_data extra special per atom N
+  // special_bonds extra N 
+  //   if explicitly used special_bonds, may not have maintained extra
+
   if (onemol->specialflag) {
+    if (onemol->maxspecial > maxspecial)
+      error->one(FLERR,"Molecule file special bond counts are too large");
     nspecial[ilocal][0] = onemol->nspecial[iatom][0];
     nspecial[ilocal][1] = onemol->nspecial[iatom][1];
     int n = nspecial[ilocal][2] = onemol->nspecial[iatom][2];

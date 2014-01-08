@@ -508,6 +508,8 @@ void ReadData::header(int flag)
       sscanf(line,"%d",&atom->extra_dihedral_per_atom);
     else if (strstr(line,"extra improper per atom"))
       sscanf(line,"%d",&atom->extra_improper_per_atom);
+    else if (strstr(line,"extra special per atom"))
+      sscanf(line,"%d",&force->special_extra);
 
     else if (strstr(line,"xlo xhi"))
       sscanf(line,"%lg %lg",&domain->boxlo[0],&domain->boxhi[0]);

@@ -30,10 +30,13 @@ class CreateAtoms : protected Pointers {
   void command(int, char **);
 
  private:
-  int itype,style,nregion,nbasis,nrandom,seed;
+  int ntype,style,mode,nregion,nbasis,nrandom,seed;
   int *basistype;
   double xone[3];
   int remapflag;
+
+  class Molecule *onemol;
+  class RanMars *ranmol;
 
   int triclinic;
   double sublo[3],subhi[3];   // epsilon-extended proc sub-box for adding atoms
@@ -41,6 +44,7 @@ class CreateAtoms : protected Pointers {
   void add_single();
   void add_random();
   void add_lattice();
+  void add_molecule(double *);
 };
 
 }

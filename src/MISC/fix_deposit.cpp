@@ -100,7 +100,7 @@ FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
 
   if (mode == MOLECULE) {
     if (atom->molecule_flag == 0)
-      error->all(FLERR,"Fix deposit requires atom attribute molecule");
+      error->all(FLERR,"Fix deposit mol requires atom attribute molecule");
     if (onemol->xflag == 0)
       error->all(FLERR,"Fix deposit molecule must have coordinates");
     if (onemol->typeflag == 0)
@@ -444,7 +444,7 @@ void FixDeposit::pre_exchange()
         else atom->avec->create_atom(ntype+onemol->type[m],coords[m]);
         n = atom->nlocal - 1;
         atom->tag[n] = maxtag_all + m+1;
-        if (mode == MOLECULE) atom->molecule[n] = maxmol_all;
+        if (mode == MOLECULE) atom->molecule[n] = maxmol_all+1;
         atom->mask[n] = 1 | groupbit;
         atom->image[n] = imageflags[m];
         atom->v[n][0] = vnew[0];

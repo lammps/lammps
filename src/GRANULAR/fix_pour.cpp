@@ -118,7 +118,7 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
 
   if (mode == MOLECULE) {
     if (atom->molecule_flag == 0)
-      error->all(FLERR,"Fix pour requires atom attribute molecule");
+      error->all(FLERR,"Fix pour mol requires atom attribute molecule");
     if (onemol->xflag == 0)
       error->all(FLERR,"Fix pour molecule must have coordinates");
     if (onemol->typeflag == 0)
@@ -587,7 +587,7 @@ void FixPour::pre_exchange()
         else atom->avec->create_atom(ntype+onemol->type[m],coords[m]);
         int n = atom->nlocal - 1;
         atom->tag[n] = maxtag_all + m+1;
-        if (mode == MOLECULE) atom->molecule[n] = maxmol_all;
+        if (mode == MOLECULE) atom->molecule[n] = maxmol_all+1;
         atom->mask[n] = 1 | groupbit;
         atom->image[n] = imageflags[m];
         atom->v[n][0] = vnew[0];
@@ -836,7 +836,7 @@ void FixPour::options(int narg, char **arg)
         error->all(FLERR,"Molecule ID for fix pour does not exist");
       mode = MOLECULE;
       onemol = atom->molecules[imol];
-     iarg += 2;
+      iarg += 2;
     } else if (strcmp(arg[iarg],"rigid") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix pour command");
       int n = strlen(arg[iarg+1]) + 1;

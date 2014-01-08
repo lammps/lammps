@@ -429,7 +429,7 @@ void CreateAtoms::add_single()
     coord = lamda;
   } else coord = xone;
 
-  // if atom is in my subbox, create it
+  // if atom/molecule is in my subbox, create it
 
   if (coord[0] >= sublo[0] && coord[0] < subhi[0] &&
       coord[1] >= sublo[1] && coord[1] < subhi[1] &&
@@ -481,7 +481,7 @@ void CreateAtoms::add_random()
     zhi = MIN(zhi,domain->regions[nregion]->extent_zhi);
   }
 
-  // generate random positions for each new atom within bounding box
+  // generate random positions for each new atom/molecule within bounding box
   // iterate until atom is within region and triclinic simulation box
   // if final atom position is in my subbox, create it
 
@@ -615,7 +615,7 @@ void CreateAtoms::add_lattice()
           if (style == REGION)
             if (!domain->regions[nregion]->match(x[0],x[1],x[2])) continue;
 
-          // test if atom is in my subbox
+          // test if atom/molecule position is in my subbox
 
           if (triclinic) {
             domain->x2lamda(x,lamda);

@@ -50,16 +50,15 @@ compute_modify	thermo_temp dynamic yes
 
 #dump		id all atom 100 tmp.dump
 
-#compute		mol all property/atom mol
-#variable	mol atom c_mol%10
-
-#dump		2 all image 250 image.*.jpg v_mol type &
+#variable	mol2 atom mol%10
+#dump		2 all image 250 image.*.jpg v_mol2 type &
 #		zoom 1.6 adiam 1.5
 #dump_modify	2 pad 5 amap 0 10 sa 1 10 &
 #	        red green blue yellow black &
 #		purple pink orange lime gray
 
-#dump		3 all movie 250 movie v_mol type &
+#variable	mol3 atom mol%10
+#dump		3 all movie 250 movie v_mol3 type &
 #		zoom 1.6 adiam 1.5
 #dump_modify	3 pad 5 amap 0 10 sa 1 10 &
 #	        red green blue yellow black &

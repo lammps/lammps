@@ -21,7 +21,7 @@
 
 <LI>N = # of atoms or molecules to insert 
 
-<LI>type = atom type to assign to inserted atoms (for atom insertion) 
+<LI>type = atom type to assign to inserted atoms (offset for moleclue insertion) 
 
 <LI>M = insert a single atom or molecule every M steps 
 
@@ -29,12 +29,10 @@
 
 <LI>one or more keyword/value pairs may be appended to args 
 
-<LI>keyword = <I>region</I> or <I>mol</I> or <I>id</I> or <I>global</I> or <I>local</I> or <I>near</I> or <I>attempt</I> or <I>rate</I> or <I>vx</I> or <I>vy</I> or <I>vz</I> or <I>units</I> 
+<LI>keyword = <I>region</I> or <I>id</I> or <I>global</I> or <I>local</I> or <I>near</I> or <I>attempt</I> or <I>rate</I> or <I>vx</I> or <I>vy</I> or <I>vz</I> or <I>mol</I> or <I>rigid</I> or <I>shake</I> or <I>units</I> 
 
 <PRE>  <I>region</I> value = region-ID
     region-ID = ID of region to use as insertion volume
-  <I>mol</I> value = template-ID
-    template-ID = ID of molecule template specified in a separate <A HREF = "molecule.html">molecule</A> command
   <I>id</I> value = <I>max</I> or <I>next</I>
     max = atom ID for new atom(s) is max ID of all current atoms plus one
     next = atom ID for new atom(s) increments by one for every deposition
@@ -57,6 +55,12 @@
     vzlo,vzhi = range of z velocities for inserted atom/molecule (velocity units)
   <I>target</I> values = tx ty tz
     tx,ty,tz = location of target point (distance units)
+  <I>mol</I> value = template-ID
+    template-ID = ID of molecule template specified in a separate <A HREF = "molecule.html">molecule</A> command
+  <I>rigid</I> value = fix-ID
+    fix-ID = ID of <A HREF = "fix_rigid.html">fix rigid/small</A> command
+  <I>shake</I> value = fix-ID
+    fix-ID = ID of <A HREF = "fix_shake.html">fix shake</A> command
   <I>units</I> value = <I>lattice</I> or <I>box</I>
     lattice = the geometry is defined in lattice units
     box = the geometry is defined in simulation box units 
@@ -78,9 +82,11 @@ this doc page, a single inserted atom or molecule is referred to as a
 "particle".
 </P>
 <P>If inserted particles are individual atoms, they are assigned the
-specified atom type.  For molecules the specified type is ignored, and
-the type of each atom in the inserted molecule is specified in the
-file read by the <A HREF = "molecule.html">molecule</A> command.
+specified atom type.  If they are molecules, the type of each atom in
+the inserted molecule is specified in the file read by the
+<A HREF = "molecule.html">molecule</A> command, and those values are added to the
+specified atom type.  E.g. if <I>type</I> = 2, and the file specifies atom
+types 1,2,3, then the inserted molecule will have atom types 3,4,5.
 </P>
 <P>All atoms in the inserted particle are assigned to two groups: the
 default group "all" and the group specified in the fix deposit command
@@ -120,6 +126,16 @@ bond/angle/etc information for the molecule can be specified in the
 molecule file.  See the <A HREF = "molecule.html">molecule</A> command for details.
 The only settings required to be in this file are the coordinates and
 types of atoms in the molecule.
+</P>
+<P>If you wish to insert molecules via the <I>mol</I> keyword, that will be
+treated as rigid bodies, use the <I>rigid</I> keyword, specifying as its
+value the ID of a separate <A HREF = "fix_rigid_small.html">fix rigid/small</A>
+command which also appears in your input script.
+</P>
+<P>If you wish to insert molecules via the <I>mol</I> keyword, that will have
+their bonds or angles constrained via SHAKE, use the <I>shake</I> keyword,
+specifying as its value the ID of a separate <A HREF = "fix_shake.html">fix
+shake</A> command which also appears in your input script.
 </P>
 <P>Each timestep a particle is inserted, the coordinates for its atoms
 are chosen as follows.  For insertion of individual atoms, the
@@ -216,6 +232,10 @@ the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HRE
 minimization</A>.
 </P>
 <P><B>Restrictions:</B>
+</P>
+<P>This fix is part of the MISC package.  It is only enabled if LAMMPS
+was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
 </P>
 <P>The specified insertion region cannot be a "dynamic" region, as
 defined by the <A HREF = "region.html">region</A> command.

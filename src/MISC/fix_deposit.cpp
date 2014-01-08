@@ -61,6 +61,11 @@ FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
 
   options(narg-7,&arg[7]);
 
+  // error check on type
+
+  if (mode == ATOM && (ntype <= 0 || ntype > atom->ntypes))
+    error->all(FLERR,"Invalid atom type in fix deposit command");
+
   // error checks on region and its extent being inside simulation box
 
   if (iregion == -1) error->all(FLERR,"Must specify a region in fix deposit");
@@ -100,11 +105,20 @@ FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
       error->all(FLERR,"Fix deposit molecule must have coordinates");
     if (onemol->typeflag == 0)
       error->all(FLERR,"Fix deposit molecule must have atom types");
+    if (ntype+onemol->maxtype <= 0 || ntype+onemol->maxtype > atom->ntypes)
+      error->all(FLERR,"Invalid atom type in fix deposit mol command");
 
     // fix deposit uses geoemetric center of molecule for insertion
 
     onemol->compute_center();
   }
+
+  if (rigidflag && mode == ATOM)
+    error->all(FLERR,"Cannot use fix deposit rigid and not molecule");
+  if (shakeflag && mode == ATOM)
+    error->all(FLERR,"Cannot use fix deposit shake and not molecule");
+  if (rigidflag && shakeflag)
+    error->all(FLERR,"Cannot use fix deposit rigid and shake");
 
   // setup of coords and imageflags array
 
@@ -167,6 +181,8 @@ FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
 FixDeposit::~FixDeposit()
 {
   delete random;
+  delete [] idrigid;
+  delete [] idshake;
   delete [] idregion;
   memory->destroy(coords);
   memory->destroy(imageflags);
@@ -190,6 +206,33 @@ void FixDeposit::init()
   iregion = domain->find_region(idregion);
   if (iregion == -1)
     error->all(FLERR,"Region ID for fix deposit does not exist");
+
+  // if rigidflag defined, check for rigid/small fix
+  // its molecule template must be same as this one
+
+  fixrigid = NULL;
+  if (rigidflag) {
+    int ifix = modify->find_fix(idrigid);
+    if (ifix < 0) error->all(FLERR,"Fix pour rigid fix does not exist");
+    fixrigid = modify->fix[ifix];
+    int tmp;
+    if (onemol != (Molecule *) fixrigid->extract("onemol",tmp))
+      error->all(FLERR,
+                 "Fix deposit and fix rigid/small not using same molecule ID");
+  }
+
+  // if shakeflag defined, check for SHAKE fix
+  // its molecule template must be same as this one
+
+  fixshake = NULL;
+  if (shakeflag) {
+    int ifix = modify->find_fix(idshake);
+    if (ifix < 0) error->all(FLERR,"Fix deposit shake fix does not exist");
+    fixshake = modify->fix[ifix];
+    int tmp;
+    if (onemol != (Molecule *) fixshake->extract("onemol",tmp))
+      error->all(FLERR,"Fix deposit and fix shake not using same molecule ID");
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -198,11 +241,10 @@ void FixDeposit::init()
 
 void FixDeposit::pre_exchange()
 {
-  int i,j,m,n;
-  int flag,flagall;
+  int i,j,m,n,nlocalprev,flag,flagall;
   double coord[3],lamda[3],delx,dely,delz,rsq;
   double alpha,beta,gamma;
-  double r[3],rotmat[3][3],quat[4];
+  double r[3],vnew[3],rotmat[3][3],quat[4];
   double *newcoord;
 
   // just return if should not be called on this timestep
@@ -348,26 +390,29 @@ void FixDeposit::pre_exchange()
     if (flagall) continue;
 
     // proceed with insertion
+
+    nlocalprev = atom->nlocal;
+
     // choose random velocity for new particle
     // used for every atom in molecule
 
-    double vxtmp = vxlo + random->uniform() * (vxhi-vxlo);
-    double vytmp = vylo + random->uniform() * (vyhi-vylo);
-    double vztmp = vzlo + random->uniform() * (vzhi-vzlo);
+    vnew[0] = vxlo + random->uniform() * (vxhi-vxlo);
+    vnew[1] = vylo + random->uniform() * (vyhi-vylo);
+    vnew[2] = vzlo + random->uniform() * (vzhi-vzlo);
 
     // if target specified, change velocity vector accordingly
 
     if (targetflag) {
-      double vel = sqrt(vxtmp*vxtmp + vytmp*vytmp + vztmp*vztmp);
+      double vel = sqrt(vnew[0]*vnew[0] + vnew[1]*vnew[1] + vnew[2]*vnew[2]);
       delx = tx - coord[0];
       dely = ty - coord[1];
       delz = tz - coord[2];
       double rsq = delx*delx + dely*dely + delz*delz;
       if (rsq > 0.0) {
         double rinv = sqrt(1.0/rsq);
-        vxtmp = delx*rinv*vel;
-        vytmp = dely*rinv*vel;
-        vztmp = delz*rinv*vel;
+        vnew[0] = delx*rinv*vel;
+        vnew[1] = dely*rinv*vel;
+        vnew[2] = delz*rinv*vel;
       }
     }
 
@@ -396,19 +441,28 @@ void FixDeposit::pre_exchange()
 
       if (flag) {
         if (mode == ATOM) atom->avec->create_atom(ntype,coords[m]);
-        else atom->avec->create_atom(onemol->type[m],coords[m]);
+        else atom->avec->create_atom(ntype+onemol->type[m],coords[m]);
         n = atom->nlocal - 1;
         atom->tag[n] = maxtag_all + m+1;
         if (mode == MOLECULE) atom->molecule[n] = maxmol_all;
         atom->mask[n] = 1 | groupbit;
         atom->image[n] = imageflags[m];
-        atom->v[n][0] = vxtmp;
-        atom->v[n][1] = vytmp;
-        atom->v[n][2] = vztmp;
+        atom->v[n][0] = vnew[0];
+        atom->v[n][1] = vnew[1];
+        atom->v[n][2] = vnew[2];
         if (mode == MOLECULE) atom->add_molecule_atom(onemol,m,n,maxtag_all);
         for (j = 0; j < nfix; j++)
           if (fix[j]->create_attribute) fix[j]->set_arrays(n);
       }
+
+      // FixRigidSmall::set_molecule stores rigid body attributes
+      //   coord is new position of geometric center of mol, not COM
+      // FixShake::set_molecule stores shake info for molecule
+
+      if (rigidflag)
+        fixrigid->set_molecule(nlocalprev,maxtag_all,coord,vnew,quat);
+      else if (shakeflag)
+        fixshake->set_molecule(nlocalprev,maxtag_all,coord,vnew,quat);
     }
 
     // old code: unsuccessful if no proc performed insertion of an atom
@@ -493,6 +547,10 @@ void FixDeposit::options(int narg, char **arg)
   iregion = -1;
   idregion = NULL;
   mode = ATOM;
+  rigidflag = 0;
+  idrigid = NULL;
+  shakeflag = 0;
+  idshake = NULL;
   idnext = 0;
   globalflag = localflag = 0;
   lo = hi = deltasq = 0.0;
@@ -522,6 +580,23 @@ void FixDeposit::options(int narg, char **arg)
       mode = MOLECULE;
       onemol = atom->molecules[imol];
      iarg += 2;
+    } else if (strcmp(arg[iarg],"rigid") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix deposit command");
+      int n = strlen(arg[iarg+1]) + 1;
+      delete [] idrigid;
+      idrigid = new char[n];
+      strcpy(idrigid,arg[iarg+1]);
+      rigidflag = 1;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"shake") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix deposit command");
+      int n = strlen(arg[iarg+1]) + 1;
+      delete [] idshake;
+      idshake = new char[n];
+      strcpy(idshake,arg[iarg+1]);
+      shakeflag = 1;
+      iarg += 2;
+
     } else if (strcmp(arg[iarg],"id") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix deposit command");
       if (strcmp(arg[iarg+1],"max") == 0) idnext = 0;
@@ -544,6 +619,7 @@ void FixDeposit::options(int narg, char **arg)
       deltasq = force->numeric(FLERR,arg[iarg+3]) * 
         force->numeric(FLERR,arg[iarg+3]);
       iarg += 4;
+
     } else if (strcmp(arg[iarg],"near") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix deposit command");
       nearsq = force->numeric(FLERR,arg[iarg+1]) * 

@@ -40,9 +40,13 @@ compute	     q all property/atom quatw quati quatj quatk
 #dump	     1 all custom 100 dump.ellipse.resquared &
 #	     id type x y z c_q[1] c_q[2] c_q[3] c_q[4]
 
-#dump	     1 all image 100 image.*.jpg type type &
+#dump	     2 all image 100 image.*.jpg type type &
 #	     zoom 1.6 center d 0.5 0.5 0.5
-#dump_modify  1 pad 4 adiam 1 1.0 adiam 2 2.0
+#dump_modify  2 pad 4 adiam 1 1.0 adiam 2 2.0
+
+#dump	     3 all movie 100 movie.mpg type type &
+#	     zoom 1.6 center d 0.5 0.5 0.5
+#dump_modify  3 pad 4 adiam 1 1.0 adiam 2 2.0
 
 fix	     1 all npt/asphere temp 2.0 2.0 0.1 iso 0.0 1.0 1.0 &
 	       mtk no pchain 0 tchain 1

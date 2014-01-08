@@ -51,9 +51,13 @@ thermo_modify	temp new
 
 #dump		1 all atom 250 dump.indent
 
-#dump		1 all image 1000 image.*.jpg type type &
+#dump		2 all image 1000 image.*.jpg type type &
 #		zoom 1.6 adiam 1.5
-#dump_modify	1 pad 5
+#dump_modify	2 pad 5
+
+#dump		3 all movie 1000 movie.mpg type type &
+#		zoom 1.6 adiam 1.5
+#dump_modify	3 pad 5
 
 run		30000
 

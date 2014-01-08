@@ -37,9 +37,13 @@ compute_modify	thermo_temp dynamic yes
 
 #dump		id all atom 1000 dump.pour
 
-#dump		1 all image 1000 image.*.jpg type type &
+#dump		2 all image 1000 image.*.jpg type type &
 #		axes yes 0.8 0.02 view 80 -30
-#dump_modify	1 pad 5
+#dump_modify	2 pad 5
+
+#dump		3 all movie 1000 movie.mpg type type &
+#		axes yes 0.8 0.02 view 80 -30
+#dump_modify	3 pad 5
 
 run		25000
 

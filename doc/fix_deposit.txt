@@ -15,15 +15,13 @@ fix ID group-ID deposit N type M seed keyword values ... :pre
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 deposit = style name of this fix command :l
 N = # of atoms or molecules to insert :l
-type = atom type to assign to inserted atoms (for atom insertion) :l
+type = atom type to assign to inserted atoms (offset for moleclue insertion) :l
 M = insert a single atom or molecule every M steps :l
 seed = random # seed (positive integer) :l
 one or more keyword/value pairs may be appended to args :l
-keyword = {region} or {mol} or {id} or {global} or {local} or {near} or {attempt} or {rate} or {vx} or {vy} or {vz} or {units} :l
+keyword = {region} or {id} or {global} or {local} or {near} or {attempt} or {rate} or {vx} or {vy} or {vz} or {mol} or {rigid} or {shake} or {units} :l
   {region} value = region-ID
     region-ID = ID of region to use as insertion volume
-  {mol} value = template-ID
-    template-ID = ID of molecule template specified in a separate "molecule"_molecule.html command
   {id} value = {max} or {next}
     max = atom ID for new atom(s) is max ID of all current atoms plus one
     next = atom ID for new atom(s) increments by one for every deposition
@@ -46,6 +44,12 @@ keyword = {region} or {mol} or {id} or {global} or {local} or {near} or {attempt
     vzlo,vzhi = range of z velocities for inserted atom/molecule (velocity units)
   {target} values = tx ty tz
     tx,ty,tz = location of target point (distance units)
+  {mol} value = template-ID
+    template-ID = ID of molecule template specified in a separate "molecule"_molecule.html command
+  {rigid} value = fix-ID
+    fix-ID = ID of "fix rigid/small"_fix_rigid.html command
+  {shake} value = fix-ID
+    fix-ID = ID of "fix shake"_fix_shake.html command
   {units} value = {lattice} or {box}
     lattice = the geometry is defined in lattice units
     box = the geometry is defined in simulation box units :pre
@@ -66,9 +70,11 @@ this doc page, a single inserted atom or molecule is referred to as a
 "particle".
 
 If inserted particles are individual atoms, they are assigned the
-specified atom type.  For molecules the specified type is ignored, and
-the type of each atom in the inserted molecule is specified in the
-file read by the "molecule"_molecule.html command.
+specified atom type.  If they are molecules, the type of each atom in
+the inserted molecule is specified in the file read by the
+"molecule"_molecule.html command, and those values are added to the
+specified atom type.  E.g. if {type} = 2, and the file specifies atom
+types 1,2,3, then the inserted molecule will have atom types 3,4,5.
 
 All atoms in the inserted particle are assigned to two groups: the
 default group "all" and the group specified in the fix deposit command
@@ -108,6 +114,16 @@ bond/angle/etc information for the molecule can be specified in the
 molecule file.  See the "molecule"_molecule.html command for details.
 The only settings required to be in this file are the coordinates and
 types of atoms in the molecule.
+
+If you wish to insert molecules via the {mol} keyword, that will be
+treated as rigid bodies, use the {rigid} keyword, specifying as its
+value the ID of a separate "fix rigid/small"_fix_rigid_small.html
+command which also appears in your input script.
+
+If you wish to insert molecules via the {mol} keyword, that will have
+their bonds or angles constrained via SHAKE, use the {shake} keyword,
+specifying as its value the ID of a separate "fix
+shake"_fix_shake.html command which also appears in your input script.
 
 Each timestep a particle is inserted, the coordinates for its atoms
 are chosen as follows.  For insertion of individual atoms, the
@@ -204,6 +220,10 @@ the "run"_run.html command.  This fix is not invoked during "energy
 minimization"_minimize.html.
 
 [Restrictions:]
+
+This fix is part of the MISC package.  It is only enabled if LAMMPS
+was built with that package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
 
 The specified insertion region cannot be a "dynamic" region, as
 defined by the "region"_region.html command.

@@ -68,9 +68,13 @@ thermo		100
 
 #dump		1 all atom 50 dump.rigid
 
-#dump		1 all image 100 image.*.jpg type type &
+#dump		2 all image 100 image.*.jpg type type &
 #		axes yes 0.8 0.02 view 60 -30
-#dump_modify	1 pad 5
+#dump_modify	2 pad 5
+
+#dump		3 all movie 100 movie.mpg type type &
+#		axes yes 0.8 0.02 view 60 -30
+#dump_modify	3 pad 5
 
 timestep 	0.0001
 thermo		50

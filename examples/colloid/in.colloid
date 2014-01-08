@@ -35,9 +35,13 @@ fix		2 all enforce2d
 
 #dump		1 all atom 1000 dump.colloid
 
-#dump		1 all image 1000 image.*.jpg type type &
+#dump		2 all image 1000 image.*.jpg type type &
 #		zoom 1.5 center d 0.5 0.5 0.5
-#dump_modify	1 pad 5 adiam 1 5.0 adiam 2 1.5
+#dump_modify	2 pad 5 adiam 1 5.0 adiam 2 1.5
+
+#dump		3 all movie 1000 movie.mpg type type &
+#		zoom 1.5 center d 0.5 0.5 0.5
+#dump_modify	3 pad 5 adiam 1 5.0 adiam 2 1.5
 
 thermo_style	custom step temp epair etotal press vol
 thermo		1000

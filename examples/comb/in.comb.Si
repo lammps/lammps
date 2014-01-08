@@ -28,8 +28,12 @@ thermo	  	1
 #dump		1 all cfg 10 *.cfg id type xs ys zs q vx vy vz fx fy fz
 #dump_modify	1 append yes element Si
 
-#dump		1 all image 10 image.*.jpg element element &
+#dump		2 all image 10 image.*.jpg element element &
 #		axes yes 0.8 0.02 view 60 -30
-#dump_modify	1 pad 2 element Si
+#dump_modify	2 pad 2 element Si
+
+#dump		3 all movie 10 movie.mpg element element &
+#		axes yes 0.8 0.02 view 60 -30
+#dump_modify	3 pad 2 element Si
 
 run  		10

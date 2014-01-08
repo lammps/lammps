@@ -28,8 +28,12 @@ thermo	  	1
 #dump		1 all custom 10 tmp.dump id type xs ys zs q vx vy vz fx fy fz
 #dump_modify	1 append yes element Cu
 
-#dump		1 all image 10 image.*.jpg element element &
+#dump		2 all image 10 image.*.jpg element element &
 #		axes yes 0.8 0.02 view 60 -30
-#dump_modify	1 pad 2 element Cu
+#dump_modify	2 pad 2 element Cu
+
+#dump		3 all movie 10 movie.mpg element element &
+#		axes yes 0.8 0.02 view 60 -30
+#dump_modify	3 pad 2 element Cu
 
 run  		10

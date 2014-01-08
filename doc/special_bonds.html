@@ -173,11 +173,31 @@ default, then the 2,5 interaction will also be weighted by 0.5.
 </P>
 <P>The <I>extra</I> keyword is used when additional bonds will be created
 during a simulation run, e.g. by the <A HREF = "fix_bond_create.html">fix
-bond/create</A> command.  A list of 1-2,1-3,1-4
-neighbors for each atom is calculated and stored by LAMMPS.  If new
-bonds are created, the list needs to grow.  Using the <I>extra</I> keyword
-leaves empty space in the list for N additional bonds to be added.  If
-you do not do this, you may get an error when bonds are added.
+bond/create</A> command.  It can also be used if
+molecules will be added to the system, e.g. via the <A HREF = "fix_deposit.html">fix
+deposit</A>, or <A HREF = "fix_pour.html">fix pour</A> commands, which
+will have atoms with more special neighbors than any atom in the
+current system has.  A list of 1-2,1-3,1-4 neighbors for each atom is
+calculated and stored by LAMMPS.  If new bonds are created (or
+molecules added with atoms with more special neighbors), the list
+needs to grow.  Using the <I>extra</I> keyword leaves empty space in the
+list for N additional bonds to be added.  If you do not do this, you
+may get an error when bonds (or molecules) are added.
+</P>
+<P>IMPORTANT NOTE: If you reuse this command in an input script, you
+should set all the options you need each time.  This command cannot be
+used a 2nd time incrementally, e.g. to add some extra storage
+locations via the <I>extra</I> keyword.  E.g. these two commands:
+</P>
+<PRE>special_bonds amber
+special_bonds extra 2 
+</PRE>
+<P>are not the same as this single command:
+</P>
+<PRE>special_bonds amber extra 2 
+</PRE>
+<P>since in the former case, the 2nd command will set all the LJ and Coulombic
+weights to 0.0 (the default).
 </P>
 <P><B>Restrictions:</B> none
 </P>
@@ -187,7 +207,7 @@ you do not do this, you may get an error when bonds are added.
 </P>
 <P><B>Default:</B>
 </P>
-<P>All 3 Lennard-Jones and 3 Coulobmic weighting coefficients = 0.0,
+<P>All 3 Lennard-Jones and 3 Coulombic weighting coefficients = 0.0,
 angle = no, dihedral = no, and extra = 0.
 </P>
 <HR>

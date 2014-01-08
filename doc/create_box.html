@@ -21,23 +21,24 @@
 
 <LI>zero or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>bond types</I> or <I>angle types</I> or <I>dihedral types</I> or <I>improper types</I> or <I>extra bond per atom</I> or <I>extra angle per atom</I> or <I>extra dihedral per atom</I> or <I>extra improper per atom</I> 
+<LI>keyword = <I>bond/types</I> or <I>angle/types</I> or <I>dihedral/types</I> or <I>improper/types</I> or <I>extra/bond/per/atom</I> or <I>extra/angle/per/atom</I> or <I>extra/dihedral/per/atom</I> or <I>extra/improper/per/atom</I> 
 
-<PRE>  <I>bond types</I> value = # of bond types
-  <I>angle types</I> value = # of angle types
-  <I>dihedral types</I> value = # of dihedral types
-  <I>improper types</I> value = # of improper types
-  <I>extra bond per atom</I> value = # of bonds per atom
-  <I>extra angle per atom</I> value = # of angles per atom
-  <I>extra dihedral per atom</I> value = # of dihedrals per atom
-  <I>extra improper per atom</I> value = # of impropers per atom 
+<PRE>  <I>bond/types</I> value = # of bond types
+  <I>angle/types</I> value = # of angle types
+  <I>dihedral/types</I> value = # of dihedral types
+  <I>improper/types</I> value = # of improper types
+  <I>extra/bond/per/atom</I> value = # of bonds per atom
+  <I>extra/angle/per/atom</I> value = # of angles per atom
+  <I>extra/dihedral/per/atom</I> value = # of dihedrals per atom
+  <I>extra/improper/per/atom</I> value = # of impropers per atom
+  <I>extra/special/per/atom</I> value = # of special neighbors per atom 
 </PRE>
 
 </UL>
 <P><B>Examples:</B>
 </P>
 <PRE>create_box 2 mybox
-create_box 2 mybox "bond types" 2 "extra bond per atom" 1 
+create_box 2 mybox bond/types 2 extra/bond/per/atom 1 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -104,24 +105,28 @@ first time that LAMMPS shrink-wraps the box around the atoms.
 <HR>
 
 <P>The optional keywords can be used to create a system that allows for
-bond (angle, dihedral, improper) interactions to be added later,
-similar to the way they would be specified in a data file.  Note that
-if these keywords are not used, then the create_box command creates an
-atomic (non-molecular) simulation that does not allow bonds between
-pairs of atoms to be defined or a <A HREF = "bond_style.html">bond potential</A> to
-be specified.
+bond (angle, dihedral, improper) interactions, or for molecules with
+special 1-2,1-3,1-4 neighbors to be added later.  These optional
+keywords serve the same purpose as the analagous keywords that can be
+used in a data file which are recognized by the
+<A HREF = "read_data.html">read_data</A> command when it sets up a system.
 </P>
-<P>As an example, see the examples/deposit/in.deposit.mol script, which
-deposits molecules onto a substrate.  Initially there are no molecules
-in the system, but they are added later by the <A HREF = "fix_deposit.html">fix
-deposit</A> command.  The create_box command is used in
-the script with the "bond types" and "extra bond per atom" keywords to
-allow this.
+<P>Note that if these keywords are not used, then the create_box command
+creates an atomic (non-molecular) simulation that does not allow bonds
+between pairs of atoms to be defined, or a <A HREF = "bond_style.html">bond
+potential</A> to be specified, or for molecules with
+special neighbors to be added to the system by commands such as
+<A HREF = "create_atoms.html">create_atoms mol</A>, <A HREF = "fix_deposit.html">fix deposit</A>
+or <A HREF = "fix_pour.html">fix pour</A>.
 </P>
-<P>The keywords that can be specified are listed above.  Note that each
-is a multi-word keyword which must be specified as a single argument.
-This means the keyword must be enclosed in quotes, as in the example
-above.
+<P>As an example, see the examples/deposit/in.deposit.molecule script,
+which deposits molecules onto a substrate.  Initially there are no
+molecules in the system, but they are added later by the <A HREF = "fix_deposit.html">fix
+deposit</A> command.  The create_box command in the
+script uses the bond/types and extra/bond/per/atom keywords to allow
+this.  If the added molecule contained more than 1 special bond
+(allowed by default), an extra/special/per/atom keyword would also
+need to be specified.
 </P>
 <HR>
 

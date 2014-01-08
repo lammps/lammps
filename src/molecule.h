@@ -29,6 +29,7 @@ class Molecule : protected Pointers {
 
   // max bond,angle,etc per atom
 
+  int maxtype;
   int bond_per_atom,angle_per_atom,dihedral_per_atom,improper_per_atom;
   int maxspecial;
 
@@ -37,6 +38,7 @@ class Molecule : protected Pointers {
   int xflag,typeflag,qflag,radiusflag,rmassflag;
   int bondflag,angleflag,dihedralflag,improperflag;
   int nspecialflag,specialflag;
+  int shakeflag,shakeflagflag,shakeatomflag,shaketypeflag;
 
   // 1 if attribute defined or computed, 0 if not
 
@@ -68,6 +70,10 @@ class Molecule : protected Pointers {
 
   int **nspecial;
   int **special;
+
+  int *shake_flag;
+  int **shake_atom;
+  int **shake_type;
 
   double center[3];         // geometric center of molecule
   double masstotal;         // total mass of molecule
@@ -111,6 +117,9 @@ class Molecule : protected Pointers {
   void impropers(int, char *);
   void nspecial_read(int, char *);
   void special_read(char *);
+  void shakeflag_read(char *);
+  void shakeatom_read(char *);
+  void shaketype_read(char *);
 
   void initialize();
   void allocate();

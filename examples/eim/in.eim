@@ -23,8 +23,12 @@ fix             int all npt temp 1400.0 300.0 0.1 aniso 0.0 0.0 0.1
 
 #dump		id all atom 100 dump.eim
 
-#dump		1 all image 25 image.*.jpg element element &
+#dump		2 all image 25 image.*.jpg element element &
 #		axes yes 0.8 0.02 view 60 -30
-#dump_modify	1 pad 3 element Na Cl
+#dump_modify	2 pad 3 element Na Cl
+
+#dump		3 all movie 25 movie.mpg element element &
+#		axes yes 0.8 0.02 view 60 -30
+#dump_modify	3 pad 3 element Na Cl
 
 run             500

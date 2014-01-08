@@ -23,7 +23,6 @@
 #include "molecule.h"
 #include "modify.h"
 #include "fix_gravity.h"
-#include "fix_rigid_small.h"
 #include "domain.h"
 #include "region.h"
 #include "region_block.h"
@@ -66,6 +65,11 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
   // read options from end of input line
 
   options(narg-6,&arg[6]);
+
+  // error check on type
+
+  if (mode == ATOM && (ntype <= 0 || ntype > atom->ntypes))
+    error->all(FLERR,"Invalid atom type in fix pour command");
 
   // error checks on region and its extent being inside simulation box
 
@@ -119,11 +123,20 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
       error->all(FLERR,"Fix pour molecule must have coordinates");
     if (onemol->typeflag == 0)
       error->all(FLERR,"Fix pour molecule must have atom types");
+    if (ntype+onemol->maxtype <= 0 || ntype+onemol->maxtype > atom->ntypes)
+      error->all(FLERR,"Invalid atom type in fix pour mol command");
 
     // fix pour uses geoemetric center of molecule for insertion
 
     onemol->compute_center();
   }
+
+  if (rigidflag && mode == ATOM)
+    error->all(FLERR,"Cannot use fix pour rigid and not molecule");
+  if (shakeflag && mode == ATOM)
+    error->all(FLERR,"Cannot use fix pour shake and not molecule");
+  if (rigidflag && shakeflag)
+    error->all(FLERR,"Cannot use fix pour rigid and shake");
 
   // setup of coords and imageflags array
 
@@ -248,6 +261,7 @@ FixPour::~FixPour()
 {
   delete random;
   delete [] idrigid;
+  delete [] idshake;
   delete [] radius_poly;
   delete [] frac_poly;
   memory->destroy(coords);
@@ -303,18 +317,30 @@ void FixPour::init()
     error->all(FLERR,"Gravity changed since fix pour was created");
 
   // if rigidflag defined, check for rigid/small fix
-  // its molecule template must be same as mine
+  // its molecule template must be same as this one
 
   fixrigid = NULL;
   if (rigidflag) {
-    for (int i = 0; i < modify->nfix; i++)
-      if (strcmp(modify->fix[i]->style,"rigid/small") == 0)
-        fixrigid = (FixRigidSmall *) modify->fix[i];
-    if (!fixrigid) 
-      error->all(FLERR,"Fix pour rigid requires fix rigid/small definition");
-    if (onemol != fixrigid->onemol)
+    int ifix = modify->find_fix(idrigid);
+    if (ifix < 0) error->all(FLERR,"Fix pour rigid fix does not exist");
+    fixrigid = modify->fix[ifix];
+    int tmp;
+    if (onemol != (Molecule *) fixrigid->extract("onemol",tmp))
       error->all(FLERR,
                  "Fix pour and fix rigid/small not using same molecule ID");
+  }
+
+  // if shakeflag defined, check for SHAKE fix
+  // its molecule template must be same as this one
+
+  fixshake = NULL;
+  if (shakeflag) {
+    int ifix = modify->find_fix(idshake);
+    if (ifix < 0) error->all(FLERR,"Fix pour shake fix does not exist");
+    fixshake = modify->fix[ifix];
+    int tmp;
+    if (onemol != (Molecule *) fixshake->extract("onemol",tmp))
+      error->all(FLERR,"Fix pour and fix shake not using same molecule ID");
   }
 }
 
@@ -466,8 +492,8 @@ void FixPour::pre_exchange()
           coords[i][2] += coord[2];
 
           // coords[3] = particle radius
-          // default to 0.5, if not defined in Molecule
-          //   same as atom->avec->create_atom() when invoked below
+          // default to 0.5, if radii not defined in Molecule
+          //   same as atom->avec->create_atom(), invoked below
 
           if (onemol->radiusflag) coords[i][3] = onemol->radius[i];
           else coords[i][3] = 0.5;
@@ -558,7 +584,7 @@ void FixPour::pre_exchange()
 
       if (flag) {
         if (mode == ATOM) atom->avec->create_atom(ntype,coords[m]);
-        else atom->avec->create_atom(onemol->type[m],coords[m]);
+        else atom->avec->create_atom(ntype+onemol->type[m],coords[m]);
         int n = atom->nlocal - 1;
         atom->tag[n] = maxtag_all + m+1;
         if (mode == MOLECULE) atom->molecule[n] = maxmol_all;
@@ -578,10 +604,13 @@ void FixPour::pre_exchange()
     }
 
     // FixRigidSmall::set_molecule stores rigid body attributes
-    // coord is new position of geometric center of mol, not COM
+    //   coord is new position of geometric center of mol, not COM
+    // FixShake::set_molecule stores shake info for molecule
 
-    if (fixrigid)
+    if (rigidflag)
       fixrigid->set_molecule(nlocalprev,maxtag_all,coord,vnew,quat);
+    else if (shakeflag)
+      fixshake->set_molecule(nlocalprev,maxtag_all,coord,vnew,quat);
 
     maxtag_all += natom;
     if (mode == MOLECULE) maxmol_all++;
@@ -781,6 +810,8 @@ void FixPour::options(int narg, char **arg)
   mode = ATOM;
   rigidflag = 0;
   idrigid = NULL;
+  shakeflag = 0;
+  idshake = NULL;
   idnext = 0;
   dstyle = ONE;
   radius_max = radius_one = 0.5;
@@ -814,13 +845,21 @@ void FixPour::options(int narg, char **arg)
       strcpy(idrigid,arg[iarg+1]);
       rigidflag = 1;
       iarg += 2;
+    } else if (strcmp(arg[iarg],"shake") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix pour command");
+      int n = strlen(arg[iarg+1]) + 1;
+      delete [] idshake;
+      idshake = new char[n];
+      strcpy(idshake,arg[iarg+1]);
+      shakeflag = 1;
+      iarg += 2;
+
     } else if (strcmp(arg[iarg],"id") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix pour command");
       if (strcmp(arg[iarg+1],"max") == 0) idnext = 0;
       else if (strcmp(arg[iarg+1],"next") == 0) idnext = 1;
       else error->all(FLERR,"Illegal fix pour command");
       iarg += 2;
-
     } else if (strcmp(arg[iarg],"diam") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix pour command");
       if (strcmp(arg[iarg+1],"one") == 0) {
@@ -902,3 +941,34 @@ void FixPour::reset_dt()
   error->all(FLERR,"Cannot change timestep with fix pour");
 }
 
+/* ----------------------------------------------------------------------
+   extract particle radius for atom type = itype
+------------------------------------------------------------------------- */
+
+void *FixPour::extract(const char *str, int &itype)
+{
+  if (strcmp(str,"radius") == 0) {
+    if (mode == ATOM) {
+      if (itype == ntype) oneradius = radius_max;
+      else oneradius = 0.0;
+    } else {
+      double *radius = onemol->radius;
+      int *type = onemol->type;
+      int natoms = onemol->natoms;
+
+      // check radii of matching types in Molecule
+      // default to 0.5, if radii not defined in Molecule
+      //   same as atom->avec->create_atom(), invoked in pre_exchange()
+
+      oneradius = 0.0;
+      for (int i = 0; i < natoms; i++)
+        if (type[i] == itype-ntype) {
+          if (radius) oneradius = MAX(oneradius,radius[i]);
+          else oneradius = 0.5;
+        }
+    }
+    itype = 0;
+    return &oneradius;
+  }
+  return NULL;
+}

@@ -241,8 +241,8 @@ double FixTempRescale::compute_scalar()
 
 void *FixTempRescale::extract(const char *str, int &dim)
 {
-  dim=0;
   if (strcmp(str,"t_target") == 0) {
+    dim = 0;
     return &t_target;
   }
   return NULL;

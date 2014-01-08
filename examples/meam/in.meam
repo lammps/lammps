@@ -19,8 +19,12 @@ timestep	0.001
 
 #dump		1 all atom 50 dump.meam
 
-#dump		1 all image 10 image.*.jpg element element &
+#dump		2 all image 10 image.*.jpg element element &
 #		axes yes 0.8 0.02 view 60 -30
-#dump_modify	1 pad 3 element Si C
+#dump_modify	2 pad 3 element Si C
+
+#dump		3 all movie 10 movie.mpg element element &
+#		axes yes 0.8 0.02 view 60 -30
+#dump_modify	3 pad 3 element Si C
 
 run		100

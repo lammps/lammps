@@ -89,9 +89,13 @@ fix stress all print 10 "${time} ${pzz} ${tau} " screen no append stress_vs_t.da
 
 #dump		id all atom 500 dump.hugoniostat
 
-#dump		1 all image 500 image.*.jpg type type &
+#dump		2 all image 500 image.*.jpg type type &
 #		axes yes 0.8 0.02 view 60 -30
-#dump_modify	1 pad 5
+#dump_modify	2 pad 5
+
+#dump		3 all movie 500 movie.mpg type type &
+#		axes yes 0.8 0.02 view 60 -30
+#dump_modify	3 pad 5
 
 run		10000
 

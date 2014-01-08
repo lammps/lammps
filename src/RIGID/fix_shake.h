@@ -40,6 +40,8 @@ class FixShake : public Fix {
   void copy_arrays(int, int, int);
   void set_arrays(int);
   void update_arrays(int, int);
+  void set_molecule(int, int, double *, double *, double *);
+
   int pack_exchange(int, double *);
   int unpack_exchange(int, double *);
   int pack_comm(int, int *, double *, int, int *);
@@ -47,6 +49,7 @@ class FixShake : public Fix {
 
   int dof(int);
   void reset_dt();
+  void *extract(const char *, int &);
 
  private:
   int me,nprocs;
@@ -98,6 +101,10 @@ class FixShake : public Fix {
   int *a_count,*a_count_all;            // ditto for angle types
   double *a_ave,*a_max,*a_min;
   double *a_ave_all,*a_max_all,*a_min_all;
+
+  // molecules added on-the-fly with SHAKE constraints
+
+  class Molecule *onemol;
 
   void find_clusters();
   int masscheck(double);

@@ -132,6 +132,10 @@ void Neighbor::half_bin_no_newton_omp(NeighList *list)
 
 void Neighbor::half_bin_no_newton_ghost_omp(NeighList *list)
 {
+  // bin local & ghost atoms
+
+  bin_atoms();
+
   const int nlocal = atom->nlocal;
   const int nall = nlocal + atom->nghost;
 
@@ -145,10 +149,6 @@ void Neighbor::half_bin_no_newton_ghost_omp(NeighList *list)
   int xbin,ybin,zbin,xbin2,ybin2,zbin2;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr;
-
-  // bin local & ghost atoms
-
-  bin_atoms();
 
   // loop over each atom, storing neighbors
 

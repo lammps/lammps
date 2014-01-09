@@ -460,6 +460,19 @@ int Variable::next(int narg, char **arg)
       || istyle == GETENV || istyle == ATOM || istyle == FORMAT)
     error->all(FLERR,"Invalid variable style with next command");
 
+  // if istyle = UNIVERSE or ULOOP, insure all such variables are incremented
+
+  if (istyle == UNIVERSE || istyle == ULOOP)
+    for (int i = 0; i < nvar; i++) {
+      if (style[i] != UNIVERSE && style[i] != ULOOP) continue;
+      int iarg = 0;
+      for (iarg = 0; iarg < narg; iarg++)
+        if (strcmp(arg[iarg],names[i]) == 0) break;
+      if (iarg == narg) 
+        error->universe_one(FLERR,"Next command must list all "
+                            "universe and uloop variables");
+    }
+
   // increment all variables in list
   // if any variable is exhausted, set flag = 1 and remove var to allow re-use
 
@@ -501,7 +514,6 @@ int Variable::next(int narg, char **arg)
 
     // wait until lock file can be created and owned by proc 0 of this world
     // read next available index and Bcast it within my world
-    // set all variables in list to nextindex
 
     int nextindex;
     if (me == 0) {
@@ -526,6 +538,10 @@ int Variable::next(int narg, char **arg)
                 nextindex+1,universe->iworld);
     }
     MPI_Bcast(&nextindex,1,MPI_INT,0,world);
+
+    // set all variables in list to nextindex
+    // must increment all UNIVERSE and ULOOP variables here
+    // error check above tested for this
 
     for (int iarg = 0; iarg < narg; iarg++) {
       ivar = find(arg[iarg]);

@@ -482,12 +482,13 @@ void Molecule::read(int flag)
       error->all(FLERR,"Molecule file bond/angle/etc counts "
 		 "per atom are too large");
 
+    // test for maxspecial > atom->maxspecial is done when molecules added
+    // in Atom::add_molecule_atom()
+
     if ((nspecialflag && !specialflag) || (!nspecialflag && specialflag))
       error->all(FLERR,"Molecule file needs both Special Bond sections");
     if (specialflag && !bondflag) 
       error->all(FLERR,"Molecule file has special flags but no bonds");
-    if (maxspecial > atom->maxspecial)
-      error->all(FLERR,"Molecule file special bond counts are too large");
 
     if ((shakeflagflag || shakeatomflag || shaketypeflag) && !shakeflag)
       error->all(FLERR,"Molecule file shake info is incomplete");

@@ -15,21 +15,22 @@ create_box N region-ID keyword value ... :pre
 N = # of atom types to use in this simulation :ulb,l
 region-ID = ID of region to use as simulation domain :l
 zero or more keyword/value pairs may be appended :l
-keyword = {bond types} or {angle types} or {dihedral types} or {improper types} or {extra bond per atom} or {extra angle per atom} or {extra dihedral per atom} or {extra improper per atom} :l
-  {bond types} value = # of bond types
-  {angle types} value = # of angle types
-  {dihedral types} value = # of dihedral types
-  {improper types} value = # of improper types
-  {extra bond per atom} value = # of bonds per atom
-  {extra angle per atom} value = # of angles per atom
-  {extra dihedral per atom} value = # of dihedrals per atom
-  {extra improper per atom} value = # of impropers per atom :pre
+keyword = {bond/types} or {angle/types} or {dihedral/types} or {improper/types} or {extra/bond/per/atom} or {extra/angle/per/atom} or {extra/dihedral/per/atom} or {extra/improper/per/atom} :l
+  {bond/types} value = # of bond types
+  {angle/types} value = # of angle types
+  {dihedral/types} value = # of dihedral types
+  {improper/types} value = # of improper types
+  {extra/bond/per/atom} value = # of bonds per atom
+  {extra/angle/per/atom} value = # of angles per atom
+  {extra/dihedral/per/atom} value = # of dihedrals per atom
+  {extra/improper/per/atom} value = # of impropers per atom
+  {extra/special/per/atom} value = # of special neighbors per atom :pre
 :ule
 
 [Examples:]
 
 create_box 2 mybox
-create_box 2 mybox "bond types" 2 "extra bond per atom" 1 :pre
+create_box 2 mybox bond/types 2 extra/bond/per/atom 1 :pre
 
 [Description:]
 
@@ -96,24 +97,28 @@ first time that LAMMPS shrink-wraps the box around the atoms.
 :line
 
 The optional keywords can be used to create a system that allows for
-bond (angle, dihedral, improper) interactions to be added later,
-similar to the way they would be specified in a data file.  Note that
-if these keywords are not used, then the create_box command creates an
-atomic (non-molecular) simulation that does not allow bonds between
-pairs of atoms to be defined or a "bond potential"_bond_style.html to
-be specified.
+bond (angle, dihedral, improper) interactions, or for molecules with
+special 1-2,1-3,1-4 neighbors to be added later.  These optional
+keywords serve the same purpose as the analagous keywords that can be
+used in a data file which are recognized by the
+"read_data"_read_data.html command when it sets up a system.
 
-As an example, see the examples/deposit/in.deposit.mol script, which
-deposits molecules onto a substrate.  Initially there are no molecules
-in the system, but they are added later by the "fix
-deposit"_fix_deposit.html command.  The create_box command is used in
-the script with the "bond types" and "extra bond per atom" keywords to
-allow this.
+Note that if these keywords are not used, then the create_box command
+creates an atomic (non-molecular) simulation that does not allow bonds
+between pairs of atoms to be defined, or a "bond
+potential"_bond_style.html to be specified, or for molecules with
+special neighbors to be added to the system by commands such as
+"create_atoms mol"_create_atoms.html, "fix deposit"_fix_deposit.html
+or "fix pour"_fix_pour.html.
 
-The keywords that can be specified are listed above.  Note that each
-is a multi-word keyword which must be specified as a single argument.
-This means the keyword must be enclosed in quotes, as in the example
-above.
+As an example, see the examples/deposit/in.deposit.molecule script,
+which deposits molecules onto a substrate.  Initially there are no
+molecules in the system, but they are added later by the "fix
+deposit"_fix_deposit.html command.  The create_box command in the
+script uses the bond/types and extra/bond/per/atom keywords to allow
+this.  If the added molecule contained more than 1 special bond
+(allowed by default), an extra/special/per/atom keyword would also
+need to be specified.
 
 :line
 

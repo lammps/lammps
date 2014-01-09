@@ -435,7 +435,7 @@ are not readable on all platforms until specific runtime libraries are
 installed.
 </P>
 <LI>c) Use FFmpeg  
-</UL>
+
 <P>FFmpeg is a command line tool that is available on many platforms and
 allows extremely flexible encoding and decoding of movies.
 </P>
@@ -445,6 +445,8 @@ cat snap.*.ppm | ffmpeg -y -f image2pipe -c:v ppm -i - -b:v 2400k movie.avi
 <P>Frontends for FFmpeg exist for multiple platforms. For more
 information see the <A HREF = "http://www.ffmpeg.org/">FFmpeg homepage</A>
 </P>
+
+</UL>
 <HR>
 
 <P>Play the movie:
@@ -468,10 +470,10 @@ which works directly on a series of image files.
 <PRE>a = animate("foo*.jpg") 
 </PRE>
 <LI>d) QuickTime and other Windows- or MacOS-based media players can
-obviously play movie files directly. Similarly the corresponding tools
-bundled with Linux desktop environments, however, due to licensing
-issues of some of the file formats, some formats may require
-installing additional libraries, purchasing a license, or are not
+obviously play movie files directly. Similarly for corresponding tools
+bundled with Linux desktop environments.  However, due to licensing
+issues with some file formats, the formats may require installing
+additional libraries, purchasing a license, or may not be
 supported. 
 </UL>
 <HR>

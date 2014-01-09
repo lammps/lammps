@@ -6,7 +6,7 @@ boundary        p p f
 
 lattice		fcc 1.0
 region          box block 0 5 0 5 0 10
-create_box      3 box "bond types" 1 "extra bond per atom" 1
+create_box      3 box bond/types 1 extra/bond/per/atom 1
 
 region		substrate block INF INF INF INF INF 3
 create_atoms	1 region substrate

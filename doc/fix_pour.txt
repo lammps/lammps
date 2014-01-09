@@ -88,11 +88,11 @@ Individual atoms are inserted, unless the {mol} keyword is used.  It
 specifies a {template-ID} previously defined using the
 "molecule"_molecule.html command, which reads a file that defines the
 molecule.  The coordinates, atom types, center-of-mass, moments of
-inertia, etc, as well as any bond/angle/etc information for the
-molecule can be specified in the molecule file.  See the
-"molecule"_molecule.html command for details.  The only settings
-required to be in this file are the coordinates and types of atoms in
-the molecule.
+inertia, etc, as well as any bond/angle/etc and special neighbor
+information for the molecule can be specified in the molecule file.
+See the "molecule"_molecule.html command for details.  The only
+settings required to be in this file are the coordinates and types of
+atoms in the molecule.
 
 If you wish to insert molecules via the {mol} keyword, that will be
 treated as rigid bodies, use the {rigid} keyword, specifying as its

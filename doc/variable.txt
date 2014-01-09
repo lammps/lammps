@@ -61,8 +61,8 @@ style = {delete} or {index} or {loop} or {world} or {universe} or {uloop} or {st
 		      angmom(group,dim,region), torque(group,dim,region), 
 		      inertia(group,dimdim,region), omega(group,dim,region)
     special functions = sum(x), min(x), max(x), ave(x), trap(x), gmask(x), rmask(x), grmask(x,y), next(x)
-    atom value = id\[i\], mass\[i\], type\[i\], x\[i\], y\[i\], z\[i\], vx\[i\], vy\[i\], vz\[i\], fx\[i\], fy\[i\], fz\[i\]
-    atom vector = id, mass, type, x, y, z, vx, vy, vz, fx, fy, fz
+    atom value = id\[i\], mass\[i\], type\[i\], mol\[i\], x\[i\], y\[i\], z\[i\], vx\[i\], vy\[i\], vz\[i\], fx\[i\], fy\[i\], fz\[i\]
+    atom vector = id, mass, type, mol, x, y, z, vx, vy, vz, fx, fy, fz
     compute references = c_ID, c_ID\[i\], c_ID\[i\]\[j\]
     fix references = f_ID, f_ID\[i\], f_ID\[i\]\[j\]
     variable references = v_name, v_name\[i\] :pre
@@ -365,9 +365,9 @@ Region functions: count(ID,IDR), mass(ID,IDR), charge(ID,IDR), \
 		  angmom(ID,dim,IDR), torque(ID,dim,IDR), \
                   inertia(ID,dimdim,IDR), omega(ID,dim,IDR)
 Special functions: sum(x), min(x), max(x), ave(x), trap(x), gmask(x), rmask(x), grmask(x,y), next(x)
-Atom values: id\[i\], mass\[i\], type\[i\], x\[i\], y\[i\], z\[i\], \
+Atom values: id\[i\], mass\[i\], type\[i\], mol\[i\], x\[i\], y\[i\], z\[i\], \
              vx\[i\], vy\[i\], vz\[i\], fx\[i\], fy\[i\], fz\[i\]
-Atom vectors: id, mass, type, x, y, z, vx, vy, vz, fx, fy, fz
+Atom vectors: id, mass, type, mol, x, y, z, vx, vy, vz, fx, fy, fz
 Compute references: c_ID, c_ID\[i\], c_ID\[i\]\[j\]
 Fix references: f_ID, f_ID\[i\], f_ID\[i\]\[j\]
 Other variables: v_name, v_name\[i\] :tb(s=:)
@@ -686,8 +686,15 @@ atom with ID = 243.
 
 Atom vectors generate one value per atom, so that a reference like
 "vx" means the x-component of each atom's velocity will be used when
-evaluating the variable.  Note that other atom attributes can be used
-as inputs to a variable by using the "compute
+evaluating the variable.
+
+The meaning of the different atom values and vectors is mostly
+self-explanatory.  Mol refernces the molecule ID of an atom, and is
+only defined if an "atom_style"_atom_style.html is being used
+that defines molecule IDs.
+
+Note that many other atom attributes can be used as inputs to a
+variable by using the "compute
 property/atom"_compute_property_atom.html command and then specifying
 a quantity from that compute.
 

@@ -705,13 +705,14 @@ or USER-AWPMD packages.
 
 For libraries without provided source code, see the
 src/package/Makefile.lammps file for information on where to find the
-library and how to build it.  E.g. the file src/KIM/Makefile.lammps.
-This file serves the same purpose as the lib/package/Makefile.lammps
-file described above.  It has settings needed when LAMMPS is built to
-link with the auxiliary library.  Again, you MUST insure that the
-settings in src/package/Makefile.lammps are appropriate for your
-system and where you installed the auxiliary library.  If they are
-not, the LAMMPS build will fail.
+library and how to build it.  E.g. the file src/KIM/Makefile.lammps or
+src/VORONOI/Makefile.lammps or src/UESR-MOLFILE/Makefile.lammps.
+These files serve the same purpose as the lib/package/Makefile.lammps
+files described above.  The files have settings needed when LAMMPS is
+built to link with the corresponding auxiliary library.  Again, you
+MUST insure that the settings in src/package/Makefile.lammps are
+appropriate for your system and where you installed the auxiliary
+library.  If they are not, the LAMMPS build will fail.
 
 :line
 

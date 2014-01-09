@@ -29,7 +29,7 @@ next a t x myTemp
 variable from the list of values defined for that variable by the
 <A HREF = "variable.html">variable</A> command.  Thus when that variable is
 subsequently substituted for in an input script command, the new value
-is used. 
+is used.
 </P>
 <P>See the <A HREF = "variable.html">variable</A> command for info on how to define and
 use different kinds of variables in LAMMPS input scripts.  If a
@@ -65,15 +65,19 @@ the next command is used with <I>file</I>-style variables, the next line is
 read from its file and the string assigned to the variable.  When the
 next command is used with <I>atomfile</I>-style variables, the next set of
 per-atom values is read from its file and assigned to the variable.
-When the next command is used with <I>universe</I>- or <I>uloop</I>-style
-variables, the next value is assigned to whichever processor partition
-executes the command first.  All processors in the partition are
-assigned the same value.  Running LAMMPS on multiple partitions of
-processors via the "-partition" command-line switch is described in
+</P>
+<P>When the next command is used with <I>universe</I>- or <I>uloop</I>-style
+variables, all <I>universe</I>- or <I>uloop</I>-style variables must be listed
+in the next command.  This is because of the manner in which the
+incrementing is done, using a single lock file for all variables.  The
+next value (for each variable) is assigned to whichever processor
+partition executes the command first.  All processors in the partition
+are assigned the same value(s).  Running LAMMPS on multiple partitions
+of processors via the "-partition" command-line switch is described in
 <A HREF = "Section_start.html#start_7">this section</A> of the manual.  <I>Universe</I>-
 and <I>uloop</I>-style variables are incremented using the files
 "tmp.lammps.variable" and "tmp.lammps.variable.lock" which you will
-see in your directory during such a LAMMPS run.
+see in your directory during and after such a LAMMPS run.
 </P>
 <P>Here is an example of running a series of simulations using the next
 command with an <I>index</I>-style variable.  If this input script is named
@@ -130,7 +134,9 @@ variable    b delete
 <PRE>next	    a
 jump	    in.script loopa 
 </PRE>
-<P><B>Restrictions:</B> none
+<P><B>Restrictions:</B>
+</P>
+<P>As described above
 </P>
 <P><B>Related commands:</B>
 </P>

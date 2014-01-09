@@ -31,7 +31,7 @@ fix		xwalls all wall/gran 4000.0 NULL 100.0 NULL 0 1 &
 fix		ywalls all wall/gran 4000.0 NULL 100.0 NULL 0 1 &
 		yplane 0 NULL
 
-molecule        object molecule.vshape
+molecule        object tmp.vshape
 fix             3 all rigid/small molecule mol object
 
 # insure region size + molecule size does not overlap wall
@@ -50,18 +50,20 @@ compute_modify	thermo_temp dynamic yes
 
 #dump		id all atom 100 tmp.dump
 
+#variable        colors string &
+#                "red green blue yellow white &
+#                purple pink orange lime gray"
 #variable	mol2 atom mol%10
 #dump		2 all image 250 image.*.jpg v_mol2 type &
 #		zoom 1.6 adiam 1.5
-#dump_modify	2 pad 5 amap 0 10 sa 1 10 &
-#	        red green blue yellow black &
-#		purple pink orange lime gray
+#dump_modify	2 pad 5 amap 0 10 sa 1 10 ${colors}
 
+#variable        colors string &
+#                "red green blue yellow white &
+#                purple pink orange lime gray"
 #variable	mol3 atom mol%10
-#dump		3 all movie 250 movie v_mol3 type &
+#dump		3 all movie 250 movie.mpg v_mol3 type &
 #		zoom 1.6 adiam 1.5
-#dump_modify	3 pad 5 amap 0 10 sa 1 10 &
-#	        red green blue yellow black &
-#		purple pink orange lime gray
+#dump_modify	3 pad 5 amap 0 10 sa 1 10 ${colors}
 
 run	        25000

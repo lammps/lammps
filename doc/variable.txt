@@ -186,6 +186,14 @@ variable    a delete :pre
 
 :line
 
+This section describes how various variable styles are defined and
+what they store.  Many of the styles store one or more strings.  Note
+that a single string can contain spaces (multiple words), if it is
+enclosed in quotes in the variable command.  When the variable is
+substituted for in another input script command, its returned string
+will then be interpreted as multiple arguments in the expanded
+command.
+
 For the {index} style, one or more strings are specified.  Initially,
 the 1st string is assigned to the variable.  Each time a
 "next"_next.html command is used with the variable name, the next

@@ -3376,7 +3376,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
    id = positive global ID of atom, converted to local index
    push result onto tree or arg stack
    customize by adding an atom vector:
-     id,mass,type,x,y,z,vx,vy,vz,fx,fy,fz
+     id,mass,type,mol,x,y,z,vx,vy,vz,fx,fy,fz
 ------------------------------------------------------------------------- */
 
 void Variable::peratom2global(int flag, char *word,
@@ -3400,6 +3400,11 @@ void Variable::peratom2global(int flag, char *word,
         else mine = atom->mass[atom->type[index]];
       }
       else if (strcmp(word,"type") == 0) mine = atom->type[index];
+      else if (strcmp(word,"mol") == 0) {
+        if (!atom->molecule_flag) 
+          error->one(FLERR,"Variable uses atom property that isn't allocated");
+        mine = atom->molecule[index];
+      }
       else if (strcmp(word,"x") == 0) mine = atom->x[index][0];
       else if (strcmp(word,"y") == 0) mine = atom->x[index][1];
       else if (strcmp(word,"z") == 0) mine = atom->x[index][2];
@@ -3432,7 +3437,7 @@ void Variable::peratom2global(int flag, char *word,
    check if word matches an atom vector
    return 1 if yes, else 0
    customize by adding an atom vector:
-     id,mass,type,x,y,z,vx,vy,vz,fx,fy,fz
+     id,mass,type,mol,x,y,z,vx,vy,vz,fx,fy,fz
 ------------------------------------------------------------------------- */
 
 int Variable::is_atom_vector(char *word)
@@ -3440,6 +3445,7 @@ int Variable::is_atom_vector(char *word)
   if (strcmp(word,"id") == 0) return 1;
   if (strcmp(word,"mass") == 0) return 1;
   if (strcmp(word,"type") == 0) return 1;
+  if (strcmp(word,"mol") == 0) return 1;
   if (strcmp(word,"x") == 0) return 1;
   if (strcmp(word,"y") == 0) return 1;
   if (strcmp(word,"z") == 0) return 1;
@@ -3457,7 +3463,7 @@ int Variable::is_atom_vector(char *word)
    push result onto tree
    word = atom vector
    customize by adding an atom vector:
-     id,mass,type,x,y,z,vx,vy,vz,fx,fy,fz
+     id,mass,type,mol,x,y,z,vx,vy,vz,fx,fy,fz
 ------------------------------------------------------------------------- */
 
 void Variable::atom_vector(char *word, Tree **tree,
@@ -3489,6 +3495,12 @@ void Variable::atom_vector(char *word, Tree **tree,
     newtree->type = INTARRAY;
     newtree->nstride = 1;
     newtree->iarray = atom->type;
+  } else if (strcmp(word,"mol") == 0) {
+    if (!atom->molecule_flag) 
+      error->one(FLERR,"Variable uses atom property that isn't allocated");
+    newtree->type = INTARRAY;
+    newtree->nstride = 1;
+    newtree->iarray = atom->molecule;
   }
   else if (strcmp(word,"x") == 0) newtree->array = &atom->x[0][0];
   else if (strcmp(word,"y") == 0) newtree->array = &atom->x[0][1];

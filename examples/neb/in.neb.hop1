@@ -60,4 +60,4 @@ thermo		100
 
 min_style	quickmin
 
-neb		0.0 0.1 1000 1000 100 final.hop1
+neb		0.0 0.1 1000 1000 100 final final.hop1

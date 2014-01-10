@@ -99,8 +99,6 @@ FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Cannot use fix_deposit unless atoms have IDs");
 
   if (mode == MOLECULE) {
-    if (atom->molecule_flag == 0)
-      error->all(FLERR,"Fix deposit mol requires atom attribute molecule");
     if (onemol->xflag == 0)
       error->all(FLERR,"Fix deposit molecule must have coordinates");
     if (onemol->typeflag == 0)
@@ -444,7 +442,8 @@ void FixDeposit::pre_exchange()
         else atom->avec->create_atom(ntype+onemol->type[m],coords[m]);
         n = atom->nlocal - 1;
         atom->tag[n] = maxtag_all + m+1;
-        if (mode == MOLECULE) atom->molecule[n] = maxmol_all+1;
+        if (mode == MOLECULE && atom->molecule_flag)
+          atom->molecule[n] = maxmol_all+1;
         atom->mask[n] = 1 | groupbit;
         atom->image[n] = imageflags[m];
         atom->v[n][0] = vnew[0];
@@ -497,7 +496,7 @@ void FixDeposit::pre_exchange()
     }
     if (idnext) {
       maxtag_all += natom;
-      if (mode == MOLECULE) maxmol_all++;
+      if (mode == MOLECULE && atom->molecule_flag) maxmol_all++;
     }
     if (atom->map_style) {
       atom->nghost = 0;
@@ -529,7 +528,7 @@ void FixDeposit::find_maxid()
   for (int i = 0; i < nlocal; i++) max = MAX(max,tag[i]);
   MPI_Allreduce(&max,&maxtag_all,1,MPI_INT,MPI_MAX,world);
 
-  if (mode == MOLECULE) {
+  if (mode == MOLECULE && molecule) {
     max = 0;
     for (int i = 0; i < nlocal; i++) max = MAX(max,molecule[i]);
     MPI_Allreduce(&max,&maxmol_all,1,MPI_INT,MPI_MAX,world);

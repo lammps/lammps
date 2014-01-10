@@ -414,23 +414,51 @@ for atom_style hybrid dipole full would list "q" twice:
 
 atom-ID atom-type x y z q mux muy myz molecule-ID q :pre
 
-Atom lines (all lines or none of them) can optionally list 3 trailing
-integer values: nx,ny,nz.  For periodic dimensions, they specify which
-image of the simulation box the atom is considered to be in.  An image
-of 0 means it is inside the box as defined.  A value of 2 means add 2
-box lengths to get the true value.  A value of -1 means subtract 1 box
-length to get the true value.  LAMMPS updates these flags as atoms
-cross periodic boundaries during the simulation.  The flags can be
-output with atom snapshots via the "dump"_dump.html command.
+Atom lines specify the (x,y,z) coordinates of atoms.  These can be
+inside or outside the simulation box.  When the data file is read,
+LAMMPS wraps coordinates outside the box back into the box for
+dimensions that are periodic.  As discussed above, if an atom is
+outside the box in a non-periodic dimension, it will be lost.
 
-If nx,ny,nz values are not set in the data file, LAMMPS initializes
-them to 0.  If image information is needed for later analysis and they
-are not all initially 0, it's important to set them correctly in the
-data file.  Also, if you plan to use the "replicate"_replicate.html
-command to generate a larger system, these flags must be listed
-correctly for bonded atoms when the bond crosses a periodic boundary.
-I.e. the values of the image flags should be different by 1 (in the
-appropriate dimension) for the two atoms in such a bond.
+LAMMPS always stores atom coordinates as values which are inside the
+simulation box.  It also stores 3 flags which indicate which image of
+the simulation box (in each dimension) the atom would be in if its
+coordinates were unwrapped across periodic boundaries.  An image flag
+of 0 means the atom is still inside the box when unwrapped.  A value
+of 2 means add 2 box lengths to get the unwrapped coordinate.  A value
+of -1 means subtract 1 box length to get the unwrapped coordinate.
+LAMMPS updates these flags as atoms cross periodic boundaries during
+the simulation.  The "dump"_dump.html command can output atom atom
+coordinates in wrapped or unwrapped form, as well as the 3 image
+flags.
+
+In the data file, atom lines (all lines or none of them) can
+optionally list 3 trailing integer values (nx,ny,nz), which are used
+to initialize the atom's image flags.  If nx,ny,nz values are not
+listed in the data file, LAMMPS initializes them to 0.  Note that the
+image flags are immediately updated if an atom's coordinates need to
+wrapped back into the simulation box.
+
+It is only important to set image flags correctly in a data file if a
+simulation model relies on unwrapped coordinates for some calculation;
+otherwise they can be left unspecified.  Examples of LAMMPS commands
+that use unwrapped coordinates internally are as follows:
+
+Atoms in a rigid body (see "fix rigid"_fix_rigid.html, "fix
+rigid/small"_fix_rigid.html) must have consistent image flags, so that
+when the atoms are unwrapped, they are near each other, i.e. as a
+single body. :ulb,l
+
+If the "replicate"_replicate.html command is used to generate a larger
+system, image flags must be consistent for bonded atoms when the bond
+crosses a periodic boundary.  I.e. the values of the image flags
+should be different by 1 (in the appropriate dimension) for the two
+atoms in such a bond. :l
+
+If you plan to "dump"_dump.html image flags and perform post-analysis
+that will unwrap atom coordinates, it may be important that a
+continued run (restarted from a data file) begins with image flags
+that are consistent with the previous run. :l,ule
 
 Atom velocities and other atom quantities not defined above are set to
 0.0 when the {Atoms} section is read.  Velocities can be set later by

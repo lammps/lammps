@@ -192,6 +192,14 @@ variable    a delete
 </PRE>
 <HR>
 
+<P>This section describes how various variable styles are defined and
+what they store.  Many of the styles store one or more strings.  Note
+that a single string can contain spaces (multiple words), if it is
+enclosed in quotes in the variable command.  When the variable is
+substituted for in another input script command, its returned string
+will then be interpreted as multiple arguments in the expanded
+command.
+</P>
 <P>For the <I>index</I> style, one or more strings are specified.  Initially,
 the 1st string is assigned to the variable.  Each time a
 <A HREF = "next.html">next</A> command is used with the variable name, the next

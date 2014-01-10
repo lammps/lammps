@@ -43,15 +43,18 @@ e.g.
 </PRE>
 <P>since the SELF option invokes the C-library rewind() call, which may
 not be supported for stdin on some systems.  This can be worked around
-by using the <A HREF = "Section_start.html#start_7">-in command-line argument</A> or
-the <A HREF = "Section_start.html#start_7">-var command-line argument</A> to pass
-the script name as a variable to the input script In the latter case,
-the "fname" <A HREF = "variable.html">variable</A> could be used in place of SELF.
-E.g.
+by using the <A HREF = "Section_start.html#start_7">-in command-line argument</A>,
+e.g.
 </P>
 <PRE>lmp_g++ -in in.script 
 </PRE>
-<PRE>lmp_g++ -var fname n.script < in.script 
+<P>or by using the <A HREF = "Section_start.html#start_7">-var command-line
+argument</A> to pass the script name as a
+variable to the input script.  In the latter case, a
+<A HREF = "variable.html">variable</A> called "fname" could be used in place of
+SELF, e.g.
+</P>
+<PRE>lmp_g++ -var fname in.script < in.script 
 </PRE>
 <P>The 2nd argument to the jump command is optional.  If specified, it is
 treated as a label and the new file is scanned (without executing

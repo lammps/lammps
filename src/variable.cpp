@@ -460,6 +460,19 @@ int Variable::next(int narg, char **arg)
       || istyle == GETENV || istyle == ATOM || istyle == FORMAT)
     error->all(FLERR,"Invalid variable style with next command");
 
+  // if istyle = UNIVERSE or ULOOP, insure all such variables are incremented
+
+  if (istyle == UNIVERSE || istyle == ULOOP)
+    for (int i = 0; i < nvar; i++) {
+      if (style[i] != UNIVERSE && style[i] != ULOOP) continue;
+      int iarg = 0;
+      for (iarg = 0; iarg < narg; iarg++)
+        if (strcmp(arg[iarg],names[i]) == 0) break;
+      if (iarg == narg) 
+        error->universe_one(FLERR,"Next command must list all "
+                            "universe and uloop variables");
+    }
+
   // increment all variables in list
   // if any variable is exhausted, set flag = 1 and remove var to allow re-use
 
@@ -500,20 +513,33 @@ int Variable::next(int narg, char **arg)
   } else if (istyle == UNIVERSE || istyle == ULOOP) {
 
     // wait until lock file can be created and owned by proc 0 of this world
-    // read next available index and Bcast it within my world
-    // set all variables in list to nextindex
+    // rename() is not atomic in practice, but no known simple fix
+    //   means multiple procs can read/write file at the same time (bad!)
+    // random delays help
+    // delay for random fraction of 1 second before first rename() call
+    // delay for random fraction of 1 second before subsequent tries
+    // when successful, read next available index and Bcast it within my world
 
     int nextindex;
     if (me == 0) {
+      int seed = 12345 + universe->me + which[find(arg[0])];
+      RanMars *random = new RanMars(lmp,seed);
+      int delay = (int) (1000000*random->uniform());
+      usleep(delay);
       while (1) {
         if (!rename("tmp.lammps.variable","tmp.lammps.variable.lock")) break;
-        usleep(100000);
+        delay = (int) (1000000*random->uniform());
+        usleep(delay);
       }
+      delete random;
+
       FILE *fp = fopen("tmp.lammps.variable.lock","r");
       fscanf(fp,"%d",&nextindex);
+      //printf("READ %d %d\n",universe->me,nextindex);
       fclose(fp);
       fp = fopen("tmp.lammps.variable.lock","w");
       fprintf(fp,"%d\n",nextindex+1);
+      //printf("WRITE %d %d\n",universe->me,nextindex+1);
       fclose(fp);
       rename("tmp.lammps.variable.lock","tmp.lammps.variable");
       if (universe->uscreen)
@@ -526,6 +552,10 @@ int Variable::next(int narg, char **arg)
                 nextindex+1,universe->iworld);
     }
     MPI_Bcast(&nextindex,1,MPI_INT,0,world);
+
+    // set all variables in list to nextindex
+    // must increment all UNIVERSE and ULOOP variables here
+    // error check above tested for this
 
     for (int iarg = 0; iarg < narg; iarg++) {
       ivar = find(arg[iarg]);
@@ -3389,7 +3419,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
    id = positive global ID of atom, converted to local index
    push result onto tree or arg stack
    customize by adding an atom vector:
-     id,mass,type,x,y,z,vx,vy,vz,fx,fy,fz
+     id,mass,type,mol,x,y,z,vx,vy,vz,fx,fy,fz
 ------------------------------------------------------------------------- */
 
 void Variable::peratom2global(int flag, char *word,
@@ -3413,6 +3443,11 @@ void Variable::peratom2global(int flag, char *word,
         else mine = atom->mass[atom->type[index]];
       }
       else if (strcmp(word,"type") == 0) mine = atom->type[index];
+      else if (strcmp(word,"mol") == 0) {
+        if (!atom->molecule_flag) 
+          error->one(FLERR,"Variable uses atom property that isn't allocated");
+        mine = atom->molecule[index];
+      }
       else if (strcmp(word,"x") == 0) mine = atom->x[index][0];
       else if (strcmp(word,"y") == 0) mine = atom->x[index][1];
       else if (strcmp(word,"z") == 0) mine = atom->x[index][2];
@@ -3445,7 +3480,7 @@ void Variable::peratom2global(int flag, char *word,
    check if word matches an atom vector
    return 1 if yes, else 0
    customize by adding an atom vector:
-     id,mass,type,x,y,z,vx,vy,vz,fx,fy,fz
+     id,mass,type,mol,x,y,z,vx,vy,vz,fx,fy,fz
 ------------------------------------------------------------------------- */
 
 int Variable::is_atom_vector(char *word)
@@ -3453,6 +3488,7 @@ int Variable::is_atom_vector(char *word)
   if (strcmp(word,"id") == 0) return 1;
   if (strcmp(word,"mass") == 0) return 1;
   if (strcmp(word,"type") == 0) return 1;
+  if (strcmp(word,"mol") == 0) return 1;
   if (strcmp(word,"x") == 0) return 1;
   if (strcmp(word,"y") == 0) return 1;
   if (strcmp(word,"z") == 0) return 1;
@@ -3470,7 +3506,7 @@ int Variable::is_atom_vector(char *word)
    push result onto tree
    word = atom vector
    customize by adding an atom vector:
-     id,mass,type,x,y,z,vx,vy,vz,fx,fy,fz
+     id,mass,type,mol,x,y,z,vx,vy,vz,fx,fy,fz
 ------------------------------------------------------------------------- */
 
 void Variable::atom_vector(char *word, Tree **tree,
@@ -3502,6 +3538,12 @@ void Variable::atom_vector(char *word, Tree **tree,
     newtree->type = INTARRAY;
     newtree->nstride = 1;
     newtree->iarray = atom->type;
+  } else if (strcmp(word,"mol") == 0) {
+    if (!atom->molecule_flag) 
+      error->one(FLERR,"Variable uses atom property that isn't allocated");
+    newtree->type = INTARRAY;
+    newtree->nstride = 1;
+    newtree->iarray = atom->molecule;
   }
   else if (strcmp(word,"x") == 0) newtree->array = &atom->x[0][0];
   else if (strcmp(word,"y") == 0) newtree->array = &atom->x[0][1];

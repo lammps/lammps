@@ -578,6 +578,22 @@ green.  The color of the atom is the color of its bin.  Note that the
 sequential color map is really a shorthand way of defining a discrete
 color map without having to specify where all the bin boundaries are.
 </P>
+<P>Here is an example of using a sequential color map to color all the
+atoms in individual molecules with a different color.  See the
+examples/pour/in.pour.2d.molecule input script for an example of how
+this is used.
+</P>
+<PRE>variable        colors string &
+                "red green blue yellow white &
+                purple pink orange lime gray"
+variable	mol atom mol%10
+dump		1 all image 250 image.*.jpg v_mol type &
+		zoom 1.6 adiam 1.5
+dump_modify	1 pad 5 amap 0 10 sa 1 10 ${colors} 
+</PRE>
+<P>In this case, 10 colors are defined, and molecule IDs are
+mapped to one of the colors, even if there are 1000s of molecules.
+</P>
 <HR>
 
 <P>The <I>backcolor</I> sets the background color of the images.  The color

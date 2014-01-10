@@ -1164,9 +1164,11 @@ int Image::addcolor(char *name, double r, double g, double b)
 }
 
 /* ----------------------------------------------------------------------
-   search the list of color names for the string color
-   return a pointer to the 3 floating point RGB values
+   if index > 0, return ptr to index-1 color from rgb
+   if index < 0, return ptr to -index-1 color from userrgb
+   if index = 0, search the 2 lists of color names for the string color
    search user-defined color names first, then the list of NCOLORS names
+   return a pointer to the 3 floating point RGB values or NULL if didn't find
 ------------------------------------------------------------------------- */
 
 double *Image::color2rgb(const char *color, int index)
@@ -1457,7 +1459,14 @@ double *Image::color2rgb(const char *color, int index)
     {154/255.0, 205/255.0, 50/255.0}
   };
 
-  if (index) return rgb[index-1];
+  if (index > 0) {
+    if (index > NCOLORS) return NULL;
+    return rgb[index-1];
+  }
+  if (index < 0) {
+    if (-index > ncolors) return NULL;
+    return userrgb[-index-1];
+  }
 
   for (int i = 0; i < ncolors; i++)
     if (strcmp(color,username[i]) == 0) return userrgb[i];
@@ -1734,6 +1743,8 @@ int ColorMap::reset(int narg, char **arg)
   delete [] mentry;
   mentry = new MapEntry[nentry];
 
+  int expandflag = 0;
+
   int n = 5;
   for (int i = 0; i < nentry; i++) {
     if (mstyle == CONTINUOUS) {
@@ -1763,8 +1774,27 @@ int ColorMap::reset(int narg, char **arg)
       mentry[i].color = image->color2rgb(arg[n+2]);
       n += 3;
     } else if (mstyle == SEQUENTIAL) {
-      if (n+1 > narg) return 1;
-      mentry[i].color = image->color2rgb(arg[n]);
+      // NOTE: this is unfinished code, not sure how useful it is
+      // idea is to allow a list of colors to be specified with a single arg
+      // problem is that sequential colors in ALL are not very different
+      // e.g. ALL or USER or ALL5:10 or USER1:10:2
+      // current code is just 1st nentry values of ALL or USER
+      // need to comment out error check in DumpImage::modify_param()
+      //   for amap check on (narg < n) to get it to work
+      // need to add extra logic here to check not accessing undefined colors
+      if (i == 0) {
+        if (n+1 > narg) return 1;
+        if (strcmp(arg[n],"ALL") == 0) expandflag = 1;
+        if (strcmp(arg[n],"USER") == 0) expandflag = 2;
+      }
+      if (expandflag == 0) {
+        if (n+1 > narg) return 1;
+        mentry[i].color = image->color2rgb(arg[n]);
+      } else if (expandflag == 1) {
+        mentry[i].color = image->color2rgb(NULL,i+1);
+      } else if (expandflag == 2) {
+        mentry[i].color = image->color2rgb(NULL,-(i+1));
+      }
       n += 1;
     }
     if (mentry[i].color == NULL) return 1;

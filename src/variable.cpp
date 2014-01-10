@@ -513,12 +513,12 @@ int Variable::next(int narg, char **arg)
   } else if (istyle == UNIVERSE || istyle == ULOOP) {
 
     // wait until lock file can be created and owned by proc 0 of this world
-    // read next available index and Bcast it within my world
     // rename() is not atomic in practice, but no known simple fix
     //   means multiple procs can read/write file at the same time (bad!)
     // random delays help
-    // delay for a random fraction of 1 second before first rename() call
-    // delay for a random fraction of 1 second before subsequent tries
+    // delay for random fraction of 1 second before first rename() call
+    // delay for random fraction of 1 second before subsequent tries
+    // when successful, read next available index and Bcast it within my world
 
     int nextindex;
     if (me == 0) {
@@ -535,11 +535,11 @@ int Variable::next(int narg, char **arg)
 
       FILE *fp = fopen("tmp.lammps.variable.lock","r");
       fscanf(fp,"%d",&nextindex);
-      printf("READ %d %d\n",universe->me,nextindex);
+      //printf("READ %d %d\n",universe->me,nextindex);
       fclose(fp);
       fp = fopen("tmp.lammps.variable.lock","w");
       fprintf(fp,"%d\n",nextindex+1);
-      printf("WRITE %d %d\n",universe->me,nextindex+1);
+      //printf("WRITE %d %d\n",universe->me,nextindex+1);
       fclose(fp);
       rename("tmp.lammps.variable.lock","tmp.lammps.variable");
       if (universe->uscreen)

@@ -14,8 +14,9 @@ fix ID group-ID property/atom vec1 vec2 ... keyword value ... :pre
 
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 property/atom = style name of this fix command :l
-vec1,vec2,... = {mol} or {i_name} or {d_name} :l
+vec1,vec2,... = {mol} or {q} or {i_name} or {d_name} :l
   {mol} = molecule IDs
+  {q} = charge
   {i_name} = new integer vector referenced by name
   {d_name} = new floating-point vector referenced by name :pre
 zero of more keyword/value pairs may be appended :l
@@ -44,21 +45,21 @@ ones.
 
 This can be useful in at least two scenarios.
 
-If the atom style (e.g. atomic or sphere) does not define molecule
-IDs, they can be added using the {mol} vector.  This can be useful to
-carry along an additional flag with atoms, or to define "molecules" to
-use as rigid bodies with the "fix rigid"_fix_rigid.html command.  An
-alternative is to use an atom style that does define molecule IDs or a
-hybrid atom style that combines two styles to allow for molecule IDs,
-but that has 2 practical drawbacks.  First it typically necessitates
-changing the format of the data file.  And it may define additional
-properties that aren't needed such as bond lists (which has some overhead
-even if there are no bonds).
+If the atom style does not define molecule IDs or per-atom charge,
+they can be added using the {mol} or {q} keywords.  This can be
+useful, e.g, to define "molecules" to use as rigid bodies with the
+"fix rigid"_fix_rigid.html command, or just to carry around an extra
+flag with the atoms (stored as a molecule ID).  An alternative is to
+use an atom style that does define molecule IDs or charge or to use a
+hybrid atom style that combines two styles to allow for molecule IDs
+or charge, but that has 2 practical drawbacks.  First it typically
+necessitates changing the format of the data file.  And it may define
+additional properties that aren't needed such as bond lists, which has
+some overhead when there are no bonds.
 
-In the future, we may add additional per-atom properties like {mol}
-for molecule IDs that "turn-on" specific properties defined by some
-atom styles, so they can be used by atom styles that don't define
-them.
+In the future, we may add additional per-atom properties similar to
+{mol} or {q}, which "turn-on" specific properties defined by some atom
+styles, so they can be used by atom styles that don't define them.
 
 More generally, the {i_name} and {d_name} vectors allow one or more
 new custom per-atom properties to be defined.  Each name must be

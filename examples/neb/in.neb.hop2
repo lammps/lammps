@@ -62,5 +62,4 @@ thermo		100
 
 min_style	fire
 
-#neb		0.0 1000 1000 100 final.hop2
-neb		0.0 0.01 1000 1000 100 final.hop2
+neb		0.0 0.01 1000 1000 100 final final.hop2

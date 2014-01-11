@@ -49,7 +49,7 @@ class Atom : protected Pointers {
   tagint *image;
   double **x,**v,**f;
 
-  int *molecule;
+  int *molecule,*molindex,*molatom;
   double *q,**mu;
   double **omega,**angmom,**torque;
   double *radius,*rmass,*vfrac,*s0;
@@ -104,7 +104,8 @@ class Atom : protected Pointers {
   int ecp_flag;
   int wavepacket_flag,sph_flag;
 
-  int molecule_flag,q_flag,mu_flag;
+  int molecule_flag,molindex_flag,molatom_flag;
+  int q_flag,mu_flag;
   int rmass_flag,radius_flag,omega_flag,torque_flag,angmom_flag;
   int vfrac_flag,spin_flag,eradius_flag,ervel_flag,erforce_flag;
   int cs_flag,csforce_flag,vforce_flag,ervelforce_flag,etag_flag;

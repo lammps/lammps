@@ -117,8 +117,6 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Cannot use fix_pour unless atoms have IDs");
 
   if (mode == MOLECULE) {
-    if (atom->molecule_flag == 0)
-      error->all(FLERR,"Fix pour mol requires atom attribute molecule");
     if (onemol->xflag == 0)
       error->all(FLERR,"Fix pour molecule must have coordinates");
     if (onemol->typeflag == 0)
@@ -587,7 +585,8 @@ void FixPour::pre_exchange()
         else atom->avec->create_atom(ntype+onemol->type[m],coords[m]);
         int n = atom->nlocal - 1;
         atom->tag[n] = maxtag_all + m+1;
-        if (mode == MOLECULE) atom->molecule[n] = maxmol_all+1;
+        if (mode == MOLECULE && atom->molecule_flag) 
+          atom->molecule[n] = maxmol_all+1;
         atom->mask[n] = 1 | groupbit;
         atom->image[n] = imageflags[m];
         atom->v[n][0] = vnew[0];
@@ -613,7 +612,7 @@ void FixPour::pre_exchange()
       fixshake->set_molecule(nlocalprev,maxtag_all,coord,vnew,quat);
 
     maxtag_all += natom;
-    if (mode == MOLECULE) maxmol_all++;
+    if (mode == MOLECULE && atom->molecule_flag) maxmol_all++;
   }
 
   // warn if not successful with all insertions b/c too many attempts
@@ -637,10 +636,6 @@ void FixPour::pre_exchange()
       atom->ndihedrals += onemol->ndihedrals * ninserted_mols;
       atom->nimpropers += onemol->nimpropers * ninserted_mols;
     }
-    //if (idnext) {
-    //  maxtag_all += ninserted_atoms;
-    //  if (mode == MOLECULE) maxmol_all += ninserted_mols;
-    // }
     if (atom->map_style) {
       atom->nghost = 0;
       atom->map_init();
@@ -674,7 +669,7 @@ void FixPour::find_maxid()
   for (int i = 0; i < nlocal; i++) max = MAX(max,tag[i]);
   MPI_Allreduce(&max,&maxtag_all,1,MPI_INT,MPI_MAX,world);
 
-  if (mode == MOLECULE) {
+  if (mode == MOLECULE && molecule) {
     max = 0;
     for (int i = 0; i < nlocal; i++) max = MAX(max,molecule[i]);
     MPI_Allreduce(&max,&maxmol_all,1,MPI_INT,MPI_MAX,world);

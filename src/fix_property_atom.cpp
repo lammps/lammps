@@ -23,7 +23,7 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum{MOLECULE,INTEGER,DOUBLE};
+enum{MOLECULE,CHARGE,INTEGER,DOUBLE};
 
 /* ---------------------------------------------------------------------- */
 
@@ -41,6 +41,7 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
   index = new int[nvalue];
 
   molecule_flag = 0;
+  q_flag = 0;
 
   nvalue = 0;
   while (iarg < narg) {
@@ -52,6 +53,15 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Fix property/atom cannot specify mol twice");
       style[nvalue] = MOLECULE;
       atom->molecule_flag = molecule_flag = 1;
+      nvalue++;
+    } else if (strcmp(arg[iarg],"q") == 0) {
+      if (atom->q_flag)
+        error->all(FLERR,"Fix property/atom q when atom_style "
+                   "already has charge attribute");
+      if (q_flag) 
+        error->all(FLERR,"Fix property/atom cannot specify q twice");
+      style[nvalue] = CHARGE;
+      atom->q_flag = q_flag = 1;
       nvalue++;
     } else if (strstr(arg[iarg],"i_") == arg[iarg]) {
       style[nvalue] = INTEGER;
@@ -89,6 +99,12 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
 
   if (border) comm_border = nvalue;
 
+  // store current atom style
+
+  int n = strlen(atom->atom_style) + 1;
+  astyle = new char[n];
+  strcpy(astyle,atom->atom_style);
+
   // perform initial allocation of atom-based array
   // register with Atom class
 
@@ -117,6 +133,10 @@ FixPropertyAtom::~FixPropertyAtom()
       atom->molecule_flag = 0;
       memory->destroy(atom->molecule);
       atom->molecule = NULL;
+    } else if (style[m] == CHARGE) {
+      atom->q_flag = 0;
+      memory->destroy(atom->q);
+      atom->q = NULL;
     } else if (style[m] == INTEGER) {
       atom->remove_custom(0,index[m]);
     } else if (style[m] == DOUBLE) {
@@ -126,6 +146,7 @@ FixPropertyAtom::~FixPropertyAtom()
 
   delete [] style;
   delete [] index;
+  delete [] astyle;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -140,14 +161,11 @@ int FixPropertyAtom::setmask()
 
 void FixPropertyAtom::init()
 {
-  // check again if atom style already defines molecule vector
-  //   based on molecular setting
-  // this could happen if script changed atom_style
-  //   after this fix was already in place
+  // error if atom style has changed since fix was defined
+  // don't allow this b/c user could change to style that defines molecule,q
 
-  if (molecule_flag && atom->molecular)
-    error->all(FLERR,"Fix property/atom mol when atom_style "
-               "already has molecule attribute");
+  if (strcmp(astyle,atom->atom_style) != 0)
+    error->all(FLERR,"Atom style was redefined after using fix property/atom");
 }
 
 /* ----------------------------------------------------------------------
@@ -201,6 +219,7 @@ void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf)
     if ((m = atom->map(tagdata)) >= 0) {
       for (j = 0; j < nvalue; j++) {
         if (style[j] == MOLECULE) atom->molecule[m] = atoi(values[j+1]);
+        else if (style[j] == CHARGE) atom->q[m] = atof(values[j+1]);
         else if (style[j] == INTEGER)
           atom->ivector[index[j]][m] = atoi(values[j+1]);
         else if (style[j] == DOUBLE) 
@@ -251,32 +270,36 @@ void FixPropertyAtom::write_data_section_pack(int mth, double **buf)
   int *tag = atom->tag;
   int nlocal = atom->nlocal;
 
-  for (i = 0; i < nlocal; i++) buf[i][0] = tag[i];
+  for (i = 0; i < nlocal; i++) buf[i][0] = ubuf(tag[i]).d;
 
   for (int m = 0; m < nvalue; m++) {
     int mp1 = m+1;
     if (style[m] == MOLECULE) {
       int *molecule = atom->molecule;
-      for (i = 0; i < nlocal; i++) buf[i][mp1] = molecule[i];
+      for (i = 0; i < nlocal; i++) buf[i][mp1] = ubuf(molecule[i]).d;
+    } else if (style[m] == CHARGE) {
+      double *q = atom->q;
+      for (i = 0; i < nlocal; i++) buf[i][mp1] = q[i];
     } else if (style[m] == INTEGER) {
-      int *vec = atom->ivector[index[m]];
-      for (i = 0; i < nlocal; i++) buf[i][mp1] = vec[i];
+      int *ivec = atom->ivector[index[m]];
+      for (i = 0; i < nlocal; i++) buf[i][mp1] = ubuf(ivec[i]).d;
     } else if (style[m] == DOUBLE) {
-      double *vec = atom->dvector[index[m]];
-      for (i = 0; i < nlocal; i++) buf[i][mp1] = vec[i];
+      double *dvec = atom->dvector[index[m]];
+      for (i = 0; i < nlocal; i++) buf[i][mp1] = dvec[i];
     }
   }
 }
 
 /* ----------------------------------------------------------------------
    write section keyword for Mth data section to file
-   use MOLECULE if that is only field, else use fix ID
+   use Molecules or Charges if that is only field, else use fix ID
    only called by proc 0
 ------------------------------------------------------------------------- */
 
 void FixPropertyAtom::write_data_section_keyword(int mth, FILE *fp)
 {
   if (nvalue == 1 && style[0] == MOLECULE) fprintf(fp,"\nMolecules\n\n");
+  else if (nvalue == 1 && style[0] == CHARGE) fprintf(fp,"\nCharges\n\n");
   else fprintf(fp,"\n%s\n\n",id);
 }
 
@@ -293,10 +316,10 @@ void FixPropertyAtom::write_data_section(int mth, FILE *fp,
   int m;
 
   for (int i = 0; i < n; i++) {
-    fprintf(fp,TAGINT_FORMAT,static_cast<int> (buf[i][0]));
+    fprintf(fp,"%d",(int) ubuf(buf[i][0]).i);
     for (m = 0; m < nvalue; m++) {
       if (style[m] == MOLECULE || style[m] == INTEGER)
-        fprintf(fp," " TAGINT_FORMAT,static_cast<int> (buf[i][m+1]));
+        fprintf(fp," %d",(int) ubuf(buf[i][m+1]).i);
       else fprintf(fp," %g",buf[i][m+1]);
     }
     fprintf(fp,"\n");
@@ -312,6 +335,7 @@ double FixPropertyAtom::memory_usage()
   double bytes = 0.0;
   for (int m = 0; m < nvalue; m++) {
     if (style[m] == MOLECULE) bytes = atom->nmax * sizeof(int);
+    else if (style[m] == CHARGE) bytes = atom->nmax * sizeof(double);
     else if (style[m] == INTEGER) bytes = atom->nmax * sizeof(int);
     else if (style[m] == DOUBLE) bytes = atom->nmax * sizeof(double);
   }
@@ -332,6 +356,10 @@ void FixPropertyAtom::grow_arrays(int nmax)
       memory->grow(atom->molecule,nmax,"atom:molecule");
       size_t nbytes = (nmax-nmax_old) * sizeof(int);
       memset(&atom->molecule[nmax_old],0,nbytes);
+    } else if (style[m] == CHARGE) {
+      memory->grow(atom->q,nmax,"atom:q");
+      size_t nbytes = (nmax-nmax_old) * sizeof(double);
+      memset(&atom->q[nmax_old],0,nbytes);
     } else if (style[m] == INTEGER) {
       memory->grow(atom->ivector[index[m]],nmax,"atom:ivector");
       size_t nbytes = (nmax-nmax_old) * sizeof(int);
@@ -355,6 +383,8 @@ void FixPropertyAtom::copy_arrays(int i, int j, int delflag)
   for (int m = 0; m < nvalue; m++) {
     if (style[m] == MOLECULE)
       atom->molecule[j] = atom->molecule[i];
+    else if (style[m] == CHARGE)
+      atom->q[j] = atom->q[i];
     else if (style[m] == INTEGER)
       atom->ivector[index[m]][j] = atom->ivector[index[m]][i];
     else if (style[m] == DOUBLE)
@@ -376,13 +406,19 @@ int FixPropertyAtom::pack_border(int n, int *list, double *buf)
       int *molecule = atom->molecule;
       for (i = 0; i < n; i++) {
         j = list[i];
-        buf[m++] = molecule[j];
+        buf[m++] = ubuf(molecule[j]).d;
+      }
+    } else if (style[k] == CHARGE) {
+      double *q = atom->q;
+      for (i = 0; i < n; i++) {
+        j = list[i];
+        buf[m++] = q[j];
       }
     } else if (style[k] == INTEGER) {
       int *ivector = atom->ivector[index[k]];
       for (i = 0; i < n; i++) {
         j = list[i];
-        buf[m++] = ivector[j];
+        buf[m++] = ubuf(ivector[j]).i;
       }
     } else if (style[k] == DOUBLE) {
       double *dvector = atom->dvector[index[k]];
@@ -410,12 +446,17 @@ int FixPropertyAtom::unpack_border(int n, int first, double *buf)
       int *molecule = atom->molecule;
       last = first + n;
       for (i = first; i < last; i++)
-        molecule[i] = static_cast<int> (buf[m++]);
+        molecule[i] = (int) ubuf(buf[m++]).i;
+    } else if (style[k] == CHARGE) {
+      double *q = atom->q;
+      last = first + n;
+      for (i = first; i < last; i++)
+        q[i] = buf[m++];
     } else if (style[k] == INTEGER) {
       int *ivector = atom->ivector[index[k]];
       last = first + n;
       for (i = first; i < last; i++)
-        ivector[i] = static_cast<int> (buf[m++]);
+        ivector[i] = (int) ubuf(buf[m++]).i;
     } else if (style[k] == DOUBLE) {
       double *dvector = atom->dvector[index[k]];
       last = first + n;
@@ -434,8 +475,9 @@ int FixPropertyAtom::unpack_border(int n, int first, double *buf)
 int FixPropertyAtom::pack_exchange(int i, double *buf)
 {
   for (int m = 0; m < nvalue; m++) {
-    if (style[m] == MOLECULE) buf[m] = atom->molecule[i];
-    else if (style[m] == INTEGER) buf[m] = atom->ivector[index[m]][i];
+    if (style[m] == MOLECULE) buf[m] = ubuf(atom->molecule[i]).d;
+    else if (style[m] == CHARGE) buf[m] = atom->q[i];
+    else if (style[m] == INTEGER) buf[m] = ubuf(atom->ivector[index[m]][i]).d;
     else if (style[m] == DOUBLE) buf[m] = atom->dvector[index[m]][i];
   }
   return nvalue;
@@ -449,9 +491,11 @@ int FixPropertyAtom::unpack_exchange(int nlocal, double *buf)
 {
   for (int m = 0; m < nvalue; m++) {
     if (style[m] == MOLECULE) 
-      atom->molecule[nlocal] = static_cast<int> (buf[m]);
+      atom->molecule[nlocal] = (int) ubuf(buf[m]).i;
+    else if (style[m] == CHARGE)
+      atom->q[nlocal] = buf[m];
     else if (style[m] == INTEGER) 
-      atom->ivector[index[m]][nlocal] = static_cast<int> (buf[m]);
+      atom->ivector[index[m]][nlocal] = (int) ubuf(buf[m]).i;
     else if (style[m] == DOUBLE)
       atom->dvector[index[m]][nlocal] = buf[m];
   }
@@ -468,8 +512,9 @@ int FixPropertyAtom::pack_restart(int i, double *buf)
 
   int m = 1;
   for (int j = 0; j < nvalue; j++) {
-    if (style[j] == MOLECULE) buf[m++] = atom->molecule[i];
-    else if (style[j] == INTEGER) buf[m++] = atom->ivector[index[m]][i];
+    if (style[j] == MOLECULE) buf[m++] = ubuf(atom->molecule[i]).d;
+    else if (style[j] == CHARGE) buf[m++] = atom->q[i];
+    else if (style[j] == INTEGER) buf[m++] = ubuf(atom->ivector[index[m]][i]).d;
     else if (style[j] == DOUBLE) buf[m++] = atom->dvector[index[m]][i];
   }
 
@@ -492,9 +537,11 @@ void FixPropertyAtom::unpack_restart(int nlocal, int nth)
 
   for (int i = 0; i < nvalue; i++) {
     if (style[i] == MOLECULE) 
-      atom->molecule[nlocal] = static_cast<int> (extra[nlocal][m++]);
+      atom->molecule[nlocal] = (int) ubuf(extra[nlocal][m++]).i;
+    else if (style[i] == CHARGE)
+      atom->q[nlocal] = extra[nlocal][m++];
     else if (style[i] == INTEGER) 
-      atom->ivector[index[m]][nlocal] = static_cast<int> (extra[nlocal][m++]);
+      atom->ivector[index[m]][nlocal] = (int) ubuf(extra[nlocal][m++]).i;
     else if (style[i] == DOUBLE)
       atom->dvector[index[m]][nlocal] = extra[nlocal][m++];
   }

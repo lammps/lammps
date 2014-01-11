@@ -514,7 +514,7 @@ int AtomVecMolecular::pack_border_hybrid(int n, int *list, double *buf)
   m = 0;
   for (i = 0; i < n; i++) {
     j = list[i];
-    buf[m++] = molecule[j];
+    buf[m++] = ubuf(molecule[j]).d;
   }
   return m;
 }

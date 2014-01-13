@@ -655,6 +655,7 @@ void Domain::box_too_small_check()
 
   int *num_bond = atom->num_bond;
   int **bond_atom = atom->bond_atom;
+  int **bond_type = atom->bond_type;
   double **x = atom->x;
   int nlocal = atom->nlocal;
 
@@ -666,7 +667,7 @@ void Domain::box_too_small_check()
 
   for (i = 0; i < nlocal; i++)
     for (j = 0; j < num_bond[i]; j++) {
-      if (bond_type[i][m] <= 0) continue;
+      if (bond_type[i][j] <= 0) continue;
       k = atom->map(bond_atom[i][j]);
       if (k == -1) {
         nmissing++;

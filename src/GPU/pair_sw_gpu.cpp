@@ -35,11 +35,15 @@
 
 // External functions from cuda library for atom decomposition
 
-int sw_gpu_init(const int nlocal, const int nall, const int max_nbors, 
+int sw_gpu_init(const int ntypes, const int inum, const int nall, const int max_nbors, 
                 const double cell_size, int &gpu_mode, FILE *screen,
-                const double, const double, const double, const double, 
-                const double, const double, const double, const double, 
-                const double, const double, const double);
+                int* host_map, const int nelements, int*** host_elem2param, const int nparams,
+                const double* sw_epsilon, const double* sw_sigma,
+                const double* sw_lambda, const double* sw_gamma,
+                const double* sw_costheta, const double* sw_biga,
+                const double* sw_bigb, const double* sw_powerp,
+                const double* sw_powerq, const double* sw_cut, 
+                const double* sw_cutsq);
 void sw_gpu_clear();
 int ** sw_gpu_compute_n(const int ago, const int inum,
                         const int nall, double **host_x, int *host_type,
@@ -135,21 +139,64 @@ void PairSWGPU::allocate()
 
 void PairSWGPU::init_style()
 {
-  double cell_size = sqrt(params[0].cutsq) + neighbor->skin;
+  double cell_size = cutmax + neighbor->skin;
 
   if (atom->tag_enable == 0)
     error->all(FLERR,"Pair style sw/gpu requires atom IDs");
   if (force->newton_pair != 0)
     error->all(FLERR,"Pair style sw/gpu requires newton pair off");
-  if (nparams > 1)
-    error->all(FLERR,"Pair style sw/gpu is currently limited to one element.");
 
-  int success = sw_gpu_init(atom->nlocal, atom->nlocal+atom->nghost, 300, 
-                            cell_size, gpu_mode, screen,params[0].epsilon, 
-                            params[0].sigma, params[0].lambda, params[0].gamma, 
-                            params[0].costheta, params[0].biga, params[0].bigb, 
-                            params[0].powerp, params[0].powerq, params[0].cut,
-                            params[0].cutsq);
+  double *epsilon, *sigma, *lambda, *gamma;
+  double *biga, *bigb, *powerp, *powerq;
+  double *_cut, *_cutsq, *costheta;
+  epsilon = sigma = lambda = gamma = NULL;
+  biga = bigb = powerp = powerq = NULL;
+  _cut = _cutsq = costheta = NULL;
+
+  memory->create(epsilon,nparams,"pair:epsilon");
+  memory->create(sigma,nparams,"pair:sigma");
+  memory->create(lambda,nparams,"pair:lambda");
+  memory->create(gamma,nparams,"pair:gamma");
+  memory->create(biga,nparams,"pair:biga");
+  memory->create(bigb,nparams,"pair:bigb");
+  memory->create(powerp,nparams,"pair:powerp");
+  memory->create(powerq,nparams,"pair:powerq");
+  memory->create(_cut,nparams,"pair:_cut");
+  memory->create(_cutsq,nparams,"pair:_cutsq");
+  memory->create(costheta,nparams,"pair:costheta");
+
+  for (int i = 0; i < nparams; i++) {
+    epsilon[i] = params[i].epsilon;
+    sigma[i] = params[i].sigma;
+    lambda[i] = params[i].lambda;
+    gamma[i] = params[i].gamma;
+    biga[i] = params[i].biga;
+    bigb[i] = params[i].bigb;
+    powerp[i] = params[i].powerp;
+    powerq[i] = params[i].powerq;
+    _cut[i] = params[i].cut;
+    _cutsq[i] = params[i].cutsq;
+    costheta[i] = params[i].costheta;
+  }
+
+  int success = sw_gpu_init(atom->ntypes+1, atom->nlocal, atom->nlocal+atom->nghost, 300, 
+                            cell_size, gpu_mode, screen, map, nelements, 
+                            elem2param, nparams, epsilon, 
+                            sigma, lambda, gamma, costheta, biga, bigb, 
+                            powerp, powerq, _cut, _cutsq);
+
+  memory->destroy(epsilon);
+  memory->destroy(sigma);
+  memory->destroy(lambda);
+  memory->destroy(gamma);
+  memory->destroy(biga);
+  memory->destroy(bigb);
+  memory->destroy(powerp);
+  memory->destroy(powerq);
+  memory->destroy(_cut);
+  memory->destroy(_cutsq);
+  memory->destroy(costheta);
+
   GPU_EXTRA::check_flag(success,error,world);
 
   if (gpu_mode == GPU_FORCE) {

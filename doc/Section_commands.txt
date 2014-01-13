@@ -969,6 +969,7 @@ package"_Section_accelerate.html.
 "lj/gromacs/coul/gromacs/cuda"_pair_gromacs.html,
 "lj/gromacs/coul/gromacs/omp"_pair_gromacs.html,
 "lj/gromacs/cuda"_pair_gromacs.html,
+"lj/gromacs/gpu"_pair_gromacs.html,
 "lj/gromacs/omp"_pair_gromacs.html,
 "lj/long/coul/long/opt"_pair_lj_long.html,
 "lj/sdk/gpu"_pair_sdk.html,

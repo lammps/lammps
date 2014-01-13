@@ -8,6 +8,7 @@
 
 pair_style lj/gromacs command :h3
 pair_style lj/gromacs/cuda command :h3
+pair_style lj/gromacs/gpu command :h3
 pair_style lj/gromacs/omp command :h3
 pair_style lj/gromacs/coul/gromacs command :h3
 pair_style lj/gromacs/coul/gromacs/cuda command :h3

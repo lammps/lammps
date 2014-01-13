@@ -64,7 +64,8 @@ OBJS = $(OBJ_DIR)/lal_atom.o $(OBJ_DIR)/lal_ans.o \
        $(OBJ_DIR)/lal_beck.o $(OBJ_DIR)/lal_beck_ext.o \
        $(OBJ_DIR)/lal_mie.o $(OBJ_DIR)/lal_mie_ext.o \
        $(OBJ_DIR)/lal_soft.o $(OBJ_DIR)/lal_soft_ext.o \
-       $(OBJ_DIR)/lal_lj_coul_msm.o $(OBJ_DIR)/lal_lj_coul_msm_ext.o
+       $(OBJ_DIR)/lal_lj_coul_msm.o $(OBJ_DIR)/lal_lj_coul_msm_ext.o \
+       $(OBJ_DIR)/lal_lj_gromacs.o $(OBJ_DIR)/lal_lj_gromacs_ext.o
 
 CBNS = $(OBJ_DIR)/device.cubin $(OBJ_DIR)/device_cubin.h \
        $(OBJ_DIR)/atom.cubin $(OBJ_DIR)/atom_cubin.h \
@@ -109,7 +110,8 @@ CBNS = $(OBJ_DIR)/device.cubin $(OBJ_DIR)/device_cubin.h \
        $(OBJ_DIR)/beck.cubin $(OBJ_DIR)/beck_cubin.h \
        $(OBJ_DIR)/mie.cubin $(OBJ_DIR)/mie_cubin.h \
        $(OBJ_DIR)/soft.cubin $(OBJ_DIR)/soft_cubin.h \
-       $(OBJ_DIR)/lj_coul_msm.cubin $(OBJ_DIR)/lj_coul_msm_cubin.h
+       $(OBJ_DIR)/lj_coul_msm.cubin $(OBJ_DIR)/lj_coul_msm_cubin.h \
+       $(OBJ_DIR)/lj_gromacs.cubin $(OBJ_DIR)/lj_gromacs_cubin.h
 
 all: $(OBJ_DIR) $(GPU_LIB) $(EXECS)
 
@@ -643,6 +645,18 @@ $(OBJ_DIR)/lal_lj_coul_msm.o: $(ALL_H) lal_lj_coul_msm.h lal_lj_coul_msm.cpp $(O
 
 $(OBJ_DIR)/lal_lj_coul_msm_ext.o: $(ALL_H) lal_lj_coul_msm.h lal_lj_coul_msm_ext.cpp lal_base_charge.h
 	$(CUDR) -o $@ -c lal_lj_coul_msm_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lj_gromacs.cubin: lal_lj_gromacs.cu lal_precision.h lal_preprocessor.h
+	$(CUDA) --cubin -DNV_KERNEL -o $@ lal_lj_gromacs.cu
+
+$(OBJ_DIR)/lj_gromacs_cubin.h: $(OBJ_DIR)/lj_gromacs.cubin $(OBJ_DIR)/lj_gromacs.cubin
+	$(BIN2C) -c -n lj_gromacs $(OBJ_DIR)/lj_gromacs.cubin > $(OBJ_DIR)/lj_gromacs_cubin.h
+
+$(OBJ_DIR)/lal_lj_gromacs.o: $(ALL_H) lal_lj_gromacs.h lal_lj_gromacs.cpp $(OBJ_DIR)/lj_gromacs_cubin.h $(OBJ_DIR)/lal_base_atomic.o
+	$(CUDR) -o $@ -c lal_lj_gromacs.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_lj_gromacs_ext.o: $(ALL_H) lal_lj_gromacs.h lal_lj_gromacs_ext.cpp lal_base_atomic.h
+	$(CUDR) -o $@ -c lal_lj_gromacs_ext.cpp -I$(OBJ_DIR)
 
 $(BIN_DIR)/nvc_get_devices: ./geryon/ucl_get_devices.cpp $(NVD_H)
 	$(CUDR) -o $@ ./geryon/ucl_get_devices.cpp -DUCL_CUDADR $(CUDA_LIB) -lcuda 

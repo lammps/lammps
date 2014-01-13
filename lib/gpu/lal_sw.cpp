@@ -16,7 +16,7 @@
 #if defined(USE_OPENCL)
 #include "sw_cl.h"
 #elif defined(USE_CUDART)
-const char *lj=0;
+const char *sw=0;
 #else
 #include "sw_cubin.h"
 #endif
@@ -43,28 +43,15 @@ int SWT::bytes_per_atom(const int max_nbors) const {
 }
 
 template <class numtyp, class acctyp>
-int SWT::init(const int nlocal, const int nall, const int max_nbors, 
-              const double cell_size, const double gpu_split, FILE *_screen,
-              const double epsilon, const double sigma,
-              const double lambda, const double gamma,
-              const double costheta, const double biga,
-              const double bigb, const double powerp,
-              const double powerq, const double cut, const double cutsq) {
-
-  sw_epsilon=static_cast<numtyp>(epsilon);
-  sw_sigma=static_cast<numtyp>(sigma);
-  sw_lambda=static_cast<numtyp>(lambda);
-  sw_gamma=static_cast<numtyp>(gamma);
-  sw_costheta=static_cast<numtyp>(costheta);
-  sw_biga=static_cast<numtyp>(biga);
-  sw_bigb=static_cast<numtyp>(bigb);
-  sw_powerp=static_cast<numtyp>(powerp);
-  sw_powerq=static_cast<numtyp>(powerq);
-  sw_cut=static_cast<numtyp>(cut);
-  sw_cutsq=static_cast<numtyp>(cutsq);
-  if (sw_cutsq>=sw_cut*sw_cut) 
-    sw_cutsq=sw_cut*sw_cut-1e-4;
-
+int SWT::init(const int ntypes, const int nlocal, const int nall, const int max_nbors,
+           const double cell_size, const double gpu_split, FILE *_screen,
+           int* host_map, const int nelements, int*** host_elem2param, const int nparams, 
+           const double* epsilon, const double* sigma,
+           const double* lambda, const double* gamma,
+           const double* costheta, const double* biga,
+           const double* bigb, const double* powerp,
+           const double* powerq, const double* cut, const double* cutsq)
+{
   int success;
   success=this->init_three(nlocal,nall,max_nbors,0,cell_size,gpu_split,
                            _screen,sw,"k_sw","k_sw_three_center",
@@ -73,10 +60,93 @@ int SWT::init(const int nlocal, const int nall, const int max_nbors,
     return success;
 
   // If atom type constants fit in shared memory use fast kernel
-  shared_types=true;
+  int lj_types=ntypes;
+  shared_types=false;
+  int max_shared_types=this->device->max_shared_types();
+  if (lj_types<=max_shared_types && this->_block_size>=max_shared_types) {
+    lj_types=max_shared_types;
+    shared_types=true;
+  }
+  _lj_types=lj_types;
+
+  _nparams = nparams;
+  _nelements = nelements;
+
+  UCL_H_Vec<numtyp4> dview(nparams,*(this->ucl_device),
+                             UCL_WRITE_ONLY);
+
+  for (int i=0; i<nparams; i++) {
+    dview[i].x=(numtyp)0; 
+    dview[i].y=(numtyp)0;
+    dview[i].z=(numtyp)0; 
+    dview[i].w=(numtyp)0;
+  }
+
+  // pack coefficients into arrays
+  sw1.alloc(nparams,*(this->ucl_device),UCL_READ_ONLY);
+  
+  for (int i=0; i<nparams; i++) {
+    dview[i].x=static_cast<numtyp>(epsilon[i]);
+    dview[i].y=static_cast<numtyp>(sigma[i]);
+    dview[i].z=static_cast<numtyp>(lambda[i]);
+    dview[i].w=static_cast<numtyp>(gamma[i]);
+  }
+  
+  ucl_copy(sw1,dview,false);
+  sw1_tex.get_texture(*(this->pair_program),"sw1_tex");
+  sw1_tex.bind_float(sw1,4);
+
+  sw2.alloc(nparams,*(this->ucl_device),UCL_READ_ONLY);
+  
+  for (int i=0; i<nparams; i++) {
+    dview[i].x=static_cast<numtyp>(biga[i]);
+    dview[i].y=static_cast<numtyp>(bigb[i]);
+    dview[i].z=static_cast<numtyp>(powerp[i]);
+    dview[i].w=static_cast<numtyp>(powerq[i]);
+  }
+  
+  ucl_copy(sw2,dview,false);
+  sw2_tex.get_texture(*(this->pair_program),"sw2_tex");
+  sw2_tex.bind_float(sw2,4);
+
+  sw3.alloc(nparams,*(this->ucl_device),UCL_READ_ONLY);
+  
+  for (int i=0; i<nparams; i++) {
+    dview[i].x=static_cast<numtyp>(cut[i]);
+    dview[i].y=static_cast<numtyp>(cutsq[i]);
+    dview[i].z=static_cast<numtyp>(costheta[i]);
+    dview[i].w=(numtyp)0;
+  }
+  
+  ucl_copy(sw3,dview,false);
+  sw3_tex.get_texture(*(this->pair_program),"sw3_tex");
+  sw3_tex.bind_float(sw3,4);
+
+  UCL_H_Vec<int> dview_elem2param(nelements*nelements*nelements,
+                           *(this->ucl_device), UCL_WRITE_ONLY);
+
+  elem2param.alloc(nelements*nelements*nelements,*(this->ucl_device),
+                   UCL_READ_ONLY);
+
+  for (int i = 0; i < nelements; i++)
+    for (int j = 0; j < nelements; j++)
+      for (int k = 0; k < nelements; k++) {
+         int idx = i*nelements*nelements+j*nelements+k;
+         dview_elem2param[idx] = host_elem2param[i][j][k];
+      }
+
+  ucl_copy(elem2param,dview_elem2param,false);
+
+  UCL_H_Vec<int> dview_map(lj_types, *(this->ucl_device), UCL_WRITE_ONLY);
+  for (int i = 0; i < lj_types; i++)
+    dview_map[i] = host_map[i];
+
+  map.alloc(lj_types,*(this->ucl_device), UCL_READ_ONLY);
+  ucl_copy(map,dview_map,false);
 
   _allocated=true;
-  this->_max_bytes=0;
+  this->_max_bytes=sw1.row_bytes()+sw2.row_bytes()+sw3.row_bytes()+
+    map.row_bytes()+elem2param.row_bytes();
   return 0;
 }
 
@@ -86,6 +156,11 @@ void SWT::clear() {
     return;
   _allocated=false;
 
+  sw1.clear();
+  sw2.clear();
+  sw3.clear();
+  map.clear();
+  elem2param.clear();
   this->clear_atomic();
 }
 
@@ -121,22 +196,23 @@ void SWT::loop(const bool _eflag, const bool _vflag, const int evatom) {
   int nbor_pitch=this->nbor->nbor_pitch();
   this->time_pair.start();
   this->k_pair.set_size(GX,BX);
-  this->k_pair.run(&this->atom->x, &this->nbor->dev_nbor, 
-                   &this->_nbor_data->begin(), &this->ans->force,
-                   &this->ans->engv, &eflag, &vflag, &ainum, &nbor_pitch, 
-                   &this->_threads_per_atom, &sw_cut, &sw_epsilon, &sw_sigma,
-                   &sw_biga, &sw_bigb, &sw_powerp, &sw_powerq, &sw_cutsq);
+  this->k_pair.run(&this->atom->x, &sw1, &sw2, &sw3, 
+                   &map, &elem2param, &_nelements,
+                   &this->nbor->dev_nbor, &this->_nbor_data->begin(), 
+                   &this->ans->force, &this->ans->engv, 
+                   &eflag, &vflag, &ainum, &nbor_pitch, 
+                   &this->_threads_per_atom);
 
   BX=this->block_size();
   GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
                            (BX/(KTHREADS*JTHREADS)))); 
   this->k_three_center.set_size(GX,BX);
-  this->k_three_center.run(&this->atom->x, &this->nbor->dev_nbor, 
-                   &this->_nbor_data->begin(), &this->ans->force,
-                   &this->ans->engv, &eflag, &vflag, &ainum, 
-                   &nbor_pitch, &this->_threads_per_atom, &evatom,
-                   &sw_cut, &sw_epsilon, &sw_sigma, &sw_lambda, &sw_gamma,
-                   &sw_costheta, &sw_cutsq);
+  this->k_three_center.run(&this->atom->x, &sw1, &sw2, &sw3, 
+                           &map, &elem2param, &_nelements,
+                           &this->nbor->dev_nbor, &this->_nbor_data->begin(), 
+                           &this->ans->force, &this->ans->engv, &eflag, &vflag, &ainum, 
+                           &nbor_pitch, &this->_threads_per_atom, &evatom);
+
   Answer<numtyp,acctyp> *end_ans;
   #ifdef THREE_CONCURRENT
   end_ans=this->ans2;
@@ -145,20 +221,20 @@ void SWT::loop(const bool _eflag, const bool _vflag, const int evatom) {
   #endif
   if (evatom!=0) {
     this->k_three_end_vatom.set_size(GX,BX);
-    this->k_three_end_vatom.run(&this->atom->x, &this->nbor->dev_nbor, 
-                          &this->_nbor_data->begin(), &end_ans->force,
-                          &end_ans->engv, &eflag, &vflag, &ainum, 
-                          &nbor_pitch, &this->_threads_per_atom, &sw_cut, 
-                          &sw_epsilon, &sw_sigma, &sw_lambda, &sw_gamma,
-                          &sw_costheta, &sw_cutsq);
+    this->k_three_end_vatom.run(&this->atom->x, &sw1, &sw2, &sw3, 
+                          &map, &elem2param, &_nelements, 
+                          &this->nbor->dev_nbor, &this->_nbor_data->begin(), 
+                          &end_ans->force, &end_ans->engv, &eflag, &vflag, &ainum,
+                          &nbor_pitch, &this->_threads_per_atom);
+
   } else {
     this->k_three_end.set_size(GX,BX);
-    this->k_three_end.run(&this->atom->x, &this->nbor->dev_nbor, 
-                          &this->_nbor_data->begin(), &end_ans->force,
-                          &end_ans->engv, &eflag, &vflag, &ainum, 
-                          &nbor_pitch, &this->_threads_per_atom, &sw_cut, 
-                          &sw_epsilon, &sw_sigma, &sw_lambda, &sw_gamma,
-                          &sw_costheta, &sw_cutsq);
+    this->k_three_end.run(&this->atom->x, &sw1, &sw2, &sw3, 
+                          &map, &elem2param, &_nelements, 
+                          &this->nbor->dev_nbor, &this->_nbor_data->begin(), 
+                          &end_ans->force, &end_ans->engv, &eflag, &vflag, &ainum, 
+                          &nbor_pitch, &this->_threads_per_atom);
+
   }
   this->time_pair.stop();
 }

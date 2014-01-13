@@ -150,7 +150,7 @@ void AnswerT::copy_answers(const bool eflag, const bool vflag,
     csize-=_e_fields;
   if (!vflag)
     csize-=6;
-      
+
   if (csize>0)
     engv.update_host(_inum*csize,true);
   if (_rot)
@@ -194,12 +194,15 @@ double AnswerT::energy_virial(double *eatom, double **vatom,
       for (int i=vstart; i<iend; i++)
         virial[j]+=engv[i];
       if (_vf_atom)
-        if (_ilist==NULL)
-          for (int i=vstart; i<iend; i++)
-            vatom[i][j]+=engv[i];
-        else
-          for (int i=vstart; i<iend; i++)
-            vatom[_ilist[i]][j]+=engv[i];
+        if (_ilist==NULL) {
+          int ii=0;
+          for (int i=vstart; i<iend; i++) 
+            vatom[ii++][j]+=engv[i];
+        } else {
+          int ii=0;
+          for (int i=vstart; i<iend; i++) 
+            vatom[_ilist[ii++]][j]+=engv[i];
+        }
       vstart+=_inum;
       iend+=_inum;
     }
@@ -218,8 +221,9 @@ double AnswerT::energy_virial(double *eatom, double **vatom,
     return energy_virial(eatom,vatom,virial);
 
   double evdwl=0.0;
-  int vstart=0, iend=_inum*2;
+  int vstart=0, iend=_inum;
   if (_eflag) {
+    iend=_inum*2;
     for (int i=0; i<_inum; i++)
       evdwl+=engv[i];
     for (int i=_inum; i<iend; i++)
@@ -238,18 +242,21 @@ double AnswerT::energy_virial(double *eatom, double **vatom,
       }
     vstart=iend;
     iend+=_inum;
-  }
-  if (_vflag) {
+  } 
+  if (_vflag) { 
     for (int j=0; j<6; j++) {
       for (int i=vstart; i<iend; i++)
         virial[j]+=engv[i];
       if (_vf_atom)
-        if (_ilist==NULL)
+        if (_ilist==NULL) {
+          int ii=0;
           for (int i=vstart; i<iend; i++)
-              vatom[i][j]+=engv[i];
-        else
+            vatom[ii++][j]+=engv[i];
+        } else {
+          int ii=0;
           for (int i=vstart; i<iend; i++)
-              vatom[_ilist[i]][j]+=engv[i];
+            vatom[_ilist[ii++]][j]+=engv[i];
+        }  
       vstart+=_inum;
       iend+=_inum;
     }

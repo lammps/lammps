@@ -1,65 +1,63 @@
 /***************************************************************************
-                                  coul_dsf.cpp
+                                 lj_gromacs.cpp
                              -------------------
                             Trung Dac Nguyen (ORNL)
 
-  Class for acceleration of the coul/dsf pair style.
+  Class for acceleration of the lj/gromacs pair style.
 
  __________________________________________________________________________
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : 8/15/2012
+    begin                : 
     email                : nguyentd@ornl.gov
  ***************************************************************************/
 
 #if defined(USE_OPENCL)
-#include "coul_dsf_cl.h"
+#include "lj_gromacs_cl.h"
 #elif defined(USE_CUDART)
-const char *coul_dsf=0;
+const char *lj_gromacs=0;
 #else
-#include "coul_dsf_cubin.h"
+#include "lj_gromacs_cubin.h"
 #endif
 
-#include "lal_coul_dsf.h"
+#include "lal_lj_gromacs.h"
 #include <cassert>
 using namespace LAMMPS_AL;
-#define CoulDSFT CoulDSF<numtyp, acctyp>
+#define LJGROMACST LJGROMACS<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
 
 template <class numtyp, class acctyp>
-CoulDSFT::CoulDSF() : BaseCharge<numtyp,acctyp>(),
+LJGROMACST::LJGROMACS() : BaseAtomic<numtyp,acctyp>(),
                                     _allocated(false) {
 }
 
 template <class numtyp, class acctyp>
-CoulDSFT::~CoulDSF() {
+LJGROMACST::~LJGROMACS() {
   clear();
 }
  
 template <class numtyp, class acctyp>
-int CoulDSFT::bytes_per_atom(const int max_nbors) const {
+int LJGROMACST::bytes_per_atom(const int max_nbors) const {
   return this->bytes_per_atom_atomic(max_nbors);
 }
 
 template <class numtyp, class acctyp>
-int CoulDSFT::init(const int ntypes, const int nlocal, const int nall, 
-                   const int max_nbors, const int maxspecial, 
-                   const double cell_size, const double gpu_split, FILE *_screen,
-                   const double host_cut_coulsq, double *host_special_coul,
-                   const double qqrd2e, const double e_shift, const double f_shift, 
-                   const double alpha) {
+int LJGROMACST::init(const int ntypes, double **host_cutsq,
+                     double **host_lj1, double **host_lj2, double **host_lj3,
+                     double **host_lj4, double *host_special_lj,
+                     const int nlocal, const int nall, const int max_nbors, 
+                     const int maxspecial, const double cell_size, 
+                     const double gpu_split, FILE *_screen,
+                     double **host_ljsw1, double **host_ljsw2, double **host_ljsw3,
+                     double **host_ljsw4, double **host_ljsw5, 
+                     double **cut_inner, double **cut_inner_sq) {
   int success;
   success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,gpu_split,
-                            _screen,coul_dsf,"k_coul_dsf");
+                            _screen,lj_gromacs,"k_lj_gromacs");
   if (success!=0)
     return success;
-
-  _cut_coulsq=host_cut_coulsq;
-  _e_shift=e_shift;
-  _f_shift=f_shift;
-  _alpha=alpha;
 
   // If atom type constants fit in shared memory use fast kernel
   int lj_types=ntypes;
@@ -78,39 +76,52 @@ int CoulDSFT::init(const int ntypes, const int nlocal, const int nall,
   for (int i=0; i<lj_types*lj_types; i++)
     host_write[i]=0.0;
 
-  sp_lj.alloc(4,*(this->ucl_device),UCL_READ_ONLY);
-  for (int i=0; i<4; i++) {
-    host_write[i]=host_special_coul[i];
-  }
-  ucl_copy(sp_lj,host_write,4,false);
+  lj1.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
+  this->atom->type_pack4(ntypes,lj_types,lj1,host_write,host_lj1,host_lj2,
+                         host_cutsq,cut_inner_sq);
 
-  _qqrd2e=qqrd2e;
+  lj3.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
+  this->atom->type_pack4(ntypes,lj_types,lj3,host_write,host_lj3,host_lj4,
+                         cut_inner,host_ljsw5);
+
+  ljsw.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
+  this->atom->type_pack4(ntypes,lj_types,ljsw,host_write,host_ljsw1,host_ljsw2,
+                         host_ljsw3,host_ljsw4);
+
+  UCL_H_Vec<double> dview;
+  sp_lj.alloc(4,*(this->ucl_device),UCL_READ_ONLY);
+  dview.view(host_special_lj,4,*(this->ucl_device));
+  ucl_copy(sp_lj,dview,false);
 
   _allocated=true;
-  this->_max_bytes=sp_lj.row_bytes();
+  this->_max_bytes=lj1.row_bytes()+lj3.row_bytes()
+    +ljsw.row_bytes()+sp_lj.row_bytes();
   return 0;
 }
 
 template <class numtyp, class acctyp>
-void CoulDSFT::clear() {
+void LJGROMACST::clear() {
   if (!_allocated)
     return;
   _allocated=false;
 
+  lj1.clear();
+  lj3.clear();
+  ljsw.clear();
   sp_lj.clear();
   this->clear_atomic();
 }
 
 template <class numtyp, class acctyp>
-double CoulDSFT::host_memory_usage() const {
-  return this->host_memory_usage_atomic()+sizeof(CoulDSF<numtyp,acctyp>);
+double LJGROMACST::host_memory_usage() const {
+  return this->host_memory_usage_atomic()+sizeof(LJGROMACS<numtyp,acctyp>);
 }
 
 // ---------------------------------------------------------------------------
 // Calculate energies, forces, and torques
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-void CoulDSFT::loop(const bool _eflag, const bool _vflag) {
+void LJGROMACST::loop(const bool _eflag, const bool _vflag) {
   // Compute the block size and grid size to keep all cores busy
   const int BX=this->block_size();
   int eflag, vflag;
@@ -132,22 +143,22 @@ void CoulDSFT::loop(const bool _eflag, const bool _vflag) {
   this->time_pair.start();
   if (shared_types) {
     this->k_pair_fast.set_size(GX,BX);
-    this->k_pair_fast.run(&this->atom->x, &sp_lj,
-                          &this->nbor->dev_nbor, &this->_nbor_data->begin(),
-                          &this->ans->force, &this->ans->engv, &eflag, 
-                          &vflag, &ainum, &nbor_pitch, &this->atom->q,
-                          &_cut_coulsq, &_qqrd2e, &_e_shift, &_f_shift, &_alpha,
+    this->k_pair_fast.run(&this->atom->x, &lj1, &lj3, &ljsw,
+                          &sp_lj, &this->nbor->dev_nbor,
+                          &this->_nbor_data->begin(),
+                          &this->ans->force, &this->ans->engv, 
+                          &eflag, &vflag, &ainum, &nbor_pitch,
                           &this->_threads_per_atom);
   } else {
     this->k_pair.set_size(GX,BX);
-    this->k_pair.run(&this->atom->x, &_lj_types, &sp_lj, 
-                     &this->nbor->dev_nbor, &this->_nbor_data->begin(), 
+    this->k_pair.run(&this->atom->x, &lj1, &lj3, &ljsw, &_lj_types, 
+                     &sp_lj, &this->nbor->dev_nbor,
+                     &this->_nbor_data->begin(), 
                      &this->ans->force, &this->ans->engv, 
-                     &eflag, &vflag, &ainum, &nbor_pitch, &this->atom->q,
-                     &_cut_coulsq, &_qqrd2e, &_e_shift, &_f_shift, &_alpha,
+                     &eflag, &vflag, &ainum, &nbor_pitch, 
                      &this->_threads_per_atom);
   }
   this->time_pair.stop();
 }
 
-template class CoulDSF<PRECISION,ACC_PRECISION>;
+template class LJGROMACS<PRECISION,ACC_PRECISION>;

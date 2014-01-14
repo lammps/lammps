@@ -112,6 +112,7 @@ void BuckCoulLongT::clear() {
 
   coeff1.clear();
   coeff2.clear();
+  cutsq.clear();
   sp_lj.clear();
   this->clear_atomic();
 }

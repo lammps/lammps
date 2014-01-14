@@ -83,6 +83,8 @@ action pair_lj_cut_gpu.cpp
 action pair_lj_cut_gpu.h
 action pair_lj_expand_gpu.cpp
 action pair_lj_expand_gpu.h
+action pair_lj_gromacs_gpu.cpp
+action pair_lj_gromacs_gpu.h
 action pair_lj_sdk_coul_long_gpu.cpp pair_lj_sdk_coul_long.cpp
 action pair_lj_sdk_coul_long_gpu.h pair_lj_sdk_coul_long.cpp
 action pair_lj_sdk_gpu.cpp pair_lj_sdk.cpp

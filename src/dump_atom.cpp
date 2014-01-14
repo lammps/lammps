@@ -243,7 +243,7 @@ void DumpAtom::pack_scale_image(int *ids)
 
   int *tag = atom->tag;
   int *type = atom->type;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   int *mask = atom->mask;
   double **x = atom->x;
   int nlocal = atom->nlocal;
@@ -303,7 +303,7 @@ void DumpAtom::pack_scale_image_triclinic(int *ids)
 
   int *tag = atom->tag;
   int *type = atom->type;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   int *mask = atom->mask;
   double **x = atom->x;
   int nlocal = atom->nlocal;
@@ -361,7 +361,7 @@ void DumpAtom::pack_noscale_image(int *ids)
 
   int *tag = atom->tag;
   int *type = atom->type;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   int *mask = atom->mask;
   double **x = atom->x;
   int nlocal = atom->nlocal;

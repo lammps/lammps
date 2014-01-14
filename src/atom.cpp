@@ -569,7 +569,7 @@ int Atom::count_words(const char *line)
 void Atom::data_atoms(int n, char *buf)
 {
   int m,xptr,iptr;
-  tagint imagedata;
+  imageint imagedata;
   double xdata[3],lamda[3];
   double *coord;
   char *next;
@@ -649,11 +649,11 @@ void Atom::data_atoms(int n, char *buf)
     }
 
     if (imageflag)
-      imagedata = ((tagint) (atoi(values[iptr]) + IMGMAX) & IMGMASK) |
-        (((tagint) (atoi(values[iptr+1]) + IMGMAX) & IMGMASK) << IMGBITS) |
-        (((tagint) (atoi(values[iptr+2]) + IMGMAX) & IMGMASK) << IMG2BITS);
-    else imagedata = ((tagint) IMGMAX << IMG2BITS) |
-           ((tagint) IMGMAX << IMGBITS) | IMGMAX;
+      imagedata = ((imageint) (atoi(values[iptr]) + IMGMAX) & IMGMASK) |
+        (((imageint) (atoi(values[iptr+1]) + IMGMAX) & IMGMASK) << IMGBITS) |
+        (((imageint) (atoi(values[iptr+2]) + IMGMAX) & IMGMASK) << IMG2BITS);
+    else imagedata = ((imageint) IMGMAX << IMG2BITS) |
+           ((imageint) IMGMAX << IMGBITS) | IMGMAX;
     
     xdata[0] = atof(values[xptr]);
     xdata[1] = atof(values[xptr+1]);

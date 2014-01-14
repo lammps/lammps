@@ -122,7 +122,7 @@ void FixRigidSmallOMP::final_integrate()
   double * const * _noalias const x = atom->x;
   const dbl3_t * _noalias const f = (dbl3_t *) atom->f[0];
   const double * const * const torque_one = atom->torque;
-  const tagint * _noalias const image = atom->image;
+  const imageint * _noalias const image = atom->image;
   const int nlocal = atom->nlocal;
   const int nthreads=comm->nthreads;
   int i, ibody;
@@ -268,7 +268,7 @@ void FixRigidSmallOMP::set_xv_thr()
   const double * _noalias const rmass = atom->rmass;
   const double * _noalias const mass = atom->mass;
   const int * _noalias const type = atom->type;
-  const tagint * _noalias const image = atom->image;
+  const imageint * _noalias const image = atom->image;
 
   double v0=0.0,v1=0.0,v2=0.0,v3=0.0,v4=0.0,v5=0.0;
 
@@ -465,7 +465,7 @@ void FixRigidSmallOMP::set_v_thr()
   const double * _noalias const rmass = atom->rmass;
   const double * _noalias const mass = atom->mass;
   const int * _noalias const type = atom->type;
-  const tagint * _noalias const image = atom->image;
+  const imageint * _noalias const image = atom->image;
 
   const double xprd = domain->xprd;
   const double yprd = domain->yprd;

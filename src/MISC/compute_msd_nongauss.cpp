@@ -55,7 +55,7 @@ void ComputeMSDNonGauss::compute_vector()
 
   double **x = atom->x;
   int *mask = atom->mask;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   int nlocal = atom->nlocal;
 
   double *h = domain->h;

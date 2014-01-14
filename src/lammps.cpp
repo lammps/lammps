@@ -370,31 +370,32 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
 
   if (sizeof(smallint) != sizeof(int))
     error->all(FLERR,"Smallint setting in lmptype.h is invalid");
+  if (sizeof(imageint) < sizeof(smallint))
+    error->all(FLERR,"Imageint setting in lmptype.h is invalid");
   if (sizeof(tagint) < sizeof(smallint))
     error->all(FLERR,"Tagint setting in lmptype.h is invalid");
   if (sizeof(bigint) < sizeof(tagint))
     error->all(FLERR,"Bigint setting in lmptype.h is invalid");
 
   int mpisize;
-  MPI_Type_size(MPI_LMP_TAGINT,&mpisize);
-  if (mpisize != sizeof(tagint))
-      error->all(FLERR,
-                 "MPI_LMP_TAGINT and tagint in lmptype.h are not compatible");
   MPI_Type_size(MPI_LMP_BIGINT,&mpisize);
   if (mpisize != sizeof(bigint))
-      error->all(FLERR,
-                 "MPI_LMP_BIGINT and bigint in lmptype.h are not compatible");
+      error->all(FLERR,"MPI_LMP_BIGINT and bigint in "
+                 "lmptype.h are not compatible");
 
 #ifdef LAMMPS_SMALLBIG
-  if (sizeof(smallint) != 4 || sizeof(tagint) != 4 || sizeof(bigint) != 8)
+  if (sizeof(smallint) != 4 || sizeof(imageint) != 4 || 
+      sizeof(tagint) != 4 || sizeof(bigint) != 8)
     error->all(FLERR,"Small, tag, big integers are not sized correctly");
 #endif
 #ifdef LAMMPS_BIGBIG
-  if (sizeof(smallint) != 4 || sizeof(tagint) != 8 || sizeof(bigint) != 8)
+  if (sizeof(smallint) != 4 || sizeof(imageint) != 8 || 
+      sizeof(tagint) != 8 || sizeof(bigint) != 8)
     error->all(FLERR,"Small, tag, big integers are not sized correctly");
 #endif
 #ifdef LAMMPS_SMALLSMALL
-  if (sizeof(smallint) != 4 || sizeof(tagint) != 4 || sizeof(bigint) != 4)
+  if (sizeof(smallint) != 4 || sizeof(imageint) != 4 || 
+      sizeof(tagint) != 4 || sizeof(bigint) != 4)
     error->all(FLERR,"Small, tag, big integers are not sized correctly");
 #endif
 

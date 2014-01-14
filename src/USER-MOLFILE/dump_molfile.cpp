@@ -308,7 +308,7 @@ void DumpMolfile::pack(int *ids)
   int *tag = atom->tag;
   int *type = atom->type;
   double **x = atom->x;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 

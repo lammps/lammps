@@ -443,13 +443,13 @@ void Domain::reset_box()
 void Domain::pbc()
 {
   int i;
-  tagint idim,otherdims;
+  imageint idim,otherdims;
   double *lo,*hi,*period;
   int nlocal = atom->nlocal;
   double **x = atom->x;
   double **v = atom->v;
   int *mask = atom->mask;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
 
   if (triclinic == 0) {
     lo = boxlo;
@@ -568,7 +568,7 @@ void Domain::image_check()
   memory->create(unwrap,atom->nmax,3,"domain:unwrap");
 
   double **x = atom->x;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   int nlocal = atom->nlocal;
 
   for (i = 0; i < nlocal; i++)
@@ -988,11 +988,11 @@ void Domain::closest_image(const double * const xi, const double * const xj,
    increment/decrement in wrap-around fashion
 ------------------------------------------------------------------------- */
 
-void Domain::remap(double *x, tagint &image)
+void Domain::remap(double *x, imageint &image)
 {
   double *lo,*hi,*period,*coord;
   double lamda[3];
-  tagint idim,otherdims;
+  imageint idim,otherdims;
 
   if (triclinic == 0) {
     lo = boxlo;
@@ -1197,7 +1197,7 @@ void Domain::remap_near(double *xnew, double *xold)
    for triclinic, use h[] to add in tilt factors in other dims as needed
 ------------------------------------------------------------------------- */
 
-void Domain::unmap(double *x, tagint image)
+void Domain::unmap(double *x, imageint image)
 {
   int xbox = (image & IMGMASK) - IMGMAX;
   int ybox = (image >> IMGBITS & IMGMASK) - IMGMAX;
@@ -1220,7 +1220,7 @@ void Domain::unmap(double *x, tagint image)
    for triclinic, use h[] to add in tilt factors in other dims as needed
 ------------------------------------------------------------------------- */
 
-void Domain::unmap(double *x, tagint image, double *y)
+void Domain::unmap(double *x, imageint image, double *y)
 {
   int xbox = (image & IMGMASK) - IMGMAX;
   int ybox = (image >> IMGBITS & IMGMASK) - IMGMAX;
@@ -1258,7 +1258,7 @@ void Domain::unmap(double *x, tagint image, double *y)
 
 void Domain::image_flip(int m, int n, int p)
 {
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
@@ -1269,9 +1269,9 @@ void Domain::image_flip(int m, int n, int p)
     ybox -= p*zbox;
     xbox -= m*ybox + n*zbox;
 
-    image[i] = ((tagint) (xbox + IMGMAX) & IMGMASK) | 
-      (((tagint) (ybox + IMGMAX) & IMGMASK) << IMGBITS) | 
-      (((tagint) (zbox + IMGMAX) & IMGMASK) << IMG2BITS);
+    image[i] = ((imageint) (xbox + IMGMAX) & IMGMASK) | 
+      (((imageint) (ybox + IMGMAX) & IMGMASK) << IMGBITS) | 
+      (((imageint) (zbox + IMGMAX) & IMGMASK) << IMG2BITS);
   }
 }
 

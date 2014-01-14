@@ -120,7 +120,7 @@ void FixMomentum::end_of_step()
     double **x = atom->x;
     double **v = atom->v;
     int *mask = atom->mask;
-    tagint *image = atom->image;
+    imageint *image = atom->image;
     int nlocal = atom->nlocal;
 
     double dx,dy,dz;

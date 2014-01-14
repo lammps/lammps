@@ -111,7 +111,7 @@ double ComputeTempRotate::compute_scalar()
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int *type = atom->type;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -172,7 +172,7 @@ void ComputeTempRotate::compute_vector()
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int *type = atom->type;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 

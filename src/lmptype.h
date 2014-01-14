@@ -14,14 +14,15 @@
 // define integer data types used by LAMMPS and associated size limits
 
 // smallint = variables for on-procesor system (nlocal, nmax, etc)
+// imageint = variables for atom image flags (image)
 // tagint = variables for atom IDs (tag)
 // bigint = variables for total system (natoms, ntimestep, etc)
 
 // smallint must be an int, as defined by C compiler
+// imageint can be 32-bit or 64-bit int, must be >= smallint
 // tagint can be 32-bit or 64-bit int, must be >= smallint
 // bigint can be 32-bit or 64-bit int, must be >= tagint
 
-// MPI_LMP_TAGINT = MPI data type corresponding to a tagint
 // MPI_LMP_BIGINT = MPI data type corresponding to a bigint
 
 #ifndef LMP_LMPTYPE_H
@@ -70,11 +71,12 @@ namespace LAMMPS_NS {
 #endif
 
 // for atomic problems that exceed 2 billion (2^31) atoms
-// 32-bit smallint and tagint, 64-bit bigint
+// 32-bit smallint and imageint and tagint, 64-bit bigint
 
 #ifdef LAMMPS_SMALLBIG
 
 typedef int smallint;
+typedef int imageint;
 typedef int tagint;
 typedef int64_t bigint;
 
@@ -82,7 +84,6 @@ typedef int64_t bigint;
 #define MAXTAGINT INT_MAX
 #define MAXBIGINT INT64_MAX
 
-#define MPI_LMP_TAGINT MPI_INT
 #define MPI_LMP_BIGINT MPI_LL
 
 #define TAGINT_FORMAT "%d"
@@ -100,11 +101,12 @@ typedef int64_t bigint;
 
 // for molecular problems that exceed 2 billion (2^31) atoms
 // or problems where atoms wrap around the periodic box more than 512 times
-// 32-bit smallint, 64-bit tagint and bigint
+// 32-bit smallint, 64-bit imageint and tagint and bigint
 
 #ifdef LAMMPS_BIGBIG
 
 typedef int smallint;
+typedef int64_t imageint;
 typedef int64_t tagint;
 typedef int64_t bigint;
 
@@ -112,7 +114,6 @@ typedef int64_t bigint;
 #define MAXTAGINT INT64_MAX
 #define MAXBIGINT INT64_MAX
 
-#define MPI_LMP_TAGINT MPI_LL
 #define MPI_LMP_BIGINT MPI_LL
 
 #define TAGINT_FORMAT "%" PRId64
@@ -129,11 +130,12 @@ typedef int64_t bigint;
 #endif
 
 // for machines that do not support 64-bit ints
-// 32-bit smallint and tagint and bigint
+// 32-bit smallint and imageint and tagint and bigint
 
 #ifdef LAMMPS_SMALLSMALL
 
 typedef int smallint;
+typedef int imageint;
 typedef int tagint;
 typedef int bigint;
 
@@ -141,7 +143,6 @@ typedef int bigint;
 #define MAXTAGINT INT_MAX
 #define MAXBIGINT INT_MAX
 
-#define MPI_LMP_TAGINT MPI_INT
 #define MPI_LMP_BIGINT MPI_INT
 
 #define TAGINT_FORMAT "%d"

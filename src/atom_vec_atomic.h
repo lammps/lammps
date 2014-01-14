@@ -47,14 +47,14 @@ class AtomVecAtomic : public AtomVec {
   int pack_restart(int, double *);
   int unpack_restart(double *);
   void create_atom(int, double *);
-  void data_atom(double *, tagint, char **);
+  void data_atom(double *, imageint, char **);
   void pack_data(double **);
   void write_data(FILE *, int, double **);
   bigint memory_usage();
 
  protected:
   int *tag,*type,*mask;
-  tagint *image;
+  imageint *image;
   double **x,**v,**f;
 };
 

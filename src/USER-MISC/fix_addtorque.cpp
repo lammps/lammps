@@ -165,7 +165,7 @@ void FixAddTorque::post_force(int vflag)
   double **f = atom->f;
   int *mask = atom->mask;
   int *type = atom->type;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;

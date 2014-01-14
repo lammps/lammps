@@ -468,8 +468,8 @@ void FixPour::pre_exchange()
         coords[0][1] = coord[1];
         coords[0][2] = coord[2];
         coords[0][3] = radtmp;
-        imageflags[0] = ((tagint) IMGMAX << IMG2BITS) |
-            ((tagint) IMGMAX << IMGBITS) | IMGMAX;
+        imageflags[0] = ((imageint) IMGMAX << IMG2BITS) |
+            ((imageint) IMGMAX << IMGBITS) | IMGMAX;
       } else {
         if (dimension == 3) {
           r[0] = random->uniform() - 0.5;
@@ -496,8 +496,8 @@ void FixPour::pre_exchange()
           if (onemol->radiusflag) coords[i][3] = onemol->radius[i];
           else coords[i][3] = 0.5;
 
-          imageflags[i] = ((tagint) IMGMAX << IMG2BITS) |
-            ((tagint) IMGMAX << IMGBITS) | IMGMAX;
+          imageflags[i] = ((imageint) IMGMAX << IMG2BITS) |
+            ((imageint) IMGMAX << IMGBITS) | IMGMAX;
           domain->remap(coords[i],imageflags[i]);
         }
       }

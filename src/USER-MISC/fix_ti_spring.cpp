@@ -64,7 +64,7 @@ FixTISpring::FixTISpring(LAMMPS *lmp, int narg, char **arg) :
 
   double **x = atom->x;
   int *mask = atom->mask;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
@@ -157,7 +157,7 @@ void FixTISpring::post_force(int vflag)
   double **x = atom->x;
   double **f = atom->f;
   int *mask = atom->mask;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   int nlocal = atom->nlocal;
 
   double dx, dy, dz;

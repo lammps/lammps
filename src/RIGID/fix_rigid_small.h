@@ -97,7 +97,7 @@ class FixRigidSmall : public Fix {
     double ez_space[3];
     double angmom[3];         // space-frame angular momentum of body
     double omega[3];          // space-frame omega of body
-    tagint image;             // image flags of xcm
+    imageint image;             // image flags of xcm
     int remapflag[4];         // PBC remap flags
     int ilocal;               // index of owning atom
   };

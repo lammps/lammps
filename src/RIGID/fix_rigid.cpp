@@ -696,7 +696,7 @@ void FixRigid::setup(int vflag)
 
   // torque = torque on each rigid body
 
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   double **x = atom->x;
 
   double dx,dy,dz;
@@ -877,7 +877,7 @@ void FixRigid::final_integrate()
 
   // sum over atoms to get force and torque on rigid body
 
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   double **x = atom->x;
   double **f = atom->f;
   int nlocal = atom->nlocal;
@@ -1044,7 +1044,7 @@ void FixRigid::final_integrate_respa(int ilevel, int iloop)
 
 void FixRigid::pre_neighbor()
 {
-  tagint original,oldimage,newimage;
+  imageint original,oldimage,newimage;
 
   for (int ibody = 0; ibody < nbody; ibody++) {
     original = imagebody[ibody];
@@ -1069,11 +1069,11 @@ void FixRigid::pre_neighbor()
   // subtracting remapflag = new-old keeps ix,iy,iz near 0
   //   so body is always in central simulation box
 
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   int nlocal = atom->nlocal;
 
   int ibody;
-  tagint idim,otherdims;
+  imageint idim,otherdims;
 
   for (int i = 0; i < nlocal; i++) {
     if (body[i] == -1) continue;
@@ -1219,7 +1219,7 @@ void FixRigid::set_xv()
   double xy,xz,yz;
   double ione[3],exone[3],eyone[3],ezone[3],vr[6],p[3][3];
 
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   double **x = atom->x;
   double **v = atom->v;
   double **f = atom->f;
@@ -1401,7 +1401,7 @@ void FixRigid::set_v()
   double *rmass = atom->rmass;
   double *mass = atom->mass;
   int *type = atom->type;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   int nlocal = atom->nlocal;
 
   double xprd = domain->xprd;
@@ -1615,7 +1615,7 @@ void FixRigid::setup_bodies_static()
   // error if image flag is not 0 in a non-periodic dim
 
   double **x = atom->x;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
 
   int *periodicity = domain->periodicity;
   double xprd = domain->xprd;
@@ -1684,8 +1684,8 @@ void FixRigid::setup_bodies_static()
   // then remap the xcm of each body back into simulation box if needed
 
   for (ibody = 0; ibody < nbody; ibody++)
-    imagebody[ibody] = ((tagint) IMGMAX << IMG2BITS) | 
-      ((tagint) IMGMAX << IMGBITS) | IMGMAX;
+    imagebody[ibody] = ((imageint) IMGMAX << IMG2BITS) | 
+      ((imageint) IMGMAX << IMGBITS) | IMGMAX;
 
   pre_neighbor();
 
@@ -2040,7 +2040,7 @@ void FixRigid::setup_bodies_dynamic()
   double **v = atom->v;
   double *rmass = atom->rmass;
   double *mass = atom->mass;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   int *type = atom->type;
   int nlocal = atom->nlocal;
 

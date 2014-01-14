@@ -657,7 +657,7 @@ void FixDeform::pre_exchange()
   domain->image_flip(flipxy,flipxz,flipyz);
 
   double **x = atom->x;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   int nlocal = atom->nlocal;
   for (int i = 0; i < nlocal; i++) domain->remap(x[i],image[i]);
 

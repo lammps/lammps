@@ -377,7 +377,7 @@ void CreateAtoms::command(int narg, char **arg)
     // perform irregular comm to migrate atoms to new owning procs
 
     double **x = atom->x;
-    tagint *image = atom->image;
+    imageint *image = atom->image;
     int nlocal = atom->nlocal;
     for (int i = 0; i < nlocal; i++) domain->remap(x[i],image[i]);
 
@@ -416,8 +416,8 @@ void CreateAtoms::add_single()
   // remap atom if requested
 
   if (remapflag) {
-    tagint imagetmp = ((tagint) IMGMAX << IMG2BITS) |
-      ((tagint) IMGMAX << IMGBITS) | IMGMAX;
+    imageint imagetmp = ((imageint) IMGMAX << IMG2BITS) |
+      ((imageint) IMGMAX << IMGBITS) | IMGMAX;
     domain->remap(xone,imagetmp);
   }
 

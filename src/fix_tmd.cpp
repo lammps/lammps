@@ -92,7 +92,7 @@ FixTMD::FixTMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
   int *mask = atom->mask;
   int *type = atom->type;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   double **x = atom->x;
   double *mass = atom->mass;
   int nlocal = atom->nlocal;
@@ -186,7 +186,7 @@ void FixTMD::initial_integrate(int vflag)
   double **v = atom->v;
   double **f = atom->f;
   double *mass = atom->mass;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;

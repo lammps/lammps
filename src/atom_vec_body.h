@@ -70,7 +70,7 @@ class AtomVecBody : public AtomVec {
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
   void create_atom(int, double *);
-  void data_atom(double *, tagint, char **);
+  void data_atom(double *, imageint, char **);
   int data_atom_hybrid(int, char **);
   void data_vel(int, char **);
   int data_vel_hybrid(int, char **);
@@ -91,7 +91,7 @@ class AtomVecBody : public AtomVec {
 
  private:
   int *tag,*type,*mask;
-  tagint *image;
+  imageint *image;
   double **x,**v,**f;
   double *rmass;
   double **angmom,**torque;

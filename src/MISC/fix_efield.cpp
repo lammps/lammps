@@ -248,7 +248,7 @@ void FixEfield::post_force(int vflag)
   double **f = atom->f;
   double *q = atom->q;
   int *mask = atom->mask;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   int nlocal = atom->nlocal;
 
   // reallocate efield array if necessary

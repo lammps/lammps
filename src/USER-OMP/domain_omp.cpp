@@ -47,7 +47,7 @@ void DomainOMP::pbc()
   const double * _noalias const hi     = (triclinic == 0) ? boxhi : boxhi_lamda;
   const double * _noalias const period = (triclinic == 0) ? prd   : prd_lamda;
   const int * _noalias const mask  = atom->mask;
-  tagint    * _noalias const image = atom->image;
+  imageint    * _noalias const image = atom->image;
   const int nlocal = atom->nlocal;
 
   int i;
@@ -55,7 +55,7 @@ void DomainOMP::pbc()
 #pragma omp parallel for private(i) default(none) schedule(static)
 #endif
   for (i = 0; i < nlocal; i++) {
-    tagint idim,otherdims;
+    imageint idim,otherdims;
 
     if (xperiodic) {
       if (x[i].x < lo[0]) {

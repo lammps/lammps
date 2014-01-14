@@ -762,7 +762,7 @@ void Group::xcm(int igroup, double masstotal, double *cm)
   double **x = atom->x;
   int *mask = atom->mask;
   int *type = atom->type;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
@@ -816,7 +816,7 @@ void Group::xcm(int igroup, double masstotal, double *cm, int iregion)
   double **x = atom->x;
   int *mask = atom->mask;
   int *type = atom->type;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
@@ -1086,7 +1086,7 @@ double Group::gyration(int igroup, double masstotal, double *cm)
   double **x = atom->x;
   int *mask = atom->mask;
   int *type = atom->type;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
@@ -1126,7 +1126,7 @@ double Group::gyration(int igroup, double masstotal, double *cm, int iregion)
   double **x = atom->x;
   int *mask = atom->mask;
   int *type = atom->type;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
@@ -1166,7 +1166,7 @@ void Group::angmom(int igroup, double *cm, double *lmom)
   double **v = atom->v;
   int *mask = atom->mask;
   int *type = atom->type;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
@@ -1208,7 +1208,7 @@ void Group::angmom(int igroup, double *cm, double *lmom, int iregion)
   double **v = atom->v;
   int *mask = atom->mask;
   int *type = atom->type;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
@@ -1248,7 +1248,7 @@ void Group::torque(int igroup, double *cm, double *tq)
   double **x = atom->x;
   double **f = atom->f;
   int *mask = atom->mask;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   int nlocal = atom->nlocal;
 
   double dx,dy,dz;
@@ -1285,7 +1285,7 @@ void Group::torque(int igroup, double *cm, double *tq, int iregion)
   double **x = atom->x;
   double **f = atom->f;
   int *mask = atom->mask;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   int nlocal = atom->nlocal;
 
   double dx,dy,dz;
@@ -1322,7 +1322,7 @@ void Group::inertia(int igroup, double *cm, double itensor[3][3])
   double **x = atom->x;
   int *mask = atom->mask;
   int *type = atom->type;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
@@ -1372,7 +1372,7 @@ void Group::inertia(int igroup, double *cm, double itensor[3][3], int iregion)
   double **x = atom->x;
   int *mask = atom->mask;
   int *type = atom->type;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;

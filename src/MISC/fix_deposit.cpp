@@ -361,8 +361,8 @@ void FixDeposit::pre_exchange()
         coords[i][1] += coord[1];
         coords[i][2] += coord[2];
 
-        imageflags[i] = ((tagint) IMGMAX << IMG2BITS) |
-          ((tagint) IMGMAX << IMGBITS) | IMGMAX;
+        imageflags[i] = ((imageint) IMGMAX << IMG2BITS) |
+          ((imageint) IMGMAX << IMGBITS) | IMGMAX;
         domain->remap(coords[i],imageflags[i]);
       }
     }

@@ -543,7 +543,7 @@ void ReadDump::atoms()
   // use irregular() in case atoms moved a long distance
 
   double **x = atom->x;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   nlocal = atom->nlocal;
   for (int i = 0; i < nlocal; i++) domain->remap(x[i],image[i]);
 
@@ -716,7 +716,7 @@ void ReadDump::process_atoms(int n)
   double **x = atom->x;
   double **v = atom->v;
   double *q = atom->q;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   int nlocal = atom->nlocal;
   int map_tag_max = atom->map_tag_max;
 
@@ -785,9 +785,9 @@ void ReadDump::process_atoms(int n)
 
       if (!wrapped) xbox = ybox = zbox = 0;
 
-      image[m] = ((tagint) (xbox + IMGMAX) & IMGMASK) | 
-        (((tagint) (ybox + IMGMAX) & IMGMASK) << IMGBITS) | 
-        (((tagint) (zbox + IMGMAX) & IMGMASK) << IMG2BITS);
+      image[m] = ((imageint) (xbox + IMGMAX) & IMGMASK) | 
+        (((imageint) (ybox + IMGMAX) & IMGMASK) << IMGBITS) | 
+        (((imageint) (zbox + IMGMAX) & IMGMASK) << IMG2BITS);
     }
   }
 
@@ -874,9 +874,9 @@ void ReadDump::process_atoms(int n)
 
       // replace image flag in case changed by ix,iy,iz fields
 
-      image[m] = ((tagint) (xbox + IMGMAX) & IMGMASK) | 
-        (((tagint) (ybox + IMGMAX) & IMGMASK) << IMGBITS) | 
-        (((tagint) (zbox + IMGMAX) & IMGMASK) << IMG2BITS);
+      image[m] = ((imageint) (xbox + IMGMAX) & IMGMASK) | 
+        (((imageint) (ybox + IMGMAX) & IMGMASK) << IMGBITS) | 
+        (((imageint) (zbox + IMGMAX) & IMGMASK) << IMG2BITS);
     }
   }
 

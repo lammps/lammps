@@ -62,7 +62,7 @@ class AtomVecTri : public AtomVec {
   int pack_restart(int, double *);
   int unpack_restart(double *);
   void create_atom(int, double *);
-  void data_atom(double *, tagint, char **);
+  void data_atom(double *, imageint, char **);
   int data_atom_hybrid(int, char **);
   void data_vel(int, char **);
   int data_vel_hybrid(int, char **);
@@ -87,7 +87,7 @@ class AtomVecTri : public AtomVec {
 
  private:
   int *tag,*type,*mask;
-  tagint *image;
+  imageint *image;
   double **x,**v,**f;
   int *molecule;
   double *rmass;

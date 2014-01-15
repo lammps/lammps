@@ -307,6 +307,7 @@ void WriteRestart::write(char *file)
     char *ptr = strchr(file,'%');
     *ptr = '\0';
     sprintf(multiname,"%s%d%s",file,icluster,ptr+1);
+    *ptr = '%';
 
     if (filewriter) {
       fp = fopen(multiname,"wb");

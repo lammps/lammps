@@ -15,6 +15,10 @@
    Contributing author: Aidan Thompson (Sandia)
 ------------------------------------------------------------------------- */
 
+#ifdef LAMMPS_BIGBIG
+#error LAMMPS_BIGBIG not supported by this file
+#endif
+
 #include "stdlib.h"
 #include "string.h"
 #include "fix_reax_bonds.h"

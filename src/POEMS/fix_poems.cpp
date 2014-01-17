@@ -17,6 +17,10 @@
                   Kurt Anderson (anderk5@rpi.edu)
 ------------------------------------------------------------------------- */
 
+#ifdef LAMMPS_BIGBIG
+#error LAMMPS_BIGBIG not supported by this file
+#endif
+
 #include "mpi.h"
 #include "math.h"
 #include "stdio.h"

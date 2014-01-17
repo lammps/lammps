@@ -16,6 +16,10 @@
    (now at Lawrence Berkeley National Laboratory, hmaktulga@lbl.gov)
 ------------------------------------------------------------------------- */
 
+#ifdef LAMMPS_BIGBIG
+#error LAMMPS_BIGBIG not supported by this file
+#endif
+
 #include "math.h"
 #include "stdio.h"
 #include "stdlib.h"

@@ -182,7 +182,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
 
   // set nlocal_body and allocate bodies I own
 
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
 
   nlocal_body = nghost_body = 0;
   for (i = 0; i < nlocal; i++)
@@ -1350,14 +1350,14 @@ void FixRigidSmall::create_bodies()
 
   // pack my atoms into buffer as molecule ID, atom ID, unwrapped coords
 
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
 
   m = 0;
   for (i = 0; i < nlocal; i++) {
     if (!(mask[i] & groupbit)) continue;
     domain->unmap(x[i],image[i],unwrap);
     buf[m++] = molecule[i];
-    buf[m++] = tag[i];
+    buf[m++] = ubuf(tag[i]).d;
     buf[m++] = unwrap[0];
     buf[m++] = unwrap[1];
     buf[m++] = unwrap[2];
@@ -1388,7 +1388,7 @@ void FixRigidSmall::create_bodies()
   for (i = 0; i < nlocal; i++) {
     if (!(mask[i] & groupbit)) continue;
     domain->unmap(x[i],image[i],unwrap);
-    buf[m++] = bodytag[i];
+    buf[m++] = ubuf(bodytag[i]).i;
     buf[m++] = unwrap[0];
     buf[m++] = unwrap[1];
     buf[m++] = unwrap[2];
@@ -1460,13 +1460,14 @@ void FixRigidSmall::ring_nearest(int n, char *cbuf)
 {
   std::map<int,int> *hash = frsptr->hash;
   double **ctr = frsptr->ctr;
-  int *idclose = frsptr->idclose;
+  tagint *idclose = frsptr->idclose;
   double *rsqclose = frsptr->rsqclose;
 
   double *buf = (double *) cbuf;
   int ndatums = n/5;
 
-  int j,imol,tag;
+  int j,imol;
+  tagint tag;
   double delx,dely,delz,rsq;
   double *x;
 
@@ -1475,7 +1476,7 @@ void FixRigidSmall::ring_nearest(int n, char *cbuf)
     imol = static_cast<int> (buf[m]);
     if (hash->find(imol) != hash->end()) {
       j = hash->find(imol)->second;
-      tag = static_cast<int> (buf[m+1]);
+      tag = (tagint) ubuf(buf[m+1]).i;
       x = &buf[m+2];
       delx = x[0] - ctr[j][0];
       dely = x[1] - ctr[j][1];
@@ -1504,15 +1505,16 @@ void FixRigidSmall::ring_farthest(int n, char *cbuf)
   double *buf = (double *) cbuf;
   int ndatums = n/4;
 
-  int itag,iowner;
+  int iowner;
+  tagint tag;
   double delx,dely,delz,rsq;
   double *xx;
   double unwrap[3];
 
   int m = 0;
   for (int i = 0; i < ndatums; i++, m += 4) {
-    itag = static_cast<int> (buf[m]);
-    iowner = frsptr->atom->map(itag);
+    tag = (tagint) ubuf(buf[m]).i;
+    iowner = frsptr->atom->map(tag);
     if (iowner < 0 || iowner >= nlocal) continue;
     frsptr->domain->unmap(x[iowner],image[iowner],unwrap);
     xx = &buf[m+1];
@@ -2439,7 +2441,7 @@ void FixRigidSmall::set_arrays(int i)
           relative to template in Molecule class
 ------------------------------------------------------------------------- */
 
-void FixRigidSmall::set_molecule(int nlocalprev, int tagprev, 
+void FixRigidSmall::set_molecule(int nlocalprev, tagint tagprev, 
                                  double *xgeom, double *vcm, double *quat)
 {
   int m;
@@ -2450,7 +2452,7 @@ void FixRigidSmall::set_molecule(int nlocalprev, int tagprev,
   if (nlocalprev == nlocal) return;
 
   double **x = atom->x;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
 
   for (int i = nlocalprev; i < nlocal; i++) {
     bodytag[i] = tagprev + onemol->comatom;
@@ -2510,7 +2512,7 @@ void FixRigidSmall::set_molecule(int nlocalprev, int tagprev,
 
 int FixRigidSmall::pack_exchange(int i, double *buf)
 {
-  buf[0] = bodytag[i];
+  buf[0] = ubuf(bodytag[i]).d;
   buf[1] = displace[i][0];
   buf[2] = displace[i][1];
   buf[3] = displace[i][2];
@@ -2554,7 +2556,7 @@ int FixRigidSmall::pack_exchange(int i, double *buf)
 
 int FixRigidSmall::unpack_exchange(int nlocal, double *buf)
 {
-  bodytag[nlocal] = static_cast<int> (buf[0]);
+  bodytag[nlocal] = (tagint) ubuf(buf[0]).i;
   displace[nlocal][0] = buf[1];
   displace[nlocal][1] = buf[2];
   displace[nlocal][2] = buf[3];
@@ -2839,7 +2841,6 @@ void FixRigidSmall::unpack_reverse_comm(int n, int *list, double *buf)
   int i,j,k;
   double *fcm,*torque,*vcm,*angmom,*xcm;
 
-  int *tag = atom->tag;
   int nlocal = atom->nlocal;
 
   int m = 0;
@@ -2940,8 +2941,8 @@ void FixRigidSmall::reset_atom2body()
       if (iowner == -1) {
         char str[128];
         sprintf(str,
-                "Rigid body atoms %d %d missing on proc %d at step " 
-                BIGINT_FORMAT,
+                "Rigid body atoms " TAGINT_FORMAT " " TAGINT_FORMAT 
+                " missing on proc %d at step " BIGINT_FORMAT,
                 atom->tag[i],bodytag[i],comm->me,update->ntimestep);
         error->one(FLERR,str);
         

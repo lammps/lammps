@@ -57,13 +57,16 @@ class AtomVecBond : public AtomVec {
   bigint memory_usage();
 
  private:
-  int *tag,*type,*mask;
+  tagint *tag;
+  int *type,*mask;
   imageint *image;
   double **x,**v,**f;
   int *molecule;
-  int **nspecial,**special;
+  int **nspecial;
+  tagint **special;
   int *num_bond;
-  int **bond_type,**bond_atom;
+  int **bond_type;
+  tagint **bond_atom;
 };
 
 }

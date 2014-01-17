@@ -841,8 +841,6 @@ void PairEDIP::coeff(int narg, char **arg)
 
 void PairEDIP::init_style()
 {
-  if (atom->tag_enable == 0)
-    error->all(FLERR,"Pair style EDIP requires atom IDs");
   if (force->newton_pair == 0)
     error->all(FLERR,"Pair style EDIP requires newton pair on");
 

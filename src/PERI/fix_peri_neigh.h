@@ -60,7 +60,7 @@ class FixPeriNeigh : public Fix {
   int first;                 // flag for first time initialization
   int maxpartner;            // max # of peridynamic neighs for any atom
   int *npartner;             // # of neighbors for each atom
-  int **partner;             // neighs for each atom, stored as global IDs
+  tagint **partner;          // neighs for each atom, stored as global IDs
   double **deviatorextention; // Deviatoric extention     
   double **deviatorBackextention; // Deviatoric back extention 
   double **r0;               // initial distance to partners

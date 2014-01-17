@@ -47,7 +47,7 @@ class FixBondBreak : public Fix {
 
   int breakcount,breakcounttotal;
   int nmax;
-  int *partner;
+  tagint *partner;
   double *distsq,*probability;
 
   class RanMars *random;

@@ -46,7 +46,8 @@ class PRD : protected Pointers {
   double time_start;
 
   MPI_Comm comm_replica;
-  int *tagall,*displacements,*imageall;
+  tagint *tagall;
+  int *displacements,*imageall;
   double **xall;
 
   int ncoincident;

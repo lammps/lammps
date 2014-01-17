@@ -53,7 +53,7 @@ class PairList : public Pair {
   };
 
   typedef struct {
-    int id1,id2;        // global atom ids
+    tagint id1,id2;        // global atom ids
     double cutsq;       // cutoff**2 for this pair
     double offset;      // energy offset
     union parm_u parm;  // parameters for style

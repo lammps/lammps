@@ -58,7 +58,7 @@ class FixBondCreate : public Fix {
 
   int nmax;
   int *bondcount;        // count of created bonds this atom is part of
-  int *partner;          // ID of preferred atom for this atom to bond to
+  tagint *partner;       // ID of preferred atom for this atom to bond to
   double *distsq;        // distance to preferred bond partner
   double *probability;   // random # to use in decision to form bond
 

@@ -115,7 +115,7 @@ void PairPeriVES::compute(int eflag, int vflag)
     ((FixPeriNeigh *) modify->fix[ifix_peri])->deviatorextention;
   double **deviatorBackextention = 
     ((FixPeriNeigh *) modify->fix[ifix_peri])->deviatorBackextention;
-  int **partner = ((FixPeriNeigh *) modify->fix[ifix_peri])->partner;
+  tagint **partner = ((FixPeriNeigh *) modify->fix[ifix_peri])->partner;
   int *npartner = ((FixPeriNeigh *) modify->fix[ifix_peri])->npartner;
   double *wvolume = ((FixPeriNeigh *) modify->fix[ifix_peri])->wvolume;
 
@@ -621,7 +621,7 @@ void PairPeriVES::compute_dilatation()
   double half_lc = 0.5*lc;
 
   double **r0   = ((FixPeriNeigh *) modify->fix[ifix_peri])->r0;
-  int **partner = ((FixPeriNeigh *) modify->fix[ifix_peri])->partner;
+  tagint **partner = ((FixPeriNeigh *) modify->fix[ifix_peri])->partner;
   int *npartner = ((FixPeriNeigh *) modify->fix[ifix_peri])->npartner;
   double *wvolume = ((FixPeriNeigh *) modify->fix[ifix_peri])->wvolume;
 

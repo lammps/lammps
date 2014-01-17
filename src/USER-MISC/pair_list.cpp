@@ -233,7 +233,9 @@ void PairList::settings(int narg, char **arg)
   // now read and parse pair list file for real
   npairs = 0;
   char *ptr;
-  int id1, id2, nharm=0, nmorse=0, nlj126=0;
+  tagint id1, id2;
+  int nharm=0, nmorse=0, nlj126=0;
+
   while(fgets(line,1024,fp)) {
     ptr = strtok(line," \t\n\r\f");
 
@@ -244,11 +246,11 @@ void PairList::settings(int narg, char **arg)
     if (*ptr == '#') continue;
 
     // get atom ids of pair
-    id1 = atoi(ptr);
+    id1 = ATOTAGINT(ptr);
     ptr = strtok(NULL," \t\n\r\f");
     if (!ptr)
       error->all(FLERR,"Incorrectly formatted pair list file");
-    id2 = atoi(ptr);
+    id2 = ATOTAGINT(ptr);
 
     // get potential type
     ptr = strtok(NULL," \t\n\r\f");

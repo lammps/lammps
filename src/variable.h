@@ -63,6 +63,7 @@ class Variable : protected Pointers {
     double value;          // single scalar  
     double *array;         // per-atom or per-type list of doubles
     int *iarray;           // per-atom list of ints
+    bigint *barray;        // per-atom list of bigints
     int type;              // operation, see enum{} in variable.cpp
     int nstride;           // stride between atoms if array is a 2d array
     int selfalloc;         // 1 if array is allocated here, else 0

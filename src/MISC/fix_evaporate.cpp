@@ -186,7 +186,7 @@ void FixEvaporate::pre_exchange()
 
   double **x = atom->x;
   int *mask = atom->mask;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int nlocal = atom->nlocal;
 
   int ncount = 0;

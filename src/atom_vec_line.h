@@ -84,7 +84,8 @@ class AtomVecLine : public AtomVec {
   void set_length(int, double);
 
  private:
-  int *tag,*type,*mask;
+  tagint *tag;
+  int *type,*mask;
   imageint *image;
   double **x,**v,**f;
   int *molecule;

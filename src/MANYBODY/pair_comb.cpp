@@ -125,7 +125,8 @@ PairComb::~PairComb()
 void PairComb::compute(int eflag, int vflag)
 {
   int i,j,k,ii,jj,kk,inum,jnum,iparam_i;
-  int itag,jtag,itype,jtype,ktype,iparam_ij,iparam_ijk;
+  int itype,jtype,ktype,iparam_ij,iparam_ijk;
+  tagint itag,jtag;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
   double rsq,rsq1,rsq2;
   double delr1[3],delr2[3],fi[3],fj[3],fk[3];
@@ -151,7 +152,7 @@ void PairComb::compute(int eflag, int vflag)
   double **x = atom->x;
   double **f = atom->f;
   double *q = atom->q;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int *type = atom->type;
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
@@ -1630,8 +1631,9 @@ void PairComb::field(Param *param, double rsq, double iq,double jq,
 
 double PairComb::yasu_char(double *qf_fix, int &igroup)
 {
-  int i,j,ii,jj,jnum,itag,jtag;
+  int i,j,ii,jj,jnum;
   int itype,jtype,iparam_i,iparam_ij;
+  tagint itag,jtag;
   double xtmp,ytmp,ztmp;
   double rsq1,delr1[3];
   int *ilist,*jlist,*numneigh,**firstneigh;
@@ -1643,7 +1645,7 @@ double PairComb::yasu_char(double *qf_fix, int &igroup)
   double **x = atom->x;
   double *q = atom->q;
   int *type = atom->type;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
 
   int inum = list->inum;
   ilist = list->ilist;

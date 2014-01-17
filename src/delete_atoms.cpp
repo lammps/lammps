@@ -85,7 +85,7 @@ void DeleteAtoms::command(int narg, char **arg)
   // set all atom IDs to 0, call tag_extend()
 
   if (atom->molecular == 0 && compress_flag) {
-    int *tag = atom->tag;
+    tagint *tag = atom->tag;
     for (i = 0; i < nlocal; i++) tag[i] = 0;
     atom->tag_extend();
   }
@@ -292,7 +292,7 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
   // at end of loop, there are no more overlaps
   // only ever delete owned atom I, never J even if owned
 
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int *mask = atom->mask;
   double **x = atom->x;
   double *special_coul = force->special_coul;

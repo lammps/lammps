@@ -860,12 +860,11 @@ void PairComb3::Short_neigh()
   int n,nj,*neighptrj,icontrol;
   int iparam_ij,iparam_ji,iparam_jk,*ilist,*jlist,*numneigh,**firstneigh;
   int inum,jnum,i,j,k,l,ii,jj,kk,ll,itype,jtype,ktype,ltype;
-  int itag, jtag;
+  tagint itag,jtag;
   double rr1,rr2,rsq1,rsq2,delrj[3],delrk[3];
   int sht_knum,*sht_klist;
 
   double **x = atom->x;
-  int *tag  = atom->tag;
   int *type  = atom->type;
   int ntype = atom->ntypes;
   int nlocal = atom->nlocal;
@@ -896,7 +895,6 @@ void PairComb3::Short_neigh()
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    itag = tag[i];
     dpl[i][0] = dpl[i][1] = dpl[i][2] = 0.0;
 
     nj = 0;
@@ -913,7 +911,6 @@ void PairComb3::Short_neigh()
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-      jtag = tag[j];
 
       delrj[0] = x[i][0] - x[j][0];
       delrj[1] = x[i][1] - x[j][1];
@@ -957,12 +954,13 @@ void PairComb3::Short_neigh()
 
 void PairComb3::compute(int eflag, int vflag)
 {
-  int i,ii,k,kk,j,jj,im,inum,jnum,itag,jtag,itype,jtype,ktype;
+  int i,ii,k,kk,j,jj,im,inum,jnum,itype,jtype,ktype;
   int iparam_i,iparam_ij,iparam_ji;
   int iparam_ijk,iparam_jik,iparam_ikj,iparam_jli,iparam_jki,iparam_ikl;
   int sht_jnum,*sht_jlist,sht_lnum,*sht_llist;
   int sht_mnum,*sht_mlist,sht_pnum,*sht_plist;
   int *ilist,*jlist,*numneigh,**firstneigh,mr1,mr2,mr3,inty,nj;
+  tagint itag,jtag;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
   double rr,rsq,rsq1,rsq2,rsq3,iq,jq,yaself;
   double fqi,fqij,eng_tmp,vionij,fvionij,sr1,sr2,sr3; 
@@ -975,7 +973,7 @@ void PairComb3::compute(int eflag, int vflag)
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
   int ntype = atom->ntypes;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int *type = atom->type;
   double **x = atom->x;
   double **f = atom->f;
@@ -1833,11 +1831,12 @@ void PairComb3::force_zeta(Param *parami, Param *paramj, double rsq,
   double boij, dbij1, dbij2, dbij3, dbij4, dbij5;
   double boji, dbji1, dbji2, dbji3, dbji4, dbji5;
   double pradx, prady;
+
   int inti=parami->ielement;
   int intj=paramj->ielement;
-  int *tag=atom->tag;
-  int itag=tag[i];
-  int jtag=tag[j];
+  tagint *tag=atom->tag;
+  tagint itag=tag[i];
+  tagint jtag=tag[j];
   r = sqrt(rsq);
 
   if (r > parami->bigr + parami->bigd) return;
@@ -3348,10 +3347,11 @@ void PairComb3::tor_force(int torindx, Param *paramk, Param *paraml,
 
 double PairComb3::combqeq(double *qf_fix, int &igroup)
 {
-  int i,j,ii, jj,itag,jtag,itype,jtype,jnum;
+  int i,j,ii,jj,itype,jtype,jnum;
   int iparam_i,iparam_ji,iparam_ij;
   int *ilist,*jlist,*numneigh,**firstneigh;
   int mr1,mr2,mr3,inty,nj;
+  tagint itag,jtag;
   double xtmp,ytmp,ztmp,rr,rsq,rsq1,rsq2,delrj[3],zeta_ij;
   double iq,jq,fqi,fqj,fqij,fqji,yaself,yaself_d,sr1,sr2,sr3;
   double rr_sw,ij_sw,ji_sw,fq_swi,fq_swj;
@@ -3360,7 +3360,7 @@ double PairComb3::combqeq(double *qf_fix, int &igroup)
   
   double **x = atom->x;
   double *q = atom->q;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int *type = atom->type;
   int inum = list->inum;
   int *mask = atom->mask;
@@ -3507,7 +3507,7 @@ double PairComb3::combqeq(double *qf_fix, int &igroup)
     i = ilist[ii];
     if (mask[i] & groupbit){
       eneg += qf[i];
-	  itag=tag[i];
+      itag=tag[i];
     }
   }
 

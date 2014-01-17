@@ -86,7 +86,8 @@ class AtomVecTri : public AtomVec {
   void set_equilateral(int, double);
 
  private:
-  int *tag,*type,*mask;
+  tagint *tag;
+  int *type,*mask;
   imageint *image;
   double **x,**v,**f;
   int *molecule;

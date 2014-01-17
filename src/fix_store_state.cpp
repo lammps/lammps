@@ -588,7 +588,7 @@ int FixStoreState::size_restart(int nlocal)
 
 void FixStoreState::pack_id(int n)
 {
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 

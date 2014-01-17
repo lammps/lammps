@@ -37,7 +37,8 @@ void Neighbor::granular_nsq_no_newton(NeighList *list)
   double *shearptr;
 
   NeighList *listgranhistory;
-  int *npartner,**partner;
+  int *npartner;
+  tagint **partner;
   double (**shearpartner)[3];
   int **firsttouch;
   double **firstshear;
@@ -46,7 +47,7 @@ void Neighbor::granular_nsq_no_newton(NeighList *list)
 
   double **x = atom->x;
   double *radius = atom->radius;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int *type = atom->type;
   int *mask = atom->mask;
   int *molecule = atom->molecule;
@@ -174,7 +175,7 @@ void Neighbor::granular_nsq_newton(NeighList *list)
 
   double **x = atom->x;
   double *radius = atom->radius;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int *type = atom->type;
   int *mask = atom->mask;
   int *molecule = atom->molecule;
@@ -264,7 +265,8 @@ void Neighbor::granular_bin_no_newton(NeighList *list)
   double *shearptr;
 
   NeighList *listgranhistory;
-  int *npartner,**partner;
+  int *npartner;
+  tagint **partner;
   double (**shearpartner)[3];
   int **firsttouch;
   double **firstshear;
@@ -279,7 +281,7 @@ void Neighbor::granular_bin_no_newton(NeighList *list)
 
   double **x = atom->x;
   double *radius = atom->radius;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int *type = atom->type;
   int *mask = atom->mask;
   int *molecule = atom->molecule;

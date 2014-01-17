@@ -22,6 +22,7 @@
 #include "irregular.h"
 #include "modify.h"
 #include "force.h"
+#include "special.h"
 #include "fix.h"
 #include "domain.h"
 #include "lattice.h"
@@ -121,7 +122,7 @@ void CreateAtoms::command(int narg, char **arg)
       else error->all(FLERR,"Illegal create_atoms command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"mol") == 0) {
-      if (iarg+3 > narg) error->all(FLERR,"Illegal fix create_atoms command");
+      if (iarg+3 > narg) error->all(FLERR,"Illegal create_atoms command");
       int imol = atom->find_molecule(arg[iarg+1]);
       if (imol == -1)
         error->all(FLERR,"Molecule ID for create_atoms does not exist");
@@ -152,20 +153,21 @@ void CreateAtoms::command(int narg, char **arg)
 
   ranmol = NULL;
   if (mode == MOLECULE) {
-    if (atom->molecule_flag == 0)
-      error->all(FLERR,"Create_atoms mol requires atom attribute molecule");
     if (onemol->xflag == 0)
       error->all(FLERR,"Create_atoms molecule must have coordinates");
     if (onemol->typeflag == 0)
       error->all(FLERR,"Create_atoms molecule must have atom types");
     if (ntype+onemol->maxtype <= 0 || ntype+onemol->maxtype > atom->ntypes)
       error->all(FLERR,"Invalid atom type in create_atoms mol command");
+    if (onemol->tag_require && !atom->tag_enable)
+      error->all(FLERR,
+                 "Create_atoms molecule has atom IDs, but system does not");
 
     // create_atoms uses geoemetric center of molecule for insertion
 
     onemol->compute_center();
 
-    // molecule random number generator, same for all procs
+    // molecule random number generator, different for each proc
     
     ranmol = new RanMars(lmp,molseed+comm->me);
   }
@@ -251,99 +253,88 @@ void CreateAtoms::command(int narg, char **arg)
         fix->set_arrays(i);
   }
 
-  // new total # of atoms and error check
-  // for MOLECULE mode, require atom IDs
+  // set new total # of atoms and error check
 
   bigint nblocal = atom->nlocal;
   MPI_Allreduce(&nblocal,&atom->natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
-  if (atom->natoms < 0 || atom->natoms > MAXBIGINT)
+  if (atom->natoms < 0 || atom->natoms >= MAXBIGINT)
     error->all(FLERR,"Too many total atoms");
-  if (atom->natoms > MAXSMALLINT) {
-    if (mode == ATOM) {
-      if (comm->me == 0) 
-        error->warning(FLERR,"Total atom count exceeds ID limit, "
-                       "atoms will not have individual IDs");
-      atom->tag_enable = 0;
-    } else error->all(FLERR,"Total atom count exceeds ID limit");
-  }
 
-  // for ATOM mode:
-  // add IDs for newly created atoms if IDs are still enabled
-  // if global map exists, reset it
+  // add IDs for newly created atoms
+  // check that atom IDs are valid
 
-  if (mode == ATOM) {
-    if (atom->natoms <= MAXSMALLINT) atom->tag_extend();
-    if (atom->map_style) {
-      atom->nghost = 0;
-      atom->map_init();
-      atom->map_set();
-    }
-  }
+  if (atom->tag_enable) atom->tag_extend();
+  atom->tag_check();
 
-  // for MOLECULE mode:
-  // set atom and molecule IDs for created atoms
-  // send atoms to new owning procs via irregular comm
-  //   since not all created atoms will be within my sub-domain
+  // if molecular system or user-requested, create global mapping of atoms
+  // zero nghost in case are adding new atoms to existing atoms
 
-  if (mode == MOLECULE) {
-
-    // add atom IDs for newly created atoms and reset global map
-    // global map must exist since atom->molecular is required to be set
-
-    atom->tag_extend();
+  if (atom->molecular || atom->map_user) {
     atom->nghost = 0;
     atom->map_init();
     atom->map_set();
-    
-    // maxmol = max molecule ID across all procs, for previous atoms
+  }
 
-    int *molecule = atom->molecule;
+  // for MOLECULE mode:
+  // set molecule IDs for created atoms if used
+  // reset new molecule bond,angle,etc and special values
+  // send atoms to new owning procs via irregular comm
+  //   since not all atoms I created will be within my sub-domain
+  // perform special list build if needed
 
-    int max = 0;
-    for (int i = 0; i < nlocal_previous; i++) max = MAX(max,molecule[i]);
-    int maxmol;
-    MPI_Allreduce(&max,&maxmol,1,MPI_INT,MPI_MAX,world);
-    
+  if (mode == MOLECULE) {
+
     // molcreate = # of molecules I created
+
+    int molcreate = (atom->nlocal - nlocal_previous) / onemol->natoms;
+
+    // maxmol = max molecule ID across all procs, for previous atoms
     // moloffset = max molecule ID for all molecules owned by previous procs
     //             including molecules existing before this creation
 
-    int molcreate = (atom->nlocal - nlocal_previous) / onemol->natoms;
     int moloffset;
-    MPI_Scan(&molcreate,&moloffset,1,MPI_INT,MPI_SUM,world);
-    moloffset = moloffset - molcreate + maxmol;
+    int *molecule = atom->molecule;
+    if (molecule) {
+      int max = 0;
+      for (int i = 0; i < nlocal_previous; i++) max = MAX(max,molecule[i]);
+      int maxmol;
+      MPI_Allreduce(&max,&maxmol,1,MPI_INT,MPI_MAX,world);
+      MPI_Scan(&molcreate,&moloffset,1,MPI_INT,MPI_SUM,world);
+      moloffset = moloffset - molcreate + maxmol;
+    }
 
     // loop over molecules I created
     // set their molecule ID
     // reset their bond,angle,etc and special values
 
     int natoms = onemol->natoms;
+    tagint offset = 0;
 
-    int *tag = atom->tag;
+    tagint *tag = atom->tag;
     int *num_bond = atom->num_bond;
     int *num_angle = atom->num_angle;
     int *num_dihedral = atom->num_dihedral;
     int *num_improper = atom->num_improper;
-    int **bond_atom = atom->bond_atom;
-    int **angle_atom1 = atom->angle_atom1;
-    int **angle_atom2 = atom->angle_atom2;
-    int **angle_atom3 = atom->angle_atom3;
-    int **dihedral_atom1 = atom->dihedral_atom1;
-    int **dihedral_atom2 = atom->dihedral_atom2;
-    int **dihedral_atom3 = atom->dihedral_atom3;
-    int **dihedral_atom4 = atom->dihedral_atom4;
-    int **improper_atom1 = atom->improper_atom1;
-    int **improper_atom2 = atom->improper_atom2;
-    int **improper_atom3 = atom->improper_atom3;
-    int **improper_atom4 = atom->improper_atom4;
+    tagint **bond_atom = atom->bond_atom;
+    tagint **angle_atom1 = atom->angle_atom1;
+    tagint **angle_atom2 = atom->angle_atom2;
+    tagint **angle_atom3 = atom->angle_atom3;
+    tagint **dihedral_atom1 = atom->dihedral_atom1;
+    tagint **dihedral_atom2 = atom->dihedral_atom2;
+    tagint **dihedral_atom3 = atom->dihedral_atom3;
+    tagint **dihedral_atom4 = atom->dihedral_atom4;
+    tagint **improper_atom1 = atom->improper_atom1;
+    tagint **improper_atom2 = atom->improper_atom2;
+    tagint **improper_atom3 = atom->improper_atom3;
+    tagint **improper_atom4 = atom->improper_atom4;
     int **nspecial = atom->nspecial;
-    int **special = atom->special;
+    tagint **special = atom->special;
 
     int ilocal = nlocal_previous;
     for (int i = 0; i < molcreate; i++) {
-      int offset = tag[ilocal]-1;
+      if (tag) offset = tag[ilocal]-1;
       for (int m = 0; m < natoms; m++) {
-        molecule[ilocal] = moloffset + i+1;
+        if (molecule) molecule[ilocal] = moloffset + i+1;
         if (onemol->bondflag)
           for (int j = 0; j < num_bond[ilocal]; j++)
             bond_atom[ilocal][j] += offset;
@@ -404,6 +395,17 @@ void CreateAtoms::command(int narg, char **arg)
       fprintf(logfile,"Created " BIGINT_FORMAT " atoms\n",
               atom->natoms-natoms_previous);
   }
+
+  // for MOLECULE mode:
+  // create special bond lists for molecular systems
+  // only if onemol added bonds but not special info
+
+  if (mode == MOLECULE) {
+    if (atom->molecular && onemol->bondflag && !onemol->specialflag) {
+      Special special(lmp);
+      special.build();
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -438,7 +440,6 @@ void CreateAtoms::add_single()
     else add_molecule(xone);
   }
 }
-
 
 /* ----------------------------------------------------------------------
    add Nrandom atoms at random locations

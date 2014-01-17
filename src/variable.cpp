@@ -60,7 +60,7 @@ enum{DONE,ADD,SUBTRACT,MULTIPLY,DIVIDE,CARAT,MODULO,UNARY,
      SQRT,EXP,LN,LOG,ABS,SIN,COS,TAN,ASIN,ACOS,ATAN,ATAN2,
      RANDOM,NORMAL,CEIL,FLOOR,ROUND,RAMP,STAGGER,LOGFREQ,STRIDE,
      VDISPLACE,SWIGGLE,CWIGGLE,GMASK,RMASK,GRMASK,
-     VALUE,ATOMARRAY,TYPEARRAY,INTARRAY};
+     VALUE,ATOMARRAY,TYPEARRAY,INTARRAY,BIGINTARRAY};
 
 // customize by adding a special function
 
@@ -1685,7 +1685,8 @@ double Variable::evaluate(char *str, Tree **tree)
 /* ----------------------------------------------------------------------
    one-time collapse of an atom-style variable parse tree
    tree was created by one-time parsing of formula string via evaulate()
-   only keep tree nodes that depend on ATOMARRAY, TYPEARRAY, INTARRAY
+   only keep tree nodes that depend on 
+     ATOMARRAY, TYPEARRAY, INTARRAY, BIGINTARRAY
    remainder is converted to single VALUE
    this enables optimal eval_tree loop over atoms
    customize by adding a function:
@@ -1704,6 +1705,7 @@ double Variable::collapse_tree(Tree *tree)
   if (tree->type == ATOMARRAY) return 0.0;
   if (tree->type == TYPEARRAY) return 0.0;
   if (tree->type == INTARRAY) return 0.0;
+  if (tree->type == BIGINTARRAY) return 0.0;
 
   if (tree->type == ADD) {
     arg1 = collapse_tree(tree->left);
@@ -2149,6 +2151,7 @@ double Variable::eval_tree(Tree *tree, int i)
   if (tree->type == ATOMARRAY) return tree->array[i*tree->nstride];
   if (tree->type == TYPEARRAY) return tree->array[atom->type[i]];
   if (tree->type == INTARRAY) return (double) tree->iarray[i*tree->nstride];
+  if (tree->type == BIGINTARRAY) return (double) tree->barray[i*tree->nstride];
 
   if (tree->type == ADD)
     return eval_tree(tree->left,i) + eval_tree(tree->right,i);
@@ -3510,9 +3513,14 @@ void Variable::atom_vector(char *word, Tree **tree,
   treestack[ntreestack++] = newtree;
 
   if (strcmp(word,"id") == 0) {
-    newtree->type = INTARRAY;
+    if (sizeof(tagint) == sizeof(smallint)) {
+      newtree->type = INTARRAY;
+      newtree->iarray = (int *) atom->tag;
+    } else {
+      newtree->type = BIGINTARRAY;
+      newtree->barray = (bigint *) atom->tag;
+    }
     newtree->nstride = 1;
-    newtree->iarray = atom->tag;
   } else if (strcmp(word,"mass") == 0) {
     if (atom->rmass) {
       newtree->nstride = 1;
@@ -3998,7 +4006,8 @@ int VarReader::read_scalar(char *str)
 
 int VarReader::read_peratom()
 {
-  int i,m,n,tagdata,nchunk,eof;
+  int i,m,n,nchunk,eof;
+  tagint tag;
   char *ptr,*next;
   double value;
 
@@ -4031,7 +4040,7 @@ int VarReader::read_peratom()
 
   MPI_Bcast(str,n,MPI_CHAR,0,world);
   bigint nlines = ATOBIGINT(str);
-  int map_tag_max = atom->map_tag_max;
+  tagint map_tag_max = atom->map_tag_max;
 
   bigint nread = 0;
   while (nread < nlines) {
@@ -4043,10 +4052,10 @@ int VarReader::read_peratom()
     for (i = 0; i < nchunk; i++) {
       next = strchr(buf,'\n');
       *next = '\0';
-      sscanf(buf,"%d %lg",&tagdata,&value);
-      if (tagdata <= 0 || tagdata > map_tag_max)
+      sscanf(buf,TAGINT_FORMAT " %lg",&tag,&value);
+      if (tag <= 0 || tag > map_tag_max)
         error->one(FLERR,"Invalid atom ID in variable file");
-      if ((m = atom->map(tagdata)) >= 0) vstore[m] = value;
+      if ((m = atom->map(tag)) >= 0) vstore[m] = value;
       buf = next + 1;
     }
 

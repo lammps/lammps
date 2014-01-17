@@ -572,10 +572,12 @@ void FixSRD::pre_neighbor()
 
           if (jx < 0 || jx >= nbin2x || jy < 0 || jy >= nbin2y ||
               jz < 0 || jz >= nbin2z) {
-            printf("Big particle %d %d %g %g %g\n",
-                   atom->tag[i],i,x[i][0],x[i][1],x[i][2]);
-            printf("Bin indices: %d %d %d, %d %d %d, %d %d %d\n",
-                   ix,iy,iz,jx,jy,jz,nbin2x,nbin2y,nbin2z);
+            if (screen) {
+              fprintf(screen,"Big particle " TAGINT_FORMAT " %d %g %g %g\n",
+                      atom->tag[i],i,x[i][0],x[i][1],x[i][2]);
+              fprintf(screen,"Bin indices: %d %d %d, %d %d %d, %d %d %d\n",
+                      ix,iy,iz,jx,jy,jz,nbin2x,nbin2y,nbin2z);
+            }
             error->one(FLERR,"Fix SRD: bad stencil bin for big particle");
           }
           rsq = point_bin_distance(x[i],jx,jy,jz);
@@ -742,7 +744,8 @@ void FixSRD::post_force(int vflag)
         if (ix < 0 || ix >= nbin2x || iy < 0 || iy >= nbin2y ||
             iz < 0 || iz >= nbin2z) {
           if (screen) {
-            fprintf(screen,"SRD particle %d on step " BIGINT_FORMAT "\n",
+            fprintf(screen,"SRD particle " TAGINT_FORMAT 
+                    " on step " BIGINT_FORMAT "\n",
                     atom->tag[i],update->ntimestep);
             fprintf(screen,"v = %g %g %g\n",v[i][0],v[i][1],v[i][2]);
             fprintf(screen,"x = %g %g %g\n",x[i][0],x[i][1],x[i][2]);
@@ -1224,15 +1227,15 @@ void FixSRD::collisions_single()
               char str[128];
               if (type != WALL)
                 sprintf(str,
-                        "SRD particle %d started "
-                        "inside big particle %d on step " BIGINT_FORMAT
-                        " bounce %d",
+                        "SRD particle " TAGINT_FORMAT " started "
+                        "inside big particle " TAGINT_FORMAT 
+                        " on step " BIGINT_FORMAT " bounce %d",
                         atom->tag[i],atom->tag[j],update->ntimestep,ibounce+1);
               else
                 sprintf(str,
-                        "SRD particle %d started "
-                        "inside big particle %d on step " BIGINT_FORMAT
-                        " bounce %d",
+                        "SRD particle " TAGINT_FORMAT " started "
+                        "inside big particle " TAGINT_FORMAT 
+                        " on step " BIGINT_FORMAT " bounce %d",
                         atom->tag[i],atom->tag[j],update->ntimestep,ibounce+1);
               if (insideflag == INSIDE_ERROR) error->one(FLERR,str);
               error->warning(FLERR,str);
@@ -1380,9 +1383,9 @@ void FixSRD::collisions_multi()
             if (insideflag == INSIDE_ERROR || insideflag == INSIDE_WARN) {
               char str[128];
               sprintf(str,
-                      "SRD particle %d started "
-                      "inside big particle %d on step " BIGINT_FORMAT
-                      " bounce %d",
+                      "SRD particle " TAGINT_FORMAT " started "
+                      "inside big particle " TAGINT_FORMAT 
+                      " on step " BIGINT_FORMAT " bounce %d",
                       atom->tag[i],atom->tag[j],update->ntimestep,ibounce+1);
               if (insideflag == INSIDE_ERROR) error->one(FLERR,str);
               error->warning(FLERR,str);
@@ -2381,7 +2384,8 @@ int FixSRD::update_srd(int i, double dt, double *xscoll, double *vsnew,
       xs[2] < srdlo[2] || xs[2] > srdhi[2]) {
     if (screen) {
       error->warning(FLERR,"Fix srd particle moved outside valid domain");
-      fprintf(screen,"  particle %d on proc %d at timestep " BIGINT_FORMAT,
+      fprintf(screen,"  particle " TAGINT_FORMAT 
+              " on proc %d at timestep " BIGINT_FORMAT,
               atom->tag[i],me,update->ntimestep);
       fprintf(screen,"  xnew %g %g %g\n",xs[0],xs[1],xs[2]);
       fprintf(screen,"  srdlo/hi x %g %g\n",srdlo[0],srdhi[0]);
@@ -3883,7 +3887,8 @@ void FixSRD::print_collision(int i, int j, int ibounce,
   double **v = atom->v;
 
   if (type != WALL) {
-    printf("COLLISION between SRD %d and BIG %d\n",atom->tag[i],atom->tag[j]);
+    printf("COLLISION between SRD " TAGINT_FORMAT 
+           " and BIG " TAGINT_FORMAT "\n",atom->tag[i],atom->tag[j]);
     printf("  bounce # = %d\n",ibounce+1);
     printf("  local indices: %d %d\n",i,j);
     printf("  timestep = %g\n",dt);
@@ -3928,7 +3933,8 @@ void FixSRD::print_collision(int i, int j, int ibounce,
   } else {
     int dim = wallwhich[j] / 2;
 
-    printf("COLLISION between SRD %d and WALL %d\n",atom->tag[i],j);
+    printf("COLLISION between SRD " TAGINT_FORMAT " and WALL %d\n",
+           atom->tag[i],j);
     printf("  bounce # = %d\n",ibounce+1);
     printf("  local indices: %d %d\n",i,j);
     printf("  timestep = %g\n",dt);

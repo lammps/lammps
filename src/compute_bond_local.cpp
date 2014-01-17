@@ -122,9 +122,9 @@ int ComputeBondLocal::compute_bonds(int flag)
 
   double **x = atom->x;
   int *num_bond = atom->num_bond;
-  int **bond_atom = atom->bond_atom;
+  tagint **bond_atom = atom->bond_atom;
   int **bond_type = atom->bond_type;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   int newton_bond = force->newton_bond;

@@ -402,29 +402,29 @@ void Molecule::read(int flag)
     } else if (strcmp(keyword,"Bonds") == 0) {
       if (nbonds == 0)
 	error->all(FLERR,"Molecule file has bonds but no nbonds setting");
-      bondflag = 1;
+      bondflag = tag_require = 1;
       bonds(flag,line);
     } else if (strcmp(keyword,"Angles") == 0) {
       if (nangles == 0) 
 	error->all(FLERR,"Molecule file has angles but no nangles setting");
-      angleflag = 1;
+      angleflag = tag_require = 1;
       angles(flag,line);
     } else if (strcmp(keyword,"Dihedrals") == 0) {
       if (ndihedrals == 0) error->all(FLERR,"Molecule file has dihedrals "
 				      "but no ndihedrals setting");
-      dihedralflag = 1;
+      dihedralflag = tag_require = 1;
       dihedrals(flag,line);
     } else if (strcmp(keyword,"Impropers") == 0) {
       if (nimpropers == 0) error->all(FLERR,"Molecule file has impropers "
 				      "but no nimpropers setting");
-      improperflag = 1;
+      improperflag = tag_require = 1;
       impropers(flag,line);
 
     } else if (strcmp(keyword,"Special Bond Counts") == 0) {
       nspecialflag = 1;
       nspecial_read(flag,line);
     } else if (strcmp(keyword,"Special Bonds") == 0) {
-      specialflag = 1;
+      specialflag = tag_require = 1;
       if (flag) special_read(line);
       else skip_lines(natoms,line);
 
@@ -433,7 +433,7 @@ void Molecule::read(int flag)
       if (flag) shakeflag_read(line);
       else skip_lines(natoms,line);
     } else if (strcmp(keyword,"Shake Atoms") == 0) {
-      shakeatomflag = 1;
+      shakeatomflag = tag_require = 1;
       if (shaketypeflag) shakeflag = 1;
       if (!shakeflagflag) 
 	error->all(FLERR,"Molecule file shake flags not before shake atoms");
@@ -1007,6 +1007,7 @@ void Molecule::initialize()
   shakeflag = shakeflagflag = shakeatomflag = shaketypeflag = 0;
 
   centerflag = massflag = comflag = inertiaflag = 0;
+  tag_require = 0;
 
   x = NULL;
   type = NULL;

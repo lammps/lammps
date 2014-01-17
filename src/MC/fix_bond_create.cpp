@@ -235,7 +235,7 @@ void FixBondCreate::setup(int vflag)
 
   int *num_bond = atom->num_bond;
   int **bond_type = atom->bond_type;
-  int **bond_atom = atom->bond_atom;
+  tagint **bond_atom = atom->bond_atom;
   int nlocal = atom->nlocal;
   int nghost = atom->nghost;
   int nall = nlocal + nghost;
@@ -269,7 +269,8 @@ void FixBondCreate::post_integrate()
 {
   int i,j,m,ii,jj,inum,jnum,itype,jtype,n1,n3,possible;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
-  int *ilist,*jlist,*numneigh,**firstneigh,*slist;
+  int *ilist,*jlist,*numneigh,**firstneigh;
+  tagint *slist;
 
   if (update->ntimestep % nevery) return;
 
@@ -307,7 +308,7 @@ void FixBondCreate::post_integrate()
   // each atom sets one closest eligible partner atom ID to bond with
 
   double **x = atom->x;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int *mask = atom->mask;
   int *type = atom->type;
 
@@ -385,10 +386,10 @@ void FixBondCreate::post_integrate()
   // and probability constraint is satisfied
 
   int **bond_type = atom->bond_type;
-  int **bond_atom = atom->bond_atom;
+  tagint **bond_atom = atom->bond_atom;
   int *num_bond = atom->num_bond;
   int **nspecial = atom->nspecial;
-  int **special = atom->special;
+  tagint **special = atom->special;
   int newton_bond = force->newton_bond;
 
   int ncreate = 0;
@@ -506,7 +507,7 @@ void FixBondCreate::unpack_comm(int n, int first, double *buf)
 
   } else {
     for (i = first; i < last; i++) {
-      partner[i] = static_cast<int> (buf[m++]);
+      partner[i] = static_cast<tagint> (buf[m++]);
       probability[i] = buf[m++];
     }
   }
@@ -554,7 +555,7 @@ void FixBondCreate::unpack_reverse_comm(int n, int *list, double *buf)
       j = list[i];
       if (buf[m] < distsq[j]) {
         distsq[j] = buf[m++];
-        partner[j] = static_cast<int> (buf[m++]);
+        partner[j] = static_cast<tagint> (buf[m++]);
       } else m += 2;
     }
   }

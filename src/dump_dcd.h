@@ -39,7 +39,7 @@ class DumpDCD : public Dump {
   void init_style();
   void openfile();
   void write_header(bigint);
-  void pack(int *);
+  void pack(tagint *);
   void write_data(int, double *);
   int modify_param(int, char **);
   bigint memory_usage();

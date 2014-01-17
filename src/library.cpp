@@ -315,7 +315,7 @@ void *lammps_extract_fix(void *ptr, char *id, int style, int type,
      which the caller can cast to a (double *) which points to the values
    returns a NULL if name is not recognized or not equal-style or atom-style
    IMPORTANT: for both equal-style and atom-style variables,
-     this function allocates memory to store the variable data,
+     this function allocates memory to store the variable data in
      so the caller must free this memory to avoid a leak
      e.g. for equal-style variables
        double *dptr = (double *) lammps_extract_variable();
@@ -412,7 +412,7 @@ void lammps_gather_atoms(void *ptr, char *name,
     lmp->memory->create(copy,count*natoms,"lib/gather:copy");
     for (i = 0; i < count*natoms; i++) copy[i] = 0;
 
-    int *tag = lmp->atom->tag;
+    tagint *tag = lmp->atom->tag;
     int nlocal = lmp->atom->nlocal;
 
     if (count == 1)
@@ -438,7 +438,7 @@ void lammps_gather_atoms(void *ptr, char *name,
     lmp->memory->create(copy,count*natoms,"lib/gather:copy");
     for (i = 0; i < count*natoms; i++) copy[i] = 0.0;
 
-    int *tag = lmp->atom->tag;
+    tagint *tag = lmp->atom->tag;
     int nlocal = lmp->atom->nlocal;
 
     if (count == 1) {

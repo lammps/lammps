@@ -32,9 +32,9 @@ void Neighbor::full_nsq(NeighList *list)
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr;
 
-  int **special = atom->special;
+  tagint **special = atom->special;
   int **nspecial = atom->nspecial;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
 
   double **x = atom->x;
   int *type = atom->type;
@@ -115,9 +115,9 @@ void Neighbor::full_nsq_ghost(NeighList *list)
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr;
 
-  int **special = atom->special;
+  tagint **special = atom->special;
   int **nspecial = atom->nspecial;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
 
   double **x = atom->x;
   int *type = atom->type;
@@ -212,9 +212,9 @@ void Neighbor::full_bin(NeighList *list)
 
   bin_atoms();
 
-  int **special = atom->special;
+  tagint **special = atom->special;
   int **nspecial = atom->nspecial;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
 
   double **x = atom->x;
   int *type = atom->type;
@@ -303,9 +303,9 @@ void Neighbor::full_bin_ghost(NeighList *list)
 
   bin_atoms();
 
-  int **special = atom->special;
+  tagint **special = atom->special;
   int **nspecial = atom->nspecial;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
 
   double **x = atom->x;
   int *type = atom->type;
@@ -424,9 +424,9 @@ void Neighbor::full_multi(NeighList *list)
 
   // loop over each atom, storing neighbors
 
-  int **special = atom->special;
+  tagint **special = atom->special;
   int **nspecial = atom->nspecial;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
 
   double **x = atom->x;
   int *type = atom->type;

@@ -54,7 +54,7 @@ namespace LAMMPS_NS {
 #define SBBITS 30
 #define NEIGHMASK 0x3FFFFFFF
 
-// default to 32-bit smallint and tagint, 64-bit bigint
+// default to 32-bit smallint and other ints, 64-bit bigint
 
 #if !defined(LAMMPS_SMALLSMALL) && !defined(LAMMPS_BIGBIG) && !defined(LAMMPS_SMALLBIG)
 #define LAMMPS_SMALLBIG
@@ -71,7 +71,7 @@ namespace LAMMPS_NS {
 #endif
 
 // for atomic problems that exceed 2 billion (2^31) atoms
-// 32-bit smallint and imageint and tagint, 64-bit bigint
+// 32-bit smallint/imageint/tagint, 64-bit bigint
 
 #ifdef LAMMPS_SMALLBIG
 
@@ -84,6 +84,7 @@ typedef int64_t bigint;
 #define MAXTAGINT INT_MAX
 #define MAXBIGINT INT64_MAX
 
+#define MPI_LMP_TAGINT MPI_INT
 #define MPI_LMP_BIGINT MPI_LL
 
 #define TAGINT_FORMAT "%d"
@@ -101,7 +102,7 @@ typedef int64_t bigint;
 
 // for molecular problems that exceed 2 billion (2^31) atoms
 // or problems where atoms wrap around the periodic box more than 512 times
-// 32-bit smallint, 64-bit imageint and tagint and bigint
+// 32-bit smallint, 64-bit imageint/tagint/bigint
 
 #ifdef LAMMPS_BIGBIG
 
@@ -114,6 +115,7 @@ typedef int64_t bigint;
 #define MAXTAGINT INT64_MAX
 #define MAXBIGINT INT64_MAX
 
+#define MPI_LMP_TAGINT MPI_LL
 #define MPI_LMP_BIGINT MPI_LL
 
 #define TAGINT_FORMAT "%" PRId64
@@ -130,7 +132,7 @@ typedef int64_t bigint;
 #endif
 
 // for machines that do not support 64-bit ints
-// 32-bit smallint and imageint and tagint and bigint
+// 32-bit smallint/imageint/tagint/bigint
 
 #ifdef LAMMPS_SMALLSMALL
 
@@ -143,6 +145,7 @@ typedef int bigint;
 #define MAXTAGINT INT_MAX
 #define MAXBIGINT INT_MAX
 
+#define MPI_LMP_TAGINT MPI_INT
 #define MPI_LMP_BIGINT MPI_INT
 
 #define TAGINT_FORMAT "%d"

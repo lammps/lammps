@@ -77,8 +77,9 @@ PairNb3bHarmonic::~PairNb3bHarmonic()
 
 void PairNb3bHarmonic::compute(int eflag, int vflag)
 {
-  int i,j,k,ii,jj,kk,inum,jnum,jnumm1,itag,jtag;
+  int i,j,k,ii,jj,kk,inum,jnum,jnumm1;
   int itype,jtype,ktype,ijparam,ikparam,ijkparam;
+  tagint itag,jtag;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double rsq,rsq1,rsq2;
   double delr1[3],delr2[3],fj[3],fk[3];
@@ -90,7 +91,7 @@ void PairNb3bHarmonic::compute(int eflag, int vflag)
 
   double **x = atom->x;
   double **f = atom->f;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int *type = atom->type;
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;

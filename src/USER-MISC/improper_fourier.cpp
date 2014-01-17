@@ -157,8 +157,9 @@ void ImproperFourier::addone(const int &i1,const int &i2,const int &i3,const int
     MPI_Comm_rank(world,&me);
     if (screen) {
       char str[128];
-      sprintf(str,
-              "Improper problem: %d " BIGINT_FORMAT " %d %d %d %d",
+      sprintf(str,"Improper problem: %d " BIGINT_FORMAT " " 
+              TAGINT_FORMAT " " TAGINT_FORMAT " " 
+              TAGINT_FORMAT " " TAGINT_FORMAT,
               me,update->ntimestep,
               atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
       error->warning(FLERR,str,0);

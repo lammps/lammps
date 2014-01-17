@@ -212,7 +212,6 @@ void FixQEQComb::post_force(int vflag)
 
   double *q = atom->q;
   int *mask = atom->mask;
-  int *tag = atom->tag;
   int nlocal = atom->nlocal;
 
  if (comb) {

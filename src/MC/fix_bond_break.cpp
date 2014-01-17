@@ -155,7 +155,7 @@ void FixBondBreak::post_integrate()
 {
   int i,j,k,m,n,i1,i2,n1,n3,type;
   double delx,dely,delz,rsq;
-  int *slist;
+  tagint *slist;
 
   if (update->ntimestep % nevery) return;
 
@@ -188,7 +188,7 @@ void FixBondBreak::post_integrate()
   // setup possible partner list of bonds to break
 
   double **x = atom->x;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int *mask = atom->mask;
   int **bondlist = neighbor->bondlist;
   int nbondlist = neighbor->nbondlist;
@@ -237,10 +237,10 @@ void FixBondBreak::post_integrate()
   // and probability constraint is satisfied
 
   int **bond_type = atom->bond_type;
-  int **bond_atom = atom->bond_atom;
+  tagint **bond_atom = atom->bond_atom;
   int *num_bond = atom->num_bond;
   int **nspecial = atom->nspecial;
-  int **special = atom->special;
+  tagint **special = atom->special;
 
   int nbreak = 0;
   for (i = 0; i < nlocal; i++) {
@@ -333,7 +333,7 @@ void FixBondBreak::unpack_comm(int n, int first, double *buf)
   m = 0;
   last = first + n;
   for (i = first; i < last; i++) {
-    partner[i] = static_cast<int> (buf[m++]);
+    partner[i] = static_cast<tagint> (buf[m++]);
     probability[i] = buf[m++];
   }
 }
@@ -363,7 +363,7 @@ void FixBondBreak::unpack_reverse_comm(int n, int *list, double *buf)
   for (i = 0; i < n; i++) {
     j = list[i];
     if (buf[m+1] > distsq[j]) {
-      partner[j] = static_cast<int> (buf[m++]);
+      partner[j] = static_cast<tagint> (buf[m++]);
       distsq[j] = buf[m++];
     } else m += 2;
   }

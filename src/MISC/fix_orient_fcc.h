@@ -28,7 +28,7 @@ class FixOrientFCC : public Fix {
  public:
   struct Nbr {              // neighbor info for each owned and ghost atom
     int n;                  // # of closest neighbors (up to 12)
-    int id[12];             // IDs of each neighbor
+    tagint id[12];          // IDs of each neighbor
                             // if center atom is owned, these are local IDs
                             // if center atom is ghost, these are global IDs
     double xismooth[12];    // distance weighting factor for each neighbors
@@ -37,7 +37,7 @@ class FixOrientFCC : public Fix {
   };
 
   struct Sort {             // data structure for sorting to find 12 closest
-    int id;                 // ID of neighbor atom
+    int id;                 // local ID of neighbor atom
     double rsq;             // distance between center and neighbor atom
     double delta[3];        // displacement between center and neighbor atom
     double xismooth;        // distance weighting factor

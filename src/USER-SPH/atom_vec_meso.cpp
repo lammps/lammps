@@ -578,7 +578,7 @@ void AtomVecMeso::unpack_border(int n, int first, double *buf) {
     x[i][0] = buf[m++];
     x[i][1] = buf[m++];
     x[i][2] = buf[m++];
-    tag[i] = (int) ubuf(buf[m++]).i;
+    tag[i] = (tagint) ubuf(buf[m++]).i;
     type[i] = (int) ubuf(buf[m++]).i;
     mask[i] = (int) ubuf(buf[m++]).i;
     rho[i] = buf[m++];
@@ -609,7 +609,7 @@ void AtomVecMeso::unpack_border_vel(int n, int first, double *buf) {
     x[i][0] = buf[m++];
     x[i][1] = buf[m++];
     x[i][2] = buf[m++];
-    tag[i] = (int) ubuf(buf[m++]).i;
+    tag[i] = (tagint) ubuf(buf[m++]).i;
     type[i] = (int) ubuf(buf[m++]).i;
     mask[i] = (int) ubuf(buf[m++]).i;
     v[i][0] = buf[m++];
@@ -677,7 +677,7 @@ int AtomVecMeso::unpack_exchange(double *buf) {
   v[nlocal][0] = buf[m++];
   v[nlocal][1] = buf[m++];
   v[nlocal][2] = buf[m++];
-  tag[nlocal] = (int) ubuf(buf[m++]).i;
+  tag[nlocal] = (tagint) ubuf(buf[m++]).i;
   type[nlocal] = (int) ubuf(buf[m++]).i;
   mask[nlocal] = (int) ubuf(buf[m++]).i;
   image[nlocal] = (imageint) ubuf(buf[m++]).i;
@@ -765,7 +765,7 @@ int AtomVecMeso::unpack_restart(double *buf) {
   x[nlocal][0] = buf[m++];
   x[nlocal][1] = buf[m++];
   x[nlocal][2] = buf[m++];
-  tag[nlocal] = (int) ubuf(buf[m++]).i;
+  tag[nlocal] = (tagint) ubuf(buf[m++]).i;
   type[nlocal] = (int) ubuf(buf[m++]).i;
   mask[nlocal] = (int) ubuf(buf[m++]).i;
   image[nlocal] = (imageint) ubuf(buf[m++]).i;
@@ -830,13 +830,9 @@ void AtomVecMeso::create_atom(int itype, double *coord) {
 
 void AtomVecMeso::data_atom(double *coord, imageint imagetmp, char **values) {
   int nlocal = atom->nlocal;
-  if (nlocal == nmax)
-    grow(0);
+  if (nlocal == nmax) grow(0);
 
-  tag[nlocal] = atoi(values[0]);
-  if (tag[nlocal] <= 0)
-    error->one(FLERR,"Invalid atom ID in Atoms section of data file");
-
+  tag[nlocal] = ATOTAGINT(values[0]);
   type[nlocal] = atoi(values[1]);
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
     error->one(FLERR,"Invalid atom type in Atoms section of data file");
@@ -923,9 +919,10 @@ int AtomVecMeso::pack_data_hybrid(int i, double *buf)
 void AtomVecMeso::write_data(FILE *fp, int n, double **buf)
 {
   for (int i = 0; i < n; i++)
-    fprintf(fp,"%d %d %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e "
+    fprintf(fp,TAGINT_FORMAT 
+            " %d %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e "
             "%d %d %d\n",
-            (int) ubuf(buf[i][0]).i,(int) ubuf(buf[i][1]).i,
+            (tagint) ubuf(buf[i][0]).i,(int) ubuf(buf[i][1]).i,
             buf[i][2],buf[i][3],buf[i][4],
             buf[i][5],buf[i][6],buf[i][7],
             (int) ubuf(buf[i][8]).i,(int) ubuf(buf[i][9]).i,

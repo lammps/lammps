@@ -120,7 +120,7 @@ void ComputeClusterAtom::compute_peratom()
 
   // every atom starts in its own cluster, with clusterID = atomID
 
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int *mask = atom->mask;
 
   for (ii = 0; ii < inum; ii++) {

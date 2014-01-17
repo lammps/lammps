@@ -40,7 +40,7 @@ class FixShake : public Fix {
   void copy_arrays(int, int, int);
   void set_arrays(int);
   void update_arrays(int, int);
-  void set_molecule(int, int, double *, double *, double *);
+  void set_molecule(int, tagint, double *, double *, double *);
 
   int pack_exchange(int, double *);
   int unpack_exchange(int, double *);
@@ -79,7 +79,7 @@ class FixShake : public Fix {
   int *shake_flag;                       // 0 if atom not in SHAKE cluster
                                          // 1 = size 3 angle cluster
                                          // 2,3,4 = size of bond-only cluster
-  int **shake_atom;                      // global IDs of atoms in cluster
+  tagint **shake_atom;                   // global IDs of atoms in cluster
                                          // central atom is 1st
                                          // lowest global ID is 1st for size 2
   int **shake_type;                      // bondtype of each bond in cluster
@@ -115,8 +115,8 @@ class FixShake : public Fix {
   void shake4(int);
   void shake3angle(int);
   void stats();
-  int bondfind(int, int, int);
-  int anglefind(int, int, int);
+  int bondfind(int, tagint, tagint);
+  int anglefind(int, tagint, tagint);
 
   // static variable for ring communication callback to access class data
   // callback functions for ring communication

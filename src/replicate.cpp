@@ -73,11 +73,13 @@ void Replicate::command(int narg, char **arg)
 
   // maxtag = largest atom tag across all existing atoms
 
-  int maxtag = 0;
-  for (i = 0; i < atom->nlocal; i++) maxtag = MAX(atom->tag[i],maxtag);
-  int maxtag_all;
-  MPI_Allreduce(&maxtag,&maxtag_all,1,MPI_INT,MPI_MAX,world);
-  maxtag = maxtag_all;
+  tagint maxtag = 0;
+  if (atom->tag_enable) {
+    for (i = 0; i < atom->nlocal; i++) maxtag = MAX(atom->tag[i],maxtag);
+    tagint maxtag_all;
+    MPI_Allreduce(&maxtag,&maxtag_all,1,MPI_LMP_TAGINT,MPI_MAX,world);
+    maxtag = maxtag_all;
+  }
 
   // maxmol = largest molecule tag across all existing atoms
 
@@ -124,25 +126,20 @@ void Replicate::command(int narg, char **arg)
   atom->create_avec(old->atom_style,nstyles,keywords);
 
   // check that new system will not be too large
-  // if molecular and N > MAXTAGINT, error
-  // if atomic and new N > MAXTAGINT, turn off tags for existing and new atoms
-  // new system cannot exceed MAXBIGINT
-  // NOTE: change these 2 to MAXTAGINT when allow tagint = bigint
+  // new tags cannot exceed MAXTAGINT
+  // new system sizes cannot exceed MAXBIGINT
 
-  if (atom->molecular && 
-      (nrep*old->natoms < 0 || nrep*old->natoms > MAXSMALLINT))
-    error->all(FLERR,"Replicated molecular system atom IDs are too big");
-  if (nrep*old->natoms < 0 || nrep*old->natoms > MAXSMALLINT)
-    atom->tag_enable = 0;
-  if (atom->tag_enable == 0)
-    for (int i = 0; i < atom->nlocal; i++)
-      atom->tag[i] = 0;
+  if (atom->tag_enable) {
+    bigint maxnewtag = maxtag + (nrep-1)*old->natoms;
+    if (maxnewtag < 0 || maxnewtag >= MAXTAGINT)
+      error->all(FLERR,"Replicated system atom IDs are too big");
+  }
 
-  if (nrep*old->natoms < 0 || nrep*old->natoms > MAXBIGINT ||
-      nrep*old->nbonds < 0 || nrep*old->nbonds > MAXBIGINT ||
-      nrep*old->nangles < 0 || nrep*old->nangles > MAXBIGINT ||
-      nrep*old->ndihedrals < 0 || nrep*old->ndihedrals > MAXBIGINT ||
-      nrep*old->nimpropers < 0 || nrep*old->nimpropers > MAXBIGINT)
+  if (nrep*old->natoms < 0 || nrep*old->natoms >= MAXBIGINT ||
+      nrep*old->nbonds < 0 || nrep*old->nbonds >= MAXBIGINT ||
+      nrep*old->nangles < 0 || nrep*old->nangles >= MAXBIGINT ||
+      nrep*old->ndihedrals < 0 || nrep*old->ndihedrals >= MAXBIGINT ||
+      nrep*old->nimpropers < 0 || nrep*old->nimpropers >= MAXBIGINT)
     error->all(FLERR,"Replicated system is too big");
 
   // assign atom and topology counts in new class from old one
@@ -257,7 +254,8 @@ void Replicate::command(int narg, char **arg)
   AtomVec *old_avec = old->avec;
   AtomVec *avec = atom->avec;
 
-  int ix,iy,iz,atom_offset,mol_offset;
+  int ix,iy,iz,mol_offset;
+  tagint atom_offset;
   imageint image;
   double x[3],lamda[3];
   double *coord;
@@ -393,13 +391,19 @@ void Replicate::command(int narg, char **arg)
     }
   }
 
-  // create global mapping and bond topology now that system is defined
+  // check that atom IDs are valid
 
-  if (atom->map_style) {
-    atom->nghost = 0;
+  atom->tag_check();
+
+  // if molecular system or user-requested, create global mapping of atoms
+
+  if (atom->molecular || atom->map_user) {
     atom->map_init();
     atom->map_set();
   }
+
+  // create special bond lists for molecular systems
+
   if (atom->molecular) {
     Special special(lmp);
     special.build();

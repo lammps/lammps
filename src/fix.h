@@ -116,7 +116,7 @@ class Fix : protected Pointers {
   virtual void copy_arrays(int, int, int) {}
   virtual void set_arrays(int) {}
   virtual void update_arrays(int, int) {}
-  virtual void set_molecule(int, int, double *, double *, double *) {}
+  virtual void set_molecule(int, tagint, double *, double *, double *) {}
 
   virtual int pack_border(int, int *, double *) {return 0;}
   virtual int unpack_border(int, int, double *) {return 0;}
@@ -195,6 +195,17 @@ class Fix : protected Pointers {
 
   void v_setup(int);
   void v_tally(int, int *, double, double *);
+
+  // union data struct for packing 32-bit and 64-bit ints into double bufs
+  // see atom_vec.h for documentation
+
+  union ubuf {
+    double d;
+    int64_t i;
+    ubuf(double arg) : d(arg) {}
+    ubuf(int64_t arg) : i(arg) {}
+    ubuf(int arg) : i(arg) {}
+  };
 };
 
 namespace FixConst {

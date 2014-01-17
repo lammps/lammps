@@ -84,7 +84,8 @@ void PairHbondDreidingLJ::compute(int eflag, int vflag)
   double fi[3],fj[3],delr1[3],delr2[3];
   double r2inv,r10inv;
   double switch1,switch2;
-  int *ilist,*jlist,*klist,*numneigh,**firstneigh;
+  int *ilist,*jlist,*numneigh,**firstneigh;
+  tagint *klist;
 
   evdwl = ehbond = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
@@ -92,7 +93,7 @@ void PairHbondDreidingLJ::compute(int eflag, int vflag)
 
   double **x = atom->x;
   double **f = atom->f;
-  int **special = atom->special;
+  tagint **special = atom->special;
   int *type = atom->type;
   int **nspecial = atom->nspecial;
   double *special_lj = force->special_lj;
@@ -457,10 +458,10 @@ double PairHbondDreidingLJ::single(int i, int j, int itype, int jtype,
   double rsq1,rsq2,r1,r2,c,s,ac,r2inv,r10inv,factor_hb;
   double switch1,switch2;
   double delr1[3],delr2[3];
-  int *klist;
+  tagint *klist;
 
   double **x = atom->x;
-  int **special = atom->special;
+  tagint **special = atom->special;
   int *type = atom->type;
   int **nspecial = atom->nspecial;
   double *special_lj = force->special_lj;

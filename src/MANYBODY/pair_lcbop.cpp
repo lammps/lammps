@@ -355,7 +355,8 @@ void PairLCBOP::SR_neigh()
 
 void PairLCBOP::FSR(int eflag, int vflag)
 {
-  int i,j,jj,ii,inum,itag,jtag;
+  int i,j,jj,ii,inum;
+  tagint itag,jtag;
   double delx,dely,delz,fpair,xtmp,ytmp,ztmp;
   double r_sq,rijmag,f_c_ij,df_c_ij;
   double VR,dVRdi,VA,Bij,dVAdi,dVA;
@@ -364,7 +365,7 @@ void PairLCBOP::FSR(int eflag, int vflag)
 
   double **x = atom->x;
   double **f = atom->f;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
 
@@ -450,18 +451,17 @@ void PairLCBOP::FSR(int eflag, int vflag)
 
 void PairLCBOP::FLR(int eflag, int vflag)
 {
-
-  int i,j,jj,m,ii,itag,jtag;
+  int i,j,jj,m,ii;
+  tagint itag,jtag;
   double delx,dely,delz,fpair,xtmp,ytmp,ztmp;
   double r_sq,rijmag,f_c_ij,df_c_ij;
   double V,dVdi;
 
   double **x = atom->x;
   double **f = atom->f;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
-
 
   int inum = list->inum;
   int *ilist = list->ilist;

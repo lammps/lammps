@@ -35,7 +35,7 @@ class DumpXYZ : public Dump {
 
   void init_style();
   void write_header(bigint);
-  void pack(int *);
+  void pack(tagint *);
   int convert_string(int, double *);
   void write_data(int, double *);
   int modify_param(int, char **);

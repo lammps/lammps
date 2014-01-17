@@ -90,7 +90,7 @@ void ComputeDamageAtom::compute_peratom()
   int *mask = atom->mask;
   double *vfrac = atom->vfrac;
   double *vinter = ((FixPeriNeigh *) modify->fix[ifix_peri])->vinter;
-  int **partner = ((FixPeriNeigh *) modify->fix[ifix_peri])->partner;
+  tagint **partner = ((FixPeriNeigh *) modify->fix[ifix_peri])->partner;
   int *npartner = ((FixPeriNeigh *) modify->fix[ifix_peri])->npartner;
   int i,j,jj,jnum;
 

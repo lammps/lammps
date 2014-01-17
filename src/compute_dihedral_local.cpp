@@ -115,11 +115,11 @@ int ComputeDihedralLocal::compute_dihedrals(int flag)
 
   double **x = atom->x;
   int *num_dihedral = atom->num_dihedral;
-  int **dihedral_atom1 = atom->dihedral_atom1;
-  int **dihedral_atom2 = atom->dihedral_atom2;
-  int **dihedral_atom3 = atom->dihedral_atom3;
-  int **dihedral_atom4 = atom->dihedral_atom4;
-  int *tag = atom->tag;
+  tagint **dihedral_atom1 = atom->dihedral_atom1;
+  tagint **dihedral_atom2 = atom->dihedral_atom2;
+  tagint **dihedral_atom3 = atom->dihedral_atom3;
+  tagint **dihedral_atom4 = atom->dihedral_atom4;
+  tagint *tag = atom->tag;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 

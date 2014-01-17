@@ -243,7 +243,8 @@ void FixOrientFCC::setup(int vflag)
 
 void FixOrientFCC::post_force(int vflag)
 {
-  int i,j,k,ii,jj,inum,jnum,m,n,nn,nsort,id_self;
+  int i,j,k,ii,jj,inum,jnum,m,n,nn,nsort;
+  tagint id_self;
   int *ilist,*jlist,*numneigh,**firstneigh;
   double edelta,omega;
   double dx,dy,dz,rsq,xismooth,xi_sq,duxi,duxi_other;
@@ -256,7 +257,7 @@ void FixOrientFCC::post_force(int vflag)
   double **x = atom->x;
   double **f = atom->f;
   int *mask = atom->mask;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int nlocal = atom->nlocal;
   int nall = atom->nlocal + atom->nghost;
 
@@ -480,8 +481,10 @@ double FixOrientFCC::compute_scalar()
 int FixOrientFCC::pack_comm(int n, int *list, double *buf,
                             int pbc_flag, int *pbc)
 {
-  int i,j,k,id,num;
-  int *tag = atom->tag;
+  int i,j,k,num;
+  tagint id;
+
+  tagint *tag = atom->tag;
   int nlocal = atom->nlocal;
   int m = 0;
 
@@ -531,7 +534,7 @@ void FixOrientFCC::unpack_comm(int n, int first, double *buf)
       nbr[i].dxi[j][0] = buf[m++];
       nbr[i].dxi[j][1] = buf[m++];
       nbr[i].dxi[j][2] = buf[m++];
-      nbr[i].id[j] = static_cast<int> (buf[m++]);
+      nbr[i].id[j] = static_cast<tagint> (buf[m++]);
     }
 
     m += (12-num) * 3;

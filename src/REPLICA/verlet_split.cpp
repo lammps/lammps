@@ -471,7 +471,8 @@ void VerletSplit::rk_setup()
   if (tip4p_flag) {
     //r2k_comm();
     MPI_Gatherv(atom->type,n,MPI_INT,atom->type,qsize,qdisp,MPI_INT,0,block);
-    MPI_Gatherv(atom->tag,n,MPI_INT,atom->tag,qsize,qdisp,MPI_INT,0,block);
+    MPI_Gatherv(atom->tag,n,MPI_LMP_TAGINT,
+                atom->tag,qsize,qdisp,MPI_LMP_TAGINT,0,block);
     if (!master) {
       if (triclinic) domain->x2lamda(atom->nlocal);
       if (domain->box_change) comm->setup();

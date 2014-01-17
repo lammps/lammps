@@ -52,7 +52,7 @@ class FixShearHistory : public Fix {
 
  protected:
   int *npartner;                // # of touching partners of each atom
-  int **partner;                // tags for the partners
+  tagint **partner;             // global atom IDs for the partners
   double (**shearpartner)[3];   // 3 shear values with the partner
   int maxtouch;                 // max # of touching partners for my atoms
 
@@ -60,7 +60,7 @@ class FixShearHistory : public Fix {
   int *computeflag;             // computeflag in PairGranHookeHistory
 
   int pgsize,oneatom;           // copy of settings in Neighbor
-  MyPage<int> *ipage;           // pages of partner atom IDs
+  MyPage<tagint> *ipage;        // pages of partner atom IDs
   MyPage<double[3]> *dpage;     // pages of shear history with partners
 
   void allocate_pages();

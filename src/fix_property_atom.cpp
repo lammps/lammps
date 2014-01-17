@@ -174,12 +174,16 @@ void FixPropertyAtom::init()
 
 void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf)
 {
-  int j,m,tagdata;
+  int j,m;
+  tagint itag;
   char *next;
 
-  if (atom->map_style == 0) 
-    error->all(FLERR,"Fix property/atom cannot read from data file "
-               "unless an atom map is defined");
+  int mapflag = 0;
+  if (atom->map_style == 0) {
+    mapflag = 1;
+    atom->map_init();
+    atom->map_set();
+  }
 
   next = strchr(buf,'\n');
   *next = '\0';
@@ -198,7 +202,7 @@ void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf)
   // tokenize the line into values
   // if I own atom tag, unpack its values
 
-  int map_tag_max = atom->map_tag_max;
+  tagint map_tag_max = atom->map_tag_max;
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
@@ -207,8 +211,8 @@ void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf)
     for (j = 1; j < nwords; j++)
       values[j] = strtok(NULL," \t\n\r\f");
 
-    tagdata = atoi(values[0]);
-    if (tagdata <= 0 || tagdata > map_tag_max) {
+    itag = ATOTAGINT(values[0]);
+    if (itag <= 0 || itag > map_tag_max) {
       char str[128];
       sprintf(str,"Invalid atom ID in %s section of data file",keyword);
       error->one(FLERR,str);
@@ -216,7 +220,7 @@ void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf)
 
     // assign words in line to per-atom vectors
 
-    if ((m = atom->map(tagdata)) >= 0) {
+    if ((m = atom->map(itag)) >= 0) {
       for (j = 0; j < nvalue; j++) {
         if (style[j] == MOLECULE) atom->molecule[m] = atoi(values[j+1]);
         else if (style[j] == CHARGE) atom->q[m] = atof(values[j+1]);
@@ -231,6 +235,11 @@ void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf)
   }
 
   delete [] values;
+
+  if (mapflag) {
+    atom->map_delete();
+    atom->map_style = 0;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -267,7 +276,7 @@ void FixPropertyAtom::write_data_section_pack(int mth, double **buf)
   // 1st column = atom tag
   // rest of columns = per-atom values
 
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int nlocal = atom->nlocal;
 
   for (i = 0; i < nlocal; i++) buf[i][0] = ubuf(tag[i]).d;
@@ -316,7 +325,7 @@ void FixPropertyAtom::write_data_section(int mth, FILE *fp,
   int m;
 
   for (int i = 0; i < n; i++) {
-    fprintf(fp,"%d",(int) ubuf(buf[i][0]).i);
+    fprintf(fp,TAGINT_FORMAT,(tagint) ubuf(buf[i][0]).i);
     for (m = 0; m < nvalue; m++) {
       if (style[m] == MOLECULE || style[m] == INTEGER)
         fprintf(fp," %d",(int) ubuf(buf[i][m+1]).i);

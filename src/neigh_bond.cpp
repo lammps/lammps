@@ -41,9 +41,9 @@ void Neighbor::bond_all()
 
   int nlocal = atom->nlocal;
   int *num_bond = atom->num_bond;
-  int **bond_atom = atom->bond_atom;
+  tagint **bond_atom = atom->bond_atom;
   int **bond_type = atom->bond_type;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int newton_bond = force->newton_bond;
 
   int lostbond = output->thermo->lostbond;
@@ -57,8 +57,8 @@ void Neighbor::bond_all()
         nmissing++;
         if (lostbond == ERROR) {
           char str[128];
-          sprintf(str,
-                  "Bond atoms %d %d missing on proc %d at step " BIGINT_FORMAT,
+          sprintf(str,"Bond atoms " TAGINT_FORMAT " " TAGINT_FORMAT 
+                  " missing on proc %d at step " BIGINT_FORMAT,
                   tag[i],bond_atom[i][m],me,update->ntimestep);
           error->one(FLERR,str);
         }
@@ -98,9 +98,9 @@ void Neighbor::bond_partial()
 
   int nlocal = atom->nlocal;
   int *num_bond = atom->num_bond;
-  int **bond_atom = atom->bond_atom;
+  tagint **bond_atom = atom->bond_atom;
   int **bond_type = atom->bond_type;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int newton_bond = force->newton_bond;
 
   int lostbond = output->thermo->lostbond;
@@ -115,8 +115,8 @@ void Neighbor::bond_partial()
         nmissing++;
         if (lostbond == ERROR) {
           char str[128];
-          sprintf(str,
-                  "Bond atoms %d %d missing on proc %d at step " BIGINT_FORMAT,
+          sprintf(str,"Bond atoms " TAGINT_FORMAT " " TAGINT_FORMAT 
+                  " missing on proc %d at step " BIGINT_FORMAT,
                   tag[i],bond_atom[i][m],me,update->ntimestep);
           error->one(FLERR,str);
         }
@@ -181,9 +181,9 @@ void Neighbor::angle_all()
 
   int nlocal = atom->nlocal;
   int *num_angle = atom->num_angle;
-  int **angle_atom1 = atom->angle_atom1;
-  int **angle_atom2 = atom->angle_atom2;
-  int **angle_atom3 = atom->angle_atom3;
+  tagint **angle_atom1 = atom->angle_atom1;
+  tagint **angle_atom2 = atom->angle_atom2;
+  tagint **angle_atom3 = atom->angle_atom3;
   int **angle_type = atom->angle_type;
   int newton_bond = force->newton_bond;
 
@@ -200,9 +200,9 @@ void Neighbor::angle_all()
         nmissing++;
         if (lostbond == ERROR) {
           char str[128];
-          sprintf(str,
-                  "Angle atoms %d %d %d missing on proc %d at step "
-                  BIGINT_FORMAT,
+          sprintf(str,"Angle atoms "
+                  TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT 
+                  " missing on proc %d at step " BIGINT_FORMAT,
                   angle_atom1[i][m],angle_atom2[i][m],angle_atom3[i][m],
                   me,update->ntimestep);
           error->one(FLERR,str);
@@ -246,9 +246,9 @@ void Neighbor::angle_partial()
 
   int nlocal = atom->nlocal;
   int *num_angle = atom->num_angle;
-  int **angle_atom1 = atom->angle_atom1;
-  int **angle_atom2 = atom->angle_atom2;
-  int **angle_atom3 = atom->angle_atom3;
+  tagint **angle_atom1 = atom->angle_atom1;
+  tagint **angle_atom2 = atom->angle_atom2;
+  tagint **angle_atom3 = atom->angle_atom3;
   int **angle_type = atom->angle_type;
   int newton_bond = force->newton_bond;
 
@@ -266,9 +266,9 @@ void Neighbor::angle_partial()
         nmissing++;
         if (lostbond == ERROR) {
           char str[128];
-          sprintf(str,
-                  "Angle atoms %d %d %d missing on proc %d at step "
-                  BIGINT_FORMAT,
+          sprintf(str,"Angle atoms "
+                  TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT 
+                  " missing on proc %d at step " BIGINT_FORMAT,
                   angle_atom1[i][m],angle_atom2[i][m],angle_atom3[i][m],
                   me,update->ntimestep);
           error->one(FLERR,str);
@@ -351,10 +351,10 @@ void Neighbor::dihedral_all()
 
   int nlocal = atom->nlocal;
   int *num_dihedral = atom->num_dihedral;
-  int **dihedral_atom1 = atom->dihedral_atom1;
-  int **dihedral_atom2 = atom->dihedral_atom2;
-  int **dihedral_atom3 = atom->dihedral_atom3;
-  int **dihedral_atom4 = atom->dihedral_atom4;
+  tagint **dihedral_atom1 = atom->dihedral_atom1;
+  tagint **dihedral_atom2 = atom->dihedral_atom2;
+  tagint **dihedral_atom3 = atom->dihedral_atom3;
+  tagint **dihedral_atom4 = atom->dihedral_atom4;
   int **dihedral_type = atom->dihedral_type;
   int newton_bond = force->newton_bond;
 
@@ -372,9 +372,10 @@ void Neighbor::dihedral_all()
         nmissing++;
         if (lostbond == ERROR) {
           char str[128];
-          sprintf(str,
-                  "Dihedral atoms %d %d %d %d missing on proc %d at step "
-                  BIGINT_FORMAT,
+          sprintf(str,"Dihedral atoms "
+                  TAGINT_FORMAT " " TAGINT_FORMAT " " 
+                  TAGINT_FORMAT " " TAGINT_FORMAT 
+                  " missing on proc %d at step " BIGINT_FORMAT,
                   dihedral_atom1[i][m],dihedral_atom2[i][m],
                   dihedral_atom3[i][m],dihedral_atom4[i][m],
                   me,update->ntimestep);
@@ -422,10 +423,10 @@ void Neighbor::dihedral_partial()
 
   int nlocal = atom->nlocal;
   int *num_dihedral = atom->num_dihedral;
-  int **dihedral_atom1 = atom->dihedral_atom1;
-  int **dihedral_atom2 = atom->dihedral_atom2;
-  int **dihedral_atom3 = atom->dihedral_atom3;
-  int **dihedral_atom4 = atom->dihedral_atom4;
+  tagint **dihedral_atom1 = atom->dihedral_atom1;
+  tagint **dihedral_atom2 = atom->dihedral_atom2;
+  tagint **dihedral_atom3 = atom->dihedral_atom3;
+  tagint **dihedral_atom4 = atom->dihedral_atom4;
   int **dihedral_type = atom->dihedral_type;
   int newton_bond = force->newton_bond;
 
@@ -444,9 +445,10 @@ void Neighbor::dihedral_partial()
         nmissing++;
         if (lostbond == ERROR) {
           char str[128];
-          sprintf(str,
-                  "Dihedral atoms %d %d %d %d missing on proc %d at step "
-                  BIGINT_FORMAT,
+          sprintf(str,"Dihedral atoms "
+                  TAGINT_FORMAT " " TAGINT_FORMAT " " 
+                  TAGINT_FORMAT " " TAGINT_FORMAT 
+                  " missing on proc %d at step " BIGINT_FORMAT,
                   dihedral_atom1[i][m],dihedral_atom2[i][m],
                   dihedral_atom3[i][m],dihedral_atom4[i][m],
                   me,update->ntimestep);
@@ -550,10 +552,10 @@ void Neighbor::improper_all()
 
   int nlocal = atom->nlocal;
   int *num_improper = atom->num_improper;
-  int **improper_atom1 = atom->improper_atom1;
-  int **improper_atom2 = atom->improper_atom2;
-  int **improper_atom3 = atom->improper_atom3;
-  int **improper_atom4 = atom->improper_atom4;
+  tagint **improper_atom1 = atom->improper_atom1;
+  tagint **improper_atom2 = atom->improper_atom2;
+  tagint **improper_atom3 = atom->improper_atom3;
+  tagint **improper_atom4 = atom->improper_atom4;
   int **improper_type = atom->improper_type;
   int newton_bond = force->newton_bond;
 
@@ -571,9 +573,10 @@ void Neighbor::improper_all()
         nmissing++;
         if (lostbond == ERROR) {
           char str[128];
-          sprintf(str,
-                  "Improper atoms %d %d %d %d missing on proc %d at step "
-                  BIGINT_FORMAT,
+          sprintf(str,"Improper atoms "
+                  TAGINT_FORMAT " " TAGINT_FORMAT " " 
+                  TAGINT_FORMAT " " TAGINT_FORMAT 
+                  " missing on proc %d at step " BIGINT_FORMAT,
                   improper_atom1[i][m],improper_atom2[i][m],
                   improper_atom3[i][m],improper_atom4[i][m],
                   me,update->ntimestep);
@@ -621,10 +624,10 @@ void Neighbor::improper_partial()
 
   int nlocal = atom->nlocal;
   int *num_improper = atom->num_improper;
-  int **improper_atom1 = atom->improper_atom1;
-  int **improper_atom2 = atom->improper_atom2;
-  int **improper_atom3 = atom->improper_atom3;
-  int **improper_atom4 = atom->improper_atom4;
+  tagint **improper_atom1 = atom->improper_atom1;
+  tagint **improper_atom2 = atom->improper_atom2;
+  tagint **improper_atom3 = atom->improper_atom3;
+  tagint **improper_atom4 = atom->improper_atom4;
   int **improper_type = atom->improper_type;
   int newton_bond = force->newton_bond;
 
@@ -643,9 +646,10 @@ void Neighbor::improper_partial()
         nmissing++;
         if (lostbond == ERROR) {
           char str[128];
-          sprintf(str,
-                  "Improper atoms %d %d %d %d missing on proc %d at step "
-                  BIGINT_FORMAT,
+          sprintf(str,"Improper atoms "
+                  TAGINT_FORMAT " " TAGINT_FORMAT " " 
+                  TAGINT_FORMAT " " TAGINT_FORMAT 
+                  " missing on proc %d at step " BIGINT_FORMAT,
                   improper_atom1[i][m],improper_atom2[i][m],
                   improper_atom3[i][m],improper_atom4[i][m],
                   me,update->ntimestep);

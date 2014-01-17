@@ -49,7 +49,7 @@ class DumpXTC : public Dump {
   int modify_param(int, char **);
   void openfile();
   void write_header(bigint);
-  void pack(int *);
+  void pack(tagint *);
   void write_data(int, double *);
   bigint memory_usage();
 

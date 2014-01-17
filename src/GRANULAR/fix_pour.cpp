@@ -630,12 +630,16 @@ void FixPour::pre_exchange()
 
   if (ninserted_atoms) {
     atom->natoms += ninserted_atoms;
+    if (atom->natoms < 0 || atom->natoms > MAXBIGINT)
+      error->all(FLERR,"Too many total atoms");
     if (mode == MOLECULE) {
       atom->nbonds += onemol->nbonds * ninserted_mols;
       atom->nangles += onemol->nangles * ninserted_mols;
       atom->ndihedrals += onemol->ndihedrals * ninserted_mols;
       atom->nimpropers += onemol->nimpropers * ninserted_mols;
     }
+    if (maxtag_all >= MAXTAGINT)
+      error->all(FLERR,"New atom IDs exceed maximum allowed ID");
     if (atom->map_style) {
       atom->nghost = 0;
       atom->map_init();
@@ -661,13 +665,13 @@ void FixPour::pre_exchange()
 
 void FixPour::find_maxid()
 {
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int *molecule = atom->molecule;
   int nlocal = atom->nlocal;
 
-  int max = 0;
+  tagint max = 0;
   for (int i = 0; i < nlocal; i++) max = MAX(max,tag[i]);
-  MPI_Allreduce(&max,&maxtag_all,1,MPI_INT,MPI_MAX,world);
+  MPI_Allreduce(&max,&maxtag_all,1,MPI_LMP_TAGINT,MPI_MAX,world);
 
   if (mode == MOLECULE && molecule) {
     max = 0;

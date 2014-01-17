@@ -174,7 +174,7 @@ void Group::assign(int narg, char **arg)
          strcmp(arg[2],"<=") == 0 || strcmp(arg[2],">=") == 0 ||
          strcmp(arg[2],"<>") == 0)) {
 
-      int condition,bound1,bound2;
+      int condition;
       if (strcmp(arg[2],"<") == 0) condition = LT;
       else if (strcmp(arg[2],"<=") == 0) condition = LE;
       else if (strcmp(arg[2],">") == 0) condition = GT;
@@ -184,66 +184,127 @@ void Group::assign(int narg, char **arg)
       else if (strcmp(arg[2],"<>") == 0) condition = BETWEEN;
       else error->all(FLERR,"Illegal group command");
       
-      bound1 = force->inumeric(FLERR,arg[3]);
+      tagint bound1,bound2;
+      if (sizeof(tagint) == sizeof(smallint))
+        bound1 = force->inumeric(FLERR,arg[3]);
+      else
+        bound1 = force->bnumeric(FLERR,arg[3]);
       bound2 = -1;
 
       if (condition == BETWEEN) {
         if (narg != 5) error->all(FLERR,"Illegal group command");
-        bound2 = force->inumeric(FLERR,arg[4]);
+        if (sizeof(tagint) == sizeof(smallint))
+          bound2 = force->inumeric(FLERR,arg[4]);
+        else
+          bound2 = force->bnumeric(FLERR,arg[4]);
       } else if (narg != 4) error->all(FLERR,"Illegal group command");
 
+      tagint *tag = atom->tag;
       int *attribute;
       if (category == TYPE) attribute = atom->type;
       else if (category == MOLECULE) attribute = atom->molecule;
-      else if (category == ID) attribute = atom->tag;
+      else if (category == ID) attribute = NULL;
 
       // add to group if meets condition
 
-      if (condition == LT) {
-        for (i = 0; i < nlocal; i++) if (attribute[i] < bound1) mask[i] |= bit;
-      } else if (condition == LE) {
-        for (i = 0; i < nlocal; i++) if (attribute[i] <= bound1) mask[i] |= bit;
-      } else if (condition == GT) {
-        for (i = 0; i < nlocal; i++) if (attribute[i] > bound1) mask[i] |= bit;
-      } else if (condition == GE) {
-        for (i = 0; i < nlocal; i++) if (attribute[i] >= bound1) mask[i] |= bit;
-      } else if (condition == EQ) {
-        for (i = 0; i < nlocal; i++) if (attribute[i] == bound1) mask[i] |= bit;
-      } else if (condition == NEQ) {
-        for (i = 0; i < nlocal; i++) if (attribute[i] != bound1) mask[i] |= bit;
-      } else if (condition == BETWEEN) {
-      for (i = 0; i < nlocal; i++)
-        if (attribute[i] >= bound1 && attribute[i] <= bound2) mask[i] |= bit;
+      if (attribute) {
+        if (condition == LT) {
+          for (i = 0; i < nlocal; i++) 
+            if (attribute[i] < bound1) mask[i] |= bit;
+        } else if (condition == LE) {
+          for (i = 0; i < nlocal; i++) 
+            if (attribute[i] <= bound1) mask[i] |= bit;
+        } else if (condition == GT) {
+          for (i = 0; i < nlocal; i++) 
+            if (attribute[i] > bound1) mask[i] |= bit;
+        } else if (condition == GE) {
+          for (i = 0; i < nlocal; i++) 
+            if (attribute[i] >= bound1) mask[i] |= bit;
+        } else if (condition == EQ) {
+          for (i = 0; i < nlocal; i++) 
+            if (attribute[i] == bound1) mask[i] |= bit;
+        } else if (condition == NEQ) {
+          for (i = 0; i < nlocal; i++) 
+            if (attribute[i] != bound1) mask[i] |= bit;
+        } else if (condition == BETWEEN) {
+          for (i = 0; i < nlocal; i++)
+            if (attribute[i] >= bound1 && attribute[i] <= bound2)
+              mask[i] |= bit;
+        }
+      } else {
+        if (condition == LT) {
+          for (i = 0; i < nlocal; i++) 
+            if (tag[i] < bound1) mask[i] |= bit;
+        } else if (condition == LE) {
+          for (i = 0; i < nlocal; i++) 
+            if (tag[i] <= bound1) mask[i] |= bit;
+        } else if (condition == GT) {
+          for (i = 0; i < nlocal; i++) 
+            if (tag[i] > bound1) mask[i] |= bit;
+        } else if (condition == GE) {
+          for (i = 0; i < nlocal; i++) 
+            if (tag[i] >= bound1) mask[i] |= bit;
+        } else if (condition == EQ) {
+          for (i = 0; i < nlocal; i++) 
+            if (tag[i] == bound1) mask[i] |= bit;
+        } else if (condition == NEQ) {
+          for (i = 0; i < nlocal; i++) 
+            if (tag[i] != bound1) mask[i] |= bit;
+        } else if (condition == BETWEEN) {
+          for (i = 0; i < nlocal; i++)
+            if (tag[i] >= bound1 && tag[i] <= bound2)
+              mask[i] |= bit;
+        }
       }
-      
+
     // args = list of values
       
     } else {
+      tagint *tag = atom->tag;
       int *attribute;
       if (category == TYPE) attribute = atom->type;
       else if (category == MOLECULE) attribute = atom->molecule;
-      else if (category == ID) attribute = atom->tag;
-
+      else if (category == ID) attribute = NULL;
+                                 
       char *ptr;
-      int start,stop,delta;
+      tagint start,stop,delta;
 
       for (int iarg = 2; iarg < narg; iarg++) {
-        if (strchr(arg[iarg],':')) {
-          start = atoi(strtok(arg[iarg],":")); 
-          stop = atoi(strtok(NULL,":"));
-          ptr = strtok(NULL,":");
-          if (ptr) delta = atoi(ptr);
-          else delta = 1;
+        if (attribute) {
+          if (strchr(arg[iarg],':')) {
+            start = atoi(strtok(arg[iarg],":")); 
+            stop = atoi(strtok(NULL,":"));
+            ptr = strtok(NULL,":");
+            if (ptr) delta = atoi(ptr);
+            else delta = 1;
+          } else {
+            start = stop = atoi(arg[iarg]);
+            delta = 1;
+          }
         } else {
-          start = stop = atoi(arg[iarg]);
-          delta = 1;
+          if (strchr(arg[iarg],':')) {
+            start = ATOTAGINT(strtok(arg[iarg],":")); 
+            stop = ATOTAGINT(strtok(NULL,":"));
+            ptr = strtok(NULL,":");
+            if (ptr) delta = ATOTAGINT(ptr);
+            else delta = 1;
+          } else {
+            start = stop = ATOTAGINT(arg[iarg]);
+            delta = 1;
+          }
         }
 
         // add to group if attribute matches value or sequence
       
-        for (i = 0; i < nlocal; i++)
-          if (attribute[i] >= start && attribute[i] <= stop &&
-              (attribute[i]-start) % delta == 0) mask[i] |= bit;
+        if (attribute) {
+          for (i = 0; i < nlocal; i++)
+            if (attribute[i] >= start && attribute[i] <= stop &&
+                (attribute[i]-start) % delta == 0) mask[i] |= bit;
+        } else {
+          for (i = 0; i < nlocal; i++)
+            if (tag[i] >= start && tag[i] <= stop &&
+                (tag[i]-start) % delta == 0) mask[i] |= bit;
+        }
       }
     }
 

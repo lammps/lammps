@@ -55,8 +55,8 @@ void DumpAtom::init_style()
     strcat(format,"\n");
   } else {
     char *str;
-    if (image_flag == 0) str = (char *) "%d %d %g %g %g";
-    else str = (char *) "%d %d %g %g %g %d %d %d";
+    if (image_flag == 0) str = (char *) TAGINT_FORMAT " %d %g %g %g";
+    else str = (char *) TAGINT_FORMAT " %d %g %g %g %d %d %d";
     int n = strlen(str) + 2;
     format = new char[n];
     strcpy(format,str);
@@ -145,7 +145,7 @@ void DumpAtom::write_header(bigint ndump)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpAtom::pack(int *ids)
+void DumpAtom::pack(tagint *ids)
 {
   (this->*pack_choice)(ids);
 }
@@ -237,11 +237,11 @@ void DumpAtom::header_item_triclinic(bigint ndump)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpAtom::pack_scale_image(int *ids)
+void DumpAtom::pack_scale_image(tagint *ids)
 {
   int m,n;
 
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int *type = atom->type;
   imageint *image = atom->image;
   int *mask = atom->mask;
@@ -269,11 +269,11 @@ void DumpAtom::pack_scale_image(int *ids)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpAtom::pack_scale_noimage(int *ids)
+void DumpAtom::pack_scale_noimage(tagint *ids)
 {
   int m,n;
 
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int *type = atom->type;
   int *mask = atom->mask;
   double **x = atom->x;
@@ -297,11 +297,11 @@ void DumpAtom::pack_scale_noimage(int *ids)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpAtom::pack_scale_image_triclinic(int *ids)
+void DumpAtom::pack_scale_image_triclinic(tagint *ids)
 {
   int m,n;
 
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int *type = atom->type;
   imageint *image = atom->image;
   int *mask = atom->mask;
@@ -328,11 +328,11 @@ void DumpAtom::pack_scale_image_triclinic(int *ids)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpAtom::pack_scale_noimage_triclinic(int *ids)
+void DumpAtom::pack_scale_noimage_triclinic(tagint *ids)
 {
   int m,n;
 
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int *type = atom->type;
   int *mask = atom->mask;
   double **x = atom->x;
@@ -355,11 +355,11 @@ void DumpAtom::pack_scale_noimage_triclinic(int *ids)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpAtom::pack_noscale_image(int *ids)
+void DumpAtom::pack_noscale_image(tagint *ids)
 {
   int m,n;
 
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int *type = atom->type;
   imageint *image = atom->image;
   int *mask = atom->mask;
@@ -383,11 +383,11 @@ void DumpAtom::pack_noscale_image(int *ids)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpAtom::pack_noscale_noimage(int *ids)
+void DumpAtom::pack_noscale_noimage(tagint *ids)
 {
   int m,n;
 
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int *type = atom->type;
   int *mask = atom->mask;
   double **x = atom->x;
@@ -422,7 +422,7 @@ int DumpAtom::convert_image(int n, double *mybuf)
     }
 
     offset += sprintf(&sbuf[offset],format,
-                      static_cast<int> (mybuf[m]), 
+                      static_cast<tagint> (mybuf[m]), 
                       static_cast<int> (mybuf[m+1]),
                       mybuf[m+2],mybuf[m+3],mybuf[m+4], 
                       static_cast<int> (mybuf[m+5]),
@@ -448,7 +448,7 @@ int DumpAtom::convert_noimage(int n, double *mybuf)
     }
 
     offset += sprintf(&sbuf[offset],format,
-                      static_cast<int> (mybuf[m]),
+                      static_cast<tagint> (mybuf[m]),
                       static_cast<int> (mybuf[m+1]),
                       mybuf[m+2],mybuf[m+3],mybuf[m+4]);
     m += size_one;
@@ -480,7 +480,7 @@ void DumpAtom::write_lines_image(int n, double *mybuf)
   int m = 0;
   for (int i = 0; i < n; i++) {
     fprintf(fp,format,
-            static_cast<int> (mybuf[m]), static_cast<int> (mybuf[m+1]),
+            static_cast<tagint> (mybuf[m]), static_cast<int> (mybuf[m+1]),
             mybuf[m+2],mybuf[m+3],mybuf[m+4], static_cast<int> (mybuf[m+5]),
             static_cast<int> (mybuf[m+6]), static_cast<int> (mybuf[m+7]));
     m += size_one;
@@ -494,7 +494,7 @@ void DumpAtom::write_lines_noimage(int n, double *mybuf)
   int m = 0;
   for (int i = 0; i < n; i++) {
     fprintf(fp,format,
-            static_cast<int> (mybuf[m]), static_cast<int> (mybuf[m+1]),
+            static_cast<tagint> (mybuf[m]), static_cast<int> (mybuf[m+1]),
             mybuf[m+2],mybuf[m+3],mybuf[m+4]);
     m += size_one;
   }

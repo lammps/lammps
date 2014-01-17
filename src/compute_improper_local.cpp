@@ -116,11 +116,11 @@ int ComputeImproperLocal::compute_impropers(int flag)
 
   double **x = atom->x;
   int *num_improper = atom->num_improper;
-  int **improper_atom1 = atom->improper_atom1;
-  int **improper_atom2 = atom->improper_atom2;
-  int **improper_atom3 = atom->improper_atom3;
-  int **improper_atom4 = atom->improper_atom4;
-  int *tag = atom->tag;
+  tagint **improper_atom1 = atom->improper_atom1;
+  tagint **improper_atom2 = atom->improper_atom2;
+  tagint **improper_atom3 = atom->improper_atom3;
+  tagint **improper_atom4 = atom->improper_atom4;
+  tagint *tag = atom->tag;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 

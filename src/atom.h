@@ -45,7 +45,8 @@ class Atom : protected Pointers {
   // per-atom arrays
   // customize by adding new array
 
-  int *tag,*type,*mask;
+  tagint *tag;
+  int *type,*mask;
   imageint *image;
   double **x,**v,**f;
 
@@ -65,24 +66,24 @@ class Atom : protected Pointers {
   double *cv;
 
   int **nspecial;               // 0,1,2 = cummulative # of 1-2,1-3,1-4 neighs
-  int **special;                // IDs of 1-2,1-3,1-4 neighs of each atom
+  tagint **special;             // IDs of 1-2,1-3,1-4 neighs of each atom
   int maxspecial;               // special[nlocal][maxspecial]
 
   int *num_bond;
   int **bond_type;
-  int **bond_atom;
+  tagint **bond_atom;
 
   int *num_angle;
   int **angle_type;
-  int **angle_atom1,**angle_atom2,**angle_atom3;
+  tagint **angle_atom1,**angle_atom2,**angle_atom3;
 
   int *num_dihedral;
   int **dihedral_type;
-  int **dihedral_atom1,**dihedral_atom2,**dihedral_atom3,**dihedral_atom4;
+  tagint **dihedral_atom1,**dihedral_atom2,**dihedral_atom3,**dihedral_atom4;
 
   int *num_improper;
   int **improper_type;
-  int **improper_atom1,**improper_atom2,**improper_atom3,**improper_atom4;
+  tagint **improper_atom1,**improper_atom2,**improper_atom3,**improper_atom4;
 
   // custom arrays used by fix property/atom
 
@@ -133,9 +134,9 @@ class Atom : protected Pointers {
   int nextra_border_max;
   int nextra_store;
 
-  int map_style;                  // default or user-specified style of map
-                                  // 0 = none, 1 = array, 2 = hash
-  int map_tag_max;                // max atom ID that map() is setup for
+  int map_style;                  // style of atom map: 0=none, 1=array, 2=hash
+  int map_user;                   // user selected style = same 0,1,2
+  tagint map_tag_max;             // max atom ID that map() is setup for
 
   // spatial sorting of atoms
 
@@ -159,6 +160,7 @@ class Atom : protected Pointers {
 
   class AtomVec *style_match(const char *);
   void modify_params(int, char **);
+  void tag_check();
   void tag_extend();
   int tag_consecutive();
 
@@ -167,13 +169,14 @@ class Atom : protected Pointers {
 
   void data_atoms(int, char *);
   void data_vels(int, char *);
+
+  void data_bonds(int, char *, int *);
+  void data_angles(int, char *, int *);
+  void data_dihedrals(int, char *, int *);
+  void data_impropers(int, char *, int *);
+
   void data_bonus(int, char *, class AtomVec *);
   void data_bodies(int, char *, class AtomVecBody *);
-
-  void data_bonds(int, char *);
-  void data_angles(int, char *);
-  void data_dihedrals(int, char *);
-  void data_impropers(int, char *);
 
   void allocate_type_arrays();
   void set_mass(const char *);
@@ -187,7 +190,7 @@ class Atom : protected Pointers {
 
   void add_molecule(int, char **);
   int find_molecule(char *);
-  void add_molecule_atom(class Molecule *, int, int, int);
+  void add_molecule_atom(class Molecule *, int, int, tagint);
 
   void first_reorder();
   void sort();
@@ -212,7 +215,7 @@ class Atom : protected Pointers {
   // map lookup function inlined for efficiency
   // return -1 if no map defined
 
-  inline int map(int global) {
+  inline int map(tagint global) {
     if (map_style == 1) return map_array[global];
     else if (map_style == 2) return map_find_hash(global);
     else return -1;
@@ -221,28 +224,31 @@ class Atom : protected Pointers {
   void map_init();
   void map_clear();
   void map_set();
-  void map_one(int, int);
+  void map_one(tagint, int);
   void map_delete();
-  int map_find_hash(int);
+  int map_find_hash(tagint);
 
  private:
 
   // global to local ID mapping
 
   int *map_array;       // direct map of length map_tag_max + 1
-  int smax;             // max size of sametag
 
   struct HashElem {
-    int global;                   // key to search on = global ID
-    int local;                    // value associated with key = local index
-    int next;                     // next entry in this bucket, -1 if last
+    tagint global;      // key to search on = global ID
+    int local;          // value associated with key = local index
+    int next;           // next entry in this bucket, -1 if last
   };
-  int map_nhash;                  // # of entries hash table can hold
-  int map_nused;                  // # of actual entries in hash table
-  int map_free;                   // ptr to 1st unused entry in hash table
-  int map_nbucket;                // # of hash buckets
-  int *map_bucket;                // ptr to 1st entry in each bucket
-  HashElem *map_hash;             // hash table
+  int map_nhash;        // # of entries hash table can hold
+  int map_nused;        // # of actual entries in hash table
+  int map_free;         // ptr to 1st unused entry in hash table
+  int map_nbucket;      // # of hash buckets
+  int *map_bucket;      // ptr to 1st entry in each bucket
+  HashElem *map_hash;   // hash table
+
+  int max_array;        // allocated size of map_array (+1)
+  int max_nhash;        // allocated size of hash table
+  int max_same;         // allocated size of sametag
 
   // spatial sorting of atoms
 

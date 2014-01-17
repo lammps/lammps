@@ -38,7 +38,7 @@ class ReadData : protected Pointers {
   int narg,maxarg,compressed;
   char **arg;
 
-  int nfix;           // # of extra fixes that process/store info in data file
+  int nfix;         // # of extra fixes that process/store info in data file
   int *fix_index;
   char **fix_header;
   char **fix_section;
@@ -55,20 +55,22 @@ class ReadData : protected Pointers {
   void open(char *);
   void scan(int &, int &, int &, int &);
   int reallocate(int **, int, int);
-  void header(int);
-  void parse_keyword(int, int);
-  void skip_lines(int);
+  void header();
+  void parse_keyword(int);
+  void skip_lines(bigint);
   void parse_coeffs(char *, const char *, int);
 
   void atoms();
   void velocities();
-  void bonus(bigint, class AtomVec *, const char *);
-  void bodies();
 
-  void bonds();
-  void angles();
-  void dihedrals();
-  void impropers();
+  void bonds(int);
+  void bond_scan(int, char *, int *);
+  void angles(int);
+  void dihedrals(int);
+  void impropers(int);
+
+  void bonus(bigint, class AtomVec *, const char *);
+  void bodies(int);
 
   void mass();
   void paircoeffs();

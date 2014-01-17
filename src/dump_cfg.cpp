@@ -33,7 +33,7 @@
 
 using namespace LAMMPS_NS;
 
-enum{INT,DOUBLE,STRING};   // same as in DumpCustom
+enum{INT,DOUBLE,STRING,BIGINT};   // same as in DumpCustom
 
 #define UNWRAPEXPAND 10.0
 #define ONEFIELD 32
@@ -200,6 +200,9 @@ int DumpCFG::convert_string(int n, double *mybuf)
           else if (vtype[j] == STRING) 
             offset += 
               sprintf(&sbuf[offset],vformat[j],typenames[(int) mybuf[m]]);
+          else if (vtype[j] == BIGINT) 
+            offset += 
+              sprintf(&sbuf[offset],vformat[j],static_cast<bigint> (mybuf[m]));
         }
         m++;
       }
@@ -232,6 +235,9 @@ int DumpCFG::convert_string(int n, double *mybuf)
           else if (vtype[j] == STRING) 
             offset += 
               sprintf(&sbuf[offset],vformat[j],typenames[(int) mybuf[m]]);
+          else if (vtype[j] == BIGINT) 
+            offset += 
+              sprintf(&sbuf[offset],vformat[j],static_cast<bigint> (mybuf[m]));
         }
         m++;
       }
@@ -277,6 +283,8 @@ void DumpCFG::write_lines(int n, double *mybuf)
             fprintf(fp,vformat[j],mybuf[m]);
           else if (vtype[j] == STRING) 
             fprintf(fp,vformat[j],typenames[(int) mybuf[m]]);
+          else if (vtype[j] == BIGINT) 
+            fprintf(fp,vformat[j],static_cast<bigint> (mybuf[m]));
         }
         m++;
       }
@@ -301,6 +309,8 @@ void DumpCFG::write_lines(int n, double *mybuf)
             fprintf(fp,vformat[j],mybuf[m]);
           else if (vtype[j] == STRING) 
             fprintf(fp,vformat[j],typenames[(int) mybuf[m]]);
+          else if (vtype[j] == BIGINT) 
+            fprintf(fp,vformat[j],static_cast<bigint> (mybuf[m]));
         }
         m++;
       }

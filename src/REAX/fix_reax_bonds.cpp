@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #ifdef LAMMPS_BIGBIG
-#error LAMMPS_BIGBIG not supported by this file
+#error LAMMPS_BIGBIG is not supported by the REAX package
 #endif
 
 #include "stdlib.h"

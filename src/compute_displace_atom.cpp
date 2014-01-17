@@ -63,7 +63,7 @@ ComputeDisplaceAtom::ComputeDisplaceAtom(LAMMPS *lmp, int narg, char **arg) :
 
     double **x = atom->x;
     int *mask = atom->mask;
-    tagint *image = atom->image;
+    imageint *image = atom->image;
     int nlocal = atom->nlocal;
 
     for (int i = 0; i < nlocal; i++)
@@ -123,7 +123,7 @@ void ComputeDisplaceAtom::compute_peratom()
 
   double **x = atom->x;
   int *mask = atom->mask;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   int nlocal = atom->nlocal;
 
   double *h = domain->h;

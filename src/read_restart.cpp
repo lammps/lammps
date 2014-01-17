@@ -60,7 +60,8 @@ enum{VERSION,SMALLINT,TAGINT,BIGINT,
      TRICLINIC,BOXLO,BOXHI,XY,XZ,YZ,
      SPECIAL_LJ,SPECIAL_COUL,
      MASS,PAIR,BOND,ANGLE,DIHEDRAL,IMPROPER,
-     MULTIPROC,MPIIO,PROCSPERFILE,PERPROC};
+     MULTIPROC,MPIIO,PROCSPERFILE,PERPROC,
+     IMAGEINT};
 
 #define LB_FACTOR 1.1
 
@@ -644,6 +645,10 @@ void ReadRestart::header(int incompatible)
       int size = read_int();
       if (size != sizeof(smallint))
         error->all(FLERR,"Smallint setting in lmptype.h is not compatible");
+    } else if (flag == IMAGEINT) {
+      int size = read_int();
+      if (size != sizeof(imageint))
+        error->all(FLERR,"Imageint setting in lmptype.h is not compatible");
     } else if (flag == TAGINT) {
       int size = read_int();
       if (size != sizeof(tagint))

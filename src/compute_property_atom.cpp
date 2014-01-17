@@ -662,7 +662,7 @@ void ComputePropertyAtom::pack_zs_triclinic(int n)
 void ComputePropertyAtom::pack_xu(int n)
 {
   double **x = atom->x;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -681,7 +681,7 @@ void ComputePropertyAtom::pack_xu(int n)
 void ComputePropertyAtom::pack_yu(int n)
 {
   double **x = atom->x;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -700,7 +700,7 @@ void ComputePropertyAtom::pack_yu(int n)
 void ComputePropertyAtom::pack_zu(int n)
 {
   double **x = atom->x;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -719,7 +719,7 @@ void ComputePropertyAtom::pack_zu(int n)
 void ComputePropertyAtom::pack_xu_triclinic(int n)
 {
   double **x = atom->x;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -742,7 +742,7 @@ void ComputePropertyAtom::pack_xu_triclinic(int n)
 void ComputePropertyAtom::pack_yu_triclinic(int n)
 {
   double **x = atom->x;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -764,7 +764,7 @@ void ComputePropertyAtom::pack_yu_triclinic(int n)
 void ComputePropertyAtom::pack_zu_triclinic(int n)
 {
   double **x = atom->x;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -784,7 +784,7 @@ void ComputePropertyAtom::pack_zu_triclinic(int n)
 
 void ComputePropertyAtom::pack_ix(int n)
 {
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -799,7 +799,7 @@ void ComputePropertyAtom::pack_ix(int n)
 
 void ComputePropertyAtom::pack_iy(int n)
 {
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -814,7 +814,7 @@ void ComputePropertyAtom::pack_iy(int n)
 
 void ComputePropertyAtom::pack_iz(int n)
 {
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 

@@ -391,7 +391,7 @@ void FixRigidSmall::setup(int vflag)
   double **x = atom->x;
   double **f = atom->f;
   int *type = atom->type;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   int nlocal = atom->nlocal;
 
   double *xcm,*fcm,*tcm;
@@ -599,7 +599,7 @@ void FixRigidSmall::final_integrate()
 
   // sum over atoms to get force and torque on rigid body
 
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   double **x = atom->x;
   double **f = atom->f;
   int nlocal = atom->nlocal;
@@ -744,7 +744,7 @@ void FixRigidSmall::pre_neighbor()
 {
   // remap xcm and image flags of each body as needed
 
-  tagint original,oldimage,newimage;
+  imageint original,oldimage,newimage;
 
   for (int ibody = 0; ibody < nlocal_body; ibody++) {
     Body *b = &body[ibody];
@@ -780,10 +780,10 @@ void FixRigidSmall::pre_neighbor()
 
   // adjust image flags of any atom in a rigid body whose xcm was remapped
 
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   int nlocal = atom->nlocal;
 
-  tagint idim,otherdims;
+  imageint idim,otherdims;
 
   for (int i = 0; i < nlocal; i++) {
     if (atom2body[i] < 0) continue;
@@ -950,7 +950,7 @@ void FixRigidSmall::set_xv()
   double xz = domain->xz;
   double yz = domain->yz;
 
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   double **x = atom->x;
   double **v = atom->v;
   double **f = atom->f;
@@ -1123,7 +1123,7 @@ void FixRigidSmall::set_v()
   double *rmass = atom->rmass;
   double *mass = atom->mass;
   int *type = atom->type;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   int nlocal = atom->nlocal;
 
   // set v of each atom
@@ -1242,7 +1242,7 @@ void FixRigidSmall::create_bodies()
 
   // error check on image flags of atoms in rigid bodies
 
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -1494,7 +1494,7 @@ void FixRigidSmall::ring_nearest(int n, char *cbuf)
 void FixRigidSmall::ring_farthest(int n, char *cbuf)
 {
   double **x = frsptr->atom->x;
-  tagint *image = frsptr->atom->image;
+  imageint *image = frsptr->atom->image;
   int nlocal = frsptr->atom->nlocal;
 
   double *buf = (double *) cbuf;
@@ -1626,7 +1626,7 @@ void FixRigidSmall::setup_bodies_static()
   // compute mass & center-of-mass of each rigid body
 
   double **x = atom->x;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
 
   double *xcm;
 
@@ -1680,8 +1680,8 @@ void FixRigidSmall::setup_bodies_static()
   // then remap the xcm of each body back into simulation box if needed
 
   for (ibody = 0; ibody < nlocal_body; ibody++)
-    body[ibody].image = ((tagint) IMGMAX << IMG2BITS) | 
-      ((tagint) IMGMAX << IMGBITS) | IMGMAX;
+    body[ibody].image = ((imageint) IMGMAX << IMG2BITS) | 
+      ((imageint) IMGMAX << IMGBITS) | IMGMAX;
 
   pre_neighbor();
 
@@ -2039,7 +2039,7 @@ void FixRigidSmall::setup_bodies_dynamic()
   double *rmass = atom->rmass;
   double *mass = atom->mass;
   int *type = atom->type;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   int nlocal = atom->nlocal;
 
   double *xcm,*vcm,*acm;
@@ -2490,8 +2490,8 @@ void FixRigidSmall::set_molecule(int nlocalprev, int tagprev,
 
       b->angmom[0] = b->angmom[1] = b->angmom[2] = 0.0;
       b->omega[0] = b->omega[1] = b->omega[2] = 0.0;
-      b->image = ((tagint) IMGMAX << IMG2BITS) |
-        ((tagint) IMGMAX << IMGBITS) | IMGMAX;
+      b->image = ((imageint) IMGMAX << IMG2BITS) |
+        ((imageint) IMGMAX << IMGBITS) | IMGMAX;
       b->ilocal = i;
       nlocal_body++;
     }

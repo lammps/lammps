@@ -59,7 +59,8 @@ enum{VERSION,SMALLINT,TAGINT,BIGINT,
      TRICLINIC,BOXLO,BOXHI,XY,XZ,YZ,
      SPECIAL_LJ,SPECIAL_COUL,
      MASS,PAIR,BOND,ANGLE,DIHEDRAL,IMPROPER,
-     MULTIPROC,MPIIO,PROCSPERFILE,PERPROC};
+     MULTIPROC,MPIIO,PROCSPERFILE,PERPROC,
+     IMAGEINT};
 
 enum{IGNORE,WARN,ERROR};                    // same as thermo.cpp
 
@@ -306,6 +307,7 @@ void WriteRestart::write(char *file)
     char *ptr = strchr(file,'%');
     *ptr = '\0';
     sprintf(multiname,"%s%d%s",file,icluster,ptr+1);
+    *ptr = '%';
 
     if (filewriter) {
       fp = fopen(multiname,"wb");
@@ -435,6 +437,7 @@ void WriteRestart::header()
 {
   write_string(VERSION,universe->version);
   write_int(SMALLINT,sizeof(smallint));
+  write_int(IMAGEINT,sizeof(imageint));
   write_int(TAGINT,sizeof(tagint));
   write_int(BIGINT,sizeof(bigint));
   write_string(UNITS,update->unit_style);

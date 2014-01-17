@@ -683,9 +683,9 @@ void Set::set(int keyword)
       if (ximageflag) xbox = ximage;
       if (yimageflag) ybox = yimage;
       if (zimageflag) zbox = zimage;
-      atom->image[i] = ((tagint) (xbox + IMGMAX) & IMGMASK) | 
-        (((tagint) (ybox + IMGMAX) & IMGMASK) << IMGBITS) | 
-        (((tagint) (zbox + IMGMAX) & IMGMASK) << IMG2BITS);
+      atom->image[i] = ((imageint) (xbox + IMGMAX) & IMGMASK) | 
+        (((imageint) (ybox + IMGMAX) & IMGMASK) << IMGBITS) | 
+        (((imageint) (zbox + IMGMAX) & IMGMASK) << IMG2BITS);
     }
 
     // set value for custom integer or double vector

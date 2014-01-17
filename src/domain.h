@@ -106,11 +106,11 @@ class Domain : protected Pointers {
   int closest_image(int, int);
   void closest_image(const double * const, const double * const,
                      double * const);
-  void remap(double *, tagint &);
+  void remap(double *, imageint &);
   void remap(double *);
   void remap_near(double *, double *);
-  void unmap(double *, tagint);
-  void unmap(double *, tagint, double *);
+  void unmap(double *, imageint);
+  void unmap(double *, imageint, double *);
   void image_flip(int, int, int);
   void set_lattice(int, char **);
   void add_region(int, char **);

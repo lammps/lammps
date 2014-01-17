@@ -350,8 +350,8 @@ void FixGCMC::init()
   zz = exp(beta*chemical_potential)/(pow(lambda,3.0));
   if (pressure_flag) zz = pressure*fugacity_coeff*beta/force->nktv2p;
   
-  imagetmp = ((tagint) IMGMAX << IMG2BITS) | 
-             ((tagint) IMGMAX << IMGBITS) | IMGMAX;
+  imagetmp = ((imageint) IMGMAX << IMG2BITS) | 
+             ((imageint) IMGMAX << IMGBITS) | IMGMAX;
 }
 
 /* ----------------------------------------------------------------------
@@ -659,7 +659,7 @@ void FixGCMC::attempt_molecule_rotation()
   get_rotation_matrix(max_rotation_angle,&rot[0]);
 
   double **x = atom->x;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   double energy_after = 0.0;
   int n = 0;
   for (int i = 0; i < nlocal; i++) {
@@ -814,7 +814,7 @@ void FixGCMC::attempt_molecule_insertion()
     int k = 0;
     double **x = atom->x;
     double **v = atom->v;
-    tagint *image = atom->image;
+    imageint *image = atom->image;
     int *molecule = atom->molecule;
     int *tag = atom->tag;
     for (int i = 0; i < natoms_per_molecule; i++) {

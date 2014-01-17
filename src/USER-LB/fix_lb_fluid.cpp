@@ -800,7 +800,7 @@ void FixLbFluid::calc_fluidforce(void)
   double unwrap[3];
   double dx,dy,dz;
   double massone;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   double *rmass = atom->rmass;
   double *mass = atom->mass;
   int *type = atom->type;

@@ -356,7 +356,7 @@ void ChangeBox::command(int narg, char **arg)
   // use irregular() in case box moved a long distance relative to atoms
 
   double **x = atom->x;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   int nlocal = atom->nlocal;
   for (i = 0; i < nlocal; i++) domain->remap(x[i],image[i]);
 

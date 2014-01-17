@@ -57,7 +57,7 @@ class AtomVecHybrid : public AtomVec {
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
   void create_atom(int, double *);
-  void data_atom(double *, tagint, char **);
+  void data_atom(double *, imageint, char **);
   int data_atom_hybrid(int, char **) {return 0;}
   void data_vel(int, char **);
   void pack_data(double **);
@@ -68,7 +68,7 @@ class AtomVecHybrid : public AtomVec {
 
  private:
   int *tag,*type,*mask;
-  tagint *image;
+  imageint *image;
   double **x,**v,**f;
   double **omega,**angmom;
 

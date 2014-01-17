@@ -54,7 +54,7 @@ class FixPour : public Fix {
   class Molecule *onemol;
   int natom;
   double **coords;
-  int *imageflags;
+  imageint *imageflags;
   class Fix *fixrigid,*fixshake;
   double oneradius;
 

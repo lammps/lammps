@@ -345,8 +345,8 @@ FixLbRigidPCSphere::FixLbRigidPCSphere(LAMMPS *lmp, int narg, char **arg) :
   // set here, so image value will persist from run to run
 
   for (ibody = 0; ibody < nbody; ibody++)
-    imagebody[ibody] = ((tagint) IMGMAX << IMG2BITS) | 
-      ((tagint) IMGMAX << IMGBITS) | IMGMAX;
+    imagebody[ibody] = ((imageint) IMGMAX << IMG2BITS) | 
+      ((imageint) IMGMAX << IMGBITS) | IMGMAX;
 
   // print statistics
 
@@ -466,7 +466,7 @@ void FixLbRigidPCSphere::init()
   int *type = atom->type;
   int nlocal = atom->nlocal;
   double **x = atom->x;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   double *rmass = atom->rmass;
   double *mass = atom->mass;  
   int *periodicity = domain->periodicity;
@@ -656,7 +656,7 @@ void FixLbRigidPCSphere::setup(int vflag)
   int *type = atom->type;
   int nlocal = atom->nlocal;
 
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   int *periodicity = domain->periodicity;
 
   double unwrap[3];
@@ -766,7 +766,7 @@ void FixLbRigidPCSphere::initial_integrate(int vflag)
   int *type = atom->type;
   int nlocal = atom->nlocal;
 
-  tagint *image = atom->image;
+  imageint *image = atom->image;
 
   double unwrap[3];
   double dx,dy,dz;
@@ -951,7 +951,7 @@ void FixLbRigidPCSphere::final_integrate()
 
   // sum over atoms to get force and torque on rigid body
   double massone;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   double **x = atom->x;
   double **f = atom->f;
   double **v = atom->v;
@@ -1119,7 +1119,7 @@ void FixLbRigidPCSphere::set_v()
   double *rmass = atom->rmass;
   double *mass = atom->mass;  
   int *type = atom->type;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   int nlocal = atom->nlocal;
 
   double xprd = domain->xprd;
@@ -1211,7 +1211,7 @@ void FixLbRigidPCSphere::set_xv()
   double *rmass = atom->rmass;
   double *mass = atom->mass;  
   int *type = atom->type;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   int nlocal = atom->nlocal;
 
   double xprd = domain->xprd;

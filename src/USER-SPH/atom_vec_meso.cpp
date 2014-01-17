@@ -680,7 +680,7 @@ int AtomVecMeso::unpack_exchange(double *buf) {
   tag[nlocal] = (int) ubuf(buf[m++]).i;
   type[nlocal] = (int) ubuf(buf[m++]).i;
   mask[nlocal] = (int) ubuf(buf[m++]).i;
-  image[nlocal] = (tagint) ubuf(buf[m++]).i;
+  image[nlocal] = (imageint) ubuf(buf[m++]).i;
   rho[nlocal] = buf[m++];
   e[nlocal] = buf[m++];
   cv[nlocal] = buf[m++];
@@ -768,7 +768,7 @@ int AtomVecMeso::unpack_restart(double *buf) {
   tag[nlocal] = (int) ubuf(buf[m++]).i;
   type[nlocal] = (int) ubuf(buf[m++]).i;
   mask[nlocal] = (int) ubuf(buf[m++]).i;
-  image[nlocal] = (tagint) ubuf(buf[m++]).i;
+  image[nlocal] = (imageint) ubuf(buf[m++]).i;
   v[nlocal][0] = buf[m++];
   v[nlocal][1] = buf[m++];
   v[nlocal][2] = buf[m++];
@@ -806,8 +806,8 @@ void AtomVecMeso::create_atom(int itype, double *coord) {
   x[nlocal][1] = coord[1];
   x[nlocal][2] = coord[2];
   mask[nlocal] = 1;
-  image[nlocal] = ((tagint) IMGMAX << IMG2BITS) |
-    ((tagint) IMGMAX << IMGBITS) | IMGMAX;
+  image[nlocal] = ((imageint) IMGMAX << IMG2BITS) |
+    ((imageint) IMGMAX << IMGBITS) | IMGMAX;
   v[nlocal][0] = 0.0;
   v[nlocal][1] = 0.0;
   v[nlocal][2] = 0.0;
@@ -828,7 +828,7 @@ void AtomVecMeso::create_atom(int itype, double *coord) {
    initialize other atom quantities
    ------------------------------------------------------------------------- */
 
-void AtomVecMeso::data_atom(double *coord, tagint imagetmp, char **values) {
+void AtomVecMeso::data_atom(double *coord, imageint imagetmp, char **values) {
   int nlocal = atom->nlocal;
   if (nlocal == nmax)
     grow(0);

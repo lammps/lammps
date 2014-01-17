@@ -90,7 +90,7 @@ class FixRigid : public Fix {
   double **omega;           // angular velocity of each in space coords
   double **torque;          // torque on each rigid body in space coords
   double **quat;            // quaternion of each rigid body
-  tagint *imagebody;        // image flags of xcm of each rigid body
+  imageint *imagebody;        // image flags of xcm of each rigid body
   double **fflag;           // flag for on/off of center-of-mass force
   double **tflag;           // flag for on/off of center-of-mass torque
   double **langextra;       // Langevin thermostat forces and torques

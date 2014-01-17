@@ -94,7 +94,7 @@ class FixGCMC : public Fix {
   double **cutsq;
   double **atom_coord;
   double *model_atom_buf;
-  tagint imagetmp;
+  imageint imagetmp;
 
   class Pair *pair;
 

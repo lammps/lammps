@@ -519,7 +519,7 @@ void FixColvars::setup(int vflag)
   memory->create(comm_buf,nmax,"colvars:comm_buf");
 
   const double * const * const x = atom->x;
-  const tagint * const image = atom->image;
+  const imageint * const image = atom->image;
 
   const double xprd = domain->xprd;
   const double yprd = domain->yprd;
@@ -668,7 +668,7 @@ void FixColvars::post_force(int vflag)
   const int * const tag = atom->tag;
   const double * const * const x = atom->x;
   double * const * const f = atom->f;
-  const tagint * const image = atom->image;
+  const imageint * const image = atom->image;
 
   const double xprd = domain->xprd;
   const double yprd = domain->yprd;

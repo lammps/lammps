@@ -859,7 +859,7 @@ void AtomVecHybrid::create_atom(int itype, double *coord)
    grow() occurs here so arrays for all sub-styles are grown
 ------------------------------------------------------------------------- */
 
-void AtomVecHybrid::data_atom(double *coord, tagint imagetmp, char **values)
+void AtomVecHybrid::data_atom(double *coord, imageint imagetmp, char **values)
 {
   int nlocal = atom->nlocal;
   if (nlocal == nmax) grow(0);

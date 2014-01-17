@@ -816,7 +816,7 @@ void FixStoreState::pack_zs_triclinic(int n)
 void FixStoreState::pack_xu(int n)
 {
   double **x = atom->x;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -836,7 +836,7 @@ void FixStoreState::pack_xu(int n)
 void FixStoreState::pack_yu(int n)
 {
   double **x = atom->x;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -856,7 +856,7 @@ void FixStoreState::pack_yu(int n)
 void FixStoreState::pack_zu(int n)
 {
   double **x = atom->x;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -876,7 +876,7 @@ void FixStoreState::pack_zu(int n)
 void FixStoreState::pack_xu_triclinic(int n)
 {
   double **x = atom->x;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -900,7 +900,7 @@ void FixStoreState::pack_xu_triclinic(int n)
 void FixStoreState::pack_yu_triclinic(int n)
 {
   double **x = atom->x;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -923,7 +923,7 @@ void FixStoreState::pack_yu_triclinic(int n)
 void FixStoreState::pack_zu_triclinic(int n)
 {
   double **x = atom->x;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -944,7 +944,7 @@ void FixStoreState::pack_zu_triclinic(int n)
 
 void FixStoreState::pack_ix(int n)
 {
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -959,7 +959,7 @@ void FixStoreState::pack_ix(int n)
 
 void FixStoreState::pack_iy(int n)
 {
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -974,7 +974,7 @@ void FixStoreState::pack_iy(int n)
 
 void FixStoreState::pack_iz(int n)
 {
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 

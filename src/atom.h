@@ -46,7 +46,7 @@ class Atom : protected Pointers {
   // customize by adding new array
 
   int *tag,*type,*mask;
-  tagint *image;
+  imageint *image;
   double **x,**v,**f;
 
   int *molecule,*molindex,*molatom;

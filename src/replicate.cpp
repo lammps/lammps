@@ -258,7 +258,7 @@ void Replicate::command(int narg, char **arg)
   AtomVec *avec = atom->avec;
 
   int ix,iy,iz,atom_offset,mol_offset;
-  tagint image;
+  imageint image;
   double x[3],lamda[3];
   double *coord;
   int tag_enable = atom->tag_enable;
@@ -279,8 +279,8 @@ void Replicate::command(int narg, char **arg)
 
           m = 0;
           while (m < n) {
-            image = ((tagint) IMGMAX << IMG2BITS) |
-              ((tagint) IMGMAX << IMGBITS) | IMGMAX;
+            image = ((imageint) IMGMAX << IMG2BITS) |
+              ((imageint) IMGMAX << IMGBITS) | IMGMAX;
             if (triclinic == 0) {
               x[0] = buf[m+1] + ix*old_xprd;
               x[1] = buf[m+2] + iy*old_yprd;

@@ -136,7 +136,7 @@ void ComputeGyrationMolecule::compute_vector()
   int *mask = atom->mask;
   int *molecule = atom->molecule;
   int *type = atom->type;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
@@ -180,7 +180,7 @@ void ComputeGyrationMolecule::compute_array()
   int *mask = atom->mask;
   int *molecule = atom->molecule;
   int *type = atom->type;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
@@ -231,7 +231,7 @@ void ComputeGyrationMolecule::molcom()
   int *mask = atom->mask;
   int *molecule = atom->molecule;
   int *type = atom->type;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;

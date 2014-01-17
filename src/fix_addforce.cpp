@@ -221,7 +221,7 @@ void FixAddForce::post_force(int vflag)
   double **x = atom->x;
   double **f = atom->f;
   int *mask = atom->mask;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   int nlocal = atom->nlocal;
 
   // reallocate sforce array if necessary

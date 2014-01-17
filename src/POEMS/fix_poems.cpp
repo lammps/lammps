@@ -374,7 +374,7 @@ void FixPOEMS::init()
   // only count joint atoms in 1st body
 
   int *type = atom->type;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   double *mass = atom->mass;
   double **x = atom->x;
   double **v = atom->v;
@@ -610,7 +610,7 @@ void FixPOEMS::setup(int vflag)
   // only count joint atoms in 1st body
 
   int *type = atom->type;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   double *mass = atom->mass;
   double **x = atom->x;
   double **v = atom->v;
@@ -724,7 +724,7 @@ void FixPOEMS::post_force(int vflag)
   int xbox,ybox,zbox;
   double dx,dy,dz;
 
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   double **x = atom->x;
   double **f = atom->f;
   int nlocal = atom->nlocal;
@@ -1355,7 +1355,7 @@ void FixPOEMS::set_xv()
   double x0,x1,x2,v0,v1,v2,fc0,fc1,fc2,massone;
   double vr[6];
 
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   double **x = atom->x;
   double **v = atom->v;
   double **f = atom->f;
@@ -1459,7 +1459,7 @@ void FixPOEMS::set_v()
   double **x = atom->x;
   double **v = atom->v;
   int *type = atom->type;
-  tagint *image = atom->image;
+  imageint *image = atom->image;
   int nlocal = atom->nlocal;
 
   double xprd = domain->xprd;

@@ -1,5 +1,6 @@
 <HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS  
+Commands</A> 
 </CENTER>
 
 
@@ -17,13 +18,15 @@
 </PRE>
 <UL><LI>one or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>map</I> or <I>first</I> or <I>sort</I> 
+<LI>keyword = <I>id</I> or <I>map</I> or <I>first</I> or <I>sort</I> 
 
-<PRE>  <I>map</I> value = <I>array</I> or <I>hash</I>
-  <I>first</I> value = group-ID = group whose atoms will appear first in internal atom lists
-  <I>sort</I> values = Nfreq binsize
-    Nfreq = sort atoms spatially every this many time steps
-    binsize = bin size for spatial sorting (distance units) 
+<PRE>   <I>id</I> value = <I>yes</I> or <I>no</I>
+   <I>map</I> value = <I>array</I> or <I>hash</I>
+   <I>first</I> value = group-ID = group whose atoms will appear first in  
+internal atom lists
+   <I>sort</I> values = Nfreq binsize
+     Nfreq = sort atoms spatially every this many time steps
+     binsize = bin size for spatial sorting (distance units) 
 </PRE>
 
 </UL>
@@ -35,19 +38,58 @@ atom_modify first colloid
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Modify properties of the atom style selected within LAMMPS.
+<P>Modify certain attributes of atoms defined and stored within LAMMPS,
+in addition to what is specified by the <A HREF = "atom_style.html">atom_style</A>
+command.  The <I>id</I> and <I>map</I> keywords must be specified before a
+simulation box is defined; other keywords can be specified any time.
+</P>
+<P>The <I>id</I> keyword determines whether non-zero atom IDs can be assigned
+to each atom.  If the value is <I>yes</I>, which is the default, IDs are
+assigned, whether you use the <A HREF = "create_atoms.html">create atoms</A> or
+<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
+commands to initialize atoms.  If atom IDs are used, they must all be
+positive integers.  They should also be unique, though LAMMPS does not
+check for this.  Typically they should also be consecutively numbered
+(from 1 to Natoms), though this is not required.  Molecular <A HREF = "atom_style.html">atom
+styles</A> are those that store bond topology information
+(styles bond, angle, molecular, full).  These styles require atom IDs
+since the IDs are used to encode the topology.  Some other LAMMPS
+commands also require the use of atom IDs.  E.g. some many-body pair
+styles use them to avoid double computation of the I-J interaction
+between two atoms.
+</P>
+<P>The only reason not to use atom IDs is if you are running an atomic
+simulation so large that IDs cannot be uniquely assigned.  For a
+default LAMMPS build this limit is 2^31 or ~2 billion atoms.  However,
+even in this case, you can use 64-bit atom IDs, allowing 2^63 or ~9e18
+atoms, if you build LAMMPS with the - DLAMMPS_BIGBIG switch.  This is
+described in <A HREF = "Section_start.html#start_2">Section 2.2</A> of the manual.
+If atom IDs are not used, they must be specified as 0 for all atoms,
+e.g. in a data or restart file.
 </P>
 <P>The <I>map</I> keyword determines how atom ID lookup is done for molecular
-problems.  Lookups are performed by bond (angle, etc) routines in
+atom styles.  Lookups are performed by bond (angle, etc) routines in
 LAMMPS to find the local atom index associated with a global atom ID.
-When the <I>array</I> value is used, each processor stores a lookup table
-of length N, where N is the total # of atoms in the system.  This is
-the fastest method for most simulations, but a processor can run out
-of memory to store the table for very large simulations.  The <I>hash</I>
-value uses a hash table to perform the lookups.  This method can be
-slightly slower than the <I>array</I> method, but its memory cost is
-proportional to N/P on each processor, where P is the total number of
-processors running the simulation.
+</P>
+<P>When the <I>array</I> value is used, each processor stores a lookup table
+of length N, where N is the largest atom ID in the system.  This is a
+fast, simple method for many simulations, but requires too much memory
+for large simulations.  The <I>hash</I> value uses a hash table to perform
+the lookups.  This can be slightly slower than the <I>array</I> method, but
+its memory cost is proportional to the number of atoms owned by a
+processor, i.e. N/P when N is the total number of atoms in the system
+and P is the number of processors.
+</P>
+<P>When this setting is not specified in your input script, LAMMPS
+creates a map, if one is needed, as an array or hash.  See the
+discussion of default values below for how LAMMPS chooses which kind
+of map to build.  Note that atomic systems do not normally need to
+create a map.  However, even in this case some LAMMPS commands will
+create a map to find atoms (and then destroy it), or require a
+permanent map.  An example of the former is the <A HREF = "velocity.html">velocity loop
+all</A> command, which uses a map when looping over all
+atoms and insuring the same velocity values are assigned to an atom
+ID, no matter which processor owns it.
 </P>
 <P>The <I>first</I> keyword allows a <A HREF = "group.html">group</A> to be specified whose
 atoms will be maintained as the first atoms in each processor's list
@@ -111,10 +153,6 @@ if sorting is enabled.
 </P>
 <P><B>Restrictions:</B>
 </P>
-<P>The map keyword can only be used before the simulation box is defined
-by a <A HREF = "read_data.html">read_data</A> or <A HREF = "create_box.html">create_box</A>
-command.
-</P>
 <P>The <I>first</I> and <I>sort</I> options cannot be used together.  Since sorting
 is on by default, it will be turned off if the <I>first</I> keyword is
 used with a group-ID that is not "all".
@@ -123,10 +161,12 @@ used with a group-ID that is not "all".
 </P>
 <P><B>Default:</B>
 </P>
-<P>By default, atomic (non-molecular) problems do not allocate maps.  For
-molecular problems, the option default is map = array.  By default, a
-"first" group is not defined.  By default, sorting is enabled with a
-frequency of 1000 and a binsize of 0.0, which means the neighbor
+<P>By default, <I>id</I> is yes.  By default, atomic systems (no bond topology  
+info) do not use a map.  For molecular systems (with bond topology  
+info), a map is used.  The default map style is array if no atom ID is  
+larger than 1 million, otherwise the default is hash.  By default, a  
+"first" group is not defined.  By default, sorting is enabled with a  
+frequency of 1000 and a binsize of 0.0, which means the neighbor  
 cutoff will be used to set the bin size.
 </P>
 <HR>

@@ -233,16 +233,16 @@ files for doing particle dumps in XTC format.  This is only necessary
 if your platform does have its own XDR files available.  See the
 Restrictions section of the <A HREF = "dump.html">dump</A> command for details.
 </P>
-<P>Use at most one of the -DLAMMPS_SMALLBIG, -DLAMMPS_BIGBIG,
--D-DLAMMPS_SMALLSMALL settings.  The default is -DLAMMPS_SMALLBIG.
-These settings refer to use of 4-byte (small) vs 8-byte (big) integers
+<P>Use at most one of the -DLAMMPS_SMALLBIG, -DLAMMPS_BIGBIG, -D-
+DLAMMPS_SMALLSMALL settings. The default is -DLAMMPS_SMALLBIG. These
+settings refer to use of 4-byte (small) vs 8-byte (big) integers
 within LAMMPS, as specified in src/lmptype.h.  The only reason to use
 the BIGBIG setting is to enable simulation of huge molecular systems
-with more than 2 billion atoms or to allow moving atoms to wrap back
-through a periodic box more than 512 times.  The only reason to use
-the SMALLSMALL setting is if your machine does not support 64-bit
-integers.  See the <A HREF = "#start_2_4">Additional build tips</A> section below
-for more details.
+(which store bond topology info) with more than 2 billion atoms, or to
+track the image flags of moving atoms that wrap around a periodic box
+more than 512 times. The only reason to use the SMALLSMALL setting is
+if your machine does not support 64-bit integers.  See the <A HREF = "#start_2_4">Additional
+build tips</A> section below for more details.
 </P>
 <P>The -DLAMMPS_LONGLONG_TO_LONG setting may be needed if your system or
 MPI version does not recognize "long long" data types.  In this case a
@@ -464,42 +464,47 @@ particular machine.
 LMP_INC line in your low-level src/MAKE/Makefile.foo.
 </P>
 <P>The default is -DLAMMPS_SMALLBIG which allows for systems with up to
-2^63 atoms and timesteps (about 9 billion billion).  The atom limit is
-for atomic systems that do not require atom IDs.  For molecular
-models, which require atom IDs, the limit is 2^31 atoms (about 2
-billion).  With this setting, image flags are stored in 32-bit
-integers, which means for 3 dimensions that atoms can only wrap around
-a periodic box at most 512 times.  If atoms move through the periodic
-box more than this limit, the image flags will "roll over", e.g. from
-511 to -512, which can cause diagnostics like the mean-squared
-displacement, as calculated by the <A HREF = "compute_msd.html">compute msd</A>
-command, to be faulty.
+2^63 atoms and 2^63 timesteps (about 9e18). The atom limit is for
+atomic systems which do not store bond topology info and thus do not
+require atom IDs.  If you use atom IDs for atomic systems (which is
+the default) or if you use a molecular model, which stores bond
+topology info and thus requires atom IDs, the limit is 2^31 atoms
+(about 2 billion).  This is because the IDs are stored in 32-bit
+integers.
 </P>
-<P>To allow for larger molecular systems or larger image flags, compile
-with -DLAMMPS_BIGBIG.  This enables molecular systems with up to 2^63
-atoms (about 9 billion billion).  And image flags will not "roll over"
-until they reach 2^20 = 1048576.
+<P>Likewise, with this setting, the 3 image flags for each atom (see the
+<A HREF = "dump.html">dump</A> doc page for a discussion) are stored in a 32-bit
+integer, which means the atoms can only wrap around a periodic box (in
+each dimension) at most 512 times.  If atoms move through the periodic
+box more than this many times, the image flags will "roll over",
+e.g. from 511 to -512, which can cause diagnostics like the
+mean-squared displacement, as calculated by the <A HREF = "compute_msd.html">compute
+msd</A> command, to be faulty.
 </P>
-<P>IMPORTANT NOTE: As of 6/2012, the BIGBIG setting does not yet enable
-molecular systems to grow as large as 2^63.  Only the image flag roll
-over is currently affected by this compile option.
+<P>To allow for larger atomic systems with atom IDs or larger molecular
+systems or larger image flags, compile with -DLAMMPS_BIGBIG.  This
+stores atom IDs and image flags in 64-bit integers.  This enables
+atomic or molecular systems with atom IDS of up to 2^63 atoms (about
+9e18).  And image flags will not "roll over" until they reach 2^20 =
+1048576.
 </P>
 <P>If your system does not support 8-byte integers, you will need to
-compile with the -DLAMMPS_SMALLSMALL setting.  This will restrict your
-total number of atoms (for atomic or molecular models) and timesteps
+compile with the -DLAMMPS_SMALLSMALL setting.  This will restrict the
+total number of atoms (for atomic or molecular systems) and timesteps
 to 2^31 (about 2 billion).  Image flags will roll over at 2^9 = 512.
 </P>
-<P>Note that in src/lmptype.h there are also settings for the MPI data
-types associated with the integers that store atom IDs and total
-system sizes.  These need to be consistent with the associated C data
-types, or else LAMMPS will generate a run-time error.
+<P>Note that in src/lmptype.h there are definitions of all these data
+types as well as the MPI data types associated with them.  The MPI
+types need to be consistent with the associated C data types, or else
+LAMMPS will generate a run-time error.  As far as we know, the
+settings defined in src/lmptype.h are portable and work on every
+current system.
 </P>
-<P>In all cases, the size of problem that can be run on a per-processor
-basis is limited by 4-byte integer storage to 2^31 atoms per processor
-(about 2 billion).  This should not normally be a restriction since
-such a problem would have a huge per-processor memory footprint due to
-neighbor lists and would run very slowly in terms of CPU
-secs/timestep.
+<P>In all cases, the size of problem that can be run on a per-processor  
+basis is limited by 4-byte integer storage to 2^31 atoms per processor  
+(about 2 billion). This should not normally be a limitation since such  
+a problem would have a huge per-processor memory footprint due to  
+neighbor lists and would run very slowly in terms of CPU secs/timestep.
 </P>
 <HR>
 

@@ -17,10 +17,6 @@
                   Kurt Anderson (anderk5@rpi.edu)
 ------------------------------------------------------------------------- */
 
-#ifdef LAMMPS_BIGBIG
-#error LAMMPS_BIGBIG not supported by this file
-#endif
-
 #include "mpi.h"
 #include "math.h"
 #include "stdio.h"
@@ -978,7 +974,7 @@ void FixPOEMS::jointbuild()
   // an atom in N rigid bodies, infers N-1 joints between 1st body and others
   // mylist = [0],[1] = 2 body indices, [2] = global ID of joint atom
 
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int nlocal = atom->nlocal;
 
   int mjoint = 0;
@@ -987,7 +983,7 @@ void FixPOEMS::jointbuild()
     mjoint += natom2body[i]-1;
   }
 
-  int **mylist = NULL;
+  tagint **mylist = NULL;
   if (mjoint) memory->create(mylist,mjoint,3,"poems:mylist");
 
   mjoint = 0;
@@ -1004,7 +1000,7 @@ void FixPOEMS::jointbuild()
   // jlist = mylist concatenated across all procs via MPI_Allgatherv
 
   MPI_Allreduce(&mjoint,&njoint,1,MPI_INT,MPI_SUM,world);
-  int **jlist = NULL;
+  tagint **jlist = NULL;
   if (njoint) memory->create(jlist,njoint,3,"poems:jlist");
 
   int nprocs;
@@ -1023,11 +1019,11 @@ void FixPOEMS::jointbuild()
 
   if (njoint) {
     if (mjoint)
-      MPI_Allgatherv(mylist[0],3*mjoint,MPI_INT,jlist[0],
-                     recvcounts,displs,MPI_INT,world);
+      MPI_Allgatherv(mylist[0],3*mjoint,MPI_LMP_TAGINT,jlist[0],
+                     recvcounts,displs,MPI_LMP_TAGINT,world);
     else
-      MPI_Allgatherv(NULL,3*mjoint,MPI_INT,jlist[0],
-                     recvcounts,displs,MPI_INT,world);
+      MPI_Allgatherv(NULL,3*mjoint,MPI_LMP_TAGINT,jlist[0],
+                     recvcounts,displs,MPI_LMP_TAGINT,world);
   }
 
   delete [] recvcounts;
@@ -1036,7 +1032,8 @@ void FixPOEMS::jointbuild()
   // warning if no joints
 
   if (njoint == 0 && me == 0)
-    error->warning(FLERR,"No joints between rigid bodies, use fix rigid instead");
+    error->warning(FLERR,
+                   "No joints between rigid bodies, use fix rigid instead");
 
   // sort joint list in ascending order by body indices
   // check for loops in joint connections between rigid bodies
@@ -1054,7 +1051,8 @@ void FixPOEMS::jointbuild()
     bodyflag[jlist[i][1]]++;
   }
   for (i = 0; i < nbody; i++)
-    if (bodyflag[i] > 2) error->all(FLERR,"Tree structure in joint connections");
+    if (bodyflag[i] > 2) 
+      error->all(FLERR,"Tree structure in joint connections");
   delete [] bodyflag;
 
   // allocate and setup joint arrays
@@ -1119,9 +1117,10 @@ void FixPOEMS::jointbuild()
   sort criterion: sort on 1st body, if equal sort on 2nd body
 ------------------------------------------------------------------------- */
 
-void FixPOEMS::sortlist(int n, int **list)
+void FixPOEMS::sortlist(int n, tagint **list)
 {
-  int i,j,v0,v1,v2,flag;
+  int i,j,flag;
+  tagint v0,v1,v2;
 
   int inc = 1;
   while (inc <= n) inc = 3*inc + 1;
@@ -1158,7 +1157,7 @@ void FixPOEMS::sortlist(int n, int **list)
   treat as graph: vertex = body, edge = joint between 2 bodies
 ------------------------------------------------------------------------- */
 
-int FixPOEMS::loopcheck(int nvert, int nedge, int **elist)
+int FixPOEMS::loopcheck(int nvert, int nedge, tagint **elist)
 {
   int i,j,k;
 

@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #ifdef LAMMPS_BIGBIG
-#error LAMMPS_BIGBIG not supported by this file
+#error LAMMPS_BIGBIG is not yet supported by the GPU package
 #endif
 
 #include "string.h"

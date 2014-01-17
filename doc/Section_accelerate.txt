@@ -81,10 +81,11 @@ NOTE: this sub-section is still a work in progress
 Here is a list of general ideas for improving simulation performance.
 Most of them are only applicable to certain models and certain
 bottlenecks in the current performance, so let the timing data you
-intially generate be your guide.  It is hard, if not impossible, to
-predict how much difference these options will make, since it is a
-function of your problem and your machine.  There is no substitute for
-simply trying them out.
+generate be your guide.  It is hard, if not impossible, to predict how
+much difference these options will make, since it is a function of
+problem size, number of processors used, and your machine.  There is
+no substitute for identifying performance bottlenecks, and trying out
+various options.
 
 rRESPA
 2-FFT PPPM

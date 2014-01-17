@@ -452,7 +452,7 @@ files created when LAMMPS is built, for either all builds or for a
 particular machine.
 
 (3) Changing the LAMMPS size limits via -DLAMMPS_SMALLBIG or
--DLAMMPS_BIBIG or -DLAMMPS_SMALLSMALL
+-DLAMMPS_BIGBIG or -DLAMMPS_SMALLSMALL
 
 As explained above, any of these 3 settings can be specified on the
 LMP_INC line in your low-level src/MAKE/Makefile.foo.

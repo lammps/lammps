@@ -22,8 +22,7 @@ Commands</A>
 
 <PRE>   <I>id</I> value = <I>yes</I> or <I>no</I>
    <I>map</I> value = <I>array</I> or <I>hash</I>
-   <I>first</I> value = group-ID = group whose atoms will appear first in  
-internal atom lists
+   <I>first</I> value = group-ID = group whose atoms will appear first in internal atom lists
    <I>sort</I> values = Nfreq binsize
      Nfreq = sort atoms spatially every this many time steps
      binsize = bin size for spatial sorting (distance units) 
@@ -60,12 +59,12 @@ between two atoms.
 </P>
 <P>The only reason not to use atom IDs is if you are running an atomic
 simulation so large that IDs cannot be uniquely assigned.  For a
-default LAMMPS build this limit is 2^31 or ~2 billion atoms.  However,
-even in this case, you can use 64-bit atom IDs, allowing 2^63 or ~9e18
-atoms, if you build LAMMPS with the - DLAMMPS_BIGBIG switch.  This is
-described in <A HREF = "Section_start.html#start_2">Section 2.2</A> of the manual.
-If atom IDs are not used, they must be specified as 0 for all atoms,
-e.g. in a data or restart file.
+default LAMMPS build this limit is 2^31 or about 2 billion atoms.
+However, even in this case, you can use 64-bit atom IDs, allowing 2^63
+or about 9e18 atoms, if you build LAMMPS with the - DLAMMPS_BIGBIG
+switch.  This is described in <A HREF = "Section_start.html#start_2">Section 2.2</A>
+of the manual.  If atom IDs are not used, they must be specified as 0
+for all atoms, e.g. in a data or restart file.
 </P>
 <P>The <I>map</I> keyword determines how atom ID lookup is done for molecular
 atom styles.  Lookups are performed by bond (angle, etc) routines in

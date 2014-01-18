@@ -46,7 +46,7 @@ class FixExternal : public Fix {
   int pack_exchange(int, double *);
   int unpack_exchange(int, double *);
 
-  typedef void (*FnPtr)(void *, bigint, int, int *, double **, double **);
+  typedef void (*FnPtr)(void *, bigint, int, tagint *, double **, double **);
   void set_callback(FnPtr, void *);
 
  private:

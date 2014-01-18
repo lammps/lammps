@@ -99,8 +99,8 @@ class FixPOEMS : public Fix  {
   void readfile(char *);
   int readline(FILE *, char **, int *);
   void jointbuild();
-  void sortlist(int, int **);
-  int loopcheck(int, int, int **);
+  void sortlist(int, tagint **);
+  int loopcheck(int, int, tagint **);
   int jacobi(double **, double *, double **);
   void rotate(double **, int, int, int, int, double, double);
   void omega_from_mq(double *, double *, double *, double *,

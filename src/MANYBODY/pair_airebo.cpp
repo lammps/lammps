@@ -391,7 +391,8 @@ void PairAIREBO::REBO_neigh()
 
 void PairAIREBO::FREBO(int eflag, int vflag)
 {
-  int i,j,k,m,ii,inum,itype,jtype,itag,jtag;
+  int i,j,k,m,ii,inum,itype,jtype;
+  tagint itag,jtag;
   double delx,dely,delz,evdwl,fpair,xtmp,ytmp,ztmp;
   double rsq,rij,wij;
   double Qij,Aij,alphaij,VR,pre,dVRdi,VA,term,bij,dVAdi,dVA;
@@ -403,7 +404,7 @@ void PairAIREBO::FREBO(int eflag, int vflag)
   double **x = atom->x;
   double **f = atom->f;
   int *type = atom->type;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
 
@@ -489,9 +490,10 @@ void PairAIREBO::FREBO(int eflag, int vflag)
 
 void PairAIREBO::FLJ(int eflag, int vflag)
 {
-  int i,j,k,m,ii,jj,kk,mm,inum,jnum,itype,jtype,ktype,mtype,itag,jtag;
+  int i,j,k,m,ii,jj,kk,mm,inum,jnum,itype,jtype,ktype,mtype;
   int atomi,atomj,atomk,atomm;
   int testpath,npath,done;
+  tagint itag,jtag;
   double evdwl,fpair,xtmp,ytmp,ztmp;
   double rsq,best,wik,wkm,cij,rij,dwij,dwik,dwkj,dwkm,dwmj;
   double delij[3],rijsq,delik[3],rik,deljk[3];
@@ -520,7 +522,7 @@ void PairAIREBO::FLJ(int eflag, int vflag)
 
   double **x = atom->x;
   double **f = atom->f;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int *type = atom->type;
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
@@ -855,7 +857,8 @@ void PairAIREBO::FLJ(int eflag, int vflag)
 
 void PairAIREBO::TORSION(int eflag, int vflag)
 {
-  int i,j,k,l,ii,inum,itag,jtag;
+  int i,j,k,l,ii,inum;
+  tagint itag,jtag;
   double evdwl,fpair,xtmp,ytmp,ztmp;
   double cos321;
   double w21,dw21,cos234,w34,dw34;
@@ -880,7 +883,7 @@ void PairAIREBO::TORSION(int eflag, int vflag)
   double **x = atom->x;
   double **f = atom->f;
   int *type = atom->type;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
 
   inum = list->inum;
   ilist = list->ilist;

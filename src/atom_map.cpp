@@ -25,61 +25,100 @@ using namespace LAMMPS_NS;
    allocate and initialize array or hash table for global -> local map
    set map_tag_max = largest atom ID (may be larger than natoms)
    for array option:
-     array length = 1 to largest tag of any atom
+     array length = 1 to map_tag_max
      set entire array to -1 as initial values
    for hash option:
      map_nhash = length of hash table
-     map_nbucket = # of hash buckets, prime larger than map_nhash
+     map_nbucket = # of hash buckets, prime larger than map_nhash * 2
        so buckets will only be filled with 0 or 1 atoms on average
 ------------------------------------------------------------------------- */
 
 void Atom::map_init()
 {
-  map_delete();
-
   if (tag_enable == 0)
     error->all(FLERR,"Cannot create an atom map unless atoms have IDs");
 
-  int max = 0;
+  int map_style_old = map_style;
+
+  // map_tag_max = max ID of any atom that will be in new map
+
+  tagint max = 0;
   for (int i = 0; i < nlocal; i++) max = MAX(max,tag[i]);
-  MPI_Allreduce(&max,&map_tag_max,1,MPI_INT,MPI_MAX,world);
+  MPI_Allreduce(&max,&map_tag_max,1,MPI_LMP_TAGINT,MPI_MAX,world);
 
-  memory->destroy(sametag);
-  smax = nlocal + nghost + EXTRA;
-  memory->create(sametag,smax,"atom:sametag");
+  // set map_style for new map
+  // if user-selected, use that setting
+  // else if map_tag_max > 1M, use hash
+  // else use array
+  
+  if (map_user) map_style = map_user;
+  else if (map_tag_max > 1000000) map_style = 2;
+  else map_style = 1;
 
-  if (map_style == 1) {
-    memory->create(map_array,map_tag_max+1,"atom:map_array");
-    for (int i = 0; i <= map_tag_max; i++) map_array[i] = -1;
+  // recreate = 1 if must delete old map and create new map
+  // recreate = 0 if can re-use old map w/out realloc and just adjust settings
+
+  int recreate = 0;
+  if (map_style != map_style_old) recreate = 1;
+  else if (map_style == 1 && map_tag_max > max_array) recreate = 1;
+  else if (map_style == 2 && nlocal+nghost > map_nhash) recreate = 1;
+
+  // if not recreating:
+  // for array, just initialize current map_tag_max values
+  // for hash, set all buckets to empty, put all entries in free list 
+
+  if (!recreate) {
+    if (map_style == 1) {
+      for (int i = 0; i <= map_tag_max; i++) map_array[i] = -1;
+    } else {
+      for (int i = 0; i < map_nbucket; i++) map_bucket[i] = -1;
+      map_nused = 0;
+      map_free = 0;
+      for (int i = 0; i < map_nhash; i++) map_hash[i].next = i+1;
+      map_hash[map_nhash-1].next = -1;
+    }
+
+  // delete old map and create new one for array or hash
 
   } else {
+    map_delete();
 
-    // map_nhash = max # of atoms that can be hashed on this proc
-    // set to max of ave atoms/proc or atoms I can store
-    // multiply by 2, require at least 1000
-    // doubling means hash table will be re-init only rarely
+    if (map_style == 1) {
+      max_array = map_tag_max;
+      memory->create(map_array,max_array+1,"atom:map_array");
+      for (int i = 0; i <= map_tag_max; i++) map_array[i] = -1;
+      
+    } else {
 
-    int nper = static_cast<int> (natoms/comm->nprocs);
-    map_nhash = MAX(nper,nmax);
-    map_nhash *= 2;
-    map_nhash = MAX(map_nhash,1000);
+      // map_nhash = max # of atoms that can be hashed on this proc
+      // set to max of ave atoms/proc or atoms I can store
+      // multiply by 2, require at least 1000
+      // doubling means hash table will need to be re-init only rarely
 
-    // map_nbucket = prime just larger than map_nhash
+      int nper = static_cast<int> (natoms/comm->nprocs);
+      map_nhash = MAX(nper,nmax);
+      map_nhash *= 2;
+      map_nhash = MAX(map_nhash,1000);
 
-    map_nbucket = next_prime(map_nhash);
+      // map_nbucket = prime just larger than map_nhash
+      // next_prime() should be fast enough,
+      //   about 10% of odd integers are prime above 1M
 
-    // set all buckets to empty
-    // set hash to map_nhash in length
-    // put all hash entries in free list and point them to each other
+      map_nbucket = next_prime(map_nhash);
 
-    map_bucket = new int[map_nbucket];
-    for (int i = 0; i < map_nbucket; i++) map_bucket[i] = -1;
+      // set all buckets to empty
+      // set hash to map_nhash in length
+      // put all hash entries in free list and point them to each other
+      
+      map_bucket = new int[map_nbucket];
+      for (int i = 0; i < map_nbucket; i++) map_bucket[i] = -1;
 
-    map_hash = new HashElem[map_nhash];
-    map_nused = 0;
-    map_free = 0;
-    for (int i = 0; i < map_nhash; i++) map_hash[i].next = i+1;
-    map_hash[map_nhash-1].next = -1;
+      map_hash = new HashElem[map_nhash];
+      map_nused = 0;
+      map_free = 0;
+      for (int i = 0; i < map_nhash; i++) map_hash[i].next = i+1;
+      map_hash[map_nhash-1].next = -1;
+    }
   }
 }
 
@@ -99,7 +138,8 @@ void Atom::map_clear()
     }
 
   } else {
-    int previous,global,ibucket,index;
+    int previous,ibucket,index;
+    tagint global;
     int nall = nlocal + nghost;
     for (int i = 0; i < nall; i++) {
       sametag[i] = -1;
@@ -144,21 +184,37 @@ void Atom::map_clear()
 void Atom::map_set()
 {
   int nall = nlocal + nghost;
-  if (nall > smax) {
-    smax = nall + EXTRA;
-    memory->destroy(sametag);
-    memory->create(sametag,smax,"atom:sametag");
-  }
 
   if (map_style == 1) {
+
+    // possible reallocation of sametag must come before loop over atoms
+    // since loop sets sametag
+
+    if (nall > max_same) {
+      max_same = nall + EXTRA;
+      memory->destroy(sametag);
+      memory->create(sametag,max_same,"atom:sametag");
+    }
+
     for (int i = nall-1; i >= 0 ; i--) {
       sametag[i] = map_array[tag[i]];
       map_array[tag[i]] = i;
     }
 
   } else {
-    int previous,global,ibucket,index;
+
+    // possible reallocation of sametag must come after map_init()
+    // since map_init() will invoke map_delete(), whacking sametag
+
     if (nall > map_nhash) map_init();
+    if (nall > max_same) {
+      max_same = nall + EXTRA;
+      memory->destroy(sametag);
+      memory->create(sametag,max_same,"atom:sametag");
+    }
+
+    int previous,ibucket,index;
+    tagint global;
 
     for (int i = nall-1; i >= 0 ; i--) {
       sametag[i] = map_find_hash(tag[i]);
@@ -203,7 +259,7 @@ void Atom::map_set()
    called by Special class
 ------------------------------------------------------------------------- */
 
-void Atom::map_one(int global, int local)
+void Atom::map_one(tagint global, int local)
 {
   if (map_style == 1) map_array[global] = local;
   else {
@@ -246,6 +302,7 @@ void Atom::map_delete()
 {
   memory->destroy(sametag);
   sametag = NULL;
+  max_same = 0;
 
   if (map_style == 1) {
     memory->destroy(map_array);
@@ -259,7 +316,6 @@ void Atom::map_delete()
     }
     map_nhash = 0;
   }
-  map_tag_max = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -267,7 +323,7 @@ void Atom::map_delete()
    called by map() in atom.h
 ------------------------------------------------------------------------- */
 
-int Atom::map_find_hash(int global)
+int Atom::map_find_hash(tagint global)
 {
   int local = -1;
   int index = map_bucket[global % map_nbucket];

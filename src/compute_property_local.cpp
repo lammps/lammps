@@ -334,7 +334,6 @@ int ComputePropertyLocal::count_pairs(int allflag, int forceflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   double **x = atom->x;
-  int *tag = atom->tag;
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -407,9 +406,9 @@ int ComputePropertyLocal::count_bonds(int flag)
   int i,atom1,atom2;
 
   int *num_bond = atom->num_bond;
-  int **bond_atom = atom->bond_atom;
+  tagint **bond_atom = atom->bond_atom;
   int **bond_type = atom->bond_type;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   int newton_bond = force->newton_bond;
@@ -448,11 +447,11 @@ int ComputePropertyLocal::count_angles(int flag)
   int i,atom1,atom2,atom3;
 
   int *num_angle = atom->num_angle;
-  int **angle_atom1 = atom->angle_atom1;
-  int **angle_atom2 = atom->angle_atom2;
-  int **angle_atom3 = atom->angle_atom3;
+  tagint **angle_atom1 = atom->angle_atom1;
+  tagint **angle_atom2 = atom->angle_atom2;
+  tagint **angle_atom3 = atom->angle_atom3;
   int **angle_type = atom->angle_type;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -490,11 +489,11 @@ int ComputePropertyLocal::count_dihedrals(int flag)
   int i,atom1,atom2,atom3,atom4;
 
   int *num_dihedral = atom->num_dihedral;
-  int **dihedral_atom1 = atom->dihedral_atom1;
-  int **dihedral_atom2 = atom->dihedral_atom2;
-  int **dihedral_atom3 = atom->dihedral_atom3;
-  int **dihedral_atom4 = atom->dihedral_atom4;
-  int *tag = atom->tag;
+  tagint **dihedral_atom1 = atom->dihedral_atom1;
+  tagint **dihedral_atom2 = atom->dihedral_atom2;
+  tagint **dihedral_atom3 = atom->dihedral_atom3;
+  tagint **dihedral_atom4 = atom->dihedral_atom4;
+  tagint *tag = atom->tag;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -533,11 +532,11 @@ int ComputePropertyLocal::count_impropers(int flag)
   int i,atom1,atom2,atom3,atom4;
 
   int *num_improper = atom->num_improper;
-  int **improper_atom1 = atom->improper_atom1;
-  int **improper_atom2 = atom->improper_atom2;
-  int **improper_atom3 = atom->improper_atom3;
-  int **improper_atom4 = atom->improper_atom4;
-  int *tag = atom->tag;
+  tagint **improper_atom1 = atom->improper_atom1;
+  tagint **improper_atom2 = atom->improper_atom2;
+  tagint **improper_atom3 = atom->improper_atom3;
+  tagint **improper_atom4 = atom->improper_atom4;
+  tagint *tag = atom->tag;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -607,7 +606,7 @@ double ComputePropertyLocal::memory_usage()
 void ComputePropertyLocal::pack_patom1(int n)
 {
   int i;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
 
   for (int m = 0; m < ncount; m++) {
     i = indices[m][0];
@@ -621,7 +620,7 @@ void ComputePropertyLocal::pack_patom1(int n)
 void ComputePropertyLocal::pack_patom2(int n)
 {
   int i;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
 
   for (int m = 0; m < ncount; m++) {
     i = indices[m][1];
@@ -663,7 +662,7 @@ void ComputePropertyLocal::pack_ptype2(int n)
 void ComputePropertyLocal::pack_batom1(int n)
 {
   int i;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
 
   for (int m = 0; m < ncount; m++) {
     i = indices[m][0];
@@ -677,7 +676,7 @@ void ComputePropertyLocal::pack_batom1(int n)
 void ComputePropertyLocal::pack_batom2(int n)
 {
   int i,j;
-  int **bond_atom = atom->bond_atom;
+  tagint **bond_atom = atom->bond_atom;
 
   for (int m = 0; m < ncount; m++) {
     i = indices[m][0];
@@ -707,7 +706,7 @@ void ComputePropertyLocal::pack_btype(int n)
 void ComputePropertyLocal::pack_aatom1(int n)
 {
   int i,j;
-  int **angle_atom1 = atom->angle_atom1;
+  tagint **angle_atom1 = atom->angle_atom1;
 
   for (int m = 0; m < ncount; m++) {
     i = indices[m][0];
@@ -722,7 +721,7 @@ void ComputePropertyLocal::pack_aatom1(int n)
 void ComputePropertyLocal::pack_aatom2(int n)
 {
   int i,j;
-  int **angle_atom2 = atom->angle_atom2;
+  tagint **angle_atom2 = atom->angle_atom2;
 
   for (int m = 0; m < ncount; m++) {
     i = indices[m][0];
@@ -737,7 +736,7 @@ void ComputePropertyLocal::pack_aatom2(int n)
 void ComputePropertyLocal::pack_aatom3(int n)
 {
   int i,j;
-  int **angle_atom3 = atom->angle_atom3;
+  tagint **angle_atom3 = atom->angle_atom3;
 
   for (int m = 0; m < ncount; m++) {
     i = indices[m][0];
@@ -767,7 +766,7 @@ void ComputePropertyLocal::pack_atype(int n)
 void ComputePropertyLocal::pack_datom1(int n)
 {
   int i,j;
-  int **dihedral_atom1 = atom->dihedral_atom1;
+  tagint **dihedral_atom1 = atom->dihedral_atom1;
 
   for (int m = 0; m < ncount; m++) {
     i = indices[m][0];
@@ -782,7 +781,7 @@ void ComputePropertyLocal::pack_datom1(int n)
 void ComputePropertyLocal::pack_datom2(int n)
 {
   int i,j;
-  int **dihedral_atom2 = atom->dihedral_atom2;
+  tagint **dihedral_atom2 = atom->dihedral_atom2;
 
   for (int m = 0; m < ncount; m++) {
     i = indices[m][0];
@@ -797,7 +796,7 @@ void ComputePropertyLocal::pack_datom2(int n)
 void ComputePropertyLocal::pack_datom3(int n)
 {
   int i,j;
-  int **dihedral_atom3 = atom->dihedral_atom3;
+  tagint **dihedral_atom3 = atom->dihedral_atom3;
 
   for (int m = 0; m < ncount; m++) {
     i = indices[m][0];
@@ -812,7 +811,7 @@ void ComputePropertyLocal::pack_datom3(int n)
 void ComputePropertyLocal::pack_datom4(int n)
 {
   int i,j;
-  int **dihedral_atom4 = atom->dihedral_atom4;
+  tagint **dihedral_atom4 = atom->dihedral_atom4;
 
   for (int m = 0; m < ncount; m++) {
     i = indices[m][0];
@@ -842,7 +841,7 @@ void ComputePropertyLocal::pack_dtype(int n)
 void ComputePropertyLocal::pack_iatom1(int n)
 {
   int i,j;
-  int **improper_atom1 = atom->improper_atom1;
+  tagint **improper_atom1 = atom->improper_atom1;
 
   for (int m = 0; m < ncount; m++) {
     i = indices[m][0];
@@ -857,7 +856,7 @@ void ComputePropertyLocal::pack_iatom1(int n)
 void ComputePropertyLocal::pack_iatom2(int n)
 {
   int i,j;
-  int **improper_atom2 = atom->improper_atom2;
+  tagint **improper_atom2 = atom->improper_atom2;
 
   for (int m = 0; m < ncount; m++) {
     i = indices[m][0];
@@ -872,7 +871,7 @@ void ComputePropertyLocal::pack_iatom2(int n)
 void ComputePropertyLocal::pack_iatom3(int n)
 {
   int i,j;
-  int **improper_atom3 = atom->improper_atom3;
+  tagint **improper_atom3 = atom->improper_atom3;
 
   for (int m = 0; m < ncount; m++) {
     i = indices[m][0];
@@ -887,7 +886,7 @@ void ComputePropertyLocal::pack_iatom3(int n)
 void ComputePropertyLocal::pack_iatom4(int n)
 {
   int i,j;
-  int **improper_atom4 = atom->improper_atom4;
+  tagint **improper_atom4 = atom->improper_atom4;
 
   for (int m = 0; m < ncount; m++) {
     i = indices[m][0];

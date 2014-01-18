@@ -47,6 +47,10 @@ negotiate an appropriate license for such distribution."
    Justin Gullingsrud, and James Phillips, (TCBG, Beckman Institute, UIUC)
 ------------------------------------------------------------------------- */
 
+#ifdef LAMMPS_BIGBIG
+#error LAMMPS_BIGBIG not supported by this file
+#endif
+
 #include "fix_imd.h"
 #include "atom.h"
 #include "comm.h"

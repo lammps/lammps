@@ -696,8 +696,8 @@ void DumpImage::create_image()
 
   if (bondflag) {
     double **x = atom->x;
-    int *tag = atom->tag;
-    int **bond_atom = atom->bond_atom;
+    tagint *tag = atom->tag;
+    tagint **bond_atom = atom->bond_atom;
     int **bond_type = atom->bond_type;
     int *num_bond = atom->num_bond;
     int *type = atom->type;

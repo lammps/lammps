@@ -140,11 +140,11 @@ void DumpXYZ::write_header(bigint n)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpXYZ::pack(int *ids)
+void DumpXYZ::pack(tagint *ids)
 {
   int m,n;
 
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int *type = atom->type;
   int *mask = atom->mask;
   double **x = atom->x;

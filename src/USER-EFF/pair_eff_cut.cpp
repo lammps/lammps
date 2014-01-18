@@ -93,8 +93,6 @@ void PairEffCut::compute(int eflag, int vflag)
   int *type = atom->type;
   int nlocal = atom->nlocal;
 
-  int *id = atom->tag;
-
   int newton_pair = force->newton_pair;
   double qqrd2e = force->qqrd2e;
 

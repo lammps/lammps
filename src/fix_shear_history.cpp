@@ -119,7 +119,7 @@ void FixShearHistory::allocate_pages()
     pgsize = neighbor->pgsize;
     oneatom = neighbor->oneatom;
     int nmypage = comm->nthreads;
-    ipage = new MyPage<int>[nmypage];
+    ipage = new MyPage<tagint>[nmypage];
     dpage = new MyPage<double[3]>[nmypage];
     for (int i = 0; i < nmypage; i++) {
       ipage[i].init(oneatom,pgsize);
@@ -177,7 +177,7 @@ void FixShearHistory::pre_exchange()
   // calculate npartner for each owned atom
   // nlocal_neigh = nlocal when neigh list was built, may be smaller than nlocal
 
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   NeighList *list = pair->list;
   inum = list->inum;
   ilist = list->ilist;
@@ -302,8 +302,8 @@ double FixShearHistory::memory_usage()
 void FixShearHistory::grow_arrays(int nmax)
 {
   memory->grow(npartner,nmax,"shear_history:npartner");
-  partner = (int **) memory->srealloc(partner,nmax*sizeof(int *),
-                                      "shear_history:partner");
+  partner = (tagint **) memory->srealloc(partner,nmax*sizeof(tagint *),
+                                         "shear_history:partner");
   typedef double (*sptype)[3];
   shearpartner = (sptype *) 
     memory->srealloc(shearpartner,nmax*sizeof(sptype),
@@ -370,7 +370,7 @@ int FixShearHistory::unpack_exchange(int nlocal, double *buf)
   partner[nlocal] = ipage->get(npartner[nlocal]);
   shearpartner[nlocal] = dpage->get(npartner[nlocal]);
   for (int n = 0; n < npartner[nlocal]; n++) {
-    partner[nlocal][n] = static_cast<int> (buf[m++]);
+    partner[nlocal][n] = static_cast<tagint> (buf[m++]);
     shearpartner[nlocal][n][0] = buf[m++];
     shearpartner[nlocal][n][1] = buf[m++];
     shearpartner[nlocal][n][2] = buf[m++];
@@ -421,7 +421,7 @@ void FixShearHistory::unpack_restart(int nlocal, int nth)
   partner[nlocal] = ipage->get(npartner[nlocal]);
   shearpartner[nlocal] = dpage->get(npartner[nlocal]);
   for (int n = 0; n < npartner[nlocal]; n++) {
-    partner[nlocal][n] = static_cast<int> (extra[nlocal][m++]);
+    partner[nlocal][n] = static_cast<tagint> (extra[nlocal][m++]);
     shearpartner[nlocal][n][0] = extra[nlocal][m++];
     shearpartner[nlocal][n][1] = extra[nlocal][m++];
     shearpartner[nlocal][n][2] = extra[nlocal][m++];

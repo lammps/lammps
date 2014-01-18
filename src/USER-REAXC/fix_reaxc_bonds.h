@@ -37,7 +37,8 @@ class FixReaxCBonds : public Fix {
 
  private:
   int me, nprocs, nmax, ntypes, maxsize;
-  int *numneigh, **neighid;
+  int *numneigh;
+  tagint **neighid;
   double **abo;
   FILE *fp;
 

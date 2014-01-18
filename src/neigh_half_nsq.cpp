@@ -32,9 +32,9 @@ void Neighbor::half_nsq_no_newton(NeighList *list)
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr;
 
-  int **special = atom->special;
+  tagint **special = atom->special;
   int **nspecial = atom->nspecial;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
 
   double **x = atom->x;
   int *type = atom->type;
@@ -116,9 +116,9 @@ void Neighbor::half_nsq_no_newton_ghost(NeighList *list)
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr;
 
-  int **special = atom->special;
+  tagint **special = atom->special;
   int **nspecial = atom->nspecial;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
 
   double **x = atom->x;
   int *type = atom->type;
@@ -221,9 +221,9 @@ void Neighbor::half_nsq_newton(NeighList *list)
 
   // loop over each atom, storing neighbors
 
-  int **special = atom->special;
+  tagint **special = atom->special;
   int **nspecial = atom->nspecial;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
 
   double **x = atom->x;
   int *type = atom->type;

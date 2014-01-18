@@ -44,6 +44,10 @@ class Molecule : protected Pointers {
 
   int centerflag,massflag,comflag,inertiaflag;
 
+  // 1 if molecule fields require atom IDs
+
+  int tag_require;
+
   // attributes
 
   double **x;          // displacement of each atom from origin

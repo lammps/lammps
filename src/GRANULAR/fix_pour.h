@@ -62,7 +62,8 @@ class FixPour : public Fix {
   int *recvcounts,*displs;
   int nfreq,nfirst,ninserted,nper;
   double lo_current,hi_current;
-  int maxtag_all,maxmol_all;
+  tagint maxtag_all;
+  int maxmol_all;
   class RanPark *random,*random2;
 
   void find_maxid();

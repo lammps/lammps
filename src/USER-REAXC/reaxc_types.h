@@ -75,7 +75,8 @@ typedef struct {
 } restart_header;
 
 typedef struct {
-  int orig_id, type;
+  int orig_id;
+  int type;
   char name[8];
   rvec x, v;
 } restart_atom;

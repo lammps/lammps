@@ -66,7 +66,8 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   // register with Atom class
 
   shake_flag = NULL;
-  shake_atom = shake_type = NULL;
+  shake_atom = NULL;
+  shake_type = NULL;
   xshake = NULL;
 
   grow_arrays(atom->nmax);
@@ -493,8 +494,8 @@ void FixShake::pre_neighbor()
         atom2 = atom->map(shake_atom[i][1]);
         if (atom1 == -1 || atom2 == -1) {
           char str[128];
-          sprintf(str,
-                  "Shake atoms %d %d missing on proc %d at step " BIGINT_FORMAT,
+          sprintf(str,"Shake atoms " TAGINT_FORMAT " " TAGINT_FORMAT 
+                  " missing on proc %d at step " BIGINT_FORMAT,
                   shake_atom[i][0],shake_atom[i][1],me,update->ntimestep);
           error->one(FLERR,str);
         }
@@ -505,9 +506,9 @@ void FixShake::pre_neighbor()
         atom3 = atom->map(shake_atom[i][2]);
         if (atom1 == -1 || atom2 == -1 || atom3 == -1) {
           char str[128];
-          sprintf(str,
-                  "Shake atoms %d %d %d missing on proc %d at step "
-                  BIGINT_FORMAT,
+          sprintf(str,"Shake atoms " 
+                  TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT
+                  " missing on proc %d at step " BIGINT_FORMAT,
                   shake_atom[i][0],shake_atom[i][1],shake_atom[i][2],
                   me,update->ntimestep);
           error->one(FLERR,str);
@@ -520,9 +521,10 @@ void FixShake::pre_neighbor()
         atom4 = atom->map(shake_atom[i][3]);
         if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1) {
           char str[128];
-          sprintf(str,
-                  "Shake atoms %d %d %d %d missing on proc %d at step "
-                  BIGINT_FORMAT,
+          sprintf(str,"Shake atoms " 
+                  TAGINT_FORMAT " " TAGINT_FORMAT " " 
+                  TAGINT_FORMAT " " TAGINT_FORMAT
+                  " missing on proc %d at step " BIGINT_FORMAT,
                   shake_atom[i][0],shake_atom[i][1],
                   shake_atom[i][2],shake_atom[i][3],
                   me,update->ntimestep);
@@ -618,7 +620,7 @@ int FixShake::dof(int igroup)
   int groupbit = group->bitmask[igroup];
 
   int *mask = atom->mask;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int nlocal = atom->nlocal;
 
   // count dof in a cluster if and only if
@@ -653,13 +655,13 @@ void FixShake::find_clusters()
   int i,j,m,n;
   int flag,flag_all,messtag,nbuf,nbufmax,size;
   double massone;
-  int *buf;
+  tagint *buf;
 
   if (me == 0 && screen) fprintf(screen,"Finding SHAKE clusters ...\n");
 
   // local copies of atom ptrs
 
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int *type = atom->type;
   int *mask = atom->mask;
   double *mass = atom->mass;
@@ -667,7 +669,7 @@ void FixShake::find_clusters()
   int **bond_type = atom->bond_type;
   int **angle_type = atom->angle_type;
   int **nspecial = atom->nspecial;
-  int **special = atom->special;
+  tagint **special = atom->special;
   int nlocal = atom->nlocal;
 
   int angles_allow = atom->avec->angles_allow;
@@ -700,8 +702,9 @@ void FixShake::find_clusters()
   memory->create(npartner,nlocal,"shake:npartner");
   memory->create(nshake,nlocal,"shake:nshake");
 
-  int **partner_tag,**partner_mask,**partner_type,**partner_massflag;
-  int ** partner_bondtype,**partner_shake,**partner_nshake;
+  tagint **partner_tag;
+  int **partner_mask,**partner_type,**partner_massflag;
+  int **partner_bondtype,**partner_shake,**partner_nshake;
   memory->create(partner_tag,nlocal,max,"shake:partner_tag");
   memory->create(partner_mask,nlocal,max,"shake:partner_mask");
   memory->create(partner_type,nlocal,max,"shake:partner_type");
@@ -716,7 +719,8 @@ void FixShake::find_clusters()
 
   for (i = 0; i < nlocal; i++) {
     npartner[i] = nspecial[i][0];
-    for (j = 0; j < npartner[i]; j++) partner_tag[i][j] = special[i][j];
+    for (j = 0; j < npartner[i]; j++)
+      partner_tag[i][j] = special[i][j];
   }
 
   // -----------------------------------------------------
@@ -784,7 +788,7 @@ void FixShake::find_clusters()
   // cycle buffer around ring of procs back to self
 
   fsptr = this;
-  comm->ring(size,sizeof(int),buf,1,ring_bonds,buf);
+  comm->ring(size,sizeof(tagint),buf,1,ring_bonds,buf);
 
   // store partner info returned to me
 
@@ -910,7 +914,7 @@ void FixShake::find_clusters()
   // cycle buffer around ring of procs back to self
 
   fsptr = this;
-  comm->ring(size,sizeof(int),buf,2,ring_nshake,buf);
+  comm->ring(size,sizeof(tagint),buf,2,ring_nshake,buf);
 
   // store partner info returned to me
   
@@ -1064,7 +1068,7 @@ void FixShake::find_clusters()
   // cycle buffer around ring of procs back to self
 
   fsptr = this;
-  comm->ring(size,sizeof(int),buf,3,ring_shake,NULL);
+  comm->ring(size,sizeof(tagint),buf,3,ring_shake,NULL);
 
   memory->destroy(buf);
 
@@ -1171,7 +1175,7 @@ void FixShake::ring_bonds(int ndatum, char *cbuf)
   int nlocal = atom->nlocal;
   int nmass = fsptr->nmass;
 
-  int *buf = (int *) cbuf;
+  tagint *buf = (tagint *) cbuf;
   int m,n;
   double massone;
 
@@ -1205,7 +1209,7 @@ void FixShake::ring_nshake(int ndatum, char *cbuf)
 
   int *nshake = fsptr->nshake;
 
-  int *buf = (int *) cbuf;
+  tagint *buf = (tagint *) cbuf;
   int m;
 
   for (int i = 0; i < ndatum; i += 3) {
@@ -1225,10 +1229,10 @@ void FixShake::ring_shake(int ndatum, char *cbuf)
   int nlocal = atom->nlocal;
 
   int *shake_flag = fsptr->shake_flag;
-  int **shake_atom = fsptr->shake_atom;
+  tagint **shake_atom = fsptr->shake_atom;
   int **shake_type = fsptr->shake_type;
 
-  int *buf = (int *) cbuf;
+  tagint *buf = (tagint *) cbuf;
   int m;
 
   for (int i = 0; i < ndatum; i += 9) {
@@ -2232,10 +2236,10 @@ void FixShake::stats()
    return bond index if do find it
 ------------------------------------------------------------------------- */
 
-int FixShake::bondfind(int i, int n1, int n2)
+int FixShake::bondfind(int i, tagint n1, tagint n2)
 {
-  int *tag = atom->tag;
-  int **bond_atom = atom->bond_atom;
+  tagint *tag = atom->tag;
+  tagint **bond_atom = atom->bond_atom;
   int nbonds = atom->num_bond[i];
 
   int m;
@@ -2253,10 +2257,10 @@ int FixShake::bondfind(int i, int n1, int n2)
    return angle index if do find it
 ------------------------------------------------------------------------- */
 
-int FixShake::anglefind(int i, int n1, int n2)
+int FixShake::anglefind(int i, tagint n1, tagint n2)
 {
-  int **angle_atom1 = atom->angle_atom1;
-  int **angle_atom3 = atom->angle_atom3;
+  tagint **angle_atom1 = atom->angle_atom1;
+  tagint **angle_atom3 = atom->angle_atom3;
   int nangles = atom->num_angle[i];
 
   int m;
@@ -2377,7 +2381,7 @@ void FixShake::update_arrays(int i, int atom_offset)
    xgeom,vcm,quat ignored
 ------------------------------------------------------------------------- */
 
-void FixShake::set_molecule(int nlocalprev, int tagprev, 
+void FixShake::set_molecule(int nlocalprev, tagint tagprev, 
                             double *xgeom, double *vcm, double *quat)
 {
   int m,flag;
@@ -2385,7 +2389,7 @@ void FixShake::set_molecule(int nlocalprev, int tagprev,
   int nlocal = atom->nlocal;
   if (nlocalprev == nlocal) return;
 
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int **mol_shake_atom = onemol->shake_atom;
   int **mol_shake_type = onemol->shake_type;
 
@@ -2470,27 +2474,27 @@ int FixShake::unpack_exchange(int nlocal, double *buf)
   int m = 0;
   int flag = shake_flag[nlocal] = static_cast<int> (buf[m++]);
   if (flag == 1) {
-    shake_atom[nlocal][0] = static_cast<int> (buf[m++]);
-    shake_atom[nlocal][1] = static_cast<int> (buf[m++]);
-    shake_atom[nlocal][2] = static_cast<int> (buf[m++]);
+    shake_atom[nlocal][0] = static_cast<tagint> (buf[m++]);
+    shake_atom[nlocal][1] = static_cast<tagint> (buf[m++]);
+    shake_atom[nlocal][2] = static_cast<tagint> (buf[m++]);
     shake_type[nlocal][0] = static_cast<int> (buf[m++]);
     shake_type[nlocal][1] = static_cast<int> (buf[m++]);
     shake_type[nlocal][2] = static_cast<int> (buf[m++]);
   } else if (flag == 2) {
-    shake_atom[nlocal][0] = static_cast<int> (buf[m++]);
-    shake_atom[nlocal][1] = static_cast<int> (buf[m++]);
+    shake_atom[nlocal][0] = static_cast<tagint> (buf[m++]);
+    shake_atom[nlocal][1] = static_cast<tagint> (buf[m++]);
     shake_type[nlocal][0] = static_cast<int> (buf[m++]);
   } else if (flag == 3) {
-    shake_atom[nlocal][0] = static_cast<int> (buf[m++]);
-    shake_atom[nlocal][1] = static_cast<int> (buf[m++]);
-    shake_atom[nlocal][2] = static_cast<int> (buf[m++]);
+    shake_atom[nlocal][0] = static_cast<tagint> (buf[m++]);
+    shake_atom[nlocal][1] = static_cast<tagint> (buf[m++]);
+    shake_atom[nlocal][2] = static_cast<tagint> (buf[m++]);
     shake_type[nlocal][0] = static_cast<int> (buf[m++]);
     shake_type[nlocal][1] = static_cast<int> (buf[m++]);
   } else if (flag == 4) {
-    shake_atom[nlocal][0] = static_cast<int> (buf[m++]);
-    shake_atom[nlocal][1] = static_cast<int> (buf[m++]);
-    shake_atom[nlocal][2] = static_cast<int> (buf[m++]);
-    shake_atom[nlocal][3] = static_cast<int> (buf[m++]);
+    shake_atom[nlocal][0] = static_cast<tagint> (buf[m++]);
+    shake_atom[nlocal][1] = static_cast<tagint> (buf[m++]);
+    shake_atom[nlocal][2] = static_cast<tagint> (buf[m++]);
+    shake_atom[nlocal][3] = static_cast<tagint> (buf[m++]);
     shake_type[nlocal][0] = static_cast<int> (buf[m++]);
     shake_type[nlocal][1] = static_cast<int> (buf[m++]);
     shake_type[nlocal][2] = static_cast<int> (buf[m++]);

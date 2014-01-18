@@ -95,7 +95,7 @@ class Dump : protected Pointers {
   int reorderflag;           // 1 if OK to reorder instead of sort
   int ntotal_reorder;        // # of atoms that must be in snapshot
   int nme_reorder;           // # of atoms I must own in snapshot
-  int idlo;                  // lowest ID I own when reordering
+  tagint idlo;               // lowest ID I own when reordering
 
   int maxbuf;                // size of buf
   double *buf;               // memory for atom quantities
@@ -106,9 +106,10 @@ class Dump : protected Pointers {
   int maxids;                // size of ids
   int maxsort;               // size of bufsort, idsort, index
   int maxproc;               // size of proclist
-  int *ids;                  // list of atom IDs, if sorting on IDs
+  tagint *ids;               // list of atom IDs, if sorting on IDs
   double *bufsort;
-  int *idsort,*index,*proclist;
+  tagint *idsort;
+  int *index,*proclist;
 
   class Irregular *irregular;
 
@@ -117,7 +118,7 @@ class Dump : protected Pointers {
   virtual int modify_param(int, char **) {return 0;}
   virtual void write_header(bigint) = 0;
   virtual int count();
-  virtual void pack(int *) = 0;
+  virtual void pack(tagint *) = 0;
   virtual int convert_string(int, double *) {return 0;}
   virtual void write_data(int, double *) = 0;
 

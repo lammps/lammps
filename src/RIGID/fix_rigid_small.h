@@ -48,7 +48,7 @@ class FixRigidSmall : public Fix {
   void grow_arrays(int);
   void copy_arrays(int, int, int);
   void set_arrays(int);
-  void set_molecule(int, int, double *, double *, double *);
+  void set_molecule(int, tagint, double *, double *, double *);
 
   int pack_exchange(int, double *);
   int unpack_exchange(int, double *);
@@ -112,7 +112,7 @@ class FixRigidSmall : public Fix {
   // only defined for owned atoms, except bodyown for own+ghost
 
   int *bodyown;         // index of body if atom owns a body, -1 if not
-  int *bodytag;         // ID of body this atom is in, 0 if none
+  tagint *bodytag;      // ID of body this atom is in, 0 if none
                         // ID = tag of atom that owns body
   int *atom2body;       // index of owned/ghost body this atom is in, -1 if not
                         // can point to original or any image of the body
@@ -160,7 +160,7 @@ class FixRigidSmall : public Fix {
   std::map<int,int> *hash;
   double **bbox;
   double **ctr;
-  int *idclose;
+  tagint *idclose;
   double *rsqclose;
   double rsqfar;
 

@@ -34,7 +34,6 @@ using namespace LAMMPS_NS;
 Dump *Dump::dumpptr;
 
 #define BIG 1.0e20
-#define IBIG 2147483647
 #define EPSILON 1.0e-6
 
 enum{ASCEND,DESCEND};
@@ -77,7 +76,8 @@ Dump::Dump(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   maxbuf = maxids = maxsort = maxproc = 0;
   buf = bufsort = NULL;
-  ids = idsort = index = proclist = NULL;
+  ids = idsort = NULL;
+  index = proclist = NULL;
   irregular = NULL;
 
   maxsbuf = 0;
@@ -177,7 +177,8 @@ void Dump::init()
 
     maxids = maxsort = maxproc = 0;
     bufsort = NULL;
-    ids = idsort = index = proclist = NULL;
+    ids = idsort = NULL;
+    index = proclist = NULL;
     irregular = NULL;
   }
 
@@ -194,6 +195,7 @@ void Dump::init()
 
     bigint size = group->count(igroup);
     if (size > MAXSMALLINT) error->all(FLERR,"Too many atoms to dump sort");
+    int isize = static_cast<int> (size);
 
     // set reorderflag = 1 if can simply reorder local atoms rather than sort
     // criteria: sorting by ID, atom IDs are consecutive from 1 to Natoms
@@ -202,32 +204,31 @@ void Dump::init()
 
     reorderflag = 0;
     if (sortcol == 0 && atom->tag_consecutive()) {
-      int *tag = atom->tag;
+      tagint *tag = atom->tag;
       int *mask = atom->mask;
       int nlocal = atom->nlocal;
 
-      int min = IBIG;
-      int max = 0;
+      tagint min = MAXTAGINT;
+      tagint max = 0;
       for (int i = 0; i < nlocal; i++)
         if (mask[i] & groupbit) {
           min = MIN(min,tag[i]);
           max = MAX(max,tag[i]);
         }
-      int minall,maxall;
-      MPI_Allreduce(&min,&minall,1,MPI_INT,MPI_MIN,world);
-      MPI_Allreduce(&max,&maxall,1,MPI_INT,MPI_MAX,world);
-      int isize = static_cast<int> (size);
+      tagint minall,maxall;
+      MPI_Allreduce(&min,&minall,1,MPI_LMP_TAGINT,MPI_MIN,world);
+      MPI_Allreduce(&max,&maxall,1,MPI_LMP_TAGINT,MPI_MAX,world);
 
       if (maxall-minall+1 == isize) {
         reorderflag = 1;
         double range = maxall-minall + EPSILON;
         idlo = static_cast<int> (range*me/nprocs + minall);
-        int idhi = static_cast<int> (range*(me+1)/nprocs + minall);
+        tagint idhi = static_cast<tagint> (range*(me+1)/nprocs + minall);
 
-        int lom1 = static_cast<int> ((idlo-1-minall)/range * nprocs);
-        int lo = static_cast<int> ((idlo-minall)/range * nprocs);
-        int him1 = static_cast<int> ((idhi-1-minall)/range * nprocs);
-        int hi = static_cast<int> ((idhi-minall)/range * nprocs);
+        tagint lom1 = static_cast<tagint> ((idlo-1-minall)/range * nprocs);
+        tagint lo = static_cast<tagint> ((idlo-minall)/range * nprocs);
+        tagint him1 = static_cast<tagint> ((idhi-1-minall)/range * nprocs);
+        tagint hi = static_cast<tagint> ((idhi-minall)/range * nprocs);
         if (me && me == lom1) idlo--;
         else if (me && me != lo) idlo++;
         if (me+1 == him1) idhi--;
@@ -513,7 +514,7 @@ void Dump::sort()
     bufsort = dptr;
 
     if (sortcol == 0) {
-      int *iptr = ids;
+      tagint *iptr = ids;
       ids = idsort;
       idsort = iptr;
     }
@@ -533,16 +534,21 @@ void Dump::sort()
     // proclist[i] = which proc Ith datum will be sent to
 
     if (sortcol == 0) {
-      int min = IBIG;
-      int max = 0;
+      tagint min = MAXTAGINT;
+      tagint max = 0;
       for (i = 0; i < nme; i++) {
         min = MIN(min,ids[i]);
         max = MAX(max,ids[i]);
       }
-      int minall,maxall;
-      MPI_Allreduce(&min,&minall,1,MPI_INT,MPI_MIN,world);
-      MPI_Allreduce(&max,&maxall,1,MPI_INT,MPI_MAX,world);
-      double range = maxall-minall + EPSILON;
+      tagint minall,maxall;
+      MPI_Allreduce(&min,&minall,1,MPI_LMP_TAGINT,MPI_MIN,world);
+      MPI_Allreduce(&max,&maxall,1,MPI_LMP_TAGINT,MPI_MAX,world);
+
+      // use 0.5 instead of EPSILON since atom IDs are integers
+      // if use EPSILON, it can be lost if 64-bit maxall-minall is too big
+      // then iproc == nprocs for largest ID, causing irregular to crash
+
+      double range = maxall-minall + 0.5;
       for (i = 0; i < nme; i++) {
         iproc = static_cast<int> ((ids[i]-minall)/range * nprocs);
         proclist[i] = iproc;
@@ -589,7 +595,7 @@ void Dump::sort()
     irregular->exchange_data((char *) buf,size_one*sizeof(double),
                              (char *) bufsort);
     if (sortcol == 0)
-      irregular->exchange_data((char *) ids,sizeof(int),(char *) idsort);
+      irregular->exchange_data((char *) ids,sizeof(tagint),(char *) idsort);
     irregular->destroy_data();
   }
 
@@ -645,7 +651,7 @@ void Dump::sort()
 
 int Dump::idcompare(const void *pi, const void *pj)
 {
-  int *idsort = dumpptr->idsort;
+  tagint *idsort = dumpptr->idsort;
 
   int i = *((int *) pi);
   int j = *((int *) pj);

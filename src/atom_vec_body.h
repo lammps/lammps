@@ -90,7 +90,8 @@ class AtomVecBody : public AtomVec {
   void data_body(int, int, int, char **, char **);
 
  private:
-  int *tag,*type,*mask;
+  tagint *tag;
+  int *type,*mask;
   imageint *image;
   double **x,**v,**f;
   double *rmass;

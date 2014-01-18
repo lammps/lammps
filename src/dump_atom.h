@@ -37,7 +37,7 @@ class DumpAtom : public Dump {
   void init_style();
   int modify_param(int, char **);
   void write_header(bigint);
-  void pack(int *);
+  void pack(tagint *);
   int convert_string(int, double *);
   void write_data(int, double *);
 
@@ -48,14 +48,14 @@ class DumpAtom : public Dump {
   void header_item(bigint);
   void header_item_triclinic(bigint);
 
-  typedef void (DumpAtom::*FnPtrPack)(int *);
+  typedef void (DumpAtom::*FnPtrPack)(tagint *);
   FnPtrPack pack_choice;               // ptr to pack functions
-  void pack_scale_image(int *);
-  void pack_scale_noimage(int *);
-  void pack_noscale_image(int *);
-  void pack_noscale_noimage(int *);
-  void pack_scale_image_triclinic(int *);
-  void pack_scale_noimage_triclinic(int *);
+  void pack_scale_image(tagint *);
+  void pack_scale_noimage(tagint *);
+  void pack_noscale_image(tagint *);
+  void pack_noscale_noimage(tagint *);
+  void pack_scale_image_triclinic(tagint *);
+  void pack_scale_noimage_triclinic(tagint *);
 
   typedef int (DumpAtom::*FnPtrConvert)(int, double *);
   FnPtrConvert convert_choice;          // ptr to convert data functions

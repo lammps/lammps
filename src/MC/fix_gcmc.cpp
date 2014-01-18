@@ -282,9 +282,10 @@ void FixGCMC::init()
   }
 
   if ((molflag && (atom->molecule_flag == 0)) || 
-      (molflag && ((!atom->tag_enable) || (!atom->map_style))))
+      (molflag && (!atom->tag_enable || !atom->map_style)))
     error->all(FLERR,
-     "Fix gcmc molecule command requires that atoms have molecule attributes");
+               "Fix gcmc molecule command requires that "
+               "atoms have molecule attributes");
 
   if (force->pair->single_enable == 0)
     error->all(FLERR,"Fix gcmc incompatible with given pair_style");
@@ -805,18 +806,18 @@ void FixGCMC::attempt_molecule_insertion()
     if (maxmol >= MAXSMALLINT) 
       error->all(FLERR,"Fix gcmc ran out of available molecule IDs");
 
-    int maxtag = 0;
+    tagint maxtag = 0;
     for (int i = 0; i < atom->nlocal; i++) maxtag = MAX(maxtag,atom->tag[i]);
-    int maxtag_all;
-    MPI_Allreduce(&maxtag,&maxtag_all,1,MPI_INT,MPI_MAX,world);
-    int atom_offset = maxtag_all;
+    tagint maxtag_all;
+    MPI_Allreduce(&maxtag,&maxtag_all,1,MPI_LMP_TAGINT,MPI_MAX,world);
+    tagint atom_offset = maxtag_all;
 
     int k = 0;
     double **x = atom->x;
     double **v = atom->v;
     imageint *image = atom->image;
     int *molecule = atom->molecule;
-    int *tag = atom->tag;
+    tagint *tag = atom->tag;
     for (int i = 0; i < natoms_per_molecule; i++) {
       k += atom->avec->unpack_exchange(&model_atom_buf[k]);
       if (procflag[i]) {
@@ -1165,9 +1166,9 @@ void FixGCMC::get_model_molecule()
     x[i][2] -= com[2];
   }
 
-  int mintag = atom->tag[0];
+  tagint mintag = atom->tag[0];
   for (int i = 0; i < atom->nlocal; i++) mintag = MIN(mintag,atom->tag[i]);
-  int atom_offset = mintag - 1;
+  tagint atom_offset = mintag - 1;
   
   for (int i = 0; i < nlocal; i++) {
     atom->mask[i] = 1 | groupbit;

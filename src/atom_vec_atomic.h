@@ -53,7 +53,8 @@ class AtomVecAtomic : public AtomVec {
   bigint memory_usage();
 
  protected:
-  int *tag,*type,*mask;
+  tagint *tag;
+  int *type,*mask;
   imageint *image;
   double **x,**v,**f;
 };

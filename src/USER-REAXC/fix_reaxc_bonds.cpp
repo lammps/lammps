@@ -75,7 +75,6 @@ FixReaxCBonds::FixReaxCBonds(LAMMPS *lmp, int narg, char **arg) :
   numneigh = NULL;
 
   allocate();
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -176,13 +175,16 @@ void FixReaxCBonds::Output_ReaxC_Bonds(bigint ntimestep, FILE *fp)
 void FixReaxCBonds::FindBond(struct _reax_list *lists, int &numbonds)
 {
   int *ilist, i, ii, inum;
-  int j, pj, nj, jtag;
+  int j, pj, nj;
+  tagint jtag;
   double bo_tmp,bo_cut;
 
   inum = reaxc->list->inum;
   ilist = reaxc->list->ilist;
   bond_data *bo_ij;
   bo_cut = reaxc->control->bg_cut;
+
+  tagint *tag = atom->tag;
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
@@ -191,7 +193,7 @@ void FixReaxCBonds::FindBond(struct _reax_list *lists, int &numbonds)
     for( pj = Start_Index(i, reaxc->lists); pj < End_Index(i, reaxc->lists); ++pj ) {
       bo_ij = &( reaxc->lists->select.bond_list[pj] );
       j = bo_ij->nbr;
-      jtag = atom->tag[j];
+      jtag = tag[j];
       bo_tmp = bo_ij->bo_data.BO;
 
       if (bo_tmp > bo_cut) {
@@ -243,10 +245,11 @@ void FixReaxCBonds::PassBuffer(double *buf, int &nbuf_local)
 /* ---------------------------------------------------------------------- */
 
 void FixReaxCBonds::RecvBuffer(double *buf, int nbuf, int nbuf_local, 
-		int natoms, int maxnum)
+                               int natoms, int maxnum)
 {
-  int i, j, k, itype, itag, jtag;
+  int i, j, k, itype;
   int inode, nlocal_tmp, numbonds;
+  tagint itag,jtag;
   int nlocal = atom->nlocal;
   bigint ntimestep = update->ntimestep;
   double sbotmp, nlptmp, avqtmp, abotmp;
@@ -278,7 +281,7 @@ void FixReaxCBonds::RecvBuffer(double *buf, int nbuf, int nbuf_local,
       }
       j = 2;
       for (i = 0; i < nlocal_tmp; i ++) {
-        itag = nint(buf[j-1]);
+        itag = static_cast<tagint> (buf[j-1]);
         itype = nint(buf[j+0]);
         sbotmp = buf[j+1];
         nlptmp = buf[j+2];
@@ -288,7 +291,7 @@ void FixReaxCBonds::RecvBuffer(double *buf, int nbuf, int nbuf_local,
         fprintf(fp," %d %d %d",itag,itype,numbonds);
 
         for (k = 5; k < 5+numbonds; k++) {
-          jtag = nint(buf[j+k]);
+          jtag = static_cast<tagint> (buf[j+k]);
           fprintf(fp," %d",jtag);
         }
         j += (5+numbonds);

@@ -534,7 +534,7 @@ void AtomVecElectron::unpack_border(int n, int first, double *buf)
     x[i][0] = buf[m++];
     x[i][1] = buf[m++];
     x[i][2] = buf[m++];
-    tag[i] = (int) ubuf(buf[m++]).i;
+    tag[i] = (tagint) ubuf(buf[m++]).i;
     type[i] = (int) ubuf(buf[m++]).i;
     mask[i] = (int) ubuf(buf[m++]).i;
     q[i] = buf[m++];
@@ -561,7 +561,7 @@ void AtomVecElectron::unpack_border_vel(int n, int first, double *buf)
     x[i][0] = buf[m++];
     x[i][1] = buf[m++];
     x[i][2] = buf[m++];
-    tag[i] = (int) ubuf(buf[m++]).i;
+    tag[i] = (tagint) ubuf(buf[m++]).i;
     type[i] = (int) ubuf(buf[m++]).i;
     mask[i] = (int) ubuf(buf[m++]).i;
     q[i] = buf[m++];
@@ -639,7 +639,7 @@ int AtomVecElectron::unpack_exchange(double *buf)
   v[nlocal][0] = buf[m++];
   v[nlocal][1] = buf[m++];
   v[nlocal][2] = buf[m++];
-  tag[nlocal] = (int) ubuf(buf[m++]).i;
+  tag[nlocal] = (tagint) ubuf(buf[m++]).i;
   type[nlocal] = (int) ubuf(buf[m++]).i;
   mask[nlocal] = (int) ubuf(buf[m++]).i;
   image[nlocal] = (imageint) ubuf(buf[m++]).i;
@@ -727,7 +727,7 @@ int AtomVecElectron::unpack_restart(double *buf)
   x[nlocal][0] = buf[m++];
   x[nlocal][1] = buf[m++];
   x[nlocal][2] = buf[m++];
-  tag[nlocal] = (int) ubuf(buf[m++]).i;
+  tag[nlocal] = (tagint) ubuf(buf[m++]).i;
   type[nlocal] = (int) ubuf(buf[m++]).i;
   mask[nlocal] = (int) ubuf(buf[m++]).i;
   image[nlocal] = (imageint) ubuf(buf[m++]).i;
@@ -791,10 +791,7 @@ void AtomVecElectron::data_atom(double *coord, imageint imagetmp, char **values)
 
   if (nlocal == nmax) grow(0);
 
-  tag[nlocal] = atoi(values[0]);
-  if (tag[nlocal] <= 0)
-    error->one(FLERR,"Invalid atom ID in Atoms section of data file");
-
+  tag[nlocal] = ATOTAGINT(values[0]);
   type[nlocal] = atoi(values[1]);
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
     error->one(FLERR,"Invalid atom type in Atoms section of data file");
@@ -904,8 +901,9 @@ int AtomVecElectron::pack_data_hybrid(int i, double *buf)
 void AtomVecElectron::write_data(FILE *fp, int n, double **buf)
 {
   for (int i = 0; i < n; i++)
-    fprintf(fp,"%d %d %-1.16e %d %-1.16e %-1.16e %-1.16e %-1.16e %d %d %d\n",
-            (int) ubuf(buf[i][0]).i,(int) ubuf(buf[i][1]).i,buf[i][2],
+    fprintf(fp,TAGINT_FORMAT 
+            " %d %-1.16e %d %-1.16e %-1.16e %-1.16e %-1.16e %d %d %d\n",
+            (tagint) ubuf(buf[i][0]).i,(int) ubuf(buf[i][1]).i,buf[i][2],
             (int) ubuf(buf[i][3]).i,buf[i][4],buf[i][5],buf[i][6],buf[i][7],
             (int) ubuf(buf[i][8]).i,(int) ubuf(buf[i][9]).i,
             (int) ubuf(buf[i][10]).i);
@@ -954,8 +952,8 @@ int AtomVecElectron::pack_vel_hybrid(int i, double *buf)
 void AtomVecElectron::write_vel(FILE *fp, int n, double **buf)
 {
   for (int i = 0; i < n; i++)
-    fprintf(fp,"%d %-1.16e %-1.16e %-1.16e %-1.16e\n",
-            (int) ubuf(buf[i][0]).i,buf[i][1],buf[i][2],buf[i][3],buf[i][4]);
+    fprintf(fp,TAGINT_FORMAT " %-1.16e %-1.16e %-1.16e %-1.16e\n",
+            (tagint) ubuf(buf[i][0]).i,buf[i][1],buf[i][2],buf[i][3],buf[i][4]);
 }
 
 /* ----------------------------------------------------------------------

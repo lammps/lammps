@@ -582,7 +582,7 @@ void Domain::image_check()
   //   which means image flags in that dimension were different
 
   int *num_bond = atom->num_bond;
-  int **bond_atom = atom->bond_atom;
+  tagint **bond_atom = atom->bond_atom;
 
   double delx,dely,delz;
 
@@ -654,7 +654,7 @@ void Domain::box_too_small_check()
   //   assuming 2 atoms have consistent image flags
 
   int *num_bond = atom->num_bond;
-  int **bond_atom = atom->bond_atom;
+  tagint **bond_atom = atom->bond_atom;
   int **bond_type = atom->bond_type;
   double **x = atom->x;
   int nlocal = atom->nlocal;

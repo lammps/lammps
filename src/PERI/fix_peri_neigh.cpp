@@ -152,7 +152,7 @@ void FixPeriNeigh::setup(int vflag)
   double **x = atom->x;
   double *vfrac = atom->vfrac;
   int *type = atom->type;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int nlocal = atom->nlocal;
 
  // only build list of bonds on very first run
@@ -450,7 +450,7 @@ int FixPeriNeigh::unpack_exchange(int nlocal, double *buf)
   int m = 0;
   npartner[nlocal] = static_cast<int> (buf[m++]);
   for (int n = 0; n < npartner[nlocal]; n++) {
-    partner[nlocal][n] = static_cast<int> (buf[m++]);
+    partner[nlocal][n] = static_cast<tagint> (buf[m++]);
     if (isVES) {   
       deviatorextention[nlocal][n] = buf[m++];
       deviatorBackextention[nlocal][n] = buf[m++];
@@ -565,7 +565,7 @@ void FixPeriNeigh::unpack_restart(int nlocal, int nth)
 
   npartner[nlocal] = static_cast<int> (extra[nlocal][m++]);
   for (int n = 0; n < npartner[nlocal]; n++) {
-    partner[nlocal][n] = static_cast<int> (extra[nlocal][m++]);
+    partner[nlocal][n] = static_cast<tagint> (extra[nlocal][m++]);
     if (isVES) { 
       deviatorextention[nlocal][n] = extra[nlocal][m++];
       deviatorBackextention[nlocal][n] = extra[nlocal][m++];

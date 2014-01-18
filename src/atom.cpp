@@ -57,8 +57,6 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   ntypes = 0;
   nbondtypes = nangletypes = ndihedraltypes = nimpropertypes = 0;
   nbonds = nangles = ndihedrals = nimpropers = 0;
-  bond_per_atom = angle_per_atom = dihedral_per_atom = improper_per_atom = 0;
-  extra_bond_per_atom = 0;
 
   firstgroupname = NULL;
   sortfreq = 1000;
@@ -71,7 +69,8 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   // initialize atom arrays
   // customize by adding new array
 
-  tag = type = mask = NULL;
+  tag = NULL;
+  type = mask = NULL;
   image = NULL;
   x = v = f = NULL;
 
@@ -92,23 +91,29 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   cv = NULL;
   vest = NULL;
 
+  bond_per_atom =  extra_bond_per_atom = 0;
+  num_bond = NULL;
+  bond_type = NULL;
+  bond_atom = NULL;
+
+  angle_per_atom = extra_angle_per_atom = 0;
+  num_angle = NULL;
+  angle_type = NULL;
+  angle_atom1 = angle_atom2 = angle_atom3 = NULL;
+
+  dihedral_per_atom = extra_dihedral_per_atom = 0;
+  num_dihedral = NULL;
+  dihedral_type = NULL;
+  dihedral_atom1 = dihedral_atom2 = dihedral_atom3 = dihedral_atom4 = NULL;
+
+  improper_per_atom = extra_improper_per_atom = 0;
+  num_improper = NULL;
+  improper_type = NULL;
+  improper_atom1 = improper_atom2 = improper_atom3 = improper_atom4 = NULL;
+
   maxspecial = 1;
   nspecial = NULL;
   special = NULL;
-
-  num_bond = NULL;
-  bond_type = bond_atom = NULL;
-
-  num_angle = NULL;
-  angle_type = angle_atom1 = angle_atom2 = angle_atom3 = NULL;
-
-  num_dihedral = NULL;
-  dihedral_type = dihedral_atom1 = dihedral_atom2 = NULL;
-  dihedral_atom3 = dihedral_atom4 = NULL;
-
-  num_improper = NULL;
-  improper_type = improper_atom1 = improper_atom2 = NULL;
-  improper_atom3 = improper_atom4 = NULL;
 
   // user-defined molecules
 
@@ -148,14 +153,14 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   nextra_store = 0;
   extra = NULL;
 
-  // default mapping values
+  // default atom ID and mapping values
 
   tag_enable = 1;
-  map_style = 0;
+  map_style = map_user = 0;
   map_tag_max = 0;
   map_nhash = 0;
 
-  smax = 0;
+  max_same = 0;
   sametag = NULL;
   map_array = NULL;
   map_bucket = NULL;
@@ -283,7 +288,8 @@ Atom::~Atom()
 
 void Atom::settings(Atom *old)
 {
-  map_style = old->map_style;
+  tag_enable = old->tag_enable;
+  map_user = old->map_user;
 }
 
 /* ----------------------------------------------------------------------
@@ -333,10 +339,11 @@ void Atom::create_avec(const char *style, int narg, char **arg, char *suffix)
     strcpy(atom_style,style);
   }
 
-  // if molecular system, default is to have array map
+  // if molecular system, atom IDs must be defined
 
   molecular = avec->molecular;
-  if (map_style == 0 && molecular) map_style = 1;
+  if (molecular && tag_enable == 0)
+    error->all(FLERR,"Atom IDs must be used for molecular systems");
 }
 
 /* ----------------------------------------------------------------------
@@ -444,14 +451,23 @@ void Atom::modify_params(int narg, char **arg)
 
   int iarg = 0;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"map") == 0) {
+    if (strcmp(arg[iarg],"id") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal atom_modify command");
-      if (strcmp(arg[iarg+1],"array") == 0) map_style = 1;
-      else if (strcmp(arg[iarg+1],"hash") == 0) map_style = 2;
+      if (domain->box_exist)
+        error->all(FLERR,
+                   "Atom_modify id command after simulation box is defined");
+      if (strcmp(arg[iarg+1],"yes") == 0) tag_enable = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) tag_enable = 2;
       else error->all(FLERR,"Illegal atom_modify command");
+      iarg += 2;
+    } if (strcmp(arg[iarg],"map") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal atom_modify command");
       if (domain->box_exist)
         error->all(FLERR,
                    "Atom_modify map command after simulation box is defined");
+      if (strcmp(arg[iarg+1],"array") == 0) map_user = 1;
+      else if (strcmp(arg[iarg+1],"hash") == 0) map_user = 2;
+      else error->all(FLERR,"Illegal atom_modify command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"first") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal atom_modify command");
@@ -480,36 +496,81 @@ void Atom::modify_params(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
+   check that atom IDs are valid
+   error if any atom ID < 0 or atom ID = MAXTAGINT
+   if any atom ID > 0, error if any atom ID == 0
+   if all atom IDs = 0, tag_enable must be 0
+   OK if atom IDs > natoms
+   NOTE: not checking that atom IDs are unique
+------------------------------------------------------------------------- */
+
+void Atom::tag_check()
+{
+  int nlocal = atom->nlocal;
+  tagint *tag = atom->tag;
+
+  tagint min = MAXTAGINT;
+  tagint max = 0;
+
+  for (int i = 0; i < nlocal; i++) {
+    min = MIN(min,tag[i]);
+    max = MAX(max,tag[i]);
+  }
+
+  tagint minall,maxall;
+  MPI_Allreduce(&min,&minall,1,MPI_LMP_TAGINT,MPI_MIN,world);
+  MPI_Allreduce(&max,&maxall,1,MPI_LMP_TAGINT,MPI_MAX,world);
+
+  if (minall < 0) error->all(FLERR,"Atom ID is negative");
+  if (maxall >= MAXTAGINT) error->all(FLERR,"Atom ID is too big");
+  if (maxall > 0 && minall == 0) error->all(FLERR,"Atom ID is zero");
+  if (maxall == 0 && tag_enable && natoms) 
+    error->all(FLERR,"Not all atom IDs are 0");
+}
+
+/* ----------------------------------------------------------------------
    add unique tags to any atoms with tag = 0
    new tags are grouped by proc and start after max current tag
    called after creating new atoms
+   error if new tags will exceed MAXTAGINT
 ------------------------------------------------------------------------- */
 
 void Atom::tag_extend()
 {
   // maxtag_all = max tag for all atoms
 
-  int maxtag = 0;
+  tagint maxtag = 0;
   for (int i = 0; i < nlocal; i++) maxtag = MAX(maxtag,tag[i]);
-  int maxtag_all;
-  MPI_Allreduce(&maxtag,&maxtag_all,1,MPI_INT,MPI_MAX,world);
+  tagint maxtag_all;
+  MPI_Allreduce(&maxtag,&maxtag_all,1,MPI_LMP_TAGINT,MPI_MAX,world);
+
+  // DEBUG: useful for generating 64-bit IDs even for small systems
+  // use only when LAMMPS is compiled with BIGBIG
+
+  //maxtag_all += 1000000000000;
 
   // notag = # of atoms I own with no tag (tag = 0)
   // notag_sum = # of total atoms on procs <= me with no tag
 
-  int notag = 0;
+  bigint notag = 0;
   for (int i = 0; i < nlocal; i++) if (tag[i] == 0) notag++;
-  int notag_sum;
-  MPI_Scan(&notag,&notag_sum,1,MPI_INT,MPI_SUM,world);
+
+  bigint notag_total;
+  MPI_Allreduce(&notag,&notag_total,1,MPI_LMP_BIGINT,MPI_SUM,world);
+  if (notag_total >= MAXTAGINT)
+    error->all(FLERR,"New atom IDs exceed maximum allowed ID");
+
+  bigint notag_sum;
+  MPI_Scan(&notag,&notag_sum,1,MPI_LMP_BIGINT,MPI_SUM,world);
 
   // itag = 1st new tag that my untagged atoms should use
 
-  int itag = maxtag_all + notag_sum - notag + 1;
+  tagint itag = maxtag_all + notag_sum - notag + 1;
   for (int i = 0; i < nlocal; i++) if (tag[i] == 0) tag[i] = itag++;
 }
 
 /* ----------------------------------------------------------------------
-   check that atom IDs span range from 1 to Natoms
+   check that atom IDs span range from 1 to Natoms inclusive
    return 0 if mintag != 1 or maxtag != Natoms
    return 1 if OK
    doesn't actually check if all tag values are used
@@ -517,20 +578,18 @@ void Atom::tag_extend()
 
 int Atom::tag_consecutive()
 {
-  // change this when allow tagint = bigint
-  //int idmin = MAXTAGINT;
-  int idmin = MAXSMALLINT;
-  int idmax = 0;
+  tagint idmin = MAXTAGINT;
+  tagint idmax = 0;
 
   for (int i = 0; i < nlocal; i++) {
     idmin = MIN(idmin,tag[i]);
     idmax = MAX(idmax,tag[i]);
   }
-  int idminall,idmaxall;
-  MPI_Allreduce(&idmin,&idminall,1,MPI_INT,MPI_MIN,world);
-  MPI_Allreduce(&idmax,&idmaxall,1,MPI_INT,MPI_MAX,world);
+  tagint idminall,idmaxall;
+  MPI_Allreduce(&idmin,&idminall,1,MPI_LMP_TAGINT,MPI_MIN,world);
+  MPI_Allreduce(&idmax,&idmaxall,1,MPI_LMP_TAGINT,MPI_MAX,world);
 
-  if (idminall != 1 || idmaxall != static_cast<int> (natoms)) return 0;
+  if (idminall != 1 || idmaxall != natoms) return 0;
   return 1;
 }
 
@@ -683,7 +742,8 @@ void Atom::data_atoms(int n, char *buf)
 
 void Atom::data_vels(int n, char *buf)
 {
-  int j,m,tagdata;
+  int j,m;
+  tagint tagdata;
   char *next;
 
   next = strchr(buf,'\n');
@@ -707,7 +767,7 @@ void Atom::data_vels(int n, char *buf)
     for (j = 1; j < nwords; j++)
       values[j] = strtok(NULL," \t\n\r\f");
 
-    tagdata = atoi(values[0]);
+    tagdata = ATOTAGINT(values[0]);
     if (tagdata <= 0 || tagdata > map_tag_max)
       error->one(FLERR,"Invalid atom ID in Velocities section of data file");
     if ((m = map(tagdata)) >= 0) avec->data_vel(m,&values[1]);
@@ -716,6 +776,269 @@ void Atom::data_vels(int n, char *buf)
   }
 
   delete [] values;
+}
+
+/* ----------------------------------------------------------------------
+   process N bonds read into buf from data files
+   if count is non-NULL, just count bonds per atom
+   else store them with atoms
+   check that atom IDs are > 0 and <= map_tag_max
+------------------------------------------------------------------------- */
+
+void Atom::data_bonds(int n, char *buf, int *count)
+{
+  int m,tmp,itype;
+  tagint atom1,atom2;
+  char *next;
+  int newton_bond = force->newton_bond;
+
+  for (int i = 0; i < n; i++) {
+    next = strchr(buf,'\n');
+    *next = '\0';
+    sscanf(buf,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT,
+           &tmp,&itype,&atom1,&atom2);
+    if (atom1 <= 0 || atom1 > map_tag_max ||
+        atom2 <= 0 || atom2 > map_tag_max)
+      error->one(FLERR,"Invalid atom ID in Bonds section of data file");
+    if (itype <= 0 || itype > nbondtypes)
+      error->one(FLERR,"Invalid bond type in Bonds section of data file");
+    if ((m = map(atom1)) >= 0) {
+      if (count) count[m]++;
+      else {
+        bond_type[m][num_bond[m]] = itype;
+        bond_atom[m][num_bond[m]] = atom2;
+        num_bond[m]++;
+      }
+    }
+    if (newton_bond == 0) {
+      if ((m = map(atom2)) >= 0) {
+        if (count) count[m]++;
+        else {
+          bond_type[m][num_bond[m]] = itype;
+          bond_atom[m][num_bond[m]] = atom1;
+          num_bond[m]++;
+        }
+      }
+    }
+    buf = next + 1;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   process N angles read into buf from data files
+   if count is non-NULL, just count angles per atom
+   else store them with atoms
+   check that atom IDs are > 0 and <= map_tag_max
+------------------------------------------------------------------------- */
+
+void Atom::data_angles(int n, char *buf, int *count)
+{
+  int m,tmp,itype;
+  tagint atom1,atom2,atom3;
+  char *next;
+  int newton_bond = force->newton_bond;
+
+  for (int i = 0; i < n; i++) {
+    next = strchr(buf,'\n');
+    *next = '\0';
+    sscanf(buf,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT,
+           &tmp,&itype,&atom1,&atom2,&atom3);
+    if (atom1 <= 0 || atom1 > map_tag_max ||
+        atom2 <= 0 || atom2 > map_tag_max ||
+        atom3 <= 0 || atom3 > map_tag_max)
+      error->one(FLERR,"Invalid atom ID in Angles section of data file");
+    if (itype <= 0 || itype > nangletypes)
+      error->one(FLERR,"Invalid angle type in Angles section of data file");
+    if ((m = map(atom2)) >= 0) {
+      if (count) count[m]++;
+      else {
+        angle_type[m][num_angle[m]] = itype;
+        angle_atom1[m][num_angle[m]] = atom1;
+        angle_atom2[m][num_angle[m]] = atom2;
+        angle_atom3[m][num_angle[m]] = atom3;
+        num_angle[m]++;
+      }
+    }
+    if (newton_bond == 0) {
+      if ((m = map(atom1)) >= 0) {
+        if (count) count[m]++;
+        else {
+          angle_type[m][num_angle[m]] = itype;
+          angle_atom1[m][num_angle[m]] = atom1;
+          angle_atom2[m][num_angle[m]] = atom2;
+          angle_atom3[m][num_angle[m]] = atom3;
+          num_angle[m]++;
+        }
+      }
+      if ((m = map(atom3)) >= 0) {
+        if (count) count[m]++;
+        else {
+          angle_type[m][num_angle[m]] = itype;
+          angle_atom1[m][num_angle[m]] = atom1;
+          angle_atom2[m][num_angle[m]] = atom2;
+          angle_atom3[m][num_angle[m]] = atom3;
+          num_angle[m]++;
+        }
+      }
+    }
+    buf = next + 1;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   process N dihedrals read into buf from data files
+   if count is non-NULL, just count diihedrals per atom
+   else store them with atoms
+   check that atom IDs are > 0 and <= map_tag_max
+------------------------------------------------------------------------- */
+
+void Atom::data_dihedrals(int n, char *buf, int *count)
+{
+  int m,tmp,itype;
+  tagint atom1,atom2,atom3,atom4;
+  char *next;
+  int newton_bond = force->newton_bond;
+
+  for (int i = 0; i < n; i++) {
+    next = strchr(buf,'\n');
+    *next = '\0';
+    sscanf(buf,"%d %d " 
+           TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT,
+           &tmp,&itype,&atom1,&atom2,&atom3,&atom4);
+    if (atom1 <= 0 || atom1 > map_tag_max ||
+        atom2 <= 0 || atom2 > map_tag_max ||
+        atom3 <= 0 || atom3 > map_tag_max ||
+        atom4 <= 0 || atom4 > map_tag_max)
+      error->one(FLERR,"Invalid atom ID in Dihedrals section of data file");
+    if (itype <= 0 || itype > ndihedraltypes)
+      error->one(FLERR,
+                 "Invalid dihedral type in Dihedrals section of data file");
+    if ((m = map(atom2)) >= 0) {
+      if (count) count[m]++;
+      else {
+        dihedral_type[m][num_dihedral[m]] = itype;
+        dihedral_atom1[m][num_dihedral[m]] = atom1;
+        dihedral_atom2[m][num_dihedral[m]] = atom2;
+        dihedral_atom3[m][num_dihedral[m]] = atom3;
+        dihedral_atom4[m][num_dihedral[m]] = atom4;
+        num_dihedral[m]++;
+      }
+    }
+    if (newton_bond == 0) {
+      if ((m = map(atom1)) >= 0) {
+        if (count) count[m]++;
+        else {
+          dihedral_type[m][num_dihedral[m]] = itype;
+          dihedral_atom1[m][num_dihedral[m]] = atom1;
+          dihedral_atom2[m][num_dihedral[m]] = atom2;
+          dihedral_atom3[m][num_dihedral[m]] = atom3;
+          dihedral_atom4[m][num_dihedral[m]] = atom4;
+          num_dihedral[m]++;
+        }
+      }
+      if ((m = map(atom3)) >= 0) {
+        if (count) count[m]++;
+        else {
+          dihedral_type[m][num_dihedral[m]] = itype;
+          dihedral_atom1[m][num_dihedral[m]] = atom1;
+          dihedral_atom2[m][num_dihedral[m]] = atom2;
+          dihedral_atom3[m][num_dihedral[m]] = atom3;
+          dihedral_atom4[m][num_dihedral[m]] = atom4;
+          num_dihedral[m]++;
+        }
+      }
+      if ((m = map(atom4)) >= 0) {
+        if (count) count[m]++;
+        else {
+          dihedral_type[m][num_dihedral[m]] = itype;
+          dihedral_atom1[m][num_dihedral[m]] = atom1;
+          dihedral_atom2[m][num_dihedral[m]] = atom2;
+          dihedral_atom3[m][num_dihedral[m]] = atom3;
+          dihedral_atom4[m][num_dihedral[m]] = atom4;
+          num_dihedral[m]++;
+        }
+      }
+    }
+    buf = next + 1;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   process N impropers read into buf from data files
+   if count is non-NULL, just count impropers per atom
+   else store them with atoms
+   check that atom IDs are > 0 and <= map_tag_max
+------------------------------------------------------------------------- */
+
+void Atom::data_impropers(int n, char *buf, int *count)
+{
+  int m,tmp,itype;
+  tagint atom1,atom2,atom3,atom4;
+  char *next;
+  int newton_bond = force->newton_bond;
+
+  for (int i = 0; i < n; i++) {
+    next = strchr(buf,'\n');
+    *next = '\0';
+    sscanf(buf,"%d %d " 
+           TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT,
+           &tmp,&itype,&atom1,&atom2,&atom3,&atom4);
+    if (atom1 <= 0 || atom1 > map_tag_max ||
+        atom2 <= 0 || atom2 > map_tag_max ||
+        atom3 <= 0 || atom3 > map_tag_max ||
+        atom4 <= 0 || atom4 > map_tag_max)
+      error->one(FLERR,"Invalid atom ID in Impropers section of data file");
+    if (itype <= 0 || itype > nimpropertypes)
+      error->one(FLERR,
+                 "Invalid improper type in Impropers section of data file");
+    if ((m = map(atom2)) >= 0) {
+      if (count) count[m]++;
+      else {
+        improper_type[m][num_improper[m]] = itype;
+        improper_atom1[m][num_improper[m]] = atom1;
+        improper_atom2[m][num_improper[m]] = atom2;
+        improper_atom3[m][num_improper[m]] = atom3;
+        improper_atom4[m][num_improper[m]] = atom4;
+        num_improper[m]++;
+      }
+    }
+    if (newton_bond == 0) {
+      if ((m = map(atom1)) >= 0) {
+        if (count) count[m]++;
+        else {
+          improper_type[m][num_improper[m]] = itype;
+          improper_atom1[m][num_improper[m]] = atom1;
+          improper_atom2[m][num_improper[m]] = atom2;
+          improper_atom3[m][num_improper[m]] = atom3;
+          improper_atom4[m][num_improper[m]] = atom4;
+          num_improper[m]++;
+        }
+      }
+      if ((m = map(atom3)) >= 0) {
+        if (count) count[m]++;
+        else {
+          improper_type[m][num_improper[m]] = itype;
+          improper_atom1[m][num_improper[m]] = atom1;
+          improper_atom2[m][num_improper[m]] = atom2;
+          improper_atom3[m][num_improper[m]] = atom3;
+          improper_atom4[m][num_improper[m]] = atom4;
+          num_improper[m]++;
+        }
+      }
+      if ((m = map(atom4)) >= 0) {
+        if (count) count[m]++;
+        else {
+          improper_type[m][num_improper[m]] = itype;
+          improper_atom1[m][num_improper[m]] = atom1;
+          improper_atom2[m][num_improper[m]] = atom2;
+          improper_atom3[m][num_improper[m]] = atom3;
+          improper_atom4[m][num_improper[m]] = atom4;
+          num_improper[m]++;
+        }
+      }
+    }
+    buf = next + 1;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -750,7 +1073,7 @@ void Atom::data_bonus(int n, char *buf, AtomVec *avec_bonus)
     for (j = 1; j < nwords; j++)
       values[j] = strtok(NULL," \t\n\r\f");
 
-    tagdata = atoi(values[0]);
+    tagdata = ATOTAGINT(values[0]);
     if (tagdata <= 0 || tagdata > map_tag_max)
       error->one(FLERR,"Invalid atom ID in Bonus section of data file");
 
@@ -783,8 +1106,8 @@ void Atom::data_bodies(int n, char *buf, AtomVecBody *avec_body)
   // if I own atom tag, unpack its values
 
   for (int i = 0; i < n; i++) {
-    if (i == 0) tagdata = atoi(strtok(buf," \t\n\r\f"));
-    else tagdata = atoi(strtok(NULL," \t\n\r\f"));
+    if (i == 0) tagdata = ATOTAGINT(strtok(buf," \t\n\r\f"));
+    else tagdata = ATOTAGINT(strtok(NULL," \t\n\r\f"));
     ninteger = atoi(strtok(NULL," \t\n\r\f"));
     ndouble = atoi(strtok(NULL," \t\n\r\f"));
 
@@ -802,208 +1125,6 @@ void Atom::data_bodies(int n, char *buf, AtomVecBody *avec_body)
 
   delete [] ivalues;
   delete [] dvalues;
-}
-
-/* ----------------------------------------------------------------------
-   check that atom IDs are > 0 and <= map_tag_max
-------------------------------------------------------------------------- */
-
-void Atom::data_bonds(int n, char *buf)
-{
-  int m,tmp,itype,atom1,atom2;
-  char *next;
-  int newton_bond = force->newton_bond;
-
-  for (int i = 0; i < n; i++) {
-    next = strchr(buf,'\n');
-    *next = '\0';
-    sscanf(buf,"%d %d %d %d",&tmp,&itype,&atom1,&atom2);
-    if (atom1 <= 0 || atom1 > map_tag_max ||
-        atom2 <= 0 || atom2 > map_tag_max)
-      error->one(FLERR,"Invalid atom ID in Bonds section of data file");
-    if (itype <= 0 || itype > nbondtypes)
-      error->one(FLERR,"Invalid bond type in Bonds section of data file");
-    if ((m = map(atom1)) >= 0) {
-      bond_type[m][num_bond[m]] = itype;
-      bond_atom[m][num_bond[m]] = atom2;
-      num_bond[m]++;
-    }
-    if (newton_bond == 0) {
-      if ((m = map(atom2)) >= 0) {
-        bond_type[m][num_bond[m]] = itype;
-        bond_atom[m][num_bond[m]] = atom1;
-        num_bond[m]++;
-      }
-    }
-    buf = next + 1;
-  }
-}
-
-/* ----------------------------------------------------------------------
-   check that atom IDs are > 0 and <= map_tag_max
-------------------------------------------------------------------------- */
-
-void Atom::data_angles(int n, char *buf)
-{
-  int m,tmp,itype,atom1,atom2,atom3;
-  char *next;
-  int newton_bond = force->newton_bond;
-
-  for (int i = 0; i < n; i++) {
-    next = strchr(buf,'\n');
-    *next = '\0';
-    sscanf(buf,"%d %d %d %d %d",&tmp,&itype,&atom1,&atom2,&atom3);
-    if (atom1 <= 0 || atom1 > map_tag_max ||
-        atom2 <= 0 || atom2 > map_tag_max ||
-        atom3 <= 0 || atom3 > map_tag_max)
-      error->one(FLERR,"Invalid atom ID in Angles section of data file");
-    if (itype <= 0 || itype > nangletypes)
-      error->one(FLERR,"Invalid angle type in Angles section of data file");
-    if ((m = map(atom2)) >= 0) {
-      angle_type[m][num_angle[m]] = itype;
-      angle_atom1[m][num_angle[m]] = atom1;
-      angle_atom2[m][num_angle[m]] = atom2;
-      angle_atom3[m][num_angle[m]] = atom3;
-      num_angle[m]++;
-    }
-    if (newton_bond == 0) {
-      if ((m = map(atom1)) >= 0) {
-        angle_type[m][num_angle[m]] = itype;
-        angle_atom1[m][num_angle[m]] = atom1;
-        angle_atom2[m][num_angle[m]] = atom2;
-        angle_atom3[m][num_angle[m]] = atom3;
-        num_angle[m]++;
-      }
-      if ((m = map(atom3)) >= 0) {
-        angle_type[m][num_angle[m]] = itype;
-        angle_atom1[m][num_angle[m]] = atom1;
-        angle_atom2[m][num_angle[m]] = atom2;
-        angle_atom3[m][num_angle[m]] = atom3;
-        num_angle[m]++;
-      }
-    }
-    buf = next + 1;
-  }
-}
-
-/* ----------------------------------------------------------------------
-   check that atom IDs are > 0 and <= map_tag_max
-------------------------------------------------------------------------- */
-
-void Atom::data_dihedrals(int n, char *buf)
-{
-  int m,tmp,itype,atom1,atom2,atom3,atom4;
-  char *next;
-  int newton_bond = force->newton_bond;
-
-  for (int i = 0; i < n; i++) {
-    next = strchr(buf,'\n');
-    *next = '\0';
-    sscanf(buf,"%d %d %d %d %d %d",&tmp,&itype,&atom1,&atom2,&atom3,&atom4);
-    if (atom1 <= 0 || atom1 > map_tag_max ||
-        atom2 <= 0 || atom2 > map_tag_max ||
-        atom3 <= 0 || atom3 > map_tag_max ||
-        atom4 <= 0 || atom4 > map_tag_max)
-      error->one(FLERR,"Invalid atom ID in Dihedrals section of data file");
-    if (itype <= 0 || itype > ndihedraltypes)
-      error->one(FLERR,
-                 "Invalid dihedral type in Dihedrals section of data file");
-    if ((m = map(atom2)) >= 0) {
-      dihedral_type[m][num_dihedral[m]] = itype;
-      dihedral_atom1[m][num_dihedral[m]] = atom1;
-      dihedral_atom2[m][num_dihedral[m]] = atom2;
-      dihedral_atom3[m][num_dihedral[m]] = atom3;
-      dihedral_atom4[m][num_dihedral[m]] = atom4;
-      num_dihedral[m]++;
-    }
-    if (newton_bond == 0) {
-      if ((m = map(atom1)) >= 0) {
-        dihedral_type[m][num_dihedral[m]] = itype;
-        dihedral_atom1[m][num_dihedral[m]] = atom1;
-        dihedral_atom2[m][num_dihedral[m]] = atom2;
-        dihedral_atom3[m][num_dihedral[m]] = atom3;
-        dihedral_atom4[m][num_dihedral[m]] = atom4;
-        num_dihedral[m]++;
-      }
-      if ((m = map(atom3)) >= 0) {
-        dihedral_type[m][num_dihedral[m]] = itype;
-        dihedral_atom1[m][num_dihedral[m]] = atom1;
-        dihedral_atom2[m][num_dihedral[m]] = atom2;
-        dihedral_atom3[m][num_dihedral[m]] = atom3;
-        dihedral_atom4[m][num_dihedral[m]] = atom4;
-        num_dihedral[m]++;
-      }
-      if ((m = map(atom4)) >= 0) {
-        dihedral_type[m][num_dihedral[m]] = itype;
-        dihedral_atom1[m][num_dihedral[m]] = atom1;
-        dihedral_atom2[m][num_dihedral[m]] = atom2;
-        dihedral_atom3[m][num_dihedral[m]] = atom3;
-        dihedral_atom4[m][num_dihedral[m]] = atom4;
-        num_dihedral[m]++;
-      }
-    }
-    buf = next + 1;
-  }
-}
-
-/* ----------------------------------------------------------------------
-   check that atom IDs are > 0 and <= map_tag_max
-------------------------------------------------------------------------- */
-
-void Atom::data_impropers(int n, char *buf)
-{
-  int m,tmp,itype,atom1,atom2,atom3,atom4;
-  char *next;
-  int newton_bond = force->newton_bond;
-
-  for (int i = 0; i < n; i++) {
-    next = strchr(buf,'\n');
-    *next = '\0';
-    sscanf(buf,"%d %d %d %d %d %d",&tmp,&itype,&atom1,&atom2,&atom3,&atom4);
-    if (atom1 <= 0 || atom1 > map_tag_max ||
-        atom2 <= 0 || atom2 > map_tag_max ||
-        atom3 <= 0 || atom3 > map_tag_max ||
-        atom4 <= 0 || atom4 > map_tag_max)
-      error->one(FLERR,"Invalid atom ID in Impropers section of data file");
-    if (itype <= 0 || itype > nimpropertypes)
-      error->one(FLERR,
-                 "Invalid improper type in Impropers section of data file");
-    if ((m = map(atom2)) >= 0) {
-      improper_type[m][num_improper[m]] = itype;
-      improper_atom1[m][num_improper[m]] = atom1;
-      improper_atom2[m][num_improper[m]] = atom2;
-      improper_atom3[m][num_improper[m]] = atom3;
-      improper_atom4[m][num_improper[m]] = atom4;
-      num_improper[m]++;
-    }
-    if (newton_bond == 0) {
-      if ((m = map(atom1)) >= 0) {
-        improper_type[m][num_improper[m]] = itype;
-        improper_atom1[m][num_improper[m]] = atom1;
-        improper_atom2[m][num_improper[m]] = atom2;
-        improper_atom3[m][num_improper[m]] = atom3;
-        improper_atom4[m][num_improper[m]] = atom4;
-        num_improper[m]++;
-      }
-      if ((m = map(atom3)) >= 0) {
-        improper_type[m][num_improper[m]] = itype;
-        improper_atom1[m][num_improper[m]] = atom1;
-        improper_atom2[m][num_improper[m]] = atom2;
-        improper_atom3[m][num_improper[m]] = atom3;
-        improper_atom4[m][num_improper[m]] = atom4;
-        num_improper[m]++;
-      }
-      if ((m = map(atom4)) >= 0) {
-        improper_type[m][num_improper[m]] = itype;
-        improper_atom1[m][num_improper[m]] = atom1;
-        improper_atom2[m][num_improper[m]] = atom2;
-        improper_atom3[m][num_improper[m]] = atom3;
-        improper_atom4[m][num_improper[m]] = atom4;
-        num_improper[m]++;
-      }
-    }
-    buf = next + 1;
-  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1210,7 +1331,7 @@ int Atom::find_molecule(char *id)
 ------------------------------------------------------------------------- */
 
 void Atom::add_molecule_atom(Molecule *onemol, int iatom,
-                             int ilocal, int offset)
+                             int ilocal, tagint offset)
 {
   if (onemol->qflag) q[ilocal] = onemol->q[iatom];
   if (onemol->radiusflag) radius[ilocal] = onemol->radius[iatom];
@@ -1709,9 +1830,9 @@ bigint Atom::memory_usage()
   bigint bytes = avec->memory_usage();
   memory->destroy(memstr);
 
-  bytes += smax*sizeof(int);
+  bytes += max_same*sizeof(int);
   if (map_style == 1)
-    bytes += memory->usage(map_array,map_tag_max+1);
+    bytes += memory->usage(map_array,max_array);
   else if (map_style == 2) {
     bytes += map_nbucket*sizeof(int);
     bytes += map_nhash*sizeof(HashElem);

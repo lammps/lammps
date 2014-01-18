@@ -39,9 +39,9 @@ void Neighbor::half_bin_no_newton(NeighList *list)
 
   // loop over each atom, storing neighbors
 
-  int **special = atom->special;
+  tagint **special = atom->special;
   int **nspecial = atom->nspecial;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
 
   double **x = atom->x;
   int *type = atom->type;
@@ -134,9 +134,9 @@ void Neighbor::half_bin_no_newton_ghost(NeighList *list)
 
   // loop over each atom, storing neighbors
 
-  int **special = atom->special;
+  tagint **special = atom->special;
   int **nspecial = atom->nspecial;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
 
   double **x = atom->x;
   int *type = atom->type;
@@ -256,9 +256,9 @@ void Neighbor::half_bin_newton(NeighList *list)
 
   // loop over each atom, storing neighbors
 
-  int **special = atom->special;
+  tagint **special = atom->special;
   int **nspecial = atom->nspecial;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
 
   double **x = atom->x;
   int *type = atom->type;
@@ -375,9 +375,9 @@ void Neighbor::half_bin_newton_tri(NeighList *list)
 
   // loop over each atom, storing neighbors
 
-  int **special = atom->special;
+  tagint **special = atom->special;
   int **nspecial = atom->nspecial;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
 
   double **x = atom->x;
   int *type = atom->type;

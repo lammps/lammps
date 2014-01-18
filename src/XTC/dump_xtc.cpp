@@ -190,11 +190,11 @@ void DumpXTC::write_header(bigint nbig)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpXTC::pack(int *ids)
+void DumpXTC::pack(tagint *ids)
 {
   int m,n;
 
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   double **x = atom->x;
   imageint *image = atom->image;
   int *mask = atom->mask;

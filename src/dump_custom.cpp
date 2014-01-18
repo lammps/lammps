@@ -44,7 +44,7 @@ enum{ID,MOL,TYPE,ELEMENT,MASS,
      TQX,TQY,TQZ,SPIN,ERADIUS,ERVEL,ERFORCE,
      COMPUTE,FIX,VARIABLE};
 enum{LT,LE,GT,GE,EQ,NEQ};
-enum{INT,DOUBLE,STRING};    // same as in DumpCFG
+enum{INT,DOUBLE,STRING,BIGINT};    // same as in DumpCFG
 
 #define INVOKED_PERATOM 8
 #define ONEFIELD 32
@@ -128,6 +128,7 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
     if (vtype[i] == INT) strcat(format_default,"%d ");
     else if (vtype[i] == DOUBLE) strcat(format_default,"%g ");
     else if (vtype[i] == STRING) strcat(format_default,"%s ");
+    else if (vtype[i] == BIGINT) strcat(format_default,BIGINT_FORMAT " ");
     vformat[i] = NULL;
   }
 
@@ -437,7 +438,7 @@ int DumpCustom::count()
       // customize by adding to if statement
 
       if (thresh_array[ithresh] == ID) {
-        int *tag = atom->tag;
+        tagint *tag = atom->tag;
         for (i = 0; i < nlocal; i++) dchoose[i] = tag[i];
         ptr = dchoose;
         nstride = 1;
@@ -894,11 +895,11 @@ int DumpCustom::count()
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCustom::pack(int *ids)
+void DumpCustom::pack(tagint *ids)
 {
   for (int n = 0; n < size_one; n++) (this->*pack_choice[n])(n);
   if (ids) {
-    int *tag = atom->tag;
+    tagint *tag = atom->tag;
     for (int i = 0; i < nchoose; i++)
       ids[i] = tag[clist[i]];
   }
@@ -929,6 +930,9 @@ int DumpCustom::convert_string(int n, double *mybuf)
         offset += sprintf(&sbuf[offset],vformat[j],mybuf[m]);
       else if (vtype[j] == STRING)
         offset += sprintf(&sbuf[offset],vformat[j],typenames[(int) mybuf[m]]);
+      else if (vtype[j] == BIGINT) 
+        offset += sprintf(&sbuf[offset],vformat[j],
+                          static_cast<bigint> (mybuf[m]));
       m++;
     }
     offset += sprintf(&sbuf[offset],"\n");
@@ -973,6 +977,8 @@ void DumpCustom::write_lines(int n, double *mybuf)
       else if (vtype[j] == DOUBLE) fprintf(fp,vformat[j],mybuf[m]);
       else if (vtype[j] == STRING)
         fprintf(fp,vformat[j],typenames[(int) mybuf[m]]);
+      else if (vtype[j] == BIGINT) 
+        fprintf(fp,vformat[j],static_cast<bigint> (mybuf[m]));
       m++;
     }
     fprintf(fp,"\n");
@@ -991,7 +997,8 @@ int DumpCustom::parse_fields(int narg, char **arg)
 
     if (strcmp(arg[iarg],"id") == 0) {
       pack_choice[i] = &DumpCustom::pack_id;
-      vtype[i] = INT;
+      if (sizeof(tagint) == sizeof(smallint)) vtype[i] = INT;
+      else vtype[i] = BIGINT;
     } else if (strcmp(arg[iarg],"mol") == 0) {
       if (!atom->molecule_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
@@ -1706,7 +1713,7 @@ void DumpCustom::pack_variable(int n)
 
 void DumpCustom::pack_id(int n)
 {
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
 
   for (int i = 0; i < nchoose; i++) {
     buf[n] = tag[clist[i]];

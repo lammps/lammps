@@ -412,7 +412,7 @@ void lammps_gather_atoms(void *ptr, char *name,
     lmp->memory->create(copy,count*natoms,"lib/gather:copy");
     for (i = 0; i < count*natoms; i++) copy[i] = 0;
 
-    int *tag = lmp->atom->tag;
+    tagint *tag = lmp->atom->tag;
     int nlocal = lmp->atom->nlocal;
 
     if (count == 1)
@@ -438,7 +438,7 @@ void lammps_gather_atoms(void *ptr, char *name,
     lmp->memory->create(copy,count*natoms,"lib/gather:copy");
     for (i = 0; i < count*natoms; i++) copy[i] = 0.0;
 
-    int *tag = lmp->atom->tag;
+    tagint *tag = lmp->atom->tag;
     int nlocal = lmp->atom->nlocal;
 
     if (count == 1) {

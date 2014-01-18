@@ -691,6 +691,40 @@ void Force::bounds(char *str, int nmax, int &nlo, int &nhi, int nmin)
 }
 
 /* ----------------------------------------------------------------------
+   compute bounds implied by numeric str with a possible wildcard asterik
+   1 = lower bound, nmax = upper bound
+   5 possibilities:
+     (1) i = i to i, (2) * = nmin to nmax,
+     (3) i* = i to nmax, (4) *j = nmin to j, (5) i*j = i to j
+   return nlo,nhi
+------------------------------------------------------------------------- */
+
+void Force::boundsbig(char *str, bigint nmax, bigint &nlo, bigint &nhi, 
+                      bigint nmin)
+{
+  char *ptr = strchr(str,'*');
+
+  if (ptr == NULL) {
+    nlo = nhi = ATOBIGINT(str);
+  } else if (strlen(str) == 1) {
+    nlo = nmin;
+    nhi = nmax;
+  } else if (ptr == str) {
+    nlo = nmin;
+    nhi = ATOBIGINT(ptr+1);
+  } else if (strlen(ptr+1) == 0) {
+    nlo = ATOBIGINT(str);
+    nhi = nmax;
+  } else {
+    nlo = ATOBIGINT(str);
+    nhi = ATOBIGINT(ptr+1);
+  }
+
+  if (nlo < nmin || nhi > nmax) 
+    error->all(FLERR,"Numeric index is out of bounds");
+}
+
+/* ----------------------------------------------------------------------
    read a floating point value from a string
    generate an error if not a legitimate floating point value
    called by various commands to check validity of their arguments
@@ -726,6 +760,24 @@ int Force::inumeric(const char *file, int line, char *str)
   }
 
   return atoi(str);
+}
+
+/* ----------------------------------------------------------------------
+   read a big integer value from a string
+   generate an error if not a legitimate integer value
+   called by various commands to check validity of their arguments
+------------------------------------------------------------------------- */
+
+bigint Force::bnumeric(const char *file, int line, char *str)
+{
+  int n = strlen(str);
+  for (int i = 0; i < n; i++) {
+    if (isdigit(str[i]) || str[i] == '-' || str[i] == '+') continue;
+    error->all(file,line,
+               "Expected integer parameter in input script or data file");
+  }
+
+  return ATOLL(str);
 }
 
 /* ----------------------------------------------------------------------

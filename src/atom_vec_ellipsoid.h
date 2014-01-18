@@ -84,7 +84,8 @@ class AtomVecEllipsoid : public AtomVec {
   void set_shape(int, double, double, double);
 
  private:
-  int *tag,*type,*mask;
+  tagint *tag;
+  int *type,*mask;
   imageint *image;
   double **x,**v,**f;
   double *rmass;

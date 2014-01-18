@@ -57,7 +57,7 @@ class DumpLocal : public Dump {
   int modify_param(int, char **);
   void write_header(bigint);
   int count();
-  void pack(int *);
+  void pack(tagint *);
   int convert_string(int, double *);
   void write_data(int, double *);
 

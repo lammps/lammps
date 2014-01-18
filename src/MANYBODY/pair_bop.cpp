@@ -274,7 +274,8 @@ void PairBOP::compute(int eflag, int vflag)
   int ago,delay,every;
   int i,j,ii,jj,iij;
   int n,inum,temp_ij,ks;
-  int itype,jtype,i_tag,j_tag;
+  int itype,jtype;
+  tagint i_tag,j_tag;
   int *ilist,*iilist,*numneigh;
   int **firstneigh;
   double dpr1,ps;
@@ -288,7 +289,7 @@ void PairBOP::compute(int eflag, int vflag)
   double **f = atom->f;
   double **x = atom->x;
   int *type = atom->type;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int newton_pair = force->newton_pair;
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
@@ -846,7 +847,7 @@ void PairBOP::sigmaBo()
   int n,i,j,k,kp,m,pp,kkp;
   int iij,ji,ki;
   int itmp,jtmp,ktmp,ltmp,mtmp;
-  int i_tag,j_tag;
+  tagint i_tag,j_tag;
   int ngi,ngj,ngk,nglkp,ngli,nglj,ngl;
   int ngji,ngjk,nikj,ngki,ngkj,ngjkp;
   int ngkpk,ngkpj,ngkkp,nglk;
@@ -890,7 +891,7 @@ void PairBOP::sigmaBo()
   double ftmp[3];
   double **x = atom->x;
   double **f = atom->f;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int newton_pair = force->newton_pair;
   int *type = atom->type;
 
@@ -2401,7 +2402,7 @@ void PairBOP::sigmaBo_noa()
   int n,i,j,k,kp,m,pp;
   int iij,ji,ki;
   int itmp,jtmp,ktmp,ltmp,mtmp;
-  int i_tag,j_tag;
+  tagint i_tag,j_tag;
   int ngi,ngj,ngk,ngli,nglj,ngl;
   int ngji,ngjk,nikj,ngki,ngkj;
   int njik,nijk,nikkp,nkp,nijkp;
@@ -2437,7 +2438,7 @@ void PairBOP::sigmaBo_noa()
   double ftmp[3];
   double **x = atom->x;
   double **f = atom->f;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int newton_pair = force->newton_pair;
   int *type = atom->type;
 
@@ -3379,7 +3380,7 @@ void PairBOP::sigmaBo_otf()
   int nb_t,new_n_tot;
   int n,i,j,k,kp,m,pp,kpj,kpk,kkp;
   int itmp,jtmp,ktmp,ltmp,mtmp;
-  int i_tag,j_tag;
+  tagint i_tag,j_tag;
   int kp1,kp2,kp1type;
   int iij,iik,ijk,ikkp,ji,iikp,ijkp;
   int nkp;
@@ -3448,7 +3449,7 @@ void PairBOP::sigmaBo_otf()
   double ftmp[3],xtmp[3];
   double **x = atom->x;
   double **f = atom->f;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int newton_pair = force->newton_pair;
   int *type = atom->type;
 
@@ -5303,7 +5304,7 @@ void PairBOP::sigmaBo_noa_otf()
   int nb_t,new_n_tot;
   int n,i,j,k,kp,m,pp;
   int itmp,jtmp,ktmp,ltmp,mtmp;
-  int i_tag,j_tag;
+  tagint i_tag,j_tag;
   int kp1,kp2,kp1type;
   int iij,iik,ijk,ikkp,ji,iikp,ijkp;
   int nkp;
@@ -5368,7 +5369,7 @@ void PairBOP::sigmaBo_noa_otf()
   double ftmp[3],xtmp[3];
   double **x = atom->x;
   double **f = atom->f;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int newton_pair = force->newton_pair;
   int *type = atom->type;
 
@@ -6541,7 +6542,7 @@ void PairBOP::PiBo()
   int i,j,k,kp,m,n,pp,nb_t;
   int iij,ji,ki;
   int nsearch,ncmp;
-  int i_tag,j_tag;
+  tagint i_tag,j_tag;
   int njik,ngj,ngk,nglj,ngl,ngi;
   int nkjkp,nijkp,ngli,nkikp,njikp;
   int itmp,ltmp,jtmp,ktmp;
@@ -6570,7 +6571,7 @@ void PairBOP::PiBo()
   double **f = atom->f;
   double **x = atom->x;
   int *type = atom->type;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int newton_pair = force->newton_pair;
 
   nlocal = atom->nlocal;
@@ -7265,7 +7266,7 @@ void PairBOP::PiBo_otf()
   int i,j,k,kp,m,n,pp,nb_t;
   int iij,iik,iikp,ji,ki,ijkp,ijk;
   int nsearch,ncmp;
-  int i_tag,j_tag;
+  tagint i_tag,j_tag;
   int itmp,ltmp,jtmp,ktmp;
   int pi_flag,ks;
   int nlocal;
@@ -7317,7 +7318,7 @@ void PairBOP::PiBo_otf()
   double **f = atom->f;
   double **x = atom->x;
   int *type = atom->type;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
 
   nlocal = atom->nlocal;
   numneigh = list->numneigh;

@@ -67,7 +67,8 @@ class AtomVecHybrid : public AtomVec {
   bigint memory_usage();
 
  private:
-  int *tag,*type,*mask;
+  tagint *tag;
+  int *type,*mask;
   imageint *image;
   double **x,**v,**f;
   double **omega,**angmom;

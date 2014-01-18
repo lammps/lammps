@@ -82,7 +82,7 @@ void AtomVec::data_vel(int m, char **values)
 void AtomVec::pack_vel(double **buf)
 {
   double **v = atom->v;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
@@ -100,8 +100,8 @@ void AtomVec::pack_vel(double **buf)
 void AtomVec::write_vel(FILE *fp, int n, double **buf)
 {
   for (int i = 0; i < n; i++)
-    fprintf(fp,"%d %-1.16e %-1.16e %-1.16e\n",
-            (int) ubuf(buf[i][0]).i,buf[i][1],buf[i][2],buf[i][3]);
+    fprintf(fp,TAGINT_FORMAT " %-1.16e %-1.16e %-1.16e\n",
+            (tagint) ubuf(buf[i][0]).i,buf[i][1],buf[i][2],buf[i][3]);
 }
 
 /* ----------------------------------------------------------------------
@@ -111,12 +111,12 @@ void AtomVec::write_vel(FILE *fp, int n, double **buf)
    if bondtype is negative, flip back to positive
 ------------------------------------------------------------------------- */
 
-int AtomVec::pack_bond(int **buf)
+int AtomVec::pack_bond(tagint **buf)
 {
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int *num_bond = atom->num_bond;
   int **bond_type = atom->bond_type;
-  int **bond_atom = atom->bond_atom;
+  tagint **bond_atom = atom->bond_atom;
   int nlocal = atom->nlocal;
   int newton_bond = force->newton_bond;
 
@@ -154,10 +154,11 @@ int AtomVec::pack_bond(int **buf)
    write bond info to data file
 ------------------------------------------------------------------------- */
 
-void AtomVec::write_bond(FILE *fp, int n, int **buf, int index)
+void AtomVec::write_bond(FILE *fp, int n, tagint **buf, int index)
 {
   for (int i = 0; i < n; i++) {
-    fprintf(fp,"%d %d %d %d\n",index,buf[i][0],buf[i][1],buf[i][2]);
+    fprintf(fp,"%d " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT "\n",
+            index,buf[i][0],buf[i][1],buf[i][2]);
     index++;
   }
 }
@@ -169,14 +170,14 @@ void AtomVec::write_bond(FILE *fp, int n, int **buf, int index)
    if angletype is negative, flip back to positive
 ------------------------------------------------------------------------- */
 
-int AtomVec::pack_angle(int **buf)
+int AtomVec::pack_angle(tagint **buf)
 {
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int *num_angle = atom->num_angle;
   int **angle_type = atom->angle_type;
-  int **angle_atom1 = atom->angle_atom1;
-  int **angle_atom2 = atom->angle_atom2;
-  int **angle_atom3 = atom->angle_atom3;
+  tagint **angle_atom1 = atom->angle_atom1;
+  tagint **angle_atom2 = atom->angle_atom2;
+  tagint **angle_atom3 = atom->angle_atom3;
   int nlocal = atom->nlocal;
   int newton_bond = force->newton_bond;
 
@@ -216,11 +217,12 @@ int AtomVec::pack_angle(int **buf)
    write angle info to data file
 ------------------------------------------------------------------------- */
 
-void AtomVec::write_angle(FILE *fp, int n, int **buf, int index)
+void AtomVec::write_angle(FILE *fp, int n, tagint **buf, int index)
 {
   for (int i = 0; i < n; i++) {
-    fprintf(fp,"%d %d %d %d %d\n",index,
-            buf[i][0],buf[i][1],buf[i][2],buf[i][3]);
+    fprintf(fp,"%d " TAGINT_FORMAT " " TAGINT_FORMAT " " 
+            TAGINT_FORMAT " " TAGINT_FORMAT "\n",
+            index,buf[i][0],buf[i][1],buf[i][2],buf[i][3]);
     index++;
   }
 }
@@ -229,15 +231,15 @@ void AtomVec::write_angle(FILE *fp, int n, int **buf, int index)
    pack dihedral info for data file
 ------------------------------------------------------------------------- */
 
-void AtomVec::pack_dihedral(int **buf)
+void AtomVec::pack_dihedral(tagint **buf)
 {
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int *num_dihedral = atom->num_dihedral;
   int **dihedral_type = atom->dihedral_type;
-  int **dihedral_atom1 = atom->dihedral_atom1;
-  int **dihedral_atom2 = atom->dihedral_atom2;
-  int **dihedral_atom3 = atom->dihedral_atom3;
-  int **dihedral_atom4 = atom->dihedral_atom4;
+  tagint **dihedral_atom1 = atom->dihedral_atom1;
+  tagint **dihedral_atom2 = atom->dihedral_atom2;
+  tagint **dihedral_atom3 = atom->dihedral_atom3;
+  tagint **dihedral_atom4 = atom->dihedral_atom4;
   int nlocal = atom->nlocal;
   int newton_bond = force->newton_bond;
 
@@ -271,11 +273,12 @@ void AtomVec::pack_dihedral(int **buf)
    write dihedral info to data file
 ------------------------------------------------------------------------- */
 
-void AtomVec::write_dihedral(FILE *fp, int n, int **buf, int index)
+void AtomVec::write_dihedral(FILE *fp, int n, tagint **buf, int index)
 {
   for (int i = 0; i < n; i++) {
-    fprintf(fp,"%d %d %d %d %d %d\n",index,
-            buf[i][0],buf[i][1],buf[i][2],buf[i][3],buf[i][4]);
+    fprintf(fp,"%d " TAGINT_FORMAT " " TAGINT_FORMAT " " 
+            TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT "\n",
+            index,buf[i][0],buf[i][1],buf[i][2],buf[i][3],buf[i][4]);
     index++;
   }
 }
@@ -284,15 +287,15 @@ void AtomVec::write_dihedral(FILE *fp, int n, int **buf, int index)
    pack improper info for data file
 ------------------------------------------------------------------------- */
 
-void AtomVec::pack_improper(int **buf)
+void AtomVec::pack_improper(tagint **buf)
 {
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int *num_improper = atom->num_improper;
   int **improper_type = atom->improper_type;
-  int **improper_atom1 = atom->improper_atom1;
-  int **improper_atom2 = atom->improper_atom2;
-  int **improper_atom3 = atom->improper_atom3;
-  int **improper_atom4 = atom->improper_atom4;
+  tagint **improper_atom1 = atom->improper_atom1;
+  tagint **improper_atom2 = atom->improper_atom2;
+  tagint **improper_atom3 = atom->improper_atom3;
+  tagint **improper_atom4 = atom->improper_atom4;
   int nlocal = atom->nlocal;
   int newton_bond = force->newton_bond;
 
@@ -326,11 +329,12 @@ void AtomVec::pack_improper(int **buf)
    write improper info to data file
 ------------------------------------------------------------------------- */
 
-void AtomVec::write_improper(FILE *fp, int n, int **buf, int index)
+void AtomVec::write_improper(FILE *fp, int n, tagint **buf, int index)
 {
   for (int i = 0; i < n; i++) {
-    fprintf(fp,"%d %d %d %d %d %d\n",index,
-            buf[i][0],buf[i][1],buf[i][2],buf[i][3],buf[i][4]);
+    fprintf(fp,"%d " TAGINT_FORMAT " " TAGINT_FORMAT " " 
+            TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT "\n",
+            index,buf[i][0],buf[i][1],buf[i][2],buf[i][3],buf[i][4]);
     index++;
   }
 }

@@ -265,7 +265,7 @@ int DumpLocal::count()
 
 /* ---------------------------------------------------------------------- */
 
-void DumpLocal::pack(int *dummy)
+void DumpLocal::pack(tagint *dummy)
 {
   for (int n = 0; n < size_one; n++) (this->*pack_choice[n])(n);
 }

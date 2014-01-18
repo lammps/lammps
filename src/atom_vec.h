@@ -99,14 +99,14 @@ class AtomVec : protected Pointers {
   virtual int write_vel_hybrid(FILE *, double *) {return 0;}
 
   void reset();
-  int pack_bond(int **);
-  void write_bond(FILE *, int, int **, int);
-  int pack_angle(int **);
-  void write_angle(FILE *, int, int **, int);
-  void pack_dihedral(int **);
-  void write_dihedral(FILE *, int, int **, int);
-  void pack_improper(int **);
-  void write_improper(FILE *, int, int **, int);
+  int pack_bond(tagint **);
+  void write_bond(FILE *, int, tagint **, int);
+  int pack_angle(tagint **);
+  void write_angle(FILE *, int, tagint **, int);
+  void pack_dihedral(tagint **);
+  void write_dihedral(FILE *, int, tagint **, int);
+  void pack_improper(tagint **);
+  void write_improper(FILE *, int, tagint **, int);
 
   virtual bigint memory_usage() = 0;
 
@@ -128,8 +128,8 @@ class AtomVec : protected Pointers {
   //   the cast prevents compiler warnings about possible truncation
 
   union ubuf {
-    double   d;
-    int64_t  i;
+    double d;
+    int64_t i;
     ubuf(double arg) : d(arg) {}
     ubuf(int64_t arg) : i(arg) {}
     ubuf(int arg) : i(arg) {}

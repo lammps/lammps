@@ -488,16 +488,18 @@ void FixDeposit::pre_exchange()
 
   if (success) {
     atom->natoms += natom;
+    if (atom->natoms < 0 || atom->natoms > MAXBIGINT)
+      error->all(FLERR,"Too many total atoms");
     if (mode == MOLECULE) {
       atom->nbonds += onemol->nbonds;
       atom->nangles += onemol->nangles;
       atom->ndihedrals += onemol->ndihedrals;
       atom->nimpropers += onemol->nimpropers;
     }
-    if (idnext) {
-      maxtag_all += natom;
-      if (mode == MOLECULE && atom->molecule_flag) maxmol_all++;
-    }
+    maxtag_all += natom;
+    if (maxtag_all >= MAXTAGINT)
+      error->all(FLERR,"New atom IDs exceed maximum allowed ID");
+    if (mode == MOLECULE && atom->molecule_flag) maxmol_all++;
     if (atom->map_style) {
       atom->nghost = 0;
       atom->map_init();
@@ -520,13 +522,13 @@ void FixDeposit::pre_exchange()
 
 void FixDeposit::find_maxid()
 {
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int *molecule = atom->molecule;
   int nlocal = atom->nlocal;
 
-  int max = 0;
+  tagint max = 0;
   for (int i = 0; i < nlocal; i++) max = MAX(max,tag[i]);
-  MPI_Allreduce(&max,&maxtag_all,1,MPI_INT,MPI_MAX,world);
+  MPI_Allreduce(&max,&maxtag_all,1,MPI_LMP_TAGINT,MPI_MAX,world);
 
   if (mode == MOLECULE && molecule) {
     max = 0;

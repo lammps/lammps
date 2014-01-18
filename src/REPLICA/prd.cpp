@@ -737,8 +737,8 @@ void PRD::replicate(int ireplica)
       displacements[0] = 0;
       for (i = 0; i < nprocs-1; i++)
         displacements[i+1] = displacements[i] + counts[i];
-      MPI_Gatherv(atom->tag,atom->nlocal,MPI_INT,
-                  tagall,counts,displacements,MPI_INT,0,world);
+      MPI_Gatherv(atom->tag,atom->nlocal,MPI_LMP_TAGINT,
+                  tagall,counts,displacements,MPI_LMP_TAGINT,0,world);
       MPI_Gatherv(atom->image,atom->nlocal,MPI_INT,
                         imageall,counts,displacements,MPI_INT,0,world);
       for (i = 0; i < nprocs; i++) counts[i] *= 3;

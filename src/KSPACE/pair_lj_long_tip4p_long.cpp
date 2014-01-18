@@ -116,6 +116,7 @@ void PairLJLongTIP4PLong::compute(int eflag, int vflag)
   double **f = atom->f;
   double **x = atom->x;
   double *q = atom->q;
+  tagint *tag = atom->tag;
   int *type = atom->type;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
@@ -144,8 +145,8 @@ void PairLJLongTIP4PLong::compute(int eflag, int vflag)
     itype = type[i];
     if (itype == typeO) {
       if (hneigh[i][0] < 0) {
-        hneigh[i][0] = iH1 = atom->map(atom->tag[i] + 1);
-        hneigh[i][1] = iH2 = atom->map(atom->tag[i] + 2);
+        hneigh[i][0] = iH1 = atom->map(tag[i] + 1);
+        hneigh[i][1] = iH2 = atom->map(tag[i] + 2);
         hneigh[i][2] = 1;
         if (iH1 == -1 || iH2 == -1)
           error->one(FLERR,"TIP4P hydrogen is missing");
@@ -253,8 +254,8 @@ void PairLJLongTIP4PLong::compute(int eflag, int vflag)
         if (itype == typeO || jtype == typeO) { 
 	  if (jtype == typeO) {
             if (hneigh[j][0] < 0) {
-              hneigh[j][0] = jH1 = atom->map(atom->tag[j] + 1);
-              hneigh[j][1] = jH2 = atom->map(atom->tag[j] + 2);
+              hneigh[j][0] = jH1 = atom->map(tag[j] + 1);
+              hneigh[j][1] = jH2 = atom->map(tag[j] + 2);
               hneigh[j][2] = 1;
               if (jH1 == -1 || jH2 == -1)
                 error->one(FLERR,"TIP4P hydrogen is missing");
@@ -499,6 +500,7 @@ void PairLJLongTIP4PLong::compute_inner()
   double **f = atom->f;
   double **x = atom->x;
   double *q = atom->q;
+  tagint *tag = atom->tag;
   int *type = atom->type;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
@@ -526,8 +528,8 @@ void PairLJLongTIP4PLong::compute_inner()
     itype = type[i];
     if (itype == typeO && order1) {
       if (hneigh[i][0] < 0) {
-        hneigh[i][0] = iH1 = atom->map(atom->tag[i] + 1);
-        hneigh[i][1] = iH2 = atom->map(atom->tag[i] + 2);
+        hneigh[i][0] = iH1 = atom->map(tag[i] + 1);
+        hneigh[i][1] = iH2 = atom->map(tag[i] + 2);
         hneigh[i][2] = 1;
         if (iH1 == -1 || iH2 == -1)
           error->one(FLERR,"TIP4P hydrogen is missing");
@@ -594,8 +596,8 @@ void PairLJLongTIP4PLong::compute_inner()
         if (itype == typeO || jtype == typeO) { 
 	  if (jtype == typeO) {
             if (hneigh[j][0] < 0) {
-              hneigh[j][0] = jH1 = atom->map(atom->tag[j] + 1);
-              hneigh[j][1] = jH2 = atom->map(atom->tag[j] + 2);
+              hneigh[j][0] = jH1 = atom->map(tag[j] + 1);
+              hneigh[j][1] = jH2 = atom->map(tag[j] + 2);
               hneigh[j][2] = 1;
               if (jH1 == -1 || jH2 == -1)
                 error->one(FLERR,"TIP4P hydrogen is missing");
@@ -749,6 +751,7 @@ void PairLJLongTIP4PLong::compute_middle()
   double **f = atom->f;
   double **x = atom->x;
   double *q = atom->q;
+  tagint *tag = atom->tag;
   int *type = atom->type;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
@@ -777,8 +780,8 @@ void PairLJLongTIP4PLong::compute_middle()
     itype = type[i];
     if (itype == typeO && order1) {
       if (hneigh[i][0] < 0) {
-        hneigh[i][0] = iH1 = atom->map(atom->tag[i] + 1);
-        hneigh[i][1] = iH2 = atom->map(atom->tag[i] + 2);
+        hneigh[i][0] = iH1 = atom->map(tag[i] + 1);
+        hneigh[i][1] = iH2 = atom->map(tag[i] + 2);
         hneigh[i][2] = 1;
         if (iH1 == -1 || iH2 == -1)
           error->one(FLERR,"TIP4P hydrogen is missing");
@@ -849,8 +852,8 @@ void PairLJLongTIP4PLong::compute_middle()
         if (itype == typeO || jtype == typeO) { 
 	  if (jtype == typeO) {
             if (hneigh[j][0] < 0) {
-              hneigh[j][0] = jH1 = atom->map(atom->tag[j] + 1);
-              hneigh[j][1] = jH2 = atom->map(atom->tag[j] + 2);
+              hneigh[j][0] = jH1 = atom->map(tag[j] + 1);
+              hneigh[j][1] = jH2 = atom->map(tag[j] + 2);
               hneigh[j][2] = 1;
               if (jH1 == -1 || jH2 == -1)
                 error->one(FLERR,"TIP4P hydrogen is missing");
@@ -1017,6 +1020,7 @@ void PairLJLongTIP4PLong::compute_outer(int eflag, int vflag)
   double **f = atom->f;
   double **x = atom->x;
   double *q = atom->q;
+  tagint *tag = atom->tag;
   int *type = atom->type;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
@@ -1053,8 +1057,8 @@ void PairLJLongTIP4PLong::compute_outer(int eflag, int vflag)
     itype = type[i];
     if (itype == typeO) {
       if (hneigh[i][0] < 0) {
-        hneigh[i][0] = iH1 = atom->map(atom->tag[i] + 1);
-        hneigh[i][1] = iH2 = atom->map(atom->tag[i] + 2);
+        hneigh[i][0] = iH1 = atom->map(tag[i] + 1);
+        hneigh[i][1] = iH2 = atom->map(tag[i] + 2);
         hneigh[i][2] = 1;
         if (iH1 == -1 || iH2 == -1)
           error->one(FLERR,"TIP4P hydrogen is missing");
@@ -1174,8 +1178,8 @@ void PairLJLongTIP4PLong::compute_outer(int eflag, int vflag)
         if (itype == typeO || jtype == typeO) { 
 	  if (jtype == typeO) {
             if (hneigh[j][0] < 0) {
-              hneigh[j][0] = jH1 = atom->map(atom->tag[j] + 1);
-              hneigh[j][1] = jH2 = atom->map(atom->tag[j] + 2);
+              hneigh[j][0] = jH1 = atom->map(tag[j] + 1);
+              hneigh[j][1] = jH2 = atom->map(tag[j] + 2);
               hneigh[j][2] = 1;
               if (jH1 == -1 || jH2 == -1)
                 error->one(FLERR,"TIP4P hydrogen is missing");

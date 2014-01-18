@@ -15,6 +15,10 @@
    Contributing author: Aidan Thompson (Sandia)
 ------------------------------------------------------------------------- */
 
+#ifdef LAMMPS_BIGBIG
+#error LAMMPS_BIGBIG is not supported by the REAX package
+#endif
+
 #include "stdlib.h"
 #include "string.h"
 #include "fix_reax_bonds.h"

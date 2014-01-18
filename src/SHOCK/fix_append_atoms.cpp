@@ -495,14 +495,14 @@ void FixAppendAtoms::pre_exchange()
 
     if (addtotal) {
       domain->reset_box();
-      if (atom->tag_enable) {
-        atom->tag_extend();
-        atom->natoms += addtotal;
-        if (atom->map_style) {
-          atom->nghost = 0;
-          atom->map_init();
-          atom->map_set();
-        }
+      atom->natoms += addtotal;
+      if (atom->natoms < 0 || atom->natoms > MAXBIGINT)
+        error->all(FLERR,"Too many total atoms");
+      if (atom->tag_enable) atom->tag_extend();
+      if (atom->map_style) {
+        atom->nghost = 0;
+        atom->map_init();
+        atom->map_set();
       }
     }
   }

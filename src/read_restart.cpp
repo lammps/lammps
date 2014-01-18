@@ -503,20 +503,19 @@ void ReadRestart::command(int narg, char **arg)
     }
   }
 
-  // check if tags are being used
-  // create global mapping and bond topology now that system is defined
+  // check that atom IDs are valid
 
-  flag = 0;
-  for (int i = 0; i < atom->nlocal; i++)
-    if (atom->tag[i] > 0) flag = 1;
-  int flag_all;
-  MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_MAX,world);
-  if (flag_all == 0) atom->tag_enable = 0;
+  atom->tag_check();
 
-  if (atom->map_style) {
+  // if molecular system or user-requested, create global mapping of atoms
+
+  if (atom->molecular || atom->map_user) {
     atom->map_init();
     atom->map_set();
   }
+
+  // create special bond lists for molecular systems
+
   if (atom->molecular) {
     Special special(lmp);
     special.build();

@@ -100,8 +100,10 @@ class Force : protected Pointers {
 
   void set_special(int, char **);
   void bounds(char *, int, int &, int &, int nmin=1);
+  void boundsbig(char *, bigint, bigint &, bigint &, bigint nmin=1);
   double numeric(const char *, int, char *);
   int inumeric(const char *, int, char *);
+  bigint bnumeric(const char *, int, char *);
   bigint memory_usage();
 
  private:

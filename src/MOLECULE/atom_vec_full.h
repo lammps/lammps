@@ -58,23 +58,26 @@ class AtomVecFull : public AtomVec {
   bigint memory_usage();
 
  protected:
-  int *tag,*type,*mask;
+  tagint *tag;
+  int *type,*mask;
   imageint *image;
   double **x,**v,**f;
   double *q;
   int *molecule;
-  int **nspecial,**special;
+  int **nspecial;
+  tagint **special;
   int *num_bond;
-  int **bond_type,**bond_atom;
+  int **bond_type;
+  tagint **bond_atom;
   int *num_angle;
   int **angle_type;
-  int **angle_atom1,**angle_atom2,**angle_atom3;
+  tagint **angle_atom1,**angle_atom2,**angle_atom3;
   int *num_dihedral;
   int **dihedral_type;
-  int **dihedral_atom1,**dihedral_atom2,**dihedral_atom3,**dihedral_atom4;
+  tagint **dihedral_atom1,**dihedral_atom2,**dihedral_atom3,**dihedral_atom4;
   int *num_improper;
   int **improper_type;
-  int **improper_atom1,**improper_atom2,**improper_atom3,**improper_atom4;
+  tagint **improper_atom1,**improper_atom2,**improper_atom3,**improper_atom4;
 };
 
 }

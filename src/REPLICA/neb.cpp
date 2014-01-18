@@ -335,8 +335,8 @@ void NEB::run()
 
 void NEB::readfile(char *file, int flag)
 {
-  int i,j,m,nchunk,tag,eofflag;
-  int nlines;
+  int i,j,m,nchunk,eofflag,nlines;
+  tagint tag;
   char *eof,*start,*next,*buf;
   char line[MAXLINE];
   double xx,yy,zz,delx,dely,delz;
@@ -430,7 +430,7 @@ void NEB::readfile(char *file, int flag)
       //     will be remapped back into box when simulation starts
       //     its image flags will then be adjusted
 
-      tag = atoi(values[0]);
+      tag = ATOTAGINT(values[0]);
       m = atom->map(tag);
       if (m >= 0 && m < nlocal) {
         ncount++;

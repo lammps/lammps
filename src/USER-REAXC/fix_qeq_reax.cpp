@@ -16,6 +16,10 @@
    (now at Lawrence Berkeley National Laboratory, hmaktulga@lbl.gov)
 ------------------------------------------------------------------------- */
 
+#ifdef LAMMPS_BIGBIG
+#error LAMMPS_BIGBIG not supported by this file
+#endif
+
 #include "math.h"
 #include "stdio.h"
 #include "stdlib.h"
@@ -516,12 +520,11 @@ void FixQEqReax::compute_H()
 {
   int inum, jnum, *ilist, *jlist, *numneigh, **firstneigh;
   int i, j, ii, jj, flag;
-  int *type, *tag;
   double **x, SMALL = 0.0001;
   double dx, dy, dz, r_sqr;
 
-  type = atom->type;
-  tag = atom->tag;
+  int *type = atom->type;
+  tagint *tag = atom->tag;
   x = atom->x;
 
   inum = list->inum;
@@ -530,6 +533,7 @@ void FixQEqReax::compute_H()
   firstneigh = list->firstneigh;
 
   // fill in the H matrix
+
   m_fill = 0;
   r_sqr = 0;
   for( ii = 0; ii < inum; ii++ ) {

@@ -48,10 +48,11 @@ using namespace MathConst;
 #define EPS_HOC 1.0e-7
 
 enum{GEOMETRIC,ARITHMETIC,SIXTHPOWER};
-enum{REVERSE_RHO, REVERSE_RHO_G, REVERSE_RHO_A};
+enum{REVERSE_RHO, REVERSE_RHO_G, REVERSE_RHO_A, REVERSE_RHO_NONE};
 enum{FORWARD_IK, FORWARD_AD, FORWARD_IK_PERATOM, FORWARD_AD_PERATOM,
      FORWARD_IK_G, FORWARD_AD_G, FORWARD_IK_PERATOM_G, FORWARD_AD_PERATOM_G,
-     FORWARD_IK_A, FORWARD_AD_A, FORWARD_IK_PERATOM_A, FORWARD_AD_PERATOM_A};
+     FORWARD_IK_A, FORWARD_AD_A, FORWARD_IK_PERATOM_A, FORWARD_AD_PERATOM_A,
+     FORWARD_IK_NONE, FORWARD_AD_NONE, FORWARD_IK_PERATOM_NONE, FORWARD_AD_PERATOM_NONE};
 
 
 #ifdef FFT_SINGLE
@@ -132,6 +133,11 @@ PPPMDisp::PPPMDisp(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
   u_brick_a6 = v0_brick_a6 = v1_brick_a6 = v2_brick_a6 = v3_brick_a6 = 
     v4_brick_a6 = v5_brick_a6 = NULL;
 
+  density_brick_none = vdx_brick_none = vdy_brick_none = vdz_brick_none = NULL;
+  density_fft_none = NULL;
+  u_brick_none = v0_brick_none = v1_brick_none = v2_brick_none = v3_brick_none = 
+    v4_brick_none = v5_brick_none = NULL;
+
   greensfn = NULL;
   greensfn_6 = NULL;
   work1 = work2 = NULL;
@@ -187,7 +193,7 @@ PPPMDisp::~PPPMDisp()
   delete [] csumi;
   csumi = NULL;
   deallocate();
-  if (peratom_allocate_flag) deallocate_peratom();
+  deallocate_peratom();
   memory->destroy(part2grid);
   memory->destroy(part2grid_6);
   part2grid = part2grid_6 = NULL;
@@ -225,7 +231,7 @@ void PPPMDisp::init()
   // free all arrays previously allocated
 
   deallocate();
-  if (peratom_allocate_flag) deallocate_peratom(); 
+  deallocate_peratom(); 
 
   // set scale
 
@@ -263,11 +269,9 @@ void PPPMDisp::init()
 	case 1:
 	  k = 0; break;
 	case 6:
-	  if (ewald_mix==GEOMETRIC) { k = 1; break; }
-	  else if (ewald_mix==ARITHMETIC) { k = 2; break; }
-	  sprintf(str, "Unsupported mixing rule in kspace_style "
-                  "pppm/disp for pair_style %s", force->pair_style);
-	  error->all(FLERR,str);
+	  if ((ewald_mix==GEOMETRIC || ewald_mix==SIXTHPOWER|| mixflag == 1) && mixflag!= 2) { k = 1; break; }
+	  else if (ewald_mix==ARITHMETIC && mixflag!=2) { k = 2; break; }
+	  else if (mixflag == 2) { k = 3; break; }
 	default:
 	  sprintf(str, "Unsupported order in kspace_style "
                   "pppm/disp pair_style %s", force->pair_style);
@@ -349,7 +353,9 @@ void PPPMDisp::init()
 
 
   // initialize the pair style to get the coefficients
+  neighrequest_flag = 0;
   pair->init();
+  neighrequest_flag = 1;
   init_coeffs();
 
   //if g_ewald and g_ewald_6 have not been specified, set some initial value
@@ -463,7 +469,7 @@ void PPPMDisp::init()
   }
 
   iteration = 0;
-  if (function[1] + function[2]) {
+  if (function[1] + function[2] + function[3]) {
     CommGrid *cgtmp = NULL;
     while (order_6 >= minorder) {
 
@@ -510,11 +516,12 @@ void PPPMDisp::init()
 
     // adjust g_ewald_6
 
-    if (!gewaldflag_6) adjust_gewald_6();
+    if (!gewaldflag_6 && accuracy_kspace_6 == accuracy_real_6) adjust_gewald_6();
 
     // calculate the final accuracy
 
-    double acc = final_accuracy_6();
+    double acc, acc_real, acc_kspace;
+    final_accuracy_6(acc, acc_real, acc_kspace);
 
 
     // print stats
@@ -537,6 +544,10 @@ void PPPMDisp::init()
         fprintf(screen,"  Dispersion stencil order = %d\n",order_6);
         fprintf(screen,"  Dispersion estimated absolute "
                 "RMS force accuracy = %g\n",acc);
+        fprintf(screen,"  Dispersion estimated absolute "
+                "real space RMS force accuracy = %g\n",acc_real);
+        fprintf(screen,"  Dispersion estimated absolute "
+                "kspace RMS force accuracy = %g\n",acc_kspace);
         fprintf(screen,"  Dispersion estimated relative force accuracy = %g\n",
                 acc/two_charge_force);
         fprintf(screen,"  using %s precision FFTs\n",fft_prec);
@@ -550,6 +561,10 @@ void PPPMDisp::init()
         fprintf(logfile,"  Dispersion stencil order = %d\n",order_6);
         fprintf(logfile,"  Dispersion estimated absolute "
                 "RMS force accuracy = %g\n",acc);
+        fprintf(logfile,"  Dispersion estimated absolute "
+                "real space RMS force accuracy = %g\n",acc_real);
+        fprintf(logfile,"  Dispersion estimated absolute "
+                "kspace RMS force accuracy = %g\n",acc_kspace);
         fprintf(logfile,"  Disperion estimated relative force accuracy = %g\n",
                 acc/two_charge_force);
         fprintf(logfile,"  using %s precision FFTs\n",fft_prec);
@@ -578,7 +593,7 @@ void PPPMDisp::init()
                           sf_precoeff1, sf_precoeff2, sf_precoeff3,
                           sf_precoeff4, sf_precoeff5, sf_precoeff6);
   }
-  if (function[1] + function[2]) {
+  if (function[1] + function[2] + function[3]) {
     compute_gf_denom(gf_b_6, order_6);
     compute_rho_coeff(rho_coeff_6, drho_coeff_6, order_6);
     cg_6->ghost_notify();
@@ -690,7 +705,7 @@ void PPPMDisp::setup()
     if (differentiation_flag == 1) compute_sf_coeff();
   }
 
-  if (function[1] + function[2]) {
+  if (function[1] + function[2] + function[3]) {
     delxinv_6 = nx_pppm_6/xprd;
     delyinv_6 = ny_pppm_6/yprd;
     delzinv_6 = nz_pppm_6/zprd_slab;
@@ -775,7 +790,7 @@ void PPPMDisp::setup_grid()
   // free all arrays previously allocated
 
   deallocate();
-  if (peratom_allocate_flag) deallocate_peratom();
+  deallocate_peratom();
 
   // reset portion of global grid that each proc owns
 
@@ -791,7 +806,7 @@ void PPPMDisp::setup_grid()
                        ngrid, nfft, nfft_both,
                        shift, shiftone, order);
 
-  if (function[1] + function[2])
+  if (function[1] + function[2] + function[3])
     set_fft_parameters(nx_pppm_6, ny_pppm_6, nz_pppm_6,
                        nxlo_fft_6, nylo_fft_6, nzlo_fft_6,
                        nxhi_fft_6, nyhi_fft_6, nzhi_fft_6,
@@ -816,7 +831,7 @@ void PPPMDisp::setup_grid()
                  "beyond nearest neighbor processor");
     cg->setup();
   }
-  if (function[1] + function[2]) {
+  if (function[1] + function[2] + function[3]) {
     cg_6->ghost_notify();
     if (overlap_allowed == 0 && cg_6->ghost_overlap())
       error->all(FLERR,"PPPM grid stencil extends "
@@ -837,7 +852,7 @@ void PPPMDisp::setup_grid()
                           sf_precoeff1, sf_precoeff2, sf_precoeff3,
                           sf_precoeff4, sf_precoeff5, sf_precoeff6);
   }
-  if (function[1] + function[2]) {
+  if (function[1] + function[2] + function[3]) {
     compute_gf_denom(gf_b_6, order_6);
     compute_rho_coeff(rho_coeff_6, drho_coeff_6, order_6);
     if (differentiation_flag == 1)
@@ -866,14 +881,14 @@ void PPPMDisp::compute(int eflag, int vflag)
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = evflag_atom = eflag_global = vflag_global = 
 	 eflag_atom = vflag_atom = 0;
-  
+
   if (evflag_atom && !peratom_allocate_flag) {
     allocate_peratom();
     if (function[0]) {
       cg_peratom->ghost_notify();
       cg_peratom->setup();
     }
-    if (function[1] + function[2]) {
+    if (function[1] + function[2] + function[3]) {
       cg_peratom_6->ghost_notify();
       cg_peratom_6->setup();
     }
@@ -890,12 +905,13 @@ void PPPMDisp::compute(int eflag, int vflag)
   if (atom->nlocal > nmax) {
 
     if (function[0]) memory->destroy(part2grid);
-    if (function[1] + function[2]) memory->destroy(part2grid_6);
+    if (function[1] + function[2] + function[3]) memory->destroy(part2grid_6);
     nmax = atom->nmax;
     if (function[0]) memory->create(part2grid,nmax,3,"pppm/disp:part2grid");
-    if (function[1] + function[2]) 
+    if (function[1] + function[2] + function[3]) 
       memory->create(part2grid_6,nmax,3,"pppm/disp:part2grid_6");
   }
+
 
   energy = 0.0;
   energy_1 = 0.0;
@@ -908,16 +924,23 @@ void PPPMDisp::compute(int eflag, int vflag)
   // Solution of poissons equation in k-space and backtransformation
   // communication between processors
   // calculation of forces
+
   if (function[0]) {
 
     //perfrom calculations for coulomb interactions only
+
     particle_map_c(delxinv, delyinv, delzinv, shift, part2grid, nupper, nlower,
                  nxlo_out, nylo_out, nzlo_out, nxhi_out, nyhi_out, nzhi_out);
+
     make_rho_c();
+
     cg->reverse_comm(this,REVERSE_RHO);
+ 
     brick2fft(nxlo_in, nylo_in, nzlo_in, nxhi_in, nyhi_in, nzhi_in,
 	      density_brick, density_fft, work1,remap); 
+ 
     if (differentiation_flag == 1) {
+
       poisson_ad(work1, work2, density_fft, fft1, fft2,
                  nx_pppm, ny_pppm, nz_pppm, nfft,
                  nxlo_fft, nylo_fft, nzlo_fft, nxhi_fft, nyhi_fft, nzhi_fft,
@@ -927,7 +950,7 @@ void PPPMDisp::compute(int eflag, int vflag)
                  u_brick, v0_brick, v1_brick, v2_brick, v3_brick, v4_brick, v5_brick);
 
       cg->forward_comm(this,FORWARD_AD);
- 
+
       fieldforce_c_ad(); 
 
       if (vflag_atom) cg_peratom->forward_comm(this, FORWARD_AD_PERATOM);
@@ -1069,6 +1092,56 @@ void PPPMDisp::compute(int eflag, int vflag)
     if (evflag_atom) fieldforce_a_peratom();
   }
 
+  if (function[3]) {
+    //perfrom calculations if no mixing rule applies
+    particle_map(delxinv_6, delyinv_6, delzinv_6, shift_6, part2grid_6, nupper_6, nlower_6,
+                 nxlo_out_6, nylo_out_6, nzlo_out_6, nxhi_out_6, nyhi_out_6, nzhi_out_6);
+
+    make_rho_none();
+
+    cg_6->reverse_comm(this, REVERSE_RHO_NONE);
+
+    brick2fft_none();
+
+    if (differentiation_flag == 1) {
+
+      int n = 0;
+      for (int k = 0; k<nsplit_alloc/2; k++) {
+        poisson_none_ad(n,n+1,density_fft_none[n],density_fft_none[n+1],
+                        u_brick_none[n],u_brick_none[n+1],
+                        v0_brick_none, v1_brick_none, v2_brick_none,
+                        v3_brick_none, v4_brick_none, v5_brick_none);
+        n += 2;
+      }
+
+      cg_6->forward_comm(this,FORWARD_AD_NONE);
+
+      fieldforce_none_ad();
+
+      if (vflag_atom) cg_peratom_6->forward_comm(this,FORWARD_AD_PERATOM_NONE);
+
+    } else {
+      int n = 0;
+      for (int k = 0; k<nsplit_alloc/2; k++) {
+
+        poisson_none_ik(n,n+1,density_fft_none[n], density_fft_none[n+1],
+                        vdx_brick_none[n], vdy_brick_none[n], vdz_brick_none[n],
+                        vdx_brick_none[n+1], vdy_brick_none[n+1], vdz_brick_none[n+1],
+                        u_brick_none, v0_brick_none, v1_brick_none, v2_brick_none,
+                        v3_brick_none, v4_brick_none, v5_brick_none);
+        n += 2;
+      }
+
+      cg_6->forward_comm(this,FORWARD_IK_NONE);
+
+      fieldforce_none_ik();
+
+
+      if (evflag_atom) cg_peratom_6->forward_comm(this, FORWARD_IK_PERATOM_NONE);
+    }
+    if (evflag_atom) fieldforce_none_peratom();
+  }
+
   // sum energy across procs and add in volume-dependent term
 
   const double qscale = force->qqrd2e * scale;
@@ -1097,7 +1170,7 @@ void PPPMDisp::compute(int eflag, int vflag)
     for (i = 0; i < 6; i++) virial[i] = 0.5*qscale*volume*virial_all[i];
     MPI_Allreduce(virial_6,virial_all,6,MPI_DOUBLE,MPI_SUM,world);
     for (i = 0; i < 6; i++) virial[i] += 0.5*volume*virial_all[i];
-    if (function[1]+function[2]){
+    if (function[1]+function[2]+function[3]){
       double a =  MY_PI*MY_PIS/(6*volume)*pow(g_ewald_6,3)*csumij;
       virial[0] -= a;
       virial[1] -= a;
@@ -1112,7 +1185,7 @@ void PPPMDisp::compute(int eflag, int vflag)
         eatom[i] -= qscale*g_ewald*q[i]*q[i]/MY_PIS + qscale*MY_PI2*q[i]*qsum / (g_ewald*g_ewald*volume); //coulomb self energy correction
       }
     }
-    if (function[1] + function[2]) {
+    if (function[1] + function[2] + function[3]) {
       int tmp;
       for (i = 0; i < atom->nlocal; i++) {
         tmp = atom->type[i];
@@ -1123,7 +1196,7 @@ void PPPMDisp::compute(int eflag, int vflag)
   }
             
   if (vflag_atom) {
-    if (function[1] + function[2]) {
+    if (function[1] + function[2] + function[3]) {
       int tmp;
       for (i = 0; i < atom->nlocal; i++) {
         tmp = atom->type[i];
@@ -1137,7 +1210,7 @@ void PPPMDisp::compute(int eflag, int vflag)
 
   if (slabflag) slabcorr(eflag);
   if (function[0]) energy += energy_1;
-  if (function[1] + function[2]) energy += energy_6;
+  if (function[1] + function[2] + function[3]) energy += energy_6;
 
   // convert atoms back from lamda to box coords
   
@@ -1152,7 +1225,124 @@ void PPPMDisp::init_coeffs()				// local pair coeffs
 {
   int tmp;
   int n = atom->ntypes;
+  int converged;
   delete [] B;
+  if (function[3] + function[2]) {                     // no mixing rule or arithmetic
+    if (function[2] && me == 0) {
+      if (screen) fprintf(screen,"  Optimizing splitting of Dispersion coefficients\n");
+      if (logfile) fprintf(logfile,"  Optimizing splitting of Dispersion coefficients\n");
+    }
+    // get dispersion coefficients
+    double **b = (double **) force->pair->extract("B",tmp);
+    // allocate data for eigenvalue decomposition
+    double **A;
+    double **Q;
+    memory->create(A,n,n,"pppm/disp:A");
+    memory->create(Q,n,n,"pppm/disp:Q");
+    // fill coefficients to matrix a
+    for (int i = 1; i <= n; i++)
+      for (int j = 1; j <= n; j++)
+        A[i-1][j-1] = b[i][j];
+    // transform q to a unity matrix
+    for (int i = 0; i < n; i++)
+      for (int j = 0; j < n; j++)
+        Q[i][j] = 0.0;
+    for (int i = 0; i < n; i++)
+      Q[i][i] = 1.0;
+    // perfrom eigenvalue decomposition with QR algorithm
+    converged = qr_alg(A,Q,n);
+    if (function[3] && !converged) {
+      error->all(FLERR,"Matrix factorization to split dispersion coefficients failed");
+    }
+    // determine number of used eigenvalues 
+    //   based on maximum allowed number or cutoff criterion
+    //   sort eigenvalues according to their size with bubble sort
+    double t;
+    for (int i = 0; i < n; i++) {
+      for (int j = 0; j < n-1-i; j++) {
+        if (fabs(A[j][j]) < fabs(A[j+1][j+1])) {
+          t = A[j][j];
+          A[j][j] = A[j+1][j+1];
+          A[j+1][j+1] = t;
+          for (int k = 0; k < n; k++) {
+	    t = Q[k][j];
+	    Q[k][j] = Q[k][j+1];
+            Q[k][j+1] = t;
+          }
+        }
+      }
+    }
+
+    //   check which eigenvalue is the first that is smaller
+    //   than a specified tolerance
+    //   check how many are maximum allowed by the user
+    double amax = fabs(A[0][0]);
+    double acrit = amax*splittol;
+    double bmax = 0;
+    double err = 0;
+    nsplit = 0;
+    for (int i = 0; i < n; i++) {
+      if (fabs(A[i][i]) > acrit) nsplit++;
+      else {
+        bmax = fabs(A[i][i]);
+        break;
+      }
+    }
+
+    err =  bmax/amax;
+    if (err > 1.0e-4) {
+      char str[128];
+      sprintf(str, "Error in splitting of dispersion coeffs is estimated %g %.",err);
+      error->warning(FLERR, str);
+    }
+    // set B
+    B = new double[nsplit*n+nsplit];
+    for (int i = 0; i< nsplit; i++) {
+      B[i] = A[i][i];
+      for (int j = 0; j < n; j++) {
+        B[nsplit*(j+1) + i] = Q[j][i];
+      }
+    }
+
+    nsplit_alloc = nsplit;
+    if (nsplit%2 == 1) nsplit_alloc = nsplit + 1;
+    // check if the function should preferably be [1] or [2] or [3]
+    if (nsplit == 1) {
+      delete [] B;
+      function[3] = 0;
+      function[2] = 0;
+      function[1] = 1;
+      if (me == 0) {
+        if (screen) fprintf(screen,"  Using geometric mixing for reciprocal space\n");
+        if (logfile) fprintf(logfile,"  Using geometric mixing for reciprocal space\n");
+      }
+    }
+    if (function[2] && nsplit <= 6) {
+      if (me == 0) {
+        if (screen) fprintf(screen,"  Using %d instead of 7 structure factors\n",nsplit);
+        if (logfile) fprintf(logfile,"  Using %d instead of 7 structure factors\n",nsplit);
+      }
+      function[3] = 1;
+      function[2] = 0;
+    }
+    if (function[2] && (nsplit > 6)) {
+      if (me == 0) {
+        if (screen) fprintf(screen,"  Using 7 structure factors\n");
+        if (logfile) fprintf(logfile,"  Using 7 structure factors\n");
+      }
+      delete [] B;
+    }
+    if (function[3]) {
+      if (me == 0) {
+        if (screen) fprintf(screen,"  Using %d structure factors\n",nsplit);
+        if (logfile) fprintf(logfile,"  Using %d structure factors\n",nsplit);
+      }
+      if (nsplit > 9) error->warning(FLERR, "Simulations might be very slow because of large number of structure factors!");
+    }
+
+    memory->destroy(A);
+    memory->destroy(Q);
+  }
   if (function[1]) {					// geometric 1/r^6
     double **b = (double **) force->pair->extract("B",tmp);
     B = new double[n+1];
@@ -1178,6 +1368,228 @@ void PPPMDisp::init_coeffs()				// local pair coeffs
       }
     }
   }
+}
+
+/* ----------------------------------------------------------------------
+   Eigenvalue decomposition of a real, symmetric matrix with the QR
+   method (includes transpformation to Tridiagonal Matrix + Wilkinson
+   shift)
+------------------------------------------------------------------------- */
+
+int PPPMDisp::qr_alg(double **A, double **Q, int n)
+{
+  int converged = 0;
+  double an1, an, bn1, d, mue;
+  // allocate some memory for the required operations
+  double **A0,**Qi,**C,**D,**E;
+  // make a copy of A for convergence check
+  memory->create(A0,n,n,"pppm/disp:A0");
+  for (int i = 0; i < n; i++)
+    for (int j = 0; j < n; j++)
+      A0[i][j] = A[i][j];
+
+  // allocate an auxiliary matrix Qi
+  memory->create(Qi,n,n,"pppm/disp:Qi");
+
+  // alllocate an auxillary matrices for the matrix multiplication
+  memory->create(C,n,n,"pppm/disp:C");
+  memory->create(D,n,n,"pppm/disp:D");
+  memory->create(E,n,n,"pppm/disp:E");
+
+  // transform Matrix A to Tridiagonal form
+  hessenberg(A,Q,n);
+
+  // start loop for the matrix factorization
+  int count = 0;
+  int countmax = 100000;
+  while (1) {
+    // make a Wilkinson shift
+    an1 = A[n-2][n-2];
+    an = A[n-1][n-1];
+    bn1 = A[n-2][n-1];
+    d = (an1-an)/2;
+    mue = an + d - copysign(1.,d)*sqrt(d*d + bn1*bn1);
+    for (int i = 0; i < n; i++) 
+      A[i][i] -= mue;
+
+    // perform a QR factorization for a tridiagonal matrix A
+    qr_tri(Qi,A,n);
+
+    // update the matrices
+    mmult(A,Qi,C,n);
+    mmult(Q,Qi,C,n);
+
+    // backward Wilkinson shift
+    for (int i = 0; i < n; i++)
+      A[i][i] += mue;
+
+    // check the convergence
+    converged = check_convergence(A,Q,A0,C,D,E,n);
+    if (converged) break;
+    count = count + 1;
+    if (count == countmax) break;
+  }
+  
+  // free allocated memory
+  memory->destroy(Qi);
+  memory->destroy(A0);
+  memory->destroy(C);
+  memory->destroy(D);
+  memory->destroy(E);
+  
+  return converged;
+}
+
+/* ----------------------------------------------------------------------
+   Transform a Matrix to Hessenberg form (for symmetric Matrices, the 
+   result will be a tridiagonal matrix)
+------------------------------------------------------------------------- */
+
+void PPPMDisp::hessenberg(double **A, double **Q, int n)
+{
+  double r,a,b,c,s,x1,x2;
+  for (int i = 0; i < n-1; i++) {
+    for (int j = i+2; j < n; j++) {
+      // compute coeffs for the rotation matrix
+      a = A[i+1][i];
+      b = A[j][i];
+      r = sqrt(a*a + b*b);
+      c = a/r;
+      s = b/r;
+      // update the entries of A with multiplication from the left
+      for (int k = 0; k < n; k++) {
+        x1 = A[i+1][k];
+        x2 = A[j][k];
+        A[i+1][k] = c*x1 + s*x2;
+        A[j][k] = -s*x1 + c*x2;
+      }
+      // update the entries of A and Q with a multiplication from the right
+      for (int k = 0; k < n; k++) {
+        x1 = A[k][i+1];
+        x2 = A[k][j];
+        A[k][i+1] = c*x1 + s*x2;
+        A[k][j] = -s*x1 + c*x2;
+        x1 = Q[k][i+1];
+        x2 = Q[k][j];
+        Q[k][i+1] = c*x1 + s*x2;
+        Q[k][j] = -s*x1 + c*x2;
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   QR factorization for a tridiagonal matrix; Result of the factorization
+   is stored in A and Qi
+------------------------------------------------------------------------- */
+
+void PPPMDisp::qr_tri(double** Qi,double** A,int n)
+{
+  double r,a,b,c,s,x1,x2;
+  int j,k,k0,kmax;
+  // make Qi a unity matrix
+  for (int i = 0; i < n; i++)
+    for (int j = 0; j < n; j++)
+      Qi[i][j] = 0.0;
+  for (int i = 0; i < n; i++)
+    Qi[i][i] = 1.0;
+  // loop over main diagonal and first of diagonal of A
+  for (int i = 0; i < n-1; i++) {
+    j = i+1;
+    // coefficients of the rotation matrix
+    a = A[i][i];
+    b = A[j][i];
+    r = sqrt(a*a + b*b);
+    c = a/r;
+    s = b/r;
+    // update the entries of A and Q
+    k0 = (i-1>0)?i-1:0;   //min(i-1,0);
+    kmax = (i+3<n)?i+3:n;  //min(i+3,n);
+    for (k = k0; k < kmax; k++) {
+      x1 = A[i][k];
+      x2 = A[j][k];
+      A[i][k] = c*x1 + s*x2;
+      A[j][k] = -s*x1 + c*x2;
+    }
+    for (k = 0; k < n; k++) {
+      x1 = Qi[k][i];
+      x2 = Qi[k][j];
+      Qi[k][i] = c*x1 + s*x2;
+      Qi[k][j] = -s*x1 + c*x2;
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   Multiply two matrices A and B, store the result in A; C provides
+   some memory to store intermediate results
+------------------------------------------------------------------------- */
+
+void PPPMDisp::mmult(double** A, double** B, double** C, int n)
+{
+  for (int i = 0; i < n; i++)
+    for (int j = 0; j < n; j++)
+      C[i][j] = 0.0;
+
+  // perform matrix multiplication 
+  for (int i = 0; i < n; i++)
+    for (int j = 0; j < n; j++)
+      for (int k = 0; k < n; k++)
+        C[i][j] += A[i][k] * B[k][j];
+  // copy the result back to matrix A
+  for (int i = 0; i < n; i++)
+    for (int j = 0; j < n; j++)
+      A[i][j] = C[i][j];
+}
+
+/* ----------------------------------------------------------------------
+   Check if the factorization has converged by comparing all elements of the
+   original matrix and the new matrix
+------------------------------------------------------------------------- */
+
+int PPPMDisp::check_convergence(double** A,double** Q,double** A0,
+                                double** C,double** D,double** E,int n)
+{
+  double eps = 1.0e-8;
+  int converged = 1;
+  double epsmax = -1;
+  double Bmax = 0.0;
+  double diff;
+  // get the largest eigenvalue of the original matrix
+  for (int i = 0; i < n; i++)
+    for (int j = 0; j < n; j++)
+      Bmax = (Bmax>A0[i][j])?Bmax:A0[i][j];  //max(Bmax,A0[i][j]);
+  double epsabs = eps*Bmax;
+  
+  // reconstruct the original matrix
+  // store the diagonal elements in D
+  for (int i = 0; i < n; i++)
+    for (int j = 0; j < n; j++)
+      D[i][j] = 0.0;
+  for (int i = 0; i < n; i++)
+    D[i][i] = A[i][i];
+  // store matrix Q in E
+  for (int i = 0; i < n; i++)
+    for (int j = 0; j < n; j++)
+      E[i][j] = Q[i][j];
+  // E = Q*A
+  mmult(E,D,C,n);
+  // store transpose of Q in D
+  for (int i = 0; i < n; i++)
+    for (int j = 0; j < n; j++)
+      D[i][j] = Q[j][i];
+  // E = Q*A*Q.t
+  mmult(E,D,C,n);
+
+  //compare the original matrix and the final matrix
+  for (int i = 0; i < n; i++) {
+    for (int j = 0; j < n; j++) {
+      diff = A0[i][j] - E[i][j];
+      epsmax = (epsmax>fabs(diff))?epsmax:fabs(diff);//max(epsmax,fabs(diff));
+    }
+  }
+  if (epsmax > epsabs) converged = 0;
+  return converged;
 }
 
 /* ----------------------------------------------------------------------
@@ -1502,6 +1914,86 @@ void PPPMDisp::allocate()
                         procneigh[0][0],procneigh[0][1],procneigh[1][0],
                         procneigh[1][1],procneigh[2][0],procneigh[2][1]);
   }  
+
+  if (function[3]) {
+    memory->create(work1_6,2*nfft_both_6,"pppm/disp:work1_6");
+    memory->create(work2_6,2*nfft_both_6,"pppm/disp:work2_6");
+
+    memory->create1d_offset(fkx_6,nxlo_fft_6,nxhi_fft_6,"pppm/disp:fkx_6");
+    memory->create1d_offset(fky_6,nylo_fft_6,nyhi_fft_6,"pppm/disp:fky_6");
+    memory->create1d_offset(fkz_6,nzlo_fft_6,nzhi_fft_6,"pppm/disp:fkz_6");
+
+    memory->create1d_offset(fkx2_6,nxlo_fft_6,nxhi_fft_6,"pppm/disp:fkx2_6");
+    memory->create1d_offset(fky2_6,nylo_fft_6,nyhi_fft_6,"pppm/disp:fky2_6");
+    memory->create1d_offset(fkz2_6,nzlo_fft_6,nzhi_fft_6,"pppm/disp:fkz2_6");
+
+    memory->create(gf_b_6,order_6,"pppm/disp:gf_b_6");
+    memory->create2d_offset(rho1d_6,3,-order_6/2,order_6/2,"pppm/disp:rho1d_6");
+    memory->create2d_offset(rho_coeff_6,order_6,(1-order_6)/2,order_6/2,"pppm/disp:rho_coeff_6");
+    memory->create2d_offset(drho1d_6,3,-order_6/2,order_6/2,"pppm/disp:drho1d_6");
+    memory->create2d_offset(drho_coeff_6,order_6,(1-order_6)/2,order_6/2,"pppm/disp:drho_coeff_6");
+
+    memory->create(greensfn_6,nfft_both_6,"pppm/disp:greensfn_6");
+    memory->create(vg_6,nfft_both_6,6,"pppm/disp:vg_6");
+    memory->create(vg2_6,nfft_both_6,3,"pppm/disp:vg2_6");
+
+    memory->create4d_offset(density_brick_none,nsplit_alloc,nzlo_out_6,nzhi_out_6,nylo_out_6,nyhi_out_6,
+  			    nxlo_out_6,nxhi_out_6,"pppm/disp:density_brick_none");
+    if ( differentiation_flag == 1) {
+      memory->create4d_offset(u_brick_none,nsplit_alloc,nzlo_out_6,nzhi_out_6,nylo_out_6,nyhi_out_6,
+  		  	      nxlo_out_6,nxhi_out_6,"pppm/disp:u_brick_none");
+
+      memory->create(sf_precoeff1_6,nfft_both_6,"pppm/disp:sf_precoeff1_6");
+      memory->create(sf_precoeff2_6,nfft_both_6,"pppm/disp:sf_precoeff2_6");
+      memory->create(sf_precoeff3_6,nfft_both_6,"pppm/disp:sf_precoeff3_6");
+      memory->create(sf_precoeff4_6,nfft_both_6,"pppm/disp:sf_precoeff4_6");
+      memory->create(sf_precoeff5_6,nfft_both_6,"pppm/disp:sf_precoeff5_6");
+      memory->create(sf_precoeff6_6,nfft_both_6,"pppm/disp:sf_precoeff6_6");
+
+    }  else {
+      memory->create4d_offset(vdx_brick_none,nsplit_alloc,nzlo_out_6,nzhi_out_6,nylo_out_6,nyhi_out_6,
+			      nxlo_out_6,nxhi_out_6,"pppm/disp:vdx_brick_none");
+      memory->create4d_offset(vdy_brick_none,nsplit_alloc,nzlo_out_6,nzhi_out_6,nylo_out_6,nyhi_out_6,
+			      nxlo_out_6,nxhi_out_6,"pppm/disp:vdy_brick_none");
+      memory->create4d_offset(vdz_brick_none,nsplit_alloc,nzlo_out_6,nzhi_out_6,nylo_out_6,nyhi_out_6,
+			      nxlo_out_6,nxhi_out_6,"pppm/disp:vdz_brick_none");
+    }
+    memory->create(density_fft_none,nsplit_alloc,nfft_both_6,"pppm/disp:density_fft_none");
+
+
+    int tmp;
+
+    fft1_6 = new FFT3d(lmp,world,nx_pppm_6,ny_pppm_6,nz_pppm_6,
+		     nxlo_fft_6,nxhi_fft_6,nylo_fft_6,nyhi_fft_6,nzlo_fft_6,nzhi_fft_6,
+		     nxlo_fft_6,nxhi_fft_6,nylo_fft_6,nyhi_fft_6,nzlo_fft_6,nzhi_fft_6,
+		     0,0,&tmp);
+
+    fft2_6 = new FFT3d(lmp,world,nx_pppm_6,ny_pppm_6,nz_pppm_6,
+		     nxlo_fft_6,nxhi_fft_6,nylo_fft_6,nyhi_fft_6,nzlo_fft_6,nzhi_fft_6,
+		     nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
+		     0,0,&tmp);
+
+    remap_6 = new Remap(lmp,world,
+		      nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
+		      nxlo_fft_6,nxhi_fft_6,nylo_fft_6,nyhi_fft_6,nzlo_fft_6,nzhi_fft_6,
+		      1,0,0,FFT_PRECISION);
+
+    // create ghost grid object for rho and electric field communication
+
+    if (differentiation_flag == 1)
+      cg_6 = new CommGrid(lmp,world,nsplit_alloc,nsplit_alloc,
+                        nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
+                        nxlo_out_6,nxhi_out_6,nylo_out_6,nyhi_out_6,nzlo_out_6,nzhi_out_6,
+                        procneigh[0][0],procneigh[0][1],procneigh[1][0],
+                        procneigh[1][1],procneigh[2][0],procneigh[2][1]);
+    else
+      cg_6 = new CommGrid(lmp,world,3*nsplit_alloc,nsplit_alloc,
+                        nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
+                        nxlo_out_6,nxhi_out_6,nylo_out_6,nyhi_out_6,nzlo_out_6,nzhi_out_6,
+                        procneigh[0][0],procneigh[0][1],procneigh[1][0],
+                        procneigh[1][1],procneigh[2][0],procneigh[2][1]);
+  }
+
 }
 
 /* ----------------------------------------------------------------------
@@ -1719,6 +2211,44 @@ void PPPMDisp::allocate_peratom()
                      procneigh[1][1],procneigh[2][0],procneigh[2][1]);
 
   }  
+
+  if (function[3]) {
+
+    if ( differentiation_flag != 1 )
+      memory->create4d_offset(u_brick_none,nsplit_alloc,nzlo_out_6,nzhi_out_6,nylo_out_6,nyhi_out_6,
+  		  	      nxlo_out_6,nxhi_out_6,"pppm/disp:u_brick_none");
+
+    memory->create4d_offset(v0_brick_none,nsplit_alloc,nzlo_out_6,nzhi_out_6,nylo_out_6,nyhi_out_6,
+  		  	    nxlo_out_6,nxhi_out_6,"pppm/disp:v0_brick_none");
+    memory->create4d_offset(v1_brick_none,nsplit_alloc,nzlo_out_6,nzhi_out_6,nylo_out_6,nyhi_out_6,
+  		  	    nxlo_out_6,nxhi_out_6,"pppm/disp:v1_brick_none");
+    memory->create4d_offset(v2_brick_none,nsplit_alloc,nzlo_out_6,nzhi_out_6,nylo_out_6,nyhi_out_6,
+  		  	    nxlo_out_6,nxhi_out_6,"pppm/disp:v2_brick_none");
+    memory->create4d_offset(v3_brick_none,nsplit_alloc,nzlo_out_6,nzhi_out_6,nylo_out_6,nyhi_out_6,
+  		  	    nxlo_out_6,nxhi_out_6,"pppm/disp:v3_brick_none");
+    memory->create4d_offset(v4_brick_none,nsplit_alloc,nzlo_out_6,nzhi_out_6,nylo_out_6,nyhi_out_6,
+  		  	    nxlo_out_6,nxhi_out_6,"pppm/disp:v4_brick_none");
+    memory->create4d_offset(v5_brick_none,nsplit_alloc,nzlo_out_6,nzhi_out_6,nylo_out_6,nyhi_out_6,
+  		  	    nxlo_out_6,nxhi_out_6,"pppm/disp:v5_brick_none");
+
+    // create ghost grid object for rho and electric field communication
+
+    if (differentiation_flag == 1)
+      cg_peratom_6 =
+        new CommGrid(lmp,world,6*nsplit_alloc,1,
+                     nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
+                     nxlo_out_6,nxhi_out_6,nylo_out_6,nyhi_out_6,nzlo_out_6,nzhi_out_6,
+                     procneigh[0][0],procneigh[0][1],procneigh[1][0],
+                     procneigh[1][1],procneigh[2][0],procneigh[2][1]);
+    else
+      cg_peratom_6 =
+        new CommGrid(lmp,world,7*nsplit_alloc,1,
+                     nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
+                     nxlo_out_6,nxhi_out_6,nylo_out_6,nyhi_out_6,nzlo_out_6,nzhi_out_6,
+                     procneigh[0][0],procneigh[0][1],procneigh[1][0],
+                     procneigh[1][1],procneigh[2][0],procneigh[2][1]);
+
+  }
 }
 
 
@@ -1800,6 +2330,14 @@ void PPPMDisp::deallocate()
   density_brick_a6 = vdx_brick_a6 = vdy_brick_a6 = vdz_brick_a6 = NULL;
   density_fft_a6 = NULL;
 
+  memory->destroy4d_offset(density_brick_none,nzlo_out_6,nylo_out_6,nxlo_out_6);
+  memory->destroy4d_offset(vdx_brick_none,nzlo_out_6,nylo_out_6,nxlo_out_6);
+  memory->destroy4d_offset(vdy_brick_none,nzlo_out_6,nylo_out_6,nxlo_out_6);
+  memory->destroy4d_offset(vdz_brick_none,nzlo_out_6,nylo_out_6,nxlo_out_6);
+  memory->destroy(density_fft_none);
+  density_brick_none = vdx_brick_none = vdy_brick_none = vdz_brick_none = NULL;
+  density_fft_none = NULL;
+
   memory->destroy(sf_precoeff1);
   memory->destroy(sf_precoeff2);
   memory->destroy(sf_precoeff3);
@@ -1873,6 +2411,7 @@ void PPPMDisp::deallocate()
   delete cg;
   fft1 = fft2 = NULL;
   remap = NULL;
+  cg = NULL;
 
   delete fft1_6;
   delete fft2_6;
@@ -1891,6 +2430,8 @@ void PPPMDisp::deallocate()
 
 void PPPMDisp::deallocate_peratom()
 {
+  peratom_allocate_flag = 0;
+
   memory->destroy3d_offset(u_brick, nzlo_out, nylo_out, nxlo_out);
   memory->destroy3d_offset(v0_brick, nzlo_out, nylo_out, nxlo_out);
   memory->destroy3d_offset(v1_brick, nzlo_out, nylo_out, nxlo_out);
@@ -1971,6 +2512,15 @@ void PPPMDisp::deallocate_peratom()
   memory->destroy3d_offset(v4_brick_a6, nzlo_out_6, nylo_out_6, nxlo_out_6);
   memory->destroy3d_offset(v5_brick_a6, nzlo_out_6, nylo_out_6, nxlo_out_6);
   u_brick_a6 = v0_brick_a6 = v1_brick_a6 = v2_brick_a6 = v3_brick_a6 = v4_brick_a6 = v5_brick_a6 = NULL;
+
+  memory->destroy4d_offset(u_brick_none, nzlo_out_6, nylo_out_6, nxlo_out_6);
+  memory->destroy4d_offset(v0_brick_none, nzlo_out_6, nylo_out_6, nxlo_out_6);
+  memory->destroy4d_offset(v1_brick_none, nzlo_out_6, nylo_out_6, nxlo_out_6);
+  memory->destroy4d_offset(v2_brick_none, nzlo_out_6, nylo_out_6, nxlo_out_6);
+  memory->destroy4d_offset(v3_brick_none, nzlo_out_6, nylo_out_6, nxlo_out_6);
+  memory->destroy4d_offset(v4_brick_none, nzlo_out_6, nylo_out_6, nxlo_out_6);
+  memory->destroy4d_offset(v5_brick_none, nzlo_out_6, nylo_out_6, nxlo_out_6);
+  u_brick_none = v0_brick_none = v1_brick_none = v2_brick_none = v3_brick_none = v4_brick_none = v5_brick_none = NULL;
 
   delete cg_peratom;
   delete cg_peratom_6;
@@ -2348,7 +2898,7 @@ double PPPMDisp::final_accuracy()
    Calculate the final estimator for the Dispersion accuracy
 ------------------------------------------------------------------------- */
 
-double PPPMDisp::final_accuracy_6()
+void PPPMDisp::final_accuracy_6(double& acc, double& acc_real, double& acc_kspace)
 {
   double df_rspace, df_kspace;
   double xprd = domain->xprd;
@@ -2356,14 +2906,14 @@ double PPPMDisp::final_accuracy_6()
   double zprd = domain->zprd;
   double zprd_slab = zprd*slab_volfactor;
   bigint natoms = atom->natoms;
-  df_rspace = lj_rspace_error();
+  acc_real = lj_rspace_error();
 
   double qopt = compute_qopt_6();
 
-  df_kspace = sqrt(qopt/natoms)*csum/(xprd*yprd*zprd_slab);
+  acc_kspace = sqrt(qopt/natoms)*csum/(xprd*yprd*zprd_slab);
 
-  double acc = sqrt(df_rspace*df_rspace + df_kspace*df_kspace);
-  return acc;
+  acc = sqrt(acc_real*acc_real + acc_kspace*acc_kspace);
+  return;
 }
 
 /* ----------------------------------------------------------------------
@@ -2809,25 +3359,38 @@ void PPPMDisp::calc_csum()
   int mix2;       // shifts the value to the sigma^3 value
   int mix3;       // shifts the value to the right atom type
   if (function[1]) {
-    mix1 = 1;
-    mix2 = 0;
-    mix3 = 1;
+    for (i = 1; i <= ntypes; i++)
+      cii[i] = B[i]*B[i];
+    int tmp;
+    for (i = 0; i < atom->nlocal; i++) {
+      tmp = atom->type[i];
+      neach[tmp]++;
+      csum += B[tmp]*B[tmp];
+    }
   }
   if (function[2]) {
-    mix1 = 64.0 / 20.0;
-    mix2 = 3;
-    mix3 = 7;
+    for (i = 1; i <= ntypes; i++)
+      cii[i] = 64.0/20.0*B[7*i+3]*B[7*i+3];
+    int tmp;
+    for (i = 0; i < atom->nlocal; i++) {
+      tmp = atom->type[i];
+      neach[tmp]++;
+      csum += 64.0/20.0*B[7*tmp+3]*B[7*tmp+3];
+    }
   }
-  for (i = 1; i <= ntypes; i++) {
-    cii[i] = mix1*B[mix3*i+mix2]*B[mix3*i+mix2];
+  if (function[3]) {
+    for (i = 1; i <= ntypes; i++)
+      for (j = 0; j < nsplit; j++)
+        cii[i] += B[j]*B[nsplit*i + j]*B[nsplit*i + j];
+    int tmp;
+    for (i = 0; i < atom->nlocal; i++) {
+      tmp = atom->type[i];
+      neach[tmp]++;
+      for (j = 0; j < nsplit; j++)
+        csum += B[j]*B[nsplit*tmp + j]*B[nsplit*tmp + j];
+    }
   }
 
-  int tmp;
-  for (i = 0; i < atom->nlocal; i++) {
-    tmp = atom->type[i];
-    neach[tmp]++;
-    csum += mix1*B[mix3*tmp+mix2]*B[mix3*tmp+mix2];    
-  }
 
   double tmp2;
   MPI_Allreduce(&csum,&tmp2,1,MPI_DOUBLE,MPI_SUM,world);
@@ -2849,7 +3412,8 @@ void PPPMDisp::calc_csum()
         //csumij += neach_all[i]*neach_all[j]*B[i]*B[j]; 
       }
     }
-  } else {
+  }
+  if (function[2]) {
     for (i=1; i<=ntypes; i++) {
       for (j=1; j<=ntypes; j++) {
         for (k=0; k<=6; k++) {
@@ -2859,6 +3423,18 @@ void PPPMDisp::calc_csum()
           csumij += d1*d2;
           //csumij += neach_all[i]*neach_all[j]*B[7*i + k]*B[7*(j+1)-k-1];
         }
+      }
+    }
+  }
+  if (function[3]) {
+    for (i=1; i<=ntypes; i++) {
+      for (j=1; j<=ntypes; j++) {
+        for (k=0; k<nsplit; k++) {
+	  csumi[i] += neach_all[j]*B[k]*B[nsplit*i+k]*B[nsplit*j+k];
+	  d1 = neach_all[i]*B[nsplit*i+k];
+	  d2 = neach_all[j]*B[nsplit*j+k];
+          csumij += B[k]*d1*d2;
+	}
       }
     }
   }    
@@ -2960,15 +3536,19 @@ void PPPMDisp::set_init_g6()
   double g_ewald_old; 
   double gmin, gmax;
 
+  // check if there is a user defined accuracy
+  double acc_rspace = accuracy;
+  if (accuracy_real_6 > 0) acc_rspace = accuracy_real_6;
+
   g_ewald_6 = 1.0/cutoff_lj;
-  df_real = lj_rspace_error() - accuracy;
+  df_real = lj_rspace_error() - acc_rspace;
   int counter = 0;
   if (df_real > 0) {
     while (df_real > 0 && counter < LARGE) {
       counter++;
       g_ewald_old = g_ewald_6;
       g_ewald_6 *= 2;
-      df_real = lj_rspace_error() - accuracy;
+      df_real = lj_rspace_error() - acc_rspace;
     }
   }
 
@@ -2977,7 +3557,7 @@ void PPPMDisp::set_init_g6()
       counter++;
       g_ewald_old = g_ewald_6;
       g_ewald_6 *= 0.5;
-      df_real = lj_rspace_error() - accuracy;
+      df_real = lj_rspace_error() - acc_rspace;
     }
   }
 
@@ -2989,7 +3569,7 @@ void PPPMDisp::set_init_g6()
   counter = 0;
   while (gmax-gmin > SMALL && counter < LARGE) {
     counter++;
-    df_real = lj_rspace_error() -accuracy;
+    df_real = lj_rspace_error() -acc_rspace;
     if (df_real < 0) gmax = g_ewald_6;
     else gmin = g_ewald_6;
     g_ewald_6 = gmin + 0.5*(gmax-gmin);
@@ -3016,6 +3596,9 @@ void PPPMDisp::set_n_pppm_6()
   double zprd = prd[2];
   double zprd_slab = zprd*slab_volfactor;
   double h, h_x,h_y,h_z;
+
+  double acc_kspace = accuracy;
+  if (accuracy_kspace_6 > 0.0) acc_kspace = accuracy_kspace_6;
 
   // initial value for the grid spacing
   h = h_x = h_y = h_z = 4.0/g_ewald_6;
@@ -3056,7 +3639,7 @@ void PPPMDisp::set_n_pppm_6()
     count++;
 
     // break loop if the accuracy has been reached or too many loops have been performed
-    if (df_kspace <= accuracy) break;
+    if (df_kspace <= acc_kspace) break;
     if (count > 500) error->all(FLERR, "Could not compute grid size for Dispersion!");
     h *= 0.95;
     h_x = h_y = h_z = h;
@@ -3600,6 +4183,32 @@ void PPPMDisp::brick2fft_a()
 }
 
 /* ----------------------------------------------------------------------
+   ghost-swap to accumulate full density in brick decomposition 
+   remap density from 3d brick decomposition to FFTdecomposition
+   for dispersion with special case
+------------------------------------------------------------------------- */
+
+void PPPMDisp::brick2fft_none()
+{
+  int k,n,ix,iy,iz;
+
+  // copy grabs inner portion of density from 3d brick
+  // remap could be done as pre-stage of FFT,
+  //   but this works optimally on only double values, not complex values
+
+  for (k = 0; k<nsplit_alloc; k++) {
+    n = 0;
+    for (iz = nzlo_in_6; iz <= nzhi_in_6; iz++)
+      for (iy = nylo_in_6; iy <= nyhi_in_6; iy++)
+        for (ix = nxlo_in_6; ix <= nxhi_in_6; ix++) 
+          density_fft_none[k][n++] = density_brick_none[k][iz][iy][ix];
+  }
+
+  for (k=0; k<nsplit_alloc; k++)
+    remap_6->perform(density_fft_none[k],density_fft_none[k],work1_6);
+}
+
+/* ----------------------------------------------------------------------
    find center grid pt for each of my particles
    check that full stencil for the particle will fit in my 3d brick
    store central grid pt indices in part2grid array 
@@ -3828,6 +4437,61 @@ void PPPMDisp::make_rho_a()
   }
 }
 
+/* ----------------------------------------------------------------------
+   create discretized "density" on section of global grid due to my particles
+   density(x,y,z) = dispersion "density" at grid points of my 3d brick
+   (nxlo:nxhi,nylo:nyhi,nzlo:nzhi) is extent of my brick (including ghosts)
+   in global grid --- case when mixing rules don't apply
+------------------------------------------------------------------------- */
+
+void PPPMDisp::make_rho_none()
+{
+  int k,l,m,n,nx,ny,nz,mx,my,mz;
+  FFT_SCALAR dx,dy,dz,x0,y0,z0,w;
+
+  // clear 3d density array
+  for (k = 0; k < nsplit_alloc; k++)
+    memset(&(density_brick_none[k][nzlo_out_6][nylo_out_6][nxlo_out_6]),0,
+	   ngrid_6*sizeof(FFT_SCALAR));
+
+
+  // loop over my particles, add their contribution to nearby grid points
+  // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
+  // (dx,dy,dz) = distance to "lower left" grid pt
+  // (mx,my,mz) = global coords of moving stencil pt
+  int type;
+  double **x = atom->x;
+  int nlocal = atom->nlocal;
+  
+  for (int i = 0; i < nlocal; i++) {
+
+    //do the following for all 4 grids
+    nx = part2grid_6[i][0];
+    ny = part2grid_6[i][1];
+    nz = part2grid_6[i][2];
+    dx = nx+shiftone_6 - (x[i][0]-boxlo[0])*delxinv_6;
+    dy = ny+shiftone_6 - (x[i][1]-boxlo[1])*delyinv_6;
+    dz = nz+shiftone_6 - (x[i][2]-boxlo[2])*delzinv_6;
+    compute_rho1d(dx,dy,dz, order_6, rho_coeff_6, rho1d_6);
+    type = atom->type[i];
+    z0 = delvolinv_6;
+    for (n = nlower_6; n <= nupper_6; n++) {
+      mz = n+nz;
+      y0 = z0*rho1d_6[2][n];
+      for (m = nlower_6; m <= nupper_6; m++) {
+	my = m+ny;
+	x0 = y0*rho1d_6[1][m];
+	for (l = nlower_6; l <= nupper_6; l++) {
+	  mx = l+nx;
+          w = x0*rho1d_6[0][l];
+          for (k = 0; k < nsplit; k++)
+	    density_brick_none[k][mz][my][mx] += w*B[nsplit*type + k];
+	}
+      }
+    }
+  }
+}
+
 
 /* ----------------------------------------------------------------------
    FFT-based Poisson solver for ik differentiation
@@ -3944,6 +4608,7 @@ void PPPMDisp::poisson_ik(FFT_SCALAR* wk1, FFT_SCALAR* wk2,
         }
 
   }
+
   else {
     // z direction gradient & per-atom energy
 
@@ -3967,7 +4632,6 @@ void PPPMDisp::poisson_ik(FFT_SCALAR* wk1, FFT_SCALAR* wk2,
         }
   }
 
-   
   if (vflag_atom) poisson_peratom(wk1, wk2, ft2, vcoeff, vcoeff2, nft,
                                   nxlo_i, nylo_i, nzlo_i, nxhi_i, nyhi_i, nzhi_i,
                                   v0_pa, v1_pa, v2_pa, v3_pa, v4_pa, v5_pa);
@@ -4002,7 +4666,7 @@ void PPPMDisp::poisson_ad(FFT_SCALAR* wk1, FFT_SCALAR* wk2,
   }
 
   ft1->compute(wk1,wk1,1);
- 
+
   // if requested, compute energy and virial contribution
 
   double scaleinv = 1.0/(nx_p*ny_p*nz_p);
@@ -4048,6 +4712,7 @@ void PPPMDisp::poisson_ad(FFT_SCALAR* wk1, FFT_SCALAR* wk2,
 
   ft2->compute(wk2,wk2,-1);
 
+
   n = 0;
   for (k = nzlo_i; k <= nzhi_i; k++)
     for (j = nylo_i; j <= nyhi_i; j++)
@@ -4056,9 +4721,11 @@ void PPPMDisp::poisson_ad(FFT_SCALAR* wk1, FFT_SCALAR* wk2,
         n++;
       }
 
+
   if (vflag_atom) poisson_peratom(wk1, wk2, ft2, vcoeff, vcoeff2, nft,
                                   nxlo_i, nylo_i, nzlo_i, nxhi_i, nyhi_i, nzhi_i,
                                   v0_pa, v1_pa, v2_pa, v3_pa, v4_pa, v5_pa);
+
 }
 
 /* ----------------------------------------------------------------------
@@ -4080,9 +4747,9 @@ void PPPMDisp:: poisson_peratom(FFT_SCALAR* wk1, FFT_SCALAR* wk2, LAMMPS_NS::FFT
     wk2[n+1] = wk1[n+1]*vcoeff[i][0] +  wk1[n]*vcoeff[i][1];
     n += 2;
   }
-    
+
   ft2->compute(wk2,wk2,-1); 
-    
+
   n = 0;
   for (k = nzlo_i; k <= nzhi_i; k++)
     for (j = nylo_i; j <= nyhi_i; j++)
@@ -4099,9 +4766,9 @@ void PPPMDisp:: poisson_peratom(FFT_SCALAR* wk1, FFT_SCALAR* wk2, LAMMPS_NS::FFT
     wk2[n+1] = wk1[n+1]*vcoeff[i][2] + wk1[n]*vcoeff2[i][0];
     n += 2;
   }
-    
+
   ft2->compute(wk2,wk2,-1); 
-    
+
   n = 0;
   for (k = nzlo_i; k <= nzhi_i; k++)
     for (j = nylo_i; j <= nyhi_i; j++)
@@ -4118,7 +4785,7 @@ void PPPMDisp:: poisson_peratom(FFT_SCALAR* wk1, FFT_SCALAR* wk2, LAMMPS_NS::FFT
     wk2[n+1] = wk1[n+1]*vcoeff2[i][1] + wk1[n]*vcoeff2[i][2];
     n += 2;
   }
-    
+
   ft2->compute(wk2,wk2,-1); 
 
   n = 0;
@@ -4304,6 +4971,174 @@ void PPPMDisp::poisson_2s_ik(FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
    for ik scheme
 ------------------------------------------------------------------------- */
 
+void PPPMDisp::poisson_none_ik(int n1, int n2,FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
+                              FFT_SCALAR*** vxbrick_1, FFT_SCALAR*** vybrick_1, FFT_SCALAR*** vzbrick_1,
+                              FFT_SCALAR*** vxbrick_2, FFT_SCALAR*** vybrick_2, FFT_SCALAR*** vzbrick_2,
+                              FFT_SCALAR**** u_pa, FFT_SCALAR**** v0_pa, FFT_SCALAR**** v1_pa, FFT_SCALAR**** v2_pa,
+                              FFT_SCALAR**** v3_pa, FFT_SCALAR**** v4_pa, FFT_SCALAR**** v5_pa)
+{
+  int i,j,k,n;
+  double eng;
+
+  double scaleinv = 1.0/(nx_pppm_6*ny_pppm_6*nz_pppm_6);
+
+  // transform charge/dispersion density (r -> k)
+  // only one tansform required when energies and pressures do not
+  //  need to be calculated 
+  if (eflag_global + vflag_global == 0) {
+    n = 0;
+    for (i = 0; i < nfft_6; i++) {
+      work1_6[n++] = dfft_1[i];
+      work1_6[n++] = dfft_2[i];
+    }
+  
+    fft1_6->compute(work1_6,work1_6,1);
+  }
+
+
+  // two transforms are required when energies and pressures are
+  //   calculated
+  else {
+    n = 0;
+    for (i = 0; i < nfft_6; i++) {
+      work1_6[n] = dfft_1[i];
+      work2_6[n++] = ZEROF;
+      work1_6[n] = ZEROF;
+      work2_6[n++] = dfft_2[i];
+    }
+   
+
+    fft1_6->compute(work1_6,work1_6,1);
+    fft1_6->compute(work2_6,work2_6,1);
+
+    double s2 = scaleinv*scaleinv;
+
+    if (vflag_global) {
+      n = 0;
+      for (i = 0; i < nfft_6; i++) {
+	eng = s2 * greensfn_6[i] * (B[n1]*(work1_6[n]*work1_6[n] + work1_6[n+1]*work1_6[n+1]) + B[n2]*(work2_6[n]*work2_6[n] + work2_6[n+1]*work2_6[n+1]));
+	for (j = 0; j < 6; j++) virial_6[j] += eng*vg_6[i][j];
+	if (eflag_global)energy_6 += eng;
+	n += 2;
+      }
+    } else {
+      n = 0;
+      for (i = 0; i < nfft_6; i++) {
+	energy_6 += 
+	  s2 * greensfn_6[i] * (B[n1]*(work1_6[n]*work1_6[n] + work1_6[n+1]*work1_6[n+1]) + B[n2]*(work2_6[n]*work2_6[n] + work2_6[n+1]*work2_6[n+1]));
+	n += 2;
+      }
+    }
+    // unify the two transformed vectors for efficient calculations later
+    for ( i = 0; i < 2*nfft_6; i++) {
+      work1_6[i] += work2_6[i];
+    }
+  }
+
+  n = 0;
+  for (i = 0; i < nfft_6; i++) {
+    work1_6[n++] *= scaleinv * greensfn_6[i];
+    work1_6[n++] *= scaleinv * greensfn_6[i];
+  }
+
+  // compute gradients of V(r) in each of 3 dims by transformimg -ik*V(k)
+  // FFT leaves data in 3d brick decomposition
+  // copy it into inner portion of vdx,vdy,vdz arrays
+
+  // x direction gradient
+
+  n = 0;
+  for (k = nzlo_fft_6; k <= nzhi_fft_6; k++)
+    for (j = nylo_fft_6; j <= nyhi_fft_6; j++)
+      for (i = nxlo_fft_6; i <= nxhi_fft_6; i++) {
+	work2_6[n] = 0.5*(fkx_6[i]-fkx2_6[i])*work1_6[n+1];
+	work2_6[n+1] = -0.5*(fkx_6[i]-fkx2_6[i])*work1_6[n];
+	n += 2;
+      }
+
+  fft2_6->compute(work2_6,work2_6,-1);
+  
+  n = 0;
+  for (k = nzlo_in_6; k <= nzhi_in_6; k++)
+    for (j = nylo_in_6; j <= nyhi_in_6; j++)
+      for (i = nxlo_in_6; i <= nxhi_in_6; i++) {
+	vxbrick_1[k][j][i] = B[n1]*work2_6[n++];
+        vxbrick_2[k][j][i] = B[n2]*work2_6[n++];
+      }
+
+  // y direction gradient
+
+  n = 0;
+  for (k = nzlo_fft_6; k <= nzhi_fft_6; k++)
+    for (j = nylo_fft_6; j <= nyhi_fft_6; j++)
+      for (i = nxlo_fft_6; i <= nxhi_fft_6; i++) {
+	work2_6[n] = 0.5*(fky_6[j]-fky2_6[j])*work1_6[n+1];
+	work2_6[n+1] = -0.5*(fky_6[j]-fky2_6[j])*work1_6[n];
+	n += 2;
+      }
+
+  fft2_6->compute(work2_6,work2_6,-1);
+
+  n = 0;
+  for (k = nzlo_in_6; k <= nzhi_in_6; k++)
+    for (j = nylo_in_6; j <= nyhi_in_6; j++)
+      for (i = nxlo_in_6; i <= nxhi_in_6; i++) {
+	vybrick_1[k][j][i] = B[n1]*work2_6[n++];
+        vybrick_2[k][j][i] = B[n2]*work2_6[n++];
+      }
+
+  // z direction gradient
+
+  n = 0;
+  for (k = nzlo_fft_6; k <= nzhi_fft_6; k++)
+    for (j = nylo_fft_6; j <= nyhi_fft_6; j++)
+      for (i = nxlo_fft_6; i <= nxhi_fft_6; i++) {
+	work2_6[n] = 0.5*(fkz_6[k]-fkz2_6[k])*work1_6[n+1];
+	work2_6[n+1] = -0.5*(fkz_6[k]-fkz2_6[k])*work1_6[n];
+	n += 2;
+      }
+
+  fft2_6->compute(work2_6,work2_6,-1);
+
+  n = 0;
+  for (k = nzlo_in_6; k <= nzhi_in_6; k++)
+    for (j = nylo_in_6; j <= nyhi_in_6; j++)
+      for (i = nxlo_in_6; i <= nxhi_in_6; i++) {
+	vzbrick_1[k][j][i] = B[n1]*work2_6[n++];
+	vzbrick_2[k][j][i] = B[n2]*work2_6[n++];
+      }
+
+  //Per-atom energy
+    
+  if (eflag_atom) {
+    n = 0;
+    for (i = 0; i < nfft_6; i++) {
+      work2_6[n] = work1_6[n];
+      work2_6[n+1] = work1_6[n+1];
+      n += 2;
+    }
+    
+    fft2_6->compute(work2_6,work2_6,-1); 
+    
+    n = 0;
+    for (k = nzlo_in_6; k <= nzhi_in_6; k++)
+      for (j = nylo_in_6; j <= nyhi_in_6; j++)
+        for (i = nxlo_in_6; i <= nxhi_in_6; i++) {
+          u_pa[n1][k][j][i] = B[n1]*work2_6[n++];
+          u_pa[n2][k][j][i] = B[n2]*work2_6[n++];
+        }
+  } 
+
+  if (vflag_atom) poisson_none_peratom(n1,n2,
+                                       v0_pa[n1], v1_pa[n1], v2_pa[n1], v3_pa[n1], v4_pa[n1], v5_pa[n1],
+                                       v0_pa[n2], v1_pa[n2], v2_pa[n2], v3_pa[n2], v4_pa[n2], v5_pa[n2]);
+}
+
+/* ----------------------------------------------------------------------
+   Poisson solver for one mesh with 2 different dispersion densities 
+   for ad scheme
+------------------------------------------------------------------------- */
+
 void PPPMDisp::poisson_2s_ad(FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
                               FFT_SCALAR*** u_pa_1, FFT_SCALAR*** v0_pa_1, FFT_SCALAR*** v1_pa_1, FFT_SCALAR*** v2_pa_1,
                               FFT_SCALAR*** v3_pa_1, FFT_SCALAR*** v4_pa_1, FFT_SCALAR*** v5_pa_1,
@@ -4393,6 +5228,101 @@ void PPPMDisp::poisson_2s_ad(FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
 
   if (vflag_atom) poisson_2s_peratom(v0_pa_1, v1_pa_1, v2_pa_1, v3_pa_1, v4_pa_1, v5_pa_1,
                                      v0_pa_2, v1_pa_2, v2_pa_2, v3_pa_2, v4_pa_2, v5_pa_2);
+}
+
+/* ----------------------------------------------------------------------
+   Poisson solver for one mesh with 2 different dispersion densities 
+   for ad scheme
+------------------------------------------------------------------------- */
+
+void PPPMDisp::poisson_none_ad(int n1, int n2, FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
+                               FFT_SCALAR*** u_pa_1, FFT_SCALAR*** u_pa_2,
+                               FFT_SCALAR**** v0_pa, FFT_SCALAR**** v1_pa, FFT_SCALAR**** v2_pa,
+                               FFT_SCALAR**** v3_pa, FFT_SCALAR**** v4_pa, FFT_SCALAR**** v5_pa)
+{
+  int i,j,k,n;
+  double eng;
+
+  double scaleinv = 1.0/(nx_pppm_6*ny_pppm_6*nz_pppm_6);
+
+  // transform charge/dispersion density (r -> k)
+  // only one tansform required when energies and pressures do not
+  //  need to be calculated 
+  if (eflag_global + vflag_global == 0) {
+    n = 0;
+    for (i = 0; i < nfft_6; i++) {
+      work1_6[n++] = dfft_1[i];
+      work1_6[n++] = dfft_2[i];
+    }
+  
+    fft1_6->compute(work1_6,work1_6,1);
+  }
+  // two transforms are required when energies and pressures are
+  //   calculated
+  else {
+    n = 0;
+    for (i = 0; i < nfft_6; i++) {
+      work1_6[n] = dfft_1[i];
+      work2_6[n++] = ZEROF;
+      work1_6[n] = ZEROF;
+      work2_6[n++] = dfft_2[i];
+    }
+
+    fft1_6->compute(work1_6,work1_6,1);
+    fft1_6->compute(work2_6,work2_6,1);
+
+    double s2 = scaleinv*scaleinv;
+
+    if (vflag_global) {
+      n = 0;
+      for (i = 0; i < nfft_6; i++) {
+	eng = s2 * greensfn_6[i] * (B[n1]*(work1_6[n]*work1_6[n] + work1_6[n+1]*work1_6[n+1]) + B[n2]*(work2_6[n]*work2_6[n] + work2_6[n+1]*work2_6[n+1]));
+	for (j = 0; j < 6; j++) virial_6[j] += eng*vg_6[i][j];
+	if (eflag_global)energy_6 += eng;
+	n += 2;
+      }
+    } else {
+      n = 0;
+      for (i = 0; i < nfft_6; i++) {
+	energy_6 += 
+	  s2 * greensfn_6[i] * (B[n1]*(work1_6[n]*work1_6[n] + work1_6[n+1]*work1_6[n+1]) + B[n2]*(work2_6[n]*work2_6[n] + work2_6[n+1]*work2_6[n+1]));
+	n += 2;
+      }
+    }
+    // unify the two transformed vectors for efficient calculations later
+    for ( i = 0; i < 2*nfft_6; i++) {
+      work1_6[i] += work2_6[i];
+    }
+  }
+
+
+  n = 0;
+  for (i = 0; i < nfft_6; i++) {
+    work1_6[n++] *= scaleinv * greensfn_6[i];
+    work1_6[n++] *= scaleinv * greensfn_6[i];
+  }
+
+
+  n = 0;
+  for (i = 0; i < nfft_6; i++) {
+    work2_6[n] = work1_6[n];
+    work2_6[n+1] = work1_6[n+1];
+    n += 2;
+  }
+  
+  fft2_6->compute(work2_6,work2_6,-1); 
+    
+  n = 0;
+  for (k = nzlo_in_6; k <= nzhi_in_6; k++)
+    for (j = nylo_in_6; j <= nyhi_in_6; j++)
+      for (i = nxlo_in_6; i <= nxhi_in_6; i++) {
+        u_pa_1[k][j][i] = B[n1]*work2_6[n++];
+        u_pa_2[k][j][i] = B[n2]*work2_6[n++];
+      } 
+
+  if (vflag_atom) poisson_none_peratom(n1,n2,
+                                       v0_pa[n1], v1_pa[n1], v2_pa[n1], v3_pa[n1], v4_pa[n1], v5_pa[n1],
+                                       v0_pa[n2], v1_pa[n2], v2_pa[n2], v3_pa[n2], v4_pa[n2], v5_pa[n2]);
 }
 
 /* ----------------------------------------------------------------------
@@ -4517,6 +5447,132 @@ void PPPMDisp::poisson_2s_peratom(FFT_SCALAR*** v0_pa_1, FFT_SCALAR*** v1_pa_1, 
       for (i = nxlo_in_6; i <= nxhi_in_6; i++) {
         v5_pa_1[k][j][i] = work2_6[n++];
         v5_pa_2[k][j][i] = work2_6[n++];
+      }
+}
+
+/* ----------------------------------------------------------------------
+   Fourier Transform for per atom virial calculations
+------------------------------------------------------------------------- */
+
+void PPPMDisp::poisson_none_peratom(int n1, int n2,                              
+                                 FFT_SCALAR*** v0_pa_1, FFT_SCALAR*** v1_pa_1, FFT_SCALAR*** v2_pa_1,
+                                 FFT_SCALAR*** v3_pa_1, FFT_SCALAR*** v4_pa_1, FFT_SCALAR*** v5_pa_1,
+                                 FFT_SCALAR*** v0_pa_2, FFT_SCALAR*** v1_pa_2, FFT_SCALAR*** v2_pa_2,
+                                 FFT_SCALAR*** v3_pa_2, FFT_SCALAR*** v4_pa_2, FFT_SCALAR*** v5_pa_2)
+{
+  //Compute first virial term v0
+  int n, i, j, k;
+
+  n = 0;
+  for (i = 0; i < nfft_6; i++) {
+    work2_6[n] = work1_6[n]*vg_6[i][0];
+    work2_6[n+1] = work1_6[n+1]*vg_6[i][0];
+    n += 2;
+  }
+   
+  fft2_6->compute(work2_6,work2_6,-1); 
+    
+  n = 0;
+  for (k = nzlo_in_6; k <= nzhi_in_6; k++)
+    for (j = nylo_in_6; j <= nyhi_in_6; j++)
+      for (i = nxlo_in_6; i <= nxhi_in_6; i++) {
+        v0_pa_1[k][j][i] = B[n1]*work2_6[n++];
+        v0_pa_2[k][j][i] = B[n2]*work2_6[n++];
+      }
+	 
+  //Compute second virial term v1  
+  
+  n = 0;
+  for (i = 0; i < nfft_6; i++) {
+    work2_6[n] = work1_6[n]*vg_6[i][1];
+    work2_6[n+1] = work1_6[n+1]*vg_6[i][1];
+    n += 2;
+  }
+    
+  fft2_6->compute(work2_6,work2_6,-1); 
+  
+  n = 0;
+  for (k = nzlo_in_6; k <= nzhi_in_6; k++)
+    for (j = nylo_in_6; j <= nyhi_in_6; j++)
+      for (i = nxlo_in_6; i <= nxhi_in_6; i++) {
+        v1_pa_1[k][j][i] = B[n1]*work2_6[n++];
+        v1_pa_2[k][j][i] = B[n2]*work2_6[n++];
+      }
+	  
+  //Compute third virial term v2
+   
+  n = 0;
+  for (i = 0; i < nfft_6; i++) {
+    work2_6[n] = work1_6[n]*vg_6[i][2];
+    work2_6[n+1] = work1_6[n+1]*vg_6[i][2];
+    n += 2;
+  }
+    
+  fft2_6->compute(work2_6,work2_6,-1); 
+    
+  n = 0;
+  for (k = nzlo_in_6; k <= nzhi_in_6; k++)
+    for (j = nylo_in_6; j <= nyhi_in_6; j++)
+      for (i = nxlo_in_6; i <= nxhi_in_6; i++) {
+        v2_pa_1[k][j][i] = B[n1]*work2_6[n++];
+        v2_pa_2[k][j][i] = B[n2]*work2_6[n++];
+      }
+
+  //Compute fourth virial term v3
+   
+  n = 0;
+  for (i = 0; i < nfft_6; i++) {
+    work2_6[n] = work1_6[n]*vg2_6[i][0];
+    work2_6[n+1] = work1_6[n+1]*vg2_6[i][0];
+    n += 2;
+  }
+    
+  fft2_6->compute(work2_6,work2_6,-1); 
+    
+  n = 0;
+  for (k = nzlo_in_6; k <= nzhi_in_6; k++)
+    for (j = nylo_in_6; j <= nyhi_in_6; j++)
+      for (i = nxlo_in_6; i <= nxhi_in_6; i++) {
+        v3_pa_1[k][j][i] = B[n1]*work2_6[n++];
+        v3_pa_2[k][j][i] = B[n2]*work2_6[n++];
+      }
+
+  //Compute fifth virial term v4
+   
+  n = 0;
+  for (i = 0; i < nfft_6; i++) {
+    work2_6[n] = work1_6[n]*vg2_6[i][1];
+    work2_6[n+1] = work1_6[n+1]*vg2_6[i][1];
+    n += 2;
+  }
+    
+  fft2_6->compute(work2_6,work2_6,-1); 
+    
+  n = 0;
+  for (k = nzlo_in_6; k <= nzhi_in_6; k++)
+    for (j = nylo_in_6; j <= nyhi_in_6; j++)
+      for (i = nxlo_in_6; i <= nxhi_in_6; i++) {
+        v4_pa_1[k][j][i] = B[n1]*work2_6[n++];
+        v4_pa_2[k][j][i] = B[n2]*work2_6[n++];
+      }
+   
+  //Compute last virial term v5
+   
+  n = 0;
+  for (i = 0; i < nfft_6; i++) {
+    work2_6[n] = work1_6[n]*vg2_6[i][2];
+    work2_6[n+1] = work1_6[n+1]*vg2_6[i][2];
+    n += 2;
+  }
+    
+  fft2_6->compute(work2_6,work2_6,-1); 
+    
+  n = 0;
+  for (k = nzlo_in_6; k <= nzhi_in_6; k++)
+    for (j = nylo_in_6; j <= nyhi_in_6; j++)
+      for (i = nxlo_in_6; i <= nxhi_in_6; i++) {
+        v5_pa_1[k][j][i] = B[n1]*work2_6[n++];
+        v5_pa_2[k][j][i] = B[n2]*work2_6[n++];
       }
 }
  
@@ -5360,6 +6416,296 @@ void PPPMDisp::fieldforce_a_peratom()
 }
 
 /* ----------------------------------------------------------------------
+   interpolate from grid to get dispersion field & force on my particles
+   for arithmetic mixing rule and ik scheme
+------------------------------------------------------------------------- */
+
+void PPPMDisp::fieldforce_none_ik()
+{
+  int i,k,l,m,n,nx,ny,nz,mx,my,mz;
+  FFT_SCALAR dx,dy,dz,x0,y0,z0;
+  FFT_SCALAR *ekx, *eky, *ekz;
+
+  ekx = new FFT_SCALAR[nsplit];
+  eky = new FFT_SCALAR[nsplit];
+  ekz = new FFT_SCALAR[nsplit];
+  // loop over my charges, interpolate electric field from nearby grid points
+  // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
+  // (dx,dy,dz) = distance to "lower left" grid pt
+  // (mx,my,mz) = global coords of moving stencil pt
+  // ek = 3 components of dispersion field on particle
+
+  double **x = atom->x;
+  double **f = atom->f;
+  int type;
+  double lj;
+
+  int nlocal = atom->nlocal;
+
+  for (i = 0; i < nlocal; i++) {
+
+    nx = part2grid_6[i][0];
+    ny = part2grid_6[i][1];
+    nz = part2grid_6[i][2];
+    dx = nx+shiftone_6 - (x[i][0]-boxlo[0])*delxinv_6;
+    dy = ny+shiftone_6 - (x[i][1]-boxlo[1])*delyinv_6;
+    dz = nz+shiftone_6 - (x[i][2]-boxlo[2])*delzinv_6;
+    compute_rho1d(dx,dy,dz, order_6, rho_coeff_6, rho1d_6);
+    for (k = 0; k < nsplit; k++)
+      ekx[k] = eky[k] = ekz[k] = ZEROF;
+    for (n = nlower_6; n <= nupper_6; n++) {
+      mz = n+nz;
+      z0 = rho1d_6[2][n];
+      for (m = nlower_6; m <= nupper_6; m++) {
+	my = m+ny;
+	y0 = z0*rho1d_6[1][m];
+	for (l = nlower_6; l <= nupper_6; l++) {
+	  mx = l+nx;
+	  x0 = y0*rho1d_6[0][l];
+          for (k = 0; k < nsplit; k++) {
+	    ekx[k] -= x0*vdx_brick_none[k][mz][my][mx];
+	    eky[k] -= x0*vdy_brick_none[k][mz][my][mx];
+	    ekz[k] -= x0*vdz_brick_none[k][mz][my][mx];
+          }
+	}
+      }
+    }
+    // convert D-field to force
+    type = atom->type[i];
+    for (k = 0; k < nsplit; k++) {
+      lj = B[nsplit*type + k];
+      f[i][0] += lj*ekx[k];
+      f[i][1] +=lj*eky[k];
+      if (slabflag != 2) f[i][2] +=lj*ekz[k];
+    }
+  }
+
+  delete [] ekx;
+  delete [] eky;
+  delete [] ekz;
+}
+
+/* ----------------------------------------------------------------------
+   interpolate from grid to get dispersion field & force on my particles
+   for arithmetic mixing rule for the ad scheme
+------------------------------------------------------------------------- */
+
+void PPPMDisp::fieldforce_none_ad()
+{
+  int i,k,l,m,n,nx,ny,nz,mx,my,mz;
+  FFT_SCALAR dx,dy,dz,x0,y0,z0;
+  FFT_SCALAR *ekx, *eky, *ekz;
+
+  ekx = new FFT_SCALAR[nsplit];
+  eky = new FFT_SCALAR[nsplit];
+  ekz = new FFT_SCALAR[nsplit];
+
+
+  double s1,s2,s3;
+  double sf1,sf2,sf3;
+  double sf = 0.0;
+  double *prd;
+
+  if (triclinic == 0) prd = domain->prd;
+  else prd = domain->prd_lamda;
+
+  double xprd = prd[0];
+  double yprd = prd[1];
+  double zprd = prd[2];
+  double zprd_slab = zprd*slab_volfactor;
+
+  double hx_inv = nx_pppm_6/xprd;
+  double hy_inv = ny_pppm_6/yprd;
+  double hz_inv = nz_pppm_6/zprd_slab;
+
+  // loop over my charges, interpolate electric field from nearby grid points
+  // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
+  // (dx,dy,dz) = distance to "lower left" grid pt
+  // (mx,my,mz) = global coords of moving stencil pt
+  // ek = 3 components of dispersion field on particle
+
+  double **x = atom->x;
+  double **f = atom->f;
+  int type;
+  double lj;
+
+  int nlocal = atom->nlocal;
+
+  for (i = 0; i < nlocal; i++) {
+
+    nx = part2grid_6[i][0];
+    ny = part2grid_6[i][1];
+    nz = part2grid_6[i][2];
+    dx = nx+shiftone_6 - (x[i][0]-boxlo[0])*delxinv_6;
+    dy = ny+shiftone_6 - (x[i][1]-boxlo[1])*delyinv_6;
+    dz = nz+shiftone_6 - (x[i][2]-boxlo[2])*delzinv_6;
+
+    compute_rho1d(dx,dy,dz, order_6, rho_coeff_6, rho1d_6);
+    compute_drho1d(dx,dy,dz, order_6, drho_coeff_6, drho1d_6);
+
+    for (k = 0; k < nsplit; k++)
+      ekx[k] = eky[k] = ekz[k] = ZEROF;
+
+    for (n = nlower_6; n <= nupper_6; n++) {
+      mz = n+nz;
+      for (m = nlower_6; m <= nupper_6; m++) {
+	my = m+ny;
+	for (l = nlower_6; l <= nupper_6; l++) {
+	  mx = l+nx;
+          x0 = drho1d_6[0][l]*rho1d_6[1][m]*rho1d_6[2][n];
+          y0 = rho1d_6[0][l]*drho1d_6[1][m]*rho1d_6[2][n];
+          z0 = rho1d_6[0][l]*rho1d_6[1][m]*drho1d_6[2][n];
+          
+          for (k = 0; k < nsplit; k++) {
+            ekx[k] += x0*u_brick_none[k][mz][my][mx];
+            eky[k] += y0*u_brick_none[k][mz][my][mx];
+            ekz[k] += z0*u_brick_none[k][mz][my][mx];
+          }
+	}
+      }
+    }
+
+    for (k = 0; k < nsplit; k++) {
+      ekx[k] *= hx_inv;
+      eky[k] *= hy_inv;
+      ekz[k] *= hz_inv;
+    }
+
+    // convert D-field to force
+    type = atom->type[i];
+
+    s1 = x[i][0]*hx_inv;
+    s2 = x[i][1]*hy_inv;
+    s3 = x[i][2]*hz_inv;
+
+    sf1 = sf_coeff_6[0]*sin(2*MY_PI*s1);
+    sf1 += sf_coeff_6[1]*sin(4*MY_PI*s1);
+
+    sf2 = sf_coeff_6[2]*sin(2*MY_PI*s2);
+    sf2 += sf_coeff_6[3]*sin(4*MY_PI*s2);
+
+    sf3 = sf_coeff_6[4]*sin(2*MY_PI*s3);
+    sf3 += sf_coeff_6[5]*sin(4*MY_PI*s3);
+
+    for (k = 0; k < nsplit; k++) {
+      lj = B[nsplit*type + k];
+
+      sf = sf1*B[k]*2*lj*lj;
+      f[i][0] += lj*ekx[k] - sf;
+
+
+      sf = sf2*B[k]*2*lj*lj;
+      f[i][1] += lj*eky[k] - sf;
+
+      sf = sf3*B[k]*2*lj*lj;
+      if (slabflag != 2) f[i][2] += lj*ekz[k] - sf;
+    }
+  }
+
+  delete [] ekx;
+  delete [] eky;
+  delete [] ekz;
+}
+
+/* ----------------------------------------------------------------------
+   interpolate from grid to get dispersion field & force on my particles
+   for arithmetic mixing rule for per atom quantities
+------------------------------------------------------------------------- */
+
+void PPPMDisp::fieldforce_none_peratom()
+{
+  int i,k,l,m,n,nx,ny,nz,mx,my,mz;
+  FFT_SCALAR dx,dy,dz,x0,y0,z0;
+  FFT_SCALAR *u_pa,*v0,*v1,*v2,*v3,*v4,*v5;
+  
+  u_pa = new FFT_SCALAR[nsplit];
+  v0 = new FFT_SCALAR[nsplit];
+  v1 = new FFT_SCALAR[nsplit];
+  v2 = new FFT_SCALAR[nsplit];
+  v3 = new FFT_SCALAR[nsplit];
+  v4 = new FFT_SCALAR[nsplit];
+  v5 = new FFT_SCALAR[nsplit];
+
+  // loop over my charges, interpolate electric field from nearby grid points
+  // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
+  // (dx,dy,dz) = distance to "lower left" grid pt
+  // (mx,my,mz) = global coords of moving stencil pt
+  // ek = 3 components of dispersion field on particle
+
+  double **x = atom->x;
+  int type;
+  double lj;
+
+  int nlocal = atom->nlocal;
+
+  for (i = 0; i < nlocal; i++) {
+
+    nx = part2grid_6[i][0];
+    ny = part2grid_6[i][1];
+    nz = part2grid_6[i][2];
+    dx = nx+shiftone_6 - (x[i][0]-boxlo[0])*delxinv_6;
+    dy = ny+shiftone_6 - (x[i][1]-boxlo[1])*delyinv_6;
+    dz = nz+shiftone_6 - (x[i][2]-boxlo[2])*delzinv_6;
+    compute_rho1d(dx,dy,dz, order_6, rho_coeff_6, rho1d_6);
+
+    for (k = 0; k < nsplit; k++) 
+      u_pa[k] = v0[k] = v1[k] = v2[k] = v3[k] = v4[k] = v5[k] = ZEROF;
+ 
+    for (n = nlower_6; n <= nupper_6; n++) {
+      mz = n+nz;
+      z0 = rho1d_6[2][n];
+      for (m = nlower_6; m <= nupper_6; m++) {
+	my = m+ny;
+	y0 = z0*rho1d_6[1][m];
+	for (l = nlower_6; l <= nupper_6; l++) {
+	  mx = l+nx;
+	  x0 = y0*rho1d_6[0][l];
+          if (eflag_atom) {
+            for (k = 0; k < nsplit; k++)
+              u_pa[k] += x0*u_brick_none[k][mz][my][mx];
+	  }
+          if (vflag_atom) {
+            for (k = 0; k < nsplit; k++) {
+              v0[k] += x0*v0_brick_none[k][mz][my][mx];
+              v1[k] += x0*v1_brick_none[k][mz][my][mx];
+              v2[k] += x0*v2_brick_none[k][mz][my][mx];
+              v3[k] += x0*v3_brick_none[k][mz][my][mx];
+              v4[k] += x0*v4_brick_none[k][mz][my][mx];
+              v5[k] += x0*v5_brick_none[k][mz][my][mx];
+            }
+          }
+	}
+      }
+    }
+    // convert D-field to force
+    type = atom->type[i];
+    for (k = 0; k < nsplit; k++) {
+      lj = B[nsplit*type + k]*0.5;
+ 
+      if (eflag_atom) {
+        eatom[i] += u_pa[k]*lj;
+      }
+      if (vflag_atom) {
+        vatom[i][0] += v0[k]*lj;
+        vatom[i][1] += v1[k]*lj;
+        vatom[i][2] += v2[k]*lj;
+        vatom[i][3] += v3[k]*lj;
+        vatom[i][4] += v4[k]*lj;
+        vatom[i][5] += v5[k]*lj;
+      }
+    }
+  }
+
+  delete [] u_pa;
+  delete [] v0;
+  delete [] v1;
+  delete [] v2;
+  delete [] v3;
+  delete [] v4;
+  delete [] v5;
+}
+
+/* ----------------------------------------------------------------------
    pack values to buf to send to another proc
 ------------------------------------------------------------------------- */
 
@@ -5795,6 +7141,75 @@ void PPPMDisp::pack_forward(int flag, FFT_SCALAR *buf, int nlist, int *list)
       buf[n++] = v3src6[list[i]];
       buf[n++] = v4src6[list[i]];
       buf[n++] = v5src6[list[i]];
+    }
+    break;
+  }
+
+  // Dispersion interactions, no mixing
+
+  case FORWARD_IK_NONE: {
+    for (int k = 0; k < nsplit_alloc; k++) {
+      FFT_SCALAR *xsrc = &vdx_brick_none[k][nzlo_out_6][nylo_out_6][nxlo_out_6];
+      FFT_SCALAR *ysrc = &vdy_brick_none[k][nzlo_out_6][nylo_out_6][nxlo_out_6];
+      FFT_SCALAR *zsrc = &vdz_brick_none[k][nzlo_out_6][nylo_out_6][nxlo_out_6];
+      for (int i = 0; i < nlist; i++) {
+        buf[n++] = xsrc[list[i]];
+        buf[n++] = ysrc[list[i]];
+        buf[n++] = zsrc[list[i]];
+      }
+    }
+    break;
+  }
+
+  case FORWARD_AD_NONE: {
+    for (int k = 0; k < nsplit_alloc; k++) {
+      FFT_SCALAR *src = &u_brick_none[k][nzlo_out_6][nylo_out_6][nxlo_out_6];
+      for (int i = 0; i < nlist; i++)
+        buf[n++] = src[list[i]];
+    }
+    break;
+  }
+
+  case FORWARD_IK_PERATOM_NONE: {
+    for (int k = 0; k < nsplit_alloc; k++) {
+      FFT_SCALAR *esrc = &u_brick_none[k][nzlo_out_6][nylo_out_6][nxlo_out_6];
+      FFT_SCALAR *v0src = &v0_brick_none[k][nzlo_out_6][nylo_out_6][nxlo_out_6];
+      FFT_SCALAR *v1src = &v1_brick_none[k][nzlo_out_6][nylo_out_6][nxlo_out_6];
+      FFT_SCALAR *v2src = &v2_brick_none[k][nzlo_out_6][nylo_out_6][nxlo_out_6];
+      FFT_SCALAR *v3src = &v3_brick_none[k][nzlo_out_6][nylo_out_6][nxlo_out_6];
+      FFT_SCALAR *v4src = &v4_brick_none[k][nzlo_out_6][nylo_out_6][nxlo_out_6];
+      FFT_SCALAR *v5src = &v5_brick_none[k][nzlo_out_6][nylo_out_6][nxlo_out_6];
+      for (int i = 0; i < nlist; i++) {
+        if (eflag_atom) buf[n++] = esrc[list[i]];
+        if (vflag_atom) {
+          buf[n++] = v0src[list[i]];
+          buf[n++] = v1src[list[i]];
+          buf[n++] = v2src[list[i]];
+          buf[n++] = v3src[list[i]];
+          buf[n++] = v4src[list[i]];
+          buf[n++] = v5src[list[i]];
+        }
+      }
+    }
+    break;
+  }
+
+  case FORWARD_AD_PERATOM_NONE: {
+    for (int k = 0; k < nsplit_alloc; k++) {
+      FFT_SCALAR *v0src = &v0_brick_none[k][nzlo_out_6][nylo_out_6][nxlo_out_6];
+      FFT_SCALAR *v1src = &v1_brick_none[k][nzlo_out_6][nylo_out_6][nxlo_out_6];
+      FFT_SCALAR *v2src = &v2_brick_none[k][nzlo_out_6][nylo_out_6][nxlo_out_6];
+      FFT_SCALAR *v3src = &v3_brick_none[k][nzlo_out_6][nylo_out_6][nxlo_out_6];
+      FFT_SCALAR *v4src = &v4_brick_none[k][nzlo_out_6][nylo_out_6][nxlo_out_6];
+      FFT_SCALAR *v5src = &v5_brick_none[k][nzlo_out_6][nylo_out_6][nxlo_out_6];
+      for (int i = 0; i < nlist; i++) {
+        buf[n++] = v0src[list[i]];
+        buf[n++] = v1src[list[i]];
+        buf[n++] = v2src[list[i]];
+        buf[n++] = v3src[list[i]];
+        buf[n++] = v4src[list[i]];
+        buf[n++] = v5src[list[i]];
+      }
     }
     break;
   }
@@ -6242,6 +7657,75 @@ void PPPMDisp::unpack_forward(int flag, FFT_SCALAR *buf, int nlist, int *list)
     break;
   }
 
+  // Disperion interactions, geometric mixing
+
+  case FORWARD_IK_NONE: {
+    for (int k = 0; k < nsplit_alloc; k++) {
+      FFT_SCALAR *xdest = &vdx_brick_none[k][nzlo_out_6][nylo_out_6][nxlo_out_6];
+      FFT_SCALAR *ydest = &vdy_brick_none[k][nzlo_out_6][nylo_out_6][nxlo_out_6];
+      FFT_SCALAR *zdest = &vdz_brick_none[k][nzlo_out_6][nylo_out_6][nxlo_out_6];
+      for (int i = 0; i < nlist; i++) {
+        xdest[list[i]] = buf[n++];
+        ydest[list[i]] = buf[n++];
+        zdest[list[i]] = buf[n++];
+      }
+    }
+    break;
+  }
+
+  case FORWARD_AD_NONE: {
+    for (int k = 0; k < nsplit_alloc; k++) {
+      FFT_SCALAR *dest = &u_brick_none[k][nzlo_out_6][nylo_out_6][nxlo_out_6];
+      for (int i = 0; i < nlist; i++)
+        dest[list[i]] = buf[n++];
+    }
+    break;
+  }
+
+  case FORWARD_IK_PERATOM_NONE: {
+    for (int k = 0; k < nsplit_alloc; k++) {
+      FFT_SCALAR *esrc = &u_brick_none[k][nzlo_out_6][nylo_out_6][nxlo_out_6];
+      FFT_SCALAR *v0src = &v0_brick_none[k][nzlo_out_6][nylo_out_6][nxlo_out_6];
+      FFT_SCALAR *v1src = &v1_brick_none[k][nzlo_out_6][nylo_out_6][nxlo_out_6];
+      FFT_SCALAR *v2src = &v2_brick_none[k][nzlo_out_6][nylo_out_6][nxlo_out_6];
+      FFT_SCALAR *v3src = &v3_brick_none[k][nzlo_out_6][nylo_out_6][nxlo_out_6];
+      FFT_SCALAR *v4src = &v4_brick_none[k][nzlo_out_6][nylo_out_6][nxlo_out_6];
+      FFT_SCALAR *v5src = &v5_brick_none[k][nzlo_out_6][nylo_out_6][nxlo_out_6];
+      for (int i = 0; i < nlist; i++) {
+        if (eflag_atom) esrc[list[i]] = buf[n++];
+        if (vflag_atom) {
+          v0src[list[i]] = buf[n++];
+          v1src[list[i]] = buf[n++];
+          v2src[list[i]] = buf[n++];
+          v3src[list[i]] = buf[n++];
+          v4src[list[i]] = buf[n++];
+          v5src[list[i]] = buf[n++];
+        }
+      }
+    }
+    break;
+  }
+
+  case FORWARD_AD_PERATOM_NONE: {
+    for (int k = 0; k < nsplit_alloc; k++) {
+      FFT_SCALAR *v0src = &v0_brick_none[k][nzlo_out_6][nylo_out_6][nxlo_out_6];
+      FFT_SCALAR *v1src = &v1_brick_none[k][nzlo_out_6][nylo_out_6][nxlo_out_6];
+      FFT_SCALAR *v2src = &v2_brick_none[k][nzlo_out_6][nylo_out_6][nxlo_out_6];
+      FFT_SCALAR *v3src = &v3_brick_none[k][nzlo_out_6][nylo_out_6][nxlo_out_6];
+      FFT_SCALAR *v4src = &v4_brick_none[k][nzlo_out_6][nylo_out_6][nxlo_out_6];
+      FFT_SCALAR *v5src = &v5_brick_none[k][nzlo_out_6][nylo_out_6][nxlo_out_6];
+      for (int i = 0; i < nlist; i++) {
+        v0src[list[i]] = buf[n++];
+        v1src[list[i]] = buf[n++];
+        v2src[list[i]] = buf[n++];
+        v3src[list[i]] = buf[n++];
+        v4src[list[i]] = buf[n++];
+        v5src[list[i]] = buf[n++];
+      }
+    }
+    break;
+  }
+
   }
 }
 
@@ -6285,6 +7769,16 @@ void PPPMDisp::pack_reverse(int flag, FFT_SCALAR *buf, int nlist, int *list)
       buf[n++] = src4[list[i]];
       buf[n++] = src5[list[i]];
       buf[n++] = src6[list[i]];
+    }
+
+  //Dispersion interactions, no mixing
+
+  } else if (flag == REVERSE_RHO_NONE) {
+    for (int k = 0; k < nsplit_alloc; k++) {
+      FFT_SCALAR *src = &density_brick_none[k][nzlo_out_6][nylo_out_6][nxlo_out_6];
+      for (int i = 0; i < nlist; i++) {
+        buf[n++] = src[list[i]];
+      }
     }
   }
 }
@@ -6330,7 +7824,16 @@ void PPPMDisp::unpack_reverse(int flag, FFT_SCALAR *buf, int nlist, int *list)
       dest5[list[i]] += buf[n++];
       dest6[list[i]] += buf[n++];
     }
-  } 
+
+  //Dispersion interactions, no mixing
+
+  } else if (flag == REVERSE_RHO_NONE) {
+    for (int k = 0; k < nsplit_alloc; k++) {
+      FFT_SCALAR *dest = &density_brick_none[k][nzlo_out_6][nylo_out_6][nxlo_out_6];
+      for (int i = 0; i < nlist; i++)
+        dest[list[i]] += buf[n++];
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -6559,9 +8062,10 @@ int PPPMDisp::timing_1d(int n, double &time1d)
   double time1,time2;
   int mixing = 1;
   if (function[2]) mixing = 4;
+  if (function[3]) mixing = nsplit_alloc/2;
 
   if (function[0]) for (int i = 0; i < 2*nfft_both; i++) work1[i] = ZEROF;
-  if (function[1] + function[2])
+  if (function[1] + function[2] + function[3])
     for (int i = 0; i < 2*nfft_both_6; i++) work1_6[i] = ZEROF;
 
   MPI_Barrier(world);
@@ -6585,7 +8089,7 @@ int PPPMDisp::timing_1d(int n, double &time1d)
   MPI_Barrier(world);
   time1 = MPI_Wtime();
 
-  if (function[1] + function[2]) {
+  if (function[1] + function[2] + function[3]) {
     for (int i = 0; i < n; i++) {
       fft1_6->timing1d(work1_6,nfft_both_6,1);
       fft2_6->timing1d(work1_6,nfft_both_6,-1);
@@ -6613,9 +8117,10 @@ int PPPMDisp::timing_3d(int n, double &time3d)
   double time1,time2;
   int mixing = 1;
   if (function[2]) mixing = 4;
+  if (function[3]) mixing = nsplit_alloc/2;
 
   if (function[0]) for (int i = 0; i < 2*nfft_both; i++) work1[i] = ZEROF;
-  if (function[1] + function[2]) 
+  if (function[1] + function[2] + function[3]) 
     for (int i = 0; i < 2*nfft_both_6; i++) work1_6[i] = ZEROF;
 
 
@@ -6641,7 +8146,7 @@ int PPPMDisp::timing_3d(int n, double &time3d)
   MPI_Barrier(world);
   time1 = MPI_Wtime();
   
-  if (function[1] + function[2]) {
+  if (function[1] + function[2] + function[3]) {
     for (int i = 0; i < n; i++) {
       fft1_6->compute(work1_6,work1_6,1);
       fft2_6->compute(work1_6,work1_6,-1);
@@ -6676,6 +8181,7 @@ double PPPMDisp::memory_usage()
   }
   if (!evflag_atom) per = 0;
   if (function[2]) mixing = 7;
+  if (function[3]) mixing = nsplit_alloc;
 
   if (function[0]) {
     int nbrick = (nxhi_out-nxlo_out+1) * (nyhi_out-nylo_out+1) * 
@@ -6687,7 +8193,7 @@ double PPPMDisp::memory_usage()
     bytes += cg->memory_usage();
   }
 
-  if (function[1] + function[2]) {
+  if (function[1] + function[2] + function[3]) {
     int nbrick = (nxhi_out_6-nxlo_out_6+1) * (nyhi_out_6-nylo_out_6+1) * 
       (nzhi_out_6-nzlo_out_6+1);
     bytes += (1 + diff + per ) * nbrick * sizeof(FFT_SCALAR) * mixing;     // density_brick + vd_brick + per atom bricks

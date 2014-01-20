@@ -59,9 +59,16 @@ KSpace::KSpace(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   adjust_cutoff_flag = 1;
 
   accuracy_absolute = -1.0;
+  accuracy_real_6 = -1.0;
+  accuracy_kspace_6 = -1.0;
   two_charge_force = force->qqr2e *
     (force->qelectron * force->qelectron) /
     (force->angstrom * force->angstrom);
+
+  neighrequest_flag = 1;
+  mixflag = 0;
+
+  splittol = 1.0e-6;
 
   maxeatom = maxvatom = 0;
   eatom = NULL;
@@ -448,6 +455,26 @@ void KSpace::modify_params(int narg, char **arg)
       else
 	kewaldflag = 0;
       iarg += 4;
+    } else if (strcmp(arg[iarg],"mix/disp") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
+      if (strcmp(arg[iarg+1],"pair") == 0) mixflag = 0;
+      else if (strcmp(arg[iarg+1],"geom") == 0) mixflag = 1;
+      else if (strcmp(arg[iarg+1],"none") == 0) mixflag = 2;
+      else error->all(FLERR,"Illegal kspace_modify command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"force/disp/real") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
+      accuracy_real_6 = atof(arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"force/disp/kspace") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
+      accuracy_kspace_6 = atof(arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"eigtol") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
+      splittol = atof(arg[iarg+1]);
+      if (splittol >= 1.0) error->all(FLERR,"eigtol must be smaller than one");
+      iarg += 2;
     } else error->all(FLERR,"Illegal kspace_modify command");
   }
 }

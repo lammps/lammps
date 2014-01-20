@@ -45,14 +45,19 @@ class KSpace : protected Pointers {
   int tip4pflag;                 // 1 if a TIP4P solver
   int dipoleflag;                // 1 if a dipole solver
   int differentiation_flag;
+  int neighrequest_flag;         // used to avoid obsolete construction of neighbor lists
+  int mixflag;                   // 1 if geometric mixing rules are enforced for LJ coefficients
   int slabflag;
   double slab_volfactor;
+
 
   int order,order_6,order_allocated;
   double accuracy;                  // accuracy of KSpace solver (force units)
   double accuracy_absolute;         // user-specifed accuracy in force units
   double accuracy_relative;         // user-specified dimensionless accuracy
                                     // accurary = acc_rel * two_charge_force
+  double accuracy_real_6;           // real space accuracy for dispersion solver (force units)
+  double accuracy_kspace_6;         // reciprocal space accuracy for dispersion solver (force units)
   double two_charge_force;          // force in user units of two point
                                     // charges separated by 1 Angstrom
 
@@ -70,6 +75,8 @@ class KSpace : protected Pointers {
   int fftbench;                   // 0 if skip FFT timing
 
   int stagger_flag;               // 1 if using staggered PPPM grids
+
+  double splittol;                // tolerance for when to truncate the splitting
 
   KSpace(class LAMMPS *, int, char **);
   virtual ~KSpace();

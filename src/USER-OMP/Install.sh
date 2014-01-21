@@ -42,7 +42,7 @@ action thr_omp.cpp
 action thr_data.h
 action thr_data.cpp
 
-# step 2: handle cases and tasks not handled in step 1.
+# step 2: handle cases and tasks not handled in step 1
 
 if (test $mode = 1) then
 

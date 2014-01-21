@@ -1,7 +1,3 @@
-#ifdef LAMMPS_BIGBIG
-#error LAMMPS_BIGBIG not supported by this file
-#endif
-
 #include "mpi.h"
 #include "lammps.h"
 #include "atom.h"

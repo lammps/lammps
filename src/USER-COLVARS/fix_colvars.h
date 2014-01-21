@@ -65,7 +65,7 @@ class FixColvars : public Fix {
 
   int   me;            // my MPI rank in this "world".
   int   num_coords;    // total number of atoms controlled by this fix
-  int   *taglist;      // list of all atom IDs referenced by colvars.
+  tagint *taglist;     // list of all atom IDs referenced by colvars.
   std::vector<struct commdata> *coords; // coordinates of colvar atoms
   std::vector<struct commdata> *forces; // received forces of colvar atoms
   std::vector<struct commdata> *oforce; // old total forces of colvar atoms

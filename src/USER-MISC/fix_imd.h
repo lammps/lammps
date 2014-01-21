@@ -82,7 +82,7 @@ class FixIMD : public Fix {
   int    maxbuf;                // size of atom communication buffer.
   void  *comm_buf;              // communication buffer
   void  *idmap;                 // hash for mapping atom indices to consistent order.
-  int   *rev_idmap;             // list of the hash keys for reverse mapping.
+  tagint *rev_idmap;            // list of the hash keys for reverse mapping.
 
   int    imd_forces;            // number of forces communicated via IMD.
   void  *force_buf;             // force data buffer

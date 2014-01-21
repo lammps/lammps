@@ -471,7 +471,10 @@ void Respa::run(int n)
     ev_set(ntimestep);
 
     recurse(nlevels-1);
-    sum_flevel_f();           // needed in case end_of_step or output use f
+
+    // needed in case end_of_step() or output() use total force
+
+    sum_flevel_f();
 
     if (modify->n_end_of_step) modify->end_of_step();
 

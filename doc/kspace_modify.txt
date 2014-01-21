@@ -13,7 +13,7 @@ kspace_modify command :h3
 kspace_modify keyword value ... :pre
 
 one or more keyword/value pairs may be listed :ulb,l
-keyword = {mesh} or {order} or {order/disp} or {overlap} or {minorder} or {force} or {gewald} or {gewald/disp} or {slab} or (nozforce} or {compute} or {cutoff/adjust} or {diff} or {kmax/ewald} :l
+keyword = {mesh} or {order} or {order/disp} or {overlap} or {minorder} or {force} or {gewald} or {gewald/disp} or {slab} or (nozforce} or {compute} or {cutoff/adjust} or {diff} or {kmax/ewald} or {force/disp/real} or {force/disp/kspace} or {splittol} :l
   {mesh} value = x y z
     x,y,z = grid size in each dimension for long-range Coulombics
   {mesh/disp} value = x y z
@@ -39,7 +39,12 @@ keyword = {mesh} or {order} or {order/disp} or {overlap} or {minorder} or {force
   {fftbench} value = {yes} or {no} 
   {diff} value = {ad} or {ik} = 2 or 4 FFTs for PPPM in smoothed or non-smoothed mode 
   {kmax/ewald} value = kx ky kz 
-    kx,ky,kz = number of Ewald sum kspace vectors in each dimension :pre
+    kx,ky,kz = number of Ewald sum kspace vectors in each dimension
+  {mix/disp} value = {pair} or {geom} or {none}
+  {force/disp/real} value = accuracy (force units)
+  {force/disp/kspace} value = accuracy (force units)
+  {splittol} value = tol
+    tol = relative size of two eigenvalues (see discussion below) :pre
 :ule
 
 [Examples:]
@@ -229,6 +234,29 @@ if kspace style {ewald} is invoked, the values used
 are printed to the screen and
 the log file at the start of the run.
 
+With the {mix/disp{ keyword one can select the mixing rule for the
+dispersion coefficients.  With {pair}, the dispersion coefficients of
+unlike types are computed as indicated with
+"pair_modify"_pair_modify.html.  With {geom}, geometric mixing is
+enforced on the dispersion coefficients in the kspace
+coefficients. When using the arithmetic mixing rule, this will
+speed-up the simulations but introduces some error in the force
+computations, as shown in "(Wennberg)"_#Wennberg.  With {none}, it is
+assumed that no mixing rule is applicable. Splitting of the dispersion
+coefficients will be performed as described in
+"(Isele-Holder)"_#Isele-Holder.  This splitting can be influenced with
+the {splittol} keywords. Only the eigenvalues that are larger than tol
+compared to the largest eigenvalues are included. Using this keywords
+the original matrix of dispersion coefficients is approximated. This
+leads to faster computations, but the accuracy in the reciprocal space
+computations of the dispersion part is decreased.
+
+The {force/disp/real} and {force/disp/kspace} keywords set the force
+accuracy for the real and space computations for the dispersion part
+of pppm/disp.  as shown in "(Isele-Holder)"_#Isele-Holder, optimal
+performance and accuracy in the results is obtained when these values
+are different.
+
 [Restrictions:] none
 
 [Related commands:]
@@ -240,7 +268,8 @@ the log file at the start of the run.
 The option defaults are mesh = mesh/disp = 0 0 0, order = order/disp =
 5 (PPPM), order = 10 (MSM), minorder = 2, overlap = yes, force = -1.0,
 gewald = gewald/disp = 0.0, slab = 1.0, compute = yes, cutoff/adjust =
-yes (MSM), fftbench = yes (PPPM), and diff = ik (PPPM).
+yes (MSM), fftbench = yes (PPPM), diff = ik (PPPM), mix/disp = pair,
+force/disp/real = -1.0, force/disp/kspace = -1.0, split = 0, and tol = 1.0e-6.
 
 :line
 
@@ -259,3 +288,11 @@ Adam Hilger, NY (1989).
 [(Hardy)] David Hardy thesis: Multilevel Summation for the Fast
 Evaluation of Forces for the Simulation of Biomolecules, University of
 Illinois at Urbana-Champaign, (2006).
+
+:link(Isele-Holder)
+[(Isele-Holder)] Isele-Holder, Mitchell, Hammond, Kohlmeyer, Ismail, J
+Chem Theory Comput, 9, 5412 (2013).
+
+:link(Wennberg)
+[(Wennberg)] Wennberg, Murtola, Hess, Lindahl, J Chem Theory Comput,
+9, 3527 (2013).

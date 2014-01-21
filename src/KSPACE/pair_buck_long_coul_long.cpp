@@ -86,8 +86,6 @@ void PairBuckLongCoulLong::settings(int narg, char **arg)
   options(arg,6);
   options(++arg,1);
 
-  if (!comm->me && ewald_order & (1<<6)) 
-    error->warning(FLERR,"Geometric mixing assumed for 1/r^6 coefficients");
   if (!comm->me && ewald_order == ((1<<1) | (1<<6))) 
     error->warning(FLERR,"Using largest cutoff for buck/long/coul/long");
   if (!*(++arg)) 
@@ -235,41 +233,43 @@ void PairBuckLongCoulLong::init_style()
   if (!atom->q_flag && (ewald_order&(1<<1)))
     error->all(FLERR,"Pair style buck/long/coul/long requires atom attribute q");
 
-  // request regular or rRESPA neighbor lists
+  // request regular or rRESPA neighbor lists if neighrequest_flag != 0
 
-  int irequest;
+  if (force->kspace->neighrequest_flag) {
+    int irequest;
 
-  if (update->whichflag == 1 && strstr(update->integrate_style,"respa")) {
-    int respa = 0;
-    if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
-    if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
+    if (update->whichflag == 1 && strstr(update->integrate_style,"respa")) {
+      int respa = 0;
+      if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
+      if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
 
-    if (respa == 0) irequest = neighbor->request(this);
-    else if (respa == 1) {
-      irequest = neighbor->request(this);
-      neighbor->requests[irequest]->id = 1;
-      neighbor->requests[irequest]->half = 0;
-      neighbor->requests[irequest]->respainner = 1;
-      irequest = neighbor->request(this);
-      neighbor->requests[irequest]->id = 3;
-      neighbor->requests[irequest]->half = 0;
-      neighbor->requests[irequest]->respaouter = 1;
-    } else {
-      irequest = neighbor->request(this);
-      neighbor->requests[irequest]->id = 1;
-      neighbor->requests[irequest]->half = 0;
-      neighbor->requests[irequest]->respainner = 1;
-      irequest = neighbor->request(this);
-      neighbor->requests[irequest]->id = 2;
-      neighbor->requests[irequest]->half = 0;
-      neighbor->requests[irequest]->respamiddle = 1;
-      irequest = neighbor->request(this);
-      neighbor->requests[irequest]->id = 3;
-      neighbor->requests[irequest]->half = 0;
-      neighbor->requests[irequest]->respaouter = 1;
-    }
+      if (respa == 0) irequest = neighbor->request(this);
+      else if (respa == 1) {
+        irequest = neighbor->request(this);
+        neighbor->requests[irequest]->id = 1;
+        neighbor->requests[irequest]->half = 0;
+        neighbor->requests[irequest]->respainner = 1;
+        irequest = neighbor->request(this);
+        neighbor->requests[irequest]->id = 3;
+        neighbor->requests[irequest]->half = 0;
+        neighbor->requests[irequest]->respaouter = 1;
+      } else {
+        irequest = neighbor->request(this);
+        neighbor->requests[irequest]->id = 1;
+        neighbor->requests[irequest]->half = 0;
+        neighbor->requests[irequest]->respainner = 1;
+        irequest = neighbor->request(this);
+        neighbor->requests[irequest]->id = 2;
+        neighbor->requests[irequest]->half = 0;
+        neighbor->requests[irequest]->respamiddle = 1;
+        irequest = neighbor->request(this);
+        neighbor->requests[irequest]->id = 3;
+        neighbor->requests[irequest]->half = 0;
+        neighbor->requests[irequest]->respaouter = 1;
+      }
 
-  } else irequest = neighbor->request(this);
+    } else irequest = neighbor->request(this);
+  }
 
   cut_coulsq = cut_coul * cut_coul;
 

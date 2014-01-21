@@ -439,6 +439,51 @@ class Memory : protected Pointers {
     }
 
 /* ----------------------------------------------------------------------
+   create a 4d array with indices
+   2nd index from n2lo to n2hi inclusive
+   3rd index from n3lo to n3hi inclusive
+   4th index from n4lo to n4hi inclusive
+   cannot grow it
+------------------------------------------------------------------------- */
+
+  template <typename TYPE>
+    TYPE ****create4d_offset(TYPE ****&array, int n1, int n2lo, int n2hi,
+                             int n3lo, int n3hi, int n4lo, int n4hi,
+                             const char *name)
+    {
+      int n2 = n2hi - n2lo + 1;
+      int n3 = n3hi - n3lo + 1;
+      int n4 = n4hi - n4lo + 1;
+      create(array,n1,n2,n3,n4,name);
+      
+      bigint m = ((bigint) n1) * n2 * n3;
+      for (bigint i = 0; i < m; i++) array[0][0][i] -= n4lo;
+      m = ((bigint) n1) * n2;
+      for (bigint i = 0; i < m; i++) array [0][i] -= n3lo;
+      for (int i = 0; i < n1; i++) array[i] -= n2lo;
+      return array;
+    }
+
+  template <typename TYPE>
+    TYPE ****create4d_offset(TYPE *****&array, int n1, int n2lo, int n2hi,
+                             int n3lo, int n3hi, int n4lo, int n4hi,
+                             const char *name)
+    {fail(name);}
+
+/* ----------------------------------------------------------------------
+   free a 4d array with indices 2,3, and 4 offset
+------------------------------------------------------------------------- */
+  template <typename TYPE>
+    void destroy4d_offset(TYPE ****array, int n2_offset, int n3_offset, int n4_offset)
+    {
+      if (array == NULL) return;
+      sfree(&array[0][n2_offset][n3_offset][n4_offset]);
+      sfree(&array[0][n2_offset][n3_offset]);
+      sfree(&array[0][n2_offset]);
+      sfree(array);
+    }
+
+/* ----------------------------------------------------------------------
    create a 5d array
 ------------------------------------------------------------------------- */
 

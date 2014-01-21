@@ -37,7 +37,7 @@ namespace LAMMPS_NS {
 
 
 #define EWALD_MAXORDER	6
-#define EWALD_FUNCS	3
+#define EWALD_FUNCS	4
 
 class PPPMDisp : public KSpace {
  public:
@@ -75,6 +75,8 @@ Variables needed for calculating the 1/r and 1/r^6 potential
   double sf_coeff[6], sf_coeff_6[6];
   int peratom_allocate_flag;
 
+  int nsplit;
+  int nsplit_alloc;
 
   double delxinv,delyinv,delzinv,delvolinv;
   double delxinv_6,delyinv_6,delzinv_6,delvolinv_6;
@@ -148,6 +150,12 @@ Variables needed for calculating the 1/r and 1/r^6 potential
   FFT_SCALAR ***u_brick_a6;
   FFT_SCALAR ***v0_brick_a6,***v1_brick_a6,***v2_brick_a6,***v3_brick_a6,***v4_brick_a6,***v5_brick_a6;
 
+  FFT_SCALAR ****density_brick_none;
+  FFT_SCALAR ****vdx_brick_none,****vdy_brick_none,****vdz_brick_none;
+  FFT_SCALAR **density_fft_none;
+  FFT_SCALAR ****u_brick_none;
+  FFT_SCALAR ****v0_brick_none,****v1_brick_none,****v2_brick_none,****v3_brick_none,****v4_brick_none,****v5_brick_none;
+
   //// needed for each interaction type
   double *greensfn;
   double **vg;
@@ -196,7 +204,13 @@ Variables needed for calculating the 1/r and 1/r^6 potential
   double qdist;                // distance from O site to negative charge
   double alpha;                // geometric factor
 
-  void init_coeffs();	
+  void init_coeffs();
+  int qr_alg(double**, double**, int);
+  void hessenberg(double**, double**, int);
+  void qr_tri(double**, double**, int);
+  void mmult(double**, double**, double**, int);
+  int check_convergence(double**, double**, double**,
+                        double**, double**, double**, int);
 
   void set_grid();
   void set_grid_6();
@@ -215,7 +229,7 @@ Variables needed for calculating the 1/r and 1/r^6 potential
   double f_6();
   double derivf_6();
   double final_accuracy();
-  double final_accuracy_6();
+  void final_accuracy_6(double&, double&, double&);
   double lj_rspace_error();
   double compute_qopt();
   double compute_qopt_6();
@@ -259,11 +273,13 @@ Variables needed for calculating the 1/r and 1/r^6 potential
   virtual void make_rho_c();
   virtual void make_rho_g();
   virtual void make_rho_a();
+  virtual void make_rho_none();
 
   virtual void brick2fft(int, int, int, int, int, int,
 			 FFT_SCALAR ***, FFT_SCALAR *, FFT_SCALAR *,
                          LAMMPS_NS::Remap *);
   virtual void brick2fft_a();
+  virtual void brick2fft_none();
 
   virtual void poisson_ik(FFT_SCALAR *, FFT_SCALAR *,
 		          FFT_SCALAR *, LAMMPS_NS::FFT3d *,LAMMPS_NS::FFT3d *, 
@@ -309,6 +325,20 @@ Variables needed for calculating the 1/r and 1/r^6 potential
                                   FFT_SCALAR***, FFT_SCALAR***, FFT_SCALAR***,
                                   FFT_SCALAR***, FFT_SCALAR***, FFT_SCALAR***);
 
+  virtual void poisson_none_ad(int, int, FFT_SCALAR *, FFT_SCALAR *,
+                               FFT_SCALAR ***, FFT_SCALAR ***, 
+                               FFT_SCALAR ****, FFT_SCALAR ****, FFT_SCALAR ****,
+			       FFT_SCALAR ****, FFT_SCALAR ****, FFT_SCALAR ****);
+  virtual void poisson_none_ik(int, int, FFT_SCALAR *, FFT_SCALAR *,
+                               FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***,
+                               FFT_SCALAR ***, FFT_SCALAR ***, FFT_SCALAR ***,
+                               FFT_SCALAR ****, FFT_SCALAR ****, FFT_SCALAR ****, FFT_SCALAR ****,
+			       FFT_SCALAR ****, FFT_SCALAR ****, FFT_SCALAR ****);
+  virtual void poisson_none_peratom(int, int, FFT_SCALAR***, FFT_SCALAR***, FFT_SCALAR***,
+				    FFT_SCALAR***, FFT_SCALAR***, FFT_SCALAR***,
+                                    FFT_SCALAR***, FFT_SCALAR***, FFT_SCALAR***,
+                                    FFT_SCALAR***, FFT_SCALAR***, FFT_SCALAR***);
+
 
   virtual void fieldforce_c_ik();
   virtual void fieldforce_c_ad();
@@ -319,6 +349,9 @@ Variables needed for calculating the 1/r and 1/r^6 potential
   virtual void fieldforce_a_ik();
   virtual void fieldforce_a_ad();
   virtual void fieldforce_a_peratom();
+  virtual void fieldforce_none_ik();
+  virtual void fieldforce_none_ad();
+  virtual void fieldforce_none_peratom();
   void procs2grid2d(int,int,int,int *, int*);
   void compute_rho1d(const FFT_SCALAR &, const FFT_SCALAR &, 
 		     const FFT_SCALAR &, int, FFT_SCALAR **, FFT_SCALAR **);

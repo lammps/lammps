@@ -516,8 +516,6 @@ void Respa::recurse(int ilevel)
     if (modify->n_post_integrate_respa)
       modify->post_integrate_respa(ilevel,iloop);
 
-    if (ilevel) recurse(ilevel-1);
-
     // at outermost level, check on rebuilding neighbor list
     // at innermost level, communicate
     // at middle levels, do nothing
@@ -554,6 +552,14 @@ void Respa::recurse(int ilevel)
       comm->forward_comm();
       timer->stamp(TIME_COMM);
     }
+
+    // rRESPA recursion thru all levels
+    // this used to be before neigh list build,
+    // which prevented per-atom energy/stress being tallied correctly
+    // b/c atoms migrated to new procs between short/long force calls
+    // now they migrate at very start of rRESPA timestep, before all forces
+
+    if (ilevel) recurse(ilevel-1);
 
     // force computations
     // important that ordering is same as Verlet

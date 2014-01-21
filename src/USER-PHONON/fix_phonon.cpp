@@ -581,16 +581,19 @@ void FixPhonon::readmap()
     error->all(FLERR,line);
   }
 
-  if (fgets(line,MAXLINE,fp) == NULL) error->all(FLERR,"Error while reading header of mapping file!");
+  if (fgets(line,MAXLINE,fp) == NULL) 
+    error->all(FLERR,"Error while reading header of mapping file!");
   nx     = force->inumeric(FLERR, strtok(line, " \n\t\r\f"));
   ny     = force->inumeric(FLERR, strtok(NULL, " \n\t\r\f"));
   nz     = force->inumeric(FLERR, strtok(NULL, " \n\t\r\f"));
   nucell = force->inumeric(FLERR, strtok(NULL, " \n\t\r\f"));
   ntotal = nx*ny*nz;
-  if (ntotal*nucell != ngroup) error->all(FLERR,"FFT mesh and number of atoms in group mismatch!");
+  if (ntotal*nucell != ngroup) 
+    error->all(FLERR,"FFT mesh and number of atoms in group mismatch!");
   
   // second line of mapfile is comment
-  if (fgets(line,MAXLINE,fp) == NULL) error->all(FLERR,"Error while reading comment of mapping file!");
+  if (fgets(line,MAXLINE,fp) == NULL) 
+    error->all(FLERR,"Error while reading comment of mapping file!");
 
   int ix, iy, iz, iu;
   // the remaining lines carry the mapping info
@@ -603,7 +606,8 @@ void FixPhonon::readmap()
     itag = force->inumeric(FLERR, strtok(NULL, " \n\t\r\f"));
 
     // check if index is in correct range
-    if (ix < 0 || ix >= nx || iy < 0 || iy >= ny || iz < 0 || iz >= nz|| iu < 0 || iu >= nucell) {info = 2; break;}
+    if (ix < 0 || ix >= nx || iy < 0 || iy >= ny || 
+        iz < 0 || iz >= nz || iu < 0 || iu >= nucell) {info = 2; break;}
     // 1 <= itag <= natoms
     if (itag < 1 || itag > static_cast<int>(atom->natoms)) {info = 3; break;}
     idx = ((ix*ny+iy)*nz+iz)*nucell + iu;
@@ -612,7 +616,8 @@ void FixPhonon::readmap()
   }
   fclose(fp);
 
-  if (tag2surf.size() != surf2tag.size() || tag2surf.size() != static_cast<std::size_t>(ngroup) )
+  if (tag2surf.size() != surf2tag.size() || 
+      tag2surf.size() != static_cast<std::size_t>(ngroup) )
     error->all(FLERR,"The mapping is incomplete!");
   if (info) error->all(FLERR,"Error while reading mapping file!");
   
@@ -625,7 +630,8 @@ void FixPhonon::readmap()
     if (mask[i] & groupbit){
       itag = tag[i];
       idx  = tag2surf[itag];
-      if (itag != surf2tag[idx]) error->one(FLERR,"The mapping info read is incorrect!");
+      if (itag != surf2tag[idx]) 
+        error->one(FLERR,"The mapping info read is incorrect!");
     }
   }
 

@@ -144,8 +144,8 @@ void RespaOMP::setup()
     copy_f_flevel(ilevel);
   }
 
-  modify->setup(vflag);
   sum_flevel_f();
+  modify->setup(vflag);
   output->setup();
   update->setupflag = 0;
 }
@@ -231,8 +231,8 @@ void RespaOMP::setup_minimal(int flag)
     copy_f_flevel(ilevel);
   }
 
-  modify->setup(vflag);
   sum_flevel_f();
+  modify->setup(vflag);
   update->setupflag = 0;
 }
 
@@ -247,8 +247,6 @@ void RespaOMP::recurse(int ilevel)
     modify->initial_integrate_respa(vflag,ilevel,iloop);
     if (modify->n_post_integrate_respa)
       modify->post_integrate_respa(ilevel,iloop);
-
-    if (ilevel) recurse(ilevel-1);
 
     // at outermost level, check on rebuilding neighbor list
     // at innermost level, communicate
@@ -282,6 +280,19 @@ void RespaOMP::recurse(int ilevel)
       comm->forward_comm();
       timer->stamp(TIME_COMM);
     }
+
+    // rRESPA recursion thru all levels
+    // this used to be before neigh list build,
+    // which prevented per-atom energy/stress being tallied correctly
+    // b/c atoms migrated to new procs between short/long force calls
+    // now they migrate at very start of rRESPA timestep, before all forces
+
+    if (ilevel) recurse(ilevel-1);
+
+    // force computations
+    // important that ordering is same as Verlet
+    // so that any order dependencies are the same
+    // when potentials are invoked at same level
 
     force_clear(newton[ilevel]);
     if (modify->n_pre_force_respa)

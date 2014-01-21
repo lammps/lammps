@@ -384,8 +384,8 @@ void Respa::setup()
     copy_f_flevel(ilevel);
   }
 
-  modify->setup(vflag);
   sum_flevel_f();
+  modify->setup(vflag);
   output->setup();
   update->setupflag = 0;
 }
@@ -452,8 +452,8 @@ void Respa::setup_minimal(int flag)
     copy_f_flevel(ilevel);
   }
 
-  modify->setup(vflag);
   sum_flevel_f();
+  modify->setup(vflag);
   update->setupflag = 0;
 }
 
@@ -471,12 +471,12 @@ void Respa::run(int n)
     ev_set(ntimestep);
 
     recurse(nlevels-1);
+    sum_flevel_f();           // needed in case end_of_step or output use f
 
     if (modify->n_end_of_step) modify->end_of_step();
 
     if (ntimestep == output->next) {
       timer->stamp();
-      sum_flevel_f();
       output->write(update->ntimestep);
       timer->stamp(TIME_OUTPUT);
     }

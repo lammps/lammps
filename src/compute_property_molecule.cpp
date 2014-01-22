@@ -43,7 +43,8 @@ ComputePropertyMolecule(LAMMPS *lmp, int narg, char **arg) :
       pack_choice[i] = &ComputePropertyMolecule::pack_mol;
     else if (strcmp(arg[iarg],"count") == 0)
       pack_choice[i] = &ComputePropertyMolecule::pack_count;
-    else error->all(FLERR,"Invalid keyword in compute property/molecule command");
+    else error->all(FLERR,
+                    "Invalid keyword in compute property/molecule command");
   }
 
   // setup molecule-based data
@@ -116,7 +117,7 @@ void ComputePropertyMolecule::compute_array()
 
 double ComputePropertyMolecule::memory_usage()
 {
-  double bytes = nmolecules*nvalues * sizeof(double);
+  double bytes = (bigint) nmolecules * nvalues * sizeof(double);
   if (molmap) bytes += (idhi-idlo+1) * sizeof(int);
   return bytes;
 }
@@ -129,7 +130,7 @@ double ComputePropertyMolecule::memory_usage()
 
 void ComputePropertyMolecule::pack_mol(int n)
 {
-  for (int m = idlo; m <= idhi; m++)
+  for (tagint m = idlo; m <= idhi; m++)
     if (molmap == NULL || molmap[m-idlo] >= 0) {
       buf[n] = m;
       n += nvalues;
@@ -140,12 +141,13 @@ void ComputePropertyMolecule::pack_mol(int n)
 
 void ComputePropertyMolecule::pack_count(int n)
 {
-  int i,m,imol;
+  int i,m;
+  tagint imol;
 
   int *count_one = new int[nmolecules];
   for (m = 0; m < nmolecules; m++) count_one[m] = 0;
 
-  int *molecule = atom->molecule;
+  tagint *molecule = atom->molecule;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 

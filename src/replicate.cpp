@@ -83,11 +83,11 @@ void Replicate::command(int narg, char **arg)
 
   // maxmol = largest molecule tag across all existing atoms
 
-  int maxmol = 0;
+  tagint maxmol = 0;
   if (atom->molecule_flag) {
     for (i = 0; i < atom->nlocal; i++) maxmol = MAX(atom->molecule[i],maxmol);
-    int maxmol_all;
-    MPI_Allreduce(&maxmol,&maxmol_all,1,MPI_INT,MPI_MAX,world);
+    tagint maxmol_all;
+    MPI_Allreduce(&maxmol,&maxmol_all,1,MPI_LMP_TAGINT,MPI_MAX,world);
     maxmol = maxmol_all;
   }
 
@@ -254,8 +254,8 @@ void Replicate::command(int narg, char **arg)
   AtomVec *old_avec = old->avec;
   AtomVec *avec = atom->avec;
 
-  int ix,iy,iz,mol_offset;
-  tagint atom_offset;
+  int ix,iy,iz;
+  tagint atom_offset,mol_offset;
   imageint image;
   double x[3],lamda[3];
   double *coord;

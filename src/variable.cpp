@@ -3521,6 +3521,7 @@ void Variable::atom_vector(char *word, Tree **tree,
       newtree->barray = (bigint *) atom->tag;
     }
     newtree->nstride = 1;
+
   } else if (strcmp(word,"mass") == 0) {
     if (atom->rmass) {
       newtree->nstride = 1;
@@ -3529,17 +3530,25 @@ void Variable::atom_vector(char *word, Tree **tree,
       newtree->type = TYPEARRAY;
       newtree->array = atom->mass;
     }
+
   } else if (strcmp(word,"type") == 0) {
     newtree->type = INTARRAY;
     newtree->nstride = 1;
     newtree->iarray = atom->type;
+
   } else if (strcmp(word,"mol") == 0) {
     if (!atom->molecule_flag) 
       error->one(FLERR,"Variable uses atom property that isn't allocated");
-    newtree->type = INTARRAY;
+    if (sizeof(tagint) == sizeof(smallint)) {
+      newtree->type = INTARRAY;
+      newtree->iarray = atom->molecule;
+    } else {
+      newtree->type = BIGINTARRAY;
+      newtree->barray = (bigint *) atom->molecule;
+    }
     newtree->nstride = 1;
-    newtree->iarray = atom->molecule;
   }
+
   else if (strcmp(word,"x") == 0) newtree->array = &atom->x[0][0];
   else if (strcmp(word,"y") == 0) newtree->array = &atom->x[0][1];
   else if (strcmp(word,"z") == 0) newtree->array = &atom->x[0][2];

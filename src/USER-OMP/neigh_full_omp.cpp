@@ -50,7 +50,7 @@ void Neighbor::full_nsq_omp(NeighList *list)
   double **x = atom->x;
   int *type = atom->type;
   int *mask = atom->mask;
-  int *molecule = atom->molecule;
+  tagint *molecule = atom->molecule;
   int nall = atom->nlocal + atom->nghost;
   int molecular = atom->molecular;
 
@@ -138,7 +138,7 @@ void Neighbor::full_nsq_ghost_omp(NeighList *list)
   double **x = atom->x;
   int *type = atom->type;
   int *mask = atom->mask;
-  int *molecule = atom->molecule;
+  tagint *molecule = atom->molecule;
   int molecular = atom->molecular;
 
   int *ilist = list->ilist;
@@ -242,7 +242,7 @@ void Neighbor::full_bin_omp(NeighList *list)
   double **x = atom->x;
   int *type = atom->type;
   int *mask = atom->mask;
-  int *molecule = atom->molecule;
+  tagint *molecule = atom->molecule;
   int molecular = atom->molecular;
 
   int *ilist = list->ilist;
@@ -341,7 +341,7 @@ void Neighbor::full_bin_ghost_omp(NeighList *list)
   double **x = atom->x;
   int *type = atom->type;
   int *mask = atom->mask;
-  int *molecule = atom->molecule;
+  tagint *molecule = atom->molecule;
   int molecular = atom->molecular;
 
   int *ilist = list->ilist;
@@ -469,7 +469,7 @@ void Neighbor::full_multi_omp(NeighList *list)
   double **x = atom->x;
   int *type = atom->type;
   int *mask = atom->mask;
-  int *molecule = atom->molecule;
+  tagint *molecule = atom->molecule;
   int molecular = atom->molecular;
 
   int *ilist = list->ilist;

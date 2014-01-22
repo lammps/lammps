@@ -451,11 +451,12 @@ void Set::selection(int n)
   } else if (style == MOL_SELECT) {
     if (atom->molecule_flag == 0)
       error->all(FLERR,"Cannot use set mol with no molecule IDs defined");
-    else force->bounds(id,BIG,nlo,nhi,0);
+    bigint nlobig,nhibig;
+    force->boundsbig(id,MAXTAGINT,nlobig,nhibig);
 
-    int *molecule = atom->molecule;
+    tagint *molecule = atom->molecule;
     for (int i = 0; i < n; i++)
-      if (molecule[i] >= nlo && molecule[i] <= nhi) select[i] = 1;
+      if (molecule[i] >= nlobig && molecule[i] <= nhibig) select[i] = 1;
       else select[i] = 0;
 
   } else if (style == TYPE_SELECT) {

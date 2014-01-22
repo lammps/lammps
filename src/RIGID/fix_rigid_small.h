@@ -81,7 +81,7 @@ class FixRigidSmall : public Fix {
   int firstflag;            // 1 for first-time setup of rigid bodies
   int commflag;             // various modes of forward/reverse comm
   int nbody;                // total # of rigid bodies
-  int maxmol;               // max mol-ID
+  tagint maxmol;            // max mol-ID
   double maxextent;         // furthest distance from body owner to body atom
 
   struct Body {

@@ -34,7 +34,7 @@ class ComputeInertiaMolecule : public Compute {
 
  private:
   int nmolecules;
-  int idlo,idhi;
+  tagint idlo,idhi;
 
   double *massproc,*masstotal;
   double **com,**comall;

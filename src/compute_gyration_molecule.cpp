@@ -73,18 +73,18 @@ ComputeGyrationMolecule::ComputeGyrationMolecule(LAMMPS *lmp,
   // compute masstotal for each molecule
 
   int *mask = atom->mask;
-  int *molecule = atom->molecule;
+  tagint *molecule = atom->molecule;
   int *type = atom->type;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
 
-  int i,imol;
+  tagint imol;
   double massone;
 
-  for (i = 0; i < nmolecules; i++) massproc[i] = 0.0;
+  for (int i = 0; i < nmolecules; i++) massproc[i] = 0.0;
 
-  for (i = 0; i < nlocal; i++)
+  for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       if (rmass) massone = rmass[i];
       else massone = mass[type[i]];
@@ -122,7 +122,7 @@ void ComputeGyrationMolecule::init()
 
 void ComputeGyrationMolecule::compute_vector()
 {
-  int i,imol;
+  tagint imol;
   double dx,dy,dz,massone;
   double unwrap[3];
 
@@ -130,18 +130,18 @@ void ComputeGyrationMolecule::compute_vector()
 
   molcom();
 
-  for (i = 0; i < nmolecules; i++) rg[i] = 0.0;
+  for (int i = 0; i < nmolecules; i++) rg[i] = 0.0;
 
   double **x = atom->x;
   int *mask = atom->mask;
-  int *molecule = atom->molecule;
+  tagint *molecule = atom->molecule;
   int *type = atom->type;
   imageint *image = atom->image;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
 
-  for (i = 0; i < nlocal; i++)
+  for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       imol = molecule[i];
       if (molmap) imol = molmap[imol-idlo];
@@ -157,14 +157,16 @@ void ComputeGyrationMolecule::compute_vector()
 
   MPI_Allreduce(rg,vector,nmolecules,MPI_DOUBLE,MPI_SUM,world);
 
-  for (i = 0; i < nmolecules; i++) vector[i] = sqrt(vector[i]/masstotal[i]);
+  for (int i = 0; i < nmolecules; i++)
+    vector[i] = sqrt(vector[i]/masstotal[i]);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void ComputeGyrationMolecule::compute_array()
 {
-  int i,j,imol;
+  int i,j;
+  tagint imol;
   double dx,dy,dz,massone;
   double unwrap[3];
 
@@ -178,7 +180,7 @@ void ComputeGyrationMolecule::compute_array()
 
   double **x = atom->x;
   int *mask = atom->mask;
-  int *molecule = atom->molecule;
+  tagint *molecule = atom->molecule;
   int *type = atom->type;
   imageint *image = atom->image;
   double *mass = atom->mass;
@@ -220,23 +222,23 @@ void ComputeGyrationMolecule::compute_array()
 
 void ComputeGyrationMolecule::molcom()
 {
-  int i,imol;
+  tagint imol;
   double dx,dy,dz,massone;
   double unwrap[3];
 
-  for (i = 0; i < nmolecules; i++)
+  for (int i = 0; i < nmolecules; i++)
     com[i][0] = com[i][1] = com[i][2] = 0.0;
 
   double **x = atom->x;
   int *mask = atom->mask;
-  int *molecule = atom->molecule;
+  tagint *molecule = atom->molecule;
   int *type = atom->type;
   imageint *image = atom->image;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
 
-  for (i = 0; i < nlocal; i++)
+  for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       imol = molecule[i];
       if (molmap) imol = molmap[imol-idlo];
@@ -251,7 +253,7 @@ void ComputeGyrationMolecule::molcom()
 
   MPI_Allreduce(&com[0][0],&comall[0][0],3*nmolecules,
                 MPI_DOUBLE,MPI_SUM,world);
-  for (i = 0; i < nmolecules; i++) {
+  for (int i = 0; i < nmolecules; i++) {
     comall[i][0] /= masstotal[i];
     comall[i][1] /= masstotal[i];
     comall[i][2] /= masstotal[i];
@@ -264,10 +266,10 @@ void ComputeGyrationMolecule::molcom()
 
 double ComputeGyrationMolecule::memory_usage()
 {
-  double bytes = 2*nmolecules * sizeof(double);
+  double bytes = (bigint) nmolecules * 2 * sizeof(double);
   if (molmap) bytes += (idhi-idlo+1) * sizeof(int);
-  bytes += 2*nmolecules*3 * sizeof(double);
-  if (tensor) bytes += 2*6*nmolecules * sizeof(double);
-  else bytes += 2*nmolecules * sizeof(double);
+  bytes += (bigint) nmolecules * 2*3 * sizeof(double);
+  if (tensor) bytes += (bigint) nmolecules * 2*6 * sizeof(double);
+  else bytes += (bigint) nmolecules * 2 * sizeof(double);
   return bytes;
 }

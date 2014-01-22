@@ -50,7 +50,7 @@ void Neighbor::granular_nsq_no_newton(NeighList *list)
   tagint *tag = atom->tag;
   int *type = atom->type;
   int *mask = atom->mask;
-  int *molecule = atom->molecule;
+  tagint *molecule = atom->molecule;
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
   if (includegroup) {
@@ -178,7 +178,7 @@ void Neighbor::granular_nsq_newton(NeighList *list)
   tagint *tag = atom->tag;
   int *type = atom->type;
   int *mask = atom->mask;
-  int *molecule = atom->molecule;
+  tagint *molecule = atom->molecule;
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
   if (includegroup) {
@@ -284,7 +284,7 @@ void Neighbor::granular_bin_no_newton(NeighList *list)
   tagint *tag = atom->tag;
   int *type = atom->type;
   int *mask = atom->mask;
-  int *molecule = atom->molecule;
+  tagint *molecule = atom->molecule;
   int nlocal = atom->nlocal;
   if (includegroup) nlocal = atom->nfirst;
 
@@ -420,7 +420,7 @@ void Neighbor::granular_bin_newton(NeighList *list)
   double *radius = atom->radius;
   int *type = atom->type;
   int *mask = atom->mask;
-  int *molecule = atom->molecule;
+  tagint *molecule = atom->molecule;
   int nlocal = atom->nlocal;
   if (includegroup) nlocal = atom->nfirst;
 
@@ -522,7 +522,7 @@ void Neighbor::granular_bin_newton_tri(NeighList *list)
   double *radius = atom->radius;
   int *type = atom->type;
   int *mask = atom->mask;
-  int *molecule = atom->molecule;
+  tagint *molecule = atom->molecule;
   int nlocal = atom->nlocal;
   if (includegroup) nlocal = atom->nfirst;
 

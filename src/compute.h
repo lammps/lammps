@@ -130,7 +130,7 @@ class Compute : protected Pointers {
 
   int *molmap;                 // convert molecule ID to local index
 
-  int molecules_in_group(int &, int &);
+  int molecules_in_group(tagint &, tagint &);
 
   inline int sbmask(int j) {
     return j >> SBBITS & 3;

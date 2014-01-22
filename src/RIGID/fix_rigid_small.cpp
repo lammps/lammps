@@ -107,15 +107,15 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   // maxmol = largest molecule #
 
   int *mask = atom->mask;
-  int *molecule = atom->molecule;
+  tagint *molecule = atom->molecule;
   int nlocal = atom->nlocal;
 
   maxmol = -1;
   for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) maxmol = MAX(maxmol,molecule[i]);
 
-  int itmp;
-  MPI_Allreduce(&maxmol,&itmp,1,MPI_INT,MPI_MAX,world);
+  tagint itmp;
+  MPI_Allreduce(&maxmol,&itmp,1,MPI_LMP_TAGINT,MPI_MAX,world);
   maxmol = itmp;
 
   // parse optional args
@@ -2147,8 +2147,8 @@ void FixRigidSmall::setup_bodies_dynamic()
 
 void FixRigidSmall::readfile(int which, double **array, int *inbody)
 {
-  int i,j,m,nchunk,id,eofflag;
-  int nlines;
+  int i,j,m,nchunk,eofflag,nlines;
+  tagint id;
   FILE *fp;
   char *eof,*start,*next,*buf;
   char line[MAXLINE];
@@ -2157,10 +2157,10 @@ void FixRigidSmall::readfile(int which, double **array, int *inbody)
   // key = mol ID of bodies my atoms own
   // value = index into local body array
 
-  int *molecule = atom->molecule;
+  tagint *molecule = atom->molecule;
   int nlocal = atom->nlocal;
 
-  hash = new std::map<int,int>();
+  hash = new std::map<tagint,int>();
   for (int i = 0; i < nlocal; i++)
     if (bodyown[i] >= 0) (*hash)[atom->molecule[i]] = bodyown[i];
 
@@ -2219,28 +2219,28 @@ void FixRigidSmall::readfile(int which, double **array, int *inbody)
       for (j = 1; j < nwords; j++)
         values[j] = strtok(NULL," \t\n\r\f");
 
-      id = atoi(values[0]);
+      id = ATOTAGINT(values[0]);
       if (id <= 0 || id > maxmol) 
         error->all(FLERR,"Invalid rigid body ID in fix rigid/small file");
       if (hash->find(id) == hash->end()) {
         buf = next + 1;
         continue;
       }
-      id = (*hash)[id];
-      inbody[id] = 1;
+      m = (*hash)[id];
+      inbody[m] = 1;
 
       if (which == 0) {
-        body[id].mass = atof(values[1]);
-        body[id].xcm[0] = atof(values[2]);
-        body[id].xcm[1] = atof(values[3]);
-        body[id].xcm[2] = atof(values[4]);
+        body[m].mass = atof(values[1]);
+        body[m].xcm[0] = atof(values[2]);
+        body[m].xcm[1] = atof(values[3]);
+        body[m].xcm[2] = atof(values[4]);
       } else {
-        array[id][0] = atof(values[5]);
-        array[id][1] = atof(values[6]);
-        array[id][2] = atof(values[7]);
-        array[id][3] = atof(values[10]);
-        array[id][4] = atof(values[9]);
-        array[id][5] = atof(values[8]);
+        array[m][0] = atof(values[5]);
+        array[m][1] = atof(values[6]);
+        array[m][2] = atof(values[7]);
+        array[m][3] = atof(values[10]);
+        array[m][4] = atof(values[9]);
+        array[m][5] = atof(values[8]);
       }
 
       buf = next + 1;

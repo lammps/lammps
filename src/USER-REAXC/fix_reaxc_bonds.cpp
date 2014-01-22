@@ -290,7 +290,7 @@ void FixReaxCBonds::RecvBuffer(double *buf, int nbuf, int nbuf_local,
         avqtmp = buf[j+3];
         numbonds = nint(buf[j+4]);
 
-        fprintf(fp," %d %d %d",itag,itype,numbonds);
+        fprintf(fp," " TAGINT_FORMAT " %d %d",itag,itype,numbonds);
 
         for (k = 5; k < 5+numbonds; k++) {
           jtag = static_cast<tagint> (buf[j+k]);
@@ -298,7 +298,7 @@ void FixReaxCBonds::RecvBuffer(double *buf, int nbuf, int nbuf_local,
         }
         j += (5+numbonds);
 
-        fprintf(fp," %d",nint(buf[j]));
+        fprintf(fp," " TAGINT_FORMAT,static_cast<tagint> (buf[j]));
         j ++;
 
         for (k = 0; k < numbonds; k++) {

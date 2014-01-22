@@ -63,7 +63,7 @@ void Neighbor::granular_nsq_no_newton_omp(NeighList *list)
   int *tag = atom->tag;
   int *type = atom->type;
   int *mask = atom->mask;
-  int *molecule = atom->molecule;
+  tagint *molecule = atom->molecule;
   int nall = atom->nlocal + atom->nghost;
 
   int *ilist = list->ilist;
@@ -192,7 +192,7 @@ void Neighbor::granular_nsq_newton_omp(NeighList *list)
   int *tag = atom->tag;
   int *type = atom->type;
   int *mask = atom->mask;
-  int *molecule = atom->molecule;
+  tagint *molecule = atom->molecule;
   int nall = atom->nlocal + atom->nghost;
 
   int *ilist = list->ilist;
@@ -304,7 +304,7 @@ void Neighbor::granular_bin_no_newton_omp(NeighList *list)
   int *tag = atom->tag;
   int *type = atom->type;
   int *mask = atom->mask;
-  int *molecule = atom->molecule;
+  tagint *molecule = atom->molecule;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -443,7 +443,7 @@ void Neighbor::granular_bin_newton_omp(NeighList *list)
   double *radius = atom->radius;
   int *type = atom->type;
   int *mask = atom->mask;
-  int *molecule = atom->molecule;
+  tagint *molecule = atom->molecule;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -552,7 +552,7 @@ void Neighbor::granular_bin_newton_tri_omp(NeighList *list)
   double *radius = atom->radius;
   int *type = atom->type;
   int *mask = atom->mask;
-  int *molecule = atom->molecule;
+  tagint *molecule = atom->molecule;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;

@@ -35,7 +35,7 @@ class ComputePropertyMolecule : public Compute {
 
  private:
   int nvalues,nmolecules;
-  int idlo,idhi;
+  tagint idlo,idhi;
 
   double *buf;
 

@@ -666,7 +666,7 @@ void FixPour::pre_exchange()
 void FixPour::find_maxid()
 {
   tagint *tag = atom->tag;
-  int *molecule = atom->molecule;
+  tagint *molecule = atom->molecule;
   int nlocal = atom->nlocal;
 
   tagint max = 0;
@@ -676,7 +676,7 @@ void FixPour::find_maxid()
   if (mode == MOLECULE && molecule) {
     max = 0;
     for (int i = 0; i < nlocal; i++) max = MAX(max,molecule[i]);
-    MPI_Allreduce(&max,&maxmol_all,1,MPI_INT,MPI_MAX,world);
+    MPI_Allreduce(&max,&maxmol_all,1,MPI_LMP_TAGINT,MPI_MAX,world);
   }
 }
 

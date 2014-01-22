@@ -34,7 +34,7 @@ class ComputeMSDMolecule : public Compute {
 
  private:
   int nmolecules;
-  int idlo,idhi;
+  tagint idlo,idhi;
   int firstflag;
 
   double *massproc,*masstotal;

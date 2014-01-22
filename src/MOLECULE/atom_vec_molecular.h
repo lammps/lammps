@@ -61,7 +61,7 @@ class AtomVecMolecular : public AtomVec {
   int *type,*mask;
   imageint *image;
   double **x,**v,**f;
-  int *molecule;
+  tagint *molecule;
   int **nspecial;
   tagint **special;
   int *num_bond;

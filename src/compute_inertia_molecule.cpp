@@ -51,18 +51,18 @@ ComputeInertiaMolecule(LAMMPS *lmp, int narg, char **arg) :
   // compute masstotal for each molecule
 
   int *mask = atom->mask;
-  int *molecule = atom->molecule;
+  tagint *molecule = atom->molecule;
   int *type = atom->type;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
 
-  int i,imol;
+  tagint imol;
   double massone;
 
-  for (i = 0; i < nmolecules; i++) massproc[i] = 0.0;
+  for (int i = 0; i < nmolecules; i++) massproc[i] = 0.0;
 
-  for (i = 0; i < nlocal; i++)
+  for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       if (rmass) massone = rmass[i];
       else massone = mass[type[i]];
@@ -100,7 +100,8 @@ void ComputeInertiaMolecule::init()
 
 void ComputeInertiaMolecule::compute_array()
 {
-  int i,j,imol;
+  int i,j;
+  tagint imol;
   double dx,dy,dz,massone;
   double unwrap[3];
 
@@ -108,7 +109,7 @@ void ComputeInertiaMolecule::compute_array()
 
   double **x = atom->x;
   int *mask = atom->mask;
-  int *molecule = atom->molecule;
+  tagint *molecule = atom->molecule;
   int *type = atom->type;
   imageint *image = atom->image;
   double *mass = atom->mass;
@@ -176,9 +177,9 @@ void ComputeInertiaMolecule::compute_array()
 
 double ComputeInertiaMolecule::memory_usage()
 {
-  double bytes = 2*nmolecules * sizeof(double);
+  double bytes = (bigint) nmolecules * 2 * sizeof(double);
   if (molmap) bytes += (idhi-idlo+1) * sizeof(int);
-  bytes += 2*nmolecules*3 * sizeof(double);
-  bytes += 2*nmolecules*6 * sizeof(double);
+  bytes += (bigint) nmolecules * 2*3 * sizeof(double);
+  bytes += (bigint) nmolecules * 2*6 * sizeof(double);
   return bytes;
 }

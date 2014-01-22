@@ -366,7 +366,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
     }
   }
 
-  // check datatype settings in lmptype.h
+  // check consistency of datatype settings in lmptype.h
 
   if (sizeof(smallint) != sizeof(int))
     error->all(FLERR,"Smallint setting in lmptype.h is invalid");
@@ -378,6 +378,10 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
     error->all(FLERR,"Bigint setting in lmptype.h is invalid");
 
   int mpisize;
+  MPI_Type_size(MPI_LMP_TAGINT,&mpisize);
+  if (mpisize != sizeof(tagint))
+      error->all(FLERR,"MPI_LMP_TAGINT and tagint in "
+                 "lmptype.h are not compatible");
   MPI_Type_size(MPI_LMP_BIGINT,&mpisize);
   if (mpisize != sizeof(bigint))
       error->all(FLERR,"MPI_LMP_BIGINT and bigint in "

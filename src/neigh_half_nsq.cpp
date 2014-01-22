@@ -39,7 +39,7 @@ void Neighbor::half_nsq_no_newton(NeighList *list)
   double **x = atom->x;
   int *type = atom->type;
   int *mask = atom->mask;
-  int *molecule = atom->molecule;
+  tagint *molecule = atom->molecule;
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
   int molecular = atom->molecular;
@@ -123,7 +123,7 @@ void Neighbor::half_nsq_no_newton_ghost(NeighList *list)
   double **x = atom->x;
   int *type = atom->type;
   int *mask = atom->mask;
-  int *molecule = atom->molecule;
+  tagint *molecule = atom->molecule;
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
   int molecular = atom->molecular;
@@ -228,7 +228,7 @@ void Neighbor::half_nsq_newton(NeighList *list)
   double **x = atom->x;
   int *type = atom->type;
   int *mask = atom->mask;
-  int *molecule = atom->molecule;
+  tagint *molecule = atom->molecule;
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
   int molecular = atom->molecular;

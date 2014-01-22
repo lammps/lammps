@@ -121,6 +121,15 @@ dump_modify 1 amap min max cf 0.0 3 min green 0.5 yellow max blue boxcolor red
 <P>Modify the parameters of a previously defined dump command.  Not all
 parameters are relevant to all dump styles.
 </P>
+<P>As explained on the <A HREF = "dump.html">dump</A> doc page, the <I>atom/mpiio</I>,
+<I>custom/mpiio</I>, and <I>xyz/mpiio</I> dump styles are identical in command
+syntax and in the format of the dump files they create, to the
+corresponding styles without "mpiio", except the single dump file they
+produce is written in parallel via the MPI-IO library.  Thus if a
+dump_modify option below is valid for the <I>atom</I> style, it is also
+valid for the <I>atom/mpiio</I> style, and similarly for the other styles
+which allow for use of MPI-IO.
+</P>
 <HR>
 
 <HR>

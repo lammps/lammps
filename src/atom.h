@@ -113,9 +113,12 @@ class Atom : protected Pointers {
   int cs_flag,csforce_flag,vforce_flag,ervelforce_flag,etag_flag;
   int rho_flag,e_flag,cv_flag,vest_flag;
 
-  // molecules
+  // molecule templates
+  // each template can be a set of consecutive molecules
+  // each with same ID (stored in molecules)
+  // 1st molecule in template stores nset = # in set
 
-  int nmolecule,maxmol;
+  int nmolecule;
   class Molecule **molecules;
 
   // extra peratom info in restart file destined for fix & diag

@@ -152,7 +152,11 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid/small command");
       int imol = atom->find_molecule(arg[iarg+1]);
       if (imol == -1)
-        error->all(FLERR,"Molecule ID for fix rigid/small does not exist");
+        error->all(FLERR,"Molecule template ID for "
+                   "fix rigid/small does not exist");
+      if (atom->molecules[imol]->nset > 1 && comm->me == 0)
+        error->warning(FLERR,"Molecule template for "
+                       "fix rigid/small has multiple molecules");
       onemol = atom->molecules[imol];
       iarg += 2;
     } else error->all(FLERR,"Illegal fix rigid/small command");

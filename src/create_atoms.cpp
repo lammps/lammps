@@ -124,8 +124,11 @@ void CreateAtoms::command(int narg, char **arg)
     } else if (strcmp(arg[iarg],"mol") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal create_atoms command");
       int imol = atom->find_molecule(arg[iarg+1]);
-      if (imol == -1)
-        error->all(FLERR,"Molecule ID for create_atoms does not exist");
+      if (imol == -1) error->all(FLERR,"Molecule template ID for "
+                                 "create_atoms does not exist");
+      if (atom->molecules[imol]->nset > 1 && comm->me == 0)
+        error->warning(FLERR,"Molecule template for "
+                       "create_atoms has multiple molecules");
       mode = MOLECULE;
       onemol = atom->molecules[imol];
       molseed = force->inumeric(FLERR,arg[iarg+2]);

@@ -577,10 +577,13 @@ void FixDeposit::options(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix deposit command");
       int imol = atom->find_molecule(arg[iarg+1]);
       if (imol == -1)
-        error->all(FLERR,"Molecule ID for fix deposit does not exist");
+        error->all(FLERR,"Molecule template ID for fix deposit does not exist");
+      if (atom->molecules[imol]->nset > 1 && comm->me == 0)
+        error->warning(FLERR,"Molecule template for "
+                       "fix deposit has multiple molecules");
       mode = MOLECULE;
       onemol = atom->molecules[imol];
-     iarg += 2;
+      iarg += 2;
     } else if (strcmp(arg[iarg],"rigid") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix deposit command");
       int n = strlen(arg[iarg+1]) + 1;

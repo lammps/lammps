@@ -155,7 +155,10 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix shake command");
       int imol = atom->find_molecule(arg[iarg+1]);
       if (imol == -1)
-        error->all(FLERR,"Molecule ID for fix shake does not exist");
+        error->all(FLERR,"Molecule template ID for fix shake does not exist");
+      if (atom->molecules[imol]->nset > 1 && comm->me == 0)
+        error->warning(FLERR,"Molecule template for "
+                       "fix shake has multiple molecules");
       onemol = atom->molecules[imol];
       iarg += 2;
     } else error->all(FLERR,"Illegal fix shake command");
@@ -164,7 +167,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   // error check for Molecule template
 
   if (onemol && onemol->shakeflag == 0)
-    error->all(FLERR,"Fix shake molecule must have shake info");
+    error->all(FLERR,"Fix shake molecule template must have shake info");
 
   // allocate bond and angle distance arrays, indexed from 1 to n
 

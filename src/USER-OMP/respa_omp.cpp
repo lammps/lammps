@@ -144,8 +144,8 @@ void RespaOMP::setup()
     copy_f_flevel(ilevel);
   }
 
-  modify->setup(vflag);
   sum_flevel_f();
+  modify->setup(vflag);
   output->setup();
   update->setupflag = 0;
 }
@@ -231,8 +231,8 @@ void RespaOMP::setup_minimal(int flag)
     copy_f_flevel(ilevel);
   }
 
-  modify->setup(vflag);
   sum_flevel_f();
+  modify->setup(vflag);
   update->setupflag = 0;
 }
 
@@ -290,6 +290,12 @@ void RespaOMP::recurse(int ilevel)
       comm->forward_comm();
       timer->stamp(Timer::COMM);
     }
+
+    // rRESPA recursion thru all levels
+    // this used to be before neigh list build,
+    // which prevented per-atom energy/stress being tallied correctly
+    // b/c atoms migrated to new procs between short/long force calls
+    // now they migrate at very start of rRESPA timestep, before all forces
 
     if (ilevel) recurse(ilevel-1);
 

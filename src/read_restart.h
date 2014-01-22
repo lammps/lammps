@@ -38,8 +38,13 @@ class ReadRestart : protected Pointers {
   int multiproc;             // 0 = proc 0 writes for all
                              // else # of procs writing files
 
+  // MPI-IO values
+
   int mpiioflag;               // 1 for MPIIO output, else 0
   class RestartMPIIO *mpiio;   // MPIIO for restart file input
+  int numChunksAssigned;
+  long assignedChunkSize;
+  MPI_Offset assignedChunkOffset,headerOffset;
 
   void file_search(char *, char *);
   void header(int);

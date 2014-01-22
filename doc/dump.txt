@@ -17,15 +17,17 @@ dump ID group-ID style N file args :pre
 
 ID = user-assigned name for the dump :ulb,l
 group-ID = ID of the group of atoms to be dumped :l
-style = {atom} or {cfg} or {dcd} or {xtc} or {xyz} or {image} or {molfile} or {local} or {custom} :l
+style = {atom} or {aotm\mpiio} or {cfg} or {dcd} or {xtc} or {xyz} or {xyz/mpiio} or {image} or {molfile} or {local} or {custom} or {custom/mpiio} :l
 N = dump every this many timesteps :l
 file = name of file to write dump info to :l
 args = list of arguments for a particular style :l
   {atom} args = none
+  {atom/mpiio} args = none
   {cfg} args = same as {custom} args, see below
   {dcd} args = none
   {xtc} args = none
   {xyz} args = none :pre
+  {xyz/mpiio} args = none :pre
 
   {image} args = discussed on "dump image"_dump_image.html doc page :pre
 
@@ -40,6 +42,7 @@ args = list of arguments for a particular style :l
       f_ID\[N\] = Nth column of local array calculated by a fix with ID :pre
 
   {custom} args = list of atom attributes
+  {custom/mpiio} args = list of atom attributes
     possible attributes = id, mol, type, element, mass,
 			  x, y, z, xs, ys, zs, xu, yu, zu, 
 			  xsu, ysu, zsu, ix, iy, iz,
@@ -83,7 +86,9 @@ args = list of arguments for a particular style :l
 [Examples:]
 
 dump myDump all atom 100 dump.atom
+dump myDump all atom/mpiio 100 dump.atom.mpiio
 dump 2 subgroup atom 50 dump.run.bin
+dump 2 subgroup atom 50 dump.run.mpiio.bin
 dump 4a all custom 100 dump.myforce.* id type x y vx fx
 dump 4b flow custom 100 dump.%.myforce id type c_myF\[3\] v_ke
 dump 2 inner cfg 10 dump.snap.*.cfg mass type xs ys zs vx vy vz
@@ -129,6 +134,15 @@ For the {atom}, {custom}, {cfg}, and {local} styles, sorting is off by
 default.  For the {dcd}, {xtc}, {xyz}, and {molfile} styles, sorting by
 atom ID is on by default. See the "dump_modify"_dump_modify.html doc
 page for details.
+
+As explained below, the {atom/mpiio}, {custom/mpiio}, and {xyz/mpiio}
+styles are identical in command syntax and in the format of the dump
+files they create, to the corresponding styles without "mpiio", except
+the single dump file they produce is written in parallel via the
+MPI-IO library.  For the remainder of this doc page, you should thus
+consider the {atom} and {atom/mpiio} styles (etc) to be
+inter-changeable.  The one exception is how the filename is specified
+for the MPI-IO styles, as explained below.
 
 :line
 
@@ -338,6 +352,31 @@ when running on large numbers of processors.
 
 Note that using the "*" and "%" characters together can produce a
 large number of small dump files!
+
+For the {atom/mpiio}, {custom/mpiio}, and {xyz/mpiio} styles, a single
+dump file is written in parallel via the MPI-IO library, which is part
+of the MPI standard for versions 2.0 and above.  Using MPI-IO requires
+two steps.  First, build LAMMPS with its MPIIO package installed, e.g.
+
+make yes-mpiio    # installs the MPIIO package
+make g++          # build LAMMPS for your platform :pre
+
+Second, use a dump filename which contains ".mpiio".  Note that it
+does not have to end in ".mpiio", just contain those characters.
+Unlike MPI-IO restart files, which must be both written and read using
+MPI-IO, the dump files produced by these MPI-IO styles are identical
+in format to the files produced by their non-MPI-IO style
+counterparts.  This means you can write a dump file using MPI-IO and
+use the "read_dump"_read_dump.html command or perform other
+post-processing, just as if the dump file was not written using
+MPI-IO.
+
+Note that MPI-IO dump files are one large file which all processors
+write to.  You thus cannot use the "%" wildcard character described
+above in the filename since that specifies generation of multiple
+files.  You can use the ".bin" suffix described below in an MPI-IO
+dump file; again this file will be written in parallel and have the
+same binary format as if it were written without MPI-IO.
 
 If the filename ends with ".bin", the dump file (or files, if "*" or
 "%" is also used) is written in binary format.  A binary dump file

@@ -11,37 +11,30 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef LMP_MPIIO_H
-#define LMP_MPIIO_H
+#ifndef LMP_RESTART_MPIIO_H
+#define LMP_RESTART_MPIIO_H
 
-// true interface to MPIIO package
-// used when MPIIO pacakge is installed
-
-#ifdef LMP_MPIIO
-
-#include "restart_mpiio.h"
-
-#else
-
-// dummy interface to MPIIO package
-// needed for compiling when MPIIO package is not installed
+#include "pointers.h"
 
 namespace LAMMPS_NS {
 
-class RestartMPIIO {
+class RestartMPIIO  : protected Pointers {
+ private:
+   MPI_File mpifh;
+   int nprocs, myrank;
+
  public:
   int mpiio_exists;
 
-  RestartMPIIO(class LAMMPS *) {mpiio_exists = 0;}
+  RestartMPIIO(class LAMMPS *);
   ~RestartMPIIO() {}
-  void openForRead(char *) {}
-  void openForWrite(char *) {}
-  void write(MPI_Offset,int,double *) {}
-  void read(MPI_Offset,long,double *) {}
-  void close() {}
+  void openForRead(char *);
+  void openForWrite(char *);
+  void write(MPI_Offset, int, double *);
+  void read(MPI_Offset, long, double *);
+  void close();
 };
 
 }
 
-#endif
 #endif

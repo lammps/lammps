@@ -98,7 +98,7 @@ void WriteRestart::command(int narg, char **arg)
 
   if (strchr(arg[0],'%')) multiproc = nprocs;
   else multiproc = 0;
-  if (strstr(arg[0],".mpi")) mpiioflag = 1;
+  if (strstr(arg[0],".mpiio")) mpiioflag = 1;
   else mpiioflag = 0;
 
   // setup output style and process optional args
@@ -380,13 +380,10 @@ void WriteRestart::write(char *file)
   // MPI-IO output to single file
 
   if (mpiioflag) {
-    // add calls to RestartMPIIO class
-    // reopen header file in append mode
-    // perform writes
-
-    // mpiio->open(file);
-    // mpiio->write(send_size,buf);
-    // mpiio->close();
+    if (me == 0) fclose(fp);
+    mpiio->openForWrite(file);
+    mpiio->write(headerOffset,send_size,buf);
+    mpiio->close();
   }
 
   // output of one or more native files
@@ -562,14 +559,27 @@ void WriteRestart::file_layout(int send_size)
     write_int(MPIIO,mpiioflag);
   }
 
-  // NOTE: could add MPI-IO specific fields to header here
-  // e.g. gather send_size across all procs and call write_int_vec()
+  if (mpiioflag) {
+    int *all_send_sizes;
+    memory->create(all_send_sizes,nprocs,"write_restart:all_send_sizes");
+    MPI_Gather(&send_size, 1, MPI_INT, all_send_sizes, 1, MPI_INT, 0,world);
+    if (me == 0) fwrite(all_send_sizes,sizeof(int),nprocs,fp);
+    memory->destroy(all_send_sizes);
+  }
 
   // -1 flag signals end of file layout info
 
   if (me == 0) {
     int flag = -1;
     fwrite(&flag,sizeof(int),1,fp);
+  }
+
+  // if MPI-IO file, broadcast the end of the header offste
+  // this allows all ranks to compute offset to their data
+
+  if (mpiioflag) {
+    if (me == 0) headerOffset = ftell(fp);
+    MPI_Bcast(&headerOffset,1,MPI_LONG,0,world);
   }
 }
 

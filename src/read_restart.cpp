@@ -98,7 +98,7 @@ void ReadRestart::command(int narg, char **arg)
 
   if (strchr(arg[0],'%')) multiproc = 1;
   else multiproc = 0;
-  if (strstr(arg[0],".mpi")) mpiioflag = 1;
+  if (strstr(arg[0],".mpiio")) mpiioflag = 1;
   else mpiioflag = 0;
 
   if (multiproc && mpiioflag) 
@@ -190,19 +190,13 @@ void ReadRestart::command(int narg, char **arg)
   // MPI-IO input from single file
 
   if (mpiioflag) {
-    // add calls to RestartMPIIO class
-    // reopen header file
-    // perform reads
-    // allow for different # of procs reading than wrote the file
+    mpiio->openForRead(file);
+    memory->create(buf,assignedChunkSize,"read_restart:buf");
+    mpiio->read((headerOffset+assignedChunkOffset),assignedChunkSize,buf);
+    mpiio->close();
 
-    // mpiio->open(file);
-    // mpiio->read();
-    // mpiio->close();
-
-    // then process atom info as
-
-    //m = 0;
-    //while (m < n) m += avec->unpack_restart(&buf[m]);
+    m = 0;
+    while (m < assignedChunkSize) m += avec->unpack_restart(&buf[m]);
   }
 
   // input of single native file
@@ -937,12 +931,80 @@ void ReadRestart::file_layout()
         error->all(FLERR,"Restart file is a MPI-IO file");
       if (mpiioflag && mpiioflag_file == 0)
         error->all(FLERR,"Restart file is not a MPI-IO file");
+
+      if (mpiioflag) { 
+        long *nproc_chunk_offsets;
+        memory->create(nproc_chunk_offsets,nprocs,
+                       "write_restart:nproc_chunk_offsets");
+        long *nproc_chunk_sizes;
+        memory->create(nproc_chunk_sizes,nprocs,
+                       "write_restart:nproc_chunk_sizes");
+
+        // on rank 0 read in the chunk sizes that were written out
+        // then consolidate them and compute offsets relative to the
+        // end of the header info to fit the current partition size
+        // if the number of ranks that did the writing is different
+
+        if (me == 0) {
+          int *all_written_send_sizes;
+          memory->create(all_written_send_sizes,nprocs_file,
+                         "write_restart:all_written_send_sizes");
+          int *nproc_chunk_number;
+          memory->create(nproc_chunk_number,nprocs,
+                         "write_restart:nproc_chunk_number");
+          
+          fread(all_written_send_sizes,sizeof(int),nprocs_file,fp);
+          
+          int init_chunk_number = nprocs_file/nprocs;
+          int num_extra_chunks = nprocs_file - (nprocs*init_chunk_number);
+          
+          for (int i = 0; i < nprocs; i++) {
+            if (i < num_extra_chunks)
+              nproc_chunk_number[i] = init_chunk_number+1;
+            else
+              nproc_chunk_number[i] = init_chunk_number;
+          }
+          
+          int all_written_send_sizes_index = 0;
+          long current_offset = 0;
+          for (int i=0;i<nprocs;i++) {
+            nproc_chunk_offsets[i] = current_offset;
+            nproc_chunk_sizes[i] = 0;
+            for (int j=0;j<nproc_chunk_number[i];j++) {
+              nproc_chunk_sizes[i] += 
+                all_written_send_sizes[all_written_send_sizes_index];
+              current_offset += 
+                (all_written_send_sizes[all_written_send_sizes_index] * 
+                 sizeof(double));
+              all_written_send_sizes_index++;
+            }
+          
+          }
+          memory->destroy(all_written_send_sizes);
+          memory->destroy(nproc_chunk_number);
+        }
+
+        // scatter chunk sizes and offsets to all procs
+        
+        MPI_Scatter(nproc_chunk_sizes, 1, MPI_LONG,
+                    &assignedChunkSize , 1, MPI_LONG, 0,world);
+        MPI_Scatter(nproc_chunk_offsets, 1, MPI_LONG,
+                    &assignedChunkOffset , 1, MPI_LONG, 0,world);
+        
+        memory->destroy(nproc_chunk_sizes);
+        memory->destroy(nproc_chunk_offsets);
+      }
     }
 
-    // NOTE: could add reading of MPI-IO specific fields to header here
-    // e.g. read vector of PERPROCSIZE values
-
     flag = read_int();
+  }
+
+  // if MPI-IO file, broadcast the end of the header offste
+  // this allows all ranks to compute offset to their data
+
+  if (mpiioflag) {
+    if (me == 0) headerOffset = ftell(fp);
+    MPI_Bcast(&headerOffset,1,MPI_LONG,0,world);
   }
 }
 

@@ -117,7 +117,7 @@ static int stubtypesize(MPI_Datatype datatype)
 
 int MPI_Type_size(MPI_Datatype datatype, int *size)
 {
-  if (size == NULL) return MPI_ERROR;
+  if (size == NULL) return MPI_ERR_ARG;
 
   *size = stubtypesize(datatype);
   return 0;
@@ -436,7 +436,7 @@ int MPI_Scatter(void *sendbuf, int sendcount, MPI_Datatype sendtype,
                 void *recvbuf, int recvcount, MPI_Datatype recvtype,
                 int root, MPI_Comm comm)
 {
-  int n = *recvcount * stubtypesize(datatype);
+  int n = recvcount * stubtypesize(recvtype);
 
   if (sendbuf == MPI_IN_PLACE || recvbuf == MPI_IN_PLACE) return 0;
   memcpy(recvbuf,sendbuf,n);

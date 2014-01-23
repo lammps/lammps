@@ -55,8 +55,7 @@ class FixDeposit : public Fix {
   class Fix *fixrigid,*fixshake;
 
   int nfirst,ninserted;
-  tagint maxtag_all;
-  int maxmol_all;
+  tagint maxtag_all,maxmol_all;
   class RanPark *random;
 
   void find_maxid();

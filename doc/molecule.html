@@ -13,14 +13,15 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>molecule ID file 
+<PRE>molecule ID file1 file2 ... 
 </PRE>
 <UL><LI>ID = user-assigned name for the molecule template
-<LI>file = name of file containing molecule description 
+<LI>file1,file2,... = names of files containing molecule descriptions 
 </UL>
 <P><B>Examples:</B>
 </P>
 <PRE>molecule 1 mymol
+molecule 1 co2.txt h2o.txt
 molecule CO2 co2.txt 
 </PRE>
 <P><B>Description:</B>
@@ -35,13 +36,21 @@ templates (or will in the future) include:
 <LI><A HREF = "fix_rigid.html">fix rigid/small</A>
 <LI><A HREF = "fix_shake.html">fix shake</A>
 <LI><A HREF = "fix_gcmc.html">fix gcmc</A> (not yet)
-<LI><A HREF = "create_atoms.html">create_atoms</A> (not yet) 
+<LI><A HREF = "create_atoms.html">create_atoms</A> 
+<LI><A HREF = "atom_style.html">atom_style template</A> (not yet) 
 </UL>
 <P>The ID of a molecule template can only contain alphanumeric characters
 and underscores.
 </P>
-<P>The format of the molecule file is similar to the data file read by
-the <A HREF = "read_data.html">read_data</A> commands, and is as follows.
+<P>A single template can contain multiple molecules, listed one per file.
+Many of the commands listed above currently use only the first
+molecule in the template, and will issue a warning if the template
+contains multiple molecules.  The <A HREF = "atom_style.html">atom_style
+template</A> command allows multiple-molecule templates
+to define a system with more than one templated molecule.
+</P>
+<P>The format of an individual molecule file is similar to the data file
+read by the <A HREF = "read_data.html">read_data</A> commands, and is as follows.
 </P>
 <P>A molecule file has a header and a body.  The header appears first.
 The first line of the header is always skipped; it typically contains

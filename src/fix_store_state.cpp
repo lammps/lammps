@@ -603,7 +603,7 @@ void FixStoreState::pack_id(int n)
 
 void FixStoreState::pack_molecule(int n)
 {
-  int *molecule = atom->molecule;
+  tagint *molecule = atom->molecule;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 

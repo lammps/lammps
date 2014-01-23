@@ -10,14 +10,15 @@ molecule command :h3
 
 [Syntax:]
 
-molecule ID file :pre
+molecule ID file1 file2 ... :pre
 
 ID = user-assigned name for the molecule template
-file = name of file containing molecule description :ul
+file1,file2,... = names of files containing molecule descriptions :ul
 
 [Examples:]
 
 molecule 1 mymol
+molecule 1 co2.txt h2o.txt
 molecule CO2 co2.txt :pre
 
 [Description:]
@@ -32,13 +33,21 @@ templates (or will in the future) include:
 "fix rigid/small"_fix_rigid.html
 "fix shake"_fix_shake.html
 "fix gcmc"_fix_gcmc.html (not yet)
-"create_atoms"_create_atoms.html (not yet) :ul
+"create_atoms"_create_atoms.html 
+"atom_style template"_atom_style.html (not yet) :ul
 
 The ID of a molecule template can only contain alphanumeric characters
 and underscores.
 
-The format of the molecule file is similar to the data file read by
-the "read_data"_read_data.html commands, and is as follows.
+A single template can contain multiple molecules, listed one per file.
+Many of the commands listed above currently use only the first
+molecule in the template, and will issue a warning if the template
+contains multiple molecules.  The "atom_style
+template"_atom_style.html command allows multiple-molecule templates
+to define a system with more than one templated molecule.
+
+The format of an individual molecule file is similar to the data file
+read by the "read_data"_read_data.html commands, and is as follows.
 
 A molecule file has a header and a body.  The header appears first.
 The first line of the header is always skipped; it typically contains

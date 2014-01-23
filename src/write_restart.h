@@ -44,8 +44,11 @@ class WriteRestart : protected Pointers {
   int fileproc;              // ID of proc in my cluster who writes to file
   int icluster;              // which cluster I am in
 
+  // MPI-IO values
+
   int mpiioflag;               // 1 for MPIIO output, else 0
   class RestartMPIIO *mpiio;   // MPIIO for restart file output
+  MPI_Offset headerOffset;
 
   void header();
   void type_arrays();

@@ -85,7 +85,8 @@ class DomainOMP : public Domain {
 
 #else /* !LMP_USER_OMP */
 
-// needed for compiling Neighbor class when USER-OMP is not installed
+// dummy interface to USER-OMP
+// needed for compiling when USER-OMP is not installed
 
 #ifdef LMP_INSIDE_NEIGHBOR_H
 

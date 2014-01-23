@@ -18,6 +18,7 @@ file = name of binary restart file to read in :ul
 
 read_restart save.10000
 read_restart restart.*
+read_restart restart.*.mpiio
 read_restart poly.*.% :pre
 
 :pre
@@ -95,6 +96,20 @@ different the number of processors in the current LAMMPS simulation.
 This can be a fast mode of input on parallel machines that support
 parallel I/O.
 
+A restart file can also be read in parallel as one large binary file
+via the MPI-IO library, assuming it was also written with MPI-IO.
+MPI-IO is part of the MPI standard for versions 2.0 and above.  Using
+MPI-IO requires two steps.  First, build LAMMPS with its MPIIO package
+installed, e.g.
+
+make yes-mpiio    # installs the MPIIO package
+make g++          # build LAMMPS for your platform :pre
+
+Second, use a restart filename which contains ".mpiio".  Note that it
+does not have to end in ".mpiio", just contain those characters.
+Unlike MPI-IO dump files, a particular restart file must be both
+written and read using MPI-IO.
+
 :line
 
 A restart file stores the following information about a simulation:
@@ -160,7 +175,10 @@ output, "geometric regions"_region.html, etc.
 
 :line
 
-[Restrictions:] none
+[Restrictions:]
+
+To write and read restart files in parallel with MPI-IO, the MPIIO
+package must be installed.
 
 [Related commands:]
 

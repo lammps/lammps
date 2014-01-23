@@ -33,22 +33,18 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-Molecule::Molecule(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
+Molecule::Molecule(LAMMPS *lmp, char *idarg, char *file) : Pointers(lmp)
 {
   me = comm->me;
 
-  if (narg != 2) error->all(FLERR,"Illegal molecule command");
-
-  int n = strlen(arg[0]) + 1;
+  int n = strlen(idarg) + 1;
   id = new char[n];
-  strcpy(id,arg[0]);
+  strcpy(id,idarg);
 
   for (int i = 0; i < n-1; i++)
     if (!isalnum(id[i]) && id[i] != '_')
-      error->all(FLERR,
-                 "Molecule ID must be alphanumeric or underscore characters");
-
-  char *file = arg[1];
+      error->all(FLERR,"Molecule template ID must be "
+                 "alphanumeric or underscore characters");
 
   // initialize all fields to empty
 

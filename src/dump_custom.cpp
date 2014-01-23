@@ -446,7 +446,7 @@ int DumpCustom::count()
         if (!atom->molecule_flag)
           error->all(FLERR,
                      "Threshhold for an atom property that isn't allocated");
-        int *molecule = atom->molecule;
+        tagint *molecule = atom->molecule;
         for (i = 0; i < nlocal; i++) dchoose[i] = molecule[i];
         ptr = dchoose;
         nstride = 1;
@@ -1725,7 +1725,7 @@ void DumpCustom::pack_id(int n)
 
 void DumpCustom::pack_molecule(int n)
 {
-  int *molecule = atom->molecule;
+  tagint *molecule = atom->molecule;
 
   for (int i = 0; i < nchoose; i++) {
     buf[n] = molecule[clist[i]];

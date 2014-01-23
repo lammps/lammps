@@ -35,7 +35,7 @@ class ComputeAtomMolecule : public Compute {
 
  private:
   int nvalues,nmolecules;
-  int idlo,idhi;
+  tagint idlo,idhi;
 
   int *which,*argindex,*value2index;
   char **ids;

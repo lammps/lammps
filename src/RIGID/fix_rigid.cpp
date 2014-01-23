@@ -109,7 +109,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
     }
 
   // each molecule in fix group is a rigid body
-  // maxmol = largest molecule #
+  // maxmol = largest molecule ID
   // ncount = # of atoms in each molecule (have to sum across procs)
   // nbody = # of non-zero ncount values
   // use nall as incremented ptr to set body[] values for each atom
@@ -121,16 +121,18 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
       error->all(FLERR,"Fix rigid molecule requires atom attribute molecule");
 
     int *mask = atom->mask;
-    int *molecule = atom->molecule;
+    tagint *molecule = atom->molecule;
     int nlocal = atom->nlocal;
 
-    maxmol = -1;
+    tagint maxmol_tag = -1;
     for (i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) maxmol = MAX(maxmol,molecule[i]);
+      if (mask[i] & groupbit) maxmol_tag = MAX(maxmol_tag,molecule[i]);
 
-    int itmp;
-    MPI_Allreduce(&maxmol,&itmp,1,MPI_INT,MPI_MAX,world);
-    maxmol = itmp;
+    tagint itmp;
+    MPI_Allreduce(&maxmol_tag,&itmp,1,MPI_LMP_TAGINT,MPI_MAX,world);
+    if (itmp+1 > MAXSMALLINT) 
+      error->all(FLERR,"Too many molecules for fix rigid");
+    maxmol = (int) itmp;
 
     int *ncount;
     memory->create(ncount,maxmol+1,"rigid:ncount");

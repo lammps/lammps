@@ -126,7 +126,8 @@ void FixBondSwap::init()
   // require an atom style with molecule IDs
 
   if (atom->molecule == NULL)
-    error->all(FLERR,"Must use atom style with molecule IDs with fix bond/swap");
+    error->all(FLERR,
+               "Must use atom style with molecule IDs with fix bond/swap");
 
   int icompute = modify->find_compute(id_temp);
   if (icompute < 0)
@@ -193,7 +194,7 @@ void FixBondSwap::pre_neighbor()
 
   tagint *tag = atom->tag;
   int *mask = atom->mask;
-  int *molecule = atom->molecule;
+  tagint *molecule = atom->molecule;
   int *num_bond = atom->num_bond;
   tagint **bond_atom = atom->bond_atom;
   int **bond_type = atom->bond_type;

@@ -29,7 +29,7 @@
 using namespace LAMMPS_NS;
 
 #define DELTA 4
-#define BIG 2000000000
+#define BIG MAXTAGINT
 
 /* ---------------------------------------------------------------------- */
 
@@ -215,7 +215,7 @@ void Compute::clearstep()
          return idlo and idhi
 ------------------------------------------------------------------------- */
 
-int Compute::molecules_in_group(int &idlo, int &idhi)
+int Compute::molecules_in_group(tagint &idlo, tagint &idhi)
 {
   int i;
 
@@ -225,12 +225,12 @@ int Compute::molecules_in_group(int &idlo, int &idhi)
   // find lo/hi molecule ID for any atom in group
   // warn if atom in group has ID = 0
 
-  int *molecule = atom->molecule;
+  tagint *molecule = atom->molecule;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  int lo = BIG;
-  int hi = -BIG;
+  tagint lo = BIG;
+  tagint hi = -BIG;
   int flag = 0;
   for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
@@ -245,14 +245,18 @@ int Compute::molecules_in_group(int &idlo, int &idhi)
     error->warning(FLERR,"Atom with molecule ID = 0 included in "
                    "compute molecule group");
 
-  MPI_Allreduce(&lo,&idlo,1,MPI_INT,MPI_MIN,world);
-  MPI_Allreduce(&hi,&idhi,1,MPI_INT,MPI_MAX,world);
+  MPI_Allreduce(&lo,&idlo,1,MPI_LMP_TAGINT,MPI_MIN,world);
+  MPI_Allreduce(&hi,&idhi,1,MPI_LMP_TAGINT,MPI_MAX,world);
   if (idlo == BIG) return 0;
 
   // molmap = vector of length nlen
   // set to 1 for IDs that appear in group across all procs, else 0
 
-  int nlen = idhi-idlo+1;
+  tagint nlen_tag = idhi-idlo+1;
+  if (nlen_tag > MAXSMALLINT) 
+    error->all(FLERR,"Too many molecules for compute");
+  int nlen = (int) nlen_tag;
+
   memory->create(molmap,nlen,"compute:molmap");
   for (i = 0; i < nlen; i++) molmap[i] = 0;
 

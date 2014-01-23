@@ -42,7 +42,6 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 
 #define DELTA 1
-#define DELTA_MOLECULE 1
 #define DELTA_MEMSTR 1024
 #define EPSILON 1.0e-6
 #define CUDA_CHUNK 3000
@@ -117,7 +116,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
 
   // user-defined molecules
 
-  nmolecule = maxmol = 0;
+  nmolecule = 0;
   molecules = NULL;
 
   // custom atom arrays
@@ -1293,27 +1292,30 @@ int Atom::shape_consistency(int itype,
 }
 
 /* ----------------------------------------------------------------------
-   add a new molecule template
+   add a new molecule template = set of molecules
 ------------------------------------------------------------------------- */
 
 void Atom::add_molecule(int narg, char **arg)
 {
-  if (narg < 1) error->all(FLERR,"Illegal molecule command");
-  if (find_molecule(arg[0]) >= 0) error->all(FLERR,"Reuse of molecule ID");
+  if (narg < 2) error->all(FLERR,"Illegal molecule command");
+  if (find_molecule(arg[0]) >= 0) 
+    error->all(FLERR,"Reuse of molecule template ID");
 
-  // extend molecule list if necessary
+  int nprevious = nmolecule;
+  nmolecule += narg-1;
+  molecules = (Molecule **)
+    memory->srealloc(molecules,nmolecule*sizeof(Molecule *),"atom::molecules");
 
-  if (nmolecule == maxmol) {
-    maxmol += DELTA_MOLECULE;
-    molecules = (Molecule **)
-      memory->srealloc(molecules,maxmol*sizeof(Molecule *),"atom::molecules");
+  for (int i = 1; i < narg; i++) {
+    molecules[nprevious] = new Molecule(lmp,arg[0],arg[i]);
+    if (i == 1) molecules[nprevious]->nset = narg-1;
+    else molecules[nprevious]->nset = 0;
+    nprevious++;
   }
-
-  molecules[nmolecule++] = new Molecule(lmp,narg,arg);
 }
 
 /* ----------------------------------------------------------------------
-   find which molecule has molecule ID
+   find first molecule in set with template ID
    return -1 if does not exist
 ------------------------------------------------------------------------- */
 
@@ -1328,6 +1330,7 @@ int Atom::find_molecule(char *id)
 /* ----------------------------------------------------------------------
    add info to current atom ilocal from molecule template onemol and its iatom
    offset = atom ID preceeding IDs of atoms in this molecule
+   called by fixes and commands that add molecules
 ------------------------------------------------------------------------- */
 
 void Atom::add_molecule_atom(Molecule *onemol, int iatom,

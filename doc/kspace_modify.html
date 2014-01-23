@@ -17,7 +17,7 @@
 </PRE>
 <UL><LI>one or more keyword/value pairs may be listed 
 
-<LI>keyword = <I>mesh</I> or <I>order</I> or <I>order/disp</I> or <I>overlap</I> or <I>minorder</I> or <I>force</I> or <I>gewald</I> or <I>gewald/disp</I> or <I>slab</I> or (nozforce</I> or <I>compute</I> or <I>cutoff/adjust</I> or <I>diff</I> or <I>kmax/ewald</I> 
+<LI>keyword = <I>mesh</I> or <I>order</I> or <I>order/disp</I> or <I>overlap</I> or <I>minorder</I> or <I>force</I> or <I>gewald</I> or <I>gewald/disp</I> or <I>slab</I> or (nozforce</I> or <I>compute</I> or <I>cutoff/adjust</I> or <I>diff</I> or <I>kmax/ewald</I> or <I>force/disp/real</I> or <I>force/disp/kspace</I> or <I>splittol</I> 
 
 <PRE>  <I>mesh</I> value = x y z
     x,y,z = grid size in each dimension for long-range Coulombics
@@ -44,7 +44,12 @@
   <I>fftbench</I> value = <I>yes</I> or <I>no</I> 
   <I>diff</I> value = <I>ad</I> or <I>ik</I> = 2 or 4 FFTs for PPPM in smoothed or non-smoothed mode 
   <I>kmax/ewald</I> value = kx ky kz 
-    kx,ky,kz = number of Ewald sum kspace vectors in each dimension 
+    kx,ky,kz = number of Ewald sum kspace vectors in each dimension
+  <I>mix/disp</I> value = <I>pair</I> or <I>geom</I> or <I>none</I>
+  <I>force/disp/real</I> value = accuracy (force units)
+  <I>force/disp/kspace</I> value = accuracy (force units)
+  <I>splittol</I> value = tol
+    tol = relative size of two eigenvalues (see discussion below) 
 </PRE>
 
 </UL>
@@ -235,6 +240,29 @@ if kspace style <I>ewald</I> is invoked, the values used
 are printed to the screen and
 the log file at the start of the run.
 </P>
+<P>With the <I>mix/disp<I> keyword one can select the mixing rule for the
+dispersion coefficients.  With <I>pair</I>, the dispersion coefficients of
+unlike types are computed as indicated with
+<A HREF = "pair_modify.html">pair_modify</A>.  With <I>geom</I>, geometric mixing is
+enforced on the dispersion coefficients in the kspace
+coefficients. When using the arithmetic mixing rule, this will
+speed-up the simulations but introduces some error in the force
+computations, as shown in <A HREF = "#Wennberg">(Wennberg)</A>.  With <I>none</I>, it is
+assumed that no mixing rule is applicable. Splitting of the dispersion
+coefficients will be performed as described in
+<A HREF = "#Isele-Holder">(Isele-Holder)</A>.  This splitting can be influenced with
+the <I>splittol</I> keywords. Only the eigenvalues that are larger than tol
+compared to the largest eigenvalues are included. Using this keywords
+the original matrix of dispersion coefficients is approximated. This
+leads to faster computations, but the accuracy in the reciprocal space
+computations of the dispersion part is decreased.
+</P>
+<P>The <I>force/disp/real</I> and <I>force/disp/kspace</I> keywords set the force
+accuracy for the real and space computations for the dispersion part
+of pppm/disp.  as shown in <A HREF = "#Isele-Holder">(Isele-Holder)</A>, optimal
+performance and accuracy in the results is obtained when these values
+are different.
+</P>
 <P><B>Restrictions:</B> none
 </P>
 <P><B>Related commands:</B>
@@ -246,7 +274,8 @@ the log file at the start of the run.
 <P>The option defaults are mesh = mesh/disp = 0 0 0, order = order/disp =
 5 (PPPM), order = 10 (MSM), minorder = 2, overlap = yes, force = -1.0,
 gewald = gewald/disp = 0.0, slab = 1.0, compute = yes, cutoff/adjust =
-yes (MSM), fftbench = yes (PPPM), and diff = ik (PPPM).
+yes (MSM), fftbench = yes (PPPM), diff = ik (PPPM), mix/disp = pair,
+force/disp/real = -1.0, force/disp/kspace = -1.0, split = 0, and tol = 1.0e-6.
 </P>
 <HR>
 
@@ -269,5 +298,15 @@ Adam Hilger, NY (1989).
 <P><B>(Hardy)</B> David Hardy thesis: Multilevel Summation for the Fast
 Evaluation of Forces for the Simulation of Biomolecules, University of
 Illinois at Urbana-Champaign, (2006).
+</P>
+<A NAME = "Isele-Holder"></A>
+
+<P><B>(Isele-Holder)</B> Isele-Holder, Mitchell, Hammond, Kohlmeyer, Ismail, J
+Chem Theory Comput, 9, 5412 (2013).
+</P>
+<A NAME = "Wennberg"></A>
+
+<P><B>(Wennberg)</B> Wennberg, Murtola, Hess, Lindahl, J Chem Theory Comput,
+9, 3527 (2013).
 </P>
 </HTML>

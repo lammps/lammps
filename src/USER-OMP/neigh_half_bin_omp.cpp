@@ -56,7 +56,7 @@ void Neighbor::half_bin_no_newton_omp(NeighList *list)
   double **x = atom->x;
   int *type = atom->type;
   int *mask = atom->mask;
-  int *molecule = atom->molecule;
+  tagint *molecule = atom->molecule;
   int molecular = atom->molecular;
 
   int *ilist = list->ilist;
@@ -159,7 +159,7 @@ void Neighbor::half_bin_no_newton_ghost_omp(NeighList *list)
   double **x = atom->x;
   int *type = atom->type;
   int *mask = atom->mask;
-  int *molecule = atom->molecule;
+  tagint *molecule = atom->molecule;
   int molecular = atom->molecular;
 
   int *ilist = list->ilist;
@@ -288,7 +288,7 @@ void Neighbor::half_bin_newton_omp(NeighList *list)
   double **x = atom->x;
   int *type = atom->type;
   int *mask = atom->mask;
-  int *molecule = atom->molecule;
+  tagint *molecule = atom->molecule;
   int molecular = atom->molecular;
 
   int *ilist = list->ilist;
@@ -414,7 +414,7 @@ void Neighbor::half_bin_newton_tri_omp(NeighList *list)
   double **x = atom->x;
   int *type = atom->type;
   int *mask = atom->mask;
-  int *molecule = atom->molecule;
+  tagint *molecule = atom->molecule;
   int molecular = atom->molecular;
 
   int *ilist = list->ilist;

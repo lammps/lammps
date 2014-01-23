@@ -124,8 +124,11 @@ void CreateAtoms::command(int narg, char **arg)
     } else if (strcmp(arg[iarg],"mol") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal create_atoms command");
       int imol = atom->find_molecule(arg[iarg+1]);
-      if (imol == -1)
-        error->all(FLERR,"Molecule ID for create_atoms does not exist");
+      if (imol == -1) error->all(FLERR,"Molecule template ID for "
+                                 "create_atoms does not exist");
+      if (atom->molecules[imol]->nset > 1 && comm->me == 0)
+        error->warning(FLERR,"Molecule template for "
+                       "create_atoms has multiple molecules");
       mode = MOLECULE;
       onemol = atom->molecules[imol];
       molseed = force->inumeric(FLERR,arg[iarg+2]);
@@ -292,13 +295,13 @@ void CreateAtoms::command(int narg, char **arg)
     // moloffset = max molecule ID for all molecules owned by previous procs
     //             including molecules existing before this creation
 
-    int moloffset;
-    int *molecule = atom->molecule;
+    tagint moloffset;
+    tagint *molecule = atom->molecule;
     if (molecule) {
-      int max = 0;
+      tagint max = 0;
       for (int i = 0; i < nlocal_previous; i++) max = MAX(max,molecule[i]);
-      int maxmol;
-      MPI_Allreduce(&max,&maxmol,1,MPI_INT,MPI_MAX,world);
+      tagint maxmol;
+      MPI_Allreduce(&max,&maxmol,1,MPI_LMP_TAGINT,MPI_MAX,world);
       MPI_Scan(&molcreate,&moloffset,1,MPI_INT,MPI_SUM,world);
       moloffset = moloffset - molcreate + maxmol;
     }

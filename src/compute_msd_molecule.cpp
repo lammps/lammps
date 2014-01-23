@@ -50,18 +50,18 @@ ComputeMSDMolecule::ComputeMSDMolecule(LAMMPS *lmp, int narg, char **arg) :
   // compute masstotal for each molecule
 
   int *mask = atom->mask;
-  int *molecule = atom->molecule;
+  tagint *molecule = atom->molecule;
   int *type = atom->type;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
 
-  int i,imol;
+  tagint imol;
   double massone;
 
-  for (i = 0; i < nmolecules; i++) massproc[i] = 0.0;
+  for (int i = 0; i < nmolecules; i++) massproc[i] = 0.0;
 
-  for (i = 0; i < nlocal; i++)
+  for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       if (rmass) massone = rmass[i];
       else massone = mass[type[i]];
@@ -77,7 +77,7 @@ ComputeMSDMolecule::ComputeMSDMolecule(LAMMPS *lmp, int narg, char **arg) :
 
   firstflag = 1;
   compute_array();
-  for (i = 0; i < nmolecules; i++) {
+  for (int i = 0; i < nmolecules; i++) {
     cominit[i][0] = comall[i][0];
     cominit[i][1] = comall[i][1];
     cominit[i][2] = comall[i][2];
@@ -110,7 +110,7 @@ void ComputeMSDMolecule::init()
 
 void ComputeMSDMolecule::compute_array()
 {
-  int i,imol;
+  tagint imol;
   double dx,dy,dz,massone;
   double unwrap[3];
 
@@ -118,12 +118,12 @@ void ComputeMSDMolecule::compute_array()
 
   // compute current COM positions
 
-  for (i = 0; i < nmolecules; i++)
+  for (int i = 0; i < nmolecules; i++)
     com[i][0] = com[i][1] = com[i][2] = 0.0;
 
   double **x = atom->x;
   int *mask = atom->mask;
-  int *molecule = atom->molecule;
+  tagint *molecule = atom->molecule;
   int *type = atom->type;
   imageint *image = atom->image;
   double *mass = atom->mass;
@@ -145,7 +145,7 @@ void ComputeMSDMolecule::compute_array()
 
   MPI_Allreduce(&com[0][0],&comall[0][0],3*nmolecules,
                 MPI_DOUBLE,MPI_SUM,world);
-  for (i = 0; i < nmolecules; i++) {
+  for (int i = 0; i < nmolecules; i++) {
     comall[i][0] /= masstotal[i];
     comall[i][1] /= masstotal[i];
     comall[i][2] /= masstotal[i];
@@ -156,7 +156,7 @@ void ComputeMSDMolecule::compute_array()
 
   if (firstflag) return;
 
-  for (i = 0; i < nmolecules; i++) {
+  for (int i = 0; i < nmolecules; i++) {
     dx = comall[i][0] - cominit[i][0];
     dy = comall[i][1] - cominit[i][1];
     dz = comall[i][2] - cominit[i][2];
@@ -173,9 +173,9 @@ void ComputeMSDMolecule::compute_array()
 
 double ComputeMSDMolecule::memory_usage()
 {
-  double bytes = 2*nmolecules * sizeof(double);
+  double bytes = (bigint) nmolecules * 2 * sizeof(double);
   if (molmap) bytes += (idhi-idlo+1) * sizeof(int);
-  bytes += 2*nmolecules*3 * sizeof(double);
-  bytes += nmolecules*4 * sizeof(double);
+  bytes += (bigint) nmolecules * 2*3 * sizeof(double);
+  bytes += (bigint) nmolecules * 4 * sizeof(double);
   return bytes;
 }

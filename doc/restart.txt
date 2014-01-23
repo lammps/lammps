@@ -30,6 +30,7 @@ keyword = {fileper} or {nfile} :l
 
 restart 0
 restart 1000 poly.restart
+restart 1000 poly.restart.mpiio
 restart 1000 restart.*.equil
 restart 10000 poly.%.1 poly.%.2 nfile 10
 restart v_mystep poly.restart :pre
@@ -73,6 +74,19 @@ restart.P-1.1000.  This creates smaller files and can be a fast mode
 of output and subsequent input on parallel machines that support
 parallel I/O.  The optional {fileper} and {nfile} keywords discussed
 below can alter the number of files written.
+
+The restart file can also be written in parallel as one large binary
+file via the MPI-IO library, which is part of the MPI standard for
+versions 2.0 and above.  Using MPI-IO requires two steps.  First,
+build LAMMPS with its MPIIO package installed, e.g.
+
+make yes-mpiio    # installs the MPIIO package
+make g++          # build LAMMPS for your platform :pre
+
+Second, use a restart filename which contains ".mpiio".  Note that it
+does not have to end in ".mpiio", just contain those characters.
+Unlike MPI-IO dump files, a particular restart file must be both
+written and read using MPI-IO.
 
 Restart files are written on timesteps that are a multiple of N but
 not on the first timestep of a run or minimization.  You can use the
@@ -135,7 +149,10 @@ next 3 processors and write it to a restart file.
 
 :line
 
-[Restrictions:] none
+[Restrictions:]
+
+To write and read restart files in parallel with MPI-IO, the MPIIO
+package must be installed.
 
 [Related commands:]
 

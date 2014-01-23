@@ -36,7 +36,7 @@ class ComputeGyrationMolecule : public Compute {
  private:
   int tensor;
   int nmolecules;
-  int idlo,idhi;
+  tagint idlo,idhi;
 
   double *massproc,*masstotal;
   double **com,**comall;

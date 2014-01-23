@@ -155,16 +155,13 @@ similar to the {ewald/disp} style. The 1/r^6 capability means
 that Lennard-Jones or Buckingham potentials can be used without a cutoff,
 i.e. they become full long-range potentials.
 
-For these styles, it is currently recommended that you set the
-dispersion mesh size and other parameters explicitly via the
-"kspace_modify"_kspace_modify.html command, rather than let LAMMPS set
-them automatically.  For example, a set of parameters that works well
-for surface systems when using real units is a LJ cutoff of 10 Angstrom,
-interpolation order = 5 (the default), grid spacing = 4.17 Angstroms,
-and Ewald parameter = 0.28.  These parameters work well for the {ik}
-differentiation.  For the {ad} setting, a smaller grid spacing is needed,
-e.g. 3 Angstroms. Further information on the influence of the parameters
-and how to choose them is described in "(Isele-Holder)"_#Isele-Holder.
+For these styles, you may want to adjust the default choice of
+parameters by using the "kspace_modify"_kspace_modify.html command.
+This can be done by either choosing the Ewald and grid parameters, or
+by specifying separate accuracies for the real and kspace
+calculations.  Further information on the influence of the parameters
+and how to choose them is described in "(Isele-Holder)"_#Isele-Holder
+and "(Isele-Holder2)"_#Isele-Holder2.
 
 :line
 
@@ -347,6 +344,10 @@ and Computation 5, 2322 (2009)
 
 :link(Isele-Holder)
 [(Isele-Holder)] Isele-Holder, Mitchell, Ismail, J Chem Phys, 137, 174107 (2012). 
+
+:link(Isele-Holder2)
+[(Isele-Holder2)] Isele-Holder, Mitchell, Hammond, Kohlmeyer, Ismail, J Chem Theory
+Comput 9, 5412 (2013).
 
 :link(Hardy)
 [(Hardy)] David Hardy thesis: Multilevel Summation for the Fast

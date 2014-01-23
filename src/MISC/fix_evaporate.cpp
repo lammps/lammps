@@ -137,7 +137,7 @@ void FixEvaporate::init()
   // if molflag not set, warn if any deletable atom has a mol ID
 
   if (molflag == 0 && atom->molecule_flag) {
-    int *molecule = atom->molecule;
+    tagint *molecule = atom->molecule;
     int *mask = atom->mask;
     int nlocal = atom->nlocal;
     int flag = 0;
@@ -234,8 +234,9 @@ void FixEvaporate::pre_exchange()
   // keep ndel,ndeltopo,ncount,nall,nbefore current after each mol deletion
 
   } else {
-    int me,proc,iatom,imolecule,ndelone,ndelall;
-    int *molecule = atom->molecule;
+    int me,proc,iatom,ndelone,ndelall;
+    tagint imol;
+    tagint *molecule = atom->molecule;
 
     ndeltopo[0] = ndeltopo[1] = ndeltopo[2] = ndeltopo[3] = 0;
 
@@ -247,7 +248,7 @@ void FixEvaporate::pre_exchange()
       if (iwhichglobal >= nbefore && iwhichglobal < nbefore + ncount) {
         iwhichlocal = iwhichglobal - nbefore;
         iatom = list[iwhichlocal];
-        imolecule = molecule[iatom];
+        imol = molecule[iatom];
         me = comm->me;
       } else me = -1;
 
@@ -257,10 +258,10 @@ void FixEvaporate::pre_exchange()
       // be careful to delete correct # of bond,angle,etc for newton on or off
 
       MPI_Allreduce(&me,&proc,1,MPI_INT,MPI_MAX,world);
-      MPI_Bcast(&imolecule,1,MPI_INT,proc,world);
+      MPI_Bcast(&imol,1,MPI_LMP_TAGINT,proc,world);
       ndelone = 0;
       for (i = 0; i < nlocal; i++) {
-        if (imolecule && molecule[i] == imolecule) {
+        if (imol && molecule[i] == imol) {
           mark[i] = 1;
           ndelone++;
 

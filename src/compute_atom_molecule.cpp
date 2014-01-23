@@ -213,14 +213,15 @@ void ComputeAtomMolecule::init()
 
 void ComputeAtomMolecule::compute_vector()
 {
-  int i,j,n,imol;
+  int i,j,n;
+  tagint imol;
 
   invoked_vector = update->ntimestep;
 
   for (n = 0; n < nmolecules; n++) vone[n] = 0.0;
   compute_one(0);
 
-  int *molecule = atom->molecule;
+  tagint *molecule = atom->molecule;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   j = 0;
@@ -243,11 +244,12 @@ void ComputeAtomMolecule::compute_vector()
 
 void ComputeAtomMolecule::compute_array()
 {
-  int i,j,m,n,imol;
+  int i,j,m,n;
+  tagint imol;
 
   invoked_array = update->ntimestep;
 
-  int *molecule = atom->molecule;
+  tagint *molecule = atom->molecule;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -339,7 +341,7 @@ void ComputeAtomMolecule::compute_one(int m)
 
 double ComputeAtomMolecule::memory_usage()
 {
-  double bytes = 2*nmolecules*nvalues * sizeof(double);
+  double bytes = (bigint) nmolecules * 2*nvalues * sizeof(double);
   if (molmap) bytes += (idhi-idlo+1) * sizeof(int);
   bytes += maxatom * sizeof(double);
   return bytes;

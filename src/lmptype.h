@@ -15,13 +15,13 @@
 
 // smallint = variables for on-procesor system (nlocal, nmax, etc)
 // imageint = variables for atom image flags (image)
-// tagint = variables for atom IDs (tag)
+// tagint = variables for atom IDs and molecule IDs (tag,molecule)
 // bigint = variables for total system (natoms, ntimestep, etc)
 
 // smallint must be an int, as defined by C compiler
 // imageint can be 32-bit or 64-bit int, must be >= smallint
 // tagint can be 32-bit or 64-bit int, must be >= smallint
-// bigint can be 32-bit or 64-bit int, must be >= tagint
+// bigint can be 32-bit or 64-bit int, must be >= imageint,tagint
 
 // MPI_LMP_BIGINT = MPI data type corresponding to a bigint
 

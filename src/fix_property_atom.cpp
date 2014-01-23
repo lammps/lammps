@@ -222,7 +222,7 @@ void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf)
 
     if ((m = atom->map(itag)) >= 0) {
       for (j = 0; j < nvalue; j++) {
-        if (style[j] == MOLECULE) atom->molecule[m] = atoi(values[j+1]);
+        if (style[j] == MOLECULE) atom->molecule[m] = ATOTAGINT(values[j+1]);
         else if (style[j] == CHARGE) atom->q[m] = atof(values[j+1]);
         else if (style[j] == INTEGER)
           atom->ivector[index[j]][m] = atoi(values[j+1]);
@@ -284,7 +284,7 @@ void FixPropertyAtom::write_data_section_pack(int mth, double **buf)
   for (int m = 0; m < nvalue; m++) {
     int mp1 = m+1;
     if (style[m] == MOLECULE) {
-      int *molecule = atom->molecule;
+      tagint *molecule = atom->molecule;
       for (i = 0; i < nlocal; i++) buf[i][mp1] = ubuf(molecule[i]).d;
     } else if (style[m] == CHARGE) {
       double *q = atom->q;
@@ -327,7 +327,9 @@ void FixPropertyAtom::write_data_section(int mth, FILE *fp,
   for (int i = 0; i < n; i++) {
     fprintf(fp,TAGINT_FORMAT,(tagint) ubuf(buf[i][0]).i);
     for (m = 0; m < nvalue; m++) {
-      if (style[m] == MOLECULE || style[m] == INTEGER)
+      if (style[m] == MOLECULE)
+        fprintf(fp," " TAGINT_FORMAT,(tagint) ubuf(buf[i][m+1]).i);
+      else if (style[m] == INTEGER)
         fprintf(fp," %d",(int) ubuf(buf[i][m+1]).i);
       else fprintf(fp," %g",buf[i][m+1]);
     }
@@ -343,7 +345,7 @@ double FixPropertyAtom::memory_usage()
 {
   double bytes = 0.0;
   for (int m = 0; m < nvalue; m++) {
-    if (style[m] == MOLECULE) bytes = atom->nmax * sizeof(int);
+    if (style[m] == MOLECULE) bytes = atom->nmax * sizeof(tagint);
     else if (style[m] == CHARGE) bytes = atom->nmax * sizeof(double);
     else if (style[m] == INTEGER) bytes = atom->nmax * sizeof(int);
     else if (style[m] == DOUBLE) bytes = atom->nmax * sizeof(double);
@@ -363,7 +365,7 @@ void FixPropertyAtom::grow_arrays(int nmax)
   for (int m = 0; m < nvalue; m++) {
     if (style[m] == MOLECULE) {
       memory->grow(atom->molecule,nmax,"atom:molecule");
-      size_t nbytes = (nmax-nmax_old) * sizeof(int);
+      size_t nbytes = (nmax-nmax_old) * sizeof(tagint);
       memset(&atom->molecule[nmax_old],0,nbytes);
     } else if (style[m] == CHARGE) {
       memory->grow(atom->q,nmax,"atom:q");
@@ -412,7 +414,7 @@ int FixPropertyAtom::pack_border(int n, int *list, double *buf)
   int m = 0;
   for (k = 0; k < nvalue; k++) {
     if (style[k] == MOLECULE) {
-      int *molecule = atom->molecule;
+      tagint *molecule = atom->molecule;
       for (i = 0; i < n; i++) {
         j = list[i];
         buf[m++] = ubuf(molecule[j]).d;
@@ -452,10 +454,10 @@ int FixPropertyAtom::unpack_border(int n, int first, double *buf)
   int m = 0;
   for (k = 0; k < nvalue; k++) {
     if (style[k] == MOLECULE) {
-      int *molecule = atom->molecule;
+      tagint *molecule = atom->molecule;
       last = first + n;
       for (i = first; i < last; i++)
-        molecule[i] = (int) ubuf(buf[m++]).i;
+        molecule[i] = (tagint) ubuf(buf[m++]).i;
     } else if (style[k] == CHARGE) {
       double *q = atom->q;
       last = first + n;
@@ -500,7 +502,7 @@ int FixPropertyAtom::unpack_exchange(int nlocal, double *buf)
 {
   for (int m = 0; m < nvalue; m++) {
     if (style[m] == MOLECULE) 
-      atom->molecule[nlocal] = (int) ubuf(buf[m]).i;
+      atom->molecule[nlocal] = (tagint) ubuf(buf[m]).i;
     else if (style[m] == CHARGE)
       atom->q[nlocal] = buf[m];
     else if (style[m] == INTEGER) 
@@ -546,7 +548,7 @@ void FixPropertyAtom::unpack_restart(int nlocal, int nth)
 
   for (int i = 0; i < nvalue; i++) {
     if (style[i] == MOLECULE) 
-      atom->molecule[nlocal] = (int) ubuf(extra[nlocal][m++]).i;
+      atom->molecule[nlocal] = (tagint) ubuf(extra[nlocal][m++]).i;
     else if (style[i] == CHARGE)
       atom->q[nlocal] = extra[nlocal][m++];
     else if (style[i] == INTEGER) 

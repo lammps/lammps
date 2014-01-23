@@ -162,16 +162,13 @@ similar to the <I>ewald/disp</I> style. The 1/r^6 capability means
 that Lennard-Jones or Buckingham potentials can be used without a cutoff,
 i.e. they become full long-range potentials.
 </P>
-<P>For these styles, it is currently recommended that you set the
-dispersion mesh size and other parameters explicitly via the
-<A HREF = "kspace_modify.html">kspace_modify</A> command, rather than let LAMMPS set
-them automatically.  For example, a set of parameters that works well
-for surface systems when using real units is a LJ cutoff of 10 Angstrom,
-interpolation order = 5 (the default), grid spacing = 4.17 Angstroms,
-and Ewald parameter = 0.28.  These parameters work well for the <I>ik</I>
-differentiation.  For the <I>ad</I> setting, a smaller grid spacing is needed,
-e.g. 3 Angstroms. Further information on the influence of the parameters
-and how to choose them is described in <A HREF = "#Isele-Holder">(Isele-Holder)</A>.
+<P>For these styles, you may want to adjust the default choice of
+parameters by using the <A HREF = "kspace_modify.html">kspace_modify</A> command.
+This can be done by either choosing the Ewald and grid parameters, or
+by specifying separate accuracies for the real and kspace
+calculations.  Further information on the influence of the parameters
+and how to choose them is described in <A HREF = "#Isele-Holder">(Isele-Holder)</A>
+and <A HREF = "#Isele-Holder2">(Isele-Holder2)</A>.
 </P>
 <HR>
 
@@ -366,6 +363,11 @@ and Computation 5, 2322 (2009)
 <A NAME = "Isele-Holder"></A>
 
 <P><B>(Isele-Holder)</B> Isele-Holder, Mitchell, Ismail, J Chem Phys, 137, 174107 (2012). 
+</P>
+<A NAME = "Isele-Holder2"></A>
+
+<P><B>(Isele-Holder2)</B> Isele-Holder, Mitchell, Hammond, Kohlmeyer, Ismail, J Chem Theory
+Comput 9, 5412 (2013).
 </P>
 <A NAME = "Hardy"></A>
 

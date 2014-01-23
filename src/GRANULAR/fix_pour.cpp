@@ -666,7 +666,7 @@ void FixPour::pre_exchange()
 void FixPour::find_maxid()
 {
   tagint *tag = atom->tag;
-  int *molecule = atom->molecule;
+  tagint *molecule = atom->molecule;
   int nlocal = atom->nlocal;
 
   tagint max = 0;
@@ -676,7 +676,7 @@ void FixPour::find_maxid()
   if (mode == MOLECULE && molecule) {
     max = 0;
     for (int i = 0; i < nlocal; i++) max = MAX(max,molecule[i]);
-    MPI_Allreduce(&max,&maxmol_all,1,MPI_INT,MPI_MAX,world);
+    MPI_Allreduce(&max,&maxmol_all,1,MPI_LMP_TAGINT,MPI_MAX,world);
   }
 }
 
@@ -832,7 +832,10 @@ void FixPour::options(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix pour command");
       int imol = atom->find_molecule(arg[iarg+1]);
       if (imol == -1)
-        error->all(FLERR,"Molecule ID for fix pour does not exist");
+        error->all(FLERR,"Molecule template ID for fix pour does not exist");
+      if (atom->molecules[imol]->nset > 1 && comm->me == 0)
+        error->warning(FLERR,"Molecule template for "
+                       "fix pour has multiple molecules");
       mode = MOLECULE;
       onemol = atom->molecules[imol];
       iarg += 2;

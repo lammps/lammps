@@ -252,7 +252,7 @@ void FixGCMC::init()
   // if molflag not set, warn if any deletable atom has a mol ID
 
   if (molflag == 0 && atom->molecule_flag) {
-    int *molecule = atom->molecule;
+    tagint *molecule = atom->molecule;
     int *mask = atom->mask;
     int flag = 0;
     for (int i = 0; i < atom->nlocal; i++)
@@ -268,7 +268,7 @@ void FixGCMC::init()
   // if molflag set, check for unset mol IDs
 
   if (molflag == 1) {
-    int *molecule = atom->molecule;
+    tagint *molecule = atom->molecule;
     int *mask = atom->mask;
     int flag = 0;
     for (int i = 0; i < atom->nlocal; i++)
@@ -578,7 +578,7 @@ void FixGCMC::attempt_molecule_translation()
 
   if (ngas == 0) return;
 
-  int translation_molecule = pick_random_gas_molecule();
+  tagint translation_molecule = pick_random_gas_molecule();
   if (translation_molecule == -1) return;
 
   double energy_before_sum = molecule_energy(translation_molecule);
@@ -637,7 +637,7 @@ void FixGCMC::attempt_molecule_rotation()
 
   if (ngas == 0) return;
 
-  int rotation_molecule = pick_random_gas_molecule();
+  tagint rotation_molecule = pick_random_gas_molecule();
   if (rotation_molecule == -1) return;
   
   double energy_before_sum = molecule_energy(rotation_molecule);
@@ -719,7 +719,7 @@ void FixGCMC::attempt_molecule_deletion()
 
   if (ngas == 0) return;
   
-  int deletion_molecule = pick_random_gas_molecule();
+  tagint deletion_molecule = pick_random_gas_molecule();
   if (deletion_molecule == -1) return;
 
   double deletion_energy_sum = molecule_energy(deletion_molecule);
@@ -756,13 +756,20 @@ void FixGCMC::attempt_molecule_insertion()
   double com_coord[3];
   if (regionflag) {
     int region_attempt = 0;
-    com_coord[0] = region_xlo + random_equal->uniform() * (region_xhi-region_xlo);
-    com_coord[1] = region_ylo + random_equal->uniform() * (region_yhi-region_ylo);
-    com_coord[2] = region_zlo + random_equal->uniform() * (region_zhi-region_zlo);
-    while (domain->regions[iregion]->match(com_coord[0],com_coord[1],com_coord[2]) == 0) {
-      com_coord[0] = region_xlo + random_equal->uniform() * (region_xhi-region_xlo);
-      com_coord[1] = region_ylo + random_equal->uniform() * (region_yhi-region_ylo);
-      com_coord[2] = region_zlo + random_equal->uniform() * (region_zhi-region_zlo);
+    com_coord[0] = region_xlo + random_equal->uniform() * 
+      (region_xhi-region_xlo);
+    com_coord[1] = region_ylo + random_equal->uniform() * 
+      (region_yhi-region_ylo);
+    com_coord[2] = region_zlo + random_equal->uniform() * 
+      (region_zhi-region_zlo);
+    while (domain->regions[iregion]->match(com_coord[0],com_coord[1],
+                                           com_coord[2]) == 0) {
+      com_coord[0] = region_xlo + random_equal->uniform() * 
+        (region_xhi-region_xlo);
+      com_coord[1] = region_ylo + random_equal->uniform() * 
+        (region_yhi-region_ylo);
+      com_coord[2] = region_zlo + random_equal->uniform() * 
+        (region_zhi-region_zlo);
       region_attempt++;
       if (region_attempt >= max_region_attempts) return;
     }
@@ -779,9 +786,12 @@ void FixGCMC::attempt_molecule_insertion()
   double insertion_energy = 0.0;
   bool procflag[natoms_per_molecule];
   for (int i = 0; i < natoms_per_molecule; i++) {
-    atom_coord[i][0] = rot[0]*model_x[i][0] + rot[1]*model_x[i][1] + rot[2]*model_x[i][2] + com_coord[0];
-    atom_coord[i][1] = rot[3]*model_x[i][0] + rot[4]*model_x[i][1] + rot[5]*model_x[i][2] + com_coord[1];
-    atom_coord[i][2] = rot[6]*model_x[i][0] + rot[7]*model_x[i][1] + rot[8]*model_x[i][2] + com_coord[2];
+    atom_coord[i][0] = rot[0]*model_x[i][0] + 
+      rot[1]*model_x[i][1] + rot[2]*model_x[i][2] + com_coord[0];
+    atom_coord[i][1] = rot[3]*model_x[i][0] + 
+      rot[4]*model_x[i][1] + rot[5]*model_x[i][2] + com_coord[1];
+    atom_coord[i][2] = rot[6]*model_x[i][0] + 
+      rot[7]*model_x[i][1] + rot[8]*model_x[i][2] + com_coord[2];
 
     double xtmp[3];
     xtmp[0] = atom_coord[i][0];
@@ -799,11 +809,13 @@ void FixGCMC::attempt_molecule_insertion()
   }
 
   double insertion_energy_sum = 0.0;
-  MPI_Allreduce(&insertion_energy,&insertion_energy_sum,1,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(&insertion_energy,&insertion_energy_sum,1,
+                MPI_DOUBLE,MPI_SUM,world);
 
-  if (random_equal->uniform() < zz*volume*natoms_per_molecule*exp(-beta*insertion_energy_sum)/(ngas+1)) {  
+  if (random_equal->uniform() < zz*volume*natoms_per_molecule*
+      exp(-beta*insertion_energy_sum)/(ngas+1)) {  
     maxmol++;
-    if (maxmol >= MAXSMALLINT) 
+    if (maxmol >= MAXTAGINT) 
       error->all(FLERR,"Fix gcmc ran out of available molecule IDs");
 
     tagint maxtag = 0;
@@ -883,13 +895,13 @@ void FixGCMC::attempt_molecule_insertion()
    compute particle's interaction energy with the rest of the system
 ------------------------------------------------------------------------- */
 
-double FixGCMC::energy(int i, int itype, int imolecule, double *coord)
+double FixGCMC::energy(int i, int itype, tagint imolecule, double *coord)
 {
   double delx,dely,delz,rsq;
 
   double **x = atom->x;
   int *type = atom->type;
-  int *molecule = atom->molecule;
+  tagint *molecule = atom->molecule;
   int nall = atom->nlocal + atom->nghost;
   pair = force->pair;
   cutsq = force->pair->cutsq;
@@ -941,7 +953,7 @@ int FixGCMC::pick_random_gas_atom()
 int FixGCMC::pick_random_gas_molecule()
 {
   int iwhichglobal = static_cast<int> (ngas*random_equal->uniform());
-  int gas_molecule_id = 0;
+  tagint gas_molecule_id = 0;
   if ((iwhichglobal >= ngas_before) &&
       (iwhichglobal < ngas_before + ngas_local)) {
     int iwhichlocal = iwhichglobal - ngas_before;
@@ -949,8 +961,9 @@ int FixGCMC::pick_random_gas_molecule()
     gas_molecule_id = atom->molecule[i];
   }
 
-  int gas_molecule_id_all = 0;
-  MPI_Allreduce(&gas_molecule_id,&gas_molecule_id_all,1,MPI_INT,MPI_MAX,world);
+  tagint gas_molecule_id_all = 0;
+  MPI_Allreduce(&gas_molecule_id,&gas_molecule_id_all,1,
+                MPI_LMP_TAGINT,MPI_MAX,world);
   
   return gas_molecule_id_all;
 }
@@ -960,7 +973,7 @@ int FixGCMC::pick_random_gas_molecule()
    sum across all procs that own atoms of the given molecule
 ------------------------------------------------------------------------- */
 
-double FixGCMC::molecule_energy(int gas_molecule_id)
+double FixGCMC::molecule_energy(tagint gas_molecule_id)
 {
   double mol_energy = 0.0;
   for (int i = 0; i < atom->nlocal; i++)
@@ -1040,8 +1053,8 @@ void FixGCMC::get_model_molecule()
   if (atom->molecular) {
     for (int i = 0; i < atom->nlocal; i++) 
       maxmol = MAX(atom->molecule[i],maxmol);
-    int maxmol_all;
-    MPI_Allreduce(&maxmol,&maxmol_all,1,MPI_INT,MPI_MAX,world);
+    tagint maxmol_all;
+    MPI_Allreduce(&maxmol,&maxmol_all,1,MPI_LMP_TAGINT,MPI_MAX,world);
     maxmol = maxmol_all;
   }
 

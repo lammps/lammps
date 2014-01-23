@@ -20,7 +20,9 @@ namespace LAMMPS_NS {
 
 class Molecule : protected Pointers {
  public:
-  char *id;
+  char *id;   // template id of this molecule, same for all molecules in set
+  int nset;   // if first in set, # of molecules in this set
+              // else 0 if not first in set
 
   // number of atoms,bonds,etc in molecule
 
@@ -97,7 +99,7 @@ class Molecule : protected Pointers {
   double **dxbody;     // displacement of each atom relative to COM
                        // in body frame (diagonalized interia tensor)
 
-  Molecule(class LAMMPS *, int, char **);
+  Molecule(class LAMMPS *, char *, char *);
   ~Molecule();
   void compute_center();
   void compute_mass();

@@ -1,17 +1,17 @@
-# verified on Fedora 17     / x86_64 / 2013-12-16
-# verified on Fedora 17     / i386   / 2013-12-16
-# verified on Fedora 18     / x86_64 / 2013-12-16
-# verified on Fedora 18     / i386   / 2013-12-16
-# verified on Fedora 19     / x86_64 / 2013-12-16
-# verified on Fedora 19     / i386   / 2013-12-16
-# verified on Fedora 20     / x86_64 / 2013-12-16
-# verified on Fedora 20     / i386   / 2013-12-16
-# verified on CentOS 6.4    / x86_64 / 2013-12-16
-# verified on CentOS 6.4    / i386   / 2013-12-16
-# verified on OpenSuSE 12.3 / x86_64 / 2013-12-16
-# verified on OpenSuSE 12.3 / i586   / 2013-12-16
-# verified on OpenSuSE 13.1 / x86_64 / 2013-12-16
-# verified on OpenSuSE 13.1 / i586   / 2013-12-16
+# verified on Fedora 17     / x86_64 / 2014-01-23
+# verified on Fedora 17     / i386   / 2014-01-23
+# verified on Fedora 18     / x86_64 / 2014-01-23
+# verified on Fedora 18     / i386   / 2014-01-23
+# verified on Fedora 19     / x86_64 / 2014-01-23
+# verified on Fedora 19     / i386   / 2014-01-23
+# verified on Fedora 20     / x86_64 / 2014-01-23
+# verified on Fedora 20     / i386   / 2014-01-23
+# verified on CentOS 6.4    / x86_64 / 2014-01-23
+# verified on CentOS 6.4    / i386   / 2014-01-23
+# verified on OpenSuSE 12.3 / x86_64 / 2014-01-23
+# verified on OpenSuSE 12.3 / i586   / 2014-01-23
+# verified on OpenSuSE 13.1 / x86_64 / 2014-01-23
+# verified on OpenSuSE 13.1 / i586   / 2014-01-23
 
 %ifnarch s390 s390x
 %global with_openmpi 1
@@ -43,8 +43,8 @@
 %{!?python_sitearch: %global python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
 
 Name:           lammps
-Version:        20131120
-Release:        6%{?dist}
+Version:        20140123
+Release:        7%{?dist}
 Summary:        LAMMPS Molecular Dynamics Simulator
 Group:          Applications/Engineering
 
@@ -181,8 +181,8 @@ make -f Makefile.g++ CXX=g++ CXXFLAGS="-fPIC ${RPM_OPT_FLAGS} %{bigintsize}" EXT
 cd ../../src
 
 # install packages
-# fortran reax is obsolete, no GPU support, QM/MM requires a Q-E library, USER-LB requires MPI-IO.
-make yes-all no-kim no-gpu no-user-cuda no-reax no-user-qmmm no-user-lb
+# fortran reax is obsolete, no GPU support, QM/MM requires a Q-E library, USER-LB and MPIIO require MPI-IO.
+make yes-all no-kim no-gpu no-user-cuda no-reax no-user-qmmm no-user-lb no-mpiio
 
 make -C STUBS
 
@@ -235,8 +235,8 @@ make -f Makefile.g++ CC=mpicxx CCFLAGS="-fPIC -I../../src -DMPICH_IGNORE_CXX_SEE
 cd ../../src
 make clean-g++
 
-# enable USER-LB since we have a full MPI library now
-make yes-user-lb
+# enable USER-LB and MPIIO since we have a full MPI library now
+make yes-user-lb yes-mpiio
 make g++ CC=mpicxx CCFLAGS="${RPM_OPT_FLAGS} -fopenmp" LINK=mpicxx LINKFLAGS="${RPM_LD_FLAGS} -fopenmp" LMP_INC="-DLAMMPS_GZIP -DLAMMPS_FFMPEG -DLAMMPS_JPEG -DLAMMPS_PNG %{bigintsize} " MPI_INC="" MPI_PATH="" MPI_LIB=-lrt FFT_INC=-DFFT_FFTW3 FFT_LIB=-lfftw3 JPG_LIB="-ljpeg -lpng"
 
 # and save the executable
@@ -264,7 +264,7 @@ make -f Makefile.g++ CC=mpicxx CCFLAGS="-fPIC -I../../src -DMPICH_IGNORE_CXX_SEE
 cd ../../src
 make clean-g++
 # enable USER-LB since we have a full MPI library now
-make yes-user-lb
+make yes-user-lb yes-mpiio
 
 make g++ CC=mpicxx CCFLAGS="${RPM_OPT_FLAGS} -fopenmp" LINK=mpicxx LINKFLAGS="${RPM_LD_FLAGS} -fopenmp" LMP_INC="-DLAMMPS_GZIP -DLAMMPS_FFMPEG -DLAMMPS_JPEG -DLAMMPS_PNG %{bigintsize} " MPI_INC="" MPI_PATH="" MPI_LIB="-lrt" FFT_INC=-DFFT_FFTW3 FFT_LIB=-lfftw3 JPG_LIB="-ljpeg -lpng"
 
@@ -403,6 +403,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Jan 23 2014 Axel Kohlmeyer <akohlmey@gmail.com> - 20140123-7
+- Handle dependencies on MPI-IO for USER-LB and MPIIO. 
+
 * Mon Dec 16 2013 Axel Kohlmeyer <akohlmey@gmail.com> - 20131120-6
 - Include abf_integrate as tool for colvars
 

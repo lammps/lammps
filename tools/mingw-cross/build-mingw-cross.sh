@@ -2,7 +2,7 @@
 # automated build script to build windows installers from the lammps sources
 
 MINGW_BUILD_DIR=${HOME}/mingw-cross
-NUMCPU=2
+NUMCPU=1
 echo X-compiling LAMMPS for Windows in ${MINGW_BUILD_DIR} with ${NUMCPU} procs
 
 for d in "${PWD}" "${PWD%/src}" "${PWD%/tools/mingw-cross}" "$1"
@@ -32,7 +32,7 @@ pushd "${LAMMPS_PATH}"
 
 git archive -v --format=tar --prefix=lammps-current/ HEAD \
     README LICENSE doc src lib python txt2html lammps.book \
-    examples/{README,ASPHERE,KAPPA,VISCOSITY,dipole,peri,hugoniostat,colloid,crack,friction,msst,obstacle,body,sputter,pour,ELASTIC,neb,ellipse,flow,meam,min,indent,deposit,micelle,shear,srd,dreiding,eim,prd,rigid,COUPLE,peptide,melt,comb,tad,reax,USER/{atc,awpmd,misc,phonon,cg-cmm}} \
+    examples/{README,ASPHERE,KAPPA,VISCOSITY,dipole,peri,hugoniostat,colloid,crack,friction,msst,obstacle,body,sputter,pour,ELASTIC,neb,ellipse,flow,meam,min,indent,deposit,micelle,shear,srd,dreiding,eim,prd,rigid,COUPLE,peptide,melt,comb,tad,reax,USER/{atc,awpmd,misc,phonon,cg-cmm,sph}} \
     bench potentials tools/*.cpp tools/*.f tools/mingw-cross tools/msi2lmp tools/createatoms tools/colvars \
     | tar -C ${MINGW_BUILD_DIR} -xvf -
 popd
@@ -61,10 +61,10 @@ popd
 pushd src
 
 # configure installed packages
-make yes-all no-kim no-user-cuda no-reax no-user-qmmm no-user-lb
+make yes-all no-kim no-user-cuda no-reax no-user-qmmm no-user-lb no-mpiio
 make -j${NUMCPU} mingw32-cross || exit 4
 make -j${NUMCPU} mingw64-cross || exit 4
-make yes-user-lb
+make yes-user-lb yes-mpiio
 make -j${NUMCPU} mingw32-cross-mpi || exit 4
 make -j${NUMCPU} mingw64-cross-mpi || exit 4
 cp lmp_mingw32-cross ${MINGW_BUILD_DIR}/mingw32/lmp_serial.exe

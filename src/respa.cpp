@@ -480,6 +480,7 @@ void Respa::run(int n)
       timer->stamp();
       modify->end_of_step();
       timer->stamp(Timer::MODIFY);
+    }
 
     if (ntimestep == output->next) {
       timer->stamp();

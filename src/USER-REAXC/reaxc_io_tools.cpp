@@ -684,7 +684,7 @@ void Print_Native_GCells( reax_system *system )
             fprintf( f, "\tatom list start: %d, end: %d\n\t", gc->str, gc->end );
 
           for( l = gc->str; l < gc->end; ++l )
-              fprintf( f, "%5d", system->my_atoms[l].orig_id );
+              fprintf( f, BIGINT_FORMAT, system->my_atoms[l].orig_id );
             fprintf( f, "\n" );
           }
 
@@ -721,7 +721,7 @@ void Print_All_GCells( reax_system *system )
             fprintf( f, "\tatom list start: %d, end: %d\n\t", gc->str, gc->end );
 
           for( l = gc->str; l < gc->end; ++l )
-              fprintf( f, "%5d", system->my_atoms[l].orig_id );
+              fprintf( f, BIGINT_FORMAT, system->my_atoms[l].orig_id );
             fprintf( f, "\n" );
           }
 
@@ -790,7 +790,8 @@ void Print_Far_Neighbors( reax_system *system, reax_list **lists,
                           control_params *control )
 {
   char  fname[100];
-  int   i, j, id_i, id_j, nbr, natoms;
+  int   i, j, nbr, natoms;
+  tagint id_i, id_j;
   FILE *fout;
   reax_list *far_nbrs;
 
@@ -992,7 +993,8 @@ int fn_qsort_intcmp( const void *a, const void *b )
 
 void Print_Bond_List2( reax_system *system, reax_list *bonds, char *fname )
 {
-  int i,j, id_i, id_j, nbr, pj;
+  int i,j, nbr, pj;
+  tagint id_i, id_j;
   FILE *f = fopen( fname, "w" );
   int temp[500];
   int num=0;
@@ -1030,70 +1032,6 @@ void Print_Total_Force( reax_system *system, simulation_data *data,
              system->my_atoms[i].orig_id,
              workspace->f[i][0], workspace->f[i][1], workspace->f[i][2] );
 }
-
-void fixbond( reax_system *system, control_params *control,
-                     simulation_data *data, reax_list **lists,
-                     output_controls *out_control, mpi_datatypes *mpi_data )
-{
-  // count the number of bonds around each atom, for fix reax/c/bond
-  int i, j, pj, my_bonds_0, i_id, j_id;
-  int my_bonds_max = 0;
-  double BO_tmp;
-
-  control->bg_cut = 0.3;  // this values will not change with control file
-  reax_list *bonds = (*lists) + BONDS;
-
-  for( i=0; i < system->n; ++i ) {
-    my_bonds_0 = 0;
-    i_id = system->my_atoms[i].orig_id;  // orig_id is atom->tag
-    for( pj = Start_Index(i, bonds); pj < End_Index(i, bonds); ++pj ) {
-      j = bonds->select.bond_list[pj].nbr;
-      j_id = system->my_atoms[j].orig_id;
-      BO_tmp = bonds->select.bond_list[pj].bo_data.BO;
-      if( i_id != j_id && BO_tmp >= control->bg_cut ) {
-        ++my_bonds_0;
-        system->my_atoms[i].nbr_id[my_bonds_0] = j_id;
-        system->my_atoms[i].nbr_bo[my_bonds_0] = BO_tmp;
-      }
-    }
-    my_bonds_max = MAX(my_bonds_0, my_bonds_max);
-    system->my_atoms[i].numbonds = my_bonds_0;
-    system->my_bonds = my_bonds_max;
-  }
-}
-
-
-void fixspecies( reax_system *system, control_params *control,
-                     simulation_data *data, reax_list **lists,
-                     output_controls *out_control, mpi_datatypes *mpi_data )
-{
-  // count the number of bonds around each atom, for fix reax/c/bond
-  int i, j, pj, my_bonds_0, i_id, j_id;
-  int my_bonds_max = 0;
-  double BO_tmp;
-
-  control->bg_cut = 0.3;  // this values will not change with control file
-  reax_list *bonds = (*lists) + BONDS;
-
-  for( i=0; i < system->n; ++i ) {
-    my_bonds_0 = 0;
-    i_id = system->my_atoms[i].orig_id;
-    for( pj = Start_Index(i, bonds); pj < End_Index(i, bonds); ++pj ) {
-      j = bonds->select.bond_list[pj].nbr;
-      j_id = system->my_atoms[j].orig_id;
-      BO_tmp = bonds->select.bond_list[pj].bo_data.BO;
-      if( i_id != j_id && BO_tmp >= control->bg_cut ) {
-        ++my_bonds_0;
-        system->my_atoms[i].nbr_id[my_bonds_0] = j_id;
-        system->my_atoms[i].nbr_bo[my_bonds_0] = BO_tmp;
-      }
-    }
-    my_bonds_max = MAX(my_bonds_0, my_bonds_max);
-    system->my_atoms[i].numbonds = my_bonds_0;
-    system->my_bonds = my_bonds_max;
-  }
-}
-
 
 void Output_Results( reax_system *system, control_params *control,
                      simulation_data *data, reax_list **lists,
@@ -1421,7 +1359,8 @@ void Print_Far_Neighbors_List( reax_system *system, reax_list **lists,
                                control_params *control, simulation_data *data,
                                output_controls *out_control )
 {
-  int   i, j, id_i, id_j, nbr, natoms;
+  int   i, j, nbr, natoms;
+  tagint id_i, id_j;
   int num=0;
   int temp[500];
   reax_list *far_nbrs;
@@ -1454,7 +1393,8 @@ void Print_Bond_List( reax_system *system, control_params *control,
                       simulation_data *data, reax_list **lists,
                       output_controls *out_control)
 {
-  int i,j, id_i, id_j, nbr, pj;
+  int i,j, nbr, pj;
+  tagint id_i, id_j;
   reax_list *bonds = (*lists) + BONDS;
 
   int temp[500];

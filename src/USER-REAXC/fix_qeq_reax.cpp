@@ -16,10 +16,6 @@
    (now at Lawrence Berkeley National Laboratory, hmaktulga@lbl.gov)
 ------------------------------------------------------------------------- */
 
-#ifdef LAMMPS_BIGBIG
-#error LAMMPS_BIGBIG not supported by this file
-#endif
-
 #include "math.h"
 #include "stdio.h"
 #include "stdlib.h"
@@ -45,8 +41,8 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 #define EV_TO_KCAL_PER_MOL 14.4
-#define DANGER_ZONE     0.95
-#define LOOSE_ZONE      0.7
+//#define DANGER_ZONE     0.95
+//#define LOOSE_ZONE      0.7
 #define SQR(x) ((x)*(x))
 #define CUBE(x) ((x)*(x)*(x))
 #define MIN_NBRS 100
@@ -533,7 +529,6 @@ void FixQEqReax::compute_H()
   firstneigh = list->firstneigh;
 
   // fill in the H matrix
-
   m_fill = 0;
   r_sqr = 0;
   for( ii = 0; ii < inum; ii++ ) {

@@ -276,7 +276,7 @@ void Coll_ids_at_Master( reax_system *system, storage *workspace,
                          mpi_datatypes *mpi_data )
 {
   int i;
-  int *id_list;
+  tagint *id_list;
 
   MPI_Gather( &system->n, 1, MPI_INT, workspace->rcounts, 1, MPI_INT,
               MASTER_NODE, mpi_data->world );

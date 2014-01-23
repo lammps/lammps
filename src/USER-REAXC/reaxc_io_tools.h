@@ -56,10 +56,6 @@ void  Print_Bond_List2( reax_system*, reax_list*, char* );
 void  Print_Total_Force( reax_system*, simulation_data*, storage* );
 void  Output_Results( reax_system*, control_params*, simulation_data*,
                       reax_list**, output_controls*, mpi_datatypes* );
-void  fixbond( reax_system*, control_params*, simulation_data*,
-                      reax_list**, output_controls*, mpi_datatypes* );
-void  fixspecies( reax_system*, control_params*, simulation_data*,
-                      reax_list**, output_controls*, mpi_datatypes* );
 
 #if defined(DEBUG_FOCUS) || defined(TEST_FORCES) || defined(TEST_ENERGY)
 void Debug_Marker_Bonded( output_controls*, int );

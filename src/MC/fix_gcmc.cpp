@@ -828,7 +828,7 @@ void FixGCMC::attempt_molecule_insertion()
     double **x = atom->x;
     double **v = atom->v;
     imageint *image = atom->image;
-    int *molecule = atom->molecule;
+    tagint *molecule = atom->molecule;
     tagint *tag = atom->tag;
     for (int i = 0; i < natoms_per_molecule; i++) {
       k += atom->avec->unpack_exchange(&model_atom_buf[k]);
@@ -950,7 +950,7 @@ int FixGCMC::pick_random_gas_atom()
 /* ----------------------------------------------------------------------
 ------------------------------------------------------------------------- */
 
-int FixGCMC::pick_random_gas_molecule()
+tagint FixGCMC::pick_random_gas_molecule()
 {
   int iwhichglobal = static_cast<int> (ngas*random_equal->uniform());
   tagint gas_molecule_id = 0;

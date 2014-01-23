@@ -16,10 +16,6 @@
 
 #include "stdlib.h"
 
-#ifdef LMP_MPIIO
-#error Cannot build serial LAMMPS with MPIIO package
-#endif
-
 /* use C bindings for MPI interface */
 
 #ifdef __cplusplus

@@ -19,6 +19,10 @@
 
 #ifdef LMP_MPIIO
 
+#if defined(MPI_STUBS)
+#error "The MPIIO package cannot be compiled in serial with MPI STUBS"
+#endif
+
 #include "restart_mpiio.h"
 
 #else

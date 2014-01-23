@@ -110,7 +110,7 @@ FixLbRigidPCSphere::FixLbRigidPCSphere(LAMMPS *lmp, int narg, char **arg) :
     MPI_Allreduce(&maxmol_tag,&itmp,1,MPI_LMP_TAGINT,MPI_MAX,world);
     if (itmp+1 > MAXSMALLINT) 
       error->all(FLERR,"Too many molecules for fix lb/rigid/pc/sphere");
-    maxmol = (int) itmp;
+    int maxmol = (int) itmp;
 
     int *ncount;
     memory->create(ncount,maxmol+1,"rigid:ncount");

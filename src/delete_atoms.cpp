@@ -184,7 +184,7 @@ void DeleteAtoms::delete_region(int narg, char **arg)
   memory->create(list,n,"delete_atoms:list");
 
   n = 0;
-  std::map<int,int>::iterator pos;
+  std::map<tagint,int>::iterator pos;
   for (pos = hash->begin(); pos != hash->end(); ++pos) list[n++] = pos->first;
 
   cptr = this;
@@ -202,7 +202,7 @@ void DeleteAtoms::delete_region(int narg, char **arg)
 
 void DeleteAtoms::molring(int n, char *cbuf)
 {
-  tagint *list = (int *) cbuf;
+  tagint *list = (tagint *) cbuf;
   int *dlist = cptr->dlist;
   std::map<tagint,int> *hash = cptr->hash;
   int nlocal = cptr->atom->nlocal;

@@ -449,7 +449,7 @@ void ComputePropertyAtom::pack_id(int n)
 
 void ComputePropertyAtom::pack_molecule(int n)
 {
-  int *molecule = atom->molecule;
+  tagint *molecule = atom->molecule;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 

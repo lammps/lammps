@@ -33,50 +33,53 @@
 // have to match with those from the QM code
 enum {QMMM_TAG_OTHER=0, QMMM_TAG_SIZE=1, QMMM_TAG_COORD=2,QMMM_TAG_FORCE=3};
 
+using namespace LAMMPS_NS;
+using namespace FixConst;
+
 /****************************************************************************/
 
 /* re-usable integer hash table code with static linkage. */
 
 /** hash table top level data structure */
-typedef struct inthash_t {
-  struct inthash_node_t **bucket;        /* array of hash nodes */
-  int size;                           /* size of the array */
-  int entries;                        /* number of entries in table */
-  int downshift;                      /* shift cound, used in hash function */
-  int mask;                           /* used to select bits for hashing */
-} inthash_t;
+typedef struct taginthash_t {
+  struct taginthash_node_t **bucket;        /* array of hash nodes */
+  tagint size;                           /* size of the array */
+  tagint entries;                        /* number of entries in table */
+  tagint downshift;                      /* shift cound, used in hash function */
+  tagint mask;                           /* used to select bits for hashing */
+} taginthash_t;
 
 /** hash table node data structure */
-typedef struct inthash_node_t {
-  int data;                           /* data in hash node */
-  int key;                            /* key for hash lookup */
-  struct inthash_node_t *next;        /* next node in hash chain */
-} inthash_node_t;
+typedef struct taginthash_node_t {
+  tagint data;                           /* data in hash node */
+  tagint key;                            /* key for hash lookup */
+  struct taginthash_node_t *next;        /* next node in hash chain */
+} taginthash_node_t;
 
 #define HASH_FAIL  -1
 #define HASH_LIMIT  0.5
 
 /* initialize new hash table  */
-static void inthash_init(inthash_t *tptr, int buckets);
+static void taginthash_init(taginthash_t *tptr, tagint buckets);
 /* lookup entry in hash table */
-static int inthash_lookup(const inthash_t *tptr, int key);
+static tagint taginthash_lookup(const taginthash_t *tptr, tagint key);
 /* generate list of keys for reverse lookups. */
-static int *inthash_keys(inthash_t *tptr);
+static tagint *taginthash_keys(taginthash_t *tptr);
 /* insert an entry into hash table. */
-static int inthash_insert(inthash_t *tptr, int key, int data);
+static tagint taginthash_insert(taginthash_t *tptr, tagint key, tagint data);
 /* delete the hash table */
-static void inthash_destroy(inthash_t *tptr);
+static void taginthash_destroy(taginthash_t *tptr);
 /* adapted sort for in-place sorting of map indices. */
-static void id_sort(int *idmap, int left, int right);
+static void id_sort(tagint *idmap, tagint left, tagint right);
 
 /************************************************************************
  * integer hash code:
  ************************************************************************/
 
-/* inthash() - Hash function returns a hash number for a given key.
+/* taginthash() - Hash function returns a hash number for a given key.
  * tptr: Pointer to a hash table, key: The key to create a hash number for */
-static int inthash(const inthash_t *tptr, int key) {
-  int hashvalue;
+static tagint taginthash(const taginthash_t *tptr, tagint key) {
+  tagint hashvalue;
 
   hashvalue = (((key*1103515249)>>tptr->downshift) & tptr->mask);
   if (hashvalue < 0) {
@@ -87,25 +90,25 @@ static int inthash(const inthash_t *tptr, int key) {
 }
 
 /*
- *  rebuild_table_int() - Create new hash table when old one fills up.
+ *  rebuild_table_tagint() - Create new hash table when old one fills up.
  *
  *  tptr: Pointer to a hash table
  */
-static void rebuild_table_int(inthash_t *tptr) {
-  inthash_node_t **old_bucket, *old_hash, *tmp;
-  int old_size, h, i;
+static void rebuild_table_tagint(taginthash_t *tptr) {
+  taginthash_node_t **old_bucket, *old_hash, *tmp;
+  tagint old_size, h, i;
 
   old_bucket=tptr->bucket;
   old_size=tptr->size;
 
   /* create a new table and rehash old buckets */
-  inthash_init(tptr, old_size<<1);
+  taginthash_init(tptr, old_size<<1);
   for (i=0; i<old_size; i++) {
     old_hash=old_bucket[i];
     while(old_hash) {
       tmp=old_hash;
       old_hash=old_hash->next;
-      h=inthash(tptr, tmp->key);
+      h=taginthash(tptr, tmp->key);
       tmp->next=tptr->bucket[h];
       tptr->bucket[h]=tmp;
       tptr->entries++;
@@ -119,12 +122,12 @@ static void rebuild_table_int(inthash_t *tptr) {
 }
 
 /*
- *  inthash_init() - Initialize a new hash table.
+ *  taginthash_init() - Initialize a new hash table.
  *
  *  tptr: Pointer to the hash table to initialize
  *  buckets: The number of initial buckets to create
  */
-void inthash_init(inthash_t *tptr, int buckets) {
+void taginthash_init(taginthash_t *tptr, tagint buckets) {
 
   /* make sure we allocate something */
   if (buckets==0)
@@ -144,25 +147,25 @@ void inthash_init(inthash_t *tptr, int buckets) {
   } /* while */
 
   /* allocate memory for table */
-  tptr->bucket=(inthash_node_t **) calloc(tptr->size, sizeof(inthash_node_t *));
+  tptr->bucket=(taginthash_node_t **) calloc(tptr->size, sizeof(taginthash_node_t *));
 
   return;
 }
 
 /*
- *  inthash_lookup() - Lookup an entry in the hash table and return a pointer to
+ *  taginthash_lookup() - Lookup an entry in the hash table and return a pointer to
  *    it or HASH_FAIL if it wasn't found.
  *
  *  tptr: Pointer to the hash table
  *  key: The key to lookup
  */
-int inthash_lookup(const inthash_t *tptr, int key) {
-  int h;
-  inthash_node_t *node;
+tagint taginthash_lookup(const taginthash_t *tptr, tagint key) {
+  tagint h;
+  taginthash_node_t *node;
 
 
   /* find the entry in the hash table */
-  h=inthash(tptr, key);
+  h=taginthash(tptr, key);
   for (node=tptr->bucket[h]; node!=NULL; node=node->next) {
     if (node->key == key)
       break;
@@ -174,17 +177,17 @@ int inthash_lookup(const inthash_t *tptr, int key) {
 
 
 /*
- *  inthash_keys() - Return a list of keys.
+ *  taginthash_keys() - Return a list of keys.
  *  NOTE: the returned list must be freed with free(3).
  */
-int *inthash_keys(inthash_t *tptr) {
+tagint *taginthash_keys(taginthash_t *tptr) {
 
-  int *keys;
-  inthash_node_t *node;
+  tagint *keys;
+  taginthash_node_t *node;
 
-  keys = (int *)calloc(tptr->entries, sizeof(int));
+  keys = (tagint *)calloc(tptr->entries, sizeof(tagint));
 
-  for (int i=0; i < tptr->size; ++i) {
+  for (tagint i=0; i < tptr->size; ++i) {
     for (node=tptr->bucket[i]; node != NULL; node=node->next) {
       keys[node->data] = node->key;
     }
@@ -194,29 +197,29 @@ int *inthash_keys(inthash_t *tptr) {
 }
 
 /*
- *  inthash_insert() - Insert an entry into the hash table.  If the entry already
+ *  taginthash_insert() - Insert an entry into the hash table.  If the entry already
  *  exists return a pointer to it, otherwise return HASH_FAIL.
  *
  *  tptr: A pointer to the hash table
  *  key: The key to insert into the hash table
  *  data: A pointer to the data to insert into the hash table
  */
-int inthash_insert(inthash_t *tptr, int key, int data) {
-  int tmp;
-  inthash_node_t *node;
-  int h;
+tagint taginthash_insert(taginthash_t *tptr, tagint key, tagint data) {
+  tagint tmp;
+  taginthash_node_t *node;
+  tagint h;
 
   /* check to see if the entry exists */
-  if ((tmp=inthash_lookup(tptr, key)) != HASH_FAIL)
+  if ((tmp=taginthash_lookup(tptr, key)) != HASH_FAIL)
     return(tmp);
 
   /* expand the table if needed */
   while (tptr->entries>=HASH_LIMIT*tptr->size)
-    rebuild_table_int(tptr);
+    rebuild_table_tagint(tptr);
 
   /* insert the new entry */
-  h=inthash(tptr, key);
-  node=(struct inthash_node_t *) malloc(sizeof(inthash_node_t));
+  h=taginthash(tptr, key);
+  node=(struct taginthash_node_t *) malloc(sizeof(taginthash_node_t));
   node->data=data;
   node->key=key;
   node->next=tptr->bucket[h];
@@ -227,12 +230,12 @@ int inthash_insert(inthash_t *tptr, int key, int data) {
 }
 
 /*
- * inthash_destroy() - Delete the entire table, and all remaining entries.
+ * taginthash_destroy() - Delete the entire table, and all remaining entries.
  *
  */
-void inthash_destroy(inthash_t *tptr) {
-  inthash_node_t *node, *last;
-  int i;
+void taginthash_destroy(taginthash_t *tptr) {
+  taginthash_node_t *node, *last;
+  tagint i;
 
   for (i=0; i<tptr->size; i++) {
     node = tptr->bucket[i];
@@ -246,7 +249,7 @@ void inthash_destroy(inthash_t *tptr) {
   /* free the entire array of buckets */
   if (tptr->bucket != NULL) {
     free(tptr->bucket);
-    memset(tptr, 0, sizeof(inthash_t));
+    memset(tptr, 0, sizeof(taginthash_t));
   }
 }
 
@@ -255,9 +258,9 @@ void inthash_destroy(inthash_t *tptr) {
  ************************************************************************/
 
 /* sort for integer map. initial call  id_sort(idmap, 0, natoms - 1); */
-static void id_sort(int *idmap, int left, int right)
+static void id_sort(tagint *idmap, tagint left, tagint right)
 {
-  int pivot, l_hold, r_hold;
+  tagint pivot, l_hold, r_hold;
 
   l_hold = left;
   r_hold = right;
@@ -288,13 +291,11 @@ static void id_sort(int *idmap, int left, int right)
     id_sort(idmap, pivot+1, right);
 }
 
-
-using namespace LAMMPS_NS;
-using namespace FixConst;
+/****************************************************************************/
 
 /* struct for packed data communication of coordinates and forces. */
 struct commdata {
-  int tag;
+  tagint tag;
   float x,y,z;
 };
 
@@ -359,8 +360,8 @@ FixQMMM::~FixQMMM()
 {
 
   if (qm_idmap) {
-    inthash_t *hashtable = (inthash_t *)qm_idmap;
-    inthash_destroy(hashtable);
+    taginthash_t *hashtable = (taginthash_t *)qm_idmap;
+    taginthash_destroy(hashtable);
     delete hashtable;
     free(qm_remap);
   }
@@ -385,7 +386,7 @@ void FixQMMM::exchange_positions()
 {
   double **x = atom->x;
   const int * const mask  = atom->mask;
-  const int * const tag  = atom->tag;
+  const tagint * const tag  = atom->tag;
   const int nlocal = atom->nlocal;
 
   if ((comm->me == 0) && (verbose > 0)) {
@@ -410,7 +411,7 @@ void FixQMMM::exchange_positions()
       // insert local atoms into comm buffer
       for (i=0; i<nlocal; ++i) {
         if (mask[i] & groupbit) {
-          const int j = 3*inthash_lookup((inthash_t *)qm_idmap, tag[i]);
+          const int j = 3*taginthash_lookup((taginthash_t *)qm_idmap, tag[i]);
           if (j != 3*HASH_FAIL) {
             qm_coord[j]   = x[i][0];
             qm_coord[j+1] = x[i][1];
@@ -429,7 +430,7 @@ void FixQMMM::exchange_positions()
         ndata /= size_one;
 
         for (int k=0; k<ndata; ++k) {
-          const int j = 3*inthash_lookup((inthash_t *)qm_idmap, buf[k].tag);
+          const int j = 3*taginthash_lookup((taginthash_t *)qm_idmap, buf[k].tag);
           if (j != 3*HASH_FAIL) {
             qm_coord[j]   = buf[k].x;
             qm_coord[j+1] = buf[k].y;
@@ -487,7 +488,7 @@ void FixQMMM::exchange_forces()
 {
   double **f = atom->f;
   const int * const mask  = atom->mask;
-  const int * const tag  = atom->tag;
+  const tagint * const tag  = atom->tag;
   const int nlocal = atom->nlocal;
 
   if ((comm->me) == 0 && (verbose > 0)) {
@@ -551,7 +552,7 @@ void FixQMMM::exchange_forces()
     memset(qm_force,0,3*num_qm*sizeof(double));
     for (int i=0; i < nlocal; ++i)
       if (mask[i] & groupbit) {
-        const int j = 3*inthash_lookup((inthash_t *)qm_idmap, tag[i]);
+        const int j = 3*taginthash_lookup((taginthash_t *)qm_idmap, tag[i]);
         if (j != 3*HASH_FAIL) {
           qm_force[j]   = f[i][0];
           qm_force[j+1] = f[i][1];
@@ -636,20 +637,20 @@ void FixQMMM::init()
     comm_buf = (void *) memory->smalloc(maxbuf,"qmmm:comm_buf");
 
     /* initialize and build hashtable to map QM atoms */
-    inthash_t *qm_hash=new inthash_t;
-    inthash_init(qm_hash, num_qm);
+    taginthash_t *qm_hash=new taginthash_t;
+    taginthash_init(qm_hash, num_qm);
     qm_idmap = (void *)qm_hash;
 
     MPI_Status status;
     MPI_Request request;
     const int nlocal = atom->nlocal;
     int i, j, tmp, ndata, qm_ntag;
-    int *tag = atom->tag;
+    tagint *tag = atom->tag;
     int *mask  = atom->mask;
     struct commdata *buf = static_cast<struct commdata *>(comm_buf);
 
     if (me == 0) {
-      int *qm_taglist = new int[num_qm];
+      tagint *qm_taglist = new tagint[num_qm];
       qm_ntag = 0;
       for (i=0; i < nlocal; ++i) {
         if (mask[i] & groupbit)
@@ -673,21 +674,21 @@ void FixQMMM::init()
        * same list when running in parallel and build hash table. */
       id_sort(qm_taglist, 0, num_qm-1);
       for (i=0; i < num_qm; ++i) {
-        inthash_insert(qm_hash, qm_taglist[i], i);
+        taginthash_insert(qm_hash, qm_taglist[i], i);
       }
       delete[] qm_taglist;
 
       /* generate reverse index-to-tag map for communicating
        * qm/mm forces back to the proper atoms */
-      qm_remap=inthash_keys(qm_hash);
+      qm_remap=taginthash_keys(qm_hash);
 
       if (verbose > 1) {
         // print hashtable and reverse mapping
         for (i=0; i < num_qm; ++i) {
           if (screen) fprintf(screen, "qm_remap[%d]=%d  qm_hash[%d]=%d\n",
-            i,qm_remap[i],qm_remap[i], inthash_lookup(qm_hash, qm_remap[i]));
+            i,qm_remap[i],qm_remap[i], taginthash_lookup(qm_hash, qm_remap[i]));
           if (logfile) fprintf(logfile, "qm_remap[%d]=%d  qm_hash[%d]=%d\n",
-            i,qm_remap[i],qm_remap[i], inthash_lookup(qm_hash, qm_remap[i]));
+            i,qm_remap[i],qm_remap[i], taginthash_lookup(qm_hash, qm_remap[i]));
         }
       }
 

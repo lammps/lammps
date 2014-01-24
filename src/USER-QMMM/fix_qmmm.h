@@ -49,11 +49,11 @@ class FixQMMM : public Fix {
  protected:
   MPI_Comm qm_comm;   // intra communicator with QM subsystem
   MPI_Comm mm_comm;   // intra communicator with MM subsystem
-  void  *comm_buf;    // message buffer for internal communication
-  void  *qm_idmap;    // hash for mapping QM atom indices to consistent order.
-  int   *qm_remap;    // list of the hash keys for reverse mapping.
-  void  *mm_idmap;    // hash for mapping MM atom indices to consistent order.
-  int   *mm_remap;    // list of the hash keys for reverse mapping.
+  void   *comm_buf;   // message buffer for internal communication
+  void   *qm_idmap;   // hash for mapping QM atom indices to consistent order.
+  tagint *qm_remap;   // list of the hash keys for reverse mapping.
+  void   *mm_idmap;   // hash for mapping MM atom indices to consistent order.
+  tagint *mm_remap;   // list of the hash keys for reverse mapping.
   double *qm_coord;   // QM system coordinates
   double *mm_coord;   // MM system coordinates used for electrostatic coupling
   int    *mm_type;    // system atom types used for electrostatic coupling

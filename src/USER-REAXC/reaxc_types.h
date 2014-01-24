@@ -67,6 +67,10 @@ typedef real rtensor[3][3];
 typedef real rvec2[2];
 typedef real rvec4[4];
 
+#ifdef LAMMPS_SMALLSMALL
+typedef int tagint;
+#endif
+
 #ifdef LAMMPS_SMALLBIG
 typedef int tagint;
 #endif

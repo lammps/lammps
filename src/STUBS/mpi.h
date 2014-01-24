@@ -16,10 +16,6 @@
 
 #include "stdlib.h"
 
-#ifdef LMP_MPIIO
-#error Cannot build serial LAMMPS with MPIIO package
-#endif
-
 /* use C bindings for MPI interface */
 
 #ifdef __cplusplus
@@ -30,7 +26,8 @@ extern "C" {
 
 #define MPI_COMM_WORLD 0
 
-#define MPI_SUCCESS 0
+#define MPI_SUCCESS   0
+#define MPI_ERR_ARG  -1
 
 #define MPI_INT 1
 #define MPI_FLOAT 2
@@ -50,13 +47,17 @@ extern "C" {
 
 #define MPI_UNDEFINED -1
 #define MPI_COMM_NULL -1
+#define MPI_GROUP_EMPTY -1
 
 #define MPI_ANY_SOURCE -1
+#define MPI_STATUS_IGNORE NULL
 
 #define MPI_Comm int
 #define MPI_Request int
 #define MPI_Datatype int
 #define MPI_Op int
+#define MPI_Fint int
+#define MPI_Group int
 #define MPI_Offset long
 
 #define MPI_IN_PLACE NULL
@@ -107,6 +108,11 @@ int MPI_Get_count(MPI_Status *status, MPI_Datatype datatype, int *count);
 int MPI_Comm_split(MPI_Comm comm, int color, int key, MPI_Comm *comm_out);
 int MPI_Comm_dup(MPI_Comm comm, MPI_Comm *comm_out);
 int MPI_Comm_free(MPI_Comm *comm);
+MPI_Fint MPI_Comm_c2f(MPI_Comm comm);
+MPI_Comm MPI_Comm_f2c(MPI_Fint comm);
+int MPI_Comm_group(MPI_Comm comm, MPI_Group *group);
+int MPI_Comm_create(MPI_Comm comm, MPI_Group group, MPI_Comm *newcomm);
+int MPI_Group_incl(MPI_Group group, int n, int *ranks, MPI_Group *newgroup);
 
 int MPI_Cart_create(MPI_Comm comm_old, int ndims, int *dims, int *periods,
                     int reorder, MPI_Comm *comm_cart);
@@ -115,6 +121,7 @@ int MPI_Cart_get(MPI_Comm comm, int maxdims, int *dims, int *periods,
 int MPI_Cart_shift(MPI_Comm comm, int direction, int displ,
                    int *source, int *dest);
 int MPI_Cart_rank(MPI_Comm comm, int *coords, int *rank);
+
 
 int MPI_Barrier(MPI_Comm comm);
 int MPI_Bcast(void *buf, int count, MPI_Datatype datatype,
@@ -145,6 +152,14 @@ int MPI_Scatter(void *sendbuf, int sendcount, MPI_Datatype sendtype,
 int MPI_Scatterv(void *sendbuf, int *sendcounts, int *displs,
                  MPI_Datatype sendtype, void *recvbuf, int recvcount,
                  MPI_Datatype recvtype, int root, MPI_Comm comm);
+int MPI_Alltoall(void *sendbuf, int sendcount, MPI_Datatype sendtype,
+                 void *recvbuf, int recvcount, MPI_Datatype recvtype,
+                 MPI_Comm comm);
+int MPI_Alltoallv(void *sendbuf, int *sendcounts, int *sdispls,
+                  MPI_Datatype sendtype,
+                  void *recvbuf, int *recvcounts, int *rdispls,
+                  MPI_Datatype recvtype, MPI_Comm comm);
+/* ---------------------------------------------------------------------- */
 
 #ifdef __cplusplus
 }

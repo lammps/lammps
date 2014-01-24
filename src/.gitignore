@@ -1,0 +1,14 @@
+*~
+lammps.pdf
+*.o
+*.so
+*.cu_o
+*.ptx
+*_ptx.h
+*.a
+Obj_*
+log.*
+*.x
+*.exe
+.*.swp
+*.orig

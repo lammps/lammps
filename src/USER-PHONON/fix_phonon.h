@@ -74,8 +74,10 @@ class FixPhonon : public Fix {
   int fft_dim, fft_dim2;
   double *fft_data;
   
-  int  itag, idx, idq;                          // index variables
-  std::map<int,int> tag2surf, surf2tag;         // Mapping info
+  tagint itag;                                  // index variables
+  int idx, idq;                                 // more index variables
+  std::map<tagint,int> tag2surf;                // Mapping info
+  std::map<int,tagint> surf2tag;                // more Mapping info
 
   double **RIloc;                               // R(r) and index on local proc
   double **RIall;                               // gathered R(r) and index

@@ -23,10 +23,6 @@
      konglt@sjtu.edu.cn; konglt@gmail.com
 ------------------------------------------------------------------------- */
 
-#ifdef LAMMPS_BIGBIG
-#error LAMMPS_BIGBIG not supported by this file
-#endif
-
 #include "string.h"
 #include "fix_phonon.h"
 #include "atom.h"
@@ -116,9 +112,12 @@ FixPhonon::FixPhonon(LAMMPS *lmp,  int narg, char **arg) : Fix(lmp, narg, arg)
   if (sdim < sysdim) sysdim = sdim;
   nasr = MAX(0, nasr);
 
-  // get the total number of atoms in group
-  ngroup = static_cast<int>(group->count(igroup));
-  if (ngroup < 1) error->all(FLERR,"No atom found for fix phonon!");
+  // get the total number of atoms in group and run min/max checks
+  bigint ng = group->count(igroup);
+  if (ng > MAXSMALLINT) error->all(FLERR,"Too many atoms for fix phonon");
+  if (ng < 1) error->all(FLERR,"No atom found for fix phonon!");
+  ngroup = static_cast<int>(ng);
+
 
   // MPI gatherv related variables
   recvcnts = new int[nprocs];
@@ -211,7 +210,7 @@ FixPhonon::FixPhonon(LAMMPS *lmp,  int narg, char **arg) : Fix(lmp, narg, arg)
       iz   = (idx/nucell)%nz;
       iy   = (idx/(nucell*nz))%ny;
       ix   = (idx/(nucell*nz*ny))%nx;
-      fprintf(flog,"%d %d %d %d %d\n", ix, iy, iz, iu, itag);
+      fprintf(flog,"%d %d %d %d " TAGINT_FORMAT "\n", ix, iy, iz, iu, itag);
     }
     for (int i = 0; i < 60; ++i) fprintf(flog,"#"); fprintf(flog,"\n");
     fflush(flog);
@@ -331,15 +330,11 @@ void FixPhonon::end_of_step()
 
   double **x = atom->x;
   int *mask  = atom->mask;
-  int *tag   = atom->tag;
-  int *image = atom->image;
+  tagint *tag   = atom->tag;
+  imageint *image = atom->image;
   int nlocal = atom->nlocal;
 
-  double xprd = domain->xprd;
-  double yprd = domain->yprd;
-  double zprd = domain->zprd;
   double *h   = domain->h;
-  double xbox, ybox, zbox;
 
   int i,idim,jdim,ndim;
   double xcur[3];
@@ -475,7 +470,7 @@ void FixPhonon::getmass()
 {
   int nlocal = atom->nlocal;
   int *mask  = atom->mask;
-  int *tag   = atom->tag;
+  tagint *tag   = atom->tag;
   int *type  = atom->type;
   double *rmass = atom->rmass;
   double *mass = atom->mass;
@@ -545,7 +540,7 @@ void FixPhonon::readmap()
     nx = ny = nz = ntotal = 1;
     nucell = ngroup;
 
-    int *tag_loc, *tag_all;
+    tagint *tag_loc, *tag_all;
     memory->create(tag_loc,ngroup,"fix_phonon:tag_loc");
     memory->create(tag_all,ngroup,"fix_phonon:tag_all");
 
@@ -561,7 +556,7 @@ void FixPhonon::readmap()
     MPI_Allgather(&nfind,1,MPI_INT,recvcnts,1,MPI_INT,world);
     for (int i = 1; i < nprocs; ++i) displs[i] = displs[i-1] + recvcnts[i-1];
    
-    MPI_Allgatherv(tag_loc,nfind,MPI_INT,tag_all,recvcnts,displs,MPI_INT,world);
+    MPI_Allgatherv(tag_loc,nfind,MPI_LMP_TAGINT,tag_all,recvcnts,displs,MPI_INT,world);
     for (int i = 0; i < ngroup; ++i){
       itag = tag_all[i];
       tag2surf[itag] = i;
@@ -623,7 +618,7 @@ void FixPhonon::readmap()
   
   // check the correctness of mapping
   int *mask  = atom->mask;
-  int *tag   = atom->tag;
+  tagint *tag   = atom->tag;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; ++i) {

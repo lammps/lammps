@@ -81,7 +81,8 @@ template <int EVFLAG, int EFLAG, int VFLAG_ATOM>
 void PairCombOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
   int i,j,k,ii,jj,kk,jnum,iparam_i;
-  int itag,jtag,itype,jtype,ktype,iparam_ij,iparam_ijk;
+  tagint itag,jtag;
+  int itype,jtype,ktype,iparam_ij,iparam_ijk;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
   double rsq,rsq1,rsq2;
   double delr1[3],delr2[3],fi[3],fj[3],fk[3];
@@ -101,7 +102,7 @@ void PairCombOMP::eval(int iifrom, int iito, ThrData * const thr)
   const double * const * const x = atom->x;
   double * const * const f = thr->get_f();
   const double * const q = atom->q;
-  const int * const tag = atom->tag;
+  const tagint * const tag = atom->tag;
   const int * const type = atom->type;
   const int nlocal = atom->nlocal;
 
@@ -383,7 +384,7 @@ double PairCombOMP::yasu_char(double *qf_fix, int &igroup)
   const double * const * const x = atom->x;
   const double * const q = atom->q;
   const int * const type = atom->type;
-  const int * const tag = atom->tag;
+  const tagint * const tag = atom->tag;
 
   const int inum = list->inum;
   const int * const ilist = list->ilist;
@@ -418,7 +419,7 @@ double PairCombOMP::yasu_char(double *qf_fix, int &igroup)
     int mr1,mr2,mr3;
 
     const int i = ilist[ii];
-    const int itag = tag[i];
+    const tagint itag = tag[i];
     int nj = 0;
 
     if (mask[i] & groupbit) {
@@ -441,7 +442,7 @@ double PairCombOMP::yasu_char(double *qf_fix, int &igroup)
 
       for (int jj = 0; jj < jnum; jj++) {
         const int j = jlist[jj] & NEIGHMASK;
-        const int jtag = tag[j];
+        const tagint jtag = tag[j];
 
         if (itag > jtag) {
           if ((itag+jtag) % 2 == 0) continue;

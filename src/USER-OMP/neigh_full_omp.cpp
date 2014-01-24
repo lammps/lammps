@@ -43,9 +43,9 @@ void Neighbor::full_nsq_omp(NeighList *list)
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr;
 
-  int **special = atom->special;
+  tagint **special = atom->special;
   int **nspecial = atom->nspecial;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
 
   double **x = atom->x;
   int *type = atom->type;
@@ -131,9 +131,9 @@ void Neighbor::full_nsq_ghost_omp(NeighList *list)
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr;
 
-  int **special = atom->special;
+  tagint **special = atom->special;
   int **nspecial = atom->nspecial;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
 
   double **x = atom->x;
   int *type = atom->type;
@@ -235,9 +235,9 @@ void Neighbor::full_bin_omp(NeighList *list)
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr;
 
-  int **special = atom->special;
+  tagint **special = atom->special;
   int **nspecial = atom->nspecial;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
 
   double **x = atom->x;
   int *type = atom->type;
@@ -334,9 +334,9 @@ void Neighbor::full_bin_ghost_omp(NeighList *list)
   int xbin,ybin,zbin,xbin2,ybin2,zbin2;
   int *neighptr;
 
-  int **special = atom->special;
+  tagint **special = atom->special;
   int **nspecial = atom->nspecial;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
 
   double **x = atom->x;
   int *type = atom->type;
@@ -462,9 +462,9 @@ void Neighbor::full_multi_omp(NeighList *list)
 
   // loop over each atom, storing neighbors
 
-  int **special = atom->special;
+  tagint **special = atom->special;
   int **nspecial = atom->nspecial;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
 
   double **x = atom->x;
   int *type = atom->type;

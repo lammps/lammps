@@ -72,7 +72,7 @@ void FixShearHistoryOMP::pre_exchange()
 
     for (i = lfrom; i < lto; i++) npartner[i] = 0;
 
-    MyPage <int> &ipg = ipage[tid];
+    MyPage <tagint> &ipg = ipage[tid];
     MyPage <double[3]> &dpg = dpage[tid];
     ipg.reset();
     dpg.reset();
@@ -80,7 +80,7 @@ void FixShearHistoryOMP::pre_exchange()
     // 1st loop over neighbor list
     // calculate nparter for each owned atom
 
-    int *tag = atom->tag;
+    tagint *tag = atom->tag;
 
     NeighList *list = pair->list;
     inum = list->inum;

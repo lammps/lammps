@@ -72,7 +72,8 @@ template <int EVFLAG, int EFLAG, int VFLAG_ATOM>
 void PairTersoffOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
   int i,j,k,ii,jj,kk,jnum;
-  int itag,jtag,itype,jtype,ktype,iparam_ij,iparam_ijk;
+  tagint itag,jtag;
+  int itype,jtype,ktype,iparam_ij,iparam_ijk;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double rsq,rsq1,rsq2;
   double delr1[3],delr2[3],fi[3],fj[3],fk[3];
@@ -83,7 +84,7 @@ void PairTersoffOMP::eval(int iifrom, int iito, ThrData * const thr)
 
   const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
   dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
-  const int * _noalias const tag = atom->tag;
+  const tagint * _noalias const tag = atom->tag;
   const int * _noalias const type = atom->type;
   const int nlocal = atom->nlocal;
 

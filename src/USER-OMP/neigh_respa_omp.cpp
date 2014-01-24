@@ -52,9 +52,9 @@ void Neighbor::respa_nsq_no_newton_omp(NeighList *list)
 
   // loop over each atom, storing neighbors
 
-  int **special = atom->special;
+  tagint **special = atom->special;
   int **nspecial = atom->nspecial;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
 
   double **x = atom->x;
   int *type = atom->type;
@@ -203,9 +203,9 @@ void Neighbor::respa_nsq_newton_omp(NeighList *list)
 
   // loop over each atom, storing neighbors
 
-  int **special = atom->special;
+  tagint **special = atom->special;
   int **nspecial = atom->nspecial;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
 
   double **x = atom->x;
   int *type = atom->type;
@@ -375,9 +375,9 @@ void Neighbor::respa_bin_no_newton_omp(NeighList *list)
 
   // loop over each atom, storing neighbors
 
-  int **special = atom->special;
+  tagint **special = atom->special;
   int **nspecial = atom->nspecial;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
 
   double **x = atom->x;
   int *type = atom->type;
@@ -538,9 +538,9 @@ void Neighbor::respa_bin_newton_omp(NeighList *list)
 
   // loop over each atom, storing neighbors
 
-  int **special = atom->special;
+  tagint **special = atom->special;
   int **nspecial = atom->nspecial;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
 
   double **x = atom->x;
   int *type = atom->type;
@@ -742,9 +742,9 @@ void Neighbor::respa_bin_newton_tri_omp(NeighList *list)
 
   // loop over each atom, storing neighbors
 
-  int **special = atom->special;
+  tagint **special = atom->special;
   int **nspecial = atom->nspecial;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
 
   double **x = atom->x;
   int *type = atom->type;

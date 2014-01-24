@@ -69,7 +69,8 @@ void PairNb3bHarmonicOMP::compute(int eflag, int vflag)
 template <int EVFLAG, int EFLAG>
 void PairNb3bHarmonicOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
-  int i,j,k,ii,jj,kk,jnum,jnumm1,itag,jtag;
+  int i,j,k,ii,jj,kk,jnum,jnumm1;
+  tagint itag,jtag;
   int itype,jtype,ktype,ijparam,ikparam,ijkparam;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double rsq,rsq1,rsq2;
@@ -80,7 +81,7 @@ void PairNb3bHarmonicOMP::eval(int iifrom, int iito, ThrData * const thr)
 
   const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
   dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
-  const int * _noalias const tag = atom->tag;
+  const tagint * _noalias const tag = atom->tag;
   const int * _noalias const type = atom->type;
   const int nlocal = atom->nlocal;
 

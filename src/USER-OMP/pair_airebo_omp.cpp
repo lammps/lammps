@@ -1836,7 +1836,8 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
 void PairAIREBOOMP::FREBO_thr(int ifrom, int ito, int evflag, int eflag,
                               int vflag_atom, ThrData * const thr)
 {
-  int i,j,k,m,ii,itype,jtype,itag,jtag;
+  int i,j,k,m,ii,itype,jtype;
+  tagint itag,jtag;
   double delx,dely,delz,evdwl,fpair,xtmp,ytmp,ztmp;
   double rsq,rij,wij;
   double Qij,Aij,alphaij,VR,pre,dVRdi,VA,term,bij,dVAdi,dVA;
@@ -1848,7 +1849,7 @@ void PairAIREBOOMP::FREBO_thr(int ifrom, int ito, int evflag, int eflag,
   const double * const * const x = atom->x;
   double * const * const f = thr->get_f();
   int *type = atom->type;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int nlocal = atom->nlocal;
 
   ilist = list->ilist;
@@ -1933,7 +1934,8 @@ void PairAIREBOOMP::FREBO_thr(int ifrom, int ito, int evflag, int eflag,
 void PairAIREBOOMP::FLJ_thr(int ifrom, int ito, int evflag, int eflag,
                             int vflag_atom, ThrData * const thr)
 {
-  int i,j,k,m,ii,jj,kk,mm,jnum,itype,jtype,ktype,mtype,itag,jtag;
+  int i,j,k,m,ii,jj,kk,mm,jnum,itype,jtype,ktype,mtype;
+  tagint itag,jtag;
   int atomi,atomj,atomk,atomm;
   int testpath,npath,done;
   double evdwl,fpair,xtmp,ytmp,ztmp;
@@ -1963,7 +1965,7 @@ void PairAIREBOOMP::FLJ_thr(int ifrom, int ito, int evflag, int eflag,
 
   const double * const * const x = atom->x;
   double * const * const f = thr->get_f();
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int *type = atom->type;
   int nlocal = atom->nlocal;
 
@@ -2297,7 +2299,8 @@ void PairAIREBOOMP::FLJ_thr(int ifrom, int ito, int evflag, int eflag,
 void PairAIREBOOMP::TORSION_thr(int ifrom, int ito,
                                 int evflag, int eflag, ThrData * const thr)
 {
-  int i,j,k,l,ii,itag,jtag;
+  int i,j,k,l,ii;
+  tagint itag,jtag;
   double evdwl,fpair,xtmp,ytmp,ztmp;
   double cos321;
   double w21,dw21,cos234,w34,dw34;
@@ -2322,7 +2325,7 @@ void PairAIREBOOMP::TORSION_thr(int ifrom, int ito,
   const double * const * const x = atom->x;
   double * const * const f = thr->get_f();
   int *type = atom->type;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
 
   ilist = list->ilist;
 

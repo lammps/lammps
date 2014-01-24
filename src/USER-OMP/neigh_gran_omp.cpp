@@ -51,7 +51,8 @@ void Neighbor::granular_nsq_no_newton_omp(NeighList *list)
   int *neighptr,*touchptr;
   double *shearptr;
 
-  int *npartner,**partner;
+  int *npartner;
+  tagint **partner;
   double (**shearpartner)[3];
   int **firsttouch;
   double **firstshear;
@@ -60,7 +61,7 @@ void Neighbor::granular_nsq_no_newton_omp(NeighList *list)
 
   double **x = atom->x;
   double *radius = atom->radius;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int *type = atom->type;
   int *mask = atom->mask;
   tagint *molecule = atom->molecule;
@@ -189,7 +190,7 @@ void Neighbor::granular_nsq_newton_omp(NeighList *list)
 
   double **x = atom->x;
   double *radius = atom->radius;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int *type = atom->type;
   int *mask = atom->mask;
   tagint *molecule = atom->molecule;
@@ -292,7 +293,8 @@ void Neighbor::granular_bin_no_newton_omp(NeighList *list)
   MyPage<int> *ipage_touch;
   MyPage<double> *dpage_shear;
 
-  int *npartner,**partner;
+  int *npartner;
+  tagint **partner;
   double (**shearpartner)[3];
   int **firsttouch;
   double **firstshear;
@@ -301,7 +303,7 @@ void Neighbor::granular_bin_no_newton_omp(NeighList *list)
 
   double **x = atom->x;
   double *radius = atom->radius;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int *type = atom->type;
   int *mask = atom->mask;
   tagint *molecule = atom->molecule;

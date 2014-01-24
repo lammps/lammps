@@ -16,10 +16,6 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#ifdef LAMMPS_BIGBIG
-#error LAMMPS_BIGBIG not supported by this file
-#endif
-
 #include "atom.h"
 #include "comm.h"
 #include "error.h"

@@ -129,7 +129,7 @@ void PairHbondDreidingLJOMP::eval(int iifrom, int iito, ThrData * const thr)
   const int * _noalias const type = atom->type;
   const double * _noalias const special_lj = force->special_lj;
   const int * const * const nspecial = atom->nspecial;
-  const int * const * const special = atom->special;
+  const tagint * const * const special = atom->special;
   double fxtmp,fytmp,fztmp;
 
   ilist = list->ilist;
@@ -150,7 +150,7 @@ void PairHbondDreidingLJOMP::eval(int iifrom, int iito, ThrData * const thr)
     itype = type[i];
     if (!donor[itype]) continue;
 
-    const int * const klist = special[i];
+    const tagint * const klist = special[i];
     const int knum = nspecial[i][0];
     jlist = firstneigh[i];
     jnum = numneigh[i];

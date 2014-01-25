@@ -43,8 +43,7 @@ args = list of arguments for a particular style :l
       f_ID = local vector calculated by a fix with ID
       f_ID\[N\] = Nth column of local array calculated by a fix with ID :pre
 
-  {custom} args = list of atom attributes
-  {custom/mpiio} args = list of atom attributes
+  {custom} of {custom/mpiio} args = list of atom attributes
     possible attributes = id, mol, type, element, mass,
 			  x, y, z, xs, ys, zs, xu, yu, zu, 
 			  xsu, ysu, zsu, ix, iy, iz,
@@ -571,6 +570,11 @@ per-atom quantities which could then be output into dump files.
 To write gzipped dump files, you must compile LAMMPS with the
 -DLAMMPS_GZIP option - see the "Making
 LAMMPS"_Section_start.html#start_2 section of the documentation.
+
+The {atom/mpiio}, {custom/mpiio}, and {xyz/mpiio} styles are part of
+the MPIIO package.  They are only enabled if LAMMPS was built with
+that package.  See the "Making LAMMPS"_Section_start.html#start_3
+section for more info.
 
 The {xtc} style is part of the XTC package.  It is only enabled if
 LAMMPS was built with that package.  See the "Making

@@ -141,7 +141,9 @@ only store a template index and template atom to identify which
 molecule and which atom-within-the-molecule they represent.  Using the
 {template} style instead of the {bond}, {angle}, {molecular} styles
 can save memory for systems comprised of a large number of small
-molecules, all of a single type (or small number of types).
+molecules, all of a single type (or small number of types).  See the
+paper by Grime and Voth, in "(Grime)"_#Grime, for examples of how this
+can be advantageous for large-scale coarse-grained systems.
 
 IMPORTANT NOTE: When using the {template} style with a "molecule
 template"_molecule.html that contains multiple molecules, you should
@@ -220,3 +222,9 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 [Default:]
 
 atom_style atomic
+
+:line
+
+:link(Grime)
+[(Grime)] Grime and Voth, to appear in J Chem Theory & Computation
+(2014).

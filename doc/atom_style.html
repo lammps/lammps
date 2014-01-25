@@ -145,7 +145,9 @@ only store a template index and template atom to identify which
 molecule and which atom-within-the-molecule they represent.  Using the
 <I>template</I> style instead of the <I>bond</I>, <I>angle</I>, <I>molecular</I> styles
 can save memory for systems comprised of a large number of small
-molecules, all of a single type (or small number of types).
+molecules, all of a single type (or small number of types).  See the
+paper by Grime and Voth, in <A HREF = "#Grime">(Grime)</A>, for examples of how this
+can be advantageous for large-scale coarse-grained systems.
 </P>
 <P>IMPORTANT NOTE: When using the <I>template</I> style with a <A HREF = "molecule.html">molecule
 template</A> that contains multiple molecules, you should
@@ -224,5 +226,12 @@ LAMMPS</A> section for more info.
 <P><B>Default:</B>
 </P>
 <P>atom_style atomic
+</P>
+<HR>
+
+<A NAME = "Grime"></A>
+
+<P><B>(Grime)</B> Grime and Voth, to appear in J Chem Theory & Computation
+(2014).
 </P>
 </HTML>

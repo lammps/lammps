@@ -756,6 +756,7 @@ void Neighbor::init()
   }
 
   // set flags that determine which topology neighboring routines to use
+  // bonds,etc can only be broken for atom->molecular = 1, not 2
   // SHAKE sets bonds and angles negative
   // bond_quartic sets bonds to 0
   // delete_bonds sets all interactions negative
@@ -767,7 +768,7 @@ void Neighbor::init()
       bond_off = angle_off = 1;
   if (force->bond && force->bond_match("quartic")) bond_off = 1;
 
-  if (atom->avec->bonds_allow) {
+  if (atom->avec->bonds_allow && atom->molecular == 1) {
     for (i = 0; i < atom->nlocal; i++) {
       if (bond_off) break;
       for (m = 0; m < atom->num_bond[i]; m++)
@@ -775,7 +776,7 @@ void Neighbor::init()
     }
   }
 
-  if (atom->avec->angles_allow) {
+  if (atom->avec->angles_allow && atom->molecular == 1) {
     for (i = 0; i < atom->nlocal; i++) {
       if (angle_off) break;
       for (m = 0; m < atom->num_angle[i]; m++)
@@ -784,7 +785,7 @@ void Neighbor::init()
   }
 
   int dihedral_off = 0;
-  if (atom->avec->dihedrals_allow) {
+  if (atom->avec->dihedrals_allow && atom->molecular == 1) {
     for (i = 0; i < atom->nlocal; i++) {
       if (dihedral_off) break;
       for (m = 0; m < atom->num_dihedral[i]; m++)
@@ -793,7 +794,7 @@ void Neighbor::init()
   }
 
   int improper_off = 0;
-  if (atom->avec->impropers_allow) {
+  if (atom->avec->impropers_allow && atom->molecular == 1) {
     for (i = 0; i < atom->nlocal; i++) {
       if (improper_off) break;
       for (m = 0; m < atom->num_improper[i]; m++)
@@ -815,15 +816,19 @@ void Neighbor::init()
   // set ptrs to topology build functions
 
   if (bond_off) bond_build = &Neighbor::bond_partial;
+  else if (atom->molecular == 2) bond_build = &Neighbor::bond_template;
   else bond_build = &Neighbor::bond_all;
 
   if (angle_off) angle_build = &Neighbor::angle_partial;
+  else if (atom->molecular == 2) angle_build = &Neighbor::angle_template;
   else angle_build = &Neighbor::angle_all;
 
   if (dihedral_off) dihedral_build = &Neighbor::dihedral_partial;
+  else if (atom->molecular == 2) dihedral_build = &Neighbor::dihedral_template;
   else dihedral_build = &Neighbor::dihedral_all;
 
   if (improper_off) improper_build = &Neighbor::improper_partial;
+  else if (atom->molecular == 2) improper_build = &Neighbor::improper_template;
   else improper_build = &Neighbor::improper_all;
 
   // set topology neighbor list counts to 0
@@ -912,7 +917,7 @@ void Neighbor::choose_build(int index, NeighRequest *rq)
             else pb = &Neighbor::half_bin_no_newton_ghost;
           } else if (triclinic == 0) {
             pb = &Neighbor::half_bin_newton;
-          } else if (triclinic == 1)
+          } else if (triclinic == 1) 
             pb = &Neighbor::half_bin_newton_tri;
         } else if (rq->newton == 1) {
           if (triclinic == 0) pb = &Neighbor::half_bin_newton;
@@ -1317,7 +1322,7 @@ int Neighbor::check_distance()
 /* ----------------------------------------------------------------------
    build all perpetual neighbor lists every few timesteps
    pairwise & topology lists are created as needed
-   topology lists only built if topoflag = 1
+   topology lists only built if topoflag = 1, USER-CUDA calls with topoflag = 0
 ------------------------------------------------------------------------- */
 
 void Neighbor::build(int topoflag)

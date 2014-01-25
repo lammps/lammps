@@ -39,12 +39,19 @@ class AtomVec : protected Pointers {
   int size_data_bonus;                 // number of values in Bonus line
   int xcol_data;                       // column (1-N) where x is in Atom line
 
+  class Molecule **onemols;            // list of molecules for style template
+  int nset;                            // # of molecules in list
+
   int cudable;                         // 1 if atom style is CUDA-enabled
   int *maxsend;                        // CUDA-specific variable
 
+  int nargcopy;          // copy of command-line args for atom_style command
+  char **argcopy;        // used when AtomVec is realloced (restart,replicate)
+
   AtomVec(class LAMMPS *);
-  virtual ~AtomVec() {}
-  virtual void settings(int, char **);
+  virtual ~AtomVec();
+  void store_args(int, char **);
+  virtual void process_args(int, char **);
   virtual void init();
 
   virtual void grow(int) = 0;
@@ -77,9 +84,6 @@ class AtomVec : protected Pointers {
   virtual int size_restart() = 0;
   virtual int pack_restart(int, double *) = 0;
   virtual int unpack_restart(double *) = 0;
-
-  virtual void write_restart_settings(FILE *) {}
-  virtual void read_restart_settings(FILE *) {}
 
   virtual void create_atom(int, double *) = 0;
 

@@ -16,6 +16,7 @@
 #include "compute_bond_local.h"
 #include "atom.h"
 #include "atom_vec.h"
+#include "molecule.h"
 #include "update.h"
 #include "domain.h"
 #include "force.h"
@@ -115,19 +116,26 @@ void ComputeBondLocal::compute_local()
 
 int ComputeBondLocal::compute_bonds(int flag)
 {
-  int i,m,n,atom1,atom2;
+  int i,m,n,nb,atom1,atom2,imol,iatom,btype;
+  tagint tagprev;
   double delx,dely,delz,rsq;
   double *dbuf,*ebuf,*fbuf;
   double *ptr;
 
   double **x = atom->x;
+  tagint *tag = atom->tag;
   int *num_bond = atom->num_bond;
   tagint **bond_atom = atom->bond_atom;
   int **bond_type = atom->bond_type;
-  tagint *tag = atom->tag;
   int *mask = atom->mask;
+
+  int *molindex = atom->molindex;
+  int *molatom = atom->molatom;
+  Molecule **onemols = atom->avec->onemols;
+
   int nlocal = atom->nlocal;
   int newton_bond = force->newton_bond;
+  int molecular = atom->molecular;
 
   Bond *bond = force->bond;
   double eng,fbond;
@@ -135,11 +143,28 @@ int ComputeBondLocal::compute_bonds(int flag)
   m = n = 0;
   for (atom1 = 0; atom1 < nlocal; atom1++) {
     if (!(mask[atom1] & groupbit)) continue;
-    for (i = 0; i < num_bond[atom1]; i++) {
-      atom2 = atom->map(bond_atom[atom1][i]);
+
+    if (molecular == 1) nb = num_bond[atom1];
+    else {
+      if (molindex[atom1] < 0) continue;
+      imol = molindex[atom1];
+      iatom = molatom[atom1];
+      nb = onemols[imol]->num_bond[iatom];
+    }
+
+    for (i = 0; i < nb; i++) {
+      if (molecular == 1) {
+        btype = bond_type[atom1][i];
+        atom2 = atom->map(bond_atom[atom1][i]);
+      } else {
+        tagprev = tag[atom1] - iatom - 1;
+        btype = atom->map(onemols[imol]->bond_type[atom1][i]);
+        atom2 = atom->map(onemols[imol]->bond_atom[atom1][i]+tagprev);
+      }
+
       if (atom2 < 0 || !(mask[atom2] & groupbit)) continue;
       if (newton_bond == 0 && tag[atom1] > tag[atom2]) continue;
-      if (bond_type[atom1][i] == 0) continue;
+      if (btype == 0) continue;
 
       if (flag) {
         delx = x[atom1][0] - x[atom2][0];
@@ -149,8 +174,8 @@ int ComputeBondLocal::compute_bonds(int flag)
         rsq = delx*delx + dely*dely + delz*delz;
 
         if (singleflag) {
-          if (bond_type[atom1][i] > 0)
-            eng = bond->single(bond_type[atom1][i],rsq,atom1,atom2,fbond);
+          if (btype > 0)
+            eng = bond->single(btype,rsq,atom1,atom2,fbond);
           else eng = fbond = 0.0;
         }
 

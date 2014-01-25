@@ -44,7 +44,7 @@ DumpAtomMPIIO::DumpAtomMPIIO(LAMMPS *lmp, int narg, char **arg) :
 
 DumpAtomMPIIO::~DumpAtomMPIIO()
 {
-  if (multifile == 0)    MPI_File_close(&mpifh);
+  if (multifile == 0) MPI_File_close(&mpifh);
 }
 
 /* ---------------------------------------------------------------------- */

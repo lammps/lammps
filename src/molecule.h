@@ -28,10 +28,11 @@ class Molecule : protected Pointers {
 
   int natoms;
   int nbonds,nangles,ndihedrals,nimpropers;
+  int ntypes;
+  int nbondtypes,nangletypes,ndihedraltypes,nimpropertypes;
 
   // max bond,angle,etc per atom
 
-  int maxtype;
   int bond_per_atom,angle_per_atom,dihedral_per_atom,improper_per_atom;
   int maxspecial;
 
@@ -105,6 +106,7 @@ class Molecule : protected Pointers {
   void compute_mass();
   void compute_com();
   void compute_inertia();
+  void check_attributes(int);
 
  private:
   int me;

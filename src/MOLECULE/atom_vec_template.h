@@ -13,69 +13,56 @@
 
 #ifdef ATOM_CLASS
 
-AtomStyle(hybrid,AtomVecHybrid)
+AtomStyle(template,AtomVecTemplate)
 
 #else
 
-#ifndef LMP_ATOM_VEC_HYBRID_H
-#define LMP_ATOM_VEC_HYBRID_H
+#ifndef LMP_ATOM_VEC_TEMPLATE_H
+#define LMP_ATOM_VEC_TEMPLATE_H
 
-#include "stdio.h"
 #include "atom_vec.h"
 
 namespace LAMMPS_NS {
 
-class AtomVecHybrid : public AtomVec {
+class AtomVecTemplate : public AtomVec {
  public:
-  int nstyles;
-  class AtomVec **styles;
-  char **keywords;
-
-  AtomVecHybrid(class LAMMPS *);
-  ~AtomVecHybrid();
+  AtomVecTemplate(class LAMMPS *);
+  virtual ~AtomVecTemplate() {}
   void process_args(int, char **);
-  void init();
   void grow(int);
   void grow_reset();
   void copy(int, int, int);
-  void clear_bonus();
-  int pack_comm(int, int *, double *, int, int *);
-  int pack_comm_vel(int, int *, double *, int, int *);
-  void unpack_comm(int, int, double *);
-  void unpack_comm_vel(int, int, double *);
+  virtual int pack_comm(int, int *, double *, int, int *);
+  virtual int pack_comm_vel(int, int *, double *, int, int *);
+  virtual void unpack_comm(int, int, double *);
+  virtual void unpack_comm_vel(int, int, double *);
   int pack_reverse(int, int, double *);
   void unpack_reverse(int, int *, double *);
-  int pack_border(int, int *, double *, int, int *);
-  int pack_border_vel(int, int *, double *, int, int *);
-  void unpack_border(int, int, double *);
-  void unpack_border_vel(int, int, double *);
-  int pack_exchange(int, double *);
-  int unpack_exchange(double *);
+  virtual int pack_border(int, int *, double *, int, int *);
+  virtual int pack_border_vel(int, int *, double *, int, int *);
+  int pack_border_hybrid(int, int *, double *);
+  virtual void unpack_border(int, int, double *);
+  virtual void unpack_border_vel(int, int, double *);
+  int unpack_border_hybrid(int, int, double *);
+  virtual int pack_exchange(int, double *);
+  virtual int unpack_exchange(double *);
   int size_restart();
   int pack_restart(int, double *);
   int unpack_restart(double *);
   void create_atom(int, double *);
-  void data_atom(double *, imageint, char **);
-  int data_atom_hybrid(int, char **) {return 0;}
-  void data_vel(int, char **);
+  void data_atom(double *, tagint, char **);
+  int data_atom_hybrid(int, char **);
   void pack_data(double **);
+  int pack_data_hybrid(int, double *);
   void write_data(FILE *, int, double **);
-  void pack_vel(double **);
-  void write_vel(FILE *, int, double **);
+  int write_data_hybrid(FILE *, double *);
   bigint memory_usage();
 
- private:
-  tagint *tag;
-  int *type,*mask;
-  imageint *image;
+ protected:
+  int *tag,*type,*mask;
+  tagint *image;
   double **x,**v,**f;
-  double **omega,**angmom;
-
-  int nallstyles;
-  char **allstyles;
-
-  void build_styles();
-  int known_style(char *);
+  int *molecule,*molindex,*molatom;
 };
 
 }
@@ -84,14 +71,6 @@ class AtomVecHybrid : public AtomVec {
 #endif
 
 /* ERROR/WARNING messages:
-
-E: Atom style hybrid cannot have hybrid as an argument
-
-Self-explanatory.
-
-E: Atom style hybrid cannot use same atom style twice
-
-Self-explanatory.
 
 E: Per-processor system is too big
 

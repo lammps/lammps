@@ -33,7 +33,7 @@ class DeleteAtoms : protected Pointers {
  private:
   int *dlist;
   int compress_flag,mol_flag;
-  std::map<int,int> *hash;
+  std::map<tagint,int> *hash;
 
   void delete_group(int, char **);
   void delete_region(int, char **);

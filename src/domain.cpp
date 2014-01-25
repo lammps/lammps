@@ -23,6 +23,8 @@
 #include "domain.h"
 #include "style_region.h"
 #include "atom.h"
+#include "atom_vec.h"
+#include "molecule.h"
 #include "force.h"
 #include "kspace.h"
 #include "update.h"
@@ -551,7 +553,8 @@ void Domain::pbc()
 
 void Domain::image_check()
 {
-  int i,j,k;
+  int i,j,k,n,imol,iatom;
+  tagint tagprev;
 
   // only need to check if system is molecular and some dimension is periodic
   // if running verlet/split, don't check on KSpace partition since
@@ -581,8 +584,15 @@ void Domain::image_check()
   // flag if any bond component is longer than non-periodic box length
   //   which means image flags in that dimension were different
 
+  int molecular = atom->molecular;
+
   int *num_bond = atom->num_bond;
   tagint **bond_atom = atom->bond_atom;
+  int **bond_type = atom->bond_type;
+  tagint *tag = atom->tag;
+  int *molindex = atom->molindex;
+  int *molatom = atom->molatom;
+  Molecule **onemols = atom->avec->onemols;
 
   double delx,dely,delz;
 
@@ -590,9 +600,25 @@ void Domain::image_check()
   int nmissing = 0;
 
   int flag = 0;
-  for (i = 0; i < nlocal; i++)
-    for (j = 0; j < num_bond[i]; j++) {
-      k = atom->map(bond_atom[i][j]);
+  for (i = 0; i < nlocal; i++) {
+    if (molecular == 1) n = num_bond[i];
+    else {
+      if (molindex[i] < 0) continue;
+      imol = molindex[i];
+      iatom = molatom[i];
+      n = onemols[imol]->num_bond[iatom];
+    }
+    
+    for (j = 0; j < n; j++) {
+      if (molecular == 1) {
+        if (bond_type[i][j] <= 0) continue;
+        k = atom->map(bond_atom[i][j]);
+      } else {
+        if (onemols[imol]->bond_type[iatom][j] < 0) continue;
+        tagprev = tag[i] - iatom - 1;
+        k = atom->map(onemols[imol]->bond_atom[iatom][j]+tagprev);
+      }
+
       if (k == -1) {
         nmissing++;
         if (lostbond == ERROR)
@@ -611,6 +637,7 @@ void Domain::image_check()
       if (!yperiodic && dely > yprd) flag = 1;
       if (dimension == 3 && !zperiodic && delz > zprd) flag = 1;
     }
+  }
 
   int flagall;
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_MAX,world);
@@ -636,7 +663,8 @@ void Domain::image_check()
 
 void Domain::box_too_small_check()
 {
-  int i,j,k;
+  int i,j,k,n,imol,iatom;
+  tagint tagprev;
 
   // only need to check if system is molecular and some dimension is periodic
   // if running verlet/split, don't check on KSpace partition since
@@ -653,10 +681,16 @@ void Domain::box_too_small_check()
   // in this case, image_check() should warn,
   //   assuming 2 atoms have consistent image flags
 
+  int molecular = atom->molecular;
+
+  double **x = atom->x;
   int *num_bond = atom->num_bond;
   tagint **bond_atom = atom->bond_atom;
   int **bond_type = atom->bond_type;
-  double **x = atom->x;
+  tagint *tag = atom->tag;
+  int *molindex = atom->molindex;
+  int *molatom = atom->molatom;
+  Molecule **onemols = atom->avec->onemols;
   int nlocal = atom->nlocal;
 
   double delx,dely,delz,rsq,r;
@@ -665,16 +699,32 @@ void Domain::box_too_small_check()
   int lostbond = output->thermo->lostbond;
   int nmissing = 0;
 
-  for (i = 0; i < nlocal; i++)
-    for (j = 0; j < num_bond[i]; j++) {
-      if (bond_type[i][j] <= 0) continue;
-      k = atom->map(bond_atom[i][j]);
+  for (i = 0; i < nlocal; i++) {
+    if (molecular == 1) n = num_bond[i];
+    else {
+      if (molindex[i] < 0) continue;
+      imol = molindex[i];
+      iatom = molatom[i];
+      n = onemols[imol]->num_bond[iatom];
+    }
+
+    for (j = 0; j < n; j++) {
+      if (molecular == 1) {
+        if (bond_type[i][j] <= 0) continue;
+        k = atom->map(bond_atom[i][j]);
+      } else {
+        if (onemols[imol]->bond_type[iatom][j] < 0) continue;
+        tagprev = tag[i] - iatom - 1;
+        k = atom->map(onemols[imol]->bond_atom[iatom][j]+tagprev);
+      }
+
       if (k == -1) {
         nmissing++;
         if (lostbond == ERROR)
           error->one(FLERR,"Bond atom missing in box size check");
         continue;
       }
+
       delx = x[i][0] - x[k][0];
       dely = x[i][1] - x[k][1];
       delz = x[i][2] - x[k][2];
@@ -682,6 +732,7 @@ void Domain::box_too_small_check()
       rsq = delx*delx + dely*dely + delz*delz;
       maxbondme = MAX(maxbondme,rsq);
     }
+  }
 
   if (lostbond == WARN) {
     int all;

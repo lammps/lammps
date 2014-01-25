@@ -49,6 +49,9 @@ FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 11) error->all(FLERR,"Illegal fix gcmc command");
 
+  if (atom->molecular == 2) 
+    error->all(FLERR,"Fix gcmc does not (yet) work with atom_style template");
+
   vector_flag = 1;
   size_vector = 8;
   global_freq = 1;
@@ -828,7 +831,7 @@ void FixGCMC::attempt_molecule_insertion()
     double **x = atom->x;
     double **v = atom->v;
     imageint *image = atom->image;
-    int *molecule = atom->molecule;
+    tagint *molecule = atom->molecule;
     tagint *tag = atom->tag;
     for (int i = 0; i < natoms_per_molecule; i++) {
       k += atom->avec->unpack_exchange(&model_atom_buf[k]);
@@ -950,7 +953,7 @@ int FixGCMC::pick_random_gas_atom()
 /* ----------------------------------------------------------------------
 ------------------------------------------------------------------------- */
 
-int FixGCMC::pick_random_gas_molecule()
+tagint FixGCMC::pick_random_gas_molecule()
 {
   int iwhichglobal = static_cast<int> (ngas*random_equal->uniform());
   tagint gas_molecule_id = 0;
@@ -1076,21 +1079,12 @@ void FixGCMC::get_model_molecule()
   
   // old_atom = original atom class
   // atom = new model atom class
-  // if old_atom style was hybrid, pass sub-style names to create_avec
 
   Atom *old_atom = atom;
   atom = new Atom(lmp);
   atom->settings(old_atom);
-  
-  int nstyles = 0;
-  char **keywords = NULL;
-  if (strcmp(old_atom->atom_style,"hybrid") == 0) {
-    AtomVecHybrid *avec_hybrid = (AtomVecHybrid *) old_atom->avec;
-    nstyles = avec_hybrid->nstyles;
-    keywords = avec_hybrid->keywords;
-  }
-  
-  atom->create_avec(old_atom->atom_style,nstyles,keywords);
+  atom->create_avec(old_atom->atom_style,
+                    old_atom->avec->nargcopy,old_atom->avec->argcopy);
   
   // assign atom and topology counts in model atom class from old_atom
 

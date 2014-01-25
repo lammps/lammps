@@ -43,7 +43,7 @@ class ReadRestart : protected Pointers {
   int mpiioflag;               // 1 for MPIIO output, else 0
   class RestartMPIIO *mpiio;   // MPIIO for restart file input
   int numChunksAssigned;
-  long assignedChunkSize;
+  bigint assignedChunkSize;
   MPI_Offset assignedChunkOffset,headerOffset;
 
   void file_search(char *, char *);

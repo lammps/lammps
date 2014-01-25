@@ -449,25 +449,15 @@ void WriteRestart::header()
   write_int(ZPERIODIC,domain->zperiodic);
   write_int_vec(BOUNDARY,6,&domain->boundary[0][0]);
 
-  // atom_style must be written before atom class values
-  // so read_restart can create class before reading class values
-  // if style = hybrid, also write sub-class styles
-  // avec->write_restart() writes atom_style specific info
+  // write atom_style and its args
 
   write_string(ATOM_STYLE,atom->atom_style);
-
-  if (strcmp(atom->atom_style,"hybrid") == 0) {
-    AtomVecHybrid *avec_hybrid = (AtomVecHybrid *) atom->avec;
-    int nstyles = avec_hybrid->nstyles;
-    char **keywords = avec_hybrid->keywords;
-    fwrite(&nstyles,sizeof(int),1,fp);
-    for (int i = 0; i < nstyles; i++) {
-      int n = strlen(keywords[i]) + 1;
-      fwrite(&n,sizeof(int),1,fp);
-      fwrite(keywords[i],sizeof(char),n,fp);
-    }
+  fwrite(&atom->avec->nargcopy,sizeof(int),1,fp);
+  for (int i = 0; i < atom->avec->nargcopy; i++) {
+    int n = strlen(atom->avec->argcopy[i]) + 1;
+    fwrite(&n,sizeof(int),1,fp);
+    fwrite(atom->avec->argcopy[i],sizeof(char),n,fp);
   }
-  atom->avec->write_restart_settings(fp);
 
   write_bigint(NATOMS,natoms);
   write_int(NTYPES,atom->ntypes);
@@ -579,7 +569,7 @@ void WriteRestart::file_layout(int send_size)
 
   if (mpiioflag) {
     if (me == 0) headerOffset = ftell(fp);
-    MPI_Bcast(&headerOffset,1,MPI_LONG,0,world);
+    MPI_Bcast(&headerOffset,1,MPI_LMP_BIGINT,0,world);
   }
 }
 

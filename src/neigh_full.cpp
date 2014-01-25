@@ -14,6 +14,8 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "atom.h"
+#include "atom_vec.h"
+#include "molecule.h"
 #include "domain.h"
 #include "my_page.h"
 #include "group.h"
@@ -28,25 +30,31 @@ using namespace LAMMPS_NS;
 
 void Neighbor::full_nsq(NeighList *list)
 {
-  int i,j,n,itype,jtype,which,bitmask;
+  int i,j,n,itype,jtype,which,bitmask,imol,iatom,moltemplate;
+  tagint tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr;
-
-  tagint **special = atom->special;
-  int **nspecial = atom->nspecial;
-  tagint *tag = atom->tag;
 
   double **x = atom->x;
   int *type = atom->type;
   int *mask = atom->mask;
-  tagint *molecule = atom->molecule;
+  int *tag = atom->tag;
+  int *molecule = atom->molecule;
+  int **special = atom->special;
+  int **nspecial = atom->nspecial;
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
-  int molecular = atom->molecular;
   if (includegroup) {
     nlocal = atom->nfirst;
     bitmask = group->bitmask[includegroup];
   }
+
+  int *molindex = atom->molindex;
+  int *molatom = atom->molatom;
+  Molecule **onemols = atom->avec->onemols;
+  int molecular = atom->molecular;
+  if (molecular == 2) moltemplate = 1;
+  else moltemplate = 0;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -66,6 +74,11 @@ void Neighbor::full_nsq(NeighList *list)
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
+    if (moltemplate) {
+      imol = molindex[i];
+      iatom = molatom[i];
+      tagprev = tag[i] - iatom - 1;
+    }
 
     // loop over all atoms, owned and ghost
     // skip i = j
@@ -82,7 +95,13 @@ void Neighbor::full_nsq(NeighList *list)
       rsq = delx*delx + dely*dely + delz*delz;
       if (rsq <= cutneighsq[itype][jtype]) {
         if (molecular) {
-          which = find_special(special[i],nspecial[i],tag[j]);
+          if (!moltemplate)
+            which = find_special(special[i],nspecial[i],tag[j]);
+          else if (imol >= 0)
+            which = find_special(onemols[imol]->special[iatom],
+                                 onemols[imol]->nspecial[iatom],
+                                 tag[j]-tagprev);
+          else which == 0;
           if (which == 0) neighptr[n++] = j;
           else if (domain->minimum_image_check(delx,dely,delz))
             neighptr[n++] = j;
@@ -111,21 +130,27 @@ void Neighbor::full_nsq(NeighList *list)
 
 void Neighbor::full_nsq_ghost(NeighList *list)
 {
-  int i,j,n,itype,jtype,which;
+  int i,j,n,itype,jtype,which,imol,iatom,moltemplate;
+  tagint tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr;
-
-  tagint **special = atom->special;
-  int **nspecial = atom->nspecial;
-  tagint *tag = atom->tag;
 
   double **x = atom->x;
   int *type = atom->type;
   int *mask = atom->mask;
-  tagint *molecule = atom->molecule;
+  int *tag = atom->tag;
+  int *molecule = atom->molecule;
+  int **special = atom->special;
+  int **nspecial = atom->nspecial;
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
+
+  int *molindex = atom->molindex;
+  int *molatom = atom->molatom;
+  Molecule **onemols = atom->avec->onemols;
   int molecular = atom->molecular;
+  if (molecular == 2) moltemplate = 1;
+  else moltemplate = 0;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -145,6 +170,11 @@ void Neighbor::full_nsq_ghost(NeighList *list)
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
+    if (moltemplate) {
+      imol = molindex[i];
+      iatom = molatom[i];
+      tagprev = tag[i] - iatom - 1;
+    }
 
     // loop over all atoms, owned and ghost
     // skip i = j
@@ -162,7 +192,13 @@ void Neighbor::full_nsq_ghost(NeighList *list)
         rsq = delx*delx + dely*dely + delz*delz;
         if (rsq <= cutneighsq[itype][jtype]) {
           if (molecular) {
-            which = find_special(special[i],nspecial[i],tag[j]);
+            if (!moltemplate)
+              which = find_special(special[i],nspecial[i],tag[j]);
+            else if (imol >= 0)
+              which = find_special(onemols[imol]->special[iatom],
+                                   onemols[imol]->nspecial[iatom],
+                                   tag[j]-tagprev);
+            else which == 0;
             if (which == 0) neighptr[n++] = j;
             else if (domain->minimum_image_check(delx,dely,delz))
               neighptr[n++] = j;
@@ -204,7 +240,8 @@ void Neighbor::full_nsq_ghost(NeighList *list)
 
 void Neighbor::full_bin(NeighList *list)
 {
-  int i,j,k,n,itype,jtype,ibin,which;
+  int i,j,k,n,itype,jtype,ibin,which,imol,iatom,moltemplate;
+  tagint tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr;
 
@@ -212,17 +249,22 @@ void Neighbor::full_bin(NeighList *list)
 
   bin_atoms();
 
-  tagint **special = atom->special;
-  int **nspecial = atom->nspecial;
-  tagint *tag = atom->tag;
-
   double **x = atom->x;
   int *type = atom->type;
   int *mask = atom->mask;
-  tagint *molecule = atom->molecule;
+  int *tag = atom->tag;
+  int *molecule = atom->molecule;
+  int **special = atom->special;
+  int **nspecial = atom->nspecial;
   int nlocal = atom->nlocal;
-  int molecular = atom->molecular;
   if (includegroup) nlocal = atom->nfirst;
+
+  int *molindex = atom->molindex;
+  int *molatom = atom->molatom;
+  Molecule **onemols = atom->avec->onemols;
+  int molecular = atom->molecular;
+  if (molecular == 2) moltemplate = 1;
+  else moltemplate = 0;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -244,6 +286,11 @@ void Neighbor::full_bin(NeighList *list)
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
+    if (moltemplate) {
+      imol = molindex[i];
+      iatom = molatom[i];
+      tagprev = tag[i] - iatom - 1;
+    }
 
     // loop over all atoms in surrounding bins in stencil including self
     // skip i = j
@@ -264,7 +311,13 @@ void Neighbor::full_bin(NeighList *list)
 
         if (rsq <= cutneighsq[itype][jtype]) {
           if (molecular) {
-            which = find_special(special[i],nspecial[i],tag[j]);
+            if (!moltemplate)
+              which = find_special(special[i],nspecial[i],tag[j]);
+            else if (imol >= 0)
+              which = find_special(onemols[imol]->special[iatom],
+                                   onemols[imol]->nspecial[iatom],
+                                   tag[j]-tagprev);
+            else which == 0;
             if (which == 0) neighptr[n++] = j;
             else if (domain->minimum_image_check(delx,dely,delz))
               neighptr[n++] = j;
@@ -294,7 +347,8 @@ void Neighbor::full_bin(NeighList *list)
 
 void Neighbor::full_bin_ghost(NeighList *list)
 {
-  int i,j,k,n,itype,jtype,ibin,which;
+  int i,j,k,n,itype,jtype,ibin,which,imol,iatom,moltemplate;
+  tagint tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int xbin,ybin,zbin,xbin2,ybin2,zbin2;
   int *neighptr;
@@ -303,17 +357,22 @@ void Neighbor::full_bin_ghost(NeighList *list)
 
   bin_atoms();
 
-  tagint **special = atom->special;
-  int **nspecial = atom->nspecial;
-  tagint *tag = atom->tag;
-
   double **x = atom->x;
   int *type = atom->type;
   int *mask = atom->mask;
-  tagint *molecule = atom->molecule;
+  int *tag = atom->tag;
+  int *molecule = atom->molecule;
+  int **special = atom->special;
+  int **nspecial = atom->nspecial;
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
+
+  int *molindex = atom->molindex;
+  int *molatom = atom->molatom;
+  Molecule **onemols = atom->avec->onemols;
   int molecular = atom->molecular;
+  if (molecular == 2) moltemplate = 1;
+  else moltemplate = 0;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -336,6 +395,11 @@ void Neighbor::full_bin_ghost(NeighList *list)
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
+    if (moltemplate) {
+      imol = molindex[i];
+      iatom = molatom[i];
+      tagprev = tag[i] - iatom - 1;
+    }
 
     // loop over all atoms in surrounding bins in stencil including self
     // when i is a ghost atom, must check if stencil bin is out of bounds
@@ -358,7 +422,13 @@ void Neighbor::full_bin_ghost(NeighList *list)
 
           if (rsq <= cutneighsq[itype][jtype]) {
             if (molecular) {
-              which = find_special(special[i],nspecial[i],tag[j]);
+              if (!moltemplate)
+                which = find_special(special[i],nspecial[i],tag[j]);
+              else if (imol >= 0)
+                which = find_special(onemols[imol]->special[iatom],
+                                     onemols[imol]->nspecial[iatom],
+                                     tag[j]-tagprev);
+              else which == 0;
               if (which == 0) neighptr[n++] = j;
               else if (domain->minimum_image_check(delx,dely,delz))
                 neighptr[n++] = j;
@@ -413,7 +483,8 @@ void Neighbor::full_bin_ghost(NeighList *list)
 
 void Neighbor::full_multi(NeighList *list)
 {
-  int i,j,k,n,itype,jtype,ibin,which,ns;
+  int i,j,k,n,itype,jtype,ibin,which,ns,imol,iatom,moltemplate;
+  tagint tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr,*s;
   double *cutsq,*distsq;
@@ -422,19 +493,22 @@ void Neighbor::full_multi(NeighList *list)
 
   bin_atoms();
 
-  // loop over each atom, storing neighbors
-
-  tagint **special = atom->special;
-  int **nspecial = atom->nspecial;
-  tagint *tag = atom->tag;
-
   double **x = atom->x;
   int *type = atom->type;
   int *mask = atom->mask;
-  tagint *molecule = atom->molecule;
+  int *tag = atom->tag;
+  int *molecule = atom->molecule;
+  int **special = atom->special;
+  int **nspecial = atom->nspecial;
   int nlocal = atom->nlocal;
-  int molecular = atom->molecular;
   if (includegroup) nlocal = atom->nfirst;
+
+  int *molindex = atom->molindex;
+  int *molatom = atom->molatom;
+  Molecule **onemols = atom->avec->onemols;
+  int molecular = atom->molecular;
+  if (molecular == 2) moltemplate = 1;
+  else moltemplate = 0;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -447,6 +521,8 @@ void Neighbor::full_multi(NeighList *list)
   int inum = 0;
   ipage->reset();
 
+  // loop over each atom, storing neighbors
+
   for (i = 0; i < nlocal; i++) {
     n = 0;
     neighptr = ipage->vget();
@@ -455,6 +531,11 @@ void Neighbor::full_multi(NeighList *list)
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
+    if (moltemplate) {
+      imol = molindex[i];
+      iatom = molatom[i];
+      tagprev = tag[i] - iatom - 1;
+    }
 
     // loop over all atoms in other bins in stencil, including self
     // skip if i,j neighbor cutoff is less than bin distance
@@ -480,7 +561,13 @@ void Neighbor::full_multi(NeighList *list)
 
         if (rsq <= cutneighsq[itype][jtype]) {
           if (molecular) {
-            which = find_special(special[i],nspecial[i],tag[j]);
+            if (!moltemplate)
+              which = find_special(special[i],nspecial[i],tag[j]);
+            else if (imol >= 0)
+              which = find_special(onemols[imol]->special[iatom],
+                                   onemols[imol]->nspecial[iatom],
+                                   tag[j]-tagprev);
+            else which == 0;
             if (which == 0) neighptr[n++] = j;
             else if (domain->minimum_image_check(delx,dely,delz))
               neighptr[n++] = j;

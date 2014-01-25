@@ -3541,7 +3541,7 @@ void Variable::atom_vector(char *word, Tree **tree,
       error->one(FLERR,"Variable uses atom property that isn't allocated");
     if (sizeof(tagint) == sizeof(smallint)) {
       newtree->type = INTARRAY;
-      newtree->iarray = atom->molecule;
+      newtree->iarray = (int *) atom->molecule;
     } else {
       newtree->type = BIGINTARRAY;
       newtree->barray = (bigint *) atom->molecule;

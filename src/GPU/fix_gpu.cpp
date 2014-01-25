@@ -163,6 +163,12 @@ int FixGPU::setmask()
 
 void FixGPU::init()
 {
+  // GPU package cannot be used with atom_style template
+  
+  if (atom->molecular == 2) 
+    error->all(FLERR,"GPU package does not (yet) work with "
+               "atom_style template");
+
   // hybrid cannot be used with force/neigh option
 
   if (_gpu_mode == GPU_NEIGH || _gpu_mode == GPU_HYB_NEIGH)
@@ -188,7 +194,7 @@ void FixGPU::init()
         force->pair->no_virial_fdotr_compute = 1;
   }
 
-  // r-RESPA support
+  // rRESPA support
 
   if (strstr(update->integrate_style,"respa"))
     _nlevels_respa = ((Respa *) update->integrate)->nlevels;

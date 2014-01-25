@@ -212,6 +212,11 @@ ComputePropertyLocal::ComputePropertyLocal(LAMMPS *lmp, int narg, char **arg) :
 
   // error check
 
+  if (atom->molecular == 2 && (kindflag == BOND || kindflag == ANGLE ||
+                               kindflag == DIHEDRAL || kindflag == IMPROPER))
+    error->all(FLERR,"Compute property/local does not (yet) work "
+               "with atom_style template");
+
   if (kindflag == BOND && atom->avec->bonds_allow == 0)
     error->all(FLERR,
                "Compute property/local for property that isn't allocated");

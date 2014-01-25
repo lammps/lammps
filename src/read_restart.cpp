@@ -510,7 +510,7 @@ void ReadRestart::command(int narg, char **arg)
 
   // create special bond lists for molecular systems
 
-  if (atom->molecular) {
+  if (atom->molecular == 1) {
     Special special(lmp);
     special.build();
   }
@@ -764,26 +764,17 @@ void ReadRestart::header(int incompatible)
           domain->nonperiodic = 2;
       }
 
-    // create new AtomVec class
-    // if style = hybrid, read additional sub-class arguments
+    // create new AtomVec class using any stored args
 
     } else if (flag == ATOM_STYLE) {
       char *style = read_string();
-
-      int nwords = 0;
-      char **words = NULL;
-
-      if (strcmp(style,"hybrid") == 0) {
-        nwords = read_int();
-        words = new char*[nwords];
-        for (int i = 0; i < nwords; i++) words[i] = read_string();
-      }
-
-      atom->create_avec(style,nwords,words);
-      atom->avec->read_restart_settings(fp);
-
-      for (int i = 0; i < nwords; i++) delete [] words[i];
-      delete [] words;
+      int nargcopy = read_int();
+      char **argcopy = new char*[nargcopy];
+      for (int i = 0; i < nargcopy; i++)
+        argcopy[i] = read_string();
+      atom->create_avec(style,nargcopy,argcopy);
+      for (int i = 0; i < nargcopy; i++) delete [] argcopy[i];
+      delete [] argcopy;
       delete [] style;
 
     } else if (flag == NATOMS) {
@@ -933,10 +924,10 @@ void ReadRestart::file_layout()
         error->all(FLERR,"Restart file is not a MPI-IO file");
 
       if (mpiioflag) { 
-        long *nproc_chunk_offsets;
+        bigint *nproc_chunk_offsets;
         memory->create(nproc_chunk_offsets,nprocs,
                        "write_restart:nproc_chunk_offsets");
-        long *nproc_chunk_sizes;
+        bigint *nproc_chunk_sizes;
         memory->create(nproc_chunk_sizes,nprocs,
                        "write_restart:nproc_chunk_sizes");
 
@@ -966,7 +957,7 @@ void ReadRestart::file_layout()
           }
           
           int all_written_send_sizes_index = 0;
-          long current_offset = 0;
+          bigint current_offset = 0;
           for (int i=0;i<nprocs;i++) {
             nproc_chunk_offsets[i] = current_offset;
             nproc_chunk_sizes[i] = 0;
@@ -986,10 +977,10 @@ void ReadRestart::file_layout()
 
         // scatter chunk sizes and offsets to all procs
         
-        MPI_Scatter(nproc_chunk_sizes, 1, MPI_LONG,
-                    &assignedChunkSize , 1, MPI_LONG, 0,world);
-        MPI_Scatter(nproc_chunk_offsets, 1, MPI_LONG,
-                    &assignedChunkOffset , 1, MPI_LONG, 0,world);
+        MPI_Scatter(nproc_chunk_sizes, 1, MPI_LMP_BIGINT,
+                    &assignedChunkSize , 1, MPI_LMP_BIGINT, 0,world);
+        MPI_Scatter(nproc_chunk_offsets, 1, MPI_LMP_BIGINT,
+                    &assignedChunkOffset , 1, MPI_LMP_BIGINT, 0,world);
         
         memory->destroy(nproc_chunk_sizes);
         memory->destroy(nproc_chunk_offsets);
@@ -1004,7 +995,7 @@ void ReadRestart::file_layout()
 
   if (mpiioflag) {
     if (me == 0) headerOffset = ftell(fp);
-    MPI_Bcast(&headerOffset,1,MPI_LONG,0,world);
+    MPI_Bcast(&headerOffset,1,MPI_LMP_BIGINT,0,world);
   }
 }
 

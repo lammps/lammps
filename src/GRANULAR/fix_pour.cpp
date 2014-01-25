@@ -121,8 +121,13 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
       error->all(FLERR,"Fix pour molecule must have coordinates");
     if (onemol->typeflag == 0)
       error->all(FLERR,"Fix pour molecule must have atom types");
-    if (ntype+onemol->maxtype <= 0 || ntype+onemol->maxtype > atom->ntypes)
+    if (ntype+onemol->ntypes <= 0 || ntype+onemol->ntypes > atom->ntypes)
       error->all(FLERR,"Invalid atom type in fix pour mol command");
+
+    if (atom->molecular == 2 && onemol != atom->avec->onemols[0])
+      error->all(FLERR,"Fix pour molecule template ID must be same "
+                 "as atom style template ID");
+    onemol->check_attributes(0);
 
     // fix pour uses geoemetric center of molecule for insertion
 
@@ -325,7 +330,8 @@ void FixPour::init()
     int tmp;
     if (onemol != (Molecule *) fixrigid->extract("onemol",tmp))
       error->all(FLERR,
-                 "Fix pour and fix rigid/small not using same molecule ID");
+                 "Fix pour and fix rigid/small not using "
+                 "same molecule template ID");
   }
 
   // if shakeflag defined, check for SHAKE fix
@@ -338,7 +344,8 @@ void FixPour::init()
     fixshake = modify->fix[ifix];
     int tmp;
     if (onemol != (Molecule *) fixshake->extract("onemol",tmp))
-      error->all(FLERR,"Fix pour and fix shake not using same molecule ID");
+      error->all(FLERR,"Fix pour and fix shake not using "
+                 "same molecule template ID");
   }
 }
 
@@ -585,8 +592,13 @@ void FixPour::pre_exchange()
         else atom->avec->create_atom(ntype+onemol->type[m],coords[m]);
         int n = atom->nlocal - 1;
         atom->tag[n] = maxtag_all + m+1;
-        if (mode == MOLECULE && atom->molecule_flag) 
-          atom->molecule[n] = maxmol_all+1;
+        if (mode == MOLECULE) {
+          if (atom->molecular) atom->molecule[n] = maxmol_all+1;
+          if (atom->molecular == 2) {
+            atom->molindex[n] = 0;
+            atom->molatom[n] = m;
+          }
+        }
         atom->mask[n] = 1 | groupbit;
         atom->image[n] = imageflags[m];
         atom->v[n][0] = vnew[0];

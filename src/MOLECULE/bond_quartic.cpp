@@ -233,12 +233,12 @@ void BondQuartic::init_style()
 {
   if (force->pair == NULL || force->pair->single_enable == 0)
     error->all(FLERR,"Pair style does not support bond_style quartic");
-  if (force->angle)
-    error->all(FLERR,"Bond style quartic cannot be used with 3,4-body interactions");
-  if (force->dihedral)
-    error->all(FLERR,"Bond style quartic cannot be used with 3,4-body interactions");
-  if (force->improper)
-    error->all(FLERR,"Bond style quartic cannot be used with 3,4-body interactions");
+  if (force->angle || force->dihedral || force->improper)
+    error->all(FLERR,
+               "Bond style quartic cannot be used with 3,4-body interactions");
+  if (atom->molecular == 2) 
+    error->all(FLERR,
+               "Bond style quartic cannot be used with atom style template");
 
   // special bonds must be 1 1 1
 

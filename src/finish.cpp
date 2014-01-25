@@ -19,6 +19,8 @@
 #include "timer.h"
 #include "universe.h"
 #include "atom.h"
+#include "atom_vec.h"
+#include "molecule.h"
 #include "comm.h"
 #include "force.h"
 #include "kspace.h"
@@ -608,10 +610,26 @@ void Finish::end(int flag)
 
     int nspec;
     double nspec_all;
-    if (atom->molecular) {
-      nspec = 0;
+    if (atom->molecular == 1) {
+      int **nspecial = atom->nspecial;
       int nlocal = atom->nlocal;
-      for (i = 0; i < nlocal; i++) nspec += atom->nspecial[i][2];
+      nspec = 0;
+      for (i = 0; i < nlocal; i++) nspec += nspecial[i][2];
+      tmp = nspec;
+      MPI_Allreduce(&tmp,&nspec_all,1,MPI_DOUBLE,MPI_SUM,world);
+    } else if (atom->molecular == 2) {
+      Molecule **onemols = atom->avec->onemols;
+      int *molindex = atom->molindex;
+      int *molatom = atom->molatom;
+      int nlocal = atom->nlocal;
+      int imol,iatom;
+      nspec = 0;
+      for (i = 0; i < nlocal; i++) {
+        if (molindex[i] < 0) continue;
+        imol = molindex[i];
+        iatom = molatom[i];
+        nspec += onemols[imol]->nspecial[iatom][2];
+      }
       tmp = nspec;
       MPI_Allreduce(&tmp,&nspec_all,1,MPI_DOUBLE,MPI_SUM,world);
     }

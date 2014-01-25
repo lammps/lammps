@@ -23,6 +23,7 @@
 #include "atom_vec_ellipsoid.h"
 #include "atom_vec_line.h"
 #include "atom_vec_tri.h"
+#include "molecule.h"
 #include "comm.h"
 #include "update.h"
 #include "modify.h"
@@ -220,25 +221,25 @@ void ReadData::command(int narg, char **arg)
 
       } else if (strcmp(keyword,"Bonds") == 0) {
         topoflag = bondflag = 1;
-        if (atom->avec->bonds_allow == 0)
+        if (atom->nbonds == 0)
           error->all(FLERR,"Invalid data file section: Bonds");
         if (atomflag == 0) error->all(FLERR,"Must read Atoms before Bonds");
         bonds(firstpass);
       } else if (strcmp(keyword,"Angles") == 0) {
         topoflag = angleflag = 1;
-        if (atom->avec->angles_allow == 0)
+        if (atom->nangles == 0)
           error->all(FLERR,"Invalid data file section: Angles");
         if (atomflag == 0) error->all(FLERR,"Must read Atoms before Angles");
         angles(firstpass);
       } else if (strcmp(keyword,"Dihedrals") == 0) {
         topoflag = dihedralflag = 1;
-        if (atom->avec->dihedrals_allow == 0)
+        if (atom->ndihedrals == 0)
           error->all(FLERR,"Invalid data file section: Dihedrals");
         if (atomflag == 0) error->all(FLERR,"Must read Atoms before Dihedrals");
         dihedrals(firstpass);
       } else if (strcmp(keyword,"Impropers") == 0) {
         topoflag = improperflag = 1;
-        if (atom->avec->impropers_allow == 0)
+        if (atom->nimpropers == 0)
           error->all(FLERR,"Invalid data file section: Impropers");
         if (atomflag == 0) error->all(FLERR,"Must read Atoms before Impropers");
         impropers(firstpass);
@@ -471,10 +472,83 @@ void ReadData::command(int narg, char **arg)
 
   // create special bond lists for molecular systems
 
-  if (atom->molecular) {
+  if (atom->molecular == 1) {
     Special special(lmp);
     special.build();
   }
+
+  // for atom style template systems, count total bonds,angles,etc 
+
+  if (atom->molecular == 2) {
+    Molecule **onemols = atom->avec->onemols;
+    int *molindex = atom->molindex;
+    int *molatom = atom->molatom;
+    int nlocal = atom->nlocal;
+
+    int imol,iatom;
+    bigint nbonds,nangles,ndihedrals,nimpropers;
+    nbonds = nangles = ndihedrals = nimpropers = 0;
+
+    for (int i = 0; i < nlocal; i++) {
+      imol = molindex[i];
+      iatom = molatom[i];
+      nbonds += onemols[imol]->num_bond[iatom];
+      nangles += onemols[imol]->num_angle[iatom];
+      ndihedrals += onemols[imol]->num_dihedral[iatom];
+      nimpropers += onemols[imol]->num_improper[iatom];
+    }
+
+    MPI_Allreduce(&nbonds,&atom->nbonds,1,MPI_LMP_BIGINT,MPI_SUM,world);
+    MPI_Allreduce(&nangles,&atom->nangles,1,MPI_LMP_BIGINT,MPI_SUM,world);
+    MPI_Allreduce(&ndihedrals,&atom->ndihedrals,1,MPI_LMP_BIGINT,MPI_SUM,world);
+    MPI_Allreduce(&nimpropers,&atom->nimpropers,1,MPI_LMP_BIGINT,MPI_SUM,world);
+
+    if (!force->newton_bond) {
+      atom->nbonds /= 2;
+      atom->nangles /= 3;
+      atom->ndihedrals /= 4;
+      atom->nimpropers /= 4;
+    }
+
+    if (me == 0) {
+      if (atom->nbonds) {
+        if (screen)
+          fprintf(screen,"  " BIGINT_FORMAT " template bonds\n",atom->nbonds);
+        if (logfile)
+          fprintf(logfile,"  " BIGINT_FORMAT " template bonds\n",atom->nbonds);
+      }
+      if (atom->nangles) {
+        if (screen)
+          fprintf(screen,"  " BIGINT_FORMAT " template angles\n",
+                  atom->nangles);
+        if (logfile)
+          fprintf(logfile,"  " BIGINT_FORMAT " template angles\n",
+                  atom->nangles);
+      }
+      if (atom->ndihedrals) {
+        if (screen)
+          fprintf(screen,"  " BIGINT_FORMAT " template dihedrals\n",
+                  atom->nbonds);
+        if (logfile)
+          fprintf(logfile,"  " BIGINT_FORMAT " template bonds\n",
+                  atom->ndihedrals);
+      }
+      if (atom->nimpropers) {
+        if (screen)
+          fprintf(screen,"  " BIGINT_FORMAT " template impropers\n",
+                  atom->nimpropers);
+        if (logfile)
+          fprintf(logfile,"  " BIGINT_FORMAT " template impropers\n",
+                  atom->nimpropers);
+      }
+    }
+  }
+
+  // for atom style template systems
+  // insure nbondtypes,etc are still consistent with template molecules,
+  //   in case data file re-defined them
+
+  if (atom->molecular == 2) atom->avec->onemols[0]->check_attributes(1);
 }
 
 /* ----------------------------------------------------------------------
@@ -559,20 +633,20 @@ void ReadData::header()
     // otherwise "triangles" will be matched as "angles"
 
     } else if (strstr(line,"ellipsoids")) {
-      if (!avec_ellipsoid && me == 0)
-        error->one(FLERR,"No ellipsoids allowed with this atom style");
+      if (!avec_ellipsoid)
+        error->all(FLERR,"No ellipsoids allowed with this atom style");
       sscanf(line,BIGINT_FORMAT,&nellipsoids);
     } else if (strstr(line,"lines")) {
-      if (!avec_line && me == 0)
-        error->one(FLERR,"No lines allowed with this atom style");
+      if (!avec_line)
+        error->all(FLERR,"No lines allowed with this atom style");
       sscanf(line,BIGINT_FORMAT,&nlines);
     } else if (strstr(line,"triangles")) {
-      if (!avec_tri && me == 0)
-        error->one(FLERR,"No triangles allowed with this atom style");
+      if (!avec_tri)
+        error->all(FLERR,"No triangles allowed with this atom style");
       sscanf(line,BIGINT_FORMAT,&ntris);
     } else if (strstr(line,"bodies")) {
-      if (!avec_body && me == 0)
-        error->one(FLERR,"No bodies allowed with this atom style");
+      if (!avec_body)
+        error->all(FLERR,"No bodies allowed with this atom style");
       sscanf(line,BIGINT_FORMAT,&nbodies);
     }
 
@@ -620,44 +694,49 @@ void ReadData::header()
       atom->nbonds < 0 || atom->nbonds >= MAXBIGINT ||
       atom->nangles < 0 || atom->nangles >= MAXBIGINT ||
       atom->ndihedrals < 0 || atom->ndihedrals >= MAXBIGINT ||
-      atom->nimpropers < 0 || atom->nimpropers >= MAXBIGINT) {
-    if (me == 0) error->one(FLERR,"System in data file is too big");
-  }
+      atom->nimpropers < 0 || atom->nimpropers >= MAXBIGINT)
+    error->all(FLERR,"System in data file is too big");
 
   // check that exiting string is a valid section keyword
 
   parse_keyword(1);
   for (n = 0; n < NSECTIONS; n++)
     if (strcmp(keyword,section_keywords[n]) == 0) break;
-  if (n == NSECTIONS && me == 0) {
+  if (n == NSECTIONS) {
     char str[128];
     sprintf(str,"Unknown identifier in data file: %s",keyword);
-    error->one(FLERR,str);
+    error->all(FLERR,str);
   }
 
-  // error check on consistency of header values
+  // error checks on header values
+  // must be consistent with atom style and other header values
 
   if ((atom->nbonds || atom->nbondtypes) &&
-      atom->avec->bonds_allow == 0 && me == 0)
-    error->one(FLERR,"No bonds allowed with this atom style");
+      atom->avec->bonds_allow == 0)
+    error->all(FLERR,"No bonds allowed with this atom style");
   if ((atom->nangles || atom->nangletypes) &&
-      atom->avec->angles_allow == 0 && me == 0)
-    error->one(FLERR,"No angles allowed with this atom style");
+      atom->avec->angles_allow == 0)
+    error->all(FLERR,"No angles allowed with this atom style");
   if ((atom->ndihedrals || atom->ndihedraltypes) &&
-      atom->avec->dihedrals_allow == 0 && me == 0)
-    error->one(FLERR,"No dihedrals allowed with this atom style");
+      atom->avec->dihedrals_allow == 0)
+    error->all(FLERR,"No dihedrals allowed with this atom style");
   if ((atom->nimpropers || atom->nimpropertypes) &&
-      atom->avec->impropers_allow == 0 && me == 0)
-    error->one(FLERR,"No impropers allowed with this atom style");
+      atom->avec->impropers_allow == 0)
+    error->all(FLERR,"No impropers allowed with this atom style");
+  
+  if (atom->nbonds > 0 && atom->nbondtypes <= 0)
+    error->all(FLERR,"Bonds defined but no bond types");
+  if (atom->nangles > 0 && atom->nangletypes <= 0)
+    error->all(FLERR,"Angles defined but no angle types");
+  if (atom->ndihedrals > 0 && atom->ndihedraltypes <= 0)
+    error->all(FLERR,"Dihedrals defined but no dihedral types");
+  if (atom->nimpropers > 0 && atom->nimpropertypes <= 0)
+    error->all(FLERR,"Impropers defined but no improper types");
 
-  if (atom->nbonds > 0 && atom->nbondtypes <= 0 && me == 0)
-    error->one(FLERR,"Bonds defined but no bond types");
-  if (atom->nangles > 0 && atom->nangletypes <= 0 && me == 0)
-    error->one(FLERR,"Angles defined but no angle types");
-  if (atom->ndihedrals > 0 && atom->ndihedraltypes <= 0 && me == 0)
-    error->one(FLERR,"Dihedrals defined but no dihedral types");
-  if (atom->nimpropers > 0 && atom->nimpropertypes <= 0 && me == 0)
-    error->one(FLERR,"Impropers defined but no improper types");
+  if (atom->molecular == 2) {
+    if (atom->nbonds || atom->nangles || atom->ndihedrals || atom->nimpropers)
+      error->all(FLERR,"No molecule topology allowed with atom style template");
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -803,7 +882,7 @@ void ReadData::bonds(int firstpass)
       if (screen) fprintf(screen,"  %d = max bonds/atom\n",maxall);
       if (logfile) fprintf(logfile,"  %d = max bonds/atom\n",maxall);
     }
-    atom->bond_per_atom = maxall;
+    atom->bond_per_atom = maxall + atom->extra_bond_per_atom;
     memory->destroy(count);
     return;
   }
@@ -877,7 +956,7 @@ void ReadData::angles(int firstpass)
       if (screen) fprintf(screen,"  %d = max angles/atom\n",maxall);
       if (logfile) fprintf(logfile,"  %d = max angles/atom\n",maxall);
     }
-    atom->angle_per_atom = maxall;
+    atom->angle_per_atom = maxall + atom->extra_angle_per_atom;
     memory->destroy(count);
     return;
   }
@@ -951,7 +1030,7 @@ void ReadData::dihedrals(int firstpass)
       if (screen) fprintf(screen,"  %d = max dihedrals/atom\n",maxall);
       if (logfile) fprintf(logfile,"  %d = max dihedrals/atom\n",maxall);
     }
-    atom->dihedral_per_atom = maxall;
+    atom->dihedral_per_atom = maxall + atom->extra_dihedral_per_atom;
     memory->destroy(count);
     return;
   }
@@ -1025,7 +1104,7 @@ void ReadData::impropers(int firstpass)
       if (screen) fprintf(screen,"  %d = max impropers/atom\n",maxall);
       if (logfile) fprintf(logfile,"  %d = max impropers/atom\n",maxall);
     }
-    atom->improper_per_atom = maxall;
+    atom->improper_per_atom = maxall + atom->extra_improper_per_atom;
     memory->destroy(count);
     return;
   }
@@ -1095,7 +1174,7 @@ void ReadData::bonus(bigint nbonus, AtomVec *ptr, const char *type)
 
 void ReadData::bodies(int firstpass)
 {
-  int i,m,nchunk,nmax,ninteger,ndouble,tmp,onebody;
+  int i,m,nchunk,nline,nmax,ninteger,ndouble,tmp,onebody;
   char *eof;
 
   int mapflag = 0;
@@ -1117,10 +1196,10 @@ void ReadData::bodies(int firstpass)
 
     if (me == 0) {
       nchunk = 0;
-      nlines = 0;
+      nline = 0;
       m = 0;
 
-      while (nchunk < nmax && nlines <= CHUNK-MAXBODY) {
+      while (nchunk < nmax && nline <= CHUNK-MAXBODY) {
         eof = fgets(&buffer[m],MAXLINE,fp);
         if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
         sscanf(&buffer[m],"%d %d %d",&tmp,&ninteger,&ndouble);
@@ -1140,7 +1219,7 @@ void ReadData::bodies(int firstpass)
         }
 
         nchunk++;
-        nlines += onebody+1;
+        nline += onebody+1;
       }
 
       if (buffer[m-1] != '\n') strcpy(&buffer[m++],"\n");
@@ -1334,11 +1413,11 @@ void ReadData::fix(int ifix, char *keyword)
 {
   int nchunk,eof;
 
-  bigint nlines = modify->fix[ifix]->read_data_skip_lines(keyword);
+  bigint nline = modify->fix[ifix]->read_data_skip_lines(keyword);
 
   bigint nread = 0;
-  while (nread < nlines) {
-    nchunk = MIN(nlines-nread,CHUNK);
+  while (nread < nline) {
+    nchunk = MIN(nline-nread,CHUNK);
     eof = comm->read_lines_from_file(fp,nchunk,MAXLINE,buffer);
     if (eof) error->all(FLERR,"Unexpected end of data file");
     modify->fix[ifix]->read_data_section(keyword,nchunk,buffer);

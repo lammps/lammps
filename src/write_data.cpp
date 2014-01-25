@@ -152,11 +152,11 @@ void WriteData::write(char *file)
   // sum up bond,angle counts
   // may be different than atom->nbonds,nangles if broken/turned-off
 
-  if (atom->nbonds || atom->nbondtypes) {
+  if (atom->molecular == 1 && atom->nbonds || atom->nbondtypes) {
     nbonds_local = atom->avec->pack_bond(NULL);
     MPI_Allreduce(&nbonds_local,&nbonds,1,MPI_LMP_BIGINT,MPI_SUM,world);
   }
-  if (atom->nangles || atom->nangletypes) {
+  if (atom->molecular == 1 && atom->nangles || atom->nangletypes) {
     nangles_local = atom->avec->pack_angle(NULL);
     MPI_Allreduce(&nangles_local,&nangles,1,MPI_LMP_BIGINT,MPI_SUM,world);
   }
@@ -181,13 +181,16 @@ void WriteData::write(char *file)
   }
 
   // per atom info
+  // do not write molecular topology for atom_style template
 
   if (natoms) atoms();
   if (natoms) velocities();
-  if (atom->nbonds && nbonds) bonds();
-  if (atom->nangles && nangles) angles();
-  if (atom->ndihedrals) dihedrals();
-  if (atom->nimpropers) impropers();
+  if (atom->molecular == 1) {
+    if (atom->nbonds && nbonds) bonds();
+    if (atom->nangles && nangles) angles();
+    if (atom->ndihedrals) dihedrals();
+    if (atom->nimpropers) impropers();
+  }
 
   // extra sections managed by fixes
 
@@ -276,21 +279,19 @@ void WriteData::force_fields()
       force->pair->write_data_all(fp);
     }
   }
-  if (atom->avec->bonds_allow && force->bond && force->bond->writedata) {
+  if (force->bond && force->bond->writedata) {
     fprintf(fp,"\nBond Coeffs\n\n");
     force->bond->write_data(fp);
   }
-  if (atom->avec->angles_allow && force->angle && force->angle->writedata) {
+  if (force->angle && force->angle->writedata) {
     fprintf(fp,"\nAngle Coeffs\n\n");
     force->angle->write_data(fp);
   }
-  if (atom->avec->dihedrals_allow && force->dihedral && 
-      force->dihedral->writedata) {
+  if (force->dihedral && force->dihedral->writedata) {
     fprintf(fp,"\nDihedral Coeffs\n\n");
     force->dihedral->write_data(fp);
   }
-  if (atom->avec->impropers_allow && force->improper && 
-      force->improper->writedata) {
+  if (force->improper && force->improper->writedata) {
     fprintf(fp,"\nImproper Coeffs\n\n");
     force->improper->write_data(fp);
   }

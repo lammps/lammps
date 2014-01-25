@@ -157,7 +157,7 @@ class FixRigidSmall : public Fix {
 
   // class data used by ring communication callbacks
 
-  std::map<int,int> *hash;
+  std::map<tagint,int> *hash;
   double **bbox;
   double **ctr;
   tagint *idclose;

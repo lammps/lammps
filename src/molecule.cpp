@@ -348,17 +348,6 @@ void Molecule::read(int flag)
 
   if (flag == 0) {
     if (natoms == 0) error->all(FLERR,"No atom count in molecule file");
-
-    if (nbonds && !atom->avec->bonds_allow)
-      error->all(FLERR,"Bonds in molecule file not supported by atom style");
-    if (nangles && !atom->avec->angles_allow)
-      error->all(FLERR,"Angles in molecule file not supported by atom style");
-    if (ndihedrals && !atom->avec->dihedrals_allow)
-      error->all(FLERR,
-                 "Dihedrals in molecule file not supported by atom style");
-    if (nimpropers && !atom->avec->impropers_allow)
-      error->all(FLERR,
-                 "Impropers in molecule file not supported by atom style");
   }
 
   // count = vector for tallying bonds,angles,etc per atom
@@ -455,32 +444,6 @@ void Molecule::read(int flag)
   // error check
 
   if (flag == 0) {
-    if (qflag && !atom->q_flag)
-      error->all(FLERR,"Molecule file has undefined atom property");
-    if (radiusflag && !atom->radius_flag)
-      error->all(FLERR,"Molecule file has undefined atom property");
-    if (rmassflag && !atom->rmass_flag)
-      error->all(FLERR,"Molecule file has undefined atom property");
-
-    if (bondflag && !atom->avec->bonds_allow)
-      error->all(FLERR,"Invalid molecule file section: Bonds");
-    if (angleflag && !atom->avec->angles_allow)
-      error->all(FLERR,"Invalid molecule file section: Angles");
-    if (dihedralflag && !atom->avec->dihedrals_allow)
-      error->all(FLERR,"Invalid molecule file section: Dihedrals");
-    if (improperflag && !atom->avec->impropers_allow)
-      error->all(FLERR,"Invalid molecule file section: Impropers");
-
-    if (bond_per_atom > atom->bond_per_atom ||
-	angle_per_atom > atom->angle_per_atom ||
-	dihedral_per_atom > atom->dihedral_per_atom ||
-	improper_per_atom > atom->improper_per_atom)
-      error->all(FLERR,"Molecule file bond/angle/etc counts "
-		 "per atom are too large");
-
-    // test for maxspecial > atom->maxspecial is done when molecules added
-    // in Atom::add_molecule_atom()
-
     if ((nspecialflag && !specialflag) || (!nspecialflag && specialflag))
       error->all(FLERR,"Molecule file needs both Special Bond sections");
     if (specialflag && !bondflag) 
@@ -512,7 +475,7 @@ void Molecule::coords(char *line)
 
 /* ----------------------------------------------------------------------
    read types from file
-   set maxtype = max of any atom type
+   set ntypes = max of any atom type
 ------------------------------------------------------------------------- */
 
 void Molecule::types(char *line)
@@ -524,11 +487,11 @@ void Molecule::types(char *line)
   }
 
   for (int i = 0; i < natoms; i++)
-    if (type[i] <= 0 || type[i] > atom->ntypes)
+    if (type[i] <= 0)
       error->all(FLERR,"Invalid atom type in molecule file");
 
   for (int i = 0; i < natoms; i++)
-    maxtype = MAX(maxtype,type[i]);
+    ntypes = MAX(ntypes,type[i]);
 }
 
 /* ----------------------------------------------------------------------
@@ -580,6 +543,7 @@ void Molecule::masses(char *line)
 
 /* ----------------------------------------------------------------------
    read bonds from file
+   set nbondtypes = max type of any bond
    store each with both atoms if newton_bond = 0
    if flag = 0, just count bonds/atom
    if flag = 1, store them with atoms
@@ -602,11 +566,12 @@ void Molecule::bonds(int flag, char *line)
     if (atom1 <= 0 || atom1 > natoms ||
 	atom2 <= 0 || atom2 > natoms)
       error->one(FLERR,"Invalid atom ID in Bonds section of molecule file");
-    if (itype <= 0 || itype > atom->nbondtypes)
+    if (itype <= 0)
       error->one(FLERR,"Invalid bond type in Bonds section of molecule file");
 
     if (flag) {
       m = atom1-1;
+      nbondtypes = MAX(nbondtypes,itype);
       bond_type[m][num_bond[m]] = itype;
       bond_atom[m][num_bond[m]] = atom2;
       num_bond[m]++;
@@ -656,11 +621,12 @@ void Molecule::angles(int flag, char *line)
         atom2 <= 0 || atom2 > natoms ||
         atom3 <= 0 || atom3 > natoms)
       error->one(FLERR,"Invalid atom ID in Angles section of molecule file");
-    if (itype <= 0 || itype > atom->nangletypes)
+    if (itype <= 0)
       error->one(FLERR,"Invalid angle type in Angles section of molecule file");
 
     if (flag) {
       m = atom2-1;
+      nangletypes = MAX(nangletypes,itype);
       angle_type[m][num_angle[m]] = itype;
       angle_atom1[m][num_angle[m]] = atom1;
       angle_atom2[m][num_angle[m]] = atom2;
@@ -725,12 +691,13 @@ void Molecule::dihedrals(int flag, char *line)
         atom4 <= 0 || atom4 > natoms)
       error->one(FLERR,
 		 "Invalid atom ID in dihedrals section of molecule file");
-    if (itype <= 0 || itype > atom->ndihedraltypes)
+    if (itype <= 0)
       error->one(FLERR,
 		 "Invalid dihedral type in dihedrals section of molecule file");
 
     if (flag) {
       m = atom2-1;
+      ndihedraltypes = MAX(ndihedraltypes,itype);
       dihedral_type[m][num_dihedral[m]] = itype;
       dihedral_atom1[m][num_dihedral[m]] = atom1;
       dihedral_atom2[m][num_dihedral[m]] = atom2;
@@ -802,12 +769,13 @@ void Molecule::impropers(int flag, char *line)
         atom4 <= 0 || atom4 > natoms)
       error->one(FLERR,
 		 "Invalid atom ID in impropers section of molecule file");
-    if (itype <= 0 || itype > atom->nimpropertypes)
+    if (itype <= 0)
       error->one(FLERR,
 		 "Invalid improper type in impropers section of molecule file");
 
     if (flag) {
       m = atom2-1;
+      nimpropertypes = MAX(nimpropertypes,itype);
       improper_type[m][num_improper[m]] = itype;
       improper_atom1[m][num_improper[m]] = atom1;
       improper_atom2[m][num_improper[m]] = atom2;
@@ -977,11 +945,76 @@ void Molecule::shaketype_read(char *line)
     int m = shake_flag[i];
     if (m == 1) m = 3;
     for (int j = 0; j < m-1; j++)
-      if (shake_type[i][j] <= 0 || shake_type[i][j] > atom->nbondtypes)
+      if (shake_type[i][j] <= 0)
         error->all(FLERR,"Invalid shake bond type in molecule file");
     if (shake_flag[i] == 1)
-      if (shake_type[i][2] <= 0 || shake_type[i][2] > atom->nangletypes)
+      if (shake_type[i][2] <= 0)
         error->all(FLERR,"Invalid shake angle type in molecule file");
+  }
+}
+
+/* ----------------------------------------------------------------------
+   error check molecule attributes and topology against system settings
+   flag = 0, just check this molecule
+   flag = 1, check all molecules in set, this is 1st molecule in set
+------------------------------------------------------------------------- */
+
+void Molecule::check_attributes(int flag)
+{
+  int n = 1;
+  if (flag) n = nset;
+  int imol = atom->find_molecule(id);
+
+  for (int i = imol; i < imol+n; i++) {
+    Molecule *onemol = atom->molecules[imol];
+    
+    // check per-atom attributes of molecule
+    // warn if not a match
+
+    int mismatch = 0;
+    if (onemol->qflag && !atom->q_flag) mismatch = 1;
+    if (onemol->radiusflag && !atom->radius_flag) mismatch = 1;
+    if (onemol->rmassflag && !atom->rmass_flag) mismatch = 1;
+
+    if (mismatch && me == 0) 
+      error->warning(FLERR,
+                     "Molecule attributes do not match system attributes");
+
+    // for all atom styles, check nbondtype,etc
+
+    mismatch = 0;
+    if (atom->nbondtypes < onemol->nbondtypes) mismatch = 1;
+    if (atom->nangletypes < onemol->nangletypes) mismatch = 1;
+    if (atom->ndihedraltypes < onemol->ndihedraltypes) mismatch = 1;
+    if (atom->nimpropertypes < onemol->nimpropertypes) mismatch = 1;
+
+    if (mismatch) 
+      error->all(FLERR,"Molecule topology type exceeds system topology type");
+
+    // for molecular atom styles, check bond_per_atom,etc + maxspecial
+    // do not check for atom style template, since nothing stored per atom
+
+    if (atom->molecular == 1) {
+      if (atom->avec->bonds_allow &&
+          atom->bond_per_atom < onemol->bond_per_atom) mismatch = 1;
+      if (atom->avec->angles_allow &&
+          atom->angle_per_atom < onemol->angle_per_atom) mismatch = 1;
+      if (atom->avec->dihedrals_allow &&
+          atom->dihedral_per_atom < onemol->dihedral_per_atom) mismatch = 1;
+      if (atom->avec->impropers_allow &&
+          atom->improper_per_atom < onemol->improper_per_atom) mismatch = 1;
+      if (atom->maxspecial < onemol->maxspecial) mismatch = 1;
+
+      if (mismatch) 
+        error->all(FLERR,"Molecule toplogy/atom exceeds system topology/atom");
+
+    }
+
+    // warn if molecule topology defined but no special settings
+
+    if (onemol->bondflag && !onemol->specialflag) 
+      if (me == 0) error->warning(FLERR,"Molecule has bond topology "
+                                  "but no special bond settings");
   }
 }
 
@@ -993,7 +1026,9 @@ void Molecule::initialize()
 {
   natoms = 0;
   nbonds = nangles = ndihedrals = nimpropers = 0;
-  maxtype = 0;
+  ntypes = 0;
+  nbondtypes = nangletypes = ndihedraltypes = nimpropertypes = 0;
+
   bond_per_atom = angle_per_atom = dihedral_per_atom = improper_per_atom = 0;
   maxspecial = 0;
 
@@ -1040,6 +1075,7 @@ void Molecule::initialize()
 
 /* ----------------------------------------------------------------------
    allocate all data structures
+   also initialize values for data structures that are always allocated
 ------------------------------------------------------------------------- */
 
 void Molecule::allocate()
@@ -1049,9 +1085,24 @@ void Molecule::allocate()
   if (qflag) memory->create(q,natoms,"molecule:q");
   if (radiusflag) memory->create(radius,natoms,"molecule:radius");
   if (rmassflag) memory->create(rmass,natoms,"molecule:rmass");
-  
+
+  // always allocate num_bond,num_angle,etc and nspecial even if not in file
+  // initialize to 0 even if not in molecule file
+  // this is so methods that use these arrays don't have to check they exist
+
+  memory->create(num_bond,natoms,"molecule:num_bond");
+  for (int i = 0; i < natoms; i++) num_bond[i] = 0;
+  memory->create(num_angle,natoms,"molecule:num_angle");
+  for (int i = 0; i < natoms; i++) num_angle[i] = 0;
+  memory->create(num_dihedral,natoms,"molecule:num_dihedral");
+  for (int i = 0; i < natoms; i++) num_dihedral[i] = 0;
+  memory->create(num_improper,natoms,"molecule:num_improper");
+  for (int i = 0; i < natoms; i++) num_improper[i] = 0;
+  memory->create(nspecial,natoms,3,"molecule:nspecial");
+  for (int i = 0; i < natoms; i++) 
+    nspecial[i][0] = nspecial[i][1] = nspecial[i][2] = 0;
+
   if (bondflag) {
-    memory->create(num_bond,natoms,"molecule:num_bond");
     memory->create(bond_type,natoms,bond_per_atom,
 		   "molecule:bond_type");
     memory->create(bond_atom,natoms,bond_per_atom,
@@ -1059,7 +1110,6 @@ void Molecule::allocate()
   }
 
   if (angleflag) {
-    memory->create(num_angle,natoms,"molecule:num_angle");
     memory->create(angle_type,natoms,angle_per_atom,
 		   "molecule:angle_type");
     memory->create(angle_atom1,natoms,angle_per_atom,
@@ -1071,7 +1121,6 @@ void Molecule::allocate()
   }
 
   if (dihedralflag) {
-    memory->create(num_dihedral,natoms,"molecule:num_dihedral");
     memory->create(dihedral_type,natoms,dihedral_per_atom,
 		   "molecule:dihedral_type");
     memory->create(dihedral_atom1,natoms,dihedral_per_atom,
@@ -1085,7 +1134,6 @@ void Molecule::allocate()
   }
 
   if (improperflag) {
-    memory->create(num_improper,natoms,"molecule:num_improper");
     memory->create(improper_type,natoms,improper_per_atom,
 		   "molecule:improper_type");
     memory->create(improper_atom1,natoms,improper_per_atom,
@@ -1098,8 +1146,6 @@ void Molecule::allocate()
 		   "molecule:improper_atom4");
   }
 
-  if (nspecialflag)
-    memory->create(nspecial,natoms,3,"molecule:nspecial");
   if (specialflag)
     memory->create(special,natoms,maxspecial,"molecule:special");
 

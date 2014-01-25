@@ -1288,7 +1288,7 @@ void FixRigidSmall::create_bodies()
   // value = index into per-body data structure
   // n = # of entries in hash
 
-  hash = new std::map<int,int>();
+  hash = new std::map<tagint,int>();
   hash->clear();
 
   // setup hash
@@ -1296,7 +1296,7 @@ void FixRigidSmall::create_bodies()
   // value = index into N-length data structure
   // n = count of unique bodies my atoms are part of
 
-  int *molecule = atom->molecule;
+  tagint *molecule = atom->molecule;
 
   n = 0;
   for (i = 0; i < nlocal; i++) {
@@ -1430,7 +1430,7 @@ void FixRigidSmall::create_bodies()
 
 void FixRigidSmall::ring_bbox(int n, char *cbuf)
 {
-  std::map<int,int> *hash = frsptr->hash;
+  std::map<tagint,int> *hash = frsptr->hash;
   double **bbox = frsptr->bbox;
 
   double *buf = (double *) cbuf;
@@ -1462,7 +1462,7 @@ void FixRigidSmall::ring_bbox(int n, char *cbuf)
 
 void FixRigidSmall::ring_nearest(int n, char *cbuf)
 {
-  std::map<int,int> *hash = frsptr->hash;
+  std::map<tagint,int> *hash = frsptr->hash;
   double **ctr = frsptr->ctr;
   tagint *idclose = frsptr->idclose;
   double *rsqclose = frsptr->rsqclose;

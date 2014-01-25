@@ -110,20 +110,11 @@ void Replicate::command(int narg, char **arg)
 
   // old = original atom class
   // atom = new replicated atom class
-  // if old atom style was hybrid, pass sub-style names to create_avec
 
   Atom *old = atom;
   atom = new Atom(lmp);
   atom->settings(old);
-
-  int nstyles = 0;
-  char **keywords = NULL;
-  if (strcmp(old->atom_style,"hybrid") == 0) {
-    AtomVecHybrid *avec_hybrid = (AtomVecHybrid *) old->avec;
-    nstyles = avec_hybrid->nstyles;
-    keywords = avec_hybrid->keywords;
-  }
-  atom->create_avec(old->atom_style,nstyles,keywords);
+  atom->create_avec(old->atom_style,old->avec->nargcopy,old->avec->argcopy);
 
   // check that new system will not be too large
   // new tags cannot exceed MAXTAGINT
@@ -313,32 +304,34 @@ void Replicate::command(int narg, char **arg)
               atom->tag[i] += atom_offset;
               atom->image[i] = image;
 
-              if (atom->molecule_flag) {
+              if (atom->molecular) {
                 if (atom->molecule[i] > 0)
                   atom->molecule[i] += mol_offset;
-                if (atom->avec->bonds_allow)
-                  for (j = 0; j < atom->num_bond[i]; j++)
-                    atom->bond_atom[i][j] += atom_offset;
-                if (atom->avec->angles_allow)
-                  for (j = 0; j < atom->num_angle[i]; j++) {
-                    atom->angle_atom1[i][j] += atom_offset;
-                    atom->angle_atom2[i][j] += atom_offset;
-                    atom->angle_atom3[i][j] += atom_offset;
-                  }
-                if (atom->avec->dihedrals_allow)
-                  for (j = 0; j < atom->num_dihedral[i]; j++) {
-                    atom->dihedral_atom1[i][j] += atom_offset;
-                    atom->dihedral_atom2[i][j] += atom_offset;
-                    atom->dihedral_atom3[i][j] += atom_offset;
-                    atom->dihedral_atom4[i][j] += atom_offset;
-                  }
-                if (atom->avec->impropers_allow)
-                  for (j = 0; j < atom->num_improper[i]; j++) {
-                    atom->improper_atom1[i][j] += atom_offset;
-                    atom->improper_atom2[i][j] += atom_offset;
-                    atom->improper_atom3[i][j] += atom_offset;
-                    atom->improper_atom4[i][j] += atom_offset;
-                  }
+                if (atom->molecular == 1) {
+                  if (atom->avec->bonds_allow)
+                    for (j = 0; j < atom->num_bond[i]; j++)
+                      atom->bond_atom[i][j] += atom_offset;
+                  if (atom->avec->angles_allow)
+                    for (j = 0; j < atom->num_angle[i]; j++) {
+                      atom->angle_atom1[i][j] += atom_offset;
+                      atom->angle_atom2[i][j] += atom_offset;
+                      atom->angle_atom3[i][j] += atom_offset;
+                    }
+                  if (atom->avec->dihedrals_allow)
+                    for (j = 0; j < atom->num_dihedral[i]; j++) {
+                      atom->dihedral_atom1[i][j] += atom_offset;
+                      atom->dihedral_atom2[i][j] += atom_offset;
+                      atom->dihedral_atom3[i][j] += atom_offset;
+                      atom->dihedral_atom4[i][j] += atom_offset;
+                    }
+                  if (atom->avec->impropers_allow)
+                    for (j = 0; j < atom->num_improper[i]; j++) {
+                      atom->improper_atom1[i][j] += atom_offset;
+                      atom->improper_atom2[i][j] += atom_offset;
+                      atom->improper_atom3[i][j] += atom_offset;
+                      atom->improper_atom4[i][j] += atom_offset;
+                    }
+                }
               }
             } else m += static_cast<int> (buf[m]);
           }
@@ -404,7 +397,7 @@ void Replicate::command(int narg, char **arg)
 
   // create special bond lists for molecular systems
 
-  if (atom->molecular) {
+  if (atom->molecular == 1) {
     Special special(lmp);
     special.build();
   }

@@ -17,6 +17,7 @@
 #include "fix_evaporate.h"
 #include "atom.h"
 #include "atom_vec.h"
+#include "molecule.h"
 #include "update.h"
 #include "domain.h"
 #include "region.h"
@@ -234,9 +235,13 @@ void FixEvaporate::pre_exchange()
   // keep ndel,ndeltopo,ncount,nall,nbefore current after each mol deletion
 
   } else {
-    int me,proc,iatom,ndelone,ndelall;
-    tagint imol;
+    int me,proc,iatom,ndelone,ndelall,index;
+    tagint imolecule;
     tagint *molecule = atom->molecule;
+    int *molindex = atom->molindex;
+    int *molatom = atom->molatom;
+    int molecular = atom->molecular;
+    Molecule **onemols = atom->avec->onemols;
 
     ndeltopo[0] = ndeltopo[1] = ndeltopo[2] = ndeltopo[3] = 0;
 
@@ -248,56 +253,69 @@ void FixEvaporate::pre_exchange()
       if (iwhichglobal >= nbefore && iwhichglobal < nbefore + ncount) {
         iwhichlocal = iwhichglobal - nbefore;
         iatom = list[iwhichlocal];
-        imol = molecule[iatom];
+        imolecule = molecule[iatom];
         me = comm->me;
       } else me = -1;
 
       // bcast mol ID to delete all atoms from
       // if mol ID > 0, delete any atom in molecule and decrement counters
       // if mol ID == 0, delete single iatom
-      // be careful to delete correct # of bond,angle,etc for newton on or off
+      // logic with ndeltopo is to count # of deleted bonds,angles,etc
+      // for atom->molecular = 1, do this for each deleted atom in molecule
+      // for atom->molecular = 2, use Molecule counts for just 1st atom in mol
 
       MPI_Allreduce(&me,&proc,1,MPI_INT,MPI_MAX,world);
-      MPI_Bcast(&imol,1,MPI_LMP_TAGINT,proc,world);
+      MPI_Bcast(&imolecule,1,MPI_LMP_TAGINT,proc,world);
       ndelone = 0;
       for (i = 0; i < nlocal; i++) {
-        if (imol && molecule[i] == imol) {
+        if (imolecule && molecule[i] == imolecule) {
           mark[i] = 1;
           ndelone++;
 
-          if (atom->avec->bonds_allow) {
-            if (force->newton_bond) ndeltopo[0] += atom->num_bond[i];
-            else {
-              for (j = 0; j < atom->num_bond[i]; j++) {
-                if (tag[i] < atom->bond_atom[i][j]) ndeltopo[0]++;
+          if (molecular == 1) {
+            if (atom->avec->bonds_allow) {
+              if (force->newton_bond) ndeltopo[0] += atom->num_bond[i];
+              else {
+                for (j = 0; j < atom->num_bond[i]; j++) {
+                  if (tag[i] < atom->bond_atom[i][j]) ndeltopo[0]++;
+                }
               }
             }
-          }
-          if (atom->avec->angles_allow) {
-            if (force->newton_bond) ndeltopo[1] += atom->num_angle[i];
-            else {
-              for (j = 0; j < atom->num_angle[i]; j++) {
-                m = atom->map(atom->angle_atom2[i][j]);
-                if (m >= 0 && m < nlocal) ndeltopo[1]++;
+            if (atom->avec->angles_allow) {
+              if (force->newton_bond) ndeltopo[1] += atom->num_angle[i];
+              else {
+                for (j = 0; j < atom->num_angle[i]; j++) {
+                  m = atom->map(atom->angle_atom2[i][j]);
+                  if (m >= 0 && m < nlocal) ndeltopo[1]++;
+                }
               }
             }
-          }
-          if (atom->avec->dihedrals_allow) {
-            if (force->newton_bond) ndeltopo[2] += atom->num_dihedral[i];
-            else {
-              for (j = 0; j < atom->num_dihedral[i]; j++) {
-                m = atom->map(atom->dihedral_atom2[i][j]);
-                if (m >= 0 && m < nlocal) ndeltopo[2]++;
+            if (atom->avec->dihedrals_allow) {
+              if (force->newton_bond) ndeltopo[2] += atom->num_dihedral[i];
+              else {
+                for (j = 0; j < atom->num_dihedral[i]; j++) {
+                  m = atom->map(atom->dihedral_atom2[i][j]);
+                  if (m >= 0 && m < nlocal) ndeltopo[2]++;
+                }
               }
             }
-          }
-          if (atom->avec->impropers_allow) {
-            if (force->newton_bond) ndeltopo[3] += atom->num_improper[i];
-            else {
-              for (j = 0; j < atom->num_improper[i]; j++) {
-                m = atom->map(atom->improper_atom2[i][j]);
-                if (m >= 0 && m < nlocal) ndeltopo[3]++;
+            if (atom->avec->impropers_allow) {
+              if (force->newton_bond) ndeltopo[3] += atom->num_improper[i];
+              else {
+                for (j = 0; j < atom->num_improper[i]; j++) {
+                  m = atom->map(atom->improper_atom2[i][j]);
+                  if (m >= 0 && m < nlocal) ndeltopo[3]++;
+                }
               }
+            }
+
+          } else {
+            if (molatom[i] == 0) {
+              index = molindex[i];
+              ndeltopo[0] += onemols[index]->nbonds;
+              ndeltopo[1] += onemols[index]->nangles;
+              ndeltopo[2] += onemols[index]->ndihedrals;
+              ndeltopo[3] += onemols[index]->nimpropers;
             }
           }
 

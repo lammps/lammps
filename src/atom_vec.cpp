@@ -11,6 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "string.h"
 #include "stdlib.h"
 #include "atom_vec.h"
 #include "atom.h"
@@ -29,13 +30,39 @@ AtomVec::AtomVec(LAMMPS *lmp) : Pointers(lmp)
   mass_type = dipole_type = 0;
   size_data_bonus = 0;
   cudable = false;
+
+  nargcopy = 0;
+  argcopy = NULL;
+}
+
+/* ---------------------------------------------------------------------- */
+
+AtomVec::~AtomVec()
+{
+  for (int i = 0; i < nargcopy; i++) delete [] argcopy[i];
+  delete [] argcopy;
+}
+
+/* ----------------------------------------------------------------------
+   make copy of args for use by restart & replicate
+------------------------------------------------------------------------- */
+
+void AtomVec::store_args(int narg, char **arg)
+{
+  nargcopy = narg;
+  argcopy = new char*[nargcopy];
+  for (int i = 0; i < nargcopy; i++) {
+    int n = strlen(arg[i]) + 1;
+    argcopy[i] = new char[n];
+    strcpy(argcopy[i],arg[i]);
+  }
 }
 
 /* ----------------------------------------------------------------------
    no additional args by default
 ------------------------------------------------------------------------- */
 
-void AtomVec::settings(int narg, char **arg)
+void AtomVec::process_args(int narg, char **arg)
 {
   if (narg) error->all(FLERR,"Invalid atom_style command");
 }

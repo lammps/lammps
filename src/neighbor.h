@@ -260,21 +260,25 @@ class Neighbor : protected Pointers {
 
   BondPtr bond_build;                 // ptr to bond list functions
   void bond_all();                    // bond list with all bonds
+  void bond_template();               // bond list with templated bonds
   void bond_partial();                // exclude certain bonds
   void bond_check();
 
   BondPtr angle_build;                // ptr to angle list functions
   void angle_all();                   // angle list with all angles
+  void angle_template();              // angle list with templated bonds
   void angle_partial();               // exclude certain angles
   void angle_check();
 
   BondPtr dihedral_build;             // ptr to dihedral list functions
   void dihedral_all();                // dihedral list with all dihedrals
+  void dihedral_template();           // dihedral list with templated bonds
   void dihedral_partial();            // exclude certain dihedrals
   void dihedral_check(int, int **);
 
   BondPtr improper_build;             // ptr to improper list functions
   void improper_all();                // improper list with all impropers
+  void improper_template();           // improper list with templated bonds
   void improper_partial();            // exclude certain impropers
 
   // find_special: determine if atom j is in special list of atom i

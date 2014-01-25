@@ -14,6 +14,8 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "atom.h"
+#include "atom_vec.h"
+#include "molecule.h"
 #include "domain.h"
 #include "group.h"
 #include "my_page.h"
@@ -30,27 +32,31 @@ using namespace LAMMPS_NS;
 
 void Neighbor::respa_nsq_no_newton(NeighList *list)
 {
-  int i,j,n,itype,jtype,n_inner,n_middle,bitmask;
+  int i,j,n,itype,jtype,n_inner,n_middle,bitmask,imol,iatom,moltemplate;
+  tagint tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr,*neighptr_inner,*neighptr_middle;
-
-  // loop over each atom, storing neighbors
-
-  tagint **special = atom->special;
-  int **nspecial = atom->nspecial;
-  tagint *tag = atom->tag;
 
   double **x = atom->x;
   int *type = atom->type;
   int *mask = atom->mask;
-  tagint *molecule = atom->molecule;
+  int *tag = atom->tag;
+  int *molecule = atom->molecule;
+  int **special = atom->special;
+  int **nspecial = atom->nspecial;
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
-  int molecular = atom->molecular;
   if (includegroup) {
     nlocal = atom->nfirst;
     bitmask = group->bitmask[includegroup];
   }
+
+  int *molindex = atom->molindex;
+  int *molatom = atom->molatom;
+  Molecule **onemols = atom->avec->onemols;
+  int molecular = atom->molecular;
+  if (molecular == 2) moltemplate = 1;
+  else moltemplate = 0;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -82,6 +88,8 @@ void Neighbor::respa_nsq_no_newton(NeighList *list)
   ipage_inner->reset();
   if (respamiddle) ipage_middle->reset();
 
+  // loop over each atom, storing neighbors
+
   for (i = 0; i < nlocal; i++) {
     n = n_inner = 0;
     neighptr = ipage->vget();
@@ -95,6 +103,11 @@ void Neighbor::respa_nsq_no_newton(NeighList *list)
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
+    if (moltemplate) {
+      imol = molindex[i];
+      iatom = molatom[i];
+      tagprev = tag[i] - iatom - 1;
+    }
 
     // loop over remaining atoms, owned and ghost
 
@@ -110,7 +123,13 @@ void Neighbor::respa_nsq_no_newton(NeighList *list)
 
       if (rsq <= cutneighsq[itype][jtype]) {
         if (molecular) {
-          which = find_special(special[i],nspecial[i],tag[j]);
+          if (!moltemplate)
+            which = find_special(special[i],nspecial[i],tag[j]);
+          else if (imol >= 0)
+            which = find_special(onemols[imol]->special[iatom],
+                                 onemols[imol]->nspecial[iatom],
+                                 tag[j]-tagprev);
+          else which == 0;
           if (which == 0) neighptr[n++] = j;
           else if (minchange = domain->minimum_image_check(delx,dely,delz))
             neighptr[n++] = j;
@@ -174,26 +193,31 @@ void Neighbor::respa_nsq_no_newton(NeighList *list)
 void Neighbor::respa_nsq_newton(NeighList *list)
 {
   int i,j,n,itype,jtype,itag,jtag,n_inner,n_middle,bitmask;
+  int imol,iatom,moltemplate;
+  tagint tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr,*neighptr_inner,*neighptr_middle;
-
-  // loop over each atom, storing neighbors
-
-  tagint **special = atom->special;
-  int **nspecial = atom->nspecial;
-  tagint *tag = atom->tag;
 
   double **x = atom->x;
   int *type = atom->type;
   int *mask = atom->mask;
-  tagint *molecule = atom->molecule;
+  int *tag = atom->tag;
+  int *molecule = atom->molecule;
+  int **special = atom->special;
+  int **nspecial = atom->nspecial;
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
-  int molecular = atom->molecular;
   if (includegroup) {
     nlocal = atom->nfirst;
     bitmask = group->bitmask[includegroup];
   }
+
+  int *molindex = atom->molindex;
+  int *molatom = atom->molatom;
+  Molecule **onemols = atom->avec->onemols;
+  int molecular = atom->molecular;
+  if (molecular == 2) moltemplate = 1;
+  else moltemplate = 0;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -225,6 +249,8 @@ void Neighbor::respa_nsq_newton(NeighList *list)
   ipage_inner->reset();
   if (respamiddle) ipage_middle->reset();
 
+  // loop over each atom, storing neighbors
+
   for (i = 0; i < nlocal; i++) {
     n = n_inner = 0;
     neighptr = ipage->vget();
@@ -239,6 +265,11 @@ void Neighbor::respa_nsq_newton(NeighList *list)
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
+    if (moltemplate) {
+      imol = molindex[i];
+      iatom = molatom[i];
+      tagprev = tag[i] - iatom - 1;
+    }
 
     // loop over remaining atoms, owned and ghost
 
@@ -270,7 +301,13 @@ void Neighbor::respa_nsq_newton(NeighList *list)
 
       if (rsq <= cutneighsq[itype][jtype]) {
         if (molecular) {
-          which = find_special(special[i],nspecial[i],tag[j]);
+          if (!moltemplate)
+            which = find_special(special[i],nspecial[i],tag[j]);
+          else if (imol >= 0)
+            which = find_special(onemols[imol]->special[iatom],
+                                 onemols[imol]->nspecial[iatom],
+                                 tag[j]-tagprev);
+          else which == 0;
           if (which == 0) neighptr[n++] = j;
           else if (minchange = domain->minimum_image_check(delx,dely,delz))
             neighptr[n++] = j;
@@ -334,7 +371,8 @@ void Neighbor::respa_nsq_newton(NeighList *list)
 
 void Neighbor::respa_bin_no_newton(NeighList *list)
 {
-  int i,j,k,n,itype,jtype,ibin,n_inner,n_middle;
+  int i,j,k,n,itype,jtype,ibin,n_inner,n_middle,imol,iatom,moltemplate;
+  tagint tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr,*neighptr_inner,*neighptr_middle;
 
@@ -342,19 +380,22 @@ void Neighbor::respa_bin_no_newton(NeighList *list)
 
   bin_atoms();
 
-  // loop over each atom, storing neighbors
-
-  tagint **special = atom->special;
-  int **nspecial = atom->nspecial;
-  tagint *tag = atom->tag;
-
   double **x = atom->x;
   int *type = atom->type;
   int *mask = atom->mask;
-  tagint *molecule = atom->molecule;
+  int *tag = atom->tag;
+  int *molecule = atom->molecule;
+  int **special = atom->special;
+  int **nspecial = atom->nspecial;
   int nlocal = atom->nlocal;
-  int molecular = atom->molecular;
   if (includegroup) nlocal = atom->nfirst;
+
+  int *molindex = atom->molindex;
+  int *molatom = atom->molatom;
+  Molecule **onemols = atom->avec->onemols;
+  int molecular = atom->molecular;
+  if (molecular == 2) moltemplate = 1;
+  else moltemplate = 0;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -388,6 +429,8 @@ void Neighbor::respa_bin_no_newton(NeighList *list)
   ipage_inner->reset();
   if (respamiddle) ipage_middle->reset();
 
+  // loop over each atom, storing neighbors
+
   for (i = 0; i < nlocal; i++) {
     n = n_inner = 0;
     neighptr = ipage->vget();
@@ -402,6 +445,11 @@ void Neighbor::respa_bin_no_newton(NeighList *list)
     ytmp = x[i][1];
     ztmp = x[i][2];
     ibin = coord2bin(x[i]);
+    if (moltemplate) {
+      imol = molindex[i];
+      iatom = molatom[i];
+      tagprev = tag[i] - iatom - 1;
+    }
 
     // loop over all atoms in surrounding bins in stencil including self
     // only store pair if i < j
@@ -422,7 +470,13 @@ void Neighbor::respa_bin_no_newton(NeighList *list)
 
         if (rsq <= cutneighsq[itype][jtype]) {
           if (molecular) {
-            which = find_special(special[i],nspecial[i],tag[j]);
+            if (!moltemplate)
+              which = find_special(special[i],nspecial[i],tag[j]);
+            else if (imol >= 0)
+              which = find_special(onemols[imol]->special[iatom],
+                                   onemols[imol]->nspecial[iatom],
+                                   tag[j]-tagprev);
+            else which == 0;
             if (which == 0) neighptr[n++] = j;
             else if (minchange = domain->minimum_image_check(delx,dely,delz))
               neighptr[n++] = j;
@@ -487,7 +541,8 @@ void Neighbor::respa_bin_no_newton(NeighList *list)
 
 void Neighbor::respa_bin_newton(NeighList *list)
 {
-  int i,j,k,n,itype,jtype,ibin,n_inner,n_middle;
+  int i,j,k,n,itype,jtype,ibin,n_inner,n_middle,imol,iatom,moltemplate;
+  tagint tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr,*neighptr_inner,*neighptr_middle;
 
@@ -495,19 +550,22 @@ void Neighbor::respa_bin_newton(NeighList *list)
 
   bin_atoms();
 
-  // loop over each atom, storing neighbors
-
-  tagint **special = atom->special;
-  int **nspecial = atom->nspecial;
-  tagint *tag = atom->tag;
-
   double **x = atom->x;
   int *type = atom->type;
   int *mask = atom->mask;
-  tagint *molecule = atom->molecule;
+  int *tag = atom->tag;
+  int *molecule = atom->molecule;
+  int **special = atom->special;
+  int **nspecial = atom->nspecial;
   int nlocal = atom->nlocal;
-  int molecular = atom->molecular;
   if (includegroup) nlocal = atom->nfirst;
+
+  int *molindex = atom->molindex;
+  int *molatom = atom->molatom;
+  Molecule **onemols = atom->avec->onemols;
+  int molecular = atom->molecular;
+  if (molecular == 2) moltemplate = 1;
+  else moltemplate = 0;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -541,6 +599,8 @@ void Neighbor::respa_bin_newton(NeighList *list)
   ipage_inner->reset();
   if (respamiddle) ipage_middle->reset();
 
+  // loop over each atom, storing neighbors
+
   for (i = 0; i < nlocal; i++) {
     n = n_inner = 0;
     neighptr = ipage->vget();
@@ -554,6 +614,11 @@ void Neighbor::respa_bin_newton(NeighList *list)
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
+    if (moltemplate) {
+      imol = molindex[i];
+      iatom = molatom[i];
+      tagprev = tag[i] - iatom - 1;
+    }
 
     // loop over rest of atoms in i's bin, ghosts are at end of linked list
     // if j is owned atom, store it, since j is beyond i in linked list
@@ -578,7 +643,13 @@ void Neighbor::respa_bin_newton(NeighList *list)
 
       if (rsq <= cutneighsq[itype][jtype]) {
         if (molecular) {
-          which = find_special(special[i],nspecial[i],tag[j]);
+          if (!moltemplate)
+            which = find_special(special[i],nspecial[i],tag[j]);
+          else if (imol >= 0)
+            which = find_special(onemols[imol]->special[iatom],
+                                 onemols[imol]->nspecial[iatom],
+                                 tag[j]-tagprev);
+          else which == 0;
           if (which == 0) neighptr[n++] = j;
           else if (minchange = domain->minimum_image_check(delx,dely,delz))
             neighptr[n++] = j;
@@ -616,7 +687,13 @@ void Neighbor::respa_bin_newton(NeighList *list)
 
         if (rsq <= cutneighsq[itype][jtype]) {
           if (molecular) {
-            which = find_special(special[i],nspecial[i],tag[j]);
+            if (!moltemplate)
+              which = find_special(special[i],nspecial[i],tag[j]);
+            else if (imol >= 0)
+              which = find_special(onemols[imol]->special[iatom],
+                                   onemols[imol]->nspecial[iatom],
+                                   tag[j]-tagprev);
+            else which == 0;
             if (which == 0) neighptr[n++] = j;
             else if (minchange = domain->minimum_image_check(delx,dely,delz))
               neighptr[n++] = j;
@@ -681,7 +758,8 @@ void Neighbor::respa_bin_newton(NeighList *list)
 
 void Neighbor::respa_bin_newton_tri(NeighList *list)
 {
-  int i,j,k,n,itype,jtype,ibin,n_inner,n_middle;
+  int i,j,k,n,itype,jtype,ibin,n_inner,n_middle,imol,iatom,moltemplate;
+  tagint tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr,*neighptr_inner,*neighptr_middle;
 
@@ -689,19 +767,22 @@ void Neighbor::respa_bin_newton_tri(NeighList *list)
 
   bin_atoms();
 
-  // loop over each atom, storing neighbors
-
-  tagint **special = atom->special;
-  int **nspecial = atom->nspecial;
-  tagint *tag = atom->tag;
-
   double **x = atom->x;
   int *type = atom->type;
   int *mask = atom->mask;
-  tagint *molecule = atom->molecule;
+  int *tag = atom->tag;
+  int *molecule = atom->molecule;
+  int **special = atom->special;
+  int **nspecial = atom->nspecial;
   int nlocal = atom->nlocal;
-  int molecular = atom->molecular;
   if (includegroup) nlocal = atom->nfirst;
+
+  int *molindex = atom->molindex;
+  int *molatom = atom->molatom;
+  Molecule **onemols = atom->avec->onemols;
+  int molecular = atom->molecular;
+  if (molecular == 2) moltemplate = 1;
+  else moltemplate = 0;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -735,6 +816,8 @@ void Neighbor::respa_bin_newton_tri(NeighList *list)
   ipage_inner->reset();
   if (respamiddle) ipage_middle->reset();
 
+  // loop over each atom, storing neighbors
+
   for (i = 0; i < nlocal; i++) {
     n = n_inner = 0;
     neighptr = ipage->vget();
@@ -748,6 +831,11 @@ void Neighbor::respa_bin_newton_tri(NeighList *list)
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
+    if (moltemplate) {
+      imol = molindex[i];
+      iatom = molatom[i];
+      tagprev = tag[i] - iatom - 1;
+    }
 
     // loop over all atoms in bins in stencil
     // pairs for atoms j "below" i are excluded
@@ -777,7 +865,13 @@ void Neighbor::respa_bin_newton_tri(NeighList *list)
 
         if (rsq <= cutneighsq[itype][jtype]) {
           if (molecular) {
-            which = find_special(special[i],nspecial[i],tag[j]);
+            if (!moltemplate)
+              which = find_special(special[i],nspecial[i],tag[j]);
+            else if (imol >= 0)
+              which = find_special(onemols[imol]->special[iatom],
+                                   onemols[imol]->nspecial[iatom],
+                                   tag[j]-tagprev);
+            else which == 0;
             if (which == 0) neighptr[n++] = j;
             else if (minchange = domain->minimum_image_check(delx,dely,delz))
               neighptr[n++] = j;

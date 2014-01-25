@@ -14,12 +14,14 @@ atom_style style args :pre
 
 style = {angle} or {atomic} or {body} or {bond} or {charge} or {dipole} or \
         {electron} or {ellipsoid} or {full} or {line} or {meso} or \
-	{molecular} or {peri} or {sphere} or {tri} or {hybrid} :ul
+	{molecular} or {peri} or {sphere} or {tri} or {template} or {hybrid} :ul
   args = none for any style except {body} and {hybrid}
   {body} args = bstyle bstyle-args
     bstyle = style of body particles
     bstyle-args = additional arguments specific to the bstyle
                   see the "body"_body.html doc page for details
+  {template} args = template-ID
+    template-ID = ID of molecule template specified in a separate "molecule"_molecule.html command
   {hybrid} args = list of one or more sub-styles, each with their args :pre
 
 [Examples:]
@@ -29,7 +31,8 @@ atom_style bond
 atom_style full
 atom_style body nparticle 2 10
 atom_style hybrid charge bond
-atom_style hybrid charge body nparticle 2 5 :pre
+atom_style hybrid charge body nparticle 2 5
+atom_style template myMols :pre
 
 [Description:]
 
@@ -70,6 +73,7 @@ quantities.
 {molecular} | bonds, angles, dihedrals, impropers | uncharged molecules |
 {peri} | mass, volume | mesocopic Peridynamic models |
 {sphere} | diameter, mass, angular velocity | granular models |
+{template} | template index, template atom | small molecules with fixed topology |
 {tri} | corner points, angular momentum | rigid bodies |
 {wavepacket} | charge, spin, eradius, etag, cs_re, cs_im | AWPMD :tb(c=3,s=|)
 
@@ -88,9 +92,9 @@ All of the above styles define point particles, except the {sphere},
 14"_Section_howto.html#howto_14 for an overview of using finite-size
 particle models with LAMMPS.
 
-All of the styles assign mass to particles on a per-type basis, using
-the "mass"_mass.html command, except for the finite-size particle
-styles.  They assign mass to individual particles on a per-particle
+All of the point-particle styles assign mass to particles on a
+per-type basis, using the "mass"_mass.html command, The finite-size
+particle styles assign mass to individual particles on a per-particle
 basis.
 
 For the {sphere} style, the particles are spheres and each stores a
@@ -129,6 +133,16 @@ For the {tri} style, the particles are planar triangles and each
 stores a per-particle mass and size and orientation (i.e. the corner
 points of the triangle).
 
+The {template} style allows molecular topolgy (bonds,angles,etc) to be
+defined via a molecule template using the "molecule"_molecule.txt
+command.  The template stores one or more molecules with a single copy
+of the topology info (bonds,angles,etc) of each.  Individual atoms
+only store a template index and template atom to identify which
+molecule and which atom-within-the-molecule they represent.  Using the
+{template} style instead of the {bond}, {angle}, {molecular} styles
+can save memory for systems comprised of a large number of small
+molecules, all of a single type (or small number of types).
+
 For the {body} style, the particles are arbitrary bodies with internal
 attributes defined by the "style" of the bodies, which is specified by
 the {bstyle} argument.  Body particles can represent complex entities,
@@ -161,6 +175,10 @@ torque, you would need to use "atom_style hybrid sphere dipole".  When
 a hybrid style is used, atoms store and communicate the union of all
 quantities implied by the individual styles.
 
+When using the {hybrid} style, you cannot combine the {template} style
+with another molecular style that stores bond,angle,etc info on a
+per-atom basis.
+
 LAMMPS can be extended with new atom styles as well as new body
 styles; see "this section"_Section_modify.html.
 
@@ -169,10 +187,10 @@ styles; see "this section"_Section_modify.html.
 This command cannot be used after the simulation box is defined by a
 "read_data"_read_data.html or "create_box"_create_box.html command.
 
-The {angle}, {bond}, {full}, and {molecular} styles are part of the
-MOLECULAR package.  The {line} and {tri} styles are part of the
-ASPHERE pacakge.  The {body} style is part of the BODY package.  The
-{dipole} style is part of the DIPOLE package.  The {peri} style is
+The {angle}, {bond}, {full}, {molecular}, and {template} styles are
+part of the MOLECULAR package.  The {line} and {tri} styles are part
+of the ASPHERE pacakge.  The {body} style is part of the BODY package.
+The {dipole} style is part of the DIPOLE package.  The {peri} style is
 part of the PERI package for Peridynamics.  The {electron} style is
 part of the USER-EFF package for "electronic force
 fields"_pair_eff.html.  The {meso} style is part of the USER-SPH

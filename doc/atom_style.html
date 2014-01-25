@@ -15,13 +15,15 @@
 </P>
 <PRE>atom_style style args 
 </PRE>
-<UL><LI>style = <I>angle</I> or <I>atomic</I> or <I>body</I> or <I>bond</I> or <I>charge</I> or <I>dipole</I> or         <I>electron</I> or <I>ellipsoid</I> or <I>full</I> or <I>line</I> or <I>meso</I> or 	<I>molecular</I> or <I>peri</I> or <I>sphere</I> or <I>tri</I> or <I>hybrid</I> 
+<UL><LI>style = <I>angle</I> or <I>atomic</I> or <I>body</I> or <I>bond</I> or <I>charge</I> or <I>dipole</I> or         <I>electron</I> or <I>ellipsoid</I> or <I>full</I> or <I>line</I> or <I>meso</I> or 	<I>molecular</I> or <I>peri</I> or <I>sphere</I> or <I>tri</I> or <I>template</I> or <I>hybrid</I> 
 </UL>
 <PRE>  args = none for any style except <I>body</I> and <I>hybrid</I>
   <I>body</I> args = bstyle bstyle-args
     bstyle = style of body particles
     bstyle-args = additional arguments specific to the bstyle
                   see the <A HREF = "body.html">body</A> doc page for details
+  <I>template</I> args = template-ID
+    template-ID = ID of molecule template specified in a separate <A HREF = "molecule.html">molecule</A> command
   <I>hybrid</I> args = list of one or more sub-styles, each with their args 
 </PRE>
 <P><B>Examples:</B>
@@ -31,7 +33,8 @@ atom_style bond
 atom_style full
 atom_style body nparticle 2 10
 atom_style hybrid charge bond
-atom_style hybrid charge body nparticle 2 5 
+atom_style hybrid charge body nparticle 2 5
+atom_style template myMols 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -73,6 +76,7 @@ quantities.
 <TR><TD ><I>molecular</I> </TD><TD > bonds, angles, dihedrals, impropers </TD><TD > uncharged molecules </TD></TR>
 <TR><TD ><I>peri</I> </TD><TD > mass, volume </TD><TD > mesocopic Peridynamic models </TD></TR>
 <TR><TD ><I>sphere</I> </TD><TD > diameter, mass, angular velocity </TD><TD > granular models </TD></TR>
+<TR><TD ><I>template</I> </TD><TD > template index, template atom </TD><TD > small molecules with fixed topology </TD></TR>
 <TR><TD ><I>tri</I> </TD><TD > corner points, angular momentum </TD><TD > rigid bodies </TD></TR>
 <TR><TD ><I>wavepacket</I> </TD><TD > charge, spin, eradius, etag, cs_re, cs_im </TD><TD > AWPMD 
 </TD></TR></TABLE></DIV>
@@ -92,9 +96,9 @@ output the custom values.
 14</A> for an overview of using finite-size
 particle models with LAMMPS.
 </P>
-<P>All of the styles assign mass to particles on a per-type basis, using
-the <A HREF = "mass.html">mass</A> command, except for the finite-size particle
-styles.  They assign mass to individual particles on a per-particle
+<P>All of the point-particle styles assign mass to particles on a
+per-type basis, using the <A HREF = "mass.html">mass</A> command, The finite-size
+particle styles assign mass to individual particles on a per-particle
 basis.
 </P>
 <P>For the <I>sphere</I> style, the particles are spheres and each stores a
@@ -133,6 +137,16 @@ end points of the line segment).
 stores a per-particle mass and size and orientation (i.e. the corner
 points of the triangle).
 </P>
+<P>The <I>template</I> style allows molecular topolgy (bonds,angles,etc) to be
+defined via a molecule template using the <A HREF = "molecule.txt">molecule</A>
+command.  The template stores one or more molecules with a single copy
+of the topology info (bonds,angles,etc) of each.  Individual atoms
+only store a template index and template atom to identify which
+molecule and which atom-within-the-molecule they represent.  Using the
+<I>template</I> style instead of the <I>bond</I>, <I>angle</I>, <I>molecular</I> styles
+can save memory for systems comprised of a large number of small
+molecules, all of a single type (or small number of types).
+</P>
 <P>For the <I>body</I> style, the particles are arbitrary bodies with internal
 attributes defined by the "style" of the bodies, which is specified by
 the <I>bstyle</I> argument.  Body particles can represent complex entities,
@@ -165,6 +179,10 @@ torque, you would need to use "atom_style hybrid sphere dipole".  When
 a hybrid style is used, atoms store and communicate the union of all
 quantities implied by the individual styles.
 </P>
+<P>When using the <I>hybrid</I> style, you cannot combine the <I>template</I> style
+with another molecular style that stores bond,angle,etc info on a
+per-atom basis.
+</P>
 <P>LAMMPS can be extended with new atom styles as well as new body
 styles; see <A HREF = "Section_modify.html">this section</A>.
 </P>
@@ -173,10 +191,10 @@ styles; see <A HREF = "Section_modify.html">this section</A>.
 <P>This command cannot be used after the simulation box is defined by a
 <A HREF = "read_data.html">read_data</A> or <A HREF = "create_box.html">create_box</A> command.
 </P>
-<P>The <I>angle</I>, <I>bond</I>, <I>full</I>, and <I>molecular</I> styles are part of the
-MOLECULAR package.  The <I>line</I> and <I>tri</I> styles are part of the
-ASPHERE pacakge.  The <I>body</I> style is part of the BODY package.  The
-<I>dipole</I> style is part of the DIPOLE package.  The <I>peri</I> style is
+<P>The <I>angle</I>, <I>bond</I>, <I>full</I>, <I>molecular</I>, and <I>template</I> styles are
+part of the MOLECULAR package.  The <I>line</I> and <I>tri</I> styles are part
+of the ASPHERE pacakge.  The <I>body</I> style is part of the BODY package.
+The <I>dipole</I> style is part of the DIPOLE package.  The <I>peri</I> style is
 part of the PERI package for Peridynamics.  The <I>electron</I> style is
 part of the USER-EFF package for <A HREF = "pair_eff.html">electronic force
 fields</A>.  The <I>meso</I> style is part of the USER-SPH

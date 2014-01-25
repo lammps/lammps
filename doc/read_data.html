@@ -343,6 +343,7 @@ of analysis.
 <TR><TD >molecular</TD><TD > atom-ID molecule-ID atom-type x y z</TD></TR>
 <TR><TD >peri</TD><TD > atom-ID atom-type volume density x y z</TD></TR>
 <TR><TD >sphere</TD><TD > atom-ID atom-type diameter density x y z</TD></TR>
+<TR><TD >template</TD><TD > atom-ID molecule-ID template-index template-atom atom-type x y z</TD></TR>
 <TR><TD >tri</TD><TD > atom-ID molecule-ID atom-type triangleflag density x y z</TD></TR>
 <TR><TD >wavepacket</TD><TD > atom-ID atom-type charge spin eradius etag cs_re cs_im x y z</TD></TR>
 <TR><TD >hybrid</TD><TD > atom-ID atom-type x y z sub-style1 sub-style2 ...  
@@ -359,6 +360,8 @@ of analysis.
 <LI>lineflag = 1 for line segment particles, 0 for point particles
 <LI>triangleflag = 1 for triangular particles, 0 for point particles
 <LI>bodyflag = 1 for body particles, 0 for point particles
+<LI>template-index = which molecule within the molecule template the atom is part of
+<LI>template-atom = which atom within a template molecule the atom is
 <LI>density = density of particle (mass/distance^3 or mass/distance^2 or mass/distance units, depending on dimensionality of particle)
 <LI>mass = mass of particle (mass units)
 <LI>volume = volume of particle (distance^3 units)
@@ -382,11 +385,11 @@ setting in the data file header.
 in dump files.  Normally, it is a unique value from 1 to Natoms for
 each atom.  Unique values larger than Natoms can be used, but they
 will cause extra memory to be allocated on each processor, if an atom
-map array is used (see the <A HREF = "atom_modify.html">atom_modify</A> command).
-If an atom map array is not used (e.g. an atomic system with no
-bonds), and velocities are not assigned in the data file, and you
-don't care if unique atom IDs appear in dump files, then the atom-IDs
-can all be set to 0.
+map array is used, but not if an atom map hash is used; see the
+<A HREF = "atom_modify.html">atom_modify</A> command for details.  If an atom map is
+not used (e.g. an atomic system with no bonds), and you don't care if
+unique atom IDs appear in dump files, then the atom-IDs can all be set
+to 0.
 </P>
 <P>The molecule ID is a 2nd identifier attached to an atom.  Normally, it
 is a number from 1 to N, identifying which molecule the atom belongs
@@ -402,6 +405,16 @@ body of finite size, or whether the particle is a point particle.
 Additional attributes must be defined for each ellipsoid, line,
 triangle, or body in the corresponding <I>Ellipsoids</I>, <I>Lines</I>,
 <I>Triangles</I>, or <I>Bodies</I> section.
+</P>
+<P>The <I>template-index</I> and <I>template-atom</I> are only defined used by
+<A HREF = "atom_style.html">atom_style template</A>.  In this case the
+<A HREF = "molecule.html">molecule</A> command is used to define a molecule template
+which contains one or more molecules.  If an atom belongs to one of
+those molecules, its <I>template-index</I> and <I>template-atom</I> are both set
+to positive integers; if not the values are both 0.  The
+<I>template-index</I> is which molecule (1 to Nmols) the atom belongs to.
+The <I>template-atom</I> is which atom (1 to Natoms) within the molecule
+the atom is.
 </P>
 <P>Some pair styles and fixes and computes that operate on finite-size
 particles allow for a mixture of finite-size and point particles.  See

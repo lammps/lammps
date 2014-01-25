@@ -320,6 +320,7 @@ meso: atom-ID atom-type rho e cv x y z
 molecular: atom-ID molecule-ID atom-type x y z
 peri: atom-ID atom-type volume density x y z
 sphere: atom-ID atom-type diameter density x y z
+template: atom-ID molecule-ID template-index template-atom atom-type x y z
 tri: atom-ID molecule-ID atom-type triangleflag density x y z
 wavepacket: atom-ID atom-type charge spin eradius etag cs_re cs_im x y z
 hybrid: atom-ID atom-type x y z sub-style1 sub-style2 ...  :tb(s=:)
@@ -335,6 +336,8 @@ ellipsoidflag = 1 for ellipsoidal particles, 0 for point particles
 lineflag = 1 for line segment particles, 0 for point particles
 triangleflag = 1 for triangular particles, 0 for point particles
 bodyflag = 1 for body particles, 0 for point particles
+template-index = which molecule within the molecule template the atom is part of
+template-atom = which atom within a template molecule the atom is
 density = density of particle (mass/distance^3 or mass/distance^2 or mass/distance units, depending on dimensionality of particle)
 mass = mass of particle (mass units)
 volume = volume of particle (distance^3 units)
@@ -358,11 +361,11 @@ The atom-ID is used to identify the atom throughout the simulation and
 in dump files.  Normally, it is a unique value from 1 to Natoms for
 each atom.  Unique values larger than Natoms can be used, but they
 will cause extra memory to be allocated on each processor, if an atom
-map array is used (see the "atom_modify"_atom_modify.html command).
-If an atom map array is not used (e.g. an atomic system with no
-bonds), and velocities are not assigned in the data file, and you
-don't care if unique atom IDs appear in dump files, then the atom-IDs
-can all be set to 0.
+map array is used, but not if an atom map hash is used; see the
+"atom_modify"_atom_modify.html command for details.  If an atom map is
+not used (e.g. an atomic system with no bonds), and you don't care if
+unique atom IDs appear in dump files, then the atom-IDs can all be set
+to 0.
 
 The molecule ID is a 2nd identifier attached to an atom.  Normally, it
 is a number from 1 to N, identifying which molecule the atom belongs
@@ -378,6 +381,16 @@ body of finite size, or whether the particle is a point particle.
 Additional attributes must be defined for each ellipsoid, line,
 triangle, or body in the corresponding {Ellipsoids}, {Lines},
 {Triangles}, or {Bodies} section.
+
+The {template-index} and {template-atom} are only defined used by
+"atom_style template"_atom_style.html.  In this case the
+"molecule"_molecule.html command is used to define a molecule template
+which contains one or more molecules.  If an atom belongs to one of
+those molecules, its {template-index} and {template-atom} are both set
+to positive integers; if not the values are both 0.  The
+{template-index} is which molecule (1 to Nmols) the atom belongs to.
+The {template-atom} is which atom (1 to Natoms) within the molecule
+the atom is.
 
 Some pair styles and fixes and computes that operate on finite-size
 particles allow for a mixture of finite-size and point particles.  See

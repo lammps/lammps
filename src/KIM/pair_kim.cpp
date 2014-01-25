@@ -931,7 +931,7 @@ void PairKIM::set_lmps_flags()
    lmps_using_newton = (force->newton_pair == 1);
 
    // setup lmps_stripped_neigh_list for neighbors of one atom, if needed
-   lmps_using_molecular = (atom->molecular == 1);
+   lmps_using_molecular = (atom->molecular > 0);
    if (lmps_using_molecular) {
       memory->destroy(lmps_stripped_neigh_list);
       memory->create(lmps_stripped_neigh_list,neighbor->oneatom,

@@ -475,3 +475,7 @@ ucl_inline int sbmask(int j) { return j >> SBBITS & 3; };
 #define BLOCK_ELLIPSE BLOCK_PAIR
 #endif
 
+// default to 32-bit smallint and other ints, 64-bit bigint: same as defined in src/lmptype.h
+#if !defined(LAMMPS_SMALLSMALL) && !defined(LAMMPS_BIGBIG) && !defined(LAMMPS_SMALLBIG)
+#define LAMMPS_SMALLBIG
+#endif

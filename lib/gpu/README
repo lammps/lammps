@@ -82,7 +82,7 @@ and
 
 Brown, W.M., Masako, Y. Implementing Molecular Dynamics on Hybrid High 
 Performance Computers - Three-Body Potentials. Computer Physics Communications. 
-2013. In press.
+2013. 184: p. 2785–2793.
 
 ----
 
@@ -103,37 +103,33 @@ Current styles supporting GPU acceleration:
     11  eam/alloy
     12  eam/fs
     13  eam
-    14  eam/lj
-    15  gauss
-    16  gayberne
-    17  lj96/cut
-    18  lj/charmm/coul/long
-    19  lj/class2/coul/long
-    20  lj/class2
-    21  lj/cut/coul/cut
-    22  lj/cut/coul/debye
-    23  lj/cut/coul/dsf
-    24  lj/cut/coul/long
-    25  lj/cut/coul/msm
-    26  lj/cut/coul/wolf/fsw
-    27  lj/cut/dipole/cut
-    28  lj/cut
-    29  lj/cut/tgpu
-    30  lj/expand
-    31  lj/sdk/coul/long
-    32  cg/cmm/coul/long
-    33  lj/sdk
-    34  cg/cmm
-    35  lj/sf/dipole/sf
-    36  mie/cut
-    37  morse
-    38  resquared
-    39  soft
-    40  sw
-    41  table
-    42  yukawa/colloid
-    43  yukawa
-    44  pppm
+    14  gauss
+    15  gayberne
+    16  lj96/cut
+    17  lj/charmm/coul/long
+    18  lj/class2/coul/long
+    19  lj/class2
+    20  lj/cut/coul/cut
+    21  lj/cut/coul/debye
+    22  lj/cut/coul/dsf
+    23  lj/cut/coul/long
+    24  lj/cut/coul/msm
+    25  lj/cut/dipole/cut
+    26  lj/cut
+    27  lj/expand
+    28  lj/gromacs
+    29  lj/sdk/coul/long
+    30  lj/sdk
+    31  lj/sf/dipole/sf
+    32  mie/cut
+    33  morse
+    34  resquared
+    35  soft
+    36  sw
+    37  table
+    38  yukawa/colloid
+    39  yukawa
+    40  pppm
 
 
                      MULTIPLE LAMMPS PROCESSES
@@ -200,6 +196,10 @@ NOTE: The lj/cut/coul/long/gpu, cg/cmm/coul/long/gpu, coul/long/gpu,
       lj/charmm/coul/long/gpu and pppm/gpu styles will only be installed
       if the KSPACE package has been installed.
 
+NOTE: The system-specific setting LAMMPS_SMALLBIG (default), LAMMPS_BIGBIG, 
+      or LAMMPS_SMALLSMALL if specified when building LAMMPS (i.e. in 
+      src/MAKE/Makefile.foo) should be consistent with that specified 
+      when building libgpu.a (i.e. by LMP_INC in the lib/gpu/Makefile.bar).
 
                       EXAMPLE BUILD PROCESS
                   --------------------------------

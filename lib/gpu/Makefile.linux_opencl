@@ -11,9 +11,13 @@ OCL_TUNE = -DFERMI_OCL       # -- Uncomment for NVIDIA Fermi
 # OCL_TUNE = -DCYPRESS_OCL   # -- Uncomment for AMD Cypress
 # OCL_TUNE = -DGENERIC_OCL   # -- Uncomment for generic device
 
-OCL_CPP = mpic++ $(DEFAULT_DEVICE) -O3 -DMPI_GERYON -DUCL_NO_EXIT -DMPICH_IGNORE_CXX_SEEK
+# system-specific settings, should match with LAMMPS_SMALLBIG (default), LAMMPS_BIGBIG and LAMMPS_SMALLSMALL
+LMP_INC = #-DLAMMPS_BIGBIG
+
+OCL_INC = -I/usr/local/cuda/include  # Path to CL directory
+OCL_CPP = mpic++ $(DEFAULT_DEVICE) -O3 -DMPI_GERYON -DUCL_NO_EXIT -DMPICH_IGNORE_CXX_SEEK $(LMP_INC) $(OCL_INC)
 OCL_LINK = -lOpenCL
-OCL_PREC = -D_SINGLE_SINGLE
+OCL_PREC = -D_SINGLE_DOUBLE
 
 BIN_DIR = ./
 OBJ_DIR = ./

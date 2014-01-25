@@ -205,7 +205,7 @@ int DeviceT::set_ocl_params(char *ocl_vendor) {
                         " -DBLOCK_CELL_ID="+params[11]+
                         " -DMAX_BIO_SHARED_TYPES="+params[12];
   }
-  _ocl_compile_string="-cl-fast-relaxed-math -cl-mad-enable "+
+  _ocl_compile_string="-cl-fast-relaxed-math -cl-mad-enable "+std::string(OCL_INT_TYPE)+" "+
                       std::string(OCL_PRECISION_COMPILE)+" "+_ocl_vendor_string;
   #endif
   return 0;

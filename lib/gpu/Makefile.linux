@@ -17,13 +17,16 @@ CUDA_ARCH = -arch=sm_21
 # older CUDA
 #CUDA_ARCH = -arch=sm_10 -DCUDA_PRE_THREE
 
-CUDA_PRECISION = -D_SINGLE_SINGLE
+# system-specific settings, should match with LAMMPS_SMALLBIG (default), LAMMPS_BIGBIG or LAMMPS_SMALLSMALL
+LMP_INC = -DLAMMPS_BIGBIG
+
+CUDA_PRECISION = -D_SINGLE_DOUBLE
 CUDA_INCLUDE = -I$(CUDA_HOME)/include
 CUDA_LIB = -L$(CUDA_HOME)/lib64
-CUDA_OPTS = -DUNIX -O3 -Xptxas -v --use_fast_math
+CUDA_OPTS = -DUNIX -O3 -Xptxas -v --use_fast_math $(LMP_INC)
 
 CUDR_CPP = mpic++ -DMPI_GERYON -DUCL_NO_EXIT -DMPICH_IGNORE_CXX_SEEK
-CUDR_OPTS = -O2 # -xHost -no-prec-div -ansi-alias
+CUDR_OPTS = -O2 $(LMP_INC) # -xHost -no-prec-div -ansi-alias
 
 BIN_DIR = ./
 OBJ_DIR = ./

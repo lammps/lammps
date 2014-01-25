@@ -313,8 +313,8 @@ template <class numtyp, class acctyp>
 inline void BaseEllipsoidT::build_nbor_list(const int inum, const int host_inum,
                                             const int nall, double **host_x,
                                             int *host_type, double *sublo,
-                                            double *subhi, int *tag, 
-                                            int **nspecial, int **special,
+                                            double *subhi, tagint *tag, 
+                                            int **nspecial, tagint **special,
                                             bool &success) {
   success=true;
   resize_atom(nall,success);
@@ -390,8 +390,8 @@ int* BaseEllipsoidT::compute(const int f_ago, const int inum_full,
 template <class numtyp, class acctyp>
 int** BaseEllipsoidT::compute(const int ago, const int inum_full, const int nall,
                               double **host_x, int *host_type, double *sublo,
-                              double *subhi, int *tag, int **nspecial,
-                              int **special, const bool eflag, const bool vflag,
+                              double *subhi, tagint *tag, int **nspecial,
+                              tagint **special, const bool eflag, const bool vflag,
                               const bool eatom, const bool vatom, 
                               int &host_start, int **ilist, int **jnum,
                               const double cpu_time, bool &success,

@@ -389,8 +389,8 @@ void Neighbor::resize_max_neighbors(const int maxn, bool &success) {
 template <class numtyp, class acctyp>
 void Neighbor::build_nbor_list(double **x, const int inum, const int host_inum,
                                const int nall, Atom<numtyp,acctyp> &atom, 
-                               double *sublo, double *subhi, int *tag, 
-                               int **nspecial, int **special, bool &success,
+                               double *sublo, double *subhi, tagint *tag, 
+                               int **nspecial, tagint **special, bool &success,
                                int &mn) {
   _nbor_time_avail=true;
   const int nt=inum+host_inum;
@@ -423,7 +423,8 @@ void Neighbor::build_nbor_list(double **x, const int inum, const int host_inum,
 
   if (_maxspecial>0) {
     time_nbor.start();
-    UCL_H_Vec<int> view_nspecial, view_special, view_tag;
+    UCL_H_Vec<int> view_nspecial;
+    UCL_H_Vec<tagint> view_special, view_tag;
     view_nspecial.view(nspecial[0],nt*3,*dev);
     view_special.view(special[0],nt*_maxspecial,*dev);
     view_tag.view(tag,nall,*dev);
@@ -615,5 +616,5 @@ void Neighbor::build_nbor_list(double **x, const int inum, const int host_inum,
 template void Neighbor::build_nbor_list<PRECISION,ACC_PRECISION>
      (double **x, const int inum, const int host_inum, const int nall,
       Atom<PRECISION,ACC_PRECISION> &atom, double *sublo, double *subhi,
-      int *, int **, int **, bool &success, int &mn);
+      tagint *, int **, tagint **, bool &success, int &mn);
 

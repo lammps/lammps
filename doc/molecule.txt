@@ -34,7 +34,7 @@ templates (or will in the future) include:
 "fix shake"_fix_shake.html
 "fix gcmc"_fix_gcmc.html (not yet)
 "create_atoms"_create_atoms.html 
-"atom_style template"_atom_style.html (not yet) :ul
+"atom_style template"_atom_style.html :ul
 
 The ID of a molecule template can only contain alphanumeric characters
 and underscores.

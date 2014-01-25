@@ -947,6 +947,7 @@ void FixSRD::reset_velocities()
   double *h_ratelo = domain->h_ratelo;
 
   for (i = 0; i < nbins; i++) {
+    vbin[i].value[0] = 0.0;
     n = vbin[i].n;
     if (n == 0) continue;
     vave = vbin[i].vsum;
@@ -959,7 +960,7 @@ void FixSRD::reset_velocities()
     if (dimension == 3) axis = irandom / 2;
 
     vsq = 0.0;
-    for (j = binhead[i]; j >= 0; j = binnext[j]) {
+    for (j = binhead[i]; j >= 0; j = binnext[j]) {   
       if (axis == 0) {
         u[0] = v[j][0]-vave[0];
         u[1] = sign ? v[j][2]-vave[2] : vave[2]-v[j][2];
@@ -979,11 +980,20 @@ void FixSRD::reset_velocities()
       v[j][2] = u[2] + vave[2];
     }
 
-    // NOTE: vsq needs to be summed across shared bins in parallel
-    // like vave above via the vbin_comm() call
-    // else the computed scale factor below is incomplete for a shared bin
+    if (n > 1) vbin[i].value[0] = vsq;
+  }
+   
+  if (shifts[shiftflag].commflag) xbin_comm(shiftflag,1);
 
-    if (tstat && n > 1) {
+  if (tstat) {
+    for (i = 0; i < nbins; i++){
+      n = vbin[i].n;
+      if (n <= 1) continue;
+
+      // vsum is already average velocity
+
+      vave = vbin[i].vsum;
+
       if (deformflag) {
         xlamda = vbin[i].xctr;
         vstream[0] = h_rate[0]*xlamda[0] + h_rate[5]*xlamda[1] +
@@ -998,12 +1008,11 @@ void FixSRD::reset_velocities()
 
       // tbin = thermal temperature of particles in bin
       // scale = scale factor for thermal velocity
-
-      tbin = vsq/(n-dof_tstat) * tfactor;
+      
+      tbin = vbin[i].value[0]/(n-dof_tstat) * tfactor;
       scale = sqrt(temperature_srd/tbin);
-
       vsq = 0.0;
-      for (j = binhead[i]; j >= 0; j = binnext[j]) {
+      for (j = binhead[i]; j >= 0; j = binnext[j]) {	
         u[0] = (v[j][0] - vave[0]) * scale;
         u[1] = (v[j][1] - vave[1]) * scale;
         u[2] = (v[j][2] - vave[2]) * scale;
@@ -1012,13 +1021,19 @@ void FixSRD::reset_velocities()
         v[j][1] = u[1] + vstream[1];
         v[j][2] = u[2] + vstream[2];
       }
+      vbin[i].value[0] = vsq;
     }
 
-    // sum partial contribution of my particles to T even if I don't own bin
-    // but only count bin if I own it, so each bin is counted exactly once
+    if (shifts[shiftflag].commflag) xbin_comm(shiftflag,1);
+  }
 
-    if (n > 1) srd_bin_temp += vsq/(n-dof_temp);
-    if (vbin[i].owner) srd_bin_count++;
+  for (i = 0; i < nbins; i++){
+    if (vbin[i].owner) {
+      if (vbin[i].n > 1) {
+	srd_bin_temp += vbin[i].value[0]/(vbin[i].n-dof_temp);
+	srd_bin_count++;
+      }
+    }
   }
 
   srd_bin_temp *= tfactor;
@@ -1137,6 +1152,103 @@ void FixSRD::vbin_unpack(double *buf, BinAve *vbin, int n, int *list)
     vbin[j].vsum[1] += buf[m++];
     vbin[j].vsum[2] += buf[m++];
     vbin[j].random += buf[m++];
+  }
+}
+
+/* ----------------------------------------------------------------------
+   communicate summed particle vsq info for bins that overlap 1 or more procs
+------------------------------------------------------------------------- */
+
+void FixSRD::xbin_comm(int ishift, int nval)
+{
+  BinComm *bcomm1,*bcomm2;
+  MPI_Request request1,request2;
+  MPI_Status status;
+
+  // send/recv bins in both directions in each dimension
+  // don't send if nsend = 0
+  //   due to static bins aliging with proc boundary
+  //   due to dynamic bins across non-periodic global boundary
+  // copy to self if sendproc = me
+  // MPI send to another proc if sendproc != me
+  // don't recv if nrecv = 0
+  // copy from self if recvproc = me
+  // MPI recv from another proc if recvproc != me
+
+  BinAve *vbin = shifts[ishift].vbin;
+  int *procgrid = comm->procgrid;
+
+  int iswap = 0;
+  for (int idim = 0; idim < dimension; idim++) {
+    bcomm1 = &shifts[ishift].bcomm[iswap++];
+    bcomm2 = &shifts[ishift].bcomm[iswap++];
+
+    if (procgrid[idim] == 1) {
+      if (bcomm1->nsend)
+        xbin_pack(vbin,bcomm1->nsend,bcomm1->sendlist,sbuf1,nval);
+      if (bcomm2->nsend)
+        xbin_pack(vbin,bcomm2->nsend,bcomm2->sendlist,sbuf2,nval);
+      if (bcomm1->nrecv)
+        xbin_unpack(sbuf1,vbin,bcomm1->nrecv,bcomm1->recvlist,nval);
+      if (bcomm2->nrecv)
+        xbin_unpack(sbuf2,vbin,bcomm2->nrecv,bcomm2->recvlist,nval);
+
+    } else {
+      if (bcomm1->nrecv)
+        MPI_Irecv(rbuf1,bcomm1->nrecv*nval,MPI_DOUBLE,bcomm1->recvproc,0,
+                  world,&request1);
+      if (bcomm2->nrecv)
+        MPI_Irecv(rbuf2,bcomm2->nrecv*nval,MPI_DOUBLE,bcomm2->recvproc,0,
+                  world,&request2);
+      if (bcomm1->nsend) {
+        xbin_pack(vbin,bcomm1->nsend,bcomm1->sendlist,sbuf1,nval);
+        MPI_Send(sbuf1,bcomm1->nsend*nval,MPI_DOUBLE,
+                 bcomm1->sendproc,0,world);
+      }
+      if (bcomm2->nsend) {
+        xbin_pack(vbin,bcomm2->nsend,bcomm2->sendlist,sbuf2,nval);
+        MPI_Send(sbuf2,bcomm2->nsend*nval,MPI_DOUBLE,
+                 bcomm2->sendproc,0,world);
+      }
+      if (bcomm1->nrecv) {
+        MPI_Wait(&request1,&status);
+        xbin_unpack(rbuf1,vbin,bcomm1->nrecv,bcomm1->recvlist,nval);
+      }
+      if (bcomm2->nrecv) {
+        MPI_Wait(&request2,&status);
+        xbin_unpack(rbuf2,vbin,bcomm2->nrecv,bcomm2->recvlist,nval);
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   pack velocity bin data into a message buffer for sending
+------------------------------------------------------------------------- */
+
+void FixSRD::xbin_pack(BinAve *vbin, int n, int *list, double *buf, int nval)
+{
+  int j, k;
+  int m = 0;
+  for (int i = 0; i < n; i++) {
+    j = list[i];
+    for (k = 0; k < nval; k++)
+      buf[m++] = vbin[j].value[k];
+  }
+}
+
+/* ----------------------------------------------------------------------
+   unpack velocity bin data from a message buffer and sum values to my bins
+------------------------------------------------------------------------- */
+
+void FixSRD::xbin_unpack(double *buf, BinAve *vbin, int n, int *list, int nval)
+{
+  int j, k;
+  int m = 0;
+  for (int i = 0; i < n; i++) {
+    j = list[i];
+    for (k = 0; k < nval; k++) 
+      vbin[j].value[k] += buf[m++];
   }
 }
 

@@ -38,9 +38,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 DumpAtomMPIIO::DumpAtomMPIIO(LAMMPS *lmp, int narg, char **arg) :
-                  DumpAtom(lmp, narg, arg)
-{
-}
+  DumpAtom(lmp, narg, arg) {}
 
 /* ---------------------------------------------------------------------- */
 

@@ -11,13 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------
-   Contributing author: Paul Coffman (IBM)
-------------------------------------------------------------------------- */
-
 #ifdef DUMP_CLASS
 
-DumpStyle(xyz_mpiio,DumpXYZMPIIO)
+DumpStyle(xyz/mpiio,DumpXYZMPIIO)
 
 #else
 

@@ -38,7 +38,7 @@ RestartMPIIO::RestartMPIIO(LAMMPS *lmp) : Pointers(lmp)
 
 void RestartMPIIO::openForRead(char *filename)
 {
-  int err = MPI_File_open(world, filename, MPI_MODE_RDONLY , 
+  int err = MPI_File_open(world, filename, MPI_MODE_RDONLY ,
                           MPI_INFO_NULL, &mpifh);
   if (err != MPI_SUCCESS) {
     char str[MPI_MAX_ERROR_STRING+128];
@@ -58,7 +58,7 @@ void RestartMPIIO::openForRead(char *filename)
 
 void RestartMPIIO::openForWrite(char *filename)
 {
-  int err = MPI_File_open(world, filename, MPI_MODE_APPEND | MPI_MODE_WRONLY, 
+  int err = MPI_File_open(world, filename, MPI_MODE_APPEND | MPI_MODE_WRONLY,
                           MPI_INFO_NULL, &mpifh);
   if (err != MPI_SUCCESS) {
     char str[MPI_MAX_ERROR_STRING+128];
@@ -72,7 +72,7 @@ void RestartMPIIO::openForWrite(char *filename)
 }
 
 /* ----------------------------------------------------------------------
-   determine the absolute offset for the data to be written with 
+   determine the absolute offset for the data to be written with
      MPI_Scan of the send sizes
    compute the file size based off the MPI_Scan send size value on the last rank
    set the filesize with ftruncate via MPI_File_set_size
@@ -82,13 +82,13 @@ void RestartMPIIO::openForWrite(char *filename)
 void RestartMPIIO::write(MPI_Offset headerOffset, int send_size, double *buf)
 {
   MPI_Status mpiStatus;
-  long incPrefix = 0;
-  long longSendSize = (long) send_size;
-  MPI_Scan(&longSendSize,&incPrefix,1,MPI_LONG,MPI_SUM,world);
-  
-  long largestIncPrefix = incPrefix;
-  MPI_Bcast(&largestIncPrefix, 1, MPI_LONG, (nprocs-1), world);
-  
+  bigint incPrefix = 0;
+  bigint bigintSendSize = (bigint) send_size;
+  MPI_Scan(&bigintSendSize,&incPrefix,1,MPI_LMP_BIGINT,MPI_SUM,world);
+
+  bigint largestIncPrefix = incPrefix;
+  MPI_Bcast(&largestIncPrefix, 1, MPI_LMP_BIGINT, (nprocs-1), world);
+
   int err = MPI_File_set_size(mpifh,
                               (headerOffset+(largestIncPrefix*sizeof(double))));
   if (err != MPI_SUCCESS) {
@@ -100,9 +100,9 @@ void RestartMPIIO::write(MPI_Offset headerOffset, int send_size, double *buf)
             mpiErrorString);
     error->one(FLERR,str);
   }
-  
-  err = MPI_File_write_at_all(mpifh,headerOffset + 
-                              ((incPrefix-longSendSize)*sizeof(double)),
+
+  err = MPI_File_write_at_all(mpifh,headerOffset +
+                              ((incPrefix-bigintSendSize)*sizeof(double)),
                               buf,send_size,MPI_DOUBLE,&mpiStatus);
   if (err != MPI_SUCCESS) {
     char str[MPI_MAX_ERROR_STRING+128];
@@ -118,24 +118,24 @@ void RestartMPIIO::write(MPI_Offset headerOffset, int send_size, double *buf)
 /* ----------------------------------------------------------------------
    read the data into buf via collective MPI-IO by calling MPI_File_read_at_all
    with the chunkOffset and chunkSize provided
-   if the consolidated chunksize is greater than INT_MAX 
+   if the consolidated chunksize is greater than INT_MAX
      can only happen in extreme situation of reading restart file on
      much fewer ranks than written and with relatively large data sizes
    follow the collective IO call with rank independant IO to read remaining data
 ------------------------------------------------------------------------- */
 
-void RestartMPIIO::read(MPI_Offset chunkOffset, long chunkSize, double *buf)
+void RestartMPIIO::read(MPI_Offset chunkOffset, bigint chunkSize, double *buf)
 {
   MPI_Status mpiStatus;
 
   int intChunkSize;
-  long remainingSize = 0;
+  bigint remainingSize = 0;
   if (chunkSize > INT_MAX) {
     intChunkSize = INT_MAX;
     remainingSize = chunkSize - INT_MAX;
   }
   else intChunkSize = (int) chunkSize;
-  
+
   int err = MPI_File_read_at_all(mpifh,chunkOffset,buf,intChunkSize,
                                  MPI_DOUBLE,&mpiStatus);
   if (err != MPI_SUCCESS) {
@@ -147,7 +147,7 @@ void RestartMPIIO::read(MPI_Offset chunkOffset, long chunkSize, double *buf)
             mpiErrorString);
     error->one(FLERR,str);
   }
-  
+
   MPI_Offset currentOffset = chunkOffset+intChunkSize;
   MPI_Offset bufOffset = intChunkSize;
   while (remainingSize > 0) {

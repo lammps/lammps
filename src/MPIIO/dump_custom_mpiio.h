@@ -11,13 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------
-   Contributing author: Paul Coffman (IBM)
-------------------------------------------------------------------------- */
-
 #ifdef DUMP_CLASS
 
-DumpStyle(custom_mpiio,DumpCustomMPIIO)
+DumpStyle(custom/mpiio,DumpCustomMPIIO)
 
 #else
 
@@ -42,6 +38,7 @@ class DumpCustomMPIIO : public DumpCustom {
   MPI_Offset mpifo,offsetFromHeader,headerSize, currentFileSize;
   int performEstimate; // switch for write_data and write_header methods to use for gathering data and detemining filesize for preallocation vs actually writing the data
   char *filecurrent;  // name of file for this round (with % and * replaced)
+
 #if defined(_OPENMP)
   int convert_string_omp(int, double *);  // multithreaded version of convert_string
 #endif
@@ -63,8 +60,6 @@ class DumpCustomMPIIO : public DumpCustom {
   FnPtrData write_choice;              // ptr to write data functions
   void write_binary(int, double *);
   void write_string(int, double *);
-
-
 };
 
 }

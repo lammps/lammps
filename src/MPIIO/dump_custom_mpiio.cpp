@@ -59,22 +59,19 @@ enum{INT,DOUBLE,STRING};    // same as in DumpCFG
 /* ---------------------------------------------------------------------- */
 
 DumpCustomMPIIO::DumpCustomMPIIO(LAMMPS *lmp, int narg, char **arg) :
-                  DumpCustom(lmp, narg, arg)
-{
-}
+  DumpCustom(lmp, narg, arg) {}
 
 /* ---------------------------------------------------------------------- */
 
 DumpCustomMPIIO::~DumpCustomMPIIO()
 {
-  if (multifile == 0)    MPI_File_close(&mpifh);
+  if (multifile == 0) MPI_File_close(&mpifh);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void DumpCustomMPIIO::openfile()
 {
-
   if (singlefile_opened) { // single file already opened, so just return after resetting filesize
     mpifo = currentFileSize;
     MPI_File_set_size(mpifh,mpifo+headerSize+sumFileSize);
@@ -140,7 +137,6 @@ void DumpCustomMPIIO::openfile()
 
 void DumpCustomMPIIO::write()
 {
-
   if (domain->triclinic == 0) {
     boxxlo = domain->boxlo[0];
     boxxhi = domain->boxhi[0];
@@ -504,7 +500,6 @@ void DumpCustomMPIIO::header_item_triclinic(bigint ndump)
 
 void DumpCustomMPIIO::write_data(int n, double *mybuf)
 {
-
   (this->*write_choice)(n,mybuf);
 }
 
@@ -512,7 +507,6 @@ void DumpCustomMPIIO::write_data(int n, double *mybuf)
 
 void DumpCustomMPIIO::write_binary(int n, double *mybuf)
 {
-
   MPI_Status mpiStatus;
   n *= size_one;
 

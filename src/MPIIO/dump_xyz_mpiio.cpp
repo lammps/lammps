@@ -59,15 +59,13 @@ enum{INT,DOUBLE,STRING};    // same as in DumpCFG
 /* ---------------------------------------------------------------------- */
 
 DumpXYZMPIIO::DumpXYZMPIIO(LAMMPS *lmp, int narg, char **arg) :
-                  DumpXYZ(lmp, narg, arg)
-{
-}
+  DumpXYZ(lmp, narg, arg) {}
 
 /* ---------------------------------------------------------------------- */
 
 DumpXYZMPIIO::~DumpXYZMPIIO()
 {
-  if (multifile == 0)    MPI_File_close(&mpifh);
+  if (multifile == 0) MPI_File_close(&mpifh);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -251,7 +249,6 @@ void DumpXYZMPIIO::init_style()
 
 void DumpXYZMPIIO::write_header(bigint n)
 {
-
   MPI_Status mpiStatus;
 
   if (performEstimate) {
@@ -275,7 +272,6 @@ void DumpXYZMPIIO::write_header(bigint n)
 
 void DumpXYZMPIIO::write_data(int n, double *mybuf)
 {
-
   (this->*write_choice)(n,mybuf);
 }
 
@@ -286,7 +282,6 @@ void DumpXYZMPIIO::write_string(int n, double *mybuf)
   MPI_Status mpiStatus;
 
   if (performEstimate) {
-
 
 #if defined(_OPENMP)
     int nthreads = omp_get_max_threads();

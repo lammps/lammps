@@ -11,10 +11,6 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef LAMMPS_BIGBIG
-#error LAMMPS_BIGBIG is not yet supported by the GPU package
-#endif
-
 #include "string.h"
 #include "stdlib.h"
 #include "fix_gpu.h"

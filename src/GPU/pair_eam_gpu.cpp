@@ -31,9 +31,9 @@
 #include "neigh_request.h"
 #include "gpu_extra.h"
 
-using namespace LAMMPS_NS;
-
 #define MAXLINE 1024
+
+using namespace LAMMPS_NS;
 
 // External functions from cuda library for atom decomposition
 
@@ -49,7 +49,7 @@ int eam_gpu_init(const int ntypes, double host_cutforcesq,
 void eam_gpu_clear();
 int** eam_gpu_compute_n(const int ago, const int inum_full, const int nall,
                         double **host_x, int *host_type, double *sublo,
-                        double *subhi, int *tag, int **nspecial, int **special,
+                        double *subhi, tagint *tag, int **nspecial, tagint **special,
                         const bool eflag, const bool vflag, const bool eatom,
                         const bool vatom, int &host_start, int **ilist,
                         int **jnum,  const double cpu_time, bool &success,

@@ -37,6 +37,8 @@
 #include "string.h"
 #include "gpu_extra.h"
 
+using namespace LAMMPS_NS;
+
 // External functions from cuda library for atom decomposition
 
 int re_gpu_init(const int ntypes, double **shape, double **well,
@@ -49,7 +51,7 @@ int re_gpu_init(const int ntypes, double **shape, double **well,
 void re_gpu_clear();
 int ** re_gpu_compute_n(const int ago, const int inum, const int nall,
                         double **host_x, int *host_type, double *sublo,
-                        double *subhi, int *tag, int **nspecial, int **special,
+                        double *subhi, tagint *tag, int **nspecial, tagint **special,
                         const bool eflag, const bool vflag,
                         const bool eatom, const bool vatom, int &host_start,
                         int **ilist, int **jnum, const double cpu_time,
@@ -60,8 +62,6 @@ int * re_gpu_compute(const int ago, const int inum, const int nall,
                      const bool eatom, const bool vatom, int &host_start,
                      const double cpu_time, bool &success, double **host_quat);
 double re_gpu_bytes();
-
-using namespace LAMMPS_NS;
 
 enum{SPHERE_SPHERE,SPHERE_ELLIPSE,ELLIPSE_SPHERE,ELLIPSE_ELLIPSE};
 

@@ -202,6 +202,15 @@ are point particles.  See the discussion of ellipsoidflag and the
 {Triangles} section below.  See the discussion of bodyflag and the
 {Bodies} section below.
 
+IMPORTANT NOTE: For "atom_style template"_atom_style.html, the
+molecular topology (bonds,angles,etc) is contained in the molecule
+templates read-in by the "molecule"_molecule.html command.  This means
+you cannot set the {bonds}, {angles}, etc header keywords in the data
+file, nor can you define {Bonds}, {Angles}, etc sections as discussed
+below.  You can set the {bond types}, {angle types}, etc header
+keywords, though it is not necessary.  If specified, they must match
+the maximum values defined in any of the template molecules.
+
 :line
 
 These are the section keywords for the body of the file.

@@ -208,6 +208,15 @@ are point particles.  See the discussion of ellipsoidflag and the
 <I>Triangles</I> section below.  See the discussion of bodyflag and the
 <I>Bodies</I> section below.
 </P>
+<P>IMPORTANT NOTE: For <A HREF = "atom_style.html">atom_style template</A>, the
+molecular topology (bonds,angles,etc) is contained in the molecule
+templates read-in by the <A HREF = "molecule.html">molecule</A> command.  This means
+you cannot set the <I>bonds</I>, <I>angles</I>, etc header keywords in the data
+file, nor can you define <I>Bonds</I>, <I>Angles</I>, etc sections as discussed
+below.  You can set the <I>bond types</I>, <I>angle types</I>, etc header
+keywords, though it is not necessary.  If specified, they must match
+the maximum values defined in any of the template molecules.
+</P>
 <HR>
 
 <P>These are the section keywords for the body of the file.

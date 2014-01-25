@@ -25,7 +25,7 @@
 
 <LI>group-ID = ID of the group of atoms to be dumped 
 
-<LI>style = <I>atom</I> or <I>aotm\mpiio</I> or <I>cfg</I> or <I>dcd</I> or <I>xtc</I> or <I>xyz</I> or <I>xyz/mpiio</I> or <I>image</I> or <I>molfile</I> or <I>local</I> or <I>custom</I> or <I>custom/mpiio</I> 
+<LI>style = <I>atom</I> or <I>atom/mpiio</I> or <I>cfg</I> or <I>dcd</I> or <I>xtc</I> or <I>xyz</I> or <I>xyz/mpiio</I> or <I>image</I> or <I>molfile</I> or <I>local</I> or <I>custom</I> or <I>custom/mpiio</I> 
 
 <LI>N = dump every this many timesteps 
 
@@ -54,8 +54,7 @@
       f_ID = local vector calculated by a fix with ID
       f_ID[N] = Nth column of local array calculated by a fix with ID 
 </PRE>
-<PRE>  <I>custom</I> args = list of atom attributes
-  <I>custom/mpiio</I> args = list of atom attributes
+<PRE>  <I>custom</I> of <I>custom/mpiio</I> args = list of atom attributes
     possible attributes = id, mol, type, element, mass,
 			  x, y, z, xs, ys, zs, xu, yu, zu, 
 			  xsu, ysu, zsu, ix, iy, iz,

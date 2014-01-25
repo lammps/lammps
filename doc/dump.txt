@@ -17,7 +17,7 @@ dump ID group-ID style N file args :pre
 
 ID = user-assigned name for the dump :ulb,l
 group-ID = ID of the group of atoms to be dumped :l
-style = {atom} or {aotm\mpiio} or {cfg} or {dcd} or {xtc} or {xyz} or {xyz/mpiio} or {image} or {molfile} or {local} or {custom} or {custom/mpiio} :l
+style = {atom} or {atom/mpiio} or {cfg} or {dcd} or {xtc} or {xyz} or {xyz/mpiio} or {image} or {molfile} or {local} or {custom} or {custom/mpiio} :l
 N = dump every this many timesteps :l
 file = name of file to write dump info to :l
 args = list of arguments for a particular style :l
@@ -41,8 +41,7 @@ args = list of arguments for a particular style :l
       f_ID = local vector calculated by a fix with ID
       f_ID\[N\] = Nth column of local array calculated by a fix with ID :pre
 
-  {custom} args = list of atom attributes
-  {custom/mpiio} args = list of atom attributes
+  {custom} of {custom/mpiio} args = list of atom attributes
     possible attributes = id, mol, type, element, mass,
 			  x, y, z, xs, ys, zs, xu, yu, zu, 
 			  xsu, ysu, zsu, ix, iy, iz,

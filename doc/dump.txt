@@ -569,6 +569,11 @@ To write gzipped dump files, you must compile LAMMPS with the
 -DLAMMPS_GZIP option - see the "Making
 LAMMPS"_Section_start.html#start_2 section of the documentation.
 
+The {atom/mpiio}, {custom/mpiio}, and {xyz/mpiio} styles are part of
+the MPIIO package.  They are only enabled if LAMMPS was built with
+that package.  See the "Making LAMMPS"_Section_start.html#start_3
+section for more info.
+
 The {xtc} style is part of the XTC package.  It is only enabled if
 LAMMPS was built with that package.  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info.  This is

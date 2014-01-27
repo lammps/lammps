@@ -61,25 +61,25 @@ class Molecule : protected Pointers {
 
   int *num_bond;       // bonds, angles, dihedrals, impropers for each atom
   int **bond_type;
-  int **bond_atom;
+  tagint **bond_atom;
   
   int *num_angle;
   int **angle_type;
-  int **angle_atom1,**angle_atom2,**angle_atom3;
+  tagint **angle_atom1,**angle_atom2,**angle_atom3;
   
   int *num_dihedral;
   int **dihedral_type;
-  int **dihedral_atom1,**dihedral_atom2,**dihedral_atom3,**dihedral_atom4;
+  tagint **dihedral_atom1,**dihedral_atom2,**dihedral_atom3,**dihedral_atom4;
   
   int *num_improper;
   int **improper_type;
-  int **improper_atom1,**improper_atom2,**improper_atom3,**improper_atom4;
+  tagint **improper_atom1,**improper_atom2,**improper_atom3,**improper_atom4;
 
   int **nspecial;
-  int **special;
+  tagint **special;
 
   int *shake_flag;
-  int **shake_atom;
+  tagint **shake_atom;
   int **shake_type;
 
   double center[3];         // geometric center of molecule

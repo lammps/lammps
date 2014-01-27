@@ -63,7 +63,7 @@ class AtomVecFull : public AtomVec {
   imageint *image;
   double **x,**v,**f;
   double *q;
-  int *molecule;
+  tagint *molecule;
   int **nspecial;
   tagint **special;
   int *num_bond;

@@ -2264,7 +2264,7 @@ int FixShake::bondtype_findset(int i, tagint n1, tagint n2, int setflag)
     int iatom = atom->molatom[i];
     tagint *tag = atom->tag;
     tagint tagprev = tag[i] - iatom - 1;
-    int *batom = onemols[imol]->bond_atom[iatom];
+    tagint *batom = onemols[imol]->bond_atom[iatom];
     btype = onemols[imol]->bond_type[iatom];
     nbonds = onemols[imol]->num_bond[iatom];
     
@@ -2320,8 +2320,8 @@ int FixShake::angletype_findset(int i, tagint n1, tagint n2, int setflag)
     int iatom = atom->molatom[i];
     tagint *tag = atom->tag;
     tagint tagprev = tag[i] - iatom - 1;
-    int *aatom1 = onemols[imol]->angle_atom1[iatom];
-    int *aatom3 = onemols[imol]->angle_atom3[iatom];
+    tagint *aatom1 = onemols[imol]->angle_atom1[iatom];
+    tagint *aatom3 = onemols[imol]->angle_atom3[iatom];
     atype = onemols[imol]->angle_type[iatom];
     nangles = onemols[imol]->num_angle[iatom];
     
@@ -2467,7 +2467,7 @@ void FixShake::set_molecule(int nlocalprev, tagint tagprev,
   if (nlocalprev == nlocal) return;
 
   tagint *tag = atom->tag;
-  int **mol_shake_atom = onemol->shake_atom;
+  tagint **mol_shake_atom = onemol->shake_atom;
   int **mol_shake_type = onemol->shake_type;
 
   for (int i = nlocalprev; i < nlocal; i++) {

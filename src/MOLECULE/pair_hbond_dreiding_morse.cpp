@@ -58,7 +58,6 @@ void PairHbondDreidingMorse::compute(int eflag, int vflag)
   double fi[3],fj[3],delr1[3],delr2[3];
   double r,dr,dexp,eng_morse,switch1,switch2;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  int *tlist;
   tagint *klist;
 
   evdwl = ehbond = 0.0;
@@ -99,7 +98,7 @@ void PairHbondDreidingMorse::compute(int eflag, int vflag)
       if (molindex[i] < 0) continue;
       imol = molindex[i];
       iatom = molatom[i];
-      tlist = onemols[imol]->special[iatom];
+      klist = onemols[imol]->special[iatom];
       knum = onemols[imol]->nspecial[iatom][0];
       tagprev = tag[i] - iatom - 1;
     }
@@ -121,7 +120,7 @@ void PairHbondDreidingMorse::compute(int eflag, int vflag)
 
       for (kk = 0; kk < knum; kk++) {
         if (molecular == 1) k = atom->map(klist[kk]);
-        else k = atom->map(tlist[kk]+tagprev);
+        else k = atom->map(klist[kk]+tagprev);
         if (k < 0) continue;
         ktype = type[k];
         m = type2param[itype][jtype][ktype];
@@ -381,7 +380,6 @@ double PairHbondDreidingMorse::single(int i, int j, int itype, int jtype,
   double rsq1,rsq2,r1,r2,c,s,ac,r,dr,dexp,factor_hb;
   double switch1,switch2;
   double delr1[3],delr2[3];
-  int *tlist;
   tagint *klist;
 
   double **x = atom->x;
@@ -405,7 +403,7 @@ double PairHbondDreidingMorse::single(int i, int j, int itype, int jtype,
     int imol = atom->molindex[i];
     int iatom = atom->molatom[i];
     Molecule **onemols = atom->avec->onemols;
-    tlist = onemols[imol]->special[iatom];
+    klist = onemols[imol]->special[iatom];
     knum = onemols[imol]->nspecial[iatom][0];
     tagprev = atom->tag[i] - iatom - 1;
   }
@@ -414,7 +412,7 @@ double PairHbondDreidingMorse::single(int i, int j, int itype, int jtype,
 
   for (kk = 0; kk < knum; kk++) {
     if (molecular == 1) k = atom->map(klist[kk]);
-    else k = atom->map(tlist[kk]+tagprev);
+    else k = atom->map(klist[kk]+tagprev);
 
     if (k < 0) continue;
     ktype = type[k];

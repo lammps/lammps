@@ -551,7 +551,8 @@ void Molecule::masses(char *line)
 
 void Molecule::bonds(int flag, char *line)
 {
-  int m,tmp,itype,atom1,atom2;
+  int tmp,itype;
+  tagint m,atom1,atom2;
   int newton_bond = force->newton_bond;
 
   if (flag == 0)
@@ -561,7 +562,8 @@ void Molecule::bonds(int flag, char *line)
 
   for (int i = 0; i < nbonds; i++) {
     readline(line);
-    sscanf(line,"%d %d %d %d",&tmp,&itype,&atom1,&atom2);
+    sscanf(line,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT,
+           &tmp,&itype,&atom1,&atom2);
 
     if (atom1 <= 0 || atom1 > natoms ||
 	atom2 <= 0 || atom2 > natoms)
@@ -605,7 +607,8 @@ void Molecule::bonds(int flag, char *line)
 
 void Molecule::angles(int flag, char *line)
 {
-  int m,tmp,itype,atom1,atom2,atom3;
+  int tmp,itype;
+  tagint m,atom1,atom2,atom3;
   int newton_bond = force->newton_bond;
 
   if (flag == 0)
@@ -615,7 +618,8 @@ void Molecule::angles(int flag, char *line)
 
   for (int i = 0; i < nangles; i++) {
     readline(line);
-    sscanf(line,"%d %d %d %d %d",&tmp,&itype,&atom1,&atom2,&atom3);
+    sscanf(line,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT,
+           &tmp,&itype,&atom1,&atom2,&atom3);
 
     if (atom1 <= 0 || atom1 > natoms ||
         atom2 <= 0 || atom2 > natoms ||
@@ -673,7 +677,8 @@ void Molecule::angles(int flag, char *line)
 
 void Molecule::dihedrals(int flag, char *line)
 {
-  int m,tmp,itype,atom1,atom2,atom3,atom4;
+  int tmp,itype;
+  tagint m,atom1,atom2,atom3,atom4;
   int newton_bond = force->newton_bond;
 
   if (flag == 0)
@@ -683,7 +688,9 @@ void Molecule::dihedrals(int flag, char *line)
 
   for (int i = 0; i < ndihedrals; i++) {
     readline(line);
-    sscanf(line,"%d %d %d %d %d %d",&tmp,&itype,&atom1,&atom2,&atom3,&atom4);
+    sscanf(line,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT " " 
+           TAGINT_FORMAT " " TAGINT_FORMAT " ",
+           &tmp,&itype,&atom1,&atom2,&atom3,&atom4);
 
     if (atom1 <= 0 || atom1 > natoms ||
         atom2 <= 0 || atom2 > natoms ||
@@ -751,7 +758,8 @@ void Molecule::dihedrals(int flag, char *line)
 
 void Molecule::impropers(int flag, char *line)
 {
-  int m,tmp,itype,atom1,atom2,atom3,atom4;
+  int tmp,itype;
+  tagint m,atom1,atom2,atom3,atom4;
   int newton_bond = force->newton_bond;
 
   if (flag == 0)
@@ -761,7 +769,9 @@ void Molecule::impropers(int flag, char *line)
 
   for (int i = 0; i < nimpropers; i++) {
     readline(line);
-    sscanf(line,"%d %d %d %d %d %d",&tmp,&itype,&atom1,&atom2,&atom3,&atom4);
+    sscanf(line,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT " " 
+           TAGINT_FORMAT " " TAGINT_FORMAT " ",
+           &tmp,&itype,&atom1,&atom2,&atom3,&atom4);
 
     if (atom1 <= 0 || atom1 > natoms ||
         atom2 <= 0 || atom2 > natoms ||
@@ -861,7 +871,7 @@ void Molecule::special_read(char *line)
 		 "does not match special count");
 
     for (m = 1; m < nwords; m++) {
-      special[i][m-1] = atoi(words[m]);
+      special[i][m-1] = ATOTAGINT(words[m]);
       if (special[i][m-1] <= 0 || special[i][m-1] > natoms ||
 	  special[i][m-1] == i+1)
 	error->all(FLERR,"Invalid special atom index in molecule file");
@@ -898,16 +908,18 @@ void Molecule::shakeatom_read(char *line)
   for (int i = 0; i < natoms; i++) {
     readline(line);
     if (shake_flag[i] == 1)
-      sscanf(line,"%d %d %d %d",&tmp,
-             &shake_atom[i][0],&shake_atom[i][1],&shake_atom[i][2]);
+      sscanf(line,"%d " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT,
+             &tmp,&shake_atom[i][0],&shake_atom[i][1],&shake_atom[i][2]);
     else if (shake_flag[i] == 2)
-      sscanf(line,"%d %d %d",&tmp,&shake_atom[i][0],&shake_atom[i][1]);
+      sscanf(line,"%d " TAGINT_FORMAT " " TAGINT_FORMAT,
+             &tmp,&shake_atom[i][0],&shake_atom[i][1]);
     else if (shake_flag[i] == 3)
-      sscanf(line,"%d %d %d %d",&tmp,
-             &shake_atom[i][0],&shake_atom[i][1],&shake_atom[i][2]);
+      sscanf(line,"%d " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT,
+             &tmp,&shake_atom[i][0],&shake_atom[i][1],&shake_atom[i][2]);
     else if (shake_flag[i] == 4)
-      sscanf(line,"%d %d %d %d %d",&tmp,
-             &shake_atom[i][0],&shake_atom[i][1],
+      sscanf(line,"%d " TAGINT_FORMAT " " TAGINT_FORMAT " " 
+             TAGINT_FORMAT " " TAGINT_FORMAT,
+             &tmp,&shake_atom[i][0],&shake_atom[i][1],
              &shake_atom[i][2],&shake_atom[i][3]);
   }
 
@@ -1066,7 +1078,8 @@ void Molecule::initialize()
   special = NULL;
 
   shake_flag = NULL;
-  shake_atom = shake_type = NULL;
+  shake_atom = NULL;
+  shake_type = NULL;
 
   dx = NULL;
   dxcom = NULL;

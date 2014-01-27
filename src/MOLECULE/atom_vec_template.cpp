@@ -63,7 +63,7 @@ void AtomVecTemplate::process_args(int narg, char **arg)
 
   // error check on molecule template fields
 
-  for (int i = 0; i < nset; i++) {
+  for (int i = 0; i < nset; i++)
     if (onemols[i]->typeflag == 0)
       error->all(FLERR,"Atom style template molecule must have atom types");
 

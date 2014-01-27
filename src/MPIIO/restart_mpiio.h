@@ -31,7 +31,7 @@ class RestartMPIIO  : protected Pointers {
   void openForRead(char *);
   void openForWrite(char *);
   void write(MPI_Offset, int, double *);
-  void read(MPI_Offset, long, double *);
+  void read(MPI_Offset, bigint, double *);
   void close();
 };
 

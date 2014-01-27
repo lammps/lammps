@@ -74,6 +74,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   x = v = f = NULL;
 
   molecule = NULL;
+  molindex = molatom = NULL;
   q = NULL;
   mu = NULL;
   omega = angmom = torque = NULL;
@@ -215,6 +216,8 @@ Atom::~Atom()
   memory->destroy(erforce);
 
   memory->destroy(molecule);
+  memory->destroy(molindex);
+  memory->destroy(molatom);
 
   memory->destroy(nspecial);
   memory->destroy(special);
@@ -321,7 +324,8 @@ void Atom::create_avec(const char *style, int narg, char **arg, char *suffix)
 
   int sflag;
   avec = new_avec(style,suffix,sflag);
-  avec->settings(narg,arg);
+  avec->store_args(narg,arg);
+  avec->process_args(narg,arg);
   avec->grow(1);
   nmax = 0;
   avec->reset();
@@ -1336,59 +1340,53 @@ int Atom::find_molecule(char *id)
 void Atom::add_molecule_atom(Molecule *onemol, int iatom,
                              int ilocal, tagint offset)
 {
-  if (onemol->qflag) q[ilocal] = onemol->q[iatom];
-  if (onemol->radiusflag) radius[ilocal] = onemol->radius[iatom];
-  if (onemol->rmassflag) rmass[ilocal] = onemol->rmass[iatom];
+  if (onemol->qflag && q_flag) q[ilocal] = onemol->q[iatom];
+  if (onemol->radiusflag && radius_flag) radius[ilocal] = onemol->radius[iatom];
+  if (onemol->rmassflag && rmass_flag) rmass[ilocal] = onemol->rmass[iatom];
   else if (rmass_flag) 
     rmass[ilocal] = 4.0*MY_PI/3.0 *
       radius[ilocal]*radius[ilocal]*radius[ilocal];
 
-  if (onemol->bondflag) {
-    num_bond[ilocal] = onemol->num_bond[iatom];
-    for (int i = 0; i < num_bond[ilocal]; i++) {
-      bond_type[ilocal][i] = onemol->bond_type[iatom][i];
-      bond_atom[ilocal][i] = onemol->bond_atom[iatom][i] + offset;
-    }
-  }
-  if (onemol->angleflag) {
-    num_angle[ilocal] = onemol->num_angle[iatom];
-    for (int i = 0; i < num_angle[ilocal]; i++) {
-      angle_type[ilocal][i] = onemol->angle_type[iatom][i];
-      angle_atom1[ilocal][i] = onemol->angle_atom1[iatom][i] + offset;
-      angle_atom2[ilocal][i] = onemol->angle_atom2[iatom][i] + offset;
-      angle_atom3[ilocal][i] = onemol->angle_atom3[iatom][i] + offset;
-    }
-  }
-  if (onemol->dihedralflag) {
-    num_dihedral[ilocal] = onemol->num_dihedral[iatom];
-    for (int i = 0; i < num_dihedral[ilocal]; i++) {
-      dihedral_type[ilocal][i] = onemol->dihedral_type[iatom][i];
-      dihedral_atom1[ilocal][i] = onemol->dihedral_atom1[iatom][i] + offset;
-      dihedral_atom2[ilocal][i] = onemol->dihedral_atom2[iatom][i] + offset;
-      dihedral_atom3[ilocal][i] = onemol->dihedral_atom3[iatom][i] + offset;
-      dihedral_atom4[ilocal][i] = onemol->dihedral_atom4[iatom][i] + offset;
-    }
-  }
-  if (onemol->improperflag) {
-    num_improper[ilocal] = onemol->num_improper[iatom];
-    for (int i = 0; i < num_improper[ilocal]; i++) {
-      improper_type[ilocal][i] = onemol->improper_type[iatom][i];
-      improper_atom1[ilocal][i] = onemol->improper_atom1[iatom][i] + offset;
-      improper_atom2[ilocal][i] = onemol->improper_atom2[iatom][i] + offset;
-      improper_atom3[ilocal][i] = onemol->improper_atom3[iatom][i] + offset;
-      improper_atom4[ilocal][i] = onemol->improper_atom4[iatom][i] + offset;
-    }
+  if (molecular != 1) return;
+
+  // add bond topology info
+  // for molecular atom styles, but not atom style template
+
+  if (avec->bonds_allow) num_bond[ilocal] = onemol->num_bond[iatom];
+  for (int i = 0; i < num_bond[ilocal]; i++) {
+    bond_type[ilocal][i] = onemol->bond_type[iatom][i];
+    bond_atom[ilocal][i] = onemol->bond_atom[iatom][i] + offset;
   }
 
-  // error check against maxspecial in case user has not done one of these:
-  // create_box extra/special/per/atom N
-  // read_data extra special per atom N
-  // special_bonds extra N 
-  //   if explicitly used special_bonds, may not have maintained extra
+  if (avec->angles_allow) num_angle[ilocal] = onemol->num_angle[iatom];
+  for (int i = 0; i < num_angle[ilocal]; i++) {
+    angle_type[ilocal][i] = onemol->angle_type[iatom][i];
+    angle_atom1[ilocal][i] = onemol->angle_atom1[iatom][i] + offset;
+    angle_atom2[ilocal][i] = onemol->angle_atom2[iatom][i] + offset;
+    angle_atom3[ilocal][i] = onemol->angle_atom3[iatom][i] + offset;
+  }
+
+  if (avec->dihedrals_allow) 
+    num_dihedral[ilocal] = onemol->num_dihedral[iatom];
+  for (int i = 0; i < num_dihedral[ilocal]; i++) {
+    dihedral_type[ilocal][i] = onemol->dihedral_type[iatom][i];
+    dihedral_atom1[ilocal][i] = onemol->dihedral_atom1[iatom][i] + offset;
+    dihedral_atom2[ilocal][i] = onemol->dihedral_atom2[iatom][i] + offset;
+    dihedral_atom3[ilocal][i] = onemol->dihedral_atom3[iatom][i] + offset;
+    dihedral_atom4[ilocal][i] = onemol->dihedral_atom4[iatom][i] + offset;
+  }
+
+  if (avec->impropers_allow) 
+    num_improper[ilocal] = onemol->num_improper[iatom];
+  for (int i = 0; i < num_improper[ilocal]; i++) {
+    improper_type[ilocal][i] = onemol->improper_type[iatom][i];
+    improper_atom1[ilocal][i] = onemol->improper_atom1[iatom][i] + offset;
+    improper_atom2[ilocal][i] = onemol->improper_atom2[iatom][i] + offset;
+    improper_atom3[ilocal][i] = onemol->improper_atom3[iatom][i] + offset;
+    improper_atom4[ilocal][i] = onemol->improper_atom4[iatom][i] + offset;
+  }
 
   if (onemol->specialflag) {
-    if (onemol->maxspecial > maxspecial)
-      error->one(FLERR,"Molecule file special bond counts are too large");
     nspecial[ilocal][0] = onemol->nspecial[iatom][0];
     nspecial[ilocal][1] = onemol->nspecial[iatom][1];
     int n = nspecial[ilocal][2] = onemol->nspecial[iatom][2];

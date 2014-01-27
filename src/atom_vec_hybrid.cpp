@@ -43,7 +43,7 @@ AtomVecHybrid::~AtomVecHybrid()
    process sub-style args
 ------------------------------------------------------------------------- */
 
-void AtomVecHybrid::settings(int narg, char **arg)
+void AtomVecHybrid::process_args(int narg, char **arg)
 {
   // build list of all known atom styles
 
@@ -55,7 +55,7 @@ void AtomVecHybrid::settings(int narg, char **arg)
   keywords = new char*[narg];
 
   // allocate each sub-style
-  // call settings() with set of args that are not atom style names
+  // call process_args() with set of args that are not atom style names
   // use known_style() to determine which args these are
 
   int i,jarg,dummy;
@@ -73,7 +73,7 @@ void AtomVecHybrid::settings(int narg, char **arg)
     strcpy(keywords[nstyles],arg[iarg]);
     jarg = iarg + 1;
     while (jarg < narg && !known_style(arg[jarg])) jarg++;
-    styles[nstyles]->settings(jarg-iarg-1,&arg[iarg+1]);
+    styles[nstyles]->process_args(jarg-iarg-1,&arg[iarg+1]);
     iarg = jarg;
     nstyles++;
   }
@@ -97,7 +97,12 @@ void AtomVecHybrid::settings(int narg, char **arg)
   xcol_data = 3;
 
   for (int k = 0; k < nstyles; k++) {
+    if ((styles[k]->molecular == 1 && molecular == 2) ||
+        (styles[k]->molecular == 2 && molecular == 1))
+      error->all(FLERR,"Cannot mix molecular and molecule template "
+                 "atom styles");
     molecular = MAX(molecular,styles[k]->molecular);
+
     bonds_allow = MAX(bonds_allow,styles[k]->bonds_allow);
     angles_allow = MAX(angles_allow,styles[k]->angles_allow);
     dihedrals_allow = MAX(dihedrals_allow,styles[k]->dihedrals_allow);
@@ -818,22 +823,6 @@ int AtomVecHybrid::unpack_restart(double *buf)
 
   atom->nlocal++;
   return m;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void AtomVecHybrid::write_restart_settings(FILE *fp)
-{
-  for (int k = 0; k < nstyles; k++)
-    styles[k]->write_restart_settings(fp);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void AtomVecHybrid::read_restart_settings(FILE *fp)
-{
-  for (int k = 0; k < nstyles; k++)
-    styles[k]->read_restart_settings(fp);
 }
 
 /* ----------------------------------------------------------------------

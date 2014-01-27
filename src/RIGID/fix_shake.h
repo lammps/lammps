@@ -64,6 +64,7 @@ class FixShake : public Fix {
   double *mass_list;                     // constrain bonds to these masses
   int nmass;                             // # of masses in mass_list
 
+  int molecular;                         // copy of atom->molecular
   double *bond_distance,*angle_distance; // constraint distances
 
   int ifix_respa;                        // rRESPA fix needed by SHAKE
@@ -102,9 +103,8 @@ class FixShake : public Fix {
   double *a_ave,*a_max,*a_min;
   double *a_ave_all,*a_max_all,*a_min_all;
 
-  // molecules added on-the-fly with SHAKE constraints
-
-  class Molecule *onemol;
+  class Molecule **onemols;             // atom style template pointer
+  class Molecule *onemol;               // molecule added on-the-fly
 
   void find_clusters();
   int masscheck(double);
@@ -115,8 +115,8 @@ class FixShake : public Fix {
   void shake4(int);
   void shake3angle(int);
   void stats();
-  int bondfind(int, tagint, tagint);
-  int anglefind(int, tagint, tagint);
+  int bondtype_findset(int, tagint, tagint, int);
+  int angletype_findset(int, tagint, tagint, int);
 
   // static variable for ring communication callback to access class data
   // callback functions for ring communication

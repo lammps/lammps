@@ -16,6 +16,7 @@
 #include "compute_improper_local.h"
 #include "atom.h"
 #include "atom_vec.h"
+#include "molecule.h"
 #include "update.h"
 #include "domain.h"
 #include "force.h"
@@ -108,21 +109,28 @@ void ComputeImproperLocal::compute_local()
 
 int ComputeImproperLocal::compute_impropers(int flag)
 {
-  int i,m,n,atom1,atom2,atom3,atom4;
+  int i,m,n,ni,atom1,atom2,atom3,atom4,imol,iatom;
+  tagint tagprev;
   double vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z;
   double ss1,ss2,ss3,r1,r2,r3,c0,c1,c2,s1,s2;
   double s12,c;
   double *cbuf;
 
   double **x = atom->x;
+  tagint *tag = atom->tag;
   int *num_improper = atom->num_improper;
   tagint **improper_atom1 = atom->improper_atom1;
   tagint **improper_atom2 = atom->improper_atom2;
   tagint **improper_atom3 = atom->improper_atom3;
   tagint **improper_atom4 = atom->improper_atom4;
-  tagint *tag = atom->tag;
   int *mask = atom->mask;
+
+  int *molindex = atom->molindex;
+  int *molatom = atom->molatom;
+  Molecule **onemols = atom->avec->onemols;
+
   int nlocal = atom->nlocal;
+  int molecular = atom->molecular;
 
   if (flag) {
     if (nvalues == 1) {
@@ -136,13 +144,31 @@ int ComputeImproperLocal::compute_impropers(int flag)
   m = n = 0;
   for (atom2 = 0; atom2 < nlocal; atom2++) {
     if (!(mask[atom2] & groupbit)) continue;
-    for (i = 0; i < num_improper[atom2]; i++) {
-      if (tag[atom2] != improper_atom2[atom2][i]) continue;
-      atom1 = atom->map(improper_atom1[atom2][i]);
+
+    if (molecular == 1) ni = num_improper[atom2];
+    else {
+      if (molindex[atom2] < 0) continue;
+      imol = molindex[atom2];
+      iatom = molatom[atom2];
+      ni = onemols[imol]->num_improper[iatom];
+    }
+
+    for (i = 0; i < ni; i++) {
+      if (molecular == 1) {
+        if (tag[atom2] != improper_atom2[atom2][i]) continue;
+        atom1 = atom->map(improper_atom1[atom2][i]);
+        atom3 = atom->map(improper_atom3[atom2][i]);
+        atom4 = atom->map(improper_atom4[atom2][i]);
+      } else {
+        if (tag[atom2] != onemols[imol]->improper_atom2[atom2][i]) continue;
+        tagprev = tag[atom1] - iatom - 1;
+        atom1 = atom->map(onemols[imol]->improper_atom1[atom2][i]+tagprev);
+        atom3 = atom->map(onemols[imol]->improper_atom3[atom2][i]+tagprev);
+        atom4 = atom->map(onemols[imol]->improper_atom4[atom2][i]+tagprev);
+      }
+
       if (atom1 < 0 || !(mask[atom1] & groupbit)) continue;
-      atom3 = atom->map(improper_atom3[atom2][i]);
       if (atom3 < 0 || !(mask[atom3] & groupbit)) continue;
-      atom4 = atom->map(improper_atom4[atom2][i]);
       if (atom4 < 0 || !(mask[atom4] & groupbit)) continue;
 
       if (flag) {

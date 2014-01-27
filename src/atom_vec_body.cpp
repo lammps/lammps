@@ -57,10 +57,6 @@ AtomVecBody::AtomVecBody(LAMMPS *lmp) : AtomVec(lmp)
 
   bptr = NULL;
 
-  nargcopy = 0;
-  argcopy = NULL;
-  copyflag = 1;
-
   if (sizeof(double) == sizeof(int)) intdoubleratio = 1;
   else if (sizeof(double) == 2*sizeof(int)) intdoubleratio = 2;
   else error->all(FLERR,"Internal error in atom_style body");
@@ -78,9 +74,6 @@ AtomVecBody::~AtomVecBody()
   memory->sfree(bonus);
 
   delete bptr;
-
-  for (int i = 0; i < nargcopy; i++) delete [] argcopy[i];
-  delete [] argcopy;
 }
 
 /* ----------------------------------------------------------------------
@@ -89,7 +82,7 @@ AtomVecBody::~AtomVecBody()
    set size_forward and size_border to max sizes
 ------------------------------------------------------------------------- */
 
-void AtomVecBody::settings(int narg, char **arg)
+void AtomVecBody::process_args(int narg, char **arg)
 {
   if (narg < 1) error->all(FLERR,"Invalid atom_style body command");
 
@@ -114,19 +107,6 @@ void AtomVecBody::settings(int narg, char **arg)
 
   size_forward = 7 + bptr->size_forward;
   size_border = 16 + bptr->size_border;
-
-  // make copy of args if called externally, so can write to restart file
-  // make no copy of args if called from read_restart()
-
-  if (copyflag) {
-    nargcopy = narg;
-    argcopy = new char*[nargcopy];
-    for (int i = 0; i < nargcopy; i++) {
-      int n = strlen(arg[i]) + 1;
-      argcopy[i] = new char[n];
-      strcpy(argcopy[i],arg[i]);
-    }
-  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1227,41 +1207,6 @@ int AtomVecBody::unpack_restart(double *buf)
 
   atom->nlocal++;
   return m;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void AtomVecBody::write_restart_settings(FILE *fp)
-{
-  fwrite(&nargcopy,sizeof(int),1,fp);
-  for (int i = 0; i < nargcopy; i++) {
-    int n = strlen(argcopy[i]) + 1;
-    fwrite(&n,sizeof(int),1,fp);
-    fwrite(argcopy[i],sizeof(char),n,fp);
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void AtomVecBody::read_restart_settings(FILE *fp)
-{
-  int n;
-
-  int me = comm->me;
-  if (me == 0) fread(&nargcopy,sizeof(int),1,fp);
-  MPI_Bcast(&nargcopy,1,MPI_INT,0,world);
-  argcopy = new char*[nargcopy];
-    
-  for (int i = 0; i < nargcopy; i++) {
-    if (me == 0) fread(&n,sizeof(int),1,fp);
-    MPI_Bcast(&n,1,MPI_INT,0,world);
-    argcopy[i] = new char[n];
-    if (me == 0) fread(argcopy[i],sizeof(char),n,fp);
-    MPI_Bcast(argcopy[i],n,MPI_CHAR,0,world);
-  }
-
-  copyflag = 0;
-  settings(nargcopy,argcopy);
 }
 
 /* ----------------------------------------------------------------------

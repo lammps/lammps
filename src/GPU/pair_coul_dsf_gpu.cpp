@@ -36,6 +36,15 @@
 #include "gpu_extra.h"
 
 #define MY_PIS 1.77245385090551602729
+#define EWALD_F   1.12837917
+#define EWALD_P   0.3275911
+#define A1        0.254829592
+#define A2       -0.284496736
+#define A3        1.421413741
+#define A4       -1.453152027
+#define A5        1.061405429
+
+using namespace LAMMPS_NS;
 
 // External functions from cuda library for atom decomposition
 
@@ -49,8 +58,8 @@ int cdsf_gpu_init(const int ntypes, const int nlocal, const int nall,
 void cdsf_gpu_clear();
 int ** cdsf_gpu_compute_n(const int ago, const int inum,
                           const int nall, double **host_x, int *host_type,
-                          double *sublo, double *subhi, int *tag, int **nspecial,
-                          int **special, const bool eflag, const bool vflag,
+                          double *sublo, double *subhi, tagint *tag, int **nspecial,
+                          tagint **special, const bool eflag, const bool vflag,
                           const bool eatom, const bool vatom, int &host_start,
                           int **ilist, int **jnum, const double cpu_time,
                           bool &success, double *host_q, double *boxlo,
@@ -63,16 +72,6 @@ void cdsf_gpu_compute(const int ago, const int inum,
                       bool &success, double *host_q, const int nlocal,
                       double *boxlo, double *prd);
 double cdsf_gpu_bytes();
-
-using namespace LAMMPS_NS;
-
-#define EWALD_F   1.12837917
-#define EWALD_P   0.3275911
-#define A1        0.254829592
-#define A2       -0.284496736
-#define A3        1.421413741
-#define A4       -1.453152027
-#define A5        1.061405429
 
 /* ---------------------------------------------------------------------- */
 

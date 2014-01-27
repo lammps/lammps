@@ -30,7 +30,8 @@ class Atom : protected Pointers {
   int nlocal,nghost;            // # of owned and ghost atoms on this proc
   int nmax;                     // max # of owned+ghost in arrays on this proc
   int tag_enable;               // 0/1 if atom ID tags are defined
-  int molecular;                // 0 = atomic, 1 = molecular system
+  int molecular;                // 0 = atomic, 1 = standard molecular system,
+                                // 2 = molecule template system
 
   bigint nbonds,nangles,ndihedrals,nimpropers;
   int ntypes,nbondtypes,nangletypes,ndihedraltypes,nimpropertypes;

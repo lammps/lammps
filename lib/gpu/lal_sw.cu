@@ -393,8 +393,6 @@ __kernel void k_sw_three_center(const __global numtyp4 *restrict x_,
       if (rsq1 > sw3_ijparam.y) continue;
 
       numtyp4 sw1_ijparam; fetch4(sw1_ijparam,ijparam,sw1_tex);
-      sw_sigma=sw1_ijparam.y;
-      sw_gamma=sw1_ijparam.w;
       sw_sigma_gamma_ij=sw1_ijparam.y*sw1_ijparam.w; //sw_sigma*sw_gamma;
       sw_cut_ij=sw3_ijparam.x;
 
@@ -418,15 +416,11 @@ __kernel void k_sw_three_center(const __global numtyp4 *restrict x_,
         numtyp rsq2 = delr2x*delr2x + delr2y*delr2y + delr2z*delr2z;
         if (rsq2 < sw3_ikparam.y) {   // sw_cutsq=sw3[ikparam].y;
           numtyp4 sw1_ikparam; fetch4(sw1_ikparam,ikparam,sw1_tex);
-          sw_sigma=sw1_ikparam.y;
-          sw_gamma=sw1_ikparam.w;
           sw_sigma_gamma_ik=sw1_ikparam.y*sw1_ikparam.w; //sw_sigma*sw_gamma;
           sw_cut_ik=sw3_ikparam.x;
 
           int ijkparam=elem2param[itype*nelements*nelements+jtype*nelements+ktype];
           numtyp4 sw1_ijkparam; fetch4(sw1_ijkparam,ijkparam,sw1_tex);
-          sw_epsilon=sw1_ijkparam.x;
-          sw_lambda=sw1_ijkparam.z;
           sw_lambda_epsilon_ijk=sw1_ijkparam.x*sw1_ijkparam.z; //sw_lambda*sw_epsilon;
           sw_lambda_epsilon2_ijk=(numtyp)2.0*sw_lambda_epsilon_ijk;
           numtyp4 sw3_ijkparam; fetch4(sw3_ijkparam,ijkparam,sw3_tex);
@@ -522,8 +516,6 @@ __kernel void k_sw_three_end(const __global numtyp4 *restrict x_,
       if (rsq1 > sw3_ijparam.y) continue;
 
       numtyp4 sw1_ijparam; fetch4(sw1_ijparam,ijparam,sw1_tex);
-      sw_sigma=sw1_ijparam.y;
-      sw_gamma=sw1_ijparam.w;
       sw_sigma_gamma_ij=sw1_ijparam.y*sw1_ijparam.w; //sw_sigma*sw_gamma;
       sw_cut_ij=sw3_ijparam.x;
 
@@ -559,15 +551,11 @@ __kernel void k_sw_three_end(const __global numtyp4 *restrict x_,
 
         if (rsq2 < sw3_ikparam.y) {
           numtyp4 sw1_ikparam; fetch4(sw1_ikparam,ikparam,sw1_tex);
-          sw_sigma=sw1_ikparam.y;
-          sw_gamma=sw1_ikparam.w;
           sw_sigma_gamma_ik=sw1_ikparam.y*sw1_ikparam.w; //sw_sigma*sw_gamma;
           sw_cut_ik=sw3_ikparam.x;
 
           int ijkparam=elem2param[itype*nelements*nelements+jtype*nelements+ktype];
           numtyp4 sw1_ijkparam; fetch4(sw1_ijkparam,ijkparam,sw1_tex);
-          sw_epsilon=sw1_ijkparam.x;
-          sw_lambda=sw1_ijkparam.z;
           sw_lambda_epsilon_ijk=sw1_ijkparam.x*sw1_ijkparam.z; //sw_lambda*sw_epsilon;
           sw_lambda_epsilon2_ijk=(numtyp)2.0*sw_lambda_epsilon_ijk;
           numtyp4 sw3_ijkparam; fetch4(sw3_ijkparam,ijkparam,sw3_tex);
@@ -663,8 +651,6 @@ __kernel void k_sw_three_end_vatom(const __global numtyp4 *restrict x_,
       if (rsq1 > sw3_ijparam.y) continue;
 
       numtyp4 sw1_ijparam; fetch4(sw1_ijparam,ijparam,sw1_tex);
-      sw_sigma=sw1_ijparam.y;
-      sw_gamma=sw1_ijparam.w;
       sw_sigma_gamma_ij=sw1_ijparam.y*sw1_ijparam.w; //sw_sigma*sw_gamma;
       sw_cut_ij=sw3_ijparam.x;
         
@@ -700,15 +686,11 @@ __kernel void k_sw_three_end_vatom(const __global numtyp4 *restrict x_,
 
         if (rsq2 < sw3_ikparam.y) {
           numtyp4 sw1_ikparam; fetch4(sw1_ikparam,ikparam,sw1_tex);
-          sw_sigma=sw1_ikparam.y;
-          sw_gamma=sw1_ikparam.w;
           sw_sigma_gamma_ik=sw1_ikparam.y*sw1_ikparam.w; //sw_sigma*sw_gamma;
           sw_cut_ik=sw3_ikparam.x;
 
           int ijkparam=elem2param[itype*nelements*nelements+jtype*nelements+ktype];
           numtyp4 sw1_ijkparam; fetch4(sw1_ijkparam,ijkparam,sw1_tex);
-          sw_epsilon=sw1_ijkparam.x;
-          sw_lambda=sw1_ijkparam.z;
           sw_lambda_epsilon_ijk=sw1_ijkparam.x*sw1_ijkparam.z; //sw_lambda*sw_epsilon;
           sw_lambda_epsilon2_ijk=(numtyp)2.0*sw_lambda_epsilon_ijk;
           numtyp4 sw3_ijkparam; fetch4(sw3_ijkparam,ijkparam,sw3_tex);

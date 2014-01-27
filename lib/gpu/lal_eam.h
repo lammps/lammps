@@ -79,8 +79,8 @@ class EAM : public BaseAtomic<numtyp, acctyp> {
   /// Pair loop with device neighboring
   int** compute(const int ago, const int inum_full, const int nall,
                 double **host_x, int *host_type, double *sublo,
-                double *subhi, int *tag, int **nspecial,
-                int **special, const bool eflag, const bool vflag, 
+                double *subhi, tagint *tag, int **nspecial,
+                tagint **special, const bool eflag, const bool vflag, 
                 const bool eatom, const bool vatom, int &host_start, 
                 int **ilist, int **numj, const double cpu_time, bool &success,
                 int &inum, void **fp_ptr);

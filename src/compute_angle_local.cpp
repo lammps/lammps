@@ -16,6 +16,7 @@
 #include "compute_angle_local.h"
 #include "atom.h"
 #include "atom_vec.h"
+#include "molecule.h"
 #include "update.h"
 #include "domain.h"
 #include "force.h"
@@ -98,7 +99,7 @@ void ComputeAngleLocal::compute_local()
 
 /* ----------------------------------------------------------------------
    count angles and compute angle info on this proc
-   only count angle once if newton_angle is off
+   only count if 2nd atom is the one storing the angle
    all atoms in interaction must be in group
    all atoms in interaction must be known to proc
    if angle is deleted (type = 0), do not count
@@ -109,20 +110,27 @@ void ComputeAngleLocal::compute_local()
 
 int ComputeAngleLocal::compute_angles(int flag)
 {
-  int i,m,n,atom1,atom2,atom3;
+  int i,m,n,na,atom1,atom2,atom3,imol,iatom,atype;
+  tagint tagprev;
   double delx1,dely1,delz1,delx2,dely2,delz2;
   double rsq1,rsq2,r1,r2,c;
   double *tbuf,*ebuf;
 
   double **x = atom->x;
+  tagint *tag = atom->tag;
   int *num_angle = atom->num_angle;
   tagint **angle_atom1 = atom->angle_atom1;
   tagint **angle_atom2 = atom->angle_atom2;
   tagint **angle_atom3 = atom->angle_atom3;
   int **angle_type = atom->angle_type;
-  tagint *tag = atom->tag;
   int *mask = atom->mask;
+
+  int *molindex = atom->molindex;
+  int *molatom = atom->molatom;
+  Molecule **onemols = atom->avec->onemols;
+
   int nlocal = atom->nlocal;
+  int molecular = atom->molecular;
 
   if (flag) {
     if (nvalues == 1) {
@@ -141,13 +149,32 @@ int ComputeAngleLocal::compute_angles(int flag)
   m = n = 0;
   for (atom2 = 0; atom2 < nlocal; atom2++) {
     if (!(mask[atom2] & groupbit)) continue;
-    for (i = 0; i < num_angle[atom2]; i++) {
-      if (tag[atom2] != angle_atom2[atom2][i]) continue;
-      atom1 = atom->map(angle_atom1[atom2][i]);
+
+    if (molecular == 1) na = num_angle[atom2];
+    else {
+      if (molindex[atom2] < 0) continue;
+      imol = molindex[atom2];
+      iatom = molatom[atom2];
+      na = onemols[imol]->num_angle[iatom];
+    }
+
+    for (i = 0; i < na; i++) {
+      if (molecular == 1) {
+        if (tag[atom2] != angle_atom2[atom2][i]) continue;
+        atype = angle_type[atom2][i];
+        atom1 = atom->map(angle_atom1[atom2][i]);
+        atom3 = atom->map(angle_atom3[atom2][i]);
+      } else {
+        if (tag[atom2] != onemols[imol]->angle_atom2[atom2][i]) continue;
+        tagprev = tag[atom1] - iatom - 1;
+        atype = atom->map(onemols[imol]->angle_type[atom2][i]);
+        atom1 = atom->map(onemols[imol]->angle_atom1[atom2][i]+tagprev);
+        atom3 = atom->map(onemols[imol]->angle_atom3[atom2][i]+tagprev);
+      }
+
       if (atom1 < 0 || !(mask[atom1] & groupbit)) continue;
-      atom3 = atom->map(angle_atom3[atom2][i]);
       if (atom3 < 0 || !(mask[atom3] & groupbit)) continue;
-      if (angle_type[atom2][i] == 0) continue;
+      if (atype == 0) continue;
 
       if (flag) {
         if (tflag >= 0) {
@@ -177,8 +204,8 @@ int ComputeAngleLocal::compute_angles(int flag)
         }
 
         if (eflag >= 0) {
-          if (angle_type[atom2][i] > 0)
-            ebuf[n] = angle->single(angle_type[atom2][i],atom1,atom2,atom3);
+          if (atype > 0)
+            ebuf[n] = angle->single(atype,atom1,atom2,atom3);
           else ebuf[n] = 0.0;
         }
         n += nvalues;

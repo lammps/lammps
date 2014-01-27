@@ -37,6 +37,8 @@
 #include "kspace.h"
 #include "gpu_extra.h"
 
+using namespace LAMMPS_NS;
+
 // External functions from cuda library for atom decomposition
 
 int ljgrm_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
@@ -50,8 +52,8 @@ int ljgrm_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
 void ljgrm_gpu_clear();
 int ** ljgrm_gpu_compute_n(const int ago, const int inum_full,
                            const int nall, double **host_x, int *host_type,
-                           double *sublo, double *subhi, int *tag, int **nspecial,
-                           int **special, const bool eflag, const bool vflag,
+                           double *sublo, double *subhi, tagint *tag, int **nspecial,
+                           tagint **special, const bool eflag, const bool vflag,
                            const bool eatom, const bool vatom, int &host_start,
                            int **ilist, int **jnum, const double cpu_time,
                            bool &success);
@@ -61,9 +63,6 @@ void ljgrm_gpu_compute(const int ago, const int inum_full, const int nall,
                        const bool eatom, const bool vatom, int &host_start,
                        const double cpu_time, bool &success);
 double ljgrm_gpu_bytes();
-
-
-using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 

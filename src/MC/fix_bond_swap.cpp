@@ -72,6 +72,11 @@ FixBondSwap::FixBondSwap(LAMMPS *lmp, int narg, char **arg) :
   int seed = force->inumeric(FLERR,arg[5]);
   random = new RanMars(lmp,seed + comm->me);
 
+  // error check
+
+  if (atom->molecular != 1)
+    error->all(FLERR,"Cannot use fix bond/swap with non-molecular systems");
+
   // create a new compute temp style
   // id = fix-ID + temp, compute group = fix group
 

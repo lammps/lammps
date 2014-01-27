@@ -18,6 +18,8 @@
 #include "dump_image.h"
 #include "image.h"
 #include "atom.h"
+#include "atom_vec.h"
+#include "molecule.h"
 #include "domain.h"
 #include "group.h"
 #include "force.h"
@@ -646,7 +648,8 @@ void DumpImage::view_params()
 
 void DumpImage::create_image()
 {
-  int i,j,m,itype,atom1,atom2;
+  int i,j,m,n,itype,atom1,atom2,imol,iatom,btype;
+  tagint tagprev;
   double diameter,delx,dely,delz;
   double *color,*color1,*color2;
   double xmid[3];
@@ -700,10 +703,14 @@ void DumpImage::create_image()
     tagint **bond_atom = atom->bond_atom;
     int **bond_type = atom->bond_type;
     int *num_bond = atom->num_bond;
+    int *molindex = atom->molindex;
+    int *molatom = atom->molatom;
     int *type = atom->type;
     int nlocal = atom->nlocal;
     int nall = atom->nlocal + atom->nghost;
     int newton_bond = force->newton_bond;
+    int molecular = atom->molecular;
+    Molecule **onemols = atom->avec->onemols;
 
     // communicate choose flag for ghost atoms to know if they are selected
     // if bcolor/bdiam = ATOM, setup bufcopy to comm atom color/diam attributes
@@ -735,11 +742,27 @@ void DumpImage::create_image()
 
     for (i = 0; i < nchoose; i++) {
       atom1 = clist[i];
-      for (m = 0; m < num_bond[atom1]; m++) {
-        atom2 = atom->map(bond_atom[atom1][m]);
+      if (molecular == 1) n = num_bond[atom1];
+      else {
+        if (molindex[atom1] < 0) continue;
+        imol = molindex[atom1];
+        iatom = molatom[atom1];
+        n = onemols[imol]->num_bond[iatom];
+      }
+
+      for (m = 0; m < n; m++) {
+        if (molecular == 1) {
+          btype = bond_type[atom1][m];
+          atom2 = atom->map(bond_atom[atom1][m]);
+        } else {
+          tagprev = tag[i] - iatom - 1;
+          btype = atom->map(onemols[imol]->bond_type[atom1][m]);
+          atom2 = atom->map(onemols[imol]->bond_atom[iatom][m]+tagprev);
+        }
+
         if (atom2 < 0 || !chooseghost[atom2]) continue;
         if (newton_bond == 0 && tag[atom1] > tag[atom2]) continue;
-        if (bond_type[atom1][m] == 0) continue;
+        if (btype == 0) continue;
 
         if (bcolor == ATOM) {
           if (acolor == TYPE) {
@@ -753,7 +776,7 @@ void DumpImage::create_image()
             color2 = image->map_value2color(0,bufcopy[atom2][0]);
           }
         } else if (bcolor == TYPE) {
-          itype = bond_type[atom1][m];
+          itype = btype;
           if (itype < 0) itype = -itype;
           color = bcolortype[itype];
         }
@@ -771,7 +794,7 @@ void DumpImage::create_image()
             diameter = MIN(bufcopy[atom1][1],bufcopy[atom2][1]);
           }
         } else if (bdiam == TYPE) {
-          itype = bond_type[atom1][m];
+          itype = btype;
           if (itype < 0) itype = -itype;
           diameter = bdiamtype[itype];
         }

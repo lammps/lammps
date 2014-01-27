@@ -845,6 +845,11 @@ void Set::topology(int keyword)
 {
   int m,atom1,atom2,atom3,atom4;
 
+  // error check
+
+  if (atom->molecular == 2)
+    error->all(FLERR,"Cannot set bond topology types for atom style template");
+
   // border swap to acquire ghost atom info
   // enforce PBC before in case atoms are outside box
   // init entire system since comm->exchange is done

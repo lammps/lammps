@@ -373,7 +373,7 @@ class Atom {
   /// Cell list identifiers for device nbor builds
   UCL_D_Vec<int> dev_particle_id;
   /// Atom tag information for device nbor builds
-  UCL_D_Vec<int> dev_tag;
+  UCL_D_Vec<tagint> dev_tag;
   
   /// Cell list identifiers for hybrid nbor builds
   UCL_H_Vec<int> host_cell_id;

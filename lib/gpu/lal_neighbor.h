@@ -173,7 +173,7 @@ class Neighbor {
   template <class numtyp, class acctyp>
   void build_nbor_list(double **x, const int inum, const int host_inum, 
                        const int nall, Atom<numtyp,acctyp> &atom, double *sublo,
-                       double *subhi, int *tag, int **nspecial, int **special, 
+                       double *subhi, tagint *tag, int **nspecial, tagint **special, 
                        bool &success, int &max_nbors);
 
   /// Return the number of bytes used on device
@@ -212,7 +212,7 @@ class Neighbor {
   /// Device storage for special neighbor counts
   UCL_D_Vec<int> dev_nspecial;
   /// Device storage for special neighbors
-  UCL_D_Vec<int> dev_special, dev_special_t;
+  UCL_D_Vec<tagint> dev_special, dev_special_t;
   /// Host/Device storage for number of particles per cell
   UCL_Vector<int,int> cell_counts;
   int *cell_iter;

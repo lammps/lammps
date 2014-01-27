@@ -346,7 +346,7 @@ void EAMT::compute(const int f_ago, const int inum_full, const int nlocal,
 template <class numtyp, class acctyp>
 int** EAMT::compute(const int ago, const int inum_full, const int nall,
                     double **host_x, int *host_type, double *sublo, 
-                    double *subhi, int *tag, int **nspecial, int **special,
+                    double *subhi, tagint *tag, int **nspecial, tagint **special,
                     const bool eflag, const bool vflag, const bool eatom,
                     const bool vatom, int &host_start, int **ilist, int **jnum,
                     const double cpu_time, bool &success, int &inum, 

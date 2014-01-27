@@ -33,6 +33,8 @@
 #include "domain.h"
 #include "gpu_extra.h"
 
+using namespace LAMMPS_NS;
+
 // External functions from cuda library for atom decomposition
 
 int sw_gpu_init(const int ntypes, const int inum, const int nall, const int max_nbors, 
@@ -47,8 +49,8 @@ int sw_gpu_init(const int ntypes, const int inum, const int nall, const int max_
 void sw_gpu_clear();
 int ** sw_gpu_compute_n(const int ago, const int inum,
                         const int nall, double **host_x, int *host_type,
-                        double *sublo, double *subhi, int *tag, int **nspecial,
-                        int **special, const bool eflag, const bool vflag,
+                        double *sublo, double *subhi, tagint *tag, int **nspecial,
+                        tagint **special, const bool eflag, const bool vflag,
                         const bool eatom, const bool vatom, int &host_start,
                         int **ilist, int **jnum,
                         const double cpu_time, bool &success);
@@ -60,8 +62,6 @@ void sw_gpu_compute(const int ago, const int nloc, const int nall, const int ln,
 double sw_gpu_bytes();
 extern double lmp_gpu_forces(double **f, double **tor, double *eatom,
                              double **vatom, double *virial, double &ecoul);
-
-using namespace LAMMPS_NS;
 
 #define MAXLINE 1024
 #define DELTA 4

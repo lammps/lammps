@@ -44,6 +44,8 @@
 #define A4       -1.453152027
 #define A5        1.061405429
 
+using namespace LAMMPS_NS;
+
 // External functions from cuda library for atom decomposition
 
 int cl_gpu_init(const int nlocal, const int nall, const int max_nbors,
@@ -53,8 +55,8 @@ int cl_gpu_init(const int nlocal, const int nall, const int max_nbors,
 void cl_gpu_clear();
 int ** cl_gpu_compute_n(const int ago, const int inum,
                         const int nall, double **host_x, int *host_type,
-                        double *sublo, double *subhi, int *tag,
-                        int **nspecial, int **special, const bool eflag,
+                        double *sublo, double *subhi, tagint *tag,
+                        int **nspecial, tagint **special, const bool eflag,
                         const bool vflag, const bool eatom, const bool vatom,
                         int &host_start, int **ilist, int **jnum,
                         const double cpu_time, bool &success, double *host_q,
@@ -66,8 +68,6 @@ void cl_gpu_compute(const int ago, const int inum, const int nall,
                     const double cpu_time, bool &success, double *host_q,
                     const int nlocal, double *boxlo, double *prd);
 double cl_gpu_bytes();
-
-using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 

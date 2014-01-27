@@ -44,6 +44,8 @@
 #define A4       -1.453152027
 #define A5        1.061405429
 
+using namespace LAMMPS_NS;
+
 // External functions from cuda library for atom decomposition
 
 int cmml_gpu_init(const int ntypes, double **cutsq, int **lj_type,
@@ -57,8 +59,8 @@ int cmml_gpu_init(const int ntypes, double **cutsq, int **lj_type,
 void cmml_gpu_clear();
 int ** cmml_gpu_compute_n(const int ago, const int inum, const int nall,
                           double **host_x, int *host_type, double *sublo,
-                          double *subhi, int *tag, int **nspecial,
-                          int **special, const bool eflag, const bool vflag,
+                          double *subhi, tagint *tag, int **nspecial,
+                          tagint **special, const bool eflag, const bool vflag,
                           const bool eatom, const bool vatom, int &host_start,
                           int **ilist, int **jnum, const double cpu_time,
                           bool &success, double *host_q, double *boxlo,
@@ -73,7 +75,7 @@ double cmml_gpu_bytes();
 
 #include "lj_sdk_common.h"
 
-using namespace LAMMPS_NS;
+
 using namespace LJSDKParms;
 
 /* ---------------------------------------------------------------------- */

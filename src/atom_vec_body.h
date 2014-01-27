@@ -42,7 +42,7 @@ class AtomVecBody : public AtomVec {
 
   AtomVecBody(class LAMMPS *);
   ~AtomVecBody();
-  void settings(int, char **);
+  void process_args(int, char **);
   void grow(int);
   void grow_reset();
   void copy(int, int, int);
@@ -67,8 +67,6 @@ class AtomVecBody : public AtomVec {
   int size_restart();
   int pack_restart(int, double *);
   int unpack_restart(double *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
   void create_atom(int, double *);
   void data_atom(double *, imageint, char **);
   int data_atom_hybrid(int, char **);
@@ -99,11 +97,7 @@ class AtomVecBody : public AtomVec {
   int *body;
 
   int nlocal_bonus,nghost_bonus,nmax_bonus;
-
-  int nargcopy;          // copy of command-line args
-  char **argcopy;        // for writing to restart file
-  int copyflag;
-  int intdoubleratio;    // sizeof(double) / sizeof(int)
+  int intdoubleratio;       // sizeof(double) / sizeof(int)
 
   MyPoolChunk<int> *icp;
   MyPoolChunk<double> *dcp;

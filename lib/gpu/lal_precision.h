@@ -119,5 +119,23 @@ enum{SPHERE_SPHERE,SPHERE_ELLIPSE,ELLIPSE_SPHERE,ELLIPSE_ELLIPSE};
 #define OCL_DEFAULT_VENDOR "none"
 #endif
 
+// default to 32-bit smallint and other ints, 64-bit bigint: same as defined in src/lmptype.h
+#if !defined(LAMMPS_SMALLSMALL) && !defined(LAMMPS_BIGBIG) && !defined(LAMMPS_SMALLBIG)
+#define LAMMPS_SMALLBIG
 #endif
 
+#ifdef LAMMPS_SMALLBIG
+typedef int tagint;
+#define OCL_INT_TYPE "-DLAMMPS_SMALLBIG"
+#endif
+#ifdef LAMMPS_BIGBIG
+#include "inttypes.h"
+typedef int64_t tagint;
+#define OCL_INT_TYPE "-DLAMMPS_BIGBIG"
+#endif
+#ifdef LAMMPS_SMALLSMALL
+typedef int tagint;
+#define OCL_INT_TYPE "-DLAMMPS_SMALLSMALL"
+#endif
+
+#endif // LAL_PRECISION_H

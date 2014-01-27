@@ -107,7 +107,7 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
 
   // error check
 
-  if (atom->molecular == 0)
+  if (atom->molecular != 1)
     error->all(FLERR,"Cannot use fix bond/create with non-molecular systems");
   if (iatomtype == jatomtype &&
       ((imaxbond != jmaxbond) || (inewtype != jnewtype)))

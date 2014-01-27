@@ -16,6 +16,16 @@
 
 #ifdef NV_KERNEL
 #include "lal_preprocessor.h"
+#ifdef LAMMPS_SMALLBIG
+#define tagint int
+#endif
+#ifdef LAMMPS_BIGBIG
+#include "inttypes.h"
+#define tagint int64_t
+#endif
+#ifdef LAMMPS_SMALLSMALL
+#define tagint int
+#endif
 #ifndef _DOUBLE_DOUBLE
 texture<float4> pos_tex;
 #else
@@ -93,15 +103,22 @@ __kernel void kernel_calc_cell_counts(const unsigned *restrict cell_id,
 
 #else
 #define pos_tex x_
+#ifdef LAMMPS_SMALLBIG
+#define tagint int
+#endif
+#ifdef LAMMPS_BIGBIG
+#define tagint long long int
+#endif
+#ifdef LAMMPS_SMALLSMALL
+#define tagint int
+#endif
 #endif
 
-
-
-__kernel void transpose(__global int *restrict out, 
-                        const __global int *restrict in, 
+__kernel void transpose(__global tagint *restrict out, 
+                        const __global tagint *restrict in, 
                         int columns_in, int rows_in)
 {
-	__local int block[BLOCK_CELL_2D][BLOCK_CELL_2D+1];
+	__local tagint block[BLOCK_CELL_2D][BLOCK_CELL_2D+1];
 	
 	unsigned ti=THREAD_ID_X;
 	unsigned tj=THREAD_ID_Y;
@@ -239,9 +256,9 @@ __kernel void calc_neigh_list_cell(const __global numtyp4 *restrict x_,
 __kernel void kernel_special(__global int *dev_nbor, 
                              __global int *host_nbor_list, 
                              const __global int *host_numj, 
-                             const __global int *restrict tag,
+                             const __global tagint *restrict tag,
                              const __global int *restrict nspecial, 
-                             const __global int *restrict special,
+                             const __global tagint *restrict special,
                              int inum, int nt, int max_nbors, int t_per_atom) {
   int tid=THREAD_ID_X;
   int ii=fast_mul((int)BLOCK_ID_X,(int)(BLOCK_SIZE_X)/t_per_atom);
@@ -275,7 +292,7 @@ __kernel void kernel_special(__global int *dev_nbor,
   
     for ( ; list<list_end; list+=stride) {
       int nbor=*list;
-      int jtag=tag[nbor];
+      tagint jtag=tag[nbor];
 
       int offset=ii;
       for (int i=0; i<n3; i++) {

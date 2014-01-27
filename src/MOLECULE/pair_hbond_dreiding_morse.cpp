@@ -21,6 +21,8 @@
 #include "string.h"
 #include "pair_hbond_dreiding_morse.h"
 #include "atom.h"
+#include "atom_vec.h"
+#include "molecule.h"
 #include "comm.h"
 #include "force.h"
 #include "neighbor.h"
@@ -48,13 +50,15 @@ PairHbondDreidingMorse::PairHbondDreidingMorse(LAMMPS *lmp) :
 
 void PairHbondDreidingMorse::compute(int eflag, int vflag)
 {
-  int i,j,k,m,ii,jj,kk,inum,jnum,knum,itype,jtype,ktype;
+  int i,j,k,m,ii,jj,kk,inum,jnum,knum,itype,jtype,ktype,imol,iatom;
+  tagint tagprev;
   double delx,dely,delz,rsq,rsq1,rsq2,r1,r2;
   double factor_hb,force_angle,force_kernel,force_switch,evdwl,ehbond;
   double c,s,a,b,d,ac,a11,a12,a22,vx1,vx2,vy1,vy2,vz1,vz2;
   double fi[3],fj[3],delr1[3],delr2[3];
   double r,dr,dexp,eng_morse,switch1,switch2;
   int *ilist,*jlist,*numneigh,**firstneigh;
+  int *tlist;
   tagint *klist;
 
   evdwl = ehbond = 0.0;
@@ -63,10 +67,15 @@ void PairHbondDreidingMorse::compute(int eflag, int vflag)
 
   double **x = atom->x;
   double **f = atom->f;
+  tagint *tag = atom->tag;
+  int *molindex = atom->molindex;
+  int *molatom = atom->molatom;
   tagint **special = atom->special;
-  int *type = atom->type;
   int **nspecial = atom->nspecial;
+  int *type = atom->type;
   double *special_lj = force->special_lj;
+  int molecular = atom->molecular;
+  Molecule **onemols = atom->avec->onemols;
 
   inum = list->inum;
   ilist = list->ilist;
@@ -83,8 +92,17 @@ void PairHbondDreidingMorse::compute(int eflag, int vflag)
     i = ilist[ii];
     itype = type[i];
     if (!donor[itype]) continue;
-    klist = special[i];
-    knum = nspecial[i][0];
+    if (molecular == 1) {
+      klist = special[i];
+      knum = nspecial[i][0];
+    } else {
+      if (molindex[i] < 0) continue;
+      imol = molindex[i];
+      iatom = molatom[i];
+      tlist = onemols[imol]->special[iatom];
+      knum = onemols[imol]->nspecial[iatom][0];
+      tagprev = tag[i] - iatom - 1;
+    }
     jlist = firstneigh[i];
     jnum = numneigh[i];
 
@@ -102,7 +120,8 @@ void PairHbondDreidingMorse::compute(int eflag, int vflag)
       rsq = delx*delx + dely*dely + delz*delz;
 
       for (kk = 0; kk < knum; kk++) {
-        k = atom->map(klist[kk]);
+        if (molecular == 1) k = atom->map(klist[kk]);
+        else k = atom->map(tlist[kk]+tagprev);
         if (k < 0) continue;
         ktype = type[k];
         m = type2param[itype][jtype][ktype];
@@ -357,16 +376,16 @@ double PairHbondDreidingMorse::single(int i, int j, int itype, int jtype,
                                      double &fforce)
 {
   int k,kk,ktype,knum,m;
+  tagint tagprev;
   double eng,eng_morse,force_kernel,force_angle;
   double rsq1,rsq2,r1,r2,c,s,ac,r,dr,dexp,factor_hb;
   double switch1,switch2;
   double delr1[3],delr2[3];
+  int *tlist;
   tagint *klist;
 
   double **x = atom->x;
-  tagint **special = atom->special;
   int *type = atom->type;
-  int **nspecial = atom->nspecial;
   double *special_lj = force->special_lj;
 
   eng = 0.0;
@@ -377,13 +396,26 @@ double PairHbondDreidingMorse::single(int i, int j, int itype, int jtype,
   if (!donor[itype]) return 0.0;
   if (!acceptor[jtype]) return 0.0;
 
-  klist = special[i];
-  knum = nspecial[i][0];
+  int molecular = atom->molecular;
+  if (molecular == 1) {
+    klist = atom->special[i];
+    knum = atom->nspecial[i][0];
+  } else {
+    if (atom->molindex[i] < 0) return 0.0;
+    int imol = atom->molindex[i];
+    int iatom = atom->molatom[i];
+    Molecule **onemols = atom->avec->onemols;
+    tlist = onemols[imol]->special[iatom];
+    knum = onemols[imol]->nspecial[iatom][0];
+    tagprev = atom->tag[i] - iatom - 1;
+  }
 
   factor_hb = special_lj[sbmask(j)];
 
   for (kk = 0; kk < knum; kk++) {
-    k = atom->map(klist[kk]);
+    if (molecular == 1) k = atom->map(klist[kk]);
+    else k = atom->map(tlist[kk]+tagprev);
+
     if (k < 0) continue;
     ktype = type[k];
     m = type2param[itype][jtype][ktype];

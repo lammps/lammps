@@ -36,6 +36,8 @@
 #include "string.h"
 #include "gpu_extra.h"
 
+using namespace LAMMPS_NS;
+
 // External functions from cuda library for atom decomposition
 
 int dpl_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
@@ -48,8 +50,8 @@ int dpl_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
 void dpl_gpu_clear();
 int ** dpl_gpu_compute_n(const int ago, const int inum,
                          const int nall, double **host_x, int *host_type, 
-                         double *sublo, double *subhi, int *tag, 
-                         int **nspecial, int **special, const bool eflag, 
+                         double *sublo, double *subhi, tagint *tag, 
+                         int **nspecial, tagint **special, const bool eflag, 
                          const bool vflag, const bool eatom, const bool vatom, 
                          int &host_start, int **ilist, int **jnum, 
                          const double cpu_time, bool &success, 
@@ -63,8 +65,6 @@ void dpl_gpu_compute(const int ago, const int inum,
                      bool &success, double *host_q, double **host_mu, 
                      const int nlocal, double *boxlo, double *prd);
 double dpl_gpu_bytes();
-
-using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 

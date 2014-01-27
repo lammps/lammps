@@ -160,11 +160,12 @@ void CreateAtoms::command(int narg, char **arg)
       error->all(FLERR,"Create_atoms molecule must have coordinates");
     if (onemol->typeflag == 0)
       error->all(FLERR,"Create_atoms molecule must have atom types");
-    if (ntype+onemol->maxtype <= 0 || ntype+onemol->maxtype > atom->ntypes)
+    if (ntype+onemol->ntypes <= 0 || ntype+onemol->ntypes > atom->ntypes)
       error->all(FLERR,"Invalid atom type in create_atoms mol command");
     if (onemol->tag_require && !atom->tag_enable)
       error->all(FLERR,
                  "Create_atoms molecule has atom IDs, but system does not");
+    onemol->check_attributes(0);
 
     // create_atoms uses geoemetric center of molecule for insertion
 
@@ -291,6 +292,19 @@ void CreateAtoms::command(int narg, char **arg)
 
     int molcreate = (atom->nlocal - nlocal_previous) / onemol->natoms;
 
+    // for atom style template systems, increment total bonds,angles,etc 
+    
+    if (atom->molecular == 2) {
+      bigint nmolme = molcreate;
+      bigint nmoltotal;
+      MPI_Allreduce(&nmolme,&nmoltotal,1,MPI_LMP_BIGINT,MPI_SUM,world);
+      atom->nbonds += nmoltotal * onemol->nbonds;
+      atom->nangles += nmoltotal * onemol->nangles;
+      atom->ndihedrals += nmoltotal * onemol->ndihedrals;
+      atom->nimpropers += nmoltotal * onemol->nimpropers;
+    }
+
+    // if atom style template
     // maxmol = max molecule ID across all procs, for previous atoms
     // moloffset = max molecule ID for all molecules owned by previous procs
     //             including molecules existing before this creation
@@ -332,38 +346,44 @@ void CreateAtoms::command(int narg, char **arg)
     tagint **improper_atom4 = atom->improper_atom4;
     int **nspecial = atom->nspecial;
     tagint **special = atom->special;
+    int molecular = atom->molecular;
 
     int ilocal = nlocal_previous;
     for (int i = 0; i < molcreate; i++) {
       if (tag) offset = tag[ilocal]-1;
       for (int m = 0; m < natoms; m++) {
-        if (molecule) molecule[ilocal] = moloffset + i+1;
-        if (onemol->bondflag)
-          for (int j = 0; j < num_bond[ilocal]; j++)
-            bond_atom[ilocal][j] += offset;
-        if (onemol->angleflag)
-          for (int j = 0; j < num_angle[ilocal]; j++) {
-            angle_atom1[ilocal][j] += offset;
-            angle_atom2[ilocal][j] += offset;
-            angle_atom3[ilocal][j] += offset;
-          }
-        if (onemol->dihedralflag)
-          for (int j = 0; j < num_dihedral[ilocal]; j++) {
-            dihedral_atom1[ilocal][j] += offset;
-            dihedral_atom2[ilocal][j] += offset;
-            dihedral_atom3[ilocal][j] += offset;
-            dihedral_atom4[ilocal][j] += offset;
-          }
-        if (onemol->improperflag)
-          for (int j = 0; j < num_improper[ilocal]; j++) {
-            improper_atom1[ilocal][j] += offset;
-            improper_atom2[ilocal][j] += offset;
-            improper_atom3[ilocal][j] += offset;
-            improper_atom4[ilocal][j] += offset;
-          }
-        if (onemol->specialflag)
-          for (int j = 0; j < nspecial[ilocal][2]; j++) 
-            special[ilocal][j] += offset;
+        if (molecular) molecule[ilocal] = moloffset + i+1;
+        if (molecular == 2) {
+          atom->molindex[ilocal] = 0;
+          atom->molatom[ilocal] = m;
+        } else if (molecular) {
+          if (onemol->bondflag)
+            for (int j = 0; j < num_bond[ilocal]; j++)
+              bond_atom[ilocal][j] += offset;
+          if (onemol->angleflag)
+            for (int j = 0; j < num_angle[ilocal]; j++) {
+              angle_atom1[ilocal][j] += offset;
+              angle_atom2[ilocal][j] += offset;
+              angle_atom3[ilocal][j] += offset;
+            }
+          if (onemol->dihedralflag)
+            for (int j = 0; j < num_dihedral[ilocal]; j++) {
+              dihedral_atom1[ilocal][j] += offset;
+              dihedral_atom2[ilocal][j] += offset;
+              dihedral_atom3[ilocal][j] += offset;
+              dihedral_atom4[ilocal][j] += offset;
+            }
+          if (onemol->improperflag)
+            for (int j = 0; j < num_improper[ilocal]; j++) {
+              improper_atom1[ilocal][j] += offset;
+              improper_atom2[ilocal][j] += offset;
+              improper_atom3[ilocal][j] += offset;
+              improper_atom4[ilocal][j] += offset;
+            }
+          if (onemol->specialflag)
+            for (int j = 0; j < nspecial[ilocal][2]; j++) 
+              special[ilocal][j] += offset;
+        }
         ilocal++;
       }
     }
@@ -400,11 +420,12 @@ void CreateAtoms::command(int narg, char **arg)
   }
 
   // for MOLECULE mode:
-  // create special bond lists for molecular systems
+  // create special bond lists for molecular systems,
+  //   but not for atom style template
   // only if onemol added bonds but not special info
 
   if (mode == MOLECULE) {
-    if (atom->molecular && onemol->bondflag && !onemol->specialflag) {
+    if (atom->molecular == 1 && onemol->bondflag && !onemol->specialflag) {
       Special special(lmp);
       special.build();
     }

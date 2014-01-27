@@ -16,6 +16,7 @@
 #include "compute_dihedral_local.h"
 #include "atom.h"
 #include "atom_vec.h"
+#include "molecule.h"
 #include "update.h"
 #include "domain.h"
 #include "force.h"
@@ -107,21 +108,28 @@ void ComputeDihedralLocal::compute_local()
 
 int ComputeDihedralLocal::compute_dihedrals(int flag)
 {
-  int i,m,n,atom1,atom2,atom3,atom4;
+  int i,m,n,nd,atom1,atom2,atom3,atom4,imol,iatom;
+  tagint tagprev;
   double vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z,vb2xm,vb2ym,vb2zm;
   double ax,ay,az,bx,by,bz,rasq,rbsq,rgsq,rg,rginv,ra2inv,rb2inv,rabinv;
   double s,c;
   double *pbuf;
 
   double **x = atom->x;
+  tagint *tag = atom->tag;
   int *num_dihedral = atom->num_dihedral;
   tagint **dihedral_atom1 = atom->dihedral_atom1;
   tagint **dihedral_atom2 = atom->dihedral_atom2;
   tagint **dihedral_atom3 = atom->dihedral_atom3;
   tagint **dihedral_atom4 = atom->dihedral_atom4;
-  tagint *tag = atom->tag;
   int *mask = atom->mask;
+
+  int *molindex = atom->molindex;
+  int *molatom = atom->molatom;
+  Molecule **onemols = atom->avec->onemols;
+
   int nlocal = atom->nlocal;
+  int molecular = atom->molecular;
 
   if (flag) {
     if (nvalues == 1) {
@@ -135,13 +143,31 @@ int ComputeDihedralLocal::compute_dihedrals(int flag)
   m = n = 0;
   for (atom2 = 0; atom2 < nlocal; atom2++) {
     if (!(mask[atom2] & groupbit)) continue;
-    for (i = 0; i < num_dihedral[atom2]; i++) {
-      if (tag[atom2] != dihedral_atom2[atom2][i]) continue;
-      atom1 = atom->map(dihedral_atom1[atom2][i]);
+
+    if (molecular == 1) nd = num_dihedral[atom2];
+    else {
+      if (molindex[atom2] < 0) continue;
+      imol = molindex[atom2];
+      iatom = molatom[atom2];
+      nd = onemols[imol]->num_dihedral[iatom];
+    }
+
+    for (i = 0; i < nd; i++) {
+      if (molecular == 1) {
+        if (tag[atom2] != dihedral_atom2[atom2][i]) continue;
+        atom1 = atom->map(dihedral_atom1[atom2][i]);
+        atom3 = atom->map(dihedral_atom3[atom2][i]);
+        atom4 = atom->map(dihedral_atom4[atom2][i]);
+      } else {
+        if (tag[atom2] != onemols[imol]->dihedral_atom2[atom2][i]) continue;
+        tagprev = tag[atom1] - iatom - 1;
+        atom1 = atom->map(onemols[imol]->dihedral_atom1[atom2][i]+tagprev);
+        atom3 = atom->map(onemols[imol]->dihedral_atom3[atom2][i]+tagprev);
+        atom4 = atom->map(onemols[imol]->dihedral_atom4[atom2][i]+tagprev);
+      }
+
       if (atom1 < 0 || !(mask[atom1] & groupbit)) continue;
-      atom3 = atom->map(dihedral_atom3[atom2][i]);
       if (atom3 < 0 || !(mask[atom3] & groupbit)) continue;
-      atom4 = atom->map(dihedral_atom4[atom2][i]);
       if (atom4 < 0 || !(mask[atom4] & groupbit)) continue;
 
       if (flag) {

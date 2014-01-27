@@ -186,6 +186,12 @@ int FixOMP::setmask()
 
 void FixOMP::init()
 {
+  // USER-OMP package cannot be used with atom_style template
+  
+  if (atom->molecular == 2) 
+    error->all(FLERR,"USER-OMP package does not (yet) work with "
+               "atom_style template");
+
   if ((strstr(update->integrate_style,"respa") != NULL)
       && (strstr(update->integrate_style,"respa/omp") == NULL))
     error->all(FLERR,"Need to use respa/omp for r-RESPA with /omp styles");

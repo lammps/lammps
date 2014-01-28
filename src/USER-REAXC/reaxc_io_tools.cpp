@@ -684,7 +684,7 @@ void Print_Native_GCells( reax_system *system )
             fprintf( f, "\tatom list start: %d, end: %d\n\t", gc->str, gc->end );
 
           for( l = gc->str; l < gc->end; ++l )
-              fprintf( f, BIGINT_FORMAT, system->my_atoms[l].orig_id );
+              fprintf( f, TAGINT_FORMAT, system->my_atoms[l].orig_id );
             fprintf( f, "\n" );
           }
 
@@ -721,7 +721,7 @@ void Print_All_GCells( reax_system *system )
             fprintf( f, "\tatom list start: %d, end: %d\n\t", gc->str, gc->end );
 
           for( l = gc->str; l < gc->end; ++l )
-              fprintf( f, BIGINT_FORMAT, system->my_atoms[l].orig_id );
+              fprintf( f, TAGINT_FORMAT, system->my_atoms[l].orig_id );
             fprintf( f, "\n" );
           }
 

@@ -343,11 +343,14 @@ void Atom::create_avec(const char *style, int narg, char **arg, char *suffix)
     strcpy(atom_style,style);
   }
 
-  // if molecular system, atom IDs must be defined
+  // if molecular system:
+  // atom IDs must be defined
+  // force atom map to be created, style will reset by map_init()
 
   molecular = avec->molecular;
   if (molecular && tag_enable == 0)
     error->all(FLERR,"Atom IDs must be used for molecular systems");
+  if (molecular) map_style = 1;
 }
 
 /* ----------------------------------------------------------------------

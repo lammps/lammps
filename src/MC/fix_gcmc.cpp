@@ -493,8 +493,8 @@ void FixGCMC::attempt_atomic_deletion()
   MPI_Allreduce(&success,&success_all,1,MPI_INT,MPI_MAX,world);
 
   if (success_all) {
+    atom->natoms--;
     if (atom->tag_enable) {
-      atom->natoms--;
       if (atom->map_style) atom->map_init();
     }
     atom->nghost = 0;
@@ -560,8 +560,8 @@ void FixGCMC::attempt_atomic_insertion()
   MPI_Allreduce(&success,&success_all,1,MPI_INT,MPI_MAX,world);
 
   if (success_all) {
+    atom->natoms++;
     if (atom->tag_enable) {
-      atom->natoms++;
       atom->tag_extend();
       if (atom->map_style) atom->map_init();
     }
@@ -737,7 +737,7 @@ void FixGCMC::attempt_molecule_deletion()
       } else i++;
     }
     atom->natoms -= natoms_per_molecule;
-    atom->map_init();
+    if (atom->map_style) atom->map_init();
     atom->nghost = 0;
     comm->borders();
     update_gas_atoms_list();

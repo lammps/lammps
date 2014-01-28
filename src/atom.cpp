@@ -292,6 +292,7 @@ void Atom::settings(Atom *old)
 {
   tag_enable = old->tag_enable;
   map_user = old->map_user;
+  map_style = old->map_style;
 }
 
 /* ----------------------------------------------------------------------

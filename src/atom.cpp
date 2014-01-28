@@ -1352,38 +1352,44 @@ void Atom::add_molecule_atom(Molecule *onemol, int iatom,
   // add bond topology info
   // for molecular atom styles, but not atom style template
 
-  if (avec->bonds_allow) num_bond[ilocal] = onemol->num_bond[iatom];
-  for (int i = 0; i < num_bond[ilocal]; i++) {
-    bond_type[ilocal][i] = onemol->bond_type[iatom][i];
-    bond_atom[ilocal][i] = onemol->bond_atom[iatom][i] + offset;
+  if (avec->bonds_allow) {
+    num_bond[ilocal] = onemol->num_bond[iatom];
+    for (int i = 0; i < num_bond[ilocal]; i++) {
+      bond_type[ilocal][i] = onemol->bond_type[iatom][i];
+      bond_atom[ilocal][i] = onemol->bond_atom[iatom][i] + offset;
+    }
   }
 
-  if (avec->angles_allow) num_angle[ilocal] = onemol->num_angle[iatom];
-  for (int i = 0; i < num_angle[ilocal]; i++) {
-    angle_type[ilocal][i] = onemol->angle_type[iatom][i];
-    angle_atom1[ilocal][i] = onemol->angle_atom1[iatom][i] + offset;
-    angle_atom2[ilocal][i] = onemol->angle_atom2[iatom][i] + offset;
-    angle_atom3[ilocal][i] = onemol->angle_atom3[iatom][i] + offset;
+  if (avec->angles_allow) {
+    num_angle[ilocal] = onemol->num_angle[iatom];
+    for (int i = 0; i < num_angle[ilocal]; i++) {
+      angle_type[ilocal][i] = onemol->angle_type[iatom][i];
+      angle_atom1[ilocal][i] = onemol->angle_atom1[iatom][i] + offset;
+      angle_atom2[ilocal][i] = onemol->angle_atom2[iatom][i] + offset;
+      angle_atom3[ilocal][i] = onemol->angle_atom3[iatom][i] + offset;
+    }
   }
 
-  if (avec->dihedrals_allow) 
+  if (avec->dihedrals_allow) {
     num_dihedral[ilocal] = onemol->num_dihedral[iatom];
-  for (int i = 0; i < num_dihedral[ilocal]; i++) {
-    dihedral_type[ilocal][i] = onemol->dihedral_type[iatom][i];
-    dihedral_atom1[ilocal][i] = onemol->dihedral_atom1[iatom][i] + offset;
-    dihedral_atom2[ilocal][i] = onemol->dihedral_atom2[iatom][i] + offset;
-    dihedral_atom3[ilocal][i] = onemol->dihedral_atom3[iatom][i] + offset;
-    dihedral_atom4[ilocal][i] = onemol->dihedral_atom4[iatom][i] + offset;
+    for (int i = 0; i < num_dihedral[ilocal]; i++) {
+      dihedral_type[ilocal][i] = onemol->dihedral_type[iatom][i];
+      dihedral_atom1[ilocal][i] = onemol->dihedral_atom1[iatom][i] + offset;
+      dihedral_atom2[ilocal][i] = onemol->dihedral_atom2[iatom][i] + offset;
+      dihedral_atom3[ilocal][i] = onemol->dihedral_atom3[iatom][i] + offset;
+      dihedral_atom4[ilocal][i] = onemol->dihedral_atom4[iatom][i] + offset;
+    }
   }
 
-  if (avec->impropers_allow) 
+  if (avec->impropers_allow) {
     num_improper[ilocal] = onemol->num_improper[iatom];
-  for (int i = 0; i < num_improper[ilocal]; i++) {
-    improper_type[ilocal][i] = onemol->improper_type[iatom][i];
-    improper_atom1[ilocal][i] = onemol->improper_atom1[iatom][i] + offset;
-    improper_atom2[ilocal][i] = onemol->improper_atom2[iatom][i] + offset;
-    improper_atom3[ilocal][i] = onemol->improper_atom3[iatom][i] + offset;
-    improper_atom4[ilocal][i] = onemol->improper_atom4[iatom][i] + offset;
+    for (int i = 0; i < num_improper[ilocal]; i++) {
+      improper_type[ilocal][i] = onemol->improper_type[iatom][i];
+      improper_atom1[ilocal][i] = onemol->improper_atom1[iatom][i] + offset;
+      improper_atom2[ilocal][i] = onemol->improper_atom2[iatom][i] + offset;
+      improper_atom3[ilocal][i] = onemol->improper_atom3[iatom][i] + offset;
+      improper_atom4[ilocal][i] = onemol->improper_atom4[iatom][i] + offset;
+    }
   }
 
   if (onemol->specialflag) {

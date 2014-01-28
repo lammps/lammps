@@ -646,7 +646,8 @@ int FixQEqReax::CG( double *b, double *x )
 
   if (i >= imax && comm->me == 0) {
     char str[128];
-    sprintf(str,"Fix qeq/reax CG convergence failed after %d iterations at %d step",i,update->ntimestep);
+    sprintf(str,"Fix qeq/reax CG convergence failed after %d iterations "
+            "at " BIGINT_FORMAT " step",i,update->ntimestep);
     error->warning(FLERR,str);
   }
 

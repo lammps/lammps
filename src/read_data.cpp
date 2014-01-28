@@ -780,9 +780,9 @@ void ReadData::atoms()
 
   atom->tag_check();
 
-  // if molecular system or user-requested, create global mapping of atoms
+  // create global mapping of atoms
 
-  if (atom->molecular || atom->map_user) {
+  if (atom->map_style) {
     atom->map_init();
     atom->map_set();
   }

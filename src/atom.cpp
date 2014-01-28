@@ -471,6 +471,7 @@ void Atom::modify_params(int narg, char **arg)
       if (strcmp(arg[iarg+1],"array") == 0) map_user = 1;
       else if (strcmp(arg[iarg+1],"hash") == 0) map_user = 2;
       else error->all(FLERR,"Illegal atom_modify command");
+      map_style = map_user;
       iarg += 2;
     } else if (strcmp(arg[iarg],"first") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal atom_modify command");

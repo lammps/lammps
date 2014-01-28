@@ -1,0 +1,50 @@
+LAMMPS (18 Jan 2011)
+# REAX potential for VOH system
+# .....
+
+units		real
+
+atom_style	charge
+read_data	data.VOH
+  orthogonal box = (0 0 0) to (25 25 25)
+  1 by 1 by 1 processor grid
+  100 atoms
+
+pair_style	reax/c lmp_control
+pair_coeff	* * ffield.reax.V_O_C_H 2 1 3 4
+
+neighbor	2 bin
+neigh_modify	every 10 delay 0 check no
+
+fix		1 all nve
+fix             2 all qeq/reax 1 0.0 10.0 1e-6 param.qeq
+fix             3 all temp/berendsen 500.0 500.0 100.0
+
+timestep	0.25
+
+dump		1 all atom 30 dump.reax.voh
+
+run		3000
+Memory usage per processor = 3.16753 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0            0   -10246.814            0   -10246.814    42.527005 
+    3000    519.62589   -10195.211            0   -10041.869   -789.30523 
+Loop time of 31.6405 on 1 procs for 3000 steps with 100 atoms
+
+Pair  time (%) = 28.9498 (91.4959)
+Neigh time (%) = 0.111138 (0.351253)
+Comm  time (%) = 0.0515051 (0.162782)
+Outpt time (%) = 0.0176251 (0.0557042)
+Other time (%) = 2.51046 (7.93434)
+
+Nlocal:    100 ave 100 max 100 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    602 ave 602 max 602 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    3385 ave 3385 max 3385 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 3385
+Ave neighs/atom = 33.85
+Neighbor list builds = 300
+Dangerous builds = 0

@@ -1,4 +1,4 @@
-LAMMPS (14 Aug 2013)
+LAMMPS (30 Jan 2014)
 # 3d Lennard-Jones melt
 
 variable	x index 1
@@ -23,7 +23,7 @@ region		box block 0 20 0 20 0 ${zz}
 region		box block 0 20 0 20 0 20
 create_box	1 box
 Created orthogonal box = (0 0 0) to (33.5919 33.5919 33.5919)
-  1 by 2 by 2 MPI processor grid
+  1 by 1 by 1 MPI processor grid
 create_atoms	1 box
 Created 32000 atoms
 mass		1 1.0
@@ -39,24 +39,24 @@ neigh_modify	delay 0 every 20 check no
 fix		1 all nve
 
 run		100
-Memory usage per processor = 4.31295 Mbytes
+Memory usage per processor = 13.2266 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0         1.44   -6.7733681            0   -4.6134356   -5.0197073 
      100    0.7574531   -5.7585055            0   -4.6223613   0.20726105 
-Loop time of 0.621459 on 4 procs for 100 steps with 32000 atoms
+Loop time of 2.25121 on 1 procs for 100 steps with 32000 atoms
 
-Pair  time (%) = 0.50556 (81.3506)
-Neigh time (%) = 0.0630878 (10.1516)
-Comm  time (%) = 0.036548 (5.88099)
-Outpt time (%) = 5.19753e-05 (0.00836343)
-Other time (%) = 0.0162107 (2.60849)
+Pair  time (%) = 1.92625 (85.5648)
+Neigh time (%) = 0.241071 (10.7085)
+Comm  time (%) = 0.0242682 (1.078)
+Outpt time (%) = 0.000102997 (0.00457517)
+Other time (%) = 0.0595243 (2.6441)
 
-Nlocal:    8000 ave 8037 max 7964 min
-Histogram: 2 0 0 0 0 0 0 0 1 1
-Nghost:    9007.5 ave 9050 max 8968 min
-Histogram: 1 1 0 0 0 0 0 1 0 1
-Neighs:    300708 ave 305113 max 297203 min
-Histogram: 1 0 0 1 1 0 0 0 0 1
+Nlocal:    32000 ave 32000 max 32000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    19657 ave 19657 max 19657 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    1.20283e+06 ave 1.20283e+06 max 1.20283e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 1202833
 Ave neighs/atom = 37.5885

@@ -188,6 +188,11 @@ int FixOMP::setmask()
 
 void FixOMP::init()
 {
+  // USER-OMP package cannot be used with atom_style template
+  if (atom->molecular == 2)
+    error->all(FLERR,"USER-OMP package does not (yet) work with "
+               "atom_style template");
+
   // reset per thread timer
   for (int i=0; i < comm->nthreads; ++i) {
     thr[i]->_timer_active=1;

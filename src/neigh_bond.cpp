@@ -100,7 +100,8 @@ void Neighbor::bond_template()
   int imol,iatom;
   tagint tagprev;
   int *num_bond;
-  int **bond_atom,**bond_type;
+  tagint **bond_atom;
+  int **bond_type;
 
   Molecule **onemols = atom->avec->onemols;
 
@@ -320,7 +321,8 @@ void Neighbor::angle_template()
   int imol,iatom;
   tagint tagprev;
   int *num_angle;
-  int **angle_atom1,**angle_atom2,**angle_atom3,**angle_type;
+  tagint **angle_atom1,**angle_atom2,**angle_atom3;
+  int **angle_type;
 
   Molecule **onemols = atom->avec->onemols;
 
@@ -579,7 +581,7 @@ void Neighbor::dihedral_template()
   int imol,iatom;
   tagint tagprev;
   int *num_dihedral;
-  int **dihedral_atom1,**dihedral_atom2,**dihedral_atom3,**dihedral_atom4;
+  tagint **dihedral_atom1,**dihedral_atom2,**dihedral_atom3,**dihedral_atom4;
   int **dihedral_type;
 
   Molecule **onemols = atom->avec->onemols;
@@ -870,7 +872,7 @@ void Neighbor::improper_template()
   int imol,iatom;
   tagint tagprev;
   int *num_improper;
-  int **improper_atom1,**improper_atom2,**improper_atom3,**improper_atom4;
+  tagint **improper_atom1,**improper_atom2,**improper_atom3,**improper_atom4;
   int **improper_type;
 
   Molecule **onemols = atom->avec->onemols;

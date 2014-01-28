@@ -88,7 +88,6 @@ void PairHbondDreidingLJ::compute(int eflag, int vflag)
   double r2inv,r10inv;
   double switch1,switch2;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  int *tlist;
   tagint *klist;
 
   evdwl = ehbond = 0.0;
@@ -129,7 +128,7 @@ void PairHbondDreidingLJ::compute(int eflag, int vflag)
       if (molindex[i] < 0) continue;
       imol = molindex[i];
       iatom = molatom[i];
-      tlist = onemols[imol]->special[iatom];
+      klist = onemols[imol]->special[iatom];
       knum = onemols[imol]->nspecial[iatom][0];
       tagprev = tag[i] - iatom - 1;
     }
@@ -151,7 +150,7 @@ void PairHbondDreidingLJ::compute(int eflag, int vflag)
 
       for (kk = 0; kk < knum; kk++) {
         if (molecular == 1) k = atom->map(klist[kk]);
-        else k = atom->map(tlist[kk]+tagprev);
+        else k = atom->map(klist[kk]+tagprev);
         if (k < 0) continue;
         ktype = type[k];
         m = type2param[itype][jtype][ktype];
@@ -478,7 +477,6 @@ double PairHbondDreidingLJ::single(int i, int j, int itype, int jtype,
   double rsq1,rsq2,r1,r2,c,s,ac,r2inv,r10inv,factor_hb;
   double switch1,switch2;
   double delr1[3],delr2[3];
-  int *tlist;
   tagint *klist;
 
   double **x = atom->x;
@@ -502,7 +500,7 @@ double PairHbondDreidingLJ::single(int i, int j, int itype, int jtype,
     int imol = atom->molindex[i];
     int iatom = atom->molatom[i];
     Molecule **onemols = atom->avec->onemols;
-    tlist = onemols[imol]->special[iatom];
+    klist = onemols[imol]->special[iatom];
     knum = onemols[imol]->nspecial[iatom][0];
     tagprev = atom->tag[i] - iatom - 1;
   }
@@ -511,7 +509,7 @@ double PairHbondDreidingLJ::single(int i, int j, int itype, int jtype,
 
   for (kk = 0; kk < knum; kk++) {
     if (molecular == 1) k = atom->map(klist[kk]);
-    else k = atom->map(tlist[kk]+tagprev);
+    else k = atom->map(klist[kk]+tagprev);
 
     if (k < 0) continue;
     ktype = type[k];

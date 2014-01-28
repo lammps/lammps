@@ -59,10 +59,12 @@ class AtomVecTemplate : public AtomVec {
   bigint memory_usage();
 
  protected:
-  int *tag,*type,*mask;
+  tagint *tag;
+  int *type,*mask;
   tagint *image;
   double **x,**v,**f;
-  int *molecule,*molindex,*molatom;
+  tagint *molecule;
+  int *molindex,*molatom;
 };
 
 }

@@ -66,7 +66,6 @@ void AtomVecTemplate::process_args(int narg, char **arg)
   for (int i = 0; i < nset; i++)
     if (onemols[i]->typeflag == 0)
       error->all(FLERR,"Atom style template molecule must have atom types");
-  }
 
   // set bonds_allow,angles_allow,etc based on the molecules in template set
   // similar to how atom_style bond,angle,full set it

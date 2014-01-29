@@ -183,7 +183,9 @@ is not supported by MSM. For MSM, any combination of periodic,
 non-periodic, or shrink-wrapped boundaries can be set using
 <A HREF = "boundary.html">boundary</A> (the slab approximation in not needed).  The
 <I>slab</I> keyword is not currently supported by Ewald or PPPM when using
-a triclinic simulation cell.
+a triclinic simulation cell. The slab correction has also been
+extended to point dipole interactions <A HREF = "#Klapp">(Klapp)</A> in
+<A HREF = "kspace_style.html">kspace_style</A> <I>ewald/disp</I>.
 </P>
 <P>The <I>compute</I> keyword allows Kspace computations to be turned off,
 even though a <A HREF = "kspace_style.html">kspace_style</A> is defined.  This is
@@ -240,7 +242,7 @@ if kspace style <I>ewald</I> is invoked, the values used
 are printed to the screen and
 the log file at the start of the run.
 </P>
-<P>With the <I>mix/disp<I> keyword one can select the mixing rule for the
+<P>With the <I>mix/disp</I> keyword one can select the mixing rule for the
 dispersion coefficients.  With <I>pair</I>, the dispersion coefficients of
 unlike types are computed as indicated with
 <A HREF = "pair_modify.html">pair_modify</A>.  With <I>geom</I>, geometric mixing is
@@ -275,7 +277,8 @@ are different.
 5 (PPPM), order = 10 (MSM), minorder = 2, overlap = yes, force = -1.0,
 gewald = gewald/disp = 0.0, slab = 1.0, compute = yes, cutoff/adjust =
 yes (MSM), fftbench = yes (PPPM), diff = ik (PPPM), mix/disp = pair,
-force/disp/real = -1.0, force/disp/kspace = -1.0, split = 0, and tol = 1.0e-6.
+force/disp/real = -1.0, force/disp/kspace = -1.0, split = 0, and tol =
+1.0e-6.
 </P>
 <HR>
 
@@ -292,6 +295,10 @@ Adam Hilger, NY (1989).
 
 <P><B>(Ballenegger)</B> Ballenegger, Arnold, Cerda, J Chem Phys, 131, 094107
 (2009).
+</P>
+<A NAME = "Klapp"></A>
+
+<P><B>(Klapp)</B> Klapp, Schoen, J Chem Phys, 117, 8050 (2002).
 </P>
 <A NAME = "Hardy"></A>
 

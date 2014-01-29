@@ -75,4 +75,9 @@ E: Pair style nm/cut/coul/cut requires atom attribute q
 
 The atom style defined does not have this attribute.
 
+E: All pair coeffs are not set
+
+All pair coefficients must be set in the data file or by the
+pair_coeff command before running a simulation.
+
 */

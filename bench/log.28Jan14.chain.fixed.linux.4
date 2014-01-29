@@ -1,4 +1,4 @@
-LAMMPS (14 Aug 2013)
+LAMMPS (30 Jan 2014)
 # FENE beadspring benchmark
 
 units		lj
@@ -6,11 +6,15 @@ atom_style	bond
 special_bonds   fene
 
 read_data	data.chain
-  1 = max bonds/atom
   orthogonal box = (-16.796 -16.796 -16.796) to (16.796 16.796 16.796)
   1 by 2 by 2 MPI processor grid
+  reading atoms ...
   32000 atoms
+  reading velocities ...
   32000 velocities
+  scanning bonds ...
+  1 = max bonds/atom
+  reading bonds ...
   31680 bonds
   2 = max # of 1-2 neighbors
   2 = max # of special neighbors
@@ -36,14 +40,14 @@ Memory usage per processor = 4.85536 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0   0.97029772   0.44484087    20.494523    22.394765    4.6721833 
      100   0.97145835   0.43803883    20.502691    22.397872     4.626988 
-Loop time of 0.272427 on 4 procs for 100 steps with 32000 atoms
+Loop time of 0.273179 on 4 procs for 100 steps with 32000 atoms
 
-Pair  time (%) = 0.0509947 (18.7187)
-Bond  time (%) = 0.0227102 (8.33625)
-Neigh time (%) = 0.116272 (42.6802)
-Comm  time (%) = 0.0213055 (7.82062)
-Outpt time (%) = 7.23004e-05 (0.0265394)
-Other time (%) = 0.0610721 (22.4178)
+Pair  time (%) = 0.050166 (18.3638)
+Bond  time (%) = 0.0222697 (8.15205)
+Neigh time (%) = 0.119487 (43.7393)
+Comm  time (%) = 0.0235835 (8.633)
+Outpt time (%) = 5.48959e-05 (0.0200952)
+Other time (%) = 0.0576181 (21.0917)
 
 Nlocal:    8000 ave 8030 max 7974 min
 Histogram: 1 0 0 1 0 1 0 0 0 1

@@ -120,6 +120,10 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
+E: Fix gcmc does not (yet) work with atom_style template
+
+UNDOCUMENTED
+
 E: Fix gcmc region does not support a bounding box
 
 Not all regions represent bounded volumes.  You cannot use

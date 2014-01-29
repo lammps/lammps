@@ -270,10 +270,10 @@ void CreateAtoms::command(int narg, char **arg)
   if (atom->tag_enable) atom->tag_extend();
   atom->tag_check();
 
-  // if molecular system or user-requested, create global mapping of atoms
+  // create global mapping of atoms
   // zero nghost in case are adding new atoms to existing atoms
 
-  if (atom->molecular || atom->map_user) {
+  if (atom->map_style) {
     atom->nghost = 0;
     atom->map_init();
     atom->map_set();

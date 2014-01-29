@@ -108,9 +108,17 @@ E: Too many timesteps
 
 The cummulative timesteps must fit in a 64-bit integer.
 
-E: Incorrect format in NEB coordinate file
+E: Unexpected end of neb file
 
-Self-explanatory.
+UNDOCUMENTED
+
+E: Incorrect atom format in neb file
+
+UNDOCUMENTED
+
+E: Invalid atom IDs in neb file
+
+UNDOCUMENTED
 
 E: Cannot open gzipped file
 
@@ -122,5 +130,9 @@ E: Cannot open file %s
 The specified file cannot be opened.  Check that the path and name are
 correct. If the file is a compressed file, also check that the gzip
 executable can be found and run.
+
+U: Incorrect format in NEB coordinate file
+
+Self-explanatory.
 
 */

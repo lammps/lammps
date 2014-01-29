@@ -105,6 +105,10 @@ E: Invalid keyword in compute property/local command
 
 Self-explanatory.
 
+E: Compute property/local does not (yet) work with atom_style template
+
+UNDOCUMENTED
+
 E: Compute property/local for property that isn't allocated
 
 Self-explanatory.

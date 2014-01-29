@@ -134,6 +134,10 @@ class Dump : protected Pointers {
 
 /* ERROR/WARNING messages:
 
+E: Dump file MPI-IO output not allowed with '%' in filename
+
+UNDOCUMENTED
+
 E: Cannot dump sort when multiple procs write the dump file
 
 UNDOCUMENTED
@@ -155,6 +159,10 @@ E: Too much per-proc info for dump
 Number of local atoms times number of columns must fit in a 32-bit
 integer for dump.
 
+E: Too much buffered per-proc info for dump
+
+UNDOCUMENTED
+
 E: Cannot open gzipped file
 
 LAMMPS was compiled without support for reading and writing gzipped
@@ -162,15 +170,18 @@ files through a pipeline to the gzip program with -DLAMMPS_GZIP.
 
 E: Cannot open dump file
 
-The specified file cannot be opened.  Check that the path and name are
-correct. If the file is a compressed file, also check that the gzip
-executable can be found and run.
+The output file for the dump command cannot be opened.  Check that the
+path and name are correct.
 
 E: Illegal ... command
 
 Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
+
+E: Dump_modify buffer yes not allowed for this style
+
+UNDOCUMENTED
 
 E: Cannot use dump_modify fileper without % in dump file name
 

@@ -103,7 +103,8 @@ The values in the tabulated file must be monotonically increasing.
 E: Cannot open file %s
 
 The specified file cannot be opened.  Check that the path and name are
-correct.
+correct. If the file is a compressed file, also check that the gzip
+executable can be found and run.
 
 E: Did not find keyword in table file
 

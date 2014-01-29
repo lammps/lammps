@@ -117,7 +117,8 @@ This feature is not yet supported.
 
 E: Pair cutoff < Respa interior cutoff
 
-UNDOCUMENTED
+One or more pairwise cutoffs are too short to use with the specified
+rRESPA cutoffs.
 
 U: Using largest cutoff for lj/long/dipole/long
 

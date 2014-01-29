@@ -1,4 +1,4 @@
-LAMMPS (14 Aug 2013)
+LAMMPS (30 Jan 2014)
 # LAMMPS benchmark of granular flow
 # chute flow of 32000 atoms with frozen base at 26 degrees
 
@@ -14,7 +14,9 @@ communicate	single vel yes
 read_data	data.chute
   orthogonal box = (0 0 0) to (40 20 37.2886)
   2 by 1 by 2 MPI processor grid
+  reading atoms ...
   32000 atoms
+  reading velocities ...
   32000 velocities
 
 replicate	$x $y 1
@@ -48,17 +50,17 @@ thermo_modify	norm no
 thermo		100
 
 run		100
-Memory usage per processor = 21.8161 Mbytes
+Memory usage per processor = 22.3334 Mbytes
 Step Atoms KinEng 1 Volume 
        0   128000    3136556.5    6404.5051    119335.13 
      100   128000    3137168.3    6284.3873    119338.83 
-Loop time of 1.01235 on 4 procs for 100 steps with 128000 atoms
+Loop time of 0.981477 on 4 procs for 100 steps with 128000 atoms
 
-Pair  time (%) = 0.508497 (50.2295)
-Neigh time (%) = 0.0454835 (4.49288)
-Comm  time (%) = 0.0667624 (6.59481)
-Outpt time (%) = 0.00123399 (0.121894)
-Other time (%) = 0.390371 (38.5609)
+Pair  time (%) = 0.507874 (51.7459)
+Neigh time (%) = 0.0444019 (4.52399)
+Comm  time (%) = 0.065434 (6.6669)
+Outpt time (%) = 0.000373006 (0.0380046)
+Other time (%) = 0.363394 (37.0252)
 
 Nlocal:    32000 ave 32000 max 32000 min
 Histogram: 4 0 0 0 0 0 0 0 0 0

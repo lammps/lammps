@@ -197,17 +197,33 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Fix rigid/small langevin period must be > 0.0
-
-Self-explanatory.
-
 E: Fix rigid/small requires atom attribute molecule
 
 Self-explanatory.
 
-E: No rigid bodies defined
+E: Fix rigid/small requires an atom map, see atom_modify
 
-The fix specification did not end up defining any rigid bodies.
+UNDOCUMENTED
+
+E: Fix rigid/small langevin period must be > 0.0
+
+Self-explanatory.
+
+E: Molecule template ID for fix rigid/small does not exist
+
+UNDOCUMENTED
+
+W: Molecule template for fix rigid/small has multiple molecules
+
+UNDOCUMENTED
+
+E: Fix rigid/small molecule must have coordinates
+
+UNDOCUMENTED
+
+E: Fix rigid/small molecule must have atom types
+
+UNDOCUMENTED
 
 W: More than one fix rigid
 
@@ -243,7 +259,39 @@ E: Fix rigid: Bad principal moments
 The principal moments of inertia computed for a rigid body
 are not within the required tolerances.
 
-E: Rigid body atoms %d %d missing on proc %d at step %ld
+E: Cannot open fix rigid/small infile %s
+
+UNDOCUMENTED
+
+E: Unexpected end of fix rigid/small file
+
+UNDOCUMENTED
+
+E: Fix rigid file has no lines
+
+UNDOCUMENTED
+
+E: Incorrect rigid body format in fix rigid/small file
+
+UNDOCUMENTED
+
+E: Invalid rigid body ID in fix rigid/small file
+
+UNDOCUMENTED
+
+E: Cannot open fix rigid restart file %s
+
+UNDOCUMENTED
+
+E: Rigid body atoms   missing on proc %d at step %ld
+
+UNDOCUMENTED
+
+U: No rigid bodies defined
+
+The fix specification did not end up defining any rigid bodies.
+
+U: Rigid body atoms %d %d missing on proc %d at step %ld
 
 This means that an atom cannot find the atom that owns the rigid body
 it is part of, or vice versa.  The solution is to use the communicate

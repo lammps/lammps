@@ -58,10 +58,9 @@ class DihedralClass2 : public Dihedral {
 
 /* ERROR/WARNING messages:
 
-W: Dihedral problem: %d %ld %d %d %d %d
+W: Dihedral problem: %d %ld    
 
-Conformation of the 4 listed dihedral atoms is extreme; you may want
-to check your simulation geometry.
+UNDOCUMENTED
 
 E: Invalid coeffs for this dihedral style
 
@@ -70,5 +69,10 @@ Cannot set class 2 coeffs in data file for this dihedral style.
 E: Incorrect args for dihedral coefficients
 
 Self-explanatory.  Check the input script or data file.
+
+U: Dihedral problem: %d %ld %d %d %d %d
+
+Conformation of the 4 listed dihedral atoms is extreme; you may want
+to check your simulation geometry.
 
 */

@@ -56,18 +56,50 @@ class ComputeVoronoi : public Compute {
 
 /* ERROR/WARNING messages:
 
+E: Missing atom style variable for radical voronoi tesselation radius.
+
+UNDOCUMENTED
+
+E: Missing group name after keyword 'surface'.
+
+UNDOCUMENTED
+
+E: Could not find compute/voronoi surface group ID
+
+UNDOCUMENTED
+
+E: Missing maximum edge count after keyword 'edge_histo'.
+
+UNDOCUMENTED
+
+E: Missing minimum face area after keyword 'face_threshold'.
+
+UNDOCUMENTED
+
+E: Missing minimum edge length after keyword 'edge_threshold'.
+
+UNDOCUMENTED
+
 E: Illegal ... command
 
 Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Compute voronoi/atom not allowed for triclinic boxes
-
-This is a current restriction of this command.
-
 W: More than one compute voronoi/atom command
 
 It is not efficient to use compute voronoi/atom more than once.
+
+E: Variable name for voronoi radius set does not exist
+
+UNDOCUMENTED
+
+E: Variable for voronoi radius is not atom style
+
+UNDOCUMENTED
+
+U: Compute voronoi/atom not allowed for triclinic boxes
+
+This is a current restriction of this command.
 
 */

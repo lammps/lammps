@@ -71,19 +71,23 @@ class PairLJCutTIP4PCut : public Pair {
 
 E: TIP4P hydrogen is missing
 
-UNDOCUMENTED
+The TIP4P pairwise computation failed to find the correct H atom
+within a water molecule.
 
 E: TIP4P hydrogen has incorrect atom type
 
-UNDOCUMENTED
+The TIP4P pairwise computation found an H atom whose type does not
+agree with the specified H type.
 
 E: Illegal ... command
 
-UNDOCUMENTED
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
 
 E: Incorrect args for pair coefficients
 
-UNDOCUMENTED
+Self-explanatory.  Check the input script or data file.
 
 E: Pair style lj/cut/tip4p/cut requires atom IDs
 
@@ -99,11 +103,13 @@ UNDOCUMENTED
 
 E: Must use a bond style with TIP4P potential
 
-UNDOCUMENTED
+TIP4P potentials assume bond lengths in water are constrained
+by a fix shake command.
 
 E: Must use an angle style with TIP4P potential
 
-UNDOCUMENTED
+TIP4P potentials assume angles in water are constrained by a fix shake
+command.
 
 E: Water H epsilon must be 0.0 for pair style lj/cut/tip4p/cut
 

@@ -168,18 +168,14 @@ E: Invalid args for non-hybrid pair coefficients
 
 "NULL" is only supported in pair_coeff calls when using pair hybrid
 
-E: PairKIM only works with 3D problems
+E: PairKIM only works with 3D problems.
 
-The KIM API does not explicitly support anything other than 3D problems
+UNDOCUMENTED
 
 E: All pair coeffs are not set
 
 All pair coefficients must be set in the data file or by the
 pair_coeff command before running a simulation.
-
-E: Internal KIM error
-
-Self-explanatory. Check the output and kim.log file for more details.
 
 E: KIM neighbor iterator exceeded range
 
@@ -211,7 +207,19 @@ W: KIM Model does not provide `particleVirial'; virial per atom will be zero
 
 Self-explanatory.
 
-E: test_descriptor_string already allocated
+E: test_descriptor_string already allocated.
+
+UNDOCUMENTED
+
+U: PairKIM only works with 3D problems
+
+The KIM API does not explicitly support anything other than 3D problems
+
+U: Internal KIM error
+
+Self-explanatory. Check the output and kim.log file for more details.
+
+U: test_descriptor_string already allocated
 
 This should not happen. It likely indicates a bug in the pair_kim
 implementation.

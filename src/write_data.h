@@ -63,7 +63,9 @@ UNDOCUMENTED
 
 E: Illegal ... command
 
-UNDOCUMENTED
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
 
 E: Atom count is inconsistent, cannot write data file
 

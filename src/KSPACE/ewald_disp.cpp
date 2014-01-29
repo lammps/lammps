@@ -1345,6 +1345,11 @@ void EwaldDisp::compute_slabcorr()
   double dipole = 0.0;
   for (int i = 0; i < nlocal; i++) dipole += q[i]*x[i][2];
 
+  if (function[3] && atom->mu) {
+    double **mu = atom->mu;
+    for (int i = 0; i < nlocal; i++) dipole += mu[i][2];
+  }
+
   // sum local contributions to get global dipole moment
 
   double dipole_all;
@@ -1355,6 +1360,11 @@ void EwaldDisp::compute_slabcorr()
 
   double dipole_r2 = 0.0;
   if (eflag_atom || fabs(qsum) > SMALL) {
+
+    if (function[3] && atom->mu)
+      error->all(FLERR,"Cannot (yet) use kspace slab correction with "
+        "long-range dipoles and non-neutral systems or per-atom energy");
+
     for (int i = 0; i < nlocal; i++)
       dipole_r2 += q[i]*x[i][2]*x[i][2];
 
@@ -1388,6 +1398,17 @@ void EwaldDisp::compute_slabcorr()
   double **f = atom->f;
 
   for (int i = 0; i < nlocal; i++) f[i][2] += ffact * q[i]*(dipole_all - qsum*x[i][2]);
+
+  // add on torque corrections
+
+  if (function[3] && atom->mu && atom->torque) {
+    double **mu = atom->mu;
+    double **torque = atom->torque;
+    for (int i = 0; i < nlocal; i++) {
+      torque[i][0] += ffact * dipole_all * mu[i][1];
+      torque[i][1] += -ffact * dipole_all * mu[i][0];
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------

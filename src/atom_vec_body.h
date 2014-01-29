@@ -131,10 +131,6 @@ E: Per-processor system is too big
 The number of owned atoms plus ghost atoms on a single
 processor must fit in 32-bit integer.
 
-E: Invalid atom ID in Atoms section of data file
-
-Atom IDs must be positive integers.
-
 E: Invalid atom type in Atoms section of data file
 
 Atom types must range from 1 to specified # of types.
@@ -146,5 +142,9 @@ Density value cannot be <= 0.0.
 E: Assigning body parameters to non-body atom
 
 Self-explanatory.
+
+U: Invalid atom ID in Atoms section of data file
+
+Atom IDs must be positive integers.
 
 */

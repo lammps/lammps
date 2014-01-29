@@ -75,4 +75,8 @@ W: No Kspace calculation with verlet/split
 The 2nd partition performs a kspace calculation so the kspace_style
 command must be used.
 
+E: Verlet/split does not yet support TIP4P
+
+UNDOCUMENTED
+
 */

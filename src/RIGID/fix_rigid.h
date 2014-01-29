@@ -158,6 +158,10 @@ E: Fix rigid molecule requires atom attribute molecule
 
 Self-explanatory.
 
+E: Too many molecules for fix rigid
+
+UNDOCUMENTED
+
 E: Could not find fix rigid group ID
 
 A group ID used in the fix rigid command does not exist.
@@ -235,6 +239,10 @@ E: Unexpected end of fix rigid file
 
 A read operation from the file failed.
 
+E: Fix rigid file has no lines
+
+UNDOCUMENTED
+
 E: Incorrect rigid body format in fix rigid file
 
 The number of fields per line is not what expected.
@@ -243,5 +251,9 @@ E: Invalid rigid body ID in fix rigid file
 
 The ID does not match the number or an existing ID of rigid bodies
 that are defined by the fix rigid command.
+
+E: Cannot open fix rigid restart file %s
+
+UNDOCUMENTED
 
 */

@@ -281,6 +281,10 @@ class Atom : protected Pointers {
 
 /* ERROR/WARNING messages:
 
+E: Atom IDs must be used for molecular systems
+
+UNDOCUMENTED
+
 E: Invalid atom style
 
 The choice of atom style is unknown.
@@ -295,6 +299,10 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
+E: Atom_modify id command after simulation box is defined
+
+UNDOCUMENTED
+
 E: Atom_modify map command after simulation box is defined
 
 The atom_modify map command cannot be used after a read_data,
@@ -303,6 +311,26 @@ read_restart, or create_box command.
 E: Atom_modify sort and first options cannot be used together
 
 Self-explanatory.
+
+E: Atom ID is negative
+
+UNDOCUMENTED
+
+E: Atom ID is too big
+
+UNDOCUMENTED
+
+E: Atom ID is zero
+
+UNDOCUMENTED
+
+E: Not all atom IDs are 0
+
+UNDOCUMENTED
+
+E: New atom IDs exceed maximum allowed ID
+
+UNDOCUMENTED
 
 E: Incorrect atom format in data file
 
@@ -315,21 +343,6 @@ Each atom style defines a format for the Velocity section
 of the data file.  The read-in lines do not match.
 
 E: Invalid atom ID in Velocities section of data file
-
-Atom IDs must be positive integers and within range of defined
-atoms.
-
-E: Incorrect bonus data format in data file
-
-See the read_data doc page for a description of how various kinds of
-bonus data must be formatted for certain atom styles.
-
-E: Invalid atom ID in Bonus section of data file
-
-Atom IDs must be positive integers and within range of defined
-atoms.
-
-E: Invalid atom ID in Bodies section of data file
 
 Atom IDs must be positive integers and within range of defined
 atoms.
@@ -374,6 +387,21 @@ E: Invalid improper type in Impropers section of data file
 Improper type must be positive integer and within range of specified
 improper types.
 
+E: Incorrect bonus data format in data file
+
+See the read_data doc page for a description of how various kinds of
+bonus data must be formatted for certain atom styles.
+
+E: Invalid atom ID in Bonus section of data file
+
+Atom IDs must be positive integers and within range of defined
+atoms.
+
+E: Invalid atom ID in Bodies section of data file
+
+Atom IDs must be positive integers and within range of defined
+atoms.
+
 E: Cannot set mass for this atom style
 
 This atom style does not support mass settings for each atom type.
@@ -398,6 +426,10 @@ For atom styles that define masses for each atom type, all masses must
 be set in the data file or by the mass command before running a
 simulation.  They must also be set before using the velocity
 command.
+
+E: Reuse of molecule template ID
+
+UNDOCUMENTED
 
 E: Atom sort did not operate correctly
 

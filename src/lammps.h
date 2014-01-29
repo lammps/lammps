@@ -102,7 +102,8 @@ created.
 
 E: Cannot open log.lammps for writing
 
-UNDOCUMENTED
+The default LAMMPS log file cannot be opened.  Check that the
+directory you are running in allows for files to be created.
 
 E: Cannot open universe log file
 
@@ -131,7 +132,7 @@ It has to be the size of an integer.
 
 E: Imageint setting in lmptype.h is invalid
 
-UNDOCUMENTED
+Imageint must be as large or larger than smallint.
 
 E: Tagint setting in lmptype.h is invalid
 
@@ -151,20 +152,13 @@ The size of the MPI datatype does not match the size of a bigint.
 
 E: Small to big integers are not sized correctly
 
-UNDOCUMENTED
+This error occurs whenthe sizes of smallint, imageint, tagint, bigint,
+as defined in src/lmptype.h are not what is expected.  Contact
+the developers if this occurs.
 
 E: Cannot use -cuda on without USER-CUDA installed
 
 The USER-CUDA package must be installed via "make yes-user-cuda"
 before LAMMPS is built.
-
-U: Cannot open log.lammps
-
-The default LAMMPS log file cannot be opened.  Check that the
-directory you are running in allows for files to be created.
-
-U: Small, tag, big integers are not sized correctly
-
-See description of these 3 data types in src/lmptype.h.
 
 */

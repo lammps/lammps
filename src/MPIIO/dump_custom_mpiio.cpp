@@ -123,7 +123,6 @@ void DumpCustomMPIIO::openfile()
 
     MPI_File_set_size(mpifh,(MPI_Offset) (headerSize+sumFileSize));
     currentFileSize = (headerSize+sumFileSize);
-
   }
 }
 

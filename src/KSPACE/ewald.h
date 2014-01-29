@@ -133,11 +133,6 @@ The kspace accuracy designated in the input must be greater than zero.
 
 E: Cannot (yet) use K-space slab correction with compute group/group for triclinic systems
 
-UNDOCUMENTED
-
-U: Cannot (yet) use K-space slab correction with compute group/group
-for triclinic systems
-
 This option is not yet supported.
 
 */

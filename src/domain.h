@@ -212,7 +212,7 @@ The 2nd atoms needed to compute a particular bond is missing on this
 processor.  Typically this is because the pairwise cutoff is set too
 short or the bond has blown apart and an atom is too far away.
 
-W: Bond atoms missing in box size check
+W: Bond atom missing in box size check
 
 The 2nd atoms needed to compute a particular bond is missing on this
 processor.  Typically this is because the pairwise cutoff is set too

@@ -86,22 +86,23 @@ format string specifies.
 
 E: Could not find dump custom compute ID
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Could not find dump custom fix ID
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Dump custom and fix not computed at compatible times
 
-UNDOCUMENTED
+The fix must produce per-atom quantities on timesteps that dump custom
+needs them.
 
 E: Could not find dump custom variable name
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Region ID for dump custom does not exist
 
-UNDOCUMENTED
+Self-explanatory.
 
 */

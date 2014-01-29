@@ -194,7 +194,9 @@ The kspace accuracy designated in the input must be greater than zero.
 
 W: Number of MSM mesh points changed to be a multiple of 2
 
-UNDOCUMENTED
+MSM requires that the number of grid points in each direction be a multiple
+of two and the number of grid points in one or more directions have been
+adjusted to meet this requirement.
 
 W: Adjusting Coulombic cutoff for MSM, new cutoff = %g
 
@@ -230,11 +232,5 @@ every 1 check yes".  Second, it may mean that an atom has moved far
 outside a processor's sub-domain or even the entire simulation box.
 This indicates bad physics, e.g. due to highly overlapping atoms, too
 large a timestep, etc.
-
-U: Number of MSM mesh points increased to be a multiple of 2
-
-MSM requires that the number of grid points in each direction be a multiple
-of two and the number of grid points in one or more directions have been
-adjusted to meet this requirement.
 
 */

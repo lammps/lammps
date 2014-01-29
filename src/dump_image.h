@@ -170,7 +170,8 @@ See the dump_modify doc page.
 
 E: Invalid color map min/max values
 
-UNDOCUMENTED
+The min/max values are not consistent with either each other or
+with values in the color map.
 
 E: Invalid dump image zoom value
 

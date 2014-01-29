@@ -473,7 +473,8 @@ void KSpace::modify_params(int narg, char **arg)
     } else if (strcmp(arg[iarg],"eigtol") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
       splittol = atof(arg[iarg+1]);
-      if (splittol >= 1.0) error->all(FLERR,"eigtol must be smaller than one");
+      if (splittol >= 1.0) 
+        error->all(FLERR,"Kspace_modify eigtol must be smaller than one");
       iarg += 2;
     } else error->all(FLERR,"Illegal kspace_modify command");
   }

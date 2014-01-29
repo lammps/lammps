@@ -145,7 +145,8 @@ The command is not known to LAMMPS.  Check the input script.
 
 E: Invalid use of library file() function
 
-UNDOCUMENTED
+This function is called thru the library interface.  This
+error should not occur.  Contact the developers if it does.
 
 E: Cannot open input script %s
 
@@ -181,7 +182,7 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Cannot use include command within an if command
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Cannot open logfile %s
 
@@ -190,7 +191,7 @@ Check that the path and name are correct.
 
 E: Cannot open print file %s
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Angle_coeff command before simulation box is defined
 
@@ -344,10 +345,5 @@ E: Units command after simulation box is defined
 
 The units command cannot be used after a read_data, read_restart, or
 create_box command.
-
-U: Another input script is already being processed
-
-Cannot attempt to open a 2nd input script, when the original file is
-still being processed.
 
 */

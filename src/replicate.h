@@ -66,10 +66,9 @@ The replicate command cannot duplicate that information for new atoms.
 You should use the replicate command before fixes are applied to the
 system.
 
-E: Replicated molecular system atom IDs are too big
+E: Replicated system atom IDs are too big
 
-See the setting for the allowed atom ID size in the src/lmptype.h
-file.
+UNDOCUMENTED
 
 E: Replicated system is too big
 
@@ -80,5 +79,10 @@ E: Replicate did not assign all atoms correctly
 Atoms replicated by the replicate command were not assigned correctly
 to processors.  This is likely due to some atom coordinates being
 outside a non-periodic simulation box.
+
+U: Replicated molecular system atom IDs are too big
+
+See the setting for the allowed atom ID size in the src/lmptype.h
+file.
 
 */

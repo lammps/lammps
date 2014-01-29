@@ -38,5 +38,8 @@ class CiteMe : protected Pointers {
 
 /* ERROR/WARNING messages:
 
+E: Could not open log.cite file
+
+UNDOCUMENTED
 
 */

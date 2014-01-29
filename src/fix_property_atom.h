@@ -66,4 +66,42 @@ class FixPropertyAtom : public Fix {
 
 /* ERROR/WARNING messages:
 
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Fix property/atom mol when atom_style already has molecule attribute
+
+UNDOCUMENTED
+
+E: Fix property/atom cannot specify mol twice
+
+UNDOCUMENTED
+
+E: Fix property/atom q when atom_style already has charge attribute
+
+UNDOCUMENTED
+
+E: Fix property/atom cannot specify q twice
+
+UNDOCUMENTED
+
+E: Fix property/atom vector name already exists
+
+UNDOCUMENTED
+
+E: Atom style was redefined after using fix property/atom
+
+UNDOCUMENTED
+
+E: Incorrect %s format in data file
+
+UNDOCUMENTED
+
+E: Invalid atom ID in %s section of data file
+
+UNDOCUMENTED
+
 */

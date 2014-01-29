@@ -49,19 +49,28 @@ class PairSWGPU : public PairSW {
 
 /* ERROR/WARNING messages:
 
-E: Insufficient memory on accelerator
+E: Illegal ... command
 
-There is insufficient memory on one of the devices specified for the gpu
-package
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
 
-E: Pair style sw/gpu requires newton pair on
+E: Incorrect args for pair coefficients
 
-See the newton command.  This is a restriction to use the SW
-potential.
+Self-explanatory.  Check the input script or data file.
 
-E: Pair style sw/gpu is currently limited to one element.
+E: No matching element in ADP potential file
 
-Self-explanatory.
+The ADP potential file does not contain elements that match the
+requested elements.
+
+E: Cannot open ADP potential file %s
+
+The specified ADP potential file cannot be opened.  Check that the
+path and name are correct.
+
+E: Incorrect element names in ADP potential file
+
+The element names in the ADP file do not match those requested.
 
 */
-

@@ -93,9 +93,9 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Cannot use fix tune/kspace without kspace
+E: Cannot use fix tune/kspace without a kspace style
 
-This fix (tune/kspace) can only be used when a kspace style has been specified.
+UNDOCUMENTED
 
 E: Cannot use fix tune/kspace without a pair style
 
@@ -105,5 +105,9 @@ E: Bad real space Coulomb cutoff in fix tune/kspace
 
 Fix tune/kspace tried to find the optimal real space Coulomb cutoff using
 the Newton-Rhaphson method, but found a non-positive or NaN cutoff
+
+U: Cannot use fix tune/kspace without kspace
+
+This fix (tune/kspace) can only be used when a kspace style has been specified.
 
 */

@@ -86,7 +86,11 @@ The 4 atoms in a restrain dihedral specified by the fix restrain
 command are not all accessible to a processor.  This probably means an
 atom has moved too far.
 
-W: Restrain problem: %d %ld %d %d %d %d
+W: Restrain problem: %d %ld    
+
+UNDOCUMENTED
+
+U: Restrain problem: %d %ld %d %d %d %d
 
 Conformation of the 4 listed dihedral atoms is extreme; you may want
 to check your simulation geometry.

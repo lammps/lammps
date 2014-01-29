@@ -1,5 +1,6 @@
 # REAX potential for Nitroamines system
 # .....
+
 dimension      3
 boundary  p p p
 units		real
@@ -27,6 +28,7 @@ thermo_style custom step temp epair etotal press
 thermo     5000
 timestep	0.2
 
-dump		5 all xyz 5000 dumpnvt.xyz
-dump            6 all custom 5000 dumpidtype.dat id type x y z 
+#dump		5 all xyz 5000 dumpnvt.xyz
+#dump            6 all custom 5000 dumpidtype.dat id type x y z 
+
 run		1000000

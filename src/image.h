@@ -177,7 +177,7 @@ E: Invalid image up vector
 
 Up vector cannot be (0,0,0).
 
-E: Invalid image color range
+U: Invalid image color range
 
 The lo value in the range is larger than the hi value.
 

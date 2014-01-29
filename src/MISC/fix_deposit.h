@@ -75,6 +75,10 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
+E: Invalid atom type in fix deposit command
+
+UNDOCUMENTED
+
 E: Must specify a region in fix deposit
 
 The region keyword must be specified with this fix.
@@ -92,15 +96,79 @@ E: Deposition region extends outside simulation box
 
 Self-explanatory.
 
+E: Cannot use fix_deposit unless atoms have IDs
+
+UNDOCUMENTED
+
+E: Fix deposit molecule must have coordinates
+
+UNDOCUMENTED
+
+E: Fix deposit molecule must have atom types
+
+UNDOCUMENTED
+
+E: Invalid atom type in fix deposit mol command
+
+UNDOCUMENTED
+
+E: Fix deposit molecule template ID must be same as atom style template ID
+
+UNDOCUMENTED
+
+E: Cannot use fix deposit rigid and not molecule
+
+UNDOCUMENTED
+
+E: Cannot use fix deposit shake and not molecule
+
+UNDOCUMENTED
+
+E: Cannot use fix deposit rigid and shake
+
+UNDOCUMENTED
+
 E: Region ID for fix deposit does not exist
 
 Self-explanatory.
+
+E: Fix pour rigid fix does not exist
+
+UNDOCUMENTED
+
+E: Fix deposit and fix rigid/small not using same molecule template ID
+
+UNDOCUMENTED
+
+E: Fix deposit shake fix does not exist
+
+UNDOCUMENTED
+
+E: Fix deposit and fix shake not using same molecule template ID
+
+UNDOCUMENTED
 
 W: Particle deposition was unsuccessful
 
 The fix deposit command was not able to insert as many atoms as
 needed.  The requested volume fraction may be too high, or other atoms
 may be in the insertion region.
+
+E: Too many total atoms
+
+See the setting for bigint in the src/lmptype.h file.
+
+E: New atom IDs exceed maximum allowed ID
+
+UNDOCUMENTED
+
+E: Molecule template ID for fix deposit does not exist
+
+UNDOCUMENTED
+
+W: Molecule template for fix deposit has multiple molecules
+
+UNDOCUMENTED
 
 U: Use of fix deposit with undefined lattice
 

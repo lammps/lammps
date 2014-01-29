@@ -73,3 +73,16 @@ class DumpAtomMPIIO : public DumpAtom {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Cannot open dump file %s
+
+UNDOCUMENTED
+
+E: Too much per-proc info for dump
+
+Number of local atoms times number of columns must fit in a 32-bit
+integer for dump.
+
+*/

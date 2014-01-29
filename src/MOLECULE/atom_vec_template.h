@@ -74,6 +74,18 @@ class AtomVecTemplate : public AtomVec {
 
 /* ERROR/WARNING messages:
 
+E: Invalid atom_style template command
+
+UNDOCUMENTED
+
+E: Molecule template ID for atom_style template does not exist
+
+UNDOCUMENTED
+
+E: Atom style template molecule must have atom types
+
+UNDOCUMENTED
+
 E: Per-processor system is too big
 
 The number of owned atoms plus ghost atoms on a single
@@ -82,6 +94,14 @@ processor must fit in 32-bit integer.
 E: Invalid atom ID in Atoms section of data file
 
 Atom IDs must be positive integers.
+
+E: Invalid template index in Atoms section of data file
+
+UNDOCUMENTED
+
+E: Invalid template atom in Atoms section of data file
+
+UNDOCUMENTED
 
 E: Invalid atom type in Atoms section of data file
 

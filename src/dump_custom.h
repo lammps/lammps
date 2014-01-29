@@ -240,9 +240,9 @@ E: Dump custom compute does not calculate per-atom vector
 
 Self-explanatory.
 
-E: Dump custom compute does not calculate per-atom array
+E: \n
 
-Self-explanatory.
+UNDOCUMENTED
 
 E: Dump custom compute vector is accessed out-of-range
 
@@ -338,5 +338,9 @@ Self-explanatory.
 E: Invalid dump_modify threshhold operator
 
 Operator keyword used for threshold specification in not recognized.
+
+U: Dump custom compute does not calculate per-atom array
+
+Self-explanatory.
 
 */

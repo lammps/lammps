@@ -61,3 +61,168 @@ class DumpXYZMPIIO : public DumpXYZ {
 #endif
 #endif
 
+/* ERROR/WARNING messages:
+
+E: No dump custom arguments specified
+
+The dump custom command requires that atom quantities be specified to
+output to dump file.
+
+E: Invalid attribute in dump custom command
+
+Self-explantory.
+
+E: Dump_modify format string is too short
+
+There are more fields to be dumped in a line of output than
+your format string specifies.
+
+E: Could not find dump custom compute ID
+
+The compute ID needed by dump custom to compute a per-atom quantity
+does not exist.
+
+E: Could not find dump custom fix ID
+
+Self-explanatory.
+
+E: Dump custom and fix not computed at compatible times
+
+The fix must produce per-atom quantities on timesteps that dump custom
+needs them.
+
+E: Could not find dump custom variable name
+
+Self-explanatory.
+
+E: Region ID for dump custom does not exist
+
+Self-explanatory.
+
+E: Threshhold for an atom property that isn't allocated
+
+A dump threshhold has been requested on a quantity that is
+not defined by the atom style used in this simulation.
+
+E: Dumping an atom property that isn't allocated
+
+The chosen atom style does not define the per-atom quantity being
+dumped.
+
+E: Dumping an atom quantity that isn't allocated
+
+Only per-atom quantities that are defined for the atom style being
+used are allowed.
+
+E: Dump custom compute does not compute per-atom info
+
+Self-explanatory.
+
+E: Dump custom compute does not calculate per-atom vector
+
+Self-explanatory.
+
+E: \n
+
+UNDOCUMENTED
+
+E: Dump custom compute vector is accessed out-of-range
+
+Self-explanatory.
+
+E: Dump custom fix does not compute per-atom info
+
+Self-explanatory.
+
+E: Dump custom fix does not compute per-atom vector
+
+Self-explanatory.
+
+E: Dump custom fix does not compute per-atom array
+
+Self-explanatory.
+
+E: Dump custom fix vector is accessed out-of-range
+
+Self-explanatory.
+
+E: Dump custom variable is not atom-style variable
+
+Only atom-style variables generate per-atom quantities, needed for
+dump output.
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Dump_modify region ID does not exist
+
+Self-explanatory.
+
+E: Dump modify element names do not match atom types
+
+Number of element names must equal number of atom types.
+
+E: Invalid attribute in dump modify command
+
+Self-explantory.
+
+E: Could not find dump modify compute ID
+
+Self-explanatory.
+
+E: Dump modify compute ID does not compute per-atom info
+
+Self-explanatory.
+
+E: Dump modify compute ID does not compute per-atom vector
+
+Self-explanatory.
+
+E: Dump modify compute ID does not compute per-atom array
+
+Self-explanatory.
+
+E: Dump modify compute ID vector is not large enough
+
+Self-explanatory.
+
+E: Could not find dump modify fix ID
+
+Self-explanatory.
+
+E: Dump modify fix ID does not compute per-atom info
+
+Self-explanatory.
+
+E: Dump modify fix ID does not compute per-atom vector
+
+Self-explanatory.
+
+E: Dump modify fix ID does not compute per-atom array
+
+Self-explanatory.
+
+E: Dump modify fix ID vector is not large enough
+
+Self-explanatory.
+
+E: Could not find dump modify variable name
+
+Self-explanatory.
+
+E: Dump modify variable is not atom-style variable
+
+Self-explanatory.
+
+E: Invalid dump_modify threshhold operator
+
+Operator keyword used for threshold specification in not recognized.
+
+U: Dump custom compute does not calculate per-atom array
+
+Self-explanatory.
+
+*/

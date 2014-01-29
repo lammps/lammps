@@ -94,7 +94,6 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
   int mapflag = 0;
   if (atom->map_style == 0) {
     mapflag = 1;
-    atom->map_style = 1;
     atom->map_init();
     atom->map_set();
   }

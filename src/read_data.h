@@ -115,39 +115,6 @@ E: Must read Atoms before Velocities
 The Atoms section of a data file must come before a Velocities
 section.
 
-E: Invalid data file section: Ellipsoids
-
-Atom style does not allow ellipsoids.
-
-E: Must read Atoms before Ellipsoids
-
-The Atoms section of a data file must come before a Ellipsoids
-section.
-
-E: Invalid data file section: Lines
-
-Atom style does not allow lines.
-
-E: Must read Atoms before Lines
-
-The Atoms section of a data file must come before a Lines section.
-
-E: Invalid data file section: Triangles
-
-Atom style does not allow triangles.
-
-E: Must read Atoms before Triangles
-
-The Atoms section of a data file must come before a Triangles section.
-
-E: Invalid data file section: Bodies
-
-Atom style does not allow bodies.
-
-E: Must read Atoms before Bodies
-
-The Atoms section of a data file must come before a Bodies section.
-
 E: Invalid data file section: Bonds
 
 Atom style does not allow bonds.
@@ -180,6 +147,39 @@ E: Must read Atoms before Impropers
 
 The Atoms section of a data file must come before an Impropers
 section.
+
+E: Invalid data file section: Ellipsoids
+
+Atom style does not allow ellipsoids.
+
+E: Must read Atoms before Ellipsoids
+
+The Atoms section of a data file must come before a Ellipsoids
+section.
+
+E: Invalid data file section: Lines
+
+Atom style does not allow lines.
+
+E: Must read Atoms before Lines
+
+The Atoms section of a data file must come before a Lines section.
+
+E: Invalid data file section: Triangles
+
+Atom style does not allow triangles.
+
+E: Must read Atoms before Triangles
+
+The Atoms section of a data file must come before a Triangles section.
+
+E: Invalid data file section: Bodies
+
+Atom style does not allow bodies.
+
+E: Must read Atoms before Bodies
+
+The Atoms section of a data file must come before a Bodies section.
 
 E: Must define pair_style before Pair Coeffs
 
@@ -307,6 +307,15 @@ E: No atoms in data file
 The header of the data file indicated that atoms would be included,
 but they were not present.
 
+E: Needed molecular topology not in data file
+
+UNDOCUMENTED
+
+E: Needed bonus data not in data file
+
+Some atom styles require bonus data.  See the read_data doc page for
+details.
+
 E: Unexpected end of data file
 
 LAMMPS hit the end of the data file while attempting to read a
@@ -364,20 +373,15 @@ E: Impropers defined but no improper types
 
 The data file header lists improper but no improper types.
 
+E: No molecule topology allowed with atom style template
+
+UNDOCUMENTED
+
 E: Did not assign all atoms correctly
 
 Atoms read in from a data file were not assigned correctly to
 processors.  This is likely due to some atom coordinates being
 outside a non-periodic simulation box.
-
-E: Invalid atom ID in Atoms section of data file
-
-Atom IDs must be positive integers.
-
-E: Too many lines in one body in data file - boost MAXBODY
-
-MAXBODY is a setting at the top of the src/read_data.cpp file.
-Set it larger and re-compile the code.
 
 E: Bonds assigned incorrectly
 
@@ -402,29 +406,34 @@ Impropers read in from the data file were not assigned correctly to
 atoms.  This means there is something invalid about the topology
 definitions.
 
-E: Molecular data file has too many atoms
+E: Too many lines in one body in data file - boost MAXBODY
 
-These kids of data files are currently limited to a number
-of atoms that fits in a 32-bit integer.
-
-E: Needed topology not in data file
-
-The header of the data file indicated that bonds or angles or
-dihedrals or impropers would be included, but they were not present.
-
-E: Needed bonus data not in data file
-
-Some atom styles require bonus data.  See the read_data doc page for
-details.
+MAXBODY is a setting at the top of the src/read_data.cpp file.
+Set it larger and re-compile the code.
 
 E: Cannot open gzipped file
 
-LAMMPS is attempting to open a gzipped version of the specified file
-but was unsuccessful.  Check that the path and name are correct.
+LAMMPS was compiled without support for reading and writing gzipped
+files through a pipeline to the gzip program with -DLAMMPS_GZIP.
 
 E: Cannot open file %s
 
 The specified file cannot be opened.  Check that the path and name are
-correct.
+correct. If the file is a compressed file, also check that the gzip
+executable can be found and run.
+
+U: Invalid atom ID in Atoms section of data file
+
+Atom IDs must be positive integers.
+
+U: Molecular data file has too many atoms
+
+These kids of data files are currently limited to a number
+of atoms that fits in a 32-bit integer.
+
+U: Needed topology not in data file
+
+The header of the data file indicated that bonds or angles or
+dihedrals or impropers would be included, but they were not present.
 
 */

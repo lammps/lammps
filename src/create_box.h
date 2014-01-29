@@ -37,29 +37,61 @@ class CreateBox : protected Pointers {
 
 /* ERROR/WARNING messages:
 
+E: Dump file MPI-IO output not allowed with '%' in filename
+
+UNDOCUMENTED
+
+E: Cannot dump sort when multiple procs write the dump file
+
+UNDOCUMENTED
+
+E: Cannot dump sort on atom IDs with no atom IDs defined
+
+Self-explanatory.
+
+E: Dump sort column is invalid
+
+Self-explanatory.
+
+E: Too many atoms to dump sort
+
+Cannot sort when running with more than 2^31 atoms.
+
+E: Too much per-proc info for dump
+
+Number of local atoms times number of columns must fit in a 32-bit
+integer for dump.
+
+E: Too much buffered per-proc info for dump
+
+UNDOCUMENTED
+
+E: Cannot open gzipped file
+
+LAMMPS was compiled without support for reading and writing gzipped
+files through a pipeline to the gzip program with -DLAMMPS_GZIP.
+
+E: Cannot open dump file
+
+The output file for the dump command cannot be opened.  Check that the
+path and name are correct.
+
 E: Illegal ... command
 
 Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Cannot create_box after simulation box is defined
+E: Dump_modify buffer yes not allowed for this style
 
-The create_box command cannot be used after a read_data, read_restart,
-or create_box command.
+UNDOCUMENTED
 
-E: Cannot run 2d simulation with nonperiodic Z dimension
+E: Cannot use dump_modify fileper without % in dump file name
 
-Use the boundary command to make the z dimension periodic in order to
-run a 2d simulation.
+UNDOCUMENTED
 
-E: Create_box region ID does not exist
+E: Cannot use dump_modify nfile without % in dump file name
 
-A region ID used in the create_box command does not exist.
-
-E: Create_box region does not support a bounding box
-
-Not all regions represent bounded volumes.  You cannot use
-such a region with the create_box command.
+UNDOCUMENTED
 
 */

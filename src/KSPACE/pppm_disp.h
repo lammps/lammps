@@ -402,10 +402,6 @@ E: KSpace style is incompatible with Pair style
 Setting a kspace style requires that a pair style with a long-range
 Coulombic or dispersion component be used.
 
-E: Unsupported mixing rule in kspace_style pppm/disp for pair_style %s
-
-UNDOCUMENTED
-
 E: Unsupported order in kspace_style pppm/disp pair_style %s
 
 UNDOCUMENTED
@@ -470,6 +466,18 @@ E: PPPM grid stencil extends beyond nearest neighbor processor
 
 This is not allowed if the kspace_modify overlap setting is no.
 
+E: Matrix factorization to split dispersion coefficients failed
+
+UNDOCUMENTED
+
+W: Error in splitting of dispersion coeffs is estimated %g %.
+
+UNDOCUMENTED
+
+W: Simulations might be very slow because of large number of structure factors!
+
+UNDOCUMENTED
+
 E: epsilon or sigma reference not set by pair style in PPPMDisp
 
 UNDOCUMENTED
@@ -504,6 +512,10 @@ E: Could not compute grid size for Dispersion!
 UNDOCUMENTED
 
 E: Out of range atoms - cannot compute PPPMDisp
+
+UNDOCUMENTED
+
+U: Unsupported mixing rule in kspace_style pppm/disp for pair_style %s
 
 UNDOCUMENTED
 

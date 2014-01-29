@@ -78,4 +78,40 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
+E: Fix gld series type must be pprony...for now
+
+UNDOCUMENTED
+
+E: Fix gld random seed must be > 0
+
+UNDOCUMENTED
+
+E: Fix gld prony terms must be > 0
+
+UNDOCUMENTED
+
+E: Fix gld start temperature must be >= 0
+
+UNDOCUMENTED
+
+E: Fix gld stop temperature must be >= 0
+
+UNDOCUMENTED
+
+E: Fix gld not enough prony series coefficients
+
+UNDOCUMENTED
+
+E: Fix gld c coefficients must be >= 0
+
+UNDOCUMENTED
+
+E: Fix gld tau coefficients must be > 0
+
+UNDOCUMENTED
+
+E: Cannot zero gld force of 0 atoms
+
+UNDOCUMENTED
+
 */

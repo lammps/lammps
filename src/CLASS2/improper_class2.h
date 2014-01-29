@@ -53,13 +53,17 @@ class ImproperClass2 : public Improper {
 
 /* ERROR/WARNING messages:
 
-W: Improper problem: %d %ld %d %d %d %d
+W: Improper problem: %d %ld    
 
-Conformation of the 4 listed improper atoms is extreme; you may want
-to check your simulation geometry.
+UNDOCUMENTED
 
 E: Incorrect args for improper coefficients
 
 Self-explanatory.  Check the input script or data file.
+
+U: Improper problem: %d %ld %d %d %d %d
+
+Conformation of the 4 listed improper atoms is extreme; you may want
+to check your simulation geometry.
 
 */

@@ -100,6 +100,10 @@ E: Fix ID for fix ave/spatial does not exist
 
 Self-explanatory.
 
+E: Too many total atoms
+
+See the setting for bigint in the src/lmptype.h file.
+
 U: Use of fix append/atoms with undefined lattice
 
 A lattice must be defined before using this fix.

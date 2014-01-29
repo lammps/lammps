@@ -78,10 +78,6 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-W: Geometric mixing assumed for 1/r^6 coefficients
-
-Self-explanatory.
-
 W: Using largest cutoff for buck/long/coul/long
 
 Self-exlanatory.
@@ -123,5 +119,9 @@ E: Pair cutoff < Respa interior cutoff
 
 One or more pairwise cutoffs are too short to use with the specified
 rRESPA cutoffs.
+
+U: Geometric mixing assumed for 1/r^6 coefficients
+
+Self-explanatory.
 
 */

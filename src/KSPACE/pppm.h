@@ -325,12 +325,16 @@ outside a processor's sub-domain or even the entire simulation box.
 This indicates bad physics, e.g. due to highly overlapping atoms, too
 large a timestep, etc.
 
-E: Cannot (yet) use K-space slab correction with compute group/group
-for triclinic systems
+E: Cannot (yet) use K-space slab correction with compute group/group for triclinic systems
+
+UNDOCUMENTED
+
+E: Cannot (yet) use kspace_modify diff ad with compute group/group
 
 This option is not yet supported.
 
-E: Cannot (yet) use kspace_modify diff ad with compute group/group
+U: Cannot (yet) use K-space slab correction with compute group/group
+for triclinic systems
 
 This option is not yet supported.
 

@@ -142,6 +142,14 @@ E: Compute property/atom for atom property that isn't allocated
 
 Self-explanatory.
 
+E: Compute property/atom floating point vector does not exist
+
+UNDOCUMENTED
+
+E: Compute property/atom integer vector does not exist
+
+UNDOCUMENTED
+
 E: Invalid keyword in compute property/atom command
 
 Self-explanatory.

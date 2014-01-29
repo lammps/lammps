@@ -147,7 +147,7 @@ E: File variable could not read value
 
 Check the file assigned to the variable.
 
-E: Afile variable could not read values
+E: Atomfile variable could not read values
 
 UNDOCUMENTED
 
@@ -167,6 +167,10 @@ E: Invalid variable style with next command
 
 Variable styles {equal} and {world} cannot be used in a next
 command.
+
+E: Next command must list all universe and uloop variables
+
+UNDOCUMENTED
 
 E: Invalid syntax in variable formula
 
@@ -249,6 +253,10 @@ E: Atom-style variable in equal-style variable formula
 
 Atom-style variables generate one value per atom which is not allowed
 in an equal-style variable.
+
+E: Atomfile-style variable in equal-style variable formula
+
+UNDOCUMENTED
 
 E: Mismatched variable in variable formula
 
@@ -361,9 +369,13 @@ E: Variable ID in variable formula does not exist
 
 Self-explanatory.
 
-E: Invalid variable in special function next
+E: Atomfile variable in equal-style variable formula
 
-Only file-style variables can be used with the next() function.
+UNDOCUMENTED
+
+E: Invalid variable style in special function next
+
+UNDOCUMENTED
 
 E: Indexed per-atom vector in variable formula without atom map
 
@@ -371,6 +383,10 @@ Accessing a value from an atom vector requires the ability to lookup
 an atom index, which is provided by an atom map.  An atom map does not
 exist (by default) for non-molecular problems.  Using the atom_modify
 map command will force an atom map to be created.
+
+E: Variable uses atom property that isn't allocated
+
+UNDOCUMENTED
 
 E: Invalid atom vector in variable formula
 
@@ -397,5 +413,21 @@ E: Cannot open file variable file %s
 
 The specified file cannot be opened.  Check that the path and name are
 correct.
+
+E: Cannot use atomfile-style variable unless atom map exists
+
+UNDOCUMENTED
+
+E: Invalid atom ID in variable file
+
+UNDOCUMENTED
+
+U: Afile variable could not read values
+
+UNDOCUMENTED
+
+U: Invalid variable in special function next
+
+Only file-style variables can be used with the next() function.
 
 */

@@ -116,10 +116,6 @@ E: Per-processor system is too big
 The number of owned atoms plus ghost atoms on a single
 processor must fit in 32-bit integer.
 
-E: Invalid atom ID in Atoms section of data file
-
-Atom IDs must be positive integers.
-
 E: Invalid atom type in Atoms section of data file
 
 Atom types must range from 1 to specified # of types.
@@ -136,5 +132,9 @@ E: Inconsistent line segment in data file
 
 The end points of the line segment are not equal distances from the
 center point which is the atom coordinate.
+
+U: Invalid atom ID in Atoms section of data file
+
+Atom IDs must be positive integers.
 
 */

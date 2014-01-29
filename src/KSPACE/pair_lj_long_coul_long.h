@@ -78,10 +78,6 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-W: Mixing forced for lj coefficients
-
-UNDOCUMENTED
-
 W: Using largest cutoff for lj/long/coul/long
 
 UNDOCUMENTED
@@ -114,6 +110,10 @@ E: Pair cutoff < Respa interior cutoff
 
 One or more pairwise cutoffs are too short to use with the specified
 rRESPA cutoffs.
+
+U: Mixing forced for lj coefficients
+
+Self-explanatory.
 
 U: Mixing forced for LJ coefficients
 

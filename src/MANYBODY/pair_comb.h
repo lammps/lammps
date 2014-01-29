@@ -245,4 +245,10 @@ W: Pair COMB charge %.10f with force %.10f hit max barrier
 
 Something is possibly wrong with your model.
 
+E: Neighbor list overflow, boost neigh_modify one
+
+There are too many neighbors of a single atom.  Use the neigh_modify
+command to increase the max number of neighbors allowed for one atom.
+You may also want to boost the page size.
+
 */

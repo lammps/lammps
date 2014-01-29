@@ -209,13 +209,17 @@ E: Bad kspace_modify slab parameter
 
 Kspace_modify value for the slab/volume keyword must be >= 2.0.
 
-E: Bad kspace_modify kmax/ewald parameter
-
-Kspace_modify values for the kmax/ewald keyword must be integers > 0
-
 W: Kspace_modify slab param < 2.0 may cause unphysical behavior
 
 The kspace_modify slab parameter should be larger to insure periodic
 grids padded with empty space do not overlap.
+
+E: Bad kspace_modify kmax/ewald parameter
+
+Kspace_modify values for the kmax/ewald keyword must be integers > 0
+
+E: eigtol must be smaller than one
+
+UNDOCUMENTED
 
 */

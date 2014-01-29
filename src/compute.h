@@ -168,6 +168,10 @@ The group used in a compute command that operates on moleclues
 includes atoms with no molecule ID.  This is probably not what you
 want.
 
+E: Too many molecules for compute
+
+UNDOCUMENTED
+
 W: One or more compute molecules has atoms not in group
 
 The group used in a compute command that operates on moleclues does

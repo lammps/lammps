@@ -82,25 +82,17 @@ E: Cannot set this attribute for this atom style
 
 The attribute being set does not exist for the defined atom style.
 
-E: Invalid mass in set command
-
-Self-explanatory.
-
-E: Invalid shape in set command
-
-Self-explanatory.
-
-E: Invalid length in set command
-
-Self-explanatory.
-
 E: Invalid dipole length in set command
 
 Self-explanatory.
 
-E: Invalid diameter in set command
+E: Invalid density in set command
 
-Self-explanatory.
+UNDOCUMENTED
+
+E: Invalid volume in set command
+
+UNDOCUMENTED
 
 E: Cannot set non-zero image flag for non-periodic dimension
 
@@ -109,6 +101,14 @@ Self-explanatory.
 E: Cannot set meso_rho for this atom style
 
 Self-explanatory.
+
+E: Set command integer vector does not exist
+
+UNDOCUMENTED
+
+E: Set command floating point vector does not exist
+
+UNDOCUMENTED
 
 E: Cannot use set atom with no atom IDs defined
 
@@ -126,6 +126,22 @@ E: Set region ID does not exist
 
 Region ID specified in set command does not exist.
 
+E: Invalid mass in set command
+
+Self-explanatory.
+
+E: Invalid diameter in set command
+
+Self-explanatory.
+
+E: Invalid shape in set command
+
+Self-explanatory.
+
+E: Invalid length in set command
+
+Self-explanatory.
+
 E: Cannot set quaternion for atom that has none
 
 Self-explanatory.
@@ -133,6 +149,10 @@ Self-explanatory.
 E: Cannot set theta for atom that is not a line
 
 Self-explanatory.
+
+E: Cannot set bond topology types for atom style template
+
+UNDOCUMENTED
 
 E: Bond atom missing in set command
 
@@ -157,5 +177,13 @@ E: Improper atom missing in set command
 The set command cannot find one or more atoms in a particular improper
 on a particular processor.  The pairwise cutoff is too short or the
 atoms are too far apart to make a valid improper.
+
+E: Variable name for set command does not exist
+
+UNDOCUMENTED
+
+E: Variable for set command is invalid style
+
+UNDOCUMENTED
 
 */

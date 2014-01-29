@@ -71,16 +71,40 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Invalid atom type in create_atoms command
-
-The create_box command specified the range of valid atom types.
-An invalid type is being requested.
-
 E: Create_atoms region ID does not exist
 
 A region ID used in the create_atoms command does not exist.
 
 E: Invalid basis setting in create_atoms command
+
+UNDOCUMENTED
+
+E: Molecule template ID for create_atoms does not exist
+
+UNDOCUMENTED
+
+W: Molecule template for create_atoms has multiple molecules
+
+UNDOCUMENTED
+
+E: Invalid atom type in create_atoms command
+
+The create_box command specified the range of valid atom types.
+An invalid type is being requested.
+
+E: Create_atoms molecule must have coordinates
+
+UNDOCUMENTED
+
+E: Create_atoms molecule must have atom types
+
+UNDOCUMENTED
+
+E: Invalid atom type in create_atoms mol command
+
+UNDOCUMENTED
+
+E: Create_atoms molecule has atom IDs, but system does not
 
 UNDOCUMENTED
 

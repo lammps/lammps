@@ -117,10 +117,6 @@ E: Per-processor system is too big
 The number of owned atoms plus ghost atoms on a single
 processor must fit in 32-bit integer.
 
-E: Invalid atom ID in Atoms section of data file
-
-Atom IDs must be positive integers.
-
 E: Invalid atom type in Atoms section of data file
 
 Atom types must range from 1 to specified # of types.
@@ -146,5 +142,9 @@ E: Insufficient Jacobi rotations for triangle
 
 The calculation of the intertia tensor of the triangle failed.  This
 should not happen if it is a reasonably shaped triangle.
+
+U: Invalid atom ID in Atoms section of data file
+
+Atom IDs must be positive integers.
 
 */

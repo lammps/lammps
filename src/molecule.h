@@ -145,3 +145,159 @@ class Molecule : protected Pointers {
 }
 
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Molecule template ID must be alphanumeric or underscore characters
+
+UNDOCUMENTED
+
+E: Insufficient Jacobi rotations for rigid molecule
+
+UNDOCUMENTED
+
+E: Unexpected end of molecule file
+
+UNDOCUMENTED
+
+E: Molecule file z center-of-mass must be 0.0 for 2d
+
+UNDOCUMENTED
+
+E: No atom count in molecule file
+
+UNDOCUMENTED
+
+E: Molecule file has bonds but no nbonds setting
+
+UNDOCUMENTED
+
+E: Molecule file has angles but no nangles setting
+
+UNDOCUMENTED
+
+E: Molecule file has dihedrals but no ndihedrals setting
+
+UNDOCUMENTED
+
+E: Molecule file has impropers but no nimpropers setting
+
+UNDOCUMENTED
+
+E: Molecule file shake flags not before shake atoms
+
+UNDOCUMENTED
+
+E: Molecule file shake flags not before shake bonds
+
+UNDOCUMENTED
+
+E: Unknown section in molecule file
+
+UNDOCUMENTED
+
+E: Molecule file needs both Special Bond sections
+
+UNDOCUMENTED
+
+E: Molecule file has special flags but no bonds
+
+UNDOCUMENTED
+
+E: Molecule file shake info is incomplete
+
+UNDOCUMENTED
+
+E: Molecule file z coord must be 0.0 for 2d
+
+UNDOCUMENTED
+
+E: Invalid atom type in molecule file
+
+UNDOCUMENTED
+
+E: Invalid atom diameter in molecule file
+
+UNDOCUMENTED
+
+E: Invalid atom mass in molecule file
+
+UNDOCUMENTED
+
+E: Invalid atom ID in Bonds section of molecule file
+
+UNDOCUMENTED
+
+E: Invalid bond type in Bonds section of molecule file
+
+UNDOCUMENTED
+
+E: Invalid atom ID in Angles section of molecule file
+
+UNDOCUMENTED
+
+E: Invalid angle type in Angles section of molecule file
+
+UNDOCUMENTED
+
+E: Invalid atom ID in dihedrals section of molecule file
+
+UNDOCUMENTED
+
+E: Invalid dihedral type in dihedrals section of molecule file
+
+UNDOCUMENTED
+
+E: Invalid atom ID in impropers section of molecule file
+
+UNDOCUMENTED
+
+E: Invalid improper type in impropers section of molecule file
+
+UNDOCUMENTED
+
+E: Molecule file special list does not match special count
+
+UNDOCUMENTED
+
+E: Invalid special atom index in molecule file
+
+UNDOCUMENTED
+
+E: Invalid shake flag in molecule file
+
+UNDOCUMENTED
+
+E: Invalid shake atom in molecule file
+
+UNDOCUMENTED
+
+E: Invalid shake bond type in molecule file
+
+UNDOCUMENTED
+
+E: Invalid shake angle type in molecule file
+
+UNDOCUMENTED
+
+W: Molecule attributes do not match system attributes
+
+UNDOCUMENTED
+
+E: Molecule topology type exceeds system topology type
+
+UNDOCUMENTED
+
+E: Molecule toplogy/atom exceeds system topology/atom
+
+UNDOCUMENTED
+
+W: Molecule has bond topology but no special bond settings
+
+UNDOCUMENTED
+
+E: Cannot open molecule file %s
+
+UNDOCUMENTED
+
+*/

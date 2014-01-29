@@ -38,3 +38,31 @@ class RestartMPIIO  : protected Pointers {
 }
 
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Cannot open restart file for reading - mpi error: %s\n
+
+UNDOCUMENTED
+
+E: Cannot open restart file for writing - mpi error: %s\n
+
+UNDOCUMENTED
+
+E: Cannot set restart file size - mpi error: %s\n
+
+UNDOCUMENTED
+
+E: Cannot write to restart file - mpi error: %s\n
+
+UNDOCUMENTED
+
+E: Cannot read from restart file - mpi error: %s\n
+
+UNDOCUMENTED
+
+E: Cannot close restart file - mpi error: %s\n
+
+UNDOCUMENTED
+
+*/

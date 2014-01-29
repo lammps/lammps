@@ -130,6 +130,10 @@ E: Must use a molecular atom style with fix poems molecule
 
 Self-explanatory.
 
+E: Too many molecules for fix poems
+
+UNDOCUMENTED
+
 E: No rigid bodies defined
 
 The fix specification did not end up defining any rigid bodies.

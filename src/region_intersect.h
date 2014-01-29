@@ -58,4 +58,9 @@ E: Region intersect region ID does not exist
 
 Self-explanatory.
 
+E: Region union region ID does not exist
+
+One or more of the region IDs specified by the region union command
+does not exist.
+
 */

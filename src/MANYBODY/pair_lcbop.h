@@ -169,39 +169,91 @@ class PairLCBOP : public Pair {
 
 /* ERROR/WARNING messages:
 
+E: Variable name for thermo every does not exist
+
+Self-explanatory.
+
+E: Variable for thermo every is invalid style
+
+Only equal-style variables can be used.
+
+E: Variable name for dump every does not exist
+
+Self-explanatory.
+
+E: Variable for dump every is invalid style
+
+Only equal-style variables can be used.
+
+E: Variable name for restart does not exist
+
+Self-explanatory.
+
+E: Variable for restart is invalid style
+
+Only equal-style variables can be used.
+
+E: Dump every variable returned a bad timestep
+
+The variable must return a timestep greater than the current timestep.
+
+E: Restart variable returned a bad timestep
+
+The variable must return a timestep greater than the current timestep.
+
+E: Thermo every variable returned a bad timestep
+
+The variable must return a timestep greater than the current timestep.
+
 E: Illegal ... command
 
 Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Incorrect args for pair coefficients
+E: Reuse of dump ID
 
-Self-explanatory.  Check the input script or data file.
+A dump ID cannot be used twice.
 
-E: Pair style LCBOP requires atom IDs
+E: Could not find dump group ID
 
-This is a requirement to use the LCBOP potential.
+A group ID used in the dump command does not exist.
 
-E: Pair style LCBOP requires newton pair on
+E: Invalid dump frequency
 
-See the newton command.  This is a restriction to use the LCBOP
-potential.
+Dump frequency must be 1 or greater.
 
-E: All pair coeffs are not set
+E: Invalid dump style
 
-All pair coefficients must be set in the data file or by the
-pair_coeff command before running a simulation.
+The choice of dump style is unknown.
 
-E: Neighbor list overflow, boost neigh_modify one or page
+E: Cound not find dump_modify ID
 
-There are too many neighbors of a single atom.  Use the neigh_modify
-command to increase the neighbor page size and the max number of
-neighbors allowed for one atom.
+Self-explanatory.
 
-E: Cannot open LCBOP potential file %s
+E: Could not find undump ID
 
-The specified LCBOP potential file cannot be opened.  Check that the
-path and name are correct.
+A dump ID used in the undump command does not exist.
+
+E: Thermo_style command before simulation box is defined
+
+The thermo_style command cannot be used before a read_data,
+read_restart, or create_box command.
+
+W: New thermo_style command, previous thermo_modify settings will be lost
+
+If a thermo_style command is used after a thermo_modify command, the
+settings changed by the thermo_modify command will be reset to their
+default values.  This is because the thermo_modify commmand acts on
+the currently defined thermo style, and a thermo_style command creates
+a new style.
+
+E: Both restart files must have '%' or neither
+
+UNDOCUMENTED
+
+E: Both restart files must use MPI-IO or neither
+
+UNDOCUMENTED
 
 */

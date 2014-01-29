@@ -82,9 +82,21 @@ E: Cannot read_restart after simulation box is defined
 The read_restart command cannot be used after a read_data,
 read_restart, or create_box command.
 
+E: Read restart MPI-IO output not allowed with '%' in filename
+
+UNDOCUMENTED
+
+E: Reading from MPI-IO filename when MPIIO package is not installed
+
+UNDOCUMENTED
+
 E: Cannot open restart file %s
 
 Self-explanatory.
+
+E: Invalid flag in peratom section of restart file
+
+UNDOCUMENTED
 
 E: Did not assign all atoms correctly
 
@@ -101,14 +113,18 @@ E: Found no restart file matching pattern
 
 When using a "*" in the restart file name, no matching file was found.
 
-W: Restart file version does not match LAMMPS version
+E: Restart file incompatible with current version
 
-This may cause problems when reading the restart file.
+UNDOCUMENTED
 
 E: Smallint setting in lmptype.h is not compatible
 
 Smallint stored in restart file is not consistent with LAMMPS version
 you are running.
+
+E: Imageint setting in lmptype.h is not compatible
+
+UNDOCUMENTED
 
 E: Tagint setting in lmptype.h is not compatible
 
@@ -162,5 +178,37 @@ Unrecognized entry in restart file.
 E: Invalid flag in force field section of restart file
 
 Unrecognized entry in restart file.
+
+E: Restart file is not a multi-proc file
+
+UNDOCUMENTED
+
+E: Restart file is a multi-proc file
+
+UNDOCUMENTED
+
+E: Restart file is a MPI-IO file
+
+UNDOCUMENTED
+
+E: Restart file is not a MPI-IO file
+
+UNDOCUMENTED
+
+E: Invalid LAMMPS restart file
+
+UNDOCUMENTED
+
+E: Restart file byte ordering is swapped
+
+UNDOCUMENTED
+
+E: Restart file byte ordering is not recognized
+
+UNDOCUMENTED
+
+U: Restart file version does not match LAMMPS version
+
+This may cause problems when reading the restart file.
 
 */

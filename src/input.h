@@ -188,6 +188,10 @@ E: Cannot open logfile %s
 The LAMMPS log file specified in the input script cannot be opened.
 Check that the path and name are correct.
 
+E: Cannot open print file %s
+
+UNDOCUMENTED
+
 E: Angle_coeff command before simulation box is defined
 
 The angle_coeff command cannot be used before a read_data,

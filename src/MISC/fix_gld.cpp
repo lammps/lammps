@@ -132,8 +132,8 @@ FixGLD::FixGLD(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2 > narg) { 
 	error->all(FLERR, "Illegal fix gld command"); 
       }
-      if (strcmp(arg[iarg+1],"no") == 0)
-      else if (strcmp(arg[iarg+1],"yes") == 0) {
+      if (strcmp(arg[iarg+1],"no") == 0) {
+      } else if (strcmp(arg[iarg+1],"yes") == 0) {
 	zeroflag = 1;
       } else {
 	error->all(FLERR,"Illegal fix gld command");
@@ -144,8 +144,8 @@ FixGLD::FixGLD(LAMMPS *lmp, int narg, char **arg) :
        if (iarg+2 > narg) {
           error->all(FLERR, "Illegal fix gld command");
        } 
-       if (strcmp(arg[iarg+1],"no") == 0) 
-       else if (strcmp(arg[iarg+1],"yes") == 0) {
+       if (strcmp(arg[iarg+1],"no") == 0) {
+       } else if (strcmp(arg[iarg+1],"yes") == 0) {
          freezeflag = 1;
          for (int i = 0; i < atom->nlocal; i++) {
            if (atom->mask[i] & groupbit) {

@@ -65,7 +65,7 @@ if (test $1 = "style") then
   style COMMAND_CLASS   ""          command    input
   style COMPUTE_CLASS   compute_    compute    modify    modify_cuda
   style DIHEDRAL_CLASS  dihedral_   dihedral   force
-  style DUMP_CLASS      dump_       dump       output
+  style DUMP_CLASS      dump_       dump       output    write_dump
   style FIX_CLASS       fix_        fix        modify
   style IMPROPER_CLASS  improper_   improper   force
   style INTEGRATE_CLASS ""          integrate  update

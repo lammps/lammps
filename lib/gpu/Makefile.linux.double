@@ -17,7 +17,18 @@ CUDA_ARCH = -arch=sm_21
 # older CUDA
 #CUDA_ARCH = -arch=sm_10 -DCUDA_PRE_THREE
 
+# this setting should match LAMMPS Makefile
+# one of LAMMPS_SMALLBIG (default), LAMMPS_BIGBIG and LAMMPS_SMALLSMALL
+
+LMP_INC = -DLAMMPS_SMALLBIG
+
+# precision for GPU calculations
+# -D_SINGLE_SINGLE  # Single precision for all calculations
+# -D_DOUBLE_DOUBLE  # Double precision for all calculations
+# -D_SINGLE_DOUBLE  # Accumulation of forces, etc. in double
+
 CUDA_PRECISION = -D_DOUBLE_DOUBLE
+
 CUDA_INCLUDE = -I$(CUDA_HOME)/include
 CUDA_LIB = -L$(CUDA_HOME)/lib64
 CUDA_OPTS = -DUNIX -O3 -Xptxas -v --use_fast_math

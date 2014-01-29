@@ -2,6 +2,7 @@ Run these examples as:
 
 mpirun -np 4 lmp_linux -partition 4x1 -in in.neb.hop1
 mpirun -np 4 lmp_linux -partition 4x1 -in in.neb.hop2
+mpirun -np 3 lmp_linux -partition 3x1 -in in.neb.sivac
 
 Create dump files to do visualization from via Python tools:
 (see lammps/tools/README and lammps/tools/python/README

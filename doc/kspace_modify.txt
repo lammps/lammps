@@ -177,7 +177,9 @@ is not supported by MSM. For MSM, any combination of periodic,
 non-periodic, or shrink-wrapped boundaries can be set using
 "boundary"_boundary.html (the slab approximation in not needed).  The
 {slab} keyword is not currently supported by Ewald or PPPM when using
-a triclinic simulation cell.
+a triclinic simulation cell. The slab correction has also been
+extended to point dipole interactions "(Klapp)"_#Klapp in
+"kspace_style"_kspace_style.html {ewald/disp}.
 
 The {compute} keyword allows Kspace computations to be turned off,
 even though a "kspace_style"_kspace_style.html is defined.  This is
@@ -234,7 +236,7 @@ if kspace style {ewald} is invoked, the values used
 are printed to the screen and
 the log file at the start of the run.
 
-With the {mix/disp{ keyword one can select the mixing rule for the
+With the {mix/disp} keyword one can select the mixing rule for the
 dispersion coefficients.  With {pair}, the dispersion coefficients of
 unlike types are computed as indicated with
 "pair_modify"_pair_modify.html.  With {geom}, geometric mixing is
@@ -269,7 +271,8 @@ The option defaults are mesh = mesh/disp = 0 0 0, order = order/disp =
 5 (PPPM), order = 10 (MSM), minorder = 2, overlap = yes, force = -1.0,
 gewald = gewald/disp = 0.0, slab = 1.0, compute = yes, cutoff/adjust =
 yes (MSM), fftbench = yes (PPPM), diff = ik (PPPM), mix/disp = pair,
-force/disp/real = -1.0, force/disp/kspace = -1.0, split = 0, and tol = 1.0e-6.
+force/disp/real = -1.0, force/disp/kspace = -1.0, split = 0, and tol =
+1.0e-6.
 
 :line
 
@@ -283,6 +286,9 @@ Adam Hilger, NY (1989).
 :link(Ballenegger)
 [(Ballenegger)] Ballenegger, Arnold, Cerda, J Chem Phys, 131, 094107
 (2009).
+
+:link(Klapp)
+[(Klapp)] Klapp, Schoen, J Chem Phys, 117, 8050 (2002).
 
 :link(Hardy)
 [(Hardy)] David Hardy thesis: Multilevel Summation for the Fast

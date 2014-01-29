@@ -203,7 +203,7 @@ Self-explanatory.
 
 E: Fix rigid/small requires an atom map, see atom_modify
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix rigid/small langevin period must be > 0.0
 
@@ -211,19 +211,20 @@ Self-explanatory.
 
 E: Molecule template ID for fix rigid/small does not exist
 
-UNDOCUMENTED
+Self-explanatory.
 
 W: Molecule template for fix rigid/small has multiple molecules
 
-UNDOCUMENTED
+The fix rigid/small command will only recoginze molecules of a single
+type, i.e. the first molecule in the template.
 
 E: Fix rigid/small molecule must have coordinates
 
-UNDOCUMENTED
+The defined molecule does not specify coordinates.
 
 E: Fix rigid/small molecule must have atom types
 
-UNDOCUMENTED
+The defined molecule does not specify atom types.
 
 W: More than one fix rigid
 
@@ -237,7 +238,8 @@ incorrect.
 
 W: Cannot count rigid body degrees-of-freedom before bodies are fully initialized
 
-UNDOCUMENTED
+This means the temperature associated with the rigid bodies may be
+incorrect on this timestep.
 
 W: Computing temperature of portions of rigid bodies
 
@@ -261,41 +263,32 @@ are not within the required tolerances.
 
 E: Cannot open fix rigid/small infile %s
 
-UNDOCUMENTED
+The specified file cannot be opened.  Check that the path and name are
+correct.
 
 E: Unexpected end of fix rigid/small file
 
-UNDOCUMENTED
+A read operation from the file failed.
 
 E: Fix rigid file has no lines
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Incorrect rigid body format in fix rigid/small file
 
-UNDOCUMENTED
+The number of fields per line is not what expected.
 
 E: Invalid rigid body ID in fix rigid/small file
 
-UNDOCUMENTED
+The ID does not match the number or an existing ID of rigid bodies
+that are defined by the fix rigid/small command.
 
 E: Cannot open fix rigid restart file %s
 
-UNDOCUMENTED
+The specified file cannot be opened.  Check that the path and name are
+correct.
 
 E: Rigid body atoms %ld %ld missing on proc %d at step %ld
-
-UNDOCUMENTED
-
-U: Rigid body atoms   missing on proc %d at step %ld
-
-UNDOCUMENTED
-
-U: No rigid bodies defined
-
-The fix specification did not end up defining any rigid bodies.
-
-U: Rigid body atoms %d %d missing on proc %d at step %ld
 
 This means that an atom cannot find the atom that owns the rigid body
 it is part of, or vice versa.  The solution is to use the communicate

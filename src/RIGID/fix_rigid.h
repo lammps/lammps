@@ -160,7 +160,7 @@ Self-explanatory.
 
 E: Too many molecules for fix rigid
 
-UNDOCUMENTED
+The limit is 2^31 = ~2 billion molecules.
 
 E: Could not find fix rigid group ID
 
@@ -208,7 +208,8 @@ incorrect.
 
 W: Cannot count rigid body degrees-of-freedom before bodies are fully initialized
 
-UNDOCUMENTED
+This means the temperature associated with the rigid bodies may be
+incorrect on this timestep.
 
 W: Computing temperature of portions of rigid bodies
 
@@ -241,7 +242,7 @@ A read operation from the file failed.
 
 E: Fix rigid file has no lines
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Incorrect rigid body format in fix rigid file
 
@@ -254,6 +255,7 @@ that are defined by the fix rigid command.
 
 E: Cannot open fix rigid restart file %s
 
-UNDOCUMENTED
+The specified file cannot be opened.  Check that the path and name are
+correct.
 
 */

@@ -170,9 +170,7 @@ want.
 
 E: Too many molecules for compute
 
-The compute molecule commands store a list of all molecules in the
-system.  The size of that list must fit in a 32-bit integer, i.e. be
-less than ~2 billion molecules.
+The limit is 2^31 = ~2 billion molecules.
 
 W: One or more compute molecules has atoms not in group
 

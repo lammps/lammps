@@ -72,12 +72,11 @@ FixGLD::FixGLD(LAMMPS *lmp, int narg, char **arg) :
   if(strcmp(arg[7],"pprony") == 0) {
      series_type = 1;	// series type 1 is 'positive Prony series'
   } else {
-     error->all(FLERR,"Fix gld series type must be pprony...for now");
+     error->all(FLERR,"Fix gld series type must be pprony for now");
   }
 
   // Error checking for the first set of required input arguments
-  if (seed <= 0)
-    error->all(FLERR,"Fix gld random seed must be > 0");
+  if (seed <= 0) error->all(FLERR,"Illegal fix gld command");
   if (prony_terms <= 0)
     error->all(FLERR,"Fix gld prony terms must be > 0");
   if (t_start < 0)
@@ -85,7 +84,7 @@ FixGLD::FixGLD(LAMMPS *lmp, int narg, char **arg) :
   if (t_stop < 0)
     error->all(FLERR,"Fix gld stop temperature must be >= 0");
   if (narg - narg_min < 2*(prony_terms) )
-    error->all(FLERR,"Fix gld not enough prony series coefficients");
+    error->all(FLERR,"Fix gld needs more prony series coefficients");
 
   // allocate memory for Prony series force coefficients
   memory->create(prony_c, prony_terms, "gld:prony_c");
@@ -127,12 +126,13 @@ FixGLD::FixGLD(LAMMPS *lmp, int narg, char **arg) :
   // optional arguments
   freezeflag = 0;
   zeroflag = 0;
+
   while (iarg < narg) {
     if (strcmp(arg[iarg],"zero") == 0) {
       if (iarg+2 > narg) { 
 	error->all(FLERR, "Illegal fix gld command"); 
       }
-      if (strcmp(arg[iarg+1],"no") == 0) { /* do nothing, default is zeroflag=0 */ }
+      if (strcmp(arg[iarg+1],"no") == 0)
       else if (strcmp(arg[iarg+1],"yes") == 0) {
 	zeroflag = 1;
       } else {
@@ -144,7 +144,7 @@ FixGLD::FixGLD(LAMMPS *lmp, int narg, char **arg) :
        if (iarg+2 > narg) {
           error->all(FLERR, "Illegal fix gld command");
        } 
-       if (strcmp(arg[iarg+1],"no") == 0) { /* do nothing, default is unfrozen */ }
+       if (strcmp(arg[iarg+1],"no") == 0) 
        else if (strcmp(arg[iarg+1],"yes") == 0) {
          freezeflag = 1;
          for (int i = 0; i < atom->nlocal; i++) {
@@ -359,7 +359,7 @@ void FixGLD::initial_integrate(int vflag)
   // correct the random force, if zeroflag is set
   if (zeroflag) {
     count = group->count(igroup);
-    if (count == 0) error->all(FLERR,"Cannot zero gld force of 0 atoms");
+    if (count == 0) error->all(FLERR,"Cannot zero gld force for zero atoms");
 
     MPI_Allreduce(fsum,fsumall,3,MPI_DOUBLE,MPI_SUM,world);
     fsumall[0] /= (count*prony_terms);

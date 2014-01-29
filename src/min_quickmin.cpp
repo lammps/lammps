@@ -82,7 +82,7 @@ int MinQuickMin::iterate(int maxiter)
 {
   bigint ntimestep;
   double vmax,vdotf,vdotfall,fdotf,fdotfall,scale;
-  double dtvone,dtv,dtfm;
+  double dtvone,dtv,dtf,dtfm;
   int flag,flagall;
 
   alpha_final = 0.0;
@@ -162,13 +162,15 @@ int MinQuickMin::iterate(int maxiter)
       MPI_Allreduce(&dtvone,&dtv,1,MPI_DOUBLE,MPI_MIN,universe->uworld);
     }
 
+    dtf = dtv * force->ftm2v;
+
     // Euler integration step
 
     double **x = atom->x;
 
     if (rmass) {
       for (int i = 0; i < nlocal; i++) {
-        dtfm = dtv / rmass[i];
+        dtfm = dtf / rmass[i];
         x[i][0] += dtv * v[i][0];
         x[i][1] += dtv * v[i][1];
         x[i][2] += dtv * v[i][2];
@@ -178,7 +180,7 @@ int MinQuickMin::iterate(int maxiter)
       }
     } else {
       for (int i = 0; i < nlocal; i++) {
-        dtfm = dtv / mass[type[i]];
+        dtfm = dtf / mass[type[i]];
         x[i][0] += dtv * v[i][0];
         x[i][1] += dtv * v[i][1];
         x[i][2] += dtv * v[i][2];

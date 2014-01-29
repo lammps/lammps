@@ -174,9 +174,10 @@ void FixGPU::init()
   if (_particle_split < 0)
     if (force->pair_match("hybrid",1) != NULL ||
         force->pair_match("hybrid/overlay",1) != NULL)
-      error->all(FLERR,"GPU 'split' must be positive for hybrid pair styles");
+      error->all(FLERR,"GPU split param must be positive "
+                 "for hybrid pair styles");
 
-  // Make sure fdotr virial is not accumulated multiple times
+  // make sure fdotr virial is not accumulated multiple times
   
   if (force->pair_match("hybrid",1) != NULL) {
     PairHybrid *hybrid = (PairHybrid *) force->pair;

@@ -100,7 +100,7 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
     zlo = ((RegCylinder *) domain->regions[iregion])->lo;
     zhi = ((RegCylinder *) domain->regions[iregion])->hi;
     if (axis != 'z')
-      error->all(FLERR,"Must use a z-axis cylinder with fix pour");
+      error->all(FLERR,"Must use a z-axis cylinder region with fix pour");
     if (xc-rc < domain->boxlo[0] || xc+rc > domain->boxhi[0] ||
         yc-rc < domain->boxlo[1] || yc+rc > domain->boxhi[1] ||
         zlo < domain->boxlo[2] || zhi > domain->boxhi[2])

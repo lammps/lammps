@@ -88,14 +88,6 @@ atom has moved too far.
 
 W: Restrain problem: %d %ld %ld %ld %ld %ld
 
-UNDOCUMENTED
-
-U: Restrain problem: %d %ld    
-
-UNDOCUMENTED
-
-U: Restrain problem: %d %ld %d %d %d %d
-
 Conformation of the 4 listed dihedral atoms is extreme; you may want
 to check your simulation geometry.
 

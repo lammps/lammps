@@ -77,7 +77,7 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Invalid atom type in fix deposit command
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Must specify a region in fix deposit
 
@@ -98,35 +98,39 @@ Self-explanatory.
 
 E: Cannot use fix_deposit unless atoms have IDs
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix deposit molecule must have coordinates
 
-UNDOCUMENTED
+The defined molecule does not specify coordinates.
 
 E: Fix deposit molecule must have atom types
 
-UNDOCUMENTED
+The defined molecule does not specify atom types.
 
 E: Invalid atom type in fix deposit mol command
 
-UNDOCUMENTED
+The atom types in the defined molecule are added to the value
+specified in the create_atoms command, as an offset.  The final value
+for each atom must be between 1 to N, where N is the number of atom
+types.
 
-E: Fix deposit molecule template ID must be same as atom style template ID
+E: Fix deposit molecule template ID must be same as atom_style template ID
 
-UNDOCUMENTED
+When using atom_style template, you cannot deposit molecules that are
+not in that template.
 
 E: Cannot use fix deposit rigid and not molecule
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Cannot use fix deposit shake and not molecule
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Cannot use fix deposit rigid and shake
 
-UNDOCUMENTED
+These two attributes are conflicting.
 
 E: Region ID for fix deposit does not exist
 
@@ -134,19 +138,19 @@ Self-explanatory.
 
 E: Fix pour rigid fix does not exist
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix deposit and fix rigid/small not using same molecule template ID
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix deposit shake fix does not exist
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix deposit and fix shake not using same molecule template ID
 
-UNDOCUMENTED
+Self-explanatory.
 
 W: Particle deposition was unsuccessful
 
@@ -160,19 +164,15 @@ See the setting for bigint in the src/lmptype.h file.
 
 E: New atom IDs exceed maximum allowed ID
 
-UNDOCUMENTED
+See the setting for tagint in the src/lmptype.h file.
 
 E: Molecule template ID for fix deposit does not exist
 
-UNDOCUMENTED
+Self-explanatory.
 
 W: Molecule template for fix deposit has multiple molecules
 
-UNDOCUMENTED
-
-U: Use of fix deposit with undefined lattice
-
-Must use lattice command with compute fix deposit command if units
-option is set to lattice.
+The fix deposit command will only create molecules of a single type,
+i.e. the first molecule in the template.
 
 */

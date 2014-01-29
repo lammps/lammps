@@ -66,48 +66,46 @@ class FixEfield : public Fix {
 
 E: Illegal ... command
 
-UNDOCUMENTED
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
 
 E: Region ID for fix efield does not exist
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix efield requires atom attribute q or mu
 
-UNDOCUMENTED
+The atom style defined does not have this attribute.
 
 E: Variable name for fix efield does not exist
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Variable for fix efield is invalid style
 
-UNDOCUMENTED
+The variable must be an equal- or atom-style variable.
 
 E: Region ID for fix aveforce does not exist
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix efield with dipoles cannot use atom-style variables
 
-UNDOCUMENTED
+This option is not supported.
 
 W: The minimizer does not re-orient dipoles when using fix efield
 
-UNDOCUMENTED
+This means that only the atom coordinates will be minimized,
+not the orientation of the dipoles.
 
 E: Cannot use variable energy with constant efield in fix efield
 
-UNDOCUMENTED
+LAMMPS computes the energy itself when the E-field is constant.
 
 E: Must use variable energy with fix efield
 
-UNDOCUMENTED
-
-U: Neighbor list overflow, boost neigh_modify one
-
-There are too many neighbors of a single atom.  Use the neigh_modify
-command to increase the max number of neighbors allowed for one atom.
-You may also want to boost the page size.
+You must define an energy when performing a minimization with a
+variable E-field.
 
 */

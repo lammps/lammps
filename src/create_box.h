@@ -57,8 +57,8 @@ Self-explanatory.
 
 E: Create_box region does not support a bounding box
 
-Not all region styles define a bounding box which is required for use
-with the create_box command.  See the region command for details.
+Not all regions represent bounded volumes.  You cannot use
+such a region with the create_box command.
 
 E: No bonds allowed with this atom style
 

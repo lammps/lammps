@@ -167,15 +167,16 @@ types.
 
 E: Molecule template ID for fix shake does not exist
 
-UNDOCUMENTED
+Self-explanatory.
 
 W: Molecule template for fix shake has multiple molecules
 
-UNDOCUMENTED
+The fix shake command will only recoginze molecules of a single
+type, i.e. the first molecule in the template.
 
 E: Fix shake molecule template must have shake info
 
-UNDOCUMENTED
+The defined molecule does not specify SHAKE information.
 
 E: More than one fix shake
 
@@ -207,15 +208,21 @@ types for the 2 bonds in the angle.
 
 E: Shake atoms %ld %ld missing on proc %d at step %ld
 
-UNDOCUMENTED
+The 2 atoms in a single shake cluster specified by the fix shake
+command are not all accessible to a processor.  This probably means
+an atom has moved too far.
 
 E: Shake atoms %ld %ld %ld missing on proc %d at step %ld
 
-UNDOCUMENTED
+The 3 atoms in a single shake cluster specified by the fix shake
+command are not all accessible to a processor.  This probably means
+an atom has moved too far.
 
 E: Shake atoms %ld %ld %ld %ld missing on proc %d at step %ld
 
-UNDOCUMENTED
+The 4 atoms in a single shake cluster specified by the fix shake
+command are not all accessible to a processor.  This probably means
+an atom has moved too far.
 
 E: Did not find fix shake partner info
 
@@ -244,35 +251,5 @@ E: Shake determinant = 0.0
 
 The determinant of the matrix being solved for a single cluster
 specified by the fix shake command is numerically invalid.
-
-U: Shake atoms   missing on proc %d at step %ld
-
-UNDOCUMENTED
-
-U: Shake atoms    missing on proc %d at step %ld
-
-UNDOCUMENTED
-
-U: Shake atoms     missing on proc %d at step %ld
-
-UNDOCUMENTED
-
-U: Shake atoms %d %d missing on proc %d at step %ld
-
-The 2 atoms in a single shake cluster specified by the fix shake
-command are not all accessible to a processor.  This probably means
-an atom has moved too far.
-
-U: Shake atoms %d %d %d missing on proc %d at step %ld
-
-The 3 atoms in a single shake cluster specified by the fix shake
-command are not all accessible to a processor.  This probably means
-an atom has moved too far.
-
-U: Shake atoms %d %d %d %d missing on proc %d at step %ld
-
-The 4 atoms in a single shake cluster specified by the fix shake
-command are not all accessible to a processor.  This probably means
-an atom has moved too far.
 
 */

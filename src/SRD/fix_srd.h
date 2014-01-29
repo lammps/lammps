@@ -335,15 +335,15 @@ E: Fix SRD: bad bin assignment for SRD advection
 Something has gone wrong in your SRD model; try using more
 conservative settings.
 
-E: SRD particle  started inside big particle  on step %ld bounce %d
+E: SRD particle %ld started inside big particle %ld on step %ld bounce %d
 
 UNDOCUMENTED
 
-W: SRD particle  started inside big particle  on step %ld bounce %d
+W: SRD particle %ld started inside big particle %ld on step %ld bounce %d
 
 UNDOCUMENTED
 
-W: SRD particle  started inside big particle  on step %ld bounce %d
+W: SRD particle %ld started inside big particle %ld on step %ld bounce %d
 
 UNDOCUMENTED
 
@@ -418,6 +418,18 @@ This may cause accuracy problems.
 W: Fix srd particles may move > big particle diameter
 
 This may cause accuracy problems.
+
+U: SRD particle  started inside big particle  on step %ld bounce %d
+
+UNDOCUMENTED
+
+U: SRD particle  started inside big particle  on step %ld bounce %d
+
+UNDOCUMENTED
+
+U: SRD particle  started inside big particle  on step %ld bounce %d
+
+UNDOCUMENTED
 
 U: SRD particle %d started inside big particle %d on step %ld bounce %d
 

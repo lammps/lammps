@@ -69,22 +69,39 @@ class DumpCustomMPIIO : public DumpCustom {
 
 /* ERROR/WARNING messages:
 
-E: Illegal ... command
+E: Cannot open dump file
 
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
+The output file for the dump command cannot be opened.  Check that the
+path and name are correct.
 
-E: Region ID for fix aveforce does not exist
+E: Too much per-proc info for dump
 
-Self-explanatory.
+Number of local atoms times number of columns must fit in a 32-bit
+integer for dump.
 
-E: Variable name for fix aveforce does not exist
+E: Dump_modify format string is too short
 
-Self-explanatory.
+There are more fields to be dumped in a line of output than your
+format string specifies.
 
-E: Variable for fix aveforce is invalid style
+E: Could not find dump custom compute ID
 
-Only equal-style variables can be used.
+UNDOCUMENTED
+
+E: Could not find dump custom fix ID
+
+UNDOCUMENTED
+
+E: Dump custom and fix not computed at compatible times
+
+UNDOCUMENTED
+
+E: Could not find dump custom variable name
+
+UNDOCUMENTED
+
+E: Region ID for dump custom does not exist
+
+UNDOCUMENTED
 
 */

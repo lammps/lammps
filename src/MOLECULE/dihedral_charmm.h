@@ -52,9 +52,10 @@ class DihedralCharmm : public Dihedral {
 
 /* ERROR/WARNING messages:
 
-W: Dihedral problem: %d %ld    
+W: Dihedral problem: %d %ld %ld %ld %ld %ld
 
-UNDOCUMENTED
+Conformation of the 4 listed dihedral atoms is extreme; you may want
+to check your simulation geometry.
 
 E: Incorrect args for dihedral coefficients
 
@@ -72,10 +73,5 @@ E: Dihedral charmm is incompatible with Pair style
 
 Dihedral style charmm must be used with a pair style charmm
 in order for the 1-4 epsilon/sigma parameters to be defined.
-
-U: Dihedral problem: %d %ld %d %d %d %d
-
-Conformation of the 4 listed dihedral atoms is extreme; you may want
-to check your simulation geometry.
 
 */

@@ -52,10 +52,6 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Could not find compute vacf fix ID
 
-UNDOCUMENTED
-
-U: Could not find compute msd fix ID
-
 Self-explanatory.
 
 */

@@ -80,13 +80,33 @@ class PairTersoffMOD : public PairTersoff {
 
 /* ERROR/WARNING messages:
 
-E: Illegal ... command
+E: Cannot open Tersoff potential file %s
+
+UNDOCUMENTED
+
+E: Incorrect format in Tersoff potential file
+
+UNDOCUMENTED
+
+E: Illegal Tersoff parameter
+
+UNDOCUMENTED
+
+E: Potential file has duplicate entry
+
+UNDOCUMENTED
+
+E: Potential file is missing an entry
+
+UNDOCUMENTED
+
+U: Illegal ... command
 
 Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Region union region ID does not exist
+U: Region union region ID does not exist
 
 One or more of the region IDs specified by the region union command
 does not exist.

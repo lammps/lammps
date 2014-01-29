@@ -64,7 +64,47 @@ class FixEfield : public Fix {
 
 /* ERROR/WARNING messages:
 
-E: Neighbor list overflow, boost neigh_modify one
+E: Illegal ... command
+
+UNDOCUMENTED
+
+E: Region ID for fix efield does not exist
+
+UNDOCUMENTED
+
+E: Fix efield requires atom attribute q or mu
+
+UNDOCUMENTED
+
+E: Variable name for fix efield does not exist
+
+UNDOCUMENTED
+
+E: Variable for fix efield is invalid style
+
+UNDOCUMENTED
+
+E: Region ID for fix aveforce does not exist
+
+UNDOCUMENTED
+
+E: Fix efield with dipoles cannot use atom-style variables
+
+UNDOCUMENTED
+
+W: The minimizer does not re-orient dipoles when using fix efield
+
+UNDOCUMENTED
+
+E: Cannot use variable energy with constant efield in fix efield
+
+UNDOCUMENTED
+
+E: Must use variable energy with fix efield
+
+UNDOCUMENTED
+
+U: Neighbor list overflow, boost neigh_modify one
 
 There are too many neighbors of a single atom.  Use the neigh_modify
 command to increase the max number of neighbors allowed for one atom.

@@ -13,7 +13,7 @@
 
 /* ERROR/WARNING messages:
 
-E: Bond atoms   missing on proc %d at step %ld
+E: Bond atoms %ld %ld missing on proc %d at step %ld
 
 UNDOCUMENTED
 
@@ -27,7 +27,7 @@ This error was detected by the neigh_modify check yes setting.  It is
 an error because the bond atoms are so far apart it is ambiguous how
 it should be defined.
 
-E: Angle atoms    missing on proc %d at step %ld
+E: Angle atoms %ld %ld %ld missing on proc %d at step %ld
 
 UNDOCUMENTED
 
@@ -41,7 +41,7 @@ This error was detected by the neigh_modify check yes setting.  It is
 an error because the angle atoms are so far apart it is ambiguous how
 it should be defined.
 
-E: Dihedral atoms     missing on proc %d at step %ld
+E: Dihedral atoms %ld %ld %ld %ld missing on proc %d at step %ld
 
 UNDOCUMENTED
 
@@ -55,11 +55,27 @@ This error was detected by the neigh_modify check yes setting.  It is
 an error because the dihedral atoms are so far apart it is ambiguous
 how it should be defined.
 
-E: Improper atoms     missing on proc %d at step %ld
+E: Improper atoms %ld %ld %ld %ld missing on proc %d at step %ld
 
 UNDOCUMENTED
 
 W: Improper atoms missing at step %ld
+
+UNDOCUMENTED
+
+U: Bond atoms   missing on proc %d at step %ld
+
+UNDOCUMENTED
+
+U: Angle atoms    missing on proc %d at step %ld
+
+UNDOCUMENTED
+
+U: Dihedral atoms     missing on proc %d at step %ld
+
+UNDOCUMENTED
+
+U: Improper atoms     missing on proc %d at step %ld
 
 UNDOCUMENTED
 

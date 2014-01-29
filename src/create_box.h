@@ -37,61 +37,47 @@ class CreateBox : protected Pointers {
 
 /* ERROR/WARNING messages:
 
-E: Dump file MPI-IO output not allowed with '%' in filename
-
-UNDOCUMENTED
-
-E: Cannot dump sort when multiple procs write the dump file
-
-UNDOCUMENTED
-
-E: Cannot dump sort on atom IDs with no atom IDs defined
-
-Self-explanatory.
-
-E: Dump sort column is invalid
-
-Self-explanatory.
-
-E: Too many atoms to dump sort
-
-Cannot sort when running with more than 2^31 atoms.
-
-E: Too much per-proc info for dump
-
-Number of local atoms times number of columns must fit in a 32-bit
-integer for dump.
-
-E: Too much buffered per-proc info for dump
-
-UNDOCUMENTED
-
-E: Cannot open gzipped file
-
-LAMMPS was compiled without support for reading and writing gzipped
-files through a pipeline to the gzip program with -DLAMMPS_GZIP.
-
-E: Cannot open dump file
-
-The output file for the dump command cannot be opened.  Check that the
-path and name are correct.
-
 E: Illegal ... command
 
 Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Dump_modify buffer yes not allowed for this style
+E: Cannot create_box after simulation box is defined
 
-UNDOCUMENTED
+A simulation box can only be defined once.
 
-E: Cannot use dump_modify fileper without % in dump file name
+E: Cannot run 2d simulation with nonperiodic Z dimension
 
-UNDOCUMENTED
+There is a conflict between the dimension and boundary commands.
 
-E: Cannot use dump_modify nfile without % in dump file name
+E: Create_box region ID does not exist
 
-UNDOCUMENTED
+Self-explanatory.
+
+E: Create_box region does not support a bounding box
+
+Not all region styles define a bounding box which is required for use
+with the create_box command.  See the region command for details.
+
+E: No bonds allowed with this atom style
+
+This means you cannot use an optional keyword that defines bond
+properties.
+
+E: No angles allowed with this atom style
+
+This means you cannot use an optional keyword that defines angle
+properties.
+
+E: No dihedrals allowed with this atom style
+
+This means you cannot use an optional keyword that defines dihedral
+properties.
+
+E: No impropers allowed with this atom style
+
+This means you cannot use an optional keyword that defines improper
+properties.
 
 */

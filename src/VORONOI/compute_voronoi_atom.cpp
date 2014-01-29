@@ -53,40 +53,46 @@ ComputeVoronoi::ComputeVoronoi(LAMMPS *lmp, int narg, char **arg) :
 
   int iarg = 3;
   while ( iarg<narg ) {
-    if (strcmp(arg[iarg], "only_group") == 0) {
+    if (strcmp(arg[iarg],"only_group") == 0) {
       onlyGroup = true;
       iarg++;
     } 
-    else if (strcmp(arg[iarg], "radius") == 0) {
-      if (iarg + 2 > narg || strstr(arg[iarg+1],"v_") != arg[iarg+1] ) error->all(FLERR,"Missing atom style variable for radical voronoi tesselation radius.");
+    else if (strcmp(arg[iarg],"radius") == 0) {
+      if (iarg + 2 > narg || strstr(arg[iarg+1],"v_") != arg[iarg+1] ) 
+        error->all(FLERR,"Illegal compute voronoi/atom command");
       int n = strlen(&arg[iarg+1][2]) + 1;
       radstr = new char[n];
       strcpy(radstr,&arg[iarg+1][2]);
       iarg += 2;
     } 
-    else if (strcmp(arg[iarg], "surface") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR,"Missing group name after keyword 'surface'.");
+    else if (strcmp(arg[iarg],"surface") == 0) {
+      if (iarg + 2 > narg) 
+        error->all(FLERR,"Illegal compute voronoi/atom command");
       // group all is a special case where we just skip group testing
       if(strcmp(arg[iarg+1], "all") == 0) {
         surface = VOROSURF_ALL;
       } else {
         sgroup = group->find(arg[iarg+1]);
-        if (sgroup == -1) error->all(FLERR,"Could not find compute/voronoi surface group ID");
+        if (sgroup == -1) 
+          error->all(FLERR,"Could not find compute/voronoi surface group ID");
         sgroupbit = group->bitmask[sgroup]; 
         surface = VOROSURF_GROUP;
       }
       size_peratom_cols = 3;
       iarg += 2;
     } else if (strcmp(arg[iarg], "edge_histo") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR,"Missing maximum edge count after keyword 'edge_histo'.");
+      if (iarg + 2 > narg) 
+        error->all(FLERR,"Illegal compute voronoi/atom command");
       maxedge = atoi(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg], "face_threshold") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR,"Missing minimum face area after keyword 'face_threshold'.");
+      if (iarg + 2 > narg) 
+        error->all(FLERR,"Illegal compute voronoi/atom command");
       fthresh = atof(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg], "edge_threshold") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR,"Missing minimum edge length after keyword 'edge_threshold'.");
+      if (iarg + 2 > narg) 
+        error->all(FLERR,"Illegal compute voronoi/atom command");
       ethresh = atof(arg[iarg+1]);
       iarg += 2;
     } 
@@ -218,9 +224,9 @@ void ComputeVoronoi::compute_peratom()
     // check and fetch atom style variable data
     int radvar = input->variable->find(radstr);
     if (radvar < 0)
-            error->all(FLERR,"Variable name for voronoi radius set does not exist");
+      error->all(FLERR,"Variable name for voronoi radius does not exist");
     if (!input->variable->atomstyle(radvar))
-            error->all(FLERR,"Variable for voronoi radius is not atom style");
+      error->all(FLERR,"Variable for voronoi radius is not atom style");
     // prepare destination buffer for variable evaluation
     if (nlocal > rmax) {
       memory->destroy(rfield);

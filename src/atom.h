@@ -283,7 +283,7 @@ class Atom : protected Pointers {
 
 E: Atom IDs must be used for molecular systems
 
-UNDOCUMENTED
+Atom IDs are used to identify and find partner atoms in bonds.
 
 E: Invalid atom style
 
@@ -301,7 +301,8 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Atom_modify id command after simulation box is defined
 
-UNDOCUMENTED
+The atom_modify id command cannot be used after a read_data,
+read_restart, or create_box command.
 
 E: Atom_modify map command after simulation box is defined
 
@@ -314,23 +315,27 @@ Self-explanatory.
 
 E: Atom ID is negative
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Atom ID is too big
 
-UNDOCUMENTED
+The limit on atom IDs is set by the SMALLBIG, BIGBIG, SMALLSMALL
+setting in your Makefile.  See Section_start 2.2 of the manual for
+more details.
 
 E: Atom ID is zero
 
-UNDOCUMENTED
+Either all atoms IDs must be zero or none of them.
 
 E: Not all atom IDs are 0
 
-UNDOCUMENTED
+Either all atoms IDs must be zero or none of them.
 
 E: New atom IDs exceed maximum allowed ID
 
-UNDOCUMENTED
+The limit on atom IDs is set by the SMALLBIG, BIGBIG, SMALLSMALL
+setting in your Makefile.  See Section_start 2.2 of the manual for
+more details.
 
 E: Incorrect atom format in data file
 
@@ -429,7 +434,7 @@ command.
 
 E: Reuse of molecule template ID
 
-UNDOCUMENTED
+The template IDs must be unique.
 
 E: Atom sort did not operate correctly
 

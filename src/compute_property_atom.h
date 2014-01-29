@@ -144,11 +144,13 @@ Self-explanatory.
 
 E: Compute property/atom floating point vector does not exist
 
-UNDOCUMENTED
+The command is accessing a vector added by the fix property/atom
+command, that does not exist.
 
 E: Compute property/atom integer vector does not exist
 
-UNDOCUMENTED
+The command is accessing a vector added by the fix property/atom
+command, that does not exist.
 
 E: Invalid keyword in compute property/atom command
 

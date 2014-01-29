@@ -200,9 +200,11 @@ inconsistent image flags will not cause problems for dynamics or most
 LAMMPS simulations.  However they can cause problems when such atoms
 are used with the fix rigid or replicate commands.
 
-W: Bond atoms missing in image check
+W: Bond atom missing in image check
 
-UNDOCUMENTED
+The 2nd atom in a particular bond is missing on this processor.
+Typically this is because the pairwise cutoff is set too short or the
+bond has blown apart and an atom is too far away.
 
 E: Bond atom missing in box size check
 
@@ -212,7 +214,9 @@ short or the bond has blown apart and an atom is too far away.
 
 W: Bond atoms missing in box size check
 
-UNDOCUMENTED
+The 2nd atoms needed to compute a particular bond is missing on this
+processor.  Typically this is because the pairwise cutoff is set too
+short or the bond has blown apart and an atom is too far away.
 
 W: Bond/angle/dihedral extent > half of periodic box length
 

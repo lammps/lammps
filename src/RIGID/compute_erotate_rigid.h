@@ -51,13 +51,9 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Fix ID for compute erotate/rigid does not exist
 
-UNDOCUMENTED
+Self-explanatory.
 
-E: Compute ke/rigid with non-rigid fix-ID
-
-UNDOCUMENTED
-
-U: Compute erotate/sphere requires atom style sphere
+E: Compute erotate/rigid with non-rigid fix-ID
 
 Self-explanatory.
 

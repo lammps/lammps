@@ -283,7 +283,11 @@ E: Cannot open fix rigid restart file %s
 
 UNDOCUMENTED
 
-E: Rigid body atoms   missing on proc %d at step %ld
+E: Rigid body atoms %ld %ld missing on proc %d at step %ld
+
+UNDOCUMENTED
+
+U: Rigid body atoms   missing on proc %d at step %ld
 
 UNDOCUMENTED
 

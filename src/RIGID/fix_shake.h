@@ -205,15 +205,15 @@ All 3-atom angle-constrained SHAKE clusters specified by the fix shake
 command that are the same angle type, must also have the same bond
 types for the 2 bonds in the angle.
 
-E: Shake atoms   missing on proc %d at step %ld
+E: Shake atoms %ld %ld missing on proc %d at step %ld
 
 UNDOCUMENTED
 
-E: Shake atoms    missing on proc %d at step %ld
+E: Shake atoms %ld %ld %ld missing on proc %d at step %ld
 
 UNDOCUMENTED
 
-E: Shake atoms     missing on proc %d at step %ld
+E: Shake atoms %ld %ld %ld %ld missing on proc %d at step %ld
 
 UNDOCUMENTED
 
@@ -244,6 +244,18 @@ E: Shake determinant = 0.0
 
 The determinant of the matrix being solved for a single cluster
 specified by the fix shake command is numerically invalid.
+
+U: Shake atoms   missing on proc %d at step %ld
+
+UNDOCUMENTED
+
+U: Shake atoms    missing on proc %d at step %ld
+
+UNDOCUMENTED
+
+U: Shake atoms     missing on proc %d at step %ld
+
+UNDOCUMENTED
 
 U: Shake atoms %d %d missing on proc %d at step %ld
 

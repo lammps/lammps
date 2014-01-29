@@ -122,6 +122,20 @@ the large volume of communication needed to acquire ghost atoms around
 a processor's irregular-shaped sub-domain.  For extreme values of
 tilt, LAMMPS may also lose atoms and generate an error.
 </P>
+<P>IMPORTANT NOTE: Performing a minimization with this fix is not a
+mathematically well-defined minimization problem.  This is because the
+objective function being minimized changes if the box size/shape
+changes.  In practice this means the minimizer can get "stuck" before
+you have reached the desired tolerance.  The solution to this is to
+restart the minmizer from the new adjusted box size/shape, since that
+creates a new objective function valid for the new box size/shape.
+Repeat as necessary until the box size/shape has reached its new
+equilibrium.
+</P>
+<HR>
+
+<HR>
+
 <HR>
 
 <P>The <I>couple</I> keyword allows two or three of the diagonal components of

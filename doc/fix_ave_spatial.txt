@@ -234,6 +234,10 @@ count of atoms in the bin.  The printed value for the bin is
 Total-quantity / Total-count.  In other words it is an average over
 the entire {Nfreq} timescale.
 
+As described above, if the {region} keyword is used, the atom must be
+in both the group and the specified geometric "region"_region.html in
+order to contribute to bin averages.
+
 For a {sample} setting, the bin quantity is summed over atoms for only
 a single sample, as is the count, and a "average sample value" is
 computed, i.e. Sample-quantity / Sample-count.  The printed value for

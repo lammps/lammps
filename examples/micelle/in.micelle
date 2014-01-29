@@ -57,7 +57,7 @@ pair_coeff	1 4 1.0 1.0 1.12246
 
 pair_coeff	2 3 1.0 0.88 1.12246
 pair_coeff	2 4 1.0 0.75 1.12246
-image
+
 thermo		1000
 
 #dump		1 all atom 2000 dump.micelle

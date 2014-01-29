@@ -37,8 +37,6 @@ thermo_modify flush yes lost warn
 
 timestep	0.005
 
-log		log.tnr
-
 fix	1	rods	rigid molecule
 fix	2	tethers	nve
 fix	3	all	langevin 1.4 1.4 1.0 437624
@@ -46,12 +44,14 @@ fix	3	all	langevin 1.4 1.4 1.0 437624
 run	5000
 
 # Replace fix rigid and fix langevin with new ones
+
 unfix	1
 unfix	3
 
 fix	3	tethers langevin 1.4 1.4 1.0 198450
 
 # Test different integrators for rods
+
 fix	1 rods	rigid/nve molecule
 print 	"rigid/nve"
 run	1000

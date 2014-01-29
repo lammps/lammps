@@ -188,7 +188,7 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"region") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/spatial command");
-      iregion = domain->find_region(arg[iarg+1]);
+      int iregion = domain->find_region(arg[iarg+1]);
       if (iregion == -1)
         error->all(FLERR,"Region ID for fix ave/spatial does not exist");
       int n = strlen(arg[iarg+1]) + 1;
@@ -434,7 +434,7 @@ void FixAveSpatial::init()
   // set and check validity of region
 
   if (regionflag) {
-    iregion = domain->find_region(idregion);
+    int iregion = domain->find_region(idregion);
     if (iregion == -1)
       error->all(FLERR,"Region ID for fix ave/spatial does not exist");
     region = domain->regions[iregion];
@@ -560,7 +560,7 @@ void FixAveSpatial::end_of_step()
       if (which[m] == V) attribute = atom->v;
       else attribute = atom->f;
 
-      if (regionflag == 0) {
+      if (!regionflag) {
         for (i = 0; i < nlocal; i++)
           if (mask[i] & groupbit)
             values_one[bin[i]][m] += attribute[i][j];
@@ -574,7 +574,7 @@ void FixAveSpatial::end_of_step()
 
     } else if (which[m] == DENSITY_NUMBER) {
 
-      if (regionflag == 0) {
+      if (!regionflag) {
         for (i = 0; i < nlocal; i++)
           if (mask[i] & groupbit)
             values_one[bin[i]][m] += 1.0;
@@ -591,7 +591,7 @@ void FixAveSpatial::end_of_step()
       double *mass = atom->mass;
       double *rmass = atom->rmass;
 
-      if (regionflag == 0) {
+      if (!regionflag) {
         for (i = 0; i < nlocal; i++)
           if (mask[i] & groupbit) {
             if (rmass) values_one[bin[i]][m] += rmass[i];
@@ -618,7 +618,7 @@ void FixAveSpatial::end_of_step()
       double **array = compute->array_atom;
       int jm1 = j - 1;
 
-      if (regionflag == 0) {
+      if (!regionflag) {
         for (i = 0; i < nlocal; i++)
           if (mask[i] & groupbit) {
             if (j == 0) values_one[bin[i]][m] += vector[i];
@@ -640,7 +640,7 @@ void FixAveSpatial::end_of_step()
       double **array = modify->fix[n]->array_atom;
       int jm1 = j - 1;
 
-      if (regionflag == 0) {
+      if (!regionflag) {
         for (i = 0; i < nlocal; i++)
           if (mask[i] & groupbit) {
             if (j == 0) values_one[bin[i]][m] += vector[i];
@@ -666,7 +666,7 @@ void FixAveSpatial::end_of_step()
 
       input->variable->compute_atom(n,igroup,varatom,1,0);
 
-      if (regionflag == 0) {
+      if (!regionflag) {
         for (i = 0; i < nlocal; i++)
           if (mask[i] & groupbit)
             values_one[bin[i]][m] += varatom[i];
@@ -988,7 +988,7 @@ void FixAveSpatial::atom2bin1d()
   // remap each atom's relevant coord back into box via PBC if necessary
   // if scaleflag = REDUCED, box coords -> lamda coords
 
-  if (regionflag == 0) {
+  if (!regionflag) {
     if (scaleflag == REDUCED) domain->x2lamda(nlocal);
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
@@ -1061,7 +1061,7 @@ void FixAveSpatial::atom2bin2d()
   // remap each atom's relevant coord back into box via PBC if necessary
   // if scaleflag = REDUCED, box coords -> lamda coords
 
-  if (regionflag == 0) {
+  if (!regionflag) {
     if (scaleflag == REDUCED) domain->x2lamda(nlocal);
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
@@ -1162,7 +1162,7 @@ void FixAveSpatial::atom2bin3d()
   // remap each atom's relevant coord back into box via PBC if necessary
   // if scaleflag = REDUCED, box coords -> lamda coords
 
-  if (regionflag == 0) {
+  if (!regionflag) {
     if (scaleflag == REDUCED) domain->x2lamda(nlocal);
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {

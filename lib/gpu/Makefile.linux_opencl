@@ -11,7 +11,7 @@ OCL_TUNE = -DFERMI_OCL       # -- Uncomment for NVIDIA Fermi
 # OCL_TUNE = -DCYPRESS_OCL   # -- Uncomment for AMD Cypress
 # OCL_TUNE = -DGENERIC_OCL   # -- Uncomment for generic device
 
-# system-specific settings, should match LAMMPS Makefile
+# this setting should match LAMMPS Makefile
 # one of LAMMPS_SMALLBIG (default), LAMMPS_BIGBIG and LAMMPS_SMALLSMALL
 
 LMP_INC = -DLAMMPS_SMALLBIG

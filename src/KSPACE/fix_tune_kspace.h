@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+ndoc/* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -95,7 +95,7 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Cannot use fix tune/kspace without a kspace style
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Cannot use fix tune/kspace without a pair style
 
@@ -105,9 +105,5 @@ E: Bad real space Coulomb cutoff in fix tune/kspace
 
 Fix tune/kspace tried to find the optimal real space Coulomb cutoff using
 the Newton-Rhaphson method, but found a non-positive or NaN cutoff
-
-U: Cannot use fix tune/kspace without kspace
-
-This fix (tune/kspace) can only be used when a kspace style has been specified.
 
 */

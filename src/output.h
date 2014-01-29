@@ -162,12 +162,12 @@ default values.  This is because the thermo_modify commmand acts on
 the currently defined thermo style, and a thermo_style command creates
 a new style.
 
-E: Both restart files must have '%' or neither
+E: Both restart files must use % or neither
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Both restart files must use MPI-IO or neither
 
-UNDOCUMENTED
+Self-explanatory.
 
 */

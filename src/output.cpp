@@ -757,9 +757,9 @@ void Output::create_restart(int narg, char **arg)
   else multiproc = 0;
   if (nfile == 2) {
     if (multiproc && !strchr(arg[2],'%')) 
-      error->all(FLERR,"Both restart files must have '%' or neither");
+      error->all(FLERR,"Both restart files must use % or neither");
     if (!multiproc && strchr(arg[2],'%'))
-      error->all(FLERR,"Both restart files must have '%' or neither");
+      error->all(FLERR,"Both restart files must use % or neither");
   }
 
   int mpiioflag;

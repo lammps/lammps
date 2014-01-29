@@ -280,7 +280,7 @@ The number of fields per line is not what expected.
 
 E: Invalid rigid body ID in fix rigid/small file
 
-The ID does not match the number or an existing ID of rigid bodies
+The ID does not match the number of an existing ID of rigid bodies
 that are defined by the fix rigid/small command.
 
 E: Cannot open fix rigid restart file %s

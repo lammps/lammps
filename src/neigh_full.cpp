@@ -101,7 +101,7 @@ void Neighbor::full_nsq(NeighList *list)
             which = find_special(onemols[imol]->special[iatom],
                                  onemols[imol]->nspecial[iatom],
                                  tag[j]-tagprev);
-          else which == 0;
+          else which = 0;
           if (which == 0) neighptr[n++] = j;
           else if (domain->minimum_image_check(delx,dely,delz))
             neighptr[n++] = j;
@@ -198,7 +198,7 @@ void Neighbor::full_nsq_ghost(NeighList *list)
               which = find_special(onemols[imol]->special[iatom],
                                    onemols[imol]->nspecial[iatom],
                                    tag[j]-tagprev);
-            else which == 0;
+            else which = 0;
             if (which == 0) neighptr[n++] = j;
             else if (domain->minimum_image_check(delx,dely,delz))
               neighptr[n++] = j;
@@ -317,7 +317,7 @@ void Neighbor::full_bin(NeighList *list)
               which = find_special(onemols[imol]->special[iatom],
                                    onemols[imol]->nspecial[iatom],
                                    tag[j]-tagprev);
-            else which == 0;
+            else which = 0;
             if (which == 0) neighptr[n++] = j;
             else if (domain->minimum_image_check(delx,dely,delz))
               neighptr[n++] = j;
@@ -428,7 +428,7 @@ void Neighbor::full_bin_ghost(NeighList *list)
                 which = find_special(onemols[imol]->special[iatom],
                                      onemols[imol]->nspecial[iatom],
                                      tag[j]-tagprev);
-              else which == 0;
+              else which = 0;
               if (which == 0) neighptr[n++] = j;
               else if (domain->minimum_image_check(delx,dely,delz))
                 neighptr[n++] = j;
@@ -567,7 +567,7 @@ void Neighbor::full_multi(NeighList *list)
               which = find_special(onemols[imol]->special[iatom],
                                    onemols[imol]->nspecial[iatom],
                                    tag[j]-tagprev);
-            else which == 0;
+            else which = 0;
             if (which == 0) neighptr[n++] = j;
             else if (domain->minimum_image_check(delx,dely,delz))
               neighptr[n++] = j;

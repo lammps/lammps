@@ -101,7 +101,7 @@ void Neighbor::half_nsq_no_newton(NeighList *list)
             which = find_special(onemols[imol]->special[iatom],
                                  onemols[imol]->nspecial[iatom],
                                  tag[j]-tagprev);
-          else which == 0;
+          else which = 0;
           if (which == 0) neighptr[n++] = j;
           else if (domain->minimum_image_check(delx,dely,delz))
             neighptr[n++] = j;
@@ -207,7 +207,7 @@ void Neighbor::half_nsq_no_newton_ghost(NeighList *list)
               which = find_special(onemols[imol]->special[iatom],
                                    onemols[imol]->nspecial[iatom],
                                    tag[j]-tagprev);
-            else which == 0;
+            else which = 0;
             if (which == 0) neighptr[n++] = j;
             else if (domain->minimum_image_check(delx,dely,delz))
               neighptr[n++] = j;
@@ -339,7 +339,7 @@ void Neighbor::half_nsq_newton(NeighList *list)
             which = find_special(onemols[imol]->special[iatom],
                                  onemols[imol]->nspecial[iatom],
                                  tag[j]-tagprev);
-          else which == 0;
+          else which = 0;
           if (which == 0) neighptr[n++] = j;
           else if (domain->minimum_image_check(delx,dely,delz))
             neighptr[n++] = j;

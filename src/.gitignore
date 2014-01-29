@@ -98,6 +98,8 @@ atom_vec_molecular.cpp
 atom_vec_molecular.h
 atom_vec_peri.cpp
 atom_vec_peri.h
+atom_vec_template.cpp
+atom_vec_template.h
 body_nparticle.cpp
 body_nparticle.h
 bond_class2.cpp
@@ -239,8 +241,14 @@ dihedral_table.h
 dihedral_table_omp.cpp
 dihedral_table_omp.h
 domain_omp.cpp
+dump_atom_mpiio.cpp
+dump_atom_mpiio.h
+dump_custom_mpiio.cpp
+dump_custom_mpiio.h
 dump_xtc.cpp
 dump_xtc.h
+dump_xyz_mpiio.cpp
+dump_xyz_mpiio.h
 ewald.cpp
 ewald.h
 ewald_cg.cpp
@@ -267,6 +275,8 @@ fix_bond_create.cpp
 fix_bond_create.h
 fix_bond_swap.cpp
 fix_bond_swap.h
+fix_deposit.cpp
+fix_deposit.h
 fix_efield.cpp
 fix_efield.h
 fix_evaporate.cpp
@@ -293,6 +303,16 @@ fix_imd.cpp
 fix_imd.h
 fix_langevin_eff.cpp
 fix_langevin_eff.h
+fix_lb_fluid.cpp
+fix_lb_fluid.h
+fix_lb_momentum.cpp
+fix_lb_momentum.h
+fix_lb_pc.cpp
+fix_lb_pc.h
+fix_lb_rigid_pc_sphere.cpp
+fix_lb_rigid_pc_sphere.h
+fix_lb_viscous.cpp
+fix_lb_viscous.h
 fix_load_report.cpp
 fix_load_report.h
 fix_meso.cpp
@@ -369,6 +389,8 @@ fix_nvt_sphere_omp.cpp
 fix_nvt_sphere_omp.h
 fix_omp.cpp
 fix_omp.h
+fix_oneway.cpp
+fix_oneway.h
 fix_orient_fcc.cpp
 fix_orient_fcc.h
 fix_peri_neigh.cpp
@@ -427,6 +449,8 @@ fix_rigid_small.cpp
 fix_rigid_small.h
 fix_rigid_small_omp.cpp
 fix_rigid_small_omp.h
+fix_shake.cpp
+fix_shake.h
 fix_shear_history_omp.cpp
 fix_shear_history_omp.h
 fix_smd.cpp
@@ -441,6 +465,10 @@ fix_temp_rescale_eff.cpp
 fix_temp_rescale_eff.h
 fix_thermal_conductivity.cpp
 fix_thermal_conductivity.h
+fix_ti_rs.cpp
+fix_ti_rs.h
+fix_ti_spring.cpp
+fix_ti_spring.h
 fix_ttm.cpp
 fix_ttm.h
 fix_tune_kspace.cpp
@@ -601,6 +629,8 @@ pair_cg_cmm_coul_msm_gpu.cpp
 pair_cg_cmm_coul_msm_gpu.h
 pair_comb.cpp
 pair_comb.h
+pair_comb3.cpp
+pair_comb3.h
 pair_comb_omp.cpp
 pair_comb_omp.h
 pair_colloid.cpp
@@ -1105,6 +1135,8 @@ remap_wrap.cpp
 remap_wrap.h
 respa_omp.cpp
 respa_omp.h
+restart_mpiio.cpp
+restart_mpiio.h
 style_angle.h
 style_atom.h
 style_body.h

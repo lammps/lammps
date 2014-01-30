@@ -108,7 +108,4 @@ fix 		1 all nvt temp ${thi} ${thi} 0.1
  
 tad 2000 50 ${tlo} ${thi} 0.05 1.0 event &
     min ${etol} ${ftol} ${maxiter} ${maxeval} &
-    neb 0.0 0.01 200 200 20 &
-    min_style cg &
-    neb_style fire &
-    neb_log log.neb
+    neb 0.0 0.01 200 200 20 neb_style fire neb_log log.neb

@@ -114,6 +114,10 @@ class Atom : protected Pointers {
   int cs_flag,csforce_flag,vforce_flag,ervelforce_flag,etag_flag;
   int rho_flag,e_flag,cv_flag,vest_flag;
 
+  // Peridynamics scale factor, used by dump cfg
+
+  double pdscale;
+
   // molecule templates
   // each template can be a set of consecutive molecules
   // each with same ID (stored in molecules)

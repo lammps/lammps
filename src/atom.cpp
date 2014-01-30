@@ -140,6 +140,10 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   cs_flag = csforce_flag = vforce_flag = ervelforce_flag= etag_flag = 0;
   rho_flag = e_flag = cv_flag = vest_flag = 0;
 
+  // Peridynamic scale factor
+
+  pdscale = 1.0;
+
   // ntype-length arrays
 
   mass = NULL;

@@ -35,7 +35,11 @@ run    		5
 
 unfix    	1
 fix		1 all box/relax aniso 0.0 vmax 0.0002
-minimize	1.0e-12  1.0e-18  1000  10000
+
+# should minimize to higher tolerance in practice
+
+#minimize	1.0e-12  1.0e-18  1000  10000
+minimize	1.0e-4  1.0e-6  1000  10000
 min_modify	dmax 0.005 line quadratic
 
 #dump		1 all cfg 10 *.cfg id type xs ys zs q vx vy vz fx fy fz

@@ -63,12 +63,18 @@ Optimization (Procedure 3.1 on p 41).
 </P>
 <P>The <A HREF = "min_style.html">minimization styles</A> <I>quickmin</I> and <I>fire</I> perform
 damped dynamics using an Euler integration step.  Thus they require a
-<A HREF = "timestep.html">timestep</A> be defined, typically the same value used for
-<A HREF = "run.html">running dynamics</A> with the system, though it may be more
-efficient to use a larger timestep.
+<A HREF = "timestep.html">timestep</A> be defined.
 </P>
-<P>The objective function being minimized is the total potential energy
-of the system as a function of the N atom coordinates:
+<P>IMPORTANT NOTE: The damped dynamic minimizers use whatever timestep
+you have defined via the <A HREF = "timestep.html">timestep</A> command.  Often they
+will converge more quickly if you use a timestep about 10x larger than
+you would normally use for dynamics simulations.
+</P>
+<HR>
+
+<P>In all cases, the objective function being minimized is the total
+potential energy of the system as a function of the N atom
+coordinates:
 </P>
 <CENTER><IMG SRC = "Eqs/min_energy.jpg">
 </CENTER>

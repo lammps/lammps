@@ -71,7 +71,7 @@ Self-explanatory.  Check the input script or data file.
 
 E: Pair dipole/long requires atom attributes q, mu, torque
 
-UNDOCUMENTED
+The atom style defined does not have these attributes.
 
 E: Cannot (yet) use 'electron' units with dipoles
 

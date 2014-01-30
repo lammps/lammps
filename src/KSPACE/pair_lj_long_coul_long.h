@@ -80,7 +80,7 @@ command-line option when running LAMMPS to see the offending line.
 
 W: Using largest cutoff for lj/long/coul/long
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Cutoffs missing in pair_style lj/long/coul/long
 
@@ -100,7 +100,7 @@ Self-explanatory.  Check the input script or data file.
 
 E: Invoking coulombic in pair style lj/coul requires atom attribute q
 
-UNDOCUMENTED
+The atom style defined does not have this attribute.
 
 E: Pair style requires a KSpace style
 

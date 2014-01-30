@@ -188,7 +188,8 @@ Pair Coeffs.
 
 E: Must define pair_style before PairIJ Coeffs
 
-UNDOCUMENTED
+Must use a pair_style command before reading a data file that defines
+PairIJ Coeffs.
 
 E: Invalid data file section: Bond Coeffs
 
@@ -305,11 +306,12 @@ A section of the data file cannot be read by LAMMPS.
 E: No atoms in data file
 
 The header of the data file indicated that atoms would be included,
-but they were not present.
+but they are not present.
 
 E: Needed molecular topology not in data file
 
-UNDOCUMENTED
+The header of the data file indicated bonds, angles, etc would be
+included, but they are not present.
 
 E: Needed bonus data not in data file
 
@@ -375,7 +377,8 @@ The data file header lists improper but no improper types.
 
 E: No molecule topology allowed with atom style template
 
-UNDOCUMENTED
+The data file cannot specify the number of bonds, angles, etc,
+because this info if inferred from the molecule templates.
 
 E: Did not assign all atoms correctly
 
@@ -421,19 +424,5 @@ E: Cannot open file %s
 The specified file cannot be opened.  Check that the path and name are
 correct. If the file is a compressed file, also check that the gzip
 executable can be found and run.
-
-U: Invalid atom ID in Atoms section of data file
-
-Atom IDs must be positive integers.
-
-U: Molecular data file has too many atoms
-
-These kids of data files are currently limited to a number
-of atoms that fits in a 32-bit integer.
-
-U: Needed topology not in data file
-
-The header of the data file indicated that bonds or angles or
-dihedrals or impropers would be included, but they were not present.
 
 */

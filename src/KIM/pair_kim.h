@@ -170,7 +170,7 @@ E: Invalid args for non-hybrid pair coefficients
 
 E: PairKIM only works with 3D problems.
 
-UNDOCUMENTED
+This is a current limitation.
 
 E: All pair coeffs are not set
 
@@ -207,21 +207,8 @@ W: KIM Model does not provide `particleVirial'; virial per atom will be zero
 
 Self-explanatory.
 
-E: test_descriptor_string already allocated.
+E: Test_descriptor_string already allocated.
 
-UNDOCUMENTED
-
-U: PairKIM only works with 3D problems
-
-The KIM API does not explicitly support anything other than 3D problems
-
-U: Internal KIM error
-
-Self-explanatory. Check the output and kim.log file for more details.
-
-U: test_descriptor_string already allocated
-
-This should not happen. It likely indicates a bug in the pair_kim
-implementation.
+This is an internal error.  Contact the developers.
 
 */

@@ -82,13 +82,14 @@ E: Cannot read_restart after simulation box is defined
 The read_restart command cannot be used after a read_data,
 read_restart, or create_box command.
 
-E: Read restart MPI-IO output not allowed with '%' in filename
+E: Read restart MPI-IO input not allowed with % in filename
 
-UNDOCUMENTED
+This is because a % signifies one file per processor and MPI-IO
+creates one large file for all processors.
 
 E: Reading from MPI-IO filename when MPIIO package is not installed
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Cannot open restart file %s
 
@@ -206,9 +207,5 @@ UNDOCUMENTED
 E: Restart file byte ordering is not recognized
 
 UNDOCUMENTED
-
-U: Restart file version does not match LAMMPS version
-
-This may cause problems when reading the restart file.
 
 */

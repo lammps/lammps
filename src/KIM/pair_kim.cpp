@@ -381,7 +381,7 @@ void PairKIM::init_style()
    // This is called for each "run ...", "minimize ...", etc. read from input
 
    if (domain->dimension != 3)
-      error->all(FLERR,"PairKIM only works with 3D problems.");
+      error->all(FLERR,"PairKIM only works with 3D problems");
 
    // set lmps_* bool flags
    set_lmps_flags();
@@ -979,7 +979,7 @@ void PairKIM::set_kim_model_has_flags()
 
    // get KIM API object representing the KIM Model only
    kimerror = mdl.model_info(kim_modelname);
-   kim_error(__LINE__,"KIM initialization failed.", kimerror);
+   kim_error(__LINE__,"KIM initialization failed", kimerror);
 
    // determine if the KIM Model can compute the total energy
    mdl.get_index((char*) "energy", &kimerror);
@@ -1007,7 +1007,7 @@ void PairKIM::set_kim_model_has_flags()
    kim_model_has_particleVirial = (kimerror == KIM_STATUS_OK);
    mdl.get_index((char*) "process_dEdr", &kimerror);
    kim_model_has_particleVirial = kim_model_has_particleVirial || 
-     (kimerror == KIM_STATUS_OK);
+     (kimerror == KIM_STATUS_OK)<;
    if (!kim_model_has_particleVirial) 
      error->warning(FLERR,"KIM Model does not provide `particleVirial'; "
                     "virial per atom will be zero");
@@ -1025,7 +1025,7 @@ void PairKIM::write_descriptor(char** test_descriptor_string)
 {
    // allocate memory
    if (*test_descriptor_string != 0) 
-     error->all(FLERR, "test_descriptor_string already allocated.");
+     error->all(FLERR, "test_descriptor_string already allocated");
    // assuming 75 lines at 100 characters each (should be plenty)
    *test_descriptor_string = new char[100*75]; 
    // initialize

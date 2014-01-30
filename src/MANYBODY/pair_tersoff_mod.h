@@ -82,33 +82,26 @@ class PairTersoffMOD : public PairTersoff {
 
 E: Cannot open Tersoff potential file %s
 
-UNDOCUMENTED
+The specified potential file cannot be opened.  Check that the
+path and name are correct.
 
 E: Incorrect format in Tersoff potential file
 
-UNDOCUMENTED
+Incorrect number of words per line in the potential file.
 
 E: Illegal Tersoff parameter
 
-UNDOCUMENTED
+One or more of the coefficients defined in the potential file is
+invalid.
 
 E: Potential file has duplicate entry
 
-UNDOCUMENTED
+The potential file for a SW or Tersoff potential has more than
+one entry for the same 3 ordered elements.
 
 E: Potential file is missing an entry
 
-UNDOCUMENTED
-
-U: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-U: Region union region ID does not exist
-
-One or more of the region IDs specified by the region union command
-does not exist.
+The potential file for a SW or Tersoff potential does not have a
+needed entry.
 
 */

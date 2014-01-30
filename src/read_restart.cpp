@@ -103,7 +103,7 @@ void ReadRestart::command(int narg, char **arg)
 
   if (multiproc && mpiioflag) 
     error->all(FLERR,
-               "Read restart MPI-IO output not allowed with '%' in filename");
+               "Read restart MPI-IO input not allowed with % in filename");
 
   if (mpiioflag) {
     mpiio = new RestartMPIIO(lmp);

@@ -177,107 +177,31 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Incorrect args for pair coefficients
 
-UNDOCUMENTED
+Self-explanatory.  Check the input script or data file.
 
 E: Pair style LCBOP requires atom IDs
 
-UNDOCUMENTED
+This is a requirement to use the LCBOP potential.
 
 E: Pair style LCBOP requires newton pair on
 
-UNDOCUMENTED
+See the newton command.  This is a restriction to use the Tersoff
+potential.
 
 E: All pair coeffs are not set
 
-UNDOCUMENTED
+All pair coefficients must be set in the data file or by the
+pair_coeff command before running a simulation.
 
 E: Neighbor list overflow, boost neigh_modify one
 
-UNDOCUMENTED
+There are too many neighbors of a single atom.  Use the neigh_modify
+command to increase the max number of neighbors allowed for one atom.
+You may also want to boost the page size.
 
 E: Cannot open LCBOP potential file %s
 
-UNDOCUMENTED
-
-U: Variable name for thermo every does not exist
-
-Self-explanatory.
-
-U: Variable for thermo every is invalid style
-
-Only equal-style variables can be used.
-
-U: Variable name for dump every does not exist
-
-Self-explanatory.
-
-U: Variable for dump every is invalid style
-
-Only equal-style variables can be used.
-
-U: Variable name for restart does not exist
-
-Self-explanatory.
-
-U: Variable for restart is invalid style
-
-Only equal-style variables can be used.
-
-U: Dump every variable returned a bad timestep
-
-The variable must return a timestep greater than the current timestep.
-
-U: Restart variable returned a bad timestep
-
-The variable must return a timestep greater than the current timestep.
-
-U: Thermo every variable returned a bad timestep
-
-The variable must return a timestep greater than the current timestep.
-
-U: Reuse of dump ID
-
-A dump ID cannot be used twice.
-
-U: Could not find dump group ID
-
-A group ID used in the dump command does not exist.
-
-U: Invalid dump frequency
-
-Dump frequency must be 1 or greater.
-
-U: Invalid dump style
-
-The choice of dump style is unknown.
-
-U: Cound not find dump_modify ID
-
-Self-explanatory.
-
-U: Could not find undump ID
-
-A dump ID used in the undump command does not exist.
-
-U: Thermo_style command before simulation box is defined
-
-The thermo_style command cannot be used before a read_data,
-read_restart, or create_box command.
-
-U: New thermo_style command, previous thermo_modify settings will be lost
-
-If a thermo_style command is used after a thermo_modify command, the
-settings changed by the thermo_modify command will be reset to their
-default values.  This is because the thermo_modify commmand acts on
-the currently defined thermo style, and a thermo_style command creates
-a new style.
-
-U: Both restart files must have '%' or neither
-
-UNDOCUMENTED
-
-U: Both restart files must use MPI-IO or neither
-
-UNDOCUMENTED
+The specified LCBOP potential file cannot be opened.  Check that the
+path and name are correct.
 
 */

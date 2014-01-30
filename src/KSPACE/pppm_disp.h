@@ -515,6 +515,12 @@ E: Out of range atoms - cannot compute PPPMDisp
 
 UNDOCUMENTED
 
+
+
+
+
+
+
 U: Unsupported mixing rule in kspace_style pppm/disp for pair_style %s
 
 UNDOCUMENTED

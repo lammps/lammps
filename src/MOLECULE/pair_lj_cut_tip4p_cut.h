@@ -91,15 +91,16 @@ Self-explanatory.  Check the input script or data file.
 
 E: Pair style lj/cut/tip4p/cut requires atom IDs
 
-UNDOCUMENTED
+This is a requirement to use this potential.
 
 E: Pair style lj/cut/tip4p/cut requires newton pair on
 
-UNDOCUMENTED
+See the newton command.  This is a restriction to use this
+potential.
 
 E: Pair style lj/cut/tip4p/cut requires atom attribute q
 
-UNDOCUMENTED
+The atom style defined does not have this attribute.
 
 E: Must use a bond style with TIP4P potential
 
@@ -113,6 +114,7 @@ command.
 
 E: Water H epsilon must be 0.0 for pair style lj/cut/tip4p/cut
 
-UNDOCUMENTED
+This is because LAMMPS does not compute the Lennard-Jones interactions
+with these particles for efficiency reasons.
 
 */

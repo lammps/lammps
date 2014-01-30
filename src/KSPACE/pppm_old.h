@@ -237,7 +237,8 @@ requested accuracy.
 
 E: PPPM order has been reduced to 0
 
-UNDOCUMENTED
+The auto-adjust of the order failed.  You will need to
+set the grid size and order directly via kspace_modify.
 
 E: KSpace accuracy must be > 0
 
@@ -245,7 +246,8 @@ The kspace accuracy designated in the input must be greater than zero.
 
 E: Cannot compute PPPM G
 
-UNDOCUMENTED
+The Ewald factor could not be computed for the current choice of
+grid size, cutoff, accuracy.
 
 E: Out of range atoms - cannot compute PPPM
 
@@ -265,6 +267,6 @@ large a timestep, etc.
 
 E: Cannot (yet) use K-space slab correction with compute group/group
 
-UNDOCUMENTED
+This option is not yet supported.
 
 */

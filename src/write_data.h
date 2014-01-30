@@ -59,7 +59,7 @@ class WriteData : protected Pointers {
 
 E: Write_data command before simulation box is defined
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Illegal ... command
 
@@ -69,10 +69,12 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Atom count is inconsistent, cannot write data file
 
-UNDOCUMENTED
+The sum of atoms across processors does not equal the global number
+of atoms.  Probably some atoms have been lost.
 
 E: Cannot open data file %s
 
-UNDOCUMENTED
+The specified file cannot be opened.  Check that the path and name are
+correct.
 
 */

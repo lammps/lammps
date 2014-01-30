@@ -46,7 +46,7 @@ void RestartMPIIO::openForRead(char *filename)
     char mpiErrorString[MPI_MAX_ERROR_STRING];
     int mpiErrorStringLength;
     MPI_Error_string(err, mpiErrorString, &mpiErrorStringLength);
-    sprintf(str,"Cannot open restart file for reading - mpi error: %s\n",
+    sprintf(str,"Cannot open restart file for reading - MPI error: %s",
             mpiErrorString);
     error->one(FLERR,str);
   }
@@ -66,7 +66,7 @@ void RestartMPIIO::openForWrite(char *filename)
     char mpiErrorString[MPI_MAX_ERROR_STRING];
     int mpiErrorStringLength;
     MPI_Error_string(err, mpiErrorString, &mpiErrorStringLength);
-    sprintf(str,"Cannot open restart file for writing - mpi error: %s\n",
+    sprintf(str,"Cannot open restart file for writing - MPI error: %s",
             mpiErrorString);
     error->one(FLERR,str);
   }
@@ -97,7 +97,7 @@ void RestartMPIIO::write(MPI_Offset headerOffset, int send_size, double *buf)
     char mpiErrorString[MPI_MAX_ERROR_STRING];
     int mpiErrorStringLength;
     MPI_Error_string(err, mpiErrorString, &mpiErrorStringLength);
-    sprintf(str,"Cannot set restart file size - mpi error: %s\n",
+    sprintf(str,"Cannot set restart file size - MPI error: %s",
             mpiErrorString);
     error->one(FLERR,str);
   }
@@ -110,7 +110,7 @@ void RestartMPIIO::write(MPI_Offset headerOffset, int send_size, double *buf)
     char mpiErrorString[MPI_MAX_ERROR_STRING];
     int mpiErrorStringLength;
     MPI_Error_string(err, mpiErrorString, &mpiErrorStringLength);
-    sprintf(str,"Cannot write to restart file - mpi error: %s\n",
+    sprintf(str,"Cannot write to restart file - MPI error: %s",
             mpiErrorString);
     error->one(FLERR,str);
   }
@@ -144,7 +144,7 @@ void RestartMPIIO::read(MPI_Offset chunkOffset, bigint chunkSize, double *buf)
     char mpiErrorString[MPI_MAX_ERROR_STRING];
     int mpiErrorStringLength;
     MPI_Error_string(err, mpiErrorString, &mpiErrorStringLength);
-    sprintf(str,"Cannot read from restart file - mpi error: %s\n",
+    sprintf(str,"Cannot read from restart file - MPI error: %s",
             mpiErrorString);
     error->one(FLERR,str);
   }
@@ -168,7 +168,7 @@ void RestartMPIIO::read(MPI_Offset chunkOffset, bigint chunkSize, double *buf)
       char mpiErrorString[MPI_MAX_ERROR_STRING];
       int mpiErrorStringLength;
       MPI_Error_string(err, mpiErrorString, &mpiErrorStringLength);
-      sprintf(str,"Cannot read from restart file - mpi error: %s\n",
+      sprintf(str,"Cannot read from restart file - MPI error: %s",
               mpiErrorString);
       error->one(FLERR,str);
     }
@@ -189,7 +189,7 @@ void RestartMPIIO::close()
     char mpiErrorString[MPI_MAX_ERROR_STRING];
     int mpiErrorStringLength;
     MPI_Error_string(err, mpiErrorString, &mpiErrorStringLength);
-    sprintf(str,"Cannot close restart file - mpi error: %s\n",mpiErrorString);
+    sprintf(str,"Cannot close restart file - MPI error: %s",mpiErrorString);
     error->one(FLERR,str);
   }
 }

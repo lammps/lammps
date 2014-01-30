@@ -144,7 +144,7 @@ void WriteRestart::multiproc_options(int multiproc_caller, int mpiioflag_caller,
 
   if (multiproc && mpiioflag) 
     error->all(FLERR,
-               "Restart file MPI-IO output not allowed with '%' in filename");
+               "Restart file MPI-IO output not allowed with % in filename");
 
   if (mpiioflag) {
     mpiio = new RestartMPIIO(lmp);

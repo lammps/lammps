@@ -127,9 +127,4 @@ E: Resetting timestep is not allowed with fix move
 
 This is because fix move is moving atoms based on elapsed time.
 
-U: Use of fix move with undefined lattice
-
-Must use lattice command with fix move command if units option is
-set to lattice.
-
 */

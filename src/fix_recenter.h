@@ -64,9 +64,4 @@ W: Fix recenter should come after all other integration fixes
 Other fixes may change the position of the center-of-mass, so
 fix recenter should come last.
 
-U: Use of fix recenter with undefined lattice
-
-Must use lattice command with fix recenter command if units option is
-set to lattice.
-
 */

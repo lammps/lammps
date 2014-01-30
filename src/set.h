@@ -88,11 +88,11 @@ Self-explanatory.
 
 E: Invalid density in set command
 
-UNDOCUMENTED
+Density must be > 0.0.
 
 E: Invalid volume in set command
 
-UNDOCUMENTED
+Volume must be > 0.0.
 
 E: Cannot set non-zero image flag for non-periodic dimension
 
@@ -104,11 +104,11 @@ Self-explanatory.
 
 E: Set command integer vector does not exist
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Set command floating point vector does not exist
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Cannot use set atom with no atom IDs defined
 
@@ -152,7 +152,8 @@ Self-explanatory.
 
 E: Cannot set bond topology types for atom style template
 
-UNDOCUMENTED
+The bond, angle, etc types cannot be changed for this atom style since
+they are static settings in the molecule template files.
 
 E: Bond atom missing in set command
 
@@ -180,10 +181,10 @@ atoms are too far apart to make a valid improper.
 
 E: Variable name for set command does not exist
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Variable for set command is invalid style
 
-UNDOCUMENTED
+Only atom-style variables can be used.
 
 */

@@ -249,7 +249,9 @@ infinity.
 
 W: Using a manybody potential with bonds/angles/dihedrals and special_bond exclusions
 
-UNDOCUMENTED
+This is likely not what you want to do.  The exclusion settings will
+eliminate neighbors in the neighbor list, which the manybody potential
+needs to calculated its terms correctly.
 
 E: All pair coeffs are not set
 
@@ -258,7 +260,7 @@ pair_coeff command before running a simulation.
 
 E: Pair style requres a KSpace style
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Pair style does not support pair_write
 

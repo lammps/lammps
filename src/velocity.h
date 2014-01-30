@@ -115,7 +115,7 @@ Self-explanatory.
 
 E: Velocity rigid used with non-rigid fix-ID
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Attempting to rescale a 0.0 temperature
 
@@ -123,7 +123,7 @@ Cannot rescale a temperature that is already 0.0.
 
 E: Cannot zero momentum of no atoms
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Could not find velocity temperature ID
 
@@ -137,16 +137,6 @@ temperature.
 
 E: Fix ID for velocity does not exist
 
-UNDOCUMENTED
-
-U: Cannot zero momentum of 0 atoms
-
-The collection of atoms for which momentum is being computed has no
-atoms.
-
-U: Use of velocity with undefined lattice
-
-If units = lattice (the default) for the velocity set or velocity ramp
-command, then a lattice must first be defined via the lattice command.
+Self-explanatory.
 
 */

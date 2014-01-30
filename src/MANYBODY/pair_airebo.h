@@ -212,10 +212,4 @@ E: Cannot open AIREBO potential file %s
 The specified AIREBO potential file cannot be opened.  Check that the
 path and name are correct.
 
-U: Neighbor list overflow, boost neigh_modify one or page
-
-There are too many neighbors of a single atom.  Use the neigh_modify
-command to increase the neighbor page size and the max number of
-neighbors allowed for one atom.
-
 */

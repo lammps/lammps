@@ -90,9 +90,4 @@ E: Variable for fix wall/srd is invalid style
 
 Only equal-style variables can be used.
 
-U: Use of fix wall with undefined lattice
-
-Must use lattice command with fix wall command if units option is set
-to lattice.
-
 */

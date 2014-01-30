@@ -83,8 +83,4 @@ E: Fix qeq/comb group has no atoms
 
 Self-explanatory.
 
-U: Must use pair_style comb with fix qeq/comb
-
-Self-explanatory.
-
 */

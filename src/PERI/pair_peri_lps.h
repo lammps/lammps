@@ -102,8 +102,4 @@ E: Divide by 0 in influence function of pair peri/lps
 This should not normally occur.  It is likely a problem with your
 model.
 
-U: Pair peri requires a lattice be defined
-
-Use the lattice command for this purpose.
-
 */

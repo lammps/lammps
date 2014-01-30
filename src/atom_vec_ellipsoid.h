@@ -126,8 +126,4 @@ E: Invalid shape in Ellipsoids section of data file
 
 Self-explanatory.
 
-U: Invalid atom ID in Atoms section of data file
-
-Atom IDs must be positive integers.
-
 */

@@ -77,9 +77,4 @@ E: Variable for fix indent is not equal style
 
 Only equal-style variables can be used.
 
-U: Use of fix indent with undefined lattice
-
-The lattice command must be used to define a lattice before using the
-fix indent command.
-
 */

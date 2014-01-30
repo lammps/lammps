@@ -84,10 +84,4 @@ There are too many neighbors of a single atom.  Use the neigh_modify
 command to increase the max number of neighbors allowed for one atom.
 You may also want to boost the page size.
 
-U: Too many touching neighbors - boost MAXTOUCH
-
-A granular simulation has too many neighbors touching one atom.  The
-MAXTOUCH parameter in fix_shear_history.cpp must be set larger and
-LAMMPS must be re-built.
-
 */

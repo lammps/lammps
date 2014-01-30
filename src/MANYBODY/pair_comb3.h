@@ -282,36 +282,40 @@ Self-explanatory.  Check the input script or data file.
 
 E: Pair style COMB3 requires atom IDs
 
-UNDOCUMENTED
+This is a requirement to use this potential.
 
 E: Pair style COMB3 requires newton pair on
 
-UNDOCUMENTED
+See the newton command.  This is a restriction to use the COMB3
+potential.
 
 E: Pair style COMB3 requires atom attribute q
 
-UNDOCUMENTED
+The atom style defined does not have this attribute.
 
 E: All pair coeffs are not set
 
 All pair coefficients must be set in the data file or by the
 pair_coeff command before running a simulation.
 
-E: Cannot open COMB3 C library file \n
+E: Cannot open COMB3 C library file
 
-UNDOCUMENTED
+The extra lib.comb3 file for carbon cannot be opened.  Check that it
+exists.
 
 E: Cannot open COMB3 potential file %s
 
-UNDOCUMENTED
+The specified COMB potential file cannot be opened.  Check that the
+path and name are correct.
 
 E: Incorrect format in COMB3 potential file
 
-UNDOCUMENTED
+Incorrect number of words per line in the potential file.
 
 E: Illegal COMB3 parameter
 
-UNDOCUMENTED
+One or more of the coefficients defined in the potential file is
+invalid.
 
 E: Potential file has duplicate entry
 
@@ -329,48 +333,8 @@ There are too many neighbors of a single atom.  Use the neigh_modify
 command to increase the max number of neighbors allowed for one atom.
 You may also want to boost the page size.
 
-E: Error in vdw spline: inner radius > outter radius
-
-UNDOCUMENTED
-
-
-
-
-
-
-U: Pair style COMB requires atom IDs
-
-This is a requirement to use the AIREBO potential.
-
-U: Pair style COMB requires newton pair on
-
-See the newton command.  This is a restriction to use the COMB
-potential.
-
-U: Pair style COMB requires atom attribute q
+E: Error in vdw spline: inner radius > outer radius
 
 Self-explanatory.
-
-U: Cannot open COMB potential file %s
-
-The specified COMB potential file cannot be opened.  Check that the
-path and name are correct.
-
-U: Incorrect format in COMB potential file
-
-Incorrect number of words per line in the potential file.
-
-U: Illegal COMB parameter
-
-One or more of the coefficients defined in the potential file is
-invalid.
-
-U: Pair COMB charge %.10f with force %.10f hit min barrier
-
-Something is possibly wrong with your model.
-
-U: Pair COMB charge %.10f with force %.10f hit max barrier
-
-Something is possibly wrong with your model.
 
 */

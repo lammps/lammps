@@ -34,7 +34,7 @@ class TAD : protected Pointers {
   int me,nprocs;
   int nsteps,t_event;
   double templo,temphi,delta_conf,tmax;
-  double etol,ftol,etol_neb,ftol_neb;
+  double etol,ftol,etol_neb,ftol_neb,dt_neb;
   int maxiter,maxeval,n1steps_neb,n2steps_neb,nevery_neb;
   char *min_style, *min_style_neb;
   double delta_beta,ratio_beta;

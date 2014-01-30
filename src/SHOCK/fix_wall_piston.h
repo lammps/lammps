@@ -74,8 +74,4 @@ E: NL ramp in wall/piston only implemented in zlo for now
 
 The ramp keyword can only be used for piston applied to face zlo.
 
-U: Use of fix wall/piston with undefined lattice
-
-A lattice must be defined before using this fix.
-
 */

@@ -106,8 +106,4 @@ E: Invalid atom type in Atoms section of data file
 
 Atom types must range from 1 to specified # of types.
 
-U: Invalid atom ID in Atoms section of data file
-
-Atom IDs must be positive integers.
-
 */

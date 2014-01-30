@@ -150,154 +150,161 @@ class Molecule : protected Pointers {
 
 E: Molecule template ID must be alphanumeric or underscore characters
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Insufficient Jacobi rotations for rigid molecule
 
-UNDOCUMENTED
+Eigensolve for rigid body was not sufficiently accurate.
 
 E: Unexpected end of molecule file
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Molecule file z center-of-mass must be 0.0 for 2d
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: No atom count in molecule file
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Molecule file has bonds but no nbonds setting
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Molecule file has angles but no nangles setting
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Molecule file has dihedrals but no ndihedrals setting
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Molecule file has impropers but no nimpropers setting
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Molecule file shake flags not before shake atoms
 
-UNDOCUMENTED
+The order of the two sections is important.
 
 E: Molecule file shake flags not before shake bonds
 
-UNDOCUMENTED
+The order of the two sections is important.
 
 E: Unknown section in molecule file
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Molecule file needs both Special Bond sections
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Molecule file has special flags but no bonds
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Molecule file shake info is incomplete
 
-UNDOCUMENTED
+All 3 SHAKE sections are needed.
 
 E: Molecule file z coord must be 0.0 for 2d
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Invalid atom type in molecule file
 
-UNDOCUMENTED
+Atom types must range from 1 to specified # of types.
 
 E: Invalid atom diameter in molecule file
 
-UNDOCUMENTED
+Diameters must be >= 0.0.
 
 E: Invalid atom mass in molecule file
 
-UNDOCUMENTED
+Masses must be > 0.0.
 
 E: Invalid atom ID in Bonds section of molecule file
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Invalid bond type in Bonds section of molecule file
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Invalid atom ID in Angles section of molecule file
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Invalid angle type in Angles section of molecule file
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Invalid atom ID in dihedrals section of molecule file
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Invalid dihedral type in dihedrals section of molecule file
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Invalid atom ID in impropers section of molecule file
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Invalid improper type in impropers section of molecule file
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Molecule file special list does not match special count
 
-UNDOCUMENTED
+The number of values in an atom's special list does not match count.
 
 E: Invalid special atom index in molecule file
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Invalid shake flag in molecule file
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Invalid shake atom in molecule file
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Invalid shake bond type in molecule file
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Invalid shake angle type in molecule file
 
-UNDOCUMENTED
+Self-explanatory.
 
 W: Molecule attributes do not match system attributes
 
-UNDOCUMENTED
+An attribute is specified (e.g. diameter, charge) that is
+not defined for the specified atom style.
 
 E: Molecule topology type exceeds system topology type
 
-UNDOCUMENTED
+The number of bond, angle, etc types in the molecule exceeds the
+system setting.  See the create_box command for how to specify these
+values.
 
 E: Molecule toplogy/atom exceeds system topology/atom
 
-UNDOCUMENTED
+The number of bonds, angles, etc per-atom in the molecule exceeds the
+system setting.  See the create_box command for how to specify these
+values.
 
 W: Molecule has bond topology but no special bond settings
 
-UNDOCUMENTED
+This means the bonded atoms will not be excluded in pair-wise
+interactions.
 
 E: Cannot open molecule file %s
 
-UNDOCUMENTED
+The specified file cannot be opened.  Check that the path and name are
+correct.
 
 */

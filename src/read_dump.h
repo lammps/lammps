@@ -131,7 +131,7 @@ Self-explanatory.
 
 E: Read_dump xyz fields do not have consistent scaling/wrapping
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: All read_dump x,y,z fields must be specified for scaled, triclinic coords
 
@@ -145,7 +145,7 @@ See the setting for bigint in the src/lmptype.h file.
 
 E: Read dump of atom property that isn't allocated
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Duplicate fields in read_dump command
 
@@ -155,9 +155,5 @@ E: If read_dump purges it cannot replace or trim
 
 These operations are not compatible.  See the read_dump doc
 page for details.
-
-U: Read_dump x,y,z fields do not have consistent scaling
-
-Self-explanatory.
 
 */

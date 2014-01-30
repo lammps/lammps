@@ -152,12 +152,4 @@ A command with an argument that specifies an integer or range of
 integers is using a value that is less than 1 or greater than the
 maximum allowed limit.
 
-U: Expected floating point parameter in input script or data file
-
-The quantity being read is an integer on non-numeric value.
-
-U: Expected integer parameter in input script or data file
-
-The quantity being read is a floating point or non-numeric value.
-
 */

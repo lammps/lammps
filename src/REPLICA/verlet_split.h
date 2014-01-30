@@ -77,6 +77,6 @@ command must be used.
 
 E: Verlet/split does not yet support TIP4P
 
-UNDOCUMENTED
+This is a current limitation.
 
 */

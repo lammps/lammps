@@ -121,9 +121,4 @@ W: Lost atoms via change_box: original %ld current %ld
 
 The command options you have used caused atoms to be lost.
 
-U: Use of change_box with undefined lattice
-
-Must use lattice command with displace_box command if units option is
-set to lattice.
-
 */

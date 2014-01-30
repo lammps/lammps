@@ -1,0 +1,168 @@
+LAMMPS (1 Feb 2014)
+# 3d metal shear simulation
+
+units		metal
+boundary	s s p
+
+atom_style	atomic
+lattice		fcc 3.52
+Lattice spacing in x,y,z = 3.52 3.52 3.52
+region		box block 0 16.0 0 10.0 0 2.828427
+create_box	3 box
+Created orthogonal box = (0 0 0) to (56.32 35.2 9.95606)
+  2 by 2 by 1 MPI processor grid
+
+lattice		fcc 3.52 orient	x 1 0 0 orient y 0 1 1 orient z 0 -1 1 		origin 0.5 0 0
+Lattice spacing in x,y,z = 3.52 4.97803 4.97803
+create_atoms	1 box
+Created 1912 atoms
+
+pair_style	eam
+pair_coeff	* * Ni_u3.eam
+
+neighbor	0.3 bin
+neigh_modify	delay 5
+
+region		lower block INF INF INF 0.9 INF INF
+region		upper block INF INF 6.1 INF INF INF
+group		lower region lower
+264 atoms in group lower
+group		upper region upper
+264 atoms in group upper
+group		boundary union lower upper
+528 atoms in group boundary
+group		mobile subtract all boundary
+1384 atoms in group mobile
+
+set		group lower type 2
+  264 settings made for type
+set		group upper type 3
+  264 settings made for type
+
+# void
+
+#region		void cylinder z 8 5 2.5 INF INF
+#delete_atoms	region void
+
+# temp controllers
+
+compute		new3d mobile temp
+compute		new2d mobile temp/partial 0 1 1
+
+# equilibrate
+
+velocity	mobile create 300.0 5812775 temp new3d
+fix		1 all nve
+fix		2 boundary setforce 0.0 0.0 0.0
+
+fix		3 mobile temp/rescale 10 300.0 300.0 10.0 1.0
+fix_modify	3 temp new3d
+
+thermo		25
+thermo_modify	temp new3d
+WARNING: Temperature for thermo pressure is not for group all (../thermo.cpp:439)
+
+timestep	0.001
+run		100
+Memory usage per processor = 2.27477 Mbytes
+Step Temp E_pair E_mol TotEng Press Volume 
+       0          300   -8317.4367            0   -8263.8067   -7100.7667     19547.02 
+      25    219.81848   -8272.1577            0   -8232.8615    5206.8057     19547.02 
+      50          300   -8238.3413            0   -8184.7112    13308.809    19688.933 
+      75    294.78636   -8232.2217            0   -8179.5237    13192.782    19748.176 
+     100          300   -8248.1223            0   -8194.4923    7352.0246    19816.321 
+Loop time of 0.06813 on 4 procs for 100 steps with 1912 atoms
+
+Pair  time (%) = 0.0606876 (89.0762)
+Neigh time (%) = 0.00226843 (3.32957)
+Comm  time (%) = 0.00331974 (4.87265)
+Outpt time (%) = 7.83205e-05 (0.114957)
+Other time (%) = 0.00177592 (2.60666)
+
+Nlocal:    478 ave 490 max 466 min
+Histogram: 1 0 1 0 0 0 0 1 0 1
+Nghost:    1036.25 ave 1046 max 1027 min
+Histogram: 1 1 0 0 0 0 0 1 0 1
+Neighs:    11488 ave 11948 max 11157 min
+Histogram: 1 0 1 0 1 0 0 0 0 1
+
+Total # of neighbors = 45952
+Ave neighs/atom = 24.0335
+Neighbor list builds = 4
+Dangerous builds = 0
+
+# shear
+
+velocity	upper set 1.0 0 0
+velocity	mobile ramp vx 0.0 1.0 y 1.4 8.6 sum yes
+
+unfix		3
+fix		3 mobile temp/rescale 10 300.0 300.0 10.0 1.0
+fix_modify	3 temp new2d
+
+#dump		1 all atom 100 dump.shear
+
+#dump		2 all image 100 image.*.jpg type type #		axes yes 0.8 0.02 view 0 0 zoom 1.5 up 0 1 0 adiam 2.0
+#dump_modify	2 pad 4
+
+#dump		3 all movie 100 movie.mpg type type #		axes yes 0.8 0.02 view 0 0 zoom 1.5 up 0 1 0 adiam 2.0
+#dump_modify	3 pad 4
+
+thermo		100
+thermo_modify	temp new2d
+WARNING: Temperature for thermo pressure is not for group all (../thermo.cpp:439)
+
+reset_timestep	0
+run		3000
+Memory usage per processor = 2.27477 Mbytes
+Step Temp E_pair E_mol TotEng Press Volume 
+       0     302.4034   -8248.1223            0   -8212.0956    6393.6774     19845.81 
+     100    291.62219   -8259.5645            0   -8224.8222    -1305.829    19874.353 
+     200    293.37436   -8257.0158            0   -8222.0647   -803.21007    19965.105 
+     300    305.94964   -8252.9337            0   -8216.4845    -1338.206    20062.042 
+     400    309.97419   -8247.5911            0   -8210.6624   -1064.8166     20094.42 
+     500     301.9509   -8239.3761            0   -8203.4033    794.43498    20172.617 
+     600    302.22577   -8230.7201            0   -8194.7145    3984.6172     20265.23 
+     700    296.33661   -8221.2208            0   -8185.9168     5407.761    20394.703 
+     800    291.23709   -8207.8855            0   -8173.1891    10664.616     20510.74 
+     900    297.90023   -8196.1342            0   -8160.6439     13966.21     20646.32 
+    1000    301.54908   -8182.0178            0   -8146.0928    17938.624    20752.586 
+    1100    309.01306   -8164.9485            0   -8128.1343    22821.748    20889.388 
+    1200     301.9299   -8153.5108            0   -8117.5405    25613.387    21000.539 
+    1300          300   -8143.4144            0    -8107.674    26662.495    21122.684 
+    1400          300   -8136.3101            0   -8100.5697    26322.787      21254.6 
+    1500          300   -8132.5702            0   -8096.8297    23577.661    21379.187 
+    1600          300   -8129.9485            0   -8094.2081    20683.092    21497.667 
+    1700          300   -8131.6622            0   -8095.9218    15384.841    21617.369 
+    1800          300   -8149.3274            0    -8113.587    9702.6228    21738.292 
+    1900          300   -8156.1594            0    -8120.419    9896.6056    21861.658 
+    2000          300   -8162.0579            0   -8126.3174    8370.0255    21987.467 
+    2100          300     -8164.32            0   -8128.5796    5207.4966    22105.947 
+    2200    309.50383   -8171.5055            0   -8134.6328    263.16699    22234.198 
+    2300          300    -8173.946            0   -8138.2056   -2861.1575    22346.571 
+    2400          300   -8184.1165            0   -8148.3761   -6684.5831    22471.159 
+    2500    308.09598   -8186.7631            0   -8150.0582   -8719.8136    22598.189 
+    2600    293.95252   -8179.2012            0   -8144.1813   -8299.1668    22720.333 
+    2700          300   -8173.1769            0   -8137.4365   -8570.4623    22831.485 
+    2800    307.83907   -8172.8218            0   -8136.1475   -10364.571    22959.736 
+    2900    299.48361   -8169.4289            0     -8133.75   -8567.3623    23079.438 
+    3000          300    -8167.764            0   -8132.0236   -11479.844    23206.468 
+Loop time of 2.11249 on 4 procs for 3000 steps with 1912 atoms
+
+Pair  time (%) = 1.79807 (85.1163)
+Neigh time (%) = 0.123332 (5.83823)
+Comm  time (%) = 0.135713 (6.4243)
+Outpt time (%) = 0.000717998 (0.0339883)
+Other time (%) = 0.0546538 (2.58718)
+
+Nlocal:    478 ave 510 max 443 min
+Histogram: 1 1 0 0 0 0 0 0 0 2
+Nghost:    1018.25 ave 1064 max 972 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:    11225.8 ave 12344 max 10134 min
+Histogram: 1 0 1 0 0 0 1 0 0 1
+
+Total # of neighbors = 44903
+Ave neighs/atom = 23.4848
+Neighbor list builds = 226
+Dangerous builds = 0

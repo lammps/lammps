@@ -1,0 +1,113 @@
+LAMMPS (1 Feb 2014)
+# Pour 2d granular particles into container
+
+dimension	2
+atom_style	sphere
+atom_modify     map array
+boundary	f fm p
+newton		off
+communicate	single vel yes cutoff 2.5
+
+fix             prop all property/atom mol
+
+region		reg block 0 100 0 50 -0.5 0.5 units box
+create_box	1 reg
+Created orthogonal box = (0 0 -0.5) to (100 50 0.5)
+  4 by 1 by 1 MPI processor grid
+
+neighbor	0.2 bin
+neigh_modify	delay 0
+
+# IMPORTANT NOTE: these values of stiffness (4000) and timestep (0.001)
+# are used in this example file to produce a quick simulation and movie.
+# More appropriate values for realistic simulations would be
+# k = 4.0e5 and dt = 0.0001, as in bench/in.chute (if it were Hertzian).
+
+pair_style      gran/hertz/history 4000.0 NULL 100.0 NULL 0.5 0
+pair_coeff	* *
+
+timestep	0.001
+
+fix		2 all gravity 1.0 spherical 0.0 -180.0
+fix		xwalls all wall/gran 4000.0 NULL 100.0 NULL 0 1 		xplane 0 100
+fix		ywalls all wall/gran 4000.0 NULL 100.0 NULL 0 1 		yplane 0 NULL
+
+molecule        object molecule.vshape
+fix             3 all rigid/small molecule mol object
+0 rigid bodies with 0 atoms
+  2.23607 = max distance from body owner to body atom
+
+# insure region size + molecule size does not overlap wall
+
+region          slab block 3.0 97.0 30 34.5 -0.5 0.5 units box
+fix             ins all pour 500 0 4767548 vol 0.8 10 	        region slab mol object rigid 3
+Particle insertion: 26 every 3000 steps, 500 by step 57001
+
+fix             4 all enforce2d
+
+compute		1 all erotate/sphere
+thermo_style	custom step atoms ke c_1 vol
+thermo		1000
+thermo_modify	lost ignore norm no
+compute_modify	thermo_temp dynamic yes
+
+#dump		id all atom 100 tmp.dump
+
+#variable        colors string #                "red green blue yellow white #                purple pink orange lime gray"
+#variable	mol2 atom mol%10
+#dump		2 all image 250 image.*.jpg v_mol2 type #		zoom 1.6 adiam 1.5
+#dump_modify	2 pad 5 amap 0 10 sa 1 10 ${colors}
+
+#variable        colors string #                "red green blue yellow white #                purple pink orange lime gray"
+#variable	mol3 atom mol%10
+#dump		3 all movie 250 movie.mpg v_mol3 type #		zoom 1.6 adiam 1.5
+#dump_modify	3 pad 5 amap 0 10 sa 1 10 ${colors}
+
+run	        25000
+Memory usage per processor = 8.82364 Mbytes
+Step Atoms KinEng 1 Volume 
+       0        0           -0            0         5000 
+    1000      130     208.5324 0.0022531902         5000 
+    2000      130    395.40215 0.0022531902         5000 
+    3000      130     647.2719 0.0022531902         5000 
+    4000      260    1159.1081 0.0026224951         5000 
+    5000      260    1718.8157 0.0026515989         5000 
+    6000      260     2031.535    10.691958         5000 
+    7000      390    2065.2783    21.015337         5000 
+    8000      390    1911.4694    10.935944         5000 
+    9000      390    1884.4332    7.8649255         5000 
+   10000      520    2109.7343    6.3162072         5000 
+   11000      520    2055.0964    9.2024202         5000 
+   12000      520    1737.7978    3.8651428         5000 
+   13000      650    1835.9412    5.4696261         5000 
+   14000      650    1705.5968    4.6127934         5000 
+   15000      650    1458.6093    2.3324994         5000 
+   16000      780    1663.1206    3.4762842         5000 
+   17000      780    1448.6268    2.5272414         5000 
+   18000      780      1439.06    2.3644535         5000 
+   19000      910    1353.2736    3.4079237         5000 
+   20000      910    1303.0395    4.7540237         5000 
+   21000      910    1037.3662    2.6725377         5000 
+   22000     1040    1225.3222    2.0920106         5000 
+   23000     1040    1306.8689    2.4710217         5000 
+   24000     1040    1304.5309    2.5544338         5000 
+   25000     1170    1181.4033    4.5232994         5000 
+Loop time of 1.24255 on 4 procs for 25000 steps with 1170 atoms
+
+Pair  time (%) = 0.219425 (17.6592)
+Neigh time (%) = 0.0621997 (5.00579)
+Comm  time (%) = 0.0965945 (7.77386)
+Outpt time (%) = 0.000469327 (0.0377711)
+Other time (%) = 0.863865 (69.5234)
+
+Nlocal:    292.5 ave 312 max 278 min
+Histogram: 1 1 0 0 0 1 0 0 0 1
+Nghost:    44.5 ave 60 max 28 min
+Histogram: 1 1 0 0 0 0 0 0 0 2
+Neighs:    427.5 ave 451 max 399 min
+Histogram: 1 0 1 0 0 0 0 0 0 2
+
+Total # of neighbors = 1710
+Ave neighs/atom = 1.46154
+Neighbor list builds = 1769
+Dangerous builds = 0

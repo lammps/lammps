@@ -1,0 +1,76 @@
+LAMMPS (1 Feb 2014)
+# Pure Si crystal, structure created by LAMMPS, qeq off
+
+units		metal
+atom_style	charge
+dimension       3
+boundary        p p p
+
+lattice  	diamond 5.43
+Lattice spacing in x,y,z = 5.43 5.43 5.43
+region		box block 0 4 0 4 0 4
+create_box	1 box
+Created orthogonal box = (0 0 0) to (21.72 21.72 21.72)
+  1 by 1 by 1 MPI processor grid
+create_atoms	1 box
+Created 512 atoms
+mass		1 29.0
+
+pair_style	comb
+pair_coeff	* * ffield.comb Si
+
+neighbor	0.5 bin
+neigh_modify	every 1 delay 1 check yes
+
+fix		1 all nve
+timestep        0.00020
+
+thermo_style	custom step temp etotal pe evdwl ecoul press vol lx ly lz xz
+thermo_modify	norm yes
+velocity	all create 10.1 2398378
+thermo	  	1
+
+#dump		1 all cfg 10 *.cfg id type xs ys zs q vx vy vz fx fy fz
+#dump_modify	1 append yes element Si
+
+#dump		2 all image 10 image.*.jpg element element #		axes yes 0.8 0.02 view 60 -30
+#dump_modify	2 pad 2 element Si
+
+#dump		3 all movie 10 movie.mpg element element #		axes yes 0.8 0.02 view 60 -30
+#dump_modify	3 pad 2 element Si
+
+run  		10
+Memory usage per processor = 5.5122 Mbytes
+Step Temp TotEng PotEng E_vdwl E_coul Press Volume Lx Ly Lz Xz 
+       0         10.1   -4.6284152   -4.6297182   -4.6297182            0    1140.7851    10246.592        21.72        21.72        21.72            0 
+       1    10.097843   -4.6284152   -4.6297179   -4.6297179            0    1140.8131    10246.592        21.72        21.72        21.72            0 
+       2    10.091376   -4.6284152   -4.6297171   -4.6297171            0    1140.8972    10246.592        21.72        21.72        21.72            0 
+       3    10.080606   -4.6284152   -4.6297157   -4.6297157            0    1141.0373    10246.592        21.72        21.72        21.72            0 
+       4    10.065546   -4.6284152   -4.6297137   -4.6297137            0     1141.233    10246.592        21.72        21.72        21.72            0 
+       5    10.046214   -4.6284152   -4.6297113   -4.6297113            0    1141.4842    10246.592        21.72        21.72        21.72            0 
+       6    10.022634   -4.6284152   -4.6297082   -4.6297082            0    1141.7906    10246.592        21.72        21.72        21.72            0 
+       7    9.9948348   -4.6284152   -4.6297046   -4.6297046            0    1142.1515    10246.592        21.72        21.72        21.72            0 
+       8    9.9628496   -4.6284152   -4.6297005   -4.6297005            0    1142.5666    10246.592        21.72        21.72        21.72            0 
+       9    9.9267173   -4.6284152   -4.6296958   -4.6296958            0    1143.0353    10246.592        21.72        21.72        21.72            0 
+      10    9.8864817   -4.6284152   -4.6296906   -4.6296906            0    1143.5568    10246.592        21.72        21.72        21.72            0 
+Loop time of 0.134541 on 1 procs for 10 steps with 512 atoms
+
+Pair  time (%) = 0.13386 (99.4939)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.000366688 (0.272547)
+Outpt time (%) = 0.000138283 (0.102781)
+Other time (%) = 0.000175953 (0.13078)
+
+Nlocal:    512 ave 512 max 512 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    4861 ave 4861 max 4861 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    0 ave 0 max 0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:  212992 ave 212992 max 212992 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 212992
+Ave neighs/atom = 416
+Neighbor list builds = 0
+Dangerous builds = 0

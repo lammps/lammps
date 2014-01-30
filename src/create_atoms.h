@@ -61,9 +61,9 @@ read_restart, or create_box command.
 
 E: Cannot create_atoms after reading restart file with per-atom info
 
-The per-atom info was stored to be used when by a fix that you
-may re-define.  If you add atoms before re-defining the fix, then
-there will not be a correct amount of per-atom info.
+The per-atom info was stored to be used when by a fix that you may
+re-define.  If you add atoms before re-defining the fix, then there
+will not be a correct amount of per-atom info.
 
 E: Illegal ... command
 
@@ -77,15 +77,18 @@ A region ID used in the create_atoms command does not exist.
 
 E: Invalid basis setting in create_atoms command
 
-UNDOCUMENTED
+The basis index must be between 1 to N where N is the number of basis
+atoms in the lattice.  The type index must be between 1 to N where N
+is the number of atom types.
 
 E: Molecule template ID for create_atoms does not exist
 
-UNDOCUMENTED
+Self-explantory.
 
 W: Molecule template for create_atoms has multiple molecules
 
-UNDOCUMENTED
+The create_atoms command will only create molecules of a single type,
+i.e. the first molecule in the template.
 
 E: Invalid atom type in create_atoms command
 
@@ -94,19 +97,22 @@ An invalid type is being requested.
 
 E: Create_atoms molecule must have coordinates
 
-UNDOCUMENTED
+The defined molecule does not specify coordinates.
 
 E: Create_atoms molecule must have atom types
 
-UNDOCUMENTED
+The defined molecule does not specify atom types.
 
 E: Invalid atom type in create_atoms mol command
 
-UNDOCUMENTED
+The atom types in the defined molecule are added to the value
+specified in the create_atoms command, as an offset.  The final value
+for each atom must be between 1 to N, where N is the number of atom
+types.
 
 E: Create_atoms molecule has atom IDs, but system does not
 
-UNDOCUMENTED
+The atom_style id command can be used to force atom IDs to be stored.
 
 E: Cannot create atoms with undefined lattice
 

@@ -172,7 +172,7 @@ want.
 
 E: Too many molecules for compute
 
-UNDOCUMENTED
+The limit is 2^31 = ~2 billion molecules.
 
 W: One or more compute molecules has atoms not in group
 

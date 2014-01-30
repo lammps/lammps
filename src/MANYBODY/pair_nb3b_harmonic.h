@@ -75,37 +75,30 @@ E: Incorrect args for pair coefficients
 
 Self-explanatory.  Check the input script or data file.
 
-E: Pair style COMB requires atom IDs
+E: Pair style nb3b/harmonic requires atom IDs
 
-This is a requirement to use the AIREBO potential.
+UNDOCUMENTED
 
-E: Pair style COMB requires newton pair on
+E: Pair style nb3b/harmonic requires newton pair on
 
-See the newton command.  This is a restriction to use the COMB
-potential.
-
-E: Pair style COMB requires atom attribute q
-
-Self-explanatory.
+UNDOCUMENTED
 
 E: All pair coeffs are not set
 
 All pair coefficients must be set in the data file or by the
 pair_coeff command before running a simulation.
 
-E: Cannot open COMB potential file %s
+E: Cannot open nb3b/harmonic potential file %s
 
-The specified COMB potential file cannot be opened.  Check that the
-path and name are correct.
+UNDOCUMENTED
 
-E: Incorrect format in COMB potential file
+E: Incorrect format in nb3b/harmonic potential file
 
-Incorrect number of words per line in the potential file.
+UNDOCUMENTED
 
-E: Illegal COMB parameter
+E: Illegal nb3b/harmonic parameter
 
-One or more of the coefficients defined in the potential file is
-invalid.
+UNDOCUMENTED
 
 E: Potential file has duplicate entry
 
@@ -117,15 +110,42 @@ E: Potential file is missing an entry
 The potential file for a SW or Tersoff potential does not have a
 needed entry.
 
-W: Pair COMB charge %.10f with force %.10f hit min barrier
+U: Pair style COMB requires atom IDs
+
+This is a requirement to use the AIREBO potential.
+
+U: Pair style COMB requires newton pair on
+
+See the newton command.  This is a restriction to use the COMB
+potential.
+
+U: Pair style COMB requires atom attribute q
+
+Self-explanatory.
+
+U: Cannot open COMB potential file %s
+
+The specified COMB potential file cannot be opened.  Check that the
+path and name are correct.
+
+U: Incorrect format in COMB potential file
+
+Incorrect number of words per line in the potential file.
+
+U: Illegal COMB parameter
+
+One or more of the coefficients defined in the potential file is
+invalid.
+
+U: Pair COMB charge %.10f with force %.10f hit min barrier
 
 Something is possibly wrong with your model.
 
-W: Pair COMB charge %.10f with force %.10f hit max barrier
+U: Pair COMB charge %.10f with force %.10f hit max barrier
 
 Something is possibly wrong with your model.
 
-E: Neighbor list overflow, boost neigh_modify one
+U: Neighbor list overflow, boost neigh_modify one
 
 There are too many neighbors of a single atom.  Use the neigh_modify
 command to increase the max number of neighbors allowed for one atom.

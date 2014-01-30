@@ -73,7 +73,8 @@ Self-explanatory.
 
 E: Cannot use fix bond/break with non-molecular systems
 
-Self-explanatory.
+Only systems with bonds that can be changed can be used.  Atom_style
+template does not qualify.
 
 E: Fix bond/break requires special_bonds = 0,1,1
 

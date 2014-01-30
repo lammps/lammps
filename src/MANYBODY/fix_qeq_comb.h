@@ -77,7 +77,7 @@ An atom style with charge must be used to perform charge equilibration.
 
 E: Must use pair_style comb or comb3 with fix qeq/comb
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix qeq/comb group has no atoms
 

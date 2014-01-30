@@ -49,17 +49,13 @@ class ImproperCvff : public Improper {
 
 /* ERROR/WARNING messages:
 
-W: Improper problem: %d %ld    
+W: Improper problem: %d %ld %ld %ld %ld %ld
 
-UNDOCUMENTED
+Conformation of the 4 listed improper atoms is extreme; you may want
+to check your simulation geometry.
 
 E: Incorrect args for improper coefficients
 
 Self-explanatory.  Check the input script or data file.
-
-U: Improper problem: %d %ld %d %d %d %d
-
-Conformation of the 4 listed improper atoms is extreme; you may want
-to check your simulation geometry.
 
 */

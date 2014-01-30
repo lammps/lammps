@@ -86,344 +86,148 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Cannot read_data after simulation box is defined
+E: Fix pour requires atom attributes radius, rmass
 
-The read_data command cannot be used after a read_data,
-read_restart, or create_box command.
+The atom style defined does not have these attributes.
 
-E: Cannot run 2d simulation with nonperiodic Z dimension
-
-Use the boundary command to make the z dimension periodic in order to
-run a 2d simulation.
-
-E: Fix ID for read_data does not exist
+E: Invalid atom type in fix pour command
 
 Self-explanatory.
 
-E: Must read Atoms before Velocities
+E: Must specify a region in fix pour
 
-The Atoms section of a data file must come before a Velocities
-section.
+Self-explanatory.
 
-E: Invalid data file section: Bonds
+E: Fix pour region does not support a bounding box
 
-Atom style does not allow bonds.
+Not all regions represent bounded volumes.  You cannot use
+such a region with the fix pour command.
 
-E: Must read Atoms before Bonds
+E: Fix pour region cannot be dynamic
 
-The Atoms section of a data file must come before a Bonds section.
+Only static regions can be used with fix pour.
 
-E: Invalid data file section: Angles
+E: Insertion region extends outside simulation box
 
-Atom style does not allow angles.
+Self-explanatory.
 
-E: Must read Atoms before Angles
+E: Must use a z-axis cylinder region with fix pour
 
-The Atoms section of a data file must come before an Angles section.
+Self-explanatory.
 
-E: Invalid data file section: Dihedrals
+E: Must use a block or cylinder region with fix pour
 
-Atom style does not allow dihedrals.
+Self-explanatory.
 
-E: Must read Atoms before Dihedrals
+E: Must use a block region with fix pour for 2d simulations
 
-The Atoms section of a data file must come before a Dihedrals section.
+Self-explanatory.
 
-E: Invalid data file section: Impropers
+E: Cannot use fix_pour unless atoms have IDs
 
-Atom style does not allow impropers.
+Self-explanatory.
 
-E: Must read Atoms before Impropers
+E: Fix pour molecule must have coordinates
 
-The Atoms section of a data file must come before an Impropers
-section.
+The defined molecule does not specify coordinates.
 
-E: Invalid data file section: Ellipsoids
+E: Fix pour molecule must have atom types
 
-Atom style does not allow ellipsoids.
+The defined molecule does not specify atom types.
 
-E: Must read Atoms before Ellipsoids
+E: Invalid atom type in fix pour mol command
 
-The Atoms section of a data file must come before a Ellipsoids
-section.
+The atom types in the defined molecule are added to the value
+specified in the create_atoms command, as an offset.  The final value
+for each atom must be between 1 to N, where N is the number of atom
+types.
 
-E: Invalid data file section: Lines
+E: Fix pour molecule template ID must be same as atom style template ID
 
-Atom style does not allow lines.
+When using atom_style template, you cannot pour molecules that are
+not in that template.
 
-E: Must read Atoms before Lines
+E: Cannot use fix pour rigid and not molecule
 
-The Atoms section of a data file must come before a Lines section.
+Self-explanatory.
 
-E: Invalid data file section: Triangles
+E: Cannot use fix pour shake and not molecule
 
-Atom style does not allow triangles.
+Self-explanatory.
 
-E: Must read Atoms before Triangles
+E: Cannot use fix pour rigid and shake
 
-The Atoms section of a data file must come before a Triangles section.
+These two attributes are conflicting.
 
-E: Invalid data file section: Bodies
+E: No fix gravity defined for fix pour
 
-Atom style does not allow bodies.
+Gravity is required to use fix pour.
 
-E: Must read Atoms before Bodies
+E: Cannot use fix pour with triclinic box
 
-The Atoms section of a data file must come before a Bodies section.
+This option is not yet supported.
 
-E: Must define pair_style before Pair Coeffs
+E: Gravity must point in -z to use with fix pour in 3d
 
-Must use a pair_style command before reading a data file that defines
-Pair Coeffs.
+Self-explanatory.
 
-E: Must define pair_style before PairIJ Coeffs
+E: Gravity must point in -y to use with fix pour in 2d
 
-UNDOCUMENTED
+Self-explanatory.
 
-E: Invalid data file section: Bond Coeffs
+E: Gravity changed since fix pour was created
 
-Atom style does not allow bonds.
+The gravity vector defined by fix gravity must be static.
 
-E: Must define bond_style before Bond Coeffs
+E: Fix pour rigid fix does not exist
 
-Must use a bond_style command before reading a data file that
-defines Bond Coeffs.
+Self-explanatory.
 
-E: Invalid data file section: Angle Coeffs
+E: Fix pour and fix rigid/small not using same molecule template ID
 
-Atom style does not allow angles.
+Self-explanatory.
 
-E: Must define angle_style before Angle Coeffs
+E: Fix pour shake fix does not exist
 
-Must use an angle_style command before reading a data file that
-defines Angle Coeffs.
+Self-explanatory.
 
-E: Invalid data file section: Dihedral Coeffs
+E: Fix pour and fix shake not using same molecule template ID
 
-Atom style does not allow dihedrals.
+Self-explanatory.
 
-E: Must define dihedral_style before Dihedral Coeffs
+W: Less insertions than requested
 
-Must use a dihedral_style command before reading a data file that
-defines Dihedral Coeffs.
+The fix pour command was unsuccessful at finding open space
+for as many particles as it tried to insert.
 
-E: Invalid data file section: Improper Coeffs
-
-Atom style does not allow impropers.
-
-E: Must define improper_style before Improper Coeffs
-
-Must use an improper_style command before reading a data file that
-defines Improper Coeffs.
-
-E: Invalid data file section: BondBond Coeffs
-
-Atom style does not allow angles.
-
-E: Must define angle_style before BondBond Coeffs
-
-Must use an angle_style command before reading a data file that
-defines Angle Coeffs.
-
-E: Invalid data file section: BondAngle Coeffs
-
-Atom style does not allow angles.
-
-E: Must define angle_style before BondAngle Coeffs
-
-Must use an angle_style command before reading a data file that
-defines Angle Coeffs.
-
-E: Invalid data file section: MiddleBondTorsion Coeffs
-
-Atom style does not allow dihedrals.
-
-E: Must define dihedral_style before MiddleBondTorsion Coeffs
-
-Must use a dihedral_style command before reading a data file that
-defines MiddleBondTorsion Coeffs.
-
-E: Invalid data file section: EndBondTorsion Coeffs
-
-Atom style does not allow dihedrals.
-
-E: Must define dihedral_style before EndBondTorsion Coeffs
-
-Must use a dihedral_style command before reading a data file that
-defines EndBondTorsion Coeffs.
-
-E: Invalid data file section: AngleTorsion Coeffs
-
-Atom style does not allow dihedrals.
-
-E: Must define dihedral_style before AngleTorsion Coeffs
-
-Must use a dihedral_style command before reading a data file that
-defines AngleTorsion Coeffs.
-
-E: Invalid data file section: AngleAngleTorsion Coeffs
-
-Atom style does not allow dihedrals.
-
-E: Must define dihedral_style before AngleAngleTorsion Coeffs
-
-Must use a dihedral_style command before reading a data file that
-defines AngleAngleTorsion Coeffs.
-
-E: Invalid data file section: BondBond13 Coeffs
-
-Atom style does not allow dihedrals.
-
-E: Must define dihedral_style before BondBond13 Coeffs
-
-Must use a dihedral_style command before reading a data file that
-defines BondBond13 Coeffs.
-
-E: Invalid data file section: AngleAngle Coeffs
-
-Atom style does not allow impropers.
-
-E: Must define improper_style before AngleAngle Coeffs
-
-Must use an improper_style command before reading a data file that
-defines AngleAngle Coeffs.
-
-E: Unknown identifier in data file: %s
-
-A section of the data file cannot be read by LAMMPS.
-
-E: No atoms in data file
-
-The header of the data file indicated that atoms would be included,
-but they were not present.
-
-E: Needed molecular topology not in data file
-
-UNDOCUMENTED
-
-E: Needed bonus data not in data file
-
-Some atom styles require bonus data.  See the read_data doc page for
-details.
-
-E: Unexpected end of data file
-
-LAMMPS hit the end of the data file while attempting to read a
-section.  Something is wrong with the format of the data file.
-
-E: No ellipsoids allowed with this atom style
-
-Self-explanatory.  Check data file.
-
-E: No lines allowed with this atom style
-
-Self-explanatory.  Check data file.
-
-E: No triangles allowed with this atom style
-
-Self-explanatory.  Check data file.
-
-E: No bodies allowed with this atom style
-
-Self-explanatory.  Check data file.
-
-E: System in data file is too big
+E: Too many total atoms
 
 See the setting for bigint in the src/lmptype.h file.
 
-E: No bonds allowed with this atom style
+E: New atom IDs exceed maximum allowed ID
 
-Self-explanatory.  Check data file.
+See the setting for tagint in the src/lmptype.h file.
 
-E: No angles allowed with this atom style
+E: Fix pour region ID does not exist
 
-Self-explanatory.  Check data file.
+Self-explanatory.
 
-E: No dihedrals allowed with this atom style
+E: Molecule template ID for fix pour does not exist
 
-Self-explanatory.  Check data file.
+Self-explanatory.
 
-E: No impropers allowed with this atom style
+W: Molecule template for fix pour has multiple molecules
 
-Self-explanatory.  Check data file.
+The fix pour command will only create molecules of a single type,
+i.e. the first molecule in the template.
 
-E: Bonds defined but no bond types
+E: Fix pour polydisperse fractions do not sum to 1.0
 
-The data file header lists bonds but no bond types.
+Self-explanatory.
 
-E: Angles defined but no angle types
+E: Cannot change timestep with fix pour
 
-The data file header lists angles but no angle types.
-
-E: Dihedrals defined but no dihedral types
-
-The data file header lists dihedrals but no dihedral types.
-
-E: Impropers defined but no improper types
-
-The data file header lists improper but no improper types.
-
-E: No molecule topology allowed with atom style template
-
-UNDOCUMENTED
-
-E: Did not assign all atoms correctly
-
-Atoms read in from a data file were not assigned correctly to
-processors.  This is likely due to some atom coordinates being
-outside a non-periodic simulation box.
-
-E: Bonds assigned incorrectly
-
-Bonds read in from the data file were not assigned correctly to atoms.
-This means there is something invalid about the topology definitions.
-
-E: Angles assigned incorrectly
-
-Angles read in from the data file were not assigned correctly to
-atoms.  This means there is something invalid about the topology
-definitions.
-
-E: Dihedrals assigned incorrectly
-
-Dihedrals read in from the data file were not assigned correctly to
-atoms.  This means there is something invalid about the topology
-definitions.
-
-E: Impropers assigned incorrectly
-
-Impropers read in from the data file were not assigned correctly to
-atoms.  This means there is something invalid about the topology
-definitions.
-
-E: Too many lines in one body in data file - boost MAXBODY
-
-MAXBODY is a setting at the top of the src/read_data.cpp file.
-Set it larger and re-compile the code.
-
-E: Cannot open gzipped file
-
-LAMMPS was compiled without support for reading and writing gzipped
-files through a pipeline to the gzip program with -DLAMMPS_GZIP.
-
-E: Cannot open file %s
-
-The specified file cannot be opened.  Check that the path and name are
-correct. If the file is a compressed file, also check that the gzip
-executable can be found and run.
-
-U: Invalid atom ID in Atoms section of data file
-
-Atom IDs must be positive integers.
-
-U: Molecular data file has too many atoms
-
-These kids of data files are currently limited to a number
-of atoms that fits in a 32-bit integer.
-
-U: Needed topology not in data file
-
-The header of the data file indicated that bonds or angles or
-dihedrals or impropers would be included, but they were not present.
+This is because fix pour pre-computes the time delay for particles to
+fall out of the insertion volume due to gravity.
 
 */

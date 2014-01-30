@@ -183,7 +183,8 @@ class KSpace : protected Pointers {
 
 E: KSpace style does not yet support triclinic geometries
 
-UNDOCUMENTED
+The specified kspace style does not allow for non-orthogonal
+simulation boxes.
 
 E: KSpace solver requires a pair style
 
@@ -218,8 +219,8 @@ E: Bad kspace_modify kmax/ewald parameter
 
 Kspace_modify values for the kmax/ewald keyword must be integers > 0
 
-E: eigtol must be smaller than one
+E: Kspace_modify eigtol must be smaller than one
 
-UNDOCUMENTED
+Self-explanatory.
 
 */

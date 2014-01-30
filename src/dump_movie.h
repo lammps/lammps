@@ -51,7 +51,7 @@ and must be a single file for a single processor.
 
 E: Support for writing movies not included
 
-UNDOCUMENTED
+LAMMPS was not built with the -DLAMMPS_FFMPEG switch in the Makefile
 
 E: Failed to open FFmpeg pipeline to file %s
 
@@ -63,15 +63,5 @@ E: Illegal ... command
 Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
-
-U: Cannot generate movie file
-
-LAMMPS was built without the -DLAMMPS_FFMPEG switch in the Makefile
-
-U: pipe:: Input/output error
-
-Harmless. This happens when the pipeline to FFmpeg is closed and no
-more image data is sent to be appended to the movie. FFmpeg will 
-simply terminate and close the movie file.
 
 */

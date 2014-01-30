@@ -72,7 +72,8 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Cannot use fix bond/swap with non-molecular systems
 
-UNDOCUMENTED
+Only systems with bonds that can be changed can be used.  Atom_style
+template does not qualify.
 
 E: Must use atom style with molecule IDs with fix bond/swap
 

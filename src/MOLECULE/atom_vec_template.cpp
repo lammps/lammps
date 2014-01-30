@@ -52,7 +52,7 @@ AtomVecTemplate::AtomVecTemplate(LAMMPS *lmp) : AtomVec(lmp)
 
 void AtomVecTemplate::process_args(int narg, char **arg)
 {
-  if (narg != 1) error->all(FLERR,"Invalid atom_style template command");
+  if (narg != 1) error->all(FLERR,"Illegal atom_style template command");
 
   int imol = atom->find_molecule(arg[0]);
   if (imol == -1) error->all(FLERR,"Molecule template ID for "

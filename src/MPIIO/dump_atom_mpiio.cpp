@@ -82,11 +82,8 @@ void DumpAtomMPIIO::openfile()
 
   if (append_flag) { // append open
     int err = MPI_File_open( world, filecurrent, MPI_MODE_CREATE | MPI_MODE_APPEND | MPI_MODE_WRONLY  , MPI_INFO_NULL, &mpifh);
-    if (err != MPI_SUCCESS) {
-      char str[128];
-      sprintf(str,"Cannot open dump file %s",filecurrent);
-      error->one(FLERR,str);
-    }
+    if (err != MPI_SUCCESS)
+      error->one(FLERR,"Cannot open dump file");
     int myrank;
     MPI_Comm_rank(world,&myrank);
     if (myrank == 0)
@@ -99,11 +96,8 @@ void DumpAtomMPIIO::openfile()
   else { // replace open
 
     int err = MPI_File_open( world, filecurrent, MPI_MODE_CREATE | MPI_MODE_APPEND | MPI_MODE_WRONLY  , MPI_INFO_NULL, &mpifh);
-    if (err != MPI_SUCCESS) {
-      char str[128];
-      sprintf(str,"Cannot open dump file %s",filecurrent);
-      error->one(FLERR,str);
-    }
+    if (err != MPI_SUCCESS)
+      error->one(FLERR,"Cannot open dump file");
     mpifo = 0;
 
     MPI_File_set_size(mpifh,(MPI_Offset) (headerSize+sumFileSize));

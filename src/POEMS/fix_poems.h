@@ -132,7 +132,7 @@ Self-explanatory.
 
 E: Too many molecules for fix poems
 
-UNDOCUMENTED
+The limit is 2^31 = ~2 billion molecules.
 
 E: No rigid bodies defined
 

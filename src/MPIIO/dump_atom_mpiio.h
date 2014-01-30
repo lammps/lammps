@@ -76,9 +76,10 @@ class DumpAtomMPIIO : public DumpAtom {
 
 /* ERROR/WARNING messages:
 
-E: Cannot open dump file %s
+E: Cannot open dump file
 
-UNDOCUMENTED
+The output file for the dump command cannot be opened.  Check that the
+path and name are correct.
 
 E: Too much per-proc info for dump
 

@@ -159,16 +159,6 @@ The pair style is not providing the needed epsilon or sigma values.
 
 E: Cannot (yet) use kspace slab correction with long-range dipoles and non-neutral systems or per-atom energy
 
-UNDOCUMENTED
-
-U: KSpace accuracy too large to estimate G vector
-
-Reduce the accuracy request or specify gwald explicitly
-via the kspace_modify command.
-
-U: Cannot (yet) use kspace slab correction with long-range dipoles
-and non-neutral systems or per-atom energy
-
 This feature is not yet supported.
 
 */

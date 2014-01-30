@@ -91,7 +91,8 @@ Self-explanatory.
 
 E: Cannot use fix bond/create with non-molecular systems
 
-Self-explanatory.
+Only systems with bonds that can be changed can be used.  Atom_style
+template does not qualify.
 
 E: Inconsistent iparam/jparam values in fix bond/create command
 

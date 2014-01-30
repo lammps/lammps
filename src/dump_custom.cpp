@@ -1218,7 +1218,7 @@ int DumpCustom::parse_fields(int narg, char **arg)
         error->all(FLERR,
                    "Dump custom compute does not calculate per-atom vector");
       if (argindex[i] > 0 && modify->compute[n]->size_peratom_cols == 0)
-        error->all(FLERR,\
+        error->all(FLERR,
                    "Dump custom compute does not calculate per-atom array");
       if (argindex[i] > 0 &&
           argindex[i] > modify->compute[n]->size_peratom_cols)

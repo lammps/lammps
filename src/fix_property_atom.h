@@ -74,34 +74,36 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Fix property/atom mol when atom_style already has molecule attribute
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix property/atom cannot specify mol twice
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix property/atom q when atom_style already has charge attribute
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix property/atom cannot specify q twice
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix property/atom vector name already exists
 
-UNDOCUMENTED
+The name for an integer or floating-point vector must be unique.
 
 E: Atom style was redefined after using fix property/atom
 
-UNDOCUMENTED
+This is not allowed.
 
 E: Incorrect %s format in data file
 
-UNDOCUMENTED
+A section of the data file being read by fix property/atom does
+not have the correct number of values per line.
 
 E: Invalid atom ID in %s section of data file
 
-UNDOCUMENTED
+An atom in a section of the data file being read by fix property/atom
+has an invalid atom ID that is <= 0 or > the maximum existing atom ID.
 
 */

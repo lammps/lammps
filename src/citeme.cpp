@@ -65,7 +65,7 @@ void CiteMe::add(const char *ref)
 
   if (!fp) {
     fp = fopen("log.cite","w");
-    if (!fp) error->universe_one(FLERR,"Could not open log.cite file");
+    if (!fp) error->universe_one(FLERR,"Cannot open log.cite file");
     fputs(cite_header,fp);
     fflush(fp);
   }

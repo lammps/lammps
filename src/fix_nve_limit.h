@@ -58,6 +58,6 @@ command-line option when running LAMMPS to see the offending line.
 
 W: Should not use fix nve/limit with fix shake
 
-UNDOCUMENTED
+This will lead to invalid constraint forces in the SHAKE computation.
 
 */

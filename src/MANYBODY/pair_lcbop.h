@@ -169,78 +169,102 @@ class PairLCBOP : public Pair {
 
 /* ERROR/WARNING messages:
 
-E: Variable name for thermo every does not exist
-
-Self-explanatory.
-
-E: Variable for thermo every is invalid style
-
-Only equal-style variables can be used.
-
-E: Variable name for dump every does not exist
-
-Self-explanatory.
-
-E: Variable for dump every is invalid style
-
-Only equal-style variables can be used.
-
-E: Variable name for restart does not exist
-
-Self-explanatory.
-
-E: Variable for restart is invalid style
-
-Only equal-style variables can be used.
-
-E: Dump every variable returned a bad timestep
-
-The variable must return a timestep greater than the current timestep.
-
-E: Restart variable returned a bad timestep
-
-The variable must return a timestep greater than the current timestep.
-
-E: Thermo every variable returned a bad timestep
-
-The variable must return a timestep greater than the current timestep.
-
 E: Illegal ... command
 
 Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Reuse of dump ID
+E: Incorrect args for pair coefficients
 
-A dump ID cannot be used twice.
+UNDOCUMENTED
 
-E: Could not find dump group ID
+E: Pair style LCBOP requires atom IDs
 
-A group ID used in the dump command does not exist.
+UNDOCUMENTED
 
-E: Invalid dump frequency
+E: Pair style LCBOP requires newton pair on
 
-Dump frequency must be 1 or greater.
+UNDOCUMENTED
 
-E: Invalid dump style
+E: All pair coeffs are not set
 
-The choice of dump style is unknown.
+UNDOCUMENTED
 
-E: Cound not find dump_modify ID
+E: Neighbor list overflow, boost neigh_modify one
+
+UNDOCUMENTED
+
+E: Cannot open LCBOP potential file %s
+
+UNDOCUMENTED
+
+U: Variable name for thermo every does not exist
 
 Self-explanatory.
 
-E: Could not find undump ID
+U: Variable for thermo every is invalid style
+
+Only equal-style variables can be used.
+
+U: Variable name for dump every does not exist
+
+Self-explanatory.
+
+U: Variable for dump every is invalid style
+
+Only equal-style variables can be used.
+
+U: Variable name for restart does not exist
+
+Self-explanatory.
+
+U: Variable for restart is invalid style
+
+Only equal-style variables can be used.
+
+U: Dump every variable returned a bad timestep
+
+The variable must return a timestep greater than the current timestep.
+
+U: Restart variable returned a bad timestep
+
+The variable must return a timestep greater than the current timestep.
+
+U: Thermo every variable returned a bad timestep
+
+The variable must return a timestep greater than the current timestep.
+
+U: Reuse of dump ID
+
+A dump ID cannot be used twice.
+
+U: Could not find dump group ID
+
+A group ID used in the dump command does not exist.
+
+U: Invalid dump frequency
+
+Dump frequency must be 1 or greater.
+
+U: Invalid dump style
+
+The choice of dump style is unknown.
+
+U: Cound not find dump_modify ID
+
+Self-explanatory.
+
+U: Could not find undump ID
 
 A dump ID used in the undump command does not exist.
 
-E: Thermo_style command before simulation box is defined
+U: Thermo_style command before simulation box is defined
 
 The thermo_style command cannot be used before a read_data,
 read_restart, or create_box command.
 
-W: New thermo_style command, previous thermo_modify settings will be lost
+U: New thermo_style command, previous thermo_modify settings will be lost
 
 If a thermo_style command is used after a thermo_modify command, the
 settings changed by the thermo_modify command will be reset to their
@@ -248,11 +272,11 @@ default values.  This is because the thermo_modify commmand acts on
 the currently defined thermo style, and a thermo_style command creates
 a new style.
 
-E: Both restart files must have '%' or neither
+U: Both restart files must have '%' or neither
 
 UNDOCUMENTED
 
-E: Both restart files must use MPI-IO or neither
+U: Both restart files must use MPI-IO or neither
 
 UNDOCUMENTED
 

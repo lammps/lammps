@@ -95,7 +95,7 @@ Self-explanatory.
 
 E: Cannot mix molecular and molecule template atom styles
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Per-processor system is too big
 

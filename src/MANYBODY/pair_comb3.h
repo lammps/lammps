@@ -333,6 +333,11 @@ E: Error in vdw spline: inner radius > outter radius
 
 UNDOCUMENTED
 
+
+
+
+
+
 U: Pair style COMB requires atom IDs
 
 This is a requirement to use the AIREBO potential.

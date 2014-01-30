@@ -51,10 +51,10 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Fix ID for compute ke/rigid does not exist
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Compute ke/rigid with non-rigid fix-ID
 
-UNDOCUMENTED
+Self-explanatory.
 
 */

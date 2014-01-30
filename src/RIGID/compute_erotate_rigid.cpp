@@ -57,7 +57,7 @@ void ComputeERotateRigid::init()
   int flag = 1;
   if (strcmp(modify->fix[irfix]->style,"rigid/small") == 0) flag = 0;
   else if (strstr(modify->fix[irfix]->style,"rigid")) flag = 0;
-  if (flag) error->all(FLERR,"Compute ke/rigid with non-rigid fix-ID");
+  if (flag) error->all(FLERR,"Compute erotate/rigid with non-rigid fix-ID");
 }
 
 /* ---------------------------------------------------------------------- */

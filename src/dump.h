@@ -134,13 +134,15 @@ class Dump : protected Pointers {
 
 /* ERROR/WARNING messages:
 
-E: Dump file MPI-IO output not allowed with '%' in filename
+E: Dump file MPI-IO output not allowed with % in filename
 
-UNDOCUMENTED
+This is because a % signifies one file per processor and MPI-IO
+creates one large file for all processors.
 
-E: Cannot dump sort when multiple procs write the dump file
+E: Cannot dump sort when multiple dump files are written
 
-UNDOCUMENTED
+In this mode, each processor dumps its atoms to a file, so
+no sorting is allowed.
 
 E: Cannot dump sort on atom IDs with no atom IDs defined
 
@@ -157,11 +159,12 @@ Cannot sort when running with more than 2^31 atoms.
 E: Too much per-proc info for dump
 
 Number of local atoms times number of columns must fit in a 32-bit
-integer for dump.
+integer for a dump.
 
 E: Too much buffered per-proc info for dump
 
-UNDOCUMENTED
+The size of the buffered string must fit in a 32-bit integer for a
+dump.
 
 E: Cannot open gzipped file
 
@@ -181,14 +184,14 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Dump_modify buffer yes not allowed for this style
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Cannot use dump_modify fileper without % in dump file name
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Cannot use dump_modify nfile without % in dump file name
 
-UNDOCUMENTED
+Self-explanatory.
 
 */

@@ -78,40 +78,36 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Fix gld series type must be pprony...for now
+E: Fix gld series type must be pprony for now
 
-UNDOCUMENTED
-
-E: Fix gld random seed must be > 0
-
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix gld prony terms must be > 0
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix gld start temperature must be >= 0
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix gld stop temperature must be >= 0
 
-UNDOCUMENTED
+Self-explanatory.
 
-E: Fix gld not enough prony series coefficients
+E: Fix gld needs more prony series coefficients
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix gld c coefficients must be >= 0
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix gld tau coefficients must be > 0
 
-UNDOCUMENTED
+Self-explanatory.
 
-E: Cannot zero gld force of 0 atoms
+E: Cannot zero gld force for zero atoms
 
-UNDOCUMENTED
+There are no atoms currently in the group.
 
 */

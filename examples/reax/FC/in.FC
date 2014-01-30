@@ -9,7 +9,7 @@ atom_style	charge
 read_data	data.FC
 
 pair_style	reax/c NULL
-pair_coeff	* * ffield.reax.FC 1 6
+pair_coeff	* * ffield.reax.FC C F
 neighbor	2. bin
 neigh_modify	every 10 delay 0 check no
 fix             2 all qeq/reax 1 0.0 10.0 1e-6 reax/c

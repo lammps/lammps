@@ -108,7 +108,7 @@ Dump::Dump(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   if (ptr = strchr(filename,'%')) {
     if (strstr(style,"mpiio"))
       error->all(FLERR,
-                 "Dump file MPI-IO output not allowed with '%' in filename");
+                 "Dump file MPI-IO output not allowed with % in filename");
     multiproc = 1;
     nclusterprocs = 1;
     filewriter = 1;
@@ -188,7 +188,7 @@ void Dump::init()
   if (sort_flag) {
     if (multiproc > 1) 
       error->all(FLERR,
-                 "Cannot dump sort when multiple procs write the dump file");
+                 "Cannot dump sort when multiple dump files are written");
     if (sortcol == 0 && atom->tag_enable == 0)
       error->all(FLERR,"Cannot dump sort on atom IDs with no atom IDs defined");
     if (sortcol && sortcol > size_one)

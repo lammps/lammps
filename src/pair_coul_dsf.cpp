@@ -43,7 +43,10 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairCoulDSF::PairCoulDSF(LAMMPS *lmp) : Pair(lmp) {}
+PairCoulDSF::PairCoulDSF(LAMMPS *lmp) : Pair(lmp)
+{
+  single_enable = 0;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -59,7 +62,7 @@ PairCoulDSF::~PairCoulDSF()
 
 void PairCoulDSF::compute(int eflag, int vflag)
 {
-  int i,j,ii,jj,inum,jnum,itype,jtype;
+  int i,j,ii,jj,inum,jnum;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,ecoul,fpair;
   double r,rsq,r2inv,forcecoul,factor_coul;
   double prefactor,erfcc,erfcd,e_self,t;
@@ -72,7 +75,6 @@ void PairCoulDSF::compute(int eflag, int vflag)
   double **x = atom->x;
   double **f = atom->f;
   double *q = atom->q;
-  int *type = atom->type;
   int nlocal = atom->nlocal;
   double *special_coul = force->special_coul;
   int newton_pair = force->newton_pair;
@@ -91,11 +93,10 @@ void PairCoulDSF::compute(int eflag, int vflag)
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
-    itype = type[i];
     jlist = firstneigh[i];
     jnum = numneigh[i];
     
-    if (evflag) {
+    if (eflag) {
       e_self = -(e_shift/2.0 + alpha/MY_PIS) * qtmp*qtmp*qqrd2e;
       ev_tally(i,i,nlocal,0,0.0,e_self,0.0,0.0,0.0,0.0);
     }
@@ -109,20 +110,17 @@ void PairCoulDSF::compute(int eflag, int vflag)
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
-      jtype = type[j];
 
-      if (rsq < cutsq[itype][jtype]) {
+      if (rsq < cut_coulsq) {
         r2inv = 1.0/rsq;
 
-        if (rsq < cut_coulsq) {
-          r = sqrt(rsq);
-          prefactor = factor_coul * qqrd2e*qtmp*q[j]/r;
-          erfcd = exp(-alpha*alpha*rsq);
-          t = 1.0 / (1.0 + EWALD_P*alpha*r);
-          erfcc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * erfcd;
-          forcecoul = prefactor * (erfcc/r + 2.0*alpha/MY_PIS * erfcd + 
-            r*f_shift) * r;
-        }
+        r = sqrt(rsq);
+        prefactor = factor_coul * qqrd2e*qtmp*q[j]/r;
+        erfcd = exp(-alpha*alpha*rsq);
+        t = 1.0 / (1.0 + EWALD_P*alpha*r);
+        erfcc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * erfcd;
+        forcecoul = prefactor * (erfcc/r + 2.0*alpha/MY_PIS * erfcd + 
+                                 r*f_shift) * r;
 
         fpair = forcecoul * r2inv;
         f[i][0] += delx*fpair;
@@ -135,10 +133,8 @@ void PairCoulDSF::compute(int eflag, int vflag)
         }
 
         if (eflag) {
-          if (rsq < cut_coulsq) {
-            ecoul = prefactor * (erfcc - r*e_shift - rsq*f_shift);
-          } else ecoul = 0.0;
-        }
+          ecoul = prefactor * (erfcc - r*e_shift - rsq*f_shift);
+        } else ecoul = 0.0;
 
         if (evflag) ev_tally(i,j,nlocal,newton_pair,
                              0.0,ecoul,fpair,delx,dely,delz);

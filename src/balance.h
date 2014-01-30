@@ -68,7 +68,6 @@ class Balance : protected Pointers {
   double imbalance_splits(int &);
   void tally(int, int, double *);
   int adjust(int, double *);
-  void old_adjust(int, int, bigint *, double *);
   int binary(double, int, double *);
   void debug_output(int, int, int, double *);
 };

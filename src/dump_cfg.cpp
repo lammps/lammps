@@ -273,9 +273,9 @@ void DumpCFG::write_lines(int n, double *mybuf)
     for (i = 0; i < n; i++) {
       for (j = 0; j < size_one; j++) {
         if (j == 0) {
-	  fprintf(fp,"%f \n",mybuf[m]);
+          fprintf(fp,"%f \n",mybuf[m]);
         } else if (j == 1) {
-	  fprintf(fp,"%s \n",typenames[(int) mybuf[m]]);
+          fprintf(fp,"%s \n",typenames[(int) mybuf[m]]);
         } else if (j >= 2) {
           if (vtype[j] == INT) 
             fprintf(fp,vformat[j],static_cast<int> (mybuf[m]));
@@ -296,9 +296,9 @@ void DumpCFG::write_lines(int n, double *mybuf)
     for (i = 0; i < n; i++) {
       for (j = 0; j < size_one; j++) {
         if (j == 0) {
-	  fprintf(fp,"%f \n",mybuf[m]);
+          fprintf(fp,"%f \n",mybuf[m]);
         } else if (j == 1) {
-	  fprintf(fp,"%s \n",typenames[(int) mybuf[m]]);
+          fprintf(fp,"%s \n",typenames[(int) mybuf[m]]);
         } else if (j >= 2 && j <= 4) {
           unwrap_coord = (mybuf[m] - 0.5)/UNWRAPEXPAND + 0.5;
           fprintf(fp,vformat[j],unwrap_coord);

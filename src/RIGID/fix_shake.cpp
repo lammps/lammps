@@ -649,8 +649,6 @@ void FixShake::find_clusters()
   tagint tagprev;
   double massone;
   tagint *buf;
-  MPI_Request request;
-  MPI_Status status;
 
   if (me == 0 && screen) fprintf(screen,"Finding SHAKE clusters ...\n");
 

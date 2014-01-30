@@ -566,7 +566,7 @@ void DumpCustomMPIIO::write_string(int n, double *mybuf)
 
 int DumpCustomMPIIO::convert_string_omp(int n, double *mybuf)
 {
-  MPI_Status mpiStatus;
+  double *localbuf = mybuf;
   char **mpifh_buffer_line_per_thread;
   int mpifhStringCount;
   int *mpifhStringCountPerThread, *bufOffset, *bufRange, *bufLength;
@@ -601,7 +601,7 @@ int DumpCustomMPIIO::convert_string_omp(int n, double *mybuf)
     mpifh_buffer_line_per_thread[i] = (char *) malloc(DUMP_BUF_CHUNK_SIZE * sizeof(char));
     mpifh_buffer_line_per_thread[i][0] = '\0';
 
-#pragma omp parallel default(none)
+#pragma omp parallel default(none) shared(localbuf,bufLength,bufOffset,bufRange,mpifhStringCountPerThread,mpifh_buffer_line_per_thread)
     {
       int tid = omp_get_thread_num();
       int m=0;
@@ -615,11 +615,11 @@ int DumpCustomMPIIO::convert_string_omp(int n, double *mybuf)
         for (int j = 0; j < size_one; j++) {
 
           if (vtype[j] == INT)
-            mpifhStringCountPerThread[tid] += sprintf(&(mpifh_buffer_line_per_thread[tid][mpifhStringCountPerThread[tid]]),vformat[j],static_cast<int> (mybuf[bufOffset[tid]+m]));
+            mpifhStringCountPerThread[tid] += sprintf(&(mpifh_buffer_line_per_thread[tid][mpifhStringCountPerThread[tid]]),vformat[j],static_cast<int> (localbuf[bufOffset[tid]+m]));
           else if (vtype[j] == DOUBLE)
-            mpifhStringCountPerThread[tid] += sprintf(&(mpifh_buffer_line_per_thread[tid][mpifhStringCountPerThread[tid]]),vformat[j],mybuf[bufOffset[tid]+m]);
+            mpifhStringCountPerThread[tid] += sprintf(&(mpifh_buffer_line_per_thread[tid][mpifhStringCountPerThread[tid]]),vformat[j],localbuf[bufOffset[tid]+m]);
           else if (vtype[j] == STRING)
-            mpifhStringCountPerThread[tid] += sprintf(&(mpifh_buffer_line_per_thread[tid][mpifhStringCountPerThread[tid]]),vformat[j],typenames[(int) mybuf[bufOffset[tid]+m]]);
+            mpifhStringCountPerThread[tid] += sprintf(&(mpifh_buffer_line_per_thread[tid][mpifhStringCountPerThread[tid]]),vformat[j],typenames[(int) localbuf[bufOffset[tid]+m]]);
           m ++;
         }
         mpifhStringCountPerThread[tid] += sprintf(&(mpifh_buffer_line_per_thread[tid][mpifhStringCountPerThread[tid]]),"\n");

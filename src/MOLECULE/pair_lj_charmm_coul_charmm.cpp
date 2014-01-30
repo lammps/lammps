@@ -105,10 +105,10 @@ void PairLJCharmmCoulCharmm::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-      jtype = type[j];
       factor_lj = special_lj[sbmask(j)];
       factor_coul = special_coul[sbmask(j)];
       j &= NEIGHMASK;
+      jtype = type[j];
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];

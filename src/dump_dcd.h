@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class DumpDCD : public Dump {
  public:
   DumpDCD(LAMMPS *, int, char**);
-  ~DumpDCD();
+  virtual ~DumpDCD();
 
  private:
   int natoms,ntotal;

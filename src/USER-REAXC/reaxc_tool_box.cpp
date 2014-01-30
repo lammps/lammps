@@ -388,7 +388,7 @@ int Allocate_Tokenizer_Space( char **line, char **backup, char ***tokens )
 int Tokenize( char* s, char*** tok )
 {
   char test[MAX_LINE];
-  char *sep = "\t \n!=";
+  const char *sep = (const char *)"\t \n!=";
   char *word;
   int count=0;
 
@@ -405,7 +405,7 @@ int Tokenize( char* s, char*** tok )
 
 /***************** taken from lammps ************************/
 /* safe malloc */
-void *smalloc( long n, char *name, MPI_Comm comm )
+void *smalloc( long n, const char *name, MPI_Comm comm )
 {
   void *ptr;
 
@@ -428,7 +428,7 @@ void *smalloc( long n, char *name, MPI_Comm comm )
 
 
 /* safe calloc */
-void *scalloc( int n, int size, char *name, MPI_Comm comm )
+void *scalloc( int n, int size, const char *name, MPI_Comm comm )
 {
   void *ptr;
 
@@ -458,7 +458,7 @@ void *scalloc( int n, int size, char *name, MPI_Comm comm )
 
 
 /* safe free */
-void sfree( void *ptr, char *name )
+void sfree( void *ptr, const char *name )
 {
   if( ptr == NULL ) {
     fprintf( stderr, "WARNING: trying to free the already NULL pointer %s!\n",

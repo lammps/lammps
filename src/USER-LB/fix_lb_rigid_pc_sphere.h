@@ -78,7 +78,7 @@ class FixLbRigidPCSphere : public Fix {
   double **torque_fluid;
   double **torque_fluid_old;
   double **rotate;
-  int *imagebody;               // image flags of xcm of each rigid body
+  imageint *imagebody;               // image flags of xcm of each rigid body
   double **fflag;           // flag for on/off of center-of-mass force
   double **tflag;           // flag for on/off of center-of-mass torque
 

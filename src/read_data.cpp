@@ -83,12 +83,11 @@ static int style_match(const char *one, const char *two)
         len2 = delta;
   }
 
-  // after trimming off the suffix, the length has to match
+  // if the data file has no style hint, accept it unconditionally.
+  // otherwise the length of the style without suffix has to match
+  // and the style name up to that point has to be identical, too.
 
-  if (len1 != len2)
-    return 0;
-
-  if (strncmp(one,two,len1) == 0)
+  if ((len1 == 0) || (len1 == len2) || (strncmp(one,two,len1) == 0))
     return 1;
 
   return 0;

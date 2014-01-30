@@ -111,24 +111,22 @@ E: GPU particle split must be set to 1 for this pair style.
 For this pair style, you cannot run part of the force calculation on
 the host.  See the package command.
 
-E: CPU neighbor lists must be used for ellipsoid/sphere mix
+E: CPU neighbor lists must be used for ellipsoid/sphere mix.
 
-When using Gay-Berne or RE-squared pair styles with both ellipsoidal and
-spherical particles, the neighbor list must be built on the CPU
+UNDOCUMENTED
 
 E: Invalid threads_per_atom specified.
 
 For 3-body potentials on the GPU, the threads_per_atom setting cannot be
 greater than 4 for NVIDIA GPUs.
 
-E: Unknown error in GPU library
-
-Self-explanatory.
-
 E: Invalid custom OpenCL parameter string.
 
 There are not enough or too many parameters in the custom string for package
 GPU.
 
-*/
+E: Unknown error in GPU library
 
+Self-explanatory.
+
+*/

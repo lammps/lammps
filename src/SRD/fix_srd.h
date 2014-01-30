@@ -337,15 +337,18 @@ conservative settings.
 
 E: SRD particle %d started inside big particle %d on step %ld bounce %d
 
-UNDOCUMENTED
+See the inside keyword if you want this message to be an error vs
+warning.
 
 W: SRD particle %d started inside big particle %d on step %ld bounce %d
 
-UNDOCUMENTED
+See the inside keyword if you want this message to be an error vs
+warning.
 
 W: SRD particle %d started inside big particle %d on step %ld bounce %d
 
-UNDOCUMENTED
+See the inside keyword if you want this message to be an error vs
+warning.
 
 E: Bad quadratic solve for particle/line collision
 
@@ -418,15 +421,5 @@ This may cause accuracy problems.
 W: Fix srd particles may move > big particle diameter
 
 This may cause accuracy problems.
-
-U: SRD particle %ld started inside big particle %ld on step %ld bounce %d
-
-See the inside keyword if you want this message to be an error vs
-warning.
-
-U: SRD particle %ld started inside big particle %ld on step %ld bounce %d
-
-See the inside keyword if you want this message to be an error vs
-warning.
 
 */

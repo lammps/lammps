@@ -290,10 +290,6 @@ correct.
 
 E: Rigid body atoms %d %d missing on proc %d at step %ld
 
-UNDOCUMENTED
-
-U: Rigid body atoms %ld %ld missing on proc %d at step %ld
-
 This means that an atom cannot find the atom that owns the rigid body
 it is part of, or vice versa.  The solution is to use the communicate
 cutoff command to insure ghost atoms are acquired from far enough away

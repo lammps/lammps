@@ -333,9 +333,4 @@ E: Cannot (yet) use kspace_modify diff ad with compute group/group
 
 This option is not yet supported.
 
-U: Cannot (yet) use K-space slab correction with compute group/group
-for triclinic systems
-
-This option is not yet supported.
-
 */

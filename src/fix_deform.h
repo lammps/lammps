@@ -132,8 +132,4 @@ When both yz and xy are changing, it induces changes in xz if the
 box must flip from one tilt extreme to another.  Thus it is not
 allowed for yz to grow so much that a flip is induced.
 
-U: Use of fix deform with undefined lattice
-
-A lattice must be defined to use fix deform with units = lattice.
-
 */

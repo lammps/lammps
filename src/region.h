@@ -107,9 +107,4 @@ E: Region cannot have 0 length rotation vector
 
 Self-explanatory.
 
-U: Use of region with undefined lattice
-
-If units = lattice (the default) for the region command, then a
-lattice must first be defined via the lattice command.
-
 */

@@ -113,7 +113,8 @@ the host.  See the package command.
 
 E: CPU neighbor lists must be used for ellipsoid/sphere mix.
 
-UNDOCUMENTED
+When using Gay-Berne or RE-squared pair styles with both ellipsoidal and
+spherical particles, the neighbor list must be built on the CPU
 
 E: Invalid threads_per_atom specified.
 

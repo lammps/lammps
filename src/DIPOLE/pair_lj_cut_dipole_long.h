@@ -81,8 +81,4 @@ E: Pair style requires a KSpace style
 
 No kspace style is defined.
 
-U: Pair dipole/cut requires atom attributes q, mu, torque
-
-The atom style defined does not have these attributes.
-
 */

@@ -86,8 +86,4 @@ E: Invalid mass value
 
 Self-explanatory.
 
-U: Invalid atom ID in Atoms section of data file
-
-Atom IDs must be positive integers.
-
 */

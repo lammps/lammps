@@ -143,8 +143,4 @@ E: Assigning body parameters to non-body atom
 
 Self-explanatory.
 
-U: Invalid atom ID in Atoms section of data file
-
-Atom IDs must be positive integers.
-
 */

@@ -98,9 +98,4 @@ E: Variable evaluation in fix wall gave bad value
 
 The returned value for epsilon or sigma < 0.0.
 
-U: Use of fix wall with undefined lattice
-
-Must use lattice command with fix wall command if units option is set
-to lattice.
-
 */

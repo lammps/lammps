@@ -120,16 +120,4 @@ E: Pair cutoff < Respa interior cutoff
 One or more pairwise cutoffs are too short to use with the specified
 rRESPA cutoffs.
 
-U: Using largest cutoff for lj/long/dipole/long
-
-Self-exlanatory.
-
-U: Cutoffs missing in pair_style lj/long/dipole/long
-
-Self-exlanatory.
-
-U: Only one cutoff allowed when requesting all long
-
-Self-explanatory.
-
 */

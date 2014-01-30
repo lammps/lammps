@@ -111,20 +111,4 @@ E: Pair cutoff < Respa interior cutoff
 One or more pairwise cutoffs are too short to use with the specified
 rRESPA cutoffs.
 
-U: Mixing forced for lj coefficients
-
-Self-explanatory.
-
-U: Mixing forced for LJ coefficients
-
-Self-explanatory.
-
-U: Using largest cutoff for pair_style lj/long/coul/long
-
-Self-explanatory.
-
-U: Pair style lj/long/coul/long requires atom attribute q
-
-The atom style defined does not have this attribute.
-
 */

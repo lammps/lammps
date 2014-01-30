@@ -102,7 +102,6 @@ fix 		1 all nvt temp ${thi} ${thi} 0.1
 # tad nsteps nevent tlo thi delta_conf tmax compute
 #     [min etol ftol niter neval]
 #     [neb etol_neb ftol_neb n1steps n2steps nevery]
-#     [min_style min_style]
 #     [neb_style min_style]
 #     [neb_log logfile]
  

@@ -15,6 +15,8 @@
 #include "neighbor_omp.h"
 #include "neigh_list.h"
 #include "atom.h"
+#include "atom_vec.h"
+#include "molecule.h"
 #include "comm.h"
 #include "domain.h"
 #include "my_page.h"
@@ -37,6 +39,8 @@ void Neighbor::half_multi_no_newton_omp(NeighList *list)
   bin_atoms();
 
   const int nlocal = (includegroup) ? atom->nfirst : atom->nlocal;
+  const int molecular = atom->molecular;
+  const int moltemplate = (molecular == 2) ? 1 : 0;
 
   NEIGH_OMP_INIT;
 #if defined(_OPENMP)
@@ -44,22 +48,25 @@ void Neighbor::half_multi_no_newton_omp(NeighList *list)
 #endif
   NEIGH_OMP_SETUP(nlocal);
 
-  int i,j,k,n,itype,jtype,ibin,which,ns;
+  int i,j,k,n,itype,jtype,ibin,which,ns,imol,iatom;
+  tagint tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr,*s;
   double *cutsq,*distsq;
 
   // loop over each atom, storing neighbors
 
-  tagint **special = atom->special;
-  int **nspecial = atom->nspecial;
-  tagint *tag = atom->tag;
-
   double **x = atom->x;
   int *type = atom->type;
   int *mask = atom->mask;
+  tagint *tag = atom->tag;
   tagint *molecule = atom->molecule;
-  int molecular = atom->molecular;
+  tagint **special = atom->special;
+  int **nspecial = atom->nspecial;
+
+  int *molindex = atom->molindex;
+  int *molatom = atom->molatom;
+  Molecule **onemols = atom->avec->onemols;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -81,6 +88,11 @@ void Neighbor::half_multi_no_newton_omp(NeighList *list)
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
+    if (moltemplate) {
+      imol = molindex[i];
+      iatom = molatom[i];
+      tagprev = tag[i] - iatom - 1;
+    }
 
     // loop over all atoms in other bins in stencil including self
     // only store pair if i < j
@@ -108,7 +120,13 @@ void Neighbor::half_multi_no_newton_omp(NeighList *list)
 
         if (rsq <= cutneighsq[itype][jtype]) {
           if (molecular) {
-            which = find_special(special[i],nspecial[i],tag[j]);
+            if (!moltemplate)
+              which = find_special(special[i],nspecial[i],tag[j]);
+            else if (imol >=0)
+              which = find_special(onemols[imol]->special[iatom],
+                                   onemols[imol]->nspecial[iatom],
+                                   tag[j]-tagprev);
+            else which = 0;
             if (which == 0) neighptr[n++] = j;
             else if (domain->minimum_image_check(delx,dely,delz))
               neighptr[n++] = j;
@@ -143,6 +161,8 @@ void Neighbor::half_multi_newton_omp(NeighList *list)
   bin_atoms();
 
   const int nlocal = (includegroup) ? atom->nfirst : atom->nlocal;
+  const int molecular = atom->molecular;
+  const int moltemplate = (molecular == 2) ? 1 : 0;
 
   NEIGH_OMP_INIT;
 #if defined(_OPENMP)
@@ -150,22 +170,25 @@ void Neighbor::half_multi_newton_omp(NeighList *list)
 #endif
   NEIGH_OMP_SETUP(nlocal);
 
-  int i,j,k,n,itype,jtype,ibin,which,ns;
+  int i,j,k,n,itype,jtype,ibin,which,ns,imol,iatom;
+  tagint tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr,*s;
   double *cutsq,*distsq;
 
   // loop over each atom, storing neighbors
 
-  tagint **special = atom->special;
-  int **nspecial = atom->nspecial;
-  tagint *tag = atom->tag;
-
   double **x = atom->x;
   int *type = atom->type;
   int *mask = atom->mask;
+  tagint *tag = atom->tag;
   tagint *molecule = atom->molecule;
-  int molecular = atom->molecular;
+  tagint **special = atom->special;
+  int **nspecial = atom->nspecial;
+
+  int *molindex = atom->molindex;
+  int *molatom = atom->molatom;
+  Molecule **onemols = atom->avec->onemols;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -187,6 +210,11 @@ void Neighbor::half_multi_newton_omp(NeighList *list)
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
+    if (moltemplate) {
+      imol = molindex[i];
+      iatom = molatom[i];
+      tagprev = tag[i] - iatom - 1;
+    }
 
     // loop over rest of atoms in i's bin, ghosts are at end of linked list
     // if j is owned atom, store it, since j is beyond i in linked list
@@ -211,7 +239,13 @@ void Neighbor::half_multi_newton_omp(NeighList *list)
 
       if (rsq <= cutneighsq[itype][jtype]) {
         if (molecular) {
-          which = find_special(special[i],nspecial[i],tag[j]);
+          if (!moltemplate)
+            which = find_special(special[i],nspecial[i],tag[j]);
+          else if (imol >=0)
+            which = find_special(onemols[imol]->special[iatom],
+                                 onemols[imol]->nspecial[iatom],
+                                 tag[j]-tagprev);
+          else which = 0;
           if (which == 0) neighptr[n++] = j;
           else if (domain->minimum_image_check(delx,dely,delz))
             neighptr[n++] = j;
@@ -242,7 +276,13 @@ void Neighbor::half_multi_newton_omp(NeighList *list)
 
         if (rsq <= cutneighsq[itype][jtype]) {
           if (molecular) {
-            which = find_special(special[i],nspecial[i],tag[j]);
+            if (!moltemplate)
+              which = find_special(special[i],nspecial[i],tag[j]);
+            else if (imol >=0)
+              which = find_special(onemols[imol]->special[iatom],
+                                   onemols[imol]->nspecial[iatom],
+                                   tag[j]-tagprev);
+            else which = 0;
             if (which == 0) neighptr[n++] = j;
             else if (domain->minimum_image_check(delx,dely,delz))
               neighptr[n++] = j;
@@ -277,6 +317,8 @@ void Neighbor::half_multi_newton_tri_omp(NeighList *list)
   bin_atoms();
 
   const int nlocal = (includegroup) ? atom->nfirst : atom->nlocal;
+  const int molecular = atom->molecular;
+  const int moltemplate = (molecular == 2) ? 1 : 0;
 
   NEIGH_OMP_INIT;
 #if defined(_OPENMP)
@@ -284,22 +326,25 @@ void Neighbor::half_multi_newton_tri_omp(NeighList *list)
 #endif
   NEIGH_OMP_SETUP(nlocal);
 
-  int i,j,k,n,itype,jtype,ibin,which,ns;
+  int i,j,k,n,itype,jtype,ibin,which,ns,imol,iatom;
+  tagint tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr,*s;
   double *cutsq,*distsq;
 
   // loop over each atom, storing neighbors
 
-  tagint **special = atom->special;
-  int **nspecial = atom->nspecial;
-  tagint *tag = atom->tag;
-
   double **x = atom->x;
   int *type = atom->type;
   int *mask = atom->mask;
+  tagint *tag = atom->tag;
   tagint *molecule = atom->molecule;
-  int molecular = atom->molecular;
+  tagint **special = atom->special;
+  int **nspecial = atom->nspecial;
+
+  int *molindex = atom->molindex;
+  int *molatom = atom->molatom;
+  Molecule **onemols = atom->avec->onemols;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -321,6 +366,11 @@ void Neighbor::half_multi_newton_tri_omp(NeighList *list)
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
+    if (moltemplate) {
+      imol = molindex[i];
+      iatom = molatom[i];
+      tagprev = tag[i] - iatom - 1;
+    }
 
     // loop over all atoms in bins, including self, in stencil
     // skip if i,j neighbor cutoff is less than bin distance
@@ -357,7 +407,13 @@ void Neighbor::half_multi_newton_tri_omp(NeighList *list)
 
         if (rsq <= cutneighsq[itype][jtype]) {
           if (molecular) {
-            which = find_special(special[i],nspecial[i],tag[j]);
+            if (!moltemplate)
+              which = find_special(special[i],nspecial[i],tag[j]);
+            else if (imol >=0)
+              which = find_special(onemols[imol]->special[iatom],
+                                   onemols[imol]->nspecial[iatom],
+                                   tag[j]-tagprev);
+            else which = 0;
             if (which == 0) neighptr[n++] = j;
             else if (domain->minimum_image_check(delx,dely,delz))
               neighptr[n++] = j;

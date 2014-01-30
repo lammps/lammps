@@ -60,7 +60,7 @@ void Atom::map_init()
 
   int recreate = 0;
   if (map_style != map_style_old) recreate = 1;
-  else if (map_style == 1 && map_tag_max > max_array) recreate = 1;
+  else if (map_style == 1 && map_tag_max > map_maxarray) recreate = 1;
   else if (map_style == 2 && nlocal+nghost > map_nhash) recreate = 1;
 
   // if not recreating:
@@ -84,8 +84,8 @@ void Atom::map_init()
     map_delete();
 
     if (map_style == 1) {
-      max_array = map_tag_max;
-      memory->create(map_array,max_array+1,"atom:map_array");
+      map_maxarray = map_tag_max;
+      memory->create(map_array,map_maxarray+1,"atom:map_array");
       for (int i = 0; i <= map_tag_max; i++) map_array[i] = -1;
       
     } else {

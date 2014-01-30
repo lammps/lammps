@@ -241,9 +241,10 @@ class Atom : protected Pointers {
 
   // global to local ID mapping
 
-  int *map_array;       // direct map of length map_tag_max + 1
+  int *map_array;       // direct map via array that holds map_tag_max
+  int map_maxarray;     // allocated size of map_array (1 larger than this)
 
-  struct HashElem {
+  struct HashElem {     // hashed map
     tagint global;      // key to search on = global ID
     int local;          // value associated with key = local index
     int next;           // next entry in this bucket, -1 if last
@@ -255,8 +256,6 @@ class Atom : protected Pointers {
   int *map_bucket;      // ptr to 1st entry in each bucket
   HashElem *map_hash;   // hash table
 
-  int max_array;        // allocated size of map_array (+1)
-  int max_nhash;        // allocated size of hash table
   int max_same;         // allocated size of sametag
 
   // spatial sorting of atoms

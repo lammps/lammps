@@ -100,7 +100,14 @@ void TAD::command(int narg, char **arg)
 
   char *id_compute = new char[strlen(arg[6])+1];
   strcpy(id_compute,arg[6]);
+  
+  // quench minimizer is set by min_style command
+  // NEB minimizer is set by options, default = quickmin
 
+  int n = strlen(update->minimize_style) + 1;
+  min_style = new char[n];
+  strcpy(min_style,update->minimize_style);
+  
   options(narg-7,&arg[7]);
 
   // total # of timesteps must be multiple of t_event
@@ -255,7 +262,6 @@ void TAD::command(int narg, char **arg)
   update->whichflag = 1;
   lmp->init();
   update->integrate->setup();
-  //   }
 
   // main loop: look for events until out of time
   // (1) dynamics, store state, quench, check event, restore state
@@ -579,10 +585,10 @@ void TAD::options(int narg, char **arg)
   n2steps_neb = 100;
   nevery_neb = 10;
 
-  min_style = new char[3];
-  strcpy(min_style,"cg");
-  min_style_neb = new char[9];
+  int n = strlen("quickmin") + 1;
+  min_style_neb = new char[n];
   strcpy(min_style_neb,"quickmin");
+  dt_neb = update->dt;
   neb_logfilename = NULL;
 
   int iarg = 0;
@@ -610,20 +616,18 @@ void TAD::options(int narg, char **arg)
           nevery_neb < 0) error->all(FLERR,"Illegal tad command");
       iarg += 6;
 
-    } else if (strcmp(arg[iarg],"min_style") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal tad command");
-      int n = strlen(arg[iarg+1]) + 1;
-      delete [] min_style;
-      min_style = new char[n];
-      strcpy(min_style,arg[iarg+1]);
-      iarg += 2;
-
     } else if (strcmp(arg[iarg],"neb_style") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal tad command");
-      int n = strlen(arg[iarg+1]) + 1;
       delete [] min_style_neb;
+      int n = strlen(arg[iarg+1]) + 1;
       min_style_neb = new char[n];
       strcpy(min_style_neb,arg[iarg+1]);
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"neb_step") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal tad command");
+      dt_neb = force->numeric(FLERR,arg[iarg+1]);
+      if (dt_neb <= 0.0) error->all(FLERR,"Illegal tad command");
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"neb_log") == 0) {
@@ -725,7 +729,7 @@ void TAD::perform_neb(int ievent)
   memory->destroy(buf_init);
   memory->destroy(buf_final);
 
-  // run NEB
+  // run NEB with NEB timestep
 
   int beginstep_hold = update->beginstep;
   int endstep_hold = update->endstep;
@@ -737,18 +741,22 @@ void TAD::perform_neb(int ievent)
     universe->uscreen = uscreen_neb;
   }
 
-  // Had to bypass timer interface
-  // because timer->array is reset
-  // inside neb->run()
+  // had to bypass timer interface
+  // because timer->array is reset inside neb->run()
 
-//    timer->barrier_start(TIME_LOOP);
-//    neb->run();
-//    timer->barrier_stop(TIME_LOOP);
-//    time_neb += timer->array[TIME_LOOP];
+  //    timer->barrier_start(TIME_LOOP);
+  //    neb->run();
+  //    timer->barrier_stop(TIME_LOOP);
+  //    time_neb += timer->array[TIME_LOOP];
 
   MPI_Barrier(world);
   double time_tmp = MPI_Wtime();
+
+  double dt_hold = update->dt;
+  update->dt = dt_neb;
   neb->run();
+  update->dt = dt_hold;
+
   MPI_Barrier(world);
   time_neb += MPI_Wtime() - time_tmp;
 

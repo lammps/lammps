@@ -315,7 +315,8 @@ int FixAppendAtoms::get_spatial()
 
     if (domain->boxhi[2] - shockfront_loc < spatlead) advance = 1;
 
-    delete [] pos,val;
+    delete [] pos;
+    delete [] val;
   }
 
   advance_sum = 0;
@@ -453,7 +454,6 @@ void FixAppendAtoms::pre_exchange()
       double x[3];
       double *sublo = domain->sublo;
       double *subhi = domain->subhi;
-      double *mass = atom->mass;
 
       int i,j,k,m;
       for (k = klo; k <= khi; k++) {

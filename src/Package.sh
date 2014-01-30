@@ -78,9 +78,9 @@ elif (test $2 = "diff") then
         echo "  src/$file does not exist"
       elif (! cmp -s $file ../$file) then
         echo "************************************************"
-        echo "diff $1/$file src/$file "
+        echo "diff -u $1/$file src/$file "
         echo "************************************************"
-	diff $file  ../$file 
+	diff -u $file  ../$file 
       fi
     done
   fi

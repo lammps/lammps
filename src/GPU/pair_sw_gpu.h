@@ -51,42 +51,20 @@ class PairSWGPU : public PairSW {
 
 E: Insufficient memory on accelerator
 
-UNDOCUMENTED
+There is insufficient memory on one of the devices specified for the gpu
+package
 
 E: Pair style sw/gpu requires atom IDs
 
-UNDOCUMENTED
+This is a requirement to use this potential.
 
 E: Pair style sw/gpu requires newton pair off
 
-UNDOCUMENTED
+See the newton command.  This is a restriction to use this potential.
 
 E: All pair coeffs are not set
 
-UNDOCUMENTED
-
-U: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-U: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-U: No matching element in ADP potential file
-
-The ADP potential file does not contain elements that match the
-requested elements.
-
-U: Cannot open ADP potential file %s
-
-The specified ADP potential file cannot be opened.  Check that the
-path and name are correct.
-
-U: Incorrect element names in ADP potential file
-
-The element names in the ADP file do not match those requested.
+All pair coefficients must be set in the data file or by the
+pair_coeff command before running a simulation.
 
 */

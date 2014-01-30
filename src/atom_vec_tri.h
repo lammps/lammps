@@ -143,8 +143,4 @@ E: Insufficient Jacobi rotations for triangle
 The calculation of the intertia tensor of the triangle failed.  This
 should not happen if it is a reasonably shaped triangle.
 
-U: Invalid atom ID in Atoms section of data file
-
-Atom IDs must be positive integers.
-
 */

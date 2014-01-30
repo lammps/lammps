@@ -133,8 +133,4 @@ E: Inconsistent line segment in data file
 The end points of the line segment are not equal distances from the
 center point which is the atom coordinate.
 
-U: Invalid atom ID in Atoms section of data file
-
-Atom IDs must be positive integers.
-
 */

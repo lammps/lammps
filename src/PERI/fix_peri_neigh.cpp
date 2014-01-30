@@ -119,6 +119,17 @@ void FixPeriNeigh::init()
   neighbor->requests[irequest]->half = 0;
   neighbor->requests[irequest]->full = 1;
   neighbor->requests[irequest]->occasional = 1;
+
+  // compute PD scale factor, stored in Atom class, used by DumpCFG
+
+  int nlocal = atom->nlocal;
+  double vone = 0.0;
+  for (int i = 0; i < nlocal; i++) vone += atom->vfrac[i];
+  double vave;
+  MPI_Allreduce(&vone,&vave,1,MPI_DOUBLE,MPI_SUM,world);
+  if (atom->natoms) vave /= atom->natoms;
+  if (vave > 0.0) atom->pdscale = 1.44 / pow(vave,1.0/3.0);
+  else atom->pdscale = 1.0;
 }
 
 /* ---------------------------------------------------------------------- */

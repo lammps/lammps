@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -29,9 +29,6 @@ class FixWallHarmonic : public FixWall {
   FixWallHarmonic(class LAMMPS *, int, char **);
   void precompute(int) {}
   void wall_particle(int, int, double);
-
- private:
-  double offset[6];
 };
 
 }

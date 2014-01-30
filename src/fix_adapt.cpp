@@ -200,8 +200,16 @@ void FixAdapt::init()
 
     if (ad->which == PAIR) {
       anypair = 1;
+      Pair *pair = NULL;
 
-      Pair *pair = force->pair_match(ad->pstyle,1);
+      if (lmp->suffix_enable) {
+        char psuffix[128];
+        strcpy(psuffix,ad->pstyle);
+        strcat(psuffix,"/");
+        strcat(psuffix,lmp->suffix);
+        pair = force->pair_match(psuffix,1);
+      }
+      if (pair == NULL) pair = force->pair_match(ad->pstyle,1);
       if (pair == NULL) error->all(FLERR,"Fix adapt pair style does not exist");
       void *ptr = pair->extract(ad->pparam,ad->pdim);
       if (ptr == NULL) 

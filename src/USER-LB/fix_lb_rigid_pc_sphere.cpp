@@ -1332,7 +1332,7 @@ void FixLbRigidPCSphere::set_xv()
 
 void FixLbRigidPCSphere::pre_neighbor()
 {
-  int original,oldimage,newimage;
+  imageint original,oldimage,newimage;
 
   for (int ibody = 0; ibody < nbody; ibody++) {
     original = imagebody[ibody];
@@ -1355,10 +1355,11 @@ void FixLbRigidPCSphere::pre_neighbor()
 
   // adjust image flags of any atom in a rigid body whose xcm was remapped
 
-  int *atomimage = atom->image;
+  imageint *atomimage = atom->image;
   int nlocal = atom->nlocal;
 
-  int ibody,idim,otherdims;
+  int ibody;
+  imageint idim,otherdims;
 
   for (int i = 0; i < nlocal; i++) {
     if (body[i] == -1) continue;

@@ -206,19 +206,19 @@ All 3-atom angle-constrained SHAKE clusters specified by the fix shake
 command that are the same angle type, must also have the same bond
 types for the 2 bonds in the angle.
 
-E: Shake atoms %ld %ld missing on proc %d at step %ld
+E: Shake atoms %d %d missing on proc %d at step %ld
 
 The 2 atoms in a single shake cluster specified by the fix shake
 command are not all accessible to a processor.  This probably means
 an atom has moved too far.
 
-E: Shake atoms %ld %ld %ld missing on proc %d at step %ld
+E: Shake atoms %d %d %d missing on proc %d at step %ld
 
 The 3 atoms in a single shake cluster specified by the fix shake
 command are not all accessible to a processor.  This probably means
 an atom has moved too far.
 
-E: Shake atoms %ld %ld %ld %ld missing on proc %d at step %ld
+E: Shake atoms %d %d %d %d missing on proc %d at step %ld
 
 The 4 atoms in a single shake cluster specified by the fix shake
 command are not all accessible to a processor.  This probably means

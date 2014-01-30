@@ -130,22 +130,16 @@ void DumpCFG::init_style()
 
 void DumpCFG::write_header(bigint n)
 {
-  // special handling for atom style peri
-  //   use average volume of particles to scale particles to mimic C atoms
-  //   scale box dimension to sc lattice for C with sigma = 1.44 Angstroms
-  // special handling for unwrapped coordinates
+  // set scale factor used by AtomEye for CFG viz
+  // default = 1.0
+  // for peridynamics, set to pre-computed PD scale factor
+  //   so PD particles mimic C atoms
+  // for unwrapped coords, set to UNWRAPEXPAND (10.0)
+  //   so molecules are not split across periodic box boundaries
 
-  double scale;
-  if (atom->peri_flag) {
-    int nlocal = atom->nlocal;
-    double vone = 0.0;
-    for (int i = 0; i < nlocal; i++) vone += atom->vfrac[i];
-    double vave;
-    MPI_Allreduce(&vone,&vave,1,MPI_DOUBLE,MPI_SUM,world);
-    if (atom->natoms) vave /= atom->natoms;
-    if (vave > 0.0) scale = 1.44 / pow(vave,1.0/3.0);
-  } else if (unwrapflag == 1) scale = UNWRAPEXPAND;
-  else scale = 1.0;
+  double scale = 1.0;
+  if (atom->peri_flag) scale = atom->pdscale;
+  else if (unwrapflag == 1) scale = UNWRAPEXPAND;
 
   char str[64];
   sprintf(str,"Number of particles = %s\n",BIGINT_FORMAT);
@@ -273,9 +267,9 @@ void DumpCFG::write_lines(int n, double *mybuf)
     for (i = 0; i < n; i++) {
       for (j = 0; j < size_one; j++) {
         if (j == 0) {
-	  fprintf(fp,"%f \n",mybuf[m]);
+          fprintf(fp,"%f \n",mybuf[m]);
         } else if (j == 1) {
-	  fprintf(fp,"%s \n",typenames[(int) mybuf[m]]);
+          fprintf(fp,"%s \n",typenames[(int) mybuf[m]]);
         } else if (j >= 2) {
           if (vtype[j] == INT) 
             fprintf(fp,vformat[j],static_cast<int> (mybuf[m]));
@@ -296,9 +290,9 @@ void DumpCFG::write_lines(int n, double *mybuf)
     for (i = 0; i < n; i++) {
       for (j = 0; j < size_one; j++) {
         if (j == 0) {
-	  fprintf(fp,"%f \n",mybuf[m]);
+          fprintf(fp,"%f \n",mybuf[m]);
         } else if (j == 1) {
-	  fprintf(fp,"%s \n",typenames[(int) mybuf[m]]);
+          fprintf(fp,"%s \n",typenames[(int) mybuf[m]]);
         } else if (j >= 2 && j <= 4) {
           unwrap_coord = (mybuf[m] - 0.5)/UNWRAPEXPAND + 0.5;
           fprintf(fp,vformat[j],unwrap_coord);

@@ -52,7 +52,7 @@ class BondFENEExpand : public Bond {
 
 /* ERROR/WARNING messages:
 
-W: FENE bond too long: %ld %ld %ld %g
+W: FENE bond too long: %ld %d %d %g
 
 A FENE bond has stretched dangerously far.  It's interaction strength
 will be truncated to attempt to prevent the bond from blowing up.

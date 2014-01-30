@@ -546,7 +546,7 @@ int DumpAtomMPIIO::convert_string_omp(int n, double *mybuf)
 
 int DumpAtomMPIIO::convert_image_omp(int n, double *mybuf)
 {
-  MPI_Status mpiStatus;
+  double *localbuf = mybuf;
   char **mpifh_buffer_line_per_thread;
   int mpifhStringCount;
   int *mpifhStringCountPerThread, *bufOffset, *bufRange, *bufLength;
@@ -581,7 +581,7 @@ int DumpAtomMPIIO::convert_image_omp(int n, double *mybuf)
     mpifh_buffer_line_per_thread[i] = (char *) malloc(DUMP_BUF_CHUNK_SIZE * sizeof(char));
     mpifh_buffer_line_per_thread[i][0] = '\0';
 
-#pragma omp parallel default(none)
+#pragma omp parallel default(none) shared(localbuf,bufLength,bufOffset,bufRange,mpifhStringCountPerThread,mpifh_buffer_line_per_thread)
     {
       int tid = omp_get_thread_num();
       int m=0;
@@ -593,7 +593,7 @@ int DumpAtomMPIIO::convert_image_omp(int n, double *mybuf)
           bufLength[tid] = (mpifhStringCountPerThread[tid]+DUMP_BUF_CHUNK_SIZE) * sizeof(char);
         }
 
-        mpifhStringCountPerThread[tid] += sprintf(&(mpifh_buffer_line_per_thread[tid][mpifhStringCountPerThread[tid]]),format,static_cast<int> (mybuf[bufOffset[tid]+m]),static_cast<int> (mybuf[bufOffset[tid]+m+1]),mybuf[bufOffset[tid]+m+2],mybuf[bufOffset[tid]+m+3],mybuf[bufOffset[tid]+m+4],static_cast<int> (mybuf[bufOffset[tid]+m+5]),static_cast<int> (mybuf[bufOffset[tid]+m+6]),static_cast<int> (mybuf[bufOffset[tid]+m+7]));
+        mpifhStringCountPerThread[tid] += sprintf(&(mpifh_buffer_line_per_thread[tid][mpifhStringCountPerThread[tid]]),format,static_cast<int> (localbuf[bufOffset[tid]+m]),static_cast<int> (localbuf[bufOffset[tid]+m+1]),localbuf[bufOffset[tid]+m+2],localbuf[bufOffset[tid]+m+3],localbuf[bufOffset[tid]+m+4],static_cast<int> (localbuf[bufOffset[tid]+m+5]),static_cast<int> (localbuf[bufOffset[tid]+m+6]),static_cast<int> (localbuf[bufOffset[tid]+m+7]));
         m += size_one;
       }
     }
@@ -637,7 +637,7 @@ int DumpAtomMPIIO::convert_image_omp(int n, double *mybuf)
 
 int DumpAtomMPIIO::convert_noimage_omp(int n, double *mybuf)
 {
-  MPI_Status mpiStatus;
+  double *localbuf = mybuf;
   char **mpifh_buffer_line_per_thread;
   int mpifhStringCount;
   int *mpifhStringCountPerThread, *bufOffset, *bufRange, *bufLength;
@@ -672,7 +672,7 @@ int DumpAtomMPIIO::convert_noimage_omp(int n, double *mybuf)
     mpifh_buffer_line_per_thread[i] = (char *) malloc(DUMP_BUF_CHUNK_SIZE * sizeof(char));
     mpifh_buffer_line_per_thread[i][0] = '\0';
 
-#pragma omp parallel default(none)
+#pragma omp parallel default(none) shared(localbuf,bufLength,bufOffset,bufRange,mpifhStringCountPerThread,mpifh_buffer_line_per_thread)
     {
       int tid = omp_get_thread_num();
       int m=0;
@@ -684,7 +684,7 @@ int DumpAtomMPIIO::convert_noimage_omp(int n, double *mybuf)
           bufLength[tid] = (mpifhStringCountPerThread[tid]+DUMP_BUF_CHUNK_SIZE) * sizeof(char);
         }
 
-        mpifhStringCountPerThread[tid] += sprintf(&(mpifh_buffer_line_per_thread[tid][mpifhStringCountPerThread[tid]]),format,static_cast<int> (mybuf[bufOffset[tid]+m]),static_cast<int> (mybuf[bufOffset[tid]+m+1]),mybuf[bufOffset[tid]+m+2],mybuf[bufOffset[tid]+m+3],mybuf[bufOffset[tid]+m+4]);
+        mpifhStringCountPerThread[tid] += sprintf(&(mpifh_buffer_line_per_thread[tid][mpifhStringCountPerThread[tid]]),format,static_cast<int> (localbuf[bufOffset[tid]+m]),static_cast<int> (localbuf[bufOffset[tid]+m+1]),localbuf[bufOffset[tid]+m+2],localbuf[bufOffset[tid]+m+3],localbuf[bufOffset[tid]+m+4]);
         m += size_one;
       }
     }

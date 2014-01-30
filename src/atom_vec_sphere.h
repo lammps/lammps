@@ -102,8 +102,4 @@ E: Invalid density in Atoms section of data file
 
 Density value cannot be <= 0.0.
 
-U: Invalid atom ID in Atoms section of data file
-
-Atom IDs must be positive integers.
-
 */

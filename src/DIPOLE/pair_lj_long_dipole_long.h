@@ -76,11 +76,11 @@ Self-explanatory.
 
 W: Using largest cut-off for lj/long/dipole/long long long
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Cut-offs missing in pair_style lj/long/dipole/long
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Coulombic cut not supported in pair_style lj/long/dipole/long
 
@@ -88,7 +88,7 @@ Must use long-range Coulombic interactions.
 
 E: Only one cut-off allowed when requesting all long
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Incorrect args for pair coefficients
 
@@ -119,17 +119,5 @@ E: Pair cutoff < Respa interior cutoff
 
 One or more pairwise cutoffs are too short to use with the specified
 rRESPA cutoffs.
-
-U: Using largest cutoff for lj/long/dipole/long
-
-Self-exlanatory.
-
-U: Cutoffs missing in pair_style lj/long/dipole/long
-
-Self-exlanatory.
-
-U: Only one cutoff allowed when requesting all long
-
-Self-explanatory.
 
 */

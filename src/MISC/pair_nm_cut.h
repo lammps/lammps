@@ -66,71 +66,11 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Incorrect args for pair coefficients
 
-UNDOCUMENTED
+Self-explanatory.  Check the input script or data file.
 
 E: All pair coeffs are not set
 
-UNDOCUMENTED
-
-U: Create_atoms command before simulation box is defined
-
-The create_atoms command cannot be used before a read_data,
-read_restart, or create_box command.
-
-U: Cannot create_atoms after reading restart file with per-atom info
-
-The per-atom info was stored to be used when by a fix that you
-may re-define.  If you add atoms before re-defining the fix, then
-there will not be a correct amount of per-atom info.
-
-U: Create_atoms region ID does not exist
-
-A region ID used in the create_atoms command does not exist.
-
-U: Invalid basis setting in create_atoms command
-
-UNDOCUMENTED
-
-U: Molecule template ID for create_atoms does not exist
-
-UNDOCUMENTED
-
-U: Molecule template for create_atoms has multiple molecules
-
-UNDOCUMENTED
-
-U: Invalid atom type in create_atoms command
-
-The create_box command specified the range of valid atom types.
-An invalid type is being requested.
-
-U: Create_atoms molecule must have coordinates
-
-UNDOCUMENTED
-
-U: Create_atoms molecule must have atom types
-
-UNDOCUMENTED
-
-U: Invalid atom type in create_atoms mol command
-
-UNDOCUMENTED
-
-U: Create_atoms molecule has atom IDs, but system does not
-
-UNDOCUMENTED
-
-U: Cannot create atoms with undefined lattice
-
-Must use the lattice command before using the create_atoms
-command.
-
-U: Too many total atoms
-
-See the setting for bigint in the src/lmptype.h file.
-
-U: No overlap of box and region for create_atoms
-
-Self-explanatory.
+All pair coefficients must be set in the data file or by the
+pair_coeff command before running a simulation.
 
 */

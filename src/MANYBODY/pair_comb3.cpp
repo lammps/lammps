@@ -323,7 +323,7 @@ void PairComb3::read_lib()
     FILE *fp =  fopen("lib.comb3","r");
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open COMB3 C library file \n");
+      sprintf(str,"Cannot open COMB3 C library file");
       error->one(FLERR,str);
     }
 
@@ -2648,9 +2648,9 @@ void PairComb3::tables()
                
         rvdw[1][inty] = params[iparam_ij].vsig * 0.950;
 
-        // radius check: outter radius vs. sigma
+        // radius check: outer radius vs. sigma
         if( rvdw[0][inty] > rvdw[1][inty] )
-          error->all(FLERR,"Error in vdw spline: inner radius > outter radius");
+          error->all(FLERR,"Error in vdw spline: inner radius > outer radius");
 
         rrc[0] = rvdw[1][inty];
 

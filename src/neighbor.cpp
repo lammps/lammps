@@ -320,7 +320,9 @@ void Neighbor::init()
     special_flag[3] = 1;
   else special_flag[3] = 2;
 
-  if (force->kspace) special_flag[1] = special_flag[2] = special_flag[3] = 2;
+  if (force->kspace || force->pair_match("coul/wolf",0)
+      || force->pair_match("coul/dsf",0))
+     special_flag[1] = special_flag[2] = special_flag[3] = 2;
 
   // maxwt = max multiplicative factor on atom indices stored in neigh list
 

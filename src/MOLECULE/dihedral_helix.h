@@ -47,7 +47,7 @@ class DihedralHelix : public Dihedral {
 
 /* ERROR/WARNING messages:
 
-W: Dihedral problem: %d %ld %ld %ld %ld %ld
+W: Dihedral problem: %d %ld %d %d %d %d
 
 Conformation of the 4 listed dihedral atoms is extreme; you may want
 to check your simulation geometry.

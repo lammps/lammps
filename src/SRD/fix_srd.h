@@ -335,12 +335,12 @@ E: Fix SRD: bad bin assignment for SRD advection
 Something has gone wrong in your SRD model; try using more
 conservative settings.
 
-E: SRD particle %ld started inside big particle %ld on step %ld bounce %d
+E: SRD particle %d started inside big particle %d on step %ld bounce %d
 
 See the inside keyword if you want this message to be an error vs
 warning.
 
-W: SRD particle %ld started inside big particle %ld on step %ld bounce %d
+W: SRD particle %d started inside big particle %d on step %ld bounce %d
 
 See the inside keyword if you want this message to be an error vs
 warning.

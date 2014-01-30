@@ -108,7 +108,7 @@ FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
 
     if (atom->molecular == 2 && onemol != atom->avec->onemols[0])
       error->all(FLERR,"Fix deposit molecule template ID must be same "
-                 "as atom style template ID");
+                 "as atom_style template ID");
     onemol->check_attributes(0);
 
     // fix deposit uses geoemetric center of molecule for insertion

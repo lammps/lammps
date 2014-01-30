@@ -61,9 +61,4 @@ W: Dump dcd/xtc timestamp may be wrong with fix dt/reset
 If the fix changes the timestep, the dump dcd file will not
 reflect the change.
 
-U: Use of fix dt/reset with undefined lattice
-
-Must use lattice command with fix dt/reset command if units option is
-set to lattice.
-
 */

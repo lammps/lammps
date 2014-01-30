@@ -91,8 +91,4 @@ E: Fix peri neigh does not exist
 
 Somehow a fix that the pair style defines has been deleted.
 
-U: Pair peri requires a lattice be defined
-
-Use the lattice command for this purpose.
-
 */

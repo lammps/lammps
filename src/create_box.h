@@ -49,7 +49,8 @@ A simulation box can only be defined once.
 
 E: Cannot run 2d simulation with nonperiodic Z dimension
 
-There is a conflict between the dimension and boundary commands.
+Use the boundary command to make the z dimension periodic in order to
+run a 2d simulation.
 
 E: Create_box region ID does not exist
 
@@ -62,22 +63,18 @@ such a region with the create_box command.
 
 E: No bonds allowed with this atom style
 
-This means you cannot use an optional keyword that defines bond
-properties.
+Self-explanatory.
 
 E: No angles allowed with this atom style
 
-This means you cannot use an optional keyword that defines angle
-properties.
+Self-explanatory.
 
 E: No dihedrals allowed with this atom style
 
-This means you cannot use an optional keyword that defines dihedral
-properties.
+Self-explanatory.
 
 E: No impropers allowed with this atom style
 
-This means you cannot use an optional keyword that defines improper
-properties.
+Self-explanatory.
 
 */

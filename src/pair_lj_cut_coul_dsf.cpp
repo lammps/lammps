@@ -43,7 +43,10 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutCoulDSF::PairLJCutCoulDSF(LAMMPS *lmp) : Pair(lmp) {}
+PairLJCutCoulDSF::PairLJCutCoulDSF(LAMMPS *lmp) : Pair(lmp)
+{
+  single_enable = 0;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -72,7 +75,7 @@ void PairLJCutCoulDSF::compute(int eflag, int vflag)
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
   double r,rsq,r2inv,r6inv,forcecoul,forcelj,factor_coul,factor_lj;
-  double prefactor,erfcc,erfcd,e_self,t;
+  double prefactor,erfcc,erfcd,t;
   int *ilist,*jlist,*numneigh,**firstneigh;
   
   evdwl = ecoul = 0.0;
@@ -84,8 +87,8 @@ void PairLJCutCoulDSF::compute(int eflag, int vflag)
   double *q = atom->q;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
+  double *special_coul = force->special_coul;
   int newton_pair = force->newton_pair;
   double qqrd2e = force->qqrd2e;
 
@@ -106,8 +109,8 @@ void PairLJCutCoulDSF::compute(int eflag, int vflag)
     jlist = firstneigh[i];
     jnum = numneigh[i];
     
-    if (evflag) {
-      e_self = -(e_shift/2.0 + alpha/MY_PIS) * qtmp*qtmp*qqrd2e;
+    if (eflag) {
+      double e_self = -(e_shift/2.0 + alpha/MY_PIS) * qtmp*qtmp*qqrd2e;
       ev_tally(i,i,nlocal,0,0.0,e_self,0.0,0.0,0.0,0.0);
     }
 
@@ -139,7 +142,7 @@ void PairLJCutCoulDSF::compute(int eflag, int vflag)
           erfcc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * erfcd;
           forcecoul = prefactor * (erfcc/r + 2.0*alpha/MY_PIS * erfcd + 
             r*f_shift) * r;
-        }
+        } else forcecoul = 0.0;
 
         fpair = (forcecoul + factor_lj*forcelj) * r2inv;
         f[i][0] += delx*fpair;

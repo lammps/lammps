@@ -85,21 +85,22 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Restart file MPI-IO output not allowed with '%' in filename
+E: Restart file MPI-IO output not allowed with % in filename
 
-UNDOCUMENTED
+This is because a % signifies one file per processor and MPI-IO
+creates one large file for all processors.
 
 E: Writing to MPI-IO filename when MPIIO package is not installed
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Cannot use write_restart fileper without % in restart file name
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Cannot use write_restart nfile without % in restart file name
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Atom count is inconsistent, cannot write restart file
 

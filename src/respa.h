@@ -126,13 +126,4 @@ E: Pair style does not support rRESPA inner/middle/outer
 You are attempting to use rRESPA options with a pair style that
 does not support them.
 
-U: Fix shake with rRESPA computes invalid pressures
-
-This is a known bug in LAMMPS that has not yet been fixed.  If you use
-SHAKE with rRESPA and perform a constant volume simulation (e.g. using
-fix npt) this only affects the output pressure, not the dynamics of
-the simulation.  If you use SHAKE with rRESPA and perform a constant
-pressure simulation (e.g. using fix npt) then you will be
-equilibrating to the wrong volume.
-
 */

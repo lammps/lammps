@@ -274,7 +274,7 @@ void PPPMDisp::init()
 	  else if (mixflag == 2) { k = 3; break; }
 	default:
 	  sprintf(str, "Unsupported order in kspace_style "
-                  "pppm/disp pair_style %s", force->pair_style);
+                  "pppm/disp, pair_style %s", force->pair_style);
 	  error->all(FLERR,str);
       }
       function[k] = 1;
@@ -381,7 +381,7 @@ void PPPMDisp::init()
                          "b/c stencil extends beyond neighbor processor");
       iteration++;
 
-      // set grid for dispersion interaction and coulomb interactions!
+      // set grid for dispersion interaction and coulomb interactions
  
       set_grid();
 
@@ -1292,7 +1292,7 @@ void PPPMDisp::init_coeffs()				// local pair coeffs
     err =  bmax/amax;
     if (err > 1.0e-4) {
       char str[128];
-      sprintf(str, "Error in splitting of dispersion coeffs is estimated %g %.",err);
+      sprintf(str,"Error in splitting of dispersion coeffs is estimated %g%",err);
       error->warning(FLERR, str);
     }
     // set B
@@ -1337,7 +1337,7 @@ void PPPMDisp::init_coeffs()				// local pair coeffs
         if (screen) fprintf(screen,"  Using %d structure factors\n",nsplit);
         if (logfile) fprintf(logfile,"  Using %d structure factors\n",nsplit);
       }
-      if (nsplit > 9) error->warning(FLERR, "Simulations might be very slow because of large number of structure factors!");
+      if (nsplit > 9) error->warning(FLERR, "Simulations might be very slow because of large number of structure factors");
     }
 
     memory->destroy(A);
@@ -1354,7 +1354,7 @@ void PPPMDisp::init_coeffs()				// local pair coeffs
     //cannot use sigma, because this has not been set yet
     double **sigma = (double **) force->pair->extract("sigma",tmp);  
     if (!(epsilon&&sigma))
-      error->all(FLERR,"epsilon or sigma reference not set by pair style in PPPMDisp");
+      error->all(FLERR,"Epsilon or sigma reference not set by pair style in PPPMDisp");
     double eps_i, sigma_i, sigma_n, *bi = B = new double[7*n+7];
     double c[7] = {
       1.0, sqrt(6.0), sqrt(15.0), sqrt(20.0), sqrt(15.0), sqrt(6.0), 1.0};
@@ -2603,7 +2603,7 @@ void PPPMDisp::set_grid()
 
       // break loop if the accuracy has been reached or too many loops have been performed
       if (dfkspace <= accuracy) break;
-      if (count > 500) error->all(FLERR, "Could not compute grid size for Coulomb interaction!");
+      if (count > 500) error->all(FLERR, "Could not compute grid size for Coulomb interaction");
       h *= 0.95;
       h_x = h_y = h_z = h;
     }

@@ -420,6 +420,6 @@ Self-explanatory.  See the atom_modify command to create a map.
 
 E: Invalid atom ID in variable file
 
-Self-explanatory.  
+Self-explanatory.
 
 */

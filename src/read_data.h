@@ -345,19 +345,19 @@ See the setting for bigint in the src/lmptype.h file.
 
 E: No bonds allowed with this atom style
 
-Self-explanatory.  Check data file.
+Self-explanatory.
 
 E: No angles allowed with this atom style
 
-Self-explanatory.  Check data file.
+Self-explanatory.
 
 E: No dihedrals allowed with this atom style
 
-Self-explanatory.  Check data file.
+Self-explanatory.
 
 E: No impropers allowed with this atom style
 
-Self-explanatory.  Check data file.
+Self-explanatory.
 
 E: Bonds defined but no bond types
 

@@ -115,7 +115,7 @@ specified in the create_atoms command, as an offset.  The final value
 for each atom must be between 1 to N, where N is the number of atom
 types.
 
-E: Fix deposit molecule template ID must be same as atom_style template ID
+E: Fix deposit molecule template ID must be same as atom style template ID
 
 When using atom_style template, you cannot deposit molecules that are
 not in that template.

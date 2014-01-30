@@ -1025,7 +1025,7 @@ void PairKIM::write_descriptor(char** test_descriptor_string)
 {
    // allocate memory
    if (*test_descriptor_string != 0) 
-     error->all(FLERR, "test_descriptor_string already allocated");
+     error->all(FLERR, "Test_descriptor_string already allocated");
    // assuming 75 lines at 100 characters each (should be plenty)
    *test_descriptor_string = new char[100*75]; 
    // initialize

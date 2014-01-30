@@ -288,7 +288,11 @@ E: Cannot open fix rigid restart file %s
 The specified file cannot be opened.  Check that the path and name are
 correct.
 
-E: Rigid body atoms %ld %ld missing on proc %d at step %ld
+E: Rigid body atoms %d %d missing on proc %d at step %ld
+
+UNDOCUMENTED
+
+U: Rigid body atoms %ld %ld missing on proc %d at step %ld
 
 This means that an atom cannot find the atom that owns the rigid body
 it is part of, or vice versa.  The solution is to use the communicate

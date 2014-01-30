@@ -516,7 +516,8 @@ void PPPMDisp::init()
 
     // adjust g_ewald_6
 
-    if (!gewaldflag_6 && accuracy_kspace_6 == accuracy_real_6) adjust_gewald_6();
+    if (!gewaldflag_6 && accuracy_kspace_6 == accuracy_real_6) 
+      adjust_gewald_6();
 
     // calculate the final accuracy
 
@@ -3640,7 +3641,7 @@ void PPPMDisp::set_n_pppm_6()
 
     // break loop if the accuracy has been reached or too many loops have been performed
     if (df_kspace <= acc_kspace) break;
-    if (count > 500) error->all(FLERR, "Could not compute grid size for Dispersion!");
+    if (count > 500) error->all(FLERR, "Could not compute grid size for Dispersion");
     h *= 0.95;
     h_x = h_y = h_z = h;
   }

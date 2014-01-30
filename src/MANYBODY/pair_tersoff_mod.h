@@ -82,8 +82,8 @@ class PairTersoffMOD : public PairTersoff {
 
 E: Cannot open Tersoff potential file %s
 
-The specified potential file cannot be opened.  Check that the
-path and name are correct.
+The specified potential file cannot be opened.  Check that the path
+and name are correct.
 
 E: Incorrect format in Tersoff potential file
 

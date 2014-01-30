@@ -333,9 +333,7 @@ Either all atoms IDs must be zero or none of them.
 
 E: New atom IDs exceed maximum allowed ID
 
-The limit on atom IDs is set by the SMALLBIG, BIGBIG, SMALLSMALL
-setting in your Makefile.  See Section_start 2.2 of the manual for
-more details.
+See the setting for tagint in the src/lmptype.h file.
 
 E: Incorrect atom format in data file
 

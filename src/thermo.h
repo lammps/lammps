@@ -385,12 +385,4 @@ You are using a thermo keyword that requires potentials to
 have tallied energy, but they didn't on this timestep.  See the
 variable doc page for ideas on how to make this work.
 
-U: Thermo keyword requires lattice be defined
-
-The xlat, ylat, zlat keywords refer to lattice properties.
-
-U: Thermo keyword in variable requires lattice be defined
-
-The xlat, ylat, zlat keywords refer to lattice properties.
-
 */

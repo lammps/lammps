@@ -240,8 +240,9 @@ void PairHbondDreidingLJOMP::eval(int iifrom, int iito, ThrData * const thr)
                         pm.denom_vdw;
               switch2 = 12.0*rsq * (pm.cut_outersq-rsq) *
                         (rsq-pm.cut_innersq) / pm.denom_vdw;
-              force_kernel = force_kernel*switch1 + eng_lj*switch2;
-              eng_lj *= switch1;
+              force_kernel = force_kernel*switch1 + eng_lj*switch2/rsq;
+              force_angle *= switch1;
+              eng_lj      *= switch1;
             }
 
             if (EFLAG) {

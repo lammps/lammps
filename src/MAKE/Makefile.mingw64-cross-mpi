@@ -33,7 +33,7 @@ LIBOBJDIR = 	/Obj_mingw64-mpi
 # LAMMPS ifdef settings, OPTIONAL
 # see possible settings in doc/Section_start.html#2_2 (step 4)
 
-LMP_INC =	-DLAMMPS_SMALLBIG -DLAMMPS_JPEG -DLAMMPS_XDR #-DLAMMPS_GZIP -DMALLOC_MEMALIGN=64
+LMP_INC =	-DLAMMPS_SMALLBIG -DLAMMPS_JPEG -DLAMMPS_PNG -DLAMMPS_XDR -DLAMMPS_GZIP -DLAMMPS_FFMPEG
 
 # MPI library, REQUIRED
 # see discussion in doc/Section_start.html#2_2 (step 5)
@@ -66,7 +66,7 @@ FFT_LIB =
 
 JPG_INC =       
 JPG_PATH = 	
-JPG_LIB =	-ljpeg
+JPG_LIB =	-ljpeg -lpng -lz
 
 # ---------------------------------------------------------------------
 # build rules and dependencies

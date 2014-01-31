@@ -187,7 +187,9 @@ void ImproperFourierOMP::add1_thr(const int i1,const int i2,
     if (screen) {
       char str[128];
       sprintf(str,
-              "Improper problem: %d/%d " BIGINT_FORMAT " %d %d %d %d",
+              "Improper problem: %d/%d " BIGINT_FORMAT " "
+                TAGINT_FORMAT " " TAGINT_FORMAT " "
+                TAGINT_FORMAT " " TAGINT_FORMAT,
               me,thr->get_tid(),update->ntimestep,
               atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
       error->warning(FLERR,str,0);

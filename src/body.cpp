@@ -26,6 +26,8 @@ Body::Body(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   int n = strlen(arg[0]) + 1;
   style = new char[n];
   strcpy(style,arg[0]);
+  icp = NULL;
+  dcp = NULL;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -68,8 +68,8 @@ AtomVecBody::~AtomVecBody()
 {
   int nall = nlocal_bonus + nghost_bonus;
   for (int i = 0; i < nall; i++) {
-    icp->put(bonus[i].iindex);
-    dcp->put(bonus[i].dindex);
+    bptr->icp->put(bonus[i].iindex);
+    bptr->dcp->put(bonus[i].dindex);
   }
   memory->sfree(bonus);
 
@@ -98,8 +98,6 @@ void AtomVecBody::process_args(int narg, char **arg)
   else error->all(FLERR,"Invalid body style");
 
   bptr->avec = this;
-  icp = bptr->icp;
-  dcp = bptr->dcp;
 
   // max size of forward/border comm
   // 7,16 are packed in pack_comm/pack_border
@@ -194,8 +192,8 @@ void AtomVecBody::copy(int i, int j, int delflag)
   // if deleting atom J via delflag and J has bonus data, then delete it
 
   if (delflag && body[j] >= 0) {
-    icp->put(bonus[body[j]].iindex);
-    dcp->put(bonus[body[j]].dindex);
+    bptr->icp->put(bonus[body[j]].iindex);
+    bptr->dcp->put(bonus[body[j]].dindex);
     copy_bonus(nlocal_bonus-1,body[j]);
     nlocal_bonus--;
   }
@@ -231,8 +229,8 @@ void AtomVecBody::clear_bonus()
 {
   int nall = nlocal_bonus + nghost_bonus;
   for (int i = nlocal_bonus; i < nall; i++) {
-    icp->put(bonus[i].iindex);
-    dcp->put(bonus[i].dindex);
+    bptr->icp->put(bonus[i].iindex);
+    bptr->dcp->put(bonus[i].dindex);
   }
   nghost_bonus = 0;
 }
@@ -833,8 +831,8 @@ void AtomVecBody::unpack_border(int n, int first, double *buf)
       inertia[2] = buf[m++];
       bonus[j].ninteger = (int) ubuf(buf[m++]).i;
       bonus[j].ndouble = (int) ubuf(buf[m++]).i;
-      bonus[j].ivalue = icp->get(bonus[j].ninteger,bonus[j].iindex);
-      bonus[j].dvalue = dcp->get(bonus[j].ndouble,bonus[j].dindex);
+      bonus[j].ivalue = bptr->icp->get(bonus[j].ninteger,bonus[j].iindex);
+      bonus[j].dvalue = bptr->dcp->get(bonus[j].ndouble,bonus[j].dindex);
       m += bptr->unpack_border_body(&bonus[j],&buf[m]);
       bonus[j].ilocal = i;
       body[i] = j;
@@ -881,8 +879,8 @@ void AtomVecBody::unpack_border_vel(int n, int first, double *buf)
       inertia[2] = buf[m++];
       bonus[j].ninteger = (int) ubuf(buf[m++]).i;
       bonus[j].ndouble = (int) ubuf(buf[m++]).i;
-      bonus[j].ivalue = icp->get(bonus[j].ninteger,bonus[j].iindex);
-      bonus[j].dvalue = dcp->get(bonus[j].ndouble,bonus[j].dindex);
+      bonus[j].ivalue = bptr->icp->get(bonus[j].ninteger,bonus[j].iindex);
+      bonus[j].dvalue = bptr->dcp->get(bonus[j].ndouble,bonus[j].dindex);
       m += bptr->unpack_border_body(&bonus[j],&buf[m]);
       bonus[j].ilocal = i;
       body[i] = j;
@@ -928,8 +926,8 @@ int AtomVecBody::unpack_border_hybrid(int n, int first, double *buf)
       inertia[2] = buf[m++];
       bonus[j].ninteger = (int) ubuf(buf[m++]).i;
       bonus[j].ndouble = (int) ubuf(buf[m++]).i;
-      bonus[j].ivalue = icp->get(bonus[j].ninteger,bonus[j].iindex);
-      bonus[j].dvalue = dcp->get(bonus[j].ndouble,bonus[j].dindex);
+      bonus[j].ivalue = bptr->icp->get(bonus[j].ninteger,bonus[j].iindex);
+      bonus[j].dvalue = bptr->dcp->get(bonus[j].ndouble,bonus[j].dindex);
       m += bptr->unpack_border_body(&bonus[j],&buf[m]);
       bonus[j].ilocal = i;
       body[i] = j;
@@ -1032,9 +1030,9 @@ int AtomVecBody::unpack_exchange(double *buf)
     inertia[2] = buf[m++];
     bonus[nlocal_bonus].ninteger = (int) ubuf(buf[m++]).i;
     bonus[nlocal_bonus].ndouble = (int) ubuf(buf[m++]).i;
-    bonus[nlocal_bonus].ivalue = icp->get(bonus[nlocal_bonus].ninteger,
+    bonus[nlocal_bonus].ivalue = bptr->icp->get(bonus[nlocal_bonus].ninteger,
 					  bonus[nlocal_bonus].iindex);
-    bonus[nlocal_bonus].dvalue = dcp->get(bonus[nlocal_bonus].ndouble,
+    bonus[nlocal_bonus].dvalue = bptr->dcp->get(bonus[nlocal_bonus].ndouble,
 					  bonus[nlocal_bonus].dindex);
     memcpy(bonus[nlocal_bonus].ivalue,&buf[m],
            bonus[nlocal_bonus].ninteger*sizeof(int));
@@ -1184,9 +1182,9 @@ int AtomVecBody::unpack_restart(double *buf)
     inertia[2] = buf[m++];
     bonus[nlocal_bonus].ninteger = (int) ubuf(buf[m++]).i;
     bonus[nlocal_bonus].ndouble = (int) ubuf(buf[m++]).i;
-    bonus[nlocal_bonus].ivalue = icp->get(bonus[nlocal_bonus].ninteger,
+    bonus[nlocal_bonus].ivalue = bptr->icp->get(bonus[nlocal_bonus].ninteger,
 					  bonus[nlocal_bonus].iindex);
-    bonus[nlocal_bonus].dvalue = dcp->get(bonus[nlocal_bonus].ndouble,
+    bonus[nlocal_bonus].dvalue = bptr->dcp->get(bonus[nlocal_bonus].ndouble,
 					  bonus[nlocal_bonus].dindex);
     memcpy(bonus[nlocal_bonus].ivalue,&buf[m],
            bonus[nlocal_bonus].ninteger*sizeof(int));
@@ -1477,7 +1475,7 @@ bigint AtomVecBody::memory_usage()
   if (atom->memcheck("body")) bytes += memory->usage(body,nmax);
 
   bytes += nmax_bonus*sizeof(Bonus);
-  bytes += icp->size + dcp->size;
+  bytes += bptr->icp->size + bptr->dcp->size;
 
   int nall = nlocal_bonus + nghost_bonus;
   for (int i = 0; i < nall; i++) {

@@ -89,6 +89,7 @@ class MyPoolChunk {
 
     ndatum = nchunk = size = 0;
     pages = NULL;
+    whichbin = NULL;
     npage = 0;
   }
 

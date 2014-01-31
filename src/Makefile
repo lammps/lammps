@@ -148,7 +148,7 @@ package:
 	@echo 'User-contributed packages:' $(PACKUSER)
 	@echo ''
 	@echo 'make package             list available packages'
-	@echo 'make package-status      status of all packages'
+	@echo 'make package-status (ps) status of all packages'
 	@echo 'make yes-package         install a single package in src dir'
 	@echo 'make no-package          remove a single package from src dir'
 	@echo 'make yes-all             install all packages in src dir'
@@ -220,6 +220,7 @@ no-%:
 # diff = show differences between src and package files
 
 package-status:
+ps:
 	@for p in $(PACKAGEUC); do $(SHELL) Package.sh $$p status; done
 	@echo ''
 	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p status; done

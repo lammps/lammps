@@ -62,7 +62,7 @@ class AtomVecMeso : public AtomVec {
   bigint memory_usage();
 
  private:
-  int *tag;
+  tagint *tag;
   int *type,*mask;
   imageint *image;
   double **x,**v,**f;

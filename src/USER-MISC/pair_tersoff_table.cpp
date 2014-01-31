@@ -524,8 +524,8 @@ void PairTersoffTable::compute(int eflag, int vflag)
 
 void PairTersoffTable::deallocatePreLoops(void)
 {
-    memory->destroy (preGtetaFunction);
-    memory->destroy (preGtetaFunctionDerived);
+    memory->destroy(preGtetaFunction);
+    memory->destroy(preGtetaFunctionDerived);
     memory->destroy(preCutoffFunction);
     memory->destroy(preCutoffFunctionDerived);
 }

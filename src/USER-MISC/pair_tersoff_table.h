@@ -26,8 +26,8 @@ PairStyle(tersoff/table,PairTersoffTable)
 
 #else
 
-#ifndef LMP_PAIR_Tersoff_H
-#define LMP_PAIR_Tersoff_H
+#ifndef LMP_PAIR_TERSOFF_TABLE_H
+#define LMP_PAIR_TERSOFF_TABLE_H
 
 #include "pair.h"
 
